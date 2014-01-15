@@ -1,11 +1,14 @@
-# FarmBot Controller Menu
+puts '[FarmBot Controller Menu]'
+puts 'starting up'
+
+require './lib/dbaccess.rb'
+require './lib/filehandler.rb'
 
 require './lib/controller.rb'
-require './lib/filehandler.rb'
-require "./lib/hardware/ramps.rb"
+#require "./lib/hardware/ramps.rb"
 
-$bot_control		= Control.new
-$bot_hardware 		= HardwareInterface.new
+#$bot_control		= Control.new
+#$bot_hardware 		= HardwareInterface.new
 
 $shutdown		= 0
 #$command_queue		= Queue.new
@@ -23,6 +26,10 @@ $shutdown		= 0
 #}
 
 # just a little menu for testing
+
+puts 'connecting to database'
+
+$bot_dbaccess = DbAccess.new
 
 $move_size = 10
 
@@ -75,153 +82,45 @@ while $shutdown == 0 do
 			
 			# put the command into the queue for execution
 			#$command_queue << new_command
-			$bot_conrtol.setCommand(new_command)
+			#$bot_conrtol.setCommand(new_command)
 		when "Z" # Move to home
-		
-			# create the command
-			new_command = ControlCommand.new
-			new_command.commandid = 0
-			
-			# add lines with the right actions to the command
-			new_line = ControlCommandLine.new
-			new_line.action = "HOME Z"
-			new_command.lines = [new_line]
-			
-			# put the command into the queue for execution
-			#$command_queue << new_command
-			$bot_control.setCommand(new_command)
+			$bot_dbaccess.createNewCommand(Time.now)
+			$bot_dbaccess.addCommandLine('HOME Z', 0, 0, 0, 0, 0)
+			$bot_dbaccess.saveNewCommand
 		when "X" # Move to home
-		
-			# create the command
-			new_command = ControlCommand.new
-			new_command.commandid = 0
-			
-			# add lines with the right actions to the command
-			new_line = ControlCommandLine.new
-			new_line.action = "HOME X"
-			new_command.lines = [new_line]
-			
-			# put the command into the queue for execution
-			#$command_queue << new_command
-			$bot_control.setCommand(new_command)
+			$bot_dbaccess.createNewCommand(Time.now)
+			$bot_dbaccess.addCommandLine('HOME X', 0, 0, 0, 0, 0)
+			$bot_dbaccess.saveNewCommand
 		when "C" # Move to home
-		
-			# create the command
-			new_command = ControlCommand.new
-			new_command.commandid = 0
-			
-			# add lines with the right actions to the command
-			new_line = ControlCommandLine.new
-			new_line.action = "HOME Y"
-			new_command.lines = [new_line]
-			
-			# put the command into the queue for execution
-			#$command_queue << new_command
-			$bot_control.setCommand(new_command)
+			$bot_dbaccess.createNewCommand(Time.now)
+			$bot_dbaccess.addCommandLine('HOME Y',0 ,0 ,-$move_size, 0, 0)
+			$bot_dbaccess.saveNewCommand
 		when "W" # Move forward
-		
-			# create the command
-			new_command = ControlCommand.new
-			new_command.commandid = 0
-			
-			# add lines with the right actions to the command
-			new_line = ControlCommandLine.new
-			new_line.action = "MOVE RELATIVE"
-			new_line.xCoord = 0
-			new_line.yCoord = $move_size
-			new_line.zCoord = 0
-			new_command.lines = [new_line]
-			
-			# put the command into the queue for execution
-			#$command_queue << new_command
-			$bot_control.setCommand(new_command)
+			$bot_dbaccess.createNewCommand(Time.now)
+			$bot_dbaccess.addCommandLine('MOVE RELATIVE',0,$move_size, 0, 0, 0)
+			$bot_dbaccess.saveNewCommand
 		when "S" # Move back
-		
-			# create the command
-			new_command = ControlCommand.new
-			new_command.commandid = 0
-			
-			# add lines with the right actions to the command
-			new_line = ControlCommandLine.new
-			new_line.action = "MOVE RELATIVE"
-			new_line.xCoord = 0
-			new_line.yCoord = -$move_size
-			new_line.zCoord = 0
-			new_command.lines = [new_line]
-			
-			# put the command into the queue for execution
-			#$command_queue << new_command
-			$bot_control.setCommand(new_command)
+			$bot_dbaccess.createNewCommand(Time.now)
+			$bot_dbaccess.addCommandLine('MOVE RELATIVE',0,-$move_size, 0, 0, 0)
+			$bot_dbaccess.saveNewCommand
 		when "A" # Move left
-		
-			# create the command
-			new_command = ControlCommand.new
-			new_command.commandid = 0
-			
-			# add lines with the right actions to the command
-			new_line = ControlCommandLine.new
-			new_line.action = "MOVE RELATIVE"
-			new_line.xCoord = -$move_size
-			new_line.yCoord = 0
-			new_line.zCoord = 0
-			new_command.lines = [new_line]
-			
-			# put the command into the queue for execution
-			#$command_queue << new_command
-			$bot_control.setCommand(new_command)
+			$bot_dbaccess.createNewCommand(Time.now)
+			$bot_dbaccess.addCommandLine('MOVE RELATIVE', -$move_size, 0, 0, 0, 0)
+			$bot_dbaccess.saveNewCommand
 		when "D" # Move right
-		
-			# create the command
-			new_command = ControlCommand.new
-			new_command.commandid = 0
-			
-			# add lines with the right actions to the command
-			new_line = ControlCommandLine.new
-			new_line.action = "MOVE RELATIVE"
-			new_line.xCoord = $move_size
-			new_line.yCoord = 0
-			new_line.zCoord = 0
-			new_command.lines = [new_line]
-			
-			# put the command into the queue for execution
-			#$command_queue << new_command
-			$bot_control.setCommand(new_command)
+			$bot_dbaccess.createNewCommand(Time.now)
+			$bot_dbaccess.addCommandLine('MOVE RELATIVE', $move_size, 0, 0, 0, 0)
+			$bot_dbaccess.saveNewCommand
 		when "R" # Move up
-		
-			# create the command
-			new_command = ControlCommand.new
-			new_command.commandid = 0
-			
-			# add lines with the right actions to the command
-			new_line = ControlCommandLine.new
-			new_line.action = "MOVE RELATIVE"
-			new_line.xCoord = 0
-			new_line.yCoord = 0
-			new_line.zCoord = $move_size
-			new_command.lines = [new_line]
-			
-			# put the command into the queue for execution
-			#$command_queue << new_command
-			$bot_control.setCommand(new_command)
-		when "F" # Move down
-		
-			# create the command
-			new_command = ControlCommand.new
-			new_command.commandid = 0
-			
-			# add lines with the right actions to the command
-			new_line = ControlCommandLine.new
-			new_line.action = "MOVE RELATIVE"
-			new_line.xCoord = 0
-			new_line.yCoord = 0
-			new_line.zCoord = -$move_size
-			new_command.lines = [new_line]
-			
-			# put the command into the queue for execution
-			#$command_queue << new_command
-			$bot_control.setCommand(new_command)
+			$bot_dbaccess.createNewCommand(Time.now)
+			$bot_dbaccess.addCommandLine('MOVE RELATIVE', 0, 0, $move_size, 0, 0)
+			$bot_dbaccess.saveNewCommand
+		when "F" # Move down		
+			$bot_dbaccess.createNewCommand(Time.now)
+			$bot_dbaccess.addCommandLine("MOVE RELATIVE", 0, 0, -$move_size, 0, 0)
+			$bot_dbaccess.saveNewCommand
 		end
 
-	$bot_control.runCycle
-	
 end
+
+			

@@ -1,55 +1,170 @@
-# FarmBot schedule 
+# This class is dedicated to retrieving and inserting commands into the schedule queue for the farm bot
+# Mongo is used as the database, Mongoid as the databasemapper
 
-# This module reads the schedule from the mongodb. If a scheduled event is found, send the actions to the bot.
+require 'bson'
+require 'mongo'
+require 'mongoid'
 
-require "Rubygems"
+# Data classes
 
-# a few database classes
+class Command
+  include Mongoid::Document
 
-class FarmBotSchedule
-	include MongoMapper::Document
+  embeds_many :commandlines	
 
-	many	:BotScheduleActions
+  field :plant_id
+  field :scheduled_time
+  field :executed_time
+  field :status
 
-	# BotScheduleId		: unique id used to synchronize with cloud
-	# CropId			: unique id used to synchronize with cloud
-	# TimeScheduled		: time to start executing the actions
-	# TimeExecuted		: time when actions are executed
-	# Status			: a three letter status
-	#						SYN	: synchronizing
-	#						RTS	: ready to start
-	#						STA	: started
-	#						ERR	: error
-	#						DNE	: done
-	#						RPT : reported back to the cloud
 end
 
-class FarmBotScheduleAction
+class Commandline
+  include Mongoid::Document
 
-	include MongoMapper::EmbeddedDocument
-	
-	belongs_to	:botschedule
-	
-	# Action		: representation of the action to do
-	#					MOV	: move to x, y, z
-	#					SPD	: set speed
-	#					SHD	: shutdown bot
-	#					SSD	: set synchronization speed with cloud
-	#					also needed later on: inject seed, pickup seed, water, ...
-	# X				: X coordinate
-	# Y				: Y coordinate
-	# Z				: Z coordinate
-	# Speed			: Speed setting
-	#					FST		: fast movement for moving across a field
-	#					WRK		: work speed, used for slow movement like digging, weeding, ...
-	# Quantity		: Quantity of water or fertilizer to dose
-		
+  embedded_in :command
+  #belongs_to :command
+
+  field :action
+  field :coord_x
+  field :coord_y
+  field :coord_z
+  field :speed
+  field :amount
 end
 
+class Refresh
+  include Mongoid::Document
 
-class FarmBotDbAccess
-
-	def getNextEvent
-	end
-	
+  field :name
+  field :value
 end
+
+# Access class for the database
+
+class DbAccess
+
+  def initialize
+    Mongoid.load!("config/mongo.yml", :development)
+    @last_command_retrieved = nil
+    @refresh_value = 0
+    @refresh_value_new = 0
+
+    @new_command = nil
+  end
+
+  def test
+    db_connection = Mongo::Connection.new
+    db_farmbot = db_connection['farmbot_development']
+    db_schedule = db_farmbot['schedule']
+
+    db_connection.database_names.each do |name|
+      db = db_connection.db(name)
+      db.collections.each do |collection|
+        puts "#{name} - #{collection.name}"
+      end
+    end
+  end
+
+  def createNewCommand(scheduled_time)
+    @new_command = Command.new
+    @new_command.scheduled_time = scheduled_time
+  end
+
+  def addCommandLine(action, x = 0, y = 0, z = 0, speed = 0, amount = 0)
+    if @new_command != nil
+      line = Commandline.new
+      line.action = action
+      line.coord_x = x
+      line.coord_y = y
+      line.coord_z = z
+      line.speed   = speed
+      line.amount  = amount
+      if @new_command.commandlines == nil
+        @new_command.commandlines = [ line ]
+      else
+        @new_command.commandlines << line
+      end
+    end
+  end
+
+  def saveNewCommand
+    if @new_command != nil
+      @new_command.status = 'test'
+      @new_command.save
+    end
+    incrementRefresh
+  end
+
+  def getCommandToExecute
+    @last_command_retrieved = Command.where(:status => 'test', :scheduled_time.ne => nil).order_by([:scheduled_time,:asc]).first
+    @last_command_retrieved
+  end
+
+  def setCommandToExecuteStatus(new_status)
+    if @last_command_retrieved != nil
+      @last_command_retrieved.status = new_status
+      @last_command_retrieved.save
+    end
+  end
+
+  def checkRefresh
+    r = Refresh.where(:name => 'FarmBotControllerSchedule').first_or_initialize
+    @refresh_value_new = r.value.to_i
+    return @refresh_value_new != @refresh_value
+  end
+
+  def saveRefresh
+    @refresh_value = @refresh_value_new
+  end
+
+  def incrementRefresh
+    r = Refresh.where(:name => 'FarmBotControllerSchedule').first_or_initialize
+    r.value = r.value.to_i + 1
+    r.save
+  end
+
+end
+
+#sched = ScheduleManagement.new
+
+
+#c = FarmBotCommand.new
+#c.command_name = 'MOVE ABSOLUTE'
+#c.status = 'test'
+#c.save
+
+#sched.test
+
+#puts FarmBotCommand.first.inspect
+#puts FarmBotCommand.count
+
+#Mongoid.load!("config/mongo.yml", :development)
+
+
+#puts FarmBotCommand.where(:status => 'test').count
+
+#c = FarmBotCommand.where(:status => 'test').first
+
+
+
+#c = Command.new
+#puts c.id
+#c.status = 'test'
+#c.scheduled_time = DateTime.now
+#c.save
+
+#puts FarmBotCommand.where(:status => 'test').count
+
+#c = FarmBotCommand.where(:status => 'test', :scheduled_time.ne => nil).order_by([:scheduled_time,:asc]).count
+#c = sched.getFirstCommand
+#if c == nil
+#	puts 'niets gevonden'
+#else
+#	puts 'gevonden'
+#	puts c.id
+#	puts c.scheduled_time
+#end
+#puts c
+
+
