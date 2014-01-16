@@ -49,7 +49,7 @@ class Scheduler
 
           # wait until the scheduled time has arrived, or wait for a minute or until a refresh it set in the database as a sign new data has arrived
 
-          while Time.now < wait_start_time and command.scheduled_time > Time.now - 1 and refresh_received == false
+          while Time.now < wait_start_time + 60 and command.scheduled_time > Time.now - 1 and refresh_received == false
 
             sleep 1
 

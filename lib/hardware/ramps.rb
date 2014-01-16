@@ -9,9 +9,13 @@ class HardwareInterface
 		@pos_z = 0.0
 		
 		# should come from configuration:
-		@move_home_timeout   = 3
+		@move_home_timeout   = 3 # seconds after which home command is aborted
 		@sleep_after_pin_set = 0.005
 		@sleep_after_enable  = 0.001
+
+		@invert_axis_x = false
+		@invert_axis_y = false
+		@invert_axis_z = false
 
 		@steps_per_unit_x = 10 # steps per milimeter for example
 		@steps_per_unit_y = 10
@@ -86,17 +90,17 @@ class HardwareInterface
 	# move the bot to the home position
 
 	def moveHomeX
-		moveHome(@pin_enb_x, @pin_dir_x, @pin_stp_x, @pin_min_x)
+		moveHome(@pin_enb_x, @pin_dir_x, @pin_stp_x, @pin_min_x, @invert_axis_x)
 		@pos_x = 0
 	end
 
 	def moveHomeY
-		moveHome(@pin_enb_y, @pin_dir_y, @pin_stp_y, @pin_min_y)
+		moveHome(@pin_enb_y, @pin_dir_y, @pin_stp_y, @pin_min_y, @invert_axis_y)
 		@pos_y = 0
 	end
 
 	def moveHomeZ
-		moveHome(@pin_enb_z, @pin_dir_z, @pin_stp_z, @pin_min_z)
+		moveHome(@pin_enb_z, @pin_dir_z, @pin_stp_z, @pin_min_z, @invert_axis_z)
 		@pos_z = 0
 	end
 
@@ -104,13 +108,18 @@ class HardwareInterface
 		
 	end
 
-	def moveHome(pin_enb, pin_dir, pin_stp, pin_min)
+	def moveHome(pin_enb, pin_dir, pin_stp, pin_min, invert_axis)
 
 		# set the direction and enable
 
 		@board.digital_write(pin_enb, Firmata::Board::LOW)
 		sleep @sleep_after_enable
-		@board.digital_write(pin_dir, Firmata::Board::LOW)
+
+		if invert_axis == false
+			@board.digital_write(pin_dir, Firmata::Board::LOW)
+		else
+			@board.digital_write(pin_dir, Firmata::Board::HIGH)
+		end
 		sleep @sleep_after_pin_set
 
 		start = Time.now
@@ -196,38 +205,38 @@ class HardwareInterface
 		
 		# set the direction and the enable bit for the motor drivers
 
-		if steps_x < 0
+		if (steps_x < 0 and @invert_axis_x == false) or (steps_x > 0 and @invert_axis_x == true)
 			@board.digital_write(@pin_enb_x, Firmata::Board::LOW)
 			@board.digital_write(@pin_dir_x, Firmata::Board::LOW)
 		end
 	
-		if steps_x > 0
+		if (steps_x > 0 and @invert_axis_x == false) or (steps_x < 0 and @invert_axis_x == true)
 			@board.digital_write(@pin_enb_x, Firmata::Board::LOW)
 			@board.digital_write(@pin_dir_x, Firmata::Board::HIGH)
 		end
 
-		if steps_y < 0
+		if (steps_y < 0 and @invert_axis_y == false) or (steps_y > 0 and @invert_axis_y == true)
 			@board.digital_write(@pin_enb_y, Firmata::Board::LOW)
 			@sleep_after_enable
 			@board.digital_write(@pin_dir_y, Firmata::Board::LOW)
 			sleep @sleep_after_pin_set
 		end
 	
-		if steps_y > 0
+		if (steps_y > 0 and @invert_axis_y == false) or (steps_y < 0 and @invert_axis_y == true)
 			@board.digital_write(@pin_enb_y, Firmata::Board::LOW)
 			@sleep_after_enable
 			@board.digital_write(@pin_dir_y, Firmata::Board::HIGH)
 			sleep @sleep_after_pin_set
 		end
 
-		if steps_z < 0
+		if (steps_z < 0 and @invert_axis_z == false) or (steps_z > 0 and @invert_axis_z == true)
 			@board.digital_write(@pin_enb_z, Firmata::Board::LOW)
 			@sleep_after_enable
 			@board.digital_write(@pin_dir_z, Firmata::Board::LOW)
 			@sleep_after_pin_set
 		end
 	
-		if steps_z > 0
+		if (steps_z > 0 and @invert_axis_z == false) or (steps_z < 0 and @invert_axis_z == true)
 			@board.digital_write(@pin_enb_z, Firmata::Board::LOW)
 			@board.digital_write(@pin_dir_z, Firmata::Board::HIGH)
 			@sleep_after_pin_set
