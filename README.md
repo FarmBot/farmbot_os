@@ -59,7 +59,7 @@ sudo mkdir -p /data/db
 
 sudo chown $USER /data/db
 
-start with: /opt/mongo/bin/.mongod
+start with: /opt/mongo/bin/.mongod --dbpath /data/db
 
 Arduino
 -------
@@ -76,7 +76,9 @@ use "git clone" to copy the code to the RPi
 Usage
 =====
 
-Use "ruby menu.rb" to start the software. A menu will appear. Type the command needed and press enter. It is also possible to add a list of commands to the file 'testcommands.csv' and use the menu to execute the file.
+Use "ruby run.rb" to start the runtime part of the software. This will read the datbase and send commands to the hardware.
+
+Use "ruby menu.rb" to start the interface. A menu will appear. Type the command needed and press enter. It is also possible to add a list of commands to the file 'testcommands.csv' and use the menu to execute the file.
 
 Still to do
 ===========
