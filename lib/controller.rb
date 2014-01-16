@@ -30,13 +30,13 @@ class Control
 			#command = $command_queue.pop
 			#command = @new_command
 			#@new_command = nil
-			@new_command.lines.each do |command_line|
+			@new_command.commandlines.each do |command_line|
 			#command.lines.each do |command_line|
 				case command_line.action.upcase
 					when "MOVE ABSOLUTE"
-						$bot_hardware.moveAbsolute(command_line.xCoord, command_line.yCoord, command_line.zCoord)
+						$bot_hardware.moveAbsolute(command_line.coord_x, command_line.coord_y, command_line.coord_z)
 					when "MOVE RELATIVE"
-						$bot_hardware.moveRelative(command_line.xCoord, command_line.yCoord, command_line.zCoord)
+						$bot_hardware.moveRelative(command_line.coord_x, command_line.coord_y, command_line.coord_z)
 					when "HOME X"
 						$bot_hardware.moveHomeX
 					when "HOME Y"

@@ -1,11 +1,11 @@
-# FarmBot Controller runtime control
+# FarmBot schedule keeper
 
 # Get commands from the database and execute them on the hardware
 
 require 'date'
 
 #require './lib/dbaccess.rb'
-#require './lib/controller.rb'
+require './lib/controller.rb'
 #require './lib/filehandler.rb'
 #require "./lib/hardware/ramps.rb"
 
@@ -34,6 +34,9 @@ class Scheduler
 
           # execute the command now and set the status to done
           puts 'execute command'
+          
+          $bot_control.setCommand( command )
+          $bot_control.runCycle
           $bot_dbaccess.setCommandToExecuteStatus('FINISHED')
 
         else

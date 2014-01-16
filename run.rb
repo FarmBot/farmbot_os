@@ -15,8 +15,8 @@ require './lib/schedule.rb'
 
 puts 'connecting to hardware'
 
-#$bot_control  = Control.new
-#$bot_hardware = HardwareInterface.new
+$bot_control  = Control.new
+$bot_hardware = HardwareInterface.new
 
 puts 'connecting to database'
 
