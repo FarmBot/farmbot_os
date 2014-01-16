@@ -4,26 +4,13 @@ puts 'starting up'
 require './lib/dbaccess.rb'
 require './lib/filehandler.rb'
 
-require './lib/controller.rb'
+#require './lib/controller.rb'
 #require "./lib/hardware/ramps.rb"
 
 #$bot_control		= Control.new
 #$bot_hardware 		= HardwareInterface.new
 
 $shutdown		= 0
-#$command_queue		= Queue.new
-#$command_finished	= Queue.new
-
-# *thread disabled for now*
-# Main loop for the bot. Keep cycling until quiting time
-#bot_thread = Thread.new { 
-#
-#	bot = Control.new
-#	while $shutdown == 0
-#		bot.runCycle
-#	end
-#
-#}
 
 # just a little menu for testing
 
@@ -74,15 +61,9 @@ while $shutdown == 0 do
 			print 'Enter new step size > '
 			move_size_temp = gets
 			$move_size = move_size_temp.to_i if move_size_temp.to_i > 0
-		when "T" # Execute test file
-		
+		when "T" # Execute test file		
 			# read the file
-			new_command = TestFileHandler.readCommandFile
-			new_command.commandid = 0
-			
-			# put the command into the queue for execution
-			#$command_queue << new_command
-			#$bot_conrtol.setCommand(new_command)
+			TestFileHandler.readCommandFile
 		when "Z" # Move to home
 			$bot_dbaccess.createNewCommand(Time.now)
 			$bot_dbaccess.addCommandLine('HOME Z', 0, 0, 0, 0, 0)
