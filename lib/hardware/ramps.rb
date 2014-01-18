@@ -260,35 +260,35 @@ class HardwareInterface
 			#puts "y min = #{@board.pins[@pin_min_y].value} | y max = #{@board.pins[@pin_max_y].value} "
 			#puts "z min = #{@board.pins[@pin_min_z].value} | z max = #{@board.pins[@pin_max_z].value} "
 
-			if @board.pins[@pin_min_x].value == 1
+			if @board.pins[@pin_min_x].value == 1 and steps_x < 0
 				nr_steps_x = 0
 				@pos_x = 0
 				puts 'end stop min x'
 			end
 
-			if @board.pins[@pin_max_x].value == 1
+			if @board.pins[@pin_max_x].value == 1 and steps_x > 0
 				nr_steps_x = 0
 				puts 'end stop max x'
 			end
 
-			if @board.pins[@pin_min_y].value == 1
+			if @board.pins[@pin_min_y].value == 1 and steps_y < 0
 				nr_steps_y = 0
 				@pos_y = 0
 				puts 'end stop min y'
 			end
 
-			if @board.pins[@pin_max_y].value == 1
+			if @board.pins[@pin_max_y].value == 1 and steps_y > 0
 				nr_steps_y = 0
 				puts 'end stop max y'
 			end
 
-			if @board.pins[@pin_min_z].value == 1
+			if @board.pins[@pin_min_z].value == 1 and steps_z < 0
 				nr_steps_z = 0
 				@pos_z = 0
 				puts 'end stop min z'
 			end
 
-			if @board.pins[@pin_max_z].value == 1
+			if @board.pins[@pin_max_z].value == 1 and steps_z > 0
 				nr_steps_z = 0
 				puts 'end stop max z'
 			end
