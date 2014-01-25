@@ -16,7 +16,7 @@ Technicals
 Prerequisits
 ============
 
-Rapsberry PI
+Raspberry PI
 ------------
 
 Update the RPi, install ruby, firmate and the arduino IDE
