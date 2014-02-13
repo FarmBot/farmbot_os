@@ -1,8 +1,8 @@
 puts '[FarmBot Controller Menu]'
 puts 'starting up'
 
-require './lib/dbaccess.rb'
-require './lib/filehandler.rb'
+require './lib/database/dbaccess.rb'
+require './lib/database/filehandler.rb'
 
 #require './lib/controller.rb'
 #require "./lib/hardware/ramps.rb"

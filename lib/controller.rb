@@ -1,66 +1,111 @@
 # FarmBot Controller
 
-#require "Rubygems"
-#require "FarmBotDbAccess"
-#require "./hardware/ramps.rb"
+# This module executes the schedule. It reades the next command and sends it to the hardware implementation
 
-require './lib/controlcommand.rb'
-require './lib/filehandler.rb'
+require 'date'
 
-# This module ties the different components for the FarmBot together
-# It reads the next action from the database, executes it and reports back
-# and it will initiate the synchronization with the web systems
+require_relative 'database/dbaccess'
 
-class Control
+class Controller
 
-	def initialize	
-		@inactiveCounter 	= 0
-		@new_command		= nil
-	end
-	
-	def setCommand( cmd )
-		@new_command = cmd
-	end
+  # read command from schedule, wait for execution time
 
-	def runCycle
+  def initialize
+	  
+    @bot_dbaccess = DbAccess.new
+  end
 
-		#if $command_queue.empty? == false
-		if @new_command != nil
+  def runFarmBot
 
-			#command = $command_queue.pop
-			#command = @new_command
-			#@new_command = nil
-			@new_command.commandlines.each do |command_line|
-			#command.lines.each do |command_line|
-				case command_line.action.upcase
-					when "MOVE ABSOLUTE"
-						$bot_hardware.moveAbsolute(command_line.coord_x, command_line.coord_y, command_line.coord_z)
-					when "MOVE RELATIVE"
-						$bot_hardware.moveRelative(command_line.coord_x, command_line.coord_y, command_line.coord_z)
-					when "HOME X"
-						$bot_hardware.moveHomeX
-					when "HOME Y"
-						$bot_hardware.moveHomeY
-					when "HOME Z"
-						$bot_hardware.moveHomeZ
-					when "SET SPEED"
-						$bot_hardware.setSpeed(command_line.speed)
-					when "SHUTDOWN"
-						puts "shutdown"
-						$shutdown = 1
-				end
+    check = @bot_dbaccess.checkRefresh      
 
-			end			
-			#$commandFinished << command if command.commandid != nil and command.commandid > 0
-		else
-			sleep 0.1
-		end
+    while $shutdown == 0 do
 
-		@new_command = nil
-		
-	end
+      # keep checking the database for new data
+
+      puts 'checking schedule'
+      command = @bot_dbaccess.getCommandToExecute
+      @bot_dbaccess.saveRefresh      
+
+      if command != nil
+
+        puts "command retrieved is scheduled for #{command.scheduled_time}"
+        puts "curent time is #{Time.now}"
+
+        #scheduled_time = command.scheduled_time
+
+        if command.scheduled_time <= Time.now or command.scheduled_time == nil
+
+          # execute the command now and set the status to done
+          puts 'execute command'
+
+          #process_command( command )
+          @bot_dbaccess.setCommandToExecuteStatus('FINISHED')
+
+        else
+
+          puts 'wait for scheduled time or refresh'
+
+          refresh_received = false
+
+          wait_start_time = Time.now
+
+          # wait until the scheduled time has arrived, or wait for a minute or until a refresh it set in the database as a sign new data has arrived
+
+          while Time.now < wait_start_time + 60 and command.scheduled_time > Time.now - 1 and refresh_received == false
+
+            sleep 1
+
+            refresh_received = @bot_dbaccess.checkRefresh
+            puts 'refresh received' if refresh_received != false
+
+          end
+
+        end
+
+      else
+
+        puts 'no command found, wait'
+
+        refresh_received = false
+        wait_start_time = Time.now
+
+        # wait for a minute or until a refresh it set in the database as a sign new data has arrived
+
+        while  Time.now < wait_start_time + 60 and refresh_received == false
+
+          sleep 1
+
+          refresh_received = @bot_dbaccess.checkRefresh
+          puts 'refresh received' if refresh_received != false
+
+        end
+      end
+    end
+  end
+  
+  def process_command( cmd )
+
+    if cmd != nil
+      cmd.commandlines.each do |command_line|
+        case command_line.action.upcase
+          when "MOVE ABSOLUTE"
+            $bot_hardware.moveAbsolute(command_line.coord_x, command_line.coord_y, command_line.coord_z)
+          when "MOVE RELATIVE"
+            $bot_hardware.moveRelative(command_line.coord_x, command_line.coord_y, command_line.coord_z)
+          when "HOME X"
+            $bot_hardware.moveHomeX
+          when "HOME Y"
+            $bot_hardware.moveHomeY
+          when "HOME Z"
+            $bot_hardware.moveHomeZ
+          when "SET SPEED"
+            $bot_hardware.setSpeed(command_line.speed)
+        end
+      end      
+    else
+      sleep 0.1
+    end
+  end
+  
 end
-
-#$bot_hardware 		= FarmBotControlInterface.new
-#$command_queue		= Queue.new
-#$command_finished	= Queue.new
