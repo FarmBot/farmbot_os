@@ -1,23 +1,22 @@
-# FarmBot Controller
-
-# This module executes the schedule. It reades the next command and sends it to the hardware implementation
 
 require 'date'
 
 require_relative 'database/dbaccess'
 
+# FarmBot Controller: This module executes the schedule. It reades the next
+# command and sends it to the hardware implementation
 class Controller
 
   # read command from schedule, wait for execution time
 
   def initialize
-	  
+
     @bot_dbaccess = DbAccess.new
   end
 
   def runFarmBot
 
-    check = @bot_dbaccess.checkRefresh      
+    check = @bot_dbaccess.checkRefresh
 
     while $shutdown == 0 do
 
@@ -25,7 +24,7 @@ class Controller
 
       puts 'checking schedule'
       command = @bot_dbaccess.getCommandToExecute
-      @bot_dbaccess.saveRefresh      
+      @bot_dbaccess.saveRefresh
 
       if command != nil
 
@@ -50,7 +49,8 @@ class Controller
 
           wait_start_time = Time.now
 
-          # wait until the scheduled time has arrived, or wait for a minute or until a refresh it set in the database as a sign new data has arrived
+          # wait until the scheduled time has arrived, or wait for a minute or 
+          #until a refresh it set in the database as a sign new data has arrived
 
           while Time.now < wait_start_time + 60 and command.scheduled_time > Time.now - 1 and refresh_received == false
 
@@ -70,7 +70,8 @@ class Controller
         refresh_received = false
         wait_start_time = Time.now
 
-        # wait for a minute or until a refresh it set in the database as a sign new data has arrived
+        # wait for a minute or until a refresh it set in the database as a sign
+        # new data has arrived
 
         while  Time.now < wait_start_time + 60 and refresh_received == false
 
@@ -83,7 +84,7 @@ class Controller
       end
     end
   end
-  
+
   def process_command( cmd )
 
     if cmd != nil
@@ -102,10 +103,10 @@ class Controller
           when "SET SPEED"
             $bot_hardware.setSpeed(command_line.speed)
         end
-      end      
+      end
     else
       sleep 0.1
     end
   end
-  
+
 end

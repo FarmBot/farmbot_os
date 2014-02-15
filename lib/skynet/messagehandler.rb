@@ -1,8 +1,8 @@
 require 'json'
 require './lib/database/commandqueue.rb'
 
-# Get the JSON command, received through skynet, and send it to the farmbot command queue
-# Parses JSON messages received through SkyNet. 
+# Get the JSON command, received through skynet, and send it to the farmbot
+# command queue Parses JSON messages received through SkyNet.
 class MessageHandler
 
   attr_accessor :message
@@ -50,7 +50,7 @@ class MessageHandler
 
   def single_command(message)
     time_stamp = message['time_stamp']
-    
+
     if time_stamp != @last_time_stamp
       @last_time_stamp = time_stamp
 
@@ -67,9 +67,9 @@ class MessageHandler
       puts "[new command] received at #{Time.now}"
       puts "[#{action}] x: #{x}, y: #{y}, z: #{z}, speed: #{speed}, amount: "\
            "#{amount} delay: #{delay}"
-        
+
       @command_queue.create_new_command(Time.now + delay.to_i)
-      @command_queue.add_command_line(action, x.to_i, y.to_i, z.to_i, 
+      @command_queue.add_command_line(action, x.to_i, y.to_i, z.to_i,
         speed.to_s, amount.to_i)
       @command_queue.save_new_command
 

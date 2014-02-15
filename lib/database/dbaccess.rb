@@ -1,16 +1,15 @@
-# This class is dedicated to retrieving and inserting commands into the schedule queue for the farm bot
-# Mongo is used as the database, Mongoid as the databasemapper
-
 require 'bson'
 require 'mongo'
 require 'mongoid'
 
 # Data classes
-
+# This class is dedicated to retrieving and inserting commands into the schedule
+# queue for the farm bot Mongo is used as the database, Mongoid as the
+# databasemapper
 class Command
   include Mongoid::Document
 
-  embeds_many :commandlines	
+  embeds_many :commandlines
 
   field :plant_id
   field :scheduled_time
@@ -97,7 +96,10 @@ class DbAccess
   end
 
   def getCommandToExecute
-    @last_command_retrieved = Command.where(:status => 'test', :scheduled_time.ne => nil).order_by([:scheduled_time,:asc]).first
+    @last_command_retrieved = Command.where(
+      :status => 'test',
+      :scheduled_time.ne => nil
+      ).order_by([:scheduled_time,:asc]).first
     @last_command_retrieved
   end
 

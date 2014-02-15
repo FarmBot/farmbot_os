@@ -1,5 +1,4 @@
 require 'firmata'
-#require './FarmBotControlInterface.rb'
 
 class HardwareInterface
 
@@ -7,7 +6,7 @@ class HardwareInterface
     @pos_x = 0.0
     @pos_y = 0.0
     @pos_z = 0.0
-    
+
     # should come from configuration:
     @move_home_timeout   = 3 # seconds after which home command is aborted
     @sleep_after_pin_set = 0.005
@@ -20,7 +19,7 @@ class HardwareInterface
     @steps_per_unit_x = 10 # steps per milimeter for example
     @steps_per_unit_y = 10
     @steps_per_unit_z = 10
-      
+
     @boardDevice = "/dev/ttyACM0"
 
     @pin_led = 13
@@ -45,7 +44,7 @@ class HardwareInterface
 
     @pin_min_z = 18
     @pin_max_z = 19
-    
+
     @board = Firmata::Board.new @boardDevice
     @board.connect
 
@@ -105,7 +104,7 @@ class HardwareInterface
   end
 
   def setSpeed( speed )
-    
+
   end
 
   def moveHome(pin_enb, pin_dir, pin_stp, pin_min, invert_axis)
@@ -127,11 +126,11 @@ class HardwareInterface
 
     # keep setting pulses at the step pin until the end stop is reached of a time is reached
 
-    while home == 0 do    
+    while home == 0 do
 
       @board.read_and_process
       span = Time.now - start
-      
+
       if span > @move_home_timeout
         home = 1
         puts 'move home timed out'
@@ -146,7 +145,7 @@ class HardwareInterface
         @board.digital_write(pin_stp, Firmata::Board::HIGH)
         sleep @sleep_after_pin_set
         @board.digital_write(pin_stp, Firmata::Board::LOW)
-        sleep @sleep_after_pin_set    
+        sleep @sleep_after_pin_set
       end
     end
 
@@ -197,19 +196,19 @@ class HardwareInterface
   end
 
   def moveSteps( steps_x, steps_y, steps_z)
-    
+
     puts '**move steps **'
     puts "x #{steps_x}"
     puts "y #{steps_y}"
     puts "z #{steps_z}"
-    
+
     # set the direction and the enable bit for the motor drivers
 
     if (steps_x < 0 and @invert_axis_x == false) or (steps_x > 0 and @invert_axis_x == true)
       @board.digital_write(@pin_enb_x, Firmata::Board::LOW)
       @board.digital_write(@pin_dir_x, Firmata::Board::LOW)
     end
-  
+
     if (steps_x > 0 and @invert_axis_x == false) or (steps_x < 0 and @invert_axis_x == true)
       @board.digital_write(@pin_enb_x, Firmata::Board::LOW)
       @board.digital_write(@pin_dir_x, Firmata::Board::HIGH)
@@ -221,7 +220,7 @@ class HardwareInterface
       @board.digital_write(@pin_dir_y, Firmata::Board::LOW)
       sleep @sleep_after_pin_set
     end
-  
+
     if (steps_y > 0 and @invert_axis_y == false) or (steps_y < 0 and @invert_axis_y == true)
       @board.digital_write(@pin_enb_y, Firmata::Board::LOW)
       @sleep_after_enable
@@ -235,14 +234,14 @@ class HardwareInterface
       @board.digital_write(@pin_dir_z, Firmata::Board::LOW)
       @sleep_after_pin_set
     end
-  
+
     if (steps_z > 0 and @invert_axis_z == false) or (steps_z < 0 and @invert_axis_z == true)
       @board.digital_write(@pin_enb_z, Firmata::Board::LOW)
       @board.digital_write(@pin_dir_z, Firmata::Board::HIGH)
       @sleep_after_pin_set
     end
 
-    # make the steps positive numbers 
+    # make the steps positive numbers
 
     nr_steps_x = steps_x.abs
     nr_steps_y = steps_y.abs
@@ -311,9 +310,9 @@ class HardwareInterface
         sleep @sleep_after_pin_set
         @pos_y += 1 / @steps_per_unit_y
         nr_steps_y -= 1
-  
+
       end
-    
+
       if nr_steps_z > 0
         @board.digital_write(@pin_stp_z, Firmata::Board::HIGH)
         sleep @sleep_after_pin_set
@@ -330,10 +329,10 @@ class HardwareInterface
     @board.digital_write(@pin_enb_x, Firmata::Board::HIGH)
     @board.digital_write(@pin_enb_y, Firmata::Board::HIGH)
     @board.digital_write(@pin_enb_z, Firmata::Board::HIGH)
-      
+
     #while (X - pos_X).abs < 1/steps_per_unit_X
 
     puts '*move done*'
-          
-  end  
+
+  end
 end
