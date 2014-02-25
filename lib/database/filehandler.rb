@@ -1,4 +1,4 @@
-require './lib/controlcommand'
+require_relative '../database/controlcommand'
 
 # read the test file and convert it into one command
 class TestFileHandler
@@ -18,7 +18,6 @@ class TestFileHandler
           yCoord = params[2].to_i
           zCoord = params[3].to_i
           $bot_dbaccess.addCommandLine('HOME Z', 0, 0, 0, 0, 0)
-
         end
       end
       $bot_dbaccess.saveNewCommand
