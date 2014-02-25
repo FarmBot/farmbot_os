@@ -26,5 +26,5 @@ module WebSocket
       $skynet.handle_message(channel, message)
     end
   end
-  
+
 end

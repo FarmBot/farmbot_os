@@ -3,7 +3,7 @@
 class Command
   include Mongoid::Document
 
-  embeds_many :commandlines	
+  embeds_many :commandlines
 
   field :plant_id
   field :scheduled_time

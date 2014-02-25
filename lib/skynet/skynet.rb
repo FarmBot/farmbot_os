@@ -10,7 +10,8 @@ class Skynet
 
   include Credentials, WebSocket
 
-  attr_accessor :socket, :uuid, :token, :identified, :confirmed, :confirmation_id
+  attr_accessor :socket, :uuid, :token, :identified, :confirmed,
+    :confirmation_id
 
   # On instantiation #new sets the @uuid, @token variables, connects to skynet
   def initialize
@@ -28,7 +29,7 @@ class Skynet
   def send_message(devices, message_hash )
     @socket.emit("message",{:devices => devices, :message => message_hash})
   end
-  
+
   # Acts as the entry point for message traffic captured from Skynet.im.
   # This method is a stub for now until I have time to merge into Tim's
   # controller code. Returns a MessageHandler object (a class yet created).

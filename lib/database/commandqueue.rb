@@ -1,11 +1,11 @@
-# This class is dedicated to retrieving and inserting commands into the command queue for the farm bot
-
 require 'bson'
 require 'mongo'
 require 'mongoid'
 
 require './app/models/command.rb'
 
+# This class is dedicated to retrieving and inserting commands into the command 
+# queue for the farm bot
 class CommandQueue
 
   def initialize
@@ -48,7 +48,10 @@ class CommandQueue
   end
 
   def get_command_to_execute
-    @last_command_retrieved = Command.where(:status => 'test', :scheduled_time.ne => nil).order_by([:scheduled_time,:asc]).first
+    @last_command_retrieved = Command.where(
+      :status => 'test',
+      :scheduled_time.ne => nil
+      ).order_by([:scheduled_time,:asc]).first
     @last_command_retrieved
   end
 
