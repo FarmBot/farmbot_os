@@ -2,7 +2,7 @@ puts '[FarmBot Controller Menu]'
 puts 'starting up'
 
 require './lib/database/dbaccess.rb'
-require './lib/database/filehandler.rb'
+#require './lib/database/filehandler.rb'
 
 #require './lib/controller.rb'
 #require "./lib/hardware/ramps.rb"
@@ -67,9 +67,9 @@ while $shutdown == 0 do
 			print 'Enter new delay in seconds > '
 			command_delay_temp = gets
 			$command_delay = command_delay_temp.to_i if command_delay_temp.to_i > 0
-		when "T" # Execute test file		
-			# read the file
-			TestFileHandler.readCommandFile
+#		when "T" # Execute test file		
+#			# read the file
+#			TestFileHandler.readCommandFile
 		when "Z" # Move to home
 			$bot_dbaccess.createNewCommand(Time.now + $command_delay)
 			$bot_dbaccess.addCommandLine('HOME Z', 0, 0, 0, 0, 0)

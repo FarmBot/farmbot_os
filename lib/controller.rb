@@ -39,7 +39,7 @@ class Controller
           # execute the command now and set the status to done
           puts 'execute command'
 
-          #process_command( command )
+          process_command( command )
           @bot_dbaccess.setCommandToExecuteStatus('FINISHED')
 
         else
