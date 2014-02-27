@@ -21,7 +21,11 @@ class Skynet
     @uuid      = creds[:uuid]
     @token     = creds[:token]
     @socket    = SocketIO::Client::Simple.connect 'http://skynet.im:80'
+    @confirmed = false
+
     create_socket_events
+
+    puts "uuid: #{@uuid}"
 
     @message_handler  = MessageHandler.new
   end
@@ -36,12 +40,12 @@ class Skynet
   def handle_message(channel, message)
 
     if message.class.to_s == 'Hash'
-      @message_handler.handle_message(self, channel, message)
+      @message_handler.handle_message(channel, message)
     end
 
     if message.class.to_s == 'String'
       message_hash = JSON.parse(message)
-      @message_handler.handle_message(self, channel, message_hash)
+      @message_handler.handle_message(channel, message_hash)
     end
 
   rescue

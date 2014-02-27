@@ -8,7 +8,7 @@ class HardwareInterface
     @pos_z = 0.0
 
     # should come from configuration:
-    @move_home_timeout   = 3 # seconds after which home command is aborted
+    @move_home_timeout   = 30 # seconds after which home command is aborted
     @sleep_after_pin_set = 0.005
     @sleep_after_enable  = 0.001
 

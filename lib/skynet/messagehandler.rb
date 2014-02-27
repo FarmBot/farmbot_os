@@ -19,7 +19,7 @@ class MessageHandler
   end
 
   # Main entry point for (Hash) commands coming in over SkyNet.
-  #{
+  # {
   #    "message_type" : "single_command",
   #    "time_stamp" : 2001-01-01 01:01:01.001
   #    "command" : {
@@ -31,8 +31,8 @@ class MessageHandler
   #      "amount" : 5,
   #      "delay" : 6
   #   }
-  #}
-  def handle_message(skynet, channel, message)
+  # }
+  def handle_message(channel, message)
     @message = message
     requested_command = message["message_type"].to_s.downcase
     if whitelist.include?(requested_command)
@@ -50,9 +50,11 @@ class MessageHandler
 
   def single_command(message)
     time_stamp = message['time_stamp']
+    sender = message['fromUuid']
 
     if time_stamp != @last_time_stamp
       @last_time_stamp = time_stamp
+
 
       # send the command to the queue
       delay  = message['command']['delay']
@@ -64,7 +66,7 @@ class MessageHandler
       amount = message['command']['amount']
       delay  = message['command']['delay']
 
-      puts "[new command] received at #{Time.now}"
+      puts "[new command] received at #{Time.now} from #{sender}"
       puts "[#{action}] x: #{x}, y: #{y}, z: #{z}, speed: #{speed}, amount: "\
            "#{amount} delay: #{delay}"
 
@@ -73,15 +75,16 @@ class MessageHandler
         speed.to_s, amount.to_i)
       @command_queue.save_new_command
 
-      skynet.confirmed = false
+      $skynet.confirmed = false
+
       command =
         {
           :message_type => 'confirmation',
           :time_stamp   => Time.now.to_f.to_s,
           :confirm_id   => time_stamp
-          }
+        }
 
-       skynet.send_message("44128811-8c59-11e3-b99a-11476114e05f", command)
+       $skynet.send_message(sender, command)
 
     end
   end
