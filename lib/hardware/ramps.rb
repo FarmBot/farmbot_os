@@ -3,6 +3,7 @@ require 'firmata'
 class HardwareInterface
 
   def initialize
+
     @pos_x = 0.0
     @pos_y = 0.0
     @pos_z = 0.0
@@ -16,9 +17,17 @@ class HardwareInterface
     @invert_axis_y = false
     @invert_axis_z = false
 
-    @steps_per_unit_x = 10 # steps per milimeter for example
-    @steps_per_unit_y = 10
-    @steps_per_unit_z = 10
+    @steps_per_unit_x = 5 # steps per milimeter for example
+    @steps_per_unit_y = 4
+    @steps_per_unit_z = 157
+
+    @max_x = 23000
+    @max_y = 128
+    @max_z = 0
+
+    @min_x = 0
+    @min_y = 0
+    @min_z = -70
 
     @boardDevice = "/dev/ttyACM0"
 
@@ -89,17 +98,17 @@ class HardwareInterface
   # move the bot to the home position
 
   def moveHomeX
-    moveHome(@pin_enb_x, @pin_dir_x, @pin_stp_x, @pin_min_x, @invert_axis_x)
+    moveHome(@pin_enb_x, @pin_dir_x, @pin_stp_x, @pin_min_x, @invert_axis_x, false)
     @pos_x = 0
   end
 
   def moveHomeY
-    moveHome(@pin_enb_y, @pin_dir_y, @pin_stp_y, @pin_min_y, @invert_axis_y)
+    moveHome(@pin_enb_y, @pin_dir_y, @pin_stp_y, @pin_min_y, @invert_axis_y, false)
     @pos_y = 0
   end
 
   def moveHomeZ
-    moveHome(@pin_enb_z, @pin_dir_z, @pin_stp_z, @pin_min_z, @invert_axis_z)
+    moveHome(@pin_enb_z, @pin_dir_z, @pin_stp_z, @pin_max_z, @invert_axis_z, true)
     @pos_z = 0
   end
 
@@ -107,14 +116,14 @@ class HardwareInterface
 
   end
 
-  def moveHome(pin_enb, pin_dir, pin_stp, pin_min, invert_axis)
+  def moveHome(pin_enb, pin_dir, pin_stp, pin_min, invert_axis, reverse)
 
     # set the direction and enable
 
     @board.digital_write(pin_enb, Firmata::Board::LOW)
     sleep @sleep_after_enable
 
-    if invert_axis == false
+    if (invert_axis ^ reverse) == false
       @board.digital_write(pin_dir, Firmata::Board::LOW)
     else
       @board.digital_write(pin_dir, Firmata::Board::HIGH)
@@ -251,13 +260,11 @@ class HardwareInterface
 
     while nr_steps_x > 0 or nr_steps_y > 0 or nr_steps_z > 0 do
 
-      # read all input pins and check the end stops
+      # read all input pins
 
       @board.read_and_process
 
-      #puts "x min = #{@board.pins[@pin_min_x].value} | x max = #{@board.pins[@pin_max_x].value} "
-      #puts "y min = #{@board.pins[@pin_min_y].value} | y max = #{@board.pins[@pin_max_y].value} "
-      #puts "z min = #{@board.pins[@pin_min_z].value} | z max = #{@board.pins[@pin_max_z].value} "
+      # check the end stops
 
       if @board.pins[@pin_min_x].value == 1 and steps_x < 0
         nr_steps_x = 0
@@ -292,6 +299,38 @@ class HardwareInterface
         puts 'end stop max z'
       end
 
+      # check minimum and maximum position
+
+      if @pos_x >= @max_x and steps_x > 0
+        nr_steps_x = 0
+        puts 'maximum position for x reached'
+      end
+
+      if @pos_x <= @min_x and steps_x < 0
+        nr_steps_x = 0
+        puts 'minimum position for x reached'
+      end
+
+      if @pos_y >= @max_y and steps_y > 0
+        nr_steps_y = 0
+        puts 'maximum position for y reached'
+      end
+
+      if @pos_y <= @min_y and steps_y < 0
+        nr_steps_y = 0
+        puts 'minimum position for y reached'
+      end
+
+      if @pos_z >= @max_z and steps_z > 0
+        nr_steps_z = 0
+        puts 'maximum position for z reached'
+      end
+
+      if @pos_z <= @min_z and steps_z < 0
+        nr_steps_z = 0
+        puts 'minimum position for z reached'
+      end
+
       # send the step pulses to the motor drivers
 
       if nr_steps_x > 0
@@ -299,7 +338,7 @@ class HardwareInterface
         sleep @sleep_after_pin_set
         @board.digital_write(@pin_stp_x, Firmata::Board::LOW)
         sleep @sleep_after_pin_set
-        @pos_x += 1 / @steps_per_unit_x
+        @pos_x += 1.0 / @steps_per_unit_x * (steps_x<=>0.0)
         nr_steps_x -= 1
       end
 
@@ -308,7 +347,7 @@ class HardwareInterface
         sleep @sleep_after_pin_set
         @board.digital_write(@pin_stp_y, Firmata::Board::LOW)
         sleep @sleep_after_pin_set
-        @pos_y += 1 / @steps_per_unit_y
+        @pos_y += 1.0 / @steps_per_unit_y * (steps_y<=>0.0)
         nr_steps_y -= 1
 
       end
@@ -318,7 +357,7 @@ class HardwareInterface
         sleep @sleep_after_pin_set
         @board.digital_write(@pin_stp_z, Firmata::Board::LOW)
         sleep @sleep_after_pin_set
-        @pos_z += 1 / @steps_per_unit_z
+        @pos_z += 1.0 / @steps_per_unit_z * (steps_z<=>0.0)
         nr_steps_z -= 1
       end
 
