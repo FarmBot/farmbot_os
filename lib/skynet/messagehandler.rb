@@ -67,12 +67,10 @@ class MessageHandler
       delay  = message['command']['delay']
 
       puts "[new command] received at #{Time.now} from #{sender}"
-      puts "[#{action}] x: #{x}, y: #{y}, z: #{z}, speed: #{speed}, amount: "\
-           "#{amount} delay: #{delay}"
+      #puts "[#{action}] x: #{x}, y: #{y}, z: #{z}, speed: #{speed}, amount: #{amount} delay: #{delay}"
 
       @command_queue.create_new_command(Time.now + delay.to_i)
-      @command_queue.add_command_line(action, x.to_i, y.to_i, z.to_i,
-        speed.to_s, amount.to_i)
+      @command_queue.add_command_line(action, x.to_i, y.to_i, z.to_i, speed.to_s, amount.to_i)
       @command_queue.save_new_command
 
       $skynet.confirmed = false
