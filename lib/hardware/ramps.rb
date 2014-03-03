@@ -42,19 +42,33 @@ class HardwareInterfaceAxis
     @board.digital_write(@pin_enb, Firmata::Board::HIGH)
   end
 
+  def enableMotor()
+    @board.digital_write(@pin_enb, Firmata::Board::LOW)
+  end
+
+  def setDirectionLow()
+    @board.digital_write(pin_dir, Firmata::Board::LOW)
+    sleep @sleep_after_pin_set
+
+    enableMotor()
+  end
+
+  def setDirectionHigh()
+    @board.digital_write(pin_dir, Firmata::Board::HIGH)
+    sleep @sleep_after_pin_set
+
+    enableMotor()
+  end
+
   # set the direction and enable pins to prepare for the move to the home position
   #
   def moveHomeSetDirection()
 
-    @board.digital_write(pin_enb, Firmata::Board::LOW)
-    sleep @sleep_after_enable
-
     if (invert_axis ^ reverse_home) == false
-      @board.digital_write(pin_dir, Firmata::Board::LOW)
+      setDirectionLow()
     else
-      @board.digital_write(pin_dir, Firmata::Board::HIGH)
+      setDirectionHigh()
     end
-    sleep @sleep_after_pin_set
 
   end
 
@@ -79,7 +93,8 @@ class HardwareInterfaceAxis
         puts 'move home #{@name} timed out'
       end
 
-      if board.pins[@pin_min].value == 1
+      if (@board.pins[@pin_min].value == 1 and @reverse_home == false) or 
+         (@board.pins[@pin_max].value == 1 and @reverse_home == true )
         home = 1
         puts 'end stop home #{@name} reached'
       end
@@ -91,7 +106,7 @@ class HardwareInterfaceAxis
     end
 
     # disable motor driver
-    @board.digital_write(pin_dir, Firmata::Board::LOW)
+    disableMotor()
 
     @pos = 0
 
@@ -115,20 +130,15 @@ class HardwareInterfaceAxis
     @nr_steps = steps.abs
 
     if (@steps < 0 and @invert_axis == false) or (@steps > 0 and @invert_axis == true)
-      @board.digital_write(@pin_enb, Firmata::Board::LOW)
-      @sleep_after_enable
-      @board.digital_write(@pin_dir, Firmata::Board::LOW)
-      @sleep_after_pin_set
+      setDirectionLow()
     end
 
     if (@steps > 0 and @invert_axis == false) or (@steps < 0 and @invert_axis == true)
-      @board.digital_write(@pin_enb, Firmata::Board::LOW)
-      @sleep_after_enable
-      @board.digital_write(@pin_dir, Firmata::Board::HIGH)
-      @sleep_after_pin_set
+      setDirectionHigh()
     end
 
   end
+
 
   # move one motor a step if needed, while checking the end stops
   #
@@ -136,28 +146,19 @@ class HardwareInterfaceAxis
 
       # check end stops
 
-      if @board.pins[@pin_min].value == 1 and @steps < 0
+      if (@board.pins[@pin_min].value == 1 and @steps < 0) or
+         (@board.pins[@pin_max].value == 1 and @steps > 0)
         @nr_steps = 0
-        @pos      = @min
-        puts "end stop min #{@name}"
-      end
-
-      if @board.pins[@pin_max].value == 1 and @steps > 0
-        @nr_steps = 0
-        @pos      = @max
-        puts "end stop max #{@name}"
+        @pos      = @min if @steps < 0
+        @pos      = @max if @steps > 0
+        puts "end stop #{@name} reached"
       end
 
       # check minimum and maximum position
 
-      if @pos >= @max and @steps > 0
+      if (@pos <= @min and @steps < 0) or (@pos >= @max and @steps > 0)
         @nr_steps = 0
-        puts "maximum position reached #{@name}"
-      end
-
-      if @pos <= @min and @steps < 0
-        @nr_steps = 0
-        puts "minimum position for #{@name} reached"
+        puts "end position reached #{@name}"
       end
 
       # send the step pulses to the motor drivers
@@ -254,13 +255,17 @@ class HardwareInterface
     @axis_y.steps_per_unit = 4
     @axis_z.steps_per_unit = 157
 
-    @axis_x.max = 230
+    @axis_x.max = 220
     @axis_y.max = 128
     @axis_z.max = 0
 
     @axis_x.min = 0
     @axis_y.min = 0
     @axis_z.min = -70
+ 
+    @axis_x.reverse_home = false
+    @axis_y.reverse_home = false
+    @axis_z.reverse_home = true
 
   end
 
