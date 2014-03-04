@@ -18,7 +18,7 @@ class HardwareInterfaceAxis
 
   # set the pins for one motor with sensors
   #
-  def setPinMode()
+  def set_pin_mode()
 
     # set the pins for motor control to output
     @board.set_pin_mode(pin_enb, Firmata::Board::OUTPUT)
@@ -38,45 +38,45 @@ class HardwareInterfaceAxis
     
   end
 
-  def disableMotor()
+  def disable_motor()
     @board.digital_write(@pin_enb, Firmata::Board::HIGH)
   end
 
-  def enableMotor()
+  def enable_motor()
     @board.digital_write(@pin_enb, Firmata::Board::LOW)
   end
 
-  def setDirectionLow()
+  def set_direction_low()
     @board.digital_write(pin_dir, Firmata::Board::LOW)
     sleep @sleep_after_pin_set
 
-    enableMotor()
+    enable_motor()
   end
 
-  def setDirectionHigh()
+  def set_direction_high()
     @board.digital_write(pin_dir, Firmata::Board::HIGH)
     sleep @sleep_after_pin_set
 
-    enableMotor()
+    enable_motor()
   end
 
   # set the direction and enable pins to prepare for the move to the home position
   #
-  def moveHomeSetDirection()
+  def move_home_set_direction()
 
     if (invert_axis ^ reverse_home) == false
-      setDirectionLow()
+      set_direction_low()
     else
-      setDirectionHigh()
+      set_direction_high()
     end
 
   end
 
   # move the motor until the end stop is reached
   #
-  def moveHome()
+  def move_home()
 
-    moveHomeSetDirection()
+    move_home_set_direction()
 
     start = Time.now
     home  = 0
@@ -90,23 +90,27 @@ class HardwareInterfaceAxis
 
       if span > @move_home_timeout
         home = 1
-        puts 'move home #{@name} timed out'
+        puts "move home #{@name} timed out"
       end
 
-      if (@board.pins[@pin_min].value == 1 and @reverse_home == false) or 
-         (@board.pins[@pin_max].value == 1 and @reverse_home == true )
+      if @board.pins[@pin_min].value == 1 and @reverse_home == false
         home = 1
-        puts 'end stop home #{@name} reached'
+        puts "end stop home min #{@name} reached"
+      end
+
+      if @board.pins[@pin_max].value == 1 and @reverse_home == true
+        home = 1
+        puts "end stop home max #{@name} reached"
       end
 
       if home == 0
-        setPulseOnPin(@pin_stp)
+        set_pulse_on_pin(@pin_stp)
       end
 
     end
 
     # disable motor driver
-    disableMotor()
+    disable_motor()
 
     @pos = 0
 
@@ -114,7 +118,7 @@ class HardwareInterfaceAxis
 
   # set a pulse on a pin with enough sleep time so firmata kan keep up
   #
-  def setPulseOnPin(pin)
+  def set_pulse_on_pin(pin)
     @board.digital_write(pin, Firmata::Board::HIGH)
     sleep @sleep_after_pin_set
     @board.digital_write(pin, Firmata::Board::LOW)
@@ -124,17 +128,17 @@ class HardwareInterfaceAxis
 
   # prepare the move by setting the direction and enable
   #
-  def moveStepsPrepare(steps)
+  def move_steps_prepare(steps)
 
     @steps    = steps
     @nr_steps = steps.abs
 
     if (@steps < 0 and @invert_axis == false) or (@steps > 0 and @invert_axis == true)
-      setDirectionLow()
+      set_direction_low()
     end
 
     if (@steps > 0 and @invert_axis == false) or (@steps < 0 and @invert_axis == true)
-      setDirectionHigh()
+      set_direction_high()
     end
 
   end
@@ -142,16 +146,20 @@ class HardwareInterfaceAxis
 
   # move one motor a step if needed, while checking the end stops
   #
-  def moveSteps()
+  def move_steps()
 
       # check end stops
 
-      if (@board.pins[@pin_min].value == 1 and @steps < 0) or
-         (@board.pins[@pin_max].value == 1 and @steps > 0)
+      if @board.pins[@pin_min].value == 1 and @steps < 0
         @nr_steps = 0
-        @pos      = @min if @steps < 0
-        @pos      = @max if @steps > 0
-        puts "end stop #{@name} reached"
+        @pos      = @min
+        puts "end stop min #{@name} reached"
+      end
+
+      if @board.pins[@pin_max].value == 1 and @steps > 0
+        @nr_steps = 0
+        @pos      = @max
+        puts "end stop max #{@name} reached"
       end
 
       # check minimum and maximum position
@@ -164,7 +172,7 @@ class HardwareInterfaceAxis
       # send the step pulses to the motor drivers
 
       if @nr_steps > 0
-        setPulseOnPin(@pin_stp)
+        set_pulse_on_pin(@pin_stp)
 
         @pos      += 1.0 / @steps_per_unit * (@steps<=>0.0)
         @nr_steps -= 1
@@ -189,16 +197,16 @@ class HardwareInterface
     @axis_z = HardwareInterfaceAxis.new
 
 
-    loadConfig()
-    connectBoard()
-    setPinNumbers()
-    setBoardPinMode()
+    load_config()
+    connect_board()
+    set_pin_numbers()
+    set_board_pin_mode()
 
   end
 
   # set the hardware pin numbers
   #
-  def setPinNumbers
+  def set_pin_numbers
 
     @pin_led = 13
 
@@ -227,7 +235,7 @@ class HardwareInterface
 
   # connect to the serial port and start communicating with the arduino/firmata protocol
   #
-  def connectBoard
+  def connect_board
 
     @boardDevice = "/dev/ttyACM0"
     @board = Firmata::Board.new @boardDevice
@@ -241,7 +249,7 @@ class HardwareInterface
 
   # load the settings for the hardware
   # these are the timeouts and distance settings mainly
-  def loadConfig
+  def load_config
 
     @axis_x.move_home_timeout   = 15 # seconds after which home command is aborted
     @axis_y.move_home_timeout   = 15
@@ -271,42 +279,42 @@ class HardwareInterface
 
   # set motor driver and end stop pins to input or output output and set enables for the drivers to off
   #
-  def setBoardPinMode
+  def set_board_pin_mode
 
-    @axis_x.setPinMode()
-    @axis_y.setPinMode()
-    @axis_z.setPinMode()
+    @axis_x.set_pin_mode()
+    @axis_y.set_pin_mode()
+    @axis_z.set_pin_mode()
 
   end
 
   # move the bot to the home position
   #
-  def moveHomeX
-    @axis_x.moveHome()
-    @axis_x.disableMotor()
+  def move_home_x
+    @axis_x.move_home()
+    @axis_x.disable_motor()
   end
 
   # move the bot to the home position
   #
-  def moveHomeY
-    @axis_y.moveHome()
-    @axis_y.disableMotor()
+  def move_home_y
+    @axis_y.move_home()
+    @axis_y.disable_motor()
   end
 
   # move the bot to the home position
   #
-  def moveHomeZ
-    @axis_z.moveHome()
-    @axis_z.disableMotor()
+  def move_home_z
+    @axis_z.move_home()
+    @axis_z.disable_motor()
   end
 
-  def setSpeed( speed )
+  def set_speed( speed )
 
   end
 
   # move the bot to the give coordinates
   #
-  def moveAbsolute( coord_x, coord_y, coord_z)
+  def move_absolute( coord_x, coord_y, coord_z)
 
     puts '**move absolute **'
 
@@ -320,13 +328,13 @@ class HardwareInterface
     puts "y steps #{steps_y}"
     puts "z steps #{steps_z}"
 
-    moveSteps(steps_x, steps_y, steps_z )
+    move_steps(steps_x, steps_y, steps_z )
 
   end
 
   # move the bot a number of units starting from the current position
   #
-  def moveRelative( amount_x, amount_y, amount_z)
+  def move_relative( amount_x, amount_y, amount_z)
 
     puts '**move relative **'
 
@@ -340,19 +348,19 @@ class HardwareInterface
     puts "y steps #{steps_y}"
     puts "z steps #{steps_z}"
 
-    moveSteps( steps_x, steps_y, steps_z )
+    move_steps( steps_x, steps_y, steps_z )
 
   end
 
   # drive the motors so the bot is moved a number of steps
   #
-  def moveSteps(steps_x, steps_y, steps_z)
+  def move_steps(steps_x, steps_y, steps_z)
 
     # set the direction and the enable bit for the motor drivers
 
-    @axis_x.moveStepsPrepare(steps_x)
-    @axis_y.moveStepsPrepare(steps_y)
-    @axis_z.moveStepsPrepare(steps_z)
+    @axis_x.move_steps_prepare(steps_x)
+    @axis_y.move_steps_prepare(steps_y)
+    @axis_z.move_steps_prepare(steps_z)
 
     # loop until all steps are done
 
@@ -367,16 +375,16 @@ class HardwareInterface
       @board.read_and_process
 
       # move the motors
-      done_x = @axis_x.moveSteps()
-      done_y = @axis_y.moveSteps()
-      done_z = @axis_z.moveSteps()
+      done_x = @axis_x.move_steps()
+      done_y = @axis_y.move_steps()
+      done_z = @axis_z.move_steps()
 
     end
 
     # disable motor drivers
-    @axis_x.disableMotor()
-    @axis_y.disableMotor()
-    @axis_z.disableMotor()
+    @axis_x.disable_motor()
+    @axis_y.disable_motor()
+    @axis_z.disable_motor()
 
   end
 end

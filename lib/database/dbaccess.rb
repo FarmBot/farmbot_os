@@ -6,6 +6,7 @@ require 'mongoid'
 # This class is dedicated to retrieving and inserting commands into the schedule
 # queue for the farm bot Mongo is used as the database, Mongoid as the
 # databasemapper
+
 class Command
   include Mongoid::Document
 
@@ -65,12 +66,12 @@ class DbAccess
     end
   end
 
-  def createNewCommand(scheduled_time)
+  def create_new_command(scheduled_time)
     @new_command = Command.new
     @new_command.scheduled_time = scheduled_time
   end
 
-  def addCommandLine(action, x = 0, y = 0, z = 0, speed = 0, amount = 0)
+  def add_command_line(action, x = 0, y = 0, z = 0, speed = 0, amount = 0)
     if @new_command != nil
       line = Commandline.new
       line.action = action
@@ -87,15 +88,15 @@ class DbAccess
     end
   end
 
-  def saveNewCommand
+  def save_new_command
     if @new_command != nil
       @new_command.status = 'test'
       @new_command.save
     end
-    incrementRefresh
+    increment_refresh
   end
 
-  def getCommandToExecute
+  def get_command_to_execute
     @last_command_retrieved = Command.where(
       :status => 'test',
       :scheduled_time.ne => nil
@@ -103,24 +104,24 @@ class DbAccess
     @last_command_retrieved
   end
 
-  def setCommandToExecuteStatus(new_status)
+  def set_command_to_execute_status(new_status)
     if @last_command_retrieved != nil
       @last_command_retrieved.status = new_status
       @last_command_retrieved.save
     end
   end
 
-  def checkRefresh
+  def check_refresh
     r = Refresh.where(:name => 'FarmBotControllerSchedule').first_or_initialize
     @refresh_value_new = r.value.to_i
     return @refresh_value_new != @refresh_value
   end
 
-  def saveRefresh
+  def save_refresh
     @refresh_value = @refresh_value_new
   end
 
-  def incrementRefresh
+  def increment_refresh
     r = Refresh.where(:name => 'FarmBotControllerSchedule').first_or_initialize
     r.value = r.value.to_i + 1
     r.save

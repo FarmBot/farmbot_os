@@ -71,41 +71,41 @@ while $shutdown == 0 do
       # read the file
       #TestFileHandler.readCommandFile
     when "Z" # Move to home
-      $bot_dbaccess.createNewCommand(Time.now + $command_delay)
-      $bot_dbaccess.addCommandLine('HOME Z', 0, 0, 0, 0, 0)
-      $bot_dbaccess.saveNewCommand
+      $bot_dbaccess.create_new_command(Time.now + $command_delay)
+      $bot_dbaccess.add_command_line('HOME Z', 0, 0, 0, 0, 0)
+      $bot_dbaccess.save_new_command
     when "X" # Move to home
-      $bot_dbaccess.createNewCommand(Time.now + $command_delay)
-      $bot_dbaccess.addCommandLine('HOME X', 0, 0, 0, 0, 0)
-      $bot_dbaccess.saveNewCommand
+      $bot_dbaccess.create_new_command(Time.now + $command_delay)
+      $bot_dbaccess.add_command_line('HOME X', 0, 0, 0, 0, 0)
+      $bot_dbaccess.save_new_command
     when "C" # Move to home
-      $bot_dbaccess.createNewCommand(Time.now + $command_delay)
-      $bot_dbaccess.addCommandLine('HOME Y',0 ,0 ,-$move_size, 0, 0)
-      $bot_dbaccess.saveNewCommand
+      $bot_dbaccess.create_new_command(Time.now + $command_delay)
+      $bot_dbaccess.add_command_line('HOME Y',0 ,0 ,-$move_size, 0, 0)
+      $bot_dbaccess.save_new_command
     when "W" # Move forward
-      $bot_dbaccess.createNewCommand(Time.now + $command_delay)
-      $bot_dbaccess.addCommandLine('MOVE RELATIVE',0,$move_size, 0, 0, 0)
-      $bot_dbaccess.saveNewCommand
+      $bot_dbaccess.create_new_command(Time.now + $command_delay)
+      $bot_dbaccess.add_command_line('MOVE RELATIVE',0,$move_size, 0, 0, 0)
+      $bot_dbaccess.save_new_command
     when "S" # Move back
-      $bot_dbaccess.createNewCommand(Time.now + $command_delay)
-      $bot_dbaccess.addCommandLine('MOVE RELATIVE',0,-$move_size, 0, 0, 0)
-      $bot_dbaccess.saveNewCommand
+      $bot_dbaccess.create_new_command(Time.now + $command_delay)
+      $bot_dbaccess.add_command_line('MOVE RELATIVE',0,-$move_size, 0, 0, 0)
+      $bot_dbaccess.save_new_command
     when "A" # Move left
-      $bot_dbaccess.createNewCommand(Time.now + $command_delay)
-      $bot_dbaccess.addCommandLine('MOVE RELATIVE', -$move_size, 0, 0, 0, 0)
-      $bot_dbaccess.saveNewCommand
+      $bot_dbaccess.create_new_command(Time.now + $command_delay)
+      $bot_dbaccess.add_command_line('MOVE RELATIVE', -$move_size, 0, 0, 0, 0)
+      $bot_dbaccess.save_new_command
     when "D" # Move right
-      $bot_dbaccess.createNewCommand(Time.now + $command_delay)
-      $bot_dbaccess.addCommandLine('MOVE RELATIVE', $move_size, 0, 0, 0, 0)
-      $bot_dbaccess.saveNewCommand
+      $bot_dbaccess.create_new_command(Time.now + $command_delay)
+      $bot_dbaccess.add_command_line('MOVE RELATIVE', $move_size, 0, 0, 0, 0)
+      $bot_dbaccess.save_new_command
     when "R" # Move up
-      $bot_dbaccess.createNewCommand(Time.now + $command_delay)
-      $bot_dbaccess.addCommandLine('MOVE RELATIVE', 0, 0, $move_size, 0, 0)
-      $bot_dbaccess.saveNewCommand
+      $bot_dbaccess.create_new_command(Time.now + $command_delay)
+      $bot_dbaccess.add_command_line('MOVE RELATIVE', 0, 0, $move_size, 0, 0)
+      $bot_dbaccess.save_new_command
     when "F" # Move down
-      $bot_dbaccess.createNewCommand(Time.now + $command_delay)
-      $bot_dbaccess.addCommandLine("MOVE RELATIVE", 0, 0, -$move_size, 0, 0)
-      $bot_dbaccess.saveNewCommand
+      $bot_dbaccess.create_new_command(Time.now + $command_delay)
+      $bot_dbaccess.add_command_line("MOVE RELATIVE", 0, 0, -$move_size, 0, 0)
+      $bot_dbaccess.save_new_command
     end
 
 end

@@ -15,15 +15,15 @@ class Controller
 
   def runFarmBot
 
-    check = @bot_dbaccess.checkRefresh
+    check = @bot_dbaccess.check_refresh
 
     while $shutdown == 0 do
 
       # keep checking the database for new data
 
       puts 'checking schedule'
-      command = @bot_dbaccess.getCommandToExecute
-      @bot_dbaccess.saveRefresh
+      command = @bot_dbaccess.get_command_to_execute
+      @bot_dbaccess.save_refresh
 
       if command != nil
 
@@ -38,7 +38,7 @@ class Controller
           puts 'execute command'
 
           process_command( command )
-          @bot_dbaccess.setCommandToExecuteStatus('FINISHED')
+          @bot_dbaccess.set_command_to_execute_status('FINISHED')
 
         else
 
@@ -55,7 +55,7 @@ class Controller
 
             sleep 1
 
-            refresh_received = @bot_dbaccess.checkRefresh
+            refresh_received = @bot_dbaccess.check_refresh
             puts 'refresh received' if refresh_received != false
 
           end
@@ -76,7 +76,7 @@ class Controller
 
           sleep 1
 
-          refresh_received = @bot_dbaccess.checkRefresh
+          refresh_received = @bot_dbaccess.check_refresh
           puts 'refresh received' if refresh_received != false
 
         end
@@ -90,17 +90,17 @@ class Controller
       cmd.commandlines.each do |command_line|
         case command_line.action.upcase
           when "MOVE ABSOLUTE"
-            $bot_hardware.moveAbsolute(command_line.coord_x, command_line.coord_y, command_line.coord_z)
+            $bot_hardware.move_absolute(command_line.coord_x, command_line.coord_y, command_line.coord_z)
           when "MOVE RELATIVE"
-            $bot_hardware.moveRelative(command_line.coord_x, command_line.coord_y, command_line.coord_z)
+            $bot_hardware.move_relative(command_line.coord_x, command_line.coord_y, command_line.coord_z)
           when "HOME X"
-            $bot_hardware.moveHomeX
+            $bot_hardware.move_home_x
           when "HOME Y"
-            $bot_hardware.moveHomeY
+            $bot_hardware.move_home_y
           when "HOME Z"
-            $bot_hardware.moveHomeZ
+            $bot_hardware.move_home_z
           when "SET SPEED"
-            $bot_hardware.setSpeed(command_line.speed)
+            $bot_hardware.set_speed(command_line.speed)
         end
       end
     else

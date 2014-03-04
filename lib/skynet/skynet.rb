@@ -37,15 +37,19 @@ class Skynet
   # Acts as the entry point for message traffic captured from Skynet.im.
   # This method is a stub for now until I have time to merge into Tim's
   # controller code. Returns a MessageHandler object (a class yet created).
-  def handle_message(channel, message)
+  #def handle_message(channel, message)
+  def handle_message(message)
+
+puts "> message received at #{Time.now}"
+#puts message
 
     if message.class.to_s == 'Hash'
-      @message_handler.handle_message(channel, message)
+      @message_handler.handle_message(message)
     end
 
     if message.class.to_s == 'String'
       message_hash = JSON.parse(message)
-      @message_handler.handle_message(channel, message_hash)
+      @message_handler.handle_message(message_hash)
     end
 
   rescue

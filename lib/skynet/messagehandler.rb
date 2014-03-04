@@ -1,5 +1,6 @@
 require 'json'
-require './lib/database/commandqueue.rb'
+#require './lib/database/commandqueue.rb'
+require './lib/database/dbaccess.rb'
 
 # Get the JSON command, received through skynet, and send it to the farmbot
 # command queue Parses JSON messages received through SkyNet.
@@ -8,7 +9,7 @@ class MessageHandler
   attr_accessor :message
 
   def initialize
-    @command_queue    = CommandQueue.new
+    @dbaccess = DbAccess.new
     @last_time_stamp  = ''
   end
 
@@ -32,10 +33,22 @@ class MessageHandler
   #      "delay" : 6
   #   }
   # }
-  def handle_message(channel, message)
-    @message = message
-    requested_command = message["message_type"].to_s.downcase
+
+  def handle_message(message)
+
+    puts 'handle_message'
+    #puts message
+    #puts message['message']
+
+    @message = message['message']
+    #fromUuid = message['fromUuid']
+    #puts fromUuid 
+
+    requested_command = message['message']["message_type"].to_s.downcase
+    #puts requested_command
+
     if whitelist.include?(requested_command)
+      #puts 'sending'
       self.send(requested_command, message)
     else
       self.error(message)
@@ -49,7 +62,11 @@ class MessageHandler
   end
 
   def single_command(message)
-    time_stamp = message['time_stamp']
+
+    puts 'single_command'
+    #puts message
+
+    time_stamp = message['message']['time_stamp']
     sender = message['fromUuid']
 
     if time_stamp != @last_time_stamp
@@ -57,21 +74,21 @@ class MessageHandler
 
 
       # send the command to the queue
-      delay  = message['command']['delay']
-      action = message['command']['action']
-      x      = message['command']['x']
-      y      = message['command']['y']
-      z      = message['command']['z']
-      speed  = message['command']['speed']
-      amount = message['command']['amount']
-      delay  = message['command']['delay']
+      delay  = message['message']['command']['delay']
+      action = message['message']['command']['action']
+      x      = message['message']['command']['x']
+      y      = message['message']['command']['y']
+      z      = message['message']['command']['z']
+      speed  = message['message']['command']['speed']
+      amount = message['message']['command']['amount']
+      delay  = message['message']['command']['delay']
 
       puts "[new command] received at #{Time.now} from #{sender}"
-      #puts "[#{action}] x: #{x}, y: #{y}, z: #{z}, speed: #{speed}, amount: #{amount} delay: #{delay}"
+      puts "[#{action}] x: #{x}, y: #{y}, z: #{z}, speed: #{speed}, amount: #{amount} delay: #{delay}"
 
-      @command_queue.create_new_command(Time.now + delay.to_i)
-      @command_queue.add_command_line(action, x.to_i, y.to_i, z.to_i, speed.to_s, amount.to_i)
-      @command_queue.save_new_command
+      @dbaccess.create_new_command(Time.now + delay.to_i)
+      @dbaccess.add_command_line(action, x.to_i, y.to_i, z.to_i, speed.to_s, amount.to_i)
+      @dbaccess.save_new_command
 
       $skynet.confirmed = false
 
