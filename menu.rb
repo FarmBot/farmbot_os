@@ -2,7 +2,7 @@ puts '[FarmBot Controller Menu]'
 puts 'starting up'
 
 require './lib/database/dbaccess.rb'
-#require './lib/database/filehandler.rb'
+require './lib/database/filehandler.rb'
 
 #require './lib/controller.rb'
 #require "./lib/hardware/ramps.rb"
@@ -29,7 +29,7 @@ while $shutdown == 0 do
   puts '[FarmBot Controller Menu]'
   puts ''
   puts 'p - stop'
-#  puts 't - execute test file'
+  puts 't - execute test file'
   puts ''
   puts "move size = #{$move_size}"
   puts "command delay = #{$command_delay}"
@@ -69,7 +69,7 @@ while $shutdown == 0 do
       $command_delay = command_delay_temp.to_i if command_delay_temp.to_i > 0
     when "T" # Execute test file
       # read the file
-      #TestFileHandler.readCommandFile
+      TestFileHandler.readCommandFile
     when "Z" # Move to home
       $bot_dbaccess.create_new_command(Time.now + $command_delay)
       $bot_dbaccess.add_command_line('HOME Z', 0, 0, 0, 0, 0)

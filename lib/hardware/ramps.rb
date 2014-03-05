@@ -320,9 +320,9 @@ class HardwareInterface
 
     # calculate the number of steps for the motors to do
 
-    steps_x = (coord_x - @axis_x.pos_x) * @axis_x.steps_per_unit_x
-    steps_y = (coord_y - @axis_y.pos_y) * @axis_y.steps_per_unit_y
-    steps_z = (coord_z - @axis_z.pos_z) * @axis_z.steps_per_unit_z
+    steps_x = (coord_x - @axis_x.pos) * @axis_x.steps_per_unit
+    steps_y = (coord_y - @axis_y.pos) * @axis_y.steps_per_unit
+    steps_z = (coord_z - @axis_z.pos) * @axis_z.steps_per_unit
 
     puts "x steps #{steps_x}"
     puts "y steps #{steps_y}"
