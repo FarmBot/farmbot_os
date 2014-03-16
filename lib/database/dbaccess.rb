@@ -13,6 +13,7 @@ class Command
   embeds_many :commandlines
 
   field :plant_id
+  field :crop_id
   field :scheduled_time
   field :executed_time
   field :status
@@ -66,9 +67,10 @@ class DbAccess
     end
   end
 
-  def create_new_command(scheduled_time)
+  def create_new_command(scheduled_time, crop_id)
     @new_command = Command.new
     @new_command.scheduled_time = scheduled_time
+    @new_command.crop_id = crop_id
   end
 
   def add_command_line(action, x = 0, y = 0, z = 0, speed = 0, amount = 0)
@@ -90,15 +92,40 @@ class DbAccess
 
   def save_new_command
     if @new_command != nil
-      @new_command.status = 'test'
+      @new_command.status = 'scheduled'
       @new_command.save
     end
     increment_refresh
   end
 
+  def clear_schedule
+    Command.where(
+      :status => 'scheduled',
+      :scheduled_time.ne => nil
+      ).order_by([:scheduled_time,:asc]).each do |command|
+
+      command.status = 'deleted'
+      command.save
+      
+    end
+  end
+
+  def clear_crop_schedule(crop_id)
+    Command.where(
+      :status => 'scheduled',
+      :scheduled_time.ne => nil,
+      :crop_id => crop_id
+      ).order_by([:scheduled_time,:asc]).each do |command|
+
+      command.status = 'deleted'
+      command.save
+      
+    end
+  end
+
   def get_command_to_execute
     @last_command_retrieved = Command.where(
-      :status => 'test',
+      :status => 'scheduled',
       :scheduled_time.ne => nil
       ).order_by([:scheduled_time,:asc]).first
     @last_command_retrieved

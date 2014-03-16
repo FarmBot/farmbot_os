@@ -45,6 +45,8 @@ while $shutdown == 0 do
   puts 'x - home x axis'
   puts 'c - home y axis'
   puts ''
+  puts 'y - dose water'
+  puts ''
   puts 'q - step size'
   puts 'g - delay seconds'
   puts ''
@@ -70,40 +72,44 @@ while $shutdown == 0 do
     when "T" # Execute test file
       # read the file
       TestFileHandler.readCommandFile
+    when "Y" # Dose water
+      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
+      $bot_dbaccess.add_command_line('DOSE WATER', 0, 0, 0, 0, 15)
+      $bot_dbaccess.save_new_command
     when "Z" # Move to home
-      $bot_dbaccess.create_new_command(Time.now + $command_delay)
+      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
       $bot_dbaccess.add_command_line('HOME Z', 0, 0, 0, 0, 0)
       $bot_dbaccess.save_new_command
     when "X" # Move to home
-      $bot_dbaccess.create_new_command(Time.now + $command_delay)
+      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
       $bot_dbaccess.add_command_line('HOME X', 0, 0, 0, 0, 0)
       $bot_dbaccess.save_new_command
     when "C" # Move to home
-      $bot_dbaccess.create_new_command(Time.now + $command_delay)
+      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
       $bot_dbaccess.add_command_line('HOME Y',0 ,0 ,-$move_size, 0, 0)
       $bot_dbaccess.save_new_command
     when "W" # Move forward
-      $bot_dbaccess.create_new_command(Time.now + $command_delay)
+      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
       $bot_dbaccess.add_command_line('MOVE RELATIVE',0,$move_size, 0, 0, 0)
       $bot_dbaccess.save_new_command
     when "S" # Move back
-      $bot_dbaccess.create_new_command(Time.now + $command_delay)
+      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
       $bot_dbaccess.add_command_line('MOVE RELATIVE',0,-$move_size, 0, 0, 0)
       $bot_dbaccess.save_new_command
     when "A" # Move left
-      $bot_dbaccess.create_new_command(Time.now + $command_delay)
+      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
       $bot_dbaccess.add_command_line('MOVE RELATIVE', -$move_size, 0, 0, 0, 0)
       $bot_dbaccess.save_new_command
     when "D" # Move right
-      $bot_dbaccess.create_new_command(Time.now + $command_delay)
+      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
       $bot_dbaccess.add_command_line('MOVE RELATIVE', $move_size, 0, 0, 0, 0)
       $bot_dbaccess.save_new_command
     when "R" # Move up
-      $bot_dbaccess.create_new_command(Time.now + $command_delay)
+      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
       $bot_dbaccess.add_command_line('MOVE RELATIVE', 0, 0, $move_size, 0, 0)
       $bot_dbaccess.save_new_command
     when "F" # Move down
-      $bot_dbaccess.create_new_command(Time.now + $command_delay)
+      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
       $bot_dbaccess.add_command_line("MOVE RELATIVE", 0, 0, -$move_size, 0, 0)
       $bot_dbaccess.save_new_command
     end
