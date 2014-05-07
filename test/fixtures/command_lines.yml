@@ -1,0 +1,19 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  command_id: 1
+  action: MyString
+  coord_x: 1.5
+  coord_y: 1.5
+  coord_z: 1.5
+  speed: MyString
+  amount: 1.5
+
+two:
+  command_id: 1
+  action: MyString
+  coord_x: 1.5
+  coord_y: 1.5
+  coord_z: 1.5
+  speed: MyString
+  amount: 1.5

@@ -23,7 +23,7 @@ $command_delay = 0
 
 while $shutdown == 0 do
 
-  system('cls')
+  #system('cls')
   system('clear')
 
   puts '[FarmBot Controller Menu]'

@@ -1,4 +1,4 @@
-
+require 'active_record'
 require 'date'
 require_relative 'database/dbaccess'
 
@@ -87,7 +87,7 @@ class Controller
   def process_command( cmd )
 
     if cmd != nil
-      cmd.commandlines.each do |command_line|
+      cmd.command_lines.each do |command_line|
         case command_line.action.upcase
           when "MOVE ABSOLUTE"
             $bot_hardware.move_absolute(command_line.coord_x, command_line.coord_y, command_line.coord_z)

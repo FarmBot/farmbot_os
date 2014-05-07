@@ -7,11 +7,11 @@ Technicals
 ----------
 
 * Written in Ruby
-* Data is stored in nedb
+* Data is stored in sqlite 3
 * Running on Raspberry Pi
-* Sends commands to hardware using firmata
+* Sends commands to hardware using firmata (soon to be replaced with g-code)
 * Hardware is an Arduino Mega with a RAMPS 1.4 board
-* Communication with cloud using skynet
+* Communication with cloud using skynet (machine instant messaging)
 
 Prerequisits
 ============
@@ -33,29 +33,6 @@ sudo apt-get install arduino
 OR
 'bundle install' (for developers)
 
-
-Mongo
------
-
-git clone git://github.com/RickP/mongopi.git
-
-(next steps take a long time)
-
-cd mongopi
-
-scons
-
-sudo scons --prefix=/opt/mongo install
-
-PATH=$PATH:/opt/mongo/bin/
-
-export PATH
-
-sudo mkdir -p /data/db
-
-sudo chown $USER /data/db
-
-start with: /opt/mongo/bin/.mongod --dbpath /data/db
 
 Arduino
 -------
@@ -110,3 +87,4 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
