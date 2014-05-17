@@ -32,6 +32,12 @@ group :doc do
   gem 'sdoc', require: false
 end
 
+# Use skynet machine instant messaging
+gem 'socket.io-client-simple'
+
+# serial port
+gem 'serialport'
+
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 

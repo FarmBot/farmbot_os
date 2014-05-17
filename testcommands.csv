@@ -1,4 +1,3 @@
-HOME Z,0,0,0
 HOME Y,0,0,0
 HOME X,0,0,0
 MOVE ABSOLUTE,  0, 30,  0,  0
@@ -22,6 +21,5 @@ MOVE ABSOLUTE, 30, 60,  0,  0
 DOSE WATER,     0,  0,  0,  5
 
 
-HOME Z,0,0,0
 HOME Y,0,0,0
 HOME X,0,0,0

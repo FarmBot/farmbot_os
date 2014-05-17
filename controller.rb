@@ -8,7 +8,9 @@ puts 'starting up'
 puts 'connecting to hardware'
 
 require_relative 'lib/controller'
-require_relative "lib/hardware/ramps"
+
+#require_relative "lib/hardware/firmata/ramps"
+require_relative "lib/hardware/gcode/ramps"
 
 $bot_control  = Controller.new
 $bot_hardware = HardwareInterface.new
