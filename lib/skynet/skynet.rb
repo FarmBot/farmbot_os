@@ -23,9 +23,9 @@ class Skynet
     @socket    = SocketIO::Client::Simple.connect 'http://skynet.im:80'
     @confirmed = false
 
-    create_socket_events
+    $info_uuid = @uuid
 
-    puts "uuid: #{@uuid}"
+    create_socket_events
 
     @message_handler  = MessageHandler.new
   end
@@ -40,8 +40,10 @@ class Skynet
   #def handle_message(channel, message)
   def handle_message(message)
 
-puts "> message received at #{Time.now}"
+#puts "> message received at #{Time.now}"
 #puts message
+
+    $info_last_msg_received = Time.now
 
     if message.class.to_s == 'Hash'
       @message_handler.handle_message(message)

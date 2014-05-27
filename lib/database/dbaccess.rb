@@ -5,6 +5,7 @@ require 'active_record'
 require './app/models/command.rb'
 require './app/models/command_line.rb'
 require './app/models/refresh.rb'
+require './app/models/log.rb'
 
 # retrieving and inserting commands into the schedule queue for the farm bot
 # using sqlite
@@ -23,6 +24,22 @@ class DbAccess
 
     @new_command = nil
   end
+##
+  # log
+
+  def write_to_log(module_id,text)
+    log = Log.new
+    log.text = text
+    log.module_id = module_id
+    log.save
+  end
+
+
+  def retrieve_log(module_id, nr_of_lines)
+    logs = Log.find(:all, :conditions => [ "module_id = (?)", module_id ], :order => 'log_id desc', :limit => nr_of_lines)
+  end
+
+  # commands
 
   def create_new_command(scheduled_time, crop_id)
     @new_command = Command.new
@@ -60,19 +77,6 @@ class DbAccess
       cmd.delete
     end
 
-    #Command.find(:all,:conditions => ["status = ? ",'scheduled'], :order => 'scheduled_time ASC').last
-
-#Command.find(:all,:conditions => ["status = ? ",'scheduled'], :order => 'scheduled_time ASC').last
-
-#    Command.where(
-#      :status => 'scheduled',
-#      :scheduled_time.ne => nil
-#      ).order_by([:scheduled_time,:asc]).each do |command|
-#
-#      command.status = 'deleted'
-#      command.save
-      
-#    end
   end
 
   def clear_crop_schedule(crop_id)
@@ -81,27 +85,10 @@ class DbAccess
       cmd.delete
     end
 
-#   Command.where(
-#      :status => 'scheduled',
-#      :scheduled_time.ne => nil,
-#      :crop_id => crop_id
-#      ).order_by([:scheduled_time,:asc]).each do |command|
-#
-#      command.status = 'deleted'
-#      command.save
-      
-#    end
   end
 
   def get_command_to_execute
-
     @last_command_retrieved = Command.find(:all,:conditions => ["status = ? ",'scheduled'], :order => 'scheduled_time ASC').last
-
-#    @last_command_retrieved = Command.where(
-#      :status => 'scheduled',
-#      :scheduled_time.ne => nil
-#      ).order_by([:scheduled_time,:asc]).first
-
     @last_command_retrieved
   end
 
@@ -111,6 +98,8 @@ class DbAccess
       @last_command_retrieved.save
     end
   end
+
+  # refreshes
 
   def check_refresh
     r = Refresh.find_or_create_by_name 'FarmBotControllerSchedule'

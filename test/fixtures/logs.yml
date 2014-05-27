@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  module_id: 1
+  text: MyString
+  time_stamp: 2014-05-25 14:16:15
+
+two:
+  module_id: 1
+  text: MyString
+  time_stamp: 2014-05-25 14:16:15

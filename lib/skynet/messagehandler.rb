@@ -20,36 +20,17 @@ class MessageHandler
     ["single_command","crop_schedule_update"]
   end
 
-  # Main entry point for (Hash) commands coming in over SkyNet.
-  # {
-  #    "message_type" : "single_command",
-  #    "time_stamp" : 2001-01-01 01:01:01.001
-  #    "command" : {
-  #      "action" : "HOME X",
-  #      "x" : 1,
-  #      "y" : 2,
-  #      "z" : 3,
-  #      "speed" : "FAST",
-  #      "amount" : 5,
-  #      "delay" : 6
-  #   }
-  # }
-
+  # Handle the message received from skynet
+  #
   def handle_message(message)
 
-    puts 'handle_message'
-    #puts message
-    #puts message['message']
-
+    @dbaccess.write_to_log(2,message.to_s)
     @message = message['message']
-    #fromUuid = message['fromUuid']
-    #puts fromUuid 
 
     requested_command = message['message']["message_type"].to_s.downcase
-    #puts requested_command
+    @dbaccess.write_to_log(2,'command = #{requested_command}')
 
     if whitelist.include?(requested_command)
-      #puts 'sending'
       self.send(requested_command, message)
     else
       self.error(message)
@@ -64,11 +45,11 @@ class MessageHandler
 
   def single_command(message)
 
-    puts 'single_command'
-    #puts message
+    @dbaccess.write_to_log(2,'handle single command')
 
     time_stamp = message['message']['time_stamp']
     sender = message['fromUuid']
+    @dbaccess.write_to_log(2,"sender = #{sender}")
 
     if time_stamp != @last_time_stamp
       @last_time_stamp = time_stamp
@@ -84,12 +65,13 @@ class MessageHandler
       amount = message['message']['command']['amount']
       delay  = message['message']['command']['delay']
 
-      puts "[new command] received at #{Time.now} from #{sender}"
-      puts "[#{action}] x: #{x}, y: #{y}, z: #{z}, speed: #{speed}, amount: #{amount} delay: #{delay}"
+      @dbaccess.write_to_log(2,"[#{action}] x: #{x}, y: #{y}, z: #{z}, speed: #{speed}, amount: #{amount} delay: #{delay}")
 
       @dbaccess.create_new_command(Time.now + delay.to_i,'single_command')
       @dbaccess.add_command_line(action, x.to_i, y.to_i, z.to_i, speed.to_s, amount.to_i)
       @dbaccess.save_new_command
+
+      @dbaccess.write_to_log(2,'sending comfirmation')
 
       $skynet.confirmed = false
 
@@ -102,60 +84,47 @@ class MessageHandler
 
        $skynet.send_message(sender, command)
 
+      @dbaccess.write_to_log(2,'done')
+
     end
   end
 
   def crop_schedule_update(message)
 
-    puts 'crop_schedule_update'
-    #puts message
+    @dbaccess.write_to_log(2,'handling crop schedule update')
 
     time_stamp = message['message']['time_stamp']
     sender = message['fromUuid']
-
-    puts "time_stamp #{time_stamp}"
-    puts "sender #{sender}"
+    @dbaccess.write_to_log(2,"sender = #{sender}")
 
     if time_stamp != @last_time_stamp
       @last_time_stamp = time_stamp
 
 
       message_contents = message['message']
-      #puts message_contents
 
       crop_id = message_contents['crop_id']
-      puts crop_id
+      @dbaccess.write_to_log(2,"crop_id = #{crop_id}")
 
-      puts 'removing old crop schedule'
       @dbaccess.clear_crop_schedule(crop_id)
 
       message_contents['commands'].each do |command|
 
-        #puts command
-        #puts command.class
-        #puts command[0]
-        #puts command[0].class
-        #puts command[1]
-        #puts command[1].class
-
-        scheduled_time = Time.parse(command[1]['scheduled_time'])
-        
+        scheduled_time = Time.parse(command['scheduled_time'])
+        @dbaccess.write_to_log(2,"crop command at #{scheduled_time}")
         @dbaccess.create_new_command(scheduled_time, crop_id)
-        #@dbaccess.create_new_command(Time.now, 'debug')
-        puts scheduled_time
-        puts Time.now
 
-        command[1]['command_lines'].each do |command_line|
+        command['command_lines'].each do |command_line|
 
-          action = command_line[1]['action']
-          x      = command_line[1]['x']
-          y      = command_line[1]['y']
-          z      = command_line[1]['z']
-          speed  = command_line[1]['speed']
-          amount = command_line[1]['amount']
+          action = command_line['action']
+          x      = command_line['x']
+          y      = command_line['y']
+          z      = command_line['z']
+          speed  = command_line['speed']
+          amount = command_line['amount']
 
 
-          puts "[#{action}] x: #{x}, y: #{y}, z: #{z}, speed: #{speed}, amount: #{amount}"
+          @dbaccess.write_to_log(2,"[#{action}] x: #{x}, y: #{y}, z: #{z}, speed: #{speed}, amount: #{amount}")
           @dbaccess.add_command_line(action, x.to_i, y.to_i, z.to_i, speed.to_s, amount.to_i)
 
         end
@@ -164,24 +133,7 @@ class MessageHandler
 
       end
 
-      # send the command to the queue
-      #delay  = message['message']['command']['delay']
-      #action = message['message']['command']['action']
-      #x      = message['message']['command']['x']
-      #y      = message['message']['command']['y']
-      #z      = message['message']['command']['z']
-      #speed  = message['message']['command']['speed']
-      #amount = message['message']['command']['amount']
-      #delay  = message['message']['command']['delay']
-
-      #puts "[new command] received at #{Time.now} from #{sender}"
-      #puts "[#{action}] x: #{x}, y: #{y}, z: #{z}, speed: #{speed}, amount: #{amount} delay: #{delay}"
-
-      #@dbaccess.create_new_command(Time.now + delay.to_i)
-      #@dbaccess.add_command_line(action, x.to_i, y.to_i, z.to_i, speed.to_s, amount.to_i)
-      #@dbaccess.save_new_command
-
-      puts 'sending comfirmation'
+      @dbaccess.write_to_log(2,'sending comfirmation')
 
       $skynet.confirmed = false
 
@@ -193,6 +145,9 @@ class MessageHandler
         }
 
        $skynet.send_message(sender, command)
+
+      @dbaccess.write_to_log(2,'done')
+
 
     end
   end

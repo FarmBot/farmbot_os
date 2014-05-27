@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140501213612) do
+ActiveRecord::Schema.define(version: 20140525151615) do
 
   create_table "command_lines", force: true do |t|
     t.integer  "command_id"
@@ -31,6 +31,14 @@ ActiveRecord::Schema.define(version: 20140501213612) do
     t.datetime "scheduled_time"
     t.datetime "executed_time"
     t.string   "status"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "logs", force: true do |t|
+    t.integer  "module_id"
+    t.string   "text"
+    t.datetime "time_stamp"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
