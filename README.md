@@ -22,29 +22,36 @@ Raspberry PI
 Update the RPi, install ruby, firmate and the arduino IDE
 
 sudo apt-get update
-
 sudo apt-get install git-core
-
-sudo apt-get install ruby
-
+sudo apt-get install ruby-dev
+sudo apt-get install sqlite3-dev
 sudo apt-get install arduino
 
+retrieving code from github:
+
+git clone https://github.com/FarmBot/farmbot-raspberry-pi-controller
+
+prepping ruby:
+cd farmbot-raspberry-pi-controller
 'bundle install --without test development' from the project directory
 OR
 'bundle install' (for developers)
 
+temporary:
+- gem install bson
+- gem install firmata
+- gem install socket.io-client-simple
+
+rake db:migrate
 
 Arduino
 -------
 
+git clone https://github.com/FarmBot/farmbot-arduino-controller
+
 Start the arduino IDE in the graphic environment under the start menu / programming / Arduino IDE
 Open File / Examples / Firmata / StandardFirmata
 Upload to the arduino
-
-FarmBotController
------------------
-
-use "git clone" to copy the code to the RPi
 
 Usage
 =====
