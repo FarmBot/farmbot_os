@@ -149,8 +149,11 @@ class Controller
 
     #puts '[scheduling]'
     puts "current time            = #{Time.now}"
-    puts "id                      = #{$info_uuid}"
-    puts "last msg received       = #{$info_last_msg_received} "
+    puts "uuid                    = #{$info_uuid}"
+    puts "token                   = #{$info_token}"
+    puts "last msg received       = #{$info_last_msg_received}"
+    puts "nr msg received         = #{$info_nr_msg_received}"
+
     #puts ''
 
     #puts '[controller]'

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140525151615) do
+ActiveRecord::Schema.define(version: 20140530214429) do
 
   create_table "command_lines", force: true do |t|
     t.integer  "command_id"
@@ -39,6 +39,16 @@ ActiveRecord::Schema.define(version: 20140525151615) do
     t.integer  "module_id"
     t.string   "text"
     t.datetime "time_stamp"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "parameters", force: true do |t|
+    t.string   "name"
+    t.integer  "valuetype"
+    t.integer  "valueint"
+    t.float    "valuefloat"
+    t.string   "valuestring"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

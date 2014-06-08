@@ -4,6 +4,10 @@ require_relative 'credentials'
 require_relative 'web_socket'
 require_relative 'messagehandler.rb'
 
+#require '/home/pi/ruby-socket.io-client-simple/lib/socket.io-client-simple.rb'
+#require_relative 'socket.io-client-simple.rb'
+
+
 # The Device class is temporarily inheriting from Tim's HardwareInterface.
 # Eventually, we should merge the two projects, but this is good enough for now.
 class Skynet
@@ -22,8 +26,15 @@ class Skynet
     @token     = creds[:token]
     @socket    = SocketIO::Client::Simple.connect 'http://skynet.im:80'
     @confirmed = false
+  end
 
-    $info_uuid = @uuid
+  def start
+    $info_uuid              = @uuid
+    $info_token             = @token
+    $info_last_msg_received = nil
+    $info_nr_msg_received   = 0
+
+puts @socket
 
     create_socket_events
 
@@ -40,10 +51,11 @@ class Skynet
   #def handle_message(channel, message)
   def handle_message(message)
 
-#puts "> message received at #{Time.now}"
-#puts message
+    #puts "> message received at #{Time.now}"
+    #puts message
 
     $info_last_msg_received = Time.now
+    $info_nr_msg_received  += 1
 
     if message.class.to_s == 'Hash'
       @message_handler.handle_message(message)

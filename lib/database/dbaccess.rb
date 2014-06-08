@@ -24,19 +24,64 @@ class DbAccess
 
     @new_command = nil
   end
-##
-  # log
 
+  # parameters
+
+  # write a parameter
+  #
+  def write_parameter(name, value)
+    param = Parameter.find_or_create_by_name name
+    if value.class.to_s == "Fixnum"
+      param.valueint    = value.to_i
+      param.type        = 1
+    end
+    if value.class.to_s == "Float"
+      param.valuefloat  = value.to_i
+      param.type        = 2
+    end
+    if value.class.to_s == "String"
+      param.valuestring = value.to_i
+      param.type        = 3
+    end
+
+    param.valuefloat  = value_float
+    param.valuestring = value_string
+    param.save
+  end
+
+
+  # read parameter
+  #
+  def read_parameter(name)
+    type = Parameter.find_by_name(name).type
+    value = valueint    if type == 1
+    value = valuefloat  if type == 2
+    value = valuestring if type == 3
+    value
+  end
+
+  # logs
+
+  # write a line to the log
+  #
   def write_to_log(module_id,text)
     log = Log.new
     log.text = text
     log.module_id = module_id
     log.save
+
+    # clean up old logs
+    Log.find(:all, :conditions =>  [ "created_at < (?)", Time.now - (24 * 60 * 60 * 2) ]).each do |log|
+      log.delete
+    end
+
   end
 
 
+  # read from the log file
+  #
   def retrieve_log(module_id, nr_of_lines)
-    logs = Log.find(:all, :conditions => [ "module_id = (?)", module_id ], :order => 'log_id desc', :limit => nr_of_lines)
+    logs = Log.find(:all, :conditions => [ "module_id = (?)", module_id ], :order => 'created_at asc', :limit => nr_of_lines)
   end
 
   # commands

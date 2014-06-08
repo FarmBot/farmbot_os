@@ -30,3 +30,6 @@ $bot_hardware = HardwareInterface.new
 puts 'connecting to hardware'
 $bot_control  = Controller.new
 $bot_control.runFarmBot
+
+#puts 'press key to stop'
+#gets.chomp

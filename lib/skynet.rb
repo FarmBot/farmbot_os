@@ -10,6 +10,7 @@ require_relative 'skynet/skynet'
 # fix to ensure we always have easy access to the device. Pull requests welcome.
 
 $skynet = Skynet.new
+$skynet.start
 
 #TODO: Daemonize this script:
 #https://www.ruby-toolbox.com/categories/daemonizing

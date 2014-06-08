@@ -25,9 +25,9 @@ class MessageHandler
   def handle_message(message)
 
     @dbaccess.write_to_log(2,message.to_s)
-    @message = message['message']
+    @message = message['payload']
 
-    requested_command = message['message']["message_type"].to_s.downcase
+    requested_command = message['payload']["message_type"].to_s.downcase
     @dbaccess.write_to_log(2,'command = #{requested_command}')
 
     if whitelist.include?(requested_command)
@@ -47,7 +47,7 @@ class MessageHandler
 
     @dbaccess.write_to_log(2,'handle single command')
 
-    time_stamp = message['message']['time_stamp']
+    time_stamp = message['payload']['time_stamp']
     sender = message['fromUuid']
     @dbaccess.write_to_log(2,"sender = #{sender}")
 
@@ -56,14 +56,14 @@ class MessageHandler
 
 
       # send the command to the queue
-      delay  = message['message']['command']['delay']
-      action = message['message']['command']['action']
-      x      = message['message']['command']['x']
-      y      = message['message']['command']['y']
-      z      = message['message']['command']['z']
-      speed  = message['message']['command']['speed']
-      amount = message['message']['command']['amount']
-      delay  = message['message']['command']['delay']
+      delay  = message['payload']['command']['delay']
+      action = message['payload']['command']['action']
+      x      = message['payload']['command']['x']
+      y      = message['payload']['command']['y']
+      z      = message['payload']['command']['z']
+      speed  = message['payload']['command']['speed']
+      amount = message['payload']['command']['amount']
+      delay  = message['payload']['command']['delay']
 
       @dbaccess.write_to_log(2,"[#{action}] x: #{x}, y: #{y}, z: #{z}, speed: #{speed}, amount: #{amount} delay: #{delay}")
 
@@ -93,7 +93,7 @@ class MessageHandler
 
     @dbaccess.write_to_log(2,'handling crop schedule update')
 
-    time_stamp = message['message']['time_stamp']
+    time_stamp = message['payload']['time_stamp']
     sender = message['fromUuid']
     @dbaccess.write_to_log(2,"sender = #{sender}")
 
@@ -101,7 +101,7 @@ class MessageHandler
       @last_time_stamp = time_stamp
 
 
-      message_contents = message['message']
+      message_contents = message['payload']
 
       crop_id = message_contents['crop_id']
       @dbaccess.write_to_log(2,"crop_id = #{crop_id}")

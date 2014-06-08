@@ -1,9 +1,11 @@
-require 'socket.io-client-simple'
-
+#require 'socket.io-client-simple'
+require_relative 'socket.io-client-simple.rb'
+                                                   
 module WebSocket
   ### Bootstraps all the events for skynet in the correct order. Returns Int.
   def create_socket_events
     #OTHER EVENTS: :identify, :identity, :ready, :disconnect, :message
+
     create_identify_event
     create_message_event
   end
@@ -11,7 +13,7 @@ module WebSocket
   #Handles self identification on skynet by responding to the :indentify with a
   #:identity event / credentials Hash.
   def create_identify_event
-    @socket.on :identify do |data|
+    $skynet.socket.on :identify do |data|
       self.emit :identity, {
         uuid:     $skynet.uuid,
         token:    $skynet.token,
@@ -25,7 +27,8 @@ module WebSocket
     #@socket.on :message do |channel, message|
     #  $skynet.handle_message(channel, message)
     #end
-    @socket.on :message do |message|
+
+    $skynet.socket.on :message do |message|
       $skynet.handle_message(message)
     end
   end
