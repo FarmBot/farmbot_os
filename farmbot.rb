@@ -10,6 +10,8 @@ puts '---------'
 puts '   \/    '
 puts ''
 
+$sim_hardware = 1
+
 $shutdown = 0
 
 puts 'connecting to database'
