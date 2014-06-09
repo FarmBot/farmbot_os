@@ -110,21 +110,31 @@ class Controller
         show_info()
         @bot_dbaccess.write_to_log(1,@info_movement)
 
-        case command_line.action.upcase
-          when "MOVE ABSOLUTE"
-            $bot_hardware.move_absolute(command_line.coord_x, command_line.coord_y, command_line.coord_z)
-          when "MOVE RELATIVE"
-            $bot_hardware.move_relative(command_line.coord_x, command_line.coord_y, command_line.coord_z)
-          when "HOME X"
-            $bot_hardware.move_home_x
-          when "HOME Y"
-            $bot_hardware.move_home_y
-          when "HOME Z"
-            $bot_hardware.move_home_z
-          when "DOSE WATER"
-            $bot_hardware.dose_water(command_line.amount)
-          when "SET SPEED"
-            $bot_hardware.set_speed(command_line.speed)
+        if $hardware_sim == 0
+          case command_line.action.upcase
+            when "MOVE ABSOLUTE"
+              $bot_hardware.move_absolute(command_line.coord_x, command_line.coord_y, command_line.coord_z)
+            when "MOVE RELATIVE"
+              $bot_hardware.move_relative(command_line.coord_x, command_line.coord_y, command_line.coord_z)
+            when "HOME X"
+              $bot_hardware.move_home_x
+            when "HOME Y"
+              $bot_hardware.move_home_y
+            when "HOME Z"
+              $bot_hardware.move_home_z
+            when "DOSE WATER"
+              $bot_hardware.dose_water(command_line.amount)
+            when "SET SPEED"
+              $bot_hardware.set_speed(command_line.speed)
+          end
+        else
+          puts ''
+          puts '>simulating hardware<'
+          puts ''
+
+          @bot_dbaccess.write_to_log(1,'>simulating hardware<')
+
+          sleep 2
         end
       end
     else

@@ -24,11 +24,20 @@ class MessageHandler
   #
   def handle_message(message)
 
-    @dbaccess.write_to_log(2,message.to_s)
-    @message = message['payload']
+    requested_command = ''
 
-    requested_command = message['payload']["message_type"].to_s.downcase
-    @dbaccess.write_to_log(2,'command = #{requested_command}')
+    @dbaccess.write_to_log(2,message.to_s)
+    if message.has_key? 'payload'
+      @message = message['payload']
+      if @message.has_key? 'message_type'
+        requested_command = message['payload']["message_type"].to_s.downcase
+        @dbaccess.write_to_log(2,'command = #{requested_command}')
+      else
+        @dbaccess.write_to_log(2,'message has no message type')
+      end
+    else
+      @dbaccess.write_to_log(2,'message has no payload')
+    end
 
     if whitelist.include?(requested_command)
       self.send(requested_command, message)
@@ -47,42 +56,50 @@ class MessageHandler
 
     @dbaccess.write_to_log(2,'handle single command')
 
-    time_stamp = message['payload']['time_stamp']
-    sender = message['fromUuid']
+    payload = message['payload']
+    
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
     @dbaccess.write_to_log(2,"sender = #{sender}")
 
     if time_stamp != @last_time_stamp
       @last_time_stamp = time_stamp
 
+      if payload.has_key? 'command' 
 
-      # send the command to the queue
-      delay  = message['payload']['command']['delay']
-      action = message['payload']['command']['action']
-      x      = message['payload']['command']['x']
-      y      = message['payload']['command']['y']
-      z      = message['payload']['command']['z']
-      speed  = message['payload']['command']['speed']
-      amount = message['payload']['command']['amount']
-      delay  = message['payload']['command']['delay']
+        command = payload['command']
 
-      @dbaccess.write_to_log(2,"[#{action}] x: #{x}, y: #{y}, z: #{z}, speed: #{speed}, amount: #{amount} delay: #{delay}")
+        # send the command to the queue
+        delay  = command['delay']
+        action = command['action']
+        x      = command['x']
+        y      = command['y']
+        z      = command['z']
+        speed  = command['speed']
+        amount = command['amount']
+        delay  = command['delay']
 
-      @dbaccess.create_new_command(Time.now + delay.to_i,'single_command')
-      @dbaccess.add_command_line(action, x.to_i, y.to_i, z.to_i, speed.to_s, amount.to_i)
-      @dbaccess.save_new_command
+        @dbaccess.write_to_log(2,"[#{action}] x: #{x}, y: #{y}, z: #{z}, speed: #{speed}, amount: #{amount} delay: #{delay}")
+        @dbaccess.create_new_command(Time.now + delay.to_i,'single_command')
+        @dbaccess.add_command_line(action, x.to_i, y.to_i, z.to_i, speed.to_s, amount.to_i)
+        @dbaccess.save_new_command
 
-      @dbaccess.write_to_log(2,'sending comfirmation')
+        @dbaccess.write_to_log(2,'sending comfirmation')
 
-      $skynet.confirmed = false
+        $skynet.confirmed = false
 
-      command =
-        {
-          :message_type => 'confirmation',
-          :time_stamp   => Time.now.to_f.to_s,
-          :confirm_id   => time_stamp
-        }
+        send_confirmation(sender, time_stamp)
 
-       $skynet.send_message(sender, command)
+      else
+
+        @dbaccess.write_to_log(2,'no command in message')
+        @dbaccess.write_to_log(2,'sending error')
+
+        $skynet.confirmed = false
+        send_error(sender, time_stamp, 'no command in message')
+
+      end
 
       @dbaccess.write_to_log(2,'done')
 
@@ -90,7 +107,6 @@ class MessageHandler
   end
 
   def crop_schedule_update(message)
-
     @dbaccess.write_to_log(2,'handling crop schedule update')
 
     time_stamp = message['payload']['time_stamp']
@@ -152,5 +168,25 @@ class MessageHandler
     end
   end
 
+  def send_confirmation(destination, time_stamp)
+    command =
+      {
+        :message_type => 'confirmation',
+        :time_stamp   => Time.now.to_f.to_s,
+        :confirm_id   => time_stamp
+      }
+    $skynet.send_message(destination, command)
+  end
+
+  def send_error(destination, time_stamp, error)
+    command =
+      {
+        :message_type => 'error',
+        :time_stamp   => Time.now.to_f.to_s,
+        :confirm_id   => time_stamp,
+        :error        => error
+      }
+    $skynet.send_message(destination, command)
+  end
 
 end

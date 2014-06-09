@@ -38,6 +38,9 @@ gem 'socket.io-client-simple'
 # serial port
 gem 'serialport'
 
+# polyglot
+gem 'polyglot'
+
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 

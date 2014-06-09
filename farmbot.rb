@@ -29,11 +29,12 @@ if $hardware_type != nil
   require_relative $hardware_type
   $bot_hardware = HardwareInterface.new
 else
-  set $hardware_sim = 1
+  $hardware_sim = 1
 end
 
 if $controller_disable == 0
-  puts 'connecting to hardware'
+  puts 'starting controller'
+  require_relative 'lib/controller'
   $bot_control  = Controller.new
   $bot_control.runFarmBot
 else
