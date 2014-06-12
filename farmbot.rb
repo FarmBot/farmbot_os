@@ -1,5 +1,7 @@
 # FarmBot Controller
 
+require_relative 'settings.rb'
+
 system('clear')
 puts ''
 
@@ -23,15 +25,21 @@ $bot_dbaccess = DbAccess.new
 puts 'starting synchronization'
 require_relative 'lib/skynet'
 
-puts 'connecting to hardware'
-require_relative 'lib/controller'
-#require_relative "lib/hardware/firmata/ramps"
-require_relative "lib/hardware/gcode/ramps"
-$bot_hardware = HardwareInterface.new
+if $hardware_type != nil
+  puts "connecting to hardware: #{$hardware_type}"
+  require_relative 'lib/controller'
+  require_relative $hardware_type
+  $bot_hardware = HardwareInterface.new
+else
+  $hardware_sim = 1
+end
 
-puts 'connecting to hardware'
-$bot_control  = Controller.new
-$bot_control.runFarmBot
-
-#puts 'press key to stop'
-#gets.chomp
+if $controller_disable == 0
+  puts 'starting controller'
+  require_relative 'lib/controller'
+  $bot_control  = Controller.new
+  $bot_control.runFarmBot
+else
+  puts 'press key to stop'
+  gets.chomp
+end

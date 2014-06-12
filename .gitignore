@@ -35,5 +35,8 @@ Gemfile.lock
 .ruby-gemset
 snippets.rb
 snippet.coffee
+
+# Ignore user files
 config.yml
 credentials.yml
+settings.rb

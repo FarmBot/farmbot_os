@@ -107,10 +107,11 @@ class Controller
     if cmd != nil
       cmd.command_lines.each do |command_line|
         @info_movement = "#{command_line.action.downcase} xyz=#{command_line.coord_x} #{command_line.coord_y} #{command_line.coord_z} amt=#{command_line.amount} spd=#{command_line.speed}"
+
         show_info()
         @bot_dbaccess.write_to_log(1,@info_movement)
 
-        if $sim_hardware == 0	
+        if $hardware_sim == 0
           case command_line.action.upcase
             when "MOVE ABSOLUTE"
               $bot_hardware.move_absolute(command_line.coord_x, command_line.coord_y, command_line.coord_z)
@@ -131,6 +132,9 @@ class Controller
           puts ''
           puts '>simulating hardware<'
           puts ''
+
+          @bot_dbaccess.write_to_log(1,'>simulating hardware<')
+
           sleep 2
         end
       end

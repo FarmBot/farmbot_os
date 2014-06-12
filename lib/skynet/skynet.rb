@@ -34,8 +34,6 @@ class Skynet
     $info_last_msg_received = nil
     $info_nr_msg_received   = 0
 
-puts @socket
-
     create_socket_events
 
     @message_handler  = MessageHandler.new
