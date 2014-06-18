@@ -40,3 +40,5 @@ snippet.coffee
 config.yml
 credentials.yml
 settings.rb
+/lib/.build
+
