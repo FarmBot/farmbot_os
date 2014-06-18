@@ -13,7 +13,11 @@ class HardwareInterface
     @axis_z = HardwareInterfaceAxis.new
     @pump_w = HardwareInterfacePump.new
 
-    load_config()
+    @bot_dbaccess = $bot_dbaccess
+
+    #load_config()
+    load_config_from_database()
+
     connect_board()
     set_pin_numbers()
     set_board_pin_mode()
@@ -68,6 +72,46 @@ class HardwareInterface
 
   # load the settings for the hardware
   # these are the timeouts and distance settings mainly
+  #
+  def load_config_from_database
+
+    # seconds after which home command is aborted
+
+    @axis_x.move_home_timeout   = @bot_dbaccess.read_parameter_with_default('ramps_move_home_timeout_x', 15)
+    @axis_y.move_home_timeout   = @bot_dbaccess.read_parameter_with_default('ramps_move_home_timeout_y', 15)
+    @axis_z.move_home_timeout   = @bot_dbaccess.read_parameter_with_default('ramps_move_home_timeout_z', 15)
+
+    @axis_x.invert_axis         = @bot_dbaccess.read_parameter_with_default('ramps_invert_axis_x', false)
+    @axis_y.invert_axis         = @bot_dbaccess.read_parameter_with_default('ramps_invert_axis_y', false)
+    @axis_z.invert_axis         = @bot_dbaccess.read_parameter_with_default('ramps_invert_axis_z', false)
+
+    # steps per milimeter for example
+
+    @axis_x.steps_per_unit      = @bot_dbaccess.read_parameter_with_default('ramps_steps_per_unit_x', 5)
+    @axis_y.steps_per_unit      = @bot_dbaccess.read_parameter_with_default('ramps_steps_per_unit_y', 5)
+    @axis_z.steps_per_unit      = @bot_dbaccess.read_parameter_with_default('ramps_steps_per_unit_z', 5)
+
+    @axis_x.max                 = @bot_dbaccess.read_parameter_with_default('ramps_pos_max_x', 200)
+    @axis_y.max                 = @bot_dbaccess.read_parameter_with_default('ramps_pos_max_y', 200)
+    @axis_z.max                 = @bot_dbaccess.read_parameter_with_default('ramps_pos_max_z', 200)
+
+    @axis_x.min                 = @bot_dbaccess.read_parameter_with_default('ramps_pos_min_x', 0)
+    @axis_y.min                 = @bot_dbaccess.read_parameter_with_default('ramps_pos_min_y', 0)
+    @axis_z.min                 = @bot_dbaccess.read_parameter_with_default('ramps_pos_min_z', 0)
+ 
+    @axis_x.reverse_home        = @bot_dbaccess.read_parameter_with_default('ramps_reverse_home_x', false)
+    @axis_y.reverse_home        = @bot_dbaccess.read_parameter_with_default('ramps_reverse_home_y', false)
+    @axis_z.reverse_home        = @bot_dbaccess.read_parameter_with_default('ramps_reverse_home_z', false)
+
+    # seconds per mililiter
+
+    @pump_w.seconds_per_unit    = @bot_dbaccess.read_parameter_with_default('ramps_move_home_timeout_x', 0.6)
+
+  end
+
+  # load the settings for the hardware
+  # these are the timeouts and distance settings mainly
+  #
   def load_config
 
     @axis_x.move_home_timeout   = 15 # seconds after which home command is aborted
