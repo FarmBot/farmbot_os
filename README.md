@@ -51,9 +51,7 @@ Upload to the arduino
 Usage
 =====
 
-Use "ruby sync.rb" to start the skybet communiation ans synchronisation with the farmbot back end
-
-Use "ruby runtime.rb" to start the runtime part of the software. This will read the datbase and send commands to the hardware.
+Use "ruby farmbot.rb" to start hardware control and skynet communiation
 
 Use "ruby menu.rb" to start the interface. A menu will appear. Type the command needed and press enter. It is also possible to add a list of commands to the file 'testcommands.csv' and use the menu to execute the file.
 
