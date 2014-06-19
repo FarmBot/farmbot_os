@@ -137,6 +137,12 @@ class DbAccess
   end
 
 
+  # read all logs from the log file
+  #
+  def read_logs_all()
+    logs = Log.find(:all, :order => 'created_at asc')
+  end
+
   # read from the log file
   #
   def retrieve_log(module_id, nr_of_lines)

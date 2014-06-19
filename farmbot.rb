@@ -32,6 +32,9 @@ else
   $hardware_sim = 1
 end
 
+puts "uuid                    = #{$info_uuid}"
+puts "token                   = #{$info_token}"
+
 if $controller_disable == 0
   puts 'starting controller'
   require_relative 'lib/controller'

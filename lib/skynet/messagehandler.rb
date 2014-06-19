@@ -16,7 +16,7 @@ class MessageHandler
   # A list of MessageHandler methods (as strings) that a Skynet User may access.
   #
   def whitelist
-    ["single_command","crop_schedule_update","read_parameters","write_parameters"]
+    ["single_command","crop_schedule_update","read_parameters","write_parameters","read_logs","read_status"]
   end
 
   # Handle the message received from skynet
@@ -62,6 +62,100 @@ class MessageHandler
     return {error: ""}
   end
 
+  # Send the current status to the requester
+  #
+  def read_status(message)
+
+    @dbaccess.write_to_log(2,'handle read status')
+
+    payload = message['payload']
+
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
+    @dbaccess.write_to_log(2,"sender     = #{sender}")
+    @dbaccess.write_to_log(2,"time_stamp = #{time_stamp}")
+
+    if time_stamp != @last_time_stamp
+
+      @last_time_stamp = time_stamp
+
+      return_message =
+        {
+          :message_type                   => 'read_status_return',
+          :time_stamp                     => Time.now.to_f.to_s,
+          :confirm_id                     => time_stamp,
+
+          :status                         => $bot_control.info_status,
+          :status_time_local              => Time.now,
+          :status_nr_msg_received         => $info_nr_msg_received,
+          :status_movement                => $bot_control.info_movement,
+          :status_last_command_executed   => $bot_control.info_command_last,
+          :status_next_command_scheduled  => $bot_control.info_command_next,
+          :status_nr_of_commands_executed => $bot_control.info_nr_of_commands
+        }
+
+       @dbaccess.write_to_log(2,"return_message = #{return_message}")
+
+
+       $skynet.send_message(sender, return_message)
+
+    end
+  end
+
+  # Read logs from database and send through skynet
+  #
+  def read_logs(message)
+
+    @dbaccess.write_to_log(2,'handle read logs')
+
+    payload = message['payload']
+    
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
+    @dbaccess.write_to_log(2,"sender     = #{sender}")
+    @dbaccess.write_to_log(2,"time_stamp = #{time_stamp}")
+
+    if time_stamp != @last_time_stamp
+
+      @last_time_stamp = time_stamp
+
+    @dbaccess.write_to_log(2,"lezen logs")
+
+      logs = @dbaccess.read_logs_all()
+
+    @dbaccess.write_to_log(2,"logs = #{logs}")
+
+      log_list = Array.new
+      logs.each do |log|
+        item =
+        {
+          'text'   => log.text,
+          'module' => log.module_id,
+          'time'   => log.created_at
+        }
+        log_list << item
+      end
+
+    @dbaccess.write_to_log(2,"log_list = #{log_list}")
+
+      return_message =
+        {
+          :message_type => 'read_parameters_response',
+          :time_stamp   => Time.now.to_f.to_s,
+          :confirm_id   => time_stamp,
+          :logs         => log_list
+        }
+
+      @dbaccess.write_to_log(2,"reply = #{return_message}")
+
+
+      $skynet.send_message(sender, return_message)
+
+    end    
+  end
+
   # Read parameter list from the database and send through skynet
   #
   def read_parameters(message)
@@ -73,7 +167,7 @@ class MessageHandler
     time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
     sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
 
-    @dbaccess.write_to_log(2,"sender = #{sender}")
+    @dbaccess.write_to_log(2,"sender     = #{sender}")
     @dbaccess.write_to_log(2,"time_stamp = #{time_stamp}")
 
     if time_stamp != @last_time_stamp
@@ -93,11 +187,10 @@ class MessageHandler
       @dbaccess.write_to_log(2,"reply = #{return_message}")
 
 
-       $skynet.send_message(sender, return_message)
+      $skynet.send_message(sender, return_message)
 
     end    
   end
-
 
   # Write parameters in list from skynet to the database
   #

@@ -15,7 +15,6 @@ class HardwareInterface
 
     @bot_dbaccess = $bot_dbaccess
 
-    #load_config()
     load_config_from_database()
 
     connect_board()
@@ -109,39 +108,6 @@ class HardwareInterface
 
   end
 
-  # load the settings for the hardware
-  # these are the timeouts and distance settings mainly
-  #
-  def load_config
-
-    @axis_x.move_home_timeout   = 15 # seconds after which home command is aborted
-    @axis_y.move_home_timeout   = 15
-    @axis_z.move_home_timeout   = 150
-
-    @axis_x.invert_axis = false
-    @axis_y.invert_axis = false
-    @axis_z.invert_axis = false
-
-    @axis_x.steps_per_unit = 5 # steps per milimeter for example
-    @axis_y.steps_per_unit = 4
-    @axis_z.steps_per_unit = 157
-
-    @axis_x.max = 220
-    @axis_y.max = 128
-    @axis_z.max = 0
-
-    @axis_x.min = 0
-    @axis_y.min = 0
-    @axis_z.min = -70
- 
-    @axis_x.reverse_home = false
-    @axis_y.reverse_home = false
-    @axis_z.reverse_home = true
-
-    @pump_w.seconds_per_unit = 0.6 # seconds per mililiter
-
-  end
-
   # set motor driver and end stop pins to input or output output and set enables for the drivers to off
   #
   def set_board_pin_mode
@@ -182,7 +148,7 @@ class HardwareInterface
   #
   def move_absolute( coord_x, coord_y, coord_z)
 
-    puts '**move absolute **'
+    #puts '**move absolute **'
 
     # calculate the number of steps for the motors to do
 
@@ -190,9 +156,9 @@ class HardwareInterface
     steps_y = (coord_y - @axis_y.pos) * @axis_y.steps_per_unit
     steps_z = (coord_z - @axis_z.pos) * @axis_z.steps_per_unit
 
-    puts "x steps #{steps_x}"
-    puts "y steps #{steps_y}"
-    puts "z steps #{steps_z}"
+    #puts "x steps #{steps_x}"
+    #puts "y steps #{steps_y}"
+    #puts "z steps #{steps_z}"
 
     move_steps(steps_x, steps_y, steps_z )
 
@@ -202,7 +168,7 @@ class HardwareInterface
   #
   def move_relative( amount_x, amount_y, amount_z)
 
-    puts '**move relative **'
+    #puts '**move relative **'
 
     # calculate the number of steps for the motors to do
 
@@ -210,9 +176,9 @@ class HardwareInterface
     steps_y = amount_y * @axis_y.steps_per_unit
     steps_z = amount_z * @axis_z.steps_per_unit
 
-    puts "x steps #{steps_x}"
-    puts "y steps #{steps_y}"
-    puts "z steps #{steps_z}"
+    #puts "x steps #{steps_x}"
+    #puts "y steps #{steps_y}"
+    #puts "z steps #{steps_z}"
 
     move_steps( steps_x, steps_y, steps_z )
 

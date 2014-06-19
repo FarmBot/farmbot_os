@@ -15,13 +15,12 @@ class Controller
     @info_nr_of_commands = 0
     @info_status         = 'initializing'
     @info_movement       = 'idle'
-    #@bot_dbaccess        = DbAccess.new
     @bot_dbaccess        = $bot_dbaccess
   end
 
   def runFarmBot
     @info_status = 'starting'
-    show_info()
+    #show_info()
 
     @bot_dbaccess.write_to_log(1,'Controller running')
     check = @bot_dbaccess.check_refresh
@@ -31,7 +30,7 @@ class Controller
       # keep checking the database for new data
 
       @info_status = 'checking schedule'
-      show_info()
+      #show_info()
 
       command = @bot_dbaccess.get_command_to_execute
       @bot_dbaccess.save_refresh
@@ -44,7 +43,7 @@ class Controller
 
           # execute the command now and set the status to done
           @info_status = 'executing command'
-          show_info()
+          #show_info()
 
           @info_nr_of_commands = @info_nr_of_commands + 1
 
@@ -56,7 +55,7 @@ class Controller
         else
 
           @info_status = 'waiting for scheduled time or refresh'
-          show_info()
+          #show_info()
 
           refresh_received = false
 
@@ -79,7 +78,7 @@ class Controller
       else
 
         @info_status = 'no command found, waiting'
-        show_info()
+        #show_info()
 
         @info_command_next = nil
 
@@ -92,7 +91,7 @@ class Controller
         while  Time.now < wait_start_time + 60 and refresh_received == false
 
           sleep 1
-          show_info()
+          #show_info()
 
           refresh_received = @bot_dbaccess.check_refresh
           #puts 'refresh received' if refresh_received != false
@@ -106,8 +105,8 @@ class Controller
 
     if cmd != nil
       cmd.command_lines.each do |command_line|
-        @info_movement = "#{command_line.action.downcase} xyz=#{command_line.coord_x} #{command_line.coord_y} #{command_line.coord_z} amt=#{command_line.amount} spd=#{command_line.speed}"
-        show_info()
+        @info_movement = ($hardware_sim ? '[SIM] ' : '') + "#{command_line.action.downcase} xyz=#{command_line.coord_x} #{command_line.coord_y} #{command_line.coord_z} amt=#{command_line.amount} spd=#{command_line.speed}"
+        #show_info()
         @bot_dbaccess.write_to_log(1,@info_movement)
 
         if $hardware_sim == 0
@@ -128,9 +127,9 @@ class Controller
               $bot_hardware.set_speed(command_line.speed)
           end
         else
-          puts ''
-          puts '>simulating hardware<'
-          puts ''
+          #puts ''
+          #puts '>simulating hardware<'
+          #puts ''
 
           @bot_dbaccess.write_to_log(1,'>simulating hardware<')
 
@@ -142,7 +141,7 @@ class Controller
     end
 
     @info_movement = 'idle'
-    show_info()
+    #show_info()
 
   end
 
@@ -163,10 +162,6 @@ class Controller
     puts "token                   = #{$info_token}"
     puts "last msg received       = #{$info_last_msg_received}"
     puts "nr msg received         = #{$info_nr_msg_received}"
-
-    #puts ''
-
-    #puts '[controller]'
     puts "status                  = #{$bot_control.info_status}"
     puts "movement                = #{$bot_control.info_movement}"
     puts "last command executed   = #{$bot_control.info_command_last}"
