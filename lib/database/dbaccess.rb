@@ -6,6 +6,7 @@ require './app/models/command.rb'
 require './app/models/command_line.rb'
 require './app/models/refresh.rb'
 require './app/models/log.rb'
+require './app/models/parameter.rb'
 
 # retrieving and inserting commands into the schedule queue for the farm bot
 # using sqlite
@@ -31,32 +32,90 @@ class DbAccess
   #
   def write_parameter(name, value)
     param = Parameter.find_or_create_by_name name
+    
     if value.class.to_s == "Fixnum"
       param.valueint    = value.to_i
-      param.type        = 1
+      param.valuetype   = 1
     end
     if value.class.to_s == "Float"
-      param.valuefloat  = value.to_i
-      param.type        = 2
+      param.valuefloat  = value.to_f
+      param.valuetype   = 2
     end
     if value.class.to_s == "String"
-      param.valuestring = value.to_i
-      param.type        = 3
+      param.valuestring = value.to_s
+      param.valuetype   = 3
+    end
+    if value.class.to_s == "TrueClass" or value.class.to_s == "FalseClass"
+      param.valuebool   = value
+      param.valuetype   = 4
     end
 
-    param.valuefloat  = value_float
-    param.valuestring = value_string
+    param.save
+  end
+
+  # write a parameter with type provided
+  #
+  def write_parameter_with_type(name, type, value)
+
+    param = Parameter.find_or_create_by_name(name)
+    param.valuetype = type
+
+    param.valueint    = type == 1 ? value.to_i : nil;
+    param.valuefloat  = type == 2 ? value.to_f : nil
+    param.valuestring = type == 3 ? value.to_s : nil
+    param.valuebool   = type == 4 ? value      : nil
+
     param.save
   end
 
 
+  # read parameter list
+  #
+  def read_parameter_list()
+    params = Parameter.find(:all)    
+    param_list = Array.new
+
+    params.each do |param|
+      value = param.valueint    if param.valuetype == 1
+      value = param.valuefloat  if param.valuetype == 2
+      value = param.valuestring if param.valuetype == 3
+      value = param.valuebool   if param.valuetype == 4
+      item = 
+      {
+        'name'  => param.name,
+        'type'  => param.valuetype,
+        'value' => value
+      }
+      param_list << item
+    end
+
+    param_list
+  end
+
   # read parameter
   #
   def read_parameter(name)
-    type = Parameter.find_by_name(name).type
-    value = valueint    if type == 1
-    value = valuefloat  if type == 2
-    value = valuestring if type == 3
+    param = Parameter.find_or_create_by_name(name)
+    #param = Parameter.find_or_create_by(name: name)
+    type = param.valuetype
+    value = param.valueint    if type == 1
+    value = param.valuefloat  if type == 2
+    value = param.valuestring if type == 3
+    value = param.valuebool   if type == 4
+    value
+  end
+
+  # read parameter
+  #
+  def read_parameter_with_default(name, default_value)
+
+    value = read_parameter(name)
+
+    if value == nil
+      value = default_value
+      write_parameter(name, value)
+    end
+
     value
   end
 
@@ -77,6 +136,12 @@ class DbAccess
 
   end
 
+
+  # read all logs from the log file
+  #
+  def read_logs_all()
+    logs = Log.find(:all, :order => 'created_at asc')
+  end
 
   # read from the log file
   #

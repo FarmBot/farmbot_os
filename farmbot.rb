@@ -12,8 +12,6 @@ puts '---------'
 puts '   \/    '
 puts ''
 
-$sim_hardware = 1
-
 $shutdown = 0
 
 puts 'connecting to database'
@@ -33,6 +31,9 @@ if $hardware_type != nil
 else
   $hardware_sim = 1
 end
+
+puts "uuid                    = #{$info_uuid}"
+puts "token                   = #{$info_token}"
 
 if $controller_disable == 0
   puts 'starting controller'

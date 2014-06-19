@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140530214429) do
+ActiveRecord::Schema.define(version: 20140612194228) do
 
   create_table "command_lines", force: true do |t|
     t.integer  "command_id"
@@ -49,6 +49,7 @@ ActiveRecord::Schema.define(version: 20140530214429) do
     t.integer  "valueint"
     t.float    "valuefloat"
     t.string   "valuestring"
+    t.boolean  "valuebool"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

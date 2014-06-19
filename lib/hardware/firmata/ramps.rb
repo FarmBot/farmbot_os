@@ -13,7 +13,10 @@ class HardwareInterface
     @axis_z = HardwareInterfaceAxis.new
     @pump_w = HardwareInterfacePump.new
 
-    load_config()
+    @bot_dbaccess = $bot_dbaccess
+
+    load_config_from_database()
+
     connect_board()
     set_pin_numbers()
     set_board_pin_mode()
@@ -68,33 +71,40 @@ class HardwareInterface
 
   # load the settings for the hardware
   # these are the timeouts and distance settings mainly
-  def load_config
+  #
+  def load_config_from_database
 
-    @axis_x.move_home_timeout   = 15 # seconds after which home command is aborted
-    @axis_y.move_home_timeout   = 15
-    @axis_z.move_home_timeout   = 150
+    # seconds after which home command is aborted
 
-    @axis_x.invert_axis = false
-    @axis_y.invert_axis = false
-    @axis_z.invert_axis = false
+    @axis_x.move_home_timeout   = @bot_dbaccess.read_parameter_with_default('ramps_move_home_timeout_x', 15)
+    @axis_y.move_home_timeout   = @bot_dbaccess.read_parameter_with_default('ramps_move_home_timeout_y', 15)
+    @axis_z.move_home_timeout   = @bot_dbaccess.read_parameter_with_default('ramps_move_home_timeout_z', 15)
 
-    @axis_x.steps_per_unit = 5 # steps per milimeter for example
-    @axis_y.steps_per_unit = 4
-    @axis_z.steps_per_unit = 157
+    @axis_x.invert_axis         = @bot_dbaccess.read_parameter_with_default('ramps_invert_axis_x', false)
+    @axis_y.invert_axis         = @bot_dbaccess.read_parameter_with_default('ramps_invert_axis_y', false)
+    @axis_z.invert_axis         = @bot_dbaccess.read_parameter_with_default('ramps_invert_axis_z', false)
 
-    @axis_x.max = 220
-    @axis_y.max = 128
-    @axis_z.max = 0
+    # steps per milimeter for example
 
-    @axis_x.min = 0
-    @axis_y.min = 0
-    @axis_z.min = -70
+    @axis_x.steps_per_unit      = @bot_dbaccess.read_parameter_with_default('ramps_steps_per_unit_x', 5)
+    @axis_y.steps_per_unit      = @bot_dbaccess.read_parameter_with_default('ramps_steps_per_unit_y', 5)
+    @axis_z.steps_per_unit      = @bot_dbaccess.read_parameter_with_default('ramps_steps_per_unit_z', 5)
+
+    @axis_x.max                 = @bot_dbaccess.read_parameter_with_default('ramps_pos_max_x', 200)
+    @axis_y.max                 = @bot_dbaccess.read_parameter_with_default('ramps_pos_max_y', 200)
+    @axis_z.max                 = @bot_dbaccess.read_parameter_with_default('ramps_pos_max_z', 200)
+
+    @axis_x.min                 = @bot_dbaccess.read_parameter_with_default('ramps_pos_min_x', 0)
+    @axis_y.min                 = @bot_dbaccess.read_parameter_with_default('ramps_pos_min_y', 0)
+    @axis_z.min                 = @bot_dbaccess.read_parameter_with_default('ramps_pos_min_z', 0)
  
-    @axis_x.reverse_home = false
-    @axis_y.reverse_home = false
-    @axis_z.reverse_home = true
+    @axis_x.reverse_home        = @bot_dbaccess.read_parameter_with_default('ramps_reverse_home_x', false)
+    @axis_y.reverse_home        = @bot_dbaccess.read_parameter_with_default('ramps_reverse_home_y', false)
+    @axis_z.reverse_home        = @bot_dbaccess.read_parameter_with_default('ramps_reverse_home_z', false)
 
-    @pump_w.seconds_per_unit = 0.6 # seconds per mililiter
+    # seconds per mililiter
+
+    @pump_w.seconds_per_unit    = @bot_dbaccess.read_parameter_with_default('ramps_move_home_timeout_x', 0.6)
 
   end
 
@@ -138,7 +148,7 @@ class HardwareInterface
   #
   def move_absolute( coord_x, coord_y, coord_z)
 
-    puts '**move absolute **'
+    #puts '**move absolute **'
 
     # calculate the number of steps for the motors to do
 
@@ -146,9 +156,9 @@ class HardwareInterface
     steps_y = (coord_y - @axis_y.pos) * @axis_y.steps_per_unit
     steps_z = (coord_z - @axis_z.pos) * @axis_z.steps_per_unit
 
-    puts "x steps #{steps_x}"
-    puts "y steps #{steps_y}"
-    puts "z steps #{steps_z}"
+    #puts "x steps #{steps_x}"
+    #puts "y steps #{steps_y}"
+    #puts "z steps #{steps_z}"
 
     move_steps(steps_x, steps_y, steps_z )
 
@@ -158,7 +168,7 @@ class HardwareInterface
   #
   def move_relative( amount_x, amount_y, amount_z)
 
-    puts '**move relative **'
+    #puts '**move relative **'
 
     # calculate the number of steps for the motors to do
 
@@ -166,9 +176,9 @@ class HardwareInterface
     steps_y = amount_y * @axis_y.steps_per_unit
     steps_z = amount_z * @axis_z.steps_per_unit
 
-    puts "x steps #{steps_x}"
-    puts "y steps #{steps_y}"
-    puts "z steps #{steps_z}"
+    #puts "x steps #{steps_x}"
+    #puts "y steps #{steps_y}"
+    #puts "z steps #{steps_z}"
 
     move_steps( steps_x, steps_y, steps_z )
 

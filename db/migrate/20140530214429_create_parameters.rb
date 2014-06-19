@@ -6,6 +6,7 @@ class CreateParameters < ActiveRecord::Migration
       t.integer :valueint
       t.float :valuefloat
       t.string :valuestring
+      t.boolean :valuebool
 
       t.timestamps
     end

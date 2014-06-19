@@ -1,5 +1,8 @@
 source 'https://rubygems.org'
 
+# Enable db migration without rails
+gem 'active_record_migrations'
+
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '4.0.4'
 
@@ -40,6 +43,9 @@ gem 'serialport'
 
 # polyglot
 gem 'polyglot'
+
+# httparty
+gem 'httparty'
 
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'

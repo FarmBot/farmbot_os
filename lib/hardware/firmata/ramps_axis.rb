@@ -14,6 +14,9 @@ class HardwareInterfaceAxis
 
     @steps = 0
     @nr_steps = 0
+
+    @bot_dbaccess        = $bot_dbaccess
+
   end
 
   # set the pins for one motor with sensors
@@ -90,17 +93,17 @@ class HardwareInterfaceAxis
 
       if span > @move_home_timeout
         home = 1
-        puts "move home #{@name} timed out"
+        #puts "move home #{@name} timed out"
       end
 
       if @board.pins[@pin_min].value == 1 and @reverse_home == false
         home = 1
-        puts "end stop home min #{@name} reached"
+        #puts "end stop home min #{@name} reached"
       end
 
       if @board.pins[@pin_max].value == 1 and @reverse_home == true
         home = 1
-        puts "end stop home max #{@name} reached"
+        #puts "end stop home max #{@name} reached"
       end
 
       if home == 0
@@ -153,20 +156,20 @@ class HardwareInterfaceAxis
       if @board.pins[@pin_min].value == 1 and @steps < 0
         @nr_steps = 0
         @pos      = @min
-        puts "end stop min #{@name} reached"
+        #puts "end stop min #{@name} reached"
       end
 
       if @board.pins[@pin_max].value == 1 and @steps > 0
         @nr_steps = 0
         @pos      = @max
-        puts "end stop max #{@name} reached"
+        #puts "end stop max #{@name} reached"
       end
 
       # check minimum and maximum position
 
       if (@pos <= @min and @steps < 0) or (@pos >= @max and @steps > 0)
         @nr_steps = 0
-        puts "end position reached #{@name}"
+        #puts "end position reached #{@name}"
       end
 
       # send the step pulses to the motor drivers

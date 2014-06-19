@@ -1,5 +1,4 @@
 require 'json'
-#require './lib/database/commandqueue.rb'
 require './lib/database/dbaccess.rb'
 require 'time'
 
@@ -17,7 +16,7 @@ class MessageHandler
   # A list of MessageHandler methods (as strings) that a Skynet User may access.
   #
   def whitelist
-    ["single_command","crop_schedule_update"]
+    ["single_command","crop_schedule_update","read_parameters","write_parameters","read_logs","read_status"]
   end
 
   # Handle the message received from skynet
@@ -27,30 +26,217 @@ class MessageHandler
     requested_command = ''
 
     @dbaccess.write_to_log(2,message.to_s)
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : ''
+
+    @dbaccess.write_to_log(2,"sender #{sender}")
+
     if message.has_key? 'payload'
       @message = message['payload']
       if @message.has_key? 'message_type'
         requested_command = message['payload']["message_type"].to_s.downcase
-        @dbaccess.write_to_log(2,'command = #{requested_command}')
+        @dbaccess.write_to_log(2,"message_type = #{requested_command}")
       else
         @dbaccess.write_to_log(2,'message has no message type')
+        if sender != ''
+          send_error(sender, '', 'unknown message type')
+        end
       end
     else
       @dbaccess.write_to_log(2,'message has no payload')
+      if sender != ''
+        send_error(sender, '', 'message has no payload')
+      end
     end
 
     if whitelist.include?(requested_command)
       self.send(requested_command, message)
     else
+      @dbaccess.write_to_log(2,'message type not in white list')
       self.error(message)
     end
   end
 
-  # Handles an erorr (typically, an unauthorized or unknown message). Returns
+  # Handles an error (typically, an unauthorized or unknown message). Returns
   # Hash.
   def error
     return {error: ""}
   end
+
+  # Send the current status to the requester
+  #
+  def read_status(message)
+
+    @dbaccess.write_to_log(2,'handle read status')
+
+    payload = message['payload']
+
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
+    @dbaccess.write_to_log(2,"sender     = #{sender}")
+    @dbaccess.write_to_log(2,"time_stamp = #{time_stamp}")
+
+    if time_stamp != @last_time_stamp
+
+      @last_time_stamp = time_stamp
+
+      return_message =
+        {
+          :message_type                   => 'read_status_return',
+          :time_stamp                     => Time.now.to_f.to_s,
+          :confirm_id                     => time_stamp,
+
+          :status                         => $bot_control.info_status,
+          :status_time_local              => Time.now,
+          :status_nr_msg_received         => $info_nr_msg_received,
+          :status_movement                => $bot_control.info_movement,
+          :status_last_command_executed   => $bot_control.info_command_last,
+          :status_next_command_scheduled  => $bot_control.info_command_next,
+          :status_nr_of_commands_executed => $bot_control.info_nr_of_commands
+        }
+
+       @dbaccess.write_to_log(2,"return_message = #{return_message}")
+
+
+       $skynet.send_message(sender, return_message)
+
+    end
+  end
+
+  # Read logs from database and send through skynet
+  #
+  def read_logs(message)
+
+    @dbaccess.write_to_log(2,'handle read logs')
+
+    payload = message['payload']
+    
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
+    @dbaccess.write_to_log(2,"sender     = #{sender}")
+    @dbaccess.write_to_log(2,"time_stamp = #{time_stamp}")
+
+    if time_stamp != @last_time_stamp
+
+      @last_time_stamp = time_stamp
+
+    @dbaccess.write_to_log(2,"lezen logs")
+
+      logs = @dbaccess.read_logs_all()
+
+    @dbaccess.write_to_log(2,"logs = #{logs}")
+
+      log_list = Array.new
+      logs.each do |log|
+        item =
+        {
+          'text'   => log.text,
+          'module' => log.module_id,
+          'time'   => log.created_at
+        }
+        log_list << item
+      end
+
+    @dbaccess.write_to_log(2,"log_list = #{log_list}")
+
+      return_message =
+        {
+          :message_type => 'read_parameters_response',
+          :time_stamp   => Time.now.to_f.to_s,
+          :confirm_id   => time_stamp,
+          :logs         => log_list
+        }
+
+      @dbaccess.write_to_log(2,"reply = #{return_message}")
+
+
+      $skynet.send_message(sender, return_message)
+
+    end    
+  end
+
+  # Read parameter list from the database and send through skynet
+  #
+  def read_parameters(message)
+
+    @dbaccess.write_to_log(2,'handle read parameters')
+
+    payload = message['payload']
+    
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
+    @dbaccess.write_to_log(2,"sender     = #{sender}")
+    @dbaccess.write_to_log(2,"time_stamp = #{time_stamp}")
+
+    if time_stamp != @last_time_stamp
+
+      @last_time_stamp = time_stamp
+
+      param_list = @dbaccess.read_parameter_list()
+
+      return_message =
+        {
+          :message_type => 'read_parameters_response',
+          :time_stamp   => Time.now.to_f.to_s,
+          :confirm_id   => time_stamp,
+          :parameters   => param_list
+        }
+
+      @dbaccess.write_to_log(2,"reply = #{return_message}")
+
+
+      $skynet.send_message(sender, return_message)
+
+    end    
+  end
+
+  # Write parameters in list from skynet to the database
+  #
+  def write_parameters(message)
+
+    @dbaccess.write_to_log(2,'handle write parameters')
+
+    payload = message['payload']
+    
+    time_stamp = payload.has_key? 'time_stamp' ? payload['time_stamp'] : nil
+    sender     = message.has_key? 'fromUuid'   ? message['fromUuid']   : 'UNKNOWN'
+
+    #@dbaccess.write_to_log(2,"sender = #{sender}")
+
+    if time_stamp != @last_time_stamp
+      @last_time_stamp = time_stamp
+
+      if payload.has_key? 'parameters'
+      
+        param_list = payload['parameters']
+        param_list.each do |param|
+
+          if param.has_key? 'name' and param.has_key? 'type' and param.has_key? 'value' 
+
+            @dbaccess.write_to_log(2,"param = #{param}")
+
+            name  = param['name' ]
+            type  = param['type' ]
+            value = param['value']
+
+            @dbaccess.write_to_log(2,"name  = #{name}")
+            @dbaccess.write_to_log(2,"type  = #{type}")
+            @dbaccess.write_to_log(2,"value = #{value}")
+            
+            @dbaccess.write_parameter_with_type(name, type, value)
+          end
+        end
+        send_confirmation(sender, time_stamp)
+      else
+        send_error(sender, time_stamp, 'no paramer list in message')                           
+      end      
+    end
+  end
+
+
+
 
   def single_command(message)
 
@@ -160,7 +346,7 @@ class MessageHandler
           :confirm_id   => time_stamp
         }
 
-       $skynet.send_message(sender, command)
+      $skynet.send_message(sender, command)
 
       @dbaccess.write_to_log(2,'done')
 
