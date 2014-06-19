@@ -49,9 +49,9 @@ ActiveRecord::Schema.define(version: 20140612194228) do
     t.integer  "valueint"
     t.float    "valuefloat"
     t.string   "valuestring"
+    t.boolean  "valuebool"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.boolean  "valuebool"
   end
 
   create_table "refreshes", force: true do |t|

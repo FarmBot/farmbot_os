@@ -1,5 +1,8 @@
 source 'https://rubygems.org'
 
+# Enable db migration without rails
+gem 'active_record_migrations'
+
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '4.0.4'
 

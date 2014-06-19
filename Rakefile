@@ -1,6 +1,17 @@
-# Add your own tasks in files placed in lib/tasks ending in .rake,
-# for example lib/tasks/capistrano.rake, and they will automatically be available to Rake.
+require 'active_record_migrations'
 
-require File.expand_path('../config/application', __FILE__)
+ActiveRecordMigrations.configure do |c|
+  c.database_configuration = {
+    'development' => {'adapter' => 'sqlite3',
+                      'database' => 'db/db.sqlite3'},
+  }
+  # Other settings:
+  #c.schema_format = :sql # default is :ruby
+  # c.yaml_config = 'db/config.yml'
+  # c.environment = ENV['db']
+  # c.db_dir = 'db'
+  # c.migrations_paths = ['db/migrate'] # the first entry will be used
+  # by the generator
+end
 
-FarmbotRaspberryPiController::Application.load_tasks
+ActiveRecordMigrations.load_tasks
