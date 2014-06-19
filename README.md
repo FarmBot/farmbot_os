@@ -37,11 +37,6 @@ cd farmbot-raspberry-pi-controller
 OR
 'bundle install' (for developers)
 
-temporary:
-- gem install bson
-- gem install firmata
-- gem install socket.io-client-simple
-
 rake db:migrate
 
 Arduino
