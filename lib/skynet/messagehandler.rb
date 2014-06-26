@@ -97,7 +97,6 @@ class MessageHandler
 
        @dbaccess.write_to_log(2,"return_message = #{return_message}")
 
-
        $skynet.send_message(sender, return_message)
 
     end
@@ -200,8 +199,8 @@ class MessageHandler
 
     payload = message['payload']
     
-    time_stamp = payload.has_key? 'time_stamp' ? payload['time_stamp'] : nil
-    sender     = message.has_key? 'fromUuid'   ? message['fromUuid']   : 'UNKNOWN'
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
 
     #@dbaccess.write_to_log(2,"sender = #{sender}")
 
@@ -221,11 +220,11 @@ class MessageHandler
             type  = param['type' ]
             value = param['value']
 
-            @dbaccess.write_to_log(2,"name  = #{name}")
+            @dbaccess.write_to_log(2,"name = #{name}")
             @dbaccess.write_to_log(2,"type  = #{type}")
             @dbaccess.write_to_log(2,"value = #{value}")
-            
             @dbaccess.write_parameter_with_type(name, type, value)
+
           end
         end
         send_confirmation(sender, time_stamp)
