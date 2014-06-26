@@ -120,11 +120,7 @@ class MessageHandler
 
       @last_time_stamp = time_stamp
 
-    @dbaccess.write_to_log(2,"lezen logs")
-
       logs = @dbaccess.read_logs_all()
-
-    @dbaccess.write_to_log(2,"logs = #{logs}")
 
       log_list = Array.new
       logs.each do |log|
@@ -137,8 +133,6 @@ class MessageHandler
         log_list << item
       end
 
-    @dbaccess.write_to_log(2,"log_list = #{log_list}")
-
       return_message =
         {
           :message_type => 'read_parameters_response',
@@ -146,9 +140,6 @@ class MessageHandler
           :confirm_id   => time_stamp,
           :logs         => log_list
         }
-
-      @dbaccess.write_to_log(2,"reply = #{return_message}")
-
 
       $skynet.send_message(sender, return_message)
 
