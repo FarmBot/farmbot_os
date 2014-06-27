@@ -82,7 +82,7 @@ class MessageHandler
 
       return_message =
         {
-          :message_type                   => 'read_status_return',
+          :message_type                   => 'read_status_response',
           :time_stamp                     => Time.now.to_f.to_s,
           :confirm_id                     => time_stamp,
 
@@ -96,7 +96,6 @@ class MessageHandler
         }
 
        @dbaccess.write_to_log(2,"return_message = #{return_message}")
-
 
        $skynet.send_message(sender, return_message)
 
@@ -121,11 +120,7 @@ class MessageHandler
 
       @last_time_stamp = time_stamp
 
-    @dbaccess.write_to_log(2,"lezen logs")
-
       logs = @dbaccess.read_logs_all()
-
-    @dbaccess.write_to_log(2,"logs = #{logs}")
 
       log_list = Array.new
       logs.each do |log|
@@ -138,18 +133,13 @@ class MessageHandler
         log_list << item
       end
 
-    @dbaccess.write_to_log(2,"log_list = #{log_list}")
-
       return_message =
         {
-          :message_type => 'read_parameters_response',
+          :message_type => 'read_logs_response',
           :time_stamp   => Time.now.to_f.to_s,
           :confirm_id   => time_stamp,
           :logs         => log_list
         }
-
-      @dbaccess.write_to_log(2,"reply = #{return_message}")
-
 
       $skynet.send_message(sender, return_message)
 
@@ -200,8 +190,8 @@ class MessageHandler
 
     payload = message['payload']
     
-    time_stamp = payload.has_key? 'time_stamp' ? payload['time_stamp'] : nil
-    sender     = message.has_key? 'fromUuid'   ? message['fromUuid']   : 'UNKNOWN'
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
 
     #@dbaccess.write_to_log(2,"sender = #{sender}")
 
@@ -221,11 +211,11 @@ class MessageHandler
             type  = param['type' ]
             value = param['value']
 
-            @dbaccess.write_to_log(2,"name  = #{name}")
+            @dbaccess.write_to_log(2,"name = #{name}")
             @dbaccess.write_to_log(2,"type  = #{type}")
             @dbaccess.write_to_log(2,"value = #{value}")
-            
             @dbaccess.write_parameter_with_type(name, type, value)
+
           end
         end
         send_confirmation(sender, time_stamp)
@@ -234,9 +224,6 @@ class MessageHandler
       end      
     end
   end
-
-
-
 
   def single_command(message)
 
