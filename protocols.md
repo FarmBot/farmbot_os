@@ -8,6 +8,7 @@ Basics
 
 The farmbot hardware communicates with the backend trough the skynet protocol, a machine instant messaging protocol. All information is packaged as JSON. A typical message in skynet looks like this:
 
+```
 {
   "devices"=>"44128811-8c59-11e3-b99a-11476114e05f", 
   "message"=>
@@ -17,6 +18,7 @@ The farmbot hardware communicates with the backend trough the skynet protocol, a
   }, 
   "fromUuid"=>"68591ebf-d354-4a3a-8b83-0453bf4e8b23"
 }
+````
 
 Everything in the message variable is custom. Skynet itself will always use create the device, message and fromUuid variable.
 
@@ -24,36 +26,39 @@ For farmbot, two elements are always present in the message:
 
 |variable|example value|description|
 |--------|-------------|-----------|
-|message_type|single_command|the type of message|
-|time_stamp|1403805036.4898174|a string value to make the message unique|
+|message\_type | single\_command|the type of message|
+|time\_stamp|1403805036.4898174|a string value to make the message unique|
 
 The message type is a string that defines what the message does. Current available message types are:
-|send by backend|response by farmbot|
-|---------------|---------------|
-|single_command|confirmation|
-|read_parameters|read_parameters_response|
-|read_status|read_status_response|
-|read_logs|read_logs_response|
-|write_parameters|confirmation|
-|crop_schedule_update|confirmation|
+
+|send by backend        |response by farmbot      |
+|-----------------------|-------------------------|
+|single\_command        |confirmation             |
+|read\_parameters       |read\_parameters_response|
+|read\_status           |read\_status\_response   |
+|read\_logs             |read\_logs\_response     |
+|write\_parameters      |confirmation             |
+|crop\_schedule\_update |confirmation             |
 
 Confirmation
 ------------
 
 Some messages get a short response as a confirmation from the farmbot that the message is read and processed. The farmbot puts into 'confirm_id' the 'time_stamp' of the message that is processed.
 
+```
 {
   "message_type"=>"confirmation", 
   "time_stamp"=>"1403894016.000322", 
   "confirm_id"=>"1403894021.7605221"
 }
-
+```
 
 Basic movement
 ==============
 
 To move the farmbot manually, a message is send with type 'single command'. The farmbot will put the command into the schedule for immediate execution. The message looks like:
 
+```
 {
   :message_type=>"single_command", 
   :time_stamp=>"1403805036.4898174", 
@@ -68,6 +73,7 @@ To move the farmbot manually, a message is send with type 'single command'. The 
     :delay=>0
   }
 }
+```
 
 variable|type|desciption
 --------|----|----------
@@ -81,13 +87,14 @@ delay   |decimal|amount in seconds to delay the execution of a command
 
 actions and parameters used:
 
-action       |x|y|z|speed|amount|delay
-MOVE RELATIVE|x|x|x|x    |      |x
-MOVE ABSOLUTE|x|x|x|x    |      |x
-DOSE WATER   | | | |     |x     |x
-HOME X       | | | |     |      |
-HOME Y       | | | |     |      |
-HOME Z       | | | |     |      |
+|action       |x |y |z |speed|amount|delay|
+|-------------|--|--|--|-----|------|-----|
+|MOVE RELATIVE|x |x |x |x    |      |x    |
+|MOVE ABSOLUTE|x |x |x |x    |      |x    |
+|DOSE WATER   |  |  |  |     |x     |x    |
+|HOME X       |  |  |  |     |      |     |
+|HOME Y       |  |  |  |     |      |     |
+|HOME Z       |  |  |  |     |      |     |
 
 Device status
 =============
@@ -95,6 +102,7 @@ Device status
 Read status
 -----------
 
+```
 {
   :message_type => "read_status", 
   :time_stamp   => "1403818238.3181107"
@@ -112,12 +120,14 @@ Read status
   "status_next_command_scheduled"  => nil, 
   "status_nr_of_commands_executed" => 1
 }
+```
 
 Read logs
 ---------
 
 Sending the read log command to the farmbot and it will reply with a list of all recent logs
 
+```
 {
   :message_type => "read_logs", 
   :time_stamp   => "1403805653.5407457"
@@ -144,6 +154,7 @@ Sending the read log command to the farmbot and it will reply with a list of all
     ]
   }
 }
+```
 
 Parameter management
 ====================
@@ -173,18 +184,19 @@ ramps_reverse_home_z     |4   |0/1
 
 The type id number used for storing in sqlite
 
-id|type
---|----
-1 |integer
-2 |float
-3 |string
-4 |boolean
+|id|type     |
+|--|---------|
+|1 |integer  |
+|2 |float    |
+|3 |string   |
+|4 |boolean  |
 
 Reading parameters
 ------------------
 
 If you send a message for reading the parameters, farmbot will reply with a list of all parameters present in the system. The list of parameters are created at the first boot of the system.
 
+```
 {
   :message_type=>"read_parameters", 
   :time_stamp=>"1403816116.954407"
@@ -201,7 +213,7 @@ If you send a message for reading the parameters, farmbot will reply with a list
     {"name"=>"ramps_move_home_timeout_z", "type"=>1, "value"=>33}
   ]
 }
-
+```
 
 
 Writing parameters
@@ -209,6 +221,7 @@ Writing parameters
 
 This message is used to send a list of the values that need to be changed to the farmbot. It will reply with a simple confirmation
 
+```
 {
   :message_type=>"write_parameters", 
   :time_stamp=>"1403812040.7974331", 
@@ -219,7 +232,7 @@ This message is used to send a list of the values that need to be changed to the
     {:name=>"ramps_move_home_timeout_z", :type=>1, :value=>40}
   ]
 }
-
+```
 
 
 
