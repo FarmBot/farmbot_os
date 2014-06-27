@@ -184,12 +184,12 @@ ramps_reverse_home_z     |4   |0/1
 
 The type id number used for storing in sqlite
 
-|id|type     |
-|--|---------|
-|1 |integer  |
-|2 |float    |
-|3 |string   |
-|4 |boolean  |
+id   |type
+-----|---------
+1    |integer
+2    |float
+3    |string
+4    |boolean
 
 Reading parameters
 ------------------
@@ -233,12 +233,3 @@ This message is used to send a list of the values that need to be changed to the
   ]
 }
 ```
-
-
-
-
-
-
-
-
-
