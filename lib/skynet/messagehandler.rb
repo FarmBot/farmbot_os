@@ -82,7 +82,7 @@ class MessageHandler
 
       return_message =
         {
-          :message_type                   => 'read_status_return',
+          :message_type                   => 'read_status_response',
           :time_stamp                     => Time.now.to_f.to_s,
           :confirm_id                     => time_stamp,
 
@@ -135,7 +135,7 @@ class MessageHandler
 
       return_message =
         {
-          :message_type => 'read_parameters_response',
+          :message_type => 'read_logs_response',
           :time_stamp   => Time.now.to_f.to_s,
           :confirm_id   => time_stamp,
           :logs         => log_list
@@ -224,9 +224,6 @@ class MessageHandler
       end      
     end
   end
-
-
-
 
   def single_command(message)
 
