@@ -87,14 +87,14 @@ delay   |decimal|amount in seconds to delay the execution of a command
 
 actions and parameters used:
 
-|action       |x |y |z |speed|amount|delay|
-|-------------|--|--|--|-----|------|-----|
-|MOVE RELATIVE|x |x |x |x    |      |x    |
-|MOVE ABSOLUTE|x |x |x |x    |      |x    |
-|DOSE WATER   |  |  |  |     |x     |x    |
-|HOME X       |  |  |  |     |      |     |
-|HOME Y       |  |  |  |     |      |     |
-|HOME Z       |  |  |  |     |      |     |
+action       |x      |y      |z      |speed|amount|delay
+-------------|-------|-------|-------|-----|------|-----
+MOVE RELATIVE|X      |X      |X      |X    |      |X    
+MOVE ABSOLUTE|X      |X      |X      |X    |      |X
+DOSE WATER   |       |       |       |     |X     |X
+HOME X       |       |       |       |X    |      |X
+HOME Y       |       |       |       |X    |      |X
+HOME Z       |       |       |       |X    |      |X
 
 Device status
 =============
