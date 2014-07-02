@@ -75,12 +75,39 @@ class HardwareInterface
     puts "WR: #{text}"
     @serial_port.write( "#{text}\n" )    
 
+    done = 0
+    r = ''
+    received = ''
     start = Time.now
-    while(Time.now - start < 5)
+    while(Time.now - start < 5 and done == 0)
       while(i = @serial_port.gets) do
-        puts i
+        i.each_char do |c|
+          #puts c 
+          if c == "\r" or c == "\n"
+            if r.length > 0
+              puts "RD: #{r}"
+
+              if r.upcase == 'R02'
+                done = 1
+              end
+
+              r = ''
+            end
+          else
+            r = r + c
+          end
+        end
+        #r = r + i
+        #done = 1 if i.strip == 'R02'        
+        #puts i
+        #puts ">#{i.strip}<"
         #puts i.class
       end
+    end
+    if done == 1 
+      puts 'done'
+    else
+      puts 'timeout'
     end
   end
 
