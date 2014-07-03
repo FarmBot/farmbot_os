@@ -67,13 +67,14 @@ class HardwareInterface
 
     @pump_w_seconds_per_unit = 0.6 # seconds per mililiter
 
+    @max_speed = 200 # steps per second
   end
 
   # write a command to the robot
   #
   def execute_command( text )
     puts "WR: #{text}"
-    @serial_port.write( "#{text}\n" )    
+    @serial_port.write( "#{text} \n" )    
 
     start = Time.now
     while(Time.now - start < 5)
@@ -185,7 +186,7 @@ class HardwareInterface
   def move_steps(steps_x, steps_y, steps_z)
 
     # send the g-code to move to the robot
-    execute_command("G00 X#{steps_x} Y#{steps_y} Z#{steps_z}")
+    execute_command("G00 X#{steps_x} Y#{steps_y} Z#{steps_z} S#{@max_speed}")
 
   end
 
@@ -194,7 +195,7 @@ class HardwareInterface
   def move_to_coord(steps_x, steps_y, steps_z)
 
     # send the g-code to move to the robot
-    execute_command("G00 X#{steps_x} Y#{steps_y} Z#{steps_z}")
+    execute_command("G00 X#{steps_x} Y#{steps_y} Z#{steps_z} S#{@max_speed}")
 
   end
 
