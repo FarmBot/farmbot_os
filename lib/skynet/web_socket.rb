@@ -1,5 +1,5 @@
-#require 'socket.io-client-simple'
-require_relative 'socket.io-client-simple.rb'
+require 'socket.io-client-simple'
+#require_relative 'socket.io-client-simple.rb'
                                                    
 module WebSocket
   ### Bootstraps all the events for skynet in the correct order. Returns Int.

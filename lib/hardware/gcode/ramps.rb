@@ -9,6 +9,8 @@ class HardwareInterface
     load_config()
     connect_board()
 
+    @bot_dbaccess = $bot_dbaccess
+
     @axis_x_pos = 0
     @axis_y_pos = 0
     @axis_z_pos = 0
@@ -73,15 +75,45 @@ class HardwareInterface
   # write a command to the robot
   #
   def execute_command( text )
-    puts "WR: #{text}"
+
+puts "WR: #{text}"
+
+    @bot_dbaccess.write_to_log(1, "WR: #{text}")
+    @serial_port.read_timeout = 2
     @serial_port.write( "#{text} \n" )    
 
+    done = 0
+    r = ''
+    received = ''
     start = Time.now
-    while(Time.now - start < 5)
-      while(i = @serial_port.gets) do
-        puts i
-        #puts i.class
+    while(Time.now - start < 30 and done == 0)
+      i = @serial_port.read(1)
+      if i != nil
+        i.each_char do |c|
+          if c == "\r" or c == "\n"
+            if r.length > 0
+puts "RD: #{r}"
+               @bot_dbaccess.write_to_log(1,"RD: #{r}")
+              if r.upcase == 'R02'
+                done = 1
+              end
+              r = ''
+            end
+          else
+            r = r + c
+          end
+        end
+      else
+       sleep 0.05
       end
+    end
+
+    if done == 1
+puts 'ST: done'
+      @bot_dbaccess.write_to_log(1, 'ST: done')
+    else
+puts 'ST: timeout'
+      @bot_dbaccess.write_to_log(1, 'ST: timeout')
     end
   end
 
@@ -117,13 +149,7 @@ class HardwareInterface
   #
   def move_absolute( coord_x, coord_y, coord_z)
 
-    puts '**move absolute **'
-
     # calculate the number of steps for the motors to do
-
-    #steps_x = (coord_x - @axis_x_pos) * @axis_x_steps_per_unit
-    #steps_y = (coord_y - @axis_y_pos) * @axis_y_steps_per_unit
-    #steps_z = (coord_z - @axis_z_pos) * @axis_z_steps_per_unit
 
     steps_x = coord_x * @axis_x_steps_per_unit
     steps_y = coord_y * @axis_y_steps_per_unit
@@ -133,10 +159,6 @@ class HardwareInterface
     @axis_y_pos = steps_y
     @axis_z_pos = steps_z
 
-    puts "x steps #{steps_x}"
-    puts "y steps #{steps_y}"
-    puts "z steps #{steps_z}"
-
     move_to_coord(steps_x, steps_y, steps_z )
 
   end
@@ -145,21 +167,7 @@ class HardwareInterface
   #
   def move_relative( amount_x, amount_y, amount_z)
 
-    puts '**move relative **'
-
-    puts "x amount #{amount_x}"
-    puts "y amount #{amount_y}"
-    puts "z amount #{amount_z}"
-
-    puts "x pos #{@axis_x_pos}"
-    puts "y pos #{@axis_y_pos}"
-    puts "z pos #{@axis_z_pos}"
-
     # calculate the number of steps for the motors to do
-
-    #steps_x = (coord_x - @axis_x_pos) * @axis_x_steps_per_unit
-    #steps_y = (coord_y - @axis_y_pos) * @axis_y_steps_per_unit
-    #steps_z = (coord_z - @axis_z_pos) * @axis_z_steps_per_unit
 
     steps_x = amount_x * @axis_x_steps_per_unit + @axis_x_pos
     steps_y = amount_y * @axis_y_steps_per_unit + @axis_y_pos
@@ -168,14 +176,6 @@ class HardwareInterface
     @axis_x_pos = steps_x
     @axis_y_pos = steps_y
     @axis_z_pos = steps_z
-
-    puts "x steps #{steps_x}"
-    puts "y steps #{steps_y}"
-    puts "z steps #{steps_z}"
-
-    puts "x pos #{@axis_x_pos}"
-    puts "y pos #{@axis_y_pos}"
-    puts "z pos #{@axis_z_pos}"
 
     move_to_coord( steps_x, steps_y, steps_z )
 
