@@ -80,18 +80,23 @@ class HardwareInterface
     @serial_port.read_timeout = 2
     @serial_port.write( "#{text} \n" )    
 
-    done = 0
-    r = ''
+    done     = 0
+    r        = ''
     received = ''
-    start = Time.now
-    while(Time.now - start < 30 and done == 0)
+    start    = Time.now
+    timeout  = 5
+
+    while(Time.now - start < timeout and done == 0)
       i = @serial_port.read(1)
       if i != nil
         i.each_char do |c|
           if c == "\r" or c == "\n"
             if r.length > 0
 puts "RD: #{r}"
-               @bot_dbaccess.write_to_log(1,"RD: #{r}")
+              @bot_dbaccess.write_to_log(1,"RD: #{r}")
+              if r.upcase == 'R01'
+                timeout = 90
+              end
               if r.upcase == 'R02'
                 done = 1
               end
