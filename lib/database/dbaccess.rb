@@ -130,7 +130,7 @@ class DbAccess
     log.save
 
     # clean up old logs
-    Log.find(:all, :conditions =>  [ "created_at < (?)", Time.now - (24 * 60 * 60 * 2) ]).each do |log|
+    Log.where("created_at < (?)", 2.days.ago).find_each do |log|
       log.delete
     end
 
@@ -183,7 +183,7 @@ class DbAccess
 
   def clear_schedule
 
-    Command.find(:all,:conditions => ["status = ? AND scheduled_time IS NOT NULL",'scheduled']).each do |cmd|
+    Command.where("status = ? AND scheduled_time IS NOT NULL",'scheduled').find_each do |cmd|
       cmd.delete
     end
 
@@ -191,14 +191,14 @@ class DbAccess
 
   def clear_crop_schedule(crop_id)
  
-    Command.find(:all,:conditions => ["status = ? AND scheduled_time IS NOT NULL AND crop_id = ?",'scheduled',crop_id]).each do |cmd|
+    Command.where("status = ? AND scheduled_time IS NOT NULL AND crop_id = ?",'scheduled',crop_id).find_each do |cmd|
       cmd.delete
     end
 
   end
 
   def get_command_to_execute
-    @last_command_retrieved = Command.find(:all,:conditions => ["status = ? ",'scheduled'], :order => 'scheduled_time ASC').last
+    @last_command_retrieved = Command.where("status = ? ",'scheduled').order('scheduled_time ASC').last
     @last_command_retrieved
   end
 
@@ -212,7 +212,7 @@ class DbAccess
   # refreshes
 
   def check_refresh
-    r = Refresh.find_or_create_by_name 'FarmBotControllerSchedule'
+    r = Refresh.find_or_create_by(name: 'FarmBotControllerSchedule')
     @refresh_value_new = (r == nil ? 0 : r.value.to_i)
     return @refresh_value_new != @refresh_value
   end
@@ -222,7 +222,7 @@ class DbAccess
   end
 
   def increment_refresh
-    r = Refresh.find_or_create_by_name 'FarmBotControllerSchedule'
+    r = Refresh.find_or_create_by(name: 'FarmBotControllerSchedule')
     r.value = r.value == nil ? 0 : r.value.to_i + 1
     r.save
   end
