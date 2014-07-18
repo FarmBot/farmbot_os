@@ -118,7 +118,13 @@ Read status
   "status_movement"                => "idle", 
   "status_last_command_executed"   => "2014/06/26 20:05:08 -0100", 
   "status_next_command_scheduled"  => nil, 
-  "status_nr_of_commands_executed" => 1
+  "status_nr_of_commands_executed" => 1,
+  "status_current_x"               => 10,
+  "status_current_y"               => 20,
+  "status_current_z"               => 30,
+  "status_target_x"                => 40,
+  "status_target_y"                => 50,
+  "status_target_z"                => 60
 }
 ```
 
