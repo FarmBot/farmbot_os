@@ -2,6 +2,9 @@ require 'serialport'
 
 class HardwareInterface
 
+  attr_reader :axis_x_pos, :axis_y_pos, :axis_z_pos
+
+
   # initialize the interface
   #
   def initialize

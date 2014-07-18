@@ -8,6 +8,7 @@ class Controller
 
   # read command from schedule, wait for execution time
   attr_reader :info_command_next, :info_command_last, :info_nr_of_commands, :info_status, :info_movement
+  attr_reader :info_current_x, :info_current_y, :info_current_z, :info_target_x, :info_target_y, :info_target_z
 
   def initialize
     @info_command_next   = nil
@@ -15,6 +16,14 @@ class Controller
     @info_nr_of_commands = 0
     @info_status         = 'initializing'
     @info_movement       = 'idle'
+    @info_current_x      = 0
+    @info_current_y      = 0
+    @info_current_z      = 0
+    @info_target_x       = 0
+    @info_target_y       = 0
+    @info_target_z       = 0
+
+
     @bot_dbaccess        = $bot_dbaccess
   end
 
@@ -112,20 +121,38 @@ class Controller
         if $hardware_sim == 0
           case command_line.action.upcase
             when "MOVE ABSOLUTE"
+              @info_target_x = command_line.coord_x
+              @info_target_y = command_line.coord_y
+              @info_target_z = command_line.coord_z
               $bot_hardware.move_absolute(command_line.coord_x, command_line.coord_y, command_line.coord_z)
             when "MOVE RELATIVE"
+              @info_target_x = command_line.coord_x
+              @info_target_y = command_line.coord_y
+              @info_target_z = command_line.coord_z
               $bot_hardware.move_relative(command_line.coord_x, command_line.coord_y, command_line.coord_z)
             when "HOME X"
+              @info_target_x = 0
               $bot_hardware.move_home_x
             when "HOME Y"
+              @info_target_y = 0
               $bot_hardware.move_home_y
             when "HOME Z"
+              @info_target_z = 0
               $bot_hardware.move_home_z
             when "DOSE WATER"
               $bot_hardware.dose_water(command_line.amount)
             when "SET SPEED"
               $bot_hardware.set_speed(command_line.speed)
           end
+
+          @info_current_x = $bot_hardware.axis_x_pos
+          @info_current_y = $bot_hardware.axis_y_pos
+          @info_current_z = $bot_hardware.axis_z_pos
+
+          @info_target_x  = $bot_hardware.axis_x_pos
+          @info_target_y  = $bot_hardware.axis_y_pos
+          @info_target_z  = $bot_hardware.axis_z_pos
+
         else
           #puts ''
           #puts '>simulating hardware<'
