@@ -92,7 +92,13 @@ class MessageHandler
           :status_movement                => $bot_control.info_movement,
           :status_last_command_executed   => $bot_control.info_command_last,
           :status_next_command_scheduled  => $bot_control.info_command_next,
-          :status_nr_of_commands_executed => $bot_control.info_nr_of_commands
+          :status_nr_of_commands_executed => $bot_control.info_nr_of_commands,
+          :status_current_x               => $bot_control.info_current_x,
+          :status_current_y               => $bot_control.info_current_y,
+          :status_current_z               => $bot_control.info_current_z,
+          :status_target_x                => $bot_control.info_target_x,
+          :status_target_y                => $bot_control.info_target_y,
+          :status_target_z                => $bot_control.info_target_z
         }
 
        @dbaccess.write_to_log(2,"return_message = #{return_message}")
