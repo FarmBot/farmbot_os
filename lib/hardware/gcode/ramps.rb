@@ -24,7 +24,7 @@ class HardwareInterface
   #
   def connect_board
 
-    puts 'connecting to board'
+    #puts 'connecting to board'
 
     parameters = 
     {
@@ -44,7 +44,7 @@ class HardwareInterface
   # these are the timeouts and distance settings mainly
   def load_config
 
-    puts 'loading config'
+    #puts 'loading config'
 
     @axis_x_move_home_timeout   = 15 # seconds after which home command is aborted
     @axis_y_move_home_timeout   = 15

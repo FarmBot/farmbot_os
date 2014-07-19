@@ -23,37 +23,69 @@ class MessageHandler
   #
   def handle_message(message)
 
-    requested_command = ''
+    sender     = ""
+    time_stamp = nil
 
-    @dbaccess.write_to_log(2,message.to_s)
-    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : ''
+    err_msg = ""
+    err_trc = ""
+    err_snd = false
 
-    @dbaccess.write_to_log(2,"sender #{sender}")
+    # Check if all needed variables are in the message, and send it to the processing function
+    begin
 
-    if message.has_key? 'payload'
-      @message = message['payload']
-      if @message.has_key? 'message_type'
-        requested_command = message['payload']["message_type"].to_s.downcase
-        @dbaccess.write_to_log(2,"message_type = #{requested_command}")
+      requested_command = ''
+
+      @dbaccess.write_to_log(2,message.to_s)
+
+      sender = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : ''
+      @dbaccess.write_to_log(2,"sender #{sender}")
+
+      if message.has_key? 'payload'
+        @message = message['payload']
+        if @message.has_key? 'message_type'
+          requested_command = message['payload']["message_type"].to_s.downcase
+          @dbaccess.write_to_log(2,"message_type = #{requested_command}")
+        else
+          @dbaccess.write_to_log(2,'message has no message type')
+
+          time_stamp = (message['payload'].has_key? 'time_stamp') ? message['payload']['time_stamp'] : nil
+          @dbaccess.write_to_log(2,"time stamp = #{time_stamp}")
+
+          if sender != ''
+            send_error(sender, '', 'unknown message type')
+          end
+        end
       else
-        @dbaccess.write_to_log(2,'message has no message type')
+        @dbaccess.write_to_log(2,'message has no payload')
         if sender != ''
-          send_error(sender, '', 'unknown message type')
+          send_error(sender, '', 'message has no payload')
         end
       end
-    else
-      @dbaccess.write_to_log(2,'message has no payload')
-      if sender != ''
-        send_error(sender, '', 'message has no payload')
+
+      if whitelist.include?(requested_command)
+        self.send(requested_command, message)
+      else
+        @dbaccess.write_to_log(2,'message type not in white list')
+        self.error(message)
       end
+    rescue Exception => e
+      err_snd = true
+      err_msg = e.message
+      err_trc = e.backtrace.inspect
     end
 
-    if whitelist.include?(requested_command)
-      self.send(requested_command, message)
-    else
-      @dbaccess.write_to_log(2,'message type not in white list')
-      self.error(message)
+    # in case of an error, send error message as a reply
+    begin
+      if err_snd == true
+        if sender != ""
+          send_error(sender, time_stamp, " #{err_msg} @ #{err_trc}")
+          @dbaccess.write_to_log(2,'Error in message handler.\nError #{err_msg} @ #{err_trc}')
+        end
+      end
+    rescue  Exception => e
+      puts 'Error while sending error message: #{e.message}'
     end
+
   end
 
   # Handles an error (typically, an unauthorized or unknown message). Returns
@@ -358,6 +390,11 @@ class MessageHandler
   end
 
   def send_error(destination, time_stamp, error)
+
+    if time_stamp == nil
+      time_stamp = Time.now.to_f.to_s
+    end
+
     command =
       {
         :message_type => 'error',
