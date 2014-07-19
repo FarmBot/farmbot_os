@@ -36,76 +36,82 @@ class Controller
 
     while $shutdown == 0 do
 
-      # keep checking the database for new data
+      begin
 
-      @info_status = 'checking schedule'
-      #show_info()
+        # keep checking the database for new data
 
-      command = @bot_dbaccess.get_command_to_execute
-      @bot_dbaccess.save_refresh
+        @info_status = 'checking schedule'
+        #show_info()
 
-      if command != nil
+        command = @bot_dbaccess.get_command_to_execute
+        @bot_dbaccess.save_refresh
 
-        @info_command_next = command.scheduled_time
+        if command != nil
 
-        if command.scheduled_time <= Time.now or command.scheduled_time == nil
+          @info_command_next = command.scheduled_time
 
-          # execute the command now and set the status to done
-          @info_status = 'executing command'
-          #show_info()
+          if command.scheduled_time <= Time.now or command.scheduled_time == nil
 
-          @info_nr_of_commands = @info_nr_of_commands + 1
+            # execute the command now and set the status to done
+            @info_status = 'executing command'
+            #show_info()
 
-          process_command( command )
-          @bot_dbaccess.set_command_to_execute_status('FINISHED')
-          @info_command_last = Time.now
-          @info_command_next = nil
+            @info_nr_of_commands = @info_nr_of_commands + 1
+
+            process_command( command )
+            @bot_dbaccess.set_command_to_execute_status('FINISHED')
+            @info_command_last = Time.now
+            @info_command_next = nil
+
+          else
+
+            @info_status = 'waiting for scheduled time or refresh'
+            #show_info()
+
+            refresh_received = false
+
+            wait_start_time = Time.now
+
+            # wait until the scheduled time has arrived, or wait for a minute or 
+            #until a refresh it set in the database as a sign new data has arrived
+
+            while Time.now < wait_start_time + 60 and command.scheduled_time > Time.now - 1 and refresh_received == false
+
+              sleep 0.2
+
+              refresh_received = @bot_dbaccess.check_refresh
+              #puts 'refresh received' if refresh_received != false
+
+            end
+
+          end
 
         else
 
-          @info_status = 'waiting for scheduled time or refresh'
+          @info_status = 'no command found, waiting'
           #show_info()
 
-          refresh_received = false
+          @info_command_next = nil
 
+          refresh_received = false
           wait_start_time = Time.now
 
-          # wait until the scheduled time has arrived, or wait for a minute or 
-          #until a refresh it set in the database as a sign new data has arrived
+          # wait for a minute or until a refresh it set in the database as a sign
+          # new data has arrived
 
-          while Time.now < wait_start_time + 60 and command.scheduled_time > Time.now - 1 and refresh_received == false
+          while  Time.now < wait_start_time + 60 and refresh_received == false
 
             sleep 1
+            #show_info()
 
             refresh_received = @bot_dbaccess.check_refresh
             #puts 'refresh received' if refresh_received != false
 
           end
-
         end
-
-      else
-
-        @info_status = 'no command found, waiting'
-        #show_info()
-
-        @info_command_next = nil
-
-        refresh_received = false
-        wait_start_time = Time.now
-
-        # wait for a minute or until a refresh it set in the database as a sign
-        # new data has arrived
-
-        while  Time.now < wait_start_time + 60 and refresh_received == false
-
-          sleep 1
-          #show_info()
-
-          refresh_received = @bot_dbaccess.check_refresh
-          #puts 'refresh received' if refresh_received != false
-
-        end
+      rescue Exception => e
+        puts("Error in controller\n#{e.message}\n#{e.backtrace.inspect}")
+        @bot_dbaccess.write_to_log(1,"Error in controller\n#{e.message}\n#{e.backtrace.inspect}")
       end
     end
   end
