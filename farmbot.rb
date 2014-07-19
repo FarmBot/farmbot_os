@@ -13,6 +13,7 @@ puts '   \/    '
 puts ''
 
 $shutdown = 0
+$db_write_sync = Mutex.new
 
 puts 'connecting to database'
 require 'active_record'
