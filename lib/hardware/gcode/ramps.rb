@@ -2,8 +2,9 @@ require 'serialport'
 
 class HardwareInterface
 
-  attr_reader :axis_x_pos, :axis_y_pos, :axis_z_pos
-
+  attr_reader :axis_x_pos, :axis_x_end_stop_a, :axis_x_end_stop_b
+  attr_reader :axis_y_pos, :axis_y_end_stop_a, :axis_y_end_stop_b
+  attr_reader :axis_z_pos, :axis_z_end_stop_a, :axis_z_end_stop_b
 
   # initialize the interface
   #
@@ -94,14 +95,20 @@ class HardwareInterface
       if i != nil
         i.each_char do |c|
           if c == "\r" or c == "\n"
-            if r.length > 0
+            if r.length >= 3
 puts "RD: #{r}"
               @bot_dbaccess.write_to_log(1,"RD: #{r}")
-              if r.upcase == 'R01'
-                timeout = 90
-              end
-              if r.upcase == 'R02'
-                done = 1
+              c = r[0..2].upcase
+              t = r[3..-1].to_s.upcase.strip
+puts "RD: code #{c}"
+puts "RD: text #{t}"
+              case c
+                when 'R01'
+                  timeout = 90
+                when 'R02'
+                  done = 1
+                else
+                  process_value(c,t)
               end
               r = ''
             end
@@ -123,6 +130,37 @@ puts 'ST: timeout'
     end
   end
 
+
+  # process values received from arduino
+  #
+  def process_value(code,text)
+puts "RD: code #{code} ||| text #{text}"
+    case code     
+    when 'R81'
+      text.split(' ').each do |param|
+        par_code  = param[0..1].to_s
+        par_value = param[2..-1].to_s
+puts "RD: par_x  #{par_code} |||| #{par_value}"
+        end_stop_active = (par_value == "1")
+puts "RD: end_stop #{end_stop_active}"
+        case par_code
+        when 'XA'
+          @axis_x_end_stop_a = end_stop_active              
+        when 'XB'
+          @axis_x_end_stop_b = end_stop_active              
+        when 'YA'
+         @axis_y_end_stop_a = end_stop_active              
+        when 'YB'
+         @axis_y_end_stop_b = end_stop_active              
+        when 'ZA'
+         @axis_z_end_stop_a = end_stop_active              
+        when 'ZB'
+         @axis_z_end_stop_b = end_stop_active              
+        end      
+      end
+    end
+  end
+
   # move all axis home
   #
   def move_home_all
@@ -132,19 +170,19 @@ puts 'ST: timeout'
   # move the bot to the home position
   #
   def move_home_x
-    execute_command('G28')
+    execute_command('F11')
   end
 
   # move the bot to the home position
   #
   def move_home_y
-    execute_command('G28')
+    execute_command('F12')
   end
 
   # move the bot to the home position
   #
   def move_home_z
-    execute_command('G28')
+    execute_command('F13')
   end
 
   def set_speed( speed )

@@ -112,6 +112,8 @@ class MessageHandler
 
       @last_time_stamp = time_stamp
 
+      $bot_control.read_hw_status()
+
       return_message =
         {
           :message_type                   => 'read_status_response',
@@ -130,7 +132,13 @@ class MessageHandler
           :status_current_z               => $bot_control.info_current_z,
           :status_target_x                => $bot_control.info_target_x,
           :status_target_y                => $bot_control.info_target_y,
-          :status_target_z                => $bot_control.info_target_z
+          :status_target_z                => $bot_control.info_target_z,
+          :status_end_stop_x_a            => $bot_control.info_end_stop_x_a,
+          :status_end_stop_x_b            => $bot_control.info_end_stop_x_b,
+          :status_end_stop_y_a            => $bot_control.info_end_stop_y_a,
+          :status_end_stop_y_b            => $bot_control.info_end_stop_y_b,
+          :status_end_stop_z_a            => $bot_control.info_end_stop_z_a,
+          :status_end_stop_z_b            => $bot_control.info_end_stop_z_b
         }
 
        @dbaccess.write_to_log(2,"return_message = #{return_message}")
