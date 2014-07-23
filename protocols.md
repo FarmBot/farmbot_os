@@ -124,7 +124,13 @@ Read status
   "status_current_z"               => 30,
   "status_target_x"                => 40,
   "status_target_y"                => 50,
-  "status_target_z"                => 60
+  "status_target_z"                => 60,
+  "status_end_stop_x_a"            => true,
+  "status_end_stop_x_b"            => false,
+  "status_end_stop_y_a"            => true,
+  "status_end_stop_y_b"            => false,
+  "status_end_stop_z_a"            => true,
+  "status_end_stop_z_b"            => false
 }
 ```
 
