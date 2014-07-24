@@ -37,7 +37,16 @@ class Controller
 
   def runFarmBot
     @info_status = 'starting'
-    #show_info()
+    puts 'OK'
+ 
+    print 'arduino         '
+    sleep 1
+    $bot_hardware.read_device_version()
+    puts  $bot_hardware.device_version
+
+    #$bot_hardware.read_end_stops()
+    #$bot_hardware.read_postition()
+    read_hw_status()
 
     @bot_dbaccess.write_to_log(1,'Controller running')
     check = @bot_dbaccess.check_refresh
@@ -87,6 +96,11 @@ class Controller
 
               sleep 0.2
 
+              $bot_hardware.read_end_stops()
+              $bot_hardware.read_postition()
+
+              read_hw_status()
+
               refresh_received = @bot_dbaccess.check_refresh
               #puts 'refresh received' if refresh_received != false
 
@@ -109,7 +123,13 @@ class Controller
 
           while  Time.now < wait_start_time + 60 and refresh_received == false
 
-            sleep 1
+            sleep 0.2
+
+            $bot_hardware.read_end_stops()
+            $bot_hardware.read_postition()
+
+            read_hw_status()
+
             #show_info()
 
             refresh_received = @bot_dbaccess.check_refresh

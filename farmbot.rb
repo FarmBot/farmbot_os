@@ -43,7 +43,6 @@ if $controller_disable == 0
   print 'controller      '
   require_relative 'lib/controller'
   $bot_control  = Controller.new
-  puts 'OK'
   $bot_control.runFarmBot
 else
   puts 'press key to stop'

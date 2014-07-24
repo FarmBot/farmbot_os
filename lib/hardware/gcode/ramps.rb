@@ -5,10 +5,13 @@ class HardwareInterface
   attr_reader :axis_x_pos, :axis_x_end_stop_a, :axis_x_end_stop_b
   attr_reader :axis_y_pos, :axis_y_end_stop_a, :axis_y_end_stop_b
   attr_reader :axis_z_pos, :axis_z_end_stop_a, :axis_z_end_stop_b
+  attr_reader :device_version
 
   # initialize the interface
   #
   def initialize
+
+    @status_debug_msg = false
 
     load_config()
     connect_board()
@@ -18,7 +21,7 @@ class HardwareInterface
     @axis_x_pos = 0
     @axis_y_pos = 0
     @axis_z_pos = 0
-
+    @device_version = 'unknown'
   end
 
   # connect to the serial port and start communicating with the arduino/firmata protocol
@@ -77,10 +80,10 @@ class HardwareInterface
 
   # write a command to the robot
   #
-  def execute_command( text )
+  def execute_command( text , log, onscreen)
 
-    puts "WR: #{text}"
-    @bot_dbaccess.write_to_log(1, "WR: #{text}")
+    puts "WR: #{text}" if onscreen
+    @bot_dbaccess.write_to_log(1, "WR: #{text}") if log
     @serial_port.read_timeout = 2
     @serial_port.write( "#{text} \n" )    
 
@@ -96,16 +99,16 @@ class HardwareInterface
         i.each_char do |c|
           if c == "\r" or c == "\n"
             if r.length >= 3
-puts "RD: #{r}"
-              @bot_dbaccess.write_to_log(1,"RD: #{r}")
+              puts "RD: #{r}" if onscreen
+              @bot_dbaccess.write_to_log(1,"RD: #{r}") if log
               c = r[0..2].upcase
               t = r[3..-1].to_s.upcase.strip
-puts "RD: code #{c}"
-puts "RD: text #{t}"
               case c
                 when 'R01'
                   timeout = 90
                 when 'R02'
+                  done = 1
+                when 'R03'
                   done = 1
                 else
                   process_value(c,t)
@@ -122,10 +125,10 @@ puts "RD: text #{t}"
     end
 
     if done == 1
-puts 'ST: done'
-      @bot_dbaccess.write_to_log(1, 'ST: done')
+      puts 'ST: done' if onscreen
+      @bot_dbaccess.write_to_log(1, 'ST: done') if log
     else
-puts 'ST: timeout'
+      puts 'ST: timeout'
       @bot_dbaccess.write_to_log(1, 'ST: timeout')
     end
   end
@@ -134,55 +137,88 @@ puts 'ST: timeout'
   # process values received from arduino
   #
   def process_value(code,text)
-puts "RD: code #{code} ||| text #{text}"
     case code     
     when 'R81'
       text.split(' ').each do |param|
+
         par_code  = param[0..1].to_s
         par_value = param[2..-1].to_s
-puts "RD: par_x  #{par_code} |||| #{par_value}"
         end_stop_active = (par_value == "1")
-puts "RD: end_stop #{end_stop_active}"
+
         case par_code
         when 'XA'
           @axis_x_end_stop_a = end_stop_active              
         when 'XB'
           @axis_x_end_stop_b = end_stop_active              
         when 'YA'
-         @axis_y_end_stop_a = end_stop_active              
+          @axis_y_end_stop_a = end_stop_active              
         when 'YB'
-         @axis_y_end_stop_b = end_stop_active              
+          @axis_y_end_stop_b = end_stop_active              
         when 'ZA'
-         @axis_z_end_stop_a = end_stop_active              
+          @axis_z_end_stop_a = end_stop_active              
         when 'ZB'
-         @axis_z_end_stop_b = end_stop_active              
+          @axis_z_end_stop_b = end_stop_active              
         end      
       end
+    when 'R82'      
+      text.split(' ').each do |param|
+
+        par_code  = param[0..0].to_s
+        par_value = param[1..-1].to_i
+
+        case par_code
+        when 'X'
+          @axis_x_pos = par_value
+        when 'Y'
+          @axis_x_pos = par_value
+        when 'Z'
+          @axis_x_pos = par_value
+        end      
+      end
+    when 'R83'
+      @device_version = text
     end
+  end
+
+  # read end stop status from the device
+  #
+  def read_end_stops()
+    execute_command('F81', false, @status_debug_msg)
+  end
+
+  # read current coordinates from the device
+  #
+  def read_postition()
+    execute_command('F82', false, @status_debug_msg)
+  end
+  # read current software version
+  #
+  def read_device_version()
+    execute_command('F83', false, @status_debug_msg)
   end
 
   # move all axis home
   #
   def move_home_all
-    execute_command('G28')
+    execute_command('G28', true, false)
   end
 
   # move the bot to the home position
   #
   def move_home_x
-    execute_command('F11')
+    execute_command('F11', true, false)
   end
 
   # move the bot to the home position
   #
   def move_home_y
-    execute_command('F12')
+    execute_command('F12', true, false)
   end
 
   # move the bot to the home position
   #
   def move_home_z
-    execute_command('F13')
+    execute_command('F13', true, false)
   end
 
   def set_speed( speed )
@@ -239,7 +275,7 @@ puts "RD: end_stop #{end_stop_active}"
   def move_to_coord(steps_x, steps_y, steps_z)
 
     # send the g-code to move to the robot
-    execute_command("G00 X#{steps_x} Y#{steps_y} Z#{steps_z}")
+    execute_command("G00 X#{steps_x} Y#{steps_y} Z#{steps_z}", true, true)
 
   end
 
