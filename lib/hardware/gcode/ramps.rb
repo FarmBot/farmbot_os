@@ -2,9 +2,9 @@ require 'serialport'
 
 class HardwareInterface
 
-  attr_reader :axis_x_pos, :axis_x_end_stop_a, :axis_x_end_stop_b
-  attr_reader :axis_y_pos, :axis_y_end_stop_a, :axis_y_end_stop_b
-  attr_reader :axis_z_pos, :axis_z_end_stop_a, :axis_z_end_stop_b
+  attr_reader :axis_x_pos, :axis_x_pos_conv, :axis_x_end_stop_a, :axis_x_end_stop_b
+  attr_reader :axis_y_pos, :axis_y_pos_conv, :axis_y_end_stop_a, :axis_y_end_stop_b
+  attr_reader :axis_z_pos, :axis_z_pos_conv, :axis_z_end_stop_a, :axis_z_end_stop_b
   attr_reader :device_version
 
   # initialize the interface
@@ -21,6 +21,11 @@ class HardwareInterface
     @axis_x_pos = 0
     @axis_y_pos = 0
     @axis_z_pos = 0
+
+    @axis_x_pos_conv = 0
+    @axis_y_pos_conv = 0
+    @axis_z_pos_conv = 0
+
     @device_version = 'unknown'
   end
 
@@ -46,6 +51,7 @@ class HardwareInterface
 
   # load the settings for the hardware
   # these are the timeouts and distance settings mainly
+  #
   def load_config
 
     #puts 'loading config'
@@ -59,8 +65,8 @@ class HardwareInterface
     @axis_z_invert_axis = false
 
     @axis_x_steps_per_unit = 5 # steps per milimeter for example
-    @axis_y_steps_per_unit = 4
-    @axis_z_steps_per_unit = 157
+    @axis_y_steps_per_unit = 5
+    @axis_z_steps_per_unit = 150
 
     @axis_x_max = 220
     @axis_y_max = 128
@@ -130,6 +136,9 @@ class HardwareInterface
     else
       puts 'ST: timeout'
       @bot_dbaccess.write_to_log(1, 'ST: timeout')
+      #@serial_port.break 1
+      connect_board
+      sleep 5
     end
   end
 
@@ -168,15 +177,20 @@ class HardwareInterface
 
         case par_code
         when 'X'
-          @axis_x_pos = par_value
+          @axis_x_pos      = par_value
+          @axis_x_pos_conv = par_value / @axis_x_steps_per_unit
         when 'Y'
-          @axis_x_pos = par_value
+          @axis_y_pos       = par_value
+          @axis_y_pos_conv = par_value / @axis_y_steps_per_unit
         when 'Z'
-          @axis_x_pos = par_value
+          @axis_z_pos      = par_value
+          @axis_z_pos_conv = par_value / @axis_z_steps_per_unit
         end      
       end
     when 'R83'
       @device_version = text
+    when 'R99'
+      puts ">#{text}<"
     end
   end
 
@@ -275,7 +289,7 @@ class HardwareInterface
   def move_to_coord(steps_x, steps_y, steps_z)
 
     # send the g-code to move to the robot
-    execute_command("G00 X#{steps_x} Y#{steps_y} Z#{steps_z}", true, true)
+    execute_command("G00 X#{steps_x} Y#{steps_y} Z#{steps_z}", false, false)
 
   end
 

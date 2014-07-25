@@ -32,7 +32,10 @@ class Controller
     @info_end_stop_z_a   = 0
     @info_end_stop_z_b   = 0
 
+    @star_char           = 0
+
     @bot_dbaccess        = $bot_dbaccess
+    @last_hw_check       = Time.now
   end
 
   def runFarmBot
@@ -96,13 +99,11 @@ class Controller
 
               sleep 0.2
 
-              $bot_hardware.read_end_stops()
-              $bot_hardware.read_postition()
+              print_star()
 
-              read_hw_status()
+              check_hardware()
 
               refresh_received = @bot_dbaccess.check_refresh
-              #puts 'refresh received' if refresh_received != false
 
             end
 
@@ -111,7 +112,6 @@ class Controller
         else
 
           @info_status = 'no command found, waiting'
-          #show_info()
 
           @info_command_next = nil
 
@@ -125,15 +125,10 @@ class Controller
 
             sleep 0.2
 
-            $bot_hardware.read_end_stops()
-            $bot_hardware.read_postition()
-
-            read_hw_status()
-
-            #show_info()
+            print_star()
+            check_hardware()
 
             refresh_received = @bot_dbaccess.check_refresh
-            #puts 'refresh received' if refresh_received != false
 
           end
         end
@@ -149,7 +144,6 @@ class Controller
     if cmd != nil
       cmd.command_lines.each do |command_line|
         @info_movement = "#{command_line.action.downcase} xyz=#{command_line.coord_x} #{command_line.coord_y} #{command_line.coord_z} amt=#{command_line.amount} spd=#{command_line.speed}"
-        #show_info()
         @bot_dbaccess.write_to_log(1,@info_movement)
 
         if $hardware_sim == 0
@@ -186,10 +180,6 @@ class Controller
           @info_target_z  = @info_current_z
 
         else
-          #puts ''
-          #puts '>simulating hardware<'
-          #puts ''
-
           @bot_dbaccess.write_to_log(1,'>simulating hardware<')
 
           sleep 2
@@ -200,45 +190,70 @@ class Controller
     end
 
     @info_movement = 'idle'
-    #show_info()
 
   end
 
+  def check_hardware()
+    if (Time.now - @last_hw_check) > 10
+      $bot_hardware.read_end_stops()
+      $bot_hardware.read_postition()
+      read_hw_status()
+      @last_hw_check = Time.now
+    end
+  end
+
   def read_hw_status()
-    @info_current_x    = $bot_hardware.axis_x_pos
-    @info_current_y    = $bot_hardware.axis_x_pos
-    @info_current_z    = $bot_hardware.axis_x_pos
+
+    @info_current_x    = $bot_hardware.axis_x_pos_conv
+    @info_current_y    = $bot_hardware.axis_y_pos_conv
+    @info_current_z    = $bot_hardware.axis_z_pos_conv
+
     @info_end_stop_x_a = $bot_hardware.axis_x_end_stop_a
     @info_end_stop_x_b = $bot_hardware.axis_x_end_stop_b
     @info_end_stop_y_a = $bot_hardware.axis_y_end_stop_a
     @info_end_stop_y_b = $bot_hardware.axis_y_end_stop_b
     @info_end_stop_z_a = $bot_hardware.axis_z_end_stop_a
     @info_end_stop_z_b = $bot_hardware.axis_z_end_stop_b
+
+    print_hw_status()
+
   end
 
-  def show_info
+  def print_hw_status()
 
-    system('clear')
+    100.times do
+      print "\b"
+    end
 
-    #puts '   /\    '
-    #puts '---------'
-    #puts ' FarmBot '
-    #puts '---------'
-    #puts '   \/    '
-    #puts ''
+    print "x %04d %s%s " % [@info_current_x, bool_to_char(@info_end_stop_x_a), bool_to_char(@info_end_stop_x_b)]
+    print "y %04d %s%s " % [@info_current_y, bool_to_char(@info_end_stop_y_a), bool_to_char(@info_end_stop_z_b)]
+    print "z %04d %s%s " % [@info_current_z, bool_to_char(@info_end_stop_z_a), bool_to_char(@info_end_stop_z_b)]
+    print ' '
 
-    #puts '[scheduling]'
-    puts "current time            = #{Time.now}"
-    puts "uuid                    = #{$info_uuid}"
-    puts "token                   = #{$info_token}"
-    puts "last msg received       = #{$info_last_msg_received}"
-    puts "nr msg received         = #{$info_nr_msg_received}"
-    puts "status                  = #{$bot_control.info_status}"
-    puts "movement                = #{$bot_control.info_movement}"
-    puts "last command executed   = #{$bot_control.info_command_last}"
-    puts "next command scheduled  = #{$bot_control.info_command_next}"
-    puts "nr of commands executed = #{$bot_control.info_nr_of_commands}"
+  end
 
+  def bool_to_char(value)
+    if value
+      return '*'
+    else
+      return '-'
+    end
+  end
+
+  def print_star
+    @star_char += 1
+    @star_char %= 4
+    print "\b"
+    case @star_char
+    when 0
+      print '-'
+    when 1
+      print '\\'
+    when 2
+      print '|'
+    when 3
+      print '/'
+    end
   end
 
 end
