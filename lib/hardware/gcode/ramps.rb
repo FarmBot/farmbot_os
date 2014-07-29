@@ -91,6 +91,7 @@ class HardwareInterface
     puts "WR: #{text}" if onscreen
     @bot_dbaccess.write_to_log(1, "WR: #{text}") if log
     @serial_port.read_timeout = 2
+    #@serial_port.write_timeout = 2
     @serial_port.write( "#{text} \n" )    
 
     done     = 0
@@ -137,8 +138,9 @@ class HardwareInterface
       puts 'ST: timeout'
       @bot_dbaccess.write_to_log(1, 'ST: timeout')
       #@serial_port.break 1
-      connect_board
-      sleep 5
+      @serial_port.rts = 1
+      #connect_board
+      sleep 10
     end
   end
 

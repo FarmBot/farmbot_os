@@ -99,8 +99,6 @@ class Controller
 
               sleep 0.2
 
-              print_star()
-
               check_hardware()
 
               refresh_received = @bot_dbaccess.check_refresh
@@ -125,7 +123,6 @@ class Controller
 
             sleep 0.2
 
-            print_star()
             check_hardware()
 
             refresh_received = @bot_dbaccess.check_refresh
@@ -194,11 +191,13 @@ class Controller
   end
 
   def check_hardware()
-    if (Time.now - @last_hw_check) > 10
+    if (Time.now - @last_hw_check) > 0.5
       $bot_hardware.read_end_stops()
       $bot_hardware.read_postition()
       read_hw_status()
       @last_hw_check = Time.now
+
+      print_star()
     end
   end
 
