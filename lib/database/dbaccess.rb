@@ -31,7 +31,7 @@ class DbAccess
   # write a parameter
   #
   def write_parameter(name, value)
-    param = Parameter.find_or_create_by_name name
+    param = Parameter.find_or_create_by(name: name)
     
     if value.class.to_s == "Fixnum"
       param.valueint    = value.to_i
@@ -50,14 +50,16 @@ class DbAccess
       param.valuetype   = 4
     end
 
-    param.save
+    $db_write_sync.synchronize do
+      param.save
+    end
   end
 
   # write a parameter with type provided
   #
   def write_parameter_with_type(name, type, value)
 
-    param = Parameter.find_or_create_by_name(name)
+    param = Parameter.find_or_create_by(name: name)
     param.valuetype = type
 
     param.valueint    = type == 1 ? value.to_i : nil;
@@ -65,7 +67,9 @@ class DbAccess
     param.valuestring = type == 3 ? value.to_s : nil
     param.valuebool   = type == 4 ? value      : nil
 
-    param.save
+    $db_write_sync.synchronize do
+      param.save
+    end
   end
 
 
@@ -95,8 +99,8 @@ class DbAccess
   # read parameter
   #
   def read_parameter(name)
-    param = Parameter.find_or_create_by_name(name)
-    #param = Parameter.find_or_create_by(name: name)
+    param = Parameter.find_or_create_by(name: name)
+
     type = param.valuetype
     value = param.valueint    if type == 1
     value = param.valuefloat  if type == 2
@@ -130,10 +134,11 @@ class DbAccess
     log.save
 
     # clean up old logs
-    Log.where("created_at < (?)", 2.days.ago).find_each do |log|
-      log.delete
+    $db_write_sync.synchronize do
+      Log.where("created_at < (?)", 2.days.ago).find_each do |log|
+        log.delete
+      end
     end
-
   end
 
 
@@ -169,32 +174,36 @@ class DbAccess
       line.speed   = speed
       line.amount  = amount
       line.command_id = @new_command.id
-      line.save
+      $db_write_sync.synchronize do
+        line.save
+      end
     end
   end
 
   def save_new_command
     if @new_command != nil
       @new_command.status = 'scheduled'
-      @new_command.save
+      $db_write_sync.synchronize do
+        @new_command.save
+      end
     end
     increment_refresh
   end
 
   def clear_schedule
-
-    Command.where("status = ? AND scheduled_time IS NOT NULL",'scheduled').find_each do |cmd|
-      cmd.delete
+    $db_write_sync.synchronize do
+      Command.where("status = ? AND scheduled_time IS NOT NULL",'scheduled').find_each do |cmd|
+        cmd.delete
+      end
     end
-
   end
 
   def clear_crop_schedule(crop_id)
- 
-    Command.where("status = ? AND scheduled_time IS NOT NULL AND crop_id = ?",'scheduled',crop_id).find_each do |cmd|
-      cmd.delete
+    $db_write_sync.synchronize do
+      Command.where("status = ? AND scheduled_time IS NOT NULL AND crop_id = ?",'scheduled',crop_id).find_each do |cmd|
+        cmd.delete
+      end
     end
-
   end
 
   def get_command_to_execute
@@ -205,7 +214,9 @@ class DbAccess
   def set_command_to_execute_status(new_status)
     if @last_command_retrieved != nil
       @last_command_retrieved.status = new_status
-      @last_command_retrieved.save
+      $db_write_sync.synchronize do
+        @last_command_retrieved.save
+      end
     end
   end
 
@@ -224,7 +235,9 @@ class DbAccess
   def increment_refresh
     r = Refresh.find_or_create_by(name: 'FarmBotControllerSchedule')
     r.value = r.value == nil ? 0 : r.value.to_i + 1
-    r.save
+    $db_write_sync.synchronize do
+      r.save
+    end
   end
 
 end

@@ -9,6 +9,9 @@ class Controller
   # read command from schedule, wait for execution time
   attr_reader :info_command_next, :info_command_last, :info_nr_of_commands, :info_status, :info_movement
   attr_reader :info_current_x, :info_current_y, :info_current_z, :info_target_x, :info_target_y, :info_target_z
+  attr_reader :info_end_stop_x_a, :info_end_stop_x_b  
+  attr_reader :info_end_stop_y_a, :info_end_stop_y_b  
+  attr_reader :info_end_stop_z_a, :info_end_stop_z_b  
 
   def initialize
     @info_command_next   = nil
@@ -22,90 +25,113 @@ class Controller
     @info_target_x       = 0
     @info_target_y       = 0
     @info_target_z       = 0
+    @info_end_stop_x_a   = 0
+    @info_end_stop_x_b   = 0
+    @info_end_stop_y_a   = 0
+    @info_end_stop_y_b   = 0
+    @info_end_stop_z_a   = 0
+    @info_end_stop_z_b   = 0
 
+    @star_char           = 0
 
     @bot_dbaccess        = $bot_dbaccess
+    @last_hw_check       = Time.now
   end
 
   def runFarmBot
     @info_status = 'starting'
-    #show_info()
+    puts 'OK'
+ 
+    print 'arduino         '
+    sleep 1
+    $bot_hardware.read_device_version()
+    puts  $bot_hardware.device_version
+
+    #$bot_hardware.read_end_stops()
+    #$bot_hardware.read_postition()
+    read_hw_status()
 
     @bot_dbaccess.write_to_log(1,'Controller running')
     check = @bot_dbaccess.check_refresh
 
     while $shutdown == 0 do
 
-      # keep checking the database for new data
+      begin
 
-      @info_status = 'checking schedule'
-      #show_info()
+        # keep checking the database for new data
 
-      command = @bot_dbaccess.get_command_to_execute
-      @bot_dbaccess.save_refresh
+        @info_status = 'checking schedule'
+        #show_info()
 
-      if command != nil
+        command = @bot_dbaccess.get_command_to_execute
+        @bot_dbaccess.save_refresh
 
-        @info_command_next = command.scheduled_time
+        if command != nil
 
-        if command.scheduled_time <= Time.now or command.scheduled_time == nil
+          @info_command_next = command.scheduled_time
 
-          # execute the command now and set the status to done
-          @info_status = 'executing command'
-          #show_info()
+          if command.scheduled_time <= Time.now or command.scheduled_time == nil
 
-          @info_nr_of_commands = @info_nr_of_commands + 1
+            # execute the command now and set the status to done
+            @info_status = 'executing command'
+            #show_info()
 
-          process_command( command )
-          @bot_dbaccess.set_command_to_execute_status('FINISHED')
-          @info_command_last = Time.now
-          @info_command_next = nil
+            @info_nr_of_commands = @info_nr_of_commands + 1
 
-        else
+            process_command( command )
+            @bot_dbaccess.set_command_to_execute_status('FINISHED')
+            @info_command_last = Time.now
+            @info_command_next = nil
 
-          @info_status = 'waiting for scheduled time or refresh'
-          #show_info()
+          else
 
-          refresh_received = false
+            @info_status = 'waiting for scheduled time or refresh'
+            #show_info()
 
-          wait_start_time = Time.now
+            refresh_received = false
 
-          # wait until the scheduled time has arrived, or wait for a minute or 
-          #until a refresh it set in the database as a sign new data has arrived
+            wait_start_time = Time.now
 
-          while Time.now < wait_start_time + 60 and command.scheduled_time > Time.now - 1 and refresh_received == false
+            # wait until the scheduled time has arrived, or wait for a minute or 
+            #until a refresh it set in the database as a sign new data has arrived
 
-            sleep 1
+            while Time.now < wait_start_time + 60 and command.scheduled_time > Time.now - 1 and refresh_received == false
 
-            refresh_received = @bot_dbaccess.check_refresh
-            #puts 'refresh received' if refresh_received != false
+              sleep 0.2
+
+              check_hardware()
+
+              refresh_received = @bot_dbaccess.check_refresh
+
+            end
 
           end
 
+        else
+
+          @info_status = 'no command found, waiting'
+
+          @info_command_next = nil
+
+          refresh_received = false
+          wait_start_time = Time.now
+
+          # wait for a minute or until a refresh it set in the database as a sign
+          # new data has arrived
+
+          while  Time.now < wait_start_time + 60 and refresh_received == false
+
+            sleep 0.2
+
+            check_hardware()
+
+            refresh_received = @bot_dbaccess.check_refresh
+
+          end
         end
-
-      else
-
-        @info_status = 'no command found, waiting'
-        #show_info()
-
-        @info_command_next = nil
-
-        refresh_received = false
-        wait_start_time = Time.now
-
-        # wait for a minute or until a refresh it set in the database as a sign
-        # new data has arrived
-
-        while  Time.now < wait_start_time + 60 and refresh_received == false
-
-          sleep 1
-          #show_info()
-
-          refresh_received = @bot_dbaccess.check_refresh
-          #puts 'refresh received' if refresh_received != false
-
-        end
+      rescue Exception => e
+        puts("Error in controller\n#{e.message}\n#{e.backtrace.inspect}")
+        @bot_dbaccess.write_to_log(1,"Error in controller\n#{e.message}\n#{e.backtrace.inspect}")
       end
     end
   end
@@ -114,8 +140,7 @@ class Controller
 
     if cmd != nil
       cmd.command_lines.each do |command_line|
-        @info_movement = ($hardware_sim ? '[SIM] ' : '') + "#{command_line.action.downcase} xyz=#{command_line.coord_x} #{command_line.coord_y} #{command_line.coord_z} amt=#{command_line.amount} spd=#{command_line.speed}"
-        #show_info()
+        @info_movement = "#{command_line.action.downcase} xyz=#{command_line.coord_x} #{command_line.coord_y} #{command_line.coord_z} amt=#{command_line.amount} spd=#{command_line.speed}"
         @bot_dbaccess.write_to_log(1,@info_movement)
 
         if $hardware_sim == 0
@@ -145,19 +170,13 @@ class Controller
               $bot_hardware.set_speed(command_line.speed)
           end
 
-          @info_current_x = $bot_hardware.axis_x_pos
-          @info_current_y = $bot_hardware.axis_y_pos
-          @info_current_z = $bot_hardware.axis_z_pos
+          read_hw_status()
 
-          @info_target_x  = $bot_hardware.axis_x_pos
-          @info_target_y  = $bot_hardware.axis_y_pos
-          @info_target_z  = $bot_hardware.axis_z_pos
+          @info_target_x  = @info_current_x
+          @info_target_y  = @info_current_y
+          @info_target_z  = @info_current_z
 
         else
-          #puts ''
-          #puts '>simulating hardware<'
-          #puts ''
-
           @bot_dbaccess.write_to_log(1,'>simulating hardware<')
 
           sleep 2
@@ -168,33 +187,72 @@ class Controller
     end
 
     @info_movement = 'idle'
-    #show_info()
 
   end
 
-  def show_info
+  def check_hardware()
+    if (Time.now - @last_hw_check) > 0.5
+      $bot_hardware.read_end_stops()
+      $bot_hardware.read_postition()
+      read_hw_status()
+      @last_hw_check = Time.now
 
-    system('clear')
+      print_star()
+    end
+  end
 
-    #puts '   /\    '
-    #puts '---------'
-    #puts ' FarmBot '
-    #puts '---------'
-    #puts '   \/    '
-    #puts ''
+  def read_hw_status()
 
-    #puts '[scheduling]'
-    puts "current time            = #{Time.now}"
-    puts "uuid                    = #{$info_uuid}"
-    puts "token                   = #{$info_token}"
-    puts "last msg received       = #{$info_last_msg_received}"
-    puts "nr msg received         = #{$info_nr_msg_received}"
-    puts "status                  = #{$bot_control.info_status}"
-    puts "movement                = #{$bot_control.info_movement}"
-    puts "last command executed   = #{$bot_control.info_command_last}"
-    puts "next command scheduled  = #{$bot_control.info_command_next}"
-    puts "nr of commands executed = #{$bot_control.info_nr_of_commands}"
+    @info_current_x    = $bot_hardware.axis_x_pos_conv
+    @info_current_y    = $bot_hardware.axis_y_pos_conv
+    @info_current_z    = $bot_hardware.axis_z_pos_conv
 
+    @info_end_stop_x_a = $bot_hardware.axis_x_end_stop_a
+    @info_end_stop_x_b = $bot_hardware.axis_x_end_stop_b
+    @info_end_stop_y_a = $bot_hardware.axis_y_end_stop_a
+    @info_end_stop_y_b = $bot_hardware.axis_y_end_stop_b
+    @info_end_stop_z_a = $bot_hardware.axis_z_end_stop_a
+    @info_end_stop_z_b = $bot_hardware.axis_z_end_stop_b
+
+    print_hw_status()
+
+  end
+
+  def print_hw_status()
+
+    100.times do
+      print "\b"
+    end
+
+    print "x %04d %s%s " % [@info_current_x, bool_to_char(@info_end_stop_x_a), bool_to_char(@info_end_stop_x_b)]
+    print "y %04d %s%s " % [@info_current_y, bool_to_char(@info_end_stop_y_a), bool_to_char(@info_end_stop_z_b)]
+    print "z %04d %s%s " % [@info_current_z, bool_to_char(@info_end_stop_z_a), bool_to_char(@info_end_stop_z_b)]
+    print ' '
+
+  end
+
+  def bool_to_char(value)
+    if value
+      return '*'
+    else
+      return '-'
+    end
+  end
+
+  def print_star
+    @star_char += 1
+    @star_char %= 4
+    print "\b"
+    case @star_char
+    when 0
+      print '-'
+    when 1
+      print '\\'
+    when 2
+      print '|'
+    when 3
+      print '/'
+    end
   end
 
 end

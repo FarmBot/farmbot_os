@@ -13,30 +13,34 @@ puts '   \/    '
 puts ''
 
 $shutdown = 0
+$db_write_sync = Mutex.new
 
-puts 'connecting to database'
+print 'database        '
 require 'active_record'
 require_relative 'lib/database/dbaccess'
-
 $bot_dbaccess = DbAccess.new
+puts 'OK'
 
-puts 'starting synchronization'
+print 'synchronization '
 require_relative 'lib/skynet'
+puts 'OK'
 
 if $hardware_type != nil
-  puts "connecting to hardware: #{$hardware_type}"
+  puts  "hardware        #{$hardware_type}"
+  print 'hardware        '
   require_relative 'lib/controller'
   require_relative $hardware_type
   $bot_hardware = HardwareInterface.new
 else
   $hardware_sim = 1
 end
+puts 'OK'
 
-puts "uuid                    = #{$info_uuid}"
-puts "token                   = #{$info_token}"
+puts "uuid            #{$info_uuid}"
+puts "token           #{$info_token}"
 
 if $controller_disable == 0
-  puts 'starting controller'
+  print 'controller      '
   require_relative 'lib/controller'
   $bot_control  = Controller.new
   $bot_control.runFarmBot
