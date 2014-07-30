@@ -4,6 +4,8 @@ puts 'starting up'
 require './lib/database/dbaccess.rb'
 require './lib/database/filehandler.rb'
 
+$db_write_sync = Mutex.new
+
 #require './lib/controller.rb'
 #require "./lib/hardware/ramps.rb"
 
