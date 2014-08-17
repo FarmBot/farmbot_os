@@ -12,7 +12,7 @@ class HardwareInterface
   attr_reader :axis_x_pos, :axis_x_pos_conv, :axis_x_end_stop_a, :axis_x_end_stop_b
   attr_reader :axis_y_pos, :axis_y_pos_conv, :axis_y_end_stop_a, :axis_y_end_stop_b
   attr_reader :axis_z_pos, :axis_z_pos_conv, :axis_z_end_stop_a, :axis_z_end_stop_b
-  attr_reader :device_version
+  attr_reader :device_version, :db_version
 
   # initialize the interface
   #
@@ -20,10 +20,13 @@ class HardwareInterface
 
     @status_debug_msg = false
 
+    # init database and parameters
+    @bot_dbaccess = $bot_dbaccess
     @params = Array.new
     load_param_names()
     load_config_from_database()
 
+    # connect to arduino
     connect_board()
 
     @bot_dbaccess = $bot_dbaccess
@@ -36,6 +39,10 @@ class HardwareInterface
     @axis_y_pos_conv = 0
     @axis_z_pos_conv = 0
 
+    @axis_x_steps_per_unit = 5
+    @axis_y_steps_per_unit = 5
+    @axis_z_steps_per_unit = 5
+
     @device_version = 'unknown'
   end
 
@@ -46,10 +53,39 @@ class HardwareInterface
   #
   def check_parameters
 
+    # read the parameter version in the database and in the device 
     read_parameter_from_device(0)
+    @db_version = @bot_dbaccess.read_parameter_with_default('PARAM_VERSION', 0)
 
-    param = 
+    # if the parameters in the device is different from the database parameter version
+    # read and compare each parameter and write to device is different
+    if @device_version != @db_version
+      @params.each do |p|
+        check_and_write_parameter(p, @db_version)
+      end      
+    end
+  end
 
+  # synchronise a parameter value
+  #
+  def check_and_write_parameter(param, version_nr)
+
+     # read value from device and database
+     read_parameter_from_device(param['id'])
+     param['value_db'] = @bot_dbaccess.read_parameter_with_default(param['name'], 0)
+
+     differences_found = false
+
+     # if the parameter value between device and database is different, write value to device
+     if param['value_db'] != param ['value_ar']
+puts "$$ param name #{param['name']} value_db #{param['value_db']} value_ar #{param['value_ar']}"
+       differences_found = true
+       write_parameter_to_device(param['id'],param['value_db'])
+     end
+
+     if !differences_found
+       write_parameter_to_device(0, version_nr)
+     end
   end
 
   # read end stop status from the device
@@ -154,13 +190,13 @@ class HardwareInterface
   # read a parameter from arduino
   #
   def read_parameter_from_device(id)
-    execute_command("G21 P#{id}", true, false)
+    execute_command("F21 P#{id}", true, false)
   end
 
   # write a parameter value to arduino
   #
   def write_parameter_to_device(id, value)
-    execute_command("G22 P#{id} V#{value}", true, false)
+    execute_command("F22 P#{id} V#{value}", true, false)
   end
 
   ## DATABASE AND SETTINGS HANDLING
@@ -179,27 +215,27 @@ class HardwareInterface
   #
   def load_param_names
     param_name_add('PARAM_VERSION'                ,  0,    0)
-    param_name_add('MOVEMENT_TIMEOUT_X'           ,  1,   15)
-    param_name_add('MOVEMENT_TIMEOUT_Y'           ,  2,   15)
-    param_name_add('MOVEMENT_TIMEOUT_Z'           ,  3,   15)
-    param_name_add('MOVEMENT_INVERT_ENDPOINTS_X'  ,  4,    0)
-    param_name_add('MOVEMENT_INVERT_ENDPOINTS_Y'  ,  5,    0)
-    param_name_add('MOVEMENT_INVERT_ENDPOINTS_Z'  ,  6,    0)
-    param_name_add('MOVEMENT_INVERT_MOTOR_X'      ,  7,    0)
-    param_name_add('MOVEMENT_INVERT_MOTOR_Y'      ,  8,    0)
-    param_name_add('MOVEMENT_INVERT_MOTOR_Z'      ,  9,    0)
-    param_name_add('MOVEMENT_STEPS_ACC_DEC_X'     , 10,  100)
-    param_name_add('MOVEMENT_STEPS_ACC_DEC_Y'     , 11,  100)
-    param_name_add('MOVEMENT_STEPS_ACC_DEC_Z'     , 12,  100)
-    param_name_add('MOVEMENT_HOME_UP_X'           , 13,    0)
-    param_name_add('MOVEMENT_HOME_UP_Y'           , 14,    0)
-    param_name_add('MOVEMENT_HOME_UP_Z'           , 15,    0)
-    param_name_add('MOVEMENT_MIN_SPD_X'           , 16,  200)
-    param_name_add('MOVEMENT_MIN_SPD_Y'           , 17,  200)
-    param_name_add('MOVEMENT_MIN_SPD_Z'           , 18,  200)
-    param_name_add('MOVEMENT_MAX_SPD_X'           , 19, 1000)
-    param_name_add('MOVEMENT_MAX_SPD_Y'           , 20, 1000)
-    param_name_add('MOVEMENT_MAX_SPD_Z'           , 21, 1000)
+    param_name_add('MOVEMENT_TIMEOUT_X'           , 11,   15)
+    param_name_add('MOVEMENT_TIMEOUT_Y'           , 12,   15)
+    param_name_add('MOVEMENT_TIMEOUT_Z'           , 13,   15)
+    param_name_add('MOVEMENT_INVERT_ENDPOINTS_X'  , 21,    0)
+    param_name_add('MOVEMENT_INVERT_ENDPOINTS_Y'  , 22,    0)
+    param_name_add('MOVEMENT_INVERT_ENDPOINTS_Z'  , 23,    0)
+    param_name_add('MOVEMENT_INVERT_MOTOR_X'      , 31,    0)
+    param_name_add('MOVEMENT_INVERT_MOTOR_Y'      , 32,    0)
+    param_name_add('MOVEMENT_INVERT_MOTOR_Z'      , 33,    0)
+    param_name_add('MOVEMENT_STEPS_ACC_DEC_X'     , 41,  100)
+    param_name_add('MOVEMENT_STEPS_ACC_DEC_Y'     , 42,  100)
+    param_name_add('MOVEMENT_STEPS_ACC_DEC_Z'     , 43,  100)
+    param_name_add('MOVEMENT_HOME_UP_X'           , 51,    0)
+    param_name_add('MOVEMENT_HOME_UP_Y'           , 52,    0)
+    param_name_add('MOVEMENT_HOME_UP_Z'           , 53,    0)
+    param_name_add('MOVEMENT_MIN_SPD_X'           , 61,  200)
+    param_name_add('MOVEMENT_MIN_SPD_Y'           , 62,  200)
+    param_name_add('MOVEMENT_MIN_SPD_Z'           , 63,  200)
+    param_name_add('MOVEMENT_MAX_SPD_X'           , 71, 1000)
+    param_name_add('MOVEMENT_MAX_SPD_Y'           , 72, 1000)
+    param_name_add('MOVEMENT_MAX_SPD_Z'           , 73, 1000)
   end
 
   # add a parameter to the param list
