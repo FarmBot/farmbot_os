@@ -47,6 +47,18 @@ class Controller
     $bot_hardware.read_device_version()
     puts  $bot_hardware.device_version
 
+    @info_status = 'synchronizing arduino parameters'
+    print 'parameters      '
+    $bot_hardware.check_parameters    
+    $bot_hardware.check_parameters
+
+    if $bot_hardware.params_in_sync
+      puts 'OK'
+    else
+      puts 'ERROR'
+    end
+
+
     #$bot_hardware.read_end_stops()
     #$bot_hardware.read_postition()
     read_hw_status()
@@ -192,6 +204,7 @@ class Controller
 
   def check_hardware()
     if (Time.now - @last_hw_check) > 0.5
+      $bot_hardware.check_parameters
       $bot_hardware.read_end_stops()
       $bot_hardware.read_postition()
       read_hw_status()

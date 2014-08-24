@@ -12,7 +12,8 @@ class HardwareInterface
   attr_reader :axis_x_pos, :axis_x_pos_conv, :axis_x_end_stop_a, :axis_x_end_stop_b
   attr_reader :axis_y_pos, :axis_y_pos_conv, :axis_y_end_stop_a, :axis_y_end_stop_b
   attr_reader :axis_z_pos, :axis_z_pos_conv, :axis_z_end_stop_a, :axis_z_end_stop_b
-  attr_reader :device_version, :db_version
+  attr_reader :device_version
+  attr_reader :param_version_db, :param_version_ar, :params_in_sync
 
   # initialize the interface
   #
@@ -43,7 +44,11 @@ class HardwareInterface
     @axis_y_steps_per_unit = 5
     @axis_z_steps_per_unit = 5
 
-    @device_version = 'unknown'
+    @device_version   = 'unknown'
+    @param_version_db = 0
+    @param_version_ar = 0
+    @params_in_sync   = false
+
   end
 
   ## INTERFACE FUNCTIONS
@@ -55,20 +60,39 @@ class HardwareInterface
 
     # read the parameter version in the database and in the device 
     read_parameter_from_device(0)
-    @db_version = @bot_dbaccess.read_parameter_with_default('PARAM_VERSION', 0)
+    @params.each do |p|
+      if p['id'] == 0
+        @param_version_ar = p['value_ar']
+      end
+    end
+
+    @param_version_db = @bot_dbaccess.read_parameter_with_default('PARAM_VERSION', 0)
 
     # if the parameters in the device is different from the database parameter version
     # read and compare each parameter and write to device is different
-    if @device_version != @db_version
+    if @param_version_db != @param_version_ar
+      differences_found_total = false
       @params.each do |p|
-        check_and_write_parameter(p, @db_version)
-      end      
+        if p['id'] > 0
+          difference = check_and_write_parameter(p)
+          if difference then
+            @params_in_sync = false
+            differences_found_total = true
+          end
+        end
+      end
+      if !differences_found_total
+        @params_in_sync = true
+        write_parameter_to_device(0, @param_version_db)
+      else
+        @params_in_sync = false
+      end
     end
   end
 
   # synchronise a parameter value
   #
-  def check_and_write_parameter(param, version_nr)
+  def check_and_write_parameter(param)
 
      # read value from device and database
      read_parameter_from_device(param['id'])
@@ -78,14 +102,12 @@ class HardwareInterface
 
      # if the parameter value between device and database is different, write value to device
      if param['value_db'] != param ['value_ar']
-puts "$$ param name #{param['name']} value_db #{param['value_db']} value_ar #{param['value_ar']}"
        differences_found = true
        write_parameter_to_device(param['id'],param['value_db'])
      end
 
-     if !differences_found
-       write_parameter_to_device(0, version_nr)
-     end
+    return differences_found
+
   end
 
   # read end stop status from the device
@@ -190,13 +212,13 @@ puts "$$ param name #{param['name']} value_db #{param['value_db']} value_ar #{pa
   # read a parameter from arduino
   #
   def read_parameter_from_device(id)
-    execute_command("F21 P#{id}", true, false)
+    execute_command("F21 P#{id}", false, false)
   end
 
   # write a parameter value to arduino
   #
   def write_parameter_to_device(id, value)
-    execute_command("F22 P#{id} V#{value}", true, false)
+    execute_command("F22 P#{id} V#{value}", false, false)
   end
 
   ## DATABASE AND SETTINGS HANDLING
@@ -369,7 +391,7 @@ puts "$$ param name #{param['name']} value_db #{param['value_db']} value_ar #{pa
             end
           end
         else
-         sleep 0.05
+         sleep 0.001
         end
       end
 
@@ -417,9 +439,11 @@ puts "$$ param name #{param['name']} value_db #{param['value_db']} value_ar #{pa
       end
 
       if ard_par_id >= 0
+#puts "$$ value received id #{ard_par_id} val #{ard_par_val}"
         param = get_param_by_id(ard_par_id)
         if param != nil
-          param[value_db] = ard_par_val
+#puts "$$ value received name #{param['name']} val #{ard_par_val}"
+          param['value_ar'] = ard_par_val
         end
       end
 
