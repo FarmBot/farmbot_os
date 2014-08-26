@@ -22,7 +22,7 @@ $bot_dbaccess = DbAccess.new
 puts 'OK'
 
 print 'synchronization '
-require_relative 'lib/skynet'
+require_relative 'lib/messaging'
 puts 'OK'
 
 if $hardware_type != nil
