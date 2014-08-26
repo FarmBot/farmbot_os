@@ -40,9 +40,11 @@ class HardwareInterface
     @axis_y_pos_conv = 0
     @axis_z_pos_conv = 0
 
-    @axis_x_steps_per_unit = 5
-    @axis_y_steps_per_unit = 5
-    @axis_z_steps_per_unit = 5
+    @axis_x_steps_per_unit = 0
+    @axis_y_steps_per_unit = 0
+    @axis_z_steps_per_unit = 0
+
+    load_param_values_non_arduino()
 
     @device_version   = 'unknown'
     @param_version_db = 0
@@ -71,6 +73,7 @@ class HardwareInterface
     # if the parameters in the device is different from the database parameter version
     # read and compare each parameter and write to device is different
     if @param_version_db != @param_version_ar
+      load_param_values_non_arduino()
       differences_found_total = false
       @params.each do |p|
         if p['id'] > 0
@@ -224,6 +227,21 @@ class HardwareInterface
   ## DATABASE AND SETTINGS HANDLING
   ## ******************************
 
+  # load non-arduino parameters
+  #
+  def load_param_values_non_arduino
+
+    p = get_param_by_name('MOVEMENT_STEPS_PER_UNIT_X')
+    @axis_x_steps_per_unit = p['value_db']
+
+    p = get_param_by_name('MOVEMENT_STEPS_PER_UNIT_Y')
+    @axis_y_steps_per_unit = p['value_db']
+
+    p = get_param_by_name('MOVEMENT_STEPS_PER_UNIT_Z')
+    @axis_z_steps_per_unit = p['value_db']
+
+  end
+
   # load the settings for the hardware
   # these are the timeouts and distance settings mainly
   #
@@ -258,6 +276,10 @@ class HardwareInterface
     param_name_add('MOVEMENT_MAX_SPD_X'           , 71, 1000)
     param_name_add('MOVEMENT_MAX_SPD_Y'           , 72, 1000)
     param_name_add('MOVEMENT_MAX_SPD_Z'           , 73, 1000)
+    param_name_add('MOVEMENT_STEPS_PER_UNIT_X'    ,901,    5)
+    param_name_add('MOVEMENT_STEPS_PER_UNIT_Y'    ,902,    5)
+    param_name_add('MOVEMENT_STEPS_PER_UNIT_Z'    ,903,    5)
+
   end
 
   # add a parameter to the param list
@@ -439,10 +461,8 @@ class HardwareInterface
       end
 
       if ard_par_id >= 0
-#puts "$$ value received id #{ard_par_id} val #{ard_par_val}"
         param = get_param_by_id(ard_par_id)
         if param != nil
-#puts "$$ value received name #{param['name']} val #{ard_par_val}"
           param['value_ar'] = ard_par_val
         end
       end

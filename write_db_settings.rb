@@ -38,4 +38,8 @@ write('MOVEMENT_MIN_SPD_Z'           ,  220)
 write('MOVEMENT_MAX_SPD_X'           , 5000)
 write('MOVEMENT_MAX_SPD_Y'           , 1010)
 write('MOVEMENT_MAX_SPD_Z'           , 2200)
+write('MOVEMENT_STEPS_PER_UNIT_X'    ,    5)
+write('MOVEMENT_STEPS_PER_UNIT_Y'    ,    5)
+write('MOVEMENT_STEPS_PER_UNIT_Z'    ,    5)
+
 
