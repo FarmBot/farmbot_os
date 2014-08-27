@@ -55,6 +55,8 @@ Use "ruby farmbot.rb" to start hardware control and skynet communiation
 
 Use "ruby menu.rb" to start the interface. A menu will appear. Type the command needed and press enter. It is also possible to add a list of commands to the file 'testcommands.csv' and use the menu to execute the file.
 
+To change parameters manually, edit the file "write_db_settings.rb" and run the command "ruby write_db_settings.rb"
+
 Author
 ------
 
