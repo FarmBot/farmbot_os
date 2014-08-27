@@ -1,6 +1,6 @@
 
 
-require_relative 'skynet/skynet'
+require_relative 'messaging/messaging'
 
 # The unfortunate use of globals in this project: The SocketIO library we use to
 # talk to skynet stores blocks as lambdas and calls them later under a different
@@ -9,8 +9,8 @@ require_relative 'skynet/skynet'
 # device, but rather the current socket connection. Using a global is a quick
 # fix to ensure we always have easy access to the device. Pull requests welcome.
 
-$skynet = Skynet.new
-$skynet.start
+$messaging = Messaging.new
+$messaging.start
 
 #TODO: Daemonize this script:
 #https://www.ruby-toolbox.com/categories/daemonizing
