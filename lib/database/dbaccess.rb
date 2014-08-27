@@ -28,6 +28,18 @@ class DbAccess
 
   # parameters
 
+  # increment param version
+  #
+  def increment_parameters_version
+    $db_write_sync.synchronize do
+      param = Parameter.find_or_create_by(name: 'PARAM_VERSION')
+      param.valuetype = 1 if param.valuetype != 1
+      param.valueint = 0 if param.valueint == nil
+      param.valueint = param.valueint + 1
+      param.save
+    end
+  end
+
   # write a parameter
   #
   def write_parameter(name, value)
@@ -53,6 +65,8 @@ class DbAccess
     $db_write_sync.synchronize do
       param.save
     end
+    increment_parameters_version()
+
   end
 
   # write a parameter with type provided
@@ -70,6 +84,8 @@ class DbAccess
     $db_write_sync.synchronize do
       param.save
     end
+    increment_parameters_version
+
   end
 
 

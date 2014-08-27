@@ -13,12 +13,12 @@ module WebSocket
   #Handles self identification on skynet by responding to the :indentify with a
   #:identity event / credentials Hash.
   def create_identify_event
-    $skynet.socket.on :identify do |data|
+    $messaging.socket.on :identify do |data|
       self.emit :identity, {
-        uuid:     $skynet.uuid,
-        token:    $skynet.token,
+        uuid:     $messaging.uuid,
+        token:    $messaging.token,
         socketid: data['socketid']}
-      $skynet.identified = true
+      $messaging.identified = true
     end
   end
 
@@ -28,8 +28,8 @@ module WebSocket
     #  $skynet.handle_message(channel, message)
     #end
 
-    $skynet.socket.on :message do |message|
-      $skynet.handle_message(message)
+    $messaging.socket.on :message do |message|
+      $messaging.handle_message(message)
     end
   end
 

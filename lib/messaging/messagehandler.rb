@@ -143,7 +143,7 @@ class MessageHandler
 
        @dbaccess.write_to_log(2,"return_message = #{return_message}")
 
-       $skynet.send_message(sender, return_message)
+       $messaging.send_message(sender, return_message)
 
     end
   end
@@ -187,7 +187,7 @@ class MessageHandler
           :logs         => log_list
         }
 
-      $skynet.send_message(sender, return_message)
+      $messaging.send_message(sender, return_message)
 
     end    
   end
@@ -223,7 +223,7 @@ class MessageHandler
       @dbaccess.write_to_log(2,"reply = #{return_message}")
 
 
-      $skynet.send_message(sender, return_message)
+      $messaging.send_message(sender, return_message)
 
     end    
   end
@@ -306,7 +306,7 @@ class MessageHandler
 
         @dbaccess.write_to_log(2,'sending comfirmation')
 
-        $skynet.confirmed = false
+        $messaging.confirmed = false
 
         send_confirmation(sender, time_stamp)
 
@@ -315,7 +315,7 @@ class MessageHandler
         @dbaccess.write_to_log(2,'no command in message')
         @dbaccess.write_to_log(2,'sending error')
 
-        $skynet.confirmed = false
+        $messaging.confirmed = false
         send_error(sender, time_stamp, 'no command in message')
 
       end
@@ -370,7 +370,7 @@ class MessageHandler
 
       @dbaccess.write_to_log(2,'sending comfirmation')
 
-      $skynet.confirmed = false
+      $messaging.confirmed = false
 
       command =
         {
@@ -379,7 +379,7 @@ class MessageHandler
           :confirm_id   => time_stamp
         }
 
-      $skynet.send_message(sender, command)
+      $messaging.send_message(sender, command)
 
       @dbaccess.write_to_log(2,'done')
 
@@ -394,7 +394,7 @@ class MessageHandler
         :time_stamp   => Time.now.to_f.to_s,
         :confirm_id   => time_stamp
       }
-    $skynet.send_message(destination, command)
+    $messaging.send_message(destination, command)
   end
 
   def send_error(destination, time_stamp, error)
@@ -410,7 +410,7 @@ class MessageHandler
         :confirm_id   => time_stamp,
         :error        => error
       }
-    $skynet.send_message(destination, command)
+    $messaging.send_message(destination, command)
   end
 
 end
