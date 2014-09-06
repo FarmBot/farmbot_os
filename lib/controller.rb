@@ -180,6 +180,16 @@ class Controller
               $bot_hardware.dose_water(command_line.amount)
             when "SET SPEED"
               $bot_hardware.set_speed(command_line.speed)
+
+            when "PIN WRITE"
+              $bot_hardware.pin_std_set_value(command_line.pin_nr, command_line.pin_value)
+            when "PIN READ"
+              $bot_hardware.pin_std_read_value(command_line.pin_nr)
+            when "PIN MODE"
+              $bot_hardware.pin_std_set_mode(command_line.pin, command_line.pin_mode)
+            when "PIN PULSE"
+              $bot_hardware.pin_std_pulse(command_line.pin, command_line.pin_value_1, 
+                command_line.pin_value_2, command_line.pin_time)
           end
 
           read_hw_status()

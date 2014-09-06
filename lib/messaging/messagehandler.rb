@@ -299,7 +299,13 @@ class MessageHandler
         amount = command['amount']
         delay  = command['delay']
 
+        pin_nr = command['pin_nr']
+        value1 = command['value1']
+        value2 = command['value2']
+        mode   = command['mode']
+
         @dbaccess.write_to_log(2,"[#{action}] x: #{x}, y: #{y}, z: #{z}, speed: #{speed}, amount: #{amount} delay: #{delay}")
+        @dbaccess.write_to_log(2,"[#{action}] pin_nr: #{pin_nr}, value1: #{value1}, value2: #{value2}, mode: #{mode}")
         @dbaccess.create_new_command(Time.now + delay.to_i,'single_command')
         @dbaccess.add_command_line(action, x.to_i, y.to_i, z.to_i, speed.to_s, amount.to_i)
         @dbaccess.save_new_command
