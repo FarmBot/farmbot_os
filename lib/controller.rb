@@ -154,7 +154,7 @@ class Controller
       cmd.command_lines.each do |command_line|
         @info_movement = "#{command_line.action.downcase} xyz=#{command_line.coord_x} #{command_line.coord_y} #{command_line.coord_z} amt=#{command_line.amount} spd=#{command_line.speed}"
         @bot_dbaccess.write_to_log(1,@info_movement)
-
+puts @info_movement
         if $hardware_sim == 0
           case command_line.action.upcase
             when "MOVE ABSOLUTE"
@@ -182,7 +182,7 @@ class Controller
               $bot_hardware.set_speed(command_line.speed)
 
             when "PIN WRITE"
-              $bot_hardware.pin_std_set_value(command_line.pin_nr, command_line.pin_value)
+              $bot_hardware.pin_std_set_value(command_line.pin_nr, command_line.pin_value_1)
             when "PIN READ"
               $bot_hardware.pin_std_read_value(command_line.pin_nr)
             when "PIN MODE"
