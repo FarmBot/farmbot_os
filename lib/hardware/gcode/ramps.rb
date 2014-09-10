@@ -20,6 +20,7 @@ class HardwareInterface
   def initialize
 
     @status_debug_msg = false
+    #@status_debug_msg = true
 
     # init database and parameters
     @bot_dbaccess = $bot_dbaccess
@@ -55,6 +56,32 @@ class HardwareInterface
 
   ## INTERFACE FUNCTIONS
   ## *******************
+
+
+  # set standard pin value
+  #
+  def pin_std_set_value(pin, value)
+    #execute_command('F41 P#{pin} V#{value}', false, @status_debug_msg)
+    execute_command("F41 P#{pin} V#{value}", false, true)
+  end
+
+  # read standard pin
+  #
+  def pin_std_read_value(pin)
+    execute_command("F42 P#{pin}", false, @status_debug_msg)
+  end
+
+  # set standard pin mode
+  #
+  def pin_std_set_mode(pin, mode)
+    execute_command("F43 P#{pin} M#{mode}", false, @status_debug_msg)
+  end
+
+  # set pulse on standard pin
+  #
+  def pin_std_pulse(pin, value1, value2, time)
+    execute_command("F44 P#{pin} V#{value1} W#{value2} T#{time}", false, @status_debug_msg)    
+  end
 
   # check to see of parameters in arduino are up to date
   #

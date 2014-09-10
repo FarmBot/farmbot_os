@@ -180,16 +180,21 @@ class DbAccess
     @new_command.save
   end
 
-  def add_command_line(action, x = 0, y = 0, z = 0, speed = 0, amount = 0)
+  def add_command_line(action, x = 0, y = 0, z = 0, speed = 0, amount = 0, pin_nr = 0, value1 = 0, value2 = 0, mode = 0, time = 0)
     if @new_command != nil
       line = CommandLine.new
       line.action = action
-      line.coord_x = x
-      line.coord_y = y
-      line.coord_z = z
-      line.speed   = speed
-      line.amount  = amount
-      line.command_id = @new_command.id
+      line.coord_x     = x
+      line.coord_y     = y
+      line.coord_z     = z
+      line.speed       = speed
+      line.amount      = amount
+      line.command_id  = @new_command.id
+      line.pin_nr      = pin_nr
+      line.pin_value_1 = value1
+      line.pin_value_2 = value2
+      line.pin_mode    = mode
+      line.pin_time    = time
       $db_write_sync.synchronize do
         line.save
       end

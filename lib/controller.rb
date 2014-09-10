@@ -154,7 +154,7 @@ class Controller
       cmd.command_lines.each do |command_line|
         @info_movement = "#{command_line.action.downcase} xyz=#{command_line.coord_x} #{command_line.coord_y} #{command_line.coord_z} amt=#{command_line.amount} spd=#{command_line.speed}"
         @bot_dbaccess.write_to_log(1,@info_movement)
-
+puts command_line
         if $hardware_sim == 0
           case command_line.action.upcase
             when "MOVE ABSOLUTE"
@@ -180,6 +180,16 @@ class Controller
               $bot_hardware.dose_water(command_line.amount)
             when "SET SPEED"
               $bot_hardware.set_speed(command_line.speed)
+
+            when "PIN WRITE"
+              $bot_hardware.pin_std_set_value(command_line.pin_nr, command_line.pin_value_1)
+            when "PIN READ"
+              $bot_hardware.pin_std_read_value(command_line.pin_nr)
+            when "PIN MODE"
+              $bot_hardware.pin_std_set_mode(command_line.pin, command_line.pin_mode)
+            when "PIN PULSE"
+              $bot_hardware.pin_std_pulse(command_line.pin, command_line.pin_value_1, 
+                command_line.pin_value_2, command_line.pin_time)
           end
 
           read_hw_status()
