@@ -1,3 +1,4 @@
+$status_debug_msg = false
 $hardware_sim = 0
 #$hardware_type = "lib/hardware/firmata/ramps"
 $hardware_type = "lib/hardware/gcode/ramps"

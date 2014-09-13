@@ -19,7 +19,8 @@ class HardwareInterface
   #
   def initialize
 
-    @status_debug_msg = false
+    @status_debug_msg = $status_debug_msg
+    #@status_debug_msg = false
     #@status_debug_msg = true
 
     # init database and parameters
@@ -61,8 +62,8 @@ class HardwareInterface
   # set standard pin value
   #
   def pin_std_set_value(pin, value)
-    #execute_command('F41 P#{pin} V#{value}', false, @status_debug_msg)
-    execute_command("F41 P#{pin} V#{value}", false, true)
+    execute_command("F41 P#{pin} V#{value}", false, @status_debug_msg)
+    #execute_command("F41 P#{pin} V#{value}", false, true)
   end
 
   # read standard pin
