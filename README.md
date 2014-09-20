@@ -57,6 +57,12 @@ Use "ruby menu.rb" to start the interface. A menu will appear. Type the command 
 
 To change parameters manually, edit the file "write_db_settings.rb" and run the command "ruby write_db_settings.rb"
 
+Duriing running in the console, a few basic staatus parameters are displayed:
+
+x 0000 *- y 0000 -- z 0000 *- 
+
+For each axis, the coordinates are shown and the status of the end stops. A "-" means the end stop is not activared, a "*" means the and stop is activated. First the home end point is displayed, then the end-of-line end stop.
+
 Author
 ------
 
