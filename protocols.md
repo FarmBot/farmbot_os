@@ -84,17 +84,29 @@ z       |decimal|same as x
 speed   |string |speed for movements, as text. for example 'traveling', 'manouvering'
 amount  |decimal|amount of mililiter of water to dose. always add parameter with default value
 delay   |decimal|amount in seconds to delay the execution of a command
+pin_nr    |decimal|the number of the pin to change, using arduino numbering
+pin_value1|decimal|the value of the pin
+pin_value2|decimal|when using a pulse, this is the value for the second flank of the pulse
+pin_mode  |decimal|for setting the I/O mode, 0 is input, 1 is output. For reading and writing, 0 is digital and 1 is analog
+pin_time  |decimal||the time im seconds for a pulse
+
+
 
 actions and parameters used:
 
-action       |x      |y      |z      |speed|amount|delay
--------------|-------|-------|-------|-----|------|-----
-MOVE RELATIVE|X      |X      |X      |X    |      |X    
-MOVE ABSOLUTE|X      |X      |X      |X    |      |X
-DOSE WATER   |       |       |       |     |X     |X
-HOME X       |       |       |       |X    |      |X
-HOME Y       |       |       |       |X    |      |X
-HOME Z       |       |       |       |X    |      |X
+action       |x      |y      |z      |speed|amount|delay|pin_nr|pin_value1|pin_value2|pin_mode|pin_time
+-------------|-------|-------|-------|-----|------|-----|------|----------|----------|--------|--------
+MOVE RELATIVE|X      |X      |X      |X    |      |X    |      |          |          |        |
+MOVE ABSOLUTE|X      |X      |X      |X    |      |X    |      |          |          |        |
+DOSE WATER   |       |       |       |     |X     |X    |      |          |          |        |
+HOME X       |       |       |       |X    |      |X    |      |          |          |        |
+HOME Y       |       |       |       |X    |      |X    |      |          |          |        |
+HOME Z       |       |       |       |X    |      |X    |      |          |          |        |
+PIN WRITE    |       |       |       |     |      |X    |X     |X         |          |X       |
+PIN READ     |       |       |       |     |      |X    |X     |          |          |X       |
+PIN MODE     |       |       |       |     |      |X    |X     |          |          |X       |
+PIN PULSE    |       |       |       |     |      |X    |X     |X         |X         |X       |X
+
 
 Device status
 =============
