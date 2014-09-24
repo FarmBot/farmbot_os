@@ -304,6 +304,9 @@ class HardwareInterface
     param_name_add('MOVEMENT_MAX_SPD_X'           , 71, 1000)
     param_name_add('MOVEMENT_MAX_SPD_Y'           , 72, 1000)
     param_name_add('MOVEMENT_MAX_SPD_Z'           , 73, 1000)
+    param_name_add('MOVEMENT_LENGTH_X'            ,801, 1000)
+    param_name_add('MOVEMENT_LENGTH_Y'            ,802, 1000)
+    param_name_add('MOVEMENT_LENGTH_Z'            ,803, 1000)
     param_name_add('MOVEMENT_STEPS_PER_UNIT_X'    ,901,    5)
     param_name_add('MOVEMENT_STEPS_PER_UNIT_Y'    ,902,    5)
     param_name_add('MOVEMENT_STEPS_PER_UNIT_Z'    ,903,    5)
@@ -346,6 +349,8 @@ class HardwareInterface
     return param
   end
 
+  # get parameter object by name or id
+  #
   def get_param(name_or_id, by_name_or_id)
     param = nil
     @params.each do |p|
@@ -359,6 +364,8 @@ class HardwareInterface
     return param
   end
 
+  # read parameter value from memory
+  #
   def get_param_value_by_id(name_or_id, by_name_or_id, from_device_or_db, default_value)
     value = default_value
     
@@ -372,8 +379,24 @@ class HardwareInterface
 
   end
 
-  def get_param_value_by_name(name)
+  #def get_param_value_by_name(name)
+  #end
+
+  # save parameter value to the database
+  #
+  def save_param_value(name_or_id, by_name_or_id, value)
+
+    param = get_param(id, by_name_or_id)
+    if param != nil and from_device_or_db == :from_device
+      value =  param['value_ar']
+    end
+    if param != nil and from_device_or_db == :from_db
+      value =  param['value_db']
+    end
+
+    @bot_dbaccess.write_parameter(param['id'],value)
   end
+
 
   ## ARDUINO HANLDING
   ## ****************
@@ -492,6 +515,30 @@ class HardwareInterface
         param = get_param_by_id(ard_par_id)
         if param != nil
           param['value_ar'] = ard_par_val
+        end
+      end
+
+    when 'R23'
+      ard_par_id  = -1
+      ard_par_val = 0
+
+      text.split(' ').each do |param|
+
+        par_code  = param[0..0].to_s
+        par_value = param[1..-1].to_i
+
+        case par_code
+        when 'P'
+          ard_par_id  = par_value
+        when 'V'
+          ard_par_val = par_value
+        end
+      end
+
+      if ard_par_id >= 0
+        param = get_param_by_id(ard_par_id)
+        if param != nil
+          save_param_value(ard_par_id, :by_id, ard_par_val)
         end
       end
 
