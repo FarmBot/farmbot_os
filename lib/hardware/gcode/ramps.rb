@@ -181,9 +181,23 @@ class HardwareInterface
   def move_home_z
     execute_command('F13', true, false)
   end
-  
-  def set_speed( speed )
 
+  # calibrate x axis
+  #
+  def calibrate_x
+    execute_command('F14', true, false)
+  end
+
+  # calibrate y axis
+  #
+  def calibrate_y
+    execute_command('F15', true, false)
+  end
+
+  # calibrate z axis
+  #
+  def calibrate_z
+    execute_command('F16', true, false)
   end
 
   # move the bot to the give coordinates
