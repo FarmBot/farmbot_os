@@ -368,10 +368,10 @@ class HardwareInterface
   def get_param(name_or_id, by_name_or_id)
     param = nil
     @params.each do |p|
-      if (by_name_or_id == :by_id   and p['id']   == id)
+      if (by_name_or_id == :by_id   and p['id']   == name_or_id)
         param = p
       end
-      if (by_name_or_id == :by_name and p['name'] == name)
+      if (by_name_or_id == :by_name and p['name'] == name_or_id)
         param = p
       end
     end
@@ -398,17 +398,18 @@ class HardwareInterface
 
   # save parameter value to the database
   #
-  def save_param_value(name_or_id, by_name_or_id, value)
+  def save_param_value(name_or_id, by_name_or_id, from_device_or_db, value)
 
-    param = get_param(id, by_name_or_id)
+    param = get_param(name_or_id, by_name_or_id)
+
     if param != nil and from_device_or_db == :from_device
-      value =  param['value_ar']
+      param['value_ar'] = value
     end
     if param != nil and from_device_or_db == :from_db
-      value =  param['value_db']
+      param['value_db'] = value
     end
 
-    @bot_dbaccess.write_parameter(param['id'],value)
+    @bot_dbaccess.write_parameter(param['name'],value)
   end
 
 
@@ -468,6 +469,9 @@ class HardwareInterface
                     done = 1
                   when 'R03'
                     done = 1
+                  when 'R04'
+                    start = Time.now
+                    timeout = 90
                   else
                     process_value(c,t)
                 end
@@ -552,7 +556,7 @@ class HardwareInterface
       if ard_par_id >= 0
         param = get_param_by_id(ard_par_id)
         if param != nil
-          save_param_value(ard_par_id, :by_id, ard_par_val)
+          save_param_value(ard_par_id, :by_id, :from_db, ard_par_val)
         end
       end
 

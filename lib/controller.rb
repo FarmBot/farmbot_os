@@ -186,7 +186,7 @@ class Controller
               $bot_hardware.calibrate_z
 
             when "DOSE WATER"
-              $bot_hardware.dose_water(command_line.amount)
+              #$bot_hardware.dose_water(command_line.amount)
             when "SET SPEED"
               $bot_hardware.set_speed(command_line.speed)
 

@@ -81,14 +81,15 @@ while $shutdown == 0 do
       $pin_nr = pin_nr_temp.to_i if pin_nr_temp.to_i > 0
     when "T" # Execute test file
       # read the file
-      TestFileHandler.readCommandFile
-    when "I" # Set Pin Off
-      #$bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
-      #$bot_dbaccess.add_command_line('PIN WRITE', 0, 0, 0, 0, 0, $pin_nr, 0, 0, 0, 0)
-      #$bot_dbaccess.save_new_command
+      #TestFileHandler.readCommandFile
 
       $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
       $bot_dbaccess.add_command_line('CALIBRATE X', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+      $bot_dbaccess.save_new_command
+
+    when "I" # Set Pin Off
+      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
+      $bot_dbaccess.add_command_line('PIN WRITE', 0, 0, 0, 0, 0, $pin_nr, 0, 0, 0, 0)
       $bot_dbaccess.save_new_command
     when "U" # Set Pin On
       $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
