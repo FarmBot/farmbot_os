@@ -167,6 +167,7 @@ class Controller
               @info_target_y = command_line.coord_y
               @info_target_z = command_line.coord_z
               $bot_hardware.move_relative(command_line.coord_x, command_line.coord_y, command_line.coord_z)
+
             when "HOME X"
               @info_target_x = 0
               $bot_hardware.move_home_x
@@ -176,8 +177,16 @@ class Controller
             when "HOME Z"
               @info_target_z = 0
               $bot_hardware.move_home_z
+
+            when "CALIBRATE X"
+              $bot_hardware.calibrate_x
+            when "CALIBRATE Y"
+              $bot_hardware.calibrate_y
+            when "CALIBRATE Z"
+              $bot_hardware.calibrate_z
+
             when "DOSE WATER"
-              $bot_hardware.dose_water(command_line.amount)
+              #$bot_hardware.dose_water(command_line.amount)
             when "SET SPEED"
               $bot_hardware.set_speed(command_line.speed)
 
