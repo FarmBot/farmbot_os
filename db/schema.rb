@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140808231615) do
+ActiveRecord::Schema.define(version: 20141014211153) do
 
   create_table "command_lines", force: true do |t|
     t.integer  "command_id"
@@ -28,6 +28,7 @@ ActiveRecord::Schema.define(version: 20140808231615) do
     t.integer  "pin_value_1"
     t.integer  "pin_value_2"
     t.integer  "pin_time"
+    t.string   "external_info"
   end
 
   create_table "commands", force: true do |t|
@@ -44,6 +45,13 @@ ActiveRecord::Schema.define(version: 20140808231615) do
     t.integer  "module_id"
     t.string   "text"
     t.datetime "time_stamp"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "measurements", force: true do |t|
+    t.string   "external_info"
+    t.float    "value"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

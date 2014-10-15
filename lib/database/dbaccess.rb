@@ -26,7 +26,7 @@ class DbAccess
     @new_command = nil
   end
 
-  # parameters
+  ## parameters
 
   # increment param version
   #
@@ -139,13 +139,52 @@ class DbAccess
     value
   end
 
-  # logs
+  ## measurements
+
+  # write a single measurement
+  #
+  def write_measuements(value, external_info)
+    meas               = Measurement.new
+    meas.value         = value
+    meas.external_info = external_info
+    meas.save
+  end
+
+  # read measurement list
+  #
+  def read_measurement_list()
+    measurements = Measuerements.find(:all)
+    measurements_list = Array.new
+
+    measurement.each do |meas|
+      item =
+      {
+        'id'         => meas.measurement_id,
+        'ext_info'   => meas.external_info,
+        'timestamp'  => meas.created_at,
+        'value'      => meas.value
+      }
+      measurement_list << item
+    end
+
+    measurement_list
+  end
+
+  # delete a measurement from the database
+  #
+  def delete_measurement(id)
+    Log.where("measurement_id = (?)", id).find_each do |log|
+      log.delete
+    end
+  end
+
+  ## logs
 
   # write a line to the log
   #
   def write_to_log(module_id,text)
-    log = Log.new
-    log.text = text
+    log           = Log.new
+    log.text      = text
     log.module_id = module_id
     log.save
 
@@ -170,7 +209,7 @@ class DbAccess
     logs = Log.find(:all, :conditions => [ "module_id = (?)", module_id ], :order => 'created_at asc', :limit => nr_of_lines)
   end
 
-  # commands
+  ## commands
 
   def create_new_command(scheduled_time, crop_id)
     @new_command = Command.new
@@ -180,21 +219,22 @@ class DbAccess
     @new_command.save
   end
 
-  def add_command_line(action, x = 0, y = 0, z = 0, speed = 0, amount = 0, pin_nr = 0, value1 = 0, value2 = 0, mode = 0, time = 0)
+  def add_command_line(action, x = 0, y = 0, z = 0, speed = 0, amount = 0, pin_nr = 0, value1 = 0, value2 = 0, mode = 0, time = 0, external_info = "")
     if @new_command != nil
       line = CommandLine.new
       line.action = action
-      line.coord_x     = x
-      line.coord_y     = y
-      line.coord_z     = z
-      line.speed       = speed
-      line.amount      = amount
-      line.command_id  = @new_command.id
-      line.pin_nr      = pin_nr
-      line.pin_value_1 = value1
-      line.pin_value_2 = value2
-      line.pin_mode    = mode
-      line.pin_time    = time
+      line.coord_x       = x
+      line.coord_y       = y
+      line.coord_z       = z
+      line.speed         = speed
+      line.amount        = amount
+      line.command_id    = @new_command.id
+      line.pin_nr        = pin_nr
+      line.pin_value_1   = value1
+      line.pin_value_2   = value2
+      line.pin_mode      = mode
+      line.pin_time      = time
+      line.external_info = external_info
       $db_write_sync.synchronize do
         line.save
       end
@@ -241,7 +281,7 @@ class DbAccess
     end
   end
 
-  # refreshes
+  ## refreshes
 
   def check_refresh
     r = Refresh.find_or_create_by(name: 'FarmBotControllerSchedule')
