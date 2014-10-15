@@ -94,6 +94,77 @@ class MessageHandler
     return {error: ""}
   end
 
+  ## measurements
+
+  # Read measurements from database and send through skynet
+  #
+  def read_measurements(message)
+
+    @dbaccess.write_to_log(2,'handle read measurements')
+
+    payload = message['payload']
+
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
+    @dbaccess.write_to_log(2,"sender     = #{sender}")
+    @dbaccess.write_to_log(2,"time_stamp = #{time_stamp}")
+
+    if time_stamp != @last_time_stamp
+
+      @last_time_stamp = time_stamp
+
+      measurement_list = @dbaccess.read_measurements()
+
+      return_message =
+        {
+          :message_type => 'read_measurements_response',
+          :time_stamp   => Time.now.to_f.to_s,
+          :confirm_id   => time_stamp,
+          :measurements => measurements_list
+        }
+
+      $messaging.send_message(sender, return_message)
+
+    end
+  end
+
+  def delete_measurements(message)
+
+    @dbaccess.write_to_log(2,'handle read measurements')
+
+    payload = message['payload']
+
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
+    @dbaccess.write_to_log(2,"sender     = #{sender}")
+    @dbaccess.write_to_log(2,"time_stamp = #{time_stamp}")
+
+    if time_stamp != @last_time_stamp
+
+      @last_time_stamp = time_stamp
+
+      if payload.has_key? 'ids'
+        message_contents['ids'].each do |id|
+
+          @dbaccess.delete_measurement(id)
+
+        end
+      end
+
+      command =
+        {
+          :message_type => 'confirmation',
+          :time_stamp   => Time.now.to_f.to_s,
+          :confirm_id   => time_stamp
+        }
+
+      $messaging.send_message(sender, command)
+    end
+  end
+
+
   # Send the current status to the requester
   #
   def read_status(message)
@@ -271,6 +342,7 @@ class MessageHandler
     end
   end
 
+
   def single_command(message)
 
     @dbaccess.write_to_log(2,'handle single command')
@@ -306,9 +378,14 @@ class MessageHandler
         pin_value2 = (command.has_key? 'value2') ? command['value2'  ] : 0
         pin_mode   = (command.has_key? 'mode'  ) ? command['mode'    ] : 0
         pin_time   = (command.has_key? 'time'  ) ? command['time'    ] : 0
+        ext_info   = (command.has_key? 'info'  ) ? command['info'    ] : 0
+
+
 
         @dbaccess.write_to_log(2,"[#{action}] x: #{x}, y: #{y}, z: #{z}, speed: #{speed}, amount: #{amount} delay: #{delay}")
         @dbaccess.write_to_log(2,"[#{action}] pin_nr: #{pin_nr}, value1: #{pin_value1}, value2: #{pin_value2}, mode: #{pin_mode}")
+        @dbaccess.write_to_log(2,"[#{action}] ext_info: #{ext_info}")
+
         @dbaccess.create_new_command(Time.now + delay.to_i,'single_command')
         @dbaccess.add_command_line(action, x.to_i, y.to_i, z.to_i, speed.to_s, amount.to_i, 
 		pin_nr.to_i, pin_value1.to_i, pin_value2.to_i, pin_mode.to_i, pin_time.to_i)
