@@ -7,6 +7,7 @@ require './app/models/command_line.rb'
 require './app/models/refresh.rb'
 require './app/models/log.rb'
 require './app/models/parameter.rb'
+require './app/models/measurement.rb'
 
 # retrieving and inserting commands into the schedule queue for the farm bot
 # using sqlite
@@ -153,10 +154,10 @@ class DbAccess
   # read measurement list
   #
   def read_measurement_list()
-    measurements = Measuerements.find(:all)
+    measurements = Measurement.all
     measurements_list = Array.new
 
-    measurement.each do |meas|
+    measurements.each do |meas|
       item =
       {
         'id'         => meas.measurement_id,
@@ -164,17 +165,18 @@ class DbAccess
         'timestamp'  => meas.created_at,
         'value'      => meas.value
       }
-      measurement_list << item
+      measurements_list << item
     end
 
-    measurement_list
+    measurements_list
   end
 
   # delete a measurement from the database
   #
   def delete_measurement(id)
-    Log.where("measurement_id = (?)", id).find_each do |log|
-      log.delete
+    if Measurement.exists?(id)
+      meas = Measurement.where("measurement_id = (?)", id).first
+      meas.delete
     end
   end
 

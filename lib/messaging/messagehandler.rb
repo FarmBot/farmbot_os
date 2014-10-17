@@ -8,6 +8,8 @@ class MessageHandler
 
   attr_accessor :message
 
+  ## general handling messages
+
   def initialize
     @dbaccess = DbAccess.new
     @last_time_stamp  = ''
@@ -16,7 +18,7 @@ class MessageHandler
   # A list of MessageHandler methods (as strings) that a Skynet User may access.
   #
   def whitelist
-    ["single_command","crop_schedule_update","read_parameters","write_parameters","read_logs","read_status"]
+    ["single_command","crop_schedule_update","read_parameters","write_parameters","read_logs","read_status","read_measurements","delete_measurements"]
   end
 
   # Handle the message received from skynet
@@ -66,7 +68,7 @@ class MessageHandler
         self.send(requested_command, message)
       else
         @dbaccess.write_to_log(2,'message type not in white list')
-        self.error(message)
+        send_error(sender, time_stamp, 'message type not in white list')
       end
     rescue Exception => e
       err_snd = true
@@ -114,7 +116,7 @@ class MessageHandler
 
       @last_time_stamp = time_stamp
 
-      measurement_list = @dbaccess.read_measurements()
+      measurements_list = @dbaccess.read_measurement_list()
 
       return_message =
         {
@@ -146,7 +148,7 @@ class MessageHandler
       @last_time_stamp = time_stamp
 
       if payload.has_key? 'ids'
-        message_contents['ids'].each do |id|
+        payload['ids'].each do |id|
 
           @dbaccess.delete_measurement(id)
 

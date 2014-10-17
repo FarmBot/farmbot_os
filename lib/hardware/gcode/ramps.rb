@@ -34,13 +34,13 @@ class HardwareInterface
 
     @bot_dbaccess = $bot_dbaccess
 
-    @axis_x_pos = 0
-    @axis_y_pos = 0
-    @axis_z_pos = 0
+    @axis_x_pos            = 0
+    @axis_y_pos            = 0
+    @axis_z_pos            = 0
 
-    @axis_x_pos_conv = 0
-    @axis_y_pos_conv = 0
-    @axis_z_pos_conv = 0
+    @axis_x_pos_conv       = 0
+    @axis_y_pos_conv       = 0
+    @axis_z_pos_conv       = 0
 
     @axis_x_steps_per_unit = 0
     @axis_y_steps_per_unit = 0
@@ -48,10 +48,12 @@ class HardwareInterface
 
     load_param_values_non_arduino()
 
-    @device_version   = 'unknown'
-    @param_version_db = 0
-    @param_version_ar = 0
-    @params_in_sync   = false
+    @device_version        = 'unknown'
+    @param_version_db      = 0
+    @param_version_ar      = 0
+    @params_in_sync        = false
+
+    @external_info         = ""
 
   end
 
@@ -68,8 +70,11 @@ class HardwareInterface
 
   # read standard pin
   #
-  def pin_std_read_value(pin)
-    execute_command("F42 P#{pin}", false, @status_debug_msg)
+  def pin_std_read_value(pin, external_info)
+    @external_info = external_info
+#    execute_command("F42 P#{pin}", false, @status_debug_msg)
+    execute_command("F42 P#{pin}", true, true)
+    @external_info = ''
   end
 
   # set standard pin mode
@@ -412,6 +417,11 @@ class HardwareInterface
     @bot_dbaccess.write_parameter(param['name'],value)
   end
 
+  # save a pin measurement
+  #
+  def save_pin_value(pin_id, pin_val)
+    @bot_dbaccess.write_measuements(pin_val, @external_info)
+  end
 
   ## ARDUINO HANLDING
   ## ****************
@@ -558,6 +568,27 @@ class HardwareInterface
         if param != nil
           save_param_value(ard_par_id, :by_id, :from_db, ard_par_val)
         end
+      end
+
+    when 'R41'
+      pin_id  = -1
+      pin_val = 0
+
+      text.split(' ').each do |param|
+
+        par_code  = param[0..0].to_s
+        par_value = param[1..-1].to_i
+
+        case par_code
+        when 'P'
+          pin_id  = par_value
+        when 'V'
+          pin_val = par_value
+        end
+      end
+
+      if pin_id >= 0
+        save_pin_value(pin_id, pin_val)
       end
 
     when 'R81'
