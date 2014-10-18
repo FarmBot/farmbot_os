@@ -160,7 +160,7 @@ class DbAccess
     measurements.each do |meas|
       item =
       {
-        'id'         => meas.measurement_id,
+        'id'         => meas.id,
         'ext_info'   => meas.external_info,
         'timestamp'  => meas.created_at,
         'value'      => meas.value
@@ -175,7 +175,8 @@ class DbAccess
   #
   def delete_measurement(id)
     if Measurement.exists?(id)
-      meas = Measurement.where("measurement_id = (?)", id).first
+      #meas = Measurement.where("measurement_id = (?)", id).first
+      meas = Measurement.find(id)
       meas.delete
     end
   end
