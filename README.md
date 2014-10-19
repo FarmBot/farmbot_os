@@ -63,6 +63,22 @@ x 0000 *- y 0000 -- z 0000 *-
 
 For each axis, the coordinates are shown and the status of the end stops. A "-" means the end stop is not activared, a "*" means the and stop is activated. First the home end point is displayed, then the end-of-line end stop.
 
+Main software structure
+=======================
+
+```                                                        
+/farmbot.rb +-----> /lib/messaging.rb                   
+            |                                           
+            |           /lib/messaging/messaging.rb     
+            |                                           
+            |           /lib/messaging/messagehandler.rb
+            |                                           
+            +-----> /lib/controller.rb                  
+            |                                           
+            |                                           
+            +-----> /hardware/gcode/ramps.rb            
+```
+
 Author
 ------
 
