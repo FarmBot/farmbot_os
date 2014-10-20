@@ -6,31 +6,31 @@ require_relative 'database/dbaccess'
 # command and sends it to the hardware implementation
 class Controller
 
-  # read command from schedule, wait for execution time
-  attr_reader :info_command_next, :info_command_last, :info_nr_of_commands, :info_status, :info_movement
-  attr_reader :info_current_x, :info_current_y, :info_current_z, :info_target_x, :info_target_y, :info_target_z
-  attr_reader :info_end_stop_x_a, :info_end_stop_x_b  
-  attr_reader :info_end_stop_y_a, :info_end_stop_y_b  
-  attr_reader :info_end_stop_z_a, :info_end_stop_z_b  
+#  # read command from schedule, wait for execution time
+#  attr_reader :info_command_next, :info_command_last, :info_nr_of_commands, :info_status, :info_movement
+#  attr_reader :info_current_x, :info_current_y, :info_current_z, :info_target_x, :info_target_y, :info_target_z
+#  attr_reader :info_end_stop_x_a, :info_end_stop_x_b  
+#  attr_reader :info_end_stop_y_a, :info_end_stop_y_b  
+#  attr_reader :info_end_stop_z_a, :info_end_stop_z_b  
 
   def initialize
-    @info_command_next   = nil
-    @info_command_last   = nil
-    @info_nr_of_commands = 0
-    @info_status         = 'initializing'
-    @info_movement       = 'idle'
-    @info_current_x      = 0
-    @info_current_y      = 0
-    @info_current_z      = 0
-    @info_target_x       = 0
-    @info_target_y       = 0
-    @info_target_z       = 0
-    @info_end_stop_x_a   = 0
-    @info_end_stop_x_b   = 0
-    @info_end_stop_y_a   = 0
-    @info_end_stop_y_b   = 0
-    @info_end_stop_z_a   = 0
-    @info_end_stop_z_b   = 0
+#   @info_command_next   = nil
+#    @info_command_last   = nil
+#    @info_nr_of_commands = 0
+#    @info_status         = 'initializing'
+#    @info_movement       = 'idle'
+#    @info_current_x      = 0
+#    @info_current_y      = 0
+#    @info_current_z      = 0
+#    @info_target_x       = 0
+#    @info_target_y       = 0
+#    @info_target_z       = 0
+#    @info_end_stop_x_a   = 0
+#    @info_end_stop_x_b   = 0
+#    @info_end_stop_y_a   = 0
+#    @info_end_stop_y_b   = 0
+#    @info_end_stop_z_a   = 0
+#    @info_end_stop_z_b   = 0
 
     @star_char           = 0
 
@@ -39,7 +39,7 @@ class Controller
   end
 
   def runFarmBot
-    @info_status = 'starting'
+    $status.info_status = 'starting'
     puts 'OK'
  
     print 'arduino         '
@@ -47,7 +47,7 @@ class Controller
     $bot_hardware.read_device_version()
     puts  $bot_hardware.device_version
 
-    @info_status = 'synchronizing arduino parameters'
+    $status.info_status = 'synchronizing arduino parameters'
     print 'parameters      '
     $bot_hardware.check_parameters    
     $bot_hardware.check_parameters
@@ -72,7 +72,7 @@ class Controller
 
         # keep checking the database for new data
 
-        @info_status = 'checking schedule'
+        $status.info_status = 'checking schedule'
         #show_info()
 
         command = @bot_dbaccess.get_command_to_execute
@@ -80,24 +80,24 @@ class Controller
 
         if command != nil
 
-          @info_command_next = command.scheduled_time
+          $status.info_command_next = command.scheduled_time
 
           if command.scheduled_time <= Time.now or command.scheduled_time == nil
 
             # execute the command now and set the status to done
-            @info_status = 'executing command'
+            $status.info_status = 'executing command'
             #show_info()
 
-            @info_nr_of_commands = @info_nr_of_commands + 1
+            $status.info_nr_of_commands = @info_nr_of_commands + 1
 
             process_command( command )
             @bot_dbaccess.set_command_to_execute_status('FINISHED')
-            @info_command_last = Time.now
-            @info_command_next = nil
+            $status.info_command_last = Time.now
+            $status.info_command_next = nil
 
           else
 
-            @info_status = 'waiting for scheduled time or refresh'
+            $status.info_status = 'waiting for scheduled time or refresh'
             #show_info()
 
             refresh_received = false
@@ -121,7 +121,7 @@ class Controller
 
         else
 
-          @info_status = 'no command found, waiting'
+          $status.info_status = 'no command found, waiting'
 
           @info_command_next = nil
 
@@ -152,30 +152,29 @@ class Controller
 
     if cmd != nil
       cmd.command_lines.each do |command_line|
-        @info_movement = "#{command_line.action.downcase} xyz=#{command_line.coord_x} #{command_line.coord_y} #{command_line.coord_z} amt=#{command_line.amount} spd=#{command_line.speed}"
+        $status.info_movement = "#{command_line.action.downcase} xyz=#{command_line.coord_x} #{command_line.coord_y} #{command_line.coord_z} amt=#{command_line.amount} spd=#{command_line.speed}"
         @bot_dbaccess.write_to_log(1,@info_movement)
 
         if $hardware_sim == 0
           case command_line.action.upcase
             when "MOVE ABSOLUTE"
-              @info_target_x = command_line.coord_x
-              @info_target_y = command_line.coord_y
-              @info_target_z = command_line.coord_z
+              #$status.info_target_x = command_line.coord_x
+              #$status.info_target_y = command_line.coord_y
+              #$status.info_target_z = command_line.coord_z
               $bot_hardware.move_absolute(command_line.coord_x, command_line.coord_y, command_line.coord_z)
             when "MOVE RELATIVE"
-              @info_target_x = command_line.coord_x
-              @info_target_y = command_line.coord_y
-              @info_target_z = command_line.coord_z
+              #$status.info_target_x = command_line.coord_x
+              #$status.info_target_y = command_line.coord_y
+              #$status.info_target_z = command_line.coord_z
               $bot_hardware.move_relative(command_line.coord_x, command_line.coord_y, command_line.coord_z)
-
             when "HOME X"
-              @info_target_x = 0
+              #$status.info_target_x = 0
               $bot_hardware.move_home_x
             when "HOME Y"
-              @info_target_y = 0
+              #$status.info_target_y = 0
               $bot_hardware.move_home_y
             when "HOME Z"
-              @info_target_z = 0
+              #$status.info_target_z = 0
               $bot_hardware.move_home_z
 
             when "CALIBRATE X"
@@ -189,23 +188,22 @@ class Controller
               #$bot_hardware.dose_water(command_line.amount)
             when "SET SPEED"
               $bot_hardware.set_speed(command_line.speed)
-
             when "PIN WRITE"
-              $bot_hardware.pin_std_set_value(command_line.pin_nr, command_line.pin_value_1)
+              $bot_hardware.pin_std_set_value(command_line.pin_nr, command_line.pin_value_1, command_line.pin_mode)
             when "PIN READ"
-              $bot_hardware.pin_std_read_value(command_line.pin_nr, command_line.external_info)
+              $bot_hardware.pin_std_read_value(command_line.pin_nr, command_line.pin_mode, command_line.external_info)
             when "PIN MODE"
               $bot_hardware.pin_std_set_mode(command_line.pin, command_line.pin_mode)
             when "PIN PULSE"
               $bot_hardware.pin_std_pulse(command_line.pin, command_line.pin_value_1, 
-                command_line.pin_value_2, command_line.pin_time)
+                command_line.pin_value_2, command_line.pin_time, command_line.pin_mode)
           end
 
           read_hw_status()
 
-          @info_target_x  = @info_current_x
-          @info_target_y  = @info_current_y
-          @info_target_z  = @info_current_z
+          #$status.info_target_x  = @info_current_x
+          #$status.info_target_y  = @info_current_y
+          #$status.info_target_z  = @info_current_z
 
         else
           @bot_dbaccess.write_to_log(1,'>simulating hardware<')
@@ -217,7 +215,7 @@ class Controller
       sleep 0.1
     end
 
-    @info_movement = 'idle'
+    $status.info_movement = 'idle'
 
   end
 
@@ -235,16 +233,16 @@ class Controller
 
   def read_hw_status()
 
-    @info_current_x    = $bot_hardware.axis_x_pos_conv
-    @info_current_y    = $bot_hardware.axis_y_pos_conv
-    @info_current_z    = $bot_hardware.axis_z_pos_conv
+    #$status.info_current_x    = $bot_hardware.axis_x_pos_conv
+    #$status.info_current_y    = $bot_hardware.axis_y_pos_conv
+    #$status.info_current_z    = $bot_hardware.axis_z_pos_conv
 
-    @info_end_stop_x_a = $bot_hardware.axis_x_end_stop_a
-    @info_end_stop_x_b = $bot_hardware.axis_x_end_stop_b
-    @info_end_stop_y_a = $bot_hardware.axis_y_end_stop_a
-    @info_end_stop_y_b = $bot_hardware.axis_y_end_stop_b
-    @info_end_stop_z_a = $bot_hardware.axis_z_end_stop_a
-    @info_end_stop_z_b = $bot_hardware.axis_z_end_stop_b
+    #$status.info_end_stop_x_a = $bot_hardware.axis_x_end_stop_a
+    #$status.info_end_stop_x_b = $bot_hardware.axis_x_end_stop_b
+    #$status.info_end_stop_y_a = $bot_hardware.axis_y_end_stop_a
+    #$status.info_end_stop_y_b = $bot_hardware.axis_y_end_stop_b
+    #$status.info_end_stop_z_a = $bot_hardware.axis_z_end_stop_a
+    #$status.info_end_stop_z_b = $bot_hardware.axis_z_end_stop_b
 
     print_hw_status()
 
@@ -256,9 +254,9 @@ class Controller
       print "\b"
     end
 
-    print "x %04d %s%s " % [@info_current_x, bool_to_char(@info_end_stop_x_a), bool_to_char(@info_end_stop_x_b)]
-    print "y %04d %s%s " % [@info_current_y, bool_to_char(@info_end_stop_y_a), bool_to_char(@info_end_stop_z_b)]
-    print "z %04d %s%s " % [@info_current_z, bool_to_char(@info_end_stop_z_a), bool_to_char(@info_end_stop_z_b)]
+    print "x %04d %s%s " % [$status.info_current_x, bool_to_char($status.info_end_stop_x_a), bool_to_char($status.info_end_stop_x_b)]
+    print "y %04d %s%s " % [$status.info_current_y, bool_to_char($status.info_end_stop_y_a), bool_to_char($status.info_end_stop_z_b)]
+    print "z %04d %s%s " % [$status.info_current_z, bool_to_char($status.info_end_stop_z_a), bool_to_char($status.info_end_stop_z_b)]
     print ' '
 
   end

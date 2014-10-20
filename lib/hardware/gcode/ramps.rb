@@ -63,17 +63,16 @@ class HardwareInterface
 
   # set standard pin value
   #
-  def pin_std_set_value(pin, value)
-    execute_command("F41 P#{pin} V#{value}", false, @status_debug_msg)
+  def pin_std_set_value(pin, value, mode)
+    execute_command("F41 P#{pin} V#{value} M#{mode}", false, @status_debug_msg)
     #execute_command("F41 P#{pin} V#{value}", false, true)
   end
 
   # read standard pin
   #
-  def pin_std_read_value(pin, external_info)
+  def pin_std_read_value(pin, mode, external_info)
     @external_info = external_info
-#    execute_command("F42 P#{pin}", false, @status_debug_msg)
-    execute_command("F42 P#{pin}", true, true)
+    execute_command("F42 P#{pin} M#{mode}", false, @status_debug_msg)
     @external_info = ''
   end
 
@@ -85,8 +84,8 @@ class HardwareInterface
 
   # set pulse on standard pin
   #
-  def pin_std_pulse(pin, value1, value2, time)
-    execute_command("F44 P#{pin} V#{value1} W#{value2} T#{time}", false, @status_debug_msg)    
+  def pin_std_pulse(pin, value1, value2, time, mode)
+    execute_command("F44 P#{pin} V#{value1} W#{value2} T#{time} M#{mode}", false, @status_debug_msg)    
   end
 
   # check to see of parameters in arduino are up to date
@@ -166,42 +165,51 @@ class HardwareInterface
   # move all axis home
   #
   def move_home_all
+    $status.info_target_x = command_line.coord_x
+    $status.info_target_y = command_line.coord_y
+    $status.info_target_z = command_line.coord_z
     execute_command('G28', true, false)
   end
 
   # move the bot to the home position
   #
   def move_home_x
+    $status.info_target_x = command_line.coord_x
     execute_command('F11', true, false)
   end
 
   # move the bot to the home position
   #
   def move_home_y
+    $status.info_target_y = command_line.coord_y
     execute_command('F12', true, false)
   end
 
   # move the bot to the home position
   #
   def move_home_z
+    $status.info_target_z = command_line.coord_z
     execute_command('F13', true, false)
   end
 
   # calibrate x axis
   #
   def calibrate_x
+    $status.info_target_x = 0
     execute_command('F14', true, false)
   end
 
   # calibrate y axis
   #
   def calibrate_y
+    $status.info_target_y = 0
     execute_command('F15', true, false)
   end
 
   # calibrate z axis
   #
   def calibrate_z
+    $status.info_target_z = 0
     execute_command('F16', true, false)
   end
 
@@ -210,6 +218,10 @@ class HardwareInterface
   def move_absolute( coord_x, coord_y, coord_z)
 
     # calculate the number of steps for the motors to do
+
+    $status.info_target_x = coord_x
+    $status.info_target_y = coord_y
+    $status.info_target_z = coord_z
 
     steps_x = coord_x * @axis_x_steps_per_unit
     steps_y = coord_y * @axis_y_steps_per_unit
@@ -228,6 +240,10 @@ class HardwareInterface
   def move_relative( amount_x, amount_y, amount_z)
 
     # calculate the number of steps for the motors to do
+
+    $status.info_target_x = coord_x
+    $status.info_target_y = coord_y
+    $status.info_target_z = coord_z
 
     steps_x = amount_x * @axis_x_steps_per_unit + @axis_x_pos
     steps_y = amount_y * @axis_y_steps_per_unit + @axis_y_pos
@@ -522,6 +538,8 @@ class HardwareInterface
   #
   def process_value(code,text)
     case code     
+
+    # Report parameter value
     when 'R21'
       ard_par_id  = -1
       ard_par_val = 0
@@ -546,6 +564,7 @@ class HardwareInterface
         end
       end
 
+    # Report parameter value and save
     when 'R23'
       ard_par_id  = -1
       ard_par_val = 0
@@ -570,6 +589,7 @@ class HardwareInterface
         end
       end
 
+    # Report pin values
     when 'R41'
       pin_id  = -1
       pin_val = 0
@@ -591,6 +611,7 @@ class HardwareInterface
         save_pin_value(pin_id, pin_val)
       end
 
+    # Report end stops
     when 'R81'
       text.split(' ').each do |param|
 
@@ -600,19 +621,27 @@ class HardwareInterface
 
         case par_code
         when 'XA'
-          @axis_x_end_stop_a = end_stop_active              
+          @axis_x_end_stop_a        = end_stop_active
+          $status.info_end_stop_x_a = end_stop_active
         when 'XB'
-          @axis_x_end_stop_b = end_stop_active              
+          @axis_x_end_stop_b        = end_stop_active
+          $status.info_end_stop_x_b = end_stop_active
         when 'YA'
-          @axis_y_end_stop_a = end_stop_active              
+          @axis_y_end_stop_a        = end_stop_active
+          $status.info_end_stop_y_a = end_stop_active
         when 'YB'
-          @axis_y_end_stop_b = end_stop_active              
+          @axis_y_end_stop_b        = end_stop_active
+          $status.info_end_stop_y_b = end_stop_active
         when 'ZA'
-          @axis_z_end_stop_a = end_stop_active              
+          @axis_z_end_stop_a         = end_stop_active
+          $status.info_end_stop_z_a  = end_stop_active
         when 'ZB'
-          @axis_z_end_stop_b = end_stop_active              
-        end      
+          @axis_z_end_stop_b         = end_stop_active
+          $status.info_end_stop_z_b = end_stop_active
+        end
       end
+
+    # Report position
     when 'R82'      
       text.split(' ').each do |param|
 
@@ -621,20 +650,28 @@ class HardwareInterface
 
         case par_code
         when 'X'
-          @axis_x_pos      = par_value
-          @axis_x_pos_conv = par_value / @axis_x_steps_per_unit
+          @axis_x_pos            = par_value
+          @axis_x_pos_conv       = par_value / @axis_x_steps_per_unit
+          $status.info_current_x = @axis_x_pos_conv
         when 'Y'
-          @axis_y_pos       = par_value
-          @axis_y_pos_conv = par_value / @axis_y_steps_per_unit
+          @axis_y_pos            = par_value
+          @axis_y_pos_conv       = par_value / @axis_y_steps_per_unit
+          $status.info_current_y = @axis_y_pos_conv
         when 'Z'
-          @axis_z_pos      = par_value
-          @axis_z_pos_conv = par_value / @axis_z_steps_per_unit
+          @axis_z_pos            = par_value
+          @axis_z_pos_conv       = par_value / @axis_z_steps_per_unit
+          $status.info_current_z = @axis_z_pos_conv
         end      
       end
+
+    # Report software version
     when 'R83'
       @device_version = text
+
+    # Send a comment
     when 'R99'
       puts ">#{text}<"
+
     end
   end
 

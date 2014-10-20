@@ -12,6 +12,9 @@ puts '---------'
 puts '   \/    '
 puts ''
 
+require_relative 'lib/status'
+$status = Status.new
+
 $shutdown = 0
 $db_write_sync = Mutex.new
 
