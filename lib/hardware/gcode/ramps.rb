@@ -466,10 +466,10 @@ class HardwareInterface
 
     begin
 
+      # write the command to the arduino
       puts "WR: #{text}" if onscreen
       @bot_dbaccess.write_to_log(1, "WR: #{text}") if log
       @serial_port.read_timeout = 2
-      #@serial_port.write_timeout = 2
       @serial_port.write( "#{text} \n" )    
 
       done     = 0
@@ -478,26 +478,50 @@ class HardwareInterface
       start    = Time.now
       timeout  = 5
 
+      # wait until the arduino responds
       while(Time.now - start < timeout and done == 0)
+
+        # if there is an emergency stop, immediately write it to the arduino
+        if ($status.emergency_stop)
+          @serial_port.write( "E\n" )
+        end
+
+        # check for incoming data
         i = @serial_port.read(1)
         if i != nil
           i.each_char do |c|
             if c == "\r" or c == "\n"
               if r.length >= 3
+
+                # some data received
                 puts "RD: #{r}" if onscreen
                 @bot_dbaccess.write_to_log(1,"RD: #{r}") if log
+
+                # get the parameter and data part
                 c = r[0..2].upcase
                 t = r[3..-1].to_s.upcase.strip
+
+                # process the feedback
                 case c
-                  when 'R01'
+
+                  # command received by arduino
+                  when 'R01'                        
                     timeout = 90
+
+                  # command is finished
                   when 'R02'
                     done = 1
+
+                  # command is finished with errors
                   when 'R03'
                     done = 1
+
+                  # command is still ongoing
                   when 'R04'
                     start = Time.now
                     timeout = 90
+
+                  # specific feedback that is processes seperately
                   else
                     process_value(c,t)
                 end
@@ -512,6 +536,7 @@ class HardwareInterface
         end
       end
 
+      # log things if needed
       if done == 1
         puts 'ST: done' if onscreen
         @bot_dbaccess.write_to_log(1, 'ST: done') if log
@@ -537,6 +562,12 @@ class HardwareInterface
   # process values received from arduino
   #
   def process_value(code,text)
+
+
+    # depending on the report code, process the values
+    # this is done by reading parameter names and their values
+    # and respong on it as needed 
+
     case code     
 
     # Report parameter value
@@ -564,7 +595,7 @@ class HardwareInterface
         end
       end
 
-    # Report parameter value and save
+    # Report parameter value and save to database
     when 'R23'
       ard_par_id  = -1
       ard_par_val = 0

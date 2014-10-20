@@ -18,7 +18,7 @@ class MessageHandler
   # A list of MessageHandler methods (as strings) that a Skynet User may access.
   #
   def whitelist
-    ["single_command","crop_schedule_update","read_parameters","write_parameters","read_logs","read_status","read_measurements","delete_measurements"]
+    ["single_command","crop_schedule_update","read_parameters","write_parameters","read_logs","read_status","read_measurements","delete_measurements", "emergency stop","emergency stop reset"]
   end
 
   # Handle the message received from skynet
@@ -94,6 +94,20 @@ class MessageHandler
   # Hash.
   def error
     return {error: ""}
+  end
+
+  ## emergency stop
+
+  # emergency stop activate
+  #
+  def emergency_stop(message)
+    $status.emergency_stop = 1
+  end
+
+  # emergency stop activate
+  #
+  def emergency_stop_reset(message)
+    $status.emergency_stop = 0
   end
 
   ## measurements

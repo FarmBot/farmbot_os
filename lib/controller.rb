@@ -6,32 +6,7 @@ require_relative 'database/dbaccess'
 # command and sends it to the hardware implementation
 class Controller
 
-#  # read command from schedule, wait for execution time
-#  attr_reader :info_command_next, :info_command_last, :info_nr_of_commands, :info_status, :info_movement
-#  attr_reader :info_current_x, :info_current_y, :info_current_z, :info_target_x, :info_target_y, :info_target_z
-#  attr_reader :info_end_stop_x_a, :info_end_stop_x_b  
-#  attr_reader :info_end_stop_y_a, :info_end_stop_y_b  
-#  attr_reader :info_end_stop_z_a, :info_end_stop_z_b  
-
   def initialize
-#   @info_command_next   = nil
-#    @info_command_last   = nil
-#    @info_nr_of_commands = 0
-#    @info_status         = 'initializing'
-#    @info_movement       = 'idle'
-#    @info_current_x      = 0
-#    @info_current_y      = 0
-#    @info_current_z      = 0
-#    @info_target_x       = 0
-#    @info_target_y       = 0
-#    @info_target_z       = 0
-#    @info_end_stop_x_a   = 0
-#    @info_end_stop_x_b   = 0
-#    @info_end_stop_y_a   = 0
-#    @info_end_stop_y_b   = 0
-#    @info_end_stop_z_a   = 0
-#    @info_end_stop_z_b   = 0
-
     @star_char           = 0
 
     @bot_dbaccess        = $bot_dbaccess
@@ -72,11 +47,19 @@ class Controller
 
         # keep checking the database for new data
 
-        $status.info_status = 'checking schedule'
-        #show_info()
+        if $status.emergency_stop = 0
 
-        command = @bot_dbaccess.get_command_to_execute
-        @bot_dbaccess.save_refresh
+          $status.info_status = 'checking schedule'
+          #show_info()
+
+          command = @bot_dbaccess.get_command_to_execute
+          @bot_dbaccess.save_refresh
+
+        else
+
+          $status.info_status = 'emergency stop'
+
+        end
 
         if command != nil
 
@@ -98,7 +81,6 @@ class Controller
           else
 
             $status.info_status = 'waiting for scheduled time or refresh'
-            #show_info()
 
             refresh_received = false
 
@@ -158,23 +140,14 @@ class Controller
         if $hardware_sim == 0
           case command_line.action.upcase
             when "MOVE ABSOLUTE"
-              #$status.info_target_x = command_line.coord_x
-              #$status.info_target_y = command_line.coord_y
-              #$status.info_target_z = command_line.coord_z
               $bot_hardware.move_absolute(command_line.coord_x, command_line.coord_y, command_line.coord_z)
             when "MOVE RELATIVE"
-              #$status.info_target_x = command_line.coord_x
-              #$status.info_target_y = command_line.coord_y
-              #$status.info_target_z = command_line.coord_z
               $bot_hardware.move_relative(command_line.coord_x, command_line.coord_y, command_line.coord_z)
             when "HOME X"
-              #$status.info_target_x = 0
               $bot_hardware.move_home_x
             when "HOME Y"
-              #$status.info_target_y = 0
               $bot_hardware.move_home_y
             when "HOME Z"
-              #$status.info_target_z = 0
               $bot_hardware.move_home_z
 
             when "CALIBRATE X"
@@ -200,10 +173,6 @@ class Controller
           end
 
           read_hw_status()
-
-          #$status.info_target_x  = @info_current_x
-          #$status.info_target_y  = @info_current_y
-          #$status.info_target_z  = @info_current_z
 
         else
           @bot_dbaccess.write_to_log(1,'>simulating hardware<')
@@ -232,17 +201,6 @@ class Controller
   end
 
   def read_hw_status()
-
-    #$status.info_current_x    = $bot_hardware.axis_x_pos_conv
-    #$status.info_current_y    = $bot_hardware.axis_y_pos_conv
-    #$status.info_current_z    = $bot_hardware.axis_z_pos_conv
-
-    #$status.info_end_stop_x_a = $bot_hardware.axis_x_end_stop_a
-    #$status.info_end_stop_x_b = $bot_hardware.axis_x_end_stop_b
-    #$status.info_end_stop_y_a = $bot_hardware.axis_y_end_stop_a
-    #$status.info_end_stop_y_b = $bot_hardware.axis_y_end_stop_b
-    #$status.info_end_stop_z_a = $bot_hardware.axis_z_end_stop_a
-    #$status.info_end_stop_z_b = $bot_hardware.axis_z_end_stop_b
 
     print_hw_status()
 
