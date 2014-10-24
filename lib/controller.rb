@@ -47,7 +47,7 @@ class Controller
 
         # keep checking the database for new data
 
-        if $status.emergency_stop = 0
+        if $status.emergency_stop == false
 
           $status.info_status = 'checking schedule'
           #show_info()
@@ -55,13 +55,9 @@ class Controller
           command = @bot_dbaccess.get_command_to_execute
           @bot_dbaccess.save_refresh
 
-        else
-
-          $status.info_status = 'emergency stop'
-
         end
 
-        if command != nil
+        if command != nil and $status.emergency_stop == false
 
           $status.info_command_next = command.scheduled_time
 
@@ -71,7 +67,7 @@ class Controller
             $status.info_status = 'executing command'
             #show_info()
 
-            $status.info_nr_of_commands = @info_nr_of_commands + 1
+            $status.info_nr_of_commands = $status.info_nr_of_commands + 1
 
             process_command( command )
             @bot_dbaccess.set_command_to_execute_status('FINISHED')
@@ -103,24 +99,33 @@ class Controller
 
         else
 
-          $status.info_status = 'no command found, waiting'
+          if $status.emergency_stop == false
 
-          @info_command_next = nil
-
-          refresh_received = false
-          wait_start_time = Time.now
-
-          # wait for a minute or until a refresh it set in the database as a sign
-          # new data has arrived
-
-          while  Time.now < wait_start_time + 60 and refresh_received == false
-
-            sleep 0.2
-
+            $status.info_status = 'emergency stop'
+            sleep 0.5
             check_hardware()
 
-            refresh_received = @bot_dbaccess.check_refresh
+          else
 
+            $status.info_status = 'no command found, waiting'
+
+            @info_command_next = nil
+
+            refresh_received = false
+            wait_start_time = Time.now
+
+            # wait for a minute or until a refresh it set in the database as a sign
+            # new data has arrived
+
+            while  Time.now < wait_start_time + 60 and refresh_received == false
+
+              sleep 0.2
+
+              check_hardware()
+
+              refresh_received = @bot_dbaccess.check_refresh
+
+            end
           end
         end
       rescue Exception => e
@@ -231,15 +236,20 @@ class Controller
     @star_char += 1
     @star_char %= 4
     print "\b"
-    case @star_char
-    when 0
-      print '-'
-    when 1
-      print '\\'
-    when 2
-      print '|'
-    when 3
-      print '/'
+
+    if $status.emergency_stop == true
+      print 'E'
+    else
+      case @star_char
+      when 0
+        print '-'
+      when 1
+        print '\\'
+      when 2
+        print '|'
+      when 3
+        print '/'
+      end
     end
   end
 

@@ -18,7 +18,7 @@ class MessageHandler
   # A list of MessageHandler methods (as strings) that a Skynet User may access.
   #
   def whitelist
-    ["single_command","crop_schedule_update","read_parameters","write_parameters","read_logs","read_status","read_measurements","delete_measurements", "emergency stop","emergency stop reset"]
+    ["single_command","crop_schedule_update","read_parameters","write_parameters","read_logs","read_status","read_measurements","delete_measurements", "emergency_stop","emergency_stop_reset"]
   end
 
   # Handle the message received from skynet
@@ -101,13 +101,48 @@ class MessageHandler
   # emergency stop activate
   #
   def emergency_stop(message)
-    $status.emergency_stop = 1
+
+    @dbaccess.write_to_log(2,'handle emergency stop')
+
+    payload = message['payload']
+
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
+    @dbaccess.write_to_log(2,"sender     = #{sender}")
+    @dbaccess.write_to_log(2,"time_stamp = #{time_stamp}")
+
+    if time_stamp != @last_time_stamp
+
+      @last_time_stamp = time_stamp
+
+      $status.emergency_stop = true
+      send_confirmation(sender, time_stamp)
+
+    end
   end
 
   # emergency stop activate
   #
   def emergency_stop_reset(message)
-    $status.emergency_stop = 0
+
+    @dbaccess.write_to_log(2,'handle emergency stop reset')
+
+    payload = message['payload']
+
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
+    @dbaccess.write_to_log(2,"sender     = #{sender}")
+    @dbaccess.write_to_log(2,"time_stamp = #{time_stamp}")
+
+    if time_stamp != @last_time_stamp
+
+      @last_time_stamp = time_stamp
+
+      $status.emergency_stop = false
+      send_confirmation(sender, time_stamp)
+    end
   end
 
   ## measurements

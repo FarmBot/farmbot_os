@@ -241,9 +241,9 @@ class HardwareInterface
 
     # calculate the number of steps for the motors to do
 
-    $status.info_target_x = coord_x
-    $status.info_target_y = coord_y
-    $status.info_target_z = coord_z
+    $status.info_target_x = @axis_x_pos_conv + amount_x
+    $status.info_target_y = @axis_y_pos_conv + amount_y
+    $status.info_target_z = @axis_z_pos_conv + amount_z
 
     steps_x = amount_x * @axis_x_steps_per_unit + @axis_x_pos
     steps_y = amount_y * @axis_y_steps_per_unit + @axis_y_pos
