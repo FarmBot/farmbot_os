@@ -165,42 +165,51 @@ class HardwareInterface
   # move all axis home
   #
   def move_home_all
+    $status.info_target_x = command_line.coord_x
+    $status.info_target_y = command_line.coord_y
+    $status.info_target_z = command_line.coord_z
     execute_command('G28', true, false)
   end
 
   # move the bot to the home position
   #
   def move_home_x
+    $status.info_target_x = command_line.coord_x
     execute_command('F11', true, false)
   end
 
   # move the bot to the home position
   #
   def move_home_y
+    $status.info_target_y = command_line.coord_y
     execute_command('F12', true, false)
   end
 
   # move the bot to the home position
   #
   def move_home_z
+    $status.info_target_z = command_line.coord_z
     execute_command('F13', true, false)
   end
 
   # calibrate x axis
   #
   def calibrate_x
+    $status.info_target_x = 0
     execute_command('F14', true, false)
   end
 
   # calibrate y axis
   #
   def calibrate_y
+    $status.info_target_y = 0
     execute_command('F15', true, false)
   end
 
   # calibrate z axis
   #
   def calibrate_z
+    $status.info_target_z = 0
     execute_command('F16', true, false)
   end
 
@@ -209,6 +218,10 @@ class HardwareInterface
   def move_absolute( coord_x, coord_y, coord_z)
 
     # calculate the number of steps for the motors to do
+
+    $status.info_target_x = coord_x
+    $status.info_target_y = coord_y
+    $status.info_target_z = coord_z
 
     steps_x = coord_x * @axis_x_steps_per_unit
     steps_y = coord_y * @axis_y_steps_per_unit
@@ -227,6 +240,10 @@ class HardwareInterface
   def move_relative( amount_x, amount_y, amount_z)
 
     # calculate the number of steps for the motors to do
+
+    $status.info_target_x = @axis_x_pos_conv + amount_x
+    $status.info_target_y = @axis_y_pos_conv + amount_y
+    $status.info_target_z = @axis_z_pos_conv + amount_z
 
     steps_x = amount_x * @axis_x_steps_per_unit + @axis_x_pos
     steps_y = amount_y * @axis_y_steps_per_unit + @axis_y_pos
@@ -449,10 +466,10 @@ class HardwareInterface
 
     begin
 
+      # write the command to the arduino
       puts "WR: #{text}" if onscreen
       @bot_dbaccess.write_to_log(1, "WR: #{text}") if log
       @serial_port.read_timeout = 2
-      #@serial_port.write_timeout = 2
       @serial_port.write( "#{text} \n" )    
 
       done     = 0
@@ -461,26 +478,50 @@ class HardwareInterface
       start    = Time.now
       timeout  = 5
 
+      # wait until the arduino responds
       while(Time.now - start < timeout and done == 0)
+
+        # if there is an emergency stop, immediately write it to the arduino
+        if ($status.emergency_stop)
+          @serial_port.write( "E\n" )
+        end
+
+        # check for incoming data
         i = @serial_port.read(1)
         if i != nil
           i.each_char do |c|
             if c == "\r" or c == "\n"
               if r.length >= 3
+
+                # some data received
                 puts "RD: #{r}" if onscreen
                 @bot_dbaccess.write_to_log(1,"RD: #{r}") if log
+
+                # get the parameter and data part
                 c = r[0..2].upcase
                 t = r[3..-1].to_s.upcase.strip
+
+                # process the feedback
                 case c
-                  when 'R01'
+
+                  # command received by arduino
+                  when 'R01'                        
                     timeout = 90
+
+                  # command is finished
                   when 'R02'
                     done = 1
+
+                  # command is finished with errors
                   when 'R03'
                     done = 1
+
+                  # command is still ongoing
                   when 'R04'
                     start = Time.now
                     timeout = 90
+
+                  # specific feedback that is processes seperately
                   else
                     process_value(c,t)
                 end
@@ -495,6 +536,7 @@ class HardwareInterface
         end
       end
 
+      # log things if needed
       if done == 1
         puts 'ST: done' if onscreen
         @bot_dbaccess.write_to_log(1, 'ST: done') if log
@@ -520,7 +562,15 @@ class HardwareInterface
   # process values received from arduino
   #
   def process_value(code,text)
+
+
+    # depending on the report code, process the values
+    # this is done by reading parameter names and their values
+    # and respong on it as needed 
+
     case code     
+
+    # Report parameter value
     when 'R21'
       ard_par_id  = -1
       ard_par_val = 0
@@ -545,6 +595,7 @@ class HardwareInterface
         end
       end
 
+    # Report parameter value and save to database
     when 'R23'
       ard_par_id  = -1
       ard_par_val = 0
@@ -569,6 +620,7 @@ class HardwareInterface
         end
       end
 
+    # Report pin values
     when 'R41'
       pin_id  = -1
       pin_val = 0
@@ -590,6 +642,7 @@ class HardwareInterface
         save_pin_value(pin_id, pin_val)
       end
 
+    # Report end stops
     when 'R81'
       text.split(' ').each do |param|
 
@@ -599,19 +652,27 @@ class HardwareInterface
 
         case par_code
         when 'XA'
-          @axis_x_end_stop_a = end_stop_active              
+          @axis_x_end_stop_a        = end_stop_active
+          $status.info_end_stop_x_a = end_stop_active
         when 'XB'
-          @axis_x_end_stop_b = end_stop_active              
+          @axis_x_end_stop_b        = end_stop_active
+          $status.info_end_stop_x_b = end_stop_active
         when 'YA'
-          @axis_y_end_stop_a = end_stop_active              
+          @axis_y_end_stop_a        = end_stop_active
+          $status.info_end_stop_y_a = end_stop_active
         when 'YB'
-          @axis_y_end_stop_b = end_stop_active              
+          @axis_y_end_stop_b        = end_stop_active
+          $status.info_end_stop_y_b = end_stop_active
         when 'ZA'
-          @axis_z_end_stop_a = end_stop_active              
+          @axis_z_end_stop_a         = end_stop_active
+          $status.info_end_stop_z_a  = end_stop_active
         when 'ZB'
-          @axis_z_end_stop_b = end_stop_active              
-        end      
+          @axis_z_end_stop_b         = end_stop_active
+          $status.info_end_stop_z_b = end_stop_active
+        end
       end
+
+    # Report position
     when 'R82'      
       text.split(' ').each do |param|
 
@@ -620,20 +681,28 @@ class HardwareInterface
 
         case par_code
         when 'X'
-          @axis_x_pos      = par_value
-          @axis_x_pos_conv = par_value / @axis_x_steps_per_unit
+          @axis_x_pos            = par_value
+          @axis_x_pos_conv       = par_value / @axis_x_steps_per_unit
+          $status.info_current_x = @axis_x_pos_conv
         when 'Y'
-          @axis_y_pos       = par_value
-          @axis_y_pos_conv = par_value / @axis_y_steps_per_unit
+          @axis_y_pos            = par_value
+          @axis_y_pos_conv       = par_value / @axis_y_steps_per_unit
+          $status.info_current_y = @axis_y_pos_conv
         when 'Z'
-          @axis_z_pos      = par_value
-          @axis_z_pos_conv = par_value / @axis_z_steps_per_unit
+          @axis_z_pos            = par_value
+          @axis_z_pos_conv       = par_value / @axis_z_steps_per_unit
+          $status.info_current_z = @axis_z_pos_conv
         end      
       end
+
+    # Report software version
     when 'R83'
       @device_version = text
+
+    # Send a comment
     when 'R99'
       puts ">#{text}<"
+
     end
   end
 

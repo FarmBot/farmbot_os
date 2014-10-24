@@ -6,32 +6,7 @@ require_relative 'database/dbaccess'
 # command and sends it to the hardware implementation
 class Controller
 
-  # read command from schedule, wait for execution time
-  attr_reader :info_command_next, :info_command_last, :info_nr_of_commands, :info_status, :info_movement
-  attr_reader :info_current_x, :info_current_y, :info_current_z, :info_target_x, :info_target_y, :info_target_z
-  attr_reader :info_end_stop_x_a, :info_end_stop_x_b  
-  attr_reader :info_end_stop_y_a, :info_end_stop_y_b  
-  attr_reader :info_end_stop_z_a, :info_end_stop_z_b  
-
   def initialize
-    @info_command_next   = nil
-    @info_command_last   = nil
-    @info_nr_of_commands = 0
-    @info_status         = 'initializing'
-    @info_movement       = 'idle'
-    @info_current_x      = 0
-    @info_current_y      = 0
-    @info_current_z      = 0
-    @info_target_x       = 0
-    @info_target_y       = 0
-    @info_target_z       = 0
-    @info_end_stop_x_a   = 0
-    @info_end_stop_x_b   = 0
-    @info_end_stop_y_a   = 0
-    @info_end_stop_y_b   = 0
-    @info_end_stop_z_a   = 0
-    @info_end_stop_z_b   = 0
-
     @star_char           = 0
 
     @bot_dbaccess        = $bot_dbaccess
@@ -39,7 +14,7 @@ class Controller
   end
 
   def runFarmBot
-    @info_status = 'starting'
+    $status.info_status = 'starting'
     puts 'OK'
  
     print 'arduino         '
@@ -47,7 +22,7 @@ class Controller
     $bot_hardware.read_device_version()
     puts  $bot_hardware.device_version
 
-    @info_status = 'synchronizing arduino parameters'
+    $status.info_status = 'synchronizing arduino parameters'
     print 'parameters      '
     $bot_hardware.check_parameters    
     $bot_hardware.check_parameters
@@ -72,33 +47,36 @@ class Controller
 
         # keep checking the database for new data
 
-        @info_status = 'checking schedule'
-        #show_info()
+        if $status.emergency_stop == false
 
-        command = @bot_dbaccess.get_command_to_execute
-        @bot_dbaccess.save_refresh
+          $status.info_status = 'checking schedule'
+          #show_info()
 
-        if command != nil
+          command = @bot_dbaccess.get_command_to_execute
+          @bot_dbaccess.save_refresh
 
-          @info_command_next = command.scheduled_time
+        end
+
+        if command != nil and $status.emergency_stop == false
+
+          $status.info_command_next = command.scheduled_time
 
           if command.scheduled_time <= Time.now or command.scheduled_time == nil
 
             # execute the command now and set the status to done
-            @info_status = 'executing command'
+            $status.info_status = 'executing command'
             #show_info()
 
-            @info_nr_of_commands = @info_nr_of_commands + 1
+            $status.info_nr_of_commands = $status.info_nr_of_commands + 1
 
             process_command( command )
             @bot_dbaccess.set_command_to_execute_status('FINISHED')
-            @info_command_last = Time.now
-            @info_command_next = nil
+            $status.info_command_last = Time.now
+            $status.info_command_next = nil
 
           else
 
-            @info_status = 'waiting for scheduled time or refresh'
-            #show_info()
+            $status.info_status = 'waiting for scheduled time or refresh'
 
             refresh_received = false
 
@@ -121,24 +99,33 @@ class Controller
 
         else
 
-          @info_status = 'no command found, waiting'
+          if $status.emergency_stop == false
 
-          @info_command_next = nil
-
-          refresh_received = false
-          wait_start_time = Time.now
-
-          # wait for a minute or until a refresh it set in the database as a sign
-          # new data has arrived
-
-          while  Time.now < wait_start_time + 60 and refresh_received == false
-
-            sleep 0.2
-
+            $status.info_status = 'emergency stop'
+            sleep 0.5
             check_hardware()
 
-            refresh_received = @bot_dbaccess.check_refresh
+          else
 
+            $status.info_status = 'no command found, waiting'
+
+            @info_command_next = nil
+
+            refresh_received = false
+            wait_start_time = Time.now
+
+            # wait for a minute or until a refresh it set in the database as a sign
+            # new data has arrived
+
+            while  Time.now < wait_start_time + 60 and refresh_received == false
+
+              sleep 0.2
+
+              check_hardware()
+
+              refresh_received = @bot_dbaccess.check_refresh
+
+            end
           end
         end
       rescue Exception => e
@@ -152,30 +139,20 @@ class Controller
 
     if cmd != nil
       cmd.command_lines.each do |command_line|
-        @info_movement = "#{command_line.action.downcase} xyz=#{command_line.coord_x} #{command_line.coord_y} #{command_line.coord_z} amt=#{command_line.amount} spd=#{command_line.speed}"
+        $status.info_movement = "#{command_line.action.downcase} xyz=#{command_line.coord_x} #{command_line.coord_y} #{command_line.coord_z} amt=#{command_line.amount} spd=#{command_line.speed}"
         @bot_dbaccess.write_to_log(1,@info_movement)
 
         if $hardware_sim == 0
           case command_line.action.upcase
             when "MOVE ABSOLUTE"
-              @info_target_x = command_line.coord_x
-              @info_target_y = command_line.coord_y
-              @info_target_z = command_line.coord_z
               $bot_hardware.move_absolute(command_line.coord_x, command_line.coord_y, command_line.coord_z)
             when "MOVE RELATIVE"
-              @info_target_x = command_line.coord_x
-              @info_target_y = command_line.coord_y
-              @info_target_z = command_line.coord_z
               $bot_hardware.move_relative(command_line.coord_x, command_line.coord_y, command_line.coord_z)
-
             when "HOME X"
-              @info_target_x = 0
               $bot_hardware.move_home_x
             when "HOME Y"
-              @info_target_y = 0
               $bot_hardware.move_home_y
             when "HOME Z"
-              @info_target_z = 0
               $bot_hardware.move_home_z
 
             when "CALIBRATE X"
@@ -202,10 +179,6 @@ class Controller
 
           read_hw_status()
 
-          @info_target_x  = @info_current_x
-          @info_target_y  = @info_current_y
-          @info_target_z  = @info_current_z
-
         else
           @bot_dbaccess.write_to_log(1,'>simulating hardware<')
 
@@ -216,7 +189,7 @@ class Controller
       sleep 0.1
     end
 
-    @info_movement = 'idle'
+    $status.info_movement = 'idle'
 
   end
 
@@ -234,17 +207,6 @@ class Controller
 
   def read_hw_status()
 
-    @info_current_x    = $bot_hardware.axis_x_pos_conv
-    @info_current_y    = $bot_hardware.axis_y_pos_conv
-    @info_current_z    = $bot_hardware.axis_z_pos_conv
-
-    @info_end_stop_x_a = $bot_hardware.axis_x_end_stop_a
-    @info_end_stop_x_b = $bot_hardware.axis_x_end_stop_b
-    @info_end_stop_y_a = $bot_hardware.axis_y_end_stop_a
-    @info_end_stop_y_b = $bot_hardware.axis_y_end_stop_b
-    @info_end_stop_z_a = $bot_hardware.axis_z_end_stop_a
-    @info_end_stop_z_b = $bot_hardware.axis_z_end_stop_b
-
     print_hw_status()
 
   end
@@ -255,9 +217,9 @@ class Controller
       print "\b"
     end
 
-    print "x %04d %s%s " % [@info_current_x, bool_to_char(@info_end_stop_x_a), bool_to_char(@info_end_stop_x_b)]
-    print "y %04d %s%s " % [@info_current_y, bool_to_char(@info_end_stop_y_a), bool_to_char(@info_end_stop_z_b)]
-    print "z %04d %s%s " % [@info_current_z, bool_to_char(@info_end_stop_z_a), bool_to_char(@info_end_stop_z_b)]
+    print "x %04d %s%s " % [$status.info_current_x, bool_to_char($status.info_end_stop_x_a), bool_to_char($status.info_end_stop_x_b)]
+    print "y %04d %s%s " % [$status.info_current_y, bool_to_char($status.info_end_stop_y_a), bool_to_char($status.info_end_stop_z_b)]
+    print "z %04d %s%s " % [$status.info_current_z, bool_to_char($status.info_end_stop_z_a), bool_to_char($status.info_end_stop_z_b)]
     print ' '
 
   end
@@ -274,15 +236,20 @@ class Controller
     @star_char += 1
     @star_char %= 4
     print "\b"
-    case @star_char
-    when 0
-      print '-'
-    when 1
-      print '\\'
-    when 2
-      print '|'
-    when 3
-      print '/'
+
+    if $status.emergency_stop == true
+      print 'E'
+    else
+      case @star_char
+      when 0
+        print '-'
+      when 1
+        print '\\'
+      when 2
+        print '|'
+      when 3
+        print '/'
+      end
     end
   end
 

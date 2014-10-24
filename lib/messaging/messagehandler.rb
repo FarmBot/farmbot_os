@@ -18,7 +18,7 @@ class MessageHandler
   # A list of MessageHandler methods (as strings) that a Skynet User may access.
   #
   def whitelist
-    ["single_command","crop_schedule_update","read_parameters","write_parameters","read_logs","read_status","read_measurements","delete_measurements"]
+    ["single_command","crop_schedule_update","read_parameters","write_parameters","read_logs","read_status","read_measurements","delete_measurements", "emergency_stop","emergency_stop_reset"]
   end
 
   # Handle the message received from skynet
@@ -94,6 +94,55 @@ class MessageHandler
   # Hash.
   def error
     return {error: ""}
+  end
+
+  ## emergency stop
+
+  # emergency stop activate
+  #
+  def emergency_stop(message)
+
+    @dbaccess.write_to_log(2,'handle emergency stop')
+
+    payload = message['payload']
+
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
+    @dbaccess.write_to_log(2,"sender     = #{sender}")
+    @dbaccess.write_to_log(2,"time_stamp = #{time_stamp}")
+
+    if time_stamp != @last_time_stamp
+
+      @last_time_stamp = time_stamp
+
+      $status.emergency_stop = true
+      send_confirmation(sender, time_stamp)
+
+    end
+  end
+
+  # emergency stop activate
+  #
+  def emergency_stop_reset(message)
+
+    @dbaccess.write_to_log(2,'handle emergency stop reset')
+
+    payload = message['payload']
+
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
+    @dbaccess.write_to_log(2,"sender     = #{sender}")
+    @dbaccess.write_to_log(2,"time_stamp = #{time_stamp}")
+
+    if time_stamp != @last_time_stamp
+
+      @last_time_stamp = time_stamp
+
+      $status.emergency_stop = false
+      send_confirmation(sender, time_stamp)
+    end
   end
 
   ## measurements
@@ -193,25 +242,25 @@ class MessageHandler
           :time_stamp                     => Time.now.to_f.to_s,
           :confirm_id                     => time_stamp,
 
-          :status                         => $bot_control.info_status,
+          :status                         => $status.info_status,
           :status_time_local              => Time.now,
           :status_nr_msg_received         => $info_nr_msg_received,
-          :status_movement                => $bot_control.info_movement,
-          :status_last_command_executed   => $bot_control.info_command_last,
-          :status_next_command_scheduled  => $bot_control.info_command_next,
-          :status_nr_of_commands_executed => $bot_control.info_nr_of_commands,
-          :status_current_x               => $bot_control.info_current_x,
-          :status_current_y               => $bot_control.info_current_y,
-          :status_current_z               => $bot_control.info_current_z,
-          :status_target_x                => $bot_control.info_target_x,
-          :status_target_y                => $bot_control.info_target_y,
-          :status_target_z                => $bot_control.info_target_z,
-          :status_end_stop_x_a            => $bot_control.info_end_stop_x_a,
-          :status_end_stop_x_b            => $bot_control.info_end_stop_x_b,
-          :status_end_stop_y_a            => $bot_control.info_end_stop_y_a,
-          :status_end_stop_y_b            => $bot_control.info_end_stop_y_b,
-          :status_end_stop_z_a            => $bot_control.info_end_stop_z_a,
-          :status_end_stop_z_b            => $bot_control.info_end_stop_z_b
+          :status_movement                => $status.info_movement,
+          :status_last_command_executed   => $status.info_command_last,
+          :status_next_command_scheduled  => $status.info_command_next,
+          :status_nr_of_commands_executed => $status.info_nr_of_commands,
+          :status_current_x               => $status.info_current_x,
+          :status_current_y               => $status.info_current_y,
+          :status_current_z               => $status.info_current_z,
+          :status_target_x                => $status.info_target_x,
+          :status_target_y                => $status.info_target_y,
+          :status_target_z                => $status.info_target_z,
+          :status_end_stop_x_a            => $status.info_end_stop_x_a,
+          :status_end_stop_x_b            => $status.info_end_stop_x_b,
+          :status_end_stop_y_a            => $status.info_end_stop_y_a,
+          :status_end_stop_y_b            => $status.info_end_stop_y_b,
+          :status_end_stop_z_a            => $status.info_end_stop_z_a,
+          :status_end_stop_z_b            => $status.info_end_stop_z_b
         }
 
        @dbaccess.write_to_log(2,"return_message = #{return_message}")
