@@ -75,7 +75,7 @@ while $shutdown == 0 do
       print 'Enter new delay in seconds > '
       command_delay_temp = gets
       $command_delay = command_delay_temp.to_i if command_delay_temp.to_i > 0
-    when "G" # Set pin number
+    when "P" # Set pin number
       print 'Enter new pin nr > '
       pin_nr_temp = gets
       $pin_nr = pin_nr_temp.to_i if pin_nr_temp.to_i > 0
