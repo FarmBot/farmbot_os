@@ -218,7 +218,7 @@ class Controller
     end
 
     print "x %04d %s%s " % [$status.info_current_x, bool_to_char($status.info_end_stop_x_a), bool_to_char($status.info_end_stop_x_b)]
-    print "y %04d %s%s " % [$status.info_current_y, bool_to_char($status.info_end_stop_y_a), bool_to_char($status.info_end_stop_z_b)]
+    print "y %04d %s%s " % [$status.info_current_y, bool_to_char($status.info_end_stop_y_a), bool_to_char($status.info_end_stop_y_b)]
     print "z %04d %s%s " % [$status.info_current_z, bool_to_char($status.info_end_stop_z_a), bool_to_char($status.info_end_stop_z_b)]
     print ' '
 
