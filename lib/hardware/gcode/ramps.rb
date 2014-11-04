@@ -165,30 +165,30 @@ class HardwareInterface
   # move all axis home
   #
   def move_home_all
-    $status.info_target_x = command_line.coord_x
-    $status.info_target_y = command_line.coord_y
-    $status.info_target_z = command_line.coord_z
+    $status.info_target_x = 0
+    $status.info_target_y = 0
+    $status.info_target_z = 0
     execute_command('G28', true, false)
   end
 
   # move the bot to the home position
   #
   def move_home_x
-    $status.info_target_x = command_line.coord_x
+    $status.info_target_x = 0
     execute_command('F11', true, false)
   end
 
   # move the bot to the home position
   #
   def move_home_y
-    $status.info_target_y = command_line.coord_y
+    $status.info_target_y = 0
     execute_command('F12', true, false)
   end
 
   # move the bot to the home position
   #
   def move_home_z
-    $status.info_target_z = command_line.coord_z
+    $status.info_target_z = 0
     execute_command('F13', true, false)
   end
 
