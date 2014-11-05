@@ -171,10 +171,14 @@ class Controller
             when "PIN READ"
               $bot_hardware.pin_std_read_value(command_line.pin_nr, command_line.pin_mode, command_line.external_info)
             when "PIN MODE"
-              $bot_hardware.pin_std_set_mode(command_line.pin, command_line.pin_mode)
+              $bot_hardware.pin_std_set_mode(command_line.pin_nr, command_line.pin_mode)
             when "PIN PULSE"
-              $bot_hardware.pin_std_pulse(command_line.pin, command_line.pin_value_1, 
+              $bot_hardware.pin_std_pulse(command_line.pin_nr, command_line.pin_value_1, 
                 command_line.pin_value_2, command_line.pin_time, command_line.pin_mode)
+
+            when "SERVO MOVE"
+              $bot_hardware.servo_std_move(command_line.pin_nr, command_line.pin_value_1)
+
           end
 
           read_hw_status()

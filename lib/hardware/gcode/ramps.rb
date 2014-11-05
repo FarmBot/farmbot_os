@@ -61,6 +61,12 @@ class HardwareInterface
   ## *******************
 
 
+  # move a servo
+  #
+  def servo_std_move(pin, value)
+    execute_command("F61 P#{pin} V#{value}", false, @status_debug_msg)
+  end
+
   # set standard pin value
   #
   def pin_std_set_value(pin, value, mode)

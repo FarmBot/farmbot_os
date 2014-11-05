@@ -23,6 +23,7 @@ $bot_dbaccess = DbAccess.new
 $move_size      = 10
 $command_delay  = 0
 $pin_nr         = 13
+$servo_angle    = 0
 
 while $shutdown == 0 do
 
@@ -36,6 +37,7 @@ while $shutdown == 0 do
   puts "move size = #{$move_size}"
   puts "command delay = #{$command_delay}"
   puts "pin nr = #{$pin_nr}"
+  puts "servo angle = #{$servo_angle}"
   puts ''
   puts 'w - forward'
   puts 's - back'
@@ -51,10 +53,12 @@ while $shutdown == 0 do
   puts 'y - dose water'
   puts 'u - set pin on'
   puts 'i - set pin off'
+  puts 'k - move servo (pin 4,5)'
   puts ''
   puts 'q - step size'
   puts 'g - delay seconds'
   puts 'p - pin nr'
+  puts 'j - servo angle (0-180)'
   puts ''
   print 'command > '
   input = gets
@@ -67,6 +71,10 @@ while $shutdown == 0 do
     when "O" # Get status
       puts 'Not implemented yet. Press \'Enter\' key to continue.'
       gets
+    when "J" # Set servo angle
+      print 'Enter new servo angle > '
+      servo_angle_temp = gets
+      $servo_angle = servo_angle_temp.to_i if servo_angle_temp.to_i > 0
     when "Q" # Set step size
       print 'Enter new step size > '
       move_size_temp = gets
@@ -87,6 +95,10 @@ while $shutdown == 0 do
       $bot_dbaccess.add_command_line('CALIBRATE X', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
       $bot_dbaccess.save_new_command
 
+    when "K" # Move Servo
+      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
+      $bot_dbaccess.add_command_line('SERVO MOVE', 0, 0, 0, 0, 0, $pin_nr, $servo_angle, 0, 0, 0)
+      $bot_dbaccess.save_new_command
     when "I" # Set Pin Off
       $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
       $bot_dbaccess.add_command_line('PIN WRITE', 0, 0, 0, 0, 0, $pin_nr, 0, 0, 0, 0)
