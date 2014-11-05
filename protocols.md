@@ -84,8 +84,8 @@ z       |decimal|same as x
 speed   |string |speed for movements, as text. for example 'traveling', 'manouvering'
 amount  |decimal|amount of mililiter of water to dose. always add parameter with default value
 delay   |decimal|amount in seconds to delay the execution of a command
-pin_nr    |decimal|the number of the pin to change, using arduino numbering
-pin_value1|decimal|the value of the pin
+pin_nr    |decimal|the number of the pin to change or pin for servo, using arduino numbering
+pin_value1|decimal|the value for the pin, for servo movement the angle
 pin_value2|decimal|when using a pulse, this is the value for the second flank of the pulse
 pin_mode  |decimal|for setting the I/O mode, 0 is input, 1 is output. For reading and writing, 0 is digital and 1 is analog
 pin_time  |decimal||the time im seconds for a pulse
@@ -106,6 +106,7 @@ PIN WRITE    |       |       |       |     |      |X    |X     |X         |     
 PIN READ     |       |       |       |     |      |X    |X     |          |          |X       |
 PIN MODE     |       |       |       |     |      |X    |X     |          |          |X       |
 PIN PULSE    |       |       |       |     |      |X    |X     |X         |X         |X       |X
+SERVO MOVE   |       |       |       |     |      |X    |X     |X         |          |        |
 
 
 Device status
