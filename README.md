@@ -20,24 +20,32 @@ Raspberry PI
 ------------
 
 Update the RPi, install ruby, firmate and the arduino IDE
-
+```
 sudo apt-get update
 sudo apt-get install git-core
 sudo apt-get install ruby-dev
 sudo apt-get install sqlite3-dev
 sudo apt-get install arduino
+sudo apt-get install bundler
+```
 
 retrieving code from github:
-
+```
 git clone https://github.com/FarmBot/farmbot-raspberry-pi-controller
-
+```
 prepping ruby:
+```
 cd farmbot-raspberry-pi-controller
-'bundle install --without test development' from the project directory
-OR
-'bundle install' (for developers)
+sudo gem install bundler
+sudo gem install sqlite3 -v '1.3.10'
+bundler update
+bundle install
+```
 
+Setup the database
+```
 rake db:migrate
+```
 
 Arduino
 -------
