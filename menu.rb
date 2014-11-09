@@ -74,7 +74,7 @@ while $shutdown == 0 do
     when "J" # Set servo angle
       print 'Enter new servo angle > '
       servo_angle_temp = gets
-      $servo_angle = servo_angle_temp.to_i if servo_angle_temp.to_i > 0
+      $servo_angle = servo_angle_temp.to_i if servo_angle_temp.to_i >= 0
     when "Q" # Set step size
       print 'Enter new step size > '
       move_size_temp = gets
