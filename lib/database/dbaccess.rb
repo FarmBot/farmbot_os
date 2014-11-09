@@ -251,6 +251,7 @@ class DbAccess
         @new_command.save
       end
     end
+
     increment_refresh
   end
 

@@ -7,6 +7,7 @@ class Status
   attr_accessor :info_end_stop_y_a, :info_end_stop_y_b  
   attr_accessor :info_end_stop_z_a, :info_end_stop_z_b  
   attr_accessor :emergency_stop
+  attr_accessor :command_refresh
 
   def initialize
 
@@ -32,6 +33,8 @@ class Status
     @info_end_stop_y_b   = 0
     @info_end_stop_z_a   = 0
     @info_end_stop_z_b   = 0
+
+    @command_refresh     = 0
   end
 
 end

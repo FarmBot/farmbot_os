@@ -15,7 +15,7 @@ class Controller
     @command             = nil
 
     @cmd_proc            = ControllerCommandProc.new
-
+    @cmd_last_refresh    = 0
   end
 
   def runFarmBot
@@ -125,7 +125,7 @@ class Controller
 
       sleep 0.2
       check_hardware()
-      refresh_received = @bot_dbaccess.check_refresh
+      refresh_received = check_refresh
 
     end
   end
@@ -156,7 +156,7 @@ class Controller
 
         check_hardware()
 
-        refresh_received = @bot_dbaccess.check_refresh
+        refresh_received = check_refresh
 
       end
     end
@@ -229,6 +229,16 @@ class Controller
         print '/'
       end
     end
+  end
+
+  def check_refresh
+    if $status.command_refresh != @cmd_last_refresh
+      refreshed = true
+      @cmd_last_refresh = $status.command_refresh
+    else
+      refreshed = false;
+    end
+    refreshed
   end
 
 end

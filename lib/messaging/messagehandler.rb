@@ -441,6 +441,7 @@ class MessageHandler
         @dbaccess.add_command_line(action, x.to_i, y.to_i, z.to_i, speed.to_s, amount.to_i, 
 		pin_nr.to_i, pin_value1.to_i, pin_value2.to_i, pin_mode.to_i, pin_time.to_i)
         @dbaccess.save_new_command
+        $status.command_refresh += 1;
 
         @dbaccess.write_to_log(2,'sending comfirmation')
 
