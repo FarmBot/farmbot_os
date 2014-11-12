@@ -1,0 +1,564 @@
+require 'json'
+require 'time'
+require './lib/database/dbaccess.rb'
+
+require_relative 'messagehandler_emergencystop.rb'
+require_relative 'messagehandler_logs.rb'
+require_relative 'messagehandler_measurements.rb'
+require_relative 'messagehandler_message.rb'
+require_relative 'messagehandler_parameters.rb'
+require_relative 'messagehandler_schedule.rb'
+require_relative 'messagehandler_status.rb'
+
+
+# Get the JSON command, received through skynet, and send it to the farmbot
+# command queue Parses JSON messages received through SkyNet.
+class MessageHandler
+
+  attr_accessor :message
+
+  ## general handling messages
+
+  def initialize
+    @dbaccess = DbAccess.new
+    @last_time_stamp  = ''
+  end
+
+  # A list of MessageHandler methods (as strings) that a Skynet User may access.
+  #
+  def whitelist
+    ["single_command","crop_schedule_update","read_parameters","write_parameters","read_logs","read_status","read_measurements","delete_measurements", "emergency_stop","emergency_stop_reset"]
+  end
+
+  # Handle the message received from skynet
+  #
+  def handle_message(message)
+
+    sender     = ""
+    time_stamp = nil
+
+    err_msg = ""
+    err_trc = ""
+    err_snd = false
+
+    # Check if all needed variables are in the message, and send it to the processing function
+    begin
+
+      requested_command = ''
+
+      @dbaccess.write_to_log(2,message.to_s)
+
+      sender = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : ''
+      @dbaccess.write_to_log(2,"sender #{sender}")
+
+      if message.has_key? 'payload'
+        @message = message['payload']
+        if @message.has_key? 'message_type'
+          requested_command = message['payload']["message_type"].to_s.downcase
+          @dbaccess.write_to_log(2,"message_type = #{requested_command}")
+        else
+          @dbaccess.write_to_log(2,'message has no message type')
+
+          time_stamp = (message['payload'].has_key? 'time_stamp') ? message['payload']['time_stamp'] : nil
+          @dbaccess.write_to_log(2,"time stamp = #{time_stamp}")
+
+          if sender != ''
+            send_error(sender, '', 'unknown message type')
+          end
+        end
+      else
+        @dbaccess.write_to_log(2,'message has no payload')
+        if sender != ''
+          send_error(sender, '', 'message has no payload')
+        end
+      end
+
+      if whitelist.include?(requested_command)
+        self.send(requested_command, message)
+      else
+        @dbaccess.write_to_log(2,'message type not in white list')
+        send_error(sender, time_stamp, 'message type not in white list')
+      end
+    rescue Exception => e
+      err_snd = true
+      err_msg = e.message
+      err_trc = e.backtrace.inspect
+    end
+
+    # in case of an error, send error message as a reply
+    begin
+      if err_snd == true
+        if sender != ""
+          send_error(sender, time_stamp, " #{err_msg} @ #{err_trc}")
+          @dbaccess.write_to_log(2,'Error in message handler.\nError #{err_msg} @ #{err_trc}')
+        end
+      end
+    rescue  Exception => e
+      puts 'Error while sending error message: #{e.message}'
+    end
+
+  end
+
+  # Handles an error (typically, an unauthorized or unknown message). Returns
+  # Hash.
+  def error
+    return {error: ""}
+  end
+
+  ## emergency stop
+
+  # emergency stop activate
+  #
+  def emergency_stop(message)
+
+    @dbaccess.write_to_log(2,'handle emergency stop')
+
+    payload = message['payload']
+
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
+    @dbaccess.write_to_log(2,"sender     = #{sender}")
+    @dbaccess.write_to_log(2,"time_stamp = #{time_stamp}")
+
+    if time_stamp != @last_time_stamp
+
+      @last_time_stamp = time_stamp
+
+      $status.emergency_stop = true
+      send_confirmation(sender, time_stamp)
+
+    end
+  end
+
+  # emergency stop activate
+  #
+  def emergency_stop_reset(message)
+
+    @dbaccess.write_to_log(2,'handle emergency stop reset')
+
+    payload = message['payload']
+
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
+    @dbaccess.write_to_log(2,"sender     = #{sender}")
+    @dbaccess.write_to_log(2,"time_stamp = #{time_stamp}")
+
+    if time_stamp != @last_time_stamp
+
+      @last_time_stamp = time_stamp
+
+      $status.emergency_stop = false
+      send_confirmation(sender, time_stamp)
+    end
+  end
+
+  ## measurements
+
+  # Read measurements from database and send through skynet
+  #
+  def read_measurements(message)
+
+    @dbaccess.write_to_log(2,'handle read measurements')
+
+    payload = message['payload']
+
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
+    @dbaccess.write_to_log(2,"sender     = #{sender}")
+    @dbaccess.write_to_log(2,"time_stamp = #{time_stamp}")
+
+    if time_stamp != @last_time_stamp
+
+      @last_time_stamp = time_stamp
+
+      measurements_list = @dbaccess.read_measurement_list()
+
+      return_message =
+        {
+          :message_type => 'read_measurements_response',
+          :time_stamp   => Time.now.to_f.to_s,
+          :confirm_id   => time_stamp,
+          :measurements => measurements_list
+        }
+
+      $messaging.send_message(sender, return_message)
+
+    end
+  end
+
+  def delete_measurements(message)
+
+    @dbaccess.write_to_log(2,'handle read measurements')
+
+    payload = message['payload']
+
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
+    @dbaccess.write_to_log(2,"sender     = #{sender}")
+    @dbaccess.write_to_log(2,"time_stamp = #{time_stamp}")
+
+    if time_stamp != @last_time_stamp
+
+      @last_time_stamp = time_stamp
+
+      if payload.has_key? 'ids'
+        payload['ids'].each do |id|
+
+          @dbaccess.delete_measurement(id)
+
+        end
+      end
+
+      command =
+        {
+          :message_type => 'confirmation',
+          :time_stamp   => Time.now.to_f.to_s,
+          :confirm_id   => time_stamp
+        }
+
+      $messaging.send_message(sender, command)
+    end
+  end
+
+
+  # Send the current status to the requester
+  #
+  def read_status(message)
+
+    @dbaccess.write_to_log(2,'handle read status')
+
+    payload = message['payload']
+
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
+    @dbaccess.write_to_log(2,"sender     = #{sender}")
+    @dbaccess.write_to_log(2,"time_stamp = #{time_stamp}")
+
+    if time_stamp != @last_time_stamp
+
+      @last_time_stamp = time_stamp
+
+      $bot_control.read_hw_status()
+
+      return_message =
+        {
+          :message_type                   => 'read_status_response',
+          :time_stamp                     => Time.now.to_f.to_s,
+          :confirm_id                     => time_stamp,
+
+          :status                         => $status.info_status,
+          :status_time_local              => Time.now,
+          :status_nr_msg_received         => $info_nr_msg_received,
+          :status_movement                => $status.info_movement,
+          :status_last_command_executed   => $status.info_command_last,
+          :status_next_command_scheduled  => $status.info_command_next,
+          :status_nr_of_commands_executed => $status.info_nr_of_commands,
+          :status_current_x               => $status.info_current_x,
+          :status_current_y               => $status.info_current_y,
+          :status_current_z               => $status.info_current_z,
+          :status_target_x                => $status.info_target_x,
+          :status_target_y                => $status.info_target_y,
+          :status_target_z                => $status.info_target_z,
+          :status_end_stop_x_a            => $status.info_end_stop_x_a,
+          :status_end_stop_x_b            => $status.info_end_stop_x_b,
+          :status_end_stop_y_a            => $status.info_end_stop_y_a,
+          :status_end_stop_y_b            => $status.info_end_stop_y_b,
+          :status_end_stop_z_a            => $status.info_end_stop_z_a,
+          :status_end_stop_z_b            => $status.info_end_stop_z_b
+        }
+
+       @dbaccess.write_to_log(2,"return_message = #{return_message}")
+
+       $messaging.send_message(sender, return_message)
+
+    end
+  end
+
+  # Read logs from database and send through skynet
+  #
+  def read_logs(message)
+
+    @dbaccess.write_to_log(2,'handle read logs')
+
+    payload = message['payload']
+    
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
+    @dbaccess.write_to_log(2,"sender     = #{sender}")
+    @dbaccess.write_to_log(2,"time_stamp = #{time_stamp}")
+
+    if time_stamp != @last_time_stamp
+
+      @last_time_stamp = time_stamp
+
+      logs = @dbaccess.read_logs_all()
+
+      log_list = Array.new
+      logs.each do |log|
+        item =
+        {
+          'text'   => log.text,
+          'module' => log.module_id,
+          'time'   => log.created_at
+        }
+        log_list << item
+      end
+
+      return_message =
+        {
+          :message_type => 'read_logs_response',
+          :time_stamp   => Time.now.to_f.to_s,
+          :confirm_id   => time_stamp,
+          :logs         => log_list
+        }
+
+      $messaging.send_message(sender, return_message)
+
+    end    
+  end
+
+  # Read parameter list from the database and send through skynet
+  #
+  def read_parameters(message)
+
+    @dbaccess.write_to_log(2,'handle read parameters')
+
+    payload = message['payload']
+    
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
+    @dbaccess.write_to_log(2,"sender     = #{sender}")
+    @dbaccess.write_to_log(2,"time_stamp = #{time_stamp}")
+
+    if time_stamp != @last_time_stamp
+
+      @last_time_stamp = time_stamp
+
+      param_list = @dbaccess.read_parameter_list()
+
+      return_message =
+        {
+          :message_type => 'read_parameters_response',
+          :time_stamp   => Time.now.to_f.to_s,
+          :confirm_id   => time_stamp,
+          :parameters   => param_list
+        }
+
+      @dbaccess.write_to_log(2,"reply = #{return_message}")
+
+
+      $messaging.send_message(sender, return_message)
+
+    end    
+  end
+
+  # Write parameters in list from skynet to the database
+  #
+  def write_parameters(message)
+
+    @dbaccess.write_to_log(2,'handle write parameters')
+
+    payload = message['payload']
+    
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
+    #@dbaccess.write_to_log(2,"sender = #{sender}")
+
+    if time_stamp != @last_time_stamp
+      @last_time_stamp = time_stamp
+
+      if payload.has_key? 'parameters'
+      
+        param_list = payload['parameters']
+        param_list.each do |param|
+
+          if param.has_key? 'name' and param.has_key? 'type' and param.has_key? 'value' 
+
+            @dbaccess.write_to_log(2,"param = #{param}")
+
+            name  = param['name' ]
+            type  = param['type' ]
+            value = param['value']
+
+            @dbaccess.write_to_log(2,"name = #{name}")
+            @dbaccess.write_to_log(2,"type  = #{type}")
+            @dbaccess.write_to_log(2,"value = #{value}")
+            @dbaccess.write_parameter_with_type(name, type, value)
+
+          end
+        end
+        send_confirmation(sender, time_stamp)
+      else
+        send_error(sender, time_stamp, 'no paramer list in message')                           
+      end      
+    end
+  end
+
+
+  def single_command(message)
+
+    @dbaccess.write_to_log(2,'handle single command')
+
+    payload = message['payload']
+    
+    time_stamp = (payload.has_key? 'time_stamp') ? payload['time_stamp'] : nil
+    sender     = (message.has_key? 'fromUuid'  ) ? message['fromUuid']   : 'UNKNOWN'
+
+    @dbaccess.write_to_log(2,"sender = #{sender}")
+
+    if time_stamp != @last_time_stamp
+      @last_time_stamp = time_stamp
+
+      if payload.has_key? 'command' 
+
+        command = payload['command']
+
+        # send the command to the queue
+	
+
+        delay      = (command.has_key? 'delay' ) ? command['delay'   ] : 0
+        action     = (command.has_key? 'action') ? command['action'  ] : 'NOP'
+        x          = (command.has_key? 'x'     ) ? command['x'       ] : 0
+        y          = (command.has_key? 'y'     ) ? command['y'       ] : 0 
+        z          = (command.has_key? 'z'     ) ? command['z'       ] : 0  
+        speed      = (command.has_key? 'speed' ) ? command['speed'   ] : 0
+        amount     = (command.has_key? 'amount') ? command['amount'  ] : 0
+        delay      = (command.has_key? 'delay' ) ? command['delay'   ] : 0
+
+        pin_nr     = (command.has_key? 'pin')    ? command['pin'     ] : 0
+        pin_value1 = (command.has_key? 'value1') ? command['value1'  ] : 0
+        pin_value2 = (command.has_key? 'value2') ? command['value2'  ] : 0
+        pin_mode   = (command.has_key? 'mode'  ) ? command['mode'    ] : 0
+        pin_time   = (command.has_key? 'time'  ) ? command['time'    ] : 0
+        ext_info   = (command.has_key? 'info'  ) ? command['info'    ] : 0
+
+
+
+        @dbaccess.write_to_log(2,"[#{action}] x: #{x}, y: #{y}, z: #{z}, speed: #{speed}, amount: #{amount} delay: #{delay}")
+        @dbaccess.write_to_log(2,"[#{action}] pin_nr: #{pin_nr}, value1: #{pin_value1}, value2: #{pin_value2}, mode: #{pin_mode}")
+        @dbaccess.write_to_log(2,"[#{action}] ext_info: #{ext_info}")
+
+        @dbaccess.create_new_command(Time.now + delay.to_i,'single_command')
+        @dbaccess.add_command_line(action, x.to_i, y.to_i, z.to_i, speed.to_s, amount.to_i, 
+		pin_nr.to_i, pin_value1.to_i, pin_value2.to_i, pin_mode.to_i, pin_time.to_i)
+        @dbaccess.save_new_command
+        $status.command_refresh += 1;
+
+        @dbaccess.write_to_log(2,'sending comfirmation')
+
+        $messaging.confirmed = false
+
+        send_confirmation(sender, time_stamp)
+
+      else
+
+        @dbaccess.write_to_log(2,'no command in message')
+        @dbaccess.write_to_log(2,'sending error')
+
+        $messaging.confirmed = false
+        send_error(sender, time_stamp, 'no command in message')
+
+      end
+
+      @dbaccess.write_to_log(2,'done')
+
+    end
+  end
+
+  def crop_schedule_update(message)
+    @dbaccess.write_to_log(2,'handling crop schedule update')
+
+    time_stamp = message['payload']['time_stamp']
+    sender = message['fromUuid']
+    @dbaccess.write_to_log(2,"sender = #{sender}")
+
+    if time_stamp != @last_time_stamp
+      @last_time_stamp = time_stamp
+
+
+      message_contents = message['payload']
+
+      crop_id = message_contents['crop_id']
+      @dbaccess.write_to_log(2,"crop_id = #{crop_id}")
+
+      @dbaccess.clear_crop_schedule(crop_id)
+
+      message_contents['commands'].each do |command|
+
+        scheduled_time = Time.parse(command['scheduled_time'])
+        @dbaccess.write_to_log(2,"crop command at #{scheduled_time}")
+        @dbaccess.create_new_command(scheduled_time, crop_id)
+
+        command['command_lines'].each do |command_line|
+
+          action = command_line['action']
+          x      = command_line['x']
+          y      = command_line['y']
+          z      = command_line['z']
+          speed  = command_line['speed']
+          amount = command_line['amount']
+
+
+          @dbaccess.write_to_log(2,"[#{action}] x: #{x}, y: #{y}, z: #{z}, speed: #{speed}, amount: #{amount}")
+          @dbaccess.add_command_line(action, x.to_i, y.to_i, z.to_i, speed.to_s, amount.to_i)
+
+        end
+
+        @dbaccess.save_new_command
+
+      end
+
+      @dbaccess.write_to_log(2,'sending comfirmation')
+
+      $messaging.confirmed = false
+
+      command =
+        {
+          :message_type => 'confirmation',
+          :time_stamp   => Time.now.to_f.to_s,
+          :confirm_id   => time_stamp
+        }
+
+      $messaging.send_message(sender, command)
+
+      @dbaccess.write_to_log(2,'done')
+
+
+    end
+  end
+
+  def send_confirmation(destination, time_stamp)
+    command =
+      {
+        :message_type => 'confirmation',
+        :time_stamp   => Time.now.to_f.to_s,
+        :confirm_id   => time_stamp
+      }
+    $messaging.send_message(destination, command)
+  end
+
+  def send_error(destination, time_stamp, error)
+
+    if time_stamp == nil
+      time_stamp = Time.now.to_f.to_s
+    end
+
+    command =
+      {
+        :message_type => 'error',
+        :time_stamp   => Time.now.to_f.to_s,
+        :confirm_id   => time_stamp,
+        :error        => error
+      }
+    $messaging.send_message(destination, command)
+  end
+
+end

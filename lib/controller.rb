@@ -125,7 +125,7 @@ class Controller
 
       sleep 0.2
       check_hardware()
-      refresh_received = check_refresh
+      refresh_received = check_refresh or @db_access.check_refresh
 
     end
   end
@@ -156,7 +156,7 @@ class Controller
 
         check_hardware()
 
-        refresh_received = check_refresh
+        refresh_received = check_refresh or @db_access.check_refresh
 
       end
     end
