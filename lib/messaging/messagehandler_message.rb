@@ -4,7 +4,7 @@
 class MessageHandlerMessage
 
   attr_accessor :sender, :time_stamp, :message_type, :payload
-  attr_accessor :handled, :message_handler
+  attr_accessor :handled, :handler
 
   def initialize
     handled = false

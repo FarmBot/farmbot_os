@@ -55,7 +55,7 @@ class MessageHandler
 
       requested_command = ''
 
-      @dbaccess.write_to_log(2,message.to_s)
+      @dbaccess.write_to_log(3,message.to_s)
 
       # retrieve all basic varables from the message and put it into the message object
 
@@ -66,7 +66,7 @@ class MessageHandler
       message_obj.payload         = (message.has_key? 'payload' ) ? message['payload'] : '{}'
       message_obj.message_type    = (message_obj.payload.has_key? 'message_type' ) ? message_obj.payload.['message_type'].to_s.downcase  : ''
       message_obj.time_stamp      = (message_obj.payload.has_key? 'time_stamp'   ) ? message_obj.payload.['time_stamp']                  : nil
-      message_obj.message_handler = self
+      message_obj.handler         = self
 
       @dbaccess.write_to_log(2,"sender       = #{message_obj.sender}"       )
       @dbaccess.write_to_log(2,"message_type = #{message_obj.message_type}" )
@@ -120,7 +120,7 @@ class MessageHandler
         :time_stamp   => Time.now.to_f.to_s,
         :confirm_id   => time_stamp
       }
-    $messaging.send_message(destination, command)
+    send_message(destination, command)
   end
 
   def send_error(destination, time_stamp, error)
@@ -136,6 +136,12 @@ class MessageHandler
         :confirm_id   => time_stamp,
         :error        => error
       }
+
+    send_message(destination, command)
+  end
+
+  def send_message(destination, command)
+    @dbaccess.write_to_log(3,"to #{destination} : #{command.to_s}")
     $messaging.send_message(destination, command)
   end
 

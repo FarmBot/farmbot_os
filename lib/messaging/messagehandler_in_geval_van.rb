@@ -74,7 +74,9 @@ class MessageHandler
       end
 
       if whitelist.include?(requested_command)
-        self.send(requested_command, message)
+        if time_stamp != @last_time_stamp
+          self.send(requested_command, message)
+        end
       else
         @dbaccess.write_to_log(2,'message type not in white list')
         send_error(sender, time_stamp, 'message type not in white list')
