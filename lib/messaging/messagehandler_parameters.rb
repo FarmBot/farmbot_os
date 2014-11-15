@@ -1,46 +1,14 @@
 require 'json'
 require './lib/database/dbaccess.rb'
 require 'time'
+require_relative 'messagehandler_base'
 
 # Get the JSON command, received through skynet, and send it to the farmbot
 # command queue Parses JSON messages received through SkyNet.
-class MessageHandlerParameter
+class MessageHandlerParameter < MessageHandlerBase
 
-  attr_accessor :message
-
-  ## general handling messages
-
-  def initialize
-    @dbaccess = $bot_dbaccess
-    @last_time_stamp  = ''
-  end
-
-  # A list of MessageHandler methods (as strings) that a Skynet User may access.
-  #
   def whitelist
     ["read_parameters","write_parameters"]
-  end
-
-  # Handle the message received from skynet
-  #
-  # Handle the message received from skynet
-  #
-  def handle_message(message)
-
-    handled = false
-
-    if whitelist.include?(message.message_type)
-      self.send(message.message_type, message)
-      handled = true
-    end
-
-    handled
-  end
-
-  # Handles an error (typically, an unauthorized or unknown message). Returns
-  # Hash.
-  def error
-    return {error: ""}
   end
 
   # Read parameter list from the database and send through skynet
