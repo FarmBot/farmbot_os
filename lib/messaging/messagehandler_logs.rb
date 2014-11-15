@@ -11,7 +11,7 @@ class MessageHandlerLog
   ## general handling messages
 
   def initialize
-    @dbaccess = DbAccess.new
+    @dbaccess = $bot_dbaccess
     @last_time_stamp  = ''
   end
 
@@ -28,7 +28,7 @@ class MessageHandlerLog
     handled = false
 
     if whitelist.include?(message.message_type)
-      self.send(message)
+      self.send(message.message_type, message)
       handled = true
     end
 

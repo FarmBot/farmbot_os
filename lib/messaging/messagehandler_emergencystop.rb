@@ -11,7 +11,7 @@ class MessageHandlerEmergencyStop
   ## general handling messages
 
   def initialize
-    @dbaccess = DbAccess.new
+    @dbaccess = $bot_dbaccess
     @last_time_stamp  = ''
   end
 
@@ -28,7 +28,7 @@ class MessageHandlerEmergencyStop
     handled = false
 
     if whitelist.include?(message.message_type)
-      self.send(message)
+      self.send(message.message_type,message)
       handled = true
     end
 
@@ -44,7 +44,7 @@ class MessageHandlerEmergencyStop
     @dbaccess.write_to_log(2,'handle emergency stop')
 
     $status.emergency_stop = true
-    message.hander.send_confirmation(message.sender, message.time_stamp)
+    message.handler.send_confirmation(message.sender, message.time_stamp)
   end
 
   # emergency stop activate
@@ -54,7 +54,6 @@ class MessageHandlerEmergencyStop
     @dbaccess.write_to_log(2,'handle emergency stop reset')
 
     $status.emergency_stop = false
-    message.hander.send_confirmation(message.sender, message.time_stamp)
     message.handler.send_confirmation(message.sender, message.time_stamp)
   end
 

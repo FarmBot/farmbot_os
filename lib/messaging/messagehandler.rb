@@ -23,13 +23,13 @@ class MessageHandler
     @dbaccess = DbAccess.new
     @last_time_stamp  = ''
 
-    message_handlers = Array.new
-    message_handlers << MessageHandlerEmergencyStop.new
-    message_handlers << MessageHandlerLog.new
-    message_handlers << MessageHandlerMeasurement.new
-    message_handlers << MessageHandlerParameter.new
-    message_handlers << MessageHandlerSchedule.new
-    message_handlers << MessageHandlerStatus.new
+    @message_handlers = Array.new
+    @message_handlers << MessageHandlerEmergencyStop.new
+    @message_handlers << MessageHandlerLog.new
+    @message_handlers << MessageHandlerMeasurement.new
+    @message_handlers << MessageHandlerParameter.new
+    @message_handlers << MessageHandlerSchedule.new
+    @message_handlers << MessageHandlerStatus.new
 
   end
 
@@ -64,17 +64,17 @@ class MessageHandler
       message_obj                 = MessageHandlerMessage.new
       message_obj.sender          = sender
       message_obj.payload         = (message.has_key? 'payload' ) ? message['payload'] : '{}'
-      message_obj.message_type    = (message_obj.payload.has_key? 'message_type' ) ? message_obj.payload.['message_type'].to_s.downcase  : ''
-      message_obj.time_stamp      = (message_obj.payload.has_key? 'time_stamp'   ) ? message_obj.payload.['time_stamp']                  : nil
+      message_obj.message_type    = (message_obj.payload.has_key? 'message_type' ) ? message_obj.payload['message_type'].to_s.downcase  : ''
+      message_obj.time_stamp      = (message_obj.payload.has_key? 'time_stamp'   ) ? message_obj.payload['time_stamp']                  : nil
       message_obj.handler         = self
+      message_obj.handled         = false
 
       @dbaccess.write_to_log(2,"sender       = #{message_obj.sender}"       )
       @dbaccess.write_to_log(2,"message_type = #{message_obj.message_type}" )
       @dbaccess.write_to_log(2,"time stamp   = #{message_obj.time_stamp}"   )
 
       # loop trough all the handlers until one handler does process the message
-
-      message_handlers.each do |handler|
+      @message_handlers.each do |handler|
         if message_obj.handled == false
           handler.handle_message( message_obj )
         end
@@ -96,11 +96,11 @@ class MessageHandler
       if err_snd == true
         if sender != ""
           send_error(sender, time_stamp, " #{err_msg} @ #{err_trc}")
-          @dbaccess.write_to_log(2,'Error in message handler.\nError #{err_msg} @ #{err_trc}')
+          @dbaccess.write_to_log(2,"Error in message handler.\nError #{err_msg} @ #{err_trc}")
         end
       end
     rescue  Exception => e
-      puts 'Error while sending error message: #{e.message}'
+      puts "Error while sending error message: #{e.message}"
     end
 
   end

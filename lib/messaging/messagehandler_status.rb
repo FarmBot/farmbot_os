@@ -11,7 +11,7 @@ class MessageHandlerStatus
   ## general handling messages
 
   def initialize
-    @dbaccess = DbAccess.new
+    @dbaccess = $bot_dbaccess
     @last_time_stamp  = ''
   end
 

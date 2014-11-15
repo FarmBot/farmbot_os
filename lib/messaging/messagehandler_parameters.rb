@@ -11,7 +11,7 @@ class MessageHandlerParameter
   ## general handling messages
 
   def initialize
-    @dbaccess = DbAccess.new
+    @dbaccess = $bot_dbaccess
     @last_time_stamp  = ''
   end
 
@@ -30,7 +30,7 @@ class MessageHandlerParameter
     handled = false
 
     if whitelist.include?(message.message_type)
-      self.send(message)
+      self.send(message.message_type, message)
       handled = true
     end
 
@@ -92,9 +92,9 @@ class MessageHandlerParameter
 
         end
       end
-      send_confirmation(sender, time_stamp)
+      message.handler.send_confirmation(sender, time_stamp)
     else
-      send_error(sender, time_stamp, 'no paramer list in message')                           
+      message.handler.send_error(sender, time_stamp, 'no paramer list in message')                           
     end      
   end
 

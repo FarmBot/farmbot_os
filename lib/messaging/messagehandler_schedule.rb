@@ -11,7 +11,7 @@ class MessageHandlerSchedule
   ## general handling messages
 
   def initialize
-    @dbaccess = $dbaccess
+    @dbaccess = $bot_dbaccess
     @last_time_stamp  = ''
   end
 
@@ -25,14 +25,11 @@ class MessageHandlerSchedule
   #
   def handle_message(message)
 
-    handled = false
-
     if whitelist.include?(message.message_type)
-      self.send(message)
-      handled = true
+      self.send(message.message_type, message)
+      message.handled = true
     end
 
-    handled
   end
 
   def single_command(message)

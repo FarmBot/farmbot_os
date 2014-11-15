@@ -156,7 +156,7 @@ class Controller
 
         check_hardware()
 
-        refresh_received = check_refresh or @db_access.check_refresh
+        refresh_received = check_refresh or @bot_dbaccess.check_refresh
 
       end
     end
