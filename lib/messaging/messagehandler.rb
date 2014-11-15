@@ -25,9 +25,9 @@ class MessageHandler
 
     message_handlers = Array.new
     message_handlers << MessageHandlerEmergencyStop.new
-    message_handlers << MessageHandlerLogs.new
-    message_handlers << MessageHandlerMeasurements.new
-    message_handlers << MessageHandlerParameters.new
+    message_handlers << MessageHandlerLog.new
+    message_handlers << MessageHandlerMeasurement.new
+    message_handlers << MessageHandlerParameter.new
     message_handlers << MessageHandlerSchedule.new
     message_handlers << MessageHandlerStatus.new
 

@@ -4,7 +4,7 @@ require 'time'
 
 # Get the JSON command, received through skynet, and send it to the farmbot
 # command queue Parses JSON messages received through SkyNet.
-class MessageHandler
+class MessageHandlerParameter
 
   attr_accessor :message
 
