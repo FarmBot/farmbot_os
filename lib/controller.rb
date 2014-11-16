@@ -1,8 +1,9 @@
 require 'active_record'
 require 'date'
 require_relative 'database/dbaccess'
+require_relative 'controller_command_proc'
 
-# FarmBot Controller: This module executes the schedule. It reades the next
+# FarmBot Controller: This module executes the schedule. It reads the next
 # command and sends it to the hardware implementation
 class Controller
 
@@ -11,9 +12,48 @@ class Controller
 
     @bot_dbaccess        = $bot_dbaccess
     @last_hw_check       = Time.now
+    @command             = nil
+
+    @cmd_proc            = ControllerCommandProc.new
+    @cmd_last_refresh    = 0
   end
 
   def runFarmBot
+
+    startup_farmbot
+
+    while $shutdown == 0 do
+
+      begin
+
+        # keep checking the database for new data
+        get_next_command
+
+        if @command != nil and $status.emergency_stop == false
+          $status.info_command_next = @command.scheduled_time
+
+          # check the next command
+          if @command.scheduled_time <= Time.now or command.scheduled_time == nil
+
+            # if a valid command is found and the scheduled time has arrived, execute command
+            execute_command
+          else
+
+            wait_for_scheduled_time
+          end
+        else
+
+          wait_for_next_command
+        end
+      rescue Exception => e
+        puts("Error in controller\n#{e.message}\n#{e.backtrace.inspect}")
+        @bot_dbaccess.write_to_log(1,"Error in controller\n#{e.message}\n#{e.backtrace.inspect}")
+      end
+    end
+  end
+
+  def startup_farmbot
+
     $status.info_status = 'starting'
     puts 'OK'
  
@@ -41,163 +81,97 @@ class Controller
     @bot_dbaccess.write_to_log(1,'Controller running')
     check = @bot_dbaccess.check_refresh
 
-    while $shutdown == 0 do
+  end
 
-      begin
+  def get_next_command
 
-        # keep checking the database for new data
+    if $status.emergency_stop == false
+      $status.info_status = 'checking schedule'
+      #show_info()
 
-        if $status.emergency_stop == false
+      @command = @bot_dbaccess.get_command_to_execute
+      @bot_dbaccess.save_refresh
 
-          $status.info_status = 'checking schedule'
-          #show_info()
+    end
+  end
 
-          command = @bot_dbaccess.get_command_to_execute
-          @bot_dbaccess.save_refresh
+  def execute_command
 
-        end
+    # execute the command now and set the status to done
+    $status.info_status = 'executing command'
+    #show_info()
 
-        if command != nil and $status.emergency_stop == false
+    $status.info_nr_of_commands = $status.info_nr_of_commands + 1
 
-          $status.info_command_next = command.scheduled_time
+    process_command( @command )
+    @bot_dbaccess.set_command_to_execute_status('FINISHED')
+    $status.info_command_last = Time.now
+    $status.info_command_next = nil
 
-          if command.scheduled_time <= Time.now or command.scheduled_time == nil
+  end
 
-            # execute the command now and set the status to done
-            $status.info_status = 'executing command'
-            #show_info()
+  def wait_for_scheduled_time
 
-            $status.info_nr_of_commands = $status.info_nr_of_commands + 1
+    $status.info_status = 'waiting for scheduled time or refresh'
 
-            process_command( command )
-            @bot_dbaccess.set_command_to_execute_status('FINISHED')
-            $status.info_command_last = Time.now
-            $status.info_command_next = nil
+    refresh_received = false
 
-          else
+    wait_start_time = Time.now
 
-            $status.info_status = 'waiting for scheduled time or refresh'
+    # wait until the scheduled time has arrived, or wait for a minute or 
+    #until a refresh it set in the database as a sign new data has arrived
 
-            refresh_received = false
+    while Time.now < wait_start_time + 60 and @command.scheduled_time > Time.now - 1 and refresh_received == false
 
-            wait_start_time = Time.now
+      sleep 0.2
+      check_hardware()
+      refresh_received = check_refresh or @db_access.check_refresh
 
-            # wait until the scheduled time has arrived, or wait for a minute or 
-            #until a refresh it set in the database as a sign new data has arrived
+    end
+  end
 
-            while Time.now < wait_start_time + 60 and command.scheduled_time > Time.now - 1 and refresh_received == false
+  def wait_for_next_command
 
-              sleep 0.2
+    if $status.emergency_stop == false
 
-              check_hardware()
+      $status.info_status = 'emergency stop'
+      sleep 0.5
+      check_hardware()
 
-              refresh_received = @bot_dbaccess.check_refresh
+    else
 
-            end
+      $status.info_status = 'no command found, waiting'
 
-          end
+      @info_command_next = nil
 
-        else
+      refresh_received = false
+      wait_start_time = Time.now
 
-          if $status.emergency_stop == false
+      # wait for a minute or until a refresh it set in the database as a sign
+      # new data has arrived
 
-            $status.info_status = 'emergency stop'
-            sleep 0.5
-            check_hardware()
+      while  Time.now < wait_start_time + 60 and refresh_received == false
 
-          else
+        sleep 0.2
 
-            $status.info_status = 'no command found, waiting'
+        check_hardware()
 
-            @info_command_next = nil
+        refresh_received = check_refresh or @bot_dbaccess.check_refresh
 
-            refresh_received = false
-            wait_start_time = Time.now
-
-            # wait for a minute or until a refresh it set in the database as a sign
-            # new data has arrived
-
-            while  Time.now < wait_start_time + 60 and refresh_received == false
-
-              sleep 0.2
-
-              check_hardware()
-
-              refresh_received = @bot_dbaccess.check_refresh
-
-            end
-          end
-        end
-      rescue Exception => e
-        puts("Error in controller\n#{e.message}\n#{e.backtrace.inspect}")
-        @bot_dbaccess.write_to_log(1,"Error in controller\n#{e.message}\n#{e.backtrace.inspect}")
       end
     end
   end
 
   def process_command( cmd )
 
-    if cmd != nil
-      cmd.command_lines.each do |command_line|
-        $status.info_movement = "#{command_line.action.downcase} xyz=#{command_line.coord_x} #{command_line.coord_y} #{command_line.coord_z} amt=#{command_line.amount} spd=#{command_line.speed}"
-        @bot_dbaccess.write_to_log(1,@info_movement)
-
-        if $hardware_sim == 0
-          case command_line.action.upcase
-            when "MOVE ABSOLUTE"
-              $bot_hardware.move_absolute(command_line.coord_x, command_line.coord_y, command_line.coord_z)
-            when "MOVE RELATIVE"
-              $bot_hardware.move_relative(command_line.coord_x, command_line.coord_y, command_line.coord_z)
-            when "HOME X"
-              $bot_hardware.move_home_x
-            when "HOME Y"
-              $bot_hardware.move_home_y
-            when "HOME Z"
-              $bot_hardware.move_home_z
-
-            when "CALIBRATE X"
-              $bot_hardware.calibrate_x
-            when "CALIBRATE Y"
-              $bot_hardware.calibrate_y
-            when "CALIBRATE Z"
-              $bot_hardware.calibrate_z
-
-            when "DOSE WATER"
-              #$bot_hardware.dose_water(command_line.amount)
-            when "SET SPEED"
-              $bot_hardware.set_speed(command_line.speed)
-            when "PIN WRITE"
-              $bot_hardware.pin_std_set_value(command_line.pin_nr, command_line.pin_value_1, command_line.pin_mode)
-            when "PIN READ"
-              $bot_hardware.pin_std_read_value(command_line.pin_nr, command_line.pin_mode, command_line.external_info)
-            when "PIN MODE"
-              $bot_hardware.pin_std_set_mode(command_line.pin_nr, command_line.pin_mode)
-            when "PIN PULSE"
-              $bot_hardware.pin_std_pulse(command_line.pin_nr, command_line.pin_value_1, 
-                command_line.pin_value_2, command_line.pin_time, command_line.pin_mode)
-
-            when "SERVO MOVE"
-              $bot_hardware.servo_std_move(command_line.pin_nr, command_line.pin_value_1)
-
-          end
-
-          read_hw_status()
-
-        else
-          @bot_dbaccess.write_to_log(1,'>simulating hardware<')
-
-          sleep 2
-        end
-      end
-    else
-      sleep 0.1
-    end
-
+    @cmd_proc.process_command(cmd)
+    read_hw_status()
     $status.info_movement = 'idle'
 
   end
 
   def check_hardware()
+
     if (Time.now - @last_hw_check) > 0.5
       $bot_hardware.check_parameters
       $bot_hardware.read_end_stops()
@@ -255,6 +229,16 @@ class Controller
         print '/'
       end
     end
+  end
+
+  def check_refresh
+    if $status.command_refresh != @cmd_last_refresh
+      refreshed = true
+      @cmd_last_refresh = $status.command_refresh
+    else
+      refreshed = false;
+    end
+    refreshed
   end
 
 end
