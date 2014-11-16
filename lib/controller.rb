@@ -60,14 +60,14 @@ class Controller
     print 'arduino         '
     sleep 1
     $bot_hardware.read_device_version()
-    puts  $bot_hardware.device_version
+    puts  $status.device_version
 
     $status.info_status = 'synchronizing arduino parameters'
     print 'parameters      '
     $bot_hardware.check_parameters    
     $bot_hardware.check_parameters
 
-    if $bot_hardware.params_in_sync
+    if $bot_hardware.ramps_param.params_in_sync
       puts 'OK'
     else
       puts 'ERROR'
