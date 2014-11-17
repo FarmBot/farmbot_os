@@ -24,8 +24,11 @@ class HardwareInterface
     # create the sub processing objects
     @ramps_param   = HardwareInterfaceParam.new
     @ramps_arduino = HardwareInterfaceArduino.new
+
     @ramps_arduino.ramps_param = @ramps_param
     @ramps_arduino.ramps_main  = self
+    @ramps_param.ramps_arduino = @ramps_arduino
+    @ramps_param.ramps_main    = self
 
     @external_info = ""
 
@@ -150,19 +153,15 @@ class HardwareInterface
   #
   def move_absolute( coord_x, coord_y, coord_z)
 
-    # calculate the number of steps for the motors to do
-
     $status.info_target_x = coord_x
     $status.info_target_y = coord_y
     $status.info_target_z = coord_z
 
-    steps_x = coord_x * @axis_x_steps_per_unit
-    steps_y = coord_y * @axis_y_steps_per_unit
-    steps_z = coord_z * @axis_z_steps_per_unit
+    # calculate the number of steps for the motors to do
 
-    @axis_x_pos = steps_x
-    @axis_y_pos = steps_y
-    @axis_z_pos = steps_z
+    steps_x = coord_x * @ramps_param.axis_x_steps_per_unit
+    steps_y = coord_y * @ramps_param.axis_y_steps_per_unit
+    steps_z = coord_z * @ramps_param.axis_z_steps_per_unit
 
     move_to_coord(steps_x, steps_y, steps_z )
 
@@ -174,17 +173,13 @@ class HardwareInterface
 
     # calculate the number of steps for the motors to do
 
-    $status.info_target_x = @axis_x_pos_conv + amount_x
-    $status.info_target_y = @axis_y_pos_conv + amount_y
-    $status.info_target_z = @axis_z_pos_conv + amount_z
+    $status.info_target_x = $status.info_current_x + amount_x
+    $status.info_target_y = $status.info_current_y + amount_y
+    $status.info_target_z = $status.info_current_z + amount_z
 
-    steps_x = amount_x * @axis_x_steps_per_unit + @axis_x_pos
-    steps_y = amount_y * @axis_y_steps_per_unit + @axis_y_pos
-    steps_z = amount_z * @axis_z_steps_per_unit + @axis_z_pos
-
-    @axis_x_pos = steps_x
-    @axis_y_pos = steps_y
-    @axis_z_pos = steps_z
+    steps_x = amount_x * @ramps_param.axis_x_steps_per_unit + $status.info_current_x_steps
+    steps_y = amount_y * @ramps_param.axis_y_steps_per_unit + $status.info_current_y_steps
+    steps_z = amount_z * @ramps_param.axis_z_steps_per_unit + $status.info_current_z_steps
 
     move_to_coord( steps_x, steps_y, steps_z )
 
@@ -193,85 +188,19 @@ class HardwareInterface
   # drive the motors so the bot is moved a number of steps
   #
   def move_steps(steps_x, steps_y, steps_z)
-    execute_command("G00 X#{steps_x} Y#{steps_y} Z#{steps_z}")
+    @ramps_arduino.execute_command("G00 X#{steps_x} Y#{steps_y} Z#{steps_z}")
   end
 
   # drive the motors so the bot is moved to a set location
   #
   def move_to_coord(steps_x, steps_y, steps_z)
-    execute_command("G00 X#{steps_x} Y#{steps_y} Z#{steps_z}", true, false)
+    @ramps_arduino.execute_command("G00 X#{steps_x} Y#{steps_y} Z#{steps_z}", true, false)
   end
-
 
   ## parameter hanlding
 
-  # check to see of parameters in arduino are up to date
-  #
   def check_parameters
-
-    # read the parameter version in the database and in the device 
-    read_parameter_from_device(0)
-    @ramps_param.params.each do |p|
-      if p['id'] == 0
-        @param_version_ar = p['value_ar']
-      end
-    end
-
-    @param_version_db = @bot_dbaccess.read_parameter_with_default('PARAM_VERSION', 0)
-
-    # if the parameters in the device is different from the database parameter version
-    # read and compare each parameter and write to device is different
-    if @param_version_db != @param_version_ar
-      @ramps_param.load_param_values_non_arduino()
-      differences_found_total = false
-      @ramps_param.params.each do |p|
-        if p['id'] > 0
-          difference = check_and_write_parameter(p)
-          if difference then
-            @params_in_sync = false
-            differences_found_total = true
-          end
-        end
-      end
-      if !differences_found_total
-        @params_in_sync = true
-        write_parameter_to_device(0, @param_version_db)
-      else
-        @params_in_sync = false
-      end
-    end
-  end
-
-  # synchronise a parameter value
-  #
-  def check_and_write_parameter(param)
-
-     # read value from device and database
-     read_parameter_from_device(param['id'])
-     param['value_db'] = @bot_dbaccess.read_parameter_with_default(param['name'], 0)
-
-     differences_found = false
-
-     # if the parameter value between device and database is different, write value to device
-     if param['value_db'] != param ['value_ar']
-       differences_found = true
-       write_parameter_to_device(param['id'],param['value_db'])
-     end
-
-    return differences_found
-
-  end
-
-  # read a parameter from arduino
-  #
-  def read_parameter_from_device(id)
-    @ramps_arduino.execute_command("F21 P#{id}", false, false)
-  end
-
-  # write a parameter value to arduino
-  #
-  def write_parameter_to_device(id, value)
-    @ramps_arduino.execute_command("F22 P#{id} V#{value}", false, false)
+     @ramps_param.check_parameters()
   end
 
 end

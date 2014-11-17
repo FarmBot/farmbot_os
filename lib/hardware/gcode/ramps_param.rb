@@ -9,8 +9,11 @@
 
 class HardwareInterfaceParam
 
-   attr_reader :param_version_db,      :param_version_ar,      :params_in_sync, :params
-   attr_reader :axis_x_steps_per_unit, :axis_y_steps_per_unit, :axis_z_steps_per_unit
+  attr_reader   :params
+  attr_reader   :param_version_db,      :param_version_ar,      :params_in_sync
+  attr_reader   :axis_x_steps_per_unit, :axis_y_steps_per_unit, :axis_z_steps_per_unit
+  attr_accessor :ramps_arduino,         :ramps_main
+
 
   # initialize the interface
   #
@@ -186,10 +189,74 @@ class HardwareInterfaceParam
     @bot_dbaccess.write_parameter(param['name'],value)
   end
 
-  # save a pin measurement
+
+  # check to see of parameters in arduino are up to date
   #
-  def save_pin_value(pin_id, pin_val)
-    @bot_dbaccess.write_measuements(pin_val, @external_info)
+  def check_parameters
+
+    # read the parameter version in the database and in the device
+    read_parameter_from_device(0)
+    params.each do |p|
+      if p['id'] == 0
+        @param_version_ar = p['value_ar']
+      end
+    end
+
+    @param_version_db = @bot_dbaccess.read_parameter_with_default('PARAM_VERSION', 0)
+
+    # if the parameters in the device is different from the database parameter version
+    # read and compare each parameter and write to device is different
+    if @param_version_db != @param_version_ar
+      load_param_values_non_arduino()
+      differences_found_total = false
+      params.each do |p|
+        if p['id'] > 0
+          difference = check_and_write_parameter(p)
+          if difference then
+            @params_in_sync = false
+            differences_found_total = true
+          end
+        end
+      end
+      if !differences_found_total
+        @params_in_sync = true
+        write_parameter_to_device(0, @param_version_db)
+      else
+        @params_in_sync = false
+      end
+    end
+  end
+
+  # synchronise a parameter value
+  #
+  def check_and_write_parameter(param)
+
+     # read value from device and database
+     read_parameter_from_device(param['id'])
+     param['value_db'] = @bot_dbaccess.read_parameter_with_default(param['name'], 0)
+
+     differences_found = false
+
+     # if the parameter value between device and database is different, write value to device
+     if param['value_db'] != param ['value_ar']
+       differences_found = true
+       write_parameter_to_device(param['id'],param['value_db'])
+     end
+
+    return differences_found
+
+  end
+
+  # read a parameter from arduino
+  #
+  def read_parameter_from_device(id)
+    @ramps_arduino.execute_command("F21 P#{id}", false, false)
+  end
+
+  # write a parameter value to arduino
+  #
+  def write_parameter_to_device(id, value)
+    @ramps_arduino.execute_command("F22 P#{id} V#{value}", false, false)
   end
 
 end

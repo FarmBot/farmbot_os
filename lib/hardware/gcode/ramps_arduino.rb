@@ -228,7 +228,7 @@ class HardwareInterfaceArduino
       end
 
       if pin_id >= 0
-        @ramps_param.save_pin_value(pin_id, pin_val)
+        save_pin_value(pin_id, pin_val)
       end
 
     # Report end stops
@@ -284,6 +284,14 @@ class HardwareInterfaceArduino
       puts ">#{text}<"
 
     end
+  end
+
+  ## additional pin function
+
+  # save a pin measurement
+  #
+  def save_pin_value(pin_id, pin_val)
+    @bot_dbaccess.write_measuements(pin_val, @external_info)
   end
 
 end
