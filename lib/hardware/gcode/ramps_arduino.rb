@@ -152,138 +152,117 @@ class HardwareInterfaceArduino
   #
   def process_value(code,text)
 
+    p  = -1
+    v  = 0
+    x  = 0
+    y  = 0
+    z  = 0
+    xa = 0
+    xb = 0
+    ya = 0
+    yb = 0
+    za = 0
+    zb = 0
+
+
+    # get all separate parameters from the text
+    text.split(' ').each do |param|
+
+      par_code  = param[0..0].to_s
+      par_value = param[1..-1].to_i
+
+        case par_code
+        when 'P'
+          p = par_value
+        when 'V'
+          v = par_value
+        when 'XA'
+          xa = par_value
+        when 'XB'
+          xb = par_value
+        when 'YA'
+          ya = par_value
+        when 'YB'
+          yb = par_value
+        when 'ZA'
+          za = par_value
+        when 'ZB'
+          zb = par_value
+        when 'X'
+          x = par_value
+        when 'Y'
+          y = par_value
+        when 'Z'
+          z = par_value
+        end
+
+    end
+
 
     # depending on the report code, process the values
     # this is done by reading parameter names and their values
     # and respong on it as needed 
 
-    case code     
+    if p >= 0
 
-    # Report parameter value
-    when 'R21'
-      ard_par_id  = -1
-      ard_par_val = 0
+      case code     
 
-      text.split(' ').each do |param|
+        # Report parameter value
+        when 'R21'
 
-        par_code  = param[0..0].to_s
-        par_value = param[1..-1].to_i
+          param = @ramps_param.get_param_by_id(p)
+          if param != nil
+            param['value_ar'] = v
+          end
 
-        case par_code
-        when 'P'
-          ard_par_id  = par_value
-        when 'V'
-          ard_par_val = par_value
-        end
+        # Report parameter value and save to database
+        when 'R23'
+
+          param = @ramps_param.get_param_by_id(p)
+          if param != nil
+            save_param_value(p, :by_id, :from_db, v)
+          end
+
+        # Report pin values
+        when 'R41'
+          save_pin_value(p, v)
+
       end
+    end
 
-      if ard_par_id >= 0
-        param = @ramps_param.get_param_by_id(ard_par_id)
-        if param != nil
-          param['value_ar'] = ard_par_val
-        end
-      end
+    case code
 
-    # Report parameter value and save to database
-    when 'R23'
-      ard_par_id  = -1
-      ard_par_val = 0
+      # Report end stops
+      when 'R81'
+        $status.info_end_stop_x_a = (xa == "1")
+        $status.info_end_stop_x_b = (xb == "1")
+        $status.info_end_stop_y_a = (ya == "1")
+        $status.info_end_stop_y_b = (yb == "1")
+        $status.info_end_stop_z_a = (za == "1")
+        $status.info_end_stop_z_b = (zb == "1")
 
-      text.split(' ').each do |param|
+      # Report position
+      when 'R82'      
 
-        par_code  = param[0..0].to_s
-        par_value = param[1..-1].to_i
+        $status.info_current_x_steps = x
+        $status.info_current_x       = x / @ramps_param.axis_x_steps_per_unit
 
-        case par_code
-        when 'P'
-          ard_par_id  = par_value
-        when 'V'
-          ard_par_val = par_value
-        end
-      end
+        $status.info_current_y_steps = y
+        $status.info_current_y       = y / @ramps_param.axis_y_steps_per_unit
 
-      if ard_par_id >= 0
-        param = @ramps_param.get_param_by_id(ard_par_id)
-        if param != nil
-          save_param_value(ard_par_id, :by_id, :from_db, ard_par_val)
-        end
-      end
+        $status.info_current_z_steps = z
+        $status.info_current_z       = z / @ramps_param.axis_z_steps_per_unit
 
-    # Report pin values
-    when 'R41'
-      pin_id  = -1
-      pin_val = 0
+      # Report software version
+      when 'R83'
+        $status.device_version = text
 
-      text.split(' ').each do |param|
-
-        par_code  = param[0..0].to_s
-        par_value = param[1..-1].to_i
-
-        case par_code
-        when 'P'
-          pin_id  = par_value
-        when 'V'
-          pin_val = par_value
-        end
-      end
-
-      if pin_id >= 0
-        save_pin_value(pin_id, pin_val)
-      end
-
-    # Report end stops
-    when 'R81'
-      text.split(' ').each do |param|
-
-        par_code  = param[0..1].to_s
-        par_value = param[2..-1].to_s
-        end_stop_active = (par_value == "1")
-
-        case par_code
-        when 'XA'
-          $status.info_end_stop_x_a = end_stop_active
-        when 'XB'
-          $status.info_end_stop_x_b = end_stop_active
-        when 'YA'
-          $status.info_end_stop_y_a = end_stop_active
-        when 'YB'
-          $status.info_end_stop_y_b = end_stop_active
-        when 'ZA'
-          $status.info_end_stop_z_a = end_stop_active
-        when 'ZB'
-          $status.info_end_stop_z_b = end_stop_active
-        end
-      end
-
-    # Report position
-    when 'R82'      
-      text.split(' ').each do |param|
-
-        par_code  = param[0..0].to_s
-        par_value = param[1..-1].to_i
-
-        case par_code
-        when 'X'
-          $status.info_current_x_steps = par_value
-          $status.info_current_x       = par_value / @ramps_param.axis_x_steps_per_unit
-        when 'Y'
-          $status.info_current_y_steps = par_value
-          $status.info_current_y       = par_value / @ramps_param.axis_y_steps_per_unit
-        when 'Z'
-          $status.info_current_z_steps = par_value
-          $status.info_current_z       = par_value / @ramps_param.axis_z_steps_per_unit
-        end      
-      end
-
-    # Report software version
-    when 'R83'
-      $status.device_version = text
-
-    # Send a comment
-    when 'R99'
-      puts ">#{text}<"
+      # Send a comment
+      when 'R99'
+        puts ">#{text}<"
 
     end
+
   end
 
   ## additional pin function
