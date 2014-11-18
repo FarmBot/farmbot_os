@@ -45,7 +45,7 @@ class DbAccess
   #
   def write_parameter(name, value)
     param = Parameter.find_or_create_by(name: name)
-    
+
     if value.class.to_s == "Fixnum"
       param.valueint    = value.to_i
       param.valuetype   = 1
@@ -93,7 +93,7 @@ class DbAccess
   # read parameter list
   #
   def read_parameter_list()
-    params = Parameter.find(:all)    
+    params = Parameter.find(:all)
     param_list = Array.new
 
     params.each do |param|
@@ -101,7 +101,7 @@ class DbAccess
       value = param.valuefloat  if param.valuetype == 2
       value = param.valuestring if param.valuetype == 3
       value = param.valuebool   if param.valuetype == 4
-      item = 
+      item =
       {
         'name'  => param.name,
         'type'  => param.valuetype,
@@ -187,6 +187,7 @@ class DbAccess
   #
   def write_to_log(module_id,text)
     log           = Log.new
+    puts "[LOG] #{text}"
     log.text      = text
     log.module_id = module_id
     log.save
