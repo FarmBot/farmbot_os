@@ -144,11 +144,13 @@ class DbAccess
 
   # write a single measurement
   #
-  def write_measuements(value, external_info)
+  def write_measurements(value, external_info)
     meas               = Measurement.new
     meas.value         = value
     meas.external_info = external_info
-    meas.save
+    $db_write_sync.synchronize do
+      meas.save
+    end
   end
 
   # read measurement list
@@ -177,7 +179,9 @@ class DbAccess
     if Measurement.exists?(id)
       #meas = Measurement.where("measurement_id = (?)", id).first
       meas = Measurement.find(id)
-      meas.delete
+      $db_write_sync.synchronize do
+        meas.delete
+      end
     end
   end
 
@@ -189,11 +193,13 @@ class DbAccess
     log           = Log.new
     log.text      = text
     log.module_id = module_id
-    log.save
+    $db_write_sync.synchronize do
+      log.save
+    end
 
     # clean up old logs
-    $db_write_sync.synchronize do
-      Log.where("created_at < (?)", 2.days.ago).find_each do |log|
+    Log.where("created_at < (?)", 2.days.ago).find_each do |log|
+      $db_write_sync.synchronize do
         log.delete
       end
     end
@@ -219,7 +225,9 @@ class DbAccess
     @new_command.scheduled_time = scheduled_time
     @new_command.crop_id = crop_id
     @new_command.status = 'creating'
-    @new_command.save
+    $db_write_sync.synchronize do
+      @new_command.save
+    end
   end
 
   def add_command_line(action, x = 0, y = 0, z = 0, speed = 0, amount = 0, pin_nr = 0, value1 = 0, value2 = 0, mode = 0, time = 0, external_info = "")
@@ -256,16 +264,16 @@ class DbAccess
   end
 
   def clear_schedule
-    $db_write_sync.synchronize do
-      Command.where("status = ? AND scheduled_time IS NOT NULL",'scheduled').find_each do |cmd|
+    Command.where("status = ? AND scheduled_time IS NOT NULL",'scheduled').find_each do |cmd|
+      $db_write_sync.synchronize do
         cmd.delete
       end
     end
   end
 
   def clear_crop_schedule(crop_id)
-    $db_write_sync.synchronize do
-      Command.where("status = ? AND scheduled_time IS NOT NULL AND crop_id = ?",'scheduled',crop_id).find_each do |cmd|
+    Command.where("status = ? AND scheduled_time IS NOT NULL AND crop_id = ?",'scheduled',crop_id).find_each do |cmd|
+      $db_write_sync.synchronize do
         cmd.delete
       end
     end
