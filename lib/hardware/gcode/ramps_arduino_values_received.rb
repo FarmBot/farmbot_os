@@ -2,7 +2,7 @@ class HardwareInterfaceArduinoValuesReceived
 
   attr_accessor :p , :v
   attr_accessor :x , :y , :z
-  attr_accessor :xa, :xb, 
+  attr_accessor :xa, :xb
   attr_accessor :ya, :yb
   attr_accessor :za, :zb
 

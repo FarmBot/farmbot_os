@@ -7,6 +7,8 @@
 
 require 'serialport'
 
+require_relative 'ramps_arduino_values_received.rb'
+
 class HardwareInterfaceArduino
 
   attr_accessor :ramps_param, :ramps_main
@@ -152,18 +154,21 @@ class HardwareInterfaceArduino
   #
   def process_value(code,text)
 
-    p  = -1
-    v  = 0
-    x  = 0
-    y  = 0
-    z  = 0
-    xa = 0
-    xb = 0
-    ya = 0
-    yb = 0
-    za = 0
-    zb = 0
+    params = HardwareInterfaceArduinoValuesReceived.new
 
+    process_value_split(params, text)
+
+    # depending on the report code, process the values
+    # this is done by reading parameter names and their values
+    # and respong on it as needed 
+
+    process_value_process_param_list(params,code)
+    process_value_process_named_params(params,code)
+    process_value_process_text(code,text)
+
+  end
+
+  def process_value_split(params, text)
 
     # get all separate parameters from the text
     text.split(' ').each do |param|
@@ -173,85 +178,93 @@ class HardwareInterfaceArduino
 
         case par_code
         when 'P'
-          p = par_value
+          params.p = par_value
         when 'V'
-          v = par_value
+          params.v = par_value
         when 'XA'
-          xa = par_value
+          params.xa = par_value
         when 'XB'
-          xb = par_value
+          params.xb = par_value
         when 'YA'
-          ya = par_value
+          params.ya = par_value
         when 'YB'
-          yb = par_value
+          params.yb = par_value
         when 'ZA'
-          za = par_value
+          params.za = par_value
         when 'ZB'
-          zb = par_value
+          params.zb = par_value
         when 'X'
-          x = par_value
+          params.x  = par_value
         when 'Y'
-          y = par_value
+          params.y  = par_value
         when 'Z'
-          z = par_value
+          params.z  = par_value
         end
 
     end
+    
+  end
 
+  def process_value_process_param_list(params,code)
 
-    # depending on the report code, process the values
-    # this is done by reading parameter names and their values
-    # and respong on it as needed 
-
-    if p >= 0
+    if params.p >= 0
 
       case code     
 
         # Report parameter value
         when 'R21'
 
-          param = @ramps_param.get_param_by_id(p)
+          param = @ramps_param.get_param_by_id(params.p)
           if param != nil
-            param['value_ar'] = v
+            param['value_ar'] = params.v
           end
 
         # Report parameter value and save to database
         when 'R23'
 
-          param = @ramps_param.get_param_by_id(p)
+          param = @ramps_param.get_param_by_id(params.p)
           if param != nil
-            save_param_value(p, :by_id, :from_db, v)
+            save_param_value(params.p, :by_id, :from_db, params.v)
           end
 
         # Report pin values
         when 'R41'
-          save_pin_value(p, v)
+          save_pin_value(params.p, params.v)
 
       end
     end
+  end
 
+
+  def process_value_process_named_params(params,code)
     case code
 
       # Report end stops
       when 'R81'
-        $status.info_end_stop_x_a = (xa == "1")
-        $status.info_end_stop_x_b = (xb == "1")
-        $status.info_end_stop_y_a = (ya == "1")
-        $status.info_end_stop_y_b = (yb == "1")
-        $status.info_end_stop_z_a = (za == "1")
-        $status.info_end_stop_z_b = (zb == "1")
+        $status.info_end_stop_x_a = (params.xa == "1")
+        $status.info_end_stop_x_b = (params.xb == "1")
+        $status.info_end_stop_y_a = (params.ya == "1")
+        $status.info_end_stop_y_b = (params.yb == "1")
+        $status.info_end_stop_z_a = (params.za == "1")
+        $status.info_end_stop_z_b = (params.zb == "1")
 
       # Report position
       when 'R82'      
 
-        $status.info_current_x_steps = x
-        $status.info_current_x       = x / @ramps_param.axis_x_steps_per_unit
+        $status.info_current_x_steps = params.x
+        $status.info_current_x       = params.x / @ramps_param.axis_x_steps_per_unit
 
-        $status.info_current_y_steps = y
-        $status.info_current_y       = y / @ramps_param.axis_y_steps_per_unit
+        $status.info_current_y_steps = params.y
+        $status.info_current_y       = params.y / @ramps_param.axis_y_steps_per_unit
 
-        $status.info_current_z_steps = z
-        $status.info_current_z       = z / @ramps_param.axis_z_steps_per_unit
+        $status.info_current_z_steps = params.z
+        $status.info_current_z       = params.z / @ramps_param.axis_z_steps_per_unit
+
+    end
+  end
+
+  def process_value_process_text(code,text)
+    case code
 
       # Report software version
       when 'R83'
@@ -260,10 +273,8 @@ class HardwareInterfaceArduino
       # Send a comment
       when 'R99'
         puts ">#{text}<"
-
     end
-
-  end
+  end  
 
   ## additional pin function
 
