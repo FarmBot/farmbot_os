@@ -25,14 +25,11 @@ class MessageHandlerBase
   #
   def handle_message(message)
 
-    handled = false
-
     if whitelist.include?(message.message_type)
       self.send(message.message_type,message)
-      handled = true
+      message.handled = true
     end
 
-    handled
   end
 
 end
