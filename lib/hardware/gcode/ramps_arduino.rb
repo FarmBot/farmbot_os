@@ -206,72 +206,90 @@ class HardwareInterfaceArduino
   end
 
   def process_value_process_param_list(params,code)
-
     if params.p >= 0
+      process_value_R21(params,code)
+      process_value_R23(params,code)
+      process_value_R41(params,code)
 
-      case code     
-
-        # Report parameter value
-        when 'R21'
-
-          param = @ramps_param.get_param_by_id(params.p)
-          if param != nil
-            param['value_ar'] = params.v
-          end
-
-        # Report parameter value and save to database
-        when 'R23'
-
-          param = @ramps_param.get_param_by_id(params.p)
-          if param != nil
-            save_param_value(params.p, :by_id, :from_db, params.v)
-          end
-
-        # Report pin values
-        when 'R41'
-          save_pin_value(params.p, params.v)
-
-      end
     end
   end
 
 
+  def process_value_R21(params,code)
+    # Report parameter value
+    if code == 'R21'
+      param = @ramps_param.get_param_by_id(params.p)
+      if param != nil
+        param['value_ar'] = params.v
+      end
+    end
+  end
+
+  def process_value_R23(params,code)
+    # Report parameter value and save to database
+    if code == 'R23'
+      param = @ramps_param.get_param_by_id(params.p)
+      if param != nil
+        save_param_value(params.p, :by_id, :from_db, params.v)
+      end
+    end
+  end
+
+  def process_value_R41(params,code)
+    # Report pin values
+    if code == 'R41'
+      save_pin_value(params.p, params.v)
+    end
+  end
+
   def process_value_process_named_params(params,code)
-    case code
+    process_value_R81(params,code)
+    process_value_R82(params,code)
+  end
 
-      # Report end stops
-      when 'R81'
-        $status.info_end_stop_x_a = (params.xa == "1")
-        $status.info_end_stop_x_b = (params.xb == "1")
-        $status.info_end_stop_y_a = (params.ya == "1")
-        $status.info_end_stop_y_b = (params.yb == "1")
-        $status.info_end_stop_z_a = (params.za == "1")
-        $status.info_end_stop_z_b = (params.zb == "1")
+  def process_value_R81(params,code)
+    # Report end stops
+    if code == 'R81'      
+      $status.info_end_stop_x_a = (params.xa == "1")
+      $status.info_end_stop_x_b = (params.xb == "1")
+      $status.info_end_stop_y_a = (params.ya == "1")
+      $status.info_end_stop_y_b = (params.yb == "1")
+      $status.info_end_stop_z_a = (params.za == "1")
+      $status.info_end_stop_z_b = (params.zb == "1")
+    end
+  end
 
-      # Report position
-      when 'R82'      
+  def process_value_R82(params,code)
+    # Report position
+    if code == 'R82'      
 
-        $status.info_current_x_steps = params.x
-        $status.info_current_x       = params.x / @ramps_param.axis_x_steps_per_unit
+      $status.info_current_x_steps = params.x
+      $status.info_current_x       = params.x / @ramps_param.axis_x_steps_per_unit
 
-        $status.info_current_y_steps = params.y
-        $status.info_current_y       = params.y / @ramps_param.axis_y_steps_per_unit
+      $status.info_current_y_steps = params.y
+      $status.info_current_y       = params.y / @ramps_param.axis_y_steps_per_unit
 
-        $status.info_current_z_steps = params.z
-        $status.info_current_z       = params.z / @ramps_param.axis_z_steps_per_unit
+      $status.info_current_z_steps = params.z
+      $status.info_current_z       = params.z / @ramps_param.axis_z_steps_per_unit
 
     end
   end
 
   def process_value_process_text(code,text)
-    case code
+    process_value_process_R83(code,text)
+    process_value_process_R99(code,text)
+  end  
 
-      # Report software version
-      when 'R83'
+  def process_value_process_R83(code,text)
+    # Report software version
+    if code == 'R83'
         $status.device_version = text
+    end
+  end  
 
-      # Send a comment
-      when 'R99'
+  def process_value_process_R99(code,text)
+    # Send a comment
+    if code == 'R99'
         puts ">#{text}<"
     end
   end  
