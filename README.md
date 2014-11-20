@@ -24,7 +24,7 @@ Update the RPi, install ruby, firmate and the arduino IDE
 sudo apt-get update
 sudo apt-get install git-core
 sudo apt-get install ruby-dev
-sudo apt-get install sqlite3-dev
+sudo apt-get install sqlite3
 sudo apt-get install arduino
 sudo apt-get install bundler
 ```
