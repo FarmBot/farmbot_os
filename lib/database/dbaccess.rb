@@ -46,22 +46,7 @@ class DbAccess
   def write_parameter(name, value)
     param = Parameter.find_or_create_by(name: name)
     
-    if value.class.to_s == "Fixnum"
-      param.valueint    = value.to_i
-      param.valuetype   = 1
-    end
-    if value.class.to_s == "Float"
-      param.valuefloat  = value.to_f
-      param.valuetype   = 2
-    end
-    if value.class.to_s == "String"
-      param.valuestring = value.to_s
-      param.valuetype   = 3
-    end
-    if value.class.to_s == "TrueClass" or value.class.to_s == "FalseClass"
-      param.valuebool   = value
-      param.valuetype   = 4
-    end
+    fill_parameter_values(param, value)
 
     $db_write_sync.synchronize do
       param.save
@@ -69,6 +54,42 @@ class DbAccess
     increment_parameters_version()
 
   end
+
+  def fill_parameter_values(  param, value)
+    fill_parameter_if_fixnum( param, value)
+    fill_parameter_if_float(  param, value)
+    fill_parameter_if_string( param, value)
+    fill_parameter_if_bool(   param, value)
+  end
+
+  def fill_parameter_if_fixnum(param, value)
+    if value.class.to_s == "Fixnum"
+      param.valueint    = value.to_i
+      param.valuetype   = 1
+    end
+  end
+
+  def fill_parameter_if_float(param, value)
+    if value.class.to_s == "Float"
+      param.valuefloat  = value.to_f
+      param.valuetype   = 2
+    end
+  end
+
+  def fill_parameter_if_string(param, value)
+    if value.class.to_s == "String"
+      param.valuestring = value.to_s
+      param.valuetype   = 3
+    end
+  end
+
+  def fill_parameter_if_bool(param, value)
+    if value.class.to_s == "TrueClass" or value.class.to_s == "FalseClass"
+      param.valuebool   = value
+      param.valuetype   = 4
+    end
+  end
+
 
   # write a parameter with type provided
   #
