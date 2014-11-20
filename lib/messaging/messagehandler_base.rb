@@ -24,7 +24,7 @@ class MessageHandlerBase
   # Handle the message received from skynet
   #
   def handle_message(message)
-
+    puts message
     handled = false
 
     if whitelist.include?(message.message_type)
