@@ -23,4 +23,32 @@ class HardwareInterfaceArduinoValuesReceived
 
   end
 
+  def load_parameter(name, value)
+
+    case name
+      when 'P'
+        @p  = value
+      when 'V'
+        @v  = value
+      when 'XA'
+        @xa = value
+      when 'XB'
+        @xb = value
+      when 'YA'
+        @ya = value
+      when 'YB'
+        @yb = value
+      when 'ZA'
+        @za = value
+      when 'ZB'
+        @zb = value
+      when 'X'
+        @x  = value
+      when 'Y'
+        @y  = value
+      when 'Z'
+        @z  = value
+    end
+  end
+
 end

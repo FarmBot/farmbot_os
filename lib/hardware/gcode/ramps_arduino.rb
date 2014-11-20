@@ -176,30 +176,7 @@ class HardwareInterfaceArduino
       par_code  = param[0..0].to_s
       par_value = param[1..-1].to_i
 
-        case par_code
-        when 'P'
-          params.p = par_value
-        when 'V'
-          params.v = par_value
-        when 'XA'
-          params.xa = par_value
-        when 'XB'
-          params.xb = par_value
-        when 'YA'
-          params.ya = par_value
-        when 'YB'
-          params.yb = par_value
-        when 'ZA'
-          params.za = par_value
-        when 'ZB'
-          params.zb = par_value
-        when 'X'
-          params.x  = par_value
-        when 'Y'
-          params.y  = par_value
-        when 'Z'
-          params.z  = par_value
-        end
+      params.load_parameter(par_code, par_value)
 
     end
     
