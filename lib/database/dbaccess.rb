@@ -259,24 +259,37 @@ class DbAccess
   def add_command_line(action, x = 0, y = 0, z = 0, speed = 0, amount = 0, pin_nr = 0, value1 = 0, value2 = 0, mode = 0, time = 0, external_info = "")
     if @new_command != nil
       line = CommandLine.new
-      line.action = action
-      line.coord_x       = x
-      line.coord_y       = y
-      line.coord_z       = z
-      line.speed         = speed
-      line.amount        = amount
-      line.command_id    = @new_command.id
-      line.pin_nr        = pin_nr
-      line.pin_value_1   = value1
-      line.pin_value_2   = value2
-      line.pin_mode      = mode
-      line.pin_time      = time
-      line.external_info = external_info
+      fill_in_command_line_coordinates(line, action, x, y, z, speed)
+      fill_in_command_line_pins(line, pin_nr, value1, value2, mode, time)
+      fill_in_command_line_extra(line, amount, external_info = "")
       $db_write_sync.synchronize do
         line.save
       end
     end
   end
+
+  def fill_in_command_line_coordinates(line, action, x, y, z, speed)
+    line.action        = action
+    line.coord_x       = x
+    line.coord_y       = y
+    line.coord_z       = z
+    line.speed         = speed
+  end
+
+  def fill_in_command_line_pins(line, pin_nr, value1, value2, mode, time)
+    line.pin_nr        = pin_nr
+    line.pin_value_1   = value1
+    line.pin_value_2   = value2
+    line.pin_mode      = mode
+    line.pin_time      = time
+  end
+
+  def fill_in_command_line_extra(line, amount = 0, external_info = "")
+    line.command_id    = @new_command.id
+    line.amount        = amount
+    line.external_info = external_info
+  end
+
 
   def save_new_command
     if @new_command != nil
