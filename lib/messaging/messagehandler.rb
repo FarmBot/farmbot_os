@@ -33,12 +33,6 @@ class MessageHandler
 
   end
 
-#  # A list of MessageHandler methods (as strings) that a Skynet User may access.
-#  #
-#  def whitelist
-#    ["single_command","crop_schedule_update","read_parameters","write_parameters","read_logs","read_status","read_measurements","delete_measurements", "emergency_stop","emergency_stop_reset"]
-#  end
-
   # Handle the message received from skynet
   #
   def handle_message(message)
