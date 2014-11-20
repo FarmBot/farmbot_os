@@ -118,15 +118,12 @@ class DbAccess
     param_list = Array.new
 
     params.each do |param|
-      value = param.valueint    if param.valuetype == 1
-      value = param.valuefloat  if param.valuetype == 2
-      value = param.valuestring if param.valuetype == 3
-      value = param.valuebool   if param.valuetype == 4
+      #value = get_value_from_param(param)
       item = 
       {
         'name'  => param.name,
         'type'  => param.valuetype,
-        'value' => value
+        'value' => get_value_from_param(param)
       }
       param_list << item
     end
@@ -134,17 +131,25 @@ class DbAccess
     param_list
   end
 
+  def get_value_from_param(param)
+    value = param.valueint    if param.valuetype == 1
+    value = param.valuefloat  if param.valuetype == 2
+    value = param.valuestring if param.valuetype == 3
+    value = param.valuebool   if param.valuetype == 4
+    return value
+  end
+
   # read parameter
   #
   def read_parameter(name)
     param = Parameter.find_or_create_by(name: name)
-
-    type = param.valuetype
-    value = param.valueint    if type == 1
-    value = param.valuefloat  if type == 2
-    value = param.valuestring if type == 3
-    value = param.valuebool   if type == 4
-    value
+    get_value_from_param(param)
+    #type = param.valuetype
+    #value = param.valueint    if type == 1
+    #value = param.valuefloat  if type == 2
+    #value = param.valuestring if type == 3
+    #value = param.valuebool   if type == 4
+    #value
   end
 
   # read parameter
