@@ -31,7 +31,7 @@ class DbAccessCommands
     end
   end
 
-  def add_command_line(action, x = 0, y = 0, z = 0, speed = 0, amount = 0, pin_nr = 0, value1 = 0, value2 = 0, mode = 0, time = 0, external_info = "")
+  def add_command_line(action, x, y, z, speed, amount, pin_nr, value1, value2, mode, time, external_info)
     if @new_command != nil
       line = CommandLine.new
       fill_in_command_line_coordinates(line, action, x, y, z, speed)
