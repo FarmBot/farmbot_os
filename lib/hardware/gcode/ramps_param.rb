@@ -202,7 +202,12 @@ class HardwareInterfaceParam
   # check to see of parameters in arduino are up to date
   #
   def check_parameters
+    update_param_version_ar()
+    @param_version_db = @bot_dbaccess.read_parameter_with_default('PARAM_VERSION', 0)
+    compare_and_sync_parameters()
+  end
 
+  def update_param_version_ar
     # read the parameter version in the database and in the device
     read_parameter_from_device(0)
     params.each do |p|
@@ -210,30 +215,36 @@ class HardwareInterfaceParam
         @param_version_ar = p['value_ar']
       end
     end
+  end
 
-    @param_version_db = @bot_dbaccess.read_parameter_with_default('PARAM_VERSION', 0)
-
+  def compare_and_write_parameters
     # if the parameters in the device is different from the database parameter version
     # read and compare each parameter and write to device is different
     if @param_version_db != @param_version_ar
+
       load_param_values_non_arduino()
-      differences_found_total = false
-      params.each do |p|
-        if p['id'] > 0
-          difference = check_and_write_parameter(p)
-          if difference then
-            @params_in_sync = false
-            differences_found_total = true
-          end
-        end
-      end
-      if !differences_found_total
+
+      if !parameters_different()
         @params_in_sync = true
         write_parameter_to_device(0, @param_version_db)
       else
         @params_in_sync = false
       end
     end
+  end
+
+  def parameters_different
+    differences_found_total = false
+    params.each do |p|
+      if p['id'] > 0
+        difference = check_and_write_parameter(p)
+        if difference then
+          @params_in_sync = false
+          differences_found_total = true
+        end
+      end
+    end
+    differences_found_total
   end
 
   # synchronise a parameter value
