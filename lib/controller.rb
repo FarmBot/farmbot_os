@@ -28,27 +28,31 @@ class Controller
 
         # keep checking the database for new data
         get_next_command
+        check_and_execute_command
 
-        if @command != nil and $status.emergency_stop == false
-          $status.info_command_next = @command.scheduled_time
-
-          # check the next command
-          if @command.scheduled_time <= Time.now or command.scheduled_time == nil
-
-            # if a valid command is found and the scheduled time has arrived, execute command
-            execute_command
-          else
-
-            wait_for_scheduled_time
-          end
-        else
-
-          wait_for_next_command
-        end
       rescue Exception => e
         puts("Error in controller\n#{e.message}\n#{e.backtrace.inspect}")
         @bot_dbaccess.write_to_log(1,"Error in controller\n#{e.message}\n#{e.backtrace.inspect}")
       end
+    end
+  end
+
+  def check_and_execute_command
+    if @command != nil and $status.emergency_stop == false
+      $status.info_command_next = @command.scheduled_time
+      check_command_execution_time
+    else
+      wait_for_next_command
+    end
+  end
+
+  def check_command_execution_time
+    # check the next command
+    if @command.scheduled_time <= Time.now or command.scheduled_time == nil
+      # if a valid command is found and the scheduled time has arrived, execute command
+      execute_command
+    else
+      wait_for_scheduled_time
     end
   end
 
