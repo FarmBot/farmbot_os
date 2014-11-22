@@ -76,11 +76,12 @@ class HardwareInterfaceArduino
     end
   end
 
-  def create_write_status(text, log, oscreen)
+  def create_write_status(text, log, onscreen)
     write_status = HardwareInterfaceArduinoWriteStatus.new
     write_status.text     = text
     write_status.log      = log
     write_status.onscreen = onscreen
+    write_status
   end
 
   def handle_execution_exception(e)
@@ -131,7 +132,7 @@ class HardwareInterfaceArduino
 
       end
     else
-      write_status.received + = c
+      write_status.received = write_status.received + c
     end
   end
 
@@ -158,7 +159,7 @@ class HardwareInterfaceArduino
 
       # specific feedback that is processes seperately
       else
-        process_value(write_status.code,write_staus.params)
+        process_value(write_status.code,write_status.params)
     end
 
     write_status.received = ''

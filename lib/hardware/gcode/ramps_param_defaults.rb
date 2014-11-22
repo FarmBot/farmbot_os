@@ -130,7 +130,7 @@ $arduino_default_params = [
                               :value => 5
                             },
                             {
-                              :name  => 'PARAM_VERSION',
+                              :name  => 'MOVEMENT_STEPS_PER_UNIT_Y',
                               :id    => 902,
                               :value => 5
                             },

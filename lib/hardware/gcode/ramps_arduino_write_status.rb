@@ -8,6 +8,7 @@ class HardwareInterfaceArduinoWriteStatus
   attr_accessor :onscreen
   attr_accessor :text
   attr_accessor :params
+  attr_accessor :timeout
 
   def initialize
     @done     = 0

@@ -31,7 +31,7 @@ class ControllerCommandProc
     if $hardware_sim == 0
       function = command_line.action.downcase.sub(' ','_')
       puts function
-      send(function, command_line))
+      send(function, command_line)
     else
       @bot_dbaccess.write_to_log(1,'>simulating hardware<')
       sleep 2
