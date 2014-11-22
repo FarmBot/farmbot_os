@@ -8,7 +8,7 @@
 # Description:       <DESCRIPTION>
 ### END INIT INFO
 
-SCRIPT=/home/pi/farmbot-raspberry-pi-controller/./farmbot
+SCRIPT=/home/pi/farmbot-raspberry-pi-controller/init.d/./start
 RUNAS=pi
 
 PIDFILE=/var/run/farmbot.pid

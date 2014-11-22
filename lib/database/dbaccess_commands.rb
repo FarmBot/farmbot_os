@@ -2,8 +2,9 @@ require 'bson'
 require 'sqlite3'
 require 'active_record'
 
-require './app/models/command.rb'
-require './app/models/command_line.rb'
+require_relative '../../app/models/command.rb' 
+require_relative '../../app/models/command_line.rb'
+
 
 # retrieving and inserting commands into the schedule queue for the farm bot
 # using sqlite

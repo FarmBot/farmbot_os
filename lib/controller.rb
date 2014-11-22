@@ -43,6 +43,11 @@ class Controller
           end
         else
 
+$bot_hardware.pin_std_set_value(13, 1, 0)
+sleep 0.5
+$bot_hardware.pin_std_set_value(13, 0, 0)
+sleep 0.5
+
           wait_for_next_command
         end
       rescue Exception => e
