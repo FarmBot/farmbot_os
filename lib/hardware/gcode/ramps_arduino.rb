@@ -8,6 +8,7 @@
 require 'serialport'
 
 require_relative 'ramps_arduino_values_received.rb'
+require_relative 'ramps_arduino_write_status.rb'
 
 class HardwareInterfaceArduino
 
@@ -55,99 +56,133 @@ class HardwareInterfaceArduino
   #
   def execute_command( text , log, onscreen)
 
-    begin
+    begin  
 
-      # write the command to the arduino
-      puts "WR: #{text}" if onscreen
-      @bot_dbaccess.write_to_log(4, "WR: #{text}") if log
-      @serial_port.read_timeout = 2
-      @serial_port.write( "#{text} \n" )    
-
-      done     = 0
-      r        = ''
-      received = ''
-      start    = Time.now
-      timeout  = 5
+      write_status = create_write_status(text, log, onscreen)
+      prepare_serial_port(write_status)
 
       # wait until the arduino responds
-      while(Time.now - start < timeout and done == 0)
+      while(write_status.is_finished())
 
-        # if there is an emergency stop, immediately write it to the arduino
-        if ($status.emergency_stop)
-          @serial_port.write( "E\n" )
-        end
+        check_emergency_stop
+        process_feedback(write_status)
 
-        # check for incoming data
-        i = @serial_port.read(1)
-        if i != nil
-          i.each_char do |c|
-            if c == "\r" or c == "\n"
-              if r.length >= 3
-
-                # some data received
-                puts "RD: #{r}" if onscreen
-                @bot_dbaccess.write_to_log(4,"RD: #{r}") if log
-
-                # get the parameter and data part
-                c = r[0..2].upcase
-                t = r[3..-1].to_s.upcase.strip
-
-                # process the feedback
-                case c
-
-                  # command received by arduino
-                  when 'R01'                        
-                    timeout = 90
-
-                  # command is finished
-                  when 'R02'
-                    done = 1
-
-                  # command is finished with errors
-                  when 'R03'
-                    done = 1
-
-                  # command is still ongoing
-                  when 'R04'
-                    start = Time.now
-                    timeout = 90
-
-                  # specific feedback that is processes seperately
-                  else
-                    process_value(c,t)
-                end
-                r = ''
-              end
-            else
-              r = r + c
-            end
-          end
-        else
-         sleep 0.001
-        end
       end
 
-      # log things if needed
-      if done == 1
-        puts 'ST: done' if onscreen
-        @bot_dbaccess.write_to_log(4, 'ST: done') if log
-      else
-        puts 'ST: timeout'
-        @bot_dbaccess.write_to_log(4, 'ST: timeout')
-
-        sleep 5
-      end
+      log_result_of_execution(write_status)
 
     rescue Exception => e
-        puts("ST: serial error\n#{e.message}\n#{e.backtrace.inspect}")
-        @bot_dbaccess.write_to_log(4,"ST: serial error\n#{e.message}\n#{e.backtrace.inspect}")
+      handle_execution_exception(e)
+    end
+  end
 
-        @serial_port.rts = 1
-        connect_board
+  def create_write_status(text, log, oscreen)
+    write_status = HardwareInterfaceArduinoWriteStatus.new
+    write_status.text     = text
+    write_status.log      = log
+    write_status.onscreen = onscreen
+  end
 
-        sleep 5
+  def handle_execution_exception(e)
+    puts("ST: serial error\n#{e.message}\n#{e.backtrace.inspect}")
+    @bot_dbaccess.write_to_log(4,"ST: serial error\n#{e.message}\n#{e.backtrace.inspect}")
+    @serial_port.rts = 1
+    connect_board
+    sleep 5
+  end
+
+  def log_result_of_execution(write_status)
+ 
+    # log things if needed
+    if write_status.done == 1
+      puts 'ST: done' if write_status.onscreen
+      @bot_dbaccess.write_to_log(4, 'ST: done') if write_status.log
+    else
+      puts 'ST: timeout'
+      @bot_dbaccess.write_to_log(4, 'ST: timeout')
+
+      sleep 5
+    end
+  end
+
+  def process_feedback(write_status)
+
+    # check for incoming data
+    i = @serial_port.read(1)
+    if i != nil
+      i.each_char do |c|
+   
+        add_and_process_characters(write_status, c)
+
+      end
+    else
+      sleep 0.001
+    end
+  end
+
+  def add_and_process_characters(write_status, c)
+
+    if c == "\r" or c == "\n"
+      if write_status.received.length >= 3
+
+        log_incoming_text(write_status)
+        write_status.split_received
+        process_code_and_params(write_status)
+
+      end
+    else
+      write_status.received + = c
+    end
+  end
+
+  def process_code_and_params(write_status)
+    # process the feedback
+    case write_status.code
+
+      # command received by arduino
+      when 'R01'                        
+        write_status.timeout = 90
+
+      # command is finished
+      when 'R02'
+        write_status.done = 1
+
+      # command is finished with errors
+      when 'R03'
+        write_status.done = 1
+
+      # command is still ongoing
+      when 'R04'
+        write_status.start = Time.now
+        write_status.timeout = 90
+
+      # specific feedback that is processes seperately
+      else
+        process_value(write_status.code,write_staus.params)
     end
 
+    write_status.received = ''
+
+  end
+
+  def prepare_serial_port(write_status)
+    puts "WR: #{write_status.text}" if write_status.onscreen
+    @bot_dbaccess.write_to_log(4, "WR: #{write_status.text}") if write_status.log
+    @serial_port.read_timeout = 2
+    @serial_port.write( "#{write_status.text} \n" )    
+  end
+
+  def check_emergency_stop    
+    # if there is an emergency stop, immediately write it to the arduino
+    if ($status.emergency_stop)
+     @serial_port.write( "E\n" )
+    end
+  end
+
+  def log_incoming_text(write_status)
+    # some data received
+    puts "RD: #{write_status.received}" if write_status.onscreen
+    @bot_dbaccess.write_to_log(4,"RD: #{write_status.received}") if write_status.log
   end
 
   # process values received from arduino
