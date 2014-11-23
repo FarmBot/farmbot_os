@@ -22,7 +22,7 @@ class HardwareInterfaceArduinoWriteStatus
     @timeout  = 5
   end
 
-  def is_finished
+  def is_busy
     Time.now - @start < @timeout and @done == 0
   end
 

@@ -194,13 +194,14 @@ class HardwareInterfaceParam
     if @param_version_db != @param_version_ar
 
       load_param_values_non_arduino()
-
       if !parameters_different()
         @params_in_sync = true
         write_parameter_to_device(0, @param_version_db)
       else
         @params_in_sync = false
       end
+    else
+      @params_in_sync = true
     end
   end
 
