@@ -8,7 +8,6 @@ class TestCredentials < Minitest::Test
   end
 
   def test_create_credentials_test_test
-    binding.pry
     assert_equal true, false
   end
 end
