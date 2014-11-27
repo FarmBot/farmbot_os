@@ -73,12 +73,12 @@ class MessageHandler
           handler.handle_message( message_obj )
         end
       end
-      
+
       if message_obj.handled == false
         @dbaccess.write_to_log(2,'message could not be handled')
         send_error(sender, '', 'message could not be handled')
       end
-    
+
     rescue Exception => e
       err_snd = true
       err_msg = e.message
