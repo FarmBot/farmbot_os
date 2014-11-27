@@ -13,3 +13,8 @@ gem 'socket.io-client-simple'
 gem 'serialport'
 gem 'polyglot'
 gem 'httparty'
+
+
+# Dev / Test stuff
+# TODO : Setup dev / test / production env.
+gem 'pry'

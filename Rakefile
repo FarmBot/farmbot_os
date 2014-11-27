@@ -1,4 +1,5 @@
 require 'active_record_migrations'
+require 'rake/testtask'
 
 ActiveRecordMigrations.configure do |c|
   c.database_configuration = {
@@ -6,7 +7,7 @@ ActiveRecordMigrations.configure do |c|
                       'database' => 'db/db.sqlite3'},
   }
   # Other settings:
-  #c.schema_format = :sql # default is :ruby
+  # c.schema_format = :sql # default is :ruby
   # c.yaml_config = 'db/config.yml'
   # c.environment = ENV['db']
   # c.db_dir = 'db'
@@ -15,3 +16,11 @@ ActiveRecordMigrations.configure do |c|
 end
 
 ActiveRecordMigrations.load_tasks
+
+Rake::TestTask.new do |t|
+  t.libs << 'test'
+  t.test_files = Dir.glob('test/**/*_test.rb')
+end
+
+desc "Run tests"
+task :default => :test
