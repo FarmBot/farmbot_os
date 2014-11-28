@@ -21,10 +21,10 @@ class MessageHandlerSchedule < MessageHandlerBase
     if message.payload.has_key? 'command' 
 
       command = message.payload['command']
-      command_obj = new MessageHandlerScheduleCmdLine.new
-      command_obj.spit_command_line( message.payload['command'])
+      command_obj = MessageHandlerScheduleCmdLine.new
+      command_obj.split_command_line( message.payload['command'])
       command_obj.write_to_log()
-      save_single_command(command_obj)
+      save_single_command(command_obj, message.delay)
       $status.command_refresh += 1;
       message.handler.send_confirmation(message.sender, message.time_stamp)
 
@@ -36,7 +36,7 @@ class MessageHandlerSchedule < MessageHandlerBase
 
   end
 
-  def save_single_command(command)
+  def save_single_command(command, delay)
       @dbaccess.create_new_command(Time.now + delay.to_i,'single_command')
       save_command_line(command)
       @dbaccess.save_new_command

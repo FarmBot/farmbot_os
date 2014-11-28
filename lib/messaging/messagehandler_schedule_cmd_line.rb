@@ -1,3 +1,5 @@
+require './lib/database/dbaccess.rb'
+
 # Get the JSON command, received through skynet, and send it to the farmbot
 # command queue Parses JSON messages received through SkyNet.
 class MessageHandlerScheduleCmdLine
@@ -18,6 +20,11 @@ class MessageHandlerScheduleCmdLine
   attr_accessor       :pin_time
   attr_accessor       :ext_info
 
+  def initialize
+    @dbaccess = $bot_dbaccess
+  end
+
+
   def split_command_line(command)
     @delay      = (command.has_key? 'delay' ) ? command['delay'   ] : 0
     @action     = (command.has_key? 'action') ? command['action'  ] : 'NOP'
@@ -36,10 +43,10 @@ class MessageHandlerScheduleCmdLine
     @ext_info   = (command.has_key? 'info'  ) ? command['info'    ] : 0
   end
 
-  def log_command_line
-      $dbaccess.write_to_log(2,"[#{@action}] x: #{@x}, y: #{@y}, z: #{@z}, speed: #{@speed}, amount: #{@amount} delay: #{@delay}")
-      $dbaccess.write_to_log(2,"[#{@action}] pin_nr: #{@pin_nr}, value1: #{@pin_value1}, value2: #{@pin_value2}, mode: #{@pin_mode}")
-      $dbaccess.write_to_log(2,"[#{@action}] ext_info: #{@ext_info}")
+  def write_to_log
+      @dbaccess.write_to_log(2,"[#{@action}] x: #{@x}, y: #{@y}, z: #{@z}, speed: #{@speed}, amount: #{@amount} delay: #{@delay}")
+      @dbaccess.write_to_log(2,"[#{@action}] pin_nr: #{@pin_nr}, value1: #{@pin_value1}, value2: #{@pin_value2}, mode: #{@pin_mode}")
+      @dbaccess.write_to_log(2,"[#{@action}] ext_info: #{@ext_info}")
   end
 
 end

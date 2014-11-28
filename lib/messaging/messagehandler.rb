@@ -66,7 +66,7 @@ class MessageHandler
 
     # in case of an error, send error message as a reply
     begin
-      handle_message_error(err_snd, sender, err_msg, err_trc)
+      handle_message_error(err_snd, sender, time_stamp, err_msg, err_trc)
     rescue  Exception => e
       puts "Error while sending error message: #{e.message}"
     end
@@ -78,7 +78,7 @@ class MessageHandler
     return {error: ""}
   end
 
-  def handle_message_error(err_snd, sender, err_msg, err_trc)
+  def handle_message_error(err_snd, sender, time_stamp, err_msg, err_trc)
     if err_snd == true
       if sender != ""
         send_error(sender, time_stamp, " #{err_msg} @ #{err_trc}")
@@ -130,7 +130,7 @@ class MessageHandler
     message_obj.handled         = false
   end
 
-  def log_message_obj_info(message_obh)
+  def log_message_obj_info(message_obj)
     @dbaccess.write_to_log(2,"sender       = #{message_obj.sender}"       )
     @dbaccess.write_to_log(2,"message_type = #{message_obj.message_type}" )
     @dbaccess.write_to_log(2,"time stamp   = #{message_obj.time_stamp}"   )

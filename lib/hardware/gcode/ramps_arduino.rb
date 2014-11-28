@@ -341,7 +341,7 @@ class HardwareInterfaceArduino
   # save a pin measurement
   #
   def save_pin_value(pin_id, pin_val)
-    @bot_dbaccess.write_measuements(pin_val, @external_info)
+    @bot_dbaccess.write_measurements(pin_val, @external_info)
   end
 
 end

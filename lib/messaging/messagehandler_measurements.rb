@@ -25,11 +25,11 @@ class MessageHandlerMeasurement < MessageHandlerBase
       {
         :message_type => 'read_measurements_response',
         :time_stamp   => Time.now.to_f.to_s,
-        :confirm_id   => time_stamp,
+        :confirm_id   => message.time_stamp,
         :measurements => measurements_list
       }
 
-    message.hander.send_message(sender, return_message)
+    message.handler.send_message(message.sender, return_message)
 
   end
 
@@ -47,14 +47,7 @@ class MessageHandlerMeasurement < MessageHandlerBase
       end
     end
 
-    command =
-      {
-        :message_type => 'confirmation',
-        :time_stamp   => Time.now.to_f.to_s,
-        :confirm_id   => time_stamp
-      }
-
-    message.handler.send_message(sender, command)
+    message.handler.send_confirmation(message.sender, message.time_stamp)
   end
 
 end

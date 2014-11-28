@@ -136,7 +136,7 @@ class Controller
 
   def wait_for_next_command
 
-    if $status.emergency_stop == false
+    if $status.emergency_stop == true
 
       $status.info_status = 'emergency stop'
       sleep 0.5
@@ -156,7 +156,7 @@ class Controller
 
       while  Time.now < wait_start_time + 60 and refresh_received == false
 
-        sleep 0.2
+        sleep 0.1
 
         check_hardware()
 
