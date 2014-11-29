@@ -47,37 +47,16 @@ class MessageHandler
     # Check if all needed variables are in the message, and send it to the processing function
     begin
 
-      requested_command = ''
+      #requested_command = ''
 
       @dbaccess.write_to_log(3,message.to_s)
-
-      # retrieve all basic varables from the message and put it into the message object
-
       sender = (message.has_key? 'fromUuid'  ) ? message['fromUuid']        : ''
+      message_obj = MessageHandlerMessage.new
 
-      message_obj                 = MessageHandlerMessage.new
-      message_obj.sender          = sender
-      message_obj.payload         = (message.has_key? 'payload' ) ? message['payload'] : '{}'
-      message_obj.message_type    = (message_obj.payload.has_key? 'message_type' ) ? message_obj.payload['message_type'].to_s.downcase  : ''
-      message_obj.time_stamp      = (message_obj.payload.has_key? 'time_stamp'   ) ? message_obj.payload['time_stamp']                  : nil
-      message_obj.handler         = self
-      message_obj.handled         = false
-
-      @dbaccess.write_to_log(2,"sender       = #{message_obj.sender}"       )
-      @dbaccess.write_to_log(2,"message_type = #{message_obj.message_type}" )
-      @dbaccess.write_to_log(2,"time stamp   = #{message_obj.time_stamp}"   )
-
-      # loop trough all the handlers until one handler does process the message
-      @message_handlers.each do |handler|
-        if message_obj.handled == false
-          handler.handle_message( message_obj )
-        end
-      end
-
-      if message_obj.handled == false
-        @dbaccess.write_to_log(2,'message could not be handled')
-        send_error(sender, '', 'message could not be handled')
-      end
+      split_message(message, message_obj)
+      log_message_obj_info(message_obj)
+      send_message_obj_to_individual_handlers(message_obj)
+      check_if_message_handled(message_obj)
 
     rescue Exception => e
       err_snd = true
@@ -87,22 +66,25 @@ class MessageHandler
 
     # in case of an error, send error message as a reply
     begin
-      if err_snd == true
-        if sender != ""
-          send_error(sender, time_stamp, " #{err_msg} @ #{err_trc}")
-          @dbaccess.write_to_log(2,"Error in message handler.\nError #{err_msg} @ #{err_trc}")
-        end
-      end
+      handle_message_error(err_snd, sender, time_stamp, err_msg, err_trc)
     rescue  Exception => e
       puts "Error while sending error message: #{e.message}"
     end
-
   end
 
   # Handles an error (typically, an unauthorized or unknown message). Returns
   # Hash.
   def error
     return {error: ""}
+  end
+
+  def handle_message_error(err_snd, sender, time_stamp, err_msg, err_trc)
+    if err_snd == true
+      if sender != ""
+        send_error(sender, time_stamp, " #{err_msg} @ #{err_trc}")
+        @dbaccess.write_to_log(2,"Error in message handler.\nError #{err_msg} @ #{err_trc}")
+      end
+    end
   end
 
   # send a reply to the back end system
@@ -139,4 +121,36 @@ class MessageHandler
     $messaging.send_message(destination, command)
   end
 
+  def split_message(message, message_obj)
+    message_obj.sender          = (message.has_key? 'fromUuid'  ) ? message['fromUuid']  : ''
+    message_obj.payload         = (message.has_key? 'payload'   ) ? message['payload']   : '{}'
+    message_obj.message_type    = (message_obj.payload.has_key? 'message_type' ) ? message_obj.payload['message_type'].to_s.downcase  : ''
+    message_obj.time_stamp      = (message_obj.payload.has_key? 'time_stamp'   ) ? message_obj.payload['time_stamp']                  : nil
+    message_obj.handler         = self
+    message_obj.handled         = false
+  end
+
+  def log_message_obj_info(message_obj)
+    @dbaccess.write_to_log(2,"sender       = #{message_obj.sender}"       )
+    @dbaccess.write_to_log(2,"message_type = #{message_obj.message_type}" )
+    @dbaccess.write_to_log(2,"time stamp   = #{message_obj.time_stamp}"   )
+  end
+
+  def send_message_obj_to_individual_handlers(message_obj)
+    # loop trough all the handlers until one handler does process the message
+    @message_handlers.each do |handler|
+      if message_obj.handled == false
+        handler.handle_message( message_obj )
+      end
+    end     
+  end
+
+  def check_if_message_handled(message_obj)
+    if message_obj.handled == false
+      @dbaccess.write_to_log(2,'message could not be handled')
+      send_error(sender, '', 'message could not be handled')
+    end
+  end
+
 end
+
