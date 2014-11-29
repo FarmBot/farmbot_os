@@ -7,6 +7,8 @@
 
 #require 'serialport'
 
+require_relative 'ramps_param_defaults.rb'
+
 class HardwareInterfaceParam
 
   attr_reader   :params
@@ -70,38 +72,16 @@ class HardwareInterfaceParam
     end
   end
 
+  def load_param_defaults
+    @param_json = ''
+  end
+
   # load the id's of the arduino parameters
   #
   def load_param_names
-    param_name_add('PARAM_VERSION'                ,  0,    0)
-    param_name_add('MOVEMENT_TIMEOUT_X'           , 11,   15)
-    param_name_add('MOVEMENT_TIMEOUT_Y'           , 12,   15)
-    param_name_add('MOVEMENT_TIMEOUT_Z'           , 13,   15)
-    param_name_add('MOVEMENT_INVERT_ENDPOINTS_X'  , 21,    0)
-    param_name_add('MOVEMENT_INVERT_ENDPOINTS_Y'  , 22,    0)
-    param_name_add('MOVEMENT_INVERT_ENDPOINTS_Z'  , 23,    0)
-    param_name_add('MOVEMENT_INVERT_MOTOR_X'      , 31,    0)
-    param_name_add('MOVEMENT_INVERT_MOTOR_Y'      , 32,    0)
-    param_name_add('MOVEMENT_INVERT_MOTOR_Z'      , 33,    0)
-    param_name_add('MOVEMENT_STEPS_ACC_DEC_X'     , 41,  100)
-    param_name_add('MOVEMENT_STEPS_ACC_DEC_Y'     , 42,  100)
-    param_name_add('MOVEMENT_STEPS_ACC_DEC_Z'     , 43,  100)
-    param_name_add('MOVEMENT_HOME_UP_X'           , 51,    0)
-    param_name_add('MOVEMENT_HOME_UP_Y'           , 52,    0)
-    param_name_add('MOVEMENT_HOME_UP_Z'           , 53,    0)
-    param_name_add('MOVEMENT_MIN_SPD_X'           , 61,  200)
-    param_name_add('MOVEMENT_MIN_SPD_Y'           , 62,  200)
-    param_name_add('MOVEMENT_MIN_SPD_Z'           , 63,  200)
-    param_name_add('MOVEMENT_MAX_SPD_X'           , 71, 1000)
-    param_name_add('MOVEMENT_MAX_SPD_Y'           , 72, 1000)
-    param_name_add('MOVEMENT_MAX_SPD_Z'           , 73, 1000)
-    param_name_add('MOVEMENT_LENGTH_X'            ,801, 1000)
-    param_name_add('MOVEMENT_LENGTH_Y'            ,802, 1000)
-    param_name_add('MOVEMENT_LENGTH_Z'            ,803, 1000)
-    param_name_add('MOVEMENT_STEPS_PER_UNIT_X'    ,901,    5)
-    param_name_add('MOVEMENT_STEPS_PER_UNIT_Y'    ,902,    5)
-    param_name_add('MOVEMENT_STEPS_PER_UNIT_Z'    ,903,    5)
-
+    $arduino_default_params.each do |p|
+       param_name_add(p[:name], p[:id], p[:value])
+    end
   end
 
   # add a parameter to the param list
@@ -193,7 +173,12 @@ class HardwareInterfaceParam
   # check to see of parameters in arduino are up to date
   #
   def check_parameters
+    update_param_version_ar()
+    @param_version_db = @bot_dbaccess.read_parameter_with_default('PARAM_VERSION', 0)
+    compare_and_write_parameters()
+  end
 
+  def update_param_version_ar
     # read the parameter version in the database and in the device
     read_parameter_from_device(0)
     params.each do |p|
@@ -201,30 +186,37 @@ class HardwareInterfaceParam
         @param_version_ar = p['value_ar']
       end
     end
+  end
 
-    @param_version_db = @bot_dbaccess.read_parameter_with_default('PARAM_VERSION', 0)
-
+  def compare_and_write_parameters
     # if the parameters in the device is different from the database parameter version
     # read and compare each parameter and write to device is different
     if @param_version_db != @param_version_ar
+
       load_param_values_non_arduino()
-      differences_found_total = false
-      params.each do |p|
-        if p['id'] > 0
-          difference = check_and_write_parameter(p)
-          if difference then
-            @params_in_sync = false
-            differences_found_total = true
-          end
-        end
-      end
-      if !differences_found_total
+      if !parameters_different()
         @params_in_sync = true
         write_parameter_to_device(0, @param_version_db)
       else
         @params_in_sync = false
       end
+    else
+      @params_in_sync = true
     end
+  end
+
+  def parameters_different
+    differences_found_total = false
+    params.each do |p|
+      if p['id'] > 0
+        difference = check_and_write_parameter(p)
+        if difference then
+          @params_in_sync = false
+          differences_found_total = true
+        end
+      end
+    end
+    differences_found_total
   end
 
   # synchronise a parameter value
