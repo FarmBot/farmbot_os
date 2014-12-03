@@ -8,7 +8,11 @@ class ControllerCommandProc
   end
 
   def whitelist
-    ['MOVE ABSOLUTE','MOVE RELATIVE','HOME X','HOME Y','HOME Z','CALIBRATE X','CALIBRATE Y','CALIBRATE Z','DOSE WATER','SET SPEED','PIN WRITE','PIN READ','PIN MODE','PIN PULSE','SERVO MOVE']
+    ['move_absolute','move_relative','home_x','home_y','home_z','calibrate_x','calibrate_y','calibrate_z','dose_water','set_speed','pin_write','pin_read','pin_mode','pin_pulse','servo_move']
+  end
+
+  def check_whitelist(function)
+    raise "UNAUTHORIZED" unless whitelist.include?(function.upcase)
   end
 
   def process_command( cmd )
@@ -30,7 +34,8 @@ class ControllerCommandProc
   def send_command(command_line)
     if $hardware_sim == 0
       function = command_line.action.downcase.sub(' ','_')
-      puts function
+      #puts function
+      check_whitelist(function)
       send(function, command_line)
     else
       @bot_dbaccess.write_to_log(1,'>simulating hardware<')

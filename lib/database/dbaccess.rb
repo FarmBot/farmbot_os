@@ -15,9 +15,9 @@ require_relative 'dbaccess_measurements.rb'
 
 class DbAccess
 
-  def initialize
+  def initialize(environemnt)
     config = YAML::load(File.open('./config/database.yml'))
-    ActiveRecord::Base.establish_connection(config["development"])
+    ActiveRecord::Base.establish_connection(config[environment])
 
     @commands     = DbAccessCommands.new
     @refreshes    = DbAccessRefreshes.new

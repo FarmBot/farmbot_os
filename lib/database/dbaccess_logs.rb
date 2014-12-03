@@ -21,9 +21,13 @@ class DbAccessLogs
   # write a line to the log
   #
   def write_to_log(module_id,text)
+
+    puts "[LOG] #{text}"
+
     log           = Log.new
     log.text      = text
     log.module_id = module_id
+
     $db_write_sync.synchronize do
       log.save
     end

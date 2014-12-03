@@ -84,17 +84,30 @@ z       |decimal|same as x
 speed   |string |speed for movements, as text. for example 'traveling', 'manouvering'
 amount  |decimal|amount of mililiter of water to dose. always add parameter with default value
 delay   |decimal|amount in seconds to delay the execution of a command
+pin_nr    |decimal|the number of the pin to change or pin for servo, using arduino numbering
+pin_value1|decimal|the value for the pin, for servo movement the angle
+pin_value2|decimal|when using a pulse, this is the value for the second flank of the pulse
+pin_mode  |decimal|for setting the I/O mode, 0 is input, 1 is output. For reading and writing, 0 is digital and 1 is analog
+pin_time  |decimal||the time im seconds for a pulse
+
+
 
 actions and parameters used:
 
-action       |x      |y      |z      |speed|amount|delay
--------------|-------|-------|-------|-----|------|-----
-MOVE RELATIVE|X      |X      |X      |X    |      |X    
-MOVE ABSOLUTE|X      |X      |X      |X    |      |X
-DOSE WATER   |       |       |       |     |X     |X
-HOME X       |       |       |       |X    |      |X
-HOME Y       |       |       |       |X    |      |X
-HOME Z       |       |       |       |X    |      |X
+action       |x      |y      |z      |speed|amount|delay|pin_nr|pin_value1|pin_value2|pin_mode|pin_time
+-------------|-------|-------|-------|-----|------|-----|------|----------|----------|--------|--------
+MOVE RELATIVE|X      |X      |X      |X    |      |X    |      |          |          |        |
+MOVE ABSOLUTE|X      |X      |X      |X    |      |X    |      |          |          |        |
+DOSE WATER   |       |       |       |     |X     |X    |      |          |          |        |
+HOME X       |       |       |       |X    |      |X    |      |          |          |        |
+HOME Y       |       |       |       |X    |      |X    |      |          |          |        |
+HOME Z       |       |       |       |X    |      |X    |      |          |          |        |
+PIN WRITE    |       |       |       |     |      |X    |X     |X         |          |X       |
+PIN READ     |       |       |       |     |      |X    |X     |          |          |X       |
+PIN MODE     |       |       |       |     |      |X    |X     |          |          |X       |
+PIN PULSE    |       |       |       |     |      |X    |X     |X         |X         |X       |X
+SERVO MOVE   |       |       |       |     |      |X    |X     |X         |          |        |
+
 
 Device status
 =============
@@ -118,7 +131,19 @@ Read status
   "status_movement"                => "idle", 
   "status_last_command_executed"   => "2014/06/26 20:05:08 -0100", 
   "status_next_command_scheduled"  => nil, 
-  "status_nr_of_commands_executed" => 1
+  "status_nr_of_commands_executed" => 1,
+  "status_current_x"               => 10,
+  "status_current_y"               => 20,
+  "status_current_z"               => 30,
+  "status_target_x"                => 40,
+  "status_target_y"                => 50,
+  "status_target_z"                => 60,
+  "status_end_stop_x_a"            => true,
+  "status_end_stop_x_b"            => false,
+  "status_end_stop_y_a"            => true,
+  "status_end_stop_y_b"            => false,
+  "status_end_stop_z_a"            => true,
+  "status_end_stop_z_b"            => false
 }
 ```
 

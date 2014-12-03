@@ -41,4 +41,4 @@ config.yml
 credentials.yml
 settings.rb
 /lib/.build
-
+write_db_settings.rb

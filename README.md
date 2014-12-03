@@ -20,29 +20,28 @@ Raspberry PI
 ------------
 
 Update the RPi, install ruby, firmate and the arduino IDE
-
+```
 sudo apt-get update
-sudo apt-get install git-core
-sudo apt-get install ruby-dev
-sudo apt-get install sqlite3-dev
-sudo apt-get install arduino
+sudo apt-get install git-core ruby-dev sqlite3 arduino bundler
+```
 
 retrieving code from github:
-
+```
 git clone https://github.com/FarmBot/farmbot-raspberry-pi-controller
-
+```
 prepping ruby:
+```
 cd farmbot-raspberry-pi-controller
-'bundle install --without test development' from the project directory
-OR
-'bundle install' (for developers)
+sudo gem install bundler
+sudo gem install sqlite3 -v '1.3.10'
+bundler update
+bundle install
+```
 
-temporary:
-- gem install bson
-- gem install firmata
-- gem install socket.io-client-simple
-
+Setup the database
+```
 rake db:migrate
+```
 
 Arduino
 -------
@@ -56,11 +55,33 @@ Upload to the arduino
 Usage
 =====
 
-Use "ruby sync.rb" to start the skybet communiation ans synchronisation with the farmbot back end
-
-Use "ruby runtime.rb" to start the runtime part of the software. This will read the datbase and send commands to the hardware.
+Use "ruby farmbot.rb" to start hardware control and skynet communiation
 
 Use "ruby menu.rb" to start the interface. A menu will appear. Type the command needed and press enter. It is also possible to add a list of commands to the file 'testcommands.csv' and use the menu to execute the file.
+
+To change parameters manually, edit the file "write_db_settings.rb" and run the command "ruby write_db_settings.rb"
+
+Duriing running in the console, a few basic staatus parameters are displayed:
+
+x 0000 *- y 0000 -- z 0000 *- 
+
+For each axis, the coordinates are shown and the status of the end stops. A "-" means the end stop is not activared, a "*" means the and stop is activated. First the home end point is displayed, then the end-of-line end stop.
+
+Main software structure
+=======================
+
+```                                                        
+/farmbot.rb +-----> /lib/messaging.rb                   
+            |                                           
+            |           /lib/messaging/messaging.rb     
+            |                                           
+            |           /lib/messaging/messagehandler.rb
+            |                                           
+            +-----> /lib/controller.rb                  
+            |                                           
+            |                                           
+            +-----> /hardware/gcode/ramps.rb            
+```
 
 Author
 ------
