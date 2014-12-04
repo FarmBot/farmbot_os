@@ -15,7 +15,7 @@ require_relative 'dbaccess_measurements.rb'
 
 class DbAccess
 
-  def initialize(environemnt)
+  def initialize(environment)
     config = YAML::load(File.open('./config/database.yml'))
     ActiveRecord::Base.establish_connection(config[environment])
 
@@ -37,8 +37,8 @@ class DbAccess
     @parameters.write_parameter(name, value)
   end
 
-  def fill_parameter_values(  param, value)
-    @parameters.fill_parameter_values(  param, value)
+  def fill_parameter_values(param, value)
+    @parameters.fill_parameter_values(param, value)
   end
 
   def fill_parameter_if_fixnum(param, value)
