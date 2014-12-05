@@ -17,5 +17,6 @@ gem 'httparty'
 
 # Dev / Test stuff
 # TODO : Setup dev / test / production env.
+gem 'rspec'
 gem 'pry'
 gem 'simplecov'
