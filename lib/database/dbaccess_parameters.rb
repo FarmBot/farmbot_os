@@ -34,6 +34,7 @@ class DbAccessParameters
   # write a parameter
   #
   def write_parameter(name, value)
+
     param = Parameter.find_or_create_by(name: name)
     
     fill_parameter_values(param, value)
@@ -41,7 +42,10 @@ class DbAccessParameters
     $db_write_sync.synchronize do
       param.save
     end
-    increment_parameters_version()
+
+    if name != 'PARAM_VERSION'
+      increment_parameters_version()
+    end
 
   end
 
