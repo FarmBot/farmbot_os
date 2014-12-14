@@ -10,16 +10,35 @@ describe DbAccess do
 
   ## logs
 
-#  def write_to_log(module_id,text)
-#    @logs.write_to_log(module_id,text)
-#  end
+  it "write to log" do
+    log_text = rand(9999999).to_s
+    @db.disable_log_to_screen()
+    @db.write_to_log(99,log_text)
 
-#  def read_logs_all()
-#    @logs.read_logs_all()
-#  end
+    logs = Log.where("module_id = ? AND text = ?", 99 , log_text )
 
-#  def retrieve_log(module_id, nr_of_lines)
-#    @logs.retrieve_log(module_id, nr_of_lines)
-#  end
+    expect(logs.count).to eq(1)
+  end
+
+  it "read_logs_all" do
+    log_text = rand(9999999).to_s
+    return_list = @db.read_logs_all
+
+    logs = Log.all
+
+    expect(logs.count).to eq(return_list.count)
+  end
+
+  it "retrieve_logs" do
+    log_text = rand(9999999).to_s
+    @db.disable_log_to_screen()
+    10.times do 
+      @db.write_to_log(99,log_text)
+    end
+
+    logs = @db.retrieve_log(99, 10)
+
+    expect(logs.count).to eq(10)
+  end
 
 end
