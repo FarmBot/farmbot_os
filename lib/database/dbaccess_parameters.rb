@@ -108,7 +108,8 @@ class DbAccessParameters
   # read parameter list
   #
   def read_parameter_list()
-    params = Parameter.find(:all)    
+    #params = Parameter.find(:all)    
+    params = Parameter.all    
     param_list = Array.new
 
     params.each do |param|

@@ -93,6 +93,10 @@ class DbAccess
 
   ## logs
 
+  def disable_log_to_screen
+    @logs.disable_log_to_screen
+  end
+
   def write_to_log(module_id,text)
     @logs.write_to_log(module_id,text)
   end
@@ -124,7 +128,7 @@ class DbAccess
   end
 
   def fill_in_command_line_extra(line, amount = 0, external_info = "")
-    @commands.fill_in_command_line_extra(line, amount = 0, external_info = "")
+    @commands.fill_in_command_line_extra(line, amount, external_info)
   end
 
   def save_new_command
@@ -155,7 +159,7 @@ class DbAccess
   end
 
   def save_refresh
-    @refresh_value = @refresh_value_new
+    @refreshes.save_refresh
   end
 
   def increment_refresh
