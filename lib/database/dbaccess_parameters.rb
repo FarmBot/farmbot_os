@@ -139,12 +139,6 @@ class DbAccessParameters
   def read_parameter(name)
     param = Parameter.find_or_create_by(name: name)
     get_value_from_param(param)
-    #type = param.valuetype
-    #value = param.valueint    if type == 1
-    #value = param.valuefloat  if type == 2
-    #value = param.valuestring if type == 3
-    #value = param.valuebool   if type == 4
-    #value
   end
 
   # read parameter

@@ -41,3 +41,5 @@ snippet.coffee
 snippets.rb
 tmp/**/*
 write_db_settings.rb
+*.rb~
+

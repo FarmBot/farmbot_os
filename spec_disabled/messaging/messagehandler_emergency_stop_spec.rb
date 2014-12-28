@@ -4,7 +4,7 @@ require './lib/status.rb'
 require './lib/messaging/messaging.rb'
 require './lib/messaging/messaging_test.rb'
 
-describe MessageHandler do
+describe MessageHandlerEmergencyStop do
 
   before do
     #$db_write_sync = Mutex.new
@@ -33,32 +33,24 @@ describe MessageHandler do
     message.handled = false
     message.handler = @main_handler
 
-#    $messaging.emergency_stop(message)
-
     @handler.emergency_stop(message)
-#             emergency_stop(message)
-#puts $message.message
-    expect(1).to eq(1)
+    
+    expect($status.emergency_stop).to eq(true)
+    expect($messaging.message[:message_type]).to eq('confirmation')
   end
 
 
 
   it "message handler emergency stop reset" do
-    expect(1).to eq(1)
+    message = MessageHandlerMessage.new
+    message.handled = false
+    message.handler = @main_handler
+
+    @handler.emergency_stop_reset(message)
+
+    expect($status.emergency_stop).to eq(false)
+    expect($messaging.message[:message_type]).to eq('confirmation')
   end
 
-
-
-
-#  it "create new command" do
-#    crop_id        = rand(9999999).to_i    
-#    scheduled_time = Time.now
-#
-#    @db.create_new_command(scheduled_time, crop_id)
-#
-#    cmd = Command.where("scheduled_time = ?",scheduled_time).first
-#
-#    expect(cmd.crop_id).to eq(crop_id)
-#  end
 
 end

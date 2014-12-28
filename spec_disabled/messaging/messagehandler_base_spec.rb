@@ -2,7 +2,7 @@ require 'spec_helper'
 require './lib/messaging/messaging.rb'
 require './lib/messaging/messagehandler_message.rb'
 
-describe MessageHandler do
+describe MessageHandlerBase do
 
 
   before do
