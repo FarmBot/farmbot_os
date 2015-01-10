@@ -67,13 +67,14 @@ class MessageHandlerSchedule < MessageHandlerBase
   def save_command_with_lines(command)
 
       scheduled_time = Time.parse(command['scheduled_time'])
+      crop_id        = command['crop_id']
       @dbaccess.write_to_log(2,"crop command at #{scheduled_time}")
       @dbaccess.create_new_command(scheduled_time, crop_id)
 
       command['command_lines'].each do |command_line|
 
-        command_obj = new MessageHandlerScheduleCmdLine.new
-        command_obj.spit_command_line( command_line)
+        command_obj = MessageHandlerScheduleCmdLine.new
+        command_obj.split_command_line( command_line)
         command_obj.write_to_log()
         save_command_line(command_obj)
 
