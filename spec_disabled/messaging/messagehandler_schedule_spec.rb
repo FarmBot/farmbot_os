@@ -32,7 +32,6 @@ describe MessageHandlerSchedule do
 #def crop_schedule_update(message)
 #def save_command_with_lines(command)
 
-=begin
   it "save command line" do
 
     # create new command data
@@ -149,7 +148,7 @@ describe MessageHandlerSchedule do
 
     # get the data back from the database
 
-    cmd = Command.where("scheduled_time >= ?",sched_time + 10).first
+    cmd = Command.where("scheduled_time >= ?",sched_time + 10).last
     line = CommandLine.where("command_id = ?",cmd.id).first
 
     # do the checks
@@ -220,7 +219,7 @@ describe MessageHandlerSchedule do
 
     # get the data back from the database
 
-    cmd = Command.where("scheduled_time >= ?",sched_time).first
+    cmd = Command.where("scheduled_time >= ?",sched_time).last
     line = CommandLine.where("command_id = ?",cmd.id).first
 
     # do the checks
@@ -239,8 +238,6 @@ describe MessageHandlerSchedule do
     expect(line.pin_time     ).to eq(pin_time     )
     
   end
-
-=end
 
 # save_command_with_lines
 
@@ -365,53 +362,235 @@ describe MessageHandlerSchedule do
     
   end
 
-# ==> crop schedule update
+  it "crop schedule update" do
 
-=begin
+    # create new command data
 
-  it "single command" do
+    sched_time_AB    = Time.now
+    crop_id_AB       = rand(9999999).to_i
 
-    # write a few lines in the log
-    log_text_1   = rand(9999999).to_s
-    log_text_2   = rand(9999999).to_s
-    log_module_1 = 99
-    log_module_2 = 98
+    action_A        = rand(9999999).to_s
+    x_A             = rand(9999999).to_i
+    y_A             = rand(9999999).to_i
+    z_A             = rand(9999999).to_i
+    speed_A         = rand(9999999).to_s
+    amount_A        = rand(9999999).to_i
+    pin_nr_A        = rand(9999999).to_i
+    pin_value1_A    = rand(9999999).to_i
+    pin_value2_A    = rand(9999999).to_i
+    pin_mode_A      = rand(9999999).to_i
+    pin_time_A      = rand(9999999).to_i
+    ext_info_A      = rand(9999999).to_s
+    delay_A         = rand(     99).to_i
+    
+    action_B        = rand(9999999).to_s
+    x_B             = rand(9999999).to_i
+    y_B             = rand(9999999).to_i
+    z_B             = rand(9999999).to_i
+    speed_B         = rand(9999999).to_s
+    amount_B        = rand(9999999).to_i
+    pin_nr_B        = rand(9999999).to_i
+    pin_value1_B    = rand(9999999).to_i
+    pin_value2_B    = rand(9999999).to_i
+    pin_mode_B      = rand(9999999).to_i
+    pin_time_B      = rand(9999999).to_i
+    ext_info_B      = rand(9999999).to_s
+    delay_B         = rand(     99).to_i
 
-    $dbaccess.write_to_log( log_module_1, log_text_1 )
-    $dbaccess.write_to_log( log_module_2, log_text_2 )
+    sched_time_CD    = Time.now
+    crop_id_CD       = rand(9999999).to_i
 
-    # get the logs in a message
+    action_C        = rand(9999999).to_s
+    x_C             = rand(9999999).to_i
+    y_C             = rand(9999999).to_i
+    z_C             = rand(9999999).to_i
+    speed_C         = rand(9999999).to_s
+    amount_C        = rand(9999999).to_i
+    pin_nr_C        = rand(9999999).to_i
+    pin_value1_C    = rand(9999999).to_i
+    pin_value2_C    = rand(9999999).to_i
+    pin_mode_C      = rand(9999999).to_i
+    pin_time_C      = rand(9999999).to_i
+    ext_info_C      = rand(9999999).to_s
+    delay_C         = rand(     99).to_i
+    
+    action_D        = rand(9999999).to_s
+    x_D             = rand(9999999).to_i
+    y_D             = rand(9999999).to_i
+    z_D             = rand(9999999).to_i
+    speed_D         = rand(9999999).to_s
+    amount_D        = rand(9999999).to_i
+    pin_nr_D        = rand(9999999).to_i
+    pin_value1_D    = rand(9999999).to_i
+    pin_value2_D    = rand(9999999).to_i
+    pin_mode_D      = rand(9999999).to_i
+    pin_time_D      = rand(9999999).to_i
+    ext_info_D      = rand(9999999).to_s
+    delay_D         = rand(     99).to_i
+
+
+    # create a command
 
     message = MessageHandlerMessage.new
     message.handled = false
     message.handler = @main_handler
+    message.payload = 
+      {
+        'commands' =>
+        [
+          {
+            'scheduled_time' => sched_time_AB.utc.to_s,
+            'crop_id'        => crop_id_AB        ,
+            'command_lines'  => 
+            [
+              {
+                'delay'  => delay_A      ,
+                'action' => action_A     ,
+                'x'      => x_A          ,
+                'y'      => y_A          ,
+                'z'      => z_A          ,
+                'speed'  => speed_A      ,
+                'amount' => amount_A     ,
+                'pin'    => pin_nr_A     ,
+                'value1' => pin_value1_A ,
+                'value2' => pin_value2_A ,
+                'mode'   => pin_mode_A   ,
+                'time'   => pin_time_A   ,
+                'info'   => ext_info_A
+              },
+              {
+                'delay'  => delay_B      ,
+                'action' => action_B     ,
+                'x'      => x_B          ,
+                'y'      => y_B          ,
+                'z'      => z_B          ,
+                'speed'  => speed_B      ,
+                'amount' => amount_B     ,
+                'pin'    => pin_nr_B     ,
+                'value1' => pin_value1_B ,
+                'value2' => pin_value2_B ,
+                'mode'   => pin_mode_B   ,
+                'time'   => pin_time_B   ,
+                'info'   => ext_info_B
+              }
+            ]
+          },
+          {
+            'scheduled_time' => sched_time_CD.utc.to_s,
+            'crop_id'        => crop_id_CD            ,
+            'command_lines'  => 
+            [
+              {
+                'delay'  => delay_C      ,
+                'action' => action_C     ,
+                'x'      => x_C          ,
+                'y'      => y_C          ,
+                'z'      => z_C          ,
+                'speed'  => speed_C      ,
+                'amount' => amount_C     ,
+                'pin'    => pin_nr_C     ,
+                'value1' => pin_value1_C ,
+                'value2' => pin_value2_C ,
+                'mode'   => pin_mode_C   ,
+                'time'   => pin_time_C   ,
+                'info'   => ext_info_C
+              },
+              {
+                'delay'  => delay_D      ,
+                'action' => action_D     ,
+                'x'      => x_D          ,
+                'y'      => y_D          ,
+                'z'      => z_D          ,
+                'speed'  => speed_D      ,
+                'amount' => amount_D     ,
+                'pin'    => pin_nr_D     ,
+                'value1' => pin_value1_D ,
+                'value2' => pin_value2_D ,
+                'mode'   => pin_mode_D   ,
+                'time'   => pin_time_D   ,
+                'info'   => ext_info_D
+              }
+            ]
+          }
+        ]
+      }
 
-    @handler.read_logs(message)
+    # execute the message
 
-    return_list = $messaging.message
+    @handler.crop_schedule_update(message)
 
-    # check if the logged lines are present in the message
+    # get the data back from the database
 
-    found_in_list_1       = false
-    found_in_list_2       = false
+    cmd_AB = Command.where("crop_id = ?",crop_id_AB).first
+    line_A = CommandLine.where("command_id = ?",cmd_AB.id).first
+    line_B = CommandLine.where("command_id = ?",cmd_AB.id).last
 
+    nr_of_lines_AB = CommandLine.where("command_id = ?",cmd_AB.id).count
 
-    return_list[:logs].each do |item|
-      if item['text'] == log_text_1 and item['module'] == log_module_1
-        found_in_list_1 = true
-      end
-      if item['text'] == log_text_2 and item['module'] == log_module_2
-        found_in_list_2 = true
-      end
-    end
+    cmd_CD = Command.where("crop_id = ?",crop_id_CD).first
+    line_C = CommandLine.where("command_id = ?",cmd_CD.id).first
+    line_D = CommandLine.where("command_id = ?",cmd_CD.id).last
 
-    # check expectations
+    nr_of_lines_CD = CommandLine.where("command_id = ?",cmd_CD.id).count
 
-    expect(found_in_list_1).to eq(true)
-    expect(found_in_list_2).to eq(true)
-    expect($messaging.message[:message_type]).to eq('read_logs_response')
+    # do the checks
+
+    expect(nr_of_lines_AB      ).to eq(2              )
+
+    expect(line_A.action       ).to eq(action_A       )
+    expect(line_A.external_info).to eq(ext_info_A     )
+    expect(line_A.coord_x      ).to eq(x_A            )
+    expect(line_A.coord_y      ).to eq(y_A            )
+    expect(line_A.coord_z      ).to eq(z_A            )
+    expect(line_A.speed        ).to eq(speed_A        )
+    expect(line_A.amount       ).to eq(amount_A       )
+    expect(line_A.pin_nr       ).to eq(pin_nr_A       )
+    expect(line_A.pin_value_1  ).to eq(pin_value1_A   )
+    expect(line_A.pin_value_2  ).to eq(pin_value2_A   )
+    expect(line_A.pin_mode     ).to eq(pin_mode_A     )
+    expect(line_A.pin_time     ).to eq(pin_time_A     )
+
+    expect(line_B.action       ).to eq(action_B       )
+    expect(line_B.external_info).to eq(ext_info_B     )
+    expect(line_B.coord_x      ).to eq(x_B            )
+    expect(line_B.coord_y      ).to eq(y_B            )
+    expect(line_B.coord_z      ).to eq(z_B            )
+    expect(line_B.speed        ).to eq(speed_B        )
+    expect(line_B.amount       ).to eq(amount_B       )
+    expect(line_B.pin_nr       ).to eq(pin_nr_B       )
+    expect(line_B.pin_value_1  ).to eq(pin_value1_B   )
+    expect(line_B.pin_value_2  ).to eq(pin_value2_B   )
+    expect(line_B.pin_mode     ).to eq(pin_mode_B     )
+    expect(line_B.pin_time     ).to eq(pin_time_B     )
+
+    expect(nr_of_lines_CD      ).to eq(2              )
+
+    expect(line_C.action       ).to eq(action_C       )
+    expect(line_C.external_info).to eq(ext_info_C     )
+    expect(line_C.coord_x      ).to eq(x_C            )
+    expect(line_C.coord_y      ).to eq(y_C            )
+    expect(line_C.coord_z      ).to eq(z_C            )
+    expect(line_C.speed        ).to eq(speed_C        )
+    expect(line_C.amount       ).to eq(amount_C       )
+    expect(line_C.pin_nr       ).to eq(pin_nr_C       )
+    expect(line_C.pin_value_1  ).to eq(pin_value1_C   )
+    expect(line_C.pin_value_2  ).to eq(pin_value2_C   )
+    expect(line_C.pin_mode     ).to eq(pin_mode_C     )
+    expect(line_C.pin_time     ).to eq(pin_time_C     )
+
+    expect(line_D.action       ).to eq(action_D       )
+    expect(line_D.external_info).to eq(ext_info_D     )
+    expect(line_D.coord_x      ).to eq(x_D            )
+    expect(line_D.coord_y      ).to eq(y_D            )
+    expect(line_D.coord_z      ).to eq(z_D            )
+    expect(line_D.speed        ).to eq(speed_D        )
+    expect(line_D.amount       ).to eq(amount_D       )
+    expect(line_D.pin_nr       ).to eq(pin_nr_D       )
+    expect(line_D.pin_value_1  ).to eq(pin_value1_D   )
+    expect(line_D.pin_value_2  ).to eq(pin_value2_D   )
+    expect(line_D.pin_mode     ).to eq(pin_mode_D     )
+    expect(line_D.pin_time     ).to eq(pin_time_D     )
+    
   end
-
-=end
 
 end
