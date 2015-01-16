@@ -1,7 +1,7 @@
 Protocol
 ========
 
-This document is an inventary for the messages used between the bakend and the farmbot
+This document is an inventory for the messages used between the backend and the farmbot.
 
 Basics
 ------
@@ -88,7 +88,7 @@ pin_nr    |decimal|the number of the pin to change or pin for servo, using ardui
 pin_value1|decimal|the value for the pin, for servo movement the angle
 pin_value2|decimal|when using a pulse, this is the value for the second flank of the pulse
 pin_mode  |decimal|for setting the I/O mode, 0 is input, 1 is output. For reading and writing, 0 is digital and 1 is analog
-pin_time  |decimal||the time im seconds for a pulse
+pin_time  |decimal||the time in seconds for a pulse
 
 
 
