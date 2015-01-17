@@ -14,6 +14,7 @@ class HardwareInterfaceArduino
 
   attr_accessor :ramps_param, :ramps_main
   attr_accessor :test_serial_read, :test_serial_write
+  attr_accessor :external_info
 
   # initialize the interface
   #
@@ -269,7 +270,7 @@ class HardwareInterfaceArduino
   end
 
   def process_value_process_param_list(params,code)
-    if params.p >= 0
+    if params.p != 0
       process_value_R21(params,code)
       process_value_R23(params,code)
       process_value_R41(params,code)
@@ -294,7 +295,7 @@ class HardwareInterfaceArduino
     if code == 'R23'
       param = @ramps_param.get_param_by_id(params.p)
       if param != nil
-        save_param_value(params.p, :by_id, :from_db, params.v)
+        @ramps_param.save_param_value(params.p, :by_id, :from_db, params.v)
       end
     end
   end
@@ -358,7 +359,7 @@ class HardwareInterfaceArduino
   #
   def process_value_process_R99(code,text)
     if code == 'R99'
-        puts ">#{text}<"
+        puts ">#{text}<" if @test_mode == false
     end
   end  
 

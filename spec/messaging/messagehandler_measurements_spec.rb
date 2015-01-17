@@ -4,7 +4,7 @@ require './lib/messaging/messaging.rb'
 require './lib/messaging/messaging_test.rb'
 require './lib/messaging/messagehandler_measurements.rb'
 
-describe MessageHandlerMeasuremnt do
+describe MessageHandlerMeasurement do
 
   before do
     $db_write_sync = Mutex.new

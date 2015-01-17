@@ -138,5 +138,10 @@ $arduino_default_params = [
                               :name  => 'MOVEMENT_STEPS_PER_UNIT_Z',
                               :id    => 903,
                               :value => 5
+                            },
+                            {
+                              :name  => 'TESTING',
+                              :id    => -1,
+                              :value => 0
                             }
                           ]
