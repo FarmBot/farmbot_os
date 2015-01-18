@@ -24,13 +24,9 @@ class DbAccessLogs
   #
   def write_to_log(module_id,text)
 
-<<<<<<< HEAD
-    puts "[LOG] #{text}"
-=======
     if @log_to_screen
       puts "[LOG] #{text}"
     end
->>>>>>> 2b8ea882347f13fe84eea1a884ad62ee2396aa1f
 
     log           = Log.new
     log.text      = text
