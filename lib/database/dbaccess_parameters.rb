@@ -34,6 +34,7 @@ class DbAccessParameters
   # write a parameter
   #
   def write_parameter(name, value)
+
     param = Parameter.find_or_create_by(name: name)
     
     fill_parameter_values(param, value)
@@ -41,7 +42,10 @@ class DbAccessParameters
     $db_write_sync.synchronize do
       param.save
     end
-    increment_parameters_version()
+
+    if name != 'PARAM_VERSION'
+      increment_parameters_version()
+    end
 
   end
 
@@ -104,7 +108,8 @@ class DbAccessParameters
   # read parameter list
   #
   def read_parameter_list()
-    params = Parameter.find(:all)    
+    #params = Parameter.find(:all)    
+    params = Parameter.all    
     param_list = Array.new
 
     params.each do |param|
@@ -134,12 +139,6 @@ class DbAccessParameters
   def read_parameter(name)
     param = Parameter.find_or_create_by(name: name)
     get_value_from_param(param)
-    #type = param.valuetype
-    #value = param.valueint    if type == 1
-    #value = param.valuefloat  if type == 2
-    #value = param.valuestring if type == 3
-    #value = param.valuebool   if type == 4
-    #value
   end
 
   # read parameter

@@ -21,7 +21,7 @@ $db_write_sync = Mutex.new
 print 'database        '
 require 'active_record'
 require_relative 'lib/database/dbaccess'
-$bot_dbaccess = DbAccess.new
+$bot_dbaccess = DbAccess.new('development')
 puts 'OK'
 
 print 'synchronization '

@@ -13,20 +13,24 @@ require_relative 'ramps_arduino_write_status.rb'
 class HardwareInterfaceArduino
 
   attr_accessor :ramps_param, :ramps_main
+  attr_accessor :test_serial_read, :test_serial_write
+  attr_accessor :external_info
 
   # initialize the interface
   #
-  def initialize
+  def initialize(test_mode)
 
     @bot_dbaccess = $bot_dbaccess
 
     @status_debug_msg = $status_debug_msg
-    #@status_debug_msg = false
-    #@status_debug_msg = true
+
+    @test_mode         = test_mode
+    @test_serial_read  = ""
+    @test_serial_write = ""
 
     # connect to arduino
     connect_board()
-
+    
     @external_info         = ""
 
   end
@@ -48,7 +52,7 @@ class HardwareInterfaceArduino
     }
 
     comm_port = '/dev/ttyACM0'
-    @serial_port = SerialPort.new(comm_port, parameters)
+    @serial_port = SerialPort.new(comm_port, parameters) if @test_mode == false
 
   end
 
@@ -85,24 +89,28 @@ class HardwareInterfaceArduino
   end
 
   def handle_execution_exception(e)
-    puts("ST: serial error\n#{e.message}\n#{e.backtrace.inspect}")
+    if @test_mode == false
+      puts("ST: serial error\n#{e.message}\n#{e.backtrace.inspect}")
+    end
     @bot_dbaccess.write_to_log(4,"ST: serial error\n#{e.message}\n#{e.backtrace.inspect}")
-    @serial_port.rts = 1
-    connect_board
-    sleep 5
+    if @test_mode == false
+      @serial_port.rts = 1
+      connect_board
+      sleep 5
+    end
   end
 
   def log_result_of_execution(write_status)
  
     # log things if needed
     if write_status.done == 1
-      puts 'ST: done' if write_status.onscreen
+      puts 'ST: done' if write_status.onscreen and @test_mode == false
       @bot_dbaccess.write_to_log(4, 'ST: done') if write_status.log
     else
-      puts 'ST: timeout'
+      puts 'ST: timeout' if @test_mode == false
       @bot_dbaccess.write_to_log(4, 'ST: timeout')
 
-      sleep 5
+      sleep 5 if @test_mode == false
     end
   end
 
@@ -110,7 +118,13 @@ class HardwareInterfaceArduino
   #
   def process_feedback(write_status)
 
-    i = @serial_port.read(1)
+    if @test_mode == false
+      i = @serial_port.read(1)
+    else
+      i = @test_serial_read[0]
+      @test_serial_read = @test_serial_read[1..-1]
+    end
+
     if i != nil
       i.each_char do |c|
 
@@ -177,15 +191,28 @@ class HardwareInterfaceArduino
   def prepare_serial_port(write_status)
     puts "WR: #{write_status.text}" if write_status.onscreen
     @bot_dbaccess.write_to_log(4, "WR: #{write_status.text}") if write_status.log
-    @serial_port.read_timeout = 2
-    clean_serial_buffer()
-    @serial_port.write( "#{write_status.text} \n" )    
+    @serial_port.read_timeout = 2 if @test_mode == false
+    clean_serial_buffer() if @test_mode == false
+    serial_port_write( "#{write_status.text}\n" )
   end
 
   # empty the input buffer so no old data is processed
   #
   def clean_serial_buffer
-    while (@serial_port.read(1) != nil)
+    if @test_mode == false
+      while (@serial_port.read(1) != nil)
+      end
+    else
+      @test_serial_read = ''
+    end
+  end
+
+  # write something to the serial port
+  def serial_port_write(text)
+    if @test_mode == false
+      @serial_port.write( text )
+    else
+      @test_serial_write = text
     end
   end
 
@@ -193,7 +220,7 @@ class HardwareInterfaceArduino
   #
   def check_emergency_stop    
     if ($status.emergency_stop)
-     @serial_port.write( "E\n" )
+     serial_port_write( "E\n" )
     end
   end
 
@@ -243,7 +270,7 @@ class HardwareInterfaceArduino
   end
 
   def process_value_process_param_list(params,code)
-    if params.p >= 0
+    if params.p != 0
       process_value_R21(params,code)
       process_value_R23(params,code)
       process_value_R41(params,code)
@@ -268,7 +295,7 @@ class HardwareInterfaceArduino
     if code == 'R23'
       param = @ramps_param.get_param_by_id(params.p)
       if param != nil
-        save_param_value(params.p, :by_id, :from_db, params.v)
+        @ramps_param.save_param_value(params.p, :by_id, :from_db, params.v)
       end
     end
   end
@@ -332,7 +359,7 @@ class HardwareInterfaceArduino
   #
   def process_value_process_R99(code,text)
     if code == 'R99'
-        puts ">#{text}<"
+        puts ">#{text}<" if @test_mode == false
     end
   end  
 

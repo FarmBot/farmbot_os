@@ -61,7 +61,7 @@ Use "ruby menu.rb" to start the interface. A menu will appear. Type the command 
 
 To change parameters manually, edit the file "write_db_settings.rb" and run the command "ruby write_db_settings.rb"
 
-Duriing running in the console, a few basic status parameters are displayed:
+During running in the console, a few basic status parameters are displayed:
 
 x 0000 *- y 0000 -- z 0000 *- 
 
