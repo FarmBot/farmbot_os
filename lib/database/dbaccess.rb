@@ -15,9 +15,9 @@ require_relative 'dbaccess_measurements.rb'
 
 class DbAccess
 
-  def initialize
+  def initialize(environment)
     config = YAML::load(File.open('./config/database.yml'))
-    ActiveRecord::Base.establish_connection(config["development"])
+    ActiveRecord::Base.establish_connection(config[environment])
 
     @commands     = DbAccessCommands.new
     @refreshes    = DbAccessRefreshes.new
@@ -37,8 +37,8 @@ class DbAccess
     @parameters.write_parameter(name, value)
   end
 
-  def fill_parameter_values(  param, value)
-    @parameters.fill_parameter_values(  param, value)
+  def fill_parameter_values(param, value)
+    @parameters.fill_parameter_values(param, value)
   end
 
   def fill_parameter_if_fixnum(param, value)
@@ -93,6 +93,10 @@ class DbAccess
 
   ## logs
 
+  def disable_log_to_screen
+    @logs.disable_log_to_screen
+  end
+
   def write_to_log(module_id,text)
     @logs.write_to_log(module_id,text)
   end
@@ -124,7 +128,7 @@ class DbAccess
   end
 
   def fill_in_command_line_extra(line, amount = 0, external_info = "")
-    @commands.fill_in_command_line_extra(line, amount = 0, external_info = "")
+    @commands.fill_in_command_line_extra(line, amount, external_info)
   end
 
   def save_new_command
@@ -155,7 +159,7 @@ class DbAccess
   end
 
   def save_refresh
-    @refresh_value = @refresh_value_new
+    @refreshes.save_refresh
   end
 
   def increment_refresh

@@ -11,9 +11,11 @@ require_relative '../../app/models/log.rb'
 
 class DbAccessLogs
 
-  attr_writer :dbaccess
+  attr_writer   :dbaccess
+  attr_accessor :log_to_screen
 
   def initialize
+    @log_to_screen = true
   end
 
   ## logs
@@ -22,7 +24,13 @@ class DbAccessLogs
   #
   def write_to_log(module_id,text)
 
+<<<<<<< HEAD
     puts "[LOG] #{text}"
+=======
+    if @log_to_screen
+      puts "[LOG] #{text}"
+    end
+>>>>>>> 2b8ea882347f13fe84eea1a884ad62ee2396aa1f
 
     log           = Log.new
     log.text      = text
@@ -40,17 +48,24 @@ class DbAccessLogs
     end
   end
 
-
   # read all logs from the log file
   #
   def read_logs_all()
-    logs = Log.find(:all, :order => 'created_at asc')
+    #logs = Log.find(:all, :order => 'created_at asc')
+    logs = Log.all.order('created_at asc')
   end
 
   # read from the log file
   #
   def retrieve_log(module_id, nr_of_lines)
-    logs = Log.find(:all, :conditions => [ "module_id = (?)", module_id ], :order => 'created_at asc', :limit => nr_of_lines)
+    #logs = Log.find(:all, :conditions => [ "module_id = (?)", module_id ], :order => 'created_at asc', :limit => nr_of_lines)
+    logs = Log.where("module_id = (?)", module_id).order('created_at asc').first(nr_of_lines)
+  end
+
+  # disable putting text on the screen
+  #
+  def disable_log_to_screen
+    @log_to_screen = false
   end
 
 end

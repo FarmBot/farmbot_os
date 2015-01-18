@@ -34,7 +34,7 @@ class MessageHandlerLog < MessageHandlerBase
       {
         :message_type => 'read_logs_response',
         :time_stamp   => Time.now.to_f.to_s,
-        :confirm_id   => time_stamp,
+        :confirm_id   => message.time_stamp,
         :logs         => log_list
       }
 

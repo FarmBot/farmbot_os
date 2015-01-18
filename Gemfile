@@ -8,6 +8,7 @@ gem 'sqlite3'
 
 # Use bson for database functionality
 gem 'bson'
+
 # Use skynet machine instant messaging
 gem 'socket.io-client-simple'
 gem 'serialport'
@@ -17,4 +18,8 @@ gem 'httparty'
 
 # Dev / Test stuff
 # TODO : Setup dev / test / production env.
+
 gem 'pry'
+gem 'rspec'
+gem 'pry'
+gem 'simplecov'
