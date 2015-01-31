@@ -59,7 +59,6 @@ class HardwareInterfaceArduino
   # write a command to the robot
   #
   def execute_command(text, log, onscreen)
-
     begin  
 
       write_status = create_write_status(text, log, onscreen)
@@ -142,7 +141,6 @@ class HardwareInterfaceArduino
 
     if c == "\r" or c == "\n"
       if write_status.received.length >= 3
-
         log_incoming_text(write_status)
         write_status.split_received
         process_code_and_params(write_status)
@@ -270,11 +268,11 @@ class HardwareInterfaceArduino
   end
 
   def process_value_process_param_list(params,code)
-    if params.p != 0
+    #if params.p != 0
       process_value_R21(params,code)
       process_value_R23(params,code)
       process_value_R41(params,code)
-    end
+    #end
   end
 
 
