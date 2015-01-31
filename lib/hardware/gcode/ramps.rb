@@ -23,7 +23,7 @@ class HardwareInterface
 
     # create the sub processing objects
     @ramps_param   = HardwareInterfaceParam.new
-    @ramps_arduino = HardwareInterfaceArduino.new(true)
+    @ramps_arduino = HardwareInterfaceArduino.new(test_mode)
 
     @ramps_arduino.ramps_param = @ramps_param
     @ramps_arduino.ramps_main  = self
