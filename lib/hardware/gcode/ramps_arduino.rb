@@ -83,6 +83,7 @@ class HardwareInterfaceArduino
     write_status = HardwareInterfaceArduinoWriteStatus.new
     write_status.text     = text
     write_status.log      = log
+
     write_status.onscreen = onscreen
     write_status
   end

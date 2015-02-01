@@ -18,7 +18,7 @@ $shutdown    = 0
 
 puts 'connecting to database'
 
-$bot_dbaccess = DbAccess.new
+$bot_dbaccess = DbAccess.new('development')
 
 $move_size      = 10
 $command_delay  = 0
