@@ -269,7 +269,7 @@ describe HardwareInterfaceArduino do
 
   it "process value R21" do
     
-    param = -1
+    param = 1
     value = rand(999).to_i
 
     code = "R21"
@@ -287,7 +287,7 @@ describe HardwareInterfaceArduino do
 
   it "process value R23" do
     
-    param = -1
+    param = 1
     value = rand(999).to_i
 
     code = "R23"
@@ -498,7 +498,7 @@ describe HardwareInterfaceArduino do
 
     # "process value R21"
     
-    param = -1
+    param = 1
     value = rand(999).to_i
 
     code = "R21"
@@ -517,7 +517,7 @@ describe HardwareInterfaceArduino do
 
     # "process value R23"
     
-    param = -1
+    param = 1
     value = rand(999).to_i
 
     code = "R23"
@@ -589,7 +589,7 @@ describe HardwareInterfaceArduino do
 
     # "process value R21"
     
-    param = -1
+    param = 1
     value = rand(999).to_i
 
     code = "R21"

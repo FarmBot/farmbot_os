@@ -231,7 +231,7 @@ describe HardwareInterfaceArduino do
 
   it "read parameter from device" do
 
-    id = -1
+    id = 1
     value      = rand(9999999).to_i
 
     @ramps.clean_serial_buffer()
@@ -249,7 +249,7 @@ describe HardwareInterfaceArduino do
 
   it "write parameter to device" do
 
-    id         = -1
+    id         = 1
     default    = rand(9999999).to_i
     value      = rand(9999999).to_i
 
@@ -314,8 +314,8 @@ describe HardwareInterfaceArduino do
   it "check and write one parameter, test with similar" do
 
 
-    name = 'TESTING'
-    id = -1
+    name   = 'TESTING'
+    id     = 1
     value  = rand(9999999).to_i
     value2 = rand(9999999).to_i
 
@@ -333,8 +333,8 @@ describe HardwareInterfaceArduino do
   it "check and write one parameter, test with different" do
 
 
-    name = 'TESTING'
-    id = -1
+    name   = 'TESTING'
+    id     = 1
     value  = rand(9999999).to_i
     value2 = rand(9999999).to_i
 
@@ -355,7 +355,7 @@ describe HardwareInterfaceArduino do
   it "compare and write paramters, different" do
 
     name = 'TESTING'
-    id = -1
+    id   = 1
 
     value0  = rand(9999999).to_i
     value1  = rand(9999999).to_i
@@ -392,7 +392,7 @@ describe HardwareInterfaceArduino do
   it "compare and write paramters, no difference" do
 
     name = 'TESTING'
-    id = -1
+    id   = 1
 
     value  = rand(9999999).to_i
 
@@ -413,7 +413,7 @@ describe HardwareInterfaceArduino do
   it "check parameter, no difference" do
 
     name = 'TESTING'
-    id = -1
+    id   = 1
 
     db_version  = rand(9999999).to_i
 
@@ -431,7 +431,7 @@ describe HardwareInterfaceArduino do
   it "check parameter, different" do
 
     name = 'TESTING'
-    id = -1
+    id   = 1
 
     db_version  = rand(9999999).to_i
     ar_version  = rand(9999999).to_i
