@@ -11,8 +11,8 @@ require_relative 'ramps_param_defaults.rb'
 
 class HardwareInterfaceParam
 
-  attr_reader   :params
-  attr_reader   :param_version_db,      :param_version_ar,      :params_in_sync
+  attr_accessor :params
+  attr_accessor :param_version_db,      :param_version_ar,      :params_in_sync
   attr_reader   :axis_x_steps_per_unit, :axis_y_steps_per_unit, :axis_z_steps_per_unit
   attr_accessor :ramps_arduino,         :ramps_main
 
@@ -72,9 +72,9 @@ class HardwareInterfaceParam
     end
   end
 
-  def load_param_defaults
-    @param_json = ''
-  end
+  #def load_param_defaults
+  #  @param_json = ''
+  #end
 
   # load the id's of the arduino parameters
   #
@@ -87,13 +87,22 @@ class HardwareInterfaceParam
   # add a parameter to the param list
   #
   def param_name_add(name, id, default)
-    param = Hash.new
-    param['name']     = name
-    param['id']       = id
-    param['value_db'] = 0
-    param['value_ar'] = 0
-    param['default']  = default
-    @params << param
+    found = false
+    @params.each do |p|
+      if p['name'] == name
+        found = true
+      end
+    end
+
+    if found == false
+      param = Hash.new
+      param['name']     = name
+      param['id']       = id
+      param['value_db'] = 0
+      param['value_ar'] = 0
+      param['default']  = default
+      @params << param
+    end
   end
 
   # get the parameter object by name
@@ -137,18 +146,19 @@ class HardwareInterfaceParam
 
   # read parameter value from memory
   #
-  def get_param_value_by_id(name_or_id, by_name_or_id, from_device_or_db, default_value)
-    value = default_value
-    
-    param = get_param(id, by_name_or_id)
-    if param != nil and from_device_or_db == :from_device
-      value =  param['value_ar']
-    end
-    if param != nil and from_device_or_db == :from_db
-      value =  param['value_db']
-    end
-
-  end
+  
+  #def get_param_value_by_id(name_or_id, by_name_or_id, from_device_or_db, default_value)
+  #  value = default_value
+  #  
+  #  param = get_param(id, by_name_or_id)
+  #  if param != nil and from_device_or_db == :from_device
+  #    value =  param['value_ar']
+  #  end
+  #  if param != nil and from_device_or_db == :from_db
+  #    value =  param['value_db']
+  #  end
+  #
+  #end
 
   #def get_param_value_by_name(name)
   #end
@@ -191,9 +201,11 @@ class HardwareInterfaceParam
   def compare_and_write_parameters
     # if the parameters in the device is different from the database parameter version
     # read and compare each parameter and write to device is different
+
     if @param_version_db != @param_version_ar
 
       load_param_values_non_arduino()
+
       if !parameters_different()
         @params_in_sync = true
         write_parameter_to_device(0, @param_version_db)
@@ -204,11 +216,11 @@ class HardwareInterfaceParam
       @params_in_sync = true
     end
   end
-
+puts @params_in_sync
   def parameters_different
     differences_found_total = false
     params.each do |p|
-      if p['id'] > 0
+      if p['id'] != 0
         difference = check_and_write_parameter(p)
         if difference then
           @params_in_sync = false

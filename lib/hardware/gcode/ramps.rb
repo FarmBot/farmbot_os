@@ -12,18 +12,18 @@ require_relative 'ramps_param.rb'
 
 class HardwareInterface
 
-  attr_reader :ramps_param, :ramps_main
+  attr_reader :ramps_param, :ramps_main, :ramps_arduino
 
   # initialize the interface
   #
-  def initialize
+  def initialize(test_mode)
 
     @bot_dbaccess = $bot_dbaccess
-
+    @test_mode         = test_mode
 
     # create the sub processing objects
     @ramps_param   = HardwareInterfaceParam.new
-    @ramps_arduino = HardwareInterfaceArduino.new
+    @ramps_arduino = HardwareInterfaceArduino.new(test_mode)
 
     @ramps_arduino.ramps_param = @ramps_param
     @ramps_arduino.ramps_main  = self
@@ -54,7 +54,7 @@ class HardwareInterface
   # read standard pin
   #
   def pin_std_read_value(pin, mode, external_info)
-    @external_info = external_info
+    @ramps_arduino.external_info = external_info
     @ramps_arduino.execute_command("F42 P#{pin} M#{mode}", false, @status_debug_msg)
     @external_info = ''
   end
@@ -74,7 +74,7 @@ class HardwareInterface
   # dose an amount of water (in ml)
   #
   def dose_water(amount)
-    #write_serial("F01 Q#{amount}")
+    @ramps_arduino.execute_command("F01 Q#{amount.to_i}", false, @status_debug_msg)
   end
 
   ## arduino status
@@ -188,13 +188,13 @@ class HardwareInterface
   # drive the motors so the bot is moved a number of steps
   #
   def move_steps(steps_x, steps_y, steps_z)
-    @ramps_arduino.execute_command("G00 X#{steps_x} Y#{steps_y} Z#{steps_z}")
+    @ramps_arduino.execute_command("G01 X#{steps_x.to_i} Y#{steps_y.to_i} Z#{steps_z.to_i}", true, false)
   end
 
   # drive the motors so the bot is moved to a set location
   #
   def move_to_coord(steps_x, steps_y, steps_z)
-    @ramps_arduino.execute_command("G00 X#{steps_x} Y#{steps_y} Z#{steps_z}", true, false)
+    @ramps_arduino.execute_command("G00 X#{steps_x.to_i} Y#{steps_y.to_i} Z#{steps_z.to_i}", true, false)
   end
 
   ## parameter hanlding

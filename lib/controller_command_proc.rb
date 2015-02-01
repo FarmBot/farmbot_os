@@ -12,7 +12,7 @@ class ControllerCommandProc
   end
 
   def check_whitelist(function)
-    raise "UNAUTHORIZED" unless whitelist.include?(function.upcase)
+    raise "UNAUTHORIZED" unless whitelist.include?(function.downcase)
   end
 
   def process_command( cmd )
@@ -34,7 +34,6 @@ class ControllerCommandProc
   def send_command(command_line)
     if $hardware_sim == 0
       function = command_line.action.downcase.sub(' ','_')
-      #puts function
       check_whitelist(function)
       send(function, command_line)
     else
@@ -76,7 +75,7 @@ class ControllerCommandProc
   end
 
   def dose_water(command_line)
-    #$bot_hardware.dose_water(command_line.amount)
+    $bot_hardware.dose_water(command_line.amount)
   end
 
   def set_speed(command_line)
