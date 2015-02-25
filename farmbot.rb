@@ -1,7 +1,7 @@
 # FarmBot Controller
 
 require_relative 'settings.rb'
-
+require 'pry' if !!ENV['SIMULATE']
 system('clear')
 puts ''
 
@@ -33,7 +33,7 @@ if $hardware_type != nil
   print 'hardware        '
   require_relative 'lib/controller'
   require_relative $hardware_type
-  $bot_hardware = HardwareInterface.new(false)
+  $bot_hardware = HardwareInterface.new(!!ENV['SIMULATE'])
 else
   $hardware_sim = 1
 end
