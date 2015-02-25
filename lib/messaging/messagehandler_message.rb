@@ -10,4 +10,9 @@ class MessageHandlerMessage
     handled = false
   end
 
+  def handle_message(message)
+    message.handled = true
+    puts 'This is probably where the message gets handled.'
+  end
+
 end

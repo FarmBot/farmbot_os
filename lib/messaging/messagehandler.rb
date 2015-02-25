@@ -10,6 +10,11 @@ require_relative 'messagehandler_parameters.rb'
 require_relative 'messagehandler_schedule.rb'
 require_relative 'messagehandler_status.rb'
 
+# Temporary workaround to stub out dbaccess
+class DbAccessStub
+  def write_to_log(*)
+  end
+end
 
 # Get the JSON command, received through skynet, and send it to the farmbot
 # command queue Parses JSON messages received through SkyNet.
@@ -22,9 +27,12 @@ class MessageHandler
 
   def initialize
     #@dbaccess = DbAccess.new
-    @dbaccess = $dbaccess
+    @dbaccess = $dbaccess || DbAccessStub.new
     @last_time_stamp  = ''
 
+    # It might be more effiecent to turn this into a hash map for looksups
+    # instead of looping through every handler every time. Eg:
+    # {'emergency_stop' => MessageHandlerEmergencyStop.new}
     @message_handlers = Array.new
     @message_handlers << MessageHandlerEmergencyStop.new
     @message_handlers << MessageHandlerLog.new
@@ -32,12 +40,15 @@ class MessageHandler
     @message_handlers << MessageHandlerParameter.new
     @message_handlers << MessageHandlerSchedule.new
     @message_handlers << MessageHandlerStatus.new
+    @message_handlers << MessageHandlerStatus.new
+    @message_handlers << MessageHandlerMessage.new
 
   end
 
   # Handle the message received from skynet
   #
   def handle_message(message)
+    puts 'incoming socket message'
 
     sender     = ""
     time_stamp = nil
@@ -61,6 +72,7 @@ class MessageHandler
       check_if_message_handled(message_obj)
 
     rescue Exception => e
+      puts e.message, e.backtrace.last
       err_snd = true
       err_msg = e.message
       err_trc = e.backtrace.inspect
@@ -70,6 +82,7 @@ class MessageHandler
     begin
       handle_message_error(err_snd, sender, time_stamp, err_msg, err_trc)
     rescue  Exception => e
+      puts e.message, e.backtrace.last
       puts "Error while sending error message: #{e.message}"
     end
   end
@@ -144,13 +157,13 @@ class MessageHandler
       if message_obj.handled == false
         handler.handle_message( message_obj )
       end
-    end     
+    end
   end
 
   def check_if_message_handled(message_obj)
     if message_obj.handled == false
       @dbaccess.write_to_log(2,'message could not be handled')
-      send_error(sender, '', 'message could not be handled')
+      send_error(message_obj.sender, '', 'message could not be handled')
     end
   end
 
