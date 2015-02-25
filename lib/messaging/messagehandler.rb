@@ -40,7 +40,6 @@ class MessageHandler
     @message_handlers << MessageHandlerParameter.new
     @message_handlers << MessageHandlerSchedule.new
     @message_handlers << MessageHandlerStatus.new
-    @message_handlers << MessageHandlerStatus.new
     @message_handlers << MessageHandlerMessage.new
 
   end
