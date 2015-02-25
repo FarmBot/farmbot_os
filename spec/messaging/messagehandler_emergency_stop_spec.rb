@@ -27,6 +27,10 @@ describe MessageHandlerEmergencyStop do
 
   ## messaging
 
+  it "white list" do
+    list = @handler.whitelist
+    expect(list.count).to eq(2)
+  end
   
   it "message handler emergency stop" do
     message = MessageHandlerMessage.new
@@ -38,8 +42,6 @@ describe MessageHandlerEmergencyStop do
     expect($status.emergency_stop).to eq(true)
     expect($messaging.message[:message_type]).to eq('confirmation')
   end
-
-
 
   it "message handler emergency stop reset" do
     message = MessageHandlerMessage.new

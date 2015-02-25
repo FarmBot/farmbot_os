@@ -304,97 +304,33 @@ describe DbAccess do
     param_name  = 'TEST_VALUE_0'
     param_value = 432
 
+    @db.write_parameter_with_type(param_name, 1, param_value)
+
     return_val = @db.read_parameter_with_default(param_name, param_value)
 
     expect(return_val).to eq(param_value)
   end
 
+  it "read parameter with default, value is nil" do
+    # write a parameter of type int
+    param_name  = 'TEST_VALUE_0'
+    param_value = 0
 
-  ## measurements
+    param = Parameter.find_or_create_by(name: param_name)
+    param.valuetype = 1
 
-#  def write_measurements(value, external_info)
-#    @measurements.write_measurements(value, external_info)
-#  end
+    param.valueint    = nil;
+    param.valuefloat  = nil;
+    param.valuestring = nil;
+    param.valuebool   = nil;
 
-#  def read_measurement_list()
-#    @measurements.read_measurement_list()
-#  end
+    $db_write_sync.synchronize do
+      param.save
+    end
 
-#  def delete_measurement(id)
-#    @measurements.delete_measurement(id)
-#  end
+    return_val = @db.read_parameter_with_default(param_name, param_value)
 
-  ## logs
-
-#  def write_to_log(module_id,text)
-#    @logs.write_to_log(module_id,text)
-#  end
-
-#  def read_logs_all()
-#    @logs.read_logs_all()
-#  end
-
-#  def retrieve_log(module_id, nr_of_lines)
-#    @logs.retrieve_log(module_id, nr_of_lines)
-#  end
-
-  ## commands
-
-#  def create_new_command(scheduled_time, crop_id)
-#    @commands.create_new_command(scheduled_time, crop_id)
-#  end
-
-#  def add_command_line(action, x = 0, y = 0, z = 0, speed = 0, amount = 0, pin_nr = 0, value1 = 0, value2 = 0, mode = 0, time = 0, external_info = "")
-#    @commands.add_command_line(action, x, y, z, speed, amount, pin_nr, value1, value2, mode, time, external_info)
-#  end
-
-#  def fill_in_command_line_coordinates(line, action, x, y, z, speed)
-#    @commands.fill_in_command_line_coordinates(line, action, x, y, z, speed)
-#  end
-
-#  def fill_in_command_line_pins(line, pin_nr, value1, value2, mode, time)
-#    @commands.fill_in_command_line_pins(line, pin_nr, value1, value2, mode, time)
-#  end
-
-#  def fill_in_command_line_extra(line, amount = 0, external_info = "")
-#    @commands.fill_in_command_line_extra(line, amount = 0, external_info = "")
-#  end
-
-#  def save_new_command
-#    @commands.save_new_command
-#    @refreshes.increment_refresh
-#  end
-
-#  def clear_schedule
-#    @commands.clear_schedule
-#  end
-
-#  def clear_crop_schedule(crop_id)
-#    @commands.clear_crop_schedule(crop_id)
-#  end
-
-#  def get_command_to_execute
-#    @commands.get_command_to_execute
-#  end
-
-#  def set_command_to_execute_status(new_status)
-#    @commands.set_command_to_execute_status(new_status)
-#  end
-
-  ## refreshes
-
-#  def check_refresh
-#    @refreshes.check_refresh
-#  end
-
-#  def save_refresh
-#    @refresh_value = @refresh_value_new
-#  end
-
-#  def increment_refresh
-#    @refreshes.increment_refresh
-#  end
-
-
+    expect(return_val).to eq(param_value)
+  end
 
 end

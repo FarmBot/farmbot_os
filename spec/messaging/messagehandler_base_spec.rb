@@ -16,4 +16,13 @@ describe MessageHandlerBase do
     expect(message.handled).to eq(false)        
   end
 
+  it "hanlde message test message" do
+    message = MessageHandlerMessage.new
+    message.message_type = 'test'
+    message.handled = false
+    @handler.handle_message(message)
+    expect(message.handled).to eq(true)        
+  end
+
+
 end

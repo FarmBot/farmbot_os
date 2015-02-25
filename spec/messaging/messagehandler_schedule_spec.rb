@@ -26,11 +26,11 @@ describe MessageHandlerSchedule do
 
   ## commands / scheduling
   
-#def single_command(message)
-#def save_single_command(command, delay)
-#def save_command_line(command)
-#def crop_schedule_update(message)
-#def save_command_with_lines(command)
+  it "white list" do
+    list = @handler.whitelist
+    expect(list.count).to eq(2)
+  end
+
 
   it "save command line" do
 
@@ -236,6 +236,25 @@ describe MessageHandlerSchedule do
     expect(line.pin_value_2  ).to eq(pin_value2   )
     expect(line.pin_mode     ).to eq(pin_mode     )
     expect(line.pin_time     ).to eq(pin_time     )
+    
+  end
+
+  it "handle empty command" do
+
+    # create a message
+
+    message = MessageHandlerMessage.new
+    message.handled = false
+    message.handler = @main_handler
+    message.payload = {}
+
+    # execute the message
+
+    @handler.single_command(message)
+
+    # do the checks
+
+    expect($messaging.message[:message_type]).to eq('error')
     
   end
 

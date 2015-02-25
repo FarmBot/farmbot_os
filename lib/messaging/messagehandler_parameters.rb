@@ -62,7 +62,7 @@ class MessageHandlerParameter < MessageHandlerBase
       end
       message.handler.send_confirmation(message.sender, message.time_stamp)
     else
-      message.handler.send_error(sender, time_stamp, 'no paramer list in message')                           
+      message.handler.send_error(message.sender, message.time_stamp, 'no paramer list in message')                           
     end      
   end
 

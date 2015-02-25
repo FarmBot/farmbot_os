@@ -23,6 +23,11 @@ describe MessageHandlerLog do
 
   ## logs
   
+  it "white list" do
+    list = @handler.whitelist
+    expect(list.count).to eq(1)
+  end
+
   it "read logs" do
 
     # write a few lines in the log

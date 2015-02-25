@@ -31,6 +31,12 @@ describe MessageHandlerStatus do
     @main_handler = MessageHandler.new
   end
 
+  it "white list" do
+    list = @handler.whitelist
+    expect(list.count).to eq(1)
+  end
+
+
   it "read status" do
 
     # create new status data

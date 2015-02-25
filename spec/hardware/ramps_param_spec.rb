@@ -96,6 +96,9 @@ describe HardwareInterfaceArduino do
     expect(param['id']).to eq(id)
     expect(param['default']).to eq(default)
 
+    # repeat again so the part where the param already exists is ran too
+    @ramps_param.param_name_add(name, id, default)
+
   end
 
 #  def get_param_by_name(name) 
@@ -231,7 +234,7 @@ describe HardwareInterfaceArduino do
 
   it "read parameter from device" do
 
-    id = -1
+    id = 1
     value      = rand(9999999).to_i
 
     @ramps.clean_serial_buffer()
@@ -249,7 +252,7 @@ describe HardwareInterfaceArduino do
 
   it "write parameter to device" do
 
-    id         = -1
+    id         = 1
     default    = rand(9999999).to_i
     value      = rand(9999999).to_i
 
@@ -314,8 +317,8 @@ describe HardwareInterfaceArduino do
   it "check and write one parameter, test with similar" do
 
 
-    name = 'TESTING'
-    id = -1
+    name   = 'TESTING'
+    id     = 1
     value  = rand(9999999).to_i
     value2 = rand(9999999).to_i
 
@@ -333,8 +336,8 @@ describe HardwareInterfaceArduino do
   it "check and write one parameter, test with different" do
 
 
-    name = 'TESTING'
-    id = -1
+    name   = 'TESTING'
+    id     = 1
     value  = rand(9999999).to_i
     value2 = rand(9999999).to_i
 
@@ -355,7 +358,7 @@ describe HardwareInterfaceArduino do
   it "compare and write paramters, different" do
 
     name = 'TESTING'
-    id = -1
+    id   = 1
 
     value0  = rand(9999999).to_i
     value1  = rand(9999999).to_i
@@ -392,7 +395,7 @@ describe HardwareInterfaceArduino do
   it "compare and write paramters, no difference" do
 
     name = 'TESTING'
-    id = -1
+    id   = 1
 
     value  = rand(9999999).to_i
 
@@ -408,12 +411,38 @@ describe HardwareInterfaceArduino do
     expect(@ramps_param.params_in_sync).to eq(true)
   end
 
+  it "compare and write paramters, different version, all parameters identical" do
+
+    name = 'TESTING'
+    id   = 1
+
+    value  = rand(9999999).to_i
+
+    @ramps_param.params.each do |p|
+        p['value_ar'] = p['value_db']
+    end
+
+    @ramps_param.param_version_db = value
+    @ramps_param.param_version_ar = value - 1
+
+    $bot_dbaccess.write_parameter('PARAM_VERSION',@ramps_param.param_version_db)
+
+    @ramps.test_serial_write = ""
+    @ramps.test_serial_read  = ""
+
+    @ramps_param.compare_and_write_parameters()
+
+    expect(@ramps.test_serial_write).to eq("F22 P0 V#{value}\n")
+    expect(@ramps_param.params_in_sync).to eq(true)
+  end
+
+
 #  def check_parameters
 
   it "check parameter, no difference" do
 
     name = 'TESTING'
-    id = -1
+    id   = 1
 
     db_version  = rand(9999999).to_i
 
@@ -431,7 +460,7 @@ describe HardwareInterfaceArduino do
   it "check parameter, different" do
 
     name = 'TESTING'
-    id = -1
+    id   = 1
 
     db_version  = rand(9999999).to_i
     ar_version  = rand(9999999).to_i

@@ -263,6 +263,14 @@ describe ControllerCommandProc do
     @controller.send_command(command_line)
 
     expect(@ramps.ramps_arduino.test_serial_write).to eq("F61 P#{pin} V#{value}\n")
+
+    $hardware_sim = 1
+
+    @ramps.ramps_arduino.test_serial_write = ""
+    @controller.send_command(command_line)
+    expect(@ramps.ramps_arduino.test_serial_write).to eq("")
+
+    $hardware_sim = 0
   end
 
 #  def process_command( cmd )
@@ -283,6 +291,12 @@ describe ControllerCommandProc do
     @controller.process_command( cmd )
 
     expect(@ramps.ramps_arduino.test_serial_write).to eq("F61 P#{pin} V#{value}\n")
+  end
+
+#  def process_command( cmd )
+
+  it "process command when command is nil" do
+    @controller.process_command( nil )
   end
 
 #  def set_speed(command_line)
