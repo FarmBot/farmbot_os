@@ -23,7 +23,7 @@ class DbAccessRefreshes
   def check_refresh
     r = Refresh.find_or_create_by(name: 'FarmBotControllerSchedule')
     @refresh_value_new = (r == nil ? 0 : r.value.to_i)
-    return @refresh_value_new != @refresh_value
+    @refresh_value_new != @refresh_value
   end
 
   def save_refresh

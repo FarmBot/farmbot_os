@@ -19,8 +19,6 @@ class ControllerCommandProc
 
     if cmd != nil
       cmd.command_lines.each do |command_line|
-        #$status.info_movement = "#{command_line.action.downcase} xyz=#{command_line.coord_x} #{command_line.coord_y} #{command_line.coord_z} amt=#{command_line.amount} spd=#{command_line.speed}"
-        @bot_dbaccess.write_to_log(1,@info_movement)
         send_command(command_line)
       end
     else
@@ -32,13 +30,18 @@ class ControllerCommandProc
   end
 
   def send_command(command_line)
+    function = command_line.action.downcase.sub(' ','_')
+    check_whitelist(function)
+
     if $hardware_sim == 0
-      function = command_line.action.downcase.sub(' ','_')
-      check_whitelist(function)
       send(function, command_line)
     else
-      @bot_dbaccess.write_to_log(1,'>simulating hardware<')
-      sleep 2
+      #$status.info_movement = 
+      @info_movement = "#{command_line.action.downcase} xyz=#{command_line.coord_x} #{command_line.coord_y} #{command_line.coord_z} amt=#{command_line.amount} spd=#{command_line.speed} pin=#{command_line.pin_nr}"
+      puts "simulating: #{@info_movement}"
+      #@bot_dbaccess.write_to_log(1,@info_movement)
+      #@bot_dbaccess.write_to_log(1,"simulating hardware: #{function}")
+      sleep 0.1
     end
   end
 
@@ -78,9 +81,9 @@ class ControllerCommandProc
     $bot_hardware.dose_water(command_line.amount)
   end
 
-  def set_speed(command_line)
-    $bot_hardware.set_speed(command_line.speed)
-  end
+#  def set_speed(command_line)
+#    $bot_hardware.set_speed(command_line.speed)
+#  end
 
   def pin_write(command_line)
     $bot_hardware.pin_std_set_value(command_line.pin_nr, command_line.pin_value_1, command_line.pin_mode)

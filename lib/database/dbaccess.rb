@@ -15,15 +15,19 @@ require_relative 'dbaccess_measurements.rb'
 
 class DbAccess
 
+  attr_accessor :max_nr_log_lines
+
   def initialize(environment)
     config = YAML::load(File.open('./config/database.yml'))
     ActiveRecord::Base.establish_connection(config[environment])
 
     @commands     = DbAccessCommands.new
     @refreshes    = DbAccessRefreshes.new
-    @logs         = DbAccessLogs.new
+    @logs         = DbAccessLogs.new(self)
     @parameters   = DbAccessParameters.new
     @measurements = DbAccessMeasurements.new
+
+    @max_nr_log_lines = 1000
 
   end
 

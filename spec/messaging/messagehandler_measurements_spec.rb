@@ -23,6 +23,10 @@ describe MessageHandlerMeasurement do
 
   ## measurements
 
+  it "white list" do
+    list = @handler.whitelist
+    expect(list.count).to eq(2)
+  end
   
   it "read measurements" do
 

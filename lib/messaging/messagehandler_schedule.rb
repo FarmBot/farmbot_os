@@ -30,7 +30,7 @@ class MessageHandlerSchedule < MessageHandlerBase
 
     else
 
-      message.handler.send_error(sender, time_stamp, 'no command in message')
+      message.handler.send_error(message.sender, message.time_stamp, 'no command in message')
 
     end
 
@@ -40,6 +40,7 @@ class MessageHandlerSchedule < MessageHandlerBase
       @dbaccess.create_new_command(Time.now + delay.to_i,'single_command')
       save_command_line(command)
       @dbaccess.save_new_command
+      @dbaccess.increment_refresh
   end
 
   def save_command_line(command)
@@ -81,6 +82,7 @@ class MessageHandlerSchedule < MessageHandlerBase
       end
 
       @dbaccess.save_new_command
+      @dbaccess.increment_refresh
   end
 
 end

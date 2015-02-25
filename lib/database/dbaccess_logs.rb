@@ -12,10 +12,11 @@ require_relative '../../app/models/log.rb'
 class DbAccessLogs
 
   attr_writer   :dbaccess
-  attr_accessor :log_to_screen
 
-  def initialize
+  def initialize(db)
+    @dbaccess = db
     @log_to_screen = true
+    @max_nr_log_lines = 10000
   end
 
   ## logs
@@ -24,9 +25,7 @@ class DbAccessLogs
   #
   def write_to_log(module_id,text)
 
-    if @log_to_screen
-      puts "[LOG] #{text}"
-    end
+    puts "[LOG] #{text}" if @log_to_screen
 
     log           = Log.new
     log.text      = text
@@ -37,11 +36,13 @@ class DbAccessLogs
     end
 
     # clean up old logs
-    Log.where("created_at < (?)", 2.days.ago).find_each do |log|
+
+    if Log.count > @dbaccess.max_nr_log_lines
       $db_write_sync.synchronize do
-        log.delete
+        Log.delete(Log.order("created_at asc").first(Log.count - @dbaccess.max_nr_log_lines))
       end
     end
+
   end
 
   # read all logs from the log file

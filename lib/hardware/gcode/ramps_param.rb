@@ -216,7 +216,7 @@ class HardwareInterfaceParam
       @params_in_sync = true
     end
   end
-puts @params_in_sync
+
   def parameters_different
     differences_found_total = false
     params.each do |p|

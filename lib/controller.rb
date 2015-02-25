@@ -63,20 +63,23 @@ class Controller
  
     print 'arduino         '
     sleep 1
-    $bot_hardware.read_device_version()
+    $bot_hardware.read_device_version() if $hardware_sim == 0
     puts  $status.device_version
 
     $status.info_status = 'synchronizing arduino parameters'
     print 'parameters      '
-    $bot_hardware.check_parameters    
-    $bot_hardware.check_parameters
+    $bot_hardware.check_parameters if $hardware_sim == 0
+    $bot_hardware.check_parameters if $hardware_sim == 0
 
-    if $bot_hardware.ramps_param.params_in_sync
-      puts 'OK'
+    if $hardware_sim == 0
+      if  $bot_hardware.ramps_param.params_in_sync
+        puts 'OK'
+      else
+        puts 'ERROR'
+      end
     else
-      puts 'ERROR'
+      puts "SIM"
     end
-
 
     #$bot_hardware.read_end_stops()
     #$bot_hardware.read_postition()
@@ -105,6 +108,7 @@ class Controller
     $status.info_status = 'executing command'
     #show_info()
 
+
     $status.info_nr_of_commands = $status.info_nr_of_commands + 1
 
     process_command( @command )
@@ -123,7 +127,7 @@ class Controller
     wait_start_time = Time.now
 
     # wait until the scheduled time has arrived, or wait for a minute or 
-    #until a refresh it set in the database as a sign new data has arrived
+    # until a refresh it set in the database as a sign new data has arrived
 
     while Time.now < wait_start_time + 60 and @command.scheduled_time > Time.now - 1 and refresh_received == false
 
@@ -160,7 +164,8 @@ class Controller
 
         check_hardware()
 
-        refresh_received = check_refresh or @bot_dbaccess.check_refresh
+        refresh_received = true if @bot_dbaccess.check_refresh
+        refresh_received = true if check_refresh
 
       end
     end
@@ -176,7 +181,7 @@ class Controller
 
   def check_hardware()
 
-    if (Time.now - @last_hw_check) > 0.5
+    if (Time.now - @last_hw_check) > 0.5 and $hardware_sim == 0
       $bot_hardware.check_parameters
       $bot_hardware.read_end_stops()
       $bot_hardware.read_postition()
@@ -240,7 +245,7 @@ class Controller
       refreshed = true
       @cmd_last_refresh = $status.command_refresh
     else
-      refreshed = false;
+      refreshed = false
     end
     refreshed
   end

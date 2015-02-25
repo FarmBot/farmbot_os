@@ -23,7 +23,11 @@ describe MessageHandlerParameter do
 
   ## measurements
 
-  
+  it "white list" do
+    list = @handler.whitelist
+    expect(list.count).to eq(2)
+  end
+
   it "read parameters" do
 
     # write a few parameters
@@ -66,7 +70,6 @@ describe MessageHandlerParameter do
     expect($messaging.message[:message_type]).to eq('read_parameters_response')
   end
 
-
   it "write parameters" do
 
     # write a few parameters
@@ -106,5 +109,18 @@ describe MessageHandlerParameter do
 
   end
 
+  it "write parameters empty command" do
+
+
+    message = MessageHandlerMessage.new
+    message.handled = false
+    message.handler = @main_handler
+    message.payload = {}
+
+    @handler.write_parameters(message)
+
+    expect($messaging.message[:message_type]).to eq('error')
+
+  end
 
 end

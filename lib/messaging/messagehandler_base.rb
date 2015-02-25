@@ -18,7 +18,7 @@ class MessageHandlerBase
   # A list of MessageHandler methods (as strings) that a Skynet User may access.
   #
   def whitelist
-    []
+    ['test']
   end
 
   # Handle the message received from skynet
@@ -30,6 +30,9 @@ class MessageHandlerBase
       message.handled = true
     end
 
+  end
+
+  def test(message)
   end
 
 end
