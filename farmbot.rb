@@ -1,5 +1,5 @@
 # FarmBot Controller
-
+require 'pry'
 require_relative 'settings.rb'
 
 system('clear')
@@ -10,7 +10,7 @@ puts '---------'
 puts ' FarmBot '
 puts '---------'
 puts '   \/    '
-puts ''
+puts '========='
 
 require_relative 'lib/status'
 $status = Status.new
@@ -41,7 +41,6 @@ puts 'OK'
 
 puts "uuid            #{$info_uuid}"
 puts "token           #{$info_token}"
-
 if $controller_disable == 0
   print 'controller      '
   require_relative 'lib/controller'

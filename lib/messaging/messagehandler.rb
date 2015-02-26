@@ -9,7 +9,13 @@ require_relative 'messagehandler_message.rb'
 require_relative 'messagehandler_parameters.rb'
 require_relative 'messagehandler_schedule.rb'
 require_relative 'messagehandler_status.rb'
+require_relative 'messagehandler_message'
 
+class NullDatabase
+  def method_missing(*)
+    self
+  end
+end
 
 # Get the JSON command, received through skynet, and send it to the farmbot
 # command queue Parses JSON messages received through SkyNet.
@@ -22,7 +28,7 @@ class MessageHandler
 
   def initialize
     #@dbaccess = DbAccess.new
-    @dbaccess = $dbaccess
+    @dbaccess = $dbaccess || NullDatabase.new
     @last_time_stamp  = ''
 
     @message_handlers = Array.new
@@ -32,13 +38,14 @@ class MessageHandler
     @message_handlers << MessageHandlerParameter.new
     @message_handlers << MessageHandlerSchedule.new
     @message_handlers << MessageHandlerStatus.new
+    @message_handlers << MessageHandlerMessage.new
 
   end
 
   # Handle the message received from skynet
   #
   def handle_message(message)
-
+    puts "WebSocket Message"
     sender     = ""
     time_stamp = nil
 
@@ -61,6 +68,7 @@ class MessageHandler
       check_if_message_handled(message_obj)
 
     rescue Exception => e
+      puts e.message, e.backtrace.first
       err_snd = true
       err_msg = e.message
       err_trc = e.backtrace.inspect
@@ -70,6 +78,7 @@ class MessageHandler
     begin
       handle_message_error(err_snd, sender, time_stamp, err_msg, err_trc)
     rescue  Exception => e
+      puts e.message, e.backtrace.first
       puts "Error while sending error message: #{e.message}"
     end
   end
@@ -144,13 +153,13 @@ class MessageHandler
       if message_obj.handled == false
         handler.handle_message( message_obj )
       end
-    end     
+    end
   end
 
   def check_if_message_handled(message_obj)
     if message_obj.handled == false
       @dbaccess.write_to_log(2,'message could not be handled')
-      send_error(sender, '', 'message could not be handled')
+      send_error(message_obj.sender, '', 'message could not be handled')
     end
   end
 
