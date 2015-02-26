@@ -1,4 +1,5 @@
 # FarmBot Controller
+require 'pry'
 
 require_relative 'settings.rb'
 
@@ -11,8 +12,7 @@ puts ' FarmBot '
 puts '---------'
 puts '   \/    '
 puts '========='
-puts '"q": stop'
-require_relative 'lib/status'
+
 $status = Status.new
 
 $shutdown = 0
@@ -35,7 +35,6 @@ if $hardware_type != nil
   require_relative $hardware_type
   $bot_hardware = HardwareInterface.new(false)
 else
-  require 'pry'
   $hardware_sim = 1
 end
 puts 'OK'
