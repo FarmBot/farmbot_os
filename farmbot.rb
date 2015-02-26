@@ -1,6 +1,5 @@
 # FarmBot Controller
 require 'pry'
-
 require_relative 'settings.rb'
 
 system('clear')
@@ -13,6 +12,7 @@ puts '---------'
 puts '   \/    '
 puts '========='
 
+require_relative 'lib/status'
 $status = Status.new
 
 $shutdown = 0
