@@ -42,6 +42,8 @@ class MessageHandler
     sender     = ""
     time_stamp = nil
 
+    puts "received at #{Time.now.strftime("%Y-%m-%d %H:%M:%S")}: #{message}" if $mesh_msg_print == 1
+
     err_msg = ""
     err_trc = ""
     err_snd = false
