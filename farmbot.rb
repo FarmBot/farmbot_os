@@ -10,8 +10,8 @@ puts '---------'
 puts ' FarmBot '
 puts '---------'
 puts '   \/    '
-puts ''
-
+puts '========='
+puts '"q": stop'
 require_relative 'lib/status'
 $status = Status.new
 
@@ -35,13 +35,13 @@ if $hardware_type != nil
   require_relative $hardware_type
   $bot_hardware = HardwareInterface.new(false)
 else
+  require 'pry'
   $hardware_sim = 1
 end
 puts 'OK'
 
 puts "uuid            #{$info_uuid}"
 puts "token           #{$info_token}"
-
 if $controller_disable == 0
   print 'controller      '
   require_relative 'lib/controller'

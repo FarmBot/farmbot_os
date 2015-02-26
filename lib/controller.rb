@@ -2,7 +2,6 @@ require 'active_record'
 require 'date'
 require_relative 'database/dbaccess'
 require_relative 'controller_command_proc'
-
 # FarmBot Controller: This module executes the schedule. It reads the next
 # command and sends it to the hardware implementation
 class Controller
@@ -30,7 +29,7 @@ class Controller
         get_next_command
         check_and_execute_command
 
-      rescue Exception => e
+      rescue => e
         puts("Error in controller\n#{e.message}\n#{e.backtrace.inspect}")
         @bot_dbaccess.write_to_log(1,"Error in controller\n#{e.message}\n#{e.backtrace.inspect}")
       end
@@ -60,7 +59,7 @@ class Controller
 
     $status.info_status = 'starting'
     puts 'OK'
- 
+
     print 'arduino         '
     sleep 1
     $bot_hardware.read_device_version() if $hardware_sim == 0
@@ -126,7 +125,7 @@ class Controller
 
     wait_start_time = Time.now
 
-    # wait until the scheduled time has arrived, or wait for a minute or 
+    # wait until the scheduled time has arrived, or wait for a minute or
     # until a refresh it set in the database as a sign new data has arrived
 
     while Time.now < wait_start_time + 60 and @command.scheduled_time > Time.now - 1 and refresh_received == false
@@ -159,9 +158,7 @@ class Controller
       # new data has arrived
 
       while  Time.now < wait_start_time + 60 and refresh_received == false
-
         sleep 0.1
-
         check_hardware()
 
         refresh_received = true if @bot_dbaccess.check_refresh

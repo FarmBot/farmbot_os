@@ -7,12 +7,13 @@ class ControllerCommandProc
     @bot_dbaccess        = $bot_dbaccess
   end
 
-  def whitelist
-    ['move_absolute','move_relative','home_x','home_y','home_z','calibrate_x','calibrate_y','calibrate_z','dose_water','set_speed','pin_write','pin_read','pin_mode','pin_pulse','servo_move']
-  end
+  WHITELIST = ['move_absolute','move_relative','home_x','home_y','home_z',
+               'calibrate_x','calibrate_y','calibrate_z','dose_water',
+               'set_speed','pin_write','pin_read','pin_mode','pin_pulse',
+               'servo_move']
 
   def check_whitelist(function)
-    raise "UNAUTHORIZED" unless whitelist.include?(function.downcase)
+    raise "UNAUTHORIZED" unless WHITELIST.include?(function.downcase)
   end
 
   def process_command( cmd )
@@ -36,7 +37,7 @@ class ControllerCommandProc
     if $hardware_sim == 0
       send(function, command_line)
     else
-      #$status.info_movement = 
+      #$status.info_movement =
       @info_movement = "#{command_line.action.downcase} xyz=#{command_line.coord_x} #{command_line.coord_y} #{command_line.coord_z} amt=#{command_line.amount} spd=#{command_line.speed} pin=#{command_line.pin_nr}"
       puts "simulating: #{@info_movement}"
       #@bot_dbaccess.write_to_log(1,@info_movement)
@@ -98,7 +99,7 @@ class ControllerCommandProc
   end
 
   def pin_pulse(command_line)
-    $bot_hardware.pin_std_pulse(command_line.pin_nr, command_line.pin_value_1, 
+    $bot_hardware.pin_std_pulse(command_line.pin_nr, command_line.pin_value_1,
                 command_line.pin_value_2, command_line.pin_time, command_line.pin_mode)
   end
 
