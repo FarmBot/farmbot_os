@@ -238,10 +238,9 @@ describe HardwareInterfaceArduino do
     value      = rand(9999999).to_i
 
     @ramps.clean_serial_buffer()
-    @ramps.test_serial_write = ""
-    @ramps.test_serial_read  = "R21 P#{id} V#{value}\n"
+    @ramps.serial_port.test_serial_write = ""
+    @ramps.serial_port.test_serial_read  = "R01\nR21 P#{id} V#{value}\nR02\n"
     @ramps_param.read_parameter_from_device(id)
-        
     param = @ramps_param.get_param(id, :by_id)
 
     expect(param['id']).to eq(id)
@@ -259,12 +258,12 @@ describe HardwareInterfaceArduino do
     @ramps_param.save_param_value(id, :by_id, :from_db, value)
 
     @ramps.clean_serial_buffer()
-    @ramps.test_serial_write = ""
-    @ramps.test_serial_read  = "R01\nR02\n"
+    @ramps.serial_port.test_serial_write = ""
+    @ramps.serial_port.test_serial_read  = "R01\nR02\n"
 
     @ramps_param.write_parameter_to_device(id, value)
         
-    expect(@ramps.test_serial_write).to eq("F22 P#{id} V#{value}\n")
+    expect(@ramps.serial_port.test_serial_write).to eq("F22 P#{id} V#{value}\n")
 
   end
 
@@ -276,8 +275,9 @@ describe HardwareInterfaceArduino do
     value      = rand(9999999).to_i
 
     @ramps.clean_serial_buffer()
-    @ramps.test_serial_write = ""
-    @ramps.test_serial_read  = "R21 P#{id} V#{value}\n"
+    @ramps.serial_port.test_serial_write = ""
+    @ramps.serial_port.test_serial_read  = "R01\nR21 P#{id} V#{value}\nR02\n"
+
     @ramps_param.update_param_version_ar()
 
     expect(@ramps_param.param_version_ar).to eq(value)
@@ -287,8 +287,12 @@ describe HardwareInterfaceArduino do
 
   it "parameters different false" do
 
+    @ramps.serial_port.test_serial_write = ""
+    @ramps.serial_port.test_serial_read  = ""
+
     @ramps_param.params.each do |p|
       p['value_ar'] = p['value_db']
+      @ramps.serial_port.test_serial_read  = @ramps.serial_port.test_serial_read + "R02\n"
     end
 
     different = @ramps_param.parameters_different()
@@ -301,8 +305,12 @@ describe HardwareInterfaceArduino do
     id = 11
     value = rand(9999999).to_i
 
+    @ramps.serial_port.test_serial_write = ""
+    @ramps.serial_port.test_serial_read  = ""
+
     @ramps_param.params.each do |p|
       p['value_ar'] = p['value_db']
+      @ramps.serial_port.test_serial_read  = @ramps.serial_port.test_serial_read + "R02\n"
     end
 
     @ramps_param.save_param_value(id, :by_id, :from_db, value)
@@ -316,7 +324,6 @@ describe HardwareInterfaceArduino do
 
   it "check and write one parameter, test with similar" do
 
-
     name   = 'TESTING'
     id     = 1
     value  = rand(9999999).to_i
@@ -325,8 +332,9 @@ describe HardwareInterfaceArduino do
     $bot_dbaccess.write_parameter(name,value)
 
     param = @ramps_param.get_param(id, :by_id)
-    @ramps.test_serial_write = ""
-    @ramps.test_serial_read  = "R21 P#{id} V#{value}\n"
+
+    @ramps.serial_port.test_serial_write = ""
+    @ramps.serial_port.test_serial_read  = "R01\nR21 P#{id} V#{value}\nR02\nR02\n"
 
     differences_found = @ramps_param.check_and_write_parameter(param)
 
@@ -335,7 +343,6 @@ describe HardwareInterfaceArduino do
 
   it "check and write one parameter, test with different" do
 
-
     name   = 'TESTING'
     id     = 1
     value  = rand(9999999).to_i
@@ -344,14 +351,15 @@ describe HardwareInterfaceArduino do
     $bot_dbaccess.write_parameter(name,value)
 
     param = @ramps_param.get_param(id, :by_id)
-    @ramps.test_serial_write = ""
-    @ramps.test_serial_read  = "R21 P#{id} V#{value2}\n"
+    @ramps.serial_port.test_serial_write = ""
+    @ramps.serial_port.test_serial_read  = "R01\nR21 P#{id} V#{value2}\nR02\nR02\n"
 
     differences_found = @ramps_param.check_and_write_parameter(param)
 
     expect(differences_found).to eq(true)
-    expect(@ramps.test_serial_write).to eq("F22 P#{id} V#{value}\n")
+    expect(@ramps.serial_port.test_serial_write).to eq("F22 P#{id} V#{value}\n")
   end
+
 
 #  def compare_and_write_parameters
 
@@ -365,6 +373,9 @@ describe HardwareInterfaceArduino do
     value2  = rand(9999999).to_i
     value3  = rand(9999999).to_i
     value4  = rand(9999999).to_i
+
+    @ramps.serial_port.test_serial_write = ""
+    @ramps.serial_port.test_serial_read  = ""
 
     $bot_dbaccess.write_parameter(name,value0)
 
@@ -383,12 +394,21 @@ describe HardwareInterfaceArduino do
     end
 
     #@ramps_param.save_param_value(id, :by_id, :from_db, value)
-    @ramps.test_serial_write = ""
-    @ramps.test_serial_read  = ""
+    @ramps.serial_port.test_serial_write = ""
+    @ramps.serial_port.test_serial_read  = ""
+
+    feedback = ""
+    @ramps_param.params.each do |p|
+      if p['id'] != 0
+        feedback = feedback + "R01\nR02\n"
+      end
+    end
+    feedback = feedback + "R01\nR02\n"
+    @ramps.serial_port.test_serial_read  = feedback
 
     @ramps_param.compare_and_write_parameters()
 
-    expect(@ramps.test_serial_write).to eq("F22 P#{id} V#{value0}\n")
+    expect(@ramps.serial_port.test_serial_write).to eq("F22 P#{id} V#{value0}\n")
     expect(@ramps_param.params_in_sync).to eq(false)
   end
 
@@ -399,15 +419,23 @@ describe HardwareInterfaceArduino do
 
     value  = rand(9999999).to_i
 
+    @ramps.serial_port.test_serial_write = ""
+    @ramps.serial_port.test_serial_read  = ""
+
     @ramps_param.param_version_db = value
     @ramps_param.param_version_ar = value
 
-    @ramps.test_serial_write = ""
-    @ramps.test_serial_read  = ""
+    feedback = ""
+    @ramps_param.params.each do |p|
+      if p['id'] != 0
+        feedback = feedback + "R01\nR02\n"
+      end
+    end
+    @ramps.serial_port.test_serial_read  = feedback
 
     @ramps_param.compare_and_write_parameters()
 
-    expect(@ramps.test_serial_write).to eq("")
+    expect(@ramps.serial_port.test_serial_write).to eq("")
     expect(@ramps_param.params_in_sync).to eq(true)
   end
 
@@ -418,6 +446,9 @@ describe HardwareInterfaceArduino do
 
     value  = rand(9999999).to_i
 
+    @ramps.serial_port.test_serial_write = ""
+    @ramps.serial_port.test_serial_read  = ""
+
     @ramps_param.params.each do |p|
         p['value_ar'] = p['value_db']
     end
@@ -427,12 +458,19 @@ describe HardwareInterfaceArduino do
 
     $bot_dbaccess.write_parameter('PARAM_VERSION',@ramps_param.param_version_db)
 
-    @ramps.test_serial_write = ""
-    @ramps.test_serial_read  = ""
+    feedback = ""
+    @ramps_param.params.each do |p|
+      if p['id'] != 0
+        feedback = feedback + "R01\nR02\n"
+      end
+    end
+    feedback = feedback + "R01\nR02\n"
+    @ramps.serial_port.test_serial_read  = feedback
+    @ramps.serial_port.test_serial_write = ""
 
     @ramps_param.compare_and_write_parameters()
 
-    expect(@ramps.test_serial_write).to eq("F22 P0 V#{value}\n")
+    expect(@ramps.serial_port.test_serial_write).to eq("F22 P0 V#{value}\n")
     expect(@ramps_param.params_in_sync).to eq(true)
   end
 
@@ -448,8 +486,19 @@ describe HardwareInterfaceArduino do
 
     $bot_dbaccess.write_parameter('PARAM_VERSION',db_version)
     
-    @ramps.test_serial_write = ""
-    @ramps.test_serial_read  = "R21 P0 V#{db_version}\n"
+    feedback = ""
+    feedback = feedback + "R01\nR21 P0 V#{db_version}\nR02\n"
+    @ramps_param.params.each do |p|
+      if p['id'] != 0
+        feedback = feedback + "R01\nR02\n"
+      end
+    end
+    #feedback = feedback + "R01\nR02\n"
+
+    @ramps.serial_port.test_serial_read  = feedback
+    @ramps.serial_port.test_serial_write = ""
+
+    #@ramps.serial_port.test_serial_read  = 
 
     @ramps_param.check_parameters()
 
@@ -469,11 +518,23 @@ describe HardwareInterfaceArduino do
     value1  = rand(9999999).to_i
     value2  = rand(9999999).to_i
 
+    @ramps.serial_port.test_serial_write = ""
+    @ramps.serial_port.test_serial_read  = ""
+
     $bot_dbaccess.write_parameter(name,value0)
     $bot_dbaccess.write_parameter('PARAM_VERSION',db_version)
     
-    @ramps.test_serial_write = ""
-    @ramps.test_serial_read  = "R21 P0 V#{ar_version}\n"
+
+    feedback = ""
+    feedback = feedback + "R01\nR21 P0 V#{ar_version}\nR02\n"
+    @ramps_param.params.each do |p|
+      if p['id'] != 0
+        feedback = feedback + "R01\nR02\n"
+      end
+    end
+    feedback = feedback + "R01\nR02\n"
+    @ramps.serial_port.test_serial_write = ""
+    @ramps.serial_port.test_serial_read  = feedback
 
     # make sure all parameters in device and database are equal
     @ramps_param.params.each do |p|
@@ -491,7 +552,7 @@ describe HardwareInterfaceArduino do
     @ramps_param.check_parameters()
 
     expect(@ramps_param.params_in_sync).to eq(false)
-    expect(@ramps.test_serial_write).to eq("F22 P#{id} V#{value0}\n")
+    expect(@ramps.serial_port.test_serial_write).to eq("F22 P#{id} V#{value0}\n")
     
   end
 

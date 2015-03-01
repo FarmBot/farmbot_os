@@ -23,10 +23,10 @@ describe HardwareInterface do
     pin      = rand(9999999).to_i
     value    = rand(9999999).to_i
 
-    @ramps.ramps_arduino.test_serial_read = "R01\nR02\n"
+    @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR02\n"
     @ramps.servo_std_move(pin, value)
 
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("F61 P#{pin} V#{value}\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F61 P#{pin} V#{value}\n")
   end
 
 #  def pin_std_set_value(pin, value, mode)
@@ -37,10 +37,10 @@ describe HardwareInterface do
     value    = rand(9999999).to_i
     mode     = rand(9999999).to_i
 
-    @ramps.ramps_arduino.test_serial_read = "R01\nR02\n"
+    @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR02\n"
     @ramps.pin_std_set_value(pin, value, mode)
 
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("F41 P#{pin} V#{value} M#{mode}\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F41 P#{pin} V#{value} M#{mode}\n")
   end
 
 #  def pin_std_read_value(pin, mode, external_info)
@@ -52,7 +52,7 @@ describe HardwareInterface do
     value    = rand(9999999).to_i
     ext_info = rand(9999999).to_s
 
-    @ramps.ramps_arduino.test_serial_read = "R01\nR41 P#{pin} V#{value}\nR02\n"
+    @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR41 P#{pin} V#{value}\nR02\n"
     @ramps.pin_std_read_value(pin, mode, ext_info)
 
     pin_value = 0
@@ -65,7 +65,7 @@ describe HardwareInterface do
     end
     
     expect(pin_value.to_i).to eq(value.to_i)
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("F42 P#{pin} M#{mode}\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F42 P#{pin} M#{mode}\n")
   end
 
 #  def pin_std_set_mode(pin, mode)
@@ -75,10 +75,10 @@ describe HardwareInterface do
     pin      = rand(9999999).to_i
     mode     = rand(9999999).to_i
 
-    @ramps.ramps_arduino.test_serial_read = "R01\nR02\n"
+    @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR02\n"
     @ramps.pin_std_set_mode(pin, mode)
 
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("F43 P#{pin} M#{mode}\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F43 P#{pin} M#{mode}\n")
 
   end
 
@@ -92,10 +92,10 @@ describe HardwareInterface do
     time     = rand(9999999).to_i
     mode     = rand(9999999).to_i
 
-    @ramps.ramps_arduino.test_serial_read = "R01\nR02\n"
+    @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR02\n"
     @ramps.pin_std_pulse(pin, value1, value2, time, mode)
 
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("F44 P#{pin} V#{value1} W#{value2} T#{time} M#{mode}\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F44 P#{pin} V#{value1} W#{value2} T#{time} M#{mode}\n")
 
   end
 
@@ -105,10 +105,10 @@ describe HardwareInterface do
 
     amount    = rand(9999999).to_i
 
-    @ramps.ramps_arduino.test_serial_read = "R01\nR02\n"
+    @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR02\n"
     @ramps.dose_water(amount)
 
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("F01 Q#{amount}\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F01 Q#{amount}\n")
 
   end
 
@@ -123,10 +123,10 @@ describe HardwareInterface do
     za    = (rand(2) >= 1) ? 1 : 0
     zb    = (rand(2) >= 1) ? 1 : 0
 
-    @ramps.ramps_arduino.test_serial_read = "R01\nR81 XA#{xa} XB#{xb} YA#{ya} YB#{yb} ZA#{za} ZB#{zb}\nR02\n"
+    @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR81 XA#{xa} XB#{xb} YA#{ya} YB#{yb} ZA#{za} ZB#{zb}\nR02\n"
     @ramps.read_end_stops()
 
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("F81\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F81\n")
     expect($status.info_end_stop_x_a).to eq(xa == 1)
     expect($status.info_end_stop_x_b).to eq(xb == 1)
     expect($status.info_end_stop_y_a).to eq(ya == 1)
@@ -144,10 +144,10 @@ describe HardwareInterface do
     z      = rand(9999999).to_i
 
 
-    @ramps.ramps_arduino.test_serial_read = "R01\nR82 X#{x} Y#{y} Z#{z}\nR02\n"
+    @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR82 X#{x} Y#{y} Z#{z}\nR02\n"
     @ramps.read_postition()
 
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("F82\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F82\n")
     expect($status.info_current_x_steps).to eq(x)
     expect($status.info_current_y_steps).to eq(y)
     expect($status.info_current_z_steps).to eq(z)
@@ -159,10 +159,10 @@ describe HardwareInterface do
 
     version      = rand(9999999).to_s
 
-    @ramps.ramps_arduino.test_serial_read = "R01\nR83 #{version}\nR02\n"
+    @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR83 #{version}\nR02\n"
     @ramps.read_device_version()
 
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("F83\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F83\n")
     expect($status.device_version).to eq(version)
   end
 
@@ -170,10 +170,10 @@ describe HardwareInterface do
 
   it "home all" do
 
-    @ramps.ramps_arduino.test_serial_read = "R01\nR02\n"
+    @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR02\n"
     @ramps.move_home_all()
 
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("G28\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("G28\n")
 
   end
 
@@ -181,10 +181,10 @@ describe HardwareInterface do
 
   it "home x" do
 
-    @ramps.ramps_arduino.test_serial_read = "R01\nR02\n"
+    @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR02\n"
     @ramps.move_home_x()
 
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("F11\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F11\n")
 
   end
 
@@ -192,10 +192,10 @@ describe HardwareInterface do
 
   it "home y" do
 
-    @ramps.ramps_arduino.test_serial_read = "R01\nR02\n"
+    @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR02\n"
     @ramps.move_home_y()
 
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("F12\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F12\n")
 
   end
 
@@ -203,10 +203,10 @@ describe HardwareInterface do
 
   it "home z" do
 
-    @ramps.ramps_arduino.test_serial_read = "R01\nR02\n"
+    @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR02\n"
     @ramps.move_home_z()
 
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("F13\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F13\n")
 
   end
 
@@ -214,10 +214,10 @@ describe HardwareInterface do
 
   it "calibrate x" do
 
-    @ramps.ramps_arduino.test_serial_read = "R01\nR02\n"
+    @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR02\n"
     @ramps.calibrate_x()
 
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("F14\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F14\n")
 
   end
 
@@ -225,10 +225,10 @@ describe HardwareInterface do
 
   it "calibrate y" do
 
-    @ramps.ramps_arduino.test_serial_read = "R01\nR02\n"
+    @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR02\n"
     @ramps.calibrate_y()
 
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("F15\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F15\n")
 
   end
 
@@ -236,10 +236,10 @@ describe HardwareInterface do
 
   it "calibrate z" do
 
-    @ramps.ramps_arduino.test_serial_read = "R01\nR02\n"
+    @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR02\n"
     @ramps.calibrate_z()
 
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("F16\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F16\n")
 
   end
 
@@ -251,14 +251,14 @@ describe HardwareInterface do
     y      = rand(9999999).to_i
     z      = rand(9999999).to_i
 
-    @ramps.ramps_arduino.test_serial_read = "R01\nR02\n"
+    @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR02\n"
     @ramps.move_absolute( x, y, z)
 
     part_x = "X#{x * @ramps.ramps_param.axis_x_steps_per_unit}"
     part_y = "Y#{y * @ramps.ramps_param.axis_y_steps_per_unit}"
     part_z = "Z#{z * @ramps.ramps_param.axis_z_steps_per_unit}"
 
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("G00 #{part_x} #{part_y} #{part_z}\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("G00 #{part_x} #{part_y} #{part_z}\n")
   end
 
 
@@ -278,14 +278,14 @@ describe HardwareInterface do
     $status.info_current_y_steps = current_y
     $status.info_current_z_steps = current_z
 
-    @ramps.ramps_arduino.test_serial_read = "R01\nR02\n"
+    @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR02\n"
     @ramps.move_relative( x, y, z)
 
     part_x = "X#{x * @ramps.ramps_param.axis_x_steps_per_unit + current_x}"
     part_y = "Y#{y * @ramps.ramps_param.axis_y_steps_per_unit + current_y}"
     part_z = "Z#{z * @ramps.ramps_param.axis_z_steps_per_unit + current_z}"
 
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("G00 #{part_x} #{part_y} #{part_z}\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("G00 #{part_x} #{part_y} #{part_z}\n")
   end
 
 #  def move_steps(steps_x, steps_y, steps_z)
@@ -296,14 +296,14 @@ describe HardwareInterface do
     y         = rand(9999999).to_i
     z         = rand(9999999).to_i
 
-    @ramps.ramps_arduino.test_serial_read = "R01\nR02\n"
+    @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR02\n"
     @ramps.move_steps( x, y, z)
 
     part_x = "X#{x}"
     part_y = "Y#{y}"
     part_z = "Z#{z}"
 
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("G01 #{part_x} #{part_y} #{part_z}\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("G01 #{part_x} #{part_y} #{part_z}\n")
   end
 
 #  def move_to_coord(steps_x, steps_y, steps_z)
@@ -314,14 +314,14 @@ describe HardwareInterface do
     y         = rand(9999999).to_i
     z         = rand(9999999).to_i
 
-    @ramps.ramps_arduino.test_serial_read = "R01\nR02\n"
+    @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR02\n"
     @ramps.move_to_coord( x, y, z)
 
     part_x = "X#{x}"
     part_y = "Y#{y}"
     part_z = "Z#{z}"
 
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("G00 #{part_x} #{part_y} #{part_z}\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("G00 #{part_x} #{part_y} #{part_z}\n")
   end
 
 #  def check_parameters
@@ -332,11 +332,11 @@ describe HardwareInterface do
 
     $bot_dbaccess.write_parameter('PARAM_VERSION',db_version)
     
-    @ramps.ramps_arduino.test_serial_write = ""
-    @ramps.ramps_arduino.test_serial_read  = "R21 P0 V#{db_version}\n"
+    @ramps.ramps_arduino.serial_port.test_serial_write = ""
+    @ramps.ramps_arduino.serial_port.test_serial_read  = "R21 P0 V#{db_version}\n"
     @ramps.check_parameters()
 
-    expect(@ramps.ramps_arduino.test_serial_write).to eq("F21 P0\n")
+    expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F21 P0\n")
   end
 
  
