@@ -11,9 +11,6 @@ require_relative 'messagehandler.rb'
 # The Device class is temporarily inheriting from Tim's HardwareInterface.
 # Eventually, we should merge the two projects, but this is good enough for now.
 class Messaging
-
-  include Credentials, WebSocket
-
   class << self
     attr_accessor :current
 
@@ -24,6 +21,8 @@ class Messaging
 
   attr_accessor :socket, :uuid, :token, :identified, :confirmed,
     :confirmation_id
+
+  include Credentials, WebSocket
 
   # On instantiation #new sets the @uuid, @token variables, connects to skynet
   def initialize
@@ -42,7 +41,7 @@ class Messaging
   end
 
   def send_message(devices, message_hash )
-    @socket.emit("message", devices: devices, message: message_hash})
+    @socket.emit("message", devices: devices, message: message_hash)
   end
 
   # Acts as the entry point for message traffic captured from MeshBlu.
