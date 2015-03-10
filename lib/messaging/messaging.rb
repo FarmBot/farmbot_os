@@ -11,59 +11,50 @@ require_relative 'messagehandler.rb'
 # The Device class is temporarily inheriting from Tim's HardwareInterface.
 # Eventually, we should merge the two projects, but this is good enough for now.
 class Messaging
+  class << self
+    attr_accessor :current
 
-  include Credentials, WebSocket
+    def current
+      @current ||= self.new
+    end
+  end
 
   attr_accessor :socket, :uuid, :token, :identified, :confirmed,
     :confirmation_id
 
+  include Credentials, WebSocket
+
   # On instantiation #new sets the @uuid, @token variables, connects to skynet
   def initialize
-    super
     identified = false
     creds      = credentials
     @uuid      = creds[:uuid]
     @token     = creds[:token]
+    # Still pointing to old URL?
     @socket    = SocketIO::Client::Simple.connect 'http://skynet.im:80'
     @confirmed = false
   end
 
   def start
-    $info_uuid              = @uuid
-    $info_token             = @token
-    $info_last_msg_received = nil
-    $info_nr_msg_received   = 0
-
     create_socket_events
-
     @message_handler  = MessageHandler.new
   end
 
   def send_message(devices, message_hash )
-    @socket.emit("message",{:devices => devices, :message => message_hash})
+    @socket.emit("message", devices: devices, message: message_hash)
   end
 
-  # Acts as the entry point for message traffic captured from Skynet.im.
-  # This method is a stub for now until I have time to merge into Tim's
-  # controller code. Returns a MessageHandler object (a class yet created).
-  #def handle_message(channel, message)
+  # Acts as the entry point for message traffic captured from MeshBlu.
   def handle_message(message)
-
-    #puts "> message received at #{Time.now}"
-    #puts message
-
-    $info_last_msg_received = Time.now
-    $info_nr_msg_received  += 1
-
-    if message.class.to_s == 'Hash'
+    case message.class
+    when Hash
       @message_handler.handle_message(message)
-    end
-
-    if message.class.to_s == 'String'
+    when String
       message_hash = JSON.parse(message)
       @message_handler.handle_message(message_hash)
+    else
+      raise "Can't handle messages of class #{message.class}"
     end
-
   rescue
     raise "Runtime error while attempting to parse message: #{message}."
   end

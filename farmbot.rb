@@ -39,8 +39,8 @@ else
 end
 puts 'OK'
 
-puts "uuid            #{$info_uuid}"
-puts "token           #{$info_token}"
+puts "uuid            #{Messaging.current.uuid}"
+puts "token           #{Messaging.current.token}"
 if $controller_disable == 0
   print 'controller      '
   require_relative 'lib/controller'

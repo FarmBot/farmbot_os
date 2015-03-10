@@ -14,8 +14,8 @@ describe MessageHandlerParameter do
 
     $status = Status.new
 
-    $messaging = MessagingTest.new
-    $messaging.reset
+    Messaging.current = MessagingTest.new
+    Messaging.current.reset
 
     @handler = MessageHandlerParameter.new
     @main_handler = MessageHandler.new
@@ -47,7 +47,7 @@ describe MessageHandlerParameter do
 
     @handler.read_parameters(message)
 
-    return_list = $messaging.message
+    return_list = Messaging.current.message
 
     # check if the parameters are present in the message
 
@@ -67,7 +67,7 @@ describe MessageHandlerParameter do
 
     expect(found_in_list_1).to eq(true)
     expect(found_in_list_2).to eq(true)
-    expect($messaging.message[:message_type]).to eq('read_parameters_response')
+    expect(Messaging.current.message[:message_type]).to eq('read_parameters_response')
   end
 
   it "write parameters" do
@@ -85,9 +85,9 @@ describe MessageHandlerParameter do
     message.handled = false
     message.handler = @main_handler
     #message.payload = {'ids' => [id_1,id_2]}
-    message.payload = 
+    message.payload =
       {
-        'parameters' => 
+        'parameters' =>
           [
             {'name' => parameter_name_1, 'type' => 1, 'value' => parameter_value_1},
             {'name' => parameter_name_2, 'type' => 1, 'value' => parameter_value_2}
@@ -105,7 +105,7 @@ describe MessageHandlerParameter do
 
     expect(value_read_1).to eq(parameter_value_1)
     expect(value_read_2).to eq(parameter_value_2)
-    expect($messaging.message[:message_type]).to eq('confirmation')
+    expect(Messaging.current.message[:message_type]).to eq('confirmation')
 
   end
 
@@ -119,7 +119,7 @@ describe MessageHandlerParameter do
 
     @handler.write_parameters(message)
 
-    expect($messaging.message[:message_type]).to eq('error')
+    expect(Messaging.current.message[:message_type]).to eq('error')
 
   end
 

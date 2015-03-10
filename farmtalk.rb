@@ -28,8 +28,8 @@ print 'synchronization '
 require_relative 'lib/messaging'
 puts 'OK'
 
-puts "uuid            #{$info_uuid}"
-puts "token           #{$info_token}"
+puts "uuid            #{Messaging.current.uuid}"
+puts "token           #{Messaging.current.token}"
 
 puts 'press key to stop'
 gets.chomp

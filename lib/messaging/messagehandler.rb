@@ -131,7 +131,7 @@ class MessageHandler
 
   def send_message(destination, command)
     @dbaccess.write_to_log(3,"to #{destination} : #{command.to_s}")
-    $messaging.send_message(destination, command)
+    Messaging.current.send_message(destination, command)
   end
 
   def split_message(message, message_obj)

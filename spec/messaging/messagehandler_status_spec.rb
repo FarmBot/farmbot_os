@@ -24,8 +24,8 @@ describe MessageHandlerStatus do
 
     $bot_control = HwStatusSim.new
 
-    $messaging = MessagingTest.new
-    $messaging.reset
+    Messaging.current = MessagingTest.new
+    Messaging.current.reset
 
     @handler = MessageHandlerStatus.new
     @main_handler = MessageHandler.new
@@ -61,7 +61,7 @@ describe MessageHandlerStatus do
     status_end_stop_x_a            = rand(9999999).to_i
     status_end_stop_x_b            = rand(9999999).to_i
     status_end_stop_y_a            = rand(9999999).to_i
-    status_end_stop_y_b            = rand(9999999).to_i 
+    status_end_stop_y_b            = rand(9999999).to_i
     status_end_stop_z_a            = rand(9999999).to_i
     status_end_stop_z_b            = rand(9999999).to_i
 
@@ -99,7 +99,7 @@ describe MessageHandlerStatus do
 
     # retrieve response message
 
-    return_msg = $messaging.message
+    return_msg = Messaging.current.message
 
     # do the checks
 
@@ -125,7 +125,7 @@ describe MessageHandlerStatus do
     expect(return_msg[:status_end_stop_y_b]            ).to eq(status_end_stop_y_b)
     expect(return_msg[:status_end_stop_z_a]            ).to eq(status_end_stop_z_a)
     expect(return_msg[:status_end_stop_z_b]            ).to eq(status_end_stop_z_b)
- 
+
   end
 
 
