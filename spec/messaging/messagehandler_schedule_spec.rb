@@ -17,15 +17,15 @@ describe MessageHandlerSchedule do
 
     $status = Status.new
 
-    $messaging = MessagingTest.new
-    $messaging.reset
+    Messaging.current = MessagingTest.new
+    Messaging.current.reset
 
     @handler = MessageHandlerSchedule.new
     @main_handler = MessageHandler.new
   end
 
   ## commands / scheduling
-  
+
   it "white list" do
     list = @handler.whitelist
     expect(list.count).to eq(2)
@@ -54,7 +54,7 @@ describe MessageHandlerSchedule do
 
     # save the new command in the database
 
-    command = 
+    command =
       {
         'action'        => action        ,
         'delay'         => delay         ,
@@ -99,7 +99,7 @@ describe MessageHandlerSchedule do
     expect(line.pin_value_2  ).to eq(pin_value2   )
     expect(line.pin_mode     ).to eq(pin_mode     )
     expect(line.pin_time     ).to eq(pin_time     )
-    
+
   end
 
   it "save single command" do
@@ -120,11 +120,11 @@ describe MessageHandlerSchedule do
     pin_mode      = rand(9999999).to_i
     pin_time      = rand(9999999).to_i
     ext_info      = rand(9999999).to_s
-    delay         = rand(     99).to_i + 10 
+    delay         = rand(     99).to_i + 10
 
     # save the new command in the database
 
-    command = 
+    command =
       {
         'action'        => action        ,
         'delay'         => delay         ,
@@ -165,7 +165,7 @@ describe MessageHandlerSchedule do
     expect(line.pin_value_2  ).to eq(pin_value2   )
     expect(line.pin_mode     ).to eq(pin_mode     )
     expect(line.pin_time     ).to eq(pin_time     )
-    
+
   end
 
   it "handle single command" do
@@ -193,9 +193,9 @@ describe MessageHandlerSchedule do
     message = MessageHandlerMessage.new
     message.handled = false
     message.handler = @main_handler
-    message.payload = 
+    message.payload =
       {
-        'command'  => 
+        'command'  =>
         {
           'delay'  => delay      ,
           'action' => action     ,
@@ -236,7 +236,7 @@ describe MessageHandlerSchedule do
     expect(line.pin_value_2  ).to eq(pin_value2   )
     expect(line.pin_mode     ).to eq(pin_mode     )
     expect(line.pin_time     ).to eq(pin_time     )
-    
+
   end
 
   it "handle empty command" do
@@ -254,8 +254,8 @@ describe MessageHandlerSchedule do
 
     # do the checks
 
-    expect($messaging.message[:message_type]).to eq('error')
-    
+    expect(Messaging.current.message[:message_type]).to eq('error')
+
   end
 
 # save_command_with_lines
@@ -280,7 +280,7 @@ describe MessageHandlerSchedule do
     pin_time_A      = rand(9999999).to_i
     ext_info_A      = rand(9999999).to_s
     delay_A         = rand(     99).to_i
-    
+
     action_B        = rand(9999999).to_s
     x_B             = rand(9999999).to_i
     y_B             = rand(9999999).to_i
@@ -297,11 +297,11 @@ describe MessageHandlerSchedule do
 
     # create a command
 
-    command = 
+    command =
       {
         'scheduled_time' => sched_time.utc.to_s,
         'crop_id'        => crop_id        ,
-        'command_lines'  => 
+        'command_lines'  =>
         [
           {
             'delay'  => delay_A      ,
@@ -378,7 +378,7 @@ describe MessageHandlerSchedule do
     expect(line_B.pin_value_2  ).to eq(pin_value2_B   )
     expect(line_B.pin_mode     ).to eq(pin_mode_B     )
     expect(line_B.pin_time     ).to eq(pin_time_B     )
-    
+
   end
 
   it "crop schedule update" do
@@ -401,7 +401,7 @@ describe MessageHandlerSchedule do
     pin_time_A      = rand(9999999).to_i
     ext_info_A      = rand(9999999).to_s
     delay_A         = rand(     99).to_i
-    
+
     action_B        = rand(9999999).to_s
     x_B             = rand(9999999).to_i
     y_B             = rand(9999999).to_i
@@ -432,7 +432,7 @@ describe MessageHandlerSchedule do
     pin_time_C      = rand(9999999).to_i
     ext_info_C      = rand(9999999).to_s
     delay_C         = rand(     99).to_i
-    
+
     action_D        = rand(9999999).to_s
     x_D             = rand(9999999).to_i
     y_D             = rand(9999999).to_i
@@ -453,14 +453,14 @@ describe MessageHandlerSchedule do
     message = MessageHandlerMessage.new
     message.handled = false
     message.handler = @main_handler
-    message.payload = 
+    message.payload =
       {
         'commands' =>
         [
           {
             'scheduled_time' => sched_time_AB.utc.to_s,
             'crop_id'        => crop_id_AB        ,
-            'command_lines'  => 
+            'command_lines'  =>
             [
               {
                 'delay'  => delay_A      ,
@@ -497,7 +497,7 @@ describe MessageHandlerSchedule do
           {
             'scheduled_time' => sched_time_CD.utc.to_s,
             'crop_id'        => crop_id_CD            ,
-            'command_lines'  => 
+            'command_lines'  =>
             [
               {
                 'delay'  => delay_C      ,
@@ -609,7 +609,7 @@ describe MessageHandlerSchedule do
     expect(line_D.pin_value_2  ).to eq(pin_value2_D   )
     expect(line_D.pin_mode     ).to eq(pin_mode_D     )
     expect(line_D.pin_time     ).to eq(pin_time_D     )
-    
+
   end
 
 end

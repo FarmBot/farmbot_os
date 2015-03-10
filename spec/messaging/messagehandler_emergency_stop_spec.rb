@@ -18,8 +18,8 @@ describe MessageHandlerEmergencyStop do
 
     $status = Status.new
 
-    $messaging = MessagingTest.new
-    $messaging.reset
+    Messaging.current = MessagingTest.new
+    Messaging.current.reset
 
     @handler = MessageHandlerEmergencyStop.new
     @main_handler = MessageHandler.new
@@ -31,16 +31,16 @@ describe MessageHandlerEmergencyStop do
     list = @handler.whitelist
     expect(list.count).to eq(2)
   end
-  
+
   it "message handler emergency stop" do
     message = MessageHandlerMessage.new
     message.handled = false
     message.handler = @main_handler
 
     @handler.emergency_stop(message)
-    
+
     expect($status.emergency_stop).to eq(true)
-    expect($messaging.message[:message_type]).to eq('confirmation')
+    expect(Messaging.current.message[:message_type]).to eq('confirmation')
   end
 
   it "message handler emergency stop reset" do
@@ -51,7 +51,7 @@ describe MessageHandlerEmergencyStop do
     @handler.emergency_stop_reset(message)
 
     expect($status.emergency_stop).to eq(false)
-    expect($messaging.message[:message_type]).to eq('confirmation')
+    expect(Messaging.current.message[:message_type]).to eq('confirmation')
   end
 
 

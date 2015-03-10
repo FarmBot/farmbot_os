@@ -14,15 +14,15 @@ describe MessageHandlerLog do
 
     $status = Status.new
 
-    $messaging = MessagingTest.new
-    $messaging.reset
+    Messaging.current = MessagingTest.new
+    Messaging.current.reset
 
     @handler = MessageHandlerLog.new
     @main_handler = MessageHandler.new
   end
 
   ## logs
-  
+
   it "white list" do
     list = @handler.whitelist
     expect(list.count).to eq(1)
@@ -47,7 +47,7 @@ describe MessageHandlerLog do
 
     @handler.read_logs(message)
 
-    return_list = $messaging.message
+    return_list = Messaging.current.message
 
     # check if the logged lines are present in the message
 
@@ -68,7 +68,7 @@ describe MessageHandlerLog do
 
     expect(found_in_list_1).to eq(true)
     expect(found_in_list_2).to eq(true)
-    expect($messaging.message[:message_type]).to eq('read_logs_response')
+    expect(Messaging.current.message[:message_type]).to eq('read_logs_response')
   end
 
 end
