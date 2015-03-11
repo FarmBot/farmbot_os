@@ -1,8 +1,8 @@
 require 'spec_helper'
-require './lib/messaging/messagehandler_emergencystop.rb'
 require './lib/status.rb'
-require './lib/messaging/messaging.rb'
+require './lib/messaging/messagehandler.rb'
 require './lib/messaging/messaging_test.rb'
+require './lib/messaging/messagehandler_emergencystop.rb'
 
 describe MessageHandlerEmergencyStop do
 

@@ -1,6 +1,9 @@
 require 'spec_helper'
 require './lib/status.rb'
-require './lib/messaging/messaging.rb'
+#require './lib/messaging/messaging.rb'
+#require './lib/messagehandler_base'
+require './lib/messaging/messagehandler.rb'
+require './lib/messaging/messagehandler_schedule.rb'
 require './lib/messaging/messaging_test.rb'
 
 #require './lib/messagehandler_schedule'

@@ -12,7 +12,7 @@ class ControllerCommandProc
   end
 
   def check_whitelist(function)
-    raise "UNAUTHORIZED" unless whitelist.include?(function.downcase)
+    raise "UNAUTHORIZED: #{function}" unless whitelist.include?(function.downcase)
   end
 
   def process_command( cmd )

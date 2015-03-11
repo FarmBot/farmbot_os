@@ -1,5 +1,6 @@
 require 'spec_helper'
-require './lib/messaging/messaging.rb'
+#require './lib/messaging/messaging.rb'
+require './lib/messaging/messagehandler_base.rb'
 require './lib/messaging/messagehandler_message.rb'
 
 describe MessageHandlerBase do

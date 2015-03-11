@@ -63,6 +63,7 @@ class HardwareInterfaceArduino
     begin  
 
       write_status = create_write_status(text, log, onscreen)
+
 #puts @serial_port.test_serial_read
       prepare_serial_port(write_status)
 #puts @serial_port.test_serial_read
@@ -77,7 +78,9 @@ class HardwareInterfaceArduino
 
       log_result_of_execution(write_status)
 
-    rescue Exception => e
+    rescue => e
+#puts 'exception received'
+#puts e
       handle_execution_exception(e)
     end
   end
@@ -92,13 +95,11 @@ class HardwareInterfaceArduino
   end
 
   def handle_execution_exception(e)
-
     puts("ST: serial error\n#{e.message}\n#{e.backtrace.inspect}")
-
     @bot_dbaccess.write_to_log(4,"ST: serial error\n#{e.message}\n#{e.backtrace.inspect}")
-      @serial_port.rts = 1
-      connect_board
-      sleep 5 if @test_mode == false
+    @serial_port.rts = 1
+    connect_board
+    sleep 5 if @test_mode == false
   end
 
   def log_result_of_execution(write_status)

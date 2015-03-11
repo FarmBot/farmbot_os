@@ -37,6 +37,19 @@ describe HardwareInterfaceArduino do
 
   end
 
+  it "execute_command with causing an error"  do
+
+    $status = nil
+
+    @ramps.serial_port.rts = 0
+    @ramps.execute_command(nil,nil,nil)
+
+    $status = Status.new
+
+    expect { @ramps }.to_not raise_error
+
+  end
+
   it "create write status" do
 
     text     = rand(9999999).to_s 
@@ -48,7 +61,6 @@ describe HardwareInterfaceArduino do
     expect(write_status.text     ).to eq(text     )
     expect(write_status.log      ).to eq(log      )
     expect(write_status.onscreen ).to eq(onscreen )
-
   end
 
   it "handle execution exception" do
