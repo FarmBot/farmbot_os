@@ -11,12 +11,6 @@ require_relative 'messagehandler_schedule.rb'
 require_relative 'messagehandler_status.rb'
 require_relative 'messagehandler_message'
 
-class NullDatabase
-  def method_missing(*)
-    self
-  end
-end
-
 # Get the JSON command, received through skynet, and send it to the farmbot
 # command queue Parses JSON messages received through SkyNet.
 class MessageHandler
@@ -28,7 +22,7 @@ class MessageHandler
 
   def initialize
     #@dbaccess = DbAccess.new
-    @dbaccess = $dbaccess || NullDatabase.new
+    @dbaccess = DbAccess.current
     @last_time_stamp  = ''
 
     @message_handlers = Array.new

@@ -21,7 +21,6 @@ $db_write_sync = Mutex.new
 print 'database        '
 require 'active_record'
 require_relative 'lib/database/dbaccess'
-$bot_dbaccess = DbAccess.new('development')
 puts 'OK'
 
 print 'synchronization '
@@ -33,7 +32,7 @@ if $hardware_type != nil
   print 'hardware        '
   require_relative 'lib/controller'
   require_relative $hardware_type
-  $bot_hardware = HardwareInterface.new(false)
+  HardwareInterface.current = HardwareInterface.new(false)
 else
   $hardware_sim = 1
 end

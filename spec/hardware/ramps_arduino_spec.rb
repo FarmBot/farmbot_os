@@ -8,9 +8,9 @@ describe HardwareInterfaceArduino do
 
   before do
     $db_write_sync = Mutex.new
-    $bot_dbaccess = DbAccess.new('development')
-    $dbaccess = $bot_dbaccess
-    $dbaccess.disable_log_to_screen()
+    DbAccess.current = DbAccess.new('development')
+    DbAccess.current = DbAccess.current
+    DbAccess.current.disable_log_to_screen()
 
     $status = Status.new
 
@@ -39,10 +39,10 @@ describe HardwareInterfaceArduino do
 
   it "create write status" do
 
-    text     = rand(9999999).to_s 
+    text     = rand(9999999).to_s
     log      = rand(9999999).to_s
     onscreen = true
-    
+
     write_status = @ramps.create_write_status(text, log, onscreen)
 
     expect(write_status.text     ).to eq(text     )
@@ -59,10 +59,10 @@ describe HardwareInterfaceArduino do
 
   it "log result of execution" do
 
-    text     = rand(9999999).to_s 
+    text     = rand(9999999).to_s
     log      = rand(9999999).to_s
     onscreen = true
-    
+
     write_status = @ramps.create_write_status(text, log, onscreen)
 
     @ramps.log_result_of_execution(write_status)
@@ -75,7 +75,7 @@ describe HardwareInterfaceArduino do
     text     = rand(9999999).to_s
     log      = rand(9999999).to_s
     onscreen = false
-    
+
     @ramps.test_serial_read = "R02\n"
 
     write_status = @ramps.create_write_status(text, log, onscreen)
@@ -85,7 +85,7 @@ describe HardwareInterfaceArduino do
     @ramps.process_feedback(write_status)
     @ramps.process_feedback(write_status)
     @ramps.process_feedback(write_status)
-    
+
     expect(write_status.done).to eq(1)
 
   end
@@ -95,7 +95,7 @@ describe HardwareInterfaceArduino do
     text     = rand(9999999).to_s
     log      = rand(9999999).to_s
     onscreen = false
-    
+
     write_status = @ramps.create_write_status(text, log, onscreen)
 
     @ramps.add_and_process_characters(write_status, 'R')
@@ -111,11 +111,11 @@ describe HardwareInterfaceArduino do
 
     text     = rand(9999999).to_s
     log      = rand(9999999).to_s
-    onscreen = false    
+    onscreen = false
 
     write_status = @ramps.create_write_status(text, log, onscreen)
     write_status.code = "R01"
-    timeout = write_status.timeout    
+    timeout = write_status.timeout
 
     @ramps.process_code_and_params(write_status)
 
@@ -127,7 +127,7 @@ describe HardwareInterfaceArduino do
 
     text     = rand(9999999).to_s
     log      = rand(9999999).to_s
-    onscreen = false    
+    onscreen = false
 
     write_status = @ramps.create_write_status(text, log, onscreen)
     write_status.code = "R02"
@@ -142,7 +142,7 @@ describe HardwareInterfaceArduino do
 
     text     = rand(9999999).to_s
     log      = rand(9999999).to_s
-    onscreen = false    
+    onscreen = false
 
     write_status = @ramps.create_write_status(text, log, onscreen)
     write_status.code = "R03"
@@ -156,11 +156,11 @@ describe HardwareInterfaceArduino do
 
     text     = rand(9999999).to_s
     log      = rand(9999999).to_s
-    onscreen = false    
+    onscreen = false
 
     write_status = @ramps.create_write_status(text, log, onscreen)
     write_status.code = "R04"
-    timeout = write_status.timeout    
+    timeout = write_status.timeout
     time = Time.now
 
     @ramps.process_code_and_params(write_status)
@@ -174,7 +174,7 @@ describe HardwareInterfaceArduino do
 
     text     = rand(9999999).to_s
     log      = rand(9999999).to_s
-    onscreen = false    
+    onscreen = false
     par      = rand(9999999).to_s
 
     write_status = @ramps.create_write_status(text, log, onscreen)
@@ -184,14 +184,14 @@ describe HardwareInterfaceArduino do
     @ramps.process_code_and_params(write_status)
 
     expect($status.device_version).to eq(write_status.params)
- 
+
   end
 
 
   it "prepare serial port" do
     text     = rand(9999999).to_s
     log      = rand(9999999).to_s
-    onscreen = false    
+    onscreen = false
 
     write_status = @ramps.create_write_status(text, log, onscreen)
 
@@ -229,7 +229,7 @@ describe HardwareInterfaceArduino do
   it "log incoming text" do
     text     = rand(9999999).to_s
     log      = rand(9999999).to_s
-    onscreen = false    
+    onscreen = false
 
     write_status = @ramps.create_write_status(text, log, onscreen)
 
@@ -238,7 +238,7 @@ describe HardwareInterfaceArduino do
   end
 
   it "process value split two letters" do
-    
+
     params = HardwareInterfaceArduinoValuesReceived.new
     code = "R81"
     text = "ZA1 ZB2 XA3 XB4 YA5 YB6"
@@ -253,7 +253,7 @@ describe HardwareInterfaceArduino do
   end
 
   it "process value split one letters" do
-    
+
     params = HardwareInterfaceArduinoValuesReceived.new
     code = "R99"
     text = "P1 V2 X3 Y4 Z5"
@@ -268,7 +268,7 @@ describe HardwareInterfaceArduino do
   end
 
   it "process value R21" do
-    
+
     param = 1
     value = rand(999).to_i
 
@@ -282,11 +282,11 @@ describe HardwareInterfaceArduino do
     par_obj = @ramps_param.get_param_by_id(param)
 
     expect(par_obj['value_ar']).to eq(value)
-    
+
   end
 
   it "process value R23" do
-    
+
     param = 1
     value = rand(999).to_i
 
@@ -300,11 +300,11 @@ describe HardwareInterfaceArduino do
     par_obj = @ramps_param.get_param_by_id(param)
 
     expect(par_obj['value_db']).to eq(value)
-    
+
   end
 
   it "process value R41" do
-    
+
     pinnr = rand(9999999).to_i
     value = rand(9999999).to_i
     exinf = rand(9999999).to_i
@@ -319,16 +319,16 @@ describe HardwareInterfaceArduino do
     @ramps.process_value_R41(params,code)
 
     pin_value = 0
-    list = $dbaccess.read_measurement_list()
+    list = DbAccess.current.read_measurement_list()
 
     list.each do |meas|
       if meas['ext_info'].to_s == exinf.to_s
         pin_value = meas['value']
       end
     end
-    
+
     expect(pin_value.to_i).to eq(value.to_i)
-    
+
   end
 
   it "process value R81 XA" do
@@ -345,7 +345,7 @@ describe HardwareInterfaceArduino do
     expect($status.info_end_stop_y_b).to eq(false)
     expect($status.info_end_stop_z_a).to eq(false)
     expect($status.info_end_stop_z_b).to eq(false)
-    
+
   end
 
   it "process value R81 XB" do
@@ -362,7 +362,7 @@ describe HardwareInterfaceArduino do
     expect($status.info_end_stop_y_b).to eq(false)
     expect($status.info_end_stop_z_a).to eq(false)
     expect($status.info_end_stop_z_b).to eq(false)
-    
+
   end
 
   it "process value R81 YA" do
@@ -379,7 +379,7 @@ describe HardwareInterfaceArduino do
     expect($status.info_end_stop_y_b).to eq(false)
     expect($status.info_end_stop_z_a).to eq(false)
     expect($status.info_end_stop_z_b).to eq(false)
-    
+
   end
 
   it "process value R81 YB" do
@@ -396,7 +396,7 @@ describe HardwareInterfaceArduino do
     expect($status.info_end_stop_y_b).to eq(true)
     expect($status.info_end_stop_z_a).to eq(false)
     expect($status.info_end_stop_z_b).to eq(false)
-    
+
   end
 
   it "process value R81 ZA" do
@@ -413,7 +413,7 @@ describe HardwareInterfaceArduino do
     expect($status.info_end_stop_y_b).to eq(false)
     expect($status.info_end_stop_z_a).to eq(true)
     expect($status.info_end_stop_z_b).to eq(false)
-    
+
   end
 
   it "process value R81 ZB" do
@@ -430,7 +430,7 @@ describe HardwareInterfaceArduino do
     expect($status.info_end_stop_y_b).to eq(false)
     expect($status.info_end_stop_z_a).to eq(false)
     expect($status.info_end_stop_z_b).to eq(true)
-    
+
   end
 
   it "process value R82" do
@@ -452,7 +452,7 @@ describe HardwareInterfaceArduino do
     expect($status.info_current_x      ).to eq(x / @ramps_param.axis_x_steps_per_unit)
     expect($status.info_current_y      ).to eq(y / @ramps_param.axis_y_steps_per_unit)
     expect($status.info_current_z      ).to eq(z / @ramps_param.axis_z_steps_per_unit)
-    
+
   end
 
   it "process value R83" do
@@ -474,7 +474,7 @@ describe HardwareInterfaceArduino do
   end
 
   it "save pin value" do
-    
+
     pinnr = rand(9999999).to_i
     value = rand(9999999).to_i
     exinf = rand(9999999).to_i
@@ -483,21 +483,21 @@ describe HardwareInterfaceArduino do
     @ramps.save_pin_value(pinnr, value)
 
     pin_value = 0
-    list = $dbaccess.read_measurement_list()
+    list = DbAccess.current.read_measurement_list()
 
     list.each do |meas|
       if meas['ext_info'].to_s == exinf.to_s
         pin_value = meas['value']
       end
     end
-    
-    expect(pin_value.to_i).to eq(value.to_i)    
+
+    expect(pin_value.to_i).to eq(value.to_i)
   end
 
   it "process value process param list 1" do
 
     # "process value R21"
-    
+
     param = 1
     value = rand(999).to_i
 
@@ -516,7 +516,7 @@ describe HardwareInterfaceArduino do
   it "process value process param list 2" do
 
     # "process value R23"
-    
+
     param = 1
     value = rand(999).to_i
 
@@ -534,9 +534,9 @@ describe HardwareInterfaceArduino do
   end
 
   it "process value process param list 3" do
-    
+
     # "process value R41"
-    
+
     pinnr = rand(9999999).to_i
     value = rand(9999999).to_i
     exinf = rand(9999999).to_i
@@ -551,14 +551,14 @@ describe HardwareInterfaceArduino do
     @ramps.process_value_process_param_list(params,code)
 
     pin_value = 0
-    list = $dbaccess.read_measurement_list()
+    list = DbAccess.current.read_measurement_list()
 
     list.each do |meas|
       if meas['ext_info'].to_s == exinf.to_s
         pin_value = meas['value']
       end
     end
- 
+
   end
 
   it "process value process text 1" do
@@ -588,7 +588,7 @@ describe HardwareInterfaceArduino do
   it "process value 1" do
 
     # "process value R21"
-    
+
     param = 1
     value = rand(999).to_i
 

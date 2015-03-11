@@ -8,13 +8,13 @@ describe MessageHandlerEmergencyStop do
 
   before do
     #$db_write_sync = Mutex.new
-    #$dbaccess = DbAccess.new('development')
+    #DbAccess.current = DbAccess.new('development')
     #@msg = MessageHandler.new
 
     $db_write_sync = Mutex.new
-    $bot_dbaccess = DbAccess.new('development')
-    $dbaccess = $bot_dbaccess
-    $dbaccess.disable_log_to_screen()
+    DbAccess.current = DbAccess.new('development')
+    DbAccess.current = DbAccess.current
+    DbAccess.current.disable_log_to_screen()
 
     $status = Status.new
 

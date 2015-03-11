@@ -11,9 +11,9 @@ describe MessageHandlerSchedule do
 
   before do
     $db_write_sync = Mutex.new
-    $bot_dbaccess = DbAccess.new('development')
-    $dbaccess = $bot_dbaccess
-    $dbaccess.disable_log_to_screen()
+    DbAccess.current = DbAccess.new('development')
+    DbAccess.current = DbAccess.current
+    DbAccess.current.disable_log_to_screen()
 
     $status = Status.new
 
@@ -74,9 +74,9 @@ describe MessageHandlerSchedule do
     command_obj = MessageHandlerScheduleCmdLine.new
     command_obj.split_command_line( command )
 
-    $dbaccess.create_new_command(sched_time,crop_id)
+    DbAccess.current.create_new_command(sched_time,crop_id)
     @handler.save_command_line(command_obj)
-    $dbaccess.save_new_command
+    DbAccess.current.save_new_command
 
     # get the data back from the database
 

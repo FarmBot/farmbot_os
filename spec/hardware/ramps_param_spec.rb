@@ -8,9 +8,9 @@ describe HardwareInterfaceArduino do
 
   before do
     $db_write_sync = Mutex.new
-    $bot_dbaccess = DbAccess.new('development')
-    $dbaccess = $bot_dbaccess
-    $dbaccess.disable_log_to_screen()
+    DbAccess.current = DbAccess.new('development')
+    DbAccess.current = DbAccess.current
+    DbAccess.current.disable_log_to_screen()
 
     $status = Status.new
 
@@ -31,9 +31,9 @@ describe HardwareInterfaceArduino do
     y_per_unit = rand(9999999).to_i
     z_per_unit = rand(9999999).to_i
 
-    $dbaccess.write_parameter('MOVEMENT_STEPS_PER_UNIT_X', x_per_unit )
-    $dbaccess.write_parameter('MOVEMENT_STEPS_PER_UNIT_Y', y_per_unit )
-    $dbaccess.write_parameter('MOVEMENT_STEPS_PER_UNIT_Z', z_per_unit )
+    DbAccess.current.write_parameter('MOVEMENT_STEPS_PER_UNIT_X', x_per_unit )
+    DbAccess.current.write_parameter('MOVEMENT_STEPS_PER_UNIT_Y', y_per_unit )
+    DbAccess.current.write_parameter('MOVEMENT_STEPS_PER_UNIT_Z', z_per_unit )
 
     @ramps_param.load_config_from_database()
     @ramps_param.load_param_values_non_arduino()
@@ -41,7 +41,7 @@ describe HardwareInterfaceArduino do
     expect(@ramps_param.axis_x_steps_per_unit).to eq(x_per_unit)
     expect(@ramps_param.axis_y_steps_per_unit).to eq(y_per_unit)
     expect(@ramps_param.axis_z_steps_per_unit).to eq(z_per_unit)
-    
+
   end
 
 #  def load_config_from_database
@@ -51,7 +51,7 @@ describe HardwareInterfaceArduino do
     x_per_unit = rand(9999999).to_i
     name       = 'MOVEMENT_STEPS_PER_UNIT_X'
 
-    $dbaccess.write_parameter(name, x_per_unit )
+    DbAccess.current.write_parameter(name, x_per_unit )
     @ramps_param.load_config_from_database()
 
     x_per_unit_retrieved = 0
@@ -101,7 +101,7 @@ describe HardwareInterfaceArduino do
 
   end
 
-#  def get_param_by_name(name) 
+#  def get_param_by_name(name)
 
   it "get param by name" do
     name       = rand(9999999).to_s
@@ -171,12 +171,12 @@ describe HardwareInterfaceArduino do
     @ramps_param.param_name_add(name, id, default)
     @ramps_param.save_param_value(id, :by_id, :from_device, value)
     param = @ramps_param.get_param(id, :by_id)
-    
+
     expect(param['name']).to eq(name)
     expect(param['id']).to eq(id)
     expect(param['default']).to eq(default)
     expect(param['value_ar']).to eq(value)
-    
+
   end
 
   it "save param value (by name, by device)" do
@@ -188,12 +188,12 @@ describe HardwareInterfaceArduino do
     @ramps_param.param_name_add(name, id, default)
     @ramps_param.save_param_value(name, :by_name, :from_device, value)
     param = @ramps_param.get_param(name, :by_name)
-    
+
     expect(param['name']).to eq(name)
     expect(param['id']).to eq(id)
     expect(param['default']).to eq(default)
     expect(param['value_ar']).to eq(value)
-    
+
   end
 
   it "save param value (by id, by database)" do
@@ -205,12 +205,12 @@ describe HardwareInterfaceArduino do
     @ramps_param.param_name_add(name, id, default)
     @ramps_param.save_param_value(id, :by_id, :from_db, value)
     param = @ramps_param.get_param(id, :by_id)
-    
+
     expect(param['name']).to eq(name)
     expect(param['id']).to eq(id)
     expect(param['default']).to eq(default)
     expect(param['value_db']).to eq(value)
-    
+
   end
 
   it "save param value (by name, by database)" do
@@ -222,12 +222,12 @@ describe HardwareInterfaceArduino do
     @ramps_param.param_name_add(name, id, default)
     @ramps_param.save_param_value(name, :by_name, :from_db, value)
     param = @ramps_param.get_param(name, :by_name)
-    
+
     expect(param['name']).to eq(name)
     expect(param['id']).to eq(id)
     expect(param['default']).to eq(default)
     expect(param['value_db']).to eq(value)
-    
+
   end
 
 #  def read_parameter_from_device(id)
@@ -241,7 +241,7 @@ describe HardwareInterfaceArduino do
     @ramps.test_serial_write = ""
     @ramps.test_serial_read  = "R21 P#{id} V#{value}\n"
     @ramps_param.read_parameter_from_device(id)
-        
+
     param = @ramps_param.get_param(id, :by_id)
 
     expect(param['id']).to eq(id)
@@ -263,7 +263,7 @@ describe HardwareInterfaceArduino do
     @ramps.test_serial_read  = "R01\nR02\n"
 
     @ramps_param.write_parameter_to_device(id, value)
-        
+
     expect(@ramps.test_serial_write).to eq("F22 P#{id} V#{value}\n")
 
   end
@@ -322,7 +322,7 @@ describe HardwareInterfaceArduino do
     value  = rand(9999999).to_i
     value2 = rand(9999999).to_i
 
-    $bot_dbaccess.write_parameter(name,value)
+    DbAccess.current.write_parameter(name,value)
 
     param = @ramps_param.get_param(id, :by_id)
     @ramps.test_serial_write = ""
@@ -341,7 +341,7 @@ describe HardwareInterfaceArduino do
     value  = rand(9999999).to_i
     value2 = rand(9999999).to_i
 
-    $bot_dbaccess.write_parameter(name,value)
+    DbAccess.current.write_parameter(name,value)
 
     param = @ramps_param.get_param(id, :by_id)
     @ramps.test_serial_write = ""
@@ -366,7 +366,7 @@ describe HardwareInterfaceArduino do
     value3  = rand(9999999).to_i
     value4  = rand(9999999).to_i
 
-    $bot_dbaccess.write_parameter(name,value0)
+    DbAccess.current.write_parameter(name,value0)
 
     @ramps_param.param_version_db = value3
     @ramps_param.param_version_ar = value4
@@ -425,7 +425,7 @@ describe HardwareInterfaceArduino do
     @ramps_param.param_version_db = value
     @ramps_param.param_version_ar = value - 1
 
-    $bot_dbaccess.write_parameter('PARAM_VERSION',@ramps_param.param_version_db)
+    DbAccess.current.write_parameter('PARAM_VERSION',@ramps_param.param_version_db)
 
     @ramps.test_serial_write = ""
     @ramps.test_serial_read  = ""
@@ -446,15 +446,15 @@ describe HardwareInterfaceArduino do
 
     db_version  = rand(9999999).to_i
 
-    $bot_dbaccess.write_parameter('PARAM_VERSION',db_version)
-    
+    DbAccess.current.write_parameter('PARAM_VERSION',db_version)
+
     @ramps.test_serial_write = ""
     @ramps.test_serial_read  = "R21 P0 V#{db_version}\n"
 
     @ramps_param.check_parameters()
 
     expect(@ramps_param.params_in_sync).to eq(true)
-    
+
   end
 
   it "check parameter, different" do
@@ -469,9 +469,9 @@ describe HardwareInterfaceArduino do
     value1  = rand(9999999).to_i
     value2  = rand(9999999).to_i
 
-    $bot_dbaccess.write_parameter(name,value0)
-    $bot_dbaccess.write_parameter('PARAM_VERSION',db_version)
-    
+    DbAccess.current.write_parameter(name,value0)
+    DbAccess.current.write_parameter('PARAM_VERSION',db_version)
+
     @ramps.test_serial_write = ""
     @ramps.test_serial_read  = "R21 P0 V#{ar_version}\n"
 
@@ -492,7 +492,7 @@ describe HardwareInterfaceArduino do
 
     expect(@ramps_param.params_in_sync).to eq(false)
     expect(@ramps.test_serial_write).to eq("F22 P#{id} V#{value0}\n")
-    
+
   end
 
 end

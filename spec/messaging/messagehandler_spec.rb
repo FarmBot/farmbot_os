@@ -5,7 +5,7 @@ describe MessageHandler do
 
   before do
     $db_write_sync = Mutex.new
-    $dbaccess = DbAccess.new('development')
+    DbAccess.current = DbAccess.new('development')
     @msg = MessageHandler.new
   end
 
@@ -16,7 +16,7 @@ describe MessageHandler do
   end
 
 #  it "create new command" do
-#    crop_id        = rand(9999999).to_i    
+#    crop_id        = rand(9999999).to_i
 #    scheduled_time = Time.now
 #
 #    @db.create_new_command(scheduled_time, crop_id)

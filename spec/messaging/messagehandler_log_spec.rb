@@ -8,9 +8,9 @@ describe MessageHandlerLog do
 
   before do
     $db_write_sync = Mutex.new
-    $bot_dbaccess = DbAccess.new('development')
-    $dbaccess = $bot_dbaccess
-    $dbaccess.disable_log_to_screen()
+    DbAccess.current = DbAccess.new('development')
+    DbAccess.current = DbAccess.current
+    DbAccess.current.disable_log_to_screen()
 
     $status = Status.new
 
@@ -36,8 +36,8 @@ describe MessageHandlerLog do
     log_module_1 = 99
     log_module_2 = 98
 
-    $dbaccess.write_to_log( log_module_1, log_text_1 )
-    $dbaccess.write_to_log( log_module_2, log_text_2 )
+    DbAccess.current.write_to_log( log_module_1, log_text_1 )
+    DbAccess.current.write_to_log( log_module_2, log_text_2 )
 
     # get the logs in a message
 

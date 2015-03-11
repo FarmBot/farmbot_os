@@ -20,7 +20,7 @@ class HardwareInterfaceArduino
   #
   def initialize(test_mode)
 
-    @bot_dbaccess = $bot_dbaccess
+    @bot_dbaccess = DbAccess.current
 
     @status_debug_msg = $status_debug_msg
 
@@ -30,7 +30,7 @@ class HardwareInterfaceArduino
 
     # connect to arduino
     connect_board()
-    
+
     @external_info         = ""
 
   end
@@ -42,12 +42,12 @@ class HardwareInterfaceArduino
   #
   def connect_board
 
-    parameters = 
+    parameters =
     {
       "baud"         => 115200,
       "data_bits"    => 8,
       "stop_bits"    => 1,
-      "parity"       => SerialPort::NONE,	
+      "parity"       => SerialPort::NONE,
       "flow_control" => SerialPort::SOFT
     }
 
@@ -59,7 +59,7 @@ class HardwareInterfaceArduino
   # write a command to the robot
   #
   def execute_command(text, log, onscreen)
-    begin  
+    begin
 
       write_status = create_write_status(text, log, onscreen)
       prepare_serial_port(write_status)
@@ -101,7 +101,7 @@ class HardwareInterfaceArduino
   end
 
   def log_result_of_execution(write_status)
- 
+
     # log things if needed
     if write_status.done == 1
       puts 'ST: done' if write_status.onscreen and @test_mode == false
@@ -160,7 +160,7 @@ class HardwareInterfaceArduino
     case write_status.code
 
       # command received by arduino
-      when 'R01'                        
+      when 'R01'
         write_status.timeout = 90
 
       # command is finished
@@ -217,7 +217,7 @@ class HardwareInterfaceArduino
 
   # if there is an emergency stop, immediately write it to the arduino
   #
-  def check_emergency_stop    
+  def check_emergency_stop
     if ($status.emergency_stop)
      serial_port_write( "E\n" )
     end
@@ -240,7 +240,7 @@ class HardwareInterfaceArduino
 
     # depending on the report code, process the values
     # this is done by reading parameter names and their values
-    # and respong on it as needed 
+    # and respong on it as needed
 
     process_value_process_param_list(params,code)
     process_value_process_named_params(params,code)
@@ -265,7 +265,7 @@ class HardwareInterfaceArduino
       params.load_parameter(par_code, par_value)
 
     end
-    
+
   end
 
   def process_value_process_param_list(params,code)
@@ -289,7 +289,7 @@ class HardwareInterfaceArduino
   end
 
   # Process report parameter value and save to database
-  # 
+  #
   def process_value_R23(params,code)
     if code == 'R23'
       param = @ramps_param.get_param_by_id(params.p)
@@ -315,7 +315,7 @@ class HardwareInterfaceArduino
   # Process report end stops
   #
   def process_value_R81(params,code)
-    if code == 'R81'      
+    if code == 'R81'
       $status.info_end_stop_x_a = (params.xa == 1)
       $status.info_end_stop_x_b = (params.xb == 1)
       $status.info_end_stop_y_a = (params.ya == 1)
@@ -327,7 +327,7 @@ class HardwareInterfaceArduino
 
   # Process report position
   def process_value_R82(params,code)
-    if code == 'R82'      
+    if code == 'R82'
 
       $status.info_current_x_steps = params.x
       $status.info_current_x       = params.x / @ramps_param.axis_x_steps_per_unit
@@ -344,7 +344,7 @@ class HardwareInterfaceArduino
   def process_value_process_text(code,text)
     process_value_process_R83(code,text)
     process_value_process_R99(code,text)
-  end  
+  end
 
   # Process report software version
   #
@@ -352,7 +352,7 @@ class HardwareInterfaceArduino
     if code == 'R83'
         $status.device_version = text
     end
-  end  
+  end
 
   # Process report of a debug comment
   #
@@ -360,7 +360,7 @@ class HardwareInterfaceArduino
     if code == 'R99'
         puts ">#{text}<" if @test_mode == false
     end
-  end  
+  end
 
   ## additional pin function
 
