@@ -28,7 +28,7 @@ class MessageHandler
 
   def initialize
     #@dbaccess = DbAccess.new
-    @dbaccess = $dbaccess || NullDatabase.new
+    @dbaccess = DbAccess.current || NullDatabase.new
     @last_time_stamp  = ''
 
     @message_handlers = Array.new

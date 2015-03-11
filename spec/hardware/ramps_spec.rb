@@ -7,9 +7,9 @@ describe HardwareInterface do
 
   before do
     $db_write_sync = Mutex.new
-    $bot_dbaccess = DbAccess.new('development')
-    $dbaccess = $bot_dbaccess
-    $dbaccess.disable_log_to_screen()
+    DbAccess.current = DbAccess.new('development')
+    DbAccess.current = DbAccess.current
+    DbAccess.current.disable_log_to_screen()
 
     $status = Status.new
 
@@ -56,14 +56,14 @@ describe HardwareInterface do
     @ramps.pin_std_read_value(pin, mode, ext_info)
 
     pin_value = 0
-    list = $dbaccess.read_measurement_list()
+    list = DbAccess.current.read_measurement_list()
 
     list.each do |meas|
       if meas['ext_info'].to_s == ext_info.to_s
         pin_value = meas['value']
       end
     end
-    
+
     expect(pin_value.to_i).to eq(value.to_i)
     expect(@ramps.ramps_arduino.test_serial_write).to eq("F42 P#{pin} M#{mode}\n")
   end
@@ -330,8 +330,8 @@ describe HardwareInterface do
 
     db_version  = rand(9999999).to_i
 
-    $bot_dbaccess.write_parameter('PARAM_VERSION',db_version)
-    
+    DbAccess.current.write_parameter('PARAM_VERSION',db_version)
+
     @ramps.ramps_arduino.test_serial_write = ""
     @ramps.ramps_arduino.test_serial_read  = "R21 P0 V#{db_version}\n"
     @ramps.check_parameters()
@@ -339,5 +339,5 @@ describe HardwareInterface do
     expect(@ramps.ramps_arduino.test_serial_write).to eq("F21 P0\n")
   end
 
- 
+
 end

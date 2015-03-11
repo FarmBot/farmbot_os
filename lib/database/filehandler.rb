@@ -5,10 +5,10 @@ class TestFileHandler
 
   def self.readCommandFile
 
-    $bot_dbaccess.clear_schedule()
+    DbAccess.current.clear_schedule()
 
     if File.file?('testcommands.csv')
-      $bot_dbaccess.create_new_command(Time.now,'file')
+      DbAccess.current.create_new_command(Time.now,'file')
       f = File.open('testcommands.csv','r')
       f.each_line do |line|
         if line.length > 5
@@ -21,10 +21,10 @@ class TestFileHandler
           yCoord = params[2].to_i
           zCoord = params[3].to_i
           amount = params[4].to_i
-          $bot_dbaccess.add_command_line(action, xCoord, yCoord, zCoord, 0, amount)
+          DbAccess.current.add_command_line(action, xCoord, yCoord, zCoord, 0, amount)
         end
       end
-      $bot_dbaccess.save_new_command
+      DbAccess.current.save_new_command
     end
   end
 end

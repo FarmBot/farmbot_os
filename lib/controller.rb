@@ -9,7 +9,7 @@ class Controller
   def initialize
     @star_char           = 0
 
-    @bot_dbaccess        = $bot_dbaccess
+    @bot_dbaccess        = DbAccess.current
     @last_hw_check       = Time.now
     @command             = nil
 
@@ -62,16 +62,16 @@ class Controller
 
     print 'arduino         '
     sleep 1
-    $bot_hardware.read_device_version() if $hardware_sim == 0
+    HardwareInterface.current.read_device_version() if $hardware_sim == 0
     puts  $status.device_version
 
     $status.info_status = 'synchronizing arduino parameters'
     print 'parameters      '
-    $bot_hardware.check_parameters if $hardware_sim == 0
-    $bot_hardware.check_parameters if $hardware_sim == 0
+    HardwareInterface.current.check_parameters if $hardware_sim == 0
+    HardwareInterface.current.check_parameters if $hardware_sim == 0
 
     if $hardware_sim == 0
-      if  $bot_hardware.ramps_param.params_in_sync
+      if  HardwareInterface.current.ramps_param.params_in_sync
         puts 'OK'
       else
         puts 'ERROR'
@@ -80,8 +80,8 @@ class Controller
       puts "SIM"
     end
 
-    #$bot_hardware.read_end_stops()
-    #$bot_hardware.read_postition()
+    #HardwareInterface.current.read_end_stops()
+    #HardwareInterface.current.read_postition()
     read_hw_status()
 
     @bot_dbaccess.write_to_log(1,'Controller running')
@@ -179,9 +179,9 @@ class Controller
   def check_hardware()
 
     if (Time.now - @last_hw_check) > 0.5 and $hardware_sim == 0
-      $bot_hardware.check_parameters
-      $bot_hardware.read_end_stops()
-      $bot_hardware.read_postition()
+      HardwareInterface.current.check_parameters
+      HardwareInterface.current.read_end_stops()
+      HardwareInterface.current.read_postition()
       read_hw_status()
       @last_hw_check = Time.now
 

@@ -42,8 +42,8 @@ class MessageHandlerMessage
   def move_relative(message)
     inputs = message.payload["command"] || {}
     # {"action"=>"MOVE RELATIVE", "x"=>0, "y"=>0, "z"=>0, "speed"=>100, "delay"=>0}
-    args = [
-      'MOVE RELATIVE', # action
+    DbAccess.current.create_command *[
+      'MOVE RELATIVE',  # action
       inputs['x'] || 0, # x
       inputs['y'] || 0, # y
       inputs['z'] || 0, # z
@@ -56,24 +56,20 @@ class MessageHandlerMessage
       0, # time
       0, # external_info
     ]
-    $bot_dbaccess.create_new_command(Time.now,'menu')
-    $bot_dbaccess.add_command_line(*args)
-    $bot_dbaccess.save_new_command
-    $bot_dbaccess.increment_refresh
   rescue => e
     puts e.message, e.backtrace.first
   end
 
   def home_x(*)
-    raise 'Not implemented yet.'
+    HardwareInterface.current.move_home_x
   end
 
   def home_y(*)
-    raise 'Not implemented yet.'
+    HardwareInterface.current.move_home_y
   end
 
   def home_z(*)
-    raise 'Not implemented yet.'
+    HardwareInterface.current.move_home_z
   end
 
   def calibrate_x(*)

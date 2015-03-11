@@ -21,7 +21,7 @@ class MessageHandlerScheduleCmdLine
   attr_accessor       :ext_info
 
   def initialize
-    @dbaccess = $bot_dbaccess
+    @dbaccess = DbAccess.current
   end
 
 
@@ -29,8 +29,8 @@ class MessageHandlerScheduleCmdLine
     @delay      = (command.has_key? 'delay' ) ? command['delay'   ] : 0
     @action     = (command.has_key? 'action') ? command['action'  ] : 'NOP'
     @x          = (command.has_key? 'x'     ) ? command['x'       ] : 0
-    @y          = (command.has_key? 'y'     ) ? command['y'       ] : 0 
-    @z          = (command.has_key? 'z'     ) ? command['z'       ] : 0  
+    @y          = (command.has_key? 'y'     ) ? command['y'       ] : 0
+    @z          = (command.has_key? 'z'     ) ? command['z'       ] : 0
     @speed      = (command.has_key? 'speed' ) ? command['speed'   ] : 0
     @amount     = (command.has_key? 'amount') ? command['amount'  ] : 0
     @delay      = (command.has_key? 'delay' ) ? command['delay'   ] : 0

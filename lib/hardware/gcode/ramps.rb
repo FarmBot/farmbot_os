@@ -12,13 +12,21 @@ require_relative 'ramps_param.rb'
 
 class HardwareInterface
 
+  class << self
+    attr_accessor :current
+
+    def current
+      @current ||= self.new(true)
+    end
+  end
+
   attr_reader :ramps_param, :ramps_main, :ramps_arduino
 
   # initialize the interface
   #
   def initialize(test_mode)
 
-    @bot_dbaccess = $bot_dbaccess
+    @bot_dbaccess = DbAccess.current
     @test_mode         = test_mode
 
     # create the sub processing objects
@@ -68,7 +76,7 @@ class HardwareInterface
   # set pulse on standard pin
   #
   def pin_std_pulse(pin, value1, value2, time, mode)
-    @ramps_arduino.execute_command("F44 P#{pin} V#{value1} W#{value2} T#{time} M#{mode}", false, @status_debug_msg)    
+    @ramps_arduino.execute_command("F44 P#{pin} V#{value1} W#{value2} T#{time} M#{mode}", false, @status_debug_msg)
   end
 
   # dose an amount of water (in ml)

@@ -10,14 +10,14 @@ describe ControllerCommandProc do
 
   before do
     $db_write_sync = Mutex.new
-    $bot_dbaccess = DbAccess.new('development')
-    $dbaccess = $bot_dbaccess
-    $dbaccess.disable_log_to_screen()
+    DbAccess.current = DbAccess.new('development')
+    DbAccess.current = DbAccess.current
+    DbAccess.current.disable_log_to_screen()
 
     $status = Status.new
 
-    $bot_hardware = HardwareInterface.new(true)
-    @ramps = $bot_hardware
+    HardwareInterface.current = HardwareInterface.new(true)
+    @ramps = HardwareInterface.current
 
     @controller = ControllerCommandProc.new
 
@@ -169,7 +169,7 @@ describe ControllerCommandProc do
     command_line.pin_nr      = pin
     command_line.pin_value_1 = value
     command_line.pin_mode    = mode
-    
+
     @controller.pin_write(command_line)
 
     expect(@ramps.ramps_arduino.test_serial_write).to eq("F41 P#{pin} V#{value} M#{mode}\n")

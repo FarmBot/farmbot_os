@@ -8,9 +8,9 @@ describe MessageHandlerParameter do
 
   before do
     $db_write_sync = Mutex.new
-    $bot_dbaccess = DbAccess.new('development')
-    $dbaccess = $bot_dbaccess
-    $dbaccess.disable_log_to_screen()
+    DbAccess.current = DbAccess.new('development')
+    DbAccess.current = DbAccess.current
+    DbAccess.current.disable_log_to_screen()
 
     $status = Status.new
 
@@ -33,11 +33,11 @@ describe MessageHandlerParameter do
     # write a few parameters
     parameter_value_1 = rand(9999999).to_i
     parameter_name_1  = rand(9999999).to_s
-    $dbaccess.write_parameter(parameter_name_1, parameter_value_1)
+    DbAccess.current.write_parameter(parameter_name_1, parameter_value_1)
 
     parameter_value_2 = rand(9999999).to_i
     parameter_name_2  = rand(9999999).to_s
-    $dbaccess.write_parameter(parameter_name_2, parameter_value_2)
+    DbAccess.current.write_parameter(parameter_name_2, parameter_value_2)
 
     # get the list of parameters that the system will send
 
@@ -98,8 +98,8 @@ describe MessageHandlerParameter do
 
     # check if the parameters in the database have the right values
 
-    value_read_1          = $dbaccess.read_parameter(parameter_name_1)
-    value_read_2          = $dbaccess.read_parameter(parameter_name_2)
+    value_read_1          = DbAccess.current.read_parameter(parameter_name_1)
+    value_read_2          = DbAccess.current.read_parameter(parameter_name_2)
 
     # check expectations
 
