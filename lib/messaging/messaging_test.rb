@@ -19,7 +19,7 @@ class MessagingTest
 
   def send_message(devices, message_hash )
     @message = message_hash
-    @devices = devices
+    @device = devices
   end
 
 end

@@ -7,13 +7,15 @@
 
 require 'serialport'
 
+require_relative 'ramps_serial_port_sim'
 require_relative 'ramps_arduino_values_received.rb'
 require_relative 'ramps_arduino_write_status.rb'
 
 class HardwareInterfaceArduino
 
   attr_accessor :ramps_param, :ramps_main
-  attr_accessor :test_serial_read, :test_serial_write
+  #attr_accessor :test_serial_read, :test_serial_write
+  attr_accessor :serial_port
   attr_accessor :external_info
 
   # initialize the interface
@@ -25,8 +27,6 @@ class HardwareInterfaceArduino
     @status_debug_msg = $status_debug_msg
 
     @test_mode         = test_mode
-    @test_serial_read  = ""
-    @test_serial_write = ""
 
     # connect to arduino
     connect_board()
@@ -53,6 +53,7 @@ class HardwareInterfaceArduino
 
     comm_port = '/dev/ttyACM0'
     @serial_port = SerialPort.new(comm_port, parameters) if @test_mode == false
+    @serial_port = SerialPortSim.new(comm_port, parameters) if @test_mode == true
 
   end
 
@@ -62,7 +63,10 @@ class HardwareInterfaceArduino
     begin
 
       write_status = create_write_status(text, log, onscreen)
+
+#puts @serial_port.test_serial_read
       prepare_serial_port(write_status)
+#puts @serial_port.test_serial_read
 
       # wait until the arduino responds
       while(write_status.is_busy())
@@ -74,7 +78,9 @@ class HardwareInterfaceArduino
 
       log_result_of_execution(write_status)
 
-    rescue Exception => e
+    rescue => e
+#puts 'exception received'
+#puts e
       handle_execution_exception(e)
     end
   end
@@ -89,25 +95,21 @@ class HardwareInterfaceArduino
   end
 
   def handle_execution_exception(e)
-    if @test_mode == false
-      puts("ST: serial error\n#{e.message}\n#{e.backtrace.inspect}")
-    end
+    puts("ST: serial error\n#{e.message}\n#{e.backtrace.inspect}")
     @bot_dbaccess.write_to_log(4,"ST: serial error\n#{e.message}\n#{e.backtrace.inspect}")
-    if @test_mode == false
-      @serial_port.rts = 1
-      connect_board
-      sleep 5
-    end
+    @serial_port.rts = 1
+    connect_board
+    sleep 5 if @test_mode == false
   end
 
   def log_result_of_execution(write_status)
 
     # log things if needed
     if write_status.done == 1
-      puts 'ST: done' if write_status.onscreen and @test_mode == false
+      puts 'ST: done' if write_status.onscreen
       @bot_dbaccess.write_to_log(4, 'ST: done') if write_status.log
     else
-      puts 'ST: timeout' if @test_mode == false
+      puts 'ST: timeout'
       @bot_dbaccess.write_to_log(4, 'ST: timeout')
 
       sleep 5 if @test_mode == false
@@ -117,13 +119,10 @@ class HardwareInterfaceArduino
   # receive all characters coming from the serial port
   #
   def process_feedback(write_status)
+    i = @serial_port.read(1)
 
-    if @test_mode == false
-      i = @serial_port.read(1)
-    else
-      i = @test_serial_read[0]
-      @test_serial_read = @test_serial_read[1..-1]
-    end
+#print "-#{i}"
+#print "#{i}"
 
     if i != nil
       i.each_char do |c|
@@ -132,7 +131,8 @@ class HardwareInterfaceArduino
 
       end
     else
-      sleep 0.001
+      sleep 0.001 if @test_mode == false
+      #write_status.done = 1 if @test_mode == true
     end
   end
 
@@ -190,7 +190,7 @@ class HardwareInterfaceArduino
   def prepare_serial_port(write_status)
     puts "WR: #{write_status.text}" if write_status.onscreen
     @bot_dbaccess.write_to_log(4, "WR: #{write_status.text}") if write_status.log
-    @serial_port.read_timeout = 2 if @test_mode == false
+    @serial_port.read_timeout = 2
     clean_serial_buffer() if @test_mode == false
     serial_port_write( "#{write_status.text}\n" )
   end
@@ -198,21 +198,13 @@ class HardwareInterfaceArduino
   # empty the input buffer so no old data is processed
   #
   def clean_serial_buffer
-    if @test_mode == false
-      while (@serial_port.read(1) != nil)
-      end
-    else
-      @test_serial_read = ''
+    while (@serial_port.read(1) != nil)
     end
   end
 
   # write something to the serial port
   def serial_port_write(text)
-    if @test_mode == false
-      @serial_port.write( text )
-    else
-      @test_serial_write = text
-    end
+    @serial_port.write( text )
   end
 
   # if there is an emergency stop, immediately write it to the arduino
@@ -358,7 +350,7 @@ class HardwareInterfaceArduino
   #
   def process_value_process_R99(code,text)
     if code == 'R99'
-        puts ">#{text}<" if @test_mode == false
+        puts ">#{text}<"
     end
   end
 

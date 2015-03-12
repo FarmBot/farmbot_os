@@ -1,6 +1,6 @@
 require 'spec_helper'
 require './lib/status.rb'
-require './lib/messaging/messaging.rb'
+require './lib/messaging/messagehandler.rb'
 require './lib/messaging/messaging_test.rb'
 require './lib/messaging/messagehandler_parameters.rb'
 
@@ -14,8 +14,8 @@ describe MessageHandlerParameter do
 
     $status = Status.new
 
-    Messaging.current = MessagingTest.new
-    Messaging.current.reset
+    @messaging = MessagingTest.new
+    @messaging.reset
 
     @handler = MessageHandlerParameter.new
     @main_handler = MessageHandler.new
@@ -47,7 +47,7 @@ describe MessageHandlerParameter do
 
     @handler.read_parameters(message)
 
-    return_list = Messaging.current.message
+    return_list = @messaging.message
 
     # check if the parameters are present in the message
 
@@ -67,7 +67,7 @@ describe MessageHandlerParameter do
 
     expect(found_in_list_1).to eq(true)
     expect(found_in_list_2).to eq(true)
-    expect(Messaging.current.message[:message_type]).to eq('read_parameters_response')
+    expect(@messaging.message[:message_type]).to eq('read_parameters_response')
   end
 
   it "write parameters" do
@@ -105,7 +105,7 @@ describe MessageHandlerParameter do
 
     expect(value_read_1).to eq(parameter_value_1)
     expect(value_read_2).to eq(parameter_value_2)
-    expect(Messaging.current.message[:message_type]).to eq('confirmation')
+    expect(@messaging.message[:message_type]).to eq('confirmation')
 
   end
 
@@ -119,7 +119,7 @@ describe MessageHandlerParameter do
 
     @handler.write_parameters(message)
 
-    expect(Messaging.current.message[:message_type]).to eq('error')
+    expect(@messaging.message[:message_type]).to eq('error')
 
   end
 
