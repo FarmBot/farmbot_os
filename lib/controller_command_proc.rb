@@ -13,7 +13,9 @@ class ControllerCommandProc
                'servo_move']
 
   def check_whitelist(function)
-    raise "UNAUTHORIZED" unless WHITELIST.include?(function.downcase)
+    unless WHITELIST.include?(function.downcase)
+      raise "UNAUTHORIZED: #{function}"
+    end
   end
 
   def process_command( cmd )
@@ -37,11 +39,6 @@ class ControllerCommandProc
     if $hardware_sim == 0
       send(function, command_line)
     else
-      #$status.info_movement =
-      @info_movement = "#{command_line.action.downcase} xyz=#{command_line.coord_x} #{command_line.coord_y} #{command_line.coord_z} amt=#{command_line.amount} spd=#{command_line.speed} pin=#{command_line.pin_nr}"
-      puts "simulating: #{@info_movement}"
-      #@bot_dbaccess.write_to_log(1,@info_movement)
-      #@bot_dbaccess.write_to_log(1,"simulating hardware: #{function}")
       sleep 0.1
     end
   end

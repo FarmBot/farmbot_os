@@ -1,6 +1,9 @@
 require 'spec_helper'
 require './lib/status.rb'
-require './lib/messaging/messaging.rb'
+#require './lib/messaging/messaging.rb'
+#require './lib/messagehandler_base'
+require './lib/messaging/messagehandler.rb'
+require './lib/messaging/messagehandler_schedule.rb'
 require './lib/messaging/messaging_test.rb'
 
 #require './lib/messagehandler_schedule'
@@ -17,11 +20,11 @@ describe MessageHandlerSchedule do
 
     $status = Status.new
 
-    Messaging.current = MessagingTest.new
-    Messaging.current.reset
+    messaging = MessagingTest.new
+    messaging.reset
 
-    @handler = MessageHandlerSchedule.new
-    @main_handler = MessageHandler.new
+    @handler = MessageHandlerSchedule.new(messaging)
+    @main_handler = MessageHandler.new(messaging)
   end
 
   ## commands / scheduling
@@ -254,7 +257,7 @@ describe MessageHandlerSchedule do
 
     # do the checks
 
-    expect(Messaging.current.message[:message_type]).to eq('error')
+    expect(@handler.messaging.message[:message_type]).to eq('error')
 
   end
 

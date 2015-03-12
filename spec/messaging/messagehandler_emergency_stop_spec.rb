@@ -1,16 +1,12 @@
 require 'spec_helper'
-require './lib/messaging/messagehandler_emergencystop.rb'
 require './lib/status.rb'
-require './lib/messaging/messaging.rb'
+require './lib/messaging/messagehandler.rb'
 require './lib/messaging/messaging_test.rb'
+require './lib/messaging/messagehandler_emergencystop.rb'
 
 describe MessageHandlerEmergencyStop do
 
   before do
-    #$db_write_sync = Mutex.new
-    #DbAccess.current = DbAccess.new('development')
-    #@msg = MessageHandler.new
-
     $db_write_sync = Mutex.new
     DbAccess.current = DbAccess.new('development')
     DbAccess.current = DbAccess.current
@@ -18,11 +14,11 @@ describe MessageHandlerEmergencyStop do
 
     $status = Status.new
 
-    Messaging.current = MessagingTest.new
-    Messaging.current.reset
+    messaging = MessagingTest.new
+    messaging.reset
 
-    @handler = MessageHandlerEmergencyStop.new
-    @main_handler = MessageHandler.new
+    @handler = MessageHandlerEmergencyStop.new(messaging)
+    @main_handler = MessageHandler.new(messaging)
   end
 
   ## messaging
@@ -40,7 +36,7 @@ describe MessageHandlerEmergencyStop do
     @handler.emergency_stop(message)
 
     expect($status.emergency_stop).to eq(true)
-    expect(Messaging.current.message[:message_type]).to eq('confirmation')
+    expect(@handler.messaging.message[:message_type]).to eq('confirmation')
   end
 
   it "message handler emergency stop reset" do
@@ -51,7 +47,7 @@ describe MessageHandlerEmergencyStop do
     @handler.emergency_stop_reset(message)
 
     expect($status.emergency_stop).to eq(false)
-    expect(Messaging.current.message[:message_type]).to eq('confirmation')
+    expect(@handler.messaging.message[:message_type]).to eq('confirmation')
   end
 
 

@@ -16,23 +16,26 @@ require_relative 'messagehandler_message'
 class MessageHandler
 
   attr_accessor :message
+  attr_accessor :messaging
   attr_accessor :use_test_handler
 
   ## general handling messages
 
-  def initialize
+  def initialize(messaging)
+
+    @messaging = messaging
     #@dbaccess = DbAccess.new
     @dbaccess = DbAccess.current
     @last_time_stamp  = ''
 
     @message_handlers = Array.new
-    @message_handlers << MessageHandlerEmergencyStop.new
-    @message_handlers << MessageHandlerLog.new
-    @message_handlers << MessageHandlerMeasurement.new
-    @message_handlers << MessageHandlerParameter.new
-    @message_handlers << MessageHandlerSchedule.new
-    @message_handlers << MessageHandlerStatus.new
-    @message_handlers << MessageHandlerMessage.new
+    @message_handlers << MessageHandlerEmergencyStop.new(messaging)
+    @message_handlers << MessageHandlerLog.new(messaging)
+    @message_handlers << MessageHandlerMeasurement.new(messaging)
+    @message_handlers << MessageHandlerParameter.new(messaging)
+    @message_handlers << MessageHandlerSchedule.new(messaging)
+    @message_handlers << MessageHandlerStatus.new(messaging)
+#    @message_handlers << MessageHandlerMessage.new(messaging)
 
   end
 
@@ -59,12 +62,12 @@ class MessageHandler
       message_obj = MessageHandlerMessage.new
 
       split_message(message, message_obj)
+
       log_message_obj_info(message_obj)
       send_message_obj_to_individual_handlers(message_obj)
       check_if_message_handled(message_obj)
 
-    rescue Exception => e
-      puts e.message, e.backtrace.first
+    rescue => e
       err_snd = true
       err_msg = e.message
       err_trc = e.backtrace.inspect
@@ -73,8 +76,7 @@ class MessageHandler
     # in case of an error, send error message as a reply
     begin
       handle_message_error(err_snd, sender, time_stamp, err_msg, err_trc)
-    rescue  Exception => e
-      puts e.message, e.backtrace.first
+    rescue => e
       puts "Error while sending error message: #{e.message}"
     end
   end
@@ -125,7 +127,7 @@ class MessageHandler
 
   def send_message(destination, command)
     @dbaccess.write_to_log(3,"to #{destination} : #{command.to_s}")
-    Messaging.current.send_message(destination, command)
+    @messaging.send_message(destination, command)
   end
 
   def split_message(message, message_obj)
