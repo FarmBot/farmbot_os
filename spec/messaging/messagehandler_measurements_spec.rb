@@ -15,11 +15,11 @@ describe MessageHandlerMeasurement do
 
     $status = Status.new
 
-    @messaging = MessagingTest.new
-    @messaging.reset
+    messaging = MessagingTest.new
+    messaging.reset
 
-    @handler = MessageHandlerMeasurement.new
-    @main_handler = MessageHandler.new
+    @handler = MessageHandlerMeasurement.new(messaging)
+    @main_handler = MessageHandler.new(messaging)
   end
 
   ## measurements
@@ -45,14 +45,14 @@ describe MessageHandlerMeasurement do
 
     # check if the created item is into the list to send
     found_in_list = false
-    @messaging.message[:measurements].each do |item|
+    @handler.messaging.message[:measurements].each do |item|
       if item['value'] == measurement_value and item['ext_info'] == measurement_text
         found_in_list = true
       end
     end
 
     expect(found_in_list).to eq(true)
-    expect(@messaging.message[:message_type]).to eq('read_measurements_response')
+    expect(@handler.messaging.message[:message_type]).to eq('read_measurements_response')
   end
 
   it "delete measurement" do
@@ -114,7 +114,7 @@ describe MessageHandlerMeasurement do
     expect(found_in_list_2).to eq(true)
     expect(found_in_list_1_after).to eq(false)
     expect(found_in_list_2_after).to eq(false)
-    expect(@messaging.message[:message_type]).to eq('confirmation')
+    expect(@handler.messaging.message[:message_type]).to eq('confirmation')
 
   end
 

@@ -15,11 +15,11 @@ describe MessageHandlerLog do
 
     $status = Status.new
 
-    @messaging = MessagingTest.new
-    @messaging.reset
+    messaging = MessagingTest.new
+    messaging.reset
 
-    @handler = MessageHandlerLog.new
-    @main_handler = MessageHandler.new
+    @handler = MessageHandlerLog.new(messaging)
+    @main_handler = MessageHandler.new(messaging)
   end
 
   ## logs
@@ -48,7 +48,7 @@ describe MessageHandlerLog do
 
     @handler.read_logs(message)
 
-    return_list = @messaging.message
+    return_list = @handler.messaging.message
 
     # check if the logged lines are present in the message
 
@@ -69,7 +69,7 @@ describe MessageHandlerLog do
 
     expect(found_in_list_1).to eq(true)
     expect(found_in_list_2).to eq(true)
-    expect(@messaging.message[:message_type]).to eq('read_logs_response')
+    expect(@handler.messaging.message[:message_type]).to eq('read_logs_response')
   end
 
 end

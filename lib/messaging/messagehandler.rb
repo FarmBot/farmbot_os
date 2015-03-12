@@ -16,23 +16,26 @@ require_relative 'messagehandler_message'
 class MessageHandler
 
   attr_accessor :message
+  attr_accessor :messaging
   attr_accessor :use_test_handler
 
   ## general handling messages
 
-  def initialize
+  def initialize(messaging)
+
+    @messaging = messaging
     #@dbaccess = DbAccess.new
     @dbaccess = DbAccess.current
     @last_time_stamp  = ''
 
     @message_handlers = Array.new
-    @message_handlers << MessageHandlerEmergencyStop.new
-    @message_handlers << MessageHandlerLog.new
-    @message_handlers << MessageHandlerMeasurement.new
-    @message_handlers << MessageHandlerParameter.new
-    @message_handlers << MessageHandlerSchedule.new
-    @message_handlers << MessageHandlerStatus.new
-    @message_handlers << MessageHandlerMessage.new
+    @message_handlers << MessageHandlerEmergencyStop.new(messaging)
+    @message_handlers << MessageHandlerLog.new(messaging)
+    @message_handlers << MessageHandlerMeasurement.new(messaging)
+    @message_handlers << MessageHandlerParameter.new(messaging)
+    @message_handlers << MessageHandlerSchedule.new(messaging)
+    @message_handlers << MessageHandlerStatus.new(messaging)
+#    @message_handlers << MessageHandlerMessage.new(messaging)
 
   end
 
@@ -124,7 +127,7 @@ class MessageHandler
 
   def send_message(destination, command)
     @dbaccess.write_to_log(3,"to #{destination} : #{command.to_s}")
-    Messaging.current.send_message(destination, command)
+    @messaging.send_message(destination, command)
   end
 
   def split_message(message, message_obj)

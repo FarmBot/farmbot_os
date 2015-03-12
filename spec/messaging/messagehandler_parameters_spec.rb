@@ -14,11 +14,11 @@ describe MessageHandlerParameter do
 
     $status = Status.new
 
-    @messaging = MessagingTest.new
-    @messaging.reset
+    messaging = MessagingTest.new
+    messaging.reset
 
-    @handler = MessageHandlerParameter.new
-    @main_handler = MessageHandler.new
+    @handler = MessageHandlerParameter.new(messaging)
+    @main_handler = MessageHandler.new(messaging)
   end
 
   ## measurements
@@ -47,7 +47,7 @@ describe MessageHandlerParameter do
 
     @handler.read_parameters(message)
 
-    return_list = @messaging.message
+    return_list = @handler.messaging.message
 
     # check if the parameters are present in the message
 
@@ -67,7 +67,7 @@ describe MessageHandlerParameter do
 
     expect(found_in_list_1).to eq(true)
     expect(found_in_list_2).to eq(true)
-    expect(@messaging.message[:message_type]).to eq('read_parameters_response')
+    expect(@handler.messaging.message[:message_type]).to eq('read_parameters_response')
   end
 
   it "write parameters" do
@@ -105,7 +105,7 @@ describe MessageHandlerParameter do
 
     expect(value_read_1).to eq(parameter_value_1)
     expect(value_read_2).to eq(parameter_value_2)
-    expect(@messaging.message[:message_type]).to eq('confirmation')
+    expect(@handler.messaging.message[:message_type]).to eq('confirmation')
 
   end
 
@@ -119,7 +119,7 @@ describe MessageHandlerParameter do
 
     @handler.write_parameters(message)
 
-    expect(@messaging.message[:message_type]).to eq('error')
+    expect(@handler.messaging.message[:message_type]).to eq('error')
 
   end
 

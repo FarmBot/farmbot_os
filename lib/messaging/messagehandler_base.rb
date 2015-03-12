@@ -7,10 +7,12 @@ require 'time'
 class MessageHandlerBase
 
   attr_accessor :message
+  attr_accessor :messaging
 
   ## general handling messages
 
-  def initialize
+  def initialize(messaging)
+    @messaging = messaging
     @dbaccess = DbAccess.current
     @last_time_stamp  = ''
   end

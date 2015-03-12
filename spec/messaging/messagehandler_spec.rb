@@ -16,15 +16,14 @@ describe MessageHandler do
 
     #$status = Status.new
 
-    $messaging = MessagingTest.new
-    $messaging.reset
+    messaging = MessagingTest.new
+    messaging.reset
 
-$mesh_msg_print = 1
-
-    @handler = MessageHandler.new
+    @handler = MessageHandler.new(messaging)
   end
 
   it "handle message with test message" do
+
 
     fromUuid     = rand(9999999).to_s
     message_type = 'test'
@@ -42,7 +41,7 @@ $mesh_msg_print = 1
 
     @handler.handle_message(message)
 
-    expect($messaging.message[:message_type]).to eq('error')
+    expect(@handler.messaging.message[:message_type]).to eq('error')
   end
 
   it "handle message - test error handling" do
@@ -59,8 +58,8 @@ $mesh_msg_print = 1
 
     @handler.handle_message(message)
 
-    expect($messaging.message[:message_type]).to eq('error')
-    expect($messaging.device).to eq(fromUuid)
+    expect(@handler.messaging.message[:message_type]).to eq('error')
+    expect(@handler.messaging.device).to eq(fromUuid)
   end
 
   it "return error" do
@@ -74,8 +73,8 @@ $mesh_msg_print = 1
 
     @handler.send_confirmation(destination, time_stamp)
 
-    expect($messaging.message[:message_type]).to eq('confirmation')
-    expect($messaging.device).to eq(destination)
+    expect(@handler.messaging.message[:message_type]).to eq('confirmation')
+    expect(@handler.messaging.device).to eq(destination)
 
   end
 
@@ -86,8 +85,8 @@ $mesh_msg_print = 1
 
     @handler.send_error(destination, time_stamp, error)
 
-    expect($messaging.message[:message_type]).to eq('error')
-    expect($messaging.device).to eq(destination)
+    expect(@handler.messaging.message[:message_type]).to eq('error')
+    expect(@handler.messaging.device).to eq(destination)
 
   end
 
@@ -101,9 +100,9 @@ $mesh_msg_print = 1
 
     @handler.handle_message_error(err_snd, sender, time_stamp, err_msg, err_trc)
 
-    expect($messaging.message[:message_type]).to eq('error')
-    expect($messaging.message[:error]).to eq(" #{err_msg} @ #{err_trc}")
-    expect($messaging.device).to eq(sender)
+    expect(@handler.messaging.message[:message_type]).to eq('error')
+    expect(@handler.messaging.message[:error]).to eq(" #{err_msg} @ #{err_trc}")
+    expect(@handler.messaging.device).to eq(sender)
   end
 
 end

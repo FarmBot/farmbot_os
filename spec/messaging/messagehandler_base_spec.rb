@@ -7,7 +7,10 @@ describe MessageHandlerBase do
 
 
   before do
-    @handler = MessageHandlerBase.new
+    messaging = MessagingTest.new
+    messaging.reset
+
+    @handler = MessageHandlerBase.new(messaging)
   end
 
   it "hanlde message" do

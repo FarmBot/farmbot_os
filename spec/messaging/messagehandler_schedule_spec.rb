@@ -20,11 +20,11 @@ describe MessageHandlerSchedule do
 
     $status = Status.new
 
-    @messaging = MessagingTest.new
-    @messaging.reset
+    messaging = MessagingTest.new
+    messaging.reset
 
-    @handler = MessageHandlerSchedule.new
-    @main_handler = MessageHandler.new
+    @handler = MessageHandlerSchedule.new(messaging)
+    @main_handler = MessageHandler.new(messaging)
   end
 
   ## commands / scheduling
@@ -257,7 +257,7 @@ describe MessageHandlerSchedule do
 
     # do the checks
 
-    expect(@messaging.message[:message_type]).to eq('error')
+    expect(@handler.messaging.message[:message_type]).to eq('error')
 
   end
 

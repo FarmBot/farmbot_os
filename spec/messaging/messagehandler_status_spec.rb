@@ -22,11 +22,11 @@ describe MessageHandlerStatus do
 
     $bot_control = HwStatusSim.new
 
-    @messaging = MessagingTest.new
-    @messaging.reset
+    messaging = MessagingTest.new
+    messaging.reset
 
-    @handler = MessageHandlerStatus.new
-    @main_handler = MessageHandler.new
+    @handler = MessageHandlerStatus.new(messaging)
+    @main_handler = MessageHandler.new(messaging)
   end
 
   it "white list" do
@@ -97,7 +97,7 @@ describe MessageHandlerStatus do
 
     # retrieve response message
 
-    return_msg = @messaging.message
+    return_msg = @handler.messaging.message
 
     # do the checks
 
