@@ -30,10 +30,23 @@ describe HardwareInterfaceArduino do
 
     command = "TEST"
 
-    @ramps.test_serial_read = "R01\nR02\n"
+    @ramps.serial_port.test_serial_read = "R01\nR02\n"
     @ramps.execute_command(command, false, false)
 
-    expect(@ramps.test_serial_write).to eq("#{command}\n")
+    expect(@ramps.serial_port.test_serial_write).to eq("#{command}\n")
+
+  end
+
+  it "execute_command with causing an error"  do
+
+    $status = nil
+
+    @ramps.serial_port.rts = 0
+    @ramps.execute_command(nil,nil,nil)
+
+    $status = Status.new
+
+    expect { @ramps }.to_not raise_error
 
   end
 
@@ -48,7 +61,6 @@ describe HardwareInterfaceArduino do
     expect(write_status.text     ).to eq(text     )
     expect(write_status.log      ).to eq(log      )
     expect(write_status.onscreen ).to eq(onscreen )
-
   end
 
   it "handle execution exception" do
@@ -76,7 +88,7 @@ describe HardwareInterfaceArduino do
     log      = rand(9999999).to_s
     onscreen = false
 
-    @ramps.test_serial_read = "R02\n"
+    @ramps.serial_port.test_serial_read = "R02\n"
 
     write_status = @ramps.create_write_status(text, log, onscreen)
 
@@ -200,30 +212,30 @@ describe HardwareInterfaceArduino do
   end
 
   it "clean serial buffer" do
-    @ramps.test_serial_read = rand(9999999).to_s
+    @ramps.serial_port.test_serial_read = rand(9999999).to_s
     @ramps.clean_serial_buffer
-    expect(@ramps.test_serial_read).to eq("")
+    expect(@ramps.serial_port.test_serial_read).to eq(nil)
 
   end
 
   it "serial port write" do
     text = rand(9999999).to_s
     @ramps.serial_port_write(text)
-    expect(@ramps.test_serial_write).to eq(text)
+    expect(@ramps.serial_port.test_serial_write).to eq(text)
   end
 
   it "emergency stop off" do
-    @ramps.test_serial_write = ""
+    @ramps.serial_port.test_serial_write = ""
     $status.emergency_stop = false
     @ramps.check_emergency_stop
-    expect(@ramps.test_serial_write).to eq("")
+    expect(@ramps.serial_port.test_serial_write).to eq("")
   end
 
   it "emergency stop on" do
-    @ramps.test_serial_write = ""
+    @ramps.serial_port.test_serial_write = ""
     $status.emergency_stop = true
     @ramps.check_emergency_stop
-    expect(@ramps.test_serial_write).to eq("E\n")
+    expect(@ramps.serial_port.test_serial_write).to eq("E\n")
   end
 
   it "log incoming text" do

@@ -1,11 +1,9 @@
 require 'spec_helper'
 require './lib/status.rb'
-require './lib/messaging/messaging.rb'
+require './lib/messaging/messagehandler.rb'
+require './lib/messaging/messagehandler_base.rb'
+require './lib/messaging/messagehandler_status.rb'
 require './lib/messaging/messaging_test.rb'
-
-#require './lib/messagehandler_schedule'
-#require './lib/messagehandler_schedule_cmd_line'
-#require './lib/messaging/messagehandler_logs.rb'
 
 class HwStatusSim
   def read_hw_status
@@ -24,8 +22,8 @@ describe MessageHandlerStatus do
 
     $bot_control = HwStatusSim.new
 
-    Messaging.current = MessagingTest.new
-    Messaging.current.reset
+    @messaging = MessagingTest.new
+    @messaging.reset
 
     @handler = MessageHandlerStatus.new
     @main_handler = MessageHandler.new
@@ -99,7 +97,7 @@ describe MessageHandlerStatus do
 
     # retrieve response message
 
-    return_msg = Messaging.current.message
+    return_msg = @messaging.message
 
     # do the checks
 

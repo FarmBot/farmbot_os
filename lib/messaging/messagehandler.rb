@@ -59,12 +59,12 @@ class MessageHandler
       message_obj = MessageHandlerMessage.new
 
       split_message(message, message_obj)
+
       log_message_obj_info(message_obj)
       send_message_obj_to_individual_handlers(message_obj)
       check_if_message_handled(message_obj)
 
-    rescue Exception => e
-      puts e.message, e.backtrace.first
+    rescue => e
       err_snd = true
       err_msg = e.message
       err_trc = e.backtrace.inspect
@@ -73,8 +73,7 @@ class MessageHandler
     # in case of an error, send error message as a reply
     begin
       handle_message_error(err_snd, sender, time_stamp, err_msg, err_trc)
-    rescue  Exception => e
-      puts e.message, e.backtrace.first
+    rescue => e
       puts "Error while sending error message: #{e.message}"
     end
   end

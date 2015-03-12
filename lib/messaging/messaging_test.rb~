@@ -20,7 +20,6 @@ class MessagingTest
   def send_message(devices, message_hash )
     @message = message_hash
     @devices = devices
-    @socket.emit("message",{:devices => devices, :message => message_hash})
   end
 
 end

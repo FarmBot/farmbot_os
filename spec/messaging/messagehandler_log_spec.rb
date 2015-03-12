@@ -1,6 +1,7 @@
 require 'spec_helper'
 require './lib/status.rb'
-require './lib/messaging/messaging.rb'
+#require './lib/messaging/messaging.rb'
+require './lib/messaging/messagehandler.rb'
 require './lib/messaging/messaging_test.rb'
 require './lib/messaging/messagehandler_logs.rb'
 
@@ -14,8 +15,8 @@ describe MessageHandlerLog do
 
     $status = Status.new
 
-    Messaging.current = MessagingTest.new
-    Messaging.current.reset
+    @messaging = MessagingTest.new
+    @messaging.reset
 
     @handler = MessageHandlerLog.new
     @main_handler = MessageHandler.new
@@ -47,7 +48,7 @@ describe MessageHandlerLog do
 
     @handler.read_logs(message)
 
-    return_list = Messaging.current.message
+    return_list = @messaging.message
 
     # check if the logged lines are present in the message
 
@@ -68,7 +69,7 @@ describe MessageHandlerLog do
 
     expect(found_in_list_1).to eq(true)
     expect(found_in_list_2).to eq(true)
-    expect(Messaging.current.message[:message_type]).to eq('read_logs_response')
+    expect(@messaging.message[:message_type]).to eq('read_logs_response')
   end
 
 end

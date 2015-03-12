@@ -16,7 +16,7 @@ class DbAccessLogs
   def initialize(db)
     @dbaccess = db
     @log_to_screen = true
-    @max_nr_log_lines = 10000
+    @max_nr_log_lines = 1000
   end
 
   ## logs

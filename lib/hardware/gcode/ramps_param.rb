@@ -191,6 +191,7 @@ class HardwareInterfaceParam
   def update_param_version_ar
     # read the parameter version in the database and in the device
     read_parameter_from_device(0)
+
     params.each do |p|
       if p['id'] == 0
         @param_version_ar = p['value_ar']
