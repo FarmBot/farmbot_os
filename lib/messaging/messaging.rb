@@ -11,7 +11,7 @@ require_relative 'messagehandler.rb'
 
 # The Device class is temporarily inheriting from Tim's HardwareInterface.
 # Eventually, we should merge the two projects, but this is good enough for now.
-class Messaging
+class Messenger
   class << self
     attr_accessor :current
 

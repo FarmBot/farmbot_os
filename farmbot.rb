@@ -38,8 +38,8 @@ else
 end
 puts 'OK'
 
-puts "uuid            #{Messaging.current.uuid}"
-puts "token           #{Messaging.current.token}"
+puts "uuid            #{Messenger.current.uuid}"
+puts "token           #{Messenger.current.token}"
 if $controller_disable == 0
   print 'controller      '
   require_relative 'lib/controller'

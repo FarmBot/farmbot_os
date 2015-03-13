@@ -27,8 +27,8 @@ print 'synchronization '
 require_relative 'lib/messaging'
 puts 'OK'
 
-puts "uuid            #{Messaging.current.uuid}"
-puts "token           #{Messaging.current.token}"
+puts "uuid            #{Messenger.current.uuid}"
+puts "token           #{Messenger.current.token}"
 
 puts 'press key to stop'
 gets.chomp

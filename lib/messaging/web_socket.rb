@@ -22,7 +22,7 @@ module WebSocket
 
   ### Routes all skynet messages to handle_event() for interpretation.
   def create_message_event
-    socket.on(:message) { |message| Messaging.current.handle_message(message) }
+    socket.on(:message) { |message| Messenger.current.handle_message(message) }
   end
 
 end

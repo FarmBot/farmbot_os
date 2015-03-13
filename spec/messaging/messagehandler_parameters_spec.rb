@@ -14,7 +14,7 @@ describe MessageHandlerParameter do
 
     $status = Status.new
 
-    messaging = MessagingTest.new
+    messaging = MessengerTest.new
     messaging.reset
 
     @handler = MessageHandlerParameter.new(messaging)
