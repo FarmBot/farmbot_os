@@ -7,7 +7,7 @@ describe MessageHandlerBase do
 
 
   before do
-    messaging = MessagingTest.new
+    messaging = MessengerTest.new
     messaging.reset
 
     @handler = MessageHandlerBase.new(messaging)
@@ -17,7 +17,7 @@ describe MessageHandlerBase do
     message = MessageHandlerMessage.new
     message.handled = false
     @handler.handle_message(message)
-    expect(message.handled).to eq(false)        
+    expect(message.handled).to eq(false)
   end
 
   it "hanlde message test message" do
@@ -25,7 +25,7 @@ describe MessageHandlerBase do
     message.message_type = 'test'
     message.handled = false
     @handler.handle_message(message)
-    expect(message.handled).to eq(true)        
+    expect(message.handled).to eq(true)
   end
 
 

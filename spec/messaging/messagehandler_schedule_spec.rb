@@ -20,7 +20,7 @@ describe MessageHandlerSchedule do
 
     $status = Status.new
 
-    messaging = MessagingTest.new
+    messaging = MessengerTest.new
     messaging.reset
 
     @handler = MessageHandlerSchedule.new(messaging)

@@ -15,7 +15,7 @@ describe MessageHandlerMeasurement do
 
     $status = Status.new
 
-    messaging = MessagingTest.new
+    messaging = MessengerTest.new
     messaging.reset
 
     @handler = MessageHandlerMeasurement.new(messaging)

@@ -16,7 +16,7 @@ describe MessageHandler do
 
     #$status = Status.new
 
-    messaging = MessagingTest.new
+    messaging = MessengerTest.new
     messaging.reset
 
     @handler = MessageHandler.new(messaging)

@@ -22,7 +22,7 @@ describe MessageHandlerStatus do
 
     $bot_control = HwStatusSim.new
 
-    messaging = MessagingTest.new
+    messaging = MessengerTest.new
     messaging.reset
 
     @handler = MessageHandlerStatus.new(messaging)

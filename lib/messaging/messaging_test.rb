@@ -3,7 +3,7 @@
 require 'json'
 #require_relative 'messagehandler.rb'
 
-class MessagingTest
+class MessengerTest
 
   attr_accessor :message
   attr_accessor :device

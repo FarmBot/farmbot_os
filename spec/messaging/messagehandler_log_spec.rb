@@ -15,7 +15,7 @@ describe MessageHandlerLog do
 
     $status = Status.new
 
-    messaging = MessagingTest.new
+    messaging = MessengerTest.new
     messaging.reset
 
     @handler = MessageHandlerLog.new(messaging)
