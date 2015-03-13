@@ -38,7 +38,7 @@ class Messaging
 
   def start
     create_socket_events
-    @message_handler  = MessageHandler.new
+    @message_handler  = MessageHandler.new(self)
   end
 
   def send_message(devices, message_hash )
