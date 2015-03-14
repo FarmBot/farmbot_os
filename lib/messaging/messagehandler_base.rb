@@ -30,8 +30,6 @@ class MessageHandlerBase
     if whitelist.include?(message.message_type)
       self.send(message.message_type,message)
       message.handled = true
-    else
-      puts "?????"
     end
 
   end

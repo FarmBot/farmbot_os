@@ -93,8 +93,6 @@ class MessageHandler
         send_error(sender, time_stamp, " #{err_msg} @ #{err_trc}")
         @dbaccess.write_to_log(2,"Error in message handler.\nError #{err_msg} @ #{err_trc}")
       end
-    else
-      puts '???'
     end
   end
 
