@@ -47,7 +47,7 @@ class Messenger
 
   # Acts as the entry point for message traffic captured from MeshBlu.
   def handle_message(message)
-    case message.class
+    case message
     when Hash
       @message_handler.handle_message(message)
     when String
