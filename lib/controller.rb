@@ -147,7 +147,7 @@ class Controller
 
     else
 
-      $status.info_status = 'no command found, waiting'
+      $status.info_status = 'Awaiting commands.'
 
       @info_command_next = nil
 
