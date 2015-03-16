@@ -14,7 +14,7 @@ describe ControllerCommandProc do
     DbAccess.current = DbAccess.current
     DbAccess.current.disable_log_to_screen()
 
-    $status = Status.new
+    Status.current = Status.new
 
     HardwareInterface.current = HardwareInterface.new(true)
     @ramps = HardwareInterface.current
@@ -61,9 +61,9 @@ describe ControllerCommandProc do
     current_y = rand(9999999).to_i
     current_z = rand(9999999).to_i
 
-    $status.info_current_x_steps = current_x
-    $status.info_current_y_steps = current_y
-    $status.info_current_z_steps = current_z
+    Status.current.info_current_x_steps = current_x
+    Status.current.info_current_y_steps = current_y
+    Status.current.info_current_z_steps = current_z
 
     command_line = CommandLine.new
     command_line.coord_x = x

@@ -21,7 +21,7 @@ class HardwareInterfaceParam
   #
   def initialize
 
-    @status_debug_msg = $status_debug_msg
+    @status_debug_msg = $debug_msg
     #@status_debug_msg = false
     #@status_debug_msg = true
 

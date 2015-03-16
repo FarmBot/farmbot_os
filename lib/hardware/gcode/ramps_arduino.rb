@@ -24,7 +24,7 @@ class HardwareInterfaceArduino
 
     @bot_dbaccess = DbAccess.current
 
-    @status_debug_msg = $status_debug_msg
+    @status_debug_msg = $debug_msg
 
     @test_mode         = test_mode
 
@@ -210,7 +210,7 @@ class HardwareInterfaceArduino
   # if there is an emergency stop, immediately write it to the arduino
   #
   def check_emergency_stop
-    if ($status.emergency_stop)
+    if (Status.current.emergency_stop)
      serial_port_write( "E\n" )
     end
   end
@@ -308,12 +308,12 @@ class HardwareInterfaceArduino
   #
   def process_value_R81(params,code)
     if code == 'R81'
-      $status.info_end_stop_x_a = (params.xa == 1)
-      $status.info_end_stop_x_b = (params.xb == 1)
-      $status.info_end_stop_y_a = (params.ya == 1)
-      $status.info_end_stop_y_b = (params.yb == 1)
-      $status.info_end_stop_z_a = (params.za == 1)
-      $status.info_end_stop_z_b = (params.zb == 1)
+      Status.current.info_end_stop_x_a = (params.xa == 1)
+      Status.current.info_end_stop_x_b = (params.xb == 1)
+      Status.current.info_end_stop_y_a = (params.ya == 1)
+      Status.current.info_end_stop_y_b = (params.yb == 1)
+      Status.current.info_end_stop_z_a = (params.za == 1)
+      Status.current.info_end_stop_z_b = (params.zb == 1)
     end
   end
 
@@ -321,14 +321,14 @@ class HardwareInterfaceArduino
   def process_value_R82(params,code)
     if code == 'R82'
 
-      $status.info_current_x_steps = params.x
-      $status.info_current_x       = params.x / @ramps_param.axis_x_steps_per_unit
+      Status.current.info_current_x_steps = params.x
+      Status.current.info_current_x       = params.x / @ramps_param.axis_x_steps_per_unit
 
-      $status.info_current_y_steps = params.y
-      $status.info_current_y       = params.y / @ramps_param.axis_y_steps_per_unit
+      Status.current.info_current_y_steps = params.y
+      Status.current.info_current_y       = params.y / @ramps_param.axis_y_steps_per_unit
 
-      $status.info_current_z_steps = params.z
-      $status.info_current_z       = params.z / @ramps_param.axis_z_steps_per_unit
+      Status.current.info_current_z_steps = params.z
+      Status.current.info_current_z       = params.z / @ramps_param.axis_z_steps_per_unit
 
     end
   end
@@ -342,7 +342,7 @@ class HardwareInterfaceArduino
   #
   def process_value_process_R83(code,text)
     if code == 'R83'
-        $status.device_version = text
+        Status.current.device_version = text
     end
   end
 

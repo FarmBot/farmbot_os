@@ -109,51 +109,51 @@ class HardwareInterface
   # move all axis home
   #
   def move_home_all
-    $status.info_target_x = 0
-    $status.info_target_y = 0
-    $status.info_target_z = 0
+    Status.current.info_target_x = 0
+    Status.current.info_target_y = 0
+    Status.current.info_target_z = 0
     @ramps_arduino.execute_command('G28', true, false)
   end
 
   # move the bot to the home position
   #
   def move_home_x
-    $status.info_target_x = 0
+    Status.current.info_target_x = 0
     @ramps_arduino.execute_command('F11', true, false)
   end
 
   # move the bot to the home position
   #
   def move_home_y
-    $status.info_target_y = 0
+    Status.current.info_target_y = 0
     @ramps_arduino.execute_command('F12', true, false)
   end
 
   # move the bot to the home position
   #
   def move_home_z
-    $status.info_target_z = 0
+    Status.current.info_target_z = 0
     @ramps_arduino.execute_command('F13', true, false)
   end
 
   # calibrate x axis
   #
   def calibrate_x
-    $status.info_target_x = 0
+    Status.current.info_target_x = 0
     @ramps_arduino.execute_command('F14', true, false)
   end
 
   # calibrate y axis
   #
   def calibrate_y
-    $status.info_target_y = 0
+    Status.current.info_target_y = 0
     @ramps_arduino.execute_command('F15', true, false)
   end
 
   # calibrate z axis
   #
   def calibrate_z
-    $status.info_target_z = 0
+    Status.current.info_target_z = 0
     @ramps_arduino.execute_command('F16', true, false)
   end
 
@@ -161,9 +161,9 @@ class HardwareInterface
   #
   def move_absolute( coord_x, coord_y, coord_z)
 
-    $status.info_target_x = coord_x
-    $status.info_target_y = coord_y
-    $status.info_target_z = coord_z
+    Status.current.info_target_x = coord_x
+    Status.current.info_target_y = coord_y
+    Status.current.info_target_z = coord_z
 
     # calculate the number of steps for the motors to do
 
@@ -181,13 +181,13 @@ class HardwareInterface
 
     # calculate the number of steps for the motors to do
 
-    $status.info_target_x = $status.info_current_x + amount_x
-    $status.info_target_y = $status.info_current_y + amount_y
-    $status.info_target_z = $status.info_current_z + amount_z
+    Status.current.info_target_x = Status.current.info_current_x + amount_x
+    Status.current.info_target_y = Status.current.info_current_y + amount_y
+    Status.current.info_target_z = Status.current.info_current_z + amount_z
 
-    steps_x = amount_x * @ramps_param.axis_x_steps_per_unit + $status.info_current_x_steps
-    steps_y = amount_y * @ramps_param.axis_y_steps_per_unit + $status.info_current_y_steps
-    steps_z = amount_z * @ramps_param.axis_z_steps_per_unit + $status.info_current_z_steps
+    steps_x = amount_x * @ramps_param.axis_x_steps_per_unit + Status.current.info_current_x_steps
+    steps_y = amount_y * @ramps_param.axis_y_steps_per_unit + Status.current.info_current_y_steps
+    steps_z = amount_z * @ramps_param.axis_z_steps_per_unit + Status.current.info_current_z_steps
 
     move_to_coord( steps_x, steps_y, steps_z )
 
