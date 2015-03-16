@@ -18,7 +18,7 @@ describe MessageHandlerStatus do
     DbAccess.current = DbAccess.current
     DbAccess.current.disable_log_to_screen()
 
-    $status = Status.new
+    Status.current = Status.new
 
     $bot_control = HwStatusSim.new
 
@@ -64,24 +64,24 @@ describe MessageHandlerStatus do
     status_end_stop_z_b            = rand(9999999).to_i
 
 
-    $status.info_status         = status
+    Status.current.info_status         = status
     $info_nr_msg_received       = status_nr_msg_received
-    $status.info_movement       = status_movement
-    $status.info_command_last   = status_last_command_executed
-    $status.info_command_next   = status_next_command_scheduled
-    $status.info_nr_of_commands = status_nr_of_commands_executed
-    $status.info_current_x      = status_current_x
-    $status.info_current_y      = status_current_y
-    $status.info_current_z      = status_current_z
-    $status.info_target_x       = status_target_x
-    $status.info_target_y       = status_target_y
-    $status.info_target_z       = status_target_z
-    $status.info_end_stop_x_a   = status_end_stop_x_a
-    $status.info_end_stop_x_b   = status_end_stop_x_b
-    $status.info_end_stop_y_a   = status_end_stop_y_a
-    $status.info_end_stop_y_b   = status_end_stop_y_b
-    $status.info_end_stop_z_a   = status_end_stop_z_a
-    $status.info_end_stop_z_b   = status_end_stop_z_b
+    Status.current.info_movement       = status_movement
+    Status.current.info_command_last   = status_last_command_executed
+    Status.current.info_command_next   = status_next_command_scheduled
+    Status.current.info_nr_of_commands = status_nr_of_commands_executed
+    Status.current.info_current_x      = status_current_x
+    Status.current.info_current_y      = status_current_y
+    Status.current.info_current_z      = status_current_z
+    Status.current.info_target_x       = status_target_x
+    Status.current.info_target_y       = status_target_y
+    Status.current.info_target_z       = status_target_z
+    Status.current.info_end_stop_x_a   = status_end_stop_x_a
+    Status.current.info_end_stop_x_b   = status_end_stop_x_b
+    Status.current.info_end_stop_y_a   = status_end_stop_y_a
+    Status.current.info_end_stop_y_b   = status_end_stop_y_b
+    Status.current.info_end_stop_z_a   = status_end_stop_z_a
+    Status.current.info_end_stop_z_b   = status_end_stop_z_b
 
 
     # create a message

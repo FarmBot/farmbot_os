@@ -12,7 +12,7 @@ describe MessageHandlerEmergencyStop do
     DbAccess.current = DbAccess.current
     DbAccess.current.disable_log_to_screen()
 
-    $status = Status.new
+    Status.current = Status.new
 
     messaging = MessengerTest.new
     messaging.reset
@@ -35,7 +35,7 @@ describe MessageHandlerEmergencyStop do
 
     @handler.emergency_stop(message)
 
-    expect($status.emergency_stop).to eq(true)
+    expect(Status.current.emergency_stop).to eq(true)
     expect(@handler.messaging.message[:message_type]).to eq('confirmation')
   end
 
@@ -46,7 +46,7 @@ describe MessageHandlerEmergencyStop do
 
     @handler.emergency_stop_reset(message)
 
-    expect($status.emergency_stop).to eq(false)
+    expect(Status.current.emergency_stop).to eq(false)
     expect(@handler.messaging.message[:message_type]).to eq('confirmation')
   end
 

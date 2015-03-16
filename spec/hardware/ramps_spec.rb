@@ -11,7 +11,7 @@ describe HardwareInterface do
     DbAccess.current = DbAccess.current
     DbAccess.current.disable_log_to_screen()
 
-    $status = Status.new
+    Status.current = Status.new
 
     @ramps = HardwareInterface.new(true)
   end
@@ -127,12 +127,12 @@ describe HardwareInterface do
     @ramps.read_end_stops()
 
     expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F81\n")
-    expect($status.info_end_stop_x_a).to eq(xa == 1)
-    expect($status.info_end_stop_x_b).to eq(xb == 1)
-    expect($status.info_end_stop_y_a).to eq(ya == 1)
-    expect($status.info_end_stop_y_b).to eq(yb == 1)
-    expect($status.info_end_stop_z_a).to eq(za == 1)
-    expect($status.info_end_stop_z_b).to eq(zb == 1)
+    expect(Status.current.info_end_stop_x_a).to eq(xa == 1)
+    expect(Status.current.info_end_stop_x_b).to eq(xb == 1)
+    expect(Status.current.info_end_stop_y_a).to eq(ya == 1)
+    expect(Status.current.info_end_stop_y_b).to eq(yb == 1)
+    expect(Status.current.info_end_stop_z_a).to eq(za == 1)
+    expect(Status.current.info_end_stop_z_b).to eq(zb == 1)
   end
 
 #  def read_postition()
@@ -148,9 +148,9 @@ describe HardwareInterface do
     @ramps.read_postition()
 
     expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F82\n")
-    expect($status.info_current_x_steps).to eq(x)
-    expect($status.info_current_y_steps).to eq(y)
-    expect($status.info_current_z_steps).to eq(z)
+    expect(Status.current.info_current_x_steps).to eq(x)
+    expect(Status.current.info_current_y_steps).to eq(y)
+    expect(Status.current.info_current_z_steps).to eq(z)
   end
 
 #  def read_device_version()
@@ -163,7 +163,7 @@ describe HardwareInterface do
     @ramps.read_device_version()
 
     expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F83\n")
-    expect($status.device_version).to eq(version)
+    expect(Status.current.device_version).to eq(version)
   end
 
 #  def move_home_all
@@ -274,9 +274,9 @@ describe HardwareInterface do
     current_y = rand(9999999).to_i
     current_z = rand(9999999).to_i
 
-    $status.info_current_x_steps = current_x
-    $status.info_current_y_steps = current_y
-    $status.info_current_z_steps = current_z
+    Status.current.info_current_x_steps = current_x
+    Status.current.info_current_y_steps = current_y
+    Status.current.info_current_z_steps = current_z
 
     @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR02\n"
     @ramps.move_relative( x, y, z)

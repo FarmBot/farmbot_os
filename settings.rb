@@ -1,4 +1,4 @@
-$status_debug_msg   = false
+$debug_msg          = false
 $hardware_sim       = 0
 $hardware_type      = "lib/hardware/gcode/ramps"
 #$hardware_type     = nil

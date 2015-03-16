@@ -1,19 +1,20 @@
 class Status
+  attr_accessor :command_refresh, :device_version, :emergency_stop,
+    :info_command_last, :info_command_next, :info_current_x,
+    :info_current_x_steps, :info_current_y, :info_current_y_steps,
+    :info_current_z, :info_current_z_steps, :info_end_stop_x_a,
+    :info_end_stop_x_b, :info_end_stop_y_a, :info_end_stop_y_b,
+    :info_end_stop_z_a, :info_end_stop_z_b, :info_movement,
+    :info_nr_of_commands, :info_status, :info_target_x, :info_target_y,
+    :info_target_z
 
-  # read command from schedule, wait for execution time
-  attr_accessor :info_command_next,    :info_command_last,    :info_nr_of_commands
-  attr_accessor :info_status,          :info_movement
-  attr_accessor :info_current_x,       :info_current_y,       :info_current_z
-  attr_accessor :info_current_x_steps, :info_current_y_steps, :info_current_z_steps
-  attr_accessor :info_target_x,        :info_target_y,        :info_target_z
+    class << self
+      attr_accessor :current
 
-  attr_accessor :info_end_stop_x_a, :info_end_stop_x_b  
-  attr_accessor :info_end_stop_y_a, :info_end_stop_y_b  
-  attr_accessor :info_end_stop_z_a, :info_end_stop_z_b  
-
-  attr_accessor :emergency_stop
-  attr_accessor :command_refresh
-  attr_accessor :device_version
+      def current
+        @current ||= self.new
+      end
+    end
 
   def initialize
 
