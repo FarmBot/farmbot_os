@@ -14,7 +14,7 @@ describe MessageHandler do
     $dbaccess = DbAccess.current
     $dbaccess.disable_log_to_screen()
 
-    #$status = Status.new
+    #Status.current = Status.new
 
     messaging = MessengerTest.new
     messaging.reset

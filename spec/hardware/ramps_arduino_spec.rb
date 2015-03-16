@@ -12,7 +12,7 @@ describe HardwareInterfaceArduino do
     DbAccess.current = DbAccess.current
     DbAccess.current.disable_log_to_screen()
 
-    $status = Status.new
+    Status.current = Status.new
 
     @ramps = HardwareInterfaceArduino.new(true)
 
@@ -39,12 +39,12 @@ describe HardwareInterfaceArduino do
 
   it "execute_command with causing an error"  do
 
-    $status = nil
+    Status.current = nil
 
     @ramps.serial_port.rts = 0
     @ramps.execute_command(nil,nil,nil)
 
-    $status = Status.new
+    Status.current = Status.new
 
     expect { @ramps }.to_not raise_error
 
@@ -195,7 +195,7 @@ describe HardwareInterfaceArduino do
 
     @ramps.process_code_and_params(write_status)
 
-    expect($status.device_version).to eq(write_status.params)
+    expect(Status.current.device_version).to eq(write_status.params)
 
   end
 
@@ -226,14 +226,14 @@ describe HardwareInterfaceArduino do
 
   it "emergency stop off" do
     @ramps.serial_port.test_serial_write = ""
-    $status.emergency_stop = false
+    Status.current.emergency_stop = false
     @ramps.check_emergency_stop
     expect(@ramps.serial_port.test_serial_write).to eq("")
   end
 
   it "emergency stop on" do
     @ramps.serial_port.test_serial_write = ""
-    $status.emergency_stop = true
+    Status.current.emergency_stop = true
     @ramps.check_emergency_stop
     expect(@ramps.serial_port.test_serial_write).to eq("E\n")
   end
@@ -351,12 +351,12 @@ describe HardwareInterfaceArduino do
     @ramps.process_value_split(code, params, text)
     @ramps.process_value_R81(params,code)
 
-    expect($status.info_end_stop_x_a).to eq(true)
-    expect($status.info_end_stop_x_b).to eq(false)
-    expect($status.info_end_stop_y_a).to eq(false)
-    expect($status.info_end_stop_y_b).to eq(false)
-    expect($status.info_end_stop_z_a).to eq(false)
-    expect($status.info_end_stop_z_b).to eq(false)
+    expect(Status.current.info_end_stop_x_a).to eq(true)
+    expect(Status.current.info_end_stop_x_b).to eq(false)
+    expect(Status.current.info_end_stop_y_a).to eq(false)
+    expect(Status.current.info_end_stop_y_b).to eq(false)
+    expect(Status.current.info_end_stop_z_a).to eq(false)
+    expect(Status.current.info_end_stop_z_b).to eq(false)
 
   end
 
@@ -368,12 +368,12 @@ describe HardwareInterfaceArduino do
     @ramps.process_value_split(code, params, text)
     @ramps.process_value_R81(params,code)
 
-    expect($status.info_end_stop_x_a).to eq(false)
-    expect($status.info_end_stop_x_b).to eq(true)
-    expect($status.info_end_stop_y_a).to eq(false)
-    expect($status.info_end_stop_y_b).to eq(false)
-    expect($status.info_end_stop_z_a).to eq(false)
-    expect($status.info_end_stop_z_b).to eq(false)
+    expect(Status.current.info_end_stop_x_a).to eq(false)
+    expect(Status.current.info_end_stop_x_b).to eq(true)
+    expect(Status.current.info_end_stop_y_a).to eq(false)
+    expect(Status.current.info_end_stop_y_b).to eq(false)
+    expect(Status.current.info_end_stop_z_a).to eq(false)
+    expect(Status.current.info_end_stop_z_b).to eq(false)
 
   end
 
@@ -385,12 +385,12 @@ describe HardwareInterfaceArduino do
     @ramps.process_value_split(code, params, text)
     @ramps.process_value_R81(params,code)
 
-    expect($status.info_end_stop_x_a).to eq(false)
-    expect($status.info_end_stop_x_b).to eq(false)
-    expect($status.info_end_stop_y_a).to eq(true)
-    expect($status.info_end_stop_y_b).to eq(false)
-    expect($status.info_end_stop_z_a).to eq(false)
-    expect($status.info_end_stop_z_b).to eq(false)
+    expect(Status.current.info_end_stop_x_a).to eq(false)
+    expect(Status.current.info_end_stop_x_b).to eq(false)
+    expect(Status.current.info_end_stop_y_a).to eq(true)
+    expect(Status.current.info_end_stop_y_b).to eq(false)
+    expect(Status.current.info_end_stop_z_a).to eq(false)
+    expect(Status.current.info_end_stop_z_b).to eq(false)
 
   end
 
@@ -402,12 +402,12 @@ describe HardwareInterfaceArduino do
     @ramps.process_value_split(code, params, text)
     @ramps.process_value_R81(params,code)
 
-    expect($status.info_end_stop_x_a).to eq(false)
-    expect($status.info_end_stop_x_b).to eq(false)
-    expect($status.info_end_stop_y_a).to eq(false)
-    expect($status.info_end_stop_y_b).to eq(true)
-    expect($status.info_end_stop_z_a).to eq(false)
-    expect($status.info_end_stop_z_b).to eq(false)
+    expect(Status.current.info_end_stop_x_a).to eq(false)
+    expect(Status.current.info_end_stop_x_b).to eq(false)
+    expect(Status.current.info_end_stop_y_a).to eq(false)
+    expect(Status.current.info_end_stop_y_b).to eq(true)
+    expect(Status.current.info_end_stop_z_a).to eq(false)
+    expect(Status.current.info_end_stop_z_b).to eq(false)
 
   end
 
@@ -419,12 +419,12 @@ describe HardwareInterfaceArduino do
     @ramps.process_value_split(code, params, text)
     @ramps.process_value_R81(params,code)
 
-    expect($status.info_end_stop_x_a).to eq(false)
-    expect($status.info_end_stop_x_b).to eq(false)
-    expect($status.info_end_stop_y_a).to eq(false)
-    expect($status.info_end_stop_y_b).to eq(false)
-    expect($status.info_end_stop_z_a).to eq(true)
-    expect($status.info_end_stop_z_b).to eq(false)
+    expect(Status.current.info_end_stop_x_a).to eq(false)
+    expect(Status.current.info_end_stop_x_b).to eq(false)
+    expect(Status.current.info_end_stop_y_a).to eq(false)
+    expect(Status.current.info_end_stop_y_b).to eq(false)
+    expect(Status.current.info_end_stop_z_a).to eq(true)
+    expect(Status.current.info_end_stop_z_b).to eq(false)
 
   end
 
@@ -436,12 +436,12 @@ describe HardwareInterfaceArduino do
     @ramps.process_value_split(code, params, text)
     @ramps.process_value_R81(params,code)
 
-    expect($status.info_end_stop_x_a).to eq(false)
-    expect($status.info_end_stop_x_b).to eq(false)
-    expect($status.info_end_stop_y_a).to eq(false)
-    expect($status.info_end_stop_y_b).to eq(false)
-    expect($status.info_end_stop_z_a).to eq(false)
-    expect($status.info_end_stop_z_b).to eq(true)
+    expect(Status.current.info_end_stop_x_a).to eq(false)
+    expect(Status.current.info_end_stop_x_b).to eq(false)
+    expect(Status.current.info_end_stop_y_a).to eq(false)
+    expect(Status.current.info_end_stop_y_b).to eq(false)
+    expect(Status.current.info_end_stop_z_a).to eq(false)
+    expect(Status.current.info_end_stop_z_b).to eq(true)
 
   end
 
@@ -457,13 +457,13 @@ describe HardwareInterfaceArduino do
     @ramps.process_value_split(code, params, text)
     @ramps.process_value_R82(params,code)
 
-    expect($status.info_current_x_steps).to eq(x)
-    expect($status.info_current_y_steps).to eq(y)
-    expect($status.info_current_z_steps).to eq(z)
+    expect(Status.current.info_current_x_steps).to eq(x)
+    expect(Status.current.info_current_y_steps).to eq(y)
+    expect(Status.current.info_current_z_steps).to eq(z)
 
-    expect($status.info_current_x      ).to eq(x / @ramps_param.axis_x_steps_per_unit)
-    expect($status.info_current_y      ).to eq(y / @ramps_param.axis_y_steps_per_unit)
-    expect($status.info_current_z      ).to eq(z / @ramps_param.axis_z_steps_per_unit)
+    expect(Status.current.info_current_x      ).to eq(x / @ramps_param.axis_x_steps_per_unit)
+    expect(Status.current.info_current_y      ).to eq(y / @ramps_param.axis_y_steps_per_unit)
+    expect(Status.current.info_current_z      ).to eq(z / @ramps_param.axis_z_steps_per_unit)
 
   end
 
@@ -473,7 +473,7 @@ describe HardwareInterfaceArduino do
 
     @ramps.process_value_process_R83(code, text)
 
-    expect($status.device_version).to eq(text)
+    expect(Status.current.device_version).to eq(text)
   end
 
 
@@ -582,7 +582,7 @@ describe HardwareInterfaceArduino do
 
     @ramps.process_value_process_R83(code, text)
 
-    expect($status.device_version).to eq(text)
+    expect(Status.current.device_version).to eq(text)
 
   end
 
@@ -634,12 +634,12 @@ describe HardwareInterfaceArduino do
     text = " XA0 XB0 YA0 YB0 ZA0 ZB1 "
     @ramps.process_value(code,text)
 
-    expect($status.info_end_stop_x_a).to eq(false)
-    expect($status.info_end_stop_x_b).to eq(false)
-    expect($status.info_end_stop_y_a).to eq(false)
-    expect($status.info_end_stop_y_b).to eq(false)
-    expect($status.info_end_stop_z_a).to eq(false)
-    expect($status.info_end_stop_z_b).to eq(true)
+    expect(Status.current.info_end_stop_x_a).to eq(false)
+    expect(Status.current.info_end_stop_x_b).to eq(false)
+    expect(Status.current.info_end_stop_y_a).to eq(false)
+    expect(Status.current.info_end_stop_y_b).to eq(false)
+    expect(Status.current.info_end_stop_z_a).to eq(false)
+    expect(Status.current.info_end_stop_z_b).to eq(true)
 
   end
 
@@ -651,12 +651,12 @@ describe HardwareInterfaceArduino do
     @ramps.process_value_split(code, params, text)
     @ramps.process_value_process_named_params(params,code)
 
-    expect($status.info_end_stop_x_a).to eq(false)
-    expect($status.info_end_stop_x_b).to eq(false)
-    expect($status.info_end_stop_y_a).to eq(false)
-    expect($status.info_end_stop_y_b).to eq(false)
-    expect($status.info_end_stop_z_a).to eq(false)
-    expect($status.info_end_stop_z_b).to eq(true)
+    expect(Status.current.info_end_stop_x_a).to eq(false)
+    expect(Status.current.info_end_stop_x_b).to eq(false)
+    expect(Status.current.info_end_stop_y_a).to eq(false)
+    expect(Status.current.info_end_stop_y_b).to eq(false)
+    expect(Status.current.info_end_stop_z_a).to eq(false)
+    expect(Status.current.info_end_stop_z_b).to eq(true)
 
   end
 
@@ -672,13 +672,13 @@ describe HardwareInterfaceArduino do
     @ramps.process_value_split(code, params, text)
     @ramps.process_value_process_named_params(params,code)
 
-    expect($status.info_current_x_steps).to eq(x)
-    expect($status.info_current_y_steps).to eq(y)
-    expect($status.info_current_z_steps).to eq(z)
+    expect(Status.current.info_current_x_steps).to eq(x)
+    expect(Status.current.info_current_y_steps).to eq(y)
+    expect(Status.current.info_current_z_steps).to eq(z)
 
-    expect($status.info_current_x      ).to eq(x / @ramps_param.axis_x_steps_per_unit)
-    expect($status.info_current_y      ).to eq(y / @ramps_param.axis_y_steps_per_unit)
-    expect($status.info_current_z      ).to eq(z / @ramps_param.axis_z_steps_per_unit)
+    expect(Status.current.info_current_x      ).to eq(x / @ramps_param.axis_x_steps_per_unit)
+    expect(Status.current.info_current_y      ).to eq(y / @ramps_param.axis_y_steps_per_unit)
+    expect(Status.current.info_current_z      ).to eq(z / @ramps_param.axis_z_steps_per_unit)
 
   end
 

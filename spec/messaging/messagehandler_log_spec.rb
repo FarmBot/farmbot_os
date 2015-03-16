@@ -13,7 +13,7 @@ describe MessageHandlerLog do
     DbAccess.current = DbAccess.current
     DbAccess.current.disable_log_to_screen()
 
-    $status = Status.new
+    Status.current = Status.new
 
     messaging = MessengerTest.new
     messaging.reset

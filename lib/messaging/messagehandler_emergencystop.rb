@@ -19,7 +19,7 @@ class MessageHandlerEmergencyStop < MessageHandlerBase
 
     @dbaccess.write_to_log(2,'handle emergency stop')
 
-    $status.emergency_stop = true
+    Status.current.emergency_stop = true
     message.handler.send_confirmation(message.sender, message.time_stamp)
   end
 
@@ -29,7 +29,7 @@ class MessageHandlerEmergencyStop < MessageHandlerBase
 
     @dbaccess.write_to_log(2,'handle emergency stop reset')
 
-    $status.emergency_stop = false
+    Status.current.emergency_stop = false
     message.handler.send_confirmation(message.sender, message.time_stamp)
   end
 

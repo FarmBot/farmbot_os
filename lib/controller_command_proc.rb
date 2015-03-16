@@ -28,7 +28,7 @@ class ControllerCommandProc
       sleep 0.1
     end
 
-    $status.info_movement = 'idle'
+    Status.current.info_movement = 'idle'
 
   end
 
