@@ -17,7 +17,7 @@ class MessageHandlerStatus < MessageHandlerBase
 
     @dbaccess.write_to_log(2,'handle read status')
 
-    $bot_control.read_hw_status()
+    #$bot_control.read_hw_status()
 
     return_message =
       {
