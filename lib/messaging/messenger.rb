@@ -1,7 +1,7 @@
 require 'json'
 require_relative 'credentials'
 require_relative 'web_socket'
-require_relative 'messagehandler.rb'
+require_relative '../handlers/messagehandler.rb'
 
 # Communicates with MeshBlu via websocket connection.
 class Messenger
