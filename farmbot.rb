@@ -24,7 +24,8 @@ require_relative 'lib/database/dbaccess'
 puts 'OK'
 
 print 'synchronization '
-require_relative 'lib/messaging'
+require_relative 'lib/messaging/messenger'
+Messenger.current.start
 puts 'OK'
 
 if $hardware_type != nil

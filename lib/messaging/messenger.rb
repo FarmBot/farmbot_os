@@ -1,16 +1,9 @@
 require 'json'
-
 require_relative 'credentials'
 require_relative 'web_socket'
-
 require_relative 'messagehandler.rb'
 
-#require '/home/pi/ruby-socket.io-client-simple/lib/socket.io-client-simple.rb'
-#require_relative 'socket.io-client-simple.rb'
-
-
-# The Device class is temporarily inheriting from Tim's HardwareInterface.
-# Eventually, we should merge the two projects, but this is good enough for now.
+# Communicates with MeshBlu via websocket connection.
 class Messenger
   class << self
     attr_accessor :current

@@ -35,8 +35,6 @@ class MessageHandler
     @message_handlers << MessageHandlerParameter.new(messaging)
     @message_handlers << MessageHandlerSchedule.new(messaging)
     @message_handlers << MessageHandlerStatus.new(messaging)
-    @message_handlers << MessageHandlerMessage.new(messaging)
-
   end
 
   # Handle the message received from skynet
@@ -54,9 +52,6 @@ class MessageHandler
 
     # Check if all needed variables are in the message, and send it to the processing function
     begin
-
-      #requested_command = ''
-
       @dbaccess.write_to_log(3,message.to_s)
       sender = (message.has_key? 'fromUuid'  ) ? message['fromUuid']        : ''
       message_obj = MessageHandlerMessage.new

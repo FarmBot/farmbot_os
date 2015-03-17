@@ -1,9 +1,9 @@
 require 'spec_helper'
 require './lib/status.rb'
-#require './lib/messaging/messaging.rb'
-require './lib/messaging/messagehandler.rb'
-require './lib/messaging/messaging_test.rb'
-require './lib/messaging/messagehandler_logs.rb'
+#require './lib/messaging/messenger.rb'
+require './lib/handlers/messagehandler.rb'
+require './spec/fixtures/stub_messenger.rb'
+require './lib/handlers/messagehandler_logs.rb'
 
 describe MessageHandlerLog do
 
@@ -15,7 +15,7 @@ describe MessageHandlerLog do
 
     Status.current = Status.new
 
-    messaging = MessengerTest.new
+    messaging = StubMessenger.new
     messaging.reset
 
     @handler = MessageHandlerLog.new(messaging)
