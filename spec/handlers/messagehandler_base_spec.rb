@@ -1,13 +1,13 @@
 require 'spec_helper'
-#require './lib/messaging/messaging.rb'
-require './lib/messaging/messagehandler_base.rb'
-require './lib/messaging/messagehandler_message.rb'
+#require './lib/messaging/messenger.rb'
+require './lib/handlers/messagehandler_base.rb'
+require './lib/handlers/messagehandler_message.rb'
 
 describe MessageHandlerBase do
 
 
   before do
-    messaging = MessengerTest.new
+    messaging = StubMessenger.new
     messaging.reset
 
     @handler = MessageHandlerBase.new(messaging)

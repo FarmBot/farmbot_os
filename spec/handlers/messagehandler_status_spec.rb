@@ -1,9 +1,9 @@
 require 'spec_helper'
 require './lib/status.rb'
-require './lib/messaging/messagehandler.rb'
-require './lib/messaging/messagehandler_base.rb'
-require './lib/messaging/messagehandler_status.rb'
-require './lib/messaging/messaging_test.rb'
+require './lib/handlers/messagehandler.rb'
+require './lib/handlers/messagehandler_base.rb'
+require './lib/handlers/messagehandler_status.rb'
+require './spec/fixtures/stub_messenger.rb'
 
 class HwStatusSim
   def read_hw_status
@@ -22,7 +22,7 @@ describe MessageHandlerStatus do
 
     $bot_control = HwStatusSim.new
 
-    messaging = MessengerTest.new
+    messaging = StubMessenger.new
     messaging.reset
 
     @handler = MessageHandlerStatus.new(messaging)

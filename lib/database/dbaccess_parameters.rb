@@ -36,7 +36,7 @@ class DbAccessParameters
   def write_parameter(name, value)
 
     param = Parameter.find_or_create_by(name: name)
-    
+
     fill_parameter_values(param, value)
 
     $db_write_sync.synchronize do
@@ -108,13 +108,11 @@ class DbAccessParameters
   # read parameter list
   #
   def read_parameter_list()
-    #params = Parameter.find(:all)    
-    params = Parameter.all    
+    params = Parameter.all
     param_list = Array.new
 
     params.each do |param|
-      #value = get_value_from_param(param)
-      item = 
+      item =
       {
         'name'  => param.name,
         'type'  => param.valuetype,

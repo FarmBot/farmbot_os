@@ -23,7 +23,7 @@ describe DbAccess do
 
   it "write to log and clean log" do
 
-    @db.disable_log_to_screen()    
+    @db.disable_log_to_screen()
 
     # write 15 lines
 
@@ -57,7 +57,7 @@ describe DbAccess do
   it "retrieve_logs" do
     log_text = rand(9999999).to_s
     @db.disable_log_to_screen()
-    10.times do 
+    10.times do
       @db.write_to_log(99,log_text)
     end
 
