@@ -1,3 +1,4 @@
+# I just use this to test websockets in isolation - feel free to delete it.
 require_relative 'lib/status'
 require_relative 'lib/messaging/messenger'
 

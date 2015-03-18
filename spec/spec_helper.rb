@@ -4,6 +4,7 @@ SimpleCov.start do
   add_filter "/spec/"
 end
 
+require 'pry'
 Dir["spec/fixtures/*.rb"].each { |f| load(f) }
 
 RSpec.configure do |config|

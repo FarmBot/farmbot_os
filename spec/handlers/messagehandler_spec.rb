@@ -76,16 +76,4 @@ describe MessageHandler do
     expect(@handler.messaging.device).to eq(destination)
 
   end
-
-  it "send error" do
-    destination     = rand(9999999).to_s
-    error           = rand(9999999).to_s
-    time_stamp      = nil
-
-    @handler.send_error(destination, time_stamp, error)
-
-    expect(@handler.messaging.message[:message_type]).to eq('error')
-    expect(@handler.messaging.device).to eq(destination)
-
-  end
 end

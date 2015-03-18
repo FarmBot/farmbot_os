@@ -57,12 +57,9 @@ class MessageHandler
   # send a reply to the back end system
   #
   def send_confirmation(destination, time_stamp)
-    command =
-      {
-        :message_type => 'confirmation',
-        :time_stamp   => Time.now.to_f.to_s,
-        :confirm_id   => time_stamp
-      }
+    command = { :message_type => 'confirmation',
+                :time_stamp   => Time.now.to_f.to_s,
+                :confirm_id   => time_stamp }
     send_message(destination, command)
   end
 

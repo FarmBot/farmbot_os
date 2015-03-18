@@ -14,11 +14,7 @@ class MessageHandlerSchedule < MessageHandlerBase
   end
 
   def single_command(message)
-
-    @dbaccess.write_to_log(2,'handle single command')
-
     if message.payload.has_key? 'command'
-
       command = message.payload['command']
       command_obj = MessageHandlerScheduleCmdLine.new
       command_obj.split_command_line( message.payload['command'])
@@ -26,13 +22,11 @@ class MessageHandlerSchedule < MessageHandlerBase
       save_single_command(command_obj, message.delay)
       Status.current.command_refresh += 1;
       message.handler.send_confirmation(message.sender, message.time_stamp)
-
     else
-
-      message.handler.send_error(message.sender, message.time_stamp, 'no command in message')
-
+       raise 'No command in message'
     end
-
+  rescue => e
+    message.handler.send_error(message.sender, e)
   end
 
   def save_single_command(command, delay)
