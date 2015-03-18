@@ -1,20 +1,13 @@
 require 'spec_helper'
 require './lib/status.rb'
-#require './lib/messaging/messenger.rb'
-#require './lib/messagehandler_base'
 require './lib/handlers/messagehandler.rb'
 require './lib/handlers/messagehandler_schedule.rb'
 require './spec/fixtures/stub_messenger.rb'
-
-#require './lib/messagehandler_schedule'
-#require './lib/messagehandler_schedule_cmd_line'
-#require './lib/handlers/messagehandler_logs.rb'
 
 describe MessageHandlerSchedule do
   let(:message) { MessageHandlerMessage.new({}, StubMessenger.new) }
 
   before do
-    $db_write_sync = Mutex.new
     DbAccess.current = DbAccess.new('development')
     DbAccess.current = DbAccess.current
     DbAccess.current.disable_log_to_screen()

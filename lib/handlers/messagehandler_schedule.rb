@@ -3,7 +3,6 @@ require './lib/database/dbaccess.rb'
 require 'time'
 require_relative 'messagehandler_base'
 require_relative 'messagehandler_schedule_cmd_line'
-
 # Get the JSON command, received through skynet, and send it to the farmbot
 # command queue Parses JSON messages received through SkyNet.
 class MessageHandlerSchedule < MessageHandlerBase
@@ -58,7 +57,7 @@ class MessageHandlerSchedule < MessageHandlerBase
 
     @dbaccess.clear_crop_schedule(crop_id)
 
-    message_contents['commands'].each do |command|
+    Array(message_contents['commands']).each do |command|
      save_command_with_lines(command)
     end
 

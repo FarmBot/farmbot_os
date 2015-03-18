@@ -39,6 +39,10 @@ class DbAccess
 
   end
 
+  def write_sync
+    @write_sync ||= Mutex.new
+  end
+
   def create_command(*args)
     add_command_line(*args)
     create_new_command(Time.now,'NOTSET')

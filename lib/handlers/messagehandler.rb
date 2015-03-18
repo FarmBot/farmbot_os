@@ -42,11 +42,10 @@ class MessageHandler
     send_message_obj_to_individual_handlers(msg)
     check_if_message_handled(msg)
   rescue => e
-    begin
-      send_error(msg.sender, time_stamp, " #{e.message} @ #{e.backtrace.last}")
-    rescue => e
-      puts "Error while sending error message: #{e.message}"
-    end
+    sender = msg.try(:sender) || "UNKNOWN-SENDER"
+    # require 'pry'
+    # binding.pry
+    send_error(sender, e)
   end
 
   # Handles an error (typically, an unauthorized or unknown message). Returns
@@ -67,14 +66,17 @@ class MessageHandler
     send_message(destination, command)
   end
 
-  def send_error(destination, time_stamp, error)
-    time_stamp ||= Time.now.to_f.to_s
+  def send_error(destination, error, time_stamp = Time.now.to_f.to_s)
+    err_msg = "#{error.message} @ #{error.backtrace.first}"
+    puts err_msg
     command = { :message_type => 'error',
                 :time_stamp   => Time.now.to_f.to_s,
                 :confirm_id   => time_stamp,
-                :error        => error }
+                :error        => err_msg }
 
     send_message(destination, command)
+  rescue => e
+    puts "Error while sending error message:", e.message, e.backtrace.first
   end
 
   def send_message(destination, command)
@@ -91,9 +93,9 @@ class MessageHandler
   end
 
   def check_if_message_handled(message_obj)
-    if message_obj.handled == false
-      send_error(message_obj.sender, '', 'message could not be handled')
-    end
+    raise 'message could not be handled' if message_obj.handled == false
+  rescue => e
+    send_error(message_obj.sender, e)
   end
 
   # Print incoming JSON as YAML, but only if it's not a read_status message.

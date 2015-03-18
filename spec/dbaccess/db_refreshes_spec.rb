@@ -4,7 +4,6 @@ require './lib/database/dbaccess.rb'
 describe DbAccess do
 
   before do
-    $db_write_sync = Mutex.new
     @db = DbAccess.new('development')
   end
 

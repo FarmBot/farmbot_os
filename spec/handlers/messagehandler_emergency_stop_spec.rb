@@ -8,7 +8,6 @@ describe MessageHandlerEmergencyStop do
   let(:message_handler) { MessageHandler.new(StubMessenger.new) }
 
   before do
-    $db_write_sync = Mutex.new
     DbAccess.current = DbAccess.new('development')
     DbAccess.current = DbAccess.current
     DbAccess.current.disable_log_to_screen()

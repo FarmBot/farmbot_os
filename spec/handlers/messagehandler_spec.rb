@@ -9,7 +9,6 @@ describe MessageHandler do
 
 
   before do
-    $db_write_sync = Mutex.new
     DbAccess.current = DbAccess.new('development')
     $dbaccess = DbAccess.current
     $dbaccess.disable_log_to_screen()
