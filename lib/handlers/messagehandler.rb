@@ -40,11 +40,11 @@ class MessageHandler
   # Handle the message received from skynet
   #
   def handle_message(message)
-    puts "WebSocket Message"
+    is_status = message["payload"].try(:[], "message_type") == "read_status"
+    puts "\n\n", message.to_yaml unless is_status
+
     sender     = ""
     time_stamp = nil
-
-    puts "received at #{Time.now.strftime("%Y-%m-%d %H:%M:%S")}: #{message}" if $mesh_msg_print == 1
 
     err_msg = ""
     err_trc = ""
