@@ -6,6 +6,7 @@ require './spec/fixtures/stub_messenger.rb'
 require './lib/handlers/messagehandler_measurements.rb'
 
 describe MessageHandlerMeasurement do
+  let(:message) { MessageHandlerMessage.new({}, StubMessenger.new) }
 
   before do
     $db_write_sync = Mutex.new
@@ -36,7 +37,6 @@ describe MessageHandlerMeasurement do
     measurement_text  = rand(9999999).to_s
     DbAccess.current.write_measurements(measurement_value, measurement_text)
 
-    message = MessageHandlerMessage.new
     message.handled = false
     message.handler = @main_handler
 
@@ -87,7 +87,6 @@ describe MessageHandlerMeasurement do
     end
 
     # try to delete the measurements
-    message = MessageHandlerMessage.new
     message.handled = false
     message.handler = @main_handler
     message.payload = {'ids' => [id_1,id_2]}

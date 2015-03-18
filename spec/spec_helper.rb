@@ -1,7 +1,10 @@
 require 'simplecov'
+
 SimpleCov.start do
   add_filter "/spec/"
 end
+
+Dir["spec/fixtures/*.rb"].each { |f| load(f) }
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|

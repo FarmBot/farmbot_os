@@ -11,6 +11,7 @@ class HwStatusSim
 end
 
 describe MessageHandlerStatus do
+  let(:message) { MessageHandlerMessage.new({}, StubMessenger.new) }
 
   before do
     $db_write_sync = Mutex.new
@@ -86,7 +87,6 @@ describe MessageHandlerStatus do
 
     # create a message
 
-    message = MessageHandlerMessage.new
     message.time_stamp = confirm_id
     message.handled    = false
     message.handler    = @main_handler

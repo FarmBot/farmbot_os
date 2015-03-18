@@ -11,6 +11,7 @@ require './spec/fixtures/stub_messenger.rb'
 #require './lib/handlers/messagehandler_logs.rb'
 
 describe MessageHandlerSchedule do
+  let(:message) { MessageHandlerMessage.new({}, StubMessenger.new) }
 
   before do
     $db_write_sync = Mutex.new
@@ -193,7 +194,6 @@ describe MessageHandlerSchedule do
 
     # create a message
 
-    message = MessageHandlerMessage.new
     message.handled = false
     message.handler = @main_handler
     message.payload =
@@ -246,7 +246,6 @@ describe MessageHandlerSchedule do
 
     # create a message
 
-    message = MessageHandlerMessage.new
     message.handled = false
     message.handler = @main_handler
     message.payload = {}
@@ -453,7 +452,6 @@ describe MessageHandlerSchedule do
 
     # create a command
 
-    message = MessageHandlerMessage.new
     message.handled = false
     message.handler = @main_handler
     message.payload =

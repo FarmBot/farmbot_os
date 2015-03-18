@@ -5,6 +5,7 @@ require './spec/fixtures/stub_messenger.rb'
 require './lib/handlers/messagehandler_emergencystop.rb'
 
 describe MessageHandlerEmergencyStop do
+  let(:message_handler) { MessageHandler.new(StubMessenger.new) }
 
   before do
     $db_write_sync = Mutex.new
@@ -29,7 +30,7 @@ describe MessageHandlerEmergencyStop do
   end
 
   it "message handler emergency stop" do
-    message = MessageHandlerMessage.new
+    message = MessageHandlerMessage.new({}, message_handler)
     message.handled = false
     message.handler = @main_handler
 
@@ -40,7 +41,7 @@ describe MessageHandlerEmergencyStop do
   end
 
   it "message handler emergency stop reset" do
-    message = MessageHandlerMessage.new
+    message = MessageHandlerMessage.new({}, message_handler)
     message.handled = false
     message.handler = @main_handler
 
