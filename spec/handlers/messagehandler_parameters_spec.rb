@@ -5,9 +5,9 @@ require './spec/fixtures/stub_messenger.rb'
 require './lib/handlers/messagehandler_parameters.rb'
 
 describe MessageHandlerParameter do
+  let(:message) { MessageHandlerMessage.new({}, StubMessenger.new) }
 
   before do
-    $db_write_sync = Mutex.new
     DbAccess.current = DbAccess.new('development')
     DbAccess.current = DbAccess.current
     DbAccess.current.disable_log_to_screen()
@@ -41,7 +41,6 @@ describe MessageHandlerParameter do
 
     # get the list of parameters that the system will send
 
-    message = MessageHandlerMessage.new
     message.handled = false
     message.handler = @main_handler
 
@@ -81,7 +80,6 @@ describe MessageHandlerParameter do
 
     # write a value using a message
 
-    message = MessageHandlerMessage.new
     message.handled = false
     message.handler = @main_handler
     #message.payload = {'ids' => [id_1,id_2]}
@@ -112,7 +110,6 @@ describe MessageHandlerParameter do
   it "write parameters empty command" do
 
 
-    message = MessageHandlerMessage.new
     message.handled = false
     message.handler = @main_handler
     message.payload = {}

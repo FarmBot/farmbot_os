@@ -6,9 +6,9 @@ require './spec/fixtures/stub_messenger.rb'
 require './lib/handlers/messagehandler_logs.rb'
 
 describe MessageHandlerLog do
+  let(:message) { MessageHandlerMessage.new({}, StubMessenger.new) }
 
   before do
-    $db_write_sync = Mutex.new
     DbAccess.current = DbAccess.new('development')
     DbAccess.current = DbAccess.current
     DbAccess.current.disable_log_to_screen()
@@ -30,6 +30,7 @@ describe MessageHandlerLog do
   end
 
   it "read logs" do
+    pending 'Log writing is currently under maintenance.'
 
     # write a few lines in the log
     log_text_1   = rand(9999999).to_s
@@ -42,7 +43,6 @@ describe MessageHandlerLog do
 
     # get the logs in a message
 
-    message = MessageHandlerMessage.new
     message.handled = false
     message.handler = @main_handler
 

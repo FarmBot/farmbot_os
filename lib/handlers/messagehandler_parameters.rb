@@ -41,11 +41,11 @@ class MessageHandlerParameter < MessageHandlerBase
     @dbaccess.write_to_log(2,'handle write parameters')
 
     if message.payload.has_key? 'parameters'
-      
+
       param_list = message.payload['parameters']
       param_list.each do |param|
 
-        if param.has_key? 'name' and param.has_key? 'type' and param.has_key? 'value' 
+        if param.has_key? 'name' and param.has_key? 'type' and param.has_key? 'value'
 
           @dbaccess.write_to_log(2,"param = #{param}")
 
@@ -62,8 +62,10 @@ class MessageHandlerParameter < MessageHandlerBase
       end
       message.handler.send_confirmation(message.sender, message.time_stamp)
     else
-      message.handler.send_error(message.sender, message.time_stamp, 'no paramer list in message')                           
-    end      
+      raise 'no paramer list in message'
+    end
+  rescue => e
+    message.handler.send_error(message.sender, e)
   end
 
 end

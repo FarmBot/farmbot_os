@@ -43,7 +43,7 @@ class Messenger
       message_hash = JSON.parse(message)
       message_handler.handle_message(message_hash)
     else
-      "Can't handle messages of class #{message.class}"
+      puts "Can't handle messages of class #{message.class}"
     end
   rescue
     raise "Runtime error while attempting to parse message: #{message}."

@@ -9,7 +9,6 @@ describe MessageHandler do
 
 
   before do
-    $db_write_sync = Mutex.new
     DbAccess.current = DbAccess.new('development')
     $dbaccess = DbAccess.current
     $dbaccess.disable_log_to_screen()
@@ -46,7 +45,7 @@ describe MessageHandler do
 
   it "handle message - test error handling" do
 
-    fromUuid     = nil
+    fromUuid     = ''
     message_type = 'test'
     time_stamp   = Time.now.to_f.to_s
 
@@ -77,32 +76,4 @@ describe MessageHandler do
     expect(@handler.messaging.device).to eq(destination)
 
   end
-
-  it "send error" do
-    destination     = rand(9999999).to_s
-    error           = rand(9999999).to_s
-    time_stamp      = nil
-
-    @handler.send_error(destination, time_stamp, error)
-
-    expect(@handler.messaging.message[:message_type]).to eq('error')
-    expect(@handler.messaging.device).to eq(destination)
-
-  end
-
-  it "handle message error" do
-
-    err_snd         = true
-    err_msg         = rand(9999999).to_s
-    err_trc         = rand(9999999).to_s
-    sender          = rand(9999999).to_s
-    time_stamp      = nil
-
-    @handler.handle_message_error(err_snd, sender, time_stamp, err_msg, err_trc)
-
-    expect(@handler.messaging.message[:message_type]).to eq('error')
-    expect(@handler.messaging.message[:error]).to eq(" #{err_msg} @ #{err_trc}")
-    expect(@handler.messaging.device).to eq(sender)
-  end
-
 end

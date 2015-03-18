@@ -2,7 +2,7 @@ require 'bson'
 require 'sqlite3'
 require 'active_record'
 
-require_relative '../../app/models/command.rb' 
+require_relative '../../app/models/command.rb'
 require_relative '../../app/models/command_line.rb'
 
 
@@ -27,7 +27,7 @@ class DbAccessCommands
     @new_command.scheduled_time = scheduled_time
     @new_command.crop_id = crop_id
     @new_command.status = 'creating'
-    $db_write_sync.synchronize do
+    DbAccess.current.write_sync.synchronize do
       @new_command.save
     end
   end
@@ -38,7 +38,7 @@ class DbAccessCommands
       fill_in_command_line_coordinates(line, action, x, y, z, speed)
       fill_in_command_line_pins(line, pin_nr, value1, value2, mode, time)
       fill_in_command_line_extra(line, amount, external_info)
-      $db_write_sync.synchronize do
+      DbAccess.current.write_sync.synchronize do
         line.save
       end
     end
@@ -70,7 +70,7 @@ class DbAccessCommands
   def save_new_command
     if @new_command != nil
       @new_command.status = 'scheduled'
-      $db_write_sync.synchronize do
+      DbAccess.current.write_sync.synchronize do
         @new_command.save
       end
     end
@@ -78,7 +78,7 @@ class DbAccessCommands
 
   def clear_schedule
     Command.where("status = ? AND scheduled_time IS NOT NULL",'scheduled').find_each do |cmd|
-      $db_write_sync.synchronize do
+      DbAccess.current.write_sync.synchronize do
         cmd.delete
       end
     end
@@ -86,7 +86,7 @@ class DbAccessCommands
 
   def clear_crop_schedule(crop_id)
     Command.where("status = ? AND scheduled_time IS NOT NULL AND crop_id = ?",'scheduled',crop_id).find_each do |cmd|
-      $db_write_sync.synchronize do
+      DbAccess.current.write_sync.synchronize do
         cmd.delete
       end
     end
@@ -100,7 +100,7 @@ class DbAccessCommands
   def set_command_to_execute_status(new_status)
     if @last_command_retrieved != nil
       @last_command_retrieved.status = new_status
-      $db_write_sync.synchronize do
+      DbAccess.current.write_sync.synchronize do
         @last_command_retrieved.save
       end
     end

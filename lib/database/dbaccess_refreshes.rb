@@ -33,7 +33,7 @@ class DbAccessRefreshes
   def increment_refresh
     r = Refresh.find_or_create_by(name: 'FarmBotControllerSchedule')
     r.value = r.value == nil ? 0 : r.value.to_i + 1
-    $db_write_sync.synchronize do
+    DbAccess.current.write_sync.synchronize do
       r.save
     end
   end
