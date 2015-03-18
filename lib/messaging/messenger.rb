@@ -40,14 +40,15 @@ class Messenger
 
   # Acts as the entry point for message traffic captured from MeshBlu.
   def handle_message(message)
+    puts 'Incoming Message'
     case message
     when Hash
-      @message_handler.handle_message(message)
+      puts @message_handler.handle_message(message)
     when String
       message_hash = JSON.parse(message)
-      @message_handler.handle_message(message_hash)
+      puts @message_handler.handle_message(message_hash)
     else
-      raise "Can't handle messages of class #{message.class}"
+      puts "Can't handle messages of class #{message.class}"
     end
   rescue
     raise "Runtime error while attempting to parse message: #{message}."
