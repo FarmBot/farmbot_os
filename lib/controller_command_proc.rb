@@ -4,7 +4,7 @@
 class ControllerCommandProc
 
   def initialize
-    @bot_dbaccess        = DbAccess.current
+    @bot_dbaccess = DbAccess.current
   end
 
   WHITELIST = ['move_absolute','move_relative','home_x','home_y','home_z',

@@ -12,6 +12,7 @@ class MessageHandlerSchedule < MessageHandlerBase
   WHITELIST = ["single_command","crop_schedule_update"]
 
   def single_command(message)
+    binding.pry
     if message.payload.has_key? 'command'
       command = message.payload['command']
       command_obj = MessageHandlerScheduleCmdLine.new
@@ -23,8 +24,6 @@ class MessageHandlerSchedule < MessageHandlerBase
     else
        raise 'No command in message'
     end
-  rescue => e
-    message.handler.send_error(message.sender, e)
   end
 
   def save_single_command(command, delay)
@@ -35,8 +34,18 @@ class MessageHandlerSchedule < MessageHandlerBase
   end
 
   def save_command_line(command)
-      @dbaccess.add_command_line(command.action, command.x.to_i, command.y.to_i, command.z.to_i, command.speed.to_s, command.amount.to_i,
-        command.pin_nr.to_i, command.pin_value1.to_i, command.pin_value2.to_i, command.pin_mode.to_i, command.pin_time.to_i, command.ext_info)
+      @dbaccess.add_command_line(command.action,
+                                 command.x.to_i,
+                                 command.y.to_i,
+                                 command.z.to_i,
+                                 command.speed.to_s,
+                                 command.amount.to_i,
+                                 command.pin_nr.to_i,
+                                 command.pin_value1.to_i,
+                                 command.pin_value2.to_i,
+                                 command.pin_mode.to_i,
+                                 command.pin_time.to_i,
+                                 command.ext_info)
   end
 
   def crop_schedule_update(message)
