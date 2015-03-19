@@ -24,7 +24,7 @@ describe MessageHandlerEmergencyStop do
   ## messaging
 
   it "has a white list" do
-    expect(MessageHandlerEmergencyStop::WHITELIST.list).to eq(2)
+    expect(MessageHandlerEmergencyStop::WHITELIST.length).to eq(2)
   end
 
   it "message handler emergency stop" do

@@ -2,6 +2,10 @@
 require_relative 'lib/status'
 require_relative 'lib/messaging/messenger'
 
+require './lib/status'
+require './lib/database/dbaccess.rb'
+require './lib/hardware/gcode/ramps.rb'
+
 Messenger.current.start
 
 puts "UID:   #{Messenger.current.uuid}"
