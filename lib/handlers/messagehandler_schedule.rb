@@ -15,9 +15,9 @@ class MessageHandlerSchedule < MessageHandlerBase
     if message.payload['command']
       HardwareInterface
         .current
-        .move_relative(command['x'],
-                       command['y'],
-                       command['z'],)
+        .move_relative(command['x'] || 0,
+                       command['y'] || 0,
+                       command['z'] || 0,)
       # command = message.payload['command']
       # command_obj = MessageHandlerScheduleCmdLine.new
       # command_obj.split_command_line( message.payload['command'])
