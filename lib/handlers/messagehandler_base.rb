@@ -19,12 +19,11 @@ class MessageHandlerBase
   # Handle the message received from skynet
   #
   def handle_message(message)
-    if WHITELIST.include?(message.message_type)
+    if self.class::WHITELIST.include?(message.message_type)
       self.send(message.message_type, message)
     else
-      # TODO Make sure that this exception travels up the stack to send_error in
-      # some tests.
-      raise 'Nope.'
+      raise "Command (#{message.message_type || 'nil'}) not in whitelist."\
+            " Try these: #{self.class::WHITELIST}."
     end
   end
 
