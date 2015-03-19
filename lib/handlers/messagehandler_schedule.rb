@@ -12,15 +12,19 @@ class MessageHandlerSchedule < MessageHandlerBase
   WHITELIST = ["single_command","crop_schedule_update"]
 
   def single_command(message)
-    binding.pry
-    if message.payload.has_key? 'command'
-      command = message.payload['command']
-      command_obj = MessageHandlerScheduleCmdLine.new
-      command_obj.split_command_line( message.payload['command'])
-      command_obj.write_to_log()
-      save_single_command(command_obj, message.delay)
-      Status.current.command_refresh += 1;
-      message.handler.send_confirmation(message.sender, message.time_stamp)
+    if message.payload['command']
+      HardwareInterface
+        .current
+        .move_relative(command['x'],
+                       command['y'],
+                       command['z'],)
+      # command = message.payload['command']
+      # command_obj = MessageHandlerScheduleCmdLine.new
+      # command_obj.split_command_line( message.payload['command'])
+      # command_obj.write_to_log()
+      # save_single_command(command_obj, message.delay)
+      # Status.current.command_refresh += 1;
+      # message.handler.send_confirmation(message.sender, message.time_stamp)
     else
        raise 'No command in message'
     end

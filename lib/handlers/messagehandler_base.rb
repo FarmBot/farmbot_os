@@ -22,7 +22,7 @@ class MessageHandlerBase
     if self.class::WHITELIST.include?(message.message_type)
       self.send(message.message_type, message)
     else
-      raise "Command (#{message.message_type || 'nil'}) not in whitelist."\
+      raise "Command (#{message.message_type || 'nil'}) not in ::WHITELIST."\
             " Try these: #{self.class::WHITELIST}."
     end
   end
