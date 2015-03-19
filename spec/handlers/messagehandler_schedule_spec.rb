@@ -236,21 +236,10 @@ describe MessageHandlerSchedule do
   end
 
   it "handle empty command" do
-
-    # create a message
-
     message.handled = false
     message.handler = @main_handler
     message.payload = {}
-
-    # execute the message
-
-    @handler.single_command(message)
-
-    # do the checks
-
-    expect(@handler.messaging.message[:message_type]).to eq('error')
-
+    expect{ @handler.single_command(message) }.to raise_error(RuntimeError)
   end
 
 # save_command_with_lines
