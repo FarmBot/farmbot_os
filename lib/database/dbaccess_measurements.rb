@@ -53,7 +53,6 @@ class DbAccessMeasurements
   #
   def delete_measurement(id)
     if Measurement.exists?(id)
-      #meas = Measurement.where("measurement_id = (?)", id).first
       meas = Measurement.find(id)
       $db_write_sync.synchronize do
         meas.delete

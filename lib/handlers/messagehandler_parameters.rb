@@ -23,14 +23,14 @@ class MessageHandlerParameter < MessageHandlerBase
       {
         :message_type => 'read_parameters_response',
         :time_stamp   => Time.now.to_f.to_s,
-        :confirm_id   => time_stamp,
-          :parameters   => param_list
+        :confirm_id   => message.time_stamp,
+        :parameters   => param_list
       }
 
     @dbaccess.write_to_log(2,"reply = #{return_message}")
 
 
-    message.handler.send_message(sender, return_message)
+    message.handler.send_message(message.sender, return_message)
 
   end
 
@@ -60,9 +60,9 @@ class MessageHandlerParameter < MessageHandlerBase
 
         end
       end
-      message.handler.send_confirmation(sender, time_stamp)
+      message.handler.send_confirmation(message.sender, message.time_stamp)
     else
-      message.handler.send_error(sender, time_stamp, 'no paramer list in message')                           
+      message.handler.send_error(message.sender, message.time_stamp, 'no paramer list in message')                           
     end      
   end
 

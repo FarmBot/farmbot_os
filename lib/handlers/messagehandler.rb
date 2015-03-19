@@ -9,37 +9,42 @@ require_relative 'messagehandler_message.rb'
 require_relative 'messagehandler_parameters.rb'
 require_relative 'messagehandler_schedule.rb'
 require_relative 'messagehandler_status.rb'
-
+require_relative 'messagehandler_message'
 
 # Get the JSON command, received through skynet, and send it to the farmbot
 # command queue Parses JSON messages received through SkyNet.
 class MessageHandler
 
   attr_accessor :message
+  attr_accessor :messaging
+  attr_accessor :use_test_handler
 
   ## general handling messages
 
-  def initialize
+  def initialize(messaging)
+
+    @messaging = messaging
     #@dbaccess = DbAccess.new
-    @dbaccess = $dbaccess
+    @dbaccess = DbAccess.current
     @last_time_stamp  = ''
 
     @message_handlers = Array.new
-    @message_handlers << MessageHandlerEmergencyStop.new
-    @message_handlers << MessageHandlerLog.new
-    @message_handlers << MessageHandlerMeasurement.new
-    @message_handlers << MessageHandlerParameter.new
-    @message_handlers << MessageHandlerSchedule.new
-    @message_handlers << MessageHandlerStatus.new
-
+    @message_handlers << MessageHandlerEmergencyStop.new(messaging)
+    @message_handlers << MessageHandlerLog.new(messaging)
+    @message_handlers << MessageHandlerMeasurement.new(messaging)
+    @message_handlers << MessageHandlerParameter.new(messaging)
+    @message_handlers << MessageHandlerSchedule.new(messaging)
+    @message_handlers << MessageHandlerStatus.new(messaging)
   end
 
   # Handle the message received from skynet
   #
   def handle_message(message)
-
+    puts "WebSocket Message"
     sender     = ""
     time_stamp = nil
+
+    puts "received at #{Time.now.strftime("%Y-%m-%d %H:%M:%S")}: #{message}" if $mesh_msg_print == 1
 
     err_msg = ""
     err_trc = ""
@@ -47,19 +52,17 @@ class MessageHandler
 
     # Check if all needed variables are in the message, and send it to the processing function
     begin
-
-      #requested_command = ''
-
       @dbaccess.write_to_log(3,message.to_s)
       sender = (message.has_key? 'fromUuid'  ) ? message['fromUuid']        : ''
       message_obj = MessageHandlerMessage.new
 
       split_message(message, message_obj)
+
       log_message_obj_info(message_obj)
       send_message_obj_to_individual_handlers(message_obj)
       check_if_message_handled(message_obj)
 
-    rescue Exception => e
+    rescue => e
       err_snd = true
       err_msg = e.message
       err_trc = e.backtrace.inspect
@@ -68,7 +71,7 @@ class MessageHandler
     # in case of an error, send error message as a reply
     begin
       handle_message_error(err_snd, sender, time_stamp, err_msg, err_trc)
-    rescue  Exception => e
+    rescue => e
       puts "Error while sending error message: #{e.message}"
     end
   end
@@ -119,7 +122,7 @@ class MessageHandler
 
   def send_message(destination, command)
     @dbaccess.write_to_log(3,"to #{destination} : #{command.to_s}")
-    $messaging.send_message(destination, command)
+    @messaging.send_message(destination, command)
   end
 
   def split_message(message, message_obj)
@@ -143,13 +146,13 @@ class MessageHandler
       if message_obj.handled == false
         handler.handle_message( message_obj )
       end
-    end     
+    end
   end
 
   def check_if_message_handled(message_obj)
     if message_obj.handled == false
       @dbaccess.write_to_log(2,'message could not be handled')
-      send_error(sender, '', 'message could not be handled')
+      send_error(message_obj.sender, '', 'message could not be handled')
     end
   end
 

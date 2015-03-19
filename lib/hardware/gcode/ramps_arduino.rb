@@ -7,22 +7,26 @@
 
 require 'serialport'
 
+require_relative 'ramps_serial_port_sim'
 require_relative 'ramps_arduino_values_received.rb'
 require_relative 'ramps_arduino_write_status.rb'
 
 class HardwareInterfaceArduino
 
   attr_accessor :ramps_param, :ramps_main
+  #attr_accessor :test_serial_read, :test_serial_write
+  attr_accessor :serial_port
+  attr_accessor :external_info
 
   # initialize the interface
   #
-  def initialize
+  def initialize(test_mode)
 
-    @bot_dbaccess = $bot_dbaccess
+    @bot_dbaccess = DbAccess.current
 
-    @status_debug_msg = $status_debug_msg
-    #@status_debug_msg = false
-    #@status_debug_msg = true
+    @status_debug_msg = $debug_msg
+
+    @test_mode         = test_mode
 
     # connect to arduino
     connect_board()
@@ -38,28 +42,31 @@ class HardwareInterfaceArduino
   #
   def connect_board
 
-    parameters = 
+    parameters =
     {
       "baud"         => 115200,
       "data_bits"    => 8,
       "stop_bits"    => 1,
-      "parity"       => SerialPort::NONE,	
+      "parity"       => SerialPort::NONE,
       "flow_control" => SerialPort::SOFT
     }
 
     comm_port = '/dev/ttyACM0'
-    @serial_port = SerialPort.new(comm_port, parameters)
+    @serial_port = SerialPort.new(comm_port, parameters) if @test_mode == false
+    @serial_port = SerialPortSim.new(comm_port, parameters) if @test_mode == true
 
   end
 
   # write a command to the robot
   #
   def execute_command(text, log, onscreen)
-
-    begin  
+    begin
 
       write_status = create_write_status(text, log, onscreen)
+
+#puts @serial_port.test_serial_read
       prepare_serial_port(write_status)
+#puts @serial_port.test_serial_read
 
       # wait until the arduino responds
       while(write_status.is_busy())
@@ -71,7 +78,9 @@ class HardwareInterfaceArduino
 
       log_result_of_execution(write_status)
 
-    rescue Exception => e
+    rescue => e
+#puts 'exception received'
+#puts e
       handle_execution_exception(e)
     end
   end
@@ -80,6 +89,7 @@ class HardwareInterfaceArduino
     write_status = HardwareInterfaceArduinoWriteStatus.new
     write_status.text     = text
     write_status.log      = log
+
     write_status.onscreen = onscreen
     write_status
   end
@@ -89,11 +99,11 @@ class HardwareInterfaceArduino
     @bot_dbaccess.write_to_log(4,"ST: serial error\n#{e.message}\n#{e.backtrace.inspect}")
     @serial_port.rts = 1
     connect_board
-    sleep 5
+    sleep 5 if @test_mode == false
   end
 
   def log_result_of_execution(write_status)
- 
+
     # log things if needed
     if write_status.done == 1
       puts 'ST: done' if write_status.onscreen
@@ -102,15 +112,18 @@ class HardwareInterfaceArduino
       puts 'ST: timeout'
       @bot_dbaccess.write_to_log(4, 'ST: timeout')
 
-      sleep 5
+      sleep 5 if @test_mode == false
     end
   end
 
   # receive all characters coming from the serial port
   #
   def process_feedback(write_status)
-
     i = @serial_port.read(1)
+
+#print "-#{i}"
+#print "#{i}"
+
     if i != nil
       i.each_char do |c|
 
@@ -118,7 +131,8 @@ class HardwareInterfaceArduino
 
       end
     else
-      sleep 0.001
+      sleep 0.001 if @test_mode == false
+      #write_status.done = 1 if @test_mode == true
     end
   end
 
@@ -128,7 +142,6 @@ class HardwareInterfaceArduino
 
     if c == "\r" or c == "\n"
       if write_status.received.length >= 3
-
         log_incoming_text(write_status)
         write_status.split_received
         process_code_and_params(write_status)
@@ -147,7 +160,7 @@ class HardwareInterfaceArduino
     case write_status.code
 
       # command received by arduino
-      when 'R01'                        
+      when 'R01'
         write_status.timeout = 90
 
       # command is finished
@@ -178,8 +191,8 @@ class HardwareInterfaceArduino
     puts "WR: #{write_status.text}" if write_status.onscreen
     @bot_dbaccess.write_to_log(4, "WR: #{write_status.text}") if write_status.log
     @serial_port.read_timeout = 2
-    clean_serial_buffer()
-    @serial_port.write( "#{write_status.text} \n" )    
+    clean_serial_buffer() if @test_mode == false
+    serial_port_write( "#{write_status.text}\n" )
   end
 
   # empty the input buffer so no old data is processed
@@ -189,11 +202,16 @@ class HardwareInterfaceArduino
     end
   end
 
+  # write something to the serial port
+  def serial_port_write(text)
+    @serial_port.write( text )
+  end
+
   # if there is an emergency stop, immediately write it to the arduino
   #
-  def check_emergency_stop    
-    if ($status.emergency_stop)
-     @serial_port.write( "E\n" )
+  def check_emergency_stop
+    if (Status.current.emergency_stop)
+     serial_port_write( "E\n" )
     end
   end
 
@@ -214,7 +232,7 @@ class HardwareInterfaceArduino
 
     # depending on the report code, process the values
     # this is done by reading parameter names and their values
-    # and respong on it as needed 
+    # and respong on it as needed
 
     process_value_process_param_list(params,code)
     process_value_process_named_params(params,code)
@@ -239,15 +257,15 @@ class HardwareInterfaceArduino
       params.load_parameter(par_code, par_value)
 
     end
-    
+
   end
 
   def process_value_process_param_list(params,code)
-    if params.p >= 0
+    #if params.p != 0
       process_value_R21(params,code)
       process_value_R23(params,code)
       process_value_R41(params,code)
-    end
+    #end
   end
 
 
@@ -263,12 +281,12 @@ class HardwareInterfaceArduino
   end
 
   # Process report parameter value and save to database
-  # 
+  #
   def process_value_R23(params,code)
     if code == 'R23'
       param = @ramps_param.get_param_by_id(params.p)
       if param != nil
-        save_param_value(params.p, :by_id, :from_db, params.v)
+        @ramps_param.save_param_value(params.p, :by_id, :from_db, params.v)
       end
     end
   end
@@ -289,28 +307,28 @@ class HardwareInterfaceArduino
   # Process report end stops
   #
   def process_value_R81(params,code)
-    if code == 'R81'      
-      $status.info_end_stop_x_a = (params.xa == 1)
-      $status.info_end_stop_x_b = (params.xb == 1)
-      $status.info_end_stop_y_a = (params.ya == 1)
-      $status.info_end_stop_y_b = (params.yb == 1)
-      $status.info_end_stop_z_a = (params.za == 1)
-      $status.info_end_stop_z_b = (params.zb == 1)
+    if code == 'R81'
+      Status.current.info_end_stop_x_a = (params.xa == 1)
+      Status.current.info_end_stop_x_b = (params.xb == 1)
+      Status.current.info_end_stop_y_a = (params.ya == 1)
+      Status.current.info_end_stop_y_b = (params.yb == 1)
+      Status.current.info_end_stop_z_a = (params.za == 1)
+      Status.current.info_end_stop_z_b = (params.zb == 1)
     end
   end
 
   # Process report position
   def process_value_R82(params,code)
-    if code == 'R82'      
+    if code == 'R82'
 
-      $status.info_current_x_steps = params.x
-      $status.info_current_x       = params.x / @ramps_param.axis_x_steps_per_unit
+      Status.current.info_current_x_steps = params.x
+      Status.current.info_current_x       = params.x / @ramps_param.axis_x_steps_per_unit
 
-      $status.info_current_y_steps = params.y
-      $status.info_current_y       = params.y / @ramps_param.axis_y_steps_per_unit
+      Status.current.info_current_y_steps = params.y
+      Status.current.info_current_y       = params.y / @ramps_param.axis_y_steps_per_unit
 
-      $status.info_current_z_steps = params.z
-      $status.info_current_z       = params.z / @ramps_param.axis_z_steps_per_unit
+      Status.current.info_current_z_steps = params.z
+      Status.current.info_current_z       = params.z / @ramps_param.axis_z_steps_per_unit
 
     end
   end
@@ -318,15 +336,15 @@ class HardwareInterfaceArduino
   def process_value_process_text(code,text)
     process_value_process_R83(code,text)
     process_value_process_R99(code,text)
-  end  
+  end
 
   # Process report software version
   #
   def process_value_process_R83(code,text)
     if code == 'R83'
-        $status.device_version = text
+        Status.current.device_version = text
     end
-  end  
+  end
 
   # Process report of a debug comment
   #
@@ -334,14 +352,25 @@ class HardwareInterfaceArduino
     if code == 'R99'
         puts ">#{text}<"
     end
-  end  
+  end
 
   ## additional pin function
 
   # save a pin measurement
   #
   def save_pin_value(pin_id, pin_val)
-    @bot_dbaccess.write_measurements(pin_val, @external_info)
+    case pin_id
+    when 8
+      Status.current.info_pin_8  = pin_val
+    when 9
+      Status.current.info_pin_9  = pin_val
+    when 10
+      Status.current.info_pin_10 = pin_val
+    when 13
+      Status.current.info_pin_13 = pin_val
+    else
+      @bot_dbaccess.write_measurements(pin_val, @external_info)
+    end
   end
 
 end

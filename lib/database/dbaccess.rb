@@ -15,18 +15,37 @@ require_relative 'dbaccess_measurements.rb'
 
 class DbAccess
 
+  class << self
+    attr_accessor :current
+
+    def current
+      @current ||= self.new("development")
+    end
+  end
+
+  attr_accessor :max_nr_log_lines
+
   def initialize(environment)
     config = YAML::load(File.open('./config/database.yml'))
     ActiveRecord::Base.establish_connection(config[environment])
 
     @commands     = DbAccessCommands.new
     @refreshes    = DbAccessRefreshes.new
-    @logs         = DbAccessLogs.new
+    @logs         = DbAccessLogs.new(self)
     @parameters   = DbAccessParameters.new
     @measurements = DbAccessMeasurements.new
 
+    @max_nr_log_lines = 1000
+
   end
 
+  def create_command(*args)
+    add_command_line(*args)
+    create_new_command(Time.now,'NOTSET')
+    add_command_line(*args)
+    save_new_command
+    increment_refresh
+  end
   ## parameters
 
   def increment_parameters_version
@@ -93,6 +112,10 @@ class DbAccess
 
   ## logs
 
+  def disable_log_to_screen
+    @logs.disable_log_to_screen
+  end
+
   def write_to_log(module_id,text)
     @logs.write_to_log(module_id,text)
   end
@@ -124,7 +147,7 @@ class DbAccess
   end
 
   def fill_in_command_line_extra(line, amount = 0, external_info = "")
-    @commands.fill_in_command_line_extra(line, amount = 0, external_info = "")
+    @commands.fill_in_command_line_extra(line, amount, external_info)
   end
 
   def save_new_command
@@ -155,7 +178,7 @@ class DbAccess
   end
 
   def save_refresh
-    @refresh_value = @refresh_value_new
+    @refreshes.save_refresh
   end
 
   def increment_refresh

@@ -37,7 +37,7 @@ class DbAccessCommands
       line = CommandLine.new
       fill_in_command_line_coordinates(line, action, x, y, z, speed)
       fill_in_command_line_pins(line, pin_nr, value1, value2, mode, time)
-      fill_in_command_line_extra(line, amount, external_info = "")
+      fill_in_command_line_extra(line, amount, external_info)
       $db_write_sync.synchronize do
         line.save
       end
@@ -60,7 +60,7 @@ class DbAccessCommands
     line.pin_time      = time
   end
 
-  def fill_in_command_line_extra(line, amount = 0, external_info = "")
+  def fill_in_command_line_extra(line, amount, external_info)
     line.command_id    = @new_command.id
     line.amount        = amount
     line.external_info = external_info

@@ -111,32 +111,37 @@ $arduino_default_params = [
                             },
                             {
                               :name  => 'MOVEMENT_LENGTH_X',
-                              :id    => 801,
+                              :id    => 101,
                               :value => 1000
                             },
                             {
                               :name  => 'MOVEMENT_LENGTH_Y',
-                              :id    => 802,
+                              :id    => 102,
                               :value => 1000
                             },
                             {
                               :name  => 'MOVEMENT_LENGTH_Z',
-                              :id    => 803,
+                              :id    => 103,
                               :value => 1000
                             },
                             {
                               :name  => 'MOVEMENT_STEPS_PER_UNIT_X',
-                              :id    => 901,
+                              :id    => 111,
                               :value => 5
                             },
                             {
                               :name  => 'MOVEMENT_STEPS_PER_UNIT_Y',
-                              :id    => 902,
+                              :id    => 112,
                               :value => 5
                             },
                             {
                               :name  => 'MOVEMENT_STEPS_PER_UNIT_Z',
-                              :id    => 903,
+                              :id    => 113,
                               :value => 5
+                            },
+                            {
+                              :name  => 'TESTING',
+                              :id    => 1,
+                              :value => 0
                             }
                           ]
