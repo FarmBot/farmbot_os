@@ -41,7 +41,12 @@ class MessageHandlerStatus < MessageHandlerBase
         :status_end_stop_y_a            => Status.current.info_end_stop_y_a,
         :status_end_stop_y_b            => Status.current.info_end_stop_y_b,
         :status_end_stop_z_a            => Status.current.info_end_stop_z_a,
-        :status_end_stop_z_b            => Status.current.info_end_stop_z_b
+        :status_end_stop_z_b            => Status.current.info_end_stop_z_b,
+
+        :status_pin_8                   => Status.current.info_pin_8,
+        :status_pin_9                   => Status.current.info_pin_9,
+        :status_pin_10                  => Status.current.info_pin_10,
+        :status_pin_13                  => Status.current.info_pin_13
       }
 
      @dbaccess.write_to_log(2,"return_message = #{return_message}")

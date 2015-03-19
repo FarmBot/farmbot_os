@@ -6,7 +6,8 @@ class Status
     :info_end_stop_x_b, :info_end_stop_y_a, :info_end_stop_y_b,
     :info_end_stop_z_a, :info_end_stop_z_b, :info_movement,
     :info_nr_of_commands, :info_status, :info_target_x, :info_target_y,
-    :info_target_z
+    :info_target_z,
+    :info_pin_8, :info_pin_9, :info_pin_10, :info_pin_13
 
     class << self
       attr_accessor :current
@@ -44,6 +45,11 @@ class Status
     @info_end_stop_y_b    = 0
     @info_end_stop_z_a    = 0
     @info_end_stop_z_b    = 0
+
+    @info_pin_8           = 0
+    @info_pin_9           = 0
+    @info_pin_10          = 0
+    @info_pin_13          = 0
 
     @command_refresh      = 0
     @device_version       = 'UNKNOWN'

@@ -359,7 +359,18 @@ class HardwareInterfaceArduino
   # save a pin measurement
   #
   def save_pin_value(pin_id, pin_val)
-    @bot_dbaccess.write_measurements(pin_val, @external_info)
+    case pin_id
+    when 8
+      Status.current.info_pin_8  = pin_val
+    when 9
+      Status.current.info_pin_9  = pin_val
+    when 10
+      Status.current.info_pin_10 = pin_val
+    when 13
+      Status.current.info_pin_13 = pin_val
+    else
+      @bot_dbaccess.write_measurements(pin_val, @external_info)
+    end
   end
 
 end
