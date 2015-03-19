@@ -12,7 +12,8 @@ class MessageHandlerSchedule < MessageHandlerBase
   WHITELIST = ["single_command","crop_schedule_update"]
 
   def single_command(message)
-    if message.payload['command']
+    command = message.payload['command']
+    if command
       HardwareInterface
         .current
         .move_relative(command['x'] || 0,
