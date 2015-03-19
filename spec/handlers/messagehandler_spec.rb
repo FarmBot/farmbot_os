@@ -61,11 +61,6 @@ describe MessageHandler do
     expect(@handler.messaging.device).to eq(fromUuid)
   end
 
-  it "return error" do
-    ret = @handler.error
-    expect(ret).to eq({:error => ''})
-  end
-
   it "send confirmation" do
     destination     = rand(9999999).to_s
     time_stamp      = nil

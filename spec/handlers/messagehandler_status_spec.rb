@@ -30,7 +30,7 @@ describe MessageHandlerStatus do
   end
 
   it "white list" do
-    list = @handler.whitelist
+    list = MessageHandlerStatus::WHITELIST
     expect(list.count).to eq(1)
   end
 

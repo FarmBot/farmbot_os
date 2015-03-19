@@ -2,36 +2,41 @@ require 'json'
 require 'time'
 require './lib/database/dbaccess.rb'
 
-require_relative 'messagehandler_emergencystop.rb'
-require_relative 'messagehandler_logs.rb'
-require_relative 'messagehandler_measurements.rb'
-require_relative 'messagehandler_message.rb'
-require_relative 'messagehandler_parameters.rb'
-require_relative 'messagehandler_schedule.rb'
-require_relative 'messagehandler_status.rb'
+require_relative 'messagehandler_emergencystop'
+require_relative 'messagehandler_logs'
+require_relative 'messagehandler_measurements'
 require_relative 'messagehandler_message'
+require_relative 'messagehandler_parameters'
+require_relative 'messagehandler_schedule'
+require_relative 'messagehandler_status'
+require_relative 'messagehandler_message'
+require_relative 'messagehandler_null'
 
 # Get the JSON command, received through skynet, and send it to the farmbot
 # command queue Parses JSON messages received through SkyNet.
 class MessageHandler
 
-  attr_accessor :message
-  attr_accessor :messaging
-  attr_accessor :use_test_handler
+  attr_accessor :message, :messaging, :use_test_handler
 
   ## general handling messages
+    ROUTES =
+    { "read_logs"            => MessageHandlerLog,
+      "emergency_stop"       => MessageHandlerEmergencyStop,
+      "emergency_stop_reset" => MessageHandlerEmergencyStop,
+      "read_measurements"    => MessageHandlerMeasurement,
+      "delete_measurements"  => MessageHandlerMeasurement,
+      "read_parameters"      => MessageHandlerParameter,
+      "write_parameters"     => MessageHandlerParameter,
+      "single_command"       => MessageHandlerSchedule,
+      "crop_schedule_update" => MessageHandlerSchedule,
+      "read_status"          => MessageHandlerStatus,
+      "everything else"      => MessageHandlerNull, }
+
 
   def initialize(messaging)
-
     @messaging = messaging
     @dbaccess = DbAccess.current
     @last_time_stamp  = ''
-    @message_handlers = [MessageHandlerEmergencyStop.new(messaging),
-                         MessageHandlerLog.new(messaging),
-                         MessageHandlerMeasurement.new(messaging),
-                         MessageHandlerParameter.new(messaging),
-                         MessageHandlerSchedule.new(messaging),
-                         MessageHandlerStatus.new(messaging)]
   end
 
   # Handle the message received from skynet
@@ -39,19 +44,10 @@ class MessageHandler
   def handle_message(message)
     maybe_print(message)
     msg = MessageHandlerMessage.new(message, self)
-    send_message_obj_to_individual_handlers(msg)
-    check_if_message_handled(msg)
+    route_message(msg)
   rescue => e
     sender = msg.try(:sender) || "UNKNOWN-SENDER"
-    # require 'pry'
-    # binding.pry
     send_error(sender, e)
-  end
-
-  # Handles an error (typically, an unauthorized or unknown message). Returns
-  # Hash.
-  def error
-    {error: ""}
   end
 
   # send a reply to the back end system
@@ -80,19 +76,11 @@ class MessageHandler
     @messaging.send_message(destination, command)
   end
 
-  def send_message_obj_to_individual_handlers(message_obj)
-    # loop trough all the handlers until one handler does process the message
-    @message_handlers.each do |handler|
-      if message_obj.handled == false
-        handler.handle_message( message_obj )
-      end
-    end
-  end
-
-  def check_if_message_handled(message_obj)
-    raise 'message could not be handled' if message_obj.handled == false
-  rescue => e
-    send_error(message_obj.sender, e)
+  def route_message(message_obj)
+    handler_class = ROUTES[message_obj.message_type] || MessageHandlerNull
+    handler_class
+      .new(messaging)
+      .handle_message(message_obj)
   end
 
   # Print incoming JSON as YAML, but only if it's not a read_status message.
@@ -100,6 +88,5 @@ class MessageHandler
     is_status = message["payload"].try(:[], "message_type") == "read_status"
     STDOUT.puts "\n#{message.to_yaml}\n" unless is_status
   end
-
 end
 

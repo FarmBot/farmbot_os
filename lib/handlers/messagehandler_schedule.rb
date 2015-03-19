@@ -9,24 +9,25 @@ class MessageHandlerSchedule < MessageHandlerBase
 
   attr_accessor :message
 
-  def whitelist
-    ["single_command","crop_schedule_update"]
-  end
+  WHITELIST = ["single_command","crop_schedule_update"]
 
   def single_command(message)
-    if message.payload.has_key? 'command'
-      command = message.payload['command']
-      command_obj = MessageHandlerScheduleCmdLine.new
-      command_obj.split_command_line( message.payload['command'])
-      command_obj.write_to_log()
-      save_single_command(command_obj, message.delay)
-      Status.current.command_refresh += 1;
-      message.handler.send_confirmation(message.sender, message.time_stamp)
+    if message.payload['command']
+      HardwareInterface
+        .current
+        .move_relative(command['x'],
+                       command['y'],
+                       command['z'],)
+      # command = message.payload['command']
+      # command_obj = MessageHandlerScheduleCmdLine.new
+      # command_obj.split_command_line( message.payload['command'])
+      # command_obj.write_to_log()
+      # save_single_command(command_obj, message.delay)
+      # Status.current.command_refresh += 1;
+      # message.handler.send_confirmation(message.sender, message.time_stamp)
     else
        raise 'No command in message'
     end
-  rescue => e
-    message.handler.send_error(message.sender, e)
   end
 
   def save_single_command(command, delay)
@@ -37,8 +38,18 @@ class MessageHandlerSchedule < MessageHandlerBase
   end
 
   def save_command_line(command)
-      @dbaccess.add_command_line(command.action, command.x.to_i, command.y.to_i, command.z.to_i, command.speed.to_s, command.amount.to_i,
-        command.pin_nr.to_i, command.pin_value1.to_i, command.pin_value2.to_i, command.pin_mode.to_i, command.pin_time.to_i, command.ext_info)
+      @dbaccess.add_command_line(command.action,
+                                 command.x.to_i,
+                                 command.y.to_i,
+                                 command.z.to_i,
+                                 command.speed.to_s,
+                                 command.amount.to_i,
+                                 command.pin_nr.to_i,
+                                 command.pin_value1.to_i,
+                                 command.pin_value2.to_i,
+                                 command.pin_mode.to_i,
+                                 command.pin_time.to_i,
+                                 command.ext_info)
   end
 
   def crop_schedule_update(message)

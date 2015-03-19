@@ -24,7 +24,7 @@ describe MessageHandlerSchedule do
   ## commands / scheduling
 
   it "white list" do
-    list = @handler.whitelist
+    list = MessageHandlerSchedule::WHITELIST
     expect(list.count).to eq(2)
   end
 

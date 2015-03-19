@@ -7,9 +7,7 @@ require_relative 'messagehandler_base'
 # command queue Parses JSON messages received through SkyNet.
 class MessageHandlerStatus < MessageHandlerBase
 
-  def whitelist
-    ["read_status"]
-  end
+  WHITELIST = ["read_status"]
 
   # Send the current status to the requester
   #
