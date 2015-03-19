@@ -7,9 +7,7 @@ require_relative 'messagehandler_base'
 # command queue Parses JSON messages received through SkyNet.
 class MessageHandlerMeasurement < MessageHandlerBase
 
-  def whitelist
-    ["read_measurements","delete_measurements"]
-  end
+  WHITELIST = ["read_measurements","delete_measurements"]
 
   ## measurements
 

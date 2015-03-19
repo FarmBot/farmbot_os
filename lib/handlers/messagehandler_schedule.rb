@@ -9,9 +9,7 @@ class MessageHandlerSchedule < MessageHandlerBase
 
   attr_accessor :message
 
-  def whitelist
-    ["single_command","crop_schedule_update"]
-  end
+  WHITELIST = ["single_command","crop_schedule_update"]
 
   def single_command(message)
     if message.payload.has_key? 'command'

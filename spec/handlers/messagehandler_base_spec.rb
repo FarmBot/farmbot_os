@@ -10,16 +10,16 @@ describe MessageHandlerBase do
   it "handles messages" do
     message = MessageHandlerMessage.new({}, message_handler)
     message.handled = false
-    handler.handle_message(message)
-    expect(message.handled).to eq(false)
+    expect do
+      handler.handle_message(message)
+    end.to raise_error(RuntimeError)
   end
 
   it "handles test messages" do
     message = MessageHandlerMessage.new({}, message_handler)
     message.message_type = 'test'
     message.handled = false
-    handler.handle_message(message)
-    expect(message.handled).to eq(true)
+    expect(handler.handle_message(message)).to include("?")
   end
 
 

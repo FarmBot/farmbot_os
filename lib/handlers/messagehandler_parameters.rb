@@ -7,9 +7,7 @@ require_relative 'messagehandler_base'
 # command queue Parses JSON messages received through SkyNet.
 class MessageHandlerParameter < MessageHandlerBase
 
-  def whitelist
-    ["read_parameters","write_parameters"]
-  end
+  WHITELIST = ["read_parameters","write_parameters"]
 
   # Read parameter list from the database and send through skynet
   #

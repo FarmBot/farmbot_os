@@ -25,7 +25,7 @@ describe MessageHandlerLog do
   ## logs
 
   it "white list" do
-    list = @handler.whitelist
+    list = MessageHandlerLog::WHITELIST
     expect(list.count).to eq(1)
   end
 
