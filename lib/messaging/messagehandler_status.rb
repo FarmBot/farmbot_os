@@ -14,7 +14,8 @@ class MessageHandlerStatus < MessageHandlerBase
   # Send the current status to the requester
   #
   def read_status(message)
-
+puts "status"
+puts message
     @dbaccess.write_to_log(2,'handle read status')
 
     $bot_control.read_hw_status()

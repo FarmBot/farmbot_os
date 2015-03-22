@@ -57,12 +57,14 @@ class Messaging
     $info_nr_msg_received  += 1
 
     if message.class.to_s == 'Hash'
-      @message_handler.handle_message(message)
+      #@message_handler.handle_message(message)
+      MessageQueue.current.push message
     end
 
     if message.class.to_s == 'String'
-      message_hash = JSON.parse(message)
-      @message_handler.handle_message(message_hash)
+      #message_hash = JSON.parse(message)
+      #@message_handler.handle_message(message_hash)
+      MessageQueue.current.push message
     end
 
   rescue

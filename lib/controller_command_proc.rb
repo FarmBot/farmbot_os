@@ -4,7 +4,7 @@
 class ControllerCommandProc
 
   def initialize
-    @bot_dbaccess        = $bot_dbaccess
+    #@bot_dbaccess        = $bot_dbaccess
   end
 
   def whitelist
@@ -15,17 +15,9 @@ class ControllerCommandProc
     raise "UNAUTHORIZED: #{function}" unless whitelist.include?(function.downcase)
   end
 
-  def process_command( cmd )
+  def start_command( cmd )
 
-    if cmd != nil
-      cmd.command_lines.each do |command_line|
-        send_command(command_line)
-      end
-    else
-      sleep 0.1
-    end
-
-    $status.info_movement = 'idle'
+    send_command(command_line)
 
   end
 
@@ -41,7 +33,7 @@ class ControllerCommandProc
       puts "simulating: #{@info_movement}"
       #@bot_dbaccess.write_to_log(1,@info_movement)
       #@bot_dbaccess.write_to_log(1,"simulating hardware: #{function}")
-      sleep 0.1
+      #sleep 0.1
     end
   end
 
