@@ -1,29 +1,29 @@
 require 'spec_helper'
 require './lib/status.rb'
-#require './lib/messaging/messaging.rb'
-require './lib/messaging/messagehandler.rb'
-require './lib/messaging/messaging_test.rb'
-require './lib/messaging/messagehandler_logs.rb'
+#require './lib/messaging/messenger.rb'
+require './lib/handlers/messagehandler.rb'
+require './spec/fixtures/stub_messenger.rb'
+require './lib/handlers/messagehandler_logs.rb'
 
 describe MessageHandlerLog do
 
   before do
     $db_write_sync = Mutex.new
-    $bot_dbaccess = DbAccess.new('development')
-    $dbaccess = $bot_dbaccess
-    $dbaccess.disable_log_to_screen()
+    DbAccess.current = DbAccess.new('development')
+    DbAccess.current = DbAccess.current
+    DbAccess.current.disable_log_to_screen()
 
-    $status = Status.new
+    Status.current = Status.new
 
-    $messaging = MessagingTest.new
-    $messaging.reset
+    messaging = StubMessenger.new
+    messaging.reset
 
-    @handler = MessageHandlerLog.new
-    @main_handler = MessageHandler.new
+    @handler = MessageHandlerLog.new(messaging)
+    @main_handler = MessageHandler.new(messaging)
   end
 
   ## logs
-  
+
   it "white list" do
     list = @handler.whitelist
     expect(list.count).to eq(1)
@@ -37,8 +37,8 @@ describe MessageHandlerLog do
     log_module_1 = 99
     log_module_2 = 98
 
-    $dbaccess.write_to_log( log_module_1, log_text_1 )
-    $dbaccess.write_to_log( log_module_2, log_text_2 )
+    DbAccess.current.write_to_log( log_module_1, log_text_1 )
+    DbAccess.current.write_to_log( log_module_2, log_text_2 )
 
     # get the logs in a message
 
@@ -48,7 +48,7 @@ describe MessageHandlerLog do
 
     @handler.read_logs(message)
 
-    return_list = $messaging.message
+    return_list = @handler.messaging.message
 
     # check if the logged lines are present in the message
 
@@ -69,7 +69,7 @@ describe MessageHandlerLog do
 
     expect(found_in_list_1).to eq(true)
     expect(found_in_list_2).to eq(true)
-    expect($messaging.message[:message_type]).to eq('read_logs_response')
+    expect(@handler.messaging.message[:message_type]).to eq('read_logs_response')
   end
 
 end

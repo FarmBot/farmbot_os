@@ -4,15 +4,18 @@
 class ControllerCommandProc
 
   def initialize
-    @bot_dbaccess        = $bot_dbaccess
+    @bot_dbaccess        = DbAccess.current
   end
 
-  def whitelist
-    ['move_absolute','move_relative','home_x','home_y','home_z','calibrate_x','calibrate_y','calibrate_z','dose_water','set_speed','pin_write','pin_read','pin_mode','pin_pulse','servo_move']
-  end
+  WHITELIST = ['move_absolute','move_relative','home_x','home_y','home_z',
+               'calibrate_x','calibrate_y','calibrate_z','dose_water',
+               'set_speed','pin_write','pin_read','pin_mode','pin_pulse',
+               'servo_move']
 
   def check_whitelist(function)
-    raise "UNAUTHORIZED: #{function}" unless whitelist.include?(function.downcase)
+    unless WHITELIST.include?(function.downcase)
+      raise "UNAUTHORIZED: #{function}"
+    end
   end
 
   def process_command( cmd )
@@ -25,7 +28,7 @@ class ControllerCommandProc
       sleep 0.1
     end
 
-    $status.info_movement = 'idle'
+    Status.current.info_movement = 'idle'
 
   end
 
@@ -36,74 +39,69 @@ class ControllerCommandProc
     if $hardware_sim == 0
       send(function, command_line)
     else
-      #$status.info_movement = 
-      @info_movement = "#{command_line.action.downcase} xyz=#{command_line.coord_x} #{command_line.coord_y} #{command_line.coord_z} amt=#{command_line.amount} spd=#{command_line.speed} pin=#{command_line.pin_nr}"
-      puts "simulating: #{@info_movement}"
-      #@bot_dbaccess.write_to_log(1,@info_movement)
-      #@bot_dbaccess.write_to_log(1,"simulating hardware: #{function}")
       sleep 0.1
     end
   end
 
   def move_absolute(command_line)
-    $bot_hardware.move_absolute(command_line.coord_x, command_line.coord_y, command_line.coord_z)
+    HardwareInterface.current.move_absolute(command_line.coord_x, command_line.coord_y, command_line.coord_z)
   end
 
   def move_relative(command_line)
-    $bot_hardware.move_relative(command_line.coord_x, command_line.coord_y, command_line.coord_z)
+    HardwareInterface.current.move_relative(command_line.coord_x, command_line.coord_y, command_line.coord_z)
   end
 
   def home_x(command_line)
-    $bot_hardware.move_home_x
+    HardwareInterface.current.move_home_x
   end
 
   def home_y(command_line)
-    $bot_hardware.move_home_y
+    HardwareInterface.current.move_home_y
   end
 
   def home_z(command_line)
-    $bot_hardware.move_home_z
+    HardwareInterface.current.move_home_z
   end
 
   def calibration_x(command_line)
-    $bot_hardware.calibrate_x
+    HardwareInterface.current.calibrate_x
   end
 
   def calibration_y(command_line)
-    $bot_hardware.calibrate_y
+    HardwareInterface.current.calibrate_y
   end
 
   def calibration_z(command_line)
-    $bot_hardware.calibrate_z
+    HardwareInterface.current.calibrate_z
   end
 
   def dose_water(command_line)
-    $bot_hardware.dose_water(command_line.amount)
+    HardwareInterface.current.dose_water(command_line.amount)
   end
 
 #  def set_speed(command_line)
-#    $bot_hardware.set_speed(command_line.speed)
+#    HardwareInterface.current.set_speed(command_line.speed)
 #  end
 
   def pin_write(command_line)
-    $bot_hardware.pin_std_set_value(command_line.pin_nr, command_line.pin_value_1, command_line.pin_mode)
+    HardwareInterface.current.pin_std_set_value(command_line.pin_nr, command_line.pin_value_1, command_line.pin_mode)
   end
 
   def pin_read(command_line)
-    $bot_hardware.pin_std_read_value(command_line.pin_nr, command_line.pin_mode, command_line.external_info)
+    HardwareInterface.current.pin_std_read_value(command_line.pin_nr, command_line.pin_mode, command_line.external_info)
   end
 
   def pin_mode(command_line)
-    $bot_hardware.pin_std_set_mode(command_line.pin_nr, command_line.pin_mode)
+    HardwareInterface.current.pin_std_set_mode(command_line.pin_nr, command_line.pin_mode)
   end
 
   def pin_pulse(command_line)
-    $bot_hardware.pin_std_pulse(command_line.pin_nr, command_line.pin_value_1, 
+    HardwareInterface.current.pin_std_pulse(command_line.pin_nr, command_line.pin_value_1,
                 command_line.pin_value_2, command_line.pin_time, command_line.pin_mode)
   end
 
   def servo_move(command_line)
-    $bot_hardware.servo_std_move(command_line.pin_nr, command_line.pin_value_1)
+    HardwareInterface.current.servo_std_move(command_line.pin_nr, command_line.pin_value_1)
   end
 
 

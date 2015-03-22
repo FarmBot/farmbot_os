@@ -1,20 +1,23 @@
 require 'spec_helper'
-#require './lib/messaging/messaging.rb'
-require './lib/messaging/messagehandler_base.rb'
-require './lib/messaging/messagehandler_message.rb'
+#require './lib/messaging/messenger.rb'
+require './lib/handlers/messagehandler_base.rb'
+require './lib/handlers/messagehandler_message.rb'
 
 describe MessageHandlerBase do
 
 
   before do
-    @handler = MessageHandlerBase.new
+    messaging = StubMessenger.new
+    messaging.reset
+
+    @handler = MessageHandlerBase.new(messaging)
   end
 
   it "hanlde message" do
     message = MessageHandlerMessage.new
     message.handled = false
     @handler.handle_message(message)
-    expect(message.handled).to eq(false)        
+    expect(message.handled).to eq(false)
   end
 
   it "hanlde message test message" do
@@ -22,7 +25,7 @@ describe MessageHandlerBase do
     message.message_type = 'test'
     message.handled = false
     @handler.handle_message(message)
-    expect(message.handled).to eq(true)        
+    expect(message.handled).to eq(true)
   end
 
 

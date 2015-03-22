@@ -1,25 +1,25 @@
 require 'spec_helper'
 require './lib/status.rb'
-#require './lib/messaging/messaging.rb'
-require './lib/messaging/messagehandler.rb'
-require './lib/messaging/messaging_test.rb'
-require './lib/messaging/messagehandler_measurements.rb'
+#require './lib/messaging/messenger.rb'
+require './lib/handlers/messagehandler.rb'
+require './spec/fixtures/stub_messenger.rb'
+require './lib/handlers/messagehandler_measurements.rb'
 
 describe MessageHandlerMeasurement do
 
   before do
     $db_write_sync = Mutex.new
-    $bot_dbaccess = DbAccess.new('development')
-    $dbaccess = $bot_dbaccess
-    $dbaccess.disable_log_to_screen()
+    DbAccess.current = DbAccess.new('development')
+    DbAccess.current = DbAccess.current
+    DbAccess.current.disable_log_to_screen()
 
-    $status = Status.new
+    Status.current = Status.new
 
-    $messaging = MessagingTest.new
-    $messaging.reset
+    messaging = StubMessenger.new
+    messaging.reset
 
-    @handler = MessageHandlerMeasurement.new
-    @main_handler = MessageHandler.new
+    @handler = MessageHandlerMeasurement.new(messaging)
+    @main_handler = MessageHandler.new(messaging)
   end
 
   ## measurements
@@ -28,13 +28,13 @@ describe MessageHandlerMeasurement do
     list = @handler.whitelist
     expect(list.count).to eq(2)
   end
-  
+
   it "read measurements" do
 
     # write a measurement
     measurement_value = rand(9999999).to_i
     measurement_text  = rand(9999999).to_s
-    $dbaccess.write_measurements(measurement_value, measurement_text)
+    DbAccess.current.write_measurements(measurement_value, measurement_text)
 
     message = MessageHandlerMessage.new
     message.handled = false
@@ -45,14 +45,14 @@ describe MessageHandlerMeasurement do
 
     # check if the created item is into the list to send
     found_in_list = false
-    $messaging.message[:measurements].each do |item|
+    @handler.messaging.message[:measurements].each do |item|
       if item['value'] == measurement_value and item['ext_info'] == measurement_text
         found_in_list = true
       end
     end
 
     expect(found_in_list).to eq(true)
-    expect($messaging.message[:message_type]).to eq('read_measurements_response')
+    expect(@handler.messaging.message[:message_type]).to eq('read_measurements_response')
   end
 
   it "delete measurement" do
@@ -60,11 +60,11 @@ describe MessageHandlerMeasurement do
     # write two measurements
     measurement_value_1 = rand(9999999).to_i
     measurement_text_1  = rand(9999999).to_s
-    $dbaccess.write_measurements(measurement_value_1, measurement_text_1)
+    DbAccess.current.write_measurements(measurement_value_1, measurement_text_1)
 
     measurement_value_2 = rand(9999999).to_i
     measurement_text_2  = rand(9999999).to_s
-    $dbaccess.write_measurements(measurement_value_2, measurement_text_2)
+    DbAccess.current.write_measurements(measurement_value_2, measurement_text_2)
 
     # check if the measurements are in the database and get the id
     found_in_list_1       = false
@@ -73,7 +73,7 @@ describe MessageHandlerMeasurement do
     found_in_list_2_after = false
     id_1                  = 0
     id_2                  = 0
-    return_list = $dbaccess.read_measurement_list()
+    return_list = DbAccess.current.read_measurement_list()
 
     return_list.each do |item|
       if item['value'] == measurement_value_1 and item['ext_info'] == measurement_text_1
@@ -98,7 +98,7 @@ describe MessageHandlerMeasurement do
     # check if the measurements are still in the database and get the id
     found_in_list_1_after = false
     found_in_list_2_after = false
-    return_list = $dbaccess.read_measurement_list()
+    return_list = DbAccess.current.read_measurement_list()
 
     return_list.each do |item|
       if item['value'] == measurement_value_1 and item['ext_info'] == measurement_text_1
@@ -114,7 +114,7 @@ describe MessageHandlerMeasurement do
     expect(found_in_list_2).to eq(true)
     expect(found_in_list_1_after).to eq(false)
     expect(found_in_list_2_after).to eq(false)
-    expect($messaging.message[:message_type]).to eq('confirmation')
+    expect(@handler.messaging.message[:message_type]).to eq('confirmation')
 
   end
 
