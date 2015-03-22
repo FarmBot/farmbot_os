@@ -6,12 +6,11 @@ require './lib/hardware/gcode/ramps.rb'
 describe HardwareInterface do
 
   before do
-    $db_write_sync = Mutex.new
-    $bot_dbaccess = DbAccess.new('development')
-    $dbaccess = $bot_dbaccess
-    $dbaccess.disable_log_to_screen()
+    DbAccess.current = DbAccess.new('development')
+    DbAccess.current = DbAccess.current
+    DbAccess.current.disable_log_to_screen()
 
-    $status = Status.new
+    Status.current = Status.new
 
     @ramps = HardwareInterface.new(true)
   end
@@ -56,14 +55,14 @@ describe HardwareInterface do
     @ramps.pin_std_read_value(pin, mode, ext_info)
 
     pin_value = 0
-    list = $dbaccess.read_measurement_list()
+    list = DbAccess.current.read_measurement_list()
 
     list.each do |meas|
       if meas['ext_info'].to_s == ext_info.to_s
         pin_value = meas['value']
       end
     end
-    
+
     expect(pin_value.to_i).to eq(value.to_i)
     expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F42 P#{pin} M#{mode}\n")
   end
@@ -127,12 +126,12 @@ describe HardwareInterface do
     @ramps.read_end_stops()
 
     expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F81\n")
-    expect($status.info_end_stop_x_a).to eq(xa == 1)
-    expect($status.info_end_stop_x_b).to eq(xb == 1)
-    expect($status.info_end_stop_y_a).to eq(ya == 1)
-    expect($status.info_end_stop_y_b).to eq(yb == 1)
-    expect($status.info_end_stop_z_a).to eq(za == 1)
-    expect($status.info_end_stop_z_b).to eq(zb == 1)
+    expect(Status.current.info_end_stop_x_a).to eq(xa == 1)
+    expect(Status.current.info_end_stop_x_b).to eq(xb == 1)
+    expect(Status.current.info_end_stop_y_a).to eq(ya == 1)
+    expect(Status.current.info_end_stop_y_b).to eq(yb == 1)
+    expect(Status.current.info_end_stop_z_a).to eq(za == 1)
+    expect(Status.current.info_end_stop_z_b).to eq(zb == 1)
   end
 
 #  def read_postition()
@@ -148,9 +147,9 @@ describe HardwareInterface do
     @ramps.read_postition()
 
     expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F82\n")
-    expect($status.info_current_x_steps).to eq(x)
-    expect($status.info_current_y_steps).to eq(y)
-    expect($status.info_current_z_steps).to eq(z)
+    expect(Status.current.info_current_x_steps).to eq(x)
+    expect(Status.current.info_current_y_steps).to eq(y)
+    expect(Status.current.info_current_z_steps).to eq(z)
   end
 
 #  def read_device_version()
@@ -163,7 +162,7 @@ describe HardwareInterface do
     @ramps.read_device_version()
 
     expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F83\n")
-    expect($status.device_version).to eq(version)
+    expect(Status.current.device_version).to eq(version)
   end
 
 #  def move_home_all
@@ -274,9 +273,9 @@ describe HardwareInterface do
     current_y = rand(9999999).to_i
     current_z = rand(9999999).to_i
 
-    $status.info_current_x_steps = current_x
-    $status.info_current_y_steps = current_y
-    $status.info_current_z_steps = current_z
+    Status.current.info_current_x_steps = current_x
+    Status.current.info_current_y_steps = current_y
+    Status.current.info_current_z_steps = current_z
 
     @ramps.ramps_arduino.serial_port.test_serial_read = "R01\nR02\n"
     @ramps.move_relative( x, y, z)
@@ -330,8 +329,8 @@ describe HardwareInterface do
 
     db_version  = rand(9999999).to_i
 
-    $bot_dbaccess.write_parameter('PARAM_VERSION',db_version)
-    
+    DbAccess.current.write_parameter('PARAM_VERSION',db_version)
+
     @ramps.ramps_arduino.serial_port.test_serial_write = ""
     @ramps.ramps_arduino.serial_port.test_serial_read  = "R21 P0 V#{db_version}\n"
     @ramps.check_parameters()
@@ -339,5 +338,5 @@ describe HardwareInterface do
     expect(@ramps.ramps_arduino.serial_port.test_serial_write).to eq("F21 P0\n")
   end
 
- 
+
 end

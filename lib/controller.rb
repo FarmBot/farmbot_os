@@ -2,7 +2,6 @@ require 'active_record'
 require 'date'
 require_relative 'database/dbaccess'
 require_relative 'controller_command_proc'
-
 # FarmBot Controller: This module executes the schedule. It reads the next
 # command and sends it to the hardware implementation
 class Controller
@@ -10,7 +9,7 @@ class Controller
   def initialize
     @star_char           = 0
 
-    @bot_dbaccess        = $bot_dbaccess
+    @bot_dbaccess        = DbAccess.current
     @last_hw_check       = Time.now
     @command             = nil
 
@@ -51,8 +50,8 @@ class Controller
 
 
   def check_and_execute_command
-    if @command != nil and $status.emergency_stop == false
-      $status.info_command_next = @command.scheduled_time
+    if @command != nil and Status.current.emergency_stop == false
+      Status.current.info_command_next = @command.scheduled_time
       check_command_execution_time
     else
       wait_for_next_command
@@ -71,21 +70,21 @@ class Controller
 
   def startup_farmbot
 
-    $status.info_status = 'starting'
+    Status.current.info_status = 'starting'
     puts 'OK'
- 
-    #print 'arduino         '
-    sleep 1
-    #$bot_hardware.read_device_version() if $hardware_sim == 0
-    #puts  $status.device_version
 
-    #$status.info_status = 'synchronizing arduino parameters'
+    print 'arduino         '
+    sleep 1
+    #HardwareInterface.current.read_device_version() if $hardware_sim == 0
+    #puts  Status.current.device_version
+
+    #Status.current.info_status = 'synchronizing arduino parameters'
     #print 'parameters      '
-    #$bot_hardware.check_parameters if $hardware_sim == 0
-    #$bot_hardware.check_parameters if $hardware_sim == 0
+    #HardwareInterface.current.check_parameters if $hardware_sim == 0
+    #HardwareInterface.current.check_parameters if $hardware_sim == 0
 
     #if $hardware_sim == 0
-    #  if  $bot_hardware.ramps_param.params_in_sync
+    #  if  HardwareInterface.current.ramps_param.params_in_sync
     #    puts 'OK'
     #  else
     #    puts 'ERROR'
@@ -94,8 +93,9 @@ class Controller
     #  puts "SIM"
     #end
 
-    $bot_hardware.read_end_stops()
-    $bot_hardware.read_postition()
+    #HardwareInterface.current.read_end_stops()
+    #HardwareInterface.current.read_postition()
+
     read_hw_status()
 
     @bot_dbaccess.write_to_log(1,'Controller running')
@@ -105,8 +105,8 @@ class Controller
 
   def get_next_command
 
-    if $status.emergency_stop == false
-      $status.info_status = 'checking schedule'
+    if Status.current.emergency_stop == false
+      Status.current.info_status = 'checking schedule'
       #show_info()
 
       @command = @bot_dbaccess.get_command_to_execute
@@ -118,28 +118,28 @@ class Controller
   def execute_command
 
     # execute the command now and set the status to done
-    $status.info_status = 'executing command'
+    Status.current.info_status = 'executing command'
     #show_info()
 
 
-    $status.info_nr_of_commands = $status.info_nr_of_commands + 1
+    Status.current.info_nr_of_commands = Status.current.info_nr_of_commands + 1
 
     process_command( @command )
     @bot_dbaccess.set_command_to_execute_status('FINISHED')
-    $status.info_command_last = Time.now
-    $status.info_command_next = nil
+    Status.current.info_command_last = Time.now
+    Status.current.info_command_next = nil
 
   end
 
   def wait_for_scheduled_time
 
-    $status.info_status = 'waiting for scheduled time or refresh'
+    Status.current.info_status = 'waiting for scheduled time or refresh'
 
     refresh_received = false
 
     wait_start_time = Time.now
 
-    # wait until the scheduled time has arrived, or wait for a minute or 
+    # wait until the scheduled time has arrived, or wait for a minute or
     # until a refresh it set in the database as a sign new data has arrived
 
     while Time.now < wait_start_time + 60 and @command.scheduled_time > Time.now - 1 and refresh_received == false
@@ -153,15 +153,15 @@ class Controller
 
   def wait_for_next_command
 
-    if $status.emergency_stop == true
+    if Status.current.emergency_stop == true
 
-      $status.info_status = 'emergency stop'
+      Status.current.info_status = 'emergency stop'
       sleep 0.5
       check_hardware()
 
     else
 
-      $status.info_status = 'no command found, waiting'
+      Status.current.info_status = 'Awaiting commands.'
 
       @info_command_next = nil
 
@@ -172,9 +172,7 @@ class Controller
       # new data has arrived
 
       while  Time.now < wait_start_time + 60 and refresh_received == false
-
         sleep 0.1
-
         check_hardware()
 
         refresh_received = true if @bot_dbaccess.check_refresh
@@ -217,16 +215,16 @@ class Controller
 
 
     read_hw_status()
-    $status.info_movement = 'idle'
+    Status.current.info_movement = 'idle'
 
   end
 
   def check_hardware()
 
     if (Time.now - @last_hw_check) > 0.5 and $hardware_sim == 0
-      $bot_hardware.check_parameters
-      $bot_hardware.read_end_stops()
-      $bot_hardware.read_postition()
+      HardwareInterface.current.check_parameters
+      HardwareInterface.current.read_end_stops()
+      HardwareInterface.current.read_postition()
       read_hw_status()
       @last_hw_check = Time.now
 
@@ -246,9 +244,9 @@ class Controller
       print "\b"
     end
 
-    print "x %04d %s%s " % [$status.info_current_x, bool_to_char($status.info_end_stop_x_a), bool_to_char($status.info_end_stop_x_b)]
-    print "y %04d %s%s " % [$status.info_current_y, bool_to_char($status.info_end_stop_y_a), bool_to_char($status.info_end_stop_y_b)]
-    print "z %04d %s%s " % [$status.info_current_z, bool_to_char($status.info_end_stop_z_a), bool_to_char($status.info_end_stop_z_b)]
+    print "x %04d %s%s " % [Status.current.info_current_x, bool_to_char(Status.current.info_end_stop_x_a), bool_to_char(Status.current.info_end_stop_x_b)]
+    print "y %04d %s%s " % [Status.current.info_current_y, bool_to_char(Status.current.info_end_stop_y_a), bool_to_char(Status.current.info_end_stop_y_b)]
+    print "z %04d %s%s " % [Status.current.info_current_z, bool_to_char(Status.current.info_end_stop_z_a), bool_to_char(Status.current.info_end_stop_z_b)]
     print ' '
 
   end
@@ -266,7 +264,7 @@ class Controller
     @star_char %= 4
     print "\b"
 
-    if $status.emergency_stop == true
+    if Status.current.emergency_stop == true
       print 'E'
     else
       case @star_char
@@ -283,9 +281,9 @@ class Controller
   end
 
   def check_refresh
-    if $status.command_refresh != @cmd_last_refresh
+    if Status.current.command_refresh != @cmd_last_refresh
       refreshed = true
-      @cmd_last_refresh = $status.command_refresh
+      @cmd_last_refresh = Status.current.command_refresh
     else
       refreshed = false
     end

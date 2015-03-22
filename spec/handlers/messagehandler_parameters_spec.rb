@@ -1,30 +1,30 @@
 require 'spec_helper'
 require './lib/status.rb'
-require './lib/messaging/messagehandler.rb'
-require './lib/messaging/messaging_test.rb'
-require './lib/messaging/messagehandler_parameters.rb'
+require './lib/handlers/messagehandler.rb'
+require './spec/fixtures/stub_messenger.rb'
+require './lib/handlers/messagehandler_parameters.rb'
 
 describe MessageHandlerParameter do
+  let(:message) { MessageHandlerMessage.new({}, StubMessenger.new) }
 
   before do
-    $db_write_sync = Mutex.new
-    $bot_dbaccess = DbAccess.new('development')
-    $dbaccess = $bot_dbaccess
-    $dbaccess.disable_log_to_screen()
+    DbAccess.current = DbAccess.new('development')
+    DbAccess.current = DbAccess.current
+    DbAccess.current.disable_log_to_screen()
 
-    $status = Status.new
+    Status.current = Status.new
 
-    $messaging = MessagingTest.new
-    $messaging.reset
+    messaging = StubMessenger.new
+    messaging.reset
 
-    @handler = MessageHandlerParameter.new
-    @main_handler = MessageHandler.new
+    @handler = MessageHandlerParameter.new(messaging)
+    @main_handler = MessageHandler.new(messaging)
   end
 
   ## measurements
 
   it "white list" do
-    list = @handler.whitelist
+    list = MessageHandlerParameter::WHITELIST
     expect(list.count).to eq(2)
   end
 
@@ -33,21 +33,20 @@ describe MessageHandlerParameter do
     # write a few parameters
     parameter_value_1 = rand(9999999).to_i
     parameter_name_1  = rand(9999999).to_s
-    $dbaccess.write_parameter(parameter_name_1, parameter_value_1)
+    DbAccess.current.write_parameter(parameter_name_1, parameter_value_1)
 
     parameter_value_2 = rand(9999999).to_i
     parameter_name_2  = rand(9999999).to_s
-    $dbaccess.write_parameter(parameter_name_2, parameter_value_2)
+    DbAccess.current.write_parameter(parameter_name_2, parameter_value_2)
 
     # get the list of parameters that the system will send
 
-    message = MessageHandlerMessage.new
     message.handled = false
     message.handler = @main_handler
 
     @handler.read_parameters(message)
 
-    return_list = $messaging.message
+    return_list = @handler.messaging.message
 
     # check if the parameters are present in the message
 
@@ -67,7 +66,7 @@ describe MessageHandlerParameter do
 
     expect(found_in_list_1).to eq(true)
     expect(found_in_list_2).to eq(true)
-    expect($messaging.message[:message_type]).to eq('read_parameters_response')
+    expect(@handler.messaging.message[:message_type]).to eq('read_parameters_response')
   end
 
   it "write parameters" do
@@ -81,13 +80,12 @@ describe MessageHandlerParameter do
 
     # write a value using a message
 
-    message = MessageHandlerMessage.new
     message.handled = false
     message.handler = @main_handler
     #message.payload = {'ids' => [id_1,id_2]}
-    message.payload = 
+    message.payload =
       {
-        'parameters' => 
+        'parameters' =>
           [
             {'name' => parameter_name_1, 'type' => 1, 'value' => parameter_value_1},
             {'name' => parameter_name_2, 'type' => 1, 'value' => parameter_value_2}
@@ -98,28 +96,27 @@ describe MessageHandlerParameter do
 
     # check if the parameters in the database have the right values
 
-    value_read_1          = $dbaccess.read_parameter(parameter_name_1)
-    value_read_2          = $dbaccess.read_parameter(parameter_name_2)
+    value_read_1          = DbAccess.current.read_parameter(parameter_name_1)
+    value_read_2          = DbAccess.current.read_parameter(parameter_name_2)
 
     # check expectations
 
     expect(value_read_1).to eq(parameter_value_1)
     expect(value_read_2).to eq(parameter_value_2)
-    expect($messaging.message[:message_type]).to eq('confirmation')
+    expect(@handler.messaging.message[:message_type]).to eq('confirmation')
 
   end
 
   it "write parameters empty command" do
 
 
-    message = MessageHandlerMessage.new
     message.handled = false
     message.handler = @main_handler
     message.payload = {}
 
     @handler.write_parameters(message)
 
-    expect($messaging.message[:message_type]).to eq('error')
+    expect(@handler.messaging.message[:message_type]).to eq('error')
 
   end
 

@@ -22,15 +22,15 @@ class HardwareInterfaceArduino
   #
   def initialize(test_mode)
 
-    @bot_dbaccess = $bot_dbaccess
+    @bot_dbaccess = DbAccess.current
 
-    @status_debug_msg = $status_debug_msg
+    @status_debug_msg = $debug_msg
 
     @test_mode         = test_mode
 
     # connect to arduino
     connect_board()
-    
+
     @external_info         = ""
 
   end
@@ -42,12 +42,12 @@ class HardwareInterfaceArduino
   #
   def connect_board
 
-    parameters = 
+    parameters =
     {
       "baud"         => 115200,
       "data_bits"    => 8,
       "stop_bits"    => 1,
-      "parity"       => SerialPort::NONE,	
+      "parity"       => SerialPort::NONE,
       "flow_control" => SerialPort::SOFT
     }
 
@@ -60,7 +60,7 @@ class HardwareInterfaceArduino
   # write a command to the robot
   #
   def execute_command(text, log, onscreen)
-    begin  
+    begin
 
       write_status = create_write_status(text, log, onscreen)
 
@@ -103,7 +103,7 @@ class HardwareInterfaceArduino
   end
 
   def log_result_of_execution(write_status)
- 
+
     # log things if needed
     if write_status.done == 1
       puts 'ST: done' if write_status.onscreen
@@ -160,7 +160,7 @@ class HardwareInterfaceArduino
     case write_status.code
 
       # command received by arduino
-      when 'R01'                        
+      when 'R01'
         write_status.timeout = 90
 
       # command is finished
@@ -209,8 +209,8 @@ class HardwareInterfaceArduino
 
   # if there is an emergency stop, immediately write it to the arduino
   #
-  def check_emergency_stop    
-    if ($status.emergency_stop)
+  def check_emergency_stop
+    if (Status.current.emergency_stop)
      serial_port_write( "E\n" )
     end
   end
@@ -232,7 +232,7 @@ class HardwareInterfaceArduino
 
     # depending on the report code, process the values
     # this is done by reading parameter names and their values
-    # and respong on it as needed 
+    # and respong on it as needed
 
     process_value_process_param_list(params,code)
     process_value_process_named_params(params,code)
@@ -257,7 +257,7 @@ class HardwareInterfaceArduino
       params.load_parameter(par_code, par_value)
 
     end
-    
+
   end
 
   def process_value_process_param_list(params,code)
@@ -281,7 +281,7 @@ class HardwareInterfaceArduino
   end
 
   # Process report parameter value and save to database
-  # 
+  #
   def process_value_R23(params,code)
     if code == 'R23'
       param = @ramps_param.get_param_by_id(params.p)
@@ -307,28 +307,28 @@ class HardwareInterfaceArduino
   # Process report end stops
   #
   def process_value_R81(params,code)
-    if code == 'R81'      
-      $status.info_end_stop_x_a = (params.xa == 1)
-      $status.info_end_stop_x_b = (params.xb == 1)
-      $status.info_end_stop_y_a = (params.ya == 1)
-      $status.info_end_stop_y_b = (params.yb == 1)
-      $status.info_end_stop_z_a = (params.za == 1)
-      $status.info_end_stop_z_b = (params.zb == 1)
+    if code == 'R81'
+      Status.current.info_end_stop_x_a = (params.xa == 1)
+      Status.current.info_end_stop_x_b = (params.xb == 1)
+      Status.current.info_end_stop_y_a = (params.ya == 1)
+      Status.current.info_end_stop_y_b = (params.yb == 1)
+      Status.current.info_end_stop_z_a = (params.za == 1)
+      Status.current.info_end_stop_z_b = (params.zb == 1)
     end
   end
 
   # Process report position
   def process_value_R82(params,code)
-    if code == 'R82'      
+    if code == 'R82'
 
-      $status.info_current_x_steps = params.x
-      $status.info_current_x       = params.x / @ramps_param.axis_x_steps_per_unit
+      Status.current.info_current_x_steps = params.x
+      Status.current.info_current_x       = params.x / @ramps_param.axis_x_steps_per_unit
 
-      $status.info_current_y_steps = params.y
-      $status.info_current_y       = params.y / @ramps_param.axis_y_steps_per_unit
+      Status.current.info_current_y_steps = params.y
+      Status.current.info_current_y       = params.y / @ramps_param.axis_y_steps_per_unit
 
-      $status.info_current_z_steps = params.z
-      $status.info_current_z       = params.z / @ramps_param.axis_z_steps_per_unit
+      Status.current.info_current_z_steps = params.z
+      Status.current.info_current_z       = params.z / @ramps_param.axis_z_steps_per_unit
 
     end
   end
@@ -336,15 +336,15 @@ class HardwareInterfaceArduino
   def process_value_process_text(code,text)
     process_value_process_R83(code,text)
     process_value_process_R99(code,text)
-  end  
+  end
 
   # Process report software version
   #
   def process_value_process_R83(code,text)
     if code == 'R83'
-        $status.device_version = text
+        Status.current.device_version = text
     end
-  end  
+  end
 
   # Process report of a debug comment
   #
@@ -352,14 +352,25 @@ class HardwareInterfaceArduino
     if code == 'R99'
         puts ">#{text}<"
     end
-  end  
+  end
 
   ## additional pin function
 
   # save a pin measurement
   #
   def save_pin_value(pin_id, pin_val)
-    @bot_dbaccess.write_measurements(pin_val, @external_info)
+    case pin_id
+    when 8
+      Status.current.info_pin_8  = pin_val
+    when 9
+      Status.current.info_pin_9  = pin_val
+    when 10
+      Status.current.info_pin_10 = pin_val
+    when 13
+      Status.current.info_pin_13 = pin_val
+    else
+      @bot_dbaccess.write_measurements(pin_val, @external_info)
+    end
   end
 
 end

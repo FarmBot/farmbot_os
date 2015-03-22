@@ -37,9 +37,9 @@ Gemfile.lock
 log/*
 notes.rb
 settings.rb
+/lib/.build
+write_db_settings.rb
 snippet.coffee
 snippets.rb
 tmp/**/*
-write_db_settings.rb
 *.rb~
-

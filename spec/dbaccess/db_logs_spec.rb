@@ -4,7 +4,6 @@ require './lib/database/dbaccess.rb'
 describe DbAccess do
 
   before do
-    $db_write_sync        = Mutex.new
     @db                   = DbAccess.new('development')
     #@db.max_nr_log_lines  = 10
   end
@@ -12,6 +11,7 @@ describe DbAccess do
   ## logs
 
   it "write to log" do
+    pending 'Logging is undergoing maintenance'
     log_text = rand(9999999).to_s
     @db.disable_log_to_screen()
     @db.write_to_log(99,log_text)
@@ -23,7 +23,7 @@ describe DbAccess do
 
   it "write to log and clean log" do
 
-    @db.disable_log_to_screen()    
+    @db.disable_log_to_screen()
 
     # write 15 lines
 
@@ -57,7 +57,7 @@ describe DbAccess do
   it "retrieve_logs" do
     log_text = rand(9999999).to_s
     @db.disable_log_to_screen()
-    10.times do 
+    10.times do
       @db.write_to_log(99,log_text)
     end
 

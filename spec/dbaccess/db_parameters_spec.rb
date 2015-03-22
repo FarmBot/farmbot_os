@@ -4,7 +4,6 @@ require './lib/database/dbaccess.rb'
 describe DbAccess do
 
   before do
-    $db_write_sync = Mutex.new
     @db = DbAccess.new('development')
   end
 
@@ -130,10 +129,10 @@ describe DbAccess do
     param_value = 543
 
     param = Parameter.find_or_create_by(name: param_name)
-    @db.fill_parameter_if_fixnum(param, param_value)    
+    @db.fill_parameter_if_fixnum(param, param_value)
     return_val = param.valueint
 
-    expect(return_val).to eq(param_value)    
+    expect(return_val).to eq(param_value)
   end
 
   it "fill parameter values float"  do
@@ -141,10 +140,10 @@ describe DbAccess do
     param_value = 54.32
 
     param = Parameter.find_or_create_by(name: param_name)
-    @db.fill_parameter_if_float(param, param_value)    
+    @db.fill_parameter_if_float(param, param_value)
     return_val = param.valuefloat
 
-    expect(return_val).to eq(param_value)    
+    expect(return_val).to eq(param_value)
   end
 
   it "fill parameter values string"  do
@@ -152,10 +151,10 @@ describe DbAccess do
     param_value = "UVW"
 
     param = Parameter.find_or_create_by(name: param_name)
-    @db.fill_parameter_if_string(param, param_value)    
+    @db.fill_parameter_if_string(param, param_value)
     return_val = param.valuestring
 
-    expect(return_val).to eq(param_value)    
+    expect(return_val).to eq(param_value)
   end
 
   it "fill parameter values bool"  do
@@ -163,10 +162,10 @@ describe DbAccess do
     param_value = true
 
     param = Parameter.find_or_create_by(name: param_name)
-    @db.fill_parameter_if_bool(param, param_value)    
+    @db.fill_parameter_if_bool(param, param_value)
     return_val = param.valuebool
 
-    expect(return_val).to eq(param_value)    
+    expect(return_val).to eq(param_value)
   end
 
   it "fill parameter values 2 int"  do
@@ -174,10 +173,10 @@ describe DbAccess do
     param_value = 543
 
     param = Parameter.find_or_create_by(name: param_name)
-    @db.fill_parameter_values(param, param_value)    
+    @db.fill_parameter_values(param, param_value)
     return_val = param.valueint
 
-    expect(return_val).to eq(param_value)    
+    expect(return_val).to eq(param_value)
   end
 
   it "fill parameter values 2 float"  do
@@ -185,10 +184,10 @@ describe DbAccess do
     param_value = 54.32
 
     param = Parameter.find_or_create_by(name: param_name)
-    @db.fill_parameter_values(param, param_value)    
+    @db.fill_parameter_values(param, param_value)
     return_val = param.valuefloat
 
-    expect(return_val).to eq(param_value)    
+    expect(return_val).to eq(param_value)
   end
 
   it "fill parameter values 2 string"  do
@@ -196,10 +195,10 @@ describe DbAccess do
     param_value = "UVW"
 
     param = Parameter.find_or_create_by(name: param_name)
-    @db.fill_parameter_values(param, param_value)    
+    @db.fill_parameter_values(param, param_value)
     return_val = param.valuestring
 
-    expect(return_val).to eq(param_value)    
+    expect(return_val).to eq(param_value)
   end
 
   it "fill parameter values 2 bool"  do
@@ -207,15 +206,15 @@ describe DbAccess do
     param_value = true
 
     param = Parameter.find_or_create_by(name: param_name)
-    @db.fill_parameter_values(param, param_value)    
+    @db.fill_parameter_values(param, param_value)
     return_val = param.valuebool
 
-    expect(return_val).to eq(param_value)    
+    expect(return_val).to eq(param_value)
   end
 
   it "read parameter list" do
 
-    # write a parameter 
+    # write a parameter
     param_name  = 'TEST_VALUE_LIST_1'
     param_value = 'ABC'
     return_val  = ''
@@ -226,7 +225,7 @@ describe DbAccess do
     list = @db.read_parameter_list()
 
     list.each do |param|
-      if param['name'] == param_name 
+      if param['name'] == param_name
         return_val = param['value']
       end
     end
@@ -324,7 +323,7 @@ describe DbAccess do
     param.valuestring = nil;
     param.valuebool   = nil;
 
-    $db_write_sync.synchronize do
+    DbAccess.current.write_sync.synchronize do
       param.save
     end
 

@@ -24,21 +24,19 @@ class DbAccessLogs
   # write a line to the log
   #
   def write_to_log(module_id,text)
-
-    puts "[LOG] #{text}" if @log_to_screen
-
+    return nil # Disabling this for now.
     log           = Log.new
     log.text      = text
     log.module_id = module_id
 
-    $db_write_sync.synchronize do
+    DbAccess.current.write_sync.synchronize do
       log.save
     end
 
     # clean up old logs
 
     if Log.count > @dbaccess.max_nr_log_lines
-      $db_write_sync.synchronize do
+      DbAccess.current.write_sync.synchronize do
         Log.delete(Log.order("created_at asc").first(Log.count - @dbaccess.max_nr_log_lines))
       end
     end

@@ -13,6 +13,14 @@ require_relative 'ramps_param.rb'
 
 class HardwareInterface
 
+  class << self
+    attr_accessor :current
+
+    def current
+      @current ||= self.new(true)
+    end
+  end
+
   attr_reader :ramps_param, :ramps_main, :ramps_arduino
 
   attr_reader   :target_x , :target_y , :target_z
@@ -31,7 +39,7 @@ class HardwareInterface
   #
   def initialize(test_mode)
 
-    #@bot_dbaccess = $bot_dbaccess
+    @bot_dbaccess = DbAccess.current
     @test_mode         = test_mode
 
     # create the sub processing objects
@@ -188,7 +196,6 @@ class HardwareInterface
   # move the bot to the give coordinates
   #
   def move_absolute( coord_x, coord_y, coord_z)
-
     @target_x = coord_x
     @target_y = coord_y
     @target_z = coord_z

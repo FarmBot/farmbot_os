@@ -21,13 +21,13 @@ class HardwareInterfaceParam
   #
   def initialize
 
-    @status_debug_msg = $status_debug_msg
+    @status_debug_msg = $debug_msg
     #@status_debug_msg = false
     #@status_debug_msg = true
 
     # init database and parameters
 
-#    @bot_dbaccess          = $bot_dbaccess
+    @bot_dbaccess          = DbAccess.current
     @params                = Array.new
     @external_info         = ""
     @param_version_db      = 0
@@ -98,7 +98,7 @@ class HardwareInterfaceParam
 
   # get the parameter object by name
   #
-  def get_param_by_name(name) 
+  def get_param_by_name(name)
     param = nil
     @params.each do |p|
       if p['name'] == name
@@ -137,10 +137,10 @@ class HardwareInterfaceParam
 
   # read parameter value from memory
   #
-  
+
   #def get_param_value_by_id(name_or_id, by_name_or_id, from_device_or_db, default_value)
   #  value = default_value
-  #  
+  #
   #  param = get_param(id, by_name_or_id)
   #  if param != nil and from_device_or_db == :from_device
   #    value =  param['value_ar']

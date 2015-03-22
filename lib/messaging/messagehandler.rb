@@ -43,7 +43,7 @@ class MessageHandler
     time_stamp = nil
 
     puts "received at #{Time.now.strftime("%Y-%m-%d %H:%M:%S")}: #{message}" #if $mesh_msg_print == 1
-puts 'a'
+
     err_msg = ""
     err_trc = ""
     err_snd = false
@@ -52,19 +52,13 @@ puts 'a'
     begin
 
       #requested_command = ''
-puts 'b'
+
       sender = (message.has_key? 'fromUuid'  ) ? message['fromUuid']        : ''
-puts 'c'
       message_obj = MessageHandlerMessage.new
-puts 'd'
       split_message(message, message_obj)
-puts 'w'
       #log_message_obj_info(message_obj)
-puts 'x'
       send_message_obj_to_individual_handlers(message_obj)
-puts 'y'
       check_if_message_handled(message_obj)
-puts 'z'
     end
 
     # in case of an error, send error message as a reply
@@ -118,7 +112,6 @@ puts 'z'
   end
 
   def send_message(destination, command)
-puts command
     @dbaccess.write_to_log(3,"to #{destination} : #{command.to_s}")
     $messaging.send_message(destination, command)
   end
@@ -141,7 +134,6 @@ puts command
   def send_message_obj_to_individual_handlers(message_obj)
     # loop trough all the handlers until one handler does process the message
     @message_handlers.each do |handler|
-puts handler
       if message_obj.handled == false
         handler.handle_message( message_obj )
       end

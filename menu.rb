@@ -4,21 +4,15 @@ puts 'starting up'
 require './lib/database/dbaccess.rb'
 require './lib/database/filehandler.rb'
 
-$db_write_sync = Mutex.new
 
 #require './lib/controller.rb'
 #require "./lib/hardware/ramps.rb"
 
-#$bot_control    = Control.new
-#$bot_hardware     = HardwareInterface.new
-
+db = DbAccess.current
 $shutdown    = 0
 
 # just a little menu for testing
 
-puts 'connecting to database'
-
-$bot_dbaccess = DbAccess.new('development')
 
 $move_size      = 10
 $command_delay  = 0
@@ -91,75 +85,75 @@ while $shutdown == 0 do
       # read the file
       #TestFileHandler.readCommandFile
 
-      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
-      $bot_dbaccess.add_command_line('CALIBRATE X', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-      $bot_dbaccess.save_new_command
-      $bot_dbaccess.increment_refresh
+      db.create_new_command(Time.now + $command_delay,'menu')
+      db.add_command_line('CALIBRATE X', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+      db.save_new_command
+      db.increment_refresh
     when "K" # Move Servo
-      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
-      $bot_dbaccess.add_command_line('SERVO MOVE', 0, 0, 0, 0, 0, $pin_nr, $servo_angle, 0, 0, 0)
-      $bot_dbaccess.save_new_command
-      $bot_dbaccess.increment_refresh
+      db.create_new_command(Time.now + $command_delay,'menu')
+      db.add_command_line('SERVO MOVE', 0, 0, 0, 0, 0, $pin_nr, $servo_angle, 0, 0, 0)
+      db.save_new_command
+      db.increment_refresh
     when "I" # Set Pin Off
-      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
-      $bot_dbaccess.add_command_line('PIN WRITE', 0, 0, 0, 0, 0, $pin_nr, 0, 0, 0, 0)
-      $bot_dbaccess.save_new_command
-      $bot_dbaccess.increment_refresh
+      db.create_new_command(Time.now + $command_delay,'menu')
+      db.add_command_line('PIN WRITE', 0, 0, 0, 0, 0, $pin_nr, 0, 0, 0, 0)
+      db.save_new_command
+      db.increment_refresh
     when "U" # Set Pin On
-      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
-      $bot_dbaccess.add_command_line('PIN WRITE', 0, 0, 0, 0, 0, $pin_nr, 1, 0, 0, 0)
-      $bot_dbaccess.save_new_command
-      $bot_dbaccess.increment_refresh
+      db.create_new_command(Time.now + $command_delay,'menu')
+      db.add_command_line('PIN WRITE', 0, 0, 0, 0, 0, $pin_nr, 1, 0, 0, 0)
+      db.save_new_command
+      db.increment_refresh
     when "Y" # Dose water
-      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
-      $bot_dbaccess.add_command_line('DOSE WATER', 0, 0, 0, 0, 15, 0,0,0,0,0)
-      $bot_dbaccess.save_new_command
-      $bot_dbaccess.increment_refresh
+      db.create_new_command(Time.now + $command_delay,'menu')
+      db.add_command_line('DOSE WATER', 0, 0, 0, 0, 15, 0,0,0,0,0)
+      db.save_new_command
+      db.increment_refresh
     when "Z" # Move to home
-      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
-      $bot_dbaccess.add_command_line('HOME Z', 0, 0, 0, 0, 0, 0,0,0,0,0)
-      $bot_dbaccess.save_new_command
-      $bot_dbaccess.increment_refresh
+      db.create_new_command(Time.now + $command_delay,'menu')
+      db.add_command_line('HOME Z', 0, 0, 0, 0, 0, 0,0,0,0,0)
+      db.save_new_command
+      db.increment_refresh
     when "X" # Move to home
-      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
-      $bot_dbaccess.add_command_line('HOME X', 0, 0, 0, 0, 0, 0,0,0,0,0)
-      $bot_dbaccess.save_new_command
-      $bot_dbaccess.increment_refresh
+      db.create_new_command(Time.now + $command_delay,'menu')
+      db.add_command_line('HOME X', 0, 0, 0, 0, 0, 0,0,0,0,0)
+      db.save_new_command
+      db.increment_refresh
     when "C" # Move to home
-      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
-      $bot_dbaccess.add_command_line('HOME Y',0 ,0 ,-$move_size, 0, 0, 0,0,0,0,0)
-      $bot_dbaccess.save_new_command
-      $bot_dbaccess.increment_refresh
+      db.create_new_command(Time.now + $command_delay,'menu')
+      db.add_command_line('HOME Y',0 ,0 ,-$move_size, 0, 0, 0,0,0,0,0)
+      db.save_new_command
+      db.increment_refresh
     when "W" # Move forward
-      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
-      $bot_dbaccess.add_command_line('MOVE RELATIVE',0,$move_size, 0, 0, 0, 0,0,0,0,0)
-      $bot_dbaccess.save_new_command
-      $bot_dbaccess.increment_refresh
+      db.create_new_command(Time.now + $command_delay,'menu')
+      db.add_command_line('MOVE RELATIVE',0,$move_size, 0, 0, 0, 0,0,0,0,0)
+      db.save_new_command
+      db.increment_refresh
     when "S" # Move back
-      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
-      $bot_dbaccess.add_command_line('MOVE RELATIVE',0,-$move_size, 0, 0, 0, 0,0,0,0,0)
-      $bot_dbaccess.save_new_command
-      $bot_dbaccess.increment_refresh
+      db.create_new_command(Time.now + $command_delay,'menu')
+      db.add_command_line('MOVE RELATIVE',0,-$move_size, 0, 0, 0, 0,0,0,0,0)
+      db.save_new_command
+      db.increment_refresh
     when "A" # Move left
-      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
-      $bot_dbaccess.add_command_line('MOVE RELATIVE', -$move_size, 0, 0, 0, 0, 0,0,0,0,0)
-      $bot_dbaccess.save_new_command
-      $bot_dbaccess.increment_refresh
+      db.create_new_command(Time.now + $command_delay,'menu')
+      db.add_command_line('MOVE RELATIVE', -$move_size, 0, 0, 0, 0, 0,0,0,0,0)
+      db.save_new_command
+      db.increment_refresh
     when "D" # Move right
-      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
-      $bot_dbaccess.add_command_line('MOVE RELATIVE', $move_size, 0, 0, 0, 0, 0,0,0,0,0)
-      $bot_dbaccess.save_new_command
-      $bot_dbaccess.increment_refresh
+      db.create_new_command(Time.now + $command_delay,'menu')
+      db.add_command_line('MOVE RELATIVE', $move_size, 0, 0, 0, 0, 0,0,0,0,0)
+      db.save_new_command
+      db.increment_refresh
     when "R" # Move up
-      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
-      $bot_dbaccess.add_command_line('MOVE RELATIVE', 0, 0, $move_size, 0, 0, 0,0,0,0,0)
-      $bot_dbaccess.save_new_command
-      $bot_dbaccess.increment_refresh
+      db.create_new_command(Time.now + $command_delay,'menu')
+      db.add_command_line('MOVE RELATIVE', 0, 0, $move_size, 0, 0, 0,0,0,0,0)
+      db.save_new_command
+      db.increment_refresh
     when "F" # Move down
-      $bot_dbaccess.create_new_command(Time.now + $command_delay,'menu')
-      $bot_dbaccess.add_command_line("MOVE RELATIVE", 0, 0, -$move_size, 0, 0, 0,0,0,0,0)
-      $bot_dbaccess.save_new_command
-      $bot_dbaccess.increment_refresh
+      db.create_new_command(Time.now + $command_delay,'menu')
+      db.add_command_line("MOVE RELATIVE", 0, 0, -$move_size, 0, 0, 0,0,0,0,0)
+      db.save_new_command
+      db.increment_refresh
     end
 
 end

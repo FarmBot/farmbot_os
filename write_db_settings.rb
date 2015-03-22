@@ -2,18 +2,15 @@ system('clear')
 puts 'parameter settings'
 
 $shutdown = 0
-$db_write_sync = Mutex.new
 
 require 'active_record'
 require_relative 'lib/database/dbaccess'
-$bot_dbaccess = DbAccess.new
-puts 'connected to database'
 puts 'writing settings'
 
 def write(name, value)
 
   puts "#{name} = #{value}"
-  $bot_dbaccess.write_parameter(name, value)
+  DbAccess.current.write_parameter(name, value)
 
 end
 
