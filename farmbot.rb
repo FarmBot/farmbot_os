@@ -16,7 +16,6 @@ require_relative 'lib/status'
 Status.current = Status.new
 
 $shutdown = 0
-$db_write_sync = Mutex.new
 
 print 'database        '
 require 'active_record'

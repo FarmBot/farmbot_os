@@ -1,19 +1,13 @@
 require 'spec_helper'
 require './lib/status.rb'
-#require './lib/messaging/messenger.rb'
-#require './lib/messagehandler_base'
 require './lib/handlers/messagehandler.rb'
 require './lib/handlers/messagehandler_schedule.rb'
 require './spec/fixtures/stub_messenger.rb'
 
-#require './lib/messagehandler_schedule'
-#require './lib/messagehandler_schedule_cmd_line'
-#require './lib/handlers/messagehandler_logs.rb'
-
 describe MessageHandlerSchedule do
+  let(:message) { MessageHandlerMessage.new({}, StubMessenger.new) }
 
   before do
-    $db_write_sync = Mutex.new
     DbAccess.current = DbAccess.new('development')
     DbAccess.current = DbAccess.current
     DbAccess.current.disable_log_to_screen()
@@ -30,7 +24,7 @@ describe MessageHandlerSchedule do
   ## commands / scheduling
 
   it "white list" do
-    list = @handler.whitelist
+    list = MessageHandlerSchedule::WHITELIST
     expect(list.count).to eq(2)
   end
 
@@ -193,7 +187,6 @@ describe MessageHandlerSchedule do
 
     # create a message
 
-    message = MessageHandlerMessage.new
     message.handled = false
     message.handler = @main_handler
     message.payload =
@@ -243,22 +236,10 @@ describe MessageHandlerSchedule do
   end
 
   it "handle empty command" do
-
-    # create a message
-
-    message = MessageHandlerMessage.new
     message.handled = false
     message.handler = @main_handler
     message.payload = {}
-
-    # execute the message
-
-    @handler.single_command(message)
-
-    # do the checks
-
-    expect(@handler.messaging.message[:message_type]).to eq('error')
-
+    expect{ @handler.single_command(message) }.to raise_error(RuntimeError)
   end
 
 # save_command_with_lines
@@ -453,7 +434,6 @@ describe MessageHandlerSchedule do
 
     # create a command
 
-    message = MessageHandlerMessage.new
     message.handled = false
     message.handler = @main_handler
     message.payload =

@@ -7,9 +7,7 @@ require_relative 'messagehandler_base'
 # command queue Parses JSON messages received through SkyNet.
 class MessageHandlerLog < MessageHandlerBase
 
-  def whitelist
-    ["read_logs"]
-  end
+  WHITELIST = ["read_logs"]
 
   # Read logs from database and send through skynet
   #

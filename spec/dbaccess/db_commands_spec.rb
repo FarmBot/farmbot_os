@@ -4,14 +4,13 @@ require './lib/database/dbaccess.rb'
 describe DbAccess do
 
   before do
-    $db_write_sync = Mutex.new
     @db = DbAccess.new('development')
   end
 
   ## commands
 
   it "create new command" do
-    crop_id        = rand(9999999).to_i    
+    crop_id        = rand(9999999).to_i
     scheduled_time = Time.now
 
     @db.create_new_command(scheduled_time, crop_id)
@@ -24,7 +23,7 @@ describe DbAccess do
 
   it "add command line" do
 
-    crop_id        = rand(9999999).to_i    
+    crop_id        = rand(9999999).to_i
     scheduled_time = Time.now
 
     action        = "TEST"
@@ -105,7 +104,7 @@ describe DbAccess do
     amount        = rand(9999999).to_i
     external_info = rand(9999999).to_s
 
-    crop_id        = rand(9999999).to_i    
+    crop_id        = rand(9999999).to_i
     scheduled_time = Time.now
 
     @db.create_new_command(scheduled_time, crop_id)
@@ -120,7 +119,7 @@ describe DbAccess do
 
   it "save new command" do
 
-    crop_id        = rand(9999999).to_i    
+    crop_id        = rand(9999999).to_i
     scheduled_time = Time.now
 
     @db.create_new_command(scheduled_time, crop_id)
@@ -146,8 +145,8 @@ describe DbAccess do
 
   it "clear crop schedule" do
 
-    crop_id_1      = rand(9999999).to_i    
-    crop_id_2      = rand(9999999).to_i    
+    crop_id_1      = rand(9999999).to_i
+    crop_id_2      = rand(9999999).to_i
     scheduled_time = Time.now
 
     @db.create_new_command(scheduled_time, crop_id_1)
@@ -168,7 +167,7 @@ describe DbAccess do
 
   it "clear crop schedule" do
 
-    crop_id        = rand(9999999).to_i    
+    crop_id        = rand(9999999).to_i
     scheduled_time = Time.now
 
     @db.create_new_command(scheduled_time, crop_id)
@@ -182,7 +181,7 @@ describe DbAccess do
 
   it "set command to exeute status" do
 
-    crop_id        = rand(9999999).to_i    
+    crop_id        = rand(9999999).to_i
     scheduled_time = Time.now
 
     @db.create_new_command(scheduled_time, crop_id)

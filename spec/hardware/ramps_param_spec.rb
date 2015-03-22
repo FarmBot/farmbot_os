@@ -7,7 +7,6 @@ require './lib/hardware/gcode/ramps_param.rb'
 describe HardwareInterfaceArduino do
 
   before do
-    $db_write_sync = Mutex.new
     DbAccess.current = DbAccess.new('development')
     DbAccess.current = DbAccess.current
     DbAccess.current.disable_log_to_screen()

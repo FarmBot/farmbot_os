@@ -3,23 +3,17 @@ require './lib/database/dbaccess.rb'
 require 'time'
 require_relative 'messagehandler_base'
 require_relative 'messagehandler_schedule_cmd_line'
-
 # Get the JSON command, received through skynet, and send it to the farmbot
 # command queue Parses JSON messages received through SkyNet.
 class MessageHandlerSchedule < MessageHandlerBase
 
   attr_accessor :message
 
-  def whitelist
-    ["single_command","crop_schedule_update"]
-  end
+  WHITELIST = ["single_command","crop_schedule_update"]
 
   def single_command(message)
-
-    @dbaccess.write_to_log(2,'handle single command')
-
-    if message.payload.has_key? 'command'
-
+    command = message.payload['command']
+    if command
       command = message.payload['command']
       command_obj = MessageHandlerScheduleCmdLine.new
       command_obj.split_command_line( message.payload['command'])
@@ -27,13 +21,9 @@ class MessageHandlerSchedule < MessageHandlerBase
       save_single_command(command_obj, message.delay)
       Status.current.command_refresh += 1;
       message.handler.send_confirmation(message.sender, message.time_stamp)
-
     else
-
-      message.handler.send_error(message.sender, message.time_stamp, 'no command in message')
-
+       raise 'No command in message'
     end
-
   end
 
   def save_single_command(command, delay)
@@ -44,8 +34,18 @@ class MessageHandlerSchedule < MessageHandlerBase
   end
 
   def save_command_line(command)
-      @dbaccess.add_command_line(command.action, command.x.to_i, command.y.to_i, command.z.to_i, command.speed.to_s, command.amount.to_i,
-        command.pin_nr.to_i, command.pin_value1.to_i, command.pin_value2.to_i, command.pin_mode.to_i, command.pin_time.to_i, command.ext_info)
+      @dbaccess.add_command_line(command.action,
+                                 command.x.to_i,
+                                 command.y.to_i,
+                                 command.z.to_i,
+                                 command.speed.to_s,
+                                 command.amount.to_i,
+                                 command.pin_nr.to_i,
+                                 command.pin_value1.to_i,
+                                 command.pin_value2.to_i,
+                                 command.pin_mode.to_i,
+                                 command.pin_time.to_i,
+                                 command.ext_info)
   end
 
   def crop_schedule_update(message)
@@ -58,7 +58,7 @@ class MessageHandlerSchedule < MessageHandlerBase
 
     @dbaccess.clear_crop_schedule(crop_id)
 
-    message_contents['commands'].each do |command|
+    Array(message_contents['commands']).each do |command|
      save_command_with_lines(command)
     end
 

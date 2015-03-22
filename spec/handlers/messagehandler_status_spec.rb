@@ -11,9 +11,9 @@ class HwStatusSim
 end
 
 describe MessageHandlerStatus do
+  let(:message) { MessageHandlerMessage.new({}, StubMessenger.new) }
 
   before do
-    $db_write_sync = Mutex.new
     DbAccess.current = DbAccess.new('development')
     DbAccess.current = DbAccess.current
     DbAccess.current.disable_log_to_screen()
@@ -30,7 +30,7 @@ describe MessageHandlerStatus do
   end
 
   it "white list" do
-    list = @handler.whitelist
+    list = MessageHandlerStatus::WHITELIST
     expect(list.count).to eq(1)
   end
 
@@ -86,7 +86,6 @@ describe MessageHandlerStatus do
 
     # create a message
 
-    message = MessageHandlerMessage.new
     message.time_stamp = confirm_id
     message.handled    = false
     message.handler    = @main_handler

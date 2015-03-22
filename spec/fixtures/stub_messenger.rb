@@ -14,7 +14,7 @@ class StubMessenger
 
   def reset
     @device = ''
-    @message = ''
+    @message = {}
   end
 
   def send_message(devices, message_hash )

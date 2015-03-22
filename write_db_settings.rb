@@ -2,7 +2,6 @@ system('clear')
 puts 'parameter settings'
 
 $shutdown = 0
-$db_write_sync = Mutex.new
 
 require 'active_record'
 require_relative 'lib/database/dbaccess'

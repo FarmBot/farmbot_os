@@ -39,13 +39,17 @@ class DbAccess
 
   end
 
-  def create_command(*args)
-    add_command_line(*args)
-    create_new_command(Time.now,'NOTSET')
-    add_command_line(*args)
-    save_new_command
-    increment_refresh
+  def write_sync
+    @write_sync ||= Mutex.new
   end
+
+  # def create_command(*args)
+  #   add_command_line(*args)
+  #   create_new_command(Time.now,'NOTSET')
+  #   add_command_line(*args)
+  #   save_new_command
+  #   increment_refresh
+  # end
   ## parameters
 
   def increment_parameters_version

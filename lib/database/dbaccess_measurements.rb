@@ -24,7 +24,7 @@ class DbAccessMeasurements
     meas               = Measurement.new
     meas.value         = value
     meas.external_info = external_info
-    $db_write_sync.synchronize do
+    DbAccess.current.write_sync.synchronize do
       meas.save
     end
   end
@@ -54,7 +54,7 @@ class DbAccessMeasurements
   def delete_measurement(id)
     if Measurement.exists?(id)
       meas = Measurement.find(id)
-      $db_write_sync.synchronize do
+      DbAccess.current.write_sync.synchronize do
         meas.delete
       end
     end

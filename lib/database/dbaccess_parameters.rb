@@ -22,7 +22,7 @@ class DbAccessParameters
   # increment param version
   #
   def increment_parameters_version
-    $db_write_sync.synchronize do
+    DbAccess.current.write_sync.synchronize do
       param = Parameter.find_or_create_by(name: 'PARAM_VERSION')
       param.valuetype = 1 if param.valuetype != 1
       param.valueint = 0 if param.valueint == nil
@@ -39,7 +39,7 @@ class DbAccessParameters
 
     fill_parameter_values(param, value)
 
-    $db_write_sync.synchronize do
+    DbAccess.current.write_sync.synchronize do
       param.save
     end
 
@@ -97,7 +97,7 @@ class DbAccessParameters
     param.valuestring = type == 3 ? value.to_s : nil
     param.valuebool   = type == 4 ? value      : nil
 
-    $db_write_sync.synchronize do
+    DbAccess.current.write_sync.synchronize do
       param.save
     end
     increment_parameters_version
