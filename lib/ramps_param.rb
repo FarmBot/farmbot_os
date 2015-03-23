@@ -63,15 +63,6 @@ class HardwareInterfaceParam
 
   end
 
-  # load the settings for the hardware
-  # these are the timeouts and distance settings mainly
-  #
-  def load_config_from_database
-    @params.each do |p|
-       p['value_db'] = @bot_dbaccess.read_parameter_with_default(p['name'], p['default'])
-    end
-  end
-
   #def load_param_defaults
   #  @param_json = ''
   #end
@@ -176,7 +167,7 @@ class HardwareInterfaceParam
       param['value_db'] = value
     end
 
-    @bot_dbaccess.write_parameter(param['name'],value)
+    #@bot_dbaccess.write_parameter(param['name'],value)
   end
 
 
@@ -184,7 +175,7 @@ class HardwareInterfaceParam
   #
   def check_parameters
     update_param_version_ar()
-    @param_version_db = @bot_dbaccess.read_parameter_with_default('PARAM_VERSION', 0)
+    
     compare_and_write_parameters()
   end
 
@@ -238,7 +229,6 @@ class HardwareInterfaceParam
 
      # read value from device and database
      read_parameter_from_device(param['id'])
-     param['value_db'] = @bot_dbaccess.read_parameter_with_default(param['name'], 0)
 
      differences_found = false
 

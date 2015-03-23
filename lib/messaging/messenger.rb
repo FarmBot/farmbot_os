@@ -38,10 +38,12 @@ class Messenger
   def handle_message(message)
     case message
     when Hash
-      message_handler.handle_message(message)
+      #message_handler.handle_message(message)
+      message_handler.queue << message
     when String
       message_hash = JSON.parse(message)
-      message_handler.handle_message(message_hash)
+      #message_handler.handle_message(message_hash)
+      message_handler.queue << message
     else
       puts "Can't handle messages of class #{message.class}"
     end
