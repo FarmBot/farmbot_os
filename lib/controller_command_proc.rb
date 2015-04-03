@@ -4,11 +4,7 @@
 class ControllerCommandProc
 
   def initialize
-<<<<<<< HEAD
-    #@bot_dbaccess        = $bot_dbaccess
-=======
     @bot_dbaccess = DbAccess.current
->>>>>>> 4a9773c7ca757a97b363fb2d6f7fb8845c99c40b
   end
 
   WHITELIST = ['move_absolute','move_relative','home_x','home_y','home_z',
@@ -23,10 +19,6 @@ class ControllerCommandProc
   end
 
   def start_command( cmd )
-
-<<<<<<< HEAD
-    send_command(command_line)
-=======
     if cmd != nil
       cmd.command_lines.each do |command_line|
         send_command(command_line)
@@ -36,8 +28,6 @@ class ControllerCommandProc
     end
 
     Status.current.info_movement = 'idle'
->>>>>>> 4a9773c7ca757a97b363fb2d6f7fb8845c99c40b
-
   end
 
   def send_command(command_line)
@@ -47,16 +37,7 @@ class ControllerCommandProc
     if $hardware_sim == 0
       send(function, command_line)
     else
-<<<<<<< HEAD
-      #$status.info_movement = 
-      @info_movement = "#{command_line.action.downcase} xyz=#{command_line.coord_x} #{command_line.coord_y} #{command_line.coord_z} amt=#{command_line.amount} spd=#{command_line.speed} pin=#{command_line.pin_nr}"
-      puts "simulating: #{@info_movement}"
-      #@bot_dbaccess.write_to_log(1,@info_movement)
-      #@bot_dbaccess.write_to_log(1,"simulating hardware: #{function}")
-      #sleep 0.1
-=======
       sleep 0.1
->>>>>>> 4a9773c7ca757a97b363fb2d6f7fb8845c99c40b
     end
   end
 
