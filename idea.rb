@@ -12,6 +12,7 @@ class FarmBotPi
     @mesh        = EM::MeshRuby.new(@credentials.uuid, @credentials.token)
     @bot         = FB::Arduino.new
     @handler     = MessageHandler
+    puts "UUID / Token:", @credentials.uuid, @credentials.token
   end
 
   def incoming_message(msg)
@@ -23,7 +24,7 @@ class FarmBotPi
 
     EM.run do
       mesh.connect
-      mesh.onmessage { |msg| incoming_message(msg) }
+        mesh.onmessage { |msg| incoming_message(msg) }
 
       FB::ArduinoEventMachine.connect(bot)
         bot.onmessage { |msg| bot.log "BOT MSG: #{msg}"}
