@@ -3,7 +3,8 @@ require_relative 'abstract_controller'
 class SingleCommandController < AbstractController
   attr_reader :cmd
 
-  AVAILABLE_ACTIONS = {"move relative" => :move_relative}
+  AVAILABLE_ACTIONS = {"move relative" => :move_relative,
+                       "unknown"       => :unknown}
 
   def call
     @cmd   = message.payload["command"]

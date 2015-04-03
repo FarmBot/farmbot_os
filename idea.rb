@@ -3,11 +3,14 @@ require 'meshruby'
 require_relative 'lib/messaging/credentials'
 require_relative 'lib/messaging/messagehandler'
 require 'pry'
+require 'active_record'
 
 class FarmBotPi
   attr_accessor :mesh, :bot, :credentials, :handler
 
-  def initialize
+  def initialize(env = :development)
+    config = YAML::load(File.open('./db/database.yml'))
+    # ActiveRecord::Base.establish_connection(config[env])
     @credentials = Credentials.new
     @mesh        = EM::MeshRuby.new(@credentials.uuid, @credentials.token)
     @bot         = FB::Arduino.new
