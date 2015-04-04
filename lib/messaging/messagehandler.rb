@@ -42,6 +42,7 @@ class MessageHandler
 
   def send_error(error)
     msg = "#{error.message} @ #{error.backtrace.first}"
+    bot.log msg
     reply message_type: 'error', error: msg
   end
 

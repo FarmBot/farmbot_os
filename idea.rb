@@ -15,7 +15,6 @@ class FarmBotPi
     @mesh        = EM::MeshRuby.new(@credentials.uuid, @credentials.token)
     @bot         = FB::Arduino.new
     @handler     = MessageHandler
-    puts "UUID / Token:", @credentials.uuid, @credentials.token
   end
 
   def incoming_message(msg)
