@@ -10,16 +10,11 @@ gem 'sqlite3'
 gem 'bson'
 
 # Use skynet machine instant messaging
-gem 'socket.io-client-simple'
-gem 'serialport'
+gem 'farmbot-serial', '0.0.9'
+gem 'meshruby', '0.0.2'
 gem 'polyglot'
 gem 'httparty'
 
-
-# Dev / Test stuff
-# TODO : Setup dev / test / production env.
-
 gem 'pry'
 gem 'rspec'
-gem 'pry'
 gem 'simplecov'

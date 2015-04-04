@@ -1,3 +1,9 @@
+default: &development
+  adapter: sqlite3
+  database: db/db.sqlite3
+  pool: 5
+  timeout: 5000
+
 # SQLite version 3.x
 #   gem install sqlite3
 #
