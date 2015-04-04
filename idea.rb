@@ -18,11 +18,12 @@ class FarmBotPi
   end
 
   def incoming_message(msg)
+    print '.'
     handler.call(msg, bot, mesh)
   end
 
   def start
-    mesh.toggle_debug!
+    # mesh.toggle_debug!
 
     EM.run do
       mesh.connect
