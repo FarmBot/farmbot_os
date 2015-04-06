@@ -6,9 +6,8 @@ class AbstractController
   end
 
   def reply(type, payl = {})
-    mesh.emit message.from,
-              payl.merge(message_type: type,
-                         confirm_id: message.time,
-                         time_stamp: Time.now.to_f.to_s)
+    mesh.emit message.from, payl.merge(message_type: type,
+                                       confirm_id: message.time,
+                                       time_stamp: Time.now.to_f.to_s)
   end
 end

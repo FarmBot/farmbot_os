@@ -17,17 +17,14 @@ class FarmBotPi
     @handler     = MessageHandler
   end
 
-  def incoming_message(msg)
-    print '.'
-    handler.call(msg, bot, mesh)
-  end
-
   def start
-    # mesh.toggle_debug!
+    mesh.toggle_debug!
 
     EM.run do
       mesh.connect
-        mesh.onmessage { |msg| incoming_message(msg) }
+        mesh.onmessage { |msg|
+          puts "ONCE"
+          handler.call(msg, bot, mesh) }
 
       FB::ArduinoEventMachine.connect(bot)
         bot.onmessage { |msg| bot.log "BOT MSG: #{msg}"}

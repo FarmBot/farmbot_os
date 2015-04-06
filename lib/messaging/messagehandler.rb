@@ -9,7 +9,8 @@ class MessageHandler
 
   attr_accessor :message, :bot, :mesh
 
-  ROUTES = {"single_command" => SingleCommandController}
+  ROUTES = { "single_command" => SingleCommandController,
+             "read_status"    => ReadStatusController, }
 
   ## general handling messages
   def initialize(message_hash, bot, mesh)
