@@ -11,7 +11,7 @@ gem 'bson'
 
 # Use skynet machine instant messaging
 gem 'farmbot-serial', '0.0.9'
-gem 'meshruby', '0.0.2'
+gem 'meshruby', '0.0.3'
 gem 'polyglot'
 gem 'httparty'
 
