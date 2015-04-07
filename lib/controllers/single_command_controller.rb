@@ -11,11 +11,12 @@ class SingleCommandController < AbstractController
                         "home z"          => :home_z,
                         "home all"        => :home_all,
                         "pin write"       => :pin_write,
-                        "emergency stop"  => :emergency_stop }
+                        "emergency stop"  => :emergency_stop, }
 
   def call
     @cmd   = message.payload["command"]
     action = AVAILABLE_ACTIONS[cmd["action"].to_s.downcase] || :unknown
+    puts "Calling #{action}"
     send(action)
   end
 
@@ -44,9 +45,9 @@ class SingleCommandController < AbstractController
   end
 
   def pin_write
-    bot.commands.pin_write pin: cmd['pin'],
+    bot.commands.pin_write pin:   cmd['pin'],
                            value: cmd['mode'],
-                           mode: cmd['value1']
+                           mode:  cmd['value1']
   end
 
   def emergency_stop

@@ -9,7 +9,8 @@ class MessageHandler
 
   attr_accessor :message, :bot, :mesh
 
-  ROUTES = {"single_command" => SingleCommandController}
+  ROUTES = { "single_command" => SingleCommandController,
+             "read_status"    => ReadStatusController, }
 
   ## general handling messages
   def initialize(message_hash, bot, mesh)
@@ -22,7 +23,7 @@ class MessageHandler
   end
 
   def call
-    controller = ROUTES[message.type] || Controllers::Unknown
+    controller = ROUTES[message.type] || UnknownController
     controller.new(message, bot, mesh).call
     send_confirmation
   rescue => e
@@ -37,20 +38,20 @@ class MessageHandler
   # send a reply to the back end system
   #
   def send_confirmation
-    reply message_type: 'confirmation'
+    reply 'confirmation'
   end
 
   def send_error(error)
     msg = "#{error.message} @ #{error.backtrace.first}"
     bot.log msg
-    reply message_type: 'error', error: msg
+    reply 'error', error: msg
   end
 
-  # TODO: Put into a concern?
-  def reply(payl)
+  def reply(type, payl = {})
     mesh.emit message.from,
-              payl.merge(confirm_id: message.time,
-                            time_stamp: Time.now.to_f.to_s)
+              payl.merge(message_type: type,
+                         confirm_id: message.time,
+                         time_stamp: Time.now.to_f.to_s)
   end
 end
 
