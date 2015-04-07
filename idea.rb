@@ -22,9 +22,7 @@ class FarmBotPi
 
     EM.run do
       mesh.connect
-        mesh.onmessage { |msg|
-          puts "ONCE"
-          handler.call(msg, bot, mesh) }
+        mesh.onmessage { |msg| handler.call(msg, bot, mesh) }
 
       FB::ArduinoEventMachine.connect(bot)
         bot.onmessage { |msg| bot.log "BOT MSG: #{msg}"}
