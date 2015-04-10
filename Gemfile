@@ -10,7 +10,7 @@ gem 'sqlite3'
 gem 'bson'
 
 # Use skynet machine instant messaging
-gem 'farmbot-serial', '0.0.9'
+gem 'farmbot-serial', '0.1.0'
 gem 'meshruby', '0.0.3'
 gem 'polyglot'
 gem 'httparty'
