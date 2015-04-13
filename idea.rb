@@ -22,12 +22,14 @@ class FarmBotPi
 
     EM.run do
       mesh.connect
-        mesh.onmessage { |msg| handler.call(msg, bot, mesh) }
+      mesh.onmessage { |msg| handler.call(msg, bot, mesh) }
 
       FB::ArduinoEventMachine.connect(bot)
-        bot.onmessage { |msg| bot.log "BOT MSG: #{msg}"}
-        bot.onclose { puts 'Disconnected'; EM.stop }
-        bot.onchange { |diff| bot.log "BOT DIF: #{diff}" }
+
+      0.upto(14) { |num| bot.commands.read_parameter(num) }
+      bot.onmessage { |msg| bot.log "BOT MSG: #{msg}"}
+      bot.onclose { puts 'Disconnected'; EM.stop }
+      bot.onchange { |diff| bot.log "BOT DIF: #{diff}" }
     end
   end
 end
