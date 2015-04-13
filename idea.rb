@@ -26,11 +26,10 @@ class FarmBotPi
 
       FB::ArduinoEventMachine.connect(bot)
         bot.onmessage { |msg| bot.log "BOT MSG: #{msg}"}
-        bot.onchange { |diff| bot.log "BOT DIF: #{diff}"}
         bot.onclose { puts 'Disconnected'; EM.stop }
+        bot.onchange { |diff| bot.log "BOT DIF: #{diff}" }
     end
   end
 end
 
 FarmBotPi.new.start
-
