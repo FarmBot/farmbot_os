@@ -9,7 +9,7 @@ gem 'sqlite3'
 # Use bson for database functionality
 gem 'bson'
 
-gem 'farmbot-serial', '0.2.3'
+gem 'farmbot-serial', '0.2.4'
 gem 'meshruby', '0.0.3'
 gem 'polyglot'
 gem 'httparty'
