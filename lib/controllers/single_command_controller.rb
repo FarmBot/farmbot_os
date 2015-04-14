@@ -18,6 +18,7 @@ class SingleCommandController < AbstractController
     action = AVAILABLE_ACTIONS[cmd["action"].to_s.downcase] || :unknown
     puts "Calling #{action}"
     send(action)
+    reply "read_status", confirmation: true, command: cmd
   end
 
   def move_relative
@@ -46,8 +47,8 @@ class SingleCommandController < AbstractController
 
   def pin_write
     bot.commands.pin_write pin:   cmd['pin'],
-                           value: cmd['mode'],
-                           mode:  cmd['value1']
+                           value: cmd['value1'],
+                           mode:  cmd['mode'] || 0
   end
 
   def emergency_stop

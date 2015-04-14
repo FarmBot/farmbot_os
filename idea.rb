@@ -18,16 +18,15 @@ class FarmBotPi
   end
 
   def start
-    mesh.toggle_debug!
-
     EM.run do
       mesh.connect
-        mesh.onmessage { |msg| handler.call(msg, bot, mesh) }
+      mesh.onmessage { |msg| handler.call(msg, bot, mesh) }
 
       FB::ArduinoEventMachine.connect(bot)
-        bot.onmessage { |msg| bot.log "BOT MSG: #{msg}"}
-        bot.onclose { puts 'Disconnected'; EM.stop }
-        bot.onchange { |diff| bot.log "BOT DIF: #{diff}" }
+
+      bot.onmessage { |msg| bot.log "BOT MSG: #{msg}" unless msg.name == :idle}
+      bot.onclose { puts 'Disconnected'; EM.stop }
+      bot.onchange { |diff| bot.log "BOT DIF: #{diff}" }
     end
   end
 end
