@@ -16,9 +16,8 @@ class SingleCommandController < AbstractController
   def call
     @cmd   = message.payload["command"]
     action = AVAILABLE_ACTIONS[cmd["action"].to_s.downcase] || :unknown
-    puts "Calling #{action}"
     send(action)
-    reply "read_status", confirmation: true, command: cmd
+    reply 'single_command', confirmation: true, command: cmd
   end
 
   def move_relative
@@ -46,6 +45,7 @@ class SingleCommandController < AbstractController
   end
 
   def pin_write
+    bot.status.set_pin(cmd['pin'], cmd['value1']) # Belongs in FB-Serial
     bot.commands.pin_write pin:   cmd['pin'],
                            value: cmd['value1'],
                            mode:  cmd['mode'] || 0
