@@ -13,6 +13,7 @@ class Credentials
   # new credentials if the current ones are found to be invalid.
   def load_or_create
     valid_credentials? ? load_credentials : create_credentials
+    self
   end
 
   # Validates that the credentials file has a :uuid and :token key. Returns Bool
@@ -26,18 +27,22 @@ class Credentials
   # registers with a new device :uuid and :token on skynet.im . Returns Hash
   # containing :uuid and :token key.
   def create_credentials
-    # TODO: Use a real HTTP library with error handling.
     hash = { uuid: (@uuid  = SecureRandom.uuid),
-             token: (@token = SecureRandom.hex) }
-    `curl -s -X POST -d 'uuid=#{@uuid}&token=#{@token}&type=farmbot' \
-      http://skynet.im/devices`
+             token: (@token = SecureRandom.hex(20)) }
+    http_post_to_meshblu
     File.open(credentials_file, 'w+') {|file| file.write(hash.to_yaml) }
     return hash
   end
 
+  def http_post_to_meshblu
+    # TODO: Use a real HTTP library with error handling.
+    `curl -s -X POST -d 'uuid=#{@uuid}&token=#{@token}&type=farmbot' \
+    http://skynet.im/devices`
+  end
+
   ### Loads the credentials file from disk and returns it as a ruby hash.
   def load_credentials
-    yml = YAML.load(File.read(credentials_file))
+    yml = YAML.load(File.read(credentials_file)) || {}
     @uuid, @token = yml[:uuid], yml[:token]
     yml
   end

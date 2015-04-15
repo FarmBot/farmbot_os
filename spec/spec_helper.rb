@@ -1,11 +1,11 @@
 require 'simplecov'
-
 SimpleCov.start do
   add_filter "/spec/"
 end
 
 require 'pry'
-Dir["spec/fixtures/*.rb"].each { |f| load(f) }
+Dir['spec/fakes/**/*.rb'].each {|file| load file }
+require_relative '../lib/farmbot-pi'
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
