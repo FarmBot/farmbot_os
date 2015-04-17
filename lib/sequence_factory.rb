@@ -6,7 +6,7 @@ require 'ostruct'
 # |_|  |_||  O  ||  D  ||  O  ||__|  * Break down into individual files
 #   |  |  |     ||     ||     | __   * Remove case statement SequenceStep#call()
 #   |  |  |     ||     ||     ||  |  * DRY StepValidator::COMMANDS into 1 place.
-#   |__|   \___/ |_____| \___/ |__|
+#   |__|   \___/ |_____| \___/ |__|  * Find a way to re-use single_command controller?
 
 class SequenceStep < OpenStruct
   def initialize(hash = nil)
@@ -18,10 +18,8 @@ class SequenceStep < OpenStruct
     botcmd, cmd = bot.commands, command
     case message_type
     when "move_relative"
-      coords = { x: [(cmd.x || 0), 0].max,
-                 y: [(cmd.y || 0), 0].max,
-                 z: [(cmd.z || 0), 0].max }
-      botcmd.move_relative(coords)
+      coords = {x: (cmd.x || 0), y: (cmd.y || 0), z: (cmd.z || 0)}
+      bot.commands.move_relative coords
     when "move_absolute"
       coords = { x: cmd.x || bot.current_position.x,
                  y: cmd.y || bot.current_position.y,
