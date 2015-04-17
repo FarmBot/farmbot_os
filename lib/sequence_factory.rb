@@ -18,9 +18,13 @@ class SequenceStep < OpenStruct
     botcmd, cmd = bot.commands, command
     case message_type
     when "move_relative"
-      botcmd.move_relative(x: cmd.x, y: cmd.y, z: cmd.z)
+      coords = {x: cmd.x || 0, y: cmd.y || 0, z: cmd.z || 0}
+      botcmd.move_relative(coords)
     when "move_absolute"
-      botcmd.move_absolute(x: cmd.x, y: cmd.y, z: cmd.z)
+      coords = {x: cmd.x || bot.current_position.x,
+                y: cmd.y || bot.current_position.y,
+                z: cmd.z || bot.current_position.z}
+      botcmd.move_absolute(coords)
     when "pin_write"
       botcmd.pin_write(pin: cmd.pin, value: cmd.value, mode: cmd.mode)
     else
