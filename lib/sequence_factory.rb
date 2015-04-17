@@ -21,7 +21,6 @@ class SequenceStep < OpenStruct
       coords = { x: [(cmd.x || 0), 0].max,
                  y: [(cmd.y || 0), 0].max,
                  z: [(cmd.z || 0), 0].max }
-      binding.pry
       botcmd.move_relative(coords)
     when "move_absolute"
       coords = { x: cmd.x || bot.current_position.x,
