@@ -10,7 +10,8 @@ class MessageHandler
   attr_accessor :message, :bot, :mesh
 
   ROUTES = { "single_command" => SingleCommandController,
-             "read_status"    => ReadStatusController, }
+             "read_status"    => ReadStatusController,
+             "exec_sequence"  => ExecSequenceController, }
 
   ## general handling messages
   def initialize(message_hash, bot, mesh)
@@ -18,7 +19,6 @@ class MessageHandler
     payl = message_hash.fetch('payload', {})
     @message = MeshMessage.new(from: message_hash['fromUuid'],
                                type: payl['message_type'],
-                               time: payl['time_stamp'],
                                payload: payl)
   end
 
@@ -48,10 +48,7 @@ class MessageHandler
   end
 
   def reply(type, payl = {})
-    mesh.emit message.from,
-              payl.merge(message_type: type,
-                         confirm_id: message.time,
-                         time_stamp: Time.now.to_f.to_s)
+    mesh.emit message.from, payl.merge(message_type: type)
   end
 end
 
