@@ -6,13 +6,9 @@ gem 'active_record_migrations'
 # Use sqlite3 as the database for Active Record
 gem 'sqlite3'
 
-# gem 'bson' # Is this still needed ? I think this is a mongo remnant
-
 gem 'farmbot-serial', '0.2.4'
 gem 'meshruby', '0.0.3'
-# gem 'polyglot'
-# gem 'httparty'
-
+gem 'mutations', '0.7.2'
 gem 'pry'
 gem 'rspec'
 gem 'simplecov'
