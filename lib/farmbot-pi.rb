@@ -20,9 +20,18 @@ class FarmBotPi
 
       FB::ArduinoEventMachine.connect(bot)
 
-      bot.onmessage { |msg| bot.log "BOT MSG: #{msg.name} #{msg.to_s}" unless msg.name == :idle}
-      bot.onclose { puts 'Disconnected'; EM.stop }
-      bot.onchange { |diff| bot.log "BOT DIF: #{diff}" }
+      bot.onmessage do |msg|
+        unless [
+          :received, :done, :report_parameter_value, :idle].include?(msg.name)
+          bot.log "BOT MSG: #{msg.name} #{msg.to_s}"
+        end
+      end
+
+      bot.onchange do |diff|
+        bot.log "BOT DIF: #{diff}" unless diff.keys == [:BUSY]
+      end
+
+      bot.onclose { EM.stop }
     end
   end
 end
