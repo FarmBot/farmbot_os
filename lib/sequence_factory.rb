@@ -27,7 +27,7 @@ class SequenceStep < OpenStruct
       botcmd.move_absolute(coords)
     when "pin_write"
       botcmd.pin_write(pin: cmd.pin, value: cmd.value, mode: cmd.mode)
-    elss
+    else
       bot.log "Unknown message #{message_type}"
     end
   end
