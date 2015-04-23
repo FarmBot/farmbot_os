@@ -16,6 +16,7 @@ class FarmBotPi
   def start
     EM.run do
       mesh.connect
+      mesh.toggle_debug!
       mesh.onmessage { |msg| MessageHandler.call(msg, bot, mesh) }
 
       FB::ArduinoEventMachine.connect(bot)
