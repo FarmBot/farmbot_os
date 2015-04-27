@@ -17,4 +17,22 @@ describe MessageHandler do
     expect(handler.message.type).to eq('test_message')
     expect(handler.message.payload).to eq(message['payload'])
   end
+
+  it "Calls itself when provided a bot, message and mesh network" do
+    hndlr = MessageHandler.call(message, bot, mesh)
+    msgs  = mesh.all
+    expect(msgs.count).to eq(2)
+    expect(msgs.first.type).to eq("error")
+    expect(msgs.last.type).to eq("confirmation")
+  end
+
+  it "sends errors" do
+    begin
+      raise "Fake error for testing"
+    rescue => fake_error
+      handler.send_error(fake_error)
+      expect(mesh.last.payload[:error])
+        .to include("Fake error for testing @ /")
+    end
+  end
 end
