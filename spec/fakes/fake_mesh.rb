@@ -10,6 +10,10 @@ class FakeMesh
     def initialize(name, payload)
       @name, @payload = name, payload
     end
+
+    def type
+      @payload[:message_type] || "not set"
+    end
   end
 
   def emit(name, payload)
