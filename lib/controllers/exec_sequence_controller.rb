@@ -1,10 +1,10 @@
 require_relative 'abstract_controller'
-require_relative '../sequence_factory'
+require_relative '../sequences/sequences'
 class ExecSequenceController < AbstractController
   def call
     sequence = SequenceFactory.run!(Hash(@message.payload["command"]))
     sequence.steps.each do |step|
-      step.call(bot)
+      step.execute(bot)
     end
     reply "exec_sequence"
   rescue Mutations::ValidationException => error
