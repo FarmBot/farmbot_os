@@ -2,7 +2,7 @@ require_relative 'abstract_controller'
 require_relative '../sequence_factory'
 class ExecSequenceController < AbstractController
   def call
-    sequence = SequenceFactory.run!(@message.payload["command"])
+    sequence = SequenceFactory.run!(Hash(@message.payload["command"]))
     sequence.steps.each do |step|
       step.call(bot)
     end

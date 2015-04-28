@@ -1,7 +1,7 @@
 require 'json'
 require 'time'
 require_relative 'mesh_message'
-Dir["lib/controllers/*.rb"].each { |f| load(f) }
+Dir["lib/controllers/**/*.rb"].each { |f| load(f) }
 
 # Get the JSON command, received through skynet, and send it to the farmbot
 # command queue Parses JSON messages received through SkyNet.

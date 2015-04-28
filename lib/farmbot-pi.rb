@@ -7,10 +7,10 @@ require 'pry'
 class FarmBotPi
   attr_accessor :mesh, :bot, :credentials, :handler
 
-  def initialize(env = :development)
+  def initialize(bot: FB::Arduino.new)
     @credentials = Credentials.new
     @mesh        = EM::MeshRuby.new(@credentials.uuid, @credentials.token)
-    @bot         = FB::Arduino.new
+    @bot         = bot
   end
 
   def start
@@ -34,5 +34,7 @@ class FarmBotPi
 
       bot.onclose { EM.stop }
     end
+  rescue => error
+    binding.pry
   end
 end

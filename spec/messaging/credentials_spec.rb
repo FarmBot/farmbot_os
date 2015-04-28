@@ -18,8 +18,6 @@ describe Credentials do
     expect(cred.credentials_file).to eq(temp_file)
   end
 
-  it 'loads credentials'
-
   it 'creates credentials' do
     old_uuid  = cred.uuid
     old_token = cred.token
