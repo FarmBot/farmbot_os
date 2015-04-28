@@ -6,7 +6,7 @@ gem 'active_record_migrations'
 # Use sqlite3 as the database for Active Record
 gem 'sqlite3'
 
-gem 'farmbot-serial', '0.3.0'
+gem 'farmbot-serial', '0.3.1'
 gem 'meshruby', '0.0.3'
 gem 'mutations', '0.7.2'
 gem 'pry-byebug'
