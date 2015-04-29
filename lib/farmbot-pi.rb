@@ -34,7 +34,5 @@ class FarmBotPi
 
       bot.onclose { EM.stop }
     end
-  rescue => error
-    binding.pry
   end
 end

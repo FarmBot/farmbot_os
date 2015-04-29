@@ -1,4 +1,6 @@
 # Builds a validated sequence (and collection of steps)
+require_relative 'sequence'
+
 class SequenceFactory < Mutations::Command
   required do
     string :name
@@ -6,6 +8,6 @@ class SequenceFactory < Mutations::Command
   end
 
   def execute
-    OpenStruct.new(inputs)
+    Sequence.new(inputs)
   end
 end

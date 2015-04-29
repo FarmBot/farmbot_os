@@ -1,5 +1,6 @@
 require_relative 'abstract_controller'
 require_relative '../sequences/sequences'
+
 class ExecSequenceController < AbstractController
   def call
     sequence = SequenceFactory.run!(Hash(@message.payload["command"]))

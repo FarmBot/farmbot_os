@@ -11,7 +11,8 @@ class MessageHandler
 
   ROUTES = { "single_command" => SingleCommandController,
              "read_status"    => ReadStatusController,
-             "exec_sequence"  => ExecSequenceController, }
+             "exec_sequence"  => ExecSequenceController,
+             "sync_sequence"  => SyncSequenceController, }
 
   ## general handling messages
   def initialize(message_hash, bot, mesh)
