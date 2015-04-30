@@ -13,7 +13,7 @@ class StepFactory < Mutations::Command
   end
 
   def execute
-    Step.create!(inputs.merge(inputs["command"]))
+    Step.new(inputs.merge(inputs["command"]))
   end
 end
 

@@ -7,7 +7,7 @@ class ScheduleFactory < Mutations::Command
     string :end_time
     float  :repeat
     string :time_unit, in: Schedule::UNITS_OF_TIME
-    model  :sequence, class: Sequence, builder: SequenceFactory
+    model  :sequence, class: Sequence, builder: SequenceFactory, new_records: true
   end
 
   def validate
