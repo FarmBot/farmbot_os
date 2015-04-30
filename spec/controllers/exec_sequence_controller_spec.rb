@@ -27,6 +27,8 @@ describe ExecSequenceController do
 
   it "initializes" do
     controller.call
+    msg = mesh.last.payload || {}
+    raise msg[:error] if msg[:error]
     expect(mesh.last.type).to eq("exec_sequence")
     within_event_loop { bot.execute_command_next_tick }
     results = bot.outbound_queue.map(&:to_s)

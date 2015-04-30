@@ -1,12 +1,16 @@
-class Step < OpenStruct
-  attr_accessor :bot
+class Step < ActiveRecord::Base
+  attr_accessor :bot, :command
+
   COMMANDS = %w(emergency_stop home_all home_x home_y home_z move_absolute
     move_relative pin_write read_parameter read_status write_parameter)
 
-  def initialize(hash = nil)
-    super
-    self[:command] = OpenStruct.new(self[:command])
-  end
+  belongs_to :sequence
+
+  # def initialize(hash = nil)
+  #   super
+  #   binding.pry
+  #   @command = OpenStruct.new(self[:command])
+  # end
 
   def execute(bot)
     @bot = bot
@@ -17,18 +21,18 @@ class Step < OpenStruct
   end
 
   def move_relative
-    coords = {x: (command.x || 0), y: (command.y || 0), z: (command.z || 0)}
+    coords = {x: (x || 0), y: (y || 0), z: (z || 0)}
     bot.commands.move_relative coords
   end
 
   def move_absolute
-    coords = { x: command.x || bot.current_position.x,
-               y: command.y || bot.current_position.y,
-               z: command.z || bot.current_position.z, }
+    coords = { x: x || bot.current_position.x,
+               y: y || bot.current_position.y,
+               z: z || bot.current_position.z, }
     bot.commands.move_absolute(coords)
   end
 
   def pin_write
-    bot.commands.pin_write(pin: command.pin, value: command.value, mode: command.mode)
+    bot.commands.pin_write(pin: pin, value: value, mode: mode)
   end
 end

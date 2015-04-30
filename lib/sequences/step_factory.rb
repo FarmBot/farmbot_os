@@ -1,3 +1,5 @@
+require_relative '../models/step'
+
 class StepFactory < Mutations::Command
   required do
     string :message_type, in: Step::COMMANDS
@@ -11,7 +13,7 @@ class StepFactory < Mutations::Command
   end
 
   def execute
-    Step.new(inputs)
+    Step.create!(inputs.merge(inputs["command"]))
   end
 end
 

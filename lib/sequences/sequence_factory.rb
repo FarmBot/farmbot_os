@@ -1,5 +1,5 @@
 # Builds a validated sequence (and collection of steps)
-require_relative 'sequence'
+require_relative '../models/sequence'
 
 class SequenceFactory < Mutations::Command
   required do
@@ -8,6 +8,6 @@ class SequenceFactory < Mutations::Command
   end
 
   def execute
-    Sequence.new(inputs)
+    Sequence.create!(inputs)
   end
 end

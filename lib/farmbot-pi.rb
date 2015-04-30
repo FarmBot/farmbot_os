@@ -4,6 +4,11 @@ require_relative 'messaging/credentials'
 require_relative 'messaging/message_handler'
 require 'pry'
 
+ActiveRecord::Base.establish_connection(
+  :adapter => 'sqlite3',
+  :database => './db/db.sqlite3'
+)
+
 class FarmBotPi
   attr_accessor :mesh, :bot, :credentials, :handler
 

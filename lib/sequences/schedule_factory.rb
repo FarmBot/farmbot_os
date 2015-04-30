@@ -1,9 +1,6 @@
 # Builds a validated sequence (and collection of steps)
-require_relative "schedule"
-# SCHEMA NEEDED FOR PERSISTENCE:
-# SEQUENCE: [:name]
-# SCHEDULE: [:start_time, :end_time, :repeat, :time_unit, :sequence, :sequence_id]
-# STEP:     [:message_type, :x, :y, :z, :speed, :pin, :value, :mode, :sequence_id]
+require_relative '../models/schedule'
+
 class ScheduleFactory < Mutations::Command
   required do
     string :start_time
@@ -18,7 +15,7 @@ class ScheduleFactory < Mutations::Command
   end
 
   def execute
-    Schedule.new(inputs)
+    Schedule.create!(inputs)
   end
 
   private
