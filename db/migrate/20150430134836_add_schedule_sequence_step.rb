@@ -7,8 +7,9 @@ class AddScheduleSequenceStep < ActiveRecord::Migration
 
     create_table :schedules do |t|
       t.references :sequence
-      t.string :repeat
+      t.string :id_on_web_app
       t.string :time_unit
+      t.float :repeat
       t.time :start_time
       t.time :end_time
       t.timestamps null: false

@@ -6,12 +6,6 @@ class Step < ActiveRecord::Base
 
   belongs_to :sequence
 
-  # def initialize(hash = nil)
-  #   super
-  #   binding.pry
-  #   @command = OpenStruct.new(self[:command])
-  # end
-
   def execute(bot)
     @bot = bot
     route_me = { "move_relative" => -> { move_relative },

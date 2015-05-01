@@ -1,5 +1,0 @@
-#!/bin/bash
-# Start up farmbot
-
-cd /home/pi/farmbot-raspberry-pi-controller
-ruby farmbot.rb
