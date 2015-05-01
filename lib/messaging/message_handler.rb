@@ -1,7 +1,6 @@
 require 'json'
 require 'time'
 require_relative 'mesh_message'
-Dir["lib/controllers/**/*.rb"].each { |f| load(f) }
 
 # Get the JSON command, received through skynet, and send it to the farmbot
 # command queue Parses JSON messages received through SkyNet.
@@ -9,9 +8,17 @@ class MessageHandler
 
   attr_accessor :message, :bot, :mesh
 
-  ROUTES = { "single_command" => SingleCommandController,
-             "read_status"    => ReadStatusController,
-             "exec_sequence"  => ExecSequenceController, }
+  CONTROLLERS = ["single_command", "read_status", "exec_sequence",
+                 "sync_sequence", "unknown",]
+
+  # TODO: Namespace FBPi:: for added security. ===============================v
+  CONTROLLERS.each {|k| require_relative "../controllers/#{k}_controller"}
+  ROUTES = CONTROLLERS.reduce({}) do |accumlator, value|
+
+    klass = const_get(value.split('_').map {|w| w.capitalize}.join+"Controller")
+    accumlator[value] = klass
+    accumlator
+  end # END MAGIC NAMING CONVENTION CODE =====================================^
 
   ## general handling messages
   def initialize(message_hash, bot, mesh)
