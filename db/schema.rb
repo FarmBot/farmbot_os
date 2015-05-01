@@ -20,6 +20,7 @@ ActiveRecord::Schema.define(version: 20150430134836) do
     t.float    "repeat"
     t.time     "start_time"
     t.time     "end_time"
+    t.time     "next_time"
     t.datetime "created_at",    null: false
     t.datetime "updated_at",    null: false
   end

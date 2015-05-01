@@ -13,7 +13,7 @@ class MessageHandler
 
   # TODO: Namespace FBPi:: for added security. ===============================v
   CONTROLLERS.each {|k| require_relative "../controllers/#{k}_controller"}
-  ROUTES = CONTROLLERS.inject({}) do |accumlator, value|
+  ROUTES = CONTROLLERS.reduce({}) do |accumlator, value|
 
     klass = const_get(value.split('_').map {|w| w.capitalize}.join+"Controller")
     accumlator[value] = klass

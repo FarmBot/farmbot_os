@@ -12,6 +12,7 @@ class AddScheduleSequenceStep < ActiveRecord::Migration
       t.float :repeat
       t.time :start_time
       t.time :end_time
+      t.time :next_time
       t.timestamps null: false
     end
 

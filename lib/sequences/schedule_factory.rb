@@ -11,6 +11,10 @@ class ScheduleFactory < Mutations::Command
     model  :sequence, class: Sequence, builder: SequenceFactory, new_records: true
   end
 
+  optional do
+    string :next_time
+  end
+
   def validate
     parse_dates
   end
