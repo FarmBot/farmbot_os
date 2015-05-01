@@ -17,6 +17,7 @@ class ChoreRunner
     # TODO: Bot#log.
     puts "Running #{@jobs.count} jobs."
     jobs.each(&:run_now)
+    @jobs = []
   end
 
   def nothing
