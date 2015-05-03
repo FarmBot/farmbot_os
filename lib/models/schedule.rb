@@ -7,9 +7,11 @@ class Schedule < ActiveRecord::Base
   # https://www.youtube.com/watch?v=A20yHPBzmG4
   def run_now(now = Time.now)
     rule  = IceCube::Rule.send(time_unit, repeat)
-    sched = IceCube::Schedule.new(now) do |obj|
-      obj.add_recurrence_rule(rule)
+    sched = IceCube::Schedule.new(now) { |o| o.add_recurrence_rule(rule) }
+    if end_time.to_date < Date.today
+      raise 'This is totes bug. Dates are not getting imported properly.'
+    else
+      update_attributes(next_time: sched.next_occurrence.to_time)
     end
-    update_attributes(next_time: sched.next_occurrence.to_time)
   end
 end
