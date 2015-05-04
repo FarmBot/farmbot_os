@@ -11,16 +11,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150430134836) do
+ActiveRecord::Schema.define(version: 20150504131720) do
 
   create_table "schedules", force: :cascade do |t|
     t.integer  "sequence_id"
     t.string   "id_on_web_app"
     t.string   "time_unit"
     t.float    "repeat"
-    t.time     "start_time"
-    t.time     "end_time"
-    t.time     "next_time"
+    t.datetime "start_time"
+    t.datetime "end_time"
+    t.datetime "next_time"
     t.datetime "created_at",    null: false
     t.datetime "updated_at",    null: false
   end
