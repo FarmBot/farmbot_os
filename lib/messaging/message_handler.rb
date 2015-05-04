@@ -5,20 +5,31 @@ require_relative 'mesh_message'
 # Get the JSON command, received through skynet, and send it to the farmbot
 # command queue Parses JSON messages received through SkyNet.
 class MessageHandler
-
+  class ControllerLoadErrorr < Exception; end
   attr_accessor :message, :bot, :mesh
 
-  CONTROLLERS = ["single_command", "read_status", "exec_sequence",
-                 "sync_sequence", "unknown",]
+  def self.add_controller(k)
+    self::ROUTES ||= {}
+    k = k.to_s
+    controller_path = "../controllers/#{k}_controller"
+    begin require_relative controller_path; rescue LoadError; nil end
+    klass_name = k.split('_').map{|w| w.capitalize}.join+"Controller"
+    klass = const_get(klass_name)
+    ROUTES[k] = klass
+  rescue NameError
+    raise ControllerLoadErrorr, """
+    PROBLEM:
+      * You failed to load a controller for message type '#{k}'
+    SOLUTION:
+      * Ensure controller class is named #{klass_name}
+      * Save controller as #{controller_path.gsub('..', 'lib')}.rb
+      - OR -
+      * Ensure #{klass_name} is manually loaded.
+     and""".squeeze
+  end
 
-  # TODO: Namespace FBPi:: for added security. ===============================v
-  CONTROLLERS.each {|k| require_relative "../controllers/#{k}_controller"}
-  ROUTES = CONTROLLERS.reduce({}) do |accumlator, value|
-
-    klass = const_get(value.split('_').map {|w| w.capitalize}.join+"Controller")
-    accumlator[value] = klass
-    accumlator
-  end # END MAGIC NAMING CONVENTION CODE =====================================^
+  [:single_command, :read_status, :exec_sequence,
+   :sync_sequence, :unknown,].each {|k| add_controller(k) }
 
   ## general handling messages
   def initialize(message_hash, bot, mesh)
