@@ -29,6 +29,7 @@ class ScheduleFactory < Mutations::Command
   def parse_dates
     [:start_time, :end_time].each do |time|
       @last = time
+      binding.pry
       new_time = Time.parse(self.send(time))
       self.send("#{time}=", new_time) # So Meta!
      end
