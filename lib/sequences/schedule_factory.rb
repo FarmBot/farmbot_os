@@ -15,28 +15,8 @@ class ScheduleFactory < Mutations::Command
     string :next_time
   end
 
-  def validate
-    parse_dates
-  end
-
   def execute
     inputs[:id_on_web_app] = inputs.delete(:_id)
     Schedule.create!(inputs)
   end
-
-  private
-
-  def parse_dates
-    [:start_time, :end_time].each do |time|
-      @last = time
-      binding.pry
-      new_time = Time.parse(self.send(time))
-      self.send("#{time}=", new_time) # So Meta!
-     end
-  rescue ArgumentError => error
-    field = @last || :time
-    add_error field, :cant_parse, "Error parsing #{field} on Schedule object."\
-                                  " #{error.message}"
-  end
-
 end

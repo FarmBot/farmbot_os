@@ -6,12 +6,15 @@ class Step < ActiveRecord::Base
 
   belongs_to :sequence
 
+  # TODO: Refactor this whole method. Probably too hard for a newcomer to
+  # understand. If you need help with this one, raise an issue.
   def execute(bot)
     @bot = bot
-    route_me = { "move_relative" => -> { move_relative },
-                 "move_absolute" => -> { move_absolute },
-                 "pin_write"     => -> { pin_write }, }
-    route_me[message_type][] || bot.log("Unknown message #{message_type}")
+    r = {"move_relative" => -> { move_relative },
+         "move_absolute" => -> { move_absolute },
+         "pin_write"     => -> { pin_write },
+         "unknown"       => -> { bot.log("Unknown message #{message_type}") },}
+    (r[message_type] || r['unknown']).call
   end
 
   def move_relative

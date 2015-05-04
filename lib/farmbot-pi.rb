@@ -17,7 +17,6 @@ class FarmBotPi
     @credentials = Credentials.new
     @mesh        = EM::MeshRuby.new(@credentials.uuid, @credentials.token)
     @bot         = bot
-    @runner      = ChoreRunner.new
   end
 
   def start
@@ -36,7 +35,8 @@ class FarmBotPi
         end
       end
 
-      EventMachine::PeriodicTimer.new(ChoreRunner::INTERVAL) { runner.run }
+      EventMachine::PeriodicTimer
+        .new(ChoreRunner::INTERVAL) { ChoreRunner.new(bot).run }
 
       bot.onchange do |diff|
         bot.log "BOT DIF: #{diff}" unless diff.keys == [:BUSY]
