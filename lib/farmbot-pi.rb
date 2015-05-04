@@ -20,7 +20,6 @@ class FarmBotPi
   end
 
   def start
-    require 'ruby-prof'; RubyProf.start
     EM.run do
       mesh.connect
       mesh.toggle_debug!
@@ -42,9 +41,7 @@ class FarmBotPi
         bot.log "BOT DIF: #{diff}" unless diff.keys == [:BUSY]
       end
 
-      bot.onclose {
-        RubyProf.start
-        EM.stop }
+      bot.onclose { EM.stop }
     end
   end
 end
