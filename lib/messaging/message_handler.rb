@@ -25,7 +25,7 @@ class MessageHandler
       * Save controller as #{controller_path.gsub('..', 'lib')}.rb
       - OR -
       * Ensure #{klass_name} is manually loaded.
-     and""".squeeze
+     """.squeeze
   end
 
   [:single_command, :read_status, :exec_sequence,
