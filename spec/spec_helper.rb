@@ -21,7 +21,7 @@ end
 def within_event_loop(bot)
   EM.run do
     bot.status[:BUSY] = 0
-    EventMachine::PeriodicTimer.new(0.1) { EM.stop }
+    EventMachine::PeriodicTimer.new(0.5) { EM.stop }
     yield
   end
 end

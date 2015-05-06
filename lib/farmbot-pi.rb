@@ -41,6 +41,7 @@ class FarmBotPi
       end
 
       bot.onclose { EM.stop }
+      bot.start
     end
   end
 end
