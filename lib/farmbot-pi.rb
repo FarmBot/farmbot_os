@@ -21,7 +21,6 @@ class FarmBotPi
 
   def start
     EM.run do
-      bot.listen_for_commands
       mesh.connect
       mesh.onmessage { |msg| MessageHandler.call(msg, bot, mesh) }
 
