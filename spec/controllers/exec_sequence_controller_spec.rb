@@ -30,7 +30,7 @@ describe ExecSequenceController do
     msg = mesh.last.payload || {}
     raise msg[:error] if msg[:error]
     expect(mesh.last.type).to eq("exec_sequence")
-    within_event_loop { bot.execute_command_next_tick }
+    within_event_loop { nil } # Calls bot.maybe_execute_command
     results = bot.outbound_queue.map(&:to_s)
     ["F41 P1 V1 M0", "G0 X0 Y1200 Z0", "G0 X500 Y0 Z0"].each do |gcode|
       expect(results).to include(gcode)
