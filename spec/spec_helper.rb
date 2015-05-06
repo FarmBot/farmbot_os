@@ -18,8 +18,9 @@ end
 
 # This is used for testing things that require an event loop. Once run, you can
 # observe / make assertions on side effects.
-def within_event_loop
+def within_event_loop(bot)
   EM.run do
+    bot.status[:BUSY] = 0
     EventMachine::PeriodicTimer.new(0.1) { EM.stop }
     yield
   end
