@@ -21,6 +21,7 @@ class FarmBotPi
 
   def start
     EM.run do
+      mesh.toggle_debug!
       mesh.connect
       mesh.onmessage { |msg| MessageHandler.call(msg, bot, mesh) }
 
