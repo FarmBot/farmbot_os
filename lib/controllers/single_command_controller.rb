@@ -15,7 +15,8 @@ class SingleCommandController < AbstractController
 
   def call
     @cmd   = (message.payload || {})
-    action = AVAILABLE_ACTIONS.fetch(cmd["command"], :unknown)
+    key = cmd.fetch("command", {})["action"].downcase
+    action = AVAILABLE_ACTIONS.fetch(key, :unknown).to_sym
     send(action)
     reply 'single_command', confirmation: true, command: cmd
   end
