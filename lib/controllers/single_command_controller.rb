@@ -14,8 +14,8 @@ class SingleCommandController < AbstractController
                         "emergency stop"  => :emergency_stop, }
 
   def call
-    @cmd   = message.payload["command"]
-    action = AVAILABLE_ACTIONS[cmd["action"].to_s.downcase] || :unknown
+    @cmd   = (message.payload || {})
+    action = AVAILABLE_ACTIONS.fetch(cmd["command"], :unknown)
     send(action)
     reply 'single_command', confirmation: true, command: cmd
   end
@@ -56,7 +56,8 @@ class SingleCommandController < AbstractController
   end
 
   def unknown
-    raise "Unknown message. Most likely, the command has not been implemented "\
-          "or does not exist."
+    raise "Unknown message '#{cmd["command"] || 'NULL'}'. Most likely, the "\
+          "command has not been implemented or does not exist. Try: "\
+          "#{AVAILABLE_ACTIONS.keys.join(', ')}"
   end
 end

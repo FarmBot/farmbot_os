@@ -1,5 +1,5 @@
 class MeshMessage
-  attr_reader :from, :type, :payload
+  attr_accessor :from, :type, :payload
 
   def initialize(from:, type:, payload:)
     payload.delete("message_type") if payload.respond_to?(:delete)
