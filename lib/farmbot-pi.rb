@@ -13,15 +13,25 @@ ActiveRecord::Base.establish_connection(
 class FarmBotPi
   attr_accessor :mesh, :bot, :credentials, :handler, :runner
 
-  def initialize(bot: FB::Arduino.new)
+  def initialize(bot: select_correct_bot)
     @credentials = Credentials.new
     @mesh        = EM::MeshRuby.new(@credentials.uuid, @credentials.token)
     @bot         = bot
   end
 
+  def select_correct_bot
+    if File.file?('serial_port.txt')
+      com = File.read('serial_port.txt').strip
+    else
+      com = '/dev/ttyACM0'
+    end
+    serial_port = FB::DefaultSerialPort.new(com)
+    FB::Arduino.new(serial_port: serial_port)
+  end
+
   def start
     EM.run do
-      # mesh.toggle_debug!
+      mesh.toggle_debug!
       mesh.connect
       mesh.onmessage { |msg|
         bot.log msg unless msg.fetch("payload", {})['message_type'] == 'read_status'
@@ -30,10 +40,10 @@ class FarmBotPi
       FB::ArduinoEventMachine.connect(bot)
 
       bot.onmessage do |msg|
-        unless [:received, :done, :report_parameter_value,
-                :idle].include?(msg.name)
+        # unless [:received, :done, :report_parameter_value,
+        #         :idle].include?(msg.name)
           bot.log "BOT MSG: #{msg.name} #{msg.to_s}"
-        end
+        # end
       end
 
       EventMachine::PeriodicTimer

@@ -52,6 +52,8 @@ At this point, your MeshBlu credentials can be found in `credentials.yml`
 Arduino
 -------
 
+**If your device doesn't use `/dev/ttyACM0`**: Write the name of your serial device (usually /dev/ttyUSB0) in `serial_port.txt`.
+
 You will need to flash your Arduino with custom firmware. For instructions on how to do this, see [the FarmBot-Arduino github page](https://github.com/FarmBot/farmbot-serial)
 
 Author
