@@ -24,13 +24,13 @@ describe SingleCommandController do
   end
 
   it 'handles parameterless commands' do
-    commands = {"home x"          => :home_x,
-                "home y"          => :home_y,
-                "home z"          => :home_z,
-                "home all"        => :home_all,
-                "emergency stop"  => :emergency_stop }
+    commands = { "home x"         => :home_x,
+                 "home y"         => :home_y,
+                 "home z"         => :home_z,
+                 "home all"       => :home_all,
+                 "emergency stop" => :emergency_stop }
     commands.each do |key, val|
-      message.payload = {"command" => key}
+      message.payload = {"action" => key}
       controller.call
       expect(bot.commands.last).to eq(val => [])
     end
