@@ -14,11 +14,13 @@ class SingleCommandController < AbstractController
                         "emergency stop"  => :emergency_stop, }
 
   def call
-    @cmd   = (message.payload || {})
-    key    = @cmd["action"].to_s.gsub("_", " ").downcase
+    @cmd   = (message.payload || {}).fetch("command", {})
+    key    = @cmd["action"].to_s.downcase.gsub("_", " ").downcase
     action = AVAILABLE_ACTIONS.fetch(key, :unknown).to_sym
     send(action)
     reply 'single_command', confirmation: true, command: cmd
+  rescue => qqq
+    binding.pry
   end
 
   def move_relative
