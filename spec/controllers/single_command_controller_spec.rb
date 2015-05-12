@@ -29,8 +29,12 @@ describe SingleCommandController do
                  "home z"         => :home_z,
                  "home all"       => :home_all,
                  "emergency stop" => :emergency_stop }
+    # => #<MeshMessage:0x000000030c1220
+    #  @from="7e3a8a10-6bf6-11e4-9ead-634ea865603d",
+    #  @payload={"command"=>{"action"=>"MOVE RELATIVE", "x"=>1000, "y"=>0, "z"=>0, "speed"=>100}},
+    #  @type="single_command">
     commands.each do |key, val|
-      message.payload = {"action" => key}
+      message.payload = {"command" => {"action" => key}}
       controller.call
       expect(bot.commands.last).to eq(val => [])
     end

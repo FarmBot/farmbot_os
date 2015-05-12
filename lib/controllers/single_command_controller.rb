@@ -19,8 +19,6 @@ class SingleCommandController < AbstractController
     action = AVAILABLE_ACTIONS.fetch(key, :unknown).to_sym
     send(action)
     reply 'single_command', confirmation: true, command: cmd
-  rescue => qqq
-    binding.pry
   end
 
   def move_relative

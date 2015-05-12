@@ -31,7 +31,7 @@ class FarmBotPi
 
   def start
     EM.run do
-      mesh.toggle_debug!
+      # mesh.toggle_debug!
       mesh.connect
       mesh.onmessage { |msg|
         bot.log msg unless msg.fetch("payload", {})['message_type'] == 'read_status'
@@ -42,7 +42,7 @@ class FarmBotPi
       bot.onmessage do |msg|
         # unless [:received, :done, :report_parameter_value,
         #         :idle].include?(msg.name)
-          bot.log "BOT MSG: #{msg.name} #{msg.to_s}"
+          bot.log "BOT MSG: #{msg.name} #{msg.to_s} #{bot.status.ready? ? "Ready" : "Not Ready"}"
         # end
       end
 
