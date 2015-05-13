@@ -3,12 +3,19 @@ require_relative '../sequences/sequences'
 
 class ExecSequenceController < AbstractController
   def call
-    sequence = SequenceFactory.run!(Hash(@message.payload["command"]))
     sequence.steps.each do |step|
       step.execute(bot)
     end
     reply "exec_sequence"
   rescue Mutations::ValidationException => error
     reply "error", error: error.message
+  end
+
+  def payload
+    @payload ||= Hash(@message.payload["command"])
+  end
+
+  def sequence
+    @sequence ||= SequenceFactory.run!(payload)
   end
 end
