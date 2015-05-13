@@ -1,0 +1,2 @@
+class FakeSchedule
+end

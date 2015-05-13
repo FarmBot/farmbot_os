@@ -34,8 +34,8 @@ class ScheduleChore
   end
 
   def next_time
-    @next_time ||=
-    ( rule  = IceCube::Rule.send(schedule.time_unit, schedule.repeat)
+    @next_time ||= (
+      rule  = IceCube::Rule.send(schedule.time_unit, schedule.repeat)
       sched = IceCube::Schedule.new(now) { |o| o.add_recurrence_rule(rule) }
       sched.next_occurrence.to_time )
   end
