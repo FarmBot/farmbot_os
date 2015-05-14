@@ -29,14 +29,36 @@ describe SingleCommandController do
                  "home z"         => :home_z,
                  "home all"       => :home_all,
                  "emergency stop" => :emergency_stop }
-    # => #<MeshMessage:0x000000030c1220
-    #  @from="7e3a8a10-6bf6-11e4-9ead-634ea865603d",
-    #  @payload={"command"=>{"action"=>"MOVE RELATIVE", "x"=>1000, "y"=>0, "z"=>0, "speed"=>100}},
-    #  @type="single_command">
     commands.each do |key, val|
       message.payload = {"command" => {"action" => key}}
       controller.call
       expect(bot.commands.last).to eq(val => [])
     end
+  end
+
+  it 'moves relative' do
+    # Using real-world marshalled object for ultra-accurate testing.
+    message.payload = {"command"=>{"action"=>"MOVE RELATIVE", "x"=>10,
+      "y"=>20, "z"=>30, "speed"=>40}}
+    controller.call
+    expect(bot.commands.log).to include(
+      move_relative: [{:x=>10, :y=>20, :z=>30}])
+  end
+
+  it 'moves absolute' do
+    # Using real-world marshalled object for ultra-accurate testing.
+    message.payload = {"command"=>{"action"=>"MOVE ABSOLUTE", "x"=>10,
+      "y"=>20, "z"=>30, "speed"=>40}}
+    controller.call
+    expect(bot.commands.log).to include(
+      move_absolute: [{:x=>10, :y=>20, :z=>30}])
+  end
+
+  it 'writes a pin' do
+    message.payload = {"command"=>{"action"=>"pin write", "pin"=>9,
+      "value1"=>1, "mode"=>0}}
+    controller.call
+    expect(bot.commands.log).to include(
+      pin_write: [{:pin=>9, :value=>1, :mode=>0}])
   end
 end

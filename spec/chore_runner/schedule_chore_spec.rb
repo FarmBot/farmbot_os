@@ -41,4 +41,27 @@ describe ScheduleChore do
       expect(stp.bot).to be(bot)
     end
   end
+
+  it 'destroys expired schedules' do
+    schedule.end_time = 4.hours.ago
+    chore.run
+    expect(schedule.destroyed?).to be(true)
+  end
+
+  it 'runs non-expired schedules' do
+    allow(chore).to receive(:perform_steps)
+    allow(chore).to receive(:bump_execution_time)
+    chore.run
+    expect(schedule.destroyed?).to be(false)
+    expect(chore).to have_received(:perform_steps)
+    expect(chore).to have_received(:bump_execution_time)
+  end
+
+  it 'initializes a new chore' do
+    schedule.end_time = 4.hours.ago
+    sc = ScheduleChore.run(schedule, bot)
+    expect(sc.bot).to be(bot)
+    expect(sc.schedule).to be(schedule)
+  end
+
 end
