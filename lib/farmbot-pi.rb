@@ -3,6 +3,7 @@ require 'meshruby'
 require_relative 'messaging/credentials'
 require_relative 'messaging/message_handler'
 require_relative 'chore_runner/chore_runner'
+require_relative 'models/status_storage.rb'
 require 'pry'
 
 ActiveRecord::Base.establish_connection(
@@ -17,6 +18,7 @@ class FarmBotPi
     @credentials = Credentials.new
     @mesh        = EM::MeshRuby.new(@credentials.uuid, @credentials.token)
     @bot         = bot
+    @status_storage = StatusStorage.new("robot_status_registers.pstore")
   end
 
   def select_correct_bot
@@ -38,7 +40,7 @@ class FarmBotPi
       mesh.onmessage { |msg| meshmessage(msg) }
       bot.onmessage  { |msg| botmessage(msg) }
       bot.onchange   { |msg| diffmessage(msg) }
-      bot.onclose    { EM.stop }
+      bot.onclose    { |msg| close(msg) }
     end
   end
 
@@ -56,6 +58,14 @@ class FarmBotPi
   end
 
   def diffmessage(diff)
+    @status_storage.update_attributes(diff)
     bot.log "BOT DIF: #{diff}" unless diff.keys == [:BUSY]
+  end
+
+  def close(_args)
+    @status_storage.update_attributes(bot.status.to_h)
+    puts "Goodbye. I have exited in the following state: "\
+         "\n#{@status_storage.to_h.to_yaml}"
+    EM.stop
   end
 end
