@@ -1,4 +1,5 @@
 require 'securerandom'
+require 'net/http'
 
 class Credentials
   CREDENTIALS_FILE = 'credentials.yml'
@@ -27,17 +28,11 @@ class Credentials
   # registers with a new device :uuid and :token on skynet.im . Returns Hash
   # containing :uuid and :token key.
   def create_credentials
-    hash = { uuid: (@uuid  = SecureRandom.uuid),
-             token: (@token = SecureRandom.hex(20)) }
-    http_post_to_meshblu
-    File.open(credentials_file, 'w+') {|file| file.write(hash.to_yaml) }
-    return hash
-  end
-
-  def http_post_to_meshblu
-    # TODO: Use a real HTTP library with error handling.
-    `curl -s -X POST -d 'uuid=#{@uuid}&token=#{@token}&type=farmbot' \
-    http://skynet.im/devices`
+    res  = Net::HTTP.post_form(URI('http://meshblu.octoblu.com/devices'), {})
+    json = JSON.parse(res.body).deep_symbolize_keys
+    File.open(credentials_file, 'w+') { |file| file.write(json.to_yaml) }
+    load_credentials
+    json
   end
 
   ### Loads the credentials file from disk and returns it as a ruby hash.
@@ -46,5 +41,4 @@ class Credentials
     @uuid, @token = yml[:uuid], yml[:token]
     yml
   end
-
 end

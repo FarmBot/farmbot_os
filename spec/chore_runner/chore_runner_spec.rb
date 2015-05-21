@@ -27,4 +27,22 @@ describe ChoreRunner do
     expect(results.bot).to eq(bot)
     expect(results.schedule).to eq(schedules.first)
   end
+
+  it 'runs `something()` if schedules are present' do
+    allow(runner).to receive(:schedules) { schedules }
+    allow(runner).to receive(:something)
+    allow(runner).to receive(:nothing)
+    runner.run
+    expect(runner).to have_received(:something)
+    expect(runner).to_not have_received(:nothing)
+  end
+
+  it 'runs `nothing()` if schedules are present' do
+    allow(runner).to receive(:schedules) { [] }
+    allow(runner).to receive(:something)
+    allow(runner).to receive(:nothing)
+    runner.run
+    expect(runner).to have_received(:nothing)
+    expect(runner).to_not have_received(:something)
+  end
 end

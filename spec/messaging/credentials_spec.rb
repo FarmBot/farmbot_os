@@ -1,19 +1,24 @@
 require 'spec_helper'
 
+class FakeResonse
+  attr_reader :body
+  def initialize
+    @body = %Q({"uuid":"#{(rand*999).to_s}","token":"#{(rand*999).to_s}"})
+  end
+end
+
 describe Credentials do
   let(:temp_file) { Tempfile.new('farmbot') }
   let(:cred) { Credentials.new(temp_file) }
 
   before(:each) do
-    allow_any_instance_of(Credentials).to receive(:http_post_to_meshblu).and_return(nil)
+    allow(Net::HTTP)
+      .to(receive(:post_form).and_return(FakeResonse.new, FakeResonse.new))
   end
 
   it "initializes" do
-    uuid_regex = # Ouch!
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
-
-    expect(cred.uuid).to match(uuid_regex)
-    expect(cred.token.length).to eq(40)
+    expect(cred.uuid).to be_kind_of(String)
+    expect(cred.token).to be_kind_of(String)
     expect(Credentials::CREDENTIALS_FILE).to eq('credentials.yml')
     expect(cred.credentials_file).to eq(temp_file)
   end

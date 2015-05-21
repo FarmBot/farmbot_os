@@ -3,6 +3,7 @@ require 'meshruby'
 require_relative 'messaging/credentials'
 require_relative 'messaging/message_handler'
 require_relative 'chore_runner/chore_runner'
+require_relative 'models/status_storage.rb'
 require 'pry'
 
 ActiveRecord::Base.establish_connection(
@@ -11,12 +12,13 @@ ActiveRecord::Base.establish_connection(
 )
 
 class FarmBotPi
-  attr_accessor :mesh, :bot, :credentials, :handler, :runner
+  attr_accessor :mesh, :bot, :credentials, :handler, :runner, :status_storage
 
   def initialize(bot: select_correct_bot)
     @credentials = Credentials.new
     @mesh        = EM::MeshRuby.new(@credentials.uuid, @credentials.token)
     @bot         = bot
+    @status_storage = StatusStorage.new("robot_status_registers.pstore")
   end
 
   def select_correct_bot
@@ -31,29 +33,47 @@ class FarmBotPi
 
   def start
     EM.run do
-      # mesh.toggle_debug!
+      load_previous_state
       mesh.connect
-      mesh.onmessage { |msg|
-        bot.log msg unless msg.fetch("payload", {})['message_type'] == 'read_status'
-        MessageHandler.call(msg, bot, mesh) }
-
       FB::ArduinoEventMachine.connect(bot)
+      start_chore_runner
 
-      bot.onmessage do |msg|
-        # unless [:received, :done, :report_parameter_value,
-        #         :idle].include?(msg.name)
-          bot.log "BOT MSG: #{msg.name} #{msg.to_s} #{bot.status.ready? ? "Ready" : "Not Ready"}"
-        # end
-      end
-
-      EventMachine::PeriodicTimer
-        .new(ChoreRunner::INTERVAL) { ChoreRunner.new(bot).run }
-
-      bot.onchange do |diff|
-        bot.log "BOT DIF: #{diff}" unless diff.keys == [:BUSY]
-      end
-
-      bot.onclose { EM.stop }
+      mesh.onmessage { |msg| meshmessage(msg) }
+      bot.onmessage  { |msg| botmessage(msg) }
+      bot.onchange   { |msg| diffmessage(msg) }
+      bot.onclose    { |msg| close(msg) }
     end
+  end
+
+  def load_previous_state
+    previous_states = status_storage.to_h
+    bot.status.transaction do |status|
+      previous_states.each { |k,v| status[k] = v }
+    end
+  end
+
+  def botmessage(msg)
+    bot.log "BOT MSG: #{msg.name} #{msg.to_s}"
+  end
+
+  def meshmessage(msg)
+    MessageHandler.call(msg, bot, mesh)
+  end
+
+  def start_chore_runner
+    EventMachine::PeriodicTimer
+      .new(ChoreRunner::INTERVAL) { ChoreRunner.new(bot).run }
+  end
+
+  def diffmessage(diff)
+    @status_storage.update_attributes(diff)
+    bot.log "BOT DIF: #{diff}" unless diff.keys == [:BUSY]
+  end
+
+  def close(_args)
+    @status_storage.update_attributes(bot.status.to_h)
+    puts "Goodbye. I have exited in the following state: "\
+         "\n#{@status_storage.to_h.to_yaml}"
+    EM.stop
   end
 end

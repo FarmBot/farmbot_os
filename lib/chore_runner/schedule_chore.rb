@@ -18,6 +18,7 @@ class ScheduleChore
       perform_steps
       bump_execution_time
     end
+    self
   end
 
   def perform_steps
