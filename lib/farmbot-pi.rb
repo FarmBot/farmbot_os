@@ -12,7 +12,7 @@ ActiveRecord::Base.establish_connection(
 )
 
 class FarmBotPi
-  attr_accessor :mesh, :bot, :credentials, :handler, :runner
+  attr_accessor :mesh, :bot, :credentials, :handler, :runner, :status_storage
 
   def initialize(bot: select_correct_bot)
     @credentials = Credentials.new
@@ -33,6 +33,7 @@ class FarmBotPi
 
   def start
     EM.run do
+      load_previous_state
       mesh.connect
       FB::ArduinoEventMachine.connect(bot)
       start_chore_runner
@@ -41,6 +42,13 @@ class FarmBotPi
       bot.onmessage  { |msg| botmessage(msg) }
       bot.onchange   { |msg| diffmessage(msg) }
       bot.onclose    { |msg| close(msg) }
+    end
+  end
+
+  def load_previous_state
+    previous_states = status_storage.to_h
+    bot.status.transaction do |status|
+      previous_states.each { |k,v| status[k] = v }
     end
   end
 
