@@ -28,7 +28,7 @@ class Credentials
   # registers with a new device :uuid and :token on skynet.im . Returns Hash
   # containing :uuid and :token key.
   def create_credentials
-    res  = Net::HTTP.post_form(URI('http://meshblu.octoblu.com/devices'), {})
+    res  = Net::HTTP.post_form(URI('http://45.55.200.178/devices'), {})
     json = JSON.parse(res.body).deep_symbolize_keys
     File.open(credentials_file, 'w+') { |file| file.write(json.to_yaml) }
     load_credentials

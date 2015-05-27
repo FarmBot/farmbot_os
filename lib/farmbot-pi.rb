@@ -16,7 +16,7 @@ class FarmBotPi
 
   def initialize(bot: select_correct_bot)
     @credentials = Credentials.new
-    @mesh        = EM::MeshRuby.new(@credentials.uuid, @credentials.token)
+    @mesh        = EM::MeshRuby.new(@credentials.uuid, @credentials.token, 'ws://45.55.200.178')
     @bot         = bot
     @status_storage = StatusStorage.new("robot_status_registers.pstore")
   end
@@ -34,6 +34,7 @@ class FarmBotPi
   def start
     EM.run do
       load_previous_state
+      mesh.toggle_debug!
       mesh.connect
       FB::ArduinoEventMachine.connect(bot)
       start_chore_runner
