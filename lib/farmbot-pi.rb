@@ -16,7 +16,7 @@ class FarmBotPi
 
   def initialize(bot: select_correct_bot)
     @credentials = Credentials.new
-    @mesh        = EM::MeshRuby.new(@credentials.uuid, @credentials.token, 'ws://45.55.200.178')
+    @mesh        = EM::MeshRuby.new(@credentials.uuid, @credentials.token, 'ws://mesh.farmbot.it')
     @bot         = bot
     @status_storage = StatusStorage.new("robot_status_registers.pstore")
   end
