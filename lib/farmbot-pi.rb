@@ -38,7 +38,7 @@ class FarmBotPi
       mesh.connect
       FB::ArduinoEventMachine.connect(bot)
       start_chore_runner
-
+      broadcast_status
       mesh.onmessage { |msg| meshmessage(msg) }
       bot.onmessage  { |msg| botmessage(msg) }
       bot.onchange   { |msg| diffmessage(msg) }
@@ -64,6 +64,13 @@ class FarmBotPi
   def start_chore_runner
     EventMachine::PeriodicTimer
       .new(ChoreRunner::INTERVAL) { ChoreRunner.new(bot).run }
+  end
+
+  def broadcast_status
+    EventMachine::PeriodicTimer.new(0.4) do
+      null_msg = MeshMessage.new(from: '*', type: 'read_status', payload: {})
+      ReadStatusController.new(null_msg, bot, mesh).call
+    end
   end
 
   def diffmessage(diff)
