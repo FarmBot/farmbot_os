@@ -54,7 +54,11 @@ class FarmBotPi
   end
 
   def botmessage(msg)
-    bot.log "BOT MSG: #{msg.name} #{msg.to_s}"
+    if msg.name == :idle
+      print '.'
+    else
+      bot.log "BOT MSG: #{msg.name} #{msg.to_s}"
+    end
   end
 
   def meshmessage(msg)
