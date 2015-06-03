@@ -1,5 +1,5 @@
 require_relative 'abstract_controller'
-require_relative '../sequences/sequences'
+require_relative '../command_objects/commands'
 
 class SyncSequenceController < AbstractController
   def call
@@ -7,7 +7,7 @@ class SyncSequenceController < AbstractController
 
     ActiveRecord::Base.transaction do
       Schedule.destroy_all
-      @schedule_list.map { |s| ScheduleFactory.run!(s) }
+      @schedule_list.map { |s| CreateSchedule.run!(s) }
     end
 
     reply "sync_sequence"

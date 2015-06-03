@@ -1,5 +1,5 @@
 require_relative 'abstract_controller'
-require_relative '../sequences/sequences'
+require_relative '../command_objects/commands'
 
 class ExecSequenceController < AbstractController
   def call
@@ -16,6 +16,6 @@ class ExecSequenceController < AbstractController
   end
 
   def sequence
-    @sequence ||= SequenceFactory.run!(payload)
+    @sequence ||= CreateSequence.run!(payload)
   end
 end

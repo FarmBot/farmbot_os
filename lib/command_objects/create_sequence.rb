@@ -1,10 +1,10 @@
 # Builds a validated sequence (and collection of steps)
 require_relative '../models/sequence'
-
-class SequenceFactory < Mutations::Command
+# Was called SequenceFactory at one point
+class CreateSequence < Mutations::Command
   required do
     string :name
-    array(:steps) { model :step, builder: StepFactory, new_records: true }
+    array(:steps) { model :step, builder: CreateStep, new_records: true }
   end
 
   def execute

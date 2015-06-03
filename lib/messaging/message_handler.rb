@@ -16,7 +16,7 @@ class MessageHandler
     klass_name = k.split('_').map{|w| w.capitalize}.join+"Controller"
     klass = const_get(klass_name)
     ROUTES[k] = klass
-  rescue NameError
+  rescue NameError => e
     raise ControllerLoadErrorr, """
     PROBLEM:
       * You failed to load a controller for message type '#{k}'

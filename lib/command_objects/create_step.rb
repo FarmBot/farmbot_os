@@ -1,6 +1,6 @@
 require_relative '../models/step'
-
-class StepFactory < Mutations::Command
+# Once named 'StepFactory'
+class CreateStep < Mutations::Command
   required do
     string :message_type, in: Step::COMMANDS
     hash :command do
