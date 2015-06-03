@@ -6,7 +6,7 @@ gem 'sqlite3'
 gem 'active_record_migrations'
 
 gem 'farmbot-serial', '0.6.0'
-gem 'meshruby', '0.0.3'
+gem 'meshruby', '0.0.4'
 gem 'mutations', '0.7.2'
 gem 'pry-byebug'
 gem 'rspec'
