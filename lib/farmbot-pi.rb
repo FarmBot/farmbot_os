@@ -15,10 +15,10 @@ class FarmBotPi
   attr_accessor :mesh, :bot, :credentials, :handler, :runner, :status_storage
 
   def initialize(bot: select_correct_bot)
-    @credentials = Credentials.new
+    @credentials = FBPi::Credentials.new
     @mesh        = EM::MeshRuby.new(@credentials.uuid, @credentials.token, 'ws://mesh.farmbot.it')
     @bot         = bot
-    @status_storage = StatusStorage.new("robot_status_registers.pstore")
+    @status_storage = FBPi::StatusStorage.new("robot_status_registers.pstore")
   end
 
   def select_correct_bot
@@ -66,19 +66,21 @@ class FarmBotPi
   end
 
   def meshmessage(msg)
-    MessageHandler.call(msg, bot, mesh)
+    FBPi::MessageHandler.call(msg, bot, mesh)
   end
 
   def start_chore_runner
-    EventMachine::PeriodicTimer.new(ChoreRunner::INTERVAL) do
-      ChoreRunner.new(bot).run
+    EventMachine::PeriodicTimer.new(FBPi::ChoreRunner::INTERVAL) do
+      FBPi::ChoreRunner.new(bot).run
     end
   end
 
   def broadcast_status
     EventMachine::PeriodicTimer.new(0.4) do
-      null_msg = MeshMessage.new(from: '*', type: 'read_status', payload: {})
-      ReadStatusController.new(null_msg, bot, mesh).call
+      null_msg = FBPi::MeshMessage.new(from: '*',
+                                       type: 'read_status',
+                                       payload: {})
+      FBPi::ReadStatusController.new(null_msg, bot, mesh).call
     end
   end
 
