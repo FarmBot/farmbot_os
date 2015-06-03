@@ -1,9 +1,9 @@
 require 'spec_helper'
 
-describe ChoreRunner do
+describe FBPi::ChoreRunner do
   let(:schedules) { [FakeSchedule.new] }
   let(:bot) { FakeBot.new }
-  let(:runner) { ChoreRunner.new(bot) }
+  let(:runner) { FBPi::ChoreRunner.new(bot) }
 
   it 'has schedules' do
     sched = runner.schedules
@@ -18,7 +18,7 @@ describe ChoreRunner do
 
   it 'runs a ChoreRunner on the schedules, if there is `something` to run' do
     results = Struct.new(:bot, :schedule).new
-    allow(ScheduleChore).to receive(:run) do |schedule, bot|
+    allow(FBPi::ScheduleChore).to receive(:run) do |schedule, bot|
       results.bot, results.schedule = bot, schedule
     end
     allow(runner).to receive(:schedules) { schedules }

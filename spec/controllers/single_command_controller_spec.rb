@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe SingleCommandController do
+describe FBPi::SingleCommandController do
   let(:bot) do
     bot = FakeBot.new
     bot.commands = FakeOutgoingHandler.new
@@ -8,11 +8,11 @@ describe SingleCommandController do
   end
   let(:mesh) { FakeMesh.new }
   let(:message) do
-    MeshMessage.new(from:    '1234567890',
+    FBPi::MeshMessage.new(from:    '1234567890',
                     type:    'single_command',
                     payload: {})
   end
-  let(:controller) { SingleCommandController.new(message, bot, mesh) }
+  let(:controller) { FBPi::SingleCommandController.new(message, bot, mesh) }
 
   it 'handles empty message types' do
     expectation = "Unknown message 'NULL'. Most likely, the command "\

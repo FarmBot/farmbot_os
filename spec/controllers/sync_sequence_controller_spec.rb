@@ -1,12 +1,12 @@
 require 'spec_helper'
 
-describe SyncSequenceController do
+describe FBPi::SyncSequenceController do
   let(:bot) { FakeBot.new }
   let(:mesh) { FakeMesh.new }
   let(:message) do
-    MeshMessage.new from: '1234567890',
-                    type: 'sync_sequence',
-                    payload:{"command"=>
+    FBPi::MeshMessage.new from: '1234567890',
+                          type: 'sync_sequence',
+                          payload:{"command"=>
                             [{"_id"=>"553f8aa270726f4090000000",
                               "start_time"=>"2015-04-28T23:00:00.000Z",
                               "end_time"=>"2015-04-30T23:00:00.000Z",
@@ -18,7 +18,7 @@ describe SyncSequenceController do
                                     [{ "message_type" => "move_relative",
                                         "command" => {"x"=>"1100"} } ] } } ] }
   end
-  let(:controller) { SyncSequenceController.new(message, bot, mesh) }
+  let(:controller) { FBPi::SyncSequenceController.new(message, bot, mesh) }
 
   it "initializes" do
     controller.call
@@ -29,7 +29,7 @@ describe SyncSequenceController do
 
   it 'handles validation errors' do
     message.payload["command"].first["time_unit"] = "Not Correct"
-    ctrl = SyncSequenceController.new(message, bot, mesh)
+    ctrl = FBPi::SyncSequenceController.new(message, bot, mesh)
     ctrl.call
     last_msg = mesh.last.payload
     expect(last_msg[:message_type]).to eq('error')

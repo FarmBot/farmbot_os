@@ -2,7 +2,7 @@ require 'farmbot-serial'
 require 'meshruby'
 require_relative 'messaging/credentials'
 require_relative 'messaging/message_handler'
-require_relative 'chore_runner/chore_runner'
+require_relative 'chores/chore_runner'
 require_relative 'models/status_storage.rb'
 require 'pry'
 

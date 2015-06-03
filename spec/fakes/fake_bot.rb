@@ -5,8 +5,7 @@ require 'farmbot-serial'
 class FakeBot < FB::Arduino
   attr_reader :logs, :last_log
 
-  def initialize(serial_port: FakeSerialPort.new,
-                 logger: FakeLogger.new)
+  def initialize(serial_port: FakeSerialPort.new, logger: FakeLogger.new)
     @logs = []
     super
   end

@@ -1,12 +1,12 @@
 require 'spec_helper'
 
-describe ScheduleChore do
+describe FBPi::ScheduleChore do
   let(:bot) { FakeBot.new }
   let(:now) { Time.now }
   let(:schedule) do
     Schedule.new(end_time: (now + 4.hours), time_unit: 'hourly', repeat: '1')
   end
-  let(:chore) { ScheduleChore.new(schedule, bot, now) }
+  let(:chore) { FBPi::ScheduleChore.new(schedule, bot, now) }
 
   it 'knows if the schedule is expired' do
     schedule.end_time = now + 4.hours
@@ -59,7 +59,7 @@ describe ScheduleChore do
 
   it 'initializes a new chore' do
     schedule.end_time = 4.hours.ago
-    sc = ScheduleChore.run(schedule, bot)
+    sc = FBPi::ScheduleChore.run(schedule, bot)
     expect(sc.bot).to be(bot)
     expect(sc.schedule).to be(schedule)
   end

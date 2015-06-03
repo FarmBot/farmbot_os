@@ -7,9 +7,9 @@ class FakeResonse
   end
 end
 
-describe Credentials do
+describe FBPi::Credentials do
   let(:temp_file) { Tempfile.new('farmbot') }
-  let(:cred) { Credentials.new(temp_file) }
+  let(:cred) { FBPi::Credentials.new(temp_file) }
 
   before(:each) do
     allow(Net::HTTP)
@@ -19,7 +19,7 @@ describe Credentials do
   it "initializes" do
     expect(cred.uuid).to be_kind_of(String)
     expect(cred.token).to be_kind_of(String)
-    expect(Credentials::CREDENTIALS_FILE).to eq('credentials.yml')
+    expect(FBPi::Credentials::CREDENTIALS_FILE).to eq('credentials.yml')
     expect(cred.credentials_file).to eq(temp_file)
   end
 
@@ -38,7 +38,7 @@ describe Credentials do
     new_values = {uuid: "ABC", token: "123"}
     tmp = Tempfile.new('farmbot')
     File.open(tmp, 'w+') {|file| file.write(new_values.to_yaml) }
-    cred = Credentials.new(tmp)
+    cred = FBPi::Credentials.new(tmp)
     result = cred.load_credentials
 
     expect(result).to eq(new_values)
