@@ -43,6 +43,10 @@ class FarmBotPi
       bot.onmessage  { |msg| botmessage(msg) }
       bot.onchange   { |msg| diffmessage(msg) }
       bot.onclose    { |msg| close(msg) }
+      this = self # Binding of caller makes me sad :(
+      mesh.socket.on(:ready) do
+        this.mesh.data(this.status_storage.to_h.merge(log: "online"))
+      end
     end
   end
 
@@ -66,8 +70,9 @@ class FarmBotPi
   end
 
   def start_chore_runner
-    EventMachine::PeriodicTimer
-      .new(ChoreRunner::INTERVAL) { ChoreRunner.new(bot).run }
+    EventMachine::PeriodicTimer.new(ChoreRunner::INTERVAL) do
+      ChoreRunner.new(bot).run
+    end
   end
 
   def broadcast_status
@@ -84,8 +89,7 @@ class FarmBotPi
 
   def close(_args)
     @status_storage.update_attributes(bot.status.to_h)
-    puts "Goodbye. I have exited in the following state: "\
-         "\n#{@status_storage.to_h.to_yaml}"
+    @mesh.data @status_storage.to_h.merge(log: "offline")
     EM.stop
   end
 end
