@@ -43,10 +43,6 @@ class FarmBotPi
       broadcast_status
       mesh.onmessage { |msg| meshmessage(msg) }
       bot.bootstrap
-      this = self # Binding of caller makes me sad :(
-      mesh.socket.on(:ready) do
-        this.mesh.data(this.status_storage.to_h.merge(log: "online"))
-      end
     end
   end
 

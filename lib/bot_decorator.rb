@@ -1,4 +1,6 @@
 module FBPi
+  # This class wraps around the FB::Arduino class to add extra functionality
+  # that is application specific / not available in farmbot-serial.
   class BotDecorator < SimpleDelegator
     attr_accessor :status_storage, :mesh
 
@@ -13,6 +15,11 @@ module FBPi
       onmessage { |msg| botmessage(msg) }
       onchange  { |msg| diffmessage(msg) }
       onclose   { |msg| close(msg) }
+      this = self; mesh.socket.on(:ready) { this.ready }
+    end
+
+    def ready
+       log "Online at #{Time.now}"
     end
 
     def load_previous_state
@@ -30,8 +37,19 @@ module FBPi
 
     def close(_args)
       @status_storage.update_attributes(status.to_h)
-      @mesh.data @status_storage.to_h.merge(log: "offline")
+      log "Bot offline at #{Time.now}", "high"
       EM.stop
+    end
+
+    def log(message, priority = 'low')
+      __getobj__.log(message)
+      if message.is_a?(Hash) # TODO 'message' needs its own class.
+        m = message.merge(priority: priority)
+        m[:name] ||= 'Log Message'
+      else
+        m = {log: 'Log Message', priority: priority, data: message}
+      end
+      @mesh.data(m)
     end
   end
 end
