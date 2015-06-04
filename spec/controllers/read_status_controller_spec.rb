@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe ReadStatusController do
+describe FBPi::ReadStatusController do
   let(:bot) do
     bot = FakeBot.new
     bot.commands = FakeOutgoingHandler.new
@@ -8,11 +8,11 @@ describe ReadStatusController do
   end
   let(:mesh) { FakeMesh.new }
   let(:message) do
-    MeshMessage.new(from:    '1234567890',
+    FBPi::MeshMessage.new(from:    '1234567890',
                     type:    'read_status',
                     payload: {})
   end
-  let(:controller) { ReadStatusController.new(message, bot, mesh) }
+  let(:controller) { FBPi::ReadStatusController.new(message, bot, mesh) }
 
   it 'provides axis info' do
     expect(controller.axis_info).to eq(x: 0, y: 0, z: 0)

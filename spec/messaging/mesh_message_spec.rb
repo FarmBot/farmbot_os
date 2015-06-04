@@ -1,10 +1,10 @@
 require 'spec_helper'
 
-describe MeshMessage do
+describe FBPi::MeshMessage do
   let(:msg) do
-    MeshMessage.new(from: 'rick',
-                    type: 'test',
-                    payload: {abc: 123})
+    FBPi::MeshMessage.new(from: 'rick',
+                          type: 'test',
+                          payload: {abc: 123})
   end
 
   it "initializes" do

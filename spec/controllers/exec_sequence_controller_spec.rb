@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe ExecSequenceController do
+describe FBPi::ExecSequenceController do
   let(:bot) { FakeBot.new }
   let(:mesh) { FakeMesh.new }
   let(:example_hash) do
@@ -19,11 +19,11 @@ describe ExecSequenceController do
   end
 
   let(:message) do
-    MeshMessage.new(from: '1234567890',
-                    type: 'exec_sequence',
-                    payload: example_hash)
+    FBPi::MeshMessage.new(from: '1234567890',
+                          type: 'exec_sequence',
+                          payload: example_hash)
   end
-  let(:controller) { ExecSequenceController.new(message, bot, mesh) }
+  let(:controller) { FBPi::ExecSequenceController.new(message, bot, mesh) }
 
   it 'initializes' do
     controller.call
@@ -38,7 +38,7 @@ describe ExecSequenceController do
 
   it 'catches validation errors' do
     message.payload["command"]["steps"] = {}
-    ctrl = ExecSequenceController.new(message, bot, mesh)
+    ctrl = FBPi::ExecSequenceController.new(message, bot, mesh)
     ctrl.call
     last_msg = mesh.last.payload
     expect(last_msg[:message_type]).to eq('error')

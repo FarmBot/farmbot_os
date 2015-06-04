@@ -1,8 +1,8 @@
 require 'spec_helper'
 
-describe StatusStorage do
+describe FBPi::StatusStorage do
   let(:store) do
-    store = StatusStorage.new(Tempfile.new('foo').path)
+    store = FBPi::StatusStorage.new(Tempfile.new('foo').path)
     store.update_attributes(a: 1, b: 2)
     store
   end

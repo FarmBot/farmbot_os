@@ -4,7 +4,7 @@ SimpleCov.start { add_filter "/spec/" }
 Dir['spec/fakes/**/*.rb'].each { |file| load file }
 require_relative '../lib/farmbot-pi'
 require_relative '../lib/controllers/exec_sequence_controller'
-require_relative '../lib/sequences/sequences'
+require_relative '../lib/command_objects/commands'
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
