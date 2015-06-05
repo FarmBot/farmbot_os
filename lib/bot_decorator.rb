@@ -49,7 +49,8 @@ module FBPi
       else
         m = {log: 'Log Message', priority: priority, data: message}
       end
-      @mesh.data(m)
+      @mesh.data(m) if @last_msg != message # Might not filter obj w/ time stamp
+      @last_msg = message
     end
   end
 end
