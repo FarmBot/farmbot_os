@@ -37,7 +37,7 @@ module FBPi
       log "BOT DIF: #{diff}" unless diff.keys == [:BUSY]
     end
 
-    def close(_args)
+    def close(*)
       @status_storage.update_attributes(status.to_h)
       log "Bot offline at #{Time.now}", "high"
       EM.stop

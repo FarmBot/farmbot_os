@@ -36,4 +36,31 @@ describe FarmBotPi do
     decorator.botmessage(msg)
     expect(logger.message).to eq("")
   end
+
+  it 'loads previous state from PStore' do
+    pstore = decorator.status_storage
+    pstore.transaction do
+      pstore[:X] = 987654321
+    end
+    decorator.load_previous_state
+    expect(decorator.status[:x]).to eq(987654321)
+  end
+
+  it 'transmits status diff messages' do
+    decorator.diffmessage(X: 123)
+    expect(decorator.status_storage.to_h[:X]).to eq(123)
+  end
+
+  it 'cleanly disconnects' do
+    decorator.status.transaction { |s| s[:X] = 9898 }
+    allow(EM).to receive(:stop)
+    decorator.close
+    # Calls EM.stop
+    expect(EM).to have_received(:stop)
+    # Offloads bot status into the PStore
+    expect(decorator.status_storage.to_h[:X]).to eq(9898)
+    # Logs the disconnection time.
+    goodbye = decorator.mesh.last.payload[:data]
+    expect(goodbye).to include("Bot offline at #{Date.today}")
+  end
 end
