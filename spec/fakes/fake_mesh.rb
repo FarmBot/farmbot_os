@@ -19,4 +19,8 @@ class FakeMesh
   def emit(name, payload)
     @last = @all.push(Emission.new(name, payload)).last
   end
+
+  def data(hash)
+    emit('telemetry', hash)
+  end
 end
