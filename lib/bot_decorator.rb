@@ -1,3 +1,5 @@
+require_relative 'telemetry_message'
+
 module FBPi
   # This class wraps around the FB::Arduino class to add extra functionality
   # that is application specific / not available in farmbot-serial.
@@ -27,7 +29,7 @@ module FBPi
     end
 
     def botmessage(msg)
-      (msg.name == :idle) ? print('.') : log("#{msg.name} #{msg.to_s}")
+      log("#{msg.name} #{msg.to_s}") if msg.name != :idle
     end
 
     def diffmessage(diff)
@@ -35,22 +37,16 @@ module FBPi
       log "BOT DIF: #{diff}" unless diff.keys == [:BUSY]
     end
 
-    def close(_args)
+    def close(*)
       @status_storage.update_attributes(status.to_h)
       log "Bot offline at #{Time.now}", "high"
       EM.stop
     end
 
     def log(message, priority = 'low')
+      # Log to screen
       __getobj__.log(message)
-      if message.is_a?(Hash) # TODO 'message' needs its own class.
-        m = message.merge(priority: priority)
-        m[:name] ||= 'Log Message'
-      else
-        m = {log: 'Log Message', priority: priority, data: message}
-      end
-      @mesh.data(m) if @last_msg != message # Might not filter obj w/ time stamp
-      @last_msg = message
+      TelemetryMessage.build(message).publish(@mesh)
     end
   end
 end

@@ -5,6 +5,7 @@ Dir['spec/fakes/**/*.rb'].each { |file| load file }
 require_relative '../lib/farmbot-pi'
 require_relative '../lib/controllers/exec_sequence_controller'
 require_relative '../lib/command_objects/commands'
+require_relative '../lib/models/status_storage.rb'
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
