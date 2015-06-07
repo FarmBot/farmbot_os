@@ -20,7 +20,6 @@ describe FarmBotPi do
   it 'states that it is ready' do
     decorator.ready
     msg = decorator.mesh.last.payload
-    binding.pry
     expect(msg[:data]).to include("Online at #{Date.today}")
   end
 
