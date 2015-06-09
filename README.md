@@ -49,6 +49,11 @@ ruby farmbot.rb
 
 At this point, your MeshBlu credentials can be found in `credentials.yml`
 
+Process Monitoring (optional)
+-----------------------------
+
+TODO: Write how to start process monitoring.
+
 Arduino
 -------
 
