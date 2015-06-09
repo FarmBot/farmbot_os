@@ -9,14 +9,9 @@ module FBPi
       self.new(log: 'Log Message', priority: priority, data: m)
     end
 
-    # Pushes a message to the mesh server. Won't publish the same message twice.
-    def self.publish(m, mesh)
-      mesh.data(m) if @last_msg != m # Might not filter obj w/ time stamp
-      @last_msg = m
-    end
-
     def publish(mesh)
-      self.class.publish(self, mesh) && self
+      mesh.data(self) unless fetch(:data, '').starts_with?("Nothing")
+      self
     end
 
     def initialize(**kwargs)
