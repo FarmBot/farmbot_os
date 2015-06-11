@@ -27,16 +27,22 @@ end
 
 class BadHttpResp < AbstractResp
   def no
-    yield body, request, response
+    yield(body, request, response)
   end
 end
 
 class Rest
   def self.get(url, headers)
-    RestClient.get(URL, CREDS) { |a, b, c| self.new(a,b,c).run }
+    i = self.new(nil, nil, nil)
+    RestClient.get(url, headers) do |a, b, c|
+      i.body, i.request, i.response = a, b, c
+      i.run
+    end
+  rescue => e
+    BadHttpResp.new(e, e, e) # ?
   end
 
-  attr_reader :body, :request, :response
+  attr_accessor :body, :request, :response
 
   def initialize(body, request, response)
     @body, @request, @response = body, request, response
@@ -51,22 +57,33 @@ class Rest
   end
 end
 
-URL   = 'http://localhost:3000/api/schedules'
+SCHEDULE_URL = 'http://localhost:3000/api/schedules/'
+SEQUENCE_URL = 'http://localhost:3000/api/sequences/'
 CREDS = {
   bot_uuid:  "1b6d9043-8949-4199-b13e-58ae6e2ea181",
   bot_token: "229458c0a7044b5ceca92e9257ac32156baa63c2",
 }
+# /api/sequences/:sequence_id/steps
+class SequenceFetchError; end
 
-def get_steps
-end
-
-def get_sequences
+def get_steps(schedules)
+  schedules
+    .map { |sd| "#{SEQUENCE_URL}#{sd["sequence_id"]}/steps" }
+    .map { |url| Rest.get(url, CREDS).no{raise SequenceFetchError} }
+    .map { |res| res.obj }
+    .each_with_index
+    .map { |s, i| schedules[i]["steps"] = s; schedules[i] }
+rescue SequenceFetchError => e
+  binding.pry
 end
 
 def get_schedules
   Rest
-  .get(URL, CREDS)
-  .ok { |a,b,c| binding.pry }
-  .no { |a,b,c| binding.pry }
+  .get(SCHEDULE_URL, CREDS)
+  .no { |error| puts error }
+  .ok { |a,b,c| get_steps(a) }
 end
+binding.pry
+get_schedules
 
+puts '?'
