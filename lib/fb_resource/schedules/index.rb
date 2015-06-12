@@ -1,26 +1,29 @@
 module FbResource
   module Schedules
-    SCHEDULE_URL = '/api/schedules/'
-    SEQUENCE_URL = '/api/sequences/'
+    SCHEDULE_PATH = '/api/schedules/'
+    SEQUENCE_PATH = '/api/sequences/'
+
     class Index
       attr_accessor :url, :creds, :schedules
 
       def initialize(url:, token:, uuid:)
-        @url, @creds = url + SCHEDULE_URL, {bot_token: token, bot_uuid: uuid}
+        @url, @creds = url, {bot_token: token, bot_uuid: uuid}
       end
 
       def run
         @schedules = Http
-          .get(url, creds)
+          .get(url + SCHEDULE_PATH, creds)
           .no { |error| puts error }
           .ok { |a,b,c| get_steps(a) }
       end
 
       def get_steps(schedules)
-        resp = FbResource::Http.get(url, creds)
+          # /api/sequences/55310c9f70726f2d1c050000/steps
         schedules
-          .map { |sd| "#{SEQUENCE_URL}#{sd["sequence_id"]}/steps" }
-          .map { |url| resp.no{raise SequenceFetchError} }
+          .map { |scd| url + SEQUENCE_PATH + "#{scd["sequence_id"]}/steps" }
+          .tap { |qqq| binding.pry }
+          .map { |url| FbResource::Http.get(url, creds) }
+          .map { |res| res.no{ |e| raise(SequenceFetchError, e) } }
           .map { |res| res.obj }
           .each_with_index
           .map do |s, i|

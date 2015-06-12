@@ -1,7 +1,7 @@
 require_relative 'config'
 
 module FbResource
-  class SequenceFetchError; end
+  class SequenceFetchError < Exception; end
   class Client
     attr_reader :config
 

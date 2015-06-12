@@ -13,12 +13,6 @@ end
 
 schedules = client.fetch_schedules
 
-begin
-  results   = FBPi::CreateSchedule.run!(schedules.first)
-rescue Exception => e
-  binding.pry
-end
-''
-binding.pry
+results   = FBPi::CreateSchedule.run!(schedules.first)
 
 puts '?'
