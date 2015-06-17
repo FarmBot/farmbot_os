@@ -1,4 +1,4 @@
-# god -c path/to/simple.god -D
+# god -c farmbot.god -D
 God.watch do |w|
   w.name = "farmbot_rpi_controller"
   w.dir = File.expand_path(File.dirname(__FILE__))
