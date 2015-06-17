@@ -26,13 +26,4 @@ describe FBPi::SyncSequenceController do
     raise msg[:error] if msg[:error]
     expect(mesh.last.type).to eq("sync_sequence")
   end
-
-  it 'handles validation errors' do
-    message.payload["command"].first["time_unit"] = "Not Correct"
-    ctrl = FBPi::SyncSequenceController.new(message, bot, mesh)
-    ctrl.call
-    last_msg = mesh.last.payload
-    expect(last_msg[:message_type]).to eq('error')
-    expect(last_msg[:error]).to eq("Time Unit isn't an option")
-  end
 end

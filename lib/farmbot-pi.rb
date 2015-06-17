@@ -30,10 +30,7 @@ class FarmBotPi
       config.token = credentials.token
       config.url   = "http://#{WEBAPP_URL}"
     end
-    @bot           = FBPi::BotDecorator.build("delete this",
-                                              @status_storage,
-                                              @mesh,
-                                              @rest_client)
+    @bot = FBPi::BotDecorator.build(@status_storage, @mesh, @rest_client)
   end
 
   def start

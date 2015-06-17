@@ -1,16 +1,15 @@
 require 'spec_helper'
 
 describe FarmBotPi do
-  let(:bot) { FakeBot.new }
   let(:stat_store) { FBPi::StatusStorage.new(Tempfile.new('fbpi')) }
   let(:mesh) { FakeMesh.new }
   let(:decorator) do
-    FBPi::BotDecorator.build(bot,
-                             stat_store,
+    FBPi::BotDecorator.build(stat_store,
                              mesh,
-                             Object.new)
+                             FakeRestClient.new,
+                             FakeBot)
   end
-
+  let(:bot) { decorator.__getobj__ }
   it 'associates the appropriate attrbiutes on build()' do
     expect(decorator).to be_kind_of(FBPi::BotDecorator)
     expect(decorator.mesh).to be(mesh)
