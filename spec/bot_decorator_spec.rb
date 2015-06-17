@@ -7,7 +7,8 @@ describe FarmBotPi do
   let(:decorator) do
     FBPi::BotDecorator.build(bot,
                              stat_store,
-                             mesh)
+                             mesh,
+                             Object.new)
   end
 
   it 'associates the appropriate attrbiutes on build()' do
