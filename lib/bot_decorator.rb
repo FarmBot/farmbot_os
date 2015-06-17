@@ -29,7 +29,8 @@ module FBPi
     end
 
     def ready
-       log "Online at #{Time.now}"
+      SyncBot.run!(bot: self)
+      log "Online at #{Time.now}"
     end
 
     def load_previous_state

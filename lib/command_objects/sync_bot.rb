@@ -14,6 +14,10 @@ module FBPi
           .tap { Schedule.destroy_all }
           .map { |s| CreateSchedule.run!(s) }
       end
+      bot.log(name: "Sync Confirmation",
+              schedules: Schedule.count,
+              sequences: Sequence.count,
+              steps:     Step.count)
       Schedule.all
     end
   end
