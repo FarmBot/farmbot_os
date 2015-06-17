@@ -4,12 +4,20 @@ module FBPi
   # This class wraps around the FB::Arduino class to add extra functionality
   # that is application specific / not available in farmbot-serial.
   class BotDecorator < SimpleDelegator
-    attr_accessor :status_storage, :mesh
+    attr_accessor :status_storage, :mesh, :rest_client
 
-    def self.build(bot, status_storage, mesh)
-      bot = self.new(bot)
-      bot.status_storage, bot.mesh = status_storage, mesh
+    def self.build(status_storage, mesh, rest, klass = FB::Arduino)
+      bot = new_bot!(klass)
+      bot.status_storage, bot.mesh, bot.rest_client = status_storage, mesh, rest
       bot
+    end
+
+    def self.new_bot!(klass)
+      self.new(klass.new(serial_port: FB::DefaultSerialPort.new(serial_port)))
+    end
+
+    def self.serial_port
+      FBPi::Settings.serial_ports.detect { |f| File.exists?(f) }
     end
 
     def bootstrap
@@ -21,7 +29,8 @@ module FBPi
     end
 
     def ready
-       log "Online at #{Time.now}"
+      SyncBot.run!(bot: self)
+      log "Online at #{Time.now}"
     end
 
     def load_previous_state

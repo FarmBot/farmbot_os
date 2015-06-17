@@ -2,7 +2,7 @@ module FBPi
   # Container object for data to be sent to MeshBlu for logging.
   class TelemetryMessage < Hash
     def self.build(message)
-      message.is_a?(Hash) ? self.new(kwargs) : from_object(message)
+      message.is_a?(Hash) ? self.new(message) : from_object(message)
     end
 
     def self.from_object(m, priority = 'low')

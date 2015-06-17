@@ -1,10 +1,12 @@
 require 'farmbot-serial'
 require 'meshruby'
+
 require_relative 'messaging/credentials'
 require_relative 'messaging/message_handler'
 require_relative 'chores/chore_runner'
 require_relative 'models/status_storage.rb'
 require_relative 'bot_decorator'
+require_relative 'settings'
 require 'pry'
 
 ActiveRecord::Base.establish_connection(
@@ -14,24 +16,21 @@ ActiveRecord::Base.establish_connection(
 
 class FarmBotPi
   attr_accessor :mesh, :bot, :credentials, :handler, :runner, :status_storage
+  WEBAPP_URL = FBPi::Settings.webapp_url
+  MESH_URL   = FBPi::Settings.meshblu_url
 
-  def initialize(bot: select_correct_bot)
+  def initialize(bot: 'delete this param')
     @credentials    = FBPi::Credentials.new
     @mesh           = EM::MeshRuby.new(@credentials.uuid,
                                        @credentials.token,
-                                       'ws://mesh.farmbot.it')
+                                       "ws://#{MESH_URL}")
     @status_storage = FBPi::StatusStorage.new("bot_status.pstore")
-    @bot            = FBPi::BotDecorator.build(bot, @status_storage, @mesh)
-  end
-
-  def select_correct_bot
-    if File.file?('serial_port.txt')
-      com = File.read('serial_port.txt').strip
-    else
-      com = '/dev/ttyACM0'
+    @rest_client   = FbResource::Client.new do |config|
+      config.uuid  = credentials.uuid
+      config.token = credentials.token
+      config.url   = "http://#{WEBAPP_URL}"
     end
-    serial_port = FB::DefaultSerialPort.new(com)
-    FB::Arduino.new(serial_port: serial_port)
+    @bot = FBPi::BotDecorator.build(@status_storage, @mesh, @rest_client)
   end
 
   def start

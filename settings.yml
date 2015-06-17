@@ -1,0 +1,17 @@
+# config/application.yml
+defaults: &defaults
+  meshblu_url: 'mesh.farmbot.it'
+  webapp_url:  'my.farmbot.cc'
+  serial_ports:
+    - "/dev/ttyUSB0"
+    - "/dev/ttyACM0"
+
+development:
+  <<: *defaults
+  webapp_url:  'localhost:3000'
+
+test:
+  <<: *defaults
+
+production:
+  <<: *defaults
