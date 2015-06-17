@@ -34,7 +34,6 @@ coverage/**
 credentials.yml
 doc/*
 doc/**/*
-Gemfile.lock
 log/*
 notes.rb
 /lib/.build
