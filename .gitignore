@@ -43,3 +43,4 @@ snippets.rb
 tmp/**/*
 *.rb~
 serial_port.txt
+*credentials*
