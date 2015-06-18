@@ -9,6 +9,7 @@ defaults: &defaults
 development:
   <<: *defaults
   webapp_url:  'localhost:3000'
+  meshblu_url: 'meshblu.octoblu.com'
 
 test:
   <<: *defaults

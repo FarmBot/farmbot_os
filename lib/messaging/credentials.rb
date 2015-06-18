@@ -29,7 +29,7 @@ module FBPi
     # registers with a new device :uuid and :token on skynet.im . Returns Hash
     # containing :uuid and :token key.
     def create_credentials
-      post_url = URI("http://#{FBPi::Settings.webapp_url}/devices")
+      post_url = URI("http://#{FBPi::Settings.meshblu_url}/devices")
       res  = Net::HTTP.post_form(post_url, {})
       json = JSON.parse(res.body).deep_symbolize_keys
       File.open(credentials_file, 'w+') { |file| file.write(json.to_yaml) }
