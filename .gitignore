@@ -34,7 +34,6 @@ coverage/**
 credentials.yml
 doc/*
 doc/**/*
-Gemfile.lock
 log/*
 notes.rb
 /lib/.build
@@ -44,3 +43,4 @@ snippets.rb
 tmp/**/*
 *.rb~
 serial_port.txt
+*credentials*
