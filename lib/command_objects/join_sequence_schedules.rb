@@ -1,5 +1,7 @@
 module FBPi
-  # Was once called ScheduleFactory
+  # The purpose of this command object is to ingest Sequence and Schedule
+  # resources from the API and join them together into one array. This is
+  # typically used for syncing schedules (See FBPi::SyncBot)
   class JoinSequenceSchedules < Mutations::Command
     required do
       array :schedules do
@@ -37,13 +39,13 @@ module FBPi
       schedules
         .map { |s| s.delete(:sequence_id) }
         .map
-        .with_index { |s, i| schedules[i][:sequence] = find_sequence(s) }
+        .with_index { |id, inx| schedules[inx][:sequence] = find_sequence(id) }
       schedules
     end
 
   private
-    def find_sequence(_id)
-      sequences.detect { |s| s[:_id] == "55310c9f70726f2d1c050000" }
+    def find_sequence(id)
+      sequences.detect { |s| s[:_id] == id }
     end
   end
 end
