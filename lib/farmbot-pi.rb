@@ -44,6 +44,7 @@ puts FBPi::Settings.instance_variable_get("@instance").to_yaml
       broadcast_status
       mesh.onmessage { |msg| meshmessage(msg) }
       bot.bootstrap
+      FBPi::SyncBot.run(bot: bot)
     end
   end
 
