@@ -6,18 +6,18 @@ class FakeMesh
 
   # Holds data that was emitted.
   class Emission
-    attr_reader :name, :payload
-    def initialize(name, payload)
-      @name, @payload = name, payload
+    attr_reader :name, :params
+    def initialize(name, params)
+      @name, @params = name, params
     end
 
     def type
-      @payload[:message_type] || "not set"
+      @params[:message_type] || "not set"
     end
   end
 
-  def emit(name, payload)
-    @last = @all.push(Emission.new(name, payload)).last
+  def emit(name, params)
+    @last = @all.push(Emission.new(name, params)).last
   end
 
   def data(hash)

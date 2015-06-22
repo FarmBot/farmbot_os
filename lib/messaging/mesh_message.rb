@@ -1,10 +1,9 @@
 module FBPi
   class MeshMessage
-    attr_accessor :from, :type, :payload
+    attr_accessor :from, :method, :params, :id
 
-    def initialize(from:, type:, payload:)
-      payload.delete("message_type") if payload.respond_to?(:delete)
-      @from, @type, @payload = from, type, payload
+    def initialize(from:, method:, params: {}, id: '')
+      @from, @method, @params, @id = from, method, params, id
     end
   end
 end

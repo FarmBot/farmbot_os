@@ -8,9 +8,8 @@ describe FBPi::ReadStatusController do
   end
   let(:mesh) { FakeMesh.new }
   let(:message) do
-    FBPi::MeshMessage.new(from:    '1234567890',
-                    type:    'read_status',
-                    payload: {})
+    FBPi::MeshMessage.new(from:   '1234567890',
+                          method: 'read_status')
   end
   let(:controller) { FBPi::ReadStatusController.new(message, bot, mesh) }
 
@@ -52,7 +51,7 @@ describe FBPi::ReadStatusController do
     # jgs  '._______.'`
 
     controller.call
-    msg = mesh.last.payload
+    msg = mesh.last.params
     expect(msg[:message_type]).to eq("read_status")
     [:busy, :current_command, :x, :y, :z].each do |key|
       expect(msg.keys).to include(key)

@@ -1,6 +1,7 @@
 require 'json'
 require 'time'
 require_relative 'mesh_message'
+require_relative '../command_objects/build_mesh_message'
 
 module FBPi
   # Get the JSON command, received through skynet, and send it to the farmbot
@@ -34,17 +35,12 @@ module FBPi
 
     ## general handling messages
     def initialize(message_hash, bot, mesh)
-      @bot, @mesh = bot, mesh
-      payl = message_hash.fetch('payload', {})
-      @message = MeshMessage.new(from: message_hash['fromUuid'],
-                                 type: payl['message_type'],
-                                 payload: payl)
+      @bot, @mesh, @message = bot, mesh, BuildMeshMessage.run!(message_hash)
     end
 
     def call
       controller = ROUTES[message.type] || UnknownController
       controller.new(message, bot, mesh).call
-      send_confirmation
     rescue => e
       send_error(e)
     end
@@ -54,12 +50,6 @@ module FBPi
       self.new(message, bot, mesh).call
     end
 
-    # send a reply to the back end system
-    #
-    def send_confirmation
-      reply 'confirmation'
-    end
-
     def send_error(error)
       msg = "#{error.message} @ #{error.backtrace.first}"
       bot.log msg
@@ -67,6 +57,7 @@ module FBPi
     end
 
     def reply(type, payl = {})
+      raise 'this needs to conform to JSON API!'
       mesh.emit message.from, payl.merge(message_type: type)
     end
   end

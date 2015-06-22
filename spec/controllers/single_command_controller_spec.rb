@@ -8,9 +8,8 @@ describe FBPi::SingleCommandController do
   end
   let(:mesh) { FakeMesh.new }
   let(:message) do
-    FBPi::MeshMessage.new(from:    '1234567890',
-                    type:    'single_command',
-                    payload: {})
+    FBPi::MeshMessage.new(from:   '1234567890',
+                          method: 'single_command')
   end
   let(:controller) { FBPi::SingleCommandController.new(message, bot, mesh) }
 
@@ -30,7 +29,7 @@ describe FBPi::SingleCommandController do
                  "home all"       => :home_all,
                  "emergency stop" => :emergency_stop }
     commands.each do |key, val|
-      message.payload = {"command" => {"action" => key}}
+      message.params = {"command" => {"action" => key}}
       controller.call
       expect(bot.commands.last).to eq(val => [])
     end
@@ -38,7 +37,7 @@ describe FBPi::SingleCommandController do
 
   it 'moves relative' do
     # Using real-world marshalled object for ultra-accurate testing.
-    message.payload = {"command"=>{"action"=>"MOVE RELATIVE", "x"=>10,
+    message.params = {"command"=>{"action"=>"MOVE RELATIVE", "x"=>10,
       "y"=>20, "z"=>30, "speed"=>40}}
     controller.call
     expect(bot.commands.log).to include(
@@ -47,7 +46,7 @@ describe FBPi::SingleCommandController do
 
   it 'moves absolute' do
     # Using real-world marshalled object for ultra-accurate testing.
-    message.payload = {"command"=>{"action"=>"MOVE ABSOLUTE", "x"=>10,
+    message.params = {"command"=>{"action"=>"MOVE ABSOLUTE", "x"=>10,
       "y"=>20, "z"=>30, "speed"=>40}}
     controller.call
     expect(bot.commands.log).to include(
@@ -55,7 +54,7 @@ describe FBPi::SingleCommandController do
   end
 
   it 'writes a pin' do
-    message.payload = {"command"=>{"action"=>"pin write", "pin"=>9,
+    message.params = {"command"=>{"action"=>"pin write", "pin"=>9,
       "value1"=>1, "mode"=>0}}
     controller.call
     expect(bot.commands.log).to include(

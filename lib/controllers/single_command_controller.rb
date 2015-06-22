@@ -15,7 +15,7 @@ module FBPi
                           "emergency stop"  => :emergency_stop, }
 
     def call
-      @cmd   = (message.payload || {}).fetch("command", {})
+      @cmd   = (message.params || {}).fetch("command", {})
       key    = @cmd["action"].to_s.downcase.gsub("_", " ").downcase
       action = AVAILABLE_ACTIONS.fetch(key, :unknown).to_sym
       send(action)

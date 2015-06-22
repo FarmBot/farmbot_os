@@ -20,14 +20,14 @@ describe FBPi::ExecSequenceController do
 
   let(:message) do
     FBPi::MeshMessage.new(from: '1234567890',
-                          type: 'exec_sequence',
-                          payload: example_hash)
+                          method: 'exec_sequence',
+                          params: example_hash)
   end
   let(:controller) { FBPi::ExecSequenceController.new(message, bot, mesh) }
 
   it 'initializes' do
     controller.call
-    msg = mesh.last.payload || {}
+    msg = mesh.last.params || {}
     raise msg[:error] if msg[:error]
     expect(mesh.last.type).to eq('exec_sequence')
     results = bot.outbound_queue.map(&:to_s)
@@ -37,10 +37,10 @@ describe FBPi::ExecSequenceController do
   end
 
   it 'catches validation errors' do
-    message.payload["command"]["steps"] = {}
+    message.params["command"]["steps"] = {}
     ctrl = FBPi::ExecSequenceController.new(message, bot, mesh)
     ctrl.call
-    last_msg = mesh.last.payload
+    last_msg = mesh.last.params
     expect(last_msg[:message_type]).to eq('error')
     expect(last_msg[:error]).to eq("Steps isn't an array")
   end

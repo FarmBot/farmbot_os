@@ -12,12 +12,12 @@ module FBPi
       reply "error", error: error.message
     end
 
-    def payload
-      @payload ||= Hash(@message.payload["command"])
+    def params
+      @params ||= Hash(@message.params["command"])
     end
 
     def sequence
-      @sequence ||= CreateSequence.run!(payload)
+      @sequence ||= CreateSequence.run!(params)
     end
   end
 end

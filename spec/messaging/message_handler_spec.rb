@@ -5,7 +5,7 @@ describe FBPi::MessageHandler do
   let(:mesh) { FakeMesh.new }
   let(:message) do
     { 'fromUuid' => '1234567890',
-      'payload'  => { 'message_type' => 'test_message' } }
+      'method'   => 'test_message'  }
   end
   let(:handler) { FBPi::MessageHandler.new(message, bot, mesh) }
 
@@ -14,16 +14,15 @@ describe FBPi::MessageHandler do
     expect(handler.mesh).to eq(mesh)
     expect(handler.message).to be_kind_of(FBPi::MeshMessage)
     expect(handler.message.from).to eq('1234567890')
-    expect(handler.message.type).to eq('test_message')
-    expect(handler.message.payload).to eq(message['payload'])
+    expect(handler.message.method).to eq('test_message')
+    expect(handler.message.params).to eq({})
   end
 
   it 'Calls itself when provided a bot, message and mesh network' do
     hndlr = FBPi::MessageHandler.call(message, bot, mesh)
     msgs  = mesh.all
-    expect(msgs.count).to eq(2)
+    expect(msgs.count).to eq(1)
     expect(msgs.first.type).to eq('error')
-    expect(msgs.last.type).to eq('confirmation')
   end
 
   it 'sends errors' do
@@ -31,7 +30,7 @@ describe FBPi::MessageHandler do
       raise 'Fake error for testing'
     rescue => fake_error
       handler.send_error(fake_error)
-      expect(mesh.last.payload[:error])
+      expect(mesh.last.params[:error])
         .to include('Fake error for testing @ /')
     end
   end
@@ -43,9 +42,10 @@ describe FBPi::MessageHandler do
       end
     end
     FBPi::MessageHandler.add_controller('bad')
-    message['payload']['message_type'] = 'bad'
+
+    message['method'] = 'bad'
     hndlr = FBPi::MessageHandler.call(message, bot, mesh)
-    msg = mesh.all.first.payload[:error]
+    msg = mesh.all.first.params[:error]
     expect(msg).to include('a fake error')
   end
 
