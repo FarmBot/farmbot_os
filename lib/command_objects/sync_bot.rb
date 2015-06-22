@@ -19,6 +19,8 @@ module FBPi
               sequences: Sequence.count,
               steps:     Step.count)
       Schedule.all
+    rescue FbResource::FetchError => e
+      add_error :web_server, :fetch_error, e.message
     end
   end
 end
