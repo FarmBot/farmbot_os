@@ -1,3 +1,5 @@
+require_relative '../command_objects/send_mesh_response'
+
 module FBPi
   class AbstractController
     attr_reader :message, :bot, :mesh
@@ -7,11 +9,10 @@ module FBPi
     end
 
     def reply(type, payl = {})
-      # http://json-rpc.org/wiki/specification#a1.2Response
-      output = {id: message.id, error: nil, result: nil}
-      payl   = payl.merge!(type: type)
-      output[(type.to_s.downcase == "error") ? :error : :result] = payl
-      mesh.emit message.from, output
+      SendMeshResponse.run!(message: message,
+                            mesh:    mesh,
+                            type:    type,
+                            payload: payl)
     end
   end
 end

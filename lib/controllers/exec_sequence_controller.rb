@@ -5,7 +5,7 @@ module FBPi
   class ExecSequenceController < AbstractController
     def call
       sequence.steps.each { |step| step.execute(bot) }
-      reply "exec_sequence"
+      reply "exec_sequence", params
     rescue Mutations::ValidationException => error
       reply "error", error: error.message
     end

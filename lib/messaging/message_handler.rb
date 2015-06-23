@@ -39,7 +39,7 @@ module FBPi
     end
 
     def call
-      controller = ROUTES[message.type] || UnknownController
+      controller = ROUTES[message.method] || UnknownController
       controller.new(message, bot, mesh).call
     rescue => e
       send_error(e)
@@ -53,12 +53,14 @@ module FBPi
     def send_error(error)
       msg = "#{error.message} @ #{error.backtrace.first}"
       bot.log msg
-      reply 'error', error: msg
+      reply 'error', message: error.message, backtrace: error.backtrace
     end
 
     def reply(type, payl = {})
-      raise 'this needs to conform to JSONRPC!'
-      mesh.emit message.from, payl.merge(message_type: type)
+      SendMeshResponse.run!(message: message,
+                            mesh:    mesh,
+                            type:    type,
+                            payload: payl)
     end
   end
 end

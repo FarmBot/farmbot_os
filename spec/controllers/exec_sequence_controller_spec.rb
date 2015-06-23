@@ -27,8 +27,6 @@ describe FBPi::ExecSequenceController do
 
   it 'initializes' do
     controller.call
-    msg = mesh.last.params || {}
-    raise msg[:error] if msg[:error]
     expect(mesh.last.type).to eq('exec_sequence')
     results = bot.outbound_queue.map(&:to_s)
     ['F41 P1 V1 M0', 'G0 X0 Y1200 Z0', 'G0 X500 Y0 Z0'].each do |gcode|

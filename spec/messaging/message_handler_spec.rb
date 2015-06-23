@@ -30,8 +30,8 @@ describe FBPi::MessageHandler do
       raise 'Fake error for testing'
     rescue => fake_error
       handler.send_error(fake_error)
-      expect(mesh.last.params[:error])
-        .to include('Fake error for testing @ /')
+      expect(mesh.last.params[:error][:message])
+        .to include('Fake error for testing')
     end
   end
 
@@ -45,8 +45,8 @@ describe FBPi::MessageHandler do
 
     message['method'] = 'bad'
     hndlr = FBPi::MessageHandler.call(message, bot, mesh)
-    msg = mesh.all.first.params[:error]
-    expect(msg).to include('a fake error')
+    err = mesh.last.params[:error][:message]
+    expect(err).to include('a fake error')
   end
 
   it 'politely tells you why your controller didnt load' do

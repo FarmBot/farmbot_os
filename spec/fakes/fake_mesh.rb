@@ -12,7 +12,8 @@ class FakeMesh
     end
 
     def type
-      (@params[:result] || @params[:error])[:type] || "not found"
+      (@params[:result] || @params[:error] || {})[:type] or
+      raise "Make sure that mesh messages have either a 'result' or 'error' key"
     end
   end
 
