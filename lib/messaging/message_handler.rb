@@ -57,7 +57,7 @@ module FBPi
     end
 
     def reply(type, payl = {})
-      raise 'this needs to conform to JSON API!'
+      raise 'this needs to conform to JSONRPC!'
       mesh.emit message.from, payl.merge(message_type: type)
     end
   end

@@ -41,7 +41,7 @@ describe FBPi::ExecSequenceController do
     ctrl = FBPi::ExecSequenceController.new(message, bot, mesh)
     ctrl.call
     last_msg = mesh.last.params
-    expect(last_msg[:message_type]).to eq('error')
-    expect(last_msg[:error]).to eq("Steps isn't an array")
+    expect(last_msg[:error]).to_not be_nil
+    expect(last_msg[:error][:error]).to eq("Steps isn't an array")
   end
 end

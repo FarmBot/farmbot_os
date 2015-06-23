@@ -12,7 +12,7 @@ class FakeMesh
     end
 
     def type
-      @params[:message_type] || "not set"
+      (@params[:result] || @params[:error])[:type] || "not found"
     end
   end
 
