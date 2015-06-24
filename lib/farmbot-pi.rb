@@ -36,8 +36,6 @@ class FarmBotPi
   def start
     EM.run do
       mesh.toggle_debug!
-puts "Settings loaded:"
-puts FBPi::Settings.instance_variable_get("@instance").to_yaml
       mesh.connect
       FB::ArduinoEventMachine.connect(bot)
       start_chore_runner

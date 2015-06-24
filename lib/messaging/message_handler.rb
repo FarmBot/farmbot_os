@@ -56,11 +56,12 @@ module FBPi
       reply 'error', message: error.message, backtrace: error.backtrace
     end
 
-    def reply(type, payl = {})
+    def reply(type, reslt = {})
       SendMeshResponse.run!(message: message,
                             mesh:    mesh,
                             type:    type,
-                            payload: payl)
+                            result:  reslt)
     end
+
   end
 end

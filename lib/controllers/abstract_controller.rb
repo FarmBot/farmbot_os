@@ -8,11 +8,11 @@ module FBPi
       @message, @bot, @mesh = message, bot, mesh
     end
 
-    def reply(type, payl = {})
+    def reply(method, reslt = {})
       SendMeshResponse.run!(message: message,
                             mesh:    mesh,
-                            type:    type,
-                            payload: payl)
+                            method:  method,
+                            result:  reslt)
     end
   end
 end

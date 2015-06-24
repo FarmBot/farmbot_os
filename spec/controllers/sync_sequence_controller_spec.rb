@@ -13,6 +13,6 @@ describe FBPi::SyncSequenceController do
     controller.call
     msg = mesh.last.params || {}
     raise msg[:error] if msg[:error]
-    expect(mesh.last.type).to eq("sync_sequence")
+    expect(mesh.last.method).to eq("sync_sequence")
   end
 end

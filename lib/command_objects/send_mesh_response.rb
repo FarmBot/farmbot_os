@@ -9,11 +9,11 @@ module FBPi
     required do
       duck :message, methods: [:id, :from]
       duck :mesh, methods: [:emit]
-      string :type
+      string :method
     end
 
     optional do
-      hash(:payload, default: {}) do
+      hash(:result, default: {}) do
         duck :*, methods: [:to_json]
       end
     end
@@ -24,7 +24,7 @@ module FBPi
 
     def output
       hsh = {id: message.id, error: nil, result: nil}
-      hsh[(type == "error") ? :error : :result] = payload.merge(type: type)
+      hsh[(method == "error") ? :error : :result] = result.merge(method: method)
       hsh.deep_symbolize_keys # :(
     end
   end

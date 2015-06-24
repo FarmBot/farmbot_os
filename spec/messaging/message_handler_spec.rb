@@ -22,7 +22,7 @@ describe FBPi::MessageHandler do
     hndlr = FBPi::MessageHandler.call(message, bot, mesh)
     msgs  = mesh.all
     expect(msgs.count).to eq(1)
-    expect(msgs.first.type).to eq('error')
+    expect(msgs.first.method).to eq('error')
   end
 
   it 'sends errors' do
