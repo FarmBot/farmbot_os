@@ -29,7 +29,6 @@ module FBPi
     end
 
     def ready
-      # SyncBot.run!(bot: self)
       log "Online at #{Time.now}"
     end
 

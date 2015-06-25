@@ -4,20 +4,18 @@ require_relative '../command_objects/commands'
 module FBPi
   class ExecSequenceController < AbstractController
     def call
-      sequence.steps.each do |step|
-        step.execute(bot)
-      end
-      reply "exec_sequence"
+      sequence.steps.each { |step| step.execute(bot) }
+      reply "exec_sequence", params
     rescue Mutations::ValidationException => error
       reply "error", error: error.message
     end
 
-    def payload
-      @payload ||= Hash(@message.payload["command"])
+    def params
+      @params ||= (@message.params || {})
     end
 
     def sequence
-      @sequence ||= CreateSequence.run!(payload)
+      @sequence ||= CreateSequence.run!(params)
     end
   end
 end

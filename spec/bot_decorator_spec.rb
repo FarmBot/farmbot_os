@@ -19,7 +19,7 @@ describe FarmBotPi do
 
   it 'states that it is ready' do
     decorator.ready
-    msg = decorator.mesh.last.payload
+    msg = decorator.mesh.last.params
     expect(msg[:data]).to include("Online at #{Date.today}")
   end
 
@@ -60,7 +60,7 @@ describe FarmBotPi do
     # Offloads bot status into the PStore
     expect(decorator.status_storage.to_h[:X]).to eq(9898)
     # Logs the disconnection time.
-    goodbye = decorator.mesh.last.payload[:data]
+    goodbye = decorator.mesh.last.params[:data]
     expect(goodbye).to include("Bot offline at #{Date.today}")
   end
 end

@@ -36,8 +36,6 @@ class FarmBotPi
   def start
     EM.run do
       mesh.toggle_debug!
-puts "Settings loaded:"
-puts FBPi::Settings.instance_variable_get("@instance").to_yaml
       mesh.connect
       FB::ArduinoEventMachine.connect(bot)
       start_chore_runner
@@ -60,10 +58,7 @@ puts FBPi::Settings.instance_variable_get("@instance").to_yaml
 
   def broadcast_status
     EventMachine::PeriodicTimer.new(0.4) do
-      null_msg = FBPi::MeshMessage.new(from: '*',
-                                       type: 'read_status',
-                                       payload: {})
-      FBPi::ReadStatusController.new(null_msg, bot, mesh).call
+      mesh.emit '*', FBPi::FetchBotStatus.run!(bot: bot)
     end
   end
 end

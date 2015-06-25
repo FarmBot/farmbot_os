@@ -1,10 +1,11 @@
 module FBPi
+  # Represents a message as it enters the bot from the outside world. Mostly
+  # compliant with JSONRPC specification. http://json-rpc.org/wiki/specification
   class MeshMessage
-    attr_accessor :from, :type, :payload
+    attr_accessor :from, :method, :params, :id
 
-    def initialize(from:, type:, payload:)
-      payload.delete("message_type") if payload.respond_to?(:delete)
-      @from, @type, @payload = from, type, payload
+    def initialize(from:, method:, params: {}, id: '')
+      @from, @method, @params, @id = from, method, params, id
     end
   end
 end
