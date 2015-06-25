@@ -1,5 +1,6 @@
 # Builds a validated sequence (and collection of steps)
 require_relative '../models/schedule'
+require_relative '../models/sequence'
 
 module FBPi
   # Was once called ScheduleFactory

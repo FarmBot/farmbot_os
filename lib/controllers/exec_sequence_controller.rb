@@ -11,7 +11,7 @@ module FBPi
     end
 
     def params
-      @params ||= Hash(@message.params["command"])
+      @params ||= (@message.params || {})
     end
 
     def sequence

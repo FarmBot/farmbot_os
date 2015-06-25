@@ -6,15 +6,13 @@ describe FBPi::ExecSequenceController do
   let(:example_hash) do
     {
       'message_type' => 'exec_sequence',
-      'command' => {
-        'name' =>'Yowza!',
-        'steps' => [
+      'name' =>'Yowza!',
+      'steps' => [
           {'message_type'=>'move_relative', 'command'=> {'x'=>'500'}},
           {'message_type'=>'move_absolute', 'command'=> {'y'=>'1200'}},
           {'message_type' => 'pin_write',
            'command' => {'pin' => 1, 'value' => 1, 'mode' => 0}}
         ]
-      }
     }
   end
 
@@ -35,7 +33,7 @@ describe FBPi::ExecSequenceController do
   end
 
   it 'catches validation errors' do
-    message.params["command"]["steps"] = {}
+    message.params["steps"] = {}
     ctrl = FBPi::ExecSequenceController.new(message, bot, mesh)
     ctrl.call
     last_msg = mesh.last.params

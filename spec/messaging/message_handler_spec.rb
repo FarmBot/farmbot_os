@@ -34,23 +34,4 @@ describe FBPi::MessageHandler do
         .to include('Fake error for testing')
     end
   end
-
-  it 'catches errors' do
-    class BadController < FBPi::AbstractController
-      def call
-        raise 'a fake error'
-      end
-    end
-    FBPi::MessageHandler.add_controller('bad')
-
-    message['method'] = 'bad'
-    hndlr = FBPi::MessageHandler.call(message, bot, mesh)
-    err = mesh.last.params[:error][:message]
-    expect(err).to include('a fake error')
-  end
-
-  it 'politely tells you why your controller didnt load' do
-    expect { FBPi::MessageHandler.add_controller('nope') }
-      .to raise_error(FBPi::MessageHandler::ControllerLoadErrorr)
-  end
 end

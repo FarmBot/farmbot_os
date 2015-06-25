@@ -2,7 +2,7 @@ require_relative 'abstract_controller'
 
 module FBPi
   class SingleCommandController < AbstractController
-    attr_reader :cmd
+    attr_reader :cmd, :key
 
     AVAILABLE_ACTIONS = { "move relative"   => :move_relative,
                           "move absolute"   => :move_absolute,
@@ -16,7 +16,7 @@ module FBPi
 
     def call
       # "single_command.MOVE RELATIVE" ==> "move relative"
-      key    = message.method.to_s.split('.').last.downcase.gsub("_", " ")
+      @key   = message.method.to_s.split('.').last.downcase.gsub("_", " ")
       action = AVAILABLE_ACTIONS.fetch(key, :unknown).to_sym
       @cmd   = message.params
       send(action)
@@ -59,7 +59,11 @@ module FBPi
     end
 
     def unknown
-      raise "Unknown message '#{cmd["command"] || 'NULL'}'. Most likely, the "\
+      case key
+      when 'single command', nil then msg = 'NULL'
+      else; msg = key
+      end
+      raise "Unknown message '#{ msg }'. Most likely, the "\
             "command has not been implemented or does not exist. Try: "\
             "#{AVAILABLE_ACTIONS.keys.join(', ')}"
     end
