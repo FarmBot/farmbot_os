@@ -24,7 +24,8 @@ module FBPi
 
     def output
       hsh = {id: message.id, error: nil, result: nil}
-      hsh[(method == "error") ? :error : :result] = result.merge(method: method)
+      key = (method == "error") ? :error : :result
+      hsh[key] = result.merge(method: method)
       hsh.deep_symbolize_keys # :(
     end
   end

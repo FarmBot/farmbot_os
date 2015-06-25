@@ -11,9 +11,12 @@ class FakeMesh
       @name, @params = name, params
     end
 
-    def type
-      (@params[:result] || @params[:error] || {})[:type] or
-      raise "Make sure that mesh messages have either a 'result' or 'error' key"
+    def method
+      results[:method] || 'not_specified'
+    end
+
+    def results
+      (@params[:result] || @params[:error] || {})
     end
   end
 

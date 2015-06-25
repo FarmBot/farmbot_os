@@ -23,7 +23,7 @@ describe FBPi::ReadStatusController do
 
     controller.call
     msg = mesh.last.params
-    expect(msg[:result][:type]).to eq("read_status")
+    expect(msg[:result][:method]).to eq("read_status")
     keys = msg[:result]
     [:busy, :current_command, :x, :y, :z].each do |key|
       expect(keys).to include(key)
