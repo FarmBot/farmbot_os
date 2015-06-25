@@ -15,9 +15,10 @@ module FBPi
                           "emergency stop"  => :emergency_stop, }
 
     def call
-      @cmd   = (message.params || {}).fetch("command", {})
-      key    = @cmd["action"].to_s.downcase.gsub("_", " ").downcase
+      # "single_command.MOVE RELATIVE" ==> "move relative"
+      key    = message.method.to_s.split('.').last.downcase.gsub("_", " ")
       action = AVAILABLE_ACTIONS.fetch(key, :unknown).to_sym
+      @cmd   = message.params
       send(action)
       reply 'single_command', confirmation: true, command: cmd
     end
