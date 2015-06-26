@@ -7,7 +7,7 @@ module FBPi
   # For more info see: http://json-rpc.org/wiki/specification#a1.2Response
   class SendMeshResponse < Mutations::Command
     required do
-      duck :message, methods: [:id, :from]
+      duck :original_message, methods: [:id, :from]
       duck :mesh, methods: [:emit]
       string :method
     end
@@ -19,11 +19,11 @@ module FBPi
     end
 
     def execute
-      mesh.emit message.from, output
+      mesh.emit original_message.from, output
     end
 
     def output
-      hsh = {id: message.id, error: nil, result: nil}
+      hsh = {id: original_message.id, error: nil, result: nil}
       key = (method == "error") ? :error : :result
       hsh[key] = result.merge(method: method)
       hsh.deep_symbolize_keys # :(

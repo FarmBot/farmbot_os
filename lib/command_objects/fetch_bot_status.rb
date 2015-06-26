@@ -12,6 +12,16 @@ module FBPi
 
     def execute
       {
+        method: 'read_status',
+        params: status_hash,
+        id: nil # Must be nil to conform to JSONRPC 1.0
+      }
+    end
+
+private
+
+    def status_hash
+      {
         busy: bot.status[:busy],
         current_command: bot.status[:last],
         x: bot.status[:x],
@@ -20,11 +30,7 @@ module FBPi
       }.merge(pin_info).deep_symbolize_keys
     end
 
-private
-
     def pin_info
-      # Performs lazy evaluation of pin status. If the pin status is 'unknown',
-      # performs a lookup for next status poll. Otherwise, uses cached value.
       [*0..13].inject({}) do |hsh, pin|
         hsh["pin#{pin}".to_sym] = read(pin)
         hsh
@@ -33,7 +39,9 @@ private
 
     def read(pin)
       val = bot.status.pin(pin)
-      (val == :unknown) ? bot.commands.read_parameter(pin) : val
+      # If the pin status is 'unknown', performs lookup for next status poll.
+      bot.commands.read_parameter(pin) if val == :unknown
+      val
     end
   end
 end
