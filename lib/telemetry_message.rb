@@ -10,6 +10,8 @@ module FBPi
     end
 
     def publish(mesh)
+      # I was getting sick of seeing those "Nothing to run this cycle" msgs in
+      # the telemetry logs, so I squelched them out here. PRs welcome.
       mesh.data(self) unless fetch(:data, '').starts_with?("Nothing")
       self
     end

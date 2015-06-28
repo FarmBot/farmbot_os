@@ -54,7 +54,6 @@ module FBPi
     def log(message, priority = 'low')
       # Log to screen
       __getobj__.log(message)
-      puts ('='*23), "Log messages are not JSONRPC compliant :("
       TelemetryMessage.build(message).publish(@mesh)
     end
   end
