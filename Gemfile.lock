@@ -60,7 +60,7 @@ GEM
     json (1.8.2)
     loofah (2.0.1)
       nokogiri (>= 1.5.9)
-    meshruby (0.0.4)
+    meshruby (0.0.5)
       eventmachine
       socket.io-client-simple
     method_source (0.8.2)
@@ -150,7 +150,7 @@ DEPENDENCIES
   farmbot-serial (= 0.6.2)
   god
   ice_cube
-  meshruby (= 0.0.4)
+  meshruby (= 0.0.5)
   mutations (= 0.7.2)
   pry-byebug
   rspec

@@ -34,10 +34,10 @@ module FBPi
     end
 
     def reply(method, reslt = {})
-      SendMeshResponse.run!(message: message,
-                            mesh:    mesh,
-                            method:  method,
-                            result:  reslt)
+      SendMeshResponse.run!(original_message: message,
+                            mesh:             mesh,
+                            method:           method,
+                            result:           reslt)
     end
 
   end
