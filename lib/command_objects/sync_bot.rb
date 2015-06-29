@@ -14,11 +14,9 @@ module FBPi
           .tap { Schedule.destroy_all }
           .map { |s| CreateSchedule.run!(s) }
       end
-      bot.log(name: "Sync Confirmation",
-              schedules: Schedule.count,
-              sequences: Sequence.count,
-              steps:     Step.count)
-      Schedule.all
+      {schedules: Schedule.count,
+       sequences: Sequence.count,
+       steps:     Step.count}
     rescue FbResource::FetchError => e
       add_error :web_server, :fetch_error, e.message
     end

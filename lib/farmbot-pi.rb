@@ -42,7 +42,6 @@ class FarmBotPi
       broadcast_status
       mesh.onmessage { |msg| meshmessage(msg) }
       bot.bootstrap
-      FBPi::SyncBot.run(bot: bot)
     end
   end
 
@@ -57,7 +56,11 @@ class FarmBotPi
   end
 
   def broadcast_status
-    EventMachine::PeriodicTimer.new(0.4) do
+    # TODO: Add onconnect() hook instead of timers. Was having issues with
+    # socketio client previously.
+    EventMachine::Timer.new(4) do
+      sync = FBPi::SyncBot.run(bot: bot).result
+      mesh.emit '*', { method: 'sync_sequence', id: nil, params: sync } if sync
       mesh.emit '*', FBPi::FetchBotStatus.run!(bot: bot)
     end
   end
