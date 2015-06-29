@@ -42,6 +42,7 @@ module FBPi
 
     def diffmessage(diff)
       @status_storage.update_attributes(diff)
+      mesh.emit '*', FBPi::FetchBotStatus.run!(bot: self)
       log "BOT DIF: #{diff}" unless diff.keys == [:BUSY]
     end
 
