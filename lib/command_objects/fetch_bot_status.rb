@@ -11,11 +11,7 @@ module FBPi
     end
 
     def execute
-      {
-        method: 'read_status',
-        params: status_hash,
-        id: nil # Must be nil to conform to JSONRPC 1.0
-      }
+      status_hash
     end
 
 private
