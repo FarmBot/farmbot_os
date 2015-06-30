@@ -2,7 +2,7 @@ class Step < ActiveRecord::Base
   attr_accessor :bot, :command
 
   COMMANDS = %w(emergency_stop home_all home_x home_y home_z move_absolute
-    move_relative pin_write read_parameter read_status write_parameter)
+    move_relative pin_write read_parameter read_status write_parameter wait)
 
   belongs_to :sequence
 
@@ -12,7 +12,8 @@ class Step < ActiveRecord::Base
     r = {"move_relative" => :move_relative,
          "move_absolute" => :move_absolute,
          "pin_write"     => :pin_write,
-         "unknown"       => :unknown}
+         "unknown"       => :unknown,
+         "wait"          => :wait}
     self.send (r[message_type.to_s] || :unknown), bot
   end
 
@@ -32,9 +33,15 @@ class Step < ActiveRecord::Base
     bot.commands.pin_write(pin: pin, value: value, mode: mode)
   end
 
+  def wait(bot)
+    puts '=== Wait may or may not be implemented on the bot. Waiting.'
+    # TODO: Yes, this is horrible. Will circle back and handle on hardware or
+    # use a timer object to avoid blocking event loop.
+    millis = (value || 0) / 1000.0
+    sleep(millis)
+  end
+
   def unknown(bot)
-    # TODO: Raise exception so that the issue bubbles up to the browser. Fixing
-    # bug atm, will come back later.
     bot.log("Unknown message #{message_type}")
   end
 end
