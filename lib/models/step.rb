@@ -34,9 +34,12 @@ class Step < ActiveRecord::Base
   end
 
   def wait(bot)
-    puts '=== Wait may or may not be implemented on the bot. Waiting.'
-    # TODO: Yes, this is horrible. Will circle back and handle on hardware or
-    # use a timer object to avoid blocking event loop.
+    # TODO: Yes, this is horrible. Ideally, I would like to use Fibers that can
+    # be paused / resumed using EventMachine timers, but I am holding off on
+    # that for now. Pull requests are welcome. Contact me for details.
+    # Possibly relevant: http://www.rubydoc.info/github/igrigorik
+    #                    /em-synchrony/EventMachine%2FSynchrony.sleep
+    # -- rickcarlino
     millis = (value || 0) / 1000.0
     sleep(millis)
   end

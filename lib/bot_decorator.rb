@@ -56,7 +56,10 @@ module FBPi
     def log(message, priority = 'low')
       # Log to screen
       __getobj__.log(message)
-      TelemetryMessage.build(message).publish(@mesh)
+      unless message.is_a?(Hash)
+        message = {log: 'Log Message', priority: priority, data: message}
+      end
+      TelemetryMessage.build(status.to_h.merge(message)).publish(@mesh)
     end
   end
 end
