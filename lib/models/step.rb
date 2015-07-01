@@ -2,7 +2,7 @@ class Step < ActiveRecord::Base
   attr_accessor :bot, :command
 
   COMMANDS = %w(emergency_stop home_all home_x home_y home_z move_absolute
-    move_relative pin_write read_parameter read_status write_parameter)
+    move_relative pin_write read_parameter read_status write_parameter wait)
 
   belongs_to :sequence
 
@@ -12,7 +12,8 @@ class Step < ActiveRecord::Base
     r = {"move_relative" => :move_relative,
          "move_absolute" => :move_absolute,
          "pin_write"     => :pin_write,
-         "unknown"       => :unknown}
+         "unknown"       => :unknown,
+         "wait"          => :wait}
     self.send (r[message_type.to_s] || :unknown), bot
   end
 
@@ -32,9 +33,18 @@ class Step < ActiveRecord::Base
     bot.commands.pin_write(pin: pin, value: value, mode: mode)
   end
 
+  def wait(bot)
+    # TODO: Yes, this is horrible. Ideally, I would like to use Fibers that can
+    # be paused / resumed using EventMachine timers, but I am holding off on
+    # that for now. Pull requests are welcome. Contact me for details.
+    # Possibly relevant: http://www.rubydoc.info/github/igrigorik
+    #                    /em-synchrony/EventMachine%2FSynchrony.sleep
+    # -- rickcarlino
+    millis = (value || 0) / 1000.0
+    sleep(millis)
+  end
+
   def unknown(bot)
-    # TODO: Raise exception so that the issue bubbles up to the browser. Fixing
-    # bug atm, will come back later.
     bot.log("Unknown message #{message_type}")
   end
 end

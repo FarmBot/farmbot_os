@@ -5,6 +5,7 @@ module FBPi
       message.is_a?(Hash) ? self.new(message) : from_object(message)
     end
 
+    # If message isn't a hash (numeric, string, etc), wrap it in some keys.
     def self.from_object(m, priority = 'low')
       self.new(log: 'Log Message', priority: priority, data: m)
     end
