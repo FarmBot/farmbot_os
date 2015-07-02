@@ -14,7 +14,9 @@ class Step < ActiveRecord::Base
          "pin_write"     => :pin_write,
          "unknown"       => :unknown,
          "wait"          => :wait}
-    self.send (r[message_type.to_s] || :unknown), bot
+    key = r[message_type.to_s] || :unknown
+    puts "EXECUTING #{key}"
+    self.send(key), bot
   end
 
   def move_relative(bot)
@@ -40,8 +42,14 @@ class Step < ActiveRecord::Base
     # Possibly relevant: http://www.rubydoc.info/github/igrigorik
     #                    /em-synchrony/EventMachine%2FSynchrony.sleep
     # -- rickcarlino
-    millis = (value || 0) / 1000.0
+    seconds = (value || 0) / 1000.0
+    actual  =
+    puts "Starting #{seconds} second wait"
+    early = Time.now
     sleep(millis)
+    late = Time.now
+    puts "Ending #{seconds} second wait."
+    puts "Actual time: #{late - early}"
   end
 
   def unknown(bot)
