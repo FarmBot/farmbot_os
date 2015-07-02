@@ -16,7 +16,7 @@ class Step < ActiveRecord::Base
          "wait"          => :wait}
     key = r[message_type.to_s] || :unknown
     puts "EXECUTING #{key}"
-    self.send(key), bot
+    self.send(key, bot)
   end
 
   def move_relative(bot)
