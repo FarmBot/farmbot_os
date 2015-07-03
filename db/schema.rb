@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150504131720) do
+ActiveRecord::Schema.define(version: 20150703184419) do
 
   create_table "schedules", force: :cascade do |t|
     t.integer  "sequence_id"
@@ -43,6 +43,7 @@ ActiveRecord::Schema.define(version: 20150504131720) do
     t.integer  "sequence_id"
     t.datetime "created_at",   null: false
     t.datetime "updated_at",   null: false
+    t.integer  "position"
   end
 
 end

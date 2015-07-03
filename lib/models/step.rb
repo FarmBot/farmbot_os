@@ -42,14 +42,7 @@ class Step < ActiveRecord::Base
     # Possibly relevant: http://www.rubydoc.info/github/igrigorik
     #                    /em-synchrony/EventMachine%2FSynchrony.sleep
     # -- rickcarlino
-    seconds = (value || 0) / 1000.0
-    actual  =
-    puts "Starting #{seconds} second wait"
-    early = Time.now
-    sleep(millis)
-    late = Time.now
-    puts "Ending #{seconds} second wait."
-    puts "Actual time: #{late - early}"
+    sleep((value || 0) / 1000.0)
   end
 
   def unknown(bot)

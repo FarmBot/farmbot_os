@@ -4,6 +4,7 @@ module FBPi
   class CreateStep < Mutations::Command
     required do
       string :message_type, in: Step::COMMANDS
+      integer :position
       hash :command do
         optional do
           [:x, :y, :z, :speed, :pin, :value, :mode].each do |f|
