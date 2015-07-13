@@ -51,6 +51,7 @@ module FBPi
     end
 
     def send_message
+      FBPi::SendMessage.run!(message: step.value, bot: bot)
     end
 
     def unknown

@@ -10,8 +10,15 @@ module FBPi
 
     required do
       string :message
+      duck :bot, methods: [:to_h, :mesh]
+    end
+
+    optional do
       duck :mesh, methods: [:data]
-      duck :bot, methods: [:to_h]
+    end
+
+    def validate
+      mesh ||= bot.mesh
     end
 
     def execute
