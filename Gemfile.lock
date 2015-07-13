@@ -58,6 +58,7 @@ GEM
     i18n (0.7.0)
     ice_cube (0.12.1)
     json (1.8.2)
+    liquid (3.0.3)
     loofah (2.0.1)
       nokogiri (>= 1.5.9)
     meshruby (0.0.5)
@@ -150,6 +151,7 @@ DEPENDENCIES
   farmbot-serial (= 0.6.2)
   god
   ice_cube
+  liquid
   meshruby (= 0.0.5)
   mutations (= 0.7.2)
   pry-byebug

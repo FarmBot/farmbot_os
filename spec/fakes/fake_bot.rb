@@ -11,4 +11,8 @@ class FakeBot < FB::Arduino
     super
   end
 
+  def to_h
+    {'anything' => 'at all',
+     'test_mode' => 'this is is used to test templating.'}
+  end
 end
