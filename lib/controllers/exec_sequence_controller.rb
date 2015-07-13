@@ -7,7 +7,7 @@ module FBPi
       sequence
         .steps
         .sort{ |a, b| a.position <=> b.position}
-        .each { |step| step.execute(bot) }
+        .each { |step| FBPi::ExecStep.run!(bot: bot, step: step) }
       reply "exec_sequence", params
     rescue Mutations::ValidationException => error
       reply "error", error: error.message

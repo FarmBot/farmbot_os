@@ -9,6 +9,7 @@ gem 'mutations', '0.7.2'
 gem 'ice_cube'
 gem 'god'
 gem 'settingslogic'
+gem 'liquid'
 
 group :test, :development do
   gem 'pry-byebug'

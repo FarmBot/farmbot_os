@@ -8,9 +8,16 @@ describe FBPi::ExecSequenceController do
       'message_type' => 'exec_sequence',
       'name' =>'Yowza!',
       'steps' => [
-          {'message_type'=>'move_relative', 'command'=> {'x'=>'500'}},
-          {'message_type'=>'move_absolute', 'command'=> {'y'=>'1200'}},
+          {'message_type'=>'move_relative',
+           'position' => 0,
+           'command'=> {'x'=>'500'}},
+
+          {'message_type'=>'move_absolute',
+           'position' => 1,
+           'command'=> {'y'=>'1200'}},
+
           {'message_type' => 'pin_write',
+           'position' => 2,
            'command' => {'pin' => 1, 'value' => 1, 'mode' => 0}}
         ]
     }

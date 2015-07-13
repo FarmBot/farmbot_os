@@ -1,5 +1,6 @@
 module FBPi
-  # Was once called ScheduleFactory
+  # This Object is responsible for contacting the Farmbot Web App via REST calls
+  # in order to fetch the latest command execution schedules.
   class SyncBot < Mutations::Command
     required do
       duck :bot, methods: [:rest_client]
