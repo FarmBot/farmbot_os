@@ -6,7 +6,7 @@ module FBPi
   # Sends a message to MeshBlu with optional Liquid Templating. Usually this is
   # required to report an event, completion of a schedule or system failures.
   class SendMessage < Mutations::Command
-    Liquid::Template.error_mode = :strict
+    Liquid::Template.error_mode = :lax
 
     required do
       string :message
