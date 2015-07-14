@@ -3,17 +3,17 @@ require_relative '../../lib/command_objects/send_message'
 
 describe FBPi::SendMessage do
   let(:bot) { FakeBot.new }
-  let(:mesh) { FakeMesh.new }
   let(:message) do
-    FBPi::SendMessage.run!(bot: bot, mesh: mesh, message: "{{ test_mode }}")
+    FBPi::SendMessage.run!(bot: bot, message: "Last command: {{ last }}")
   end
 
-  it "Allows users to template the current time" do
-    expect(message[:data]).to include("this is is used to test templating.")
+  it "Allows users to template variables" do
+    expect(message[:data]).to include("Last command:")
+    expect(message[:data]).to include("none")
   end
 
   it 'pushes messages over messaging layer' do
     message
-    expect(mesh.last.params[:data]).to eq("this is is used to test templating.")
+    expect(bot.mesh.last.params[:data]).to include("none")
   end
 end
