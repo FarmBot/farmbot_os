@@ -7,9 +7,10 @@ module FBPi
       integer :position
       hash :command do
         optional do
-          [:x, :y, :z, :speed, :pin, :value, :mode].each do |f|
+          [:x, :y, :z, :speed, :pin, :mode].each do |f|
             integer f, default: nil
           end
+          string :value, default: nil
         end
       end
     end

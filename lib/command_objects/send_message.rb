@@ -6,34 +6,32 @@ module FBPi
   # Sends a message to MeshBlu with optional Liquid Templating. Usually this is
   # required to report an event, completion of a schedule or system failures.
   class SendMessage < Mutations::Command
-    Liquid::Template.error_mode = :lax
+    Liquid::Template.error_mode = :strict
 
     required do
       string :message
-      duck :bot, methods: [:to_h, :mesh]
-    end
-
-    optional do
-      duck :mesh, methods: [:data]
-    end
-
-    def validate
-      mesh ||= bot.mesh
+      duck :bot, methods: [:status, :mesh]
     end
 
     def execute
-      TelemetryMessage.build(template).publish(mesh)
+      TelemetryMessage.build(template).publish(bot.mesh)
     end
 
   private
 
     def allowed_template_vars
-      # What do all the PINs look like? Are they nested? Need to keep it flat.
-      bot.to_h.merge('time' => Time.now)
+      bot
+        .status
+        .to_h
+        .reduce({}){ |a, (b, c)| a[b.to_s.downcase] = c; a}
+        .tap { |h| h['pins'].map { |k, v| h["pin#{k}"] = v.to_s } }
+        .merge('time' => Time.now)
     end
 
     def template
-      @template ||= Liquid::Template.parse(message).render allowed_template_vars
+      @template ||= Liquid::Template
+                      .parse(message)
+                      .render(allowed_template_vars)
     end
   end
 end
