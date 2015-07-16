@@ -11,11 +11,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150714144735) do
+ActiveRecord::Schema.define(version: 20150716171933) do
 
   create_table "schedules", force: :cascade do |t|
     t.integer  "sequence_id"
-    t.string   "id_on_web_app"
     t.string   "time_unit"
     t.float    "repeat"
     t.datetime "start_time"
@@ -23,12 +22,14 @@ ActiveRecord::Schema.define(version: 20150714144735) do
     t.datetime "next_time"
     t.datetime "created_at",    null: false
     t.datetime "updated_at",    null: false
+    t.string   "id_on_web_app"
   end
 
   create_table "sequences", force: :cascade do |t|
     t.string   "name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at",    null: false
+    t.datetime "updated_at",    null: false
+    t.string   "id_on_web_app"
   end
 
   create_table "steps", force: :cascade do |t|
@@ -41,9 +42,12 @@ ActiveRecord::Schema.define(version: 20150714144735) do
     t.text     "value"
     t.integer  "mode"
     t.integer  "sequence_id"
-    t.datetime "created_at",   null: false
-    t.datetime "updated_at",   null: false
+    t.datetime "created_at",      null: false
+    t.datetime "updated_at",      null: false
     t.integer  "position"
+    t.string   "operator"
+    t.string   "variable"
+    t.string   "sub_sequence_id"
   end
 
 end

@@ -54,6 +54,11 @@ module FBPi
       FBPi::SendMessage.run!(message: step.value, bot: bot)
     end
 
+    def if_statement
+      binding.pry
+      #
+    end
+
     def unknown
       bot.log("Unknown message #{step.message_type}")
     end

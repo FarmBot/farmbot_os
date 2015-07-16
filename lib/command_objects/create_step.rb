@@ -7,10 +7,16 @@ module FBPi
       integer :position
       hash :command do
         optional do
-          [:x, :y, :z, :speed, :pin, :mode].each do |f|
-            integer f, default: nil
-          end
-          string :value, default: nil
+          integer :x,               default: nil
+          integer :y,               default: nil
+          integer :z,               default: nil
+          integer :speed,           default: nil
+          integer :pin,             default: nil
+          integer :mode,            default: nil
+          string  :variable,        default: nil
+          string  :operator,        default: nil
+          string  :sub_sequence_id, default: nil
+          string  :value,           default: nil
         end
       end
     end

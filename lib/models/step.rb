@@ -3,7 +3,7 @@ class Step < ActiveRecord::Base
   attr_accessor :command
   COMMANDS = %w(emergency_stop home_all home_x home_y home_z move_absolute
     move_relative pin_write read_parameter read_status write_parameter wait
-    send_message)
+    send_message if_statement)
 
   belongs_to :sequence
 
