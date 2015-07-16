@@ -23,6 +23,8 @@ module FBPi
 
     def perform_steps
       bot.log "Running #{schedule.sequence.name}"
+      "Make sure schedule.sequence.steps is not [] or `nil`"
+      binding.pry
       schedule.sequence.steps.each { |s| s.execute(bot) }
     end
 

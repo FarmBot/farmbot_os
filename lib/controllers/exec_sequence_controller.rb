@@ -4,10 +4,7 @@ require_relative '../command_objects/commands'
 module FBPi
   class ExecSequenceController < AbstractController
     def call
-      sequence
-        .steps
-        .sort{ |a, b| a.position <=> b.position}
-        .each { |step| FBPi::ExecStep.run!(bot: bot, step: step) }
+      sequence.exec(bot)
       reply "exec_sequence", params
     rescue Mutations::ValidationException => error
       reply "error", error: error.message

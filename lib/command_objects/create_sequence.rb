@@ -11,8 +11,7 @@ module FBPi
     end
 
     def execute
-
-      Sequence.new(inputs.merge!(id_on_web_app: inputs.delete(:_id)))
+      Sequence.create!(inputs.merge!(id_on_web_app: inputs.delete(:_id)))
     end
   end
 end

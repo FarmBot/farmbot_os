@@ -11,18 +11,20 @@ module FBPi
       string :end_time
       float  :repeat
       string :time_unit, in: Schedule::UNITS_OF_TIME
-      model  :sequence,
-             class: Sequence,
-             builder: CreateSequence,
-             new_records: true
+      string :sequence_id
     end
 
     optional do
       string :next_time
     end
 
-    def execute
+    def validate
       inputs[:id_on_web_app] = inputs.delete(:_id)
+      inputs[:sequence] = Sequence.find_by!(id_on_web_app:
+                                            inputs.delete(:sequence_id))
+    end
+
+    def execute
       Schedule.create!(inputs)
     end
   end
