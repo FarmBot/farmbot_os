@@ -7,8 +7,7 @@ module FBPi
     def execute
       api = bot.rest_client
       ActiveRecord::Base.transaction do
-        Schedule.destroy_all
-        Step.destroy_all
+       [Schedule, Sequence, Step].map(&:destroy_all)
        {sequences: api.sequences.fetch.map { |s| CreateSequence.run!(s) }.count,
         schedules: api.schedules.fetch.map { |s| CreateSchedule.run!(s) }.count,
         steps:     Step.count }.tap { |d| puts d }
