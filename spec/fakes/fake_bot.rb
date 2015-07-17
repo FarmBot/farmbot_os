@@ -11,9 +11,10 @@ class FakeBot < FB::Arduino
     super
   end
 
-  def to_h
-    {'anything' => 'at all',
-     'test_mode' => 'this is is used to test templating.'}
+  def template_variables
+    {'anything'  => 'at all',
+     'test_mode' => 'this is is used to test templating.',
+     'time'      => Time.now}
   end
 
   def mesh

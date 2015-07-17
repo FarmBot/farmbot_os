@@ -7,6 +7,7 @@ describe FBPi::ExecSequenceController do
     {
       'message_type' => 'exec_sequence',
       'name' =>'Yowza!',
+      '_id'  => "ABC123-THIS-IS-MY-UUID",
       'steps' => [
           {'message_type'=>'move_relative',
            'position' => 0,
@@ -45,6 +46,6 @@ describe FBPi::ExecSequenceController do
     ctrl.call
     last_msg = mesh.last.params
     expect(last_msg[:error]).to_not be_nil
-    expect(last_msg[:error][:error]).to eq("Steps isn't an array")
+    expect(last_msg[:error][:error]).to include("Steps isn't an array")
   end
 end
