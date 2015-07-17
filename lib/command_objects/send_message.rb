@@ -10,7 +10,7 @@ module FBPi
 
     required do
       string :message
-      duck :bot, methods: [:status, :mesh]
+      duck :bot, methods: [:status, :mesh, :template_variables]
     end
 
     def execute
@@ -19,19 +19,10 @@ module FBPi
 
   private
 
-    def allowed_template_vars
-      bot
-        .status
-        .to_h
-        .reduce({}){ |a, (b, c)| a[b.to_s.downcase] = c; a}
-        .tap { |h| h['pins'].map { |k, v| h["pin#{k}"] = v.to_s } }
-        .merge('time' => Time.now)
-    end
-
     def template
       @template ||= Liquid::Template
                       .parse(message)
-                      .render(allowed_template_vars)
+                      .render(bot.template_variables)
     end
   end
 end

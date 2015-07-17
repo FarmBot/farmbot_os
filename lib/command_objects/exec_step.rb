@@ -51,7 +51,16 @@ module FBPi
     end
 
     def send_message
-      FBPi::SendMessage.run!(message: step.value, bot: bot)
+      SendMessage.run! message: step.value, bot: bot
+    end
+
+    def if_statement
+      IfStatement.run! lhs:      bot.template_variables[step.variable],
+                       rhs:      step.value,
+                       bot:      bot,
+                       operator: step.operator,
+                       sequence: Sequence.find_by(id_on_web_app:
+                                                  step.sub_sequence_id)
     end
 
     def unknown

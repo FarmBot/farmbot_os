@@ -61,5 +61,17 @@ module FBPi
       end
       TelemetryMessage.build(status.to_h.merge(message)).publish(@mesh)
     end
+
+    # This class is slowly turning into a "bag of methods" and I feel that
+    # adding template_variables was the tipping point. Consider moving into a
+    # command object.
+    def template_variables
+      status
+        .to_h
+        .reduce({}){ |a, (b, c)| a[b.to_s.downcase] = c; a}
+        .tap { |h| h['pins']
+                     .map { |k, v| h["pin#{k}"] = v.to_s } }
+        .merge('time' => Time.now)
+    end
   end
 end
