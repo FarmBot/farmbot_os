@@ -9,5 +9,6 @@ class Step < ActiveRecord::Base
 
   def execute(bot)
     FBPi::ExecStep.run!(bot: bot, step: self)
+  rescue SystemStackError; bot.log("Endless loop in '#{sequence.name}'.")
   end
 end

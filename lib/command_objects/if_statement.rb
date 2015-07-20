@@ -1,5 +1,6 @@
 module FBPi
-  # Conditionally executes a sequence if lhs.operator(rhs) evals to true
+  # Conditionally executes a sequence if `operator(lhs, rhs)` evals to true.
+  # used in the execution of steps.
   class IfStatement < Mutations::Command
     required do
       string :lhs
