@@ -12,7 +12,7 @@ module FBPi
 
     def execute
       self.send(message_key)
-    rescue UnsafeCommand; self.send(:unknown)
+    rescue UnsafeCommand; unknown
     end
 
     def message_key
@@ -57,10 +57,14 @@ module FBPi
     def if_statement
       IfStatement.run! lhs:      bot.template_variables[step.variable],
                        rhs:      step.value,
-                       bot:      bot,
                        operator: step.operator,
+                       bot:      bot,
                        sequence: Sequence.find_by(id_on_web_app:
                                                   step.sub_sequence_id)
+    end
+
+    def read_pin
+      ReadPin.run!(bot: bot, pin: step.pin)
     end
 
     def unknown

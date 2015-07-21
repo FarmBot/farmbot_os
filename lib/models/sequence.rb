@@ -5,6 +5,6 @@ class Sequence < ActiveRecord::Base
   def exec(bot)
     steps
       .sort{ |a, b| a.position <=> b.position}
-      .map { |step| FBPi::ExecStep.run!(bot: bot, step: step) }
+      .map { |step| step.execute(bot) }
   end
 end
