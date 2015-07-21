@@ -11,6 +11,10 @@ module FBPi
       end
     end
 
+    def fetch(key)
+      transaction { self[key] }
+    end
+
     def to_h
       transaction do
         keys  = self.roots
