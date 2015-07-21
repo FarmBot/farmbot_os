@@ -10,10 +10,15 @@ module FBPi
        [Schedule, Sequence, Step].map(&:destroy_all)
        {sequences: api.sequences.fetch.map { |s| CreateSequence.run!(s) }.count,
         schedules: api.schedules.fetch.map { |s| CreateSchedule.run!(s) }.count,
-        steps:     Step.count }.tap { |d| puts d }
+        steps:     Step.count }.tap { |d| after_sync(d) }
       end
     rescue FbResource::FetchError => e
       add_error :web_server, :fetch_error, e.message
+    end
+
+    def after_sync(data)
+      bot.log(data)
+      bot.log("Sync complted at #{Time.now}")
     end
   end
 end
