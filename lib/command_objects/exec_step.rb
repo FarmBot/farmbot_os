@@ -63,6 +63,10 @@ module FBPi
                                                   step.sub_sequence_id)
     end
 
+    def read_pin
+      ReadPin.run!(bot: bot, pin: step.pin)
+    end
+
     def unknown
       bot.log("Unknown message #{step.message_type}")
     end
