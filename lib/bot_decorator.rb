@@ -33,7 +33,10 @@ module FBPi
     end
 
     def load_previous_state
-      status.transaction do |s| status_storage.to_h.each { |k,v| s[k] = v } end
+      status.transaction do |s|
+        list = s.members
+        status_storage.to_h.each { |k,v| s[k] = v if list.include?(k) }
+      end
     end
 
     def botmessage(msg)
@@ -42,9 +45,14 @@ module FBPi
 
     def diffmessage(diff)
       @status_storage.update_attributes(diff)
-      stats = FBPi::FetchBotStatus.run!(bot: self)
-      mesh.emit '*', { method: 'read_status', params: stats, id: nil }
+      emit_changes
       log "BOT DIF: #{diff}" unless diff.keys == [:BUSY]
+    end
+
+    def emit_changes
+      mesh.emit '*', method: 'read_status',
+                     params: FBPi::FetchBotStatus.run!(bot: self),
+                     id: nil
     end
 
     def close(*)
