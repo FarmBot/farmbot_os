@@ -9,8 +9,8 @@ module FBPi
     end
 
     def execute
-      SendMessage.run!(message: "Pin #{pin} is #{bot.status.pin(pin).to_s}",
-                       bot:     bot)
+      msg = "Pin #{pin} is #{bot.status.pin(pin).to_s}"
+      SendMessage.run!(message: msg, bot: bot)
     end
   end
 end

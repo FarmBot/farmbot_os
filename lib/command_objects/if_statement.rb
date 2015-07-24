@@ -11,7 +11,13 @@ module FBPi
     end
 
     def execute
-      sequence.exec(bot) if lhs.send(operator, rhs)
+      sequence.exec(bot) if evaluates_to_true
+    end
+
+private
+
+    def evaluates_to_true
+      lhs.send(operator, rhs)
     end
   end
 end

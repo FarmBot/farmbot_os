@@ -34,4 +34,14 @@ describe FBPi::MessageHandler do
         .to include('Fake error for testing')
     end
   end
+
+  it 'catches errors' do
+      handler
+      handler.message.method = {cause_errors: "because not a string anymore"}
+      handler.call
+      expect(mesh.all.any?).to be_truthy
+      results = mesh.last.results
+      expect(results[:method]).to eq("error")
+      expect(results[:message]).to eq("Method isn't a string")
+  end
 end

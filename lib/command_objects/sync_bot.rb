@@ -18,7 +18,6 @@ module FBPi
 
     def after_sync(data)
       ["Sync completed at #{Time.now}", data].map { |d| bot.log(d) }
-      binding.pry
       bot.status_storage.update_attributes(last_sync: Time.now)
       bot.emit_changes
     end

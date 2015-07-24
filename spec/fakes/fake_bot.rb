@@ -29,6 +29,10 @@ class FakeBot < FB::Arduino
     {}
   end
 
+  def rest_client
+    @rest_client ||= FakeRestClient.new
+  end
+
 private
 
   def init_empty_store
