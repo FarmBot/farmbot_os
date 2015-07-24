@@ -20,4 +20,23 @@ class FakeBot < FB::Arduino
   def mesh
     @mesh ||= FakeMesh.new
   end
+
+  def status_storage
+    @status_storage ||= init_empty_store
+  end
+
+  def emit_changes
+    {}
+  end
+
+private
+
+  def init_empty_store
+    # Creates a PStore file and clears out anything that might have been there.
+    store = FBPi::StatusStorage.new("spec/fake_bot.pstore")
+    store.transaction do |pstore|
+        pstore.roots.each { |key| pstore.delete(key) }
+      end
+    store
+  end
 end
