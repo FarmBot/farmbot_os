@@ -34,8 +34,7 @@ module FBPi
 
     def load_previous_state
       status.transaction do |s|
-        list = s.members
-        status_storage.to_h.each { |k,v| s[k] = v if list.include?(k) }
+        status_storage.to_h(:bot).each { |k,v| s[k] = v }
       end
     end
 
@@ -44,7 +43,7 @@ module FBPi
     end
 
     def diffmessage(diff)
-      @status_storage.update_attributes(diff)
+      @status_storage.update_attributes(:bot, diff)
       emit_changes
       log "BOT DIF: #{diff}" unless diff.keys == [:BUSY]
     end
@@ -55,8 +54,10 @@ module FBPi
                      id: nil
     end
 
-    def close(*)
-      @status_storage.update_attributes(status.to_h)
+    def close()
+      # Offload all persistent variables to file on shutdown.
+      [:bot, :pi]
+        .each { |dev| @status_storage.update_attributes(dev, status.to_h) }
       log "Bot offline at #{Time.now}", "high"
       EM.stop
     end

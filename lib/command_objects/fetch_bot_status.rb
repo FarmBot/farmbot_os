@@ -23,7 +23,7 @@ private
         x: bot.status[:x],
         y: bot.status[:y],
         z: bot.status[:z],
-        last_sync: bot.status_storage.fetch(:last_sync)
+        last_sync: bot.status_storage.fetch(:bot, :last_sync)
       }.merge(pin_info).deep_symbolize_keys
     end
 

@@ -48,7 +48,7 @@ describe FarmBotPi do
 
   it 'transmits status diff messages' do
     decorator.diffmessage(X: 123)
-    expect(decorator.status_storage.to_h[:X]).to eq(123)
+    expect(decorator.status_storage.to_h(:bot)[:X]).to eq(123)
   end
 
   it 'cleanly disconnects' do
@@ -58,7 +58,7 @@ describe FarmBotPi do
     # Calls EM.stop
     expect(EM).to have_received(:stop)
     # Offloads bot status into the PStore
-    expect(decorator.status_storage.to_h[:X]).to eq(9898)
+    expect(decorator.status_storage.to_h(:bot)[:X]).to eq(9898)
     # Logs the disconnection time.
     goodbye = decorator.mesh.last.params[:data]
     expect(goodbye).to include("Bot offline at #{Date.today}")
