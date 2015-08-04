@@ -46,7 +46,7 @@ GEM
     eventmachine (1.0.7)
     farmbot-resource (0.0.3)
       rest-client (~> 1.8)
-    farmbot-serial (0.6.2)
+    farmbot-serial (0.7.0)
       eventmachine
       serialport
     god (0.13.6)
@@ -148,7 +148,7 @@ PLATFORMS
 DEPENDENCIES
   active_record_migrations
   farmbot-resource (= 0.0.3)
-  farmbot-serial (= 0.6.2)
+  farmbot-serial (= 0.7.0)
   god
   ice_cube
   liquid

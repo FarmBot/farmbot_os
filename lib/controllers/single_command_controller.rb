@@ -48,7 +48,7 @@ module FBPi
     end
 
     def pin_write
-      bot.status.set_pin(cmd['pin'], cmd['value1']) # Belongs in FB-Serial
+      bot.status.set(cmd['pin'], cmd['value1'])
       bot.commands.pin_write pin:   cmd['pin'],
                              value: cmd['value1'],
                              mode:  cmd['mode'] || 0
