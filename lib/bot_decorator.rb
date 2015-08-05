@@ -51,7 +51,7 @@ module FBPi
     def emit_changes
       mesh.emit '*', method: 'read_status',
                      params: FBPi::FetchBotStatus.run!(bot: self),
-                     id: nil
+                     id:     nil
     end
 
     def close()

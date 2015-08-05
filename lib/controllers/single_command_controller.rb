@@ -1,6 +1,7 @@
 require_relative 'abstract_controller'
 
 module FBPi
+  # TODO: Reduce duplication in this controller.
   class SingleCommandController < AbstractController
     attr_reader :cmd, :key
 

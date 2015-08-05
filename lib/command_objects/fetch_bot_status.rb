@@ -35,7 +35,7 @@ private
     end
 
     def read(pin)
-      val = bot.status.pin(pin)
+      val = bot.status.get(pin)
       # If the pin status is 'unknown', performs lookup for next status poll.
       bot.commands.read_parameter(pin) if val == :unknown
       val
