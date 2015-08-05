@@ -49,6 +49,13 @@ module FBPi
     end
 
     def emit_changes
+      # This is the cause of the bug, most likely. Every time the bot status
+      # changes, it fires this message, which causes the bot status to change
+      # (why? How?), which causes this method to be fired again (endless loop)
+      # Possible solutions:
+      # 1. Don't call this command object and instead call info.to_h
+      # 2. Refactor this command object to not have any side effects.
+      binding.pry
       mesh.emit '*', method: 'read_status',
                      params: FBPi::FetchBotStatus.run!(bot: self),
                      id:     nil
