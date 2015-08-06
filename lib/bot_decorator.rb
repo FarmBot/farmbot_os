@@ -53,11 +53,12 @@ module FBPi
       # changes, it fires this message, which causes the bot status to change
       # (why? How?), which causes this method to be fired again (endless loop)
       # Possible solutions:
+      # Q: Why doesn't it ever stabilize? Is it because of different names internally vs. on the rpi?
       # 1. Don't call this command object and instead call info.to_h
-      # 2. Refactor this command object to not have any side effects.
-      binding.pry
+      # 2. Refactor this command object to not have any side effects.)
+
       mesh.emit '*', method: 'read_status',
-                     params: FBPi::FetchBotStatus.run!(bot: self),
+                     params: FBPi::ReportBotStatus.run!(bot: self),
                      id:     nil
     end
 
