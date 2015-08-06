@@ -22,7 +22,7 @@ module FBPi
 
     def bootstrap
       load_previous_state
-      onmessage { |msg| botmessage(msg) }
+      onmessage { |msg| puts('!!!'); botmessage(msg) }
       onchange  { |msg| diffmessage(msg) }
       onclose   { |msg| close(msg) }
       this = self; mesh.socket.on(:ready) { this.ready }
