@@ -13,7 +13,14 @@ Technical Stuff
 * Hardware is an Arduino Mega with a RAMPS 1.4 board
 * Communication with cloud using [MeshBlu](https://github.com/octoblu/meshblu) (machine instant messaging)
 
-Prerequisites
+# Running on Local
+
+`FBENV=development ruby farmbot.rb`
+
+If you're running your own local [farmbot web app](https://github.com/farmbot/farmbot-web-app)
+
+
+Installation
 ============
 
 Install Ruby 2.2

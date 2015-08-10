@@ -34,8 +34,7 @@ module FBPi
 
     def load_previous_state
       status.transaction do |s|
-        list = s.members
-        status_storage.to_h.each { |k,v| s[k] = v if list.include?(k) }
+        status_storage.to_h(:bot).each { |k,v| s[k] = v }
       end
     end
 
@@ -44,19 +43,29 @@ module FBPi
     end
 
     def diffmessage(diff)
-      @status_storage.update_attributes(diff)
-      emit_changes
-      log "BOT DIF: #{diff}" unless diff.keys == [:BUSY]
+      @status_storage.update_attributes(:bot, diff)
+      # BUG: If you try to FetchBotStatus every time the bot toggles its busy
+      # status, it will create a never ending feedback loop of status fetching.
+      # To alleviate this, we must 'debounce' status fetching when the diff is
+      # just 'noise'. 'Noise' is any status diff that is just {BUSY: 0} or
+      # {BUSY: 1}.
+      it_was_noise = (diff.keys == [:BUSY])
+      unless it_was_noise
+        emit_changes
+        log "BOT DIF: #{diff}"
+      end
     end
 
     def emit_changes
-      mesh.emit '*', method: 'read_status',
-                     params: FBPi::FetchBotStatus.run!(bot: self),
-                     id: nil
+      mesh.emit '*', method:       'read_status',
+                     params:       FBPi::FetchBotStatus.run!(bot: self),
+                     id:           nil
     end
 
-    def close(*)
-      @status_storage.update_attributes(status.to_h)
+    def close()
+      # Offload all persistent variables to file on shutdown.
+      [:bot, :pi]
+        .each { |dev| @status_storage.update_attributes(dev, status.to_h) }
       log "Bot offline at #{Time.now}", "high"
       EM.stop
     end

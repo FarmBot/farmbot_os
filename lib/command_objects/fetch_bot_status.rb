@@ -23,7 +23,7 @@ private
         x: bot.status[:x],
         y: bot.status[:y],
         z: bot.status[:z],
-        last_sync: bot.status_storage.fetch(:last_sync)
+        last_sync: bot.status_storage.fetch(:bot, :last_sync)
       }.merge(pin_info).deep_symbolize_keys
     end
 
@@ -35,9 +35,9 @@ private
     end
 
     def read(pin)
-      val = bot.status.pin(pin)
+      val = bot.status.get_pin(pin)
       # If the pin status is 'unknown', performs lookup for next status poll.
-      bot.commands.read_parameter(pin) if val == :unknown
+      bot.commands.read_pin(pin) if (val == :unknown)
       val
     end
   end
