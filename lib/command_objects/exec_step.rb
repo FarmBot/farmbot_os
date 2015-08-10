@@ -37,7 +37,7 @@ module FBPi
     end
 
     def pin_write
-      bot.commands.pin_write(pin: step.pin, value: step.value, mode: step.mode)
+      bot.commands.write_pin(pin: step.pin, value: step.value, mode: step.mode)
     end
 
     def wait

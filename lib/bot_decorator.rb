@@ -22,7 +22,7 @@ module FBPi
 
     def bootstrap
       load_previous_state
-      onmessage { |msg| puts('!!!'); botmessage(msg) }
+      onmessage { |msg| botmessage(msg) }
       onchange  { |msg| diffmessage(msg) }
       onclose   { |msg| close(msg) }
       this = self; mesh.socket.on(:ready) { this.ready }
@@ -44,22 +44,22 @@ module FBPi
 
     def diffmessage(diff)
       @status_storage.update_attributes(:bot, diff)
-      emit_changes
-      log "BOT DIF: #{diff}" unless diff.keys == [:BUSY]
+      # BUG: If you try to FetchBotStatus every time the bot toggles its busy
+      # status, it will create a never ending feedback loop of status fetching.
+      # To alleviate this, we must 'debounce' status fetching when the diff is
+      # just 'noise'. 'Noise' is any status diff that is just {BUSY: 0} or
+      # {BUSY: 1}.
+      it_was_noise = (diff.keys == [:BUSY])
+      unless it_was_noise
+        emit_changes
+        log "BOT DIF: #{diff}"
+      end
     end
 
     def emit_changes
-      # This is the cause of the bug, most likely. Every time the bot status
-      # changes, it fires this message, which causes the bot status to change
-      # (why? How?), which causes this method to be fired again (endless loop)
-      # Possible solutions:
-      # Q: Why doesn't it ever stabilize? Is it because of different names internally vs. on the rpi?
-      # 1. Don't call this command object and instead call info.to_h
-      # 2. Refactor this command object to not have any side effects.)
-
-      mesh.emit '*', method: 'read_status',
-                     params: FBPi::ReportBotStatus.run!(bot: self),
-                     id:     nil
+      mesh.emit '*', method:       'read_status',
+                     params:       FBPi::FetchBotStatus.run!(bot: self),
+                     id:           nil
     end
 
     def close()
