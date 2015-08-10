@@ -11,6 +11,7 @@ module FBPi
     end
 
     def execute
+      binding.pry
       status_hash
     end
 
@@ -23,7 +24,7 @@ private
         x: bot.status[:x],
         y: bot.status[:y],
         z: bot.status[:z],
-        last_sync: bot.status_storage.fetch(:bot, :last_sync)
+        last_sync: bot.status_storage.fetch(:pi, :last_sync)
       }.merge(pin_info).deep_symbolize_keys
     end
 
