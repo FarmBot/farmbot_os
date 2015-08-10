@@ -11,7 +11,6 @@ module FBPi
     end
 
     def execute
-      binding.pry
       status_hash
     end
 
