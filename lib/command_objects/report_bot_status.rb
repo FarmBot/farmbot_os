@@ -10,6 +10,8 @@ module FBPi
     end
 
     def execute
+      # TODO: Replace everything here with just `bot.status.to_h`. Can't right
+      # now because it will be a breaking change to the web app.
       {
         busy: bot.status[:busy],
         current_command: bot.status[:last],
@@ -17,7 +19,9 @@ module FBPi
         y: bot.status[:y],
         z: bot.status[:z],
         last_sync: bot.status_storage.fetch(:pi, :last_sync)
-      }.merge(pin_info).deep_symbolize_keys
+      }.merge(pin_info)
+       .merge(bot.status.to_h)
+       .deep_symbolize_keys
     end
 
 private
