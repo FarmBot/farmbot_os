@@ -61,7 +61,7 @@ class FarmBotPi
     EventMachine::Timer.new(4) do
       sync = FBPi::SyncBot.run(bot: bot).result
       mesh.emit '*', { method: 'sync_sequence', id: nil, params: sync } if sync
-      mesh.emit '*', FBPi::FetchBotStatus.run!(bot: bot)
+      mesh.emit '*', FBPi::ReportBotStatus.run!(bot: bot)
     end
   end
 end

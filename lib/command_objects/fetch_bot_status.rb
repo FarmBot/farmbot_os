@@ -1,44 +1,41 @@
 require 'mutations'
 
 module FBPi
-  # This class fetches bot status information as it becomes available, as a hash
-  # If it is unknown, it asks the device to report it (and you will need to
-  # query the data again until the bot reports back with the information). This
-  # is particularly useful for emiting telemetry data every few seconds.
+  # Typically, the pi does not need to poll the Arduino to know its status
+  # because updates are broadcast over the serial line when statuses change. The
+  # typical exception to this rule is device startup, when there is no data to
+  # perform a diff on. When this is the case, you can run FetchBotStatus, which
+  # polls the device for all of its status registers. SEE ALSO: ReportBotStatus
   class FetchBotStatus < Mutations::Command
+    RELEVANT_STATUS_CODES = [0,11,12,13,21,22,23,31,32,33,41,42,43,51,52,53,61,
+                             62,63,71,72,73]
+
+    RELEVANT_PARAMETERS   = [0,1,11,12,13,21,22,23,31,32,33,41,42,43,51,52,53,
+                             61,62,63,71,72,73]
     required do
       duck :bot, methods: [:status, :commands]
     end
 
     def execute
-      status_hash
+      read_pins
+      read_paramters
+      read_statuses
+      bot.status.to_h
     end
 
 private
 
-    def status_hash
-      {
-        busy: bot.status[:busy],
-        current_command: bot.status[:last],
-        x: bot.status[:x],
-        y: bot.status[:y],
-        z: bot.status[:z],
-        last_sync: bot.status_storage.fetch(:bot, :last_sync)
-      }.merge(pin_info).deep_symbolize_keys
+    def read_pins
+      0.upto(13) { |pin| bot.commands.read_pin(pin) }
     end
 
-    def pin_info
-      [*0..13].inject({}) do |hsh, pin|
-        hsh["pin#{pin}".to_sym] = read(pin)
-        hsh
-      end
+    def read_statuses
+      # Not sure if statuses are implemented in current fimware version.
+      # RELEVANT_STATUS_CODES.each { |code| bot.commands.read_status(code) }
     end
 
-    def read(pin)
-      val = bot.status.get_pin(pin)
-      # If the pin status is 'unknown', performs lookup for next status poll.
-      bot.commands.read_pin(pin) if (val == :unknown)
-      val
+    def read_paramters
+      RELEVANT_PARAMETERS.each { |code| bot.commands.read_parameter(code) }
     end
   end
 end

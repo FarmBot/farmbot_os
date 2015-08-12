@@ -56,6 +56,6 @@ describe FBPi::SingleCommandController do
     message.params = {"pin"=>9, "value1"=>1, "mode"=>0}
     controller.call
     expect(bot.commands.log).to include(
-      pin_write: [{:pin=>9, :value=>1, :mode=>0}])
+      write_pin: [{:pin=>9, :value=>1, :mode=>0}])
   end
 end

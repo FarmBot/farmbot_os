@@ -22,6 +22,7 @@ module FBPi
 
     def bootstrap
       load_previous_state
+      FetchBotStatus.run!(bot: self)
       onmessage { |msg| botmessage(msg) }
       onchange  { |msg| diffmessage(msg) }
       onclose   { |msg| close(msg) }
@@ -44,25 +45,18 @@ module FBPi
 
     def diffmessage(diff)
       @status_storage.update_attributes(:bot, diff)
-      # BUG: If you try to FetchBotStatus every time the bot toggles its busy
-      # status, it will create a never ending feedback loop of status fetching.
-      # To alleviate this, we must 'debounce' status fetching when the diff is
-      # just 'noise'. 'Noise' is any status diff that is just {BUSY: 0} or
-      # {BUSY: 1}.
-      it_was_noise = (diff.keys == [:BUSY])
-      unless it_was_noise
-        emit_changes
-        log "BOT DIF: #{diff}"
-      end
+      # Broadcasting busy status changes result in too much network 'noise'.
+      emit_changes unless (diff.keys == [:BUSY])
+      log "BOT DIF: #{diff}"
     end
 
     def emit_changes
       mesh.emit '*', method:       'read_status',
-                     params:       FBPi::FetchBotStatus.run!(bot: self),
+                     params:       FBPi::ReportBotStatus.run!(bot: self),
                      id:           nil
     end
 
-    def close()
+    def close
       # Offload all persistent variables to file on shutdown.
       [:bot, :pi]
         .each { |dev| @status_storage.update_attributes(dev, status.to_h) }

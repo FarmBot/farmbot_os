@@ -6,7 +6,10 @@ require 'pstore'
 # key/value pairs. This is where PStore (and the StatusStorage class) come in.
 # StatusStorage is child of Ruby's `PStore` class, which allows you to create
 # hash-like objects that are stored to disk (*.pstore). Farmbot uses that to
-# remeber settings after reboots.
+# remember settings after reboots.
+# THE NAMESPACE STUFF IS JUST A PREMETIVE MEASURE. I CHANGED THE API, BUT NOT
+# IMPLEMENTATION. In the future, we can actually namespace them internally if
+# need be. Had to disable it temporarily while debugging. RC 08/2015.
 module FBPi
   class StatusStorage < PStore
     class InvalidNamespace < Exception; end
@@ -33,7 +36,7 @@ module FBPi
 
     def fetch(namespace = :none, key)
       validate_namespace(namespace)
-      transaction { (self[namespace] || {})[key] }
+      transaction { self[key] }
     end
 
     def to_h(namespace = :none)

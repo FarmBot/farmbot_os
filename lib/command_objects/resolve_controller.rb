@@ -6,11 +6,12 @@ module FBPi
   class ResolveController < Mutations::Command
 
     ROUTES = {
-      'single_command' => SingleCommandController,
-      'read_status'    => ReadStatusController,
-      'exec_sequence'  => ExecSequenceController,
-      'sync_sequence'  => SyncSequenceController,
-      'unknown'        => UnknownController,
+      'single_command'     => SingleCommandController,
+      'read_status'        => ReadStatusController,
+      'exec_sequence'      => ExecSequenceController,
+      'sync_sequence'      => SyncSequenceController,
+      'update_calibration' => UpdateCalibrationController,
+      'unknown'            => UnknownController,
     }
 
     optional do
