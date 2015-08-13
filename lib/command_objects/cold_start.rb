@@ -26,12 +26,15 @@ module FBPi
     end
 
     def pull_up_stored_parameters_from_disk
+      hash = bot.status_storage.to_h(:bot)
       bot.status.transaction do |s|
-        bot.status_storage.to_h(:bot).each do |k,v|
-          is_param = FB::Gcode::PARAMETER_DICTIONARY.invert.keys.include?(k)
-          bot.commands.write_parameter(k, v) if is_param
-        end
+        hash.each { |k,v| bot.commands.write_parameter(k, v) if is_param? }
       end
+    end
+
+    # TODO: This logic ought to live in farmbot-serial.
+    def is_param?(key)
+      FB::Gcode::PARAMETER_DICTIONARY.invert.keys.include?(key)
     end
 
     def botmessage(msg)
@@ -47,8 +50,9 @@ module FBPi
 
     def close
       # Offload all persistent variables to file on shutdown.
-      [:bot, :pi]
-        .each { |dev| @bot.status_storage.update_attributes(dev, bot.status.to_h) }
+      [:bot, :pi].each do |namespace|
+        bot.status_storage.update_attributes(namespace, bot.status.to_h)
+      end
       bot.log "Bot offline at #{Time.now}", "high"
       EM.stop
     end

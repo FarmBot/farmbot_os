@@ -33,6 +33,11 @@ class FakeBot < FB::Arduino
     @rest_client ||= FakeRestClient.new
   end
 
+  def log(message, priority = 'low')
+    # TODO: Why aren't we testing the second parameter? We should be.
+    super(message)
+  end
+
 private
 
   def init_empty_store
