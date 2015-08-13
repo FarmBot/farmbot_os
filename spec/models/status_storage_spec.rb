@@ -13,8 +13,8 @@ describe FBPi::StatusStorage do
 
   it 'updates attributes' do
     store.transaction do
-      expect(store[:a]).to eq(1)
-      expect(store[:b]).to eq(2)
+      expect(store[:bot][:a]).to eq(1)
+      expect(store[:bot][:b]).to eq(2)
     end
   end
 

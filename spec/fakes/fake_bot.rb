@@ -37,10 +37,8 @@ private
 
   def init_empty_store
     # Creates a PStore file and clears out anything that might have been there.
-    store = FBPi::StatusStorage.new("spec/fake_bot.pstore")
-    store.transaction do |pstore|
-        pstore.roots.each { |key| pstore.delete(key) }
-      end
-    store
+    path = "spec/fake_bot.pstore"
+    File.delete(path) if File.exist?(path)
+    FBPi::StatusStorage.new(path)
   end
 end
