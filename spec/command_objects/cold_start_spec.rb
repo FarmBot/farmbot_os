@@ -2,12 +2,11 @@ require 'spec_helper'
 
 describe FBPi::ColdStart do
   let(:bot) { FakeBot.new }
-
+  let(:obj) { FBPi::ColdStart.new(bot: bot) }
   it 'logs incoming GCodes' do
-    pending
     msg = FB::Gcode.new { "R2 A1 B2" }
-    logger = decorator.__getobj__.logger
-    decorator.botmessage(msg)
+    logger = bot.logger
+    cs.botmessage(msg)
     expect(logger.message).to eq("done R2 A1 B2")
   end
 
