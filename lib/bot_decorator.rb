@@ -21,47 +21,12 @@ module FBPi
     end
 
     def bootstrap
-      load_previous_state
-      FetchBotStatus.run!(bot: self)
-      onmessage { |msg| botmessage(msg) }
-      onchange  { |msg| diffmessage(msg) }
-      onclose   { |msg| close(msg) }
-      this = self; mesh.socket.on(:ready) { this.ready }
+      ColdStart.run!(bot: self)
     end
 
+    # Called when the socket connection is ready. Go nuts!
     def ready
       log "Online at #{Time.now}"
-    end
-
-    def load_previous_state
-      status.transaction do |s|
-        status_storage.to_h(:bot).each { |k,v| s[k] = v }
-      end
-    end
-
-    def botmessage(msg)
-      log("#{msg.name} #{msg.to_s}") if msg.name != :idle
-    end
-
-    def diffmessage(diff)
-      @status_storage.update_attributes(:bot, diff)
-      # Broadcasting busy status changes result in too much network 'noise'.
-      emit_changes unless (diff.keys == [:BUSY])
-      log "BOT DIF: #{diff}"
-    end
-
-    def emit_changes
-      mesh.emit '*', method:       'read_status',
-                     params:       FBPi::ReportBotStatus.run!(bot: self),
-                     id:           nil
-    end
-
-    def close
-      # Offload all persistent variables to file on shutdown.
-      [:bot, :pi]
-        .each { |dev| @status_storage.update_attributes(dev, status.to_h) }
-      log "Bot offline at #{Time.now}", "high"
-      EM.stop
     end
 
     def log(message, priority = 'low')
@@ -73,16 +38,21 @@ module FBPi
       TelemetryMessage.build(status.to_h.merge(message)).publish(@mesh)
     end
 
-    # This class is slowly turning into a "bag of methods" and I feel that
-    # adding template_variables was the tipping point. Consider moving into a
-    # command object.
+    def emit_changes
+      mesh.emit '*', method: 'read_status',
+                     params: FBPi::ReportBotStatus.run!(bot: self),
+                     id:     nil
+    end
+
+    # This method seems to be violating some sort of intergalactic law. I don't
+    # like the idea of the decorator holding on to logic related to rendering of
+    # liquid templates (http://liquidmarkup.org/).
     def template_variables
       status
         .to_h
-        .reduce({}){ |a, (b, c)| a[b.to_s.downcase] = c; a}
-        .tap { |h| h['pins']
-                     .map { |k, v| h["pin#{k}"] = v.to_s } }
         .merge('time' => Time.now)
+        .reduce({}){ |a, (b, c)| a[b.to_s.downcase] = c; a}
+        .tap { |h| h['pins'].map { |k, v| h["pin#{k}"] = v.to_s } }
     end
   end
 end
