@@ -19,30 +19,42 @@ module FBPi
             "register object inside the Arduino.",
       pi:   "Used for storage of Raspberry-Pi specific settings, such as the "\
             "time of :last_sync.",
-      root: "The root namespace in which all other namespaces reside."
+      misc: "Anything else."
     }
 
     # Human readable explanation for use in exceptions
     NAMESPACE_EXPLANATIONS = NAMESPACES
-      .inject("\n\n") { |a, (k, v)| a += "#{k.inspect} => #{v}\n" }
+      .inject("\n") { |a, (k, v)| a += "#{k.inspect} => #{v}\n" }
+
+    def initialize(*args)
+      super
+      transaction { |i| set_namespaces(i) }
+    end
+
+    # Creates namespaces (hashes) in the store if it has not yet been set.
+    def set_namespaces(info)
+      NAMESPACES.keys.each { |k| if info[k] then nil else info[k] = {} end }
+    end
 
 
     def update_attributes(namespace = :none, hash)
       validate_namespace(namespace)
       hash.each do |key, value|
-        transaction { self[key] = value }
+        transaction { self[namespace].merge!(key => value) }
       end
     end
 
     def fetch(namespace = :none, key)
       validate_namespace(namespace)
-      transaction { self[key] }
+      transaction { self[namespace][key] }
     end
 
     def to_h(namespace = :none)
       validate_namespace(namespace)
       transaction do
-        roots.reduce({}) { |hash, root| hash[root] = self[root]; hash }
+        self[namespace]
+          .keys
+          .reduce({}) { |hash, root| hash[root] = self[namespace][root]; hash }
       end
     end
 
@@ -52,7 +64,7 @@ module FBPi
       return if NAMESPACES.keys.include?(namespace)
       raise InvalidNamespace, """You tried to access a status_storage namespace\
       of '#{namespace}' while accessing `StatusStorage`. Try one of these\
-      instead:\n #{NAMESPACE_EXPLANATIONS}""".squeeze(" ")
+      instead:#{NAMESPACE_EXPLANATIONS}""".squeeze(" ")
     end
   end
 end
