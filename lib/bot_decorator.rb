@@ -13,6 +13,8 @@ module FBPi
     end
 
     def self.new_bot!(klass)
+      # TODO: Need to un-hardcode FB::DefaultSerialPort from this line as it
+      # makes testing impossible.
       self.new(klass.new(serial_port: FB::DefaultSerialPort.new(serial_port)))
     end
 

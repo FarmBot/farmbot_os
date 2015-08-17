@@ -18,4 +18,9 @@ describe FBPi::StatusStorage do
     end
   end
 
+  it 'disallows access to invalid name spaces' do
+    expect do
+      store.to_h(:invalid)
+    end.to raise_error(FBPi::StatusStorage::InvalidNamespace)
+  end
 end

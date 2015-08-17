@@ -1,4 +1,5 @@
 require 'mutations'
+require_relative 'fetch_bot_status'
 module FBPi
   # The Arduino does not have persistent storage on board. There are a
   # number of settings that must be set every time the device starts (eg:
@@ -28,13 +29,10 @@ module FBPi
     def pull_up_stored_parameters_from_disk
       hash = bot.status_storage.to_h(:bot)
       bot.status.transaction do |s|
-        hash.each { |k,v| bot.commands.write_parameter(k, v) if is_param? }
+        hash.each { |k,v|
+          param_number = FB::Gcode::PARAMETER_DICTIONARY.invert.fetch(k, k)
+          bot.commands.write_parameter(param_number, v) }
       end
-    end
-
-    # TODO: This logic ought to live in farmbot-serial.
-    def is_param?(key)
-      FB::Gcode::PARAMETER_DICTIONARY.invert.keys.include?(key)
     end
 
     def botmessage(msg)

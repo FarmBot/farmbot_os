@@ -37,9 +37,7 @@ module FBPi
     def update_attributes(namespace = :none, hash)
       validate_namespace(namespace)
       hash.each do |key, value|
-        transaction {
-          binding.pry unless self[namespace]
-          self[namespace].merge!(key => value) }
+        transaction { self[namespace].merge!(key => value) }
       end
     end
 
