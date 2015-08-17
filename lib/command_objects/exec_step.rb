@@ -40,15 +40,6 @@ module FBPi
       bot.commands.write_pin(pin: step.pin, value: step.value, mode: step.mode)
     end
 
-    def wait
-      # TODO: Yes, this is horrible. Ideally, I would like to use Fibers that
-      # can be paused / resumed using EventMachine timers, but I am holding off
-      # on that for now. Pull requests are welcome. Contact me for details.
-      # Possibly relevant: http://www.rubydoc.info/github/igrigorik
-      #                    /em-synchrony/EventMachine%2FSynchrony.sleep
-      # -- rickcarlino
-      sleep((step.value || 0) / 1000.0)
-    end
 
     def send_message
       SendMessage.run! message: step.value, bot: bot
@@ -63,12 +54,22 @@ module FBPi
                                                   step.sub_sequence_id)
     end
 
+    def unknown
+      bot.log("Unknown message #{step.message_type}")
+    end
+
     def read_pin
       ReadPin.run!(bot: bot, pin: step.pin)
     end
 
-    def unknown
-      bot.log("Unknown message #{step.message_type}")
+    def wait
+      # TODO: Yes, this is horrible. Ideally, I would like to use Fibers that
+      # can be paused / resumed using EventMachine timers, but I am holding off
+      # on that for now. Pull requests are welcome. Contact me for details.
+      # Possibly relevant: http://www.rubydoc.info/github/igrigorik
+      #                    /em-synchrony/EventMachine%2FSynchrony.sleep
+      # -- rickcarlino
+      sleep((step.value.to_f || 0) / 1000.0)
     end
   end
 end
