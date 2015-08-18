@@ -1,3 +1,5 @@
+require_relative "fake_socket"
+
 class FakeMesh
   attr_reader :last, :all
   def initialize
@@ -26,5 +28,9 @@ class FakeMesh
 
   def data(hash)
     emit('telemetry', hash)
+  end
+
+  def socket
+    @socket ||= FakeSocket.new('123', 'abc')
   end
 end
