@@ -6,16 +6,14 @@ module FBPi
   class BotDecorator < SimpleDelegator
     attr_accessor :status_storage, :mesh, :rest_client
 
-    def self.build(status_storage, mesh, rest, klass = FB::Arduino)
-      bot = new_bot!(klass)
+    def self.build(status_storage,
+                   mesh,
+                   rest,
+                   arduino_klass = FB::Arduino,
+                   serial_obj    = FB::DefaultSerialPort.new(serial_port))
+      bot = self.new(arduino_klass.new(serial_port: serial_obj))
       bot.status_storage, bot.mesh, bot.rest_client = status_storage, mesh, rest
       bot
-    end
-
-    def self.new_bot!(klass)
-      # TODO: Need to un-hardcode FB::DefaultSerialPort from this line as it
-      # makes testing impossible.
-      self.new(klass.new(serial_port: FB::DefaultSerialPort.new(serial_port)))
     end
 
     def self.serial_port

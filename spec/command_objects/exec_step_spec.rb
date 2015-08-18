@@ -44,6 +44,6 @@ describe FBPi::ExecStep do
     later  = Time.now
     diff   = later - now
     # 100 ms == .1 seconds
-    expect(diff).to be_greater_than(0.1)
+    expect(diff > 0.1).to be_truthy
   end
 end

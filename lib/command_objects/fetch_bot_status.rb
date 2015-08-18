@@ -15,17 +15,15 @@ module FBPi
 
     def execute
       read_pins
-      read_paramters
+      read_parameters
       bot.status.to_h
     end
-
-private
 
     def read_pins
       0.upto(13) { |pin| bot.commands.read_pin(pin) }
     end
 
-    def read_paramters
+    def read_parameters
       RELEVANT_PARAMETERS.each { |code| bot.commands.read_parameter(code) }
     end
   end

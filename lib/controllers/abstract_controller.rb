@@ -1,5 +1,7 @@
 require_relative '../command_objects/send_mesh_response'
-
+# TODO: SimpleCov is not registering hits to this controller, despite the fact
+# that tests exist. Investigate later. PRs welcome.
+# :nocov:
 module FBPi
   class AbstractController
     attr_reader :message, :bot, :mesh
