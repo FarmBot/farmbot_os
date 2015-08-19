@@ -5,8 +5,9 @@ require_relative '../command_objects/build_mesh_message'
 require_relative '../command_objects/resolve_controller'
 
 module FBPi
-  # Get the JSON command, received through skynet, and send it to the farmbot
-  # command queue Parses JSON messages received through SkyNet.
+  # Every time a message comes in from MeshBlu, a new MessageHandler is created.
+  # Take a bot, message hash and MeshBlu connection and routes it to a specific
+  # controller.
   class MessageHandler
     attr_accessor :message, :bot, :mesh
 

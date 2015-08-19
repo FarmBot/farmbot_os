@@ -1,23 +1,44 @@
-farmbot-controller
-==================
+# FarmBot Software for the RaspBerry Pi
 
 This software is responsible for receiving the commands from the 'farmbot cloud backend', execute them and report back the results.
 
 Technical Stuff
 ---------------
 
-* Written in Ruby
-* Data is stored in sqlite 3
-* Running on Raspberry Pi
-* Sends commands to hardware via serial with g-code (see below)
-* Hardware is an Arduino Mega with a RAMPS 1.4 board
-* Communication with cloud using [MeshBlu](https://github.com/octoblu/meshblu) (machine instant messaging)
+![Diagram](diagram1.png)
+[Thanks, SketchBoard.me](https://sketchboard.me/RzvYVFEQuREe#/)
+
+* Written in Ruby.
+* Operation scheduling data is stored in SQLite 3.
+* Device status info, such as X, Y, Z and calibration data is stored via [PStore](http://ruby-doc.org/stdlib-1.9.2/libdoc/pstore/rdoc/PStore.html)
+* Messaging happens via [MeshBlu](https://github.com/octoblu/meshblu) (machine instant messaging)
+* Communicates with Arduino hardware using the [farmbot-serial gem](https://github.com/FarmBot/farmbot-serial)
+
+# Running in production
+
+```
+bundle install
+```
+
+If you want to enable auto restarts on crash or memory leak, run:
+
+```
+god -c farmbot.god -D
+```
+
+If you don't care about autorestarts, just run:
+
+```
+ruby farmbot.rb
+```
+
+**You can find your device credentials inside of `credentials.yml`**
 
 # Running on Local
 
-`FBENV=development ruby farmbot.rb`
-
 If you're running your own local [farmbot web app](https://github.com/farmbot/farmbot-web-app)
+
+`FBENV=development ruby farmbot.rb`
 
 
 Installation
@@ -39,7 +60,7 @@ This will take about 2 hours on a standard pi.
 Raspberry PI
 ------------
 
-Update the RPi, install ruby, firmate and the arduino IDE
+Update the RPi, install ruby and the arduino IDE
 ```
 sudo apt-get update
 sudo apt-get install git-core sqlite3 arduino
@@ -55,11 +76,6 @@ ruby farmbot.rb
 ```
 
 At this point, your MeshBlu credentials can be found in `credentials.yml`
-
-Process Monitoring (optional)
------------------------------
-
-TODO: Write how to start process monitoring.
 
 Arduino
 -------
@@ -80,7 +96,7 @@ License
 
 The MIT License
 
-Copyright (c) 2014 Farmbot Project
+Copyright (c) 2015 Farmbot Project
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the

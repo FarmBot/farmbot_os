@@ -1,3 +1,6 @@
+# References a collection of steps that the bot will execute, eg: "Plant tomato
+# seeds". Sequences are stored procedures that are executed in the real world at
+# a specified time (through the use of Schedule objects) or immediately.
 class Sequence < ActiveRecord::Base
   has_many :schedules
   has_many :steps, dependent: :destroy

@@ -1,5 +1,7 @@
 module FBPi
-  # Container object for data to be sent to MeshBlu for logging.
+  # Container object for data to be sent to MeshBlu for logging. This is
+  # different than a FBPi::MeshMessage because it is only used for storage of
+  # log data, which might not have an intended recipient.
   class TelemetryMessage < Hash
     def self.build(message)
       message.is_a?(Hash) ? self.new(message) : from_object(message)

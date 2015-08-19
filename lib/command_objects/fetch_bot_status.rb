@@ -3,9 +3,11 @@ require 'mutations'
 module FBPi
   # Typically, the pi does not need to poll the Arduino to know its status
   # because updates are broadcast over the serial line when statuses change. The
-  # typical exception to this rule is device startup, when there is no data to
-  # perform a diff on. When this is the case, you can run FetchBotStatus, which
-  # polls the device for all of its status registers. SEE ALSO: ReportBotStatus
+  # exception to this rule is device startup, when there is no data to perform a
+  # diff on. When this is the case, you can run FetchBotStatus, which polls the
+  # device for all of its status registers. This command sends as many as 22
+  # requests down the serial line in one action, so hopefully it can be
+  # refactored later on. SEE ALSO: ReportBotStatus
   class FetchBotStatus < Mutations::Command
     RELEVANT_PARAMETERS   = [0,1,11,12,13,21,22,23,31,32,33,41,42,43,51,52,53,
                              61,62,63,71,72,73]

@@ -3,7 +3,8 @@ require 'mutations'
 module FBPi
   # This class reads bot status information that has been cached by the Pi. This
   # should not be confused with FetchBotStatus, which actively requests status
-  # updates from the bot.
+  # updates from the bot. It will return a Hash that has all relevant
+  # information known about the bot
   class ReportBotStatus < Mutations::Command
     required do
       duck :bot, methods: [:status, :commands]

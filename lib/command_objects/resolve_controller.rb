@@ -2,7 +2,8 @@ Dir['lib/controllers/**/*.rb'].each { |file| load(file) }
 
 module FBPi
   # Uses a string such as 'single_command.MOVE RELATIVE' and resolves it to a
-  # particular controller, or returns UnknownController.
+  # particular controller, or returns UnknownController. Be sure to add new
+  # controllers and RPC commands to the ROUTES constant.
   class ResolveController < Mutations::Command
 
     ROUTES = {

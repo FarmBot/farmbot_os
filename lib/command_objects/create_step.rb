@@ -1,6 +1,8 @@
 require_relative '../models/step'
-# Once named 'StepFactory'
 module FBPi
+  # Factory for new step objects. Mostly used when pulling down steps from the
+  # Web App's API and transforming that JSON data into SQLite/ActiveRecord
+  # objects
   class CreateStep < Mutations::Command
     required do
       string :message_type, in: Step::COMMANDS

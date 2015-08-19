@@ -1,9 +1,11 @@
-# Builds a validated sequence (and collection of steps)
 require_relative '../models/schedule'
 require_relative '../models/sequence'
 
 module FBPi
-  # Was once called ScheduleFactory
+  # Acts as a factory for schedule objects. Used mostly when the RPi is fetching
+  # JSON schedule objects off of the web app's API (format 1) and needs to
+  # transform the schedules into a format that is usable by the RPi and storable
+  # in SQLite (via ActiveRecord)
   class CreateSchedule < Mutations::Command
     required do
       string :start_time
