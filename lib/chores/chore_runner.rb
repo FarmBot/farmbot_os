@@ -1,5 +1,8 @@
 require_relative 'schedule_chore'
 module FBPi
+  # A recurring task that happens every ::INTERVAL seconds. Typically used for
+  # pulling scheduled sequences out of the database and executing them when the
+  # time is due. Gets fired off by an EventMachine::PeriodicTimer.
   class ChoreRunner
     INTERVAL = 60 # seconds
     attr_accessor :schedules, :bot

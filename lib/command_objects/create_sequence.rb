@@ -1,8 +1,8 @@
-# Builds a validated sequence (and collection of steps)
 require_relative '../models/sequence'
-# Was called SequenceFactory at one point
 
 module FBPi
+  # Builds a validated sequence (a collection of steps that the bot will
+  # execute, eg: "Plant tomato seeds")
   class CreateSequence < Mutations::Command
     required do
       string :name

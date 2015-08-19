@@ -1,5 +1,9 @@
 require 'ice_cube'
 module FBPi
+  # Command object that uses a schedule, bot and time object to determine if a
+  # schedule should be:
+  # 1. performed 2. destroyed (if no occurences left) 3. Re-scheduled (if
+  # there are still occurences left on the schedule)
   class ScheduleChore
     attr_accessor :schedule, :bot, :now, :next_time
 
@@ -23,7 +27,6 @@ module FBPi
 
     def perform_steps
       bot.log "Running #{schedule.sequence.name}"
-      "Make sure schedule.sequence.steps is not [] or `nil`"
       schedule.sequence.steps.each { |s| s.execute(bot) }
     end
 

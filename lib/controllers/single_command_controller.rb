@@ -1,8 +1,12 @@
 require_relative 'abstract_controller'
 
 module FBPi
-  # TODO: Reduce duplication in this controller.
+  # This controller will safely execute a subset of whitelisted commands when
+  # requested. This is similar to ExecSequenceController, except that rather
+  # than execute an entire sequence of steps, it executes one single command,
+  # such as moving a single axis to a specific coord.
   class SingleCommandController < AbstractController
+    # TODO: Reduce duplication in this controller.
     attr_reader :cmd, :key
 
     AVAILABLE_ACTIONS = { "move relative"   => :move_relative,

@@ -1,6 +1,10 @@
 module FBPi
   # This Object is responsible for contacting the Farmbot Web App via REST calls
-  # in order to fetch the latest command execution schedules.
+  # in order to fetch the latest command execution schedules. This is a
+  # destructive action that will download all Sequences, Schedules and Steps via
+  # REST. After fetching the resource, it will destroy all of the local Schedule
+  # , Step and Sequence objects and assume that the Web App always has the
+  # latests and "most correct" version of Schedule information.
   class SyncBot < Mutations::Command
     required { duck :bot, methods: [:rest_client] }
 

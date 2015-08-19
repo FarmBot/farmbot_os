@@ -1,7 +1,9 @@
 require 'mutations'
 
 module FBPi
-  # Excutes a step in "The Real World(tm)".
+  # Excutes a single step in "The Real World(tm)". This command will be called
+  # multiple times by a single schedule object when it is executed at a
+  # prescribed time.
   class ExecStep < Mutations::Command
     class UnsafeCommand < Exception; end
 

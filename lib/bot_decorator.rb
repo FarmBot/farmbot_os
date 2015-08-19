@@ -1,8 +1,9 @@
 require_relative 'telemetry_message'
 
 module FBPi
-  # This class wraps around the FB::Arduino class to add extra functionality
-  # that is application specific / not available in farmbot-serial.
+  # This class wraps around the FB::Arduino class (farmbot-serial gem) to add
+  # extra functionality  that is application specific / not available in
+  # farmbot-serial.
   class BotDecorator < SimpleDelegator
     attr_accessor :status_storage, :mesh, :rest_client
 

@@ -3,6 +3,9 @@ require 'farmbot-resource'
 require_relative '../command_objects/commands'
 
 module FBPi
+  # This controller will destroy all Schedules, Sequences and Steps on the bot
+  # and replace them with the most recent version that exists remotely on the
+  # Web App.
   class SyncSequenceController < AbstractController
     def call
       SyncBot.run!(bot: bot)

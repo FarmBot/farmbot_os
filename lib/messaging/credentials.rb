@@ -2,6 +2,10 @@ require 'securerandom'
 require 'net/http'
 
 module FBPi
+  # Loads or creates a set of credentials for use on the MeshBlu IoT messaging
+  # platform depending on wether or not the *.yml CREDENTIALS_FILE exists or not
+  # If you ever need to reset your MeshBlu credentials, just delete
+  # CREDENTIALS_FILE
   class Credentials
     CREDENTIALS_FILE = 'credentials.yml'
     attr_reader :credentials_file, :uuid, :token
@@ -11,15 +15,15 @@ module FBPi
       load_or_create
     end
 
-    # Returns Hash containing the a :uuid and :token key. Triggers the creation of
-    # new credentials if the current ones are found to be invalid.
+    # Returns Hash containing the a :uuid and :token key. Triggers the creation
+    # of new credentials if the current ones are found to be invalid.
     def load_or_create
       valid_credentials? ? load_credentials : create_credentials
       self
     end
 
-    # Validates that the credentials file has a :uuid and :token key. Returns Bool
-    #
+    # Validates that the credentials file has a :uuid and :token key.
+    # Returns Bool
     def valid_credentials?
       cred = load_credentials if File.file?(credentials_file)
       cred && cred.has_key?(:uuid) && cred.has_key?(:token)
