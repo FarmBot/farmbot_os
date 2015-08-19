@@ -6,6 +6,7 @@ Technical Stuff
 ---------------
 
 ![Diagram](diagram1.png)
+[Thanks, SketchBoard.me](https://sketchboard.me/RzvYVFEQuREe#/)
 
 * Written in Ruby.
 * Operation scheduling data is stored in SQLite 3.
