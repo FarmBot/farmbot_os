@@ -53,12 +53,12 @@ module FBPi
     end
 
     def pin_write
-      # Wait a sec- why do I need to set_pin and write_pin? Possible API design
-      # issue in farmbot-serial.
-      bot.status.set_pin(cmd['pin'], cmd['value1'])
-      bot.commands.write_pin pin:   cmd['pin'],
-                             value: cmd['value1'],
-                             mode:  cmd['mode'] || 0
+      # "Known Good" method calls:
+      # write_pin(pin: 13, value: 0, mode: 0)
+      # write_pin(pin: 13, value: 1, mode: 0)
+      bot.commands.write_pin(pin: cmd['pin'],
+                 value: cmd['value1'],
+                 mode:cmd.fetch('mode', 0))
     end
 
     def emergency_stop
