@@ -4,7 +4,7 @@ module FBPi
   # sequence, but only if the if statement evaluates to true, using the left
   # hand side, right hand side and a set of allowable operators (eg: <, >, !=..)
   # Used in the execution of steps.
-  Conditionally executes a sequence if `operator(lhs, rhs)` evals to true.
+  # Conditionally executes a sequence if `operator(lhs, rhs)` evals to true.
   class IfStatement < Mutations::Command
     required do
       string :lhs
