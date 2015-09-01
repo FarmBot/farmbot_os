@@ -72,6 +72,7 @@ Clone, install and run:
 git clone https://github.com/FarmBot/farmbot-raspberry-pi-controller
 cd farmbot-raspberry-pi-controller
 bundle install
+rake db:setup
 ruby farmbot.rb
 ```
 
