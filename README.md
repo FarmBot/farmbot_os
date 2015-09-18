@@ -63,7 +63,7 @@ Raspberry PI
 Update the RPi, install ruby and the arduino IDE
 ```
 sudo apt-get update
-sudo apt-get install git-core sqlite3 arduino
+sudo apt-get install git-core sqlite3 arduino bundler
 ```
 
 Clone, install and run:
