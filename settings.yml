@@ -1,7 +1,7 @@
 # config/application.yml
 defaults: &defaults
-  meshblu_url: 'mesh.farmbot.it'
-  webapp_url:  'my.farmbot.cc'
+  meshblu_url: 'mesh.farmbot.io'
+  webapp_url:  'my.farmbot.io'
   serial_ports:
     - "/dev/ttyUSB0"
     - "/dev/ttyACM0"
