@@ -7,6 +7,10 @@ class FakeRestClient
     @sequences ||= FakeSequences.new
   end
 
+  def plants
+    @plants ||= FakePlants.new
+  end
+
   class FakeSchedules
     def fetch
       [{"_id"=>"55819410766f6c5c93000000",
@@ -29,6 +33,26 @@ class FakeRestClient
       {"_id"=>"556f1037766f6c4d34000000", "name"=>"Untitled Sequence", "steps"=>[]},
       {"_id"=>"556f1037766f6c4d34010000", "name"=>"Untitled Sequence", "steps"=>[]},
       {"_id"=>"556f1038766f6c4d34020000", "name"=>"Untitled Sequence", "steps"=>[]}]
+    end
+  end
+
+  class FakePlants
+    def fetch
+      [
+        {
+          "_id" => "561561cf766f6c6637000000",
+          "device_id" => "56154f2f766f6c5789010000",
+          "planting_area_id" => nil,
+          "x" => 126,
+          "y" => 193
+         },{
+          "_id" => "561561d1766f6c6637010000",
+          "device_id" => "56154f2f766f6c5789010000",
+          "planting_area_id" => nil,
+          "x" => 245,
+          "y" => 127
+        }
+      ]
     end
   end
 end

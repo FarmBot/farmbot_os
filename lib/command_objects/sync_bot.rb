@@ -14,6 +14,7 @@ module FBPi
        [Schedule, Sequence, Step].map(&:destroy_all)
        {sequences: api.sequences.fetch.map { |s| CreateSequence.run!(s) }.count,
         schedules: api.schedules.fetch.map { |s| CreateSchedule.run!(s) }.count,
+        plants:    api.plants.fetch.map    { |s| CreatePlant.run!(s) }.count,
         steps:     Step.count }.tap { |d| after_sync(d) }
       end
     rescue FbResource::FetchError => e
