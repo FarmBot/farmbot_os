@@ -46,7 +46,7 @@ module FBPi
       bot.log "BOT DIF: #{diff}"
     end
 
-    def close(msg)
+    def close()
       # Offload all persistent variables to file on shutdown.
       [:bot, :pi].each do |namespace|
         bot.status_storage.update_attributes(namespace, bot.status.to_h)
