@@ -14,6 +14,8 @@ module FBPi
     ## general handling messages
     def initialize(message_hash, bot, mesh)
       @bot, @mesh, @message = bot, mesh, BuildMeshMessage.run!(message_hash)
+    rescue Mutations::ValidationException => e
+      send_error(e)
     end
 
     def call
