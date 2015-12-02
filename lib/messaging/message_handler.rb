@@ -13,8 +13,17 @@ module FBPi
 
     ## general handling messages
     def initialize(message_hash, bot, mesh)
-      @bot, @mesh, @message = bot, mesh, BuildMeshMessage.run!(message_hash)
+      @bot, @mesh, @original_message = bot, mesh, message_hash
+      @message = BuildMeshMessage.run!(message_hash)
     rescue Mutations::ValidationException => e
+      # Save the system from trash messages.
+      raw_id = @original_message["id"]
+      id = raw_id.is_a?(String) ? raw_id : SecureRandom.uuid
+      # TODO: Create HandleMalformedMessage command for added safety.
+      @message = MeshMessage.new(from: @original_message["fromUuid"], # trusted
+                                 method: "malformed_message",
+                                 params: {},
+                                 id:     id)
       send_error(e)
     end
 
