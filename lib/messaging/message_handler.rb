@@ -2,6 +2,7 @@ require 'json'
 require 'time'
 require_relative 'mesh_message'
 require_relative '../command_objects/build_mesh_message'
+require_relative '../command_objects/dispose_trash_message'
 require_relative '../command_objects/resolve_controller'
 
 module FBPi
@@ -16,15 +17,8 @@ module FBPi
       @bot, @mesh, @original_message = bot, mesh, message_hash
       @message = BuildMeshMessage.run!(message_hash)
     rescue Mutations::ValidationException => e
-      # Save the system from trash messages.
-      raw_id = @original_message["id"]
-      id = raw_id.is_a?(String) ? raw_id : SecureRandom.uuid
-      # TODO: Create HandleMalformedMessage command for added safety.
-      @message = MeshMessage.new(from: @original_message["fromUuid"], # trusted
-                                 method: "malformed_message",
-                                 params: {},
-                                 id:     id)
-      send_error(e)
+      puts "BOT WAS UNABLE TO PARSE MALFORMED MESSAGE! DANGER IMMINENT!"
+      @message = DisposeTrashMessage.run!(message_hash)
     end
 
     def call

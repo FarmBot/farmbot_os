@@ -5,8 +5,10 @@ module FBPi
   # controller name.
   class UnknownController < AbstractController
     def call
-      reply "error",
-        error: "#{message.method || 'null'} is not a valid `method`."
+      really_long_message = "You tried to send a message with a `method` " +
+                            "property of `#{message.method || 'null'}`, but " +
+                            "that's not a valid options."
+      reply "error", error: really_long_message
     end
   end
 end
