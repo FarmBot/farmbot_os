@@ -23,7 +23,7 @@ class FarmBotPi
     @credentials    = FBPi::Credentials.new
     @mesh           = EM::MeshRuby.new(@credentials.uuid,
                                        @credentials.token,
-                                       "ws://#{MESH_URL}")
+                                       "ws://#{MESH_URL}/socket.io")
     @status_storage = FBPi::StatusStorage.new("bot_status.pstore")
     @rest_client   = FbResource::Client.new do |config|
       config.uuid  = credentials.uuid
@@ -41,6 +41,7 @@ class FarmBotPi
       start_chore_runner
       broadcast_status
       mesh.onmessage { |msg| meshmessage(msg) }
+      mesh.socket.on(:error) { |e| puts e.backtrace }
       bot.bootstrap
     end
   end
