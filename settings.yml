@@ -1,6 +1,6 @@
 # config/application.yml
 defaults: &defaults
-  meshblu_url: 'mesh.farmbot.io'
+  meshblu_url: 'meshblu.octoblu.com'
   webapp_url:  'my.farmbot.io'
   serial_ports:
     - "/dev/ttyUSB0"

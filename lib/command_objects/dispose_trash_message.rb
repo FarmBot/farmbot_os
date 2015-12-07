@@ -7,6 +7,7 @@ module FBPi
   # building an error response and avoiding a crash or unsafe behavior. This
   # object operates in a very uncertain environment, so approach with caution.
   class DisposeTrashMessage < Mutations::Command
+    # Nothing is certain, so all inputs are optional with safe defaults.
     optional do
       duck :id
       duck :params
