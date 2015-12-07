@@ -52,7 +52,7 @@ GEM
     god (0.13.6)
     http-cookie (1.0.2)
       domain_name (~> 0.5)
-    httparty (0.13.5)
+    httparty (0.13.7)
       json (~> 1.8)
       multi_xml (>= 0.5.2)
     i18n (0.7.0)
@@ -61,7 +61,7 @@ GEM
     liquid (3.0.6)
     loofah (2.0.2)
       nokogiri (>= 1.5.9)
-    meshruby (0.0.5)
+    meshruby (0.0.6)
       eventmachine
       socket.io-client-simple
     method_source (0.8.2)
@@ -137,7 +137,7 @@ GEM
       unf_ext
     unf_ext (0.0.7.1)
     websocket (1.2.2)
-    websocket-client-simple (0.2.2)
+    websocket-client-simple (0.2.4)
       event_emitter
       websocket
 
@@ -151,7 +151,7 @@ DEPENDENCIES
   god
   ice_cube
   liquid
-  meshruby (= 0.0.5)
+  meshruby (= 0.0.6)
   mutations (= 0.7.2)
   pry-byebug
   rspec
