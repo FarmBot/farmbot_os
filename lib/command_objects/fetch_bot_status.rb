@@ -18,7 +18,7 @@ module FBPi
     def execute
       read_pins
       read_parameters
-      bot.status.to_h
+      FBPi::ReportBotStatus.run!(bot: bot)
     end
 
     def read_pins

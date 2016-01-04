@@ -12,9 +12,9 @@ module FBPi
     end
 
     def execute
-      set_event_handlers
       pull_up_stored_parameters_from_disk
       FetchBotStatus.run!(bot: bot)
+      set_event_handlers
       bot
     end
 
