@@ -15,7 +15,7 @@ module FBPi
       bot:  "Used for storage of Arduino specific settings, like the status "\
             "register object inside the Arduino.",
       pi:   "Used for storage of Raspberry-Pi specific settings, such as the "\
-            "time of :last_sync.",
+            "time of :LAST_SYNC, :IP_ADDRESS etc.",
       misc: "Anything else."
     }
 
