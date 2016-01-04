@@ -31,7 +31,8 @@ private
     end
 
     def pi_info
-      { LAST_SYNC: bot.status_storage.fetch(:pi, :last_sync) }
+      { LAST_SYNC:  bot.status_storage.fetch(:pi, :LAST_SYNC),
+        IP_ADDRESS: bot.status_storage.fetch(:pi, :IP_ADDRESS) }
     end
 
     def pin_info
