@@ -11,13 +11,12 @@ module FBPi
     end
 
     def execute
-      # TODO: Replace everything here with just `bot.status.to_h`. Can't right
-      # now because it will be a breaking change to the web app.
       {}
         .merge(bot_info)
         .merge(pin_info)
         .merge(pi_info)
         .deep_symbolize_keys
+
     end
 
 private
@@ -28,16 +27,18 @@ private
         .to_h
         .except(:PINS)
         .delete_if { |k, v| k.to_s.start_with?("UNKNOWN") }
+        .map { |k, v| [k.to_s.downcase, v] }
+        .to_h
     end
 
     def pi_info
-      { LAST_SYNC:  bot.status_storage.fetch(:pi, :LAST_SYNC),
-        IP_ADDRESS: bot.status_storage.fetch(:pi, :IP_ADDRESS) }
+      { last_sync:  bot.status_storage.fetch(:pi, :LAST_SYNC),
+        ip_address: bot.status_storage.fetch(:pi, :IP_ADDRESS) }
     end
 
     def pin_info
       [*0..13].inject({}) do |hsh, pin|
-        hsh["PIN#{pin}".to_sym] = bot.status.get_pin(pin)
+        hsh["pin#{pin}".to_sym] = bot.status.get_pin(pin)
         hsh
       end
     end
