@@ -46,6 +46,8 @@ module FBPi
           bot.commands.write_parameter(param_number, param_value)
         end
       end
+
+      ReportBotStatus.run!(bot: bot)
     end
   end
 end

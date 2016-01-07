@@ -4,7 +4,7 @@ module FBPi
   # This class reads bot status information that has been cached by the Pi. This
   # should not be confused with FetchBotStatus, which actively requests status
   # updates from the bot. This command will return a Hash that has all relevant
-  # information known about the bot
+  # information known about the bot. It's like a serializer, sort of.
   class ReportBotStatus < Mutations::Command
     required do
       duck :bot, methods: [:status, :commands]
