@@ -10,34 +10,36 @@ module FBPi
       duck :bot, methods: [:commands]
       hash :settings do
         optional do
-          integer :MOVEMENT_TIMEOUT_X
-          integer :MOVEMENT_TIMEOUT_Y
-          integer :MOVEMENT_TIMEOUT_Z
-          integer :MOVEMENT_INVERT_ENDPOINTS_X
-          integer :MOVEMENT_INVERT_ENDPOINTS_Y
-          integer :MOVEMENT_INVERT_ENDPOINTS_Z
-          integer :MOVEMENT_INVERT_MOTOR_X
-          integer :MOVEMENT_INVERT_MOTOR_Y
-          integer :MOVEMENT_INVERT_MOTOR_Z
-          integer :MOVEMENT_STEPS_ACC_DEC_X
-          integer :MOVEMENT_STEPS_ACC_DEC_Y
-          integer :MOVEMENT_STEPS_ACC_DEC_Z
-          integer :MOVEMENT_HOME_UP_X
-          integer :MOVEMENT_HOME_UP_Y
-          integer :MOVEMENT_HOME_UP_Z
-          integer :MOVEMENT_MIN_SPD_X
-          integer :MOVEMENT_MIN_SPD_Y
-          integer :MOVEMENT_MIN_SPD_Z
-          integer :MOVEMENT_MAX_SPD_X
-          integer :MOVEMENT_MAX_SPD_Y
-          integer :MOVEMENT_MAX_SPD_Z
+          integer :movement_timeout_x
+          integer :movement_timeout_y
+          integer :movement_timeout_z
+          integer :movement_invert_endpoints_x
+          integer :movement_invert_endpoints_y
+          integer :movement_invert_endpoints_z
+          integer :movement_invert_motor_x
+          integer :movement_invert_motor_y
+          integer :movement_invert_motor_z
+          integer :movement_steps_acc_dec_x
+          integer :movement_steps_acc_dec_y
+          integer :movement_steps_acc_dec_z
+          integer :movement_home_up_x
+          integer :movement_home_up_y
+          integer :movement_home_up_z
+          integer :movement_min_spd_x
+          integer :movement_min_spd_y
+          integer :movement_min_spd_z
+          integer :movement_max_spd_x
+          integer :movement_max_spd_y
+          integer :movement_max_spd_z
         end
       end
     end
 
     def execute
       settings.each do |key, param_value|
+        key = key.upcase
         param_number = PARAMETER_DICTIONARY[key.to_sym]
+
         if bot.status.to_h[key.to_sym] != param_value
           # TODO: This belongs inside of write_parameter
           bot.status.transaction { |i| i[key] = param_value }

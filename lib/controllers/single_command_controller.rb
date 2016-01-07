@@ -25,7 +25,7 @@ module FBPi
       action = AVAILABLE_ACTIONS.fetch(key, :unknown).to_sym
       @cmd   = message.params
       send(action)
-      reply 'single_command', cmd
+      reply 'single_command', ReportBotStatus.run!(bot: bot)
     end
 
     def move_relative
