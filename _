@@ -11,36 +11,46 @@
 require 'em/mqtt'
 
 class MQTTAdapter
-  def initialize(username, password)
-  client = EventMachine::MQTT::ClientConnection.connect({
-    host: 'localhost',
-    username: 'test123@test.com',
-    password: 'password123'
-  });
-  # c.subscribe('mqtt/demo')
-  # c.receive_callback do |message|
-  #   p message
-  # end
+  def initialize(username, password, host = FBPi::Settings.mqtt_url)
+    @username, @password, @host = username, password, host
   end
 
-  def data
+  def onconnect()
+    @client = EventMachine::MQTT::ClientConnection.connect({
+      host:     'localhost',
+      username: @username,
+      password: @password
+    });
+    @client.subscribe("bot/#{username}/request")
+    @client.receive_callback { |m| p(m) }
   end
 
-  def connect
+  def data(*stuff)
+    puts "called data()"
   end
 
   def emit(channel, payload)
+    c.publish("bot/#{username}/response", payload.to_s)
   end
 
   def onmessage(&blk)
+    puts "called onmessage()"
   end
 
   def onready(&blk)
+    puts "called onready()"
   end
 
   def onerror(&blk)
+    puts "called onerror()"
   end
 
   def toggle_debug!(*wow)
+    puts "called toggle_debug()"
   end
+
+private
+
+  attr_reader :username, :password
+
 end

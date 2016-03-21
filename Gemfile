@@ -6,11 +6,10 @@ gem 'farmbot-serial', '0.7.6'
 gem 'god'
 gem 'ice_cube'
 gem 'liquid'
-gem 'meshruby', '0.0.6'
 gem 'mutations', '0.7.2'
 gem 'settingslogic'
 gem 'sqlite3'
-
+gem 'em-mqtt'
 group :test, :development do
   gem 'pry-byebug'
   gem 'rspec'

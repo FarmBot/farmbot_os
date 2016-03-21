@@ -1,6 +1,5 @@
 require 'farmbot-serial'
-require 'meshruby'
-
+require_relative 'messaging/mqtt'
 require_relative 'messaging/credentials'
 require_relative 'messaging/message_handler'
 require_relative 'chores/chore_runner'
@@ -15,40 +14,38 @@ ActiveRecord::Base.establish_connection(
 )
 
 class FarmBotPi
-  attr_accessor :mesh, :bot, :credentials, :handler, :runner, :status_storage
+  attr_accessor :mqtt, :bot, :credentials, :handler, :runner, :status_storage
   WEBAPP_URL = FBPi::Settings.webapp_url
-  MESH_URL   = FBPi::Settings.meshblu_url
+  MQTT_URL   = FBPi::Settings.mqtt_url
 
-  def initialize(bot: 'delete this param')
+  def initialize
     @credentials    = FBPi::Credentials.new
-    @mesh           = EM::MeshRuby.new(@credentials.uuid,
-                                       @credentials.token,
-                                       "ws://#{MESH_URL}/socket.io")
+    @mqtt           = MQTTAdapter.new("test@test.com", "password123", MQTT_URL)
     @status_storage = FBPi::StatusStorage.new("bot_status.pstore")
     @rest_client   = FbResource::Client.new do |config|
       config.uuid  = credentials.uuid
       config.token = credentials.token
       config.url   = "http://#{WEBAPP_URL}"
     end
-    @bot = FBPi::BotDecorator.build(@status_storage, @mesh, @rest_client)
+    @bot = FBPi::BotDecorator.build(@status_storage, @mqtt, @rest_client)
   end
 
   def start
     EM.run do
-      mesh.toggle_debug!
-      mesh.connect
-      FB::ArduinoEventMachine.connect(bot)
-      start_chore_runner
-      broadcast_status
-      mesh.onmessage { |msg| meshmessage(msg) }
-      mesh.socket.on(:error) { |e| puts e.backtrace }
-      bot.bootstrap
+        # mqtt.toggle_debug!
+        mqtt.connect
+        FB::ArduinoEventMachine.connect(bot)
+        start_chore_runner
+        broadcast_status
+        # mqtt.onmessage { |msg| mqttmessage(msg) }
+        # mqtt.socket.on(:error) { |e| puts e.backtrace }
+        # bot.bootstrap
     end
   end
 
-  def meshmessage(msg)
+  def mqttmessage(msg)
     puts "Woop woop."
-    FBPi::MessageHandler.call(msg, bot, mesh)
+    FBPi::MessageHandler.call(msg, bot, mqtt)
   end
 
   def start_chore_runner
@@ -62,8 +59,8 @@ class FarmBotPi
     # socketio client previously.
     EventMachine::Timer.new(4) do
       sync = FBPi::SyncBot.run(bot: bot).result
-      mesh.emit '*', { method: 'sync_sequence', id: nil, params: sync } if sync
-      mesh.emit '*', FBPi::ReportBotStatus.run!(bot: bot)
+      mqtt.emit '*', { method: 'sync_sequence', id: nil, params: sync } if sync
+      mqtt.emit '*', FBPi::ReportBotStatus.run!(bot: bot)
     end
   end
 end
