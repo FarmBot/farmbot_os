@@ -42,6 +42,7 @@ module FBPi
 
         if bot.status.to_h[key.to_sym] != param_value
           # TODO: This belongs inside of write_parameter
+          # TODO: Move this into farmbot-serial and send PR.
           bot.status.transaction { |i| i[key] = param_value }
           bot.commands.write_parameter(param_number, param_value)
         end

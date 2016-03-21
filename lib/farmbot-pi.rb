@@ -47,6 +47,7 @@ class FarmBotPi
   end
 
   def meshmessage(msg)
+    puts "Woop woop."
     FBPi::MessageHandler.call(msg, bot, mesh)
   end
 
