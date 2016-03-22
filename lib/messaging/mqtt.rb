@@ -13,7 +13,10 @@ class MQTTAdapter
                  password,
                  host = FBPi::Settings.mqtt_url,
                  port = FBPi::Settings.mqtt_port)
-    @username, @password, @host, @port = username, password, host, port
+    @username = username
+    @password = password
+    @host = host
+    @port = port
   end
 
   def connect
@@ -25,31 +28,31 @@ class MQTTAdapter
     @client.receive_callback { |m| p(m) }
   end
 
-  def data(*stuff)
-    puts "called data()"
+  def data(*_stuff)
+    puts 'called data()'
   end
 
-  def emit(channel, payload)
+  def emit(_channel, payload)
     @client.publish("bot/#{username}/response", payload.to_s)
   end
 
-  def onmessage(&blk)
-    puts "called onmessage()"
+  def onmessage
+    puts 'called onmessage()'
   end
 
-  def onready(&blk)
-    puts "called onready()"
+  def onready
+    puts 'called onready()'
   end
 
-  def onerror(&blk)
-    puts "called onerror()"
+  def onerror
+    puts 'called onerror()'
   end
 
-  def toggle_debug!(*wow)
-    puts "called toggle_debug()"
+  def toggle_debug!(*_wow)
+    puts 'called toggle_debug()'
   end
 
-private
+  private
 
   attr_reader :username, :password
 
