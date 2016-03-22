@@ -16,11 +16,10 @@ ActiveRecord::Base.establish_connection(
 class FarmBotPi
   attr_accessor :mqtt, :bot, :credentials, :handler, :runner, :status_storage
   WEBAPP_URL = FBPi::Settings.webapp_url
-  MQTT_URL   = FBPi::Settings.mqtt_url
 
   def initialize
     @credentials    = FBPi::Credentials.new
-    @mqtt           = MQTTAdapter.new("test@test.com", "password123", MQTT_URL)
+    @mqtt           = MQTTAdapter.new("test123@test.com", "password123")
     @status_storage = FBPi::StatusStorage.new("bot_status.pstore")
     @rest_client   = FbResource::Client.new do |config|
       config.uuid  = credentials.uuid

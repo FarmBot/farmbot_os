@@ -20,20 +20,21 @@ class MQTTAdapter
   end
 
   def connect
-    @client = EventMachine::MQTT::ClientConnection.connect(host:     'localhost',
-                                                           port:     1883,
-                                                           username: 'test123@test.com',
-                                                           password: 'password123')
+
+    @client = EventMachine::MQTT::ClientConnection.connect(host:     @host,
+                                                           port:     @port,
+                                                           username: @username,
+                                                           password: @password)
     @client.subscribe("bot/#{@username}/request")
     @client.receive_callback { |m| p(m) }
   end
 
-  def data(*_stuff)
-    puts 'called data()'
+  def data(payload)
+    @client.publish("bot/#{username}/data", payload.to_json)
   end
 
   def emit(_channel, payload)
-    @client.publish("bot/#{username}/response", payload.to_s)
+    @client.publish("bot/#{username}/response", payload.to_json)
   end
 
   def onmessage
