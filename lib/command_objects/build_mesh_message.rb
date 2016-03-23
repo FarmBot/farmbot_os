@@ -1,3 +1,4 @@
+
 require 'mutations'
 require 'securerandom'
 
@@ -10,20 +11,35 @@ module FBPi
   # http://json-rpc.org/wiki/specification JSONRPC v 1.0
   class BuildMeshMessage < Mutations::Command
     required do
-      string :fromUuid
-      string :method
+      duck :message, methods: [:payload]
     end
 
-    optional do
-      string :id
-      hash(:params, default: {}) { duck :* } # Quack quack!
-    end
+     def validate
+       parse_message
+       type_check "params", Hash
+       type_check "method", String
+       message["id"] ||= SecureRandom.uuid # Just incase...
+     end
 
     def execute
-      MeshMessage.new(from:   fromUuid,
-                      method: method,
-                      params: params || {},
-                      id:     id || SecureRandom.uuid)
+      MeshMessage.new(message.symbolize_keys)
+    end
+
+    private
+
+    def parse_message
+      inputs["message"] = JSON.parse(inputs["message"].payload)
+    rescue JSON::ParserError => e
+      add_error :payload, :parse_error, "Message was probably not JSON"
+    end
+
+    def type_check(key, klass)
+      if (message[key].is_a?(klass))
+        return true
+      else
+        add_error :payload, :key, "Expected #{key} to be a #{klass}"
+        return false
+      end
     end
   end
 end

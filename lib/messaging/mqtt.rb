@@ -19,14 +19,14 @@ class MQTTAdapter
     @port = port
   end
 
-  def connect
-
+  def connect(&blk)
     @client = EventMachine::MQTT::ClientConnection.connect(host:     @host,
                                                            port:     @port,
                                                            username: @username,
                                                            password: @password)
     @client.subscribe("bot/#{@username}/request")
-    @client.receive_callback { |m| p(m) }
+    @client.receive_callback(&blk)
+    puts "Connected!"
   end
 
   def data(payload)

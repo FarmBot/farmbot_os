@@ -5,10 +5,10 @@ module FBPi
   # info, such as fromUuid.
   # http://json-rpc.org/wiki/specification
   class MeshMessage
-    attr_accessor :from, :method, :params, :id
+    attr_accessor :method, :params, :id
 
-    def initialize(from:, method:, params: {}, id: '')
-      @from, @method, @params, @id = from, method, params, id
+    def initialize(method:, params: {}, id: '')
+      @method, @params, @id = method, params, id
     end
   end
 end

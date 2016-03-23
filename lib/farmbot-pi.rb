@@ -32,7 +32,7 @@ class FarmBotPi
   def start
     EM.run do
         # mqtt.toggle_debug!
-        mqtt.connect
+        mqtt.connect { |msg| mqttmessage(msg) }
         FB::ArduinoEventMachine.connect(bot)
         start_chore_runner
         broadcast_status
@@ -43,7 +43,6 @@ class FarmBotPi
   end
 
   def mqttmessage(msg)
-    puts "Woop woop."
     FBPi::MessageHandler.call(msg, bot, mqtt)
   end
 

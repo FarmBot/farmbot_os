@@ -11,18 +11,15 @@ module FBPi
     optional do
       duck :id
       duck :params
-      duck :fromUuid
       duck :method
     end
 
     def execute
       be_careful(id,       String, :to_s, SecureRandom.uuid)
       be_careful(method,   String, :to_s, 'unknown')
-      be_careful(fromUuid, String, :to_s, '---')
       be_careful(params,   Hash,   :to_h, {})
 
-      MeshMessage.new(from:   fromUuid,
-                      method: method,
+      MeshMessage.new(method: method,
                       params: params,
                       id:     id)
     end

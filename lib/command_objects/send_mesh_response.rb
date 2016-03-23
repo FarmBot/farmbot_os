@@ -7,7 +7,7 @@ module FBPi
   # For more info see: http://json-rpc.org/wiki/specification#a1.2Response
   class SendMeshResponse < Mutations::Command
     required do
-      duck :original_message, methods: [:id, :from]
+      duck :original_message, methods: [:id]
       duck :mesh, methods: [:emit]
       string :method
     end
@@ -19,7 +19,7 @@ module FBPi
     end
 
     def execute
-      mesh.emit original_message.from, output
+      mesh.emit "bot/CHANGE_THIS_PLEASE", output
     end
 
     def output

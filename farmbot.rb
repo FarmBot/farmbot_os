@@ -1,3 +1,9 @@
 require_relative 'lib/farmbot-pi'
-
-FarmBotPi.new.start
+begin
+  puts "Connecting..."
+  FarmBotPi.new.start
+rescue MQTT::NotConnectedException => e
+  puts "OH NOES! Farmbot was disconnected from MQTT. Retrying in 3 seconds."
+  sleep 3
+  retry
+end
