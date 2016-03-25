@@ -11,7 +11,7 @@ module FBPi
   # http://json-rpc.org/wiki/specification JSONRPC v 1.0
   class BuildMeshMessage < Mutations::Command
     required do
-      duck :message, methods: [:payload]
+      duck :message, methods: [:payload, :symbolize_keys, :[], :[]=]
     end
 
      def validate
