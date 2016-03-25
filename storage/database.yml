@@ -1,6 +1,6 @@
 default: &development
   adapter: sqlite3
-  database: db/db.sqlite3
+  database: storage/db.sqlite3
   pool: 5
   timeout: 5000
 
@@ -11,7 +11,7 @@ default: &development
 #   gem 'sqlite3'
 development:
   adapter: sqlite3
-  database: db/db.sqlite3
+  database: storage/db.sqlite3
   pool: 5
   timeout: 5000
 
@@ -20,12 +20,12 @@ development:
 # Do not set this db to the same as development or production.
 test:
   adapter: sqlite3
-  database: db/test.sqlite3
+  database: storage/test.sqlite3
   pool: 5
   timeout: 5000
 
 production:
   adapter: sqlite3
-  database: db/production.sqlite3
+  database: storage/production.sqlite3
   pool: 5
   timeout: 5000

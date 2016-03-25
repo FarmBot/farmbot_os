@@ -8,7 +8,7 @@ describe FBPi::ReadStatusController do
   end
   let(:mesh) { FakeMesh.new }
   let(:message) do
-    FBPi::MeshMessage.new(from:   '1234567890',
+    FBPi::MeshMessage.new(id:   '1234567890',
                           method: 'read_status')
   end
   let(:controller) { FBPi::ReadStatusController.new(message, bot, mesh) }

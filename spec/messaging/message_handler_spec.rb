@@ -13,7 +13,7 @@ describe FBPi::MessageHandler do
     expect(handler.bot).to eq(bot)
     expect(handler.mesh).to eq(mesh)
     expect(handler.message).to be_kind_of(FBPi::MeshMessage)
-    expect(handler.message.from).to eq('1234567890')
+    expect(handler.message.id).to eq('1234567890')
     expect(handler.message.method).to eq('test_message')
     expect(handler.message.params).to eq({})
   end

@@ -1,11 +1,3 @@
-# bott = bot; bot.mesh.socket.on(:ready) { bott.ready }
-# mesh.connect
-# mesh.data(self) unless fetch(:data, '').starts_with?("Nothing")
-# mesh.emit '*', FBPi::ReportBotStatus.run!(bot: bot)
-# mesh.emit original_message.from, output
-# mesh.onmessage { |msg| meshmessage(msg) }
-# mesh.socket.on(:error) { |e| puts e.backtrace }
-# mesh.toggle_debug!
 require 'em/mqtt'
 
 class MQTTAdapter

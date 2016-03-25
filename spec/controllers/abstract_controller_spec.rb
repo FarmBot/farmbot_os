@@ -4,7 +4,7 @@ describe FBPi::AbstractController do
   let(:bot) { FakeBot.new }
   let(:mesh) { FakeMesh.new }
   let(:message) { FBPi::MeshMessage.new(
-    from: '1234567890', method: 'sync_sequence')}
+    id: '1234567890', method: 'sync_sequence')}
   let(:ctrl) { FBPi::AbstractController.new(message, bot, mesh) }
 
   it "initializes" do

@@ -8,7 +8,7 @@ module FBPi
     end
 
     # If message isn't a hash (numeric, string, etc), wrap it in some keys.
-    def self.from_object(m, priority = 'low')
+    def self.id_object(m, priority = 'low')
       self.new(log: 'Log Message', priority: priority, data: m)
     end
 
