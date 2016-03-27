@@ -1,9 +1,10 @@
 require 'settingslogic'
 module FBPi
   class Settings < Settingslogic
-    DEFAULT = "db/settings.defaults.yml"
+    DEFAULT  = "db/settings.defaults.yml"
     CURRENT  = "db/settings.yml"
-    unless File.file?(CURRENT)
+    if !File.file?(CURRENT)
+      puts "Building settings.yml for first time."
       File.open(CURRENT, "w") { |f| f.write(File.read(DEFAULT)) }
     end
 

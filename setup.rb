@@ -12,6 +12,8 @@ api_url = app.ask(File.read("setup/api_question_text.txt")) do |q|
   q.default = "my.farmbot.io"
 end
 
+FBPi::Settings["webapp_url"] = api_url
+
 did_register = app.agree("Did you register for an account at #{api_url}? (y/n)", true)
 unless did_register
   puts "Please register for an account at #{api_url} before proceeding."

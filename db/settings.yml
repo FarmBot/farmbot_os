@@ -1,30 +1,29 @@
 ---
 defaults:
   secrets_file: secrets.txt
-  mqtt_url: localhost
   mqtt_port: 1883
-  webapp_url: my.farmbot.io
   serial_ports: &1
   - "/dev/ttyUSB0"
   - "/dev/ttyACM0"
 development:
   secrets_file: secrets.txt
-  mqtt_url: localhost
   mqtt_port: 1883
-  webapp_url: localhost:3000
   serial_ports: *1
 test:
   secrets_file: secrets.txt
-  mqtt_url: localhost
   mqtt_port: 1883
-  webapp_url: my.farmbot.io
   serial_ports: *1
 production:
   secrets_file: secrets.txt
-  mqtt_url: localhost
   mqtt_port: 1883
-  webapp_url: my.farmbot.io
   serial_ports:
   - "/dev/ttyUSB0"
   - "/dev/ttyACM0"
-  token: eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0NTkxMTMzNjYsImp0aSI6IjY1MjI1YTAzLTZjMzItNDhiNS1iYzcxLWVkMjQwMzdhZDA3ZCIsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMC8iLCJleHAiOjE0NTk0NTg5NjYsIm1xdHQiOiJsb2NhbGhvc3QiLCJib3QiOiIwODIyNTk5My02NmMyLTRlZWMtYTQ3Ni0yZGJmNWE4MzVjZGQifQ.BCxnB6N13KZ3_HFkXBsY1JeH4pnnSF7RB5X9ZwznZmma0e1uRZBz25jeZ5T7MnKldWV-5rneO4Q1td79ZigSsN1ayvyb2KZw0R4_cBPI4fnG4R5L5jVIuNF4CEM3Yq1SW9Y7yyqZiQ6YUe-2eNtuL_S7nCokJhhd8BdlpAu8lSBsPBs0idjs2RUH3ATA1zcFlW8SwettY7fFCY6frpLelQG0NEctwntPGunJu8gvXm2XoyguLCHkwDb0Q9GrER_4govQbPTx8Nt_oiVWGm8N8xJ7Q4JwtE-_S31fpuMMgGrIeCeCuY8IZhtgHCXmzd9zUZUdeR2RX3wzOKdfu1paoA
+  webapp_url: http://localhost:3000/
+  token: eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0NTkxMTU2MzIsImp0aSI6IjIyOWEwOTE0LTFmOTEtNDRkNC05YzRmLWU2ZjA3NDA1NWUxZSIsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMC8iLCJleHAiOjE0NTk0NjEyMzIsIm1xdHQiOiJsb2NhbGhvc3QiLCJib3QiOiIwODIyNTk5My02NmMyLTRlZWMtYTQ3Ni0yZGJmNWE4MzVjZGQifQ.TQK2eRvKSjiJNEbgZJwXpoegAl4CVNHgnJj4eikvynkk3jsHRGv57XNnH6nccQ1kURdq9LEVeZEZRKR7XQFFszsM8XjVtg_q71qlurxzwMKs9o70cp0PmJX8qnhRlEjnftozJX1sWosfKSwf-hdHFXx-1lK3QoiN_dGowzGoyCdeVxSiQgV1u_Lg6Mu4ABC1E99140MXlkTGTfb-rGBFW7QX7CYWrHMXnqsEyWl6c6kjsO60WyhRXf3njEShFEYl8TYV6oBIWBJFf26EQICOohvsrkC_vsJMEP4_7ql8F1W_YSBeXgkfavjS75wz5j7Zp8FZbatquOAFDP7obO8-rw
+  email: admin@admin.com
+  token_issued_at: 1459115765
+  token_id: 733947ed-ef56-4164-9222-5f81d22afbe9
+  token_expiration: 1459461365
+  mqtt_url: localhost
+  device_uuid: 08225993-66c2-4eec-a476-2dbf5a835cdd

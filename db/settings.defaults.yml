@@ -1,16 +1,13 @@
 # config/application.yml
 defaults: &defaults
   secrets_file: 'secrets.txt'
-  mqtt_url:     'localhost'
-  mqtt_port:    1883
-  webapp_url:   'my.farmbot.io'
+  mqtt_port: 1883
   serial_ports:
     - "/dev/ttyUSB0"
     - "/dev/ttyACM0"
 
 development:
   <<: *defaults
-  webapp_url:  'localhost:3000'
 
 test:
   <<: *defaults
