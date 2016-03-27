@@ -29,22 +29,6 @@ class MQTTAdapter
     @client.publish("bot/#{username}/response", payload.to_json)
   end
 
-  def onmessage
-    puts 'called onmessage()'
-  end
-
-  def onready
-    puts 'called onready()'
-  end
-
-  def onerror
-    puts 'called onerror()'
-  end
-
-  def toggle_debug!(*_wow)
-    puts 'called toggle_debug()'
-  end
-
   private
 
   attr_reader :username, :password

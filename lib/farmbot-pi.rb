@@ -32,7 +32,6 @@ class FarmBotPi
         FB::ArduinoEventMachine.connect(bot)
         start_chore_runner
         broadcast_status
-        # bot.bootstrap
     end
   end
 
@@ -51,6 +50,7 @@ class FarmBotPi
     # TODO: Add onconnect() hook instead of timers. Was having issues with
     # socketio client previously (we dont use it anymore).
     EventMachine::Timer.new(4) do
+      puts "?????"
       sync = FBPi::SyncBot.run(bot: bot).result
       mqtt.emit '*', { method: 'sync_sequence', id: nil, params: sync } if sync
       mqtt.emit '*', FBPi::ReportBotStatus.run!(bot: bot)
