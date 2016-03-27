@@ -13,12 +13,12 @@ module FBPi
     attr_accessor :message, :bot, :mesh
 
     ## general handling messages
-    def initialize(message_hash, bot, mesh)
-      @bot, @mesh, @original_message = bot, mesh, message_hash
-      @message = BuildMeshMessage.run!(message: message_hash)
+    def initialize(mqtt_message, bot, mesh)
+      @bot, @mesh = bot, mesh
+      @message = BuildMeshMessage.run!(message: mqtt_message)
     rescue Mutations::ValidationException => e
       puts "BOT WAS UNABLE TO PARSE MALFORMED MESSAGE! DANGER IMMINENT!"
-      @message = DisposeTrashMessage.run!(message_hash)
+      @message = DisposeTrashMessage.run!(mqtt_message)
     end
 
     def call
