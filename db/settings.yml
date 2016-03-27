@@ -1,0 +1,30 @@
+---
+defaults:
+  secrets_file: secrets.txt
+  mqtt_url: localhost
+  mqtt_port: 1883
+  webapp_url: my.farmbot.io
+  serial_ports: &1
+  - "/dev/ttyUSB0"
+  - "/dev/ttyACM0"
+development:
+  secrets_file: secrets.txt
+  mqtt_url: localhost
+  mqtt_port: 1883
+  webapp_url: localhost:3000
+  serial_ports: *1
+test:
+  secrets_file: secrets.txt
+  mqtt_url: localhost
+  mqtt_port: 1883
+  webapp_url: my.farmbot.io
+  serial_ports: *1
+production:
+  secrets_file: secrets.txt
+  mqtt_url: localhost
+  mqtt_port: 1883
+  webapp_url: my.farmbot.io
+  serial_ports:
+  - "/dev/ttyUSB0"
+  - "/dev/ttyACM0"
+  token: eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0NTkwODY5NDUsImp0aSI6IjZmOGJjYmQ1LWEzOGEtNGIyYi1iYjU0LWQwOWQ4NDJhOGM5MSIsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMC8iLCJleHAiOjE0NTk0MzI1NDUsIm1xdHQiOiJsb2NhbGhvc3QifQ.afCal_iV7hBvGgmYQy5gh4dM6on0LdoEwBWf09YmiqEJG1ZmW3tCSOeiqe0m7wHJuBUMhIYAe0Iu1iVBHVRTiD2qfNS5jRsUKHjXr_SXT4aEffWd6aZKccPiGYjjJfQwEHXjXsxqWN_mWfO-eZ-fXtz4hGWmhzZljESL2ai8MlOScHWm-RptQOd0m7R88Tlw8O1twJM6jaXH0VRprr2Kj8lEs80wSZKUF0qRxyj-9QMMOd9lOrPUasA4Crgtp7tn7aZdMD3A-eylJW7U3nbPiplI-B_1pqvvPhJ2rj3lqxBkmc6bg-6-9xArt_2Ow213SrKh8-77tH6UX7Tm9FwASA

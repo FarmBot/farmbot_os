@@ -1,7 +1,7 @@
 require 'settingslogic'
 module FBPi
   class Settings < Settingslogic
-    source "storage/settings.yml"
+    source "db/settings.yml"
     namespace ENV['FBENV'] || 'production'
 
     def self.save

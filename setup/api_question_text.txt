@@ -1,9 +1,12 @@
 Part 1: Web App Setup
 
-Farmbot uses the 'My Farmbot' service to control devices.
+Farmbot uses the 'My Farmbot' service to manage devices.
 
 Most users use 'my.farmbot.io', but some advanced users chose to manage
 their devices elsewhere.
+
+NOTE FOR ADVANCED USERS: Don't forget to add the port number!
+                         Example: localhost:3000
 
 Which website are you using to control Farmbot?
 Press `enter` to select the default choice:

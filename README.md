@@ -83,11 +83,10 @@ Arduino
 
 You will need to flash your Arduino with custom firmware. For instructions on how to do this, see [the FarmBot-Arduino github page](https://github.com/FarmBot/farmbot-serial)
 
-Author
-------
+Authors
+-------
 
  * Rick Carlino
-
  * Tim Evers
 
 License

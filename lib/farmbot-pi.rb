@@ -10,7 +10,7 @@ require 'pry'
 
 ActiveRecord::Base.establish_connection(
   :adapter => 'sqlite3',
-  :database => './storage/db.sqlite3'
+  :database => './db/db.sqlite3'
 )
 
 class FarmBotPi

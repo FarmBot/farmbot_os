@@ -22,6 +22,7 @@ unless did_register
 end
 begin
   email = app.ask "Enter registration email used at #{api_url}:"
+  raise "Invalid email address" unless email.include?("@")
   password = app.ask("Enter password for Farmbot account #{email} : ") { |q| q.echo = "x" }
   puts "Fetching token..."
   token = FbResource::Client.get_token(email:    email,
@@ -40,5 +41,17 @@ client = FBPi::RPiRestClient.new(token)
 puts "Encrypting data..."
 SecretFile.save_password(client.public_key, email, password)
 
+# = FACTORY RESET ==============================================================
 
-# ====================================================================
+del = app.agree(File.read("setup/factory_reset.txt"), false)
+del_confirm = app.agree("Are you sure?", false)
+
+if (del && del_confirm)
+  puts "reseting...."
+  `rake db:reset`
+  `rm db/*.pstore`
+else
+end
+puts "Installing dependencies"
+`bundle install`
+puts "Setup is complete! You may now run `ruby setup.rb` to initialize the bot."

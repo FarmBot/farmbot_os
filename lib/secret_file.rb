@@ -12,7 +12,7 @@ class SecretFile
 
   def self.save_password(public_key, email, password)
     self
-      .new(public_key, "storage/secrets.txt")
+      .new(public_key, "db/secrets.txt")
       .write({email:    email,
               password: password})
   end
