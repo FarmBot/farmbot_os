@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'active_record_migrations'
-gem 'farmbot-resource', '0.3.0'
+gem 'farmbot-resource', '0.5.0'
 gem 'farmbot-serial', '0.7.6'
 gem 'god'
 gem 'ice_cube'

@@ -31,6 +31,11 @@ class SecretFile
   end
 
   def cipher_text
-    @cipher_text ||= File.file?(file_path) ? Base64.decode64(File.read(file_path)) : ""
+    if @cipher_text || File.file?(file_path)
+      return @cipher_text ||= File.read(file_path)
+    else
+      raise "Attempted to access bot credentials, but none were found. " \
+            "Did you run `ruby setup.rb`?"
+    end
   end
 end

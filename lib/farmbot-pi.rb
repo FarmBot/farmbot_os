@@ -19,8 +19,10 @@ class FarmBotPi
 
   def initialize
     @rest_client    = FBPi::RPiRestClient.new(WEBAPP_URL)
-    @mqtt           = MQTTAdapter.new("JWT_USER", "password123")
-    @status_storage = FBPi::StatusStorage.new("bot_status.pstore")
+    uuid            = @rest_client.device.current["uuid"]
+    token           = @rest_client.config.token
+    @mqtt           = MQTTAdapter.new(uuid, token)
+    @status_storage = FBPi::StatusStorage.new("db/bot_status.pstore")
     @bot = FBPi::BotDecorator.build(@status_storage, @mqtt, @rest_client)
   end
 

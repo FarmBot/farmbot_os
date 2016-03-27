@@ -7,9 +7,6 @@ puts File.read("setup/banner.txt")
 app = HighLine.new
 
 # ====================================================================
-# STEP 1:
-# - Get token
-# - Store "secrets"
 
 api_url = app.ask(File.read("setup/api_question_text.txt")) do |q|
   q.default = "my.farmbot.io"
@@ -20,27 +17,32 @@ unless did_register
   puts "Please register for an account at #{api_url} before proceeding."
   exit
 end
+
 begin
   email = app.ask "Enter registration email used at #{api_url}:"
   raise "Invalid email address" unless email.include?("@")
   password = app.ask("Enter password for Farmbot account #{email} : ") { |q| q.echo = "x" }
-  puts "Fetching token..."
-  token = FbResource::Client.get_token(email:    email,
-                                       password: password,
-                                       url:      api_url)
 rescue => e
   puts "UH OH! Something went wrong while logging in: "
   puts e.message
   puts "Please try again or copy/paste the error to Rick@FarmBot.io"
   retry
 end
+
+puts "Fetching public key..."
+public_key = FBPi::RPiRestClient.public_key(api_url)
+
+puts "Encrypting credentials..."
+credentials = SecretFile.save_password(public_key, email, password)
+
+puts "Requesting token..."
+token = FbResource::Client.get_token(email:    email,
+                                     password: password,
+                                     url:      api_url)
+
 puts "Saving data..."
 FBPi::Settings["token"] = token
 FBPi::Settings.save
-client = FBPi::RPiRestClient.new(token)
-puts "Encrypting data..."
-SecretFile.save_password(client.public_key, email, password)
-
 # = FACTORY RESET ==============================================================
 
 del = app.agree(File.read("setup/factory_reset.txt"), false)
