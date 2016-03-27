@@ -33,6 +33,7 @@ secrets.txt
 config.yml
 coverage/**
 credentials.yml
+db/settings.yml
 doc/*
 doc/**/*
 log/*
