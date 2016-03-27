@@ -1,3 +1,4 @@
+secrets.txt
 *.pstore
 *.gem
 *.rbc
@@ -15,8 +16,8 @@
 /_yardoc/
 /coverage/
 /coverage/
-/db/*.sqlite3
-/db/*.sqlite3-journal
+*.sqlite3
+*.sqlite3-journal
 /doc/
 /InstalledFiles
 /lib/.build
@@ -32,6 +33,7 @@
 config.yml
 coverage/**
 credentials.yml
+db/settings.yml
 doc/*
 doc/**/*
 log/*

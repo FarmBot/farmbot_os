@@ -11,10 +11,19 @@ module FBPi
                    mesh,
                    rest,
                    arduino_klass = FB::Arduino,
-                   serial_obj    = FB::DefaultSerialPort.new(serial_port))
+                   serial_obj    = default_serial_object)
       bot = self.new(arduino_klass.new(serial_port: serial_obj))
       bot.status_storage, bot.mesh, bot.rest_client = status_storage, mesh, rest
       bot
+    end
+
+    def self.default_serial_object
+      begin
+        return FB::DefaultSerialPort.new(serial_port)
+      rescue TypeError => e
+         raise "\n\nSomething went wrong while connecting to the arduino."\
+               " Usually, this is a sign that the USB cable is broke or unplugged.\n"
+      end
     end
 
     def self.serial_port

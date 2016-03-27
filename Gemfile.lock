@@ -39,39 +39,36 @@ GEM
     columnize (0.9.0)
     diff-lcs (1.2.5)
     docile (1.1.5)
-    domain_name (0.5.25)
+    domain_name (0.5.20160310)
       unf (>= 0.0.5, < 1.0.0)
+    em-mqtt (0.0.4)
+      eventmachine
+      mqtt (>= 0.3.0)
     erubis (2.7.0)
-    event_emitter (0.2.5)
     eventmachine (1.0.8)
-    farmbot-resource (0.1.0)
+    farmbot-resource (0.6.0)
       rest-client (~> 1.8)
     farmbot-serial (0.7.6)
       eventmachine
       serialport
     god (0.13.6)
+    highline (1.7.8)
     http-cookie (1.0.2)
       domain_name (~> 0.5)
-    httparty (0.13.7)
-      json (~> 1.8)
-      multi_xml (>= 0.5.2)
     i18n (0.7.0)
     ice_cube (0.13.0)
     json (1.8.3)
     liquid (3.0.6)
     loofah (2.0.2)
       nokogiri (>= 1.5.9)
-    meshruby (0.0.6)
-      eventmachine
-      socket.io-client-simple
     method_source (0.8.2)
-    mime-types (2.6.2)
+    mime-types (2.99.1)
     mini_portile (0.6.2)
     minitest (5.8.0)
-    multi_xml (0.5.5)
+    mqtt (0.3.1)
     mutations (0.7.2)
       activesupport
-    netrc (0.10.3)
+    netrc (0.11.0)
     nokogiri (1.6.6.2)
       mini_portile (~> 0.6.0)
     pry (0.10.1)
@@ -123,11 +120,6 @@ GEM
       simplecov-html (~> 0.10.0)
     simplecov-html (0.10.0)
     slop (3.6.0)
-    socket.io-client-simple (1.1.3)
-      event_emitter
-      httparty
-      json
-      websocket-client-simple (>= 0.2.1)
     sqlite3 (1.3.10)
     thor (0.19.1)
     thread_safe (0.3.5)
@@ -135,23 +127,20 @@ GEM
       thread_safe (~> 0.1)
     unf (0.1.4)
       unf_ext
-    unf_ext (0.0.7.1)
-    websocket (1.2.2)
-    websocket-client-simple (0.2.4)
-      event_emitter
-      websocket
+    unf_ext (0.0.7.2)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   active_record_migrations
-  farmbot-resource (= 0.1.0)
+  em-mqtt
+  farmbot-resource (= 0.6.0)
   farmbot-serial (= 0.7.6)
   god
+  highline
   ice_cube
   liquid
-  meshruby (= 0.0.6)
   mutations (= 0.7.2)
   pry-byebug
   rspec

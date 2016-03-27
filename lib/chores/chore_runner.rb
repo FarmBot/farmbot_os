@@ -25,6 +25,7 @@ module FBPi
     end
 
     def schedules
+      # TODO re-write this as an actual SQL query. This does extra SQL queries.
       @schedules ||= ( Schedule.where(next_time: nil).to_a +           # New
                        Schedule.where("next_time < ?", Time.now).to_a )# Overdue
     end

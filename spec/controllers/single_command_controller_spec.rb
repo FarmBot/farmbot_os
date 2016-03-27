@@ -8,7 +8,7 @@ describe FBPi::SingleCommandController do
   end
   let(:mesh) { FakeMesh.new }
   let(:message) do
-    FBPi::MeshMessage.new(from:   '1234567890',
+    FBPi::MeshMessage.new(id:   '1234567890',
                           method: 'single_command')
   end
   let(:controller) { FBPi::SingleCommandController.new(message, bot, mesh) }

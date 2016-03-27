@@ -1,0 +1,14 @@
+
+================================================================================
+
+FACTORY RESET
+
+If this is your first time running Farmbot (or you are resetting the bot to
+default) you will need to run a "factory reset".
+
+A factory reset will delete all scheduled operations and calibration settings.
+
+It will *not* delete information stored outsdie of the bot (such as WebApp
+settings).
+
+Shall I perform a factory reset of all local settings (schedules, positions)? (y/n)

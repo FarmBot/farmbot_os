@@ -25,7 +25,7 @@ describe FBPi::ExecSequenceController do
   end
 
   let(:message) do
-    FBPi::MeshMessage.new(from: '1234567890',
+    FBPi::MeshMessage.new(id: '1234567890',
                           method: 'exec_sequence',
                           params: example_hash)
   end

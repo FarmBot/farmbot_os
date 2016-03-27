@@ -1,7 +1,9 @@
 # config/application.yml
 defaults: &defaults
-  meshblu_url: 'meshblu.octoblu.com'
-  webapp_url:  'my.farmbot.io'
+  secrets_file: 'secrets.txt'
+  mqtt_url:     'localhost'
+  mqtt_port:    1883
+  webapp_url:   'my.farmbot.io'
   serial_ports:
     - "/dev/ttyUSB0"
     - "/dev/ttyACM0"

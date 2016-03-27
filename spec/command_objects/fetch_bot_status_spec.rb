@@ -19,7 +19,7 @@ describe FBPi::FetchBotStatus do
     expect(obj).to receive(:read_pins)
     expect(obj).to receive(:read_parameters)
     results = obj.execute
-    missing_keys = bot.status.to_h.except(:PINS).keys - results.keys
+    missing_keys = bot.status.to_h.except(:PINS).keys.map(&:downcase) - results.keys
     expect(missing_keys.length).to eq(0)
   end
 end

@@ -1,12 +1,9 @@
 # FarmBot Software for the RaspBerry Pi
 
-This software is responsible for receiving the commands from the 'farmbot cloud backend', execute them and report back the results.
+This software is responsible for receiving the commands from users or the farmbot-web-app. It executes them and report back the results to any subscribed user(s).
 
 Technical Stuff
 ---------------
-
-![Diagram](diagram1.png)
-[Thanks, SketchBoard.me](https://sketchboard.me/RzvYVFEQuREe#/)
 
 * Written in Ruby.
 * Operation scheduling data is stored in SQLite 3.
@@ -86,11 +83,10 @@ Arduino
 
 You will need to flash your Arduino with custom firmware. For instructions on how to do this, see [the FarmBot-Arduino github page](https://github.com/FarmBot/farmbot-serial)
 
-Author
-------
+Authors
+-------
 
  * Rick Carlino
-
  * Tim Evers
 
 License
@@ -118,4 +114,3 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
