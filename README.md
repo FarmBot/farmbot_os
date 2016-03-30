@@ -49,6 +49,7 @@ This gem requires Ruby 2.2. As of this writing, a Pi is loaded with 1.9.3 by def
 To upgrade your ruby version, try this:
 
 ```
+gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
 curl -L https://get.rvm.io | bash -s stable --ruby
 ```
 

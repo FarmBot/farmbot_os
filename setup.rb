@@ -49,7 +49,7 @@ FBPi::Settings.save
 
 del = app.agree(File.read("setup/factory_reset.txt"), false)
 del_confirm = app.agree("Are you sure?", false)
-
+`rvm use 2.3.0`
 if (del && del_confirm)
   puts "reseting...."
   `rake db:reset`
@@ -58,4 +58,4 @@ else
 end
 puts "Installing dependencies"
 `bundle install`
-puts "Setup is complete! You may now run `ruby setup.rb` to initialize the bot."
+puts "Setup is complete! You may now run `ruby farmbot.rb` to initialize the bot."
