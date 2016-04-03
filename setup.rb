@@ -13,7 +13,7 @@ api_url = app.ask(File.read("setup/api_question_text.txt")) do |q|
 end
 
 FBPi::Settings["webapp_url"] = api_url
-
+# TODO: Ability to register using setup.rb
 did_register = app.agree("Did you register for an account at #{api_url}? (y/n)", true)
 unless did_register
   puts "Please register for an account at #{api_url} before proceeding."
@@ -49,7 +49,7 @@ FBPi::Settings.save
 
 del = app.agree(File.read("setup/factory_reset.txt"), false)
 del_confirm = app.agree("Are you sure?", false)
-`rvm use 2.3.0`
+
 if (del && del_confirm)
   puts "reseting...."
   `rake db:reset`
