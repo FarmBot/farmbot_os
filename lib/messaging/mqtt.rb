@@ -12,6 +12,7 @@ class MQTTAdapter
   end
 
   def connect(&blk)
+    puts "Conencting to #{@host}:#{@port}"
     @client = EventMachine::MQTT::ClientConnection.connect(host:     @host,
                                                            port:     @port,
                                                            username: @username,

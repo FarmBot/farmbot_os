@@ -28,6 +28,7 @@ class FarmBotPi
 
   def start
     EM.run do
+        bot.bootstrap
         mqtt.connect { |msg| mqttmessage(msg) }
         FB::ArduinoEventMachine.connect(bot)
         start_chore_runner
@@ -36,6 +37,7 @@ class FarmBotPi
   end
 
   def mqttmessage(msg)
+    puts msg.payload
     FBPi::MessageHandler.call(msg, bot, mqtt)
   end
 

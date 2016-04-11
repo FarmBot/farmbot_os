@@ -22,8 +22,6 @@ module FBPi
       bot.onmessage { |msg| botmessage(msg) }
       bot.onchange  { |msg| diffmessage(msg) }
       bot.onclose   { |msg| close(msg) }
-      # Why `bott`? Because of unexpected behavior in socket-io-client-simple.
-      bott = bot; bot.mesh.socket.on(:ready) { bott.ready }
     end
 
     def pull_up_stored_parameters_from_disk
@@ -42,8 +40,10 @@ module FBPi
     def diffmessage(diff)
       bot.status_storage.update_attributes(:bot, diff)
       # Broadcasting busy status changes result in too much network 'noise'.
-      bot.emit_changes unless (diff.keys == [:BUSY])
-      bot.log "BOT DIF: #{diff}"
+      if (diff.keys != [:BUSY])
+        bot.emit_changes
+        bot.log "BOT DIF: #{diff}"
+      end
     end
 
     def close()

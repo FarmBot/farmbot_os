@@ -58,4 +58,6 @@ else
 end
 puts "Installing dependencies"
 `bundle install`
-puts "Setup is complete! You may now run `ruby farmbot.rb` to initialize the bot."
+puts "Setup is complete! You may now run `ruby farmbot.rb` to start the bot."
+run_confirm = app.agree("Want to run `ruby farmbot.rb` now?", true)
+load 'farmbot.rb' if run_confirm
