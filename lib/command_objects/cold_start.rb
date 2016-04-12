@@ -6,6 +6,8 @@ module FBPi
   # calibration settings). This object is responsible for bootstrapping bot
   # settings when the device is powered up.
   class ColdStart < Mutations::Command
+    IGNORE_LIST = [:idle, :received, :done]
+
     required do
       duck :bot, methods: [:emit_changes, :log, :mesh, :onchange, :onclose,
                            :onmessage, :ready, :status, :status_storage]
@@ -26,23 +28,26 @@ module FBPi
 
     def pull_up_stored_parameters_from_disk
       hash = bot.status_storage.to_h(:bot)
+      teh_codez = FB::Gcode::PARAMETER_DICTIONARY.invert
       bot.status.transaction do |s|
         hash.each { |k,v|
-          param_number = FB::Gcode::PARAMETER_DICTIONARY.invert.fetch(k, k)
+          param_number = teh_codez.fetch(k, k)
           bot.commands.write_parameter(param_number, v) }
       end
     end
 
     def botmessage(msg)
-      bot.log("#{msg.name} #{msg.to_s}") if msg.name != :idle
+      # Callbacks here, yo.
     end
 
     def diffmessage(diff)
       bot.status_storage.update_attributes(:bot, diff)
-      # Broadcasting busy status changes result in too much network 'noise'.
       if (diff.keys != [:BUSY])
+        # Broadcasting busy status changes result in too much network 'noise'.
+        # We could broadcast bot's busy status, but why?
+        bot.mesh.emit '*', FBPi::ReportBotStatus.run!(bot: bot)
         bot.emit_changes
-        bot.log "BOT DIF: #{diff}"
+        bot.log diff
       end
     end
 
