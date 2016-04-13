@@ -45,7 +45,6 @@ module FBPi
       if (diff.keys != [:BUSY])
         # Broadcasting busy status changes result in too much network 'noise'.
         # We could broadcast bot's busy status, but why?
-        bot.mesh.emit '*', FBPi::ReportBotStatus.run!(bot: bot)
         bot.emit_changes
         bot.log diff
       end
