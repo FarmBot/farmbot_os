@@ -38,7 +38,8 @@ private
 
     def pin_info
       [*0..13].inject({}) do |hsh, pin|
-        hsh["pin#{pin}".to_sym] = bot.status.get_pin(pin)
+        val = bot.status.get_pin(pin)
+        hsh["pin#{pin}".to_sym] = val
         hsh
       end
     end

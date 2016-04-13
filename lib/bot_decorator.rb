@@ -49,9 +49,7 @@ module FBPi
     end
 
     def emit_changes
-      mesh.emit '*', method: 'read_status',
-                     params: FBPi::ReportBotStatus.run!(bot: self),
-                     id:     nil
+      mesh.emit '*', id: nil, result: FBPi::ReportBotStatus.run!(bot: self)
     end
 
     # This method seems to be violating some sort of intergalactic law. I don't

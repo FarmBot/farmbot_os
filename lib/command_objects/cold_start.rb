@@ -26,23 +26,25 @@ module FBPi
 
     def pull_up_stored_parameters_from_disk
       hash = bot.status_storage.to_h(:bot)
+      param_names = FB::Gcode::PARAMETER_DICTIONARY.invert
       bot.status.transaction do |s|
         hash.each { |k,v|
-          param_number = FB::Gcode::PARAMETER_DICTIONARY.invert.fetch(k, k)
+          param_number = param_names.fetch(k, k)
           bot.commands.write_parameter(param_number, v) }
       end
     end
 
     def botmessage(msg)
-      bot.log("#{msg.name} #{msg.to_s}") if msg.name != :idle
+      # Callbacks here, yo.
     end
 
     def diffmessage(diff)
       bot.status_storage.update_attributes(:bot, diff)
-      # Broadcasting busy status changes result in too much network 'noise'.
       if (diff.keys != [:BUSY])
+        # Broadcasting busy status changes result in too much network 'noise'.
+        # We could broadcast bot's busy status, but why?
         bot.emit_changes
-        bot.log "BOT DIF: #{diff}"
+        bot.log diff
       end
     end
 

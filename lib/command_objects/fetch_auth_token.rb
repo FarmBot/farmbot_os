@@ -8,7 +8,7 @@ module FBPi
     end
 
     def execute
-      binding.pry
+      raise "TODO : Build this feature for when tokens expire!"
     end
   end
 end
