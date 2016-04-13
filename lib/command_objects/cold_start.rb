@@ -6,8 +6,6 @@ module FBPi
   # calibration settings). This object is responsible for bootstrapping bot
   # settings when the device is powered up.
   class ColdStart < Mutations::Command
-    IGNORE_LIST = [:idle, :received, :done]
-
     required do
       duck :bot, methods: [:emit_changes, :log, :mesh, :onchange, :onclose,
                            :onmessage, :ready, :status, :status_storage]
@@ -28,10 +26,10 @@ module FBPi
 
     def pull_up_stored_parameters_from_disk
       hash = bot.status_storage.to_h(:bot)
-      teh_codez = FB::Gcode::PARAMETER_DICTIONARY.invert
+      param_names = FB::Gcode::PARAMETER_DICTIONARY.invert
       bot.status.transaction do |s|
         hash.each { |k,v|
-          param_number = teh_codez.fetch(k, k)
+          param_number = param_names.fetch(k, k)
           bot.commands.write_parameter(param_number, v) }
       end
     end
