@@ -12,7 +12,7 @@ gem 'sqlite3'
 gem 'em-mqtt'
 gem 'highline' # For setup.rb.
 group :test, :development do
-  gem 'pry-byebug'
+  # gem 'pry-byebug'
   gem 'rspec'
   gem 'simplecov'
 end
