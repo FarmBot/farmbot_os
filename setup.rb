@@ -1,5 +1,4 @@
 require 'highline'
-require 'pry'
 require_relative './lib/settings'
 require './lib/rest_client'
 require './lib/secret_file'

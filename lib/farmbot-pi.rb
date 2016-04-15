@@ -6,7 +6,6 @@ require_relative 'models/status_storage.rb'
 require_relative 'bot_decorator'
 require_relative 'settings'
 require_relative 'rest_client'
-require 'pry'
 
 ActiveRecord::Base.establish_connection(
   :adapter => 'sqlite3',
