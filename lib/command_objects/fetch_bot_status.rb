@@ -18,18 +18,7 @@ module FBPi
     def execute
       read_pins
       read_parameters
-      read_network_info
       FBPi::ReportBotStatus.run!(bot: bot)
-    end
-
-    def read_network_info
-      network_info = {}
-      # Usually, begin..rescue nil end is sloppy. In this case, it doesnt matter
-      # It's not important enough to crash the program over. It's a convenience.
-      begin network_info[:IP_ADDRESS] = `curl http://ipecho.net/plain`[0...39]
-      rescue nil
-      end
-      bot.status_storage.update_attributes(:pi, network_info)
     end
 
     def read_pins

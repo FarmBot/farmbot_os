@@ -23,6 +23,7 @@ secrets.txt
 /lib/.build
 /lib/bundler/man/
 /log/*.log
+*.log
 /pkg/
 /rdoc/
 /spec/reports/
