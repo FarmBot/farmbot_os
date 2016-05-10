@@ -1,6 +1,6 @@
 # FarmBot Software for the RaspBerry Pi
 
-This software is responsible for receiving the commands from users or the farmbot-web-app. It executes them and report back the results to any subscribed user(s).
+The "brains" of Farmbot. Responsible for receiving the commands from users or the farmbot-web-app. It executes them and report back the results to any subscribed user(s).
 
 Technical Stuff
 ---------------
@@ -8,7 +8,8 @@ Technical Stuff
 * Written in Ruby.
 * Operation scheduling data is stored in SQLite 3.
 * Device status info, such as X, Y, Z and calibration data is stored via [PStore](http://ruby-doc.org/stdlib-1.9.2/libdoc/pstore/rdoc/PStore.html)
-* Messaging happens via [MeshBlu](https://github.com/octoblu/meshblu) (machine instant messaging)
+* Backups to the cloud provided by [Farmbot Web API](https://github.com/farmbot/farmbot-web-api).
+* Messaging happens via [MQTT](http://mqtt.org/).
 * Communicates with Arduino hardware using the [farmbot-serial gem](https://github.com/FarmBot/farmbot-serial)
 
 # Running in production
@@ -44,7 +45,13 @@ Installation
 Install Ruby 2.2
 ----------------
 
-This gem requires Ruby 2.2. As of this writing, a Pi is loaded with 1.9.3 by default.
+This gem requires Ruby 2.2 minimum. Later versions will work fine as well. As of this writing, a Pi is loaded with 1.9.3 by default.
+
+To remove the old version of Ruby that comes with most RPi distributions:
+
+```
+sudo apt-get remove ruby* --purge
+```
 
 To upgrade your ruby version, try this:
 
@@ -53,12 +60,13 @@ gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB8
 curl -L https://get.rvm.io | bash -s stable --ruby
 ```
 
-This will take about 2 hours on a standard pi.
+This will take about 2 hours a standard Raspberry Pi 2.
 
 Raspberry PI
 ------------
 
 Update the RPi, install ruby and the arduino IDE
+
 ```
 sudo apt-get update
 sudo apt-get install git-core sqlite3 arduino
@@ -75,12 +83,22 @@ rake db:setup
 ruby farmbot.rb
 ```
 
-At this point, your MeshBlu credentials can be found in `credentials.yml`
+Setup the device:
+
+Go to the [My Farmbot Website](http://my.farmbot.io) (or your private server) and sign up for a Farmbot account.
+
+Then from within the `farmbot-raspberry-pi-controller` project directory run:
+
+```bash
+ruby setup.rb
+```
+
+Report problems:
+
+We can't fix issues we don't know about. If you are having issues with setup, please [raise an issue with us](https://github.com/FarmBot/farmbot-raspberry-pi-controller/issues/new). This helps us identify confusing steps, common setup issues and other problems.
 
 Arduino
 -------
-
-**If your device doesn't use `/dev/ttyACM0`**: Write the name of your serial device (usually /dev/ttyUSB0) in `serial_port.txt`.
 
 You will need to flash your Arduino with custom firmware. For instructions on how to do this, see [the FarmBot-Arduino github page](https://github.com/FarmBot/farmbot-serial)
 
@@ -95,7 +113,7 @@ License
 
 The MIT License
 
-Copyright (c) 2015 Farmbot Project
+Copyright (c) 2016 Farmbot Project
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
