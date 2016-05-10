@@ -60,13 +60,6 @@ describe FBPi::ColdStart do
     expect(goodbye).to include("Bot offline at #{Date.today}")
   end
 
-  it 'does not log idle messages' do
-    msg = FB::Gcode.new { "R00 A1" }
-    logger = bot.logger
-    obj.botmessage(msg)
-    expect(logger.message).to eq("")
-  end
-
   it 'transmits status diff messages' do
     obj.diffmessage(X: 123)
     expect(bot.status_storage.to_h(:bot)[:X]).to eq(123)

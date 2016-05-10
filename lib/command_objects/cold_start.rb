@@ -19,7 +19,7 @@ module FBPi
     end
 
     def set_event_handlers
-      bot.onmessage { |msg| botmessage(msg) }
+      # bot.onmessage { |msg| /# not needed anymore, except for debugging #/ } 
       bot.onchange  { |msg| diffmessage(msg) }
       bot.onclose   { |msg| close(msg) }
     end
@@ -32,10 +32,6 @@ module FBPi
           param_number = param_names.fetch(k, k)
           bot.commands.write_parameter(param_number, v) }
       end
-    end
-
-    def botmessage(msg)
-      # Callbacks here, yo.
     end
 
     def diffmessage(diff)
