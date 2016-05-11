@@ -13,7 +13,10 @@ module FBPi
     end
 
     def execute
+      start = Time.now
       self.send(message_key)
+      finish = Time.now
+      puts "Executed #{message_key} after #{(finish - start) * 1000.0} ms"
     rescue UnsafeCommand; unknown
     end
 
