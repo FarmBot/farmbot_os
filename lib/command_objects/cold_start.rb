@@ -19,7 +19,7 @@ module FBPi
     end
 
     def set_event_handlers
-      # bot.onmessage { |msg| /# not needed anymore, except for debugging #/ } 
+      # bot.onmessage { |msg| /# not needed anymore, except for debugging #/ }
       bot.onchange  { |msg| diffmessage(msg) }
       bot.onclose   { |msg| close(msg) }
     end
