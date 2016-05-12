@@ -74,7 +74,8 @@ module FBPi
       # Possibly relevant: http://www.rubydoc.info/github/igrigorik
       #                    /em-synchrony/EventMachine%2FSynchrony.sleep
       # -- rickcarlino
-      sleep((step.value.to_f || 0) / 1000.0)
+      time = step.value.to_f.round.to_i
+      bot.commands.wait(time)
     end
   end
 end
