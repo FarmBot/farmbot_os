@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 gem 'active_record_migrations'
 gem 'farmbot-resource', '0.6.0' # REST API client for farmbot.
-gem 'farmbot-serial', '0.7.7'   # Arduino communication.
+gem 'farmbot-serial', '1.1.1'   # Arduino communication.
 gem 'god'                       # For autorestarting on crashes and stuff.
 gem 'ice_cube'                  # For scheduling of pre-programmed schedule
 gem 'liquid'                    # For custom programming of schedules.

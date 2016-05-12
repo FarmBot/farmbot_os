@@ -44,7 +44,7 @@ GEM
     eventmachine (1.0.8)
     farmbot-resource (0.6.0)
       rest-client (~> 1.8)
-    farmbot-serial (0.7.6)
+    farmbot-serial (1.1.1)
       eventmachine
       serialport
     god (0.13.6)
@@ -123,7 +123,7 @@ DEPENDENCIES
   active_record_migrations
   em-mqtt
   farmbot-resource (= 0.6.0)
-  farmbot-serial (= 0.7.6)
+  farmbot-serial (= 1.1.1)
   god
   highline
   ice_cube
@@ -135,4 +135,4 @@ DEPENDENCIES
   sqlite3
 
 BUNDLED WITH
-   1.10.6
+   1.12.1
