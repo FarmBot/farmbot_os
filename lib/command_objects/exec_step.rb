@@ -68,14 +68,7 @@ module FBPi
     end
 
     def wait
-      # TODO: Yes, this is horrible. Ideally, I would like to use Fibers that
-      # can be paused / resumed using EventMachine timers, but I am holding off
-      # on that for now. Pull requests are welcome. Contact me for details.
-      # Possibly relevant: http://www.rubydoc.info/github/igrigorik
-      #                    /em-synchrony/EventMachine%2FSynchrony.sleep
-      # -- rickcarlino
-      time = step.value.to_f.round.to_i
-      bot.commands.wait(time)
+      bot.commands.wait(step.value.to_f.round.to_i)
     end
   end
 end

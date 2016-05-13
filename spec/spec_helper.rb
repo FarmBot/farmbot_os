@@ -1,6 +1,6 @@
 require 'simplecov'
 SimpleCov.start { add_filter "/spec/" }
-require 'pry'
+
 Dir['spec/fakes/**/*.rb'].each { |file| load file }
 require_relative '../lib/farmbot-pi'
 require_relative '../lib/controllers/exec_sequence_controller'

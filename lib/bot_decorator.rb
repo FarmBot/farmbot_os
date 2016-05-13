@@ -52,13 +52,11 @@ module FBPi
       mesh.emit '*', id: nil, result: FBPi::ReportBotStatus.run!(bot: self)
     end
 
-    # This method seems to be violating some sort of intergalactic law. I don't
-    # like the idea of the decorator holding on to logic related to rendering of
-    # liquid templates (http://liquidmarkup.org/).
+    # This method violates intergalactic law.
     def template_variables
       status
         .to_h
-        .merge('time' => Time.now)
+        .merge('time' => Time.now.to_i)
         .reduce({}){ |a, (b, c)| a[b.to_s.downcase] = c; a}
         .tap { |h| h['pins'].map { |k, v| h["pin#{k}"] = v.to_s } }
     end

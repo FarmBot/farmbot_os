@@ -15,7 +15,11 @@ module FBPi
     end
 
     def execute
-      sequence.exec(bot) if evaluates_to_true
+      # String eval via liquid templates for safety / sandboxing.
+      expression = lhs+operator+rhs
+      test = "{% if #{expression} %}true{% else %}false{% endif %}"
+      outcome = Liquid::Template.parse(test).render({})
+      outcome == "true"
     end
 
 private
