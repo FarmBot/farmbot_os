@@ -51,6 +51,7 @@ module FBPi
     end
 
     def if_statement
+      try_sync # Ensure we have latests sequences before calling sub sequences.
       IfStatement.run! lhs:      bot.template_variables[step.variable],
                        rhs:      step.value,
                        operator: step.operator,
@@ -69,6 +70,15 @@ module FBPi
 
     def wait
       bot.commands.wait(step.value.to_f.round.to_i)
+    end
+
+    # Attempts to grab latest sequences. Doesn't crash if the network is down.
+    def try_sync
+      begin
+        SyncBot.run!(bot: bot)
+      rescue
+        puts 'WARN: Could not sync sequences.'
+      end
     end
   end
 end
