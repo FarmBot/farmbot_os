@@ -54,9 +54,9 @@ module FBPi
     def if_statement
       try_sync # Ensure we have latests sequences before calling sub sequences.
       params = {
-        lhs:      bot.template_variables[step.variable],
-        rhs:      step.value,
-        operator: step.operator,
+        lhs:      bot.template_variables[step.variable].to_s,
+        rhs:      step.value.to_s,
+        operator: step.operator.to_s,
         bot:      bot,
         sequence: Sequence.find_by(id_on_web_app: step.sub_sequence_id)
       }
