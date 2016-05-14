@@ -1,4 +1,3 @@
-require 'pry'
 require 'mutations'
 
 module FBPi

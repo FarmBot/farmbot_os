@@ -1,5 +1,6 @@
 source 'https://rubygems.org'
 
+gem 'eventmachine', '1.2.0.1'
 gem 'active_record_migrations'
 gem 'farmbot-resource', '0.6.0' # REST API client for farmbot.
 gem 'farmbot-serial', '1.1.1'   # Arduino communication.

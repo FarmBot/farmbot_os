@@ -25,7 +25,7 @@ private
       expression = lhs+operator+rhs
       test = "{% if #{expression} %}true{% else %}false{% endif %}"
       outcome = Liquid::Template.parse(test).render({}) == true
-      puts "sequence #{sequence.name} WILL execute" if outcome
+      puts "\n\nsequence #{sequence.name} WILL execute\n" if outcome
       return outcome
     end
   end

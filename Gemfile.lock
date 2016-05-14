@@ -41,7 +41,7 @@ GEM
       eventmachine
       mqtt (>= 0.3.0)
     erubis (2.7.0)
-    eventmachine (1.0.8)
+    eventmachine (1.2.0.1)
     farmbot-resource (0.6.0)
       rest-client (~> 1.8)
     farmbot-serial (1.1.1)
@@ -122,6 +122,7 @@ PLATFORMS
 DEPENDENCIES
   active_record_migrations
   em-mqtt
+  eventmachine (= 1.2.0.1)
   farmbot-resource (= 0.6.0)
   farmbot-serial (= 1.1.1)
   god
