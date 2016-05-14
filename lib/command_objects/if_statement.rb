@@ -24,12 +24,14 @@ private
       # String eval via liquid templates for safety / sandboxing.
       expression = lhs+operator+rhs
       test = "{% if #{expression} %}true{% else %}false{% endif %}"
-      outcome = Liquid::Template.parse(test).render({}) == true
+      outcome = Liquid::Template.parse(test).render({}).strip == "true"
+      puts "\n\n #{ test } \n"
       if outcome
         puts "\n\nsequence #{sequence.name} WILL execute\n"
       else
         puts "\n\nsequence #{sequence.name} WILL NOT execute\n"
       end
+
       return outcome
     end
   end
