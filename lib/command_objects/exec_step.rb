@@ -1,3 +1,4 @@
+require 'pry'
 require 'mutations'
 
 module FBPi
@@ -52,12 +53,14 @@ module FBPi
 
     def if_statement
       try_sync # Ensure we have latests sequences before calling sub sequences.
-      IfStatement.run! lhs:      bot.template_variables[step.variable],
-                       rhs:      step.value,
-                       operator: step.operator,
-                       bot:      bot,
-                       sequence: Sequence.find_by(id_on_web_app:
-                                                  step.sub_sequence_id)
+      params = {
+        lhs:      bot.template_variables[step.variable],
+        rhs:      step.value,
+        operator: step.operator,
+        bot:      bot,
+        sequence: Sequence.find_by(id_on_web_app: step.sub_sequence_id)
+      }
+      IfStatement.run!(params)
     end
 
     def unknown
