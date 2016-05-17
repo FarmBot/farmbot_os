@@ -6,6 +6,7 @@ module FBPi
   # opposed to scheduling it for execution at a later time).
   class ExecSequenceController < AbstractController
     def call
+      sequence.try_sync(bot)
       sequence.exec(bot)
       reply "exec_sequence", params
     rescue Mutations::ValidationException => error

@@ -1,3 +1,4 @@
+require 'pry'
 module FBPi
   # an if_statement is one of the many `message_type`s that a step can have.
   # This command uses relevant information in an if statement to execute a
@@ -15,6 +16,7 @@ module FBPi
     end
 
     def execute
+      binding.pry
       sequence.exec(bot) if evaluates_to_true
     end
 
