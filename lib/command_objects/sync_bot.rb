@@ -9,6 +9,7 @@ module FBPi
     required { duck :bot, methods: [:rest_client] }
 
     def execute
+      puts "Attempting to sync now..."
       api = bot.rest_client
       ActiveRecord::Base.transaction do
        [Schedule, Sequence, Step].map(&:destroy_all)

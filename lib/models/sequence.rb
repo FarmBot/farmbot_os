@@ -10,4 +10,12 @@ class Sequence < ActiveRecord::Base
       .sort{ |a, b| a.position <=> b.position}
       .map { |step| step.execute(bot) }
   end
+
+  def try_exec(bot)
+    begin
+      SyncBot.run!(bot: bot)
+    rescue
+      puts 'WARN: Could not sync sequences.'
+    end
+  end
 end
