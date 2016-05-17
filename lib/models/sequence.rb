@@ -15,8 +15,10 @@ class Sequence < ActiveRecord::Base
   def try_sync(bot)
     begin
       SyncBot.run!(bot: bot)
-    rescue
+    rescue => e
       puts 'WARN: Could not sync sequences.'
+      puts e.class
+      puts e.message
     end
   end
 end
