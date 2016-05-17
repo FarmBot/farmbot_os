@@ -6,12 +6,13 @@ class Sequence < ActiveRecord::Base
   has_many :steps, dependent: :destroy
 
   def exec(bot)
+    try_sync(bot)
     steps
       .sort{ |a, b| a.position <=> b.position}
       .map { |step| step.execute(bot) }
   end
 
-  def try_exec(bot)
+  def try_sync(bot)
     begin
       SyncBot.run!(bot: bot)
     rescue

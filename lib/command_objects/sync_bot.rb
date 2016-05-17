@@ -18,6 +18,7 @@ module FBPi
         plants:    api.plants.fetch.map    { |s| CreatePlant.run!(s) }.count,
         steps:     Step.count }.tap { |d| after_sync(d) }
       end
+      puts "Done with sync..."
     rescue FbResource::FetchError => e
       add_error :web_server, :fetch_error, e.message
     end
