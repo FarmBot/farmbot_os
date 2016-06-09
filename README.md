@@ -80,7 +80,7 @@ cd farmbot-raspberry-pi-controller
 gem install bundler
 bundle install
 rake db:setup
-ruby farmbot.rb
+ruby setup.rb
 ```
 
 Setup the device:
