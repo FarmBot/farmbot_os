@@ -44,7 +44,7 @@ GEM
     eventmachine (1.2.0.1)
     farmbot-resource (0.6.0)
       rest-client (~> 1.8)
-    farmbot-serial (1.1.1)
+    farmbot-serial (1.1.2)
       eventmachine
       serialport
     god (0.13.6)
@@ -124,7 +124,7 @@ DEPENDENCIES
   em-mqtt
   eventmachine (= 1.2.0.1)
   farmbot-resource (= 0.6.0)
-  farmbot-serial (= 1.1.1)
+  farmbot-serial (= 1.1.2)
   god
   highline
   ice_cube
