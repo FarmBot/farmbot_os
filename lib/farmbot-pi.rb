@@ -40,6 +40,7 @@ class FarmBotPi
   end
 
   def start_chore_runner
+    EventMachine::PeriodicTimer.new(10) { bot.log("Hello, world!") }
     EventMachine::PeriodicTimer.new(FBPi::ChoreRunner::INTERVAL) do
       # TODO: Add chore to check validity of session token / refresh as needed.
       FBPi::ChoreRunner.new(bot).run

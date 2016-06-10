@@ -10,12 +10,12 @@ module FBPi
     # If message isn't a hash (numeric, string, etc), wrap it in some keys.
     # TODO: This method needs to go away forever.
     def self.from_object(m, priority = 'low')
-      self.new(log: 'Log Message', priority: priority, data: m)
+      self.new(name: 'Log Message', priority: priority, data: m)
     end
 
     # If message isn't a hash (numeric, string, etc), wrap it in some keys.
     def self.id_object(m, priority = 'low')
-      self.new(log: 'Log Message', priority: priority, data: m)
+      self.new(name: 'Log Message', priority: priority, data: m)
     end
 
     def publish(mesh)
