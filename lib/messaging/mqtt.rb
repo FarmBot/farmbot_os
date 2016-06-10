@@ -23,7 +23,7 @@ class MQTTAdapter
   end
 
   def data(payload)
-    @client.publish("bot/#{username}/data", payload.to_json)
+    @client.publish("bot/#{username}/notification", payload.to_json)
   end
 
   def emit(_channel, payload)

@@ -6,6 +6,11 @@ module FBPi
   # calibration settings). This object is responsible for bootstrapping bot
   # settings when the device is powered up.
   class ColdStart < Mutations::Command
+    DEFAULT_PARAMS = { # Default settings for hardware. 
+                       MOVEMENT_AXIS_NR_STEPS_X: 222,
+                       MOVEMENT_AXIS_NR_STEPS_Y: 222,
+                       MOVEMENT_AXIS_NR_STEPS_Z: 222 }
+
     required do
       duck :bot, methods: [:emit_changes, :log, :mesh, :onchange, :onclose,
                            :onmessage, :ready, :status, :status_storage]
@@ -25,7 +30,7 @@ module FBPi
     end
 
     def pull_up_stored_parameters_from_disk
-      hash = bot.status_storage.to_h(:bot)
+      hash = DEFAULT_PARAMS.merge(bot.status_storage.to_h(:bot))
       param_names = FB::Gcode::PARAMETER_DICTIONARY.invert
       bot.status.transaction do |s|
         hash.each { |k,v|
@@ -40,7 +45,6 @@ module FBPi
         # Broadcasting busy status changes result in too much network 'noise'.
         # We could broadcast bot's busy status, but why?
         bot.emit_changes
-        bot.log diff
       end
     end
 
