@@ -45,7 +45,8 @@ module FBPi
       unless message.is_a?(Hash)
         message = {name: 'Log Message', priority: priority, data: message}
       end
-      TelemetryMessage.build(message).publish(@mesh)
+      # TODO add X,Y,Z and timestamp to all outbound logs.
+      mesh.emit '*', id: nil, result: message
     end
 
     def emit_changes
