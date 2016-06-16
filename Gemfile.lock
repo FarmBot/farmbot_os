@@ -37,7 +37,7 @@ GEM
     docile (1.1.5)
     domain_name (0.5.20160310)
       unf (>= 0.0.5, < 1.0.0)
-    em-mqtt (0.0.4)
+    em-mqtt (0.0.5)
       eventmachine
       mqtt (>= 0.3.0)
     erubis (2.7.0)
@@ -121,7 +121,7 @@ PLATFORMS
 
 DEPENDENCIES
   active_record_migrations
-  em-mqtt
+  em-mqtt (~> 0.0.5)
   eventmachine (= 1.2.0.1)
   farmbot-resource (= 0.6.0)
   farmbot-serial (= 1.1.2)
@@ -136,4 +136,4 @@ DEPENDENCIES
   sqlite3
 
 BUNDLED WITH
-   1.12.1
+   1.12.5

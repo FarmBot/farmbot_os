@@ -11,7 +11,7 @@ gem 'mutations', '0.7.2'        # for e-v-e-r-y-t-h-i-n-g
 gem 'settingslogic'             # For settings.yml file
 gem 'highline'                  # For setup.rb.
 gem 'sqlite3'                   # For storing schedule data locally.
-gem 'em-mqtt'                   # For browser <--> device communication.
+gem 'em-mqtt', '~> 0.0.5'       # For browser <--> device communication.
 
 group :test, :development do
   gem 'rspec'

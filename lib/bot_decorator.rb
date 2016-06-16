@@ -40,13 +40,7 @@ module FBPi
     end
 
     def log(message, priority = 'low')
-      # Log to screen
-      __getobj__.log(message)
-      unless message.is_a?(Hash)
-        message = {name: 'Log Message', priority: priority, data: message}
-      end
-      # TODO add X,Y,Z and timestamp to all outbound logs.
-      mesh.emit '*', id: nil, result: message
+      mesh.emit '*', id: nil, result: TelemetryMessage.build(message.to_s, status: self.status.to_h)
     end
 
     def emit_changes
