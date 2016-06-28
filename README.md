@@ -100,7 +100,7 @@ We can't fix issues we don't know about. If you are having issues with setup, pl
 Arduino
 -------
 
-You will need to flash your Arduino with custom firmware. For instructions on how to do this, see [the FarmBot-Arduino github page](https://github.com/FarmBot/farmbot-serial)
+You will need to flash your Arduino with custom firmware. For instructions on how to do this, see [the FarmBot-Arduino github page](https://github.com/FarmBot/farmbot-arduino-firmware)
 
 Authors
 -------
