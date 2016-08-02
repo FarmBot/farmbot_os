@@ -60,9 +60,9 @@ gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB8
 curl -L https://get.rvm.io | bash -s stable --ruby
 ```
 
-This will take about 2 hours a standard Raspberry Pi 2.
+This will take about 2 hours a standard Raspberry Pi 2, or about 20 minutes on a Raspberry Pi 3.
 
-Raspberry PI
+Raspberry Pi
 ------------
 
 Update the RPi, install ruby and the arduino IDE
@@ -99,10 +99,9 @@ cd farmbot-raspberry-pi-controller
 gem install bundler
 bundle install
 rake db:setup
-ruby setup.rb
 ```
 
-Setup the device:
+Set up the device:
 
 Go to the [My Farmbot Website](http://my.farmbot.io) (or your private server) and sign up for a Farmbot account.
 
