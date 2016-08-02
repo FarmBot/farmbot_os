@@ -74,27 +74,8 @@ sudo apt-get install git-core sqlite3 arduino
 
 Clone, install and run:
 
-**NOTE:** We tag releases when they are stable. The latest version (on master) is not guaranteed to be stable.
-
-See [releases](https://github.com/FarmBot/farmbot-raspberry-pi-controller/releases) to find a stable release.
-
-**OPTION A:** For less stable "edge" version:
-
 ```
-
-git clone  https://github.com/FarmBot/farmbot-raspberry-pi-controller
-
-```
-
-**OPTION B:** For stable release 1.1:
-
-```
-git clone -b 'alpha-1.1' --single-branch  https://github.com/FarmBot/farmbot-raspberry-pi-controller
-```
-
-**REQUIRED FOR EITHER:**
-
-```
+git clone https://github.com/FarmBot/farmbot-raspberry-pi-controller
 cd farmbot-raspberry-pi-controller
 gem install bundler
 bundle install
