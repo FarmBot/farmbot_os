@@ -12,7 +12,8 @@ Technical Stuff
 * Messaging happens via [MQTT](http://mqtt.org/).
 * Communicates with Arduino hardware using the [farmbot-serial gem](https://github.com/FarmBot/farmbot-serial)
 
-# Running in production
+Running in production
+---------------------
 
 ```
 bundle install
@@ -32,18 +33,24 @@ ruby farmbot.rb
 
 **You can find your device credentials inside of `credentials.yml`**
 
-# Running on Local
+Running on Local
+----------------
 
 If you're running your own local [farmbot web app](https://github.com/farmbot/farmbot-web-app)
 
 `FBENV=development ruby farmbot.rb`
 
 
-Installation
-============
+Installation on Raspberry Pi
+----------------------------
 
-Install Ruby 2.2
-----------------
+Update the RPi:
+
+```
+sudo apt-get update
+```
+
+### Install Ruby 2.2
 
 This gem requires Ruby 2.2 minimum. Later versions will work fine as well. As of this writing, a Pi is loaded with 1.9.3 by default.
 
@@ -62,17 +69,7 @@ curl -L https://get.rvm.io | bash -s stable --ruby
 
 This will take about 2 hours a standard Raspberry Pi 2, or about 20 minutes on a Raspberry Pi 3.
 
-Raspberry Pi
-------------
-
-Update the RPi, install ruby and the arduino IDE
-
-```
-sudo apt-get update
-sudo apt-get install git-core sqlite3 arduino
-```
-
-Clone, install and run:
+### Clone, install and run
 
 **NOTE:** We tag releases when they are stable. The latest version (on master) is not guaranteed to be stable.
 
