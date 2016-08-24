@@ -44,7 +44,9 @@ If you're running your own local [farmbot web app](https://github.com/farmbot/fa
 Installation on Raspberry Pi
 ----------------------------
 
-Update the RPi:
+Installation on a Raspberry Pi 3 will take about 30 minutes.
+
+#### Update the RPi:
 
 ```
 sudo apt-get update
@@ -78,9 +80,7 @@ See [releases](https://github.com/FarmBot/farmbot-raspberry-pi-controller/releas
 **OPTION A:** For less stable "edge" version:
 
 ```
-
 git clone  https://github.com/FarmBot/farmbot-raspberry-pi-controller
-
 ```
 
 **OPTION B:** For stable release 1.1:
@@ -89,7 +89,7 @@ git clone  https://github.com/FarmBot/farmbot-raspberry-pi-controller
 git clone -b 'alpha-1.1' --single-branch  https://github.com/FarmBot/farmbot-raspberry-pi-controller
 ```
 
-**REQUIRED FOR EITHER:**
+**REQUIRED FOR EITHER:** (takes about 10 minutes on an RPi 3)
 
 ```
 cd farmbot-raspberry-pi-controller
@@ -98,7 +98,7 @@ bundle install
 rake db:setup
 ```
 
-Set up the device:
+#### Set up the device:
 
 Go to the [My Farmbot Website](http://my.farmbot.io) (or your private server) and sign up for a Farmbot account.
 
@@ -108,7 +108,7 @@ Then from within the `farmbot-raspberry-pi-controller` project directory run:
 ruby setup.rb
 ```
 
-Report problems:
+#### Report problems:
 
 We can't fix issues we don't know about. If you are having issues with setup, please [raise an issue with us](https://github.com/FarmBot/farmbot-raspberry-pi-controller/issues/new). This helps us identify confusing steps, common setup issues and other problems.
 
