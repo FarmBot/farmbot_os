@@ -17,22 +17,12 @@ Running in production
 
 ```
 bundle install
-```
-
-If you don't care about autorestarts, just run:
-
-```
 ruby farmbot.rb
 ```
 
-<<<<<<< HEAD
-# Running on Local
-=======
-**You can find your device credentials inside of `credentials.yml`**
 
 Running on Local
 ----------------
->>>>>>> 3a5bff8964f3e6320380103fbd91ab83cbf97fb1
 
 If you're running your own local [farmbot web app](https://github.com/farmbot/farmbot-web-app)
 
@@ -44,7 +34,7 @@ Installation on Raspberry Pi
 
 Installation on a Raspberry Pi 3 will take about 30 minutes.
 
-#### Update the RPi:
+### Update the RPi
 
 ```
 sudo apt-get update
@@ -71,7 +61,6 @@ This will take about 2 hours a standard Raspberry Pi 2, or about 20 minutes on a
 
 ### Clone, install and run
 
-<<<<<<< HEAD
 =======
 **NOTE:** We tag releases when they are stable. The latest version (on master) is not guaranteed to be stable.
 
@@ -91,7 +80,6 @@ git clone -b 'alpha-1.1' --single-branch  https://github.com/FarmBot/farmbot-ras
 
 **REQUIRED FOR EITHER:** (takes about 10 minutes on an RPi 3)
 
->>>>>>> 3a5bff8964f3e6320380103fbd91ab83cbf97fb1
 ```
 git clone https://github.com/FarmBot/farmbot-raspberry-pi-controller
 cd farmbot-raspberry-pi-controller
