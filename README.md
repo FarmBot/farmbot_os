@@ -12,7 +12,8 @@ Technical Stuff
 * Messaging happens via [MQTT](http://mqtt.org/).
 * Communicates with Arduino hardware using the [farmbot-serial gem](https://github.com/FarmBot/farmbot-serial)
 
-# Running in production
+Running in production
+---------------------
 
 ```
 bundle install
@@ -24,18 +25,32 @@ If you don't care about autorestarts, just run:
 ruby farmbot.rb
 ```
 
+<<<<<<< HEAD
 # Running on Local
+=======
+**You can find your device credentials inside of `credentials.yml`**
+
+Running on Local
+----------------
+>>>>>>> 3a5bff8964f3e6320380103fbd91ab83cbf97fb1
 
 If you're running your own local [farmbot web app](https://github.com/farmbot/farmbot-web-app)
 
 `FBENV=development ruby farmbot.rb`
 
 
-Installation
-============
+Installation on Raspberry Pi
+----------------------------
 
-Install Ruby 2.2
-----------------
+Installation on a Raspberry Pi 3 will take about 30 minutes.
+
+#### Update the RPi:
+
+```
+sudo apt-get update
+```
+
+### Install Ruby 2.2
 
 This gem requires Ruby 2.2 minimum. Later versions will work fine as well. As of this writing, a Pi is loaded with 1.9.3 by default.
 
@@ -52,30 +67,40 @@ gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB8
 curl -L https://get.rvm.io | bash -s stable --ruby
 ```
 
-This will take about 2 hours a standard Raspberry Pi 2.
+This will take about 2 hours a standard Raspberry Pi 2, or about 20 minutes on a Raspberry Pi 3.
 
-Raspberry PI
-------------
+### Clone, install and run
 
-Update the RPi, install ruby and the arduino IDE
+<<<<<<< HEAD
+=======
+**NOTE:** We tag releases when they are stable. The latest version (on master) is not guaranteed to be stable.
+
+See [releases](https://github.com/FarmBot/farmbot-raspberry-pi-controller/releases) to find a stable release.
+
+**OPTION A:** For less stable "edge" version:
 
 ```
-sudo apt-get update
-sudo apt-get install git-core sqlite3 arduino
+git clone  https://github.com/FarmBot/farmbot-raspberry-pi-controller
 ```
 
-Clone, install and run:
+**OPTION B:** For stable release 1.1:
 
+```
+git clone -b 'alpha-1.1' --single-branch  https://github.com/FarmBot/farmbot-raspberry-pi-controller
+```
+
+**REQUIRED FOR EITHER:** (takes about 10 minutes on an RPi 3)
+
+>>>>>>> 3a5bff8964f3e6320380103fbd91ab83cbf97fb1
 ```
 git clone https://github.com/FarmBot/farmbot-raspberry-pi-controller
 cd farmbot-raspberry-pi-controller
 gem install bundler
 bundle install
 rake db:setup
-ruby setup.rb
 ```
 
-Setup the device:
+#### Set up the device:
 
 Go to the [My Farmbot Website](http://my.farmbot.io) (or your private server) and sign up for a Farmbot account.
 
@@ -85,7 +110,7 @@ Then from within the `farmbot-raspberry-pi-controller` project directory run:
 ruby setup.rb
 ```
 
-Report problems:
+#### Report problems:
 
 We can't fix issues we don't know about. If you are having issues with setup, please [raise an issue with us](https://github.com/FarmBot/farmbot-raspberry-pi-controller/issues/new). This helps us identify confusing steps, common setup issues and other problems.
 

@@ -1,4 +1,3 @@
-require "pry"
 module FBPi
   # Container object for data to be sent to MeshBlu for logging. This is
   # different than a FBPi::MeshMessage because it is only used for storage of
