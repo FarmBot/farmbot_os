@@ -1,4 +1,4 @@
-# FarmBot Software for the RaspBerry Pi
+# FarmBot Software for the Raspberry Pi
 
 The "brains" of Farmbot. Responsible for receiving the commands from users or the farmbot-web-app. It executes them and report back the results to any subscribed user(s).
 
@@ -61,7 +61,6 @@ This will take about 2 hours a standard Raspberry Pi 2, or about 20 minutes on a
 
 ### Clone, install and run
 
-=======
 **NOTE:** We tag releases when they are stable. The latest version (on master) is not guaranteed to be stable.
 
 See [releases](https://github.com/FarmBot/farmbot-raspberry-pi-controller/releases) to find a stable release.
@@ -81,7 +80,6 @@ git clone -b 'alpha-1.1' --single-branch  https://github.com/FarmBot/farmbot-ras
 **REQUIRED FOR EITHER:** (takes about 10 minutes on an RPi 3)
 
 ```
-git clone https://github.com/FarmBot/farmbot-raspberry-pi-controller
 cd farmbot-raspberry-pi-controller
 gem install bundler
 bundle install
