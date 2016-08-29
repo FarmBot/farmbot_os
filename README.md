@@ -18,19 +18,11 @@ Technical Stuff
 bundle install
 ```
 
-If you want to enable auto restarts on crash or memory leak, run:
-
-```
-god -c farmbot.god -D
-```
-
 If you don't care about autorestarts, just run:
 
 ```
 ruby farmbot.rb
 ```
-
-**You can find your device credentials inside of `credentials.yml`**
 
 # Running on Local
 
@@ -102,11 +94,10 @@ Arduino
 
 You will need to flash your Arduino with custom firmware. For instructions on how to do this, see [the FarmBot-Arduino github page](https://github.com/FarmBot/farmbot-arduino-firmware)
 
-Authors
+Contributors
 -------
 
- * Rick Carlino
- * Tim Evers
+See full list [here](https://github.com/FarmBot/farmbot-raspberry-pi-controller/graphs/contributors).
 
 License
 -------
