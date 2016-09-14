@@ -9,7 +9,7 @@ module FBPi
   class CreateSchedule < Mutations::Command
     required do
       string :start_time
-      string :_id
+      string :id
       string :end_time
       float  :repeat
       string :time_unit, in: Schedule::UNITS_OF_TIME
@@ -21,7 +21,7 @@ module FBPi
     end
 
     def validate
-      inputs[:id_on_web_app] = inputs.delete(:_id)
+      inputs[:id_on_web_app] = inputs.delete(:id)
       inputs[:sequence] = Sequence.find_by!(id_on_web_app:
                                             inputs.delete(:sequence_id))
     end

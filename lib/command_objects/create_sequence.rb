@@ -6,12 +6,12 @@ module FBPi
   class CreateSequence < Mutations::Command
     required do
       string :name
-      string :_id
+      string :id
       array(:steps) { model :step, builder: CreateStep, new_records: true }
     end
 
     def execute
-      Sequence.create!(inputs.merge!(id_on_web_app: inputs.delete(:_id)))
+      Sequence.create!(inputs.merge!(id_on_web_app: inputs.delete(:id)))
     end
   end
 end

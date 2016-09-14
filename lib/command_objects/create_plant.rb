@@ -5,13 +5,13 @@ module FBPi
   # Ruby objects, save them in SQLite.
   class CreatePlant < Mutations::Command
     required do
-      string  :_id
+      string  :id
       integer :x
       integer :y
     end
 
     def validate
-      inputs[:id_on_web_app] = inputs.delete(:_id)
+      inputs[:id_on_web_app] = inputs.delete(:id)
     end
 
     def execute
