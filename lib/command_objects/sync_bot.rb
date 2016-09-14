@@ -21,6 +21,8 @@ module FBPi
       puts "Done with sync..."
     rescue FbResource::FetchError => e
       add_error :web_server, :fetch_error, e.message
+    rescue => e
+      add_error :sync_issues, :fetch_error, e.message
     end
 
     def after_sync(data)
