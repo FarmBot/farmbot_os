@@ -9,7 +9,7 @@ module FBPi
   # requests down the serial line in one action, so hopefully it can be
   # refactored later on. SEE ALSO: ReportBotStatus
   class FetchBotStatus < Mutations::Command
-    RELEVANT_PARAMETERS   = [0,1,11,12,13,21,22,23,31,32,33,41,42,43,51,52,53,
+    RELEVANT_PARAMETERS   = [0,11,12,13,21,22,23,31,32,33,41,42,43,51,52,53,
                              61,62,63,71,72,73]
     required do
       duck :bot, methods: [:status, :commands]
