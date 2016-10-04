@@ -156,22 +156,11 @@ defmodule RPCMessageHandler do
   end
 
   def do_handle("check_updates", _) do
-    resp = HTTPotion.get @update_server,
-    [headers: ["User-Agent": "Farmbot"]]
-    current_version = Fw.version
-    case resp do
-
-      %HTTPotion.ErrorResponse{message: error} ->
-        {:error, "Check Updates failed", error}
-      _ ->
-        json = Poison.decode!(resp.body)
-        "v"<>new_version = Map.get(json, "tag_name")
-        new_version_url = Map.get(json, "assets") |> List.first |> Map.get("browser_download_url")
-        if(new_version != current_version) do
-          spawn fn -> Downloader.download_and_install_update(new_version_url) end
-        end
-        :ok
+    case Downloader.check_updates do
+      :no_updates -> nil
+       {:update, url} -> spawn fn -> Downloader.download_and_install_update(url) end
     end
+    :ok
   end
 
   def do_handle("reboot", _ ) do

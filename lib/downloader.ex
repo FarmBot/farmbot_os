@@ -1,4 +1,23 @@
 defmodule Downloader do
+@update_server Application.get_env(:fb, :update_server)
+
+  def check_updates(url \\ @update_server) do
+    resp = HTTPotion.get url,
+    [headers: ["User-Agent": "Farmbot"]]
+    current_version = Fw.version
+    case resp do
+      %HTTPotion.ErrorResponse{message: error} ->
+        {:error, "Check Updates failed", error}
+      _ ->
+        json = Poison.decode!(resp.body)
+        "v"<>new_version = Map.get(json, "tag_name")
+        new_version_url = Map.get(json, "assets") |> List.first |> Map.get("browser_download_url")
+        case (new_version != current_version) do
+          true -> {:update, new_version_url}
+          _ -> :no_updates
+        end
+    end
+  end
 
   def download_and_install_update(url) do
     RPCMessageHandler.log("Downloading an Update!")
