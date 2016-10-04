@@ -1,0 +1,93 @@
+html {
+  height: 100%;
+}
+
+body {
+  background: linear-gradient(-135deg, #089460, #159ACC);
+  margin: 0;
+}
+
+.container {
+  padding: 50px 15px;
+  max-width: 425px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+h1 {
+  font-family: Arial;
+  text-align: center;
+  margin: 0;
+  font-size: 38px;
+  font-weight: 300;
+  color: #f4f4f4;
+}
+
+h2 {
+  text-align: center;
+  font-family: Arial;
+  font-size: 18px;
+  color: #f4f4f4;
+  font-weight: 300;
+}
+
+h3 {
+  font-family: Arial;
+  color: #f4f4f4;
+  margin: 10px 0;
+}
+
+.configuration-group {
+  margin-top: 50px;
+}
+
+input {
+  padding: 7px 10px;
+  font-size: 16px;
+  border: none;
+  border-radius: 2px;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.btn {
+  color: #159ACC;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 2px;
+  border: none;
+  padding: 7px 10px;
+  background: #f4f4f4;
+  margin-bottom: 10px;
+  font-family: Arial;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background: white;
+}
+
+ul {
+  color: #f4f4f4;
+  padding-left: 20px;
+  margin: 0 0 10px 0;
+}
+
+li a:hover {
+  text-decoration: underline;
+}
+
+li a {
+  color: #f4f4f4;
+  text-decoration: none;
+  font-family: Arial;
+}
+
+.save-button {
+  display: block;
+  text-align: center;
+  margin-top: 50px;
+  font-size: 30px;
+  padding: 15px;
+  border-radius: 4px;
+}
