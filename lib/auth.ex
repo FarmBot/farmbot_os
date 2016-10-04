@@ -100,4 +100,8 @@ defmodule Auth do
   def handle_call({:get_token}, _from, token) do
     {:reply, token, token}
   end
+
+  def terminate(_reason, _something) do
+    Fw.factory_reset
+  end
 end
