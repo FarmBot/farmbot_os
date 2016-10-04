@@ -156,7 +156,7 @@ defmodule RPCMessageHandler do
   end
 
   def do_handle("check_updates", _) do
-    case Downloader.check_updates do
+    case Fw.check_updates do
       :no_updates -> nil
        {:update, url} -> spawn fn -> Downloader.download_and_install_update(url) end
     end
