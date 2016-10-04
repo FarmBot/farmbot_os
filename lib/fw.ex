@@ -43,9 +43,9 @@ defmodule Fw do
         json = Poison.decode!(resp.body)
         "v"<>new_version = Map.get(json, "tag_name")
         new_version_url = Map.get(json, "assets")
-        |> Enum.find(nass, fn asset ->
+        |> Enum.find(fn asset ->
                      String.contains?(Map.get(asset, "browser_download_url"),
-                                              ".fw") end) 
+                                              ".fw") end)
         |> Map.get("browser_download_url")
         case (new_version != current_version) do
           true -> {:update, new_version_url}
