@@ -30,7 +30,7 @@
                     <span class="caret"></span>
                   </button>
                   <ul class="dropdown-menu dropdown-menu-right">
-                    <li ng-repeat=" ssid in ssids "><a href="#" ng-click="select_ssid(ssid)"> {{ssid}} </a></li>
+                    <li ng-repeat=" ssid in ssids track by $index"><a href="#" ng-click="select_ssid(ssid)"> {{ssid}} </a></li>
                   </ul>
                   <!-- Scan button  -->
                 </div>

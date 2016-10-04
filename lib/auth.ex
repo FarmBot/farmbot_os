@@ -11,6 +11,7 @@ defmodule Auth do
     resp = HTTPotion.get("#{server}/api/public_key")
     case resp do
       %HTTPotion.ErrorResponse{message: "enetunreach"} -> get_public_key(server)
+      %HTTPotion.ErrorResponse{message: "ehostunreach"} -> get_public_key(server)
       %HTTPotion.ErrorResponse{message: "econnrefused"} -> {:error, "econnrefused"}
       _ -> RSA.decode_key(resp.body)
     end
