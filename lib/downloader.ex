@@ -1,5 +1,15 @@
 defmodule Downloader do
-@update_server Application.get_env(:fb, :update_server)
+  @update_server Application.get_env(:fb, :update_server)
+  def get_url do
+    @update_server
+  end
+  
+  def download_and_install_update(url) do
+    RPCMessageHandler.log("Downloading an Update!")
+    run(url, "/tmp/update.fw") |> Nerves.Firmware.upgrade_and_finalize
+    RPCMessageHandler.log("Going down for update. See you soon!")
+    Nerves.Firmware.reboot
+  end
 
   def check_updates(url \\ @update_server) do
     resp = HTTPotion.get url,
@@ -17,13 +27,6 @@ defmodule Downloader do
           _ -> :no_updates
         end
     end
-  end
-
-  def download_and_install_update(url) do
-    RPCMessageHandler.log("Downloading an Update!")
-    run(url, "/tmp/update.fw") |> Nerves.Firmware.upgrade_and_finalize
-    RPCMessageHandler.log("Going down for update. See you soon!")
-    Nerves.Firmware.reboot
   end
 
   def run(url, dl_file) when is_bitstring url do
