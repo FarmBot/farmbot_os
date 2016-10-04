@@ -2,6 +2,7 @@ defmodule Fw do
   require Logger
   use Supervisor
   @target System.get_env("NERVES_TARGET") || "rpi3"
+  @update_server Application.get_env(:fb, :update_server)
   @version Path.join(__DIR__ <> "/..", "VERSION")
     |> File.read!
     |> String.strip
@@ -29,5 +30,27 @@ defmodule Fw do
     File.rm("/root/secretes.txt")
     File.rm("/root/network.config")
     Nerves.Firmware.reboot
+  end
+
+  def check_updates(url \\ @update_server) do
+    resp = HTTPotion.get url,
+    [headers: ["User-Agent": "Farmbot"]]
+    current_version = Fw.version
+    case resp do
+      %HTTPotion.ErrorResponse{message: error} ->
+        {:error, "Check Updates failed", error}
+      _ ->
+        json = Poison.decode!(resp.body)
+        "v"<>new_version = Map.get(json, "tag_name")
+        new_version_url = Map.get(json, "assets") |> List.first |> Map.get("browser_download_url")
+        case (new_version != current_version) do
+          true -> {:update, new_version_url}
+          _ -> :no_updates
+        end
+    end
+  end
+
+  def get_url do
+    @update_server
   end
 end
