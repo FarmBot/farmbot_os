@@ -8,7 +8,7 @@ config :uart,
 
 config :fb,
   ro_path: "/root",
-  update_server: "http://192.168.29.154:4040"
+  update_server: "https://api.github.com/repos/farmbot/farmbot-raspberry-pi-controller/releases/latest"
 
 config :json_rpc,
     transport: MqttHandler
