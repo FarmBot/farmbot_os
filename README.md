@@ -9,9 +9,9 @@ The "brains" of Farmbot. Responsible for receiving the commands from [the browse
 
 # Running in production
 
-You can download the latest release from ["Here"]("https://github.com/FarmBot/farmbot-raspberry-pi-controller/releases").
+Download the latest release [here](https://github.com/FarmBot/farmbot-raspberry-pi-controller/releases).
 
-If you are an existing FarmBot user and just need to upgrade, consider using the "update" button on the frontend.
+If you are an existing FarmBot user and just need to upgrade your firmware, consider using the "update" button on the frontend.
 
 ## Windows users
 
