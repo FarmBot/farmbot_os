@@ -1,21 +1,13 @@
 # FarmBot Software for the Raspberry Pi 3
 The "brains" of Farmbot. Responsible for receiving the commands from [the browser](https://github.com/FarmBot/farmbot-web-frontend) or the [FarmBot API](https://github.com/FarmBot/Farmbot-Web-API). It executes them and reports back the results to any subscribed user(s).
 
-## Technical Stuff
-* Written in [Elixir](http://elixir-lang.org/) using [Nerves Project](http://nerves-project.org/).
-* Device status info such as X,Y,Z and calibration data is stored on the Data partition Nerves allows.
-* Backups to the cloud provided by [Farmbot API](https://github.com/farmbot/farmbot-web-api)
-* Messaging happens via [MQTT](https://github.com/farmbot/mqtt-gateway)
+# First Time Installation
 
-# Running in production
-
-Download the latest release [here](https://github.com/FarmBot/farmbot-raspberry-pi-controller/releases).
-
-If you are an existing FarmBot user and just need to upgrade your firmware, consider using the "update" button on the frontend.
+If you are setting up your FarmBot for the first time, download the latest FarmBot OS `.img` file [here](https://github.com/FarmBot/farmbot-raspberry-pi-controller/releases).
 
 ## Windows users
 
-* You can use ["Win32 Disk Imager"]("https://sourceforge.net/projects/win32diskimager/")
+* Use [Win32 Disk Imager](https://sourceforge.net/projects/win32diskimager/)
 * Select the `.img` file you downloaded
 * Select your sdcard's drive letter
 * Click `write`
@@ -28,12 +20,26 @@ If you are an existing FarmBot user and just need to upgrade your firmware, cons
  0. Plug your SD Card into your RPi3
  0. Plug your Arduino into your RPi3
  0. Plug your power into your RPi3
- 0. From a WiFi enabled device, search for the SSID `FarmbotConfigurator`
+ 0. From a WiFi enabled device*, search for the SSID `FarmbotConfigurator`
  0. Connect to that and open a web browser to [http://192.168.24.1/](http://192.168.24.1)
- 0. Follow the on screen instruction
+ 0. Follow the on screen instructions to configure your FarmBot. Once you save your configuration FarmBot will connect to your home WiFi network and to the FarmBot web application.
+ 
+Asterisk: If you are using a smartphone you may need to disable cellular data to allow your phone's browser to connect to the configurator.
 
-# Building / Development
+## Updating the firmware
+To update the firmware on the Raspberry Pi and the Arduino, simply use the "update" buttons on the web application. There is no need to reinstall the entire OS.
+ 
+ 
 
+# Building / Development (for developers only)
+
+## Technical Stuff
+* Written in [Elixir](http://elixir-lang.org/) using [Nerves Project](http://nerves-project.org/).
+* Device status info such as X,Y,Z and calibration data is stored on the Data partition Nerves allows.
+* Backups to the cloud provided by [Farmbot API](https://github.com/farmbot/farmbot-web-api)
+* Messaging happens via [MQTT](https://github.com/farmbot/mqtt-gateway)
+
+## Building
 [You need Linux to build Linux.](http://www.whylinuxisbetter.net/). Windows is not supported. Bash for Windows and Cygwin will not work. A VM or dual boot environment will work. So with that rant out of the way, and ready for revision here are the steps to build:
 * Install Elixir and Erlang. ([installer script]("https://gist.github.com/ConnorRigby/8a8bffff935d1a43cd74c4b8cf28a845"))
 * Install [`Nerves`](https://hexdocs.pm/nerves/installation.html) and all related dependencies.
