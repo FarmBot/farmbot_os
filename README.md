@@ -15,7 +15,7 @@ If you are an existing FarmBot user and just need to upgrade your firmware, cons
 
 ## Windows users
 
-* You can use ["Win32 Disk Imager"]("https://sourceforge.net/projects/win32diskimager/")
+* Download [Win32 Disk Imager](https://sourceforge.net/projects/win32diskimager/)
 * Select the `.img` file you downloaded
 * Select your sdcard's drive letter
 * Click `write`
