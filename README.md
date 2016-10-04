@@ -1,4 +1,4 @@
-# FarmBot Software for the RaspBerry Pi 3
+# FarmBot Software for the Raspberry Pi 3
 The "brains" of Farmbot. Responsible for receiving the commands from users or the farmbot-web-app. It executes them and reports back the results to any subscribed user(s).
 
 ## Technical Stuff
