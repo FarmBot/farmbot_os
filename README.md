@@ -111,3 +111,7 @@ fwup -a -d firmware.img -i fw.fw -t complete
 
 These two files should be put into the github release.
 If someone would like to write a Mix Task for this it'd be much appreciated.
+
+# Want to Help?
+
+[Low Hanging Fruit](https://github.com/FarmBot/farmbot_os/search?utf8=%E2%9C%93&q=TODO)
