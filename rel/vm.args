@@ -1,4 +1,5 @@
 -setcookie democookie
+-smp enable
 -noshell
 -user Elixir.IEx.CLI
 -extra --no-halt
