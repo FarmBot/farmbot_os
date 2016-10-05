@@ -117,7 +117,7 @@ defmodule Auth do
         and is_bitstring(server) do
     case Wifi.connected? do
       true ->
-        GenServer.call(__MODULE__, {:login, email,pass,server})
+        GenServer.call(__MODULE__, {:login, email,pass,server}, 15000 )
       _ ->
         login(email,pass,server) # Probably process heavy here but im lazy
     end
