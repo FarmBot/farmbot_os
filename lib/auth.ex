@@ -97,7 +97,7 @@ defmodule Auth do
       nil -> fetch_token
       {:error, reason} -> IO.puts("something weird happened")
                           IO.inspect(reason)
-                          fetch_token
+                          Elixir.IEx.start
       token -> token
     end
   end
