@@ -51,9 +51,12 @@ defmodule Auth do
 
   # Gets a token from the API with given secret and server
   def get_token(secret, server) do
+    if(!Wifi.connected?) do
+      Process.sleep(80)
+      get_token(secret, server)
+    end
     payload = Poison.encode!(%{user: %{credentials: :base64.encode_to_string(secret) |> String.Chars.to_string }} )
-    resp = HTTPotion.post "#{server}/api/tokens", [body: payload, headers: ["Content-Type": "application/json"]]
-    case resp do
+    case HTTPotion.post "#{server}/api/tokens", [body: payload, headers: ["Content-Type": "application/json"]] do
       %HTTPotion.ErrorResponse{message: "enetunreach"} -> get_token(secret, server)
       %HTTPotion.ErrorResponse{message: "nxdomain"} -> get_token(secret, do_magic(server))
       %HTTPotion.ErrorResponse{message: reason} -> {:error, reason}
@@ -68,6 +71,7 @@ defmodule Auth do
 
   # some black magic to fix RickCarlino's Env.
   def do_magic("http://"<>host) do
+    Logger.debug("Doing magic")
     case HTTPotion.get("http://dig.jsondns.org/IN/#{host}/A") do
       %HTTPotion.ErrorResponse{message: reason} -> {:error, reason}
       %HTTPotion.Response{body: body, headers: _headers, status_code: 203} ->

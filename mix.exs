@@ -40,8 +40,7 @@ defmodule Fw.Mixfile do
      :plug,
      :cors_plug,
      :hulaaki,
-     :runtime_tools
-     ]
+     :runtime_tools]
   end
 
   # on device
@@ -82,7 +81,7 @@ defmodule Fw.Mixfile do
     deps ++ platform_deps(@target) ++ system(@target) ++
     [
      {:nerves, "~> 0.3.0"},
-     {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"}
+     {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
     ]
   end
 
@@ -97,13 +96,15 @@ defmodule Fw.Mixfile do
   def platform_deps("rpi3") do
     [
       {:nerves_networking, github: "nerves-project/nerves_networking"},
-      {:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi" }
+      {:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi" },
+      {:elixir_ale, "~> 0.5.5"}
     ]
   end
 
   def platform_apps("rpi3") do
     [ :nerves_networking,
-      :nerves_interim_wifi ]
+      :nerves_interim_wifi,
+      :elixir_ale ]
   end
 
   def aliases(:prod) do

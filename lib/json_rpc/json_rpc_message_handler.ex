@@ -176,14 +176,21 @@ defmodule RPCMessageHandler do
   end
 
   def do_handle("reboot", _ ) do
-    log("Bot Going down for reboot.")
-    Nerves.Firmware.reboot
-    log("Something Weird happened...")
+    log("Bot Going down for reboot in 5 seconds")
+    spawn fn ->
+      Process.sleep(5000)
+      Nerves.Firmware.reboot
+    end
+    :ok
   end
 
   def do_handle("power_off", _ ) do
-    log("Bot Going down. Pls remeber me.")
-    Nerves.Firmware.poweroff
+    log("Bot Going down in 5 seconds. Pls remeber me.")
+    spawn fn ->
+      Process.sleep(5000)
+      Nerves.Firmware.poweroff
+    end
+    :ok
   end
 
 #  "{\"update_calibration\", [%{\"movement_home_up_y\" => 0}]}"}
