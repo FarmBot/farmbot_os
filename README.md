@@ -7,7 +7,7 @@ If you are setting up your FarmBot for the first time, download the latest FarmB
 
 ## Windows users
 
-* Use [Win32 Disk Imager](https://sourceforge.net/projects/win32diskimager/)
+* Download [Win32 Disk Imager](https://sourceforge.net/projects/win32diskimager/)
 * Select the `.img` file you downloaded
 * Select your sdcard's drive letter
 * Click `write`
@@ -111,3 +111,7 @@ fwup -a -d firmware.img -i fw.fw -t complete
 
 These two files should be put into the github release.
 If someone would like to write a Mix Task for this it'd be much appreciated.
+
+# Want to Help?
+
+[Low Hanging Fruit](https://github.com/FarmBot/farmbot_os/search?utf8=%E2%9C%93&q=TODO)

@@ -172,6 +172,7 @@ defmodule RPCMessageHandler do
           Logger.debug("NEW CONTROLLER UPDATE")
           spawn fn -> Downloader.download_and_install_fw_update(url) end
     end
+    :ok
   end
 
   def do_handle("reboot", _ ) do
