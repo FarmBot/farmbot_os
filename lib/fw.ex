@@ -19,7 +19,7 @@ defmodule Fw do
   end
 
   def start(_type, args) do
-    File.write("/tmp/resolv.conf", "nameserver 8.8.8.8\n")
+    File.write("/tmp/resolv.conf", "nameserver 8.8.8.8\n nameserver 8.8.4.4\n ")
     Logger.debug("Starting Firmware on Target: #{@target}")
     Supervisor.start_link(__MODULE__, args)
   end
@@ -46,18 +46,26 @@ defmodule Fw do
     case resp do
       %HTTPotion.ErrorResponse{message: error} ->
         {:error, "Check Updates failed", error}
-      _ ->
-        json = Poison.decode!(resp.body)
+      %HTTPotion.Response{body: body,
+                          headers: _headers,
+                          status_code: 200} ->
+        json = Poison.decode!(body)
         "v"<>new_version = Map.get(json, "tag_name")
         new_version_url = Map.get(json, "assets")
         |> Enum.find(fn asset ->
                      String.contains?(Map.get(asset, "browser_download_url"),
-                                              extension) end)
+                                            extension) end)
         |> Map.get("browser_download_url")
         case (new_version != current_version) do
           true -> {:update, new_version_url}
           _ -> :no_updates
         end
+
+      %HTTPotion.Response{body: body,
+                          headers: _headers,
+                          status_code: 301} ->
+        msg = Poison.decode!(body)
+        Map.get(msg, "url") |> check_updates(extension)
     end
   end
 

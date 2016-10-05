@@ -4,7 +4,7 @@ defmodule NetworkSupervisor do
   @env Mix.env
   def start_link(_args) do
     Logger.debug("Starting Network")
-    Nerves.Networking.setup(:eth0) # eh
+    # Nerves.Networking.setup(:eth0) # eh
     children = [ worker(Wifi, [[]]) ]
     opts = [strategy: :one_for_all, name: NetworkSupervisor]
     Supervisor.start_link(children, opts)
@@ -13,7 +13,6 @@ defmodule NetworkSupervisor do
   def set_time do
     case @env do
       :prod ->
-        Logger.debug("Setting time. If it seems to hang here, reboot. Need a better ntp pool.")
         System.cmd("ntpd", ["-q",
          "-p", "0.pool.ntp.org",
          "-p", "1.pool.ntp.org",

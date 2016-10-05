@@ -16,7 +16,7 @@ defmodule Network.EventManager do
   end
 
   def handle_event(event, state) do
-    IO.inspect event
+    # IO.inspect event
     {:ok, state}
   end
 

@@ -176,14 +176,21 @@ defmodule RPCMessageHandler do
   end
 
   def do_handle("reboot", _ ) do
-    log("Bot Going down for reboot.")
-    Nerves.Firmware.reboot
-    log("Something Weird happened...")
+    log("Bot Going down for reboot in 5 seconds")
+    spawn fn ->
+      Process.sleep(5000)
+      Nerves.Firmware.reboot
+    end
+    :ok
   end
 
   def do_handle("power_off", _ ) do
-    log("Bot Going down. Pls remeber me.")
-    Nerves.Firmware.poweroff
+    log("Bot Going down in 5 seconds. Pls remeber me.")
+    spawn fn ->
+      Process.sleep(5000)
+      Nerves.Firmware.poweroff
+    end
+    :ok
   end
 
 #  "{\"update_calibration\", [%{\"movement_home_up_y\" => 0}]}"}
@@ -196,6 +203,18 @@ defmodule RPCMessageHandler do
       true -> :ok
       false -> {:error, "update_calibration", "Something went wrong."}
     end
+  end
+
+  def do_handle("sync", _) do
+    BotSync.sync
+    :ok
+  end
+
+  def do_hanlde("force_update", [%{"url" => url}] ) do
+    Logger.debug("forcing new update")
+    log("Forcing new update")
+    spawn fn -> Downloader.download_and_install_os_update(url) end
+    :ok
   end
 
   # Unhandled event. Probably not implemented if it got this far.

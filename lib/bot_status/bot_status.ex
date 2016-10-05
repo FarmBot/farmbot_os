@@ -64,7 +64,7 @@ defmodule BotStatus do
   end
 
   def handle_cast({:set_end_stop, _stop, _value}, current_status) do
-    #TODO: this?
+    #TODO: Endstop reporting
     # Logger.debug("EndStop reporting is TODO")
     {:noreply,  current_status}
   end
@@ -79,7 +79,7 @@ defmodule BotStatus do
     GenServer.cast(__MODULE__, {:set_param, param, value})
   end
 
-  def set_param(param, value) when is_bitstring(param) 
+  def set_param(param, value) when is_bitstring(param)
                                    and is_bitstring(value) do
     set_param(param, String.to_integer(value))
   end

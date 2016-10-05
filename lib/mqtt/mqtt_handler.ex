@@ -10,25 +10,29 @@ defmodule MqttHandler do
     "tries to log into mqtt."
   """
   def log_in(err_wait_time\\ 10000) do
-    mqtt_host = Map.get(token, "unencoded") |> Map.get("mqtt")
-    mqtt_user = Map.get(token, "unencoded") |> Map.get("bot")
-    mqtt_pass = Map.get(token, "encoded")
-    options = [client_id: mqtt_user,
-               username: mqtt_user,
-               password: mqtt_pass,
-               host: mqtt_host,
-               port: 1883,
-               timeout: 5000,
-               keep_alive: 500,
-               will_topic: "bot/#{bot}/from_device",
-               will_message: build_last_will_message,
-               will_qos: 0,
-               will_retain: 0]
-    case GenServer.call(MqttHandler, {:log_in, options}) do
-      {:error, reason} -> Logger.debug("Error connecting. #{inspect reason}")
-                          Process.sleep(err_wait_time)
-                          log_in(err_wait_time + 10000) # increment the sleep time for teh lawls
-      _ -> :ok
+    case token do
+      {:error, reason} -> {:error, reason}
+      real_token ->
+        mqtt_host = Map.get(real_token, "unencoded") |> Map.get("mqtt")
+        mqtt_user = Map.get(real_token, "unencoded") |> Map.get("bot")
+        mqtt_pass = Map.get(real_token, "encoded")
+        options = [client_id: mqtt_user,
+                   username: mqtt_user,
+                   password: mqtt_pass,
+                   host: mqtt_host,
+                   port: 1883,
+                   timeout: 5000,
+                   keep_alive: 500,
+                   will_topic: "bot/#{bot}/from_device",
+                   will_message: build_last_will_message,
+                   will_qos: 0,
+                   will_retain: 0]
+        case GenServer.call(MqttHandler, {:log_in, options}) do
+          {:error, reason} -> Logger.debug("Error connecting. #{inspect reason}")
+                              Process.sleep(err_wait_time)
+                              log_in(err_wait_time + 10000) # increment the sleep time for teh lawls
+          :ok -> :ok
+        end
     end
   end
 
@@ -38,8 +42,11 @@ defmodule MqttHandler do
 
   def start_link(args) do
     handler = GenServer.start_link(__MODULE__, args, name: __MODULE__)
-    log_in
-    Logger.debug("MQTT ONLINE")
+    case log_in do
+      {:error, reason} -> Logger.debug("error connecting to mqtt")
+                          IO.inspect(reason)
+      :ok -> Logger.debug("MQTT ONLINE")
+    end
     handler
   end
 
@@ -50,12 +57,14 @@ defmodule MqttHandler do
   def handle_call({:connect_ack, _message}, from, client) do
     options = [id: 24756, topics: ["bot/#{bot}/from_clients"], qoses: [0]]
     spawn fn ->
+      Logger.debug("Connect Ack")
       NetworkSupervisor.set_time # Should NOT be here
       Mqtt.Client.subscribe(client, options)
+      Logger.debug("Subscribing")
       handle_call({:emit, RPCMessageHandler.log_msg("Bot Bootstrapping")}, from, client)
+      Logger.debug("Doing bot bootstrap")
       Command.read_all_pins # I'm truly sorry these are here
       Command.read_all_params
-      BotSync.sync
     end
     keep_connection_alive
     {:reply, :ok, client}
@@ -123,7 +132,7 @@ defmodule MqttHandler do
   def handle_call({:log_in, options}, _from, client) do
     case Mqtt.Client.connect(client, options) do
       {:error, reason} -> {:reply, {:error, reason}, client}
-      _ -> {:reply, :ok, client}
+      :ok -> {:reply, :ok, client}
     end
   end
 

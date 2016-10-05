@@ -10,11 +10,13 @@ defmodule Auth do
   def get_public_key(server) do
     resp = HTTPotion.get("#{server}/api/public_key")
     case resp do
-      %HTTPotion.ErrorResponse{message: "enetunreach"}   -> get_public_key(server)
-      %HTTPotion.ErrorResponse{message: "ehostunreach"}  -> get_public_key(server)
-      %HTTPotion.ErrorResponse{message: "nxdomain"}      -> get_public_key(do_magic(server))
-      %HTTPotion.ErrorResponse{message: "econnrefused"}  -> {:error, "econnrefused"}
-      _ -> RSA.decode_key(resp.body)
+      %HTTPotion.ErrorResponse{message: "enetunreach"}    -> get_public_key(server)
+      %HTTPotion.ErrorResponse{message: "ehostunreach"}   -> get_public_key(server)
+      %HTTPotion.ErrorResponse{message: "nxdomain"}       -> get_public_key(do_magic(server))
+      %HTTPotion.ErrorResponse{message: message}          -> {:error, message}
+      %HTTPotion.Response{body: body,
+                          headers: _headers,
+                          status_code: 200}               -> RSA.decode_key(body)
     end
   end
 
@@ -49,19 +51,27 @@ defmodule Auth do
 
   # Gets a token from the API with given secret and server
   def get_token(secret, server) do
+    if(!Wifi.connected?) do
+      Process.sleep(80)
+      get_token(secret, server)
+    end
     payload = Poison.encode!(%{user: %{credentials: :base64.encode_to_string(secret) |> String.Chars.to_string }} )
-    resp = HTTPotion.post "#{server}/api/tokens", [body: payload, headers: ["Content-Type": "application/json"]]
-    case resp do
+    case HTTPotion.post "#{server}/api/tokens", [body: payload, headers: ["Content-Type": "application/json"]] do
       %HTTPotion.ErrorResponse{message: "enetunreach"} -> get_token(secret, server)
-      %HTTPotion.ErrorResponse{message: "nxdomain"} -> do_magic(server)
+      %HTTPotion.ErrorResponse{message: "nxdomain"} -> get_token(secret, do_magic(server))
       %HTTPotion.ErrorResponse{message: reason} -> {:error, reason}
       %HTTPotion.Response{body: body, headers: _headers, status_code: 200} ->
           Map.get(Poison.decode!(body), "token")
     end
   end
 
+  def get_token do
+    GenServer.call(__MODULE__, {:get_token})
+  end
+
   # some black magic to fix RickCarlino's Env.
   def do_magic("http://"<>host) do
+    Logger.debug("Doing magic")
     case HTTPotion.get("http://dig.jsondns.org/IN/#{host}/A") do
       %HTTPotion.ErrorResponse{message: reason} -> {:error, reason}
       %HTTPotion.Response{body: body, headers: _headers, status_code: 203} ->
@@ -86,10 +96,6 @@ defmodule Auth do
     end
   end
 
-  def get_token do
-    GenServer.call(__MODULE__, {:get_token})
-  end
-
   # Infinite recursion until we have a token.
   # Not concerned about performance yet because the bot can't do anything yet.
   def fetch_token do
@@ -97,7 +103,7 @@ defmodule Auth do
       nil -> fetch_token
       {:error, reason} -> IO.puts("something weird happened")
                           IO.inspect(reason)
-                          Elixir.IEx.start
+                          {:error, reason}
       token -> token
     end
   end
@@ -119,6 +125,7 @@ defmodule Auth do
       true ->
         GenServer.call(__MODULE__, {:login, email,pass,server}, 15000 )
       _ ->
+        Process.sleep(10001)
         login(email,pass,server) # Probably process heavy here but im lazy
     end
   end

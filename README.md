@@ -23,13 +23,13 @@ If you are setting up your FarmBot for the first time, download the latest FarmB
  0. From a WiFi enabled device*, search for the SSID `FarmbotConfigurator`
  0. Connect to that and open a web browser to [http://192.168.24.1/](http://192.168.24.1)
  0. Follow the on screen instructions to configure your FarmBot. Once you save your configuration FarmBot will connect to your home WiFi network and to the FarmBot web application.
- 
+
 Asterisk: If you are using a smartphone you may need to disable cellular data to allow your phone's browser to connect to the configurator.
 
 ## Updating the firmware
 To update the firmware on the Raspberry Pi and the Arduino, simply use the "update" buttons on the web application. There is no need to reinstall the entire OS.
- 
- 
+
+
 
 # Building / Development (for developers only)
 
@@ -74,7 +74,7 @@ In the `erlinit.config` file change `-c ttyS0` to `-c ttyS1`. This requires a us
 ## Development Tips
 
 You can connect IEx to the running pi by running
-`iex -name console@localhost --remsh farmbot@<FARMBOT IP ADDRESS> --cookie democookie`.
+`iex --name console@localhost --remsh farmbot@<FARMBOT IP ADDRESS> --cookie democookie`.
 
 Debug message still only will print to UART or HDMI (whichever you have configured)
 
