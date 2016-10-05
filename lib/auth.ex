@@ -66,6 +66,9 @@ defmodule Auth do
   def fetch_token do
     case Auth.get_token do
       nil -> fetch_token
+      {:error, reason} -> IO.puts("something weird happened")
+                          IO.inspect(reason)
+                          fetch_token
       token -> token
     end
   end

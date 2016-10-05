@@ -8,7 +8,8 @@ config :uart,
 
 config :fb,
   ro_path: "/root",
-  update_server: System.get_env("UPDATE_SERVER") || "https://api.github.com/repos/farmbot/farmbot-raspberry-pi-controller/releases/latest"
+  os_update_server: System.get_env("OS_UPDATE_SERVER") || "https://api.github.com/repos/farmbot/farmbot-raspberry-pi-controller/releases/latest",
+  fw_update_server: System.get_env("FW_UPDATE_SERVER") || "https://api.github.com/repos/FarmBot/farmbot-arduino-firmware/releases/latest"
 
 config :json_rpc,
     transport: MqttHandler

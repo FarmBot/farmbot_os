@@ -2,7 +2,8 @@ defmodule Fw do
   require Logger
   use Supervisor
   @target System.get_env("NERVES_TARGET") || "rpi3"
-  @update_server Application.get_env(:fb, :update_server)
+  @os_update_server Application.get_env(:fb, :os_update_server)
+  @fw_update_server Application.get_env(:fb, :fw_update_server)
   @version Path.join(__DIR__ <> "/..", "VERSION")
     |> File.read!
     |> String.strip
@@ -32,7 +33,7 @@ defmodule Fw do
     Nerves.Firmware.reboot
   end
 
-  def check_updates(url \\ @update_server) do
+  def check_updates(url, extension) when is_bitstring(extension) do
     resp = HTTPotion.get url,
     [headers: ["User-Agent": "Farmbot"]]
     current_version = Fw.version
@@ -45,7 +46,7 @@ defmodule Fw do
         new_version_url = Map.get(json, "assets")
         |> Enum.find(fn asset ->
                      String.contains?(Map.get(asset, "browser_download_url"),
-                                              ".fw") end)
+                                              extension) end)
         |> Map.get("browser_download_url")
         case (new_version != current_version) do
           true -> {:update, new_version_url}
@@ -54,7 +55,11 @@ defmodule Fw do
     end
   end
 
-  def get_url do
-    @update_server
+  def check_os_updates do
+    check_updates(@os_update_server, ".fw")
+  end
+
+  def check_fw_updates do
+    check_updates(@fw_update_server, ".hex")
   end
 end
