@@ -10,9 +10,10 @@ defmodule Auth do
   def get_public_key(server) do
     resp = HTTPotion.get("#{server}/api/public_key")
     case resp do
-      %HTTPotion.ErrorResponse{message: "enetunreach"} -> get_public_key(server)
-      %HTTPotion.ErrorResponse{message: "ehostunreach"} -> get_public_key(server)
-      %HTTPotion.ErrorResponse{message: "econnrefused"} -> {:error, "econnrefused"}
+      %HTTPotion.ErrorResponse{message: "enetunreach"}   -> get_public_key(server)
+      %HTTPotion.ErrorResponse{message: "ehostunreach"}  -> get_public_key(server)
+      %HTTPotion.ErrorResponse{message: "nxdomain"}      -> get_public_key(do_magic(server))
+      %HTTPotion.ErrorResponse{message: "econnrefused"}  -> {:error, "econnrefused"}
       _ -> RSA.decode_key(resp.body)
     end
   end
@@ -52,8 +53,36 @@ defmodule Auth do
     resp = HTTPotion.post "#{server}/api/tokens", [body: payload, headers: ["Content-Type": "application/json"]]
     case resp do
       %HTTPotion.ErrorResponse{message: "enetunreach"} -> get_token(secret, server)
+      %HTTPotion.ErrorResponse{message: "nxdomain"} -> do_magic(server)
       %HTTPotion.ErrorResponse{message: reason} -> {:error, reason}
-      _ -> Map.get(Poison.decode!(resp.body), "token")
+      %HTTPotion.Response{body: body, headers: _headers, status_code: 200} ->
+          Map.get(Poison.decode!(body), "token")
+    end
+  end
+
+  # some black magic to fix RickCarlino's Env.
+  def do_magic("http://"<>host) do
+    case HTTPotion.get("http://dig.jsondns.org/IN/#{host}/A") do
+      %HTTPotion.ErrorResponse{message: reason} -> {:error, reason}
+      %HTTPotion.Response{body: body, headers: _headers, status_code: 203} ->
+          ip_addr = Map.get(Poison.decode!(body), "answer")
+                    |> List.first
+                    |> Map.get("rdata")
+                    "http://"<>ip_addr
+      _ -> {:error, :broken}
+    end
+  end
+
+  # some black magic to fix RickCarlino's Env.
+  def do_magic("https://"<>host) do
+    case HTTPotion.get("http://dig.jsondns.org/IN/#{host}/A") do
+      %HTTPotion.ErrorResponse{message: reason} -> {:error, reason}
+      %HTTPotion.Response{body: body, headers: _headers, status_code: 203} ->
+          ip_addr = Map.get(Poison.decode!(body), "answer")
+                    |> List.first
+                    |> Map.get("rdata")
+                    "https://"<>ip_addr
+      _ -> {:error, :broken}
     end
   end
 
