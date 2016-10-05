@@ -205,6 +205,18 @@ defmodule RPCMessageHandler do
     end
   end
 
+  def do_handle("sync", _) do
+    BotSync.sync
+    :ok
+  end
+
+  def do_hanlde("force_update", [%{"url" => url}] ) do
+    Logger.debug("forcing new update")
+    log("Forcing new update")
+    spawn fn -> Downloader.download_and_install_os_update(url) end
+    :ok
+  end
+
   # Unhandled event. Probably not implemented if it got this far.
   def do_handle(event, params) do
     Logger.debug("[RPC_HANDLER] got valid rpc, but event is not implemented.")
