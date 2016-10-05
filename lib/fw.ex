@@ -19,6 +19,7 @@ defmodule Fw do
   end
 
   def start(_type, args) do
+    File.write("/tmp/resolv.conf", "nameserver 8.8.8.8\n")
     Logger.debug("Starting Firmware on Target: #{@target}")
     Supervisor.start_link(__MODULE__, args)
   end
@@ -66,7 +67,7 @@ defmodule Fw do
   def check_os_updates do
     check_updates(@os_update_server, ".fw")
   end
-  
+
   @doc """
     Shortcut for check_updates
   """
