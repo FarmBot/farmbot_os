@@ -78,4 +78,30 @@ If you frequently build the firmware, removing the sdcard and writing the build 
 
 # Tests
 
-Run `mix test --no-start`. 
+Run `mix test --no-start`.
+
+
+# Building for production
+
+## Major version change
+you will have to do one of two things:
+0. Do a fresh clone of this repo. (prefered)
+0. Clean everything out with something along the lines of `rm -rf _build deps _images rel/fw`
+
+Then follow these steps then follow the steps for a minor version.
+```bash
+export MIX_ENV=prod
+mix deps.get
+```
+this will generate a .fw file in the images dir. this will be an update file. A raw image file is then generated from this file
+
+## Minor Version
+```bash
+export MIX_ENV=prod
+mix firmware
+cd _images/rpi3/
+fwup -a -d firmware.img -i fw.fw -t complete
+```
+
+These two files should be put into the github release.
+If someone would like to write a Mix Task for this it'd be much appreciated.

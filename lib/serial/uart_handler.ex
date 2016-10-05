@@ -13,18 +13,18 @@ defmodule UartHandler do
     [{tty, _ } | rest ] = ports
     blah = Nerves.UART.open(pid, tty, speed: @baud, active: true)
     case blah do
-      :ok -> blah
+      :ok -> {:ok, tty}
       _ -> open_serial(pid, rest, tries ++ [tty])
     end
   end
 
   def init(_) do
     {:ok, pid} = Nerves.UART.start_link
-    open_serial(pid, Nerves.UART.enumerate |>
+    {:ok, tty} = open_serial(pid, Nerves.UART.enumerate |>
                      Map.drop(["ttyS0","ttyAMA0"]) |>
                      Map.to_list, []) # List of available ports
     Nerves.UART.configure(pid, framing: {Nerves.UART.Framing.Line, separator: "\r\n"}, rx_framing_timeout: 500)
-    {:ok, pid}
+    {:ok, {pid, tty}}
   end
 
   def start_link(_) do
@@ -54,15 +54,13 @@ defmodule UartHandler do
     {:noreply, state}
   end
 
-  def handle_cast({:send, str}, state) do
-    Nerves.UART.write(state, str)
-    {:noreply, state}
+  def handle_cast({:send, str}, {pid, tty}) do
+    Nerves.UART.write(pid, str)
+    {:noreply,  {pid, tty}}
   end
 
-  def handle_info({:nerves_uart, "/dev/ttyACM0", {:error, _}}, state) do
-    ## TODO
-    Logger.debug("UART ERROR")
-    Logger.debug("TRY OTHER UARTS MAYBE?")
+  def handle_info({:nerves_uart, _tty, {:error, _}}, state) do
+    nil
     {:noreply, state}
   end
 

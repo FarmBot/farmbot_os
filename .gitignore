@@ -9,3 +9,4 @@
 
 # Generate on crash by the VM
 erl_crash.dump
+npm-debug.log

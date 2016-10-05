@@ -11,6 +11,7 @@ defmodule Auth do
     resp = HTTPotion.get("#{server}/api/public_key")
     case resp do
       %HTTPotion.ErrorResponse{message: "enetunreach"} -> get_public_key(server)
+      %HTTPotion.ErrorResponse{message: "ehostunreach"} -> get_public_key(server)
       %HTTPotion.ErrorResponse{message: "econnrefused"} -> {:error, "econnrefused"}
       _ -> RSA.decode_key(resp.body)
     end
@@ -65,6 +66,9 @@ defmodule Auth do
   def fetch_token do
     case Auth.get_token do
       nil -> fetch_token
+      {:error, reason} -> IO.puts("something weird happened")
+                          IO.inspect(reason)
+                          fetch_token
       token -> token
     end
   end
@@ -98,5 +102,9 @@ defmodule Auth do
 
   def handle_call({:get_token}, _from, token) do
     {:reply, token, token}
+  end
+
+  def terminate(_reason, _something) do
+    Fw.factory_reset
   end
 end

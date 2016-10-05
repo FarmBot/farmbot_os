@@ -1,9 +1,25 @@
 defmodule Downloader do
-  def download_and_install_update(url) do
-    RPCMessageHandler.log("Downloading an Update!")
+  def download_and_install_os_update(url) do
+    RPCMessageHandler.log("Downloading an OS Update!")
     run(url, "/tmp/update.fw") |> Nerves.Firmware.upgrade_and_finalize
-    RPCMessageHandler.log("Going down for update. See you soon!")
+    RPCMessageHandler.log("Going down for OS update. See you soon!")
     Nerves.Firmware.reboot
+  end
+
+  def download_and_install_fw_update(url) do
+    RPCMessageHandler.log("Downloading an FW Update!")
+    file = run(url, "/tmp/update.hex")
+    install_avr_update(file)
+    RPCMessageHandler.log("Updated FW")
+  end
+
+  def install_avr_update(hex_file) when is_bitstring(hex_file) do
+    {pid, tty} = UartHandler.nerves
+    Nerves.UART.close(pid)
+    IO.puts "avrdude -v -patmega2560 -cwiring -P#{tty} -b115200 -D -Uflash:w:#{hex_file}:i"
+    System.cmd("avrdude", ["-v", "-patmega2560", "-cwiring", "-P/dev/#{tty}", "-b115200", "-D", "-Uflash:w:#{hex_file}:i"])
+    pid = Process.whereis(UartHandler)
+    Process.exit(pid, :restart)
   end
 
   def run(url, dl_file) when is_bitstring url do

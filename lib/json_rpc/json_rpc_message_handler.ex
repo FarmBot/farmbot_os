@@ -156,11 +156,22 @@ defmodule RPCMessageHandler do
   end
 
   def do_handle("check_updates", _) do
-    case Fw.check_updates do
+    case Fw.check_os_updates do
       :no_updates -> nil
-       {:update, url} -> spawn fn -> Downloader.download_and_install_update(url) end
+       {:update, url} ->
+         Logger.debug("NEW OS UPDATE")
+         spawn fn -> Downloader.download_and_install_os_update(url) end
     end
     :ok
+  end
+
+  def do_handle("check_arduino_updates", _) do
+    case Fw.check_fw_updates do
+      :no_updates -> nil
+       {:update, url} ->
+          Logger.debug("NEW CONTROLLER UPDATE")
+          spawn fn -> Downloader.download_and_install_fw_update(url) end
+    end
   end
 
   def do_handle("reboot", _ ) do
