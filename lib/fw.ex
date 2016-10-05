@@ -33,6 +33,11 @@ defmodule Fw do
     Nerves.Firmware.reboot
   end
 
+  @doc """
+    Looks for the latest asset of given extension (ie: ".exe")
+    on a Github Release API.
+    Returns {:update, url_to_latest_download} or :no_updates
+  """
   def check_updates(url, extension) when is_bitstring(extension) do
     resp = HTTPotion.get url,
     [headers: ["User-Agent": "Farmbot"]]
@@ -55,10 +60,16 @@ defmodule Fw do
     end
   end
 
+  @doc """
+    Shortcut for check_updates
+  """
   def check_os_updates do
     check_updates(@os_update_server, ".fw")
   end
-
+  
+  @doc """
+    Shortcut for check_updates
+  """
   def check_fw_updates do
     check_updates(@fw_update_server, ".hex")
   end
