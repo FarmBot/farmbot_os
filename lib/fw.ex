@@ -19,7 +19,7 @@ defmodule Fw do
   end
 
   def start(_type, args) do
-    File.write("/tmp/resolv.conf", "nameserver 8.8.8.8\n")
+    File.write("/tmp/resolv.conf", "nameserver 8.8.8.8\n nameserver 8.8.4.4\n ")
     Logger.debug("Starting Firmware on Target: #{@target}")
     Supervisor.start_link(__MODULE__, args)
   end

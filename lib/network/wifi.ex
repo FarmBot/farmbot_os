@@ -86,6 +86,7 @@ defmodule Wifi do
     Logger.debug("trying to switch from hostapd to wpa_supplicant ")
     System.cmd("sh", ["-c", "killall hostapd"]) |> print_cmd_result
     System.cmd("sh", ["-c", "killall dnsmasq"]) |> print_cmd_result
+    File.rm("/root/dnsmasq.lease")
     System.cmd("ip", ["link", "set", "wlan0", "down"]) |> print_cmd_result
     System.cmd("ip", ["addr", "del", "192.168.24.1/24", "dev", "wlan0"]) |> print_cmd_result
     System.cmd("ip", ["link", "set", "wlan0", "up"]) |> print_cmd_result
