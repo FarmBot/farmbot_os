@@ -1,4 +1,6 @@
 defmodule Fw.Mixfile do
+  Code.load_file("tasks.exs")
+
   use Mix.Project
 
   @target System.get_env("NERVES_TARGET") || "rpi3"
