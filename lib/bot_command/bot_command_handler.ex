@@ -77,17 +77,17 @@ defmodule BotCommandHandler do
   ##          and the actual bot is at a different position.
   ###
 
-  defp do_handle({:home_x, {speed}}) do
+  defp do_handle({:home_x, {_speed}}) do
     Logger.info("HOME X")
     SerialMessageManager.sync_notify( {:send, "F11"} )
   end
 
-  defp do_handle({:home_y, {speed}}) do
+  defp do_handle({:home_y, {_speed}}) do
     Logger.info("HOME Y")
     SerialMessageManager.sync_notify( {:send, "F12"} )
   end
 
-  defp do_handle({:home_z, {speed}}) do
+  defp do_handle({:home_z, {_speed}}) do
     Logger.info("HOME Z")
     SerialMessageManager.sync_notify( {:send, "F13"} )
   end

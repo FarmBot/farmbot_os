@@ -3,10 +3,7 @@ defmodule Controller do
   require Logger
   use Supervisor
 
-  def start_link(_args) do
-    import Supervisor.Spec, warn: false
-    Logger.debug("Starting Controller")
-
+  def init(_args) do
     children = [
       worker(Auth, [[]]),
       supervisor(RPCSupervisor, [[]],   restart: :permanent ),
@@ -18,6 +15,11 @@ defmodule Controller do
       worker(BotSync, [[]]  ,             restart: :permanent )
     ]
     opts = [strategy: :one_for_all, name: Controller.Supervisor]
-    Supervisor.start_link(children, opts)
+    supervise(children, opts)
+  end
+
+  def start_link(args) do
+    Logger.debug("Starting Controller")
+    Supervisor.start_link(__MODULE__, args)
   end
 end

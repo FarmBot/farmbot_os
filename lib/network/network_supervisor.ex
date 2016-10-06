@@ -2,12 +2,17 @@ defmodule NetworkSupervisor do
   require Logger
   use Supervisor
   @env Mix.env
-  def start_link(_args) do
-    Logger.debug("Starting Network")
+
+  def init(_args) do
     # Nerves.Networking.setup(:eth0) # eh
     children = [ worker(Wifi, [[]]) ]
     opts = [strategy: :one_for_all, name: NetworkSupervisor]
-    Supervisor.start_link(children, opts)
+    supervise(children, opts)
+  end
+  
+  def start_link(args) do
+    Logger.debug("Starting Network")
+    Supervisor.start_link(__MODULE__, args)
   end
 
   def set_time do

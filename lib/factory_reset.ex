@@ -12,8 +12,9 @@ defmodule FactoryReset do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def handle_info({:EXIT, pid, reason}, state) do
+  def handle_info({:EXIT, _pid, reason}, state) do
     Logger.debug("hes dead jim")
+    IO.inspect(reason)
     {:noreply, state}
   end
 

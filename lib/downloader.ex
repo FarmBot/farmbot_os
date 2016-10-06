@@ -22,6 +22,8 @@ defmodule Downloader do
     System.cmd("avrdude", ["-v", "-patmega2560", "-cwiring", "-P/dev/#{tty}", "-b115200", "-D", "-Uflash:w:#{hex_file}:i"])
     pid = Process.whereis(UartHandler)
     Process.exit(pid, :restart)
+    Command.read_all_params
+    Command.read_all_pins
   end
 
   def run(url, dl_file) when is_bitstring url do

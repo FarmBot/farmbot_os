@@ -6,6 +6,7 @@ defmodule Network.EventManager do
     on_ip(address)
     {:ok, state}
   end
+
   def handle_event({:nerves_wpa_supplicant, _, wpa_event}, state) when is_atom(wpa_event) do
     #:"CTRL-EVENT-SSID-TEMP-DISABLED id=0 ssid=\"supersecretssid\" auth_failures=2 duration=20 reason=WRONG_KEY"
     event_string = Atom.to_string(wpa_event)
@@ -15,7 +16,7 @@ defmodule Network.EventManager do
     {:ok, state}
   end
 
-  def handle_event(event, state) do
+  def handle_event(_event, state) do
     # IO.inspect event
     {:ok, state}
   end
