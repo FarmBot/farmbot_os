@@ -1,0 +1,62 @@
+{
+  "id": 1,
+  "device_id": 1,
+  "name": "Test Sequence",
+  "kind": "sequence",
+  "color": "purple",
+  "args": {},
+  "body":  [
+      {
+        "kind": "move_absolute",
+        "args":
+          {
+            "x": 1000,
+            "y": 0,
+            "z": 0,
+            "speed": 100
+          }
+      },
+      {
+        "kind": "move_relative",
+        "args":
+          {
+            "x": 0,
+            "y": 100,
+            "z": 0,
+            "speed": 100
+          }
+      },
+      {
+        "kind": "write_pin",
+        "args":
+          {
+            "pin_number": 13,
+            "pin_value": 1,
+            "pin_mode": 0
+          }
+      },
+      {
+        "kind": "wait",
+        "args":
+          {
+            "milliseconds": 5000
+          }
+      },
+      {
+        "kind": "write_pin",
+        "args":
+          {
+            "pin_number": 13,
+            "pin_value": 0,
+            "pin_mode": 0
+          }
+      },
+      {
+        "kind": "send_message",
+        "args":
+          {
+            "message": "HELLO WORLD"
+          }
+      }
+    ]
+}

@@ -1,15 +1,13 @@
 defmodule SequenceSupervisor do
-  def start_link(_args) do
-    import Supervisor.Spec
-    children = [
-      worker(SequenceManager, []),
-      worker(SequenceHandler, [], id: 1),
-      worker(Sequence, [[]])
-    ]
-    Supervisor.start_link(children, strategy: :one_for_one)
+  use Supervisor
+
+  def init(_args) do
+    children = [worker(SequenceManager, [[]], restart: :permanent)]
+    opts = [strategy: :one_for_all, name: __MODULE__]
+    supervise(children, opts)
   end
 
-  def init(_) do
-    {:ok, %{}}
+  def start_link(args) do
+    Supervisor.start_link(__MODULE__, args)
   end
 end

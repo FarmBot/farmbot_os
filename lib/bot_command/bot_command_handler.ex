@@ -8,7 +8,7 @@ defmodule BotCommandHandler do
 
   def init(_args) do
     {:ok, pid} = GenEvent.start_link(name: BOTEVENTMANAGER)
-    GenEvent.add_handler(pid, BotCommandManager, [{:not_doing_stuff, []}])
+    GenEvent.add_handler(pid, BotCommandManager, [])
     spawn fn -> get_events(pid) end
     {:ok, pid}
   end
@@ -51,7 +51,6 @@ defmodule BotCommandHandler do
       do_handle(event)
       Process.sleep(50)
     end
-    GenEvent.call(pid, BotCommandManager, :done_doing_stuff)
     get_events(pid)
   end
 
@@ -98,9 +97,9 @@ defmodule BotCommandHandler do
     SerialMessageManager.sync_notify( {:send, "F41 P#{pin} V#{value} M#{mode}"} )
   end
 
-  defp do_handle({:move_absolute, {x,y,z,_s}}) do
-    Logger.info("MOVE_ABSOLUTE " <> "G00 X#{x} Y#{y} Z#{z}")
-    SerialMessageManager.sync_notify( {:send, "G00 X#{x} Y#{y} Z#{z}"} )
+  defp do_handle({:move_absolute, {x,y,z,s}}) do
+    Logger.info("MOVE_ABSOLUTE " <> "G00 X#{x} Y#{y} Z#{z} S#{s}")
+    SerialMessageManager.sync_notify( {:send, "G00 X#{x} Y#{y} Z#{z} S#{s}"} )
   end
 
   defp do_handle({:read_param, param}) do

@@ -25,7 +25,7 @@ defmodule GcodeMessageHandler do
 
   # This is the heartbeat messge.
   def do_handle({:gcode, {:idle} }) do
-    # BotStatus.busy false
+    BotStatus.busy false
   end
 
   # The opposite of the below command?

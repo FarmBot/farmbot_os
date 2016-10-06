@@ -5,7 +5,7 @@ defmodule RPCSupervisor do
       worker(RPCMessageManager, []),
       worker(RPCMessageHandler, [], id: 1)
     ]
-    Supervisor.start_link(children, strategy: :one_for_one)
+    Supervisor.start_link(children, strategy: :one_for_one, name: __MODULE__)
   end
 
   def init(_) do

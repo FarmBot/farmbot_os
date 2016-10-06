@@ -29,11 +29,21 @@ defmodule BotSync do
     {:reply, resources, %{token: token, resources: resources}}
   end
 
+  def handle_call({:get_sequence, id}, _from, %{token: token, resources: resources}) do
+    sequences = Map.get(resources, "sequences")
+    got = Enum.find(sequences, fn(sequence) -> Map.get(sequence, "id") == id end)
+    {:reply, got, %{token: token, resources: resources}}
+  end
+
   def sync do
     GenServer.cast(__MODULE__, :sync)
   end
 
   def fetch do
     GenServer.call(__MODULE__, :fetch)
+  end
+
+  def get_sequence(id) when is_integer(id) do
+    GenServer.call(__MODULE__, {:get_sequence, id})
   end
 end

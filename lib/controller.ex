@@ -11,7 +11,7 @@ defmodule Controller do
       worker(BotStatus, [[]]  ,             restart: :permanent ),
       supervisor(SerialSupervisor, [[]],    restart: :permanent ),
       supervisor(MqttSupervisor, [[]],      restart: :permanent ),
-      supervisor(SequenceSupervisor, [[]],  restart: :permanent ),
+      supervisor(SequenceSupervisor, [[]],      restart: :permanent ),
       worker(BotSync, [[]]  ,             restart: :permanent )
     ]
     opts = [strategy: :one_for_all, name: Controller.Supervisor]

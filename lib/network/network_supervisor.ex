@@ -6,10 +6,10 @@ defmodule NetworkSupervisor do
   def init(_args) do
     # Nerves.Networking.setup(:eth0) # eh
     children = [ worker(Wifi, [[]]) ]
-    opts = [strategy: :one_for_all, name: NetworkSupervisor]
+    opts = [strategy: :one_for_all, name: __MODULE__]
     supervise(children, opts)
   end
-  
+
   def start_link(args) do
     Logger.debug("Starting Network")
     Supervisor.start_link(__MODULE__, args)

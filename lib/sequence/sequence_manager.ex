@@ -1,34 +1,44 @@
-alias Experimental.{GenStage}
 defmodule SequenceManager do
-  use GenStage
-  def start_link() do
-    GenStage.start_link(__MODULE__, :ok, name: __MODULE__)
+  use GenServer
+  require Logger
+  def init(_arge) do
+    {:ok, %{sequence_running: false, global_vars: %{}, sequences: [] }}
   end
 
-  def sync_notify(event, timeout \\ 5000) do
-    GenStage.call(__MODULE__, {:notify, event}, timeout)
+  def start_link(args) do
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def init(:ok) do
-    {:producer, {:queue.new, 0}, dispatcher: GenStage.BroadcastDispatcher}
+  def running_sequence do
+    GenServer.call(__MODULE__, :get_running_sequence)
   end
 
-  def handle_call({:notify, event}, from, {queue, demand}) do
-    dispatch_events(:queue.in({from, event}, queue), demand, [])
+  def sequence_start(pid) do
+    GenServer.call(__MODULE__, {:sequence_start, pid})
   end
 
-  def handle_demand(incoming_demand, {queue, demand}) do
-    dispatch_events(queue, incoming_demand + demand, [])
+  def sequence_finish(pid) do
+    GenServer.call(__MODULE__, {:sequence_finish, pid})
   end
 
-  # This is some copy paste magic, not touching it.
-  defp dispatch_events(queue, demand, events) do
-    with d when d > 0 <- demand,
-         {{:value, {from, event}}, queue} <- :queue.out(queue) do
-      GenStage.reply(from, :ok)
-      dispatch_events(queue, demand - 1, [event | events])
-    else
-      _ -> {:noreply, Enum.reverse(events), {queue, demand}}
-    end
+  def add_sequence(sequence) do
+    GenServer.call(__MODULE__, {:add_sequence, sequence})
+  end
+
+  def handle_call(:get_running_sequence, _from, %{sequence_running: seq, global_vars: global, sequences: s }) do
+    {:reply, seq, %{sequence_running: seq, global_vars: global, sequences: s } }
+  end
+
+  def handle_call({:sequence_start, pid}, _from, %{sequence_running: false, global_vars: global, sequences: s }) do
+    {:reply, :ok, %{sequence_running: pid, global_vars: global, sequences: s } }
+  end
+
+  def handle_call({:sequence_finish, _pid}, _from, %{sequence_running: _, global_vars: global, sequences: s }) do
+    spawn fn -> Process.sleep(5000); Sequencer.do_sequence(List.last(s)) end
+    {:reply, :ok, %{sequence_running: false, global_vars: global, sequences: [s] -- [List.last(s)] } }
+  end
+
+  def handle_call({:add_sequence, sequence}, _from, %{sequence_running: _, global_vars: global, sequences: s }) do
+    {:reply, :ok, %{sequence_running: false, global_vars: global, sequences: [sequence | s] } }
   end
 end
