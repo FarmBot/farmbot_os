@@ -20,18 +20,18 @@ defmodule GcodeMessageHandler do
 
   # I think this is supposed to be somewhere else.
   def do_handle({:send, str}) do
-    BotStatus.busy true
     GenServer.cast(UartHandler, {:send, str})
   end
 
   # This is the heartbeat messge.
   def do_handle({:gcode, {:idle} }) do
-    BotStatus.busy false
+    # BotStatus.busy false
   end
 
   # The opposite of the below command?
   def do_handle({:gcode, {:done } }) do
     BotStatus.busy false
+    RPCMessageHandler.send_status
   end
 
   # I'm not entirely sure what this is.
@@ -75,7 +75,7 @@ defmodule GcodeMessageHandler do
   end
 
   def do_handle({:gcode, {:debug_message, "stopped"}} ) do
-    BotStatus.busy false
+    # BotStatus.busy false
   end
 
   # Serial sending a debug message. Print it.

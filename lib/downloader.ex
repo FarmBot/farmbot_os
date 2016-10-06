@@ -4,6 +4,7 @@ defmodule Downloader do
     File.rm("/tmp/update.fw")
     run(url, "/tmp/update.fw") |> Nerves.Firmware.upgrade_and_finalize
     RPCMessageHandler.log("Going down for OS update. See you soon!")
+    Process.sleep(5000)
     Nerves.Firmware.reboot
   end
 

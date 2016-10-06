@@ -7,8 +7,8 @@ defmodule BotCommandHandler do
   """
 
   def init(_args) do
-    {:ok, pid} = GenEvent.start_link
-    GenEvent.add_handler(pid, BotCommandManager, [])
+    {:ok, pid} = GenEvent.start_link(name: BOTEVENTMANAGER)
+    GenEvent.add_handler(pid, BotCommandManager, [{:not_doing_stuff, []}])
     spawn fn -> get_events(pid) end
     {:ok, pid}
   end
@@ -50,8 +50,8 @@ defmodule BotCommandHandler do
       BotStatus.busy true
       do_handle(event)
       Process.sleep(50)
-      RPCMessageHandler.send_status
     end
+    GenEvent.call(pid, BotCommandManager, :done_doing_stuff)
     get_events(pid)
   end
 
