@@ -55,7 +55,7 @@ defmodule Sequencer do
     {:reply, vars |> Enum.reduce(%{}, fn ({key, val}, acc) -> Map.put(acc, String.to_atom(key), val) end), %{vars: vars, name: name, bot_state: bot_state, running: running} }
   end
 
-  def handle_call(:pause, _from, %{vars: vars, name: name, bot_state: _bot_state, running: _running} ) do
+  def handle_call(:pause, _from, %{vars: vars, name: name, bot_state: _bot_state, running: true} ) do
     paused_status = BotStatus.get_status
     RPCMessageHandler.log("Pausing Sequence: #{name}")
     {:reply, paused_status, %{vars: vars, name: name, bot_state: paused_status, running: false} }
@@ -65,7 +65,7 @@ defmodule Sequencer do
     {:reply, running, %{vars: vars, name: name, bot_state: bot_state, running: running} }
   end
 
-  def handle_cast(:resume, %{vars: vars, name: name, bot_state: paused_status, running: _running} ) do
+  def handle_cast(:resume, %{vars: vars, name: name, bot_state: paused_status, running: false} ) do
     BotStatus.apply_status(paused_status)
     RPCMessageHandler.log("Resuming Sequence: #{name}")
     {:noreply, %{vars: vars, name: name, bot_state: BotStatus.get_status, running: true} }
@@ -91,10 +91,12 @@ defmodule Sequencer do
   end
 
   def terminate(:normal, state) do
+    GenServer.call(SequenceManager, {:done, self()})
     RPCMessageHandler.log("Sequence: #{state.name} finished with state: #{inspect state}")
   end
 
   def terminate(reason, state) do
+    GenServer.call(SequenceManager, {:done, self()})
     RPCMessageHandler.log("Sequence: #{state.name} finished with error: #{inspect reason}")
   end
 
