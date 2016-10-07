@@ -193,7 +193,6 @@ defmodule RPCMessageHandler do
     :ok
   end
 
-#  "{\"update_calibration\", [%{\"movement_home_up_y\" => 0}]}"}
   def do_handle("update_calibration", [params]) when is_map(params) do
     case Enum.all?(params, fn({param, value}) ->
       param_int = Gcode.parse_param(param)
@@ -210,11 +209,27 @@ defmodule RPCMessageHandler do
     :ok
   end
 
-  def do_hanlde("force_update", [%{"url" => url}] ) do
+  def do_handle("force_update", [%{"url" => url}] ) do
     Logger.debug("forcing new update")
     log("Forcing new update")
     spawn fn -> Downloader.download_and_install_os_update(url) end
     :ok
+  end
+
+  def do_handle("exec_sequence", [sequence]) do
+    Logger.debug("doing some stuff with a sequence")
+    IO.inspect(sequence)
+    name = Map.get(sequence, "name")
+    body = Map.get(sequence, "body")
+    spawn fn -> Sequencer.do_sequence(%{"name" => name, "kind" => "sequence",
+                            "color" => nil, "args" => %{}, "body" => body,
+                            "device_id" => nil, "id" => nil}) end
+    :ok
+  end
+
+  def do_handle("load_sequence", [%{"url" => url}]) do
+    sequence = Sequencer.load_external_sequence(url)
+    do_handle("exec_sequence", [sequence])
   end
 
   # Unhandled event. Probably not implemented if it got this far.

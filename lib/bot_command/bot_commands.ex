@@ -134,8 +134,6 @@ defmodule Command do
 
   @doc """
     Reads a pin value.
-    mode: 1 = digital.
-    mode: 0 = analog.
   """
   def read_pin(pin, mode \\ 0) do
     BotCommandHandler.notify({:read_pin, {pin, mode} })

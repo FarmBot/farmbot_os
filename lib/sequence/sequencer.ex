@@ -20,13 +20,15 @@ defmodule Sequencer do
     execute(body, pid)
   end
 
-  def execute(body, pid) when is_list(body) do
+  def execute(body, pid, kill\\ true) when is_list(body) do
     for node <- body do # compile the ast
       RPCMessageHandler.log("Doing: #{Map.get(node, "kind")}")
       SequenceCommands.do_command({Map.get(node, "kind"), Map.get(node, "args")}, pid)
       Process.sleep(50)
     end
-    GenServer.stop(pid)
+    if(kill) do
+      GenServer.stop(pid)
+    end
   end
 
   def handle_call({:set_var, identifier, value}, _from, %{vars: vars, name: name}) do
@@ -38,6 +40,10 @@ defmodule Sequencer do
     {:reply, v, %{vars: vars, name: name} }
   end
 
+  def handle_call(:get_all_vars, _from, %{vars: vars, name: name} ) do
+    {:reply, vars |> Enum.reduce(%{}, fn ({key, val}, acc) -> Map.put(acc, String.to_atom(key), val) end), %{vars: vars, name: name} }
+  end
+
   def terminate(:normal, state) do
     RPCMessageHandler.log("Sequence: #{state.name} finished with state: #{inspect state}")
   end
@@ -46,16 +52,8 @@ defmodule Sequencer do
     RPCMessageHandler.log("Sequence: #{state.name} finished with error: #{inspect reason}")
   end
 
-  def get_test_sequence(seq \\ "https://gist.githubusercontent.com/ConnorRigby/2fc571e50a356a4f44ba429e1f0753f2/raw/0d2dd7bb73b4aed87abdc4861f9b6a4a6304affb/sequence.json") do
-    resp = HTTPotion.get(seq)
+  def load_external_sequence(url) do
+    resp = HTTPotion.get(url)
     Poison.decode!(resp.body)
-  end
-
-  def test_sync_sequences do
-    s1 = get_test_sequence
-    s2 = get_test_sequence("https://gist.githubusercontent.com/ConnorRigby/04d48076e9049ce6a2e09e8501bd6b6c/raw/61058eb0301a1bb69528e73ba679ce23d4953952/blah2.json")
-    spawn fn -> do_sequence(s1) end
-    Process.sleep(1000)
-    spawn fn -> do_sequence(s2) end
   end
 end

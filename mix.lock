@@ -16,6 +16,7 @@
   "ibrowse": {:hex, :ibrowse, "4.2.2", "b32b5bafcc77b7277eff030ed32e1acc3f610c64e9f6aea19822abcadf681b4b", [:rebar3], []},
   "jsx": {:hex, :jsx, "2.6.2", "213721e058da0587a4bce3cc8a00ff6684ced229c8f9223245c6ff2c88fbaa5a", [:mix, :rebar], []},
   "mime": {:hex, :mime, "1.0.1", "05c393850524767d13a53627df71beeebb016205eb43bfbd92d14d24ec7a1b51", [:mix], []},
+  "mustache": {:hex, :mustache, "0.0.2", "870fbef411c47d17df06a57b8b3f69e26eb110cba0177c34e273db5d94369d9b", [:mix], []},
   "nerves": {:hex, :nerves, "0.3.4", "7de99513f2775633e2db00acbf7437c55bd132f19b7406814f50818702b381b5", [:mix], [{:exrm, "~> 1.0.6", [hex: :exrm, optional: false]}]},
   "nerves_firmware": {:git, "https://github.com/nerves-project/nerves_firmware.git", "241a12694bd3bc2b4df8cbb7e0f0beaeff075b1c", []},
   "nerves_firmware_http": {:git, "https://github.com/nerves-project/nerves_firmware_http.git", "cc2cb110b0587a482d454175916dc597d62c4bfa", []},
