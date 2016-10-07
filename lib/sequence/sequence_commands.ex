@@ -1,10 +1,10 @@
 defmodule SequenceCommands do
   require Logger
   def do_command({"move_absolute", %{"x" => x, "y" => y, "z" => z, "speed" => s}}, pid)
-  when is_map(x)
-   and is_map(y)
-   and is_map(z)
-   and is_map(s)
+  when is_map(x) or is_integer(x)
+   and is_map(y) or is_integer(y)
+   and is_map(z) or is_integer(z)
+   and is_map(s) or is_integer(s)
   do
     rx = do_command(x, pid)
     ry = do_command(y, pid)
@@ -14,10 +14,10 @@ defmodule SequenceCommands do
   end
 
   def do_command({"move_relative", %{"x" => x, "y" => y, "z" => z, "speed" => s}}, pid)
-  when is_map(x)
-   and is_map(y)
-   and is_map(z)
-   and is_map(s)
+  when is_map(x) or is_integer(x)
+   and is_map(y) or is_integer(y)
+   and is_map(z) or is_integer(z)
+   and is_map(s) or is_integer(s)
   do
     rx = do_command(x, pid)
     ry = do_command(y, pid)
@@ -27,9 +27,9 @@ defmodule SequenceCommands do
   end
 
   def do_command({"write_pin", %{"pin_number" => pin, "pin_value" => value, "pin_mode" => mode}}, pid)
-  when is_map(pin)
-   and is_map(value)
-   and is_map(mode)
+  when is_map(pin) or is_integer(pin)
+   and is_map(value) or is_integer(value)
+   and is_map(mode) or is_integer(mode)
   do
     rpin = do_command(pin, pid)
     rvalue = do_command(value, pid)
@@ -38,8 +38,8 @@ defmodule SequenceCommands do
   end
 
   def do_command({"read_pin", %{"pin_number" => pin, "data_label" => variable_name}}, pid)
-  when is_map(pin)
-   and is_map(variable_name)
+  when is_map(pin) or is_integer(pin)
+   and is_map(variable_name) or is_bitstring(variable_name)
   do
     rpin = do_command(pin, pid)
     rvar = do_command(variable_name, pid)
@@ -48,13 +48,15 @@ defmodule SequenceCommands do
     GenServer.call(pid, {:set_var, rvar, v})
   end
 
-  def do_command({"wait", %{"milliseconds" => milis}}, pid) when is_map(milis) do
+  def do_command({"wait", %{"milliseconds" => milis}}, pid)
+  when is_map(milis) or is_integer(milis) do
     rmilis = do_command(milis, pid)
     Process.sleep(rmilis)
   end
 
   # SHHHH
-  def do_command({"send_message", %{"message" => "secret "<>message}}, _pid) when is_bitstring(message) do
+  def do_command({"send_message", %{"message" => "secret "<>message}}, _pid)
+  when is_bitstring(message) do
     case Poison.decode(message) do
       {:ok, json} ->
         RPCMessageHandler.log("you found a secret")
@@ -63,7 +65,8 @@ defmodule SequenceCommands do
     end
   end
 
-  def do_command({"send_message", %{"message" => message}}, pid) when is_map(message) do
+  def do_command({"send_message", %{"message" => message}}, pid)
+  when is_map(message) or is_bitstring(message) do
     rmessage = do_command(message, pid)
     vars = GenServer.call(pid, :get_all_vars)
     rendered = Mustache.render(rmessage, vars)
@@ -84,7 +87,9 @@ defmodule SequenceCommands do
   end
 
   def do_command({"math", %{"lhs" => lhs, "op" => op, "rhs" => rhs}},pid)
-    when is_map(lhs) and is_bitstring(op) and is_map(rhs) do
+    when is_map(lhs) or is_integer(lhs)
+     and is_map(rhs) or is_integer(rhs)
+     and is_bitstring(op)  do
       do_math({
         do_command(lhs, pid),
         op,
@@ -93,7 +98,11 @@ defmodule SequenceCommands do
   end
 
   def do_command({"if_statement", %{"lhs" => lhs, "op" => op, "rhs" => rhs, "sub_sequence_id" => ssid}}, pid)
-    when is_map(lhs) and is_bitstring(op) and is_map(rhs) and is_map(ssid) do
+    when is_map(lhs) or is_integer(lhs)
+     and is_map(rhs) or is_integer(rhs)
+     and is_map(ssid) or is_integer(ssid)
+     and is_bitstring(op)  do
+       
     rlhs = do_command(lhs, pid)
     rrhs = do_command(rhs, pid)
     case eval_if({rlhs, op, rrhs}) do
@@ -117,24 +126,40 @@ defmodule SequenceCommands do
   end
 
   def do_command({"literal", %{"data_type" => "string", "data_value" => str}}, _pid) when is_bitstring(str) do
+    Logger.debug("string literal: #{str}")
     str
   end
 
   def do_command({"literal", %{"data_type" => "integer", "data_value" => intstr}}, _pid) when is_bitstring(intstr) do
+    Logger.debug("integer literal: #{intstr} (from string)")
     String.to_integer(intstr)
   end
 
   def do_command({"literal", %{"data_type" => "integer", "data_value" => int}}, _pid) when is_integer(int) do
+    Logger.debug("integer literal: #{int} (from int)")
     int
   end
 
   def do_command({"literal", %{"data_type" => type, "data_value" => val}}, pid) when is_map(type) and is_map(val) do
+    Logger.debug("infering type: #{type} for #{val}")
     rtype = do_command(type, pid)
     rval = do_command(val, pid)
     case infer_type(rtype) do
       :integer -> do_command({"literal", %{"data_type" => "integer", "data_value" => rval}}, pid)
       :string -> do_command({"literal", %{"data_type" => "string", "data_value" => rval}}, pid)
     end
+  end
+
+  # until the api can do ast nodes for arguments
+  def do_command(val, _pid)
+    when is_integer(val) do
+      val
+  end
+
+  # until the api can do ast nodes for arguments
+  def do_command(val, _pid)
+    when is_bitstring(val) do
+      val
   end
 
   def do_command(%{"kind" => kind, "args" => args}, pid) when is_bitstring kind and is_map(args) do
@@ -244,5 +269,29 @@ defmodule SequenceCommands do
       true -> Logger.debug("#{p} is not an integer"); nil
     end
   end
-
 end
+
+#
+# %{"kind" => "move_absolute",
+#   "position" => 0
+#   "args" => %{
+#               "speed" =>
+#                 %{"args" => %{"data_type" => "integer", "data_value" => "0"},
+#                   "kind" => "literal"},
+#
+#               "stub" =>
+#                 %{"args" => %{"data_type" => "string", "data_value" => ""},
+#                   "kind" => "literal"},
+#
+#               "x" =>
+#                 %{"args" => %{"data_type" => "string", "data_value" => "1000"},
+#                   "kind" => "literal"},
+#
+#               "y" =>
+#                 %{"args" => %{"data_type" => "string", "data_value" => "100"},
+#                   "kind" => "literal"},
+#
+#               "z" =>
+#                 %{"args" => %{"data_type" => "string", "data_value" => "-150"},
+#                   "kind" => "literal"}
+#               }}

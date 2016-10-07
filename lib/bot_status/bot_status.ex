@@ -166,4 +166,8 @@ defmodule BotStatus do
   def get_speed do
     GenServer.call(__MODULE__, :get_speed)
   end
+
+  def apply_status(_status) do
+    nil
+  end
 end
