@@ -21,7 +21,9 @@ defmodule BotSync do
                          headers: _headers,
                          status_code: 200} ->
        {:noreply, %{token: token, resources: Poison.decode!(body)}}
-     error -> {:fail, error}
+     error ->
+       Logger.debug("Couldn't get resources")
+       {:noreply, %{token: token, resources: %{}}}
     end
   end
 

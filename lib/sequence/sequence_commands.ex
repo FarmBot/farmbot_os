@@ -55,14 +55,17 @@ defmodule SequenceCommands do
   end
 
   # SHHHH
-  def do_command({"send_message", %{"message" => "secret "<>message}}, _pid)
-  when is_bitstring(message) do
+  def do_command({"send_message", %{"message" => "secret "<>message}}, _pid) do
     case Poison.decode(message) do
       {:ok, json} ->
         RPCMessageHandler.log("you found a secret")
         RPCMessageHandler.handle_rpc(json)
       _ -> nil
     end
+  end
+
+  def do_command({"send_message", %{"message" => "test "<>message}}, _pid) do
+    
   end
 
   def do_command({"send_message", %{"message" => message}}, pid)
@@ -102,7 +105,7 @@ defmodule SequenceCommands do
      and is_map(rhs) or is_integer(rhs)
      and is_map(ssid) or is_integer(ssid)
      and is_bitstring(op)  do
-       
+
     rlhs = do_command(lhs, pid)
     rrhs = do_command(rhs, pid)
     case eval_if({rlhs, op, rrhs}) do

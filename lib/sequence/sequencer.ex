@@ -52,7 +52,14 @@ defmodule Sequencer do
   end
 
   def handle_call(:get_all_vars, _from, %{vars: vars, name: name, bot_state: bot_state, running: running} ) do
-    {:reply, vars |> Enum.reduce(%{}, fn ({key, val}, acc) -> Map.put(acc, String.to_atom(key), val) end), %{vars: vars, name: name, bot_state: bot_state, running: running} }
+    thing1 = vars |> Enum.reduce(%{}, fn ({key, val}, acc) -> Map.put(acc, String.to_atom(key), val) end)
+    thing2 = bot_state |> Enum.reduce(%{}, fn ({key, val}, acc) ->
+      cond do
+        is_bitstring(key) -> Map.put(acc, String.to_atom(key), val)
+        is_atom(key) -> Map.put(acc, key, val)
+      end
+    end)
+    {:reply, Map.merge(thing1, thing2), %{vars: vars, name: name, bot_state: bot_state, running: running} }
   end
 
   def handle_call(:pause, _from, %{vars: vars, name: name, bot_state: _bot_state, running: true} ) do
