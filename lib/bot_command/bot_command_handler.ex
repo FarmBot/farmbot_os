@@ -7,7 +7,7 @@ defmodule BotCommandHandler do
   """
 
   def init(_args) do
-    {:ok, pid} = GenEvent.start_link
+    {:ok, pid} = GenEvent.start_link(name: BOTEVENTMANAGER)
     GenEvent.add_handler(pid, BotCommandManager, [])
     spawn fn -> get_events(pid) end
     {:ok, pid}
@@ -50,7 +50,6 @@ defmodule BotCommandHandler do
       BotStatus.busy true
       do_handle(event)
       Process.sleep(50)
-      RPCMessageHandler.send_status
     end
     get_events(pid)
   end
@@ -77,17 +76,17 @@ defmodule BotCommandHandler do
   ##          and the actual bot is at a different position.
   ###
 
-  defp do_handle({:home_x, {speed}}) do
+  defp do_handle({:home_x, {_speed}}) do
     Logger.info("HOME X")
     SerialMessageManager.sync_notify( {:send, "F11"} )
   end
 
-  defp do_handle({:home_y, {speed}}) do
+  defp do_handle({:home_y, {_speed}}) do
     Logger.info("HOME Y")
     SerialMessageManager.sync_notify( {:send, "F12"} )
   end
 
-  defp do_handle({:home_z, {speed}}) do
+  defp do_handle({:home_z, {_speed}}) do
     Logger.info("HOME Z")
     SerialMessageManager.sync_notify( {:send, "F13"} )
   end
@@ -98,9 +97,9 @@ defmodule BotCommandHandler do
     SerialMessageManager.sync_notify( {:send, "F41 P#{pin} V#{value} M#{mode}"} )
   end
 
-  defp do_handle({:move_absolute, {x,y,z,_s}}) do
-    Logger.info("MOVE_ABSOLUTE " <> "G00 X#{x} Y#{y} Z#{z}")
-    SerialMessageManager.sync_notify( {:send, "G00 X#{x} Y#{y} Z#{z}"} )
+  defp do_handle({:move_absolute, {x,y,z,s}}) do
+    Logger.info("MOVE_ABSOLUTE " <> "G00 X#{x} Y#{y} Z#{z} S#{s}")
+    SerialMessageManager.sync_notify( {:send, "G00 X#{x} Y#{y} Z#{z} S#{s}"} )
   end
 
   defp do_handle({:read_param, param}) do

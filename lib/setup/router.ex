@@ -23,8 +23,7 @@ defmodule MyRouter do
          server = conn.params["server"]
          case Auth.login(email,password,server) do
            nil -> send_resp(conn, 401, "LOGIN FAIL")
-           token -> send_resp(conn, 200, "LOGIN OK")
-           _ -> Logger.debug("YES")
+           _ -> send_resp(conn, 200, "LOGIN OK")
          end
        _ ->
          send_resp(conn, 401, "BAD PARAMS")
@@ -33,14 +32,15 @@ defmodule MyRouter do
   end
 
   get "/scan" do
-    send_resp(conn, 200, Poison.encode!(scan) )
+    send_resp(conn, 200, Poison.encode!(scan(@env)) )
   end
 
-  def scan do
-    case @env do
-      :prod -> Wifi.scan
-      _ -> ["not", "on", "real", "hardware"]
-    end
+  def scan(:prod) do
+    Wifi.scan
+  end
+
+  def scan(_) do
+    ["not", "on", "real", "hardware"]
   end
 
   get "/tea" do

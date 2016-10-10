@@ -40,7 +40,8 @@ defmodule Fw.Mixfile do
      :plug,
      :cors_plug,
      :hulaaki,
-     :runtime_tools]
+     :runtime_tools,
+     :mustache]
   end
 
   # on device
@@ -73,7 +74,8 @@ defmodule Fw.Mixfile do
       {:cowboy, "~> 1.0.0"},
       {:plug, "~> 1.0"},
       {:cors_plug, "~> 1.1"},
-      {:hulaaki, github: "ConnorRigby/hulaaki"}
+      {:hulaaki, github: "ConnorRigby/hulaaki"},
+      {:mustache, "~> 0.0.2"}
     ]
   end
 

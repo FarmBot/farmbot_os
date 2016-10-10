@@ -38,6 +38,11 @@ defmodule BotStatus do
     {:reply, pin, current_status}
   end
 
+  def handle_call(:get_speed, _from, current_status) do
+    speed = Map.get(current_status, :speed)
+    {:reply, speed, current_status}
+  end
+
   def handle_cast({:set_pin, pin, value}, current_status) when is_bitstring(pin) and is_integer(value) do
     {:noreply, Map.put(current_status, "pin"<>pin, value)}
   end
@@ -87,6 +92,10 @@ defmodule BotStatus do
   # Gets the pin value from the bot's status
   def get_pin(pin) when is_integer pin do
     GenServer.call(__MODULE__, {:get_pin, Integer.to_string(pin)})
+  end
+
+  def get_pin("pin"<>pin) when is_bitstring pin do
+    GenServer.call(__MODULE__, {:get_pin, pin})
   end
 
   # Sets busy to true or false.
@@ -147,5 +156,18 @@ defmodule BotStatus do
     cur_status = BotStatus.get_status
     this_param = Gcode.parse_param(param) |> Atom.to_string |> String.Casing.downcase
     Map.get(cur_status, this_param)
+  end
+
+  # for saftey of sequence if
+  def get_param(_) do
+    nil
+  end
+
+  def get_speed do
+    GenServer.call(__MODULE__, :get_speed)
+  end
+
+  def apply_status(_status) do
+    nil
   end
 end

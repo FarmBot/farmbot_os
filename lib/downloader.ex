@@ -4,6 +4,7 @@ defmodule Downloader do
     File.rm("/tmp/update.fw")
     run(url, "/tmp/update.fw") |> Nerves.Firmware.upgrade_and_finalize
     RPCMessageHandler.log("Going down for OS update. See you soon!")
+    Process.sleep(5000)
     Nerves.Firmware.reboot
   end
 
@@ -22,6 +23,8 @@ defmodule Downloader do
     System.cmd("avrdude", ["-v", "-patmega2560", "-cwiring", "-P/dev/#{tty}", "-b115200", "-D", "-Uflash:w:#{hex_file}:i"])
     pid = Process.whereis(UartHandler)
     Process.exit(pid, :restart)
+    Command.read_all_params
+    Command.read_all_pins
   end
 
   def run(url, dl_file) when is_bitstring url do
