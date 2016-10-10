@@ -5,7 +5,22 @@
   "kind":"sequence",
   "color":"purple",
   "args":{
-
+    "requirements": [{
+      "id": 5,
+      "device_id": 1,
+      "name": "sub sequence ",
+      "color": "green",
+      "args": {},
+      "body": [    {
+            "kind": "move_absolute",
+            "args": {
+              "x":{"kind": "literal", "args":{"data_type": "integer", "data_value": 1000}},
+              "y":{"kind": "literal", "args":{"data_type": "integer", "data_value": 1000}},
+              "z":{"kind": "literal", "args":{"data_type": "integer", "data_value": -1000}},
+              "speed":{"kind": "literal", "args":{"data_type": "integer", "data_value": 100}}
+            }
+          }]
+      }]
   },
   "body":[
     {

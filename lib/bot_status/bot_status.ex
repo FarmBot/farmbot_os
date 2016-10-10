@@ -168,6 +168,6 @@ defmodule BotStatus do
   end
 
   def apply_status(_status) do
-    nil
+    Logger.debug("TODO: apply bot status")
   end
 end

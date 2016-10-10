@@ -16,7 +16,7 @@ defmodule Wifi do
 
   def init(_args) do
     System.cmd("epmd", ["-daemon"])
-    GenEvent.add_handler(Nerves.NetworkInterface.event_manager(), Network.EventManager, [])
+    GenEvent.add_handler(Nerves.NetworkInterface.event_manager(), Network.EventManager, %{})
     initial_state = load
     case initial_state do
       {:wpa_supplicant, {ssid, pass}} -> start_wifi_client(ssid, pass)

@@ -7,7 +7,7 @@ defmodule BotCommandHandler do
   """
 
   def init(_args) do
-    {:ok, pid} = GenEvent.start_link(name: BOTEVENTMANAGER)
+    {:ok, pid} = GenEvent.start_link(name: BotCommandEventManager)
     GenEvent.add_handler(pid, BotCommandManager, [])
     spawn fn -> get_events(pid) end
     {:ok, pid}

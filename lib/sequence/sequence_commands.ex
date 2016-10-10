@@ -65,7 +65,7 @@ defmodule SequenceCommands do
   end
 
   def do_command({"send_message", %{"message" => "test "<>message}}, _pid) do
-    
+
   end
 
   def do_command({"send_message", %{"message" => message}}, pid)
@@ -273,28 +273,3 @@ defmodule SequenceCommands do
     end
   end
 end
-
-#
-# %{"kind" => "move_absolute",
-#   "position" => 0
-#   "args" => %{
-#               "speed" =>
-#                 %{"args" => %{"data_type" => "integer", "data_value" => "0"},
-#                   "kind" => "literal"},
-#
-#               "stub" =>
-#                 %{"args" => %{"data_type" => "string", "data_value" => ""},
-#                   "kind" => "literal"},
-#
-#               "x" =>
-#                 %{"args" => %{"data_type" => "string", "data_value" => "1000"},
-#                   "kind" => "literal"},
-#
-#               "y" =>
-#                 %{"args" => %{"data_type" => "string", "data_value" => "100"},
-#                   "kind" => "literal"},
-#
-#               "z" =>
-#                 %{"args" => %{"data_type" => "string", "data_value" => "-150"},
-#                   "kind" => "literal"}
-#               }}
