@@ -55,7 +55,9 @@ defmodule GcodeMessageHandler do
 
   def do_handle({:gcode, { :report_current_position, position }}) do
     [x, y, z] = parse_coords(position)
+    Logger.debug("Reporting position #{inspect {x, y, z}}")
     BotStatus.set_pos(x,y,z)
+    RPCMessageHandler.send_status
   end
 
   def do_handle({:gcode, {:report_parameter_value, param }}) do

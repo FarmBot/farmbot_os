@@ -134,8 +134,9 @@ defmodule Sequencer do
   end
 
   def terminate(reason, state) do
-    GenServer.call(SequenceManager, {:done, self()})
+    Logger.debug("Something weird happened")
     RPCMessageHandler.log("Sequence: #{state.name} finished with error: #{inspect reason}")
+    GenServer.call(SequenceManager, {:done, self()})
   end
 
   def load_external_sequence(url) do

@@ -1,12 +1,23 @@
 defmodule SequenceManager do
   use GenServer
   require Logger
+
   def init(_arge) do
     {:ok, %{current: nil, global_vars: %{}, log: []}}
   end
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
+  end
+
+  def handle_call(:e_stop, _from, %{current: pid, global_vars: _, log: _})
+  when is_pid(pid) do
+    pid_exit = Process.exit(pid, :e_stop)
+    {:reply, pid_exit, %{current: nil, global_vars: %{}, log: []}}
+  end
+
+  def handle_call(:e_stop, _from, %{current: nil, global_vars: _, log: _}) do
+    {:reply, :no_process, %{current: nil, global_vars: %{}, log: []}}
   end
 
   def handle_call({:add, seq}, _from, %{current: nil, global_vars: globals, log: []})
@@ -54,5 +65,9 @@ defmodule SequenceManager do
     huh = GenServer.call(__MODULE__, {:add, seq})
     RPCMessageHandler.log(huh)
     Logger.debug(huh)
+  end
+
+  def e_stop do
+    GenServer.call(__MODULE__, :e_stop)
   end
 end

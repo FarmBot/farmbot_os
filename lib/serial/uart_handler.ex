@@ -39,6 +39,10 @@ defmodule UartHandler do
     GenServer.cast(__MODULE__, {:connect, tty, baud, active})
   end
 
+  def send("E") do
+    GenServer.call(__MODULE__, {:send, "E"})
+  end
+
   def send(str) do
     GenServer.cast(__MODULE__, {:send, str})
   end
@@ -46,6 +50,12 @@ defmodule UartHandler do
   # Genserver Calls
   def handle_call({:get_state}, _from, state) do
     {:reply, state, state}
+  end
+
+
+  def handle_call({:send, "E"}, _from, {pid, tty}) do
+    Nerves.UART.write(pid, "E")
+    {:reply, :ok, {pid, tty}}
   end
 
   def handle_cast({:connect, tty, baud, active}, state) do
@@ -56,7 +66,7 @@ defmodule UartHandler do
 
   def handle_cast({:send, str}, {pid, tty}) do
     Nerves.UART.write(pid, str)
-    {:noreply,  {pid, tty}}
+    {:noreply, {pid, tty}}
   end
 
   def handle_info({:nerves_uart, _tty, {:error, _}}, state) do
