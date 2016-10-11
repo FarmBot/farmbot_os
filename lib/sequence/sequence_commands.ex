@@ -65,7 +65,7 @@ defmodule SequenceCommands do
   end
 
   def do_command({"send_message", %{"message" => "test "<>message}}, _pid) do
-    
+
   end
 
   def do_command({"send_message", %{"message" => message}}, pid)
@@ -80,19 +80,18 @@ defmodule SequenceCommands do
   # This is just for testing
   def do_command({"execute", %{"sub_sequence_id" => more_nodes}}, pid) when is_list(more_nodes) do
     Logger.debug("executing more things")
-    Sequencer.execute(more_nodes, pid, false)
+    Sequencer.execute(more_nodes, pid)
   end
 
-  def do_command({"execute", %{"sub_sequence_id" => seq_id}}, pid) when is_map(seq_id) do
+  def do_command({"execute", %{"sub_sequence_id" => seq_id}}, pid) when is_map(seq_id) or is_integer(seq_id) do
     rid = do_command(seq_id,pid)
     s = BotSync.get_sequence(rid)
-    Sequencer.execute(Map.get(s, "body"), pid, false)
+    body = Map.get(s, "body")
+    Sequencer.execute(body, pid)
   end
 
   def do_command({"math", %{"lhs" => lhs, "op" => op, "rhs" => rhs}},pid)
-    when is_map(lhs) or is_integer(lhs)
-     and is_map(rhs) or is_integer(rhs)
-     and is_bitstring(op)  do
+    when is_bitstring(op) do
       do_math({
         do_command(lhs, pid),
         op,
@@ -101,17 +100,21 @@ defmodule SequenceCommands do
   end
 
   def do_command({"if_statement", %{"lhs" => lhs, "op" => op, "rhs" => rhs, "sub_sequence_id" => ssid}}, pid)
-    when is_map(lhs) or is_integer(lhs)
-     and is_map(rhs) or is_integer(rhs)
-     and is_map(ssid) or is_integer(ssid)
-     and is_bitstring(op)  do
-
-    rlhs = do_command(lhs, pid)
-    rrhs = do_command(rhs, pid)
-    case eval_if({rlhs, op, rrhs}) do
-      true  -> do_command({"execute", %{"sub_sequence_id" => ssid}}, pid)
-      false -> Logger.debug("if(#{rlhs} #{op} #{rrhs}) evaluated false")
-    end
+    when is_bitstring(op) do
+      l = cond do
+        is_bitstring(lhs) ->
+          vars = GenServer.call(pid, :get_all_vars)
+          Map.get(vars, String.to_atom(lhs))
+        is_integer(lhs) -> lhs
+        true -> do_command(lhs, pid)
+      end
+      Logger.debug(l)
+      rlhs = do_command(l, pid)
+      rrhs = do_command(rhs, pid)
+      case eval_if({rlhs, op, rrhs}) do
+        true  -> do_command({"execute", %{"sub_sequence_id" => ssid}}, pid)
+        false -> Logger.debug("if(#{rlhs} #{op} #{rrhs}) evaluated false")
+      end
   end
 
   def do_command({"get_var", %{"data_label" => id}}, pid)
@@ -163,6 +166,10 @@ defmodule SequenceCommands do
   def do_command(val, _pid)
     when is_bitstring(val) do
       val
+  end
+
+  def do_command(nil, _pid) do
+    nil
   end
 
   def do_command(%{"kind" => kind, "args" => args}, pid) when is_bitstring kind and is_map(args) do
@@ -273,28 +280,3 @@ defmodule SequenceCommands do
     end
   end
 end
-
-#
-# %{"kind" => "move_absolute",
-#   "position" => 0
-#   "args" => %{
-#               "speed" =>
-#                 %{"args" => %{"data_type" => "integer", "data_value" => "0"},
-#                   "kind" => "literal"},
-#
-#               "stub" =>
-#                 %{"args" => %{"data_type" => "string", "data_value" => ""},
-#                   "kind" => "literal"},
-#
-#               "x" =>
-#                 %{"args" => %{"data_type" => "string", "data_value" => "1000"},
-#                   "kind" => "literal"},
-#
-#               "y" =>
-#                 %{"args" => %{"data_type" => "string", "data_value" => "100"},
-#                   "kind" => "literal"},
-#
-#               "z" =>
-#                 %{"args" => %{"data_type" => "string", "data_value" => "-150"},
-#                   "kind" => "literal"}
-#               }}

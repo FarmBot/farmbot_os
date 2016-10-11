@@ -217,13 +217,13 @@ defmodule RPCMessageHandler do
   end
 
   def do_handle("exec_sequence", [sequence]) do
-    Logger.debug("doing some stuff with a sequence")
-    IO.inspect(sequence)
-    name = Map.get(sequence, "name")
-    body = Map.get(sequence, "body")
-    spawn fn -> Sequencer.do_sequence(%{"name" => name, "kind" => "sequence",
-                            "color" => nil, "args" => %{}, "body" => body,
-                            "device_id" => nil, "id" => nil}) end
+    cond do
+      Map.has_key?(sequence, "body")
+       and Map.has_key?(sequence, "args")
+       and Map.has_key?(sequence, "name")
+      -> SequenceManager.do_sequence(sequence)
+      true -> log("Sequence invalid.")
+    end
     :ok
   end
 

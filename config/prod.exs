@@ -14,3 +14,6 @@ config :fb,
 
 config :json_rpc,
     transport: MqttHandler
+
+config :logger,
+    format: "$metadata[$level] $levelpad$message\n"

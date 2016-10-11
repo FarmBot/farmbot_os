@@ -10,35 +10,62 @@ defmodule Sequencer do
     GenServer.start_link(__MODULE__, args)
   end
 
-  def do_sequence(%{"id" => _sequence_id,
-  "device_id" => _device_id, "name" => name,
-  "kind" => "sequence", "color" => _color,
-  "args" => _args, "body" => body})  do
-    {:ok, pid} = start_link(%{name: name})
-    Logger.debug("Starting Sequence: #{name}")
-    RPCMessageHandler.log("Starting Sequence: #{name}")
-    Process.flag(:trap_exit, true)
-    spawn_link fn -> execute(body, pid) end
-    pid
+  # im not particularly proud of this function.
+  def do_sequence(sequence) do
+    BotSync.sync
+    required_keys = ["body", "args", "name"]
+    case Enum.all?(required_keys, fn(key) -> Map.has_key?(sequence, key) end) do
+      true ->
+        args = Map.get(sequence, "args")
+        body = Map.get(sequence, "body")
+        name = Map.get(sequence, "name")
+        case SequenceValidator.validate(args, body) do
+          {:valid, warnings} ->
+            RPCMessageHandler.log("Sequence Valid")
+            for warning <- warnings do
+              Logger.debug("Validator warning: #{inspect warning}")
+              RPCMessageHandler.log("Validator warning: #{inspect warning}")
+            end
+            {:ok, pid} = start_link(%{name: name})
+            Process.flag(:trap_exit, true)
+            spawn_link fn -> execute(body, pid) end
+            {:ok, pid}
+          {:error, reason} ->
+            Logger.debug("Couldn't start sequence: #{inspect reason}")
+            RPCMessageHandler.log("Couldn't start sequence: #{inspect reason}")
+            {:error, reason}
+          _ ->
+            Logger.debug("Couldn't start sequence: unknown error")
+            RPCMessageHandler.log("Couldn't start sequence: unknown error")
+            {:error, :unknown}
+        end
+      false ->
+        Logger.debug("Missing key. Sequence invalid")
+    end
   end
 
-  def execute(body, pid, kill\\ true) when is_list(body) do
-    for node <- body do
-      do_step(node,pid)
-    end
-    if(kill) do
-      GenServer.stop(pid)
-    end
+  def execute(body, pid) when is_list(body) and is_pid(pid) do
+    do_steps(body,pid)
   end
 
-  def do_step(node, pid) do
+  def do_steps([], pid) do
+    GenServer.stop(pid)
+  end
+
+  def do_steps(body, pid) when is_list(body) do
+    if(BotStatus.busy?) do
+      Process.sleep(10)
+      do_steps(body, pid)
+    end
     if(run_next_tick?(pid)) do
+      node = List.first(body)
       RPCMessageHandler.log("Doing: #{Map.get(node, "kind")}")
       SequenceCommands.do_command(node, pid)
-      Process.sleep(50)
+      Process.sleep(200)
+      do_steps(body -- [node], pid)
     else
       Process.sleep(10)
-      do_step(node,pid)
+      do_steps(body, pid)
     end
   end
 
@@ -51,7 +78,8 @@ defmodule Sequencer do
     {:reply, v, %{vars: vars, name: name, bot_state: bot_state, running: running} }
   end
 
-  def handle_call(:get_all_vars, _from, %{vars: vars, name: name, bot_state: bot_state, running: running} ) do
+  def handle_call(:get_all_vars, _from, %{vars: vars, name: name, bot_state: _nope, running: running} ) do
+    bot_state = BotStatus.get_status
     thing1 = vars |> Enum.reduce(%{}, fn ({key, val}, acc) -> Map.put(acc, String.to_atom(key), val) end)
     thing2 = bot_state |> Enum.reduce(%{}, fn ({key, val}, acc) ->
       cond do
@@ -59,7 +87,10 @@ defmodule Sequencer do
         is_atom(key) -> Map.put(acc, key, val)
       end
     end)
-    {:reply, Map.merge(thing1, thing2), %{vars: vars, name: name, bot_state: bot_state, running: running} }
+    thing3v = List.first Map.get(BotSync.fetch, "users")
+    thing3 = thing3v |> Enum.reduce(%{}, fn ({key, val}, acc) -> Map.put(acc, String.to_atom(key), val) end)
+    all_things = Map.merge(thing1, thing2) |> Map.merge(thing3)
+    {:reply, all_things , %{vars: vars, name: name, bot_state: bot_state, running: running} }
   end
 
   def handle_call(:pause, _from, %{vars: vars, name: name, bot_state: _bot_state, running: true} ) do
@@ -99,7 +130,7 @@ defmodule Sequencer do
 
   def terminate(:normal, state) do
     GenServer.call(SequenceManager, {:done, self()})
-    RPCMessageHandler.log("Sequence: #{state.name} finished with state: #{inspect state}")
+    RPCMessageHandler.log("Sequence: #{state.name} finished")
   end
 
   def terminate(reason, state) do

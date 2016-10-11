@@ -9,8 +9,9 @@ defmodule SequenceManager do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def handle_call({:add, seq}, _from, %{current: nil, global_vars: globals, log: []}) do
-    pid = Sequencer.do_sequence(seq)
+  def handle_call({:add, seq}, _from, %{current: nil, global_vars: globals, log: []})
+  when is_map(seq) do
+    {:ok, pid} = Sequencer.do_sequence(seq)
     {:reply, "starting sequence", %{current: pid, global_vars: globals, log: []}}
   end
 
@@ -31,7 +32,7 @@ defmodule SequenceManager do
   def handle_call({:done, _pid}, _from, %{current: _current, global_vars: globals, log: more}) do
     RPCMessageHandler.log("Running next sequence")
     seq = List.last(more)
-    new_pid = Sequencer.do_sequence(seq)
+    {:ok, new_pid} = Sequencer.do_sequence(seq)
     {:reply, :ok,  %{current: new_pid, global_vars: globals, log: more -- [seq]}}
   end
 
@@ -52,5 +53,6 @@ defmodule SequenceManager do
   def do_sequence(seq) when is_map(seq) do
     huh = GenServer.call(__MODULE__, {:add, seq})
     RPCMessageHandler.log(huh)
+    Logger.debug(huh)
   end
 end

@@ -2,14 +2,19 @@ defmodule BotSync do
   use GenServer
   require Logger
   def init(_args) do
-    {:ok, %{token: Auth.fetch_token, resources: %{} }}
+    token = Auth.fetch_token
+    {:ok, %{token: token, resources: %{} }}
   end
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def handle_cast(:sync, %{token: token, resources: _old_resources}) do
+  def handle_info({:sync, millis}, %{token: token, resources: _}) do
+    cond do
+      is_integer(millis) -> sync_on_timer(millis)
+      true -> nil
+    end
     server = Map.get(token, "unencoded") |> Map.get("iss")
     auth = Map.get(token, "encoded")
 
@@ -20,9 +25,11 @@ defmodule BotSync do
      %HTTPotion.Response{body: body,
                          headers: _headers,
                          status_code: 200} ->
+       RPCMessageHandler.log("Synced")
        {:noreply, %{token: token, resources: Poison.decode!(body)}}
      error ->
-       Logger.debug("Couldn't get resources")
+       Logger.debug("Couldn't get resources: #{error}")
+       RPCMessageHandler.log("Couldn't sync: #{error}")
        {:noreply, %{token: token, resources: %{}}}
     end
   end
@@ -74,8 +81,12 @@ defmodule BotSync do
     {:reply, regimens, %{token: token, resources: resources}}
   end
 
+  def sync_on_timer(millis) do
+    Process.send_after(__MODULE__, {:sync, millis}, millis)
+  end
+
   def sync do
-    GenServer.cast(__MODULE__, :sync)
+    send(__MODULE__, {:sync, nil})
   end
 
   def fetch do
