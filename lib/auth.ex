@@ -4,7 +4,7 @@ defmodule Auth do
   require Logger
 
   @moduledoc """
-    This is a small disaster ever growing into a bigger disaster.
+    Gets a token and device information 
   """
 
   def get_public_key(server) do
