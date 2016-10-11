@@ -28,9 +28,6 @@ defmodule Sequencer do
             end
             {:ok, pid} = start_link(%{name: name})
             Process.flag(:trap_exit, true)
-            msg = "Starting Sequence: #{name}"
-            Logger.debug(msg)
-            RPCMessageHandler.log(msg)
             spawn_link fn -> execute(body, pid) end
             {:ok, pid}
           {:error, reason} ->
@@ -47,23 +44,28 @@ defmodule Sequencer do
     end
   end
 
-  def execute(body, pid, kill\\ true) when is_list(body) do
-    for node <- body do
-      do_step(node,pid)
-    end
-    if(kill) do
-      GenServer.stop(pid)
-    end
+  def execute(body, pid) when is_list(body) and is_pid(pid) do
+    do_steps(body,pid)
   end
 
-  def do_step(node, pid) do
+  def do_steps([], pid) do
+    GenServer.stop(pid)
+  end
+
+  def do_steps(body, pid) when is_list(body) do
+    if(BotStatus.busy?) do
+      Process.sleep(10)
+      do_steps(body, pid)
+    end
     if(run_next_tick?(pid)) do
+      node = List.first(body)
       RPCMessageHandler.log("Doing: #{Map.get(node, "kind")}")
       SequenceCommands.do_command(node, pid)
-      Process.sleep(50)
+      Process.sleep(200)
+      do_steps(body -- [node], pid)
     else
       Process.sleep(10)
-      do_step(node,pid)
+      do_steps(body, pid)
     end
   end
 
@@ -76,7 +78,8 @@ defmodule Sequencer do
     {:reply, v, %{vars: vars, name: name, bot_state: bot_state, running: running} }
   end
 
-  def handle_call(:get_all_vars, _from, %{vars: vars, name: name, bot_state: bot_state, running: running} ) do
+  def handle_call(:get_all_vars, _from, %{vars: vars, name: name, bot_state: _nope, running: running} ) do
+    bot_state = BotStatus.get_status
     thing1 = vars |> Enum.reduce(%{}, fn ({key, val}, acc) -> Map.put(acc, String.to_atom(key), val) end)
     thing2 = bot_state |> Enum.reduce(%{}, fn ({key, val}, acc) ->
       cond do

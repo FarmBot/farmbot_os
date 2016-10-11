@@ -25,9 +25,11 @@ defmodule BotSync do
      %HTTPotion.Response{body: body,
                          headers: _headers,
                          status_code: 200} ->
+       RPCMessageHandler.log("Synced")
        {:noreply, %{token: token, resources: Poison.decode!(body)}}
      error ->
        Logger.debug("Couldn't get resources: #{error}")
+       RPCMessageHandler.log("Couldn't sync: #{error}")
        {:noreply, %{token: token, resources: %{}}}
     end
   end
