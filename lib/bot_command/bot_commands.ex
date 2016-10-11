@@ -10,6 +10,7 @@ defmodule Command do
   def e_stop do
     BotCommandHandler.e_stop
     UartHandler.send("E")
+    SerialMessageManager.sync_notify({:send, "F82"})
     pid = Process.whereis(UartHandler)
     Process.exit(pid, :e_stop)
     :ok
