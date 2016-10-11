@@ -7,28 +7,37 @@ defmodule BotCommandHandler do
   """
 
   def init(_args) do
-    {:ok, pid} = GenEvent.start_link(name: BotCommandEventManager)
-    GenEvent.add_handler(pid, BotCommandManager, [])
-    spawn fn -> get_events(pid) end
-    {:ok, pid}
+    Process.flag(:trap_exit, true)
+    {:ok, manager} = GenEvent.start_link(name: BotCommandEventManager)
+    GenEvent.add_handler(manager, BotCommandManager, [])
+    handler = spawn_link fn -> get_events(manager) end
+    {:ok, {manager,handler}}
   end
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def handle_cast({:add_event, event}, pid) do
-    GenEvent.notify(pid, event)
-    {:noreply, pid}
+  def handle_cast({:add_event, event}, {manager,handler}) do
+    GenEvent.notify(manager, event)
+    {:noreply, {manager,handler}}
   end
 
-  def handle_call(:get_pid, _from,  pid) do
-    {:reply, pid, pid}
+  def handle_call(:get_pid, _from,  {manager,handler}) do
+    {:reply, manager, {manager,handler}}
   end
 
-  def handle_call(:e_stop, _from, pid) do
-    GenEvent.notify(pid, :e_stop)
-    {:reply, :ok, pid}
+  def handle_call(:e_stop, _from, {manager,handler}) do
+    Process.flag(:trap_exit, true)
+    GenEvent.notify(manager, :e_stop)
+    Process.exit(handler, :e_stop)
+    {:reply, :ok, {manager,handler}}
+  end
+
+  def handle_info({:EXIT, _pid, reason}, {manager,_handler}) do
+    Logger.debug("something bad happened in #{__MODULE__}: #{inspect reason}")
+    new_pid = spawn_link fn -> get_events(manager) end
+    {:noreply, {manager, new_pid}}
   end
 
   def get_pid do
@@ -42,16 +51,28 @@ defmodule BotCommandHandler do
   @doc """
     Gets events from the GenEvent server (pid)
   """
-  def get_events(pid) do
-    events = GenEvent.call(pid, BotCommandManager, :events)
-    for event <- events do
-      Process.sleep(150)
-      check_busy
-      BotStatus.busy true
-      do_handle(event)
-      Process.sleep(50)
-    end
-    get_events(pid)
+  def get_events(manager) when is_pid(manager) do
+    events = GenEvent.call(manager, BotCommandManager, :events)
+    do_events(events)
+    get_events(manager)
+  end
+
+  def do_events([]) do
+    do_events(nil)
+  end
+
+  def do_events(nil) do
+    Process.sleep(10)
+  end
+
+  def do_events(events) when is_list(events) do
+    event = List.first(events)
+    Process.sleep(150)
+    check_busy
+    BotStatus.busy true
+    do_handle(event)
+    Process.sleep(50)
+    do_events(events -- [event])
   end
 
   defp check_busy do

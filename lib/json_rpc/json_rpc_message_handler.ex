@@ -80,6 +80,8 @@ defmodule RPCMessageHandler do
   # E STOP
   def do_handle("emergency_stop", _) do
     Command.e_stop
+    SequenceManager.e_stop
+    :ok
   end
 
   # Home All

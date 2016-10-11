@@ -8,8 +8,10 @@ defmodule Command do
     EMERGENCY STOP
   """
   def e_stop do
+    BotCommandHandler.e_stop
     UartHandler.send("E")
-    Process.exit(Process.whereis(BotCommandHandler), :kill)
+    pid = Process.whereis(UartHandler)
+    Process.exit(pid, :e_stop)
     :ok
   end
 
