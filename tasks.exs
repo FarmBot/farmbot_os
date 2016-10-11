@@ -9,7 +9,7 @@ defmodule Mix.Tasks.Curl do
                          "_images/rpi3/fw.fw",
                          "http://#{ ip_addr }:8988/firmware",
                          "-H",
-                         "Content-Type: application/x-firmware", 
+                         "Content-Type: application/x-firmware",
                          "-H",
                          "X-Reboot: true" ])
   end
