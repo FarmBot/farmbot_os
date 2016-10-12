@@ -87,8 +87,10 @@ defmodule Sequencer do
         is_atom(key) -> Map.put(acc, key, val)
       end
     end)
-    thing3v = List.first Map.get(BotSync.fetch, "users")
-    thing3 = thing3v |> Enum.reduce(%{}, fn ({key, val}, acc) -> Map.put(acc, String.to_atom(key), val) end)
+    username = List.first(Map.get(BotSync.fetch, "users")) |> Map.get("name")
+    bot_name = Map.get(BotSync.fetch, "device") |> Map.get("name")
+    thing3 = %{username: username, bot_name: bot_name}
+
     all_things = Map.merge(thing1, thing2) |> Map.merge(thing3)
     {:reply, all_things , %{vars: vars, name: name, bot_state: bot_state, running: running} }
   end

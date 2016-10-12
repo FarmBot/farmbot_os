@@ -16,7 +16,7 @@ config :json_rpc,
     transport: MqttHandler
 
 config :logger, :console,
-  format: "$metadata[$level] $levelpad$message\n",
+  format: "$metadata[$level] $levelpad$message\r\n",
   colors: [enabled: true ]
 config :Logger,
   handle_sasl_reports: true,

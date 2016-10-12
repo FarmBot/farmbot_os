@@ -44,20 +44,25 @@ defmodule RPCMessageHandler do
       result: nil})
   end
 
-  def log_msg(message) do
+  @doc """
+    Logs a message to the frontend.
+  """
+  def log_msg(message,channels \\ [])
+
+  def log_msg(message, channels)
+  when is_list(channels) do
     Poison.encode!(
       %{ id: nil,
          method: "log_message",
          params: [%{status: BotStatus.get_status,
                     time: :os.system_time(:seconds),
-                    message: message}] })
+                    message: message,
+                    channels: channels }] })
   end
 
-  def personality_msg(message) when is_bitstring(message) do
-      Poison.encode!(
-      %{ id: nil,
-         method: "personality_message",
-         params: [%{message: message}] })
+  def log_msg(message,channel)
+  when is_bitstring(channel) do
+    log_msg(message,[channel])
   end
 
   def handle_rpc(%{"method" => method, "params" => params, "id" => id})
@@ -243,15 +248,17 @@ defmodule RPCMessageHandler do
   @doc """
     Shortcut for loggin to teh frontend. Pass it a string, watch it display
   """
-  def log(message) when is_bitstring(message) do
-    @transport.emit(log_msg(message))
+  def log(message, channel \\ [])
+  def log(message, channels)
+  when is_bitstring(message)
+   and is_list(channels) do
+    @transport.emit(log_msg(message, channels))
   end
 
-  @doc """
-    Shortcut for a personality message
-  """
-  def pm(message) when is_bitstring(message) do
-    @transport.emit(personality_msg(message))
+  def log(message, channel)
+  when is_bitstring(message)
+   and is_bitstring(channel) do
+    @transport.emit(log_msg(message, [channel]))
   end
 
   def send_status do

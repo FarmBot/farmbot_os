@@ -64,15 +64,25 @@ defmodule SequenceCommands do
     end
   end
 
-  def do_command({"send_message", %{"message" => "test "<>message}}, _pid) do
-
+  def do_command({"send_message", %{"message" => "channel "<>message}}, pid)
+  when is_bitstring(message) do
+    vars = GenServer.call(pid, :get_all_vars)
+    {channel, rmessage} = case message do
+      "ticker "<>m -> {"ticker", m}
+      "error_toast "<>m -> {"error_toast", m}
+      "success_toast "<>m -> {"success_toast", m}
+      "warning_toast "<>m -> {"warning_toast", m}
+      m -> {"logger ", m}
+    end
+    rendered = Mustache.render(rmessage, vars)
+    Logger.debug(rendered<>" #{inspect channel}")
+    RPCMessageHandler.log(rendered, channel)
   end
 
   def do_command({"send_message", %{"message" => message}}, pid)
-  when is_map(message) or is_bitstring(message) do
-    rmessage = do_command(message, pid)
+  when is_bitstring(message) do
     vars = GenServer.call(pid, :get_all_vars)
-    rendered = Mustache.render(rmessage, vars)
+    rendered = Mustache.render(message, vars)
     Logger.debug(rendered)
     RPCMessageHandler.log(rendered)
   end

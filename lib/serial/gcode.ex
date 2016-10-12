@@ -115,15 +115,15 @@ defmodule Gcode do
   def parse_param(:MOVEMENT_STEPS_ACC_DEC_X) do 41 end
   def parse_param(:MOVEMENT_STEPS_ACC_DEC_Y) do 42 end
   def parse_param(:MOVEMENT_STEPS_ACC_DEC_Z) do 43 end
-  def parse_param(:MOVEMENT_HOME_UP_X) do 51end
-  def parse_param(:MOVEMENT_HOME_UP_Y) do 52end
-  def parse_param(:MOVEMENT_HOME_UP_Z) do 53end
-  def parse_param(:MOVEMENT_MIN_SPD_X) do 61end
-  def parse_param(:MOVEMENT_MIN_SPD_Y) do 62end
-  def parse_param(:MOVEMENT_MIN_SPD_Z) do 63end
-  def parse_param(:MOVEMENT_MAX_SPD_X) do 71end
-  def parse_param(:MOVEMENT_MAX_SPD_Y) do 72end
-  def parse_param(:MOVEMENT_MAX_SPD_Z) do 73end
+  def parse_param(:MOVEMENT_HOME_UP_X) do 51 end
+  def parse_param(:MOVEMENT_HOME_UP_Y) do 52 end
+  def parse_param(:MOVEMENT_HOME_UP_Z) do 53 end
+  def parse_param(:MOVEMENT_MIN_SPD_X) do 61 end
+  def parse_param(:MOVEMENT_MIN_SPD_Y) do 62 end
+  def parse_param(:MOVEMENT_MIN_SPD_Z) do 63 end
+  def parse_param(:MOVEMENT_MAX_SPD_X) do 71 end
+  def parse_param(:MOVEMENT_MAX_SPD_Y) do 72 end
+  def parse_param(:MOVEMENT_MAX_SPD_Z) do 73 end
   def parse_param(:ENCODER_ENABLED_X) do 101 end
   def parse_param(:ENCODER_ENABLED_Y) do 102 end
   def parse_param(:ENCODER_ENABLED_Z) do 103 end
