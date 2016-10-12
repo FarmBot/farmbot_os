@@ -20,7 +20,7 @@ defmodule Command do
     Home All (TODO: this might be broken)
   """
   def home_all(speed) do
-    Logger.info("HOME ALL")
+    Logger.debug("HOME ALL")
     # SerialMessageManager.sync_notify( {:send, "G28"} )
     Command.move_absolute(0, 0, 0, speed)
   end

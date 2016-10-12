@@ -15,5 +15,21 @@ config :fb,
 config :json_rpc,
     transport: MqttHandler
 
-config :logger,
-    format: "$metadata[$level] $levelpad$message\n"
+config :logger, :console,
+  format: "$metadata[$level] $levelpad$message\n",
+  colors: [enabled: true ]
+config :Logger,
+  handle_sasl_reports: true,
+  handle_otp_reports: true
+
+config :iex, :colors,
+  enabled: true
+
+config :iex,
+  # alive_prompt: "%prefix(%node)%counter>"
+  alive_prompt: [
+    "\e[G",    # ANSI CHA, move cursor to column 1
+    :magenta,
+    "%node",
+    ">",
+    :reset ] |> IO.ANSI.format |> IO.chardata_to_string

@@ -98,43 +98,43 @@ defmodule BotCommandHandler do
   ###
 
   defp do_handle({:home_x, {_speed}}) do
-    Logger.info("HOME X")
+    Logger.debug("HOME X")
     SerialMessageManager.sync_notify( {:send, "F11"} )
   end
 
   defp do_handle({:home_y, {_speed}}) do
-    Logger.info("HOME Y")
+    Logger.debug("HOME Y")
     SerialMessageManager.sync_notify( {:send, "F12"} )
   end
 
   defp do_handle({:home_z, {_speed}}) do
-    Logger.info("HOME Z")
+    Logger.debug("HOME Z")
     SerialMessageManager.sync_notify( {:send, "F13"} )
   end
 
   # These need to be "safe" commands. IE they shouldnt crash anythin.
   defp do_handle({:write_pin, {pin, value, mode}}) do
-    Logger.info("WRITE_PIN " <> "F41 P#{pin} V#{value} M#{mode}")
+    Logger.debug("WRITE_PIN " <> "F41 P#{pin} V#{value} M#{mode}")
     SerialMessageManager.sync_notify( {:send, "F41 P#{pin} V#{value} M#{mode}"} )
   end
 
   defp do_handle({:move_absolute, {x,y,z,s}}) do
-    Logger.info("MOVE_ABSOLUTE " <> "G00 X#{x} Y#{y} Z#{z} S#{s}")
+    Logger.debug("MOVE_ABSOLUTE " <> "G00 X#{x} Y#{y} Z#{z} S#{s}")
     SerialMessageManager.sync_notify( {:send, "G00 X#{x} Y#{y} Z#{z} S#{s}"} )
   end
 
   defp do_handle({:read_param, param}) do
-    Logger.info("READ_PARAM "<> "#{param}")
+    Logger.debug("READ_PARAM "<> "#{param}")
     SerialMessageManager.sync_notify({:send, "F21 P#{param}" })
   end
 
   defp do_handle({:read_pin, {pin, mode}}) do
-    Logger.info("READ PIN "<> "#{pin}")
+    Logger.debug("READ PIN "<> "#{pin}")
     SerialMessageManager.sync_notify({:send, "F42 P#{pin} M#{mode}" })
   end
 
   defp do_handle({:update_param, {param, value}}) do
-    Logger.info("UPDATE PARAM " <> "#{param} #{value}")
+    Logger.debug("UPDATE PARAM " <> "#{param} #{value}")
     SerialMessageManager.sync_notify({:send, "F22 P#{param} V#{value}"})
   end
 
