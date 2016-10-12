@@ -4,7 +4,7 @@ defmodule Auth do
   require Logger
 
   @moduledoc """
-    Gets a token and device information 
+    Gets a token and device information
   """
 
   def get_public_key(server) do
@@ -12,7 +12,7 @@ defmodule Auth do
     case resp do
       %HTTPotion.ErrorResponse{message: "enetunreach"}    -> get_public_key(server)
       %HTTPotion.ErrorResponse{message: "ehostunreach"}   -> get_public_key(server)
-      %HTTPotion.ErrorResponse{message: "nxdomain"}       -> get_public_key(do_magic(server))
+      %HTTPotion.ErrorResponse{message: "nxdomain"}       -> get_public_key(server)
       %HTTPotion.ErrorResponse{message: message}          -> {:error, message}
       %HTTPotion.Response{body: body,
                           headers: _headers,
@@ -58,8 +58,10 @@ defmodule Auth do
     payload = Poison.encode!(%{user: %{credentials: :base64.encode_to_string(secret) |> String.Chars.to_string }} )
     case HTTPotion.post "#{server}/api/tokens", [body: payload, headers: ["Content-Type": "application/json"]] do
       %HTTPotion.ErrorResponse{message: "enetunreach"} -> get_token(secret, server)
-      %HTTPotion.ErrorResponse{message: "nxdomain"} -> get_token(secret, do_magic(server))
+      %HTTPotion.ErrorResponse{message: "nxdomain"} -> get_token(secret, server)
       %HTTPotion.ErrorResponse{message: reason} -> {:error, reason}
+      %HTTPotion.Response{body: _, headers: _, status_code: 422} -> Fw.factory_reset
+      %HTTPotion.Response{body: _, headers: _, status_code: 401} -> Fw.factory_reset
       %HTTPotion.Response{body: body, headers: _headers, status_code: 200} ->
           Map.get(Poison.decode!(body), "token")
     end
@@ -69,35 +71,8 @@ defmodule Auth do
     GenServer.call(__MODULE__, {:get_token})
   end
 
-  # some black magic to fix RickCarlino's Env.
-  def do_magic("http://"<>host) do
-    Logger.debug("Doing magic")
-    case HTTPotion.get("http://dig.jsondns.org/IN/#{host}/A") do
-      %HTTPotion.ErrorResponse{message: reason} -> {:error, reason}
-      %HTTPotion.Response{body: body, headers: _headers, status_code: 203} ->
-          ip_addr = Map.get(Poison.decode!(body), "answer")
-                    |> List.first
-                    |> Map.get("rdata")
-                    "http://"<>ip_addr
-      _ -> {:error, :broken}
-    end
-  end
-
-  # some black magic to fix RickCarlino's Env.
-  def do_magic("https://"<>host) do
-    case HTTPotion.get("http://dig.jsondns.org/IN/#{host}/A") do
-      %HTTPotion.ErrorResponse{message: reason} -> {:error, reason}
-      %HTTPotion.Response{body: body, headers: _headers, status_code: 203} ->
-          ip_addr = Map.get(Poison.decode!(body), "answer")
-                    |> List.first
-                    |> Map.get("rdata")
-                    "https://"<>ip_addr
-      _ -> {:error, :broken}
-    end
-  end
-
   # Infinite recursion until we have a token.
-  # Not concerned about performance yet because the bot can't do anything yet.
+  # Not concerned about performance yet because the bot can't do anything anything.
   def fetch_token do
     case Auth.get_token do
       nil -> fetch_token
@@ -140,7 +115,8 @@ defmodule Auth do
     {:reply, token, token}
   end
 
-  def terminate(_reason, _something) do
-    Fw.factory_reset
+  def terminate(reason, something) do
+    Logger.debug("AUTH DIED: #{inspect {reason, something}}")
+    # Fw.factory_reset
   end
 end

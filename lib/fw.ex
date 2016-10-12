@@ -14,7 +14,7 @@ defmodule Fw do
       supervisor(NetworkSupervisor, [[]], restart: :permanent),
       supervisor(Controller, [[]], restart: :permanent)
     ]
-    opts = [strategy: :one_for_all, name: Fw]
+    opts = [strategy: :one_for_one, name: Fw]
     supervise(children, opts)
   end
 
