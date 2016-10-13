@@ -3,7 +3,7 @@ defmodule MqttHandler do
   require Logger
 
   defp build_last_will_message do
-    RPCMessageHandler.log_msg("Something TERRIBLE Happened. Bot going offline.")
+    RPCMessageHandler.log_msg("Something TERRIBLE Happened. Bot going offline.", ["ticker_error"])
   end
 
   @doc """
@@ -107,7 +107,7 @@ defmodule MqttHandler do
 
   def handle_call({:subscribe_ack, _message}, from, client) do
     Logger.debug("Subscribed.")
-    handle_call({:emit, RPCMessageHandler.log_msg("Bot Online")}, from, client)
+    handle_call({:emit, RPCMessageHandler.log_msg("Bot Online", "ticker")}, from, client)
   end
 
   def handle_call({:unsubscribe, _message}, _from, client) do

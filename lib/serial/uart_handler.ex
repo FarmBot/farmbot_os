@@ -1,12 +1,11 @@
 defmodule UartHandler do
   require Logger
-  @tty Application.get_env(:uart, :tty)
   @baud Application.get_env(:uart, :baud)
 
   defp open_serial(_pid, [], tries) do
     Logger.debug("Could not auto detect serial port.")
     Logger.debug("I tried: #{inspect tries}")
-    Process.exit(self(), :kill)
+    {:ok, "ttyFail"}
   end
 
   defp open_serial(pid, ports, tries) do
@@ -18,12 +17,21 @@ defmodule UartHandler do
     end
   end
 
+  defp open_serial(pid) do
+    {:ok, tty} = open_serial(pid, list_ttys , []) # List of available ports
+    Nerves.UART.configure(pid, framing: {Nerves.UART.Framing.Line, separator: "\r\n"}, rx_framing_timeout: 500)
+    tty
+  end
+
+  def list_ttys do
+    Nerves.UART.enumerate
+    |> Map.drop(["ttyS0","ttyAMA0"])
+    |> Map.to_list
+  end
+
   def init(_) do
     {:ok, pid} = Nerves.UART.start_link
-    {:ok, tty} = open_serial(pid, Nerves.UART.enumerate |>
-                     Map.drop(["ttyS0","ttyAMA0"]) |>
-                     Map.to_list, []) # List of available ports
-    Nerves.UART.configure(pid, framing: {Nerves.UART.Framing.Line, separator: "\r\n"}, rx_framing_timeout: 500)
+    tty = open_serial(pid)
     {:ok, {pid, tty}}
   end
 
@@ -58,26 +66,73 @@ defmodule UartHandler do
     {:reply, :ok, {pid, tty}}
   end
 
+  def handle_cast({:send, str}, {pid, "ttyFail"}) do
+    new_tty = open_serial(pid)
+    BotStatus.busy false
+    case Nerves.UART.write(pid, str) do
+      {:error, :ebadf} -> {:noreply, {pid, "ttyFail"}}
+      :ok ->
+        RPCMessageHandler.log("Reconnected to Arduino!",
+                              ["success_toast", "ticker"])
+        {:noreply, {pid, new_tty}}
+    end
+  end
+
+  def handle_cast({:send, str}, {pid, tty}) do
+    case Nerves.UART.write(pid, str) do
+      {:error, :ebadf} -> {:noreply, {pid, "ttyFail"}}
+      :ok -> {:noreply, {pid, tty}}
+    end
+  end
+
   def handle_cast({:connect, tty, baud, active}, state) do
     Nerves.UART.open(state, tty, speed: baud, active: active)
     Nerves.UART.configure(state, framing: {Nerves.UART.Framing.Line, separator: "\r\n"}, rx_framing_timeout: 500)
     {:noreply, state}
   end
 
-  def handle_cast({:send, str}, {pid, tty}) do
-    Nerves.UART.write(pid, str)
-    {:noreply, {pid, tty}}
-  end
-
-  def handle_info({:nerves_uart, _tty, {:error, _}}, state) do
-    nil
+  # WHEN A FULL SERIAL MESSAGE COMES IN.
+  def handle_info({:nerves_uart, _tty, message}, state) when is_bitstring(message) do
+    gcode = Gcode.parse_code(String.strip(message))
+    SerialMessageManager.sync_notify({:gcode, gcode })
     {:noreply, state}
   end
 
-  # WHEN A FULL SERIAL MESSAGE COMES IN.
-  def handle_info({:nerves_uart, _tty, message}, state) do
-    gcode = Gcode.parse_code(String.strip(message))
-    SerialMessageManager.sync_notify({:gcode, gcode })
+  def handle_info({:nerves_uart, _tty, {:error, :eio}}, {pid, tty}) do
+    Logger.debug("Serial port lost")
+    RPCMessageHandler.log("Please plug my arduino back in!", ["error_toast", "error_ticker"])
+    {:noreply, {pid,tty}}
+  end
+
+  def handle_info({:nerves_uart, "ttyFail", {:error, :ebadf}}, {pid, _ftty}) do
+    new_tty = open_serial(pid)
+    BotStatus.busy false
+    if(new_tty != "ttyFail") do
+      Command.read_all_params
+      Command.read_all_pins
+      RPCMessageHandler.log("Reconnected to Arduino!",
+                            ["success_toast", "ticker"])
+    end
+    {:noreply, {pid, new_tty}}
+  end
+
+  def handle_info({:nerves_uart, _tty, {:error, :ebadf}}, {pid, _ftty}) do
+    RPCMessageHandler.log("Could not communicate with arduino.
+                           Please plug it back in and try again.",
+                          ["error_toast", "error_ticker"])
+    new_tty = open_serial(pid)
+    BotStatus.busy false
+    if(new_tty != "ttyFail") do
+      Command.read_all_params
+      Command.read_all_pins
+      RPCMessageHandler.log("Reconnected to Arduino!",
+                            ["success_toast", "ticker"])
+    end
+    {:noreply, {pid, new_tty}}
+  end
+
+  def handle_info({:nerves_uart, _tty, event}, state) do
+    Logger.debug("Serial Event: #{inspect event}")
     {:noreply, state}
   end
 
@@ -87,7 +142,7 @@ defmodule UartHandler do
   end
 
   def terminate(reason, other) do
-    Logger.debug("UART HANDLER CRASHED. Trying to restart?")
+    Logger.debug("UART HANDLER CRASHED.")
     Logger.debug("#{inspect reason}: #{inspect other}")
   end
 end
