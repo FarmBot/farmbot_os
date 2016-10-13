@@ -78,14 +78,14 @@ defmodule SequenceValidator do
   end
 
   def validate_step(%{"kind" => "write_pin", "args" => %{"pin_number" => pin, "pin_value" => value, "pin_mode" => mode}}) do
-    validate_body([pin, value, mode],2)
+    validate_body([pin, value, mode],1)
   end
   def validate_step(%{"kind" => "write_pin", "args" => _args}) do
     {:error, "Bad Args for write_pin"}
   end
 
   def validate_step(%{"kind" => "read_pin", "args" => %{"pin_number" => pin, "data_label" => variable_name, "pin_mode" => mode}}) do
-    validate_body([pin, variable_name, mode],2)
+    validate_body([pin, variable_name, mode],1)
   end
   def validate_step(%{"kind" => "read_pin", "args" => _args}) do
     {:error, "Bad Args for read_pin"}
@@ -105,7 +105,7 @@ defmodule SequenceValidator do
   end
 
   def validate_step(%{"kind" => "send_message", "args" => %{"message" => message}}) do
-    validate_body([message],2)
+    validate_body([message],1)
   end
   def validate_step(%{"kind" => "send_message", "args" => _args}) do
     {:error, "Bad Args for send_message"}
