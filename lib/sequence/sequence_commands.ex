@@ -68,6 +68,7 @@ defmodule SequenceCommands do
   when is_bitstring(message) do
     vars = GenServer.call(pid, :get_all_vars)
     {channel, rmessage} = case message do
+      "error_ticker"<>m -> {"error_ticker", m}
       "ticker "<>m -> {"ticker", m}
       "error_toast "<>m -> {"error_toast", m}
       "success_toast "<>m -> {"success_toast", m}

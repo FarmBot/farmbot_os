@@ -45,6 +45,7 @@ defmodule Fw do
     current_version = Fw.version
     case resp do
       %HTTPotion.ErrorResponse{message: error} ->
+        RPCMessageHandler.log("Error checking for updates: #{inspect error}", "error_toast")
         {:error, "Check Updates failed", error}
       %HTTPotion.Response{body: body,
                           headers: _headers,
@@ -57,8 +58,11 @@ defmodule Fw do
                                             extension) end)
         |> Map.get("browser_download_url")
         case (new_version != current_version) do
-          true -> {:update, new_version_url}
-          _ -> :no_updates
+          true ->
+            {:update, new_version_url}
+          _ ->
+            RPCMessageHandler.log("No updates!", "ticker")
+            :no_updates
         end
 
       %HTTPotion.Response{body: body,
@@ -73,13 +77,19 @@ defmodule Fw do
     Shortcut for check_updates
   """
   def check_os_updates do
-    check_updates(@os_update_server, ".fw")
+    check_updates(
+    Map.get(Auth.get_token, "os_update_server")
+    || @os_update_server,
+    ".fw")
   end
 
   @doc """
     Shortcut for check_updates
   """
   def check_fw_updates do
-    check_updates(@fw_update_server, ".hex")
+    check_updates(
+    Map.get(Auth.get_token, "fw_update_server")
+    || @fw_update_server,
+     ".hex")
   end
 end
