@@ -5,7 +5,12 @@ defmodule Wifi do
   require Logger
   defp load do
     case File.read("#{@path}/network.config") do
-      {:ok, contents} -> {:wpa_supplicant, :erlang.binary_to_term(contents)}
+      {:ok, contents} ->
+        b = :erlang.binary_to_term(contents)
+        case b do
+          {ssid, password} -> {:wpa_supplicant, {ssid, password}}
+          :eth -> :eth
+        end
       _ -> :nope
     end
   end
@@ -14,12 +19,18 @@ defmodule Wifi do
     File.write("#{@path}/network.config", :erlang.term_to_binary({ssid, password}))
   end
 
+  defp save(:eth) do
+    File.write("#{@path}/network.config", :erlang.term_to_binary(:eth))
+  end
+
   def init(_args) do
     System.cmd("epmd", ["-daemon"])
     GenEvent.add_handler(Nerves.NetworkInterface.event_manager(), Network.EventManager, %{})
     initial_state = load
     case initial_state do
       {:wpa_supplicant, {ssid, pass}} -> start_wifi_client(ssid, pass)
+                                       {:ok, {:wpa, connected: false}}
+      :eth -> start_ethernet
                                        {:ok, {:wpa, connected: false}}
       _ -> start_hostapd_deps(@env) # These only need to be started onece per boot
            start_hostapd(@env)
@@ -33,6 +44,10 @@ defmodule Wifi do
 
   defp start_wifi_client(ssid, pass) when is_bitstring(ssid) and is_bitstring(pass) do
      spawn_link fn -> Nerves.InterimWiFi.setup "wlan0", ssid: ssid, key_mgmt: :"WPA-PSK", psk: pass end
+  end
+
+  defp start_ethernet do
+    spawn_link fn -> Nerves.InterimWiFi.setup "eth0" end
   end
 
   # Blatently ripped off from @joelbyler
@@ -70,6 +85,11 @@ defmodule Wifi do
     GenServer.cast(__MODULE__, {:connect, ssid, pass})
   end
 
+  def connect(:eth) do
+    save(:eth)
+    GenServer.cast(__MODULE__, {:connect, :eth})
+  end
+
   def set_connected(con) when is_boolean(con) do
     GenServer.cast(__MODULE__, {:connected, con})
   end
@@ -94,9 +114,26 @@ defmodule Wifi do
     {:noreply, :hostapd}
   end
 
+  def handle_cast({:connect, :eth}, :hostapd) do
+    Logger.debug("trying to switch from hostapd to ethernet ")
+    System.cmd("sh", ["-c", "killall hostapd"]) |> print_cmd_result
+    System.cmd("sh", ["-c", "killall dnsmasq"]) |> print_cmd_result
+    File.rm("/root/dnsmasq.lease")
+    System.cmd("ip", ["link", "set", "wlan0", "down"]) |> print_cmd_result
+    System.cmd("ip", ["addr", "del", "192.168.24.1/24", "dev", "wlan0"]) |> print_cmd_result
+    System.cmd("ip", ["link", "set", "wlan0", "up"]) |> print_cmd_result
+    start_ethernet
+    {:noreply, :hostapd}
+  end
+
   def handle_cast({:connect, ssid, pass}, {:wpa, connected: _con}) do
     start_wifi_client(ssid, pass)
     {:noreply,{ssid, pass, connected: false}}
+  end
+
+  def handle_cast({:connect, :eth}, {:wpa, connected: _con}) do
+    start_ethernet
+    {:noreply, {:eth, connected: false} }
   end
 
   def handle_cast({:connected, con}, {:wpa, connected: _old}) do
