@@ -2,19 +2,20 @@ defmodule BotSync do
   use GenServer
   require Logger
   def init(_args) do
-    token = Auth.fetch_token
-    {:ok, %{token: token, resources: %{} }}
+    {:ok, %{token: nil, resources: nil }}
   end
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def handle_info({:sync, millis}, %{token: token, resources: _}) do
-    cond do
-      is_integer(millis) -> sync_on_timer(millis)
-      true -> nil
-    end
+  def handle_cast(_, %{token: nil, resources: _}) do
+    Logger.debug("Don't have a token yet.")
+    spawn fn -> try_to_get_token end
+    {:noreply, %{token: nil, resources: nil}}
+  end
+
+  def handle_cast(:sync, %{token: token, resources: _}) do
     server = Map.get(token, "unencoded") |> Map.get("iss")
     auth = Map.get(token, "encoded")
 
@@ -34,25 +35,18 @@ defmodule BotSync do
     end
   end
 
-  def handle_call({:api_request, end_point}, _from, %{token: token, resources: resources}) do
-    server = Map.get(token, "unencoded") |> Map.get("iss")
-    auth = Map.get(token, "encoded")
+  def handle_call({:token, token}, _from, %{token: _, resources: _}) do
+    {:reply, :ok, %{token: token, resources: nil}}
+  end
 
-    case HTTPotion.get server<>end_point,
-    [headers: ["Content-Type": "application/json",
-               "Authorization": "Bearer " <> auth]] do
-
-     %HTTPotion.Response{body: body,
-                         headers: _headers,
-                         status_code: 200} ->
-       {:reply, Poison.decode!(body), %{token: token, resources: resources}}
-     error -> {:reply, error, %{token: token, resources: resources} }
-    end
+  def handle_call(_,_from, %{token: nil, resources: _}) do
+    Logger.debug("Please make sure you have a token first.")
+    {:reply, :no_token, %{token: nil, resources: nil}}
   end
 
   def handle_call({:save_sequence, seq}, _from, %{token: token, resources: resources}) do
     new_resources = Map.put(resources, "sequences", [seq | Map.get(resources, "sequences")] )
-    {:reply,:ok, %{token: token, resources: new_resources}}
+    {:reply, :ok, %{token: token, resources: new_resources}}
   end
 
   def handle_call(:fetch, _from, %{token: token, resources: resources}) do
@@ -81,12 +75,9 @@ defmodule BotSync do
     {:reply, regimens, %{token: token, resources: resources}}
   end
 
-  def sync_on_timer(millis) do
-    Process.send_after(__MODULE__, {:sync, millis}, millis)
-  end
 
   def sync do
-    send(__MODULE__, {:sync, nil})
+    GenServer.cast(__MODULE__, :sync)
   end
 
   def fetch do
@@ -109,11 +100,11 @@ defmodule BotSync do
     GenServer.call(__MODULE__, :get_regimens)
   end
 
-  def api_request(end_point) do
-    GenServer.call(__MODULE__, {:api_request, end_point})
-  end
-
-  def save_sequence(seq) do
-    GenServer.call(__MODULE__, {:save_sequence, seq})
+  def try_to_get_token do
+    case Auth.get_token do
+      nil -> try_to_get_token
+      {:error, reason} -> {:error, reason}
+      token -> GenServer.call(__MODULE__, {:token, token})
+    end
   end
 end

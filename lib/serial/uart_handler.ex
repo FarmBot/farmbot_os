@@ -3,8 +3,7 @@ defmodule UartHandler do
   @baud Application.get_env(:uart, :baud)
 
   defp open_serial(_pid, [], tries) do
-    Logger.debug("Could not auto detect serial port.")
-    Logger.debug("I tried: #{inspect tries}")
+    Logger.error("Could not auto detect serial port. I tried: #{inspect tries}")
     {:ok, "ttyFail"}
   end
 

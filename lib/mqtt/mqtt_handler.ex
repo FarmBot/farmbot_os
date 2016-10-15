@@ -40,13 +40,17 @@ defmodule MqttHandler do
     Mqtt.Client.start_link(%{parent: __MODULE__})
   end
 
-  def start_link(args) do
-    handler = GenServer.start_link(__MODULE__, args, name: __MODULE__)
+  def blah do
     case log_in do
       {:error, reason} -> Logger.debug("error connecting to mqtt")
                           IO.inspect(reason)
       :ok -> Logger.debug("MQTT ONLINE")
     end
+  end
+
+  def start_link(args) do
+    handler = GenServer.start_link(__MODULE__, args, name: __MODULE__)
+    spawn fn -> blah end
     handler
   end
 
