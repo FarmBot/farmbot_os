@@ -69,6 +69,7 @@ defmodule MqttHandler do
       Logger.debug("Doing bot bootstrap")
       Command.read_all_pins # I'm truly sorry these are here
       Command.read_all_params
+      BotSync.sync
       handle_call({:emit, RPCMessageHandler.log_msg("Bot finished Bootstrapping")}, from, client)
     end
     keep_connection_alive
