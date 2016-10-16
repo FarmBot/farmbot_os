@@ -90,6 +90,24 @@ defmodule UartHandler do
     {:noreply, state}
   end
 
+  def handle_call({:update, filename}, _from, {pid, tty}) do
+    Nerves.UART.close(pid)
+    Nerves.UART.flush(pid)
+    Process.exit(pid, :shutdown)
+    {:reply, self(), {nil, "updating "<>filename}}
+  end
+
+  def handle_call({:update_done, _old_tty}, _from, {pid, _tty}) do
+    new_tty = open_serial(pid)
+    {:reply, :ok, {pid, new_tty}}
+  end
+
+  def handle_info({:nerves_uart, _tty, event}, {pid, "updating "<>filename}) do
+    Logger.debug("not right now.")
+    IO.inspect event
+    {:noreply, {pid, "updating "<>filename}}
+  end
+
   # WHEN A FULL SERIAL MESSAGE COMES IN.
   def handle_info({:nerves_uart, _tty, message}, state) when is_bitstring(message) do
     gcode = Gcode.parse_code(String.strip(message))
@@ -128,6 +146,10 @@ defmodule UartHandler do
                             ["success_toast", "ticker"])
     end
     {:noreply, {pid, new_tty}}
+  end
+
+  def handle_info({:nerves_uart, _tty, {:partial, _}}, {pid, tty}) do
+    {:noreply, {pid, tty}}
   end
 
   def handle_info({:nerves_uart, _tty, event}, state) do

@@ -18,13 +18,14 @@ defmodule Downloader do
 
   def install_avr_update(hex_file) when is_bitstring(hex_file) do
     {pid, tty} = UartHandler.nerves
-    Nerves.UART.close(pid)
-    IO.puts "avrdude -v -patmega2560 -cwiring -P#{tty} -b115200 -D -Uflash:w:#{hex_file}:i"
+    GenServer.call(UartHandler, {:update, hex_file})
+    blah = Process.whereis(SerialSupervisor)
+    Process.exit(blah, :shutdown)
+    Process.sleep(2000)
     System.cmd("avrdude", ["-v", "-patmega2560", "-cwiring", "-P/dev/#{tty}", "-b115200", "-D", "-Uflash:w:#{hex_file}:i"])
-    pid = Process.whereis(UartHandler)
-    Process.exit(pid, :restart)
-    Command.read_all_params
-    Command.read_all_pins
+    # avrdude -v -patmega2560 -cwiring -P/dev/ttyACM0 -b115200 -D -Uflash:w:/tmp/update.hex:i
+    # GenServer.call(UartHandler, {:update_done, tty})
+    Nerves.Firmware.reboot
   end
 
   def run(url, dl_file) when is_bitstring url do

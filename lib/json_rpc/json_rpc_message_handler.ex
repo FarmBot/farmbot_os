@@ -168,6 +168,7 @@ defmodule RPCMessageHandler do
        {:update, url} ->
          Logger.debug("NEW OS UPDATE")
          spawn fn -> Downloader.download_and_install_os_update(url) end
+       {:error, message} -> log("Couldn't fetch update: #{inspect message}", "error_toast")
     end
     :ok
   end

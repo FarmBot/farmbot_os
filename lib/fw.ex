@@ -40,6 +40,7 @@ defmodule Fw do
     Returns {:update, url_to_latest_download} or :no_updates
   """
   def check_updates(url, extension) when is_bitstring(extension) do
+    Logger.debug(url)
     resp = HTTPotion.get url,
     [headers: ["User-Agent": "Farmbot"]]
     current_version = Fw.version
@@ -78,7 +79,7 @@ defmodule Fw do
   """
   def check_os_updates do
     check_updates(
-    Map.get(Auth.get_token, "os_update_server")
+    Map.get(Auth.get_token, "unencoded") |> Map.get("os_update_server")
     || @os_update_server,
     ".fw")
   end
@@ -88,7 +89,7 @@ defmodule Fw do
   """
   def check_fw_updates do
     check_updates(
-    Map.get(Auth.get_token, "fw_update_server")
+    Map.get(Auth.get_token, "unencoded") |> Map.get("fw_update_server")
     || @fw_update_server,
      ".hex")
   end

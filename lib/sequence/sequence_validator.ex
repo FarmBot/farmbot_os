@@ -113,7 +113,7 @@ defmodule SequenceValidator do
 
   def validate_step(%{"kind" => "execute", "args" => %{"sub_sequence_id" => seq_id}}) do
     case validate_body([seq_id],0) do
-      {:valid, warnings, 0} ->
+      {:valid, _warnings, 0} ->
         r_id = get_int(seq_id)
         next_seq = BotSync.get_sequence(r_id)
         seq_args = Map.get(next_seq, "args")
