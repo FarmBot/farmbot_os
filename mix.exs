@@ -99,6 +99,7 @@ defmodule Fw.Mixfile do
     [
       {:nerves_networking, github: "nerves-project/nerves_networking"},
       {:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi" },
+      {:nerves_leds, "~> 0.7.0"},
       {:elixir_ale, "~> 0.5.5"}
     ]
   end
@@ -106,6 +107,7 @@ defmodule Fw.Mixfile do
   def platform_apps("rpi3") do
     [ :nerves_networking,
       :nerves_interim_wifi,
+      :nerves_leds,
       :elixir_ale ]
   end
 
@@ -123,6 +125,6 @@ defmodule Fw.Mixfile do
   end
 
   def system("rpi3") do
-    [{:"nerves_system_rpi3", git: "https://github.com/ConnorRigby/nerves_system_rpi3.git", tag: "v0.7.2-farmbot" }]
+    [{:"nerves_system_rpi3", git: "https://github.com/ConnorRigby/nerves_system_rpi3.git", tag: "v0.7.3-farmbot" }]
   end
 end

@@ -53,10 +53,10 @@ defmodule Wifi do
   # Blatently ripped off from @joelbyler
   # https://github.com/joelbyler/elixir_conf_chores/blob/f13298f9185b850fdfaad0448f03a03b3067a85c/apps/firmware/lib/firmware.ex
   defp start_hostapd_deps(:prod) do
-    System.cmd("httpd",["-p", "80", "-h", "/www"]) |> print_cmd_result
-    System.cmd("ip", ["link", "set", "wlan0", "up"]) |> print_cmd_result
-    System.cmd("ip", ["addr", "add", "192.168.24.1/24", "dev", "wlan0"]) |> print_cmd_result
-    System.cmd("dnsmasq", ["--dhcp-lease", "/root/dnsmasq.lease"]) |> print_cmd_result
+    :ok = System.cmd("httpd",["-p", "80", "-h", "/www"]) |> print_cmd_result
+    :ok = System.cmd("ip", ["link", "set", "wlan0", "up"]) |> print_cmd_result
+    :ok = System.cmd("ip", ["addr", "add", "192.168.24.1/24", "dev", "wlan0"]) |> print_cmd_result
+    :ok = System.cmd("dnsmasq", ["--dhcp-lease", "/root/dnsmasq.lease"]) |> print_cmd_result
   end
 
   defp start_hostapd_deps(_) do
@@ -64,7 +64,7 @@ defmodule Wifi do
   end
 
   defp start_hostapd(:prod) do
-    System.cmd("hostapd", ["-B", "-d", "/etc/hostapd/hostapd.conf"]) |> print_cmd_result
+    :ok = System.cmd("hostapd", ["-B", "-d", "/etc/hostapd/hostapd.conf"]) |> print_cmd_result
   end
 
   defp start_hostapd(_) do
@@ -73,11 +73,11 @@ defmodule Wifi do
 
   defp print_cmd_result({_message, 0}) do
     # IO.puts message
-    nil
+    :ok
   end
 
   defp print_cmd_result({message, err_no}) do
-    IO.puts "ERROR (#{err_no}): #{message}"
+    Logger.error("Command failed! (#{inspect err_no}) #{inspect message}")
   end
 
   def connect(ssid, pass) do

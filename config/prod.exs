@@ -33,3 +33,6 @@ config :iex,
     "%node",
     ">",
     :reset ] |> IO.ANSI.format |> IO.chardata_to_string
+
+config :blinky, led_list: [ :green ]
+config :nerves_leds, names: [ green: "led0" ]
