@@ -3,7 +3,7 @@ defmodule MqttHandler do
   require Logger
 
   defp build_last_will_message do
-    RPCMessageHandler.log_msg("Something TERRIBLE Happened. Bot going offline.", ["ticker_error"])
+    RPCMessageHandler.log_msg("Something TERRIBLE Happened. Bot going offline.", ["error_ticker"])
   end
 
   @doc """
