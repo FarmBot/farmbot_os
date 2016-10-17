@@ -3,7 +3,10 @@ defmodule MqttSupervisor do
   use Supervisor
 
   def init(_args) do
-    children = [worker(MqttHandler, [[]], restart: :permanent)]
+    children = [
+      worker(MqttMessageManager, []),
+      worker(MqttMessageHandler, [], id: 1)
+    ]
     supervise(children, strategy: :one_for_one, name: __MODULE__)
   end
 

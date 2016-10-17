@@ -19,29 +19,9 @@ defmodule Sequencer do
         args = Map.get(sequence, "args")
         body = Map.get(sequence, "body")
         name = Map.get(sequence, "name")
-        case SequenceValidator.validate(args, body) do
-          {:valid, warnings, seconds} ->
-            r_sec = Kernel.round(seconds)
-            RPCMessageHandler.log("Sequence Valid. It will take #{inspect r_sec} seconds", "toast")
-            for warning <- warnings do
-              Logger.debug("Validator warning: #{inspect warning}")
-              RPCMessageHandler.log("Validator warning: #{inspect warning}", "warning_toast")
-            end
-            {:ok, pid} = start_link(%{name: name})
-            Process.flag(:trap_exit, true)
-            spawn_link fn -> execute(body, pid) end
-            {:ok, pid}
-          {:error, reason} ->
-            Logger.debug("Couldn't start sequence: #{inspect reason}")
-            RPCMessageHandler.log("Couldn't start sequence: #{inspect reason}", "error_toast")
-            {:error, reason}
-          error ->
-            Logger.debug("Couldn't start sequence: unknown error")
-            RPCMessageHandler.log("Couldn't start sequence: #{inspect error}", "error_toast")
-            {:error, :unknown}
-        end
-      false ->
-        Logger.debug("Missing key. Sequence invalid")
+        {:ok, pid} = start_link(%{name: name})
+        spawn_link fn -> execute(body, pid) end
+        {:ok, pid}
     end
   end
 
