@@ -1,16 +1,34 @@
 defmodule BotStatus do
   use GenServer
   require Logger
+  @bot_status_save_file Application.get_env(:fb, :bot_status_save_file)
+
+  def load do
+    case File.read(@bot_status_save_file) do
+      {:ok, contents} ->
+        # TODO: apply this status here.
+        :erlang.binary_to_term(contents)
+      _ ->     %{ x: 0,y: 0,z: 0,speed: 10,
+                 version: Fw.version,
+                 busy: true,
+                 last_sync: -1,
+                 os_auto_update: 0,
+                 fw_auto_update: 0,
+                 movement_axis_nr_steps_x: 222,
+                 movement_axis_nr_steps_y: 222,
+                 movement_axis_nr_steps_z: 222 }
+    end
+
+
+  end
+
+  def save do
+    File.write(@bot_status_save_file, :erlang.term_to_binary(BotStatus.get_status))
+  end
+
   def init(_) do
     # MAKE SURE THE STATUS STAYS FLAT. YOU WILL THANK YOURSELF LATER.
-    initial_status = %{ x: 0,y: 0,z: 0,speed: 10,
-                        version: Fw.version,
-                        busy: true,
-                        last_sync: -1,
-                        movement_axis_nr_steps_x: 222,
-                        movement_axis_nr_steps_y: 222,
-                        movement_axis_nr_steps_z: 222 }
-    { :ok, initial_status }
+    { :ok, load }
   end
 
   def start_link(_) do
@@ -41,6 +59,22 @@ defmodule BotStatus do
   def handle_call(:get_speed, _from, current_status) do
     speed = Map.get(current_status, :speed)
     {:reply, speed, current_status}
+  end
+
+  def handle_call(:toggle_os_auto_update, _from, current_status) do
+    if(Map.get(current_status, :os_auto_update) == 1) do
+      {:reply, :ok, Map.put(current_status, :os_auto_update, 0) }
+    else
+      {:reply, :ok, Map.put(current_status, :os_auto_update, 1) }
+    end
+  end
+
+  def handle_call(:toggle_fw_auto_update, _from, current_status) do
+    if(Map.get(current_status, :fw_auto_update) == 1) do
+      {:reply, :ok, Map.put(current_status, :fw_auto_update, 0) }
+    else
+      {:reply, :ok, Map.put(current_status, :fw_auto_update, 1) }
+    end
   end
 
   def handle_cast({:set_pin, pin, value}, current_status) when is_bitstring(pin) and is_integer(value) do
@@ -169,5 +203,19 @@ defmodule BotStatus do
 
   def apply_status(_status) do
     Logger.debug("TODO: apply bot status")
+  end
+
+  def toggle_os_auto_update do
+    GenServer.call(__MODULE__, :toggle_os_auto_update)
+    save
+    RPCMessageHandler.send_status
+    :ok
+  end
+
+  def toggle_fw_auto_update do
+    GenServer.call(__MODULE__, :toggle_fw_auto_update)
+    save
+    RPCMessageHandler.send_status
+    :ok
   end
 end

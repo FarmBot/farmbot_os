@@ -82,6 +82,14 @@ defmodule RPCMessageHandler do
     IO.inspect broken_rpc
   end
 
+  def do_handle("toggle_os_auto_update", []) do
+    BotStatus.toggle_os_auto_update
+  end
+
+  def do_handle("toggle_fw_auto_update", []) do
+    BotStatus.toggle_fw_auto_update
+  end
+
   # E STOP
   def do_handle("emergency_stop", _) do
     Command.e_stop

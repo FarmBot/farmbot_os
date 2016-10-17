@@ -30,30 +30,11 @@ defmodule MyRouter do
         Auth.login(email,password,server)
         send_resp(conn, 200, "YOU WONT SEE THIS")
     end
+  end
 
-    # case Map.has_key?(conn.params, "email")
-    #  and Map.has_key?(conn.params, "password")
-    #  and Map.has_key?(conn.params, "server")
-    #  and Map.has_key?(conn.params, "wifi") do
-    #    true ->
-    #      email = conn.params["email"]
-    #      ssid = conn.params["wifi"]["ssid"]
-    #      psk = conn.params["wifi"]["psk"]
-    #      if(@env == :prod) do  Wifi.connect(ssid, psk) end
-    #      password = conn.params["password"]
-    #      server = conn.params["server"]
-    #      case Auth.login(email,password,server) do
-    #        nil -> send_resp(conn, 401, "LOGIN FAIL")
-    #        _ -> send_resp(conn, 200, "LOGIN OK")
-    #      end
-    #  Map.has_key?(conn.params, "email")
-    #   and Map.has_key?(conn.params, "password")
-    #   and Map.has_key?(conn.params, "server")
-    #   and Map.has_key?(conn.params, "ethernet") ->
-    #    _ ->
-    #      send_resp(conn, 401, "BAD PARAMS")
-    #
-    #  end
+  get "/kill" do
+    Logger.debug("removeme")
+    Process.exit(self(), :blah)
   end
 
   get "/scan" do
