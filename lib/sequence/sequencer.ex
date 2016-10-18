@@ -1,8 +1,15 @@
 defmodule Sequencer do
   require Logger
 
-  def init(args) do
-    initial_state = %{vars: %{}, name: args.name, bot_state: BotStatus.get_status, running: true}
+  def init(%{name: name, tag_version: tag_version}) do
+    resp = HTTPotion.get("http://192.168.29.167:3000/api/corpuses")
+    instruction_set = Poison.decode!(resp.body) |> List.first |> SequenceInstructionSet.create_instruction_set
+    initial_state =
+      %{vars: %{},
+        name: name,
+        tag_version: tag_version, instruction_set: instruction_set,
+        bot_state: BotStatus.get_status,
+        running: true}
     {:ok, initial_state}
   end
 
@@ -17,9 +24,10 @@ defmodule Sequencer do
     case Enum.all?(required_keys, fn(key) -> Map.has_key?(sequence, key) end) do
       true ->
         args = Map.get(sequence, "args")
+        tag_version = Map.get(args, "tag_version") || 0
         body = Map.get(sequence, "body")
         name = Map.get(sequence, "name")
-        {:ok, pid} = start_link(%{name: name})
+        {:ok, pid} = start_link(%{name: name, tag_version: tag_version})
         spawn_link fn -> execute(body, pid) end
         {:ok, pid}
     end
@@ -41,7 +49,8 @@ defmodule Sequencer do
     if(run_next_tick?(pid)) do
       node = List.first(body)
       RPCMessageHandler.log("Doing: #{Map.get(node, "kind")}")
-      SequenceCommands.do_command(node, pid)
+      # SequenceCommands.do_command(node, pid)
+      GenServer.cast(pid, {:do_step, node})
       Process.sleep(200)
       do_steps(body -- [node], pid)
     else
@@ -50,16 +59,16 @@ defmodule Sequencer do
     end
   end
 
-  def handle_call({:set_var, identifier, value}, _from, %{vars: vars, name: name, bot_state: bot_state, running: running}) do
-    {:reply, :ok, %{vars: Map.put(vars, identifier, value), name: name, bot_state: bot_state, running: running} }
+  def handle_call({:set_var, identifier, value}, _from, %{tag_version: tag_version, instruction_set: instruction_set, vars: vars, name: name, bot_state: bot_state, running: running}) do
+    {:reply, :ok, %{tag_version: tag_version, instruction_set: instruction_set, vars: Map.put(vars, identifier, value), name: name, bot_state: bot_state, running: running} }
   end
 
-  def handle_call({:get_var, identifier}, _from, %{vars: vars, name: name, bot_state: bot_state, running: running} ) do
+  def handle_call({:get_var, identifier}, _from, %{tag_version: tag_version, instruction_set: instruction_set, vars: vars, name: name, bot_state: bot_state, running: running} ) do
     v = Map.get(vars, identifier, "unset")
-    {:reply, v, %{vars: vars, name: name, bot_state: bot_state, running: running} }
+    {:reply, v, %{tag_version: tag_version, instruction_set: instruction_set, vars: vars, name: name, bot_state: bot_state, running: running} }
   end
 
-  def handle_call(:get_all_vars, _from, %{vars: vars, name: name, bot_state: _nope, running: running} ) do
+  def handle_call(:get_all_vars, _from, %{tag_version: tag_version, instruction_set: instruction_set, vars: vars, name: name, bot_state: _nope, running: running} ) do
     bot_state = BotStatus.get_status
     thing1 = vars |> Enum.reduce(%{}, fn ({key, val}, acc) -> Map.put(acc, String.to_atom(key), val) end)
     thing2 = bot_state |> Enum.reduce(%{}, fn ({key, val}, acc) ->
@@ -73,23 +82,28 @@ defmodule Sequencer do
     thing3 = %{username: username, bot_name: bot_name}
 
     all_things = Map.merge(thing1, thing2) |> Map.merge(thing3)
-    {:reply, all_things , %{vars: vars, name: name, bot_state: bot_state, running: running} }
+    {:reply, all_things , %{tag_version: tag_version, instruction_set: instruction_set, vars: vars, name: name, bot_state: bot_state, running: running} }
   end
 
-  def handle_call(:pause, _from, %{vars: vars, name: name, bot_state: _bot_state, running: true} ) do
+  def handle_call(:pause, _from, %{tag_version: tag_version, instruction_set: instruction_set, vars: vars, name: name, bot_state: _bot_state, running: true} ) do
     paused_status = BotStatus.get_status
     RPCMessageHandler.log("Pausing Sequence: #{name}")
-    {:reply, paused_status, %{vars: vars, name: name, bot_state: paused_status, running: false} }
+    {:reply, paused_status, %{tag_version: tag_version, instruction_set: instruction_set, vars: vars, name: name, bot_state: paused_status, running: false} }
   end
 
-  def handle_call(:tick?, _from, %{vars: vars, name: name, bot_state: bot_state, running: running} ) do
-    {:reply, running, %{vars: vars, name: name, bot_state: bot_state, running: running} }
+  def handle_call(:tick?, _from, %{tag_version: tag_version, instruction_set: instruction_set, vars: vars, name: name, bot_state: bot_state, running: running} ) do
+    {:reply, running, %{tag_version: tag_version, instruction_set: instruction_set, vars: vars, name: name, bot_state: bot_state, running: running} }
   end
 
-  def handle_cast(:resume, %{vars: vars, name: name, bot_state: paused_status, running: false} ) do
+  def handle_cast(:resume, %{tag_version: tag_version, instruction_set: instruction_set, vars: vars, name: name, bot_state: paused_status, running: false} ) do
     BotStatus.apply_status(paused_status)
     RPCMessageHandler.log("Resuming Sequence: #{name}")
     {:noreply, %{vars: vars, name: name, bot_state: BotStatus.get_status, running: true} }
+  end
+
+  def handle_cast({:do_step, node}, %{tag_version: tag_version, instruction_set: instruction_set, vars: vars, name: name, bot_state: paused_status, running: running}) do
+    GenServer.call(instruction_set, node)
+    {:noreply, %{tag_version: tag_version, instruction_set: instruction_set, vars: vars, name: name, bot_state: paused_status, running: running}}
   end
 
   def handle_info({:EXIT, _pid, reason}, state) do

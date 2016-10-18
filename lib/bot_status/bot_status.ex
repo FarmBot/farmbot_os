@@ -7,7 +7,7 @@ defmodule BotStatus do
     case File.read(@bot_status_save_file) do
       {:ok, contents} ->
         # TODO: apply this status here.
-        :erlang.binary_to_term(contents)
+        blah = Map.put(:erlang.binary_to_term(contents), :busy, true)
       _ ->     %{ x: 0,y: 0,z: 0,speed: 10,
                  version: Fw.version,
                  busy: true,
