@@ -13,7 +13,7 @@ phonecatApp.controller('PhoneListController', function PhoneListController($scop
     $scope.ssids = resp.data;
   }).catch(function(error){
     console.log("not running on device?");
-    $scope.ssids = ["test_ssid", "meep", "lawl"];
+    $scope.ssids = [];
   })
 
   $scope.select_ssid = function(ssid){
@@ -65,8 +65,6 @@ phonecatApp.controller('PhoneListController', function PhoneListController($scop
         console.log("will probably see this a lot...");
         console.log(JSON.stringify(error));
       });
-    } else{
-      console.log("write some better error handling n00b.")
     }
   };
 });
