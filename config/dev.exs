@@ -7,4 +7,4 @@ config :fb,
   bot_status_save_file: "/tmp/botstatus.txt"
 
 config :json_rpc,
-  transport: MqttMessageHandler
+  transport: MqttHandler

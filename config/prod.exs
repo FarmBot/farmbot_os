@@ -12,7 +12,7 @@ config :fb,
   factory_reset_pin: 21
 
 config :json_rpc,
-    transport: MqttMessageHandler
+    transport: MqttHandler
 
 config :logger, :console,
   format: "$metadata[$level] $levelpad$message\r\n",

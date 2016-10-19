@@ -24,21 +24,21 @@ defmodule Command do
     Home x
     I dont think anything uses these.
   """
-  def home_x(speed) do
+  def home_x() do
     NewHandler.block_send("F11")
   end
 
   @doc """
     Home y
   """
-  def home_y(speed) do
+  def home_y() do
     NewHandler.block_send("F12")
   end
 
   @doc """
     Home z
   """
-  def home_z(speed) do
+  def home_z() do
     NewHandler.block_send("F13")
   end
 
