@@ -75,6 +75,27 @@ defmodule BotSync do
     {:reply, regimens, %{token: token, resources: resources}}
   end
 
+  def handle_call({:get_corpus, id}, _from, %{token: token, resources: resources} ) do
+    if Map.get(resources, "corpuses") == nil do
+      server = Map.get(token, "unencoded") |> Map.get("iss")
+      c = get_corpus_from_server(server, id)
+      m = String.to_atom("Elixir.SequenceInstructionSet_"<>"#{id}")
+      m.create_instruction_set(c)
+    end
+    f = Module.concat(SiS, "Corpus_#{id}")
+    {:reply, f, %{token: token, resources: resources}}
+  end
+
+  defp get_corpus_from_server(server, id) do
+     case HTTPotion.get(server<>"/api/corpuses/#{id}") do
+       %HTTPotion.Response{body: body,
+                           headers: _headers,
+                           status_code: 200} ->
+         Poison.decode!(body)
+        error -> error
+     end
+  end
+
 
   def sync do
     GenServer.cast(__MODULE__, :sync)
@@ -98,6 +119,10 @@ defmodule BotSync do
 
   def get_regimens do
     GenServer.call(__MODULE__, :get_regimens)
+  end
+
+  def get_corpus(id) when is_integer(id) do
+    GenServer.call(__MODULE__, {:get_corpus, id})
   end
 
   def try_to_get_token do

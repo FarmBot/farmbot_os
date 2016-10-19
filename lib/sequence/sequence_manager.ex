@@ -28,23 +28,8 @@ defmodule SequenceManager do
 
   # Add a new sequence to the log
   def handle_call({:add, seq}, _from, %{current: current, global_vars: globals, log: log}) do
-    new_log = [seq | log]
     RPCMessageHandler.log("Adding sequence to queue.")
-    {:reply, "queueing sequence", %{current: current, global_vars: globals, log: new_log}}
-  end
-
-  # done when there are no more sequences to run.
-  def handle_call({:done, _pid}, _from, %{current: _current, global_vars: globals, log: []}) do
-    RPCMessageHandler.log("No more Sequences to run.")
-    {:reply, :ok,  %{current: nil, global_vars: globals, log: []}}
-  end
-
-  # There is in fact more sequences to run
-  def handle_call({:done, _pid}, _from, %{current: _current, global_vars: globals, log: more}) do
-    RPCMessageHandler.log("Running next sequence")
-    seq = List.last(more)
-    {:ok, new_pid} = SequencerVM.start_link(seq)
-    {:reply, :ok,  %{current: new_pid, global_vars: globals, log: more -- [seq]}}
+    {:reply, "queueing sequence", %{current: current, global_vars: globals, log: [seq | log]}}
   end
 
   def handle_call(:pause, _from, %{current: current, global_vars: globals, log: more})  when is_pid(current) do
@@ -59,6 +44,22 @@ defmodule SequenceManager do
       Process.alive?(current) -> GenServer.cast(current, :resume)
     end
     {:reply, :ok, %{current: current, global_vars: globals, log: more}}
+  end
+
+  # done when there are no more sequences to run.
+  def handle_info({:done, pid}, %{current: _, global_vars: globals, log: []}) do
+    RPCMessageHandler.log("No more Sequences to run.")
+    GenServer.stop(pid, :normal)
+    {:noreply, %{current: nil, global_vars: globals, log: []}}
+  end
+
+  # There is in fact more sequences to run
+  def handle_info({:done, pid}, %{current: _current, global_vars: globals, log: more}) do
+    RPCMessageHandler.log("Running next sequence")
+    GenServer.stop(pid, :normal)
+    seq = List.last(more)
+    {:ok, new_pid} = SequencerVM.start_link(seq)
+    {:noreply,  %{current: new_pid, global_vars: globals, log: more -- [seq]}}
   end
 
   def do_sequence(seq) when is_map(seq) do

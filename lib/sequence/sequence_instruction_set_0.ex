@@ -1,9 +1,9 @@
-defmodule SequenceInstructionSet do
+defmodule SequenceInstructionSet_0 do
   require Logger
-  def create_instruction_set(%{"tag" => tag_version, "args" => allowed_args_list, "nodes" => allowed_nodes_list}) do
+  def create_instruction_set(%{"tag" => 0, "args" => allowed_args_list, "nodes" => allowed_nodes_list}) do
     initial =
       "
-      defmodule Corpus_#{tag_version} do
+      defmodule Corpus_0 do
         use GenServer
         require Logger
         def start_link(args) do
@@ -22,10 +22,14 @@ defmodule SequenceInstructionSet do
     <>create_arg_instructions(arg_list, "")
     <>create_node_instructions(node_list, "")
     <>"
-      def terminate(reason, state) do
+      def terminate(:normal, parent) do
+        :ok
+      end
+
+      def terminate(reason, parent) do
         Logger.debug(\"Corpus died.\")
         IO.inspect(reason)
-        IO.inspect(state)
+        IO.inspect(parent)
       end
     end" |> Code.string_to_quoted!
   end
@@ -54,7 +58,8 @@ defmodule SequenceInstructionSet do
     check =
     case type do
       "integer" -> "when is_integer(value)"
-      "string" -> "when is_bitstring(value)"
+      "string"  -> "when is_bitstring(value)"
+      # "node"    -> "when is_map(value)"
     end
     new =
       "
@@ -85,8 +90,10 @@ defmodule SequenceInstructionSet do
       {:noreply, parent}
     end
 
-    def handle_cast({\"move_absolute\", _}, state) do
-      {:noreply, state}
+    def handle_cast({\"move_absolute\", _}, parent) do
+      RPCMessageHandler.log(\"bad params\")
+      SequencerVM.tick(parent)
+      {:noreply, parent}
     end
     "
   end
@@ -101,8 +108,10 @@ defmodule SequenceInstructionSet do
       {:noreply, parent}
     end
 
-    def handle_cast({\"move_relative\", _}, state) do
-      {:noreply, state}
+    def handle_cast({\"move_relative\", _}, parent) do
+      RPCMessageHandler.log(\"bad params\")
+      SequencerVM.tick(parent)
+      {:noreply, parent}
     end
     "
   end
@@ -111,15 +120,18 @@ defmodule SequenceInstructionSet do
   when is_list(allowed_args) and is_list(allowed_body_types) do
     args = create_arg_map(allowed_args)
     "
-    def handle_cast({\"write_pin\", %{#{args}}}, state) do
+    def handle_cast({\"write_pin\", %{#{args}}}, parent) do
       Command.write_pin(pin_number(pin_number),
                         pin_value(pin_value),
                         pin_mode(pin_mode))
-      {:noreply, state}
+      SequencerVM.tick(parent)
+      {:noreply, parent}
     end
 
-    def handle_cast({\"write_pin\", _}, state) do
-      {:noreply, state}
+    def handle_cast({\"write_pin\", _}, parent) do
+      RPCMessageHandler.log(\"bad params\")
+      SequencerVM.tick(parent)
+      {:noreply, parent}
     end
     "
   end
@@ -133,11 +145,14 @@ defmodule SequenceInstructionSet do
                         pin_mode(pin_mode) )
       v = BotStatus.get_pin(pin_number(pin_number))
       GenServer.cast(parent, {:set_var, data_label(data_label), v})
+      SequencerVM.tick(parent)
       {:noreply, parent}
     end
 
-    def handle_cast({\"read_pin\", _}, state) do
-      {:noreply, state}
+    def handle_cast({\"read_pin\", _}, parent) do
+      RPCMessageHandler.log(\"bad params\")
+      SequencerVM.tick(parent)
+      {:noreply, parent}
     end
     "
   end
@@ -146,13 +161,16 @@ defmodule SequenceInstructionSet do
   when is_list(allowed_args) and is_list(allowed_body_types) do
     args = create_arg_map(allowed_args)
     "
-    def handle_cast({\"wait\", %{#{args}}}, state) do
+    def handle_cast({\"wait\", %{#{args}}}, parent) do
       Process.sleep( milliseconds(milliseconds) )
-      {:noreply, state}
+      SequencerVM.tick(parent)
+      {:noreply, parent}
     end
 
-    def handle_cast({\"wait\", _}, state) do
-      {:noreply, state}
+    def handle_cast({\"wait\", _}, parent) do
+      RPCMessageHandler.log(\"bad params\")
+      SequencerVM.tick(parent)
+      {:noreply, parent}
     end
     "
   end
@@ -175,16 +193,20 @@ defmodule SequenceInstructionSet do
           end
           rendered = Mustache.render(rmessage, vars)
           RPCMessageHandler.log(rendered, channel)
+          SequencerVM.tick(parent)
           {:noreply, parent}
 
         not_special ->
           rendered = Mustache.render(not_special, vars)
           RPCMessageHandler.log(rendered)
+          SequencerVM.tick(parent)
           {:noreply, parent}
       end
     end
 
     def handle_cast({\"send_message\", _}, parent) do
+      RPCMessageHandler.log(\"bad params\")
+      SequencerVM.tick(parent)
       {:noreply, parent}
     end
     "
@@ -194,9 +216,10 @@ defmodule SequenceInstructionSet do
   def create_node_instructions(%{"name" => name, "allowed_args" => [], "allowed_body_types" => allowed_body_types})
   when is_bitstring(name) and is_list(allowed_body_types) do
     "
-    def #{name}() do
+    def handle_cast({#{name}, _}, parent) do
       Logger.debug(\"node #{name} is not implemented\")
-      :not_implemented
+      SequencerVM.tick(parent)
+      {:noreply, parent}
     end
     "
   end
