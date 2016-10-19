@@ -15,21 +15,11 @@ defmodule NewHandler do
     {:noreply, state}
   end
 
-  def handle_cast({:idle}, %{nerves: nerves, current: _, log: []}) do
-    {:noreply, %{nerves: nerves, current: nil, log: []}}
-  end
-
-  def handle_cast({:idle}, %{nerves: nerves, current: _, log: log}) do
-    {nextstr, pid} = List.first(log)
-    Nerves.UART.write(nerves, nextstr)
-    {:noreply, %{nerves: nerves, current: {nextstr, pid}, log: log -- [{nextstr, pid}] }}
-  end
-
   def handle_cast({:idle}, state) do
-    {:noreply, state}
+    {:noreply, %{nerves: state.nerves, current: nil, log: []}}
   end
 
-  def handle_cast({:done}, %{nerves: nerves, current: {current_str, pid}, log: log}) do
+  def handle_cast({:done}, %{nerves: nerves, current: {_current_str, pid}, log: log}) do
     # Logger.debug("Done with #{inspect {current_str, pid}}")
     send(pid, :done)
     case List.first(log) do
@@ -88,7 +78,9 @@ defmodule NewHandler do
     {:noreply, state}
   end
 
+  # If we arent waiting on anything right now. (current is nil and log is empty)
   def handle_call({:send, message, caller}, _from, %{ nerves: nerves, current: nil, log: [] }) do
+    Nerves.UART.write(nerves, message)
     {:reply, :sending, %{nerves: nerves, current: {message, caller}, log: [{message, caller}]} }
   end
 

@@ -8,8 +8,8 @@ config :uart,
 
 config :fb,
   ro_path: "/root",
-  bot_status_save_file: "/root/botstatus.txt"
-  factory_reset_pin: 21,
+  bot_status_save_file: "/root/botstatus.txt",
+  factory_reset_pin: 21
 
 config :json_rpc,
     transport: MqttMessageHandler

@@ -10,12 +10,11 @@ defmodule BotSync do
   end
 
   def handle_cast(_, %{token: nil, resources: _}) do
-    Logger.debug("Don't have a token yet.")
     spawn fn -> try_to_get_token end
     {:noreply, %{token: nil, resources: nil}}
   end
 
-  def handle_cast(:sync, %{token: token, resources: _}) do
+  def handle_cast(:sync, %{token: token, resources: old}) do
     server = Map.get(token, "unencoded") |> Map.get("iss")
     auth = Map.get(token, "encoded")
 
@@ -27,7 +26,7 @@ defmodule BotSync do
                          headers: _headers,
                          status_code: 200} ->
        RPCMessageHandler.log("Synced")
-       {:noreply, %{token: token, resources: Poison.decode!(body)}}
+       {:noreply, %{token: token, resources: Map.merge(old || %{}, Poison.decode!(body)) }}
      error ->
        Logger.debug("Couldn't get resources: #{error}")
        RPCMessageHandler.log("Couldn't sync: #{error}")
@@ -75,15 +74,20 @@ defmodule BotSync do
     {:reply, regimens, %{token: token, resources: resources}}
   end
 
+  # REALLY BAD LOGIC HERE
   def handle_call({:get_corpus, id}, _from, %{token: token, resources: resources} ) do
-    if Map.get(resources, "corpuses") == nil do
-      server = Map.get(token, "unencoded") |> Map.get("iss")
-      c = get_corpus_from_server(server, id)
-      m = String.to_atom("Elixir.SequenceInstructionSet_"<>"#{id}")
-      m.create_instruction_set(c)
+    case Map.get(resources, "corpuses") do
+      nil ->
+        Logger.debug("Compiling Corpus Instruction Set")
+        RPCMessageHandler.log("Compileing Instruction Set!")
+        server = Map.get(token, "unencoded") |> Map.get("iss")
+        c = get_corpus_from_server(server, id)
+        m = String.to_atom("Elixir.SequenceInstructionSet_"<>"#{id}")
+        m.create_instruction_set(c)
+        {:reply, Module.concat(SiS, "Corpus_#{id}"), %{token: token, resources: Map.put(resources, "corpuses", [c])}}
+      corpuses ->
+        {:reply, Module.concat(SiS, "Corpus_#{id}"), %{token: token, resources: resources}}
     end
-    f = Module.concat(SiS, "Corpus_#{id}")
-    {:reply, f, %{token: token, resources: resources}}
   end
 
   defp get_corpus_from_server(server, id) do

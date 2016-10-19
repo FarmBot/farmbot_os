@@ -67,6 +67,10 @@ defmodule UartHandler do
     {:noreply, state}
   end
 
+  def handle_info({:EXIT, _pid, :normal}, state) do
+    {:noreply, state}
+  end
+
   def handle_info({:EXIT, pid, reason}, state) do
     Logger.debug("EXIT IN #{inspect pid}: #{inspect reason}")
     {:noreply, state}

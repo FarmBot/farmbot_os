@@ -3,6 +3,7 @@ defmodule SequenceManager do
   require Logger
 
   def init(_arge) do
+    Process.flag(:trap_exit, true)
     {:ok, %{current: nil, global_vars: %{}, log: []}}
   end
 
@@ -49,17 +50,37 @@ defmodule SequenceManager do
   # done when there are no more sequences to run.
   def handle_info({:done, pid}, %{current: _, global_vars: globals, log: []}) do
     RPCMessageHandler.log("No more Sequences to run.")
-    GenServer.stop(pid, :normal)
+    if Process.alive? pid do
+      GenServer.stop(pid, :normal)
+    end
     {:noreply, %{current: nil, global_vars: globals, log: []}}
   end
 
   # There is in fact more sequences to run
   def handle_info({:done, pid}, %{current: _current, global_vars: globals, log: more}) do
     RPCMessageHandler.log("Running next sequence")
-    GenServer.stop(pid, :normal)
+    if Process.alive? pid do
+      GenServer.stop(pid, :normal)
+    end
     seq = List.last(more)
     {:ok, new_pid} = SequencerVM.start_link(seq)
     {:noreply,  %{current: new_pid, global_vars: globals, log: more -- [seq]}}
+  end
+
+  def handle_info({:EXIT, pid, :normal}, state) do
+    {:noreply, state}
+  end
+
+  def handle_info({:EXIT, pid, reason}, state) do
+    msg = "#{inspect pid} died of unnatural causes: #{inspect reason}"
+    Logger.debug(msg)
+    RPCMessageHandler.log(msg)
+    if state.current == pid do
+      handle_info({:done, pid}, state)
+    else
+      Logger.debug("Sequence Hypervisor has been currupted. ")
+      :fail
+    end
   end
 
   def do_sequence(seq) when is_map(seq) do

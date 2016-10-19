@@ -98,14 +98,14 @@ defmodule SequencerVM do
   end
 
   def terminate(:normal, state) do
-    RPCMessageHandler.log("Sequence Finished without errors!", "success_toast")
+    RPCMessageHandler.log("Sequence Finished without errors!", ["success_toast", "ticker"])
     GenServer.stop(state.instruction_set, :normal)
   end
 
   def terminate(reason, state) do
     Logger.debug("VM Died: #{inspect reason}")
+    RPCMessageHandler.log("Sequence Finished with errors! #{inspect reason}", "error_toast")
     GenServer.stop(state.instruction_set, :normal)
     IO.inspect state
   end
-
 end
