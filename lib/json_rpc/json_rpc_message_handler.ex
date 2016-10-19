@@ -92,14 +92,14 @@ defmodule RPCMessageHandler do
 
   # E STOP
   def do_handle("emergency_stop", _) do
-    Command.e_stop
-    SequenceManager.e_stop
+    Logger.debug("FIXME E STOP RPC")
     :ok
   end
 
   # Home All
   def do_handle("home_all", [ %{"speed" => s} ]) when is_integer s do
-    Command.home_all(s)
+    spawn fn -> Command.home_all(s) end
+    :ok
   end
 
   def do_handle("home_all", params) do
@@ -114,14 +114,16 @@ defmodule RPCMessageHandler do
     when is_integer p and
          is_integer v
   do
-    Command.write_pin(p,v,1)
+    spawn fn -> Command.write_pin(p,v,1) end
+    :ok
   end
 
   def do_handle("write_pin", [ %{"pin_mode" => 0, "pin_number" => p, "pin_value" => v} ])
     when is_integer p and
          is_integer v
   do
-    Command.write_pin(p,v,0)
+    spawn fn -> Command.write_pin(p,v,0) end
+    :ok
   end
 
   def do_handle("write_pin", _) do
@@ -136,7 +138,8 @@ defmodule RPCMessageHandler do
        is_integer(z) and
        is_integer(s)
   do
-    Command.move_absolute(x,y,z,s)
+    spawn fn -> Command.move_absolute(x,y,z,s) end
+    :ok
   end
 
   def do_handle("move_absolute",  params) do
@@ -156,7 +159,8 @@ defmodule RPCMessageHandler do
          is_integer(y_move_by) and
          is_integer(z_move_by)
   do
-    Command.move_relative(%{x: x_move_by, y: y_move_by, z: z_move_by, speed: speed})
+    spawn fn -> Command.move_relative(%{x: x_move_by, y: y_move_by, z: z_move_by, speed: speed}) end
+    :ok
   end
 
   def do_handle("move_relative", _) do
@@ -212,7 +216,7 @@ defmodule RPCMessageHandler do
   def do_handle("update_calibration", [params]) when is_map(params) do
     case Enum.all?(params, fn({param, value}) ->
       param_int = Gcode.parse_param(param)
-      Command.update_param(param_int, value)
+      spawn fn -> Command.update_param(param_int, value) end
     end)
     do
       true -> :ok
@@ -241,11 +245,6 @@ defmodule RPCMessageHandler do
       true -> log("Sequence invalid.")
     end
     :ok
-  end
-
-  def do_handle("load_sequence", [%{"url" => url}]) do
-    sequence = Sequencer.load_external_sequence(url)
-    do_handle("exec_sequence", [sequence])
   end
 
   # Unhandled event. Probably not implemented if it got this far.

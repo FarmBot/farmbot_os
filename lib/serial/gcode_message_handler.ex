@@ -1,66 +1,67 @@
-alias Experimental.{GenStage}
-defmodule GcodeMessageHandler do
-  use GenStage
+defmodule NewHandler do
   require Logger
-
-  def start_link() do
-    GenStage.start_link(__MODULE__, :ok)
+  use GenServer
+  
+  def start_link(nerves) do
+    GenServer.start_link(__MODULE__, nerves, name: __MODULE__)
   end
 
-  def init(:ok) do
-    {:consumer, :ok, subscribe_to: [SerialMessageManager]}
+  def init(nerves) do
+    {:ok, %{nerves: nerves, current: nil, log: []}}
   end
 
-  def handle_events(events, _from, state) do
-    for event <- events do
-      do_handle(event)
+  def handle_cast({:debug_message, str}, state) do
+    Logger.debug("Debug Message from arduino: #{str}")
+    {:noreply, state}
+  end
+
+  def handle_cast({:idle}, %{nerves: nerves, current: _, log: []}) do
+    {:noreply, %{nerves: nerves, current: nil, log: []}}
+  end
+
+  def handle_cast({:idle}, %{nerves: nerves, current: _, log: log}) do
+    {nextstr, pid} = List.first(log)
+    Nerves.UART.write(nerves, nextstr)
+    {:noreply, %{nerves: nerves, current: {nextstr, pid}, log: log -- [{nextstr, pid}] }}
+  end
+
+  def handle_cast({:idle}, state) do
+    {:noreply, state}
+  end
+
+  def handle_cast({:done}, %{nerves: nerves, current: {current_str, pid}, log: log}) do
+    # Logger.debug("Done with #{inspect {current_str, pid}}")
+    send(pid, :done)
+    case List.first(log) do
+      {nextstr, new_pid} ->
+        Nerves.UART.write(nerves, nextstr)
+        {:noreply, %{nerves: nerves, current: {nextstr, new_pid}, log: log -- [{nextstr, new_pid}] }}
+      nil ->
+        {:noreply, %{nerves: nerves, current: nil, log: []} }
     end
-    {:noreply, [], state}
   end
 
-  # I think this is supposed to be somewhere else.
-  def do_handle({:send, str}) do
-    GenServer.cast(UartHandler, {:send, str})
+  def handle_cast({:received}, state) do
+    # Logger.debug("Starting Command #{inspect state.current}")
+    {:noreply, state}
   end
 
-  # This is the heartbeat messge.
-  def do_handle({:gcode, {:idle} }) do
-    BotStatus.busy false
-  end
-
-  # The opposite of the below command?
-  def do_handle({:gcode, {:done } }) do
-    BotStatus.busy false
-    RPCMessageHandler.send_status
-  end
-
-  # I'm not entirely sure what this is.
-  def do_handle({:gcode, {:received } }) do
-    BotStatus.busy true
-  end
-
-  def do_handle({:gcode, { :report_pin_value, params }}) do
+  def handle_cast({:report_pin_value, params}, state) do
     ["P"<>pin, "V"<>value] = String.split(params, " ")
     Logger.debug("pin#{pin}: #{value}")
     BotStatus.set_pin(String.to_integer(pin), String.to_integer(value))
+    {:noreply, state}
   end
 
-  # TODO report end stops
-  def do_handle({:gcode, {:reporting_end_stops, stop_values }}) do
-    # Logger.debug("[gcode_handler] {:reporting_end_stops} stub: #{stop_values}")
-    stop_values
-    |> parse_stop_values
-    |> Enum.each(&BotStatus.set_end_stop/1)
-  end
-
-  def do_handle({:gcode, { :report_current_position, position }}) do
+  def handle_cast( {:report_current_position, position }, state) do
     [x, y, z] = parse_coords(position)
-    # Logger.debug("Reporting position #{inspect {x, y, z}}")
+    Logger.debug("Reporting position #{inspect {x, y, z}}")
     BotStatus.set_pos(x,y,z)
     RPCMessageHandler.send_status
+    {:noreply, state}
   end
 
-  def do_handle({:gcode, {:report_parameter_value, param }}) do
+  def handle_cast({:report_parameter_value, param }, state) do
     [p, v] = String.split(param, " ")
     [_, real_p] = String.split(p, "P")
     [_, real_v] = String.split(v, "V")
@@ -70,29 +71,41 @@ defmodule GcodeMessageHandler do
     |> Atom.to_string
     |> String.downcase
     |> BotStatus.set_param(real_v)
+    {:noreply, state}
   end
 
-  def do_handle({:gcode, {:busy}}) do
-    BotStatus.busy true
+  # TODO report end stops
+  def handle_cast({:reporting_end_stops, stop_values }, state) do
+    # Logger.debug("[gcode_handler] {:reporting_end_stops} stub: #{stop_values}")
+    stop_values
+    |> parse_stop_values
+    |> Enum.each(&BotStatus.set_end_stop/1)
+    {:noreply, state}
   end
 
-  def do_handle({:gcode, {:debug_message, "stopped"}} ) do
-    # BotStatus.busy false
+
+  def handle_cast(event, state) do
+    Logger.debug("unhandled event! #{inspect event}")
+    {:noreply, state}
   end
 
-  # Serial sending a debug message. Print it.
-  def do_handle({:gcode, {:debug_message, message}} ) do
-    Logger.debug("Debug message from arduino: #{message}")
+  def handle_call({:send, message, caller}, _from, %{ nerves: nerves, current: nil, log: [] }) do
+    {:reply, :sending, %{nerves: nerves, current: {message, caller}, log: [{message, caller}]} }
   end
 
-  # Unhandled gcode message
-  def do_handle({:gcode, {:unhandled_gcode, code}}) do
-    Logger.debug("[gcode_handler] Broken code? : #{inspect code}")
+  def handle_call({:send, message, caller}, _from, %{nerves: nerves, current: current, log: log}) do
+    {:reply, :logging, %{nerves: nerves, current: current, log: log ++ [{message, caller}]} }
   end
 
-  # Catch all for serial messages
-  def do_handle({:gcode, message}) do
-    Logger.debug("[gcode_handler] Unhandled Serial Gcode: #{inspect message}")
+  def handle_call(:state, _from, state) do
+    {:reply, state, state}
+  end
+
+  def block_send(str) do
+      GenServer.call(NewHandler,{ :send, str, self()})
+      receive do
+        :done -> :ok
+      end
   end
 
   @doc """

@@ -1,4 +1,4 @@
-defmodule UartHandler do
+defmodule UartHandlerQ do
   require Logger
   @baud Application.get_env(:uart, :baud)
 
@@ -29,46 +29,39 @@ defmodule UartHandler do
   end
 
   def init(_) do
-    Process.flag(:trap_exit, true)
     {:ok, pid} = Nerves.UART.start_link
-    {:ok, handler} = NewHandler.start_link(pid)
     tty = open_serial(pid)
-    {:ok, {pid, tty, handler}}
+    {:ok, {pid, tty}}
   end
 
   def start_link(_) do
     GenServer.start_link(__MODULE__, {}, name: __MODULE__)
   end
 
-  def handle_cast({:send, _str}, {pid, "ttyFail", handler}) do
-    {:noreply, {pid,"ttyFail", handler}}
+  def handle_cast({:send, _str}, {pid, "ttyFail"}) do
+    {:noreply, {pid,"ttyFail"}}
   end
 
-  def handle_cast({:send, str}, {pid, tty, handler}) do
+  def handle_cast({:send, str}, {pid, tty}) do
     Nerves.UART.write(pid, str)
-    {:noreply, {pid,tty, handler}}
+    {:noreply, {pid,tty}}
   end
 
   # WHEN A FULL SERIAL MESSAGE COMES IN.
-  def handle_info({:nerves_uart, _tty, message}, {pid, tty, handler}) when is_binary(message) do
-    # GenServer.cast(UartHandler, {:send, "F22 P0 V0"})
+  def handle_info({:nerves_uart, _tty, message}, state) when is_bitstring(message) do
     gcode = Gcode.parse_code(String.strip(message))
-    GenServer.cast(handler, gcode)
-    {:noreply, {pid, tty, handler}}
+    Logger.debug("#{inspect gcode}")
+    {:noreply, state}
   end
 
-  def handle_info({:nerves_uart, _tty, {:partial, partial}}, state) do
+  def handle_info({:nerves_uart, _tty, {:partial, partial}}, {pid, tty}) do
     Logger.debug("Partial code: #{partial}")
-    {:noreply, state}
+    {:noreply, {pid, tty}}
   end
 
   def handle_info({:nerves_uart, _tty, event}, state) do
-    Logger.debug("Serial Event: #{inspect event}")
-    {:noreply, state}
-  end
-
-  def handle_info({:EXIT, pid, reason}, state) do
-    Logger.debug("EXIT IN #{inspect pid}: #{inspect reason}")
+    Logger.debug("Serial Event: #{inspect event}\n")
+    GenServer.cast(UartHandler, {:send, "F22 P0 V0"})
     {:noreply, state}
   end
 

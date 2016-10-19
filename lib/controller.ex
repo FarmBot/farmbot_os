@@ -8,7 +8,6 @@ defmodule Controller do
       worker(Auth, [[]], restart: :permanent),
       worker(BotSync, [[]], restart: :permanent ),
       supervisor(RPCSupervisor, [[]], restart: :permanent ),
-      supervisor(BotCommandSupervisor, [[]], restart: :permanent),
       supervisor(SerialSupervisor, [[]], restart: :transient ),
       supervisor(MqttSupervisor, [[]], restart: :permanent ),
       supervisor(SequenceSupervisor, [[]], restart: :permanent )
