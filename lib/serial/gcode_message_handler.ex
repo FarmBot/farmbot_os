@@ -39,7 +39,9 @@ defmodule NewHandler do
   def handle_cast({:report_pin_value, params}, state) do
     ["P"<>pin, "V"<>value] = String.split(params, " ")
     Logger.debug("pin#{pin}: #{value}")
-    BotStatus.set_pin(String.to_integer(pin), String.to_integer(value))
+    if value != "1023" do
+      BotStatus.set_pin(String.to_integer(pin), String.to_integer(value))      
+    end
     {:noreply, state}
   end
 

@@ -113,7 +113,6 @@ defmodule Command do
   """
   def read_all_pins do
     spawn fn -> Enum.each(0..13, fn pin ->
-      # Command.read_pin(pin)
       GenServer.call(NewHandler, {:send, "F42 P#{pin} M#{0}", self()})
     end) end
   end
@@ -127,7 +126,6 @@ defmodule Command do
                   31,32,33,41,42,43,51,
                   52,53,61,62,63,71,72,73]
     spawn fn -> Enum.each(rel_params, fn param ->
-      # Command.read_param(param)
       GenServer.call(NewHandler, {:send, "F21 P#{param}", self()})
     end ) end
   end

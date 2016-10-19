@@ -7,11 +7,41 @@ defmodule SequenceInstructionSet_0 do
         use GenServer
         require Logger
         def start_link(args) do
-          GenServer.start_link(__MODULE__, args, name: __MODULE__)
+          GenServer.start_link(__MODULE__, args)
         end
 
         def init(parent) do
           {:ok, parent}
+        end
+
+        def do_if(lhs, \">\", rhs)
+        when is_integer lhs and is_integer(rhs) do
+          lhs > rhs
+        end
+
+        def do_if(lhs, \"<\", rhs)
+        when is_integer lhs and is_integer(rhs) do
+          lhs < rhs
+        end
+
+        def do_if(lhs, \"is\", rhs)
+        when is_integer lhs and is_integer(rhs) do
+          lhs == rhs
+        end
+
+        def do_if(lhs, \"not\", rhs)
+        when is_integer lhs and is_integer(rhs) do
+          lhs != rhs
+        end
+
+        def do_if(:error, _op, _rhs) do
+          RPCMessageHandler.log(\" Could not locate value for LHS \")
+          :false
+        end
+
+        def do_if(_lhs, _op, _rhs) do
+          RPCMessageHandler.log(\" Bad type for if_statement \")
+          :false
         end
       "
     Module.create(SiS, create_instructions(initial, allowed_args_list, allowed_nodes_list ), Macro.Env.location(__ENV__))
@@ -22,7 +52,7 @@ defmodule SequenceInstructionSet_0 do
     <>create_arg_instructions(arg_list, "")
     <>create_node_instructions(node_list, "")
     <>"
-      def terminate(:normal, parent) do
+      def terminate(:normal, _parent) do
         :ok
       end
 
@@ -144,7 +174,7 @@ defmodule SequenceInstructionSet_0 do
       Command.read_pin( pin_number(pin_number),
                         pin_mode(pin_mode) )
       v = BotStatus.get_pin(pin_number(pin_number))
-      GenServer.cast(parent, {:set_var, data_label(data_label), v})
+      GenServer.call(parent, {:set_var, data_label(data_label), v})
       SequencerVM.tick(parent)
       {:noreply, parent}
     end
@@ -168,6 +198,49 @@ defmodule SequenceInstructionSet_0 do
     end
 
     def handle_cast({\"wait\", _}, parent) do
+      RPCMessageHandler.log(\"bad params\")
+      SequencerVM.tick(parent)
+      {:noreply, parent}
+    end
+    "
+  end
+
+  def create_node_instructions(%{"name" => "execute", "allowed_args" => allowed_args, "allowed_body_types" => allowed_body_types})
+  when is_list(allowed_args) and is_list(allowed_body_types) do
+    args = create_arg_map(allowed_args)
+    "
+    def handle_cast({\"execute\", %{#{args}}}, parent) do
+      GenServer.call(SequenceManager, {:pause, parent})
+      sequence = BotSync.get_sequence(sub_sequence_id)
+      GenServer.call(SequenceManager, {:add, sequence})
+      {:noreply, parent}
+    end
+
+    def handle_cast({\"execute\", _}, parent) do
+      RPCMessageHandler.log(\"bad params\")
+      SequencerVM.tick(parent)
+      {:noreply, parent}
+    end
+    "
+  end
+
+  def create_node_instructions(%{"name" => "if_statement", "allowed_args" => allowed_args, "allowed_body_types" => allowed_body_types})
+  when is_list(allowed_args) and is_list(allowed_body_types) do
+    args = create_arg_map(allowed_args)
+    "
+    def handle_cast({\"if_statement\", %{#{args}}}, parent) do
+      vars = GenServer.call(parent, :get_all_vars)
+      rlhs = Map.get(vars, String.to_atom(lhs(lhs) ) )
+      if(do_if(rlhs, op(op), rhs(rhs)) == true) do
+        handle_cast({\"execute\", %{\"sub_sequence_id\" => sub_sequence_id}}, parent)
+      else
+        RPCMessageHandler.log(\" if statement did not evaluate true.\")
+        SequencerVM.tick(parent)
+        {:noreply, parent}
+      end
+    end
+
+    def handle_cast({\"if_statement\", _}, parent) do
       RPCMessageHandler.log(\"bad params\")
       SequencerVM.tick(parent)
       {:noreply, parent}
@@ -226,11 +299,11 @@ defmodule SequenceInstructionSet_0 do
 
   def create_node_instructions(%{"name" => name, "allowed_args" => allowed_args, "allowed_body_types" => allowed_body_types})
   when is_bitstring(name) and is_list(allowed_args) and is_list(allowed_body_types) do
-    b = Enum.reduce(allowed_args, "", fn(x, acc) -> acc <> "\"#{x}\" => #{x}, "end)
-    args = String.slice(b, 0, String.length(b) - 2)
     "
-    def #{name}( %{#{args}} ) do
+    def handle_cast({#{name}, _}, parent) do
       Logger.debug(\"node #{name} is not implemented\")
+      SequencerVM.tick(parent)
+      {:noreply, parent}
     end
     "
   end

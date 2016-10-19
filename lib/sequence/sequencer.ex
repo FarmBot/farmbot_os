@@ -22,7 +22,8 @@ defmodule SequencerVM do
         body: body,
         args: %{},
         instruction_set: instruction_set,
-        vars: %{}
+        vars: %{},
+        running: true
        }
     {:ok, initial_state}
   end
@@ -34,7 +35,7 @@ defmodule SequencerVM do
   end
 
   def handle_call({:get_var, identifier}, _from, state ) do
-    v = Map.get(state.vars, identifier, "unset")
+    v = Map.get(state.vars, identifier, :error)
     {:reply, v, state }
   end
 
@@ -53,31 +54,56 @@ defmodule SequencerVM do
     {:reply, all_things , state }
   end
 
+  def handle_call(:pause, _from, state) do
+    {:reply, self(), Map.put(state, :running, false)}
+  end
+
   def handle_call(thing, _from, state) do
     RPCMessageHandler.log("#{inspect thing} is probably not implemented")
     {:reply, :ok, state}
   end
 
-  def handle_info(:run_next_step, %{
-          status: status,
-          body: [],
-          args: args,
-          instruction_set: instruction_set,
-          vars: vars
-         })
-  do
-    Logger.debug("sequence done")
-    send(SequenceManager, {:done, self()})
-    Logger.debug("Stopping VM")
-    {:noreply, %{status: status, body: [], args: args, instruction_set: instruction_set, vars: vars }}
+  def handle_cast(:resume, state) do
+    handle_info(:run_next_step, Map.put(state, :running, true))
   end
 
+  # if the VM is paused
   def handle_info(:run_next_step, %{
           status: status,
           body: body,
           args: args,
           instruction_set: instruction_set,
-          vars: vars
+          vars: vars,
+          running: false
+         })
+  do
+    {:noreply, %{status: status, body: body, args: args, instruction_set: instruction_set, vars: vars, running: false  }}
+  end
+
+  # if there is no more steps to run
+  def handle_info(:run_next_step, %{
+          status: status,
+          body: [],
+          args: args,
+          instruction_set: instruction_set,
+          vars: vars,
+          running: running
+         })
+  do
+    Logger.debug("sequence done")
+    send(SequenceManager, {:done, self()})
+    Logger.debug("Stopping VM")
+    {:noreply, %{status: status, body: [], args: args, instruction_set: instruction_set, vars: vars, running: running  }}
+  end
+
+  # if there are more steps to run
+  def handle_info(:run_next_step, %{
+          status: status,
+          body: body,
+          args: args,
+          instruction_set: instruction_set,
+          vars: vars,
+          running: true
          })
   do
     node = List.first(body)
@@ -89,7 +115,8 @@ defmodule SequencerVM do
             body: body -- [node],
             args: args,
             instruction_set: instruction_set,
-            vars: vars
+            vars: vars,
+            running: true
            }}
   end
 

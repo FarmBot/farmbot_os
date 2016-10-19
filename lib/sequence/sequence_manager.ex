@@ -21,53 +21,66 @@ defmodule SequenceManager do
     {:reply, :no_process, %{current: nil, global_vars: %{}, log: []}}
   end
 
+  # no sequences running, no sequences in list.
   def handle_call({:add, seq}, _from, %{current: nil, global_vars: globals, log: []})
   when is_map(seq) do
     {:ok, pid} = SequencerVM.start_link(seq)
     {:reply, "starting sequence", %{current: pid, global_vars: globals, log: []}}
   end
 
+  # Add a new sequence to the log when there are no other sequences running.
+  def handle_call({:add, seq}, _from, %{current: nil, global_vars: globals, log: log})
+  when is_map(seq) do
+    RPCMessageHandler.log("Other sequences paused. Starting new one. ")
+    {:ok, pid} = SequencerVM.start_link(seq)
+    {:reply, "queueing sequence", %{current: pid, global_vars: globals, log: log}}
+  end
+
   # Add a new sequence to the log
-  def handle_call({:add, seq}, _from, %{current: current, global_vars: globals, log: log}) do
+  def handle_call({:add, seq}, _from, %{current: current, global_vars: globals, log: log})
+  when is_map(seq) and is_pid(current) do
     RPCMessageHandler.log("Adding sequence to queue.")
-    {:reply, "queueing sequence", %{current: current, global_vars: globals, log: [seq | log]}}
+    {:reply, "queueing sequence", %{current: current, global_vars: globals, log: [log | seq]}}
   end
 
-  def handle_call(:pause, _from, %{current: current, global_vars: globals, log: more})  when is_pid(current) do
+  def handle_call({:pause, pid}, _from, %{current: current, global_vars: globals, log: more}) do
     cond do
-      Process.alive?(current) -> GenServer.call(current, :pause)
+      Process.alive?(pid) ->
+        GenServer.call(current, :pause)
+        {:reply, :ok, %{current: nil, global_vars: globals, log: [ pid | more ]}}
     end
-    {:reply, :ok, %{current: current, global_vars: globals, log: more}}
   end
 
-  def handle_call(:resume, _from, %{current: current, global_vars: globals, log: more}) when is_pid(current) do
+  def handle_call({:resume, pid}, _from, %{current: _current, global_vars: globals, log: more}) do
     cond do
-      Process.alive?(current) -> GenServer.cast(current, :resume)
+      Process.alive?(pid) ->
+        GenServer.cast(pid, :resume)
+        {:reply, :ok, %{current: pid, global_vars: globals, log: more}}
     end
-    {:reply, :ok, %{current: current, global_vars: globals, log: more}}
   end
 
-  # done when there are no more sequences to run.
-  def handle_info({:done, pid}, %{current: _, global_vars: globals, log: []}) do
-    RPCMessageHandler.log("No more Sequences to run.")
-    if Process.alive? pid do
-      GenServer.stop(pid, :normal)
-    end
-    {:noreply, %{current: nil, global_vars: globals, log: []}}
+  def handle_info({:done, pid}, %{current: _current, global_vars: globals, log: []}) do
+    GenServer.stop(pid, :normal)
+    RPCMessageHandler.log("No more sequences.")
+    {:noreply, %{current: nil, global_vars: globals, log: [] } }
   end
 
-  # There is in fact more sequences to run
-  def handle_info({:done, pid}, %{current: _current, global_vars: globals, log: more}) do
+  def handle_info({:done, pid}, %{current: _current, global_vars: globals, log: log}) do
+    GenServer.stop(pid, :normal)
     RPCMessageHandler.log("Running next sequence")
-    if Process.alive? pid do
-      GenServer.stop(pid, :normal)
+    next = List.first(log)
+    cond do
+      is_nil(next) -> {:noreply, %{current: nil, global_vars: globals, log: []}}
+      is_map(next) ->
+          {:ok, next_seq} = SequencerVM.start_link(next)
+          {:noreply, %{current: next_seq, global_vars: globals, log: log -- [next]}}
+      is_pid(next) ->
+        GenServer.cast(next, :resume)
+        {:noreply, %{current: next, global_vars: globals, log: log -- [next]}}
     end
-    seq = List.last(more)
-    {:ok, new_pid} = SequencerVM.start_link(seq)
-    {:noreply,  %{current: new_pid, global_vars: globals, log: more -- [seq]}}
   end
 
-  def handle_info({:EXIT, pid, :normal}, state) do
+  def handle_info({:EXIT, _pid, :normal}, state) do
     {:noreply, state}
   end
 
