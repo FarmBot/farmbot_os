@@ -142,4 +142,13 @@ defmodule Wifi do
     |> Enum.map(fn(z) -> String.replace(z, "SSID: ", "") end)
     |> Enum.filter(fn(z) -> String.length(z) != 0 end)
   end
+
+  def terminate(reason, state) do
+    Logger.debug("Networking died.")
+    IO.inspect reason
+    IO.inspect state
+    System.cmd("sh", ["-c", "killall hostapd"]) |> print_cmd_result
+    System.cmd("sh", ["-c", "killall dnsmasq"]) |> print_cmd_result
+    System.cmd("sh", ["-c", "killall httpd"]) |> print_cmd_result
+  end
 end
