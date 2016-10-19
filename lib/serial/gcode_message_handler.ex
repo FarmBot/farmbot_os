@@ -1,7 +1,7 @@
 defmodule NewHandler do
   require Logger
   use GenServer
-  
+
   def start_link(nerves) do
     GenServer.start_link(__MODULE__, nerves, name: __MODULE__)
   end
@@ -57,7 +57,6 @@ defmodule NewHandler do
     [x, y, z] = parse_coords(position)
     Logger.debug("Reporting position #{inspect {x, y, z}}")
     BotStatus.set_pos(x,y,z)
-    RPCMessageHandler.send_status
     {:noreply, state}
   end
 
@@ -104,7 +103,8 @@ defmodule NewHandler do
   def block_send(str) do
       GenServer.call(NewHandler,{ :send, str, self()})
       receive do
-        :done -> :ok
+        :done ->
+          RPCMessageHandler.send_status
       end
   end
 

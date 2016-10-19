@@ -65,19 +65,16 @@ defmodule Command do
 
   # When both x and y are negative
   def move_absolute(x, y, z, s) when x < 0 and y < 0 do
-    BotStatus.set_pos(0,0,z)
     NewHandler.block_send "G00 X#{0} Y#{0} Z#{z} S#{s}"
   end
 
   # when x is negative
   def move_absolute(x, y, z, s) when x < 0 do
-    BotStatus.set_pos(0,y,z)
     NewHandler.block_send "G00 X#{0} Y#{y} Z#{z} S#{s}"
   end
 
   # when y is negative
   def move_absolute(x, y, z, s ) when y < 0 do
-    BotStatus.set_pos(x,0,z)
     NewHandler.block_send "G00 X#{x} Y#{0} Z#{z} S#{s}"
   end
 
