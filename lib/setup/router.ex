@@ -35,10 +35,6 @@ defmodule MyRouter do
     send_resp(conn, 200, Poison.encode!(scan(@env)) )
   end
 
-  get "blah" do
-    raise "hello"
-  end
-
   def scan(:prod) do
     Wifi.scan
   end
