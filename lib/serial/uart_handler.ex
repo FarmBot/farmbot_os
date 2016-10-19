@@ -40,13 +40,17 @@ defmodule UartHandler do
     GenServer.start_link(__MODULE__, {}, name: __MODULE__)
   end
 
-  def handle_cast({:send, _str}, {pid, "ttyFail", handler}) do
-    {:noreply, {pid,"ttyFail", handler}}
+  def handle_call(:e_stop, _from, {pid, tty, handler}) do
+    write(pid, "E")
+    raise "E STOP"
+    Process.exit(pid, "asdf")
+    Process.exit(handler, :e_stop)
+    {:reply, :ok, {pid, tty, handler}}
   end
 
-  def handle_cast({:send, str}, {pid, tty, handler}) do
+  def write(pid, str) do
+    Logger.debug("writing: #{str}")
     Nerves.UART.write(pid, str)
-    {:noreply, {pid,tty, handler}}
   end
 
   # WHEN A FULL SERIAL MESSAGE COMES IN.
@@ -68,6 +72,23 @@ defmodule UartHandler do
 
   def handle_info({:EXIT, _pid, :normal}, state) do
     {:noreply, state}
+  end
+
+  def handle_info({:EXIT, _pid, :e_stop}, {nerves, tty, handler}) do
+    Logger.debug("E STOPPING")
+    Nerves.UART.close(nerves)
+    Process.exit(self(), :real_e_stop)
+    {:noreply, {nerves, tty, handler}}
+  end
+
+  def handle_info({:EXIT, pid, reason}, {nerves, tty, handler}) do
+    if(pid == handler) do
+      Logger.debug "handler died: #{inspect reason}"
+      {:ok, restarted} = NewHandler.start_link(nerves)
+      {:noreply,  {nerves, tty, restarted}}
+    else
+      {:noreply,  {nerves, tty, handler}}
+    end
   end
 
   def handle_info({:EXIT, pid, reason}, state) do

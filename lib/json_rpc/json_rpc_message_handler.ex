@@ -36,6 +36,7 @@ defmodule RPCMessageHandler do
 
   # JSON RPC RESPONSE ERROR
   def ack_msg(id, {name, message}) when is_bitstring(id) and is_bitstring(name) and is_bitstring(message) do
+    Logger.debug("RPC ERROR")
     IO.inspect({name, message})
     Poison.encode!(
     %{id: id,
@@ -92,7 +93,8 @@ defmodule RPCMessageHandler do
 
   # E STOP
   def do_handle("emergency_stop", _) do
-    Logger.debug("FIXME E STOP RPC")
+    GenServer.call UartHandler, :e_stop
+    GenServer.call SequenceManager, :e_stop
     :ok
   end
 
@@ -198,6 +200,7 @@ defmodule RPCMessageHandler do
   def do_handle("reboot", _ ) do
     log("Bot Going down for reboot in 5 seconds")
     spawn fn ->
+      log("Rebooting!", "ticker")
       Process.sleep(5000)
       Nerves.Firmware.reboot
     end
@@ -207,6 +210,7 @@ defmodule RPCMessageHandler do
   def do_handle("power_off", _ ) do
     log("Bot Going down in 5 seconds. Pls remeber me.")
     spawn fn ->
+      log("BOT OFFLINE", "error_ticker")
       Process.sleep(5000)
       Nerves.Firmware.poweroff
     end

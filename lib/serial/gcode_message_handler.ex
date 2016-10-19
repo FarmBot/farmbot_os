@@ -21,13 +21,18 @@ defmodule NewHandler do
 
   def handle_cast({:done}, %{nerves: nerves, current: {_current_str, pid}, log: log}) do
     send(pid, :done)
+    RPCMessageHandler.send_status
     case List.first(log) do
       {nextstr, new_pid} ->
-        Nerves.UART.write(nerves, nextstr)
+        UartHandler.write(nerves,nextstr)
         {:noreply, %{nerves: nerves, current: {nextstr, new_pid}, log: log -- [{nextstr, new_pid}] }}
       nil ->
         {:noreply, %{nerves: nerves, current: nil, log: []} }
     end
+  end
+
+  def handle_cast({:done}, state) do
+    {:noreply, %{nerves: state.nerves, current: nil, log: []}}
   end
 
   def handle_cast({:received}, state) do
@@ -72,15 +77,20 @@ defmodule NewHandler do
     {:noreply, state}
   end
 
+  def handle_cast({:busy}, state) do
+    Logger.debug("Arduino is busy")
+    {:noreply, state}
+  end
+
 
   def handle_cast(event, state) do
-    Logger.debug("unhandled event! #{inspect event}")
+    Logger.debug("unhandled gcode! #{inspect event}")
     {:noreply, state}
   end
 
   # If we arent waiting on anything right now. (current is nil and log is empty)
   def handle_call({:send, message, caller}, _from, %{ nerves: nerves, current: nil, log: [] }) do
-    Nerves.UART.write(nerves, message)
+    UartHandler.write(nerves,message)
     {:reply, :sending, %{nerves: nerves, current: {message, caller}, log: []} }
   end
 
@@ -95,8 +105,18 @@ defmodule NewHandler do
   def block_send(str) do
       GenServer.call(NewHandler,{ :send, str, self()})
       receive do
-        :done ->
-          RPCMessageHandler.send_status
+        :done -> :done
+        error -> error
+      end
+  end
+
+  def block_send(str, timeout) do
+    GenServer.call(NewHandler,{ :send, str, self()})
+      receive do
+        :done -> :done
+        error -> error
+      after
+        timeout -> :timeout
       end
   end
 

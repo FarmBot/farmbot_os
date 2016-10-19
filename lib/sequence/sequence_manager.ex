@@ -11,14 +11,14 @@ defmodule SequenceManager do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def handle_call(:e_stop, _from, %{current: pid, global_vars: _, log: _})
-  when is_pid(pid) do
-    pid_exit = Process.exit(pid, :e_stop)
-    {:reply, pid_exit, %{current: nil, global_vars: %{}, log: []}}
+  def handle_call(:e_stop, _from, %{current: nil, global_vars: _, log: _}) do
+    {:reply, :ok, %{current: nil, global_vars: %{}, log: []}}
   end
 
-  def handle_call(:e_stop, _from, %{current: nil, global_vars: _, log: _}) do
-    {:reply, :no_process, %{current: nil, global_vars: %{}, log: []}}
+  def handle_call(:e_stop, _from, %{current: pid, global_vars: _, log: _})
+  when is_pid(pid) do
+    Process.exit(pid, :e_stop)
+    {:reply, :ok, %{current: nil, global_vars: %{}, log: []}}
   end
 
   # no sequences running, no sequences in list.
