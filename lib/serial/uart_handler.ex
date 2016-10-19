@@ -51,7 +51,6 @@ defmodule UartHandler do
 
   # WHEN A FULL SERIAL MESSAGE COMES IN.
   def handle_info({:nerves_uart, _tty, message}, {pid, tty, handler}) when is_binary(message) do
-    # GenServer.cast(UartHandler, {:send, "F22 P0 V0"})
     gcode = Gcode.parse_code(String.strip(message))
     GenServer.cast(handler, gcode)
     {:noreply, {pid, tty, handler}}

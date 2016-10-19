@@ -20,7 +20,6 @@ defmodule NewHandler do
   end
 
   def handle_cast({:done}, %{nerves: nerves, current: {_current_str, pid}, log: log}) do
-    # Logger.debug("Done with #{inspect {current_str, pid}}")
     send(pid, :done)
     case List.first(log) do
       {nextstr, new_pid} ->
@@ -32,7 +31,6 @@ defmodule NewHandler do
   end
 
   def handle_cast({:received}, state) do
-    # Logger.debug("Starting Command #{inspect state.current}")
     {:noreply, state}
   end
 
@@ -40,7 +38,7 @@ defmodule NewHandler do
     ["P"<>pin, "V"<>value] = String.split(params, " ")
     Logger.debug("pin#{pin}: #{value}")
     if value != "1023" do
-      BotStatus.set_pin(String.to_integer(pin), String.to_integer(value))      
+      BotStatus.set_pin(String.to_integer(pin), String.to_integer(value))
     end
     {:noreply, state}
   end
@@ -83,7 +81,7 @@ defmodule NewHandler do
   # If we arent waiting on anything right now. (current is nil and log is empty)
   def handle_call({:send, message, caller}, _from, %{ nerves: nerves, current: nil, log: [] }) do
     Nerves.UART.write(nerves, message)
-    {:reply, :sending, %{nerves: nerves, current: {message, caller}, log: [{message, caller}]} }
+    {:reply, :sending, %{nerves: nerves, current: {message, caller}, log: []} }
   end
 
   def handle_call({:send, message, caller}, _from, %{nerves: nerves, current: current, log: log}) do
