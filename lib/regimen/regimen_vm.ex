@@ -1,5 +1,5 @@
 defmodule RegimenVM  do
-  @checkup_time 30000
+  @checkup_time 60000
   require Logger
 
   def start_link(regimen) do
@@ -31,7 +31,7 @@ defmodule RegimenVM  do
     })
   do
     send(FarmEventManager, {:done, {:regimen, {self(), regimen} }})
-    {:noreply, nil
+    {:noreply, nil }
   end
 
   def handle_info(:tick, %{
