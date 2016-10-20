@@ -3,7 +3,6 @@ defmodule SequencerVM do
 
 
   def start_link(sequence) do
-    BotSync.sync
     GenServer.start_link(__MODULE__,sequence)
   end
 

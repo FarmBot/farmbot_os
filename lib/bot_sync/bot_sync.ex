@@ -74,6 +74,21 @@ defmodule BotSync do
     {:reply, regimens, %{token: token, resources: resources}}
   end
 
+  def handle_call({:get_regimen_item, id}, _from, %{token: token, resources: resources}) do
+    regimens_items = Map.get(resources, "regimen_items")
+    got = Enum.find(regimens_items, fn(regimen_item) -> Map.get(regimen_item, "id") == id end)
+    {:reply, got, %{token: token, resources: resources}}
+  end
+
+  def handle_call(:get_regimen_items, _from, %{token: token, resources: resources}) do
+    regimen_items = Map.get(resources, "regimen_items")
+    {:reply, regimen_items, %{token: token, resources: resources}}
+  end
+
+  def handle_call({:add_regimen_item, item}, _from, %{token: token, resources: resources}) do
+    {:reply, :ok, %{token: token, resources: Map.put(resources, "regimen_items", Map.get(resources, "regimen_items") ++ [item] )}}
+  end
+
   # REALLY BAD LOGIC HERE
   def handle_call({:get_corpus, id}, _from, %{token: token, resources: resources} ) do
     case Map.get(resources, "corpuses") do
@@ -86,6 +101,7 @@ defmodule BotSync do
         m.create_instruction_set(c)
         {:reply, Module.concat(SiS, "Corpus_#{id}"), %{token: token, resources: Map.put(resources, "corpuses", [c])}}
       corpuses ->
+        corpuses
         {:reply, Module.concat(SiS, "Corpus_#{id}"), %{token: token, resources: resources}}
     end
   end
@@ -123,6 +139,14 @@ defmodule BotSync do
 
   def get_regimens do
     GenServer.call(__MODULE__, :get_regimens)
+  end
+
+  def get_regimen_item(id) when is_integer(id) do
+    GenServer.call(__MODULE__, {:get_regimen_item, id})
+  end
+
+  def get_regimen_items do
+    GenServer.call(__MODULE__, :get_regimen_items)
   end
 
   def get_corpus(id) when is_integer(id) do
