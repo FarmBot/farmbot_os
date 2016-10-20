@@ -65,8 +65,13 @@ defmodule UartHandler do
     {:noreply, state}
   end
 
+  def handle_info({:nerves_uart, _tty, {:error, :eio}}, state) do
+    RPCMessageHandler.log("Serial disconnected!")
+    {:noreply, state}
+  end
+
   def handle_info({:nerves_uart, _tty, event}, state) do
-    Logger.debug("Serial Event: #{inspect event}")
+    Logger.debug("Nerves UART Event: #{inspect event}")
     {:noreply, state}
   end
 
@@ -83,7 +88,7 @@ defmodule UartHandler do
 
   def handle_info({:EXIT, pid, reason}, {nerves, tty, handler}) do
     if(pid == handler) do
-      Logger.debug "handler died: #{inspect reason}"
+      Logger.debug "gcode handler died: #{inspect reason}"
       {:ok, restarted} = NewHandler.start_link(nerves)
       {:noreply,  {nerves, tty, restarted}}
     else

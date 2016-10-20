@@ -6,13 +6,13 @@ defmodule Controller do
   def init(_args) do
     children = [
       worker(Auth, [[]], restart: :permanent),
-      worker(BotSync, [[]], restart: :permanent ),
-      supervisor(RPCSupervisor, [[]], restart: :permanent ),
-      supervisor(SerialSupervisor, [[]], restart: :transient ),
       supervisor(MqttSupervisor, [[]], restart: :permanent ),
+      supervisor(RPCSupervisor, [[]], restart: :permanent ),
+      worker(BotSync, [[]], restart: :permanent ),
+      supervisor(SerialSupervisor, [[]], restart: :transient ),
       worker(FarmEventManager, [[]], restart: :permanent)
     ]
-    opts = [strategy: :one_for_all, name: Controller.Supervisor]
+    opts = [strategy: :one_for_one, name: Controller.Supervisor]
     supervise(children, opts)
   end
 

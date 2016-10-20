@@ -7,8 +7,7 @@ defmodule BotStatus do
   def load do
     case File.read(@bot_status_save_file) do
       {:ok, contents} ->
-        # TODO: apply this status here.
-        blah = Map.put(:erlang.binary_to_term(contents), :busy, true)
+        Map.put(:erlang.binary_to_term(contents), :busy, true)
       _ ->
       # MAKE SURE THE STATUS STAYS FLAT. YOU WILL THANK YOURSELF LATER.
       %{ x: 0,y: 0,z: 0,speed: 10,
@@ -206,11 +205,6 @@ defmodule BotStatus do
     Map.get(cur_status, this_param)
   end
 
-  # for saftey of sequence if
-  def get_param(_) do
-    nil
-  end
-
   def get_speed do
     GenServer.call(__MODULE__, :get_speed)
   end
@@ -231,5 +225,10 @@ defmodule BotStatus do
     save
     RPCMessageHandler.send_status
     :ok
+  end
+
+  def bootstrap do
+    Command.read_all_pins
+    Command.read_all_params
   end
 end

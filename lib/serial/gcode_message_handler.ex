@@ -77,9 +77,10 @@ defmodule NewHandler do
     {:noreply, state}
   end
 
-  def handle_cast({:busy}, state) do
+  def handle_cast({:busy}, %{nerves: nerves, current: {cur_str, pid}, log: log}) do
+    send(pid, :busy)
     Logger.debug("Arduino is busy")
-    {:noreply, state}
+    {:noreply, %{nerves: nerves, current: {cur_str, pid}, log: log}}
   end
 
 
@@ -102,22 +103,19 @@ defmodule NewHandler do
     {:reply, state, state}
   end
 
-  def block_send(str) do
-      GenServer.call(NewHandler,{ :send, str, self()})
-      receive do
-        :done -> :done
-        error -> error
-      end
+  def block_send(str, timeout\\ 10000) do
+    GenServer.call(NewHandler,{ :send, str, self()})
+    block(timeout)
   end
 
-  def block_send(str, timeout) do
-    GenServer.call(NewHandler,{ :send, str, self()})
-      receive do
-        :done -> :done
-        error -> error
-      after
-        timeout -> :timeout
-      end
+  def block(timeout) do
+    receive do
+      :done -> :done
+      :busy -> block(timeout)
+      error -> error
+    after
+      timeout -> :timeout
+    end
   end
 
   @doc """
