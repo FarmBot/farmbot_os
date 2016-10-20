@@ -98,7 +98,7 @@ defmodule FarmEventManager do
 
   def handle_info({:done, {:regimen, {pid, regimen} }}, state) do
     Logger.debug("#{Map.get(regimen, "name")} is complete.")
-    Enum.find(state.running_regimens, nil, fn({rpid, rregimen}) ->
+    Enum.find_value(state.running_regimens, nil, fn({rpid, rregimen}) ->
       if {rpid, rregimen} == {pid, regimen} do
         {:noreply,
           Map.put(state, :running_regimens,

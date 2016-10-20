@@ -31,7 +31,7 @@ defmodule RegimenVM  do
     })
   do
     send(FarmEventManager, {:done, {:regimen, {self(), regimen} }})
-    {:noreply, %{}}
+    {:noreply, nil
   end
 
   def handle_info(:tick, %{
