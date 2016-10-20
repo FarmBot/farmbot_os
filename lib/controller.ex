@@ -10,7 +10,7 @@ defmodule Controller do
       supervisor(RPCSupervisor, [[]], restart: :permanent ),
       supervisor(SerialSupervisor, [[]], restart: :transient ),
       supervisor(MqttSupervisor, [[]], restart: :permanent ),
-      supervisor(SequenceSupervisor, [[]], restart: :permanent )
+      worker(FarmEventManager, [[]], restart: :permanent)
     ]
     opts = [strategy: :one_for_all, name: Controller.Supervisor]
     supervise(children, opts)

@@ -124,7 +124,6 @@ defmodule SequencerVM do
   end
 
   def terminate(:normal, state) do
-    RPCMessageHandler.log("Sequence Finished without errors!", ["success_toast", "ticker"])
     GenServer.stop(state.instruction_set, :normal)
   end
 
