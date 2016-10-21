@@ -177,23 +177,12 @@ defmodule RPCMessageHandler do
   end
 
   def do_handle("check_updates", _) do
-    case Fw.check_os_updates do
-      :no_updates -> nil
-       {:update, url} ->
-         Logger.debug("NEW OS UPDATE")
-         spawn fn -> Downloader.download_and_install_os_update(url) end
-       {:error, message} -> log("Couldn't fetch update: #{inspect message}", "error_toast")
-    end
+    Fw.check_and_download_os_update
     :ok
   end
 
   def do_handle("check_arduino_updates", _) do
-    case Fw.check_fw_updates do
-      :no_updates -> nil
-       {:update, url} ->
-          Logger.debug("NEW CONTROLLER UPDATE")
-          spawn fn -> Downloader.download_and_install_fw_update(url) end
-    end
+    Fw.check_and_download_fw_update
     :ok
   end
 
@@ -233,19 +222,15 @@ defmodule RPCMessageHandler do
     :ok
   end
 
-  def do_handle("force_update", [%{"url" => url}] ) do
-    Logger.debug("forcing new update")
-    log("Forcing new update")
-    spawn fn -> Downloader.download_and_install_os_update(url) end
-    :ok
-  end
-
   def do_handle("exec_sequence", [sequence]) do
     cond do
       Map.has_key?(sequence, "body")
        and Map.has_key?(sequence, "args")
        and Map.has_key?(sequence, "name")
-      -> SequenceManager.do_sequence(sequence)
+      ->
+        # resp = GenServer.call(SequenceManager, {:add, sequence})
+        # log(resp, "success_toast")
+        GenServer.call(FarmEventManager, {:add, {:sequence, sequence}})
       true -> log("Sequence invalid.")
     end
     :ok

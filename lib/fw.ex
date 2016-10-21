@@ -94,4 +94,26 @@ defmodule Fw do
     Map.get(Auth.get_token, "unencoded") |> Map.get("fw_update_server"),
      ".hex")
   end
+
+  def check_and_download_os_update do
+    case Fw.check_os_updates do
+      :no_updates -> RPCMessageHandler.log("No OS updates.")
+       {:update, url} ->
+         Logger.debug("NEW OS UPDATE")
+         spawn fn -> Downloader.download_and_install_os_update(url) end
+       {:error, message} -> RPCMessageHandler.log("Couldn't fetch update: #{inspect message}", "error_toast")
+       error -> RPCMessageHandler.log("Unknown error: #{inspect error}", "error_toast")
+    end
+  end
+
+  def check_and_download_fw_update do
+    case Fw.check_fw_updates do
+      :no_updates -> RPCMessageHandler.log("No FW updates.")
+       {:update, url} ->
+          Logger.debug("NEW FIRMWARE UPDATE")
+          spawn fn -> Downloader.download_and_install_fw_update(url) end
+      {:error, message} -> RPCMessageHandler.log("Couldn't fetch update: #{inspect message}", "error_toast")
+      error -> RPCMessageHandler.log("Unknown error: #{inspect error}", "error_toast")
+    end
+  end
 end

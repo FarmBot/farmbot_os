@@ -2,13 +2,15 @@ defmodule BotStatus do
   use GenServer
   require Logger
   @bot_status_save_file Application.get_env(:fb, :bot_status_save_file)
+  @twelve_hours 43200000
 
   def load do
     case File.read(@bot_status_save_file) do
       {:ok, contents} ->
-        # TODO: apply this status here.
-        blah = Map.put(:erlang.binary_to_term(contents), :busy, true)
-      _ ->     %{ x: 0,y: 0,z: 0,speed: 10,
+        Map.put(:erlang.binary_to_term(contents), :busy, true)
+      _ ->
+      # MAKE SURE THE STATUS STAYS FLAT. YOU WILL THANK YOURSELF LATER.
+      %{ x: 0,y: 0,z: 0,speed: 10,
                  version: Fw.version,
                  busy: true,
                  last_sync: -1,
@@ -27,7 +29,7 @@ defmodule BotStatus do
   end
 
   def init(_) do
-    # MAKE SURE THE STATUS STAYS FLAT. YOU WILL THANK YOURSELF LATER.
+    Process.send_after(__MODULE__, :do_update_check, @twelve_hours)
     { :ok, load }
   end
 
@@ -106,6 +108,17 @@ defmodule BotStatus do
     #TODO: Endstop reporting
     # Logger.debug("EndStop reporting is TODO")
     {:noreply,  current_status}
+  end
+
+  def handle_info(:do_update_check, current_status) do
+    if( current_status.os_auto_update == 1 ) do
+      spawn fn -> Fw.check_and_download_os_update end
+    end
+
+    if( current_status.fw_auto_update == 1 ) do
+      spawn fn -> Fw.check_and_download_fw_update end
+    end
+    {:noreply, current_status}
   end
 
   # Sets the pin value in the bot's status
@@ -192,11 +205,6 @@ defmodule BotStatus do
     Map.get(cur_status, this_param)
   end
 
-  # for saftey of sequence if
-  def get_param(_) do
-    nil
-  end
-
   def get_speed do
     GenServer.call(__MODULE__, :get_speed)
   end
@@ -217,5 +225,10 @@ defmodule BotStatus do
     save
     RPCMessageHandler.send_status
     :ok
+  end
+
+  def bootstrap do
+    Command.read_all_pins
+    Command.read_all_params
   end
 end

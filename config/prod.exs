@@ -15,7 +15,7 @@ config :json_rpc,
     transport: MqttHandler
 
 config :logger, :console,
-  format: "$metadata[$level] $levelpad$message\r\n",
+  # format: "$metadata[$level] $levelpad$message\r\n",
   colors: [enabled: true ]
 config :Logger,
   handle_sasl_reports: true,
@@ -25,7 +25,7 @@ config :iex, :colors,
   enabled: true
 
 config :iex,
-  # alive_prompt: "%prefix(%node)%counter>"
+  # alive_prompt: "\n %prefix(%node)%counter>"
   alive_prompt: [
     "\e[G",    # ANSI CHA, move cursor to column 1
     :magenta,

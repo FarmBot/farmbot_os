@@ -2,13 +2,14 @@ defmodule SequenceManager do
   use GenServer
   require Logger
 
-  def init(_arge) do
+  def init(sequence) do
     Process.flag(:trap_exit, true)
-    {:ok, %{current: nil, global_vars: %{}, log: []}}
+    {:ok, pid} = SequencerVM.start_link(sequence)
+    {:ok, %{current: pid, global_vars: %{}, log: []}}
   end
 
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
+  def start_link(sequence) do
+    GenServer.start_link(__MODULE__, sequence, name: __MODULE__)
   end
 
   def handle_call(:e_stop, _from, %{current: nil, global_vars: _, log: _}) do
@@ -31,15 +32,13 @@ defmodule SequenceManager do
   # Add a new sequence to the log when there are no other sequences running.
   def handle_call({:add, seq}, _from, %{current: nil, global_vars: globals, log: log})
   when is_map(seq) do
-    RPCMessageHandler.log("Other sequences paused. Starting new one. ")
     {:ok, pid} = SequencerVM.start_link(seq)
-    {:reply, "queueing sequence", %{current: pid, global_vars: globals, log: log}}
+    {:reply, "starting sequence", %{current: pid, global_vars: globals, log: log}}
   end
 
   # Add a new sequence to the log
   def handle_call({:add, seq}, _from, %{current: current, global_vars: globals, log: log})
   when is_map(seq) and is_pid(current) do
-    RPCMessageHandler.log("Adding sequence to queue.")
     {:reply, "queueing sequence", %{current: current, global_vars: globals, log: [log | seq]}}
   end
 
@@ -61,13 +60,14 @@ defmodule SequenceManager do
 
   def handle_info({:done, pid}, %{current: _current, global_vars: globals, log: []}) do
     GenServer.stop(pid, :normal)
-    RPCMessageHandler.log("No more sequences.")
+    RPCMessageHandler.log("No more sub sequences.")
+    send(FarmEventManager, {:done, {:sequence, self()}})
     {:noreply, %{current: nil, global_vars: globals, log: [] } }
   end
 
   def handle_info({:done, pid}, %{current: _current, global_vars: globals, log: log}) do
     GenServer.stop(pid, :normal)
-    RPCMessageHandler.log("Running next sequence")
+    RPCMessageHandler.log("Running next sub sequence")
     next = List.first(log)
     cond do
       is_nil(next) -> {:noreply, %{current: nil, global_vars: globals, log: []}}
@@ -96,13 +96,13 @@ defmodule SequenceManager do
     end
   end
 
-  def do_sequence(seq) when is_map(seq) do
-    huh = GenServer.call(__MODULE__, {:add, seq})
-    RPCMessageHandler.log(huh)
-    Logger.debug(huh)
+  def terminate(:normal, _state) do
+    Logger.debug("Sequence Manager shutting down")
   end
 
-  def e_stop do
-    GenServer.call(__MODULE__, :e_stop)
+  def terminate(reason, state) do
+    Logger.debug("Sequence Manager died unnaturally: ")
+    IO.inspect reason
+    IO.inspect state
   end
 end
