@@ -222,13 +222,6 @@ defmodule RPCMessageHandler do
     :ok
   end
 
-  def do_handle("force_update", [%{"url" => url}] ) do
-    Logger.debug("forcing new update")
-    log("Forcing new update")
-    spawn fn -> Downloader.download_and_install_os_update(url) end
-    :ok
-  end
-
   def do_handle("exec_sequence", [sequence]) do
     cond do
       Map.has_key?(sequence, "body")
