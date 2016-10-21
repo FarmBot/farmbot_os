@@ -3,7 +3,7 @@ The "brains" of Farmbot. Responsible for receiving the commands from [the browse
 
 # First Time Installation
 
-If you are setting up your FarmBot for the first time, download the latest FarmBot OS `.img` file [here](https://github.com/FarmBot/farmbot-raspberry-pi-controller/releases).
+If you are setting up your FarmBot for the first time, download the latest FarmBot OS `.img` file [here](https://github.com/FarmBot/farmbot_os/releases/latest).
 
 ## Windows users
 
