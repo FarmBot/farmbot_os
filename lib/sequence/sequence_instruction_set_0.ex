@@ -173,7 +173,7 @@ defmodule SequenceInstructionSet_0 do
     def handle_cast({\"read_pin\", %{#{args}}}, parent) do
       Command.read_pin( pin_number(pin_number),
                         pin_mode(pin_mode) )
-      v = BotStatus.get_pin(pin_number(pin_number))
+      v = BotState.get_pin(pin_number(pin_number))
       GenServer.call(parent, {:set_var, data_label(data_label), v})
       SequencerVM.tick(parent)
       {:noreply, parent}

@@ -42,16 +42,14 @@ defmodule NewHandler do
   def handle_cast({:report_pin_value, params}, state) do
     ["P"<>pin, "V"<>value] = String.split(params, " ")
     Logger.debug("pin#{pin}: #{value}")
-    if value != "1023" do
-      BotStatus.set_pin(String.to_integer(pin), String.to_integer(value))
-    end
+    BotState.set_pin(String.to_integer(pin), String.to_integer(value))
     {:noreply, state}
   end
 
   def handle_cast( {:report_current_position, position }, state) do
     [x, y, z] = parse_coords(position)
     Logger.debug("Reporting position #{inspect {x, y, z}}")
-    BotStatus.set_pos(x,y,z)
+    BotState.set_pos(x,y,z)
     {:noreply, state}
   end
 
@@ -64,7 +62,7 @@ defmodule NewHandler do
     |> Gcode.parse_param
     |> Atom.to_string
     |> String.downcase
-    |> BotStatus.set_param(real_v)
+    |> BotState.set_param(real_v)
     {:noreply, state}
   end
 
@@ -73,7 +71,7 @@ defmodule NewHandler do
     # Logger.debug("[gcode_handler] {:reporting_end_stops} stub: #{stop_values}")
     stop_values
     |> parse_stop_values
-    |> Enum.each(&BotStatus.set_end_stop/1)
+    |> Enum.each(&BotState.set_end_stop/1)
     {:noreply, state}
   end
 
