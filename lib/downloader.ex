@@ -13,7 +13,6 @@ defmodule Downloader do
     File.rm("/tmp/update.hex")
     file = run(url, "/tmp/update.hex")
     GenServer.cast(UartHandler, {:update_fw, file})
-    RPCMessageHandler.log("Updated FW")
   end
 
   def run(url, dl_file) when is_bitstring url do
