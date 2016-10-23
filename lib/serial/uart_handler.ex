@@ -40,9 +40,9 @@ defmodule UartHandler do
     GenServer.start_link(__MODULE__, {}, name: __MODULE__)
   end
 
-  def handle_cast({:update_fw, hex_file}, {nerves, _tty, handler}) do
+  def handle_cast({:update_fw, hex_file}, {nerves, tty, handler}) do
     Nerves.UART.close(nerves)
-    System.cmd("avrdude", ["-v", "-patmega2560", "-cwiring", "-P/dev/ttyACM0", "-b115200", "-D", "-Uflash:w:#{hex_file}:i"])
+    System.cmd("avrdude", ["-v", "-patmega2560", "-cwiring", "-P/dev/#{tty}", "-b115200", "-D", "-Uflash:w:#{hex_file}:i"])
     new_tty = open_serial(nerves)
     {:noreply, {nerves, new_tty, handler}}
   end
