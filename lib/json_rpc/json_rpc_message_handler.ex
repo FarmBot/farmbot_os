@@ -55,7 +55,7 @@ defmodule RPCMessageHandler do
     Poison.encode!(
       %{ id: nil,
          method: "log_message",
-         params: [%{status: BotStatus.get_status,
+         params: [%{status: BotState.get_status,
                     time: :os.system_time(:seconds),
                     message: message,
                     channels: channels }] })
@@ -84,11 +84,11 @@ defmodule RPCMessageHandler do
   end
 
   def do_handle("toggle_os_auto_update", []) do
-    BotStatus.toggle_os_auto_update
+    BotState.toggle_os_auto_update
   end
 
   def do_handle("toggle_fw_auto_update", []) do
-    BotStatus.toggle_fw_auto_update
+    BotState.toggle_fw_auto_update
   end
 
   # E STOP
@@ -261,7 +261,7 @@ defmodule RPCMessageHandler do
   def send_status do
     m = %{id: nil,
           method: "status_update",
-          params: [BotStatus.get_status] }
+          params: [BotState.get_status] }
     @transport.emit(Poison.encode!(m))
   end
 end

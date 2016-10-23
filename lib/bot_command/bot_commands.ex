@@ -45,9 +45,7 @@ defmodule Command do
   @doc """
     Writes a pin high or low
   """
-  def write_pin(pin, value, mode \\ "1")
   def write_pin(pin, value, mode) do
-    BotStatus.set_pin(pin, value)
     NewHandler.block_send "F41 P#{pin} V#{value} M#{mode}"
   end
 
@@ -83,17 +81,17 @@ defmodule Command do
   """
   def move_relative(e)
   def move_relative({:x, s, move_by}) when is_integer move_by do
-    [x,y,z] = BotStatus.get_current_pos
+    [x,y,z] = BotState.get_current_pos
     move_absolute(x + move_by,y,z,s)
   end
 
   def move_relative({:y, s, move_by}) when is_integer move_by do
-    [x,y,z] = BotStatus.get_current_pos
+    [x,y,z] = BotState.get_current_pos
     move_absolute(x,y + move_by,z,s)
   end
 
   def move_relative({:z, s, move_by}) when is_integer move_by do
-    [x,y,z] = BotStatus.get_current_pos
+    [x,y,z] = BotState.get_current_pos
     move_absolute(x,y,z + move_by,s)
   end
 
@@ -103,7 +101,7 @@ defmodule Command do
        is_integer y_move_by and
        is_integer z_move_by
   do
-    [x,y,z] = BotStatus.get_current_pos
+    [x,y,z] = BotState.get_current_pos
     move_absolute(x + x_move_by,y + y_move_by,z + z_move_by, speed)
   end
 
@@ -134,6 +132,7 @@ defmodule Command do
     Reads a pin value.
   """
   def read_pin(pin, mode \\ 0) do
+    BotState.set_pin_mode(pin, mode)
     NewHandler.block_send "F42 P#{pin} M#{mode}"
   end
 

@@ -2,13 +2,13 @@ defmodule Fw do
   require Logger
   use Supervisor
   @target System.get_env("NERVES_TARGET") || "rpi3"
-  @bot_status_save_file Application.get_env(:fb, :bot_status_save_file)
+  @bot_state_save_file Application.get_env(:fb, :bot_state_save_file)
   @data_path Application.get_env(:fb, :ro_path)
   @version Path.join(__DIR__ <> "/..", "VERSION") |> File.read! |> String.strip
 
   def init(_args) do
     children = [
-      worker(BotStatus, [[]], restart: :permanent ),
+      worker(BotState, [[]], restart: :permanent ),
       Plug.Adapters.Cowboy.child_spec(:http, MyRouter, [restart: :permanent], [port: 4000]),
       supervisor(NetworkSupervisor, [[]], restart: :permanent),
       supervisor(Controller, [[]], restart: :permanent)
@@ -30,7 +30,7 @@ defmodule Fw do
   def factory_reset do
     File.rm("#{@data_path}/secretes.txt")
     File.rm("#{@data_path}/network.config")
-    File.rm(@bot_status_save_file)
+    File.rm(@bot_state_save_file)
     Nerves.Firmware.reboot
   end
 
