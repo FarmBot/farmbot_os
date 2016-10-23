@@ -1,54 +1,71 @@
-defmodule Gcode do
+defmodule GcodeQ do
   @moduledoc """
     Im lazy and didn't want to parse yaml or write macros
   """
 
-  def parse_code("G0") do  { :move_to_location_at_given_speed_for_axis } end
-  def parse_code("G1" )do  { :move_to_location_on_a_straight_line } end
-  def parse_code("G28") do { :move_home_all_axis } end
-  def parse_code("F1" ) do { :dose_amount_of_water_using_time_in_millisecond } end
-  def parse_code("F2" ) do { :dose_amount_of_water_using_flow_meter_that_measures_pulses } end
-  def parse_code("F11") do { :home_x_axis } end
-  def parse_code("F12") do { :home_y_axis } end
-  def parse_code("F13") do { :home_z_axis } end
-  def parse_code("F14") do { :calibrate_x_axis } end
-  def parse_code("F15") do { :calibrate_y_axis } end
-  def parse_code("F16") do { :calibrate_z_axis } end
-  def parse_code("F21") do { :read_parameter } end
-  def parse_code("F22") do { :write_parameter } end
-  def parse_code("F23") do { :update_parameter_during_calibration } end
-  def parse_code("F31") do { :read_status } end
-  def parse_code("F32") do { :write_status } end
-  def parse_code("F41") do { :set_a_value_on_an_arduino_pin } end
-  def parse_code("F42") do { :read_a_value_from_an_arduino_pin } end
-  def parse_code("F43") do { :set_the_mode_of_a_pin_in_arduino } end
-  def parse_code("F44") do { :set_the_value_v_on_an_arduino_pin } end
-  def parse_code("F51") do { :set_a_value_on_the_tool_mount_with_i2c } end
-  def parse_code("F52") do { :read_value_from_the_tool_mount_with_i2c } end
-  def parse_code("F61") do { :set_the_servo_on_the_pin_to_the_requested_angle } end
-  def parse_code("F81") do { :report_end_stop } end
-  def parse_code("F82") do { :report_current_position } end
-  def parse_code("F83") do { :report_software_version } end
-  def parse_code("E"  ) do { :emergency_stop } end
-  def parse_code("R0" ) do { :idle } end
-  def parse_code("R1" ) do { :received } end
-  def parse_code("R2" ) do { :done } end
-  def parse_code("R3" ) do { :error } end
-  def parse_code("R4" ) do { :busy } end
-  def parse_code("R00") do { :idle } end
-  def parse_code("R01") do { :received } end
-  def parse_code("R02") do { :done } end
-  def parse_code("R03") do { :error } end
-  def parse_code("R04") do { :busy } end
-  def parse_code("R21 " <> params) do { :report_parameter_value, params } end
-  def parse_code("R31") do { :report_status_value } end
-  def parse_code("R41 " <> params) do { :report_pin_value, params } end
-  def parse_code("R81 " <> params ) do { :reporting_end_stops, params } end
-  def parse_code("R82 " <> position) do { :report_current_position, position } end
-  def parse_code("R83") do { :report_software_version } end
+  def parse_code("G0 Q"  <>ack)     do { :move_to_location_at_given_speed_for_axis, String.to_integer ack } end
+  def parse_code("G1 Q"  <>ack)     do { :move_to_location_on_a_straight_line, String.to_integer ack } end
+  def parse_code("G28 Q" <>ack)     do { :move_home_all_axis, String.to_integer ack } end
+  def parse_code("F1 Q"  <>ack)     do { :dose_amount_of_water_using_time_in_millisecond, String.to_integer ack } end
+  def parse_code("F2 Q"  <>ack)     do { :dose_amount_of_water_using_flow_meter_that_measures_pulses, String.to_integer ack } end
+  def parse_code("F11 Q" <>ack)     do { :home_x_axis, String.to_integer ack } end
+  def parse_code("F12 Q" <>ack)     do { :home_y_axis, String.to_integer ack } end
+  def parse_code("F13 Q" <>ack)     do { :home_z_axis, String.to_integer ack } end
+  def parse_code("F14 Q" <>ack)     do { :calibrate_x_axis, String.to_integer ack } end
+  def parse_code("F15 Q" <>ack)     do { :calibrate_y_axis, String.to_integer ack } end
+  def parse_code("F16 Q" <>ack)     do { :calibrate_z_axis, String.to_integer ack } end
+  def parse_code("F21 Q" <>ack)     do { :read_parameter, String.to_integer ack } end
+  def parse_code("F22 Q" <>ack)     do { :write_parameter, String.to_integer ack } end
+  def parse_code("F23 Q" <>ack)     do { :update_parameter_during_calibration, String.to_integer ack } end
+  def parse_code("F31 Q" <>ack)     do { :read_status, String.to_integer ack } end
+  def parse_code("F32 Q" <>ack)     do { :write_status, String.to_integer ack } end
+  def parse_code("F41 Q" <>ack)     do { :set_a_value_on_an_arduino_pin, String.to_integer ack } end
+  def parse_code("F42 Q" <>ack)     do { :read_a_value_from_an_arduino_pin, String.to_integer ack } end
+  def parse_code("F43 Q" <>ack)     do { :set_the_mode_of_a_pin_in_arduino, String.to_integer ack } end
+  def parse_code("F44 Q" <>ack)     do { :set_the_value_v_on_an_arduino_pin, String.to_integer ack } end
+  def parse_code("F51 Q" <>ack)     do { :set_a_value_on_the_tool_mount_with_i2c, String.to_integer ack } end
+  def parse_code("F52 Q" <>ack)     do { :read_value_from_the_tool_mount_with_i2c, String.to_integer ack } end
+  def parse_code("F61 Q" <>ack)     do { :set_the_servo_on_the_pin_to_the_requested_angle, String.to_integer ack } end
+  def parse_code("F81 Q" <>ack)     do { :report_end_stop, String.to_integer ack } end
+  def parse_code("F82 Q" <>ack)     do { :report_current_position, String.to_integer ack } end
+  def parse_code("F83 Q" <>ack)     do { :report_software_version, String.to_integer ack } end
+  def parse_code("E Q"   <>ack)     do { :emergency_stop, String.to_integer ack } end
+  def parse_code("R0 Q"  <>ack)     do { :idle, String.to_integer ack } end
+  def parse_code("R1 Q"  <>ack)     do { :received, String.to_integer ack } end
+  def parse_code("R2 Q"  <>ack)     do { :done, String.to_integer ack } end
+  def parse_code("R3 Q"  <>ack)     do { :error, String.to_integer ack } end
+  def parse_code("R4 Q"  <>ack)     do { :busy, String.to_integer ack } end
+  def parse_code("R00 Q" <>ack)     do { :idle, String.to_integer ack } end
+  def parse_code("R01 Q" <>ack)     do { :received, String.to_integer ack } end
+  def parse_code("R02 Q" <>ack)     do { :done, String.to_integer ack } end
+  def parse_code("R03 Q" <>ack)     do { :error, String.to_integer ack } end
+  def parse_code("R04 Q" <>ack)     do { :busy, String.to_integer ack } end
+  def parse_code("R31 Q" <>ack)     do { :report_status_value, String.to_integer ack } end
+  def parse_code("R83 Q" <>ack)     do { :report_software_version, String.to_integer ack } end
+  def parse_code("R21 " <> params)  do
+    [p, ack] = String.split(params, " Q")
+    { :report_parameter_value, p, String.to_integer ack }
+  end
+
+  def parse_code("R41 " <> params)  do
+    [p, ack] = String.split(params, " Q")
+    { :report_pin_value, p, String.to_integer ack }
+  end
+
+  def parse_code("R81 " <> params)  do
+    [p, ack] = String.split(params, " Q")
+    { :reporting_end_stops, p, String.to_integer ack }
+  end
+
+  def parse_code("R82 " <> params)  do
+    [p, ack] = String.split(params, " Q")
+    { :report_current_position, p, String.to_integer ack }
+  end
+
   def parse_code("R99 " <> message) do { :debug_message, message } end
   def parse_code(code)  do {:unhandled_gcode, code} end
 
+  # PARSE PARAMS
   def parse_param("0"  ) do :PARAM_VERSION end
   def parse_param("11" ) do :MOVEMENT_TIMEOUT_X end
   def parse_param("12" ) do :MOVEMENT_TIMEOUT_Y end

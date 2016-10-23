@@ -6,22 +6,17 @@ defmodule Command do
 
   @doc """
     EMERGENCY STOP
+    #TODO
   """
   def e_stop do
-    BotCommandHandler.e_stop
-    UartHandler.send("E")
-    SerialMessageManager.sync_notify({:send, "F82"})
-    pid = Process.whereis(UartHandler)
-    Process.exit(pid, :e_stop)
-    :ok
+    Logger.debug("E STOP NOT WORKIND")
   end
 
   @doc """
     Home All (TODO: this might be broken)
   """
   def home_all(speed) do
-    Logger.info("HOME ALL")
-    # SerialMessageManager.sync_notify( {:send, "G28"} )
+    Logger.debug("HOME ALL")
     Command.move_absolute(0, 0, 0, speed)
   end
 
@@ -29,22 +24,22 @@ defmodule Command do
     Home x
     I dont think anything uses these.
   """
-  def home_x(speed) do
-    BotCommandHandler.notify({:home_x, speed})
+  def home_x() do
+    NewHandler.block_send("F11")
   end
 
   @doc """
     Home y
   """
-  def home_y(speed) do
-    BotCommandHandler.notify({:home_y, speed})
+  def home_y() do
+    NewHandler.block_send("F12")
   end
 
   @doc """
     Home z
   """
-  def home_z(speed) do
-    BotCommandHandler.notify({:home_z, speed})
+  def home_z() do
+    NewHandler.block_send("F13")
   end
 
   @doc """
@@ -53,7 +48,7 @@ defmodule Command do
   def write_pin(pin, value, mode \\ "1")
   def write_pin(pin, value, mode) do
     BotStatus.set_pin(pin, value)
-    BotCommandHandler.notify({:write_pin, {pin, value, mode}})
+    NewHandler.block_send "F41 P#{pin} V#{value} M#{mode}"
   end
 
   @doc """
@@ -64,26 +59,22 @@ defmodule Command do
   """
   def move_absolute(x \\ 0,y \\ 0,z \\ 0,s \\ 100)
   def move_absolute(x, y, z, s) when x >= 0 and y >= 0 do
-    BotStatus.set_pos(x,y,z)
-    BotCommandHandler.notify({:move_absolute, {x,y,z,s}})
+    NewHandler.block_send "G00 X#{x} Y#{y} Z#{z} S#{s}"
   end
 
   # When both x and y are negative
   def move_absolute(x, y, z, s) when x < 0 and y < 0 do
-    BotStatus.set_pos(0,0,z)
-    BotCommandHandler.notify({:move_absolute, {0,0,z,s}})
+    NewHandler.block_send "G00 X#{0} Y#{0} Z#{z} S#{s}"
   end
 
   # when x is negative
   def move_absolute(x, y, z, s) when x < 0 do
-    BotStatus.set_pos(0,y,z)
-    BotCommandHandler.notify({:move_absolute, {0,y,z,s}})
+    NewHandler.block_send "G00 X#{0} Y#{y} Z#{z} S#{s}"
   end
 
   # when y is negative
   def move_absolute(x, y, z, s ) when y < 0 do
-    BotStatus.set_pos(x,0,z)
-    BotCommandHandler.notify({:move_absolute, {x,0,z,s}})
+    NewHandler.block_send "G00 X#{x} Y#{0} Z#{z} S#{s}"
   end
 
   @doc """
@@ -121,7 +112,9 @@ defmodule Command do
     Reads pins 0-13 in digital mode.
   """
   def read_all_pins do
-    spawn fn -> Enum.each(0..13, fn pin -> Command.read_pin(pin) end) end
+    spawn fn -> Enum.each(0..13, fn pin ->
+      GenServer.call(NewHandler, {:send, "F42 P#{pin} M#{0}", self()})
+    end) end
   end
 
     @doc """
@@ -132,28 +125,30 @@ defmodule Command do
     rel_params = [0,11,12,13,21,22,23,
                   31,32,33,41,42,43,51,
                   52,53,61,62,63,71,72,73]
-    spawn fn -> Enum.each(rel_params, fn param -> Command.read_param(param) end ) end
+    spawn fn -> Enum.each(rel_params, fn param ->
+      GenServer.call(NewHandler, {:send, "F21 P#{param}", self()})
+    end ) end
   end
 
   @doc """
     Reads a pin value.
   """
   def read_pin(pin, mode \\ 0) do
-    BotCommandHandler.notify({:read_pin, {pin, mode} })
+    NewHandler.block_send "F42 P#{pin} M#{mode}"
   end
 
   @doc """
     Reads a param. Needs the integer version of said param.
   """
   def read_param(param) when is_integer param do
-    BotCommandHandler.notify({:read_param, param })
+    NewHandler.block_send "F21 P#{param}"
   end
 
   @doc """
     Update a param. Param needs to be an integer.
   """
   def update_param(param, value) when is_integer param do
-    BotCommandHandler.notify({:update_param, {param, value} })
+    NewHandler.block_send "F22 P#{param} V#{value}"
     Command.read_param(param)
   end
 

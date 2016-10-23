@@ -1,86 +1,46 @@
-defmodule Sequencer do
+defmodule SequencerVM do
   require Logger
 
-  def init(args) do
-    initial_state = %{vars: %{}, name: args.name, bot_state: BotStatus.get_status, running: true}
+
+  def start_link(sequence) do
+    GenServer.start_link(__MODULE__,sequence)
+  end
+
+  def init(sequence) do
+    body = Map.get(sequence, "body")
+    args = Map.get(sequence, "args")
+    tv = Map.get(args, "tag_version") || 0
+    BotSync.sync()
+    corpus_module = BotSync.get_corpus(tv)
+    {:ok, instruction_set} = corpus_module.start_link(self())
+    status = BotStatus.get_status
+    tick(self())
+    initial_state =
+      %{
+        status: status,
+        body: body,
+        args: %{},
+        instruction_set: instruction_set,
+        vars: %{},
+        running: true
+       }
     {:ok, initial_state}
   end
 
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args)
+  def handle_call({:set_var, identifier, value}, _from, state) do
+    new_vars = Map.put(state.vars, identifier, value)
+    new_state = Map.put(state, :vars, new_vars )
+    {:reply, :ok, new_state }
   end
 
-  # im not particularly proud of this function.
-  def do_sequence(sequence) do
-    BotSync.sync
-    required_keys = ["body", "args", "name"]
-    case Enum.all?(required_keys, fn(key) -> Map.has_key?(sequence, key) end) do
-      true ->
-        args = Map.get(sequence, "args")
-        body = Map.get(sequence, "body")
-        name = Map.get(sequence, "name")
-        case SequenceValidator.validate(args, body) do
-          {:valid, warnings} ->
-            RPCMessageHandler.log("Sequence Valid")
-            for warning <- warnings do
-              Logger.debug("Validator warning: #{inspect warning}")
-              RPCMessageHandler.log("Validator warning: #{inspect warning}")
-            end
-            {:ok, pid} = start_link(%{name: name})
-            Process.flag(:trap_exit, true)
-            spawn_link fn -> execute(body, pid) end
-            {:ok, pid}
-          {:error, reason} ->
-            Logger.debug("Couldn't start sequence: #{inspect reason}")
-            RPCMessageHandler.log("Couldn't start sequence: #{inspect reason}")
-            {:error, reason}
-          _ ->
-            Logger.debug("Couldn't start sequence: unknown error")
-            RPCMessageHandler.log("Couldn't start sequence: unknown error")
-            {:error, :unknown}
-        end
-      false ->
-        Logger.debug("Missing key. Sequence invalid")
-    end
+  def handle_call({:get_var, identifier}, _from, state ) do
+    v = Map.get(state.vars, identifier, :error)
+    {:reply, v, state }
   end
 
-  def execute(body, pid) when is_list(body) and is_pid(pid) do
-    do_steps(body,pid)
-  end
-
-  def do_steps([], pid) do
-    GenServer.stop(pid)
-  end
-
-  def do_steps(body, pid) when is_list(body) do
-    if(BotStatus.busy?) do
-      Process.sleep(10)
-      do_steps(body, pid)
-    end
-    if(run_next_tick?(pid)) do
-      node = List.first(body)
-      RPCMessageHandler.log("Doing: #{Map.get(node, "kind")}")
-      SequenceCommands.do_command(node, pid)
-      Process.sleep(200)
-      do_steps(body -- [node], pid)
-    else
-      Process.sleep(10)
-      do_steps(body, pid)
-    end
-  end
-
-  def handle_call({:set_var, identifier, value}, _from, %{vars: vars, name: name, bot_state: bot_state, running: running}) do
-    {:reply, :ok, %{vars: Map.put(vars, identifier, value), name: name, bot_state: bot_state, running: running} }
-  end
-
-  def handle_call({:get_var, identifier}, _from, %{vars: vars, name: name, bot_state: bot_state, running: running} ) do
-    v = Map.get(vars, identifier, "unset")
-    {:reply, v, %{vars: vars, name: name, bot_state: bot_state, running: running} }
-  end
-
-  def handle_call(:get_all_vars, _from, %{vars: vars, name: name, bot_state: _nope, running: running} ) do
+  def handle_call(:get_all_vars, _from, state ) do
     bot_state = BotStatus.get_status
-    thing1 = vars |> Enum.reduce(%{}, fn ({key, val}, acc) -> Map.put(acc, String.to_atom(key), val) end)
+    thing1 = state.vars |> Enum.reduce(%{}, fn ({key, val}, acc) -> Map.put(acc, String.to_atom(key), val) end)
     thing2 = bot_state |> Enum.reduce(%{}, fn ({key, val}, acc) ->
       cond do
         is_bitstring(key) -> Map.put(acc, String.to_atom(key), val)
@@ -90,65 +50,87 @@ defmodule Sequencer do
     thing3v = List.first Map.get(BotSync.fetch, "users")
     thing3 = thing3v |> Enum.reduce(%{}, fn ({key, val}, acc) -> Map.put(acc, String.to_atom(key), val) end)
     all_things = Map.merge(thing1, thing2) |> Map.merge(thing3)
-    {:reply, all_things , %{vars: vars, name: name, bot_state: bot_state, running: running} }
+    {:reply, all_things , state }
   end
 
-  def handle_call(:pause, _from, %{vars: vars, name: name, bot_state: _bot_state, running: true} ) do
-    paused_status = BotStatus.get_status
-    RPCMessageHandler.log("Pausing Sequence: #{name}")
-    {:reply, paused_status, %{vars: vars, name: name, bot_state: paused_status, running: false} }
+  def handle_call(:pause, _from, state) do
+    {:reply, self(), Map.put(state, :running, false)}
   end
 
-  def handle_call(:tick?, _from, %{vars: vars, name: name, bot_state: bot_state, running: running} ) do
-    {:reply, running, %{vars: vars, name: name, bot_state: bot_state, running: running} }
+  def handle_call(thing, _from, state) do
+    RPCMessageHandler.log("#{inspect thing} is probably not implemented")
+    {:reply, :ok, state}
   end
 
-  def handle_cast(:resume, %{vars: vars, name: name, bot_state: paused_status, running: false} ) do
-    BotStatus.apply_status(paused_status)
-    RPCMessageHandler.log("Resuming Sequence: #{name}")
-    {:noreply, %{vars: vars, name: name, bot_state: BotStatus.get_status, running: true} }
+  def handle_cast(:resume, state) do
+    handle_info(:run_next_step, Map.put(state, :running, true))
   end
 
-  def handle_info({:EXIT, _pid, reason}, state) do
-    msg = "Sequence failed because: #{inspect reason}"
-    Logger.debug(msg)
-    RPCMessageHandler.log(msg)
-    {:noreply, state}
+  # if the VM is paused
+  def handle_info(:run_next_step, %{
+          status: status,
+          body: body,
+          args: args,
+          instruction_set: instruction_set,
+          vars: vars,
+          running: false
+         })
+  do
+    {:noreply, %{status: status, body: body, args: args, instruction_set: instruction_set, vars: vars, running: false  }}
   end
 
-  def run_next_tick?(pid) do
-    GenServer.call(pid, :tick?)
+  # if there is no more steps to run
+  def handle_info(:run_next_step, %{
+          status: status,
+          body: [],
+          args: args,
+          instruction_set: instruction_set,
+          vars: vars,
+          running: running
+         })
+  do
+    Logger.debug("sequence done")
+    send(SequenceManager, {:done, self()})
+    Logger.debug("Stopping VM")
+    {:noreply, %{status: status, body: [], args: args, instruction_set: instruction_set, vars: vars, running: running  }}
   end
 
-  def pause_sequence(pid) do
-    GenServer.call(pid, :pause)
+  # if there are more steps to run
+  def handle_info(:run_next_step, %{
+          status: status,
+          body: body,
+          args: args,
+          instruction_set: instruction_set,
+          vars: vars,
+          running: true
+         })
+  do
+    node = List.first(body)
+    kind = Map.get(node, "kind")
+    Logger.debug("doing: #{kind}")
+    GenServer.cast(instruction_set, {kind, Map.get(node, "args") })
+    {:noreply, %{
+            status: status,
+            body: body -- [node],
+            args: args,
+            instruction_set: instruction_set,
+            vars: vars,
+            running: true
+           }}
   end
 
-  def resume_sequence(pid) do
-    GenServer.cast(pid, :resume)
+  def tick(vm) do
+    Process.send_after(vm, :run_next_step, 100)
   end
 
   def terminate(:normal, state) do
-    GenServer.call(SequenceManager, {:done, self()})
-    RPCMessageHandler.log("Sequence: #{state.name} finished")
+    GenServer.stop(state.instruction_set, :normal)
   end
 
   def terminate(reason, state) do
-    Logger.debug("Something weird happened")
-    RPCMessageHandler.log("Sequence: #{state.name} finished with error: #{inspect reason}")
-    GenServer.call(SequenceManager, {:done, self()})
-  end
-
-  def load_external_sequence(url) do
-    resp = HTTPotion.get(url)
-    Poison.decode!(resp.body)
-  end
-
-  def load_test do
-    load_external_sequence("http://192.168.29.154:5050/test.json")
-  end
-
-  def load_test5 do
-    load_external_sequence("http://192.168.29.154:5050/test5.json")
+    Logger.debug("VM Died: #{inspect reason}")
+    RPCMessageHandler.log("Sequence Finished with errors! #{inspect reason}", "error_toast")
+    GenServer.stop(state.instruction_set, :normal)
+    IO.inspect state
   end
 end

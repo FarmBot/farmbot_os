@@ -4,7 +4,6 @@ defmodule NetworkSupervisor do
   @env Mix.env
 
   def init(_args) do
-    # Nerves.Networking.setup(:eth0) # eh
     children = [ worker(Wifi, [[]]) ]
     opts = [strategy: :one_for_all, name: __MODULE__]
     supervise(children, opts)

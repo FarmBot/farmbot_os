@@ -12,19 +12,8 @@ defmodule Downloader do
     RPCMessageHandler.log("Downloading an FW Update!")
     File.rm("/tmp/update.hex")
     file = run(url, "/tmp/update.hex")
-    install_avr_update(file)
+    GenServer.cast(UartHandler, {:update_fw, file})
     RPCMessageHandler.log("Updated FW")
-  end
-
-  def install_avr_update(hex_file) when is_bitstring(hex_file) do
-    {pid, tty} = UartHandler.nerves
-    Nerves.UART.close(pid)
-    IO.puts "avrdude -v -patmega2560 -cwiring -P#{tty} -b115200 -D -Uflash:w:#{hex_file}:i"
-    System.cmd("avrdude", ["-v", "-patmega2560", "-cwiring", "-P/dev/#{tty}", "-b115200", "-D", "-Uflash:w:#{hex_file}:i"])
-    pid = Process.whereis(UartHandler)
-    Process.exit(pid, :restart)
-    Command.read_all_params
-    Command.read_all_pins
   end
 
   def run(url, dl_file) when is_bitstring url do

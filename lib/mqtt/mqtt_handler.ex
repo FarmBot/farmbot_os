@@ -3,7 +3,7 @@ defmodule MqttHandler do
   require Logger
 
   defp build_last_will_message do
-    RPCMessageHandler.log_msg("Something TERRIBLE Happened. Bot going offline.")
+    RPCMessageHandler.log_msg("Something TERRIBLE Happened. Bot going offline.", ["error_ticker"])
   end
 
   @doc """
@@ -40,13 +40,17 @@ defmodule MqttHandler do
     Mqtt.Client.start_link(%{parent: __MODULE__})
   end
 
-  def start_link(args) do
-    handler = GenServer.start_link(__MODULE__, args, name: __MODULE__)
+  def blah do
     case log_in do
       {:error, reason} -> Logger.debug("error connecting to mqtt")
                           IO.inspect(reason)
       :ok -> Logger.debug("MQTT ONLINE")
     end
+  end
+
+  def start_link(args) do
+    handler = GenServer.start_link(__MODULE__, args, name: __MODULE__)
+    spawn fn -> blah end
     handler
   end
 
@@ -54,18 +58,14 @@ defmodule MqttHandler do
     {:reply, :ok, client}
   end
 
-  def handle_call({:connect_ack, _message}, from, client) do
+  def handle_call({:connect_ack, _message}, _from, client) do
     options = [id: 24756, topics: ["bot/#{bot}/from_clients"], qoses: [0]]
     spawn fn ->
       Logger.debug("Connect Ack")
       NetworkSupervisor.set_time # Should NOT be here
       Mqtt.Client.subscribe(client, options)
       Logger.debug("Subscribing")
-      handle_call({:emit, RPCMessageHandler.log_msg("Bot Bootstrapping")}, from, client)
-      Logger.debug("Doing bot bootstrap")
-      Command.read_all_pins # I'm truly sorry these are here
-      Command.read_all_params
-      handle_call({:emit, RPCMessageHandler.log_msg("Bot finished Bootstrapping")}, from, client)
+      BotSync.sync
     end
     keep_connection_alive
     {:reply, :ok, client}
@@ -105,9 +105,9 @@ defmodule MqttHandler do
     {:reply, :ok, client}
   end
 
-  def handle_call({:subscribe_ack, _message}, from, client) do
+  def handle_call({:subscribe_ack, _message}, _from, client) do
     Logger.debug("Subscribed.")
-    handle_call({:emit, RPCMessageHandler.log_msg("Bot Online")}, from, client)
+    {:reply, :ok, client}
   end
 
   def handle_call({:unsubscribe, _message}, _from, client) do
@@ -136,20 +136,20 @@ defmodule MqttHandler do
       :ok -> {:reply, :ok, client}
     end
   end
+  def handle_call(thing, _from, client) do
+    Logger.debug("Unhandled Thing #{inspect thing}")
+    {:reply, :ok, client}
+  end
 
-  def handle_call({:emit, message}, _from, client) when is_bitstring(message) do
+  def handle_cast({:emit, message}, client) when is_bitstring(message) do
     options = [ id: 1234,
                 topic: "bot/#{bot}/from_device",
                 message: message,
                 dup: 1, qos: 1, retain: 0]
     spawn fn -> Mqtt.Client.publish(client, options) end
-    {:reply, :ok, client}
+    {:noreply, client}
   end
 
-  def handle_call(thing, _from, client) do
-    Logger.debug("Unhandled Thing #{inspect thing}")
-    {:reply, :ok, client}
-  end
 
   def handle_cast(event, state) do
     Logger.debug("#{inspect event}")
@@ -163,7 +163,7 @@ defmodule MqttHandler do
   end
 
   def emit(message) when is_bitstring(message) do
-    GenServer.call(__MODULE__, {:emit, message})
+    GenServer.cast(__MODULE__, {:emit, message})
   end
 
   defp bot do

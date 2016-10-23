@@ -2,19 +2,19 @@ defmodule BotSync do
   use GenServer
   require Logger
   def init(_args) do
-    token = Auth.fetch_token
-    {:ok, %{token: token, resources: %{} }}
+    {:ok, %{token: nil, resources: nil }}
   end
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def handle_info({:sync, millis}, %{token: token, resources: _}) do
-    cond do
-      is_integer(millis) -> sync_on_timer(millis)
-      true -> nil
-    end
+  def handle_cast(_, %{token: nil, resources: _}) do
+    spawn fn -> try_to_get_token end
+    {:noreply, %{token: nil, resources: nil}}
+  end
+
+  def handle_cast(:sync, %{token: token, resources: old}) do
     server = Map.get(token, "unencoded") |> Map.get("iss")
     auth = Map.get(token, "encoded")
 
@@ -26,7 +26,7 @@ defmodule BotSync do
                          headers: _headers,
                          status_code: 200} ->
        RPCMessageHandler.log("Synced")
-       {:noreply, %{token: token, resources: Poison.decode!(body)}}
+       {:noreply, %{token: token, resources: Map.merge(old || %{}, Poison.decode!(body)) }}
      error ->
        Logger.debug("Couldn't get resources: #{error}")
        RPCMessageHandler.log("Couldn't sync: #{error}")
@@ -34,25 +34,18 @@ defmodule BotSync do
     end
   end
 
-  def handle_call({:api_request, end_point}, _from, %{token: token, resources: resources}) do
-    server = Map.get(token, "unencoded") |> Map.get("iss")
-    auth = Map.get(token, "encoded")
+  def handle_call({:token, token}, _from, %{token: _, resources: _}) do
+    {:reply, :ok, %{token: token, resources: nil}}
+  end
 
-    case HTTPotion.get server<>end_point,
-    [headers: ["Content-Type": "application/json",
-               "Authorization": "Bearer " <> auth]] do
-
-     %HTTPotion.Response{body: body,
-                         headers: _headers,
-                         status_code: 200} ->
-       {:reply, Poison.decode!(body), %{token: token, resources: resources}}
-     error -> {:reply, error, %{token: token, resources: resources} }
-    end
+  def handle_call(_,_from, %{token: nil, resources: _}) do
+    Logger.debug("Please make sure you have a token first.")
+    {:reply, :no_token, %{token: nil, resources: nil}}
   end
 
   def handle_call({:save_sequence, seq}, _from, %{token: token, resources: resources}) do
     new_resources = Map.put(resources, "sequences", [seq | Map.get(resources, "sequences")] )
-    {:reply,:ok, %{token: token, resources: new_resources}}
+    {:reply, :ok, %{token: token, resources: new_resources}}
   end
 
   def handle_call(:fetch, _from, %{token: token, resources: resources}) do
@@ -81,12 +74,51 @@ defmodule BotSync do
     {:reply, regimens, %{token: token, resources: resources}}
   end
 
-  def sync_on_timer(millis) do
-    Process.send_after(__MODULE__, {:sync, millis}, millis)
+  def handle_call({:get_regimen_item, id}, _from, %{token: token, resources: resources}) do
+    regimens_items = Map.get(resources, "regimen_items")
+    got = Enum.find(regimens_items, fn(regimen_item) -> Map.get(regimen_item, "id") == id end)
+    {:reply, got, %{token: token, resources: resources}}
   end
 
+  def handle_call(:get_regimen_items, _from, %{token: token, resources: resources}) do
+    regimen_items = Map.get(resources, "regimen_items")
+    {:reply, regimen_items, %{token: token, resources: resources}}
+  end
+
+  def handle_call({:add_regimen_item, item}, _from, %{token: token, resources: resources}) do
+    {:reply, :ok, %{token: token, resources: Map.put(resources, "regimen_items", Map.get(resources, "regimen_items") ++ [item] )}}
+  end
+
+  # REALLY BAD LOGIC HERE
+  def handle_call({:get_corpus, id}, _from, %{token: token, resources: resources} ) do
+    case Map.get(resources, "corpuses") do
+      nil ->
+        Logger.debug("Compiling Corpus Instruction Set")
+        RPCMessageHandler.log("Compileing Instruction Set!")
+        server = Map.get(token, "unencoded") |> Map.get("iss")
+        c = get_corpus_from_server(server, id)
+        m = String.to_atom("Elixir.SequenceInstructionSet_"<>"#{id}")
+        m.create_instruction_set(c)
+        {:reply, Module.concat(SiS, "Corpus_#{id}"), %{token: token, resources: Map.put(resources, "corpuses", [c])}}
+      corpuses ->
+        corpuses
+        {:reply, Module.concat(SiS, "Corpus_#{id}"), %{token: token, resources: resources}}
+    end
+  end
+
+  defp get_corpus_from_server(server, id) do
+     case HTTPotion.get(server<>"/api/corpuses/#{id}") do
+       %HTTPotion.Response{body: body,
+                           headers: _headers,
+                           status_code: 200} ->
+         Poison.decode!(body)
+        error -> error
+     end
+  end
+
+
   def sync do
-    send(__MODULE__, {:sync, nil})
+    GenServer.cast(__MODULE__, :sync)
   end
 
   def fetch do
@@ -109,11 +141,23 @@ defmodule BotSync do
     GenServer.call(__MODULE__, :get_regimens)
   end
 
-  def api_request(end_point) do
-    GenServer.call(__MODULE__, {:api_request, end_point})
+  def get_regimen_item(id) when is_integer(id) do
+    GenServer.call(__MODULE__, {:get_regimen_item, id})
   end
 
-  def save_sequence(seq) do
-    GenServer.call(__MODULE__, {:save_sequence, seq})
+  def get_regimen_items do
+    GenServer.call(__MODULE__, :get_regimen_items)
+  end
+
+  def get_corpus(id) when is_integer(id) do
+    GenServer.call(__MODULE__, {:get_corpus, id})
+  end
+
+  def try_to_get_token do
+    case Auth.get_token do
+      nil -> try_to_get_token
+      {:error, reason} -> {:error, reason}
+      token -> GenServer.call(__MODULE__, {:token, token})
+    end
   end
 end

@@ -36,6 +36,7 @@ defmodule RPCMessageHandler do
 
   # JSON RPC RESPONSE ERROR
   def ack_msg(id, {name, message}) when is_bitstring(id) and is_bitstring(name) and is_bitstring(message) do
+    Logger.debug("RPC ERROR")
     IO.inspect({name, message})
     Poison.encode!(
     %{id: id,
@@ -44,20 +45,25 @@ defmodule RPCMessageHandler do
       result: nil})
   end
 
-  def log_msg(message) do
+  @doc """
+    Logs a message to the frontend.
+  """
+  def log_msg(message,channels \\ [])
+
+  def log_msg(message, channels)
+  when is_list(channels) do
     Poison.encode!(
       %{ id: nil,
          method: "log_message",
          params: [%{status: BotStatus.get_status,
                     time: :os.system_time(:seconds),
-                    message: message}] })
+                    message: message,
+                    channels: channels }] })
   end
 
-  def personality_msg(message) when is_bitstring(message) do
-      Poison.encode!(
-      %{ id: nil,
-         method: "personality_message",
-         params: [%{message: message}] })
+  def log_msg(message,channel)
+  when is_bitstring(channel) do
+    log_msg(message,[channel])
   end
 
   def handle_rpc(%{"method" => method, "params" => params, "id" => id})
@@ -77,16 +83,25 @@ defmodule RPCMessageHandler do
     IO.inspect broken_rpc
   end
 
+  def do_handle("toggle_os_auto_update", []) do
+    BotStatus.toggle_os_auto_update
+  end
+
+  def do_handle("toggle_fw_auto_update", []) do
+    BotStatus.toggle_fw_auto_update
+  end
+
   # E STOP
   def do_handle("emergency_stop", _) do
-    Command.e_stop
-    SequenceManager.e_stop
+    GenServer.call UartHandler, :e_stop
+    GenServer.call SequenceManager, :e_stop
     :ok
   end
 
   # Home All
   def do_handle("home_all", [ %{"speed" => s} ]) when is_integer s do
-    Command.home_all(s)
+    spawn fn -> Command.home_all(s) end
+    :ok
   end
 
   def do_handle("home_all", params) do
@@ -101,14 +116,16 @@ defmodule RPCMessageHandler do
     when is_integer p and
          is_integer v
   do
-    Command.write_pin(p,v,1)
+    spawn fn -> Command.write_pin(p,v,1) end
+    :ok
   end
 
   def do_handle("write_pin", [ %{"pin_mode" => 0, "pin_number" => p, "pin_value" => v} ])
     when is_integer p and
          is_integer v
   do
-    Command.write_pin(p,v,0)
+    spawn fn -> Command.write_pin(p,v,0) end
+    :ok
   end
 
   def do_handle("write_pin", _) do
@@ -123,7 +140,8 @@ defmodule RPCMessageHandler do
        is_integer(z) and
        is_integer(s)
   do
-    Command.move_absolute(x,y,z,s)
+    spawn fn -> Command.move_absolute(x,y,z,s) end
+    :ok
   end
 
   def do_handle("move_absolute",  params) do
@@ -143,7 +161,8 @@ defmodule RPCMessageHandler do
          is_integer(y_move_by) and
          is_integer(z_move_by)
   do
-    Command.move_relative(%{x: x_move_by, y: y_move_by, z: z_move_by, speed: speed})
+    spawn fn -> Command.move_relative(%{x: x_move_by, y: y_move_by, z: z_move_by, speed: speed}) end
+    :ok
   end
 
   def do_handle("move_relative", _) do
@@ -158,28 +177,19 @@ defmodule RPCMessageHandler do
   end
 
   def do_handle("check_updates", _) do
-    case Fw.check_os_updates do
-      :no_updates -> nil
-       {:update, url} ->
-         Logger.debug("NEW OS UPDATE")
-         spawn fn -> Downloader.download_and_install_os_update(url) end
-    end
+    Fw.check_and_download_os_update
     :ok
   end
 
   def do_handle("check_arduino_updates", _) do
-    case Fw.check_fw_updates do
-      :no_updates -> nil
-       {:update, url} ->
-          Logger.debug("NEW CONTROLLER UPDATE")
-          spawn fn -> Downloader.download_and_install_fw_update(url) end
-    end
+    Fw.check_and_download_fw_update
     :ok
   end
 
   def do_handle("reboot", _ ) do
     log("Bot Going down for reboot in 5 seconds")
     spawn fn ->
+      log("Rebooting!", "ticker")
       Process.sleep(5000)
       Nerves.Firmware.reboot
     end
@@ -189,6 +199,7 @@ defmodule RPCMessageHandler do
   def do_handle("power_off", _ ) do
     log("Bot Going down in 5 seconds. Pls remeber me.")
     spawn fn ->
+      log("BOT OFFLINE", "error_ticker")
       Process.sleep(5000)
       Nerves.Firmware.poweroff
     end
@@ -198,7 +209,7 @@ defmodule RPCMessageHandler do
   def do_handle("update_calibration", [params]) when is_map(params) do
     case Enum.all?(params, fn({param, value}) ->
       param_int = Gcode.parse_param(param)
-      Command.update_param(param_int, value)
+      spawn fn -> Command.update_param(param_int, value) end
     end)
     do
       true -> :ok
@@ -211,27 +222,18 @@ defmodule RPCMessageHandler do
     :ok
   end
 
-  def do_handle("force_update", [%{"url" => url}] ) do
-    Logger.debug("forcing new update")
-    log("Forcing new update")
-    spawn fn -> Downloader.download_and_install_os_update(url) end
-    :ok
-  end
-
   def do_handle("exec_sequence", [sequence]) do
     cond do
       Map.has_key?(sequence, "body")
        and Map.has_key?(sequence, "args")
        and Map.has_key?(sequence, "name")
-      -> SequenceManager.do_sequence(sequence)
+      ->
+        # resp = GenServer.call(SequenceManager, {:add, sequence})
+        # log(resp, "success_toast")
+        GenServer.call(FarmEventManager, {:add, {:sequence, sequence}})
       true -> log("Sequence invalid.")
     end
     :ok
-  end
-
-  def do_handle("load_sequence", [%{"url" => url}]) do
-    sequence = Sequencer.load_external_sequence(url)
-    do_handle("exec_sequence", [sequence])
   end
 
   # Unhandled event. Probably not implemented if it got this far.
@@ -243,15 +245,17 @@ defmodule RPCMessageHandler do
   @doc """
     Shortcut for loggin to teh frontend. Pass it a string, watch it display
   """
-  def log(message) when is_bitstring(message) do
-    @transport.emit(log_msg(message))
+  def log(message, channel \\ [])
+  def log(message, channels)
+  when is_bitstring(message)
+   and is_list(channels) do
+    @transport.emit(log_msg(message, channels))
   end
 
-  @doc """
-    Shortcut for a personality message
-  """
-  def pm(message) when is_bitstring(message) do
-    @transport.emit(personality_msg(message))
+  def log(message, channel)
+  when is_bitstring(message)
+   and is_bitstring(channel) do
+    @transport.emit(log_msg(message, [channel]))
   end
 
   def send_status do
