@@ -40,6 +40,13 @@ defmodule UartHandler do
     GenServer.start_link(__MODULE__, {}, name: __MODULE__)
   end
 
+  def handle_cast({:update_fw, hex_file}, {nerves, _tty, handler}) do
+    Nerves.UART.close(nerves)
+    System.cmd("avrdude", ["-v", "-patmega2560", "-cwiring", "-P/dev/ttyACM0", "-b115200", "-D", "-Uflash:w:#{hex_file}:i"])
+    new_tty = open_serial(nerves)
+    {:noreply, {nerves, new_tty, handler}}
+  end
+
   def handle_call(:e_stop, _from, {pid, tty, handler}) do
     write(pid, "E")
     raise "E STOP"
@@ -48,15 +55,26 @@ defmodule UartHandler do
     {:reply, :ok, {pid, tty, handler}}
   end
 
+  @doc """
+    Writes to a nerves uart tty. This only exists because
+    I wanted to print what is being written
+  """
   def write(pid, str) do
     Logger.debug("writing: #{str}")
     Nerves.UART.write(pid, str)
   end
 
   # WHEN A FULL SERIAL MESSAGE COMES IN.
-  def handle_info({:nerves_uart, _tty, message}, {pid, tty, handler}) when is_binary(message) do
+  def handle_info({:nerves_uart, nerves_tty, message}, {pid, tty, handler})
+  when is_binary(message) and nerves_tty == tty do
     gcode = Gcode.parse_code(String.strip(message))
     GenServer.cast(handler, gcode)
+    {:noreply, {pid, tty, handler}}
+  end
+
+  def handle_info({:nerves_uart, _nerves_tty, message}, {pid, tty, handler})
+  when is_binary(message) do
+    Logger.debug("Something weird has happened.")
     {:noreply, {pid, tty, handler}}
   end
 
