@@ -45,8 +45,11 @@ defmodule Command do
   @doc """
     Writes a pin high or low
   """
-  def write_pin(pin, value, mode) do
+  def write_pin(pin, value, mode)
+  when is_integer(pin) and is_integer(value) and is_integer(mode) do
     NewHandler.block_send "F41 P#{pin} V#{value} M#{mode}"
+    BotState.set_pin_mode(pin, mode)
+    BotState.set_pin_value(pin, value)
   end
 
   @doc """
@@ -107,18 +110,8 @@ defmodule Command do
 
   @doc """
     Used when bootstrapping the bot.
-    Reads pins 0-13 in digital mode.
+    Reads all the params.
   """
-  def read_all_pins do
-    spawn fn -> Enum.each(0..13, fn pin ->
-      GenServer.call(NewHandler, {:send, "F42 P#{pin} M#{0}", self()})
-    end) end
-  end
-
-    @doc """
-      Used when bootstrapping the bot.
-      Reads all the params.
-    """
   def read_all_params do
     rel_params = [0,11,12,13,21,22,23,
                   31,32,33,41,42,43,51,

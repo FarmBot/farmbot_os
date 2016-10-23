@@ -24,13 +24,17 @@ defmodule BotState do
       location: [0, 0, 0],
       pins: %{},
       configuration: %{ os_auto_update: false,
-                       fw_auto_update: false },
+                        fw_auto_update: false },
       informational_settings: %{ controller_version: Fw.version }
     }
     case File.read(@bot_state_save_file) do
-      { :ok, contents } -> :erlang.binary_to_term(contents)
+      { :ok, contents } ->
+        :erlang.binary_to_term(contents)
+        |> Map.put(:mcu_params, %{})
+        |> Map.put(:pins, %{})
+        |> Map.put(:informational_settings, %{ controller_version: Fw.version })
       _ -> default_state
-    end 
+    end
   end
 
   def handle_call(:state, _from, state) do
@@ -58,13 +62,40 @@ defmodule BotState do
 
   def handle_cast({:set_pin_mode, {pin, mode}}, state) do
     pin_state = state.pins
-    new_pin_value = 
+    new_pin_value =
     case Map.get(pin_state, Integer.to_string(pin)) do
       nil                      -> %{mode: mode, value: -1}
       %{mode: _, value: value} -> %{mode: mode, value: value}
     end
     pin_state = Map.put(pin_state, Integer.to_string(pin), new_pin_value)
     {:noreply, Map.put(state, :pins, pin_state)}
+  end
+
+  def handle_cast(:toggle_fw_auto_update, state) do
+    next =
+    case Map.get(state.configuration, :fw_auto_update) do
+      false ->
+        Map.put(state.configuration, :fw_auto_update, true)
+      _ ->
+        Map.put(state.configuration, :fw_auto_update, false)
+    end
+    {:noreply, Map.put(state, :configuration, next)}
+  end
+
+  def handle_cast(:toggle_os_auto_update, state) do
+    next =
+    case Map.get(state.configuration, :os_auto_update) do
+      false ->
+        Map.put(state.configuration, :os_auto_update, true)
+      _ ->
+        Map.put(state.configuration, :os_auto_update, false)
+    end
+    {:noreply, Map.put(state, :configuration, next)}
+  end
+
+  def handle_cast({:set_param, {param_string, value} }, state) do
+    new_params = Map.put(state.mcu_params, param_string, value)
+    {:noreply, Map.put(state, :mcu_params, new_params)}
   end
 
   def handle_info(:save, state) do
@@ -92,7 +123,28 @@ defmodule BotState do
 
   def set_pin_mode(pin, mode)
   when is_integer(pin) and is_integer(mode) do
-    GenServer.cast(__MODULE__, {:set_pin_mode, {pin, mode}})    
+    GenServer.cast(__MODULE__, {:set_pin_mode, {pin, mode}})
+  end
+
+  def set_param(param_string, value) do
+    GenServer.cast(__MODULE__, {:set_param, {param_string, value}})
+  end
+
+  def set_end_stop(_something) do
+    #TODO
+    nil
+  end
+
+  def toggle_fw_auto_update do
+    GenServer.cast(__MODULE__, :toggle_fw_auto_update)
+  end
+
+  def toggle_os_auto_update do
+    GenServer.cast(__MODULE__, :toggle_os_auto_update)
+  end
+
+  def apply_status(_state) do
+    Logger.debug("TODO: Apply bot state")
   end
 
   defp save_interval do

@@ -42,7 +42,7 @@ defmodule NewHandler do
   def handle_cast({:report_pin_value, params}, state) do
     ["P"<>pin, "V"<>value] = String.split(params, " ")
     Logger.debug("pin#{pin}: #{value}")
-    BotState.set_pin(String.to_integer(pin), String.to_integer(value))
+    BotState.set_pin_value(String.to_integer(pin), String.to_integer(value))
     {:noreply, state}
   end
 
@@ -55,14 +55,12 @@ defmodule NewHandler do
 
   def handle_cast({:report_parameter_value, param }, state) do
     [p, v] = String.split(param, " ")
-    [_, real_p] = String.split(p, "P")
-    [_, real_v] = String.split(v, "V")
-    Logger.debug("Param: #{real_p}, Value: #{real_v}")
-    real_p
+    [_, real_param] = String.split(p, "P")
+    [_, real_value] = String.split(v, "V")
+    Logger.debug("Param: #{real_param}, Value: #{real_value}")
+    real_param
     |> Gcode.parse_param
-    |> Atom.to_string
-    |> String.downcase
-    |> BotState.set_param(real_v)
+    |> BotState.set_param(String.to_integer(real_value))
     {:noreply, state}
   end
 
