@@ -107,6 +107,7 @@ defmodule MqttHandler do
 
   def handle_call({:subscribe_ack, _message}, _from, client) do
     Logger.debug("Subscribed.")
+    Command.read_all_params
     {:reply, :ok, client}
   end
 
