@@ -36,9 +36,6 @@ defmodule Fw.Mixfile do
      :gen_stage,
      :nerves_lib,
      :rsa,
-     :cowboy,
-     :plug,
-     :cors_plug,
      :hulaaki,
      :runtime_tools,
      :mustache]
@@ -49,7 +46,8 @@ defmodule Fw.Mixfile do
     apps ++ platform_apps(@target) ++
     [
       :nerves,
-      :nerves_firmware_http
+      :nerves_firmware_http,
+      :farmbot_configurator
     ]
   end
 
@@ -71,9 +69,6 @@ defmodule Fw.Mixfile do
       {:gen_stage, "~> 0.4"},
       {:nerves_lib, github: "nerves-project/nerves_lib"},
       {:rsa, "~> 0.0.1"},
-      {:cowboy, "~> 1.0.0"},
-      {:plug, "~> 1.0"},
-      {:cors_plug, "~> 1.1"},
       {:hulaaki, github: "ConnorRigby/hulaaki"},
       {:mustache, "~> 0.0.2"}
     ]
@@ -84,6 +79,7 @@ defmodule Fw.Mixfile do
     [
      {:nerves, "~> 0.3.0"},
      {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
+     {:farmbot_configurator, path: "../farmbot_configurator"}
     ]
   end
 

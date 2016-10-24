@@ -42,29 +42,28 @@ defmodule NewHandler do
   def handle_cast({:report_pin_value, params}, state) do
     ["P"<>pin, "V"<>value] = String.split(params, " ")
     Logger.debug("pin#{pin}: #{value}")
-    if value != "1023" do
-      BotStatus.set_pin(String.to_integer(pin), String.to_integer(value))
-    end
+    BotState.set_pin_value(String.to_integer(pin), String.to_integer(value))
     {:noreply, state}
   end
 
   def handle_cast( {:report_current_position, position }, state) do
     [x, y, z] = parse_coords(position)
     Logger.debug("Reporting position #{inspect {x, y, z}}")
-    BotStatus.set_pos(x,y,z)
+    BotState.set_pos(x,y,z)
     {:noreply, state}
   end
 
   def handle_cast({:report_parameter_value, param }, state) do
     [p, v] = String.split(param, " ")
-    [_, real_p] = String.split(p, "P")
-    [_, real_v] = String.split(v, "V")
-    Logger.debug("Param: #{real_p}, Value: #{real_v}")
-    real_p
+    [_, real_param] = String.split(p, "P")
+    [_, real_value] = String.split(v, "V")
+    Logger.debug("Param: #{real_param}, Value: #{real_value}")
+    real_param
     |> Gcode.parse_param
-    |> Atom.to_string
-    |> String.downcase
-    |> BotStatus.set_param(real_v)
+    |> Atom.to_string          # DON'T
+    |> String.Casing.downcase  # DO
+    |> String.to_atom          # THIS
+    |> BotState.set_param(String.to_integer(real_value))
     {:noreply, state}
   end
 
@@ -73,7 +72,7 @@ defmodule NewHandler do
     # Logger.debug("[gcode_handler] {:reporting_end_stops} stub: #{stop_values}")
     stop_values
     |> parse_stop_values
-    |> Enum.each(&BotStatus.set_end_stop/1)
+    |> Enum.each(&BotState.set_end_stop/1)
     {:noreply, state}
   end
 
