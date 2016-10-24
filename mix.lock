@@ -27,7 +27,7 @@
   "nerves_networking": {:git, "https://github.com/nerves-project/nerves_networking.git", "e4398e6be3b02f912f96dec6e13f0ec36d6d1a31", []},
   "nerves_system": {:hex, :nerves_system, "0.1.6", "d3cff2ae40d3764c75b187cbbdb09985ae169489c26178d765edc9b66bc4e355", [:mix], []},
   "nerves_system_br": {:hex, :nerves_system_br, "0.7.0", "e838dbec1079fa326d958a3aef4ee14f22d8ffbc91ce7f6b28fc7d9f3197dfa7", [:mix], []},
-  "nerves_system_rpi3": {:git, "https://github.com/ConnorRigby/nerves_system_rpi3.git", "489400a24092ab2a27dadcec649b375cd1c2d1bf", [tag: "v0.7.2-farmbot"]},
+  "nerves_system_rpi3": {:git, "https://github.com/ConnorRigby/nerves_system_rpi3.git", "0f70711b61255611e9f25ce499d22ce72f6432d8", [tag: "v0.7.3-farmbot"]},
   "nerves_toolchain": {:hex, :nerves_toolchain, "0.7.1", "164f5fcf07f717d5e8f918965ea043c860b75065768c93a726f763498a7d8792", [:mix], []},
   "nerves_toolchain_arm_unknown_linux_gnueabihf": {:hex, :nerves_toolchain_arm_unknown_linux_gnueabihf, "0.7.1", "44753bb9c301704de8b5d238cda7eba8a96b9975563d1b146316699c5c0cb129", [:mix], [{:nerves_toolchain, "~> 0.7", [hex: :nerves_toolchain, optional: false]}, {:nerves_toolchain_ctng, "~> 0.7", [hex: :nerves_toolchain_ctng, optional: false]}]},
   "nerves_toolchain_ctng": {:hex, :nerves_toolchain_ctng, "0.7.1", "6f46b1591b23d1a017347f8cd9962c24775b2a6fde4e2f2b5251439efef8d6a4", [:mix], []},
