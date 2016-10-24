@@ -32,9 +32,8 @@ defmodule MyRouter do
     end
   end
 
-  get "/kill" do
-    Logger.debug("removeme")
-    Process.exit(self(), :blah)
+  get "/" do
+    send_resp(conn, 200, Poison.encode!(BotState.get_status) )
   end
 
   get "/scan" do

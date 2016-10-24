@@ -60,6 +60,9 @@ defmodule NewHandler do
     Logger.debug("Param: #{real_param}, Value: #{real_value}")
     real_param
     |> Gcode.parse_param
+    |> Atom.to_string          # DON'T
+    |> String.Casing.downcase  # DO
+    |> String.to_atom          # THIS
     |> BotState.set_param(String.to_integer(real_value))
     {:noreply, state}
   end

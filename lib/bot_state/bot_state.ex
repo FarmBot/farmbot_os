@@ -4,9 +4,11 @@ defmodule BotState do
 
   @bot_state_save_file Application.get_env(:fb, :bot_state_save_file)
   @save_interval 15000
+  @twelve_hours 3600000
 
   def init(_) do
     save_interval
+    check_updates
     {:ok, load}
   end
 
@@ -14,8 +16,8 @@ defmodule BotState do
     GenServer.start_link(__MODULE__, args, [name: __MODULE__])
   end
 
-  def save(state) do
-    File.write!(@bot_state_save_file, :erlang.term_to_binary(state))
+  def save(_state) do
+    # File.write!(@bot_state_save_file, :erlang.term_to_binary(state))
   end
 
   def load do
@@ -104,6 +106,19 @@ defmodule BotState do
     {:noreply, state}
   end
 
+  def handle_info(:check_updates, state) do
+    Logger.debug("Doing scheduled update check.")
+    if(state.configuration.os_auto_update == true) do
+      spawn fn -> Fw.check_and_download_os_update end
+    end
+
+    if(state.configuration.fw_auto_update == true) do
+      spawn fn -> Fw.check_and_download_fw_update end
+    end
+    check_updates
+    {:noreply, state}
+  end
+
   def get_status do
     GenServer.call(__MODULE__, :state)
   end
@@ -149,5 +164,9 @@ defmodule BotState do
 
   defp save_interval do
     Process.send_after(__MODULE__, :save, @save_interval)
+  end
+
+  defp check_updates do
+    Process.send_after(__MODULE__, :check_updates, @twelve_hours)
   end
 end
