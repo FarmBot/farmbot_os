@@ -13,7 +13,7 @@ defmodule SequencerVM do
     BotSync.sync()
     corpus_module = BotSync.get_corpus(tv)
     {:ok, instruction_set} = corpus_module.start_link(self())
-    status = BotStatus.get_status
+    status = BotState.get_status
     tick(self())
     initial_state =
       %{
@@ -39,7 +39,7 @@ defmodule SequencerVM do
   end
 
   def handle_call(:get_all_vars, _from, state ) do
-    bot_state = BotStatus.get_status
+    bot_state = BotState.get_status
     thing1 = state.vars |> Enum.reduce(%{}, fn ({key, val}, acc) -> Map.put(acc, String.to_atom(key), val) end)
     thing2 = bot_state |> Enum.reduce(%{}, fn ({key, val}, acc) ->
       cond do
