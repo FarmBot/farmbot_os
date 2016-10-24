@@ -9,6 +9,7 @@ defmodule Fw do
   def init(_args) do
     children = [
       worker(BotState, [[]], restart: :permanent ),
+      supervisor(Extras, [[]], restart: :temporary),
       supervisor(NetworkSupervisor, [[]], restart: :permanent),
       supervisor(Controller, [[]], restart: :permanent)
     ]

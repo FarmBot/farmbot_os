@@ -36,7 +36,7 @@ defmodule RPCMessageHandler do
 
   # JSON RPC RESPONSE ERROR
   def ack_msg(id, {name, message}) when is_bitstring(id) and is_bitstring(name) and is_bitstring(message) do
-    Logger.debug("RPC ERROR")
+    Logger.error("RPC ERROR")
     IO.inspect({name, message})
     Poison.encode!(
     %{id: id,
@@ -135,6 +135,7 @@ defmodule RPCMessageHandler do
 
   def do_handle("toggle_pin", [%{"pin_number" => p}]) when is_integer(p) do
     spawn fn -> Command.toggle_pin(p) end
+    :ok
   end
 
   def do_handle("toggle_pin", params) do
@@ -269,9 +270,10 @@ defmodule RPCMessageHandler do
   end
 
   def send_status do
+    status = BotState.get_status
     m = %{id: nil,
           method: "status_update",
-          params: [BotState.get_status] }
+          params: [status] }
     @transport.emit(Poison.encode!(m))
   end
 end

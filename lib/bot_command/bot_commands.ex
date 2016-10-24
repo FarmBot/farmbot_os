@@ -47,9 +47,9 @@ defmodule Command do
   """
   def write_pin(pin, value, mode)
   when is_integer(pin) and is_integer(value) and is_integer(mode) do
-    NewHandler.block_send "F41 P#{pin} V#{value} M#{mode}"
     BotState.set_pin_mode(pin, mode)
     BotState.set_pin_value(pin, value)
+    NewHandler.block_send "F41 P#{pin} V#{value} M#{mode}"
   end
 
   @doc """
