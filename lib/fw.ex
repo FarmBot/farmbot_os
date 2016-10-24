@@ -1,6 +1,7 @@
 defmodule Fw do
   require Logger
   use Supervisor
+  @env Mix.env
   @target System.get_env("NERVES_TARGET") || "rpi3"
   @bot_state_save_file Application.get_env(:fb, :bot_state_save_file)
   @data_path Application.get_env(:fb, :ro_path)
@@ -9,6 +10,7 @@ defmodule Fw do
   def init(_args) do
     children = [
       worker(BotState, [[]], restart: :permanent ),
+      worker(SSH, [@env], restart: :permanent),
       supervisor(Extras, [[]], restart: :temporary),
       supervisor(NetworkSupervisor, [[]], restart: :permanent),
       supervisor(Controller, [[]], restart: :permanent)
