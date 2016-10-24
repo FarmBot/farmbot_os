@@ -129,6 +129,20 @@ defmodule Command do
     NewHandler.block_send "F42 P#{pin} M#{mode}"
   end
 
+  def toggle_pin(pin) when is_integer(pin) do
+    pinMap = BotState.get_pin(pin)
+    case pinMap do
+      %{mode: 0, value: 1 } ->
+        write_pin(pin, 0, 0)
+      %{mode: 0, value: 0 } ->
+        write_pin(pin, 1, 0)
+      nil ->
+        read_pin(pin, 0)
+        toggle_pin(pin)
+      _ -> :fail
+    end
+  end
+
   @doc """
     Reads a param. Needs the integer version of said param.
   """

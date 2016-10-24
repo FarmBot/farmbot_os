@@ -133,6 +133,16 @@ defmodule RPCMessageHandler do
       Poison.encode!(%{"pin_mode" => "1 or 2", "pin_number" => "number", "pin_value" => "number"})}
   end
 
+  def do_handle("toggle_pin", [%{"pin_number" => p}]) when is_integer(p) do
+    spawn fn -> Command.toggle_pin(p) end
+  end
+
+  def do_handle("toggle_pin", params) do
+    Logger.error ("#{inspect params}")
+    {:error, "BAD_PARAMS",
+      Poison.encode!(%{"pin_number" => "number"})}
+  end
+
   # Move to a specific coord
   def do_handle("move_absolute",  [%{"speed" => s, "x" => x, "y" => y, "z" => z}])
   when is_integer(x) and

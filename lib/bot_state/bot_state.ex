@@ -43,6 +43,10 @@ defmodule BotState do
     {:reply, state, state}
   end
 
+  def handle_call({:get_pin, pin_number}, _from, state) do
+    {:reply, Map.get(state.pins, Integer.to_string(pin_number)), state}
+  end
+
   def handle_call(:get_current_pos, _from, state) do
     {:reply, state.location, state}
   end
@@ -143,6 +147,10 @@ defmodule BotState do
 
   def set_param(param_string, value) do
     GenServer.cast(__MODULE__, {:set_param, {param_string, value}})
+  end
+
+  def get_pin(pin_number) when is_integer(pin_number) do
+    GenServer.call(__MODULE__, {:get_pin, pin_number})
   end
 
   def set_end_stop(_something) do
