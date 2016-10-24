@@ -79,7 +79,7 @@ defmodule Fw.Mixfile do
     [
      {:nerves, "~> 0.3.0"},
      {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
-     {:farmbot_configurator, path: "../farmbot_configurator"}
+     {:farmbot_configurator, github: "FarmBot/farmbot_configurator"}
     ]
   end
 
