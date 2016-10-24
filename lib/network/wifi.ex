@@ -53,7 +53,6 @@ defmodule Wifi do
   # Blatently ripped off from @joelbyler
   # https://github.com/joelbyler/elixir_conf_chores/blob/f13298f9185b850fdfaad0448f03a03b3067a85c/apps/firmware/lib/firmware.ex
   defp start_hostapd_deps(:prod) do
-    System.cmd("httpd",["-p", "80", "-h", "/www"]) |> print_cmd_result
     System.cmd("ip", ["link", "set", "wlan0", "up"]) |> print_cmd_result
     System.cmd("ip", ["addr", "add", "192.168.24.1/24", "dev", "wlan0"]) |> print_cmd_result
     System.cmd("dnsmasq", ["--dhcp-lease", "/root/dnsmasq.lease"]) |> print_cmd_result
@@ -79,7 +78,7 @@ defmodule Wifi do
   defp print_cmd_result({message, err_no}) do
     Logger.error("Command failed! (#{inspect err_no}) #{inspect message}")
     cmd_str = System.cmd("dmesg", []) |> print_cmd_result
-    File.write("/root/kenel_log", cmd_str)
+    File.write("/root/kernel_log", cmd_str)
     raise "This is probably not recoverable. Bailing"
   end
 

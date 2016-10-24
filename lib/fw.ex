@@ -9,7 +9,6 @@ defmodule Fw do
   def init(_args) do
     children = [
       worker(BotState, [[]], restart: :permanent ),
-      Plug.Adapters.Cowboy.child_spec(:http, MyRouter, [restart: :permanent], [port: 4000]),
       supervisor(NetworkSupervisor, [[]], restart: :permanent),
       supervisor(Controller, [[]], restart: :permanent)
     ]
