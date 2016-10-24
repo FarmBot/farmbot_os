@@ -16,13 +16,18 @@ defmodule BotState do
     GenServer.start_link(__MODULE__, args, [name: __MODULE__])
   end
 
-  def save(_state) do
+  def save(state) do
     # File.write!(@bot_state_save_file, :erlang.term_to_binary(state))
+    state
   end
 
   def load do
     default_state = %{
-      mcu_params: %{},
+      mcu_params: %{
+        movement_axis_nr_steps_x: 222, #
+        movement_axis_nr_steps_y: 222, # DELETE THESE
+        movement_axis_nr_steps_z: 222  #
+        },
       location: [0, 0, 0],
       pins: %{},
       configuration: %{ os_auto_update: false,
@@ -31,10 +36,20 @@ defmodule BotState do
     }
     case File.read(@bot_state_save_file) do
       { :ok, contents } ->
-        :erlang.binary_to_term(contents)
-        |> Map.put(:mcu_params, %{})
-        |> Map.put(:pins, %{})
-        |> Map.put(:informational_settings, %{ controller_version: Fw.version })
+        rcontents = :erlang.binary_to_term(contents)
+        if(Map.get(rcontents, :version)) do # SORRY ABOUT THIS
+          Logger.debug "UPDATING TO NEW STATE TREE"
+          default_state
+        else
+          rcontents
+          |> Map.put(:pins, %{})
+          |> Map.put(:mcu_params, %{
+            movement_axis_nr_steps_x: 222, #
+            movement_axis_nr_steps_y: 222, # DELETE THESE
+            movement_axis_nr_steps_z: 222  #
+            })
+          |> save
+        end
       _ -> default_state
     end
   end
