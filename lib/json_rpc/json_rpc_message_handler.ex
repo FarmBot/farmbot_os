@@ -36,7 +36,7 @@ defmodule RPCMessageHandler do
 
   # JSON RPC RESPONSE ERROR
   def ack_msg(id, {name, message}) when is_bitstring(id) and is_bitstring(name) and is_bitstring(message) do
-    Logger.debug("RPC ERROR")
+    Logger.error("RPC ERROR")
     IO.inspect({name, message})
     Poison.encode!(
     %{id: id,
@@ -55,7 +55,7 @@ defmodule RPCMessageHandler do
     Poison.encode!(
       %{ id: nil,
          method: "log_message",
-         params: [%{status: BotStatus.get_status,
+         params: [%{status: BotState.get_status,
                     time: :os.system_time(:seconds),
                     message: message,
                     channels: channels }] })
@@ -84,11 +84,11 @@ defmodule RPCMessageHandler do
   end
 
   def do_handle("toggle_os_auto_update", []) do
-    BotStatus.toggle_os_auto_update
+    BotState.toggle_os_auto_update
   end
 
   def do_handle("toggle_fw_auto_update", []) do
-    BotStatus.toggle_fw_auto_update
+    BotState.toggle_fw_auto_update
   end
 
   # E STOP
@@ -131,6 +131,17 @@ defmodule RPCMessageHandler do
   def do_handle("write_pin", _) do
     {:error, "BAD_PARAMS",
       Poison.encode!(%{"pin_mode" => "1 or 2", "pin_number" => "number", "pin_value" => "number"})}
+  end
+
+  def do_handle("toggle_pin", [%{"pin_number" => p}]) when is_integer(p) do
+    spawn fn -> Command.toggle_pin(p) end
+    :ok
+  end
+
+  def do_handle("toggle_pin", params) do
+    Logger.error ("#{inspect params}")
+    {:error, "BAD_PARAMS",
+      Poison.encode!(%{"pin_number" => "number"})}
   end
 
   # Move to a specific coord
@@ -259,9 +270,10 @@ defmodule RPCMessageHandler do
   end
 
   def send_status do
+    status = BotState.get_status
     m = %{id: nil,
           method: "status_update",
-          params: [BotStatus.get_status] }
+          params: [status] }
     @transport.emit(Poison.encode!(m))
   end
 end

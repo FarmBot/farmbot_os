@@ -49,6 +49,9 @@ defmodule Gcode do
   def parse_code("R99 " <> message) do { :debug_message, message } end
   def parse_code(code)  do {:unhandled_gcode, code} end
 
+  @doc """
+    TODO: DOWNCASE ALL OF THESE
+  """
   def parse_param("0"  ) do :PARAM_VERSION end
   def parse_param("11" ) do :MOVEMENT_TIMEOUT_X end
   def parse_param("12" ) do :MOVEMENT_TIMEOUT_Y end

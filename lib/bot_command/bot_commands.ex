@@ -45,9 +45,10 @@ defmodule Command do
   @doc """
     Writes a pin high or low
   """
-  def write_pin(pin, value, mode \\ "1")
-  def write_pin(pin, value, mode) do
-    BotStatus.set_pin(pin, value)
+  def write_pin(pin, value, mode)
+  when is_integer(pin) and is_integer(value) and is_integer(mode) do
+    BotState.set_pin_mode(pin, mode)
+    BotState.set_pin_value(pin, value)
     NewHandler.block_send "F41 P#{pin} V#{value} M#{mode}"
   end
 
@@ -83,17 +84,17 @@ defmodule Command do
   """
   def move_relative(e)
   def move_relative({:x, s, move_by}) when is_integer move_by do
-    [x,y,z] = BotStatus.get_current_pos
+    [x,y,z] = BotState.get_current_pos
     move_absolute(x + move_by,y,z,s)
   end
 
   def move_relative({:y, s, move_by}) when is_integer move_by do
-    [x,y,z] = BotStatus.get_current_pos
+    [x,y,z] = BotState.get_current_pos
     move_absolute(x,y + move_by,z,s)
   end
 
   def move_relative({:z, s, move_by}) when is_integer move_by do
-    [x,y,z] = BotStatus.get_current_pos
+    [x,y,z] = BotState.get_current_pos
     move_absolute(x,y,z + move_by,s)
   end
 
@@ -103,24 +104,14 @@ defmodule Command do
        is_integer y_move_by and
        is_integer z_move_by
   do
-    [x,y,z] = BotStatus.get_current_pos
+    [x,y,z] = BotState.get_current_pos
     move_absolute(x + x_move_by,y + y_move_by,z + z_move_by, speed)
   end
 
   @doc """
     Used when bootstrapping the bot.
-    Reads pins 0-13 in digital mode.
+    Reads all the params.
   """
-  def read_all_pins do
-    spawn fn -> Enum.each(0..13, fn pin ->
-      GenServer.call(NewHandler, {:send, "F42 P#{pin} M#{0}", self()})
-    end) end
-  end
-
-    @doc """
-      Used when bootstrapping the bot.
-      Reads all the params.
-    """
   def read_all_params do
     rel_params = [0,11,12,13,21,22,23,
                   31,32,33,41,42,43,51,
@@ -134,7 +125,22 @@ defmodule Command do
     Reads a pin value.
   """
   def read_pin(pin, mode \\ 0) do
+    BotState.set_pin_mode(pin, mode)
     NewHandler.block_send "F42 P#{pin} M#{mode}"
+  end
+
+  def toggle_pin(pin) when is_integer(pin) do
+    pinMap = BotState.get_pin(pin)
+    case pinMap do
+      %{mode: 0, value: 1 } ->
+        write_pin(pin, 0, 0)
+      %{mode: 0, value: 0 } ->
+        write_pin(pin, 1, 0)
+      nil ->
+        read_pin(pin, 0)
+        toggle_pin(pin)
+      _ -> :fail
+    end
   end
 
   @doc """
