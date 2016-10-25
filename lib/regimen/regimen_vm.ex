@@ -57,7 +57,8 @@ defmodule RegimenVM  do
             Logger.debug(msg)
             RPCMessageHandler.log(msg)
           false ->
-            RPCMessageHandler.log("Not running Sequence.")
+            # RPCMessageHandler.log("Not running Sequence.")
+            :ok
         end
         ( lhs > rhs )
     end)
