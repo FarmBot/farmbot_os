@@ -2,19 +2,18 @@ defmodule RegimenVM  do
   @checkup_time 60000
   require Logger
 
-  def start_link(regimen) do
-    GenServer.start_link(__MODULE__,regimen)
+  def start_link(regimen, finished_items \\[], time) do
+    GenServer.start_link(__MODULE__,{regimen, finished_items, time})
   end
 
-  def init(regimen) do
+  def init({regimen, finished_items, time}) do
     timer = Process.send_after(self(), :tick, @checkup_time)
-    now = System.monotonic_time(:milliseconds)
     initial_state = %{
         running: true,
         timer: timer,
-        start_time: now,
-        regimen_items: get_regimen_item_for_regimen(regimen),
-        ran_items: [],
+        start_time: time,
+        regimen_items: get_regimen_item_for_regimen(regimen) -- finished_items,
+        ran_items: finished_items,
         regimen: regimen
       }
     {:ok, initial_state}
@@ -63,16 +62,18 @@ defmodule RegimenVM  do
         ( lhs > rhs )
     end)
     timer = Process.send_after(self(), :tick, @checkup_time)
+    finished = ran_items ++ items_to_do
+    send(FarmEventManager, {:done, {:regimen_items, {self(), regimen, finished, start_time}}})
     {:noreply,
       %{running: true, timer: timer, start_time: start_time,
-        regimen_items: remaining_items, ran_items: ran_items ++ items_to_do,
+        regimen_items: remaining_items, ran_items: finished,
         regimen: regimen }}
   end
 
   def get_regimen_item_for_regimen(regimen) do
     this_regimen_id = Map.get(regimen, "id")
-    all_regimen_items = BotSync.get_regimen_items
-    Enum.filter(all_regimen_items, fn(item) -> Map.get(item, "regimen_id") == this_regimen_id end)
+    BotSync.get_regimen_items
+    |> Enum.filter(fn(item) -> Map.get(item, "regimen_id") == this_regimen_id end)
   end
 
   def terminate(:normal, state) do
@@ -92,9 +93,11 @@ defmodule RegimenVM  do
 
   def test do
     BotSync.sync
-    item = %{"id" => 22, "regimen_id" => 4, "sequence_id" => 13, "time_offset" => 60000}
-    GenServer.call(BotSync, {:add_regimen_item, item})
-    regimen = BotSync.get_regimen(4)
+    item1 = %{"id" => 66, "regimen_id" => 8, "sequence_id" => 13, "time_offset" => 120000}
+    item2 = %{"id" => 67, "regimen_id" => 8, "sequence_id" => 13, "time_offset" => 30000}
+    GenServer.call(BotSync, {:add_regimen_item, item1})
+    GenServer.call(BotSync, {:add_regimen_item, item2})
+    regimen = BotSync.get_regimen(8)
     GenServer.call(FarmEventManager, {:add, {:regimen, regimen}})
   end
 

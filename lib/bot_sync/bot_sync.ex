@@ -1,6 +1,7 @@
 defmodule BotSync do
   use GenServer
   require Logger
+
   def init(_args) do
     {:ok, %{token: nil, resources: nil }}
   end
@@ -26,7 +27,8 @@ defmodule BotSync do
                          headers: _headers,
                          status_code: 200} ->
        RPCMessageHandler.log("Synced")
-       {:noreply, %{token: token, resources: Map.merge(old || %{}, Poison.decode!(body)) }}
+       new = Map.merge(old || %{}, Poison.decode!(body))
+       {:noreply, %{token: token, resources: new }}
      error ->
        Logger.debug("Couldn't get resources: #{error}")
        RPCMessageHandler.log("Couldn't sync: #{error}")

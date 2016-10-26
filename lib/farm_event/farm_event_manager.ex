@@ -1,5 +1,6 @@
 defmodule FarmEventManager do
   @save_interval 10000
+  @save_file "/root/rename_me.state"
   require Logger
   @moduledoc """
     This isn't an event manager contrary to module name.
@@ -13,24 +14,64 @@ defmodule FarmEventManager do
   end
 
   def init(_args) do
-    # Process.send_after(self(), :save, @save_interval)
+    Process.send_after(self(), :save, @save_interval)
     {:ok, load}
   end
 
   def load do
-    # TODO load state from disk
     default_state = %{
-      paused_regimens: [],    # [{pid, regimen}]
-      running_regimens: [],   # [{pid, regimen}]
+      paused_regimens: [],    # [{pid, regimen, finished_items, time}]
+      running_regimens: [],   # [{pid, regimen, finished_items, time}]
       current_sequence: nil,  # {pid, sequence} | nil
       paused_sequences: [] ,  # [{pid, sequence}]
       sequence_log: []        # [sequence]
     }
-    default_state
+    case File.read(@save_file) do
+      # {:ok, contents} ->
+      #   old = :erlang.binary_to_term(contents)
+      #   spawn fn -> restart_regimens(old) end
+      #   default_state
+      _ -> default_state
+    end
   end
 
-  def save(_state) do
-    # TODO Save state to disk.
+  def save(state) do
+    File.write(@save_file, :erlang.term_to_binary(state))
+  end
+
+  def restart_regimens(old_state) do
+    b = Auth.fetch_token
+    cond do
+      is_map(b) ->
+        BotSync.sync()
+        Process.sleep(5000)
+      true -> restart_regimens(old_state)
+    end
+    BotSync.sync()
+    r = old_state.running_regimens
+    |> Enum.map(fn({_old_pid, regimen, finished_items, time}) ->
+      Logger.debug("Restarting Regimen")
+      {:ok, pid} = RegimenVM.start_link(regimen, finished_items, time)
+      {pid, regimen, finished_items, time}
+    end)
+    GenServer.call(__MODULE__, {:update_running, r})
+  end
+
+  # THIS SHOULDNT EXIST I DONT THINK
+  def handle_call({:update_running, running}, _from, %{
+    paused_regimens: pr,
+    running_regimens: _,
+    current_sequence: cs,
+    sequence_log: sl,
+    paused_sequences: ps
+  }) do
+    {:reply, :ok, %{
+      paused_regimens: pr,
+      running_regimens: running,
+      current_sequence: cs,
+      sequence_log: sl,
+      paused_sequences: ps
+    } }
   end
 
   # add a sequence when one isnt currently running and there is nothing in the list
@@ -77,16 +118,17 @@ defmodule FarmEventManager do
 
     # check to see if this regimen exists in either list
     check =
-    Enum.find(all, nil, fn({_pid, stored_regimen}) ->
+    Enum.find(all, nil, fn({_pid, stored_regimen, _items, _time}) ->
       regimen == stored_regimen
     end)
 
     case check do
       nil -> # this regimen isnt tracked and running yet.
-        {:ok, pid} = RegimenVM.start_link(regimen)
+      now = System.monotonic_time(:milliseconds)
+        {:ok, pid} = RegimenVM.start_link(regimen, [], now)
         {:reply, :ok,
           Map.put(state,
-            :running_regimens, state.running_regimens ++ [{pid, regimen}])}
+            :running_regimens, state.running_regimens ++ [{pid, regimen, [], now}])}
       _ -> RPCMessageHandler.log(Map.get(regimen, "name") <> " is already started!")
         {:reply, :ok, state}
     end
@@ -98,8 +140,8 @@ defmodule FarmEventManager do
 
   def handle_call(:jsonable, _from, state) do
     # I CAN DO BETTER
-    pr = Enum.map(state.paused_regimens, fn ({_, regimen}) -> regimen end)
-    rr = Enum.map(state.running_regimens, fn ({_, regimen}) -> regimen end)
+    pr = Enum.map(state.paused_regimens, fn ({_, regimen, _, _}) -> regimen end)
+    rr = Enum.map(state.running_regimens, fn ({_, regimen, _, _}) -> regimen end)
     ps = Enum.map(state.paused_sequences, fn ({_, seq}) -> seq end)
     {_pid, cs} = state.current_sequence || {nil, nil}
     sl = state.paused_sequences
@@ -111,20 +153,35 @@ defmodule FarmEventManager do
     {:reply, jsonable, state}
   end
 
+  def handle_info({:done, {:regimen_items, {pid, regimen, items, time}}}, state) do
+    Logger.debug("#{Map.get(regimen, "name")} has completed an item.")
+    index = Enum.find_index(state.running_regimens, fn({rpid, rregimen, _ritems, _time}) ->
+      {pid, regimen} == {rpid, rregimen}
+    end)
+    cond do
+      is_integer(index) ->
+        new_running = List.replace_at(state.running_regimens, index, {pid, regimen, items, time})
+        {:noreply, Map.put(state, :running_regimens, new_running)}
+      true ->
+        Logger.debug("bad index")
+        {:noreply, state}
+    end
+  end
+
   def handle_info({:done, {:regimen, {pid, regimen} }}, state) do
     Logger.debug("#{Map.get(regimen, "name")} is stopping.")
-    Enum.find_value(state.running_regimens, nil, fn({rpid, rregimen}) ->
+    Enum.find_value(state.running_regimens, nil, fn({rpid, rregimen, items, time}) ->
       if {rpid, rregimen} == {pid, regimen} do
         {:noreply,
           Map.put(state, :running_regimens,
-            state.running_regimens -- [{pid, regimen}])}
+            state.running_regimens -- [{pid, regimen, items, time}])}
       end
     end) ||
-    Enum.find(state.paused_regimens, nil, fn({rpid, rregimen}) ->
+    Enum.find_value(state.paused_regimens, nil, fn({rpid, rregimen,items, time}) ->
       if {rpid, rregimen} == {pid, regimen} do
         {:noreply,
           Map.put(state, :paused_regimens,
-            state.paused_regimens -- [{pid, regimen}])}
+            state.paused_regimens -- [{pid, regimen, items, time}])}
       end
     end)
   end
@@ -139,7 +196,6 @@ defmodule FarmEventManager do
     GenServer.stop(pid, :normal)
     RPCMessageHandler.log("Sequence Finished without errors!", ["success_toast", "ticker"])
     Logger.debug("FarmEventManager is out of sequences to run.")
-    spawn fn -> RPCMessageHandler.send_status end
     {:noreply,
       %{
         paused_regimens: pr,
@@ -159,7 +215,6 @@ defmodule FarmEventManager do
             paused_sequences: ps
           })
   do
-    spawn fn -> RPCMessageHandler.send_status end
     GenServer.stop(pid, :normal)
     RPCMessageHandler.log("Sequence Finished without errors!", ["success_toast", "ticker"])
     Logger.debug("FarmEventManager running next sequence.")
@@ -181,11 +236,15 @@ defmodule FarmEventManager do
     {:noreply, state}
   end
 
+  def terminate(:normal, state) do
+    Logger.debug("Farm Event Manager died. This is not good.")
+    save(state)
+  end
+
   def terminate(reason, state) do
     Logger.debug("Farm Event Manager died. This is not good.")
     spawn fn -> RPCMessageHandler.send_status end
     IO.inspect reason
     IO.inspect state
-    save(state)
   end
 end

@@ -217,14 +217,14 @@ defmodule RPCMessageHandler do
     :ok
   end
 
-  def do_handle("update_calibration", [params]) when is_map(params) do
+  def do_handle("mcu_config_update", [params]) when is_map(params) do
     case Enum.all?(params, fn({param, value}) ->
       param_int = Gcode.parse_param(param)
       spawn fn -> Command.update_param(param_int, value) end
     end)
     do
       true -> :ok
-      false -> {:error, "update_calibration", "Something went wrong."}
+      false -> {:error, "mcu_config_update", "Something went wrong."}
     end
   end
 

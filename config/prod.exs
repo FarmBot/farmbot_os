@@ -8,7 +8,7 @@ config :uart,
 
 config :fb,
   ro_path: "/root",
-  bot_state_save_file: "/root/botstatus.txt",
+  bot_state_save_file: "/root/botstatus.state",
   factory_reset_pin: 21
 
 config :json_rpc,

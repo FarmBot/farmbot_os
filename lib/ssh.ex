@@ -40,8 +40,10 @@ defmodule SSH do
   end
 
   def save_contents do
-    {:ok, contents} = File.read("/etc/dropbear/dropbear_ecdsa_host_key")
-    File.write("/root/dropbear_ecdsa_host_key", contents)
+    case File.read("/etc/dropbear/dropbear_ecdsa_host_key") do
+      {:ok, contents} -> File.write("/root/dropbear_ecdsa_host_key", contents)
+      _ -> nil
+    end
   end
 
   def make_banner do
