@@ -1,6 +1,5 @@
 defmodule FarmEventManager do
   @save_interval 10000
-  @save_file "/root/rename_me.state"
   require Logger
   @moduledoc """
     This isn't an event manager contrary to module name.
@@ -26,17 +25,11 @@ defmodule FarmEventManager do
       paused_sequences: [] ,  # [{pid, sequence}]
       sequence_log: []        # [sequence]
     }
-    case File.read(@save_file) do
-      # {:ok, contents} ->
-      #   old = :erlang.binary_to_term(contents)
-      #   spawn fn -> restart_regimens(old) end
-      #   default_state
-      _ -> default_state
-    end
+    default_state
   end
 
   def save(state) do
-    File.write(@save_file, :erlang.term_to_binary(state))
+    SafeStorage.write(__MODULE__, :erlang.term_to_binary(state))
   end
 
   def restart_regimens(old_state) do

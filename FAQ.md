@@ -35,7 +35,7 @@ This is not as trivial as you would think right now. (We are working on it.)
 You can use SSH:
 ```bash
 ssh root@<MY FARMBOT IP ADDRESS>
-rm /root/*
+rm /data/* -rf
 /usr/sbin/reboot
 ```
 Or if you have a hdmi monitor plugged into your RPI you can use IEX

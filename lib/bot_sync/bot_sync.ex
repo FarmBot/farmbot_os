@@ -102,8 +102,7 @@ defmodule BotSync do
         m = String.to_atom("Elixir.SequenceInstructionSet_"<>"#{id}")
         m.create_instruction_set(c)
         {:reply, Module.concat(SiS, "Corpus_#{id}"), %{token: token, resources: Map.put(resources, "corpuses", [c])}}
-      corpuses ->
-        corpuses
+      _corpuses ->
         {:reply, Module.concat(SiS, "Corpus_#{id}"), %{token: token, resources: resources}}
     end
   end

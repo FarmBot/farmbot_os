@@ -2,7 +2,6 @@ defmodule BotState do
   use GenServer
   require Logger
 
-  @bot_state_save_file Application.get_env(:fb, :bot_state_save_file)
   @save_interval 15000
   @twelve_hours 3600000
 
@@ -17,7 +16,7 @@ defmodule BotState do
   end
 
   def save(state) do
-    File.write!(@bot_state_save_file, :erlang.term_to_binary(state))
+    SafeStorage.write(__MODULE__, :erlang.term_to_binary(state))
     state
   end
 
@@ -30,9 +29,8 @@ defmodule BotState do
                         fw_auto_update: false },
       informational_settings: %{ controller_version: Fw.version }
     }
-    case File.read(@bot_state_save_file) do
-      { :ok, contents } ->
-        rcontents = :erlang.binary_to_term(contents)
+    case SafeStorage.read(__MODULE__) do
+      { :ok, rcontents } ->
         l = Map.keys(default_state)
         r = Map.keys(rcontents)
         Logger.debug("default: #{inspect l} saved: #{inspect r}")

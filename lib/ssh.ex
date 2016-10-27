@@ -3,11 +3,13 @@ defmodule SSH do
   require Logger
   @banner "/tmp/banner"
   @cmd "dropbear -R -F -a -B -b #{@banner}"
+
   def init(:prod) do
     Process.flag(:trap_exit, true)
     make_banner
-    case File.read("/root/dropbear_ecdsa_host_key") do
+    case SafeStorage.read(__MODULE__, false) do
       {:ok, contents} ->
+        # This is actually symlinked to /tmp so its still safe.
         File.write("/etc/dropbear/dropbear_ecdsa_host_key", contents)
         save_contents
       _ -> nil
@@ -40,8 +42,9 @@ defmodule SSH do
   end
 
   def save_contents do
+    # Read from /tmp
     case File.read("/etc/dropbear/dropbear_ecdsa_host_key") do
-      {:ok, contents} -> File.write("/root/dropbear_ecdsa_host_key", contents)
+      {:ok, contents} -> SafeStorage.write(__MODULE__, contents)
       _ -> nil
     end
   end

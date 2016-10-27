@@ -64,7 +64,7 @@ defmodule NesBotControl do
     {:noreply, {:none, pid}}
   end
 
-  def handle_info(button, {last_button, pid}) do
+  def handle_info(_button, {last_button, pid}) do
     {:noreply, {last_button, pid}}
   end
 end

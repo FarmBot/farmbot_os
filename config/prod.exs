@@ -7,9 +7,9 @@ config :uart,
   baud: 115200
 
 config :fb,
-  ro_path: "/root",
-  bot_state_save_file: "/root/botstatus.state",
-  factory_reset_pin: 21
+  state_path: "/state",
+  db_path: "/db",
+  dnsmasq_path: "/root/dnsmasq.lease"
 
 config :json_rpc,
     transport: MqttHandler
