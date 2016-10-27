@@ -117,11 +117,20 @@ defmodule FarmEventManager do
 
     case check do
       nil -> # this regimen isnt tracked and running yet.
-      now = System.monotonic_time(:milliseconds)
-        {:ok, pid} = RegimenVM.start_link(regimen, [], now)
+      # REGIMENS ALWAYS START AT MIDNIGHT TODAY.
+
+      # now = System.monotonic_time(:milliseconds)
+      now = :os.system_time
+      Logger.warn("THE REGIMEN IS TIMER IS WRONG")
+      # We need to know how many hours it has been since midnight. But all we
+      # Have is gmt time. 
+      start_time = now
+
+      start_time =
+        {:ok, pid} = RegimenVM.start_link(regimen, [], start_time)
         {:reply, :ok,
           Map.put(state,
-            :running_regimens, state.running_regimens ++ [{pid, regimen, [], now}])}
+            :running_regimens, state.running_regimens ++ [{pid, regimen, [], start_time}])}
       _ -> RPCMessageHandler.log(Map.get(regimen, "name") <> " is already started!")
         {:reply, :ok, state}
     end
