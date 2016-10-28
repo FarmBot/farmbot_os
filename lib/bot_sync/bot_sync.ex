@@ -26,12 +26,12 @@ defmodule BotSync do
      %HTTPotion.Response{body: body,
                          headers: _headers,
                          status_code: 200} ->
-       RPCMessageHandler.log("Synced")
+       RPCMessageHandler.log("synced", [], ["BotSync"])
        new = Map.merge(old || %{}, Poison.decode!(body))
        {:noreply, %{token: token, resources: new }}
      error ->
        Logger.debug("Couldn't get resources: #{error}")
-       RPCMessageHandler.log("Couldn't sync: #{error}")
+       RPCMessageHandler.log("Error syncing: #{inspect error}", [:error_toast], ["BotSync"])
        {:noreply, %{token: token, resources: %{}}}
     end
   end
@@ -92,11 +92,13 @@ defmodule BotSync do
   end
 
   # REALLY BAD LOGIC HERE
+  # TODO: make this a little cleaner
   def handle_call({:get_corpus, id}, _from, %{token: token, resources: resources} ) do
     case Map.get(resources, "corpuses") do
       nil ->
-        Logger.debug("Compiling Corpus Instruction Set")
-        RPCMessageHandler.log("Compileing Instruction Set!")
+        msg = "Compiling Sequence Instruction Set"
+        Logger.debug(msg)
+        RPCMessageHandler.log(msg, [], ["BotSync"])
         server = Map.get(token, "unencoded") |> Map.get("iss")
         c = get_corpus_from_server(server, id)
         m = String.to_atom("Elixir.SequenceInstructionSet_"<>"#{id}")

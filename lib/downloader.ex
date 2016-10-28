@@ -1,17 +1,19 @@
 defmodule Downloader do
+  @log_tag "BotUpdates"
   def download_and_install_os_update(url) do
-    RPCMessageHandler.log("Downloading an OS Update!")
+    RPCMessageHandler.log("Downloading OS update!", [:warning_toast], [@log_tag])
     File.rm("/tmp/update.fw")
     run(url, "/tmp/update.fw") |> Nerves.Firmware.upgrade_and_finalize
-    RPCMessageHandler.log("Going down for OS update. See you soon!")
+    RPCMessageHandler.log("Going down for OS update!", [:warning_toast], [@log_tag])
     Process.sleep(5000)
     Nerves.Firmware.reboot
   end
 
   def download_and_install_fw_update(url) do
-    RPCMessageHandler.log("Downloading an FW Update!")
+    RPCMessageHandler.log("Downloading FW Update", [:warning_toast], [@log_tag])
     File.rm("/tmp/update.hex")
     file = run(url, "/tmp/update.hex")
+    RPCMessageHandler.log("Installing FW Update", [], [@log_tag])
     GenServer.cast(UartHandler, {:update_fw, file})
   end
 

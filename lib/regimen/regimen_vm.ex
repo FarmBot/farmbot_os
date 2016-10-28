@@ -54,13 +54,15 @@ defmodule RegimenVM  do
             msg = "Time to run Sequence: " <> Map.get(sequence, "name")
             GenServer.call(FarmEventManager, {:add, {:sequence, sequence}})
             Logger.debug(msg)
-            RPCMessageHandler.log(msg)
+            RPCMessageHandler.log(msg, [:ticker, :success_toast], [Map.get(regimen, "name")])
           false ->
-            # RPCMessageHandler.log("Not running Sequence.")
             :ok
         end
         ( lhs > rhs )
     end)
+    if(items_to_do == []) do
+      RPCMessageHandler.log("nothing to run this cycle", [], [Map.get(regimen, "name")])
+    end
     timer = Process.send_after(self(), :tick, @checkup_time)
     finished = ran_items ++ items_to_do
     send(FarmEventManager, {:done, {:regimen_items, {self(), regimen, finished, start_time}}})
@@ -80,14 +82,14 @@ defmodule RegimenVM  do
     rname = Map.get(state.regimen, "name")
     msg = "Regimen: #{rname} completed without errors!"
     Logger.debug(msg)
-    RPCMessageHandler.log(msg, "success_toast")
+    RPCMessageHandler.log(msg, [:ticker, :success_toast], ["RegimenManager"])
   end
 
   def terminate(reason, state) do
     rname = Map.get(state.regimen, "name")
     msg = "Regimen: #{rname} completed with errors! #{inspect reason}"
     Logger.debug(msg)
-    RPCMessageHandler.log(msg, "error_toast")
+    RPCMessageHandler.log(msg, [:ticker, :error_toast], ["RegimenManager"])
   end
 
 

@@ -1,5 +1,6 @@
 defmodule FarmEventManager do
   @save_interval 10000
+  @log_tag "FarmEventManager"
   require Logger
   @moduledoc """
     This isn't an event manager contrary to module name.
@@ -75,7 +76,7 @@ defmodule FarmEventManager do
     sequence_log: [],
     paused_sequences: ps
   }) do
-    RPCMessageHandler.log("Starting sequence now", "success_toast")
+    RPCMessageHandler.log("Starting sequence: #{Map.get(sequence, "name")}", [:success_toast], [@log_tag])
     {:ok, pid} = SequenceManager.start_link(sequence)
     {:reply, "starting sequence", %{
         paused_regimens: pr,
@@ -94,7 +95,7 @@ defmodule FarmEventManager do
     sequence_log: log,
     paused_sequences: ps
   }) do
-    RPCMessageHandler.log("Adding sequence to queue.", "warning_toast")
+    RPCMessageHandler.log("Adding sequence to queue: #{sequence.name}", [:warning_toast], [@log_tag])
     {:reply, "queuing sequence", %{
         paused_regimens: pr,
         running_regimens: rr,
@@ -119,11 +120,11 @@ defmodule FarmEventManager do
       nil -> # this regimen isnt tracked and running yet.
       # REGIMENS ALWAYS START AT MIDNIGHT TODAY.
 
-      # now = System.monotonic_time(:milliseconds)
-      now = :os.system_time
+      now = System.monotonic_time(:milliseconds)
+      # now = :os.system_time
       Logger.warn("THE REGIMEN IS TIMER IS WRONG")
       # We need to know how many hours it has been since midnight. But all we
-      # Have is gmt time. 
+      # Have is gmt time.
       start_time = now
 
       start_time =
@@ -131,7 +132,7 @@ defmodule FarmEventManager do
         {:reply, :ok,
           Map.put(state,
             :running_regimens, state.running_regimens ++ [{pid, regimen, [], start_time}])}
-      _ -> RPCMessageHandler.log(Map.get(regimen, "name") <> " is already started!")
+        _ -> RPCMessageHandler.log(Map.get(regimen, "name") <> " is already started!", [:warning_toast], [@log_tag])
         {:reply, :ok, state}
     end
   end
@@ -196,8 +197,9 @@ defmodule FarmEventManager do
       paused_sequences: ps
     }) do
     GenServer.stop(pid, :normal)
-    RPCMessageHandler.log("Sequence Finished without errors!", ["success_toast", "ticker"])
-    Logger.debug("FarmEventManager is out of sequences to run.")
+    m = "FarmEventManager is out of sequences to run."
+    Logger.debug(m)
+    RPCMessageHandler.log(m, [:success_toast, :ticker], [@log_tag])
     {:noreply,
       %{
         paused_regimens: pr,
@@ -218,8 +220,9 @@ defmodule FarmEventManager do
           })
   do
     GenServer.stop(pid, :normal)
-    RPCMessageHandler.log("Sequence Finished without errors!", ["success_toast", "ticker"])
-    Logger.debug("FarmEventManager running next sequence.")
+    m = "FarmEventManager is out of sequences to run."
+    Logger.debug(m)
+    RPCMessageHandler.log(m, [:success_toast, :ticker], [@log_tag])
     next_seq = List.first(log)
     {:ok, new_pid} = SequenceManager.start_link(next_seq)
     {:noreply,

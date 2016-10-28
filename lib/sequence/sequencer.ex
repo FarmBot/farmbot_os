@@ -19,7 +19,7 @@ defmodule SequencerVM do
       %{
         status: status,
         body: body,
-        args: %{},
+        args: Map.put(args, "name", Map.get(sequence, "name")),
         instruction_set: instruction_set,
         vars: %{},
         running: true
@@ -68,7 +68,7 @@ defmodule SequencerVM do
   end
 
   def handle_call(thing, _from, state) do
-    RPCMessageHandler.log("#{inspect thing} is probably not implemented")
+    RPCMessageHandler.log("#{inspect thing} is probably not implemented", [:warning_toast], ["Sequencer"])
     {:reply, :ok, state}
   end
 
@@ -100,6 +100,7 @@ defmodule SequencerVM do
          })
   do
     Logger.debug("sequence done")
+    RPCMessageHandler.log("Sequence Complete", [], [Map.get(args, "name")])
     send(SequenceManager, {:done, self()})
     Logger.debug("Stopping VM")
     {:noreply, %{status: status, body: [], args: args, instruction_set: instruction_set, vars: vars, running: running  }}
@@ -118,6 +119,7 @@ defmodule SequencerVM do
     node = List.first(body)
     kind = Map.get(node, "kind")
     Logger.debug("doing: #{kind}")
+    RPCMessageHandler.log("Doin step: #{kind}", [], [Map.get(args, "name")])
     GenServer.cast(instruction_set, {kind, Map.get(node, "args") })
     {:noreply, %{
             status: status,
@@ -139,7 +141,7 @@ defmodule SequencerVM do
 
   def terminate(reason, state) do
     Logger.debug("VM Died: #{inspect reason}")
-    RPCMessageHandler.log("Sequence Finished with errors! #{inspect reason}", "error_toast")
+    RPCMessageHandler.log("Sequence Finished with errors! #{inspect reason}", [:error_toast], ["Sequencer"])
     GenServer.stop(state.instruction_set, :normal)
     IO.inspect state
   end

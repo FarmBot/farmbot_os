@@ -48,22 +48,18 @@ defmodule RPCMessageHandler do
   @doc """
     Logs a message to the frontend.
   """
-  def log_msg(message,channels \\ [])
-
-  def log_msg(message, channels)
-  when is_list(channels) do
+  def log_msg(message, channels, tags)
+  when is_list(channels)
+       and is_list(tags)
+       and is_bitstring(message) do
     Poison.encode!(
       %{ id: nil,
          method: "log_message",
-         params: [%{status: BotState.get_status,
-                    time: :os.system_time(:seconds),
-                    message: message,
-                    channels: channels }] })
-  end
-
-  def log_msg(message,channel)
-  when is_bitstring(channel) do
-    log_msg(message,[channel])
+         params: [%{ status: BotState.get_status,
+                     time: :os.system_time(:seconds),
+                     message: message,
+                     channels: channels,
+                     tags: tags }] })
   end
 
   def handle_rpc(%{"method" => method, "params" => params, "id" => id})
@@ -198,9 +194,9 @@ defmodule RPCMessageHandler do
   end
 
   def do_handle("reboot", _ ) do
-    log("Bot Going down for reboot in 5 seconds")
+    log("Bot Going down for reboot in 5 seconds", [], ["BotControl"])
     spawn fn ->
-      log("Rebooting!", "ticker")
+      log("Rebooting!", [:ticker, :warning_toast], ["BotControl"])
       Process.sleep(5000)
       Nerves.Firmware.reboot
     end
@@ -223,7 +219,9 @@ defmodule RPCMessageHandler do
       spawn fn -> Command.update_param(param_int, value) end
     end)
     do
-      true -> :ok
+      true ->
+        log("MCU Params updated.", [], ["RPCHANDLER"])
+        :ok
       false -> {:error, "mcu_config_update", "Something went wrong."}
     end
   end
@@ -239,10 +237,8 @@ defmodule RPCMessageHandler do
        and Map.has_key?(sequence, "args")
        and Map.has_key?(sequence, "name")
       ->
-        # resp = GenServer.call(SequenceManager, {:add, sequence})
-        # log(resp, "success_toast")
         GenServer.call(FarmEventManager, {:add, {:sequence, sequence}})
-      true -> log("Sequence invalid.")
+      true -> log("Sequence invalid.", [:error_toast], ["RPCHANDLER"])
     end
     :ok
   end
@@ -286,19 +282,19 @@ defmodule RPCMessageHandler do
   end
 
   @doc """
-    Shortcut for loggin to teh frontend. Pass it a string, watch it display
+    Shortcut for logging a message to the frontend.
+    =  Channel can be  =
+    |  :error_ticker   |
+    |  :error_toast    |
+    |  :success_toast  |
+    |  :warning_toast  |
   """
-  def log(message, channel \\ [])
-  def log(message, channels)
+  def log(message, channel \\ [], tags \\ [])
+  def log(message, channels, tags)
   when is_bitstring(message)
-   and is_list(channels) do
-    @transport.emit(log_msg(message, channels))
-  end
-
-  def log(message, channel)
-  when is_bitstring(message)
-   and is_bitstring(channel) do
-    @transport.emit(log_msg(message, [channel]))
+   and is_list(channels)
+   and is_list(tags) do
+    @transport.emit(log_msg(message, channels, tags))
   end
 
   def send_status do

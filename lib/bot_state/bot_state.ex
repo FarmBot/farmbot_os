@@ -69,9 +69,13 @@ defmodule BotState do
     pin_state = state.pins
     new_pin_value =
     case Map.get(pin_state, Integer.to_string(pin)) do
-      nil                     -> %{mode: -1,   value: value}
-      %{mode: mode, value: _} -> %{mode: mode, value: value}
+      nil                     ->
+        %{mode: -1,   value: value}
+      %{mode: mode, value: _} ->
+        %{mode: mode, value: value}
     end
+    # I REALLY don't want this to be here.
+    spawn fn -> RPCMessageHandler.log("PIN #{pin} set: #{new_pin_value.value}", [], ["BotControl"]) end
     pin_state = Map.put(pin_state, Integer.to_string(pin), new_pin_value)
     {:noreply, Map.put(state, :pins, pin_state)}
   end
@@ -121,7 +125,9 @@ defmodule BotState do
   end
 
   def handle_info(:check_updates, state) do
-    Logger.debug("Doing scheduled update check.")
+    msg = "Checking for updates!"
+    Logger.debug(msg)
+    RPCMessageHandler.log(msg, [], ["BotUpdates"])
     if(state.configuration.os_auto_update == true) do
       spawn fn -> Fw.check_and_download_os_update end
     end
@@ -212,7 +218,6 @@ defmodule BotState do
       spawn fn -> Command.write_pin(p, value, mode) end
     end) do
       true -> Logger.debug("Pins are set!")
-              RPCMessageHandler.log("Bot Online!", "ticker")
       false -> Logger.error("Error resetting pins")
     end
   end
