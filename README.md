@@ -30,7 +30,7 @@ If you are setting up your FarmBot for the first time, download the latest FarmB
 To update the firmware on the Raspberry Pi and the Arduino, simply use the "update" buttons on the web application. There is no need to reinstall the entire OS.
 
 # Issues
-Please read through the FAQ, if you do not see what you need see the [FAQ](FREQUENTLY_ASKED_QUESTIONS.md)
+Please read through the [FAQ](FREQUENTLY_ASKED_QUESTIONS.md). If you don't see what you need please by all means open a Github Issue!
 
 # Building / Development (for developers only)
 
