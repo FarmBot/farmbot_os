@@ -30,7 +30,7 @@ defmodule Fw do
   end
 
   def factory_reset do
-    SafeStorage.clear
+    GenServer.stop SafeStorage, :reset
     Nerves.Firmware.reboot
   end
 

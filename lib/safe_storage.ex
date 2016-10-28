@@ -77,20 +77,6 @@ defmodule SafeStorage do
     GenServer.call(__MODULE__, {:read, module, is_term})
   end
 
-  @doc """
-    Clears the state. This is essentially a factory reset. so use with caution.
-  """
-  def clear do
-    :ok
-  end
-
-  @doc """
-    Clears a particular module
-  """
-  def clear(module) do
-    :ok
-  end
-
   def mount_read_only do
     sync
     cmd = "mount"
@@ -123,7 +109,7 @@ defmodule SafeStorage do
     case File.read("#{@state_path}/STATE") do
       {:ok, contents} ->
         :erlang.binary_to_term(contents) == state
-      _ -> true
+      _ -> false
     end
   end
 
@@ -147,5 +133,21 @@ defmodule SafeStorage do
   defp print_cmd({result, err_no}, cmd) do
     Logger.error("Something bad happened. \"#{cmd}\" exited with error code: #{err_no} and result: #{result}")
     result
+  end
+
+  def terminate(:normal, state) do
+    mount_read_write
+    File.write("#{@state_path}/STATE", :erlang.term_to_binary(state))
+    sync
+    mount_read_only
+    :ok
+  end
+
+  def terminate(:reset, _state) do
+    mount_read_write
+    File.rm("#{@state_path}/STATE")
+    sync
+    mount_read_only
+    :reset
   end
 end
