@@ -1,14 +1,16 @@
 defmodule Fw do
   require Logger
   use Supervisor
+  @env Mix.env
   @target System.get_env("NERVES_TARGET") || "rpi3"
   @bot_state_save_file Application.get_env(:fb, :bot_state_save_file)
-  @data_path Application.get_env(:fb, :ro_path)
   @version Path.join(__DIR__ <> "/..", "VERSION") |> File.read! |> String.strip
 
   def init(_args) do
     children = [
+      worker(SafeStorage, [[]], restart: :permanent),
       worker(BotState, [[]], restart: :permanent ),
+      worker(SSH, [@env], restart: :permanent),
       supervisor(Extras, [[]], restart: :temporary),
       supervisor(NetworkSupervisor, [[]], restart: :permanent),
       supervisor(Controller, [[]], restart: :permanent)
@@ -28,9 +30,7 @@ defmodule Fw do
   end
 
   def factory_reset do
-    File.rm("#{@data_path}/secretes.txt")
-    File.rm("#{@data_path}/network.config")
-    File.rm(@bot_state_save_file)
+    GenServer.stop SafeStorage, :reset
     Nerves.Firmware.reboot
   end
 

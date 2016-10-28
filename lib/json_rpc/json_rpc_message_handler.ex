@@ -217,14 +217,14 @@ defmodule RPCMessageHandler do
     :ok
   end
 
-  def do_handle("update_calibration", [params]) when is_map(params) do
+  def do_handle("mcu_config_update", [params]) when is_map(params) do
     case Enum.all?(params, fn({param, value}) ->
       param_int = Gcode.parse_param(param)
       spawn fn -> Command.update_param(param_int, value) end
     end)
     do
       true -> :ok
-      false -> {:error, "update_calibration", "Something went wrong."}
+      false -> {:error, "mcu_config_update", "Something went wrong."}
     end
   end
 
@@ -246,6 +246,38 @@ defmodule RPCMessageHandler do
     end
     :ok
   end
+
+  def do_handle("start_regimen", [%{"regimen_id" => id}]) when is_integer(id) do
+    BotSync.sync()
+    regimen = BotSync.get_regimen(id)
+    GenServer.call(FarmEventManager, {:add, {:regimen, regimen}})
+    send_status
+  end
+
+  def do_handle("start_regimen", params) do
+    Logger.debug("bad params for start_regimen: #{inspect params}")
+    {:error, "BAD_PARAMS",
+      Poison.encode!(%{"regimen_id" => "number"})}
+  end
+
+  def do_handle("stop_regimen", [%{"regimen_id" => id}]) when is_integer(id) do
+    regimen = BotSync.get_regimen(id)
+    running = GenServer.call(FarmEventManager, :state)
+    |> Map.get(:running_regimens)
+    |> Enum.find(fn({_p, re}) ->
+      re == regimen
+    end)
+    send(FarmEventManager, {:done, {:regimen, running}})
+    send_status
+  end
+
+  def do_handle("stop_regimen", params) do
+    Logger.debug("bad params for stop_regimen: #{inspect params}")
+    {:error, "BAD_PARAMS",
+      Poison.encode!(%{"regimen_id" => "number"})}
+  end
+
+
 
   # Unhandled event. Probably not implemented if it got this far.
   def do_handle(event, params) do
@@ -270,7 +302,9 @@ defmodule RPCMessageHandler do
   end
 
   def send_status do
-    status = BotState.get_status
+    status =
+      Map.merge(BotState.get_status,
+      %{ farm_events: GenServer.call(FarmEventManager, :jsonable) })
     m = %{id: nil,
           method: "status_update",
           params: [status] }

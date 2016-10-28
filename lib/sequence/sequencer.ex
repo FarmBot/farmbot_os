@@ -39,16 +39,26 @@ defmodule SequencerVM do
   end
 
   def handle_call(:get_all_vars, _from, state ) do
-    bot_state = BotState.get_status
+    # Kind of dirty function to make mustache work properly.
+    # Also possibly a huge memory leak.
+
+    # get all of the local vars from the vm.
     thing1 = state.vars |> Enum.reduce(%{}, fn ({key, val}, acc) -> Map.put(acc, String.to_atom(key), val) end)
-    thing2 = bot_state |> Enum.reduce(%{}, fn ({key, val}, acc) ->
-      cond do
-        is_bitstring(key) -> Map.put(acc, String.to_atom(key), val)
-        is_atom(key) -> Map.put(acc, key, val)
-      end
+
+    # put current position into the Map
+    [x,y,z] = BotState.get_current_pos
+    pins = BotState.get_status
+    |> Map.get(:pins)
+    |> Enum.reduce(%{}, fn( {key, %{mode: _mode, value: val}}, acc) ->
+      Map.put(acc, String.to_atom("pin"<>key), val)
     end)
+    thing2 = Map.merge( %{x: x, y: y, z: z }, pins)
+
+    # gets a couple usefull things out of BotSync
     thing3v = List.first Map.get(BotSync.fetch, "users")
     thing3 = thing3v |> Enum.reduce(%{}, fn ({key, val}, acc) -> Map.put(acc, String.to_atom(key), val) end)
+
+    # Combine all the things.
     all_things = Map.merge(thing1, thing2) |> Map.merge(thing3)
     {:reply, all_things , state }
   end

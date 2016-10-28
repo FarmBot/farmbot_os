@@ -63,4 +63,8 @@ defmodule NesBotControl do
     Process.sleep(200) # wait for bot position to be updated
     {:noreply, {:none, pid}}
   end
+
+  def handle_info(_button, {last_button, pid}) do
+    {:noreply, {last_button, pid}}
+  end
 end

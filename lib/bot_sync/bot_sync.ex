@@ -1,6 +1,7 @@
 defmodule BotSync do
   use GenServer
   require Logger
+
   def init(_args) do
     {:ok, %{token: nil, resources: nil }}
   end
@@ -26,7 +27,8 @@ defmodule BotSync do
                          headers: _headers,
                          status_code: 200} ->
        RPCMessageHandler.log("Synced")
-       {:noreply, %{token: token, resources: Map.merge(old || %{}, Poison.decode!(body)) }}
+       new = Map.merge(old || %{}, Poison.decode!(body))
+       {:noreply, %{token: token, resources: new }}
      error ->
        Logger.debug("Couldn't get resources: #{error}")
        RPCMessageHandler.log("Couldn't sync: #{error}")
@@ -100,8 +102,7 @@ defmodule BotSync do
         m = String.to_atom("Elixir.SequenceInstructionSet_"<>"#{id}")
         m.create_instruction_set(c)
         {:reply, Module.concat(SiS, "Corpus_#{id}"), %{token: token, resources: Map.put(resources, "corpuses", [c])}}
-      corpuses ->
-        corpuses
+      _corpuses ->
         {:reply, Module.concat(SiS, "Corpus_#{id}"), %{token: token, resources: resources}}
     end
   end

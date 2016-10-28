@@ -1,5 +1,4 @@
 defmodule Auth do
-  @path Application.get_env(:fb, :ro_path)
   require GenServer
   require Logger
 
@@ -33,7 +32,7 @@ defmodule Auth do
     Saves the secret and the server to disk.
   """
   def save_encrypted(secret, server) do
-    File.write("#{@path}/secretes.txt", :erlang.term_to_binary(%{secret: secret, server: server}))
+    SafeStorage.write(__MODULE__, :erlang.term_to_binary(%{secret: secret, server: server}))
   end
 
   @doc """
@@ -41,12 +40,11 @@ defmodule Auth do
     if there is no file returns nil
   """
   def load_encrypted do
-    file = File.read("#{@path}/secretes.txt")
-    case file do
-      {:ok, contents} -> t = :erlang.binary_to_term(contents)
-                         get_token(Map.get(t, :secret), Map.get(t, :server))
+    case SafeStorage.read(__MODULE__) do
+      {:ok, t} -> get_token(Map.get(t, :secret), Map.get(t, :server))
       _ -> nil
     end
+
   end
 
   # Gets a token from the API with given secret and server

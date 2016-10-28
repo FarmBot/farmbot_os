@@ -2,7 +2,6 @@ defmodule BotState do
   use GenServer
   require Logger
 
-  @bot_state_save_file Application.get_env(:fb, :bot_state_save_file)
   @save_interval 15000
   @twelve_hours 3600000
 
@@ -17,40 +16,36 @@ defmodule BotState do
   end
 
   def save(state) do
-    # File.write!(@bot_state_save_file, :erlang.term_to_binary(state))
+    SafeStorage.write(__MODULE__, :erlang.term_to_binary(state))
     state
   end
 
   def load do
     default_state = %{
-      mcu_params: %{
-        movement_axis_nr_steps_x: 222, #
-        movement_axis_nr_steps_y: 222, # DELETE THESE
-        movement_axis_nr_steps_z: 222  #
-        },
+      mcu_params: %{},
       location: [0, 0, 0],
       pins: %{},
       configuration: %{ os_auto_update: false,
                         fw_auto_update: false },
       informational_settings: %{ controller_version: Fw.version }
     }
-    case File.read(@bot_state_save_file) do
-      { :ok, contents } ->
-        rcontents = :erlang.binary_to_term(contents)
-        if(Map.get(rcontents, :version)) do # SORRY ABOUT THIS
-          Logger.debug "UPDATING TO NEW STATE TREE"
+    case SafeStorage.read(__MODULE__) do
+      { :ok, rcontents } ->
+        l = Map.keys(default_state)
+        r = Map.keys(rcontents)
+        Logger.debug("default: #{inspect l} saved: #{inspect r}")
+        if(l != r) do # SORRY ABOUT THIS
+          Logger.debug "UPDATING TO NEW STATE TREE FORMAT OR SOMETHING"
+          spawn fn -> apply_status(default_state) end
           default_state
         else
-          rcontents
-          |> Map.put(:pins, %{})
-          |> Map.put(:mcu_params, %{
-            movement_axis_nr_steps_x: 222, #
-            movement_axis_nr_steps_y: 222, # DELETE THESE
-            movement_axis_nr_steps_z: 222  #
-            })
-          |> save
+          Logger.debug("Trying to apply last bot state")
+          spawn fn -> apply_status(rcontents) end
+          default_state
         end
-      _ -> default_state
+      _ ->
+      spawn fn -> apply_status(default_state) end
+      default_state
     end
   end
 
@@ -181,8 +176,45 @@ defmodule BotState do
     GenServer.cast(__MODULE__, :toggle_os_auto_update)
   end
 
-  def apply_status(_state) do
-    Logger.debug("TODO: Apply bot state")
+  def apply_status(state) do
+    p = Process.whereis(NewHandler)
+    if(is_pid(p) and Process.alive?(p)) do
+      Process.sleep(1000)
+      Command.home_all(100)
+      apply_params(state.mcu_params)
+      apply_pins(state.pins)
+    else
+      Process.sleep(10)
+      apply_status(state)
+    end
+    state
+  end
+
+  def apply_params(%{}) do
+    Command.read_all_params
+  end
+
+  def apply_params(params) when is_map(params) do
+    case Enum.all?(params, fn({param, value}) ->
+      # WILL SOMEONE JUST DOWNCASE THE PARAMS.
+      param_int = Gcode.parse_param(Atom.to_string(param))
+      spawn fn -> Command.update_param(param_int, value) end
+    end)
+    do
+      true -> Logger.debug("Params are set!")
+      false -> Logger.error("Error resetting params")
+    end
+  end
+
+  def apply_pins(pins) when is_map(pins) do
+    case Enum.all?(pins, fn({pin_str, %{mode: mode, value: value} }) ->
+      p = String.to_integer(pin_str)
+      spawn fn -> Command.write_pin(p, value, mode) end
+    end) do
+      true -> Logger.debug("Pins are set!")
+              RPCMessageHandler.log("Bot Online!", "ticker")
+      false -> Logger.error("Error resetting pins")
+    end
   end
 
   defp save_interval do

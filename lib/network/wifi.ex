@@ -1,26 +1,22 @@
 defmodule Wifi do
-  @path Application.get_env(:fb, :ro_path)
+  @dnsmasq_file Application.get_env(:fb, :dnsmasq_path)
   @env Mix.env
   use GenServer
   require Logger
   defp load do
-    case File.read("#{@path}/network.config") do
-      {:ok, contents} ->
-        b = :erlang.binary_to_term(contents)
-        case b do
-          {ssid, password} -> {:wpa_supplicant, {ssid, password}}
-          :eth -> :eth
-        end
-      _ -> :nope
+    case SafeStorage.read(__MODULE__) do
+      {:ok, {ssid, password} } -> {:wpa_supplicant, {ssid, password}}
+      {:ok,:eth } -> :eth
+      _ -> nil
     end
   end
 
   defp save({ssid, password}) do
-    File.write("#{@path}/network.config", :erlang.term_to_binary({ssid, password}))
+    SafeStorage.write(__MODULE__, :erlang.term_to_binary({ssid, password}) )
   end
 
   defp save(:eth) do
-    File.write("#{@path}/network.config", :erlang.term_to_binary(:eth))
+    SafeStorage.write(__MODULE__, :erlang.term_to_binary(:eth))
   end
 
   def init(_args) do
@@ -55,7 +51,7 @@ defmodule Wifi do
   defp start_hostapd_deps(:prod) do
     System.cmd("ip", ["link", "set", "wlan0", "up"]) |> print_cmd_result
     System.cmd("ip", ["addr", "add", "192.168.24.1/24", "dev", "wlan0"]) |> print_cmd_result
-    System.cmd("dnsmasq", ["--dhcp-lease", "/root/dnsmasq.lease"]) |> print_cmd_result
+    System.cmd("dnsmasq", ["--dhcp-lease", @dnsmasq_file]) |> print_cmd_result
   end
 
   defp start_hostapd_deps(_) do
@@ -77,8 +73,6 @@ defmodule Wifi do
 
   defp print_cmd_result({message, err_no}) do
     Logger.error("Command failed! (#{inspect err_no}) #{inspect message}")
-    cmd_str = System.cmd("dmesg", []) |> print_cmd_result
-    File.write("/root/kernel_log", cmd_str)
     raise "This is probably not recoverable. Bailing"
   end
 
@@ -108,7 +102,7 @@ defmodule Wifi do
     Logger.debug("trying to switch from hostapd to wpa_supplicant ")
     System.cmd("sh", ["-c", "killall hostapd"]) |> print_cmd_result
     System.cmd("sh", ["-c", "killall dnsmasq"]) |> print_cmd_result
-    File.rm("/root/dnsmasq.lease")
+    File.rm(@dnsmasq_file)
     System.cmd("ip", ["link", "set", "wlan0", "down"]) |> print_cmd_result
     System.cmd("ip", ["addr", "del", "192.168.24.1/24", "dev", "wlan0"]) |> print_cmd_result
     System.cmd("ip", ["link", "set", "wlan0", "up"]) |> print_cmd_result
@@ -120,7 +114,7 @@ defmodule Wifi do
     Logger.debug("trying to switch from hostapd to ethernet ")
     System.cmd("sh", ["-c", "killall hostapd"]) |> print_cmd_result
     System.cmd("sh", ["-c", "killall dnsmasq"]) |> print_cmd_result
-    File.rm("/root/dnsmasq.lease")
+    File.rm(@dnsmasq_file)
     System.cmd("ip", ["link", "set", "wlan0", "down"]) |> print_cmd_result
     System.cmd("ip", ["addr", "del", "192.168.24.1/24", "dev", "wlan0"]) |> print_cmd_result
     System.cmd("ip", ["link", "set", "wlan0", "up"]) |> print_cmd_result
