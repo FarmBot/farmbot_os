@@ -3,7 +3,7 @@ defmodule MqttHandler do
   require Logger
 
   defp build_last_will_message do
-    RPCMessageHandler.log_msg("Bot going offline.", ["error_ticker"])
+    RPCMessageHandler.log_msg("Bot going offline", [:error_ticker], ["ERROR"])
   end
 
   @doc """
@@ -107,6 +107,9 @@ defmodule MqttHandler do
 
   def handle_call({:subscribe_ack, _message}, _from, client) do
     Logger.debug("Subscribed.")
+    spawn fn ->
+      RPCMessageHandler.log("Bot is online and ready to roll", [:ticker], ["BOT STATUS"])
+    end
     {:reply, :ok, client}
   end
 

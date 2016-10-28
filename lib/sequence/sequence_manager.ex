@@ -60,14 +60,14 @@ defmodule SequenceManager do
 
   def handle_info({:done, pid}, %{current: _current, global_vars: globals, log: []}) do
     GenServer.stop(pid, :normal)
-    RPCMessageHandler.log("No more sub sequences.")
+    RPCMessageHandler.log("No more sub sequences.", [], ["SequencerVM"])
     send(FarmEventManager, {:done, {:sequence, self()}})
     {:noreply, %{current: nil, global_vars: globals, log: [] } }
   end
 
   def handle_info({:done, pid}, %{current: _current, global_vars: globals, log: log}) do
     GenServer.stop(pid, :normal)
-    RPCMessageHandler.log("Running next sub sequence")
+    RPCMessageHandler.log("Running next sub sequence", [], ["SequencerVM"])
     next = List.first(log)
     cond do
       is_nil(next) -> {:noreply, %{current: nil, global_vars: globals, log: []}}
@@ -87,7 +87,7 @@ defmodule SequenceManager do
   def handle_info({:EXIT, pid, reason}, state) do
     msg = "#{inspect pid} died of unnatural causes: #{inspect reason}"
     Logger.debug(msg)
-    RPCMessageHandler.log(msg)
+    RPCMessageHandler.log(msg, [:error_toast], ["SequencerVM"])
     if state.current == pid do
       handle_info({:done, pid}, state)
     else

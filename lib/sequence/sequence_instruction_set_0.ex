@@ -35,12 +35,12 @@ defmodule SequenceInstructionSet_0 do
         end
 
         def do_if(:error, _op, _rhs) do
-          RPCMessageHandler.log(\" Could not locate value for LHS \")
+          RPCMessageHandler.log(\" Could not locate value for LHS \", [], [\"SequenceInstructionSet\"])
           :false
         end
 
         def do_if(_lhs, _op, _rhs) do
-          RPCMessageHandler.log(\" Bad type for if_statement \")
+          RPCMessageHandler.log(\" Bad type for if_statement \", [], [\"SequenceInstructionSet\"])
           :false
         end
       "
@@ -121,7 +121,7 @@ defmodule SequenceInstructionSet_0 do
     end
 
     def handle_cast({\"move_absolute\", _}, parent) do
-      RPCMessageHandler.log(\"bad params\")
+      RPCMessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
       SequencerVM.tick(parent)
       {:noreply, parent}
     end
@@ -139,7 +139,7 @@ defmodule SequenceInstructionSet_0 do
     end
 
     def handle_cast({\"move_relative\", _}, parent) do
-      RPCMessageHandler.log(\"bad params\")
+      RPCMessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
       SequencerVM.tick(parent)
       {:noreply, parent}
     end
@@ -159,7 +159,7 @@ defmodule SequenceInstructionSet_0 do
     end
 
     def handle_cast({\"write_pin\", _}, parent) do
-      RPCMessageHandler.log(\"bad params\")
+      RPCMessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
       SequencerVM.tick(parent)
       {:noreply, parent}
     end
@@ -180,7 +180,7 @@ defmodule SequenceInstructionSet_0 do
     end
 
     def handle_cast({\"read_pin\", _}, parent) do
-      RPCMessageHandler.log(\"bad params\")
+      RPCMessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
       SequencerVM.tick(parent)
       {:noreply, parent}
     end
@@ -198,7 +198,7 @@ defmodule SequenceInstructionSet_0 do
     end
 
     def handle_cast({\"wait\", _}, parent) do
-      RPCMessageHandler.log(\"bad params\")
+      RPCMessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
       SequencerVM.tick(parent)
       {:noreply, parent}
     end
@@ -217,7 +217,7 @@ defmodule SequenceInstructionSet_0 do
     end
 
     def handle_cast({\"execute\", _}, parent) do
-      RPCMessageHandler.log(\"bad params\")
+      RPCMessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
       SequencerVM.tick(parent)
       {:noreply, parent}
     end
@@ -234,14 +234,14 @@ defmodule SequenceInstructionSet_0 do
       if(do_if(rlhs, op(op), rhs(rhs)) == true) do
         handle_cast({\"execute\", %{\"sub_sequence_id\" => sub_sequence_id}}, parent)
       else
-        RPCMessageHandler.log(\" if statement did not evaluate true.\")
+        RPCMessageHandler.log(\"if statement did not evaluate true.\", [], [\"SequenceInstructionSet\"])
         SequencerVM.tick(parent)
         {:noreply, parent}
       end
     end
 
     def handle_cast({\"if_statement\", _}, parent) do
-      RPCMessageHandler.log(\"bad params\")
+      RPCMessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
       SequencerVM.tick(parent)
       {:noreply, parent}
     end
@@ -265,20 +265,20 @@ defmodule SequenceInstructionSet_0 do
             m -> {\"logger \", m}
           end
           rendered = Mustache.render(rmessage, vars)
-          RPCMessageHandler.log(rendered, channel)
+          RPCMessageHandler.log(rendered, [channel], [\"Sequence\"])
           SequencerVM.tick(parent)
           {:noreply, parent}
 
         not_special ->
           rendered = Mustache.render(not_special, vars)
-          RPCMessageHandler.log(rendered)
+          RPCMessageHandler.log(rendered, [], [\"Sequence\"])
           SequencerVM.tick(parent)
           {:noreply, parent}
       end
     end
 
     def handle_cast({\"send_message\", _}, parent) do
-      RPCMessageHandler.log(\"bad params\")
+      RPCMessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
       SequencerVM.tick(parent)
       {:noreply, parent}
     end

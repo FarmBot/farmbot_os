@@ -1,5 +1,6 @@
 defmodule Command do
   require Logger
+  @log_tag "BotControl"
   @moduledoc """
     BotCommands.
   """
@@ -9,14 +10,18 @@ defmodule Command do
     #TODO
   """
   def e_stop do
-    Logger.debug("E STOP NOT WORKIND")
+    msg = "E STOPPING!"
+    Logger.debug(msg)
+    RPCMessageHandler.log(msg, [:error_toast, :error_ticker], [@log_tag])
   end
 
   @doc """
     Home All (TODO: this might be broken)
   """
   def home_all(speed) do
-    Logger.debug("HOME ALL")
+    msg = "HOME ALL"
+    Logger.debug(msg)
+    RPCMessageHandler.log(msg, [], [@log_tag])
     Command.move_absolute(0, 0, 0, speed)
   end
 
@@ -25,21 +30,33 @@ defmodule Command do
     I dont think anything uses these.
   """
   def home_x() do
+    msg = "HOME X"
+    Logger.debug(msg)
+    RPCMessageHandler.log(msg, [], [@log_tag])
     NewHandler.block_send("F11")
+    move_done_msg
   end
 
   @doc """
     Home y
   """
   def home_y() do
+    msg = "HOME Y"
+    Logger.debug(msg)
+    RPCMessageHandler.log(msg, [], [@log_tag])
     NewHandler.block_send("F12")
+    move_done_msg
   end
 
   @doc """
     Home z
   """
   def home_z() do
+    msg = "HOME Z"
+    Logger.debug(msg)
+    RPCMessageHandler.log(msg, [], [@log_tag])
     NewHandler.block_send("F13")
+    move_done_msg
   end
 
   @doc """
@@ -60,22 +77,38 @@ defmodule Command do
   """
   def move_absolute(x \\ 0,y \\ 0,z \\ 0,s \\ 100)
   def move_absolute(x, y, z, s) when x >= 0 and y >= 0 do
+    msg = "Moving to X#{x} Y#{y} Z#{z}"
+    Logger.debug(msg)
+    RPCMessageHandler.log(msg, [], [@log_tag])
     NewHandler.block_send "G00 X#{x} Y#{y} Z#{z} S#{s}"
+    move_done_msg
   end
 
   # When both x and y are negative
   def move_absolute(x, y, z, s) when x < 0 and y < 0 do
+    msg = "Moving to X#{0} Y#{0} Z#{z}"
+    Logger.debug(msg)
+    RPCMessageHandler.log(msg, [], [@log_tag])
     NewHandler.block_send "G00 X#{0} Y#{0} Z#{z} S#{s}"
+    move_done_msg
   end
 
   # when x is negative
   def move_absolute(x, y, z, s) when x < 0 do
+    msg = "Moving to X#{0} Y#{y} Z#{z}"
+    Logger.debug(msg)
+    RPCMessageHandler.log(msg, [], [@log_tag])
     NewHandler.block_send "G00 X#{0} Y#{y} Z#{z} S#{s}"
+    move_done_msg
   end
 
   # when y is negative
   def move_absolute(x, y, z, s ) when y < 0 do
+    msg = "Moving to X#{x} Y#{0} Z#{z}"
+    Logger.debug(msg)
+    RPCMessageHandler.log(msg, [], [@log_tag])
     NewHandler.block_send "G00 X#{x} Y#{0} Z#{z} S#{s}"
+    move_done_msg
   end
 
   @doc """
@@ -160,5 +193,9 @@ defmodule Command do
 
   def update_param(nil, _value) do
     {:error, "Unknown param"}
+  end
+
+  defp move_done_msg do
+    RPCMessageHandler.log("Move Complete", [],[@log_tag])
   end
 end

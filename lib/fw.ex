@@ -47,7 +47,7 @@ defmodule Fw do
     current_version = Fw.version
     case resp do
       %HTTPotion.ErrorResponse{message: error} ->
-        RPCMessageHandler.log("Error checking for updates: #{inspect error}", "error_toast")
+        RPCMessageHandler.log("Update check failed: #{inspect error}", [:error_toast], ["BotUpdates"])
         {:error, "Check Updates failed", error}
       %HTTPotion.Response{body: body,
                           headers: _headers,
@@ -62,10 +62,10 @@ defmodule Fw do
         Logger.debug("new version: #{new_version}, current_version: #{current_version}")
         case (new_version != current_version) do
           true ->
-            RPCMessageHandler.log("New update available!", ["ticker", "success_toast"])
+            RPCMessageHandler.log("New update available!", [:success_toast, :ticker], ["BotUpdates"])
             {:update, new_version_url}
           _ ->
-            RPCMessageHandler.log("Bot up to date!", ["ticker", "success_toast"])
+            RPCMessageHandler.log("Bot up to date!", [:success_toast, :ticker], ["BotUpdates"])
             :no_updates
         end
 
@@ -97,23 +97,24 @@ defmodule Fw do
 
   def check_and_download_os_update do
     case Fw.check_os_updates do
-      :no_updates -> RPCMessageHandler.log("No OS updates.")
+      :no_updates ->  RPCMessageHandler.log("Bot OS up to date!", [:success_toast, :ticker], ["BotUpdates"])
        {:update, url} ->
          Logger.debug("NEW OS UPDATE")
          spawn fn -> Downloader.download_and_install_os_update(url) end
-       {:error, message} -> RPCMessageHandler.log("Couldn't fetch update: #{inspect message}", "error_toast")
-       error -> RPCMessageHandler.log("Unknown error: #{inspect error}", "error_toast")
+       {:error, message} ->
+         RPCMessageHandler.log("Error fetching update: #{message}", [:error_toast], ["BotUpdates"])
+       error ->
+         RPCMessageHandler.log("Error fetching update: #{inspect error}", [:error_toast], ["BotUpdates"])
     end
   end
 
   def check_and_download_fw_update do
     case Fw.check_fw_updates do
-      :no_updates -> RPCMessageHandler.log("No FW updates.")
+      :no_updates -> RPCMessageHandler.log("Bot FW up to date!", [:success_toast, :ticker], ["BotUpdates"])
        {:update, url} ->
           Logger.debug("NEW FIRMWARE UPDATE")
           spawn fn -> Downloader.download_and_install_fw_update(url) end
-      {:error, message} -> RPCMessageHandler.log("Couldn't fetch update: #{inspect message}", "error_toast")
-      error -> RPCMessageHandler.log("Unknown error: #{inspect error}", "error_toast")
+      {:error, message} -> RPCMessageHandler.log("Error fetching update: #{message}", [:error_toast], ["BotUpdates"])
     end
   end
 end
