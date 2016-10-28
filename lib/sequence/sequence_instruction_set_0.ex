@@ -96,6 +96,10 @@ defmodule SequenceInstructionSet_0 do
       def #{name}(value) #{check} do
         value
       end
+
+      def #{name}(value) do
+        RPCMessageHandler.log(\" Bad type for value: #{value} \", [], [\"Sequence Error\"])
+      end
       "
     create_arg_instruction(name, types -- [type], old<>new)
   end
