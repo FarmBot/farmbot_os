@@ -2,19 +2,12 @@ ExUnit.start
 defmodule AuthTest do
   require IEx
   Code.require_file "test/test_router.exs"
-  @path Application.get_env(:fb, :ro_path)
+  @path Application.get_env(:fb, :state_path)
   use ExUnit.Case, async: true
   setup  do
     HTTPotion.start
     Plug.Adapters.Cowboy.http(TestRouter, [])
     Auth.start_link(:normal)
-    on_exit fn ->
-      case File.read("#{@path}/secretes.txt") do
-        {:ok, _contents} -> File.rm("#{@path}/secretes.txt")
-        _ -> nil
-      end
-      :ok
-    end
     :ok
   end
 
@@ -34,8 +27,6 @@ defmodule AuthTest do
     secret = Auth.encrypt("fred_flinstone@tehflinstones.co.uk", "johnGoodman_is+GR8", server)
     assert(secret != nil)
     assert(is_bitstring(secret))
-    contents = File.read!("#{@path}/secretes.txt") |> :erlang.binary_to_term
-    assert(contents.secret == secret)
   end
 
   test "gets a token" do

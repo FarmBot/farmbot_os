@@ -12,3 +12,4 @@ erl_crash.dump
 npm-debug.log
 # this isnt ready yet
 /lib/extras/my*
+/lib/extras/raspi_*

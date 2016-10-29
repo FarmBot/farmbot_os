@@ -58,7 +58,11 @@ defmodule Fw.Mixfile do
 
   # test
   def apps(:test) do
-    apps
+    apps ++ [
+      :plug,
+      :cors_plug,
+      :cowboy
+    ]
   end
 
   def deps do
@@ -84,7 +88,10 @@ defmodule Fw.Mixfile do
   end
 
   def deps(:test) do
-    deps ++ deps(:dev)
+    deps ++ deps(:dev) ++
+    [ {:plug, "~> 1.0"},
+      {:cors_plug, "~> 1.1"},
+      {:cowboy, "~> 1.0.0"} ]
   end
 
   def deps(:dev) do
