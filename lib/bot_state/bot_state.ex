@@ -26,7 +26,8 @@ defmodule BotState do
       location: [0, 0, 0],
       pins: %{},
       configuration: %{ os_auto_update: false,
-                        fw_auto_update: false },
+                        fw_auto_update: false,
+                        steps_per_mm:   500 },
       informational_settings: %{ controller_version: Fw.version }
     }
     case SafeStorage.read(__MODULE__) do
@@ -61,6 +62,38 @@ defmodule BotState do
     {:reply, state.location, state}
   end
 
+  # This call should probably be a cast actually, and im sorry.
+  # Returns true for configs that exist and are the correct typpe,
+  # and false for anything else
+  # TODO make sure these are properly typed.
+  def handle_call({:update_config, "os_auto_update", value}, _from, state)
+  when is_boolean(value) do
+    new_config = Map.put(state.configuration, :os_auto_update, value)
+    {:reply, true, Map.put(state, :configuration, new_config)}
+  end
+
+  def handle_call({:update_config, "fw_auto_update", value}, _from, state)
+  when is_boolean(value) do
+    new_config = Map.put(state.configuration, :fw_auto_update, value)
+    {:reply, true, Map.put(state, :configuration, new_config)}
+  end
+
+  def handle_call({:update_config, "steps_per_mm", value}, _from, state)
+  when is_integer(value) do
+    new_config = Map.put(state.configuration, :steps_per_mm, value)
+    {:reply, true, Map.put(state, :configuration, new_config)}
+  end
+
+  def handle_call({:update_config, key, _value}, _from, state) do
+    Logger.error("#{key} is not a valid config.")
+    {:reply, false, state}
+  end
+
+  def handle_call({:get_config, key}, _from, state)
+  when is_atom(key) do
+    {:reply, Map.get(state.configuration, key), state}
+  end
+
   def handle_cast({:set_pos, {x, y, z}}, state) do
     {:noreply, Map.put(state, :location, [x, y, z])}
   end
@@ -91,28 +124,6 @@ defmodule BotState do
     {:noreply, Map.put(state, :pins, pin_state)}
   end
 
-  def handle_cast(:toggle_fw_auto_update, state) do
-    next =
-    case Map.get(state.configuration, :fw_auto_update) do
-      false ->
-        Map.put(state.configuration, :fw_auto_update, true)
-      _ ->
-        Map.put(state.configuration, :fw_auto_update, false)
-    end
-    {:noreply, Map.put(state, :configuration, next)}
-  end
-
-  def handle_cast(:toggle_os_auto_update, state) do
-    next =
-    case Map.get(state.configuration, :os_auto_update) do
-      false ->
-        Map.put(state.configuration, :os_auto_update, true)
-      _ ->
-        Map.put(state.configuration, :os_auto_update, false)
-    end
-    {:noreply, Map.put(state, :configuration, next)}
-  end
-
   def handle_cast({:set_param, {param_string, value} }, state) do
     new_params = Map.put(state.mcu_params, param_string, value)
     {:noreply, Map.put(state, :mcu_params, new_params)}
@@ -125,9 +136,10 @@ defmodule BotState do
   end
 
   def handle_info(:check_updates, state) do
+    # THIS SHOULDN'T BE HERE
     msg = "Checking for updates!"
     Logger.debug(msg)
-    RPCMessageHandler.log(msg, [], ["BotUpdates"])
+    spawn fn -> RPCMessageHandler.log(msg, [], ["BotUpdates"]) end
     if(state.configuration.os_auto_update == true) do
       spawn fn -> Fw.check_and_download_os_update end
     end
@@ -174,18 +186,10 @@ defmodule BotState do
     nil
   end
 
-  def toggle_fw_auto_update do
-    GenServer.cast(__MODULE__, :toggle_fw_auto_update)
-  end
-
-  def toggle_os_auto_update do
-    GenServer.cast(__MODULE__, :toggle_os_auto_update)
-  end
-
   def apply_status(state) do
     p = Process.whereis(NewHandler)
-    if(is_pid(p) and Process.alive?(p)) do
-      Process.sleep(1000)
+    if(is_pid(p) == true and Process.alive?(p) == true) do
+      Process.sleep(500) # I don't remember why i did this.
       Command.home_all(100)
       apply_params(state.mcu_params)
       apply_pins(state.pins)
@@ -194,10 +198,6 @@ defmodule BotState do
       apply_status(state)
     end
     state
-  end
-
-  def apply_params(%{}) do
-    Command.read_all_params
   end
 
   def apply_params(params) when is_map(params) do
@@ -212,7 +212,12 @@ defmodule BotState do
     end
   end
 
+  def apply_params(params) do
+    Logger.error("Something weird happened applying last params: #{inspect params}")
+  end
+
   def apply_pins(pins) when is_map(pins) do
+    Logger.debug("Setting Pins")
     case Enum.all?(pins, fn({pin_str, %{mode: mode, value: value} }) ->
       p = String.to_integer(pin_str)
       spawn fn -> Command.write_pin(p, value, mode) end
@@ -220,6 +225,15 @@ defmodule BotState do
       true -> Logger.debug("Pins are set!")
       false -> Logger.error("Error resetting pins")
     end
+  end
+
+  def update_config(config_key, value)
+  when is_bitstring(config_key) do
+    GenServer.call(__MODULE__, {:update_config, config_key, value})
+  end
+
+  def get_config(config_key) when is_atom(config_key) do
+    GenServer.call(__MODULE__, {:get_config, config_key})
   end
 
   defp save_interval do

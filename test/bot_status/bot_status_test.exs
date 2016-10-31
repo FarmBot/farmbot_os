@@ -26,4 +26,30 @@ defmodule BotStateTest do
     BotState.set_pos(1,2,3)
     assert(BotState.get_current_pos == [1,2,3])
   end
+
+  test "updates a configuration key that DOES exist." do
+    # keys that exist should return true
+    update_bool = BotState.update_config("os_auto_update", false)
+    q = BotState.get_config(:os_auto_update)
+    assert(update_bool == true)
+    assert(q == false)
+  end
+
+  test "updates a configuration key that DOES NOT exist." do
+    # keys that don't exist should return false
+    update_bool = BotState.update_config("check_email_time", 15000)
+    q = BotState.get_config(:check_email_time)
+    assert(q == nil)
+    assert(update_bool == false)
+  end
+
+  test "updates a configuration key that DOES exist but the type is bad." do
+    # Before we try to update it.
+    old = BotState.get_config(:os_auto_update)
+    # should return false
+    update_bool = BotState.update_config("os_auto_update", "silly_string")
+    new = BotState.get_config(:os_auto_update)
+    assert(old == new)
+    assert(update_bool == false)
+  end
 end

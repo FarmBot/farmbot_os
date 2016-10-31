@@ -18,11 +18,11 @@ defmodule Command do
   @doc """
     Home All (TODO: this might be broken)
   """
-  def home_all(speed) do
+  def home_all(speed \\ nil) do
     msg = "HOME ALL"
     Logger.debug(msg)
     RPCMessageHandler.log(msg, [], [@log_tag])
-    Command.move_absolute(0, 0, 0, speed)
+    Command.move_absolute(0, 0, 0, speed || BotState.get_config(:steps_per_mm))
   end
 
   @doc """
@@ -34,7 +34,6 @@ defmodule Command do
     Logger.debug(msg)
     RPCMessageHandler.log(msg, [], [@log_tag])
     NewHandler.block_send("F11")
-    move_done_msg
   end
 
   @doc """
@@ -45,7 +44,6 @@ defmodule Command do
     Logger.debug(msg)
     RPCMessageHandler.log(msg, [], [@log_tag])
     NewHandler.block_send("F12")
-    move_done_msg
   end
 
   @doc """
@@ -56,7 +54,6 @@ defmodule Command do
     Logger.debug(msg)
     RPCMessageHandler.log(msg, [], [@log_tag])
     NewHandler.block_send("F13")
-    move_done_msg
   end
 
   @doc """
@@ -75,12 +72,12 @@ defmodule Command do
     replies to the mqtt message that caused it (if one exists)
     adds the move to the command queue.
   """
-  def move_absolute(x \\ 0,y \\ 0,z \\ 0,s \\ 100)
+  def move_absolute(x \\ 0,y \\ 0,z \\ 0,s \\ nil)
   def move_absolute(x, y, z, s) when x >= 0 and y >= 0 do
     msg = "Moving to X#{x} Y#{y} Z#{z}"
     Logger.debug(msg)
     RPCMessageHandler.log(msg, [], [@log_tag])
-    NewHandler.block_send "G00 X#{x} Y#{y} Z#{z} S#{s}"
+    NewHandler.block_send "G00 X#{x} Y#{y} Z#{z} S#{s || BotState.get_config(:steps_per_mm)}"
     move_done_msg
   end
 
@@ -89,7 +86,7 @@ defmodule Command do
     msg = "Moving to X#{0} Y#{0} Z#{z}"
     Logger.debug(msg)
     RPCMessageHandler.log(msg, [], [@log_tag])
-    NewHandler.block_send "G00 X#{0} Y#{0} Z#{z} S#{s}"
+    NewHandler.block_send "G00 X#{0} Y#{0} Z#{z} S#{s || BotState.get_config(:steps_per_mm)}"
     move_done_msg
   end
 
@@ -98,7 +95,7 @@ defmodule Command do
     msg = "Moving to X#{0} Y#{y} Z#{z}"
     Logger.debug(msg)
     RPCMessageHandler.log(msg, [], [@log_tag])
-    NewHandler.block_send "G00 X#{0} Y#{y} Z#{z} S#{s}"
+    NewHandler.block_send "G00 X#{0} Y#{y} Z#{z} S#{s || BotState.get_config(:steps_per_mm)}"
     move_done_msg
   end
 
@@ -107,7 +104,7 @@ defmodule Command do
     msg = "Moving to X#{x} Y#{0} Z#{z}"
     Logger.debug(msg)
     RPCMessageHandler.log(msg, [], [@log_tag])
-    NewHandler.block_send "G00 X#{x} Y#{0} Z#{z} S#{s}"
+    NewHandler.block_send "G00 X#{x} Y#{0} Z#{z} S#{s || BotState.get_config(:steps_per_mm)}"
     move_done_msg
   end
 
@@ -156,12 +153,16 @@ defmodule Command do
 
   @doc """
     Reads a pin value.
+    mode can be 0 (digital) or 1 (analog)
   """
   def read_pin(pin, mode \\ 0) do
     BotState.set_pin_mode(pin, mode)
     NewHandler.block_send "F42 P#{pin} M#{mode}"
   end
 
+  @doc """
+    gets the current value, and then toggles it.
+  """
   def toggle_pin(pin) when is_integer(pin) do
     pinMap = BotState.get_pin(pin)
     case pinMap do

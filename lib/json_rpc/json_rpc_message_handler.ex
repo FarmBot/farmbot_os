@@ -79,14 +79,6 @@ defmodule RPCMessageHandler do
     IO.inspect broken_rpc
   end
 
-  def do_handle("toggle_os_auto_update", []) do
-    BotState.toggle_os_auto_update
-  end
-
-  def do_handle("toggle_fw_auto_update", []) do
-    BotState.toggle_fw_auto_update
-  end
-
   # E STOP
   def do_handle("emergency_stop", _) do
     GenServer.call UartHandler, :e_stop
@@ -214,15 +206,34 @@ defmodule RPCMessageHandler do
   end
 
   def do_handle("mcu_config_update", [params]) when is_map(params) do
-    case Enum.all?(params, fn({param, value}) ->
+    case Enum.partition(params, fn({param, value}) ->
       param_int = Gcode.parse_param(param)
       spawn fn -> Command.update_param(param_int, value) end
     end)
     do
-      true ->
-        log("MCU Params updated.", [], ["RPCHANDLER"])
+      {_, []} ->
+        log("MCU params updated.", [:success_toast], ["RPCHANDLER"])
+        send_status
         :ok
-      false -> {:error, "mcu_config_update", "Something went wrong."}
+      {_, failed} ->
+        log("MCU params failed: #{inspect failed}", [:error_toast], ["RPCHANDLER"])
+        send_status
+        :ok
+    end
+  end
+
+  def do_handle("bot_config_update", [configs]) do
+    case Enum.partition(configs, fn({config, value}) ->
+      BotState.update_config(config, value)
+    end) do
+      {_, []} ->
+        log("Bot Configs updated.", [:success_toast], ["RPCHANDLER"])
+        send_status
+        :ok
+      {_, failed} ->
+        log("Bot Configs failed: #{inspect failed}", [:error_toast], ["RPCHANDLER"])
+        send_status
+        :ok
     end
   end
 

@@ -101,6 +101,11 @@ defmodule Gcode do
   def parse_param("221") do :PIN_GUARD_5_PIN_NR end
   def parse_param("222") do :PIN_GUARD_5_TIME_OUT end
   def parse_param("223") do :PIN_GUARD_5_ACTIVE_STATE end
+  def parse_param(param) when is_bitstring(param) do
+    String.Casing.upcase(param)
+    |> String.to_atom
+    |> parse_param
+  end
   def parse_param(param) when is_integer(param) do
     parse_param("#{param}")
   end
@@ -154,10 +159,5 @@ defmodule Gcode do
   def parse_param(:PIN_GUARD_5_PIN_NR) do 221 end
   def parse_param(:PIN_GUARD_5_TIME_OUT) do 222 end
   def parse_param(:PIN_GUARD_5_ACTIVE_STATE) do 223 end
-  def parse_param(param) when is_bitstring(param) do
-    String.Casing.upcase(param)
-    |> String.to_atom
-    |> parse_param
-  end
   def parse_param(_) do nil end
 end
