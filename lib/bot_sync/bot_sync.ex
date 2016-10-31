@@ -26,7 +26,7 @@ defmodule BotSync do
      %HTTPotion.Response{body: body,
                          headers: _headers,
                          status_code: 200} ->
-       RPCMessageHandler.log("synced", [], ["BotSync"])
+       RPCMessageHandler.log("Synced", [], ["BotSync"])
        new = Map.merge(old || %{}, Poison.decode!(body))
        {:noreply, %{token: token, resources: new }}
      error ->

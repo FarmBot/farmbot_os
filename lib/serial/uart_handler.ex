@@ -44,7 +44,7 @@ defmodule UartHandler do
     Nerves.UART.close(nerves)
     System.cmd("avrdude", ["-v", "-patmega2560", "-cwiring", "-P/dev/#{tty}", "-b115200", "-D", "-Uflash:w:#{hex_file}:i"])
     new_tty = open_serial(nerves)
-    RPCMessageHandler.log("Updated FW", [:success_toast], ["UartHandler"])
+    RPCMessageHandler.log("Updated FW", [:success_toast, :ticker], ["UartHandler"])
     {:noreply, {nerves, new_tty, handler}}
   end
 

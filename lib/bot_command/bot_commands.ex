@@ -141,14 +141,20 @@ defmodule Command do
   @doc """
     Used when bootstrapping the bot.
     Reads all the params.
+    TODO: Make these not magic numbers.
   """
-  def read_all_params do
-    rel_params = [0,11,12,13,21,22,23,
-                  31,32,33,41,42,43,51,
-                  52,53,61,62,63,71,72,73]
-    spawn fn -> Enum.each(rel_params, fn param ->
+  def read_all_params(params \\ [0,11,12,13,21,22,23,
+                                 31,32,33,41,42,43,51,
+                                 52,53,61,62,63,71,72,73])
+  when is_list(params) do
+    case Enum.partition(params, fn param ->
       GenServer.call(NewHandler, {:send, "F21 P#{param}", self()})
-    end ) end
+      :done == NewHandler.block(2500)
+    end) do
+      {_, []} -> :ok
+      {_, failed_params} -> read_all_params(failed_params)
+       _ -> :fail
+    end
   end
 
   @doc """

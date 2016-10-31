@@ -3,8 +3,29 @@ defmodule Fw do
   use Supervisor
   @env Mix.env
   @target System.get_env("NERVES_TARGET") || "rpi3"
-  @bot_state_save_file Application.get_env(:fb, :bot_state_save_file)
   @version Path.join(__DIR__ <> "/..", "VERSION") |> File.read! |> String.strip
+  @state_path Application.get_env(:fb, :state_path)
+
+  @doc """
+    Formats the sytem partition, and mounts as read/write
+  """
+  def format_state_part do
+    Logger.warn("FORMATTING DATA PARTITION!")
+    System.cmd("mkfs.ext4", ["/dev/mmcblk0p3", "-F"])
+    System.cmd("mount", ["/dev/mmcblk0p3", "/state", "-t", "ext4"])
+    File.write("/state/.formatted", "DONT CAT ME\n")
+    :ok
+  end
+
+  def fs_init(:prod) do
+    with {:error, :enoent} <- File.read("#{@state_path}/.formatted") do
+      format_state_part
+    end
+  end
+
+  def fs_init(_) do
+    :ok
+  end
 
   def init(_args) do
     children = [
@@ -20,7 +41,7 @@ defmodule Fw do
   end
 
   def start(_type, args) do
-    File.write("/tmp/resolv.conf", "nameserver 8.8.8.8\n nameserver 8.8.4.4\n ")
+    IO.inspect fs_init(@env)
     Logger.debug("Starting Firmware on Target: #{@target}")
     Supervisor.start_link(__MODULE__, args)
   end

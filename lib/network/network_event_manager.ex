@@ -22,8 +22,9 @@ defmodule Network.EventManager do
   end
 
   def on_ip(address) do
-    Logger.debug("WE ARE CONNECTED")
+    Logger.debug("WE HAVE AN IP ADDRESS")
     Wifi.set_connected(true)
+    GenServer.cast(BotState, {:update_info, :private_ip, address})
     Node.stop
     full_node_name = "farmbot@#{address}" |> String.to_atom
     {:ok, _pid} = Node.start(full_node_name)

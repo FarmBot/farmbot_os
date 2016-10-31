@@ -28,7 +28,10 @@ defmodule BotState do
       configuration: %{ os_auto_update: false,
                         fw_auto_update: false,
                         steps_per_mm:   500 },
-      informational_settings: %{ controller_version: Fw.version }
+      informational_settings: %{
+        controller_version: Fw.version,
+        private_ip: nil
+      }
     }
     case SafeStorage.read(__MODULE__) do
       { :ok, rcontents } ->
@@ -92,6 +95,11 @@ defmodule BotState do
   def handle_call({:get_config, key}, _from, state)
   when is_atom(key) do
     {:reply, Map.get(state.configuration, key), state}
+  end
+
+  def handle_cast({:update_info, key, value}, state) do
+    new_info = Map.put(state.informational_settings, key, value)
+    {:noreply, Map.put(state, :informational_settings, new_info)}
   end
 
   def handle_cast({:set_pos, {x, y, z}}, state) do
@@ -201,14 +209,16 @@ defmodule BotState do
   end
 
   def apply_params(params) when is_map(params) do
-    case Enum.all?(params, fn({param, value}) ->
+    case Enum.partition(params, fn({param, value}) ->
       # WILL SOMEONE JUST DOWNCASE THE PARAMS.
       param_int = Gcode.parse_param(Atom.to_string(param))
       spawn fn -> Command.update_param(param_int, value) end
     end)
     do
-      true -> Logger.debug("Params are set!")
-      false -> Logger.error("Error resetting params")
+      {[], []} -> Logger.debug("Fresh mcu params state")
+                  Command.read_all_params
+      {_, []} -> Logger.debug("Params are set!")
+      {_, errors} -> Logger.error("Error resetting params: #{inspect errors}")
     end
   end
 
