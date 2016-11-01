@@ -68,44 +68,14 @@ defmodule Command do
 
   @doc """
     Moves to (x,y,z) point.
-    Sets the bot status to given coords
-    replies to the mqtt message that caused it (if one exists)
-    adds the move to the command queue.
   """
-  def move_absolute(x \\ 0,y \\ 0,z \\ 0,s \\ nil)
-  def move_absolute(x, y, z, s) when x >= 0 and y >= 0 do
+  def move_absolute(x ,y ,z ,s \\ nil)
+  def move_absolute(x, y, z, s) do
     msg = "Moving to X#{x} Y#{y} Z#{z}"
     Logger.debug(msg)
     RPCMessageHandler.log(msg, [], [@log_tag])
     NewHandler.block_send "G00 X#{x} Y#{y} Z#{z} S#{s || BotState.get_config(:steps_per_mm)}"
-    move_done_msg
-  end
-
-  # When both x and y are negative
-  def move_absolute(x, y, z, s) when x < 0 and y < 0 do
-    msg = "Moving to X#{0} Y#{0} Z#{z}"
-    Logger.debug(msg)
-    RPCMessageHandler.log(msg, [], [@log_tag])
-    NewHandler.block_send "G00 X#{0} Y#{0} Z#{z} S#{s || BotState.get_config(:steps_per_mm)}"
-    move_done_msg
-  end
-
-  # when x is negative
-  def move_absolute(x, y, z, s) when x < 0 do
-    msg = "Moving to X#{0} Y#{y} Z#{z}"
-    Logger.debug(msg)
-    RPCMessageHandler.log(msg, [], [@log_tag])
-    NewHandler.block_send "G00 X#{0} Y#{y} Z#{z} S#{s || BotState.get_config(:steps_per_mm)}"
-    move_done_msg
-  end
-
-  # when y is negative
-  def move_absolute(x, y, z, s ) when y < 0 do
-    msg = "Moving to X#{x} Y#{0} Z#{z}"
-    Logger.debug(msg)
-    RPCMessageHandler.log(msg, [], [@log_tag])
-    NewHandler.block_send "G00 X#{x} Y#{0} Z#{z} S#{s || BotState.get_config(:steps_per_mm)}"
-    move_done_msg
+    |> move_done_msg
   end
 
   @doc """
@@ -202,7 +172,11 @@ defmodule Command do
     {:error, "Unknown param"}
   end
 
-  defp move_done_msg do
+  defp move_done_msg(:done) do
     RPCMessageHandler.log("Move Complete", [],[@log_tag])
+  end
+
+  defp move_done_msg(_) do
+    RPCMessageHandler.log("Move Failed!", [:error_toast, :error_ticker],[@log_tag])
   end
 end

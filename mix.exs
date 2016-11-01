@@ -101,7 +101,7 @@ defmodule Fw.Mixfile do
   def platform_deps("rpi3") do
     [
       {:nerves_networking, github: "nerves-project/nerves_networking"},
-      {:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi" },
+      {:nerves_interim_wifi, path: "../nerves/nerves_interim_wifi" },
       {:nerves_leds, "~> 0.7.0"},
       {:elixir_ale, "~> 0.5.5"}
     ]
