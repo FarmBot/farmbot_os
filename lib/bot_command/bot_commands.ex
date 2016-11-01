@@ -131,7 +131,7 @@ defmodule Command do
     Reads a pin value.
     mode can be 0 (digital) or 1 (analog)
   """
-  def read_pin(pin, mode \\ 0) do
+  def read_pin(pin, mode \\ 0) when is_integer(pin) do
     BotState.set_pin_mode(pin, mode)
     NewHandler.block_send "F42 P#{pin} M#{mode}"
   end

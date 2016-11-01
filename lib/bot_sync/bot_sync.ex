@@ -27,8 +27,21 @@ defmodule BotSync do
                          headers: _headers,
                          status_code: 200} ->
        RPCMessageHandler.log("Synced", [], ["BotSync"])
-       new = Map.merge(old || %{}, Poison.decode!(body))
-       {:noreply, %{token: token, resources: new }}
+       new = Poison.decode!(body)
+       old_legacy_is_old = [%{"pin" => 9, "mode" => 0},
+                            %{"pin" => 10, "mode" => 0},
+                            %{"pin" => 13, "mode" => 0}]
+
+       # If we didn't have any peripherals before this sync, read the new ones
+       old_perifs = Map.get(old || Map.new(), "peripherals")
+       new_perifs = Map.get(new, "peripherals") || old_legacy_is_old
+       if(old_perifs != new_perifs) do
+         Enum.all?(new_perifs, fn(x) ->
+           Command.read_pin(Map.get(x, "pin"), Map.get(x, "mode"))
+         end)
+       end
+       new_merged = Map.merge(old || Map.new(),new)
+       {:noreply, %{token: token, resources: new_merged }}
      error ->
        Logger.debug("Couldn't get resources: #{error}")
        RPCMessageHandler.log("Error syncing: #{inspect error}", [:error_toast], ["BotSync"])
