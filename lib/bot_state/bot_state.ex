@@ -181,8 +181,8 @@ defmodule BotState do
     GenServer.cast(__MODULE__, {:set_pin_mode, {pin, mode}})
   end
 
-  def set_param(param_string, value) do
-    GenServer.cast(__MODULE__, {:set_param, {param_string, value}})
+  def set_param(param, value) when is_atom(param) do
+    GenServer.cast(__MODULE__, {:set_param, {param, value}})
   end
 
   def get_pin(pin_number) when is_integer(pin_number) do
@@ -200,7 +200,6 @@ defmodule BotState do
       Process.sleep(500) # I don't remember why i did this.
       Command.home_all(100)
       apply_params(state.mcu_params)
-      apply_pins(state.pins)
     else
       Process.sleep(10)
       apply_status(state)
@@ -208,10 +207,11 @@ defmodule BotState do
     state
   end
 
+  # params will be a list of atoms here.
   def apply_params(params) when is_map(params) do
     case Enum.partition(params, fn({param, value}) ->
-      # WILL SOMEONE JUST DOWNCASE THE PARAMS.
-      param_int = Gcode.parse_param(Atom.to_string(param))
+      ## We need the integer version of said param
+      param_int = Gcode.parse_param(param)
       spawn fn -> Command.update_param(param_int, value) end
     end)
     do
@@ -224,17 +224,6 @@ defmodule BotState do
 
   def apply_params(params) do
     Logger.error("Something weird happened applying last params: #{inspect params}")
-  end
-
-  def apply_pins(pins) when is_map(pins) do
-    Logger.debug("Setting Pins")
-    case Enum.all?(pins, fn({pin_str, %{mode: mode, value: value} }) ->
-      p = String.to_integer(pin_str)
-      spawn fn -> Command.write_pin(p, value, mode) end
-    end) do
-      true -> Logger.debug("Pins are set!")
-      false -> Logger.error("Error resetting pins")
-    end
   end
 
   def update_config(config_key, value)
