@@ -63,7 +63,7 @@ defmodule Command do
   when is_integer(pin) and is_integer(value) and is_integer(mode) do
     BotState.set_pin_mode(pin, mode)
     BotState.set_pin_value(pin, value)
-    NewHandler.block_send "F41 P#{pin} V#{value} M#{mode}"
+    NewHandler.block_send("F41 P#{pin} V#{value} M#{mode}") |> logmsg("write_pin")
   end
 
   @doc """
@@ -74,8 +74,8 @@ defmodule Command do
     msg = "Moving to X#{x} Y#{y} Z#{z}"
     Logger.debug(msg)
     RPCMessageHandler.log(msg, [], [@log_tag])
-    NewHandler.block_send "G00 X#{x} Y#{y} Z#{z} S#{s || BotState.get_config(:steps_per_mm)}"
-    |> move_done_msg
+    NewHandler.block_send("G00 X#{x} Y#{y} Z#{z} S#{s || BotState.get_config(:steps_per_mm)}")
+    |> logmsg("Movement")
   end
 
   @doc """
@@ -133,7 +133,7 @@ defmodule Command do
   """
   def read_pin(pin, mode \\ 0) when is_integer(pin) do
     BotState.set_pin_mode(pin, mode)
-    NewHandler.block_send "F42 P#{pin} M#{mode}"
+    NewHandler.block_send("F42 P#{pin} M#{mode}") |> logmsg("read_pin")
   end
 
   @doc """
@@ -172,11 +172,14 @@ defmodule Command do
     {:error, "Unknown param"}
   end
 
-  defp move_done_msg(:done) do
-    RPCMessageHandler.log("Move Complete", [],[@log_tag])
+  defp logmsg(:done, command) when is_bitstring(command) do
+    RPCMessageHandler.log("#{command} Complete", [],[@log_tag])
+    :done
   end
 
-  defp move_done_msg(_) do
-    RPCMessageHandler.log("Move Failed!", [:error_toast, :error_ticker],[@log_tag])
+  defp logmsg(other, command) when is_bitstring(command) do
+    Logger.error("#{command} Failed")
+    RPCMessageHandler.log("#{command} Failed", [:error_toast, :error_ticker],[@log_tag])
+    other
   end
 end

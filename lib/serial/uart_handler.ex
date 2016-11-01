@@ -62,7 +62,7 @@ defmodule UartHandler do
   """
   def write(pid, str) do
     Logger.debug("writing: #{str}")
-    Nerves.UART.write(pid, str)
+    Nerves.UART.write(pid, str<>" Q0")
   end
 
   # WHEN A FULL SERIAL MESSAGE COMES IN.
