@@ -38,7 +38,8 @@ defmodule Fw.Mixfile do
      :rsa,
      :hulaaki,
      :runtime_tools,
-     :mustache]
+     :mustache,
+     :timex]
   end
 
   # on device
@@ -74,7 +75,8 @@ defmodule Fw.Mixfile do
       {:nerves_lib, github: "nerves-project/nerves_lib"},
       {:rsa, "~> 0.0.1"},
       {:hulaaki, github: "ConnorRigby/hulaaki"},
-      {:mustache, "~> 0.0.2"}
+      {:mustache, "~> 0.0.2"},
+      {:timex, "~> 3.0"}
     ]
   end
 
@@ -83,7 +85,7 @@ defmodule Fw.Mixfile do
     [
      {:nerves, "~> 0.3.0"},
      {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
-     {:farmbot_configurator, github: "FarmBot/farmbot_configurator"}
+     {:farmbot_configurator, path: "../farmbot_configurator"}
     ]
   end
 

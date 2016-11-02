@@ -271,7 +271,7 @@ defmodule RPCMessageHandler do
     regimen = BotSync.get_regimen(id)
     running = GenServer.call(FarmEventManager, :state)
     |> Map.get(:running_regimens)
-    |> Enum.find(fn({_p, re}) ->
+    |> Enum.find(fn({_pid, re, _items, _start_time}) ->
       re == regimen
     end)
     send(FarmEventManager, {:done, {:regimen, running}})

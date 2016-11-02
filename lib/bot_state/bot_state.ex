@@ -27,6 +27,7 @@ defmodule BotState do
       pins: %{},
       configuration: %{ os_auto_update: false,
                         fw_auto_update: false,
+                        timezone:     nil,
                         steps_per_mm:   500 },
       informational_settings: %{
         controller_version: Fw.version,
@@ -45,7 +46,8 @@ defmodule BotState do
         else
           Logger.debug("Trying to apply last bot state")
           spawn fn -> apply_status(rcontents) end
-          default_state
+          old_config = rcontents.configuration
+          Map.put(default_state, :configuration, old_config)
         end
       _ ->
       spawn fn -> apply_status(default_state) end
@@ -78,6 +80,12 @@ defmodule BotState do
   def handle_call({:update_config, "fw_auto_update", value}, _from, state)
   when is_boolean(value) do
     new_config = Map.put(state.configuration, :fw_auto_update, value)
+    {:reply, true, Map.put(state, :configuration, new_config)}
+  end
+
+  def handle_call({:update_config, "timezone", value}, _from, state)
+  when is_bitstring(value) do
+    new_config = Map.put(state.configuration, :timezone, value)
     {:reply, true, Map.put(state, :configuration, new_config)}
   end
 
@@ -226,6 +234,9 @@ defmodule BotState do
     Logger.error("Something weird happened applying last params: #{inspect params}")
   end
 
+  @doc """
+    Update a config under key
+  """
   def update_config(config_key, value)
   when is_bitstring(config_key) do
     GenServer.call(__MODULE__, {:update_config, config_key, value})

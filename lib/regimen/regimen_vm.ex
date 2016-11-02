@@ -42,13 +42,13 @@ defmodule RegimenVM  do
       regimen: regimen
     })
   do
-    now = System.monotonic_time(:milliseconds)
+    now = Timex.now(BotState.get_config(:timezone))
     {items_to_do, remaining_items} =
       Enum.partition(items, fn(item) ->
         offset = Map.get(item, "time_offset")
-        lhs = (now - start_time)
-        rhs = (offset)
-        case ( lhs > rhs ) do
+        run_time = Timex.shift(start_time, milliseconds: offset)
+        should_run = Timex.after?(now, run_time)
+        case ( should_run ) do
           true ->
             sequence = BotSync.get_sequence(Map.get(item, "sequence_id"))
             msg = "Time to run Sequence: " <> Map.get(sequence, "name")
@@ -58,7 +58,7 @@ defmodule RegimenVM  do
           false ->
             :ok
         end
-        ( lhs > rhs )
+        should_run
     end)
     if(items_to_do == []) do
       RPCMessageHandler.log("nothing to run this cycle", [], [Map.get(regimen, "name")])
