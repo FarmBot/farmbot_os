@@ -270,7 +270,6 @@ defmodule RPCMessageHandler do
       re == regimen
     end)
     send(FarmEventManager, {:done, {:regimen, pid, regimen}})
-    send_status
   end
 
   def do_handle("stop_regimen", params) do

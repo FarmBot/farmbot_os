@@ -85,7 +85,7 @@ defmodule Fw.Mixfile do
     [
      {:nerves, "~> 0.3.0"},
      {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
-     {:farmbot_configurator, path: "../farmbot_configurator"}
+     {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
     ]
   end
 
@@ -103,7 +103,8 @@ defmodule Fw.Mixfile do
   def platform_deps("rpi3") do
     [
       {:nerves_networking, github: "nerves-project/nerves_networking"},
-      {:nerves_interim_wifi, path: "../nerves/nerves_interim_wifi" },
+      # {:nerves_interim_wifi, path: "../nerves/nerves_interim_wifi"},
+      {:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi"},
       {:nerves_leds, "~> 0.7.0"},
       {:elixir_ale, "~> 0.5.5"}
     ]
@@ -130,6 +131,6 @@ defmodule Fw.Mixfile do
   end
 
   def system("rpi3") do
-    [{:"nerves_system_rpi3", git: "https://github.com/ConnorRigby/nerves_system_rpi3.git", tag: "v0.7.5-beta" }]
+    [{:"nerves_system_rpi3", git: "https://github.com/ConnorRigby/nerves_system_rpi3.git", tag: "v0.7.5" }]
   end
 end

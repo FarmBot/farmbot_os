@@ -89,11 +89,13 @@ defmodule RegimenVM  do
     msg = "Regimen: #{state.regimen.name} completed without errors!"
     Logger.debug(msg)
     RPCMessageHandler.log(msg, [:ticker, :success_toast], ["RegimenManager"])
+    spawn fn -> RPCMessageHandler.send_status end
   end
 
   def terminate(reason, state) do
     msg = "Regimen: #{state.regimen.name} completed with errors! #{inspect reason}"
     Logger.debug(msg)
     RPCMessageHandler.log(msg, [:error_toast], ["RegimenManager"])
+    spawn fn -> RPCMessageHandler.send_status end
   end
 end
