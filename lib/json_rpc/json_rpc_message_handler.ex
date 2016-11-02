@@ -243,21 +243,16 @@ defmodule RPCMessageHandler do
   end
 
   def do_handle("exec_sequence", [sequence]) do
-    cond do
-      Map.has_key?(sequence, "body")
-       and Map.has_key?(sequence, "args")
-       and Map.has_key?(sequence, "name")
-      ->
-        GenServer.call(FarmEventManager, {:add, {:sequence, sequence}})
-      true -> log("Sequence invalid.", [:error_toast], ["RPCHANDLER"])
-    end
-    :ok
+    Map.drop(sequence, ["dirty"])
+    |> Map.merge(%{"device_id" => -1, "id" => Map.get(sequence, "id") || -1})
+    |> Sequence.create
+    |> FarmEventManager.add_sequence
   end
 
   def do_handle("start_regimen", [%{"regimen_id" => id}]) when is_integer(id) do
     BotSync.sync()
     regimen = BotSync.get_regimen(id)
-    GenServer.call(FarmEventManager, {:add, {:regimen, regimen}})
+    FarmEventManager.add_regimen(regimen)
     send_status
   end
 
@@ -269,12 +264,12 @@ defmodule RPCMessageHandler do
 
   def do_handle("stop_regimen", [%{"regimen_id" => id}]) when is_integer(id) do
     regimen = BotSync.get_regimen(id)
-    running = GenServer.call(FarmEventManager, :state)
+    {pid, ^regimen, _, _} = GenServer.call(FarmEventManager, :state)
     |> Map.get(:running_regimens)
     |> Enum.find(fn({_pid, re, _items, _start_time}) ->
       re == regimen
     end)
-    send(FarmEventManager, {:done, {:regimen, running}})
+    send(FarmEventManager, {:done, {:regimen, pid, regimen}})
     send_status
   end
 
@@ -308,6 +303,7 @@ defmodule RPCMessageHandler do
     @transport.emit(log_msg(message, channels, tags))
   end
 
+  # This is what actually updates the rest of the world about farmbots status.
   def send_status do
     status =
       Map.merge(BotState.get_status,
