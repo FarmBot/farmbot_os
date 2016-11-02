@@ -1,5 +1,5 @@
 defmodule RegimenVM  do
-  @checkup_time 60000
+  @checkup_time 15000 #TODO: change this to 60 seconds
   require Logger
 
   def start_link(regimen, finished_items \\[], time) do
@@ -19,7 +19,7 @@ defmodule RegimenVM  do
     {:ok, initial_state}
   end
 
-  # if there are no more items to run. exit
+  # if there are no more items to run. exit this instance
   def handle_info(:tick, %{
       running: true,
       timer: _timer,
@@ -29,8 +29,15 @@ defmodule RegimenVM  do
       regimen: regimen
     })
   do
-    send(FarmEventManager, {:done, {:regimen, {self(), regimen} }})
-    {:noreply, nil }
+    send(FarmEventManager, {:done, {:regimen, self(), regimen }})
+    {:noreply, %{
+        running: false,
+        timer: nil,
+        start_time: nil,
+        regimen_items: [],
+        ran_items: nil,
+        regimen: regimen
+      } }
   end
 
   def handle_info(:tick, %{
@@ -42,29 +49,30 @@ defmodule RegimenVM  do
       regimen: regimen
     })
   do
-    now = System.monotonic_time(:milliseconds)
+    now = Timex.now(BotState.get_config(:timezone))
     {items_to_do, remaining_items} =
       Enum.partition(items, fn(item) ->
-        offset = Map.get(item, "time_offset")
-        lhs = (now - start_time)
-        rhs = (offset)
-        case ( lhs > rhs ) do
+        offset = item.time_offset
+        run_time = Timex.shift(start_time, milliseconds: offset)
+        should_run = Timex.after?(now, run_time)
+        case ( should_run ) do
           true ->
-            sequence = BotSync.get_sequence(Map.get(item, "sequence_id"))
-            msg = "Time to run Sequence: " <> Map.get(sequence, "name")
+            sequence = BotSync.get_sequence(item.sequence_id)
+            msg = "Time to run Sequence: " <> sequence.name
             GenServer.call(FarmEventManager, {:add, {:sequence, sequence}})
             Logger.debug(msg)
-            RPCMessageHandler.log(msg, [:ticker, :success_toast], [Map.get(regimen, "name")])
+            RPCMessageHandler.log(msg, [:ticker, :success_toast], [regimen.name])
           false ->
             :ok
         end
-        ( lhs > rhs )
+        should_run
     end)
     if(items_to_do == []) do
-      RPCMessageHandler.log("nothing to run this cycle", [], [Map.get(regimen, "name")])
+      RPCMessageHandler.log("nothing to run this cycle", [], [regimen.name])
     end
     timer = Process.send_after(self(), :tick, @checkup_time)
     finished = ran_items ++ items_to_do
+    # tell farmevent manager that these items are done.
     send(FarmEventManager, {:done, {:regimen_items, {self(), regimen, finished, start_time}}})
     {:noreply,
       %{running: true, timer: timer, start_time: start_time,
@@ -73,34 +81,21 @@ defmodule RegimenVM  do
   end
 
   def get_regimen_item_for_regimen(regimen) do
-    this_regimen_id = Map.get(regimen, "id")
     BotSync.get_regimen_items
-    |> Enum.filter(fn(item) -> Map.get(item, "regimen_id") == this_regimen_id end)
+    |> Enum.filter(fn(item) -> item.regimen_id == regimen.id end)
   end
 
   def terminate(:normal, state) do
-    rname = Map.get(state.regimen, "name")
-    msg = "Regimen: #{rname} completed without errors!"
+    msg = "Regimen: #{state.regimen.name} completed without errors!"
     Logger.debug(msg)
     RPCMessageHandler.log(msg, [:ticker, :success_toast], ["RegimenManager"])
+    spawn fn -> RPCMessageHandler.send_status end
   end
 
   def terminate(reason, state) do
-    rname = Map.get(state.regimen, "name")
-    msg = "Regimen: #{rname} completed with errors! #{inspect reason}"
+    msg = "Regimen: #{state.regimen.name} completed with errors! #{inspect reason}"
     Logger.debug(msg)
-    RPCMessageHandler.log(msg, [:ticker, :error_toast], ["RegimenManager"])
+    RPCMessageHandler.log(msg, [:error_toast], ["RegimenManager"])
+    spawn fn -> RPCMessageHandler.send_status end
   end
-
-
-  def test do
-    BotSync.sync
-    item1 = %{"id" => 66, "regimen_id" => 8, "sequence_id" => 13, "time_offset" => 120000}
-    item2 = %{"id" => 67, "regimen_id" => 8, "sequence_id" => 13, "time_offset" => 30000}
-    GenServer.call(BotSync, {:add_regimen_item, item1})
-    GenServer.call(BotSync, {:add_regimen_item, item2})
-    regimen = BotSync.get_regimen(8)
-    GenServer.call(FarmEventManager, {:add, {:regimen, regimen}})
-  end
-
 end

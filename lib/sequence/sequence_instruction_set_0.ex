@@ -34,14 +34,20 @@ defmodule SequenceInstructionSet_0 do
           lhs != rhs
         end
 
+        def do_if(lhs, _, rhs)
+        when is_integer lhs and is_integer(rhs) do
+          RPCMessageHandler.log(\" Bad operator for if_statement \", [:error_toast], [\"SequenceInstructionSet\", \"ERROR\"])
+          :error
+        end
+
         def do_if(:error, _op, _rhs) do
           RPCMessageHandler.log(\" Could not locate value for LHS \", [], [\"SequenceInstructionSet\"])
-          :false
+          :error
         end
 
         def do_if(_lhs, _op, _rhs) do
-          RPCMessageHandler.log(\" Bad type for if_statement \", [], [\"SequenceInstructionSet\"])
-          :false
+          RPCMessageHandler.log(\" Bad type for if_statement \", [:error_toast], [\"SequenceInstructionSet\", \"ERROR\"])
+          :error
         end
       "
     Module.create(SiS, create_instructions(initial, allowed_args_list, allowed_nodes_list ), Macro.Env.location(__ENV__))
@@ -95,6 +101,10 @@ defmodule SequenceInstructionSet_0 do
       "
       def #{name}(value) #{check} do
         value
+      end
+
+      def #{name}(value) do
+        RPCMessageHandler.log(\" Bad type \", [], [\"Sequence Error\"])
       end
       "
     create_arg_instruction(name, types -- [type], old<>new)

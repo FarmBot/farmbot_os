@@ -38,7 +38,8 @@ defmodule Fw.Mixfile do
      :rsa,
      :hulaaki,
      :runtime_tools,
-     :mustache]
+     :mustache,
+     :timex]
   end
 
   # on device
@@ -58,7 +59,11 @@ defmodule Fw.Mixfile do
 
   # test
   def apps(:test) do
-    apps
+    apps ++ [
+      :plug,
+      :cors_plug,
+      :cowboy
+    ]
   end
 
   def deps do
@@ -70,7 +75,8 @@ defmodule Fw.Mixfile do
       {:nerves_lib, github: "nerves-project/nerves_lib"},
       {:rsa, "~> 0.0.1"},
       {:hulaaki, github: "ConnorRigby/hulaaki"},
-      {:mustache, "~> 0.0.2"}
+      {:mustache, "~> 0.0.2"},
+      {:timex, "~> 3.0"}
     ]
   end
 
@@ -79,12 +85,15 @@ defmodule Fw.Mixfile do
     [
      {:nerves, "~> 0.3.0"},
      {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
-     {:farmbot_configurator, github: "FarmBot/farmbot_configurator"}
+     {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
     ]
   end
 
   def deps(:test) do
-    deps ++ deps(:dev)
+    deps ++ deps(:dev) ++
+    [ {:plug, "~> 1.0"},
+      {:cors_plug, "~> 1.1"},
+      {:cowboy, "~> 1.0.0"} ]
   end
 
   def deps(:dev) do
@@ -94,7 +103,8 @@ defmodule Fw.Mixfile do
   def platform_deps("rpi3") do
     [
       {:nerves_networking, github: "nerves-project/nerves_networking"},
-      {:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi" },
+      # {:nerves_interim_wifi, path: "../nerves/nerves_interim_wifi"},
+      {:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi"},
       {:nerves_leds, "~> 0.7.0"},
       {:elixir_ale, "~> 0.5.5"}
     ]
@@ -121,6 +131,6 @@ defmodule Fw.Mixfile do
   end
 
   def system("rpi3") do
-    [{:"nerves_system_rpi3", git: "https://github.com/ConnorRigby/nerves_system_rpi3.git", tag: "v0.7.5-beta" }]
+    [{:"nerves_system_rpi3", git: "https://github.com/ConnorRigby/nerves_system_rpi3.git", tag: "v0.7.5" }]
   end
 end

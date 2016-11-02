@@ -15,11 +15,11 @@ defmodule NewHandler do
     {:noreply, state}
   end
 
-  def handle_cast({:idle}, state) do
+  def handle_cast({:idle, _}, state) do
     {:noreply, %{nerves: state.nerves, current: nil, log: []}}
   end
 
-  def handle_cast({:done}, %{nerves: nerves, current: {_current_str, pid}, log: log}) do
+  def handle_cast({:done, _}, %{nerves: nerves, current: {_current_str, pid}, log: log}) do
     send(pid, :done)
     RPCMessageHandler.send_status
     case List.first(log) do
@@ -31,52 +31,47 @@ defmodule NewHandler do
     end
   end
 
-  def handle_cast({:done}, state) do
+  def handle_cast({:done, _}, state) do
     {:noreply, %{nerves: state.nerves, current: nil, log: []}}
   end
 
-  def handle_cast({:received}, state) do
+  def handle_cast({:received, _}, state) do
     {:noreply, state}
   end
 
-  def handle_cast({:report_pin_value, params}, state) do
-    ["P"<>pin, "V"<>value] = String.split(params, " ")
+  def handle_cast({:report_pin_value, pin, value, _}, state)
+  when is_integer(pin) and is_integer(value) do
     Logger.debug("pin#{pin}: #{value}")
-    BotState.set_pin_value(String.to_integer(pin), String.to_integer(value))
+    BotState.set_pin_value(pin, value)
     {:noreply, state}
   end
 
-  def handle_cast( {:report_current_position, position }, state) do
-    [x, y, z] = parse_coords(position)
+  def handle_cast( {:report_current_position, x,y,z, _ }, state) do
     Logger.debug("Reporting position #{inspect {x, y, z}}")
     BotState.set_pos(x,y,z)
     {:noreply, state}
   end
 
-  def handle_cast({:report_parameter_value, param }, state) do
-    [p, v] = String.split(param, " ")
-    [_, real_param] = String.split(p, "P")
-    [_, real_value] = String.split(v, "V")
-    Logger.debug("Param: #{real_param}, Value: #{real_value}")
-    real_param
-    |> Gcode.parse_param
-    |> Atom.to_string          # DON'T
-    |> String.Casing.downcase  # DO
-    |> String.to_atom          # THIS
-    |> BotState.set_param(String.to_integer(real_value))
+  def handle_cast({:report_parameter_value, param, value, _}, state)
+  when is_atom(param) and is_integer(value) do
+    Logger.debug("Param: #{param}, Value: #{value}")
+    BotState.set_param(param, value)
     {:noreply, state}
   end
 
   # TODO report end stops
-  def handle_cast({:reporting_end_stops, stop_values }, state) do
-    # Logger.debug("[gcode_handler] {:reporting_end_stops} stub: #{stop_values}")
-    stop_values
-    |> parse_stop_values
-    |> Enum.each(&BotState.set_end_stop/1)
+  def handle_cast({:reporting_end_stops, x1,x2,y1,y2,z1,z2,_ }, state) do
+    Logger.warn("Set end stops valid: #{inspect {x1,x2,y1,y2,z1,z2}}")
     {:noreply, state}
   end
 
-  def handle_cast({:busy}, %{nerves: nerves, current: {cur_str, pid}, log: log}) do
+  # TODO report end stops
+  def handle_cast({:reporting_end_stops, blah}, state) do
+    Logger.warn("Set end stops valid: #{inspect blah}")
+    {:noreply, state}
+  end
+
+  def handle_cast({:busy, _}, %{nerves: nerves, current: {cur_str, pid}, log: log}) do
     send(pid, :busy)
     Logger.debug("Arduino is busy")
     {:noreply, %{nerves: nerves, current: {cur_str, pid}, log: log}}
@@ -116,42 +111,4 @@ defmodule NewHandler do
       timeout -> :timeout
     end
   end
-
-  @doc """
-  Example:
-    iex> GcodeMessageHandler.parse_coords("X34 Y756 Z23")
-    [34, 756, 23]
-  """
-  def parse_coords(position) when position |> is_binary do
-    position
-    |> String.split(" ")
-    |> parse_coords
-  end
-  def parse_coords(["X" <> x,"Y" <> y, "Z" <> z]) do
-    [x,y,z]
-    |> Enum.map(&String.to_integer/1)
-  end
-
-
-  @doc """
-  Example:
-    iex> GcodeMessageHandler.parse_stop_values("XA0 XB0 YA0 YB0 ZA0 ZB0")
-    [{"XA", "0"}, {"XB", "0"}, {"YA", "0"}, {"YB", "0"}, {"ZA", "0"}, {"ZB", "0"}]
-  """
-  def parse_stop_values(stop_values) when stop_values |> is_binary do
-    # same thing here as parse_coords
-    stop_values
-    |> String.split(" ")
-    |> parse_stop_values
-  end
-  def parse_stop_values(["XA"<>xa, "XB"<>xb,
-                         "YA"<>ya, "YB"<>yb,
-                         "ZA"<>za, "ZB"<>zb]) do
-    [
-      {"XA", xa}, {"XB", xb},
-      {"YA", ya}, {"YB", yb},
-      {"ZA", za}, {"ZB", zb},
-    ]
-  end
-
 end

@@ -3,19 +3,42 @@ defmodule BotSync do
   require Logger
 
   def init(_args) do
-    {:ok, %{token: nil, resources: nil }}
+    {:ok, %{token: nil,
+            resources: load_old_resources,
+            corpuses: load_old_corpuses
+            }}
+  end
+
+  def load_old_corpuses do
+    []
+  end
+
+  def load_old_resources do
+    Sync.create(%{"checksum" => "loading...",
+      "device" => %{
+        "id" => -1,
+        "planting_area_id" => -1,
+        "webcam_url" => "loading...",
+        "name" => "loading..."
+        },
+      "peripherals" =>   [],
+      "plants" =>        [],
+      "regimen_items" => [],
+      "regimens" =>      [],
+      "sequences" =>     [],
+      "users" =>         []})
   end
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def handle_cast(_, %{token: nil, resources: _}) do
+  def handle_cast(_, %{token: nil, resources: old, corpuses: oldc}) do
     spawn fn -> try_to_get_token end
-    {:noreply, %{token: nil, resources: nil}}
+    {:noreply, %{token: nil, resources: old, corpuses: oldc}}
   end
 
-  def handle_cast(:sync, %{token: token, resources: old}) do
+  def handle_cast(:sync, %{token: token, resources: old, corpuses: oldc}) do
     server = Map.get(token, "unencoded") |> Map.get("iss")
     auth = Map.get(token, "encoded")
 
@@ -26,76 +49,84 @@ defmodule BotSync do
      %HTTPotion.Response{body: body,
                          headers: _headers,
                          status_code: 200} ->
-       RPCMessageHandler.log("synced", [], ["BotSync"])
-       new = Map.merge(old || %{}, Poison.decode!(body))
-       {:noreply, %{token: token, resources: new }}
+       RPCMessageHandler.log("Synced", [], ["BotSync"])
+       new = Poison.decode!(body)
+       |> Sync.create
+      #  old_legacy_is_old = [%{"pin" => 9, "mode" => 0},
+      #                       %{"pin" => 10, "mode" => 0},
+      #                       %{"pin" => 13, "mode" => 0}]
+       #
+      #  # If we didn't have any peripherals before this sync, read the new ones
+      #  old_perifs = Map.get(old || Map.new(), "peripherals")
+      #  new_perifs = Map.get(new, "peripherals") || old_legacy_is_old
+      #  if(old_perifs != new_perifs) do
+      #    Enum.all?(new_perifs, fn(x) ->
+      #      Command.read_pin(Map.get(x, "pin"), Map.get(x, "mode"))
+      #    end)
+      #  end
+       new_merged = Map.merge(old ,new)
+       {:noreply, %{token: token, resources: new_merged, corpuses: oldc }}
      error ->
        Logger.debug("Couldn't get resources: #{error}")
        RPCMessageHandler.log("Error syncing: #{inspect error}", [:error_toast], ["BotSync"])
-       {:noreply, %{token: token, resources: %{}}}
+       {:noreply, %{token: token, resources: old, corpuses: oldc}}
     end
   end
 
-  def handle_call({:token, token}, _from, %{token: _, resources: _}) do
-    {:reply, :ok, %{token: token, resources: nil}}
+  def handle_call({:token, token}, _from, %{token: _, resources: old, corpuses: oldc}) do
+    {:reply, :ok, %{token: token, resources: old, corpuses: oldc}}
   end
 
-  def handle_call(_,_from, %{token: nil, resources: _}) do
+  def handle_call(_,_from, %{token: nil, resources: old, corpuses: oldc}) do
     Logger.debug("Please make sure you have a token first.")
-    {:reply, :no_token, %{token: nil, resources: nil}}
+    {:reply, :no_token, %{token: nil, resources: old, corpuses: oldc}}
   end
 
-  def handle_call({:save_sequence, seq}, _from, %{token: token, resources: resources}) do
+  def handle_call({:save_sequence, seq}, _from, %{token: token, resources: resources, corpuses: oldc}) do
     new_resources = Map.put(resources, "sequences", [seq | Map.get(resources, "sequences")] )
-    {:reply, :ok, %{token: token, resources: new_resources}}
+    {:reply, :ok, %{token: token, resources: new_resources, corpuses: oldc}}
   end
 
-  def handle_call(:fetch, _from, %{token: token, resources: resources}) do
-    {:reply, resources, %{token: token, resources: resources}}
+  def handle_call(:fetch, _from, %{token: token, resources: resources, corpuses: oldc}) do
+    {:reply, resources, %{token: token, resources: resources, corpuses: oldc}}
   end
 
-  def handle_call({:get_sequence, id}, _from, %{token: token, resources: resources}) do
-    sequences = Map.get(resources, "sequences")
-    got = Enum.find(sequences, fn(sequence) -> Map.get(sequence, "id") == id end)
-    {:reply, got, %{token: token, resources: resources}}
+  def handle_call({:get_sequence, id}, _from, %{token: token, resources: resources,corpuses: oldc }) do
+    sequences = resources.sequences
+    got = Enum.find(sequences, fn(sequence) -> Map.get(sequence, :id) == id end)
+    {:reply, got, %{token: token, resources: resources, corpuses: oldc}}
   end
 
-  def handle_call(:get_sequences, _from, %{token: token, resources: resources}) do
-    sequences = Map.get(resources, "sequences")
-    {:reply, sequences, %{token: token, resources: resources}}
+  def handle_call(:get_sequences, _from, %{token: token, resources: resources, corpuses: oldc}) do
+    {:reply, resources.sequences, %{token: token, resources: resources, corpuses: oldc}}
   end
 
-  def handle_call({:get_regimen, id}, _from, %{token: token, resources: resources}) do
-    regimens = Map.get(resources, "regimens")
-    got = Enum.find(regimens, fn(regimen) -> Map.get(regimen, "id") == id end)
-    {:reply, got, %{token: token, resources: resources}}
+  def handle_call({:get_regimen, id}, _from, %{token: token, resources: resources, corpuses: oldc}) do
+    regimens = resources.regimens
+    got = Enum.find(regimens, fn(regimen) -> Map.get(regimen, :id) == id end)
+    {:reply, got, %{token: token, resources: resources, corpuses: oldc}}
   end
 
-  def handle_call(:get_regimens, _from, %{token: token, resources: resources}) do
-    regimens = Map.get(resources, "regimens")
-    {:reply, regimens, %{token: token, resources: resources}}
+  def handle_call(:get_regimens, _from, %{token: token, resources: resources, corpuses: oldc}) do
+    {:reply, resources.regimens, %{token: token, resources: resources, corpuses: oldc}}
   end
 
-  def handle_call({:get_regimen_item, id}, _from, %{token: token, resources: resources}) do
-    regimens_items = Map.get(resources, "regimen_items")
-    got = Enum.find(regimens_items, fn(regimen_item) -> Map.get(regimen_item, "id") == id end)
-    {:reply, got, %{token: token, resources: resources}}
+  def handle_call({:get_regimen_item, id}, _from, %{token: token, resources: resources, corpuses: oldc}) do
+    regimen_items = resources.regimen_items
+    got = Enum.find(regimen_items, fn(regimen_item) -> regimen_item.id == id end)
+    {:reply, got, %{token: token, resources: resources, corpuses: oldc}}
   end
 
-  def handle_call(:get_regimen_items, _from, %{token: token, resources: resources}) do
-    regimen_items = Map.get(resources, "regimen_items")
-    {:reply, regimen_items, %{token: token, resources: resources}}
-  end
-
-  def handle_call({:add_regimen_item, item}, _from, %{token: token, resources: resources}) do
-    {:reply, :ok, %{token: token, resources: Map.put(resources, "regimen_items", Map.get(resources, "regimen_items") ++ [item] )}}
+  def handle_call(:get_regimen_items, _from, %{token: token, resources: resources, corpuses: oldc}) do
+    regimen_items = resources.regimen_items
+    {:reply, regimen_items, %{token: token, resources: resources, corpuses: oldc}}
   end
 
   # REALLY BAD LOGIC HERE
   # TODO: make this a little cleaner
-  def handle_call({:get_corpus, id}, _from, %{token: token, resources: resources} ) do
-    case Map.get(resources, "corpuses") do
-      nil ->
+  def handle_call({:get_corpus, id}, _from, %{token: token, resources: resources, corpuses: oldc} ) do
+    case oldc do
+      [] ->
         msg = "Compiling Sequence Instruction Set"
         Logger.debug(msg)
         RPCMessageHandler.log(msg, [], ["BotSync"])
@@ -103,9 +134,12 @@ defmodule BotSync do
         c = get_corpus_from_server(server, id)
         m = String.to_atom("Elixir.SequenceInstructionSet_"<>"#{id}")
         m.create_instruction_set(c)
-        {:reply, Module.concat(SiS, "Corpus_#{id}"), %{token: token, resources: Map.put(resources, "corpuses", [c])}}
+        {:reply, Module.concat(SiS, "Corpus_#{id}"),
+          %{token: token,
+            resources: resources, corpuses: oldc ++ [Corpus.create(c)] }}
       _corpuses ->
-        {:reply, Module.concat(SiS, "Corpus_#{id}"), %{token: token, resources: resources}}
+        {:reply, Module.concat(SiS, "Corpus_#{id}"),
+          %{token: token, resources: resources, corpuses: oldc}}
     end
   end
 

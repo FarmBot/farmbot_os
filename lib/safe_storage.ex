@@ -11,6 +11,7 @@ defmodule SafeStorage do
   use GenServer
   @state_path Application.get_env(:fb, :state_path)
   @block_device "/dev/mmcblk0p3"
+  @fs_type "ext4"
 
   def init(_args) do
     mount_read_only
@@ -80,13 +81,13 @@ defmodule SafeStorage do
   def mount_read_only do
     sync
     cmd = "mount"
-    System.cmd(cmd, ["-t", "vfat", "-o", "ro,remount", @block_device, @state_path])
+    System.cmd(cmd, ["-t", @fs_type, "-o", "ro,remount", @block_device, @state_path])
     |> print_cmd(cmd)
   end
 
   def mount_read_write do
     cmd = "mount"
-    System.cmd(cmd, ["-t", "vfat", "-o", "rw,remount", @block_device, @state_path])
+    System.cmd(cmd, ["-t", @fs_type, "-o", "rw,remount", @block_device, @state_path])
     |> print_cmd(cmd)
   end
 
@@ -144,10 +145,9 @@ defmodule SafeStorage do
   end
 
   def terminate(:reset, _state) do
-    mount_read_write
+    System.cmd("umount", [@block_device])
+    Fw.format_state_part
     File.rm("#{@state_path}/STATE")
-    sync
-    mount_read_only
     :reset
   end
 end

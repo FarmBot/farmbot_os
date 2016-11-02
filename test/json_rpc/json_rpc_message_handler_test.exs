@@ -12,7 +12,7 @@ defmodule RPCMessageManagerTest do
     {:ok, decoded} = Poison.decode(msg)
     assert(Map.get(decoded, "id") == "long uuid string")
     assert(Map.get(decoded, "error") == nil)
-    assert(Map.get(decoded, "result") == "OK")
+    assert(Map.get(decoded, "result") == %{"OK" => "OK"})
   end
 
   test("it creates a JsonRpc compliant farmbot error message") do

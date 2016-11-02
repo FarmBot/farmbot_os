@@ -58,14 +58,14 @@ defmodule SequenceManager do
     end
   end
 
-  def handle_info({:done, pid}, %{current: _current, global_vars: globals, log: []}) do
+  def handle_info({:done, pid, sequence}, %{current: _current, global_vars: globals, log: []}) do
     GenServer.stop(pid, :normal)
     RPCMessageHandler.log("No more sub sequences.", [], ["SequencerVM"])
-    send(FarmEventManager, {:done, {:sequence, self()}})
+    send(FarmEventManager, {:done, {:sequence, self(), sequence}})
     {:noreply, %{current: nil, global_vars: globals, log: [] } }
   end
 
-  def handle_info({:done, pid}, %{current: _current, global_vars: globals, log: log}) do
+  def handle_info({:done, pid, _sequence}, %{current: _current, global_vars: globals, log: log}) do
     GenServer.stop(pid, :normal)
     RPCMessageHandler.log("Running next sub sequence", [], ["SequencerVM"])
     next = List.first(log)

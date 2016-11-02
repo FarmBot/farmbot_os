@@ -7,22 +7,19 @@ defmodule SequencerVM do
   end
 
   def init(sequence) do
-    body = Map.get(sequence, "body")
-    args = Map.get(sequence, "args")
-    tv = Map.get(args, "tag_version") || 0
+    tv = Map.get(sequence.args, "tag_version") || 0
     BotSync.sync()
     corpus_module = BotSync.get_corpus(tv)
     {:ok, instruction_set} = corpus_module.start_link(self())
-    status = BotState.get_status
     tick(self())
     initial_state =
       %{
-        status: status,
-        body: body,
-        args: Map.put(args, "name", Map.get(sequence, "name")),
+        status: BotState.get_status,
         instruction_set: instruction_set,
         vars: %{},
-        running: true
+        running: true,
+        sequence: sequence,
+        steps: {sequence.body, []}
        }
     {:ok, initial_state}
   end
@@ -42,7 +39,7 @@ defmodule SequencerVM do
     # Kind of dirty function to make mustache work properly.
     # Also possibly a huge memory leak.
 
-    # get all of the local vars from the vm.
+    # get all of the local vars from the vm. # SUPER UNSAFE
     thing1 = state.vars |> Enum.reduce(%{}, fn ({key, val}, acc) -> Map.put(acc, String.to_atom(key), val) end)
 
     # put current position into the Map
@@ -50,17 +47,19 @@ defmodule SequencerVM do
     pins = BotState.get_status
     |> Map.get(:pins)
     |> Enum.reduce(%{}, fn( {key, %{mode: _mode, value: val}}, acc) ->
+      # THIS IS SO UNSAFE
       Map.put(acc, String.to_atom("pin"<>key), val)
     end)
     thing2 = Map.merge( %{x: x, y: y, z: z }, pins)
 
     # gets a couple usefull things out of BotSync
-    thing3v = List.first Map.get(BotSync.fetch, "users")
-    thing3 = thing3v |> Enum.reduce(%{}, fn ({key, val}, acc) -> Map.put(acc, String.to_atom(key), val) end)
+    thing3 = List.first(BotSync.fetch
+    |> Map.get(:users))
+    |> Map.drop([:__struct__]) # This probably isnt correct
 
     # Combine all the things.
     all_things = Map.merge(thing1, thing2) |> Map.merge(thing3)
-    {:reply, all_things , state }
+    {:reply, all_things , state}
   end
 
   def handle_call(:pause, _from, state) do
@@ -68,7 +67,8 @@ defmodule SequencerVM do
   end
 
   def handle_call(thing, _from, state) do
-    RPCMessageHandler.log("#{inspect thing} is probably not implemented", [:warning_toast], ["Sequencer"])
+    RPCMessageHandler.log("#{inspect thing} is probably not implemented",
+      [:warning_toast], [state.sequence.name])
     {:reply, :ok, state}
   end
 
@@ -78,57 +78,63 @@ defmodule SequencerVM do
 
   # if the VM is paused
   def handle_info(:run_next_step, %{
+          sequence: sequence,
+          steps: steps,
           status: status,
-          body: body,
-          args: args,
           instruction_set: instruction_set,
           vars: vars,
           running: false
          })
   do
-    {:noreply, %{status: status, body: body, args: args, instruction_set: instruction_set, vars: vars, running: false  }}
+    {:noreply,
+      %{status: status, sequence: sequence, steps: steps,
+        instruction_set: instruction_set, vars: vars, running: false  }}
   end
 
   # if there is no more steps to run
   def handle_info(:run_next_step, %{
           status: status,
-          body: [],
-          args: args,
+          sequence: sequence,
           instruction_set: instruction_set,
           vars: vars,
-          running: running
+          running: running,
+          steps: {[], finished_steps}
          })
   do
     Logger.debug("sequence done")
-    RPCMessageHandler.log("Sequence Complete", [], [Map.get(args, "name")])
-    send(SequenceManager, {:done, self()})
+    RPCMessageHandler.log("Sequence Complete", [], [sequence.name])
+    send(SequenceManager, {:done, self(), sequence})
     Logger.debug("Stopping VM")
-    {:noreply, %{status: status, body: [], args: args, instruction_set: instruction_set, vars: vars, running: running  }}
+    {:noreply,
+      %{status: status,
+        sequence: sequence,
+        steps: {[], finished_steps},
+        instruction_set: instruction_set,
+        vars: vars,
+        running: running  }}
   end
 
   # if there are more steps to run
   def handle_info(:run_next_step, %{
           status: status,
-          body: body,
-          args: args,
           instruction_set: instruction_set,
           vars: vars,
-          running: true
-         })
+          running: true,
+          sequence: sequence,
+          steps: {more_steps, finished_steps} })
   do
-    node = List.first(body)
+    node = List.first(more_steps)
     kind = Map.get(node, "kind")
     Logger.debug("doing: #{kind}")
-    RPCMessageHandler.log("Doin step: #{kind}", [], [Map.get(args, "name")])
+    RPCMessageHandler.log("Doing step: #{kind}", [], [sequence.name])
     GenServer.cast(instruction_set, {kind, Map.get(node, "args") })
     {:noreply, %{
             status: status,
-            body: body -- [node],
-            args: args,
+            sequence: sequence,
+            steps: {more_steps -- [node], finished_steps ++ [node]},
             instruction_set: instruction_set,
             vars: vars,
-            running: true
-           }}
+            running: true }}
   end
 
   def tick(vm) do

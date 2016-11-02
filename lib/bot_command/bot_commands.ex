@@ -18,11 +18,11 @@ defmodule Command do
   @doc """
     Home All (TODO: this might be broken)
   """
-  def home_all(speed) do
+  def home_all(speed \\ nil) do
     msg = "HOME ALL"
     Logger.debug(msg)
     RPCMessageHandler.log(msg, [], [@log_tag])
-    Command.move_absolute(0, 0, 0, speed)
+    Command.move_absolute(0, 0, 0, speed || BotState.get_config(:steps_per_mm))
   end
 
   @doc """
@@ -34,7 +34,6 @@ defmodule Command do
     Logger.debug(msg)
     RPCMessageHandler.log(msg, [], [@log_tag])
     NewHandler.block_send("F11")
-    move_done_msg
   end
 
   @doc """
@@ -45,7 +44,6 @@ defmodule Command do
     Logger.debug(msg)
     RPCMessageHandler.log(msg, [], [@log_tag])
     NewHandler.block_send("F12")
-    move_done_msg
   end
 
   @doc """
@@ -56,7 +54,6 @@ defmodule Command do
     Logger.debug(msg)
     RPCMessageHandler.log(msg, [], [@log_tag])
     NewHandler.block_send("F13")
-    move_done_msg
   end
 
   @doc """
@@ -66,49 +63,19 @@ defmodule Command do
   when is_integer(pin) and is_integer(value) and is_integer(mode) do
     BotState.set_pin_mode(pin, mode)
     BotState.set_pin_value(pin, value)
-    NewHandler.block_send "F41 P#{pin} V#{value} M#{mode}"
+    NewHandler.block_send("F41 P#{pin} V#{value} M#{mode}") |> logmsg("write_pin")
   end
 
   @doc """
     Moves to (x,y,z) point.
-    Sets the bot status to given coords
-    replies to the mqtt message that caused it (if one exists)
-    adds the move to the command queue.
   """
-  def move_absolute(x \\ 0,y \\ 0,z \\ 0,s \\ 100)
-  def move_absolute(x, y, z, s) when x >= 0 and y >= 0 do
+  def move_absolute(x ,y ,z ,s \\ nil)
+  def move_absolute(x, y, z, s) do
     msg = "Moving to X#{x} Y#{y} Z#{z}"
     Logger.debug(msg)
     RPCMessageHandler.log(msg, [], [@log_tag])
-    NewHandler.block_send "G00 X#{x} Y#{y} Z#{z} S#{s}"
-    move_done_msg
-  end
-
-  # When both x and y are negative
-  def move_absolute(x, y, z, s) when x < 0 and y < 0 do
-    msg = "Moving to X#{0} Y#{0} Z#{z}"
-    Logger.debug(msg)
-    RPCMessageHandler.log(msg, [], [@log_tag])
-    NewHandler.block_send "G00 X#{0} Y#{0} Z#{z} S#{s}"
-    move_done_msg
-  end
-
-  # when x is negative
-  def move_absolute(x, y, z, s) when x < 0 do
-    msg = "Moving to X#{0} Y#{y} Z#{z}"
-    Logger.debug(msg)
-    RPCMessageHandler.log(msg, [], [@log_tag])
-    NewHandler.block_send "G00 X#{0} Y#{y} Z#{z} S#{s}"
-    move_done_msg
-  end
-
-  # when y is negative
-  def move_absolute(x, y, z, s ) when y < 0 do
-    msg = "Moving to X#{x} Y#{0} Z#{z}"
-    Logger.debug(msg)
-    RPCMessageHandler.log(msg, [], [@log_tag])
-    NewHandler.block_send "G00 X#{x} Y#{0} Z#{z} S#{s}"
-    move_done_msg
+    NewHandler.block_send("G00 X#{x} Y#{y} Z#{z} S#{s || BotState.get_config(:steps_per_mm)}")
+    |> logmsg("Movement")
   end
 
   @doc """
@@ -144,24 +111,34 @@ defmodule Command do
   @doc """
     Used when bootstrapping the bot.
     Reads all the params.
+    TODO: Make these not magic numbers.
   """
-  def read_all_params do
-    rel_params = [0,11,12,13,21,22,23,
-                  31,32,33,41,42,43,51,
-                  52,53,61,62,63,71,72,73]
-    spawn fn -> Enum.each(rel_params, fn param ->
+  def read_all_params(params \\ [0,11,12,13,21,22,23,
+                                 31,32,33,41,42,43,51,
+                                 52,53,61,62,63,71,72,73])
+  when is_list(params) do
+    case Enum.partition(params, fn param ->
       GenServer.call(NewHandler, {:send, "F21 P#{param}", self()})
-    end ) end
+      :done == NewHandler.block(2500)
+    end) do
+      {_, []} -> :ok
+      {_, failed_params} -> read_all_params(failed_params)
+       _ -> :fail
+    end
   end
 
   @doc """
     Reads a pin value.
+    mode can be 0 (digital) or 1 (analog)
   """
-  def read_pin(pin, mode \\ 0) do
+  def read_pin(pin, mode \\ 0) when is_integer(pin) do
     BotState.set_pin_mode(pin, mode)
-    NewHandler.block_send "F42 P#{pin} M#{mode}"
+    NewHandler.block_send("F42 P#{pin} M#{mode}") |> logmsg("read_pin")
   end
 
+  @doc """
+    gets the current value, and then toggles it.
+  """
   def toggle_pin(pin) when is_integer(pin) do
     pinMap = BotState.get_pin(pin)
     case pinMap do
@@ -195,7 +172,14 @@ defmodule Command do
     {:error, "Unknown param"}
   end
 
-  defp move_done_msg do
-    RPCMessageHandler.log("Move Complete", [],[@log_tag])
+  defp logmsg(:done, command) when is_bitstring(command) do
+    RPCMessageHandler.log("#{command} Complete", [],[@log_tag])
+    :done
+  end
+
+  defp logmsg(other, command) when is_bitstring(command) do
+    Logger.error("#{command} Failed")
+    RPCMessageHandler.log("#{command} Failed", [:error_toast, :error_ticker],[@log_tag])
+    other
   end
 end

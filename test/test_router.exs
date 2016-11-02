@@ -1,4 +1,5 @@
 defmodule TestRouter do
+  require Plug.Router
   use Plug.Router
   plug CORSPlug
   plug Plug.Parsers, parsers: [:urlencoded, :json],
