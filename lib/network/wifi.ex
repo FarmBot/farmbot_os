@@ -3,6 +3,7 @@ defmodule Wifi do
   @env Mix.env
   use GenServer
   require Logger
+  
   defp load do
     case SafeStorage.read(__MODULE__) do
       {:ok, {ssid, password} } -> {:wpa_supplicant, {ssid, password}}

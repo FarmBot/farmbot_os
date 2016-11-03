@@ -29,7 +29,7 @@ defmodule Fw do
 
   def init(_args) do
     children = [
-      worker(SafeStorage, [[]], restart: :permanent),
+      worker(SafeStorage, [@env], restart: :permanent),
       worker(BotState, [[]], restart: :permanent ),
       worker(SSH, [@env], restart: :permanent),
       supervisor(Extras, [[]], restart: :temporary),

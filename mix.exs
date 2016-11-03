@@ -39,7 +39,8 @@ defmodule Fw.Mixfile do
      :hulaaki,
      :runtime_tools,
      :mustache,
-     :timex]
+     :timex,
+     :farmbot_auth]
   end
 
   # on device
@@ -73,10 +74,10 @@ defmodule Fw.Mixfile do
       {:poison, "~> 2.0"},
       {:gen_stage, "~> 0.4"},
       {:nerves_lib, github: "nerves-project/nerves_lib"},
-      {:rsa, "~> 0.0.1"},
       {:hulaaki, github: "ConnorRigby/hulaaki"},
       {:mustache, "~> 0.0.2"},
-      {:timex, "~> 3.0"}
+      {:timex, "~> 3.0"},
+      {:farmbot_auth, path: "../farmbot_auth"}
     ]
   end
 

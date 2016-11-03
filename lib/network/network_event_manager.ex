@@ -3,7 +3,7 @@ defmodule Network.EventManager do
   require Logger
 
   def handle_event({:udhcpc, _, :bound, %{ipv4_address: address}}, state) do
-    on_ip(address)
+    spawn fn -> on_ip(address) end
     {:ok, state}
   end
 
@@ -16,8 +16,13 @@ defmodule Network.EventManager do
     {:ok, state}
   end
 
+  def handle_event({:add_ip_callback, _function}, state) do
+    {:ok, state}
+  end
+
   def handle_event(_event, state) do
-    # IO.inspect event
+    #IO.inspect event
+    IO.inspect state
     {:ok, state}
   end
 

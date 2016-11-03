@@ -188,10 +188,10 @@ defmodule BotSync do
   end
 
   def try_to_get_token do
-    case Auth.get_token do
+    case FarmbotAuth.get_token do
       nil -> try_to_get_token
       {:error, reason} -> {:error, reason}
-      token -> GenServer.call(__MODULE__, {:token, token})
+      {:ok, token} -> GenServer.call(__MODULE__, {:token, token})
     end
   end
 end

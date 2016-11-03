@@ -12,8 +12,9 @@ defmodule SafeStorage do
   @state_path Application.get_env(:fb, :state_path)
   @block_device "/dev/mmcblk0p3"
   @fs_type "ext4"
+  @env Mix.env
 
-  def init(_args) do
+  def init(_) do
     mount_read_only
     Process.sleep(10)
     case File.read("#{@state_path}/STATE") do
@@ -78,23 +79,29 @@ defmodule SafeStorage do
     GenServer.call(__MODULE__, {:read, module, is_term})
   end
 
-  def mount_read_only do
-    sync
-    cmd = "mount"
-    System.cmd(cmd, ["-t", @fs_type, "-o", "ro,remount", @block_device, @state_path])
-    |> print_cmd(cmd)
+  def mount_read_only() do
+    if @env == :prod do
+      sync
+      cmd = "mount"
+      System.cmd(cmd, ["-t", @fs_type, "-o", "ro,remount", @block_device, @state_path])
+      |> print_cmd(cmd)
+    end
   end
 
-  def mount_read_write do
-    cmd = "mount"
-    System.cmd(cmd, ["-t", @fs_type, "-o", "rw,remount", @block_device, @state_path])
-    |> print_cmd(cmd)
+  def mount_read_write() do
+    if @env == :prod do
+      cmd = "mount"
+      System.cmd(cmd, ["-t", @fs_type, "-o", "rw,remount", @block_device, @state_path])
+      |> print_cmd(cmd)
+    end
   end
 
-  def sync do
-    sync_cmd = "sync"
-    System.cmd(sync_cmd,[])
-    |> print_cmd(sync_cmd)
+  def sync() do
+    if @env == :prod do
+      sync_cmd = "sync"
+      System.cmd(sync_cmd,[])
+      |> print_cmd(sync_cmd)
+    end
   end
 
   @doc """
