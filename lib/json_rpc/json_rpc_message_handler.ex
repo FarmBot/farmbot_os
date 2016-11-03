@@ -198,7 +198,7 @@ defmodule RPCMessageHandler do
   def do_handle("power_off", _ ) do
     log("Bot Going down in 5 seconds. Pls remeber me.")
     spawn fn ->
-      log("BOT OFFLINE", "error_ticker")
+      log("Powering Down!", [:ticker, :warning_toast], ["BotControl"])
       Process.sleep(5000)
       Nerves.Firmware.poweroff
     end
