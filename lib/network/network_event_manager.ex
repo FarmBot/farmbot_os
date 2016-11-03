@@ -33,5 +33,9 @@ defmodule Network.EventManager do
     Node.stop
     full_node_name = "farmbot@#{address}" |> String.to_atom
     {:ok, _pid} = Node.start(full_node_name)
-  end
+
+    with {:ok, {email, pass,server}} <- SafeStorage.read(AUTH_KEY),
+         {:ok, token} <- FarmbotAuth.login(email, pass,server),
+          do: IO.puts "LOGGED IN"
+   end
 end

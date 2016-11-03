@@ -27,13 +27,17 @@ defmodule Fw do
     :ok
   end
 
+  def save_creds(email, pass, server) do
+    SafeStorage.write(AUTH_KEY, :erlang.term_to_binary({email, pass, server}))
+  end
+
   def init(_args) do
     children = [
       worker(SafeStorage, [@env], restart: :permanent),
-      worker(BotState, [[]], restart: :permanent ),
+      worker(BotState, [[]], restart: :permanent),
       worker(SSH, [@env], restart: :permanent),
-      supervisor(Extras, [[]], restart: :temporary),
       supervisor(NetworkSupervisor, [[]], restart: :permanent),
+      supervisor(Extras, [[]], restart: :temporary),
       supervisor(Controller, [[]], restart: :permanent)
     ]
     opts = [strategy: :one_for_one, name: Fw]

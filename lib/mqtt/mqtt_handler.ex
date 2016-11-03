@@ -5,7 +5,7 @@ defmodule MqttHandler do
   @doc """
     tries to log into mqtt. requires a token
   """
-  def log_in(token) do
+  def on_token(token) do
     mqtt_host = Map.get(token, "unencoded") |> Map.get("mqtt")
     mqtt_user = Map.get(token, "unencoded") |> Map.get("bot")
     mqtt_pass = Map.get(token, "encoded")
@@ -55,7 +55,6 @@ defmodule MqttHandler do
     options = [id: 24756, topics: ["bot/#{bot(token)}/from_clients"], qoses: [0]]
     spawn fn ->
       Logger.debug("Connect Ack")
-      NetworkSupervisor.set_time # Should NOT be here
       Mqtt.Client.subscribe(client, options)
       Logger.debug("Subscribing")
       BotSync.sync
