@@ -1,4 +1,5 @@
 defmodule Auth do
+  use Timex
   require GenServer
   require Logger
 
@@ -6,6 +7,9 @@ defmodule Auth do
     Gets a token and device information
   """
 
+  @doc """
+    Gets the public key from the API
+  """
   def get_public_key(server) do
     resp = HTTPotion.get("#{server}/api/public_key")
     case resp do
@@ -19,6 +23,9 @@ defmodule Auth do
     end
   end
 
+  @doc """
+    Encrypts the key with the email, pass, and server
+  """
   def encrypt(email, pass, server) do
     # Json to encrypt.
     json = Poison.encode!(%{"email": email,"password": pass,
@@ -41,7 +48,7 @@ defmodule Auth do
   """
   def load_encrypted do
     case SafeStorage.read(__MODULE__) do
-      {:ok, t} -> get_token(Map.get(t, :secret), Map.get(t, :server))
+      {:ok, %{secret: secret, server: server}} -> get_token(secret, server)
       _ -> nil
     end
 
@@ -53,13 +60,18 @@ defmodule Auth do
       Process.sleep(80)
       get_token(secret, server)
     end
+    # I am not sure why this is done this way other than it works.
     payload = Poison.encode!(%{user: %{credentials: :base64.encode_to_string(secret) |> String.Chars.to_string }} )
     case HTTPotion.post "#{server}/api/tokens", [body: payload, headers: ["Content-Type": "application/json"]] do
+      # Infinite recursion until we have internet.
       %HTTPotion.ErrorResponse{message: "enetunreach"} -> get_token(secret, server)
       %HTTPotion.ErrorResponse{message: "nxdomain"} -> get_token(secret, server)
+      # Any other error.
       %HTTPotion.ErrorResponse{message: reason} -> {:error, reason}
+      # bad Password
       %HTTPotion.Response{body: _, headers: _, status_code: 422} -> Fw.factory_reset
-      %HTTPotion.Response{body: _, headers: _, status_code: 401} -> Fw.factory_reset
+      # Token invalid. Need to try to get a new token here.
+      %HTTPotion.Response{body: _, headers: _, status_code: 401} -> load_encrypted
       %HTTPotion.Response{body: body, headers: _headers, status_code: 200} ->
           Map.get(Poison.decode!(body), "token")
     end
@@ -69,8 +81,10 @@ defmodule Auth do
     GenServer.call(__MODULE__, {:get_token})
   end
 
-  # Infinite recursion until we have a token.
-  # Not concerned about performance yet because the bot can't do anything anything.
+  @doc """
+    Infinite recursion until we have a token. If this is called when the bot is logged in,
+    it will never complete.
+  """
   def fetch_token do
     case Auth.get_token do
       nil -> fetch_token
@@ -90,7 +104,9 @@ defmodule Auth do
     GenServer.start_link(__MODULE__, args, name: __MODULE__ )
   end
 
-  # Am i even using this?
+  @doc """
+    This is used by Configurator.
+  """
   def login(email,pass,server) when is_bitstring(email)
         and is_bitstring(pass)
         and is_bitstring(server) do
@@ -98,8 +114,8 @@ defmodule Auth do
       true ->
         GenServer.call(__MODULE__, {:login, email,pass,server}, 15000 )
       _ ->
-        Process.sleep(10001)
-        login(email,pass,server) # Probably process heavy here but im lazy
+        Process.sleep(5000)
+        login(email,pass,server)
     end
   end
 
@@ -109,12 +125,47 @@ defmodule Auth do
     {:reply,token,token}
   end
 
+  def handle_call({:get_token}, _from, nil) do
+    {:reply, nil, nil}
+  end
+
   def handle_call({:get_token}, _from, token) do
     {:reply, token, token}
   end
 
-  def terminate(reason, something) do
-    Logger.debug("AUTH DIED: #{inspect {reason, something}}")
-    # Fw.factory_reset
+  # We cant do anything if we dont even have a token.
+  def handle_info(:token_checkup, nil) do
+    {:noreply, nil}
+  end
+
+  def handle_info(:token_checkup, old_token) do
+    tz = Timezone.get("America/Los_Angeles", Timex.now)
+    iat = old_token
+    |> Map.get("unencoded")
+    |> Map.get("iat")
+    |> Timex.from_unix
+    |> Timezone.convert(tz)
+    exp = old_token
+    |> Map.get("unencoded")
+    |> Map.get("exp")
+    |> Timex.from_unix
+    |> Timezone.convert(tz)
+    exp_date = Timex.shift(iat, days: 30)
+    if(Timex.after?(exp, exp_date)) do
+      Logger.warn("Token is expired. Trying to get a new one.")
+      new_token = load_encrypted
+      {:noreply, new_token}
+    else
+      {:noreply, old_token}
+    end
+  end
+
+  def terminate(:normal, state) do
+    Logger.debug("AUTH DIED: #{inspect {state}}")
+  end
+
+  def terminate(reason, state) do
+    Logger.error("AUTH DIED: #{inspect {reason, state}}")
+    Fw.factory_reset
   end
 end

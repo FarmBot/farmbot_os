@@ -20,6 +20,15 @@ defmodule BotState do
     state
   end
 
+  def get_throttled do
+    {output, 0} = System.cmd("vcgencmd", ["get_throttled"])
+    {"throttled=0x0\n", 0}
+    [_, throttled] = output
+    |> String.strip
+    |> String.split("=")
+    throttled
+  end
+
   def load do
     default_state = %{
       mcu_params: %{},
@@ -31,7 +40,8 @@ defmodule BotState do
                         steps_per_mm:   500 },
       informational_settings: %{
         controller_version: Fw.version,
-        private_ip: nil
+        private_ip: nil,
+        throttled: get_throttled
       }
     }
     case SafeStorage.read(__MODULE__) do

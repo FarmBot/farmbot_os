@@ -43,7 +43,8 @@ defmodule Sync do
           regimen_items: create_list(RegimenItem,regimen_items),
           regimens: create_list(Regimen,regimens),
           sequences: create_list(Sequence,sequences),
-          users: create_list(User,users)}
+          users: create_list(User,users),
+          peripherals: create_list(Peripheral, peripherals)}
   end
 
   defp create_list(module, list) do
