@@ -15,7 +15,6 @@ defmodule FarmEventManager do
   end
 
   def init(_args) do
-    # Process.send_after(self(), :save, @save_interval)
     tick
     {:ok, load}
   end
@@ -32,7 +31,17 @@ defmodule FarmEventManager do
       paused_sequences: [] ,  # [{pid, sequence}]
       sequence_log: []        # [sequence]
     }
+    with {:ok, last_state} <- SafeStorage.read(__MODULE__) do
+      spawn fn -> restart(last_state) end
+    end
     default_state
+  end
+
+  @doc """
+    I DONT LIKE THIS
+  """
+  def restart(last_state) do
+    IO.inspect last_state
   end
 
   def handle_call(:state, _from, state) do
@@ -149,34 +158,35 @@ end
     })
   do
     if Enum.empty?(sl) do
-      tick
-      {:noreply, %{
+      next = %{
         paused_regimens: pr,
         paused_sequences: ps,
         running_regimens: rr,
         current_sequence: nil,
-        sequence_log: sl }}
+        sequence_log: sl }
+      SafeStorage.write(__MODULE__, :erlang.term_to_binary(next))
+      tick
+      {:noreply, next}
     else
       s = List.first(sl)
       {:ok, pid} = SequenceManager.start_link(s)
-      tick
-      {:noreply, %{
+      next = %{
         paused_regimens: pr,
         paused_sequences: ps,
         running_regimens: rr,
         current_sequence: {pid, s},
-        sequence_log: sl -- [s] }}
+        sequence_log: sl -- [s] }
+      SafeStorage.write(__MODULE__, :erlang.term_to_binary(next))
+      tick
+      {:noreply, next}
     end
   end
 
   # if a sequence is running, wait for it to finish.
   def handle_info(:tick, state) do
+    SafeStorage.write(__MODULE__, :erlang.term_to_binary(state))
     tick
     {:noreply, state}
-  end
-
-  def save(state) do
-    SafeStorage.write(__MODULE__, :erlang.term_to_binary(state))
   end
 
   @spec add_sequence(Sequence.t) :: :ok
@@ -197,7 +207,6 @@ end
 
   def terminate(:normal, state) do
     Logger.debug("Farm Event Manager died. This is not good.")
-    save(state)
   end
 
   def terminate(reason, state) do

@@ -198,7 +198,7 @@ defmodule RPCMessageHandler do
   def do_handle("power_off", _ ) do
     log("Bot Going down in 5 seconds. Pls remeber me.")
     spawn fn ->
-      log("BOT OFFLINE", "error_ticker")
+      log("Powering Down!", [:ticker, :warning_toast], ["BotControl"])
       Process.sleep(5000)
       Nerves.Firmware.poweroff
     end
@@ -270,6 +270,7 @@ defmodule RPCMessageHandler do
       re == regimen
     end)
     send(FarmEventManager, {:done, {:regimen, pid, regimen}})
+    :ok
   end
 
   def do_handle("stop_regimen", params) do
@@ -299,7 +300,8 @@ defmodule RPCMessageHandler do
   when is_bitstring(message)
    and is_list(channels)
    and is_list(tags) do
-    @transport.emit(log_msg(message, channels, tags))
+     v = log_msg(message, channels, tags)
+    @transport.emit(v)
   end
 
   # This is what actually updates the rest of the world about farmbots status.

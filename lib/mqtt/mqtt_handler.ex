@@ -2,179 +2,166 @@ defmodule MqttHandler do
   require GenServer
   require Logger
 
-  defp build_last_will_message do
-    RPCMessageHandler.log_msg("Bot going offline", [:error_ticker], ["ERROR"])
-  end
-
   @doc """
-    "tries to log into mqtt."
+    tries to log into mqtt. requires a token
   """
-  def log_in(err_wait_time\\ 10000) do
-    case token do
-      {:error, reason} -> {:error, reason}
-      real_token ->
-        mqtt_host = Map.get(real_token, "unencoded") |> Map.get("mqtt")
-        mqtt_user = Map.get(real_token, "unencoded") |> Map.get("bot")
-        mqtt_pass = Map.get(real_token, "encoded")
-        options = [client_id: mqtt_user,
-                   username: mqtt_user,
-                   password: mqtt_pass,
-                   host: mqtt_host,
-                   port: 1883,
-                   timeout: 5000,
-                   keep_alive: 500,
-                   will_topic: "bot/#{bot}/from_device",
-                   will_message: build_last_will_message,
-                   will_qos: 0,
-                   will_retain: 0]
-        case GenServer.call(MqttHandler, {:log_in, options}) do
-          {:error, reason} -> Logger.debug("Error connecting. #{inspect reason}")
-                              Process.sleep(err_wait_time)
-                              log_in(err_wait_time + 10000) # increment the sleep time for teh lawls
-          :ok -> :ok
-        end
-    end
+  def on_token(token) do
+    mqtt_host = Map.get(token, "unencoded") |> Map.get("mqtt")
+    mqtt_user = Map.get(token, "unencoded") |> Map.get("bot")
+    mqtt_pass = Map.get(token, "encoded")
+    options = [client_id: mqtt_user,
+               username: mqtt_user,
+               password: mqtt_pass,
+               host: mqtt_host,
+               port: 1883,
+               timeout: 5000,
+               keep_alive: 500,
+               will_topic: "bot/#{bot(token)}/from_device",
+               will_message: build_last_will_message,
+               will_qos: 0,
+               will_retain: 0]
+     GenServer.call(MqttHandler, {:log_in, options, token})
   end
 
   def init(_args) do
-    Mqtt.Client.start_link(%{parent: __MODULE__})
-  end
-
-  def blah do
-    case log_in do
-      {:error, reason} -> Logger.debug("error connecting to mqtt")
-                          IO.inspect(reason)
-      :ok -> Logger.debug("MQTT ONLINE")
-    end
+    {:ok, client} = Mqtt.Client.start_link(%{parent: __MODULE__})
+    {:ok, {client, nil}}
   end
 
   def start_link(args) do
-    handler = GenServer.start_link(__MODULE__, args, name: __MODULE__)
-    spawn fn -> blah end
-    handler
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def handle_call({:connect, _message}, _from, client) do
-    {:reply, :ok, client}
+  def handle_call({:log_in, options, token}, _from, {client, _}) do
+    case Mqtt.Client.connect(client, options) do
+      {:error, reason} ->
+        Logger.error("Error logging into MQTT: #{inspect reason}")
+        {:reply, {:error, reason}, {client, nil}}
+      :ok ->
+        {:reply, :ok, {client, token}}
+    end
   end
 
-  def handle_call({:connect_ack, _message}, _from, client) do
-    options = [id: 24756, topics: ["bot/#{bot}/from_clients"], qoses: [0]]
+  def handle_call(_, _, {client, nil}) do
+    Logger.debug("Dont have a token yet.")
+    {:reply, :no_token, {client, nil}}
+  end
+
+  def handle_call({:connect, _message}, _from, {client, token}) do
+    {:reply, :ok, {client, token}}
+  end
+
+  def handle_call({:connect_ack, _message}, _from, {client, token}) do
+    options = [id: 24756, topics: ["bot/#{bot(token)}/from_clients"], qoses: [0]]
     spawn fn ->
       Logger.debug("Connect Ack")
-      NetworkSupervisor.set_time # Should NOT be here
       Mqtt.Client.subscribe(client, options)
       Logger.debug("Subscribing")
       BotSync.sync
     end
     keep_connection_alive
-    {:reply, :ok, client}
+    {:reply, :ok, {client, token}}
   end
 
-  def handle_call({:publish, _message}, _from, client) do
-    {:reply, :ok, client}
+  def handle_call({:publish, _message}, _from, {client, token}) do
+    {:reply, :ok, {client, token}}
   end
 
-  def handle_call({:subscribed_publish, message}, _from, client) do
+  def handle_call({:subscribed_publish, message}, _from, {client, token}) do
     Map.get(message, :message) |> Poison.decode! |>
     RPCMessageManager.sync_notify
-    {:reply, :ok, client}
+    {:reply, :ok, {client, token}}
   end
 
-  def handle_call({:subscribed_publish_ack, _message}, _from, client) do
-    {:reply, :ok, client}
+  def handle_call({:subscribed_publish_ack, _message}, _from, {client, token}) do
+    {:reply, :ok, {client, token}}
   end
 
-  def handle_call({:publish_receive, _message}, _from, client) do
-    {:reply, :ok, client}
+  def handle_call({:publish_receive, _message}, _from, {client, token}) do
+    {:reply, :ok, {client, token}}
   end
 
-  def handle_call({:publish_release, _message}, _from, client) do
-    {:reply, :ok, client}
+  def handle_call({:publish_release, _message}, _from, {client, token}) do
+    {:reply, :ok, {client, token}}
   end
 
-  def handle_call({:publish_complete, _message}, _from, client) do
-    {:reply, :ok, client}
+  def handle_call({:publish_complete, _message}, _from, {client, token}) do
+    {:reply, :ok, {client, token}}
   end
 
-  def handle_call({:publish_ack, _message}, _from, client) do
-    {:reply, :ok, client}
+  def handle_call({:publish_ack, _message}, _from, {client, token}) do
+    {:reply, :ok, {client, token}}
   end
 
-  def handle_call({:subscribe, _message}, _from, client) do
-    {:reply, :ok, client}
+  def handle_call({:subscribe, _message}, _from, {client, token}) do
+    {:reply, :ok, {client, token}}
   end
 
-  def handle_call({:subscribe_ack, _message}, _from, client) do
+  def handle_call({:subscribe_ack, _message}, _from, {client, token}) do
     Logger.debug("Subscribed.")
     spawn fn ->
       RPCMessageHandler.log("Bot is online and ready to roll", [:ticker], ["BOT STATUS"])
     end
-    {:reply, :ok, client}
+    {:reply, :ok, {client, token}}
   end
 
-  def handle_call({:unsubscribe, _message}, _from, client) do
-    {:reply, :ok, client}
+  def handle_call({:unsubscribe, _message}, _from, {client, token}) do
+    {:reply, :ok, {client, token}}
   end
 
-  def handle_call({:unsubscribe_ack, _message}, _from, client) do
-    {:reply, :ok, client}
+  def handle_call({:unsubscribe_ack, _message}, _from, {client, token}) do
+    {:reply, :ok, {client, token}}
   end
 
-  def handle_call({:ping, _message}, _from, client) do
-    {:reply, :ok, client}
+  def handle_call({:ping, _message}, _from, {client, token}) do
+    {:reply, :ok, {client, token}}
   end
 
-  def handle_call({:disconnect, _message}, _from, client) do
-    {:reply, :ok, client}
+  def handle_call({:disconnect, _message}, _from, {client, token}) do
+    {:reply, :ok, {client, token}}
   end
 
-  def handle_call({:pong, _message}, _from, client) do
-    {:reply, :ok, client}
+  def handle_call({:pong, _message}, _from, {client, token}) do
+    {:reply, :ok, {client, token}}
   end
 
-  def handle_call({:log_in, options}, _from, client) do
-    case Mqtt.Client.connect(client, options) do
-      {:error, reason} -> {:reply, {:error, reason}, client}
-      :ok -> {:reply, :ok, client}
-    end
-  end
-  def handle_call(thing, _from, client) do
+  def handle_call(thing, _from, {client, token}) do
     Logger.debug("Unhandled Thing #{inspect thing}")
-    {:reply, :ok, client}
+    {:reply, :ok, {client, token}}
   end
 
-  def handle_cast({:emit, message}, client) when is_bitstring(message) do
+  # dont allow emits when we dont have a token
+  def handle_cast(_, {client, nil}) do
+    {:noreply, {client, nil}}
+  end
+
+  def handle_cast({:emit, message}, {client, token}) when is_bitstring(message) do
     options = [ id: 1234,
-                topic: "bot/#{bot}/from_device",
+                topic: "bot/#{bot(token)}/from_device",
                 message: message,
                 dup: 1, qos: 1, retain: 0]
     spawn fn -> Mqtt.Client.publish(client, options) end
-    {:noreply, client}
+    {:noreply, {client, token}}
   end
 
-
-  def handle_cast(event, state) do
-    Logger.debug("#{inspect event}")
-    {:noreply, state}
+  # We still want to keep alive, but dont actually preform the ping
+  def handle_info({:keep_alive}, {client, nil}) do
+    keep_connection_alive
+    {:noreply, {client, nil}}
   end
 
-  def handle_info({:keep_alive}, client) do
+  def handle_info({:keep_alive}, {client, token}) do
     Mqtt.Client.ping(client)
     keep_connection_alive
-    {:noreply, client}
+    {:noreply, {client, token}}
   end
 
   def emit(message) when is_bitstring(message) do
     GenServer.cast(__MODULE__, {:emit, message})
   end
 
-  defp bot do
+  defp bot(token) do
     Map.get(token, "unencoded") |>  Map.get("bot")
-  end
-
-  defp token do
-    Auth.fetch_token
   end
 
   defp keep_connection_alive do
@@ -183,5 +170,9 @@ defmodule MqttHandler do
 
   def terminate(reason, _state) do
     Logger.debug("MqttHandler died. #{inspect reason}")
+  end
+
+  defp build_last_will_message do
+    RPCMessageHandler.log_msg("Bot going offline", [:error_ticker], ["ERROR"])
   end
 end

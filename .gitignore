@@ -13,3 +13,4 @@ npm-debug.log
 # this isnt ready yet
 /lib/extras/my*
 /lib/extras/raspi_*
+/lib/extras/lcd.ex

@@ -2,6 +2,11 @@ defmodule BotSync do
   use GenServer
   require Logger
 
+  def on_token(token) do
+    GenServer.call(__MODULE__, {:token, token})
+    GenServer.cast(__MODULE__, :sync)
+  end
+
   def init(_args) do
     {:ok, %{token: nil,
             resources: load_old_resources,
@@ -33,8 +38,7 @@ defmodule BotSync do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def handle_cast(_, %{token: nil, resources: old, corpuses: oldc}) do
-    spawn fn -> try_to_get_token end
+  def handle_cast(:sync, %{token: nil, resources: old, corpuses: oldc}) do
     {:noreply, %{token: nil, resources: old, corpuses: oldc}}
   end
 
@@ -49,22 +53,19 @@ defmodule BotSync do
      %HTTPotion.Response{body: body,
                          headers: _headers,
                          status_code: 200} ->
-       RPCMessageHandler.log("Synced", [], ["BotSync"])
        new = Poison.decode!(body)
        |> Sync.create
-      #  old_legacy_is_old = [%{"pin" => 9, "mode" => 0},
-      #                       %{"pin" => 10, "mode" => 0},
-      #                       %{"pin" => 13, "mode" => 0}]
-       #
-      #  # If we didn't have any peripherals before this sync, read the new ones
-      #  old_perifs = Map.get(old || Map.new(), "peripherals")
-      #  new_perifs = Map.get(new, "peripherals") || old_legacy_is_old
-      #  if(old_perifs != new_perifs) do
-      #    Enum.all?(new_perifs, fn(x) ->
-      #      Command.read_pin(Map.get(x, "pin"), Map.get(x, "mode"))
-      #    end)
-      #  end
+
+       # If we didn't have any peripherals before this sync, read the new ones
+       old_perifs = old.peripherals
+       new_perifs = new.peripherals
+       if(old_perifs != new_perifs) do
+         Enum.all?(new_perifs, fn(x) ->
+           Command.read_pin(x.pin, x.mode)
+         end)
+       end
        new_merged = Map.merge(old ,new)
+       RPCMessageHandler.log("Synced", [], ["BotSync"])
        {:noreply, %{token: token, resources: new_merged, corpuses: oldc }}
      error ->
        Logger.debug("Couldn't get resources: #{error}")
@@ -188,13 +189,5 @@ defmodule BotSync do
 
   def get_corpus(id) when is_integer(id) do
     GenServer.call(__MODULE__, {:get_corpus, id})
-  end
-
-  def try_to_get_token do
-    case Auth.get_token do
-      nil -> try_to_get_token
-      {:error, reason} -> {:error, reason}
-      token -> GenServer.call(__MODULE__, {:token, token})
-    end
   end
 end

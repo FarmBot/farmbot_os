@@ -2,7 +2,7 @@ defmodule Extras do
   use Supervisor
   def init(_args) do
     children = [
-      worker(NesBotControl, [[]], restart: :temporary)
+      # worker(NesBotControl, [[]], restart: :temporary)
     ]
     opts = [strategy: :one_for_one, name: Extras]
     supervise(children, opts)

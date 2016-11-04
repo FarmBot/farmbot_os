@@ -39,7 +39,8 @@ defmodule Fw.Mixfile do
      :hulaaki,
      :runtime_tools,
      :mustache,
-     :timex]
+     :timex,
+     :farmbot_auth]
   end
 
   # on device
@@ -73,10 +74,10 @@ defmodule Fw.Mixfile do
       {:poison, "~> 2.0"},
       {:gen_stage, "~> 0.4"},
       {:nerves_lib, github: "nerves-project/nerves_lib"},
-      {:rsa, "~> 0.0.1"},
       {:hulaaki, github: "ConnorRigby/hulaaki"},
       {:mustache, "~> 0.0.2"},
-      {:timex, "~> 3.0"}
+      {:timex, "~> 3.0"},
+      {:farmbot_auth, github: "Farmbot/farmbot_auth"}
     ]
   end
 
@@ -102,18 +103,13 @@ defmodule Fw.Mixfile do
 
   def platform_deps("rpi3") do
     [
-      {:nerves_networking, github: "nerves-project/nerves_networking"},
-      # {:nerves_interim_wifi, path: "../nerves/nerves_interim_wifi"},
-      {:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi"},
       {:nerves_leds, "~> 0.7.0"},
       {:elixir_ale, "~> 0.5.5"}
     ]
   end
 
   def platform_apps("rpi3") do
-    [ :nerves_networking,
-      :nerves_interim_wifi,
-      :nerves_leds,
+    [ :nerves_leds,
       :elixir_ale ]
   end
 

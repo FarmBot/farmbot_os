@@ -20,6 +20,15 @@ defmodule BotState do
     state
   end
 
+  def get_throttled do
+    {output, 0} = System.cmd("vcgencmd", ["get_throttled"])
+    {"throttled=0x0\n", 0}
+    [_, throttled] = output
+    |> String.strip
+    |> String.split("=")
+    throttled
+  end
+
   def load do
     default_state = %{
       mcu_params: %{},
@@ -31,7 +40,15 @@ defmodule BotState do
                         steps_per_mm:   500 },
       informational_settings: %{
         controller_version: Fw.version,
-        private_ip: nil
+        private_ip: nil,
+        throttled: get_throttled
+      },
+      authorization: %{
+        token: nil,
+        email: nil,
+        pass: nil,
+        server: nil,
+        network: nil
       }
     }
     case SafeStorage.read(__MODULE__) do
@@ -41,22 +58,27 @@ defmodule BotState do
         Logger.debug("default: #{inspect l} saved: #{inspect r}")
         if(l != r) do # SORRY ABOUT THIS
           Logger.debug "UPDATING TO NEW STATE TREE FORMAT OR SOMETHING"
+          spawn fn -> apply_auth(default_state.authorization) end
           spawn fn -> apply_status(default_state) end
           default_state
         else
           Logger.debug("Trying to apply last bot state")
+          spawn fn -> apply_auth(rcontents.authorization) end
           spawn fn -> apply_status(rcontents) end
           old_config = rcontents.configuration
+          old_auth = rcontents.authorization
           Map.put(default_state, :configuration, old_config)
+          |> Map.put(:authorization, old_auth)
         end
       _ ->
+      spawn fn -> apply_auth(default_state.authorization) end
       spawn fn -> apply_status(default_state) end
       default_state
     end
   end
 
   def handle_call(:state, _from, state) do
-    {:reply, state, state}
+    {:reply, Map.drop(state, [:authorization]), state}
   end
 
   def handle_call({:get_pin, pin_number}, _from, state) do
@@ -105,6 +127,10 @@ defmodule BotState do
     {:reply, Map.get(state.configuration, key), state}
   end
 
+  def handle_call(:get_token, _from, state) do
+    {:reply, state.authorization.token, state}
+  end
+
   def handle_cast({:update_info, key, value}, state) do
     new_info = Map.put(state.informational_settings, key, value)
     {:noreply, Map.put(state, :informational_settings, new_info)}
@@ -145,6 +171,44 @@ defmodule BotState do
     {:noreply, Map.put(state, :mcu_params, new_params)}
   end
 
+  def handle_cast({:creds, {email, pass, server}}, state) do
+    # authorization: %{
+    #   token: nil
+    #   email: nil,
+    #   pass: nil,
+    #   server: nil
+    #   network: nil
+    # }
+    auth = Map.merge(state.authorization,
+            %{email: email, pass: pass, server: server, token: nil, network: nil})
+    {:noreply, Map.put(state, :authorization, auth)}
+  end
+
+  def handle_info({:connected, network, ip_addr}, state) do
+    # GenServer.cast(BotState, {:update_info, :private_ip, address})
+    new_info = Map.put(state.informational_settings, :private_ip, ip_addr)
+    email = state.authorization.email
+    pass = state.authorization.pass
+    server = state.authorization.server
+
+    case FarmbotAuth.login(email, pass, server) do
+      {:ok, token} ->
+        Logger.debug("Got Token!")
+        auth = Map.merge(state.authorization,
+                %{email: email, pass: pass, server: server, token: token,
+                  network: network})
+        set_time
+        {:noreply,
+          Map.put(state, :authorization, auth)
+          |> Map.put(:informational_settings, new_info)
+        }
+      error ->
+        Logger.error("Something bad happened: #{inspect error}")
+        Fw.factory_reset
+        {:noreply, state}
+      end
+  end
+
   def handle_info(:save, state) do
     save(state)
     save_interval
@@ -167,12 +231,20 @@ defmodule BotState do
     {:noreply, state}
   end
 
+  def add_creds({email, pass, server}) do
+    GenServer.cast(__MODULE__, {:creds, {email, pass, server}})
+  end
+
   def get_status do
     GenServer.call(__MODULE__, :state)
   end
 
   def get_current_pos do
     GenServer.call(__MODULE__, :get_current_pos)
+  end
+
+  def get_token do
+    GenServer.call(__MODULE__, :get_token)
   end
 
   def set_pos(x, y, z)
@@ -215,6 +287,18 @@ defmodule BotState do
     state
   end
 
+  def apply_auth(%{
+    token: _,
+    email: email,
+    pass: pass,
+    server: server,
+    network: network
+  })
+  do
+    add_creds({email, pass, server})
+    NetMan.connect(network, BotState)
+  end
+
   # params will be a list of atoms here.
   def apply_params(params) when is_map(params) do
     case Enum.partition(params, fn({param, value}) ->
@@ -244,6 +328,23 @@ defmodule BotState do
 
   def get_config(config_key) when is_atom(config_key) do
     GenServer.call(__MODULE__, {:get_config, config_key})
+  end
+
+  def set_time do
+    System.cmd("ntpd", ["-q",
+     "-p", "0.pool.ntp.org",
+     "-p", "1.pool.ntp.org",
+     "-p", "2.pool.ntp.org",
+     "-p", "3.pool.ntp.org"])
+    check_time_set
+    Logger.debug("Time set.")
+    :ok
+  end
+
+  def check_time_set do
+    if :os.system_time(:seconds) <  1474929 do
+      check_time_set # wait until time is set
+    end
   end
 
   defp save_interval do
