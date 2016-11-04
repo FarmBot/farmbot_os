@@ -27,16 +27,11 @@ defmodule Fw do
     :ok
   end
 
-  def save_creds(email, pass, server) do
-    SafeStorage.write(AUTH_KEY, :erlang.term_to_binary({email, pass, server}))
-  end
-
   def init(_args) do
     children = [
       worker(SafeStorage, [@env], restart: :permanent),
       worker(BotState, [[]], restart: :permanent),
       worker(SSH, [@env], restart: :permanent),
-      supervisor(NetworkSupervisor, [[]], restart: :permanent),
       supervisor(Extras, [[]], restart: :temporary),
       supervisor(Controller, [[]], restart: :permanent)
     ]
@@ -106,18 +101,26 @@ defmodule Fw do
     Shortcut for check_updates
   """
   def check_os_updates do
-    check_updates(
-    Map.get(Auth.get_token, "unencoded") |> Map.get("os_update_server"),
-    ".fw")
+    case BotState.get_token do
+      nil -> nil
+      token ->
+        check_updates(
+        Map.get(token, "unencoded") |> Map.get("os_update_server"),
+        ".fw")
+    end
   end
 
   @doc """
     Shortcut for check_updates
   """
   def check_fw_updates do
-    check_updates(
-    Map.get(Auth.get_token, "unencoded") |> Map.get("fw_update_server"),
-     ".hex")
+    case BotState.get_token do
+      nil -> nil
+      token ->
+        check_updates(
+        Map.get(token, "unencoded") |> Map.get("fw_update_server"),
+        ".hex")
+    end
   end
 
   def check_and_download_os_update do
