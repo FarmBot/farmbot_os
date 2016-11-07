@@ -21,7 +21,7 @@ defmodule Device do
     when is_integer(id)
      and( is_integer(paid) or is_nil(paid) )
      and is_bitstring(name)
-     and is_bitstring(wcu)
+     and(is_bitstring(wcu) or is_nil(wcu))
     do
     %Device{
       id: id,
