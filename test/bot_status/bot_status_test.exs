@@ -3,7 +3,9 @@ defmodule BotStateTest do
   use ExUnit.Case, async: true
 
   test "gets the current status" do
-    {:ok, status} = BotState.init(:normal)
+    # We drop the authorization key/value pair because the state handle call drops it.
+    {:ok, with_auth_status} = BotState.init(:normal)
+    status = with_auth_status |> Map.drop([:authorization])
     {:reply, current_status, current_status} = BotState.handle_call(:state, self(), status)
     # We havent changed anything so the status should be in its initial state.
     assert(status == current_status)

@@ -65,6 +65,16 @@ iex -S mix
 
 You should only need to do the first two commands once.
 
+## Running Tests
+There aren't a lot of tests, but they do exist and can be run by executing the following:
+```bash
+MIX_ENV=test mix deps.get
+mix test --no-start
+```
+
+Make sure to have the `--no-start` in there. Otherwise it will try to start the
+supervision tree, and tests will be broken and what not. 
+
 ## Debugging on hardware
 
 The Raspberry Pi will boot up with an Iex console on the hardware UART. If you need to debug something this is the easiest to get too.
