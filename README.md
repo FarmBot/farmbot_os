@@ -65,6 +65,16 @@ iex -S mix
 
 You should only need to do the first two commands once.
 
+## Running Tests
+There aren't a lot of tests, but they do exist and can be run by executing the following:
+```bash
+MIX_ENV=test mix deps.get
+mix test --no-start
+```
+
+Make sure to have the `--no-start` in there. Otherwise it will try to start the
+supervision tree, and tests will be broken and what not.
+
 ## Debugging on hardware
 
 The Raspberry Pi will boot up with an Iex console on the hardware UART. If you need to debug something this is the easiest to get too.
@@ -82,11 +92,6 @@ Debug message still only will print to UART or HDMI (whichever you have configur
 If you frequently build the firmware, removing the sdcard and writing the build every time gets pretty old. You can upload firmware to an already running farmbot one of two ways after you run a successful `mix firmware`
 0. You can upload the image to the pi using CURL or similar. `curl -T _images/rpi3/fw.fw "http://$RPI_IP_ADDRESS:8988/firmware" -H "Content-Type: application/x-firmware" -H "X-Reboot: true"`
 0. Or you can host the .fw file on your pc using a webserver ie `npm install serve` and download it from the pi.This should be ran ON THE PI ITSELF `Downloader.download_and_install_update("http://<DEV_PC_IP_ADDRESS>/WHEREVER YOUR FILE IS")`
-
-# Tests
-
-Run `mix test --no-start`.
-
 
 # Building for production
 

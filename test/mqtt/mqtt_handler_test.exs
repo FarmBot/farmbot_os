@@ -1,5 +1,5 @@
 ExUnit.start
 
-defmodule MqttHandlerTest do
+defmodule Mqtt.HandlerTest do
   use ExUnit.Case, async: true
 end

@@ -1,4 +1,4 @@
-defmodule NewHandler do
+defmodule Gcode.Handler do
   require Logger
   use GenServer
 
@@ -21,10 +21,10 @@ defmodule NewHandler do
 
   def handle_cast({:done, _}, %{nerves: nerves, current: {_current_str, pid}, log: log}) do
     send(pid, :done)
-    RPCMessageHandler.send_status
+    RPC.MessageHandler.send_status
     case List.first(log) do
       {nextstr, new_pid} ->
-        UartHandler.write(nerves,nextstr)
+        Serial.Handler.write(nerves,nextstr)
         {:noreply, %{nerves: nerves, current: {nextstr, new_pid}, log: log -- [{nextstr, new_pid}] }}
       nil ->
         {:noreply, %{nerves: nerves, current: nil, log: []} }
@@ -85,7 +85,7 @@ defmodule NewHandler do
 
   # If we arent waiting on anything right now. (current is nil and log is empty)
   def handle_call({:send, message, caller}, _from, %{ nerves: nerves, current: nil, log: [] }) do
-    UartHandler.write(nerves,message)
+    Serial.Handler.write(nerves,message)
     {:reply, :sending, %{nerves: nerves, current: {message, caller}, log: []} }
   end
 
@@ -98,7 +98,7 @@ defmodule NewHandler do
   end
 
   def block_send(str, timeout\\ 10000) do
-    GenServer.call(NewHandler,{ :send, str, self()})
+    GenServer.call(Gcode.Handler,{ :send, str, self()})
     block(timeout)
   end
 

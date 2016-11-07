@@ -7,6 +7,21 @@ defmodule Fw do
   @state_path Application.get_env(:fb, :state_path)
 
   @doc """
+    Shortcut to Nerves.Firmware.reboot
+  """
+  def reboot do
+    Nerves.Firmware.reboot
+  end
+
+
+  @doc """
+    Shortcut to Nerves.Firmware.poweroff
+  """
+  def poweroff do
+    Nerves.Firmware.poweroff
+  end
+
+  @doc """
     Formats the sytem partition, and mounts as read/write
   """
   def format_state_part do
@@ -67,7 +82,7 @@ defmodule Fw do
     current_version = Fw.version
     case resp do
       %HTTPotion.ErrorResponse{message: error} ->
-        RPCMessageHandler.log("Update check failed: #{inspect error}", [:error_toast], ["BotUpdates"])
+        RPC.MessageHandler.log("Update check failed: #{inspect error}", [:error_toast], ["BotUpdates"])
         {:error, "Check Updates failed", error}
       %HTTPotion.Response{body: body,
                           headers: _headers,
@@ -82,10 +97,10 @@ defmodule Fw do
         Logger.debug("new version: #{new_version}, current_version: #{current_version}")
         case (new_version != current_version) do
           true ->
-            RPCMessageHandler.log("New update available!", [:success_toast, :ticker], ["BotUpdates"])
+            RPC.MessageHandler.log("New update available!", [:success_toast, :ticker], ["BotUpdates"])
             {:update, new_version_url}
           _ ->
-            RPCMessageHandler.log("Bot up to date!", [:success_toast, :ticker], ["BotUpdates"])
+            RPC.MessageHandler.log("Bot up to date!", [:success_toast, :ticker], ["BotUpdates"])
             :no_updates
         end
 
@@ -125,24 +140,24 @@ defmodule Fw do
 
   def check_and_download_os_update do
     case Fw.check_os_updates do
-      :no_updates ->  RPCMessageHandler.log("Bot OS up to date!", [:success_toast, :ticker], ["BotUpdates"])
+      :no_updates ->  RPC.MessageHandler.log("Bot OS up to date!", [:success_toast, :ticker], ["BotUpdates"])
        {:update, url} ->
          Logger.debug("NEW OS UPDATE")
          spawn fn -> Downloader.download_and_install_os_update(url) end
        {:error, message} ->
-         RPCMessageHandler.log("Error fetching update: #{message}", [:error_toast], ["BotUpdates"])
+         RPC.MessageHandler.log("Error fetching update: #{message}", [:error_toast], ["BotUpdates"])
        error ->
-         RPCMessageHandler.log("Error fetching update: #{inspect error}", [:error_toast], ["BotUpdates"])
+         RPC.MessageHandler.log("Error fetching update: #{inspect error}", [:error_toast], ["BotUpdates"])
     end
   end
 
   def check_and_download_fw_update do
     case Fw.check_fw_updates do
-      :no_updates -> RPCMessageHandler.log("Bot FW up to date!", [:success_toast, :ticker], ["BotUpdates"])
+      :no_updates -> RPC.MessageHandler.log("Bot FW up to date!", [:success_toast, :ticker], ["BotUpdates"])
        {:update, url} ->
           Logger.debug("NEW FIRMWARE UPDATE")
           spawn fn -> Downloader.download_and_install_fw_update(url) end
-      {:error, message} -> RPCMessageHandler.log("Error fetching update: #{message}", [:error_toast], ["BotUpdates"])
+      {:error, message} -> RPC.MessageHandler.log("Error fetching update: #{message}", [:error_toast], ["BotUpdates"])
     end
   end
 end

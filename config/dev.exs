@@ -6,4 +6,4 @@ config :fb,
   state_path: "/tmp/state"
 
 config :json_rpc,
-  transport: MqttHandler
+  transport: Mqtt.Handler

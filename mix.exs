@@ -77,7 +77,8 @@ defmodule Fw.Mixfile do
       {:hulaaki, github: "ConnorRigby/hulaaki"},
       {:mustache, "~> 0.0.2"},
       {:timex, "~> 3.0"},
-      {:farmbot_auth, github: "Farmbot/farmbot_auth"}
+      {:farmbot_auth, github: "Farmbot/farmbot_auth"},
+      # {:farmbot_auth, path: "../farmbot_auth"}
     ]
   end
 
@@ -87,6 +88,7 @@ defmodule Fw.Mixfile do
      {:nerves, "~> 0.3.0"},
      {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
      {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
+    #  {:farmbot_configurator, path: "../farmbot_configurator"}
     ]
   end
 

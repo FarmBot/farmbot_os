@@ -1,9 +1,9 @@
-defmodule MqttSupervisor do
+defmodule Mqtt.Supervisor do
   require Logger
   use Supervisor
 
   def init(_args) do
-    children = [worker(MqttHandler, [[]], restart: :permanent)]
+    children = [worker(Mqtt.Handler, [[]], restart: :permanent)]
     supervise(children, strategy: :one_for_one, name: __MODULE__)
   end
 

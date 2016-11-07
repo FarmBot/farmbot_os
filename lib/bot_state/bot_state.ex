@@ -150,7 +150,7 @@ defmodule BotState do
         %{mode: mode, value: value}
     end
     # I REALLY don't want this to be here.
-    spawn fn -> RPCMessageHandler.log("PIN #{pin} set: #{new_pin_value.value}", [], ["BotControl"]) end
+    spawn fn -> RPC.MessageHandler.log("PIN #{pin} set: #{new_pin_value.value}", [], ["BotControl"]) end
     pin_state = Map.put(pin_state, Integer.to_string(pin), new_pin_value)
     {:noreply, Map.put(state, :pins, pin_state)}
   end
@@ -219,7 +219,7 @@ defmodule BotState do
     # THIS SHOULDN'T BE HERE
     msg = "Checking for updates!"
     Logger.debug(msg)
-    spawn fn -> RPCMessageHandler.log(msg, [], ["BotUpdates"]) end
+    spawn fn -> RPC.MessageHandler.log(msg, [], ["BotUpdates"]) end
     if(state.configuration.os_auto_update == true) do
       spawn fn -> Fw.check_and_download_os_update end
     end
@@ -275,7 +275,7 @@ defmodule BotState do
   end
 
   def apply_status(state) do
-    p = Process.whereis(NewHandler)
+    p = Process.whereis(Gcode.Handler)
     if(is_pid(p) == true and Process.alive?(p) == true) do
       Process.sleep(500) # I don't remember why i did this.
       Command.home_all(100)
@@ -303,7 +303,7 @@ defmodule BotState do
   def apply_params(params) when is_map(params) do
     case Enum.partition(params, fn({param, value}) ->
       ## We need the integer version of said param
-      param_int = Gcode.parse_param(param)
+      param_int = Gcode.Parser.parse_param(param)
       spawn fn -> Command.update_param(param_int, value) end
     end)
     do

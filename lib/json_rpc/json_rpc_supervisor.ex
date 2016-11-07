@@ -1,9 +1,9 @@
-defmodule RPCSupervisor do
+defmodule RPC.Supervisor do
   def start_link(_) do
     import Supervisor.Spec
     children = [
-      worker(RPCMessageManager, []),
-      worker(RPCMessageHandler, [], id: 1)
+      worker(RPC.MessageManager, []),
+      worker(RPC.MessageHandler, [], id: 1, name: RPC.MessageHandler )
     ]
     Supervisor.start_link(children, strategy: :one_for_one, name: __MODULE__)
   end

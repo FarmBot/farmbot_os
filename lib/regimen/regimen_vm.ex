@@ -2,10 +2,12 @@ defmodule RegimenVM  do
   @checkup_time 15000 #TODO: change this to 60 seconds
   require Logger
 
+  @spec start_link(Regimen.t,list(RegimenItem.t), DateTime.t) :: {:ok, pid}
   def start_link(regimen, finished_items \\[], time) do
     GenServer.start_link(__MODULE__,{regimen, finished_items, time})
   end
 
+  @spec init({Regimen.t, list(RegimenItem.t), DateTime.t}) :: {:ok, map}
   def init({regimen, finished_items, time}) do
     timer = Process.send_after(self(), :tick, @checkup_time)
     initial_state = %{
@@ -61,14 +63,14 @@ defmodule RegimenVM  do
             msg = "Time to run Sequence: " <> sequence.name
             GenServer.call(FarmEventManager, {:add, {:sequence, sequence}})
             Logger.debug(msg)
-            RPCMessageHandler.log(msg, [:ticker, :success_toast], [regimen.name])
+            RPC.MessageHandler.log(msg, [:ticker, :success_toast], [regimen.name])
           false ->
             :ok
         end
         should_run
     end)
     if(items_to_do == []) do
-      RPCMessageHandler.log("nothing to run this cycle", [], [regimen.name])
+      RPC.MessageHandler.log("nothing to run this cycle", [], [regimen.name])
     end
     timer = Process.send_after(self(), :tick, @checkup_time)
     finished = ran_items ++ items_to_do
@@ -88,14 +90,14 @@ defmodule RegimenVM  do
   def terminate(:normal, state) do
     msg = "Regimen: #{state.regimen.name} completed without errors!"
     Logger.debug(msg)
-    RPCMessageHandler.log(msg, [:ticker, :success_toast], ["RegimenManager"])
-    spawn fn -> RPCMessageHandler.send_status end
+    RPC.MessageHandler.log(msg, [:ticker, :success_toast], ["RegimenManager"])
+    spawn fn -> RPC.MessageHandler.send_status end
   end
 
   def terminate(reason, state) do
     msg = "Regimen: #{state.regimen.name} completed with errors! #{inspect reason}"
     Logger.debug(msg)
-    RPCMessageHandler.log(msg, [:error_toast], ["RegimenManager"])
-    spawn fn -> RPCMessageHandler.send_status end
+    RPC.MessageHandler.log(msg, [:error_toast], ["RegimenManager"])
+    spawn fn -> RPC.MessageHandler.send_status end
   end
 end

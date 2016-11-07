@@ -10,6 +10,43 @@ defmodule FarmEventManager do
     This module is the tracker that allows regimen_items to gracefully start sequences.
   """
 
+  defmodule State do
+    @moduledoc false
+
+    @type regimen_list :: list({pid,Regimen.t, [RegimenItem.t], DateTime.t})
+
+    @type t :: %__MODULE__{
+      paused_regimens: regimen_list,
+      running_regimens: regimen_list,
+      current_sequence: list({pid, Sequence.t}) | nil,
+      paused_sequences: list({pid, Sequence.t}),
+      sequence_log: list(Sequence.t)
+    }
+
+    defstruct [
+      paused_regimens: [],    # [{pid, regimen, finished_items, time}]
+      running_regimens: [],   # [{pid, regimen, finished_items, time}]
+      current_sequence: nil,  # {pid, sequence} | nil
+      paused_sequences: [] ,  # [{pid, sequence}]
+      sequence_log: []        # [sequence]
+    ]
+
+    def init(%{
+      paused_regimens: pr,
+      running_regimens: rr,
+      current_sequence: cs,
+      sequence_log: sl
+      })
+    do
+      %__MODULE__{
+        paused_regimens: pr,
+        running_regimens: rr,
+        current_sequence: cs,
+        sequence_log: sl
+      }
+    end
+  end
+
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
@@ -23,16 +60,11 @@ defmodule FarmEventManager do
     Process.send_after(self(), :tick, @tick_interval)
   end
 
+  @spec load :: FarmEventManager.State.t
   def load do
-    default_state = %{
-      paused_regimens: [],    # [{pid, regimen, finished_items, time}]
-      running_regimens: [],   # [{pid, regimen, finished_items, time}]
-      current_sequence: nil,  # {pid, sequence} | nil
-      paused_sequences: [] ,  # [{pid, sequence}]
-      sequence_log: []        # [sequence]
-    }
+    default_state = %State{}
     with {:ok, last_state} <- SafeStorage.read(__MODULE__) do
-      spawn fn -> restart(last_state) end
+      spawn fn -> restart(State.init(last_state)) end
     end
     default_state
   end
@@ -40,8 +72,17 @@ defmodule FarmEventManager do
   @doc """
     I DONT LIKE THIS
   """
-  def restart(last_state) do
-    IO.inspect last_state
+  @spec restart(State.t) :: :ok
+  def restart(%State{} = last_state) do
+    # needs_to_be_restarted = last_state.running_regimens
+    # Enum.each(needs_to_be_restarted, fn({_, regimen, items, time}) ->
+    #   restart_regimen(regimen, items, time)
+    # end)
+  end
+
+  def restart(state) do
+    Logger.warn("FarmEventManager wont restart last state: #{inspect state}")
+    :ok
   end
 
   def handle_call(:state, _from, state) do
@@ -53,12 +94,21 @@ defmodule FarmEventManager do
       Map.put(state, :sequence_log, state.sequence_log ++ [sequence])}
   end
 
+  # add a new regimen
   def handle_call({:add, {:regimen, regimen}}, _from, state) do
     now = Timex.now()
     start_time = Timex.shift(now, hours: -now.hour, seconds: -now.second)
-    {:ok, pid} = RegimenVM.start_link(regimen, start_time)
+    {:ok, pid} = RegimenVM.start_link(regimen, [], start_time)
     {:reply, :ok,
       Map.put(state, :running_regimens, state.running_regimens ++ [{pid, regimen, [], start_time}])}
+  end
+
+  # restart a regiment
+  def handle_call({:add, {:regimen, regimen, items, time}}, _from, state) do
+    start_time = time
+    {:ok, pid} = RegimenVM.start_link(regimen, items, start_time)
+    {:reply, :ok,
+      Map.put(state, :running_regimens, state.running_regimens ++ [{pid, regimen, items, start_time}])}
   end
 
   # This strips out pids and whatnot for json status updates
@@ -195,23 +245,39 @@ end
     GenServer.call(__MODULE__, {:add, {:sequence, sequence}})
   end
 
+  @doc """
+    Add/start a new regimen.
+  """
   @spec add_regimen(Regimen.t) :: :ok
   def add_regimen(regimen) do
     Logger.debug("Adding Regimen: #{regimen.name}")
     GenServer.call(__MODULE__, {:add, {:regimen, regimen}})
   end
 
+  @doc """
+    Restarts a regimen.
+  """
+  @spec restart_regimen(Regimen.t, list(RegimenItem.t), DateTime.t) :: :ok
+  def restart_regimen(regimen, ommitted_items, time) do
+    Logger.debug("Adding Regimen: #{regimen.name}")
+    GenServer.call(__MODULE__, {:add, {:regimen, regimen, ommitted_items, time}})
+  end
+
+  @doc """
+    Gets the current state of FarmEventManager.
+  """
+  @spec state() :: FarmEventManager.State.t
   def state do
     GenServer.call(__MODULE__, :state)
   end
 
-  def terminate(:normal, state) do
+  def terminate(:normal, _state) do
     Logger.debug("Farm Event Manager died. This is not good.")
   end
 
   def terminate(reason, state) do
     Logger.error("Farm Event Manager died. This is not good.")
-    spawn fn -> RPCMessageHandler.send_status end
+    spawn fn -> RPC.MessageHandler.send_status end
     IO.inspect reason
     IO.inspect state
   end

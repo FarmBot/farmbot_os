@@ -1,5 +1,5 @@
 alias Experimental.{GenStage}
-defmodule RPCMessageHandler do
+defmodule RPC.MessageHandler do
   use GenStage
   require Logger
   @transport Application.get_env(:json_rpc, :transport)
@@ -7,7 +7,7 @@ defmodule RPCMessageHandler do
   @doc """
     This is where all JSON RPC messages come in.
     Currently only from Mqtt, but is technically transport agnostic.
-    Right now we set @transport to MqttHandler, but it could technically be
+    Right now we set @transport to Mqtt.Handler, but it could technically be
     In config and set to anything that can emit and recieve JSON RPC messages.
   """
 
@@ -16,7 +16,7 @@ defmodule RPCMessageHandler do
   end
 
   def init(_args) do
-    {:consumer, :ok, subscribe_to: [RPCMessageManager]}
+    {:consumer, :ok, subscribe_to: [RPC.MessageManager]}
   end
 
   def handle_events(events, _from, state) do
@@ -207,7 +207,7 @@ defmodule RPCMessageHandler do
 
   def do_handle("mcu_config_update", [params]) when is_map(params) do
     case Enum.partition(params, fn({param, value}) ->
-      param_int = Gcode.parse_param(param)
+      param_int = Gcode.Parser.parse_param(param)
       spawn fn -> Command.update_param(param_int, value) end
     end)
     do
