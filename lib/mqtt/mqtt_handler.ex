@@ -2,30 +2,16 @@ defmodule Mqtt.Handler do
   require GenServer
   require Logger
 
-  @doc """
-    tries to log into mqtt. requires a token
-  """
-  def on_token(token) do
-    mqtt_host = Map.get(token, "unencoded") |> Map.get("mqtt")
-    mqtt_user = Map.get(token, "unencoded") |> Map.get("bot")
-    mqtt_pass = Map.get(token, "encoded")
-    options = [client_id: mqtt_user,
-               username: mqtt_user,
-               password: mqtt_pass,
-               host: mqtt_host,
-               port: 1883,
-               timeout: 5000,
-               keep_alive: 500,
-               will_topic: "bot/#{bot(token)}/from_device",
-               will_message: build_last_will_message,
-               will_qos: 0,
-               will_retain: 0]
-     GenServer.call(Mqtt.Handler, {:log_in, options, token})
-  end
-
   def init(_args) do
+    Process.flag(:trap_exit, true)
     {:ok, client} = Mqtt.Client.start_link(%{parent: __MODULE__})
-    {:ok, {client, nil}}
+    case FarmbotAuth.get_token do
+      {:ok, token} ->
+        # if this module dies, we want it to log in again.
+        Process.send_after(__MODULE__, {:authorization, token}, 2500)
+        {:ok, {client, nil}}
+      _ -> {:ok, {client, nil}}
+    end
   end
 
   def start_link(args) do
@@ -142,6 +128,30 @@ defmodule Mqtt.Handler do
                 dup: 1, qos: 1, retain: 0]
     spawn fn -> Mqtt.Client.publish(client, options) end
     {:noreply, {client, token}}
+  end
+
+  def handle_info({:EXIT, pid, reason}, {client, token})
+  when pid == client do
+    Logger.debug("Hulaki died.")
+  end
+
+  def handle_info({:authorization, token}, {client, _old_token}) do
+    mqtt_host = Map.get(token, "unencoded") |> Map.get("mqtt")
+    mqtt_user = Map.get(token, "unencoded") |> Map.get("bot")
+    mqtt_pass = Map.get(token, "encoded")
+    options = [client_id: mqtt_user,
+               username: mqtt_user,
+               password: mqtt_pass,
+               host: mqtt_host,
+               port: 1883,
+               timeout: 5000,
+               keep_alive: 500,
+               will_topic: "bot/#{bot(token)}/from_device",
+               will_message: build_last_will_message,
+               will_qos: 0,
+               will_retain: 0]
+     spawn fn -> GenServer.call(Mqtt.Handler, {:log_in, options, token}) end
+     {:noreply, {client, token}}
   end
 
   # We still want to keep alive, but dont actually preform the ping

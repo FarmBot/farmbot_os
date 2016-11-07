@@ -2,10 +2,12 @@ defmodule RegimenVM  do
   @checkup_time 15000 #TODO: change this to 60 seconds
   require Logger
 
+  @spec start_link(Regimen.t,list(RegimenItem.t), DateTime.t) :: {:ok, pid}
   def start_link(regimen, finished_items \\[], time) do
     GenServer.start_link(__MODULE__,{regimen, finished_items, time})
   end
 
+  @spec init({Regimen.t, list(RegimenItem.t), DateTime.t}) :: {:ok, map}
   def init({regimen, finished_items, time}) do
     timer = Process.send_after(self(), :tick, @checkup_time)
     initial_state = %{

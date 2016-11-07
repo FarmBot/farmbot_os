@@ -2,11 +2,6 @@ defmodule BotSync do
   use GenServer
   require Logger
 
-  def on_token(token) do
-    GenServer.call(__MODULE__, {:token, token})
-    GenServer.cast(__MODULE__, :sync)
-  end
-
   def init(_args) do
     {:ok, %{token: nil,
             resources: load_old_resources,
@@ -19,7 +14,7 @@ defmodule BotSync do
   end
 
   def load_old_resources do
-    Sync.create(%{"checksum" => "loading...",
+     Sync.create(%{"checksum" => "loading...",
       "device" => %{
         "id" => -1,
         "planting_area_id" => -1,
@@ -72,10 +67,6 @@ defmodule BotSync do
        RPC.MessageHandler.log("Error syncing: #{inspect error}", [:error_toast], ["BotSync"])
        {:noreply, %{token: token, resources: old, corpuses: oldc}}
     end
-  end
-
-  def handle_call({:token, token}, _from, %{token: _, resources: old, corpuses: oldc}) do
-    {:reply, :ok, %{token: token, resources: old, corpuses: oldc}}
   end
 
   def handle_call(_,_from, %{token: nil, resources: old, corpuses: oldc}) do
@@ -142,6 +133,10 @@ defmodule BotSync do
         {:reply, Module.concat(SiS, "Corpus_#{id}"),
           %{token: token, resources: resources, corpuses: oldc}}
     end
+  end
+
+  def handle_info({:authorization, token}, %{token: _, resources: resources, corpuses: cor}) do
+    {:noreply, %{token: token, resources: resources, corpuses: cor}}
   end
 
   defp get_corpus_from_server(server, id) do
