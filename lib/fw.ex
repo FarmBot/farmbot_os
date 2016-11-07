@@ -7,6 +7,21 @@ defmodule Fw do
   @state_path Application.get_env(:fb, :state_path)
 
   @doc """
+    Shortcut to Nerves.Firmware.reboot
+  """
+  def reboot do
+    Nerves.Firmware.reboot
+  end
+
+
+  @doc """
+    Shortcut to Nerves.Firmware.poweroff
+  """
+  def poweroff do
+    Nerves.Firmware.poweroff
+  end
+
+  @doc """
     Formats the sytem partition, and mounts as read/write
   """
   def format_state_part do
