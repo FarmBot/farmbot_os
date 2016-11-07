@@ -211,7 +211,7 @@ end
 
   def terminate(reason, state) do
     Logger.error("Farm Event Manager died. This is not good.")
-    spawn fn -> RPCMessageHandler.send_status end
+    spawn fn -> RPC.MessageHandler.send_status end
     IO.inspect reason
     IO.inspect state
   end

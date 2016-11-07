@@ -1,4 +1,4 @@
-defmodule UartHandler do
+defmodule Serial.Handler do
   require Logger
   @baud Application.get_env(:uart, :baud)
 
@@ -30,10 +30,11 @@ defmodule UartHandler do
 
   def init(_) do
     Process.flag(:trap_exit, true)
-    {:ok, pid} = Nerves.UART.start_link
-    {:ok, handler} = NewHandler.start_link(pid)
-    tty = open_serial(pid)
-    {:ok, {pid, tty, handler}}
+    {:ok, nerves} = Nerves.UART.start_link
+    Process.register nerves, Serial.NervesUart
+    {:ok, handler} = Gcode.Handler.start_link(nerves)
+    tty = open_serial(nerves)
+    {:ok, {nerves, tty, handler}}
   end
 
   def start_link(_) do
@@ -44,7 +45,7 @@ defmodule UartHandler do
     Nerves.UART.close(nerves)
     System.cmd("avrdude", ["-v", "-patmega2560", "-cwiring", "-P/dev/#{tty}", "-b115200", "-D", "-Uflash:w:#{hex_file}:i"])
     new_tty = open_serial(nerves)
-    RPCMessageHandler.log("Updated FW", [:success_toast, :ticker], ["UartHandler"])
+    RPC.MessageHandler.log("Updated FW", [:success_toast, :ticker], ["UartHandler"])
     {:noreply, {nerves, new_tty, handler}}
   end
 
@@ -68,7 +69,7 @@ defmodule UartHandler do
   # WHEN A FULL SERIAL MESSAGE COMES IN.
   def handle_info({:nerves_uart, nerves_tty, message}, {pid, tty, handler})
   when is_binary(message) and nerves_tty == tty do
-    gcode = Gcode.parse_code(String.strip(message))
+    gcode = Gcode.Parser.parse_code(String.strip(message))
     GenServer.cast(handler, gcode)
     {:noreply, {pid, tty, handler}}
   end
@@ -85,7 +86,7 @@ defmodule UartHandler do
   end
 
   def handle_info({:nerves_uart, _tty, {:error, :eio}}, state) do
-    RPCMessageHandler.log("Serial disconnected!", [:error_toast, :error_ticker], ["SERIAL"])
+    RPC.MessageHandler.log("Serial disconnected!", [:error_toast, :error_ticker], ["SERIAL"])
     {:noreply, state}
   end
 
@@ -105,14 +106,18 @@ defmodule UartHandler do
     {:noreply, {nerves, tty, handler}}
   end
 
-  def handle_info({:EXIT, pid, reason}, {nerves, tty, handler}) do
-    if(pid == handler) do
+  def handle_info({:EXIT, pid, reason}, {nerves, tty, handler})
+  when pid == handler do
       Logger.debug "gcode handler died: #{inspect reason}"
-      {:ok, restarted} = NewHandler.start_link(nerves)
+      {:ok, restarted} = Gcode.Handler.start_link(nerves)
       {:noreply,  {nerves, tty, restarted}}
-    else
-      {:noreply,  {nerves, tty, handler}}
-    end
+  end
+
+  def handle_info({:EXIT, pid, reason}, {nerves, tty, handler})
+  when pid == nerves do
+    Logger.debug "Nerves UART died: #{inspect reason}"
+    {:crashme,  {nerves, tty, handler}}
+
   end
 
   def handle_info({:EXIT, pid, reason}, state) do

@@ -1,13 +1,12 @@
 defmodule Controller do
-  # use Application
   require Logger
   use Supervisor
 
   def init(_args) do
     children = [
-      supervisor(MqttSupervisor, [[]], restart: :permanent ),
-      supervisor(RPCSupervisor, [[]], restart: :permanent ),
-      supervisor(SerialSupervisor, [[]], restart: :permanent ),
+      supervisor(Mqtt.Supervisor, [[]], restart: :permanent ),
+      supervisor(RPC.Supervisor, [[]], restart: :permanent ),
+      supervisor(Serial.Supervisor, [[]], restart: :permanent ),
       worker(BotSync, [[]], restart: :permanent ),
       worker(FarmEventManager, [[]], restart: :permanent)
     ]

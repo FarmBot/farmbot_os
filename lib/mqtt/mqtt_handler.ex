@@ -1,4 +1,4 @@
-defmodule MqttHandler do
+defmodule Mqtt.Handler do
   require GenServer
   require Logger
 
@@ -20,7 +20,7 @@ defmodule MqttHandler do
                will_message: build_last_will_message,
                will_qos: 0,
                will_retain: 0]
-     GenServer.call(MqttHandler, {:log_in, options, token})
+     GenServer.call(Mqtt.Handler, {:log_in, options, token})
   end
 
   def init(_args) do
@@ -69,7 +69,7 @@ defmodule MqttHandler do
 
   def handle_call({:subscribed_publish, message}, _from, {client, token}) do
     Map.get(message, :message) |> Poison.decode! |>
-    RPCMessageManager.sync_notify
+    RPC.MessageManager.sync_notify
     {:reply, :ok, {client, token}}
   end
 
@@ -100,7 +100,7 @@ defmodule MqttHandler do
   def handle_call({:subscribe_ack, _message}, _from, {client, token}) do
     Logger.debug("Subscribed.")
     spawn fn ->
-      RPCMessageHandler.log("Bot is online and ready to roll", [:ticker], ["BOT STATUS"])
+      RPC.MessageHandler.log("Bot is online and ready to roll", [:ticker], ["BOT STATUS"])
     end
     {:reply, :ok, {client, token}}
   end
@@ -169,10 +169,10 @@ defmodule MqttHandler do
   end
 
   def terminate(reason, _state) do
-    Logger.debug("MqttHandler died. #{inspect reason}")
+    Logger.debug("#{__MODULE__} died. #{inspect reason}")
   end
 
   defp build_last_will_message do
-    RPCMessageHandler.log_msg("Bot going offline", [:error_ticker], ["ERROR"])
+    RPC.MessageHandler.log_msg("Bot going offline", [:error_ticker], ["ERROR"])
   end
 end

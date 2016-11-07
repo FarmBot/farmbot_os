@@ -65,11 +65,11 @@ defmodule BotSync do
          end)
        end
        new_merged = Map.merge(old ,new)
-       RPCMessageHandler.log("Synced", [], ["BotSync"])
+       RPC.MessageHandler.log("Synced", [], ["BotSync"])
        {:noreply, %{token: token, resources: new_merged, corpuses: oldc }}
      error ->
        Logger.debug("Couldn't get resources: #{error}")
-       RPCMessageHandler.log("Error syncing: #{inspect error}", [:error_toast], ["BotSync"])
+       RPC.MessageHandler.log("Error syncing: #{inspect error}", [:error_toast], ["BotSync"])
        {:noreply, %{token: token, resources: old, corpuses: oldc}}
     end
   end
@@ -130,7 +130,7 @@ defmodule BotSync do
       [] ->
         msg = "Compiling Sequence Instruction Set"
         Logger.debug(msg)
-        RPCMessageHandler.log(msg, [], ["BotSync"])
+        RPC.MessageHandler.log(msg, [], ["BotSync"])
         server = Map.get(token, "unencoded") |> Map.get("iss")
         c = get_corpus_from_server(server, id)
         m = String.to_atom("Elixir.SequenceInstructionSet_"<>"#{id}")

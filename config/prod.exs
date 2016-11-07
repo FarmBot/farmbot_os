@@ -12,7 +12,7 @@ config :fb,
   dnsmasq_path: "/root/dnsmasq.lease"
 
 config :json_rpc,
-    transport: MqttHandler
+    transport: Mqtt.Handler
 
 config :logger, :console,
   # format: "$metadata[$level] $levelpad$message\r\n",

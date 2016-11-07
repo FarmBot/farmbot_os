@@ -1,4 +1,4 @@
-defmodule Gcode do
+defmodule Gcode.Parser do
   @moduledoc """
     Im lazy and didn't want to parse yaml or write macros
   """

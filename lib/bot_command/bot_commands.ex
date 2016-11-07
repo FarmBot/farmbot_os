@@ -12,7 +12,7 @@ defmodule Command do
   def e_stop do
     msg = "E STOPPING!"
     Logger.debug(msg)
-    RPCMessageHandler.log(msg, [:error_toast, :error_ticker], [@log_tag])
+    RPC.MessageHandler.log(msg, [:error_toast, :error_ticker], [@log_tag])
   end
 
   @doc """
@@ -21,7 +21,7 @@ defmodule Command do
   def home_all(speed \\ nil) do
     msg = "HOME ALL"
     Logger.debug(msg)
-    RPCMessageHandler.log(msg, [], [@log_tag])
+    RPC.MessageHandler.log(msg, [], [@log_tag])
     Command.move_absolute(0, 0, 0, speed || BotState.get_config(:steps_per_mm))
   end
 
@@ -32,8 +32,8 @@ defmodule Command do
   def home_x() do
     msg = "HOME X"
     Logger.debug(msg)
-    RPCMessageHandler.log(msg, [], [@log_tag])
-    NewHandler.block_send("F11")
+    RPC.MessageHandler.log(msg, [], [@log_tag])
+    Gcode.Handler.block_send("F11")
   end
 
   @doc """
@@ -42,8 +42,8 @@ defmodule Command do
   def home_y() do
     msg = "HOME Y"
     Logger.debug(msg)
-    RPCMessageHandler.log(msg, [], [@log_tag])
-    NewHandler.block_send("F12")
+    RPC.MessageHandler.log(msg, [], [@log_tag])
+    Gcode.Handler.block_send("F12")
   end
 
   @doc """
@@ -52,8 +52,8 @@ defmodule Command do
   def home_z() do
     msg = "HOME Z"
     Logger.debug(msg)
-    RPCMessageHandler.log(msg, [], [@log_tag])
-    NewHandler.block_send("F13")
+    RPC.MessageHandler.log(msg, [], [@log_tag])
+    Gcode.Handler.block_send("F13")
   end
 
   @doc """
@@ -63,7 +63,7 @@ defmodule Command do
   when is_integer(pin) and is_integer(value) and is_integer(mode) do
     BotState.set_pin_mode(pin, mode)
     BotState.set_pin_value(pin, value)
-    NewHandler.block_send("F41 P#{pin} V#{value} M#{mode}") |> logmsg("write_pin")
+    Gcode.Handler.block_send("F41 P#{pin} V#{value} M#{mode}") |> logmsg("write_pin")
   end
 
   @doc """
@@ -73,8 +73,8 @@ defmodule Command do
   def move_absolute(x, y, z, s) do
     msg = "Moving to X#{x} Y#{y} Z#{z}"
     Logger.debug(msg)
-    RPCMessageHandler.log(msg, [], [@log_tag])
-    NewHandler.block_send("G00 X#{x} Y#{y} Z#{z} S#{s || BotState.get_config(:steps_per_mm)}")
+    RPC.MessageHandler.log(msg, [], [@log_tag])
+    Gcode.Handler.block_send("G00 X#{x} Y#{y} Z#{z} S#{s || BotState.get_config(:steps_per_mm)}")
     |> logmsg("Movement")
   end
 
@@ -118,8 +118,8 @@ defmodule Command do
                                  52,53,61,62,63,71,72,73])
   when is_list(params) do
     case Enum.partition(params, fn param ->
-      GenServer.call(NewHandler, {:send, "F21 P#{param}", self()})
-      :done == NewHandler.block(2500)
+      GenServer.call(Gcode.Handler, {:send, "F21 P#{param}", self()})
+      :done == Gcode.Handler.block(2500)
     end) do
       {_, []} -> :ok
       {_, failed_params} -> read_all_params(failed_params)
@@ -133,7 +133,7 @@ defmodule Command do
   """
   def read_pin(pin, mode \\ 0) when is_integer(pin) do
     BotState.set_pin_mode(pin, mode)
-    NewHandler.block_send("F42 P#{pin} M#{mode}") |> logmsg("read_pin")
+    Gcode.Handler.block_send("F42 P#{pin} M#{mode}") |> logmsg("read_pin")
   end
 
   @doc """
@@ -157,14 +157,14 @@ defmodule Command do
     Reads a param. Needs the integer version of said param.
   """
   def read_param(param) when is_integer param do
-    NewHandler.block_send "F21 P#{param}"
+    Gcode.Handler.block_send "F21 P#{param}"
   end
 
   @doc """
     Update a param. Param needs to be an integer.
   """
   def update_param(param, value) when is_integer param do
-    NewHandler.block_send "F22 P#{param} V#{value}"
+    Gcode.Handler.block_send "F22 P#{param} V#{value}"
     Command.read_param(param)
   end
 
@@ -173,13 +173,13 @@ defmodule Command do
   end
 
   defp logmsg(:done, command) when is_bitstring(command) do
-    RPCMessageHandler.log("#{command} Complete", [],[@log_tag])
+    RPC.MessageHandler.log("#{command} Complete", [],[@log_tag])
     :done
   end
 
   defp logmsg(other, command) when is_bitstring(command) do
     Logger.error("#{command} Failed")
-    RPCMessageHandler.log("#{command} Failed", [:error_toast, :error_ticker],[@log_tag])
+    RPC.MessageHandler.log("#{command} Failed", [:error_toast, :error_ticker],[@log_tag])
     other
   end
 end
