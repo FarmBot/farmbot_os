@@ -130,13 +130,13 @@ defmodule Mqtt.Handler do
     {:noreply, {client, token}}
   end
 
-  def handle_info({:EXIT, pid, reason}, {client, token})
+  def handle_info({:EXIT, pid, _reason}, {client, token})
   when pid == client do
     Logger.error("Hulaki died.")
     {:crashme, {client, token}}
   end
 
-  def handle_info({:EXIT, pid, reason}, {client, token}) do
+  def handle_info({:EXIT, _pid, _reason}, {client, token}) do
     Logger.debug("something. died.")
     {:noreply, {client, token}}
   end

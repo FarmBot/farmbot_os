@@ -35,7 +35,7 @@ defmodule SSH do
     {:noreply, new_state}
   end
 
-  def handle_info(info, port) do
+  def handle_info(_info, port) do
     {:noreply, port}
   end
 
