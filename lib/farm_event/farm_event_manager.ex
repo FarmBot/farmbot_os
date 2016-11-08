@@ -12,9 +12,7 @@ defmodule FarmEventManager do
 
   defmodule State do
     @moduledoc false
-
     @type regimen_list :: list({pid,Regimen.t, [RegimenItem.t], DateTime.t})
-
     @type t :: %__MODULE__{
       paused_regimens: regimen_list,
       running_regimens: regimen_list,
