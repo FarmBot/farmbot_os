@@ -115,26 +115,20 @@ defmodule Fw do
     Shortcut for check_updates
   """
   def check_os_updates do
-    case BotState.get_token do
-      nil -> nil
-      token ->
-        check_updates(
-        Map.get(token, "unencoded") |> Map.get("os_update_server"),
-        ".fw")
-    end
+    with {:ok, token} <- FarmbotAuth.get_token,
+    do: check_updates(
+          Map.get(token, "unencoded") |> Map.get("os_update_server"),
+          ".fw")
   end
 
   @doc """
     Shortcut for check_updates
   """
   def check_fw_updates do
-    case BotState.get_token do
-      nil -> nil
-      token ->
-        check_updates(
-        Map.get(token, "unencoded") |> Map.get("fw_update_server"),
-        ".hex")
-    end
+    with {:ok, token} <- FarmbotAuth.get_token,
+    do: check_updates(
+          Map.get(token, "unencoded") |> Map.get("fw_update_server"),
+          ".hex")
   end
 
   def check_and_download_os_update do

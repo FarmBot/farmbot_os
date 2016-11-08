@@ -90,8 +90,7 @@ defmodule Command do
   {:x, number | nil, number} |
   {:y, number | nil, number} |
   {:z, number | nil, number} |
-  %{x: number, y: number, z: number, speed: number | nil}
-  ) :: command_output
+  %{x: number, y: number, z: number, speed: number | nil}) :: command_output
   def move_relative({:x, s, move_by}) when is_integer move_by do
     [x,y,z] = BotState.get_current_pos
     move_absolute(x + move_by,y,z,s)
@@ -109,9 +108,9 @@ defmodule Command do
 
   # This is a funky one. Only used in sequences right now.
   def move_relative(%{x: x_move_by, y: y_move_by, z: z_move_by, speed: speed})
-  when is_integer x_move_by and
-       is_integer y_move_by and
-       is_integer z_move_by
+  when is_integer(x_move_by) and
+       is_integer(y_move_by) and
+       is_integer(z_move_by)
   do
     [x,y,z] = BotState.get_current_pos
     move_absolute(x + x_move_by,y + y_move_by,z + z_move_by, speed)
@@ -133,7 +132,6 @@ defmodule Command do
     end) do
       {_, []} -> :ok
       {_, failed_params} -> read_all_params(failed_params)
-       _ -> :fail
     end
   end
 

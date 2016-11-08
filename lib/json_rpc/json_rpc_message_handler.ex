@@ -70,7 +70,6 @@ defmodule RPC.MessageHandler do
     case do_handle(method, params) do
       :ok -> @transport.emit(ack_msg(id))
       {:error, name, message} -> @transport.emit(ack_msg(id, {name, message}))
-      unknown_error -> @transport.emit(ack_msg(id, {"unknown_error", "#{inspect unknown_error}"}))
     end
   end
 
@@ -100,8 +99,8 @@ defmodule RPC.MessageHandler do
 
   # WRITE_PIN
   def do_handle("write_pin", [ %{"pin_mode" => 1, "pin_number" => p, "pin_value" => v} ])
-    when is_integer p and
-         is_integer v
+    when is_integer(p) and
+         is_integer(v)
   do
     spawn fn -> Command.write_pin(p,v,1) end
     :ok
