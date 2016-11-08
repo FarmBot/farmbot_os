@@ -1,8 +1,8 @@
-defmodule SequencerVM do
+defmodule Sequence.VM do
   require Logger
 
 
-  def start_link(sequence) do
+  def start_link(%Sequence{} = sequence) do
     GenServer.start_link(__MODULE__,sequence)
   end
 
@@ -103,7 +103,7 @@ defmodule SequencerVM do
   do
     Logger.debug("sequence done")
     RPC.MessageHandler.log("Sequence Complete", [], [sequence.name])
-    send(SequenceManager, {:done, self(), sequence})
+    send(Sequence.Manager, {:done, self(), sequence})
     Logger.debug("Stopping VM")
     {:noreply,
       %{status: status,
@@ -139,13 +139,13 @@ defmodule SequencerVM do
 
   def handle_info({:error, :e_stop}, state) do
     RPC.MessageHandler.log("Bot in E STOP MODE", [:error], [state.sequence.name])
-    send(SequenceManager, {:done, self(), state.sequence})
+    send(Sequence.Manager, {:done, self(), state.sequence})
     {:noreply, state}
   end
 
   def handle_info({:error, error}, state) do
     RPC.MessageHandler.log("ERROR: #{inspect(error)}", [:error], [state.sequence.name])
-    send(SequenceManager, {:done, self(), state.sequence})
+    send(Sequence.Manager, {:done, self(), state.sequence})
     {:noreply, state}
   end
 

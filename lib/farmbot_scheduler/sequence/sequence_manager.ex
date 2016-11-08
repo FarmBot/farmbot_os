@@ -1,10 +1,13 @@
-defmodule SequenceManager do
+defmodule Sequence.Manager do
+  @moduledoc """
+    This Module is a state machine that tracks a sequence thru its lifecycle.
+  """
   use GenServer
   require Logger
 
-  def init(sequence) do
+  def init(%Sequence{} = sequence) do
     Process.flag(:trap_exit, true)
-    {:ok, pid} = SequencerVM.start_link(sequence)
+    {:ok, pid} = Sequence.VM.start_link(sequence)
     {:ok, %{current: pid, global_vars: %{}, log: []}}
   end
 
@@ -19,14 +22,14 @@ defmodule SequenceManager do
   # no sequences running, no sequences in list.
   def handle_call({:add, seq}, _from, %{current: nil, global_vars: globals, log: []})
   when is_map(seq) do
-    {:ok, pid} = SequencerVM.start_link(seq)
+    {:ok, pid} = Sequence.VM.start_link(seq)
     {:reply, "starting sequence", %{current: pid, global_vars: globals, log: []}}
   end
 
   # Add a new sequence to the log when there are no other sequences running.
   def handle_call({:add, seq}, _from, %{current: nil, global_vars: globals, log: log})
   when is_map(seq) do
-    {:ok, pid} = SequencerVM.start_link(seq)
+    {:ok, pid} = Sequence.VM.start_link(seq)
     {:reply, "starting sequence", %{current: pid, global_vars: globals, log: log}}
   end
 
@@ -57,7 +60,7 @@ defmodule SequenceManager do
     if(Process.alive?(pid)) do
       GenServer.stop(pid, :normal)
     end
-    RPC.MessageHandler.log("No more sub sequences.", [], ["SequencerVM"])
+    RPC.MessageHandler.log("No more sub sequences.", [], ["Sequence.VM"])
     send(Farmbot.Scheduler, {:done, {:sequence, self(), sequence}})
     {:noreply, %{current: nil, global_vars: globals, log: [] }}
   end
@@ -67,12 +70,12 @@ defmodule SequenceManager do
     if(Process.alive?(pid)) do
       GenServer.stop(pid, :normal)
     end
-    RPC.MessageHandler.log("Running next sub sequence", [], ["SequencerVM"])
+    RPC.MessageHandler.log("Running next sub sequence", [], ["Sequence.VM"])
     next = List.first(log)
     cond do
       is_nil(next) -> {:noreply, %{current: nil, global_vars: globals, log: []}}
       is_map(next) ->
-          {:ok, next_seq} = SequencerVM.start_link(next)
+          {:ok, next_seq} = Sequence.VM.start_link(next)
           {:noreply, %{current: next_seq, global_vars: globals, log: log -- [next]}}
       is_pid(next) ->
         GenServer.cast(next, :resume)
@@ -88,7 +91,7 @@ defmodule SequenceManager do
   when pid == state do
     msg = "Sequence died of unnatural causes: #{inspect reason}"
     Logger.debug(msg)
-    RPC.MessageHandler.log(msg, [:error_toast], ["SequencerVM"])
+    RPC.MessageHandler.log(msg, [:error_toast], ["Sequence.VM"])
     handle_info({:done, pid, %{}}, state)
   end
 

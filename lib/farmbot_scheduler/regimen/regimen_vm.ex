@@ -1,4 +1,4 @@
-defmodule RegimenVM  do
+defmodule Regimen.VM  do
   @checkup_time 15000 #TODO: change this to 60 seconds
   require Logger
 
