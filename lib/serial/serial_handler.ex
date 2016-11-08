@@ -1,4 +1,7 @@
 defmodule Serial.Handler do
+  @moduledoc """
+    Handles serial messages and keeping ports alive.
+  """
   require Logger
   @baud Application.get_env(:uart, :baud)
 
@@ -8,7 +11,7 @@ defmodule Serial.Handler do
   end
 
   defp open_serial(pid, ports, tries) do
-    [{tty, _ } | rest ] = ports
+    [{tty,_} | rest] = ports
     blah = Nerves.UART.open(pid, tty, speed: @baud, active: true)
     case blah do
       :ok -> {:ok, tty}
@@ -63,7 +66,7 @@ defmodule Serial.Handler do
   """
   def write(pid, str) do
     Logger.debug("writing: #{str}")
-    Nerves.UART.write(pid, str<>" Q0")
+    Nerves.UART.write(pid, str <> " Q0")
   end
 
   # WHEN A FULL SERIAL MESSAGE COMES IN.

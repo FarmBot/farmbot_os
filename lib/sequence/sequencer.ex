@@ -123,15 +123,15 @@ defmodule SequencerVM do
           sequence: sequence,
           steps: {more_steps, finished_steps} })
   do
-    node = List.first(more_steps)
-    kind = Map.get(node, "kind")
+    ast_node = List.first(more_steps)
+    kind = Map.get(ast_node, "kind")
     Logger.debug("doing: #{kind}")
     RPC.MessageHandler.log("Doing step: #{kind}", [], [sequence.name])
-    GenServer.cast(instruction_set, {kind, Map.get(node, "args") })
+    GenServer.cast(instruction_set, {kind, Map.get(ast_node, "args") })
     {:noreply, %{
             status: status,
             sequence: sequence,
-            steps: {more_steps -- [node], finished_steps ++ [node]},
+            steps: {more_steps -- [ast_node], finished_steps ++ [ast_node]},
             instruction_set: instruction_set,
             vars: vars,
             running: true }}
@@ -149,6 +149,5 @@ defmodule SequencerVM do
     Logger.debug("VM Died: #{inspect reason}")
     RPC.MessageHandler.log("Sequence Finished with errors! #{inspect reason}", [:error_toast], ["Sequencer"])
     GenServer.stop(state.instruction_set, :normal)
-    IO.inspect state
   end
 end

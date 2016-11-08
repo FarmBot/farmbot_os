@@ -1,4 +1,7 @@
 defmodule Gcode.Handler do
+  @moduledoc """
+    Handles parsed messages.
+  """
   require Logger
   use GenServer
 
@@ -19,15 +22,18 @@ defmodule Gcode.Handler do
     {:noreply, %{nerves: state.nerves, current: nil, log: []}}
   end
 
-  def handle_cast({:done, _}, %{nerves: nerves, current: {_current_str, pid}, log: log}) do
+  def handle_cast({:done, _}, %{nerves: nerves, current: {_current_str, pid},
+    log: log})
+  do
     send(pid, :done)
     RPC.MessageHandler.send_status
     case List.first(log) do
       {nextstr, new_pid} ->
         Serial.Handler.write(nerves,nextstr)
-        {:noreply, %{nerves: nerves, current: {nextstr, new_pid}, log: log -- [{nextstr, new_pid}] }}
+        {:noreply, %{nerves: nerves, current: {nextstr, new_pid},
+          log: log -- [{nextstr, new_pid}]}}
       nil ->
-        {:noreply, %{nerves: nerves, current: nil, log: []} }
+        {:noreply, %{nerves: nerves, current: nil, log: []}}
     end
   end
 
@@ -46,7 +52,7 @@ defmodule Gcode.Handler do
     {:noreply, state}
   end
 
-  def handle_cast( {:report_current_position, x,y,z, _ }, state) do
+  def handle_cast({:report_current_position, x,y,z, _}, state) do
     Logger.debug("Reporting position #{inspect {x, y, z}}")
     BotState.set_pos(x,y,z)
     {:noreply, state}
@@ -60,7 +66,7 @@ defmodule Gcode.Handler do
   end
 
   # TODO report end stops
-  def handle_cast({:reporting_end_stops, x1,x2,y1,y2,z1,z2,_ }, state) do
+  def handle_cast({:reporting_end_stops, x1,x2,y1,y2,z1,z2,_}, state) do
     Logger.warn("Set end stops valid: #{inspect {x1,x2,y1,y2,z1,z2}}")
     {:noreply, state}
   end
@@ -86,7 +92,7 @@ defmodule Gcode.Handler do
   # If we arent waiting on anything right now. (current is nil and log is empty)
   def handle_call({:send, message, caller}, _from, %{nerves: nerves, current: nil, log: []}) do
     Serial.Handler.write(nerves,message)
-    {:reply, :sending, %{nerves: nerves, current: {message, caller}, log: []} }
+    {:reply, :sending, %{nerves: nerves, current: {message, caller}, log: []}}
   end
 
   def handle_call({:send, message, caller}, _from, %{nerves: nerves, current: current, log: log}) do
@@ -97,8 +103,8 @@ defmodule Gcode.Handler do
     {:reply, state, state}
   end
 
-  def block_send(str, timeout\\ 10000) do
-    GenServer.call(Gcode.Handler,{ :send, str, self()})
+  def block_send(str, timeout \\ 10_000) do
+    GenServer.call(Gcode.Handler,{:send, str, self()})
     block(timeout)
   end
 

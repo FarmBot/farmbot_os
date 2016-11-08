@@ -47,7 +47,6 @@ defmodule Fw do
       worker(SafeStorage, [@env], restart: :permanent),
       worker(BotState, [[]], restart: :permanent),
       worker(SSH, [@env], restart: :permanent),
-      supervisor(Extras, [[]], restart: :temporary),
       supervisor(Controller, [[]], restart: :permanent)
     ]
     opts = [strategy: :one_for_one, name: Fw]

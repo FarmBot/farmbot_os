@@ -1,13 +1,16 @@
 defmodule RegimenItem do
-  defstruct [ id: nil,
-              time_offset: nil,
-              regimen_id: nil,
-              sequence_id: nil ]
+  @moduledoc """
+    RegimenItem Object
+  """
+  defstruct [id: nil,
+             time_offset: nil,
+             regimen_id: nil,
+             sequence_id: nil]
   @type t :: %__MODULE__{
     id: integer,
     time_offset: integer,
     regimen_id: integer,
-    sequence_id: integer }
+    sequence_id: integer}
 
   @spec create(map) :: t
   def create(%{
@@ -24,6 +27,6 @@ defmodule RegimenItem do
       id: id,
       time_offset: time_offset,
       regimen_id: regimen_id,
-      sequence_id: sequence_id }
+      sequence_id: sequence_id}
   end
 end

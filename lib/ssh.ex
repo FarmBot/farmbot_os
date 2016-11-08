@@ -1,4 +1,7 @@
 defmodule SSH do
+  @moduledoc """
+    Module to manage SSH via a dropbear port.
+  """
   use GenServer
   require Logger
   @banner "/tmp/banner"
