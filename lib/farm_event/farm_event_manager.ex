@@ -14,8 +14,10 @@ defmodule FarmEventManager do
     @moduledoc false
     @type regimen_list :: list({pid,Regimen.t, [RegimenItem.t], DateTime.t})
     @type t :: %__MODULE__{
+
       paused_regimens: regimen_list,
       running_regimens: regimen_list,
+
       current_sequence: list({pid, Sequence.t}) | nil,
       paused_sequences: list({pid, Sequence.t}),
       sequence_log: list(Sequence.t)
@@ -84,7 +86,7 @@ defmodule FarmEventManager do
   end
 
   def handle_cast(:e_stop, state) do
-    Logger.warn("E stopping TODO in farmEventManager")
+    Logger.warn("E stopping TODO in FarmEventManager")
     {:noreply, state}
   end
 
@@ -103,10 +105,11 @@ defmodule FarmEventManager do
     start_time = Timex.shift(now, hours: -now.hour, seconds: -now.second)
     {:ok, pid} = RegimenVM.start_link(regimen, [], start_time)
     {:reply, :ok,
-      Map.put(state, :running_regimens, state.running_regimens ++ [{pid, regimen, [], start_time}])}
+      Map.put(state, :running_regimens,
+          state.running_regimens ++ [{pid, regimen, [], start_time}])}
   end
 
-  # restart a regiment
+  # restart a regimen.
   def handle_call({:add, {:regimen, regimen, items, time}}, _from, state) do
     start_time = time
     {:ok, pid} = RegimenVM.start_link(regimen, items, start_time)
