@@ -58,7 +58,7 @@ defmodule SequenceManager do
       GenServer.stop(pid, :normal)
     end
     RPC.MessageHandler.log("No more sub sequences.", [], ["SequencerVM"])
-    send(FarmEventManager, {:done, {:sequence, self(), sequence}})
+    send(Farmbot.Scheduler, {:done, {:sequence, self(), sequence}})
     {:noreply, %{current: nil, global_vars: globals, log: [] }}
   end
 

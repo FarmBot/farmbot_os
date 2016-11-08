@@ -242,13 +242,13 @@ defmodule RPC.MessageHandler do
     Map.drop(sequence, ["dirty"])
     |> Map.merge(%{"device_id" => -1, "id" => Map.get(sequence, "id") || -1})
     |> Sequence.create
-    |> FarmEventManager.add_sequence
+    |> Farmbot.Scheduler.add_sequence
   end
 
   def do_handle("start_regimen", [%{"regimen_id" => id}]) when is_integer(id) do
     BotSync.sync()
     regimen = BotSync.get_regimen(id)
-    FarmEventManager.add_regimen(regimen)
+    Farmbot.Scheduler.add_regimen(regimen)
     send_status
   end
 
@@ -260,12 +260,12 @@ defmodule RPC.MessageHandler do
 
   def do_handle("stop_regimen", [%{"regimen_id" => id}]) when is_integer(id) do
     regimen = BotSync.get_regimen(id)
-    {pid, ^regimen, _, _} = GenServer.call(FarmEventManager, :state)
+    {pid, ^regimen, _, _} = GenServer.call(Farmbot.Scheduler, :state)
     |> Map.get(:running_regimens)
     |> Enum.find(fn({_pid, re, _items, _start_time}) ->
       re == regimen
     end)
-    send(FarmEventManager, {:done, {:regimen, pid, regimen}})
+    send(Farmbot.Scheduler, {:done, {:regimen, pid, regimen}})
     :ok
   end
 
@@ -304,7 +304,7 @@ defmodule RPC.MessageHandler do
   def send_status do
     status =
       Map.merge(BotState.get_status,
-      %{ farm_events: GenServer.call(FarmEventManager, :jsonable) })
+      %{ farm_events: GenServer.call(Farmbot.Scheduler, :jsonable) })
     m = %{id: nil,
           method: "status_update",
           params: [status] }

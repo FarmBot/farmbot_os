@@ -31,7 +31,7 @@ defmodule RegimenVM  do
       regimen: regimen
     })
   do
-    send(FarmEventManager, {:done, {:regimen, self(), regimen }})
+    send(Farmbot.Scheduler, {:done, {:regimen, self(), regimen }})
     {:noreply, %{
         running: false,
         timer: nil,
@@ -61,7 +61,7 @@ defmodule RegimenVM  do
           true ->
             sequence = BotSync.get_sequence(item.sequence_id)
             msg = "Time to run Sequence: " <> sequence.name
-            GenServer.call(FarmEventManager, {:add, {:sequence, sequence}})
+            GenServer.call(Farmbot.Scheduler, {:add, {:sequence, sequence}})
             Logger.debug(msg)
             RPC.MessageHandler.log(msg, [:ticker, :success_toast], [regimen.name])
           false ->
@@ -75,7 +75,7 @@ defmodule RegimenVM  do
     timer = Process.send_after(self(), :tick, @checkup_time)
     finished = ran_items ++ items_to_do
     # tell farmevent manager that these items are done.
-    send(FarmEventManager, {:done, {:regimen_items, {self(), regimen, finished, start_time}}})
+    send(Farmbot.Scheduler, {:done, {:regimen_items, {self(), regimen, finished, start_time}}})
     {:noreply,
       %{running: true, timer: timer, start_time: start_time,
         regimen_items: remaining_items, ran_items: finished,

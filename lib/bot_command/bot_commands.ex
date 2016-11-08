@@ -20,7 +20,7 @@ defmodule Command do
     Logger.debug(msg)
     RPC.MessageHandler.log(msg, [:error_toast, :error_ticker], [@log_tag])
     Serial.Handler.e_stop
-    FarmEventManager.e_stop
+    Farmbot.Scheduler.e_stop
   end
 
   @doc """

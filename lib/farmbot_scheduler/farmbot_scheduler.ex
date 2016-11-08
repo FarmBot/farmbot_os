@@ -1,7 +1,7 @@
-defmodule FarmEventManager do
+defmodule Farmbot.Scheduler do
   @save_interval 10000
   @tick_interval 1500
-  @log_tag "FarmEventManager"
+  @log_tag "Farmbot.Scheduler"
   require Logger
   @moduledoc """
     This isn't an event manager contrary to module name.
@@ -60,7 +60,7 @@ defmodule FarmEventManager do
     Process.send_after(self(), :tick, @tick_interval)
   end
 
-  @spec load :: FarmEventManager.State.t
+  @spec load :: Farmbot.Scheduler.State.t
   def load do
     default_state = %State{}
     with {:ok, last_state} <- SafeStorage.read(__MODULE__) do
@@ -81,12 +81,12 @@ defmodule FarmEventManager do
   end
 
   def restart(state) do
-    Logger.warn("FarmEventManager wont restart last state: #{inspect state}")
+    Logger.warn("Farmbot.Scheduler wont restart last state: #{inspect state}")
     :ok
   end
 
   def handle_cast(:e_stop, state) do
-    Logger.warn("E stopping TODO in FarmEventManager")
+    Logger.warn("E stopping TODO in Farmbot.Scheduler")
     {:noreply, state}
   end
 
@@ -270,9 +270,9 @@ end
   end
 
   @doc """
-    Gets the current state of FarmEventManager.
+    Gets the current state of Farmbot.Scheduler.
   """
-  @spec get_state() :: FarmEventManager.State.t
+  @spec get_state() :: Farmbot.Scheduler.State.t
   def get_state do
     GenServer.call(__MODULE__, :state)
   end
