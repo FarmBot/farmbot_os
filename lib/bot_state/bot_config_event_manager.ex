@@ -1,4 +1,8 @@
 defmodule BotState.EventManager do
+  @doc """
+    Don't worry about compiler warnings in this module. I need to add some things
+    to FakeNerves
+  """
   use GenEvent
   require Logger
 

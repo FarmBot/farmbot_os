@@ -107,7 +107,7 @@ defmodule SafeStorage do
   @doc """
     Delete me
   """
-  def state() do
+  def get_state do
     GenServer.call(__MODULE__, :state)
   end
 

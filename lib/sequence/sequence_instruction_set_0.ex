@@ -63,9 +63,7 @@ defmodule SequenceInstructionSet_0 do
       end
 
       def terminate(reason, parent) do
-        Logger.debug(\"Corpus died.\")
-        IO.inspect(reason)
-        IO.inspect(parent)
+        Logger.error(\"Corpus died.\")
       end
     end" |> Code.string_to_quoted!
   end

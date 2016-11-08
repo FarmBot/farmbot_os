@@ -84,13 +84,13 @@ defmodule Gcode.Handler do
   end
 
   # If we arent waiting on anything right now. (current is nil and log is empty)
-  def handle_call({:send, message, caller}, _from, %{ nerves: nerves, current: nil, log: [] }) do
+  def handle_call({:send, message, caller}, _from, %{nerves: nerves, current: nil, log: []}) do
     Serial.Handler.write(nerves,message)
     {:reply, :sending, %{nerves: nerves, current: {message, caller}, log: []} }
   end
 
   def handle_call({:send, message, caller}, _from, %{nerves: nerves, current: current, log: log}) do
-    {:reply, :logging, %{nerves: nerves, current: current, log: log ++ [{message, caller}]} }
+    {:reply, :logging, %{nerves: nerves, current: current, log: log ++ [{message, caller}]}}
   end
 
   def handle_call(:state, _from, state) do

@@ -264,8 +264,8 @@ end
   @doc """
     Gets the current state of FarmEventManager.
   """
-  @spec state() :: FarmEventManager.State.t
-  def state do
+  @spec get_state() :: FarmEventManager.State.t
+  def get_state do
     GenServer.call(__MODULE__, :state)
   end
 
@@ -276,7 +276,7 @@ end
   def terminate(reason, state) do
     Logger.error("Farm Event Manager died. This is not good.")
     spawn fn -> RPC.MessageHandler.send_status end
-    IO.inspect reason
-    IO.inspect state
+    Logger.debug("REASON: #{inspect reason}")
+    Logger.debug("STATE: #{inspect state}")
   end
 end

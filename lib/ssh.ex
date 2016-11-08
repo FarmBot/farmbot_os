@@ -33,7 +33,6 @@ defmodule SSH do
   end
 
   def handle_info(info, port) do
-    IO.inspect info
     {:noreply, port}
   end
 

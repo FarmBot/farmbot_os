@@ -37,7 +37,7 @@ defmodule RPC.MessageHandler do
   # JSON RPC RESPONSE ERROR
   def ack_msg(id, {name, message}) when is_bitstring(id) and is_bitstring(name) and is_bitstring(message) do
     Logger.error("RPC ERROR")
-    IO.inspect({name, message})
+    Logger.debug("#{inspect {name, message}}")
     Poison.encode!(
     %{id: id,
       error: %{name: name,
@@ -76,7 +76,7 @@ defmodule RPC.MessageHandler do
 
   def handle_rpc(broken_rpc) do
     Logger.debug("Got a broken RPC message!!")
-    IO.inspect broken_rpc
+    Logger.debug("#{inspect broken_rpc}")
   end
 
   # E STOP
@@ -92,9 +92,8 @@ defmodule RPC.MessageHandler do
     :ok
   end
 
-  def do_handle("home_all", params) do
+  def do_handle("home_all", _params) do
     Logger.debug("bad params for home_all")
-    IO.inspect(params)
     {:error, "BAD_PARAMS",
       Poison.encode!(%{"speed" => "number"})}
   end
@@ -143,9 +142,8 @@ defmodule RPC.MessageHandler do
     :ok
   end
 
-  def do_handle("move_absolute",  params) do
+  def do_handle("move_absolute",  _params) do
     Logger.debug("bad params for Move Absolute")
-    IO.inspect params
     {:error, "BAD_PARAMS",
       Poison.encode!(%{"x" => "number", "y" => "number", "z" => "number", "speed" => "number"})}
   end

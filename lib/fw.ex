@@ -55,7 +55,7 @@ defmodule Fw do
   end
 
   def start(_type, args) do
-    IO.inspect fs_init(@env)
+    fs_init(@env)
     Logger.debug("Starting Firmware on Target: #{@target}")
     Supervisor.start_link(__MODULE__, args)
   end

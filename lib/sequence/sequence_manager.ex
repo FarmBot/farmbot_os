@@ -100,9 +100,7 @@ defmodule SequenceManager do
     Logger.debug("Sequence Manager shutting down")
   end
 
-  def terminate(reason, state) do
-    Logger.debug("Sequence Manager died unnaturally: ")
-    IO.inspect reason
-    IO.inspect state
+  def terminate(reason, _state) do
+    Logger.debug("Sequence Manager died unnaturally: #{inspect reason}")
   end
 end
