@@ -1,6 +1,7 @@
 defmodule Command do
   require Logger
   @log_tag "BotControl"
+  @type command_output :: :done | :timeout | :error
   @moduledoc """
     BotCommands.
   """
@@ -16,8 +17,9 @@ defmodule Command do
   end
 
   @doc """
-    Home All (TODO: this might be broken)
+    Home All
   """
+  @spec home_all(number | nil) :: command_output
   def home_all(speed \\ nil) do
     msg = "HOME ALL"
     Logger.debug(msg)
@@ -27,7 +29,7 @@ defmodule Command do
 
   @doc """
     Home x
-    I dont think anything uses these.
+    I dont think anything uses this.
   """
   def home_x() do
     msg = "HOME X"
@@ -59,6 +61,7 @@ defmodule Command do
   @doc """
     Writes a pin high or low
   """
+  @spec write_pin(number, number, number) :: command_output
   def write_pin(pin, value, mode)
   when is_integer(pin) and is_integer(value) and is_integer(mode) do
     BotState.set_pin_mode(pin, mode)
@@ -69,6 +72,7 @@ defmodule Command do
   @doc """
     Moves to (x,y,z) point.
   """
+  @spec move_absolute(number, number, number, number | nil) :: command_output
   def move_absolute(x ,y ,z ,s \\ nil)
   def move_absolute(x, y, z, s) do
     msg = "Moving to X#{x} Y#{y} Z#{z}"
@@ -82,7 +86,12 @@ defmodule Command do
     Gets the current position
     then pipes into move_absolute
   """
-  def move_relative(e)
+  @spec move_relative(
+  {:x, number | nil, number} |
+  {:y, number | nil, number} |
+  {:z, number | nil, number} |
+  %{x: number, y: number, z: number, speed: number | nil}
+  ) :: command_output
   def move_relative({:x, s, move_by}) when is_integer move_by do
     [x,y,z] = BotState.get_current_pos
     move_absolute(x + move_by,y,z,s)
@@ -113,6 +122,7 @@ defmodule Command do
     Reads all the params.
     TODO: Make these not magic numbers.
   """
+  @spec read_all_params(list(number)) :: :ok | :fail
   def read_all_params(params \\ [0,11,12,13,21,22,23,
                                  31,32,33,41,42,43,51,
                                  52,53,61,62,63,71,72,73])
@@ -131,6 +141,7 @@ defmodule Command do
     Reads a pin value.
     mode can be 0 (digital) or 1 (analog)
   """
+  @spec read_pin(number, 0 | 1) :: command_output
   def read_pin(pin, mode \\ 0) when is_integer(pin) do
     BotState.set_pin_mode(pin, mode)
     Gcode.Handler.block_send("F42 P#{pin} M#{mode}") |> logmsg("read_pin")
@@ -139,6 +150,7 @@ defmodule Command do
   @doc """
     gets the current value, and then toggles it.
   """
+  @spec toggle_pin(number) :: command_output
   def toggle_pin(pin) when is_integer(pin) do
     pinMap = BotState.get_pin(pin)
     case pinMap do
@@ -156,6 +168,7 @@ defmodule Command do
   @doc """
     Reads a param. Needs the integer version of said param.
   """
+  @spec read_param(number) :: command_output
   def read_param(param) when is_integer param do
     Gcode.Handler.block_send "F21 P#{param}"
   end
@@ -163,6 +176,7 @@ defmodule Command do
   @doc """
     Update a param. Param needs to be an integer.
   """
+  @spec update_param(number | nil, number) :: command_output
   def update_param(param, value) when is_integer param do
     Gcode.Handler.block_send "F22 P#{param} V#{value}"
     Command.read_param(param)
@@ -172,6 +186,7 @@ defmodule Command do
     {:error, "Unknown param"}
   end
 
+  @spec logmsg(command_output, String.t) :: command_output
   defp logmsg(:done, command) when is_bitstring(command) do
     RPC.MessageHandler.log("#{command} Complete", [],[@log_tag])
     :done
