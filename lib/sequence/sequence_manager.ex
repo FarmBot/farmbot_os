@@ -52,7 +52,8 @@ defmodule SequenceManager do
     end
   end
 
-  def handle_info({:done, pid, sequence}, %{current: _current, global_vars: globals, log: []}) do
+  def handle_info({:done, pid, sequence}, %{current: _current, global_vars: globals, log: []})
+  when is_pid(pid) do
     if(Process.alive?(pid)) do
       GenServer.stop(pid, :normal)
     end
@@ -61,8 +62,11 @@ defmodule SequenceManager do
     {:noreply, %{current: nil, global_vars: globals, log: [] }}
   end
 
-  def handle_info({:done, pid, _sequence}, %{current: _current, global_vars: globals, log: log}) do
-    GenServer.stop(pid, :normal)
+  def handle_info({:done, pid, _sequence}, %{current: _current, global_vars: globals, log: log})
+  when is_pid(pid) do
+    if(Process.alive?(pid)) do
+      GenServer.stop(pid, :normal)
+    end
     RPC.MessageHandler.log("Running next sub sequence", [], ["SequencerVM"])
     next = List.first(log)
     cond do
@@ -80,16 +84,12 @@ defmodule SequenceManager do
     {:noreply, state}
   end
 
-  def handle_info({:EXIT, pid, reason}, state) do
-    msg = "#{inspect pid} died of unnatural causes: #{inspect reason}"
+  def handle_info({:EXIT, pid, reason}, state)
+  when pid == state do
+    msg = "Sequence died of unnatural causes: #{inspect reason}"
     Logger.debug(msg)
     RPC.MessageHandler.log(msg, [:error_toast], ["SequencerVM"])
-    if state.current == pid do
-      handle_info({:done, pid, %{}}, state)
-    else
-      Logger.debug("Sequence Hypervisor has been currupted. ")
-      :fail
-    end
+    handle_info({:done, pid, %{}}, state)
   end
 
   def terminate(:normal, _state) do

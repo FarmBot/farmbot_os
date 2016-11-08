@@ -137,9 +137,16 @@ defmodule SequencerVM do
             running: true }}
   end
 
+  def handle_info({:error, :e_stop}, state) do
+    RPC.MessageHandler.log("Bot in E STOP MODE", [:error], [state.sequence.name])
+    send(SequenceManager, {:done, self(), state.sequence})
+    {:noreply, state}
+  end
+
   def handle_info({:error, error}, state) do
     RPC.MessageHandler.log("ERROR: #{inspect(error)}", [:error], [state.sequence.name])
-    :step_fail
+    send(SequenceManager, {:done, self(), state.sequence})
+    {:noreply, state}
   end
 
   # the last command was successful
@@ -147,17 +154,12 @@ defmodule SequencerVM do
     Process.send_after(vm, :run_next_step, 100)
   end
 
+  # The last command was not successful
   def tick(vm, error) do
     Process.send_after(vm, {:error, error}, 100)
   end
 
   def terminate(:normal, state) do
-    GenServer.stop(state.instruction_set, :normal)
-  end
-
-  def terminate({:bad_return_value, :step_fail}, state) do
-    Logger.debug("VM Died!")
-    RPC.MessageHandler.log("Sequence Finished with errors! (probably in E_STOP MODE)", [:error_toast], [state.sequence.name])
     GenServer.stop(state.instruction_set, :normal)
   end
 
