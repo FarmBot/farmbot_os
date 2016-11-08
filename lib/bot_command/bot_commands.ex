@@ -7,13 +7,41 @@ defmodule Command do
   """
 
   @doc """
-    EMERGENCY STOP
-    #TODO
+    EMERGENCY STOP.
+    This will happen in a pretty specific order.
+    first: write an "E" to the serial line directly.
+    second: stop any running sequences.
+    third: Probably write another E.
+    fourth: pause running regimens and other stuff that might do serial stuff
+            on a timer.
   """
   def e_stop do
     msg = "E STOPPING!"
     Logger.debug(msg)
     RPC.MessageHandler.log(msg, [:error_toast, :error_ticker], [@log_tag])
+    Serial.Handler.e_stop
+    FarmEventManager.e_stop
+  end
+
+  @doc """
+    resume from an e stop
+  """
+  @spec resume() :: :ok | :fail
+  def resume do
+    RPC.MessageHandler.log("Bot Back Up and Running!", [:ticker], [@log_tag])
+    Serial.Handler.resume
+    params = BotState.get_status.mcu_params
+    case Enum.partition(params, fn({param, value}) ->
+      param_int = Gcode.Parser.parse_param(param)
+      Command.update_param(param_int, value)
+    end)
+    do
+      {_, []} ->
+        :ok
+      {_, failed} ->
+        Logger.error("Param setting failed! #{inspect failed}")
+        :fail
+    end
   end
 
   @doc """
@@ -142,7 +170,8 @@ defmodule Command do
   @spec read_pin(number, 0 | 1) :: command_output
   def read_pin(pin, mode \\ 0) when is_integer(pin) do
     BotState.set_pin_mode(pin, mode)
-    Gcode.Handler.block_send("F42 P#{pin} M#{mode}") |> logmsg("read_pin")
+    Gcode.Handler.block_send("F42 P#{pin} M#{mode}")
+    |> logmsg("read_pin")
   end
 
   @doc """
@@ -187,12 +216,12 @@ defmodule Command do
   @spec logmsg(command_output, String.t) :: command_output
   defp logmsg(:done, command) when is_bitstring(command) do
     RPC.MessageHandler.log("#{command} Complete", [],[@log_tag])
-    :done
+    :done |> Command.Tracker.beep
   end
 
   defp logmsg(other, command) when is_bitstring(command) do
     Logger.error("#{command} Failed")
     RPC.MessageHandler.log("#{command} Failed", [:error_toast, :error_ticker],[@log_tag])
-    other
+    other |> Command.Tracker.beep
   end
 end

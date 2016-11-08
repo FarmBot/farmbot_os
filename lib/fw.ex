@@ -46,6 +46,7 @@ defmodule Fw do
     children = [
       worker(SafeStorage, [@env], restart: :permanent),
       worker(BotState, [[]], restart: :permanent),
+      worker(Command.Tracker, [[]], restart: :permanent),
       worker(SSH, [@env], restart: :permanent),
       supervisor(Controller, [[]], restart: :permanent)
     ]

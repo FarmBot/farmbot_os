@@ -123,14 +123,14 @@ defmodule SequenceInstructionSet_0 do
     args = create_arg_map(allowed_args)
     "
     def handle_cast({ \"move_absolute\", %{#{args}} }, parent) do
-      Command.move_absolute(x(x),y(y),z(z),speed(speed))
-      SequencerVM.tick(parent)
+      result = Command.move_absolute(x(x),y(y),z(z),speed(speed))
+      SequencerVM.tick(parent, result)
       {:noreply, parent}
     end
 
     def handle_cast({\"move_absolute\", _}, parent) do
       RPC.MessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
-      SequencerVM.tick(parent)
+      SequencerVM.tick(parent, :bad_params)
       {:noreply, parent}
     end
     "
@@ -141,14 +141,14 @@ defmodule SequenceInstructionSet_0 do
     args = create_arg_map(allowed_args)
     "
     def handle_cast({ \"move_relative\", %{#{args}}}, parent) do
-      Command.move_relative(%{x: x(x), y: y(y), z: z(z), speed: speed(speed)})
-      SequencerVM.tick(parent)
+      result = Command.move_relative(%{x: x(x), y: y(y), z: z(z), speed: speed(speed)})
+      SequencerVM.tick(parent, result)
       {:noreply, parent}
     end
 
     def handle_cast({\"move_relative\", _}, parent) do
       RPC.MessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
-      SequencerVM.tick(parent)
+      SequencerVM.tick(parent, :bad_params)
       {:noreply, parent}
     end
     "
@@ -159,16 +159,16 @@ defmodule SequenceInstructionSet_0 do
     args = create_arg_map(allowed_args)
     "
     def handle_cast({\"write_pin\", %{#{args}}}, parent) do
-      Command.write_pin(pin_number(pin_number),
+      result = Command.write_pin(pin_number(pin_number),
                         pin_value(pin_value),
                         pin_mode(pin_mode))
-      SequencerVM.tick(parent)
+      SequencerVM.tick(parent, result)
       {:noreply, parent}
     end
 
     def handle_cast({\"write_pin\", _}, parent) do
       RPC.MessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
-      SequencerVM.tick(parent)
+      SequencerVM.tick(parent, :bad_params)
       {:noreply, parent}
     end
     "
@@ -179,17 +179,17 @@ defmodule SequenceInstructionSet_0 do
     args = create_arg_map(allowed_args)
     "
     def handle_cast({\"read_pin\", %{#{args}}}, parent) do
-      Command.read_pin( pin_number(pin_number),
+      result = Command.read_pin( pin_number(pin_number),
                         pin_mode(pin_mode) )
       v = BotState.get_pin(pin_number(pin_number))
       GenServer.call(parent, {:set_var, data_label(data_label), v})
-      SequencerVM.tick(parent)
+      SequencerVM.tick(parent, result)
       {:noreply, parent}
     end
 
     def handle_cast({\"read_pin\", _}, parent) do
       RPC.MessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
-      SequencerVM.tick(parent)
+      SequencerVM.tick(parent, :bad_params)
       {:noreply, parent}
     end
     "
@@ -201,13 +201,13 @@ defmodule SequenceInstructionSet_0 do
     "
     def handle_cast({\"wait\", %{#{args}}}, parent) do
       Process.sleep( milliseconds(milliseconds) )
-      SequencerVM.tick(parent)
+      SequencerVM.tick(parent, :done)
       {:noreply, parent}
     end
 
     def handle_cast({\"wait\", _}, parent) do
       RPC.MessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
-      SequencerVM.tick(parent)
+      SequencerVM.tick(parent, :bad_params)
       {:noreply, parent}
     end
     "
@@ -226,7 +226,7 @@ defmodule SequenceInstructionSet_0 do
 
     def handle_cast({\"execute\", _}, parent) do
       RPC.MessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
-      SequencerVM.tick(parent)
+      SequencerVM.tick(parent, :bad_params)
       {:noreply, parent}
     end
     "
@@ -243,14 +243,14 @@ defmodule SequenceInstructionSet_0 do
         handle_cast({\"execute\", %{\"sub_sequence_id\" => sub_sequence_id}}, parent)
       else
         RPC.MessageHandler.log(\"if statement did not evaluate true.\", [], [\"SequenceInstructionSet\"])
-        SequencerVM.tick(parent)
+        SequencerVM.tick(parent, :done)
         {:noreply, parent}
       end
     end
 
     def handle_cast({\"if_statement\", _}, parent) do
       RPC.MessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
-      SequencerVM.tick(parent)
+      SequencerVM.tick(parent, :bad_params)
       {:noreply, parent}
     end
     "
@@ -274,20 +274,20 @@ defmodule SequenceInstructionSet_0 do
           end
           rendered = Mustache.render(rmessage, vars)
           RPC.MessageHandler.log(rendered, [channel], [\"Sequence\"])
-          SequencerVM.tick(parent)
+          SequencerVM.tick(parent, :done)
           {:noreply, parent}
 
         not_special ->
           rendered = Mustache.render(not_special, vars)
           RPC.MessageHandler.log(rendered, [], [\"Sequence\"])
-          SequencerVM.tick(parent)
+          SequencerVM.tick(parent, :done)
           {:noreply, parent}
       end
     end
 
     def handle_cast({\"send_message\", _}, parent) do
       RPC.MessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
-      SequencerVM.tick(parent)
+      SequencerVM.tick(parent, :bad_params)
       {:noreply, parent}
     end
     "
@@ -299,7 +299,7 @@ defmodule SequenceInstructionSet_0 do
     "
     def handle_cast({#{name}, _}, parent) do
       Logger.debug(\"node #{name} is not implemented\")
-      SequencerVM.tick(parent)
+      SequencerVM.tick(parent, :not_implemented)
       {:noreply, parent}
     end
     "
@@ -310,7 +310,7 @@ defmodule SequenceInstructionSet_0 do
     "
     def handle_cast({#{name}, _}, parent) do
       Logger.debug(\"node #{name} is not implemented\")
-      SequencerVM.tick(parent)
+      SequencerVM.tick(parent, :not_implemented)
       {:noreply, parent}
     end
     "

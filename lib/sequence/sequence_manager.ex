@@ -16,12 +16,6 @@ defmodule SequenceManager do
     {:reply, :ok, %{current: nil, global_vars: %{}, log: []}}
   end
 
-  def handle_call(:e_stop, _from, %{current: pid, global_vars: _, log: _})
-  when is_pid(pid) do
-    Process.exit(pid, :e_stop)
-    {:reply, :ok, %{current: nil, global_vars: %{}, log: []}}
-  end
-
   # no sequences running, no sequences in list.
   def handle_call({:add, seq}, _from, %{current: nil, global_vars: globals, log: []})
   when is_map(seq) do
@@ -59,10 +53,12 @@ defmodule SequenceManager do
   end
 
   def handle_info({:done, pid, sequence}, %{current: _current, global_vars: globals, log: []}) do
-    GenServer.stop(pid, :normal)
+    if(Process.alive?(pid)) do
+      GenServer.stop(pid, :normal)
+    end
     RPC.MessageHandler.log("No more sub sequences.", [], ["SequencerVM"])
     send(FarmEventManager, {:done, {:sequence, self(), sequence}})
-    {:noreply, %{current: nil, global_vars: globals, log: [] } }
+    {:noreply, %{current: nil, global_vars: globals, log: [] }}
   end
 
   def handle_info({:done, pid, _sequence}, %{current: _current, global_vars: globals, log: log}) do
@@ -89,7 +85,7 @@ defmodule SequenceManager do
     Logger.debug(msg)
     RPC.MessageHandler.log(msg, [:error_toast], ["SequencerVM"])
     if state.current == pid do
-      handle_info({:done, pid}, state)
+      handle_info({:done, pid, %{}}, state)
     else
       Logger.debug("Sequence Hypervisor has been currupted. ")
       :fail

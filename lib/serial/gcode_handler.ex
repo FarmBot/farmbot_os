@@ -29,7 +29,7 @@ defmodule Gcode.Handler do
     RPC.MessageHandler.send_status
     case List.first(log) do
       {nextstr, new_pid} ->
-        Serial.Handler.write(nerves,nextstr)
+        Serial.Handler.write(nextstr, new_pid)
         {:noreply, %{nerves: nerves, current: {nextstr, new_pid},
           log: log -- [{nextstr, new_pid}]}}
       nil ->
@@ -90,9 +90,17 @@ defmodule Gcode.Handler do
   end
 
   # If we arent waiting on anything right now. (current is nil and log is empty)
-  def handle_call({:send, message, caller}, _from, %{nerves: nerves, current: nil, log: []}) do
-    Serial.Handler.write(nerves,message)
+  def handle_call({:send, message, caller}, _from, %{nerves: nerves, current: nil, log: []})
+  when is_bitstring(message) do
+    Serial.Handler.write(message, caller)
     {:reply, :sending, %{nerves: nerves, current: {message, caller}, log: []}}
+  end
+
+  # I don't know where this comes from. If someone can find the use case when this happens
+  # I would appreciate it.
+  def handle_call({:send, nil, caller}, _from, %{nerves: nerves, current: nil, log: []}) do
+    send(caller, :error)
+    {:reply, :sending, %{nerves: nerves, current: nil, log: []}}
   end
 
   def handle_call({:send, message, caller}, _from, %{nerves: nerves, current: current, log: log}) do
@@ -103,14 +111,21 @@ defmodule Gcode.Handler do
     {:reply, state, state}
   end
 
-  def block_send(str, timeout \\ 10_000) do
+  def block_send(str, timeout \\ 5500) do
     GenServer.call(Gcode.Handler,{:send, str, self()})
     block(timeout)
+  end
+
+  def terminate(:normal, _state) do
+    :ok
   end
 
   def block(timeout) do
     receive do
       :done -> :done
+      :e_stop ->
+        GenServer.cast(__MODULE__, {:done, nil})
+        :e_stop
       :busy -> block(timeout)
       error -> error
     after

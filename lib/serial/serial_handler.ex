@@ -12,8 +12,7 @@ defmodule Serial.Handler do
 
   defp open_serial(pid, ports, tries) do
     [{tty,_} | rest] = ports
-    blah = Nerves.UART.open(pid, tty, speed: @baud, active: true)
-    case blah do
+    case Nerves.UART.open(pid, tty, speed: @baud, active: true) do
       :ok -> {:ok, tty}
       _ -> open_serial(pid, rest, tries ++ [tty])
     end
@@ -34,7 +33,6 @@ defmodule Serial.Handler do
   def init(_) do
     Process.flag(:trap_exit, true)
     {:ok, nerves} = Nerves.UART.start_link
-    Process.register nerves, Serial.NervesUart
     {:ok, handler} = Gcode.Handler.start_link(nerves)
     tty = open_serial(nerves)
     {:ok, {nerves, tty, handler}}
@@ -44,29 +42,60 @@ defmodule Serial.Handler do
     GenServer.start_link(__MODULE__, {}, name: __MODULE__)
   end
 
+  @doc """
+    Writes to a nerves uart tty. This only exists because
+    I wanted to print what is being written
+  """
+  def write(str, caller)
+  when is_bitstring(str) do
+    Logger.debug("writing: #{str}")
+    GenServer.cast(__MODULE__, {:write, str <> " Q0", caller})
+  end
+
+  # WHAT IS DOING THIS
+  def write(_str, caller) do
+    send(caller, :bad_type)
+  end
+
+  def e_stop do
+    GenServer.call(__MODULE__, :e_stop)
+  end
+
+  def resume do
+    GenServer.call(__MODULE__, :resume)
+  end
+
+  def handle_call(:e_stop, _from, {nerves, tty, handler}) do
+    Nerves.UART.write(nerves, "E")
+    Nerves.UART.close(nerves)
+    # Temp hack to try to stop a running command.
+    Nerves.UART.open(nerves, tty, speed: @baud, active: false)
+    Nerves.UART.close(nerves)
+    {:reply, :ok, {nerves, :e_stop, handler}}
+  end
+
+
+  def handle_call(:resume, _from, {nerves, :e_stop, handler}) do
+    tty = open_serial(nerves)
+    {:reply, :ok, {nerves, tty, handler}}
+  end
+
+  def handle_cast({:write, _str, caller}, {nerves, :e_stop, handler}) do
+    send(caller, :e_stop)
+    {:noreply, {nerves, :e_stop, handler}}
+  end
+
+  def handle_cast({:write, str, _caller}, {nerves, tty, handler}) do
+    Nerves.UART.write(nerves, str)
+    {:noreply, {nerves, tty, handler}}
+  end
+
   def handle_cast({:update_fw, hex_file}, {nerves, tty, handler}) do
     Nerves.UART.close(nerves)
     System.cmd("avrdude", ["-v", "-patmega2560", "-cwiring", "-P/dev/#{tty}", "-b115200", "-D", "-Uflash:w:#{hex_file}:i"])
     new_tty = open_serial(nerves)
     RPC.MessageHandler.log("Updated FW", [:success_toast, :ticker], ["UartHandler"])
     {:noreply, {nerves, new_tty, handler}}
-  end
-
-  def handle_call(:e_stop, _from, {pid, tty, handler}) do
-    write(pid, "E")
-    raise "E STOP"
-    Process.exit(pid, "asdf")
-    Process.exit(handler, :e_stop)
-    {:reply, :ok, {pid, tty, handler}}
-  end
-
-  @doc """
-    Writes to a nerves uart tty. This only exists because
-    I wanted to print what is being written
-  """
-  def write(pid, str) do
-    Logger.debug("writing: #{str}")
-    Nerves.UART.write(pid, str <> " Q0")
   end
 
   # WHEN A FULL SERIAL MESSAGE COMES IN.
@@ -93,6 +122,11 @@ defmodule Serial.Handler do
     {:noreply, state}
   end
 
+  def handle_info({:nerves_uart, _tty, _event}, {nerves, :e_stop, handler}) do
+    Logger.warn("IN E STOP MODE!")
+    {:noreply, {nerves, :e_stop, handler}}
+  end
+
   def handle_info({:nerves_uart, _tty, event}, state) do
     Logger.debug("Nerves UART Event: #{inspect event}")
     {:noreply, state}
@@ -100,13 +134,6 @@ defmodule Serial.Handler do
 
   def handle_info({:EXIT, _pid, :normal}, state) do
     {:noreply, state}
-  end
-
-  def handle_info({:EXIT, _pid, :e_stop}, {nerves, tty, handler}) do
-    Logger.debug("E STOPPING")
-    Nerves.UART.close(nerves)
-    Process.exit(self(), :real_e_stop)
-    {:noreply, {nerves, tty, handler}}
   end
 
   def handle_info({:EXIT, pid, reason}, {nerves, tty, handler})
@@ -133,8 +160,13 @@ defmodule Serial.Handler do
     {:noreply, state}
   end
 
-  def terminate(reason, other) do
+  def terminate(:restart, {nerves, _tty, handler}) do
+    GenServer.stop(nerves, :normal)
+    GenServer.stop(handler, :normal)
+  end
+
+  def terminate(reason, state) do
     Logger.debug("UART HANDLER DIED.")
-    Logger.debug("#{inspect reason}: #{inspect other}")
+    Logger.debug("#{inspect reason}: #{inspect state}")
   end
 end

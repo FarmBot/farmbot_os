@@ -83,6 +83,11 @@ defmodule FarmEventManager do
     :ok
   end
 
+  def handle_cast(:e_stop, state) do
+    Logger.warn("E stopping TODO in farmEventManager")
+    {:noreply, state}
+  end
+
   def handle_call(:state, _from, state) do
     {:reply, state, state}
   end
@@ -267,6 +272,14 @@ end
   @spec get_state() :: FarmEventManager.State.t
   def get_state do
     GenServer.call(__MODULE__, :state)
+  end
+
+  @doc """
+    Safely E stops things that need to be E stopped.
+  """
+  @spec e_stop :: :ok
+  def e_stop do
+    GenServer.cast(__MODULE__, :e_stop)
   end
 
   def terminate(:normal, _state) do

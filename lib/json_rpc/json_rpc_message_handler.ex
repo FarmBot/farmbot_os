@@ -80,8 +80,7 @@ defmodule RPC.MessageHandler do
 
   # E STOP
   def do_handle("emergency_stop", _) do
-    GenServer.call UartHandler, :e_stop
-    GenServer.call SequenceManager, :e_stop
+    Command.e_stop
     :ok
   end
 
