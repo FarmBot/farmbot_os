@@ -141,8 +141,7 @@ defmodule Farmbot.Scheduler do
     {:noreply, %State{state | regimens: state.regimens -- [reg_tup]}}
   end
 
-  # a regimen has completed items
-  # TODO: this should be renamed
+  # a regimen has changed state, and the scheduler needs to know about it.
   def handle_info({:update, {:regimen,
       {pid, regimen, finished_items, start_time, flag}}}, state)
   do

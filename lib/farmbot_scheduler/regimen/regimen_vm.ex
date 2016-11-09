@@ -132,7 +132,7 @@ defmodule Regimen.VM  do
     timer = Process.send_after(self(), :tick, @checkup_time)
     finished = ran_items ++ items_to_do
     # tell farmevent manager that these items are done.
-    send(Farmbot.Scheduler, {:done, {:regimen_items, {self(), regimen, finished, start_time, :normal}}})
+    send(Farmbot.Scheduler, {:update, {:regimen, {self(), regimen, finished, start_time, :normal}}})
     {:noreply,
       %State{flag: :normal, timer: timer, start_time: start_time,
         regimen_items: remaining_items, ran_items: finished,
