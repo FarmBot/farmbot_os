@@ -59,6 +59,32 @@ defmodule Regimen.VM  do
     {:reply, state, state}
   end
 
+  def handle_cast(:pause, state) do
+    {:noreply, %{state | flag: :paused}}
+  end
+
+  # if the regimen is paused
+  def handle_info(:tick, %State{
+      flag: :paused,
+      timer: timer,
+      start_time: start_time,
+      regimen_items: ri,
+      ran_items: ran,
+      regimen: regimen
+    })
+  do
+    #TODO: Someone remind me to rename this send. 
+    send(Farmbot.Scheduler, {:done, {:regimen_items, {self(), regimen, ran, start_time, :paused}}})
+    {:noreply, %State{
+        flag: :paused,
+        timer: timer,
+        start_time: start_time,
+        regimen_items: ri,
+        ran_items: ran,
+        regimen: regimen
+      }}
+  end
+
   # if there are no more items to run. exit this instance
   def handle_info(:tick, %State{
       flag: _,

@@ -60,7 +60,19 @@ defmodule Farmbot.Scheduler do
   end
 
   def handle_cast(:e_stop, state) do
-    Logger.warn("E stopping TODO in Farmbot.Scheduler")
+    Logger.warn("E stopping TODO in Farmbot Scheduler")
+
+    # if there is a sequence running, stop it agressivly
+    case state.current_sequence do
+      {pid, _sequence} -> GenServer.stop(pid, :e_stop)
+      nil -> nil
+    end
+
+    # tell all the regimens to pause.
+    Enum.each(state.regimens, fn({pid, regimen, items, start_time, flag}) ->
+      GenServer.cast(pid, :pause)
+    end)
+
     {:noreply, state}
   end
 
@@ -130,6 +142,7 @@ defmodule Farmbot.Scheduler do
   end
 
   # a regimen has completed items
+  # TODO: this should be renamed
   def handle_info({:done, {:regimen_items,
       {pid, regimen, finished_items, start_time, flag}}}, state)
   do
@@ -141,7 +154,7 @@ defmodule Farmbot.Scheduler do
       is_integer(found) ->
         # Just update this regimen in the list.
         {:noreply, %State{state | regimens: List.update_at(state.regimens, found,
-        fn({^pid, ^regimen, _old_items, ^start_time, ^flag}) ->
+        fn({^pid, ^regimen, _old_items, ^start_time, _flag}) ->
           {pid, regimen, finished_items, start_time, flag}
         end)}}
       is_nil(found) ->

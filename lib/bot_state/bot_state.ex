@@ -41,7 +41,8 @@ defmodule BotState do
       informational_settings: %{
         controller_version: Fw.version,
         private_ip: nil,
-        throttled: get_throttled
+        throttled: get_throttled,
+        locked: false
       },
       authorization: %{
         token: nil,

@@ -18,9 +18,15 @@ defmodule Command do
   def e_stop do
     msg = "E STOPPING!"
     Logger.debug(msg)
-    RPC.MessageHandler.log(msg, [:error_toast, :error_ticker], [@log_tag])
-    Serial.Handler.e_stop
-    Farmbot.Scheduler.e_stop
+    is_locked = BotState.get_status
+    |> Map.get(:informational_settings)
+    |> Map.get(:locked)
+    if(is_locked == false) do
+      GenServer.cast(BotState, {:update_info, :locked, true})
+      RPC.MessageHandler.log(msg, [:error_toast, :error_ticker], [@log_tag])
+      Serial.Handler.e_stop
+      Farmbot.Scheduler.e_stop
+    end
   end
 
   @doc """
@@ -28,19 +34,25 @@ defmodule Command do
   """
   @spec resume() :: :ok | :fail
   def resume do
-    RPC.MessageHandler.log("Bot Back Up and Running!", [:ticker], [@log_tag])
-    Serial.Handler.resume
-    params = BotState.get_status.mcu_params
-    case Enum.partition(params, fn({param, value}) ->
-      param_int = Gcode.Parser.parse_param(param)
-      Command.update_param(param_int, value)
-    end)
-    do
-      {_, []} ->
-        :ok
-      {_, failed} ->
-        Logger.error("Param setting failed! #{inspect failed}")
-        :fail
+    is_locked = BotState.get_status
+    |> Map.get(:informational_settings)
+    |> Map.get(:locked)
+    if(is_locked == true) do
+      Serial.Handler.resume
+      params = BotState.get_status.mcu_params
+      case Enum.partition(params, fn({param, value}) ->
+        param_int = Gcode.Parser.parse_param(param)
+        Command.update_param(param_int, value)
+      end)
+      do
+        {_, []} ->
+          RPC.MessageHandler.log("Bot Back Up and Running!", [:ticker], [@log_tag])
+          GenServer.cast(BotState, {:update_info, :locked, false})
+          :ok
+        {_, failed} ->
+          Logger.error("Param setting failed! #{inspect failed}")
+          :fail
+      end
     end
   end
 
