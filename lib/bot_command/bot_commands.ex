@@ -25,7 +25,7 @@ defmodule Command do
       GenServer.cast(BotState, {:update_info, :locked, true})
       RPC.MessageHandler.log(msg, [:error_toast, :error_ticker], [@log_tag])
       Serial.Handler.e_stop
-      Farmbot.Scheduler.e_stop
+      Farmbot.Scheduler.e_stop_lock
     end
   end
 
@@ -40,6 +40,8 @@ defmodule Command do
     if(is_locked == true) do
       Serial.Handler.resume
       params = BotState.get_status.mcu_params
+      # The firmware takes forever to become ready again.
+      Process.sleep(2000)
       case Enum.partition(params, fn({param, value}) ->
         param_int = Gcode.Parser.parse_param(param)
         Command.update_param(param_int, value)
@@ -48,6 +50,7 @@ defmodule Command do
         {_, []} ->
           RPC.MessageHandler.log("Bot Back Up and Running!", [:ticker], [@log_tag])
           GenServer.cast(BotState, {:update_info, :locked, false})
+          Farmbot.Scheduler.e_stop_unlock
           :ok
         {_, failed} ->
           Logger.error("Param setting failed! #{inspect failed}")

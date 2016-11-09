@@ -30,11 +30,9 @@ defmodule Regimen.VM  do
 
   @spec init({Regimen.t, list(RegimenItem.t), DateTime.t}) :: {:ok, map}
   def init({regimen, finished_items, time}) do
-    timer = Process.send_after(self(), :tick, @checkup_time)
     items = get_regimen_item_for_regimen(regimen)
     first = List.first(items)
     first_time = Timex.shift(time, milliseconds: first.time_offset)
-      |> Timex.Timezone.convert(BotState.get_config(:timezone))
 
     # Remove this one day
     Logger.warn("""
@@ -46,7 +44,7 @@ defmodule Regimen.VM  do
 
     initial_state = %State{
       flag: :normal,
-      timer: timer,
+      timer: tick(self()),
       start_time: time,
       regimen_items: items -- finished_items,
       ran_items: finished_items,
@@ -60,13 +58,21 @@ defmodule Regimen.VM  do
   end
 
   def handle_cast(:pause, state) do
-    {:noreply, %{state | flag: :paused}}
+    send(Farmbot.Scheduler, {:update,
+        {:regimen, {self(), state.regimen, state.ran_items, state.start_time, :paused}}})
+    {:noreply, %{state | flag: :paused, timer: tick(self())}}
+  end
+
+  def handle_cast(:resume, state) do
+    send(Farmbot.Scheduler, {:update,
+        {:regimen, {self(), state.regimen, state.ran_items, state.start_time, :normal}}})
+    {:noreply, %{state | flag: :normal, timer: tick(self())}}
   end
 
   # if the regimen is paused
   def handle_info(:tick, %State{
       flag: :paused,
-      timer: timer,
+      timer: _,
       start_time: start_time,
       regimen_items: ri,
       ran_items: ran,
@@ -76,7 +82,7 @@ defmodule Regimen.VM  do
     send(Farmbot.Scheduler, {:update, {:regimen, {self(), regimen, ran, start_time, :paused}}})
     {:noreply, %State{
         flag: :paused,
-        timer: timer,
+        timer: tick(self()),
         start_time: start_time,
         regimen_items: ri,
         ran_items: ran,
@@ -129,7 +135,7 @@ defmodule Regimen.VM  do
     if(items_to_do == []) do
       RPC.MessageHandler.log("nothing to run this cycle", [], [regimen.name])
     end
-    timer = Process.send_after(self(), :tick, @checkup_time)
+    timer = tick(self())
     finished = ran_items ++ items_to_do
     # tell farmevent manager that these items are done.
     send(Farmbot.Scheduler, {:update, {:regimen, {self(), regimen, finished, start_time, :normal}}})
@@ -137,6 +143,10 @@ defmodule Regimen.VM  do
       %State{flag: :normal, timer: timer, start_time: start_time,
         regimen_items: remaining_items, ran_items: finished,
         regimen: regimen }}
+  end
+
+  def tick(pid) do
+    Process.send_after(pid, :tick, @checkup_time)
   end
 
   @spec get_info(pid) :: State.t
@@ -154,6 +164,12 @@ defmodule Regimen.VM  do
     Logger.debug(msg)
     RPC.MessageHandler.log(msg, [:ticker, :success_toast], ["RegimenManager"])
     spawn fn -> RPC.MessageHandler.send_status end
+  end
+
+  # this gets called if the scheduler crashes.
+  # it is to stop orphaning of regimens
+  def terminate(:e_stop, _state) do
+    Logger.debug("cleaning up regimen")
   end
 
   def terminate(reason, state) do
