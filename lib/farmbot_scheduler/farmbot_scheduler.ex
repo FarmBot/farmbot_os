@@ -108,7 +108,10 @@ defmodule Farmbot.Scheduler do
           start_time: time,
           status: flag}}
     end)
-    {_pid, cs} = state.current_sequence || {nil, nil}
+    cs = case state.current_sequence do
+      {_, sequence} -> sequence
+      uh -> uh
+    end
     jsonable =
       %{process_info: regimen_info_list,
         current_sequence: cs,
