@@ -70,10 +70,15 @@ defmodule Farmbot.Scheduler do
 
   # This strips out pids, tuples and whatnot for json status updates
   def handle_call(:jsonable, _from, state) do
-    pr = Enum.map(state.regimens, fn({_, regimen, _, _}) -> regimen end)
+    regimen_info_list = Enum.map(state.regimens, fn({_pid, regimen, time, items, flag}) ->
+      %{regimen: regimen,
+        info: %{
+          start_time: time,
+          status: flag}}
+    end)
     {_pid, cs} = state.current_sequence || {nil, nil}
     jsonable =
-      %{regimens: pr,
+      %{process_info: regimen_info_list,
         current_sequence: cs,
         sequence_log: state.sequence_log}
     {:reply, jsonable, state}
@@ -95,7 +100,7 @@ defmodule Farmbot.Scheduler do
         start_time = Timex.shift(now, hours: -now.hour, seconds: -now.second)
         {:ok, pid} = Regimen.VM.start_link(regimen, [], start_time)
         reg_tup = {pid, regimen, [], start_time, :normal}
-        {:reply, :starting,%State{regimens: current ++ [reg_tup]}}
+        {:reply, :starting, %State{state | regimens: current ++ [reg_tup]}}
 
       # If the regimen is in paused state.
       {_pid, ^regimen, _finished_items, _start_time, :paused} ->
@@ -111,24 +116,23 @@ defmodule Farmbot.Scheduler do
   end
 
   # The Sequence finished. Cleanup if its still alive..
-  def handle_info({:done, {:sequence, pid, _sequence}}, _state) do
-    if(Process.alive?(pid)) do
-      GenServer.stop(pid, :normal)
-    end
-    {:noreply, %State{current_sequence: nil}}
+  def handle_info({:done, {:sequence, pid, _sequence}}, state) do
+    GenServer.stop(pid, :normal)
+    {:noreply, %State{state | current_sequence: nil}}
   end
 
   # A regimen is ready to be stopped.
   def handle_info({:done, {:regimen, pid, regimen}}, state) do
-    if(Process.alive?(pid)) do
-      GenServer.stop(pid, :normal)
-    end
+    Logger.debug("Regimen: #{regimen.name} has finished.")
+    GenServer.stop(pid, :normal)
     reg_tup = find_regimen(regimen, state.regimens)
-    {:noreply, %State{regimens: state.regimens -- [reg_tup]}}
+    {:noreply, %State{state | regimens: state.regimens -- [reg_tup]}}
   end
 
   # a regimen has completed items
-  def handle_info({:done, {:regimen_items, {pid, regimen, finished_items, start_time, flags}}}, state) do
+  def handle_info({:done, {:regimen_items,
+      {pid, regimen, finished_items, start_time, flag}}}, state)
+  do
     # find the index of this regimen in the list.
     found = Enum.find_index(state.regimens, fn({_,cregimen, _,_,_}) ->
       regimen == cregimen
@@ -136,9 +140,9 @@ defmodule Farmbot.Scheduler do
     cond do
       is_integer(found) ->
         # Just update this regimen in the list.
-        {:noreply, %State{regimens: List.update_at(state.regimens, found,
-        fn({^pid, ^regimen, _old_items, ^start_time, ^flags}) ->
-          {pid, regimen, finished_items, start_time, flags}
+        {:noreply, %State{state | regimens: List.update_at(state.regimens, found,
+        fn({^pid, ^regimen, _old_items, ^start_time, ^flag}) ->
+          {pid, regimen, finished_items, start_time, flag}
         end)}}
       is_nil(found) ->
         # Something is not good. try to clean up.

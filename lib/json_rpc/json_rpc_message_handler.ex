@@ -79,7 +79,7 @@ defmodule RPC.MessageHandler do
   end
 
   # E STOP
-  def do_handle("emergency_stop", _) do
+  def do_handle("emergency_lock", _) do
     Command.e_stop
     :ok
   end
@@ -260,11 +260,9 @@ defmodule RPC.MessageHandler do
 
   def do_handle("stop_regimen", [%{"regimen_id" => id}]) when is_integer(id) do
     regimen = BotSync.get_regimen(id)
-    {pid, ^regimen, _, _} = GenServer.call(Farmbot.Scheduler, :state)
-    |> Map.get(:running_regimens)
-    |> Enum.find(fn({_pid, re, _items, _start_time}) ->
-      re == regimen
-    end)
+    running = GenServer.call(Farmbot.Scheduler, :state) |> Map.get(:regimens)
+
+    {pid, ^regimen, _, _, _} = Farmbot.Scheduler.find_regimen(regimen, running)
     send(Farmbot.Scheduler, {:done, {:regimen, pid, regimen}})
     :ok
   end
@@ -304,7 +302,7 @@ defmodule RPC.MessageHandler do
   def send_status do
     status =
       Map.merge(BotState.get_status,
-      %{ farm_events: GenServer.call(Farmbot.Scheduler, :jsonable) })
+      %{farm_scheduler: GenServer.call(Farmbot.Scheduler, :jsonable)})
     m = %{id: nil,
           method: "status_update",
           params: [status] }
