@@ -143,7 +143,7 @@ defmodule Farmbot.Scheduler do
 
   # a regimen has completed items
   # TODO: this should be renamed
-  def handle_info({:done, {:regimen_items,
+  def handle_info({:update, {:regimen,
       {pid, regimen, finished_items, start_time, flag}}}, state)
   do
     # find the index of this regimen in the list.
@@ -152,7 +152,6 @@ defmodule Farmbot.Scheduler do
     end)
     cond do
       is_integer(found) ->
-        # Just update this regimen in the list.
         {:noreply, %State{state | regimens: List.update_at(state.regimens, found,
         fn({^pid, ^regimen, _old_items, ^start_time, _flag}) ->
           {pid, regimen, finished_items, start_time, flag}

@@ -73,8 +73,7 @@ defmodule Regimen.VM  do
       regimen: regimen
     })
   do
-    #TODO: Someone remind me to rename this send. 
-    send(Farmbot.Scheduler, {:done, {:regimen_items, {self(), regimen, ran, start_time, :paused}}})
+    send(Farmbot.Scheduler, {:update, {:regimen, {self(), regimen, ran, start_time, :paused}}})
     {:noreply, %State{
         flag: :paused,
         timer: timer,
