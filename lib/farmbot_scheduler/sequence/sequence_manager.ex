@@ -1,10 +1,13 @@
-defmodule SequenceManager do
+defmodule Sequence.Manager do
+  @moduledoc """
+    This Module is a state machine that tracks a sequence thru its lifecycle.
+  """
   use GenServer
   require Logger
 
-  def init(sequence) do
+  def init(%Sequence{} = sequence) do
     Process.flag(:trap_exit, true)
-    {:ok, pid} = SequencerVM.start_link(sequence)
+    {:ok, pid} = Sequence.VM.start_link(sequence)
     {:ok, %{current: pid, global_vars: %{}, log: []}}
   end
 
@@ -16,29 +19,25 @@ defmodule SequenceManager do
     {:reply, :ok, %{current: nil, global_vars: %{}, log: []}}
   end
 
-  def handle_call(:e_stop, _from, %{current: pid, global_vars: _, log: _})
-  when is_pid(pid) do
-    Process.exit(pid, :e_stop)
-    {:reply, :ok, %{current: nil, global_vars: %{}, log: []}}
-  end
-
   # no sequences running, no sequences in list.
-  def handle_call({:add, seq}, _from, %{current: nil, global_vars: globals, log: []})
-  when is_map(seq) do
-    {:ok, pid} = SequencerVM.start_link(seq)
+  def handle_call({:add, %Sequence{} = seq}, _from,
+    %{current: nil, global_vars: globals, log: []})
+  do
+    {:ok, pid} = Sequence.VM.start_link(seq)
     {:reply, "starting sequence", %{current: pid, global_vars: globals, log: []}}
   end
 
   # Add a new sequence to the log when there are no other sequences running.
-  def handle_call({:add, seq}, _from, %{current: nil, global_vars: globals, log: log})
-  when is_map(seq) do
-    {:ok, pid} = SequencerVM.start_link(seq)
+  def handle_call({:add, %Sequence{} = seq}, _from,
+    %{current: nil, global_vars: globals, log: log})
+  do
+    {:ok, pid} = Sequence.VM.start_link(seq)
     {:reply, "starting sequence", %{current: pid, global_vars: globals, log: log}}
   end
 
   # Add a new sequence to the log
-  def handle_call({:add, seq}, _from, %{current: current, global_vars: globals, log: log})
-  when is_map(seq) and is_pid(current) do
+  def handle_call({:add, %Sequence{} = seq}, _from, %{current: current, global_vars: globals, log: log})
+  when is_pid(current) do
     {:reply, "queueing sequence", %{current: current, global_vars: globals, log: [log | seq]}}
   end
 
@@ -58,21 +57,28 @@ defmodule SequenceManager do
     end
   end
 
-  def handle_info({:done, pid, sequence}, %{current: _current, global_vars: globals, log: []}) do
-    GenServer.stop(pid, :normal)
-    RPC.MessageHandler.log("No more sub sequences.", [], ["SequencerVM"])
-    send(FarmEventManager, {:done, {:sequence, self(), sequence}})
-    {:noreply, %{current: nil, global_vars: globals, log: [] } }
+  def handle_info({:done, pid, sequence},
+    %{current: _current, global_vars: globals, log: []})
+  when is_pid(pid) do
+    if(Process.alive?(pid)) do
+      GenServer.stop(pid, :normal)
+    end
+    RPC.MessageHandler.log("No more sub sequences.", [], [__MODULE__])
+    send(Farmbot.Scheduler, {:done, {:sequence, self(), sequence}})
+    {:noreply, %{current: nil, global_vars: globals, log: [] }}
   end
 
-  def handle_info({:done, pid, _sequence}, %{current: _current, global_vars: globals, log: log}) do
-    GenServer.stop(pid, :normal)
-    RPC.MessageHandler.log("Running next sub sequence", [], ["SequencerVM"])
+  def handle_info({:done, pid, _sequence}, %{current: _current, global_vars: globals, log: log})
+  when is_pid(pid) do
+    if(Process.alive?(pid)) do
+      GenServer.stop(pid, :normal)
+    end
+    RPC.MessageHandler.log("Running next sub sequence", [], [__MODULE__])
     next = List.first(log)
     cond do
       is_nil(next) -> {:noreply, %{current: nil, global_vars: globals, log: []}}
       is_map(next) ->
-          {:ok, next_seq} = SequencerVM.start_link(next)
+          {:ok, next_seq} = Sequence.VM.start_link(next)
           {:noreply, %{current: next_seq, global_vars: globals, log: log -- [next]}}
       is_pid(next) ->
         GenServer.cast(next, :resume)
@@ -84,25 +90,19 @@ defmodule SequenceManager do
     {:noreply, state}
   end
 
-  def handle_info({:EXIT, pid, reason}, state) do
-    msg = "#{inspect pid} died of unnatural causes: #{inspect reason}"
+  def handle_info({:EXIT, pid, reason}, state)
+  when pid == state do
+    msg = "Sequence died of unnatural causes: #{inspect reason}"
     Logger.debug(msg)
-    RPC.MessageHandler.log(msg, [:error_toast], ["SequencerVM"])
-    if state.current == pid do
-      handle_info({:done, pid}, state)
-    else
-      Logger.debug("Sequence Hypervisor has been currupted. ")
-      :fail
-    end
+    RPC.MessageHandler.log(msg, [:error_toast], [__MODULE__])
+    handle_info({:done, pid, %{}}, state)
   end
 
   def terminate(:normal, _state) do
     Logger.debug("Sequence Manager shutting down")
   end
 
-  def terminate(reason, state) do
-    Logger.debug("Sequence Manager died unnaturally: ")
-    IO.inspect reason
-    IO.inspect state
+  def terminate(reason, _state) do
+    Logger.debug("Sequence Manager died unnaturally: #{inspect reason}")
   end
 end

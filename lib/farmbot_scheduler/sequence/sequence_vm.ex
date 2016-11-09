@@ -1,8 +1,8 @@
-defmodule SequencerVM do
+defmodule Sequence.VM do
   require Logger
 
 
-  def start_link(sequence) do
+  def start_link(%Sequence{} = sequence) do
     GenServer.start_link(__MODULE__,sequence)
   end
 
@@ -11,7 +11,7 @@ defmodule SequencerVM do
     BotSync.sync()
     corpus_module = BotSync.get_corpus(tv)
     {:ok, instruction_set} = corpus_module.start_link(self())
-    tick(self())
+    tick(self(), :done)
     initial_state =
       %{
         status: BotState.get_status,
@@ -103,7 +103,7 @@ defmodule SequencerVM do
   do
     Logger.debug("sequence done")
     RPC.MessageHandler.log("Sequence Complete", [], [sequence.name])
-    send(SequenceManager, {:done, self(), sequence})
+    send(Sequence.Manager, {:done, self(), sequence})
     Logger.debug("Stopping VM")
     {:noreply,
       %{status: status,
@@ -123,22 +123,40 @@ defmodule SequencerVM do
           sequence: sequence,
           steps: {more_steps, finished_steps} })
   do
-    node = List.first(more_steps)
-    kind = Map.get(node, "kind")
+    ast_node = List.first(more_steps)
+    kind = Map.get(ast_node, "kind")
     Logger.debug("doing: #{kind}")
     RPC.MessageHandler.log("Doing step: #{kind}", [], [sequence.name])
-    GenServer.cast(instruction_set, {kind, Map.get(node, "args") })
+    GenServer.cast(instruction_set, {kind, Map.get(ast_node, "args") })
     {:noreply, %{
             status: status,
             sequence: sequence,
-            steps: {more_steps -- [node], finished_steps ++ [node]},
+            steps: {more_steps -- [ast_node], finished_steps ++ [ast_node]},
             instruction_set: instruction_set,
             vars: vars,
             running: true }}
   end
 
-  def tick(vm) do
+  def handle_info({:error, :e_stop}, state) do
+    RPC.MessageHandler.log("Bot in E STOP MODE", [:error], [state.sequence.name])
+    send(Sequence.Manager, {:done, self(), state.sequence})
+    {:noreply, state}
+  end
+
+  def handle_info({:error, error}, state) do
+    RPC.MessageHandler.log("ERROR: #{inspect(error)}", [:error], [state.sequence.name])
+    send(Sequence.Manager, {:done, self(), state.sequence})
+    {:noreply, state}
+  end
+
+  # the last command was successful
+  def tick(vm, :done) do
     Process.send_after(vm, :run_next_step, 100)
+  end
+
+  # The last command was not successful
+  def tick(vm, error) do
+    Process.send_after(vm, {:error, error}, 100)
   end
 
   def terminate(:normal, state) do
@@ -146,9 +164,8 @@ defmodule SequencerVM do
   end
 
   def terminate(reason, state) do
-    Logger.debug("VM Died: #{inspect reason}")
+    Logger.debug("VM Died")
     RPC.MessageHandler.log("Sequence Finished with errors! #{inspect reason}", [:error_toast], ["Sequencer"])
     GenServer.stop(state.instruction_set, :normal)
-    IO.inspect state
   end
 end

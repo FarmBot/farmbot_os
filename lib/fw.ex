@@ -46,8 +46,8 @@ defmodule Fw do
     children = [
       worker(SafeStorage, [@env], restart: :permanent),
       worker(BotState, [[]], restart: :permanent),
+      worker(Command.Tracker, [[]], restart: :permanent),
       worker(SSH, [@env], restart: :permanent),
-      supervisor(Extras, [[]], restart: :temporary),
       supervisor(Controller, [[]], restart: :permanent)
     ]
     opts = [strategy: :one_for_one, name: Fw]
@@ -55,7 +55,7 @@ defmodule Fw do
   end
 
   def start(_type, args) do
-    IO.inspect fs_init(@env)
+    fs_init(@env)
     Logger.debug("Starting Firmware on Target: #{@target}")
     Supervisor.start_link(__MODULE__, args)
   end
@@ -116,26 +116,20 @@ defmodule Fw do
     Shortcut for check_updates
   """
   def check_os_updates do
-    case BotState.get_token do
-      nil -> nil
-      token ->
-        check_updates(
-        Map.get(token, "unencoded") |> Map.get("os_update_server"),
-        ".fw")
-    end
+    with {:ok, token} <- FarmbotAuth.get_token,
+    do: check_updates(
+          Map.get(token, "unencoded") |> Map.get("os_update_server"),
+          ".fw")
   end
 
   @doc """
     Shortcut for check_updates
   """
   def check_fw_updates do
-    case BotState.get_token do
-      nil -> nil
-      token ->
-        check_updates(
-        Map.get(token, "unencoded") |> Map.get("fw_update_server"),
-        ".hex")
-    end
+    with {:ok, token} <- FarmbotAuth.get_token,
+    do: check_updates(
+          Map.get(token, "unencoded") |> Map.get("fw_update_server"),
+          ".hex")
   end
 
   def check_and_download_os_update do

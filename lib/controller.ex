@@ -8,7 +8,7 @@ defmodule Controller do
       supervisor(RPC.Supervisor, [[]], restart: :permanent ),
       supervisor(Serial.Supervisor, [[]], restart: :permanent ),
       worker(BotSync, [[]], restart: :permanent ),
-      worker(FarmEventManager, [[]], restart: :permanent)
+      worker(Farmbot.Scheduler, [[]], restart: :permanent)
     ]
     opts = [strategy: :one_for_one, name: Controller.Supervisor]
     supervise(children, opts)

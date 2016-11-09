@@ -1,4 +1,7 @@
 defmodule Gcode.Handler do
+  @moduledoc """
+    Handles parsed messages.
+  """
   require Logger
   use GenServer
 
@@ -19,15 +22,18 @@ defmodule Gcode.Handler do
     {:noreply, %{nerves: state.nerves, current: nil, log: []}}
   end
 
-  def handle_cast({:done, _}, %{nerves: nerves, current: {_current_str, pid}, log: log}) do
+  def handle_cast({:done, _}, %{nerves: nerves, current: {_current_str, pid},
+    log: log})
+  do
     send(pid, :done)
     RPC.MessageHandler.send_status
     case List.first(log) do
       {nextstr, new_pid} ->
-        Serial.Handler.write(nerves,nextstr)
-        {:noreply, %{nerves: nerves, current: {nextstr, new_pid}, log: log -- [{nextstr, new_pid}] }}
+        Serial.Handler.write(nextstr, new_pid)
+        {:noreply, %{nerves: nerves, current: {nextstr, new_pid},
+          log: log -- [{nextstr, new_pid}]}}
       nil ->
-        {:noreply, %{nerves: nerves, current: nil, log: []} }
+        {:noreply, %{nerves: nerves, current: nil, log: []}}
     end
   end
 
@@ -46,7 +52,7 @@ defmodule Gcode.Handler do
     {:noreply, state}
   end
 
-  def handle_cast( {:report_current_position, x,y,z, _ }, state) do
+  def handle_cast({:report_current_position, x,y,z, _}, state) do
     Logger.debug("Reporting position #{inspect {x, y, z}}")
     BotState.set_pos(x,y,z)
     {:noreply, state}
@@ -60,7 +66,7 @@ defmodule Gcode.Handler do
   end
 
   # TODO report end stops
-  def handle_cast({:reporting_end_stops, x1,x2,y1,y2,z1,z2,_ }, state) do
+  def handle_cast({:reporting_end_stops, x1,x2,y1,y2,z1,z2,_}, state) do
     Logger.warn("Set end stops valid: #{inspect {x1,x2,y1,y2,z1,z2}}")
     {:noreply, state}
   end
@@ -84,27 +90,42 @@ defmodule Gcode.Handler do
   end
 
   # If we arent waiting on anything right now. (current is nil and log is empty)
-  def handle_call({:send, message, caller}, _from, %{ nerves: nerves, current: nil, log: [] }) do
-    Serial.Handler.write(nerves,message)
-    {:reply, :sending, %{nerves: nerves, current: {message, caller}, log: []} }
+  def handle_call({:send, message, caller}, _from, %{nerves: nerves, current: nil, log: []})
+  when is_bitstring(message) do
+    Serial.Handler.write(message, caller)
+    {:reply, :sending, %{nerves: nerves, current: {message, caller}, log: []}}
+  end
+
+  # I don't know where this comes from. If someone can find the use case when this happens
+  # I would appreciate it.
+  def handle_call({:send, nil, caller}, _from, %{nerves: nerves, current: nil, log: []}) do
+    send(caller, :error)
+    {:reply, :sending, %{nerves: nerves, current: nil, log: []}}
   end
 
   def handle_call({:send, message, caller}, _from, %{nerves: nerves, current: current, log: log}) do
-    {:reply, :logging, %{nerves: nerves, current: current, log: log ++ [{message, caller}]} }
+    {:reply, :logging, %{nerves: nerves, current: current, log: log ++ [{message, caller}]}}
   end
 
   def handle_call(:state, _from, state) do
     {:reply, state, state}
   end
 
-  def block_send(str, timeout\\ 10000) do
-    GenServer.call(Gcode.Handler,{ :send, str, self()})
+  def block_send(str, timeout \\ 5500) do
+    GenServer.call(Gcode.Handler,{:send, str, self()})
     block(timeout)
+  end
+
+  def terminate(:normal, _state) do
+    :ok
   end
 
   def block(timeout) do
     receive do
       :done -> :done
+      :e_stop ->
+        GenServer.cast(__MODULE__, {:done, nil})
+        :e_stop
       :busy -> block(timeout)
       error -> error
     after

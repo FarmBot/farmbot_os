@@ -37,7 +37,7 @@ defmodule RPC.MessageHandler do
   # JSON RPC RESPONSE ERROR
   def ack_msg(id, {name, message}) when is_bitstring(id) and is_bitstring(name) and is_bitstring(message) do
     Logger.error("RPC ERROR")
-    IO.inspect({name, message})
+    Logger.debug("#{inspect {name, message}}")
     Poison.encode!(
     %{id: id,
       error: %{name: name,
@@ -70,19 +70,17 @@ defmodule RPC.MessageHandler do
     case do_handle(method, params) do
       :ok -> @transport.emit(ack_msg(id))
       {:error, name, message} -> @transport.emit(ack_msg(id, {name, message}))
-      unknown_error -> @transport.emit(ack_msg(id, {"unknown_error", "#{inspect unknown_error}"}))
     end
   end
 
   def handle_rpc(broken_rpc) do
     Logger.debug("Got a broken RPC message!!")
-    IO.inspect broken_rpc
+    Logger.debug("#{inspect broken_rpc}")
   end
 
   # E STOP
-  def do_handle("emergency_stop", _) do
-    GenServer.call UartHandler, :e_stop
-    GenServer.call SequenceManager, :e_stop
+  def do_handle("emergency_lock", _) do
+    Command.e_stop
     :ok
   end
 
@@ -92,17 +90,16 @@ defmodule RPC.MessageHandler do
     :ok
   end
 
-  def do_handle("home_all", params) do
+  def do_handle("home_all", _params) do
     Logger.debug("bad params for home_all")
-    IO.inspect(params)
     {:error, "BAD_PARAMS",
       Poison.encode!(%{"speed" => "number"})}
   end
 
   # WRITE_PIN
   def do_handle("write_pin", [ %{"pin_mode" => 1, "pin_number" => p, "pin_value" => v} ])
-    when is_integer p and
-         is_integer v
+    when is_integer(p) and
+         is_integer(v)
   do
     spawn fn -> Command.write_pin(p,v,1) end
     :ok
@@ -143,9 +140,8 @@ defmodule RPC.MessageHandler do
     :ok
   end
 
-  def do_handle("move_absolute",  params) do
+  def do_handle("move_absolute",  _params) do
     Logger.debug("bad params for Move Absolute")
-    IO.inspect params
     {:error, "BAD_PARAMS",
       Poison.encode!(%{"x" => "number", "y" => "number", "z" => "number", "speed" => "number"})}
   end
@@ -246,13 +242,13 @@ defmodule RPC.MessageHandler do
     Map.drop(sequence, ["dirty"])
     |> Map.merge(%{"device_id" => -1, "id" => Map.get(sequence, "id") || -1})
     |> Sequence.create
-    |> FarmEventManager.add_sequence
+    |> Farmbot.Scheduler.add_sequence
   end
 
   def do_handle("start_regimen", [%{"regimen_id" => id}]) when is_integer(id) do
     BotSync.sync()
     regimen = BotSync.get_regimen(id)
-    FarmEventManager.add_regimen(regimen)
+    Farmbot.Scheduler.add_regimen(regimen)
     send_status
   end
 
@@ -264,12 +260,10 @@ defmodule RPC.MessageHandler do
 
   def do_handle("stop_regimen", [%{"regimen_id" => id}]) when is_integer(id) do
     regimen = BotSync.get_regimen(id)
-    {pid, ^regimen, _, _} = GenServer.call(FarmEventManager, :state)
-    |> Map.get(:running_regimens)
-    |> Enum.find(fn({_pid, re, _items, _start_time}) ->
-      re == regimen
-    end)
-    send(FarmEventManager, {:done, {:regimen, pid, regimen}})
+    running = GenServer.call(Farmbot.Scheduler, :state) |> Map.get(:regimens)
+
+    {pid, ^regimen, _, _, _} = Farmbot.Scheduler.find_regimen(regimen, running)
+    send(Farmbot.Scheduler, {:done, {:regimen, pid, regimen}})
     :ok
   end
 
@@ -308,7 +302,7 @@ defmodule RPC.MessageHandler do
   def send_status do
     status =
       Map.merge(BotState.get_status,
-      %{ farm_events: GenServer.call(FarmEventManager, :jsonable) })
+      %{farm_scheduler: GenServer.call(Farmbot.Scheduler, :jsonable)})
     m = %{id: nil,
           method: "status_update",
           params: [status] }

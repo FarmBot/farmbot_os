@@ -1,4 +1,7 @@
 defmodule SSH do
+  @moduledoc """
+    Module to manage SSH via a dropbear port.
+  """
   use GenServer
   require Logger
   @banner "/tmp/banner"
@@ -32,8 +35,7 @@ defmodule SSH do
     {:noreply, new_state}
   end
 
-  def handle_info(info, port) do
-    IO.inspect info
+  def handle_info(_info, port) do
     {:noreply, port}
   end
 

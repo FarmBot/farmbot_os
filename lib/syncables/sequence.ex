@@ -1,4 +1,7 @@
 defmodule Sequence do
+  @moduledoc """
+    Sequence Object
+  """
   defstruct [args: nil,
              body: nil,
              color: nil,
@@ -28,6 +31,6 @@ defmodule Sequence do
               device_id: device_id,
               id: id,
               kind: "sequence",
-              name: name }
+              name: name}
   end
 end

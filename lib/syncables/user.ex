@@ -1,4 +1,7 @@
 defmodule User do
+  @moduledoc """
+    A User Object in the DB
+  """
   defstruct [id: nil,
    device_id: nil,
    name: nil,
@@ -12,7 +15,7 @@ defmodule User do
    name: String.t,
    email: String.t,
    created_at: String.t,
-   updated_at: String.t }
+   updated_at: String.t}
 
   @spec create(map) :: t
   def create(%{
@@ -21,7 +24,7 @@ defmodule User do
     "name" => name,
     "email" => email,
     "created_at" => created_at,
-    "updated_at" => updated_at })
+    "updated_at" => updated_at})
     when is_integer(id)
      and is_integer(device_id)
      and is_bitstring(name)
@@ -35,7 +38,6 @@ defmodule User do
       name: name,
       email: email,
       created_at: created_at,
-      updated_at: updated_at
-    }
+      updated_at: updated_at}
   end
 end

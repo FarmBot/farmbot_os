@@ -1,4 +1,8 @@
 defmodule Sync do
+  @moduledoc """
+    The enitre Sync Object.
+    located at /api/sync
+  """
   defstruct [:checksum,
              :device,
              :peripherals,

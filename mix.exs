@@ -100,7 +100,11 @@ defmodule Fw.Mixfile do
   end
 
   def deps(:dev) do
-    deps ++ [{:fake_nerves, github: "ConnorRigby/fake_nerves"}]
+    deps ++ [
+      {:fake_nerves, github: "ConnorRigby/fake_nerves"},
+      # {:fake_nerves, path: "../fake_nerves"},
+      {:credo, "~> 0.4"},
+      {:dialyxir, "~> 0.4"}]
   end
 
   def platform_deps("rpi3") do
