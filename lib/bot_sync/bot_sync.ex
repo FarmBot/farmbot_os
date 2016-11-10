@@ -143,7 +143,7 @@ defmodule BotSync do
         m.create_instruction_set(c)
         {:reply, Module.concat(SiS, "Corpus_#{id}"),
           %{token: token,
-            resources: resources, corpuses: oldc ++ [Corpus.create(c)] }}
+            resources: resources, corpuses: oldc ++ [c] }}
       _corpuses ->
         {:reply, Module.concat(SiS, "Corpus_#{id}"),
           %{token: token, resources: resources, corpuses: oldc}}
