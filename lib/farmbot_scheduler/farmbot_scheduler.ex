@@ -53,10 +53,30 @@ defmodule Farmbot.Scheduler do
     Process.send_after(__MODULE__, :tick, @tick_interval)
   end
 
+  def wait_for_token do
+    case FarmbotAuth.get_token do
+      {:ok, token} -> token
+      _ -> wait_for_token
+    end
+  end
+
   @spec load :: Farmbot.Scheduler.State.t
   def load do
+    wait_for_token
     default_state = %State{}
-    default_state
+    case SafeStorage.read(__MODULE__) do
+      {:ok, %State{} = last_state} ->
+        Logger.debug("loading previous #{__MODULE__} state: #{inspect last_state}")
+        Map.update!(last_state, :regimens, fn(old_regimens) ->
+          Enum.map(old_regimens, fn({_,regimen, finished_items, time, _}) ->
+            {:ok, pid} = Regimen.VM.start_link(regimen, finished_items, time)
+            {pid,regimen, finished_items, time, :normal}
+          end)
+        end)
+      _ ->
+        Logger.debug("starting new #{__MODULE__} state.")
+        default_state
+    end
   end
 
   def handle_cast(:e_stop_lock, state) do
