@@ -38,7 +38,7 @@ defmodule BotSync do
   end
 
   def handle_cast(:sync, %{token: token, resources: old, corpuses: oldc}) do
-    server = Map.get(token, "unencoded") |> Map.get("iss")
+    "//" <> server = Map.get(token, "unencoded") |> Map.get("iss")
     auth = Map.get(token, "encoded")
 
     case HTTPotion.get "#{server}/api/sync",
