@@ -1,5 +1,4 @@
 defmodule Farmbot.Scheduler do
-  @save_interval 10000
   @tick_interval 1500
   @log_tag __MODULE__
   require Logger
@@ -29,7 +28,7 @@ defmodule Farmbot.Scheduler do
     @type sequence_list :: list(Sequence.t)
     @type t :: %__MODULE__{
       regimens: regimen_list,
-      current_sequence: {pid, Sequence.t} | nil,
+      current_sequence: {pid, Sequence.t} | nil | :e_stop,
       sequence_log: sequence_list
     }
 
@@ -56,12 +55,56 @@ defmodule Farmbot.Scheduler do
   @spec load :: Farmbot.Scheduler.State.t
   def load do
     default_state = %State{}
-    default_state
+    case SafeStorage.read(__MODULE__) do
+      {:ok, %State{} = last_state} ->
+        Logger.debug("loading previous #{__MODULE__} state: #{inspect last_state}")
+        Map.update!(last_state, :regimens, fn(old_regimens) ->
+          Enum.map(old_regimens, fn({_,regimen, finished_items, time, _}) ->
+            {:ok, pid} = Regimen.VM.start_link(regimen, finished_items, time)
+            {pid,regimen, finished_items, time, :normal}
+          end)
+        end)
+      _ ->
+        Logger.debug("starting new #{__MODULE__} state.")
+        default_state
+    end
   end
 
-  def handle_cast(:e_stop, state) do
-    Logger.warn("E stopping TODO in Farmbot.Scheduler")
-    {:noreply, state}
+  def handle_cast(:e_stop_lock, state) do
+    Logger.warn("E stopping Farmbot Scheduler")
+
+    # if there is a sequence running, stop it agressivly
+    case state.current_sequence do
+      {pid, _sequence} ->
+        Logger.debug("Stopping a running sequence")
+        GenServer.stop(pid, :e_stop)
+      nil -> nil
+      # i have to put this here because the lazy hack of putting
+      # :e_stop in the current_sequence feild.
+      _ -> nil
+    end
+
+    # tell all the regimens to pause.
+    Enum.each(state.regimens, fn({pid, regimen, items, start_time, flag}) ->
+      Logger.debug("Pausing regimens")
+      GenServer.cast(pid, :pause)
+    end)
+    # change current_sequence to something that is not a list or nil
+    # so that sequences from the log wont continue to run and
+    # crash all over the place.
+    {:noreply, %State{state | current_sequence: :e_stop}}
+  end
+
+  def handle_cast(:e_stop_unlock, state) do
+    Logger.warn("Resuming Farmbot Scheduler")
+    # tell all the regimens to resume.
+    # Maybe a problem? the user might not want to restart EVERY regimen
+    # there might have been regimens that werent paused by e stop?
+    Enum.each(state.regimens, fn({pid, regimen, items, start_time, flag}) ->
+      GenServer.cast(pid, :resume)
+    end)
+    # set current sequence to nil to allow sequences to continue.
+    {:noreply, %State{state | current_sequence: nil}}
   end
 
   def handle_call(:state, _from, state) do
@@ -76,7 +119,10 @@ defmodule Farmbot.Scheduler do
           start_time: time,
           status: flag}}
     end)
-    {_pid, cs} = state.current_sequence || {nil, nil}
+    cs = case state.current_sequence do
+      {_, sequence} -> sequence
+      uh -> uh
+    end
     jsonable =
       %{process_info: regimen_info_list,
         current_sequence: cs,
@@ -96,11 +142,16 @@ defmodule Farmbot.Scheduler do
     case find_regimen(regimen, state.regimens) do
       # If we couln't find this regimen in the list.
       nil ->
-        now = Timex.now()
-        start_time = Timex.shift(now, hours: -now.hour, seconds: -now.second)
+        # get the current time (in this timezone)
+        now = Timex.now(BotState.get_config(:timezone))
+
+        # shift the current time into midnight of today
+        start_time = Timex.shift(now, hours: -now.hour, minutes: -now.minute, seconds: -now.second)
         {:ok, pid} = Regimen.VM.start_link(regimen, [], start_time)
         reg_tup = {pid, regimen, [], start_time, :normal}
-        {:reply, :starting, %State{state | regimens: current ++ [reg_tup]}}
+        new_state = %State{state | regimens: current ++ [reg_tup]}
+        SafeStorage.write(__MODULE__, :erlang.term_to_binary(new_state))
+        {:reply, :starting, new_state}
 
       # If the regimen is in paused state.
       {_pid, ^regimen, _finished_items, _start_time, :paused} ->
@@ -126,11 +177,13 @@ defmodule Farmbot.Scheduler do
     Logger.debug("Regimen: #{regimen.name} has finished.")
     GenServer.stop(pid, :normal)
     reg_tup = find_regimen(regimen, state.regimens)
-    {:noreply, %State{state | regimens: state.regimens -- [reg_tup]}}
+    new_state = %State{state | regimens: state.regimens -- [reg_tup]}
+    SafeStorage.write(__MODULE__, :erlang.term_to_binary(new_state))
+    {:noreply, new_state}
   end
 
-  # a regimen has completed items
-  def handle_info({:done, {:regimen_items,
+  # a regimen has changed state, and the scheduler needs to know about it.
+  def handle_info({:update, {:regimen,
       {pid, regimen, finished_items, start_time, flag}}}, state)
   do
     # find the index of this regimen in the list.
@@ -139,17 +192,24 @@ defmodule Farmbot.Scheduler do
     end)
     cond do
       is_integer(found) ->
-        # Just update this regimen in the list.
-        {:noreply, %State{state | regimens: List.update_at(state.regimens, found,
-        fn({^pid, ^regimen, _old_items, ^start_time, ^flag}) ->
+        new_state = %State{state | regimens: List.update_at(state.regimens, found,
+        fn({^pid, ^regimen, _old_items, ^start_time, _flag}) ->
           {pid, regimen, finished_items, start_time, flag}
-        end)}}
+        end)}
+        SafeStorage.write(__MODULE__, :erlang.term_to_binary(new_state))
+        {:noreply, new_state}
       is_nil(found) ->
         # Something is not good. try to clean up.
         Logger.error("Something bad happened updating
                       finished regimen items on #{regimen.name}")
         {:noreply, state}
     end
+  end
+
+  # if we are in e_stop mode just wait
+  def handle_info(:tick, %State{current_sequence: :e_stop} = state) do
+    tick
+    {:noreply, state}
   end
 
   # Tick when the log is empty, ther is no running sequence.
@@ -224,19 +284,40 @@ defmodule Farmbot.Scheduler do
   @doc """
     Safely E stops things that need to be E stopped.
   """
-  @spec e_stop :: :ok
-  def e_stop do
-    GenServer.cast(__MODULE__, :e_stop)
+  @spec e_stop_lock :: :ok
+  def e_stop_lock do
+    GenServer.cast(__MODULE__, :e_stop_lock)
+  end
+
+  @spec e_stop_unlock :: :ok
+  def e_stop_unlock do
+    GenServer.cast(__MODULE__, :e_stop_unlock)
   end
 
   def terminate(:normal, _state) do
     Logger.debug("Farmbot Scheduler died. This is not good.")
   end
 
+  # if the scheduler dies for a non normal reason
+  # We need to make sure to clean up.
+  # if a sequence is running make sure to stop it.
+  # stop all regimens so they are not orphaned.
   def terminate(reason, state) do
     Logger.error("Farmbot Scheduler died. This is not good.")
     spawn fn -> RPC.MessageHandler.send_status end
-    Logger.debug("REASON: #{inspect reason}")
-    Logger.debug("STATE: #{inspect state}")
+    Logger.debug("Reason: #{inspect reason}")
+    # stop a sequence if one is running
+    case state.current_sequence do
+      {pid, _} -> GenServer.stop(pid, :e_stop)
+      nil -> nil
+      # i have to put this here because the lazy hack of putting
+      # :e_stop in the current_sequence feild.
+      _ -> nil
+    end
+
+    # Stop running regimens
+    Enum.each(state.regimens, fn({pid,_,_,_,_}) ->
+      GenServer.stop(pid, :e_stop)
+    end)
   end
 end

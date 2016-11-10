@@ -6,6 +6,7 @@ defmodule BotState do
   @twelve_hours 3600000
 
   def init(_) do
+    NetMan.put_pid(BotState)
     save_interval
     check_updates
     {:ok, load}
@@ -30,6 +31,10 @@ defmodule BotState do
   end
 
   def load do
+    token = case  FarmbotAuth.get_token() do
+      {:ok, token} -> token
+      _ -> nil
+    end
     default_state = %{
       mcu_params: %{},
       location: [0, 0, 0],
@@ -41,10 +46,11 @@ defmodule BotState do
       informational_settings: %{
         controller_version: Fw.version,
         private_ip: nil,
-        throttled: get_throttled
+        throttled: get_throttled,
+        locked: false
       },
       authorization: %{
-        token: nil,
+        token: token,
         email: nil,
         pass: nil,
         server: nil,
@@ -185,6 +191,7 @@ defmodule BotState do
   end
 
   def handle_info({:connected, network, ip_addr}, state) do
+    Process.sleep(2000) # UGH
     # GenServer.cast(BotState, {:update_info, :private_ip, address})
     new_info = Map.put(state.informational_settings, :private_ip, ip_addr)
     email = state.authorization.email
@@ -202,8 +209,13 @@ defmodule BotState do
           Map.put(state, :authorization, auth)
           |> Map.put(:informational_settings, new_info)
         }
+      # If the bot is faster than your router (often) this can happen.
+      {:error, "enetunreach"} ->
+        Logger.warn("Something super weird happened.. Probably a race condition.")
+        # Just crash ourselves and try again.
+        {:crash, state}
       error ->
-        Logger.error("Something bad happened: #{inspect error}")
+        Logger.error("Something bad happened when logging in!: #{inspect error}")
         Fw.factory_reset
         {:noreply, state}
       end
@@ -235,8 +247,9 @@ defmodule BotState do
     GenServer.cast(__MODULE__, {:creds, {email, pass, server}})
   end
 
+  # setting that timeout is probably going to be a disaster.
   def get_status do
-    GenServer.call(__MODULE__, :state)
+    GenServer.call(__MODULE__, :state, :infinity)
   end
 
   def get_current_pos do

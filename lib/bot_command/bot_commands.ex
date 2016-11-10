@@ -18,9 +18,15 @@ defmodule Command do
   def e_stop do
     msg = "E STOPPING!"
     Logger.debug(msg)
-    RPC.MessageHandler.log(msg, [:error_toast, :error_ticker], [@log_tag])
-    Serial.Handler.e_stop
-    Farmbot.Scheduler.e_stop
+    is_locked = BotState.get_status
+    |> Map.get(:informational_settings)
+    |> Map.get(:locked)
+    if(is_locked == false) do
+      GenServer.cast(BotState, {:update_info, :locked, true})
+      RPC.MessageHandler.log(msg, [:error_toast, :error_ticker], [@log_tag])
+      Serial.Handler.e_stop
+      Farmbot.Scheduler.e_stop_lock
+    end
   end
 
   @doc """
@@ -28,19 +34,28 @@ defmodule Command do
   """
   @spec resume() :: :ok | :fail
   def resume do
-    RPC.MessageHandler.log("Bot Back Up and Running!", [:ticker], [@log_tag])
-    Serial.Handler.resume
-    params = BotState.get_status.mcu_params
-    case Enum.partition(params, fn({param, value}) ->
-      param_int = Gcode.Parser.parse_param(param)
-      Command.update_param(param_int, value)
-    end)
-    do
-      {_, []} ->
-        :ok
-      {_, failed} ->
-        Logger.error("Param setting failed! #{inspect failed}")
-        :fail
+    is_locked = BotState.get_status
+    |> Map.get(:informational_settings)
+    |> Map.get(:locked)
+    if(is_locked == true) do
+      Serial.Handler.resume
+      params = BotState.get_status.mcu_params
+      # The firmware takes forever to become ready again.
+      Process.sleep(2000)
+      case Enum.partition(params, fn({param, value}) ->
+        param_int = Gcode.Parser.parse_param(param)
+        Command.update_param(param_int, value)
+      end)
+      do
+        {_, []} ->
+          RPC.MessageHandler.log("Bot Back Up and Running!", [:ticker], [@log_tag])
+          GenServer.cast(BotState, {:update_info, :locked, false})
+          Farmbot.Scheduler.e_stop_unlock
+          :ok
+        {_, failed} ->
+          Logger.error("Param setting failed! #{inspect failed}")
+          :fail
+      end
     end
   end
 
@@ -197,7 +212,12 @@ defmodule Command do
   """
   @spec read_param(number) :: command_output
   def read_param(param) when is_integer param do
-    Gcode.Handler.block_send "F21 P#{param}"
+    case Gcode.Handler.block_send "F21 P#{param}" do
+      :timeout ->
+        Process.sleep(100)
+        read_param(param)
+      whatever -> whatever
+    end
   end
 
   @doc """
@@ -205,8 +225,14 @@ defmodule Command do
   """
   @spec update_param(number | nil, number) :: command_output
   def update_param(param, value) when is_integer param do
-    Gcode.Handler.block_send "F22 P#{param} V#{value}"
-    Command.read_param(param)
+    case Gcode.Handler.block_send "F22 P#{param} V#{value}" do
+      :timeout ->
+        Process.sleep(10)
+        update_param(param, value)
+      _ ->
+      Process.sleep(100)
+      Command.read_param(param)
+    end
   end
 
   def update_param(nil, _value) do
