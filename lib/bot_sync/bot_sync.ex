@@ -3,18 +3,31 @@ defmodule BotSync do
   require Logger
 
   def init(_args) do
-    {:ok, %{token: nil,
+    token = case FarmbotAuth.get_token() do
+      {:ok, token} -> token
+      _ -> nil
+    end
+    {:ok, %{token: token,
             resources: load_old_resources,
             corpuses: load_old_corpuses
             }}
   end
 
   def load_old_corpuses do
-    []
+    case SafeStorage.read(__MODULE__.Corpuses) do
+      {:ok, old} ->
+        Enum.each(old, fn(corpus) ->
+          Logger.debug("Compiling last known good corpuses.")
+          m = String.to_atom("Elixir.SequenceInstructionSet_"<>"#{corpus.tag}")
+          m.create_instruction_set(corpus)
+        end)
+        old
+      _ -> []
+    end
   end
 
   def load_old_resources do
-     Sync.create(%{"checksum" => "loading...",
+     default = Sync.create(%{"checksum" => "loading...",
       "device" => %{
         "id" => -1,
         "planting_area_id" => -1,
@@ -27,6 +40,10 @@ defmodule BotSync do
       "regimens" =>      [],
       "sequences" =>     [],
       "users" =>         []})
+      case SafeStorage.read(__MODULE__.Resources) do
+        {:ok, %Sync{} = old_state} -> old_state
+        _ -> default
+      end
   end
 
   def start_link(args) do
@@ -37,6 +54,7 @@ defmodule BotSync do
     {:noreply, %{token: nil, resources: old, corpuses: oldc}}
   end
 
+  # When new stuff comes in from a sync
   def handle_cast(:sync, %{token: token, resources: old, corpuses: oldc}) do
     "//" <> server = Map.get(token, "unencoded") |> Map.get("iss")
     auth = Map.get(token, "encoded")
@@ -61,17 +79,14 @@ defmodule BotSync do
        end
        new_merged = Map.merge(old ,new)
        RPC.MessageHandler.log("Synced", [], ["BotSync"])
+       SafeStorage.write(__MODULE__.Resources, :erlang.term_to_binary(new_merged))
+       SafeStorage.write(__MODULE__.Corpuses, :erlang.term_to_binary(oldc))
        {:noreply, %{token: token, resources: new_merged, corpuses: oldc }}
      error ->
        Logger.debug("Couldn't get resources: #{error}")
        RPC.MessageHandler.log("Error syncing: #{inspect error}", [:error_toast], ["BotSync"])
        {:noreply, %{token: token, resources: old, corpuses: oldc}}
     end
-  end
-
-  def handle_call(_,_from, %{token: nil, resources: old, corpuses: oldc}) do
-    Logger.debug("Please make sure you have a token first.")
-    {:reply, :no_token, %{token: nil, resources: old, corpuses: oldc}}
   end
 
   def handle_call({:save_sequence, seq}, _from, %{token: token, resources: resources, corpuses: oldc}) do
@@ -122,7 +137,7 @@ defmodule BotSync do
         msg = "Compiling Sequence Instruction Set"
         Logger.debug(msg)
         RPC.MessageHandler.log(msg, [], ["BotSync"])
-        server = Map.get(token, "unencoded") |> Map.get("iss")
+        "//"<>server = Map.get(token, "unencoded") |> Map.get("iss")
         c = get_corpus_from_server(server, id)
         m = String.to_atom("Elixir.SequenceInstructionSet_"<>"#{id}")
         m.create_instruction_set(c)
@@ -145,6 +160,7 @@ defmodule BotSync do
                            headers: _headers,
                            status_code: 200} ->
          Poison.decode!(body)
+         |> Corpus.create
         error -> error
      end
   end

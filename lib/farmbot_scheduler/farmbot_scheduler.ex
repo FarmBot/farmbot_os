@@ -1,5 +1,4 @@
 defmodule Farmbot.Scheduler do
-  @save_interval 10000
   @tick_interval 1500
   @log_tag __MODULE__
   require Logger
@@ -53,16 +52,8 @@ defmodule Farmbot.Scheduler do
     Process.send_after(__MODULE__, :tick, @tick_interval)
   end
 
-  def wait_for_token do
-    case FarmbotAuth.get_token do
-      {:ok, token} -> token
-      _ -> wait_for_token
-    end
-  end
-
   @spec load :: Farmbot.Scheduler.State.t
   def load do
-    wait_for_token
     default_state = %State{}
     case SafeStorage.read(__MODULE__) do
       {:ok, %State{} = last_state} ->
@@ -158,7 +149,9 @@ defmodule Farmbot.Scheduler do
         start_time = Timex.shift(now, hours: -now.hour, minutes: -now.minute, seconds: -now.second)
         {:ok, pid} = Regimen.VM.start_link(regimen, [], start_time)
         reg_tup = {pid, regimen, [], start_time, :normal}
-        {:reply, :starting, %State{state | regimens: current ++ [reg_tup]}}
+        new_state = %State{state | regimens: current ++ [reg_tup]}
+        SafeStorage.write(__MODULE__, :erlang.term_to_binary(new_state))
+        {:reply, :starting, new_state}
 
       # If the regimen is in paused state.
       {_pid, ^regimen, _finished_items, _start_time, :paused} ->
@@ -184,7 +177,9 @@ defmodule Farmbot.Scheduler do
     Logger.debug("Regimen: #{regimen.name} has finished.")
     GenServer.stop(pid, :normal)
     reg_tup = find_regimen(regimen, state.regimens)
-    {:noreply, %State{state | regimens: state.regimens -- [reg_tup]}}
+    new_state = %State{state | regimens: state.regimens -- [reg_tup]}
+    SafeStorage.write(__MODULE__, :erlang.term_to_binary(new_state))
+    {:noreply, new_state}
   end
 
   # a regimen has changed state, and the scheduler needs to know about it.
@@ -197,10 +192,12 @@ defmodule Farmbot.Scheduler do
     end)
     cond do
       is_integer(found) ->
-        {:noreply, %State{state | regimens: List.update_at(state.regimens, found,
+        new_state = %State{state | regimens: List.update_at(state.regimens, found,
         fn({^pid, ^regimen, _old_items, ^start_time, _flag}) ->
           {pid, regimen, finished_items, start_time, flag}
-        end)}}
+        end)}
+        SafeStorage.write(__MODULE__, :erlang.term_to_binary(new_state))
+        {:noreply, new_state}
       is_nil(found) ->
         # Something is not good. try to clean up.
         Logger.error("Something bad happened updating

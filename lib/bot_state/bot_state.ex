@@ -203,8 +203,13 @@ defmodule BotState do
           Map.put(state, :authorization, auth)
           |> Map.put(:informational_settings, new_info)
         }
+      # If the bot is faster than your router (often) this can happen.
+      {:error, "enetunreach"} ->
+        Logger.warn("Something super weird happened.. Probably a race condition.")
+        # Just crash ourselves and try again.
+        {:crash, state}
       error ->
-        Logger.error("Something bad happened: #{inspect error}")
+        Logger.error("Something bad happened when logging in!: #{inspect error}")
         Fw.factory_reset
         {:noreply, state}
       end

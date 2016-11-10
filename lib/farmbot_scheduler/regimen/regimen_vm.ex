@@ -154,7 +154,7 @@ defmodule Regimen.VM  do
     GenServer.call(pid, :get_info)
   end
 
-  def get_regimen_item_for_regimen(regimen) do
+  def get_regimen_item_for_regimen(%Regimen{} = regimen) do
     BotSync.get_regimen_items
     |> Enum.filter(fn(item) -> item.regimen_id == regimen.id end)
   end

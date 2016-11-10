@@ -1,6 +1,6 @@
 defmodule SequenceInstructionSet_0 do
   require Logger
-  def create_instruction_set(%{"tag" => 0, "args" => allowed_args_list, "nodes" => allowed_nodes_list}) do
+  def create_instruction_set(%Corpus{tag: 0, args: args, nodes: nodes}) do
     initial =
       "
       defmodule Corpus_0 do
@@ -50,7 +50,7 @@ defmodule SequenceInstructionSet_0 do
           :error
         end
       "
-    Module.create(SiS, create_instructions(initial, allowed_args_list, allowed_nodes_list ), Macro.Env.location(__ENV__))
+    Module.create(SiS, create_instructions(initial, args, nodes ), Macro.Env.location(__ENV__))
   end
 
   def create_instructions(initial, arg_list, node_list) when is_list(arg_list) and is_list(node_list) do
