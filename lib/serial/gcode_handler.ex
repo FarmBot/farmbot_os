@@ -120,6 +120,10 @@ defmodule Gcode.Handler do
     :ok
   end
 
+  def terminate(_, _state) do
+    :ok
+  end
+
   def block(timeout) do
     receive do
       :done -> :done

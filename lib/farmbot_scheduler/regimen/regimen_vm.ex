@@ -31,7 +31,7 @@ defmodule Regimen.VM  do
   @spec init({Regimen.t, list(RegimenItem.t), DateTime.t}) :: {:ok, map}
   def init({%Regimen{} = regimen, finished_items, time}) do
     items = get_regimen_item_for_regimen(regimen)
-    first = List.first(items)
+    first = List.first(items -- finished_items)
     first_time = Timex.shift(time, milliseconds: first.time_offset)
 
     # Remove this one day

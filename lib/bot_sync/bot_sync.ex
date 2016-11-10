@@ -24,6 +24,7 @@ defmodule BotSync do
         old
       _ -> []
     end
+    # []
   end
 
   def load_old_resources do
@@ -83,7 +84,7 @@ defmodule BotSync do
        SafeStorage.write(__MODULE__.Corpuses, :erlang.term_to_binary(oldc))
        {:noreply, %{token: token, resources: new_merged, corpuses: oldc }}
      error ->
-       Logger.debug("Couldn't get resources: #{error}")
+       Logger.debug("Couldn't get resources: #{inspect error}")
        RPC.MessageHandler.log("Error syncing: #{inspect error}", [:error_toast], ["BotSync"])
        {:noreply, %{token: token, resources: old, corpuses: oldc}}
     end

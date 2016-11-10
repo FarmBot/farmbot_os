@@ -212,7 +212,12 @@ defmodule Command do
   """
   @spec read_param(number) :: command_output
   def read_param(param) when is_integer param do
-    Gcode.Handler.block_send "F21 P#{param}"
+    case Gcode.Handler.block_send "F21 P#{param}" do
+      :timeout ->
+        Process.sleep(100)
+        read_param(param)
+      whatever -> whatever
+    end
   end
 
   @doc """
@@ -220,8 +225,14 @@ defmodule Command do
   """
   @spec update_param(number | nil, number) :: command_output
   def update_param(param, value) when is_integer param do
-    Gcode.Handler.block_send "F22 P#{param} V#{value}"
-    Command.read_param(param)
+    case Gcode.Handler.block_send "F22 P#{param} V#{value}" do
+      :timeout ->
+        Process.sleep(10)
+        update_param(param, value)
+      _ ->
+      Process.sleep(100)
+      Command.read_param(param)
+    end
   end
 
   def update_param(nil, _value) do
