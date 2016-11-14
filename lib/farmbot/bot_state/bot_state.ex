@@ -1,6 +1,6 @@
 defmodule Farmbot.BotState do
   @moduledoc """
-    Farmbots Hardware State tracker
+    Farmbot's Hardware State tracker
 
     The state of this module should persist across reboots.
   """
@@ -72,7 +72,7 @@ defmodule Farmbot.BotState do
   end
 
   def load(%{target: target, compat_version: compat_version, env: env, version: version}) do
-    token = case  FarmbotAuth.get_token() do
+    token = case  Farmbot.Auth.get_token() do
       {:ok, token} -> token
       _ -> nil
     end
@@ -269,7 +269,7 @@ defmodule Farmbot.BotState do
     pass = state.authorization.pass
     server = state.authorization.server
 
-    case FarmbotAuth.login(email, pass, server) do
+    case Farmbot.Auth.login(email, pass, server) do
       {:ok, token} ->
         Logger.debug("Got Token!")
         auth = Map.merge(state.authorization,
@@ -378,7 +378,7 @@ defmodule Farmbot.BotState do
   end
 
   def apply_status(state) do
-    p = Process.whereis(Gcode.Handler)
+    p = Process.whereis(Farmbot.Serial.Gcode.Handler)
     if(is_pid(p) == true and Process.alive?(p) == true) do
       Process.sleep(500) # I don't remember why i did this.
       Command.home_all(100)
@@ -406,7 +406,7 @@ defmodule Farmbot.BotState do
   def apply_params(params) when is_map(params) do
     case Enum.partition(params, fn({param, value}) ->
       ## We need the integer version of said param
-      param_int = Gcode.Parser.parse_param(param)
+      param_int = Farmbot.Serial.Gcode.Parser.parse_param(param)
       spawn fn -> Command.update_param(param_int, value) end
     end)
     do

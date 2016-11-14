@@ -62,8 +62,12 @@ defmodule Fw do
       # something sarcastic
       worker(SSH, [env], restart: :permanent),
 
+      # these handle communications between the frontend and bot.
+      supervisor(Mqtt.Supervisor, [[]], restart: :permanent ),
+      supervisor(RPC.Supervisor, [[]], restart: :permanent ),
+
       # Main controller stuff.
-      supervisor(Controller, [[]], restart: :permanent)
+      supervisor(Farmbot.Supervisor, [[]], restart: :permanent)
     ]
     opts = [strategy: :one_for_one, name: Fw]
     supervise(children, opts)

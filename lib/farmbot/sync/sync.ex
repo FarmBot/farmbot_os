@@ -9,7 +9,7 @@ defmodule Farmbot.Sync do
   require Logger
 
   def init(_args) do
-    token = case FarmbotAuth.get_token() do
+    token = case Farmbot.Auth.get_token() do
       {:ok, token} -> token
       _ -> nil
     end

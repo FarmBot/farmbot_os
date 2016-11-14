@@ -23,7 +23,7 @@ defmodule SafeStorage do
         last_state = :erlang.binary_to_term(contents)
         {:ok, save(last_state) }
       _ ->
-      Logger.debug("Loading new state.")
+      Logger.debug("Loading #{__MODULE__} new state.")
       {:ok, save(%{})}
     end
   end

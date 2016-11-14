@@ -55,7 +55,7 @@ defmodule Command.Tracker do
   # If the count is greater than three, we should probably try to restart
   # Serial Processes.
   def terminate(_, _) do
-    GenServer.stop(Serial.Handler, :restart)
+    GenServer.stop(Farmbot.Serial.Handler, :restart)
   end
 
 end

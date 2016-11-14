@@ -5,7 +5,7 @@ defmodule Mqtt.Handler do
   def init(_args) do
     Process.flag(:trap_exit, true)
     {:ok, client} = Mqtt.Client.start_link(%{parent: __MODULE__})
-    case FarmbotAuth.get_token do
+    case Farmbot.Auth.get_token do
       {:ok, token} ->
         login(token)
         {:ok, {client, token}}

@@ -1,4 +1,4 @@
-defmodule Gcode.Handler do
+defmodule Farmbot.Serial.Gcode.Handler do
   @moduledoc """
     Handles parsed messages.
   """
@@ -29,7 +29,7 @@ defmodule Gcode.Handler do
     RPC.MessageHandler.send_status
     case List.first(log) do
       {nextstr, new_pid} ->
-        Serial.Handler.write(nextstr, new_pid)
+        Farmbot.Serial.Handler.write(nextstr, new_pid)
         {:noreply, %{nerves: nerves, current: {nextstr, new_pid},
           log: log -- [{nextstr, new_pid}]}}
       nil ->
@@ -92,7 +92,7 @@ defmodule Gcode.Handler do
   # If we arent waiting on anything right now. (current is nil and log is empty)
   def handle_call({:send, message, caller}, _from, %{nerves: nerves, current: nil, log: []})
   when is_bitstring(message) do
-    Serial.Handler.write(message, caller)
+    Farmbot.Serial.Handler.write(message, caller)
     {:reply, :sending, %{nerves: nerves, current: {message, caller}, log: []}}
   end
 
@@ -112,7 +112,7 @@ defmodule Gcode.Handler do
   end
 
   def block_send(str, timeout \\ 5500) do
-    GenServer.call(Gcode.Handler,{:send, str, self()})
+    GenServer.call(Farmbot.Serial.Gcode.Handler,{:send, str, self()})
     block(timeout)
   end
 

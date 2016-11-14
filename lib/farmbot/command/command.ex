@@ -27,7 +27,7 @@ defmodule Command do
   def e_stop(nil) do
     Farmbot.BotState.add_lock("e_stop")
     RPC.MessageHandler.log("E STOPPING!", [:error_toast, :error_ticker], [@log_tag])
-    Serial.Handler.e_stop
+    Farmbot.Serial.Handler.e_stop
     Farmbot.Scheduler.e_stop_lock
     :ok
   end
@@ -44,12 +44,12 @@ defmodule Command do
 
   @spec resume(integer | nil) :: :ok | {:error, atom}
   def resume(integer) when is_integer(integer) do
-    Serial.Handler.resume
+    Farmbot.Serial.Handler.resume
     params = Farmbot.BotState.get_status.mcu_params
     # The firmware takes forever to become ready again.
     Process.sleep(2000)
     case Enum.partition(params, fn({param, value}) ->
-      param_int = Gcode.Parser.parse_param(param)
+      param_int = Farmbot.Serial.Gcode.Parser.parse_param(param)
       Command.update_param(param_int, value)
     end)
     do
@@ -87,7 +87,7 @@ defmodule Command do
     msg = "HOME X"
     Logger.debug(msg)
     RPC.MessageHandler.log(msg, [], [@log_tag])
-    Gcode.Handler.block_send("F11")
+    Farmbot.Serial.Gcode.Handler.block_send("F11")
   end
 
   @doc """
@@ -97,7 +97,7 @@ defmodule Command do
     msg = "HOME Y"
     Logger.debug(msg)
     RPC.MessageHandler.log(msg, [], [@log_tag])
-    Gcode.Handler.block_send("F12")
+    Farmbot.Serial.Gcode.Handler.block_send("F12")
   end
 
   @doc """
@@ -107,7 +107,7 @@ defmodule Command do
     msg = "HOME Z"
     Logger.debug(msg)
     RPC.MessageHandler.log(msg, [], [@log_tag])
-    Gcode.Handler.block_send("F13")
+    Farmbot.Serial.Gcode.Handler.block_send("F13")
   end
 
   @doc """
@@ -118,7 +118,7 @@ defmodule Command do
   when is_integer(pin) and is_integer(value) and is_integer(mode) do
     Farmbot.BotState.set_pin_mode(pin, mode)
     Farmbot.BotState.set_pin_value(pin, value)
-    Gcode.Handler.block_send("F41 P#{pin} V#{value} M#{mode}") |> logmsg("write_pin")
+    Farmbot.Serial.Gcode.Handler.block_send("F41 P#{pin} V#{value} M#{mode}") |> logmsg("write_pin")
   end
 
   @doc """
@@ -130,7 +130,7 @@ defmodule Command do
     msg = "Moving to X#{x} Y#{y} Z#{z}"
     Logger.debug(msg)
     RPC.MessageHandler.log(msg, [], [@log_tag])
-    Gcode.Handler.block_send("G00 X#{x} Y#{y} Z#{z} S#{s || Farmbot.BotState.get_config(:steps_per_mm)}")
+    Farmbot.Serial.Gcode.Handler.block_send("G00 X#{x} Y#{y} Z#{z} S#{s || Farmbot.BotState.get_config(:steps_per_mm)}")
     |> logmsg("Movement")
   end
 
@@ -179,8 +179,8 @@ defmodule Command do
                                  52,53,61,62,63,71,72,73])
   when is_list(params) do
     case Enum.partition(params, fn param ->
-      GenServer.call(Gcode.Handler, {:send, "F21 P#{param}", self()})
-      :done == Gcode.Handler.block(2500)
+      GenServer.call(Farmbot.Serial.Gcode.Handler, {:send, "F21 P#{param}", self()})
+      :done == Farmbot.Serial.Gcode.Handler.block(2500)
     end) do
       {_, []} -> :ok
       {_, failed_params} -> read_all_params(failed_params)
@@ -194,7 +194,7 @@ defmodule Command do
   @spec read_pin(number, 0 | 1) :: command_output
   def read_pin(pin, mode \\ 0) when is_integer(pin) do
     Farmbot.BotState.set_pin_mode(pin, mode)
-    Gcode.Handler.block_send("F42 P#{pin} M#{mode}")
+    Farmbot.Serial.Gcode.Handler.block_send("F42 P#{pin} M#{mode}")
     |> logmsg("read_pin")
   end
 
@@ -221,7 +221,7 @@ defmodule Command do
   """
   @spec read_param(number) :: command_output
   def read_param(param) when is_integer param do
-    case Gcode.Handler.block_send "F21 P#{param}" do
+    case Farmbot.Serial.Gcode.Handler.block_send "F21 P#{param}" do
       :timeout ->
         Process.sleep(100)
         read_param(param)
@@ -234,7 +234,7 @@ defmodule Command do
   """
   @spec update_param(number | nil, number) :: command_output
   def update_param(param, value) when is_integer param do
-    case Gcode.Handler.block_send "F22 P#{param} V#{value}" do
+    case Farmbot.Serial.Gcode.Handler.block_send "F22 P#{param} V#{value}" do
       :timeout ->
         Process.sleep(10)
         update_param(param, value)

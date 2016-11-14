@@ -1,4 +1,4 @@
-defmodule Serial.Handler do
+defmodule Farmbot.Serial.Handler do
   @moduledoc """
     Handles serial messages and keeping ports alive.
   """
@@ -33,7 +33,7 @@ defmodule Serial.Handler do
   def init(_) do
     Process.flag(:trap_exit, true)
     {:ok, nerves} = Nerves.UART.start_link
-    {:ok, handler} = Gcode.Handler.start_link(nerves)
+    {:ok, handler} = Farmbot.Serial.Gcode.Handler.start_link(nerves)
     tty = open_serial(nerves)
     {:ok, {nerves, tty, handler}}
   end
@@ -101,7 +101,7 @@ defmodule Serial.Handler do
   # WHEN A FULL SERIAL MESSAGE COMES IN.
   def handle_info({:nerves_uart, nerves_tty, message}, {pid, tty, handler})
   when is_binary(message) and nerves_tty == tty do
-    gcode = Gcode.Parser.parse_code(String.strip(message))
+    gcode = Farmbot.Serial.Gcode.Parser.parse_code(String.strip(message))
     GenServer.cast(handler, gcode)
     {:noreply, {pid, tty, handler}}
   end
@@ -139,7 +139,7 @@ defmodule Serial.Handler do
   def handle_info({:EXIT, pid, reason}, {nerves, tty, handler})
   when pid == handler do
       Logger.debug "gcode handler died: #{inspect reason}"
-      {:ok, restarted} = Gcode.Handler.start_link(nerves)
+      {:ok, restarted} = Farmbot.Serial.Gcode.Handler.start_link(nerves)
       {:noreply,  {nerves, tty, restarted}}
   end
 

@@ -203,7 +203,7 @@ defmodule RPC.MessageHandler do
 
   def do_handle("mcu_config_update", [params]) when is_map(params) do
     case Enum.partition(params, fn({param, value}) ->
-      param_int = Gcode.Parser.parse_param(param)
+      param_int = Farmbot.Serial.Gcode.Parser.parse_param(param)
       spawn fn -> Command.update_param(param_int, value) end
     end)
     do

@@ -1,4 +1,4 @@
-defmodule Gcode.Parser do
+defmodule Farmbot.Serial.Gcode.Parser do
   @moduledoc """
     Im lazy and didn't want to parse yaml or write macros
   """
