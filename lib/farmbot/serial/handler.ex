@@ -94,7 +94,7 @@ defmodule Farmbot.Serial.Handler do
     Nerves.UART.close(nerves)
     System.cmd("avrdude", ["-v", "-patmega2560", "-cwiring", "-P/dev/#{tty}", "-b115200", "-D", "-Uflash:w:#{hex_file}:i"])
     new_tty = open_serial(nerves)
-    RPC.MessageHandler.log("Updated FW", [:success_toast, :ticker], ["UartHandler"])
+    Farmbot.Logger.log("Updated FW", [:success_toast, :ticker], ["UartHandler"])
     {:noreply, {nerves, new_tty, handler}}
   end
 
@@ -118,7 +118,7 @@ defmodule Farmbot.Serial.Handler do
   end
 
   def handle_info({:nerves_uart, _tty, {:error, :eio}}, state) do
-    RPC.MessageHandler.log("Serial disconnected!", [:error_toast, :error_ticker], ["SERIAL"])
+    Farmbot.Logger.log("Serial disconnected!", [:error_toast, :error_ticker], ["SERIAL"])
     {:noreply, state}
   end
 

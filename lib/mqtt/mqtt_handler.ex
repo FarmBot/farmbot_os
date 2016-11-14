@@ -75,7 +75,7 @@ defmodule Mqtt.Handler do
   def handle_call({:subscribe_ack, _message}, _from, {client, token}) do
     Logger.debug("Subscribed.")
     spawn fn ->
-      RPC.MessageHandler.log("Bot is online and ready to roll", [:ticker], ["BOT STATUS"])
+      Farmbot.Logger.log("Bot is online and ready to roll", [:ticker], ["BOT STATUS"])
     end
     {:reply, :ok, {client, token}}
   end
@@ -175,7 +175,7 @@ defmodule Mqtt.Handler do
   end
 
   defp build_last_will_message do
-    RPC.MessageHandler.log_msg("Bot going offline", [:error_ticker], ["ERROR"])
+    JsonRpc.Parser.log_msg("Bot going offline", [:error_ticker], ["ERROR"])
   end
 
   defp login(token) when is_map(token) do

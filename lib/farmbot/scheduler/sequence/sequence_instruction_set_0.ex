@@ -36,17 +36,17 @@ defmodule SequenceInstructionSet_0 do
 
         def do_if(lhs, _, rhs)
         when is_integer lhs and is_integer(rhs) do
-          RPC.MessageHandler.log(\" Bad operator for if_statement \", [:error_toast], [\"SequenceInstructionSet\", \"ERROR\"])
+          Farmbot.Logger.log(\" Bad operator for if_statement \", [:error_toast], [\"SequenceInstructionSet\", \"ERROR\"])
           :error
         end
 
         def do_if(:error, _op, _rhs) do
-          RPC.MessageHandler.log(\" Could not locate value for LHS \", [], [\"SequenceInstructionSet\"])
+          Farmbot.Logger.log(\" Could not locate value for LHS \", [], [\"SequenceInstructionSet\"])
           :error
         end
 
         def do_if(_lhs, _op, _rhs) do
-          RPC.MessageHandler.log(\" Bad type for if_statement \", [:error_toast], [\"SequenceInstructionSet\", \"ERROR\"])
+          Farmbot.Logger.log(\" Bad type for if_statement \", [:error_toast], [\"SequenceInstructionSet\", \"ERROR\"])
           :error
         end
       "
@@ -102,7 +102,7 @@ defmodule SequenceInstructionSet_0 do
       end
 
       def #{name}(value) do
-        RPC.MessageHandler.log(\" Bad type \", [], [\"Sequence Error\"])
+        Farmbot.Logger.log(\" Bad type \", [], [\"Sequence Error\"])
       end
       "
     create_arg_instruction(name, types -- [type], old<>new)
@@ -129,7 +129,7 @@ defmodule SequenceInstructionSet_0 do
     end
 
     def handle_cast({\"move_absolute\", _}, parent) do
-      RPC.MessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
+      Farmbot.Logger.log(\"bad params\", [], [\"SequenceInstructionSet\"])
       Sequence.VM.tick(parent, :bad_params)
       {:noreply, parent}
     end
@@ -147,7 +147,7 @@ defmodule SequenceInstructionSet_0 do
     end
 
     def handle_cast({\"move_relative\", _}, parent) do
-      RPC.MessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
+      Farmbot.Logger.log(\"bad params\", [], [\"SequenceInstructionSet\"])
       Sequence.VM.tick(parent, :bad_params)
       {:noreply, parent}
     end
@@ -167,7 +167,7 @@ defmodule SequenceInstructionSet_0 do
     end
 
     def handle_cast({\"write_pin\", _}, parent) do
-      RPC.MessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
+      Farmbot.Logger.log(\"bad params\", [], [\"SequenceInstructionSet\"])
       Sequence.VM.tick(parent, :bad_params)
       {:noreply, parent}
     end
@@ -188,7 +188,7 @@ defmodule SequenceInstructionSet_0 do
     end
 
     def handle_cast({\"read_pin\", _}, parent) do
-      RPC.MessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
+      Farmbot.Logger.log(\"bad params\", [], [\"SequenceInstructionSet\"])
       Sequence.VM.tick(parent, :bad_params)
       {:noreply, parent}
     end
@@ -206,7 +206,7 @@ defmodule SequenceInstructionSet_0 do
     end
 
     def handle_cast({\"wait\", _}, parent) do
-      RPC.MessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
+      Farmbot.Logger.log(\"bad params\", [], [\"SequenceInstructionSet\"])
       Sequence.VM.tick(parent, :bad_params)
       {:noreply, parent}
     end
@@ -225,7 +225,7 @@ defmodule SequenceInstructionSet_0 do
     end
 
     def handle_cast({\"execute\", _}, parent) do
-      RPC.MessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
+      Farmbot.Logger.log(\"bad params\", [], [\"SequenceInstructionSet\"])
       Sequence.VM.tick(parent, :bad_params)
       {:noreply, parent}
     end
@@ -242,14 +242,14 @@ defmodule SequenceInstructionSet_0 do
       if(do_if(rlhs, op(op), rhs(rhs)) == true) do
         handle_cast({\"execute\", %{\"sub_sequence_id\" => sub_sequence_id}}, parent)
       else
-        RPC.MessageHandler.log(\"if statement did not evaluate true.\", [], [\"SequenceInstructionSet\"])
+        Farmbot.Logger.log(\"if statement did not evaluate true.\", [], [\"SequenceInstructionSet\"])
         Sequence.VM.tick(parent, :done)
         {:noreply, parent}
       end
     end
 
     def handle_cast({\"if_statement\", _}, parent) do
-      RPC.MessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
+      Farmbot.Logger.log(\"bad params\", [], [\"SequenceInstructionSet\"])
       Sequence.VM.tick(parent, :bad_params)
       {:noreply, parent}
     end
@@ -273,20 +273,20 @@ defmodule SequenceInstructionSet_0 do
             m -> {\"logger \", m}
           end
           rendered = Mustache.render(rmessage, vars)
-          RPC.MessageHandler.log(rendered, [channel], [\"Sequence\"])
+          Farmbot.Logger.log(rendered, [channel], [\"Sequence\"])
           Sequence.VM.tick(parent, :done)
           {:noreply, parent}
 
         not_special ->
           rendered = Mustache.render(not_special, vars)
-          RPC.MessageHandler.log(rendered, [], [\"Sequence\"])
+          Farmbot.Logger.log(rendered, [], [\"Sequence\"])
           Sequence.VM.tick(parent, :done)
           {:noreply, parent}
       end
     end
 
     def handle_cast({\"send_message\", _}, parent) do
-      RPC.MessageHandler.log(\"bad params\", [], [\"SequenceInstructionSet\"])
+      Farmbot.Logger.log(\"bad params\", [], [\"SequenceInstructionSet\"])
       Sequence.VM.tick(parent, :bad_params)
       {:noreply, parent}
     end

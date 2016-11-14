@@ -67,7 +67,7 @@ defmodule Sequence.VM do
   end
 
   def handle_call(thing, _from, state) do
-    RPC.MessageHandler.log("#{inspect thing} is probably not implemented",
+    Farmbot.Logger.log("#{inspect thing} is probably not implemented",
       [:warning_toast], [state.sequence.name])
     {:reply, :ok, state}
   end
@@ -102,7 +102,7 @@ defmodule Sequence.VM do
          })
   do
     Logger.debug("sequence done")
-    RPC.MessageHandler.log("Sequence Complete", [], [sequence.name])
+    Farmbot.Logger.log("Sequence Complete", [], [sequence.name])
     send(Sequence.Manager, {:done, self(), sequence})
     Logger.debug("Stopping VM")
     {:noreply,
@@ -126,7 +126,7 @@ defmodule Sequence.VM do
     ast_node = List.first(more_steps)
     kind = Map.get(ast_node, "kind")
     Logger.debug("doing: #{kind}")
-    RPC.MessageHandler.log("Doing step: #{kind}", [], [sequence.name])
+    Farmbot.Logger.log("Doing step: #{kind}", [], [sequence.name])
     GenServer.cast(instruction_set, {kind, Map.get(ast_node, "args") })
     {:noreply, %{
             status: status,
@@ -138,13 +138,13 @@ defmodule Sequence.VM do
   end
 
   def handle_info({:error, :e_stop}, state) do
-    RPC.MessageHandler.log("Bot in E STOP MODE", [:error], [state.sequence.name])
+    Farmbot.Logger.log("Bot in E STOP MODE", [:error], [state.sequence.name])
     send(Sequence.Manager, {:done, self(), state.sequence})
     {:noreply, state}
   end
 
   def handle_info({:error, error}, state) do
-    RPC.MessageHandler.log("ERROR: #{inspect(error)}", [:error], [state.sequence.name])
+    Farmbot.Logger.log("ERROR: #{inspect(error)}", [:error], [state.sequence.name])
     send(Sequence.Manager, {:done, self(), state.sequence})
     {:noreply, state}
   end
@@ -165,7 +165,7 @@ defmodule Sequence.VM do
 
   def terminate(reason, state) do
     Logger.debug("VM Died")
-    RPC.MessageHandler.log("Sequence Finished with errors! #{inspect reason}", [:error_toast], ["Sequencer"])
+    Farmbot.Logger.log("Sequence Finished with errors! #{inspect reason}", [:error_toast], ["Sequencer"])
     GenServer.stop(state.instruction_set, :normal)
   end
 end

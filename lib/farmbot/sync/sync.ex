@@ -85,13 +85,13 @@ defmodule Farmbot.Sync do
          end)
        end
        new_merged = Map.merge(old ,new)
-       RPC.MessageHandler.log("Synced", [], ["Farmbot.Sync"])
+       Farmbot.Logger.log("Synced", [], ["Farmbot.Sync"])
        SafeStorage.write(__MODULE__.Resources, :erlang.term_to_binary(new_merged))
        SafeStorage.write(__MODULE__.Corpuses, :erlang.term_to_binary(oldc))
        {:noreply, %{token: token, resources: new_merged, corpuses: oldc }}
      error ->
        Logger.debug("Couldn't get resources: #{inspect error}")
-       RPC.MessageHandler.log("Error syncing: #{inspect error}", [:error_toast], ["Farmbot.Sync"])
+       Farmbot.Logger.log("Error syncing: #{inspect error}", [:error_toast], ["Farmbot.Sync"])
        {:noreply, %{token: token, resources: old, corpuses: oldc}}
     end
   end
@@ -143,7 +143,7 @@ defmodule Farmbot.Sync do
       [] ->
         msg = "Compiling Sequence Instruction Set"
         Logger.debug(msg)
-        RPC.MessageHandler.log(msg, [], ["Farmbot.Sync"])
+        Farmbot.Logger.log(msg, [], ["Farmbot.Sync"])
         "//"<>server = Map.get(token, "unencoded") |> Map.get("iss")
         c = get_corpus_from_server(server, id)
         m = String.to_atom("Elixir.SequenceInstructionSet_"<>"#{id}")

@@ -63,7 +63,7 @@ defmodule Sequence.Manager do
     if(Process.alive?(pid)) do
       GenServer.stop(pid, :normal)
     end
-    RPC.MessageHandler.log("No more sub sequences.", [], [__MODULE__])
+    Farmbot.Logger.log("No more sub sequences.", [], [__MODULE__])
     send(Farmbot.Scheduler, {:done, {:sequence, self(), sequence}})
     {:noreply, %{current: nil, global_vars: globals, log: [] }}
   end
@@ -73,7 +73,7 @@ defmodule Sequence.Manager do
     if(Process.alive?(pid)) do
       GenServer.stop(pid, :normal)
     end
-    RPC.MessageHandler.log("Running next sub sequence", [], [__MODULE__])
+    Farmbot.Logger.log("Running next sub sequence", [], [__MODULE__])
     next = List.first(log)
     cond do
       is_nil(next) -> {:noreply, %{current: nil, global_vars: globals, log: []}}
@@ -94,7 +94,7 @@ defmodule Sequence.Manager do
   when pid == state do
     msg = "Sequence died of unnatural causes: #{inspect reason}"
     Logger.debug(msg)
-    RPC.MessageHandler.log(msg, [:error_toast], [__MODULE__])
+    Farmbot.Logger.log(msg, [:error_toast], [__MODULE__])
     handle_info({:done, pid, %{}}, state)
   end
 

@@ -234,7 +234,7 @@ defmodule Farmbot.BotState do
         %{mode: mode, value: value}
     end
     # I REALLY don't want this to be here.
-    spawn fn -> RPC.MessageHandler.log("PIN #{pin} set: #{new_pin_value.value}", [], ["BotControl"]) end
+    spawn fn -> Farmbot.Logger.log("PIN #{pin} set: #{new_pin_value.value}", [], ["BotControl"]) end
     pin_state = Map.put(pin_state, Integer.to_string(pin), new_pin_value)
     {:noreply, Map.put(state, :pins, pin_state)}
   end
@@ -302,7 +302,7 @@ defmodule Farmbot.BotState do
     # THIS SHOULDN'T BE HERE
     msg = "Checking for updates!"
     Logger.debug(msg)
-    spawn fn -> RPC.MessageHandler.log(msg, [], ["BotUpdates"]) end
+    spawn fn -> Farmbot.Logger.log(msg, [], ["BotUpdates"]) end
     if(state.configuration.os_auto_update == true) do
       spawn fn -> Downloader.check_and_download_os_update end
     end

@@ -24,7 +24,7 @@ defmodule RPCMessageManagerTest do
   end
 
   test("it creates a JsonRpc compliant farmbot log message") do
-    msg = RPC.MessageHandler.log_msg("super importand log message", [:error_toast, :error_ticker], ["SERIAL"])
+    msg = Farmbot.Logger.log_msg("super importand log message", [:error_toast, :error_ticker], ["SERIAL"])
     {:ok, decoded} = Poison.decode(msg)
     params = Map.get(decoded, "params")
     assert(Map.get(decoded, "id") == nil)

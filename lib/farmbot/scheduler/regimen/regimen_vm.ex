@@ -124,7 +124,7 @@ defmodule Regimen.VM  do
             sequence = Farmbot.Sync.get_sequence(item.sequence_id)
             msg = "Time to run Sequence: " <> sequence.name
             Logger.debug(msg)
-            RPC.MessageHandler.log(msg, [:ticker, :success_toast], [regimen.name])
+            Farmbot.Logger.log(msg, [:ticker, :success_toast], [regimen.name])
             Farmbot.Scheduler.add_sequence(sequence)
             Logger.debug("added sequence")
           false ->
@@ -133,7 +133,7 @@ defmodule Regimen.VM  do
         should_run
     end)
     if(items_to_do == []) do
-      RPC.MessageHandler.log("nothing to run this cycle", [], [regimen.name])
+      Farmbot.Logger.log("nothing to run this cycle", [], [regimen.name])
     end
     timer = tick(self())
     finished = ran_items ++ items_to_do
@@ -162,7 +162,7 @@ defmodule Regimen.VM  do
   def terminate(:normal, state) do
     msg = "Regimen: #{state.regimen.name} completed without errors!"
     Logger.debug(msg)
-    RPC.MessageHandler.log(msg, [:ticker, :success_toast], ["RegimenManager"])
+    Farmbot.Logger.log(msg, [:ticker, :success_toast], ["RegimenManager"])
     spawn fn -> RPC.MessageHandler.send_status end
   end
 
@@ -175,7 +175,7 @@ defmodule Regimen.VM  do
   def terminate(reason, state) do
     msg = "Regimen: #{state.regimen.name} completed with errors! #{inspect reason}"
     Logger.debug(msg)
-    RPC.MessageHandler.log(msg, [:error_toast], ["RegimenManager"])
+    Farmbot.Logger.log(msg, [:error_toast], ["RegimenManager"])
     spawn fn -> RPC.MessageHandler.send_status end
   end
 end
