@@ -1,4 +1,8 @@
 defmodule Fw do
+  @moduledoc """
+    Main entry point to the application.
+    Basically just starts some supervisors.
+  """
   require Logger
   use Supervisor
   @state_path Application.get_env(:fb, :state_path)
@@ -42,13 +46,18 @@ defmodule Fw do
     {:ok, :development}
   end
 
-  def init([%{target: target, compat_version: compat_version, version: version, env: env}]) do
+  def init([%{target: target, compat_version: compat_version,
+              version: version, env: env}])
+  do
     children = [
       # Storage that needs to persist across reboots.
       worker(SafeStorage, [env], restart: :permanent),
 
       # master state tracker.
-      worker(BotState, [%{target: target, compat_version: compat_version, version: version, env: env}], restart: :permanent),
+      worker(BotState,
+        [%{target: target, compat_version: compat_version,
+           version: version, env: env}],
+      restart: :permanent),
 
       # something sarcastic
       worker(SSH, [env], restart: :permanent),
@@ -60,10 +69,14 @@ defmodule Fw do
     supervise(children, opts)
   end
 
-  def start(_type, [%{target: target, compat_version: compat_version, version: version, env: env}]) do
+  def start(_type, [%{target: target, compat_version: compat_version,
+                      version: version, env: env}])
+  do
     {:ok, _} = fs_init(env)
     Logger.debug("Starting Firmware on Target: #{target}")
-    Supervisor.start_link(__MODULE__, [%{target: target, compat_version: compat_version, version: version, env: env}])
+    Supervisor.start_link(__MODULE__,
+      [%{target: target, compat_version: compat_version,
+         version: version, env: env}])
   end
 
   def factory_reset do
