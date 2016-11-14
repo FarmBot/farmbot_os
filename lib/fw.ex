@@ -42,10 +42,10 @@ defmodule Fw do
     :ok
   end
 
-  def init(_args) do
+  def init([%{target: target, compat_version: compat_version}]) do
     children = [
       worker(SafeStorage, [@env], restart: :permanent),
-      worker(BotState, [[]], restart: :permanent),
+      worker(BotState, [%{target: target, compat_version: compat_version}], restart: :permanent),
       worker(Command.Tracker, [[]], restart: :permanent),
       worker(SSH, [@env], restart: :permanent),
       supervisor(Controller, [[]], restart: :permanent)

@@ -28,7 +28,7 @@ defmodule BotSync do
   end
 
   def load_old_resources do
-     default = Sync.create(%{"checksum" => "loading...",
+     default = Sync.create(%{"compat_num" => -1,
       "device" => %{
         "id" => -1,
         "planting_area_id" => -1,
