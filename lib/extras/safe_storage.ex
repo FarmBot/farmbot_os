@@ -9,7 +9,7 @@ defmodule SafeStorage do
   """
   require Logger
   use GenServer
-  @state_path Application.get_env(:fb, :state_path)
+  @state_path Application.get_env(:farmbot, :state_path)
   @block_device "/dev/mmcblk0p3"
   @fs_type "ext4"
   @env Mix.env
@@ -153,7 +153,7 @@ defmodule SafeStorage do
 
   def terminate(:reset, _state) do
     System.cmd("umount", [@block_device])
-    Fw.format_state_part
+    Farmbot.format_state_part
     File.rm("#{@state_path}/STATE")
     :reset
   end

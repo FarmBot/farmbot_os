@@ -14,7 +14,7 @@ defmodule JsonRpc.Parser do
     %Response{result: result, error: error, id: id}
   end
 
-  def parse(blah) do
+  def parse(_blah) do
     :not_valid
   end
 

@@ -6,7 +6,7 @@ config :nerves, :firmware,
 config :uart,
   baud: 115200
 
-config :fb,
+config :farmbot,
   state_path: "/state",
   dnsmasq_path: "/root/dnsmasq.lease"
 

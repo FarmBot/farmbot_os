@@ -1,4 +1,4 @@
-defmodule Fw.Mixfile do
+defmodule Farmbot.Mixfile do
   use Mix.Project
 
   def target(:prod) do
@@ -19,7 +19,7 @@ defmodule Fw.Mixfile do
     |> String.to_integer
 
   def project do
-    [app: :fw,
+    [app: :farmbot,
      version: @version,
      target: target(Mix.env),
      archives: [nerves_bootstrap: "~> 0.1.4"],
@@ -33,7 +33,7 @@ defmodule Fw.Mixfile do
   end
 
   def application do
-    [mod: {Fw, [%{target: target(Mix.env), compat_version: @compat_version,
+    [mod: {Farmbot, [%{target: target(Mix.env), compat_version: @compat_version,
                   version: @version, env: Mix.env}]},
      applications: apps(Mix.env)]
   end

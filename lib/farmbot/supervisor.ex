@@ -2,8 +2,25 @@ defmodule Farmbot.Supervisor do
   require Logger
   use Supervisor
 
-  def init(_args) do
+  def init(%{target: target, compat_version: compat_version,
+                      version: version, env: env}) do
     children = [
+      # Storage that needs to persist across reboots.
+      worker(SafeStorage, [env], restart: :permanent),
+
+      # master state tracker.
+      worker(Farmbot.BotState,
+        [%{target: target, compat_version: compat_version,
+           version: version, env: env}],
+      restart: :permanent),
+
+      # something sarcastic
+      worker(SSH, [env], restart: :permanent),
+
+      # these handle communications between the frontend and bot.
+      supervisor(Mqtt.Supervisor, [[]], restart: :permanent ),
+      supervisor(RPC.Supervisor, [[]], restart: :permanent ),
+
       # handles communications between bot and arduino
       supervisor(Farmbot.Serial.Supervisor, [[]], restart: :permanent ),
 
@@ -18,7 +35,7 @@ defmodule Farmbot.Supervisor do
   end
 
   def start_link(args) do
-    Logger.debug("Starting Controller")
+    Logger.debug("Starting Farmbot")
     Supervisor.start_link(__MODULE__, args)
   end
 end

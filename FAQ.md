@@ -40,6 +40,6 @@ rm /data/* -rf
 ```
 Or if you have a hdmi monitor plugged into your RPI you can use IEX
 ```elixir
-Fw.factory_reset()
+Farmbot.factory_reset()
 ```
 Or (probably the easiest) you can just flash a new SD Card.

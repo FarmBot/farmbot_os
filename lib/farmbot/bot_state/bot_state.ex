@@ -287,7 +287,7 @@ defmodule Farmbot.BotState do
         {:crash, state}
       error ->
         Logger.error("Something bad happened when logging in!: #{inspect error}")
-        Fw.factory_reset
+        Farmbot.factory_reset
         {:noreply, state}
       end
   end

@@ -1,11 +1,11 @@
-defmodule Fw do
+defmodule Farmbot do
   @moduledoc """
     Main entry point to the application.
     Basically just starts some supervisors.
   """
   require Logger
   use Supervisor
-  @state_path Application.get_env(:fb, :state_path)
+  @state_path Application.get_env(:farmbot, :state_path)
 
   @doc """
     Shortcut to Nerves.Firmware.reboot
@@ -47,29 +47,13 @@ defmodule Fw do
   end
 
   def init([%{target: target, compat_version: compat_version,
-              version: version, env: env}])
+                      version: version, env: env}])
   do
     children = [
-      # Storage that needs to persist across reboots.
-      worker(SafeStorage, [env], restart: :permanent),
-
-      # master state tracker.
-      worker(Farmbot.BotState,
-        [%{target: target, compat_version: compat_version,
-           version: version, env: env}],
-      restart: :permanent),
-
-      # something sarcastic
-      worker(SSH, [env], restart: :permanent),
-
-      # these handle communications between the frontend and bot.
-      supervisor(Mqtt.Supervisor, [[]], restart: :permanent ),
-      supervisor(RPC.Supervisor, [[]], restart: :permanent ),
-
-      # Main controller stuff.
-      supervisor(Farmbot.Supervisor, [[]], restart: :permanent)
+      supervisor(Farmbot.Supervisor, [%{target: target, compat_version: compat_version,
+                          version: version, env: env}], restart: :permanent)
     ]
-    opts = [strategy: :one_for_one, name: Fw]
+    opts = [strategy: :one_for_one, name: Farmbot]
     supervise(children, opts)
   end
 
@@ -79,8 +63,8 @@ defmodule Fw do
     {:ok, _} = fs_init(env)
     Logger.debug("Starting Firmware on Target: #{target}")
     Supervisor.start_link(__MODULE__,
-      [%{target: target, compat_version: compat_version,
-         version: version, env: env}])
+          [%{target: target, compat_version: compat_version,
+             version: version, env: env}])
   end
 
   def factory_reset do
