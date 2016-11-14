@@ -16,47 +16,56 @@ defmodule Command do
             on a timer.
   """
   def e_stop do
-    msg = "E STOPPING!"
-    Logger.debug(msg)
-    is_locked = BotState.get_status
-    |> Map.get(:informational_settings)
-    |> Map.get(:locked)
-    if(is_locked == false) do
-      GenServer.cast(BotState, {:update_info, :locked, true})
-      RPC.MessageHandler.log(msg, [:error_toast, :error_ticker], [@log_tag])
-      Serial.Handler.e_stop
-      Farmbot.Scheduler.e_stop_lock
-    end
+    # The index of the lock "e_stop". should be an integer or nil
+    e_stop(BotState.get_lock("e_stop"))
+  end
+
+  def e_stop(integer) when is_integer(integer) do
+    {:error, :already_locked}
+  end
+
+  def e_stop(nil) do
+    BotState.add_lock("e_stop")
+    RPC.MessageHandler.log("E STOPPING!", [:error_toast, :error_ticker], [@log_tag])
+    Serial.Handler.e_stop
+    Farmbot.Scheduler.e_stop_lock
+    :ok
   end
 
   @doc """
     resume from an e stop
+    This is way to complex
   """
-  @spec resume() :: :ok | :fail
+  @spec resume() :: :ok | {:error, atom}
   def resume do
-    is_locked = BotState.get_status
-    |> Map.get(:informational_settings)
-    |> Map.get(:locked)
-    if(is_locked == true) do
-      Serial.Handler.resume
-      params = BotState.get_status.mcu_params
-      # The firmware takes forever to become ready again.
-      Process.sleep(2000)
-      case Enum.partition(params, fn({param, value}) ->
-        param_int = Gcode.Parser.parse_param(param)
-        Command.update_param(param_int, value)
-      end)
-      do
-        {_, []} ->
-          RPC.MessageHandler.log("Bot Back Up and Running!", [:ticker], [@log_tag])
-          GenServer.cast(BotState, {:update_info, :locked, false})
-          Farmbot.Scheduler.e_stop_unlock
-          :ok
-        {_, failed} ->
-          Logger.error("Param setting failed! #{inspect failed}")
-          :fail
-      end
+    # The index of the lock "e_stop". should be an integer or nil
+    resume(BotState.get_lock("e_stop"))
+  end
+
+  @spec resume(integer | nil) :: :ok | {:error, atom}
+  def resume(integer) when is_integer(integer) do
+    Serial.Handler.resume
+    params = BotState.get_status.mcu_params
+    # The firmware takes forever to become ready again.
+    Process.sleep(2000)
+    case Enum.partition(params, fn({param, value}) ->
+      param_int = Gcode.Parser.parse_param(param)
+      Command.update_param(param_int, value)
+    end)
+    do
+      {_, []} ->
+        RPC.MessageHandler.log("Bot Back Up and Running!", [:ticker], [@log_tag])
+        BotState.remove_lock("e_stop")
+        Farmbot.Scheduler.e_stop_unlock
+        :ok
+      {_, failed} ->
+        Logger.error("Param setting failed! #{inspect failed}")
+        {:error, :prams}
     end
+  end
+
+  def resume(nil) do
+    {:error, :not_locked}
   end
 
   @doc """

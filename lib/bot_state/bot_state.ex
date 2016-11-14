@@ -1,15 +1,54 @@
 defmodule BotState do
+  @moduledoc """
+    Farmbots Hardware State tracker
+  """
   use GenServer
   require Logger
 
   @save_interval 15000
   @twelve_hours 3600000
 
-  def init(_) do
+  defmodule State do
+    @moduledoc """
+      Farmbots Hardware State tracker State module
+    """
+    defstruct [
+      locks: [],
+      mcu_params: %{},
+      location: [0,0,0],
+      pins: %{},
+      configuration: %{},
+      informational_settings: %{},
+      authorization: %{
+        token: nil,
+        email: nil,
+        pass: nil,
+        server: nil,
+        network: nil
+      }
+    ]
+    @type t :: %__MODULE__{
+      locks: list(%{reason: String.t}),
+      mcu_params: map,
+      location: [number, ...], # i should change this to a tuple
+      pins: %{},
+      configuration: %{},
+      informational_settings: %{},
+      authorization: %{
+        token:   map | nil,
+        email:   String.t | nil,
+        pass:    String.t | nil,
+        server:  String.t | nil,
+        network: String.t | nil
+      }
+    }
+  end
+
+  def init(args) do
     NetMan.put_pid(BotState)
     save_interval
     check_updates
-    {:ok, load}
+    {:ok, load(args)}
   end
 
   def start_link(args) do
@@ -30,24 +69,24 @@ defmodule BotState do
     throttled
   end
 
-  def load do
+  def load(%{target: target, compat_version: compat_version}) do
     token = case  FarmbotAuth.get_token() do
       {:ok, token} -> token
       _ -> nil
     end
-    default_state = %{
-      mcu_params: %{},
-      location: [0, 0, 0],
-      pins: %{},
-      configuration: %{ os_auto_update: false,
-                        fw_auto_update: false,
-                        timezone:     nil,
-                        steps_per_mm:   500 },
+    default_state = %State{
+      configuration: %{
+        os_auto_update: false,
+        fw_auto_update: false,
+        timezone:       nil,
+        steps_per_mm:   500
+      },
       informational_settings: %{
         controller_version: Fw.version,
         private_ip: nil,
         throttled: get_throttled,
-        locked: false
+        target: target,
+        compat_version: compat_version
       },
       authorization: %{
         token: token,
@@ -63,7 +102,7 @@ defmodule BotState do
         r = Map.keys(rcontents)
         Logger.debug("default: #{inspect l} saved: #{inspect r}")
         if(l != r) do # SORRY ABOUT THIS
-          Logger.debug "UPDATING TO NEW STATE TREE FORMAT OR SOMETHING"
+          Logger.warn("UPDATING TO NEW STATE TREE FORMAT OR SOMETHING")
           spawn fn -> apply_auth(default_state.authorization) end
           spawn fn -> apply_status(default_state) end
           default_state
@@ -137,6 +176,36 @@ defmodule BotState do
     {:reply, state.authorization.token, state}
   end
 
+  # Allow the frontend to do stuff again.
+  def handle_call({:remove_lock, string}, _from,  state) do
+    maybe_index = Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
+    cond do
+      is_integer(maybe_index) ->
+        {:reply, :ok, Map.put(state, :locks,
+          List.delete_at(state.locks, maybe_index))}
+      true ->
+        {:reply, {:error, :no_index}, state}
+    end
+  end
+
+  def handle_call({:get_lock, string}, _from, state) do
+    maybe_index = Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
+    {:reply, maybe_index, state}
+  end
+
+  # Lock the frontend from doing stuff
+  def handle_cast({:add_lock, string}, state) do
+    maybe_index = Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
+    cond do
+      is_integer(maybe_index) ->
+        {:noreply, Map.put(state, :locks,
+          List.replace_at(state.locks, maybe_index, %{reason: string}) )}
+      is_nil(maybe_index) ->
+        {:noreply, Map.put(state, :locks,
+          state.locks ++ [%{reason: string}] )}
+    end
+  end
+
   def handle_cast({:update_info, key, value}, state) do
     new_info = Map.put(state.informational_settings, key, value)
     {:noreply, Map.put(state, :informational_settings, new_info)}
@@ -178,13 +247,6 @@ defmodule BotState do
   end
 
   def handle_cast({:creds, {email, pass, server}}, state) do
-    # authorization: %{
-    #   token: nil
-    #   email: nil,
-    #   pass: nil,
-    #   server: nil
-    #   network: nil
-    # }
     auth = Map.merge(state.authorization,
             %{email: email, pass: pass, server: server, token: nil, network: nil})
     {:noreply, Map.put(state, :authorization, auth)}
@@ -260,6 +322,11 @@ defmodule BotState do
     GenServer.call(__MODULE__, :get_token)
   end
 
+  @spec get_lock(String.t) :: integer | nil
+  def get_lock(string) when is_bitstring(string) do
+    GenServer.call(__MODULE__, {:get_lock, string})
+  end
+
   def set_pos(x, y, z)
   when is_integer(x) and is_integer(y) and is_integer(z) do
     GenServer.cast(__MODULE__, {:set_pos, {x, y, z}})
@@ -280,6 +347,16 @@ defmodule BotState do
 
   def get_pin(pin_number) when is_integer(pin_number) do
     GenServer.call(__MODULE__, {:get_pin, pin_number})
+  end
+
+  @spec add_lock(String.t) :: :ok
+  def add_lock(string) when is_bitstring(string) do
+    GenServer.cast(__MODULE__, {:add_lock, string})
+  end
+
+  @spec remove_lock(String.t) :: :ok | {:error, atom}
+  def remove_lock(string) when is_bitstring(string) do
+    GenServer.call(__MODULE__, {:remove_lock, string})
   end
 
   def set_end_stop(_something) do

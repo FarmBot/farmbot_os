@@ -3,18 +3,30 @@ defmodule Fw.Mixfile do
 
   use Mix.Project
 
-  @target System.get_env("NERVES_TARGET") || "rpi3"
+  def target(:prod) do
+    System.get_env("NERVES_TARGET") || "rpi3"
+  end
+
+  def target(_) do
+    System.get_env("NERVES_TARGET") || "development"
+  end
+
   @version Path.join(__DIR__, "VERSION")
     |> File.read!
     |> String.strip
 
+  @compat_version Path.join(__DIR__, "COMPAT")
+    |> File.read!
+    |> String.strip
+    |> String.to_integer
+
   def project do
     [app: :fw,
      version: @version,
-     target: @target,
+     target: target(Mix.env),
      archives: [nerves_bootstrap: "~> 0.1.4"],
-     deps_path: "deps/#{@target}",
-     build_path: "_build/#{@target}",
+     deps_path: "deps/#{target(Mix.env)}",
+     build_path: "_build/#{target(Mix.env)}",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      config_path: "config/config.exs",
@@ -23,7 +35,7 @@ defmodule Fw.Mixfile do
   end
 
   def application do
-    [mod: {Fw, []},
+    [mod: {Fw, [%{target: target(Mix.env), compat_version: @compat_version}]},
      applications: apps(Mix.env)]
   end
 
@@ -45,7 +57,7 @@ defmodule Fw.Mixfile do
 
   # on device
   def apps(:prod) do
-    apps ++ platform_apps(@target) ++
+    apps ++ platform_apps(target(:prod)) ++
     [
       :nerves,
       :nerves_firmware_http,
@@ -83,7 +95,7 @@ defmodule Fw.Mixfile do
   end
 
   def deps(:prod) do
-    deps ++ platform_deps(@target) ++ system(@target) ++
+    deps ++ platform_deps(target(Mix.env)) ++ system(target(Mix.env)) ++
     [
      {:nerves, "~> 0.3.0"},
      {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},

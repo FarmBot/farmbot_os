@@ -3,7 +3,7 @@ defmodule Sync do
     The enitre Sync Object.
     located at /api/sync
   """
-  defstruct [:checksum,
+  defstruct [:compat_num,
              :device,
              :peripherals,
              :plants,
@@ -13,7 +13,7 @@ defmodule Sync do
              :users]
 
    @type t :: %__MODULE__{
-     checksum:      String.t,
+     compat_num:    number,
      device:        Device.t,
      peripherals:   list(Peripheral.t),
      plants:        list(Plant.t),
@@ -24,7 +24,7 @@ defmodule Sync do
    }
 
   @spec create(map) :: t
-  def create(%{"checksum" =>      checksum,
+  def create(%{"compat_num" =>    compat_num,
                "device" =>        device,
                "peripherals" =>   peripherals,
                "plants" =>        plants,
@@ -32,7 +32,7 @@ defmodule Sync do
                "regimens" =>      regimens,
                "sequences" =>     sequences,
                "users" =>         users})
-  when is_bitstring(checksum)
+  when  is_integer(compat_num)
     and is_map(device)
     and is_list(peripherals)
     and is_list(plants)
@@ -41,7 +41,7 @@ defmodule Sync do
     and is_list(sequences)
     and is_list(users)
   do
-    %Sync{checksum: checksum,
+    %Sync{compat_num: compat_num,
           device: Device.create(device),
           plants: create_list(Plant,plants),
           regimen_items: create_list(RegimenItem,regimen_items),
