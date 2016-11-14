@@ -113,7 +113,7 @@ defmodule Regimen.VM  do
       regimen: regimen
     })
   do
-    now = Timex.now(BotState.get_config(:timezone))
+    now = Timex.now(Farmbot.BotState.get_config(:timezone))
     {items_to_do, remaining_items} =
       Enum.partition(items, fn(item) ->
         offset = item.time_offset
@@ -121,7 +121,7 @@ defmodule Regimen.VM  do
         should_run = Timex.after?(now, run_time)
         case ( should_run ) do
           true ->
-            sequence = BotSync.get_sequence(item.sequence_id)
+            sequence = Farmbot.Sync.get_sequence(item.sequence_id)
             msg = "Time to run Sequence: " <> sequence.name
             Logger.debug(msg)
             RPC.MessageHandler.log(msg, [:ticker, :success_toast], [regimen.name])
@@ -155,7 +155,7 @@ defmodule Regimen.VM  do
   end
 
   def get_regimen_item_for_regimen(%Regimen{} = regimen) do
-    BotSync.get_regimen_items
+    Farmbot.Sync.get_regimen_items
     |> Enum.filter(fn(item) -> item.regimen_id == regimen.id end)
   end
 

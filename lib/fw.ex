@@ -54,7 +54,7 @@ defmodule Fw do
       worker(SafeStorage, [env], restart: :permanent),
 
       # master state tracker.
-      worker(BotState,
+      worker(Farmbot.BotState,
         [%{target: target, compat_version: compat_version,
            version: version, env: env}],
       restart: :permanent),

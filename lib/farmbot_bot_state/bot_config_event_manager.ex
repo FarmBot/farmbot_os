@@ -1,7 +1,6 @@
-defmodule BotState.EventManager do
+defmodule Farmbot.BotState.EventManager do
   @moduledoc """
-    Don't worry about compiler warnings in this module. I need to add some things
-    to FakeNerves
+    Handles stuff like logging in to web services and what not.
   """
   use GenEvent
   require Logger
@@ -13,9 +12,9 @@ defmodule BotState.EventManager do
       "server" => server,
       "tz" => timezone}}, parent)
   do
-    BotState.update_config("timezone", timezone)
-    BotState.add_creds({email,password,server})
-    NetMan.connect(:ethernet, BotState)
+    Farmbot.BotState.update_config("timezone", timezone)
+    Farmbot.BotState.add_creds({email,password,server})
+    NetMan.connect(:ethernet, Farmbot.BotState)
     {:ok, parent}
   end
 
@@ -26,14 +25,14 @@ defmodule BotState.EventManager do
       "server" => server,
       "tz" => timezone}}, parent)
   do
-    BotState.update_config("timezone", timezone)
-    BotState.add_creds({email,password,server})
-    NetMan.connect({ssid, psk}, BotState)
+    Farmbot.BotState.update_config("timezone", timezone)
+    Farmbot.BotState.add_creds({email,password,server})
+    NetMan.connect({ssid, psk}, Farmbot.BotState)
     {:ok, parent}
   end
 
   def handle_event(event, parent) do
-    Logger.debug("#{inspect event}")
+    Logger.warn("unhandled botstate event #{inspect event}")
     {:ok, parent}
   end
 end

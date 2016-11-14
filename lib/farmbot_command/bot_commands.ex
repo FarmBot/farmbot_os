@@ -17,7 +17,7 @@ defmodule Command do
   """
   def e_stop do
     # The index of the lock "e_stop". should be an integer or nil
-    e_stop(BotState.get_lock("e_stop"))
+    e_stop(Farmbot.BotState.get_lock("e_stop"))
   end
 
   def e_stop(integer) when is_integer(integer) do
@@ -25,7 +25,7 @@ defmodule Command do
   end
 
   def e_stop(nil) do
-    BotState.add_lock("e_stop")
+    Farmbot.BotState.add_lock("e_stop")
     RPC.MessageHandler.log("E STOPPING!", [:error_toast, :error_ticker], [@log_tag])
     Serial.Handler.e_stop
     Farmbot.Scheduler.e_stop_lock
@@ -39,13 +39,13 @@ defmodule Command do
   @spec resume() :: :ok | {:error, atom}
   def resume do
     # The index of the lock "e_stop". should be an integer or nil
-    resume(BotState.get_lock("e_stop"))
+    resume(Farmbot.BotState.get_lock("e_stop"))
   end
 
   @spec resume(integer | nil) :: :ok | {:error, atom}
   def resume(integer) when is_integer(integer) do
     Serial.Handler.resume
-    params = BotState.get_status.mcu_params
+    params = Farmbot.BotState.get_status.mcu_params
     # The firmware takes forever to become ready again.
     Process.sleep(2000)
     case Enum.partition(params, fn({param, value}) ->
@@ -55,7 +55,7 @@ defmodule Command do
     do
       {_, []} ->
         RPC.MessageHandler.log("Bot Back Up and Running!", [:ticker], [@log_tag])
-        BotState.remove_lock("e_stop")
+        Farmbot.BotState.remove_lock("e_stop")
         Farmbot.Scheduler.e_stop_unlock
         :ok
       {_, failed} ->
@@ -76,7 +76,7 @@ defmodule Command do
     msg = "HOME ALL"
     Logger.debug(msg)
     RPC.MessageHandler.log(msg, [], [@log_tag])
-    Command.move_absolute(0, 0, 0, speed || BotState.get_config(:steps_per_mm))
+    Command.move_absolute(0, 0, 0, speed || Farmbot.BotState.get_config(:steps_per_mm))
   end
 
   @doc """
@@ -116,8 +116,8 @@ defmodule Command do
   @spec write_pin(number, number, number) :: command_output
   def write_pin(pin, value, mode)
   when is_integer(pin) and is_integer(value) and is_integer(mode) do
-    BotState.set_pin_mode(pin, mode)
-    BotState.set_pin_value(pin, value)
+    Farmbot.BotState.set_pin_mode(pin, mode)
+    Farmbot.BotState.set_pin_value(pin, value)
     Gcode.Handler.block_send("F41 P#{pin} V#{value} M#{mode}") |> logmsg("write_pin")
   end
 
@@ -130,7 +130,7 @@ defmodule Command do
     msg = "Moving to X#{x} Y#{y} Z#{z}"
     Logger.debug(msg)
     RPC.MessageHandler.log(msg, [], [@log_tag])
-    Gcode.Handler.block_send("G00 X#{x} Y#{y} Z#{z} S#{s || BotState.get_config(:steps_per_mm)}")
+    Gcode.Handler.block_send("G00 X#{x} Y#{y} Z#{z} S#{s || Farmbot.BotState.get_config(:steps_per_mm)}")
     |> logmsg("Movement")
   end
 
@@ -144,17 +144,17 @@ defmodule Command do
   {:z, number | nil, number} |
   %{x: number, y: number, z: number, speed: number | nil}) :: command_output
   def move_relative({:x, s, move_by}) when is_integer move_by do
-    [x,y,z] = BotState.get_current_pos
+    [x,y,z] = Farmbot.BotState.get_current_pos
     move_absolute(x + move_by,y,z,s)
   end
 
   def move_relative({:y, s, move_by}) when is_integer move_by do
-    [x,y,z] = BotState.get_current_pos
+    [x,y,z] = Farmbot.BotState.get_current_pos
     move_absolute(x,y + move_by,z,s)
   end
 
   def move_relative({:z, s, move_by}) when is_integer move_by do
-    [x,y,z] = BotState.get_current_pos
+    [x,y,z] = Farmbot.BotState.get_current_pos
     move_absolute(x,y,z + move_by,s)
   end
 
@@ -164,7 +164,7 @@ defmodule Command do
        is_integer(y_move_by) and
        is_integer(z_move_by)
   do
-    [x,y,z] = BotState.get_current_pos
+    [x,y,z] = Farmbot.BotState.get_current_pos
     move_absolute(x + x_move_by,y + y_move_by,z + z_move_by, speed)
   end
 
@@ -193,7 +193,7 @@ defmodule Command do
   """
   @spec read_pin(number, 0 | 1) :: command_output
   def read_pin(pin, mode \\ 0) when is_integer(pin) do
-    BotState.set_pin_mode(pin, mode)
+    Farmbot.BotState.set_pin_mode(pin, mode)
     Gcode.Handler.block_send("F42 P#{pin} M#{mode}")
     |> logmsg("read_pin")
   end
@@ -203,7 +203,7 @@ defmodule Command do
   """
   @spec toggle_pin(number) :: command_output
   def toggle_pin(pin) when is_integer(pin) do
-    pinMap = BotState.get_pin(pin)
+    pinMap = Farmbot.BotState.get_pin(pin)
     case pinMap do
       %{mode: 0, value: 1 } ->
         write_pin(pin, 0, 0)

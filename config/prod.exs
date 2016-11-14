@@ -36,4 +36,4 @@ config :blinky, led_list: [ :green ]
 config :nerves_leds, names: [ green: "led0" ]
 
 config :farmbot_configurator,
-  event_handler: BotState.EventManager
+  event_handler: Farmbot.BotState.EventManager

@@ -8,13 +8,13 @@ defmodule Sequence.VM do
 
   def init(sequence) do
     tv = Map.get(sequence.args, "tag_version") || 0
-    BotSync.sync()
-    corpus_module = BotSync.get_corpus(tv)
+    Farmbot.Sync.sync()
+    corpus_module = Farmbot.Sync.get_corpus(tv)
     {:ok, instruction_set} = corpus_module.start_link(self())
     tick(self(), :done)
     initial_state =
       %{
-        status: BotState.get_status,
+        status: Farmbot.BotState.get_status,
         instruction_set: instruction_set,
         vars: %{},
         running: true,
@@ -43,8 +43,8 @@ defmodule Sequence.VM do
     thing1 = state.vars |> Enum.reduce(%{}, fn ({key, val}, acc) -> Map.put(acc, String.to_atom(key), val) end)
 
     # put current position into the Map
-    [x,y,z] = BotState.get_current_pos
-    pins = BotState.get_status
+    [x,y,z] = Farmbot.BotState.get_current_pos
+    pins = Farmbot.BotState.get_status
     |> Map.get(:pins)
     |> Enum.reduce(%{}, fn( {key, %{mode: _mode, value: val}}, acc) ->
       # THIS IS SO UNSAFE
@@ -52,8 +52,8 @@ defmodule Sequence.VM do
     end)
     thing2 = Map.merge( %{x: x, y: y, z: z }, pins)
 
-    # gets a couple usefull things out of BotSync
-    thing3 = List.first(BotSync.fetch
+    # gets a couple usefull things out of Farmbot.Sync
+    thing3 = List.first(Farmbot.Sync.fetch
     |> Map.get(:users))
     |> Map.drop([:__struct__]) # This probably isnt correct
 

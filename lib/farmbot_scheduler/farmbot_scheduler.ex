@@ -143,7 +143,7 @@ defmodule Farmbot.Scheduler do
       # If we couln't find this regimen in the list.
       nil ->
         # get the current time (in this timezone)
-        now = Timex.now(BotState.get_config(:timezone))
+        now = Timex.now(Farmbot.BotState.get_config(:timezone))
 
         # shift the current time into midnight of today
         start_time = Timex.shift(now, hours: -now.hour, minutes: -now.minute, seconds: -now.second)

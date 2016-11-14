@@ -1,6 +1,8 @@
-defmodule BotState do
+defmodule Farmbot.BotState do
   @moduledoc """
     Farmbots Hardware State tracker
+
+    The state of this module should persist across reboots.
   """
   use GenServer
   require Logger
@@ -45,7 +47,7 @@ defmodule BotState do
   end
 
   def init(args) do
-    NetMan.put_pid(BotState)
+    NetMan.put_pid(Farmbot.BotState)
     save_interval
     check_updates
     {:ok, load(args)}
@@ -196,7 +198,7 @@ defmodule BotState do
 
   def handle_call(:get_version, _from, state) do
     {:reply,
-      BotState.get_status.informational_settings.controller_version,
+      Farmbot.BotState.get_status.informational_settings.controller_version,
       state}
   end
 
@@ -261,7 +263,7 @@ defmodule BotState do
 
   def handle_info({:connected, network, ip_addr}, state) do
     Process.sleep(2000) # UGH
-    # GenServer.cast(BotState, {:update_info, :private_ip, address})
+    # GenServer.cast(Farmbot.BotState, {:update_info, :private_ip, address})
     new_info = Map.put(state.informational_settings, :private_ip, ip_addr)
     email = state.authorization.email
     pass = state.authorization.pass
@@ -397,7 +399,7 @@ defmodule BotState do
   })
   do
     add_creds({email, pass, server})
-    NetMan.connect(network, BotState)
+    NetMan.connect(network, Farmbot.BotState)
   end
 
   # params will be a list of atoms here.

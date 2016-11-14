@@ -2,6 +2,7 @@ defmodule Command.Tracker do
   @moduledoc """
     Restarts serial stuffs when 3 commands fail in a row.
   """
+  
   use GenServer
   def init(_args) do
     {:ok, 0}

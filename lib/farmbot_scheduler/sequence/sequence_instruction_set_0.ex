@@ -181,7 +181,7 @@ defmodule SequenceInstructionSet_0 do
     def handle_cast({\"read_pin\", %{#{args}}}, parent) do
       result = Command.read_pin( pin_number(pin_number),
                         pin_mode(pin_mode) )
-      v = BotState.get_pin(pin_number(pin_number))
+      v = Farmbot.BotState.get_pin(pin_number(pin_number))
       GenServer.call(parent, {:set_var, data_label(data_label), v})
       Sequence.VM.tick(parent, result)
       {:noreply, parent}
@@ -219,7 +219,7 @@ defmodule SequenceInstructionSet_0 do
     "
     def handle_cast({\"execute\", %{#{args}}}, parent) do
       GenServer.call(Sequence.Manager, {:pause, parent})
-      sequence = BotSync.get_sequence(sub_sequence_id)
+      sequence = Farmbot.Sync.get_sequence(sub_sequence_id)
       GenServer.call(Sequence.Manager, {:add, sequence})
       {:noreply, parent}
     end

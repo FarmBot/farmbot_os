@@ -48,20 +48,20 @@ defmodule Gcode.Handler do
   def handle_cast({:report_pin_value, pin, value, _}, state)
   when is_integer(pin) and is_integer(value) do
     Logger.debug("pin#{pin}: #{value}")
-    BotState.set_pin_value(pin, value)
+    Farmbot.BotState.set_pin_value(pin, value)
     {:noreply, state}
   end
 
   def handle_cast({:report_current_position, x,y,z, _}, state) do
     Logger.debug("Reporting position #{inspect {x, y, z}}")
-    BotState.set_pos(x,y,z)
+    Farmbot.BotState.set_pos(x,y,z)
     {:noreply, state}
   end
 
   def handle_cast({:report_parameter_value, param, value, _}, state)
   when is_atom(param) and is_integer(value) do
     Logger.debug("Param: #{param}, Value: #{value}")
-    BotState.set_param(param, value)
+    Farmbot.BotState.set_param(param, value)
     {:noreply, state}
   end
 

@@ -63,7 +63,7 @@ defmodule Downloader do
     Logger.debug(url)
     resp = HTTPotion.get url,
     [headers: ["User-Agent": "Farmbot"]]
-    current_version = BotState.get_version
+    current_version = Farmbot.BotState.get_version
     case resp do
       %HTTPotion.ErrorResponse{message: error} ->
         RPC.MessageHandler.log("Update check failed: #{inspect error}", [:error_toast], ["BotUpdates"])

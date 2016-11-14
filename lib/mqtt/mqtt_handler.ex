@@ -32,7 +32,7 @@ defmodule Mqtt.Handler do
     spawn fn ->
       Logger.debug("Subscribing")
       Mqtt.Client.subscribe(client, options)
-      BotSync.sync
+      Farmbot.Sync.sync
     end
     keep_connection_alive
     {:reply, :ok, {client, token}}
@@ -178,8 +178,8 @@ defmodule Mqtt.Handler do
     RPC.MessageHandler.log_msg("Bot going offline", [:error_ticker], ["ERROR"])
   end
 
-  defp login(token) do
-    # This wait fixes haluki crashing for some reason. 
+  defp login(token) when is_map(token) do
+    # This wait fixes haluki crashing for some reason.
     Process.send_after(__MODULE__, :login, 2000)
   end
 

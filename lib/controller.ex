@@ -12,7 +12,7 @@ defmodule Controller do
       supervisor(Serial.Supervisor, [[]], restart: :permanent ),
 
       # Handle communications betwen bot and api
-      worker(BotSync, [[]], restart: :permanent ),
+      worker(Farmbot.Sync, [[]], restart: :permanent ),
 
       # Just handles Farmbot scheduler stuff.
       worker(Farmbot.Scheduler, [[]], restart: :permanent )

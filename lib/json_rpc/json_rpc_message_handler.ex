@@ -55,7 +55,7 @@ defmodule RPC.MessageHandler do
     Poison.encode!(
       %{ id: nil,
          method: "log_message",
-         params: [%{ status: BotState.get_status,
+         params: [%{ status: Farmbot.BotState.get_status,
                      time: :os.system_time(:seconds),
                      message: message,
                      channels: channels,
@@ -220,7 +220,7 @@ defmodule RPC.MessageHandler do
 
   def do_handle("bot_config_update", [configs]) do
     case Enum.partition(configs, fn({config, value}) ->
-      BotState.update_config(config, value)
+      Farmbot.BotState.update_config(config, value)
     end) do
       {_, []} ->
         log("Bot Configs updated.", [:success_toast], ["RPCHANDLER"])
@@ -234,7 +234,7 @@ defmodule RPC.MessageHandler do
   end
 
   def do_handle("sync", _) do
-    BotSync.sync
+    Farmbot.Sync.sync
     :ok
   end
 
@@ -246,8 +246,8 @@ defmodule RPC.MessageHandler do
   end
 
   def do_handle("start_regimen", [%{"regimen_id" => id}]) when is_integer(id) do
-    BotSync.sync()
-    regimen = BotSync.get_regimen(id)
+    Farmbot.Sync.sync()
+    regimen = Farmbot.Sync.get_regimen(id)
     Farmbot.Scheduler.add_regimen(regimen)
     send_status
   end
@@ -259,7 +259,7 @@ defmodule RPC.MessageHandler do
   end
 
   def do_handle("stop_regimen", [%{"regimen_id" => id}]) when is_integer(id) do
-    regimen = BotSync.get_regimen(id)
+    regimen = Farmbot.Sync.get_regimen(id)
     running = GenServer.call(Farmbot.Scheduler, :state) |> Map.get(:regimens)
 
     {pid, ^regimen, _, _, _} = Farmbot.Scheduler.find_regimen(regimen, running)
@@ -301,7 +301,7 @@ defmodule RPC.MessageHandler do
   # This is what actually updates the rest of the world about farmbots status.
   def send_status do
     status =
-      Map.merge(BotState.get_status,
+      Map.merge(Farmbot.BotState.get_status,
       %{farm_scheduler: GenServer.call(Farmbot.Scheduler, :jsonable)})
     m = %{id: nil,
           method: "status_update",
