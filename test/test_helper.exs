@@ -7,4 +7,6 @@ Code.ensure_loaded(FakeMqtt)
 Code.load_file("fake_net_man.ex", "./test")
 Code.ensure_loaded(NetMan)
 {:ok, _} = TestGenServer.start_link(SafeStorage)
-{:ok, _botState} = Farmbot.BotState.start_link(:nothing)
+{:ok, _fb_auth} = Farmbot.Auth.start_link(:normal)
+{:ok, _botState} = Farmbot.BotState.start_link(
+      %{target: "test", compat_version: 0, env: :test, version: "2.1.4"})

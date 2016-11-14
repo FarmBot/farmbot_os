@@ -6,4 +6,8 @@ defmodule NetMan do
   def connect(_) do
     :ok
   end
+
+  def put_pid(_callback) do
+    :ok
+  end
 end

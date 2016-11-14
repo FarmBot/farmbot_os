@@ -4,7 +4,8 @@ defmodule Farmbot.BotStateTest do
 
   test "gets the current status" do
     # We drop the authorization key/value pair because the state handle call drops it.
-    {:ok, with_auth_status} = Farmbot.BotState.init(:normal)
+    {:ok, with_auth_status} = Farmbot.BotState.init(
+          %{target: "test", compat_version: 0, env: :test, version: "2.1.4"})
     status = with_auth_status |> Map.drop([:authorization])
     {:reply, current_status, current_status} = Farmbot.BotState.handle_call(:state, self(), status)
     # We havent changed anything so the status should be in its initial state.
