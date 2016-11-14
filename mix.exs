@@ -1,6 +1,4 @@
 defmodule Fw.Mixfile do
-  Code.load_file("tasks.exs")
-
   use Mix.Project
 
   def target(:prod) do
@@ -35,7 +33,8 @@ defmodule Fw.Mixfile do
   end
 
   def application do
-    [mod: {Fw, [%{target: target(Mix.env), compat_version: @compat_version, version: @version, env: Mix.env}]},
+    [mod: {Fw, [%{target: target(Mix.env), compat_version: @compat_version,
+                  version: @version, env: Mix.env}]},
      applications: apps(Mix.env)]
   end
 
@@ -145,6 +144,8 @@ defmodule Fw.Mixfile do
   end
 
   def system("rpi3") do
-    [{:"nerves_system_rpi3", git: "https://github.com/ConnorRigby/nerves_system_rpi3.git", tag: "v0.7.5" }]
+    [{:"nerves_system_rpi3",
+      git: "https://github.com/ConnorRigby/nerves_system_rpi3.git",
+      tag: "v0.7.5" }]
   end
 end

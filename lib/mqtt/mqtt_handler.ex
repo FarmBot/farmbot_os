@@ -7,10 +7,10 @@ defmodule Mqtt.Handler do
     {:ok, client} = Mqtt.Client.start_link(%{parent: __MODULE__})
     case FarmbotAuth.get_token do
       {:ok, token} ->
-        # if this module dies, we want it to log in again.
-        Process.send_after(__MODULE__, {:authorization, token}, 2500)
+        login(token)
+        {:ok, {client, token}}
+      _ ->
         {:ok, {client, nil}}
-      _ -> {:ok, {client, nil}}
     end
   end
 
@@ -18,18 +18,8 @@ defmodule Mqtt.Handler do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def handle_call({:log_in, options, token}, _from, {client, _}) do
-    case Mqtt.Client.connect(client, options) do
-      {:error, reason} ->
-        Logger.error("Error logging into MQTT: #{inspect reason}")
-        {:reply, {:error, reason}, {client, nil}}
-      :ok ->
-        {:reply, :ok, {client, token}}
-    end
-  end
-
   def handle_call(_, _, {client, nil}) do
-    Logger.debug("Dont have a token yet.")
+    Logger.debug("MQTT Doesn't have a token yet.")
     {:reply, :no_token, {client, nil}}
   end
 
@@ -40,9 +30,8 @@ defmodule Mqtt.Handler do
   def handle_call({:connect_ack, _message}, _from, {client, token}) do
     options = [id: 24756, topics: ["bot/#{bot(token)}/from_clients"], qoses: [0]]
     spawn fn ->
-      Logger.debug("Connect Ack")
-      Mqtt.Client.subscribe(client, options)
       Logger.debug("Subscribing")
+      Mqtt.Client.subscribe(client, options)
       BotSync.sync
     end
     keep_connection_alive
@@ -130,6 +119,17 @@ defmodule Mqtt.Handler do
     {:noreply, {client, token}}
   end
 
+  def handle_info(:login, {client, nil})
+  when is_pid(client) do
+    Logger.warn("This shouldn't be possible.")
+  end
+
+  def handle_info(:login, {client, token})
+  when is_pid(client) do
+    Mqtt.Client.connect(client, connect_options(token))
+    {:noreply, {client, token}}
+  end
+
   def handle_info({:EXIT, pid, _reason}, {client, token})
   when pid == client do
     Logger.error("Hulaki died.")
@@ -137,27 +137,13 @@ defmodule Mqtt.Handler do
   end
 
   def handle_info({:EXIT, _pid, _reason}, {client, token}) do
-    Logger.debug("something. died.")
+    Logger.warn("something. died.")
     {:noreply, {client, token}}
   end
 
   def handle_info({:authorization, token}, {client, _old_token}) do
-    mqtt_host = Map.get(token, "unencoded") |> Map.get("mqtt")
-    mqtt_user = Map.get(token, "unencoded") |> Map.get("bot")
-    mqtt_pass = Map.get(token, "encoded")
-    options = [client_id: mqtt_user,
-               username: mqtt_user,
-               password: mqtt_pass,
-               host: mqtt_host,
-               port: 1883,
-               timeout: 5000,
-               keep_alive: 500,
-               will_topic: "bot/#{bot(token)}/from_device",
-               will_message: build_last_will_message,
-               will_qos: 0,
-               will_retain: 0]
-     spawn fn -> GenServer.call(Mqtt.Handler, {:log_in, options, token}) end
-     {:noreply, {client, token}}
+    login(token)
+    {:noreply, {client, token}}
   end
 
   # We still want to keep alive, but dont actually preform the ping
@@ -190,5 +176,27 @@ defmodule Mqtt.Handler do
 
   defp build_last_will_message do
     RPC.MessageHandler.log_msg("Bot going offline", [:error_ticker], ["ERROR"])
+  end
+
+  defp login(token) do
+    # This wait fixes haluki crashing for some reason. 
+    Process.send_after(__MODULE__, :login, 2000)
+  end
+
+  defp connect_options(token) do
+    mqtt_host = Map.get(token, "unencoded") |> Map.get("mqtt")
+    mqtt_user = Map.get(token, "unencoded") |> Map.get("bot")
+    mqtt_pass = Map.get(token, "encoded")
+    [client_id: mqtt_user,
+               username: mqtt_user,
+               password: mqtt_pass,
+               host: mqtt_host,
+               port: 1883,
+               timeout: 5000,
+               keep_alive: 500,
+               will_topic: "bot/#{bot(token)}/from_device",
+               will_message: build_last_will_message,
+               will_qos: 0,
+               will_retain: 0]
   end
 end
