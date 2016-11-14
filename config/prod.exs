@@ -8,7 +8,6 @@ config :uart,
 
 config :fb,
   state_path: "/state",
-  db_path: "/db",
   dnsmasq_path: "/root/dnsmasq.lease"
 
 config :json_rpc,

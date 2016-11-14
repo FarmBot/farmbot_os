@@ -85,7 +85,7 @@ defmodule Farmbot.Scheduler do
     end
 
     # tell all the regimens to pause.
-    Enum.each(state.regimens, fn({pid, regimen, items, start_time, flag}) ->
+    Enum.each(state.regimens, fn({pid, _regimen, _items, _start_time, _flag}) ->
       Logger.debug("Pausing regimens")
       GenServer.cast(pid, :pause)
     end)
@@ -100,7 +100,7 @@ defmodule Farmbot.Scheduler do
     # tell all the regimens to resume.
     # Maybe a problem? the user might not want to restart EVERY regimen
     # there might have been regimens that werent paused by e stop?
-    Enum.each(state.regimens, fn({pid, regimen, items, start_time, flag}) ->
+    Enum.each(state.regimens, fn({pid, _regimen, _items, _start_time, _flag}) ->
       GenServer.cast(pid, :resume)
     end)
     # set current sequence to nil to allow sequences to continue.
@@ -113,7 +113,7 @@ defmodule Farmbot.Scheduler do
 
   # This strips out pids, tuples and whatnot for json status updates
   def handle_call(:jsonable, _from, state) do
-    regimen_info_list = Enum.map(state.regimens, fn({_pid, regimen, time, items, flag}) ->
+    regimen_info_list = Enum.map(state.regimens, fn({_pid, regimen, time, _items, flag}) ->
       %{regimen: regimen,
         info: %{
           start_time: time,

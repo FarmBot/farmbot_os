@@ -4,11 +4,18 @@ defmodule Controller do
 
   def init(_args) do
     children = [
+      # these handle communications between the frontend and bot.
       supervisor(Mqtt.Supervisor, [[]], restart: :permanent ),
       supervisor(RPC.Supervisor, [[]], restart: :permanent ),
+
+      # handles communications between bot and arduino
       supervisor(Serial.Supervisor, [[]], restart: :permanent ),
+
+      # Handle communications betwen bot and api
       worker(BotSync, [[]], restart: :permanent ),
-      worker(Farmbot.Scheduler, [[]], restart: :permanent)
+
+      # Just handles Farmbot scheduler stuff.
+      worker(Farmbot.Scheduler, [[]], restart: :permanent )
     ]
     opts = [strategy: :one_for_one, name: Controller.Supervisor]
     supervise(children, opts)

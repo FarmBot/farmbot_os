@@ -172,12 +172,12 @@ defmodule RPC.MessageHandler do
   end
 
   def do_handle("check_updates", _) do
-    Fw.check_and_download_os_update
+    Downloader.check_and_download_os_update
     :ok
   end
 
   def do_handle("check_arduino_updates", _) do
-    Fw.check_and_download_fw_update
+    Downloader.check_and_download_fw_update
     :ok
   end
 

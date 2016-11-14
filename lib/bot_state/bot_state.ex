@@ -69,7 +69,7 @@ defmodule BotState do
     throttled
   end
 
-  def load(%{target: target, compat_version: compat_version}) do
+  def load(%{target: target, compat_version: compat_version, env: env, version: version}) do
     token = case  FarmbotAuth.get_token() do
       {:ok, token} -> token
       _ -> nil
@@ -82,11 +82,12 @@ defmodule BotState do
         steps_per_mm:   500
       },
       informational_settings: %{
-        controller_version: Fw.version,
+        controller_version: version,
         private_ip: nil,
         throttled: get_throttled,
         target: target,
-        compat_version: compat_version
+        compat_version: compat_version,
+        environment: env
       },
       authorization: %{
         token: token,
@@ -193,6 +194,12 @@ defmodule BotState do
     {:reply, maybe_index, state}
   end
 
+  def handle_call(:get_version, _from, state) do
+    {:reply,
+      BotState.get_status.informational_settings.controller_version,
+      state}
+  end
+
   # Lock the frontend from doing stuff
   def handle_cast({:add_lock, string}, state) do
     maybe_index = Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
@@ -295,11 +302,11 @@ defmodule BotState do
     Logger.debug(msg)
     spawn fn -> RPC.MessageHandler.log(msg, [], ["BotUpdates"]) end
     if(state.configuration.os_auto_update == true) do
-      spawn fn -> Fw.check_and_download_os_update end
+      spawn fn -> Downloader.check_and_download_os_update end
     end
 
     if(state.configuration.fw_auto_update == true) do
-      spawn fn -> Fw.check_and_download_fw_update end
+      spawn fn -> Downloader.check_and_download_fw_update end
     end
     check_updates
     {:noreply, state}
@@ -320,6 +327,10 @@ defmodule BotState do
 
   def get_token do
     GenServer.call(__MODULE__, :get_token)
+  end
+
+  def get_version do
+    GenServer.call(__MODULE__, :get_version)
   end
 
   @spec get_lock(String.t) :: integer | nil
