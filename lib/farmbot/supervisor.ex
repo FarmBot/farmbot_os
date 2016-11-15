@@ -7,19 +7,13 @@ defmodule Farmbot.Supervisor do
     children = [
       # Storage that needs to persist across reboots.
       worker(SafeStorage, [env], restart: :permanent),
+      worker(SSH, [env], restart: :permanent),
 
       # master state tracker.
       worker(Farmbot.BotState,
         [%{target: target, compat_version: compat_version,
            version: version, env: env}],
       restart: :permanent),
-
-      # something sarcastic
-      worker(SSH, [env], restart: :permanent),
-
-      # these handle communications between the frontend and bot.
-      supervisor(Mqtt.Supervisor, [[]], restart: :permanent ),
-      supervisor(RPC.Supervisor, [[]], restart: :permanent ),
 
       # handles communications between bot and arduino
       supervisor(Farmbot.Serial.Supervisor, [[]], restart: :permanent ),
@@ -28,7 +22,11 @@ defmodule Farmbot.Supervisor do
       worker(Farmbot.Sync, [[]], restart: :permanent ),
 
       # Just handles Farmbot scheduler stuff.
-      worker(Farmbot.Scheduler, [[]], restart: :permanent )
+      worker(Farmbot.Scheduler, [[]], restart: :permanent ),
+
+      # these handle communications between the frontend and bot.
+      supervisor(Mqtt.Supervisor, [[]], restart: :permanent ),
+      supervisor(RPC.Supervisor, [[]], restart: :permanent )
     ]
     opts = [strategy: :one_for_one, name: Farmbot.Supervisor]
     supervise(children, opts)

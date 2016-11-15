@@ -304,7 +304,6 @@ defmodule Farmbot.Scheduler do
   # stop all regimens so they are not orphaned.
   def terminate(reason, state) do
     Logger.error("Farmbot Scheduler died. This is not good.")
-    spawn fn -> RPC.MessageHandler.send_status end
     Logger.debug("Reason: #{inspect reason}")
     # stop a sequence if one is running
     case state.current_sequence do

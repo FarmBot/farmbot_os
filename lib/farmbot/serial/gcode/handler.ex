@@ -26,7 +26,6 @@ defmodule Farmbot.Serial.Gcode.Handler do
     log: log})
   do
     send(pid, :done)
-    RPC.MessageHandler.send_status
     case List.first(log) do
       {nextstr, new_pid} ->
         Farmbot.Serial.Handler.write(nextstr, new_pid)

@@ -163,7 +163,6 @@ defmodule Regimen.VM  do
     msg = "Regimen: #{state.regimen.name} completed without errors!"
     Logger.debug(msg)
     Farmbot.Logger.log(msg, [:ticker, :success_toast], ["RegimenManager"])
-    spawn fn -> RPC.MessageHandler.send_status end
   end
 
   # this gets called if the scheduler crashes.
@@ -176,6 +175,5 @@ defmodule Regimen.VM  do
     msg = "Regimen: #{state.regimen.name} completed with errors! #{inspect reason}"
     Logger.debug(msg)
     Farmbot.Logger.log(msg, [:error_toast], ["RegimenManager"])
-    spawn fn -> RPC.MessageHandler.send_status end
   end
 end
