@@ -1,7 +1,6 @@
 defmodule Serialized do
   @moduledoc """
-    Farmbots Hardware State tracker State module. This is tied into
-    the frontend so don't change it unless you know what you are doing.
+  MOVE THIS SOMEWHERE ELSE
   """
   defstruct [
     # Hardware
