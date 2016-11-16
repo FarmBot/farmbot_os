@@ -1,14 +1,17 @@
 defmodule RPC.Supervisor do
-  def start_link(_) do
-    import Supervisor.Spec
+  use Supervisor
+  @transport Application.get_env(:json_rpc, :transport)
+  @handler   Application.get_env(:json_rpc, :handler)
+
+  def init(args) do
     children = [
       worker(RPC.MessageManager, []),
-      worker(RPC.MessageHandler, [], id: 1, name: RPC.MessageHandler )
+      worker(RPC.MessageHandler, [], id: 1, name: RPC.MessageHandler ),
+      worker(@transport, [[]], restart: :permanent),
+      worker(@handler, [[]], restart: :permanent)
     ]
-    Supervisor.start_link(children, strategy: :one_for_one, name: __MODULE__)
+    supervise(children, strategy: :one_for_one, name: __MODULE__)
   end
 
-  def init(_) do
-    {:ok, %{}}
-  end
+  def start_link(args), do: Supervisor.start_link(__MODULE__, args)
 end

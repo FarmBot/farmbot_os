@@ -10,9 +10,6 @@ config :farmbot,
   state_path: "/state",
   dnsmasq_path: "/root/dnsmasq.lease"
 
-config :json_rpc,
-    transport: Mqtt.Handler
-
 config :logger, :console,
   # format: "$metadata[$level] $levelpad$message\r\n",
   colors: [enabled: true ]

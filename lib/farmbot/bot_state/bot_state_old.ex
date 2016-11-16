@@ -1,62 +1,16 @@
 alias Farmbot.BotState.Hardware,      as: Hardware
 alias Farmbot.BotState.Configuration, as: Configuration
 alias Farmbot.BotState.Authorization, as: Authorization
+
+alias Serialized, as: State
 defmodule Farmbot.BotState do
   require Logger
   @moduledoc """
     Functions to modifying Farmbot's state
   """
 
-  defmodule State do
-    @moduledoc """
-      Farmbots Hardware State tracker State module. This is tied into
-      the frontend so don't change it unless you know what you are doing.
-    """
-    defstruct [
-      # Hardware
-      mcu_params: %{},
-      location: [0,0,0],
-      pins: %{},
-
-      # configuration
-      locks: [],
-      configuration: %{},
-      informational_settings: %{},
-
-      # Auth
-      authorization: %{
-        token: nil,
-        email: nil,
-        pass: nil,
-        server: nil,
-        network: nil
-      },
-
-      # farm scheduler
-      farm_scheduler: %Farmbot.Scheduler.State.Serializer{}
-    ]
-    @type t :: %__MODULE__{
-      locks: list(%{reason: String.t}),
-      mcu_params: map,
-      location: [number, ...], # i should change this to a tuple
-      pins: %{},
-      configuration: %{},
-      informational_settings: %{},
-      farm_scheduler: Farmbot.Scheduler.State.Serializer.t,
-      authorization: %{
-        token:   map | nil,
-        email:   String.t | nil,
-        pass:    String.t | nil,
-        server:  String.t | nil,
-        network: String.t | nil
-      }
-    }
-  end
-
   def init(args) do
     NetMan.put_pid(Farmbot.BotState)
-    save_interval
-    check_updates
     {:ok, load(args)}
   end
 
@@ -133,10 +87,6 @@ defmodule Farmbot.BotState do
     end
   end
 
-  def handle_call(:state, _from, state) do
-    {:reply, Map.drop(state, [:authorization]), state}
-  end
-
   def handle_call({:get_pin, pin_number}, _from, state) do
     {:reply, Map.get(state.pins, Integer.to_string(pin_number)), state}
   end
@@ -202,12 +152,6 @@ defmodule Farmbot.BotState do
   def handle_call({:get_lock, string}, _from, state) do
     maybe_index = Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
     {:reply, maybe_index, state}
-  end
-
-  def handle_call(:get_version, _from, state) do
-    {:reply,
-      Farmbot.BotState.get_status.informational_settings.controller_version,
-      state}
   end
 
   # I HAVE NO CLUE  WHAT IM DOING
@@ -307,28 +251,6 @@ defmodule Farmbot.BotState do
       end
   end
 
-  def handle_info(:save, state) do
-    save(state)
-    save_interval
-    {:noreply, state}
-  end
-
-  def handle_info(:check_updates, state) do
-    # THIS SHOULDN'T BE HERE
-    msg = "Checking for updates!"
-    Logger.debug(msg)
-    spawn fn -> Farmbot.Logger.log(msg, [], ["BotUpdates"]) end
-    if(state.configuration.os_auto_update == true) do
-      spawn fn -> Downloader.check_and_download_os_update end
-    end
-
-    if(state.configuration.fw_auto_update == true) do
-      spawn fn -> Downloader.check_and_download_fw_update end
-    end
-    check_updates
-    {:noreply, state}
-  end
-
   @doc """
     Gets the current position of the bot. Returns [x,y,z]
   """
@@ -374,6 +296,15 @@ defmodule Farmbot.BotState do
   end
 
   @doc """
+    Gets the map of every param.
+    Useful for resetting params if the arduino flops
+  """
+  @spec get_all_mcu_params :: Hardware.State.mcu_params
+  def get_all_mcu_params do
+    GenServer.call(Hardware, :get_all_mcu_params)
+  end
+
+  @doc """
     gets the value of a pin.
   """
   @spec get_pin(integer) :: %{mode: 0 | 1,   value: number}
@@ -395,7 +326,15 @@ defmodule Farmbot.BotState do
   """
   @spec add_creds({String.t, String.t, String.t}) :: :ok
   def add_creds({email, pass, server}) do
-    GenServer.cast(__MODULE__, {:creds, {email, pass, server}})
+    GenServer.cast(Authorization, {:creds, {email, pass, server}})
+  end
+
+  @doc """
+    Gets the current controller version
+  """
+  @spec get_version :: String.t
+  def get_version do
+    GenServer.call(Configuration, :get_version)
   end
 
   @doc """

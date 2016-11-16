@@ -48,19 +48,19 @@ defmodule Farmbot.BotState.Monitor do
   # When we get a state update from Hardware
   def handle_cast(%Hardware{} = new_things, {mgr, state}) do
     new_state = %State{state | hardware: new_things}
-    dispatch(mgr, state)
+    dispatch(mgr, new_state)
   end
 
   # When we get a state update from Configuration
   def handle_cast(%Configuration{} = new_things, {mgr, state}) do
     new_state = %State{state | configuration: new_things}
-    dispatch(mgr, state)
+    dispatch(mgr, new_state)
   end
 
   # When we get a state update from Authorization
   def handle_cast(%Authorization{} = new_things, {mgr, state}) do
     new_state = %State{state | authorization: new_things}
-    dispatch(mgr, state)
+    dispatch(mgr, new_state)
   end
 
   # If a handler dies, we try to restart it

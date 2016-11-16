@@ -45,7 +45,7 @@ defmodule Command do
   @spec resume(integer | nil) :: :ok | {:error, atom}
   def resume(integer) when is_integer(integer) do
     Farmbot.Serial.Handler.resume
-    params = Farmbot.BotState.get_status.mcu_params
+    params = Farmbot.BotState.get_all_mcu_params
     # The firmware takes forever to become ready again.
     Process.sleep(2000)
     case Enum.partition(params, fn({param, value}) ->

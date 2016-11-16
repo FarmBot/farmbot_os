@@ -1,208 +1,171 @@
 defmodule Farmbot.RPC.Handler do
-  require Logger
   @moduledoc """
-    Translates rpc commands into things farbot can do.
+    Handles RPC commands. This is @handler in config.
   """
-  # E STOP
-  def handle_request("emergency_lock", _) do
-    Command.e_stop
-    :ok
+  require Logger
+  use GenEvent
+  import Farmbot.RPC.Requests
+  @transport Application.get_env(:json_rpc, :transport)
+
+  @doc """
+    an ack_msg with just an id is concidered a valid good we win packet
+
+    an ack_msg with an id, and an error ( {method, message} ) is a good valid
+    error packet
+  """
+  @spec ack_msg(String.t) :: binary
+  def ack_msg(id) when is_bitstring(id) do
+    Poison.encode!(
+    %{id: id,
+      error: nil,
+      result: %{"OK" => "OK"} })
   end
 
-  # Home All
-  def handle_request("home_all", [ %{"speed" => s} ]) when is_integer s do
-    spawn fn -> Command.home_all(s) end
-    :ok
-  end
-
-  def handle_request("home_all", _params) do
-    Logger.debug("bad params for home_all")
-    {:error, "BAD_PARAMS",
-      Poison.encode!(%{"speed" => "number"})}
-  end
-
-  # WRITE_PIN
-  def handle_request("write_pin", [ %{"pin_mode" => 1, "pin_number" => p, "pin_value" => v} ])
-    when is_integer(p) and
-         is_integer(v)
+  # JSON RPC RESPONSE ERROR
+  @spec ack_msg(String.t, {String.t, String.t}) :: binary
+  def ack_msg(id, {name, message})
+    when is_bitstring(id) and is_bitstring(name)
+     and is_bitstring(message)
   do
-    spawn fn -> Command.write_pin(p,v,1) end
-    :ok
+    Logger.error("RPC ERROR")
+    Logger.debug("#{inspect {name, message}}")
+    Poison.encode!(
+    %{id: id,
+      error: %{name: name,
+               message: message },
+      result: nil})
   end
 
-  def handle_request("write_pin", [ %{"pin_mode" => 0, "pin_number" => p, "pin_value" => v} ])
-    when is_integer p and
-         is_integer v
+  @doc """
+    Builds a log message to send to the fronend.
+  """
+  @spec log_msg(String.t, [channel,...], [String.t, ...]) :: binary
+  def log_msg(message, channels, tags)
+  when is_list(channels)
+       and is_list(tags)
+       and is_bitstring(message)
   do
-    spawn fn -> Command.write_pin(p,v,0) end
-    :ok
+    status =
+      %{ status:
+          %{location: Farmbot.BotState.get_current_pos}, # Shhhh
+            time: :os.system_time(:seconds),
+            message: message,
+            channels: channels,
+            tags: tags }
+    %Notification{
+      id: nil,
+      method: "log_message",
+      params: [status]} |> Poison.encode!
   end
 
-  def handle_request("write_pin", _) do
-    {:error, "BAD_PARAMS",
-      Poison.encode!(%{"pin_mode" => "1 or 2", "pin_number" => "number", "pin_value" => "number"})}
+
+  @doc """
+    Shortcut for logging a message to the frontend.
+    =  Channel can be  =
+    |   :ticker        |
+    |   :error_ticker  |
+    |   :error_toast   |
+    |   :success_toast |
+    |   :warning_toast |
+  """
+  @type channel :: :ticker | :error_ticker | :error_toast | :success_toast | :warning_toast
+  @spec log(String.t, [channel,...], [String.t]) :: :ok | {:error, atom}
+  def log(message, channels, tags)
+  when is_bitstring(message)
+   and is_list(channels)
+   and is_list(tags) do
+     log_msg(message, channels, tags) |> @transport.emit
   end
 
-  def handle_request("toggle_pin", [%{"pin_number" => p}]) when is_integer(p) do
-    spawn fn -> Command.toggle_pin(p) end
-    :ok
-  end
-
-  def handle_request("toggle_pin", params) do
-    Logger.error ("#{inspect params}")
-    {:error, "BAD_PARAMS",
-      Poison.encode!(%{"pin_number" => "number"})}
-  end
-
-  # Move to a specific coord
-  def handle_request("move_absolute",  [%{"speed" => s, "x" => x, "y" => y, "z" => z}])
-  when is_integer(x) and
-       is_integer(y) and
-       is_integer(z) and
-       is_integer(s)
-  do
-    spawn fn -> Command.move_absolute(x,y,z,s) end
-    :ok
-  end
-
-  def handle_request("move_absolute",  _params) do
-    Logger.debug("bad params for Move Absolute")
-    {:error, "BAD_PARAMS",
-      Poison.encode!(%{"x" => "number", "y" => "number", "z" => "number", "speed" => "number"})}
-  end
-
-  # Move relative to current x position
-  def handle_request("move_relative", [%{"speed" => speed,
-                                    "x" => x_move_by,
-                                    "y" => y_move_by,
-                                    "z" => z_move_by}])
-    when is_integer(speed) and
-         is_integer(x_move_by) and
-         is_integer(y_move_by) and
-         is_integer(z_move_by)
-  do
-    spawn fn -> Command.move_relative(%{x: x_move_by, y: y_move_by, z: z_move_by, speed: speed}) end
-    :ok
-  end
-
-  def handle_request("move_relative", _) do
-    {:error, "BAD_PARAMS",
-      Poison.encode!(%{"x or y or z" => "number to move by", "speed" => "number"})}
-  end
-
-  # Read status
-  def handle_request("read_status", _) do
-    Logger.debug("Reporting Current Status")
-    RPC.MessageHandler.send_status
-  end
-
-  def handle_request("check_updates", _) do
-    Downloader.check_and_download_os_update
-    :ok
-  end
-
-  def handle_request("check_arduino_updates", _) do
-    Downloader.check_and_download_fw_update
-    :ok
-  end
-
-  def handle_request("reboot", _ ) do
-    Farmbot.Logger.log("Bot Going down for reboot in 5 seconds", [], ["BotControl"])
-    spawn fn ->
-      Farmbot.Logger.log("Rebooting!", [:ticker, :warning_toast], ["BotControl"])
-      Process.sleep(5000)
-      Nerves.Firmware.reboot
-    end
-    :ok
-  end
-
-  def handle_request("power_off", _ ) do
-    Farmbot.Logger.log("Bot Going down in 5 seconds. Pls remeber me.",
-      [:ticker, :warning_toast], ["BotControl"])
-    spawn fn ->
-      Farmbot.Logger.log("Powering Down!",
-        [:ticker, :warning_toast], ["BotControl"])
-      Process.sleep(5000)
-      Nerves.Firmware.poweroff
-    end
-    :ok
-  end
-
-  def handle_request("mcu_config_update", [params]) when is_map(params) do
-    case Enum.partition(params, fn({param, value}) ->
-      param_int = Farmbot.Serial.Gcode.Parser.parse_param(param)
-      spawn fn -> Command.update_param(param_int, value) end
-    end)
-    do
-      {_, []} ->
-        Farmbot.Logger.log("MCU params updated.", [:success_toast], ["RPCHANDLER"])
-        RPC.MessageHandler.send_status
-        :ok
-      {_, failed} ->
-        Farmbot.Logger.log("MCU params failed: #{inspect failed}", [:error_toast], ["RPCHANDLER"])
-        RPC.MessageHandler.send_status
-        :ok
+  # when a request message comes in, we send an ack that we got the message
+  @spec handle_incoming(Request.t | Response.t | Notification.t) :: any
+  def handle_incoming(%Request{} = rpc) do
+    case handle_request(rpc.method, rpc.params) do
+      :ok ->
+        @transport.emit(ack_msg(rpc.id))
+      {:error, name, message} ->
+        @transport.emit(ack_msg(rpc.id, {name, message}))
+      unknown ->
+        @transport.emit(ack_msg(rpc.id, {"unknown error", unknown}))
     end
   end
 
-  def handle_request("bot_config_update", [configs]) do
-    case Enum.partition(configs, fn({config, value}) ->
-      Farmbot.BotState.update_config(config, value)
-    end) do
-      {_, []} ->
-        Farmbot.Logger.log("Bot Configs updated.", [:success_toast], ["RPCHANDLER"])
-        RPC.MessageHandler.send_status
-        :ok
-      {_, failed} ->
-        Farmbot.Logger.log("Bot Configs failed: #{inspect failed}", [:error_toast], ["RPCHANDLER"])
-        RPC.MessageHandler.send_status
-        :ok
-    end
+  # The bot itself doesn't make requests so it shouldn't ever get a response.
+  def handle_incoming(%Response{} = rpc) do
+    Logger.warn("Farmbot doesn't know what to do with this message:
+                  #{inspect rpc}")
   end
 
-  def handle_request("sync", _) do
-    Farmbot.Sync.sync
-    :ok
+  # The frontend doesn't send notifications so the bot shouldn't get a notification.
+  def handle_incoming(%Notification{} = rpc) do
+    Logger.warn("Farmbot doesn't know what to do with this message:
+                  #{inspect rpc}")
   end
 
-  def handle_request("exec_sequence", [sequence]) do
-    Map.drop(sequence, ["dirty"])
-    |> Map.merge(%{"device_id" => -1, "id" => Map.get(sequence, "id") || -1})
-    |> Sequence.create
-    |> Farmbot.Scheduler.add_sequence
+  # Just to be sure
+  def handle_incoming(_) do
+    Logger.warn("Farmbot got a malformed RPC Message.")
   end
 
-  def handle_request("start_regimen", [%{"regimen_id" => id}]) when is_integer(id) do
-    Farmbot.Sync.sync()
-    regimen = Farmbot.Sync.get_regimen(id)
-    Farmbot.Scheduler.add_regimen(regimen)
-    RPC.MessageHandler.send_status
+  @doc """
+    Builds a json to send to the frontend
+  """
+  @spec build_status :: binary
+  def build_status do
+    unserialized = GenEvent.call(BotStateEventManager, __MODULE__, :state)
+    m = %Notification{
+      id: nil,
+      method: "status_update",
+      params: [serialize_state(unserialized)] }
+    Poison.encode!(m)
   end
 
-  def handle_request("start_regimen", params) do
-    Logger.debug("bad params for start_regimen: #{inspect params}")
-    {:error, "BAD_PARAMS",
-      Poison.encode!(%{"regimen_id" => "number"})}
+  @doc """
+    Sends the status message over whatever transport.
+  """
+  @spec send_status :: :ok | {:error, atom}
+  def send_status do
+    build_status |> @transport.emit
   end
 
-  def handle_request("stop_regimen", [%{"regimen_id" => id}]) when is_integer(id) do
-    regimen = Farmbot.Sync.get_regimen(id)
-    running = GenServer.call(Farmbot.Scheduler, :state) |> Map.get(:regimens)
+  @doc """
+    Takes the cached bot state, and then
+    serializes it into thr correct shape for the frontend
+    to be sent over mqtt
+  """
+  @spec serialize_state(Farmbot.BotState.Monitor.State.t) :: Serialized.t
+  def serialize_state(%Farmbot.BotState.Monitor.State{
+    hardware: hardware, configuration: configuration
+  }) do
+    %Serialized{
+      mcu_params: hardware.mcu_params,
+      location: hardware.location,
+      pins: hardware.pins,
 
-    {pid, ^regimen, _, _, _} = Farmbot.Scheduler.find_regimen(regimen, running)
-    send(Farmbot.Scheduler, {:done, {:regimen, pid, regimen}})
-    :ok
+      # configuration
+      locks: configuration.locks,
+      configuration: configuration.configuration,
+      informational_settings: configuration.informational_settings,
+
+      # farm scheduler
+      farm_scheduler: %Farmbot.Scheduler.State.Serializer{}
+    }
   end
 
-  def handle_request("stop_regimen", params) do
-    Logger.debug("bad params for stop_regimen: #{inspect params}")
-    {:error, "BAD_PARAMS",
-      Poison.encode!(%{"regimen_id" => "number"})}
+  # GENEVENT CALLBACKS DON'T EVEN WORRY ABOUT IT
+
+  # Event from BotState.
+  def handle_event({:dispatch, state}, _) do
+    {:ok, state}
   end
 
-  # Unhandled event. Probably not implemented if it got this far.
-  def handle_request(event, params) do
-    Logger.warn("[RPC_HANDLER] got valid rpc, but event is not implemented.")
-    {:error, "Unhandled method", "#{inspect {event, params}}"}
+  # Gets the most recent "cached" BotState
+  def handle_call(:state, state) do
+    {:ok, state, state}
+  end
+
+  def start_link(_args) do
+    Farmbot.BotState.Monitor.add_handler(__MODULE__)
+    {:ok, self()}
   end
 end

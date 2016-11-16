@@ -10,11 +10,11 @@ defmodule Farmbot.Supervisor do
       worker(SafeStorage, [env], restart: :permanent),
       worker(SSH, [env], restart: :permanent),
 
-      # master state tracker.
-      worker(Farmbot.BotState,
-        [%{target: target, compat_version: compat_version,
-           version: version, env: env}],
-      restart: :permanent),
+      # master state tracker is being rewritten.
+      # worker(Farmbot.BotState,
+      #   [%{target: target, compat_version: compat_version,
+      #      version: version, env: env}],
+      # restart: :permanent),
 
       supervisor(Farmbot.BotState.Supervisor,
         [%{target: target, compat_version: compat_version,
@@ -30,8 +30,7 @@ defmodule Farmbot.Supervisor do
       # Just handles Farmbot scheduler stuff.
       worker(Farmbot.Scheduler, [[]], restart: :permanent ),
 
-      # these handle communications between the frontend and bot.
-      supervisor(Mqtt.Supervisor, [[]], restart: :permanent ),
+      # Handles Communication between the bot and frontend
       supervisor(RPC.Supervisor, [[]], restart: :permanent )
     ]
     opts = [strategy: :one_for_one, name: Farmbot.Supervisor]

@@ -5,7 +5,7 @@ defmodule Farmbot.Logger do
     and push them to teh frontend
   """
   def log(message, channels, tags) do
-    RPC.MessageHandler.log(message, channels, tags)
+    Farmbot.RPC.Handler.log(message, channels, tags)
     GenServer.cast(__MODULE__, {:log, message, tags, Timex.now})
   end
 
@@ -57,7 +57,7 @@ defmodule Farmbot.Logger do
 
   def filter(messages, tag, list_of_tags)
   when is_bitstring(tag) and is_list(list_of_tags) do
-    {bleep, bloop} = Enum.partition(messages, fn({_m, tags, _}) ->
+    {_bleep, bloop} = Enum.partition(messages, fn({_m, tags, _}) ->
       contain_tag?(tags, tag)
     end)
     filter(messages -- bloop, list_of_tags -- [tag])
