@@ -3,9 +3,11 @@ defmodule Farmbot.BotState.Supervisor do
   require Logger
   def init(_args) do
     children = [
-      worker(GenEvent, [[name: :event_manager]], [id: :event_manager]),
-      worker(Farmbot.BotState.Monitor, [:event_manager]),
-      worker(Farmbot.BotState.Hardware, [[]], [])
+      worker(GenEvent, [[name: BotStateEventManager]], [id: BotStateEventManager]),
+      worker(Farmbot.BotState.Monitor,       [BotStateEventManager], []),
+      worker(Farmbot.BotState.Hardware,      [[]], []),
+      worker(Farmbot.BotState.Configuration, [[]], []),
+      worker(Farmbot.BotState.Authorization, [[]], [])
     ]
     opts = [strategy: :one_for_one, name: __MODULE__]
     supervise(children, opts)

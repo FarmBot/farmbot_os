@@ -1,21 +1,30 @@
+alias Farmbot.BotState.Hardware.State,      as: Hardware
+alias Farmbot.BotState.Configuration.State, as: Configuration
+alias Farmbot.BotState.Authorization.State, as: Authorization
+
 defmodule Farmbot.BotState.Monitor do
   @moduledoc """
     this is the master state tracker. It receives the states from
     various modules, and then pushes updated state to anything that cares
   """
-  alias Farmbot.BotState.Hardware.State, as: Hardware
   use GenServer
   require Logger
 
   defmodule State do
-    alias Farmbot.BotState.Hardware.State, as: Hardware
+    @moduledoc false
+    @type t :: %__MODULE__{
+      hardware:      Hardware.t,
+      configuration: Configuration.t,
+      authorization: Authorization.t
+    }
     defstruct [
-      hardware: %Hardware{}
+      hardware:      %Hardware{},
+      configuration: %Configuration{},
+      authorization: %Authorization{}
     ]
   end
 
   def init(mgr) do
-    :ok = add_handler(mgr, DefaultHandler, [])
     {:ok, {mgr, %State{}}}
   end
 
@@ -23,23 +32,50 @@ defmodule Farmbot.BotState.Monitor do
     GenServer.start_link(__MODULE__, mgr, name: __MODULE__)
   end
 
-  def add_handler(mgr, module, args) do
-    GenEvent.add_mon_handler(mgr, module, args)
+  def add_handler(mgr, module) do
+    GenEvent.add_mon_handler(mgr, module, [])
   end
 
-  def add_handler(module, args) do
-    GenServer.cast(__MODULE__, {:add_handler, module, args})
+  def add_handler(module) do
+    GenServer.cast(__MODULE__, {:add_handler, module})
   end
 
-  def handle_cast({:add_handler, module, args}, {mgr, state}) do
-    add_handler(mgr, module, args)
-    GenEvent.notify(:event_manager, {:dispatch, state})
-    {:noreply, {mgr, state}}
+  def handle_cast({:add_handler, module}, {mgr, state}) do
+    add_handler(mgr, module)
+    dispatch(mgr, state)
   end
 
+  # When we get a state update from Hardware
   def handle_cast(%Hardware{} = new_things, {mgr, state}) do
     new_state = %State{state | hardware: new_things}
-    GenEvent.notify(:event_manager, {:dispatch, new_state})
-    {:noreply, {mgr, new_state}}
+    dispatch(mgr, state)
+  end
+
+  # When we get a state update from Configuration
+  def handle_cast(%Configuration{} = new_things, {mgr, state}) do
+    new_state = %State{state | configuration: new_things}
+    dispatch(mgr, state)
+  end
+
+  # When we get a state update from Authorization
+  def handle_cast(%Authorization{} = new_things, {mgr, state}) do
+    new_state = %State{state | authorization: new_things}
+    dispatch(mgr, state)
+  end
+
+  # If a handler dies, we try to restart it
+  def handle_info({:gen_event_EXIT, handler, _reason}, {mgr, state}) do
+    Logger.warn("HANDLER DIED: #{inspect handler} Goint to try to restart")
+    add_handler(mgr, handler)
+    dispatch(mgr, state)
+  end
+
+  @doc """
+    Callback for the genserver in this module
+  """
+  @spec dispatch(pid | atom, State.t) :: {:noreply, {pid | atom, State.e}}
+  def dispatch(mgr, state) do
+    GenEvent.notify(mgr, {:dispatch, state})
+    {:noreply, {mgr, state}}
   end
 end

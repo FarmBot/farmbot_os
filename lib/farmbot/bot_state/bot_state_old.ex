@@ -1,14 +1,11 @@
+alias Farmbot.BotState.Hardware,      as: Hardware
+alias Farmbot.BotState.Configuration, as: Configuration
+alias Farmbot.BotState.Authorization, as: Authorization
 defmodule Farmbot.BotState do
-  @moduledoc """
-    Farmbot's Hardware State tracker
-
-    The state of this module should persist across reboots.
-  """
-  use GenServer
   require Logger
-
-  @save_interval 15000
-  @twelve_hours 3600000
+  @moduledoc """
+    Functions to modifying Farmbot's state
+  """
 
   defmodule State do
     @moduledoc """
@@ -16,20 +13,27 @@ defmodule Farmbot.BotState do
       the frontend so don't change it unless you know what you are doing.
     """
     defstruct [
-      locks: [],
+      # Hardware
       mcu_params: %{},
       location: [0,0,0],
       pins: %{},
+
+      # configuration
+      locks: [],
       configuration: %{},
       informational_settings: %{},
-      farm_scheduler: %Farmbot.Scheduler.State.Serializer{},
+
+      # Auth
       authorization: %{
         token: nil,
         email: nil,
         pass: nil,
         server: nil,
         network: nil
-      }
+      },
+
+      # farm scheduler
+      farm_scheduler: %Farmbot.Scheduler.State.Serializer{}
     ]
     @type t :: %__MODULE__{
       locks: list(%{reason: String.t}),
@@ -325,62 +329,105 @@ defmodule Farmbot.BotState do
     {:noreply, state}
   end
 
+  @doc """
+    Gets the current position of the bot. Returns [x,y,z]
+  """
+  @spec get_current_pos() :: [integer, ...]
+  def get_current_pos do
+    GenServer.call(Hardware, :get_current_pos)
+  end
+
+  @doc """
+    Sets the position to givin position.
+  """
+  @spec set_pos(integer,integer,integer) :: :ok
+  def set_pos(x, y, z)
+  when is_integer(x) and is_integer(y) and is_integer(z) do
+    GenServer.cast(Hardware, {:set_pos, {x, y, z}})
+  end
+
+  @doc """
+    Sets a pin under the given value
+  """
+  @spec set_pin_value(integer, integer) :: :ok
+  def set_pin_value(pin, value) when is_integer(pin) and is_integer(value) do
+    GenServer.cast(Hardware, {:set_pin_value, {pin, value}})
+  end
+
+  @doc """
+    Sets a mode for a particular pin.
+    This should happen before setting the value if possible.
+  """
+  @spec set_pin_mode(integer,0 | 1) :: :ok
+  def set_pin_mode(pin, mode)
+  when is_integer(pin) and is_integer(mode) do
+    GenServer.cast(Hardware, {:set_pin_mode, {pin, mode}})
+  end
+
+  @doc """
+    Sets a param to a particular value.
+    This should be the human readable atom version of the param.
+  """
+  @spec set_param(atom, integer) :: :ok
+  def set_param(param, value) when is_atom(param) do
+    GenServer.cast(Hardware, {:set_param, {param, value}})
+  end
+
+  @doc """
+    gets the value of a pin.
+  """
+  @spec get_pin(integer) :: %{mode: 0 | 1,   value: number}
+  def get_pin(pin_number) when is_integer(pin_number) do
+    GenServer.call(Hardware, {:get_pin, pin_number})
+  end
+
+  @doc """
+    Gets the most recent token
+  """
+  @spec get_token() :: map
+  def get_token do
+    GenServer.call(Authorization, :get_token)
+  end
+
+  @doc """
+    Adds credentials.
+    TODO: FIX THIS DONT STORE PASS IN PLAIN TEXT YOU NOOB
+  """
+  @spec add_creds({String.t, String.t, String.t}) :: :ok
   def add_creds({email, pass, server}) do
     GenServer.cast(__MODULE__, {:creds, {email, pass, server}})
   end
 
-  # setting that timeout is probably going to be a disaster.
-  def get_status do
-    GenServer.call(__MODULE__, :state, :infinity)
+  @doc """
+    Update a config under key
+  """
+  @spec update_config(String.t, any) :: :ok | {:error, atom}
+  def update_config(config_key, value)
+  when is_bitstring(config_key) do
+    GenServer.call(Configuration, {:update_config, config_key, value})
   end
 
-  def get_current_pos do
-    GenServer.call(__MODULE__, :get_current_pos)
-  end
-
-  def get_token do
-    GenServer.call(__MODULE__, :get_token)
-  end
-
-  def get_version do
-    GenServer.call(__MODULE__, :get_version)
+  @doc """
+    Gets the value stored under key.
+  """
+  @spec get_config(atom) :: nil | any
+  def get_config(config_key) when is_atom(config_key) do
+    GenServer.call(Configuration, {:get_config, config_key})
   end
 
   @spec get_lock(String.t) :: integer | nil
   def get_lock(string) when is_bitstring(string) do
-    GenServer.call(__MODULE__, {:get_lock, string})
-  end
-
-  def set_pos(x, y, z)
-  when is_integer(x) and is_integer(y) and is_integer(z) do
-    GenServer.cast(__MODULE__, {:set_pos, {x, y, z}})
-  end
-
-  def set_pin_value(pin, value) when is_integer(pin) and is_integer(value) do
-    GenServer.cast(__MODULE__, {:set_pin_value, {pin, value}})
-  end
-
-  def set_pin_mode(pin, mode)
-  when is_integer(pin) and is_integer(mode) do
-    GenServer.cast(__MODULE__, {:set_pin_mode, {pin, mode}})
-  end
-
-  def set_param(param, value) when is_atom(param) do
-    GenServer.cast(__MODULE__, {:set_param, {param, value}})
-  end
-
-  def get_pin(pin_number) when is_integer(pin_number) do
-    GenServer.call(__MODULE__, {:get_pin, pin_number})
+    GenServer.call(Configuration, {:get_lock, string})
   end
 
   @spec add_lock(String.t) :: :ok
   def add_lock(string) when is_bitstring(string) do
-    GenServer.cast(__MODULE__, {:add_lock, string})
+    GenServer.cast(Configuration, {:add_lock, string})
   end
 
   @spec remove_lock(String.t) :: :ok | {:error, atom}
   def remove_lock(string) when is_bitstring(string) do
-    GenServer.call(__MODULE__, {:remove_lock, string})
+    GenServer.call(Configuration, {:remove_lock, string})
   end
 
   def set_end_stop(_something) do
@@ -432,18 +479,6 @@ defmodule Farmbot.BotState do
     Logger.error("Something weird happened applying last params: #{inspect params}")
   end
 
-  @doc """
-    Update a config under key
-  """
-  def update_config(config_key, value)
-  when is_bitstring(config_key) do
-    GenServer.call(__MODULE__, {:update_config, config_key, value})
-  end
-
-  def get_config(config_key) when is_atom(config_key) do
-    GenServer.call(__MODULE__, {:get_config, config_key})
-  end
-
   def set_time do
     System.cmd("ntpd", ["-q",
      "-p", "0.pool.ntp.org",
@@ -459,13 +494,5 @@ defmodule Farmbot.BotState do
     if :os.system_time(:seconds) <  1474929 do
       check_time_set # wait until time is set
     end
-  end
-
-  defp save_interval do
-    Process.send_after(__MODULE__, :save, @save_interval)
-  end
-
-  defp check_updates do
-    Process.send_after(__MODULE__, :check_updates, @twelve_hours)
   end
 end

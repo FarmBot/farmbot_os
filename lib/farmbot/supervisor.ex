@@ -16,6 +16,11 @@ defmodule Farmbot.Supervisor do
            version: version, env: env}],
       restart: :permanent),
 
+      supervisor(Farmbot.BotState.Supervisor,
+        [%{target: target, compat_version: compat_version,
+           version: version, env: env}],
+      restart: :permanent),
+
       # handles communications between bot and arduino
       supervisor(Farmbot.Serial.Supervisor, [[]], restart: :permanent ),
 
