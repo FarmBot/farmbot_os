@@ -5,6 +5,7 @@ defmodule Farmbot.Supervisor do
   def init(%{target: target, compat_version: compat_version,
                       version: version, env: env}) do
     children = [
+      # worker(Farmbot.Logger, [[]], restart: :permanent),
       # Storage that needs to persist across reboots.
       worker(SafeStorage, [env], restart: :permanent),
       worker(SSH, [env], restart: :permanent),

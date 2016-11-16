@@ -7,6 +7,13 @@ defmodule Farmbot do
   use Supervisor
   @state_path Application.get_env(:farmbot, :state_path)
 
+  def node_reset(address) do
+  # ip = Farmbot.BotState.get_status |> Map.get(:informational_settings) |> Map.get(:private_ip)
+    Node.stop
+    full_node_name = "farmbot@#{address}" |> String.to_atom
+    {:ok, _pid} = Node.start(full_node_name)
+  end
+
   @doc """
     Shortcut to Nerves.Firmware.reboot
   """

@@ -9,6 +9,49 @@ defmodule Farmbot.Scheduler do
   """
 
   defmodule State do
+    defmodule Serializer do
+      @moduledoc """
+        When all you want is relevant information :tm:
+      """
+      @type regimen_info ::
+      %{regimen: Regimen.t,
+        info: %{ start_time: DateTime.t,
+                 status: State.regimen_flag }
+       }
+
+      @type t :: %__MODULE__{
+        process_info: [regimen_info],
+        current_sequence: Sequence.t | nil,
+        sequence_log: [Sequence.t]
+      }
+
+      defstruct [
+        process_info: [],
+        current_sequence: nil,
+        sequence_log: []
+        ]
+
+      @doc """
+        Turns a state into something more readable (by the web app)
+      """
+      @spec serialize(State.t) :: State.Serializer.t
+      def serialize(state) do
+        regimen_info_list = Enum.map(state.regimens, fn({_pid, regimen, time, _items, flag}) ->
+          %{regimen: regimen,
+            info: %{
+              start_time: time,
+              status: flag}}
+        end)
+        cs = case state.current_sequence do
+          {_, sequence} -> sequence
+          uh -> uh
+        end
+          %__MODULE__{ process_info: regimen_info_list,
+                       current_sequence: cs,
+                       sequence_log: state.sequence_log}
+      end
+
+    end
     @moduledoc false
 
     @typedoc """
@@ -58,12 +101,14 @@ defmodule Farmbot.Scheduler do
     case SafeStorage.read(__MODULE__) do
       {:ok, %State{} = last_state} ->
         Logger.debug("loading previous #{__MODULE__} state: #{inspect last_state}")
-        Map.update!(last_state, :regimens, fn(old_regimens) ->
+        new_state = Map.update!(last_state, :regimens, fn(old_regimens) ->
           Enum.map(old_regimens, fn({_,regimen, finished_items, time, _}) ->
             {:ok, pid} = Regimen.VM.start_link(regimen, finished_items, time)
             {pid,regimen, finished_items, time, :normal}
           end)
         end)
+        save_and_update(new_state)
+        new_state
       _ ->
         Logger.debug("starting new #{__MODULE__} state.")
         default_state
@@ -107,29 +152,15 @@ defmodule Farmbot.Scheduler do
     {:noreply, %State{state | current_sequence: nil}}
   end
 
-  def handle_call(:state, _from, state) do
-    {:reply, state, state}
-  end
-
   # This strips out pids, tuples and whatnot for json status updates
-  def handle_call(:jsonable, _from, state) do
-    regimen_info_list = Enum.map(state.regimens, fn({_pid, regimen, time, _items, flag}) ->
-      %{regimen: regimen,
-        info: %{
-          start_time: time,
-          status: flag}}
-    end)
-    cs = case state.current_sequence do
-      {_, sequence} -> sequence
-      uh -> uh
-    end
-    jsonable =
-      %{process_info: regimen_info_list,
-        current_sequence: cs,
-        sequence_log: state.sequence_log}
+  def handle_call(:jsonable, state) do
+    jsonable = State.Serializer.serialize(state)
     {:reply, jsonable, state}
   end
 
+  def handle_call(:state, _from, state) do
+    {:reply, state, state}
+  end
 
   def handle_call({:add, {:sequence, sequence}}, _from, state) do
     {:reply, :ok, %State{state | sequence_log: state.sequence_log ++ [sequence]}}
@@ -150,7 +181,7 @@ defmodule Farmbot.Scheduler do
         {:ok, pid} = Regimen.VM.start_link(regimen, [], start_time)
         reg_tup = {pid, regimen, [], start_time, :normal}
         new_state = %State{state | regimens: current ++ [reg_tup]}
-        SafeStorage.write(__MODULE__, :erlang.term_to_binary(new_state))
+        save_and_update(new_state)
         {:reply, :starting, new_state}
 
       # If the regimen is in paused state.
@@ -169,16 +200,18 @@ defmodule Farmbot.Scheduler do
   # The Sequence finished. Cleanup if its still alive..
   def handle_info({:done, {:sequence, pid, _sequence}}, state) do
     GenServer.stop(pid, :normal)
-    {:noreply, %State{state | current_sequence: nil}}
+    new_state = %State{state | current_sequence: nil}
+    save_and_update(new_state)
+    {:noreply, new_state }
   end
 
   # A regimen is ready to be stopped.
   def handle_info({:done, {:regimen, pid, regimen}}, state) do
     Logger.debug("Regimen: #{regimen.name} has finished.")
-    GenServer.stop(pid, :normal)
     reg_tup = find_regimen(regimen, state.regimens)
     new_state = %State{state | regimens: state.regimens -- [reg_tup]}
-    SafeStorage.write(__MODULE__, :erlang.term_to_binary(new_state))
+    save_and_update(new_state)
+    GenServer.stop(pid, :normal)
     {:noreply, new_state}
   end
 
@@ -196,7 +229,7 @@ defmodule Farmbot.Scheduler do
         fn({^pid, ^regimen, _old_items, ^start_time, _flag}) ->
           {pid, regimen, finished_items, start_time, flag}
         end)}
-        SafeStorage.write(__MODULE__, :erlang.term_to_binary(new_state))
+        save_and_update(new_state)
         {:noreply, new_state}
       is_nil(found) ->
         # Something is not good. try to clean up.
@@ -245,6 +278,13 @@ defmodule Farmbot.Scheduler do
     {:noreply, %State{sequence_log: log -- [sequence],
                       current_sequence: {pid, sequence},
                       regimens: regimens}}
+  end
+
+  @spec save_and_update(State.t) :: :ok
+  def save_and_update(%State{} = state) do
+    GenServer.cast(Farmbot.BotState,
+            {:scheduler, State.Serializer.serialize(state)})
+    SafeStorage.write(__MODULE__, :erlang.term_to_binary(state))
   end
 
   @doc """

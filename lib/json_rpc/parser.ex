@@ -50,7 +50,7 @@ defmodule JsonRpc.Parser do
     Poison.encode!(
       %{ id: nil,
          method: "log_message",
-         params: [%{ status: Farmbot.BotState.get_status,
+         params: [%{ status: %{location: Farmbot.BotState.get_current_pos}, # Shhhh
                      time: :os.system_time(:seconds),
                      message: message,
                      channels: channels,

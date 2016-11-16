@@ -56,6 +56,7 @@ defmodule RPC.MessageHandler do
   @doc """
     Shortcut for logging a message to the frontend.
     =  Channel can be  =
+    |  :ticker   |
     |  :error_ticker   |
     |  :error_toast    |
     |  :success_toast  |
@@ -72,13 +73,9 @@ defmodule RPC.MessageHandler do
 
   # This is what actually updates the rest of the world about farmbots status.
   def send_status do
-    status =
-      Map.merge(Farmbot.BotState.get_status,
-      %{farm_scheduler: GenServer.call(Farmbot.Scheduler, :jsonable)})
-
     m = %{id: nil,
           method: "status_update",
-          params: [status] }
-    @transport.emit(Poison.encode!(m))
+          params: [Farmbot.BotState.get_status] }
+      @transport.emit(Poison.encode!(m))
   end
 end

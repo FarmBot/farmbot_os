@@ -21,6 +21,7 @@ defmodule Farmbot.BotState do
       pins: %{},
       configuration: %{},
       informational_settings: %{},
+      farm_scheduler: %Farmbot.Scheduler.State.Serializer{},
       authorization: %{
         token: nil,
         email: nil,
@@ -36,6 +37,7 @@ defmodule Farmbot.BotState do
       pins: %{},
       configuration: %{},
       informational_settings: %{},
+      farm_scheduler: Farmbot.Scheduler.State.Serializer.t,
       authorization: %{
         token:   map | nil,
         email:   String.t | nil,
@@ -115,13 +117,14 @@ defmodule Farmbot.BotState do
           spawn fn -> apply_status(rcontents) end
           old_config = rcontents.configuration
           old_auth = rcontents.authorization
+          old_sch = rcontents.farm_scheduler
           Map.put(default_state, :configuration, old_config)
           |> Map.put(:authorization, old_auth)
         end
       _ ->
-      spawn fn -> apply_auth(default_state.authorization) end
-      spawn fn -> apply_status(default_state) end
-      default_state
+          spawn fn -> apply_auth(default_state.authorization) end
+          spawn fn -> apply_status(default_state) end
+          default_state
     end
   end
 
@@ -202,6 +205,13 @@ defmodule Farmbot.BotState do
       state}
   end
 
+  # I HAVE NO CLUE  WHAT IM DOING
+  def handle_cast({:scheduler,
+                  %Farmbot.Scheduler.State.Serializer{} = sch_state}, state)
+  do
+    {:noreply, %State{state | farm_scheduler: sch_state}}
+  end
+
   # Lock the frontend from doing stuff
   def handle_cast({:add_lock, string}, state) do
     maybe_index = Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
@@ -262,7 +272,6 @@ defmodule Farmbot.BotState do
   end
 
   def handle_info({:connected, network, ip_addr}, state) do
-    Process.sleep(2000) # UGH
     # GenServer.cast(Farmbot.BotState, {:update_info, :private_ip, address})
     new_info = Map.put(state.informational_settings, :private_ip, ip_addr)
     email = state.authorization.email
@@ -276,6 +285,7 @@ defmodule Farmbot.BotState do
                 %{email: email, pass: pass, server: server, token: token,
                   network: network})
         set_time
+        Farmbot.node_reset(ip_addr)
         {:noreply,
           Map.put(state, :authorization, auth)
           |> Map.put(:informational_settings, new_info)
@@ -284,7 +294,7 @@ defmodule Farmbot.BotState do
       {:error, "enetunreach"} ->
         Logger.warn("Something super weird happened.. Probably a race condition.")
         # Just crash ourselves and try again.
-        {:crash, state}
+        handle_info({:connected, network, ip_addr}, state)
       error ->
         Logger.error("Something bad happened when logging in!: #{inspect error}")
         Farmbot.factory_reset
