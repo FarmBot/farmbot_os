@@ -1,6 +1,8 @@
 ExUnit.start
 defmodule Farmbot.BotStateTest do
+  alias Farmbot.BotState, as: Bot
   use ExUnit.Case, async: true
+  require IEx
 
   test "gets the current status" do
     # We drop the authorization key/value pair because the state handle call drops it.
@@ -54,5 +56,22 @@ defmodule Farmbot.BotStateTest do
     new = Farmbot.BotState.get_config(:os_auto_update)
     assert(old == new)
     assert(update_bool == false)
+  end
+
+  test "locks the bot" do
+    e_stop = "e_stop"
+    Farmbot.BotState.add_lock(e_stop)
+    state = Bot.get_status
+    locks = state.locks
+
+    assert(locks |> is_list)
+    assert(locks = [%{readon: e_stop}])
+
+    Bot.remove_lock(e_stop)
+    new_state = Bot.get_status
+    new_state = new_state.locks
+
+    assert(locks |> is_list)
+    assert(locks = [])
   end
 end
