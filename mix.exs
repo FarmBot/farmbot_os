@@ -112,8 +112,8 @@ defmodule Farmbot.Mixfile do
 
   def deps(:dev) do
     deps ++ [
-      {:fake_nerves, github: "ConnorRigby/fake_nerves"},
-      # {:fake_nerves, path: "../fake_nerves"},
+      # {:fake_nerves, github: "ConnorRigby/fake_nerves"},
+      {:fake_nerves, path: "../fake_nerves"},
       {:credo, "~> 0.4"},
       {:dialyxir, "~> 0.4"}]
   end
