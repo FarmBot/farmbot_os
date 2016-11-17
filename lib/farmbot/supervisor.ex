@@ -10,19 +10,14 @@ defmodule Farmbot.Supervisor do
       worker(SafeStorage, [env], restart: :permanent),
       worker(SSH, [env], restart: :permanent),
 
-      # master state tracker is being rewritten.
-      # worker(Farmbot.BotState,
-      #   [%{target: target, compat_version: compat_version,
-      #      version: version, env: env}],
-      # restart: :permanent),
+      # handles communications between bot and arduino
+      supervisor(Farmbot.Serial.Supervisor, [[]], restart: :permanent ),
 
+      # Handles tracking of various parts of the bots state.
       supervisor(Farmbot.BotState.Supervisor,
         [%{target: target, compat_version: compat_version,
            version: version, env: env}],
       restart: :permanent),
-
-      # handles communications between bot and arduino
-      supervisor(Farmbot.Serial.Supervisor, [[]], restart: :permanent ),
 
       # Handle communications betwen bot and api
       worker(Farmbot.Sync, [[]], restart: :permanent ),

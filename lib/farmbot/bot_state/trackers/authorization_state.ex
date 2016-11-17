@@ -13,10 +13,7 @@ defmodule Farmbot.BotState.Authorization do
       token: nil,
       secret: nil,
       server: nil,
-      interim: %{
-        email: nil,
-        pass: nil
-      }
+      interim: nil
     ]
 
     @spec broadcast(t) :: t
@@ -29,8 +26,12 @@ defmodule Farmbot.BotState.Authorization do
   use GenServer
   require Logger
   def init(_args) do
-    {:ok, State.broadcast(%State{})}
+    {:ok, SafeStorage.read(__MODULE__) |> load |> State.broadcast}
   end
+
+  def load({:ok, %State{} = state}), do: state
+  def load(_), do: %State{}
+
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
@@ -41,28 +42,16 @@ defmodule Farmbot.BotState.Authorization do
     dispatch :unhandled, state
   end
 
-  # def handle_cast(:connected, %State{} = state)
-  # when state.interim |> is_nil or state.server |> is_nil
-  # do
-  #   Logger.error("AUTH STATE IS MESSED UP")
-  # end
-
   # I CAN DO BETTER
-  def handle_cast(:connected, %State{} = state) do
-    # {:ok, pub_key}  <- get_public_key(server),
-    #        {:ok, encryped} <- encrypt(email,pass,pub_key),
-    #        do: get_token_from_server(encryped, server)
-    with {:ok, pub_key} <- Farmbot.Auth.get_public_key(state.server),
-         {:ok, secret } <- Farmbot.Auth.encrypt(state.interim.email, state.interim.pass, pub_key),
-         {:ok, token  } <- Farmbot.Auth.get_token_from_server(secret, state.server),
-    do: dispatch %State{state | interim: nil, token: token, secret: secret}
+  def handle_cast(:try_log_in, %State{} = state) do
+    dispatch try_log_in(state)
   end
 
-  def handle_cast({:creds, {email, pass, server}}, %State{} = state) do
-    new_state = %State{state | interim: %{ email: email,
-                                           pass: pass },
-                               token: nil,
-                               server: server}
+  # We have to store these temporarily in case the bot doesnt have network yet.
+  def handle_cast({:creds, {email, pass, server}}, %State{} = _state) do
+    new_state = %State{interim: %{ email: email,
+                                   pass: pass },
+                       server: server}
     dispatch new_state
   end
 
@@ -80,4 +69,32 @@ defmodule Farmbot.BotState.Authorization do
     State.broadcast(state)
     {:noreply, state}
   end
+
+  @spec try_log_in(State.t) :: {:ok, map} | {:error, atom}
+  defp try_log_in(%State{server: server, interim: %{email: email, pass: pass}}) do
+    with {:ok, pub_key} <- Farmbot.Auth.get_public_key(server),
+         {:ok, secret } <- Farmbot.Auth.encrypt(email, pass, pub_key),
+         do: try_get_token(server, secret)
+  end
+
+  @spec try_get_token(binary, binary) :: State.t | {:error, atom}
+  defp try_get_token(server, secret) do
+    case Farmbot.Auth.get_token_from_server(secret, server) do
+      {:ok, token} ->
+        new_state = %State{server: server, secret: secret, token: token, interim: nil}
+        save(new_state)
+        new_state
+      {:error, :bad_password} ->
+        Farmbot.factory_reset
+      {:error, reason} ->
+        Logger.error("AUTH FAILED!: #{inspect reason}")
+        {:error, reason}
+    end
+  end
+
+  @spec save(State.t) :: :ok | {:error, atom}
+  defp save(%State{} = state) do
+    SafeStorage.write(__MODULE__, :erlang.term_to_binary(state))
+  end
+
 end

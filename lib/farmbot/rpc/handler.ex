@@ -154,6 +154,11 @@ defmodule Farmbot.RPC.Handler do
 
   # GENEVENT CALLBACKS DON'T EVEN WORRY ABOUT IT
 
+  def handle_event({:dispatch, state}, old_state)
+  when state == old_state do
+    {:ok, state}
+  end
+
   # Event from BotState.
   def handle_event({:dispatch, state}, _) do
     build_status(state) |> @transport.emit

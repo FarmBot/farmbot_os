@@ -27,8 +27,17 @@ defmodule Farmbot.BotState.Network do
 
   def init(_args) do
     NetMan.put_pid(__MODULE__)
-    {:ok, State.broadcast(%State{})}
+    {:ok, SafeStorage.read(__MODULE__) |> load |> State.broadcast}
   end
+
+  @spec load({:ok, State.t}) :: State.t
+  defp load({:ok, %State{} = state}) do
+    NetMan.connect(state.connection, __MODULE__)
+    state
+  end
+
+  @spec load(any) :: State.t
+  defp load(_), do: %State{}
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
@@ -40,9 +49,13 @@ defmodule Farmbot.BotState.Network do
   end
 
   def handle_cast({:connected, connection, ip_address}, %State{} = state) do
-    # UPDATE CONFIGURATION WITH THE IP ADDRESS
-    GenServer.cast(Farmbot.BotState.Authorization, :connected)
-    dispatch %State{state | connected?: true, connection: connection}
+    # UPDATE CONFIGURATION WITH THE IP ADDRESS FIXME
+    GenServer.cast(Farmbot.BotState.Configuration,
+                  {:update_info, :private_ip, ip_address})
+    GenServer.cast(Farmbot.BotState.Authorization, :try_log_in)
+    new_state = %State{state | connected?: true, connection: connection}
+    save new_state
+    dispatch new_state
   end
 
   def handle_cast(event, %State{} = state) do
@@ -58,5 +71,10 @@ defmodule Farmbot.BotState.Network do
   defp dispatch(%State{} = state) do
     State.broadcast(state)
     {:noreply, state}
+  end
+
+  @spec save(State.t) :: :ok | {:error, atom}
+  defp save(%State{} = state) do
+    SafeStorage.write(__MODULE__, :erlang.term_to_binary(state))
   end
 end
