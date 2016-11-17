@@ -3,7 +3,7 @@ defmodule RPC.Supervisor do
   @transport Application.get_env(:json_rpc, :transport)
   @handler   Application.get_env(:json_rpc, :handler)
 
-  def init(args) do
+  def init(_args) do
     children = [
       worker(RPC.MessageManager, []),
       worker(RPC.MessageHandler, [], id: 1, name: RPC.MessageHandler ),

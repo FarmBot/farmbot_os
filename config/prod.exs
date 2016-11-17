@@ -3,17 +3,17 @@ config :nerves, :firmware,
   rootfs_additions: "config/rootfs-additions-#{Mix.Project.config[:target]}",
   hardware: "config/rootfs-additions-#{Mix.Project.config[:target]}"
 
-config :uart,
-  baud: 115200
-
 config :farmbot,
-  state_path: "/state",
+  state_path: "/state"
+
+config :farmbot_networking,
   dnsmasq_path: "/root/dnsmasq.lease"
 
 config :logger, :console,
   # format: "$metadata[$level] $levelpad$message\r\n",
   colors: [enabled: true ]
-config :Logger,
+
+config :logger,
   handle_sasl_reports: true,
   handle_otp_reports: true
 
@@ -28,9 +28,3 @@ config :iex,
     "%node",
     ">",
     :reset ] |> IO.ANSI.format |> IO.chardata_to_string
-
-config :blinky, led_list: [ :green ]
-config :nerves_leds, names: [ green: "led0" ]
-
-config :farmbot_configurator,
-  event_handler: Farmbot.BotState.EventManager

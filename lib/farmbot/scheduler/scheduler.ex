@@ -280,10 +280,13 @@ defmodule Farmbot.Scheduler do
                       regimens: regimens}}
   end
 
+  @doc """
+    I CAN'T THINK OF A BETTER WAY TO DO THIS IM SORRY
+  """
   @spec save_and_update(State.t) :: :ok
   def save_and_update(%State{} = state) do
-    GenServer.cast(Farmbot.BotState,
-            {:scheduler, State.Serializer.serialize(state)})
+    GenServer.cast(Farmbot.BotState.Monitor,
+            {State.Serializer.serialize(state)})
     SafeStorage.write(__MODULE__, :erlang.term_to_binary(state))
   end
 

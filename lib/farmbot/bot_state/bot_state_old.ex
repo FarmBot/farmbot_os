@@ -1,8 +1,8 @@
 alias Farmbot.BotState.Hardware,      as: Hardware
 alias Farmbot.BotState.Configuration, as: Configuration
 alias Farmbot.BotState.Authorization, as: Authorization
+alias Serialized, as: State # DELETE ME
 
-alias Serialized, as: State
 defmodule Farmbot.BotState do
   require Logger
   @moduledoc """
@@ -93,39 +93,6 @@ defmodule Farmbot.BotState do
 
   def handle_call(:get_current_pos, _from, state) do
     {:reply, state.location, state}
-  end
-
-  # This call should probably be a cast actually, and im sorry.
-  # Returns true for configs that exist and are the correct typpe,
-  # and false for anything else
-  # TODO make sure these are properly typed.
-  def handle_call({:update_config, "os_auto_update", value}, _from, state)
-  when is_boolean(value) do
-    new_config = Map.put(state.configuration, :os_auto_update, value)
-    {:reply, true, Map.put(state, :configuration, new_config)}
-  end
-
-  def handle_call({:update_config, "fw_auto_update", value}, _from, state)
-  when is_boolean(value) do
-    new_config = Map.put(state.configuration, :fw_auto_update, value)
-    {:reply, true, Map.put(state, :configuration, new_config)}
-  end
-
-  def handle_call({:update_config, "timezone", value}, _from, state)
-  when is_bitstring(value) do
-    new_config = Map.put(state.configuration, :timezone, value)
-    {:reply, true, Map.put(state, :configuration, new_config)}
-  end
-
-  def handle_call({:update_config, "steps_per_mm", value}, _from, state)
-  when is_integer(value) do
-    new_config = Map.put(state.configuration, :steps_per_mm, value)
-    {:reply, true, Map.put(state, :configuration, new_config)}
-  end
-
-  def handle_call({:update_config, key, _value}, _from, state) do
-    Logger.error("#{key} is not a valid config.")
-    {:reply, false, state}
   end
 
   def handle_call({:get_config, key}, _from, state)

@@ -1,6 +1,6 @@
 defmodule Serialized do
   @moduledoc """
-  MOVE THIS SOMEWHERE ELSE
+    MOVE THIS SOMEWHERE ELSE
   """
   defstruct [
     # Hardware

@@ -1,6 +1,7 @@
 alias Farmbot.BotState.Hardware.State,      as: Hardware
 alias Farmbot.BotState.Configuration.State, as: Configuration
 alias Farmbot.BotState.Authorization.State, as: Authorization
+alias Farmbot.Scheduler.State.Serializer,   as: Scheduler
 
 defmodule Farmbot.BotState.Monitor do
   @moduledoc """
@@ -15,12 +16,14 @@ defmodule Farmbot.BotState.Monitor do
     @type t :: %__MODULE__{
       hardware:      Hardware.t,
       configuration: Configuration.t,
-      authorization: Authorization.t
+      authorization: Authorization.t,
+      scheduler:     Scheduler.t
     }
     defstruct [
       hardware:      %Hardware{},
       configuration: %Configuration{},
-      authorization: %Authorization{}
+      authorization: %Authorization{},
+      scheduler:     %Scheduler{}
     ]
   end
 
@@ -61,6 +64,38 @@ defmodule Farmbot.BotState.Monitor do
   def handle_cast(%Authorization{} = new_things, {mgr, state}) do
     new_state = %State{state | authorization: new_things}
     dispatch(mgr, new_state)
+  end
+
+  # When we get a state update from Scheduler
+  def handle_cast(%Scheduler{} = new_things, {mgr, state}) do
+    new_state = %State{state | scheduler: new_things}
+    dispatch(mgr, new_state)
+  end
+
+  def handle_cast({:login,
+    %{"email" => email,
+      "network" => "ethernet",
+      "password" => password,
+      "server" => server,
+      "tz" => timezone}}, {mgr, state})
+  do
+    Farmbot.BotState.update_config("timezone", timezone)
+    Farmbot.BotState.add_creds({email,password,server})
+    NetMan.connect(:ethernet, Farmbot.BotState.Configuration)
+    dispatch(mgr,state)
+  end
+
+  def handle_cast({:login,
+    %{"email" => email,
+      "network" => %{"psk" => psk, "ssid" => ssid},
+      "password" => password,
+      "server" => server,
+      "tz" => timezone}}, {mgr, state})
+  do
+    Farmbot.BotState.update_config("timezone", timezone)
+    Farmbot.BotState.add_creds({email,password,server})
+    NetMan.connect({ssid, psk}, Farmbot.BotState.Configuration)
+    dispatch(mgr,state)
   end
 
   # If a handler dies, we try to restart it

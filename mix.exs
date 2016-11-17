@@ -34,7 +34,7 @@ defmodule Farmbot.Mixfile do
 
   def application do
     [mod: {Farmbot, [%{target: target(Mix.env), compat_version: @compat_version,
-                  version: @version, env: Mix.env}]},
+                       version: @version, env: Mix.env}]},
      applications: apps(Mix.env)]
   end
 
@@ -51,7 +51,8 @@ defmodule Farmbot.Mixfile do
      :runtime_tools,
      :mustache,
      :timex,
-     :farmbot_auth]
+     :farmbot_auth,
+     :farmbot_configurator]
   end
 
   # on device
@@ -59,8 +60,7 @@ defmodule Farmbot.Mixfile do
     apps ++ platform_apps(target(:prod)) ++
     [
       :nerves,
-      :nerves_firmware_http,
-      :farmbot_configurator
+      :nerves_firmware_http
     ]
   end
 
@@ -89,6 +89,8 @@ defmodule Farmbot.Mixfile do
       {:mustache, "~> 0.0.2"},
       {:timex, "~> 3.0"},
       {:farmbot_auth, github: "Farmbot/farmbot_auth"},
+      #  {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
+       {:farmbot_configurator, path: "../farmbot_configurator"}
       # {:farmbot_auth, path: "../farmbot_auth"}
     ]
   end
@@ -97,9 +99,7 @@ defmodule Farmbot.Mixfile do
     deps ++ platform_deps(target(Mix.env)) ++ system(target(Mix.env)) ++
     [
      {:nerves, "~> 0.3.0"},
-     {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
-    #  {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
-     {:farmbot_configurator, path: "../farmbot_configurator"}
+     {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"}
     ]
   end
 
@@ -113,7 +113,7 @@ defmodule Farmbot.Mixfile do
   def deps(:dev) do
     deps ++ [
       # {:fake_nerves, github: "ConnorRigby/fake_nerves"},
-      {:fake_nerves, path: "../fake_nerves"},
+      {:fake_nerves, path: "../fake_nerves", override: true},
       {:credo, "~> 0.4"},
       {:dialyxir, "~> 0.4"}]
   end
