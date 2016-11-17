@@ -91,7 +91,7 @@ defmodule Farmbot.RPC.Requests do
   # Read status
   def handle_request("read_status", _) do
     Logger.debug("Reporting Current Status")
-    Farmbot.RPC.Handler.send_status
+    # FIXME
   end
 
   def handle_request("check_updates", _) do
@@ -134,11 +134,11 @@ defmodule Farmbot.RPC.Requests do
     do
       {_, []} ->
         Farmbot.Logger.log("MCU params updated.", [:success_toast], ["RPCHANDLER"])
-        Farmbot.RPC.Handler.send_status
+        # Farmbot.RPC.Handler.send_status
         :ok
       {_, failed} ->
         Farmbot.Logger.log("MCU params failed: #{inspect failed}", [:error_toast], ["RPCHANDLER"])
-        Farmbot.RPC.Handler.send_status
+        # Farmbot.RPC.Handler.send_status
         :ok
     end
   end
@@ -149,11 +149,11 @@ defmodule Farmbot.RPC.Requests do
     end) do
       {_, []} ->
         Farmbot.Logger.log("Bot Configs updated.", [:success_toast], ["RPCHANDLER"])
-        Farmbot.RPC.Handler.send_status
+        # Farmbot.RPC.Handler.send_status
         :ok
       {_, failed} ->
         Farmbot.Logger.log("Bot Configs failed: #{inspect failed}", [:error_toast], ["RPCHANDLER"])
-        Farmbot.RPC.Handler.send_status
+        # Farmbot.RPC.Handler.send_status
         :ok
     end
   end
@@ -174,7 +174,7 @@ defmodule Farmbot.RPC.Requests do
     Farmbot.Sync.sync()
     regimen = Farmbot.Sync.get_regimen(id)
     Farmbot.Scheduler.add_regimen(regimen)
-    Farmbot.RPC.Handler.send_status
+    # Farmbot.RPC.Handler.send_status
   end
 
   def handle_request("start_regimen", params) do

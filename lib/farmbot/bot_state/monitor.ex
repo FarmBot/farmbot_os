@@ -1,6 +1,7 @@
 alias Farmbot.BotState.Hardware.State,      as: Hardware
 alias Farmbot.BotState.Configuration.State, as: Configuration
 alias Farmbot.BotState.Authorization.State, as: Authorization
+alias Farmbot.BotState.Network.State,       as: Network
 alias Farmbot.Scheduler.State.Serializer,   as: Scheduler
 
 defmodule Farmbot.BotState.Monitor do
@@ -17,12 +18,14 @@ defmodule Farmbot.BotState.Monitor do
       hardware:      Hardware.t,
       configuration: Configuration.t,
       authorization: Authorization.t,
+      network:       Network.t,
       scheduler:     Scheduler.t
     }
     defstruct [
       hardware:      %Hardware{},
       configuration: %Configuration{},
       authorization: %Authorization{},
+      network:       %Network{},
       scheduler:     %Scheduler{}
     ]
   end
@@ -67,6 +70,12 @@ defmodule Farmbot.BotState.Monitor do
   end
 
   # When we get a state update from Scheduler
+  def handle_cast(%Network{} = new_things, {mgr, state}) do
+    new_state = %State{state | network: new_things}
+    dispatch(mgr, new_state)
+  end
+
+  # When we get a state update from Scheduler
   def handle_cast(%Scheduler{} = new_things, {mgr, state}) do
     new_state = %State{state | scheduler: new_things}
     dispatch(mgr, new_state)
@@ -81,7 +90,7 @@ defmodule Farmbot.BotState.Monitor do
   do
     Farmbot.BotState.update_config("timezone", timezone)
     Farmbot.BotState.add_creds({email,password,server})
-    NetMan.connect(:ethernet, Farmbot.BotState.Configuration)
+    NetMan.connect(:ethernet, Farmbot.BotState.Network)
     dispatch(mgr,state)
   end
 
@@ -94,7 +103,7 @@ defmodule Farmbot.BotState.Monitor do
   do
     Farmbot.BotState.update_config("timezone", timezone)
     Farmbot.BotState.add_creds({email,password,server})
-    NetMan.connect({ssid, psk}, Farmbot.BotState.Configuration)
+    NetMan.connect({ssid, psk}, Farmbot.BotState.Network)
     dispatch(mgr,state)
   end
 

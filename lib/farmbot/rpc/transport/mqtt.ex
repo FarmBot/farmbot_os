@@ -3,8 +3,9 @@ defmodule Farmbot.RPC.Transport.Mqtt do
   require Logger
 
   def init(_args) do
+    Logger.debug("MQTT INIT")
     Process.flag(:trap_exit, true)
-    {:ok, client} = Mqtt.Client.start_link(%{parent: __MODULE__})
+    {:ok, client} = Mqtt.Client.start_link(%{parent: self()})
     case Farmbot.Auth.get_token do
       {:ok, token} ->
         login(token)
@@ -39,18 +40,20 @@ defmodule Farmbot.RPC.Transport.Mqtt do
 
   def handle_info(:login, {client, token})
   when is_pid(client) do
-    Mqtt.Client.connect(client, connect_options(token))
+    Logger.debug("Trying to sign into MQTT")
+    resp = Mqtt.Client.connect(client, connect_options(token))
+    Logger.debug("FINDME: #{inspect resp}")
     {:noreply, {client, token}}
   end
 
-  def handle_info({:EXIT, pid, _reason}, {client, token})
+  def handle_info({:EXIT, pid, reason}, {client, token})
   when pid == client do
-    Logger.error("Hulaki died.")
+    Logger.error("Hulaki died: #{inspect reason}")
     {:crashme, {client, token}}
   end
 
-  def handle_info({:EXIT, _pid, _reason}, {client, token}) do
-    Logger.warn("something. died.")
+  def handle_info({:EXIT, pid, reason}, {client, token}) do
+    Logger.warn("something in mqtt.ex died: #{inspect pid}: #{inspect reason}")
     {:noreply, {client, token}}
   end
 
@@ -101,16 +104,17 @@ defmodule Farmbot.RPC.Transport.Mqtt do
     mqtt_user = Map.get(token, "unencoded") |> Map.get("bot")
     mqtt_pass = Map.get(token, "encoded")
     [client_id: mqtt_user,
-               username: mqtt_user,
-               password: mqtt_pass,
-               host: mqtt_host,
-               port: 1883,
-               timeout: 5000,
-               keep_alive: 500,
-               will_topic: "bot/#{bot(token)}/from_device",
-               will_message: build_last_will_message,
-               will_qos: 0,
-               will_retain: 0]
+     username: mqtt_user,
+     password: mqtt_pass,
+     host: mqtt_host, # mqtt.farmbot.io
+     port: 1883,
+    #  port: 8883,
+     timeout: 5000,
+     keep_alive: 500,
+     will_topic: "bot/#{bot(token)}/from_device",
+     will_message: build_last_will_message,
+     will_qos: 0,
+     will_retain: 0]
   end
 
   ##                                ##
@@ -144,11 +148,6 @@ defmodule Farmbot.RPC.Transport.Mqtt do
     spawn fn ->
       Farmbot.Logger.log("Bot is online and ready to roll", [:ticker], ["BOT STATUS"])
     end
-    {:reply, :ok, {client, token}}
-  end
-
-  def handle_call(thing, _from, {client, token}) do
-    Logger.debug("Unhandled Thing #{inspect thing}")
     {:reply, :ok, {client, token}}
   end
 
@@ -202,6 +201,11 @@ defmodule Farmbot.RPC.Transport.Mqtt do
   end
 
   def handle_call({:subscribe, _message}, _from, {client, token}) do
+    {:reply, :ok, {client, token}}
+  end
+
+  def handle_call(thing, _from, {client, token}) do
+    Logger.debug("Unhandled Thing #{inspect thing}")
     {:reply, :ok, {client, token}}
   end
 end

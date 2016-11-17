@@ -13,8 +13,6 @@ defmodule Serialized do
     configuration: %{},
     informational_settings: %{},
 
-    authorization: %{}, # DELETEME
-
     # farm scheduler
     farm_scheduler: %Farmbot.Scheduler.State.Serializer{}
   ]

@@ -23,14 +23,7 @@ defmodule Farmbot.BotState do
     state
   end
 
-  def get_throttled do
-    {output, 0} = System.cmd("vcgencmd", ["get_throttled"])
-    {"throttled=0x0\n", 0}
-    [_, throttled] = output
-    |> String.strip
-    |> String.split("=")
-    throttled
-  end
+
 
   def load(%{target: target, compat_version: compat_version, env: env, version: version}) do
     token = case  Farmbot.Auth.get_token() do
@@ -47,17 +40,10 @@ defmodule Farmbot.BotState do
       informational_settings: %{
         controller_version: version,
         private_ip: nil,
-        throttled: get_throttled,
+        throttled: :blah, #get_throttled,
         target: target,
         compat_version: compat_version,
         environment: env
-      },
-      authorization: %{
-        token: token,
-        email: nil,
-        pass: nil,
-        server: nil,
-        network: nil
       }
     }
     case SafeStorage.read(__MODULE__) do
@@ -85,137 +71,6 @@ defmodule Farmbot.BotState do
           spawn fn -> apply_status(default_state) end
           default_state
     end
-  end
-
-  def handle_call({:get_pin, pin_number}, _from, state) do
-    {:reply, Map.get(state.pins, Integer.to_string(pin_number)), state}
-  end
-
-  def handle_call(:get_current_pos, _from, state) do
-    {:reply, state.location, state}
-  end
-
-  def handle_call({:get_config, key}, _from, state)
-  when is_atom(key) do
-    {:reply, Map.get(state.configuration, key), state}
-  end
-
-  def handle_call(:get_token, _from, state) do
-    {:reply, state.authorization.token, state}
-  end
-
-  # Allow the frontend to do stuff again.
-  def handle_call({:remove_lock, string}, _from,  state) do
-    maybe_index = Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
-    cond do
-      is_integer(maybe_index) ->
-        {:reply, :ok, Map.put(state, :locks,
-          List.delete_at(state.locks, maybe_index))}
-      true ->
-        {:reply, {:error, :no_index}, state}
-    end
-  end
-
-  def handle_call({:get_lock, string}, _from, state) do
-    maybe_index = Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
-    {:reply, maybe_index, state}
-  end
-
-  # I HAVE NO CLUE  WHAT IM DOING
-  def handle_cast({:scheduler,
-                  %Farmbot.Scheduler.State.Serializer{} = sch_state}, state)
-  do
-    {:noreply, %State{state | farm_scheduler: sch_state}}
-  end
-
-  # Lock the frontend from doing stuff
-  def handle_cast({:add_lock, string}, state) do
-    maybe_index = Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
-    cond do
-      is_integer(maybe_index) ->
-        {:noreply, Map.put(state, :locks,
-          List.replace_at(state.locks, maybe_index, %{reason: string}) )}
-      is_nil(maybe_index) ->
-        {:noreply, Map.put(state, :locks,
-          state.locks ++ [%{reason: string}] )}
-    end
-  end
-
-  def handle_cast({:update_info, key, value}, state) do
-    new_info = Map.put(state.informational_settings, key, value)
-    {:noreply, Map.put(state, :informational_settings, new_info)}
-  end
-
-  def handle_cast({:set_pos, {x, y, z}}, state) do
-    {:noreply, Map.put(state, :location, [x, y, z])}
-  end
-
-  def handle_cast({:set_pin_value, {pin, value}}, state) do
-    pin_state = state.pins
-    new_pin_value =
-    case Map.get(pin_state, Integer.to_string(pin)) do
-      nil                     ->
-        %{mode: -1,   value: value}
-      %{mode: mode, value: _} ->
-        %{mode: mode, value: value}
-    end
-    # I REALLY don't want this to be here.
-    spawn fn -> Farmbot.Logger.log("PIN #{pin} set: #{new_pin_value.value}", [], ["BotControl"]) end
-    pin_state = Map.put(pin_state, Integer.to_string(pin), new_pin_value)
-    {:noreply, Map.put(state, :pins, pin_state)}
-  end
-
-  def handle_cast({:set_pin_mode, {pin, mode}}, state) do
-    pin_state = state.pins
-    new_pin_value =
-    case Map.get(pin_state, Integer.to_string(pin)) do
-      nil                      -> %{mode: mode, value: -1}
-      %{mode: _, value: value} -> %{mode: mode, value: value}
-    end
-    pin_state = Map.put(pin_state, Integer.to_string(pin), new_pin_value)
-    {:noreply, Map.put(state, :pins, pin_state)}
-  end
-
-  def handle_cast({:set_param, {param_string, value} }, state) do
-    new_params = Map.put(state.mcu_params, param_string, value)
-    {:noreply, Map.put(state, :mcu_params, new_params)}
-  end
-
-  def handle_cast({:creds, {email, pass, server}}, state) do
-    auth = Map.merge(state.authorization,
-            %{email: email, pass: pass, server: server, token: nil, network: nil})
-    {:noreply, Map.put(state, :authorization, auth)}
-  end
-
-  def handle_info({:connected, network, ip_addr}, state) do
-    # GenServer.cast(Farmbot.BotState, {:update_info, :private_ip, address})
-    new_info = Map.put(state.informational_settings, :private_ip, ip_addr)
-    email = state.authorization.email
-    pass = state.authorization.pass
-    server = state.authorization.server
-
-    case Farmbot.Auth.login(email, pass, server) do
-      {:ok, token} ->
-        Logger.debug("Got Token!")
-        auth = Map.merge(state.authorization,
-                %{email: email, pass: pass, server: server, token: token,
-                  network: network})
-        set_time
-        Farmbot.node_reset(ip_addr)
-        {:noreply,
-          Map.put(state, :authorization, auth)
-          |> Map.put(:informational_settings, new_info)
-        }
-      # If the bot is faster than your router (often) this can happen.
-      {:error, "enetunreach"} ->
-        Logger.warn("Something super weird happened.. Probably a race condition.")
-        # Just crash ourselves and try again.
-        handle_info({:connected, network, ip_addr}, state)
-      error ->
-        Logger.error("Something bad happened when logging in!: #{inspect error}")
-        Farmbot.factory_reset
-        {:noreply, state}
-      end
   end
 
   @doc """
@@ -401,4 +256,87 @@ defmodule Farmbot.BotState do
       check_time_set # wait until time is set
     end
   end
+
+
+# THESE NEED TO GO AWAY
+
+
+
+
+def handle_call({:get_config, key}, _from, state)
+when is_atom(key) do
+  {:reply, Map.get(state.configuration, key), state}
+end
+
+def handle_call(:get_token, _from, state) do
+  {:reply, state.authorization.token, state}
+end
+
+# Allow the frontend to do stuff again.
+def handle_call({:remove_lock, string}, _from,  state) do
+  maybe_index = Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
+  cond do
+    is_integer(maybe_index) ->
+      {:reply, :ok, Map.put(state, :locks,
+        List.delete_at(state.locks, maybe_index))}
+    true ->
+      {:reply, {:error, :no_index}, state}
+  end
+end
+
+def handle_call({:get_lock, string}, _from, state) do
+  maybe_index = Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
+  {:reply, maybe_index, state}
+end
+
+# Lock the frontend from doing stuff
+def handle_cast({:add_lock, string}, state) do
+  maybe_index = Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
+  cond do
+    is_integer(maybe_index) ->
+      {:noreply, Map.put(state, :locks,
+        List.replace_at(state.locks, maybe_index, %{reason: string}) )}
+    is_nil(maybe_index) ->
+      {:noreply, Map.put(state, :locks,
+        state.locks ++ [%{reason: string}] )}
+  end
+end
+
+def handle_cast({:update_info, key, value}, state) do
+  new_info = Map.put(state.informational_settings, key, value)
+  {:noreply, Map.put(state, :informational_settings, new_info)}
+end
+
+
+
+def handle_info({:connected, network, ip_addr}, state) do
+  # GenServer.cast(Farmbot.BotState, {:update_info, :private_ip, address})
+  new_info = Map.put(state.informational_settings, :private_ip, ip_addr)
+  email = state.authorization.email
+  pass = state.authorization.pass
+  server = state.authorization.server
+
+  case Farmbot.Auth.login(email, pass, server) do
+    {:ok, token} ->
+      Logger.debug("Got Token!")
+      auth = Map.merge(state.authorization,
+              %{email: email, pass: pass, server: server, token: token,
+                network: network})
+      set_time
+      Farmbot.node_reset(ip_addr)
+      {:noreply,
+        Map.put(state, :authorization, auth)
+        |> Map.put(:informational_settings, new_info)
+      }
+    # If the bot is faster than your router (often) this can happen.
+    {:error, "enetunreach"} ->
+      Logger.warn("Something super weird happened.. Probably a race condition.")
+      # Just crash ourselves and try again.
+      handle_info({:connected, network, ip_addr}, state)
+    error ->
+      Logger.error("Something bad happened when logging in!: #{inspect error}")
+      Farmbot.factory_reset
+      {:noreply, state}
+    end
+end
 end

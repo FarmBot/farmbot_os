@@ -15,7 +15,7 @@ defmodule Command.Tracker do
 
   # When we get a successful message, reset the counter.
   def handle_cast(:done, _) do
-    Farmbot.RPC.Handler.send_status
+    # Farmbot.RPC.Handler.send_status
     {:noreply, 0}
   end
 
@@ -26,7 +26,7 @@ defmodule Command.Tracker do
   # If the message is not successful, and count is less than three,
   # increase it.
   def handle_cast(issue, count) when count < 2 do
-    Farmbot.RPC.Handler.send_status
+    # Farmbot.RPC.Handler.send_status
     Farmbot.Logger.log("Problem writing command! #{inspect issue}", [:error_toast], [@tag])
     {:noreply, count + 1}
   end

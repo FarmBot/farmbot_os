@@ -110,9 +110,9 @@ defmodule Farmbot.RPC.Handler do
   @doc """
     Builds a json to send to the frontend
   """
-  @spec build_status :: binary
-  def build_status do
-    unserialized = GenEvent.call(BotStateEventManager, __MODULE__, :state)
+  @spec build_status(Farmbot.BotState.Monitor.State.t) :: binary
+  def build_status(unserialized) do
+    # unserialized = GenEvent.call(BotStateEventManager, __MODULE__, :state)
     m = %Notification{
       id: nil,
       method: "status_update",
@@ -120,13 +120,13 @@ defmodule Farmbot.RPC.Handler do
     Poison.encode!(m)
   end
 
-  @doc """
-    Sends the status message over whatever transport.
-  """
-  @spec send_status :: :ok | {:error, atom}
-  def send_status do
-    build_status |> @transport.emit
-  end
+  # @doc """
+  #   Sends the status message over whatever transport.
+  # """
+  # @spec send_status :: :ok | {:error, atom}
+  # def send_status do
+  #   build_status |> @transport.emit
+  # end
 
   @doc """
     Takes the cached bot state, and then
@@ -156,6 +156,7 @@ defmodule Farmbot.RPC.Handler do
 
   # Event from BotState.
   def handle_event({:dispatch, state}, _) do
+    build_status(state) |> @transport.emit
     {:ok, state}
   end
 

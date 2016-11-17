@@ -88,10 +88,10 @@ defmodule Farmbot.Mixfile do
       {:hulaaki, github: "ConnorRigby/hulaaki"},
       {:mustache, "~> 0.0.2"},
       {:timex, "~> 3.0"},
-      {:farmbot_auth, github: "Farmbot/farmbot_auth"},
+      # {:farmbot_auth, github: "Farmbot/farmbot_auth"},
+      {:farmbot_auth, path: "../farmbot_auth"},
       #  {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
        {:farmbot_configurator, path: "../farmbot_configurator"}
-      # {:farmbot_auth, path: "../farmbot_auth"}
     ]
   end
 
