@@ -77,6 +77,10 @@ defmodule Farmbot.BotState.Authorization do
          do: try_get_token(server, secret)
   end
 
+  defp try_log_in(%State{server: server, secret: secret}) do
+    try_get_token(server, secret)
+  end
+
   @spec try_get_token(binary, binary) :: State.t | {:error, atom}
   defp try_get_token(server, secret) do
     case Farmbot.Auth.get_token_from_server(secret, server) do

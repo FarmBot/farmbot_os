@@ -13,9 +13,9 @@ config :logger, :console,
   # format: "$metadata[$level] $levelpad$message\r\n",
   colors: [enabled: true ]
 
-config :logger,
-  handle_sasl_reports: true,
-  handle_otp_reports: true
+# config :logger,
+#   handle_sasl_reports: true,
+#   handle_otp_reports: true
 
 config :iex, :colors,
   enabled: true

@@ -37,6 +37,7 @@ defmodule Farmbot do
     System.cmd("mkfs.ext4", ["/dev/mmcblk0p3", "-F"])
     System.cmd("mount", ["/dev/mmcblk0p3", "/state", "-t", "ext4"])
     File.write("/state/.formatted", "DONT CAT ME\n")
+    {:ok, :pattern_matching_is_hard}
   end
 
   @doc """

@@ -49,11 +49,13 @@ defmodule Farmbot.BotState.Network do
   end
 
   def handle_cast({:connected, connection, ip_address}, %State{} = state) do
-    # UPDATE CONFIGURATION WITH THE IP ADDRESS FIXME
     GenServer.cast(Farmbot.BotState.Configuration,
                   {:update_info, :private_ip, ip_address})
     GenServer.cast(Farmbot.BotState.Authorization, :try_log_in)
     new_state = %State{state | connected?: true, connection: connection}
+    Farmbot.node_reset(ip_address)
+    Process.sleep(2000)
+    # Putting a sleep in a GenServer cast because #swag
     save new_state
     dispatch new_state
   end
