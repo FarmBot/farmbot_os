@@ -91,18 +91,15 @@ defmodule Farmbot.RPC.Requests do
   # Read status
   def handle_request("read_status", _) do
     Logger.debug("Reporting Current Status")
-    # FIXME
+    GenEvent.call(BotStateEventManager, Farmbot.RPC.Handler, :force_dispatch)
+    # GenServer.cast(Farmbot.BotState.Monitor, :force_dispatch)
   end
 
-  def handle_request("check_updates", _) do
-    Downloader.check_and_download_os_update
-    :ok
-  end
+  def handle_request("check_updates", _),
+  do: Downloader.check_and_download_os_update
 
-  def handle_request("check_arduino_updates", _) do
-    Downloader.check_and_download_fw_update
-    :ok
-  end
+  def handle_request("check_arduino_updates", _),
+  do: Downloader.check_and_download_fw_update
 
   def handle_request("reboot", _ ) do
     Farmbot.Logger.log("Bot Going down for reboot in 5 seconds", [], ["BotControl"])
@@ -134,11 +131,9 @@ defmodule Farmbot.RPC.Requests do
     do
       {_, []} ->
         Farmbot.Logger.log("MCU params updated.", [:success_toast], ["RPCHANDLER"])
-        # Farmbot.RPC.Handler.send_status
         :ok
       {_, failed} ->
         Farmbot.Logger.log("MCU params failed: #{inspect failed}", [:error_toast], ["RPCHANDLER"])
-        # Farmbot.RPC.Handler.send_status
         :ok
     end
   end
@@ -149,11 +144,9 @@ defmodule Farmbot.RPC.Requests do
     end) do
       {_, []} ->
         Farmbot.Logger.log("Bot Configs updated.", [:success_toast], ["RPCHANDLER"])
-        # Farmbot.RPC.Handler.send_status
         :ok
       {_, failed} ->
         Farmbot.Logger.log("Bot Configs failed: #{inspect failed}", [:error_toast], ["RPCHANDLER"])
-        # Farmbot.RPC.Handler.send_status
         :ok
     end
   end

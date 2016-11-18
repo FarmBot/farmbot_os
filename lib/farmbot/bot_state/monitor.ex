@@ -124,6 +124,8 @@ defmodule Farmbot.BotState.Monitor do
     dispatch(mgr,state)
   end
 
+  def handle_cast(:force_dispatch, {mgr, state}), do: dispatch(mgr, state)
+
   def handle_cast(new_things, {mgr, state}) do
     Logger.warn("(#{__MODULE__}) WHAT IS THIS??? #{inspect new_things} ")
 

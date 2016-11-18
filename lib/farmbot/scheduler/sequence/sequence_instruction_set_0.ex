@@ -1,4 +1,8 @@
 defmodule SequenceInstructionSet_0 do
+  @moduledoc """
+    This file is the equivilent of writing vanila javascript in a typescript
+    project. Please refactor
+  """
   require Logger
   def create_instruction_set(%Corpus{tag: 0, args: args, nodes: nodes}) do
     initial =
@@ -182,7 +186,7 @@ defmodule SequenceInstructionSet_0 do
     def handle_cast({\"read_pin\", %{#{args}}}, parent) do
       result = Command.read_pin( pin_number(pin_number),
                         pin_mode(pin_mode) )
-      v = Farmbot.BotState.get_pin(pin_number(pin_number))
+      %{mode: _,value: v} = Farmbot.BotState.get_pin(pin_number(pin_number))
       GenServer.call(parent, {:set_var, data_label(data_label), v})
       Sequence.VM.tick(parent, result)
       {:noreply, parent}
@@ -238,7 +242,7 @@ defmodule SequenceInstructionSet_0 do
     args = create_arg_map(allowed_args)
     "
     def handle_cast({\"if_statement\", %{#{args}}}, parent) do
-      vars = GenServer.call(parent, :get_all_vars)
+      vars = GenServer.call(parent, :get_all_vars, :infinity) #uhhhhhhh
       rlhs = Map.get(vars, String.to_atom(lhs(lhs) ) )
       if(do_if(rlhs, op(op), rhs(rhs)) == true) do
         handle_cast({\"execute\", %{\"sub_sequence_id\" => sub_sequence_id}}, parent)
@@ -262,7 +266,7 @@ defmodule SequenceInstructionSet_0 do
     args = create_arg_map(allowed_args)
     "
     def handle_cast({\"send_message\", %{#{args}}}, parent) do
-      vars = GenServer.call(parent, :get_all_vars)
+      vars = GenServer.call(parent, :get_all_vars, :infinity)
       case message(message) do
         \"channel \"<>channel_message ->
           {channel, rmessage} = case channel_message do

@@ -7,10 +7,10 @@ defmodule Farmbot do
   use Supervisor
   @state_path Application.get_env(:farmbot, :state_path)
 
-  def node_reset(address) do
-    Node.stop
-    full_node_name = "farmbot@#{address}" |> String.to_atom
-    {:ok, _pid} = Node.start(full_node_name)
+  def node_reset(_address) do
+    # Node.stop
+    # full_node_name = "farmbot@#{address}" |> String.to_atom
+    # {:ok, _pid} = Node.start(full_node_name)
   end
 
   @doc """

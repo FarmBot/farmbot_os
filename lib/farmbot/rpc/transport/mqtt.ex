@@ -1,4 +1,9 @@
 defmodule Farmbot.RPC.Transport.Mqtt do
+  @moduledoc """
+    This is the transport for mqtt. There is an interesting
+    race condition. if someone can find it i will give them
+    ten dollars. I think it is in the Haluki source code somewhere.
+  """
   require GenServer
   require Logger
 
@@ -6,6 +11,7 @@ defmodule Farmbot.RPC.Transport.Mqtt do
     Logger.debug("MQTT INIT")
     Process.flag(:trap_exit, true)
     {:ok, client} = Mqtt.Client.start_link(%{parent: self()})
+    Process.sleep(2000) # maybe fix race condition?
     case Farmbot.Auth.get_token |> Token.create do
       %Token{} = token ->
         login(token)

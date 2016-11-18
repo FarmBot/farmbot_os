@@ -34,7 +34,13 @@ defmodule Farmbot.BotState.Hardware do
   require Logger
 
   def init(_args) do
-    {:ok, State.broadcast(%State{})}
+    Process.send_after(self(), :params_hack, 3000)
+    {:ok, load |> State.broadcast}
+  end
+
+  @spec load :: State.t
+  def load do
+    %State{}
   end
 
   def start_link(args) do
@@ -96,6 +102,11 @@ defmodule Farmbot.BotState.Hardware do
   # catch all.
   def handle_cast(event, %State{} = state) do
     Logger.warn("[#{__MODULE__}] UNHANDLED CAST!: #{inspect event}", [__MODULE__])
+    dispatch state
+  end
+
+  def handle_info(:params_hack, %State{} = state) do
+    spawn fn -> Command.read_all_params end
     dispatch state
   end
 

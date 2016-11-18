@@ -27,17 +27,22 @@ defmodule Farmbot.BotState.Network do
 
   def init(_args) do
     NetMan.put_pid(__MODULE__)
-    {:ok, SafeStorage.read(__MODULE__) |> load |> State.broadcast}
+    {:ok, SafeStorage.read(__MODULE__) |> load |> start_connection |> State.broadcast}
   end
 
   @spec load({:ok, State.t}) :: State.t
   defp load({:ok, %State{} = state}) do
-    NetMan.connect(state.connection, __MODULE__)
     state
   end
 
   @spec load(any) :: State.t
   defp load(_), do: %State{}
+
+  @spec start_connection(State.t) :: State.t
+  defp start_connection(%State{} = state) do
+    NetMan.connect(state.connection, __MODULE__)
+    state
+  end
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
@@ -49,13 +54,13 @@ defmodule Farmbot.BotState.Network do
   end
 
   def handle_cast({:connected, connection, ip_address}, %State{} = state) do
+    Process.sleep(2000) # I DONT KNOW WHY THIS HAS TO BE HERE
+    Farmbot.BotState.set_time
     GenServer.cast(Farmbot.BotState.Configuration,
                   {:update_info, :private_ip, ip_address})
     GenServer.cast(Farmbot.BotState.Authorization, :try_log_in)
     new_state = %State{state | connected?: true, connection: connection}
     Farmbot.node_reset(ip_address)
-    Process.sleep(2000)
-    # Putting a sleep in a GenServer cast because #swag
     save new_state
     dispatch new_state
   end

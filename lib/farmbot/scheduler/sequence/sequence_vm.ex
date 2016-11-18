@@ -23,6 +23,11 @@ defmodule Sequence.VM do
       {:ok, {parent, old_state}}
     end
 
+    def handle_call(:state, {parent, nil}) do
+      Logger.error("THIS WILL NOT END WELL")
+      {:ok, :find_me, {parent, nil}}
+    end
+
     def handle_call(:state, {parent, old_state}) do
       {:ok, old_state, {parent, old_state}}
     end
@@ -36,16 +41,24 @@ defmodule Sequence.VM do
     GenServer.start_link(__MODULE__,sequence)
   end
 
+  def get_status do
+    GenEvent.call(BotStateEventManager, BotStateTracker, :state) |> check_status
+  end
+
+  def check_status(%HardwareState{} = blah), do: blah
+  def check_status(_), do: get_status
+
   def init(%Sequence{} = sequence) do
-    Farmbot.BotState.Monitor.add_handler(BotStateTracker, {self(), nil})
+    Farmbot.BotState.Monitor.add_handler(BotStateTracker, {__MODULE__, nil})
     tv = Map.get(sequence.args, "tag_version") || 0
     Farmbot.Sync.sync()
     corpus_module = Farmbot.Sync.get_corpus(tv)
     {:ok, instruction_set} = corpus_module.start_link(self())
     tick(self(), :done)
+    status = get_status
     initial_state =
       %{
-        status: GenEvent.call(BotStateEventManager, __MODULE__, :state),
+        status: status,
         instruction_set: instruction_set,
         vars: %{},
         running: true,
@@ -65,7 +78,7 @@ defmodule Sequence.VM do
     v = Map.get(state.vars, identifier, :error)
     {:reply, v, state }
   end
-  
+
   # disabling this right now
   def handle_call(:get_all_vars, _from, state ) do
     # %Farmbot.BotState.Hardware.State{location: [-1, -1, -1], mcu_params: %{}, pins: %{}}
@@ -86,7 +99,7 @@ defmodule Sequence.VM do
       Map.put(acc, String.to_atom("pin"<>key), val)
     end)
     [x,y,z] = state.status.location
-    thing2 = Map.merge( %{x: x, y: y, z: z }, pins)
+    thing2 = Map.merge(%{x: x, y: y, z: z }, pins)
 
     # gets a couple usefull things out of Farmbot.Sync
     thing3 = List.first(Farmbot.Sync.fetch
@@ -94,7 +107,8 @@ defmodule Sequence.VM do
     |> Map.drop([:__struct__]) # This probably isnt correct
 
     # Combine all the things.
-    all_things = Map.merge(thing1, thing2) |> Map.merge(thing3)
+    all_things = Map.merge(thing1, thing2)
+    |> Map.merge(thing3)
     {:reply, all_things , state}
   end
 
@@ -205,7 +219,7 @@ defmodule Sequence.VM do
   end
 
   def terminate(reason, state) do
-    Logger.debug("VM Died")
+    Logger.debug("VM Died: #{inspect reason}")
     Farmbot.Logger.log("Sequence Finished with errors! #{inspect reason}", [:error_toast], ["Sequencer"])
     GenServer.stop(state.instruction_set, :normal)
     Farmbot.BotState.Monitor.remove_handler(__MODULE__)

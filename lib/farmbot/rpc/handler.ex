@@ -108,7 +108,7 @@ defmodule Farmbot.RPC.Handler do
     Builds a json to send to the frontend
   """
   @spec build_status(Farmbot.BotState.Monitor.State.t) :: binary
-  def build_status(unserialized) do
+  def build_status(%Farmbot.BotState.Monitor.State{} = unserialized) do
     # unserialized = GenEvent.call(BotStateEventManager, __MODULE__, :state)
     m = %Notification{
       id: nil,
@@ -165,6 +165,11 @@ defmodule Farmbot.RPC.Handler do
   # Gets the most recent "cached" BotState
   def handle_call(:state, state) do
     {:ok, state, state}
+  end
+
+  def handle_call(:force_dispatch, state) do
+    build_status(state) |> @transport.emit
+    {:ok, :ok, state}
   end
 
   def start_link(_args) do

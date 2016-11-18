@@ -59,8 +59,8 @@ defmodule Farmbot.BotState.Configuration do
       }}
     {:ok, State.broadcast(
     case SafeStorage.read(__MODULE__) do
-      {:ok, last_state} ->
-        Logger.debug("Loading previous Configuration State")
+      {:ok, %State{} = last_state} ->
+        Logger.debug("Loading previous Bot Configuration State")
         # Merge the last state
         %State{initial_state | configuration: last_state.configuration}
         # Maybe persiste locks?
