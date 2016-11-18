@@ -75,9 +75,17 @@ defmodule Farmbot.BotState do
   @doc """
     Gets the most recent token
   """
-  @spec get_token() :: map
+  @spec get_token :: Token.t
   def get_token do
     GenServer.call(Authorization, :get_token)
+  end
+
+  @doc """
+    Gets the server that Configuratior sent over.
+  """
+  @spec get_server :: String.t | nil
+  def get_server do
+    GenServer.call(Authorization, :get_server)
   end
 
   @doc """

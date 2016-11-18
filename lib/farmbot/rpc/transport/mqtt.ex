@@ -6,8 +6,8 @@ defmodule Farmbot.RPC.Transport.Mqtt do
     Logger.debug("MQTT INIT")
     Process.flag(:trap_exit, true)
     {:ok, client} = Mqtt.Client.start_link(%{parent: self()})
-    case Farmbot.Auth.get_token do
-      {:ok, token} ->
+    case Farmbot.Auth.get_token |> Token.create do
+      %Token{} = token ->
         login(token)
         {:ok, {client, token}}
       _ ->
@@ -58,8 +58,9 @@ defmodule Farmbot.RPC.Transport.Mqtt do
   end
 
   def handle_info({:authorization, token}, {client, _old_token}) do
-    login(token)
-    {:noreply, {client, token}}
+    r_token = Token.create(token)
+    r_token |> login
+    {:noreply, {client, r_token}}
   end
 
   # We still want to keep alive, but dont actually preform the ping
@@ -78,8 +79,8 @@ defmodule Farmbot.RPC.Transport.Mqtt do
     GenServer.cast(__MODULE__, {:emit, message})
   end
 
-  defp bot(token) do
-    Map.get(token, "unencoded") |>  Map.get("bot")
+  defp bot(%Token{} = token) do
+    token.unencoded.bot
   end
 
   defp keep_connection_alive do
@@ -99,10 +100,13 @@ defmodule Farmbot.RPC.Transport.Mqtt do
     Process.send_after(__MODULE__, :login, 2000)
   end
 
-  defp connect_options(token) do
-    mqtt_host = Map.get(token, "unencoded") |> Map.get("mqtt")
-    mqtt_user = Map.get(token, "unencoded") |> Map.get("bot")
-    mqtt_pass = Map.get(token, "encoded")
+  defp connect_options(%Token{} = token) do
+    # mqtt_host = Map.get(token, "unencoded") |> Map.get("mqtt")
+    mqtt_host = token.unencoded.mqtt
+    # mqtt_user = Map.get(token, "unencoded") |> Map.get("bot")
+    mqtt_user = token.unencoded.bot
+    # mqtt_pass = Map.get(token, "encoded")
+    mqtt_pass = token.encoded
     [client_id: mqtt_user,
      username: mqtt_user,
      password: mqtt_pass,

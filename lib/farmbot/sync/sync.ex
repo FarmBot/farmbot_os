@@ -10,7 +10,7 @@ defmodule Farmbot.Sync do
 
   def init(_args) do
     token = case Farmbot.Auth.get_token() do
-      {:ok, token} -> token
+      {:ok, token} -> Token.create(token)
       _ -> nil
     end
     {:ok, %{token: token,
@@ -62,10 +62,11 @@ defmodule Farmbot.Sync do
   end
 
   # When new stuff comes in from a sync
-  def handle_cast(:sync, %{token: token, resources: old, corpuses: oldc}) do
-    "//" <> server = Map.get(token, "unencoded") |> Map.get("iss")
-    auth = Map.get(token, "encoded")
-
+  def handle_cast(:sync, %{token: %Token{} = token, resources: old, corpuses: oldc}) do
+    # "//" <> server = Map.get(token, "unencoded") |> Map.get("iss")
+    # auth = Map.get(token, "encoded")
+    server = Farmbot.BotState.get_server
+    auth = token.encoded
     case HTTPotion.get "#{server}/api/sync",
     [headers: ["Content-Type": "application/json",
                "Authorization": "Bearer " <> auth]] do
@@ -85,13 +86,13 @@ defmodule Farmbot.Sync do
          end)
        end
        new_merged = Map.merge(old ,new)
-       Farmbot.Logger.log("Synced", [], ["Farmbot.Sync"])
+       Farmbot.Logger.log("Synced", [], [__MODULE__])
        SafeStorage.write(__MODULE__.Resources, :erlang.term_to_binary(new_merged))
        SafeStorage.write(__MODULE__.Corpuses, :erlang.term_to_binary(oldc))
        {:noreply, %{token: token, resources: new_merged, corpuses: oldc }}
      error ->
        Logger.debug("Couldn't get resources: #{inspect error}")
-       Farmbot.Logger.log("Error syncing: #{inspect error}", [:error_toast], ["Farmbot.Sync"])
+       Farmbot.Logger.log("Error syncing: #{inspect error}", [:error_toast], [__MODULE__])
        {:noreply, %{token: token, resources: old, corpuses: oldc}}
     end
   end
@@ -138,13 +139,13 @@ defmodule Farmbot.Sync do
 
   # REALLY BAD LOGIC HERE
   # TODO: make this a little cleaner
-  def handle_call({:get_corpus, id}, _from, %{token: token, resources: resources, corpuses: oldc} ) do
+  def handle_call({:get_corpus, id}, _from, %{token: %Token{} = token, resources: resources, corpuses: oldc} ) do
     case oldc do
       [] ->
         msg = "Compiling Sequence Instruction Set"
         Logger.debug(msg)
-        Farmbot.Logger.log(msg, [], ["Farmbot.Sync"])
-        "//"<>server = Map.get(token, "unencoded") |> Map.get("iss")
+        Farmbot.Logger.log(msg, [], [__MODULE__])
+        server = Farmbot.BotState.get_server
         c = get_corpus_from_server(server, id)
         m = String.to_atom("Elixir.SequenceInstructionSet_"<>"#{id}")
         m.create_instruction_set(c)
@@ -158,7 +159,7 @@ defmodule Farmbot.Sync do
   end
 
   def handle_info({:authorization, token}, %{token: _, resources: resources, corpuses: cor}) do
-    {:noreply, %{token: token, resources: resources, corpuses: cor}}
+    {:noreply, %{token: Token.create(token), resources: resources, corpuses: cor}}
   end
 
   defp get_corpus_from_server(server, id) do
