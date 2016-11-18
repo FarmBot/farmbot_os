@@ -3,23 +3,19 @@ config :nerves, :firmware,
   rootfs_additions: "config/rootfs-additions-#{Mix.Project.config[:target]}",
   hardware: "config/rootfs-additions-#{Mix.Project.config[:target]}"
 
-config :uart,
-  baud: 115200
+config :farmbot,
+  state_path: "/state"
 
-config :fb,
-  state_path: "/state",
-  db_path: "/db",
+config :farmbot_networking,
   dnsmasq_path: "/root/dnsmasq.lease"
-
-config :json_rpc,
-    transport: Mqtt.Handler
 
 config :logger, :console,
   # format: "$metadata[$level] $levelpad$message\r\n",
   colors: [enabled: true ]
-config :Logger,
-  handle_sasl_reports: true,
-  handle_otp_reports: true
+
+# config :logger,
+#   handle_sasl_reports: true,
+#   handle_otp_reports: true
 
 config :iex, :colors,
   enabled: true
@@ -32,9 +28,3 @@ config :iex,
     "%node",
     ">",
     :reset ] |> IO.ANSI.format |> IO.chardata_to_string
-
-config :blinky, led_list: [ :green ]
-config :nerves_leds, names: [ green: "led0" ]
-
-config :farmbot_configurator,
-  event_handler: BotState.EventManager

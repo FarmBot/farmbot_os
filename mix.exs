@@ -1,6 +1,4 @@
-defmodule Fw.Mixfile do
-  Code.load_file("tasks.exs")
-
+defmodule Farmbot.Mixfile do
   use Mix.Project
 
   def target(:prod) do
@@ -21,7 +19,7 @@ defmodule Fw.Mixfile do
     |> String.to_integer
 
   def project do
-    [app: :fw,
+    [app: :farmbot,
      version: @version,
      target: target(Mix.env),
      archives: [nerves_bootstrap: "~> 0.1.4"],
@@ -35,7 +33,8 @@ defmodule Fw.Mixfile do
   end
 
   def application do
-    [mod: {Fw, [%{target: target(Mix.env), compat_version: @compat_version}]},
+    [mod: {Farmbot, [%{target: target(Mix.env), compat_version: @compat_version,
+                       version: @version, env: Mix.env}]},
      applications: apps(Mix.env)]
   end
 
@@ -52,7 +51,8 @@ defmodule Fw.Mixfile do
      :runtime_tools,
      :mustache,
      :timex,
-     :farmbot_auth]
+     :farmbot_auth,
+     :farmbot_configurator]
   end
 
   # on device
@@ -60,8 +60,7 @@ defmodule Fw.Mixfile do
     apps ++ platform_apps(target(:prod)) ++
     [
       :nerves,
-      :nerves_firmware_http,
-      :farmbot_configurator
+      :nerves_firmware_http
     ]
   end
 
@@ -89,8 +88,10 @@ defmodule Fw.Mixfile do
       {:hulaaki, github: "ConnorRigby/hulaaki"},
       {:mustache, "~> 0.0.2"},
       {:timex, "~> 3.0"},
-      {:farmbot_auth, github: "Farmbot/farmbot_auth"},
-      # {:farmbot_auth, path: "../farmbot_auth"}
+      # {:farmbot_auth, github: "Farmbot/farmbot_auth"},
+      {:farmbot_auth, path: "../farmbot_auth"},
+      #  {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
+       {:farmbot_configurator, path: "../farmbot_configurator"}
     ]
   end
 
@@ -98,9 +99,7 @@ defmodule Fw.Mixfile do
     deps ++ platform_deps(target(Mix.env)) ++ system(target(Mix.env)) ++
     [
      {:nerves, "~> 0.3.0"},
-     {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
-     {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
-    #  {:farmbot_configurator, path: "../farmbot_configurator"}
+     {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"}
     ]
   end
 
@@ -113,8 +112,8 @@ defmodule Fw.Mixfile do
 
   def deps(:dev) do
     deps ++ [
-      {:fake_nerves, github: "ConnorRigby/fake_nerves"},
-      # {:fake_nerves, path: "../fake_nerves"},
+      # {:fake_nerves, github: "ConnorRigby/fake_nerves"},
+      {:fake_nerves, path: "../fake_nerves", override: true},
       {:credo, "~> 0.4"},
       {:dialyxir, "~> 0.4"}]
   end
@@ -145,6 +144,8 @@ defmodule Fw.Mixfile do
   end
 
   def system("rpi3") do
-    [{:"nerves_system_rpi3", git: "https://github.com/ConnorRigby/nerves_system_rpi3.git", tag: "v0.7.5" }]
+    [{:"nerves_system_rpi3",
+      git: "https://github.com/ConnorRigby/nerves_system_rpi3.git",
+      tag: "v0.7.5" }]
   end
 end

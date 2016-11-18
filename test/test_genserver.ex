@@ -6,9 +6,6 @@ defmodule TestGenServer do
   def init(:ok) do
     {:ok, :fake_state}
   end
-  def hadnle_call(:am_i_connected, _, state) do
-    {:reply, :true, state}
-  end
   def handle_call(_,_,state) do
     {:reply, :ok, state}
   end
