@@ -1,4 +1,9 @@
 defmodule Request do
+  @type t :: %__MODULE__{
+    method: String.t,
+    params: [map,...],
+    id: String.t
+  }
   defstruct [
     method: nil,
     params: nil,
@@ -19,6 +24,11 @@ defmodule Request do
 end
 
 defmodule Notification do
+  @type t :: %__MODULE__{
+    method: String.t,
+    params: [map,...],
+    id: nil
+  }
   defstruct [
     method: nil,
     params: nil,
@@ -39,6 +49,11 @@ defmodule Notification do
 end
 
 defmodule Response do
+  @type t :: %__MODULE__{
+    result: any,
+    error: String.t | nil,
+    id: String.t
+  }
   defstruct [
     result: nil,
     error: nil,

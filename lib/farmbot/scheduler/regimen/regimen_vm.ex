@@ -3,12 +3,12 @@ defmodule Regimen.VM  do
   defmodule State do
     @moduledoc false
     @type t :: %__MODULE__{
-      flag: FarmbotScheduler.State.regimen_flag,
+      flag: Farmbot.Scheduler.State.regimen_flag,
       timer: reference,
       start_time: DateTime.t,
       regimen_items: list(RegimenItem.t),
       ran_items: list(RegimenItem.t),
-      regimen: Regiment.t
+      regimen: Regimen.t
     }
 
     defstruct [
