@@ -174,7 +174,7 @@ defmodule Farmbot.RPC.Requests do
     Farmbot.Sync.sync()
     regimen = Farmbot.Sync.get_regimen(id)
     Farmbot.Scheduler.add_regimen(regimen)
-    # Farmbot.RPC.Handler.send_status
+    :ok
   end
 
   def handle_request("start_regimen", params) do

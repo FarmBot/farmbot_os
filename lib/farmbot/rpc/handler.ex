@@ -23,10 +23,7 @@ defmodule Farmbot.RPC.Handler do
 
   # JSON RPC RESPONSE ERROR
   @spec ack_msg(String.t, {String.t, String.t}) :: binary
-  def ack_msg(id, {name, message})
-    when is_bitstring(id) and is_bitstring(name)
-     and is_bitstring(message)
-  do
+  def ack_msg(id, {name, message}) do
     Logger.error("RPC ERROR")
     Logger.debug("#{inspect {name, message}}")
     Poison.encode!(

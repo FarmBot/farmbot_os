@@ -38,16 +38,33 @@ defmodule Farmbot.BotState.Monitor do
     GenServer.start_link(__MODULE__, mgr, name: __MODULE__)
   end
 
-  def add_handler(mgr, module) do
-    GenEvent.add_mon_handler(mgr, module, [])
+  @doc """
+    Adds a handler for getting state updates.
+  """
+  def add_handler(mgr, module, initial_state)
+  when is_atom(module) do
+    GenEvent.add_mon_handler(mgr, module, initial_state)
   end
 
-  def add_handler(module) do
-    GenServer.cast(__MODULE__, {:add_handler, module})
+  def add_handler(module, initial_state \\ nil) do
+    GenServer.cast(__MODULE__, {:add_handler, module, initial_state})
   end
 
-  def handle_cast({:add_handler, module}, {mgr, state}) do
-    add_handler(mgr, module)
+  def remove_handler(module, args \\ []) do
+    GenServer.cast(__MODULE__, {:remove_handler, module, args})
+  end
+
+  def remove_handler(mgr, module, args) do
+    GenEvent.remove_handler(mgr, module, args)
+  end
+
+  def handle_cast({:add_handler, module, initial_state}, {mgr, state}) do
+    add_handler(mgr, module, initial_state)
+    dispatch(mgr, state)
+  end
+
+  def handle_cast({:remove_handler, module, args}, {mgr, state}) do
+    remove_handler(mgr, module, args)
     dispatch(mgr, state)
   end
 
@@ -105,6 +122,12 @@ defmodule Farmbot.BotState.Monitor do
     Farmbot.BotState.add_creds({email,password,server})
     NetMan.connect({ssid, psk}, Farmbot.BotState.Network)
     dispatch(mgr,state)
+  end
+
+  def handle_cast(new_things, {mgr, state}) do
+    Logger.warn("(#{__MODULE__}) WHAT IS THIS??? #{inspect new_things} ")
+
+    dispatch(mgr, state)
   end
 
   # If a handler dies, we try to restart it

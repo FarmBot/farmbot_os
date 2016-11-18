@@ -95,7 +95,7 @@ defmodule Farmbot.Scheduler do
     Process.send_after(__MODULE__, :tick, @tick_interval)
   end
 
-  @spec load :: Farmbot.Scheduler.State.t
+  @spec load :: State.t
   def load do
     default_state = %State{}
     case SafeStorage.read(__MODULE__) do
@@ -150,12 +150,6 @@ defmodule Farmbot.Scheduler do
     end)
     # set current sequence to nil to allow sequences to continue.
     {:noreply, %State{state | current_sequence: nil}}
-  end
-
-  # This strips out pids, tuples and whatnot for json status updates
-  def handle_call(:jsonable, state) do
-    jsonable = State.Serializer.serialize(state)
-    {:reply, jsonable, state}
   end
 
   def handle_call(:state, _from, state) do
@@ -286,7 +280,7 @@ defmodule Farmbot.Scheduler do
   @spec save_and_update(State.t) :: :ok
   def save_and_update(%State{} = state) do
     GenServer.cast(Farmbot.BotState.Monitor,
-            {State.Serializer.serialize(state)})
+            State.Serializer.serialize(state))
     SafeStorage.write(__MODULE__, :erlang.term_to_binary(state))
   end
 

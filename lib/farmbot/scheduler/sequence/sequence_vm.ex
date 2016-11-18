@@ -1,12 +1,43 @@
+alias Farmbot.BotState.Monitor.State, as: BotState
+alias Farmbot.BotState.Hardware.State, as: HardwareState
 defmodule Sequence.VM do
+  @moduledoc """
+    There should only ever be one instance of this process at a time.
+  """
   require Logger
 
+  defmodule BotStateTracker do
+    @moduledoc false
+    use GenEvent
+    require Logger
+
+    # when state is updated
+    def handle_event({:dispatch, %BotState{hardware: hardware}},{parent, old_state})
+    when hardware != old_state do
+      GenServer.cast(parent, hardware)
+      {:ok, {parent, hardware}}
+    end
+
+    # when state hasnt changed, just ignore it
+    def handle_event({:dispatch, _},{parent, old_state}) do
+      {:ok, {parent, old_state}}
+    end
+
+    def handle_call(:state, {parent, old_state}) do
+      {:ok, old_state, {parent, old_state}}
+    end
+
+    def terminate(_, _) do
+      Logger.debug("Sequence BotState Tracker stopping.")
+    end
+  end
 
   def start_link(%Sequence{} = sequence) do
     GenServer.start_link(__MODULE__,sequence)
   end
 
-  def init(sequence) do
+  def init(%Sequence{} = sequence) do
+    Farmbot.BotState.Monitor.add_handler(BotStateTracker, {self(), nil})
     tv = Map.get(sequence.args, "tag_version") || 0
     Farmbot.Sync.sync()
     corpus_module = Farmbot.Sync.get_corpus(tv)
@@ -14,7 +45,7 @@ defmodule Sequence.VM do
     tick(self(), :done)
     initial_state =
       %{
-        status: Farmbot.BotState.get_status,
+        status: GenEvent.call(BotStateEventManager, __MODULE__, :state),
         instruction_set: instruction_set,
         vars: %{},
         running: true,
@@ -34,22 +65,27 @@ defmodule Sequence.VM do
     v = Map.get(state.vars, identifier, :error)
     {:reply, v, state }
   end
-
+  
+  # disabling this right now
   def handle_call(:get_all_vars, _from, state ) do
+    # %Farmbot.BotState.Hardware.State{location: [-1, -1, -1], mcu_params: %{}, pins: %{}}
     # Kind of dirty function to make mustache work properly.
     # Also possibly a huge memory leak.
 
     # get all of the local vars from the vm. # SUPER UNSAFE
-    thing1 = state.vars |> Enum.reduce(%{}, fn ({key, val}, acc) -> Map.put(acc, String.to_atom(key), val) end)
+    thing1 = state.vars
+    |> Enum.reduce(%{}, fn ({key, val}, acc) ->
+         Map.put(acc, String.to_atom(key), val)
+       end)
 
     # put current position into the Map
-    [x,y,z] = Farmbot.BotState.get_current_pos
-    pins = Farmbot.BotState.get_status
-    |> Map.get(:pins)
+    pins =
+    state.status.pins
     |> Enum.reduce(%{}, fn( {key, %{mode: _mode, value: val}}, acc) ->
       # THIS IS SO UNSAFE
       Map.put(acc, String.to_atom("pin"<>key), val)
     end)
+    [x,y,z] = state.status.location
     thing2 = Map.merge( %{x: x, y: y, z: z }, pins)
 
     # gets a couple usefull things out of Farmbot.Sync
@@ -74,6 +110,10 @@ defmodule Sequence.VM do
 
   def handle_cast(:resume, state) do
     handle_info(:run_next_step, Map.put(state, :running, true))
+  end
+
+  def handle_cast(%HardwareState{} = hardware_state, state) do
+    {:noreply, Map.put(state, :status, hardware_state)}
   end
 
   # if the VM is paused
@@ -161,11 +201,13 @@ defmodule Sequence.VM do
 
   def terminate(:normal, state) do
     GenServer.stop(state.instruction_set, :normal)
+    Farmbot.BotState.Monitor.remove_handler(__MODULE__)
   end
 
   def terminate(reason, state) do
     Logger.debug("VM Died")
     Farmbot.Logger.log("Sequence Finished with errors! #{inspect reason}", [:error_toast], ["Sequencer"])
     GenServer.stop(state.instruction_set, :normal)
+    Farmbot.BotState.Monitor.remove_handler(__MODULE__)
   end
 end
