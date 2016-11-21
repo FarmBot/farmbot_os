@@ -1,17 +1,8 @@
-ExUnit.start
-defmodule RPCMessageManagerTest do
+defmodule Farmbot.RPC.HandlerTest do
   use ExUnit.Case, async: true
 
-  test("it wont crash when an unhandled rpc command comes thru") do
-    bad_rpc = Farmbot.RPC.Handler.handle_request("do_a_barrel_roll",
-                                      [%{"param1" => "nothing"}])
-    assert(bad_rpc ==
-      {:error, "Unhandled method",
-      "#{inspect {"do_a_barrel_roll", [%{"param1" => "nothing"}]}}"})
-  end
-
   test("it creates a JsonRpc compliant farmbot ack message") do
-    msg = JsonRpc.Parser.ack_msg("long uuid string")
+    msg = Farmbot.RPC.Handler.ack_msg("long uuid string")
     {:ok, decoded} = Poison.decode(msg)
     assert(Map.get(decoded, "id") == "long uuid string")
     assert(Map.get(decoded, "error") == nil)
@@ -19,7 +10,7 @@ defmodule RPCMessageManagerTest do
   end
 
   test("it creates a JsonRpc compliant farmbot error message") do
-    msg = JsonRpc.Parser.ack_msg("long uuid again", {"error name", "error message"})
+    msg = Farmbot.RPC.Handler.ack_msg("long uuid again", {"error name", "error message"})
     {:ok, decoded} = Poison.decode(msg)
     assert(Map.get(decoded, "id") == "long uuid again")
     assert(Map.get(decoded, "error") == %{"name" => "error name", "message" => "error message"})
@@ -27,7 +18,7 @@ defmodule RPCMessageManagerTest do
   end
 
   test("it creates a JsonRpc compliant farmbot log message") do
-    msg = JsonRpc.Parser.log_msg("super important log message",
+    msg = Farmbot.RPC.Handler.log_msg("super important log message",
                         [:error_toast, :error_ticker],
                         ["SERIAL"])
     {:ok, decoded} = Poison.decode(msg)

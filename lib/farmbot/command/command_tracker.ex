@@ -15,7 +15,6 @@ defmodule Command.Tracker do
 
   # When we get a successful message, reset the counter.
   def handle_cast(:done, _) do
-    # Farmbot.RPC.Handler.send_status
     {:noreply, 0}
   end
 
@@ -23,10 +22,18 @@ defmodule Command.Tracker do
     {:noreply, 0}
   end
 
+  # BUG: I dont know what caused this but for some reason this message hit
+  # this module. it then logged straight to the frontend.
+  # Containint the token in plain text. This is just to make sure that doesn't
+  # ever happen again. (thanks pattern matching)
+  def handle_cast({:authorization, _}, count) do
+    {:noreply, count}
+  end
+
   # If the message is not successful, and count is less than three,
   # increase it.
   def handle_cast(issue, count) when count < 2 do
-    # Farmbot.RPC.Handler.send_status
+    IO.inspect issue
     Farmbot.Logger.log("Problem writing command! #{inspect issue}", [:error_toast], [@tag])
     {:noreply, count + 1}
   end

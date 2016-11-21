@@ -142,7 +142,7 @@ defmodule Farmbot.BotState.Monitor do
   @doc """
     Callback for the genserver in this module
   """
-  @spec dispatch(pid | atom, State.t) :: {:noreply, {pid | atom, State.e}}
+  @spec dispatch(pid | atom, State.t) :: {:noreply, {pid | atom, State.t}}
   def dispatch(mgr, state) do
     GenEvent.notify(mgr, {:dispatch, state})
     {:noreply, {mgr, state}}

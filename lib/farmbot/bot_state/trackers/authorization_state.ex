@@ -3,7 +3,7 @@ defmodule Farmbot.BotState.Authorization do
     @type t :: %__MODULE__{
       token: Token.t | nil,
       secret: nil | binary,
-      server: nil,
+      server: nil | String.t,
       interim: nil | %{
         email: String.t,
         pass: String.t

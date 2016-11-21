@@ -53,6 +53,16 @@ defmodule Farmbot.BotState.Network do
     dispatch :unhandled, state
   end
 
+  # for development mode
+  def handle_cast({:connected, :dev, ip_address}, %State{} = state) do
+    GenServer.cast(Farmbot.BotState.Configuration,
+                  {:update_info, :private_ip, ip_address})
+    GenServer.cast(Farmbot.BotState.Authorization, :try_log_in)
+    new_state = %State{state | connected?: true, connection: :dev}
+    save new_state
+    dispatch new_state
+  end
+
   def handle_cast({:connected, connection, ip_address}, %State{} = state) do
     Process.sleep(2000) # I DONT KNOW WHY THIS HAS TO BE HERE
     Farmbot.BotState.set_time

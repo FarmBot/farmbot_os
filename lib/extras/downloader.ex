@@ -16,6 +16,7 @@ defmodule Downloader do
     file = run(url, "/tmp/update.hex")
     Farmbot.Logger.log("Installing FW Update", [], [@log_tag])
     GenServer.cast(UartHandler, {:update_fw, file})
+    :ok
   end
 
   def run(url, dl_file) when is_bitstring url do
