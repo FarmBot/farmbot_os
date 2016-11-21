@@ -1,6 +1,5 @@
 alias Farmbot.RPC.Transport.GenMqtt.Client, as: Client
 defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
-  #GenServer.cast Farmbot.BotState.Authorization, :try_log_in
   @moduledoc """
     Experimental mqtt watcher.
   """
@@ -23,6 +22,7 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
 
   @spec start_client(Token.t) :: pid
   defp start_client(%Token{} = token) do
+    Logger.warn "Starting MQTT Client"
     {:ok, pid} = Client.start_link(token)
     pid
   end
@@ -34,11 +34,13 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
 
   def handle_cast({:emit, binary}, {%Token{} = token, pid})
   when is_pid(pid) do
-    GenServer.cast(pid, {:emit, binary})
+    Logger.debug("REALLY EMITTING")
+    send(Client, {:emit, binary})
     {:noreply, {token, pid}}
   end
 
   def handle_cast({:emit, binary}, state) do
+    # Save messages when offline maybe?
     {:noreply, state}
   end
 

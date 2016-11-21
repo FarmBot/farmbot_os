@@ -57,7 +57,7 @@ defmodule Farmbot.BotState.Network do
   def handle_cast({:connected, :dev, ip_address}, %State{} = state) do
     GenServer.cast(Farmbot.BotState.Configuration,
                   {:update_info, :private_ip, ip_address})
-    # GenServer.cast(Farmbot.BotState.Authorization, :try_log_in)
+    GenServer.cast(Farmbot.BotState.Authorization, :try_log_in)
     new_state = %State{state | connected?: true, connection: :dev}
     save new_state
     dispatch new_state
