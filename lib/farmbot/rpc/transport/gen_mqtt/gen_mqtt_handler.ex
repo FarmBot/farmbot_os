@@ -34,12 +34,11 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
 
   def handle_cast({:emit, binary}, {%Token{} = token, pid})
   when is_pid(pid) do
-    Logger.debug("REALLY EMITTING")
     send(Client, {:emit, binary})
     {:noreply, {token, pid}}
   end
 
-  def handle_cast({:emit, binary}, state) do
+  def handle_cast({:emit, _binary}, state) do
     # Save messages when offline maybe?
     {:noreply, state}
   end
@@ -54,6 +53,12 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
   when is_pid(pid) do
     token = Token.create(maybe_token)
     stop_client(pid)
+    {:noreply, {token, start_client(token)}}
+  end
+
+  def handle_info({:EXIT, pid, _reason}, {%Token{} = token, client})
+  when client == pid do
+    # restart the client if it dies.
     {:noreply, {token, start_client(token)}}
   end
 

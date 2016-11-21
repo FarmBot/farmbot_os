@@ -51,7 +51,8 @@ defmodule Farmbot.Mixfile do
      :mustache,
      :timex,
      :farmbot_auth,
-     :farmbot_configurator]
+     :farmbot_configurator,
+     :vmq_commons]
   end
 
   # on device
@@ -84,14 +85,14 @@ defmodule Farmbot.Mixfile do
       {:poison, "~> 2.0"},
       {:gen_stage, "~> 0.4"},
       {:nerves_lib, github: "nerves-project/nerves_lib"},
-      # {:hulaaki, github: "ConnorRigby/hulaaki"},
       {:gen_mqtt, "~> 0.3.1"},
+      {:vmq_commons, "1.0.0", manager: :rebar3},
       {:mustache, "~> 0.0.2"},
       {:timex, "~> 3.0"},
       # {:farmbot_auth, github: "Farmbot/farmbot_auth"},
       {:farmbot_auth, path: "../farmbot_auth"},
       #  {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
-       {:farmbot_configurator, path: "../farmbot_configurator"}
+      {:farmbot_configurator, path: "../farmbot_configurator"}
     ]
   end
 

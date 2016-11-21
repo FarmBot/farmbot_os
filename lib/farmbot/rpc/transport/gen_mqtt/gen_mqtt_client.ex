@@ -15,7 +15,6 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Client do
   def on_connect(%Token{} = token) do
     Logger.debug "MQTT Connected"
     GenMQTT.subscribe(self(), bot_topic(token), 0)
-    Farmbot.Sync.sync
     Logger.debug "MQTT Subscribed"
     {:ok, token}
   end
@@ -26,12 +25,11 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Client do
       msg
       |> Poison.decode!
       |> RPC.MessageManager.sync_notify
-      Logger.debug("Got message: #{inspect msg}")
       {:ok, token}
   end
 
   def handle_cast(something, state) do
-    Logger.debug("CAST: #{inspect something}")
+    Logger.warn("CAST: #{inspect something}")
     {:noreply, state}
   end
 
@@ -51,15 +49,17 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Client do
     :ok
   end
 
+  def terminate(_, _) do
+    Logger.warn("Mqtt Client died!")
+    :ok
+  end
+
   @spec build_opts(Token.t) :: GenMQTT.option
   defp build_opts(%Token{} = token) do
     [name: __MODULE__,
      host: token.unencoded.mqtt,
      password: token.encoded,
      username: token.unencoded.bot]
-     # these dont work for some reason
-    #  last_will_topic: frontend_topic(token),
-    #  last_will_message: build_last_will_message]
   end
 
   @spec frontend_topic(Token.t) :: String.t
@@ -68,12 +68,13 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Client do
   @spec bot_topic(Token.t) :: String.t
   defp bot_topic(%Token{} = token), do: "bot/#{token.unencoded.bot}/from_clients"
 
-
-  defp build_last_will_message do
-    msg = Farmbot.RPC.Handler.log_msg("Bot going offline",
-                                       [:error_ticker],
-                                       ["ERROR"])
-    IO.inspect msg
-    msg
-  end
+  # NOT WORKING
+  # @spec build_last_will_message :: String.t
+  # defp build_last_will_message do
+  #   msg = Farmbot.RPC.Handler.log_msg("Bot going offline",
+  #                                      [:error_ticker],
+  #                                      ["ERROR"])
+  #   IO.inspect msg
+  #   msg
+  # end
 end
