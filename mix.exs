@@ -35,7 +35,8 @@ defmodule Farmbot.Mixfile do
   def application do
     [mod: {Farmbot, [%{target: target(Mix.env), compat_version: @compat_version,
                        version: @version, env: Mix.env}]},
-     applications: apps(Mix.env)]
+     applications: apps(Mix.env),
+     included_applications: [:gen_mqtt]]
   end
 
   # common for test, prod, and dev
@@ -148,5 +149,94 @@ defmodule Farmbot.Mixfile do
     [{:"nerves_system_rpi3",
       git: "https://github.com/ConnorRigby/nerves_system_rpi3.git",
       tag: "v0.7.5" }]
+  end
+end
+
+defmodule Mix.Tasks.Firmware.Build do
+  use Mix.Task
+  @shortdoc "Builds firmware."
+    def run(args) do
+    System.cmd("rm", ["-rf","rel/bootstrapper"])
+    Mix.Tasks.Deps.Get.run(args)
+    Mix.Tasks.Deps.Compile.run(args)
+    Mix.Tasks.Firmware.run(args)
+  end
+end
+
+defmodule Mix.Tasks.Firmware.Clean do
+  use Mix.Task
+  @shortdoc "Cleans environment"
+    def run(_args) do
+    System.cmd("rm", ["-rf","rel/bootstrapper", "_images"])
+    Mix.Tasks.Deps.Clean.run(["--all"])
+  end
+end
+
+defmodule Mix.Tasks.Firmware.Upload do
+  use Mix.Task
+  @shortdoc "Uploads an image to a development target"
+  def run(args) do
+    IO.puts("Starting upload...")
+    ip_address = System.get_env("FARMBOT_IP")
+    || List.first(args)
+    || "192.168.29.185" # I get to do this because i own it.
+    Port.open({:spawn_executable, "/usr/bin/curl"},
+              [{:args, [
+                "-T", "_images/rpi3/farmbot.fw",
+                "http://#{ip_address}:8988/firmware",
+                "-H", "Content-Type: application/x-firmware",
+                "-H", "X-Reboot: true",
+                "-#"
+                ]},
+               :stream,
+               :binary,
+               :exit_status,
+               :hide,
+               :use_stdio,
+               :stderr_to_stdout])
+     handle_output
+  end
+
+  def handle_output do
+    receive do
+      info -> handle_info(info)
+    end
+  end
+
+  def handle_info({port, {:data, << <<35>>, _ :: size(568), " 100.0%">>}}) do # LAWLZ
+    IO.puts("\nDONE")
+    Port.close(port)
+  end
+
+  def handle_info({port, {:data, << "\r", <<35>>, _ :: size(568), " 100.0%">>}}) do # LAWLZ
+    IO.puts("\nDONE")
+    Port.close(port)
+  end
+
+  def handle_info({_port, {:data, << <<35>>, <<_ :: binary>> >>}}) do
+    IO.write("#")
+    handle_output
+  end
+
+  def handle_info({_port, {:data, << "\n", <<35>>, <<_ :: binary>> >>}}) do
+    IO.write("#")
+    handle_output
+  end
+
+  def handle_info({_port, {:data, << "\r", <<35>>, <<_ :: binary>> >>}}) do
+    IO.write("#")
+    handle_output
+  end
+
+  def handle_info({_port, {:data, data}}) do
+    handle_output
+  end
+
+  def handle_info({_port, {:exit_status, 7}}) do
+    IO.puts("\nCOULD NOT CONNECT TO DEVICE!")
+  end
+
+  def handle_info({_port, {:exit_status, _status}}) do
+    IO.puts("\nDONE")
   end
 end
