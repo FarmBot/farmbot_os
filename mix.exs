@@ -86,13 +86,13 @@ defmodule Farmbot.Mixfile do
       {:gen_stage, "~> 0.4"},
       {:nerves_lib, github: "nerves-project/nerves_lib"},
       {:gen_mqtt, "~> 0.3.1"},
-      {:vmq_commons, "1.0.0", manager: :rebar3},
+      {:vmq_commons, "1.0.0", manager: :rebar3}, # This is for mqtt to work.
       {:mustache, "~> 0.0.2"},
       {:timex, "~> 3.0"},
-      # {:farmbot_auth, github: "Farmbot/farmbot_auth"},
-      {:farmbot_auth, path: "../farmbot_auth"},
-      #  {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
-      {:farmbot_configurator, path: "../farmbot_configurator"}
+      {:farmbot_auth, github: "Farmbot/farmbot_auth"},
+      # {:farmbot_auth, path: "../farmbot_auth"},
+       {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
+      # {:farmbot_configurator, path: "../farmbot_configurator"}
     ]
   end
 
@@ -113,8 +113,8 @@ defmodule Farmbot.Mixfile do
 
   def deps(:dev) do
     deps ++ [
-      # {:fake_nerves, github: "ConnorRigby/fake_nerves"},
-      {:fake_nerves, path: "../fake_nerves", override: true},
+      {:fake_nerves, github: "ConnorRigby/fake_nerves"},
+      # {:fake_nerves, path: "../fake_nerves", override: true},
       {:credo, "~> 0.4"},
       {:dialyxir, "~> 0.4"}]
   end
