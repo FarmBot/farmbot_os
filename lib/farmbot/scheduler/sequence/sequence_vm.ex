@@ -37,10 +37,6 @@ defmodule Sequence.VM do
     end
   end
 
-  def start_link(%Sequence{} = sequence) do
-    GenServer.start_link(__MODULE__,sequence)
-  end
-
   def get_status do
     GenEvent.call(BotStateEventManager, BotStateTracker, :state) |> check_status
   end
@@ -48,12 +44,16 @@ defmodule Sequence.VM do
   def check_status(%HardwareState{} = blah), do: blah
   def check_status(_), do: get_status
 
+  def start_link(%Sequence{} = sequence) do
+    GenServer.start_link(__MODULE__,sequence)
+  end
+
   def init(%Sequence{} = sequence) do
     Farmbot.BotState.Monitor.add_handler(BotStateTracker, {__MODULE__, nil})
     tv = Map.get(sequence.args, "tag_version") || 0
     Farmbot.Sync.sync()
-    corpus_module = Farmbot.Sync.get_corpus(tv)
-    {:ok, instruction_set} = corpus_module.start_link(self())
+    module = Module.concat(Sequence, "InstructionSet_#{tv}")
+    {:ok, instruction_set} = module.start_link(self())
     tick(self(), :done)
     status = get_status
     initial_state =
@@ -71,12 +71,16 @@ defmodule Sequence.VM do
   def handle_call({:set_var, identifier, value}, _from, state) do
     new_vars = Map.put(state.vars, identifier, value)
     new_state = Map.put(state, :vars, new_vars )
-    {:reply, :ok, new_state }
+    {:reply, :ok, new_state}
   end
 
   def handle_call({:get_var, identifier}, _from, state ) do
     v = Map.get(state.vars, identifier, :error)
-    {:reply, v, state }
+    {:reply, v, state}
+  end
+
+  def handle_call(:name, _from, state) do
+    {:reply, state.sequence.name, state}
   end
 
   # disabling this right now
@@ -181,7 +185,7 @@ defmodule Sequence.VM do
     kind = Map.get(ast_node, "kind")
     Logger.debug("doing: #{kind}")
     Farmbot.Logger.log("Doing step: #{kind}", [], [sequence.name])
-    GenServer.cast(instruction_set, {kind, Map.get(ast_node, "args") })
+    GenServer.cast(instruction_set, ast_node)
     {:noreply, %{
             status: status,
             sequence: sequence,
@@ -206,11 +210,21 @@ defmodule Sequence.VM do
   # the last command was successful
   def tick(vm, :done) do
     Process.send_after(vm, :run_next_step, 100)
+    {:noreply, vm}
   end
+
+  # i suck
+  def tick(vm, :timeout) do
+    seq_name = GenServer.call(vm, :name)
+    Farmbot.Logger.log("Command timed out!", [:warning_toast], [seq_name])
+    tick(vm, :done)
+  end
+  def tick(vm, {:error, reason}), do: tick(vm, reason)
 
   # The last command was not successful
   def tick(vm, error) do
     Process.send_after(vm, {:error, error}, 100)
+    {:noreply, vm}
   end
 
   def terminate(:normal, state) do

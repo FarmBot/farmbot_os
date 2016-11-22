@@ -157,6 +157,10 @@ defmodule Command do
   @doc """
     Gets the current position
     then pipes into move_absolute
+    * {:x, `speed`, `amount`}
+    * {:y, `speed`, `amount`}
+    * {:z, `speed`, `amount`}
+    * %{x: `amount`, y: `amount`, z: `amount` ,s: `speed`}
   """
   @spec move_relative(
   {:x, number | nil, number} |
