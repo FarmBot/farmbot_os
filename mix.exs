@@ -152,7 +152,7 @@ defmodule Farmbot.Mixfile do
   end
 end
 
-defmodule Mix.Tasks.Firmware.Build do
+defmodule Mix.Tasks.Farmbot.Build do
   use Mix.Task
   @shortdoc "Builds firmware."
     def run(args) do
@@ -163,7 +163,7 @@ defmodule Mix.Tasks.Firmware.Build do
   end
 end
 
-defmodule Mix.Tasks.Firmware.Clean do
+defmodule Mix.Tasks.Farmbot.Clean do
   use Mix.Task
   @shortdoc "Cleans environment"
     def run(_args) do
@@ -172,7 +172,7 @@ defmodule Mix.Tasks.Firmware.Clean do
   end
 end
 
-defmodule Mix.Tasks.Firmware.Upload do
+defmodule Mix.Tasks.Farmbot.Upload do
   use Mix.Task
   @shortdoc "Uploads an image to a development target"
   def run(args) do
@@ -228,7 +228,7 @@ defmodule Mix.Tasks.Firmware.Upload do
     handle_output
   end
 
-  def handle_info({_port, {:data, data}}) do
+  def handle_info({_port, {:data, _data}}) do
     handle_output
   end
 

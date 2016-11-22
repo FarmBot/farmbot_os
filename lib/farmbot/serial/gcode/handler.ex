@@ -82,7 +82,6 @@ defmodule Farmbot.Serial.Gcode.Handler do
     {:noreply, %{nerves: nerves, current: {cur_str, pid}, log: log}}
   end
 
-
   def handle_cast(event, state) do
     Logger.debug("unhandled gcode! #{inspect event}")
     {:noreply, state}

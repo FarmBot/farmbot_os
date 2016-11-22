@@ -207,9 +207,10 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(:pin_guard_5_pin_nr) do 221 end
   def parse_param(:pin_guard_5_time_out) do 222 end
   def parse_param(:pin_guard_5_active_state) do 223 end
-  def parse_param(_) do nil end
-
-  defp qtag do
-    "0"
+  def parse_param(param_string) when is_bitstring(param_string) do
+    String.to_atom(param_string) |> parse_param
   end
+  def parse_param(_), do: nil
+
+  defp qtag, do: "0"
 end

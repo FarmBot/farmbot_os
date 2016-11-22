@@ -59,6 +59,10 @@ defmodule Farmbot.BotState.Hardware do
     dispatch state.mcu_params, state
   end
 
+  def handle_call(:get_version, _from, %State{} = state) do
+    dispatch state.mcu_params.param_version, state
+  end
+
   def handle_call(event, _from, %State{} = state) do
     Logger.warn("[#{__MODULE__}] UNHANDLED CALL!: #{inspect event}", [__MODULE__])
     dispatch :unhandled, state

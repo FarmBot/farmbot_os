@@ -95,11 +95,19 @@ defmodule Farmbot.RPC.Requests do
     # GenServer.cast(Farmbot.BotState.Monitor, :force_dispatch)
   end
 
-  def handle_request("check_updates", _),
-  do: Downloader.check_and_download_os_update
+  def handle_request("check_updates", _) do
+    spawn fn ->
+      Farmbot.Updates.Handler.check_and_download_updates(:os)
+    end
+    :ok
+  end
 
-  def handle_request("check_arduino_updates", _),
-  do: Downloader.check_and_download_fw_update
+  def handle_request("check_arduino_updates", _) do
+    spawn fn ->
+      Farmbot.Updates.Handler.check_and_download_updates(:fw)
+    end
+    :ok
+  end
 
   def handle_request("reboot", _ ) do
     Farmbot.Logger.log("Bot Going down for reboot in 5 seconds", [], ["BotControl"])
@@ -124,6 +132,7 @@ defmodule Farmbot.RPC.Requests do
   end
 
   def handle_request("mcu_config_update", [params]) when is_map(params) do
+    IO.inspect params
     case Enum.partition(params, fn({param, value}) ->
       param_int = Farmbot.Serial.Gcode.Parser.parse_param(param)
       spawn fn -> Command.update_param(param_int, value) end
@@ -189,6 +198,17 @@ defmodule Farmbot.RPC.Requests do
     Logger.debug("bad params for stop_regimen: #{inspect params}")
     {:error, "BAD_PARAMS",
       Poison.encode!(%{"regimen_id" => "number"})}
+  end
+
+  def handle_request("calibrate", [%{"target" => thing}]) do
+    spawn fn -> Command.calibrate(thing) end
+    :ok
+  end
+
+  def handle_request("calibrate", params) do
+    Logger.error "Bad params for calibtrate: #{inspect params}"
+    {:error, "BAD_PARAMS",
+      Poison.encode!(%{"target" => "x | y | z" })}
   end
 
   # Unhandled event. Probably not implemented if it got this far.
