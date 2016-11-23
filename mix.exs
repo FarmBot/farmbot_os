@@ -155,7 +155,8 @@ end
 defmodule Mix.Tasks.Farmbot.Build do
   use Mix.Task
   @shortdoc "Builds firmware."
-    def run(args) do
+
+  def run(args) do
     System.cmd("rm", ["-rf","rel/bootstrapper"])
     Mix.Tasks.Deps.Get.run(args)
     Mix.Tasks.Deps.Compile.run(args)
@@ -166,28 +167,58 @@ end
 defmodule Mix.Tasks.Farmbot.Clean do
   use Mix.Task
   @shortdoc "Cleans environment"
-    def run(_args) do
-    System.cmd("rm", ["-rf","rel/bootstrapper", "_images"])
+
+  def run(_args) do
+    System.cmd("rm", ["-rf","rel/bootstrapper", "_images", "_build"])
     Mix.Tasks.Deps.Clean.run(["--all"])
   end
 end
 
+defmodule Mix.Tasks.Farmbot.Release do
+  use Mix.Task
+  @shortdoc "Builds a release ready image."
+    def run(args) do
+      IO.puts "CLEANING ENVIRONMENT!"
+      Mix.Tasks.Farmbot.Clean.run(args)
+      IO.puts "BUILDING FARMBOT OS!"
+      Mix.Tasks.Farmbot.Build.run(args)
+      IO.puts "BUILDING IMAGE FILE!"
+      System.cmd("fwup", ["-a",
+                          "-d",
+                          "_images/rpi3/farmbot.img",
+                          "-i",
+                          "_images/rpi3/farmbot.img",
+                          "-t",
+                          "complete"])
+    end
+end
+
+
 defmodule Mix.Tasks.Farmbot.Upload do
   use Mix.Task
-  @shortdoc "Uploads an image to a development target"
+  @shortdoc "Uploads a file to a url"
   def run(args) do
-    IO.puts("Starting upload...")
     ip_address = System.get_env("FARMBOT_IP")
     || List.first(args)
     || "192.168.29.185" # I get to do this because i own it.
+    curl_args = [
+      "-T", "_images/rpi3/farmbot.fw",
+      "http://#{ip_address}:8988/firmware",
+      "-H", "Content-Type: application/x-firmware",
+      "-H", "X-Reboot: true"]
+    IO.puts("Starting upload...")
+    Mix.Tasks.Farmbot.Curl.run(curl_args)
+  end
+end
+
+defmodule Mix.Tasks.Farmbot.Curl do
+  use Mix.Task
+  @shortdoc "Uploads an image to a development target"
+  def run(args) do
+    args = args ++
+    [ "-#" ] # CURL OPTIONS
     Port.open({:spawn_executable, "/usr/bin/curl"},
-              [{:args, [
-                "-T", "_images/rpi3/farmbot.fw",
-                "http://#{ip_address}:8988/firmware",
-                "-H", "Content-Type: application/x-firmware",
-                "-H", "X-Reboot: true",
-                "-#"
-                ]},
+              [{:args, args},
                :stream,
                :binary,
                :exit_status,
@@ -228,7 +259,8 @@ defmodule Mix.Tasks.Farmbot.Upload do
     handle_output
   end
 
-  def handle_info({_port, {:data, _data}}) do
+  def handle_info({_port, {:data, data}}) do
+    IO.puts(data)
     handle_output
   end
 
