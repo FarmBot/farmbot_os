@@ -259,8 +259,8 @@ defmodule Mix.Tasks.Farmbot.Curl do
     handle_output
   end
 
-  def handle_info({_port, {:data, data}}) do
-    IO.puts(data)
+  def handle_info({_port, {:data, _data}}) do
+    # IO.puts(data)
     handle_output
   end
 
