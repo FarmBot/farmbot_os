@@ -1,328 +1,156 @@
-defmodule SequenceInstructionSet_0 do
+defmodule Sequence.InstructionSet_0 do
   @moduledoc """
-    This file is the equivilent of writing vanila javascript in a typescript
-    project. Please refactor
+    Modules under this namespace will be similar to how the API's database
+    migrations work. If ever there is a breaking change, in the frontend
+    the sequencer can still use the old set of instructions
   """
+  use GenServer
   require Logger
-  def create_instruction_set(%Corpus{tag: 0, args: args, nodes: nodes}) do
-    initial =
-      "
-      defmodule Corpus_0 do
-        use GenServer
-        require Logger
-        def start_link(args) do
-          GenServer.start_link(__MODULE__, args)
-        end
 
-        def init(parent) do
-          {:ok, parent}
-        end
-
-        def do_if(lhs, \">\", rhs)
-        when is_integer lhs and is_integer(rhs) do
-          lhs > rhs
-        end
-
-        def do_if(lhs, \"<\", rhs)
-        when is_integer lhs and is_integer(rhs) do
-          lhs < rhs
-        end
-
-        def do_if(lhs, \"is\", rhs)
-        when is_integer lhs and is_integer(rhs) do
-          lhs == rhs
-        end
-
-        def do_if(lhs, \"not\", rhs)
-        when is_integer lhs and is_integer(rhs) do
-          lhs != rhs
-        end
-
-        def do_if(lhs, _, rhs)
-        when is_integer lhs and is_integer(rhs) do
-          Farmbot.Logger.log(\" Bad operator for if_statement \", [:error_toast], [\"SequenceInstructionSet\", \"ERROR\"])
-          :error
-        end
-
-        def do_if(:error, _op, _rhs) do
-          Farmbot.Logger.log(\" Could not locate value for LHS \", [], [\"SequenceInstructionSet\"])
-          :error
-        end
-
-        def do_if(_lhs, _op, _rhs) do
-          Farmbot.Logger.log(\" Bad type for if_statement \", [:error_toast], [\"SequenceInstructionSet\", \"ERROR\"])
-          :error
-        end
-      "
-    Module.create(SiS, create_instructions(initial, args, nodes ), Macro.Env.location(__ENV__))
+  def start_link(parent) do
+    GenServer.start_link(__MODULE__, parent)
   end
 
-  def create_instructions(initial, arg_list, node_list) when is_list(arg_list) and is_list(node_list) do
-    initial
-    <>create_arg_instructions(arg_list, "")
-    <>create_node_instructions(node_list, "")
-    <>"
-      def terminate(:normal, _parent) do
-        :ok
-      end
-
-      def terminate(reason, parent) do
-        Logger.error(\"Corpus died.\")
-        IO.inspect reason
-      end
-    end" |> Code.string_to_quoted!
+  def init(parent) do
+    {:ok, parent}
   end
 
-  def create_arg_instructions([], str) do
-    str
+  # I wanted this to be a little more dry, so here we go.
+  def handle_cast(maybe_ast_node, parent),
+    do: Ast.parse(maybe_ast_node) |> do_step(parent)
+
+  @doc """
+    actually does the step
+  """
+  @spec do_step(Ast.t | any, pid) :: {:noreply, pid}
+
+  def do_step(%Ast{kind: "send_message",
+                   body: body,
+                   args: %{message: message}},
+  parent) do
+    sequence_name = GenServer.call(parent, :name)
+    vars = GenServer.call(parent, :get_all_vars, :infinity)
+    rendered = Mustache.render(message, vars)
+    Farmbot.Logger.log(rendered, channels(body), [sequence_name])
+    dispatch :done, parent
   end
 
-  def create_arg_instructions(arg_list, old) when is_list arg_list do
-    arg = List.first(arg_list) || ""
-    arg_code_str = create_arg_instructions(arg)
-    create_arg_instructions(arg_list -- [arg], old<>" "<>arg_code_str)
+  def do_step(%Ast{kind: "wait",
+                   body: [],
+                   args: %{milliseconds: millis}},
+  parent) do
+    # Doing a user defined sleep in a GenServer callback. YOLO
+    Process.sleep(millis)
+    dispatch :done, parent
   end
 
-  def create_arg_instructions(%{"name" => name, "allowed_values" => allowed_values})
-  when  is_bitstring(name) and is_list(allowed_values) do
-    create_arg_instruction(name, allowed_values, "")
-  end
-
-  def create_arg_instruction(_name, [], str ) do
-    str
-  end
-
-  def create_arg_instruction(name, types, old) do
-    type = List.first(types)
-    check =
-    case type do
-      "integer" -> "when is_integer(value)"
-      "string"  -> "when is_bitstring(value)"
-      # "node"    -> "when is_map(value)"
+  def do_step(%Ast{kind: "if_statement",
+                   body: [],
+                   args: %{lhs: lhs, rhs: rhs, op: op, sub_sequence_id: id}},
+  parent) do
+    if do_if(parse_if(lhs, parent), op, parse_if(rhs, parent)) == true do
+      do_step(%Ast{kind: "execute", body: [], args: %{sub_sequence_id: id}}, parent)
+    else
+      dispatch :done, parent
     end
-    new =
-      "
-      def #{name}(value) #{check} do
-        value
-      end
-
-      def #{name}(value) do
-        Farmbot.Logger.log(\" Bad type \", [], [\"Sequence Error\"])
-      end
-      "
-    create_arg_instruction(name, types -- [type], old<>new)
   end
 
-  def create_node_instructions([], str) do
-    str
+  def do_step(%Ast{kind: "execute",
+                   body: [],
+                   args: %{sub_sequence_id: id}},
+  parent) do
+    GenServer.call(Sequence.Manager, {:pause, parent})
+    sequence = Farmbot.Sync.get_sequence(id)
+    GenServer.call(Sequence.Manager, {:add, sequence})
+    no_dispatch parent
   end
 
-  def create_node_instructions(arg_list, old) when is_list arg_list do
-    arg = List.first(arg_list) || ""
-    arg_code_str = create_node_instructions(arg)
-    create_node_instructions(arg_list -- [arg], old<>" "<>arg_code_str)
+  #############################################################################
+  ##                            BOT COMMANDS                                 ##
+  #############################################################################
+
+  # MOVE ABSOLUTE
+  def do_step(%Ast{kind: "move_absolute",
+                   args: %{speed: s, x: x, y: y, z: z},
+                   body: []}, parent)
+  do
+    Command.move_absolute(x,y,z,s) |> dispatch(parent)
   end
 
-  def create_node_instructions(%{"name" => "move_absolute", "allowed_args" => allowed_args, "allowed_body_types" => allowed_body_types})
-  when is_list(allowed_args) and is_list(allowed_body_types) do
-    args = create_arg_map(allowed_args)
-    "
-    def handle_cast({ \"move_absolute\", %{#{args}} }, parent) do
-      result = Command.move_absolute(x(x),y(y),z(z),speed(speed))
-      Sequence.VM.tick(parent, result)
-      {:noreply, parent}
-    end
-
-    def handle_cast({\"move_absolute\", _}, parent) do
-      Farmbot.Logger.log(\"bad params\", [], [\"SequenceInstructionSet\"])
-      Sequence.VM.tick(parent, :bad_params)
-      {:noreply, parent}
-    end
-    "
+  # MOVE RELATIVE
+  def do_step(%Ast{kind: "move_relative",
+                   args: %{speed: s, x: x, y: y, z: z},
+                   body: []}, parent)
+  do
+    Command.move_relative(%{speed: s, x: x, y: y, z: z}) |> dispatch(parent)
   end
 
-  def create_node_instructions(%{"name" => "move_relative", "allowed_args" => allowed_args, "allowed_body_types" => allowed_body_types})
-  when is_list(allowed_args) and is_list(allowed_body_types) do
-    args = create_arg_map(allowed_args)
-    "
-    def handle_cast({ \"move_relative\", %{#{args}}}, parent) do
-      result = Command.move_relative(%{x: x(x), y: y(y), z: z(z), speed: speed(speed)})
-      Sequence.VM.tick(parent, result)
-      {:noreply, parent}
-    end
-
-    def handle_cast({\"move_relative\", _}, parent) do
-      Farmbot.Logger.log(\"bad params\", [], [\"SequenceInstructionSet\"])
-      Sequence.VM.tick(parent, :bad_params)
-      {:noreply, parent}
-    end
-    "
+  # WRITE PIN
+  def do_step(%Ast{kind: "write_pin",
+                   args: %{pin_mode: mode, pin_number: num, pin_value: val},
+                   body: []}, parent)
+  do
+    Command.write_pin(num, val, mode) |> dispatch(parent)
   end
 
-  def create_node_instructions(%{"name" => "write_pin", "allowed_args" => allowed_args, "allowed_body_types" => allowed_body_types})
-  when is_list(allowed_args) and is_list(allowed_body_types) do
-    args = create_arg_map(allowed_args)
-    "
-    def handle_cast({\"write_pin\", %{#{args}}}, parent) do
-      result = Command.write_pin(pin_number(pin_number),
-                        pin_value(pin_value),
-                        pin_mode(pin_mode))
-      Sequence.VM.tick(parent, result)
-      {:noreply, parent}
-    end
-
-    def handle_cast({\"write_pin\", _}, parent) do
-      Farmbot.Logger.log(\"bad params\", [], [\"SequenceInstructionSet\"])
-      Sequence.VM.tick(parent, :bad_params)
-      {:noreply, parent}
-    end
-    "
+  # READ PIN
+  def do_step(%Ast{kind: "read_pin",
+                   args: %{data_label: label, pin_mode: mode, pin_number: num},
+                   body: []}, parent)
+  do
+    output = Command.read_pin(num, mode)
+    %{mode: ^mode, value: val} = Farmbot.BotState.get_pin(num)
+    GenServer.call(parent, {:set_var, label, val})
+    dispatch output, parent
   end
 
-  def create_node_instructions(%{"name" => "read_pin", "allowed_args" => allowed_args, "allowed_body_types" => allowed_body_types})
-  when is_list(allowed_args) and is_list(allowed_body_types) do
-    args = create_arg_map(allowed_args)
-    "
-    def handle_cast({\"read_pin\", %{#{args}}}, parent) do
-      result = Command.read_pin( pin_number(pin_number),
-                        pin_mode(pin_mode) )
-      %{mode: _,value: v} = Farmbot.BotState.get_pin(pin_number(pin_number))
-      GenServer.call(parent, {:set_var, data_label(data_label), v})
-      Sequence.VM.tick(parent, result)
-      {:noreply, parent}
-    end
-
-    def handle_cast({\"read_pin\", _}, parent) do
-      Farmbot.Logger.log(\"bad params\", [], [\"SequenceInstructionSet\"])
-      Sequence.VM.tick(parent, :bad_params)
-      {:noreply, parent}
-    end
-    "
+  def do_step(%Ast{kind: "DELETE_ME",
+                   args: %{},
+                   body: []}, parent)
+  do
+    dispatch {:delete_me}, parent
   end
 
-  def create_node_instructions(%{"name" => "wait", "allowed_args" => allowed_args, "allowed_body_types" => allowed_body_types})
-  when is_list(allowed_args) and is_list(allowed_body_types) do
-    args = create_arg_map(allowed_args)
-    "
-    def handle_cast({\"wait\", %{#{args}}}, parent) do
-      Process.sleep( milliseconds(milliseconds) )
-      Sequence.VM.tick(parent, :done)
-      {:noreply, parent}
-    end
-
-    def handle_cast({\"wait\", _}, parent) do
-      Farmbot.Logger.log(\"bad params\", [], [\"SequenceInstructionSet\"])
-      Sequence.VM.tick(parent, :bad_params)
-      {:noreply, parent}
-    end
-    "
+  # Catch all
+  def do_step(thing, parent) do
+    Logger.error("UNHANDLED STEP: #{inspect thing}")
+    dispatch {:unhandled, thing}, parent
   end
 
-  def create_node_instructions(%{"name" => "execute", "allowed_args" => allowed_args, "allowed_body_types" => allowed_body_types})
-  when is_list(allowed_args) and is_list(allowed_body_types) do
-    args = create_arg_map(allowed_args)
-    "
-    def handle_cast({\"execute\", %{#{args}}}, parent) do
-      GenServer.call(Sequence.Manager, {:pause, parent})
-      sequence = Farmbot.Sync.get_sequence(sub_sequence_id)
-      GenServer.call(Sequence.Manager, {:add, sequence})
-      {:noreply, parent}
-    end
-
-    def handle_cast({\"execute\", _}, parent) do
-      Farmbot.Logger.log(\"bad params\", [], [\"SequenceInstructionSet\"])
-      Sequence.VM.tick(parent, :bad_params)
-      {:noreply, parent}
-    end
-    "
+  @spec channels([Ast.t,...]) :: [atom,...]
+  defp channels(list) when list |> is_list do
+    Enum.reduce(list, [], fn(%Ast{kind: "channel",
+                                  args: %{channel_name: c},
+                                  body: []},
+    acc) ->
+      Logger.debug("CHANNEL: #{inspect c}")
+      [ c | acc]
+    end)
   end
 
-  def create_node_instructions(%{"name" => "if_statement", "allowed_args" => allowed_args, "allowed_body_types" => allowed_body_types})
-  when is_list(allowed_args) and is_list(allowed_body_types) do
-    args = create_arg_map(allowed_args)
-    "
-    def handle_cast({\"if_statement\", %{#{args}}}, parent) do
-      vars = GenServer.call(parent, :get_all_vars, :infinity) #uhhhhhhh
-      rlhs = Map.get(vars, String.to_atom(lhs(lhs) ) )
-      if(do_if(rlhs, op(op), rhs(rhs)) == true) do
-        handle_cast({\"execute\", %{\"sub_sequence_id\" => sub_sequence_id}}, parent)
-      else
-        Farmbot.Logger.log(\"if statement did not evaluate true.\", [], [\"SequenceInstructionSet\"])
-        Sequence.VM.tick(parent, :done)
-        {:noreply, parent}
-      end
-    end
-
-    def handle_cast({\"if_statement\", _}, parent) do
-      Farmbot.Logger.log(\"bad params\", [], [\"SequenceInstructionSet\"])
-      Sequence.VM.tick(parent, :bad_params)
-      {:noreply, parent}
-    end
-    "
+  @spec parse_if(any, pid) :: integer | nil
+  defp parse_if(number, _) when is_integer(number), do: number
+  defp parse_if(something, parent) do
+    vars = GenServer.call(parent, :get_all_vars)
+    Map.get(vars, String.to_atom(something))
   end
 
-  def create_node_instructions(%{"name" => "send_message", "allowed_args" => allowed_args, "allowed_body_types" => allowed_body_types})
-  when is_list(allowed_args) and is_list(allowed_body_types) do
-    args = create_arg_map(allowed_args)
-    "
-    def handle_cast({\"send_message\", %{#{args}}}, parent) do
-      vars = GenServer.call(parent, :get_all_vars, :infinity)
-      case message(message) do
-        \"channel \"<>channel_message ->
-          {channel, rmessage} = case channel_message do
-            \"error_ticker\"<>m   -> {\"error_ticker\", m}
-            \"ticker \"<>m        -> {\"ticker\", m}
-            \"error_toast \"<>m   -> {\"error_toast\", m}
-            \"success_toast \"<>m -> {\"success_toast\", m}
-            \"warning_toast \"<>m -> {\"warning_toast\", m}
-            m -> {\"logger \", m}
-          end
-          rendered = Mustache.render(rmessage, vars)
-          Farmbot.Logger.log(rendered, [channel], [\"Sequence\"])
-          Sequence.VM.tick(parent, :done)
-          {:noreply, parent}
+  # This happens if the thing the user is looking for isnt in the bot state.
+  # I think the bottom function actually cathes this...
+  @spec do_if(nil, String.t, nil) :: false
+  defp do_if(l,">",r) when is_nil(l) or is_nil(r), do: false
 
-        not_special ->
-          rendered = Mustache.render(not_special, vars)
-          Farmbot.Logger.log(rendered, [], [\"Sequence\"])
-          Sequence.VM.tick(parent, :done)
-          {:noreply, parent}
-      end
-    end
+  # If the parsing worked properly we should have two integers
+  @spec do_if(integer, String.t, integer) :: true | any
+  defp do_if(l,">",r) when l > r, do: true
+  defp do_if(l,"<",r) when l < r, do: true
+  defp do_if(l,"is",r) when l == r, do: true
+  defp do_if(l,"not",r) when l != r, do: true
+  defp do_if(l, _, r) when is_integer(l) and is_integer(r), do: false
+  defp do_if(l, op, r), do: Logger.error("bad if statement: [#{l} #{op} #{r}]")
 
-    def handle_cast({\"send_message\", _}, parent) do
-      Farmbot.Logger.log(\"bad params\", [], [\"SequenceInstructionSet\"])
-      Sequence.VM.tick(parent, :bad_params)
-      {:noreply, parent}
-    end
-    "
-  end
-
-  # catch all
-  def create_node_instructions(%{"name" => name, "allowed_args" => [], "allowed_body_types" => allowed_body_types})
-  when is_bitstring(name) and is_list(allowed_body_types) do
-    "
-    def handle_cast({#{name}, _}, parent) do
-      Logger.debug(\"node #{name} is not implemented\")
-      Sequence.VM.tick(parent, :not_implemented)
-      {:noreply, parent}
-    end
-    "
-  end
-
-  def create_node_instructions(%{"name" => name, "allowed_args" => allowed_args, "allowed_body_types" => allowed_body_types})
-  when is_bitstring(name) and is_list(allowed_args) and is_list(allowed_body_types) do
-    "
-    def handle_cast({#{name}, _}, parent) do
-      Logger.debug(\"node #{name} is not implemented\")
-      Sequence.VM.tick(parent, :not_implemented)
-      {:noreply, parent}
-    end
-    "
-  end
-
-  def create_arg_map(allowed_args) do
-    b = Enum.reduce(allowed_args, "", fn(x, acc) -> acc <> "\"#{x}\" => #{x}, "end)
-    String.slice(b, 0, String.length(b) - 2)
-  end
+  @spec dispatch(atom, pid) :: {:noreply, pid}
+  defp dispatch(status, parent), do: Sequence.VM.tick(parent, status)
+  @spec no_dispatch(pid) :: {:noreply, pid}
+  defp no_dispatch(parent), do: {:noreply, parent}
 end

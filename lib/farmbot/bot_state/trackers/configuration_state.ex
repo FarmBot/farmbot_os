@@ -131,6 +131,10 @@ defmodule Farmbot.BotState.Configuration do
     dispatch(maybe_index, state)
   end
 
+  def handle_call(:get_version, _from, %State{} = state) do
+    dispatch(state.informational_settings.controller_version, state)
+  end
+
   def handle_call({:get_config, key}, _from, %State{} = state)
   when is_atom(key) do
     dispatch Map.get(state.configuration, key), state

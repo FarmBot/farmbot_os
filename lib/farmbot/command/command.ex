@@ -111,6 +111,25 @@ defmodule Command do
   end
 
   @doc """
+    Calibrates an axis. May be used for other calibration things later.
+  """
+  @spec calibrate(String.t) :: command_output
+  def calibrate("x") do
+    Farmbot.Serial.Gcode.Handler.block_send("F14")
+    |> logmsg("X Axis Calibration")
+  end
+
+  def calibrate("y") do
+    Farmbot.Serial.Gcode.Handler.block_send("F15")
+    |> logmsg("Y Axis Calibration")
+  end
+
+  def calibrate("z") do
+    Farmbot.Serial.Gcode.Handler.block_send("F16")
+    |> logmsg("Z Axis Calibration")
+  end
+
+  @doc """
     Writes a pin high or low
   """
   @spec write_pin(number, number, number) :: command_output
@@ -118,7 +137,8 @@ defmodule Command do
   when is_integer(pin) and is_integer(value) and is_integer(mode) do
     Farmbot.BotState.set_pin_mode(pin, mode)
     Farmbot.BotState.set_pin_value(pin, value)
-    Farmbot.Serial.Gcode.Handler.block_send("F41 P#{pin} V#{value} M#{mode}") |> logmsg("write_pin")
+    Farmbot.Serial.Gcode.Handler.block_send("F41 P#{pin} V#{value} M#{mode}")
+    |> logmsg("Pin Write")
   end
 
   @doc """
@@ -137,6 +157,10 @@ defmodule Command do
   @doc """
     Gets the current position
     then pipes into move_absolute
+    * {:x, `speed`, `amount`}
+    * {:y, `speed`, `amount`}
+    * {:z, `speed`, `amount`}
+    * %{x: `amount`, y: `amount`, z: `amount` ,s: `speed`}
   """
   @spec move_relative(
   {:x, number | nil, number} |
@@ -176,7 +200,7 @@ defmodule Command do
   @spec read_all_params(list(number)) :: :ok | :fail
   def read_all_params(params \\ [0,11,12,13,21,22,23,
                                  31,32,33,41,42,43,51,
-                                 52,53,61,62,63,71,72,73])
+                                 52,53,61,62,63,71,72,73, 101,102,103])
   when is_list(params) do
     case Enum.partition(params, fn param ->
       GenServer.call(Farmbot.Serial.Gcode.Handler, {:send, "F21 P#{param}", self()})

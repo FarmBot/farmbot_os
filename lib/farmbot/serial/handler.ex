@@ -90,11 +90,18 @@ defmodule Farmbot.Serial.Handler do
     {:noreply, {nerves, tty, handler}}
   end
 
-  def handle_cast({:update_fw, hex_file}, {nerves, tty, handler}) do
+  # TODO Rewrite this with an Erlang Port
+  def handle_cast({:update_fw, hex_file, pid}, {nerves, tty, handler}) do
     Nerves.UART.close(nerves)
-    System.cmd("avrdude", ["-v", "-patmega2560", "-cwiring", "-P/dev/#{tty}", "-b115200", "-D", "-Uflash:w:#{hex_file}:i"])
+    System.cmd("avrdude",
+              ["-v",
+               "-patmega2560",
+               "-cwiring",
+               "-P/dev/#{tty}",
+               "-b115200",
+               "-D",
+               "-Uflash:w:#{hex_file}:i"]) |> parse_cmd(pid)
     new_tty = open_serial(nerves)
-    Farmbot.Logger.log("Updated FW", [:success_toast, :ticker], ["UartHandler"])
     {:noreply, {nerves, new_tty, handler}}
   end
 
@@ -159,6 +166,10 @@ defmodule Farmbot.Serial.Handler do
     Logger.debug "info: #{inspect event}"
     {:noreply, state}
   end
+
+  @spec parse_cmd({String.t, integer}, pid) :: :ok
+  defp parse_cmd({_, 0}, pid), do: send(pid, :done)
+  defp parse_cmd({output, _}, pid), do: send(pid, {:error, output})
 
   def terminate(:restart, {nerves, _tty, handler}) do
     GenServer.stop(nerves, :normal)

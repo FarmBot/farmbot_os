@@ -73,6 +73,14 @@ defmodule Farmbot.BotState do
   end
 
   @doc """
+    Gets the current firmware version
+  """
+  @spec get_fw_version :: String.t
+  def get_fw_version do
+    GenServer.call(Hardware, :get_version)
+  end
+
+  @doc """
     Gets the most recent token
   """
   @spec get_token :: Token.t
@@ -100,8 +108,8 @@ defmodule Farmbot.BotState do
   @doc """
     Gets the current controller version
   """
-  @spec get_version :: String.t
-  def get_version do
+  @spec get_os_version :: String.t
+  def get_os_version do
     GenServer.call(Configuration, :get_version)
   end
 
