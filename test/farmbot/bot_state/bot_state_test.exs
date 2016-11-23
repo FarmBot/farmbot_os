@@ -1,6 +1,6 @@
 defmodule Farmbot.BotStateTest do
   require IEx
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   test("Gets the current bot position") do
     [x,y,z] = Farmbot.BotState.get_current_pos

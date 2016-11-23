@@ -30,7 +30,7 @@ defmodule Farmbot.Serial.Handler do
     |> Map.to_list
   end
 
-  def init(_) do
+  def init(:prod) do
     Process.flag(:trap_exit, true)
     {:ok, nerves} = Nerves.UART.start_link
     {:ok, handler} = Farmbot.Serial.Gcode.Handler.start_link(nerves)
@@ -38,8 +38,32 @@ defmodule Farmbot.Serial.Handler do
     {:ok, {nerves, tty, handler}}
   end
 
-  def start_link(_) do
-    GenServer.start_link(__MODULE__, {}, name: __MODULE__)
+  def init(:test) do
+    Logger.warn("can some one please think of a better way to do this?")
+    tty = "ttyFake"
+    {:ok, test_nerves} = Nerves.FakeUART.start_link(self)
+    {:ok, handler} = Farmbot.Serial.Gcode.Handler.start_link(test_nerves)
+    {:ok, {test_nerves, tty, handler}}
+  end
+
+  def init(:dev) do
+    Process.flag(:trap_exit, true)
+    {:ok, nerves} = Nerves.UART.start_link
+    tty = System.get_env("TTY")
+    if tty == nil, do: raise "YOU FORGOT TO SET TTY ENV VAR"
+    Nerves.UART.open(nerves, tty, speed: @baud, active: true)
+    Nerves.UART.configure(nerves,
+      framing: {Nerves.UART.Framing.Line,
+                separator: "\r\n"},
+                rx_framing_timeout: 500)
+
+
+    {:ok, handler} = Farmbot.Serial.Gcode.Handler.start_link(nerves)
+    {:ok, {nerves, tty, handler}}
+  end
+
+  def start_link(env) do
+    GenServer.start_link(__MODULE__, env, name: __MODULE__)
   end
 
   @doc """

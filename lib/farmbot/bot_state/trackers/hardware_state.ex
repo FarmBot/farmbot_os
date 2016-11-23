@@ -59,8 +59,8 @@ defmodule Farmbot.BotState.Hardware do
     dispatch state.mcu_params, state
   end
 
-  def handle_call(:get_version, _from, %State{} = state) do
-    dispatch state.mcu_params.param_version, state
+  def handle_call({:get_param, param}, _from, %State{} = state) do
+    dispatch Map.get(state.mcu_params, param), state
   end
 
   def handle_call(event, _from, %State{} = state) do

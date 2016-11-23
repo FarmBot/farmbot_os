@@ -74,11 +74,16 @@ defmodule Farmbot.BotState do
 
   @doc """
     Gets the current firmware version
+    This is just a shortcut
   """
   @spec get_fw_version :: String.t
-  def get_fw_version do
-    GenServer.call(Hardware, :get_version)
-  end
+  def get_fw_version, do: get_param(:param_version)
+
+  @doc """
+    Gets the value of a param
+  """
+  @spec get_param(atom) :: integer | nil
+  def get_param(param), do: GenServer.call(Hardware, {:get_param, param})
 
   @doc """
     Gets the most recent token

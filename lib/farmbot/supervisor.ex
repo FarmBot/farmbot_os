@@ -11,7 +11,7 @@ defmodule Farmbot.Supervisor do
       worker(SSH, [env], restart: :permanent),
 
       # handles communications between bot and arduino
-      supervisor(Farmbot.Serial.Supervisor, [[]], restart: :permanent ),
+      supervisor(Farmbot.Serial.Supervisor, [env], restart: :permanent ),
 
       # Handles tracking of various parts of the bots state.
       supervisor(Farmbot.BotState.Supervisor,
