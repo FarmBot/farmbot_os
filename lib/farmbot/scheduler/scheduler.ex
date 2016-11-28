@@ -1,6 +1,6 @@
 defmodule Farmbot.Scheduler do
   @tick_interval 1500
-  @log_tag __MODULE__
+  @log_tag "Scheduler"
   require Logger
   @moduledoc """
     This module is the scheduler for "events."

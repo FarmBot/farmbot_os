@@ -1,6 +1,22 @@
 defmodule Farmbot.RPC.Requests do
+  @moduledoc """
+    These are all callbacks from the Handler.
+    Mostly forwards to the Command Module.
+  """
   require Logger
+  @spec handle_request(String.t, [map,...])
+  :: :ok | {:error, Strint.t} | {:error, Strint.t, String.t}
 
+  @doc """
+      Handles parsed RPC requests. Must return :ok, or the request is considered
+      an error and will not give a very helpful message.\n
+      Example:
+        iex> handle_request("emergency_lock", [])
+        :ok
+      Example:
+        iex> handle_request("something", [])
+        {:error, "Unhandled method", "{"somethign", []}" }
+  """
   # E STOP
   def handle_request("emergency_lock", _) do
     Command.e_stop
@@ -132,7 +148,6 @@ defmodule Farmbot.RPC.Requests do
   end
 
   def handle_request("mcu_config_update", [params]) when is_map(params) do
-    IO.inspect params
     case Enum.partition(params, fn({param, value}) ->
       param_int = Farmbot.Serial.Gcode.Parser.parse_param(param)
       spawn fn -> Command.update_param(param_int, value) end

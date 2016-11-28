@@ -56,6 +56,14 @@ defmodule Farmbot.BotState do
   end
 
   @doc """
+    Sets the current end stops
+  """
+  @spec set_end_stops(Hardware.State.end_stops) :: :ok
+  def set_end_stops({xa,xb,ya,yb,za,zc}) do
+    GenServer.cast(Hardware, {:set_end_stops, {xa,xb,ya,yb,za,zc}})
+  end
+
+  @doc """
     Gets the map of every param.
     Useful for resetting params if the arduino flops
   """
@@ -74,11 +82,16 @@ defmodule Farmbot.BotState do
 
   @doc """
     Gets the current firmware version
+    This is just a shortcut
   """
   @spec get_fw_version :: String.t
-  def get_fw_version do
-    GenServer.call(Hardware, :get_version)
-  end
+  def get_fw_version, do: get_param(:param_version)
+
+  @doc """
+    Gets the value of a param
+  """
+  @spec get_param(atom) :: integer | nil
+  def get_param(param), do: GenServer.call(Hardware, {:get_param, param})
 
   @doc """
     Gets the most recent token

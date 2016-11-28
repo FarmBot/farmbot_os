@@ -70,7 +70,6 @@ defmodule Farmbot.BotState.Network do
                   {:update_info, :private_ip, ip_address})
     GenServer.cast(Farmbot.BotState.Authorization, :try_log_in)
     new_state = %State{state | connected?: true, connection: connection}
-    Farmbot.node_reset(ip_address)
     save new_state
     dispatch new_state
   end

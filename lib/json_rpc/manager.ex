@@ -1,5 +1,8 @@
 alias Experimental.{GenStage}
 defmodule RPC.MessageManager do
+  @moduledoc """
+    This is basically the GenStage Example from the docs.
+  """
   use GenStage
   def start_link() do
     GenStage.start_link(__MODULE__, :ok, name: __MODULE__)

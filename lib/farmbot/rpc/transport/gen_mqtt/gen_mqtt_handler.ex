@@ -1,7 +1,7 @@
 alias Farmbot.RPC.Transport.GenMqtt.Client, as: Client
 defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
   @moduledoc """
-    Experimental mqtt watcher.
+    Makes sure MQTT stays alive and receives the Auth Token.
   """
   use GenServer
   require Logger
@@ -68,6 +68,10 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
   end
 
   @spec emit(binary) :: :ok
+  @doc """
+    Emits a message over the transport. Should be an RPC command, but there is
+    no check for that.
+  """
   def emit(binary) do
     GenServer.cast(__MODULE__, {:emit, binary})
   end

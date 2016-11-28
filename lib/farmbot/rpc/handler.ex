@@ -4,14 +4,27 @@ defmodule Farmbot.RPC.Handler do
   """
   require Logger
   use GenEvent
+  alias RPC.Spec.Notification, as: Notification
+  alias RPC.Spec.Request, as: Request
+  alias RPC.Spec.Response, as: Response
+  # these are the actual actionable functions
   import Farmbot.RPC.Requests
   @transport Application.get_env(:json_rpc, :transport)
 
   @doc """
     an ack_msg with just an id is concidered a valid good we win packet
 
+    Example:
+      iex> ack_msg("super_long_uuid")
+      "{\"result\":{\"OK\":\"OK\"},\"id\":\"super_long_uuid\",\"error\":null}"
+
     an ack_msg with an id, and an error ( {method, message} ) is a good valid
-    error packet
+    error packet\n
+    Example:
+      iex> ack_msg("super_long_uuid", {"move_relative", "that didn't work!"})
+      "{\"result\":null,\"id\":\"super_long_uuid\",
+      \"error\":{\"name\":\"move_relative\",\"message\":\"that didn't work\"}}"
+
   """
   @spec ack_msg(String.t) :: binary
   def ack_msg(id) when is_bitstring(id) do
@@ -70,9 +83,7 @@ defmodule Farmbot.RPC.Handler do
   def log(message, channels, tags)
   when is_bitstring(message)
    and is_list(channels)
-   and is_list(tags) do
-     log_msg(message, channels, tags) |> @transport.emit
-  end
+   and is_list(tags), do: log_msg(message, channels, tags) |> @transport.emit
 
   # when a request message comes in, we send an ack that we got the message
   @spec handle_incoming(Request.t | Response.t | Notification.t) :: any
@@ -100,9 +111,7 @@ defmodule Farmbot.RPC.Handler do
   end
 
   # Just to be sure
-  def handle_incoming(_) do
-    Logger.warn("Farmbot got a malformed RPC Message.")
-  end
+  def handle_incoming(_), do: Logger.warn("Farmbot got a malformed RPC Message")
 
   @doc """
     Builds a json to send to the frontend

@@ -7,15 +7,10 @@ defmodule Farmbot do
   use Supervisor
   @state_path Application.get_env(:farmbot, :state_path)
 
-  def node_reset(_address) do
-    # Node.stop
-    # full_node_name = "farmbot@#{address}" |> String.to_atom
-    # {:ok, _pid} = Node.start(full_node_name)
-  end
-
   @doc """
     Shortcut to Nerves.Firmware.reboot
   """
+  @spec reboot :: any
   def reboot do
     Nerves.Firmware.reboot
   end
@@ -24,6 +19,7 @@ defmodule Farmbot do
   @doc """
     Shortcut to Nerves.Firmware.poweroff
   """
+  @spec reboot :: any
   def poweroff do
     Nerves.Firmware.poweroff
   end
@@ -31,6 +27,7 @@ defmodule Farmbot do
   @doc """
     Formats the sytem partition, and mounts as read/write
   """
+  @spec format_state_part :: {:ok, atom}
   def format_state_part do
     Logger.warn("FORMATTING DATA PARTITION!")
     System.cmd("mkfs.ext4", ["/dev/mmcblk0p3", "-F"])
@@ -40,15 +37,17 @@ defmodule Farmbot do
   end
 
   @doc """
-    Checks for a .formatted file on the state/data partition, if it doesnt exit
+    Checks for a .formatted file on the state/data partition, if it doesnt exist
     it formats the partition
   """
+  @spec fs_init(:prod) :: {:ok, any}
   def fs_init(:prod) do
     with {:error, :enoent} <- File.read("#{@state_path}/.formatted") do
       format_state_part
     end
   end
 
+  @spec fs_init(any) :: {:ok, :development}
   def fs_init(_) do
     {:ok, :development}
   end
@@ -74,7 +73,12 @@ defmodule Farmbot do
              version: version, env: env}])
   end
 
+  @doc """
+    Formats the data partition and reboots.
+  """
+  @spec factory_reset :: any
   def factory_reset do
+    # i don't remember why i stop SafeStorage. I wish i had documented that.
     GenServer.stop SafeStorage, :reset
     Nerves.Firmware.reboot
   end

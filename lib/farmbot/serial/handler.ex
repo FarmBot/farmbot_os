@@ -5,32 +5,7 @@ defmodule Farmbot.Serial.Handler do
   require Logger
   @baud Application.get_env(:uart, :baud)
 
-  defp open_serial(_pid, [], tries) do
-    Logger.error("Could not auto detect serial port. I tried: #{inspect tries}")
-    {:ok, "ttyFail"}
-  end
-
-  defp open_serial(pid, ports, tries) do
-    [{tty,_} | rest] = ports
-    case Nerves.UART.open(pid, tty, speed: @baud, active: true) do
-      :ok -> {:ok, tty}
-      _ -> open_serial(pid, rest, tries ++ [tty])
-    end
-  end
-
-  defp open_serial(pid) do
-    {:ok, tty} = open_serial(pid, list_ttys , []) # List of available ports
-    Nerves.UART.configure(pid, framing: {Nerves.UART.Framing.Line, separator: "\r\n"}, rx_framing_timeout: 500)
-    tty
-  end
-
-  def list_ttys do
-    Nerves.UART.enumerate
-    |> Map.drop(["ttyS0","ttyAMA0"])
-    |> Map.to_list
-  end
-
-  def init(_) do
+  def init(:prod) do
     Process.flag(:trap_exit, true)
     {:ok, nerves} = Nerves.UART.start_link
     {:ok, handler} = Farmbot.Serial.Gcode.Handler.start_link(nerves)
@@ -38,23 +13,44 @@ defmodule Farmbot.Serial.Handler do
     {:ok, {nerves, tty, handler}}
   end
 
-  def start_link(_) do
-    GenServer.start_link(__MODULE__, {}, name: __MODULE__)
+  def init(:test) do
+    Logger.warn("can some one please think of a better way to do this?")
+    tty = "ttyFake"
+    {:ok, test_nerves} = Nerves.FakeUART.start_link(self)
+    {:ok, handler} = Farmbot.Serial.Gcode.Handler.start_link(test_nerves)
+    {:ok, {test_nerves, tty, handler}}
+  end
+
+  def init(:dev) do
+    Process.flag(:trap_exit, true)
+    {:ok, nerves} = Nerves.UART.start_link
+    tty = System.get_env("TTY")
+    if tty == nil, do: raise "YOU FORGOT TO SET TTY ENV VAR"
+    Nerves.UART.open(nerves, tty, speed: @baud, active: true)
+    Nerves.UART.configure(nerves,
+      framing: {Nerves.UART.Framing.Line,
+                separator: "\r\n"},
+                rx_framing_timeout: 500)
+
+
+    {:ok, handler} = Farmbot.Serial.Gcode.Handler.start_link(nerves)
+    {:ok, {nerves, tty, handler}}
+  end
+
+  def start_link(env) do
+    GenServer.start_link(__MODULE__, env, name: __MODULE__)
   end
 
   @doc """
     Writes to a nerves uart tty. This only exists because
     I wanted to print what is being written
   """
+  @spec write(binary, pid) :: :ok
   def write(str, caller)
   when is_bitstring(str) do
     Logger.debug("writing: #{str}")
     GenServer.cast(__MODULE__, {:write, str <> " Q0", caller})
-  end
-
-  # WHAT IS DOING THIS
-  def write(_str, caller) do
-    send(caller, :bad_type)
+    :ok
   end
 
   def e_stop do
@@ -167,9 +163,43 @@ defmodule Farmbot.Serial.Handler do
     {:noreply, state}
   end
 
+  # The output of a system cmd. #TODO turn this into an erlang port
+  # For more better error handling
   @spec parse_cmd({String.t, integer}, pid) :: :ok
   defp parse_cmd({_, 0}, pid), do: send(pid, :done)
   defp parse_cmd({output, _}, pid), do: send(pid, {:error, output})
+
+  @spec open_serial(pid, [], [binary, ...]) :: {:ok, binary}
+  defp open_serial(_pid, [], tries) do
+    Logger.error("Could not auto detect serial port. I tried: #{inspect tries}")
+    {:ok, "ttyFail"}
+  end
+
+  @spec open_serial(pid, [binary,...], [binary,...]) :: {:ok, binary}
+  defp open_serial(pid, ports, tries) do
+    [{tty,_} | rest] = ports
+    case Nerves.UART.open(pid, tty, speed: @baud, active: true) do
+      :ok -> {:ok, tty}
+      _ -> open_serial(pid, rest, tries ++ [tty])
+    end
+  end
+
+  @spec open_serial(pid) :: {:ok, binary}
+  defp open_serial(pid) do
+    {:ok, tty} = open_serial(pid, list_ttys , []) # List of available ports
+    Nerves.UART.configure(pid,
+                          framing: {Nerves.UART.Framing.Line,
+                          separator: "\r\n"},
+                          rx_framing_timeout: 500)
+    tty
+  end
+
+  @spec list_ttys :: [String.t,...]
+  defp list_ttys do
+    Nerves.UART.enumerate
+    |> Map.drop(["ttyS0","ttyAMA0"])
+    |> Map.to_list
+  end
 
   def terminate(:restart, {nerves, _tty, handler}) do
     GenServer.stop(nerves, :normal)
@@ -177,7 +207,7 @@ defmodule Farmbot.Serial.Handler do
   end
 
   def terminate(reason, state) do
-    Logger.debug("UART HANDLER DIED.")
+    Logger.debug("#{__MODULE__} DIED.")
     Logger.debug("#{inspect reason}: #{inspect state}")
   end
 end

@@ -64,15 +64,9 @@ defmodule Farmbot.Serial.Gcode.Handler do
     {:noreply, state}
   end
 
-  # TODO report end stops
   def handle_cast({:reporting_end_stops, x1,x2,y1,y2,z1,z2,_}, state) do
-    Logger.warn("Set end stops valid: #{inspect {x1,x2,y1,y2,z1,z2}}")
-    {:noreply, state}
-  end
-
-  # TODO report end stops
-  def handle_cast({:reporting_end_stops, blah}, state) do
-    Logger.warn("Set end stops valid: #{inspect blah}")
+    Logger.debug("Setting end stops: #{inspect {x1,x2,y1,y2,z1,z2}}")
+    Farmbot.BotState.set_end_stops({x1,x2,y1,y2,z1,z2})
     {:noreply, state}
   end
 
@@ -82,46 +76,38 @@ defmodule Farmbot.Serial.Gcode.Handler do
     {:noreply, %{nerves: nerves, current: {cur_str, pid}, log: log}}
   end
 
+  # If we arent waiting on anything right now. (current is nil and log is empty)
+  def handle_cast({:send, message, caller}, %{nerves: nerves, current: nil, log: []})
+  when is_bitstring(message) do
+    Farmbot.Serial.Handler.write(message, caller)
+    {:noreply, %{nerves: nerves, current: {message, caller}, log: []}}
+  end
+
+  def handle_cast({:send, message, caller}, %{nerves: nerves, current: current, log: log}) do
+    {:noreply, %{nerves: nerves, current: current, log: log ++ [{message, caller}]}}
+  end
+
   def handle_cast(event, state) do
-    Logger.debug("unhandled gcode! #{inspect event}")
+    Logger.warn("unhandled gcode! #{inspect event}")
     {:noreply, state}
   end
 
-  # If we arent waiting on anything right now. (current is nil and log is empty)
-  def handle_call({:send, message, caller}, _from, %{nerves: nerves, current: nil, log: []})
-  when is_bitstring(message) do
-    Farmbot.Serial.Handler.write(message, caller)
-    {:reply, :sending, %{nerves: nerves, current: {message, caller}, log: []}}
+  def handle_call(:state, _from, state), do: {:reply, state, state}
+
+  @doc """
+    Sends a message and blocks until it completes, or times out.
+    The default timeout is ten seconds.
+  """
+  @spec block_send(binary, integer) :: atom
+  def block_send(str, timeout \\ 10_000) do
+    GenServer.cast(Farmbot.Serial.Gcode.Handler,{:send, str, self()})
+    __MODULE__.block(timeout)
   end
 
-  # I don't know where this comes from. If someone can find the use case when this happens
-  # I would appreciate it.
-  def handle_call({:send, nil, caller}, _from, %{nerves: nerves, current: nil, log: []}) do
-    send(caller, :error)
-    {:reply, :sending, %{nerves: nerves, current: nil, log: []}}
-  end
-
-  def handle_call({:send, message, caller}, _from, %{nerves: nerves, current: current, log: log}) do
-    {:reply, :logging, %{nerves: nerves, current: current, log: log ++ [{message, caller}]}}
-  end
-
-  def handle_call(:state, _from, state) do
-    {:reply, state, state}
-  end
-
-  def block_send(str, timeout \\ 5500) do
-    GenServer.call(Farmbot.Serial.Gcode.Handler,{:send, str, self()})
-    block(timeout)
-  end
-
-  def terminate(:normal, _state) do
-    :ok
-  end
-
-  def terminate(_, _state) do
-    :ok
-  end
-
+  @doc """
+    Blocks current process until a serial command returns.
+  """
+  @spec block(integer) :: atom
   def block(timeout) do
     receive do
       :done -> :done
@@ -133,5 +119,14 @@ defmodule Farmbot.Serial.Gcode.Handler do
     after
       timeout -> :timeout
     end
+  end
+
+  # I think i put these here to clean up the logs
+  def terminate(:normal, _state) do
+    :ok
+  end
+
+  def terminate(_, _state) do
+    :ok
   end
 end

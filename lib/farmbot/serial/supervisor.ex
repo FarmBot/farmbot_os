@@ -1,15 +1,17 @@
 defmodule Farmbot.Serial.Supervisor do
   @moduledoc false
-  def start_link(_args) do
-    import Supervisor.Spec
+  use Supervisor
+  require Logger
+
+  def init(env) do
     children = [
-      worker(Command.Tracker, [[]], restart: :permanent),
-      worker(Farmbot.Serial.Handler, [[]], restart: :permanent)
+      worker(Farmbot.Serial.Handler, [env], restart: :permanent)
     ]
-    Supervisor.start_link(children, strategy: :one_for_one, name: __MODULE__)
+    supervise(children, strategy: :one_for_one, name: __MODULE__)
   end
 
-  def init(_) do
-    {:ok, %{}}
+  def start_link(env) do
+    Logger.debug("Starting Serial")
+    Supervisor.start_link(__MODULE__, env)
   end
 end

@@ -15,15 +15,16 @@ defmodule Command do
     fourth: pause running regimens and other stuff that might do serial stuff
             on a timer.
   """
+  @spec e_stop :: {:error, atom} | :ok
   def e_stop do
     # The index of the lock "e_stop". should be an integer or nil
     e_stop(Farmbot.BotState.get_lock("e_stop"))
   end
 
-  def e_stop(integer) when is_integer(integer) do
-    {:error, :already_locked}
-  end
+  @spec e_stop(integer) :: {:error, :already_locked}
+  def e_stop(integer) when is_integer(integer), do: {:error, :already_locked}
 
+  @spec e_stop(nil) :: :ok
   def e_stop(nil) do
     Farmbot.BotState.add_lock("e_stop")
     Farmbot.Logger.log("E STOPPING!", [:error_toast, :error_ticker], [@log_tag])
@@ -81,8 +82,8 @@ defmodule Command do
 
   @doc """
     Home x
-    I dont think anything uses this.
   """
+  @spec home_x() :: command_output
   def home_x() do
     msg = "HOME X"
     Logger.debug(msg)
@@ -93,6 +94,7 @@ defmodule Command do
   @doc """
     Home y
   """
+  @spec home_y() :: command_output
   def home_y() do
     msg = "HOME Y"
     Logger.debug(msg)
@@ -103,6 +105,7 @@ defmodule Command do
   @doc """
     Home z
   """
+  @spec home_z() :: command_output
   def home_z() do
     msg = "HOME Z"
     Logger.debug(msg)
@@ -150,7 +153,8 @@ defmodule Command do
     msg = "Moving to X#{x} Y#{y} Z#{z}"
     Logger.debug(msg)
     Farmbot.Logger.log(msg, [], [@log_tag])
-    Farmbot.Serial.Gcode.Handler.block_send("G00 X#{x} Y#{y} Z#{z} S#{s || Farmbot.BotState.get_config(:steps_per_mm)}")
+    Farmbot.Serial.Gcode.Handler.block_send(
+    "G00 X#{x} Y#{y} Z#{z} S#{s || Farmbot.BotState.get_config(:steps_per_mm)}")
     |> logmsg("Movement")
   end
 
@@ -203,7 +207,7 @@ defmodule Command do
                                  52,53,61,62,63,71,72,73, 101,102,103])
   when is_list(params) do
     case Enum.partition(params, fn param ->
-      GenServer.call(Farmbot.Serial.Gcode.Handler, {:send, "F21 P#{param}", self()})
+      GenServer.cast(Farmbot.Serial.Gcode.Handler, {:send, "F21 P#{param}", self()})
       :done == Farmbot.Serial.Gcode.Handler.block(2500)
     end) do
       {_, []} -> :ok
@@ -275,12 +279,12 @@ defmodule Command do
   @spec logmsg(command_output, String.t) :: command_output
   defp logmsg(:done, command) when is_bitstring(command) do
     Farmbot.Logger.log("#{command} Complete", [],[@log_tag])
-    :done |> Command.Tracker.beep
+    :done
   end
 
   defp logmsg(other, command) when is_bitstring(command) do
     Logger.error("#{command} Failed")
     Farmbot.Logger.log("#{command} Failed", [:error_toast, :error_ticker],[@log_tag])
-    other |> Command.Tracker.beep
+    other
   end
 end

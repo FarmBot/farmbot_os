@@ -90,10 +90,11 @@ defmodule Farmbot.Mixfile do
       {:vmq_commons, "1.0.0", manager: :rebar3}, # This is for mqtt to work.
       {:mustache, "~> 0.0.2"},
       {:timex, "~> 3.0"},
+      {:socket, github: "meh/elixir-socket"},
       {:farmbot_auth, github: "Farmbot/farmbot_auth"},
       # {:farmbot_auth, path: "../farmbot_auth"},
-       {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
-      # {:farmbot_configurator, path: "../farmbot_configurator"}
+      #  {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
+      {:farmbot_configurator, path: "../farmbot_configurator"}
     ]
   end
 
@@ -114,8 +115,8 @@ defmodule Farmbot.Mixfile do
 
   def deps(:dev) do
     deps ++ [
-      {:fake_nerves, github: "ConnorRigby/fake_nerves"},
-      # {:fake_nerves, path: "../fake_nerves", override: true},
+      # {:fake_nerves, github: "ConnorRigby/fake_nerves"},
+      {:fake_nerves, path: "../fake_nerves", override: true},
       {:credo, "~> 0.4"},
       {:dialyxir, "~> 0.4"}]
   end
@@ -259,8 +260,8 @@ defmodule Mix.Tasks.Farmbot.Curl do
     handle_output
   end
 
-  def handle_info({_port, {:data, data}}) do
-    IO.puts(data)
+  def handle_info({_port, {:data, _data}}) do
+    # IO.puts(data)
     handle_output
   end
 
