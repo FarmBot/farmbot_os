@@ -5,7 +5,6 @@ defmodule Farmbot.Serial.Supervisor do
 
   def init(env) do
     children = [
-      worker(Command.Tracker, [env], restart: :permanent),
       worker(Farmbot.Serial.Handler, [env], restart: :permanent)
     ]
     supervise(children, strategy: :one_for_one, name: __MODULE__)

@@ -82,7 +82,14 @@ defmodule Farmbot.Serial.Gcode.Parser do
       "ZA", za :: size(8), 32,
       "ZB", zb :: size(8), 32,
       "Q", tag :: binary
-    >>), do: {:reporting_end_stops, xa, xb, ya, yb, za, zb, tag}
+    >>), do: {:reporting_end_stops,
+              xa |> pes,
+              xb |> pes,
+              ya |> pes,
+              yb |> pes,
+              za |> pes,
+              zb |> pes,
+              tag}
 
   def parse_end_stops(
     <<
@@ -92,7 +99,17 @@ defmodule Farmbot.Serial.Gcode.Parser do
       "YB", yb :: size(8), 32,
       "ZA", za :: size(8), 32,
       "ZB", zb :: size(8)
-    >>), do: {:reporting_end_stops, xa, xb, ya, yb, za, zb, qtag}
+    >>), do: {:reporting_end_stops,
+              xa |> pes,
+              xb |> pes,
+              ya |> pes,
+              yb |> pes,
+              za |> pes,
+              zb |> pes,
+              qtag}
+              
+  defp pes(48), do: 0
+  defp pes(49), do: 1
 
   @doc """
     common function for report_(something)_value from gcode.

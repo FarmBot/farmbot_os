@@ -207,7 +207,7 @@ defmodule Command do
                                  52,53,61,62,63,71,72,73, 101,102,103])
   when is_list(params) do
     case Enum.partition(params, fn param ->
-      GenServer.call(Farmbot.Serial.Gcode.Handler, {:send, "F21 P#{param}", self()})
+      GenServer.cast(Farmbot.Serial.Gcode.Handler, {:send, "F21 P#{param}", self()})
       :done == Farmbot.Serial.Gcode.Handler.block(2500)
     end) do
       {_, []} -> :ok
@@ -279,12 +279,12 @@ defmodule Command do
   @spec logmsg(command_output, String.t) :: command_output
   defp logmsg(:done, command) when is_bitstring(command) do
     Farmbot.Logger.log("#{command} Complete", [],[@log_tag])
-    :done |> Command.Tracker.beep
+    :done
   end
 
   defp logmsg(other, command) when is_bitstring(command) do
     Logger.error("#{command} Failed")
     Farmbot.Logger.log("#{command} Failed", [:error_toast, :error_ticker],[@log_tag])
-    other |> Command.Tracker.beep
+    other
   end
 end

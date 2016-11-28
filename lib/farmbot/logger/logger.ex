@@ -42,6 +42,8 @@ defmodule Farmbot.Logger do
     {:reply, filtered, messages}
   end
 
+  def handle_call(:clear, _from, messages), do: {:reply, messages, []}
+
   def filter(list_of_tags) when is_list(list_of_tags) do
     GenServer.call(__MODULE__, {:get_tag, list_of_tags})
   end
@@ -68,5 +70,7 @@ defmodule Farmbot.Logger do
       tag == t
     end)
   end
+
+  def clear, do: GenServer.call(__MODULE__, :clear)
 end
 # Filtr.filter logs, ["who cares about regimens"]

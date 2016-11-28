@@ -83,9 +83,7 @@ defmodule Farmbot.RPC.Handler do
   def log(message, channels, tags)
   when is_bitstring(message)
    and is_list(channels)
-   and is_list(tags) do
-     log_msg(message, channels, tags) |> @transport.emit
-  end
+   and is_list(tags), do: log_msg(message, channels, tags) |> @transport.emit
 
   # when a request message comes in, we send an ack that we got the message
   @spec handle_incoming(Request.t | Response.t | Notification.t) :: any
@@ -113,9 +111,7 @@ defmodule Farmbot.RPC.Handler do
   end
 
   # Just to be sure
-  def handle_incoming(_) do
-    Logger.warn("Farmbot got a malformed RPC Message.")
-  end
+  def handle_incoming(_), do: Logger.warn("Farmbot got a malformed RPC Message")
 
   @doc """
     Builds a json to send to the frontend
