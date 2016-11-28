@@ -9,12 +9,14 @@ defmodule Farmbot.BotState.Hardware do
 
     defstruct [
       location: [-1,-1,-1],
+      end_stops: {-1,-1,-1,-1,-1,-1},
       mcu_params: %{},
       pins: %{}
     ]
 
     @type t :: %__MODULE__{
       location: location,
+      end_stops: end_stops,
       mcu_params: mcu_params,
       pins: pins
     }
@@ -22,6 +24,7 @@ defmodule Farmbot.BotState.Hardware do
     @type location :: [number, ...]
     @type mcu_params :: map
     @type pins :: map
+    @type end_stops :: {integer,integer,integer,integer,integer,integer}
 
     @spec broadcast(t) :: t
     def broadcast(%State{} = state) do
@@ -101,6 +104,10 @@ defmodule Farmbot.BotState.Hardware do
   def handle_cast({:set_param, {param_string, value} }, %State{} = state) do
     new_params = Map.put(state.mcu_params, param_string, value)
     dispatch %State{state | mcu_params: new_params}
+  end
+
+  def handle_cast({:set_end_stops, {xa,xb,ya,yb,za,zc}}, %State{} = state) do
+    dispatch %State{state | end_stops: {xa,xb,ya,yb,za,zc} }
   end
 
   # catch all.

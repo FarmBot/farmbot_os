@@ -56,6 +56,14 @@ defmodule Farmbot.BotState do
   end
 
   @doc """
+    Sets the current end stops
+  """
+  @spec set_end_stops(Hardware.State.end_stops) :: :ok
+  def set_end_stops({xa,xb,ya,yb,za,zc}) do
+    GenServer.cast(Hardware, {:set_end_stops, {xa,xb,ya,yb,za,zc}})
+  end
+
+  @doc """
     Gets the map of every param.
     Useful for resetting params if the arduino flops
   """

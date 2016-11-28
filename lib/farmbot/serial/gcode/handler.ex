@@ -64,15 +64,9 @@ defmodule Farmbot.Serial.Gcode.Handler do
     {:noreply, state}
   end
 
-  # TODO report end stops
   def handle_cast({:reporting_end_stops, x1,x2,y1,y2,z1,z2,_}, state) do
-    Logger.warn("Set end stops valid: #{inspect {x1,x2,y1,y2,z1,z2}}")
-    {:noreply, state}
-  end
-
-  # TODO report end stops
-  def handle_cast({:reporting_end_stops, blah}, state) do
-    Logger.error("Set end stops invalid: #{inspect blah}")
+    Logger.debug("Setting end stops: #{inspect {x1,x2,y1,y2,z1,z2}}")
+    Farmbot.BotState.set_end_stops({x1,x2,y1,y2,z1,z2})
     {:noreply, state}
   end
 
