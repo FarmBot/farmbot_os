@@ -111,9 +111,10 @@ defmodule Farmbot.Serial.Gcode.Handler do
 
   @doc """
     Sends a message and blocks until it completes, or times out.
+    The default timeout is ten seconds.
   """
   @spec block_send(binary, integer) :: atom
-  def block_send(str, timeout \\ 5500) do
+  def block_send(str, timeout \\ 10_000) do
     GenServer.call(Farmbot.Serial.Gcode.Handler,{:send, str, self()})
     block(timeout)
   end
