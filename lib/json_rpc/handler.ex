@@ -5,9 +5,10 @@ defmodule RPC.MessageHandler do
   @handler Application.get_env(:json_rpc, :handler)
 
   @doc """
-  Requires configuration of a handler.
-  Handler requires a callback of handle_incoming/1 to be defined
-  which takes a parsed rpc message.
+    Requires configuration of a handler.
+    Handler requires a callback of handle_incoming/1 to be defined
+    which takes a parsed rpc message. Should probably make @handler a behavior
+    and document it. l o l.
   """
 
   def start_link() do
@@ -19,10 +20,7 @@ defmodule RPC.MessageHandler do
   end
 
   def handle_events(events, _from, state) do
-    for event <- events do
-      parse(event)
-      |> @handler.handle_incoming
-    end
+    for event <- events, do: parse(event) |> @handler.handle_incoming
     {:noreply, [], state}
   end
 end

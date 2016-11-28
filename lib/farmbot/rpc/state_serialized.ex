@@ -1,7 +1,8 @@
 defmodule Serialized do
   @moduledoc """
-    MOVE THIS SOMEWHERE ELSE
+    The frontend expects a JSON version of this.
   """
+  # TODO make these required keys.
   defstruct [
     # Hardware
     mcu_params: %{},

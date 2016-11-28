@@ -1,6 +1,6 @@
 defmodule Farmbot.RPC.Transport.GenMqtt.Client do
   @moduledoc """
-    Experimental mqtt transport.
+    MQTT transport for farmbot RPC Commands.
   """
   use GenMQTT
   require Logger

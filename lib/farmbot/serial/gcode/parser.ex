@@ -1,8 +1,9 @@
 defmodule Farmbot.Serial.Gcode.Parser do
   @moduledoc """
-    Im lazy and didn't want to parse yaml or write macros
+    Parses farmbot_arduino_firmware G-Codes.
   """
 
+  @spec parse_code(binary) :: tuple
   def parse_code("R0" ) do { :idle, qtag } end
   def parse_code("R0 Q" <>tag) do { :idle, tag } end
   def parse_code("R1" ) do { :received, qtag } end
@@ -23,54 +24,88 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_code("R03 Q"<>tag) do { :error, tag } end
   def parse_code("R04") do { :busy, qtag } end
   def parse_code("R04 Q"<>tag) do { :busy, tag } end
-  # this is where it gets a little messy.
-  def parse_code("R21 " <> params) do parse_pvq(params, :report_parameter_value) end
-  def parse_code("R31 " <> params) do parse_pvq(params, :report_status_value) end
-  def parse_code("R41 " <> params) do parse_pvq(params, :report_pin_value) end
-  def parse_code("R81 " <> params) do parse_end_stops(params) end
-  def parse_code("R82 " <> position) do parse_report_current_position(position) end
 
-  # HEYO
+  def parse_code("R21 " <> params), do: parse_pvq(params, :report_parameter_value)
+  def parse_code("R31 " <> params), do: parse_pvq(params, :report_status_value)
+  def parse_code("R41 " <> params), do: parse_pvq(params, :report_pin_value)
+  def parse_code("R81 " <> params), do: parse_end_stops(params)
+  def parse_code("R82 " <> position), do: parse_report_current_position(position)
+
   def parse_code("R83") do { :report_software_version } end
   def parse_code("R99 " <> message) do { :debug_message, message } end
   def parse_code(code)  do {:unhandled_gcode, code} end
 
   @doc """
-  Example:
-    iex> Gcode.parse_report_current_position("X34 Y756 Z23")
-    {:report_current_position, 34, 756, 23, "0"}
+    Parses R82 codes
+    Example:
+      iex> Gcode.parse_report_current_position("X34 Y756 Z23")
+      {:report_current_position, 34, 756, 23, "0"}
   """
+  @spec parse_report_current_position(binary)
+  :: {:report_current_position, String.t, String.t, String.t, String.t}
   def parse_report_current_position(position) when is_bitstring(position) do
     case String.split(position, " ") do
       ["X"<>x, "Y"<>y, "Z"<>z] ->
-        { :report_current_position, String.to_integer(x), String.to_integer(y), String.to_integer(z), qtag }
+        { :report_current_position,
+          String.to_integer(x),
+          String.to_integer(y),
+          String.to_integer(z), qtag }
       ["X"<>x, "Y"<>y, "Z"<>z, "Q"<>tag] ->
-        { :report_current_position, String.to_integer(x), String.to_integer(y), String.to_integer(z), tag }
-    end
-  end
-
-  def parse_end_stops(params) when is_bitstring(params) do
-    case String.split(params, " ") do
-      # Params with no Q
-      ["XA"<>x1, "XB"<>x2, "YA"<>y1, "YB"<>y2, "ZA"<>z1, "ZB"<>z2] ->
-        {:reporting_end_stops, x1, x2, y1, y2, z1, z2, qtag}
-      # With Q
-      ["XA"<>x1, "XB"<>x2, "YA"<>y1, "YB"<>y2, "ZA"<>z1, "ZB"<>z2, "Q"<>tag] ->
-        {:reporting_end_stops, x1, x2, y1, y2, z1, z2, tag}
-      blah -> {:report_end_stops, blah}
+        { :report_current_position,
+          String.to_integer(x),
+          String.to_integer(y),
+          String.to_integer(z), tag }
     end
   end
 
   @doc """
-  common function for report_(something)_value from gcode.
-  Example:
-    iex> Gcode.parse_pvq("P20 V100", :report_parameter_value)
-    {:report_parameter_value, "20" ,"100", "0"}
-
-  Example:
-    iex> Gcode.parse_pvq("P20 V100 Q12", :report_parameter_value)
-    {:report_parameter_value, "20" ,"100", "12"}
+    Parses End Stops. I don't think we actually use these yet.
+    Example:
+      iex> Gcode.parse_end_stops("XA1 XB1 YA0 YB1 ZA0 ZB1 Q123")
+      {:reporting_end_stops, "1", "1", "0", "1", "0", "1", "123"}
   """
+  @spec parse_end_stops(binary)
+  :: {:reporting_end_stops,
+      String.t,
+      String.t,
+      String.t,
+      String.t,
+      String.t,
+      String.t,
+      String.t}
+  def parse_end_stops(
+    <<
+      "XA", xa :: size(8), 32,
+      "XB", xb :: size(8), 32,
+      "YA", ya :: size(8), 32,
+      "YB", yb :: size(8), 32,
+      "ZA", za :: size(8), 32,
+      "ZB", zb :: size(8), 32,
+      "Q", tag :: binary
+    >>), do: {:reporting_end_stops, xa, xb, ya, yb, za, zb, tag}
+
+  def parse_end_stops(
+    <<
+      "XA", xa :: size(8), 32,
+      "XB", xb :: size(8), 32,
+      "YA", ya :: size(8), 32,
+      "YB", yb :: size(8), 32,
+      "ZA", za :: size(8), 32,
+      "ZB", zb :: size(8)
+    >>), do: {:reporting_end_stops, xa, xb, ya, yb, za, zb, qtag}
+
+  @doc """
+    common function for report_(something)_value from gcode.
+    Example:
+      iex> Gcode.parse_pvq("P20 V100", :report_parameter_value)
+      {:report_parameter_value, "20" ,"100", "0"}
+
+    Example:
+      iex> Gcode.parse_pvq("P20 V100 Q12", :report_parameter_value)
+      {:report_parameter_value, "20" ,"100", "12"}
+  """
+  @spec parse_pvq(binary, :report_parameter_value)
+  :: {:report_parameter_value, atom, integer, String.t}
   def parse_pvq(params, :report_parameter_value)
   when is_bitstring(params) do
     case String.split(params, " ") do
@@ -103,8 +138,26 @@ defmodule Farmbot.Serial.Gcode.Parser do
   end
 
   @doc """
-    TODO: DOWNCASE ALL OF THESE
+    Parses farmbot_arduino_firmware params.
+    If we want the name of param "0"\n
+    Example:
+      iex> Gcode.parse_param("0")
+      :param_version
+
+    Example:
+      iex> Gcode.parse_param(0)
+      :param_version
+
+    If we want the integer of param :param_version\n
+    Example:
+      iex> Gcode.parse_param(:param_version)
+      0
+
+    Example:
+      iex> Gcode.parse_param("param_version")
+      0
   """
+  @spec parse_param(binary | integer) :: atom | nil
   def parse_param("0"  ) do :param_version end
   def parse_param("11" ) do :movement_timeout_x end
   def parse_param("12" ) do :movement_timeout_y end
@@ -154,10 +207,9 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param("221") do :pin_guard_5_pin_nr end
   def parse_param("222") do :pin_guard_5_time_out end
   def parse_param("223") do :pin_guard_5_active_state end
-  def parse_param(param) when is_integer(param) do
-    parse_param("#{param}")
-  end
+  def parse_param(param) when is_integer(param), do: parse_param("#{param}")
 
+  @spec parse_param(atom) :: integer | nil
   def parse_param(:param_version) do 0 end
   def parse_param(:movement_timeout_x) do 11 end
   def parse_param(:movement_timeout_y) do 12 end
@@ -212,5 +264,6 @@ defmodule Farmbot.Serial.Gcode.Parser do
   end
   def parse_param(_), do: nil
 
+  @spec qtag :: String.t
   defp qtag, do: "0"
 end
