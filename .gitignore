@@ -10,7 +10,4 @@
 # Generate on crash by the VM
 erl_crash.dump
 npm-debug.log
-# this isnt ready yet
-/lib/extras/my*
-/lib/extras/raspi_*
-/lib/extras/lcd.ex
+ttb_last_config
