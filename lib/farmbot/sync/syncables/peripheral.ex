@@ -37,4 +37,5 @@ defmodule Peripheral do
       created_at: created_at,
       updated_at: updated_at}
   end
+  def create(_), do: :error
 end

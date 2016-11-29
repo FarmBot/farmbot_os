@@ -82,5 +82,5 @@ defmodule Token do
              os_update_server: os_update_server
              }}
   end
-  def create(_), do: :not_valid
+  def create(_), do: :error
 end

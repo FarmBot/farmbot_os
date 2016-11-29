@@ -30,4 +30,5 @@ defmodule Device do
       name: name,
       webcam_url: wcu}
   end
+  def create(_), do: :error
 end

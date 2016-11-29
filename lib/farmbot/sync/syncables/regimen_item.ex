@@ -29,4 +29,5 @@ defmodule RegimenItem do
       regimen_id: regimen_id,
       sequence_id: sequence_id}
   end
+  def create(_), do: :error
 end

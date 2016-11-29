@@ -1,0 +1,6 @@
+{
+  "custom_stop_words": [
+    "ntpd",
+    "check_time_set"
+  ]
+}

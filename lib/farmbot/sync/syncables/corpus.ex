@@ -10,7 +10,7 @@ defmodule Corpus do
    args: list(any),
    nodes: list(any)}
 
-  @spec create(map) :: t
+  @spec create(map) :: t | :error
   def create(%{
     "tag" => tag,
     "args" => args,
@@ -20,4 +20,5 @@ defmodule Corpus do
       args: args,
       nodes: nodes}
   end
+  def create(_), do: :error
 end

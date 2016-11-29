@@ -20,6 +20,7 @@ defmodule Farmbot.Mixfile do
 
   def project do
     [app: :farmbot,
+     test_coverage: [tool: ExCoveralls],
      version: @version,
      target: target(Mix.env),
      archives: [nerves_bootstrap: "~> 0.1.4"],
@@ -110,7 +111,8 @@ defmodule Farmbot.Mixfile do
     deps ++ deps(:dev) ++
     [ {:plug, "~> 1.0"},
       {:cors_plug, "~> 1.1"},
-      {:cowboy, "~> 1.0.0"} ]
+      {:cowboy, "~> 1.0.0"},
+      {:excoveralls, "~> 0.5"} ]
   end
 
   def deps(:dev) do

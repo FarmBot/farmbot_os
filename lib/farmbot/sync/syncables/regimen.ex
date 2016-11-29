@@ -25,4 +25,5 @@ defmodule Regimen do
              color: color,
              name: name}
   end
+  def create(_), do: :error
 end

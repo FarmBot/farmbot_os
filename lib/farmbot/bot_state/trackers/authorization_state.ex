@@ -55,6 +55,10 @@ defmodule Farmbot.BotState.Authorization do
     dispatch state.server, state
   end
 
+  def handle_call(:get_token, _from, %State{} = state) do
+    dispatch state.token, state
+  end
+
   def handle_call(event, _from, %State{} = state) do
     Logger.warn("[#{__MODULE__}] UNHANDLED CALL!: #{inspect event}", [__MODULE__])
     dispatch :unhandled, state
@@ -75,6 +79,13 @@ defmodule Farmbot.BotState.Authorization do
   def handle_cast(event, %State{} = state) do
     Logger.warn("[#{__MODULE__}] UNHANDLED CAST!: #{inspect event}", [__MODULE__])
     dispatch state
+  end
+
+  # this is pretty much only for testing.
+  def handle_info({:authorization, %Token{} = token}, %State{} = state) do
+    new_state =
+      %State{state | token: token, server: token.unencoded.iss}
+    dispatch new_state
   end
 
   defp dispatch(reply, %State{} = state) do

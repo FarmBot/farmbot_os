@@ -57,7 +57,11 @@ defmodule Farmbot.BotState.Configuration do
         environment:        env,
         throttled:          get_throttled
       }}
-    {:ok, State.broadcast(
+      state = load(initial_state)
+    {:ok, State.broadcast(state)}
+  end
+
+  def load(initial_state) do
     case SafeStorage.read(__MODULE__) do
       {:ok, %State{} = last_state} ->
         Logger.debug("Loading previous Bot Configuration State")
@@ -66,7 +70,7 @@ defmodule Farmbot.BotState.Configuration do
         # Maybe persiste locks?
       _ ->
         initial_state
-    end)}
+    end
   end
 
   def start_link(args) do
@@ -154,12 +158,12 @@ defmodule Farmbot.BotState.Configuration do
   # Lock the frontend from doing stuff
   def handle_cast({:add_lock, string}, %State{} = state) do
     maybe_index = Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
+    # check if this lock already exists.
     cond do
+      # this lock already exists. don't do anything.
       is_integer(maybe_index) ->
-        new_state = %State{state | locks: List.replace_at(state.locks,
-                                                          maybe_index,
-                                                         %{reason: string})}
-        dispatch new_state
+        dispatch state
+      # This lock does not exist. (the check is nil). add a new lock.
       is_nil(maybe_index) ->
         new_state = %State{locks: state.locks ++ [%{reason: string}]}
         dispatch new_state

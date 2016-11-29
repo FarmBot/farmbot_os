@@ -33,4 +33,5 @@ defmodule Sequence do
               kind: "sequence",
               name: name}
   end
+  def create(_), do: :error
 end
