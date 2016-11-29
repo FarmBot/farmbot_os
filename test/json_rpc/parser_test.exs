@@ -1,5 +1,8 @@
 defmodule RPC.ParserTest do
   use ExUnit.Case, async: true
+  alias RPC.Spec.Notification, as: Notification
+  alias RPC.Spec.Request, as: Request
+  alias RPC.Spec.Response, as: Response
 
   test "parses a notification" do
     msg = RPC.Parser.parse(
