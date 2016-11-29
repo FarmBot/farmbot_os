@@ -106,6 +106,7 @@ defmodule Farmbot.BotState.Authorization do
         save(new_state)
         new_state
       {:error, :bad_password} ->
+        Logger.error "Bad Password for Farmbot Web Services!"
         Farmbot.factory_reset
       {:error, reason} ->
         Logger.error("AUTH FAILED!: #{inspect reason}")

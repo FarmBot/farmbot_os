@@ -23,7 +23,7 @@ defmodule Sync do
      users:         list(User.t)
    }
 
-  @spec create(map) :: t
+  @spec create(map) :: t | :error
   def create(%{"compat_num" =>    compat_num,
                "device" =>        device,
                "peripherals" =>   peripherals,
@@ -50,6 +50,8 @@ defmodule Sync do
           users: create_list(User,users),
           peripherals: create_list(Peripheral, peripherals)}
   end
+
+  def create(_), do: :error
 
   defp create_list(module, list) do
     Enum.map(list, fn(item) ->

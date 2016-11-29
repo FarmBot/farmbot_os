@@ -51,7 +51,6 @@ defmodule Sequence.VM do
   def init(%Sequence{} = sequence) do
     Farmbot.BotState.Monitor.add_handler(BotStateTracker, {__MODULE__, nil})
     tv = Map.get(sequence.args, "tag_version") || 0
-    Farmbot.Sync.sync()
     module = Module.concat(Sequence, "InstructionSet_#{tv}")
     {:ok, instruction_set} = module.start_link(self())
     tick(self(), :done)
@@ -106,8 +105,8 @@ defmodule Sequence.VM do
     thing2 = Map.merge(%{x: x, y: y, z: z }, pins)
 
     # gets a couple usefull things out of Farmbot.Sync
-    thing3 = List.first(Farmbot.Sync.fetch
-    |> Map.get(:users))
+    thing3 = Farmbot.Sync.get_users
+    |> List.first
     |> Map.drop([:__struct__]) # This probably isnt correct
 
     # Combine all the things.

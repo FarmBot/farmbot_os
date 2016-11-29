@@ -176,7 +176,13 @@ defmodule Farmbot.RPC.Requests do
   end
 
   def handle_request("sync", _) do
-    Farmbot.Sync.sync
+    spawn fn ->
+      Farmbot.Sync.sync
+      receive do
+        {:sync_complete,_} -> :ok
+        {:error, _reason} -> :fail
+      end
+    end
     :ok
   end
 
@@ -188,7 +194,6 @@ defmodule Farmbot.RPC.Requests do
   end
 
   def handle_request("start_regimen", [%{"regimen_id" => id}]) when is_integer(id) do
-    Farmbot.Sync.sync()
     regimen = Farmbot.Sync.get_regimen(id)
     Farmbot.Scheduler.add_regimen(regimen)
     :ok
