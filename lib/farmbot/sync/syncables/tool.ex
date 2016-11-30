@@ -1,4 +1,4 @@
-defmodule Tool do
+defmodule Tool do 
   @moduledoc """
     A #{__MODULE__} Object in the DB
   """
