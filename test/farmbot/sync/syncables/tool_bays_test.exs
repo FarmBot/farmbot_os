@@ -13,8 +13,6 @@ defmodule ToolbayTest do
     {:ok, not_fail} =
       Toolbay.create(tb)
     assert Toolbay.create!(tb) == not_fail
-    assert not_fail.created_at == "2016-11-30T15:20:52.307Z"
-    assert not_fail.updated_at == "2016-11-30T15:20:52.307Z"
     assert not_fail.device_id == 123
     assert not_fail.id == 845
     assert not_fail.name == "San Francisco"

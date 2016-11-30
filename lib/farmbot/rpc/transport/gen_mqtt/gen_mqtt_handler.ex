@@ -8,8 +8,8 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
 
   def init(_args) do
     Process.flag(:trap_exit, true)
-    case Farmbot.Auth.get_token |> Token.create! do
-      %Token{} = token ->
+    case Farmbot.Auth.get_token |> Token.create do
+      {:ok, %Token{} = token} ->
         {:ok, {token, start_client(token)}}
       _ ->
         {:ok, {nil, nil}}

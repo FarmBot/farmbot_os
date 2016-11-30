@@ -60,7 +60,9 @@ defmodule Farmbot.SyncTest do
           "updated_at" => "2016-11-28T21:00:55.853Z"
         }
         ],
-      "tool_bays" => []
+      "tool_bays" => [],
+      "tool_slots" => [],
+      "tools" => []
       }
     )
 

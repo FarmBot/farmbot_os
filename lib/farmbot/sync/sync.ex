@@ -24,7 +24,9 @@ defmodule Farmbot.Sync do
       "regimens" =>      [],
       "sequences" =>     [],
       "users" =>         [],
-      "tool_bays" =>     []}
+      "tool_bays" =>     [],
+      "tool_slots" =>    [],
+      "tools" =>         []}
   end
 
   def init(_args) do

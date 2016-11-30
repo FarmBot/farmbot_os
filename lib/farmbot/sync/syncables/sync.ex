@@ -11,7 +11,10 @@ defmodule Sync do
              :regimens,
              :sequences,
              :users,
-             :tool_bays]
+             :tool_bays,
+             :tool_slots,
+             :tools
+          ]
 
    @type t :: %__MODULE__{
      compat_num:    integer,
@@ -22,7 +25,9 @@ defmodule Sync do
      regimens:      list(Regimen.t),
      sequences:     list(Sequence.t),
      users:         list(User.t),
-     tool_bays:      list(Toolbay.t)
+     tool_bays:     list(Toolbay.t),
+     tool_slots:    list(ToolSlot.t),
+     tools:         list(Tool.t)
    }
 
   @spec create(map) :: {:ok, t} | {atom, :malformed}
@@ -34,7 +39,9 @@ defmodule Sync do
                "regimens" =>      regimens,
                "sequences" =>     sequences,
                "users" =>         users,
-               "tool_bays" =>      tool_bays})
+               "tool_bays" =>     tool_bays,
+               "tool_slots" =>    tool_slots,
+               "tools" =>         tools })
   when  is_integer(compat_num)
     and is_map(device)
     and is_list(peripherals)
@@ -44,17 +51,22 @@ defmodule Sync do
     and is_list(sequences)
     and is_list(users)
     and is_list(tool_bays)
+    and is_list(tool_slots)
+    and is_list(tools)
   do
     f =
-    %__MODULE__{compat_num: compat_num,
-                device: Device.create!(device),
-                plants: create_list(Plant,plants),
-                regimen_items: create_list(RegimenItem,regimen_items),
-                regimens: create_list(Regimen,regimens),
-                sequences: create_list(Sequence,sequences),
-                users: create_list(User,users),
-                peripherals: create_list(Peripheral, peripherals),
-                tool_bays: create_list(Toolbay, tool_bays)}
+    %__MODULE__{
+      compat_num:    compat_num,
+      device:        Device.create!(device),
+      plants:        create_list(Plant,plants),
+      regimen_items: create_list(RegimenItem,regimen_items),
+      regimens:      create_list(Regimen,regimens),
+      sequences:     create_list(Sequence,sequences),
+      users:         create_list(User,users),
+      peripherals:   create_list(Peripheral, peripherals),
+      tool_bays:     create_list(Toolbay, tool_bays),
+      tool_slots:    create_list(ToolsSlot, tool_slots),
+      tools:         create_list(Tool, tools) }
     {:ok, f}
   end
 
