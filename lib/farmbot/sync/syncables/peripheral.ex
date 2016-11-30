@@ -19,7 +19,7 @@ defmodule Peripheral do
    created_at: String.t,
    updated_at: String.t}
 
-  @spec create(map) :: t
+  @spec create(map) :: {:ok, t} | {atom, :malformed}
   def create(%{
     "id" => id,
     "device_id" => device_id,
@@ -27,7 +27,9 @@ defmodule Peripheral do
     "mode" => mode,
     "label" => label,
     "created_at" => created_at,
-    "updated_at" => updated_at}) do
+    "updated_at" => updated_at})
+  do
+    f =
     %Peripheral{
       id: id,
       device_id: device_id,
@@ -36,6 +38,15 @@ defmodule Peripheral do
       label: label,
       created_at: created_at,
       updated_at: updated_at}
+      {:ok, f}
   end
-  def create(_), do: :error
+  def create(_), do: {__MODULE__, :malformed}
+
+  @spec create!(map) :: t
+  def create!(thing) do
+    case create(thing) do
+      {:ok, success} -> success
+      {__MODULE__, :malformed} -> raise "Malformed #{__MODULE__} Object"
+    end
+  end
 end

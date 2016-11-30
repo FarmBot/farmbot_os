@@ -54,8 +54,10 @@ defmodule Token do
 
   @doc """
     Creates a valid token from json.
+    This function excepts either {:ok, token} or just a map of a token
+    so FarmbotAuth can be piped into it.
   """
-  @spec create(map | {:ok, map}) :: t | :not_valid
+  @spec create({:ok, map} | map) :: {:ok, t} | {atom, :malformed}
   def create({:ok, token}), do: create(token)
   def create(%{"encoded" => encoded,
                "unencoded" =>
@@ -69,6 +71,7 @@ defmodule Token do
                   "mqtt" => mqtt,
                   "sub" => sub}})
   do
+    f =
     %Token{encoded: encoded,
            unencoded: %Unencoded{
              bot: bot,
@@ -79,8 +82,16 @@ defmodule Token do
              mqtt: mqtt,
              sub: sub,
              fw_update_server: fw_update_server,
-             os_update_server: os_update_server
-             }}
+             os_update_server: os_update_server }}
+    {:ok, f}
   end
-  def create(_), do: :error
+  def create(_), do: {__MODULE__, :malformed}
+
+  @spec create!(map) :: t
+  def create!(thing) do
+    case create(thing) do
+      {:ok, success} -> success
+      {__MODULE__, :malformed} -> raise "Malformed #{__MODULE__} Object"
+    end
+  end
 end

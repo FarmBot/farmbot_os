@@ -3,7 +3,7 @@ defmodule DeviceTest do
   use ExUnit.Case, async: true
 
   test "builds a device" do
-    not_fail =
+    {:ok, not_fail} =
       Device.create(%{
         "id" => 123,
         "planting_area_id" => 321,
@@ -19,7 +19,13 @@ defmodule DeviceTest do
   test "does not build a device" do
     fail = Device.create(%{"fake" => "device"})
     also_fail = Device.create(:wrong_type)
-    assert(fail == :error)
-    assert(also_fail == :error)
+    assert(fail == {Device, :malformed})
+    assert(also_fail == {Device, :malformed})
+  end
+
+  test "raises an exception if invalid" do
+    assert_raise RuntimeError, "Malformed #{Device} Object", fn ->
+      Device.create!(%{"fake" => "corpus"})
+    end
   end
 end

@@ -12,7 +12,7 @@ defmodule RegimenItem do
     regimen_id: integer,
     sequence_id: integer}
 
-  @spec create(map) :: t
+  @spec create(map) :: {:ok, t} | {atom, :malformed}
   def create(%{
     "id" => id,
     "time_offset" => time_offset,
@@ -23,11 +23,21 @@ defmodule RegimenItem do
      and is_integer(regimen_id)
      and is_integer(sequence_id)
     do
-    %RegimenItem{
-      id: id,
-      time_offset: time_offset,
-      regimen_id: regimen_id,
-      sequence_id: sequence_id}
+      f =
+      %RegimenItem{
+        id: id,
+        time_offset: time_offset,
+        regimen_id: regimen_id,
+        sequence_id: sequence_id}
+        {:ok, f}
   end
-  def create(_), do: :error
+  def create(_), do: {__MODULE__, :malformed}
+
+  @spec create!(map) :: t
+  def create!(thing) do
+    case create(thing) do
+      {:ok, success} -> success
+      {__MODULE__, :malformed} -> raise "Malformed #{__MODULE__} Object"
+    end
+  end
 end

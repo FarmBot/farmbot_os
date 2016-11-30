@@ -13,7 +13,7 @@ defmodule Farmbot.BotStateTest do
       "mqtt" => "mqtt.att.net",
       "iss" => "http://ibm.com"
     }
-    fake_token = Token.create%{"unencoded" => unencoded, "encoded" => "asdf"}
+    fake_token = Token.create!%{"unencoded" => unencoded, "encoded" => "asdf"}
     send Farmbot.BotState.Authorization, {:authorization, fake_token}
     Process.sleep(10)
     {:ok, %{auth: fake_token}}

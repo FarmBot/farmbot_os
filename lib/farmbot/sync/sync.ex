@@ -9,6 +9,24 @@ defmodule Farmbot.Sync do
   require Logger
   @log_tag "BotSync"
 
+  @spec default_sync :: map
+  defp default_sync do
+    %{"compat_num" => -1,
+      "device" => %{
+        "id" => -1,
+        "planting_area_id" => -1,
+        "webcam_url" => "loading...",
+        "name" => "loading..."
+        },
+      "peripherals" =>   [],
+      "plants" =>        [],
+      "regimen_items" => [],
+      "regimens" =>      [],
+      "sequences" =>     [],
+      "users" =>         [],
+      "tool_bays" =>     []}
+  end
+
   def init(_args) do
     token = case Farmbot.Auth.get_token() do
       {:ok, token} -> Token.create(token)
@@ -21,19 +39,7 @@ defmodule Farmbot.Sync do
   end
 
   def load_old_resources do
-     default = Sync.create(%{"compat_num" => -1,
-      "device" => %{
-        "id" => -1,
-        "planting_area_id" => -1,
-        "webcam_url" => "loading...",
-        "name" => "loading..."
-        },
-      "peripherals" =>   [],
-      "plants" =>        [],
-      "regimen_items" => [],
-      "regimens" =>      [],
-      "sequences" =>     [],
-      "users" =>         []})
+     default = Sync.create!(default_sync)
       case SafeStorage.read(__MODULE__.Resources) do
         {:ok, %Sync{} = old_state} -> old_state
         _ -> default
@@ -60,47 +66,47 @@ defmodule Farmbot.Sync do
     {:reply, new, %{token: token, resources: new_merged}}
   end
 
-  def handle_call(:fetch_all, _from, %{token: token, resources: resources}) do
+  def handle_call(:fetch_all, _from, %{token: token, resources: %Sync{} = resources}) do
     {:reply, resources, %{token: token, resources: resources}}
   end
 
-  def handle_call({:get_sequence, id}, _from, %{token: token, resources: resources}) do
+  def handle_call({:get_sequence, id}, _from, %{token: token, resources: %Sync{} = resources}) do
     sequences = resources.sequences
     got = Enum.find(sequences, fn(sequence) -> Map.get(sequence, :id) == id end)
     {:reply, got, %{token: token, resources: resources}}
   end
 
-  def handle_call(:get_sequences, _from, %{token: token, resources: resources}) do
+  def handle_call(:get_sequences, _from, %{token: token, resources: %Sync{} = resources}) do
     {:reply, resources.sequences, %{token: token, resources: resources}}
   end
 
-  def handle_call({:get_regimen, id}, _from, %{token: token, resources: resources}) do
+  def handle_call({:get_regimen, id}, _from, %{token: token, resources: %Sync{} = resources}) do
     regimens = resources.regimens
     got = Enum.find(regimens, fn(regimen) -> Map.get(regimen, :id) == id end)
     {:reply, got, %{token: token, resources: resources}}
   end
 
-  def handle_call(:get_regimens, _from, %{token: token, resources: resources}) do
+  def handle_call(:get_regimens, _from, %{token: token, resources: %Sync{} = resources}) do
     {:reply, resources.regimens, %{token: token, resources: resources}}
   end
 
-  def handle_call({:get_regimen_item, id}, _from, %{token: token, resources: resources}) do
+  def handle_call({:get_regimen_item, id}, _from, %{token: token, resources: %Sync{} = resources}) do
     regimen_items = resources.regimen_items
     got = Enum.find(regimen_items, fn(regimen_item) -> regimen_item.id == id end)
     {:reply, got, %{token: token, resources: resources}}
   end
 
-  def handle_call(:get_regimen_items, _from, %{token: token, resources: resources}) do
+  def handle_call(:get_regimen_items, _from, %{token: token, resources: %Sync{} = resources}) do
     regimen_items = resources.regimen_items
     {:reply, regimen_items, %{token: token, resources: resources}}
   end
 
-  def handle_call(:get_users, _from, %{token: token, resources: resources}) do
+  def handle_call(:get_users, _from, %{token: token, resources: %Sync{} = resources}) do
     {:reply, resources.users, %{token: token, resources: resources}}
   end
 
   # build the headers to get stuff from the API.
-  def handle_call(:api_creds, _from, %{token: %Token{} = token, resources: resources}) do
+  def handle_call(:api_creds, _from, %{token: %Token{} = token, resources: %Sync{} = resources}) do
     headers =
       ["Content-Type": "application/json",
        "Authorization": "Bearer " <> token.encoded]
@@ -108,8 +114,12 @@ defmodule Farmbot.Sync do
   end
 
   # If we don't have a token yet.
-  def handle_call(:api_creds, _from, %{token: token, resources: resources}) do
+  def handle_call(:api_creds, _from, %{token: token, resources: %Sync{} = resources}) do
     {:reply, {:error, :no_token}, %{token: token, resources: resources}}
+  end
+
+  def handle_call(_,_,%{token: token, resources: resources}) do
+    {:reply, :bad_resources, %{token: token, resources: default_sync}}
   end
 
   def handle_info({:authorization, token}, %{token: _, resources: resources}) do

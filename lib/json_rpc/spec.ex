@@ -26,7 +26,7 @@ defmodule RPC.Spec do
       }
     end
 
-    def create(_), do: :error
+    def create(_), do: {__MODULE__, :malformed}
   end
 
   defmodule Notification do
@@ -54,7 +54,7 @@ defmodule RPC.Spec do
       }
     end
 
-    def create(_), do: :error
+    def create(_), do: {__MODULE__, :malformed}
   end
 
   defmodule Response do
@@ -81,6 +81,6 @@ defmodule RPC.Spec do
         id: id
       }
     end
-    def create(_), do: :error
+    def create(_), do: {__MODULE__, :malformed}
   end
 end

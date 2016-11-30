@@ -3,7 +3,7 @@ defmodule PeripheralTest do
   use ExUnit.Case, async: true
 
   test "builds a Peripheral" do
-    not_fail =
+    {:ok, not_fail} =
       Peripheral.create(%{
         "id" => 123,
         "device_id" => 965,
@@ -24,7 +24,13 @@ defmodule PeripheralTest do
   test "does not build a Peripheral" do
     fail = Peripheral.create(%{"fake" => "Peripheral"})
     also_fail = Peripheral.create(:wrong_type)
-    assert(fail == :error)
-    assert(also_fail == :error)
+    assert(fail == {Peripheral, :malformed})
+    assert(also_fail == {Peripheral, :malformed})
+  end
+
+  test "raises an exception if invalid" do
+    assert_raise RuntimeError, "Malformed #{Peripheral} Object", fn ->
+      Peripheral.create!(%{"fake" => "corpus"})
+    end
   end
 end

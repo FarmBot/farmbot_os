@@ -1,36 +1,41 @@
-defmodule Device do
+defmodule Toolbay do
   @moduledoc """
-    Device Object
+    A Toolbay Object in the DB
   """
-  defstruct [
-    id: nil,
-    planting_area_id: nil,
-    name: nil,
-    webcam_url: nil]
+  defstruct [id: nil,
+   device_id: nil,
+   name: nil,
+   created_at: nil,
+   updated_at: nil]
+
  @type t :: %__MODULE__{
    id: integer,
-   planting_area_id: integer,
+   device_id: integer,
    name: String.t,
-   webcam_url: String.t}
+   created_at: String.t,
+   updated_at: String.t}
 
   @spec create(map) :: {:ok, t} | {atom, :malformed}
   def create(%{
     "id" => id,
-    "planting_area_id" => paid,
+    "device_id" => device_id,
     "name" => name,
-    "webcam_url" => wcu})
+    "created_at" => created_at,
+    "updated_at" => updated_at})
     when is_integer(id)
-     and (is_integer(paid) or is_nil(paid))
-     and (is_bitstring(wcu) or is_nil(wcu))
+     and is_integer(device_id)
      and is_bitstring(name)
+     and is_bitstring(created_at)
+     and is_bitstring(updated_at)
     do
       f =
-      %Device{
+      %__MODULE__{
         id: id,
-        planting_area_id: paid,
+        device_id: device_id,
         name: name,
-        webcam_url: wcu}
-      {:ok, f}
+        created_at: created_at,
+        updated_at: updated_at}
+       {:ok, f}
   end
   def create(_), do: {__MODULE__, :malformed}
 

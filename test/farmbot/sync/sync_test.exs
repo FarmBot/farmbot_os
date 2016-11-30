@@ -2,8 +2,9 @@ defmodule Farmbot.SyncTest do
   use ExUnit.Case, async: true
   setup_all do
     device_id = 123
-    fake_sync = Sync.create(
-    %{"compat_num" =>    0,
+    fake_sync = Sync.create!(
+    %{
+      "compat_num" =>0,
       "device" => %{
         "id" => device_id,
         "planting_area_id" => nil,
@@ -21,7 +22,7 @@ defmodule Farmbot.SyncTest do
           "updated_at" => "2016-11-28T21:00:55.853Z"
         }
         ],
-      "plants" =>        [],
+      "plants" => [],
       "regimen_items" => [
         %{
           "id" => 103,
@@ -30,7 +31,7 @@ defmodule Farmbot.SyncTest do
           "sequence_id" => 14
         }
         ],
-      "regimens" =>      [
+      "regimens" => [
         %{
           "id" => 500,
           "color" => "gray",
@@ -38,7 +39,7 @@ defmodule Farmbot.SyncTest do
           "device_id" => device_id
         }
         ],
-      "sequences" =>     [
+      "sequences" => [
         %{
           "id" => 14,
           "device_id" => device_id,
@@ -49,16 +50,20 @@ defmodule Farmbot.SyncTest do
           "body" => []
         }
         ],
-      "users" => [%{
-        "id" => 9000,
-        "device_id" => device_id,
-        "name" => "pablo",
-        "email" => "hannah_montana@disney.channel",
-        "created_at" => "2016-11-28T21:00:55.853Z",
-        "updated_at" => "2016-11-28T21:00:55.853Z"
-        }]
+      "users" => [
+        %{
+          "id" => 9000,
+          "device_id" => device_id,
+          "name" => "pablo",
+          "email" => "hannah_montana@disney.channel",
+          "created_at" => "2016-11-28T21:00:55.853Z",
+          "updated_at" => "2016-11-28T21:00:55.853Z"
+        }
+        ],
+      "tool_bays" => []
       }
     )
+
     Farmbot.Sync.put_stuff(fake_sync)
     receive do
       {:sync_complete, _resources} ->

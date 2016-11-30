@@ -17,14 +17,17 @@ defmodule Sequence do
                         kind: String.t,
                         name: String.t}
 
-  @spec create(map) :: t
-  def create(%{"args" => args,
-               "body" => body,
-               "color" => color,
-               "device_id" => device_id,
-               "kind" => "sequence",
-               "id" => id,
-               "name" => name}) do
+  @spec create(map) :: {:ok, t} | {atom, :malformed}
+  def create(
+    %{"args" => args,
+      "body" => body,
+      "color" => color,
+      "device_id" => device_id,
+      "kind" => "sequence",
+      "id" => id,
+      "name" => name})
+  do
+    f =
     %Sequence{args: args,
               body: body,
               color: color,
@@ -32,6 +35,15 @@ defmodule Sequence do
               id: id,
               kind: "sequence",
               name: name}
+    {:ok, f}
   end
-  def create(_), do: :error
+  def create(_), do: {__MODULE__, :malformed}
+
+  @spec create!(map) :: t
+  def create!(thing) do
+    case create(thing) do
+      {:ok, success} -> success
+      {__MODULE__, :malformed} -> raise "Malformed #{__MODULE__} Object"
+    end
+  end
 end
