@@ -18,6 +18,7 @@ defmodule TokenTest do
     {:ok, not_fail} = Token.create(t)
     # test the shortuct while im here
     {:ok, ^not_fail} = Token.create({:ok, t})
+    {:ok, ^not_fail} = Token.create!({:ok, t})
     assert not_fail.encoded == "big crazy long string"
     un = not_fail.unencoded
     assert un.bot == "the most creative name ever"

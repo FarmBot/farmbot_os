@@ -87,7 +87,8 @@ defmodule Token do
   end
   def create(_), do: {__MODULE__, :malformed}
 
-  @spec create!(map) :: t
+  @spec create!({:ok, map} | map) :: t
+  def create!({:ok, thing}), do: create!(thing)
   def create!(thing) do
     case create(thing) do
       {:ok, success} -> success

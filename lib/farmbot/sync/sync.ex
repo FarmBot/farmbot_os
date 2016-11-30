@@ -29,7 +29,7 @@ defmodule Farmbot.Sync do
 
   def init(_args) do
     token = case Farmbot.Auth.get_token() do
-      {:ok, token} -> Token.create(token)
+      {:ok, token} -> Token.create!(token)
       _ -> nil
     end
     initial_state =
@@ -123,7 +123,7 @@ defmodule Farmbot.Sync do
   end
 
   def handle_info({:authorization, token}, %{token: _, resources: resources}) do
-    {:noreply, %{token: Token.create(token), resources: resources}}
+    {:noreply, %{token: Token.create!(token), resources: resources}}
   end
 
   # Public api
@@ -161,7 +161,7 @@ defmodule Farmbot.Sync do
   defp handle_sync(%HTTPotion.ErrorResponse{message: message}), do: {:error, message}
   defp handle_sync(%HTTPotion.Response{body: body, headers: _headers, status_code: 200}) do
     with {:ok, map} <- Poison.decode(body),
-    do: Sync.create(map) |> put_stuff
+    do: Sync.create!(map) |> put_stuff
   end
 
   @spec put_stuff(Sync.t | any) :: Sync.t | {:error, :bad_sync}

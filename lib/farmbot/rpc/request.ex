@@ -189,7 +189,7 @@ defmodule Farmbot.RPC.Requests do
   def handle_request("exec_sequence", [sequence]) do
     Map.drop(sequence, ["dirty"])
     |> Map.merge(%{"device_id" => -1, "id" => Map.get(sequence, "id") || -1})
-    |> Sequence.create
+    |> Sequence.create!
     |> Farmbot.Scheduler.add_sequence
   end
 
