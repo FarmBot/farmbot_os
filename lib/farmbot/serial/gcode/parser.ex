@@ -30,8 +30,8 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_code("R41 " <> params), do: parse_pvq(params, :report_pin_value)
   def parse_code("R81 " <> params), do: parse_end_stops(params)
   def parse_code("R82 " <> position), do: parse_report_current_position(position)
-
-  def parse_code("R83") do { :report_software_version } end
+  def parse_code("R83 "<> v), do: {:report_software_version, String.to_integer(v)}
+  def parse_code("R83") do { :report_software_version, -1 } end
   def parse_code("R99 " <> message) do { :debug_message, message } end
   def parse_code(code)  do {:unhandled_gcode, code} end
 
@@ -107,7 +107,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
               za |> pes,
               zb |> pes,
               qtag}
-              
+
   defp pes(48), do: 0
   defp pes(49), do: 1
 

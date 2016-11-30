@@ -25,6 +25,8 @@ defmodule RPC.Spec do
         id: id
       }
     end
+
+    def create(_), do: :error
   end
 
   defmodule Notification do
@@ -51,6 +53,8 @@ defmodule RPC.Spec do
         id: nil
       }
     end
+
+    def create(_), do: :error
   end
 
   defmodule Response do
@@ -77,5 +81,6 @@ defmodule RPC.Spec do
         id: id
       }
     end
+    def create(_), do: :error
   end
 end

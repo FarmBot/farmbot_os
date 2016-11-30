@@ -36,41 +36,6 @@ defmodule Farmbot.Logger do
     messages}
   end
 
-  def handle_call({:get_tag, list_of_tags}, _from, messages) do
-    filtered = filter(messages, list_of_tags)
-    |> Enum.map(fn({m, _, time}) -> {m, time} end)
-    {:reply, filtered, messages}
-  end
-
   def handle_call(:clear, _from, messages), do: {:reply, messages, []}
-
-  def filter(list_of_tags) when is_list(list_of_tags) do
-    GenServer.call(__MODULE__, {:get_tag, list_of_tags})
-  end
-
-  def filter(messages, []) do
-    Enum.reverse messages
-  end
-
-  def filter(messages, list_of_tags)
-  when is_list(list_of_tags) do
-    filter(messages, List.first(list_of_tags), list_of_tags)
-  end
-
-  def filter(messages, tag, list_of_tags)
-  when is_bitstring(tag) and is_list(list_of_tags) do
-    {_bleep, bloop} = Enum.partition(messages, fn({_m, tags, _}) ->
-      contain_tag?(tags, tag)
-    end)
-    filter(messages -- bloop, list_of_tags -- [tag])
-  end
-
-  def contain_tag?(tags, tag) do
-    Enum.any?(tags, fn(t) ->
-      tag == t
-    end)
-  end
-
   def clear, do: GenServer.call(__MODULE__, :clear)
 end
-# Filtr.filter logs, ["who cares about regimens"]

@@ -26,7 +26,8 @@ defmodule Farmbot.Supervisor do
       worker(Farmbot.Scheduler, [[]], restart: :permanent ),
 
       # Handles Communication between the bot and frontend
-      supervisor(RPC.Supervisor, [[]], restart: :permanent )
+      supervisor(RPC.Supervisor, [[]], restart: :permanent ),
+      worker(Farmbot.RPC.Handler, [[]], restart: :permanent )
     ]
     opts = [strategy: :one_for_one, name: Farmbot.Supervisor]
     supervise(children, opts)

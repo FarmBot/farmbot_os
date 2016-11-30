@@ -1,10 +1,6 @@
 defmodule StateDebugger do
-  @moduledoc """
-    Delete me
-  """
-
+  @moduledoc false
   use GenEvent
-
   def handle_event({:dispatch, state},_) do
     {:ok, state}
   end

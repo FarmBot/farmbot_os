@@ -2,5 +2,10 @@
   "custom_stop_words": [
     "ntpd",
     "check_time_set"
+  ],
+  "skip_files": [
+    "lib/extras/downloader.ex",
+    "lib/extras/ssh.ex",
+    "lib/farmbot/rpc/state_serialized.ex"
   ]
 }
