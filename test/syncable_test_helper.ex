@@ -1,14 +1,16 @@
-defmodule SyncableTest do
+defmodule SyncableTestHelper do
   defmacro __using__(module) do
     quote do
+      use Syncables
       # IM SO SORRY ABOUT THIS
       defp syncable do
         m = unquote(module)
-        t = Module.split(m)
-        |> List.last
+        m
+        |> Atom.to_string
         |> String.split("Test")
         |> List.delete("")
-        |> Module.concat
+        |> List.first
+        |> String.to_atom
       end
 
       defp good_model(model) when is_list(model) do
@@ -48,7 +50,7 @@ defmodule SyncableTest do
       test "raises an exception if invalid" do
         model = syncable.model
         assert_raise RuntimeError,
-        "Elixir.#{inspect syncable} {:missing_keys, [:tag, :args, :nodes]} expecting: [:tag, :args, :nodes]}",
+        "Elixir.#{inspect syncable} {:missing_keys, #{inspect model}} expecting: #{inspect model}}",
         fn ->
           syncable.create!(%{"fake" => "data"})
         end

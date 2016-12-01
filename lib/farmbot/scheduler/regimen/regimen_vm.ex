@@ -1,5 +1,5 @@
-defmodule Regimen.VM  do
-
+defmodule Scheduler.Regimen.VM  do
+  use Syncables
   defmodule State do
     @moduledoc false
     @type t :: %__MODULE__{

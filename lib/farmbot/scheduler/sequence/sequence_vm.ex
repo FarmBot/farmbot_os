@@ -1,6 +1,7 @@
 alias Farmbot.BotState.Monitor.State, as: BotState
 alias Farmbot.BotState.Hardware.State, as: HardwareState
-defmodule Sequence.VM do
+defmodule Scheduler.Sequence.VM do
+  use Syncables
   @moduledoc """
     There should only ever be one instance of this process at a time.
   """
@@ -160,7 +161,7 @@ defmodule Sequence.VM do
   do
     Logger.debug("sequence done")
     Farmbot.Logger.log("Sequence Complete", [], [sequence.name])
-    send(Sequence.Manager, {:done, self(), sequence})
+    send(Scheduler.Sequence.Manager, {:done, self(), sequence})
     Logger.debug("Stopping VM")
     {:noreply,
       %{status: status,
@@ -196,13 +197,13 @@ defmodule Sequence.VM do
 
   def handle_info({:error, :e_stop}, state) do
     Farmbot.Logger.log("Bot in E STOP MODE", [:error], [state.sequence.name])
-    send(Sequence.Manager, {:done, self(), state.sequence})
+    send(Scheduler.Sequence.Manager, {:done, self(), state.sequence})
     {:noreply, state}
   end
 
   def handle_info({:error, error}, state) do
     Farmbot.Logger.log("ERROR: #{inspect(error)}", [:error], [state.sequence.name])
-    send(Sequence.Manager, {:done, self(), state.sequence})
+    send(Scheduler.Sequence.Manager, {:done, self(), state.sequence})
     {:noreply, state}
   end
 

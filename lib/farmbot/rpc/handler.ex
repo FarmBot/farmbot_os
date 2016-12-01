@@ -23,8 +23,8 @@ defmodule Farmbot.RPC.Handler do
     Example:
       iex> ack_msg("super_long_uuid", {"move_relative", "that didn't work!"})
       "{\"result\":null,\"id\":\"super_long_uuid\",
-      \"error\":{\"name\":\"move_relative\",\"message\":\"that didn't work\"}}"
-
+          \"error\":{\"name\":\"move_relative\",
+          \"message\":\"that didn't work\"}}"
   """
   @spec ack_msg(String.t) :: binary
   def ack_msg(id) when is_bitstring(id) do

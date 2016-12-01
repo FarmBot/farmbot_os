@@ -1,4 +1,5 @@
 defmodule Sync do
+  use Syncables
   @moduledoc """
     The enitre Sync Object.
     located at /api/sync
@@ -25,7 +26,7 @@ defmodule Sync do
      regimens:      list(Regimen.t),
      sequences:     list(Sequence.t),
      users:         list(User.t),
-     tool_bays:     list(Toolbay.t),
+     tool_bays:     list(ToolBay.t),
      tool_slots:    list(ToolSlot.t),
      tools:         list(Tool.t)
    }
@@ -64,8 +65,8 @@ defmodule Sync do
       sequences:     create_list(Sequence,sequences),
       users:         create_list(User,users),
       peripherals:   create_list(Peripheral, peripherals),
-      tool_bays:     create_list(Toolbay, tool_bays),
-      tool_slots:    create_list(ToolsSlot, tool_slots),
+      tool_bays:     create_list(ToolBay, tool_bays),
+      tool_slots:    create_list(ToolSlot, tool_slots),
       tools:         create_list(Tool, tools) }
     {:ok, f}
   end

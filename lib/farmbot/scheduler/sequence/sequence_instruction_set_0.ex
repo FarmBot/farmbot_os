@@ -59,9 +59,9 @@ defmodule Sequence.InstructionSet_0 do
                    body: [],
                    args: %{sub_sequence_id: id}},
   parent) do
-    GenServer.call(Sequence.Manager, {:pause, parent})
+    GenServer.call(Scheduler.Sequence.Manager, {:pause, parent})
     sequence = Farmbot.Sync.get_sequence(id)
-    GenServer.call(Sequence.Manager, {:add, sequence})
+    GenServer.call(Scheduler.Sequence.Manager, {:add, sequence})
     no_dispatch parent
   end
 
@@ -150,7 +150,7 @@ defmodule Sequence.InstructionSet_0 do
   defp do_if(l, op, r), do: Logger.error("bad if statement: [#{l} #{op} #{r}]")
 
   @spec dispatch(atom, pid) :: {:noreply, pid}
-  defp dispatch(status, parent), do: Sequence.VM.tick(parent, status)
+  defp dispatch(status, parent), do: Scheduler.Sequence.VM.tick(parent, status)
   @spec no_dispatch(pid) :: {:noreply, pid}
   defp no_dispatch(parent), do: {:noreply, parent}
 end

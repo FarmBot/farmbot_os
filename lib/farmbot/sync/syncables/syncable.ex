@@ -1,4 +1,13 @@
 defmodule Syncable do
+  @moduledoc """
+    Creates a syncable object from Farmbot's rest api.
+    Example:
+      iex> defmodule BubbleGum do
+      ...>    use Syncable, name: __MODULE__, model: [:flavors, :brands]
+      ...> end
+      iex> BubbleGum.create!(%{"flavors" => ["mint", "berry"], "brands" => ["BigRed"]})
+           {:ok, %BubbleGum{flavors: ["mint", "berry"], brands:  ["BigRed"]}}
+  """
   defmacro __using__(
     name: name, model: model)
   do
