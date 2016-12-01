@@ -1,4 +1,53 @@
 defmodule Syncable do
+  defmacro __using__(
+    name: name, model: model)
+  do
+    quote do
+      @moduledoc """
+        A Farmbot Syncable #{unquote name}
+      """
+      @enforce_keys unquote(model)
+      @type t :: %unquote(name){}
+      defstruct @enforce_keys
+
+      @doc """
+        Creates a #{unquote(name)} Object.
+        returns {:ok, %#{unquote(name)}} or {#{unquote(name)}, :malformed}
+      """
+      @spec create(map) :: {:ok, t} | {unquote(name), :malformed}
+      def create( unquote( create_json_map(model) ) ),
+        do: {:ok, unquote( create_struct(name, model) )}
+
+      def create(unquote( create_keyed_map(model) ) ),
+        do: {:ok, unquote( create_struct(name, model) )}
+
+      def create( fail ) when is_map(fail),
+        do: {unquote(name), {:missing_keys, model -- (fail |> Map.keys)}}
+
+      def create(_), do: {unquote(name), :malformed}
+
+      @doc """
+        Same as create\1 but raises an exception if it fails.
+      """
+      @spec create!(map) :: t
+      def create!(thing) do
+        case create(thing) do
+          {:ok, success} -> success
+          {unquote(name), reason} -> error(unquote(name), reason)
+        end
+      end
+
+      defp error(name, reason) do
+        raise "#{name} #{inspect reason} expecting: #{inspect model}}"
+      end
+
+      @doc """
+        Lists all the keys available for creating a #{unquote(name)}
+      """
+      @spec model :: [atom]
+      def model, do: @enforce_keys
+    end
+  end
 
   @spec create_json_map([atom]) :: term
   defp create_json_map(model) when is_list(model) do
@@ -37,56 +86,5 @@ defmodule Syncable do
       }] ++ acc
     end)
     {:%, [], [{:__aliases__, [], [name]}, {:%{}, [], f}]}
-  end
-
-  defmacro __using__(
-    name: name, model: model)
-  do
-    quote do
-      @moduledoc """
-        A Farmbot Syncable #{unquote name}
-      """
-      @enforce_keys unquote(model)
-      defstruct @enforce_keys
-
-      @type t :: %unquote(name){}
-
-      @doc """
-        Creates a #{unquote(name)} Object.
-        returns {:ok, %#{unquote(name)}} or {#{unquote(name)}, :malformed}
-      """
-      @spec create(map) :: {:ok, t} | {unquote(name), :malformed}
-      def create( unquote( create_json_map(model) ) ),
-        do: {:ok, unquote( create_struct(name, model) )}
-
-      def create(unquote( create_keyed_map(model) ) ),
-        do: {:ok, unquote( create_struct(name, model) )}
-
-      def create( fail ) when is_map(fail),
-        do: {unquote(name), :missing_keys, model -- (fail |> Map.keys)}
-
-      def create(_), do: {unquote(name), :malformed}
-
-      @doc """
-        Same as create\1 but raises an exception if it fails.
-      """
-      @spec create!(map) :: t
-      def create!(thing) do
-        case create(thing) do
-          {:ok, success} ->
-            success
-          {unquote(name), :missing_keys, list} ->
-            raise "#{unquote(name)} missing keys! expecting: #{inspect model} but got: #{inspect Map.keys(thing)}"
-          {unquote(name), :malformed} ->
-            raise "Malformed #{unquote(name)}. expecting: #{inspect model}"
-        end
-      end
-
-      @doc """
-        Lists all the keys available for creating a #{unquote(name)}
-      """
-      @spec model :: [atom]
-      def model, do: @enforce_keys
-    end
   end
 end
