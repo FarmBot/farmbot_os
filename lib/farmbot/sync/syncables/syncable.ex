@@ -8,10 +8,27 @@ defmodule Syncable do
       iex> BubbleGum.create!(%{"flavors" => ["mint", "berry"], "brands" => ["BigRed"]})
            {:ok, %BubbleGum{flavors: ["mint", "berry"], brands:  ["BigRed"]}}
   """
-  defmacro __using__(
-    name: name, model: model)
-  do
+  defmacro __using__(name: name, model: model) do
+    fa =
+    Enum.map(model, fn(k) ->
+      key = inspect(k)
+       <<":", rkey :: binary>> = key
+      {rkey, {:var!, [], [{k, [], nil}]}}
+    end)
+
+    fb =
+    Enum.map(model, fn(k) ->
+      # val = {k, [], nil}
+      # val = thing(k, {k, [], nil})
+      val = quote do mutate(unquote(k), unquote({k, [], nil}) ) end
+      {k, val}
+    end)
+
+    a = {:%{}, [], fa}
+    b = {:%, [], [{:__aliases__, [], [name]}, {:%{}, [], fb}]}
+
     quote do
+      import Syncable
       @moduledoc """
         A Farmbot Syncable #{unquote name}
       """
@@ -20,82 +37,33 @@ defmodule Syncable do
       defstruct @enforce_keys
 
       @doc """
-        Creates a #{unquote(name)} Object.
-        returns {:ok, %#{unquote(name)}} or {#{unquote(name)}, :malformed}
+        A Farmbot Syncable #{unquote name}
       """
-      @spec create({:ok, map} | map) :: {:ok, t} | {unquote(name), :malformed}
-      def create({:ok, map}), do: create(map)
-      def create( unquote( create_json_map(model) ) ),
-        do: {:ok, unquote( create_struct(name, model) )}
-
-      def create(unquote( create_keyed_map(model) ) ),
-        do: {:ok, unquote( create_struct(name, model) )}
-
-      def create( map ) when is_map(map),
-        do: {unquote(name), {:missing_keys, model -- (map |> Map.keys)}}
-
+      def create(unquote(a)), do: {:ok, unquote(b)}
+      def create({:ok, t}), do: create(t)
+      def create(map) when is_map(map) do
+        missing = model -- Map.keys(map)
+        {unquote(name), {:missing_keys, missing}}
+      end
       def create(_), do: {unquote(name), :malformed}
 
-      @doc """
-        Same as create\1 but raises an exception if it fails.
-      """
-      @spec create!({:ok, map} | map) :: t
-      def create!({:ok, thing}), do: create!(thing)
-      def create!(thing) do
-        case create(thing) do
-          {:ok, success} -> success
-          {unquote(name), reason} -> error(unquote(name), reason)
+      def create!(t) do
+        case create(t) do
+          {:ok, thing} -> thing
+          {unquote(name), reason} -> raise("#{inspect(unquote(name))} #{inspect(reason)} expecting: #{inspect model}")
         end
       end
 
-      defp error(name, reason) do
-        raise "#{name} #{inspect reason} expecting: #{inspect model}}"
-      end
-
-      @doc """
-        Lists all the keys available for creating a #{unquote(name)}
-      """
-      @spec model :: [atom]
       def model, do: @enforce_keys
+      defp mutate(_k, v), do: v
+      defoverridable [mutate: 2]
     end
   end
 
-  @spec create_json_map([atom]) :: term
-  defp create_json_map(model) when is_list(model) do
-    # [:a, :b, :c] should return %{"a" => a, "b" => b, "c" => c}
-    f = Enum.reduce(model, [], fn(key), acc ->
-      var_key = String.trim("#{inspect Atom.to_string(key)}", "\"")
-      [{
-        Atom.to_string(key),
-        Code.string_to_quoted!(var_key)
-      }] ++ acc
-    end)
-    {:%{}, [], f}
-  end
-
-  @spec create_keyed_map([atom]) :: {:%{}, [], [term]}
-  defp create_keyed_map(model) when is_list(model) do
-    # [:a, :b, :c] should return %{a: a, b: b, c: c}
-    f = Enum.reduce(model, [], fn(key), acc ->
-      var_key = String.trim("#{inspect Atom.to_string(key)}", "\"")
-      [{
-        key,
-        Code.string_to_quoted!(var_key)
-      }] ++ acc
-    end)
-    {:%{}, [], f}
-  end
-
-  @spec create_struct(term,[atom]) :: term
-  defp create_struct(name, model) when is_list(model) do
-    # [:a, :b, :c] should return %{a: a, b: b, c: c}
-    f = Enum.reduce(model, [], fn(key, acc) ->
-      var_key = String.trim("#{inspect Atom.to_string(key)}", "\"")
-      [{
-        key,
-        Code.string_to_quoted!(var_key)
-      }] ++ acc
-    end)
-    {:%, [], [{:__aliases__, [], [name]}, {:%{}, [], f}]}
+  defmacro transform(key, block) do
+    quote do
+      defp mutate(unquote(key), var!(before)), unquote block
+      defp mutate(_k, v), do: v
+    end
   end
 end

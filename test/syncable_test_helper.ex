@@ -50,7 +50,7 @@ defmodule SyncableTestHelper do
       test "raises an exception if invalid" do
         model = syncable.model
         assert_raise RuntimeError,
-        "Elixir.#{inspect syncable} {:missing_keys, #{inspect model}} expecting: #{inspect model}}",
+        "#{inspect syncable} {:missing_keys, #{inspect model}} expecting: #{inspect model}",
         fn ->
           syncable.create!(%{"fake" => "data"})
         end

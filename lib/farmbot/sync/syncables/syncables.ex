@@ -55,8 +55,25 @@ defmodule Syncables do
       :name
     ]
 
-  defmodule Token, do:
-    use Syncable, name: __MODULE__, model: []
+  defmodule Token do
+    use Syncable, name: __MODULE__, model: [:unencoded, :encoded]
+    defmodule Unencoded do
+      use Syncable, name: __MODULE__, model:
+        [:bot,
+         :exp,
+         :fw_update_server,
+         :os_update_server,
+         :iat,
+         :iss,
+         :jti,
+         :mqtt,
+         :sub ]
+    end
+
+    transform :unencoded do
+      Unencoded.create!(before)
+    end
+  end
 
   defmodule ToolBay,
     do: use Syncable, name: __MODULE__, model: [
