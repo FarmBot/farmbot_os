@@ -1,4 +1,5 @@
 defmodule Farmbot.Sync do
+  use Syncables
   @moduledoc """
     This basically a database implementation. It is very possible that
     it gets replaced with sql or something.

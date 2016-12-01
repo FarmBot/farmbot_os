@@ -7,6 +7,7 @@ defmodule Syncables do
       alias Syncables.RegimenItem
       alias Syncables.Regimen
       alias Syncables.Sequence
+      alias Syncables.Token
       alias Syncables.ToolBay
       alias Syncables.ToolSlow
       alias Syncables.Tool
@@ -53,6 +54,9 @@ defmodule Syncables do
       :kind,
       :name
     ]
+
+  defmodule Token, do:
+    use Syncable, name: __MODULE__, model: []
 
   defmodule ToolBay,
     do: use Syncable, name: __MODULE__, model: [

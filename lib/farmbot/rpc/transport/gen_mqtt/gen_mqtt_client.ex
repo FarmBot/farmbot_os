@@ -1,4 +1,5 @@
 defmodule Farmbot.RPC.Transport.GenMqtt.Client do
+  use Syncables
   @moduledoc """
     MQTT transport for farmbot RPC Commands.
   """

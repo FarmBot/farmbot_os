@@ -23,22 +23,24 @@ defmodule Syncable do
         Creates a #{unquote(name)} Object.
         returns {:ok, %#{unquote(name)}} or {#{unquote(name)}, :malformed}
       """
-      @spec create(map) :: {:ok, t} | {unquote(name), :malformed}
+      @spec create({:ok, map} | map) :: {:ok, t} | {unquote(name), :malformed}
+      def create({:ok, map}), do: create(map)
       def create( unquote( create_json_map(model) ) ),
         do: {:ok, unquote( create_struct(name, model) )}
 
       def create(unquote( create_keyed_map(model) ) ),
         do: {:ok, unquote( create_struct(name, model) )}
 
-      def create( fail ) when is_map(fail),
-        do: {unquote(name), {:missing_keys, model -- (fail |> Map.keys)}}
+      def create( map ) when is_map(map),
+        do: {unquote(name), {:missing_keys, model -- (map |> Map.keys)}}
 
       def create(_), do: {unquote(name), :malformed}
 
       @doc """
         Same as create\1 but raises an exception if it fails.
       """
-      @spec create!(map) :: t
+      @spec create!({:ok, map} | map) :: t
+      def create!({:ok, thing}), do: create!(thing)
       def create!(thing) do
         case create(thing) do
           {:ok, success} -> success
