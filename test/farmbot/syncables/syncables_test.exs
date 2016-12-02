@@ -12,6 +12,6 @@ Enum.all?([
     defmodule mod do
       @moduledoc false
       use ExUnit.Case, async: true
-      use SyncableTestHelper, __MODULE__
+      use SyncableHelper, __MODULE__
     end
   end)

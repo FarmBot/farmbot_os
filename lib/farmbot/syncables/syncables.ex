@@ -1,23 +1,38 @@
 defmodule Syncables do
+  @objects [
+    Syncables.SyncObject,
+    Syncables.Device,
+    Syncables.Peripheral,
+    Syncables.RegimenItem,
+    Syncables.Regimen,
+    Syncables.Sequence,
+    Syncables.Token,
+    Syncables.ToolBay,
+    Syncables.ToolSlot,
+    Syncables.Tool,
+    Syncables.User ]
+
+  def objects, do: @objects
+
   defmacro __using__(_)
   do
-    quote do
-      alias Syncables.SyncObject
-      alias Syncables.Device
-      alias Syncables.Peripheral
-      alias Syncables.RegimenItem
-      alias Syncables.Regimen
-      alias Syncables.Sequence
-      alias Syncables.Token
-      alias Syncables.ToolBay
-      alias Syncables.ToolSlow
-      alias Syncables.Tool
-      alias Syncables.User
+    for object <- objects do
+      quote do
+        alias unquote(object)
+      end
     end
   end
 
-  defmodule Syncables.SyncObject do
-    use Syncables
+  defmodule SyncObject do
+    alias Syncables.Device
+    alias Syncables.Peripheral
+    alias Syncables.RegimenItem
+    alias Syncables.Regimen
+    alias Syncables.Sequence
+    alias Syncables.ToolBay
+    alias Syncables.ToolSlot
+    alias Syncables.Tool
+    alias Syncables.User
     use Syncable, name: __MODULE__, model:
     [ :device,
       :peripherals,
@@ -41,7 +56,7 @@ defmodule Syncables do
     mutation :tools,          do: create_list(Tool,        before)
     defp mutate(_, v), do: {:ok, v}
 
-    defp create_list(m,[]), do: {:ok , []}
+    defp create_list(_m,[]), do: {:ok , []}
     defp create_list(m, l), do: {:ok, [ Enum.map(l, fn(item) -> m.create(item) end) ]}
   end
 
@@ -69,13 +84,15 @@ defmodule Syncables do
       :id, :time_offset, :regimen_id, :sequence_id
     ]
 
-  defmodule Regimen,
-    do: use Syncable, name: __MODULE__, model: [
+  defmodule Regimen do
+    defstruct []
+     use Syncable, name: __MODULE__, model: [
       :id, :color, :name, :device_id,
     ]
+  end
 
-  defmodule Sequence,
-    do: use Syncable, name: __MODULE__, model: [
+  defmodule Sequence
+    do use Syncable, name: __MODULE__, model: [
       :args,
       :body,
       :color,
@@ -84,8 +101,15 @@ defmodule Syncables do
       :kind,
       :name
     ]
+    defstruct []
+
+  end
 
   defmodule Token do
+    defstruct []
+    def create(map) do
+      {:ok, map}
+    end
     use Syncable, name: __MODULE__, model: [:unencoded, :encoded]
     defmodule Unencoded do
       use Syncable, name: __MODULE__, model:

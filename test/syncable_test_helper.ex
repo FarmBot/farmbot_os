@@ -1,4 +1,4 @@
-defmodule SyncableTestHelper do
+defmodule SyncableHelper do
   defmacro __using__(module) do
     quote do
       use Syncables

@@ -67,7 +67,14 @@ defmodule Farmbot do
                       version: version, env: env}])
   do
     {:ok, _} = fs_init(env)
-    Logger.debug("Starting Firmware on Target: #{target}")
+    Logger.debug("Starting Firmware on Target: #{target}.")
+
+    Logger.debug("Starting Database.")
+    Amnesia.start
+    Farmbot.Sync.Database.create! Keyword.put([], :memory, [node])
+    Farmbot.Sync.Database.wait(15000)
+    Logger.debug("Database created!.")
+
     Supervisor.start_link(__MODULE__,
           [%{target: target, compat_version: compat_version,
              version: version, env: env}])
