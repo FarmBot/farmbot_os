@@ -9,30 +9,6 @@ defmodule Syncable do
            {:ok, %BubbleGum{flavors: ["mint", "berry"], brands:  ["BigRed"]}}
   """
   defmacro __using__(name: name, model: model) do
-    # This is an ast that evaluates essentially to:
-    # "a" => a,
-    # "b" => b
-    json_map_args =
-    Enum.map(model, fn(k) ->
-      key = inspect(k)
-       <<":", rkey :: binary>> = key
-      {rkey, {:var!, [], [{k, [], nil}]}}
-    end)
-
-    # This is an ast for building a map. it evaluates to:
-    # %{"a" => a, "b" => b}
-    json_map = {:%{}, [], json_map_args}
-
-    # Another AST body.
-    # milk: 1, eggs: 2
-    fb =
-    Enum.map(model, fn(k) ->
-      val = quote do mutate(unquote(k), unquote({k, [], nil}) ) end
-      {k, val}
-    end)
-    # This equates basically to:
-    # %Fridge{milk: 1, eggs: 2}
-    module_struct = {:%, [], [{:__aliases__, [], [name]}, {:%{}, [], fb}]}
     quote do
       import Syncable
       @moduledoc """
@@ -49,12 +25,8 @@ defmodule Syncable do
         {#{unquote name}, reason}
       """
       @spec create({:ok, map} | map) :: {:ok, t} | {unquote(name), atom}
-      def create(unquote(json_map)), do: {:ok, unquote(module_struct)}
+      generate(unquote(name), unquote(model))
       def create({:ok, t}), do: create(t)
-      def create(map) when is_map(map) do
-        missing = model -- Map.keys(map)
-        {unquote(name), {:missing_keys, missing}}
-      end
       def create(_), do: {unquote(name), :malformed}
 
       @doc """
@@ -78,8 +50,41 @@ defmodule Syncable do
 
       # This ties into that transform macro.
       @spec mutate(atom, any) :: any
-      defp mutate(_k, v), do: v
-      defoverridable [mutate: 2]
+      defp mutate(_k, v), do: {:ok, v}
+      defp validate({:ok, thing}, _key), do: thing
+      defp validate(error, key), do: throw {:bad_validate, {key, error}}
+      defoverridable [mutate: 2, validate: 2]
+    end
+  end
+
+  defmacro generate(name, model) do
+    quote bind_quoted: [name: name, model: model] do
+
+      def create(map) when is_map(map) do
+        try do
+
+
+
+          # creates a map with atom keys rather than strings
+          m = Map.new(map, fn({key, v}) ->
+            thing = String.to_atom(key)
+            value = mutate(thing, v) |> validate(key)
+            {thing, value}
+          end)
+          
+          # THIS MAP MAY HAVE EXTRA STUFF ON IT NEED TO FIND A WAY TO
+          # GET RID OF THEM BEFORE RETURNING
+          g = struct!(unquote(name), m)
+          {:ok, g}
+        rescue
+          module in FunctionClauseError ->
+            "didnt mutate #{inspect module}"
+        catch
+          error -> parse_error(error)
+        end
+      end
+      defp parse_error({unquote(name), error}), do: {unquote(name), error}
+      defp parse_error(error), do: {unquote(name), error}
     end
   end
 
@@ -100,10 +105,9 @@ defmodule Syncable do
            This probably isnt a dog anymore?
            %Dog{legs: 5}
   """
-  defmacro transform(key, block) do
+  defmacro mutation(key, block) do
     quote do
-      defp mutate(unquote(key), var!(before)), unquote block
-      defp mutate(_k, v), do: v
+      defp mutate(unquote(key), var!(before)), unquote(block)
     end
   end
 end

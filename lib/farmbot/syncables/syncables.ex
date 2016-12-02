@@ -2,6 +2,7 @@ defmodule Syncables do
   defmacro __using__(_)
   do
     quote do
+      alias Syncables.SyncObject
       alias Syncables.Device
       alias Syncables.Peripheral
       alias Syncables.RegimenItem
@@ -13,6 +14,35 @@ defmodule Syncables do
       alias Syncables.Tool
       alias Syncables.User
     end
+  end
+
+  defmodule Syncables.SyncObject do
+    use Syncables
+    use Syncable, name: __MODULE__, model:
+    [ :device,
+      :peripherals,
+      :plants,
+      :regimen_items,
+      :regimens,
+      :sequences,
+      :users,
+      :tool_bays,
+      :tool_slots,
+      :tools ]
+    mutation :device,         do: Device.create(before)
+    mutation :plants,         do: create_list(Plant,       before)
+    mutation :regimen_items,  do: create_list(RegimenItem, before)
+    mutation :regimens,       do: create_list(Regimen,     before)
+    mutation :sequences,      do: create_list(Sequence,    before)
+    mutation :users,          do: create_list(User,        before)
+    mutation :peripherals,    do: create_list(Peripheral,  before)
+    mutation :tool_bays,      do: create_list(ToolBay,     before)
+    mutation :tool_slots,     do: create_list(ToolSlot,    before)
+    mutation :tools,          do: create_list(Tool,        before)
+    defp mutate(_, v), do: {:ok, v}
+
+    defp create_list(m,[]), do: {:ok , []}
+    defp create_list(m, l), do: {:ok, [ Enum.map(l, fn(item) -> m.create(item) end) ]}
   end
 
   defmodule Device,
@@ -70,9 +100,8 @@ defmodule Syncables do
          :sub ]
     end
 
-    transform :unencoded do
-      Unencoded.create!(before)
-    end
+    mutation :unencoded, do: Unencoded.create(before)
+    defp mutate(_, v), do: {:ok, v}
   end
 
   defmodule ToolBay,

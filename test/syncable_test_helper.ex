@@ -36,6 +36,7 @@ defmodule SyncableTestHelper do
       test "Doesnt create an object missing feilds" do
         model = syncable.model
         {module_name, error} = syncable.create(%{"fail" => "its wrong!"})
+        IO.inspect error
         assert module_name == syncable
         assert error == {:missing_keys, model}
       end

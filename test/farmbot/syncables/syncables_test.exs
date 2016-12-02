@@ -1,5 +1,5 @@
 Enum.all?([
-  Syncables.DeviceTest
+  Syncables.DeviceTest,
   # Syncables.PeripheralTest,
   # Syncables.RegimenItemTest,
   # Syncables.RegimenTest,
