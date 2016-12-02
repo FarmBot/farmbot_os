@@ -2,7 +2,9 @@ defmodule Farmbot.Scheduler do
   @tick_interval 1500
   @log_tag "Scheduler"
   require Logger
-  use Syncables
+  alias Farmbot.Sync.Database.Regimen, as: Regimen
+  alias Farmbot.Sync.Database.RegimenItem, as: RegimenItem
+  alias Farmbot.Sync.Database.Sequence, as: Sequence
   @moduledoc """
     This module is the scheduler for "events."
     It manages keeping Regimens and FarmEvents (non existant yet) alive

@@ -1,7 +1,7 @@
 alias Farmbot.BotState.Monitor.State, as: BotState
 alias Farmbot.BotState.Hardware.State, as: HardwareState
+alias Farmbot.Sync.Database.Sequence, as: Sequence
 defmodule Scheduler.Sequence.VM do
-  use Syncables
   @moduledoc """
     There should only ever be one instance of this process at a time.
   """

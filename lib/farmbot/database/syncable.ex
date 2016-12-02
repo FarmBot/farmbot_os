@@ -8,9 +8,11 @@ defmodule Syncable do
       iex> BubbleGum.create!(%{"flavors" => ["mint", "berry"], "brands" => ["BigRed"]})
            {:ok, %BubbleGum{flavors: ["mint", "berry"], brands:  ["BigRed"]}}
   """
+
+  @doc false
   defmacro __using__(name: name, model: model) do
     quote do
-      import Syncable
+      # import Syncable
       @enforce_keys unquote(model)
       generate_validation(unquote(name), unquote(model))
 
@@ -19,6 +21,9 @@ defmodule Syncable do
     end
   end
 
+  @doc """
+    Generates The validate functions for validating json data.
+  """
   defmacro generate_validation(name, model) do
     quote bind_quoted: [name: name, model: model] do
 
@@ -33,28 +38,18 @@ defmodule Syncable do
         end
       end
 
-      # Makes sure the map isn't empty
-      defp validate_not_empty(map) do
-        case Enum.empty?(map) do
-          false -> :valid
-          _ -> {:error, unquote(name), :empty_map}
-        end
-      end
-
       @doc """
         Makes sure an object can be built given keys:
         #{inspect(Enum.map model, fn(key) -> Atom.to_string(key) end)}
-        * makes sure map is not empty
         * makes sure we have atleast:
         #{inspect(Enum.map model, fn(key) -> Atom.to_string(key) end)}
         * Runs any defined mutations
         * returns { :ok, %#{name}{} }
       """
       @spec validate({:ok, map} | map) :: {:ok. t}
-      def validate({:ok, map}) do: validate(map)
+      def validate({:ok, map}), do: validate(map)
       def validate(map) when is_map(map) do
-        with :valid <- validate_not_empty(map),
-             :valid <- validate_keys(Map.keys(map)),
+        with :valid <- validate_keys(Map.keys(map)),
              {:ok, struct} <- do_validate(map) do
                {:ok, struct}
              end
@@ -104,6 +99,27 @@ defmodule Syncable do
   defmacro mutation(key, block) do
     quote do
       defp mutate(unquote(key), var!(before)), unquote(block)
+    end
+  end
+
+  defmacro syncable(module, model, do_block \\ []) do
+    {:__aliases__, _, [thing]} = module
+    IO.puts "Defining syncable: #{inspect thing}, with keys: #{inspect model}"
+    quote do
+      deftable unquote(module)
+      deftable unquote(module), unquote(model), [type: :ordered_set] do
+        use Syncable, name: __MODULE__, model: unquote(model)
+        @moduledoc """
+          A #{unquote(module)} from the API.
+          \nRequires: #{inspect unquote(model)}
+        """
+
+        # Allow user to define other stuff inside this module
+        unquote do_block
+        # Throw this at the bottom so if the user definves a mutation
+        # They wont need to account for all keys.
+        defp mutate(_k, v), do: {:ok, v}
+      end
     end
   end
 end

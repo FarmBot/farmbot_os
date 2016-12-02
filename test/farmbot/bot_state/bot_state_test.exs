@@ -1,6 +1,6 @@
 defmodule Farmbot.BotStateTest do
   use ExUnit.Case, async: false
-  use Syncables
+   
   setup_all do
     unencoded = %{
       "bot" => "device_4000",

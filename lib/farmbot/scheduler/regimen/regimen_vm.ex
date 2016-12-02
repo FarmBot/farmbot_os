@@ -1,5 +1,6 @@
 defmodule Scheduler.Regimen.VM  do
-  use Syncables
+  alias Farmbot.Sync.Database.Regimen, as: Regimen
+  alias Farmbot.Sync.Database.RegimenItem, as: RegimenItem
   defmodule State do
     @moduledoc false
     @type t :: %__MODULE__{

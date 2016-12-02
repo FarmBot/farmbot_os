@@ -1,6 +1,6 @@
 alias Farmbot.RPC.Transport.GenMqtt.Client, as: Client
 defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
-  use Syncables
+   
   @moduledoc """
     Makes sure MQTT stays alive and receives the Auth Token.
   """

@@ -1,5 +1,4 @@
 defmodule Farmbot.BotState.Authorization do
-  use Syncables
   defmodule State do
     @type t :: %__MODULE__{
       token: Token.t | nil,

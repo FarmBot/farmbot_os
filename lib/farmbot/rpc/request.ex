@@ -1,5 +1,5 @@
 defmodule Farmbot.RPC.Requests do
-  use Syncables
+   
   @moduledoc """
     These are all callbacks from the Handler.
     Mostly forwards to the Command Module.

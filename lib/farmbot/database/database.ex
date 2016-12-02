@@ -13,25 +13,22 @@ defmodule Farmbot.Sync do
   """
   use Amnesia
   import Syncable
-  import Farmbot.Sync.Macros
 
   defdatabase Database do
     @moduledoc """
       The Database that holds all the objects found on the Farmbot Web Api
     """
-    generate Device, [:id, :planting_area_id, :name, :webcam_url] do
-      mutation :id do
-        IO.inspect before
-        {:ok, before}
-      end
-    end
 
-    generate Ass, [:size, :device] do
-      mutation :device do
-        Device.validate(before)
-      end
-    end
-
-
+    # Syncables
+    syncable Device, [:id, :planting_area_id, :name, :webcam_url]
+    syncable Peripheral,
+      [:id, :device_id, :pin, :mode, :label, :created_at, :updated_at]
+    syncable RegimenItem, [ :id, :time_offset, :regimen_id, :sequence_id]
+    syncable Regimen, [:id, :color, :name, :device_id]
+    syncable Sequence, [:args, :body, :color, :device_id, :id, :kind, :name]
+    syncable ToolBay, [:id, :device_id, :name]
+    syncable ToolSlot, [:id, :tool_bay_id, :name, :x, :y, :z]
+    syncable Tool, [:id, :slot_id, :name]
+    syncable User, [ :id, :device_id, :name, :email, :created_at, :updated_at]
   end
 end

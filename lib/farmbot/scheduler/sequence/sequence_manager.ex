@@ -1,10 +1,11 @@
 defmodule Scheduler.Sequence.Manager do
+  alias Farmbot.Sync.Database.Sequence, as: Sequence
   @moduledoc """
     This Module is a state machine that tracks a sequence thru its lifecycle.
   """
   use GenServer
   require Logger
-  use Syncables
+
 
   def init(%Sequence{} = sequence) do
     Process.flag(:trap_exit, true)

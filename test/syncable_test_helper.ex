@@ -1,7 +1,7 @@
 defmodule SyncableHelper do
   defmacro __using__(module) do
     quote do
-      use Syncables
+       
       # IM SO SORRY ABOUT THIS
       defp syncable do
         m = unquote(module)
