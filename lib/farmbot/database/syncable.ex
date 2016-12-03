@@ -56,6 +56,12 @@ defmodule Syncable do
       end
 
       def validate(_), do: {:error, unquote(name), :bad_map}
+      def validate!(map) do
+        case validate(map) do
+          {:ok, o} -> o
+          fail -> raise("Failed to validate! #{inspect fail}")
+        end
+      end
 
       defp do_validate(map) when is_map(map) do
         # creates a map with atom keys rather than strings
@@ -122,4 +128,20 @@ defmodule Syncable do
       end
     end
   end
+
+  @doc """
+    Builds a function for getting a module by id
+  """
+  defmacro get_by_id(name) do
+    module_name = Module.concat(Farmbot.Sync.Database, Macro.camelize(name))
+    function_name = String.to_atom("get_" <> name)
+    quote do
+      def unquote(function_name)(id) do
+        Amnesia.transaction do
+          unquote(module_name).read(id)
+        end
+      end
+    end
+  end
+
 end

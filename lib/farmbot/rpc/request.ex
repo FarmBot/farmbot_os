@@ -1,5 +1,5 @@
 defmodule Farmbot.RPC.Requests do
-   
+
   @moduledoc """
     These are all callbacks from the Handler.
     Mostly forwards to the Command Module.
@@ -190,7 +190,7 @@ defmodule Farmbot.RPC.Requests do
   def handle_request("exec_sequence", [sequence]) do
     Map.drop(sequence, ["dirty"])
     |> Map.merge(%{"device_id" => -1, "id" => Map.get(sequence, "id") || -1})
-    |> Sequence.create!
+    |> Farmbot.Sync.Database.Sequence.validate!
     |> Farmbot.Scheduler.add_sequence
   end
 

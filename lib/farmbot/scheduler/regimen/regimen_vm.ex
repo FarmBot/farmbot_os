@@ -1,6 +1,8 @@
 defmodule Scheduler.Regimen.VM  do
   alias Farmbot.Sync.Database.Regimen, as: Regimen
   alias Farmbot.Sync.Database.RegimenItem, as: RegimenItem
+  use Amnesia
+  use RegimenItem
   defmodule State do
     @moduledoc false
     @type t :: %__MODULE__{
@@ -155,9 +157,14 @@ defmodule Scheduler.Regimen.VM  do
     GenServer.call(pid, :get_info)
   end
 
+  @spec get_regimen_item_for_regimen(Regimen.t) :: RegimenItem.t
   def get_regimen_item_for_regimen(%Regimen{} = regimen) do
-    Farmbot.Sync.get_regimen_items
-    |> Enum.filter(fn(item) -> item.regimen_id == regimen.id end)
+      Amnesia.transaction do
+        selection = RegimenItem.where regimen_id == regimen.id
+        IO.inspect selection
+        selection |> Amnesia.Selection.values
+        # selection
+      end
   end
 
   def terminate(:normal, state) do

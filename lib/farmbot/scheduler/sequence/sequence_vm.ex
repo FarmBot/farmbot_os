@@ -105,10 +105,13 @@ defmodule Scheduler.Sequence.VM do
     [x,y,z] = state.status.location
     thing2 = Map.merge(%{x: x, y: y, z: z }, pins)
 
-    # gets a couple usefull things out of Farmbot.Sync
-    thing3 = Farmbot.Sync.get_users
-    |> List.first
-    |> Map.drop([:__struct__]) # This probably isnt correct
+    #TODO BUG THIS IS BROKE
+
+    # # gets a couple usefull things out of Farmbot.Sync
+    # thing3 = Farmbot.Sync.get_users
+    # |> List.first
+    # |> Map.drop([:__struct__]) # This probably isnt correct
+    thing3 = %{}
 
     # Combine all the things.
     all_things = Map.merge(thing1, thing2)
