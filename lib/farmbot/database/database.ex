@@ -23,16 +23,7 @@ defmodule Farmbot.Sync do
     syncable Device, [:id, :planting_area_id, :name, :webcam_url]
     syncable Peripheral,
       [:id, :device_id, :pin, :mode, :label, :created_at, :updated_at]
-    syncable Regimen, [:id, :color, :name, :device_id] do
-      @doc """
-        Gets regimen items
-      """
-      def get_regimen(regimen_id) when is_integer(regimen_id) do
-        r = Amnesia.transaction do
-          Regimen.read(regimen_id)
-        end
-      end
-    end
+    syncable Regimen, [:id, :color, :name, :device_id]
     syncable RegimenItem, [ :id, :time_offset, :regimen_id, :sequence_id]
     syncable Sequence, [:args, :body, :color, :device_id, :id, :kind, :name]
     syncable ToolBay, [:id, :device_id, :name]
