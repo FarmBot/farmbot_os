@@ -161,9 +161,7 @@ defmodule Scheduler.Regimen.VM  do
   def get_regimen_item_for_regimen(%Regimen{} = regimen) do
       Amnesia.transaction do
         selection = RegimenItem.where regimen_id == regimen.id
-        IO.inspect selection
         selection |> Amnesia.Selection.values
-        # selection
       end
   end
 

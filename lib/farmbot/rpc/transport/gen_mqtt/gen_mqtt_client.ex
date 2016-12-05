@@ -1,5 +1,5 @@
 defmodule Farmbot.RPC.Transport.GenMqtt.Client do
-   
+
   @moduledoc """
     MQTT transport for farmbot RPC Commands.
   """
