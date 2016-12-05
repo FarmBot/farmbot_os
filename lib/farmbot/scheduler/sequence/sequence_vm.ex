@@ -1,7 +1,7 @@
 alias Farmbot.BotState.Monitor.State, as: BotState
 alias Farmbot.BotState.Hardware.State, as: HardwareState
 alias Farmbot.Sync.Database.Sequence, as: Sequence
-defmodule Scheduler.Sequence.VM do
+defmodule Farmbot.Scheduler.Sequence.VM do
   @moduledoc """
     There should only ever be one instance of this process at a time.
   """
@@ -50,9 +50,10 @@ defmodule Scheduler.Sequence.VM do
   end
 
   def init(%Sequence{} = sequence) do
+    Logger.debug("Sequencer Init.")
     Farmbot.BotState.Monitor.add_handler(BotStateTracker, {__MODULE__, nil})
     tv = Map.get(sequence.args, "tag_version") || 0
-    module = Module.concat(Scheduler.Sequence, "InstructionSet_#{tv}")
+    module = Module.concat(Farmbot.Scheduler.Sequence, "InstructionSet_#{tv}")
     {:ok, instruction_set} = module.start_link(self())
     tick(self(), :done)
     status = get_status
@@ -164,7 +165,7 @@ defmodule Scheduler.Sequence.VM do
   do
     Logger.debug("sequence done")
     Farmbot.Logger.log("Sequence Complete", [], [sequence.name])
-    send(Scheduler.Sequence.Manager, {:done, self(), sequence})
+    send(Farmbot.Scheduler.Sequence.Manager, {:done, self(), sequence})
     Logger.debug("Stopping VM")
     {:noreply,
       %{status: status,
@@ -200,13 +201,13 @@ defmodule Scheduler.Sequence.VM do
 
   def handle_info({:error, :e_stop}, state) do
     Farmbot.Logger.log("Bot in E STOP MODE", [:error], [state.sequence.name])
-    send(Scheduler.Sequence.Manager, {:done, self(), state.sequence})
+    send(Farmbot.Scheduler.Sequence.Manager, {:done, self(), state.sequence})
     {:noreply, state}
   end
 
   def handle_info({:error, error}, state) do
     Farmbot.Logger.log("ERROR: #{inspect(error)}", [:error], [state.sequence.name])
-    send(Scheduler.Sequence.Manager, {:done, self(), state.sequence})
+    send(Farmbot.Scheduler.Sequence.Manager, {:done, self(), state.sequence})
     {:noreply, state}
   end
 

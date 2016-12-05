@@ -1,4 +1,4 @@
-defmodule Sequence.InstructionSet_0 do
+defmodule Farmbot.Scheduler.Sequence.InstructionSet_0 do
   @moduledoc """
     Modules under this namespace will be similar to how the API's database
     migrations work. If ever there is a breaking change, in the frontend
@@ -8,6 +8,7 @@ defmodule Sequence.InstructionSet_0 do
   require Logger
 
   def start_link(parent) do
+    Logger.debug("InstructionSet_0 init.")
     GenServer.start_link(__MODULE__, parent)
   end
 
@@ -59,9 +60,9 @@ defmodule Sequence.InstructionSet_0 do
                    body: [],
                    args: %{sub_sequence_id: id}},
   parent) do
-    GenServer.call(Scheduler.Sequence.Manager, {:pause, parent})
+    GenServer.call(Farmbot.Scheduler.Sequence.Manager, {:pause, parent})
     sequence = Farmbot.Sync.get_sequence(id)
-    GenServer.call(Scheduler.Sequence.Manager, {:add, sequence})
+    GenServer.call(Farmbot.Scheduler.Sequence.Manager, {:add, sequence})
     no_dispatch parent
   end
 
@@ -150,7 +151,7 @@ defmodule Sequence.InstructionSet_0 do
   defp do_if(l, op, r), do: Logger.error("bad if statement: [#{l} #{op} #{r}]")
 
   @spec dispatch(atom, pid) :: {:noreply, pid}
-  defp dispatch(status, parent), do: Scheduler.Sequence.VM.tick(parent, status)
+  defp dispatch(status, parent), do: Farmbot.Scheduler.Sequence.VM.tick(parent, status)
   @spec no_dispatch(pid) :: {:noreply, pid}
   defp no_dispatch(parent), do: {:noreply, parent}
 end

@@ -1,4 +1,4 @@
-defmodule Scheduler.Sequence.Manager do
+defmodule Farmbot.Scheduler.Sequence.Manager do
   alias Farmbot.Sync.Database.Sequence, as: Sequence
   @moduledoc """
     This Module is a state machine that tracks a sequence thru its lifecycle.
@@ -8,8 +8,9 @@ defmodule Scheduler.Sequence.Manager do
 
 
   def init(%Sequence{} = sequence) do
+    Logger.debug("Sequence Manager Init.")
     Process.flag(:trap_exit, true)
-    {:ok, pid} = Scheduler.Sequence.VM.start_link(sequence)
+    {:ok, pid} = Farmbot.Scheduler.Sequence.VM.start_link(sequence)
     {:ok, %{current: pid, global_vars: %{}, log: []}}
   end
 
@@ -25,7 +26,7 @@ defmodule Scheduler.Sequence.Manager do
   def handle_call({:add, %Sequence{} = seq}, _from,
     %{current: nil, global_vars: globals, log: []})
   do
-    {:ok, pid} = Scheduler.Sequence.VM.start_link(seq)
+    {:ok, pid} = Farmbot.Scheduler.Sequence.VM.start_link(seq)
     {:reply, "starting sequence", %{current: pid, global_vars: globals, log: []}}
   end
 
@@ -33,7 +34,7 @@ defmodule Scheduler.Sequence.Manager do
   def handle_call({:add, %Sequence{} = seq}, _from,
     %{current: nil, global_vars: globals, log: log})
   do
-    {:ok, pid} = Scheduler.Sequence.VM.start_link(seq)
+    {:ok, pid} = Farmbot.Scheduler.Sequence.VM.start_link(seq)
     {:reply, "starting sequence", %{current: pid, global_vars: globals, log: log}}
   end
 
@@ -80,7 +81,7 @@ defmodule Scheduler.Sequence.Manager do
     cond do
       is_nil(next) -> {:noreply, %{current: nil, global_vars: globals, log: []}}
       is_map(next) ->
-          {:ok, next_seq} = Scheduler.Sequence.VM.start_link(next)
+          {:ok, next_seq} = Farmbot.Scheduler.Sequence.VM.start_link(next)
           {:noreply, %{current: next_seq, global_vars: globals, log: log -- [next]}}
       is_pid(next) ->
         GenServer.cast(next, :resume)

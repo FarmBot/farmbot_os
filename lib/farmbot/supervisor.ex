@@ -19,10 +19,7 @@ defmodule Farmbot.Supervisor do
            version: version, env: env}],
       restart: :permanent),
 
-      # # Handle communications betwen bot and api
-      # worker(Farmbot.Sync, [[]], restart: :permanent ),
-
-      # Just handles Farmbot scheduler stuff.
+      # Handles Farmbot scheduler stuff.
       worker(Farmbot.Scheduler, [[]], restart: :permanent ),
 
       # Handles Communication between the bot and frontend

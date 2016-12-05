@@ -113,7 +113,7 @@ defmodule Farmbot.Scheduler do
         save_and_update(new_state)
         new_state
       _ ->
-        Logger.debug("starting new #{__MODULE__} state.")
+        Logger.debug("Starting new #{__MODULE__} state.")
         default_state
     end
   end
@@ -270,11 +270,15 @@ defmodule Farmbot.Scheduler do
                                 regimens: regimens})
   do
     sequence = List.first(log)
-    {:ok, pid} = Scheduler.Sequence.Manager.start_link(sequence)
+    {:ok, pid} = Farmbot.Scheduler.Sequence.Manager.start_link(sequence)
     tick
     {:noreply, %State{sequence_log: log -- [sequence],
                       current_sequence: {pid, sequence},
                       regimens: regimens}}
+  end
+
+  def handle_info(:tick, state) do
+    Logger.error("unhandled tick!: #{inspect state}")
   end
 
   @doc """
