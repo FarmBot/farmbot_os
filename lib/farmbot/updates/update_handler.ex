@@ -17,12 +17,12 @@ defmodule Farmbot.Updates.Handler do
   def check_and_download_updates(something) do
     case check_updates(something) do
       {:error, reason} ->
-        Farmbot.Logger.log("Error getting #{something} update!: #{inspect reason}",
+        # Log something here("Error getting #{something} update!: #{inspect reason}",
                             [:error_toast], [@log_tag])
       {:update, url} ->
         install_update(something, url)
       :no_updates ->
-        Farmbot.Logger.log("#{something} is up to date!",
+        # Log something here("#{something} is up to date!",
                             [:success_toast], [@log_tag])
     end
   end
@@ -30,25 +30,25 @@ defmodule Farmbot.Updates.Handler do
   @spec install_update(:os | :fw, String.t) :: :ok | {:error, atom}
   defp install_update(:os, url) do
     # This is where the actual download and update happens.
-    Farmbot.Logger.log("Downloading OS update!", [:warning_toast], [@log_tag])
+    # Log something here("Downloading OS update!", [:warning_toast], [@log_tag])
     File.rm("/tmp/update.fw")
     Downloader.run(url, "/tmp/update.fw") |> Nerves.Firmware.upgrade_and_finalize
-    Farmbot.Logger.log("Going down for OS update!", [:warning_toast], [@log_tag])
+    # Log something here("Going down for OS update!", [:warning_toast], [@log_tag])
     Process.sleep(5000)
     Nerves.Firmware.reboot
   end
 
   defp install_update(:fw, url) do
-    Farmbot.Logger.log("Downloading FW Update", [:warning_toast], [@log_tag])
+    # Log something here("Downloading FW Update", [:warning_toast], [@log_tag])
     File.rm("/tmp/update.hex")
     file = Downloader.run(url, "/tmp/update.hex")
-    Farmbot.Logger.log("Installing FW Update", [:warning_toast], [@log_tag])
+    # Log something here("Installing FW Update", [:warning_toast], [@log_tag])
     GenServer.cast(Farmbot.Serial.Handler, {:update_fw, file, self})
     receive do
       :done ->
-        Farmbot.Logger.log("Firmware updated!", [:success_toast], [@log_tag])
+        # Log something here("Firmware updated!", [:success_toast], [@log_tag])
       {:error, reason} ->
-        Farmbot.Logger.log("Error updating firmware! #{inspect reason}",
+        # Log something here("Error updating firmware! #{inspect reason}",
         [:error_toast], [@log_tag])
     end
   end

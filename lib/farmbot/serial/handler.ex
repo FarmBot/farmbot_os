@@ -121,7 +121,7 @@ defmodule Farmbot.Serial.Handler do
   end
 
   def handle_info({:nerves_uart, _tty, {:error, :eio}}, state) do
-    Farmbot.Logger.log("Serial disconnected!", [:error_toast, :error_ticker], ["SERIAL"])
+    # Log something here("Serial disconnected!", [:error_toast, :error_ticker], ["SERIAL"])
     {:noreply, state}
   end
 

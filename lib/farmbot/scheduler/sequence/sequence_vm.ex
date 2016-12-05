@@ -125,7 +125,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
   end
 
   def handle_call(thing, _from, state) do
-    Farmbot.Logger.log("#{inspect thing} is probably not implemented",
+    # Log something here("#{inspect thing} is probably not implemented",
       [:warning_toast], [state.sequence.name])
     {:reply, :ok, state}
   end
@@ -164,7 +164,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
          })
   do
     Logger.debug("sequence done")
-    Farmbot.Logger.log("Sequence Complete", [], [sequence.name])
+    # Log something here("Sequence Complete", [], [sequence.name])
     send(Farmbot.Scheduler.Sequence.Manager, {:done, self(), sequence})
     Logger.debug("Stopping VM")
     {:noreply,
@@ -188,7 +188,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
     ast_node = List.first(more_steps)
     kind = Map.get(ast_node, "kind")
     Logger.debug("doing: #{kind}")
-    Farmbot.Logger.log("Doing step: #{kind}", [], [sequence.name])
+    # Log something here("Doing step: #{kind}", [], [sequence.name])
     GenServer.cast(instruction_set, ast_node)
     {:noreply, %{
             status: status,
@@ -200,13 +200,13 @@ defmodule Farmbot.Scheduler.Sequence.VM do
   end
 
   def handle_info({:error, :e_stop}, state) do
-    Farmbot.Logger.log("Bot in E STOP MODE", [:error], [state.sequence.name])
+    # Log something here("Bot in E STOP MODE", [:error], [state.sequence.name])
     send(Farmbot.Scheduler.Sequence.Manager, {:done, self(), state.sequence})
     {:noreply, state}
   end
 
   def handle_info({:error, error}, state) do
-    Farmbot.Logger.log("ERROR: #{inspect(error)}", [:error], [state.sequence.name])
+    # Log something here("ERROR: #{inspect(error)}", [:error], [state.sequence.name])
     send(Farmbot.Scheduler.Sequence.Manager, {:done, self(), state.sequence})
     {:noreply, state}
   end
@@ -220,7 +220,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
   # i suck
   def tick(vm, :timeout) do
     seq_name = GenServer.call(vm, :name)
-    Farmbot.Logger.log("Command timed out!", [:warning_toast], [seq_name])
+    # Log something here("Command timed out!", [:warning_toast], [seq_name])
     tick(vm, :done)
   end
   def tick(vm, {:error, reason}), do: tick(vm, reason)
@@ -238,7 +238,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
 
   def terminate(reason, state) do
     Logger.debug("VM Died: #{inspect reason}")
-    Farmbot.Logger.log("Sequence Finished with errors! #{inspect reason}", [:error_toast], ["Sequencer"])
+    # Log something here("Sequence Finished with errors! #{inspect reason}", [:error_toast], ["Sequencer"])
     GenServer.stop(state.instruction_set, :normal)
     Farmbot.BotState.Monitor.remove_handler(__MODULE__)
   end

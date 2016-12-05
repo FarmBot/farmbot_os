@@ -127,9 +127,9 @@ defmodule Farmbot.RPC.Requests do
   end
 
   def handle_request("reboot", _ ) do
-    Farmbot.Logger.log("Bot Going down for reboot in 5 seconds", [], ["BotControl"])
+    # Log something here("Bot Going down for reboot in 5 seconds", [], ["BotControl"])
     spawn fn ->
-      Farmbot.Logger.log("Rebooting!", [:ticker, :warning_toast], ["BotControl"])
+      # Log something here("Rebooting!", [:ticker, :warning_toast], ["BotControl"])
       Process.sleep(5000)
       Farmbot.reboot
     end
@@ -137,10 +137,10 @@ defmodule Farmbot.RPC.Requests do
   end
 
   def handle_request("power_off", _ ) do
-    Farmbot.Logger.log("Bot Going down in 5 seconds. Pls remeber me.",
+    # Log something here("Bot Going down in 5 seconds. Pls remeber me.",
       [:ticker, :warning_toast], ["BotControl"])
     spawn fn ->
-      Farmbot.Logger.log("Powering Down!",
+      # Log something here("Powering Down!",
         [:ticker, :warning_toast], ["BotControl"])
       Process.sleep(5000)
       Nerves.Firmware.poweroff
@@ -155,10 +155,10 @@ defmodule Farmbot.RPC.Requests do
     end)
     do
       {_, []} ->
-        Farmbot.Logger.log("MCU params updated.", [:success_toast], ["RPCHANDLER"])
+        # Log something here("MCU params updated.", [:success_toast], ["RPCHANDLER"])
         :ok
       {_, failed} ->
-        Farmbot.Logger.log("MCU params failed: #{inspect failed}", [:error_toast], ["RPCHANDLER"])
+        # Log something here("MCU params failed: #{inspect failed}", [:error_toast], ["RPCHANDLER"])
         :ok
     end
   end
@@ -168,10 +168,10 @@ defmodule Farmbot.RPC.Requests do
       Farmbot.BotState.update_config(config, value)
     end) do
       {_, []} ->
-        Farmbot.Logger.log("Bot Configs updated.", [:success_toast], ["RPCHANDLER"])
+        # Log something here("Bot Configs updated.", [:success_toast], ["RPCHANDLER"])
         :ok
       {_, failed} ->
-        Farmbot.Logger.log("Bot Configs failed: #{inspect failed}", [:error_toast], ["RPCHANDLER"])
+        # Log something here("Bot Configs failed: #{inspect failed}", [:error_toast], ["RPCHANDLER"])
         :ok
     end
   end

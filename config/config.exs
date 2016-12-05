@@ -13,3 +13,6 @@ config :json_rpc,
 
 config :uart,
   baud: 115200
+
+config :logger,
+  backends: [:console, Farmbot.Logger]

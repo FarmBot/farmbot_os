@@ -6,24 +6,24 @@ defmodule Farmbot.LoggerTest do
   end
 
   test "logs some stuff" do
-    Farmbot.Logger.log("hey world, sup?", [], [])
+    # Log something here("hey world, sup?", [], [])
     msgs = Farmbot.Logger.get_all
     assert Enum.count(msgs) > 0
   end
 
   test "gets exactly 1 message", context do
-    Farmbot.Logger.log("hello", [], [])
-    Farmbot.Logger.log("wonderful", [], [])
-    Farmbot.Logger.log("world", [], [])
+    # Log something here("hello", [], [])
+    # Log something here("wonderful", [], [])
+    # Log something here("world", [], [])
     pid = context[:pid]
     msgs = GenServer.call(pid, {:get, 1})
     assert Enum.count(msgs) == 1
   end
 
   test "clears the logs" do
-    Farmbot.Logger.log("goodbye", [], [])
-    Farmbot.Logger.log("cruel", [], [])
-    Farmbot.Logger.log("world", [], [])
+    # Log something here("goodbye", [], [])
+    # Log something here("cruel", [], [])
+    # Log something here("world", [], [])
     msgs = Farmbot.Logger.get_all
     assert Enum.count(msgs) >= 3
     Farmbot.Logger.clear

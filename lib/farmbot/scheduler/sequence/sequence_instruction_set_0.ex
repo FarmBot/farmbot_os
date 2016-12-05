@@ -32,7 +32,7 @@ defmodule Farmbot.Scheduler.Sequence.InstructionSet_0 do
     sequence_name = GenServer.call(parent, :name)
     vars = GenServer.call(parent, :get_all_vars, :infinity)
     rendered = Mustache.render(message, vars)
-    Farmbot.Logger.log(rendered, channels(body), [sequence_name])
+    # Log something here(rendered, channels(body), [sequence_name])
     dispatch :done, parent
   end
 
