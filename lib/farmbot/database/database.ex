@@ -1,3 +1,4 @@
+alias Farmbot.Sync.SyncObject
 defmodule Farmbot.Sync do
   @moduledoc """
     There is a quite a bit of macros going on here.
@@ -51,8 +52,38 @@ defmodule Farmbot.Sync do
          {:ok, resp}        <- fetch_sync_object(server, token),
          {:ok, json}        <- parse_http(resp),
          {:ok, parsed}      <- Poison.decode(json),
-         do: parsed
+         {:ok, validated}   <- SyncObject.validate(parsed),
+         {:ok, ^validated}  <- enter_into_db(validated),
+         do: {:ok, validated}
   end
+
+  def enter_into_db(%SyncObject{} = so) do
+    blah = Map.from_struct(so)
+    f = Enum.all?(blah, fn({_key, val}) ->
+      parse_and_write(val)
+    end)
+    case f do
+      true -> {:ok, so}
+      _ -> {:error, :i_dont_know}
+    end
+  end
+
+  def enter_into_db(_), do: {:error, :bad_sync_object}
+
+  def parse_and_write(thing) when is_map(thing) do
+    module = thing.__struct__
+    Amnesia.transaction do
+      module.write(thing)
+    end
+  end
+
+  def parse_and_write(list_of_things) when is_list(list_of_things) do
+    Enum.all?(list_of_things, fn(thing) ->
+      parse_and_write(thing)
+    end)
+  end
+
+
   @doc """
     Gets a token from Farmbot.Auth
   """
