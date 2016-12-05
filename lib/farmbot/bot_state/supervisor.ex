@@ -1,7 +1,7 @@
 defmodule Farmbot.BotState.Supervisor do
   use Supervisor
   require Logger
-  def init(initial_config) 
+  def init(initial_config)
   do
     children = [
       worker(GenEvent, [[name: BotStateEventManager]], [id: BotStateEventManager]),
@@ -17,6 +17,8 @@ defmodule Farmbot.BotState.Supervisor do
 
   def start_link(args) do
     Logger.debug("Starting Farmbot State Tracker")
-    Supervisor.start_link(__MODULE__, args)
+    sup = Supervisor.start_link(__MODULE__, args)
+    Logger.add_backend(Farmbot.Logger)
+    sup
   end
 end

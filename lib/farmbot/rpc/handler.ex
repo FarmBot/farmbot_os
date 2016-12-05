@@ -46,45 +46,6 @@ defmodule Farmbot.RPC.Handler do
       result: nil})
   end
 
-  @doc """
-    Builds a log message to send to the fronend.
-  """
-  @spec log_msg(String.t, [channel,...], [String.t, ...]) :: binary
-  def log_msg(message, channels, tags)
-  when is_list(channels)
-       and is_list(tags)
-       and is_bitstring(message)
-  do
-    status =
-      %{ status:
-          %{location: Farmbot.BotState.get_current_pos}, # Shhhh
-            time: :os.system_time(:seconds),
-            message: message,
-            channels: channels,
-            tags: tags }
-    %Notification{
-      id: nil,
-      method: "log_message",
-      params: [status]} |> Poison.encode!
-  end
-
-
-  @doc """
-    Shortcut for logging a message to the frontend.
-    =  Channel can be  =
-    |   :ticker        |
-    |   :error_ticker  |
-    |   :error_toast   |
-    |   :success_toast |
-    |   :warning_toast |
-  """
-  @type channel :: :ticker | :error_ticker | :error_toast | :success_toast | :warning_toast
-  @spec log(String.t, [channel,...], [String.t]) :: :ok | {:error, atom}
-  def log(message, channels, tags)
-  when is_bitstring(message)
-   and is_list(channels)
-   and is_list(tags), do: log_msg(message, channels, tags) |> @transport.emit
-
   # when a request message comes in, we send an ack that we got the message
   @spec handle_incoming(Request.t | Response.t | Notification.t) :: any
   def handle_incoming(%Request{} = rpc) do

@@ -51,6 +51,7 @@ defmodule Farmbot.Sync do
     Downloads the sync object form the API.
   """
   def sync do
+    # TODO MAKE THIS MORE GENERIC SO I CAN USE IT FOR GENERIC API REQUESTS
     with {:ok, json_token}  <- fetch_token,
          {:ok, token}       <- Token.create(json_token),
          {:ok, server}      <- fetch_server,
