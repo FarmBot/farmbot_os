@@ -16,14 +16,14 @@ defmodule Farmbot.Updates.Handler do
   :: :ok | {:error, atom} | :no_updates
   def check_and_download_updates(something) do
     case check_updates(something) do
-      {:error, reason} ->
+      {:error, reason} -> nil
         # Log something here("Error getting #{something} update!: #{inspect reason}",
-                            [:error_toast], [@log_tag])
+                            # [:error_toast], [@log_tag])
       {:update, url} ->
         install_update(something, url)
-      :no_updates ->
+      :no_updates -> nil
         # Log something here("#{something} is up to date!",
-                            [:success_toast], [@log_tag])
+                            # [:success_toast], [@log_tag])
     end
   end
 
@@ -45,11 +45,11 @@ defmodule Farmbot.Updates.Handler do
     # Log something here("Installing FW Update", [:warning_toast], [@log_tag])
     GenServer.cast(Farmbot.Serial.Handler, {:update_fw, file, self})
     receive do
-      :done ->
+      :done -> nil
         # Log something here("Firmware updated!", [:success_toast], [@log_tag])
-      {:error, reason} ->
+      {:error, reason} -> nil
         # Log something here("Error updating firmware! #{inspect reason}",
-        [:error_toast], [@log_tag])
+        # [:error_toast], [@log_tag])
     end
   end
 

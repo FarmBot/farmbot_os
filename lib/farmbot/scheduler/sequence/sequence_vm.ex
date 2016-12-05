@@ -126,7 +126,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
 
   def handle_call(thing, _from, state) do
     # Log something here("#{inspect thing} is probably not implemented",
-      [:warning_toast], [state.sequence.name])
+      # [:warning_toast], [state.sequence.name])
     {:reply, :ok, state}
   end
 

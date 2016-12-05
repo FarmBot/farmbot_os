@@ -138,10 +138,10 @@ defmodule Farmbot.RPC.Requests do
 
   def handle_request("power_off", _ ) do
     # Log something here("Bot Going down in 5 seconds. Pls remeber me.",
-      [:ticker, :warning_toast], ["BotControl"])
-    spawn fn ->
+      # [:ticker, :warning_toast], ["BotControl"])
+    spawn fn -> nil
       # Log something here("Powering Down!",
-        [:ticker, :warning_toast], ["BotControl"])
+        # [:ticker, :warning_toast], ["BotControl"])
       Process.sleep(5000)
       Nerves.Firmware.poweroff
     end
