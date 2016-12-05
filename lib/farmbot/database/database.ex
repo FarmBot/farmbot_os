@@ -14,8 +14,10 @@ defmodule Farmbot.Sync do
   """
   use Amnesia
   import Syncable
+  alias Farmbot.Sync.Helpers
 
   defdatabase Database do
+    use Amnesia
     @moduledoc """
       The Database that holds all the objects found on the Farmbot Web Api
     """
@@ -32,15 +34,18 @@ defmodule Farmbot.Sync do
     syncable Tool, [:id, :slot_id, :name]
     syncable User, [ :id, :device_id, :name, :email, :created_at, :updated_at]
   end
-  get_by_id("device")
-  get_by_id("peripheral")
-  get_by_id("regimen_item")
-  get_by_id("regimen")
-  get_by_id("sequence")
-  get_by_id("tool_bay")
-  get_by_id("tool_slot")
-  get_by_id("tool")
-  get_by_id("user")
+
+  # These have to exist because Amnesia.where gets confused when you
+  # Screw with context.
+  def get_device(id), do: Helpers.get_device(id)
+  def get_peripheral(id), do: Helpers.get_peripheral(id)
+  def get_regimen_item(id), do: Helpers.get_regimen_item(id)
+  def get_regimen(id), do: Helpers.get_regimen(id)
+  def get_sequence(id), do: Helpers.get_sequence(id)
+  def get_tool_bay(id), do: Helpers.get_tool_bay(id)
+  def get_tool_slot(id), do: Helpers.get_tool_slot(id)
+  def get_tool(id), do: Helpers.get_tool(id)
+  def get_user(id), do: Helpers.get_user(id)
 
   @doc """
     Downloads the sync object form the API.
@@ -58,17 +63,24 @@ defmodule Farmbot.Sync do
   end
 
   def enter_into_db(%SyncObject{} = so) do
+    # We arent aloud to enumerate over a struct, so we turn it into a map here
     blah = Map.from_struct(so)
-    f = Enum.all?(blah, fn({_key, val}) ->
-      parse_and_write(val)
-    end)
-    case f do
-      true -> {:ok, so}
-      _ -> {:error, :i_dont_know}
-    end
+    # Then enumerate over it.
+    struct =
+      Enum.map(blah, fn({key, val}) ->
+        {key, parse_and_write(val)}
+      end)
+      # then turn it back into a map
+      |> Map.new
+      # then turn it back into a struct
+      |> to_struct(SyncObject)
+    {:ok, struct}
   end
 
   def enter_into_db(_), do: {:error, :bad_sync_object}
+
+  # make struct function pipable.
+  defp to_struct(map, module), do: struct(module, map)
 
   def parse_and_write(thing) when is_map(thing) do
     module = thing.__struct__
@@ -78,11 +90,10 @@ defmodule Farmbot.Sync do
   end
 
   def parse_and_write(list_of_things) when is_list(list_of_things) do
-    Enum.all?(list_of_things, fn(thing) ->
+    Enum.map(list_of_things, fn(thing) ->
       parse_and_write(thing)
     end)
   end
-
 
   @doc """
     Gets a token from Farmbot.Auth

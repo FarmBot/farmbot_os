@@ -52,7 +52,7 @@ defmodule Scheduler.Sequence.VM do
   def init(%Sequence{} = sequence) do
     Farmbot.BotState.Monitor.add_handler(BotStateTracker, {__MODULE__, nil})
     tv = Map.get(sequence.args, "tag_version") || 0
-    module = Module.concat(Sequence, "InstructionSet_#{tv}")
+    module = Module.concat(Scheduler.Sequence, "InstructionSet_#{tv}")
     {:ok, instruction_set} = module.start_link(self())
     tick(self(), :done)
     status = get_status

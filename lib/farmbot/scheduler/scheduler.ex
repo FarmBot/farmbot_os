@@ -343,8 +343,7 @@ defmodule Farmbot.Scheduler do
   # if a sequence is running make sure to stop it.
   # stop all regimens so they are not orphaned.
   def terminate(reason, state) do
-    Logger.error("Farmbot Scheduler died. This is not good.")
-    Logger.debug("Reason: #{inspect reason}")
+    Logger.error("Farmbot Scheduler died. This is not good. #{inspect reason}")
     # stop a sequence if one is running
     case state.current_sequence do
       {pid, _} -> GenServer.stop(pid, :e_stop)

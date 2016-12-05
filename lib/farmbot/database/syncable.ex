@@ -1,4 +1,5 @@
 defmodule Syncable do
+  use Amnesia
   @moduledoc """
     Creates a syncable object from Farmbot's rest api.
     Example:
@@ -113,7 +114,7 @@ defmodule Syncable do
     IO.puts "Defining syncable: #{inspect thing}, with keys: #{inspect model}"
     quote do
       deftable unquote(module)
-      deftable unquote(module), unquote(model), [type: :ordered_set] do
+      deftable unquote(module), unquote(model), [type: :ordered_set, index_by: :id] do
         use Syncable, name: __MODULE__, model: unquote(model)
         @moduledoc """
           A #{unquote(module)} from the API.
@@ -136,9 +137,10 @@ defmodule Syncable do
     module_name = Module.concat(Farmbot.Sync.Database, Macro.camelize(name))
     function_name = String.to_atom("get_" <> name)
     quote do
-      def unquote(function_name)(id) do
+      def unquote(function_name)(find_id) do
         Amnesia.transaction do
-          unquote(module_name).read(id)
+          m = unquote(module_name)
+          m.read(find_id)
         end
       end
     end
