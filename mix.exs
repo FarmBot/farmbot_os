@@ -20,6 +20,7 @@ defmodule Farmbot.Mixfile do
 
   def project do
     [app: :farmbot,
+     test_coverage: [tool: ExCoveralls],
      version: @version,
      target: target(Mix.env),
      archives: [nerves_bootstrap: "~> 0.1.4"],
@@ -91,9 +92,10 @@ defmodule Farmbot.Mixfile do
       {:mustache, "~> 0.0.2"},
       {:timex, "~> 3.0"},
       {:socket, github: "meh/elixir-socket"},
+      {:amnesia, github: "meh/amnesia"},
       {:farmbot_auth, github: "Farmbot/farmbot_auth"},
       # {:farmbot_auth, path: "../farmbot_auth"},
-       {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
+      {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
       # {:farmbot_configurator, path: "../farmbot_configurator"}
     ]
   end
@@ -110,7 +112,8 @@ defmodule Farmbot.Mixfile do
     deps ++ deps(:dev) ++
     [ {:plug, "~> 1.0"},
       {:cors_plug, "~> 1.1"},
-      {:cowboy, "~> 1.0.0"} ]
+      {:cowboy, "~> 1.0.0"},
+      {:excoveralls, "~> 0.5"} ]
   end
 
   def deps(:dev) do

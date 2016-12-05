@@ -8,10 +8,7 @@ defmodule Ast do
     kind: Strint.t
   }
   @enforce_keys [:args, :body, :kind]
-  defstruct [:args, :body, :kind]
-  # %{"args" => %{"message" => "hello world"},
-  #  "body" =>
-  # [%{"args" => %{"channel_name" => "toast_error"}, "kind" => "channel"}], "kind" => "send_message"}
+  defstruct @enforce_keys
 
   @spec parse(map) :: t
   def parse(%{"kind" => kind, "args" => args, "body" => body}) do

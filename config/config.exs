@@ -2,7 +2,7 @@ use Mix.Config
 import_config "#{Mix.env}.exs"
 
 config :farmbot_auth,
-  callbacks: [Farmbot.Sync, Farmbot.RPC.Transport.GenMqtt.Handler]
+  callbacks: [Farmbot.RPC.Transport.GenMqtt.Handler]
 
 config :farmbot_configurator,
   callback: Farmbot.BotState.Monitor
@@ -13,3 +13,6 @@ config :json_rpc,
 
 config :uart,
   baud: 115200
+
+config :logger,
+  backends: [:console, Farmbot.Logger]

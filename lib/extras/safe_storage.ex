@@ -36,14 +36,6 @@ defmodule SafeStorage do
     {:noreply, Map.put(state, module, binary)}
   end
 
-  # For your viewing pleasure
-  def handle_call(:state, _from, state) do
-    bloop = Enum.map(state, fn({module, binary}) ->
-      {module, :erlang.binary_to_term(binary)}
-    end)
-    {:reply, bloop, state}
-  end
-
   def handle_call({:read, module, is_term}, _from, state) do
     reply =
     case Map.get(state, module, nil) do
@@ -102,13 +94,6 @@ defmodule SafeStorage do
       System.cmd(sync_cmd,[])
       |> print_cmd(sync_cmd)
     end
-  end
-
-  @doc """
-    Delete me
-  """
-  def get_state do
-    GenServer.call(__MODULE__, :state)
   end
 
   # checks if the new state is different than the old state.

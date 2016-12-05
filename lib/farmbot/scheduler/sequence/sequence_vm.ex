@@ -1,6 +1,7 @@
 alias Farmbot.BotState.Monitor.State, as: BotState
 alias Farmbot.BotState.Hardware.State, as: HardwareState
-defmodule Sequence.VM do
+alias Farmbot.Sync.Database.Sequence, as: Sequence
+defmodule Farmbot.Scheduler.Sequence.VM do
   @moduledoc """
     There should only ever be one instance of this process at a time.
   """
@@ -49,9 +50,10 @@ defmodule Sequence.VM do
   end
 
   def init(%Sequence{} = sequence) do
+    Logger.debug("Sequencer Init.")
     Farmbot.BotState.Monitor.add_handler(BotStateTracker, {__MODULE__, nil})
     tv = Map.get(sequence.args, "tag_version") || 0
-    module = Module.concat(Sequence, "InstructionSet_#{tv}")
+    module = Module.concat(Farmbot.Scheduler.Sequence, "InstructionSet_#{tv}")
     {:ok, instruction_set} = module.start_link(self())
     tick(self(), :done)
     status = get_status
@@ -104,10 +106,13 @@ defmodule Sequence.VM do
     [x,y,z] = state.status.location
     thing2 = Map.merge(%{x: x, y: y, z: z }, pins)
 
-    # gets a couple usefull things out of Farmbot.Sync
-    thing3 = Farmbot.Sync.get_users
-    |> List.first
-    |> Map.drop([:__struct__]) # This probably isnt correct
+    #TODO BUG THIS IS BROKE
+
+    # # gets a couple usefull things out of Farmbot.Sync
+    # thing3 = Farmbot.Sync.get_users
+    # |> List.first
+    # |> Map.drop([:__struct__]) # This probably isnt correct
+    thing3 = %{}
 
     # Combine all the things.
     all_things = Map.merge(thing1, thing2)
@@ -120,7 +125,7 @@ defmodule Sequence.VM do
   end
 
   def handle_call(thing, _from, state) do
-    Farmbot.Logger.log("#{inspect thing} is probably not implemented",
+    # Log something here("#{inspect thing} is probably not implemented",
       [:warning_toast], [state.sequence.name])
     {:reply, :ok, state}
   end
@@ -159,8 +164,8 @@ defmodule Sequence.VM do
          })
   do
     Logger.debug("sequence done")
-    Farmbot.Logger.log("Sequence Complete", [], [sequence.name])
-    send(Sequence.Manager, {:done, self(), sequence})
+    # Log something here("Sequence Complete", [], [sequence.name])
+    send(Farmbot.Scheduler.Sequence.Manager, {:done, self(), sequence})
     Logger.debug("Stopping VM")
     {:noreply,
       %{status: status,
@@ -183,7 +188,7 @@ defmodule Sequence.VM do
     ast_node = List.first(more_steps)
     kind = Map.get(ast_node, "kind")
     Logger.debug("doing: #{kind}")
-    Farmbot.Logger.log("Doing step: #{kind}", [], [sequence.name])
+    # Log something here("Doing step: #{kind}", [], [sequence.name])
     GenServer.cast(instruction_set, ast_node)
     {:noreply, %{
             status: status,
@@ -195,14 +200,14 @@ defmodule Sequence.VM do
   end
 
   def handle_info({:error, :e_stop}, state) do
-    Farmbot.Logger.log("Bot in E STOP MODE", [:error], [state.sequence.name])
-    send(Sequence.Manager, {:done, self(), state.sequence})
+    # Log something here("Bot in E STOP MODE", [:error], [state.sequence.name])
+    send(Farmbot.Scheduler.Sequence.Manager, {:done, self(), state.sequence})
     {:noreply, state}
   end
 
   def handle_info({:error, error}, state) do
-    Farmbot.Logger.log("ERROR: #{inspect(error)}", [:error], [state.sequence.name])
-    send(Sequence.Manager, {:done, self(), state.sequence})
+    # Log something here("ERROR: #{inspect(error)}", [:error], [state.sequence.name])
+    send(Farmbot.Scheduler.Sequence.Manager, {:done, self(), state.sequence})
     {:noreply, state}
   end
 
@@ -215,7 +220,7 @@ defmodule Sequence.VM do
   # i suck
   def tick(vm, :timeout) do
     seq_name = GenServer.call(vm, :name)
-    Farmbot.Logger.log("Command timed out!", [:warning_toast], [seq_name])
+    # Log something here("Command timed out!", [:warning_toast], [seq_name])
     tick(vm, :done)
   end
   def tick(vm, {:error, reason}), do: tick(vm, reason)
@@ -233,7 +238,7 @@ defmodule Sequence.VM do
 
   def terminate(reason, state) do
     Logger.debug("VM Died: #{inspect reason}")
-    Farmbot.Logger.log("Sequence Finished with errors! #{inspect reason}", [:error_toast], ["Sequencer"])
+    # Log something here("Sequence Finished with errors! #{inspect reason}", [:error_toast], ["Sequencer"])
     GenServer.stop(state.instruction_set, :normal)
     Farmbot.BotState.Monitor.remove_handler(__MODULE__)
   end

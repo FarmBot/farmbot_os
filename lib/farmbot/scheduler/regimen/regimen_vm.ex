@@ -1,5 +1,8 @@
-defmodule Regimen.VM  do
-
+defmodule Scheduler.Regimen.VM  do
+  alias Farmbot.Sync.Database.Regimen, as: Regimen
+  alias Farmbot.Sync.Database.RegimenItem, as: RegimenItem
+  use Amnesia
+  use RegimenItem
   defmodule State do
     @moduledoc false
     @type t :: %__MODULE__{
@@ -124,7 +127,7 @@ defmodule Regimen.VM  do
             sequence = Farmbot.Sync.get_sequence(item.sequence_id)
             msg = "Time to run Sequence: " <> sequence.name
             Logger.debug(msg)
-            Farmbot.Logger.log(msg, [:ticker, :success_toast], [regimen.name])
+            # Log something here(msg, [:ticker, :success_toast], [regimen.name])
             Farmbot.Scheduler.add_sequence(sequence)
             Logger.debug("added sequence")
           false ->
@@ -133,7 +136,7 @@ defmodule Regimen.VM  do
         should_run
     end)
     if(items_to_do == []) do
-      Farmbot.Logger.log("nothing to run this cycle", [], [regimen.name])
+      # Log something here("nothing to run this cycle", [], [regimen.name])
     end
     timer = tick(self())
     finished = ran_items ++ items_to_do
@@ -154,15 +157,18 @@ defmodule Regimen.VM  do
     GenServer.call(pid, :get_info)
   end
 
+  @spec get_regimen_item_for_regimen(Regimen.t) :: RegimenItem.t
   def get_regimen_item_for_regimen(%Regimen{} = regimen) do
-    Farmbot.Sync.get_regimen_items
-    |> Enum.filter(fn(item) -> item.regimen_id == regimen.id end)
+      Amnesia.transaction do
+        selection = RegimenItem.where regimen_id == regimen.id
+        selection |> Amnesia.Selection.values
+      end
   end
 
   def terminate(:normal, state) do
     msg = "Regimen: #{state.regimen.name} completed without errors!"
     Logger.debug(msg)
-    Farmbot.Logger.log(msg, [:ticker, :success_toast], ["RegimenManager"])
+    # Log something here(msg, [:ticker, :success_toast], ["RegimenManager"])
     # Farmbot.RPC.Handler.send_status
   end
 
@@ -175,6 +181,6 @@ defmodule Regimen.VM  do
   def terminate(reason, state) do
     msg = "Regimen: #{state.regimen.name} completed with errors! #{inspect reason}"
     Logger.debug(msg)
-    Farmbot.Logger.log(msg, [:error_toast], ["RegimenManager"])
+    # Log something here(msg, [:error_toast], ["RegimenManager"])
   end
 end

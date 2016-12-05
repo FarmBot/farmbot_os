@@ -1,5 +1,6 @@
 alias Farmbot.RPC.Transport.GenMqtt.Client, as: Client
 defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
+   
   @moduledoc """
     Makes sure MQTT stays alive and receives the Auth Token.
   """
@@ -9,7 +10,7 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
   def init(_args) do
     Process.flag(:trap_exit, true)
     case Farmbot.Auth.get_token |> Token.create do
-      %Token{} = token ->
+      {:ok, %Token{} = token} ->
         {:ok, {token, start_client(token)}}
       _ ->
         {:ok, {nil, nil}}
@@ -45,13 +46,13 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
 
   # We got a token and are not connected to mqtt yet.
   def handle_info({:authorization, maybe_token}, {_, nil}) do
-    token = Token.create(maybe_token)
+    token = Token.create!(maybe_token)
     {:noreply, {token, start_client(token)}}
   end
 
   def handle_info({:authorization, maybe_token}, {_, pid})
   when is_pid(pid) do
-    token = Token.create(maybe_token)
+    token = Token.create!(maybe_token)
     stop_client(pid)
     {:noreply, {token, start_client(token)}}
   end

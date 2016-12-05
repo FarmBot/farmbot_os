@@ -19,14 +19,12 @@ defmodule Farmbot.Supervisor do
            version: version, env: env}],
       restart: :permanent),
 
-      # Handle communications betwen bot and api
-      worker(Farmbot.Sync, [[]], restart: :permanent ),
-
-      # Just handles Farmbot scheduler stuff.
+      # Handles Farmbot scheduler stuff.
       worker(Farmbot.Scheduler, [[]], restart: :permanent ),
 
       # Handles Communication between the bot and frontend
-      supervisor(RPC.Supervisor, [[]], restart: :permanent )
+      supervisor(RPC.Supervisor, [[]], restart: :permanent ),
+      worker(Farmbot.RPC.Handler, [[]], restart: :permanent )
     ]
     opts = [strategy: :one_for_one, name: Farmbot.Supervisor]
     supervise(children, opts)

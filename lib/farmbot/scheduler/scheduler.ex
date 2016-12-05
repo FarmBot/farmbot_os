@@ -2,6 +2,9 @@ defmodule Farmbot.Scheduler do
   @tick_interval 1500
   @log_tag "Scheduler"
   require Logger
+  alias Farmbot.Sync.Database.Regimen, as: Regimen
+  alias Farmbot.Sync.Database.RegimenItem, as: RegimenItem
+  alias Farmbot.Sync.Database.Sequence, as: Sequence
   @moduledoc """
     This module is the scheduler for "events."
     It manages keeping Regimens and FarmEvents (non existant yet) alive
@@ -103,14 +106,14 @@ defmodule Farmbot.Scheduler do
         Logger.debug("loading previous #{__MODULE__} state: #{inspect last_state}")
         new_state = Map.update!(last_state, :regimens, fn(old_regimens) ->
           Enum.map(old_regimens, fn({_,regimen, finished_items, time, _}) ->
-            {:ok, pid} = Regimen.VM.start_link(regimen, finished_items, time)
+            {:ok, pid} = Scheduler.Regimen.VM.start_link(regimen, finished_items, time)
             {pid,regimen, finished_items, time, :normal}
           end)
         end)
         save_and_update(new_state)
         new_state
       _ ->
-        Logger.debug("starting new #{__MODULE__} state.")
+        Logger.debug("Starting new #{__MODULE__} state.")
         default_state
     end
   end
@@ -172,7 +175,7 @@ defmodule Farmbot.Scheduler do
 
         # shift the current time into midnight of today
         start_time = Timex.shift(now, hours: -now.hour, minutes: -now.minute, seconds: -now.second)
-        {:ok, pid} = Regimen.VM.start_link(regimen, [], start_time)
+        {:ok, pid} = Scheduler.Regimen.VM.start_link(regimen, [], start_time)
         reg_tup = {pid, regimen, [], start_time, :normal}
         new_state = %State{state | regimens: current ++ [reg_tup]}
         save_and_update(new_state)
@@ -267,11 +270,15 @@ defmodule Farmbot.Scheduler do
                                 regimens: regimens})
   do
     sequence = List.first(log)
-    {:ok, pid} = Sequence.Manager.start_link(sequence)
+    {:ok, pid} = Farmbot.Scheduler.Sequence.Manager.start_link(sequence)
     tick
     {:noreply, %State{sequence_log: log -- [sequence],
                       current_sequence: {pid, sequence},
                       regimens: regimens}}
+  end
+
+  def handle_info(:tick, state) do
+    Logger.error("unhandled tick!: #{inspect state}")
   end
 
   @doc """
@@ -340,8 +347,7 @@ defmodule Farmbot.Scheduler do
   # if a sequence is running make sure to stop it.
   # stop all regimens so they are not orphaned.
   def terminate(reason, state) do
-    Logger.error("Farmbot Scheduler died. This is not good.")
-    Logger.debug("Reason: #{inspect reason}")
+    Logger.error("Farmbot Scheduler died. This is not good. #{inspect reason}")
     # stop a sequence if one is running
     case state.current_sequence do
       {pid, _} -> GenServer.stop(pid, :e_stop)

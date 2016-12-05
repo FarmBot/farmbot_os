@@ -6,9 +6,9 @@ defmodule RPC.Supervisor do
   def init(_args) do
     children = [
       worker(RPC.MessageManager, []),
-      worker(RPC.MessageHandler, [], id: 1, name: RPC.MessageHandler ),
+      worker(RPC.MessageHandler, [@handler], name: RPC.MessageHandler),
       worker(@transport, [[]], restart: :permanent),
-      worker(@handler, [[]], restart: :permanent)
+      # worker(@handler, [[]], restart: :permanent)
     ]
     supervise(children, strategy: :one_for_one, name: __MODULE__)
   end

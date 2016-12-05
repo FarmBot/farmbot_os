@@ -69,7 +69,8 @@ defmodule Token do
                   "mqtt" => mqtt,
                   "sub" => sub}})
   do
-    %Token{encoded: encoded,
+    f =
+      %Token{encoded: encoded,
            unencoded: %Unencoded{
              bot: bot,
              exp: exp,
@@ -81,6 +82,13 @@ defmodule Token do
              fw_update_server: fw_update_server,
              os_update_server: os_update_server
              }}
+     {:ok, f}
   end
   def create(_), do: :not_valid
+  def create!(thing) do
+    case create(thing) do
+      {:ok, win} -> win
+      fail -> raise "failed to create token: #{inspect fail}"
+    end
+  end
 end

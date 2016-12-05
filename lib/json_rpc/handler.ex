@@ -2,7 +2,6 @@ alias Experimental.{GenStage}
 defmodule RPC.MessageHandler do
   use GenStage
   import RPC.Parser
-  @handler Application.get_env(:json_rpc, :handler)
 
   @doc """
     Requires configuration of a handler.
@@ -11,16 +10,16 @@ defmodule RPC.MessageHandler do
     and document it. l o l.
   """
 
-  def start_link() do
-    GenStage.start_link(__MODULE__, :ok)
+  def start_link(handler) do
+    GenStage.start_link(__MODULE__, handler)
   end
 
-  def init(_args) do
-    {:consumer, :ok, subscribe_to: [RPC.MessageManager]}
+  def init(handler) do
+    {:consumer, handler, subscribe_to: [RPC.MessageManager]}
   end
 
-  def handle_events(events, _from, state) do
-    for event <- events, do: parse(event) |> @handler.handle_incoming
-    {:noreply, [], state}
+  def handle_events(events, _from, handler) do
+    for event <- events, do: parse(event) |> handler.handle_incoming
+    {:noreply, [], handler}
   end
 end

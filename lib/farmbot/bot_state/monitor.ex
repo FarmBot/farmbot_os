@@ -126,12 +126,6 @@ defmodule Farmbot.BotState.Monitor do
 
   def handle_cast(:force_dispatch, {mgr, state}), do: dispatch(mgr, state)
 
-  def handle_cast(new_things, {mgr, state}) do
-    Logger.warn("(#{__MODULE__}) WHAT IS THIS??? #{inspect new_things} ")
-
-    dispatch(mgr, state)
-  end
-
   # If a handler dies, we try to restart it
   def handle_info({:gen_event_EXIT, handler, _reason}, {mgr, state}) do
     Logger.warn("HANDLER DIED: #{inspect handler} Goint to try to restart")

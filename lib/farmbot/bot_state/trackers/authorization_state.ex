@@ -38,7 +38,7 @@ defmodule Farmbot.BotState.Authorization do
 
   @spec maybe_get_token(State.t, {:ok, Token.t} | nil) :: State.t
   defp maybe_get_token(%State{} = state, {:ok, token}) do
-    %State{state | token: Token.create(token)}
+    %State{state | token: Token.create!(token)}
   end
 
   defp maybe_get_token(%State{} = state, nil) do
@@ -53,6 +53,10 @@ defmodule Farmbot.BotState.Authorization do
   # Gets the server
   def handle_call(:get_server, _from, %State{} = state) do
     dispatch state.server, state
+  end
+
+  def handle_call(:get_token, _from, %State{} = state) do
+    dispatch state.token, state
   end
 
   def handle_call(event, _from, %State{} = state) do
@@ -75,6 +79,13 @@ defmodule Farmbot.BotState.Authorization do
   def handle_cast(event, %State{} = state) do
     Logger.warn("[#{__MODULE__}] UNHANDLED CAST!: #{inspect event}", [__MODULE__])
     dispatch state
+  end
+
+  # this is pretty much only for testing.
+  def handle_info({:authorization, %Token{} = token}, %State{} = state) do
+    new_state =
+      %State{state | token: token, server: token.unencoded.iss}
+    dispatch new_state
   end
 
   defp dispatch(reply, %State{} = state) do
@@ -102,7 +113,7 @@ defmodule Farmbot.BotState.Authorization do
   defp try_get_token(server, secret) do
     case Farmbot.Auth.get_token_from_server(secret, server) do
       {:ok, token} ->
-        new_state = %State{server: server, secret: secret, token: Token.create(token), interim: nil}
+        new_state = %State{server: server, secret: secret, token: Token.create!(token), interim: nil}
         save(new_state)
         new_state
       {:error, :bad_password} ->
