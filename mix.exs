@@ -54,7 +54,8 @@ defmodule Farmbot.Mixfile do
      :timex,
      :farmbot_auth,
      :farmbot_configurator,
-     :vmq_commons]
+     :vmq_commons,
+     :amnesia]
   end
 
   # on device

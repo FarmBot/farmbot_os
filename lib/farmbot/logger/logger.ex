@@ -55,11 +55,10 @@ defmodule Farmbot.Logger do
   def handle_call(_, state), do: {:ok, :unhandled, state}
 
   def dump do
-    rpc_logs =
-      GenEvent.call(Logger, Farmbot.Logger, :dump)
-      |> Enum.map(fn(log) -> build_rpc(log))
-
-
+    GenEvent.call(Logger, Farmbot.Logger, :dump)
+    # |> Enum.map(fn(log) -> build_rpc(log) end)
+    |> build_rpc_dump
+    |> @rpc_transport.emit
   end
 
   # IF we are already posting messages to the api, no need to check the count.
