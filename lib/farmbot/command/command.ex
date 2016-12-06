@@ -1,6 +1,5 @@
 defmodule Command do
   require Logger
-  @log_tag "BotControl"
   @type command_output :: :done | :timeout | :error
   @moduledoc """
     BotCommands.
@@ -30,6 +29,8 @@ defmodule Command do
     # Log somethingwarn("E Stopping", type: :toast)
     Farmbot.Serial.Handler.e_stop
     Farmbot.Scheduler.e_stop_lock
+    Logger.error ">> is emergency stopped!",
+      channels: [:toast]
     :ok
   end
 
@@ -55,12 +56,13 @@ defmodule Command do
     end)
     do
       {_, []} ->
-        # Log somethingdebug("Bot Back up and running!")
+        Logger.debug ">> is back up and running!",
+          type: :success, channels: [:toast]
         Farmbot.BotState.remove_lock("e_stop")
         Farmbot.Scheduler.e_stop_unlock
         :ok
       {_, failed} ->
-        # Log somethingerror("Param setting failed! #{inspect failed}")
+        Logger.error ">> encountered errors resuming from emergency stop mode! #{inspect failed}"
         {:error, :prams}
     end
   end
@@ -74,8 +76,7 @@ defmodule Command do
   """
   @spec home_all(number | nil) :: command_output
   def home_all(speed \\ nil) do
-    msg = "HOME ALL"
-    # Log somethingdebug(msg)
+    Logger.debug(">> is going home.")
     Command.move_absolute(0, 0, 0, speed || Farmbot.BotState.get_config(:steps_per_mm))
   end
 
@@ -84,8 +85,7 @@ defmodule Command do
   """
   @spec home_x() :: command_output
   def home_x() do
-    msg = "HOME X"
-    # Log somethingdebug(msg)
+    Logger.debug ">> is homing X"
     Farmbot.Serial.Gcode.Handler.block_send("F11")
   end
 
@@ -94,8 +94,7 @@ defmodule Command do
   """
   @spec home_y() :: command_output
   def home_y() do
-    msg = "HOME Y"
-    # Log somethingdebug(msg)
+    Logger.debug ">> is homing Y"
     Farmbot.Serial.Gcode.Handler.block_send("F12")
   end
 
@@ -104,8 +103,7 @@ defmodule Command do
   """
   @spec home_z() :: command_output
   def home_z() do
-    msg = "HOME Z"
-    # Log somethingdebug(msg)
+    Logger.debug ">> is homing Z"
     Farmbot.Serial.Gcode.Handler.block_send("F13")
   end
 
@@ -137,7 +135,7 @@ defmodule Command do
     Farmbot.BotState.set_pin_mode(pin, mode)
     Farmbot.BotState.set_pin_value(pin, value)
     Farmbot.Serial.Gcode.Handler.block_send("F41 P#{pin} V#{value} M#{mode}")
-    |> logmsg("Pin Write")
+    |> logmsg("pin write")
   end
 
   @doc """
@@ -146,11 +144,10 @@ defmodule Command do
   @spec move_absolute(number, number, number, number | nil) :: command_output
   def move_absolute(x ,y ,z ,s \\ nil)
   def move_absolute(x, y, z, s) do
-    msg = "Moving to X#{x} Y#{y} Z#{z}"
-    # Log somethingdebug(msg)
+    Logger.debug ">> is moving to X#{x} Y#{y} Z#{z}."
     Farmbot.Serial.Gcode.Handler.block_send(
     "G00 X#{x} Y#{y} Z#{z} S#{s || Farmbot.BotState.get_config(:steps_per_mm)}")
-    |> logmsg("Movement")
+    |> logmsg("movement")
   end
 
   @doc """
@@ -268,17 +265,18 @@ defmodule Command do
   end
 
   def update_param(nil, _value) do
-    {:error, "Unknown param"}
+    {:error, "unknown param"}
   end
 
   @spec logmsg(command_output, String.t) :: command_output
   defp logmsg(:done, command) when is_bitstring(command) do
-    # Log somethingdebug "#{command} Complete"
+    Logger.debug( ">> completed #{command}." )
     :done
   end
 
   defp logmsg(other, command) when is_bitstring(command) do
-    # Log somethingerror("#{command} Failed")
+    Logger.error ">> encountered an error executing #{command}: #{inspect other}",
+      channels: [:toast]
     other
   end
 end

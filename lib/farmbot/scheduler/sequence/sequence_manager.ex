@@ -95,17 +95,15 @@ defmodule Farmbot.Scheduler.Sequence.Manager do
 
   def handle_info({:EXIT, pid, reason}, state)
   when pid == state do
-    msg = "Sequence died of unnatural causes: #{inspect reason}"
-    # Log somethingdebug(msg)
-    # Log something here(msg, [:error_toast], [__MODULE__])
+    Logger.error ">> could not complete sequence: #{inspect reason}, #{inspect state}"
     handle_info({:done, pid, %{}}, state)
   end
 
   def terminate(:normal, _state) do
-    # Log somethingdebug("Sequence Manager shutting down")
+    Logger.debug ">> is shutting down the sequencer."
   end
 
   def terminate(reason, _state) do
-    # Log somethingdebug("Sequence Manager died unnaturally: #{inspect reason}")
+    Logger.error ">> encountered an error in the sequencer: #{inspect reason}"
   end
 end

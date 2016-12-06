@@ -1,8 +1,14 @@
 defmodule Scheduler.Regimen.VM  do
+  @moduledoc """
+    A state machine that tracks a regimen thru its lifecycle.
+  """
   alias Farmbot.Sync.Database.Regimen, as: Regimen
   alias Farmbot.Sync.Database.RegimenItem, as: RegimenItem
   use Amnesia
   use RegimenItem
+  require Logger
+  @checkup_time 15000 #TODO: change this to 60 seconds
+
   defmodule State do
     @moduledoc false
     @type t :: %__MODULE__{
@@ -23,8 +29,6 @@ defmodule Scheduler.Regimen.VM  do
       regimen: nil]
   end
 
-  @checkup_time 15000 #TODO: change this to 60 seconds
-  require Logger
 
   @spec start_link(Regimen.t,list(RegimenItem.t), DateTime.t) :: {:ok, pid} | {:error, {:already_started, pid}}
   def start_link(regimen, finished_items, time) do
@@ -37,13 +41,9 @@ defmodule Scheduler.Regimen.VM  do
     first = List.first(items -- finished_items)
     first_time = Timex.shift(time, milliseconds: first.time_offset)
 
-    # Remove this one day
-    # Log somethingwarn("""
-    # \n
-    # \t\t the first item will execute on:
-    # \t\t #{first_time.month}-#{first_time.day}
-    # \t\t at: #{first_time.hour}:#{first_time.minute}
-    # """)
+    Logger.debug "First item will execute on #{first_time.month}-#{first_time.day} at: #{first_time.hour}:#{first_time.minute}",
+      channel: [:toast]
+
 
     initial_state = %State{
       flag: :normal,
@@ -125,8 +125,8 @@ defmodule Scheduler.Regimen.VM  do
         case ( should_run ) do
           true ->
             sequence = Farmbot.Sync.get_sequence(item.sequence_id)
-            msg = "Time to run Sequence: " <> sequence.name
-            # Log somethingdebug(msg, type: :toast)
+            msg = ">> is going to run sequence: " <> sequence.name
+            Logger.debug msg, channel: [:toast]
             Farmbot.Scheduler.add_sequence(sequence)
           false ->
             :ok
@@ -134,7 +134,7 @@ defmodule Scheduler.Regimen.VM  do
         should_run
     end)
     if(items_to_do == []) do
-      # Log something here("nothing to run this cycle", [], [regimen.name])
+      Logger.debug ">> has nothing to run this cycle on: [#{regimen.name}]"
     end
     timer = tick(self())
     finished = ran_items ++ items_to_do
@@ -164,18 +164,17 @@ defmodule Scheduler.Regimen.VM  do
   end
 
   def terminate(:normal, state) do
-    msg = "Regimen: #{state.regimen.name} completed without errors!"
-    # Log somethingdebug(msg, type: :toast)
+    Logger.debug ">> has completed regimen: #{state.regimen.name} without errors!",
+    channel: [:toast], type: :success
   end
 
   # this gets called if the scheduler crashes.
   # it is to stop orphaning of regimens
   def terminate(:e_stop, _state) do
-    # Log somethingdebug("cleaning up regimen")
+    Logger.debug ">> is cleaning up regimen"
   end
 
   def terminate(reason, state) do
-    msg = "Regimen: #{state.regimen.name} completed with errors! #{inspect reason}"
-    # Log somethingerror(msg)
+    Logger.error ">> encountered errors completing a regimen! #{inspect reason} #{inspect state}"
   end
 end

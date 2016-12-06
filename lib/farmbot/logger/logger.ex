@@ -13,6 +13,7 @@ defmodule Farmbot.Logger do
     {:ok, state}
   end
 
+  # Tehe
   def handle_event({l, f, {Logger, ">>" <> message, ts, meta}}, s) do
     device_name = Farmbot.Sync.device_name
     handle_event({l, f, {Logger, "#{device_name}"<> message, ts, meta}}, s)
@@ -59,12 +60,15 @@ defmodule Farmbot.Logger do
   # Catch any stray calls.
   def handle_call(_, state), do: {:ok, :unhandled, state}
 
-  def dump do
-    GenEvent.call(Logger, Farmbot.Logger, :dump)
-    # |> Enum.map(fn(log) -> build_rpc(log) end)
-    |> build_rpc_dump
-    |> @rpc_transport.emit
-  end
+  @doc """
+    Gets the current logs from the log buffer.
+  """
+  def get_logs, do: GenEvent.call(Logger, Farmbot.Logger, :dump)
+
+  @doc """
+    Dumps the current log buffer to the front end.
+  """
+  def dump, do: get_logs |> build_rpc_dump |> @rpc_transport.emit
 
   # IF we are already posting messages to the api, no need to check the count.
   defp dispatch({messages, true}), do: {:ok, {messages, true}}
@@ -133,18 +137,19 @@ defmodule Farmbot.Logger do
   defp parse_type(level, []), do: level
   defp parse_type(_level, [type: type]), do: type
 
+  # can't jsonify tuples.
   defp parse_channels([channels: channels]), do: channels
   defp parse_channels(_), do: []
 
+  # Couuld probably do this inline but wheres the fun in that. its a functional
+  # language isn't it?
+  # Takes Loggers time stamp and converts it into a unix timestamp.
   defp parse_created_at({{year, month, day}, {hour, minute, second, _}}) do
-    case Farmbot.BotState.get_config(:timezone) do
-      nil -> nil
-      tz ->
-        {:ok,
-          Timex.to_datetime({{year, month, day}, {hour, minute, second}}, tz)
-          |> DateTime.to_unix(:milliseconds) }
-    end
+    dt = Timex.to_datetime({{year, month, day}, {hour, minute, second}})
+    unix = dt |> Timex.to_unix
+    {:ok, unix}
   end
+  defp parse_created_at({_,_}), do: {:ok, :os.system_time}
 
   @spec build_log(String.t, number, rpc_log_type, [channels], [integer])
   :: log_message

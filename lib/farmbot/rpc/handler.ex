@@ -37,8 +37,6 @@ defmodule Farmbot.RPC.Handler do
   # JSON RPC RESPONSE ERROR
   @spec ack_msg(String.t, {String.t, String.t}) :: binary
   def ack_msg(id, {name, message}) do
-    # Log somethingerror("RPC ERROR")
-    # Log somethingdebug("#{inspect {name, message}}")
     Poison.encode!(
     %{id: id,
       error: %{name: name,
@@ -61,13 +59,13 @@ defmodule Farmbot.RPC.Handler do
 
   # The bot itself doesn't make requests so it shouldn't ever get a response.
   def handle_incoming(%Response{} = rpc) do
-    # Log somethingwarn("Farmbot doesn't know what to do with this message:
+    Logger.warn(">> doesn't know what to do with this message:
                   #{inspect rpc}")
   end
 
   # The frontend doesn't send notifications so the bot shouldn't get a notification.
   def handle_incoming(%Notification{} = rpc) do
-    # Log somethingwarn("Farmbot doesn't know what to do with this message:
+    Logger.warn(">> doesn't know what to do with this message:
                   #{inspect rpc}")
   end
 

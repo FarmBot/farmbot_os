@@ -1,5 +1,11 @@
 defmodule Farmbot.BotState.Authorization do
+  use GenServer
+  require Logger
+  @moduledoc """
+    Tracks authorization state.
+  """
   defmodule State do
+    @moduledoc false
     @type t :: %__MODULE__{
       token: Token.t | nil,
       secret: nil | binary,
@@ -23,8 +29,6 @@ defmodule Farmbot.BotState.Authorization do
     end
   end
 
-  use GenServer
-  require Logger
   def init(_args) do
     {:ok, SafeStorage.read(__MODULE__)
           |> load
@@ -60,7 +64,7 @@ defmodule Farmbot.BotState.Authorization do
   end
 
   def handle_call(event, _from, %State{} = state) do
-    # Log somethingwarn("[#{__MODULE__}] UNHANDLED CALL!: #{inspect event}", [__MODULE__])
+    Logger.error ">> got an unhandled call in Auth tracker: #{inspect event}"
     dispatch :unhandled, state
   end
 
@@ -77,7 +81,7 @@ defmodule Farmbot.BotState.Authorization do
   end
 
   def handle_cast(event, %State{} = state) do
-    # Log somethingwarn("[#{__MODULE__}] UNHANDLED CAST!: #{inspect event}", [__MODULE__])
+    Logger.error ">> got an unhandled cast in Auth tracker: #{inspect event}"
     dispatch state
   end
 
@@ -117,10 +121,10 @@ defmodule Farmbot.BotState.Authorization do
         save(new_state)
         new_state
       {:error, :bad_password} ->
-        # Log somethingerror "Bad Password for Farmbot Web Services!"
+        Logger.error ">> Got a bad password!"
         Farmbot.factory_reset
       {:error, reason} ->
-        # Log somethingerror("AUTH FAILED!: #{inspect reason}")
+        Logger.error ">> failed to authorize: #{inspect reason}"
         {:error, reason}
     end
   end
@@ -129,5 +133,4 @@ defmodule Farmbot.BotState.Authorization do
   defp save(%State{} = state) do
     SafeStorage.write(__MODULE__, :erlang.term_to_binary(state))
   end
-
 end

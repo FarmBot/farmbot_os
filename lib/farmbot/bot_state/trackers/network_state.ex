@@ -1,4 +1,6 @@
 defmodule Farmbot.BotState.Network do
+  use GenServer
+  require Logger
   @moduledoc """
     I DONT KNOW WHAT IM DOING
   """
@@ -21,9 +23,6 @@ defmodule Farmbot.BotState.Network do
       state
     end
   end
-
-  use GenServer
-  require Logger
 
   def init(_args) do
     NetMan.put_pid(__MODULE__)
@@ -49,7 +48,7 @@ defmodule Farmbot.BotState.Network do
   end
 
   def handle_call(event, _from, %State{} = state) do
-    # Log somethingwarn("[#{__MODULE__}] UNHANDLED CALL!: #{inspect event}", [__MODULE__])
+    Logger.warn ">> got an unhandled call in Network State tracker: #{inspect event}"
     dispatch :unhandled, state
   end
 
@@ -75,7 +74,7 @@ defmodule Farmbot.BotState.Network do
   end
 
   def handle_cast(event, %State{} = state) do
-    # Log somethingwarn("[#{__MODULE__}] UNHANDLED CAST!: #{inspect event}", [__MODULE__])
+    Logger.warn ">> got an unhandled cast in Network State tracker: #{inspect event}"
     dispatch state
   end
 
