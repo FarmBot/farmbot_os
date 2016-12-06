@@ -13,6 +13,11 @@ defmodule Farmbot.Logger do
     {:ok, state}
   end
 
+  def handle_event({l, f, {Logger, ">>" <> message, ts, meta}}, s) do
+    device_name = Farmbot.Sync.device_name
+    handle_event({l, f, {Logger, "#{device_name}"<> message, ts, meta}}, s)
+  end
+
   # The logger event.
   def handle_event({level, _, {Logger, message, timestamp, metadata}}, {messages, posting?}) do
     # if there is type key in the meta we need that to have priority

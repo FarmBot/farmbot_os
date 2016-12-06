@@ -67,7 +67,7 @@ defmodule Farmbot.BotState.Hardware do
   end
 
   def handle_call(event, _from, %State{} = state) do
-    Logger.warn("[#{__MODULE__}] UNHANDLED CALL!: #{inspect event}", [__MODULE__])
+    # Log somethingwarn("[#{__MODULE__}] UNHANDLED CALL!: #{inspect event}", [__MODULE__])
     dispatch :unhandled, state
   end
 
@@ -84,7 +84,7 @@ defmodule Farmbot.BotState.Hardware do
       %{mode: mode, value: _} ->
         %{mode: mode, value: value}
     end
-    Logger.debug("PIN #{pin} set: #{new_pin_value.value}")
+    # Log somethingdebug("PIN #{pin} set: #{new_pin_value.value}")
     new_pin_state = Map.put(pin_state, Integer.to_string(pin), new_pin_value)
     dispatch %State{state | pins: new_pin_state}
   end
@@ -111,7 +111,7 @@ defmodule Farmbot.BotState.Hardware do
 
   # catch all.
   def handle_cast(event, %State{} = state) do
-    Logger.warn("[#{__MODULE__}] UNHANDLED CAST!: #{inspect event}", [__MODULE__])
+    # Log somethingwarn("[#{__MODULE__}] UNHANDLED CAST!: #{inspect event}", [__MODULE__])
     dispatch state
   end
 

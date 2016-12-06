@@ -12,6 +12,7 @@ defmodule Farmbot do
   """
   @spec reboot :: any
   def reboot do
+    Logger.warn ">> going down for a reboot!"
     Nerves.Firmware.reboot
   end
 
@@ -21,6 +22,7 @@ defmodule Farmbot do
   """
   @spec reboot :: any
   def poweroff do
+    Logger.warn ">> going to power down!"
     Nerves.Firmware.poweroff
   end
 
@@ -29,7 +31,7 @@ defmodule Farmbot do
   """
   @spec format_state_part :: {:ok, atom}
   def format_state_part do
-    Logger.warn("FORMATTING DATA PARTITION!")
+    # Log somethingwarn("FORMATTING DATA PARTITION!")
     System.cmd("mkfs.ext4", ["/dev/mmcblk0p3", "-F"])
     System.cmd("mount", ["/dev/mmcblk0p3", "/state", "-t", "ext4"])
     File.write("/state/.formatted", "DONT CAT ME\n")
@@ -67,13 +69,13 @@ defmodule Farmbot do
                       version: version, env: env}])
   do
     {:ok, _} = fs_init(env)
-    Logger.debug("Starting Firmware on Target: #{target}.")
+    # Log somethingdebug("Starting Firmware on Target: #{target}.")
 
-    Logger.debug("Starting Database.")
+    # Log somethingdebug("Starting Database.")
     Amnesia.start
     Farmbot.Sync.Database.create! Keyword.put([], :memory, [node])
     Farmbot.Sync.Database.wait(15000)
-    Logger.debug("Database created!.")
+    # Log somethingdebug("Database created!.")
 
     Supervisor.start_link(__MODULE__,
           [%{target: target, compat_version: compat_version,

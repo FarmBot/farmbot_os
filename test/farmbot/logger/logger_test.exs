@@ -1,13 +1,13 @@
 defmodule Farmbot.LoggerTest do
   use ExUnit.Case, async: true
   setup_all do
-    {:ok, pid} = Farmbot.Logger.start_link []
+    {:ok, pid} = Farmbot.# Log somethingstart_link []
     {:ok, %{pid: pid}}
   end
 
   test "logs some stuff" do
     # Log something here("hey world, sup?", [], [])
-    msgs = Farmbot.Logger.get_all
+    msgs = Farmbot.# Log somethingget_all
     assert Enum.count(msgs) > 0
   end
 
@@ -24,10 +24,10 @@ defmodule Farmbot.LoggerTest do
     # Log something here("goodbye", [], [])
     # Log something here("cruel", [], [])
     # Log something here("world", [], [])
-    msgs = Farmbot.Logger.get_all
+    msgs = Farmbot.# Log somethingget_all
     assert Enum.count(msgs) >= 3
-    Farmbot.Logger.clear
-    no_msgs = Farmbot.Logger.get_all
+    Farmbot.# Log somethingclear
+    no_msgs = Farmbot.# Log somethingget_all
     assert no_msgs == []
   end
 end

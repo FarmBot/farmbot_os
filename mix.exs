@@ -205,7 +205,7 @@ defmodule Mix.Tasks.Farmbot.Upload do
   def run(args) do
     ip_address = System.get_env("FARMBOT_IP")
     || List.first(args)
-    || "192.168.29.185" # I get to do this because i own it.
+    || "192.168.29.186" # I get to do this because i own it.
     curl_args = [
       "-T", "_images/rpi3/farmbot.fw",
       "http://#{ip_address}:8988/firmware",

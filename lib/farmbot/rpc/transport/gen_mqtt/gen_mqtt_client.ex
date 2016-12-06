@@ -14,9 +14,9 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Client do
   end
 
   def on_connect(%Token{} = token) do
-    Logger.debug "MQTT Connected"
+    # Log somethingdebug "MQTT Connected"
     GenMQTT.subscribe(self(), bot_topic(token), 0)
-    Logger.debug "MQTT Subscribed"
+    # Log somethingdebug "MQTT Subscribed"
     {:ok, token}
   end
 
@@ -30,7 +30,7 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Client do
   end
 
   def handle_cast(something, state) do
-    Logger.warn("CAST: #{inspect something}")
+    # Log somethingwarn("CAST: #{inspect something}")
     {:noreply, state}
   end
 
@@ -40,18 +40,18 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Client do
   end
 
   def handle_info(something, state) do
-    Logger.debug("INFO: #{inspect something}")
+    # Log somethingdebug("INFO: #{inspect something}")
     {:noreply, state}
   end
 
   # this is not a erronous situation, so don't alert.
   def terminate(:new_token, _) do
-    Logger.warn("Get a new token. MQTT Going down.")
+    # Log somethingwarn("Get a new token. MQTT Going down.")
     :ok
   end
 
   def terminate(_, _) do
-    Logger.warn("Mqtt Client died!")
+    # Log somethingwarn("Mqtt Client died!")
     :ok
   end
 

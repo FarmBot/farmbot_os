@@ -64,7 +64,7 @@ defmodule Farmbot.BotState.Configuration do
   def load(initial_state) do
     case SafeStorage.read(__MODULE__) do
       {:ok, %State{} = last_state} ->
-        Logger.debug("Loading previous Bot Configuration State")
+        # Log somethingdebug("Loading previous Bot Configuration State")
         # Merge the last state
         %State{initial_state | configuration: last_state.configuration}
         # Maybe persiste locks?
@@ -114,7 +114,7 @@ defmodule Farmbot.BotState.Configuration do
   end
 
   def handle_call({:update_config, key, _value}, _from, %State{} = state) do
-    Logger.error("#{key} is not a valid config.")
+    # Log somethingerror("#{key} is not a valid config.")
     dispatch false, state
   end
 
@@ -145,7 +145,7 @@ defmodule Farmbot.BotState.Configuration do
   end
 
   def handle_call(event, _from, %State{} = state) do
-    Logger.warn("[#{__MODULE__}] UNHANDLED CALL!: #{inspect event}", [__MODULE__])
+    # Log somethingwarn("[#{__MODULE__}] UNHANDLED CALL!: #{inspect event}", [__MODULE__])
     dispatch :unhandled, state
   end
 
@@ -171,7 +171,7 @@ defmodule Farmbot.BotState.Configuration do
   end
 
   def handle_cast(event, %State{} = state) do
-    Logger.warn("[#{__MODULE__}] UNHANDLED CAST!: #{inspect event}", [__MODULE__])
+    # Log somethingwarn("[#{__MODULE__}] UNHANDLED CAST!: #{inspect event}", [__MODULE__])
     dispatch state
   end
 

@@ -49,7 +49,7 @@ defmodule Farmbot.BotState.Network do
   end
 
   def handle_call(event, _from, %State{} = state) do
-    Logger.warn("[#{__MODULE__}] UNHANDLED CALL!: #{inspect event}", [__MODULE__])
+    # Log somethingwarn("[#{__MODULE__}] UNHANDLED CALL!: #{inspect event}", [__MODULE__])
     dispatch :unhandled, state
   end
 
@@ -75,7 +75,7 @@ defmodule Farmbot.BotState.Network do
   end
 
   def handle_cast(event, %State{} = state) do
-    Logger.warn("[#{__MODULE__}] UNHANDLED CAST!: #{inspect event}", [__MODULE__])
+    # Log somethingwarn("[#{__MODULE__}] UNHANDLED CAST!: #{inspect event}", [__MODULE__])
     dispatch state
   end
 

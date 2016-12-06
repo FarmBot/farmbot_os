@@ -110,6 +110,19 @@ defmodule Farmbot.Sync.Helpers do
     |> parse_selection
   end
 
+  @doc """
+    Gets the current Device Name.
+  """
+  def get_device_name do
+    Amnesia.transaction do
+      # there is only ever at most one device..
+      Device.first
+      || [%Device{id: -1, name: "Farmbot", planting_area_id: nil, webcam_url: nil}]
+    end
+    |> List.first
+    |> Map.get(:name)
+  end
+
   defp parse_selection(nil), do: nil
   defp parse_selection(selection) do
     f = Amnesia.Selection.values(selection)

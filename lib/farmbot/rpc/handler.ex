@@ -37,8 +37,8 @@ defmodule Farmbot.RPC.Handler do
   # JSON RPC RESPONSE ERROR
   @spec ack_msg(String.t, {String.t, String.t}) :: binary
   def ack_msg(id, {name, message}) do
-    Logger.error("RPC ERROR")
-    Logger.debug("#{inspect {name, message}}")
+    # Log somethingerror("RPC ERROR")
+    # Log somethingdebug("#{inspect {name, message}}")
     Poison.encode!(
     %{id: id,
       error: %{name: name,
@@ -61,25 +61,24 @@ defmodule Farmbot.RPC.Handler do
 
   # The bot itself doesn't make requests so it shouldn't ever get a response.
   def handle_incoming(%Response{} = rpc) do
-    Logger.warn("Farmbot doesn't know what to do with this message:
+    # Log somethingwarn("Farmbot doesn't know what to do with this message:
                   #{inspect rpc}")
   end
 
   # The frontend doesn't send notifications so the bot shouldn't get a notification.
   def handle_incoming(%Notification{} = rpc) do
-    Logger.warn("Farmbot doesn't know what to do with this message:
+    # Log somethingwarn("Farmbot doesn't know what to do with this message:
                   #{inspect rpc}")
   end
 
   # Just to be sure
-  def handle_incoming(_), do: Logger.warn("Farmbot got a malformed RPC Message")
+  def handle_incoming(_), do: Logger.warn(">> got a malformed RPC message!")
 
   @doc """
     Builds a json to send to the frontend
   """
   @spec build_status(Farmbot.BotState.Monitor.State.t) :: binary
   def build_status(%Farmbot.BotState.Monitor.State{} = unserialized) do
-    # unserialized = GenEvent.call(BotStateEventManager, __MODULE__, :state)
     m = %Notification{
       id: nil,
       method: "status_update",

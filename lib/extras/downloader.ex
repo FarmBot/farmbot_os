@@ -16,19 +16,19 @@ defmodule Downloader do
     receive do
       %HTTPotion.AsyncHeaders{headers: h} ->
         {total_bytes, _} = h[:"Content-Length"] |> Integer.parse
-        Logger.debug("Downloading: #{mb total_bytes}")
+        # Log somethingdebug("Downloading: #{mb total_bytes}")
         receive_data(total_bytes: total_bytes, data: data, dl_path: path)
 
       %HTTPotion.AsyncChunk{chunk: new_data} ->
         accumulated_data = data <> new_data
         accumulated_bytes = byte_size(accumulated_data)
         percent = accumulated_bytes / total_bytes * 100 |> Float.round(2)
-        Logger.debug("#{percent}% (#{mb accumulated_bytes})")
+        # Log somethingdebug("#{percent}% (#{mb accumulated_bytes})")
         receive_data(total_bytes: total_bytes, data: accumulated_data, dl_path: path)
 
       %HTTPotion.AsyncEnd{} ->
         File.write!(path, data)
-        Logger.debug("Done.")
+        # Log somethingdebug("Done.")
         path
     end
   end

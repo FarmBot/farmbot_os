@@ -27,7 +27,7 @@ defmodule Command do
   @spec e_stop(nil) :: :ok
   def e_stop(nil) do
     Farmbot.BotState.add_lock("e_stop")
-    Logger.warn("E Stopping", type: :toast)
+    # Log somethingwarn("E Stopping", type: :toast)
     Farmbot.Serial.Handler.e_stop
     Farmbot.Scheduler.e_stop_lock
     :ok
@@ -55,12 +55,12 @@ defmodule Command do
     end)
     do
       {_, []} ->
-        Logger.debug("Bot Back up and running!")
+        # Log somethingdebug("Bot Back up and running!")
         Farmbot.BotState.remove_lock("e_stop")
         Farmbot.Scheduler.e_stop_unlock
         :ok
       {_, failed} ->
-        Logger.error("Param setting failed! #{inspect failed}")
+        # Log somethingerror("Param setting failed! #{inspect failed}")
         {:error, :prams}
     end
   end
@@ -75,7 +75,7 @@ defmodule Command do
   @spec home_all(number | nil) :: command_output
   def home_all(speed \\ nil) do
     msg = "HOME ALL"
-    Logger.debug(msg)
+    # Log somethingdebug(msg)
     Command.move_absolute(0, 0, 0, speed || Farmbot.BotState.get_config(:steps_per_mm))
   end
 
@@ -85,7 +85,7 @@ defmodule Command do
   @spec home_x() :: command_output
   def home_x() do
     msg = "HOME X"
-    Logger.debug(msg)
+    # Log somethingdebug(msg)
     Farmbot.Serial.Gcode.Handler.block_send("F11")
   end
 
@@ -95,7 +95,7 @@ defmodule Command do
   @spec home_y() :: command_output
   def home_y() do
     msg = "HOME Y"
-    Logger.debug(msg)
+    # Log somethingdebug(msg)
     Farmbot.Serial.Gcode.Handler.block_send("F12")
   end
 
@@ -105,7 +105,7 @@ defmodule Command do
   @spec home_z() :: command_output
   def home_z() do
     msg = "HOME Z"
-    Logger.debug(msg)
+    # Log somethingdebug(msg)
     Farmbot.Serial.Gcode.Handler.block_send("F13")
   end
 
@@ -147,7 +147,7 @@ defmodule Command do
   def move_absolute(x ,y ,z ,s \\ nil)
   def move_absolute(x, y, z, s) do
     msg = "Moving to X#{x} Y#{y} Z#{z}"
-    Logger.debug(msg)
+    # Log somethingdebug(msg)
     Farmbot.Serial.Gcode.Handler.block_send(
     "G00 X#{x} Y#{y} Z#{z} S#{s || Farmbot.BotState.get_config(:steps_per_mm)}")
     |> logmsg("Movement")
@@ -273,12 +273,12 @@ defmodule Command do
 
   @spec logmsg(command_output, String.t) :: command_output
   defp logmsg(:done, command) when is_bitstring(command) do
-    Logger.debug "#{command} Complete"
+    # Log somethingdebug "#{command} Complete"
     :done
   end
 
   defp logmsg(other, command) when is_bitstring(command) do
-    Logger.error("#{command} Failed")
+    # Log somethingerror("#{command} Failed")
     other
   end
 end

@@ -31,7 +31,7 @@ defmodule Farmbot.RPC.Requests do
   end
 
   def handle_request("home_all", _params) do
-    Logger.debug("bad params for home_all")
+    # Log somethingdebug("bad params for home_all")
     {:error, "BAD_PARAMS",
       Poison.encode!(%{"speed" => "number"})}
   end
@@ -64,7 +64,7 @@ defmodule Farmbot.RPC.Requests do
   end
 
   def handle_request("toggle_pin", params) do
-    Logger.error ("#{inspect params}")
+    # Log somethingerror ("#{inspect params}")
     {:error, "BAD_PARAMS",
       Poison.encode!(%{"pin_number" => "number"})}
   end
@@ -81,7 +81,7 @@ defmodule Farmbot.RPC.Requests do
   end
 
   def handle_request("move_absolute",  _params) do
-    Logger.debug("bad params for Move Absolute")
+    # Log somethingdebug("bad params for Move Absolute")
     {:error, "BAD_PARAMS",
       Poison.encode!(%{"x" => "number", "y" => "number", "z" => "number", "speed" => "number"})}
   end
@@ -107,7 +107,7 @@ defmodule Farmbot.RPC.Requests do
 
   # Read status
   def handle_request("read_status", _) do
-    Logger.debug("Reporting Current Status")
+    # Log somethingdebug("Reporting Current Status")
     GenEvent.call(BotStateEventManager, Farmbot.RPC.Handler, :force_dispatch)
   end
 
@@ -126,9 +126,9 @@ defmodule Farmbot.RPC.Requests do
   end
 
   def handle_request("reboot", _ ) do
-    Logger.warn("Bot going down for reboot in 5 seconds!", type: :toast)
+    # Log somethingwarn("Bot going down for reboot in 5 seconds!", type: :toast)
     spawn fn ->
-      Logger.warn("REBOOTING!!!!!", type: :toast)
+      # Log somethingwarn("REBOOTING!!!!!", type: :toast)
       Process.sleep(5000)
       Farmbot.reboot
     end
@@ -200,7 +200,7 @@ defmodule Farmbot.RPC.Requests do
   end
 
   def handle_request("start_regimen", params) do
-    Logger.debug("bad params for start_regimen: #{inspect params}")
+    # Log somethingdebug("bad params for start_regimen: #{inspect params}")
     {:error, "BAD_PARAMS",
       Poison.encode!(%{"regimen_id" => "number"})}
   end
@@ -215,7 +215,7 @@ defmodule Farmbot.RPC.Requests do
   end
 
   def handle_request("stop_regimen", params) do
-    Logger.debug("bad params for stop_regimen: #{inspect params}")
+    # Log somethingdebug("bad params for stop_regimen: #{inspect params}")
     {:error, "BAD_PARAMS",
       Poison.encode!(%{"regimen_id" => "number"})}
   end
@@ -226,7 +226,7 @@ defmodule Farmbot.RPC.Requests do
   end
 
   def handle_request("calibrate", params) do
-    Logger.error "Bad params for calibtrate: #{inspect params}"
+    # Log somethingerror "Bad params for calibtrate: #{inspect params}"
     {:error, "BAD_PARAMS",
       Poison.encode!(%{"target" => "x | y | z" })}
   end
@@ -240,7 +240,7 @@ defmodule Farmbot.RPC.Requests do
 
   # Unhandled event. Probably not implemented if it got this far.
   def handle_request(event, params) do
-    Logger.warn("[RPC_HANDLER] got valid rpc, but event is not implemented.")
+    # Log somethingwarn("[RPC_HANDLER] got valid rpc, but event is not implemented.")
     {:error, "Unhandled method", "#{inspect {event, params}}"}
   end
 

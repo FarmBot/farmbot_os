@@ -174,7 +174,7 @@ defmodule Farmbot.BotState do
      "-p", "2.pool.ntp.org",
      "-p", "3.pool.ntp.org"])
     check_time_set
-    Logger.debug("Time set.")
+    # Log somethingdebug("Time set.")
     :ok
   end
 

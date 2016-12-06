@@ -47,6 +47,8 @@ defmodule Farmbot.Sync do
   def get_tool(id), do: Helpers.get_tool(id)
   def get_user(id), do: Helpers.get_user(id)
 
+  def device_name, do: Helpers.get_device_name
+  
   @doc """
     Downloads the sync object form the API.
   """

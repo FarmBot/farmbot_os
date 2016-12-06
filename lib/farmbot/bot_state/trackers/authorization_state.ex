@@ -60,7 +60,7 @@ defmodule Farmbot.BotState.Authorization do
   end
 
   def handle_call(event, _from, %State{} = state) do
-    Logger.warn("[#{__MODULE__}] UNHANDLED CALL!: #{inspect event}", [__MODULE__])
+    # Log somethingwarn("[#{__MODULE__}] UNHANDLED CALL!: #{inspect event}", [__MODULE__])
     dispatch :unhandled, state
   end
 
@@ -77,7 +77,7 @@ defmodule Farmbot.BotState.Authorization do
   end
 
   def handle_cast(event, %State{} = state) do
-    Logger.warn("[#{__MODULE__}] UNHANDLED CAST!: #{inspect event}", [__MODULE__])
+    # Log somethingwarn("[#{__MODULE__}] UNHANDLED CAST!: #{inspect event}", [__MODULE__])
     dispatch state
   end
 
@@ -117,10 +117,10 @@ defmodule Farmbot.BotState.Authorization do
         save(new_state)
         new_state
       {:error, :bad_password} ->
-        Logger.error "Bad Password for Farmbot Web Services!"
+        # Log somethingerror "Bad Password for Farmbot Web Services!"
         Farmbot.factory_reset
       {:error, reason} ->
-        Logger.error("AUTH FAILED!: #{inspect reason}")
+        # Log somethingerror("AUTH FAILED!: #{inspect reason}")
         {:error, reason}
     end
   end

@@ -128,7 +128,7 @@ defmodule Farmbot.BotState.Monitor do
 
   # If a handler dies, we try to restart it
   def handle_info({:gen_event_EXIT, handler, _reason}, {mgr, state}) do
-    Logger.warn("HANDLER DIED: #{inspect handler} Goint to try to restart")
+    # Log somethingwarn("HANDLER DIED: #{inspect handler} Goint to try to restart")
     add_handler(mgr, handler)
     dispatch(mgr, state)
   end

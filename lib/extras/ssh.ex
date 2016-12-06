@@ -30,7 +30,7 @@ defmodule SSH do
 
   def handle_info({:EXIT, port, reason}, state)
   when state == port do
-    Logger.error("SSH died: #{inspect reason} Restarting")
+    # Log somethingerror("SSH died: #{inspect reason} Restarting")
     new_state = Port.open({:spawn, @cmd}, [:binary])
     {:noreply, new_state}
   end

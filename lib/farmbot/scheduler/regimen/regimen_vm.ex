@@ -38,12 +38,12 @@ defmodule Scheduler.Regimen.VM  do
     first_time = Timex.shift(time, milliseconds: first.time_offset)
 
     # Remove this one day
-    Logger.warn("""
-    \n
-    \t\t the first item will execute on:
-    \t\t #{first_time.month}-#{first_time.day}
-    \t\t at: #{first_time.hour}:#{first_time.minute}
-    """)
+    # Log somethingwarn("""
+    # \n
+    # \t\t the first item will execute on:
+    # \t\t #{first_time.month}-#{first_time.day}
+    # \t\t at: #{first_time.hour}:#{first_time.minute}
+    # """)
 
     initial_state = %State{
       flag: :normal,
@@ -126,7 +126,7 @@ defmodule Scheduler.Regimen.VM  do
           true ->
             sequence = Farmbot.Sync.get_sequence(item.sequence_id)
             msg = "Time to run Sequence: " <> sequence.name
-            Logger.debug(msg, type: :toast)
+            # Log somethingdebug(msg, type: :toast)
             Farmbot.Scheduler.add_sequence(sequence)
           false ->
             :ok
@@ -165,17 +165,17 @@ defmodule Scheduler.Regimen.VM  do
 
   def terminate(:normal, state) do
     msg = "Regimen: #{state.regimen.name} completed without errors!"
-    Logger.debug(msg, type: :toast)
+    # Log somethingdebug(msg, type: :toast)
   end
 
   # this gets called if the scheduler crashes.
   # it is to stop orphaning of regimens
   def terminate(:e_stop, _state) do
-    Logger.debug("cleaning up regimen")
+    # Log somethingdebug("cleaning up regimen")
   end
 
   def terminate(reason, state) do
     msg = "Regimen: #{state.regimen.name} completed with errors! #{inspect reason}"
-    Logger.error(msg)
+    # Log somethingerror(msg)
   end
 end

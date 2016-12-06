@@ -16,7 +16,7 @@ defmodule Farmbot.BotState.Supervisor do
   end
 
   def start_link(args) do
-    Logger.debug("Starting Farmbot State Tracker")
+    # Log somethingdebug("Starting Farmbot State Tracker")
     sup = Supervisor.start_link(__MODULE__, args)
     Logger.add_backend(Farmbot.Logger)
     sup

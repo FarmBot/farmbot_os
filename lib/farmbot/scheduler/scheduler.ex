@@ -103,7 +103,7 @@ defmodule Farmbot.Scheduler do
     default_state = %State{}
     case SafeStorage.read(__MODULE__) do
       {:ok, %State{} = last_state} ->
-        Logger.debug("loading previous #{__MODULE__} state: #{inspect last_state}")
+        # Log somethingdebug("loading previous #{__MODULE__} state: #{inspect last_state}")
         new_state = Map.update!(last_state, :regimens, fn(old_regimens) ->
           Enum.map(old_regimens, fn({_,regimen, finished_items, time, _}) ->
             {:ok, pid} = Scheduler.Regimen.VM.start_link(regimen, finished_items, time)
@@ -113,18 +113,18 @@ defmodule Farmbot.Scheduler do
         save_and_update(new_state)
         new_state
       _ ->
-        Logger.debug("Starting new #{__MODULE__} state.")
+        # Log somethingdebug("Starting new #{__MODULE__} state.")
         default_state
     end
   end
 
   def handle_cast(:e_stop_lock, state) do
-    Logger.warn("E stopping Farmbot Scheduler")
+    # Log somethingwarn("E stopping Farmbot Scheduler")
 
     # if there is a sequence running, stop it agressivly
     case state.current_sequence do
       {pid, _sequence} ->
-        Logger.debug("Stopping a running sequence")
+        # Log somethingdebug("Stopping a running sequence")
         GenServer.stop(pid, :e_stop)
       nil -> nil
       # i have to put this here because the lazy hack of putting
@@ -134,7 +134,7 @@ defmodule Farmbot.Scheduler do
 
     # tell all the regimens to pause.
     Enum.each(state.regimens, fn({pid, _regimen, _items, _start_time, _flag}) ->
-      Logger.debug("Pausing regimens")
+      # Log somethingdebug("Pausing regimens")
       GenServer.cast(pid, :pause)
     end)
     # change current_sequence to something that is not a list or nil
@@ -144,7 +144,7 @@ defmodule Farmbot.Scheduler do
   end
 
   def handle_cast(:e_stop_unlock, state) do
-    Logger.warn("Resuming Farmbot Scheduler")
+    # Log somethingwarn("Resuming Farmbot Scheduler")
     # tell all the regimens to resume.
     # Maybe a problem? the user might not want to restart EVERY regimen
     # there might have been regimens that werent paused by e stop?
@@ -184,12 +184,12 @@ defmodule Farmbot.Scheduler do
       # If the regimen is in paused state.
       {_pid, ^regimen, _finished_items, _start_time, :paused} ->
         #TODO: Restart paused regimens.
-        Logger.warn("Starting paused regimens is not working yet.")
+        # Log somethingwarn("Starting paused regimens is not working yet.")
         {:reply, :todo, state}
 
       # If the regimen is already running.
       {_pid, ^regimen, _finished_items, _start_time, :normal} ->
-        Logger.warn("Regimen is already started!")
+        # Log somethingwarn("Regimen is already started!")
         {:reply, :already_started, state}
     end
   end
@@ -204,7 +204,7 @@ defmodule Farmbot.Scheduler do
 
   # A regimen is ready to be stopped.
   def handle_info({:done, {:regimen, pid, regimen}}, state) do
-    Logger.debug("Regimen: #{regimen.name} has finished.")
+    # Log somethingdebug("Regimen: #{regimen.name} has finished.")
     reg_tup = find_regimen(regimen, state.regimens)
     new_state = %State{state | regimens: state.regimens -- [reg_tup]}
     save_and_update(new_state)
@@ -230,8 +230,8 @@ defmodule Farmbot.Scheduler do
         {:noreply, new_state}
       is_nil(found) ->
         # Something is not good. try to clean up.
-        Logger.error("Something bad happened updating
-                      finished regimen items on #{regimen.name}")
+        # Log somethingerror("Something bad happened updating
+                      # finished regimen items on #{regimen.name}")
         {:noreply, state}
     end
   end
@@ -278,7 +278,7 @@ defmodule Farmbot.Scheduler do
   end
 
   def handle_info(:tick, state) do
-    Logger.error("unhandled tick!: #{inspect state}")
+    # Log somethingerror("unhandled tick!: #{inspect state}")
   end
 
   @doc """
@@ -304,7 +304,7 @@ defmodule Farmbot.Scheduler do
 
   @spec add_sequence(Sequence.t) :: :ok
   def add_sequence(%Sequence{} = sequence) do
-    Logger.debug("Adding sequence: #{sequence.name}")
+    # Log somethingdebug("Adding sequence: #{sequence.name}")
     GenServer.call(__MODULE__, {:add, {:sequence, sequence}})
   end
 
@@ -313,7 +313,7 @@ defmodule Farmbot.Scheduler do
   """
   @spec add_regimen(Regimen.t) :: :ok
   def add_regimen(regimen) do
-    Logger.debug("Adding Regimen: #{regimen.name}")
+    # Log somethingdebug("Adding Regimen: #{regimen.name}")
     GenServer.call(__MODULE__, {:add, {:regimen, regimen}})
   end
 
@@ -339,7 +339,7 @@ defmodule Farmbot.Scheduler do
   end
 
   def terminate(:normal, _state) do
-    Logger.debug("Farmbot Scheduler died. This is not good.")
+    # Log somethingdebug("Farmbot Scheduler died. This is not good.")
   end
 
   # if the scheduler dies for a non normal reason
@@ -347,7 +347,7 @@ defmodule Farmbot.Scheduler do
   # if a sequence is running make sure to stop it.
   # stop all regimens so they are not orphaned.
   def terminate(reason, state) do
-    Logger.error("Farmbot Scheduler died. This is not good. #{inspect reason}")
+    # Log somethingerror("Farmbot Scheduler died. This is not good. #{inspect reason}")
     # stop a sequence if one is running
     case state.current_sequence do
       {pid, _} -> GenServer.stop(pid, :e_stop)

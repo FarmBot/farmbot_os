@@ -8,7 +8,7 @@ defmodule Farmbot.Scheduler.Sequence.InstructionSet_0 do
   require Logger
 
   def start_link(parent) do
-    Logger.debug("InstructionSet_0 init.")
+    # Log somethingdebug("InstructionSet_0 init.")
     GenServer.start_link(__MODULE__, parent)
   end
 
@@ -114,7 +114,7 @@ defmodule Farmbot.Scheduler.Sequence.InstructionSet_0 do
 
   # Catch all
   def do_step(thing, parent) do
-    Logger.error("UNHANDLED STEP: #{inspect thing}")
+    # Log somethingerror("UNHANDLED STEP: #{inspect thing}")
     dispatch {:unhandled, thing}, parent
   end
 
@@ -124,7 +124,7 @@ defmodule Farmbot.Scheduler.Sequence.InstructionSet_0 do
                                   args: %{channel_name: c},
                                   body: []},
     acc) ->
-      Logger.debug("CHANNEL: #{inspect c}")
+      # Log somethingdebug("CHANNEL: #{inspect c}")
       [ c | acc]
     end)
   end
@@ -148,7 +148,7 @@ defmodule Farmbot.Scheduler.Sequence.InstructionSet_0 do
   defp do_if(l,"is",r) when l == r, do: true
   defp do_if(l,"not",r) when l != r, do: true
   defp do_if(l, _, r) when is_integer(l) and is_integer(r), do: false
-  defp do_if(l, op, r), do: Logger.error("bad if statement: [#{l} #{op} #{r}]")
+  defp do_if(l, op, r), do: # Log somethingerror("bad if statement: [#{l} #{op} #{r}]")
 
   @spec dispatch(atom, pid) :: {:noreply, pid}
   defp dispatch(status, parent), do: Farmbot.Scheduler.Sequence.VM.tick(parent, status)

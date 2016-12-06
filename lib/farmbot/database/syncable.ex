@@ -28,6 +28,8 @@ defmodule Syncable do
   defmacro generate_validation(name, model) do
     quote bind_quoted: [name: name, model: model] do
 
+      def required_keys, do: unquote(model)
+
       # Makes sure that we have AT LEAST the correct keys. Does not check
       # For extras.
       defp validate_keys(keys) do

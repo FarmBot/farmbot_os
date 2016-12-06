@@ -23,7 +23,7 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
 
   @spec start_client(Token.t) :: pid
   defp start_client(%Token{} = token) do
-    Logger.warn "Starting MQTT Client"
+    # Log somethingwarn "Starting MQTT Client"
     {:ok, pid} = Client.start_link(token)
     pid
   end
@@ -64,7 +64,7 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
   end
 
   def handle_info(info, pid_or_nil) do
-    Logger.warn("#{inspect info}")
+    # Log somethingwarn("#{inspect info}")
     {:noreply, pid_or_nil}
   end
 
