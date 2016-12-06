@@ -54,6 +54,14 @@ defmodule Farmbot.Logger do
   # Catch any stray calls.
   def handle_call(_, state), do: {:ok, :unhandled, state}
 
+  def dump do
+    rpc_logs =
+      GenEvent.call(Logger, Farmbot.Logger, :dump)
+      |> Enum.map(fn(log) -> build_rpc(log))
+
+
+  end
+
   # IF we are already posting messages to the api, no need to check the count.
   defp dispatch({messages, true}), do: {:ok, {messages, true}}
   # If we not already doing an HTTP Post to the api, check to see if we need to
@@ -152,6 +160,16 @@ defmodule Farmbot.Logger do
       id: nil,
       method: "log_message",
       params: [msg]}
+    |> Poison.encode!
+  end
+
+  # Takes a list of rpc log messages
+  defp build_rpc_dump(rpc_logs)
+  when is_list(rpc_logs) do
+    %Notification{
+      id: nil,
+      method: "log_dump",
+      params:  rpc_logs }
     |> Poison.encode!
   end
 

@@ -64,18 +64,20 @@ defmodule Farmbot.Sync do
   end
 
   def enter_into_db(%SyncObject{} = so) do
-    # We arent aloud to enumerate over a struct, so we turn it into a map here
-    blah = Map.from_struct(so)
-    # Then enumerate over it.
-    struct =
-      Enum.map(blah, fn({key, val}) ->
-        {key, parse_and_write(val)}
-      end)
-      # then turn it back into a map
-      |> Map.new
-      # then turn it back into a struct
-      |> to_struct(SyncObject)
-    {:ok, struct}
+    Amnesia.transaction do
+      # We arent aloud to enumerate over a struct, so we turn it into a map here
+      blah = Map.from_struct(so)
+      # Then enumerate over it.
+      struct =
+        Enum.map(blah, fn({key, val}) ->
+          {key, parse_and_write(val)}
+        end)
+        # then turn it back into a map
+        |> Map.new
+        # then turn it back into a struct
+        |> to_struct(SyncObject)
+      {:ok, struct}
+    end
   end
 
   def enter_into_db(_), do: {:error, :bad_sync_object}
@@ -83,16 +85,12 @@ defmodule Farmbot.Sync do
   # make struct function pipable.
   defp to_struct(map, module), do: struct(module, map)
 
-  def parse_and_write(thing) when is_map(thing) do
-    module = thing.__struct__
-    Amnesia.transaction do
-      module.write(thing)
-    end
-  end
+  def parse_and_write(thing) when is_map(thing), do: parse_and_write([thing])
 
   def parse_and_write(list_of_things) when is_list(list_of_things) do
     Enum.map(list_of_things, fn(thing) ->
-      parse_and_write(thing)
+      module = thing.__struct__
+      module.write(thing)
     end)
   end
 

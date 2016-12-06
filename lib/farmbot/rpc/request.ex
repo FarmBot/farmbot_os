@@ -109,7 +109,6 @@ defmodule Farmbot.RPC.Requests do
   def handle_request("read_status", _) do
     Logger.debug("Reporting Current Status")
     GenEvent.call(BotStateEventManager, Farmbot.RPC.Handler, :force_dispatch)
-    # GenServer.cast(Farmbot.BotState.Monitor, :force_dispatch)
   end
 
   def handle_request("check_updates", _) do
@@ -230,6 +229,13 @@ defmodule Farmbot.RPC.Requests do
     Logger.error "Bad params for calibtrate: #{inspect params}"
     {:error, "BAD_PARAMS",
       Poison.encode!(%{"target" => "x | y | z" })}
+  end
+
+  def handle_request("dump_logs", _) do
+    spawn fn ->
+      Farmbot.Logger.dump
+    end
+    :ok
   end
 
   # Unhandled event. Probably not implemented if it got this far.
