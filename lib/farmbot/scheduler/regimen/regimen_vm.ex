@@ -4,6 +4,7 @@ defmodule Scheduler.Regimen.VM  do
   """
   alias Farmbot.Sync.Database.Regimen, as: Regimen
   alias Farmbot.Sync.Database.RegimenItem, as: RegimenItem
+  alias Farmbot.Sync.Database.Sequence, as: Sequence
   use Amnesia
   use RegimenItem
   require Logger
@@ -124,10 +125,7 @@ defmodule Scheduler.Regimen.VM  do
         should_run = Timex.after?(now, run_time)
         case ( should_run ) do
           true ->
-            sequence = Farmbot.Sync.get_sequence(item.sequence_id)
-            msg = ">> is going to run sequence: " <> sequence.name
-            Logger.debug msg, channel: [:toast]
-            Farmbot.Scheduler.add_sequence(sequence)
+            add_sequence(item.sequence_id)
           false ->
             :ok
         end
@@ -176,5 +174,30 @@ defmodule Scheduler.Regimen.VM  do
 
   def terminate(reason, state) do
     Logger.error ">> encountered errors completing a regimen! #{inspect reason} #{inspect state}"
+  end
+
+  # Tries to add a sequence too the Sequencer to be ran or queued.
+  # If you give an integer it tries to look the sequence up in the dateabase
+  # Then pipes it back thru itself.
+  # if the piped function receives nil
+  # it is assumed that either this sequence doesn't exist, or the bot is
+  # out of sync. and tries to sync. This will be picked up upon next tick.
+  # if we actually have a Sequence object, add the sequence to the stack.
+  @spec add_sequence(integer | nil | Sequence.t) :: :ok
+  defp add_sequence(id)
+  when is_integer(id) do
+    Farmbot.Sync.get_sequence(id) |> add_sequence
+  end
+
+  # this happens if the bot was not synced before this regimen started.
+  defp add_sequence(nil) do
+    Logger.error(">> could not find sequence. This may be a problem. I will try to sync to fix it. ")
+    Farmbot.Sync.sync
+  end
+
+  defp add_sequence(%Sequence{} = sequence) do
+    msg = ">> is going to run sequence: " <> sequence.name
+    Logger.debug msg, channel: [:toast]
+    Farmbot.Scheduler.add_sequence(sequence)
   end
 end

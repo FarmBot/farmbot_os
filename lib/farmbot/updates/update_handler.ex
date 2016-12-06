@@ -50,7 +50,7 @@ defmodule Farmbot.Updates.Handler do
         Logger.debug ">> is done installing a firmware update!", type: :success,
           channels: [:toast]
       {:error, reason} ->
-        Logger.error ">> encountered an error installing firmware update!",
+        Logger.error ">> encountered an error installing firmware update!: #{inspect reason}",
           channels: [:toast]
     end
   end

@@ -19,11 +19,10 @@ defmodule SafeStorage do
     Process.sleep(10)
     case File.read("#{@state_path}/STATE") do
       {:ok, contents} ->
-        # Log somethingdebug("Loading last state.")
         last_state = :erlang.binary_to_term(contents)
         {:ok, save(last_state) }
       _ ->
-      # Log somethingdebug("Loading #{__MODULE__} new state.")
+      Logger.debug ">> is loading new storage state."
       {:ok, save(%{})}
     end
   end
@@ -108,12 +107,13 @@ defmodule SafeStorage do
 
   def save(state) do
     if(check_old(state) == false) do
+      Logger.warn ">>'s filesystem is being backed up! please be gentle."
       # Log somethingwarn("BE CAREFUL FILESYSTEM IS READ WRITE")
       mount_read_write
       File.write("#{@state_path}/STATE", :erlang.term_to_binary(state))
       sync
       mount_read_only
-      # Log somethingdebug("FILESYSTEM SAFE AGAIN")
+      Logger.debug ">>'s filesystem is safe again."
     end
     Process.send_after(__MODULE__, :save, 60000)
     state
@@ -124,7 +124,8 @@ defmodule SafeStorage do
   end
 
   defp print_cmd({result, err_no}, cmd) do
-    # Log somethingerror("Something bad happened. \"#{cmd}\" exited with error code: #{err_no} and result: #{result}")
+    Logger.error ">> encountered an error executing: #{inspect cmd}: (#{err_no}) #{inspect result}",
+      channels: [:toast]
     result
   end
 

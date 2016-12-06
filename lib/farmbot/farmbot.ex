@@ -31,7 +31,7 @@ defmodule Farmbot do
   """
   @spec format_state_part :: {:ok, atom}
   def format_state_part do
-    # Log somethingwarn("FORMATTING DATA PARTITION!")
+    Logger.warn ">> is being reset! Goodbye!"
     System.cmd("mkfs.ext4", ["/dev/mmcblk0p3", "-F"])
     System.cmd("mount", ["/dev/mmcblk0p3", "/state", "-t", "ext4"])
     File.write("/state/.formatted", "DONT CAT ME\n")

@@ -62,7 +62,7 @@ defmodule Farmbot.RPC.Requests do
     :ok
   end
 
-  def handle_request("toggle_pin", params) do
+  def handle_request("toggle_pin", _) do
     {:error, "BAD_PARAMS",
       Poison.encode!(%{"pin_number" => "number"})}
   end
@@ -222,7 +222,7 @@ defmodule Farmbot.RPC.Requests do
     :ok
   end
 
-  def handle_request("calibrate", params) do
+  def handle_request("calibrate", _) do
     {:error, "BAD_PARAMS",
       Poison.encode!(%{"target" => "x | y | z" })}
   end

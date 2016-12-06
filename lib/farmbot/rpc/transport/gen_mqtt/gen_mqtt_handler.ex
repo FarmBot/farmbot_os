@@ -1,6 +1,6 @@
 alias Farmbot.RPC.Transport.GenMqtt.Client, as: Client
 defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
-   
+
   @moduledoc """
     Makes sure MQTT stays alive and receives the Auth Token.
   """
@@ -23,7 +23,7 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
 
   @spec start_client(Token.t) :: pid
   defp start_client(%Token{} = token) do
-    # Log somethingwarn "Starting MQTT Client"
+    Logger.debug ">> is starting MQTT Client."
     {:ok, pid} = Client.start_link(token)
     pid
   end
@@ -39,8 +39,8 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
     {:noreply, {token, pid}}
   end
 
+  # if not connected, just discard the messages (for now)
   def handle_cast({:emit, _binary}, state) do
-    # Save messages when offline maybe?
     {:noreply, state}
   end
 
@@ -61,11 +61,6 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
   when client == pid do
     # restart the client if it dies.
     {:noreply, {token, start_client(token)}}
-  end
-
-  def handle_info(info, pid_or_nil) do
-    # Log somethingwarn("#{inspect info}")
-    {:noreply, pid_or_nil}
   end
 
   @spec emit(binary) :: :ok
