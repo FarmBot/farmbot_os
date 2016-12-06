@@ -126,10 +126,8 @@ defmodule Scheduler.Regimen.VM  do
           true ->
             sequence = Farmbot.Sync.get_sequence(item.sequence_id)
             msg = "Time to run Sequence: " <> sequence.name
-            Logger.debug(msg)
-            # Log something here(msg, [:ticker, :success_toast], [regimen.name])
+            Logger.debug(msg, type: :toast)
             Farmbot.Scheduler.add_sequence(sequence)
-            Logger.debug("added sequence")
           false ->
             :ok
         end
@@ -167,9 +165,7 @@ defmodule Scheduler.Regimen.VM  do
 
   def terminate(:normal, state) do
     msg = "Regimen: #{state.regimen.name} completed without errors!"
-    Logger.debug(msg)
-    # Log something here(msg, [:ticker, :success_toast], ["RegimenManager"])
-    # Farmbot.RPC.Handler.send_status
+    Logger.debug(msg, type: :toast)
   end
 
   # this gets called if the scheduler crashes.
@@ -180,7 +176,6 @@ defmodule Scheduler.Regimen.VM  do
 
   def terminate(reason, state) do
     msg = "Regimen: #{state.regimen.name} completed with errors! #{inspect reason}"
-    Logger.debug(msg)
-    # Log something here(msg, [:error_toast], ["RegimenManager"])
+    Logger.error(msg)
   end
 end

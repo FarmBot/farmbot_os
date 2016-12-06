@@ -109,7 +109,6 @@ defmodule Farmbot.RPC.Requests do
   def handle_request("read_status", _) do
     Logger.debug("Reporting Current Status")
     GenEvent.call(BotStateEventManager, Farmbot.RPC.Handler, :force_dispatch)
-    # GenServer.cast(Farmbot.BotState.Monitor, :force_dispatch)
   end
 
   def handle_request("check_updates", _) do
@@ -127,9 +126,9 @@ defmodule Farmbot.RPC.Requests do
   end
 
   def handle_request("reboot", _ ) do
-    # Log something here("Bot Going down for reboot in 5 seconds", [], ["BotControl"])
+    Logger.warn("Bot going down for reboot in 5 seconds!", type: :toast)
     spawn fn ->
-      # Log something here("Rebooting!", [:ticker, :warning_toast], ["BotControl"])
+      Logger.warn("REBOOTING!!!!!", type: :toast)
       Process.sleep(5000)
       Farmbot.reboot
     end
@@ -138,10 +137,10 @@ defmodule Farmbot.RPC.Requests do
 
   def handle_request("power_off", _ ) do
     # Log something here("Bot Going down in 5 seconds. Pls remeber me.",
-      [:ticker, :warning_toast], ["BotControl"])
-    spawn fn ->
+      # [:ticker, :warning_toast], ["BotControl"])
+    spawn fn -> nil
       # Log something here("Powering Down!",
-        [:ticker, :warning_toast], ["BotControl"])
+        # [:ticker, :warning_toast], ["BotControl"])
       Process.sleep(5000)
       Nerves.Firmware.poweroff
     end
@@ -230,6 +229,13 @@ defmodule Farmbot.RPC.Requests do
     Logger.error "Bad params for calibtrate: #{inspect params}"
     {:error, "BAD_PARAMS",
       Poison.encode!(%{"target" => "x | y | z" })}
+  end
+
+  def handle_request("dump_logs", _) do
+    spawn fn ->
+      Farmbot.Logger.dump
+    end
+    :ok
   end
 
   # Unhandled event. Probably not implemented if it got this far.
