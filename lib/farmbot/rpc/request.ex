@@ -127,9 +127,9 @@ defmodule Farmbot.RPC.Requests do
   end
 
   def handle_request("reboot", _ ) do
-    # Log something here("Bot Going down for reboot in 5 seconds", [], ["BotControl"])
+    Logger.warn("Bot going down for reboot in 5 seconds!", type: :toast)
     spawn fn ->
-      # Log something here("Rebooting!", [:ticker, :warning_toast], ["BotControl"])
+      Logger.warn("REBOOTING!!!!!", type: :toast)
       Process.sleep(5000)
       Farmbot.reboot
     end

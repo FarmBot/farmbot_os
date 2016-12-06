@@ -27,7 +27,7 @@ defmodule Command do
   @spec e_stop(nil) :: :ok
   def e_stop(nil) do
     Farmbot.BotState.add_lock("e_stop")
-    # Log something here("E STOPPING!", [:error_toast, :error_ticker], [@log_tag])
+    Logger.warn("E Stopping", type: :toast)
     Farmbot.Serial.Handler.e_stop
     Farmbot.Scheduler.e_stop_lock
     :ok
@@ -55,7 +55,7 @@ defmodule Command do
     end)
     do
       {_, []} ->
-        # Log something here("Bot Back Up and Running!", [:ticker], [@log_tag])
+        Logger.debug("Bot Back up and running!")
         Farmbot.BotState.remove_lock("e_stop")
         Farmbot.Scheduler.e_stop_unlock
         :ok
@@ -76,7 +76,6 @@ defmodule Command do
   def home_all(speed \\ nil) do
     msg = "HOME ALL"
     Logger.debug(msg)
-    # Log something here(msg, [], [@log_tag])
     Command.move_absolute(0, 0, 0, speed || Farmbot.BotState.get_config(:steps_per_mm))
   end
 
@@ -87,7 +86,6 @@ defmodule Command do
   def home_x() do
     msg = "HOME X"
     Logger.debug(msg)
-    # Log something here(msg, [], [@log_tag])
     Farmbot.Serial.Gcode.Handler.block_send("F11")
   end
 
@@ -98,7 +96,6 @@ defmodule Command do
   def home_y() do
     msg = "HOME Y"
     Logger.debug(msg)
-    # Log something here(msg, [], [@log_tag])
     Farmbot.Serial.Gcode.Handler.block_send("F12")
   end
 
@@ -109,7 +106,6 @@ defmodule Command do
   def home_z() do
     msg = "HOME Z"
     Logger.debug(msg)
-    # Log something here(msg, [], [@log_tag])
     Farmbot.Serial.Gcode.Handler.block_send("F13")
   end
 
@@ -152,7 +148,6 @@ defmodule Command do
   def move_absolute(x, y, z, s) do
     msg = "Moving to X#{x} Y#{y} Z#{z}"
     Logger.debug(msg)
-    # Log something here(msg, [], [@log_tag])
     Farmbot.Serial.Gcode.Handler.block_send(
     "G00 X#{x} Y#{y} Z#{z} S#{s || Farmbot.BotState.get_config(:steps_per_mm)}")
     |> logmsg("Movement")
@@ -278,13 +273,12 @@ defmodule Command do
 
   @spec logmsg(command_output, String.t) :: command_output
   defp logmsg(:done, command) when is_bitstring(command) do
-    # Log something here("#{command} Complete", [],[@log_tag])
+    Logger.debug "#{command} Complete"
     :done
   end
 
   defp logmsg(other, command) when is_bitstring(command) do
     Logger.error("#{command} Failed")
-    # Log something here("#{command} Failed", [:error_toast, :error_ticker],[@log_tag])
     other
   end
 end

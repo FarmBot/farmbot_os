@@ -84,8 +84,7 @@ defmodule Farmbot.BotState.Hardware do
       %{mode: mode, value: _} ->
         %{mode: mode, value: value}
     end
-    # I REALLY don't want this to be here.
-    # spawn fn -> # Log something here("PIN #{pin} set: #{new_pin_value.value}", [], ["BotControl"]) end
+    Logger.debug("PIN #{pin} set: #{new_pin_value.value}")
     new_pin_state = Map.put(pin_state, Integer.to_string(pin), new_pin_value)
     dispatch %State{state | pins: new_pin_state}
   end

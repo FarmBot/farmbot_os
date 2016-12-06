@@ -69,8 +69,8 @@ defmodule Farmbot.Logger do
 
   @spec do_post([log_message],pid) :: :ok
   defp do_post(m, pid) do
-    messages = Poison.encode!(m)
     # TODO: THE API DOES NOT EXCEPT THIS YET SO IT JUST CREATES AN INFINATE LOOP
+    # messages = Poison.encode!(m)
     # Farmbot.HTTP.post("/api/logs", messages)
     # |> parse_resp(pid)
     send(pid, :post_success)
