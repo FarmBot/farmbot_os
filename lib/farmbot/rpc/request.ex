@@ -105,7 +105,7 @@ defmodule Farmbot.RPC.Requests do
   # Read status
   def handle_request("read_status", _) do
     Logger.debug ">> is reporting current status."
-    GenEvent.call(BotStateEventManager, Farmbot.RPC.Handler, :force_dispatch)
+    GenEvent.call(Farmbot.BotState.EventManager, Farmbot.RPC.Handler, :force_dispatch)
   end
 
   def handle_request("check_updates", _) do

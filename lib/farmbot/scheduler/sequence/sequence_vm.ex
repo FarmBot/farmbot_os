@@ -37,7 +37,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
   end
 
   def get_status do
-    GenEvent.call(BotStateEventManager, BotStateTracker, :state) |> check_status
+    GenEvent.call(Farmbot.BotState.EventManager, BotStateTracker, :state) |> check_status
   end
 
   def check_status(%HardwareState{} = blah), do: blah

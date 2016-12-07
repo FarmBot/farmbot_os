@@ -5,7 +5,7 @@ defmodule Farmbot.BotState.MonitorTest do
     use GenEvent
     def handle_event({:dispatch, state},_), do: {:ok, state}
     def handle_call(:state, state), do: {:ok, state, state}
-    def state(name \\ __MODULE__), do: GenEvent.call(BotStateEventManager, name, :state)
+    def state(name \\ __MODULE__), do: GenEvent.call(Farmbot.BotState.EventManager, name, :state)
 
     def start(name \\ __MODULE__) do
       Farmbot.BotState.Monitor.add_handler(name)
