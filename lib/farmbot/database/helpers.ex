@@ -9,6 +9,9 @@ alias Farmbot.Sync.Database.Tool
 alias Farmbot.Sync.Database.User
 
 defmodule Farmbot.Sync.Helpers do
+  @moduledoc """
+    Things that should be macros but Amnesia does some weird stuff.
+  """
   use Amnesia
   use Device
   use Peripheral
@@ -117,9 +120,8 @@ defmodule Farmbot.Sync.Helpers do
     Amnesia.transaction do
       # there is only ever at most one device..
       Device.first
-      || [%Device{id: -1, name: "Farmbot", planting_area_id: nil, webcam_url: nil}]
+      || %Device{id: -1, name: "Farmbot", planting_area_id: nil, webcam_url: nil}
     end
-    |> List.first
     |> Map.get(:name)
   end
 
