@@ -228,6 +228,7 @@ defmodule Farmbot.RPC.Requests do
   end
 
   def handle_request("dump_logs", _) do
+    Logger.debug ">> is dumping logs. "
     spawn fn ->
       Farmbot.Logger.dump
     end

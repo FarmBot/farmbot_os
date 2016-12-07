@@ -83,7 +83,13 @@ defmodule Farmbot.Logger do
   @doc """
     Dumps the current log buffer to the front end.
   """
-  def dump, do: get_logs |> build_rpc_dump |> @rpc_transport.emit
+  @spec dump :: :ok
+  def dump, do: get_logs |> build_rpc_dump |> emit
+
+  # i just wanted the dump function to pipe into emit.
+  @spec emit({:ok, binary} | binary) :: :ok
+  defp emit({:ok, binary}), do: emit(binary)
+  defp emit(binary), do: @rpc_transport.emit(binary)
 
   # Dont know if this can happen but just in case.
   defp dispatch(Farmbot.Logger), do: {:ok, build_state}
