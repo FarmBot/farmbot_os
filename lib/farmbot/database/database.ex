@@ -31,8 +31,8 @@ defmodule Farmbot.Sync do
     syncable RegimenItem, [ :id, :time_offset, :regimen_id, :sequence_id]
     syncable Sequence, [:args, :body, :color, :device_id, :id, :kind, :name]
     syncable ToolBay, [:id, :device_id, :name]
-    syncable ToolSlot, [:id, :tool_bay_id, :name, :x, :y, :z]
-    syncable Tool, [:id, :slot_id, :name]
+    syncable ToolSlot, [:id, :tool_bay_id, :tool_id, :name, :x, :y, :z]
+    syncable Tool, [:id, :name]
     syncable User, [ :id, :device_id, :name, :email, :created_at, :updated_at]
   end
 
