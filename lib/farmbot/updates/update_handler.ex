@@ -147,4 +147,23 @@ defmodule Farmbot.Updates.Handler do
   # If we happen to get something weird from httpotion
   @spec parse_resp(any) :: {:error, :bad_resp}
   def parse_resp(_), do: {:error, :bad_resp}
+
+  @doc """
+    Forces a check according to configuration.
+  """
+  @spec do_update_check :: any
+  def do_update_check do
+    Logger.debug ">> is checking for updates."
+
+    # check configuration.
+    case Farmbot.BotState.get_config(:os_auto_update) do
+      true -> check_and_download_updates(:os)
+      _ -> Logger.debug ">> won't check for operating system updates."
+    end
+
+    case Farmbot.BotState.get_config(:fw_auto_update) do
+      true -> check_and_download_updates(:fw)
+      _ -> Logger.debug ">> won't check for firmware updates."
+    end
+  end
 end

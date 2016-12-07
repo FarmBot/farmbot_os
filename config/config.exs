@@ -16,3 +16,7 @@ config :uart,
 
 config :logger,
   utc_logs: true
+
+config :quantum, cron: [
+  "5 1 * * *": {Farmbot.Updates.Handler, :do_update_check}
+]
