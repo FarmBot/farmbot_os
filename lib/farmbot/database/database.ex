@@ -26,6 +26,7 @@ defmodule Farmbot.Sync do
     syncable Device, [:id, :planting_area_id, :name, :webcam_url]
     syncable Peripheral,
       [:id, :device_id, :pin, :mode, :label, :created_at, :updated_at]
+    syncable Plant, [:id, :device_id]
     syncable Regimen, [:id, :color, :name, :device_id]
     syncable RegimenItem, [ :id, :time_offset, :regimen_id, :sequence_id]
     syncable Sequence, [:args, :body, :color, :device_id, :id, :kind, :name]
@@ -48,7 +49,7 @@ defmodule Farmbot.Sync do
   def get_user(id), do: Helpers.get_user(id)
 
   def device_name, do: Helpers.get_device_name
-  
+
   @doc """
     Downloads the sync object form the API.
   """

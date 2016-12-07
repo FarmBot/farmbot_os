@@ -18,6 +18,7 @@
   "exquisite": {:hex, :exquisite, "0.1.7", "4106503e976f409246731b168cd76eb54262bd04f4facc5cba82c2f53982aaf0", [:mix], []},
   "exrm": {:hex, :exrm, "1.0.8", "5aa8990cdfe300282828b02cefdc339e235f7916388ce99f9a1f926a9271a45d", [:mix], [{:relx, "~> 3.5", [hex: :relx, optional: false]}]},
   "fake_nerves": {:git, "https://github.com/ConnorRigby/fake_nerves.git", "fad032a71e624ebeb06ecb5089c61583f8e111e0", []},
+  "faker": {:hex, :faker, "0.7.0", "2c42deeac7be717173c78c77fb3edc749fb5d5e460e33d01fe592ae99acc2f0d", [:mix], []},
   "farmbot_auth": {:git, "https://github.com/Farmbot/farmbot_auth.git", "909ff852ff0d40122e3e02c4b8a35769598f151b", []},
   "farmbot_configurator": {:git, "https://github.com/Farmbot/farmbot_configurator.git", "e3b2ddb498123029ad14306e9d9e525200ab7c2f", []},
   "gen_mqtt": {:hex, :gen_mqtt, "0.3.1", "6ce6af7c2bcb125d5b4125c67c5ab1f29bcec2638236509bcc6abf510a6661ed", [:mix], [{:vmq_commons, "1.0.0", [hex: :vmq_commons, optional: false]}]},

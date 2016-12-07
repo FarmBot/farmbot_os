@@ -55,9 +55,7 @@ defmodule Farmbot.Logger do
   end
 
   def handle_event(:flush, state) do
-    IO.puts "YOU FORGOT TO FINISH THIS!!!@"
-    # flush(state)
-    {:ok, state}
+    {:ok, build_state}
   end
 
   # If the post succeeded, we clear the messages

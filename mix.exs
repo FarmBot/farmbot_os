@@ -77,7 +77,8 @@ defmodule Farmbot.Mixfile do
     apps ++ [
       :plug,
       :cors_plug,
-      :cowboy
+      :cowboy,
+      :faker
     ]
   end
 
@@ -114,7 +115,8 @@ defmodule Farmbot.Mixfile do
     [ {:plug, "~> 1.0"},
       {:cors_plug, "~> 1.1"},
       {:cowboy, "~> 1.0.0"},
-      {:excoveralls, "~> 0.5"} ]
+      {:excoveralls, "~> 0.5"},
+      {:faker, "~> 0.7"} ]
   end
 
   def deps(:dev) do

@@ -131,21 +131,5 @@ defmodule Syncable do
       end
     end
   end
-
-  @doc """
-    Builds a function for getting a module by id
-  """
-  defmacro get_by_id(name) do
-    module_name = Module.concat(Farmbot.Sync.Database, Macro.camelize(name))
-    function_name = String.to_atom("get_" <> name)
-    quote do
-      def unquote(function_name)(find_id) do
-        Amnesia.transaction do
-          m = unquote(module_name)
-          m.read(find_id)
-        end
-      end
-    end
-  end
-
+  
 end
