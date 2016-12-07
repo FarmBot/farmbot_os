@@ -99,9 +99,13 @@ defmodule Farmbot.Logger do
   # Posts an array of logs to the API.
   @spec do_post([log_message],pid) :: :ok
   defp do_post(m, pid) do
-    messages = Poison.encode!(m)
-    Farmbot.HTTP.post("/api/logs", messages)
-    |> parse_resp(pid)
+    case Poison.encode(m) do
+      {:ok, messages} ->
+        Farmbot.HTTP.post("/api/logs", messages)
+        |> parse_resp(pid)
+      _ ->
+        IO.puts "error parsing: #{inspect m}"
+    end
   end
 
   # Parses what the api sends back. Will only ever return :ok even if there was
@@ -183,21 +187,29 @@ defmodule Farmbot.Logger do
   end
 
   defp build_rpc(msg) do
-    %Notification{
-      id: nil,
-      method: "log_message",
-      params: [msg]}
-    |> Poison.encode!
+    case Poison.encode(
+      %Notification{
+        id: nil,
+        method: "log_message",
+        params: [msg]})
+    do
+      {:ok, m} -> m
+      _ -> IO.puts "error parsing #{inspect msg}"
+    end
   end
 
   # Takes a list of rpc log messages
   defp build_rpc_dump(rpc_logs)
   when is_list(rpc_logs) do
-    %Notification{
-      id: nil,
-      method: "log_dump",
-      params:  rpc_logs }
-    |> Poison.encode!
+    case Poison.encode(
+      %Notification{
+        id: nil,
+        method: "log_dump",
+        params:  rpc_logs })
+    do
+      {:ok, m} -> m
+      _ -> IO.puts "error parsing #{inspect rpc_logs}"
+    end
   end
 
   @type posting? :: boolean
