@@ -1,10 +1,13 @@
 defmodule Farmbot.Logger do
   @moduledoc """
     Logger backend for logging to the frontend and dumping to the API.
+    Takes messages that were logged useing Logger, if they can be
+    jsonified, adds them too a buffer, when that buffer hits a certain
+    size, it tries to dump the messages onto the API.
   """
   @rpc_transport Application.get_env(:json_rpc, :transport)
-  use GenEvent
   alias RPC.Spec.Notification, as: Notification
+  use GenEvent
 
   # I SUCK
   def handle_event(thing, Farmbot.Logger), do: handle_event(thing, build_state)
@@ -39,12 +42,16 @@ defmodule Farmbot.Logger do
     pos = Farmbot.BotState.get_current_pos
 
     # take logger time stamp and spit out a unix timestamp for the javascripts.
-    with {:ok, created_at} <- parse_created_at(timestamp) do
-      thing =
-        build_log(message, created_at, type, channels, pos)
-      build_rpc(thing) |> @rpc_transport.emit
-      dispatch({messages ++ [thing], posting?})
-    end || dispatch({messages, posting?})
+    with {:ok, created_at} <- parse_created_at(timestamp),
+         {:ok, log} <- build_log(message, created_at, type, channels, pos),
+         {:ok, json} <- build_rpc(log),
+         # ^ This will possible return nil if it cant create json.
+         # it will silently be discarded.
+         :ok <- @rpc_transport.emit(json),
+         # make sure we add the non json version of the log message.
+         do: dispatch({messages ++ [log], posting?})
+    # if we got nil before, dont dispatch the new message into the buffer
+    || dispatch({messages, posting?})
   end
 
   def handle_event(:flush, state) do
@@ -99,12 +106,16 @@ defmodule Farmbot.Logger do
   # Posts an array of logs to the API.
   @spec do_post([log_message],pid) :: :ok
   defp do_post(m, pid) do
-    case Poison.encode(m) do
+    case to_json(m) do
+      nil ->
+        # THis shouldn't happen but if it does, i dont know what shoulg happen.
+        # Problem: somewhere in the list of log messages, there is a
+        # message that can not be turned to json.
+        # meaning that next time this function comes rount, it
+        # still won't be able to make it json.
+        send(pid, :post_complete)
       {:ok, messages} ->
-        Farmbot.HTTP.post("/api/logs", messages)
-        |> parse_resp(pid)
-      _ ->
-        IO.puts "error parsing: #{inspect m}"
+        Farmbot.HTTP.post("/api/logs", messages) |> parse_resp(pid)
     end
   end
 
@@ -172,47 +183,58 @@ defmodule Farmbot.Logger do
     {:ok, unix}
   end
   defp parse_created_at({_,_}), do: {:ok, :os.system_time}
+  defp parse_created_at(_), do: nil
 
   @spec build_log(String.t, number, rpc_log_type, [channels], [integer])
-  :: log_message
+  :: {:ok, log_message}
   defp build_log(message, created_at, type, channels, [x,y,z]) do
-    %{message: message,
-      created_at: created_at,
-      channels: channels,
-      meta: %{
-        type: type,
-        x: x,
-        y: y,
-        z: z }}
+    a =
+      %{message: message,
+        created_at: created_at,
+        channels: channels,
+        meta: %{
+          type: type,
+          x: x,
+          y: y,
+          z: z }}
+    {:ok, a}
   end
 
+  # TODO make a struct for the first argument of this function for better
+  # safety
+  @spec build_rpc(map) :: {:ok, binary} | nil
   defp build_rpc(msg) do
-    case Poison.encode(
-      %Notification{
-        id: nil,
-        method: "log_message",
-        params: [msg]})
-    do
-      {:ok, m} -> m
-      _ -> IO.puts "error parsing #{inspect msg}"
-    end
+    %Notification{
+      id: nil,
+      method: "log_message",
+      params: [msg]}
+    |> to_json
   end
 
   # Takes a list of rpc log messages
+  @spec build_rpc_dump(log_message) :: {:ok, binary} | nil
   defp build_rpc_dump(rpc_logs)
   when is_list(rpc_logs) do
-    case Poison.encode(
-      %Notification{
-        id: nil,
-        method: "log_dump",
-        params:  rpc_logs })
-    do
-      {:ok, m} -> m
-      _ -> IO.puts "error parsing #{inspect rpc_logs}"
+    %Notification{
+      id: nil,
+      method: "log_dump",
+      params:  rpc_logs }
+    |> to_json
+  end
+
+  @spec to_json(map) :: {:ok, binary} | nil
+  defp to_json(thing) do
+    try do
+      Poison.encode(thing)
+    rescue
+      FunctionClauseError ->
+        nil
     end
   end
 
   @type posting? :: boolean
   @spec build_state :: {[log_message], posting?}
+  # this is because i dont know how to input a default state to Logger.
   defp build_state, do: {[], false}
+  def terminate(_reason, _), do: nil
 end
