@@ -116,7 +116,7 @@ defmodule Syncable do
     IO.puts "Defining syncable: #{inspect thing}, with keys: #{inspect model}"
     quote do
       deftable unquote(module)
-      deftable unquote(module), unquote(model), type: :ordered_set do
+      deftable unquote(module), unquote(model), type: :bag do
         use Syncable, name: __MODULE__, model: unquote(model)
         @moduledoc """
           A #{unquote(module)} from the API.

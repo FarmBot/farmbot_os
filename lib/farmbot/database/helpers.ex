@@ -120,8 +120,9 @@ defmodule Farmbot.Sync.Helpers do
     Amnesia.transaction do
       # there is only ever at most one device..
       Device.first
-      || %Device{id: -1, name: "Farmbot", planting_area_id: nil, webcam_url: nil}
+      || [%Device{id: -1, name: "Farmbot", planting_area_id: nil, webcam_url: nil}]
     end
+    |> List.first
     |> Map.get(:name)
   end
 

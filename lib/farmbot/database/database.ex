@@ -28,8 +28,8 @@ defmodule Farmbot.Sync do
       [:id, :device_id, :pin, :mode, :label, :created_at, :updated_at]
     syncable Plant, [:id, :device_id]
     syncable Regimen, [:id, :color, :name, :device_id]
-    syncable RegimenItem, [ :id, :time_offset, :regimen_id, :sequence_id]
-    syncable Sequence, [:args, :body, :color, :device_id, :id, :kind, :name]
+    syncable RegimenItem, [:id, :time_offset, :regimen_id, :sequence_id]
+    syncable Sequence, [:id, :args, :body, :color, :device_id, :kind, :name]
     syncable ToolBay, [:id, :device_id, :name]
     syncable ToolSlot, [:id, :tool_bay_id, :tool_id, :name, :x, :y, :z]
     syncable Tool, [:id, :name]
@@ -93,6 +93,10 @@ defmodule Farmbot.Sync do
   def parse_and_write(list_of_things) when is_list(list_of_things) do
     Enum.map(list_of_things, fn(thing) ->
       module = thing.__struct__
+      case module.read(thing.id) do
+        nil -> nil
+        [%module{} = delete_me] -> module.delete(delete_me)
+      end
       module.write(thing)
     end)
   end
