@@ -48,40 +48,40 @@ defmodule Farmbot.Sync.SyncObjectTest do
 
     json2 = json_resp |> break("peripherals")
     {:error, Farmbot.Sync.Database.Peripheral, reason2} = Farmbot.Sync.SyncObject.validate(json2)
-    assert reason2 == ["failure"]
+    assert reason2 == [{:error, Farmbot.Sync.Database.Peripheral, :bad_map}]
 
     json3 = json_resp |> break("plants")
     {:error, Farmbot.Sync.Database.Plant, reason3} = Farmbot.Sync.SyncObject.validate(json3)
-    assert reason3 == ["failure"]
+    assert reason3 == [{:error, Farmbot.Sync.Database.Plant, :bad_map}]
 
     json4 = json_resp |> break("regimen_items")
     {:error, Farmbot.Sync.Database.RegimenItem, reason4} = Farmbot.Sync.SyncObject.validate(json4)
-    assert reason4 == ["failure"]
+    assert reason4 == [{:error, Farmbot.Sync.Database.RegimenItem, :bad_map}]
 
     json5 = json_resp |> break("regimens")
     {:error, Farmbot.Sync.Database.Regimen, reason5} = Farmbot.Sync.SyncObject.validate(json5)
-    assert reason5 == ["failure"]
+    assert reason5 == [{:error, Farmbot.Sync.Database.Regimen, :bad_map}]
 
     json6 = json_resp |> break("sequences")
     {:error, Farmbot.Sync.Database.Sequence, reason6} = Farmbot.Sync.SyncObject.validate(json6)
-    assert reason6 == ["failure"]
+    assert reason6 == [{:error, Farmbot.Sync.Database.Sequence, :bad_map}]
 
     json7 = json_resp |> break("tool_bays")
     {:error, Farmbot.Sync.Database.ToolBay, reason7} = Farmbot.Sync.SyncObject.validate(json7)
-    assert reason7 == ["failure"]
+    assert reason7 == [{:error, Farmbot.Sync.Database.ToolBay, :bad_map}]
 
     json8 = json_resp |> break("tool_slots")
     {:error, Farmbot.Sync.Database.ToolSlot, reason8} = Farmbot.Sync.SyncObject.validate(json8)
-    assert reason8 == ["failure"]
+    assert reason8 == [{:error, Farmbot.Sync.Database.ToolSlot, :bad_map}]
 
     json9 = json_resp |> break("tools")
     {:error, Farmbot.Sync.Database.Tool, reason9} = Farmbot.Sync.SyncObject.validate(json9)
-    assert reason9 == ["failure"]
+    assert reason9 == [{:error, Farmbot.Sync.Database.Tool, :bad_map}]
 
 
     json10 = json_resp |> break("users")
     {:error, Farmbot.Sync.Database.User, reason10} = Farmbot.Sync.SyncObject.validate(json10)
-    assert reason10 == ["failure"]
+    assert reason10 == [{:error, Farmbot.Sync.Database.User, :bad_map}]
 
   end
 

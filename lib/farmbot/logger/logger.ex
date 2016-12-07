@@ -42,19 +42,19 @@ defmodule Farmbot.Logger do
     pos = Farmbot.BotState.get_current_pos
 
     # take logger time stamp and spit out a unix timestamp for the javascripts.
-    with {:ok, created_at} <- parse_created_at(timestamp),
+    with( {:ok, created_at} <- parse_created_at(timestamp),
          {:ok, log} <- build_log(message, created_at, type, channels, pos),
          {:ok, json} <- build_rpc(log),
          # ^ This will possible return nil if it cant create json.
          # it will silently be discarded.
          :ok <- @rpc_transport.emit(json),
          # make sure we add the non json version of the log message.
-         do: dispatch({messages ++ [log], posting?})
+         do: dispatch({messages ++ [log], posting?}))
     # if we got nil before, dont dispatch the new message into the buffer
     || dispatch({messages, posting?})
   end
 
-  def handle_event(:flush, state) do
+  def handle_event(:flush, _state) do
     {:ok, build_state}
   end
 
