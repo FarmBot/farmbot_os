@@ -73,7 +73,8 @@ defmodule SafeStorage do
   def mount_read_only() do
     if @env == :prod do
       sync
-      "mount"
+      cmd = "mount"
+      cmd
       |> System.cmd(["-t",
                      @fs_type,
                      "-o",
@@ -85,7 +86,8 @@ defmodule SafeStorage do
 
   def mount_read_write() do
     if @env == :prod do
-      "mount"
+      cmd = "mount"
+      cmd
       |> System.cmd(["-t",
                      @fs_type,
                      "-o",
@@ -97,7 +99,8 @@ defmodule SafeStorage do
 
   def sync() do
     if @env == :prod do
-      "sync"
+      sync_cmd = "sync"
+      sync_cmd
       |> System.cmd([])
       |> print_cmd(sync_cmd)
     end

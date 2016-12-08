@@ -141,7 +141,7 @@ defmodule Farmbot.RPC.Requests do
 
   def handle_request("mcu_config_update", [params]) when is_map(params) do
     params
-    |> Enum.partition(params,
+    |> Enum.partition(
        fn({param, value}) ->
          param_int = Farmbot.Serial.Gcode.Parser.parse_param(param)
          spawn fn -> Command.update_param(param_int, value) end

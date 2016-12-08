@@ -174,7 +174,7 @@ defmodule Farmbot.BotState.Configuration do
       nil ->
         new_state = %State{locks: state.locks ++ [%{reason: string}]}
         dispatch new_state
-      int ->
+      _int ->
         dispatch state
     end
   end
