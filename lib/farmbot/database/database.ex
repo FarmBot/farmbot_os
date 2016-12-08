@@ -88,15 +88,41 @@ defmodule Farmbot.Sync do
   # make struct function pipable.
   defp to_struct(map, module), do: struct(module, map)
 
+  @doc """
+    Takes a single database object and turns it into a list of things
+    and pushes it back thru again.
+  """
   def parse_and_write(thing) when is_map(thing), do: parse_and_write([thing])
 
+  @doc """
+    Takes a list of Database Objects
+      * figures out what kind of object the thing is.
+      * checks if there is already an object under this id
+        * if there is, hunts it down and destroys it
+      * Writes the new one.
+  """
   def parse_and_write(list_of_things) when is_list(list_of_things) do
     Enum.map(list_of_things, fn(thing) ->
+      # im so cute.
       module = thing.__struct__
+
+      # OK. GET READY TO LEARN SOMETHING
+      # SINCE WE DONT WANT TO KEEP TRACK OF :id OURSELVES,
+      # WE HAVE TO MAKE OUR TABLES A :bag
+      # THIS MEANS THAT EVERY TIME WE ENTER SOMETHING INTO THE
+      # DATABASE WE HAVE TO CHECK FOR ITS EXISTANCE
+      # THESE FOUR LINES OF PURE GOLD IS THAT
       case module.read(thing.id) do
+        # IF IT WAS nil WE ARE FINE.
         nil -> nil
+        # BUT IF ITS A ONE ITEM LIST OF A STRUCT OF THIS MODULE, WE NEED TO DELETE
+        # IT FROM THE DB BEFORE WRITING THE NEW ONE IN.
         [%module{} = delete_me] -> module.delete(delete_me)
+        # WHICH IS ALL FINE AS LONG AS THIS DOES NOT HAPPEN
+        # IF IT DOES THERE MAY OR MAY NOT BE AN N+1 ISSUE.
+        other_list -> Enum.each(other_list, fn(t) -> module.delete(t) end)
       end
+      # This is where we actually write the new thing.
       module.write(thing)
     end)
   end
