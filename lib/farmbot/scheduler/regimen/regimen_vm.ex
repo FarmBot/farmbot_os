@@ -139,10 +139,6 @@ defmodule Farmbot.Scheduler.Regimen.VM  do
         end
         should_run
     end)
-    # if statement just for a log message ha
-    if items_to_do == [] do
-      Logger.debug ">> has nothing to run this cycle on: [#{regimen.name}]"
-    end
     timer = tick(self())
     finished = ran_items ++ items_to_do
     # tell farmevent manager that these items are done.
