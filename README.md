@@ -1,4 +1,3 @@
-https://travis-ci.org/FarmBot/farmbot_os.svg?branch=master
 [![Build Status](https://travis-ci.org/FarmBot/farmbot_os.svg?branch=master)](https://travis-ci.org/FarmBot/farmbot_os.svg?branch=master)
 
 # FarmBot Software for the Raspberry Pi 3
