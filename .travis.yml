@@ -1,0 +1,38 @@
+language: erlang
+otp_release:
+  - 19.0
+
+# It would be possible to use the container-based infrastructure if
+# it ran trusty. However, it doesn't and wget is too old to use for
+# HTTPS to buildroot.net.
+sudo: required
+dist: trusty
+
+# Install dependencies
+addons:
+  apt:
+    packages:
+    - bc
+    - libssl-dev
+
+env:
+  - TTY=test
+
+before_install:
+  - git clone https://github.com/elixir-lang/elixir
+  - cd elixir
+  - git checkout v1.3
+  - make clean
+  - make
+  - cd ..
+
+before_script:
+  - export PATH=`pwd`/elixir/bin:$PATH
+
+script:
+  - mix local.hex --force
+  - mix local.rebar --force
+  - mix deps.get
+  - mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez --force
+  - mix compile
+  - MIX_ENV=test mix test

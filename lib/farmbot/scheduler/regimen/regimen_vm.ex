@@ -47,8 +47,8 @@ defmodule Farmbot.Scheduler.Regimen.VM  do
     first_time = Timex.shift(time, milliseconds: first.time_offset)
 
     Logger.debug "First item will execute on \
-                  #{first_time.month}-#{first_time.day} \
-                  at: #{first_time.hour}:#{first_time.minute}",
+    #{first_time.month}-#{first_time.day} \
+    at: #{first_time.hour}:#{first_time.minute}",
       channel: [:toast]
 
 
