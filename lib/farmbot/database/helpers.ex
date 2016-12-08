@@ -136,6 +136,7 @@ defmodule Farmbot.Sync.Helpers do
     |> Map.get(:name)
   end
 
+  @lint false # Amnesia.Selection doesnt need to be aliased Credo!
   defp parse_selection(nil), do: nil
   defp parse_selection(selection) do
     f = Amnesia.Selection.values(selection)

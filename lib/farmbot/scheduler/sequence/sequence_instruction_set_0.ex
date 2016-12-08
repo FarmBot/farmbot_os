@@ -8,6 +8,7 @@ defmodule Farmbot.Scheduler.Sequence.InstructionSet_0 do
   """
   use GenServer
   require Logger
+  alias Farmbot.Scheduler.Sequence.VM, as: SequenceVM
 
   def start_link(parent) do
     Logger.debug ">> is initializing sequence instruction set 0"
@@ -151,7 +152,7 @@ defmodule Farmbot.Scheduler.Sequence.InstructionSet_0 do
   defp do_if(l, op, r), do: Logger.debug ">> couldn't parse if:[#{l} #{op} #{r}]"
 
   @spec dispatch(atom, pid) :: {:noreply, pid}
-  defp dispatch(status, parent), do: Farmbot.Scheduler.Sequence.VM.tick(parent, status)
+  defp dispatch(status, parent), do: SequenceVM.tick(parent, status)
   @spec no_dispatch(pid) :: {:noreply, pid}
   defp no_dispatch(parent), do: {:noreply, parent}
 end

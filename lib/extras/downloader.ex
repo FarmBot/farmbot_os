@@ -12,7 +12,8 @@ defmodule Downloader do
     receive_data(total_bytes: :unknown, data: "", dl_path: dl_file)
   end
 
-  @lint false # this would look weird if we started the pipe chain with a raw val
+  # this would look weird if we started the pipe chain with a raw val
+  @lint false
   defp receive_data(total_bytes: total_bytes, data: data, dl_path: path) do
     receive do
       %HTTPotion.AsyncHeaders{headers: h} ->
@@ -25,7 +26,8 @@ defmodule Downloader do
         accumulated_bytes = byte_size(accumulated_data)
         percent =
           accumulated_bytes / total_bytes * 100 |> Float.round(2)
-        receive_data(total_bytes: total_bytes, data: accumulated_data, dl_path: path)
+        receive_data(total_bytes: total_bytes,
+                     data: accumulated_data, dl_path: path)
 
       %HTTPotion.AsyncEnd{} ->
         File.write!(path, data)

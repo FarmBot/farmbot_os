@@ -6,7 +6,8 @@ defmodule Syncable do
       iex> defmodule BubbleGum do
       ...>    use Syncable, name: __MODULE__, model: [:flavors, :brands]
       ...> end
-      iex> BubbleGum.create!(%{"flavors" => ["mint", "berry"], "brands" => ["BigRed"]})
+      iex> BubbleGum.create!(%{"flavors" => ["mint", "berry"],
+      ..>  "brands" => ["BigRed"]})
            {:ok, %BubbleGum{flavors: ["mint", "berry"], brands:  ["BigRed"]}}
   """
 

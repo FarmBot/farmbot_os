@@ -6,6 +6,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
     There should only ever be one instance of this process at a time.
   """
   require Logger
+  alias Farmbot.BotState.Monitor, as: BotStateMonitor
 
   defmodule BotStateTracker do
     @moduledoc false
@@ -51,7 +52,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
 
   def init(%Sequence{} = sequence) do
     Logger.debug ">> is initializing the sequencer!"
-    Farmbot.BotState.Monitor.add_handler(BotStateTracker, {__MODULE__, nil})
+    BotStateMonitor.add_handler(BotStateTracker, {__MODULE__, nil})
     tv = Map.get(sequence.args, "tag_version") || 0
     module = Module.concat(Farmbot.Scheduler.Sequence, "InstructionSet_#{tv}")
     {:ok, instruction_set} = module.start_link(self())
@@ -85,7 +86,6 @@ defmodule Farmbot.Scheduler.Sequence.VM do
 
   # disabling this right now
   def handle_call(:get_all_vars, _from, state) do
-    # %Farmbot.BotState.Hardware.State{location: [-1, -1, -1], mcu_params: %{}, pins: %{}}
     # Kind of dirty function to make mustache work properly.
     # Also possibly a huge memory leak.
 
@@ -200,7 +200,9 @@ defmodule Farmbot.Scheduler.Sequence.VM do
   end
 
   def handle_info({:error, error}, state) do
-    Logger.error ">> encountered an error in [state.sequence.name]: #{inspect error}"
+    Logger.error """
+      >> encountered an error in [state.sequence.name]: #{inspect error}
+      """
     send(Farmbot.Scheduler.Sequence.Manager, {:done, self(), state.sequence})
     {:noreply, state}
   end
@@ -227,12 +229,12 @@ defmodule Farmbot.Scheduler.Sequence.VM do
 
   def terminate(:normal, state) do
     GenServer.stop(state.instruction_set, :normal)
-    Farmbot.BotState.Monitor.remove_handler(__MODULE__)
+    BotStateMonitor.remove_handler(__MODULE__)
   end
 
   def terminate(reason, state) do
     Logger.error ">> detected a sequencer death: #{inspect reason}"
     GenServer.stop(state.instruction_set, :normal)
-    Farmbot.BotState.Monitor.remove_handler(__MODULE__)
+    BotStateMonitor.remove_handler(__MODULE__)
   end
 end

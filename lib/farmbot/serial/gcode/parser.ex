@@ -290,7 +290,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(:pin_guard_5_active_state) do 223 end
   def parse_param(param_string) when is_bitstring(param_string),
     do: param_string |> String.to_atom |> parse_param
-    
+
   def parse_param(_), do: nil
 
   @spec qtag :: String.t

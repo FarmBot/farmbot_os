@@ -11,6 +11,7 @@ defmodule Farmbot.BotState.Monitor do
   """
   use GenServer
   require Logger
+  alias Farmbot.BotState
 
   defmodule State do
     @moduledoc false
@@ -105,9 +106,9 @@ defmodule Farmbot.BotState.Monitor do
       "server" => server,
       "tz" => timezone}}, {mgr, state})
   do
-    Farmbot.BotState.update_config("timezone", timezone)
-    Farmbot.BotState.add_creds({email,password,server})
-    NetMan.connect(:ethernet, Farmbot.BotState.Network)
+    BotState.update_config("timezone", timezone)
+    BotState.add_creds({email,password,server})
+    NetMan.connect(:ethernet, BotState.Network)
     dispatch(mgr,state)
   end
 
@@ -118,9 +119,9 @@ defmodule Farmbot.BotState.Monitor do
       "server" => server,
       "tz" => timezone}}, {mgr, state})
   do
-    Farmbot.BotState.update_config("timezone", timezone)
-    Farmbot.BotState.add_creds({email,password,server})
-    NetMan.connect({ssid, psk}, Farmbot.BotState.Network)
+    BotState.update_config("timezone", timezone)
+    BotState.add_creds({email,password,server})
+    NetMan.connect({ssid, psk}, BotState.Network)
     dispatch(mgr,state)
   end
 
@@ -128,7 +129,8 @@ defmodule Farmbot.BotState.Monitor do
 
   # If a handler dies, we try to restart it
   def handle_info({:gen_event_EXIT, handler, _reason}, {mgr, state}) do
-    # Log somethingwarn("HANDLER DIED: #{inspect handler} Goint to try to restart")
+    # Log somethingwarn("HANDLER DIED:
+    # #{inspect handler} Goint to try to restart")
     add_handler(mgr, handler)
     dispatch(mgr, state)
   end

@@ -69,7 +69,8 @@ defmodule Farmbot.BotState.Hardware do
   end
 
   def handle_call(event, _from, %State{} = state) do
-    Logger.error ">> got an unhandled call in Hardware tracker: #{inspect event}"
+    Logger.error ">> got an unhandled call in " <>
+                 "Hardware tracker: #{inspect event}"
     dispatch :unhandled, state
   end
 
@@ -113,7 +114,8 @@ defmodule Farmbot.BotState.Hardware do
 
   # catch all.
   def handle_cast(event, %State{} = state) do
-    Logger.error ">> got an unhandled cast in Hardware tracker: #{inspect event}"
+    Logger.error ">> got an unhandled cast " <>
+                 "in Hardware tracker: #{inspect event}"
     dispatch state
   end
 

@@ -2,7 +2,8 @@ defmodule SafeStorage do
   @moduledoc """
     I don't want to use ext4 so this happened.
     This app makes timed strategic writes to the fat32 filesystem.
-    It keeps the partition mounted read only for most of the time but for a brief
+    It keeps the partition mounted
+    read only for most of the time but for a brief
     moment it will mount read/write, write a bunch of binaries, sync, then
     mount read only again.
     It only stores and returns binaries.

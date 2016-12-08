@@ -7,6 +7,9 @@ defmodule Farmbot.Logger do
   """
   @rpc_transport Application.get_env(:json_rpc, :transport)
   alias RPC.Spec.Notification, as: Notification
+  alias Farmbot.Sync
+  alias Farmbot.HTTP
+  alias Farmbot.BotState
   use GenEvent
 
   # I SUCK
@@ -21,7 +24,7 @@ defmodule Farmbot.Logger do
 
   # Tehe
   def handle_event({l, f, {Logger, ">>" <> message, ts, meta}}, s) do
-    device_name = Farmbot.Sync.device_name
+    device_name = Sync.device_name
     handle_event({l, f, {Logger, "#{device_name}" <> message, ts, meta}}, s)
   end
 
@@ -39,7 +42,7 @@ defmodule Farmbot.Logger do
     channels = parse_channels(Keyword.take(metadata, [:channels]))
 
     # BUG: should not be poling the bot for its position.
-    pos = Farmbot.BotState.get_current_pos
+    pos = BotState.get_current_pos
 
     # take logger time stamp and spit out a unix timestamp for the javascripts.
     with({:ok, created_at} <- parse_created_at(timestamp),
@@ -119,7 +122,7 @@ defmodule Farmbot.Logger do
         # still won't be able to make it json.
         send(pid, :post_complete)
       {:ok, messages} ->
-        "/api/logs" |> Farmbot.HTTP.post(messages) |> parse_resp(pid)
+        "/api/logs" |> HTTP.post(messages) |> parse_resp(pid)
     end
   end
 

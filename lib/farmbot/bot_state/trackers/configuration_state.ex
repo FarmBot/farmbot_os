@@ -86,7 +86,8 @@ defmodule Farmbot.BotState.Configuration do
   # Returns true for configs that exist and are the correct typpe,
   # and false for anything else
   # TODO make sure these are properly typed.
-  def handle_call({:update_config, "os_auto_update", value}, _from, %State{} = state)
+  def handle_call({:update_config, "os_auto_update", value},
+    _from, %State{} = state)
   when is_boolean(value) do
     new_config = Map.put(state.configuration, :os_auto_update, value)
     new_state = %State{state | configuration: new_config}
@@ -94,7 +95,8 @@ defmodule Farmbot.BotState.Configuration do
     dispatch true, new_state
   end
 
-  def handle_call({:update_config, "fw_auto_update", value}, _from, %State{} = state)
+  def handle_call({:update_config, "fw_auto_update", value},
+    _from, %State{} = state)
   when is_boolean(value) do
     new_config = Map.put(state.configuration, :fw_auto_update, value)
     new_state = %State{state | configuration: new_config}
@@ -110,7 +112,8 @@ defmodule Farmbot.BotState.Configuration do
     dispatch true, new_state
   end
 
-  def handle_call({:update_config, "steps_per_mm", value}, _from, %State{} = state)
+  def handle_call({:update_config, "steps_per_mm", value},
+    _from, %State{} = state)
   when is_integer(value) do
     new_config = Map.put(state.configuration, :steps_per_mm, value)
     new_state = %State{state | configuration: new_config}
@@ -131,7 +134,9 @@ defmodule Farmbot.BotState.Configuration do
       Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
     # If we got an index, dispatch it.
     if is_integer(maybe_index) do
-      new_state = %State{state | locks: List.delete_at(state.locks, maybe_index)}
+      new_state =
+        %State{state | locks: List.delete_at(state.locks, maybe_index)}
+
       dispatch :ok, new_state
     else
       # if not something is wrong, just crash.
@@ -156,7 +161,8 @@ defmodule Farmbot.BotState.Configuration do
   end
 
   def handle_call(event, _from, %State{} = state) do
-    Logger.error ">> got an unhandled call in Configuration tracker: #{inspect event}"
+    Logger.error ">> got an unhandled call in " <>
+                 "Configuration tracker: #{inspect event}"
     dispatch :unhandled, state
   end
 
@@ -168,7 +174,8 @@ defmodule Farmbot.BotState.Configuration do
 
   # Lock the frontend from doing stuff
   def handle_cast({:add_lock, string}, %State{} = state) do
-    maybe_index = Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
+    maybe_index =
+      Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
     # check if this lock already exists.
     case maybe_index do
       nil ->

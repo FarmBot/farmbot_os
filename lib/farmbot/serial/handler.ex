@@ -1,4 +1,9 @@
 defmodule Farmbot.Serial.Handler do
+  alias Nerves.UART
+  alias Nerves.FakeUART
+  alias Farmbot.Serial.Gcode.Handler, as: GcodeHandler
+  alias Farmbot.Serial.Gcode.Parser, as: GcodeParser
+
   @moduledoc """
     Handles serial messages and keeping ports alive.
   """
@@ -7,33 +12,32 @@ defmodule Farmbot.Serial.Handler do
 
   def init(:prod) do
     Process.flag(:trap_exit, true)
-    {:ok, nerves} = Nerves.UART.start_link
-    {:ok, handler} = Farmbot.Serial.Gcode.Handler.start_link(nerves)
+    {:ok, nerves} = UART.start_link
+    {:ok, handler} = GcodeHandler.start_link(nerves)
     tty = open_serial(nerves)
     {:ok, {nerves, tty, handler}}
   end
 
   def init(:test) do
-    # Log somethingwarn("can some one please think of a better way to do this?")
     tty = "ttyFake"
-    {:ok, test_nerves} = Nerves.FakeUART.start_link(self)
-    {:ok, handler} = Farmbot.Serial.Gcode.Handler.start_link(test_nerves)
+    {:ok, test_nerves} = FakeUART.start_link(self)
+    {:ok, handler} = GcodeHandler.start_link(test_nerves)
     {:ok, {test_nerves, tty, handler}}
   end
 
   def init(:dev) do
     Process.flag(:trap_exit, true)
-    {:ok, nerves} = Nerves.UART.start_link
+    {:ok, nerves} = UART.start_link
     tty = System.get_env("TTY")
     if tty == nil, do: raise "YOU FORGOT TO SET TTY ENV VAR"
-    Nerves.UART.open(nerves, tty, speed: @baud, active: true)
-    Nerves.UART.configure(nerves,
-      framing: {Nerves.UART.Framing.Line,
+    UART.open(nerves, tty, speed: @baud, active: true)
+    UART.configure(nerves,
+      framing: {UART.Framing.Line,
                 separator: "\r\n"},
                 rx_framing_timeout: 500)
 
 
-    {:ok, handler} = Farmbot.Serial.Gcode.Handler.start_link(nerves)
+    {:ok, handler} = GcodeHandler.start_link(nerves)
     {:ok, {nerves, tty, handler}}
   end
 
@@ -61,11 +65,11 @@ defmodule Farmbot.Serial.Handler do
   end
 
   def handle_call(:e_stop, _from, {nerves, tty, handler}) do
-    Nerves.UART.write(nerves, "E")
-    Nerves.UART.close(nerves)
+    UART.write(nerves, "E")
+    UART.close(nerves)
     # Temp hack to try to stop a running command.
-    Nerves.UART.open(nerves, tty, speed: @baud, active: false)
-    Nerves.UART.close(nerves)
+    UART.open(nerves, tty, speed: @baud, active: false)
+    UART.close(nerves)
     {:reply, :ok, {nerves, :e_stop, handler}}
   end
 
@@ -81,13 +85,13 @@ defmodule Farmbot.Serial.Handler do
   end
 
   def handle_cast({:write, str, _caller}, {nerves, tty, handler}) do
-    Nerves.UART.write(nerves, str)
+    UART.write(nerves, str)
     {:noreply, {nerves, tty, handler}}
   end
 
   # TODO Rewrite this with an Erlang Port
   def handle_cast({:update_fw, hex_file, pid}, {nerves, tty, handler}) do
-    Nerves.UART.close(nerves)
+    UART.close(nerves)
     params =
       ["-v",
        "-patmega2560",
@@ -105,7 +109,7 @@ defmodule Farmbot.Serial.Handler do
   # WHEN A FULL SERIAL MESSAGE COMES IN.
   def handle_info({:nerves_uart, nerves_tty, message}, {pid, tty, handler})
   when is_binary(message) and nerves_tty == tty do
-    gcode = Farmbot.Serial.Gcode.Parser.parse_code(String.strip(message))
+    gcode = GcodeParser.parse_code(String.strip(message))
     GenServer.cast(handler, gcode)
     {:noreply, {pid, tty, handler}}
   end
@@ -135,7 +139,7 @@ defmodule Farmbot.Serial.Handler do
 
   def handle_info({:EXIT, pid, _reason}, {nerves, tty, handler})
   when pid == handler do
-      {:ok, restarted} = Farmbot.Serial.Gcode.Handler.start_link(nerves)
+      {:ok, restarted} = GcodeHandler.start_link(nerves)
       {:noreply,  {nerves, tty, restarted}}
   end
 
@@ -156,14 +160,16 @@ defmodule Farmbot.Serial.Handler do
 
   @spec open_serial(pid, [], [binary, ...]) :: {:ok, binary}
   defp open_serial(_pid, [], tries) do
-    Logger.error ">> could not auto detect serial port. i tried: #{inspect tries}"
+    Logger.error """
+      >> could not auto detect serial port. i tried: #{inspect tries}
+      """
     {:ok, "ttyFail"}
   end
 
   @spec open_serial(pid, [binary,...], [binary,...]) :: {:ok, binary}
   defp open_serial(pid, ports, tries) do
     [{tty,_} | rest] = ports
-    case Nerves.UART.open(pid, tty, speed: @baud, active: true) do
+    case UART.open(pid, tty, speed: @baud, active: true) do
       :ok -> {:ok, tty}
       _ -> open_serial(pid, rest, tries ++ [tty])
     end
@@ -172,8 +178,8 @@ defmodule Farmbot.Serial.Handler do
   @spec open_serial(pid) :: {:ok, binary}
   defp open_serial(pid) do
     {:ok, tty} = open_serial(pid, list_ttys , []) # List of available ports
-    Nerves.UART.configure(pid,
-                          framing: {Nerves.UART.Framing.Line,
+    UART.configure(pid,
+                          framing: {UART.Framing.Line,
                           separator: "\r\n"},
                           rx_framing_timeout: 500)
     tty
@@ -181,7 +187,7 @@ defmodule Farmbot.Serial.Handler do
 
   @spec list_ttys :: [String.t,...]
   defp list_ttys do
-    Nerves.UART.enumerate
+    UART.enumerate
     |> Map.drop(["ttyS0","ttyAMA0"])
     |> Map.to_list
   end

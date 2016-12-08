@@ -15,6 +15,8 @@ defmodule Farmbot.Sync do
   use Amnesia
   import Syncable
   alias Farmbot.Sync.Helpers
+  alias Farmbot.Auth
+  alias Farmbot.BotState
 
   defdatabase Database do
     use Amnesia
@@ -116,7 +118,8 @@ defmodule Farmbot.Sync do
       case module.read(thing.id) do
         # IF IT WAS nil WE ARE FINE.
         nil -> nil
-        # BUT IF ITS A ONE ITEM LIST OF A STRUCT OF THIS MODULE, WE NEED TO DELETE
+        # BUT IF ITS A ONE ITEM LIST OF A STRUCT OF THIS MODULE,
+        # WE NEED TO DELETE
         # IT FROM THE DB BEFORE WRITING THE NEW ONE IN.
         [%module{} = delete_me] -> module.delete(delete_me)
         # WHICH IS ALL FINE AS LONG AS THIS DOES NOT HAPPEN
@@ -129,10 +132,10 @@ defmodule Farmbot.Sync do
   end
 
   @doc """
-    Gets a token from Farmbot.Auth
+    Gets a token from Auth
   """
   def fetch_token do
-    case Farmbot.Auth.get_token do
+    case Auth.get_token do
       nil -> {:error, :no_token}
       {:error, reason} -> {:error, reason}
       json_token -> {:ok, json_token}
@@ -140,7 +143,7 @@ defmodule Farmbot.Sync do
   end
 
   def fetch_server do
-    case Farmbot.BotState.get_server do
+    case BotState.get_server do
       nil -> {:error, :no_server}
       {:error, reason} -> {:error, reason}
       server -> {:ok, server}

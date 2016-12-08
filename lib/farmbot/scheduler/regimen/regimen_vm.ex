@@ -1,10 +1,13 @@
-defmodule Scheduler.Regimen.VM  do
+defmodule Farmbot.Scheduler.Regimen.VM  do
   @moduledoc """
     A state machine that tracks a regimen thru its lifecycle.
   """
-  alias Farmbot.Sync.Database.Regimen, as: Regimen
-  alias Farmbot.Sync.Database.RegimenItem, as: RegimenItem
-  alias Farmbot.Sync.Database.Sequence, as: Sequence
+  alias Farmbot.Sync
+  alias Sync.Database.Regimen, as: Regimen
+  alias Sync.Database.RegimenItem, as: RegimenItem
+  alias Sync.Database.Sequence, as: Sequence
+  alias Farmbot.BotState
+  alias Farmbot.Scheduler
   use Amnesia
   use RegimenItem
   require Logger
@@ -31,7 +34,8 @@ defmodule Scheduler.Regimen.VM  do
   end
 
 
-  @spec start_link(Regimen.t,list(RegimenItem.t), DateTime.t) :: {:ok, pid} | {:error, {:already_started, pid}}
+  @spec start_link(Regimen.t,list(RegimenItem.t), DateTime.t)
+    :: {:ok, pid} | {:error, {:already_started, pid}}
   def start_link(regimen, finished_items, time) do
     GenServer.start_link(__MODULE__, {regimen, finished_items, time})
   end
@@ -42,7 +46,9 @@ defmodule Scheduler.Regimen.VM  do
     first = List.first(items -- finished_items)
     first_time = Timex.shift(time, milliseconds: first.time_offset)
 
-    Logger.debug "First item will execute on #{first_time.month}-#{first_time.day} at: #{first_time.hour}:#{first_time.minute}",
+    Logger.debug "First item will execute on \
+                  #{first_time.month}-#{first_time.day} \
+                  at: #{first_time.hour}:#{first_time.minute}",
       channel: [:toast]
 
 
@@ -63,13 +69,15 @@ defmodule Scheduler.Regimen.VM  do
 
   def handle_cast(:pause, state) do
     send(Farmbot.Scheduler, {:update,
-        {:regimen, {self(), state.regimen, state.ran_items, state.start_time, :paused}}})
+        {:regimen,
+          {self(), state.regimen, state.ran_items, state.start_time, :paused}}})
     {:noreply, %{state | flag: :paused, timer: tick(self())}}
   end
 
   def handle_cast(:resume, state) do
     send(Farmbot.Scheduler, {:update,
-        {:regimen, {self(), state.regimen, state.ran_items, state.start_time, :normal}}})
+        {:regimen, {self(),
+          state.regimen, state.ran_items, state.start_time, :normal}}})
     {:noreply, %{state | flag: :normal, timer: tick(self())}}
   end
 
@@ -83,15 +91,16 @@ defmodule Scheduler.Regimen.VM  do
       regimen: regimen
     })
   do
-    send(Farmbot.Scheduler, {:update, {:regimen, {self(), regimen, ran, start_time, :paused}}})
+    send(Farmbot.Scheduler, {:update, {
+      :regimen, {self(), regimen, ran, start_time, :paused}}})
+
     {:noreply, %State{
         flag: :paused,
         timer: tick(self()),
         start_time: start_time,
         regimen_items: ri,
         ran_items: ran,
-        regimen: regimen
-      }}
+        regimen: regimen}}
   end
 
   # if there are no more items to run. exit this instance
@@ -117,7 +126,7 @@ defmodule Scheduler.Regimen.VM  do
       ran_items: ran_items,
       regimen: regimen})
   do
-    now = Timex.now(Farmbot.BotState.get_config(:timezone))
+    now = Timex.now(BotState.get_config(:timezone))
     {items_to_do, remaining_items} =
       Enum.partition(items, fn(item) ->
         offset = item.time_offset
@@ -137,7 +146,8 @@ defmodule Scheduler.Regimen.VM  do
     timer = tick(self())
     finished = ran_items ++ items_to_do
     # tell farmevent manager that these items are done.
-    send(Farmbot.Scheduler, {:update, {:regimen, {self(), regimen, finished, start_time, :normal}}})
+    send(Farmbot.Scheduler, {:update,
+      {:regimen, {self(), regimen, finished, start_time, :normal}}})
     {:noreply,
       %State{flag: :normal, timer: timer, start_time: start_time,
         regimen_items: remaining_items, ran_items: finished,
@@ -154,6 +164,7 @@ defmodule Scheduler.Regimen.VM  do
   end
 
   @spec get_regimen_item_for_regimen(Regimen.t) :: RegimenItem.t
+  @lint false # i dont want to alias Amnesia.Selection
   def get_regimen_item_for_regimen(%Regimen{} = regimen) do
       Amnesia.transaction do
         selection = RegimenItem.where regimen_id == regimen.id
@@ -162,7 +173,8 @@ defmodule Scheduler.Regimen.VM  do
   end
 
   def terminate(:normal, state) do
-    Logger.debug ">> has completed regimen: #{state.regimen.name} without errors!",
+    Logger.debug ">> has completed regimen: \
+                  #{state.regimen.name} without errors!",
     channel: [:toast], type: :success
   end
 
@@ -173,7 +185,8 @@ defmodule Scheduler.Regimen.VM  do
   end
 
   def terminate(reason, state) do
-    Logger.error ">> encountered errors completing a regimen! #{inspect reason} #{inspect state}"
+    Logger.error ">> encountered errors completing \
+                  a regimen! #{inspect reason} #{inspect state}"
   end
 
   # Tries to add a sequence too the Sequencer to be ran or queued.
@@ -186,18 +199,19 @@ defmodule Scheduler.Regimen.VM  do
   @spec add_sequence(integer | nil | Sequence.t) :: :ok
   defp add_sequence(id)
   when is_integer(id) do
-    id |> Farmbot.Sync.get_sequence |> add_sequence
+    id |> Sync.get_sequence |> add_sequence
   end
 
   # this happens if the bot was not synced before this regimen started.
   defp add_sequence(nil) do
-    Logger.error(">> could not find sequence. This may be a problem. I will try to sync to fix it. ")
-    Farmbot.Sync.sync
+    Logger.error ">> could not find sequence.\
+                  This may be a problem. I will try to sync to fix it."
+    Sync.sync
   end
 
   defp add_sequence(%Sequence{} = sequence) do
     msg = ">> is going to run sequence: " <> sequence.name
     Logger.debug msg, channel: [:toast]
-    Farmbot.Scheduler.add_sequence(sequence)
+    Scheduler.add_sequence(sequence)
   end
 end

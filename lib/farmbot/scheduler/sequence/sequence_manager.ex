@@ -1,5 +1,6 @@
 defmodule Farmbot.Scheduler.Sequence.Manager do
   alias Farmbot.Sync.Database.Sequence, as: Sequence
+  alias Farmbot.Scheduler.Sequence.VM, as: SequenceVM
   @moduledoc """
     This Module is a state machine that tracks a sequence thru its lifecycle.
   """
@@ -10,7 +11,7 @@ defmodule Farmbot.Scheduler.Sequence.Manager do
   def init(%Sequence{} = sequence) do
     # Log somethingdebug("Sequence Manager Init.")
     Process.flag(:trap_exit, true)
-    {:ok, pid} = Farmbot.Scheduler.Sequence.VM.start_link(sequence)
+    {:ok, pid} = SequenceVM.start_link(sequence)
     {:ok, %{current: pid, global_vars: %{}, log: []}}
   end
 
@@ -26,25 +27,35 @@ defmodule Farmbot.Scheduler.Sequence.Manager do
   def handle_call({:add, %Sequence{} = seq}, _from,
     %{current: nil, global_vars: globals, log: []})
   do
-    {:ok, pid} = Farmbot.Scheduler.Sequence.VM.start_link(seq)
-    {:reply, "starting sequence", %{current: pid, global_vars: globals, log: []}}
+    {:ok, pid} = SequenceVM.start_link(seq)
+    {:reply,
+      "starting sequence",
+      %{current: pid, global_vars: globals, log: []}}
   end
 
   # Add a new sequence to the log when there are no other sequences running.
   def handle_call({:add, %Sequence{} = seq}, _from,
     %{current: nil, global_vars: globals, log: log})
   do
-    {:ok, pid} = Farmbot.Scheduler.Sequence.VM.start_link(seq)
-    {:reply, "starting sequence", %{current: pid, global_vars: globals, log: log}}
+    {:ok, pid} = SequenceVM.start_link(seq)
+    {:reply,
+     "starting sequence",
+     %{current: pid, global_vars: globals, log: log}}
   end
 
   # Add a new sequence to the log
-  def handle_call({:add, %Sequence{} = seq}, _from, %{current: current, global_vars: globals, log: log})
+  def handle_call({:add, %Sequence{} = seq},
+    _from,
+    %{current: current, global_vars: globals, log: log})
   when is_pid(current) do
-    {:reply, "queueing sequence", %{current: current, global_vars: globals, log: [log | seq]}}
+    {:reply,
+     "queueing sequence",
+     %{current: current, global_vars: globals, log: [log | seq]}}
   end
 
-  def handle_call({:pause, pid}, _from, %{current: current, global_vars: globals, log: more})
+  def handle_call({:pause, pid},
+    _from,
+    %{current: current, global_vars: globals, log: more})
   when is_pid(pid) do
     if Process.alive?(pid) do
         GenServer.call(current, :pause)
@@ -52,7 +63,9 @@ defmodule Farmbot.Scheduler.Sequence.Manager do
     end
   end
 
-  def handle_call({:resume, pid}, _from, %{current: _current, global_vars: globals, log: more})
+  def handle_call({:resume, pid},
+    _from,
+    %{current: _current, global_vars: globals, log: more})
   when is_pid(pid)
   do
       if Process.alive?(pid) do
@@ -72,7 +85,8 @@ defmodule Farmbot.Scheduler.Sequence.Manager do
     {:noreply, %{current: nil, global_vars: globals, log: []}}
   end
 
-  def handle_info({:done, pid, _sequence}, %{current: _current, global_vars: globals, log: log})
+  def handle_info({:done, pid, _sequence},
+    %{current: _current, global_vars: globals, log: log})
   when is_pid(pid) do
     if Process.alive?(pid) do
       GenServer.stop(pid, :normal)
@@ -82,8 +96,9 @@ defmodule Farmbot.Scheduler.Sequence.Manager do
     cond do
       is_nil(next) -> {:noreply, %{current: nil, global_vars: globals, log: []}}
       is_map(next) ->
-          {:ok, next_seq} = Farmbot.Scheduler.Sequence.VM.start_link(next)
-          {:noreply, %{current: next_seq, global_vars: globals, log: log -- [next]}}
+          {:ok, next_seq} = SequenceVM.start_link(next)
+          {:noreply,
+           %{current: next_seq, global_vars: globals, log: log -- [next]}}
       is_pid(next) ->
         GenServer.cast(next, :resume)
         {:noreply, %{current: next, global_vars: globals, log: log -- [next]}}
@@ -96,7 +111,9 @@ defmodule Farmbot.Scheduler.Sequence.Manager do
 
   def handle_info({:EXIT, pid, reason}, state)
   when pid == state do
-    Logger.error ">> could not complete sequence: #{inspect reason}, #{inspect state}"
+    Logger.error """
+      >> could not complete sequence: #{inspect reason}, #{inspect state}
+      """
     handle_info({:done, pid, %{}}, state)
   end
 

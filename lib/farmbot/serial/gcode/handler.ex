@@ -4,6 +4,7 @@ defmodule Farmbot.Serial.Gcode.Handler do
   """
   require Logger
   use GenServer
+  alias Farmbot.BotState
 
   def start_link(nerves) do
     GenServer.start_link(__MODULE__, nerves, name: __MODULE__)
@@ -46,23 +47,23 @@ defmodule Farmbot.Serial.Gcode.Handler do
 
   def handle_cast({:report_pin_value, pin, value, _}, state)
   when is_integer(pin) and is_integer(value) do
-    Farmbot.BotState.set_pin_value(pin, value)
+    BotState.set_pin_value(pin, value)
     {:noreply, state}
   end
 
   def handle_cast({:report_current_position, x,y,z, _}, state) do
-    Farmbot.BotState.set_pos(x,y,z)
+    BotState.set_pos(x,y,z)
     {:noreply, state}
   end
 
   def handle_cast({:report_parameter_value, param, value, _}, state)
   when is_atom(param) and is_integer(value) do
-    Farmbot.BotState.set_param(param, value)
+    BotState.set_param(param, value)
     {:noreply, state}
   end
 
   def handle_cast({:reporting_end_stops, x1,x2,y1,y2,z1,z2,_}, state) do
-    Farmbot.BotState.set_end_stops({x1,x2,y1,y2,z1,z2})
+    BotState.set_end_stops({x1,x2,y1,y2,z1,z2})
     {:noreply, state}
   end
 
@@ -79,8 +80,10 @@ defmodule Farmbot.Serial.Gcode.Handler do
     {:noreply, %{nerves: nerves, current: {message, caller}, log: []}}
   end
 
-  def handle_cast({:send, message, caller}, %{nerves: nerves, current: current, log: log}) do
-    {:noreply, %{nerves: nerves, current: current, log: log ++ [{message, caller}]}}
+  def handle_cast({:send, message, caller},
+                  %{nerves: nerves, current: current, log: log}) do
+    {:noreply,
+     %{nerves: nerves, current: current, log: log ++ [{message, caller}]}}
   end
 
   def handle_cast(event, state) do

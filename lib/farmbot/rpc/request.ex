@@ -4,6 +4,14 @@ defmodule Farmbot.RPC.Requests do
     Mostly forwards to the Command Module.
   """
   require Logger
+  alias Nerves.Firmware
+  alias Farmbot.Serial.Gcode.Parser, as: GcodeParser
+  alias Farmbot.BotState
+  alias Farmbot.Sync
+  alias Sync.Database.Sequence
+  alias Farmbot.Scheduler
+  alias Farmbot.Logger, as: FarmbotLogger
+
   @spec handle_request(String.t, [map,...])
   :: :ok | {:error, Strint.t} | {:error, Strint.t, String.t}
 
@@ -35,7 +43,8 @@ defmodule Farmbot.RPC.Requests do
   end
 
   # WRITE_PIN
-  def handle_request("write_pin", [%{"pin_mode" => 1, "pin_number" => p, "pin_value" => v}])
+  def handle_request("write_pin",
+    [%{"pin_mode" => 1, "pin_number" => p, "pin_value" => v}])
     when is_integer(p) and
          is_integer(v)
   do
@@ -43,7 +52,8 @@ defmodule Farmbot.RPC.Requests do
     :ok
   end
 
-  def handle_request("write_pin", [%{"pin_mode" => 0, "pin_number" => p, "pin_value" => v}])
+  def handle_request("write_pin",
+    [%{"pin_mode" => 0, "pin_number" => p, "pin_value" => v}])
     when is_integer p and
          is_integer v
   do
@@ -53,10 +63,13 @@ defmodule Farmbot.RPC.Requests do
 
   def handle_request("write_pin", _) do
     {:error, "BAD_PARAMS",
-      Poison.encode!(%{"pin_mode" => "1 or 2", "pin_number" => "number", "pin_value" => "number"})}
+      Poison.encode!(%{"pin_mode" => "1 or 2",
+                       "pin_number" => "number", "pin_value" => "number"})}
   end
 
-  def handle_request("toggle_pin", [%{"pin_number" => p}]) when is_integer(p) do
+  def handle_request("toggle_pin",
+    [%{"pin_number" => p}])
+    when is_integer(p) do
     spawn fn -> Command.toggle_pin(p) end
     :ok
   end
@@ -67,7 +80,8 @@ defmodule Farmbot.RPC.Requests do
   end
 
   # Move to a specific coord
-  def handle_request("move_absolute", [%{"speed" => s, "x" => x, "y" => y, "z" => z}])
+  def handle_request("move_absolute",
+    [%{"speed" => s, "x" => x, "y" => y, "z" => z}])
   when is_integer(x) and
        is_integer(y) and
        is_integer(z) and
@@ -79,7 +93,10 @@ defmodule Farmbot.RPC.Requests do
 
   def handle_request("move_absolute",  _params) do
     {:error, "BAD_PARAMS",
-      Poison.encode!(%{"x" => "number", "y" => "number", "z" => "number", "speed" => "number"})}
+      Poison.encode!(%{"x" => "number",
+                       "y" => "number",
+                       "z" => "number",
+                       "speed" => "number"})}
   end
 
   # Move relative to current x position
@@ -92,19 +109,24 @@ defmodule Farmbot.RPC.Requests do
          is_integer(y_move_by) and
          is_integer(z_move_by)
   do
-    spawn fn -> Command.move_relative(%{x: x_move_by, y: y_move_by, z: z_move_by, speed: speed}) end
+    spawn fn ->
+      Command.move_relative(
+        %{x: x_move_by, y: y_move_by, z: z_move_by, speed: speed})
+    end
     :ok
   end
 
   def handle_request("move_relative", _) do
     {:error, "BAD_PARAMS",
-      Poison.encode!(%{"x or y or z" => "number to move by", "speed" => "number"})}
+      Poison.encode!(%{"x or y or z" => "number to move by",
+                       "speed" => "number"})}
   end
 
   # Read status
   def handle_request("read_status", _) do
     Logger.debug ">> is reporting current status."
-    GenEvent.call(Farmbot.BotState.EventManager, Farmbot.RPC.Handler, :force_dispatch)
+    GenEvent.call(BotState.EventManager,
+                  Farmbot.RPC.Handler, :force_dispatch)
   end
 
   def handle_request("check_updates", _) do
@@ -134,7 +156,7 @@ defmodule Farmbot.RPC.Requests do
     Logger.debug ">> will power off in 5 seconds!", channels: [:toast]
     spawn fn ->
       Process.sleep(5000)
-      Nerves.Firmware.poweroff
+      Firmware.poweroff
     end
     :ok
   end
@@ -143,7 +165,7 @@ defmodule Farmbot.RPC.Requests do
     params
     |> Enum.partition(
        fn({param, value}) ->
-         param_int = Farmbot.Serial.Gcode.Parser.parse_param(param)
+         param_int = GcodeParser.parse_param(param)
          spawn fn -> Command.update_param(param_int, value) end
        end)
     |> parse_mcu_config_output
@@ -152,14 +174,17 @@ defmodule Farmbot.RPC.Requests do
 
   def handle_request("bot_config_update", [configs]) do
     case Enum.partition(configs, fn({config, value}) ->
-      Farmbot.BotState.update_config(config, value)
+      BotState.update_config(config, value)
     end) do
       {_, []} ->
-        Logger.debug ">> has finished updating configuration.", channels: [:toast]
+        Logger.debug ">> has finished updating \
+                      configuration.",
+                      channels: [:toast]
         :ok
       {_, failed} ->
-        Logger.error ">> encountered an error setting updating configuration: #{inspect failed}.",
-        channels: [:toast]
+        Logger.error ">> encountered an error \
+                      setting updating configuration: #{inspect failed}.",
+                      channels: [:toast]
         :ok
     end
   end
@@ -167,7 +192,7 @@ defmodule Farmbot.RPC.Requests do
   def handle_request("sync", _) do
     spawn fn ->
       Logger.debug ">> Is syncing."
-      case Farmbot.Sync.sync do
+      case Sync.sync do
         {:ok, _} -> Logger.debug ">> Is finished syncing."
         {:error, reason} ->
           Logger.debug(">> Had a problem syncing! #{inspect reason}")
@@ -180,13 +205,15 @@ defmodule Farmbot.RPC.Requests do
     sequence
     |> Map.drop(["dirty"])
     |> Map.merge(%{"device_id" => -1, "id" => Map.get(sequence, "id") || -1})
-    |> Farmbot.Sync.Database.Sequence.validate!
-    |> Farmbot.Scheduler.add_sequence
+    |> Sequence.validate!
+    |> Scheduler.add_sequence
   end
 
-  def handle_request("start_regimen", [%{"regimen_id" => id}]) when is_integer(id) do
-    regimen = Farmbot.Sync.get_regimen(id)
-    Farmbot.Scheduler.add_regimen(regimen)
+  def handle_request("start_regimen",
+    [%{"regimen_id" => id}]) when is_integer(id)
+  do
+    regimen = Sync.get_regimen(id)
+    Scheduler.add_regimen(regimen)
     :ok
   end
 
@@ -196,12 +223,14 @@ defmodule Farmbot.RPC.Requests do
       Poison.encode!(%{"regimen_id" => "number"})}
   end
 
-  def handle_request("stop_regimen", [%{"regimen_id" => id}]) when is_integer(id) do
-    regimen = Farmbot.Sync.get_regimen(id)
-    running = Farmbot.Scheduler |> GenServer.call(:state) |> Map.get(:regimens)
+  def handle_request("stop_regimen",
+    [%{"regimen_id" => id}]) when is_integer(id)
+  do
+    regimen = Sync.get_regimen(id)
+    running = Scheduler |> GenServer.call(:state) |> Map.get(:regimens)
 
-    {pid, ^regimen, _, _, _} = Farmbot.Scheduler.find_regimen(regimen, running)
-    send(Farmbot.Scheduler, {:done, {:regimen, pid, regimen}})
+    {pid, ^regimen, _, _, _} = Scheduler.find_regimen(regimen, running)
+    send(Scheduler, {:done, {:regimen, pid, regimen}})
     :ok
   end
 
@@ -224,14 +253,15 @@ defmodule Farmbot.RPC.Requests do
   def handle_request("dump_logs", _) do
     Logger.debug ">> is dumping logs. "
     spawn fn ->
-      Farmbot.Logger.dump
+      FarmbotLogger.dump
     end
     :ok
   end
 
   # Unhandled event. Probably not implemented if it got this far.
   def handle_request(event, params) do
-    Logger.error ">> does not know how to handle: #{event} with params: #{inspect params}"
+    Logger.error ">> does not know how to \
+                  handle: #{event} with params: #{inspect params}"
     {:error, "Unhandled method", "#{inspect {event, params}}"}
   end
 
@@ -242,7 +272,8 @@ defmodule Farmbot.RPC.Requests do
   end
 
   defp parse_mcu_config_output({_, failed}) do
-    Logger.error ">> encountered an error setting mcu paramaters: #{inspect failed}.",
+    Logger.error ">> encountered an error \
+                  setting mcu paramaters: #{inspect failed}.",
       channels: [:toast]
   end
 end
