@@ -1,4 +1,6 @@
 defmodule Farmbot.Scheduler.Sequence.InstructionSet_0 do
+  # dont lint the module name because its kind of special.
+  @lint {Credo.Check.Readability.ModuleNames, false}
   @moduledoc """
     Modules under this namespace will be similar to how the API's database
     migrations work. If ever there is a breaking change, in the frontend
@@ -12,13 +14,11 @@ defmodule Farmbot.Scheduler.Sequence.InstructionSet_0 do
     GenServer.start_link(__MODULE__, parent)
   end
 
-  def init(parent) do
-    {:ok, parent}
-  end
+  def init(parent), do: {:ok, parent}
 
   # I wanted this to be a little more dry, so here we go.
   def handle_cast(maybe_ast_node, parent),
-    do: Ast.parse(maybe_ast_node) |> do_step(parent)
+    do: maybe_ast_node |> Ast.parse |> do_step(parent)
 
   @doc """
     actually does the step
@@ -71,6 +71,7 @@ defmodule Farmbot.Scheduler.Sequence.InstructionSet_0 do
   ##                            BOT COMMANDS                                 ##
   #############################################################################
 
+  @lint false # don't lint because piping x into move_absolute would look funny.
   # MOVE ABSOLUTE
   def do_step(%Ast{kind: "move_absolute",
                    args: %{speed: s, x: x, y: y, z: z},
@@ -80,6 +81,7 @@ defmodule Farmbot.Scheduler.Sequence.InstructionSet_0 do
   end
 
   # MOVE RELATIVE
+  @lint false # don't lint because piping x into move_rel would look funny.
   def do_step(%Ast{kind: "move_relative",
                    args: %{speed: s, x: x, y: y, z: z},
                    body: []}, parent)
@@ -92,7 +94,7 @@ defmodule Farmbot.Scheduler.Sequence.InstructionSet_0 do
                    args: %{pin_mode: mode, pin_number: num, pin_value: val},
                    body: []}, parent)
   do
-    Command.write_pin(num, val, mode) |> dispatch(parent)
+    num |> Command.write_pin(val, mode) |> dispatch(parent)
   end
 
   # READ PIN
@@ -121,12 +123,10 @@ defmodule Farmbot.Scheduler.Sequence.InstructionSet_0 do
 
   @spec channels([Ast.t,...]) :: [atom,...]
   defp channels(list) when list |> is_list do
-    Enum.reduce(list, [], fn(%Ast{kind: "channel",
-                                  args: %{channel_name: c},
-                                  body: []},
-    acc) ->
-      [ c | acc]
-    end)
+    Enum.reduce(list, [],
+      fn(%Ast{kind: "channel",
+              args: %{channel_name: c},
+              body: []},acc) -> [c | acc] end)
   end
 
   @spec parse_if(any, pid) :: integer | nil

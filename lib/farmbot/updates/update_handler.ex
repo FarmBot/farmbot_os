@@ -32,7 +32,7 @@ defmodule Farmbot.Updates.Handler do
     # This is where the actual download and update happens.
     Logger.debug ">> found an operating system update. "
     File.rm("/tmp/update.fw")
-    Downloader.run(url, "/tmp/update.fw") |> Nerves.Firmware.upgrade_and_finalize
+    url |> Downloader.run("/tmp/update.fw") |> Nerves.Firmware.upgrade_and_finalize
     Logger.warn ">> is going down for an operating system update!", channels: [:toast]
     Process.sleep(5000)
     Nerves.Firmware.reboot
@@ -62,7 +62,7 @@ defmodule Farmbot.Updates.Handler do
   def check_updates(:os) do
     with {:ok, token} <- Farmbot.Auth.get_token,
     do: check_updates(
-          Map.get(token, "unencoded") |> Map.get("os_update_server"),
+          token |> Map.get("unencoded") |> Map.get("os_update_server"),
           Farmbot.BotState.get_os_version,
           ".fw")
   end
@@ -74,7 +74,7 @@ defmodule Farmbot.Updates.Handler do
   def check_updates(:fw) do
     with {:ok, token} <- Farmbot.Auth.get_token,
     do: check_updates(
-          Map.get(token, "unencoded") |> Map.get("fw_update_server"),
+          token |> Map.get("unencoded") |> Map.get("fw_update_server"),
           Farmbot.BotState.get_fw_version,
           ".hex")
   end
@@ -139,7 +139,7 @@ defmodule Farmbot.Updates.Handler do
       status_code: 200})
   do
     json = Poison.decode!(body)
-    "v"<>new_version = Map.get(json, "tag_name")
+    "v" <> new_version = Map.get(json, "tag_name")
     assets = Map.get(json, "assets")
     {:assets, new_version, assets}
   end

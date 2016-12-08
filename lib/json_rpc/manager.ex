@@ -8,7 +8,8 @@ defmodule RPC.MessageManager do
     GenStage.start_link(__MODULE__, :ok, name: __MODULE__)
   end
 
-  def sync_notify(event, timeout\\5000) do
+  @spec sync_notify(term, integer) :: any
+  def sync_notify(event, timeout \\ 5000) do
     GenStage.call(__MODULE__, {:notify, event}, timeout)
   end
 

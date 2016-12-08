@@ -8,7 +8,7 @@ defmodule Scheduler.Regimen.VM  do
   use Amnesia
   use RegimenItem
   require Logger
-  @checkup_time 15000 #TODO: change this to 60 seconds
+  @checkup_time 15_000
 
   defmodule State do
     @moduledoc false
@@ -104,18 +104,18 @@ defmodule Scheduler.Regimen.VM  do
       regimen: regimen
     })
   do
-    send(Farmbot.Scheduler, {:done, {:regimen, self(), regimen }})
+    send(Farmbot.Scheduler, {:done, {:regimen, self(), regimen}})
     {:noreply, %State{regimen: regimen}}
   end
 
+  # this may or may not be a little too complex
   def handle_info(:tick, %State{
       flag: :normal,
       timer: _timer,
       start_time: start_time,
       regimen_items: items,
       ran_items: ran_items,
-      regimen: regimen
-    })
+      regimen: regimen})
   do
     now = Timex.now(Farmbot.BotState.get_config(:timezone))
     {items_to_do, remaining_items} =
@@ -123,15 +123,15 @@ defmodule Scheduler.Regimen.VM  do
         offset = item.time_offset
         run_time = Timex.shift(start_time, milliseconds: offset)
         should_run = Timex.after?(now, run_time)
-        case ( should_run ) do
-          true ->
-            add_sequence(item.sequence_id)
-          false ->
-            :ok
+        if should_run do
+          add_sequence(item.sequence_id)
+        else
+          :ok
         end
         should_run
     end)
-    if(items_to_do == []) do
+    # if statement just for a log message ha
+    if items_to_do == [] do
       Logger.debug ">> has nothing to run this cycle on: [#{regimen.name}]"
     end
     timer = tick(self())
@@ -141,7 +141,7 @@ defmodule Scheduler.Regimen.VM  do
     {:noreply,
       %State{flag: :normal, timer: timer, start_time: start_time,
         regimen_items: remaining_items, ran_items: finished,
-        regimen: regimen }}
+        regimen: regimen}}
   end
 
   def tick(pid) do
@@ -186,7 +186,7 @@ defmodule Scheduler.Regimen.VM  do
   @spec add_sequence(integer | nil | Sequence.t) :: :ok
   defp add_sequence(id)
   when is_integer(id) do
-    Farmbot.Sync.get_sequence(id) |> add_sequence
+    id |> Farmbot.Sync.get_sequence |> add_sequence
   end
 
   # this happens if the bot was not synced before this regimen started.

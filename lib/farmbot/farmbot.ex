@@ -74,7 +74,7 @@ defmodule Farmbot do
     # Log somethingdebug("Starting Database.")
     Amnesia.start
     Farmbot.Sync.Database.create! Keyword.put([], :memory, [node])
-    Farmbot.Sync.Database.wait(15000)
+    Farmbot.Sync.Database.wait(15_000)
     # Log somethingdebug("Database created!.")
 
     Supervisor.start_link(__MODULE__,

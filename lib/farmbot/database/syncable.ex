@@ -25,6 +25,7 @@ defmodule Syncable do
   @doc """
     Generates The validate functions for validating json data.
   """
+  @lint false
   defmacro generate_validation(name, model) do
     quote bind_quoted: [name: name, model: model] do
 
@@ -33,8 +34,8 @@ defmodule Syncable do
       # Makes sure that we have AT LEAST the correct keys. Does not check
       # For extras.
       defp validate_keys(keys) do
-        required_keys = Enum.map unquote(model), fn(key) -> Atom.to_string(key) end
-        blah =  required_keys -- keys
+        req_keys = Enum.map unquote(model), fn(key) -> Atom.to_string(key) end
+        blah =  req_keys -- keys
         case blah == [] do
           true -> :valid
           _ -> {:error, unquote(name), {:missing_keys, blah}}

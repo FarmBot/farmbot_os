@@ -46,7 +46,7 @@ defmodule Token do
     Token Object
   """
   @enforce_keys [:encoded, :unencoded]
-  defstruct [ :encoded, :unencoded ]
+  defstruct [:encoded, :unencoded]
   @type t :: %__MODULE__{
     encoded: binary,
     unencoded: Unencoded.t

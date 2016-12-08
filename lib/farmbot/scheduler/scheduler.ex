@@ -18,15 +18,13 @@ defmodule Farmbot.Scheduler do
       """
       @type regimen_info ::
       %{regimen: Regimen.t,
-        info: %{ start_time: DateTime.t,
-                 status: State.regimen_flag }
-       }
+        info: %{start_time: DateTime.t,
+                 status: State.regimen_flag}}
 
       @type t :: %__MODULE__{
         process_info: [regimen_info],
         current_sequence: Sequence.t | nil,
-        sequence_log: [Sequence.t]
-      }
+        sequence_log: [Sequence.t]}
 
       defstruct [
         process_info: [],
@@ -41,17 +39,16 @@ defmodule Farmbot.Scheduler do
       def serialize(state) do
         regimen_info_list = Enum.map(state.regimens, fn({_pid, regimen, time, _items, flag}) ->
           %{regimen: regimen,
-            info: %{
-              start_time: time,
-              status: flag}}
+            info: %{start_time: time,
+                    status: flag}}
         end)
         cs = case state.current_sequence do
           {_, sequence} -> sequence
           uh -> uh
         end
-          %__MODULE__{ process_info: regimen_info_list,
-                       current_sequence: cs,
-                       sequence_log: state.sequence_log}
+          %__MODULE__{process_info: regimen_info_list,
+                      current_sequence: cs,
+                      sequence_log: state.sequence_log}
       end
 
     end
@@ -100,22 +97,24 @@ defmodule Farmbot.Scheduler do
   @spec load :: State.t
   def load do
     default_state = %State{}
-    case SafeStorage.read(__MODULE__) do
-      {:ok, %State{} = last_state} ->
-        Logger.debug ">> is loading an old Scheduler state: #{inspect last_state}"
-        new_state = Map.update!(last_state, :regimens, fn(old_regimens) ->
-          Enum.map(old_regimens, fn({_,regimen, finished_items, time, _}) ->
-            {:ok, pid} = Scheduler.Regimen.VM.start_link(regimen, finished_items, time)
-            {pid,regimen, finished_items, time, :normal}
-          end)
-        end)
-        save_and_update(new_state)
-        new_state
-      _ ->
-        Logger.debug ">> is building a new Scheduler state."
-        default_state
-    end
+    __MODULE__ |> SafeStorage.read |> what_is_it(default_state)
   end
+
+  @spec what_is_it({:ok, State.t}, State.t) :: State.t
+  defp what_is_it({:ok, %State{} = last_state}, _default_state) do
+    Logger.debug ">> is loading an old Scheduler state: #{inspect last_state}"
+    new_state = Map.update!(last_state, :regimens, fn(old_regimens) ->
+      Enum.map(old_regimens, fn({_,regimen, finished_items, time, _}) ->
+        {:ok, pid} = Scheduler.Regimen.VM.start_link(regimen, finished_items, time)
+        {pid,regimen, finished_items, time, :normal}
+      end)
+    end)
+    save_and_update(new_state)
+    new_state
+  end
+
+  @spec what_is_it(any, State.t) :: State.t
+  defp what_is_it(_,default_state), do: default_state
 
   def handle_cast(:e_stop_lock, state) do
     Logger.warn ">> is stopping the scheduler!"
@@ -198,7 +197,7 @@ defmodule Farmbot.Scheduler do
     GenServer.stop(pid, :normal)
     new_state = %State{state | current_sequence: nil}
     save_and_update(new_state)
-    {:noreply, new_state }
+    {:noreply, new_state}
   end
 
   # A regimen is ready to be stopped.
@@ -212,6 +211,8 @@ defmodule Farmbot.Scheduler do
   end
 
   # a regimen has changed state, and the scheduler needs to know about it.
+  # TODO: this is too complex and i hate cond()
+  @lint false
   def handle_info({:update, {:regimen,
       {pid, regimen, finished_items, start_time, flag}}}, state)
   do
@@ -230,6 +231,11 @@ defmodule Farmbot.Scheduler do
       is_nil(found) ->
         Logger.error ">> could not find #{regimen.name} in scheduler."
         {:noreply, state}
+      true ->
+        Logger.error """
+          >> encountered something weird happened
+          adding updating #{regimen.name} in scheduler.
+          """
     end
   end
 

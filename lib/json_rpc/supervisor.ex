@@ -1,4 +1,5 @@
 defmodule RPC.Supervisor do
+  @moduledoc false
   use Supervisor
   @transport Application.get_env(:json_rpc, :transport)
   @handler   Application.get_env(:json_rpc, :handler)
@@ -7,8 +8,7 @@ defmodule RPC.Supervisor do
     children = [
       worker(RPC.MessageManager, []),
       worker(RPC.MessageHandler, [@handler], name: RPC.MessageHandler),
-      worker(@transport, [[]], restart: :permanent),
-      # worker(@handler, [[]], restart: :permanent)
+      worker(@transport, [[]], restart: :permanent)
     ]
     supervise(children, strategy: :one_for_one, name: __MODULE__)
   end

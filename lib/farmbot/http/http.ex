@@ -29,7 +29,7 @@ defmodule Farmbot.HTTP do
     Short cut for getting a path and piping it thro Poison.decode.
   """
   @spec get_to_json(binary) :: map
-  def get_to_json(path), do: get(path) |> Map.get(:body) |> Poison.decode!
+  def get_to_json(path), do: path |> get |> Map.get(:body) |> Poison.decode!
 
   @type headers :: ["Content-Type": String.t, "Authorization": String.t]
   @spec build_auth :: {:ok, headers} | {:error, term}

@@ -44,36 +44,37 @@ defmodule Farmbot.Scheduler.Sequence.Manager do
     {:reply, "queueing sequence", %{current: current, global_vars: globals, log: [log | seq]}}
   end
 
-  def handle_call({:pause, pid}, _from, %{current: current, global_vars: globals, log: more}) do
-    cond do
-      Process.alive?(pid) ->
+  def handle_call({:pause, pid}, _from, %{current: current, global_vars: globals, log: more})
+  when is_pid(pid) do
+    if Process.alive?(pid) do
         GenServer.call(current, :pause)
-        {:reply, :ok, %{current: nil, global_vars: globals, log: [ pid | more ]}}
+        {:reply, :ok, %{current: nil, global_vars: globals, log: [pid | more]}}
     end
   end
 
-  def handle_call({:resume, pid}, _from, %{current: _current, global_vars: globals, log: more}) do
-    cond do
-      Process.alive?(pid) ->
+  def handle_call({:resume, pid}, _from, %{current: _current, global_vars: globals, log: more})
+  when is_pid(pid)
+  do
+      if Process.alive?(pid) do
         GenServer.cast(pid, :resume)
         {:reply, :ok, %{current: pid, global_vars: globals, log: more}}
-    end
+      end
   end
 
   def handle_info({:done, pid, sequence},
     %{current: _current, global_vars: globals, log: []})
   when is_pid(pid) do
-    if(Process.alive?(pid)) do
+    if Process.alive?(pid) do
       GenServer.stop(pid, :normal)
     end
     # Log something here("No more sub sequences.", [], [__MODULE__])
     send(Farmbot.Scheduler, {:done, {:sequence, self(), sequence}})
-    {:noreply, %{current: nil, global_vars: globals, log: [] }}
+    {:noreply, %{current: nil, global_vars: globals, log: []}}
   end
 
   def handle_info({:done, pid, _sequence}, %{current: _current, global_vars: globals, log: log})
   when is_pid(pid) do
-    if(Process.alive?(pid)) do
+    if Process.alive?(pid) do
       GenServer.stop(pid, :normal)
     end
     # Log something here("Running next sub sequence", [], [__MODULE__])

@@ -1,5 +1,4 @@
 defmodule Farmbot.RPC.Requests do
-
   @moduledoc """
     These are all callbacks from the Handler.
     Mostly forwards to the Command Module.
@@ -25,7 +24,7 @@ defmodule Farmbot.RPC.Requests do
   end
 
   # Home All
-  def handle_request("home_all", [ %{"speed" => s} ]) when is_integer s do
+  def handle_request("home_all", [%{"speed" => s}]) when is_integer s do
     spawn fn -> Command.home_all(s) end
     :ok
   end
@@ -36,7 +35,7 @@ defmodule Farmbot.RPC.Requests do
   end
 
   # WRITE_PIN
-  def handle_request("write_pin", [ %{"pin_mode" => 1, "pin_number" => p, "pin_value" => v} ])
+  def handle_request("write_pin", [%{"pin_mode" => 1, "pin_number" => p, "pin_value" => v}])
     when is_integer(p) and
          is_integer(v)
   do
@@ -44,7 +43,7 @@ defmodule Farmbot.RPC.Requests do
     :ok
   end
 
-  def handle_request("write_pin", [ %{"pin_mode" => 0, "pin_number" => p, "pin_value" => v} ])
+  def handle_request("write_pin", [%{"pin_mode" => 0, "pin_number" => p, "pin_value" => v}])
     when is_integer p and
          is_integer v
   do
@@ -68,7 +67,7 @@ defmodule Farmbot.RPC.Requests do
   end
 
   # Move to a specific coord
-  def handle_request("move_absolute",  [%{"speed" => s, "x" => x, "y" => y, "z" => z}])
+  def handle_request("move_absolute", [%{"speed" => s, "x" => x, "y" => y, "z" => z}])
   when is_integer(x) and
        is_integer(y) and
        is_integer(z) and
@@ -85,9 +84,9 @@ defmodule Farmbot.RPC.Requests do
 
   # Move relative to current x position
   def handle_request("move_relative", [%{"speed" => speed,
-                                    "x" => x_move_by,
-                                    "y" => y_move_by,
-                                    "z" => z_move_by}])
+                                         "x" => x_move_by,
+                                         "y" => y_move_by,
+                                         "z" => z_move_by}])
     when is_integer(speed) and
          is_integer(x_move_by) and
          is_integer(y_move_by) and
@@ -122,7 +121,7 @@ defmodule Farmbot.RPC.Requests do
     :ok
   end
 
-  def handle_request("reboot", _ ) do
+  def handle_request("reboot", _) do
     Logger.warn ">> is going down for reboot in 5 seconds!", channels: [:toast]
     spawn fn ->
       Process.sleep(5000)
@@ -131,7 +130,7 @@ defmodule Farmbot.RPC.Requests do
     :ok
   end
 
-  def handle_request("power_off", _ ) do
+  def handle_request("power_off", _) do
     Logger.debug ">> will power off in 5 seconds!", channels: [:toast]
     spawn fn ->
       Process.sleep(5000)
@@ -141,20 +140,14 @@ defmodule Farmbot.RPC.Requests do
   end
 
   def handle_request("mcu_config_update", [params]) when is_map(params) do
-    case Enum.partition(params, fn({param, value}) ->
-      param_int = Farmbot.Serial.Gcode.Parser.parse_param(param)
-      spawn fn -> Command.update_param(param_int, value) end
-    end)
-    do
-      {_, []} ->
-        Logger.debug ">> has finished updating mcu paramaters.",
-          channels: [:toast], type: :success
-        :ok
-      {_, failed} ->
-        Logger.error ">> encountered an error setting mcu paramaters: #{inspect failed}.",
-        channels: [:toast]
-        :ok
-    end
+    params
+    |> Enum.partition(params,
+       fn({param, value}) ->
+         param_int = Farmbot.Serial.Gcode.Parser.parse_param(param)
+         spawn fn -> Command.update_param(param_int, value) end
+       end)
+    |> parse_mcu_config_output
+    :ok
   end
 
   def handle_request("bot_config_update", [configs]) do
@@ -184,7 +177,8 @@ defmodule Farmbot.RPC.Requests do
   end
 
   def handle_request("exec_sequence", [sequence]) do
-    Map.drop(sequence, ["dirty"])
+    sequence
+    |> Map.drop(["dirty"])
     |> Map.merge(%{"device_id" => -1, "id" => Map.get(sequence, "id") || -1})
     |> Farmbot.Sync.Database.Sequence.validate!
     |> Farmbot.Scheduler.add_sequence
@@ -204,7 +198,7 @@ defmodule Farmbot.RPC.Requests do
 
   def handle_request("stop_regimen", [%{"regimen_id" => id}]) when is_integer(id) do
     regimen = Farmbot.Sync.get_regimen(id)
-    running = GenServer.call(Farmbot.Scheduler, :state) |> Map.get(:regimens)
+    running = Farmbot.Scheduler |> GenServer.call(:state) |> Map.get(:regimens)
 
     {pid, ^regimen, _, _, _} = Farmbot.Scheduler.find_regimen(regimen, running)
     send(Farmbot.Scheduler, {:done, {:regimen, pid, regimen}})
@@ -224,7 +218,7 @@ defmodule Farmbot.RPC.Requests do
 
   def handle_request("calibrate", _) do
     {:error, "BAD_PARAMS",
-      Poison.encode!(%{"target" => "x | y | z" })}
+      Poison.encode!(%{"target" => "x | y | z"})}
   end
 
   def handle_request("dump_logs", _) do
@@ -241,4 +235,14 @@ defmodule Farmbot.RPC.Requests do
     {:error, "Unhandled method", "#{inspect {event, params}}"}
   end
 
+  @spec parse_mcu_config_output({[any], [any]}) :: :ok
+  defp parse_mcu_config_output({_, []}) do
+    Logger.debug ">> has finished updating mcu paramaters.",
+      channels: [:toast], type: :success
+  end
+
+  defp parse_mcu_config_output({_, failed}) do
+    Logger.error ">> encountered an error setting mcu paramaters: #{inspect failed}.",
+      channels: [:toast]
+  end
 end

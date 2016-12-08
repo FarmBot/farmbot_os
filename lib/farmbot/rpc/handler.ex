@@ -31,7 +31,7 @@ defmodule Farmbot.RPC.Handler do
     Poison.encode!(
     %{id: id,
       error: nil,
-      result: %{"OK" => "OK"} })
+      result: %{"OK" => "OK"}})
   end
 
   # JSON RPC RESPONSE ERROR
@@ -40,7 +40,7 @@ defmodule Farmbot.RPC.Handler do
     Poison.encode!(
     %{id: id,
       error: %{name: name,
-               message: message },
+               message: message},
       result: nil})
   end
 
@@ -80,7 +80,7 @@ defmodule Farmbot.RPC.Handler do
     m = %Notification{
       id: nil,
       method: "status_update",
-      params: [serialize_state(unserialized)] }
+      params: [serialize_state(unserialized)]}
     Poison.encode!(m)
   end
 
@@ -125,7 +125,7 @@ defmodule Farmbot.RPC.Handler do
 
   # Event from BotState.
   def handle_event({:dispatch, state}, _) do
-    build_status(state) |> @transport.emit
+    state |> build_status |> @transport.emit
     {:ok, state}
   end
 
@@ -135,7 +135,7 @@ defmodule Farmbot.RPC.Handler do
   end
 
   def handle_call(:force_dispatch, state) do
-    build_status(state) |> @transport.emit
+    state |> build_status |> @transport.emit
     {:ok, :ok, state}
   end
 

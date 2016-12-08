@@ -37,7 +37,9 @@ defmodule Farmbot.Scheduler.Sequence.VM do
   end
 
   def get_status do
-    GenEvent.call(Farmbot.BotState.EventManager, BotStateTracker, :state) |> check_status
+    Farmbot.BotState.EventManager
+    |> GenEvent.call(BotStateTracker, :state)
+    |> check_status
   end
 
   def check_status(%HardwareState{} = blah), do: blah
@@ -62,18 +64,17 @@ defmodule Farmbot.Scheduler.Sequence.VM do
         vars: %{},
         running: true,
         sequence: sequence,
-        steps: {sequence.body, []}
-       }
+        steps: {sequence.body, []}}
     {:ok, initial_state}
   end
 
   def handle_call({:set_var, identifier, value}, _from, state) do
     new_vars = Map.put(state.vars, identifier, value)
-    new_state = Map.put(state, :vars, new_vars )
+    new_state = Map.put(state, :vars, new_vars)
     {:reply, :ok, new_state}
   end
 
-  def handle_call({:get_var, identifier}, _from, state ) do
+  def handle_call({:get_var, identifier}, _from, state) do
     v = Map.get(state.vars, identifier, :error)
     {:reply, v, state}
   end
@@ -83,7 +84,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
   end
 
   # disabling this right now
-  def handle_call(:get_all_vars, _from, state ) do
+  def handle_call(:get_all_vars, _from, state) do
     # %Farmbot.BotState.Hardware.State{location: [-1, -1, -1], mcu_params: %{}, pins: %{}}
     # Kind of dirty function to make mustache work properly.
     # Also possibly a huge memory leak.
@@ -97,12 +98,12 @@ defmodule Farmbot.Scheduler.Sequence.VM do
     # put current position into the Map
     pins =
     state.status.pins
-    |> Enum.reduce(%{}, fn( {key, %{mode: _mode, value: val}}, acc) ->
+    |> Enum.reduce(%{}, fn({key, %{mode: _mode, value: val}}, acc) ->
       # THIS IS SO UNSAFE
-      Map.put(acc, String.to_atom("pin"<>key), val)
+      Map.put(acc, String.to_atom("pin" <> key), val)
     end)
     [x,y,z] = state.status.location
-    thing2 = Map.merge(%{x: x, y: y, z: z }, pins)
+    thing2 = Map.merge(%{x: x, y: y, z: z}, pins)
 
     #TODO BUG THIS IS BROKE
 
@@ -113,8 +114,10 @@ defmodule Farmbot.Scheduler.Sequence.VM do
     thing3 = %{}
 
     # Combine all the things.
-    all_things = Map.merge(thing1, thing2)
-    |> Map.merge(thing3)
+    all_things =
+      thing1
+      |> Map.merge(thing2)
+      |> Map.merge(thing3)
     {:reply, all_things , state}
   end
 
@@ -142,12 +145,11 @@ defmodule Farmbot.Scheduler.Sequence.VM do
           status: status,
           instruction_set: instruction_set,
           vars: vars,
-          running: false
-         })
+          running: false})
   do
     {:noreply,
       %{status: status, sequence: sequence, steps: steps,
-        instruction_set: instruction_set, vars: vars, running: false  }}
+        instruction_set: instruction_set, vars: vars, running: false}}
   end
 
   # if there is no more steps to run
@@ -157,8 +159,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
           instruction_set: instruction_set,
           vars: vars,
           running: running,
-          steps: {[], finished_steps}
-         })
+          steps: {[], finished_steps}})
   do
     Logger.debug ">> has completed #{sequence.name}."
     send(Farmbot.Scheduler.Sequence.Manager, {:done, self(), sequence})
@@ -168,7 +169,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
         steps: {[], finished_steps},
         instruction_set: instruction_set,
         vars: vars,
-        running: running  }}
+        running: running}}
   end
 
   # if there are more steps to run
@@ -178,7 +179,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
           vars: vars,
           running: true,
           sequence: sequence,
-          steps: {more_steps, finished_steps} })
+          steps: {more_steps, finished_steps}})
   do
     ast_node = List.first(more_steps)
     kind = Map.get(ast_node, "kind")
@@ -190,7 +191,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
             steps: {more_steps -- [ast_node], finished_steps ++ [ast_node]},
             instruction_set: instruction_set,
             vars: vars,
-            running: true }}
+            running: true}}
   end
 
   def handle_info({:error, :e_stop}, state) do

@@ -30,10 +30,13 @@ defmodule Farmbot.BotState.Authorization do
   end
 
   def init(_args) do
-    {:ok, SafeStorage.read(__MODULE__)
-          |> load
-          |> maybe_get_token(Farmbot.Auth.get_token)
-          |> State.broadcast}
+    s =
+      __MODULE__
+      |> SafeStorage.read
+      |> load
+      |> maybe_get_token(Farmbot.Auth.get_token)
+      |> State.broadcast
+    {:ok, s}
   end
 
   @spec load({:ok, State.t} | nil) :: State.t
@@ -75,8 +78,8 @@ defmodule Farmbot.BotState.Authorization do
 
   # We have to store these temporarily in case the bot doesnt have network yet.
   def handle_cast({:creds, {email, pass, server}}, %State{} = _state) do
-    new_state = %State{server: server, interim: %{ email: email,
-                                                   pass: pass } }
+    new_state =
+      %State{server: server, interim: %{email: email, pass: pass}}
     dispatch new_state
   end
 
@@ -103,10 +106,11 @@ defmodule Farmbot.BotState.Authorization do
   end
 
   @spec try_log_in(State.t) :: {:ok, Token.t} | {:error, atom}
-  defp try_log_in(%State{server: server, interim: %{email: email, pass: pass}}) do
+  defp try_log_in(%State{server: server, interim: %{email: email, pass: pass}})
+  do
     with {:ok, pub_key} <- Farmbot.Auth.get_public_key(server),
-         {:ok, secret } <- Farmbot.Auth.encrypt(email, pass, pub_key),
-         do: try_get_token(server, secret)
+         {:ok, secret}  <- Farmbot.Auth.encrypt(email, pass, pub_key),
+          do: try_get_token(server, secret)
   end
 
   defp try_log_in(%State{server: server, secret: secret}) do

@@ -88,14 +88,16 @@ defmodule Farmbot.Serial.Handler do
   # TODO Rewrite this with an Erlang Port
   def handle_cast({:update_fw, hex_file, pid}, {nerves, tty, handler}) do
     Nerves.UART.close(nerves)
-    System.cmd("avrdude",
-              ["-v",
-               "-patmega2560",
-               "-cwiring",
-               "-P/dev/#{tty}",
-               "-b115200",
-               "-D",
-               "-Uflash:w:#{hex_file}:i"]) |> parse_cmd(pid)
+    params =
+      ["-v",
+       "-patmega2560",
+       "-cwiring",
+       "-P/dev/#{tty}",
+       "-b115200",
+       "-D",
+       "-Uflash:w:#{hex_file}:i"]
+
+    "avrdude" |> System.cmd(params) |> parse_cmd(pid)
     new_tty = open_serial(nerves)
     {:noreply, {nerves, new_tty, handler}}
   end

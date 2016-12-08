@@ -26,6 +26,7 @@ defmodule Farmbot.Sync.Helpers do
   @doc """
     Gets a device by id
   """
+  @lint false
   def get_device(find_id) do
     Amnesia.transaction do
       Device.where id == find_id
@@ -36,6 +37,7 @@ defmodule Farmbot.Sync.Helpers do
   @doc """
     Gets a peripheral by id
   """
+  @lint false
   def get_peripheral(find_id) do
     Amnesia.transaction do
       Peripheral.where id == find_id
@@ -46,6 +48,7 @@ defmodule Farmbot.Sync.Helpers do
   @doc """
     Gets a regimen_item by id
   """
+  @lint false
   def get_regimen_item(find_id) do
     Amnesia.transaction do
       RegimenItem.where id == find_id
@@ -56,6 +59,7 @@ defmodule Farmbot.Sync.Helpers do
   @doc """
     Gets a regimen by id
   """
+  @lint false
   def get_regimen(find_id) do
     Amnesia.transaction do
       Regimen.where id == find_id
@@ -66,6 +70,7 @@ defmodule Farmbot.Sync.Helpers do
   @doc """
     Gets a sequence by id
   """
+  @lint false
   def get_sequence(find_id) do
     Amnesia.transaction do
       Sequence.where id == find_id
@@ -76,6 +81,7 @@ defmodule Farmbot.Sync.Helpers do
   @doc """
     Gets a tool_bay by id
   """
+  @lint false
   def get_tool_bay(find_id) do
     Amnesia.transaction do
       ToolBay.where id == find_id
@@ -86,6 +92,7 @@ defmodule Farmbot.Sync.Helpers do
   @doc """
     Gets a tool_slot by id
   """
+  @lint false
   def get_tool_slot(find_id) do
     Amnesia.transaction do
       ToolSlot.where id == find_id
@@ -96,6 +103,7 @@ defmodule Farmbot.Sync.Helpers do
   @doc """
     Gets a tool by id
   """
+  @lint false
   def get_tool(find_id) do
     Amnesia.transaction do
       Tool.where id == find_id
@@ -106,6 +114,7 @@ defmodule Farmbot.Sync.Helpers do
   @doc """
     Gets a user by id
   """
+  @lint false
   def get_user(find_id) do
     Amnesia.transaction do
       User.where id == find_id
@@ -116,6 +125,7 @@ defmodule Farmbot.Sync.Helpers do
   @doc """
     Gets the current Device Name.
   """
+  @lint false
   def get_device_name do
     Amnesia.transaction do
       # there is only ever at most one device..

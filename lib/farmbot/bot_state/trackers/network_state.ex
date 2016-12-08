@@ -26,7 +26,13 @@ defmodule Farmbot.BotState.Network do
 
   def init(_args) do
     NetMan.put_pid(__MODULE__)
-    {:ok, SafeStorage.read(__MODULE__) |> load |> start_connection |> State.broadcast}
+
+    s = __MODULE__
+        |> SafeStorage.read
+        |> load
+        |> start_connection
+        |> State.broadcast
+    {:ok, s}
   end
 
   @spec load({:ok, State.t}) :: State.t

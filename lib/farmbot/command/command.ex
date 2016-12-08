@@ -110,6 +110,7 @@ defmodule Command do
   @doc """
     Calibrates an axis. May be used for other calibration things later.
   """
+  @lint false # Dont lint this.
   @spec calibrate(String.t) :: command_output
   def calibrate("x") do
     Farmbot.Serial.Gcode.Handler.block_send("F14")
@@ -130,6 +131,7 @@ defmodule Command do
     Writes a pin high or low
   """
   @spec write_pin(number, number, number) :: command_output
+  @lint false # Dont lint this.
   def write_pin(pin, value, mode)
   when is_integer(pin) and is_integer(value) and is_integer(mode) do
     Farmbot.BotState.set_pin_mode(pin, mode)
@@ -142,7 +144,9 @@ defmodule Command do
     Moves to (x,y,z) point.
   """
   @spec move_absolute(number, number, number, number | nil) :: command_output
+  @lint false # Dont lint this.
   def move_absolute(x ,y ,z ,s \\ nil)
+  @lint false # Dont lint this.
   def move_absolute(x, y, z, s) do
     Logger.debug ">> is moving to X#{x} Y#{y} Z#{z}."
     Farmbot.Serial.Gcode.Handler.block_send(
@@ -212,6 +216,7 @@ defmodule Command do
     mode can be 0 (digital) or 1 (analog)
   """
   @spec read_pin(number, 0 | 1) :: command_output
+  @lint false # Dont lint this.
   def read_pin(pin, mode \\ 0) when is_integer(pin) do
     Farmbot.BotState.set_pin_mode(pin, mode)
     Farmbot.Serial.Gcode.Handler.block_send("F42 P#{pin} M#{mode}")
@@ -223,11 +228,11 @@ defmodule Command do
   """
   @spec toggle_pin(number) :: command_output
   def toggle_pin(pin) when is_integer(pin) do
-    pinMap = Farmbot.BotState.get_pin(pin)
-    case pinMap do
-      %{mode: 0, value: 1 } ->
+    pin_map = Farmbot.BotState.get_pin(pin)
+    case pin_map do
+      %{mode: 0, value: 1} ->
         write_pin(pin, 0, 0)
-      %{mode: 0, value: 0 } ->
+      %{mode: 0, value: 0} ->
         write_pin(pin, 1, 0)
       nil ->
         read_pin(pin, 0)
@@ -270,7 +275,7 @@ defmodule Command do
 
   @spec logmsg(command_output, String.t) :: command_output
   defp logmsg(:done, command) when is_bitstring(command) do
-    Logger.debug( ">> completed #{command}." )
+    Logger.debug(">> completed #{command}.")
     :done
   end
 

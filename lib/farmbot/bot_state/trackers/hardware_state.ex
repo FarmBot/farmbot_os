@@ -39,7 +39,8 @@ defmodule Farmbot.BotState.Hardware do
 
   def init(_args) do
     Process.send_after(self(), :params_hack, 3000)
-    {:ok, load |> State.broadcast}
+    s = load |> State.broadcast
+    {:ok, s}
   end
 
   @spec load :: State.t
@@ -101,13 +102,13 @@ defmodule Farmbot.BotState.Hardware do
     dispatch %State{state | pins: new_pin_state}
   end
 
-  def handle_cast({:set_param, {param_string, value} }, %State{} = state) do
+  def handle_cast({:set_param, {param_string, value}}, %State{} = state) do
     new_params = Map.put(state.mcu_params, param_string, value)
     dispatch %State{state | mcu_params: new_params}
   end
 
   def handle_cast({:set_end_stops, {xa,xb,ya,yb,za,zc}}, %State{} = state) do
-    dispatch %State{state | end_stops: {xa,xb,ya,yb,za,zc} }
+    dispatch %State{state | end_stops: {xa,xb,ya,yb,za,zc}}
   end
 
   # catch all.

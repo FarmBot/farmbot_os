@@ -71,7 +71,7 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Client do
           type: :error,
           x: -1,
           y: -1,
-          z: -1 }}
+          z: -1}}
 
       %RPC.Spec.Notification{
         id: nil,

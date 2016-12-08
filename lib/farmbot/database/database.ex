@@ -33,7 +33,7 @@ defmodule Farmbot.Sync do
     syncable ToolBay, [:id, :device_id, :name]
     syncable ToolSlot, [:id, :tool_bay_id, :tool_id, :name, :x, :y, :z]
     syncable Tool, [:id, :name]
-    syncable User, [ :id, :device_id, :name, :email, :created_at, :updated_at]
+    syncable User, [:id, :device_id, :name, :email, :created_at, :updated_at]
   end
 
   # These have to exist because Amnesia.where gets confused when you
@@ -72,9 +72,10 @@ defmodule Farmbot.Sync do
       blah = Map.from_struct(so)
       # Then enumerate over it.
       struct =
-        Enum.map(blah, fn({key, val}) ->
-          {key, parse_and_write(val)}
-        end)
+        blah
+        |> Enum.map(fn({key, val}) ->
+            {key, parse_and_write(val)}
+           end)
         # then turn it back into a map
         |> Map.new
         # then turn it back into a struct
@@ -120,7 +121,7 @@ defmodule Farmbot.Sync do
         [%module{} = delete_me] -> module.delete(delete_me)
         # WHICH IS ALL FINE AS LONG AS THIS DOES NOT HAPPEN
         # IF IT DOES THERE MAY OR MAY NOT BE AN N+1 ISSUE.
-        other_list -> Enum.each(other_list, fn(t) -> module.delete(t) end)
+        # other_list -> Enum.each(other_list, fn(t) -> module.delete(t) end)
       end
       # This is where we actually write the new thing.
       module.write(thing)

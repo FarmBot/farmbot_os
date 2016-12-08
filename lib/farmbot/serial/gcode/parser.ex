@@ -4,35 +4,35 @@ defmodule Farmbot.Serial.Gcode.Parser do
   """
 
   @spec parse_code(binary) :: tuple
-  def parse_code("R0" ) do { :idle, qtag } end
-  def parse_code("R0 Q" <>tag) do { :idle, tag } end
-  def parse_code("R1" ) do { :received, qtag } end
-  def parse_code("R1 Q" <>tag) do { :received, tag } end
-  def parse_code("R2" ) do { :done, qtag } end
-  def parse_code("R2 Q" <>tag) do { :done, tag } end
-  def parse_code("R3" ) do { :error, qtag } end
-  def parse_code("R3 Q" <>tag) do { :error, tag } end
-  def parse_code("R4" ) do { :busy, qtag } end
-  def parse_code("R4 Q" <>tag) do { :busy, tag } end
-  def parse_code("R00") do { :idle, qtag } end
-  def parse_code("R00 Q"<>tag) do { :idle, tag } end
-  def parse_code("R01") do { :received, qtag } end
-  def parse_code("R01 Q"<>tag) do { :received, tag } end
-  def parse_code("R02") do { :done, qtag } end
-  def parse_code("R02 Q"<>tag) do { :done, tag } end
-  def parse_code("R03") do { :error, qtag } end
-  def parse_code("R03 Q"<>tag) do { :error, tag } end
-  def parse_code("R04") do { :busy, qtag } end
-  def parse_code("R04 Q"<>tag) do { :busy, tag } end
+  def parse_code("R0") do {:idle, qtag} end
+  def parse_code("R0 Q" <> tag) do {:idle, tag} end
+  def parse_code("R1") do {:received, qtag} end
+  def parse_code("R1 Q" <> tag) do {:received, tag} end
+  def parse_code("R2") do {:done, qtag} end
+  def parse_code("R2 Q" <> tag) do {:done, tag} end
+  def parse_code("R3") do {:error, qtag} end
+  def parse_code("R3 Q" <> tag) do {:error, tag} end
+  def parse_code("R4") do {:busy, qtag} end
+  def parse_code("R4 Q" <> tag) do {:busy, tag} end
+  def parse_code("R00") do {:idle, qtag} end
+  def parse_code("R00 Q" <> tag) do {:idle, tag} end
+  def parse_code("R01") do {:received, qtag} end
+  def parse_code("R01 Q" <> tag) do {:received, tag} end
+  def parse_code("R02") do {:done, qtag} end
+  def parse_code("R02 Q" <> tag) do {:done, tag} end
+  def parse_code("R03") do {:error, qtag} end
+  def parse_code("R03 Q" <> tag) do {:error, tag} end
+  def parse_code("R04") do {:busy, qtag} end
+  def parse_code("R04 Q" <> tag) do {:busy, tag} end
 
   def parse_code("R21 " <> params), do: parse_pvq(params, :report_parameter_value)
   def parse_code("R31 " <> params), do: parse_pvq(params, :report_status_value)
   def parse_code("R41 " <> params), do: parse_pvq(params, :report_pin_value)
   def parse_code("R81 " <> params), do: parse_end_stops(params)
   def parse_code("R82 " <> position), do: parse_report_current_position(position)
-  def parse_code("R83 "<> v), do: {:report_software_version, String.to_integer(v)}
-  def parse_code("R83") do { :report_software_version, -1 } end
-  def parse_code("R99 " <> message) do { :debug_message, message } end
+  def parse_code("R83 " <> v), do: {:report_software_version, String.to_integer(v)}
+  def parse_code("R83") do {:report_software_version, -1} end
+  def parse_code("R99 " <> message) do {:debug_message, message} end
   def parse_code(code)  do {:unhandled_gcode, code} end
 
   @doc """
@@ -43,19 +43,21 @@ defmodule Farmbot.Serial.Gcode.Parser do
   """
   @spec parse_report_current_position(binary)
   :: {:report_current_position, String.t, String.t, String.t, String.t}
-  def parse_report_current_position(position) when is_bitstring(position) do
-    case String.split(position, " ") do
-      ["X"<>x, "Y"<>y, "Z"<>z] ->
-        { :report_current_position,
-          String.to_integer(x),
-          String.to_integer(y),
-          String.to_integer(z), qtag }
-      ["X"<>x, "Y"<>y, "Z"<>z, "Q"<>tag] ->
-        { :report_current_position,
-          String.to_integer(x),
-          String.to_integer(y),
-          String.to_integer(z), tag }
-    end
+  def parse_report_current_position(position) when is_bitstring(position),
+    do: position |> String.split(" ") |> do_parse_pos
+
+  defp do_parse_pos(["X" <> x, "Y" <> y, "Z" <> z]) do
+    {:report_current_position,
+      String.to_integer(x),
+      String.to_integer(y),
+      String.to_integer(z), qtag}
+  end
+
+  defp do_parse_pos(["X" <> x, "Y" <> y, "Z" <> z, "Q" <> tag]) do
+    {:report_current_position,
+      String.to_integer(x),
+      String.to_integer(y),
+      String.to_integer(z), tag}
   end
 
   @doc """
@@ -124,34 +126,44 @@ defmodule Farmbot.Serial.Gcode.Parser do
   @spec parse_pvq(binary, :report_parameter_value)
   :: {:report_parameter_value, atom, integer, String.t}
   def parse_pvq(params, :report_parameter_value)
-  when is_bitstring(params) do
-    case String.split(params, " ") do
-      [p, v] ->
-        [_, rp] = String.split(p, "P")
-        [_, rv] = String.split(v, "V")
-        {:report_parameter_value, parse_param(rp), String.to_integer(rv), qtag}
-      [p, v, q] ->
-        [_, rp] = String.split(p, "P")
-        [_, rv] = String.split(v, "V")
-        [_, rq] = String.split(q, "Q")
-        {:report_parameter_value, parse_param(rp), String.to_integer(rv), rq}
-    end
-  end
+  when is_bitstring(params),
+    do: params |> String.split(" ") |> do_parse_params
 
   def parse_pvq(params, human_readable_param_name)
   when is_bitstring(params)
-   and is_atom(human_readable_param_name) do
-    case String.split(params, " ") do
-      [p, v] ->
-        [_, rp] = String.split(p, "P")
-        [_, rv] = String.split(v, "V")
-        {human_readable_param_name, String.to_integer(rp), String.to_integer(rv), qtag}
-      [p, v, q] ->
-        [_, rp] = String.split(p, "P")
-        [_, rv] = String.split(v, "V")
-        [_, rq] = String.split(q, "Q")
-        {human_readable_param_name, String.to_integer(rp), String.to_integer(rv), rq}
-    end
+   and is_atom(human_readable_param_name),
+   do: params |> String.split(" ") |> do_parse_pvq(human_readable_param_name)
+
+  defp do_parse_pvq([p, v], human_readable_param_name) do
+    [_, rp] = String.split(p, "P")
+    [_, rv] = String.split(v, "V")
+    {human_readable_param_name,
+     String.to_integer(rp),
+     String.to_integer(rv),
+     qtag}
+  end
+
+  defp do_parse_pvq([p, v, q], human_readable_param_name) do
+    [_, rp] = String.split(p, "P")
+    [_, rv] = String.split(v, "V")
+    [_, rq] = String.split(q, "Q")
+    {human_readable_param_name,
+     String.to_integer(rp),
+     String.to_integer(rv),
+     rq}
+  end
+
+  defp do_parse_params([p, v]) do
+    [_, rp] = String.split(p, "P")
+    [_, rv] = String.split(v, "V")
+    {:report_parameter_value, parse_param(rp), String.to_integer(rv), qtag}
+  end
+
+  defp do_parse_params([p, v, q]) do
+    [_, rp] = String.split(p, "P")
+    [_, rv] = String.split(v, "V")
+    [_, rq] = String.split(q, "Q")
+    {:report_parameter_value, parse_param(rp), String.to_integer(rv), rq}
   end
 
   @doc """
@@ -175,28 +187,28 @@ defmodule Farmbot.Serial.Gcode.Parser do
       0
   """
   @spec parse_param(binary | integer) :: atom | nil
-  def parse_param("0"  ) do :param_version end
-  def parse_param("11" ) do :movement_timeout_x end
-  def parse_param("12" ) do :movement_timeout_y end
-  def parse_param("13" ) do :movement_timeout_z end
-  def parse_param("21" ) do :movement_invert_endpoints_x end
-  def parse_param("22" ) do :movement_invert_endpoints_y end
-  def parse_param("23" ) do :movement_invert_endpoints_z end
-  def parse_param("31" ) do :movement_invert_motor_x end
-  def parse_param("32" ) do :movement_invert_motor_y end
-  def parse_param("33" ) do :movement_invert_motor_z end
-  def parse_param("41" ) do :movement_steps_acc_dec_x end
-  def parse_param("42" ) do :movement_steps_acc_dec_y end
-  def parse_param("43" ) do :movement_steps_acc_dec_z end
-  def parse_param("51" ) do :movement_home_up_x end
-  def parse_param("52" ) do :movement_home_up_y end
-  def parse_param("53" ) do :movement_home_up_z end
-  def parse_param("61" ) do :movement_min_spd_x end
-  def parse_param("62" ) do :movement_min_spd_y end
-  def parse_param("63" ) do :movement_min_spd_z end
-  def parse_param("71" ) do :movement_max_spd_x end
-  def parse_param("72" ) do :movement_max_spd_y end
-  def parse_param("73" ) do :movement_max_spd_z end
+  def parse_param("0") do :param_version end
+  def parse_param("11") do :movement_timeout_x end
+  def parse_param("12") do :movement_timeout_y end
+  def parse_param("13") do :movement_timeout_z end
+  def parse_param("21") do :movement_invert_endpoints_x end
+  def parse_param("22") do :movement_invert_endpoints_y end
+  def parse_param("23") do :movement_invert_endpoints_z end
+  def parse_param("31") do :movement_invert_motor_x end
+  def parse_param("32") do :movement_invert_motor_y end
+  def parse_param("33") do :movement_invert_motor_z end
+  def parse_param("41") do :movement_steps_acc_dec_x end
+  def parse_param("42") do :movement_steps_acc_dec_y end
+  def parse_param("43") do :movement_steps_acc_dec_z end
+  def parse_param("51") do :movement_home_up_x end
+  def parse_param("52") do :movement_home_up_y end
+  def parse_param("53") do :movement_home_up_z end
+  def parse_param("61") do :movement_min_spd_x end
+  def parse_param("62") do :movement_min_spd_y end
+  def parse_param("63") do :movement_min_spd_z end
+  def parse_param("71") do :movement_max_spd_x end
+  def parse_param("72") do :movement_max_spd_y end
+  def parse_param("73") do :movement_max_spd_z end
   def parse_param("101") do :encoder_enabled_x end
   def parse_param("102") do :encoder_enabled_y end
   def parse_param("103") do :encoder_enabled_z end
@@ -276,9 +288,9 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(:pin_guard_5_pin_nr) do 221 end
   def parse_param(:pin_guard_5_time_out) do 222 end
   def parse_param(:pin_guard_5_active_state) do 223 end
-  def parse_param(param_string) when is_bitstring(param_string) do
-    String.to_atom(param_string) |> parse_param
-  end
+  def parse_param(param_string) when is_bitstring(param_string),
+    do: param_string |> String.to_atom |> parse_param
+    
   def parse_param(_), do: nil
 
   @spec qtag :: String.t

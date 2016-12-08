@@ -7,8 +7,6 @@ defmodule Farmbot.BotState do
   @moduledoc """
     Functions to modifying Farmbot's state
     all in one convenient (and easy to spell) location.
-    TODO: finish documenting these functions and make them
-    testable
   """
 
   @doc """
@@ -180,7 +178,7 @@ defmodule Farmbot.BotState do
   end
 
   defp check_time_set do
-    if :os.system_time(:seconds) <  1474929 do
+    if :os.system_time(:seconds) <  1_474_929 do
       # prize to whoever finds what this date is!
       check_time_set # wait until time is set
     end
