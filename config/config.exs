@@ -13,3 +13,10 @@ config :json_rpc,
 
 config :uart,
   baud: 115200
+
+config :logger,
+  utc_logs: true
+
+config :quantum, cron: [
+  "5 1 * * *": {Farmbot.Updates.Handler, :do_update_check}
+]

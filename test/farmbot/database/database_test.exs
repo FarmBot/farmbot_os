@@ -3,5 +3,6 @@ defmodule Farmbot.SyncTest do
     Tests for handling the sync object
   """
   use ExUnit.Case, async: true
+  use Amnesia
 
 end

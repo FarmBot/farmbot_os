@@ -14,7 +14,7 @@ defmodule Farmbot.Serial.Gcode.Handler do
   end
 
   def handle_cast({:debug_message, str}, state) do
-    Logger.debug("Debug Message from arduino: #{str}")
+    Logger.debug ">> got a message from my arduino: #{str}"
     {:noreply, state}
   end
 
@@ -46,33 +46,29 @@ defmodule Farmbot.Serial.Gcode.Handler do
 
   def handle_cast({:report_pin_value, pin, value, _}, state)
   when is_integer(pin) and is_integer(value) do
-    Logger.debug("pin#{pin}: #{value}")
     Farmbot.BotState.set_pin_value(pin, value)
     {:noreply, state}
   end
 
   def handle_cast({:report_current_position, x,y,z, _}, state) do
-    Logger.debug("Reporting position #{inspect {x, y, z}}")
     Farmbot.BotState.set_pos(x,y,z)
     {:noreply, state}
   end
 
   def handle_cast({:report_parameter_value, param, value, _}, state)
   when is_atom(param) and is_integer(value) do
-    Logger.debug("Param: #{param}, Value: #{value}")
     Farmbot.BotState.set_param(param, value)
     {:noreply, state}
   end
 
   def handle_cast({:reporting_end_stops, x1,x2,y1,y2,z1,z2,_}, state) do
-    Logger.debug("Setting end stops: #{inspect {x1,x2,y1,y2,z1,z2}}")
     Farmbot.BotState.set_end_stops({x1,x2,y1,y2,z1,z2})
     {:noreply, state}
   end
 
   def handle_cast({:busy, _}, %{nerves: nerves, current: {cur_str, pid}, log: log}) do
     send(pid, :busy)
-    Logger.debug("Arduino is busy")
+    Logger.debug ">>'s arduino is busy.", type: :busy
     {:noreply, %{nerves: nerves, current: {cur_str, pid}, log: log}}
   end
 
@@ -88,7 +84,7 @@ defmodule Farmbot.Serial.Gcode.Handler do
   end
 
   def handle_cast(event, state) do
-    Logger.warn("unhandled gcode! #{inspect event}")
+    Logger.debug ">> got an unhandled gcode! #{inspect event}"
     {:noreply, state}
   end
 

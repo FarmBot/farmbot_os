@@ -8,7 +8,7 @@ defmodule Farmbot.Scheduler.Sequence.Manager do
 
 
   def init(%Sequence{} = sequence) do
-    Logger.debug("Sequence Manager Init.")
+    # Log somethingdebug("Sequence Manager Init.")
     Process.flag(:trap_exit, true)
     {:ok, pid} = Farmbot.Scheduler.Sequence.VM.start_link(sequence)
     {:ok, %{current: pid, global_vars: %{}, log: []}}
@@ -95,17 +95,15 @@ defmodule Farmbot.Scheduler.Sequence.Manager do
 
   def handle_info({:EXIT, pid, reason}, state)
   when pid == state do
-    msg = "Sequence died of unnatural causes: #{inspect reason}"
-    Logger.debug(msg)
-    # Log something here(msg, [:error_toast], [__MODULE__])
+    Logger.error ">> could not complete sequence: #{inspect reason}, #{inspect state}"
     handle_info({:done, pid, %{}}, state)
   end
 
   def terminate(:normal, _state) do
-    Logger.debug("Sequence Manager shutting down")
+    Logger.debug ">> is shutting down the sequencer."
   end
 
   def terminate(reason, _state) do
-    Logger.debug("Sequence Manager died unnaturally: #{inspect reason}")
+    Logger.error ">> encountered an error in the sequencer: #{inspect reason}"
   end
 end

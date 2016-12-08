@@ -24,8 +24,8 @@ defmodule Farmbot.Scheduler.Sequence.VM do
       {:ok, {parent, old_state}}
     end
 
+    # BUG: race condition of course.
     def handle_call(:state, {parent, nil}) do
-      Logger.error("THIS WILL NOT END WELL")
       {:ok, :find_me, {parent, nil}}
     end
 
@@ -33,13 +33,11 @@ defmodule Farmbot.Scheduler.Sequence.VM do
       {:ok, old_state, {parent, old_state}}
     end
 
-    def terminate(_, _) do
-      Logger.debug("Sequence BotState Tracker stopping.")
-    end
+    def terminate(_, _), do: nil
   end
 
   def get_status do
-    GenEvent.call(BotStateEventManager, BotStateTracker, :state) |> check_status
+    GenEvent.call(Farmbot.BotState.EventManager, BotStateTracker, :state) |> check_status
   end
 
   def check_status(%HardwareState{} = blah), do: blah
@@ -50,7 +48,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
   end
 
   def init(%Sequence{} = sequence) do
-    Logger.debug("Sequencer Init.")
+    Logger.debug ">> is initializing the sequencer!"
     Farmbot.BotState.Monitor.add_handler(BotStateTracker, {__MODULE__, nil})
     tv = Map.get(sequence.args, "tag_version") || 0
     module = Module.concat(Farmbot.Scheduler.Sequence, "InstructionSet_#{tv}")
@@ -125,7 +123,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
   end
 
   def handle_call(thing, _from, state) do
-    Logger.warn("#{inspect thing} is probably not implemented in the Sequencer VM")
+    Logger.error ">> unhandled #{inspect thing} in sequencer!"
     {:reply, :ok, state}
   end
 
@@ -162,7 +160,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
           steps: {[], finished_steps}
          })
   do
-    Logger.debug("Sequence #{sequence.name} has completed.")
+    Logger.debug ">> has completed #{sequence.name}."
     send(Farmbot.Scheduler.Sequence.Manager, {:done, self(), sequence})
     {:noreply,
       %{status: status,
@@ -184,7 +182,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
   do
     ast_node = List.first(more_steps)
     kind = Map.get(ast_node, "kind")
-    Logger.debug("doing: #{kind}")
+    Logger.debug ">> is executing [#{sequence.name}] - #{kind}"
     GenServer.cast(instruction_set, ast_node)
     {:noreply, %{
             status: status,
@@ -201,7 +199,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
   end
 
   def handle_info({:error, error}, state) do
-    Logger.error("Sequence: #{state.sequence.name} had an error: #{inspect error}")
+    Logger.error ">> encountered an error in [state.sequence.name]: #{inspect error}"
     send(Farmbot.Scheduler.Sequence.Manager, {:done, self(), state.sequence})
     {:noreply, state}
   end
@@ -215,7 +213,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
   # i suck
   def tick(vm, :timeout) do
     seq_name = GenServer.call(vm, :name)
-    Logger.warn("Command Timed out on #{seq_name}")
+    Logger.error ">> got a timeout on [#{seq_name}]"
     tick(vm, :done)
   end
   def tick(vm, {:error, reason}), do: tick(vm, reason)
@@ -232,7 +230,7 @@ defmodule Farmbot.Scheduler.Sequence.VM do
   end
 
   def terminate(reason, state) do
-    Logger.debug("VM Died: #{inspect reason}")
+    Logger.error ">> detected a sequencer death: #{inspect reason}"
     GenServer.stop(state.instruction_set, :normal)
     Farmbot.BotState.Monitor.remove_handler(__MODULE__)
   end

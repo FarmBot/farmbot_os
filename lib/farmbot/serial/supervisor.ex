@@ -11,7 +11,7 @@ defmodule Farmbot.Serial.Supervisor do
   end
 
   def start_link(env) do
-    Logger.debug("Starting Serial")
+    # Log somethingdebug("Starting Serial")
     Supervisor.start_link(__MODULE__, env)
   end
 end

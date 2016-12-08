@@ -1,8 +1,8 @@
 defmodule Farmbot.Updates.Handler do
+  require Logger
   @moduledoc """
     Bunch of stuff to do updates.
   """
-  @log_tag "UpdateHandler"
 
   @type update_output
   :: {:update, String.t | nil}
@@ -15,41 +15,43 @@ defmodule Farmbot.Updates.Handler do
   @spec check_and_download_updates(:os | :fw)
   :: :ok | {:error, atom} | :no_updates
   def check_and_download_updates(something) do
+    Logger.debug ">> Is checking for updates."
     case check_updates(something) do
-      {:error, reason} -> nil
-        # Log something here("Error getting #{something} update!: #{inspect reason}",
-                            # [:error_toast], [@log_tag])
+      {:error, reason} ->
+        Logger.debug ">> encountered an error checking for updates: #{inspect reason}."
       {:update, url} ->
         install_update(something, url)
-      :no_updates -> nil
-        # Log something here("#{something} is up to date!",
-                            # [:success_toast], [@log_tag])
+      :no_updates ->
+        Logger.debug(">> is already on the latest operating system version.",
+          channels: [:toast], type: :success)
     end
   end
 
   @spec install_update(:os | :fw, String.t) :: :ok | {:error, atom}
   defp install_update(:os, url) do
     # This is where the actual download and update happens.
-    # Log something here("Downloading OS update!", [:warning_toast], [@log_tag])
+    Logger.debug ">> found an operating system update. "
     File.rm("/tmp/update.fw")
     Downloader.run(url, "/tmp/update.fw") |> Nerves.Firmware.upgrade_and_finalize
-    # Log something here("Going down for OS update!", [:warning_toast], [@log_tag])
+    Logger.warn ">> is going down for an operating system update!", channels: [:toast]
     Process.sleep(5000)
     Nerves.Firmware.reboot
   end
 
   defp install_update(:fw, url) do
-    # Log something here("Downloading FW Update", [:warning_toast], [@log_tag])
+    Logger.debug ">> found a firmware update!"
     File.rm("/tmp/update.hex")
     file = Downloader.run(url, "/tmp/update.hex")
-    # Log something here("Installing FW Update", [:warning_toast], [@log_tag])
+    Logger.debug ">> is installing a firmware update. I may act weird for a moment",
+      channels: [:toast]
     GenServer.cast(Farmbot.Serial.Handler, {:update_fw, file, self})
     receive do
-      :done -> nil
-        # Log something here("Firmware updated!", [:success_toast], [@log_tag])
-      {:error, reason} -> nil
-        # Log something here("Error updating firmware! #{inspect reason}",
-        # [:error_toast], [@log_tag])
+      :done ->
+        Logger.debug ">> is done installing a firmware update!", type: :success,
+          channels: [:toast]
+      {:error, reason} ->
+        Logger.error ">> encountered an error installing firmware update!: #{inspect reason}",
+          channels: [:toast]
     end
   end
 
@@ -145,4 +147,23 @@ defmodule Farmbot.Updates.Handler do
   # If we happen to get something weird from httpotion
   @spec parse_resp(any) :: {:error, :bad_resp}
   def parse_resp(_), do: {:error, :bad_resp}
+
+  @doc """
+    Forces a check according to configuration.
+  """
+  @spec do_update_check :: any
+  def do_update_check do
+    Logger.debug ">> is checking for updates."
+
+    # check configuration.
+    case Farmbot.BotState.get_config(:os_auto_update) do
+      true -> check_and_download_updates(:os)
+      _ -> Logger.debug ">> won't check for operating system updates."
+    end
+
+    case Farmbot.BotState.get_config(:fw_auto_update) do
+      true -> check_and_download_updates(:fw)
+      _ -> Logger.debug ">> won't check for firmware updates."
+    end
+  end
 end

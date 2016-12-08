@@ -28,6 +28,8 @@ defmodule Syncable do
   defmacro generate_validation(name, model) do
     quote bind_quoted: [name: name, model: model] do
 
+      def required_keys, do: unquote(model)
+
       # Makes sure that we have AT LEAST the correct keys. Does not check
       # For extras.
       defp validate_keys(keys) do
@@ -126,22 +128,6 @@ defmodule Syncable do
         # Throw this at the bottom so if the user definves a mutation
         # They wont need to account for all keys.
         defp mutate(_k, v), do: {:ok, v}
-      end
-    end
-  end
-
-  @doc """
-    Builds a function for getting a module by id
-  """
-  defmacro get_by_id(name) do
-    module_name = Module.concat(Farmbot.Sync.Database, Macro.camelize(name))
-    function_name = String.to_atom("get_" <> name)
-    quote do
-      def unquote(function_name)(find_id) do
-        Amnesia.transaction do
-          m = unquote(module_name)
-          m.read(find_id)
-        end
       end
     end
   end

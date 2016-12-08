@@ -79,9 +79,19 @@ defmodule Farmbot.Sync.SyncObject do
   end
 
   def validate_list(module, list) do
-    f = Enum.map(list, fn(thing) ->
-      module.validate!(thing)
+    # this is a little bit too complex for me
+    Enum.reduce(list, [[],[]], fn(thing, [suc, fail]) ->
+      # if the thing validates we sort it into one of two lists
+      case module.validate(thing) do
+        {:ok, thing} ->
+          [suc ++ [thing], fail]
+        error ->
+          [suc, fail ++ [error]]
+      end
     end)
-    {:ok, f}
+    |> validate_partition(module)
   end
+
+  def validate_partition([win, []], _module), do: {:ok, win}
+  def validate_partition([_, failed], module), do: {:error, module, failed}
 end

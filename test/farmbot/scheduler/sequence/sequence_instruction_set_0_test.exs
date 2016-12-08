@@ -1,4 +1,5 @@
-defmodule Sequence.InstructionSet_0Test do
+alias Farmbot.Scheduler.Sequence.InstructionSet_0, as: SIS
+defmodule Farmbot.Scheduler.Sequence.InstructionSet_0Test do
   use ExUnit.Case, async: true
   defmodule Parent do
     use GenServer
@@ -14,7 +15,7 @@ defmodule Sequence.InstructionSet_0Test do
 
   setup_all do
     {:ok, par} = Parent.start_link
-    {:ok, sis} = Sequence.InstructionSet_0.start_link(Parent)
+    {:ok, sis} = SIS.start_link(Parent)
     {:ok, %{parent: par, sis: sis}}
   end
 
@@ -22,6 +23,6 @@ defmodule Sequence.InstructionSet_0Test do
     par = context[:parent]
     sis = context[:sis]
     assert(is_pid(par) == true)
-    assert(is_pid(sis) == true)    
+    assert(is_pid(sis) == true)
   end
 end

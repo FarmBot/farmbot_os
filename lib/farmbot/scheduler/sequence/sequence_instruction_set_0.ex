@@ -8,7 +8,7 @@ defmodule Farmbot.Scheduler.Sequence.InstructionSet_0 do
   require Logger
 
   def start_link(parent) do
-    Logger.debug("InstructionSet_0 init.")
+    Logger.debug ">> is initializing sequence instruction set 0"
     GenServer.start_link(__MODULE__, parent)
   end
 
@@ -32,7 +32,8 @@ defmodule Farmbot.Scheduler.Sequence.InstructionSet_0 do
     sequence_name = GenServer.call(parent, :name)
     vars = GenServer.call(parent, :get_all_vars, :infinity)
     rendered = Mustache.render(message, vars)
-    # Log something here(rendered, channels(body), [sequence_name])
+    # TODO THIS WILL CHANGE
+    Logger.debug(rendered)
     dispatch :done, parent
   end
 
@@ -114,7 +115,7 @@ defmodule Farmbot.Scheduler.Sequence.InstructionSet_0 do
 
   # Catch all
   def do_step(thing, parent) do
-    Logger.error("UNHANDLED STEP: #{inspect thing}")
+    Logger.error ">> couldnt handle #{inspect thing}!"
     dispatch {:unhandled, thing}, parent
   end
 
@@ -124,7 +125,6 @@ defmodule Farmbot.Scheduler.Sequence.InstructionSet_0 do
                                   args: %{channel_name: c},
                                   body: []},
     acc) ->
-      Logger.debug("CHANNEL: #{inspect c}")
       [ c | acc]
     end)
   end
@@ -148,7 +148,7 @@ defmodule Farmbot.Scheduler.Sequence.InstructionSet_0 do
   defp do_if(l,"is",r) when l == r, do: true
   defp do_if(l,"not",r) when l != r, do: true
   defp do_if(l, _, r) when is_integer(l) and is_integer(r), do: false
-  defp do_if(l, op, r), do: Logger.error("bad if statement: [#{l} #{op} #{r}]")
+  defp do_if(l, op, r), do: Logger.debug ">> couldn't parse if:[#{l} #{op} #{r}]"
 
   @spec dispatch(atom, pid) :: {:noreply, pid}
   defp dispatch(status, parent), do: Farmbot.Scheduler.Sequence.VM.tick(parent, status)

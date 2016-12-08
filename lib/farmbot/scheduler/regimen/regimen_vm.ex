@@ -1,8 +1,15 @@
 defmodule Scheduler.Regimen.VM  do
+  @moduledoc """
+    A state machine that tracks a regimen thru its lifecycle.
+  """
   alias Farmbot.Sync.Database.Regimen, as: Regimen
   alias Farmbot.Sync.Database.RegimenItem, as: RegimenItem
+  alias Farmbot.Sync.Database.Sequence, as: Sequence
   use Amnesia
   use RegimenItem
+  require Logger
+  @checkup_time 15000 #TODO: change this to 60 seconds
+
   defmodule State do
     @moduledoc false
     @type t :: %__MODULE__{
@@ -23,8 +30,6 @@ defmodule Scheduler.Regimen.VM  do
       regimen: nil]
   end
 
-  @checkup_time 15000 #TODO: change this to 60 seconds
-  require Logger
 
   @spec start_link(Regimen.t,list(RegimenItem.t), DateTime.t) :: {:ok, pid} | {:error, {:already_started, pid}}
   def start_link(regimen, finished_items, time) do
@@ -37,13 +42,9 @@ defmodule Scheduler.Regimen.VM  do
     first = List.first(items -- finished_items)
     first_time = Timex.shift(time, milliseconds: first.time_offset)
 
-    # Remove this one day
-    Logger.warn("""
-    \n
-    \t\t the first item will execute on:
-    \t\t #{first_time.month}-#{first_time.day}
-    \t\t at: #{first_time.hour}:#{first_time.minute}
-    """)
+    Logger.debug "First item will execute on #{first_time.month}-#{first_time.day} at: #{first_time.hour}:#{first_time.minute}",
+      channel: [:toast]
+
 
     initial_state = %State{
       flag: :normal,
@@ -124,17 +125,14 @@ defmodule Scheduler.Regimen.VM  do
         should_run = Timex.after?(now, run_time)
         case ( should_run ) do
           true ->
-            sequence = Farmbot.Sync.get_sequence(item.sequence_id)
-            msg = "Time to run Sequence: " <> sequence.name
-            Logger.debug(msg, type: :toast)
-            Farmbot.Scheduler.add_sequence(sequence)
+            add_sequence(item.sequence_id)
           false ->
             :ok
         end
         should_run
     end)
     if(items_to_do == []) do
-      # Log something here("nothing to run this cycle", [], [regimen.name])
+      Logger.debug ">> has nothing to run this cycle on: [#{regimen.name}]"
     end
     timer = tick(self())
     finished = ran_items ++ items_to_do
@@ -164,18 +162,42 @@ defmodule Scheduler.Regimen.VM  do
   end
 
   def terminate(:normal, state) do
-    msg = "Regimen: #{state.regimen.name} completed without errors!"
-    Logger.debug(msg, type: :toast)
+    Logger.debug ">> has completed regimen: #{state.regimen.name} without errors!",
+    channel: [:toast], type: :success
   end
 
   # this gets called if the scheduler crashes.
   # it is to stop orphaning of regimens
   def terminate(:e_stop, _state) do
-    Logger.debug("cleaning up regimen")
+    Logger.debug ">> is cleaning up regimen"
   end
 
   def terminate(reason, state) do
-    msg = "Regimen: #{state.regimen.name} completed with errors! #{inspect reason}"
-    Logger.error(msg)
+    Logger.error ">> encountered errors completing a regimen! #{inspect reason} #{inspect state}"
+  end
+
+  # Tries to add a sequence too the Sequencer to be ran or queued.
+  # If you give an integer it tries to look the sequence up in the dateabase
+  # Then pipes it back thru itself.
+  # if the piped function receives nil
+  # it is assumed that either this sequence doesn't exist, or the bot is
+  # out of sync. and tries to sync. This will be picked up upon next tick.
+  # if we actually have a Sequence object, add the sequence to the stack.
+  @spec add_sequence(integer | nil | Sequence.t) :: :ok
+  defp add_sequence(id)
+  when is_integer(id) do
+    Farmbot.Sync.get_sequence(id) |> add_sequence
+  end
+
+  # this happens if the bot was not synced before this regimen started.
+  defp add_sequence(nil) do
+    Logger.error(">> could not find sequence. This may be a problem. I will try to sync to fix it. ")
+    Farmbot.Sync.sync
+  end
+
+  defp add_sequence(%Sequence{} = sequence) do
+    msg = ">> is going to run sequence: " <> sequence.name
+    Logger.debug msg, channel: [:toast]
+    Farmbot.Scheduler.add_sequence(sequence)
   end
 end

@@ -14,7 +14,7 @@ defmodule Farmbot.Serial.Handler do
   end
 
   def init(:test) do
-    Logger.warn("can some one please think of a better way to do this?")
+    # Log somethingwarn("can some one please think of a better way to do this?")
     tty = "ttyFake"
     {:ok, test_nerves} = Nerves.FakeUART.start_link(self)
     {:ok, handler} = Farmbot.Serial.Gcode.Handler.start_link(test_nerves)
@@ -48,7 +48,6 @@ defmodule Farmbot.Serial.Handler do
   @spec write(binary, pid) :: :ok
   def write(str, caller)
   when is_bitstring(str) do
-    Logger.debug("writing: #{str}")
     GenServer.cast(__MODULE__, {:write, str <> " Q0", caller})
     :ok
   end
@@ -109,29 +108,22 @@ defmodule Farmbot.Serial.Handler do
     {:noreply, {pid, tty, handler}}
   end
 
-  def handle_info({:nerves_uart, _nerves_tty, message}, {pid, tty, handler})
-  when is_binary(message) do
-    Logger.debug("Something weird has happened.")
-    {:noreply, {pid, tty, handler}}
-  end
-
   def handle_info({:nerves_uart, _tty, {:partial, partial}}, state) do
-    Logger.debug("Partial code: #{partial}")
+    # Log somethingdebug("Partial code: #{partial}")
+    Logger.warn ">> got a partial gcode: #{partial}"
     {:noreply, state}
   end
 
   def handle_info({:nerves_uart, _tty, {:error, :eio}}, state) do
-    # Log something here("Serial disconnected!", [:error_toast, :error_ticker], ["SERIAL"])
+    Logger.error ">> Arduino disconnected! Please put it back.."
     {:noreply, state}
   end
 
   def handle_info({:nerves_uart, _tty, _event}, {nerves, :e_stop, handler}) do
-    Logger.warn("IN E STOP MODE!")
     {:noreply, {nerves, :e_stop, handler}}
   end
 
-  def handle_info({:nerves_uart, _tty, event}, state) do
-    Logger.debug("Nerves UART Event: #{inspect event}")
+  def handle_info({:nerves_uart, _tty, _event}, state) do
     {:noreply, state}
   end
 
@@ -139,27 +131,18 @@ defmodule Farmbot.Serial.Handler do
     {:noreply, state}
   end
 
-  def handle_info({:EXIT, pid, reason}, {nerves, tty, handler})
+  def handle_info({:EXIT, pid, _reason}, {nerves, tty, handler})
   when pid == handler do
-      Logger.debug "gcode handler died: #{inspect reason}"
       {:ok, restarted} = Farmbot.Serial.Gcode.Handler.start_link(nerves)
       {:noreply,  {nerves, tty, restarted}}
   end
 
-  def handle_info({:EXIT, pid, reason}, {nerves, tty, handler})
-  when pid == nerves do
-    Logger.debug "Nerves UART died: #{inspect reason}"
-    {:crashme,  {nerves, tty, handler}}
+  def handle_info({:EXIT, pid, _}, {nerves, tty, handler})
+  when pid == nerves do {:crashme,  {nerves, tty, handler}} end
 
-  end
+  def handle_info({:EXIT, _, _}, state), do: {:noreply, state}
 
-  def handle_info({:EXIT, pid, reason}, state) do
-    Logger.debug("EXIT IN #{inspect pid}: #{inspect reason}")
-    {:noreply, state}
-  end
-
-  def handle_info(event, state) do
-    Logger.debug "info: #{inspect event}"
+  def handle_info(_event, state) do
     {:noreply, state}
   end
 
@@ -171,7 +154,7 @@ defmodule Farmbot.Serial.Handler do
 
   @spec open_serial(pid, [], [binary, ...]) :: {:ok, binary}
   defp open_serial(_pid, [], tries) do
-    Logger.error("Could not auto detect serial port. I tried: #{inspect tries}")
+    Logger.error ">> could not auto detect serial port. i tried: #{inspect tries}"
     {:ok, "ttyFail"}
   end
 
@@ -206,8 +189,5 @@ defmodule Farmbot.Serial.Handler do
     GenServer.stop(handler, :normal)
   end
 
-  def terminate(reason, state) do
-    Logger.debug("#{__MODULE__} DIED.")
-    Logger.debug("#{inspect reason}: #{inspect state}")
-  end
+  def terminate(_reason, _state), do: nil
 end

@@ -31,7 +31,7 @@ defmodule Farmbot.Supervisor do
   end
 
   def start_link(args) do
-    Logger.debug("Starting Farmbot")
+    # Log somethingdebug("Starting Farmbot")
     Supervisor.start_link(__MODULE__, args)
   end
 end

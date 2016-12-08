@@ -55,7 +55,8 @@ defmodule Farmbot.Mixfile do
      :farmbot_auth,
      :farmbot_configurator,
      :vmq_commons,
-     :amnesia]
+     :amnesia,
+     :quantum]
   end
 
   # on device
@@ -77,7 +78,8 @@ defmodule Farmbot.Mixfile do
     apps ++ [
       :plug,
       :cors_plug,
-      :cowboy
+      :cowboy,
+      :faker
     ]
   end
 
@@ -94,6 +96,7 @@ defmodule Farmbot.Mixfile do
       {:timex, "~> 3.0"},
       {:socket, github: "meh/elixir-socket"},
       {:amnesia, github: "meh/amnesia"},
+      {:quantum, ">= 1.8.1"},
       {:farmbot_auth, github: "Farmbot/farmbot_auth"},
       # {:farmbot_auth, path: "../farmbot_auth"},
       {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
@@ -114,7 +117,8 @@ defmodule Farmbot.Mixfile do
     [ {:plug, "~> 1.0"},
       {:cors_plug, "~> 1.1"},
       {:cowboy, "~> 1.0.0"},
-      {:excoveralls, "~> 0.5"} ]
+      {:excoveralls, "~> 0.5"},
+      {:faker, "~> 0.7"} ]
   end
 
   def deps(:dev) do
@@ -205,7 +209,7 @@ defmodule Mix.Tasks.Farmbot.Upload do
   def run(args) do
     ip_address = System.get_env("FARMBOT_IP")
     || List.first(args)
-    || "192.168.29.185" # I get to do this because i own it.
+    || "192.168.29.186" # I get to do this because i own it.
     curl_args = [
       "-T", "_images/rpi3/farmbot.fw",
       "http://#{ip_address}:8988/firmware",

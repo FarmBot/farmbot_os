@@ -168,13 +168,14 @@ defmodule Farmbot.BotState do
   """
   @spec set_time() :: :ok
   def set_time do
+    Logger.debug ">> is getting time from NTP."
     System.cmd("ntpd", ["-q",
      "-p", "0.pool.ntp.org",
      "-p", "1.pool.ntp.org",
      "-p", "2.pool.ntp.org",
      "-p", "3.pool.ntp.org"])
     check_time_set
-    Logger.debug("Time set.")
+    Logger.debug ">> now has proper time!"
     :ok
   end
 

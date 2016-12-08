@@ -1,4 +1,7 @@
 defmodule Farmbot.BotState.Configuration do
+  use GenServer
+  require Logger
+
   defmodule State do
     @type t :: %__MODULE__{
       locks: list(String.t),
@@ -42,8 +45,6 @@ defmodule Farmbot.BotState.Configuration do
     end
   end
 
-  use GenServer
-  require Logger
   def init(%{compat_version: compat_version,
              env:            env,
              target:         target,
@@ -64,7 +65,7 @@ defmodule Farmbot.BotState.Configuration do
   def load(initial_state) do
     case SafeStorage.read(__MODULE__) do
       {:ok, %State{} = last_state} ->
-        Logger.debug("Loading previous Bot Configuration State")
+        Logger.debug ">> is loading previous configuration."
         # Merge the last state
         %State{initial_state | configuration: last_state.configuration}
         # Maybe persiste locks?
@@ -114,7 +115,7 @@ defmodule Farmbot.BotState.Configuration do
   end
 
   def handle_call({:update_config, key, _value}, _from, %State{} = state) do
-    Logger.error("#{key} is not a valid config.")
+    Logger.error ">> got an invalid configuration in Configuration tracker: #{inspect key}"
     dispatch false, state
   end
 
@@ -145,7 +146,7 @@ defmodule Farmbot.BotState.Configuration do
   end
 
   def handle_call(event, _from, %State{} = state) do
-    Logger.warn("[#{__MODULE__}] UNHANDLED CALL!: #{inspect event}", [__MODULE__])
+    Logger.error ">> got an unhandled call in Configuration tracker: #{inspect event}"
     dispatch :unhandled, state
   end
 
@@ -171,7 +172,7 @@ defmodule Farmbot.BotState.Configuration do
   end
 
   def handle_cast(event, %State{} = state) do
-    Logger.warn("[#{__MODULE__}] UNHANDLED CAST!: #{inspect event}", [__MODULE__])
+    Logger.error ">> got an unhandled cast in Configuration: #{inspect event}"
     dispatch state
   end
 

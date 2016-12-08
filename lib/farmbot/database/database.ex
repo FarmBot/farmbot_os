@@ -26,12 +26,13 @@ defmodule Farmbot.Sync do
     syncable Device, [:id, :planting_area_id, :name, :webcam_url]
     syncable Peripheral,
       [:id, :device_id, :pin, :mode, :label, :created_at, :updated_at]
+    syncable Plant, [:id, :device_id]
     syncable Regimen, [:id, :color, :name, :device_id]
-    syncable RegimenItem, [ :id, :time_offset, :regimen_id, :sequence_id]
-    syncable Sequence, [:args, :body, :color, :device_id, :id, :kind, :name]
+    syncable RegimenItem, [:id, :time_offset, :regimen_id, :sequence_id]
+    syncable Sequence, [:id, :args, :body, :color, :device_id, :kind, :name]
     syncable ToolBay, [:id, :device_id, :name]
-    syncable ToolSlot, [:id, :tool_bay_id, :name, :x, :y, :z]
-    syncable Tool, [:id, :slot_id, :name]
+    syncable ToolSlot, [:id, :tool_bay_id, :tool_id, :name, :x, :y, :z]
+    syncable Tool, [:id, :name]
     syncable User, [ :id, :device_id, :name, :email, :created_at, :updated_at]
   end
 
@@ -46,6 +47,8 @@ defmodule Farmbot.Sync do
   def get_tool_slot(id), do: Helpers.get_tool_slot(id)
   def get_tool(id), do: Helpers.get_tool(id)
   def get_user(id), do: Helpers.get_user(id)
+
+  def device_name, do: Helpers.get_device_name
 
   @doc """
     Downloads the sync object form the API.
@@ -85,11 +88,41 @@ defmodule Farmbot.Sync do
   # make struct function pipable.
   defp to_struct(map, module), do: struct(module, map)
 
+  @doc """
+    Takes a single database object and turns it into a list of things
+    and pushes it back thru again.
+  """
   def parse_and_write(thing) when is_map(thing), do: parse_and_write([thing])
 
+  @doc """
+    Takes a list of Database Objects
+      * figures out what kind of object the thing is.
+      * checks if there is already an object under this id
+        * if there is, hunts it down and destroys it
+      * Writes the new one.
+  """
   def parse_and_write(list_of_things) when is_list(list_of_things) do
     Enum.map(list_of_things, fn(thing) ->
+      # im so cute.
       module = thing.__struct__
+
+      # OK. GET READY TO LEARN SOMETHING
+      # SINCE WE DONT WANT TO KEEP TRACK OF :id OURSELVES,
+      # WE HAVE TO MAKE OUR TABLES A :bag
+      # THIS MEANS THAT EVERY TIME WE ENTER SOMETHING INTO THE
+      # DATABASE WE HAVE TO CHECK FOR ITS EXISTANCE
+      # THESE FOUR LINES OF PURE GOLD IS THAT
+      case module.read(thing.id) do
+        # IF IT WAS nil WE ARE FINE.
+        nil -> nil
+        # BUT IF ITS A ONE ITEM LIST OF A STRUCT OF THIS MODULE, WE NEED TO DELETE
+        # IT FROM THE DB BEFORE WRITING THE NEW ONE IN.
+        [%module{} = delete_me] -> module.delete(delete_me)
+        # WHICH IS ALL FINE AS LONG AS THIS DOES NOT HAPPEN
+        # IF IT DOES THERE MAY OR MAY NOT BE AN N+1 ISSUE.
+        other_list -> Enum.each(other_list, fn(t) -> module.delete(t) end)
+      end
+      # This is where we actually write the new thing.
       module.write(thing)
     end)
   end

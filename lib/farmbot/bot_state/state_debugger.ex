@@ -10,7 +10,7 @@ defmodule StateDebugger do
   end
 
   def state do
-    GenEvent.call(BotStateEventManager, __MODULE__, :state)
+    GenEvent.call(Farmbot.BotState.EventManager, __MODULE__, :state)
   end
 
   def start do
