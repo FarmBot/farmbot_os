@@ -206,11 +206,15 @@ defmodule Farmbot.BotState.Configuration do
   end
 
   defp get_throttled do
+    if File.exists?("/usr/bin/vcgencmd") do
       {output, 0} = System.cmd("vcgencmd", ["get_throttled"])
-      {"throttled=0x0\n", 0}
-      [_, throttled] = output
-      |> String.strip
-      |> String.split("=")
+      [_, throttled] =
+        output
+        |> String.strip
+        |> String.split("=")
       throttled
+    else
+      "0x0"
+    end
   end
 end
