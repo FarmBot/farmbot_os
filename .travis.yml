@@ -30,9 +30,10 @@ before_script:
   - export PATH=`pwd`/elixir/bin:$PATH
 
 script:
+  - export MIX_ENV=test
   - mix local.hex --force
+  - mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez --force
   - mix local.rebar --force
   - mix deps.get
-  - mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez --force
   - mix compile
   - MIX_ENV=test mix test

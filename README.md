@@ -1,3 +1,6 @@
+https://travis-ci.org/FarmBot/farmbot_os.svg?branch=master
+[![Build Status](https://travis-ci.org/FarmBot/farmbot_os.svg?branch=master)](https://travis-ci.org/FarmBot/farmbot_os.svg?branch=master)
+
 # FarmBot Software for the Raspberry Pi 3
 The "brains" of Farmbot. Responsible for receiving the commands from [the browser](https://github.com/FarmBot/farmbot-web-frontend) or the [FarmBot API](https://github.com/FarmBot/Farmbot-Web-API). It executes them and reports back the results to any subscribed user(s).
 
