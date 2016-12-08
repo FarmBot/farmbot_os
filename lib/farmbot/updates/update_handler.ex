@@ -1,4 +1,7 @@
 defmodule Farmbot.Updates.Handler do
+  alias Farmbot.Auth
+  alias Farmbot.BotState
+  alias Nerves.Firmware
   require Logger
   @moduledoc """
     Bunch of stuff to do updates.
@@ -18,7 +21,9 @@ defmodule Farmbot.Updates.Handler do
     Logger.debug ">> Is checking for updates."
     case check_updates(something) do
       {:error, reason} ->
-        Logger.debug ">> encountered an error checking for updates: #{inspect reason}."
+        Logger.debug """
+          >> encountered an error checking for updates: #{inspect reason}.
+          """
       {:update, url} ->
         install_update(something, url)
       :no_updates ->
@@ -32,17 +37,22 @@ defmodule Farmbot.Updates.Handler do
     # This is where the actual download and update happens.
     Logger.debug ">> found an operating system update. "
     File.rm("/tmp/update.fw")
-    Downloader.run(url, "/tmp/update.fw") |> Nerves.Firmware.upgrade_and_finalize
-    Logger.warn ">> is going down for an operating system update!", channels: [:toast]
+    url |> Downloader.run("/tmp/update.fw") |> Firmware.upgrade_and_finalize
+    Logger.warn """
+      >> is going down for an operating system update!
+      """,
+      channels: [:toast]
     Process.sleep(5000)
-    Nerves.Firmware.reboot
+    Firmware.reboot
   end
 
   defp install_update(:fw, url) do
     Logger.debug ">> found a firmware update!"
     File.rm("/tmp/update.hex")
     file = Downloader.run(url, "/tmp/update.hex")
-    Logger.debug ">> is installing a firmware update. I may act weird for a moment",
+    Logger.debug """
+      >> is installing a firmware update. I may act weird for a moment
+      """,
       channels: [:toast]
     GenServer.cast(Farmbot.Serial.Handler, {:update_fw, file, self})
     receive do
@@ -50,7 +60,9 @@ defmodule Farmbot.Updates.Handler do
         Logger.debug ">> is done installing a firmware update!", type: :success,
           channels: [:toast]
       {:error, reason} ->
-        Logger.error ">> encountered an error installing firmware update!: #{inspect reason}",
+        Logger.error """
+          >> encountered an error installing firmware update!: #{inspect reason}
+          """,
           channels: [:toast]
     end
   end
@@ -60,10 +72,10 @@ defmodule Farmbot.Updates.Handler do
   """
   @spec check_updates(:os) :: update_output
   def check_updates(:os) do
-    with {:ok, token} <- Farmbot.Auth.get_token,
+    with {:ok, token} <- Auth.get_token,
     do: check_updates(
-          Map.get(token, "unencoded") |> Map.get("os_update_server"),
-          Farmbot.BotState.get_os_version,
+          token |> Map.get("unencoded") |> Map.get("os_update_server"),
+          BotState.get_os_version,
           ".fw")
   end
 
@@ -72,10 +84,10 @@ defmodule Farmbot.Updates.Handler do
   """
   @spec check_updates(:fw) :: update_output
   def check_updates(:fw) do
-    with {:ok, token} <- Farmbot.Auth.get_token,
+    with {:ok, token} <- Auth.get_token,
     do: check_updates(
-          Map.get(token, "unencoded") |> Map.get("fw_update_server"),
-          Farmbot.BotState.get_fw_version,
+          token |> Map.get("unencoded") |> Map.get("fw_update_server"),
+          BotState.get_fw_version,
           ".hex")
   end
 
@@ -139,7 +151,7 @@ defmodule Farmbot.Updates.Handler do
       status_code: 200})
   do
     json = Poison.decode!(body)
-    "v"<>new_version = Map.get(json, "tag_name")
+    "v" <> new_version = Map.get(json, "tag_name")
     assets = Map.get(json, "assets")
     {:assets, new_version, assets}
   end
@@ -156,12 +168,12 @@ defmodule Farmbot.Updates.Handler do
     Logger.debug ">> is checking for updates."
 
     # check configuration.
-    case Farmbot.BotState.get_config(:os_auto_update) do
+    case BotState.get_config(:os_auto_update) do
       true -> check_and_download_updates(:os)
       _ -> Logger.debug ">> won't check for operating system updates."
     end
 
-    case Farmbot.BotState.get_config(:fw_auto_update) do
+    case BotState.get_config(:fw_auto_update) do
       true -> check_and_download_updates(:fw)
       _ -> Logger.debug ">> won't check for firmware updates."
     end

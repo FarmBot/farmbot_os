@@ -15,6 +15,8 @@ defmodule Farmbot.Sync do
   use Amnesia
   import Syncable
   alias Farmbot.Sync.Helpers
+  alias Farmbot.Auth
+  alias Farmbot.BotState
 
   defdatabase Database do
     use Amnesia
@@ -33,7 +35,7 @@ defmodule Farmbot.Sync do
     syncable ToolBay, [:id, :device_id, :name]
     syncable ToolSlot, [:id, :tool_bay_id, :tool_id, :name, :x, :y, :z]
     syncable Tool, [:id, :name]
-    syncable User, [ :id, :device_id, :name, :email, :created_at, :updated_at]
+    syncable User, [:id, :device_id, :name, :email, :created_at, :updated_at]
   end
 
   # These have to exist because Amnesia.where gets confused when you
@@ -72,9 +74,10 @@ defmodule Farmbot.Sync do
       blah = Map.from_struct(so)
       # Then enumerate over it.
       struct =
-        Enum.map(blah, fn({key, val}) ->
-          {key, parse_and_write(val)}
-        end)
+        blah
+        |> Enum.map(fn({key, val}) ->
+            {key, parse_and_write(val)}
+           end)
         # then turn it back into a map
         |> Map.new
         # then turn it back into a struct
@@ -115,12 +118,13 @@ defmodule Farmbot.Sync do
       case module.read(thing.id) do
         # IF IT WAS nil WE ARE FINE.
         nil -> nil
-        # BUT IF ITS A ONE ITEM LIST OF A STRUCT OF THIS MODULE, WE NEED TO DELETE
+        # BUT IF ITS A ONE ITEM LIST OF A STRUCT OF THIS MODULE,
+        # WE NEED TO DELETE
         # IT FROM THE DB BEFORE WRITING THE NEW ONE IN.
         [%module{} = delete_me] -> module.delete(delete_me)
         # WHICH IS ALL FINE AS LONG AS THIS DOES NOT HAPPEN
         # IF IT DOES THERE MAY OR MAY NOT BE AN N+1 ISSUE.
-        other_list -> Enum.each(other_list, fn(t) -> module.delete(t) end)
+        # other_list -> Enum.each(other_list, fn(t) -> module.delete(t) end)
       end
       # This is where we actually write the new thing.
       module.write(thing)
@@ -128,10 +132,10 @@ defmodule Farmbot.Sync do
   end
 
   @doc """
-    Gets a token from Farmbot.Auth
+    Gets a token from Auth
   """
   def fetch_token do
-    case Farmbot.Auth.get_token do
+    case Auth.get_token do
       nil -> {:error, :no_token}
       {:error, reason} -> {:error, reason}
       json_token -> {:ok, json_token}
@@ -139,7 +143,7 @@ defmodule Farmbot.Sync do
   end
 
   def fetch_server do
-    case Farmbot.BotState.get_server do
+    case BotState.get_server do
       nil -> {:error, :no_server}
       {:error, reason} -> {:error, reason}
       server -> {:ok, server}

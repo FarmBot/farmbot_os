@@ -1,15 +1,17 @@
 defmodule Farmbot.Scheduler do
   @tick_interval 1500
-  @log_tag "Scheduler"
   require Logger
   alias Farmbot.Sync.Database.Regimen, as: Regimen
   alias Farmbot.Sync.Database.RegimenItem, as: RegimenItem
   alias Farmbot.Sync.Database.Sequence, as: Sequence
+  alias Farmbot.Scheduler.Regimen.VM, as: RegimenVM
+  alias Farmbot.BotState
   @moduledoc """
     This module is the scheduler for "events."
     It manages keeping Regimens and FarmEvents (non existant yet) alive
     and manages the execution of Sequences.
   """
+
 
   defmodule State do
     defmodule Serializer do
@@ -18,15 +20,13 @@ defmodule Farmbot.Scheduler do
       """
       @type regimen_info ::
       %{regimen: Regimen.t,
-        info: %{ start_time: DateTime.t,
-                 status: State.regimen_flag }
-       }
+        info: %{start_time: DateTime.t,
+                 status: State.regimen_flag}}
 
       @type t :: %__MODULE__{
         process_info: [regimen_info],
         current_sequence: Sequence.t | nil,
-        sequence_log: [Sequence.t]
-      }
+        sequence_log: [Sequence.t]}
 
       defstruct [
         process_info: [],
@@ -39,21 +39,20 @@ defmodule Farmbot.Scheduler do
       """
       @spec serialize(State.t) :: State.Serializer.t
       def serialize(state) do
-        regimen_info_list = Enum.map(state.regimens, fn({_pid, regimen, time, _items, flag}) ->
-          %{regimen: regimen,
-            info: %{
-              start_time: time,
-              status: flag}}
+        regimen_info_list =
+          Enum.map(state.regimens, fn({_pid, regimen, time, _items, flag}) ->
+            %{regimen: regimen,
+              info: %{start_time: time,
+                      status: flag}}
         end)
         cs = case state.current_sequence do
           {_, sequence} -> sequence
           uh -> uh
         end
-          %__MODULE__{ process_info: regimen_info_list,
-                       current_sequence: cs,
-                       sequence_log: state.sequence_log}
+          %__MODULE__{process_info: regimen_info_list,
+                      current_sequence: cs,
+                      sequence_log: state.sequence_log}
       end
-
     end
 
     @typedoc """
@@ -65,7 +64,8 @@ defmodule Farmbot.Scheduler do
       pid              is the pis of the running vm instance for this regimen
       regimen          is the actual regimen object.
       [finished_items] is a list of items that have already finished.
-      start_time       is midnight of the day that this regimen originally started.
+      start_time       is midnight of the day that this
+                          regimen originally started.
       regimen_flag     is a flag of state of the regimen.
     """
     @type reg_tup :: {pid,Regimen.t, [RegimenItem.t], DateTime.t, regimen_flag}
@@ -100,22 +100,24 @@ defmodule Farmbot.Scheduler do
   @spec load :: State.t
   def load do
     default_state = %State{}
-    case SafeStorage.read(__MODULE__) do
-      {:ok, %State{} = last_state} ->
-        Logger.debug ">> is loading an old Scheduler state: #{inspect last_state}"
-        new_state = Map.update!(last_state, :regimens, fn(old_regimens) ->
-          Enum.map(old_regimens, fn({_,regimen, finished_items, time, _}) ->
-            {:ok, pid} = Scheduler.Regimen.VM.start_link(regimen, finished_items, time)
-            {pid,regimen, finished_items, time, :normal}
-          end)
-        end)
-        save_and_update(new_state)
-        new_state
-      _ ->
-        Logger.debug ">> is building a new Scheduler state."
-        default_state
-    end
+    __MODULE__ |> SafeStorage.read |> what_is_it(default_state)
   end
+
+  @spec what_is_it({:ok, State.t}, State.t) :: State.t
+  defp what_is_it({:ok, %State{} = last_state}, _default_state) do
+    Logger.debug ">> is loading an old Scheduler state: #{inspect last_state}"
+    new_state = Map.update!(last_state, :regimens, fn(old_regimens) ->
+      Enum.map(old_regimens, fn({_,regimen, finished_items, time, _}) ->
+        {:ok, pid} = RegimenVM.start_link(regimen, finished_items, time)
+        {pid,regimen, finished_items, time, :normal}
+      end)
+    end)
+    save_and_update(new_state)
+    new_state
+  end
+
+  @spec what_is_it(any, State.t) :: State.t
+  defp what_is_it(_,default_state), do: default_state
 
   def handle_cast(:e_stop_lock, state) do
     Logger.warn ">> is stopping the scheduler!"
@@ -143,7 +145,8 @@ defmodule Farmbot.Scheduler do
   end
 
   def handle_cast(:e_stop_unlock, state) do
-    Logger.debug ">> is resuiming scheduler.", channels: [:toast], type: :success
+    Logger.debug ">> is resuiming scheduler.",
+      channels: [:toast], type: :success
     # tell all the regimens to resume.
     # Maybe a problem? the user might not want to restart EVERY regimen
     # there might have been regimens that werent paused by e stop?
@@ -159,7 +162,9 @@ defmodule Farmbot.Scheduler do
   end
 
   def handle_call({:add, {:sequence, sequence}}, _from, state) do
-    {:reply, :ok, %State{state | sequence_log: state.sequence_log ++ [sequence]}}
+    {:reply,
+      :ok,
+      %State{state | sequence_log: state.sequence_log ++ [sequence]}}
   end
 
   # add a new regimen
@@ -170,11 +175,15 @@ defmodule Farmbot.Scheduler do
       # If we couln't find this regimen in the list.
       nil ->
         # get the current time (in this timezone)
-        now = Timex.now(Farmbot.BotState.get_config(:timezone))
+        now = Timex.now(BotState.get_config(:timezone))
 
         # shift the current time into midnight of today
-        start_time = Timex.shift(now, hours: -now.hour, minutes: -now.minute, seconds: -now.second)
-        {:ok, pid} = Scheduler.Regimen.VM.start_link(regimen, [], start_time)
+        start_time =
+          Timex.shift(now, [hours: -now.hour,
+                            minutes: -now.minute,
+                            seconds: -now.second])
+
+        {:ok, pid} = RegimenVM.start_link(regimen, [], start_time)
         reg_tup = {pid, regimen, [], start_time, :normal}
         new_state = %State{state | regimens: current ++ [reg_tup]}
         save_and_update(new_state)
@@ -198,7 +207,7 @@ defmodule Farmbot.Scheduler do
     GenServer.stop(pid, :normal)
     new_state = %State{state | current_sequence: nil}
     save_and_update(new_state)
-    {:noreply, new_state }
+    {:noreply, new_state}
   end
 
   # A regimen is ready to be stopped.
@@ -212,6 +221,8 @@ defmodule Farmbot.Scheduler do
   end
 
   # a regimen has changed state, and the scheduler needs to know about it.
+  # TODO: this is too complex and i hate cond()
+  @lint false
   def handle_info({:update, {:regimen,
       {pid, regimen, finished_items, start_time, flag}}}, state)
   do
@@ -221,15 +232,22 @@ defmodule Farmbot.Scheduler do
     end)
     cond do
       is_integer(found) ->
-        new_state = %State{state | regimens: List.update_at(state.regimens, found,
-        fn({^pid, ^regimen, _old_items, ^start_time, _flag}) ->
-          {pid, regimen, finished_items, start_time, flag}
-        end)}
+        new_state =
+          %State{state | regimens: List.update_at(state.regimens, found,
+          fn({^pid, ^regimen, _old_items, ^start_time, _flag}) ->
+            {pid, regimen, finished_items, start_time, flag}
+          end)}
+
         save_and_update(new_state)
         {:noreply, new_state}
       is_nil(found) ->
         Logger.error ">> could not find #{regimen.name} in scheduler."
         {:noreply, state}
+      true ->
+        Logger.error """
+          >> encountered something weird happened
+          adding updating #{regimen.name} in scheduler.
+          """
     end
   end
 
@@ -282,8 +300,9 @@ defmodule Farmbot.Scheduler do
     I CAN'T THINK OF A BETTER WAY TO DO THIS IM SORRY
   """
   @spec save_and_update(State.t) :: :ok
+  @lint false # don't lint because aliasing that module wont work
   def save_and_update(%State{} = state) do
-    GenServer.cast(Farmbot.BotState.Monitor,
+    GenServer.cast(BotState.Monitor,
             State.Serializer.serialize(state))
     SafeStorage.write(__MODULE__, :erlang.term_to_binary(state))
   end

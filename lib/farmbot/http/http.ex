@@ -2,6 +2,8 @@ defmodule Farmbot.HTTP do
   @moduledoc """
     Shortcuts to HTTPOtion because im Lazy.
   """
+  alias Farmbot.Auth
+  alias Farmbot.BotState
 
   @type http_resp :: HTTPotion.Response.t | HTTPotion.ErrorResponse.t
 
@@ -12,7 +14,8 @@ defmodule Farmbot.HTTP do
   def post(path, body) do
     with {:ok, server} <- fetch_server,
          {:ok, auth_headers} <- build_auth,
-         do: HTTPotion.post("#{server}#{path}", headers: auth_headers, body: body)
+         do: HTTPotion.post("#{server}#{path}",
+                            headers: auth_headers, body: body)
   end
 
   @doc """
@@ -29,12 +32,12 @@ defmodule Farmbot.HTTP do
     Short cut for getting a path and piping it thro Poison.decode.
   """
   @spec get_to_json(binary) :: map
-  def get_to_json(path), do: get(path) |> Map.get(:body) |> Poison.decode!
+  def get_to_json(path), do: path |> get |> Map.get(:body) |> Poison.decode!
 
   @type headers :: ["Content-Type": String.t, "Authorization": String.t]
   @spec build_auth :: {:ok, headers} | {:error, term}
   defp build_auth do
-    with {:ok, json_token} <- Farmbot.Auth.get_token,
+    with {:ok, json_token} <- Auth.get_token,
          {:ok, token} <- Token.create(json_token),
     do:
       {:ok,
@@ -43,7 +46,7 @@ defmodule Farmbot.HTTP do
   end
 
   defp fetch_server do
-    case Farmbot.BotState.get_server do
+    case BotState.get_server do
       nil -> {:error, :no_server}
       server -> {:ok, server}
     end

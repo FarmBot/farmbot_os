@@ -7,6 +7,9 @@ defmodule Farmbot.Logger do
   """
   @rpc_transport Application.get_env(:json_rpc, :transport)
   alias RPC.Spec.Notification, as: Notification
+  alias Farmbot.Sync
+  alias Farmbot.HTTP
+  alias Farmbot.BotState
   use GenEvent
 
   # I SUCK
@@ -21,8 +24,8 @@ defmodule Farmbot.Logger do
 
   # Tehe
   def handle_event({l, f, {Logger, ">>" <> message, ts, meta}}, s) do
-    device_name = Farmbot.Sync.device_name
-    handle_event({l, f, {Logger, "#{device_name}"<> message, ts, meta}}, s)
+    device_name = Sync.device_name
+    handle_event({l, f, {Logger, "#{device_name}" <> message, ts, meta}}, s)
   end
 
   # The logger event.
@@ -39,10 +42,10 @@ defmodule Farmbot.Logger do
     channels = parse_channels(Keyword.take(metadata, [:channels]))
 
     # BUG: should not be poling the bot for its position.
-    pos = Farmbot.BotState.get_current_pos
+    pos = BotState.get_current_pos
 
     # take logger time stamp and spit out a unix timestamp for the javascripts.
-    with( {:ok, created_at} <- parse_created_at(timestamp),
+    with({:ok, created_at} <- parse_created_at(timestamp),
          {:ok, log} <- build_log(message, created_at, type, channels, pos),
          {:ok, json} <- build_rpc(log),
          # ^ This will possible return nil if it cant create json.
@@ -59,9 +62,9 @@ defmodule Farmbot.Logger do
   end
 
   # If the post succeeded, we clear the messages
-  def handle_info(:post_success, {_, _}), do: dispatch { [], false}
+  def handle_info(:post_success, {_, _}), do: dispatch {[], false}
   # If it did not succeed, keep the messages, and try again until it completes.
-  def handle_info(:post_fail, {messages, _}), do: dispatch { messages, false}
+  def handle_info(:post_fail, {messages, _}), do: dispatch {messages, false}
 
   # Catch any stray send messages that we don't care about.
   def handle_info(_, state), do: dispatch state
@@ -119,7 +122,7 @@ defmodule Farmbot.Logger do
         # still won't be able to make it json.
         send(pid, :post_complete)
       {:ok, messages} ->
-        Farmbot.HTTP.post("/api/logs", messages) |> parse_resp(pid)
+        "/api/logs" |> HTTP.post(messages) |> parse_resp(pid)
     end
   end
 
@@ -158,7 +161,7 @@ defmodule Farmbot.Logger do
           type: rpc_log_type,
           x: integer,
           y: integer,
-          z: integer }}
+          z: integer}}
 
   # Translates Logger levels into Farmbot levels.
   # :info -> :info
@@ -200,7 +203,7 @@ defmodule Farmbot.Logger do
           type: type,
           x: x,
           y: y,
-          z: z }}
+          z: z}}
     {:ok, a}
   end
 
@@ -222,7 +225,7 @@ defmodule Farmbot.Logger do
     %Notification{
       id: nil,
       method: "log_dump",
-      params:  rpc_logs }
+      params:  rpc_logs}
     |> to_json
   end
 

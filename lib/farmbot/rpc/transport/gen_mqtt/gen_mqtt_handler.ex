@@ -6,10 +6,11 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
   """
   use GenServer
   require Logger
+  alias Farmbot.Auth
 
   def init(_args) do
     Process.flag(:trap_exit, true)
-    case Farmbot.Auth.get_token |> Token.create do
+    case Auth.get_token |> Token.create do
       {:ok, %Token{} = token} ->
         {:ok, {token, start_client(token)}}
       _ ->

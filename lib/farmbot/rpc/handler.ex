@@ -7,6 +7,7 @@ defmodule Farmbot.RPC.Handler do
   alias RPC.Spec.Notification, as: Notification
   alias RPC.Spec.Request, as: Request
   alias RPC.Spec.Response, as: Response
+  alias Farmbot.BotState.Monitor
   # these are the actual actionable functions
   import Farmbot.RPC.Requests
   @transport Application.get_env(:json_rpc, :transport)
@@ -31,7 +32,7 @@ defmodule Farmbot.RPC.Handler do
     Poison.encode!(
     %{id: id,
       error: nil,
-      result: %{"OK" => "OK"} })
+      result: %{"OK" => "OK"}})
   end
 
   # JSON RPC RESPONSE ERROR
@@ -40,7 +41,7 @@ defmodule Farmbot.RPC.Handler do
     Poison.encode!(
     %{id: id,
       error: %{name: name,
-               message: message },
+               message: message},
       result: nil})
   end
 
@@ -63,7 +64,8 @@ defmodule Farmbot.RPC.Handler do
                   #{inspect rpc}")
   end
 
-  # The frontend doesn't send notifications so the bot shouldn't get a notification.
+  # The frontend doesn't send notifications so the
+  # bot shouldn't get a notification.
   def handle_incoming(%Notification{} = rpc) do
     Logger.warn(">> doesn't know what to do with this message:
                   #{inspect rpc}")
@@ -75,12 +77,12 @@ defmodule Farmbot.RPC.Handler do
   @doc """
     Builds a json to send to the frontend
   """
-  @spec build_status(Farmbot.BotState.Monitor.State.t) :: binary
-  def build_status(%Farmbot.BotState.Monitor.State{} = unserialized) do
+  @spec build_status(Monitor.State.t) :: binary
+  def build_status(%Monitor.State{} = unserialized) do
     m = %Notification{
       id: nil,
       method: "status_update",
-      params: [serialize_state(unserialized)] }
+      params: [serialize_state(unserialized)]}
     Poison.encode!(m)
   end
 
@@ -97,8 +99,8 @@ defmodule Farmbot.RPC.Handler do
     serializes it into thr correct shape for the frontend
     to be sent over mqtt
   """
-  @spec serialize_state(Farmbot.BotState.Monitor.State.t) :: Serialized.t
-  def serialize_state(%Farmbot.BotState.Monitor.State{
+  @spec serialize_state(Monitor.State.t) :: Serialized.t
+  def serialize_state(%Monitor.State{
     hardware: hardware, configuration: configuration, scheduler: scheduler
   }) do
     %Serialized{
@@ -125,7 +127,7 @@ defmodule Farmbot.RPC.Handler do
 
   # Event from BotState.
   def handle_event({:dispatch, state}, _) do
-    build_status(state) |> @transport.emit
+    state |> build_status |> @transport.emit
     {:ok, state}
   end
 
@@ -135,12 +137,12 @@ defmodule Farmbot.RPC.Handler do
   end
 
   def handle_call(:force_dispatch, state) do
-    build_status(state) |> @transport.emit
+    state |> build_status |> @transport.emit
     {:ok, :ok, state}
   end
 
   def start_link(_args) do
-    Farmbot.BotState.Monitor.add_handler(__MODULE__)
+    Monitor.add_handler(__MODULE__)
     {:ok, self()}
   end
 end

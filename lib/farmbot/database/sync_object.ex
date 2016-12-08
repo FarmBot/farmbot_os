@@ -4,7 +4,18 @@ defmodule Farmbot.Sync.SyncObject do
     I dont want this to be a database object but i want to have a good
     interface for it.
   """
-  @type t :: %__MODULE__{}
+  @type t :: %__MODULE__{
+    device: DB.Device.t,
+    peripherals: [DB.Peripheral.t],
+    plants: [DB.Plant.t],
+    regimen_items: [DB.RegimenItem.t],
+    regimens: [DB.Regimen.t],
+    sequences: [DB.Sequence.t],
+    tool_bays: [DB.ToolBay.t],
+    tool_slots: [DB.ToolSlot.t],
+    tools: [DB.Tool],
+    users: [DB.User.t]
+  }
   @keys [
     :device,
     :peripherals,
@@ -15,7 +26,7 @@ defmodule Farmbot.Sync.SyncObject do
     :tool_bays,
     :tool_slots,
     :tools,
-    :users ]
+    :users]
   defstruct @keys
 
   @doc """
@@ -23,7 +34,7 @@ defmodule Farmbot.Sync.SyncObject do
   """
   @spec validate({:ok, map} | map | any) :: {:ok, t} | {:error, atom}
   def validate({:ok, map}), do: validate(map)
-
+  @lint false # Don't lint this function. Its not T H A T complex.
   def validate(
     %{"device" => json_device,
       "peripherals" => json_peripherals,
@@ -58,7 +69,7 @@ defmodule Farmbot.Sync.SyncObject do
                tool_bays:     tool_bays,
                tool_slots:    tool_slots,
                tools:         tools,
-               users:         users }
+               users:         users}
            {:ok, f}
          end
   end
@@ -80,7 +91,8 @@ defmodule Farmbot.Sync.SyncObject do
 
   def validate_list(module, list) do
     # this is a little bit too complex for me
-    Enum.reduce(list, [[],[]], fn(thing, [suc, fail]) ->
+    list |>
+    Enum.reduce([[],[]], fn(thing, [suc, fail]) ->
       # if the thing validates we sort it into one of two lists
       case module.validate(thing) do
         {:ok, thing} ->
@@ -88,8 +100,7 @@ defmodule Farmbot.Sync.SyncObject do
         error ->
           [suc, fail ++ [error]]
       end
-    end)
-    |> validate_partition(module)
+    end) |> validate_partition(module)
   end
 
   def validate_partition([win, []], _module), do: {:ok, win}

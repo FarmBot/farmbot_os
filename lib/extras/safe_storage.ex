@@ -2,7 +2,8 @@ defmodule SafeStorage do
   @moduledoc """
     I don't want to use ext4 so this happened.
     This app makes timed strategic writes to the fat32 filesystem.
-    It keeps the partition mounted read only for most of the time but for a brief
+    It keeps the partition mounted
+    read only for most of the time but for a brief
     moment it will mount read/write, write a bunch of binaries, sync, then
     mount read only again.
     It only stores and returns binaries.
@@ -20,7 +21,7 @@ defmodule SafeStorage do
     case File.read("#{@state_path}/STATE") do
       {:ok, contents} ->
         last_state = :erlang.binary_to_term(contents)
-        {:ok, save(last_state) }
+        {:ok, save(last_state)}
       _ ->
       Logger.debug ">> is loading new storage state."
       {:ok, save(%{})}
@@ -40,13 +41,13 @@ defmodule SafeStorage do
     case Map.get(state, module, nil) do
       nil -> nil
       binary ->
-        if(is_term == true) do
-          {:ok, :erlang.binary_to_term(binary) }
+        if is_term == true do
+          {:ok, :erlang.binary_to_term(binary)}
         else
           {:ok, binary}
         end
     end
-    {:reply, reply, state }
+    {:reply, reply, state}
   end
 
   def handle_info(:save, state) do
@@ -66,7 +67,7 @@ defmodule SafeStorage do
     is_term is a boolean. If set to true (default) it will try
     to :erlang.binary_to_term if it is false, it just returns the raw binary
   """
-  def read(module, is_term\\ true) do
+  def read(module, is_term \\ true) do
     GenServer.call(__MODULE__, {:read, module, is_term})
   end
 
@@ -74,7 +75,12 @@ defmodule SafeStorage do
     if @env == :prod do
       sync
       cmd = "mount"
-      System.cmd(cmd, ["-t", @fs_type, "-o", "ro,remount", @block_device, @state_path])
+      cmd
+      |> System.cmd(["-t",
+                     @fs_type,
+                     "-o",
+                     "ro,remount",
+                     @block_device, @state_path])
       |> print_cmd(cmd)
     end
   end
@@ -82,7 +88,12 @@ defmodule SafeStorage do
   def mount_read_write() do
     if @env == :prod do
       cmd = "mount"
-      System.cmd(cmd, ["-t", @fs_type, "-o", "rw,remount", @block_device, @state_path])
+      cmd
+      |> System.cmd(["-t",
+                     @fs_type,
+                     "-o",
+                     "rw,remount",
+                     @block_device, @state_path])
       |> print_cmd(cmd)
     end
   end
@@ -90,7 +101,8 @@ defmodule SafeStorage do
   def sync() do
     if @env == :prod do
       sync_cmd = "sync"
-      System.cmd(sync_cmd,[])
+      sync_cmd
+      |> System.cmd([])
       |> print_cmd(sync_cmd)
     end
   end
@@ -106,16 +118,15 @@ defmodule SafeStorage do
   end
 
   def save(state) do
-    if(check_old(state) == false) do
+    if check_old(state) == false do
       Logger.warn ">>'s filesystem is being backed up! please be gentle."
-      # Log somethingwarn("BE CAREFUL FILESYSTEM IS READ WRITE")
       mount_read_write
       File.write("#{@state_path}/STATE", :erlang.term_to_binary(state))
       sync
       mount_read_only
       Logger.debug ">>'s filesystem is safe again."
     end
-    Process.send_after(__MODULE__, :save, 60000)
+    Process.send_after(__MODULE__, :save, 60_000)
     state
   end
 
@@ -124,7 +135,10 @@ defmodule SafeStorage do
   end
 
   defp print_cmd({result, err_no}, cmd) do
-    Logger.error ">> encountered an error executing: #{inspect cmd}: (#{err_no}) #{inspect result}",
+    Logger.error """
+      >> encountered an error
+        executing: #{inspect cmd}: (#{err_no}) #{inspect result}
+      """,
       channels: [:toast]
     result
   end

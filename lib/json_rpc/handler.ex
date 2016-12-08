@@ -1,5 +1,8 @@
 alias Experimental.{GenStage}
 defmodule RPC.MessageHandler do
+  @moduledoc """
+    Parses rpc messages and forwars them to the given handler.
+  """
   use GenStage
   import RPC.Parser
 
@@ -19,7 +22,7 @@ defmodule RPC.MessageHandler do
   end
 
   def handle_events(events, _from, handler) do
-    for event <- events, do: parse(event) |> handler.handle_incoming
+    for event <- events, do: event |> parse |> handler.handle_incoming
     {:noreply, [], handler}
   end
 end

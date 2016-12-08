@@ -1,6 +1,8 @@
 defmodule Farmbot.BotState.Authorization do
   use GenServer
   require Logger
+  alias Farmbot.Auth
+
   @moduledoc """
     Tracks authorization state.
   """
@@ -30,10 +32,13 @@ defmodule Farmbot.BotState.Authorization do
   end
 
   def init(_args) do
-    {:ok, SafeStorage.read(__MODULE__)
-          |> load
-          |> maybe_get_token(Farmbot.Auth.get_token)
-          |> State.broadcast}
+    s =
+      __MODULE__
+      |> SafeStorage.read
+      |> load
+      |> maybe_get_token(Auth.get_token)
+      |> State.broadcast
+    {:ok, s}
   end
 
   @spec load({:ok, State.t} | nil) :: State.t
@@ -75,8 +80,8 @@ defmodule Farmbot.BotState.Authorization do
 
   # We have to store these temporarily in case the bot doesnt have network yet.
   def handle_cast({:creds, {email, pass, server}}, %State{} = _state) do
-    new_state = %State{server: server, interim: %{ email: email,
-                                                   pass: pass } }
+    new_state =
+      %State{server: server, interim: %{email: email, pass: pass}}
     dispatch new_state
   end
 
@@ -103,10 +108,11 @@ defmodule Farmbot.BotState.Authorization do
   end
 
   @spec try_log_in(State.t) :: {:ok, Token.t} | {:error, atom}
-  defp try_log_in(%State{server: server, interim: %{email: email, pass: pass}}) do
-    with {:ok, pub_key} <- Farmbot.Auth.get_public_key(server),
-         {:ok, secret } <- Farmbot.Auth.encrypt(email, pass, pub_key),
-         do: try_get_token(server, secret)
+  defp try_log_in(%State{server: server, interim: %{email: email, pass: pass}})
+  do
+    with {:ok, pub_key} <- Auth.get_public_key(server),
+         {:ok, secret}  <- Auth.encrypt(email, pass, pub_key),
+          do: try_get_token(server, secret)
   end
 
   defp try_log_in(%State{server: server, secret: secret}) do
@@ -115,9 +121,11 @@ defmodule Farmbot.BotState.Authorization do
 
   @spec try_get_token(binary, binary) :: State.t | {:error, atom}
   defp try_get_token(server, secret) do
-    case Farmbot.Auth.get_token_from_server(secret, server) do
+    case Auth.get_token_from_server(secret, server) do
       {:ok, token} ->
-        new_state = %State{server: server, secret: secret, token: Token.create!(token), interim: nil}
+        new_state =
+          %State{server: server, secret: secret,
+                 token: Token.create!(token), interim: nil}
         save(new_state)
         new_state
       {:error, :bad_password} ->

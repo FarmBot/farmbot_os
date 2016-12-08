@@ -172,6 +172,7 @@ defmodule Farmbot.Sync.SyncObjectTest do
       "id" => 1,
       "tool_bay_id" => 1,
       "name" => Faker.Company.name,
+      "tool_id" => 1,
       "x" => 1,
       "y" => 2,
       "z" => -1

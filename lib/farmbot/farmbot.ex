@@ -5,6 +5,9 @@ defmodule Farmbot do
   """
   require Logger
   use Supervisor
+  alias Farmbot.Sync.Database
+  alias Nerves.Firmware
+  alias Farmbot.Supervisor, as: FarmbotSupervisor
   @state_path Application.get_env(:farmbot, :state_path)
 
   @doc """
@@ -13,7 +16,7 @@ defmodule Farmbot do
   @spec reboot :: any
   def reboot do
     Logger.warn ">> going down for a reboot!"
-    Nerves.Firmware.reboot
+    Firmware.reboot
   end
 
 
@@ -23,7 +26,7 @@ defmodule Farmbot do
   @spec reboot :: any
   def poweroff do
     Logger.warn ">> going to power down!"
-    Nerves.Firmware.poweroff
+    Firmware.poweroff
   end
 
   @doc """
@@ -58,8 +61,12 @@ defmodule Farmbot do
                       version: version, env: env}])
   do
     children = [
-      supervisor(Farmbot.Supervisor, [%{target: target, compat_version: compat_version,
-                          version: version, env: env}], restart: :permanent)
+      supervisor(FarmbotSupervisor,
+                [%{target: target,
+                   compat_version: compat_version,
+                   version: version,
+                   env: env}],
+                restart: :permanent)
     ]
     opts = [strategy: :one_for_one, name: Farmbot]
     supervise(children, opts)
@@ -73,8 +80,8 @@ defmodule Farmbot do
 
     # Log somethingdebug("Starting Database.")
     Amnesia.start
-    Farmbot.Sync.Database.create! Keyword.put([], :memory, [node])
-    Farmbot.Sync.Database.wait(15000)
+    Database.create! Keyword.put([], :memory, [node])
+    Database.wait(15_000)
     # Log somethingdebug("Database created!.")
 
     Supervisor.start_link(__MODULE__,
@@ -89,6 +96,6 @@ defmodule Farmbot do
   def factory_reset do
     # i don't remember why i stop SafeStorage. I wish i had documented that.
     GenServer.stop SafeStorage, :reset
-    Nerves.Firmware.reboot
+    Firmware.reboot
   end
 end

@@ -1,8 +1,12 @@
 defmodule Farmbot.BotState.Configuration do
+  @moduledoc """
+    Stores the configuration of the bot.
+  """
   use GenServer
   require Logger
 
   defmodule State do
+    @moduledoc false
     @type t :: %__MODULE__{
       locks: list(String.t),
       configuration: %{
@@ -35,7 +39,7 @@ defmodule Farmbot.BotState.Configuration do
         environment: :loading,
         private_ip: nil,
         throttled: "loading..."
-       },
+       }
     ]
 
     @spec broadcast(t) :: t
@@ -82,7 +86,8 @@ defmodule Farmbot.BotState.Configuration do
   # Returns true for configs that exist and are the correct typpe,
   # and false for anything else
   # TODO make sure these are properly typed.
-  def handle_call({:update_config, "os_auto_update", value}, _from, %State{} = state)
+  def handle_call({:update_config, "os_auto_update", value},
+    _from, %State{} = state)
   when is_boolean(value) do
     new_config = Map.put(state.configuration, :os_auto_update, value)
     new_state = %State{state | configuration: new_config}
@@ -90,7 +95,8 @@ defmodule Farmbot.BotState.Configuration do
     dispatch true, new_state
   end
 
-  def handle_call({:update_config, "fw_auto_update", value}, _from, %State{} = state)
+  def handle_call({:update_config, "fw_auto_update", value},
+    _from, %State{} = state)
   when is_boolean(value) do
     new_config = Map.put(state.configuration, :fw_auto_update, value)
     new_state = %State{state | configuration: new_config}
@@ -106,7 +112,8 @@ defmodule Farmbot.BotState.Configuration do
     dispatch true, new_state
   end
 
-  def handle_call({:update_config, "steps_per_mm", value}, _from, %State{} = state)
+  def handle_call({:update_config, "steps_per_mm", value},
+    _from, %State{} = state)
   when is_integer(value) do
     new_config = Map.put(state.configuration, :steps_per_mm, value)
     new_state = %State{state | configuration: new_config}
@@ -115,24 +122,32 @@ defmodule Farmbot.BotState.Configuration do
   end
 
   def handle_call({:update_config, key, _value}, _from, %State{} = state) do
-    Logger.error ">> got an invalid configuration in Configuration tracker: #{inspect key}"
+    Logger.error(
+    ">> got an invalid configuration in Configuration tracker: #{inspect key}")
     dispatch false, state
   end
 
   # Allow the frontend to do stuff again.
   def handle_call({:remove_lock, string}, _from,  %State{} = state) do
-    maybe_index = Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
-    cond do
-      is_integer(maybe_index) ->
-        new_state = %State{state | locks: List.delete_at(state.locks, maybe_index)}
-        dispatch :ok, new_state
-      true ->
-        dispatch {:error, :no_index}, state
+    # Get the index of the lock
+    maybe_index =
+      Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
+    # If we got an index, dispatch it.
+    if is_integer(maybe_index) do
+      new_state =
+        %State{state | locks: List.delete_at(state.locks, maybe_index)}
+
+      dispatch :ok, new_state
+    else
+      # if not something is wrong, just crash.
+      dispatch {:error, :no_index}, state
     end
   end
 
   def handle_call({:get_lock, string}, _from, %State{} = state) do
-    maybe_index = Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
+    # i could crash here, but eh.
+    maybe_index =
+      Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
     dispatch(maybe_index, state)
   end
 
@@ -146,28 +161,28 @@ defmodule Farmbot.BotState.Configuration do
   end
 
   def handle_call(event, _from, %State{} = state) do
-    Logger.error ">> got an unhandled call in Configuration tracker: #{inspect event}"
+    Logger.error ">> got an unhandled call in " <>
+                 "Configuration tracker: #{inspect event}"
     dispatch :unhandled, state
   end
 
   def handle_cast({:update_info, key, value}, %State{} = state) do
     new_info = Map.put(state.informational_settings, key, value)
-    new_state = %State{state | informational_settings: new_info }
+    new_state = %State{state | informational_settings: new_info}
     dispatch new_state
   end
 
   # Lock the frontend from doing stuff
   def handle_cast({:add_lock, string}, %State{} = state) do
-    maybe_index = Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
+    maybe_index =
+      Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
     # check if this lock already exists.
-    cond do
-      # this lock already exists. don't do anything.
-      is_integer(maybe_index) ->
-        dispatch state
-      # This lock does not exist. (the check is nil). add a new lock.
-      is_nil(maybe_index) ->
+    case maybe_index do
+      nil ->
         new_state = %State{locks: state.locks ++ [%{reason: string}]}
         dispatch new_state
+      _int ->
+        dispatch state
     end
   end
 

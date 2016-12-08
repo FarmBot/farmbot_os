@@ -1,9 +1,8 @@
 defmodule Farmbot.BotState.Network do
-  use GenServer
-  require Logger
   @moduledoc """
     I DONT KNOW WHAT IM DOING
   """
+
   defmodule State do
     @moduledoc false
 
@@ -19,14 +18,24 @@ defmodule Farmbot.BotState.Network do
 
     @spec broadcast(t) :: t
     def broadcast(%State{} = state) do
-      GenServer.cast(Farmbot.BotState.Monitor, state)
+      GenServer.cast(BotState.Monitor, state)
       state
     end
   end
 
+  use GenServer
+  require Logger
+  alias Farmbot.BotState
+
   def init(_args) do
     NetMan.put_pid(__MODULE__)
-    {:ok, SafeStorage.read(__MODULE__) |> load |> start_connection |> State.broadcast}
+
+    s = __MODULE__
+        |> SafeStorage.read
+        |> load
+        |> start_connection
+        |> State.broadcast
+    {:ok, s}
   end
 
   @spec load({:ok, State.t}) :: State.t
@@ -48,15 +57,16 @@ defmodule Farmbot.BotState.Network do
   end
 
   def handle_call(event, _from, %State{} = state) do
-    Logger.warn ">> got an unhandled call in Network State tracker: #{inspect event}"
+    Logger.warn ">> got an unhandled call in \
+                 Network State tracker: #{inspect event}"
     dispatch :unhandled, state
   end
 
   # for development mode
   def handle_cast({:connected, :dev, ip_address}, %State{} = state) do
-    GenServer.cast(Farmbot.BotState.Configuration,
+    GenServer.cast(BotState.Configuration,
                   {:update_info, :private_ip, ip_address})
-    GenServer.cast(Farmbot.BotState.Authorization, :try_log_in)
+    GenServer.cast(BotState.Authorization, :try_log_in)
     new_state = %State{state | connected?: true, connection: :dev}
     save new_state
     dispatch new_state
@@ -64,17 +74,18 @@ defmodule Farmbot.BotState.Network do
 
   def handle_cast({:connected, connection, ip_address}, %State{} = state) do
     Process.sleep(2000) # I DONT KNOW WHY THIS HAS TO BE HERE
-    Farmbot.BotState.set_time
-    GenServer.cast(Farmbot.BotState.Configuration,
+    BotState.set_time
+    GenServer.cast(BotState.Configuration,
                   {:update_info, :private_ip, ip_address})
-    GenServer.cast(Farmbot.BotState.Authorization, :try_log_in)
+    GenServer.cast(BotState.Authorization, :try_log_in)
     new_state = %State{state | connected?: true, connection: connection}
     save new_state
     dispatch new_state
   end
 
   def handle_cast(event, %State{} = state) do
-    Logger.warn ">> got an unhandled cast in Network State tracker: #{inspect event}"
+    Logger.warn ">> got an unhandled cast in\
+                Network State tracker: #{inspect event}"
     dispatch state
   end
 

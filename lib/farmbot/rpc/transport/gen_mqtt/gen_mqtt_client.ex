@@ -5,6 +5,7 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Client do
   """
   use GenMQTT
   require Logger
+  alias RPC.MessageManager
   def init(%Token{} = token) do
     {:ok, token}
   end
@@ -24,7 +25,7 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Client do
     do:
       msg
       |> Poison.decode!
-      |> RPC.MessageManager.sync_notify
+      |> MessageManager.sync_notify
       {:ok, token}
   end
 
@@ -71,7 +72,7 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Client do
           type: :error,
           x: -1,
           y: -1,
-          z: -1 }}
+          z: -1}}
 
       %RPC.Spec.Notification{
         id: nil,
