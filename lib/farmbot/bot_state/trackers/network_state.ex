@@ -1,6 +1,6 @@
 defmodule Farmbot.BotState.Network do
   @moduledoc """
-    I DONT KNOW WHAT IM DOING
+    Light wrapper for Farmbot Networking.
   """
 
   defmodule State do
@@ -11,9 +11,12 @@ defmodule Farmbot.BotState.Network do
       connection: nil
     ]
 
+    # :ethernet or {ssid, password}
+    @type connection :: :ethernet | {String.t, String.t}
+
     @type t :: %__MODULE__{
       connected?: boolean,
-      connection: :ethernet | {String.t, String.t}
+      connection: connection
     }
 
     @spec broadcast(t) :: t
@@ -27,24 +30,19 @@ defmodule Farmbot.BotState.Network do
   require Logger
   alias Farmbot.BotState
 
+  @type args :: any
+
+  @spec start_link(args) :: {:ok, pid}
+  def start_link(args),
+    do: GenServer.start_link(__MODULE__, args, name: __MODULE__)
+
+  @spec init(args) :: {:ok, State.t}
   def init(_args) do
     NetMan.put_pid(__MODULE__)
-
-    s = __MODULE__
-        |> SafeStorage.read
-        |> load
-        |> start_connection
-        |> State.broadcast
+    # TODO load config from config file.
+    s = State{}
     {:ok, s}
   end
-
-  @spec load({:ok, State.t}) :: State.t
-  defp load({:ok, %State{} = state}) do
-    state
-  end
-
-  @spec load(any) :: State.t
-  defp load(_), do: %State{}
 
   @spec start_connection(State.t) :: State.t
   defp start_connection(%State{} = state) do
@@ -52,13 +50,9 @@ defmodule Farmbot.BotState.Network do
     state
   end
 
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
-  end
-
   def handle_call(event, _from, %State{} = state) do
-    Logger.warn ">> got an unhandled call in \
-                 Network State tracker: #{inspect event}"
+    Logger.warn ">> got an unhandled call in " <>
+                 "Network State tracker: #{inspect event}"
     dispatch :unhandled, state
   end
 
@@ -84,8 +78,8 @@ defmodule Farmbot.BotState.Network do
   end
 
   def handle_cast(event, %State{} = state) do
-    Logger.warn ">> got an unhandled cast in\
-                Network State tracker: #{inspect event}"
+    Logger.warn ">> got an unhandled cast in " <>
+                "Network State tracker: #{inspect event}"
     dispatch state
   end
 

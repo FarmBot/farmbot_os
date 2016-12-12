@@ -49,6 +49,15 @@ defmodule Farmbot.BotState.Configuration do
     end
   end
 
+  @type args
+    :: %{compat_version: integer, env: String.t,
+         target: String.t, version: String.t}
+
+  @spec start_link(args) :: {:ok, pid}
+  def start_link(args),
+    do: GenServer.start_link(__MODULE__, args, name: __MODULE__)
+
+  @spec init(args) :: {:ok, State.t}
   def init(%{compat_version: compat_version,
              env:            env,
              target:         target,
@@ -66,20 +75,19 @@ defmodule Farmbot.BotState.Configuration do
     {:ok, State.broadcast(state)}
   end
 
-  def load(initial_state) do
-    case SafeStorage.read(__MODULE__) do
-      {:ok, %State{} = last_state} ->
-        Logger.debug ">> is loading previous configuration."
-        # Merge the last state
-        %State{initial_state | configuration: last_state.configuration}
-        # Maybe persiste locks?
-      _ ->
-        initial_state
-    end
-  end
-
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
+  @spec load(State.t) :: State.t
+  defp load(%State{} = initial_state) do
+    # case SafeStorage.read(__MODULE__) do
+    #   {:ok, %State{} = last_state} ->
+    #     Logger.debug ">> is loading previous configuration."
+    #     # Merge the last state
+    #     %State{initial_state | configuration: last_state.configuration}
+    #     # Maybe persiste locks?
+    #   _ ->
+    #     initial_state
+    # end
+    # TODO: config file?
+    initial_state
   end
 
   # This call should probably be a cast actually, and im sorry.
@@ -91,7 +99,7 @@ defmodule Farmbot.BotState.Configuration do
   when is_boolean(value) do
     new_config = Map.put(state.configuration, :os_auto_update, value)
     new_state = %State{state | configuration: new_config}
-    save(new_state)
+    # TODO: CONFIG FILE STUFF
     dispatch true, new_state
   end
 
@@ -100,7 +108,7 @@ defmodule Farmbot.BotState.Configuration do
   when is_boolean(value) do
     new_config = Map.put(state.configuration, :fw_auto_update, value)
     new_state = %State{state | configuration: new_config}
-    save(new_state)
+    # TODO: CONFIG FILE STUFF
     dispatch true, new_state
   end
 
@@ -108,7 +116,7 @@ defmodule Farmbot.BotState.Configuration do
   when is_bitstring(value) do
     new_config = Map.put(state.configuration, :timezone, value)
     new_state = %State{state | configuration: new_config}
-    save(new_state)
+    # TODO: CONFIG FILE STUFF
     dispatch true, new_state
   end
 
@@ -117,7 +125,7 @@ defmodule Farmbot.BotState.Configuration do
   when is_integer(value) do
     new_config = Map.put(state.configuration, :steps_per_mm, value)
     new_state = %State{state | configuration: new_config}
-    save(new_state)
+    # TODO: CONFIG FILE STUFF
     dispatch true, new_state
   end
 
@@ -189,10 +197,6 @@ defmodule Farmbot.BotState.Configuration do
   def handle_cast(event, %State{} = state) do
     Logger.error ">> got an unhandled cast in Configuration: #{inspect event}"
     dispatch state
-  end
-
-  def save(%State{} = state) do
-    SafeStorage.write(__MODULE__, :erlang.term_to_binary(state))
   end
 
   defp dispatch(reply, %State{} = state) do
