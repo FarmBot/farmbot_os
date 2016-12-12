@@ -4,7 +4,7 @@ defmodule Farmbot.EasterEggs do
   """
   use GenServer
   require Logger
-  @path "#{:code.priv_dir(:farmbot)}/static/easter_eggs.json"
+  # @path "#{:code.priv_dir(:farmbot)}/static/easter_eggs.json"
 
   @type json_map :: map
   @type parsed_json :: %{nouns: [parsed_noun], verbs: [String.t]}
@@ -16,7 +16,8 @@ defmodule Farmbot.EasterEggs do
     json file, or nothing and it will load the default one.
   """
   def start_link({:name, name}),
-    do: GenServer.start_link(__MODULE__, @path, name: name)
+    do: GenServer.start_link(__MODULE__,
+          "#{:code.priv_dir(:farmbot)}/static/easter_eggs.json", name: name)
 
   def start_link({:name, name}, {:path, path}),
     do: GenServer.start_link(__MODULE__, path, name: name)
