@@ -24,7 +24,8 @@ defmodule Farmbot.Serial.Gcode.Handler do
   end
 
   def handle_cast({:busy, _}, state) do
-    send(state.current, :busy)
+    {_, pid} = state.current
+    send(pid, :busy)
     Logger.debug ">>'s arduino is busy.", type: :busy
     {:noreply, state}
   end
