@@ -3,7 +3,7 @@ defmodule Farmbot.BotState.Authorization do
   require Logger
   alias Farmbot.Auth
   alias Farmbot.ConfigStorage, as: FBConfig
-  use FBConfig, name: :authorization
+  use FBConfig, name: __MODULE__
 
   @moduledoc """
     Tracks authorization state.
@@ -38,12 +38,11 @@ defmodule Farmbot.BotState.Authorization do
   def start_link(args),
     do: GenServer.start_link(__MODULE__, args, name: __MODULE__)
 
-  @spec init(args) :: {:ok, State.t}
-  def init(_args) do
-    # TODO: Load server and secret from config file.
-    # TODO: Broadcast initial state
-    Logger.debug ">> is starting authorization."
-    {:ok, %State{}}
+  @spec load(args) :: {:ok, State.t} | {:error, atom}
+  defp load(_) do
+    with {:ok, server} <- get_config(:server),
+         {:ok, secret} <- get_config(:secret),
+         do: %State{secret: secret, server: server}
   end
 
   @spec maybe_get_token(State.t, {:ok, Token.t} | nil) :: State.t

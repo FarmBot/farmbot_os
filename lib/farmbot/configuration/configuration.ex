@@ -12,8 +12,22 @@ defmodule Farmbot.ConfigStorage do
       end
 
       defp get_config(key) do
-        GenServer.call(__MODULE__, {:get, unquote(name) , key})
+        GenServer.call(__MODULE__, {:get, unquote(name), key})
       end
+
+      def init(args) do
+        Logger.debug ">> is starting #{unquote(name)}."
+        case load(args) do
+          {:ok, %State{} = state} ->
+            {:ok, State.broadcast(state)}
+          {:error, reason} ->
+            Logger.error ">> encountered an error starting #{unquote(name)}" <>
+              "#{inspect reason}"
+            Farmbot.factory_reset
+          nil -> Farmbot.factory_reset # I don't think this should ever happen?
+        end
+      end
+
     end
   end
 

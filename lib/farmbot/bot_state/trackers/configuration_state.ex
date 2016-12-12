@@ -4,6 +4,8 @@ defmodule Farmbot.BotState.Configuration do
   """
   use GenServer
   require Logger
+  alias Farmbot.ConfigStorage, as: FBConfig
+  use FBConfig, name: :configuration
 
   defmodule State do
     @moduledoc false
@@ -61,7 +63,7 @@ defmodule Farmbot.BotState.Configuration do
   def init(%{compat_version: compat_version,
              env:            env,
              target:         target,
-             version:        version})
+             version:        version} = args)
   do
     initial_state = %State{
       informational_settings: %{
@@ -71,23 +73,29 @@ defmodule Farmbot.BotState.Configuration do
         environment:        env,
         throttled:          get_throttled
       }}
+      case load(args) do
+        {:ok, %State{} = state} ->
+          {:ok, State.broadcast(state)}
+        {:error, reason} ->
+          Logger.error ">> encountered an error start configuration manager " <>
+            "#{inspect error}"
+          {:ok, }
+
+      end
       state = load(initial_state)
     {:ok, State.broadcast(state)}
   end
 
   @spec load(State.t) :: State.t
   defp load(%State{} = initial_state) do
-    # case SafeStorage.read(__MODULE__) do
-    #   {:ok, %State{} = last_state} ->
-    #     Logger.debug ">> is loading previous configuration."
-    #     # Merge the last state
-    #     %State{initial_state | configuration: last_state.configuration}
-    #     # Maybe persiste locks?
-    #   _ ->
-    #     initial_state
-    # end
-    # TODO: config file?
-    initial_state
+    case get_config(:all) do
+      {:ok, config} -> %State{initial_state | configuration: config}
+      {:error, reason} ->
+        Logger.error ">> encountered an error start configuration manager " <>
+          "#{inspect error}"
+        initial_state
+      nil -> initial_state
+    end
   end
 
   # This call should probably be a cast actually, and im sorry.
