@@ -66,8 +66,8 @@ defmodule Command do
         Scheduler.e_stop_unlock
         :ok
       {_, failed} ->
-        Logger.error ">> encountered errors resuming \
-                     from emergency stop mode! #{inspect failed}"
+        Logger.error ">> encountered errors resuming " <>
+                     "from emergency stop mode! #{inspect failed}"
         {:error, :prams}
     end
   end
@@ -285,8 +285,8 @@ defmodule Command do
   end
 
   defp logmsg(other, command) when is_bitstring(command) do
-    Logger.error ">> encountered an error \
-                  executing #{command}: #{inspect other}",
+    Logger.error ">> encountered an error " <>
+                  "executing #{command}: #{inspect other}",
       channels: [:toast]
     other
   end
