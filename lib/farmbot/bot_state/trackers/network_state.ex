@@ -62,7 +62,7 @@ defmodule Farmbot.BotState.Network do
                   {:update_info, :private_ip, ip_address})
     GenServer.cast(BotState.Authorization, :try_log_in)
     new_state = %State{state | connected?: true, connection: :dev}
-    save new_state
+    # TODO: Config file
     dispatch new_state
   end
 
@@ -73,7 +73,7 @@ defmodule Farmbot.BotState.Network do
                   {:update_info, :private_ip, ip_address})
     GenServer.cast(BotState.Authorization, :try_log_in)
     new_state = %State{state | connected?: true, connection: connection}
-    save new_state
+    # TODO: Config file
     dispatch new_state
   end
 
@@ -91,10 +91,5 @@ defmodule Farmbot.BotState.Network do
   defp dispatch(%State{} = state) do
     State.broadcast(state)
     {:noreply, state}
-  end
-
-  @spec save(State.t) :: :ok | {:error, atom}
-  defp save(%State{} = state) do
-    SafeStorage.write(__MODULE__, :erlang.term_to_binary(state))
   end
 end
