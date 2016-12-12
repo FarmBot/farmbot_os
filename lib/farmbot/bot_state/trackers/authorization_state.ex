@@ -2,7 +2,7 @@ defmodule Farmbot.BotState.Authorization do
   use GenServer
   require Logger
   alias Farmbot.Auth
-  alias Farmbot.Configuration, as: FBConfig
+  alias Farmbot.ConfigStorage, as: FBConfig
   use FBConfig, name: :authorization
 
   @moduledoc """

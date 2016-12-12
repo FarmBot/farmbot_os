@@ -1,23 +1,24 @@
-defmodule Farmbot.Configuration do
+defmodule Farmbot.ConfigStorage do
   @moduledoc """
     Loads information according to a configuration JSON file.
   """
   defmacro __using__(name: name) do
     quote do
-      import Farmbot.Configuration
+      import Farmbot.ConfigStorage
 
       @spec get_config(:all | term) :: any
       defp get_config(:all) do
-
+        GenServer.call(__MODULE__, {:get, unquote(name), :all})
       end
 
       defp get_config(key) do
-
+        GenServer.call(__MODULE__, {:get, unquote(name) , key})
       end
     end
   end
 
   defmodule Parsed do
+    @moduledoc false
     @enforce_keys [:authorization, :configuration, :network, :hardware]
     defstruct @enforce_keys
     @type connection :: {String.t, String.t} | :ethernet
@@ -42,16 +43,15 @@ defmodule Farmbot.Configuration do
   @spec init(args) :: {:ok, Parsed.t}
   def init(path_to_config), do: parse_json(path_to_config)
 
-  def handle_call(request, from, state) do
-
+  def handle_call({:get, name, :all}, _, state) do
+    {:reply, Map.get(state, name), state}
   end
 
-  def handle_cast(request, state) do
-
-  end
-
-  def handle_info(msg, state) do
-
+  def handle_call({:get, name, key}, _, state) do
+    f = state
+    |> Map.get(name)
+    |> Map.get(key)
+    {:reply, f, state}
   end
 
   # If it can find a file at the given path tries to parse it.
@@ -86,7 +86,7 @@ defmodule Farmbot.Configuration do
              %Parsed{authorization: auth,
                      configuration: configuration,
                      hardware: hardware,
-                     network: network }
+                     network: network}
            {:ok, f}
          end
   end
