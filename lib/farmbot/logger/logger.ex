@@ -46,6 +46,7 @@ defmodule Farmbot.Logger do
 
     # take logger time stamp and spit out a unix timestamp for the javascripts.
     with({:ok, created_at} <- parse_created_at(timestamp),
+         :ok <- sanitize(message, metadata),
          {:ok, log} <- build_log(message, created_at, type, channels, pos),
          {:ok, json} <- build_rpc(log),
          # ^ This will possible return nil if it cant create json.
@@ -180,6 +181,11 @@ defmodule Farmbot.Logger do
   # can't jsonify tuples.
   defp parse_channels([channels: channels]), do: channels
   defp parse_channels(_), do: []
+
+  @spec sanitize(binary, [any]) :: :ok | {:error, atom}
+  defp sanitize(message) do
+    # Elixir.Nerves.InterimWiFi setup(wlan0, [ssid: "GUPTA", key_mgmt: :"WPA-PSK", psk: "@G5815195k"])
+  end
 
   # Couuld probably do this inline but wheres the fun in that. its a functional
   # language isn't it?
