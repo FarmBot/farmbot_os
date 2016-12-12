@@ -40,7 +40,7 @@ defmodule Farmbot.BotState.Network do
   def init(_args) do
     NetMan.put_pid(__MODULE__)
     # TODO load config from config file.
-    s = State{}
+    s = %State{}
     {:ok, s}
   end
 
