@@ -4,29 +4,12 @@ defmodule Farmbot.BotState.Configuration do
   """
   use GenServer
   require Logger
-  alias Farmbot.ConfigStorage, as: FBConfig
-  # use FBConfig, name: :configuration
-
-  defmodule State do
-    @moduledoc false
-    @type t :: %__MODULE__{
-      locks: list(String.t),
-      configuration: %{
-        os_auto_update: boolean,
-        fw_auto_update: boolean,
-        timezone:       String.t | nil,
-        steps_per_mm:   integer
-      },
-      informational_settings: %{
-        controller_version: String.t,
-        private_ip: nil | String.t,
-        throttled: String.t,
-        target: String.t,
-        compat_version: integer,
-        environment: :prod | :dev | :test
-      }
-    }
-    defstruct [
+  alias Farmbot.StateTracker
+  @behaviour StateTracker
+  use StateTracker,
+    name: __MODULE__,
+    model:
+    [
       locks: [],
       configuration: %{
         os_auto_update: false,
@@ -44,59 +27,50 @@ defmodule Farmbot.BotState.Configuration do
        }
     ]
 
-    @spec broadcast(t) :: t
-    def broadcast(%State{} = state) do
-      GenServer.cast(Farmbot.BotState.Monitor, state)
-      state
-    end
-  end
-
   @type args
     :: %{compat_version: integer, env: String.t,
          target: String.t, version: String.t}
+  @type state ::
+    %State{
+      locks: [any],
+      configuration: %{
+        os_auto_update: boolean,
+        fw_auto_update: boolean,
+        timezone: String.t,
+        steps_per_mm: integer
+      },
+      informational_settings: map # TODO type this
+    }
 
-  @spec start_link(args) :: {:ok, pid}
-  def start_link(args),
-    do: GenServer.start_link(__MODULE__, args, name: __MODULE__)
-
-  @spec init(args) :: {:ok, State.t}
-  def init(%{compat_version: compat_version,
-             env:            env,
-             target:         target,
-             version:        version} = args)
+  @spec load(args) :: {:ok, state} | {:error, atom}
+  def load(
+    %{compat_version: compat_version,
+      env: env,
+      target: target,
+      version: version})
   do
-    initial_state = %State{
+    initial = %State{
       informational_settings: %{
         controller_version: version,
-        compat_version:     compat_version,
-        target:             target,
-        environment:        env,
-        throttled:          get_throttled
-      }}
-      case load(args) do
-        {:ok, %State{} = state} ->
-          {:ok, State.broadcast(state)}
-        {:error, reason} ->
-          Logger.error ">> encountered an error start configuration manager " <>
-            "#{inspect reason}"
-          {:ok, }
-
-      end
-      state = load(initial_state)
-    {:ok, State.broadcast(state)}
-  end
-
-  @spec load(State.t) :: State.t
-  defp load(%State{} = initial_state) do
-    # case get_config(:all) do
-    #   {:ok, config} -> %State{initial_state | configuration: config}
-    #   {:error, reason} ->
-    #     Logger.error ">> encountered an error start configuration manager " <>
-    #       "#{inspect error}"
-    #     initial_state
-    #   nil -> initial_state
-    # end
-    initial_state
+        compat_version: compat_version,
+        target: target,
+        environment: env,
+        private_ip: "loading...",
+        throttled: get_throttled()
+      }
+    }
+    with {:ok, os_a_u}   <- get_config(:os_auto_update),
+         {:ok, fw_a_u}   <- get_config(:fw_auto_update),
+         {:ok, timezone} <- get_config(:timezone),
+         {:ok, steps_pm} <- get_config(:steps_per_mm)
+         do
+           new_state =
+             %State{initial |
+                configuration: %{os_auto_update: os_a_u,
+                                 fw_auto_update: fw_a_u,
+                                 timezone: timezone,
+                                 steps_per_mm: steps_pm}}
+           {:ok, new_state}
   end
 
   # This call should probably be a cast actually, and im sorry.
@@ -208,16 +182,6 @@ defmodule Farmbot.BotState.Configuration do
     dispatch state
   end
 
-  defp dispatch(reply, %State{} = state) do
-    State.broadcast(state)
-    {:reply, reply, state}
-  end
-
-  defp dispatch(%State{} = state) do
-    State.broadcast(state)
-    {:noreply, state}
-  end
-
   defp get_throttled do
     if File.exists?("/usr/bin/vcgencmd") do
       {output, 0} = System.cmd("vcgencmd", ["get_throttled"])
@@ -227,7 +191,7 @@ defmodule Farmbot.BotState.Configuration do
         |> String.split("=")
       throttled
     else
-      "0x0"
+      "0xDEVELOPMENT"
     end
   end
 end

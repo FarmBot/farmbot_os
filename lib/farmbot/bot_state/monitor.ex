@@ -20,6 +20,7 @@ defmodule Farmbot.BotState.Monitor do
       configuration: Configuration.t,
       authorization: Authorization.t,
       network:       Network.t,
+      # Seperate
       scheduler:     Scheduler.t
     }
     defstruct [

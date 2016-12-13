@@ -1,14 +1,17 @@
-alias Farmbot.BotState.Hardware,      as: Hardware
-alias Farmbot.BotState.Configuration, as: Configuration
 alias Farmbot.BotState.Authorization, as: Authorization
-alias Farmbot.BotState.Network,       as: Network
+# alias Farmbot.BotState.Hardware,      as: Hardware
+# alias Farmbot.BotState.Configuration, as: Configuration
+# alias Farmbot.BotState.Network,       as: Network
 defmodule Farmbot.ConfigStorage do
   @moduledoc """
     Loads information according to a configuration JSON file.
   """
 
   defmodule Parsed do
-    @moduledoc false
+    @moduledoc """
+      This is what the json file should look like when it hits
+      Elixir lands
+    """
     @enforce_keys [:authorization, :configuration, :network, :hardware]
     defstruct @enforce_keys
     @type connection :: {String.t, String.t} | :ethernet
@@ -22,7 +25,6 @@ defmodule Farmbot.ConfigStorage do
 
   use GenServer
   require Logger
-  alias Farmbot.BotS
 
   @type args :: String.t
 

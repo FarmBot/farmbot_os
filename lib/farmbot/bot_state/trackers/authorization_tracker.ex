@@ -15,14 +15,10 @@ defmodule Farmbot.BotState.Authorization do
       interim: nil
     ]
 
-  # TODO: need to get a new token if this process gets restarted
   def load(_) do
-    with {:ok, server}
-            <- get_config(:server),
-         {:ok, secret}
-            <- get_config(:secret),
-         {:ok, token_or_nil}
-            <- maybe_get_token(%State{secret: secret, server: server})
+    with {:ok, server} <- get_config(:server),
+         {:ok, secret} <- get_config(:secret),
+         {:ok, token_or_nil} <- maybe_get_token
          do
            f = %State{secret: secret, server: server, token: token_or_nil}
            {:ok, f}
@@ -34,15 +30,11 @@ defmodule Farmbot.BotState.Authorization do
   # We can't just try to log in here beccause it is fairly likely that the
   # Bot will not yet have network up, so this just tries to get a token out of
   # Farmbot Auth.
-  @spec maybe_get_token(map) :: {:ok, }
-  defp maybe_get_token(%State{secret: secret, server: server}) do
+  @spec maybe_get_token :: {:ok, Token.t}
+  defp maybe_get_token do
     with {:ok, json_token} <- Auth.get_token,
-         {:ok, token} <- Token.create(json_token)
-    do
-      token
-    else
-      _ -> nil
-    end
+         {:ok, token} <- Token.create(json_token),
+    do: {:ok, token}
   end
 
   # Gets the server

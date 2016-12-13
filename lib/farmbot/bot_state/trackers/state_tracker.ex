@@ -44,9 +44,8 @@ defmodule Farmbot.StateTracker do
         end
       end
 
-      def load(_args) do
-        {:ok, %State{}}
-      end
+      # this should be overriden.
+      def load(_args), do: {:ok, %State{}}
 
       defp dispatch(reply, %unquote(name).State{} = state) do
         broadcast(state)
@@ -62,7 +61,7 @@ defmodule Farmbot.StateTracker do
       end
 
       defp dispatch({:error, reason}) do
-        Logger.error ">> encountered a fatal error in #{unquote(name)}. "
+        Logger.error ">> encountered a fatal error in #{unquote(name)}."
         Farmbot.factory_reset
       end
 
