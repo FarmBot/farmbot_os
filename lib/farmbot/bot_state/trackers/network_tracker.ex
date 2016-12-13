@@ -30,7 +30,7 @@ defmodule Farmbot.BotState.Network do
   require Logger
   alias Farmbot.BotState
   alias Farmbot.ConfigStorage, as: FBConfig
-  use FBConfig, name: :network
+  # use FBConfig, name: :network
 
   @type args :: any
 
@@ -46,20 +46,21 @@ defmodule Farmbot.BotState.Network do
   end
 
   defp load(_) do
-    case get_config(:connection) do
-      {:ok, con} ->
-        s = %State{connected: false, connection: con}
-        s
-        |> start_connection
-        |> State.broadcast
-        {:ok, s}
-      {:error, reason} ->
-        Logger.error ">> encountered an error starting network. " <>
-        "You probably wont see this. #{inspect reason}"
-        s = %State{}
-        State.broadcast s
-        s
-    end
+    %State{}
+    # case get_config(:connection) do
+    #   {:ok, con} ->
+    #     s = %State{connected?: false, connection: con}
+    #     s
+    #     |> start_connection
+    #     |> State.broadcast
+    #     {:ok, s}
+    #   {:error, reason} ->
+    #     Logger.error ">> encountered an error starting network. " <>
+    #     "You probably wont see this. #{inspect reason}"
+    #     s = %State{}
+    #     State.broadcast s
+    #     s
+    # end
   end
 
   @spec start_connection(State.t) :: State.t

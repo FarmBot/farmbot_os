@@ -1,35 +1,11 @@
+alias Farmbot.BotState.Hardware,      as: Hardware
+alias Farmbot.BotState.Configuration, as: Configuration
+alias Farmbot.BotState.Authorization, as: Authorization
+alias Farmbot.BotState.Network,       as: Network
 defmodule Farmbot.ConfigStorage do
   @moduledoc """
     Loads information according to a configuration JSON file.
   """
-  defmacro __using__(name: name) do
-    quote do
-      import Farmbot.ConfigStorage
-
-      @spec get_config(:all | term) :: any
-      defp get_config(:all) do
-        GenServer.call(__MODULE__, {:get, unquote(name), :all})
-      end
-
-      defp get_config(key) do
-        GenServer.call(__MODULE__, {:get, unquote(name), key})
-      end
-
-      def init(args) do
-        Logger.debug ">> is starting #{unquote(name)}."
-        case load(args) do
-          {:ok, %State{} = state} ->
-            {:ok, State.broadcast(state)}
-          {:error, reason} ->
-            Logger.error ">> encountered an error starting #{unquote(name)}" <>
-              "#{inspect reason}"
-            Farmbot.factory_reset
-          nil -> Farmbot.factory_reset # I don't think this should ever happen?
-        end
-      end
-
-    end
-  end
 
   defmodule Parsed do
     @moduledoc false
@@ -46,10 +22,12 @@ defmodule Farmbot.ConfigStorage do
 
   use GenServer
   require Logger
+  alias Farmbot.BotS
 
   @type args :: String.t
 
   @spec start_link(args) :: {:ok, pid}
+  def start_link(), do: start_link("/tmp/blah.json") # FIXME
   def start_link(path_to_config) do
     GenServer.start_link(__MODULE__, path_to_config, name: __MODULE__)
   end
@@ -57,15 +35,25 @@ defmodule Farmbot.ConfigStorage do
   @spec init(args) :: {:ok, Parsed.t}
   def init(path_to_config), do: parse_json(path_to_config)
 
-  def handle_call({:get, name, :all}, _, state) do
-    {:reply, Map.get(state, name), state}
+  def handle_call({:get, Authorization, :all}, _, state) do
+    f = state.authorization
+    {:reply, f, state}
   end
 
-  def handle_call({:get, name, key}, _, state) do
-    f = state
-    |> Map.get(name)
-    |> Map.get(key)
+  def handle_call({:get, Authorization, key}, _, state) do
+    f =
+      state
+      |> Map.get(:authorization)
+      |> Map.get(key)
     {:reply, f, state}
+  end
+
+  def handle_cast({:put, Authorization, {:server, val}}, state) do
+    {:noreply, %Parsed{parsed | server: val}}
+  end
+
+  def handle_cast({:put, Authorization, {:secret, val}}) do
+    {:noreply, %Parsed{parsed | secret: val}}
   end
 
   # If it can find a file at the given path tries to parse it.
@@ -75,10 +63,10 @@ defmodule Farmbot.ConfigStorage do
     case File.read(path_to_config) do
       # If the read was successful.
       {:ok, contents} ->
-        contents |> parse_json_contents
+        contents |> Poison.decode! |> parse_json_contents
       # If not.
       _ ->
-        default_file |> parse_json_contents
+        default_file |> parse_json
     end
   end
 
@@ -114,8 +102,6 @@ defmodule Farmbot.ConfigStorage do
   defp parse_json_configuration(config) do
     {:ok, config}
   end
-
-  defp parse_json_configuration(_), do: {:error, :configuration}
 
   defp parse_json_hardware(%{"params" => params}) do
     {:ok, %{params: params}}

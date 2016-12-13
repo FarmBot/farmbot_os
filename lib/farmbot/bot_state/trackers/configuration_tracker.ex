@@ -5,7 +5,7 @@ defmodule Farmbot.BotState.Configuration do
   use GenServer
   require Logger
   alias Farmbot.ConfigStorage, as: FBConfig
-  use FBConfig, name: :configuration
+  # use FBConfig, name: :configuration
 
   defmodule State do
     @moduledoc false
@@ -78,7 +78,7 @@ defmodule Farmbot.BotState.Configuration do
           {:ok, State.broadcast(state)}
         {:error, reason} ->
           Logger.error ">> encountered an error start configuration manager " <>
-            "#{inspect error}"
+            "#{inspect reason}"
           {:ok, }
 
       end
@@ -88,14 +88,15 @@ defmodule Farmbot.BotState.Configuration do
 
   @spec load(State.t) :: State.t
   defp load(%State{} = initial_state) do
-    case get_config(:all) do
-      {:ok, config} -> %State{initial_state | configuration: config}
-      {:error, reason} ->
-        Logger.error ">> encountered an error start configuration manager " <>
-          "#{inspect error}"
-        initial_state
-      nil -> initial_state
-    end
+    # case get_config(:all) do
+    #   {:ok, config} -> %State{initial_state | configuration: config}
+    #   {:error, reason} ->
+    #     Logger.error ">> encountered an error start configuration manager " <>
+    #       "#{inspect error}"
+    #     initial_state
+    #   nil -> initial_state
+    # end
+    initial_state
   end
 
   # This call should probably be a cast actually, and im sorry.

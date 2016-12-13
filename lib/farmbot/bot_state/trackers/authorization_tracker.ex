@@ -1,48 +1,28 @@
 defmodule Farmbot.BotState.Authorization do
-  use GenServer
-  require Logger
-  alias Farmbot.Auth
-  alias Farmbot.ConfigStorage, as: FBConfig
-  use FBConfig, name: __MODULE__
-
   @moduledoc """
     Tracks authorization state.
   """
-  defmodule State do
-    @moduledoc false
-    @type t :: %__MODULE__{
-      token: Token.t | nil,
-      secret: nil | binary,
-      server: nil | String.t,
-      interim: nil | %{
-        email: String.t,
-        pass: String.t
-      }
-    }
-    defstruct [
+  require Logger
+  alias Farmbot.Auth
+  alias Farmbot.StateTracker
+  @behaviour StateTracker
+  use StateTracker,
+    name: __MODULE__,
+    model: [
       token: nil,
       secret: nil,
       server: nil,
       interim: nil
     ]
 
-    @spec broadcast(t) :: t
-    def broadcast(%State{} = state) do
-      GenServer.cast(Farmbot.BotState.Monitor, state)
-      state
-    end
-  end
-  # We don't care about args in this module.
-  @type args :: any
-  @spec start_link(args) :: {:ok, pid}
-  def start_link(args),
-    do: GenServer.start_link(__MODULE__, args, name: __MODULE__)
-
-  @spec load(args) :: {:ok, State.t} | {:error, atom}
-  defp load(_) do
+  def load(_) do
     with {:ok, server} <- get_config(:server),
-         {:ok, secret} <- get_config(:secret),
-         do: %State{secret: secret, server: server}
+         {:ok, secret} <- get_config(:secret)
+         do
+           {:ok, %State{secret: secret, server: server}}
+         else
+           _ -> {:ok, %State{}}
+         end
   end
 
   @spec maybe_get_token(State.t, {:ok, Token.t} | nil) :: State.t
@@ -83,24 +63,6 @@ defmodule Farmbot.BotState.Authorization do
     new_state =
       %State{state | token: token}
     dispatch new_state
-  end
-
-  defp dispatch(reply, %State{} = state) do
-    State.broadcast(state)
-    {:reply, reply, state}
-  end
-
-  # If something bad happens in this module it's usually non recoverable.
-  defp dispatch(_, {:error, reason}), do: dispatch({:error, reason})
-
-  defp dispatch(%State{} = state) do
-    State.broadcast(state)
-    {:noreply, state}
-  end
-
-  defp dispatch({:error, reason}) do
-    Logger.error ">> encountered a fatal error in Authorization. "
-    Farmbot.factory_reset
   end
 
   @spec try_log_in(State.t) :: {:ok, Token.t} | {:error, atom}
