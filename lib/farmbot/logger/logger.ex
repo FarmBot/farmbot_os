@@ -46,8 +46,8 @@ defmodule Farmbot.Logger do
 
     # take logger time stamp and spit out a unix timestamp for the javascripts.
     with({:ok, created_at} <- parse_created_at(timestamp),
-         {:ok, sanitized_message} <- sanitize(message, metadata),
-         {:ok, log} <- build_log(message, created_at, type, channels, pos),
+         {:ok, san_m} <- sanitize(message, metadata),
+         {:ok, log} <- build_log(san_m, created_at, type, channels, pos),
          {:ok, json} <- build_rpc(log),
          # ^ This will possible return nil if it cant create json.
          # it will silently be discarded.

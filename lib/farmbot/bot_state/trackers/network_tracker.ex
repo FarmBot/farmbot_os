@@ -1,7 +1,11 @@
 defmodule Farmbot.BotState.Network do
+  @moduledoc """
+    Light wrapper for Farmbot Networking.
+  """
 
   require Logger
   alias Farmbot.StateTracker
+  alias Farmbot.BotState
   @behaviour StateTracker
   use StateTracker,
       name: __MODULE__,
@@ -10,19 +14,6 @@ defmodule Farmbot.BotState.Network do
         connection: nil
       ]
 
-
-  @moduledoc """
-    Light wrapper for Farmbot Networking.
-  """
-  # alias Farmbot.BotState
-  # alias Farmbot.StateTracker
-  # @behaviour StateTracker
-  # use StateTacker,
-  #     name: __MODULE__,
-  #     model: [
-  #       connected?: false,
-  #       connection: nil
-  #     ]
   @type args :: any
   @type connection :: nil | :ethernet | {String.t, String.t}
   @type t :: %__MODULE__.State{
