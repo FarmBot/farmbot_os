@@ -5,9 +5,6 @@ defmodule Farmbot.FileSystem.ConfigStorage do
   use GenServer
   require Logger
 
-  # This overwrites Elixir.File
-  alias Farmbot.FileSystem.File
-
   @config_file Application.get_env(:farmbot, :state_path) <> "/config.json"
   defp default_config_file,
     do: "#{:code.priv_dir(:farmbot)}/static/default_config.json"
@@ -82,7 +79,9 @@ defmodule Farmbot.FileSystem.ConfigStorage do
   @spec write!(Parsed.t) :: {:noreply, Parsed.t}
   defp write!(%Parsed{} = state) do
     json = Poison.encode!(state)
-    File.write!(@config_file, json)
+    Farmbot.FileSystem.transaction fn() ->
+      File.write!(@config_file, json)
+    end
     {:noreply, state}
   end
 

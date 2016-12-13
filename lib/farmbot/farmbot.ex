@@ -8,8 +8,8 @@ defmodule Farmbot do
   alias Farmbot.Sync.Database
   alias Nerves.Firmware
   alias Farmbot.Supervisor, as: FarmbotSupervisor
-  alias Farmbot.FileSystem.Supervisor, as: FarmbotFSSupervisor
-  @state_path Application.get_env(:farmbot, :state_path)
+  alias Farmbot.FileSystem
+  alias FileSystem.Supervisor, as: FarmbotFSSupervisor
 
   @doc """
     Shortcut to Nerves.Firmware.reboot
@@ -57,5 +57,5 @@ defmodule Farmbot do
           [%{target: target, compat_version: compat_version,
              version: version, env: env}])
   end
-  def factory_reset, do: FarmbotFSSupervisor.factory_reset
+  def factory_reset, do: FileSystem.factory_reset
 end
