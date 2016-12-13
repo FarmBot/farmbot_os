@@ -1,11 +1,3 @@
-defmodule Foo do
-  defstruct [
-    location: [-1,-1,-1],
-    end_stops: {-1,-1,-1,-1,-1,-1},
-    mcu_params: %{},
-    pins: %{}
-  ]
-end
 defmodule Farmbot.BotState.Hardware do
   @moduledoc """
     tracks mcu_params, pins, location

@@ -1,72 +1,53 @@
 defmodule Farmbot.BotState.Network do
+
+  require Logger
+  alias Farmbot.StateTracker
+  @behaviour StateTracker
+  use StateTracker,
+      name: __MODULE__,
+      model: [
+        connected?: false,
+        connection: nil
+      ]
+
+
   @moduledoc """
     Light wrapper for Farmbot Networking.
   """
-
-  defmodule State do
-    @moduledoc false
-
-    defstruct [
-      connected?: false,
-      connection: nil
-    ]
-
-    # :ethernet or {ssid, password}
-    @type connection :: :ethernet | {String.t, String.t}
-
-    @type t :: %__MODULE__{
-      connected?: boolean,
-      connection: connection
-    }
-
-    @spec broadcast(t) :: t
-    def broadcast(%State{} = state) do
-      GenServer.cast(BotState.Monitor, state)
-      state
+  # alias Farmbot.BotState
+  # alias Farmbot.StateTracker
+  # @behaviour StateTracker
+  # use StateTacker,
+  #     name: __MODULE__,
+  #     model: [
+  #       connected?: false,
+  #       connection: nil
+  #     ]
+  @type args :: any
+  @type connection :: nil | :ethernet | {String.t, String.t}
+  @type t :: %__MODULE__.State{
+    connected?: boolean,
+    connection: connection
+  }
+  @spec load(args) :: {:ok, t}
+  def load(_) do
+    NetMan.put_pid(__MODULE__)
+    case get_config(:connection) do
+      {:ok, connection} ->
+        :ok = start_connection(connection)
+        f = %State{connected?: false, connection: connection}
+        {:ok, f}
+      _ ->
+        # Starts configurator (Host APD)
+        :ok = start_connection(nil)
+        f = %State{connected?: false, connection: nil}
+        {:ok, f}
     end
   end
 
-  use GenServer
-  require Logger
-  alias Farmbot.BotState
-  alias Farmbot.ConfigStorage, as: FBConfig
-  # use FBConfig, name: :network
-
-  @type args :: any
-
-  @spec start_link(args) :: {:ok, pid}
-  def start_link(args),
-    do: GenServer.start_link(__MODULE__, args, name: __MODULE__)
-
-  @spec init(args) :: {:ok, State.t}
-  def init(args) do
-    NetMan.put_pid(__MODULE__)
-    s = load(args)
-    {:ok, s}
-  end
-
-  defp load(_) do
-    %State{}
-    # case get_config(:connection) do
-    #   {:ok, con} ->
-    #     s = %State{connected?: false, connection: con}
-    #     s
-    #     |> start_connection
-    #     |> State.broadcast
-    #     {:ok, s}
-    #   {:error, reason} ->
-    #     Logger.error ">> encountered an error starting network. " <>
-    #     "You probably wont see this. #{inspect reason}"
-    #     s = %State{}
-    #     State.broadcast s
-    #     s
-    # end
-  end
-
-  @spec start_connection(State.t) :: State.t
-  defp start_connection(%State{} = state) do
-    NetMan.connect(state.connection, __MODULE__)
-    state
+  @spec start_connection(connection) :: :ok | {:error, atom}
+  defp start_connection(connection) do
+    NetMan.connect(connection, __MODULE__)
   end
 
   def handle_call(event, _from, %State{} = state) do
@@ -100,15 +81,5 @@ defmodule Farmbot.BotState.Network do
     Logger.warn ">> got an unhandled cast in " <>
                 "Network State tracker: #{inspect event}"
     dispatch state
-  end
-
-  defp dispatch(reply, %State{} = state) do
-    State.broadcast(state)
-    {:reply, reply, state}
-  end
-
-  defp dispatch(%State{} = state) do
-    State.broadcast(state)
-    {:noreply, state}
   end
 end
