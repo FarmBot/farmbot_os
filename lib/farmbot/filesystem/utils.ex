@@ -33,9 +33,9 @@ defmodule Module.concat([FileSystem, Utils, :prod]) do
   @fs_type "ext4"
   @ro_options ["-t", @fs_type, "-o", "ro,remount", @block_device, @state_path]
   @rw_options ["-t", @fs_type, "-o", "rw,remount", @block_device, @state_path]
-  
+
   @doc false
-  def mount_read_write, do: "mount" |> System.cmd(@ro_options) |> parse_cmd
+  def mount_read_only, do: "mount" |> System.cmd(@ro_options) |> parse_cmd
   @doc false
   def mount_read_write, do: "mount" |> System.cmd(@rw_options) |> parse_cmd
 
@@ -58,12 +58,6 @@ defmodule Module.concat([FileSystem, Utils, :prod]) do
   end
 
   defp parse_cmd({_, 0}), do: :ok
-
-  defp sync do
-    sync_cmd = "sync"
-    sync_cmd |> System.cmd([])
-  end
-
 
   defp format_state_part do
     # Format partition
