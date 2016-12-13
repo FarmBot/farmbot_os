@@ -1,6 +1,6 @@
 defmodule Farmbot.BotState.Network do
   @moduledoc """
-    I DONT KNOW WHAT IM DOING
+    Light wrapper for Farmbot Networking.
   """
 
   defmodule State do
@@ -11,9 +11,12 @@ defmodule Farmbot.BotState.Network do
       connection: nil
     ]
 
+    # :ethernet or {ssid, password}
+    @type connection :: :ethernet | {String.t, String.t}
+
     @type t :: %__MODULE__{
       connected?: boolean,
-      connection: :ethernet | {String.t, String.t}
+      connection: connection
     }
 
     @spec broadcast(t) :: t
@@ -26,25 +29,39 @@ defmodule Farmbot.BotState.Network do
   use GenServer
   require Logger
   alias Farmbot.BotState
+  alias Farmbot.ConfigStorage, as: FBConfig
+  # use FBConfig, name: :network
 
-  def init(_args) do
+  @type args :: any
+
+  @spec start_link(args) :: {:ok, pid}
+  def start_link(args),
+    do: GenServer.start_link(__MODULE__, args, name: __MODULE__)
+
+  @spec init(args) :: {:ok, State.t}
+  def init(args) do
     NetMan.put_pid(__MODULE__)
-
-    s = __MODULE__
-        |> SafeStorage.read
-        |> load
-        |> start_connection
-        |> State.broadcast
+    s = load(args)
     {:ok, s}
   end
 
-  @spec load({:ok, State.t}) :: State.t
-  defp load({:ok, %State{} = state}) do
-    state
+  defp load(_) do
+    %State{}
+    # case get_config(:connection) do
+    #   {:ok, con} ->
+    #     s = %State{connected?: false, connection: con}
+    #     s
+    #     |> start_connection
+    #     |> State.broadcast
+    #     {:ok, s}
+    #   {:error, reason} ->
+    #     Logger.error ">> encountered an error starting network. " <>
+    #     "You probably wont see this. #{inspect reason}"
+    #     s = %State{}
+    #     State.broadcast s
+    #     s
+    # end
   end
-
-  @spec load(any) :: State.t
-  defp load(_), do: %State{}
 
   @spec start_connection(State.t) :: State.t
   defp start_connection(%State{} = state) do
@@ -52,13 +69,9 @@ defmodule Farmbot.BotState.Network do
     state
   end
 
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
-  end
-
   def handle_call(event, _from, %State{} = state) do
-    Logger.warn ">> got an unhandled call in \
-                 Network State tracker: #{inspect event}"
+    Logger.warn ">> got an unhandled call in " <>
+                 "Network State tracker: #{inspect event}"
     dispatch :unhandled, state
   end
 
@@ -68,7 +81,7 @@ defmodule Farmbot.BotState.Network do
                   {:update_info, :private_ip, ip_address})
     GenServer.cast(BotState.Authorization, :try_log_in)
     new_state = %State{state | connected?: true, connection: :dev}
-    save new_state
+    # TODO: Config file
     dispatch new_state
   end
 
@@ -79,13 +92,13 @@ defmodule Farmbot.BotState.Network do
                   {:update_info, :private_ip, ip_address})
     GenServer.cast(BotState.Authorization, :try_log_in)
     new_state = %State{state | connected?: true, connection: connection}
-    save new_state
+    # TODO: Config file
     dispatch new_state
   end
 
   def handle_cast(event, %State{} = state) do
-    Logger.warn ">> got an unhandled cast in\
-                Network State tracker: #{inspect event}"
+    Logger.warn ">> got an unhandled cast in " <>
+                "Network State tracker: #{inspect event}"
     dispatch state
   end
 
@@ -97,10 +110,5 @@ defmodule Farmbot.BotState.Network do
   defp dispatch(%State{} = state) do
     State.broadcast(state)
     {:noreply, state}
-  end
-
-  @spec save(State.t) :: :ok | {:error, atom}
-  defp save(%State{} = state) do
-    SafeStorage.write(__MODULE__, :erlang.term_to_binary(state))
   end
 end

@@ -76,13 +76,10 @@ defmodule Farmbot do
                       version: version, env: env}])
   do
     {:ok, _} = fs_init(env)
-    # Log somethingdebug("Starting Firmware on Target: #{target}.")
-
-    # Log somethingdebug("Starting Database.")
+    Logger.debug ">> is booting on #{target}."
     Amnesia.start
     Database.create! Keyword.put([], :memory, [node])
     Database.wait(15_000)
-    # Log somethingdebug("Database created!.")
 
     Supervisor.start_link(__MODULE__,
           [%{target: target, compat_version: compat_version,
@@ -93,9 +90,5 @@ defmodule Farmbot do
     Formats the data partition and reboots.
   """
   @spec factory_reset :: any
-  def factory_reset do
-    # i don't remember why i stop SafeStorage. I wish i had documented that.
-    GenServer.stop SafeStorage, :reset
-    Firmware.reboot
-  end
+  def factory_reset, do: Firmware.reboot
 end

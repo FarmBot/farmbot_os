@@ -19,11 +19,11 @@ defmodule Farmbot.BotState.Supervisor do
         [Farmbot.BotState.EventManager], [restart: :permanent]),
 
       # These are the actual trackers for the different parts of the system.
-      worker(Farmbot.BotState.Configuration,
-        [initial_config], [restart: :permanent]),
-      worker(Farmbot.BotState.Hardware,      [[]], [restart: :permanent]),
+      # worker(Farmbot.BotState.Configuration,
+      #   [initial_config], [restart: :permanent]),
       worker(Farmbot.BotState.Authorization, [[]], [restart: :permanent]),
-      worker(Farmbot.BotState.Network,       [[]], [restart: :permanent]),
+      # worker(Farmbot.BotState.Hardware,      [[]], [restart: :permanent]),
+      # worker(Farmbot.BotState.Network.Tracker,       [[]], [restart: :permanent]),
       worker(Farmbot.EasterEggs, [name: Farmbot.EasterEggs],
         [restart: :permanent])
     ]
