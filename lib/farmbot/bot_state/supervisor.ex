@@ -23,7 +23,7 @@ defmodule Farmbot.BotState.Supervisor do
         [initial_config], [restart: :permanent]),
       worker(Farmbot.BotState.Authorization, [[]], [restart: :permanent]),
       worker(Farmbot.BotState.Hardware,      [[]], [restart: :permanent]),
-      worker(Farmbot.BotState.Network.Tracker,       [[]], [restart: :permanent]),
+      worker(Farmbot.BotState.Network,       [[]], [restart: :permanent]),
       worker(Farmbot.EasterEggs, [name: Farmbot.EasterEggs],
         [restart: :permanent])
     ]

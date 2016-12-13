@@ -5,6 +5,7 @@ alias Farmbot.BotState.Network.State,       as: Network
 alias Farmbot.Scheduler.State.Serializer,   as: Scheduler
 
 defmodule Farmbot.BotState.Monitor do
+  # TODO This should probably use ETS or something its kind of slow.
   @moduledoc """
     this is the master state tracker. It receives the states from
     various modules, and then pushes updated state to anything that cares

@@ -12,7 +12,7 @@ defmodule Farmbot.Supervisor do
       # Storage that needs to persist across reboots.
       worker(SafeStorage, [env], restart: :permanent),
       worker(SSH, [env], restart: :permanent),
-      worker(Farmbot.ConfigStorage, [], restart: :permanent),
+      supervisor(Farmbot.ConfigStorage.Supervisor, [], restart: :permanent),
 
       # handles communications between bot and arduino
       supervisor(Farmbot.Serial.Supervisor, [env], restart: :permanent),
@@ -35,7 +35,7 @@ defmodule Farmbot.Supervisor do
   end
 
   def start_link(args) do
-    Logger.debug ">> is booting."
+    Logger.debug ">> is starting up."
     Supervisor.start_link(__MODULE__, args)
   end
 end

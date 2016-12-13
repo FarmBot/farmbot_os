@@ -30,16 +30,18 @@ defmodule Farmbot.StateTracker do
         do: GenServer.start_link(unquote(name), args, name: unquote(name))
 
       def init(args) do
-        Logger.debug ">> is starting #{unquote(name)}."
+        n = Module.split(unquote(name)) |> List.last
+        Logger.debug ">> is starting #{n}."
         case load(args) do
           {:ok, %State{} = state} ->
             {:ok, broadcast(state)}
           {:error, reason} ->
-            Logger.error ">> encountered an error starting #{unquote(name)}" <>
+            Logger.error ">> encountered an error starting #{n}" <>
               "#{inspect reason}"
             Farmbot.factory_reset
-          _ ->
-            Logger.error ">> encountered an unknown error in #{unquote(name)}"
+          err ->
+            Logger.error ">> encountered an unknown error in #{n}"
+            <> ": #{inspect err}"
             Farmbot.factory_reset
         end
       end
