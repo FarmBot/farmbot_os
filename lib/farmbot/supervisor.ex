@@ -6,13 +6,11 @@ defmodule Farmbot.Supervisor do
   use Supervisor
 
   def init(%{target: target, compat_version: compat_version,
-                      version: version, env: env}) do
+                      version: version, env: env})
+  do
     children = [
-      # worker(Farmbot.Logger, [[]], restart: :permanent),
-      # Storage that needs to persist across reboots.
-      worker(SafeStorage, [env], restart: :permanent),
+      # SSH to an embedded system because R E A S O N S.
       worker(SSH, [env], restart: :permanent),
-      supervisor(Farmbot.ConfigStorage.Supervisor, [], restart: :permanent),
 
       # handles communications between bot and arduino
       supervisor(Farmbot.Serial.Supervisor, [env], restart: :permanent),

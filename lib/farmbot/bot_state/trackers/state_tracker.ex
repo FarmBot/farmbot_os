@@ -7,7 +7,8 @@ defmodule Farmbot.StateTracker do
   @callback load(any) :: {:ok, map}
   defmacro __using__(name: name, model: model) do
     quote do
-      alias Farmbot.ConfigStorage, as: FBConfigStorage
+      alias Farmbot.FileSystem.ConfigStorage, as: FBConfigStorage
+
       defmodule State, do: defstruct unquote(model)
 
       defp get_config(:all) do
@@ -56,7 +57,6 @@ defmodule Farmbot.StateTracker do
 
       # If something bad happens in this module it's usually non recoverable.
       defp dispatch(_, {:error, reason}), do: dispatch({:error, reason})
-
       defp dispatch(%unquote(name).State{} = state) do
         broadcast(state)
         {:noreply, state}
@@ -71,6 +71,7 @@ defmodule Farmbot.StateTracker do
         GenServer.cast(Farmbot.BotState.Monitor, state)
         state
       end
+
       defp broadcast(_), do: dispatch {:error, :bad_dispatch}
 
       defoverridable [load: 1]

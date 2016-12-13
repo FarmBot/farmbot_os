@@ -1,11 +1,16 @@
-alias Farmbot.BotState.Authorization, as: Authorization
-alias Farmbot.BotState.Hardware,      as: Hardware
-alias Farmbot.BotState.Configuration, as: Configuration
-alias Farmbot.BotState.Network,       as: Network
-defmodule Farmbot.ConfigStorage do
+defmodule Farmbot.FileSystem.ConfigStorage do
   @moduledoc """
     Loads information according to a configuration JSON file.
   """
+  use GenServer
+  require Logger
+
+  # This overwrites Elixir.File
+  alias Farmbot.FileSystem.File
+
+  @config_file Application.get_env(:farmbot, :state_path) <> "/config.json"
+  defp default_config_file,
+    do: "#{:code.priv_dir(:farmbot)}/static/default_config.json"
 
   defmodule Parsed do
     @moduledoc """
@@ -22,19 +27,27 @@ defmodule Farmbot.ConfigStorage do
       hardware: %{}
     }
   end
-
-  use GenServer
-  require Logger
-
-  @type args :: String.t
-
+  @type args :: []
   @spec start_link(args) :: {:ok, pid}
-  def start_link(path_to_config) do
-    GenServer.start_link(__MODULE__, path_to_config, name: __MODULE__)
+  def start_link(), do: start_link([])
+  def start_link(_args) do
+    GenServer.start_link(__MODULE__, @config_file, name: __MODULE__)
   end
 
   @spec init(args) :: {:ok, Parsed.t}
-  def init(path_to_config), do: parse_json!(path_to_config)
+  def init(path) do
+    # Checks if the json file exists or not
+    case File.read(path) do
+      # if it does parse it
+      {:ok, contents} ->
+        Logger.debug ">> is loading its configuration file!"
+        parse_json!(contents)
+      # if not start over with the default config file (from the priv dir)
+      _ ->
+        Logger.debug ">> is creating a new configuration file!"
+        init(default_config_file)
+    end
+  end
 
   def handle_call({:get, module, :all}, _, state) do
     m = module_to_key(module)
@@ -56,7 +69,7 @@ defmodule Farmbot.ConfigStorage do
   def handle_cast({:put, module, {key, var}}, state) do
     # m = module_to_key(module)
     #TODO Fix saving configuration.
-    {:noreply, state}
+    write! state
   end
 
   defp module_to_key(module),
@@ -66,14 +79,19 @@ defmodule Farmbot.ConfigStorage do
         |> String.Casing.downcase
         |> String.to_atom
 
-  # it is expected that this file is here because it was started with the path.
-  # Will throw a runtime error if something bad happens.
-  @spec parse_json(args) :: {:ok, Parsed.t} | {:error, term}
-  defp parse_json!(path_to_config) do
-    File.read!(path_to_config) |> Poison.decode! |> parse_json_contents!
+  @spec write!(Parsed.t) :: {:noreply, Parsed.t}
+  defp write!(%Parsed{} = state) do
+    json = Poison.encode!(state)
+    File.write!(@config_file, json)
+    {:noreply, state}
   end
 
-  @spec parse_json_contents(map) :: {:ok, Parsed.t} | {:error, term}
+  # tries to parse contents. raises an exception if it can't
+  @spec parse_json!(args) :: {:ok, Parsed.t} | {:error, term}
+  defp parse_json!(contents),
+    do: contents |> Poison.decode! |> parse_json_contents!
+
+  @spec parse_json_contents!(map) :: {:ok, Parsed.t} | {:error, term}
   defp parse_json_contents!(
     %{
       "configuration" => json_configuration,
