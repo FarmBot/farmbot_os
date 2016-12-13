@@ -71,6 +71,7 @@ defmodule Farmbot.BotState.Configuration do
                                  timezone: timezone,
                                  steps_per_mm: steps_pm}}
            {:ok, new_state}
+         end
   end
 
   # This call should probably be a cast actually, and im sorry.
