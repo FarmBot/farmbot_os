@@ -48,13 +48,14 @@ defmodule Farmbot.ConfigStorage do
     {:reply, f, state}
   end
 
-  def handle_cast({:put, Authorization, {:server, val}}, state) do
-    {:noreply, %Parsed{parsed | server: val}}
-  end
-
-  def handle_cast({:put, Authorization, {:secret, val}}) do
-    {:noreply, %Parsed{parsed | secret: val}}
-  end
+  # THESE ARE NOT CORRECT
+  # def handle_cast({:put, Authorization, {:server, val}}, state) do
+  #   {:noreply, %Parsed{parsed | }}
+  # end
+  #
+  # def handle_cast({:put, Authorization, {:secret, val}}) do
+  #   {:noreply, %Parsed{parsed | secret: val}}
+  # end
 
   # If it can find a file at the given path tries to parse it.
   # If it can not, it loads the default (READ ONLY) one.
