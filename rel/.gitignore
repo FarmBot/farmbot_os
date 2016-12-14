@@ -1,3 +1,4 @@
 *
 !vm.args
 !.gitignore
+!config.exs

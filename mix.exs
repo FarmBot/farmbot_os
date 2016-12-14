@@ -1,22 +1,11 @@
 defmodule Farmbot.Mixfile do
   use Mix.Project
 
-  def target(:prod) do
-    System.get_env("NERVES_TARGET") || "rpi3"
-  end
+  def target(:prod), do: System.get_env("NERVES_TARGET") || "rpi3"
+  def target(_), do: System.get_env("NERVES_TARGET") || "development"
 
-  def target(_) do
-    System.get_env("NERVES_TARGET") || "development"
-  end
-
-  @version Path.join(__DIR__, "VERSION")
-    |> File.read!
-    |> String.strip
-
-  @compat_version Path.join(__DIR__, "COMPAT")
-    |> File.read!
-    |> String.strip
-    |> String.to_integer
+  @version Path.join(__DIR__, "VERSION") |> File.read! |> String.strip
+  @compat_version Path.join(__DIR__, "COMPAT") |> File.read! |> String.strip |> String.to_integer
 
   def project do
     [app: :farmbot,
@@ -56,7 +45,6 @@ defmodule Farmbot.Mixfile do
      :farmbot_configurator,
      :vmq_commons,
      :amnesia,
-    #  :porcelain,
      :quantum]
   end
 
@@ -70,9 +58,7 @@ defmodule Farmbot.Mixfile do
   end
 
   # dev
-  def apps(:dev) do
-    apps ++ [:fake_nerves]
-  end
+  def apps(:dev), do: apps ++ [:fake_nerves]
 
   # test
   def apps(:test) do
@@ -98,7 +84,6 @@ defmodule Farmbot.Mixfile do
       {:socket, github: "meh/elixir-socket"},
       {:amnesia, github: "meh/amnesia"},
       {:quantum, ">= 1.8.1"},
-      # {:porcelain, "~> 2.0"},
       {:farmbot_auth, github: "Farmbot/farmbot_auth"},
       # {:farmbot_auth, path: "../farmbot_auth"},
       {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
@@ -109,7 +94,7 @@ defmodule Farmbot.Mixfile do
   def deps(:prod) do
     deps ++ platform_deps(target(Mix.env)) ++ system(target(Mix.env)) ++
     [
-     {:nerves, "~> 0.3.0"},
+     {:nerves, github: "nerves-project/nerves", override: true},
      {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"}
     ]
   end
@@ -138,29 +123,30 @@ defmodule Farmbot.Mixfile do
     ]
   end
 
+  def platform_deps("qemu"), do: []
+
   def platform_apps("rpi3") do
     [ :nerves_leds,
       :elixir_ale ]
   end
+
+  def platform_apps("qemu"), do: [:nerves_system_qemu_arm]
 
   def aliases(:prod) do
     ["deps.precompile": ["nerves.precompile", "deps.precompile"],
      "deps.loadpaths":  ["deps.loadpaths", "nerves.loadpaths"]]
   end
 
-  def aliases(:test) do
-    []
-  end
+  def aliases(_), do: []
 
-  def aliases(:dev) do
-    []
-  end
-
+  # FIXME
   def system("rpi3") do
     [{:"nerves_system_rpi3",
       git: "https://github.com/ConnorRigby/nerves_system_rpi3.git",
       tag: "v0.7.5" }]
   end
+
+  def system("qemu"), do: [{:nerves_system_qemu_arm, github: "nerves-project/nerves_system_qemu_arm"}]
 end
 
 defmodule Mix.Tasks.Farmbot.Build do
@@ -168,7 +154,7 @@ defmodule Mix.Tasks.Farmbot.Build do
   @shortdoc "Builds firmware."
 
   def run(args) do
-    System.cmd("rm", ["-rf","rel/bootstrapper"])
+    System.cmd("rm", ["-rf","rel/farmbot"])
     Mix.Tasks.Deps.Get.run(args)
     Mix.Tasks.Deps.Compile.run(args)
     Mix.Tasks.Firmware.run(args)
