@@ -23,7 +23,7 @@ defmodule Farmbot.Mixfile do
      test_coverage: [tool: ExCoveralls],
      version: @version,
      target: target(Mix.env),
-     archives: [nerves_bootstrap: "~> 0.1.4"],
+     archives: [nerves_bootstrap: "~> 0.2.0"],
      deps_path: "deps/#{target(Mix.env)}",
      build_path: "_build/#{target(Mix.env)}",
      build_embedded: Mix.env == :prod,
