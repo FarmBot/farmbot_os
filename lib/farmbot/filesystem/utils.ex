@@ -9,7 +9,7 @@ defmodule FileSystem.Utils do
   @callback factory_reset :: ret_val
 end
 
-defmodule Module.concat([FileSystem, Utils, :dev]) do
+defmodule Module.concat([FileSystem, Utils, :dev, "development"]) do
   @moduledoc """
     Spoofs Filesystem access in development mode.
   """
@@ -23,7 +23,7 @@ defmodule Module.concat([FileSystem, Utils, :dev]) do
   def factory_reset, do: :ok
 end
 
-defmodule Module.concat([FileSystem, Utils, :prod]) do
+defmodule Module.concat([FileSystem, Utils, :prod, "rpi3"]) do
   @moduledoc """
     FileSystem access functions.
   """
@@ -68,4 +68,22 @@ defmodule Module.concat([FileSystem, Utils, :prod]) do
     File.write!("#{@state_path}/.formatted", "DONT CAT ME\n")
     :ok
   end
+end
+
+defmodule Module.concat([FileSystem, Utils, :prod, "qemu"]) do
+  @moduledoc """
+    FileSystem access functions.
+  """
+  @behaviour FileSystem.Utils
+
+  @doc false
+  def mount_read_only, do: :ok
+  @doc false
+  def mount_read_write, do: :ok
+
+  @doc false
+  def fs_init, do: :ok
+
+  @doc false
+  def factory_reset, do: Farmbot.reboot
 end

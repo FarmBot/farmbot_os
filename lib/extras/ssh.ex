@@ -5,12 +5,17 @@ defmodule SSH do
   use GenServer
   require Logger
   @banner "/tmp/banner"
+  @dropbear "/usr/sbin/dropbear"
   @cmd "dropbear -R -F -a -B -b #{@banner}"
 
   def init(:prod) do
-    Process.flag(:trap_exit, true)
-    make_banner
-    {:ok, Port.open({:spawn, @cmd}, [:binary])}
+    if File.exists? @dropbear do
+      Process.flag(:trap_exit, true)
+      make_banner
+      {:ok, Port.open({:spawn, @cmd}, [:binary])}
+    else
+      {:ok, self()} # Just a hack.
+    end
   end
 
   def init(_) do

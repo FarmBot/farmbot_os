@@ -28,3 +28,5 @@ config :iex,
     "%node",
     ">",
     :reset ] |> IO.ANSI.format |> IO.chardata_to_string
+# overwrite anything on if need be.
+import_config "#{Mix.Project.config[:target]}.exs"

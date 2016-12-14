@@ -6,12 +6,12 @@ defmodule Farmbot.FileSystem do
   require Logger
   use GenServer
 
-  def start_link(env),
-    do: GenServer.start_link(__MODULE__, env, name: __MODULE__)
+  def start_link({env, target}),
+    do: GenServer.start_link(__MODULE__, {env, target}, name: __MODULE__)
 
-  def init(env) do
+  def init({env, target}) do
     Logger.debug ">> is starting file system services."
-    mod = Module.concat([FileSystem, Utils, env])
+    mod = Module.concat([FileSystem, Utils, env, target])
     mod.fs_init
     mod.mount_read_only
     {:ok, {mod, :read_only, []}}

@@ -33,7 +33,7 @@ defmodule Farmbot do
                       version: version, env: env}])
   do
     children = [
-      supervisor(FarmbotFSSupervisor, [env], [restart: :permanent]),
+      supervisor(FarmbotFSSupervisor, [{env, target}], [restart: :permanent]),
       supervisor(FarmbotSupervisor,
                 [%{target: target,
                    compat_version: compat_version,
