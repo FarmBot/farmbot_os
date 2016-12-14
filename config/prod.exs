@@ -3,12 +3,6 @@ config :nerves, :firmware,
   rootfs_additions: "config/rootfs-additions-#{Mix.Project.config[:target]}",
   hardware: "config/rootfs-additions-#{Mix.Project.config[:target]}"
 
-config :farmbot,
-  state_path: "/state"
-
-config :farmbot_networking,
-  dnsmasq_path: "/root/dnsmasq.lease"
-
 config :logger, :console,
   # format: "$metadata[$level] $levelpad$message\r\n",
   colors: [enabled: true ]
@@ -28,5 +22,6 @@ config :iex,
     "%node",
     ">",
     :reset ] |> IO.ANSI.format |> IO.chardata_to_string
+  
 # overwrite anything on if need be.
-import_config "#{Mix.Project.config[:target]}.exs"
+import_config "hardware_#{Mix.Project.config[:target]}.exs"

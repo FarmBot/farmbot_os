@@ -110,7 +110,7 @@ defmodule Farmbot.BotState.Monitor do
   do
     BotState.update_config("timezone", timezone)
     BotState.add_creds({email,password,server})
-    NetMan.connect(:ethernet, BotState.Network)
+    # NetMan.connect(:ethernet, BotState.Network)
     dispatch(mgr,state)
   end
 
@@ -123,7 +123,7 @@ defmodule Farmbot.BotState.Monitor do
   do
     BotState.update_config("timezone", timezone)
     BotState.add_creds({email,password,server})
-    NetMan.connect({ssid, psk}, BotState.Network)
+    # NetMan.connect({ssid, psk}, BotState.Network)
     dispatch(mgr,state)
   end
 

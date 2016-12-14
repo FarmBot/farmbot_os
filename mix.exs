@@ -42,7 +42,7 @@ defmodule Farmbot.Mixfile do
      :mustache,
      :timex,
      :farmbot_auth,
-     :farmbot_configurator,
+    #  :farmbot_configurator,
      :vmq_commons,
      :amnesia,
      :quantum]
@@ -50,11 +50,7 @@ defmodule Farmbot.Mixfile do
 
   # on device
   def apps(:prod) do
-    apps ++ platform_apps(target(:prod)) ++
-    [
-      :nerves,
-      :nerves_firmware_http
-    ]
+    apps ++ platform_apps(target(:prod)) ++ [:nerves, :nerves_firmware_http]
   end
 
   # dev
@@ -86,7 +82,7 @@ defmodule Farmbot.Mixfile do
       {:quantum, ">= 1.8.1"},
       {:farmbot_auth, github: "Farmbot/farmbot_auth"},
       # {:farmbot_auth, path: "../farmbot_auth"},
-      {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
+      # {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
       # {:farmbot_configurator, path: "../farmbot_configurator"}
     ]
   end

@@ -38,4 +38,25 @@ and is "underkill" for large amounts of state that arent as easily "stringified"
   * could also save to the /tmp partition, then another module copies that file to the main persistent ext4 fs.
 * The Database uses amnesia, and could probably use built in :mnesia commands to copy it to persistent storage
   * or :mnesia could copy to /tmp similarly to configuration, and the yet to be created module could copy that /tmp to persisteent fs.
-* scheduler stil tbd 
+* scheduler stil tbd
+
+
+# Network
+## Problem
+* network information needs to persist reboots.
+* networking needs to support quite a few differente modes
+  * ethernet
+    * static
+    * dhcp
+  * wifi
+    * static
+    * dhcp
+  * host mode
+  * already connected (no managemnt from farmbot.)
+
+but it also can't be too tightly coupled to authorization.
+for example: i cant just have network get an ip address, and then tell authorization to do its thing.
+network should be taken care of before the farmbot application starts, but be configurable at runtime.
+
+configurator needs to have some knowledge of networking because it gets configured there, but it really only needs to know what
+different interfaces are available and how to configure them. Configurator should have no knowledge of linux. it should just pass information along to something else.

@@ -22,10 +22,10 @@ defmodule Farmbot.BotState.Network do
   }
   @spec load(args) :: {:ok, t}
   def load(_) do
-    NetMan.put_pid(__MODULE__)
+    # NetMan.put_pid(__MODULE__)
     case get_config(:connection) do
       {:ok, connection} ->
-        :ok = start_connection(connection)
+        start_connection(connection)
         f = %State{connected?: false, connection: connection}
         {:ok, f}
       _ ->
@@ -37,8 +37,9 @@ defmodule Farmbot.BotState.Network do
   end
 
   @spec start_connection(connection) :: :ok | {:error, atom}
-  defp start_connection(connection), do: NetMan.connect(connection, __MODULE__)
-
+  defp start_connection(connection) do
+    # NetMan.connect(connection, __MODULE__)
+  end
   def handle_call(event, _from, %State{} = state) do
     Logger.warn ">> got an unhandled call in " <>
                  "Network State tracker: #{inspect event}"
