@@ -6,8 +6,9 @@ defmodule Farmbot.FileSystem.ConfigStorage do
   require Logger
 
   @config_file Application.get_env(:farmbot, :state_path) <> "/config.json"
+  @default_config_file_name Application.get_env(:farmbot, :config_file) || "default_config.json"
   defp default_config_file,
-    do: "#{:code.priv_dir(:farmbot)}/static/default_config.json"
+    do: "#{:code.priv_dir(:farmbot)}/static/#{@default_config_file_name}"
 
   defmodule Parsed do
     @moduledoc """
@@ -18,7 +19,7 @@ defmodule Farmbot.FileSystem.ConfigStorage do
     defstruct @enforce_keys
     @type connection :: {String.t, String.t} | :ethernet
     @type t :: %__MODULE__{
-      authorization: %{server: String.t, secret: binary},
+      authorization: %{server: String.t},
       configuration: %{},
       network: %{connection: connection},
       hardware: %{}
@@ -120,9 +121,7 @@ defmodule Farmbot.FileSystem.ConfigStorage do
          end
   end
 
-  defp parse_json_authorization(%{"secret" => sec, "server" => ser}) do
-    {:ok, %{secret: sec, server: ser}}
-  end
+  defp parse_json_authorization(%{"server" => ser}), do: {:ok, %{server: ser}}
 
   defp parse_json_authorization(_), do: {:errror, :authorization}
 

@@ -1,6 +1,6 @@
 {
   "network": {"connection": null},
-  "authorization": {"secret": null, "server": null},
+  "authorization": {"server": null},
   "configuration": {"os_auto_update": false,
                     "fw_auto_update": false,
                     "timezone": null,

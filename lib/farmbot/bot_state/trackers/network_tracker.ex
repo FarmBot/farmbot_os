@@ -37,9 +37,7 @@ defmodule Farmbot.BotState.Network do
   end
 
   @spec start_connection(connection) :: :ok | {:error, atom}
-  defp start_connection(connection) do
-    NetMan.connect(connection, __MODULE__)
-  end
+  defp start_connection(connection), do: NetMan.connect(connection, __MODULE__)
 
   def handle_call(event, _from, %State{} = state) do
     Logger.warn ">> got an unhandled call in " <>

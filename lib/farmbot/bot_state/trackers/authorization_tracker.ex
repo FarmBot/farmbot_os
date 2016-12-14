@@ -2,6 +2,7 @@ defmodule Farmbot.BotState.Authorization do
   @moduledoc """
     Tracks authorization state.
   """
+  @data_path Application.get_env(:farmbot, :state_path)
   require Logger
   alias Farmbot.Auth
   alias Farmbot.StateTracker
@@ -95,11 +96,19 @@ defmodule Farmbot.BotState.Authorization do
           %State{server: server, secret: secret,
                  token: Token.create!(token), interim: nil}
         Logger.debug ">> authorized successfully!"
-        # TODO: Need to save the secret and server in a configuration file.
+        put_config(:server, server)
+        save_secret(secret)
         new_state
       {:error, reason} ->
         Logger.error ">> failed to authorize: #{inspect reason}"
         {:error, reason}
+    end
+  end
+
+  @spec save_secret(binary) :: :ok
+  defp save_secret(secret) do
+    Farmbot.FileSystem.transaction fn() ->
+      File.write "#{@data_path}/secret", secret
     end
   end
 end
