@@ -56,6 +56,7 @@ defmodule Farmbot.Mixfile do
      :farmbot_configurator,
      :vmq_commons,
      :amnesia,
+    #  :porcelain,
      :quantum]
   end
 
@@ -97,6 +98,7 @@ defmodule Farmbot.Mixfile do
       {:socket, github: "meh/elixir-socket"},
       {:amnesia, github: "meh/amnesia"},
       {:quantum, ">= 1.8.1"},
+      # {:porcelain, "~> 2.0"},
       {:farmbot_auth, github: "Farmbot/farmbot_auth"},
       # {:farmbot_auth, path: "../farmbot_auth"},
       {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}

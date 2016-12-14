@@ -6,9 +6,12 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Client do
   use GenMQTT
   require Logger
   alias RPC.MessageManager
+
   def init(%Token{} = token) do
     {:ok, token}
   end
+
+  def init(maybe_token), do: Token.create(maybe_token)
 
   def start_link(%Token{} = token) do
     GenMQTT.start_link(__MODULE__, token, build_opts(token))
@@ -57,10 +60,12 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Client do
   end
 
   @spec frontend_topic(Token.t) :: String.t
-  defp frontend_topic(%Token{} = token), do: "bot/#{token.unencoded.bot}/from_device"
+  defp frontend_topic(%Token{} = token),
+    do: "bot/#{token.unencoded.bot}/from_device"
 
   @spec bot_topic(Token.t) :: String.t
-  defp bot_topic(%Token{} = token), do: "bot/#{token.unencoded.bot}/from_clients"
+  defp bot_topic(%Token{} = token),
+    do: "bot/#{token.unencoded.bot}/from_clients"
 
   @spec build_last_will_message(Token.t) :: binary
   defp build_last_will_message(%Token{} = token) do

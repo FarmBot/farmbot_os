@@ -107,6 +107,13 @@ defmodule Farmbot.BotState.Authorization do
     {:noreply, state}
   end
 
+  # If something bad happens in this module it's usually non recoverable. 
+  defp dispatch(_, {:error, reason}), do: dispatch({:error, reason})
+  defp dispatch({:error, reason}) do
+    Logger.error ">> encountered a fatal error in Authorization. "
+    Farmbot.factory_reset
+  end
+
   @spec try_log_in(State.t) :: {:ok, Token.t} | {:error, atom}
   defp try_log_in(%State{server: server, interim: %{email: email, pass: pass}})
   do

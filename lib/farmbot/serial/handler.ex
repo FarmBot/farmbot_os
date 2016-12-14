@@ -73,7 +73,6 @@ defmodule Farmbot.Serial.Handler do
     {:reply, :ok, {nerves, :e_stop, handler}}
   end
 
-
   def handle_call(:resume, _from, {nerves, :e_stop, handler}) do
     tty = open_serial(nerves)
     {:reply, :ok, {nerves, tty, handler}}

@@ -23,6 +23,13 @@ defmodule Farmbot.Serial.Gcode.Handler do
     {:noreply, %{nerves: state.nerves, current: nil, log: []}}
   end
 
+  def handle_cast({:busy, _}, state) do
+    {_, pid} = state.current
+    send(pid, :busy)
+    Logger.debug ">>'s arduino is busy.", type: :busy
+    {:noreply, state}
+  end
+
   def handle_cast({:done, _}, %{nerves: nerves, current: {_current_str, pid},
     log: log})
   do
@@ -65,12 +72,6 @@ defmodule Farmbot.Serial.Gcode.Handler do
   def handle_cast({:reporting_end_stops, x1,x2,y1,y2,z1,z2,_}, state) do
     BotState.set_end_stops({x1,x2,y1,y2,z1,z2})
     {:noreply, state}
-  end
-
-  def handle_cast({:busy, _}, %{nerves: nerves, current: {cur_str, pid}, log: log}) do
-    send(pid, :busy)
-    Logger.debug ">>'s arduino is busy.", type: :busy
-    {:noreply, %{nerves: nerves, current: {cur_str, pid}, log: log}}
   end
 
   # If we arent waiting on anything right now. (current is nil and log is empty)
