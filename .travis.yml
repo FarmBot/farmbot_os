@@ -32,7 +32,7 @@ before_script:
 script:
   - export MIX_ENV=test
   - mix local.hex --force
-  - mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap-0.1.4.ez%20 --force
+  - mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez --force
   - mix local.rebar --force
   - mix deps.get
   - mix compile
