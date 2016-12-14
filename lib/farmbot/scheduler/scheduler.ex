@@ -100,21 +100,20 @@ defmodule Farmbot.Scheduler do
   @spec load :: State.t
   def load do
     default_state = %State{}
-    __MODULE__ |> SafeStorage.read |> what_is_it(default_state)
   end
 
-  @spec what_is_it({:ok, State.t}, State.t) :: State.t
-  defp what_is_it({:ok, %State{} = last_state}, _default_state) do
-    Logger.debug ">> is loading an old Scheduler state: #{inspect last_state}"
-    new_state = Map.update!(last_state, :regimens, fn(old_regimens) ->
-      Enum.map(old_regimens, fn({_,regimen, finished_items, time, _}) ->
-        {:ok, pid} = RegimenVM.start_link(regimen, finished_items, time)
-        {pid,regimen, finished_items, time, :normal}
-      end)
-    end)
-    save_and_update(new_state)
-    new_state
-  end
+  # @spec what_is_it({:ok, State.t}, State.t) :: State.t
+  # defp what_is_it({:ok, %State{} = last_state}, _default_state) do
+  #   Logger.debug ">> is loading an old Scheduler state: #{inspect last_state}"
+  #   new_state = Map.update!(last_state, :regimens, fn(old_regimens) ->
+  #     Enum.map(old_regimens, fn({_,regimen, finished_items, time, _}) ->
+  #       {:ok, pid} = RegimenVM.start_link(regimen, finished_items, time)
+  #       {pid,regimen, finished_items, time, :normal}
+  #     end)
+  #   end)
+  #   save_and_update(new_state)
+  #   new_state
+  # end
 
   @spec what_is_it(any, State.t) :: State.t
   defp what_is_it(_,default_state), do: default_state
@@ -303,8 +302,8 @@ defmodule Farmbot.Scheduler do
   @lint false # don't lint because aliasing that module wont work
   def save_and_update(%State{} = state) do
     GenServer.cast(BotState.Monitor,
-            State.Serializer.serialize(state))
-    SafeStorage.write(__MODULE__, :erlang.term_to_binary(state))
+                   State.Serializer.serialize(state))
+    # save the state to the filesystem #FIXME
   end
 
   @doc """

@@ -1,6 +1,6 @@
 defmodule SSH do
   @moduledoc """
-    Module to manage SSH via a dropbear port.
+    Module to manage SSH via an Erlang port.
   """
   use GenServer
   require Logger
@@ -10,13 +10,6 @@ defmodule SSH do
   def init(:prod) do
     Process.flag(:trap_exit, true)
     make_banner
-    case SafeStorage.read(__MODULE__, false) do
-      {:ok, contents} ->
-        # This is actually symlinked to /tmp so its still safe.
-        File.write("/etc/dropbear/dropbear_ecdsa_host_key", contents)
-        save_contents
-      _ -> nil
-    end
     {:ok, Port.open({:spawn, @cmd}, [:binary])}
   end
 
@@ -45,10 +38,7 @@ defmodule SSH do
 
   def save_contents do
     # Read from /tmp
-    case File.read("/etc/dropbear/dropbear_ecdsa_host_key") do
-      {:ok, contents} -> SafeStorage.write(__MODULE__, contents)
-      _ -> nil
-    end
+    :ok
   end
 
   def make_banner do
@@ -62,6 +52,6 @@ defmodule SSH do
     |        THERE IS NO MAKE       |        THERE IS NO WGET        |
     |_______________________________|________________________________|
     """
-    File.write(@banner, contents)
+    # File.write(@banner, contents)
   end
 end

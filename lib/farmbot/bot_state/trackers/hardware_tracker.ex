@@ -3,54 +3,29 @@ defmodule Farmbot.BotState.Hardware do
     tracks mcu_params, pins, location
   """
 
-  use GenServer
   require Logger
+  alias Farmbot.StateTracker
+  @behaviour StateTracker
+  use StateTracker,
+      name: __MODULE__,
+      model: [
+        location: [-1,-1,-1],
+        end_stops: {-1,-1,-1,-1,-1,-1},
+        mcu_params: %{},
+        pins: %{}
+      ]
 
-  defmodule State do
-    @moduledoc """
-      tracks mcu_params, pins, location
-    """
+  @type t :: %__MODULE__.State{
+    location: location,
+    end_stops: end_stops,
+    mcu_params: mcu_params,
+    pins: pins
+  }
 
-    defstruct [
-      location: [-1,-1,-1],
-      end_stops: {-1,-1,-1,-1,-1,-1},
-      mcu_params: %{},
-      pins: %{}
-    ]
-
-    @type t :: %__MODULE__{
-      location: location,
-      end_stops: end_stops,
-      mcu_params: mcu_params,
-      pins: pins
-    }
-
-    @type location :: [number, ...]
-    @type mcu_params :: map
-    @type pins :: map
-    @type end_stops :: {integer,integer,integer,integer,integer,integer}
-
-    @spec broadcast(t) :: t
-    def broadcast(%State{} = state) do
-      GenServer.cast(Farmbot.BotState.Monitor, state)
-      state
-    end
-  end
-
-  def init(_args) do
-    Process.send_after(self(), :params_hack, 3000)
-    s = load |> State.broadcast
-    {:ok, s}
-  end
-
-  @spec load :: State.t
-  def load do
-    %State{}
-  end
-
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
-  end
+  @type location :: [number, ...]
+  @type mcu_params :: map
+  @type pins :: map
+  @type end_stops :: {integer,integer,integer,integer,integer,integer}
 
   def handle_call({:get_pin, pin_number}, _from, %State{} = state) do
     dispatch Map.get(state.pins, Integer.to_string(pin_number)), state
@@ -122,15 +97,5 @@ defmodule Farmbot.BotState.Hardware do
   def handle_info(:params_hack, %State{} = state) do
     spawn fn -> Command.read_all_params end
     dispatch state
-  end
-
-  defp dispatch(reply, %State{} = state) do
-    State.broadcast(state)
-    {:reply, reply, state}
-  end
-
-  defp dispatch(%State{} = state) do
-    State.broadcast(state)
-    {:noreply, state}
   end
 end
