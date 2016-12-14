@@ -62,8 +62,8 @@ defmodule Module.concat([FileSystem, Utils, :prod]) do
   defp format_state_part do
     # Format partition
     System.cmd("mkfs.#{@fs_type}", ["#{@block_device}", "-F"])
-    # Mount it as read/write # TODO: Probably make this not hard coded.
-    System.cmd("mount", ["#{@block_device}", "#{@state_path}", "-t", "#{@fs_type}"])
+    # Mount it as read/write
+    mount_read_write
     # Basically a flag that says the partition is formatted.
     File.write!("#{@state_path}/.formatted", "DONT CAT ME\n")
     :ok

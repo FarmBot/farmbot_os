@@ -53,7 +53,6 @@ defmodule Farmbot.BotState.Network do
                   {:update_info, :private_ip, ip_address})
     GenServer.cast(BotState.Authorization, :try_log_in)
     new_state = %State{state | connected?: true, connection: :dev}
-    # TODO: Config file
     dispatch new_state
   end
 
@@ -64,7 +63,7 @@ defmodule Farmbot.BotState.Network do
                   {:update_info, :private_ip, ip_address})
     GenServer.cast(BotState.Authorization, :try_log_in)
     new_state = %State{state | connected?: true, connection: connection}
-    # TODO: Config file
+    put_config(:connection, connection)
     dispatch new_state
   end
 

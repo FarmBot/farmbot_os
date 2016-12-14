@@ -11,8 +11,7 @@ defmodule Farmbot.FileSystem.Supervisor do
   def init(env) do
     children = [
       worker(Farmbot.FileSystem, [env], restart: :permanent),
-      worker(ConfigStorage, [], restart: :permanent),
-      worker(StateStorage,  [], restart: :permanent)
+      worker(ConfigStorage, [], restart: :permanent)
     ]
     opts = [strategy: :one_for_one, name: __MODULE__]
     supervise(children, opts)

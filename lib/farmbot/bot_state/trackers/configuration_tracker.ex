@@ -78,12 +78,13 @@ defmodule Farmbot.BotState.Configuration do
   # Returns true for configs that exist and are the correct typpe,
   # and false for anything else
   # TODO make sure these are properly typed.
+  # probably BUG: thses shouldn't be strings anymore i dont think? 
   def handle_call({:update_config, "os_auto_update", value},
     _from, %State{} = state)
   when is_boolean(value) do
     new_config = Map.put(state.configuration, :os_auto_update, value)
     new_state = %State{state | configuration: new_config}
-    # TODO: CONFIG FILE STUFF
+    put_config(:os_auto_update, value)
     dispatch true, new_state
   end
 
@@ -92,7 +93,7 @@ defmodule Farmbot.BotState.Configuration do
   when is_boolean(value) do
     new_config = Map.put(state.configuration, :fw_auto_update, value)
     new_state = %State{state | configuration: new_config}
-    # TODO: CONFIG FILE STUFF
+    put_config(:fw_auto_update, value)
     dispatch true, new_state
   end
 
@@ -100,7 +101,7 @@ defmodule Farmbot.BotState.Configuration do
   when is_bitstring(value) do
     new_config = Map.put(state.configuration, :timezone, value)
     new_state = %State{state | configuration: new_config}
-    # TODO: CONFIG FILE STUFF
+    put_config(:timezone, value)
     dispatch true, new_state
   end
 
@@ -109,7 +110,7 @@ defmodule Farmbot.BotState.Configuration do
   when is_integer(value) do
     new_config = Map.put(state.configuration, :steps_per_mm, value)
     new_state = %State{state | configuration: new_config}
-    # TODO: CONFIG FILE STUFF
+    put_config(:steps_per_mm, value)
     dispatch true, new_state
   end
 

@@ -63,10 +63,12 @@ defmodule Farmbot.FileSystem.ConfigStorage do
     end
   end
 
-  def handle_cast({:put, module, {key, var}}, state) do
-    # m = module_to_key(module)
-    #TODO Fix saving configuration.
-    write! state
+  def handle_cast({:put, module, {key, val}}, state) do
+    m = module_to_key(module)
+    old = Map.get(state, m)
+    new = Map.put(old, key, val)
+    new_state = Map.put(state, m, new)
+    write! new_state
   end
 
   defp module_to_key(module),
@@ -145,8 +147,9 @@ defmodule Farmbot.FileSystem.ConfigStorage do
 
   defp parse_json_hardware(_), do: {:error, :hardware}
 
-  defp parse_json_network(%{}) do
-    {:ok, %{}}
+  # BUG IF WE HAVE WIFI CREDENTIALS THIS WILL NOT WORK!!!!!
+  defp parse_json_network(%{"connection" => connection}) do
+    {:ok, %{connection: connection}}
   end
 
   defp parse_json_network(_), do: {:error, :network}
