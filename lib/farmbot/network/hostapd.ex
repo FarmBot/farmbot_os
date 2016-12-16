@@ -2,7 +2,7 @@ defmodule Farmbot.Network.Hostapd do
   @moduledoc """
     Ports for days.
   """
-  defmodule State, do: defstruct [:hostapd, :dnsmasq, :interface, :ip_addr]
+  defmodule State, do: defstruct [:hostapd, :dnsmasq, :interface, :ip_addr, :manager]
   use GenServer
   require Logger
   # @ip_addr "192.168.24.1"
@@ -13,14 +13,16 @@ defmodule Farmbot.Network.Hostapd do
   @dnsmasq_pid_file "dnsmasq.pid"
 
 
-  def start_link([interface: interface, ip_address: ip_addr]) do
+  def start_link(
+    [interface: interface, ip_address: ip_addr, manager: manager])
+  do
     name = Module.concat([__MODULE__, interface])
     GenServer.start_link(__MODULE__,
-          [interface: interface, ip_address: ip_addr],
+          [interface: interface, ip_address: ip_addr, manager: manager],
           name: name)
   end
 
-  def init([interface: interface, ip_address: ip_addr]) do
+  def init([interface: interface, ip_address: ip_addr, manager: manager]) do
     # We want to know if something does.
     Process.flag :trap_exit, true
     # ip_addr = @ip_addr
@@ -49,7 +51,8 @@ defmodule Farmbot.Network.Hostapd do
     state =  %State{hostapd: {hostapd_port, hostapd_os_pid},
                     dnsmasq: {dnsmasq_port, dnsmasq_os_pid},
                     interface: interface,
-                    ip_addr: ip_addr}
+                    ip_addr: ip_addr,
+                    manager: manager}
     {:ok,state}
   end
 
@@ -110,7 +113,8 @@ defmodule Farmbot.Network.Hostapd do
     """
   end
 
-  defp kill(os_pid), do: :ok = System.cmd("kill", ["15", "#{os_pid}"]) |> print_cmd
+  defp kill(os_pid),
+    do: :ok = System.cmd("kill", ["15", "#{os_pid}"]) |> print_cmd
 
   defp print_cmd({_, 0}), do: :ok
   defp print_cmd({res, num}) do
@@ -131,15 +135,18 @@ defmodule Farmbot.Network.Hostapd do
   end
   def handle_info(_thing, state), do: {:noreply, state}
 
-  defp handle_hostapd(data, state) do
-    Logger.debug ">> got some hostapd data: #{inspect data}"
+  defp handle_hostapd(data, state) when is_bitstring(data) do
+    GenEvent.notify(state.manager, {:hostapd, String.trim(data)})
+    {:noreply, state}
+  end
+  defp handle_hostapd(_,state), do: {:noreply, state}
+
+  defp handle_dnsmasq(data, state) when is_bitstring(data) do
+    GenEvent.notify(state.manager, {:dnsmasq, String.trim(data)})
     {:noreply, state}
   end
 
-  defp handle_dnsmasq(data, state) do
-    Logger.debug ">> got some dnsmasq data: #{inspect data}"
-    {:noreply, state}
-  end
+  defp handle_dnsmasq(_,state), do: {:noreply, state}
 
 
   def terminate(_,state) do

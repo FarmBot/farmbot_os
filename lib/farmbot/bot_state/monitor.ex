@@ -11,7 +11,6 @@ defmodule Farmbot.BotState.Monitor do
   """
   use GenServer
   require Logger
-  alias Farmbot.BotState
 
   defmodule State do
     @moduledoc false
