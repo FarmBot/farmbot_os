@@ -57,6 +57,6 @@ defmodule SSH do
     |        THERE IS NO MAKE       |        THERE IS NO WGET        |
     |_______________________________|________________________________|
     """
-    # File.write(@banner, contents)
+    File.write(@banner, contents)
   end
 end

@@ -33,6 +33,7 @@ defmodule Farmbot.Mixfile do
   def apps do
     [:logger,
      :nerves_uart,
+     :nerves_interim_wifi,
      :httpotion,
      :poison,
      :gen_stage,
@@ -42,7 +43,7 @@ defmodule Farmbot.Mixfile do
      :mustache,
      :timex,
      :farmbot_auth,
-    #  :farmbot_configurator,
+     :farmbot_configurator,
      :vmq_commons,
      :amnesia,
      :quantum]
@@ -69,8 +70,9 @@ defmodule Farmbot.Mixfile do
   def deps do
     [
       {:nerves_uart, "~> 0.1.0"},
+      {:nerves_interim_wifi, "~> 0.1.0"},
       {:httpotion, "~> 3.0.0"},
-      {:poison, "~> 2.0"},
+      {:poison, "~> 3.0", override: true},
       {:gen_stage, "~> 0.4"},
       {:nerves_lib, github: "nerves-project/nerves_lib"},
       {:gen_mqtt, "~> 0.3.1"},
@@ -80,10 +82,10 @@ defmodule Farmbot.Mixfile do
       {:socket, github: "meh/elixir-socket"},
       {:amnesia, github: "meh/amnesia"},
       {:quantum, ">= 1.8.1"},
-      {:farmbot_auth, github: "Farmbot/farmbot_auth"},
-      # {:farmbot_auth, path: "../farmbot_auth"},
+      # {:farmbot_auth, github: "Farmbot/farmbot_auth"},
+      {:farmbot_auth, path: "../farmbot_auth"},
       # {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
-      # {:farmbot_configurator, path: "../farmbot_configurator"}
+      {:farmbot_configurator, path: "../farmbot_configurator"}
     ]
   end
 
@@ -135,13 +137,16 @@ defmodule Farmbot.Mixfile do
 
   def aliases(_), do: []
 
-  # FIXME
-  def system("rpi3") do
-    [{:"nerves_system_rpi3",
-      git: "https://github.com/ConnorRigby/nerves_system_rpi3.git",
-      tag: "v0.7.5" }]
-  end
+  # # FIXME
+  # def system("rpi3") do
+  #   [{:"nerves_system_rpi3",
+  #     git: "https://github.com/ConnorRigby/nerves_system_rpi3.git",
+  #     tag: "v0.7.5" }]
+  # end
 
+  def system("rpi3") do
+    [{:"nerves_system_rpi3", path: "/home/connor/farmbot/os/nerves/nerves_system_rpi3"}]
+  end
   def system("qemu"), do: [{:nerves_system_qemu_arm, github: "nerves-project/nerves_system_qemu_arm"}]
 end
 

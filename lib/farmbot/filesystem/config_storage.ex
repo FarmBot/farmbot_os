@@ -50,7 +50,7 @@ defmodule Farmbot.FileSystem.ConfigStorage do
   def handle_call({:get, module, :all}, _, state) do
     m = module_to_key(module)
     f = state |> Map.get(m)
-    {:reply, f, state}
+    {:reply, {:ok, f}, state}
   end
 
   def handle_call({:get, module, key}, _, state) do
@@ -146,10 +146,7 @@ defmodule Farmbot.FileSystem.ConfigStorage do
 
   defp parse_json_hardware(_), do: {:error, :hardware}
 
-  # BUG IF WE HAVE WIFI CREDENTIALS THIS WILL NOT WORK!!!!!
-  defp parse_json_network(%{"connection" => connection}) do
-    {:ok, %{connection: connection}}
+  defp parse_json_network(thing) do
+    {:ok, thing}
   end
-
-  defp parse_json_network(_), do: {:error, :network}
 end

@@ -17,3 +17,5 @@ config :logger,
 config :quantum, cron: [
   "5 1 * * *": {Farmbot.Updates.Handler, :do_update_check}
 ]
+
+config :farmbot, config_file: "default_config_#{Mix.Project.config[:target]}.json"

@@ -41,7 +41,7 @@
   "nerves": {:git, "https://github.com/nerves-project/nerves.git", "d9fb027655d99e0fdc75c7402ab7a320c41ec0e5", []},
   "nerves_firmware": {:git, "https://github.com/nerves-project/nerves_firmware.git", "241a12694bd3bc2b4df8cbb7e0f0beaeff075b1c", []},
   "nerves_firmware_http": {:git, "https://github.com/nerves-project/nerves_firmware_http.git", "cc2cb110b0587a482d454175916dc597d62c4bfa", []},
-  "nerves_interim_wifi": {:git, "https://github.com/nerves-project/nerves_interim_wifi.git", "32e848274571e328ebd7155848cc28d020938429", []},
+  "nerves_interim_wifi": {:hex, :nerves_interim_wifi, "0.1.0", "f572381722a06f1cbc118708baecd1b12ce00edb684d88258aa417112f32489a", [:make, :mix], [{:elixir_make, "~> 0.3", [hex: :elixir_make, optional: false]}, {:nerves_network_interface, "~> 0.3.1", [hex: :nerves_network_interface, optional: false]}, {:nerves_wpa_supplicant, "~> 0.2.2", [hex: :nerves_wpa_supplicant, optional: false]}]},
   "nerves_leds": {:hex, :nerves_leds, "0.7.0", "1d0f6587a9ac27c3ad3767a4dd84098e21e48fa3dc5526d5e11ddde48212e186", [:mix], []},
   "nerves_lib": {:git, "https://github.com/nerves-project/nerves_lib.git", "78b9e489af7df25c162d4a1130569e7cc301cb48", []},
   "nerves_network_interface": {:hex, :nerves_network_interface, "0.3.2", "e7450f7eccd7387ceebee6096a0646bcdc0dd4aa77077e5fa81f6767da9b77af", [:make, :mix], [{:elixir_make, "~> 0.3", [hex: :elixir_make, optional: false]}]},
@@ -56,7 +56,7 @@
   "nerves_uart": {:hex, :nerves_uart, "0.1.1", "32e6186b1a1b1d744631126df0b6c4049ddde5b04bc0303de29ab86a2edf60a2", [:make, :mix], [{:elixir_make, "~> 0.3", [hex: :elixir_make, optional: false]}]},
   "nerves_wpa_supplicant": {:hex, :nerves_wpa_supplicant, "0.2.2", "da829baec94a8afa7da3a6beaaf1725b9ca7f5f58779ba50b73568b7d37d3d98", [:make, :mix], [{:elixir_make, "~> 0.3", [hex: :elixir_make, optional: false]}]},
   "plug": {:hex, :plug, "1.2.2", "cfbda521b54c92ab8ddffb173fbaabed8d8fc94bec07cd9bb58a84c1c501b0bd", [:mix], [{:cowboy, "~> 1.0", [hex: :cowboy, optional: true]}, {:mime, "~> 1.0", [hex: :mime, optional: false]}]},
-  "poison": {:hex, :poison, "2.2.0", "4763b69a8a77bd77d26f477d196428b741261a761257ff1cf92753a0d4d24a63", [:mix], []},
+  "poison": {:hex, :poison, "3.0.0", "625ebd64d33ae2e65201c2c14d6c85c27cc8b68f2d0dd37828fde9c6920dd131", [:mix], []},
   "porcelain": {:hex, :porcelain, "2.0.3", "2d77b17d1f21fed875b8c5ecba72a01533db2013bd2e5e62c6d286c029150fdc", [:mix], []},
   "providers": {:hex, :providers, "1.6.0", "db0e2f9043ae60c0155205fcd238d68516331d0e5146155e33d1e79dc452964a", [:rebar3], [{:getopt, "0.8.2", [hex: :getopt, optional: false]}]},
   "quantum": {:hex, :quantum, "1.8.1", "37c9ad0307cf47bd578507ce1ddda98746199b281e8afe91cbe44c21d56af983", [:mix], [{:calendar, "~> 0.16", [hex: :calendar, optional: false]}]},
@@ -67,4 +67,6 @@
   "ssl_verify_fun": {:hex, :ssl_verify_fun, "1.1.1", "28a4d65b7f59893bc2c7de786dec1e1555bd742d336043fe644ae956c3497fbe", [:make, :rebar], []},
   "timex": {:hex, :timex, "3.1.3", "3f9e7cd03190faf143098857bebd26c6d33e0709e7d3c42095da2393765fa225", [:mix], [{:combine, "~> 0.7", [hex: :combine, optional: false]}, {:gettext, "~> 0.10", [hex: :gettext, optional: false]}, {:tzdata, "~> 0.1.8 or ~> 0.5", [hex: :tzdata, optional: false]}]},
   "tzdata": {:hex, :tzdata, "0.5.9", "575be217b039057a47e133b72838cbe104fb5329b19906ea4e66857001c37edb", [:mix], [{:hackney, "~> 1.0", [hex: :hackney, optional: false]}]},
-  "vmq_commons": {:hex, :vmq_commons, "1.0.0", "5f5005c12db33f92f40e818a3617fb148972d59adcf99298c9d3808ef3582e34", [:rebar3], []}}
+  "vmq_commons": {:hex, :vmq_commons, "1.0.0", "5f5005c12db33f92f40e818a3617fb148972d59adcf99298c9d3808ef3582e34", [:rebar3], []},
+  "web_socket": {:git, "https://github.com/slogsdon/plug-web-socket.git", "eecf9d81864f9c20c62c822e0058f8bf75643ef1", []},
+  "websocket": {:git, "https://github.com/slogsdon/plug-web-socket.git", "eecf9d81864f9c20c62c822e0058f8bf75643ef1", []}}

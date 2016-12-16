@@ -1,9 +1,0 @@
-{
-  "network": {"connection": null},
-  "authorization": {"server": null},
-  "configuration": {"os_auto_update": false,
-                    "fw_auto_update": false,
-                    "timezone": null,
-                    "steps_per_mm": 500 },
-  "hardware": {"params": {}}
-}

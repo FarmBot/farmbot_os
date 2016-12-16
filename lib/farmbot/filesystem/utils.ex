@@ -34,6 +34,8 @@ defmodule Module.concat([FileSystem, Utils, :prod, "rpi3"]) do
   @ro_options ["-t", @fs_type, "-o", "ro,remount", @block_device, @state_path]
   @rw_options ["-t", @fs_type, "-o", "rw,remount", @block_device, @state_path]
 
+  # mount -t ext4 -o ro,remount /dev/mmcblk0p3 /state
+
   @doc false
   def mount_read_only, do: "mount" |> System.cmd(@ro_options) |> parse_cmd
   @doc false
@@ -58,12 +60,13 @@ defmodule Module.concat([FileSystem, Utils, :prod, "rpi3"]) do
   end
 
   defp parse_cmd({_, 0}), do: :ok
+  defp parse_cmd({err, num}), do: raise "error doing command(#{num}): #{inspect err}"
 
   defp format_state_part do
     # Format partition
     System.cmd("mkfs.#{@fs_type}", ["#{@block_device}", "-F"])
     # Mount it as read/write
-    mount_read_write
+    System.cmd("mount", ["-t", @fs_type, "-o", "rw", @block_device, @state_path])
     # Basically a flag that says the partition is formatted.
     File.write!("#{@state_path}/.formatted", "DONT CAT ME\n")
     :ok

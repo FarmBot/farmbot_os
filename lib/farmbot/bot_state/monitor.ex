@@ -1,7 +1,6 @@
 alias Farmbot.BotState.Hardware.State,      as: Hardware
 alias Farmbot.BotState.Configuration.State, as: Configuration
 alias Farmbot.BotState.Authorization.State, as: Authorization
-alias Farmbot.BotState.Network.State,       as: Network
 alias Farmbot.Scheduler.State.Serializer,   as: Scheduler
 
 defmodule Farmbot.BotState.Monitor do
@@ -20,7 +19,6 @@ defmodule Farmbot.BotState.Monitor do
       hardware:      Hardware.t,
       configuration: Configuration.t,
       authorization: Authorization.t,
-      network:       Network.t,
       # Seperate
       scheduler:     Scheduler.t
     }
@@ -28,7 +26,6 @@ defmodule Farmbot.BotState.Monitor do
       hardware:      %Hardware{},
       configuration: %Configuration{},
       authorization: %Authorization{},
-      network:       %Network{},
       scheduler:     %Scheduler{}
     ]
   end
@@ -90,42 +87,36 @@ defmodule Farmbot.BotState.Monitor do
   end
 
   # When we get a state update from Scheduler
-  def handle_cast(%Network{} = new_things, {mgr, state}) do
-    new_state = %State{state | network: new_things}
-    dispatch(mgr, new_state)
-  end
-
-  # When we get a state update from Scheduler
   def handle_cast(%Scheduler{} = new_things, {mgr, state}) do
     new_state = %State{state | scheduler: new_things}
     dispatch(mgr, new_state)
   end
-
-  def handle_cast({:login,
-    %{"email" => email,
-      "network" => "ethernet",
-      "password" => password,
-      "server" => server,
-      "tz" => timezone}}, {mgr, state})
-  do
-    BotState.update_config("timezone", timezone)
-    BotState.add_creds({email,password,server})
-    # NetMan.connect(:ethernet, BotState.Network)
-    dispatch(mgr,state)
-  end
-
-  def handle_cast({:login,
-    %{"email" => email,
-      "network" => %{"psk" => psk, "ssid" => ssid},
-      "password" => password,
-      "server" => server,
-      "tz" => timezone}}, {mgr, state})
-  do
-    BotState.update_config("timezone", timezone)
-    BotState.add_creds({email,password,server})
-    # NetMan.connect({ssid, psk}, BotState.Network)
-    dispatch(mgr,state)
-  end
+  #
+  # def handle_cast({:login,
+  #   %{"email" => email,
+  #     "network" => "ethernet",
+  #     "password" => password,
+  #     "server" => server,
+  #     "tz" => timezone}}, {mgr, state})
+  # do
+  #   BotState.update_config("timezone", timezone)
+  #   BotState.add_creds({email,password,server})
+  #   # NetMan.connect(:ethernet, BotState.Network)
+  #   dispatch(mgr,state)
+  # end
+  #
+  # def handle_cast({:login,
+  #   %{"email" => email,
+  #     "network" => %{"psk" => psk, "ssid" => ssid},
+  #     "password" => password,
+  #     "server" => server,
+  #     "tz" => timezone}}, {mgr, state})
+  # do
+  #   BotState.update_config("timezone", timezone)
+  #   BotState.add_creds({email,password,server})
+  #   # NetMan.connect({ssid, psk}, BotState.Network)
+  #   dispatch(mgr,state)
+  # end
 
   def handle_cast(:force_dispatch, {mgr, state}), do: dispatch(mgr, state)
 

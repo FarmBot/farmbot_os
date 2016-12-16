@@ -34,6 +34,7 @@ defmodule Farmbot do
   do
     children = [
       supervisor(FarmbotFSSupervisor, [{env, target}], [restart: :permanent]),
+      worker(Farmbot.Network, [target], [restart: :permanent]),
       supervisor(FarmbotSupervisor,
                 [%{target: target,
                    compat_version: compat_version,
