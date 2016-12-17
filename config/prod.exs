@@ -3,6 +3,8 @@ config :nerves, :firmware,
   rootfs_additions: "config/rootfs-additions-#{Mix.Project.config[:target]}",
   hardware: "config/rootfs-additions-#{Mix.Project.config[:target]}"
 
+config :configurator, port: 80
+
 config :logger, :console,
   # format: "$metadata[$level] $levelpad$message\r\n",
   colors: [enabled: true ]
@@ -22,6 +24,6 @@ config :iex,
     "%node",
     ">",
     :reset ] |> IO.ANSI.format |> IO.chardata_to_string
-  
+
 # overwrite anything on if need be.
 import_config "hardware_#{Mix.Project.config[:target]}.exs"
