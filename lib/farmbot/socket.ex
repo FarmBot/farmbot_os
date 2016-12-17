@@ -6,6 +6,7 @@ defmodule Uh do
   import RPC.Parser
   use GenEvent
   require Logger
+  import Farmbot.RPC.Requests
 
   # GenEvent Stuff
   def start_link, do: GenEvent.add_handler(EM, __MODULE__, [])
@@ -19,15 +20,12 @@ defmodule Uh do
   # hack to ignore messages from myself here.
   def handle_event(_, state), do: {:ok, state}
 
-  def handle_socket(%Notification{} = notification) do
-    Logger.debug ">> got an incoming RPC Notification: #{inspect notification}"
+  def handle_socket(%Request{} = request) do
+    handle_request(request.method, request.params) |> respond(request)
   end
 
-  def handle_socket(%Request{} = request) do
-    Logger.debug ">> got an incoming RPC Request: #{inspect request}"
-    response =
-      Response.create(%{"id" => request.id, "result" => "unhandled", "error" => nil})
-    reply response
+  def handle_socket(%Notification{} = notification) do
+    Logger.debug ">> got an incoming RPC Notification: #{inspect notification}"
   end
 
   def handle_socket(%Response{} = response) do
@@ -38,11 +36,14 @@ defmodule Uh do
     Logger.debug ">> got an unhandled rpc message"
   end
 
-  defp reply(m) do
-    case Poison.encode(m) do
-      {:ok, json} ->
-        EM.send_socket({:from_bot, json})
-      _ -> :fail
-    end
+  defp respond(:ok, %Request{} = request) do
+    Response.create(%{"id" => request.id, "result" => "ok", "error" => nil})
+    |> Poison.encode! |> send_socket
   end
+
+  defp respond({:error, _name, _reason}, %Request{} = request) do
+    Logger.error ">> Error doing #{request.method}"
+  end
+
+  defp send_socket(json), do: EM.send_socket({:from_bot, json})
 end

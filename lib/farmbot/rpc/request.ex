@@ -260,8 +260,8 @@ defmodule Farmbot.RPC.Requests do
 
   # Unhandled event. Probably not implemented if it got this far.
   def handle_request(event, params) do
-    Logger.error ">> does not know how to \
-                  handle: #{event} with params: #{inspect params}"
+    Logger.error ">> does not know how to " <>
+                  "handle: #{event} with params: #{inspect params}"
     {:error, "Unhandled method", "#{inspect {event, params}}"}
   end
 
