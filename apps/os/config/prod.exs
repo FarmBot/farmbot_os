@@ -1,7 +1,7 @@
 use Mix.Config
 config :nerves, :firmware,
-  rootfs_additions: "config/rootfs-additions-#{Mix.Project.config[:target]}",
-  hardware: "config/rootfs-additions-#{Mix.Project.config[:target]}"
+  rootfs_additions: "config/hardware/#{Mix.Project.config[:target]}/rootfs-additions"
+  # hardware: "config/rootfs-additions-#{Mix.Project.config[:target]}"
 
 config :configurator, port: 80
 
@@ -26,4 +26,4 @@ config :iex,
     :reset ] |> IO.ANSI.format |> IO.chardata_to_string
 
 # overwrite anything on if need be.
-import_config "hardware_#{Mix.Project.config[:target]}.exs"
+import_config "hardware/#{Mix.Project.config[:target]}/hardware.exs"

@@ -1,0 +1,35 @@
+{
+  "name": "farmbot_configurator",
+  "version": "1.0.0",
+  "description": "Configuration application for FarmbotOS",
+  "dependencies": {
+    "@types/lodash": "^4.14.43",
+    "css-loader": "^0.26.1",
+    "lodash": "^4.17.2",
+    "node-sass": "^4.0.0",
+    "preact": "^7.1.0",
+    "preact-redux": "^1.2.0",
+    "redux": "^3.6.0",
+    "sass-loader": "^4.1.0",
+    "style-loader": "^0.13.1",
+    "ts-loader": "^1.3.3",
+    "typescript": "^2.1.4",
+    "webpack": "^2.2.0-rc.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack",
+    "watch": "webpack  --watch --color"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/farmbot/farmbot_configurator.git"
+  },
+  "author": "Farmbot.IO",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/farmbot/farmbot_configurator/issues"
+  },
+  "homepage": "https://github.com/farmbot/farmbot_configurator#readme"
+}

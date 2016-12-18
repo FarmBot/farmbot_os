@@ -16,11 +16,7 @@ erl_crash.dump
 # Also ignore archive artifacts (built via "mix archive.build").
 *.ez
 
-# Web stuffs
-npm*
+*.secret*
 node_modules
+npm*
 bundle.js
-
-erl_crash.dump
-ttb_last_config
-cover

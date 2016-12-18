@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "es7",
+      "dom"
+    ],
+    "target": "es5",
+    "module": "commonjs",
+    "jsx": "react",
+    "jsxFactory": "h",
+    "experimentalDecorators": true,
+    "noImplicitAny": true,
+    "allowUnreachableCode": false,
+    "strictNullChecks": true,
+    "sourceMap": true
+  },
+  "exclude": [
+    "node_modules",
+    "typings"
+  ],
+  "compileOnSave": false,
+  "buildOnSave": false
+}
