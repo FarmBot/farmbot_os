@@ -1,6 +1,14 @@
 use Mix.Config
-import_config "#{Mix.env}.exs"
+# I force colors because they are important.
+config :logger, :console,
+  colors: [enabled: true ],
+  utc_logs: true
 
+# Iex needs colors too.
+config :iex, :colors,
+  enabled: true
+
+# send a message to these modules when we successfully log in.
 config :farmbot_auth,
   callbacks: [Farmbot.RPC.Transport.GenMqtt.Handler]
 
@@ -8,14 +16,12 @@ config :json_rpc,
   transport: Farmbot.RPC.Transport.GenMqtt.Handler,
   handler:   Farmbot.RPC.Handler
 
-config :uart,
-  baud: 115200
+# Move this?
+# config :quantum, cron: [
+#   "5 1 * * *": {Farmbot.Updates.Handler, :do_update_check}
+# ]
 
-config :logger,
-  utc_logs: true
-
-config :quantum, cron: [
-  "5 1 * * *": {Farmbot.Updates.Handler, :do_update_check}
-]
-
-config :farmbot, config_file: "default_config_#{Mix.Project.config[:target]}.json"
+# Import configuration specific to out environment.
+import_config "#{Mix.env}.exs"
+# import config specific to our nerves_target
+import_config "hardware/#{Mix.Project.config[:target]}/hardware.exs"

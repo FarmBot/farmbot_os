@@ -47,6 +47,7 @@ defmodule Farmbot.Mixfile do
      :timex,
      :farmbot_auth,
      :farmbot_configurator,
+     :farmbot_filesystem,
      :vmq_commons,
      :amnesia,
      :quantum]
@@ -85,7 +86,8 @@ defmodule Farmbot.Mixfile do
       {:amnesia, github: "meh/amnesia"},
       {:quantum, ">= 1.8.1"},
       {:farmbot_configurator, in_umbrella: true},
-      {:farmbot_auth, in_umbrella: true}
+      {:farmbot_auth, in_umbrella: true},
+      {:farmbot_filesystem, in_umbrella: true}
       # {:farmbot_auth, github: "Farmbot/farmbot_auth"},
       # {:farmbot_auth, path: "../farmbot_auth"},
       # {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}

@@ -8,8 +8,6 @@ defmodule Farmbot do
   alias Farmbot.Sync.Database
   alias Nerves.Firmware
   alias Farmbot.Supervisor, as: FarmbotSupervisor
-  alias Farmbot.FileSystem
-  alias FileSystem.Supervisor, as: FarmbotFSSupervisor
 
   @doc """
     Shortcut to Nerves.Firmware.reboot
@@ -33,7 +31,6 @@ defmodule Farmbot do
                       version: version, env: env}])
   do
     children = [
-      supervisor(FarmbotFSSupervisor, [{env, target}], [restart: :permanent]),
       worker(Farmbot.Network, [target], [restart: :permanent]),
       supervisor(FarmbotSupervisor,
                 [%{target: target,

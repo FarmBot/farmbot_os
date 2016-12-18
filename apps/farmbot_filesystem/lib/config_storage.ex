@@ -5,10 +5,10 @@ defmodule Farmbot.FileSystem.ConfigStorage do
   use GenServer
   require Logger
 
-  @config_file Application.get_env(:farmbot, :state_path) <> "/config.json"
-  @default_config_file_name Application.get_env(:farmbot, :config_file) || "default_config.json"
+  @config_file Application.get_env(:farmbot_filesystem, :path) <> "/config.json"
+  @default_config_file_name Application.get_env(:farmbot_filesystem, :config_file_name) || "default_config.json"
   defp default_config_file,
-    do: "#{:code.priv_dir(:farmbot)}/static/#{@default_config_file_name}"
+    do: "#{:code.priv_dir(:farmbot_filesystem)}/static/#{@default_config_file_name}"
 
   defmodule Parsed do
     @moduledoc """

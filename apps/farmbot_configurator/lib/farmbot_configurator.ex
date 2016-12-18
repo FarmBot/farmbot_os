@@ -4,7 +4,7 @@ defmodule Farmbot.Configurator do
   alias Farmbot.Configurator.Router
   alias Farmbot.Configurator.EventHandler
   alias Farmbot.Configurator.EventManager
-  @port Application.get_env(:configurator, :port, 4000)
+  @port Application.get_env(:farmbot_configurator, :port, 4000)
   @env Mix.env
 
   def init(_) do
