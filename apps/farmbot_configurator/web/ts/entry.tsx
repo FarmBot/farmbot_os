@@ -1,10 +1,19 @@
-import { render, h } from "preact";
+import * as React from "react";
+import { render } from "react-dom";
 import { Main } from "./main";
-import { GlobalState } from "./interfaces";
+
+import { Provider } from "mobx-react";
+import { observable } from "mobx";
+
+import { wsInit } from "./web_socket";
 import "../css/main.scss"
 
 let el = document.querySelector("#app");
-
 if (el) {
-  render(<Main />, el);
+
+  render(
+    <Provider}>
+      <Main />
+    </Provider >, el);
 }
+
