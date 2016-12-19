@@ -1,12 +1,8 @@
 import * as React from "react";
-import {
-  RpcMessage,
-  RpcNotification,
-  RpcRequest,
-  RpcResponse
-} from "./json_rpc";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import { MainState } from "./state";
+import DevTools from 'mobx-react-devtools';
+
 
 interface MainProps {
   state: MainState
@@ -19,13 +15,21 @@ export class Main extends React.Component<MainProps, {}> {
     super(props);
   }
 
-  componentDidMount() {
+  maybeSomething = function (state: MainState) {
+    if (!state.connected) {
+      return (<div> BOT WAS DISCONNECTED!!!</div>);
+    } else {
+      return (<div>BOT IS CONNECTED!</div>)
+    }
   }
 
   render() {
+    let state = this.props.state;
+
     return (
       <div>
-        Count is: {this.props.state.counter || "MISSING>!>!>!"}
+        <DevTools />
+        {this.maybeSomething(state)}
       </div>
     );
   }

@@ -11,7 +11,8 @@
     "experimentalDecorators": true,
     "allowUnreachableCode": false,
     "strictNullChecks": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "noFallthroughCasesInSwitch": true
   },
   "exclude": [
     "node_modules",

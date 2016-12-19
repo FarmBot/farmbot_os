@@ -3,17 +3,19 @@ export type RpcMessage = RpcNotification | RpcRequest | RpcResponse
 export interface RpcNotification {
     method: string;
     params: any;
-    id: string;
+    id: null;
 }
 /** request a thing to happen and get info back as a response. */
 export interface RpcRequest {
     method: string;
     params: any;
-    id: null;
+    id: string;
 }
 /** A response to a request. */
 export interface RpcResponse {
-    results: any;
+    /** the results from the request that started this. */
+    results?: any;
+    /** if no error this MUST be null */
     error: null | any;
     /** the id od the request that waranted this response. */
     id: string;
