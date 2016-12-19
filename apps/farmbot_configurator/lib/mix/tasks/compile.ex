@@ -5,8 +5,6 @@ defmodule Mix.Tasks.Compile.Configurator do
   """
 
   def run(_args) do
-    # IO.puts "Running `npm install`"
-    # System.cmd("npm", ["install"])
     IO.puts "Building the javascripts"
     System.cmd("npm", ["run", "build"])
   end

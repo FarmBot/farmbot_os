@@ -34,6 +34,7 @@ defmodule Farmbot.Configurator.Mixfile do
       {:cors_plug, "~> 1.1"},
       {:poison, "~> 3.0"},
       {:cowboy, "~> 1.0.0"},
+      {:httpotion, "~> 3.0.0"}
     ]
   end
 end

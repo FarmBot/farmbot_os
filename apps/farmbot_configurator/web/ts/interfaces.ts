@@ -14,9 +14,29 @@ export interface RpcRequest {
 /** A response to a request. */
 export interface RpcResponse {
     /** the results from the request that started this. */
-    results?: any;
+    result: any;
     /** if no error this MUST be null */
     error: null | any;
-    /** the id od the request that waranted this response. */
+    /** the id of the request that waranted this response. */
     id: string;
+}
+export interface ConfigFileNetIface {
+    type: "wireless" | "hostapd" | "ethernet";
+}
+export interface BotConfigFile {
+    network: {
+        [name: string]: ConfigFileNetIface
+    },
+    authorization: {
+        server: null | string;
+    },
+    configuration: {
+        os_auto_update: boolean;
+        fw_auto_update: boolean;
+        timezone: null | string;
+        steps_per_mm: number;
+    },
+    hardware: {
+        params: { [name: string]: number }
+    }
 }

@@ -5,7 +5,6 @@ defmodule Farmbot.Network do
   """
   require Logger
   alias Farmbot.FileSystem.ConfigStorage, as: FBConfigStorage
-  @port Application.get_env(:configurator, :port, 4000)
 
   defmodule Interface, do: defstruct [:ipv4_address, :pid]
   defmodule State do
@@ -138,6 +137,7 @@ defmodule Farmbot.Network do
       |> Map.get("settings")
       |> Map.get("ip")
       |> parse_ip_settings
+    ip_settings
   end
 
   defp parse_wifi_settings(settings) do

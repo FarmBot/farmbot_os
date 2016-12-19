@@ -14,11 +14,25 @@ defmodule Uh do
   def init([]), do: {:ok, []}
 
   def handle_event({:from_socket, message}, state) do
+    # IO.inspect message
     message |> parse |> handle_socket
     {:ok, state}
   end
   # hack to ignore messages from myself here.
   def handle_event(_, state), do: {:ok, state}
+
+  def handle_socket(
+    %Request{id: id,
+             method: "get_current_config",
+             params: _})
+  do
+    Logger.debug ">> got request to get entire config file."
+    {:ok, read} =  Farmbot.FileSystem.ConfigStorage.read_config_file
+    thing = read |> Poison.decode!
+    %Response{id: id, result: Poison.encode!(thing), error: nil}
+    |> Poison.encode!
+    |> send_socket
+  end
 
   def handle_socket(%Request{} = request) do
     handle_request(request.method, request.params) |> respond(request)
@@ -28,12 +42,16 @@ defmodule Uh do
     Logger.debug ">> got an incoming RPC Notification: #{inspect notification}"
   end
 
+  def handle_socket(%Response{id: _, result: "pong", error: _}) do
+    nil
+  end
+
   def handle_socket(%Response{} = response) do
     Logger.debug ">> got an incoming RPC Response: #{inspect response}"
   end
 
-  def handle_socket(_) do
-    Logger.debug ">> got an unhandled rpc message"
+  def handle_socket(m) do
+    Logger.debug ">> got an unhandled rpc message #{inspect m}"
   end
 
   defp respond(:ok, %Request{} = request) do

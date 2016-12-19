@@ -31,7 +31,7 @@ interface TaggedFailure {
 }
 
 export function infer(mystery: any): TaggedRpcMessage {
-    if (mystery.id && mystery.response) {
+    if (mystery.id && mystery.result) {
         return { kind: "response", val: mystery }
     }
 

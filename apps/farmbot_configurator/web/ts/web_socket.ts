@@ -1,7 +1,7 @@
 import { MainState } from "./state";
 import { infer } from "./jsonrpc";
 
-export function wsInit(state: MainState) {
+export function wsInit(state: MainState, callback: Function) {
     // open web socket connection to the bot.
     let ws_host = "ws://" + location.host + "/ws"
     let ws = new WebSocket(ws_host);
@@ -10,6 +10,7 @@ export function wsInit(state: MainState) {
     ws.onopen = function (_event) {
         console.log("Connected to bot!");
         state.setConnected(true);
+        callback();
     }
 
     /** if ever we disconnect. */

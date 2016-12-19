@@ -151,8 +151,8 @@ defmodule Farmbot.Network.Hostapd do
 
   def terminate(_,state) do
     Logger.debug ">> is stopping hostapd"
-    {hostapd_port, hostapd_pid} = state.hostapd
-    {dnsmasq_port, dnsmasq_pid} = state.dnsmasq
+    {_hostapd_port, hostapd_pid} = state.hostapd
+    {_dnsmasq_port, dnsmasq_pid} = state.dnsmasq
     # Port.close hostapd_port
     # Port.close dnsmasq_port
     :ok = kill(hostapd_pid)

@@ -11,7 +11,6 @@ defmodule Farmbot.Configurator.Router do
   match _, do: conn |> send_resp(200, make_html)
 
   def make_html do
-    "#{:code.priv_dir(:farmbot_configurator)}/static/index.html"
-    |> File.read!
+    "#{:code.priv_dir(:farmbot_configurator)}/static/index.html" |> File.read!
   end
 end

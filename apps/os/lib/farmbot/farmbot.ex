@@ -55,5 +55,5 @@ defmodule Farmbot do
           [%{target: target, compat_version: compat_version,
              version: version, env: env}])
   end
-  def factory_reset, do: FileSystem.factory_reset
+  def factory_reset, do: Farmbot.FileSystem.factory_reset
 end

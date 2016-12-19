@@ -1,15 +1,43 @@
 import { observable, action } from "mobx";
 import { RpcMessage, RpcRequest, RpcResponse, RpcNotification } from "./interfaces";
 import { infer } from "./jsonrpc";
-
+/** messages that need to be resolved by the bot. */
 export interface RpcMessageDict { [propName: string]: RpcRequest | undefined; }
+
+/** sent back from the bot when asked to query the current network interfaces. */
+export type NetworkInterface = WirelessNetworkInterface
+    | WiredNetworkInterface
+    | HostNetworkInterface
+
+export interface BaseNetworkInterface {
+    /** the type of interfaces this is */
+    type: "wireless" | "ethernet" | "host"
+    /** ths name of this interface. */
+    name: string;
+}
+
+export interface WirelessNetworkInterface extends BaseNetworkInterface {
+    type: "wireless";
+    /** a list of wireless access points. */
+    ssids: string[];
+
+}
+
+export interface WiredNetworkInterface extends BaseNetworkInterface {
+    type: "ethernet";
+}
+
+export interface HostNetworkInterface extends BaseNetworkInterface {
+    type: "host"
+}
+
 export interface Log { }
 export class MainState {
     // PROPERTIES
     @observable logs: Log[] = [];
-    @observable wifiSsids: string[] = [];
     @observable connected = false;
     @observable messages: RpcMessageDict = {};
+    @observable networkInterfaces: NetworkInterface[] = [];
 
     // BEHAVIOR
     @action
@@ -17,6 +45,14 @@ export class MainState {
         this.connected = bool;
     }
 
+    /*
+        So this function will files the mysterious message from the websocket.
+        so if it can infer the rpc type from it files to the 
+        coorosponding handle* which will return either a RpcMessage, or return 
+        void. if it response with a rpc message the handler should send that 
+        message to the other end of this connection.
+
+    */
     @action
     incomingMessage(mystery: RpcMessage): RpcMessage | void {
         // console.log("Got: " + JSON.stringify(mystery));
@@ -39,26 +75,54 @@ export class MainState {
         return;
     }
 
-    private handleResponse(data: RpcResponse): void {
-        return;
+    /** handles a response. Can possible return a notification if something went wrong */
+    private handleResponse(data: RpcResponse): void | RpcNotification {
+        let origin = this.messages[data.id];
+        if (origin) {
+            console.log(origin.method + " has been resolved.");
+            switch (origin.method) {
+                default:
+                    console.warn("unhandlled response: " + origin.method);
+            }
+            // remove this request from the dictionary.
+            delete this.messages[data.id];
+        } else {
+            console.warn("orphaned response: " + JSON.stringify(data));
+            return;
+        }
     }
 
     private handleRequest(data: RpcRequest): RpcResponse {
         switch (data.method) {
             // when we get a ping send a pong
             case "ping":
-                return { error: null, id: data.id, results: "pong" }
+                return { error: null, id: data.id, result: "pong" }
             default:
                 console.warn("Don't know how to handle: " + data.method);
-                return { error: "unhandled", id: data.id, results: "could not handle" };
+                return { error: "unhandled", id: data.id, result: "could not handle" };
         }
     }
 
-
+    @action
+    makeRequest(req: RpcRequest, ws: WebSocket) {
+        console.log("requesting: " + req.method);
+        this.messages[req.id || "trash"] = req
+        ws.send(JSON.stringify(req));
+        let that = this;
+        /** this is wrong */
+        setTimeout(function (ws) {
+            that.rejectRequest(req, "timeout");
+        }, 5000);
+    }
 
     @action
-    makeRequest(req: RpcRequest) {
-        this.messages[req.id || "trash"] = req
+    rejectRequest(req: RpcRequest, reason: string) {
+        let messages = this.messages;
+        let origin = messages[req.id];
+        if (origin) {
+            // should probably splice it out of the array here but i suck
+            console.error(req.method + " failed because: " + reason);
+        }
     }
 }
 

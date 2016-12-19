@@ -56,7 +56,7 @@ defmodule Module.concat([FileSystem, Utils, :prod, "rpi3"]) do
   @doc false
   def factory_reset do
     :ok = format_state_part
-    Farmbot.reboot
+    :ok
   end
 
   defp parse_cmd({_, 0}), do: :ok
@@ -88,5 +88,5 @@ defmodule Module.concat([FileSystem, Utils, :prod, "qemu"]) do
   def fs_init, do: :ok
 
   @doc false
-  def factory_reset, do: Farmbot.reboot
+  def factory_reset, do: :ok
 end

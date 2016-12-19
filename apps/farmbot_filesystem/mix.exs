@@ -16,14 +16,12 @@ defmodule Farmbot.Filesystem.Mixfile do
 
   def application do
     [
-      mod: {Farmbot.Filesystem.Supervisor, [{Mix.env, target(Mix.env)}]},
+      mod: {Farmbot.FileSystem, [%{env: Mix.env, target: target(Mix.env)}]},
       applications: [:logger]
     ]
   end
 
-  defp deps do
-    []
-  end
+  defp deps, do: []
 
   defp target(:prod), do: System.get_env("NERVES_TARGET") || "rpi3"
   defp target(_), do: System.get_env("NERVES_TARGET") || "development"

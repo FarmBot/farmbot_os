@@ -6,7 +6,7 @@ defmodule Farmbot.FileSystem.ConfigStorage do
   require Logger
 
   @config_file Application.get_env(:farmbot_filesystem, :path) <> "/config.json"
-  @default_config_file_name Application.get_env(:farmbot_filesystem, :config_file_name) || "default_config.json"
+  @default_config_file_name Application.get_env(:farmbot_filesystem, :config_file_name)
   defp default_config_file,
     do: "#{:code.priv_dir(:farmbot_filesystem)}/static/#{@default_config_file_name}"
 
@@ -38,13 +38,23 @@ defmodule Farmbot.FileSystem.ConfigStorage do
     case File.read(path) do
       # if it does parse it
       {:ok, contents} ->
-        Logger.debug ">> is loading its configuration file!"
+        Logger.debug ">> is loading its configuration file: #{path}"
         parse_json!(contents)
       # if not start over with the default config file (from the priv dir)
-      _ ->
-        Logger.debug ">> is creating a new configuration file!"
-        init(default_config_file)
+      {:error, :enoent} ->
+        Logger.debug ">> is creating a new configuration file: #{default_config_file}"
+        File.cp!(default_config_file, @config_file)
+        init(@config_file)
     end
+  end
+
+  def read_config_file do
+    GenServer.call(__MODULE__, :read_config_file)
+  end
+
+  def handle_call(:read_config_file, _, state) do
+    read = File.read(@config_file)
+    {:reply, read, state}
   end
 
   def handle_call({:get, module, :all}, _, state) do

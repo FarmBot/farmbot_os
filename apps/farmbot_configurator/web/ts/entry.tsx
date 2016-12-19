@@ -5,13 +5,25 @@ import { state } from "./state";
 import { useStrict } from "mobx";
 
 import { wsInit } from "./web_socket";
+import { uuid } from "./utils";
 import "../css/main.scss"
-
+// mobx setting for more saftey in the safe things.
 useStrict(true);
-/** initialize the websocket connection. */
-let ws = wsInit(state);
-let el = document.querySelector("#app");
-if (el) {
-  render(<Main state={state} />, el);
+
+
+let onInit = function () {
+  // request some initial data
+  // get whatever config is currently available.
+  state.makeRequest({ method: "get_current_config", params: [], id: uuid() }, ws);
 }
 
+/** initialize the websocket connection. */
+let ws = wsInit(state, onInit);
+
+// get the element on which we want to render too.
+let el = document.querySelector("#app");
+if (el) {
+  render(<Main state={state} ws={ws} />, el);
+} else {
+  console.error("could not find element #app");
+}

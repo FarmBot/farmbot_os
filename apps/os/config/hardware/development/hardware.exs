@@ -1,2 +1,2 @@
 use Mix.Config
-config :farmbot, state_path: "/tmp"
+config :farmbot_filesystem, path: "/tmp"

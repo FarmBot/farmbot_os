@@ -6,6 +6,9 @@ defmodule Farmbot.FileSystem do
   require Logger
   use GenServer
 
+  def start(_,[%{env: env, target: target}]),
+    do: Farmbot.FileSystem.Supervisor.start_link({env, target})
+
   def start_link({env, target}),
     do: GenServer.start_link(__MODULE__, {env, target}, name: __MODULE__)
 

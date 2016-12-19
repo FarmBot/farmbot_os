@@ -21,7 +21,6 @@ defmodule WebPack do
 
   def handle_info({_, {:data, data}}, port) do
     IO.puts data
-
     {:noreply, port}
   end
 

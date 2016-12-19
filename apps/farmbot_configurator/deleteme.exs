@@ -21,6 +21,22 @@ defmodule ERM do
     {:ok, state}
   end
 
+  def handle_event( {:from_socket, %{"id" => id, "method" => "get_network_interfaces", "params" => _}}, state) do
+    thing = %{
+      "id" => id,
+      "results" => [%{type: :ethernet, name: "eth0"}, %{type: :wireless, name: "wlan0"}],
+      "error" => nil 
+    }
+    |> Poison.encode!
+    EM.send_socket({:from_bot, thing})
+    {:ok, state}
+  end
+
+
+  def handle_event({:from_socket, %{"error" => nil, "id" => _, "results" => "pong"}}, state) do
+    {:ok, state}
+  end
+
 
   def handle_event({:from_socket, rpc}, state) do
     Logger.debug "Got rpc: #{inspect rpc}"
