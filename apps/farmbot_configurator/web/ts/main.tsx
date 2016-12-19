@@ -6,14 +6,17 @@ import {
   RpcResponse
 } from "./json_rpc";
 import { inject, observer } from "mobx-react";
-import { MainProps } from "./state";
+import { MainState } from "./state";
 
-@inject("store") @observer
+interface MainProps {
+  state: MainState
+}
+
+@observer
 export class Main extends React.Component<MainProps, {}> {
 
   constructor(props: {}) {
     super(props);
-
   }
 
   componentDidMount() {
@@ -22,7 +25,7 @@ export class Main extends React.Component<MainProps, {}> {
   render() {
     return (
       <div>
-        {this.props}
+        Count is: {this.props.state.counter || "MISSING>!>!>!"}
       </div>
     );
   }
