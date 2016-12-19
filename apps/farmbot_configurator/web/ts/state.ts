@@ -1,5 +1,11 @@
 import { observable, action } from "mobx";
-import { RpcMessage, RpcRequest, RpcResponse, RpcNotification } from "./interfaces";
+import {
+    RpcMessage,
+    RpcRequest,
+    RpcResponse,
+    RpcNotification,
+    BotConfigFile
+} from "./interfaces";
 import { infer } from "./jsonrpc";
 /** messages that need to be resolved by the bot. */
 export interface RpcMessageDict { [propName: string]: RpcRequest | undefined; }
@@ -38,7 +44,18 @@ export class MainState {
     @observable connected = false;
     @observable messages: RpcMessageDict = {};
     @observable networkInterfaces: NetworkInterface[] = [];
+    @observable configuration: BotConfigFile = {
+        network: {},
+        authorization: { server: null },
+        configuration: {
+            os_auto_update: false,
+            fw_auto_update: false,
+            timezone: null,
+            steps_per_mm: 500
+        },
+        hardware: { params: {} }
 
+    };
     // BEHAVIOR
     @action
     setConnected(bool: boolean) {
@@ -65,7 +82,7 @@ export class MainState {
             case "notification":
                 return this.handleNotification(rpc.val);
             default:
-                console.warn("got unhandled rpc message!");
+                console.warn("got malformed rpc message!");
                 console.dir(rpc.val);
                 return { method: "unhandled", id: null, params: [] }
         }
@@ -81,11 +98,22 @@ export class MainState {
         if (origin) {
             console.log(origin.method + " has been resolved.");
             switch (origin.method) {
+                case "get_current_config":
+                    //todo: this needs to be checked. lol.
+                    let config: BotConfigFile = JSON.parse(data.result);
+                    state.configuration = config;
+                    break;
+                case "get_network_interfaces":
+                    console.log("got network interfaces.");
+                    // so does this: todo
+                    state.networkInterfaces = JSON.parse(data.result);
+                    break;
                 default:
                     console.warn("unhandlled response: " + origin.method);
             }
             // remove this request from the dictionary.
             delete this.messages[data.id];
+            return;
         } else {
             console.warn("orphaned response: " + JSON.stringify(data));
             return;
@@ -127,3 +155,4 @@ export class MainState {
 }
 
 export let state = observable<MainState>(new MainState());
+(window as any)["state"] = state;

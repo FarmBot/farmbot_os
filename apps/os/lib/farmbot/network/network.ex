@@ -77,10 +77,8 @@ defmodule Farmbot.Network do
     # {"eth0", %{"type" => "ethernet", "ip" => %{"mode" => "dhcp"}}}
     # {"wlan0",
     #    %{"type" => "wifi",
-    #      "ip" =>
-    #          %{"mode" => "dhcp"},
-    #            "wifi" =>
-    #                %{"ssid" =>"example",
+    #      "ip" => %{"mode" => "dhcp"},
+    #      "wifi" => %{"ssid" =>"example",
     #                  "psk" => "example_pass",
     #                  "key_mgmt" => "WPA-PSK"}}}
     something = Map.new(config, fn({interface, settings}) ->

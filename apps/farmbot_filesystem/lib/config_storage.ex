@@ -43,7 +43,9 @@ defmodule Farmbot.FileSystem.ConfigStorage do
       # if not start over with the default config file (from the priv dir)
       {:error, :enoent} ->
         Logger.debug ">> is creating a new configuration file: #{default_config_file}"
-        File.cp!(default_config_file, @config_file)
+        Farmbot.FileSystem.transaction fn() ->
+          File.cp!(default_config_file, @config_file)
+        end
         init(@config_file)
     end
   end

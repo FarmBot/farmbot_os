@@ -15,6 +15,9 @@ let onInit = function () {
   // request some initial data
   // get whatever config is currently available.
   state.makeRequest({ method: "get_current_config", params: [], id: uuid() }, ws);
+
+  // get a list of network interfaces
+  state.makeRequest({ method: "get_network_interfaces", params: [], id: uuid() }, ws);
 }
 
 /** initialize the websocket connection. */
