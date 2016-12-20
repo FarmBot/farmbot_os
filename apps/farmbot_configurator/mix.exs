@@ -8,7 +8,7 @@ defmodule Farmbot.Configurator.Mixfile do
      elixir: "~> 1.3",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     compilers: [:yecc, :leex, :erlang, :elixir, :xref, :app, :configurator],
+    #  compilers: [:yecc, :leex, :erlang, :elixir, :xref, :app, :configurator],
      deps: deps]
   end
 

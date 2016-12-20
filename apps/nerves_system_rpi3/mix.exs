@@ -23,8 +23,8 @@ defmodule NervesSystemRpi3.Mixfile do
 
   defp deps do
     [{:nerves,  "~> 0.4.0"},
-     {:nerves_system_br, "~> 0.8.1"},
-     {:nerves_toolchain_arm_unknown_linux_gnueabihf, "~> 0.8.0"}]
+     {:nerves_toolchain_arm_unknown_linux_gnueabihf, "~> 0.8.0"},
+     {:nerves_system_br, "~> 0.8.1", override: true}]
   end
 
   defp description do

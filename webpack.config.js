@@ -1,1 +1,0 @@
-apps/farmbot_configurator/webpack.config.js
