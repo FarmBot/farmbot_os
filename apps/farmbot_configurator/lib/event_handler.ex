@@ -64,6 +64,12 @@ defmodule Farmbot.Configurator.EventHandler do
 
   def handle_call(:sockets, sockets), do: {:ok, sockets, sockets}
   def handle_call(_, sockets), do: {:ok, :unhandled, sockets}
+
+  def handle_info(info, sockets) do
+    Logger.debug ">> got some unhandled info in " <>
+    "socket event handler: #{inspect info}"
+    {:ok, sockets}
+  end
   def terminate(_,_), do: :ok
 
   # Probably a better way to do this...

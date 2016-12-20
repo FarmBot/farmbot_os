@@ -13,6 +13,7 @@ defmodule Farmbot.Configurator.SocketHandler do
   #Called on websocket connection initialization.
   def websocket_init(_type, req, _options) do
     Logger.debug ">> encountered a new local websocket connection."
+    Logger.add_backend(Farmbot.Configurator.Logger, [self])
     :erlang.start_timer(1000, self, [])
     # :ok = EH.start_link(self)
     :ok = EH.add_socket(self)
@@ -35,13 +36,13 @@ defmodule Farmbot.Configurator.SocketHandler do
   end
 
   def websocket_info(message, req, state) do
-    Logger.debug "got a info message: #{inspect message}"
+    Logger.debug ">> got an info message: #{inspect message}"
     {:ok, req, state}
   end
 
   def websocket_terminate(_reason, _req, _state) do
     Logger.debug ">> is closing a websocket connection."
-    # :ok = EH.stop_link(self)
+    Logger.remove_backend(Farmbot.Configurator.Logger,[])
     :ok = EH.remove_socket(self)
     :ok
   end

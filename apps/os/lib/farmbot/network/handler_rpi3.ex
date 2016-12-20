@@ -30,6 +30,11 @@ defmodule Module.concat([Farmbot, Network, Handler, "rpi3"]) do
     GenServer.cast(state.parent, {:connected, interface, address})
     {:ok, state}
   end
+
+  def handle_event({:hostapd, data}, state) do
+    Logger.debug ">> got some hostapd data: #{data}"
+    {:ok, state}
+  end
   # def handle_event(event, state) do
   #   Logger.warn "got event: #{inspect event}"
   #   {:ok, state}

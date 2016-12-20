@@ -7,6 +7,7 @@ import {
     BotConfigFile
 } from "./interfaces";
 import { infer } from "./jsonrpc";
+import { uuid } from "./utils";
 /** messages that need to be resolved by the bot. */
 export interface RpcMessageDict { [propName: string]: RpcRequest | undefined; }
 
@@ -89,7 +90,16 @@ export class MainState {
     }
 
     private handleNotification(data: RpcNotification): void {
-        return;
+        switch (data.method) {
+            case "log_message":
+                let message = data.params[0].message;
+                console.log("log_message: " + message);
+                this.logs.push(message);
+                return;
+            default:
+                console.log("could not handle: " + data.method);
+                return;
+        }
     }
 
     /** handles a response. Can possible return a notification if something went wrong */
@@ -107,6 +117,12 @@ export class MainState {
                     console.log("got network interfaces.");
                     // so does this: todo
                     state.networkInterfaces = JSON.parse(data.result);
+                    break;
+                case "upload_config_file":
+                    console.log("Config file uploaded!");
+                    break;
+                case "web_app_creds":
+                    console.log("Credentials uploaded!");
                     break;
                 default:
                     console.warn("unhandlled response: " + origin.method);
@@ -129,6 +145,25 @@ export class MainState {
                 console.warn("Don't know how to handle: " + data.method);
                 return { error: "unhandled", id: data.id, result: "could not handle" };
         }
+    }
+
+    uploadAppCredentials(creds: { email: string, pass: string, server: string }, ws: WebSocket) {
+        console.log("Uploading web credentials");
+        this.makeRequest({
+            method: "web_app_creds",
+            params: [creds],
+            id: uuid()
+        }, ws);
+    }
+
+    uploadConfigFile(ws: WebSocket) {
+        let config = this.configuration;
+        console.dir(config);
+        this.makeRequest({
+            method: "upload_config_file",
+            params: [{ config: config }],
+            id: uuid()
+        }, ws);
     }
 
     @action

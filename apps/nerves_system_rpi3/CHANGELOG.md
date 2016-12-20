@@ -12,6 +12,7 @@ This fork will have added packages for farmbot_os.
     * dnsmasq
     * avrdude
     * dropbear
+    * ifup
   * BusyBox pacakges:
     * mkfs.ext*
   * fwup config:

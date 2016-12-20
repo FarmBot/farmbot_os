@@ -54,6 +54,19 @@ defmodule Farmbot.FileSystem.ConfigStorage do
     GenServer.call(__MODULE__, :read_config_file)
   end
 
+  @doc """
+    Replace the configuration json with a new one.
+    BE CAREFUL IM NOT CHECKING THE FILE AT ALL
+  """
+  def replace_config_file(config) do
+    Farmbot.FileSystem.transaction fn() ->
+      json = Poison.encode! config
+      File.write!(@config_file, json)
+      :ok
+    end
+    GenServer.stop(__MODULE__, :new_config)
+  end
+
   def handle_call(:read_config_file, _, state) do
     read = File.read(@config_file)
     {:reply, read, state}
@@ -83,6 +96,13 @@ defmodule Farmbot.FileSystem.ConfigStorage do
     new_state = Map.put(state, m, new)
     write! new_state
   end
+
+  def terminate(:new_config, _state) do
+    Logger.debug ">> is loading a new config."
+    :ok
+  end
+
+  def terminate(_,_), do: nil
 
   defp module_to_key(module),
     do: module

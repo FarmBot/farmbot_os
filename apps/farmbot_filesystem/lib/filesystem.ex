@@ -32,7 +32,7 @@ defmodule Farmbot.FileSystem do
     GenServer.cast(__MODULE__, {:transaction, fun, self()})
     receive do
       {^fun, ret} -> ret
-      e -> raise "Bad return value for transaction: #{inspect e}"
+      e -> raise "Bad return value for filesystem transaction: #{inspect e}"
     end
   end
 

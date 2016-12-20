@@ -2,7 +2,7 @@ defmodule Farmbot.BotState.Authorization do
   @moduledoc """
     Tracks authorization state.
   """
-  @data_path Application.get_env(:farmbot, :state_path)
+  @data_path Application.get_env(:farmbot_filesystem, :path)
   require Logger
   alias Farmbot.Auth
   alias Farmbot.StateTracker

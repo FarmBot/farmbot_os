@@ -28,7 +28,7 @@ defmodule Module.concat([FileSystem, Utils, :prod, "rpi3"]) do
     FileSystem access functions.
   """
   @behaviour FileSystem.Utils
-  @state_path Application.get_env(:farmbot, :state_path)
+  @state_path Application.get_env(:farmbot_filesystem, :path)
   @block_device "/dev/mmcblk0p3"
   @fs_type "ext4"
   @ro_options ["-t", @fs_type, "-o", "ro,remount", @block_device, @state_path]

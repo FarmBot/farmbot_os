@@ -22,7 +22,7 @@
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack",
+    "build": "webpack --colors",
     "watch": "webpack  --watch --stdin --colors"
   },
   "repository": {

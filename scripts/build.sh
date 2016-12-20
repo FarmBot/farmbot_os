@@ -2,7 +2,7 @@
 # yes. This is in fact a bash script that gets called
 # from a mix task, that then in a wild chain of events, executes more mix tasks.
 # don'nt you worry about a thing.
-CWD=$PWD
+CWD=$PWD # this should be from the root of the project
 OS_DIR=$CWD/apps/os
 CONFIGURATOR_DIR=$CWD/apps/farmbot_configurator
 

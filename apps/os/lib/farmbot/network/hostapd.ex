@@ -12,7 +12,10 @@ defmodule Farmbot.Network.Hostapd do
   @dnsmasq_conf_file "dnsmasq.conf"
   @dnsmasq_pid_file "dnsmasq.pid"
 
-
+  @doc """
+    Example:
+      Iex> Hostapd.start_link ip_address: "192.168.24.1", manager: Farmbot.Network.Manager, interface: "wlan0"
+  """
   def start_link(
     [interface: interface, ip_address: ip_addr, manager: manager])
   do
