@@ -80,6 +80,13 @@ defmodule Farmbot.Logger do
   def handle_call(_, state), do: {:ok, :unhandled, state}
 
   def terminate(_,_) do
+    # if this backend crashes just pop it out of the logger backends.
+    # if we don't do this it bacomes a huge mess because of Logger
+    # trying to restart this module
+    # then this module dying again
+    # then printing a HUGE supervisor report
+    # then Logger trying to add it again
+    # etc
     Logger.remove_backend(__MODULE__)
   end
 

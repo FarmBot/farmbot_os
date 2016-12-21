@@ -162,9 +162,11 @@ defmodule Farmbot.BotState do
   end
 
   @doc """
-    This might be more suited for somewhere else maybe?
+    Tries to set the time from ntp.
+    This will try 3 times to set the time. if it fails the thrid time,
+    it will return an error
   """
-  @spec set_time :: :ok
+  @spec set_time :: :ok | {:error, term}
   def set_time do
     Logger.debug ">> is getting time from NTP."
     f = do_try_set_time
@@ -213,14 +215,6 @@ defmodule Farmbot.BotState do
         else
           :ok
         end
-    end
-  end
-
-
-  defp check_time_set do
-    if  do
-      # prize to whoever finds what this date is!
-      check_time_set # wait until time is set
     end
   end
 end
