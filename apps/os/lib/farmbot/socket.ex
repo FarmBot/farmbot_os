@@ -59,16 +59,10 @@ defmodule Uh do
              params: [%{"config" => config}]})
   do
     # replace the old config file with the new one.
-    case CS.replace_config_file(config) do
-      :ok ->
-        %Response{id: id, result: "OK", error: nil}
-        |> Poison.encode!
-        |> send_socket
-      {:error, reason} ->
-        %Response{id: id, result: nil, error: "#{inspect reason}"}
-        |> Poison.encode!
-        |> send_socket
-    end
+    _f = CS.replace_config_file(config)
+    %Response{id: id, result: "OK", error: nil}
+    |> Poison.encode!
+    |> send_socket
   end
 
   def handle_socket(

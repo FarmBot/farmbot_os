@@ -34,6 +34,12 @@ export class Main extends React.Component<MainProps, {}> {
               <h3> Web App Configuration </h3>
             </div>
 
+            <button onClick={() => {
+              state.deleteMe();
+            } }>
+              Use Ethernet
+            </button>
+
 
 
             <button onClick={() => {
@@ -52,7 +58,23 @@ export class Main extends React.Component<MainProps, {}> {
               Upload Web Credentials
             </button>
 
+            <button onClick={() => {
+              state.tryLogIn(this.props.ws);
+            } }>
+              Try to log in
+            </button>
+
             <div>
+              <h4> Network Interfaces </h4>
+              <ul>
+                {state.networkInterfaces.map((el, index) => {
+                  return <li key={index}>{el.name} {el.type}</li>
+                })}
+              </ul>
+            </div>
+
+            <div>
+              <h4> Messages from Bot </h4>
               <ul>
                 {state.logs.map((el, index) => {
                   return <li key={index}>{el}</li>

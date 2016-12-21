@@ -103,16 +103,16 @@ defmodule Farmbot.Network.Hostapd do
     [a, b, c, _] = ip_addr |> String.split(".")
     first_part = "#{a}.#{b}.#{c}."
     """
-    bogus-priv
-    server=/localnet/#{ip_addr}
-    local=/localnet/
+    # bogus-priv
+    # server=/localnet/#{ip_addr}
+    # local=/localnet/
     interface=wlan0
-    domain=localnet
+    # domain=localnet
     dhcp-range=#{first_part}50,#{first_part}250,2h
     dhcp-option=3,#{ip_addr}
     dhcp-option=6,#{ip_addr}
     dhcp-authoritative
-    address=/#/#{ip_addr}
+    # address=/#/#{ip_addr}
     """
   end
 

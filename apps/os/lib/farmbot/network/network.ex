@@ -42,9 +42,10 @@ defmodule Farmbot.Network do
 
   def handle_cast({:connected, interface, ip}, state) do
     Logger.debug ">>'s #{interface} is connected: #{ip}"
-    # I HATE THIS
+    # I don't want either of these here.
     GenServer.cast(Farmbot.BotState.Authorization, :try_log_in)
     Farmbot.BotState.set_time
+
     case Map.get(state.interfaces, interface) do
       %Interface{} = thing ->
         new_interface = %Interface{thing | ipv4_address: ip}

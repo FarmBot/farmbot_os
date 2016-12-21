@@ -63,6 +63,11 @@ export class MainState {
         this.connected = bool;
     }
 
+    @action
+    deleteMe() {
+        this.configuration.network["eth0"] = { type: "ethernet", settings: { ip: { mode: "dhcp" } } }
+    }
+
     /*
         So this function will files the mysterious message from the websocket.
         so if it can infer the rpc type from it files to the 
@@ -124,6 +129,9 @@ export class MainState {
                 case "web_app_creds":
                     console.log("Credentials uploaded!");
                     break;
+                case "try_log_in":
+                    console.log("Farmbot will try to log in.");
+                    break
                 default:
                     console.warn("unhandlled response: " + origin.method);
             }
@@ -147,7 +155,8 @@ export class MainState {
         }
     }
 
-    uploadAppCredentials(creds: { email: string, pass: string, server: string }, ws: WebSocket) {
+    uploadAppCredentials(creds: { email: string, pass: string, server: string },
+        ws: WebSocket) {
         console.log("Uploading web credentials");
         this.makeRequest({
             method: "web_app_creds",
@@ -162,6 +171,14 @@ export class MainState {
         this.makeRequest({
             method: "upload_config_file",
             params: [{ config: config }],
+            id: uuid()
+        }, ws);
+    }
+
+    tryLogIn(ws: WebSocket) {
+        this.makeRequest({
+            method: "try_log_in",
+            params: [],
             id: uuid()
         }, ws);
     }

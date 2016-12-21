@@ -17,7 +17,7 @@ defmodule Farmbot.FileSystem do
     mod = Module.concat([FileSystem, Utils, env, target])
     mod.fs_init
     mod.mount_read_only
-    {:ok, {mod, :read_only, []}}
+    {:ok, {mod, :read_only, 0}}
   end
 
   @doc """
@@ -29,12 +29,39 @@ defmodule Farmbot.FileSystem do
       Iex> transaction fn() -> File.write("/state/bs.txt" , "hey") end
   """
   def transaction(fun) when is_function(fun) do
-    GenServer.cast(__MODULE__, {:transaction, fun, self()})
-    receive do
-      {^fun, ret} -> ret
-      e -> raise "Bad return value for filesystem transaction: #{inspect e}"
-    end
+    # this is kind of dirty
+    GenServer.call(__MODULE__, :transaction)
+    fun.()
+    GenServer.cast(__MODULE__, :transaction_finish)
   end
+
+  # this was the first transaction.
+  def handle_call(:transaction, _, {mod, :read_only, 0}) do
+    mod.mount_read_write
+    {:reply, :ok, {mod, :read_write, 1}}
+  end
+
+  # a transaction when there is already at least one other transaction happening.
+  def handle_call(:transaction, _, {mod, :read_write, count}) when count > 0 do
+    {:reply, :ok, {mod, :read_write, count + 1}}
+  end
+
+  # a transaction finished, but it wasnt the last one. so we don't mount read only yet.
+  def handle_cast(:transaction_finish, {mod, :read_write, count}) when count > 1 do
+    {:noreply, {mod, :read_write, count - 1}}
+  end
+
+  # the last transaction finished; remount read only
+  def handle_cast(:transaction_finish, {mod, :read_write, 1}) do
+    mod.mount_read_only
+    {:noreply, {mod, :read_only, 0}}
+  end
+
+  def handle_cast(:factory_reset, {mod, status, count}) do
+    mod.factory_reset
+    {:noreply, {mod, status, count}}
+  end
+
 
   @doc """
     Resets all the data about this Farmbot
@@ -42,46 +69,5 @@ defmodule Farmbot.FileSystem do
   def factory_reset do
     Logger.debug ">> is going to be completely reset! Goodbye!"
     GenServer.cast(__MODULE__, :factory_reset)
-  end
-
-  # if we are in read only mode, start the stuff right now.
-  def handle_cast({:transaction, fun, pid}, {module, :read_only, _}) do
-    do_stuff(module, fun, pid)
-    {:noreply, {module, :read_write, []}}
-  end
-
-  # if we are in read_write mode, add this transaction to the queue.
-  def handle_cast({:transaction, fun, pid}, {module, :read_write, l}) do
-    {:noreply, {module, :read_write, l ++ [{fun, pid}]}}
-  end
-
-  # handle the factory reset cast.
-  # We don't care about what is happening right now
-  def handle_cast(:factory_reset, {module, _, _}) do
-    module.factory_reset
-    :crash_if_we_get_this_far
-  end
-
-  # sent from the do_stuff function
-  # When it finishes and there is nothing else in the queue.
-  def handle_info(:transaction_finish, {module, _, []}) do
-    {:noreply, {module, :read_only, []}}
-  end
-
-  # when a transaction finishes with more items in the queue
-  def handle_info(:transaction_finish, {module, _, l}) do
-    {fun, pid} = List.first(l)
-    do_stuff(module, fun, pid)
-    {:noreply, {module, :read_write, l -- [{fun, pid}]}}
-  end
-
-  defp do_stuff(mod, fun, pid) do
-    spawn fn ->
-      :ok = mod.mount_read_write
-      ret = fun.()
-      :ok = mod.mount_read_only
-      send(pid, {fun, ret})
-      send(__MODULE__, :transaction_finish)
-    end
   end
 end

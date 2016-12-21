@@ -21,7 +21,7 @@ defmodule Farmbot.FileSystem.ConfigStorage do
     @type t :: %__MODULE__{
       authorization: %{server: String.t},
       configuration: %{},
-      network: %{connection: connection},
+      network: %{},
       hardware: %{}
     }
   end
@@ -34,6 +34,7 @@ defmodule Farmbot.FileSystem.ConfigStorage do
 
   @spec init(args) :: {:ok, Parsed.t}
   def init(path) do
+    Logger.debug ">> is starting configuration storage."
     # Checks if the json file exists or not
     case File.read(path) do
       # if it does parse it
@@ -59,17 +60,18 @@ defmodule Farmbot.FileSystem.ConfigStorage do
     BE CAREFUL IM NOT CHECKING THE FILE AT ALL
   """
   def replace_config_file(config) do
-    Farmbot.FileSystem.transaction fn() ->
-      json = Poison.encode! config
-      File.write!(@config_file, json)
-      :ok
-    end
-    GenServer.stop(__MODULE__, :new_config)
+    {:ok, f} = parse_json_contents!(config)
+    GenServer.call(__MODULE__, {:replace_config_file, f})
   end
 
   def handle_call(:read_config_file, _, state) do
     read = File.read(@config_file)
     {:reply, read, state}
+  end
+
+  def handle_call({:replace_config_file, new_state}, _, old_state) do
+    Logger.debug ">> is replacing #{inspect old_state} with #{inspect new_state}"
+    write!(:ok, new_state)
   end
 
   def handle_call({:get, module, :all}, _, state) do
@@ -97,11 +99,6 @@ defmodule Farmbot.FileSystem.ConfigStorage do
     write! new_state
   end
 
-  def terminate(:new_config, _state) do
-    Logger.debug ">> is loading a new config."
-    :ok
-  end
-
   def terminate(_,_), do: nil
 
   defp module_to_key(module),
@@ -118,6 +115,15 @@ defmodule Farmbot.FileSystem.ConfigStorage do
       File.write!(@config_file, json)
     end
     {:noreply, state}
+  end
+
+  @spec write!(any, Parsed.t) :: {:reply, any, Parsed.t}
+  defp write!(reply, %Parsed{} = state) do
+    json = Poison.encode!(state)
+    Farmbot.FileSystem.transaction fn() ->
+      File.write!(@config_file, json)
+    end
+    {:reply, reply, state}
   end
 
   # tries to parse contents. raises an exception if it can't

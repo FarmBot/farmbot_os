@@ -17,15 +17,32 @@ defmodule Farmbot.BotState.Authorization do
     ]
 
   def load(_) do
-    with {:ok, server} <- get_config(:server),
-         {:ok, secret} <- get_config(:secret),
+    with {:ok, server_or_nil} <- get_config(:server),
+         {:ok, secret_or_nil} <- load_secret,
          {:ok, token_or_nil} <- maybe_get_token
          do
-           f = %State{secret: secret, server: server, token: token_or_nil}
+           f = %State{secret: secret_or_nil,
+            server: server_or_nil,
+            token: token_or_nil}
+            Logger.warn "wtf is going on: #{inspect f}"
            {:ok, f}
          else
-           _ -> {:ok, %State{}}
+           _ ->
+           Logger.warn "else "
+           {:ok, %State{}}
          end
+  end
+
+  @spec load_secret :: {:ok, binary | nil}
+  defp load_secret do
+    thing = File.read("#{@data_path}/secret")
+    IO.inspect thing
+    case thing do
+      {:ok, secret} ->
+        load_me = :erlang.binary_to_term(secret)
+        {:ok, load_me}
+      _ -> {:ok, nil}
+    end
   end
 
   # We can't just try to log in here beccause it is fairly likely that the
@@ -34,8 +51,11 @@ defmodule Farmbot.BotState.Authorization do
   @spec maybe_get_token :: {:ok, Token.t}
   defp maybe_get_token do
     with {:ok, json_token} <- Auth.get_token,
-         {:ok, token} <- Token.create(json_token),
-    do: {:ok, token}
+         {:ok, token} <- Token.create(json_token) do
+           {:ok, token}
+         else
+           _ -> {:ok, nil}
+         end
   end
 
   # Gets the server
@@ -108,7 +128,8 @@ defmodule Farmbot.BotState.Authorization do
   @spec save_secret(binary) :: :ok
   defp save_secret(secret) do
     Farmbot.FileSystem.transaction fn() ->
-      File.write "#{@data_path}/secret", secret
+      saveme = :erlang.term_to_binary(secret)
+      File.write("#{@data_path}/secret", saveme)
     end
   end
 end
