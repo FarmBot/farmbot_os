@@ -1,0 +1,14 @@
+# App artifacts
+/_build
+/db
+/deps
+/*.ez
+
+# Nerves images
+/_images
+
+# Generate on crash by the VM
+erl_crash.dump
+npm-debug.log
+ttb_last_config
+cover

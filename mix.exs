@@ -1,285 +1,174 @@
-defmodule Farmbot.Mixfile do
+defmodule FarmbotOs.Mixfile do
   use Mix.Project
 
-  def target(:prod) do
-    System.get_env("NERVES_TARGET") || "rpi3"
-  end
-
-  def target(_) do
-    System.get_env("NERVES_TARGET") || "development"
-  end
-
-  @version Path.join(__DIR__, "VERSION")
-    |> File.read!
-    |> String.strip
-
-  @compat_version Path.join(__DIR__, "COMPAT")
-    |> File.read!
-    |> String.strip
-    |> String.to_integer
-
   def project do
-    [app: :farmbot,
-     test_coverage: [tool: ExCoveralls],
-     version: @version,
+    [apps_path: "apps",
      target: target(Mix.env),
-     archives: [nerves_bootstrap: "~> 0.2.0"],
-     deps_path: "deps/#{target(Mix.env)}",
-     build_path: "_build/#{target(Mix.env)}",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     config_path: "config/config.exs",
-     aliases: aliases(Mix.env),
-     deps: deps(Mix.env) ]
+     deps: deps]
   end
 
-  def application do
-    [mod: {Farmbot, [%{target: target(Mix.env), compat_version: @compat_version,
-                       version: @version, env: Mix.env}]},
-     applications: apps(Mix.env),
-     included_applications: [:gen_mqtt]]
-  end
+  # Dependencies listed here are available only for this project
+  # and cannot be accessed from applications inside the apps folder
+  defp deps, do: [{:httpotion, "~> 3.0.0"}]
 
-  # common for test, prod, and dev
-  def apps do
-    [:logger,
-     :nerves_uart,
-     :httpotion,
-     :poison,
-     :gen_stage,
-     :nerves_lib,
-     :rsa,
-     :runtime_tools,
-     :mustache,
-     :timex,
-     :farmbot_auth,
-     :farmbot_configurator,
-     :vmq_commons,
-     :amnesia,
-    #  :porcelain,
-     :quantum]
-  end
-
-  # on device
-  def apps(:prod) do
-    apps ++ platform_apps(target(:prod)) ++
-    [
-      :nerves,
-      :nerves_firmware_http
-    ]
-  end
-
-  # dev
-  def apps(:dev) do
-    apps ++ [:fake_nerves]
-  end
-
-  # test
-  def apps(:test) do
-    apps ++ [
-      :plug,
-      :cors_plug,
-      :cowboy,
-      :faker
-    ]
-  end
-
-  def deps do
-    [
-      {:nerves_uart, "~> 0.1.0"},
-      {:httpotion, "~> 3.0.0"},
-      {:poison, "~> 2.0"},
-      {:gen_stage, "~> 0.4"},
-      {:nerves_lib, github: "nerves-project/nerves_lib"},
-      {:gen_mqtt, "~> 0.3.1"},
-      {:vmq_commons, "1.0.0", manager: :rebar3}, # This is for mqtt to work.
-      {:mustache, "~> 0.0.2"},
-      {:timex, "~> 3.0"},
-      {:socket, github: "meh/elixir-socket"},
-      {:amnesia, github: "meh/amnesia"},
-      {:quantum, ">= 1.8.1"},
-      # {:porcelain, "~> 2.0"},
-      {:farmbot_auth, github: "Farmbot/farmbot_auth"},
-      # {:farmbot_auth, path: "../farmbot_auth"},
-      {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
-      # {:farmbot_configurator, path: "../farmbot_configurator"}
-    ]
-  end
-
-  def deps(:prod) do
-    deps ++ platform_deps(target(Mix.env)) ++ system(target(Mix.env)) ++
-    [
-     {:nerves, "~> 0.3.0"},
-     {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"}
-    ]
-  end
-
-  def deps(:test) do
-    deps ++ deps(:dev) ++
-    [ {:plug, "~> 1.0"},
-      {:cors_plug, "~> 1.1"},
-      {:cowboy, "~> 1.0.0"},
-      {:excoveralls, "~> 0.5"},
-      {:faker, "~> 0.7"} ]
-  end
-
-  def deps(:dev) do
-    deps ++ [
-      {:fake_nerves, github: "ConnorRigby/fake_nerves"},
-      # {:fake_nerves, path: "../fake_nerves", override: true},
-      {:credo, "~> 0.4"},
-      {:dialyxir, "~> 0.4"}]
-  end
-
-  def platform_deps("rpi3") do
-    [
-      {:nerves_leds, "~> 0.7.0"},
-      {:elixir_ale, "~> 0.5.5"}
-    ]
-  end
-
-  def platform_apps("rpi3") do
-    [ :nerves_leds,
-      :elixir_ale ]
-  end
-
-  def aliases(:prod) do
-    ["deps.precompile": ["nerves.precompile", "deps.precompile"],
-     "deps.loadpaths":  ["deps.loadpaths", "nerves.loadpaths"]]
-  end
-
-  def aliases(:test) do
-    []
-  end
-
-  def aliases(:dev) do
-    []
-  end
-
-  def system("rpi3") do
-    [{:"nerves_system_rpi3",
-      git: "https://github.com/ConnorRigby/nerves_system_rpi3.git",
-      tag: "v0.7.5" }]
-  end
+  defp target(:prod), do: System.get_env("NERVES_TARGET") || "rpi3"
+  defp target(_), do: System.get_env("NERVES_TARGET") || "development"
 end
 
-defmodule Mix.Tasks.Farmbot.Build do
-  use Mix.Task
-  @shortdoc "Builds firmware."
-
-  def run(args) do
-    System.cmd("rm", ["-rf","rel/bootstrapper"])
-    Mix.Tasks.Deps.Get.run(args)
-    Mix.Tasks.Deps.Compile.run(args)
-    Mix.Tasks.Firmware.run(args)
+defmodule Mix.Tasks.Farmbot do
+  def env_info do
+    IO.puts "[ NERVES_TARGET ]:   #{Mix.Project.config[:target]}"
+    System.put_env("NERVES_TARGET", "#{Mix.Project.config[:target]}")
+    if System.get_env("NERVES_SYSTEM") do
+      IO.puts "[ NERVES_SYSTEM ]:   #{System.get_env("NERVES_SYSTEM")}"
+    end
+    IO.puts "[  ENVIRONMENT  ]:   #{Mix.env}"
+    IO.puts "[   GIT HASH    ]:   #{git_revision}"
   end
-end
 
-defmodule Mix.Tasks.Farmbot.Clean do
-  use Mix.Task
-  @shortdoc "Cleans environment"
-
-  def run(_args) do
-    System.cmd("rm", ["-rf","rel/bootstrapper", "_images", "_build"])
-    Mix.Tasks.Deps.Clean.run(["--all"])
+  defp git_revision do
+    # git log --pretty=format:'%h' -n 1
+    {res, 0} = System.cmd("git", ["log", "--pretty=format:%h", "-n 1"])
+    res |> String.trim
   end
-end
 
-defmodule Mix.Tasks.Farmbot.Release do
-  use Mix.Task
-  @shortdoc "Builds a release ready image."
+  defmodule System do
+    def run(_) do
+      Mix.Tasks.Farmbot.env_info
+
+      port = Port.open({:spawn, "bash ./scripts/clone_system.sh"},
+        [:stream,
+         :binary,
+         :exit_status,
+         :hide,
+         :use_stdio,
+         :stderr_to_stdout])
+         handle_port(port)
+    end
+    def handle_port(port) do
+      receive do
+        {^port, {:data, data}} -> IO.puts data; handle_port(port)
+        {^port, {:exit_status, 0}} -> IO.puts "Environment built!"
+        {^port, {:exit_status, _}} -> IO.puts "Error setting up environment"
+        stuff -> IO.puts "unexpected stuff: #{inspect stuff}"
+      end
+    end
+  end
+
+  defmodule Firmware do
+    use Mix.Task
+    @shortdoc "Builds firmware."
+
     def run(args) do
-      IO.puts "CLEANING ENVIRONMENT!"
-      Mix.Tasks.Farmbot.Clean.run(args)
-      IO.puts "BUILDING FARMBOT OS!"
-      Mix.Tasks.Farmbot.Build.run(args)
-      IO.puts "BUILDING IMAGE FILE!"
-      System.cmd("fwup", ["-a",
-                          "-d",
-                          "_images/rpi3/farmbot.img",
-                          "-i",
-                          "_images/rpi3/farmbot.img",
-                          "-t",
-                          "complete"])
+      Mix.Tasks.Farmbot.env_info
+      :ok = case handle_args(args) do
+        true -> do_run(args)
+        _ -> :ok
+      end
+      if Enum.find_value(args, fn(arg) -> arg == "--upload" end) do
+        if Elixir.System.get_env("BOT_IP_ADDR") == nil do
+          Elixir.System.put_env("BOT_IP_ADDR", "192.168.24.1")
+        end
+        ip = Elixir.System.get_env("BOT_IP_ADDR")
+        port = Port.open({:spawn, "bash ./scripts/upload.sh"},
+          [:stream,
+           :binary,
+           :exit_status,
+           :hide,
+           :use_stdio,
+           :stderr_to_stdout])
+        handle_port(port, "Uploaded!", "Failed to upload!")
+      end
     end
-end
 
-
-defmodule Mix.Tasks.Farmbot.Upload do
-  use Mix.Task
-  @shortdoc "Uploads a file to a url"
-  def run(args) do
-    ip_address = System.get_env("FARMBOT_IP")
-    || List.first(args)
-    || "192.168.29.186" # I get to do this because i own it.
-    curl_args = [
-      "-T", "_images/rpi3/farmbot.fw",
-      "http://#{ip_address}:8988/firmware",
-      "-H", "Content-Type: application/x-firmware",
-      "-H", "X-Reboot: true"]
-    IO.puts("Starting upload...")
-    Mix.Tasks.Farmbot.Curl.run(curl_args)
-  end
-end
-
-defmodule Mix.Tasks.Farmbot.Curl do
-  use Mix.Task
-  @shortdoc "Uploads an image to a development target"
-  def run(args) do
-    args = args ++
-    [ "-#" ] # CURL OPTIONS
-    Port.open({:spawn_executable, "/usr/bin/curl"},
-              [{:args, args},
-               :stream,
-               :binary,
-               :exit_status,
-               :hide,
-               :use_stdio,
-               :stderr_to_stdout])
-     handle_output
-  end
-
-  def handle_output do
-    receive do
-      info -> handle_info(info)
+    def check_system_dir do
+      {:ok, dirs} = File.ls "./apps/"
+      Enum.find(dirs, fn(dir) ->
+        String.contains?(dir, "NERVES_SYSTEM")
+      end)
     end
-  end
 
-  def handle_info({port, {:data, << <<35>>, _ :: size(568), " 100.0%">>}}) do # LAWLZ
-    IO.puts("\nDONE")
-    Port.close(port)
-  end
+    def do_run(_args) do
+      maybe_system_dir = check_system_dir
+      if maybe_system_dir &&  Elixir.System.get_env("NERVES_SYSTEM") == nil do
+        IO.puts "detected a system build: #{maybe_system_dir}, set the NERVES_SYSTEM env var to use it."
+      end
 
-  def handle_info({port, {:data, << "\r", <<35>>, _ :: size(568), " 100.0%">>}}) do # LAWLZ
-    IO.puts("\nDONE")
-    Port.close(port)
-  end
+      if !File.exists?("./deps") do
+        fetch_deps
+      end
 
-  def handle_info({_port, {:data, << <<35>>, <<_ :: binary>> >>}}) do
-    IO.write("#")
-    handle_output
-  end
+      port = Port.open({:spawn, "bash ./scripts/build.sh"},
+        [:stream,
+         :binary,
+         :exit_status,
+         :hide,
+         :use_stdio,
+         :stderr_to_stdout])
+      handle_port(port, "Built firmware!", "Error building firmware!")
+    end
+    def handle_port(port, success, err) do
+      receive do
+        {^port, {:data, data}} -> IO.puts data; handle_port(port, success, err)
+        {^port, {:exit_status, 0}} -> IO.puts success; :ok
+        {^port, {:exit_status, _}} -> IO.puts err; :error
+        stuff -> IO.puts "unexpected stuff: #{inspect stuff}"; :error
+      end
+    end
 
-  def handle_info({_port, {:data, << "\n", <<35>>, <<_ :: binary>> >>}}) do
-    IO.write("#")
-    handle_output
-  end
+    defp fetch_deps do
+      IO.puts "Fetching dependencies."
+      Mix.Tasks.Deps.Get.run([])
+      true
+    end
 
-  def handle_info({_port, {:data, << "\r", <<35>>, <<_ :: binary>> >>}}) do
-    IO.write("#")
-    handle_output
-  end
+    def handle_args(args) do
+      Enum.all?(args, fn(arg) ->
+        do_thing(arg)
+      end)
+    end
 
-  def handle_info({_port, {:data, _data}}) do
-    # IO.puts(data)
-    handle_output
-  end
+    # Because reasons.
+    def do_thing("-h"), do: do_thing("--help")
+    def do_thing("--help") do
+      IO.puts help_text
+      false
+    end
 
-  def handle_info({_port, {:exit_status, 7}}) do
-    IO.puts("\nCOULD NOT CONNECT TO DEVICE!")
-  end
+    def do_thing("--clean") do
+      IO.puts "cleaning environment!"
+      File.rm_rf("deps")
+      File.rm_rf("_build")
+      File.rm_rf("_images")
+    end
 
-  def handle_info({_port, {:exit_status, _status}}) do
-    IO.puts("\nDONE")
+    def do_thing("--nobuild"), do: false
+    def do_thing("--upload"), do: true
+    def do_thing("--burn"), do: true
+    def do_thing("--deps"), do: fetch_deps
+
+    def do_thing(other) do
+      IO.puts "bad argument: #{other}"
+      IO.puts help_text
+      false
+    end
+
+    defp help_text, do:
+    """
+      Builds a farmbot firmware image.
+      Can be configured by various env vars.
+        * NERVES_TARGET  (default: rpi3)  - can be "rpi3", "qemu-arm" right now. More support coming soon.
+        * NERVES_SYSTEM  (optional)       - can be used to not use the default system for your NERVES_TARGET
+        * BOT_IP_ADDR    (optional)       - the ip address of a running farmbot. This is used in the upload task.
+      Can also be configured by several command line switches.
+        * --clean   - will clean the environment before building again. (this can take a while)
+        * --upload  - If the build succeeds, upload firmware to IP_ADDRESS
+        * --deps    - force fetch dependencies.
+        * --nobuild - don't actually build the firmware.
+        * --burn    - burn the image to an sdcard
+        * --help    - display this message.
+    """
   end
 end
