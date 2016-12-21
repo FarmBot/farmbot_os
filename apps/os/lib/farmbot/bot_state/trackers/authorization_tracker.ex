@@ -24,11 +24,9 @@ defmodule Farmbot.BotState.Authorization do
            f = %State{secret: secret_or_nil,
             server: server_or_nil,
             token: token_or_nil}
-            Logger.warn "wtf is going on: #{inspect f}"
            {:ok, f}
          else
            _ ->
-           Logger.warn "else "
            {:ok, %State{}}
          end
   end
@@ -36,7 +34,6 @@ defmodule Farmbot.BotState.Authorization do
   @spec load_secret :: {:ok, binary | nil}
   defp load_secret do
     thing = File.read("#{@data_path}/secret")
-    IO.inspect thing
     case thing do
       {:ok, secret} ->
         load_me = :erlang.binary_to_term(secret)
@@ -132,4 +129,6 @@ defmodule Farmbot.BotState.Authorization do
       File.write("#{@data_path}/secret", saveme)
     end
   end
+
+  def terminate(_,_), do: nil
 end

@@ -1,4 +1,4 @@
-defmodule Uh do
+defmodule Farmbot.Network.ConfigSocket do
   alias RPC.Spec.Notification
   alias RPC.Spec.Request
   alias RPC.Spec.Response
@@ -9,12 +9,6 @@ defmodule Uh do
   require Logger
   import Farmbot.RPC.Requests
 
-  # GenEvent Stuff
-  def start_link do
-    GenEvent.add_handler(EM, __MODULE__, [])
-    {:ok, self}
-  end
-  def stop_link, do: GenEvent.remove_handler(EM, __MODULE__, [])
   def init([]), do: {:ok, []}
 
   def handle_event({:from_socket, message}, state) do
@@ -75,7 +69,11 @@ defmodule Uh do
     %Response{id: id, result: "OK", error: nil}
     |> Poison.encode!
     |> send_socket
-    Farmbot.Network.restart
+    # this needs to be spawned because it is inside of an event which results in
+    # event handler waiting for networking to restart
+    # and networking waiting for this app to finish its event
+    # which is waiting for networking to wait for this event etc.
+    spawn fn() -> Farmbot.Network.restart end
   end
 
   def handle_socket(
@@ -83,6 +81,7 @@ defmodule Uh do
              method: "web_app_creds",
              params: [%{"email" =>  email, "pass" => pass, "server" => server}]})
   do
+    Logger.debug ">> Received web app credentials"
     Farmbot.BotState.add_creds {email, pass, server}
     %Response{id: id, result: "OK", error: nil}
     |> Poison.encode!
@@ -128,5 +127,9 @@ defmodule Uh do
     |> Enum.filter(fn(s) -> String.contains?(s, "SSID") end)
     |> Enum.map(fn(z) -> String.replace(z, "SSID: ", "") end)
     |> Enum.filter(fn(z) -> String.length(z) != 0 end)
+  end
+
+  def terminate(_,_) do
+    Logger.debug "websocket dieing."
   end
 end

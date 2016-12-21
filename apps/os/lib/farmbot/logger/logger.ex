@@ -79,6 +79,10 @@ defmodule Farmbot.Logger do
   # Catch any stray calls.
   def handle_call(_, state), do: {:ok, :unhandled, state}
 
+  def terminate(_,_) do
+    Logger.remove_backend(__MODULE__)
+  end
+
   @doc """
     Gets the current logs from the log buffer.
   """
@@ -252,5 +256,4 @@ defmodule Farmbot.Logger do
   @spec build_state :: {[log_message], posting?}
   # this is because i dont know how to input a default state to Logger.
   defp build_state, do: {[], false}
-  def terminate(_reason, _), do: nil
 end

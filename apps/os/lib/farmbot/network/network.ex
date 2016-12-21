@@ -5,6 +5,8 @@ defmodule Farmbot.Network do
   """
   require Logger
   alias Farmbot.FileSystem.ConfigStorage, as: FBConfigStorage
+  alias Farmbot.Configurator.EventManager, as: EM
+  alias Farmbot.Network.ConfigSocket, as: SocketHandler
 
   defmodule Interface, do: defstruct [:ipv4_address, :pid]
   defmodule State do
@@ -21,10 +23,13 @@ defmodule Farmbot.Network do
   end
 
   def init(hardware) do
+    Logger.debug ">> is initializing networking on: #{inspect hardware}"
     Process.flag :trap_exit, true
+    # i guess this can be here.
+    GenEvent.add_handler(EM, SocketHandler, [])
+
     # Logger.debug ">> is starting epmd."
     # System.cmd("epmd", ["-daemon"])
-    Logger.debug ">> is initializing networking on: #{inspect hardware}"
     # this is from the json file yet to be defined.
     {:ok, config} = get_config
     # The module of the handler.
@@ -65,6 +70,7 @@ defmodule Farmbot.Network do
     Logger.debug "something in network died: #{inspect pid}, #{inspect reason}"
     {:noreply, state}
   end
+  def handle_info(_, state), do: {:noreply, state}
 
   def handle_call(:all_down, _, state) do
     Enum.each(state.interfaces, fn({interface, config}) ->
@@ -73,6 +79,7 @@ defmodule Farmbot.Network do
         Process.exit(config.pid, :down)
       end
     end)
+    Logger.debug ">> has stopped all network interfaces."
     {:reply, :ok, %State{state | connected?: false, interfaces: %{}}}
   end
 
@@ -110,7 +117,6 @@ defmodule Farmbot.Network do
   end
   def handle_call(:manager, _, state), do: {:reply, state.manager, state}
   def handle_call(:state, _, state), do: {:reply, state, state}
-
   @doc """
     Gets the entire state. Will probably go away.
   """
@@ -138,12 +144,16 @@ defmodule Farmbot.Network do
   def restart do
     all_down
     # just to make sure everything is ready
+    Logger.debug ">> is waiting for The web socket handler to die."
+    GenEvent.remove_handler(EM, SocketHandler, [])
     Logger.debug ">> is waiting for interfaces to come down."
     Process.sleep 5000
-    GenServer.call(__MODULE__, :restart)
+    GenServer.call(__MODULE__, :restart, :infinity)
   end
 
-  def terminate(_reason,_state), do: :ok
+  def terminate(_reason,_state) do
+    GenEvent.remove_handler(EM, SocketHandler, [])
+  end
 
   defp get_config, do: GenServer.call(FBConfigStorage, {:get, __MODULE__, :all})
 
