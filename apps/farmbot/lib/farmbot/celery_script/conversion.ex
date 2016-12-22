@@ -25,6 +25,7 @@ defmodule Farmbot.CeleryScript.Conversion do
                        body: []
                     },
                  speed: s}}
+    |> Farmbot.CeleryScript.Command.do_command
   end
 
   # havent converted this yet.

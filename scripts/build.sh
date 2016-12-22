@@ -3,7 +3,7 @@
 # from a mix task, that then in a wild chain of events, executes more mix tasks.
 # don'nt you worry about a thing.
 CWD=$PWD # this should be from the root of the project
-OS_DIR=$CWD/apps/os
+OS_DIR=$CWD/apps/farmbot
 CONFIGURATOR_DIR=$CWD/apps/farmbot_configurator
 
 cd $CONFIGURATOR_DIR

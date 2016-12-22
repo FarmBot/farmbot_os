@@ -17,18 +17,13 @@ defmodule Farmbot.BotState.Authorization do
     ]
 
   def load(_) do
-    with {:ok, server_or_nil} <- get_config(:server),
-         {:ok, secret_or_nil} <- load_secret,
-         {:ok, token_or_nil} <- maybe_get_token
-         do
-           f = %State{secret: secret_or_nil,
-            server: server_or_nil,
-            token: token_or_nil}
-           {:ok, f}
-         else
-           _ ->
-           {:ok, %State{}}
-         end
+    f = case File.read("#{@data_path}/secret") do
+      {:ok, secret} ->
+        load_me = :erlang.binary_to_term(secret)
+      _ -> nil
+    end
+
+    #FIXME
   end
 
   @spec load_secret :: {:ok, binary | nil}

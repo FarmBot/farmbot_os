@@ -6,8 +6,6 @@ defmodule CeleryScript.CommandBuilder do
   end
 
   defmacro command(kind, args, body \\ [], do: block) when is_bitstring(kind) do
-    IO.inspect kind
-    IO.inspect args
     function_name = String.to_atom(kind)
     quote do
       def unquote(function_name)(unquote(args), unquote(body)), do: unquote(block)
