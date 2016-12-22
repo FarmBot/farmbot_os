@@ -1,4 +1,4 @@
-defmodule Ast do
+defmodule Farmbot.CeleryScript.Ast do
   @moduledoc """
     Everyone needs a little recursion in their life
   """

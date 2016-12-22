@@ -57,7 +57,7 @@ defmodule Farmbot.Mixfile do
   end
 
   # dev
-  def apps(:dev), do: apps ++ [:fake_nerves]
+  def apps(:dev), do: apps ++ []
 
   # test
   def apps(:test) do
@@ -112,7 +112,7 @@ defmodule Farmbot.Mixfile do
 
   def deps(:dev) do
     deps ++ [
-      {:fake_nerves, github: "ConnorRigby/fake_nerves"},
+      # {:fake_nerves, github: "ConnorRigby/fake_nerves"},
       # {:fake_nerves, path: "../fake_nerves", override: true},
       {:credo, "~> 0.4"},
       {:dialyxir, "~> 0.4"}]

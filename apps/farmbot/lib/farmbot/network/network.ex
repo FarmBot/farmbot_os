@@ -158,7 +158,7 @@ defmodule Farmbot.Network do
   defp get_config, do: GenServer.call(FBConfigStorage, {:get, __MODULE__, :all})
 
   # Be very careful down here
-  defp parse_config(nil, _),
+  defp parse_config(false, _),
     do: %State{interfaces: %{}, manager: self, hardware: "development"}
   defp parse_config(config, hardware) do
     # {"wlan0", %{"type" => "hostapd"}}

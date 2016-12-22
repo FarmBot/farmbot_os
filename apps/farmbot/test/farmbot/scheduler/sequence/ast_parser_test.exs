@@ -1,5 +1,6 @@
 defmodule AstTest do
   use ExUnit.Case, async: false
+  alias Farmbot.CeleryScript.Ast, as: Ast 
   # %{"args" => %{"message" => "hello world"},
   #  "body" =>
   # [%{"args" => %{"channel_name" => "toast_error"}, "kind" => "channel"}], "kind" => "send_message"}

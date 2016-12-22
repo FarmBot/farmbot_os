@@ -10,6 +10,7 @@ defmodule Farmbot.RPC.Handler do
   alias Farmbot.BotState.Monitor
   # these are the actual actionable functions
   import Farmbot.RPC.Requests
+  import Farmbot.CeleryScript.Conversion
   @transport Application.get_env(:json_rpc, :transport)
 
   @doc """
@@ -45,9 +46,7 @@ defmodule Farmbot.RPC.Handler do
       result: nil})
   end
 
-  # when a request message comes in, we send an ack that we got the message
-  @spec handle_incoming(Request.t | Response.t | Notification.t) :: any
-  def handle_incoming(%Request{} = rpc) do
+  def do_handle(%Request{} = rpc) do
     case handle_request(rpc.method, rpc.params) do
       :ok ->
         @transport.emit(ack_msg(rpc.id))
@@ -55,6 +54,16 @@ defmodule Farmbot.RPC.Handler do
         @transport.emit(ack_msg(rpc.id, {name, message}))
       unknown ->
         @transport.emit(ack_msg(rpc.id, {"unknown error", unknown}))
+    end
+  end
+
+  # when a request message comes in, we send an ack that we got the message
+  @spec handle_incoming(Request.t | Response.t | Notification.t) :: any
+  def handle_incoming(%Request{} = rpc) do
+    # if this rpc command can be converted to celery script, to that
+    case rpc_to_celery_script(rpc) do
+      :ok -> @transport.emit(ack_msg(rpc.id))
+      _ -> do_handle(rpc)
     end
   end
 

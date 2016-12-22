@@ -1,4 +1,5 @@
 defmodule Farmbot.Scheduler.Sequence.InstructionSet_0 do
+  alias Farmbot.CeleryScript.Ast, as: Ast
   # dont lint the module name because its kind of special.
   @lint {Credo.Check.Readability.ModuleNames, false}
   @moduledoc """
