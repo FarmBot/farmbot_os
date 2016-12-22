@@ -18,9 +18,9 @@ config :json_rpc,
   handler:   Farmbot.RPC.Handler
 
 # Move this?
-# config :quantum, cron: [
-#   "5 1 * * *": {Farmbot.Updates.Handler, :do_update_check}
-# ]
+config :quantum, cron: [
+  "5 1 * * *": {Farmbot.Updates.Handler, :do_update_check}
+]
 
 # Import configuration specific to out environment.
 import_config "#{Mix.env}.exs"

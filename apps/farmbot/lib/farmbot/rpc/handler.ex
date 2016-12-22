@@ -46,7 +46,9 @@ defmodule Farmbot.RPC.Handler do
       result: nil})
   end
 
+  @spec do_handle(Request.t) :: :ok
   def do_handle(%Request{} = rpc) do
+    Logger.debug ">> using old handler"
     case handle_request(rpc.method, rpc.params) do
       :ok ->
         @transport.emit(ack_msg(rpc.id))
@@ -62,7 +64,9 @@ defmodule Farmbot.RPC.Handler do
   def handle_incoming(%Request{} = rpc) do
     # if this rpc command can be converted to celery script, to that
     case rpc_to_celery_script(rpc) do
-      :ok -> @transport.emit(ack_msg(rpc.id))
+      :ok ->
+        Logger.warn "#{rpc.method} was converted to a celery script (this is ok)"
+        @transport.emit(ack_msg(rpc.id))
       _ -> do_handle(rpc)
     end
   end

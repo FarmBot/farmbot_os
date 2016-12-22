@@ -1,15 +1,20 @@
 defmodule Farmbot.CeleryScript.Ast do
   @moduledoc """
-    Everyone needs a little recursion in their life
+    Handy functions for turning various data types into Farbot Celery Script
+    Ast nodes.
   """
   @type t :: %__MODULE__{
     args: map,
     body: [t,...],
-    kind: Strint.t
+    kind: String.t
   }
   @enforce_keys [:args, :body, :kind]
   defstruct @enforce_keys
 
+  @doc """
+    Parses json and traverses the tree and turns everything can
+    possibly be parsed.
+  """
   @spec parse(map) :: t
   def parse(%{"kind" => kind, "args" => args, "body" => body}) do
     %__MODULE__{kind: kind, args: parse_args(args), body: parse(body)}
@@ -44,7 +49,21 @@ defmodule Farmbot.CeleryScript.Ast do
   @spec parse_args(map) :: map
   def parse_args(map) when is_map(map) do
     Enum.reduce(map, %{}, fn ({key, val}, acc) ->
-      Map.put(acc, String.to_atom(key), val)
+      if is_map(val) do
+        # if it is a map, it could be another node so parse it too.
+        real_val = parse(val)
+        Map.put(acc, String.to_atom(key), real_val)
+      else
+        Map.put(acc, String.to_atom(key), val)
+      end
     end)
+  end
+
+  @doc """
+    Creates a new AST node. No validation is preformed on this other than making
+    sure its syntax is valid.
+  """
+  def create(kind, args, body) when is_map(args) and is_list(body) do
+    %__MODULE__{kind: kind, args: args, body: body}
   end
 end
