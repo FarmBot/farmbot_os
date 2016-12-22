@@ -9,7 +9,7 @@ defmodule CeleryScript.CommandBuilder do
     function_name = String.to_atom(kind)
     quote do
       def unquote(function_name)(unquote(args), unquote(body)), do: unquote(block)
-      def unquote(function_name)(_, _), do: {:error, :bad_args_or_body}
+      # def unquote(function_name)(_, _), do: {:error, :bad_args_or_body}
     end
   end
 end

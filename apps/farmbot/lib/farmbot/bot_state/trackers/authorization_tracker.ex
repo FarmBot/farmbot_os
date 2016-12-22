@@ -17,24 +17,17 @@ defmodule Farmbot.BotState.Authorization do
     ]
 
   def load(_) do
-    f = case File.read("#{@data_path}/secret") do
+    path = "#{@data_path}/secret"
+    Logger.warn "FIND ME!!! #{inspect path}"
+    f = case File.read(path) do
       {:ok, secret} ->
         load_me = :erlang.binary_to_term(secret)
       _ -> nil
     end
-
-    #FIXME
-  end
-
-  @spec load_secret :: {:ok, binary | nil}
-  defp load_secret do
-    thing = File.read("#{@data_path}/secret")
-    case thing do
-      {:ok, secret} ->
-        load_me = :erlang.binary_to_term(secret)
-        {:ok, load_me}
-      _ -> {:ok, nil}
-    end
+    IO.inspect f
+    {:ok, token} = maybe_get_token
+    {:ok, server} = get_config(:server)
+    {:ok, %State{token: token, secret: f, server: server}}
   end
 
   # We can't just try to log in here beccause it is fairly likely that the
@@ -93,6 +86,12 @@ defmodule Farmbot.BotState.Authorization do
     with {:ok, pub_key} <- Auth.get_public_key(server), # Get the pub key.
          {:ok, secret}  <- Auth.encrypt(email, pass, pub_key), # build a secret.
           do: try_get_token(server, secret) # get a token.
+  end
+
+  defp try_log_in(%State{server: ser, secret: sec} = state)
+  when is_nil(ser) or is_nil(sec) do
+    Logger.warn ">> wont log in because secret or server [#{inspect ser}] is wong."
+    state
   end
 
   # If we have a secret and a server, just use that.

@@ -1,4 +1,5 @@
 use Mix.Config
+target = Mix.Project.config[:target]
 # I force colors because they are important.
 config :logger, :console,
   colors: [enabled: true ],
@@ -24,4 +25,5 @@ config :json_rpc,
 # Import configuration specific to out environment.
 import_config "#{Mix.env}.exs"
 # import config specific to our nerves_target
-import_config "hardware/#{Mix.Project.config[:target]}/hardware.exs"
+IO.puts "using #{target} configuration."
+import_config "hardware/#{target}/hardware.exs"

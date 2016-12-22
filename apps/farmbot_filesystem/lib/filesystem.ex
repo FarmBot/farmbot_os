@@ -5,6 +5,7 @@ defmodule Farmbot.FileSystem do
 
   require Logger
   use GenServer
+  @path Application.get_env(:farmbot_filesystem, :path)
 
   def start(_,[%{env: env, target: target}]),
     do: Farmbot.FileSystem.Supervisor.start_link({env, target})
@@ -61,6 +62,11 @@ defmodule Farmbot.FileSystem do
     mod.factory_reset
     {:noreply, {mod, status, count}}
   end
+
+  @doc """
+    Returns the path where farmbot keeps its persistant data.
+  """
+  def path, do: @path
 
 
   @doc """

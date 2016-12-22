@@ -18,7 +18,7 @@ defmodule Farmbot.CeleryScript.Command do
       speed: s
      }
   do
-    GcodeHandler.block_send("G00 X#{x + xa} Y#{y + xa} Z#{z + za} S#{s}")
+    GcodeHandler.block_send("G00 X#{x + xa} Y#{y + ya} Z#{z + za} S#{s}")
   end
 
   command "move_absolute",
