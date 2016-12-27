@@ -6,7 +6,7 @@ defmodule WebPack do
     GenServer.start_link(__MODULE__, env, name: __MODULE__)
   end
 
-  def init(:prod), do: {:ok, self}
+  def init(:prod), do: {:ok, spawn fn() -> nil end}
   def init(:dev) do
     Logger.debug("Starting webpack")
     port = Port.open({:spawn, "npm run watch"},

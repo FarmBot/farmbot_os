@@ -14,6 +14,7 @@ addons:
     packages:
     - bc
     - libssl-dev
+    - libmnl-dev
 
 env:
   - TTY=test
@@ -32,8 +33,9 @@ before_script:
 script:
   - export MIX_ENV=test
   - mix local.hex --force
-  - mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap-0.1.4.ez --force
+  - mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez --force
   - mix local.rebar --force
+  - cd apps/farmbot
   - mix deps.get
   - mix compile
   - MIX_ENV=test mix test

@@ -23,6 +23,20 @@ defmodule Module.concat([FileSystem, Utils, :dev, "development"]) do
   def factory_reset, do: :ok
 end
 
+defmodule Module.concat([FileSystem, Utils, :test, "development"]) do
+  @moduledoc """
+    Spoofs Filesystem access in development mode.
+  """
+  @behaviour FileSystem.Utils
+  @doc false
+  def mount_read_only, do: :ok
+  @doc false
+  def mount_read_write, do: :ok
+  @doc false
+  def fs_init, do: :ok
+  def factory_reset, do: :ok
+end
+
 defmodule Module.concat([FileSystem, Utils, :prod, "rpi3"]) do
   @moduledoc """
     FileSystem access functions.
