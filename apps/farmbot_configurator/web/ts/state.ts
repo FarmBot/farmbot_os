@@ -66,6 +66,7 @@ export class MainState {
     @action
     deleteMe() {
         this.configuration.network["eth0"] = { type: "ethernet", settings: { ip: { mode: "dhcp" } } }
+        delete(this.configuration.network["wlan0"]);
     }
 
     /*
@@ -155,6 +156,7 @@ export class MainState {
         }
     }
 
+    @action
     uploadAppCredentials(creds: { email: string, pass: string, server: string },
         ws: WebSocket) {
         console.log("Uploading web credentials");
@@ -165,6 +167,7 @@ export class MainState {
         }, ws);
     }
 
+    @action
     uploadConfigFile(ws: WebSocket) {
         let config = this.configuration;
         console.dir(config);
@@ -175,6 +178,7 @@ export class MainState {
         }, ws);
     }
 
+    @action
     tryLogIn(ws: WebSocket) {
         this.makeRequest({
             method: "try_log_in",

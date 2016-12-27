@@ -29,6 +29,11 @@ defmodule Farmbot.Auth do
   end
 
   @doc """
+    Returns the list of callback modules.
+  """
+  def modules, do: @modules
+
+  @doc """
     Encrypts the key with the email, pass, and server
   """
   def encrypt(email, pass, pub_key) do
