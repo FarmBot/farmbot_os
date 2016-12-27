@@ -71,7 +71,8 @@ defmodule Farmbot.Mixfile do
       :plug,
       :cors_plug,
       :cowboy,
-      :faker
+      :faker,
+      :fake_nerves
     ]
   end
 
@@ -109,7 +110,10 @@ defmodule Farmbot.Mixfile do
       {:cors_plug, "~> 1.1"},
       {:cowboy, "~> 1.0.0"},
       {:excoveralls, "~> 0.5"},
-      {:faker, "~> 0.7"} ]
+      {:faker, "~> 0.7"},
+      # {:fake_nerves, path: "/home/connor/farmbot/os/fake_nerves"},
+      {:fake_nerves, github: "ConnorRigby/fake_nerves"} 
+    ]
   end
 
   def deps(:dev) do
