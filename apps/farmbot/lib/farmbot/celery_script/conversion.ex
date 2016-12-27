@@ -5,6 +5,7 @@ defmodule Farmbot.CeleryScript.Conversion do
   """
   alias RPC.Spec.Request, as: Req
   alias Farmbot.CeleryScript.Ast
+  alias Farmbot.CeleryScript.Command, as: CSCommand
   require Logger
 
   @spec rpc_to_celery_script(Req.t) :: :ok | :not_implemented
@@ -31,7 +32,7 @@ defmodule Farmbot.CeleryScript.Conversion do
                        body: []
                     },
                  speed: s}}
-    |> Farmbot.CeleryScript.Command.do_command
+    |> CSCommand.do_command
     :ok
   end
 
@@ -44,8 +45,8 @@ defmodule Farmbot.CeleryScript.Conversion do
     spawn fn() ->
       sequence
       |> Ast.parse
-      |> Farmbot.CeleryScript.Command.mutate_sequence(Map.get(sequence, "name"))
-      |> Farmbot.CeleryScript.Command.do_command
+      |> CSCommand.mutate_sequence(Map.get(sequence, "name"))
+      |> CSCommand.do_command
     end
     :ok
   end

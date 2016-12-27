@@ -6,6 +6,7 @@ defmodule Farmbot.BotState.Supervisor do
 
   use Supervisor
   require Logger
+  alias Farmbot.EasterEggs
   def init(initial_config) do
     children = [
       # Event manager.
@@ -36,7 +37,7 @@ defmodule Farmbot.BotState.Supervisor do
     # and then add the logger backent because the logger backend asks for stuff
     # like position and some configuraion.
     sup = Supervisor.start_link(__MODULE__, args)
-    Farmbot.EasterEggs.start_cron_job
+    EasterEggs.start_cron_job
     Logger.add_backend(Farmbot.Logger)
     sup
   end

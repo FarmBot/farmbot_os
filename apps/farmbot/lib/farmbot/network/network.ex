@@ -1,5 +1,4 @@
 defmodule Farmbot.Network do
-  # TODO MAKE THIS CONNECT TO THE WEB SOCKET IN CONFIGURATOR
   @moduledoc """
     Manages messages from a network event manager.
   """
@@ -7,16 +6,23 @@ defmodule Farmbot.Network do
   alias Farmbot.FileSystem.ConfigStorage, as: FBConfigStorage
   alias Farmbot.Configurator.EventManager, as: EM
   alias Farmbot.Network.ConfigSocket, as: SocketHandler
+  alias Farmbot.BotState
+  alias Nerves.InterimWiFi
+  alias Farmbot.Network.Hostapd
 
-  defmodule Interface, do: defstruct [:ipv4_address, :pid]
+  defmodule Interface do
+    @moduledoc """
+      A network interface struct.
+    """
+    defstruct [:ipv4_address, :pid]
+  end
+
   defmodule State do
+    @moduledoc false
     @enforce_keys [:manager, :hardware]
     defstruct [connected?: false, interfaces: %{}, manager: nil, hardware: nil]
     @type t :: %__MODULE__{connected?: boolean, interfaces: %{}, manager: pid}
   end
-
-  #Nerves.InterimWiFi.setup "wlan0", ssid: ssid, key_mgmt: :"WPA-PSK", psk: pass
-  #Nerves.InterimWiFi.setup "eth0"
 
   def start_link(hardware) do
     GenServer.start_link(__MODULE__, hardware, name: __MODULE__)
@@ -35,12 +41,12 @@ defmodule Farmbot.Network do
     # The module of the handler.
     handler = Module.concat([Farmbot,Network,Handler,hardware])
     # start (or forward) an event manager
-    {:ok, manager} = handler.manager
+    {:ok, emanager} = handler.manager
     # add the handler. (probably change this to a mon handler)
-    GenEvent.add_handler(manager, handler, {self(), config})
+    GenEvent.add_handler(emanager, handler, {self(), config})
 
     {:ok, %State{connected?: false,
-              manager: manager,
+              manager: emanager,
               hardware: hardware,
               interfaces: parse_config(config, hardware)}}
   end
@@ -49,7 +55,7 @@ defmodule Farmbot.Network do
     Logger.debug ">>'s #{interface} is connected: #{ip}"
     # I don't want either of these here.
     GenServer.cast(Farmbot.BotState.Authorization, :try_log_in)
-    Farmbot.BotState.set_time
+    BotState.set_time
 
     case Map.get(state.interfaces, interface) do
       %Interface{} = thing ->
@@ -62,7 +68,7 @@ defmodule Farmbot.Network do
         Logger.warn(
           ">> encountered something weird updating #{interface} "
           <> "state: #{inspect t}")
-        {:noreply, %State{state | connected?: true }}
+        {:noreply, %State{state | connected?: true}}
     end
   end
 
@@ -87,8 +93,8 @@ defmodule Farmbot.Network do
     {:reply, :todo, state}
   end
 
-  def handle_call({:up, iface, settings }, _, state) do
-    {:ok, pid} = Nerves.InterimWiFi.setup(iface, settings)
+  def handle_call({:up, iface, settings}, _, state) do
+    {:ok, pid} = InterimWiFi.setup(iface, settings)
     new_interface = %Interface{pid: pid}
     {:reply, pid, %State{state |
       interfaces: Map.put(state.interfaces, iface, new_interface)}}
@@ -120,7 +126,7 @@ defmodule Farmbot.Network do
   @doc """
     Gets the entire state. Will probably go away.
   """
-  def state, do: GenServer.call(__MODULE__, :state)
+  def get_state, do: GenServer.call(__MODULE__, :state)
   @doc """
     Brings down every interface that has been brought up.
   """
@@ -176,20 +182,20 @@ defmodule Farmbot.Network do
           ip = "192.168.24.1"
           Logger.debug ">> is starting hostapd client"
           handler = Module.concat([Farmbot,Network,Handler,hardware])
-          {:ok, manager} = handler.manager
+          {:ok, emanager} = handler.manager
           {:ok, pid} =
-            Farmbot.Network.Hostapd.start_link(
-            [interface: interface, ip_address: ip, manager: manager])
+            Hostapd.start_link(
+            [interface: interface, ip_address: ip, manager: emanager])
           {interface, %Interface{ipv4_address: ip, pid: pid}}
         "ethernet" ->
           Logger.debug ">> is starting ethernet client"
           interface_settings = parse_ethernet_settings(settings)
-          {:ok, pid} = Nerves.InterimWiFi.setup(interface, interface_settings)
+          {:ok, pid} = InterimWiFi.setup(interface, interface_settings)
           {interface, %Interface{pid: pid}}
         "wifi" ->
           Logger.debug ">> is starting wpa_supplicant client"
           interface_settings = parse_wifi_settings(settings)
-          {:ok, pid} = Nerves.InterimWiFi.setup(interface, interface_settings)
+          {:ok, pid} = InterimWiFi.setup(interface, interface_settings)
           {interface, %Interface{pid: pid}}
       end
     end)

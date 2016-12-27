@@ -193,7 +193,7 @@ defmodule Farmbot.BotState do
          System.cmd("killall", ["ntpd"])
          # sleep for a second
          Process.sleep(1000)
-         do_try_set_time(count+1)
+         do_try_set_time(count + 1)
      end
   end
   defp do_try_set_time(_) do
@@ -203,7 +203,7 @@ defmodule Farmbot.BotState do
   defp handle_port(port) do
     receive do
       # This is so ugly lol
-      {^port, {:data, "ntpd: bad address"<>_}} -> {:error, :bad_address}
+      {^port, {:data, "ntpd: bad address" <> _}} -> {:error, :bad_address}
       # print things that ntp says
       {^port, {:data, data}} ->
         IO.puts "ntp got stuff: #{data}"

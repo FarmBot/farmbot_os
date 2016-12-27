@@ -6,6 +6,7 @@ defmodule Farmbot.BotState.Authorization do
   require Logger
   alias Farmbot.Auth
   alias Farmbot.StateTracker
+  alias Farmbot.FileSystem
   @behaviour StateTracker
   use StateTracker,
     name: __MODULE__,
@@ -24,7 +25,6 @@ defmodule Farmbot.BotState.Authorization do
         load_me = :erlang.binary_to_term(secret)
       _ -> nil
     end
-    IO.inspect f
     {:ok, token} = maybe_get_token
     {:ok, server} = get_config(:server)
     {:ok, %State{token: token, secret: f, server: server}}
@@ -90,7 +90,8 @@ defmodule Farmbot.BotState.Authorization do
 
   defp try_log_in(%State{server: ser, secret: sec} = state)
   when is_nil(ser) or is_nil(sec) do
-    Logger.warn ">> wont log in because secret or server [#{inspect ser}] is wong."
+    Logger.warn ">> wont log in because secret " <>
+    "or server [#{inspect ser}] is wong."
     state
   end
 
@@ -118,7 +119,7 @@ defmodule Farmbot.BotState.Authorization do
 
   @spec save_secret(binary) :: :ok
   defp save_secret(secret) do
-    Farmbot.FileSystem.transaction fn() ->
+    FileSystem.transaction fn() ->
       saveme = :erlang.term_to_binary(secret)
       File.write("#{@data_path}/secret", saveme)
     end

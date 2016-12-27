@@ -65,7 +65,8 @@ defmodule Farmbot.RPC.Handler do
     # if this rpc command can be converted to celery script, to that
     case rpc_to_celery_script(rpc) do
       :ok ->
-        Logger.warn "#{rpc.method} was converted to a celery script (this is ok)"
+        Logger.warn "#{rpc.method} was converted to a " <>
+        "celery script (this is ok)"
         @transport.emit(ack_msg(rpc.id))
       _ -> do_handle(rpc)
     end

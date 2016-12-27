@@ -8,7 +8,11 @@ defmodule Farmbot.CeleryScript.Sequencer do
       State of the Sequencer.
     """
     alias Farmbot.CeleryScript.Ast
-    @type t :: %__MODULE__{name: String.t, sequence: Ast.t, step: Ast.t, nodes: [Ast.t]}
+    @type t ::
+      %__MODULE__{name: String.t,
+                  sequence: Ast.t,
+                  step: Ast.t,
+                  nodes: [Ast.t]}
     @enforce_keys [:name, :sequence, :step, :nodes]
     defstruct @enforce_keys
   end
@@ -33,15 +37,20 @@ defmodule Farmbot.CeleryScript.Sequencer do
   end
 
   @spec init({Ast.t, String.t}) :: {:ok, State.t}
+  @doc false
   def init({seq, name}) do
+    initial =
+      %State{step: List.first(seq.body),
+             sequence: seq,
+             name: name,
+             nodes: seq.body}
     # i really don't like doing this.
-    initial = %State{step: List.first(seq.body), sequence: seq, name: name, nodes: seq.body}
     tick
     {:ok, initial}
   end
 
   # i really dont like this
-  defp tick, do: Process.send_after(self, :tick, 500)
+  defp tick, do: Process.send_after(self, :tick, 100)
 
   # when we are on the last step.
   def handle_info(:tick,
@@ -59,7 +68,7 @@ defmodule Farmbot.CeleryScript.Sequencer do
     Command.do_command(state.step)
     [_h | new_nodes] = state.nodes
     tick
-    {:noreply, %State{state | nodes: new_nodes, step: List.first(new_nodes) }}
+    {:noreply, %State{state | nodes: new_nodes, step: List.first(new_nodes)}}
   end
 
   def terminate(:normal,state) do
@@ -70,4 +79,3 @@ defmodule Farmbot.CeleryScript.Sequencer do
     Logger.error ">> [#{state.name}] finished erronously."
   end
 end
-# Farmbot.Sync.get_sequence(1) |> Farmbot.CeleryScript.Ast.parse |> Farmbot.CeleryScript.Sequencer.start_link

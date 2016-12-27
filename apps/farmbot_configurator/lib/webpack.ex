@@ -25,7 +25,7 @@ defmodule WebPack do
   end
 
   def handle_info(stuff, port) do
-    IO.inspect stuff
+    IO.puts "unhandled stuff: #{inspect stuff}"
     {:noreply, port}
   end
 end

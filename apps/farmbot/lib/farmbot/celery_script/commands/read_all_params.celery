@@ -1,0 +1,18 @@
+@doc """
+  Reads all params
+    args: %{},
+    body: []
+"""
+@magic_numbers [0, 11,12,13, 21, 22, 23,31,32,
+                33,41,42,43, 51, 52, 53,61,62,
+                63,71,72,73,101,102, 103]
+@spec read_all_params(%{}, []) :: no_return
+def read_all_params(%{}, []) do
+  @magic_numbers
+  |> Enum.all?(fn(param) ->
+    parsed =
+      param
+      |> GcodeParser.parse_param
+    read_param(%{}, [parsed])
+  end)
+end

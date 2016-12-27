@@ -20,7 +20,13 @@ defmodule Farmbot.Mixfile do
      config_path: "../../config/config.exs",
      lockfile:    "../../mix.lock",
      aliases: aliases(Mix.env),
-     deps: deps(Mix.env) ]
+     deps: deps(Mix.env),
+     name: "Farmbot",
+     source_url: "https://github.com/Farmbot/farmbot_os",
+     homepage_url: "http://farmbot.io",
+     docs: [main: "farmbot", # The main page in the docs
+            extras: ["README.md"]]
+   ]
   end
 
   def application do
@@ -86,10 +92,6 @@ defmodule Farmbot.Mixfile do
       {:farmbot_configurator, in_umbrella: true},
       {:farmbot_auth, in_umbrella: true},
       {:farmbot_filesystem, in_umbrella: true}
-      # {:farmbot_auth, github: "Farmbot/farmbot_auth"},
-      # {:farmbot_auth, path: "../farmbot_auth"},
-      # {:farmbot_configurator, github: "Farmbot/farmbot_configurator"}
-      # {:farmbot_configurator, path: "../farmbot_configurator"}
     ]
   end
 
@@ -112,9 +114,8 @@ defmodule Farmbot.Mixfile do
 
   def deps(:dev) do
     deps ++ [
-      # {:fake_nerves, github: "ConnorRigby/fake_nerves"},
-      # {:fake_nerves, path: "../fake_nerves", override: true},
       {:credo, "~> 0.4"},
+      {:ex_doc, "~> 0.14", only: :dev},
       {:dialyxir, "~> 0.4"}]
   end
 

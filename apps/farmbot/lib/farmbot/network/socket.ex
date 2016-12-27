@@ -1,18 +1,24 @@
 defmodule Farmbot.Network.ConfigSocket do
+  @moduledoc """
+    Handles the websocket connection from the frontend.
+  """
   alias RPC.Spec.Notification
   alias RPC.Spec.Request
   alias RPC.Spec.Response
+
   alias Farmbot.Configurator.EventManager, as: EM
-  alias Farmbot.FileSystem.ConfigStorage, as: CS
   import RPC.Parser
+  import Farmbot.RPC.Requests
+  alias Farmbot.FileSystem
+  alias Farmbot.FileSystem.ConfigStorage, as: CS
+  alias Farmbot.Network
+  alias Farmbot.BotState
   use GenEvent
   require Logger
-  import Farmbot.RPC.Requests
 
   def init([]), do: {:ok, []}
 
   def handle_event({:from_socket, message}, state) do
-    # IO.inspect message
     message |> parse |> handle_socket
     {:ok, state}
   end
@@ -25,7 +31,7 @@ defmodule Farmbot.Network.ConfigSocket do
              params: _})
   do
     Logger.debug ">> got request to get entire config file."
-    {:ok, read} =  Farmbot.FileSystem.ConfigStorage.read_config_file
+    {:ok, read} =  CS.read_config_file
     thing = read |> Poison.decode!
     %Response{id: id, result: Poison.encode!(thing), error: nil}
     |> Poison.encode!
@@ -73,23 +79,24 @@ defmodule Farmbot.Network.ConfigSocket do
     # event handler waiting for networking to restart
     # and networking waiting for this app to finish its event
     # which is waiting for networking to wait for this event etc.
-    spawn fn() -> Farmbot.Network.restart end
+    spawn fn() -> Network.restart end
   end
 
   def handle_socket(
     %Request{id: id,
              method: "web_app_creds",
-             params: [%{"email" =>  email, "pass" => pass, "server" => server}]})
+             params: [%{"email" =>  email,
+                        "pass" => pass, "server" => server}]})
   do
     Logger.debug ">> Received web app credentials"
-    Farmbot.BotState.add_creds {email, pass, server}
+    BotState.add_creds {email, pass, server}
     %Response{id: id, result: "OK", error: nil}
     |> Poison.encode!
     |> send_socket
   end
 
   def handle_socket(%Request{} = request) do
-    handle_request(request.method, request.params) |> respond(request)
+    request.method |> handle_request(request.params) |> respond(request)
   end
 
   def handle_socket(%Notification{} = notification) do
@@ -109,7 +116,8 @@ defmodule Farmbot.Network.ConfigSocket do
   end
 
   defp respond(:ok, %Request{} = request) do
-    Response.create(%{"id" => request.id, "result" => "ok", "error" => nil})
+    %{"id" => request.id, "result" => "ok", "error" => nil}
+    |> Response.create
     |> Poison.encode! |> send_socket
   end
 

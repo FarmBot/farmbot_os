@@ -1,11 +1,16 @@
 defmodule Farmbot.Network.Hostapd do
   @moduledoc """
-    Ports for days.
+    Manages an OS process of hostapd and DNSMASQ.
   """
-  defmodule State, do: defstruct [:hostapd, :dnsmasq, :interface, :ip_addr, :manager]
+
+  defmodule State do
+    @moduledoc false
+    defstruct [:hostapd, :dnsmasq, :interface, :ip_addr, :manager]
+  end
+
   use GenServer
   require Logger
-  # @ip_addr "192.168.24.1"
+
   @hostapd_conf_file "hostapd.conf"
   @hostapd_pid_file  "hostapd.pid"
 
@@ -14,7 +19,8 @@ defmodule Farmbot.Network.Hostapd do
 
   @doc """
     Example:
-      Iex> Hostapd.start_link ip_address: "192.168.24.1", manager: Farmbot.Network.Manager, interface: "wlan0"
+      Iex> Hostapd.start_link ip_address: "192.168.24.1",
+      ...> manager: Farmbot.Network.Manager, interface: "wlan0"
   """
   def start_link(
     [interface: interface, ip_address: ip_addr, manager: manager])
@@ -25,6 +31,10 @@ defmodule Farmbot.Network.Hostapd do
           name: name)
   end
 
+  # Don't lint this. Its not too complex credo.
+  # No but really TODO: make this a little less complex.
+  @lint false
+  @doc false
   def init([interface: interface, ip_address: ip_addr, manager: manager]) do
     # We want to know if something does.
     Process.flag :trap_exit, true
@@ -38,7 +48,8 @@ defmodule Farmbot.Network.Hostapd do
     # build a config file
     File.mkdir! "/tmp/hostapd"
     File.write! "/tmp/hostapd/#{@hostapd_conf_file}", hostapd_conf
-    hostapd_cmd = "hostapd -P /tmp/hostapd/#{@hostapd_pid_file} /tmp/hostapd/#{@hostapd_conf_file}"
+    hostapd_cmd = "hostapd -P /tmp/hostapd/#{@hostapd_pid_file} " <>
+                  "/tmp/hostapd/#{@hostapd_conf_file}"
     hostapd_port = Port.open({:spawn, hostapd_cmd}, [:binary])
     hostapd_os_pid = Port.info(hostapd_port) |> Keyword.get(:os_pid)
 
@@ -47,7 +58,9 @@ defmodule Farmbot.Network.Hostapd do
     dnsmasq_conf = build_dnsmasq_conf(ip_addr)
     File.mkdir!("/tmp/dnsmasq")
     :ok = File.write("/tmp/dnsmasq/#{@dnsmasq_conf_file}", dnsmasq_conf)
-    dnsmasq_cmd = "dnsmasq -k --dhcp-lease /tmp/dnsmasq/#{@dnsmasq_pid_file} --conf-dir=/tmp/dnsmasq"
+    dnsmasq_cmd = "dnsmasq -k --dhcp-lease " <>
+                  "/tmp/dnsmasq/#{@dnsmasq_pid_file} " <>
+                  "--conf-dir=/tmp/dnsmasq"
     dnsmasq_port = Port.open({:spawn, dnsmasq_cmd}, [:binary])
     dnsmasq_os_pid = Port.info(dnsmasq_port) |> Keyword.get(:os_pid)
 
@@ -59,6 +72,7 @@ defmodule Farmbot.Network.Hostapd do
     {:ok,state}
   end
 
+  @lint false # don't lint this because piping System.cmd looks weird to me.
   defp hostapd_ip_settings_up(interface, ip_addr) do
     :ok =
       System.cmd("ip", ["link", "set", "#{interface}", "up"])
@@ -69,6 +83,7 @@ defmodule Farmbot.Network.Hostapd do
     :ok
   end
 
+  @lint false # don't lint this because piping System.cmd looks weird to me.
   defp hostapd_ip_settings_down(interface, ip_addr) do
     :ok =
       System.cmd("ip", ["link", "set", "#{interface}", "down"])
@@ -94,9 +109,11 @@ defmodule Farmbot.Network.Hostapd do
   end
 
   defp build_ssid do
-    node_str = node |> Atom.to_string
-    [name, "nerves-"<>id] = node_str |> String.split("@")
-    name<>"-"<>id
+    node_str =
+      node |> Atom.to_string
+    [name, "nerves-" <> id] =
+      node_str |> String.split("@")
+    name <> "-" <> id
   end
 
   defp build_dnsmasq_conf(ip_addr) do
@@ -116,10 +133,11 @@ defmodule Farmbot.Network.Hostapd do
     """
   end
 
+  @lint false # don't lint this because piping System.cmd looks weird to me.
   defp kill(os_pid),
     do: :ok = System.cmd("kill", ["15", "#{os_pid}"]) |> print_cmd
 
-  defp print_cmd({_, 0}), do: :ok
+defp print_cmd({_, 0}), do: :ok
   defp print_cmd({res, num}) do
     Logger.error ">> encountered an error (#{num}): #{res}"
     :error

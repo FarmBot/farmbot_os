@@ -8,7 +8,7 @@ defmodule Farmbot.Serial.Handler do
     Handles serial messages and keeping ports alive.
   """
   require Logger
-  @baud 115200
+  @baud 115_200
 
   def init(:prod) do
     Process.flag(:trap_exit, true)

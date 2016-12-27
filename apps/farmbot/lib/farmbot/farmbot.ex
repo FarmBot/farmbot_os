@@ -55,5 +55,9 @@ defmodule Farmbot do
           [%{target: target, compat_version: compat_version,
              version: version, env: env}])
   end
+  @lint false
+  @doc """
+    Factory Resets your Farmbot.
+  """
   def factory_reset, do: Farmbot.FileSystem.factory_reset
 end

@@ -78,7 +78,7 @@ defmodule Farmbot.BotState.Configuration do
   # Returns true for configs that exist and are the correct typpe,
   # and false for anything else
   # TODO make sure these are properly typed.
-  # probably BUG: thses shouldn't be strings anymore i dont think? 
+  # probably BUG: thses shouldn't be strings anymore i dont think?
   def handle_call({:update_config, "os_auto_update", value},
     _from, %State{} = state)
   when is_boolean(value) do

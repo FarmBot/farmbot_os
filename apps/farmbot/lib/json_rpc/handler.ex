@@ -9,7 +9,8 @@ defmodule RPC.MessageHandler do
   @doc """
     Requires configuration of a handler.
     Handler requires a callback of handle_incoming/1 to be defined
-    which takes a parsed rpc message. Should probably make @handler a behavior
+    which takes a parsed rpc message. Should probably
+    make @handler a behavior
     and document it. l o l.
   """
 

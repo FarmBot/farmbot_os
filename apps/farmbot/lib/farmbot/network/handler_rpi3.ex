@@ -2,11 +2,20 @@ defmodule Module.concat([Farmbot, Network, Handler, "rpi3"]) do
   @moduledoc """
     Event manager for network on Raspberry Pi 3
   """
-  defmodule State, do: defstruct [:parent]
+
+  defmodule State do
+    @moduledoc false
+    @type t :: %__MODULE__{parent: pid | nil}
+    defstruct [:parent]
+  end
+
   @behaviour Farmbot.Network.Handler
   require Logger
+  alias Nerves.NetworkInterface
 
-  def manager, do: {:ok, Nerves.NetworkInterface.event_manager}
+  @doc false
+  def manager, do: {:ok, NetworkInterface.event_manager}
+  @doc false
   def init({parent, _config}) do
     Process.flag :trap_exit, true
     Logger.debug ">> rpi3 networking handler starting."

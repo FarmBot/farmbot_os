@@ -87,11 +87,11 @@ defmodule Farmbot.EasterEggs do
   end
 
   @doc """
-    Says a random sentence every ten minutes by default.
+    Says a random sentence every twenty minutes by default.
   """
   @lint false # i dont want to alias Quantum.
   @spec start_cron_job(binary) :: :ok
-  def start_cron_job(schedule \\ "*/10 * * * *") do
+  def start_cron_job(schedule \\ "*/20 * * * *") do
     job = %Quantum.Job{
             schedule: schedule,
             task: fn -> Farmbot.EasterEggs.say_random_sentence end}

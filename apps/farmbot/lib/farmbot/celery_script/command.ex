@@ -10,75 +10,35 @@ defmodule Farmbot.CeleryScript.Command do
   alias Farmbot.CeleryScript.Ast
   alias Farmbot.CeleryScript.Sequencer
   alias Farmbot.Serial.Gcode.Handler, as: GcodeHandler
+  alias Farmbot.Serial.Gcode.Parser, as: GcodeParser
   alias Farmbot.BotState
   use Amnesia
-  alias Farmbot.Sync.Database.Tool
+  alias Amnesia.Selection
+  alias Farmbot.Sync
+  alias Farmbot.Sync.Databse
+  alias Sync.Database.Tool
+  alias Sync.Database.Sequence
+  alias Sync.Database.ToolSlot
   use Tool
-  alias Farmbot.Sync.Database.ToolSlot
   use ToolSlot
-  alias Farmbot.Sync.Database.Sequence
   use Sequence
+
+  use Farmbot.CeleryScript.Command.Builder
+
 
   @type nobod :: []
   @nobod []
   @type noargs :: %{}
   @noargs %{}
 
-  @doc """
-    move_absolute:
-      args: %{location: "coordinate",
-              offset: "coordinate",
-              speed: integer}
-     body: []
-  """
-  @spec move_absolute(%{location: coordinate | tool,
-    offset: coordinate,
-    speed: integer}, []) :: no_return
-  def move_absolute(
-    %{location: %Ast{kind: "coordinate", args: %{x: x, y: y, z: z}, body: []},
-      offset:  %Ast{kind: "coordinate", args: %{x: xa, y: ya, z: za}, body: []},
-      speed: s}, [])
-  do
-    GcodeHandler.block_send("G00 X#{x + xa} Y#{y + ya} Z#{z + za} S#{s}")
-  end
-
-  def move_absolute(
-    %{location: %Ast{kind: "coordinate", args: %{x: x, y: y, z: z}, body: []},
-      offset:   %Ast{kind: "nothing", args: %{}, body: []},
-      speed: s}, [])
-  do
-    GcodeHandler.block_send("G00 X#{x} Y#{y} Z#{z} S#{s}")
-  end
-
-  # we want to move to the location of a tool
-  # so we get the tool from this node
-  # find its location (tool_slot)
-  # then turn that location into a coordinate, and move
-  # to that coord.
-  def move_absolute(
-    %{location: %Ast{kind: "tool",
-                     args: %{tool_id: _id} = tool_args,
-                     body: [] = tool_body},
-      offset:   offset,
-      speed: s}, [])
-  do
-    # get the tool from the db
-    case tool(tool_args, tool_body) do
-      nil ->
-        Logger.error ">> failed to find tool!"
-        {:error, :no_tool}
-      %Tool{} = t ->
-        # tool -> toolslot -> coordinate
-        coord = get_slot_from_tool(t)
-        move_absolute(%{location: coord, offset: offset, speed: s}, @nobod)
-    end
-  end
+  # TODO: Move everythign below this into this format.
+  import_all_commands
 
   @spec get_slot_from_tool(Tool.t) :: coordinate
   defp get_slot_from_tool(%Tool{} = t) do
     Amnesia.transaction do
       sel = ToolSlot.where tool_id == t.id
-      [slot] = Amnesia.Selection.values(sel)
+      [slot] = Selection.values(sel)
       coordinate(%{x: slot.x, y: slot.y, z: slot.z}, [])
     end
   end
@@ -100,7 +60,7 @@ defmodule Farmbot.CeleryScript.Command do
   # helper to turn the bots state to a coordinate ast node
   @spec current_position_to_coord :: coordinate
   defp current_position_to_coord do
-    [cx, cy, cz] = Farmbot.BotState.get_current_pos
+    [cx, cy, cz] = BotState.get_current_pos
     coordinate(%{x: cx, y: cy, z: cz}, @nobod)
   end
 
@@ -133,7 +93,7 @@ defmodule Farmbot.CeleryScript.Command do
   @type tool :: %Ast{kind: String.t, args: %{tool_id: integer}, body: []}
   @spec tool(%{tool_id: integer}, []) :: Tool.t | nil
   def tool(%{tool_id: id}, []) do
-    Farmbot.Sync.get_tool(id)
+    Sync.get_tool(id)
   end
 
   @doc """
@@ -200,7 +160,7 @@ defmodule Farmbot.CeleryScript.Command do
 
   # this is pretty basic right now but will change later
   defp get_templates do
-    [x, y, z] = Farmbot.BotState.get_current_pos
+    [x, y, z] = BotState.get_current_pos
     %{x: x, y: y, z: z}
   end
 
@@ -223,7 +183,7 @@ defmodule Farmbot.CeleryScript.Command do
     %Ast{kind: String.t, args: %{sub_sequence_id: integer}, body: nobod}
   @spec execute(%{sub_sequence_id: integer}, nobod) :: no_return
   def execute(%{sub_sequence_id: id}, @nobod) do
-    case Farmbot.Sync.get_sequence(id) do
+    case Sync.get_sequence(id) do
       nil ->
         Logger.error ">> could not find sequence!"
       %Sequence{} = seq ->
@@ -270,7 +230,7 @@ defmodule Farmbot.CeleryScript.Command do
           rhs: integer,
           op: String.t,
           _else: execute | _if | nothing,
-          _then: execute | nothing }
+          _then: execute | nothing}
   @spec _if(_if_args, nobod) :: no_return
   def _if(%{lhs: lhs, rhs: rhs, op: op, _else: else_, _then: then_}, @nobod) do
     l = lhs |> parse_lhs
