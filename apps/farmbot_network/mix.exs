@@ -1,8 +1,8 @@
-defmodule Farmbot.Filesystem.Mixfile do
+defmodule FarmbotNetwork.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :farmbot_filesystem,
+    [app: :farmbot_network,
      version: "0.1.0",
      build_path: "../../_build",
      config_path: "../../config/config.exs",
@@ -15,14 +15,15 @@ defmodule Farmbot.Filesystem.Mixfile do
   end
 
   def application do
-    [
-      mod: {Farmbot.FileSystem, [%{env: Mix.env, target: target(Mix.env)}]},
-      applications: [:logger]
-    ]
+    [applications: [:logger, :poison, :nerves_interim_wifi],
+     mod: {Farmbot.Network, [%{hardware: target(Mix.env)}]}]
   end
 
-  defp deps, do: []
-
+  defp deps, do: [
+    {:poison, "~> 3.0"},
+    {:json_rpc, in_umbrella: true},
+    {:nerves_interim_wifi, "~> 0.1.0"}
+  ]
   defp target(:prod), do: System.get_env("NERVES_TARGET") || "rpi3"
   defp target(_), do: "development"
 end

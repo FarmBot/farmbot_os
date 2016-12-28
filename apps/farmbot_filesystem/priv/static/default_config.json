@@ -11,5 +11,6 @@
   },
   "hardware":{
     "params":{}
-  }
+  },
+  "ntp": false
 }
