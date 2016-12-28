@@ -15,7 +15,7 @@ defmodule Farmbot.CeleryScript.Command do
   use Amnesia
   alias Amnesia.Selection
   alias Farmbot.Sync
-  alias Farmbot.Sync.Databse
+  # alias Farmbot.Sync.Databse
   alias Sync.Database.Tool
   alias Sync.Database.Sequence
   alias Sync.Database.ToolSlot

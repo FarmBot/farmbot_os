@@ -6,6 +6,7 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Client do
   use GenMQTT
   require Logger
   alias RPC.MessageManager
+  alias Farmbot.Token
 
   def init(%Token{} = token) do
     {:ok, token}

@@ -37,5 +37,5 @@ defmodule Farmbot.CeleryScript.Command.Builder do
     end
   end
 
-  defp d, do: "./lib/farmbot/celery_script/commands"
+  defp d, do: "./lib/celery_script/commands"
 end

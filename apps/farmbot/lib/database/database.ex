@@ -17,6 +17,7 @@ defmodule Farmbot.Sync do
   alias Farmbot.Sync.Helpers
   alias Farmbot.Auth
   alias Farmbot.BotState
+  alias Farmbot.Token
 
   defdatabase Database do
     use Amnesia
@@ -56,9 +57,7 @@ defmodule Farmbot.Sync do
     Downloads the sync object form the API.
   """
   def sync do
-    # TODO MAKE THIS MORE GENERIC SO I CAN USE IT FOR GENERIC API REQUESTS
-    with {:ok, json_token}  <- fetch_token,
-         {:ok, token}       <- Token.create(json_token),
+    with {:ok, token}       <- fetch_token,
          {:ok, server}      <- fetch_server,
          {:ok, resp}        <- fetch_sync_object(server, token),
          {:ok, json}        <- parse_http(resp),
@@ -134,21 +133,12 @@ defmodule Farmbot.Sync do
   @doc """
     Gets a token from Auth
   """
-  def fetch_token do
-    case Auth.get_token do
-      nil -> {:error, :no_token}
-      {:error, reason} -> {:error, reason}
-      json_token -> {:ok, json_token}
-    end
-  end
+  def fetch_token, do: Auth.get_token
 
-  def fetch_server do
-    case BotState.get_server do
-      nil -> {:error, :no_server}
-      {:error, reason} -> {:error, reason}
-      server -> {:ok, server}
-    end
-  end
+  @doc """
+    Gets the server from Auth.
+  """
+  def fetch_server, do: Auth.get_server
 
   @doc """
     Tries to do an HTTP request on server/api/sync

@@ -1,10 +1,9 @@
 alias Farmbot.BotState.Hardware.State,      as: Hardware
 alias Farmbot.BotState.Configuration.State, as: Configuration
-alias Farmbot.BotState.Authorization.State, as: Authorization
+# alias Farmbot.BotState.Authorization.State, as: Authorization
 alias Farmbot.Scheduler.State.Serializer,   as: Scheduler
 
 defmodule Farmbot.BotState.Monitor do
-  # TODO This should probably use ETS or something its kind of slow.
   @moduledoc """
     this is the master state tracker. It receives the states from
     various modules, and then pushes updated state to anything that cares
@@ -17,14 +16,14 @@ defmodule Farmbot.BotState.Monitor do
     @type t :: %__MODULE__{
       hardware:      Hardware.t,
       configuration: Configuration.t,
-      authorization: Authorization.t,
+      # authorization: Authorization.t,
       # Seperate
       scheduler:     Scheduler.t
     }
     defstruct [
       hardware:      %Hardware{},
       configuration: %Configuration{},
-      authorization: %Authorization{},
+      # authorization: %Authorization{},
       scheduler:     %Scheduler{}
     ]
   end
@@ -41,7 +40,8 @@ defmodule Farmbot.BotState.Monitor do
     Adds a handler for getting state updates.
   """
   def add_handler(mgr, module, initial_state)
-  when is_atom(module) do
+    when is_atom(module)
+  do
     GenEvent.add_mon_handler(mgr, module, initial_state)
   end
 
@@ -49,6 +49,9 @@ defmodule Farmbot.BotState.Monitor do
     GenServer.cast(__MODULE__, {:add_handler, module, initial_state})
   end
 
+  @doc """
+    Removes a handler
+  """
   def remove_handler(module, args \\ []) do
     GenServer.cast(__MODULE__, {:remove_handler, module, args})
   end
@@ -79,43 +82,17 @@ defmodule Farmbot.BotState.Monitor do
     dispatch(mgr, new_state)
   end
 
-  # When we get a state update from Authorization
-  def handle_cast(%Authorization{} = new_things, {mgr, state}) do
-    new_state = %State{state | authorization: new_things}
-    dispatch(mgr, new_state)
-  end
+  # # When we get a state update from Authorization
+  # def handle_cast(%Authorization{} = new_things, {mgr, state}) do
+  #   new_state = %State{state | authorization: new_things}
+  #   dispatch(mgr, new_state)
+  # end
 
   # When we get a state update from Scheduler
   def handle_cast(%Scheduler{} = new_things, {mgr, state}) do
     new_state = %State{state | scheduler: new_things}
     dispatch(mgr, new_state)
   end
-  #
-  # def handle_cast({:login,
-  #   %{"email" => email,
-  #     "network" => "ethernet",
-  #     "password" => password,
-  #     "server" => server,
-  #     "tz" => timezone}}, {mgr, state})
-  # do
-  #   BotState.update_config("timezone", timezone)
-  #   BotState.add_creds({email,password,server})
-  #   # NetMan.connect(:ethernet, BotState.Network)
-  #   dispatch(mgr,state)
-  # end
-  #
-  # def handle_cast({:login,
-  #   %{"email" => email,
-  #     "network" => %{"psk" => psk, "ssid" => ssid},
-  #     "password" => password,
-  #     "server" => server,
-  #     "tz" => timezone}}, {mgr, state})
-  # do
-  #   BotState.update_config("timezone", timezone)
-  #   BotState.add_creds({email,password,server})
-  #   # NetMan.connect({ssid, psk}, BotState.Network)
-  #   dispatch(mgr,state)
-  # end
 
   def handle_cast(:force_dispatch, {mgr, state}), do: dispatch(mgr, state)
 

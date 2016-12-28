@@ -7,10 +7,11 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
   use GenServer
   require Logger
   alias Farmbot.Auth
+  alias Farmbot.Token
 
   def init(_args) do
     Process.flag(:trap_exit, true)
-    case Auth.get_token |> Token.create do
+    case Auth.get_token do
       {:ok, %Token{} = token} ->
         {:ok, {token, start_client(token)}}
       _ ->
@@ -46,14 +47,13 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
   end
 
   # We got a token and are not connected to mqtt yet.
-  def handle_info({:authorization, maybe_token}, {_, nil}) do
-    token = Token.create!(maybe_token)
+  def handle_info({:authorization, token}, {_, nil}) do
     {:noreply, {token, start_client(token)}}
   end
 
-  def handle_info({:authorization, maybe_token}, {_, pid})
+  # This works but casuses a very ugly crash message. refactor?
+  def handle_info({:authorization, token}, {_, pid})
   when is_pid(pid) do
-    token = Token.create!(maybe_token)
     stop_client(pid)
     {:noreply, {token, start_client(token)}}
   end
@@ -62,6 +62,11 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
   when client == pid do
     # restart the client if it dies.
     {:noreply, {token, start_client(token)}}
+  end
+
+  # catch any other random info.
+  def handle_info(info, state) do
+    {:noreply, state}
   end
 
   @spec emit(binary) :: :ok
