@@ -37,18 +37,20 @@ defmodule Farmbot.HTTP do
   @type headers :: ["Content-Type": String.t, "Authorization": String.t]
   @spec build_auth :: {:ok, headers} | {:error, term}
   defp build_auth do
-    with {:ok, json_token} <- Auth.get_token,
-         {:ok, token} <- Token.create(json_token),
-    do:
+    with {:ok, %Token{} = token} <- Auth.get_token
+    do
       {:ok,
         ["Content-Type": "application/json",
          "Authorization": "Bearer " <> token.encoded]}
+    else
+      _ -> {:error, :no_token}
+    end
   end
 
   defp fetch_server do
     case Auth.get_server do
-      nil -> {:error, :no_server}
-      server -> {:ok, server}
+      {:ok, nil} -> {:error, :no_server}
+      {:ok, server} -> {:ok, server}
     end
   end
 end
