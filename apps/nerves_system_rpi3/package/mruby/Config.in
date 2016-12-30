@@ -1,0 +1,5 @@
+config BR2_PACKAGE_MRUBY
+	bool "mruby"
+	help
+    mruby interpreter
+	  https://github.com/mruby/mruby
