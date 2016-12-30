@@ -3,7 +3,7 @@ defmodule SyncableTest do
   use ExUnit.Case, async: true
   use Amnesia
 
-  import Syncable
+  import Farmbot.Syncable
   defdatabase TestDB do
     use Amnesia
     syncable Person, [:legs, :arms]

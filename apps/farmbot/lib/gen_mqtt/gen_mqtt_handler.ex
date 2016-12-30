@@ -9,7 +9,7 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
   alias Farmbot.Auth
   alias Farmbot.Token
 
-  def init(_args) do
+  def init([]) do
     Process.flag(:trap_exit, true)
     case Auth.get_token do
       {:ok, %Token{} = token} ->
@@ -19,8 +19,8 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Handler do
     end
   end
 
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
+  def start_link() do
+    GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
   @spec start_client(Token.t) :: pid

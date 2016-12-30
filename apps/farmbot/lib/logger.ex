@@ -5,8 +5,6 @@ defmodule Farmbot.Logger do
     jsonified, adds them too a buffer, when that buffer hits a certain
     size, it tries to dump the messages onto the API.
   """
-  @rpc_transport Application.get_env(:json_rpc, :transport)
-  alias RPC.Spec.Notification, as: Notification
   alias Farmbot.Sync
   alias Farmbot.HTTP
   alias Farmbot.BotState
@@ -51,7 +49,7 @@ defmodule Farmbot.Logger do
          {:ok, json} <- build_rpc(log),
          # ^ This will possible return nil if it cant create json.
          # it will silently be discarded.
-         :ok <- @rpc_transport.emit(json),
+        #  :ok <- @rpc_transport.emit(json), # FIXME SEND LOG MESSAGE HERE
          # make sure we add the non json version of the log message.
          do: dispatch({messages ++ [log], posting?}))
     # if we got nil before, dont dispatch the new message into the buffer
@@ -104,7 +102,10 @@ defmodule Farmbot.Logger do
   # i just wanted the dump function to pipe into emit.
   @spec emit({:ok, binary} | binary) :: :ok
   defp emit({:ok, binary}), do: emit(binary)
-  defp emit(binary), do: @rpc_transport.emit(binary)
+  defp emit(binary) do
+    # @rpc_transport.emit(binary) # FIXME SEND LOG MESSAGE HERE
+    :ok
+  end
 
   # Dont know if this can happen but just in case.
   defp dispatch(Farmbot.Logger), do: {:ok, build_state}
@@ -231,22 +232,18 @@ defmodule Farmbot.Logger do
   # safety
   @spec build_rpc(map) :: {:ok, binary} | nil
   defp build_rpc(msg) do
-    %Notification{
-      id: nil,
-      method: "log_message",
-      params: [msg]}
-    |> to_json
+    IO.warn "FIXME LOG MESSAGE"
+    "uh"
+    # |> to_json
   end
 
   # Takes a list of rpc log messages
   @spec build_rpc_dump(log_message) :: {:ok, binary} | nil
   defp build_rpc_dump(rpc_logs)
   when is_list(rpc_logs) do
-    %Notification{
-      id: nil,
-      method: "log_dump",
-      params:  rpc_logs}
-    |> to_json
+    IO.warn "FIXME LOG MESSAGE"
+    "uh"
+    # |> to_json
   end
 
   @spec to_json(map) :: {:ok, binary} | nil

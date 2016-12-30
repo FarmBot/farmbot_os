@@ -15,6 +15,9 @@ defmodule Farmbot.CeleryScript.Ast do
     Parses json and traverses the tree and turns everything can
     possibly be parsed.
   """
+  @spec parse({:ok, map}) :: t
+  def parse({:ok, map}), do: parse(map) # this allows me to pipe from Poison
+
   @spec parse(map) :: t
   def parse(%{"kind" => kind, "args" => args, "body" => body}) do
     %__MODULE__{kind: kind, args: parse_args(args), body: parse(body)}
@@ -29,6 +32,8 @@ defmodule Farmbot.CeleryScript.Ast do
   def parse(%{kind: kind, args: args, body: body}) do
     %__MODULE__{kind: kind, args: parse_args(args), body: parse(body)}
   end
+
+  def parse(_), do: %__MODULE__{kind: "nothing", args: %{}, body: []}
 
   # The body is technically optional
   def parse(%{kind: kind, args: args}) do

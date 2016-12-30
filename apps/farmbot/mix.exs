@@ -33,7 +33,7 @@ defmodule Farmbot.Mixfile do
     [mod: {Farmbot, [%{target: target(Mix.env), compat_version: @compat_version,
                        version: @version, env: Mix.env}]},
      applications: apps(Mix.env),
-     included_applications: [:gen_mqtt, :json_rpc]]
+     included_applications: [:gen_mqtt]]
   end
 
   # common for test, prod, and dev
@@ -85,8 +85,7 @@ defmodule Farmbot.Mixfile do
       {:farmbot_configurator, in_umbrella: true},
       {:farmbot_auth, in_umbrella: true},
       {:farmbot_filesystem, in_umbrella: true},
-      {:farmbot_network, in_umbrella: true},
-      {:json_rpc, in_umbrella: true}
+      {:farmbot_network, in_umbrella: true}
     ]
   end
 

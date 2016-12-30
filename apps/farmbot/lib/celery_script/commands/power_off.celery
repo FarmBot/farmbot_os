@@ -1,7 +1,0 @@
-@doc """
-  Power Off
-    args: %{}
-    body: []
-"""
-@spec poweroff(%{}, []) :: no_return
-def poweroff(%{}, []), do: Nerves.Firmware.poweroff

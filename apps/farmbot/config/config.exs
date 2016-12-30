@@ -13,10 +13,6 @@ config :iex, :colors,
 config :farmbot_auth,
   callbacks: [Farmbot.RPC.Transport.GenMqtt.Handler]
 
-config :json_rpc,
-  transport: Farmbot.RPC.Transport.GenMqtt.Handler,
-  handler:   Farmbot.RPC.Handler
-
 # Move this?
 config :quantum, cron: [
   "5 1 * * *": {Farmbot.Updates.Handler, :do_update_check}

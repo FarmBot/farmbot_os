@@ -93,9 +93,4 @@ defmodule Farmbot.BotState.Hardware do
                  "in Hardware tracker: #{inspect event}"
     dispatch state
   end
-
-  def handle_info(:params_hack, %State{} = state) do
-    spawn fn -> Command.read_all_params end
-    dispatch state
-  end
 end

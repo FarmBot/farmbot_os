@@ -56,5 +56,4 @@ defmodule Farmbot.Configurator.SocketHandler do
     lazy_id = :os.system_time(:seconds) |> Integer.to_string
     Poison.encode! %{"id" => lazy_id, "method" => "ping", "params" => [] }
   end
-
 end

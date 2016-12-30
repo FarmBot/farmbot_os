@@ -1,4 +1,4 @@
-defmodule Syncable do
+defmodule Farmbot.Syncable do
   use Amnesia
   @moduledoc """
     Creates a syncable object from Farmbot's rest api.
@@ -119,7 +119,7 @@ defmodule Syncable do
     quote do
       deftable unquote(module)
       deftable unquote(module), unquote(model), type: :bag do
-        use Syncable, name: __MODULE__, model: unquote(model)
+        use Farmbot.Syncable, name: __MODULE__, model: unquote(model)
         @moduledoc """
           A #{unquote(module)} from the API.
           \nRequires: #{inspect unquote(model)}

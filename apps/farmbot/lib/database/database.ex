@@ -13,7 +13,8 @@ defmodule Farmbot.Sync do
         * must return {:ok, new_thing}
   """
   use Amnesia
-  import Syncable
+  alias Farmbot.Syncable
+  import Farmbot.Syncable
   alias Farmbot.Sync.Helpers
   alias Farmbot.Auth
   alias Farmbot.BotState

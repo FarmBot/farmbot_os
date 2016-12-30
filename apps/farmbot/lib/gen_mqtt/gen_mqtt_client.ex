@@ -5,32 +5,27 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Client do
   """
   use GenMQTT
   require Logger
-  alias RPC.MessageManager
   alias Farmbot.Token
+  alias Farmbot.CeleryScript.Ast
 
-  def init(%Token{} = token) do
-    {:ok, token}
-  end
+  def init(%Token{} = token), do: {:ok, token}
 
-  def init(maybe_token), do: Token.create(maybe_token)
-
+  @doc """
+    Starts a mqtt client.
+  """
   def start_link(%Token{} = token) do
     GenMQTT.start_link(__MODULE__, token, build_opts(token))
   end
 
   def on_connect(%Token{} = token) do
-    GenMQTT.subscribe(self(), bot_topic(token), 0)
+    GenMQTT.subscribe(self(), [{bot_topic(token), 0}])
     Logger.debug ">> is up and running!"
     {:ok, token}
   end
 
-  def on_publish(["bot", bot, "from_clients"], msg, %Token{} = token) do
-    with true <- bot == token.unencoded.bot,
-    do:
-      msg
-      |> Poison.decode!
-      |> MessageManager.sync_notify
-      {:ok, token}
+  def on_publish(["bot", _bot, "from_clients"], msg, %Token{} = token) do
+    Logger.warn "FIXME need to put this message on the stack?: #{inspect Poison.decode(msg)}"
+    {:ok, token}
   end
 
   def handle_info({:emit, binary}, %Token{} = token) do
@@ -39,9 +34,7 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Client do
   end
 
   # this is not a erronous situation, so don't alert.
-  def terminate(:new_token, _) do
-    :ok
-  end
+  def terminate(:new_token, _), do: :ok
 
   def terminate(reason, _) do
     Logger.error ">>`s mqtt client died. #{inspect reason}"
@@ -79,11 +72,6 @@ defmodule Farmbot.RPC.Transport.GenMqtt.Client do
           x: -1,
           y: -1,
           z: -1}}
-
-      %RPC.Spec.Notification{
-        id: nil,
-        method: "log_message",
-        params: [msg]}
       |> Poison.encode!
   end
 end
