@@ -1,4 +1,4 @@
-defmodule FarmbotNetwork.Mixfile do
+defmodule Farmbot.Network.Mixfile do
   use Mix.Project
 
   def project do
