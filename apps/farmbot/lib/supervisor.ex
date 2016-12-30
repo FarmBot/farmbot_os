@@ -22,7 +22,7 @@ defmodule Farmbot.Supervisor do
       restart: :permanent),
 
       # Handles Farmbot scheduler stuff.
-      worker(Farmbot.Scheduler, [[]], restart: :permanent),
+      worker(Farmbot.Scheduler, [], restart: :permanent),
 
       # Handles Communication between the bot and frontend
       supervisor(RPC.Supervisor, [[]], restart: :permanent),

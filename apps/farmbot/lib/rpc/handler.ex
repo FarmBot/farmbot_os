@@ -115,7 +115,7 @@ defmodule Farmbot.RPC.Handler do
   """
   @spec serialize_state(Monitor.State.t) :: Serialized.t
   def serialize_state(%Monitor.State{
-    hardware: hardware, configuration: configuration, scheduler: scheduler
+    hardware: hardware, configuration: configuration, scheduler: _scheduler
   }) do
     %Serialized{
       mcu_params: hardware.mcu_params,
@@ -128,7 +128,7 @@ defmodule Farmbot.RPC.Handler do
       informational_settings: configuration.informational_settings,
 
       # farm scheduler
-      farm_scheduler: scheduler
+      # farm_scheduler: scheduler
     }
   end
 

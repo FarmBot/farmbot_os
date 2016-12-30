@@ -15,7 +15,7 @@ defmodule Serialized do
     informational_settings: %{},
 
     # farm scheduler
-    farm_scheduler: %Farmbot.Scheduler.State.Serializer{}
+    # farm_scheduler: %Farmbot.Scheduler.State.Serializer{}
   ]
   @type t :: %__MODULE__{
     locks: list(%{reason: String.t}),
@@ -24,6 +24,6 @@ defmodule Serialized do
     pins: %{},
     configuration: %{},
     informational_settings: %{},
-    farm_scheduler: Farmbot.Scheduler.State.Serializer.t,
+    # farm_scheduler: Farmbot.Scheduler.State.Serializer.t,
   }
 end
