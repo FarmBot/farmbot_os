@@ -1,7 +1,6 @@
 alias Farmbot.BotState.Hardware.State,      as: Hardware
 alias Farmbot.BotState.Configuration.State, as: Configuration
-# alias Farmbot.BotState.Authorization.State, as: Authorization
-alias Farmbot.Scheduler.State.Serializer,   as: Scheduler
+# alias Farmbot.Scheduler.State.Serializer,   as: Scheduler
 
 defmodule Farmbot.BotState.Monitor do
   @moduledoc """
@@ -16,15 +15,12 @@ defmodule Farmbot.BotState.Monitor do
     @type t :: %__MODULE__{
       hardware:      Hardware.t,
       configuration: Configuration.t,
-      # authorization: Authorization.t,
-      # Seperate
-      scheduler:     Scheduler.t
+      scheduler:     map
     }
     defstruct [
       hardware:      %Hardware{},
       configuration: %Configuration{},
-      # authorization: %Authorization{},
-      scheduler:     %Scheduler{}
+      scheduler:     %{}
     ]
   end
 
@@ -82,17 +78,11 @@ defmodule Farmbot.BotState.Monitor do
     dispatch(mgr, new_state)
   end
 
-  # # When we get a state update from Authorization
-  # def handle_cast(%Authorization{} = new_things, {mgr, state}) do
-  #   new_state = %State{state | authorization: new_things}
+  # When we get a state update from Scheduler
+  # def handle_cast(%Scheduler{} = new_things, {mgr, state}) do
+  #   new_state = %State{state | scheduler: new_things}
   #   dispatch(mgr, new_state)
   # end
-
-  # When we get a state update from Scheduler
-  def handle_cast(%Scheduler{} = new_things, {mgr, state}) do
-    new_state = %State{state | scheduler: new_things}
-    dispatch(mgr, new_state)
-  end
 
   def handle_cast(:force_dispatch, {mgr, state}), do: dispatch(mgr, state)
 
