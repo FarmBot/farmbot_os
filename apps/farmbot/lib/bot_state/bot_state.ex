@@ -12,9 +12,7 @@ defmodule Farmbot.BotState do
     Gets the current position of the bot. Returns [x,y,z]
   """
   @spec get_current_pos() :: [integer, ...]
-  def get_current_pos do
-    GenServer.call(Hardware, :get_current_pos)
-  end
+  def get_current_pos, do: GenServer.call(Hardware, :get_current_pos)
 
   @doc """
     Sets the position to givin position.
@@ -37,7 +35,7 @@ defmodule Farmbot.BotState do
     Sets a mode for a particular pin.
     This should happen before setting the value if possible.
   """
-  @spec set_pin_mode(integer,0 | 1) :: :ok
+  @spec set_pin_mode(integer, 0 | 1) :: :ok
   def set_pin_mode(pin, mode)
   when is_integer(pin) and is_integer(mode) do
     GenServer.cast(Hardware, {:set_pin_mode, {pin, mode}})
@@ -85,18 +83,18 @@ defmodule Farmbot.BotState do
   def get_fw_version, do: get_param(:param_version)
 
   @doc """
-    Gets the value of a param
-  """
-  @spec get_param(atom) :: integer | nil
-  def get_param(param), do: GenServer.call(Hardware, {:get_param, param})
-
-  @doc """
     Gets the current controller version
   """
   @spec get_os_version :: String.t
   def get_os_version do
     GenServer.call(Configuration, :get_version)
   end
+
+  @doc """
+    Gets the value of a param
+  """
+  @spec get_param(atom) :: integer | nil
+  def get_param(param), do: GenServer.call(Hardware, {:get_param, param})
 
   @doc """
     Update a config under key

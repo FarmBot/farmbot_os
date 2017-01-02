@@ -21,15 +21,13 @@ defmodule Farmbot.BotState.Configuration do
         controller_version: "loading...",
         compat_version: -1,
         target: "loading...",
-        environment: :loading,
         private_ip: nil,
         throttled: "loading..."
        }
     ]
 
   @type args
-    :: %{compat_version: integer, env: String.t,
-         target: String.t, version: String.t}
+    :: %{compat_version: integer, target: String.t, version: String.t}
   @type state ::
     %State{
       locks: [any],
@@ -45,7 +43,6 @@ defmodule Farmbot.BotState.Configuration do
   @spec load(args) :: {:ok, state} | {:error, atom}
   def load(
     %{compat_version: compat_version,
-      env: env,
       target: target,
       version: version})
   do
@@ -54,7 +51,6 @@ defmodule Farmbot.BotState.Configuration do
         controller_version: version,
         compat_version: compat_version,
         target: target,
-        environment: env,
         private_ip: "loading...",
         throttled: get_throttled()
       }

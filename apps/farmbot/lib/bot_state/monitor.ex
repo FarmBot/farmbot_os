@@ -1,6 +1,5 @@
 alias Farmbot.BotState.Hardware.State,      as: Hardware
 alias Farmbot.BotState.Configuration.State, as: Configuration
-# alias Farmbot.Scheduler.State.Serializer,   as: Scheduler
 
 defmodule Farmbot.BotState.Monitor do
   @moduledoc """
@@ -88,8 +87,6 @@ defmodule Farmbot.BotState.Monitor do
 
   # If a handler dies, we try to restart it
   def handle_info({:gen_event_EXIT, handler, _reason}, {mgr, state}) do
-    # Log somethingwarn("HANDLER DIED:
-    # #{inspect handler} Goint to try to restart")
     add_handler(mgr, handler)
     dispatch(mgr, state)
   end

@@ -19,8 +19,8 @@ defmodule Farmbot.Mixfile do
      deps_path:   "../../deps/#{target(Mix.env)}",
      config_path: "../../config/config.exs",
      lockfile:    "../../mix.lock",
-     aliases: aliases(Mix.env),
-     deps: deps(Mix.env),
+     aliases:     aliases(Mix.env),
+     deps:        deps ++ system(target(Mix.env)),
      name: "Farmbot",
      source_url: "https://github.com/Farmbot/farmbot_os",
      homepage_url: "http://farmbot.io",
@@ -30,44 +30,40 @@ defmodule Farmbot.Mixfile do
   end
 
   def application do
-    [mod: {Farmbot, [%{target: target(Mix.env), compat_version: @compat_version,
-                       version: @version, env: Mix.env}]},
-     applications: apps(Mix.env),
+    [mod:
+      { Farmbot,
+      [ %{target: target(Mix.env),
+          compat_version: @compat_version,
+          version: @version} ]
+      },
+     applications: applications,
      included_applications: [:gen_mqtt]]
   end
 
   # common for test, prod, and dev
-  def apps do
-    [:logger,
-     :nerves_uart,
-     :httpotion,
-     :poison,
-     :gen_stage,
-     :nerves_lib,
-     :rsa,
-     :runtime_tools,
-     :mustache,
-     :timex,
-     :vmq_commons,
-     :amnesia,
-     :quantum,
-     :farmbot_auth,
-     :farmbot_configurator,
-     :farmbot_filesystem,
-     :farmbot_network,
+  def applications do
+    [
+      :logger,
+      :nerves,
+      :nerves_firmware_http,
+      :nerves_uart,
+      :httpotion,
+      :poison,
+      :gen_stage,
+      :nerves_lib,
+      :rsa,
+      :runtime_tools,
+      :mustache,
+      :timex,
+      :vmq_commons,
+      :amnesia,
+      :quantum,
+      :farmbot_auth,
+      :farmbot_configurator,
+      :farmbot_filesystem,
+      :farmbot_network,
    ]
   end
-
-  # on device
-  def apps(:prod) do
-    apps ++ platform_apps(target(:prod)) ++ [:nerves, :nerves_firmware_http]
-  end
-
-  # dev apps to start
-  def apps(:dev), do: apps ++ []
-
-  # test apps to start
-  def apps(:test), do: apps ++ [:faker, :fake_nerves]
 
   def deps do
     [
@@ -82,42 +78,14 @@ defmodule Farmbot.Mixfile do
       {:timex, "~> 3.0"}, # managing time. for the scheduler mostly.
       {:quantum, ">= 1.8.1"}, # cron jobs
       {:amnesia, github: "meh/amnesia"}, # database implementation
+      {:nerves,  "~> 0.4.0"}, # for building on embedded devices
+      {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
       {:farmbot_configurator, in_umbrella: true},
       {:farmbot_auth, in_umbrella: true},
       {:farmbot_filesystem, in_umbrella: true},
       {:farmbot_network, in_umbrella: true}
     ]
   end
-
-  def deps(:prod) do
-    deps ++ platform_deps(target(Mix.env)) ++ system(target(Mix.env)) ++
-    [
-     {:nerves,  "~> 0.4.0"}, # for building on embedded devices
-     {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"}
-    ]
-  end
-
-  def deps(:test) do
-    deps ++ deps(:dev) ++
-    [
-      {:excoveralls, "~> 0.5"},
-      {:faker, "~> 0.7"},
-      {:fake_nerves, github: "ConnorRigby/fake_nerves"} # get rid of this one day
-    ]
-  end
-
-  def deps(:dev) do
-    deps ++ [
-      {:credo, "~> 0.4"}, # code consistency
-      {:ex_doc, "~> 0.14"}, # documentation
-      {:dialyxir, "~> 0.4"} # static analysis
-    ]
-  end
-
-  def platform_deps("rpi3"), do: []
-  def platform_deps("qemu"), do: []
-  def platform_apps("rpi3"), do: []
-  def platform_apps("qemu"), do: []
 
   # this is for cross compilation to work
   # New version of nerves might not need this?
@@ -130,5 +98,11 @@ defmodule Farmbot.Mixfile do
   def aliases(_), do: []
 
   # the nerves_system_* dir to use for this build.
-  def system(sys), do: [{:"nerves_system_#{sys}", in_umbrella: true}]
+  def system("development"), do: []
+  def system(sys) do
+    if File.exists?("../NERVES_SYSTEM_#{sys}") do
+      System.put_env("NERVES_SYSTEM", "../NERVES_SYSTEM_#{sys}")
+    end
+    [{:"nerves_system_#{sys}", in_umbrella: true}]
+  end
 end

@@ -3,6 +3,7 @@ defmodule Farmbot.Updates.Handler do
   alias Farmbot.BotState
   alias Nerves.Firmware
   require Logger
+  #TODO MOVE ME
   @moduledoc """
     Bunch of stuff to do updates.
   """

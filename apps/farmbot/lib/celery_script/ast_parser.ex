@@ -33,7 +33,6 @@ defmodule Farmbot.CeleryScript.Ast do
     %__MODULE__{kind: kind, args: parse_args(args), body: parse(body)}
   end
 
-  def parse(_), do: %__MODULE__{kind: "nothing", args: %{}, body: []}
 
   # The body is technically optional
   def parse(%{kind: kind, args: args}) do
@@ -47,6 +46,8 @@ defmodule Farmbot.CeleryScript.Ast do
       acc ++ [parse(blah)]
     end)
   end
+
+  def parse(_), do: %__MODULE__{kind: "nothing", args: %{}, body: []}
 
   # TODO: This is a pretty heavy memory leak, what should happen is
   # The corpus should create a bunch of atom, and then this should be

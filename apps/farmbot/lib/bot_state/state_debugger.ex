@@ -1,9 +1,11 @@
 defmodule StateDebugger do
+  @moduledoc false
+  
   alias Farmbot.BotState
   alias BotState.EventManager
   alias BotState.Monitor
-  @moduledoc false
   use GenEvent
+
   def handle_event({:dispatch, state_},_) do
     {:ok, state_}
   end
