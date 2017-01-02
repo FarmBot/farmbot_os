@@ -10,7 +10,6 @@ import "../css/main.scss"
 // mobx setting for more saftey in the safe things.
 useStrict(true);
 
-
 let onInit = function () {
   // request some initial data
   // get whatever config is currently available.
