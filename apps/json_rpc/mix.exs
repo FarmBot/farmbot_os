@@ -1,8 +1,8 @@
-defmodule Farmbot.Filesystem.Mixfile do
+defmodule JsonRpc.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :farmbot_filesystem,
+    [app: :json_rpc,
      version: "0.1.0",
      build_path: "../../_build",
      config_path: "../../config/config.exs",
@@ -15,14 +15,10 @@ defmodule Farmbot.Filesystem.Mixfile do
   end
 
   def application do
-    [
-      mod: {Farmbot.FileSystem, [%{env: Mix.env, target: target(Mix.env)}]},
-      applications: [:logger]
-    ]
+    [applications: [:logger, :poison]]
   end
 
-  defp deps, do: []
-
-  defp target(:prod), do: System.get_env("NERVES_TARGET") || "rpi3"
-  defp target(_), do: "development"
+  defp deps do
+    [{:poison, "~> 3.0"}]
+  end
 end

@@ -1,6 +1,7 @@
 defmodule TokenTest do
   @moduledoc false
   use ExUnit.Case, async: true
+  alias Farmbot.Token
 
   test "creates a token" do
     url = Faker.Internet.url
