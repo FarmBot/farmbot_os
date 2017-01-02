@@ -1,5 +1,7 @@
 # My bot doesn't boot on a fresh SD card!
+
 This could be one of a few things. These things are in order of probability.
+
 * Your farmbot doesn't have enough power. You NEED a good power supply at least 5 volts and  2.5 Amps for farmbot to boot reliably.
   * Is the power LED flashing? If yes you need more amps.
   * Is the Green LED flashing? If no you need more amps.
@@ -11,35 +13,42 @@ This could be one of a few things. These things are in order of probability.
 * You have a bad SD Card.
 * You aren't using a Raspberry Pi 3 (Porting Farmbot is relatively simple).
 
-# Can i ssh into the Farmbot?
-Yes you can starting with 2.1.1 of the OS we added SSH. The user is root and there is no password.
-This is subject to change so look back if you update and your ssh no longer workds.
+# Can I SSH into the Farmbot?
 
-# Why are my ssh keys invalid?
-Long story short this is because Farmbot's rootfs is read only so keys have to be stored elsewhere. They occasionally get lost if you pull the power to your Farmbot. Just do what the shell tells you to fix it.
+Yes, starting with version 2.1.1. The user is root and there is no password. This may change in future versions.
 
-# Can the shell be on HDMI rather than only SSH?
-No. HDMI should display an IEX (elixir shell) session.You can interact with the system in this way if you want. If you want you can `ctrl+c` out of IEX, but this will kill Farmbot's main software. It will give you a linux shell though.   
+# Why are my SSH keys invalid?
 
-# When I ssh there is no Linux Utilities.
-Farmbot is built using Buildroot. Which uses a very very small linux environment to minimize boot time and overhead. This gives us a Linux shell of `sh` and most utilities are provided by `busybox`.
+Farmbot's `rootfs` file system is read only. SSH keys must be stored elsewhere. They may get lost if you pull the power to your Farmbot. Follow the directions in the shell to resolve the issue.
+
+# Can the shell run on HDMI rather than SSH?
+
+Yes and no. HDMI will display an IEX (Elixir shell) session. You may access the shell via `ctrl+c` but this will kill Farmbot's main software.
+
+# SSH Has No Linux Utilities.
+
+Farmbot is built using Buildroot, Which uses a very small Linux environment to minimize boot time and overhead. This gives us a Linux shell of `sh` and most utilities are provided by `busybox`.
 
 # Why aren't [X] or [Y] packages included?
-See the above answer. If you believe we need a package please open an issue and we can discuss adding it. There is talk of adding a plugin system, where the user could supply their own packages. it is not implemented yet.
+
+See the above answer. [Raise an issue](https://github.com/FarmBot/farmbot_os/issues/new) to request a package. Future versions of FarmBotOS may provide a plugin system. It is not implemented yet.
 
 # Does Farmbot support Ethernet rather than WIFI?
-Yes. When you log into the Farmbot Configurator wifi ssid, you can select `Use Ethernet`. [NOTE]: This can not be changed without a factory reset.
 
-# How do i factory reset my bot?
+Yes. When you log into the Farmbot Configurator wifi SSID, select `Use Ethernet`.
+**NOTE**: This can not be changed without a factory reset.
+
+# How do I factory reset my bot?
+
 This is not as trivial as you would think right now. (We are working on it.)
-You can use SSH:
+
+** EASY: ** Flash the SD card
+** Via HDMI monitor / IEx: ** `Farmbot.factory_reset()`
+
+** Via SSH: **
+
 ```bash
 ssh root@<MY FARMBOT IP ADDRESS>
 rm /data/* -rf
 /usr/sbin/reboot
 ```
-Or if you have a hdmi monitor plugged into your RPI you can use IEX
-```elixir
-Farmbot.factory_reset()
-```
-Or (probably the easiest) you can just flash a new SD Card.
