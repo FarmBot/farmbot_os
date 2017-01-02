@@ -15,7 +15,7 @@ defmodule Farmbot.Configurator do
       worker(EventHandler, [], []),
       Plug.Adapters.Cowboy.child_spec(
         :http, Router, [], port: @port, dispatch: dispatch),
-      # worker(WebPack, [@env])
+      worker(WebPack, [@env])
      ]
     opts = [strategy: :one_for_one, name: Farmbot.Configurator]
     supervise(children, opts)
