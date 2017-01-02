@@ -9,6 +9,7 @@ defmodule Farmbot.Network do
   alias Nerves.InterimWiFi
   alias Farmbot.Network.Hostapd
   alias Farmbot.Network.Ntp
+  alias Farmbot.Network.SSH
 
   defmodule Interface do
     @moduledoc """
@@ -58,11 +59,9 @@ defmodule Farmbot.Network do
 
   def handle_cast({:connected, interface, ip}, state) do
     Logger.debug ">>'s #{interface} is connected: #{ip}"
-    # I don't want either of these here.
-    if get_config("ntp") == true do
-      # Only set time if required to do so.
-      Ntp.set_time
-    end
+
+    if get_config("ntp") == true, do: Ntp.set_time
+    if get_config("ssh") == true, do: SSH.start_link
 
     Farmbot.Auth.try_log_in
     

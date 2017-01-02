@@ -12,5 +12,6 @@
   "hardware":{
     "params":{}
   },
-  "ntp": false
+  "ntp": false,
+  "ssh": true
 }
