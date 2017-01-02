@@ -1,6 +1,6 @@
 defmodule Farmbot.Configurator do
   use Supervisor
-  alias Plug.Adapters.Cowboy
+  # alias Plug.Adapters.Cowboy
   alias Farmbot.Configurator.Router
   alias Farmbot.Configurator.EventHandler
   alias Farmbot.Configurator.EventManager
@@ -14,11 +14,18 @@ defmodule Farmbot.Configurator do
       worker(EventManager, [], []),
       worker(EventHandler, [], []),
       Plug.Adapters.Cowboy.child_spec(
-        :http, Router, [], port: @port, dispatch: dispatch),
-      worker(WebPack, [@env])
-     ]
+        :http, Router, [], port: @port, dispatch: dispatch)
+     ] ++ maybe_webpack
     opts = [strategy: :one_for_one, name: Farmbot.Configurator]
     supervise(children, opts)
+  end
+
+  defp maybe_webpack do
+    if System.get_env("USE_WEBPACK") do
+      [worker(WebPack, [@env])]
+    else
+      []
+    end
   end
 
   def start(_type, args), do: Supervisor.start_link(__MODULE__, args)

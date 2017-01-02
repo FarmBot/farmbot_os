@@ -40,9 +40,6 @@ defmodule Farmbot.Network do
     # i guess this can be here.
     GenEvent.add_handler(EM, SocketHandler, [])
 
-    # Logger.debug ">> is starting epmd."
-    # System.cmd("epmd", ["-daemon"])
-
     {:ok, config} = get_config
     # The module of the handler.
     handler = Module.concat([Farmbot,Network,Handler,hardware])
@@ -64,7 +61,7 @@ defmodule Farmbot.Network do
     if get_config("ssh") == true, do: SSH.start_link
 
     Farmbot.Auth.try_log_in
-    
+
     case Map.get(state.interfaces, interface) do
       %Interface{} = thing ->
         new_interface = %Interface{thing | ipv4_address: ip}
