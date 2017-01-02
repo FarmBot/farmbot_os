@@ -49,7 +49,6 @@ defmodule Farmbot.Mixfile do
       :nerves_uart,
       :httpotion,
       :poison,
-      :gen_stage,
       :nerves_lib,
       :rsa,
       :runtime_tools,
@@ -58,6 +57,7 @@ defmodule Farmbot.Mixfile do
       :vmq_commons,
       :amnesia,
       :quantum,
+      :gen_stage,
       :farmbot_auth,
       :farmbot_configurator,
       :farmbot_filesystem,
@@ -72,7 +72,6 @@ defmodule Farmbot.Mixfile do
       {:poison, "~> 3.0"}, # json
       {:nerves_lib, github: "nerves-project/nerves_lib"}, # this has a good uuid
       {:gen_mqtt, "~> 0.3.1"}, # for rpc transport
-      {:gen_stage, "~> 0.4"},
       {:vmq_commons, "1.0.0", manager: :rebar3}, # This is for mqtt to work.
       {:mustache, "~> 0.0.2"}, # string templating
       {:timex, "~> 3.0"}, # managing time. for the scheduler mostly.
@@ -80,6 +79,7 @@ defmodule Farmbot.Mixfile do
       {:amnesia, github: "meh/amnesia"}, # database implementation
       {:nerves,  "~> 0.4.0"}, # for building on embedded devices
       {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
+      {:gen_stage, "~> 0.7"},
       {:farmbot_configurator, in_umbrella: true},
       {:farmbot_auth, in_umbrella: true},
       {:farmbot_filesystem, in_umbrella: true},

@@ -11,25 +11,16 @@ defmodule Farmbot.BotState.Supervisor do
     %{target: target, compat_version: compat_version, version: version})
   do
     children = [
-      # Event manager.
-      worker(GenEvent,
-        [[name: Farmbot.BotState.EventManager]],
-         [id: Farmbot.BotState.EventManager]),
+      worker(Farmbot.BotState.Monitor, [], [restart: :permanent]),
 
-      # the name of this is wrong now, but it subscribes the the
-      # Event manager and serializes the state
-      worker(Farmbot.BotState.Monitor,
-        [Farmbot.BotState.EventManager], [restart: :permanent]),
-
-      # These are the actual trackers for the different parts of the system.
       worker(Farmbot.BotState.Configuration, [
         %{compat_version: compat_version,
           target: target,
           version: version}
         ], [restart: :permanent]),
-      worker(Farmbot.BotState.Hardware,      [], [restart: :permanent]),
-      worker(Farmbot.EasterEggs, [name: Farmbot.EasterEggs],
-        [restart: :permanent])
+
+      worker(Farmbot.BotState.Hardware,  [], [restart: :permanent]),
+      worker(EasterEggs, [name: EasterEggs], [restart: :permanent])
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)

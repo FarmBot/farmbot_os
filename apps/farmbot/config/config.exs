@@ -1,7 +1,7 @@
 use Mix.Config
 
 target = Mix.Project.config[:target]
-mqtt_transport = Farmbot.RPC.Transport.GenMqtt.Handler
+mqtt_transport = Farmbot.Transport.GenMqtt
 
 # I force colors because they are important.
 config :logger, :console,
@@ -15,13 +15,11 @@ config :iex, :colors,
 # send a message to these modules when we successfully log in.
 config :farmbot_auth, callbacks: [mqtt_transport]
 
-# rpc transports.
+# frontend <-> bot transports.
 config :farmbot, transports: [mqtt_transport]
 
 # Move this?
-config :quantum, cron: [
-  "5 1 * * *": {Farmbot.Updates.Handler, :do_update_check}
-]
+config :quantum, cron: [ "5 1 * * *": {Farmbot.Updates.Handler, :do_update_check}]
 
 # Import configuration specific to out environment.
 import_config "#{Mix.env}.exs"

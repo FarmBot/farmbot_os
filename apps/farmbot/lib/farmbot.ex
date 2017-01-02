@@ -19,8 +19,8 @@ defmodule Farmbot do
       # Handles Farmbot scheduler stuff.
       worker(Farmbot.Scheduler, [], restart: :permanent),
 
-      # Mqtt transport ( PLEASE MOVE ME )
-      worker(Farmbot.RPC.Transport.GenMqtt.Handler, [], restart: :permanent),
+      # Handles the passing of messages from one part of the system to another.
+      supervisor(Farmbot.Transport.Supervisor, [], restart: :permanent),
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)

@@ -23,6 +23,4 @@ defmodule Farmbot.CeleryScript.Command do
       :no_instruction
     end
   end
-
-
 end
