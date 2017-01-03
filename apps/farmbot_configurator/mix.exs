@@ -1,6 +1,8 @@
 defmodule Farmbot.Configurator.Mixfile do
   use Mix.Project
   System.put_env("NODE_ENV", Mix.env |> Atom.to_string)
+  def target(:prod), do: System.get_env("NERVES_TARGET") || "rpi3"
+  def target(_), do: "development"
 
   def project do
     [app: :farmbot_configurator,
@@ -8,6 +10,11 @@ defmodule Farmbot.Configurator.Mixfile do
      elixir: "~> 1.3",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
+     build_path: "../../_build",
+     config_path: "../../config/config.exs",
+     deps_path: "../../deps",
+     lockfile: "../../mix.lock",
+     target: target(Mix.env),
      deps: deps]
   end
 

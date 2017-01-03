@@ -12,8 +12,7 @@
         "allowUnreachableCode": false,
         "strictNullChecks": true,
         "sourceMap": true,
-        "noFallthroughCasesInSwitch": true,
-        "tabSize": 4
+        "noFallthroughCasesInSwitch": true
     },
     "exclude": [
         "node_modules",

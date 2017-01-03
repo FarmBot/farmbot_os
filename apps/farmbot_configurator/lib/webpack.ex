@@ -2,12 +2,11 @@ defmodule WebPack do
   require Logger
   use GenServer
 
-  def start_link(env) do
-    GenServer.start_link(__MODULE__, env, name: __MODULE__)
+  def start_link do
+    GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  def init(:prod), do: {:ok, spawn fn() -> nil end}
-  def init(:dev) do
+  def init([]) do
     Logger.debug("Starting webpack")
     port = Port.open({:spawn, "npm run watch"},
       [:stream,

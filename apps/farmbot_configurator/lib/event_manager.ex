@@ -1,5 +1,4 @@
 defmodule Farmbot.Configurator.EventManager do
-  # alias Farmbot.Configurator.EventHandler
   def start_link() do
     GenEvent.start_link(name: __MODULE__)
   end
