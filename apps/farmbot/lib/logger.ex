@@ -10,8 +10,8 @@ defmodule Farmbot.Logger do
   alias Farmbot.BotState
   use GenEvent
 
-  # I SUCK
-  def handle_event(thing, Farmbot.Logger), do: handle_event(thing, build_state)
+  def init(_), do: {:ok, build_state}
+
   # The example said ignore messages for other nodes, so im ignoring messages
   # for other nodes.
   def handle_event({_level, gl, {Logger, _, _, _}}, state)
@@ -44,13 +44,9 @@ defmodule Farmbot.Logger do
 
     # take logger time stamp and spit out a unix timestamp for the javascripts.
     with({:ok, created_at} <- parse_created_at(timestamp),
-         {:ok, san_m} <- sanitize(message, metadata),
-         {:ok, log} <- build_log(san_m, created_at, type, channels, pos),
-         {:ok, json} <- build_rpc(log),
-         # ^ This will possible return nil if it cant create json.
-         # it will silently be discarded.
-        #  :ok <- @rpc_transport.emit(json), # FIXME SEND LOG MESSAGE HERE
-         # make sure we add the non json version of the log message.
+         {:ok, san_m}      <- sanitize(message, metadata),
+         {:ok, log}        <- build_log(san_m, created_at, type, channels, pos),
+         :ok               <- Farmbot.Transport.log(log),
          do: dispatch({messages ++ [log], posting?}))
     # if we got nil before, dont dispatch the new message into the buffer
     || dispatch({messages, posting?})
@@ -64,15 +60,8 @@ defmodule Farmbot.Logger do
   def handle_info(:post_success, {_, _}), do: dispatch {[], false}
   # If it did not succeed, keep the messages, and try again until it completes.
   def handle_info(:post_fail, {messages, _}), do: dispatch {messages, false}
-
   # Catch any stray send messages that we don't care about.
   def handle_info(_, state), do: dispatch state
-
-  # This if mostly for the RPC request to get all logs but is handy in other use
-  # Cases too.
-  def handle_call(:dump, {messages, posting?}) do
-    {:ok, messages, {messages, posting?}}
-  end
 
   # Catch any stray calls.
   def handle_call(_, state), do: {:ok, :unhandled, state}
@@ -88,22 +77,9 @@ defmodule Farmbot.Logger do
     Logger.remove_backend(__MODULE__)
   end
 
-  @doc """
-    Gets the current logs from the log buffer.
-  """
-  def get_logs, do: GenEvent.call(Logger, Farmbot.Logger, :dump)
-
-  @doc """
-    Dumps the current log buffer to the front end.
-  """
-  @spec dump :: :ok
-  def dump, do: get_logs |> build_rpc_dump |> emit
-
-  # i just wanted the dump function to pipe into emit.
-  @spec emit({:ok, binary} | binary) :: :ok
-  defp emit({:ok, binary}), do: emit(binary)
-  defp emit(binary) do
-    # @rpc_transport.emit(binary) # FIXME SEND LOG MESSAGE HERE
+  @spec emit(map) :: :ok
+  defp emit(msg) do
+    Farmbot.Transport.log(msg)
     :ok
   end
 
@@ -126,17 +102,8 @@ defmodule Farmbot.Logger do
   # Posts an array of logs to the API.
   @spec do_post([log_message],pid) :: :ok
   defp do_post(m, pid) do
-    case to_json(m) do
-      nil ->
-        # THis shouldn't happen but if it does, i dont know what shoulg happen.
-        # Problem: somewhere in the list of log messages, there is a
-        # message that can not be turned to json.
-        # meaning that next time this function comes rount, it
-        # still won't be able to make it json.
-        send(pid, :post_complete)
-      {:ok, messages} ->
-        "/api/logs" |> HTTP.post(messages) |> parse_resp(pid)
-    end
+    IO.warn "FIXME"
+    # "/api/logs" |> HTTP.post(messages) |> parse_resp(pid)
   end
 
   # Parses what the api sends back. Will only ever return :ok even if there was
@@ -228,36 +195,9 @@ defmodule Farmbot.Logger do
     {:ok, a}
   end
 
-  # TODO make a struct for the first argument of this function for better
-  # safety
-  @spec build_rpc(map) :: {:ok, binary} | nil
-  defp build_rpc(msg) do
-    IO.warn "FIXME LOG MESSAGE"
-    "uh"
-    # |> to_json
-  end
-
-  # Takes a list of rpc log messages
-  @spec build_rpc_dump(log_message) :: {:ok, binary} | nil
-  defp build_rpc_dump(rpc_logs)
-  when is_list(rpc_logs) do
-    IO.warn "FIXME LOG MESSAGE"
-    "uh"
-    # |> to_json
-  end
-
-  @spec to_json(map) :: {:ok, binary} | nil
-  defp to_json(thing) do
-    try do
-      Poison.encode(thing)
-    rescue
-      FunctionClauseError ->
-        nil
-    end
-  end
-
   @type posting? :: boolean
   @spec build_state :: {[log_message], posting?}
   # this is because i dont know how to input a default state to Logger.
+  # TODO IM DUMB FIX THIS
   defp build_state, do: {[], false}
 end

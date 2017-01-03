@@ -15,7 +15,11 @@ defmodule Farmbot.Serial.Handler do
     {:ok, nerves} = UART.start_link
     {:ok, handler} = GcodeHandler.start_link(nerves)
     tty = open_serial(nerves)
-    {:ok, {nerves, tty, handler}}
+    if tty do
+      {:ok, {nerves, tty, handler}}
+    else
+      {:ok, nil}
+    end
   end
 
   def start_link(), do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
@@ -53,6 +57,8 @@ defmodule Farmbot.Serial.Handler do
     {:reply, :ok, {nerves, tty, handler}}
   end
 
+  def handle_call(_, _from, nil), do: {:reply, :ok, nil}
+
   def handle_cast({:write, _str, caller}, {nerves, :e_stop, handler}) do
     send(caller, :e_stop)
     {:noreply, {nerves, :e_stop, handler}}
@@ -79,6 +85,13 @@ defmodule Farmbot.Serial.Handler do
     new_tty = open_serial(nerves)
     {:noreply, {nerves, new_tty, handler}}
   end
+
+def handle_cast({:write, _str, caller}, nil) do
+  send(caller, :done)
+  {:noreply, nil}
+end
+
+def handle_cast(_, nil), do: {:noreply, nil}
 
   # WHEN A FULL SERIAL MESSAGE COMES IN.
   def handle_info({:nerves_uart, nerves_tty, message}, {pid, tty, handler})
@@ -137,7 +150,7 @@ defmodule Farmbot.Serial.Handler do
     Logger.error """
       >> could not auto detect serial port. i tried: #{inspect tries}
       """
-    {:ok, "ttyFail"}
+    {:ok, nil}
   end
 
   @spec open_serial(pid, [binary,...], [binary,...]) :: {:ok, binary}
@@ -152,10 +165,9 @@ defmodule Farmbot.Serial.Handler do
   @spec open_serial(pid) :: {:ok, binary}
   defp open_serial(pid) do
     {:ok, tty} = open_serial(pid, list_ttys , []) # List of available ports
-    UART.configure(pid,
-                          framing: {UART.Framing.Line,
-                          separator: "\r\n"},
-                          rx_framing_timeout: 500)
+    UART.configure(pid, framing: {UART.Framing.Line,
+                        separator: "\r\n"},
+                        rx_framing_timeout: 500)
     tty
   end
 

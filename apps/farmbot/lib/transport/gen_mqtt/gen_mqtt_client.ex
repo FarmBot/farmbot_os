@@ -5,7 +5,9 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   """
   use GenMQTT
   require Logger
+  alias Farmbot.Transport.Serialized, as: Ser
   alias Farmbot.Token
+  alias Farmbot.CeleryScript.Command
   alias Farmbot.CeleryScript.Ast
 
   def init(%Token{} = token), do: {:ok, token}
@@ -24,17 +26,30 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   end
 
   def on_publish(["bot", _bot, "from_clients"], msg, %Token{} = token) do
-    Logger.warn "FIXME need to put this message on the stack?: #{inspect Poison.decode(msg)}"
+    msg
+    |> Poison.decode!
+    |> Ast.parse
+    |> Command.do_command
     {:ok, token}
   end
 
-  def handle_info({:emit, binary}, %Token{} = token) do
-    GenMQTT.publish(self(), frontend_topic(token), binary, 1, false)
-    {:noreply, token}
+  def handle_cast(%Ser{} = ser, %Token{} = token) do
+    json = Poison.encode!(ser)
+    GenMQTT.publish(self(), status_topic(token), json, 1, false)
+    {:ok, token}
   end
 
-  # this is not a erronous situation, so don't alert.
-  def terminate(:new_token, _), do: :ok
+  def handle_cast({:log, msg}, %Token{} = token) do
+    json = Poison.encode! msg
+    GenMQTT.publish(self(), log_topic(token), json, 1, false)
+    {:ok, token}
+  end
+
+  def handle_cast({:emit, msg}, %Token{} = token) do
+    json = Poison.encode! msg
+    GenMQTT.publish(self(), frontend_topic(token), json, 1, false)
+    {:noreply, token}
+  end
 
   def terminate(reason, _) do
     Logger.error ">>`s mqtt client died. #{inspect reason}"
@@ -47,7 +62,7 @@ defmodule Farmbot.Transport.GenMqtt.Client do
      host: token.unencoded.mqtt,
      password: token.encoded,
      username: token.unencoded.bot,
-     last_will_topic: [frontend_topic(token)],
+     last_will_topic: [log_topic(token)],
      last_will_msg: build_last_will_message(token),
      last_will_qos: 1
     ]
@@ -60,6 +75,14 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   @spec bot_topic(Token.t) :: String.t
   defp bot_topic(%Token{} = token),
     do: "bot/#{token.unencoded.bot}/from_clients"
+
+  @spec status_topic(Token.t) :: String.t
+  defp status_topic(%Token{} = token),
+    do: "bot/#{token.unencoded.bot}/status"
+
+  @spec log_topic(Token.t) :: String.t
+  defp log_topic(%Token{} = token),
+    do: "bot/#{token.unencoded.bot}/logs"
 
   @spec build_last_will_message(Token.t) :: binary
   defp build_last_will_message(%Token{} = token) do
@@ -74,4 +97,6 @@ defmodule Farmbot.Transport.GenMqtt.Client do
           z: -1}}
       |> Poison.encode!
   end
+
+  def cast(pid, info), do: GenMQTT.cast(pid, info)
 end

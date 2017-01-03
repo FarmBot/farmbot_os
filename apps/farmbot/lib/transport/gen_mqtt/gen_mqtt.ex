@@ -3,96 +3,57 @@ alias Experimental.GenStage
 defmodule Farmbot.Transport.GenMqtt do
   use GenStage
   require Logger
-  def start_link() do
-    GenStage.start_link(__MODULE__, {}, name: __MODULE__)
+  alias Farmbot.Token
+  alias Farmbot.Transport.Serialized, as: Ser
+  @type state :: {pid | nil, Token.t | nil}
+
+  @doc """
+    Starts the handler that watches the mqtt client
+  """
+  @spec start_link :: {:ok, pid}
+  def start_link,
+    do: GenStage.start_link(__MODULE__, {nil, nil}, name: __MODULE__)
+
+  @spec init(state) :: {:consumer, state, subscribe_to: [Farmbot.Transport]}
+  def init(initial) do
+    case Farmbot.Auth.get_token do
+      {:ok, %Token{} = t} ->
+        {:ok, pid} = Client.start_link(t)
+        {:consumer, {pid, t}, subscribe_to: [Farmbot.Transport]}
+      _ ->
+      {:consumer, initial, subscribe_to: [Farmbot.Transport]}
+    end
   end
 
-  def init({}) do
-    Logger.debug "mqtt init"
-    {:consumer, {}, subscribe_to: [Farmbot.Transport]}
-  end
-
-  def handle_events([event], _, state) do
-    Logger.debug "MQTT"
+  # GenStage callback.
+  def handle_events([%Ser{} = ser], _, {client, %Token{} = _} = state)
+  when is_pid(client) do
+    Client.cast(client, ser)
     {:noreply, [], state}
   end
+
+  def handle_events([{:emit, msg}], _, {client, %Token{} = _} = state)
+  when is_pid(client) do
+    Client.cast(client, {:emit, msg})
+    {:noreply, [], state}
+  end
+
+  def handle_events([{:log, msg}], _, {client, %Token{} = _} = state)
+  when is_pid(client) do
+    Client.cast(client, {:log, msg})
+    {:noreply, [], state}
+  end
+
+  def handle_events(_,_,state), do: {:noreply, [], state}
+
+  def handle_info({:authorization, %Token{} = t}, {nil, _}) do
+    {:ok, pid} = start_client(t)
+    {:noreply, [], {pid, t}}
+  end
+
+  def handle_info({:authorization, %Token{} = t}, state) do
+    {:noreply, [], state}
+  end
+
+  defp start_client(%Token{} = token), do: Client.start_link(token)
 end
-# defmodule Farmbot.Transport.GenMqtt do
-#
-#   @moduledoc """
-#   Makes sure MQTT stays alive and receives the Auth Token.
-#   """
-#   use GenStage
-#   require Logger
-#   alias Farmbot.Auth
-#   alias Farmbot.Token
-#
-#   def init([]) do
-#     Process.flag(:trap_exit, true)
-#     case Auth.get_token do
-#       {:ok, %Token{} = token} ->
-#         {:ok, {token, start_client(token)}}
-#         _ ->
-#         {:ok, {nil, nil}}
-#       end
-#     end
-#
-#     def start_link() do
-#       GenServer.start_link(__MODULE__, [], name: __MODULE__)
-#     end
-#
-#     @spec start_client(Token.t) :: pid
-#     defp start_client(%Token{} = token) do
-#       Logger.debug ">> is starting MQTT Client."
-#       {:ok, pid} = Client.start_link(token)
-#       pid
-#     end
-#
-#     @spec stop_client(pid) :: :ok
-#     defp stop_client(pid) do
-#       GenServer.stop(pid, :new_token)
-#     end
-#
-#     def handle_cast({:emit, binary}, {%Token{} = token, pid})
-#     when is_pid(pid) do
-#       send(Client, {:emit, binary})
-#       {:noreply, {token, pid}}
-#     end
-#
-#     # if not connected, just discard the messages (for now)
-#     def handle_cast({:emit, _binary}, state) do
-#       {:noreply, state}
-#     end
-#
-#     # We got a token and are not connected to mqtt yet.
-#     def handle_info({:authorization, token}, {_, nil}) do
-#       {:noreply, {token, start_client(token)}}
-#     end
-#
-#     # This works but casuses a very ugly crash message. refactor?
-#     def handle_info({:authorization, token}, {_, pid})
-#     when is_pid(pid) do
-#       stop_client(pid)
-#       {:noreply, {token, start_client(token)}}
-#     end
-#
-#     def handle_info({:EXIT, pid, _reason}, {%Token{} = token, client})
-#     when client == pid do
-#       # restart the client if it dies.
-#       {:noreply, {token, start_client(token)}}
-#     end
-#
-#     # catch any other random info.
-#     def handle_info(info, state) do
-#       {:noreply, state}
-#     end
-#
-#     @spec emit(binary) :: :ok
-#     @doc """
-#     Emits a message over the transport. Should be an RPC command, but there is
-#     no check for that.
-#     """
-#     def emit(binary) do
-#       GenServer.cast(__MODULE__, {:emit, binary})
-#     end
-#   end

@@ -4,6 +4,7 @@ defmodule Farmbot do
   """
   require Logger
   use Supervisor
+  alias Farmbot.Sync.Database
 
   def init(%{target: target, compat_version: compat_version, version: version})
   do
@@ -28,6 +29,9 @@ defmodule Farmbot do
 
   def start(_, [args]) do
     Logger.debug ">> is starting up."
+    Amnesia.start
+    Database.create! Keyword.put([], :memory, [node])
+    Database.wait(15_000)
     Supervisor.start_link(__MODULE__, args, name: Farmbot.Supervisor)
   end
 end
