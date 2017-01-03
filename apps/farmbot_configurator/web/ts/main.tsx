@@ -3,7 +3,6 @@ import { observer } from "mobx-react";
 import { observable, action } from "mobx";
 import { MainState, NetworkInterface } from "./state";
 
-
 interface MainProps {
   state: MainState;
   ws: WebSocket;
@@ -65,84 +64,113 @@ export class Main extends React.Component<MainProps, FormState> {
 
   render() {
     let mainState = this.props.state;
-    return (
-      <div>
-        {/* why are comments like this */}
-        <div hidden={mainState.connected}>
-          <h1> YOUR FARMBOT IS BROKEN!@!!!! </h1>
-        </div>
 
-        {/* Only display this div if the bot is connected */}
-        <div hidden={!mainState.connected}>
-          <div>
+    return <div className="container">
+      <h1>Configure your FarmBot</h1>
 
-            <form onSubmit={this.handleSubmit}>
-              {/* Bot Config*/}
-              <h2> Bot Configuration </h2>
-              <p>
-                TimeZone: <input
-                  value={this.state.timezone || mainState.configuration.configuration.timezone
+      <h1 hidden={mainState.connected}> YOUR FARMBOT IS BROKEN!@!!!! </h1>
+
+      {/* Only display if the bot is connected */}
+      <div hidden={!mainState.connected} className={`col-md-offset-3 col-md-6 
+        col-sm-8 col-sm-offset-2`}>
+
+        <form onSubmit={this.handleSubmit}>
+
+          {/* Bot */}
+          <div className="widget">
+            <div className="widget-header">
+              <h5>Bot</h5>
+              <i className="fa fa-question-circle widget-help-icon">
+                <div className="widget-help-text">
+                  {`Bot configuration.`}
+                </div>
+              </i>
+            </div>
+            <div className="widget-content">
+              <fieldset>
+                <label htmlFor="timezone">
+                  TimeZone
+                </label>
+                <input
+                  id="timezone"
+                  value={this.state.timezone ||
+                    mainState.configuration.configuration.timezone
                     || "America/Los_Angeles"}
                   onChange={this.handleTZChange} />
-              </p>
+              </fieldset>
+              <fieldset>
+                <label>
+                  Network
+                </label>
+                <button onClick={() => { this.props.state.deleteMe(); } }>
+                  Use Ethernet
+                </button>
+              </fieldset>
+            </div>
+          </div>
 
-              {/* Network Config*/}
-              <h2> Network Configuration </h2>
-              <p>
-                <input type="button" onClick={
-                  () => {
-                    this.props.state.deleteMe();
-                  }
-                } value="Use Ethernet" />
-              </p>
-
-              {/* App Config*/}
-              <h2> Web App Configuration </h2>
-              <p>
-                Email:
-                <input type="email"
+          {/* App */}
+          <div className="widget">
+            <div className="widget-header">
+              <h5>Bot</h5>
+              <i className="fa fa-question-circle widget-help-icon">
+                <div className="widget-help-text">
+                  {`Bot configuration.`}
+                </div>
+              </i>
+            </div>
+            <div className="widget-content">
+              <fieldset>
+                <label htmlFor="email">
+                  Email
+                </label>
+                <input type="email" id="email"
                   value={this.state.email || "admin@admin.com"}
                   onChange={this.handleEmailChange} />
-              </p>
-              <p>
-                Password:
-                <input type="password"
+              </fieldset>
+              <fieldset>
+                <label htmlFor="password">
+                  Password
+                </label>
+                <input type="password" id="password"
                   value={this.state.pass || "password123"}
                   onChange={this.handlePassChange} />
-              </p>
-              <p>
-                Server:
-                <input type="url"
+              </fieldset>
+              <fieldset>
+                <label htmlFor="url">
+                  Server:
+                </label>
+                <input type="url" id="url"
                   value={this.state.server
                     || mainState.configuration.authorization.server
                     || "http://192.168.29.167:3000"}
                   onChange={this.handleServerChange} />
-              </p>
-              <input onClick={() => {
+              </fieldset>
+              <button onClick={() => {
                 mainState.uploadAppCredentials({
                   email: this.state.email || "oops",
                   pass: this.state.pass || "oops",
                   server: this.state.server || "oops"
                 }, this.props.ws)
-              }} type="button" value="submit web app credentials"/>
-
-              {/*  Log in button*/}
-              <input type="submit" value="Log In" />
-            </form>
-
-            {/* not quite as good as "ticker" */}
-            <h4> Bot Logs </h4>
-            <ul>
-            {
-              mainState.logs.map((el,index) => {
-                el
-              })
-            }
-            </ul>
-
+              } }>Submit Credentials</button>
+              <button type="submit">Log In</button>
+            </div>
           </div>
-        </div>
+        </form>
+
       </div>
-    );
+
+      <div className="bot-logs">
+        <h4>Bot Logs</h4>
+        <ul>
+          {
+            mainState.logs.map((el, index) => {
+              el
+            })
+          }
+        </ul>
+      </div>
+
+    </div>;
   }
 }
