@@ -419,6 +419,7 @@ defmodule Farmbot.CeleryScript.Command do
       args: %{milliseconds: integer},
       body: []
   """
+  @spec wait(%{milliseconds: integer}, []) :: no_return
   def wait(%{milliseconds: millis}, []), do: Process.sleep(millis)
 
   @doc """
