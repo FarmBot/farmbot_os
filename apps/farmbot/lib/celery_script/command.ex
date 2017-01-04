@@ -248,6 +248,36 @@ defmodule Farmbot.CeleryScript.Command do
   end
 
   @doc """
+    Reads all mcu_params
+      args: %{},
+      body: []
+  """
+  @spec read_all_params(%{}, []) :: no_return
+  def read_all_params(%{}, []) do
+    magic_numbers =
+      [0,11,12,13,21,22,23,31,32,33,41,42,43,51,52,53,61,62,63,71,72,73, 101,102,103]
+   for param <- magic_numbers do
+     GHan.block_send("F21 P#{param}")
+   end
+  end
+
+  @doc """
+    Homes an axis
+      args: %{axis: "x" | "y" | "z" | "all"},
+      body: []
+  """
+  @type axis :: String.t
+  @spec home(%{axis: axis}, []) :: no_return
+  def home(%{axis: axis}, []) do
+    case axis do
+      "all" -> "G28"
+      "x"   -> "F11"
+      "y"   -> "F12"
+      "z"   -> "F13"
+    end |> GHan.block_send
+  end
+
+  @doc """
     executes a thing
       args: %{sub_sequence_id: integer}
       body: []
