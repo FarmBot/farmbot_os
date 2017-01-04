@@ -24,13 +24,7 @@ defmodule Farmbot.Configurator.Mixfile do
 
 
   defp applications do
-    [
-      :logger,
-      :plug,
-      :cors_plug,
-      :poison,
-      :cowboy
-    ]
+    [:logger, :plug, :cors_plug, :poison, :cowboy]
   end
 
   defp deps do
