@@ -281,7 +281,7 @@ defmodule Farmbot.CeleryScript.Command do
     # TODO: maybe don't do this as magic numbers. I dont even remember where
     # these numbers came from
     magic_numbers =
-      [0,11,12,13,21,22,23,31,32,33,41,42,43,51,52,53,61,62,63,71,72,73, 101,102,103]
+      [0,11,12,13,21,22,23,31,32,33,41,42,43,51,52,53,61,62,63,71,72,73,101,102,103]
    for param <- magic_numbers do
      GHan.block_send("F21 P#{param}")
    end
@@ -294,13 +294,49 @@ defmodule Farmbot.CeleryScript.Command do
   """
   @type axis :: String.t # "x" | "y" | "z" | "all"
   @spec home(%{axis: axis}, []) :: no_return
-  def home(%{axis: axis}, []) do
-    case axis do
-      "all" -> "G28"
-      "x"   -> "F11"
-      "y"   -> "F12"
-      "z"   -> "F13"
-    end |> GHan.block_send
+  def home(%{axis: "all"}, []) do
+    home(%{axis: "z"}, []) # <= Home z FIRST to prevent plant damage
+    home(%{axis: "y"}, [])
+    home(%{axis: "x"}, [])
+  end
+
+  def home(%{axis: "z"}, []) do
+    [cur_x, cur_y, _] = Farmbot.BotState.get_current_pos
+    move_absolute(%{ speed: 100,
+                     offset: %{ kind: "coordinate",
+                                args: %{ x: 0,
+                                         y: 0,
+                                         z: 0 } },
+                     location: %{ kind: "coordinate",
+                                  args: %{ x: cur_x,
+                                           y: cur_y,
+                                           z: 0 } } }, [])
+  end
+
+  def home(%{axis: "y"}, []) do
+    [cur_x, _, cur_z] = Farmbot.BotState.get_current_pos
+    move_absolute(%{ speed: 100,
+                     offset: %{ kind: "coordinate",
+                                args: %{ x: 0,
+                                         y: 0,
+                                         z: 0 } },
+                     location: %{ kind: "coordinate",
+                                  args: %{ x: cur_x,
+                                           y: 0,
+                                           z: cur_z } } }, [])
+  end
+
+  def home(%{axis: "x"}, []) do
+    [_, cur_y, cur_z] = Farmbot.BotState.get_current_pos
+    move_absolute(%{ speed: 100,
+                     offset: %{ kind: "coordinate",
+                                args: %{ x: 0,
+                                         y: 0,
+                                         z: 0 } },
+                     location: %{ kind: "coordinate",
+                                  args: %{ x: 0,
+                                           y: cur_y,
+                                           z: cur_x } } }, [])
   end
 
   @doc """
