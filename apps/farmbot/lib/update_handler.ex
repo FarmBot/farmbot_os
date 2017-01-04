@@ -39,9 +39,7 @@ defmodule Farmbot.Updates.Handler do
     Logger.debug ">> found an operating system update. "
     File.rm("/tmp/update.fw")
     url |> Downloader.run("/tmp/update.fw") |> Firmware.upgrade_and_finalize
-    Logger.warn """
-      >> is going down for an operating system update!
-      """,
+    Logger.warn ">> is going down for an operating system update!",
       channels: [:toast]
     Process.sleep(5000)
     Firmware.reboot

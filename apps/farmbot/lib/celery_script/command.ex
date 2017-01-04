@@ -14,6 +14,22 @@ defmodule Farmbot.CeleryScript.Command do
   use Amnesia
   alias Farmbot.Sync.Database.ToolSlot
   use ToolSlot
+  @digital 0
+  @pwm 1
+  @shrug "¯\\\\_(ツ)_/\¯"
+
+  # DISCLAIMER:
+  # IF YOU SEE A HACK HERE RELATED TO A FIRMWARE COMMAND
+  # IE: read_pin, write_pin, etc, DO NOT TRY TO FIX IT.
+  # IT WORKS, AND DOES NOT CAUSE SIDE EFFECTS (unless it does ¯\_(ツ)_/¯)
+  # (unless of course the arduino firmware is fixed.)
+
+  # DISCLAIMER #2:
+  # PLEASE MAKE SURE EVERYTHING IS TYPESPECED AND DOC COMMENENTED IN HERE.
+  # SOME NODES, ARE HARD TO TEST,
+  # AND SOME NODES CAN CAUSE CATASTROPHIC DISASTERS
+  # ALSO THE COMPILER CAN'T PROPERLY CHECK SOMETHING BEING THAT THE ARGS ARE
+  # NOT POSITIONAL.
 
   @doc """
     move_absolute to a prticular position.
@@ -207,7 +223,9 @@ defmodule Farmbot.CeleryScript.Command do
       body: []
   """
   @spec reboot(%{}, []) :: no_return
-  def reboot(%{}, []), do: nil
+  def reboot(%{}, []) do
+    Logger.warn ">> can't reboot!"
+  end
 
   @doc """
     Powers off your bot
@@ -215,7 +233,9 @@ defmodule Farmbot.CeleryScript.Command do
       body: []
   """
   @spec power_off(%{}, []) :: no_return
-  def power_off(%{}, []), do: nil
+  def power_off(%{}, []) do
+    Logger.warn ">> can't power off!"
+  end
 
   @doc """
     updates mcu configs
@@ -227,7 +247,11 @@ defmodule Farmbot.CeleryScript.Command do
   def mcu_config_update(%{data_label: param_str, number: val}, []) do
     param_int = GParser.parse_param(param_str)
     if param_int do
+      Logger.debug ">> is updating #{param_str}: #{val}"
       "F22 P#{param_int} V#{val}" |> GHan.block_send
+      # HACK read the param back because sometimes the firmware decides
+      # our param sets arent important enough to keep
+      read_param(%{data_label: param_str}, [])
     else
       Logger.error ">> got an unrecognized param: #{param_str}"
     end
@@ -254,6 +278,8 @@ defmodule Farmbot.CeleryScript.Command do
   """
   @spec read_all_params(%{}, []) :: no_return
   def read_all_params(%{}, []) do
+    # TODO: maybe don't do this as magic numbers. I dont even remember where
+    # these numbers came from
     magic_numbers =
       [0,11,12,13,21,22,23,31,32,33,41,42,43,51,52,53,61,62,63,71,72,73, 101,102,103]
    for param <- magic_numbers do
@@ -266,7 +292,7 @@ defmodule Farmbot.CeleryScript.Command do
       args: %{axis: "x" | "y" | "z" | "all"},
       body: []
   """
-  @type axis :: String.t
+  @type axis :: String.t # "x" | "y" | "z" | "all"
   @spec home(%{axis: axis}, []) :: no_return
   def home(%{axis: axis}, []) do
     case axis do
@@ -390,7 +416,8 @@ defmodule Farmbot.CeleryScript.Command do
     Logger.debug ">> #{rendered}", type: m_type, channels: parse_channels(channels)
   end
 
-  def get_message_stuff do
+  @spec get_message_stuff :: %{x: x, y: y, z: z}
+  defp get_message_stuff do
     [x, y, z] = Farmbot.BotState.get_current_pos
     %{x: x, y: y, z: z}
   end
@@ -425,6 +452,10 @@ defmodule Farmbot.CeleryScript.Command do
     # sets the pin mode in bot state.
     Farmbot.BotState.set_pin_mode(pin, mode)
     "F41 P#{pin} V#{val} M#{mode}" |> GHan.block_send
+    # HACK read the pin back to make sure it worked
+    read_pin(%{pin_number: pin, pin_mode: mode, data_label: "ack"}, [])
+    # HACK the above hack doesnt work some times so we just force it to work.
+    Farmbot.BotState.set_pin_value(pin, val)
   end
 
   @doc """
@@ -445,12 +476,103 @@ defmodule Farmbot.CeleryScript.Command do
   end
 
   @doc """
+    toggles a digital pin
+      args: %{pin_number: String.t},
+      body: []
+  """
+  @spec toggle_pin(%{pin_number: String.t}, []) :: no_return
+  def toggle_pin(%{pin_number: pin}, []) do
+    # if we are trying to toggle an analog pin, make it digital i guess?
+    # if it was analog, it will result in becoming 0
+    Farmbot.BotState.set_pin_mode(pin, @digital)
+    %{mode: @digital, value: val} = Farmbot.BotState.get_pin(pin)
+    do_toggle(pin, val)
+  end
+
+  @spec do_toggle(String.t, integer) :: no_return
+  def do_toggle(pin, val) do
+    case val do
+      # if it was off turn it on
+      0 -> write_pin(%{pin_number: pin, pin_mode: @digital, pin_value: 1}, [])
+      # if it was on (or analog) turn it off. (for safetey)
+      _ -> write_pin(%{pin_number: pin, pin_mode: @digital, pin_value: 0}, [])
+    end
+  end
+
+  @doc """
     sleeps for a number of milliseconds
       args: %{milliseconds: integer},
       body: []
   """
   @spec wait(%{milliseconds: integer}, []) :: no_return
   def wait(%{milliseconds: millis}, []), do: Process.sleep(millis)
+
+  @doc """
+    Checks updates for given package
+      args: %{package: "arduino_firmware" | "farmbot_os"},
+      body: []
+  """
+  @type package :: String.t # "arduino_firmware" | "farmbot_os"
+  @spec check_updates(%{package: package}, []) :: no_return
+  def check_updates(%{package: package}, []) do
+    case package do
+      "arduino_firmware" ->
+        Farmbot.Updates.Handler.check_and_download_updates(:os)
+      "farmbot_os" ->
+        Farmbot.Updates.Handler.check_and_download_updates(:fw)
+      u -> Logger.debug ">> got a request to check updates for an " <>
+        "unrecognized package: #{u}"
+    end
+  end
+
+  @doc """
+    Reads a param value
+      args: %{data_label: String.t}
+      body: []
+  """
+  @spec read_param(%{data_label: String.t}, []) :: no_return
+  def read_param(%{data_label: param_str}, []) do
+    param_int = GParser.parse_param(param_str)
+    if (param_int) do
+      GHan.block_send("F21 P#{param_int}")
+    else
+      Logger.error ">> got unknown param: #{param_str}"
+    end
+  end
+
+  @doc """
+    Sends a warning message. Used for denoting hax and what not
+      args: %{message: String.t}
+      body: []
+  """
+  @spec shrug(%{messsage: String.t}, []) :: no_return
+  def shrug(%{message: str}, []) do
+    send_message(%{message: str <> @shrug, message_type: :warn}, [])
+  end
+
+  @doc """
+    Locks the bot from movement until unlocked
+      args: %{},
+      body: []
+  """
+  @spec emergency_lock(%{}, []) :: no_return
+  def emergency_lock(%{}, []) do
+    # HACK / BUG the arduino firmware won't E stop for some reason, so all
+    # it's state gets wiped out. One day when the firmware works again
+    # we can reimplement this
+    Farmbot.Serial.Handler.e_stop
+    shrug(%{message: ">> is lost. Probably a good idea to reboot."}, [])
+  end
+
+  @doc """
+    unlocks the bot allowing movement again.
+      args: %{},
+      body: []
+  """
+  @spec emergency_unlock(%{}, []) :: no_return
+  def emergency_unlock(%{}, []) do
+    Logger.warn ">> needs to be rebooted"
+  end
 
   @doc """
     Executes an ast node.

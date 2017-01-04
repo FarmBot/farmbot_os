@@ -36,7 +36,6 @@ defmodule Farmbot.Transport do
   end
 
   def handle_events([%MonState{} = monstate], _from, _) do
-    Logger.debug ">> Got state update"
     new_state = %Serialized{
       mcu_params: monstate.hardware.mcu_params,
       location: monstate.hardware.location,
@@ -49,6 +48,7 @@ defmodule Farmbot.Transport do
   end
 
   def handle_events(t, _, state) do
+    # FIXME where is this coming from?
     Logger.warn "FIX THIS: #{inspect t}"
     {:noreply, [nil], state}
   end
