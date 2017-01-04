@@ -29,6 +29,29 @@ defmodule Farmbot.HTTP do
   end
 
   @doc """
+    Builds a HTTP request.
+  """
+  @type verbs ::
+    :get
+    | :post
+    | :put
+    | :delete
+  @spec req(verbs, binary, any) :: http_resp
+  def req(verb, path, body \\ nil) do
+    with {:ok, server} <- fetch_server,
+         {:ok, auth_headers} <- build_auth
+    do
+      options = [headers: auth_headers]
+      if body do
+        options_with_body = Keyword.put(options, :body, body)
+        HTTPotion.request(verb, "#{server}#{path}", options_with_body)
+      else
+        HTTPotion.request(verb, "#{server}#{path}", options)
+      end
+    end
+  end
+
+  @doc """
     Short cut for getting a path and piping it thro Poison.decode.
   """
   @spec get_to_json(binary) :: map

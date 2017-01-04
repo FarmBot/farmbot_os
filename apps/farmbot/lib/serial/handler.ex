@@ -147,9 +147,8 @@ def handle_cast(_, nil), do: {:noreply, nil}
 
   @spec open_serial(pid, [], [binary, ...]) :: {:ok, binary}
   defp open_serial(_pid, [], tries) do
-    Logger.error """
-      >> could not auto detect serial port. i tried: #{inspect tries}
-      """
+    Logger.error ">> could not auto detect serial port. " <>
+    "i tried: #{inspect tries}"
     {:ok, nil}
   end
 

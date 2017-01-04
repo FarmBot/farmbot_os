@@ -9,6 +9,7 @@ defmodule Farmbot.Logger do
   alias Farmbot.HTTP
   alias Farmbot.BotState
   use GenEvent
+  require Logger
 
   def init(_), do: {:ok, build_state}
 
@@ -52,19 +53,19 @@ defmodule Farmbot.Logger do
     || dispatch({messages, posting?})
   end
 
-  def handle_event(:flush, _state) do
-    {:ok, build_state}
-  end
+  def handle_event(:flush, _state), do: {:ok, build_state}
 
   # If the post succeeded, we clear the messages
-  def handle_info(:post_success, {_, _}), do: dispatch {[], false}
+  def handle_call(:post_success, {_, _}), do: {:ok, :ok, {[], false}}
   # If it did not succeed, keep the messages, and try again until it completes.
-  def handle_info(:post_fail, {messages, _}), do: dispatch {messages, false}
-  # Catch any stray send messages that we don't care about.
-  def handle_info(_, state), do: dispatch state
-
+  def handle_call({:post_fail, error}, {messages, _}) do
+    IO.inspect error
+    {:ok, :ok, {messages, false}}
+  end
   # Catch any stray calls.
   def handle_call(_, state), do: {:ok, :unhandled, state}
+
+  def handle_info(_, state), do: dispatch state
 
   def terminate(_,_) do
     # if this backend crashes just pop it out of the logger backends.
@@ -83,16 +84,16 @@ defmodule Farmbot.Logger do
     :ok
   end
 
-  # Dont know if this can happen but just in case.
-  defp dispatch(Farmbot.Logger), do: {:ok, build_state}
-
   # IF we are already posting messages to the api, no need to check the count.
   defp dispatch({messages, true}), do: {:ok, {messages, true}}
   # If we not already doing an HTTP Post to the api, check to see if we need to
   # (check if the count of messages is greater than 50)
   defp dispatch({messages, false}) do
     if Enum.count(messages) > 50 do
-      do_post(messages, self())
+      pid = self # var that = this;
+      spawn fn() ->
+        do_post(messages, pid)
+      end
       {:ok, {messages, true}}
     else
       {:ok, {messages, false}}
@@ -102,19 +103,22 @@ defmodule Farmbot.Logger do
   # Posts an array of logs to the API.
   @spec do_post([log_message],pid) :: :ok
   defp do_post(m, pid) do
-    IO.warn "FIXME"
-    # "/api/logs" |> HTTP.post(messages) |> parse_resp(pid)
+    {messages, _} = Enum.partition(m, fn(message) ->
+      case Poison.encode(message) do
+        {:ok, json} -> json
+        _ ->  nil
+      end
+    end)
+    "/api/logs" |> HTTP.post(Poison.encode!(messages)) |> parse_resp
   end
 
   # Parses what the api sends back. Will only ever return :ok even if there was
   # an error.
-  @spec parse_resp(HTTPotion.Response.t | HTTPotion.ErrorResponse.t, pid) :: :ok
-  defp parse_resp(%HTTPotion.ErrorResponse{message: _m}, pid),
-    do: send(pid, :post_fail)
-  defp parse_resp(%HTTPotion.Response{status_code: 200}, pid),
-    do: send(pid, :post_success)
-  defp parse_resp(_error, pid),
-    do: send(pid, :post_fail)
+  @spec parse_resp(HTTPotion.Response.t | HTTPotion.ErrorResponse.t) :: :ok
+  defp parse_resp(%HTTPotion.Response{status_code: 200}),
+    do: GenEvent.call(Elixir.Logger, Farmbot.Logger, :post_success)
+  defp parse_resp(error),
+    do: GenEvent.call(Elixir.Logger, Farmbot.Logger, {:post_fail, error})
 
   @type rpc_log_type
     :: :success
@@ -197,7 +201,5 @@ defmodule Farmbot.Logger do
 
   @type posting? :: boolean
   @spec build_state :: {[log_message], posting?}
-  # this is because i dont know how to input a default state to Logger.
-  # TODO IM DUMB FIX THIS
   defp build_state, do: {[], false}
 end
