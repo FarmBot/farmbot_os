@@ -104,6 +104,13 @@ defmodule Farmbot.CeleryScript.Command do
     end
   end
 
+  # is this one a good idea?
+  # there might be too expectations here: it could return the current position,
+  # or 0 
+  def ast_to_coord(%Ast{kind: "nothing", args: _, body: _}) do
+    coordinate(%{x: 0, y: 0, z: 0}, [])
+  end
+
   def ast_to_coord(ast) do
     Logger.warn ">> no conversion from #{inspect ast} to coordinate"
     :error
@@ -302,16 +309,15 @@ defmodule Farmbot.CeleryScript.Command do
     home(%{axis: "x"}, [])
   end
 
-  def home(%{axis: axis}, []) do
+  def home(%{axis: axis}, [])
+  when is_bitstring(axis) do
     [cur_x, cur_y, cur_z] = Farmbot.BotState.get_current_pos
     speed = 100
     blah = nothing(%{}, [])
     location =
-      case axis do
-        "x" -> coordinate(%{x: 0, y: cur_y, z: cur_z}, [])
-        "y" -> coordinate(%{x: cur_x, y: 0, z: cur_z}, [])
-        "z" -> coordinate(%{x: cur_y, y: cur_y, z: 0}, [])
-      end
+      %{x: cur_x, y: cur_y, z: cur_z}
+      |> Map.put(String.to_atom(axis), 0)
+      |> coordinate([])
     move_absolute(%{speed: speed, location: location, offset: blah }, [])
   end
 
@@ -332,8 +338,9 @@ defmodule Farmbot.CeleryScript.Command do
       args: %{},
       body: []
   """
-  @spec nothing(%{}, []) :: nil
-  def nothing(%{}, []), do: nil
+  @type nothing_ast :: %Ast{kind: String.t, args: %{}, body: []}
+  @spec nothing(%{}, []) :: nothing_ast
+  def nothing(args, body), do: %Ast{kind: "nothing", args: args, body: body}
 
   @doc """
     Executes a sequence. Be carefully.
