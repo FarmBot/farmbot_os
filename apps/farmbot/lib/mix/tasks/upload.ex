@@ -14,14 +14,6 @@ defmodule Mix.Tasks.Farmbot.Upload do
   end
 end
 
-defmodule Mix.Tasts.Farmbot.Webpack do
-  use Mix.Task
-  @shortdock "starts webpack"
-  def run(_) do
-    Farmbot.Configurator.WebPack.start_link
-  end
-end
-
 defmodule Mix.Tasks.Farmbot.Curl do
   use Mix.Task
   @shortdoc "Uploads an image to a development target"

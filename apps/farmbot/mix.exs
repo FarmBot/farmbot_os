@@ -105,4 +105,9 @@ defmodule Farmbot.Mixfile do
     end
     [{:"nerves_system_#{sys}", in_umbrella: true}]
   end
+
+  def webpack do
+    File.cd "../farmbot_configurator"
+    Farmbot.Configurator.WebPack.start_link 
+  end
 end

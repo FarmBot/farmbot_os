@@ -22,7 +22,7 @@ defmodule Farmbot.Configurator do
   defp maybe_webpack do
     if System.get_env("USE_WEBPACK") do
       IO.puts "starting webpack"
-      [worker(WebPack, [])]
+      [worker(Farmbot.Configurator.WebPack, [])]
     else
       []
     end

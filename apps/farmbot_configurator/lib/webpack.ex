@@ -1,4 +1,4 @@
-defmodule WebPack do
+defmodule Farmbot.Configurator.WebPack do
   require Logger
   use GenServer
 
