@@ -21,7 +21,6 @@ defmodule Farmbot.Network.Mixfile do
 
   defp deps, do: [
     {:poison, "~> 3.0"},
-    {:json_rpc, in_umbrella: true},
     {:nerves_interim_wifi, "~> 0.1.0"}
   ]
   defp target(:prod), do: System.get_env("NERVES_TARGET") || "rpi3"

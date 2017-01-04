@@ -75,8 +75,10 @@ defmodule Farmbot.Serial.Gcode.Handler do
   end
 
   # If we arent waiting on anything right now. (current is nil and log is empty)
-  def handle_cast({:send, message, caller}, %{nerves: nerves, current: nil, log: []})
-  when is_bitstring(message) do
+  def handle_cast({:send, message, caller},
+    %{nerves: nerves, current: nil, log: []})
+    when is_bitstring(message)
+  do
     Farmbot.Serial.Handler.write(message, caller)
     {:noreply, %{nerves: nerves, current: {message, caller}, log: []}}
   end

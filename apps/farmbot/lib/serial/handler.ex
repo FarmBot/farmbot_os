@@ -1,6 +1,5 @@
 defmodule Farmbot.Serial.Handler do
   alias Nerves.UART
-  alias Nerves.FakeUART
   alias Farmbot.Serial.Gcode.Handler, as: GcodeHandler
   alias Farmbot.Serial.Gcode.Parser, as: GcodeParser
 
@@ -9,41 +8,21 @@ defmodule Farmbot.Serial.Handler do
   """
   require Logger
   @baud 115_200
+  # FIXME TEST ENV IS PROBABLY BROKEN
 
-  def init(:prod) do
+  def init([]) do
     Process.flag(:trap_exit, true)
     {:ok, nerves} = UART.start_link
     {:ok, handler} = GcodeHandler.start_link(nerves)
     tty = open_serial(nerves)
-    {:ok, {nerves, tty, handler}}
+    if tty do
+      {:ok, {nerves, tty, handler}}
+    else
+      {:ok, nil}
+    end
   end
 
-  def init(:test) do
-    tty = "ttyFake"
-    {:ok, test_nerves} = FakeUART.start_link(self)
-    {:ok, handler} = GcodeHandler.start_link(test_nerves)
-    {:ok, {test_nerves, tty, handler}}
-  end
-
-  def init(:dev) do
-    Process.flag(:trap_exit, true)
-    {:ok, nerves} = UART.start_link
-    tty = System.get_env("TTY")
-    if tty == nil, do: raise "YOU FORGOT TO SET TTY ENV VAR"
-    UART.open(nerves, tty, speed: @baud, active: true)
-    UART.configure(nerves,
-      framing: {UART.Framing.Line,
-                separator: "\r\n"},
-                rx_framing_timeout: 500)
-
-
-    {:ok, handler} = GcodeHandler.start_link(nerves)
-    {:ok, {nerves, tty, handler}}
-  end
-
-  def start_link(env) do
-    GenServer.start_link(__MODULE__, env, name: __MODULE__)
-  end
+  def start_link(), do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
 
   @doc """
     Writes to a nerves uart tty. This only exists because
@@ -78,6 +57,8 @@ defmodule Farmbot.Serial.Handler do
     {:reply, :ok, {nerves, tty, handler}}
   end
 
+  def handle_call(_, _from, nil), do: {:reply, :ok, nil}
+
   def handle_cast({:write, _str, caller}, {nerves, :e_stop, handler}) do
     send(caller, :e_stop)
     {:noreply, {nerves, :e_stop, handler}}
@@ -104,6 +85,13 @@ defmodule Farmbot.Serial.Handler do
     new_tty = open_serial(nerves)
     {:noreply, {nerves, new_tty, handler}}
   end
+
+def handle_cast({:write, _str, caller}, nil) do
+  send(caller, :done)
+  {:noreply, nil}
+end
+
+def handle_cast(_, nil), do: {:noreply, nil}
 
   # WHEN A FULL SERIAL MESSAGE COMES IN.
   def handle_info({:nerves_uart, nerves_tty, message}, {pid, tty, handler})
@@ -159,10 +147,9 @@ defmodule Farmbot.Serial.Handler do
 
   @spec open_serial(pid, [], [binary, ...]) :: {:ok, binary}
   defp open_serial(_pid, [], tries) do
-    Logger.error """
-      >> could not auto detect serial port. i tried: #{inspect tries}
-      """
-    {:ok, "ttyFail"}
+    Logger.error ">> could not auto detect serial port. " <>
+    "i tried: #{inspect tries}"
+    {:ok, nil}
   end
 
   @spec open_serial(pid, [binary,...], [binary,...]) :: {:ok, binary}
@@ -177,10 +164,9 @@ defmodule Farmbot.Serial.Handler do
   @spec open_serial(pid) :: {:ok, binary}
   defp open_serial(pid) do
     {:ok, tty} = open_serial(pid, list_ttys , []) # List of available ports
-    UART.configure(pid,
-                          framing: {UART.Framing.Line,
-                          separator: "\r\n"},
-                          rx_framing_timeout: 500)
+    UART.configure(pid, framing: {UART.Framing.Line,
+                        separator: "\r\n"},
+                        rx_framing_timeout: 500)
     tty
   end
 

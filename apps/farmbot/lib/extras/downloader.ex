@@ -5,6 +5,7 @@ defmodule Downloader do
     because it was very helpful
   """
   require Logger
+  # TODO MOVE ME
 
   @spec run(String.t, String.t) :: String.t
   def run(url, dl_file) when is_bitstring url do

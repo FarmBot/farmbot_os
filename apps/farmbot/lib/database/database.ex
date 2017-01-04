@@ -56,6 +56,7 @@ defmodule Farmbot.Sync do
   @doc """
     Downloads the sync object form the API.
   """
+  require IEx
   def sync do
     with {:ok, token}       <- fetch_token,
          {:ok, server}      <- fetch_server,
@@ -67,6 +68,7 @@ defmodule Farmbot.Sync do
          do: {:ok, validated}
   end
 
+  # WHAT THE HECK IS THIS
   def enter_into_db(%SyncObject{} = so) do
     Amnesia.transaction do
       # We arent aloud to enumerate over a struct, so we turn it into a map here

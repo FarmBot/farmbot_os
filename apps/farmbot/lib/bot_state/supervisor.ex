@@ -7,28 +7,22 @@ defmodule Farmbot.BotState.Supervisor do
   use Supervisor
   require Logger
   alias Farmbot.EasterEggs
-  def init(initial_config) do
+  def init(
+    %{target: target, compat_version: compat_version, version: version})
+  do
     children = [
-      # Event manager.
-      worker(GenEvent,
-        [[name: Farmbot.BotState.EventManager]],
-         [id: Farmbot.BotState.EventManager]),
+      worker(Farmbot.BotState.Monitor, [], [restart: :permanent]),
 
-      # the name of this is wrong now, but it subscribes the the
-      # Event manager and serializes the state
-      worker(Farmbot.BotState.Monitor,
-        [Farmbot.BotState.EventManager], [restart: :permanent]),
+      worker(Farmbot.BotState.Configuration, [
+        %{compat_version: compat_version,
+          target: target,
+          version: version}
+        ], [restart: :permanent]),
 
-      # These are the actual trackers for the different parts of the system.
-      worker(Farmbot.BotState.Configuration,
-        [initial_config], [restart: :permanent]),
-      # worker(Farmbot.BotState.Authorization, [[]], [restart: :permanent]),
-      worker(Farmbot.BotState.Hardware,      [[]], [restart: :permanent]),
-      # worker(Farmbot.BotState.Network,       [[]], [restart: :permanent]),
-      worker(Farmbot.EasterEggs, [name: Farmbot.EasterEggs],
-        [restart: :permanent])
+      worker(Farmbot.BotState.Hardware,  [], [restart: :permanent]),
+      worker(EasterEggs, [name: EasterEggs], [restart: :permanent])
     ]
-    opts = [strategy: :one_for_one, name: __MODULE__]
+    opts = [strategy: :one_for_one]
     supervise(children, opts)
   end
 
@@ -36,7 +30,7 @@ defmodule Farmbot.BotState.Supervisor do
     # We have to start all the monitors and what not
     # and then add the logger backent because the logger backend asks for stuff
     # like position and some configuraion.
-    sup = Supervisor.start_link(__MODULE__, args)
+    sup = Supervisor.start_link(__MODULE__, args, name: __MODULE__)
     EasterEggs.start_cron_job
     Logger.add_backend(Farmbot.Logger)
     sup

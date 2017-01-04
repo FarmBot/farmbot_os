@@ -9,6 +9,7 @@ defmodule Farmbot.Network do
   alias Nerves.InterimWiFi
   alias Farmbot.Network.Hostapd
   alias Farmbot.Network.Ntp
+  alias Farmbot.Network.SSH
 
   defmodule Interface do
     @moduledoc """
@@ -39,9 +40,6 @@ defmodule Farmbot.Network do
     # i guess this can be here.
     GenEvent.add_handler(EM, SocketHandler, [])
 
-    # Logger.debug ">> is starting epmd."
-    # System.cmd("epmd", ["-daemon"])
-
     {:ok, config} = get_config
     # The module of the handler.
     handler = Module.concat([Farmbot,Network,Handler,hardware])
@@ -58,14 +56,12 @@ defmodule Farmbot.Network do
 
   def handle_cast({:connected, interface, ip}, state) do
     Logger.debug ">>'s #{interface} is connected: #{ip}"
-    # I don't want either of these here.
-    if get_config("ntp") == true do
-      # Only set time if required to do so.
-      Ntp.set_time
-    end
+
+    if get_config("ntp") == true, do: Ntp.set_time
+    if get_config("ssh") == true, do: SSH.start_link
 
     Farmbot.Auth.try_log_in
-    
+
     case Map.get(state.interfaces, interface) do
       %Interface{} = thing ->
         new_interface = %Interface{thing | ipv4_address: ip}

@@ -1,63 +1,37 @@
 defmodule Farmbot do
   @moduledoc """
-    Main entry point to the application.
-    Basically just starts some supervisors.
+    Supervises the individual modules that make up the Farmbot Application.
   """
   require Logger
   use Supervisor
   alias Farmbot.Sync.Database
-  alias Nerves.Firmware
-  alias Farmbot.Supervisor, as: FarmbotSupervisor
 
-  @doc """
-    Shortcut to Nerves.Firmware.reboot
-  """
-  @spec reboot :: any
-  def reboot do
-    Logger.warn ">> going down for a reboot!"
-    Firmware.reboot
-  end
-
-  @doc """
-    Shortcut to Nerves.Firmware.poweroff
-  """
-  @spec reboot :: any
-  def poweroff do
-    Logger.warn ">> going to power down!"
-    Firmware.poweroff
-  end
-
-  def init([%{target: target, compat_version: compat_version,
-                      version: version, env: env}])
+  def init(%{target: target, compat_version: compat_version, version: version})
   do
     children = [
-      # worker(Farmbot.Network, [target], [restart: :permanent]),
-      supervisor(FarmbotSupervisor,
-                [%{target: target,
-                   compat_version: compat_version,
-                   version: version,
-                   env: env}],
-                restart: :permanent)
+      # handles communications between bot and arduino
+      supervisor(Farmbot.Serial.Supervisor, [], restart: :permanent),
+
+      # Handles tracking of various parts of the bots state.
+      supervisor(Farmbot.BotState.Supervisor,
+        [%{target: target, compat_version: compat_version, version: version}],
+      restart: :permanent),
+
+      # Handles Farmbot scheduler stuff.
+      worker(Farmbot.Scheduler, [], restart: :permanent),
+
+      # Handles the passing of messages from one part of the system to another.
+      supervisor(Farmbot.Transport.Supervisor, [], restart: :permanent),
     ]
-    opts = [strategy: :one_for_one, name: Farmbot]
+    opts = [strategy: :one_for_one]
     supervise(children, opts)
   end
 
-  def start(_type, [%{target: target, compat_version: compat_version,
-                      version: version, env: env}])
-  do
-    Logger.debug ">> is booting on #{target}."
+  def start(_, [args]) do
+    Logger.debug ">> is starting up."
     Amnesia.start
     Database.create! Keyword.put([], :memory, [node])
     Database.wait(15_000)
-
-    Supervisor.start_link(__MODULE__,
-          [%{target: target, compat_version: compat_version,
-             version: version, env: env}])
+    Supervisor.start_link(__MODULE__, args, name: Farmbot.Supervisor)
   end
-  @lint false
-  @doc """
-    Factory Resets your Farmbot.
-  """
-  def factory_reset, do: Farmbot.FileSystem.factory_reset
 end

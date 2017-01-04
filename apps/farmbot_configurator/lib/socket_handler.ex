@@ -13,7 +13,7 @@ defmodule Farmbot.Configurator.SocketHandler do
   #Called on websocket connection initialization.
   def websocket_init(_type, req, _options) do
     Logger.debug ">> encountered a new local websocket connection."
-    Logger.add_backend(Farmbot.Configurator.Logger, [self])
+    # Logger.add_backend(Farmbot.Configurator.Logger, [self])
     :erlang.start_timer(1000, self, [])
     # :ok = EH.start_link(self)
     :ok = EH.add_socket(self)
@@ -42,19 +42,16 @@ defmodule Farmbot.Configurator.SocketHandler do
 
   def websocket_terminate(_reason, _req, _state) do
     Logger.debug ">> is closing a websocket connection."
-    Logger.remove_backend(Farmbot.Configurator.Logger,[])
+    # Logger.remove_backend(Farmbot.Configurator.Logger,[])
     :ok = EH.remove_socket(self)
     :ok
   end
 
   def handle_message({:ok, m}), do: GenEvent.notify(EM, {:from_socket, m})
-  def handle_message(_) do
-    Logger.warn ">> Got unhandled websocket message!"
-  end
-
+  def handle_message(_), do: Logger.warn ">> Got unhandled websocket message!"
+  
   defp ping_message do
     lazy_id = :os.system_time(:seconds) |> Integer.to_string
     Poison.encode! %{"id" => lazy_id, "method" => "ping", "params" => [] }
   end
-
 end
