@@ -1,5 +1,4 @@
 import { MainState } from "./state";
-import { infer } from "./jsonrpc";
 
 export function wsInit(state: MainState, callback: Function) {
     // open web socket connection to the bot.
@@ -23,16 +22,9 @@ export function wsInit(state: MainState, callback: Function) {
     ws.onmessage = function (event) {
         try {
             let data = JSON.parse(event.data);
-            let mayberesp = state.incomingMessage(data);
-            if (mayberesp) {
-                let taggedResp = infer(mayberesp);
-                if (taggedResp.kind = "response") {
-                    ws.send(JSON.stringify(taggedResp.val));
-                }
-            }
-
+            console.dir(data);
         } catch (error) {
-            console.error("Whoopsies");
+            console.error("bad json");
         }
     }
 

@@ -35,17 +35,17 @@ export class Main extends React.Component<MainProps, FormState> {
     config.timezone = this.state.timezone || "oops";
 
     // upload config file.
-    mainState.uploadConfigFile(this.props.ws);
+    // mainState.uploadConfigFile(this.props.ws);
 
     // set credentials
-    mainState.uploadAppCredentials({
-      email: this.state.email || "oops",
-      pass: this.state.pass || "oops",
-      server: this.state.server || "oops"
-    }, this.props.ws);
+    // mainState.uploadAppCredentials({
+    //   email: this.state.email || "oops",
+    //   pass: this.state.pass || "oops",
+    //   server: this.state.server || "oops"
+    // }, this.props.ws);
 
     // try to log in
-    this.props.state.tryLogIn(this.props.ws);
+    // this.props.state.tryLogIn(this.props.ws);
     console.dir(this.state);
   }
 
@@ -146,13 +146,7 @@ export class Main extends React.Component<MainProps, FormState> {
                     || "http://192.168.29.167:3000"}
                   onChange={this.handleServerChange} />
               </fieldset>
-              <button onClick={() => {
-                mainState.uploadAppCredentials({
-                  email: this.state.email || "oops",
-                  pass: this.state.pass || "oops",
-                  server: this.state.server || "oops"
-                }, this.props.ws)
-              } }>Submit Credentials</button>
+              <button onClick={() => { } }>Submit Credentials</button>
               <button type="submit">Log In</button>
             </div>
           </div>

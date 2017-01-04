@@ -1,26 +1,3 @@
-export type RpcMessage = RpcNotification | RpcRequest | RpcResponse
-/** just like a request but doesn't expect a response. */
-export interface RpcNotification {
-    method: string;
-    params: any;
-    id: null;
-}
-/** request a thing to happen and get info back as a response. */
-export interface RpcRequest {
-    method: string;
-    params: any;
-    id: string;
-}
-/** A response to a request. */
-export interface RpcResponse {
-    /** the results from the request that started this. */
-    result: any;
-    /** if no error this MUST be null */
-    error: null | any;
-    /** the id of the request that waranted this response. */
-    id: string;
-}
-
 export interface ConfigFileIpSettings {
     mode: "dhcp" | "static"
     /** if mode is static, this will exist. */
