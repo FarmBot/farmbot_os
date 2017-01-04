@@ -1,6 +1,6 @@
 import { observable, action } from "mobx";
 import { BotConfigFile } from "./interfaces";
-import { uuid } from "farmbot";
+import { uuid, CeleryNode, isCeleryScript, SendMessage } from "farmbot";
 
 /** sent back from the bot when asked to query the current network interfaces. */
 export type NetworkInterface = WirelessNetworkInterface
@@ -37,11 +37,12 @@ export class MainState {
     @observable networkInterfaces: NetworkInterface[] = [];
     @observable configuration: BotConfigFile = {
         network: {},
-        authorization: { server: null },
+        authorization: {
+            server: undefined
+        },
         configuration: {
             os_auto_update: false,
             fw_auto_update: false,
-            timezone: null,
             steps_per_mm: 500
         },
         hardware: { params: {} }
@@ -61,7 +62,16 @@ export class MainState {
 
     @action
     incomingMessage(mystery: any): any {
-        console.dir(mystery);
+        if (isCeleryScript(mystery)) {
+            switch (mystery.kind) {
+                case "rpc_ok":
+                    return console.log("OK");
+                default:
+                    console.warn("Unknown CeleryScript node from websocket.");
+            }
+        } else {
+            console.dir(mystery);
+        }
     }
 }
 

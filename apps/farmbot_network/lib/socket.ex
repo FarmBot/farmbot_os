@@ -18,6 +18,10 @@ defmodule Farmbot.Network.ConfigSocket do
   # hack to ignore messages from myself here.
   def handle_event(_, state), do: {:ok, state}
 
+  def handle_socket("pong") do
+    nil
+  end
+
   def handle_socket(thing) do
     Logger.warn "socket handler is broken! #{inspect thing}"
   end

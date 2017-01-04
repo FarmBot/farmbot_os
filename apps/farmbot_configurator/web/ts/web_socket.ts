@@ -22,7 +22,11 @@ export function wsInit(state: MainState, callback: Function) {
     ws.onmessage = function (event) {
         try {
             let data = JSON.parse(event.data);
-            console.dir(data);
+            if (data === "ping") {
+                ws.send(JSON.stringify("pong"));
+            } else {
+                console.dir(data);
+            }
         } catch (error) {
             console.error("bad json");
         }

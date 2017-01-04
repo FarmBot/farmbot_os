@@ -16,6 +16,7 @@ export interface ConfigFileWifiSettings {
     /** only psk and no security are supported. */
     key_mgmt: "WPA-PSK" | "NONE"
 }
+
 export interface ConfigFileNetIface {
     type: "wireless" | "hostapd" | "ethernet";
     /** if type is hostapd there will be no settings. */
@@ -26,17 +27,18 @@ export interface ConfigFileNetIface {
         wifi?: ConfigFileWifiSettings;
     }
 }
+
 export interface BotConfigFile {
     network: {
-        [name: string]: ConfigFileNetIface
+        [name: string]: ConfigFileNetIface | undefined;
     },
     authorization: {
-        server: null | string;
+        server: string | undefined;
     },
     configuration: {
         os_auto_update: boolean;
         fw_auto_update: boolean;
-        timezone: null | string;
+        timezone: string | undefined;
         steps_per_mm: number;
     },
     hardware: {

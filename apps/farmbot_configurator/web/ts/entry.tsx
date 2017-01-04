@@ -12,6 +12,11 @@ import "../css/main.scss"
 useStrict(true);
 
 function onInit() {
+  // TODO:
+  // Get network SSIDs
+  // Set credentials
+  // send bot_config_update (timezone, credentials, server, maybe MCU params)
+  // submit / try_login or something?
 
 }
 

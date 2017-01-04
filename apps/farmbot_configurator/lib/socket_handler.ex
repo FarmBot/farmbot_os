@@ -49,9 +49,8 @@ defmodule Farmbot.Configurator.SocketHandler do
 
   def handle_message({:ok, m}), do: GenEvent.notify(EM, {:from_socket, m})
   def handle_message(_), do: Logger.warn ">> Got unhandled websocket message!"
-  
+
   defp ping_message do
-    lazy_id = :os.system_time(:seconds) |> Integer.to_string
-    Poison.encode! %{"id" => lazy_id, "method" => "ping", "params" => [] }
+    "\"ping\""
   end
 end

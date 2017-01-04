@@ -9,6 +9,10 @@ defmodule Farmbot.Configurator.Router do
   plug :match
   plug :dispatch
 
+  get "/config" do
+    conn |> send_resp(200, Poison.encode(%{ foo: "BAR" }))
+  end
+
   # anything that doesn't match a rest end point gets the index.
   match _, do: conn |> send_resp(200, make_html)
 
