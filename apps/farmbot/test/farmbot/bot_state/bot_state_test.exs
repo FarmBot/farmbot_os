@@ -1,6 +1,7 @@
 defmodule Farmbot.BotStateTest do
   use ExUnit.Case, async: false
-   
+  alias Farmbot.Token
+
   setup_all do
     unencoded = %{
       "bot" => "device_4000",
@@ -14,8 +15,7 @@ defmodule Farmbot.BotStateTest do
       "iss" => "http://ibm.com"
     }
     fake_token = Token.create!%{"unencoded" => unencoded, "encoded" => "asdf"}
-    send Farmbot.BotState.Authorization, {:authorization, fake_token}
-    Process.sleep(10)
+    Process.sleep(100)
     {:ok, %{auth: fake_token}}
   end
 
@@ -103,7 +103,7 @@ defmodule Farmbot.BotStateTest do
     |> Map.get(:locks)
   end
 
-  test "fails to remove a locl" do
+  test "fails to remove a lock" do
     fail = Farmbot.BotState.remove_lock("my dog stepped on my bot")
     assert(fail == {:error, :no_index})
   end
@@ -124,27 +124,4 @@ defmodule Farmbot.BotStateTest do
     |> Map.get(:hardware)
     |> Map.get(part)
   end
-
-  test "gets the most recent token" do
-    assert get_auth_part(:token) == Farmbot.BotState.get_token
-  end
-
-  test "gets the api server url", context do
-    assert context.auth.unencoded.iss == Farmbot.BotState.get_server
-  end
-
-  test "adds credentials to auth" do
-    Farmbot.BotState.add_creds({"connor@farmbot.io", "plaintext_pass", "http://ibm.com"})
-    interim = get_auth_part(:interim)
-    assert interim.email == "connor@farmbot.io"
-    assert interim.pass == "plaintext_pass"
-  end
-
-  defp get_auth_part(part) do
-    Process.sleep(10)
-    StateDebugger.state
-    |> Map.get(:authorization)
-    |> Map.get(part)
-  end
-
 end
