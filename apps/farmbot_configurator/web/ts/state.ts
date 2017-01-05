@@ -48,26 +48,36 @@ function logOrStatus(mystery: any): "log" | "status" | "error" {
 
 export class MainState {
     // PROPERTIES
-    @observable logs: LogMsg[] = [];
+    @observable logs: LogMsg[] = [
+        {
+            meta: {
+                x: -1,
+                y: -2,
+                z: -3,
+                type: "info"
+            },
+            message: "Connecting to bot.",
+            channels: [],
+            created_at: 0
+        }
+    ];
     @observable connected = false;
     @observable networkInterfaces: NetworkInterface[] = [];
+
     @observable botStatus: BotStateTree = {
         location: [-1, -2, -3],
         farm_scheduler: {
             process_info: [],
         },
         mcu_params: {},
-        configuration: {
-
-        },
-        informational_settings: {
-
-        },
+        configuration: {},
+        informational_settings: {},
         pins: {}
-
     }
+
+    /** This is the json file that the bot uses to boot up. */
     @observable configuration: BotConfigFile = {
-        network: {},
+        network: false,
         authorization: {
             server: undefined
         },
@@ -79,16 +89,11 @@ export class MainState {
         },
         hardware: { params: {} }
     };
+
     // BEHAVIOR
     @action
     setConnected(bool: boolean) {
         this.connected = bool;
-    }
-
-    @action
-    deleteMe() {
-        this.configuration.network["eth0"] = { type: "ethernet", settings: { ip: { mode: "dhcp" } } }
-        delete (this.configuration.network["wlan0"]);
     }
 
     @action

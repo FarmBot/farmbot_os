@@ -1,3 +1,4 @@
+import { McuParams } from "farmbot"
 export interface ConfigFileIpSettings {
     mode: "dhcp" | "static"
     /** if mode is static, this will exist. */
@@ -28,21 +29,31 @@ export interface ConfigFileNetIface {
     }
 }
 
+/** Farmbot's Configuratrion */
 export interface BotConfigFile {
-    network: {
-        [name: string]: ConfigFileNetIface | undefined;
-    },
+    /** network false indicates that farmbot will already have network 
+    *  when started.
+    * otherwise 
+    */
+    network: { [name: string]: ConfigFileNetIface | undefined; } | false,
+    /** Just holds the server. All other authorization should use a jwt */
     authorization: {
         server: string | undefined;
     },
+    /** bag of configuration stuffs. */
     configuration: {
+        /** auto update the operating system */
         os_auto_update: boolean;
+        /** auto update the arduino firmware */
         fw_auto_update: boolean;
+        /** timezone of this bot */
         timezone: string | undefined;
+        /** steps per milimeter for the arduino firmware */
         steps_per_mm: number;
     },
+    /** hardware mcu stuff */
     hardware: {
-        params: { [name: string]: number }
+        params: McuParams
     }
 }
 export type LogChannel = "toast";
@@ -55,7 +66,7 @@ export type LogType = "info"
 /** why isnt this a celeryScript yet */
 export interface LogMsg {
     /** only ever toast right now */
-    channels: LogChannel;
+    channels: LogChannel[];
     /** datestamp */
     created_at: number;
     /** the contents of the log */

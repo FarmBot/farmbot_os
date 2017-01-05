@@ -22,7 +22,8 @@ defmodule Farmbot.Configurator.Mixfile do
     [
       mod: {Farmbot.Configurator, []},
       applications: applications,
-      included_applications: [:farmbot_filesystem, :farmbot_auth]
+      included_applications:
+        [:farmbot_filesystem, :farmbot_auth, :farmbot_network]
     ]
   end
 
@@ -39,7 +40,8 @@ defmodule Farmbot.Configurator.Mixfile do
       {:cowboy, "~> 1.0.0"},
       {:httpotion, "~> 3.0.0"},
       {:farmbot_filesystem, in_umbrella: true},
-      {:farmbot_auth, in_umbrella: true}
+      {:farmbot_auth, in_umbrella: true},
+      {:farmbot_network, in_umbrella: true}
     ]
   end
 end

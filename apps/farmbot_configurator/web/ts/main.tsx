@@ -70,11 +70,43 @@ export class Main extends React.Component<MainProps, FormState> {
 
       <h1 hidden={mainState.connected}> YOUR FARMBOT IS BROKEN!@!!!! </h1>
 
+
       {/* Only display if the bot is connected */}
       <div hidden={!mainState.connected} className={`col-md-offset-3 col-md-6 
         col-sm-8 col-sm-offset-2`}>
-        <div className="widget-content">
-          <h5> Location: {this.props.state.botStatus.location}</h5>
+
+        <div className="widget">
+
+          <div className="widget-header">
+            <h5> Logs </h5>
+            <i className="fa fa-question-circle widget-help-icon">
+              <div className="widget-help-text">
+                {`Log messages from your bot`}
+              </div>
+            </i>
+          </div>
+
+          <div className="widget-content">
+            {this.props.state.logs[this.props.state.logs.length - 1].message}
+          </div>
+        </div>
+
+        <div className="widget">
+
+          <div className="widget-header">
+            <h5> Location </h5>
+            <i className="fa fa-question-circle widget-help-icon">
+              <div className="widget-help-text">
+                {`Current Location of your bot`}
+              </div>
+            </i>
+          </div>
+
+          <div className="widget-content">
+            X: <input readOnly={true} value={this.props.state.botStatus.location[0]} />
+            Y: <input readOnly={true} value={this.props.state.botStatus.location[1]} />
+            Z: <input readOnly={true} value={this.props.state.botStatus.location[2]} />
+          </div>
         </div>
 
         <form onSubmit={this.handleSubmit}>
@@ -105,9 +137,6 @@ export class Main extends React.Component<MainProps, FormState> {
                 <label>
                   Network
                 </label>
-                <button onClick={() => { this.props.state.deleteMe(); } }>
-                  Use Ethernet
-                </button>
               </fieldset>
             </div>
           </div>
@@ -154,20 +183,7 @@ export class Main extends React.Component<MainProps, FormState> {
             </div>
           </div>
         </form>
-
       </div>
-
-      <div className="bot-logs">
-        <h4>Bot Logs</h4>
-        <ul>
-          {
-            mainState.logs.map((el, index) => {
-              el
-            })
-          }
-        </ul>
-      </div>
-
-    </div>;
+    </div>
   }
 }

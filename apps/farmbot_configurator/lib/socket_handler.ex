@@ -5,6 +5,8 @@ defmodule Farmbot.Configurator.SocketHandler do
   require Logger
   @behaviour :cowboy_websocket_handler
   @timeout 60000 # terminate if no activity for one minute
+  @ping "\"ping\""
+  @pong "\"pong\""
 
   def init(_, _req, _opts), do: {:upgrade, :protocol, :cowboy_websocket}
 
@@ -16,7 +18,7 @@ defmodule Farmbot.Configurator.SocketHandler do
     {:ok, req, stage, @timeout}
   end
 
-  def websocket_handle({:text, "\"pong\""}, req, stage), do: {:ok, req, stage}
+  def websocket_handle({:text, @pong}, req, stage), do: {:ok, req, stage}
 
   # messages from the browser.
   def websocket_handle({:text, m}, req, stage) do
@@ -26,12 +28,13 @@ defmodule Farmbot.Configurator.SocketHandler do
 
   def websocket_info({:timeout, _, []}, req, stage) do
     :erlang.start_timer(1000, self, [])
-    {:reply, {:text, ping_message}, req, stage}
+    {:reply, {:text, @ping}, req, stage}
   end
 
-  def websocket_info([log: %{channels: _, created_at: _, message: _, meta: _} = m], req, stage) do
-    {:reply, {:text, Poison.encode!(m)}, req, stage}
-  end
+  def websocket_info(
+    [log: %{channels: _, created_at: _, message: _, meta: _} = m],
+    req, stage), do: {:reply, {:text, Poison.encode!(m)}, req, stage}
+
 
   def websocket_info([message], req, stage) do
     case Poison.encode(message) do
@@ -40,13 +43,9 @@ defmodule Farmbot.Configurator.SocketHandler do
     end
   end
 
-  def websocket_info(message, req, stage) do
-    {:ok, req, stage}
-  end
+  def websocket_info(message, req, stage), do: {:ok, req, stage}
 
   def websocket_terminate(_reason, _req, _stage) do
     Logger.debug ">> is closing a websocket connection."
   end
-
-  defp ping_message, do: "\"ping\""
 end

@@ -2,32 +2,34 @@ defmodule Farmbot.Configurator.Router do
   @moduledoc """
     Routes incoming connections.
   """
-  use Plug.Router
   alias Farmbot.FileSystem.ConfigStorage
+
+  use Plug.Router
   # this is so we can serve the bundle.js file.
   plug Plug.Static, at: "/", from: :farmbot_configurator
   plug :match
   plug :dispatch
+  plug CORSPlug
 
-  get "/config" do
+  get "/api/config" do
     {:ok, config} = ConfigStorage.read_config_file
     conn |> send_resp(200, config)
   end
 
-  post "/config" do
+  post "/api/config" do
     {:ok, body, _} = read_body(conn)
     rbody = Poison.decode!(body)
     ConfigStorage.replace_config_file(rbody)
     conn |> send_resp(200,body)
   end
 
-  post "/config/creds" do
+  post "/api/config/creds" do
     {:ok, body, _} = read_body(conn)
     %{email: email, pass: pass, server: server} = Poison.decode!(body)
     conn |> send_resp(200, "ok")
   end
 
-  get "/network/interfaces" do
+  get "/api/network/interfaces" do
     conn |> send_resp(501, "TODO")
   end
 
