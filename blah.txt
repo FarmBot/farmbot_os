@@ -1,4 +1,0 @@
-logs are now in the wrong mqtt channel
-status is now in the wrong channel/ completely broken
-bot_config and mcu_params are really broken
-mqtt probably kind of broken
