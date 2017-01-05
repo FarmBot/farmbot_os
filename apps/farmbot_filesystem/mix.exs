@@ -1,9 +1,9 @@
 defmodule Farmbot.FileSystem.Mixfile do
   use Mix.Project
-
+  @version Path.join([__DIR__, "..", "farmbot", "VERSION"]) |> File.read! |> String.strip
   def project do
     [app: :farmbot_filesystem,
-     version: "0.1.0",
+     version: @version,
      build_path: "../../_build",
      config_path: "../../config/config.exs",
      deps_path: "../../deps",

@@ -4,6 +4,5 @@ defmodule Farmbot.Network.Handler do
   """
 
   @type ret_val :: :ok | {:error, atom}
-  @callback init({pid, map}) :: {:ok, any}
   @callback manager :: {:ok, pid}
 end

@@ -1,6 +1,6 @@
 import { MainState } from "./state";
 
-export function wsInit(state: MainState, callback: Function) {
+export function wsInit(state: MainState) {
     // open web socket connection to the bot.
     let ws_host = "ws://" + location.host + "/ws"
     let ws = new WebSocket(ws_host);
@@ -9,7 +9,6 @@ export function wsInit(state: MainState, callback: Function) {
     ws.onopen = function (_event) {
         console.log("Connected to bot!");
         state.setConnected(true);
-        callback();
     }
 
     /** if ever we disconnect. */

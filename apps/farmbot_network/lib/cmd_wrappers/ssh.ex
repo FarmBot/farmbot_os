@@ -6,7 +6,7 @@ defmodule Farmbot.Network.SSH do
   require Logger
   @banner "/tmp/banner"
   @cmd "dropbear -R -F -a -B -b #{@banner}"
-
+    
   def init do
     Process.flag(:trap_exit, true)
     make_banner

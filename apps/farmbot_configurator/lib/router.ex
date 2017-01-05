@@ -3,6 +3,7 @@ defmodule Farmbot.Configurator.Router do
     Routes incoming connections.
   """
   alias Farmbot.FileSystem.ConfigStorage
+  require Logger
 
   use Plug.Router
   # this is so we can serve the bundle.js file.
@@ -19,22 +20,33 @@ defmodule Farmbot.Configurator.Router do
   post "/api/config" do
     {:ok, body, _} = read_body(conn)
     rbody = Poison.decode!(body)
+    # TODO THIS NEEDS SOME HARD CHECKING. PROBABLY IN THE CONFIG STORAGE MODULE
     ConfigStorage.replace_config_file(rbody)
     conn |> send_resp(200,body)
   end
 
   post "/api/config/creds" do
     {:ok, body, _} = read_body(conn)
-    %{email: email, pass: pass, server: server} = Poison.decode!(body)
+    %{"email" => email,"pass" => pass,"server" => server} = Poison.decode!(body)
+    Farmbot.Auth.interim(email, pass, server)
     conn |> send_resp(200, "ok")
   end
 
-  get "/api/network/interfaces" do
-    conn |> send_resp(501, "TODO")
+  get "/api/network/scan" do
+    {:ok, body, _} = read_body(conn)
+    %{"iface" => iface} = Poison.decode!(body)
+    scan = Farmbot.Network.scan(iface)
+    case scan do
+      {:error, reason} -> conn |> send_resp(500, "could not scan: #{inspect reason}")
+      ssids -> conn |> send_resp(200, Poison.encode!(ssids))
+    end
   end
 
-  get "/network/scan" do
-    conn |> send_resp(501, "TODO")
+  post "/api/factory_reset" do
+    Logger.debug "goodbye."
+    Farmbot.FileSystem.factory_reset
+    # I don't think this can ever happen?
+    conn |> send_resp(500, "uh oh this is not good.")
   end
 
   # anything that doesn't match a rest end point gets the index.

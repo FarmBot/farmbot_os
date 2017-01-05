@@ -1,9 +1,9 @@
 defmodule Farmbot.Network.Mixfile do
   use Mix.Project
-
+  @version Path.join([__DIR__, "..", "farmbot", "VERSION"]) |> File.read! |> String.strip
   def project do
     [app: :farmbot_network,
-     version: "0.1.0",
+     version: @version,
      build_path: "../../_build",
      config_path: "../../config/config.exs",
      deps_path: "../../deps",
@@ -16,7 +16,7 @@ defmodule Farmbot.Network.Mixfile do
 
   def application do
     [applications: [:logger, :poison, :nerves_interim_wifi],
-     mod: {Farmbot.Network, [%{hardware: target(Mix.env)}]}]
+     mod: {Farmbot.Network, [target: target(Mix.env)]}]
   end
 
   defp deps, do: [

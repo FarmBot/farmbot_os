@@ -1,7 +1,7 @@
 {
-  "network":false,
+  "network": false,
   "authorization":{
-    "server":null
+    "server": "https://my.farmbot.io"
   },
   "configuration":{
     "os_auto_update":false,
@@ -11,7 +11,5 @@
   },
   "hardware":{
     "params":{}
-  },
-  "ntp": false,
-  "ssh": true
+  }
 }

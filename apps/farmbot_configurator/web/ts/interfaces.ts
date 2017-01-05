@@ -29,13 +29,15 @@ export interface ConfigFileNetIface {
     }
 }
 
-/** Farmbot's Configuratrion */
+/** Farmbot's Configuratrion 
+ * doing an HTTP get to "/api/config" will give the bots current config.
+*/
 export interface BotConfigFile {
     /** network false indicates that farmbot will already have network 
     *  when started.
     * otherwise 
     */
-    network: { [name: string]: ConfigFileNetIface | undefined; } | false,
+    network: { [name: string]: ConfigFileNetIface; } | false,
     /** Just holds the server. All other authorization should use a jwt */
     authorization: {
         server: string | undefined;
@@ -55,6 +57,10 @@ export interface BotConfigFile {
     hardware: {
         params: McuParams
     }
+    /** Should this bot set time after boot. */
+    ntp: boolean;
+    /** ssh */
+    ssh: boolean;
 }
 export type LogChannel = "toast";
 export type LogType = "info"

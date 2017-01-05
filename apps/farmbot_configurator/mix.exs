@@ -22,8 +22,8 @@ defmodule Farmbot.Configurator.Mixfile do
     [
       mod: {Farmbot.Configurator, []},
       applications: applications,
-      included_applications:
-        [:farmbot_filesystem, :farmbot_auth, :farmbot_network]
+      # included_applications:
+      #   [:farmbot_filesystem, :farmbot_auth, :farmbot_network]
     ]
   end
 

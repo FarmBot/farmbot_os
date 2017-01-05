@@ -1,7 +1,7 @@
 import * as React from "react";
 import { observer } from "mobx-react";
 import { observable, action } from "mobx";
-import { MainState, NetworkInterface } from "./state";
+import { MainState } from "./state";
 
 interface MainProps {
   state: MainState;
@@ -26,27 +26,35 @@ export class Main extends React.Component<MainProps, FormState> {
     this.handleServerChange = this.handleServerChange.bind(this);
     this.state = { timezone: null, email: null, pass: null, server: null };
   }
+
   @action
   handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     // alert("You bot is going to go offline!!!");
-    let mainState = this.props.state
-    let config = mainState.configuration.configuration;
-    config.timezone = this.state.timezone || "oops";
+    let mainState = this.props.state;
+    let fullFile = mainState.configuration;
+
+    let email = this.state.email;
+    let pass = this.state.pass;
+    let server = this.state.server;
+    let tz = this.state.timezone;
+
+    if (tz) {
+      fullFile.configuration.timezone = tz;
+    } else {
+      console.error("Timezone is invalid");
+      return;
+    }
+
+    if (email && pass && server) {
+      mainState.uploadCreds(email, pass, server);
+    } else {
+      console.error("Email, Password, or Server is incomplete")
+      return;
+    }
 
     // upload config file.
-    // mainState.uploadConfigFile(this.props.ws);
-
-    // set credentials
-    // mainState.uploadAppCredentials({
-    //   email: this.state.email || "oops",
-    //   pass: this.state.pass || "oops",
-    //   server: this.state.server || "oops"
-    // }, this.props.ws);
-
-    // try to log in
-    // this.props.state.tryLogIn(this.props.ws);
-    console.dir(this.state);
+    mainState.uploadConfigFile(fullFile);
   }
 
   handleTZChange(event: any) {
@@ -68,7 +76,7 @@ export class Main extends React.Component<MainProps, FormState> {
     return <div className="container">
       <h1>Configure your FarmBot</h1>
 
-      <h1 hidden={mainState.connected}> YOUR FARMBOT IS BROKEN!@!!!! </h1>
+      <h1 hidden={mainState.connected}> Good Luck!! </h1>
 
 
       {/* Only display if the bot is connected */}
@@ -178,8 +186,8 @@ export class Main extends React.Component<MainProps, FormState> {
                     || "http://192.168.29.167:3000"}
                   onChange={this.handleServerChange} />
               </fieldset>
-              <button onClick={() => { } }>Submit Credentials</button>
               <button type="submit">Log In</button>
+              <input type="button" value="Don't click me" onClick={() => { mainState.factoryReset() } } />
             </div>
           </div>
         </form>

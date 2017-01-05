@@ -7,35 +7,9 @@ import {
     SendMessage,
     BotStateTree
 } from "farmbot";
+import * as Axios from "axios";
 
-/** sent back from the bot when asked to query the current network interfaces. */
-export type NetworkInterface = WirelessNetworkInterface
-    | WiredNetworkInterface
-    | HostNetworkInterface
-
-export interface BaseNetworkInterface {
-    /** the type of interfaces this is */
-    type: "wireless" | "ethernet" | "host"
-    /** ths name of this interface. */
-    name: string;
-}
-
-export interface WirelessNetworkInterface extends BaseNetworkInterface {
-    type: "wireless";
-    /** a list of wireless access points. */
-    ssids: string[];
-
-}
-
-export interface WiredNetworkInterface extends BaseNetworkInterface {
-    type: "ethernet";
-}
-
-export interface HostNetworkInterface extends BaseNetworkInterface {
-    type: "host"
-}
-
-
+/** This isnt very good im sorry. */
 function logOrStatus(mystery: any): "log" | "status" | "error" {
     if (mystery["meta"]) {
         return "log"
@@ -48,6 +22,7 @@ function logOrStatus(mystery: any): "log" | "status" | "error" {
 
 export class MainState {
     // PROPERTIES
+    /** Array of log messages */
     @observable logs: LogMsg[] = [
         {
             meta: {
@@ -61,9 +36,11 @@ export class MainState {
             created_at: 0
         }
     ];
-    @observable connected = false;
-    @observable networkInterfaces: NetworkInterface[] = [];
 
+    /** are we connected to the bot. */
+    @observable connected = false;
+
+    /** The current state. if we care about such a thing. */
     @observable botStatus: BotStateTree = {
         location: [-1, -2, -3],
         farm_scheduler: {
@@ -87,13 +64,83 @@ export class MainState {
             steps_per_mm: 500,
             timezone: undefined
         },
-        hardware: { params: {} }
+        hardware: { params: {} },
+        ssh: true,
+        ntp: true
     };
 
+    @observable ssids: string[] = [];
+
     // BEHAVIOR
+
+    @action
+    factoryReset() {
+        console.log("This may be a disaaster");
+        Axios.post("/api/factory_reset", {}).then((thing) => {
+            // I dont think this request will ever complete.
+        }).catch((thing) => {
+            // probably will hit a timeout here
+        });
+    }
+
+    @action
+    uploadConfigFile(config: BotConfigFile) {
+        Axios.post("/api/config", config).then((thing) => {
+            console.log("Uploaded!");
+        }).catch((err) => {
+            console.warn("Problem uploading config!");
+            console.dir(err);
+        });
+    }
+
+    @action
+    uploadCreds(email: string, pass: string, server: string) {
+        Axios.post("/api/config/creds",
+            { email, pass, server }).then((thing) => {
+                console.log("Credentials Uploaded!");
+            }).catch((err) => {
+                console.warn("Problem uploading creds!");
+                console.dir(err);
+            });
+    }
+
+    @action
+    /** requires the name of the interface we want to scan on. */
+    scan(netIface: string) {
+        Axios.post("/api/network/scan", { iface: netIface })
+            .then((thing) => {
+                // i wish i knew what i was doing.
+                this.ssids = (thing.data as string[]);
+            })
+            .catch((thing) => {
+                console.error("error scanning for wifi!");
+                console.dir(thing);
+            })
+    }
+
     @action
     setConnected(bool: boolean) {
         this.connected = bool;
+        let that = this;
+        if (bool) {
+            Axios.get("/api/config").then((thing) => {
+                that.replaceConfig(thing.data as BotConfigFile);
+            }).catch((thing) => {
+                console.dir(thing);
+                console.warn("Couldn't parse current config????");
+                return;
+            });
+            if (this.configuration.network) {
+                console.log("Getting network information");
+
+            }
+        }
+    }
+
+
+    @action
+    replaceConfig(config: BotConfigFile) {
+        this.configuration = config;
     }
 
     @action

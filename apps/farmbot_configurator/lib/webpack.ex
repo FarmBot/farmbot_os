@@ -1,4 +1,7 @@
 defmodule Farmbot.Configurator.WebPack do
+  @moduledoc """
+    This shouldnt' exist in production. Starts a webpack watch session.
+  """
   require Logger
   use GenServer
 

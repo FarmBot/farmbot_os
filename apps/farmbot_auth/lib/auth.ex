@@ -65,6 +65,18 @@ defmodule Farmbot.Auth do
   end
 
   @doc """
+    Deletes the token from the bot.
+  """
+  def delete_secret do
+    path = @path <> "/secret"
+    if File.exists?(path) do
+      Farmbot.FileSystem.transaction fn() ->
+        File.rm!(path)
+      end
+    end
+  end
+
+  @doc """
     Gets the token.
     Will return a token if one exists, nil if not.
     Returns {:error, reason} otherwise
@@ -78,7 +90,7 @@ defmodule Farmbot.Auth do
     will return either {:ok, server} or {:ok, nil}
   """
   @spec get_server :: {:ok, nil} | {:ok, String.t}
-  def get_server, do: GenServer.call(CS, {:get, Authorization, :server})
+  def get_server, do: GenServer.call(CS, {:get, Authorization, "server"})
 
   @spec put_server(String.t | nil) :: no_return
   defp put_server(server) when is_nil(server) or is_binary(server),
@@ -119,7 +131,7 @@ defmodule Farmbot.Auth do
     Application entry point
   """
   def start(_type, args) do
-    Logger.debug(">> Starting Authorization services")
+    Logger.debug(">> Authorization init!")
     start_link(args)
   end
 

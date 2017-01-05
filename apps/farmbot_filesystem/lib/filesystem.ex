@@ -14,7 +14,7 @@ defmodule Farmbot.FileSystem do
     do: GenServer.start_link(__MODULE__, {env, target}, name: __MODULE__)
 
   def init({env, target}) do
-    Logger.debug ">> is starting file system services."
+    Logger.debug ">> FileSystem Init"
     mod = Module.concat([FileSystem, Utils, env, target])
     mod.fs_init
     mod.mount_read_only
@@ -58,11 +58,6 @@ defmodule Farmbot.FileSystem do
     {:noreply, {mod, :read_only, 0}}
   end
 
-  def handle_cast(:factory_reset, {mod, status, count}) do
-    mod.factory_reset
-    {:noreply, {mod, status, count}}
-  end
-
   @doc """
     Returns the path where farmbot keeps its persistant data.
   """
@@ -74,6 +69,8 @@ defmodule Farmbot.FileSystem do
   """
   def factory_reset do
     Logger.debug ">> is going to be completely reset! Goodbye!"
-    GenServer.cast(__MODULE__, :factory_reset)
+    Farmbot.Auth.delete_secret
+    Farmbot.FileSystem.ConfigStorage.reset_config
+    System.halt(0)
   end
 end

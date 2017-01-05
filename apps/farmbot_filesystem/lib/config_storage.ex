@@ -1,6 +1,8 @@
 defmodule Farmbot.FileSystem.ConfigStorage do
   @moduledoc """
     Loads information according to a configuration JSON file.
+    This does not handle the configuration file, it just holds all the
+    information in an easy to reach place.
   """
   use GenServer
   require Logger
@@ -10,21 +12,6 @@ defmodule Farmbot.FileSystem.ConfigStorage do
   defp default_config_file,
     do: "#{:code.priv_dir(:farmbot_filesystem)}/static/#{@default_config_file_name}"
 
-  defmodule Parsed do
-    @moduledoc """
-      This is what the json file should look like when it hits
-      Elixir lands
-    """
-    @enforce_keys [:authorization, :configuration, :network, :hardware]
-    defstruct @enforce_keys
-    @type connection :: {String.t, String.t} | :ethernet
-    @type t :: %__MODULE__{
-      authorization: %{server: String.t},
-      configuration: %{},
-      network: %{},
-      hardware: %{}
-    }
-  end
   @type args :: binary
   @spec start_link(args) :: {:ok, pid}
   def start_link(), do: start_link([])
@@ -32,22 +19,27 @@ defmodule Farmbot.FileSystem.ConfigStorage do
     GenServer.start_link(__MODULE__, @config_file, name: __MODULE__)
   end
 
-  @spec init(args) :: {:ok, Parsed.t}
+  @spec init(args) :: {:ok, map}
   def init(path) do
-    Logger.debug ">> is starting configuration storage."
+    Logger.debug ">> Config Storage init!"
     # Checks if the json file exists or not
     case File.read(path) do
       # if it does parse it
       {:ok, contents} ->
         Logger.debug ">> is loading its configuration file: #{path}"
-        parse_json!(contents)
+        f = parse_json!(contents)
+        {:ok, f}
       # if not start over with the default config file (from the priv dir)
       {:error, :enoent} ->
         Logger.debug ">> is creating a new configuration file: #{default_config_file}"
-        Farmbot.FileSystem.transaction fn() ->
-          File.cp!(default_config_file, @config_file)
-        end
+        reset_config
         init(@config_file)
+    end
+  end
+
+  def reset_config do
+    Farmbot.FileSystem.transaction fn() ->
+      File.cp!(default_config_file, @config_file)
     end
   end
 
@@ -59,9 +51,14 @@ defmodule Farmbot.FileSystem.ConfigStorage do
     Replace the configuration json with a new one.
     BE CAREFUL IM NOT CHECKING THE FILE AT ALL
   """
-  @spec replace_config_file(binary) :: :ok | {:error, term}
-  def replace_config_file(config) do
-    {:ok, f} = parse_json_contents!(config)
+  @spec replace_config_file(binary | map) :: :ok | {:error, term}
+  def replace_config_file(config) when is_map(config) do
+    # PLEASE FIXME: This needs to be better validated.
+    GenServer.call(__MODULE__, {:replace_config_file, config})
+  end
+
+  def replace_config_file(config) when is_binary(config) do
+    f = parse_json!(config)
     GenServer.call(__MODULE__, {:replace_config_file, f})
   end
 
@@ -81,14 +78,14 @@ defmodule Farmbot.FileSystem.ConfigStorage do
     {:reply, {:ok, f}, state}
   end
 
+  # GenServer.call(ConfigStorage, {:get, Blah, :uh})
   def handle_call({:get, module, key}, _, state) do
     m = module_to_key(module)
-    config_map = Map.get(state, m)
-    if is_map(config_map) do
-      f = Map.get(config_map, key)
-      {:reply, {:ok, f}, state}
-    else
-      {:reply, {:error, :bad_module}, state}
+    case state[m] do
+      nil ->  {:reply, {:error, :bad_module}, state}
+      # this might be a HACK, or it might be clever
+      false -> {:reply, {:ok, nil}, state}
+      config -> {:reply, {:ok, config[key]}, state}
     end
   end
 
@@ -107,10 +104,9 @@ defmodule Farmbot.FileSystem.ConfigStorage do
         |> Module.split
         |> List.last
         |> String.Casing.downcase
-        |> String.to_atom
 
-  @spec write!(Parsed.t) :: {:noreply, Parsed.t}
-  defp write!(%Parsed{} = state) do
+  @spec write!(map) :: {:noreply, map}
+  defp write!(state) do
     json = Poison.encode!(state)
     Farmbot.FileSystem.transaction fn() ->
       File.write!(@config_file, json)
@@ -118,8 +114,8 @@ defmodule Farmbot.FileSystem.ConfigStorage do
     {:noreply, state}
   end
 
-  @spec write!(any, Parsed.t) :: {:reply, any, Parsed.t}
-  defp write!(reply, %Parsed{} = state) do
+  @spec write!(any, map) :: {:reply, any, map}
+  defp write!(reply, state) do
     json = Poison.encode!(state)
     Farmbot.FileSystem.transaction fn() ->
       File.write!(@config_file, json)
@@ -128,64 +124,6 @@ defmodule Farmbot.FileSystem.ConfigStorage do
   end
 
   # tries to parse contents. raises an exception if it can't
-  @spec parse_json!(args) :: {:ok, Parsed.t} | {:error, term}
-  defp parse_json!(contents),
-    do: contents |> Poison.decode! |> parse_json_contents!
-
-  @spec parse_json_contents!(map) :: {:ok, Parsed.t} | {:error, term}
-  defp parse_json_contents!(
-    %{
-      "configuration" => json_configuration,
-      "network" => json_network,
-      "authorization" => json_authorization,
-      "hardware" => json_hardware
-    })
-  do
-    with {:ok, configuration} <- json_configuration |> parse_json_configuration,
-         {:ok, network} <- json_network |> parse_json_network,
-         {:ok, auth} <- json_authorization |> parse_json_authorization,
-         {:ok, hardware} <- json_hardware |> parse_json_hardware
-         do
-           f =
-             %Parsed{authorization: auth,
-                     configuration: configuration,
-                     hardware: hardware,
-                     network: network}
-           {:ok, f}
-         else
-           {:error, reason} ->
-             raise "Could not parse json config file! #{inspect reason}"
-           e ->
-             raise "Could not parse json config file! #{inspect e}"
-         end
-  end
-
-  defp parse_json_authorization(%{"server" => ser}), do: {:ok, %{server: ser}}
-
-  defp parse_json_authorization(_), do: {:errror, :authorization}
-
-  defp parse_json_configuration(
-    %{"os_auto_update" => oau,
-      "fw_auto_update" => fau,
-      "timezone" => tz,
-      "steps_per_mm" => s})
-  do
-    f = %{
-      os_auto_update: oau,
-      fw_auto_update: fau,
-      timezone: tz,
-      steps_per_mm: s
-    }
-    {:ok, f}
-  end
-
-  defp parse_json_hardware(%{"params" => params}) do
-    {:ok, %{params: params}}
-  end
-
-  defp parse_json_hardware(_), do: {:error, :hardware}
-
-  defp parse_json_network(thing) do
-    {:ok, thing}
-  end
+  @spec parse_json!(args) :: map
+  defp parse_json!(contents), do: contents |> Poison.decode!
 end

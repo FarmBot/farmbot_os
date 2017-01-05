@@ -1,9 +1,14 @@
 {
   "network":{
-    "wlan0":{"type":"hostapd"}
+    "interfaces": {
+      "wlan0":{"type":"wireless", "default": "hostapd" },
+      "eth0": {"type":"ethernet", "default": false},
+    },
+    "ntp": true,
+    "ssh": true
   },
   "authorization":{
-    "server":null
+    "server":"https://my.farmbot.io"
   },
   "configuration":{
     "os_auto_update":false,
@@ -13,7 +18,5 @@
   },
   "hardware":{
     "params":{}
-  },
-  "ntp": true,
-  "ssh": true
+  }
 }
