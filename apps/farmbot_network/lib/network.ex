@@ -21,7 +21,7 @@ defmodule Farmbot.Network do
     supervise(children, opts)
   end
 
-  def add(mod, args \\ []) do
-    Supervisor.start_child(__MODULE__, worker(mod, args, restart: :permanent)) 
+  def add_child(mod, args \\ []) do
+    Supervisor.start_child(__MODULE__, worker(mod, args, restart: :permanent))
   end
 end

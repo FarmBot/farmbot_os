@@ -21,8 +21,10 @@ defmodule Farmbot.Network.Manager do
   end
 
   def handle_cast({:connected, iface, addr}, state) do
-    if get_config("ntp"), do: Ntp.set_time
-    if get_config("ssh"), do: Farmbot.Network.add_child(SSH)
+    {:ok, ntp} = get_config("ntp")
+    {:ok, ssh} = get_config("ssh")
+    if ntp, do: Ntp.set_time
+    if ssh, do: Farmbot.Network.add_child(SSH)
     {:noreply, state}
   end
 
