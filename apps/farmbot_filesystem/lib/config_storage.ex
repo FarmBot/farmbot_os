@@ -25,7 +25,7 @@ defmodule Farmbot.FileSystem.ConfigStorage do
       hardware: %{}
     }
   end
-  @type args :: []
+  @type args :: binary
   @spec start_link(args) :: {:ok, pid}
   def start_link(), do: start_link([])
   def start_link(_args) do
@@ -59,6 +59,7 @@ defmodule Farmbot.FileSystem.ConfigStorage do
     Replace the configuration json with a new one.
     BE CAREFUL IM NOT CHECKING THE FILE AT ALL
   """
+  @spec replace_config_file(binary) :: :ok | {:error, term}
   def replace_config_file(config) do
     {:ok, f} = parse_json_contents!(config)
     GenServer.call(__MODULE__, {:replace_config_file, f})

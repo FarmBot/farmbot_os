@@ -4,8 +4,6 @@ defmodule Farmbot.Network do
   """
   require Logger
   alias Farmbot.FileSystem.ConfigStorage, as: FBConfigStorage
-  alias Farmbot.Configurator.EventManager, as: EM
-  alias Farmbot.Network.ConfigSocket, as: SocketHandler
   alias Nerves.InterimWiFi
   alias Farmbot.Network.Hostapd
   alias Farmbot.Network.Ntp
@@ -25,6 +23,16 @@ defmodule Farmbot.Network do
     @type t :: %__MODULE__{connected?: boolean, interfaces: %{}, manager: pid}
   end
 
+  defp clean_ssid(hc) do
+    hc
+    |> String.replace("\t", "")
+    |> String.replace("\\x00", "")
+    |> String.split("\n")
+    |> Enum.filter(fn(s) -> String.contains?(s, "SSID") end)
+    |> Enum.map(fn(z) -> String.replace(z, "SSID: ", "") end)
+    |> Enum.filter(fn(z) -> String.length(z) != 0 end)
+  end
+
   def start(_, [args]), do: start_link(args.hardware)
 
   @doc """
@@ -37,8 +45,6 @@ defmodule Farmbot.Network do
   def init(hardware) do
     Logger.debug ">> is initializing networking on: #{inspect hardware}"
     Process.flag :trap_exit, true
-    # i guess this can be here.
-    GenEvent.add_handler(EM, SocketHandler, [])
 
     {:ok, config} = get_config
     # The module of the handler.
@@ -157,14 +163,12 @@ defmodule Farmbot.Network do
     all_down
     # just to make sure everything is ready
     Logger.debug ">> is waiting for The web socket handler to die."
-    GenEvent.remove_handler(EM, SocketHandler, [])
     Logger.debug ">> is waiting for interfaces to come down."
     Process.sleep 5000
     GenServer.call(__MODULE__, :restart, :infinity)
   end
 
   def terminate(_reason,_state) do
-    GenEvent.remove_handler(EM, SocketHandler, [])
   end
 
   defp get_config, do: GenServer.call(FBConfigStorage, {:get, __MODULE__, :all})

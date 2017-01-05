@@ -5,19 +5,15 @@ import { state } from "./state";
 import { useStrict } from "mobx";
 
 import { wsInit } from "./web_socket";
-import { uuid } from "farmbot";
+// import { uuid } from "farmbot";
+import * as FarmNot from "farmbot";
+import * as Axios from "axios";
 import "../css/main.scss"
 
 // mobx setting for more saftey in the safe things.
 useStrict(true);
 
 function onInit() {
-  // TODO:
-  // Get network SSIDs
-  // Set credentials
-  // send bot_config_update (timezone, credentials, server, maybe MCU params)
-  // submit / try_login or something?
-
 }
 
 /** initialize the websocket connection. */

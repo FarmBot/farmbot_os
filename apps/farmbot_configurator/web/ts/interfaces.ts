@@ -45,3 +45,30 @@ export interface BotConfigFile {
         params: { [name: string]: number }
     }
 }
+export type LogChannel = "toast";
+export type LogType = "info"
+    | "fun"
+    | "warn"
+    | "error"
+    | "busy";
+
+/** why isnt this a celeryScript yet */
+export interface LogMsg {
+    /** only ever toast right now */
+    channels: LogChannel;
+    /** datestamp */
+    created_at: number;
+    /** the contents of the log */
+    message: string;
+    /** meta info about this message */
+    meta: {
+        /** type of message */
+        type: LogType;
+        /** location x */
+        x: number;
+        /** location y */
+        y: number;
+        /** location z */
+        z: number;
+    }
+}

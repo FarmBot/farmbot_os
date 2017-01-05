@@ -25,12 +25,11 @@ export function wsInit(state: MainState, callback: Function) {
             if (data === "ping") {
                 ws.send(JSON.stringify("pong"));
             } else {
-                console.dir(data);
+                state.incomingMessage(data);
             }
         } catch (error) {
             console.error("bad json");
         }
     }
-
     return ws;
 }

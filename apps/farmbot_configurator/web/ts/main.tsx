@@ -73,6 +73,9 @@ export class Main extends React.Component<MainProps, FormState> {
       {/* Only display if the bot is connected */}
       <div hidden={!mainState.connected} className={`col-md-offset-3 col-md-6 
         col-sm-8 col-sm-offset-2`}>
+        <div className="widget-content">
+          <h5> Location: {this.props.state.botStatus.location}</h5>
+        </div>
 
         <form onSubmit={this.handleSubmit}>
 

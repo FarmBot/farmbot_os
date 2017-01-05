@@ -1,8 +1,6 @@
 defmodule Farmbot.Configurator do
   use Supervisor
   alias Farmbot.Configurator.Router
-  alias Farmbot.Configurator.EventHandler
-  alias Farmbot.Configurator.EventManager
   require Logger
   @port Application.get_env(:farmbot_configurator, :port, 4000)
   @env Mix.env
@@ -10,8 +8,6 @@ defmodule Farmbot.Configurator do
   def init([]) do
     Logger.debug ">> Configurator init."
     children = [
-      worker(EventManager, [], []),
-      worker(EventHandler, [], []),
       Plug.Adapters.Cowboy.child_spec(
         :http, Router, [], port: @port, dispatch: dispatch)
      ] ++ maybe_webpack
