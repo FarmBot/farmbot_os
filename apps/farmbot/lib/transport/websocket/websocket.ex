@@ -5,7 +5,6 @@ defmodule Farmbot.Transport.WebSocket do
   """
   use GenStage
   require Logger
-  alias Farmbot.Transport.Serialized, as: Ser
 
   @doc """
     Starts a stage for a websocket handler.

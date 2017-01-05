@@ -86,16 +86,15 @@ defmodule Farmbot.Transport.GenMqtt.Client do
 
   @spec build_last_will_message(Token.t) :: binary
   defp build_last_will_message(%Token{} = token) do
-    msg =
-      %{message: token.unencoded.bot <> " is offline!",
-        created_at: :os.system_time(:seconds),
-        channels: [:toast],
-        meta: %{
-          type: :error,
-          x: -1,
-          y: -1,
-          z: -1}}
-      |> Poison.encode!
+    %{message: token.unencoded.bot <> " is offline!",
+      created_at: :os.system_time(:seconds),
+      channels: [:toast],
+      meta: %{
+        type: :error,
+        x: -1,
+        y: -1,
+        z: -1}}
+    |> Poison.encode!
   end
 
   def cast(pid, info), do: GenMQTT.cast(pid, info)

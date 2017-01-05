@@ -47,7 +47,7 @@ defmodule Farmbot.Logger do
     with({:ok, created_at} <- parse_created_at(timestamp),
          {:ok, san_m}      <- sanitize(message, metadata),
          {:ok, log}        <- build_log(san_m, created_at, type, channels, pos),
-         :ok               <- Farmbot.Transport.log(log),
+         :ok               <- emit(log),
          do: dispatch({messages ++ [log], posting?}))
     # if we got nil before, dont dispatch the new message into the buffer
     || dispatch({messages, posting?})
@@ -102,7 +102,7 @@ defmodule Farmbot.Logger do
 
   # Posts an array of logs to the API.
   @spec do_post([log_message],pid) :: :ok
-  defp do_post(m, pid) do
+  defp do_post(m, _pid) do
     {messages, _} = Enum.partition(m, fn(message) ->
       case Poison.encode(message) do
         {:ok, json} -> json

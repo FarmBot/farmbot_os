@@ -28,7 +28,7 @@ defmodule Farmbot do
   end
 
   def start(_, [args]) do
-    Logger.debug ">> is starting up."
+    Logger.debug ">> init!"
     Amnesia.start
     Database.create! Keyword.put([], :memory, [node])
     Database.wait(15_000)

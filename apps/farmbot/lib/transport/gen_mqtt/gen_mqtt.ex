@@ -51,7 +51,8 @@ defmodule Farmbot.Transport.GenMqtt do
     {:noreply, [], {pid, t}}
   end
 
-  def handle_info({:authorization, %Token{} = t}, state) do
+  def handle_info({:authorization, %Token{} = _t}, state) do
+    # Probably a good idea to restart mqtt here.
     {:noreply, [], state}
   end
 

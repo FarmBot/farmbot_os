@@ -5,7 +5,10 @@ defmodule Farmbot.Mixfile do
   def target(_), do: "development"
 
   @version Path.join(__DIR__, "VERSION") |> File.read! |> String.strip
-  @compat_version Path.join(__DIR__, "COMPAT") |> File.read! |> String.strip |> String.to_integer
+  @compat_version Path.join(__DIR__, "COMPAT")
+    |> File.read!
+    |> String.strip
+    |> String.to_integer
 
   def project do
     [app: :farmbot,
@@ -58,10 +61,10 @@ defmodule Farmbot.Mixfile do
       :amnesia,
       :quantum,
       :gen_stage,
-      :farmbot_auth,
-      :farmbot_configurator,
       :farmbot_filesystem,
+      :farmbot_auth,
       :farmbot_network,
+      :farmbot_configurator,
    ]
   end
 
@@ -80,10 +83,10 @@ defmodule Farmbot.Mixfile do
       {:nerves,  "~> 0.4.0"}, # for building on embedded devices
       {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
       {:gen_stage, "~> 0.7"},
-      {:farmbot_configurator, in_umbrella: true},
-      {:farmbot_auth, in_umbrella: true},
-      {:farmbot_filesystem, in_umbrella: true},
-      {:farmbot_network, in_umbrella: true}
+      {:farmbot_filesystem,   in_umbrella: true},
+      {:farmbot_network,      in_umbrella: true},
+      {:farmbot_auth,         in_umbrella: true},
+      {:farmbot_configurator, in_umbrella: true}
     ]
   end
 
@@ -108,6 +111,6 @@ defmodule Farmbot.Mixfile do
 
   def webpack do
     File.cd "../farmbot_configurator"
-    Farmbot.Configurator.WebPack.start_link 
+    Farmbot.Configurator.WebPack.start_link
   end
 end
