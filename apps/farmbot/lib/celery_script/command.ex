@@ -146,11 +146,11 @@ defmodule Farmbot.CeleryScript.Command do
 
   @doc """
     Handles an RPC Request.
-      args: %{data_label: String.t},
+      args: %{label: String.t},
       body: [Ast.t,...]
   """
-  @spec rpc_request(%{data_label: String.t}, [Ast.t, ...]) :: no_return
-  def rpc_request(%{data_label: id}, more_stuff) do
+  @spec rpc_request(%{label: String.t}, [Ast.t, ...]) :: no_return
+  def rpc_request(%{label: id}, more_stuff) do
     more_stuff
     |> Enum.reduce({[],[]}, fn(ast, {win, fail}) ->
       fun_name = String.to_atom(ast.kind)
@@ -172,37 +172,37 @@ defmodule Farmbot.CeleryScript.Command do
   @spec handle_req({Ast.t, [explanation_type]}, String.t) :: no_return
   defp handle_req({_, []}, id) do
     # there were no failed asts.
-    rpc_ok(%{data_label: id}, []) |> Farmbot.Transport.emit
+    rpc_ok(%{label: id}, []) |> Farmbot.Transport.emit
   end
 
   defp handle_req({_, failed}, id) do
     # there were some failed asts.
-    rpc_error(%{data_label: id}, failed) |> Farmbot.Transport.emit
+    rpc_error(%{label: id}, failed) |> Farmbot.Transport.emit
   end
 
   @doc """
     Return for a valid Rpc Request
-      args: %{data_label: String.t},
+      args: %{label: String.t},
       body: []
   """
-  @spec rpc_ok(%{data_label: String.t}, []) :: Ast.t
-  def rpc_ok(%{data_label: id}, []) do
-    %Ast{kind: "rpc_ok", args: %{data_label: id}, body: []}
+  @spec rpc_ok(%{label: String.t}, []) :: Ast.t
+  def rpc_ok(%{label: id}, []) do
+    %Ast{kind: "rpc_ok", args: %{label: id}, body: []}
   end
 
   @doc """
     bad return for a valid Rpc Request
-      args: %{data_label: String.t},
+      args: %{label: String.t},
       body: [Explanation]
   """
-  @spec rpc_error(%{data_label: String.t}, [explanation_type]) :: Ast.t
-  def rpc_error(%{data_label: id}, explanations) do
-    %Ast{kind: "rpc_error", args: %{data_label: id}, body: explanations}
+  @spec rpc_error(%{label: String.t}, [explanation_type]) :: Ast.t
+  def rpc_error(%{label: id}, explanations) do
+    %Ast{kind: "rpc_error", args: %{label: id}, body: explanations}
   end
 
   @doc """
     Explanation for an rpc error
-      args: %{data_label: String.t},
+      args: %{label: String.t},
       body: []
   """
   @type explanation_type ::
@@ -214,12 +214,12 @@ defmodule Farmbot.CeleryScript.Command do
 
   @doc """
     updates a bot config
-      args: %{data_label: String.t, number: integer}
+      args: %{label: String.t, number: integer}
       body: []
   """
   # TODO: FIXME: Botconfig updates
-  @spec bot_config_update(%{data_label: String.t}, []) :: no_return
-  def bot_config_update(%{data_label: label, number: val}, []) do
+  @spec bot_config_update(%{label: String.t}, []) :: no_return
+  def bot_config_update(%{label: label, number: val}, []) do
     Logger.warn ">> updating #{label} with #{val} is not implemented."
   end
 
@@ -244,21 +244,50 @@ defmodule Farmbot.CeleryScript.Command do
     Logger.warn ">> can't power off!"
   end
 
+  @type pair :: %Ast{kind: String.t, args: %{label: String.t, value: any}, body: []}
+  @doc """
+    Updates configuration on a package
+      args: %{package: String.t},
+      body: [Ast.t]
+  """
+  @spec config_update(%{package: package}, [pair]) :: no_return
+  def config_update(%{package: "arduino_firmware"}, config_pairs) do
+    blah = pairs_to_tuples(config_pairs)
+    for {key, val} <- blah do
+      Logger.debug ">> Updating #{key}: #{val}"
+    end
+  end
+
+  def config_update(%{package: "farmbot_os"}, config_pairs) do
+    blah = pairs_to_tuples(config_pairs)
+    for {key, val} <- blah do
+      Logger.debug ">> Updating #{key}: #{val}"
+    end
+  end
+
+  # is this useful?
+  @spec pairs_to_tuples([pair]) :: [tuple]
+  defp pairs_to_tuples(config_pairs) do
+    Enum.map(config_pairs, fn(%Ast{} = thing) ->
+      {thing.args.label, thing.args.value}
+    end)
+  end
+
   @doc """
     updates mcu configs
-      args: %{data_label: String.t, number: integer},
+      args: %{label: String.t, number: integer},
       body: []
   """
-  @spec mcu_config_update(%{data_label: String.t, number: integer}, [])
+  @spec mcu_config_update(%{label: String.t, number: integer}, [])
     :: no_return
-  def mcu_config_update(%{data_label: param_str, number: val}, []) do
+  def mcu_config_update(%{label: param_str, number: val}, []) do
     param_int = GParser.parse_param(param_str)
     if param_int do
       Logger.debug ">> is updating #{param_str}: #{val}"
       "F22 P#{param_int} V#{val}" |> GHan.block_send
       # HACK read the param back because sometimes the firmware decides
       # our param sets arent important enough to keep
-      read_param(%{data_label: param_str}, [])
+      read_param(%{label: param_str}, [])
     else
       Logger.error ">> got an unrecognized param: #{param_str}"
     end
@@ -325,11 +354,11 @@ defmodule Farmbot.CeleryScript.Command do
 
   @doc """
     executes a thing
-      args: %{sub_sequence_id: integer}
+      args: %{sequence_id_id: integer}
       body: []
   """
-  @spec execute(%{sub_sequence_id: integer}, []) :: no_return
-  def execute(%{sub_sequence_id: id}, []) do
+  @spec execute(%{sequence_id: integer}, []) :: no_return
+  def execute(%{sequence_id: id}, []) do
     Farmbot.Sync.get_sequence(id)
     |> Ast.parse
     |> do_command
@@ -474,7 +503,7 @@ defmodule Farmbot.CeleryScript.Command do
     Farmbot.BotState.set_pin_mode(pin, mode)
     "F41 P#{pin} V#{val} M#{mode}" |> GHan.block_send
     # HACK read the pin back to make sure it worked
-    read_pin(%{pin_number: pin, pin_mode: mode, data_label: "ack"}, [])
+    read_pin(%{pin_number: pin, pin_mode: mode, label: "ack"}, [])
     # HACK the above hack doesnt work some times so we just force it to work.
     Farmbot.BotState.set_pin_value(pin, val)
   end
@@ -482,16 +511,16 @@ defmodule Farmbot.CeleryScript.Command do
   @doc """
     Reads an arduino pin
       args: %{
-        data_label: String.t
+        label: String.t
         pin_number: integer,
         pin_mode: integer}
       body: []
   """
-  @spec read_pin(%{data_label: String.t,
+  @spec read_pin(%{label: String.t,
     pin_number: integer,
     pin_mode: pin_mode}, [])
   :: no_return
-  def read_pin(%{data_label: _, pin_number: pin, pin_mode: mode}, []) do
+  def read_pin(%{label: _, pin_number: pin, pin_mode: mode}, []) do
     Farmbot.BotState.set_pin_mode(pin, mode)
     "F42 P#{pin} M#{mode}" |> GHan.block_send
   end
@@ -548,11 +577,11 @@ defmodule Farmbot.CeleryScript.Command do
 
   @doc """
     Reads a param value
-      args: %{data_label: String.t}
+      args: %{label: String.t}
       body: []
   """
-  @spec read_param(%{data_label: String.t}, []) :: no_return
-  def read_param(%{data_label: param_str}, []) do
+  @spec read_param(%{label: String.t}, []) :: no_return
+  def read_param(%{label: param_str}, []) do
     param_int = GParser.parse_param(param_str)
     if (param_int) do
       GHan.block_send("F21 P#{param_int}")
