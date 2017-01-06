@@ -140,7 +140,8 @@ defmodule Farmbot.Network.Manager do
   end
 
   def handle_call(:all_down, _, state) do
-    {:reply, {:error, :todo}, state}
+    r = do_all_down(state)
+    {:reply, r, state}
   end
 
   def handle_call(:restart, _, state) do
@@ -193,9 +194,8 @@ defmodule Farmbot.Network.Manager do
   """
   @spec restart :: :ok | {:error, term}
   def restart do
-    all_down
     Logger.debug ">> is waiting for interfaces to come down."
-    GenServer.call(__MODULE__, :restart, :infinity)
+    GenServer.exit(__MODULE__, :restart)
   end
 
   @doc """
@@ -221,5 +221,22 @@ defmodule Farmbot.Network.Manager do
   defp get_config(key),
     do: GenServer.call(FBConfigStorage, {:get, Network, key})
 
-  def terminate(_reason,_state) do end
+  # when this closes clean up everything
+  def terminate(_reason,state) do
+    do_all_down(state)
+  end
+
+  defp do_all_down(state) do
+    {:ok, config} = get_config
+    interfaces = config["interfaces"]
+    if interfaces do
+      for interface <- interfaces do
+         :ok = stop_interface(interface, state.event_manager)
+      end
+    end
+  end
+
+  defp stop_interface({iface, settings}, event_manager) do
+
+  end
 end
