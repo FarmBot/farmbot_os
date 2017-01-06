@@ -89,6 +89,7 @@ defmodule Farmbot.Network.Manager do
     {:ok, ssh} = get_config("ssh")
     if ntp, do: Ntp.set_time
     if ssh, do: Farmbot.Network.add_child(SSH)
+    Farmbot.Auth.try_log_in
     {:noreply, state}
   end
 

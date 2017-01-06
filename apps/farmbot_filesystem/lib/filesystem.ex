@@ -69,7 +69,6 @@ defmodule Farmbot.FileSystem do
   """
   def factory_reset do
     Logger.debug ">> is going to be completely reset! Goodbye!"
-    Farmbot.Auth.delete_secret
     Farmbot.FileSystem.ConfigStorage.reset_config
     System.halt(0)
   end
