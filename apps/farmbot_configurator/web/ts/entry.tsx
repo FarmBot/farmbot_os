@@ -9,6 +9,7 @@ import { BotConfigFile } from "./interfaces";
 // import { uuid } from "farmbot";
 import * as FarmNot from "farmbot";
 import "../../node_modules/font-awesome/css/font-awesome.min.css";
+import "../../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import "../css/main.scss";
 
 // mobx setting for more saftey in the safe things.
