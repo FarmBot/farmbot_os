@@ -19,7 +19,7 @@ defmodule Farmbot.Updates.Handler do
   @spec check_and_download_updates(:os | :fw)
   :: :ok | {:error, atom} | :no_updates
   def check_and_download_updates(something) do
-    Logger.debug ">> Is checking for updates."
+    Logger.debug ">> Is checking for updates: #{inspect something}"
     case check_updates(something) do
       {:error, reason} ->
         Logger.debug """
@@ -73,7 +73,7 @@ defmodule Farmbot.Updates.Handler do
   def check_updates(:os) do
     with {:ok, token} <- Auth.get_token,
     do: check_updates(
-          token |> Map.get("unencoded") |> Map.get("os_update_server"),
+          token.unencoded.os_update_server,
           BotState.get_os_version,
           ".fw")
   end
@@ -85,7 +85,7 @@ defmodule Farmbot.Updates.Handler do
   def check_updates(:fw) do
     with {:ok, token} <- Auth.get_token,
     do: check_updates(
-          token |> Map.get("unencoded") |> Map.get("fw_update_server"),
+          token.unencoded.fw_update_server,
           BotState.get_fw_version,
           ".hex")
   end

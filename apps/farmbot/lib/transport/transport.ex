@@ -35,6 +35,8 @@ defmodule Farmbot.Transport do
     {:producer_consumer, %Serialized{}, subscribe_to: [Monitor]}
   end
 
+  def handle_call(:get_state, _from, state), do: {:reply, state, [], state}
+
   def handle_events([%MonState{} = monstate], _from, _) do
     new_state = %Serialized{
       mcu_params: monstate.hardware.mcu_params,
@@ -67,5 +69,9 @@ defmodule Farmbot.Transport do
 
   def log(message) do
     GenStage.cast(__MODULE__, {:log, message})
+  end
+
+  def get_state do
+    GenServer.call(__MODULE__, :get_state)
   end
 end

@@ -2,9 +2,6 @@ defmodule Farmbot.BotState.Configuration do
   @moduledoc """
     Stores the configuration of the bot.
   """
-  ### REFACTOR:
-  ## I think this can get factored out now?
-  ### JUST DO IT
 
   use GenServer
   require Logger
@@ -77,20 +74,26 @@ defmodule Farmbot.BotState.Configuration do
   # This call should probably be a cast actually, and im sorry.
   # Returns true for configs that exist and are the correct typpe,
   # and false for anything else
-  # TODO make sure these are properly typed.
-  # probably BUG: thses shouldn't be strings anymore i dont think?
-  def handle_call({:update_config, "os_auto_update", value},
-    _from, %State{} = state)
-  when is_boolean(value) do
+  def handle_call({:update_config, "os_auto_update", f_value},
+   _from, %State{} = state) do
+    value = cond do
+      f_value == 1 -> true
+      f_value == 0 -> false
+      is_boolean(f_value) -> f_value
+    end
     new_config = Map.put(state.configuration, :os_auto_update, value)
     new_state = %State{state | configuration: new_config}
     put_config("os_auto_update", value)
     dispatch true, new_state
   end
 
-  def handle_call({:update_config, "fw_auto_update", value},
-    _from, %State{} = state)
-  when is_boolean(value) do
+  def handle_call({:update_config, "fw_auto_update", f_value},
+   _from, %State{} = state) do
+    value = cond do
+      f_value == 1 -> true
+      f_value == 0 -> false
+      is_boolean(f_value) -> f_value
+    end
     new_config = Map.put(state.configuration, :fw_auto_update, value)
     new_state = %State{state | configuration: new_config}
     put_config("fw_auto_update", value)

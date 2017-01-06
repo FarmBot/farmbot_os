@@ -9,7 +9,6 @@ defmodule Farmbot.Configurator do
   alias Plug.Adapters.Cowboy.Handler, as: CowboyHandler
   require Logger
   @port Application.get_env(:farmbot_configurator, :port, 4000)
-  @env Mix.env
 
   def init([]) do
     Logger.debug ">> Configurator init!"

@@ -212,17 +212,6 @@ defmodule Farmbot.CeleryScript.Command do
     %Ast{kind: "explanation", args: %{message: message}, body: []}
   end
 
-  @doc """
-    updates a bot config
-      args: %{label: String.t, number: integer}
-      body: []
-  """
-  # TODO: FIXME: Botconfig updates
-  @spec bot_config_update(%{label: String.t}, []) :: no_return
-  def bot_config_update(%{label: label, number: val}, []) do
-    Logger.warn ">> updating #{label} with #{val} is not implemented."
-  end
-
   # TODO: FIXME: power off and reboot
   @doc """
     reboots your bot
@@ -253,8 +242,17 @@ defmodule Farmbot.CeleryScript.Command do
   @spec config_update(%{package: package}, [pair]) :: no_return
   def config_update(%{package: "arduino_firmware"}, config_pairs) do
     blah = pairs_to_tuples(config_pairs)
-    for {key, val} <- blah do
-      Logger.debug ">> Updating #{key}: #{val}"
+    for {param_str, val} <- blah do
+      param_int = GParser.parse_param(param_str)
+      if param_int do
+        Logger.debug ">> is updating #{param_str}: #{val}"
+        "F22 P#{param_int} V#{val}" |> GHan.block_send
+        # HACK read the param back because sometimes the firmware decides
+        # our param sets arent important enough to keep
+        read_param(%{label: param_str}, [])
+      else
+        Logger.error ">> got an unrecognized param: #{param_str}"
+      end
     end
   end
 
@@ -262,6 +260,7 @@ defmodule Farmbot.CeleryScript.Command do
     blah = pairs_to_tuples(config_pairs)
     for {key, val} <- blah do
       Logger.debug ">> Updating #{key}: #{val}"
+      Farmbot.BotState.update_config(key, val)
     end
   end
 
@@ -271,26 +270,6 @@ defmodule Farmbot.CeleryScript.Command do
     Enum.map(config_pairs, fn(%Ast{} = thing) ->
       {thing.args.label, thing.args.value}
     end)
-  end
-
-  @doc """
-    updates mcu configs
-      args: %{label: String.t, number: integer},
-      body: []
-  """
-  @spec mcu_config_update(%{label: String.t, number: integer}, [])
-    :: no_return
-  def mcu_config_update(%{label: param_str, number: val}, []) do
-    param_int = GParser.parse_param(param_str)
-    if param_int do
-      Logger.debug ">> is updating #{param_str}: #{val}"
-      "F22 P#{param_int} V#{val}" |> GHan.block_send
-      # HACK read the param back because sometimes the firmware decides
-      # our param sets arent important enough to keep
-      read_param(%{label: param_str}, [])
-    else
-      Logger.error ">> got an unrecognized param: #{param_str}"
-    end
   end
 
   @doc """
@@ -567,9 +546,9 @@ defmodule Farmbot.CeleryScript.Command do
   def check_updates(%{package: package}, []) do
     case package do
       "arduino_firmware" ->
-        Farmbot.Updates.Handler.check_and_download_updates(:os)
-      "farmbot_os" ->
         Farmbot.Updates.Handler.check_and_download_updates(:fw)
+      "farmbot_os" ->
+        Farmbot.Updates.Handler.check_and_download_updates(:os)
       u -> Logger.debug ">> got a request to check updates for an " <>
         "unrecognized package: #{u}"
     end

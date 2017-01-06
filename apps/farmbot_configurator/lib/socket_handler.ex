@@ -69,7 +69,7 @@ defmodule Farmbot.Configurator.SocketHandler do
   end
 
   def websocket_info([bot_state], req, stage) do
-    f = Poison.encode(bot_state)
+    Poison.encode(bot_state)
     {:ok, req, stage}
   end
 
