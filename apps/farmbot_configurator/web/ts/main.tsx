@@ -112,11 +112,11 @@ export class Main extends React.Component<MainProps, FormState> {
 
           <div className="widget-content">
             X: <input readOnly={true} 
-            value={this.props.state.botStatus.location[0]} />
+              value={this.props.state.botStatus.location[0]} />
             Y: <input readOnly={true} 
-            value={this.props.state.botStatus.location[1]} />
+              value={this.props.state.botStatus.location[1]} />
             Z: <input readOnly={true} 
-            value={this.props.state.botStatus.location[2]} />
+              value={this.props.state.botStatus.location[2]} />
           </div>
         </div>
 
