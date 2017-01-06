@@ -195,7 +195,7 @@ defmodule Farmbot.Network.Manager do
   @spec restart :: :ok | {:error, term}
   def restart do
     Logger.debug ">> is waiting for interfaces to come down."
-    GenServer.exit(__MODULE__, :restart)
+    GenServer.stop(__MODULE__, :restart)
   end
 
   @doc """
@@ -223,6 +223,7 @@ defmodule Farmbot.Network.Manager do
 
   # when this closes clean up everything
   def terminate(_reason,state) do
+    Nerves.Firmware.reboot
     do_all_down(state)
   end
 
@@ -231,12 +232,30 @@ defmodule Farmbot.Network.Manager do
     interfaces = config["interfaces"]
     if interfaces do
       for interface <- interfaces do
-         :ok = stop_interface(interface, state.event_manager)
+         :ok = stop_interface(interface, state.manager)
       end
     end
   end
 
-  defp stop_interface({iface, settings}, event_manager) do
+  defp stop_interface({_iface, %{"default" => false}}, _event_manager) do
+    :ok
+  end
 
+  defp stop_interface({iface, %{"default" => "hostapd"}}, _) do
+    mod_name = Module.concat([Hostapd, iface])
+    GenServer.stop(mod_name)
+    wait_for_hostapd(mod_name)
+    :ok
+  end
+
+  defp stop_interface({iface, settings}, _event_manager) do
+    Logger.debug ">> cant take down #{iface} with settings: #{inspect settings}"
+  end
+
+  defp wait_for_hostapd(mod_name) do
+    f = Process.whereis(mod_name)
+    if f do
+      wait_for_hostapd(mod_name) # don't worry its safe
+    end
   end
 end
