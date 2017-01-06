@@ -56,7 +56,7 @@ defmodule Module.concat([Farmbot, Network, Handler, "rpi3"]) do
   def handle_event({:udhcpc, _, :bound,
     %{ipv4_address: address, ifname: interface}}, state)
   do
-    GenServer.cast(state.parent, {:connected, interface, address})
+    Farmbot.Network.Manager.connected(interface, address)
     {:ok, state}
   end
 

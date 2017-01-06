@@ -9,6 +9,7 @@ defmodule Farmbot.Configurator.SocketHandler do
   # it does. I could make it an atom: :"Elixir.Farmbot.Transport.WebScoket",
   # but that is kind of ugly.
   alias Farmbot.Transport.WebSocket, as: WSTransport
+  # alias Farmbot.Transport.Serialized, as: Ser
 
   @timeout 60000 # terminate if no activity for one minute
   @ping "\"ping\""
@@ -67,9 +68,14 @@ defmodule Farmbot.Configurator.SocketHandler do
     end
   end
 
+  def websocket_info([bot_state], req, stage) do
+    f = Poison.encode(bot_state)
+    {:ok, req, stage}
+  end
+
   # ignore unhandled messages.
   def websocket_info(message, req, stage) do
-    Logger.warn ">> got an unhandled message: #{inspect message}"
+    Logger.warn ">> got an unhandled websocket message: #{inspect message}"
     {:ok, req, stage}
   end
 

@@ -45,9 +45,12 @@ defmodule Farmbot.Configurator.Router do
 
   post "/api/factory_reset" do
     Logger.debug "goodbye."
-    Farmbot.FileSystem.factory_reset
-    # I don't think this can ever happen?
-    conn |> send_resp(500, "uh oh this is not good.")
+    spawn fn() ->
+      # sleep to allow the request to finish.
+      Process.sleep(100)
+      Farmbot.FileSystem.factory_reset
+    end
+    conn |> send_resp(204, "GoodByeWorld!")
   end
 
   # anything that doesn't match a rest end point gets the index.
