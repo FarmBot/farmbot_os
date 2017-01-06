@@ -111,9 +111,12 @@ export class Main extends React.Component<MainProps, FormState> {
           </div>
 
           <div className="widget-content">
-            X: <input readOnly={true} value={this.props.state.botStatus.location[0]} />
-            Y: <input readOnly={true} value={this.props.state.botStatus.location[1]} />
-            Z: <input readOnly={true} value={this.props.state.botStatus.location[2]} />
+            X: <input readOnly={true} 
+            value={this.props.state.botStatus.location[0]} />
+            Y: <input readOnly={true} 
+            value={this.props.state.botStatus.location[1]} />
+            Z: <input readOnly={true} 
+            value={this.props.state.botStatus.location[2]} />
           </div>
         </div>
 
@@ -187,7 +190,9 @@ export class Main extends React.Component<MainProps, FormState> {
                   onChange={this.handleServerChange} />
               </fieldset>
               <button type="submit">Log In</button>
-              <input type="button" value="Don't click me" onClick={() => { mainState.factoryReset() } } />
+              <input type="button" value="Don't click me" onClick={() => { 
+                  mainState.factoryReset() } 
+                } />
             </div>
           </div>
         </form>

@@ -15,13 +15,13 @@ defmodule Farmbot.Network.Mixfile do
   end
 
   def application do
-    [applications: [:logger, :poison, :nerves_interim_wifi],
+    [applications: [:logger, :poison],
      mod: {Farmbot.Network, [target: target(Mix.env)]}]
   end
 
   defp deps, do: [
     {:poison, "~> 3.0"},
-    {:nerves_interim_wifi, "~> 0.1.0"}
+    # {:nerves_interim_wifi, "~> 0.1.0"}
   ]
   defp target(:prod), do: System.get_env("NERVES_TARGET") || "rpi3"
   defp target(_), do: "development"
