@@ -11,6 +11,15 @@ defmodule Farmbot.Configurator.WebPack do
 
   def init([]) do
     Logger.debug("Starting webpack")
+    Logger.debug "checking for node_modules"
+
+    if !File.exists?("node_modules") do
+      Logger.debug "npm installing. This will take a minute."
+      System.cmd "npm", ["install"]
+    else
+      Logger.debug "not npm installing"  
+    end
+
     port = Port.open({:spawn, "npm run watch"},
       [:stream,
        :binary,
