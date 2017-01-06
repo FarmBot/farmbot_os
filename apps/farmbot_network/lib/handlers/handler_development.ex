@@ -15,7 +15,8 @@ defmodule Module.concat([Farmbot, Network, Handler, "development"]) do
     {:ok, :ok, state}
   end
 
-  def handle_call(:scan, state) do
+  # stup all requests out because i don't care really
+  def handle_call({:scan, iface}, state) do
     {:ok, [], state}
   end
 end

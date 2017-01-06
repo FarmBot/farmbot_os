@@ -1,8 +1,12 @@
 {
   "network":{
     "interfaces": {
-      "wlan0":{"type":"wireless", "default": "hostapd" },
-      "eth0": {"type":"ethernet", "default": false},
+      "wlan0":{
+        "type": "wireless",
+        "default": "hostapd",
+        "settings": {"ipv4_address": "192.168.24.1"}
+      },
+      "eth0": {"type":"wired", "default": false}
     },
     "ntp": true,
     "ssh": true

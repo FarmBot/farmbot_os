@@ -36,6 +36,7 @@ defmodule Farmbot.Network.Hostapd do
   @lint false
   @doc false
   def init([interface: interface, ip_address: ip_addr, manager: manager]) do
+    Logger.debug ">> is starting hostapd on #{interface}"
     # We want to know if something does.
     Process.flag :trap_exit, true
     # ip_addr = @ip_addr

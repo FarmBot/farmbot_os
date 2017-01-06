@@ -1,13 +1,4 @@
 import { McuParams } from "farmbot"
-export interface ConfigFileIpSettings {
-    mode: "dhcp" | "static"
-    /** if mode is static, this will exist. */
-    settings?: {
-        ipv4_address: string;
-        ipv4_subnet_mask: string;
-        name_servers: string;
-    }
-}
 
 export interface ConfigFileWifiSettings {
     /** the name of the access point. */
@@ -17,16 +8,62 @@ export interface ConfigFileWifiSettings {
     /** only psk and no security are supported. */
     key_mgmt: "WPA-PSK" | "NONE"
 }
+type IfaceType = "wired" | "wireless"
 
+/** the layout of a network interface config entry */
 export interface ConfigFileNetIface {
-    type: "wireless" | "hostapd" | "ethernet";
-    /** if type is hostapd there will be no settings. */
-    settings?: {
-        /** we need settings about the ip address, */
-        ip: ConfigFileIpSettings;
-        /** but might not need wifi. */
-        wifi?: ConfigFileWifiSettings;
+    /** false means the interface is brought up, but not started.
+     *  "hostapd" starts in host mode.
+     *  "static" is static ip settings
+     *  "dhcp" is dhcp ip settings
+     */
+    type: IfaceType
+    default: false | "hostapd" | "static" | "dhcp";
+    settings: {
+        /** ip address for static or host mode. */
+        ipv4_address?: string;
+        /** subnet mask for static mode */
+        ipv4_subnet_mask?: string;
+        /** list of dns name servers. */
+        nameservers?: string[];
+        /** if wifi we support no password, or wpa-psk */
+        key_mgmt?: "NONE" | "WPA-PSK";
+        /** ssid for wifi */
+        ssid?: string;
+        /** psk for wifi */
+        psk?: string;
     }
+}
+
+/** hostapd interface can be transformed into a wireless interface */
+export interface HostapdConfigFileNetIface extends ConfigFileNetIface {
+    /** hostapd mode */
+    default: "hostapd",
+    type: "wireless";
+    /** there is only one setting. */
+    settings: {
+        /** the ip address that the bot will give itself. */
+        ipv4_address: string;
+        /** if a password is desired. */
+        psk?: string;
+    }
+}
+
+/** static interface */
+export interface StaticConfigFileNetIface extends ConfigFileNetIface {
+    /** static mode */
+    default: "static";
+    settings: {
+        /** required ip address */
+        ipv4_address: string;
+        /** required subnet mask */
+        ipv4_subnet_mask: string;
+    }
+}
+/** dhcp interface */
+export interface DhcpConfigFileNetIface extends ConfigFileNetIface {
+    /** dhcp mode */
+    default: "dhcp";
 }
 
 /** Farmbot's Configuratrion 
@@ -35,13 +72,22 @@ export interface ConfigFileNetIface {
 export interface BotConfigFile {
     /** network false indicates that farmbot will already have network 
     *  when started.
-    * otherwise 
     */
-    network: { [name: string]: ConfigFileNetIface; } | false,
+    network: {
+        /** the interfaces that exist on this system. */
+        interfaces: {
+            [name: string]: ConfigFileNetIface;
+        },
+        /** Should this bot set time after boot. */
+        ntp: boolean;
+        /** ssh */
+        ssh: boolean;
+    } | false;
     /** Just holds the server. All other authorization should use a jwt */
     authorization: {
-        server: string | undefined;
+        server: string;
     },
+
     /** bag of configuration stuffs. */
     configuration: {
         /** auto update the operating system */
@@ -49,18 +95,14 @@ export interface BotConfigFile {
         /** auto update the arduino firmware */
         fw_auto_update: boolean;
         /** timezone of this bot */
-        timezone: string | undefined;
+        timezone: string;
         /** steps per milimeter for the arduino firmware */
         steps_per_mm: number;
     },
     /** hardware mcu stuff */
     hardware: {
-        params: McuParams
+        params: McuParams;
     }
-    /** Should this bot set time after boot. */
-    ntp: boolean;
-    /** ssh */
-    ssh: boolean;
 }
 export type LogChannel = "toast";
 export type LogType = "info"

@@ -56,17 +56,15 @@ export class MainState {
     @observable configuration: BotConfigFile = {
         network: false,
         authorization: {
-            server: undefined
+            server: "fixme"
         },
         configuration: {
             os_auto_update: false,
             fw_auto_update: false,
             steps_per_mm: 500,
-            timezone: undefined
+            timezone: "fixme"
         },
-        hardware: { params: {} },
-        ssh: true,
-        ntp: true
+        hardware: { params: {} }
     };
 
     @observable ssids: string[] = [];

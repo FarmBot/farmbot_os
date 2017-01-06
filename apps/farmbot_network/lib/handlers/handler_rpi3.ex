@@ -24,7 +24,7 @@ defmodule Module.concat([Farmbot, Network, Handler, "rpi3"]) do
   end
 
   def handle_call(:ok, state) do
-    {:ok, :ok, state} 
+    {:ok, :ok, state}
   end
 
   # don't crash on random calls
@@ -51,7 +51,6 @@ defmodule Module.concat([Farmbot, Network, Handler, "rpi3"]) do
   #    ipv4_gateway: "192.168.29.1",
   #    ipv4_subnet_mask: "255.255.255.0",
   #    nameservers: ["192.168.29.1"]}}
-
 
   # event when we have an ip address.
   def handle_event({:udhcpc, _, :bound,

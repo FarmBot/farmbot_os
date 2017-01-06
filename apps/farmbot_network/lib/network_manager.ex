@@ -17,8 +17,72 @@ defmodule Farmbot.Network.Manager do
     {:ok, event_manager} = handler.manager # Lookup or start GenEvent manager
     :ok = GenEvent.add_handler(event_manager, handler, [])
     :ok = call_handler(event_manager, handler, :ok)
-    {:ok, []}
+    {:ok, config} = get_config("interfaces")
+    config |> start_interfaces(event_manager)
+    {:ok, %{manager: event_manager, handler: handler}}
   end
+
+  @spec start_interfaces(map | nil, pid | atom) :: :ok | {:error, term}
+  # We don't actually require network
+  defp start_interfaces(nil, _), do: :ok
+  defp start_interfaces(interfaces, event_manager) when is_map(interfaces) do
+    for interface <- interfaces do
+      # this will cause a runtime error if the interface can't be started.
+      :ok = start_interface(interface, event_manager)
+    end
+    :ok
+  end
+
+  @spec start_interface({String.t, map} | false, pid | atom)
+    :: :ok | {:error, term}
+  defp start_interface(interface, event_manager)
+
+  # this is where the interface actually gets started.
+  # Start hostapd
+
+  defp start_interface({_, %{"default" => false}}, _) do
+    :ok
+  end
+
+  defp start_interface({iface,
+    %{"type" => "wireless",
+      "default" => "hostapd",
+      "settings" => %{"ipv4_address" => ip_addr}}},
+      event_manager)
+  do
+    {:ok, pid} =
+      Hostapd.start_link(interface: iface,
+        ip_address: ip_addr, manager: event_manager)
+    :ok
+  end
+
+  defp start_interface({iface, %{
+    "type" => "wireless",
+    "default" => "dhcp",
+    "settings" => settings
+    }}, _event_manager)
+  do
+    key_mgmt = settings["key_mgmt"] |> String.to_atom
+    ssid = settings["ssid"]
+    psk = settings["psk"]
+    case key_mgmt do
+      :"WPA-PSK" ->
+        {:ok, pid} = InterimWiFi.setup iface, [key_mgmt: key_mgmt, ssid: ssid, psk: psk]
+      :NONE ->
+        {:ok, pid} = InterimWiFi.setup iface, [key_mgmt: key_mgmt, ssid: ssid, psk: psk]
+    end
+    :ok
+  end
+
+  defp start_interface({iface, %{
+    "type" => "wired",
+    "default" => "dhcp",
+    "settings" => _settings
+    }}, _event_manager)
+  do
+    {:ok, pid} = InterimWiFi.setup iface, []
+  end
+
 
   def handle_cast({:connected, iface, addr}, state) do
     {:ok, ntp} = get_config("ntp")
@@ -29,15 +93,58 @@ defmodule Farmbot.Network.Manager do
   end
 
   @doc """
-    Call the accompanying network handler
+    Starts the network manager. takes a target.
+      Example:
+        Iex()> Farmbot.Network.Manager.start_link("development")
+               {:ok, pid}
+
+        Iex()> Farmbot.Network.Manager.start_link("rpi3")
+               {:ok, pid}
   """
-  @spec call_handler(pid | atom, pid | atom, term) :: any
-  def call_handler(manager, handler, call) do
-    GenEvent.call(manager, handler, call)
+  def start_link(ta), do: GenServer.start_link(__MODULE__, ta, name: __MODULE__)
+
+  @spec get_iface(String.t) :: map | nil
+  defp get_iface(iface) do
+    {:ok, interfaces} = get_config("interfaces")
+    interfaces[iface]
   end
 
-  def start_link(target) do
-    GenServer.start_link(__MODULE__, target, name: __MODULE__)
+  def handle_call(:state, _, state), do: {:reply, state, state}
+
+  def handle_call({:scan, iface}, _, state) do
+    config = get_iface(iface)
+    if config do
+      r = call_handler(state.manager, state.handler, {:scan, iface})
+      {:reply, r, state}
+    else
+      {:reply, {:error, :no_interface}, state}
+    end
+  end
+
+  def handle_call({:up, iface, _settings}, _, state) do
+    config = get_iface(iface)
+    if config do
+      {:reply, config, state}
+    else
+      {:reply, {:error, :no_interface}, state}
+    end
+  end
+
+  def handle_call({:down, iface}, _, state) do
+    config = get_iface(iface)
+    if config do
+      {:reply, config, state}
+    else
+      {:reply, {:error, :no_interface}, state}
+    end
+  end
+
+  def handle_call(:all_down, _, state) do
+    {:reply, {:error, :todo}, state}
+  end
+
+  def handle_call(:restart, _, state) do
+    {:reply, {:error, :todo}, state}
   end
 
   # Someone populate this
@@ -87,8 +194,6 @@ defmodule Farmbot.Network.Manager do
   @spec restart :: :ok | {:error, term}
   def restart do
     all_down
-    # just to make sure everything is ready
-    Logger.debug ">> is waiting for The web socket handler to die."
     Logger.debug ">> is waiting for interfaces to come down."
     GenServer.call(__MODULE__, :restart, :infinity)
   end
@@ -99,6 +204,14 @@ defmodule Farmbot.Network.Manager do
   @spec connected(String.t, String.t) :: no_return
   def connected(iface, addr) do
     GenServer.cast(__MODULE__, {:connected, iface, addr})
+  end
+
+  @doc """
+    Call the accompanying network handler
+  """
+  @spec call_handler(pid | atom, pid | atom, term) :: any
+  def call_handler(manager, handler, call) do
+    GenEvent.call(manager, handler, call)
   end
 
   @spec get_config :: map | false

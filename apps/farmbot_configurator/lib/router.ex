@@ -3,6 +3,7 @@ defmodule Farmbot.Configurator.Router do
     Routes incoming connections.
   """
   alias Farmbot.FileSystem.ConfigStorage
+  alias Farmbot.Network.Manager, as: NetMan
   require Logger
 
   use Plug.Router
@@ -35,7 +36,7 @@ defmodule Farmbot.Configurator.Router do
   get "/api/network/scan" do
     {:ok, body, _} = read_body(conn)
     %{"iface" => iface} = Poison.decode!(body)
-    scan = Farmbot.Network.scan(iface)
+    scan = NetMan.scan(iface)
     case scan do
       {:error, reason} -> conn |> send_resp(500, "could not scan: #{inspect reason}")
       ssids -> conn |> send_resp(200, Poison.encode!(ssids))
