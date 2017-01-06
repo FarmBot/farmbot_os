@@ -13,6 +13,7 @@ This fork will have added packages for farmbot_os.
     * avrdude
     * dropbear
     * ifup
+    * iw
   * BusyBox pacakges:
     * mkfs.ext*
   * fwup config:

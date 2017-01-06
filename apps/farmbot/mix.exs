@@ -106,7 +106,14 @@ defmodule Farmbot.Mixfile do
     if File.exists?("../NERVES_SYSTEM_#{sys}") do
       System.put_env("NERVES_SYSTEM", "../NERVES_SYSTEM_#{sys}")
     end
-    [{:"nerves_system_#{sys}", in_umbrella: true}]
+
+    # if the system is local (because we have changes to it) use that
+    if File.exists?("../nerves_system_#{sys}") do
+      [{:"nerves_system_#{sys}", in_umbrella: true}]
+    else
+      # if its not local we can try nerves. It probably wont work tho.
+      [{:"nerves_system_#{sys}", github: "nerves-project/nerves_system_#{sys}"}]
+    end
   end
 
   def webpack do

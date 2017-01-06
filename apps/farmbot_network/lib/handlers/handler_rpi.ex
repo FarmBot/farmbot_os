@@ -1,4 +1,4 @@
-defmodule Module.concat([Farmbot, Network, Handler, "rpi0"]) do
+defmodule Module.concat([Farmbot, Network, Handler, "rpi"]) do
   @moduledoc """
     Event manager for network on Raspberry Pi 0 and 1
   """
@@ -13,7 +13,7 @@ defmodule Module.concat([Farmbot, Network, Handler, "rpi0"]) do
 
   @doc false
   def init(_) do
-    Logger.debug ">> rpi0 networking handler starting."
+    Logger.debug ">> rpi networking handler starting."
     {:ok, []}
   end
 

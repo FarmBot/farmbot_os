@@ -13,7 +13,7 @@ defmodule Module.concat([Farmbot, Network, Handler, "rpi2"]) do
 
   @doc false
   def init(_) do
-    Logger.debug ">> rpi3 networking handler starting."
+    Logger.debug ">> rpi2 networking handler starting."
     {:ok, []}
   end
 
