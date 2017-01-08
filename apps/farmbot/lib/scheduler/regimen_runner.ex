@@ -1,5 +1,5 @@
 alias Farmbot.Sync.Database.Regimen
-alias Farmbot.Sync.Database.RegimenItem
+# alias Farmbot.Sync.Database.RegimenItem
 
 defmodule Farmbot.Scheduler.RegimenRunner do
   @moduledoc """

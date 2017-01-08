@@ -9,7 +9,7 @@ defmodule Downloader do
 
   @spec run(String.t, String.t) :: String.t
   def run(url, dl_file) when is_bitstring url do
-    HTTPotion.get url, stream_to: self, timeout: :infinity
+    HTTPotion.get url, stream_to: self(), timeout: :infinity
     receive_data(total_bytes: :unknown, data: "", dl_path: dl_file)
   end
 
@@ -24,9 +24,9 @@ defmodule Downloader do
 
       %HTTPotion.AsyncChunk{chunk: new_data} ->
         accumulated_data = data <> new_data
-        accumulated_bytes = byte_size(accumulated_data)
-        percent =
-          accumulated_bytes / total_bytes * 100 |> Float.round(2)
+        # accumulated_bytes = byte_size(accumulated_data)
+        # percent =
+          # accumulated_bytes / total_bytes * 100 |> Float.round(2)
         receive_data(total_bytes: total_bytes,
                      data: accumulated_data, dl_path: path)
 

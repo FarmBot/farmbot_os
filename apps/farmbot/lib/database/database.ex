@@ -16,7 +16,6 @@ defmodule Farmbot.Sync do
   import Syncable
   alias Farmbot.Sync.Helpers
   alias Farmbot.Auth
-  alias Farmbot.BotState
   alias Farmbot.Token
 
   defdatabase Database do
@@ -58,8 +57,8 @@ defmodule Farmbot.Sync do
   """
   require IEx
   def sync do
-    with {:ok, token}       <- fetch_token,
-         {:ok, server}      <- fetch_server,
+    with {:ok, token}       <- fetch_token(),
+         {:ok, server}      <- fetch_server(),
          {:ok, resp}        <- fetch_sync_object(server, token),
          {:ok, json}        <- parse_http(resp),
          {:ok, parsed}      <- Poison.decode(json),

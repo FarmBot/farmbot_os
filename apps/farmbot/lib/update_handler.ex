@@ -53,7 +53,7 @@ defmodule Farmbot.Updates.Handler do
       >> is installing a firmware update. I may act weird for a moment
       """,
       channels: [:toast]
-    GenServer.cast(Farmbot.Serial.Handler, {:update_fw, file, self})
+    GenServer.cast(Farmbot.Serial.Handler, {:update_fw, file, self()})
     receive do
       :done ->
         Logger.debug ">> is done installing a firmware update!", type: :success,

@@ -23,7 +23,7 @@ defmodule Farmbot.Mixfile do
      config_path: "../../config/config.exs",
      lockfile:    "../../mix.lock",
      aliases:     aliases(Mix.env),
-     deps:        deps ++ system(target(Mix.env)),
+     deps:        deps() ++ system(target(Mix.env)),
      name: "Farmbot",
      source_url: "https://github.com/Farmbot/farmbot_os",
      homepage_url: "http://farmbot.io",
@@ -39,7 +39,7 @@ defmodule Farmbot.Mixfile do
           compat_version: @compat_version,
           version: @version} ]
       },
-     applications: applications,
+     applications: applications(),
      included_applications: [:gen_mqtt]]
   end
 
@@ -83,6 +83,7 @@ defmodule Farmbot.Mixfile do
       {:nerves,  "~> 0.4.0"}, # for building on embedded devices
       {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
       {:gen_stage, "~> 0.7"},
+      {:credo, "0.6.0-rc1"},
       {:farmbot_filesystem,   in_umbrella: true},
       {:farmbot_network,      in_umbrella: true},
       {:farmbot_auth,         in_umbrella: true},

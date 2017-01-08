@@ -11,7 +11,7 @@ defmodule Farmbot.Logger do
   use GenEvent
   require Logger
 
-  def init(_), do: {:ok, build_state}
+  def init(_), do: {:ok, build_state()}
 
   # The example said ignore messages for other nodes, so im ignoring messages
   # for other nodes.
@@ -53,7 +53,7 @@ defmodule Farmbot.Logger do
     || dispatch({messages, posting?})
   end
 
-  def handle_event(:flush, _state), do: {:ok, build_state}
+  def handle_event(:flush, _state), do: {:ok, build_state()}
 
   # If the post succeeded, we clear the messages
   def handle_call(:post_success, {_, _}), do: {:ok, :ok, {[], false}}
@@ -90,7 +90,7 @@ defmodule Farmbot.Logger do
   # (check if the count of messages is greater than 50)
   defp dispatch({messages, false}) do
     if Enum.count(messages) > 50 do
-      pid = self # var that = this;
+      pid = self() # var that = this;
       spawn fn() ->
         do_post(messages, pid)
       end

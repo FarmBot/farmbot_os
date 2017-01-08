@@ -4,25 +4,25 @@ defmodule Farmbot.Serial.Gcode.Parser do
   """
 
   @spec parse_code(binary) :: tuple
-  def parse_code("R0") do {:idle, qtag} end
+  def parse_code("R0") do {:idle, qtag()} end
   def parse_code("R0 Q" <> tag) do {:idle, tag} end
-  def parse_code("R1") do {:received, qtag} end
+  def parse_code("R1") do {:received, qtag()} end
   def parse_code("R1 Q" <> tag) do {:received, tag} end
-  def parse_code("R2") do {:done, qtag} end
+  def parse_code("R2") do {:done, qtag()} end
   def parse_code("R2 Q" <> tag) do {:done, tag} end
-  def parse_code("R3") do {:error, qtag} end
+  def parse_code("R3") do {:error, qtag()} end
   def parse_code("R3 Q" <> tag) do {:error, tag} end
-  def parse_code("R4") do {:busy, qtag} end
+  def parse_code("R4") do {:busy, qtag()} end
   def parse_code("R4 Q" <> tag) do {:busy, tag} end
-  def parse_code("R00") do {:idle, qtag} end
+  def parse_code("R00") do {:idle, qtag()} end
   def parse_code("R00 Q" <> tag) do {:idle, tag} end
-  def parse_code("R01") do {:received, qtag} end
+  def parse_code("R01") do {:received, qtag()} end
   def parse_code("R01 Q" <> tag) do {:received, tag} end
-  def parse_code("R02") do {:done, qtag} end
+  def parse_code("R02") do {:done, qtag()} end
   def parse_code("R02 Q" <> tag) do {:done, tag} end
-  def parse_code("R03") do {:error, qtag} end
+  def parse_code("R03") do {:error, qtag()} end
   def parse_code("R03 Q" <> tag) do {:error, tag} end
-  def parse_code("R04") do {:busy, qtag} end
+  def parse_code("R04") do {:busy, qtag()} end
   def parse_code("R04 Q" <> tag) do {:busy, tag} end
 
   def parse_code("R21 " <> params), do: parse_pvq(params, :report_parameter_value)
@@ -50,7 +50,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
     {:report_current_position,
       String.to_integer(x),
       String.to_integer(y),
-      String.to_integer(z), qtag}
+      String.to_integer(z), qtag()}
   end
 
   defp do_parse_pos(["X" <> x, "Y" <> y, "Z" <> z, "Q" <> tag]) do
@@ -108,7 +108,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
               yb |> pes,
               za |> pes,
               zb |> pes,
-              qtag}
+              qtag()}
 
   defp pes(48), do: 0
   defp pes(49), do: 1
@@ -140,7 +140,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
     {human_readable_param_name,
      String.to_integer(rp),
      String.to_integer(rv),
-     qtag}
+     qtag()}
   end
 
   defp do_parse_pvq([p, v, q], human_readable_param_name) do
@@ -156,7 +156,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
   defp do_parse_params([p, v]) do
     [_, rp] = String.split(p, "P")
     [_, rv] = String.split(v, "V")
-    {:report_parameter_value, parse_param(rp), String.to_integer(rv), qtag}
+    {:report_parameter_value, parse_param(rp), String.to_integer(rv), qtag()}
   end
 
   defp do_parse_params([p, v, q]) do
@@ -293,6 +293,6 @@ defmodule Farmbot.Serial.Gcode.Parser do
 
   def parse_param(_), do: nil
 
-  @spec qtag :: String.t
-  defp qtag, do: "0"
+  @spec qtag() :: String.t
+  defp qtag(), do: "0"
 end

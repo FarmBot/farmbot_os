@@ -441,7 +441,7 @@ defmodule Farmbot.CeleryScript.Command do
   @spec send_message(%{message: String.t, message_type: message_type}, [Ast.t])
     :: no_return
   def send_message(%{message: m, message_type: m_type}, channels) do
-    rendered = Mustache.render(m, get_message_stuff)
+    rendered = Mustache.render(m, get_message_stuff())
     Logger.debug ">> #{rendered}", type: m_type, channels: parse_channels(channels)
   end
 
@@ -472,7 +472,9 @@ defmodule Farmbot.CeleryScript.Command do
     0 is digital
     1 is pwm
   """
-  @type pin_mode :: 0 | 1
+  @type digital :: 0
+  @type pwm :: 1
+  @type pin_mode :: digital | pwm
   @spec write_pin(%{pin_number: integer,
     pin_mode: pin_mode,
     pin_value: integer}, [])

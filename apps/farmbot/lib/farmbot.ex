@@ -30,7 +30,7 @@ defmodule Farmbot do
   def start(_, [args]) do
     Logger.debug ">> init!"
     Amnesia.start
-    Database.create! Keyword.put([], :memory, [node])
+    Database.create! Keyword.put([], :memory, [node()])
     Database.wait(15_000)
     Supervisor.start_link(__MODULE__, args, name: Farmbot.Supervisor)
   end

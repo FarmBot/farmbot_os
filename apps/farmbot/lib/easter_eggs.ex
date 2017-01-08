@@ -70,7 +70,7 @@ defmodule Farmbot.EasterEggs do
     Logs a random "fun" sentence to the Web Interface.
   """
   @spec say_random_sentence(pid) :: :ok
-  def say_random_sentence(pid \\ __MODULE__), do: GenServer.cast(pid, verb)
+  def say_random_sentence(pid \\ __MODULE__), do: GenServer.cast(pid, verb())
 
   @doc """
     Loads new json into the state.

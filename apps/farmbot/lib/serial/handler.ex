@@ -163,15 +163,15 @@ def handle_cast(_, nil), do: {:noreply, nil}
 
   @spec open_serial(pid) :: {:ok, binary}
   defp open_serial(pid) do
-    {:ok, tty} = open_serial(pid, list_ttys , []) # List of available ports
+    {:ok, tty} = open_serial(pid, list_ttys(), []) # List of available ports
     UART.configure(pid, framing: {UART.Framing.Line,
                         separator: "\r\n"},
                         rx_framing_timeout: 500)
     tty
   end
 
-  @spec list_ttys :: [String.t,...]
-  defp list_ttys do
+  @spec list_ttys() :: [String.t,...]
+  defp list_ttys() do
     UART.enumerate
     |> Map.drop(["ttyS0","ttyAMA0"])
     |> Map.to_list
