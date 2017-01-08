@@ -15,12 +15,12 @@ defmodule Farmbot.Configurator.Mixfile do
      deps_path: "../../deps",
      lockfile: "../../mix.lock",
      target: target(Mix.env),
-     deps: deps]
+     deps: deps()]
   end
 
   def application do
     [ mod: {Farmbot.Configurator, []},
-      applications: applications ]
+      applications: applications() ]
   end
 
 
