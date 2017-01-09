@@ -47,8 +47,6 @@ defmodule Farmbot.Mixfile do
   def applications do
     [
       :logger,
-      :nerves,
-      :nerves_firmware_http,
       :nerves_uart,
       :httpotion,
       :poison,
@@ -82,6 +80,7 @@ defmodule Farmbot.Mixfile do
       {:amnesia, github: "meh/amnesia"}, # database implementation
       {:gen_stage, "~> 0.7"},
       {:credo, "0.6.0-rc1",  only: [:dev, :test]},
+      {:nerves, "~> 0.4.0", only: [:prod]},
       {:farmbot_filesystem,   in_umbrella: true},
       {:farmbot_network,      in_umbrella: true},
       {:farmbot_auth,         in_umbrella: true},

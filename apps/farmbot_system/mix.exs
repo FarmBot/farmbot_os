@@ -1,6 +1,7 @@
 defmodule Farmbot.System.Mixfile do
   use Mix.Project
-  @version Path.join(__DIR__, "VERSION") |> File.read! |> String.strip
+  @version Path.join([__DIR__, "..", "farmbot", "VERSION"]) |> File.read! |> String.strip
+
 
   def target(:prod), do: System.get_env("NERVES_TARGET") || "rpi3"
   def target(_), do: "development"
@@ -24,6 +25,6 @@ defmodule Farmbot.System.Mixfile do
   end
 
   defp deps do
-    [{:"farmbot_system_#{target(Mix.env)}", path: "systems/#{target(Mix.env)}"}]
+    [{:"farmbot_system_#{target(Mix.env)}", path: "systems/farmbot_system_#{target(Mix.env)}"}]
   end
 end
