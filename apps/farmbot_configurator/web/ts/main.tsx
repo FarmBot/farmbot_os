@@ -2,6 +2,7 @@ import * as React from "react";
 import { observer } from "mobx-react";
 import { observable, action } from "mobx";
 import { MainState } from "./state";
+import { ConfigFileNetIface } from "./interfaces";
 
 interface MainProps {
   state: MainState;
@@ -55,143 +56,195 @@ export class Main extends React.Component<MainProps, FormState> {
 
     // upload config file.
     mainState.uploadConfigFile(fullFile);
+    mainState.tryLogIn;
   }
 
+  // Handles the various input boxes.
   handleTZChange(event: any) {
-    this.setState({ timezone: (event.target.value) });
+    this.setState({ timezone: (event.target.value || "") });
   }
   handleEmailChange(event: any) {
-    this.setState({ email: (event.target.value) });
+    this.setState({ email: (event.target.value || "") });
   }
   handlePassChange(event: any) {
-    this.setState({ pass: (event.target.value) });
+    this.setState({ pass: (event.target.value || "") });
   }
   handleServerChange(event: any) {
-    this.setState({ server: (event.target.value) });
+    this.setState({ server: (event.target.value || "") });
   }
 
-  render() {
-    let mainState = this.props.state;
+  @action
+  buildNetworkConfig(config: { [name: string]: ConfigFileNetIface }) {
+    let that = this;
+    let blah = that.props.state.configuration.network;
+    return <fieldset>
+      <label htmlFor="network">
+        Network
+        </label>
+      {
+        Object.keys(config)
+          .map((ifaceName) => {
+            let iface = config[ifaceName];
+            switch (iface.type) {
+              // Wireless interfaces need two input boxes
+              case "wireless":
+                return <fieldset key={ifaceName}>
+                  <label htmlFor={ifaceName}>
+                    {ifaceName}
+                  </label>
+                  <button type="button"
+                    onClick={() => { this.props.state.scan(ifaceName) } }>
+                    Scan for WiFi </button>
+                  <input type="text" />
+                  <input type="text" />
 
-    return <div className="container">
-      <h1>Configure your FarmBot</h1>
+                </fieldset>;
 
-      <h1 hidden={mainState.connected}> Good Luck!! </h1>
+              // wired interfaces just need a enabled/disabled button
+              case "wired":
+                return <fieldset key={ifaceName}>
+                  <label htmlFor={ifaceName}>
+                    {ifaceName}
+                  </label>
+                  <button type="button"
+                    onClick={() => {
+                      // Enable this interface.
+                      iface.default = "dhcp";
+                      this.props.state.addInterface(ifaceName, iface);
+                    } }>
+                    Enable {ifaceName}
+                  </button>
+                </fieldset>;
+            }
+          })
+      }
+    </fieldset>
+
+  }
+}
+
+render() {
+  let mainState = this.props.state;
+
+  return <div className="container">
+    <h1>Configure your FarmBot</h1>
+
+    <h1 hidden={mainState.connected}> Good Luck!! </h1>
 
 
-      {/* Only display if the bot is connected */}
-      <div hidden={!mainState.connected} className={`col-md-offset-3 col-md-6 
+    {/* Only display if the bot is connected */}
+    <div hidden={!mainState.connected} className={`col-md-offset-3 col-md-6 
         col-sm-8 col-sm-offset-2`}>
 
-        <div className="widget">
+      <div className="widget">
 
-          <div className="widget-header">
-            <h5> Logs </h5>
-            <i className="fa fa-question-circle widget-help-icon">
-              <div className="widget-help-text">
-                {`Log messages from your bot`}
-              </div>
-            </i>
-          </div>
-
-          <div className="widget-content">
-            {this.props.state.logs[this.props.state.logs.length - 1].message}
-          </div>
+        <div className="widget-header">
+          <h5> Logs </h5>
+          <i className="fa fa-question-circle widget-help-icon">
+            <div className="widget-help-text">
+              {`Log messages from your bot`}
+            </div>
+          </i>
         </div>
 
-        <div className="widget">
-
-          <div className="widget-header">
-            <h5> Location </h5>
-            <i className="fa fa-question-circle widget-help-icon">
-              <div className="widget-help-text">
-                {`Current Location of your bot`}
-              </div>
-            </i>
-          </div>
-
-          <div className="widget-content">
-            X: <input readOnly={true} value={this.props.state.botStatus.location[0]} />
-            Y: <input readOnly={true} value={this.props.state.botStatus.location[1]} />
-            Z: <input readOnly={true} value={this.props.state.botStatus.location[2]} />
-          </div>
+        <div className="widget-content">
+          {this.props.state.logs[this.props.state.logs.length - 1].message}
         </div>
-
-        <form onSubmit={this.handleSubmit}>
-
-          {/* Bot */}
-          <div className="widget">
-            <div className="widget-header">
-              <h5>Bot</h5>
-              <i className="fa fa-question-circle widget-help-icon">
-                <div className="widget-help-text">
-                  {`Bot configuration.`}
-                </div>
-              </i>
-            </div>
-            <div className="widget-content">
-              <fieldset>
-                <label htmlFor="timezone">
-                  TimeZone
-                </label>
-                <input
-                  id="timezone"
-                  value={this.state.timezone ||
-                    mainState.configuration.configuration.timezone
-                    || "America/Los_Angeles"}
-                  onChange={this.handleTZChange} />
-              </fieldset>
-              <fieldset>
-                <label>
-                  Network
-                </label>
-              </fieldset>
-            </div>
-          </div>
-
-          {/* App */}
-          <div className="widget">
-            <div className="widget-header">
-              <h5>Bot</h5>
-              <i className="fa fa-question-circle widget-help-icon">
-                <div className="widget-help-text">
-                  {`Bot configuration.`}
-                </div>
-              </i>
-            </div>
-            <div className="widget-content">
-              <fieldset>
-                <label htmlFor="email">
-                  Email
-                </label>
-                <input type="email" id="email"
-                  value={this.state.email || "admin@admin.com"}
-                  onChange={this.handleEmailChange} />
-              </fieldset>
-              <fieldset>
-                <label htmlFor="password">
-                  Password
-                </label>
-                <input type="password" id="password"
-                  value={this.state.pass || "password123"}
-                  onChange={this.handlePassChange} />
-              </fieldset>
-              <fieldset>
-                <label htmlFor="url">
-                  Server:
-                </label>
-                <input type="url" id="url"
-                  value={this.state.server
-                    || mainState.configuration.authorization.server
-                    || "http://192.168.29.167:3000"}
-                  onChange={this.handleServerChange} />
-              </fieldset>
-              <button type="submit">Log In</button>
-              <input type="button" value="Don't click me" onClick={() => { mainState.factoryReset() } } />
-            </div>
-          </div>
-        </form>
       </div>
+
+      <div className="widget">
+
+        <div className="widget-header">
+          <h5> Location </h5>
+          <i className="fa fa-question-circle widget-help-icon">
+            <div className="widget-help-text">
+              {`Current Location of your bot`}
+            </div>
+          </i>
+        </div>
+
+        <div className="widget-content">
+          X: <input readOnly={true}
+            value={mainState.botStatus.location[0]} />
+          Y: <input readOnly={true}
+            value={mainState.botStatus.location[1]} />
+          Z: <input readOnly={true}
+            value={mainState.botStatus.location[2]} />
+        </div>
+      </div>
+
+      <form onSubmit={this.handleSubmit}>
+
+        {/* Bot */}
+        <div className="widget">
+          <div className="widget-header">
+            <h5>Bot</h5>
+            <i className="fa fa-question-circle widget-help-icon">
+              <div className="widget-help-text">
+                {`Bot configuration.`}
+              </div>
+            </i>
+          </div>
+          <div className="widget-content">
+            {/* timezone */}
+            <fieldset>
+              <label htmlFor="timezone">
+                TimeZone
+                </label>
+              <input
+                id="timezone"
+                onChange={this.handleTZChange} />
+            </fieldset>
+
+            {mainState.configuration.network ? this.buildNetworkConfig(mainState.configuration.network.interfaces) : <div></div>}
+
+          </div>
+        </div>
+
+        {/* App */}
+        <div className="widget">
+          <div className="widget-header">
+            <h5>Web App</h5>
+            <i className="fa fa-question-circle widget-help-icon">
+              <div className="widget-help-text">
+                {`Farmbot Application Configuration`}
+              </div>
+            </i>
+          </div>
+
+          <div className="widget-content">
+
+            <fieldset>
+              <label htmlFor="email">
+                Email
+                </label>
+              <input type="email" id="email"
+                onChange={this.handleEmailChange} />
+            </fieldset>
+
+            <fieldset>
+              <label htmlFor="password">
+                Password
+                </label>
+              <input type="password"
+                onChange={this.handlePassChange} />
+            </fieldset>
+
+            <fieldset>
+              <label htmlFor="url">
+                Server:
+                </label>
+              <input type="url" id="url"
+                onChange={this.handleServerChange} />
+            </fieldset>
+
+            {/* Submit our web app credentials, and config file. */}
+            <button type="submit">Try to Log In</button>
+
+          </div>
+        </div>
+      </form>
     </div>
-  }
+  </div>
+}
 }

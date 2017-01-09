@@ -14,6 +14,7 @@ defmodule Farmbot.Configurator.Router do
   plug CORSPlug
 
   get "/api/config" do
+    # Already in json form.
     {:ok, config} = ConfigStorage.read_config_file
     conn |> send_resp(200, config)
   end
@@ -53,8 +54,17 @@ defmodule Farmbot.Configurator.Router do
     conn |> send_resp(204, "GoodByeWorld!")
   end
 
+  post "/api/try_log_in" do
+    Logger.debug ">> Moment of truth!"
+    spawn fn() ->
+      Process.sleep(100) # wait for this request to complete.
+      Farmbot.Auth.try_log_in
+    end
+    conn |> send_resp(200, "OK")
+  end
+
   # anything that doesn't match a rest end point gets the index.
-  match _, do: conn |> send_resp(200, make_html)
+  match _, do: conn |> send_resp(200, make_html())
 
   def make_html do
     "#{:code.priv_dir(:farmbot_configurator)}/static/index.html" |> File.read!

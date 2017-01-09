@@ -35,7 +35,7 @@
   "nerves_firmware_http": {:git, "https://github.com/nerves-project/nerves_firmware_http.git", "cc2cb110b0587a482d454175916dc597d62c4bfa", []},
   "nerves_interim_wifi": {:hex, :nerves_interim_wifi, "0.1.0", "f572381722a06f1cbc118708baecd1b12ce00edb684d88258aa417112f32489a", [:make, :mix], [{:elixir_make, "~> 0.3", [hex: :elixir_make, optional: false]}, {:nerves_network_interface, "~> 0.3.1", [hex: :nerves_network_interface, optional: false]}, {:nerves_wpa_supplicant, "~> 0.2.2", [hex: :nerves_wpa_supplicant, optional: false]}]},
   "nerves_leds": {:hex, :nerves_leds, "0.7.0", "1d0f6587a9ac27c3ad3767a4dd84098e21e48fa3dc5526d5e11ddde48212e186", [:mix], []},
-  "nerves_lib": {:git, "https://github.com/nerves-project/nerves_lib.git", "78b9e489af7df25c162d4a1130569e7cc301cb48", []},
+  "nerves_lib": {:git, "https://github.com/nerves-project/nerves_lib.git", "aac351cb3e621831a317f2d2a078257161efa551", []},
   "nerves_network_interface": {:hex, :nerves_network_interface, "0.3.2", "e7450f7eccd7387ceebee6096a0646bcdc0dd4aa77077e5fa81f6767da9b77af", [:make, :mix], [{:elixir_make, "~> 0.3", [hex: :elixir_make, optional: false]}]},
   "nerves_system_br": {:hex, :nerves_system_br, "0.8.1", "86889f97719eae6ec243ba0b8f445a25cabc0463d2e9606293cb4033f2c6b9e4", [:mix], []},
   "nerves_toolchain_arm_unknown_linux_gnueabihf": {:hex, :nerves_toolchain_arm_unknown_linux_gnueabihf, "0.8.0", "873f8d6f74413c14eda3462b397a88f043a6c3bd65f56ff57db4e2e1eaf48994", [:mix], [{:nerves, "~> 0.4.0", [hex: :nerves, optional: false]}, {:nerves_toolchain_ctng, "~> 0.8.0", [hex: :nerves_toolchain_ctng, optional: false]}]},

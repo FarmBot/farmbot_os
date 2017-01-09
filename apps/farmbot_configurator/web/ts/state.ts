@@ -1,5 +1,5 @@
 import { observable, action } from "mobx";
-import { BotConfigFile, LogMsg } from "./interfaces";
+import { BotConfigFile, LogMsg, ConfigFileNetIface } from "./interfaces";
 import {
     uuid,
     CeleryNode,
@@ -72,6 +72,18 @@ export class MainState {
     // BEHAVIOR
 
     @action
+    tryLogIn() {
+        Axios.post("/api/try_log_in", {})
+            .then((thing) => {
+                console.warn("Bot going offline. (This is ok)");
+            })
+            .catch((thing) => {
+                console.error("something bad happened.");
+                console.dir(thing);
+            })
+    }
+
+    @action
     factoryReset() {
         console.log("This may be a disaaster");
         Axios.post("/api/factory_reset", {}).then((thing) => {
@@ -103,17 +115,30 @@ export class MainState {
     }
 
     @action
+    blahOK(thing: Axios.AxiosXHR<string[]>) {
+        this.ssids = thing.data;
+    }
+
+    @action
+    blahKO(thing: any) {
+        console.error("error scanning for wifi!");
+        console.dir(thing);
+    }
+
     /** requires the name of the interface we want to scan on. */
     scan(netIface: string) {
         Axios.post("/api/network/scan", { iface: netIface })
-            .then((thing) => {
-                // i wish i knew what i was doing.
-                this.ssids = (thing.data as string[]);
-            })
-            .catch((thing) => {
-                console.error("error scanning for wifi!");
-                console.dir(thing);
-            })
+            .then(this.blahOK.bind(this))
+            .catch(this.blahKO.bind(this))
+    }
+
+    @action
+    addInterface(name: string, iface: ConfigFileNetIface) {
+        if (this.configuration.network) {
+            this.configuration.network.interfaces[name] = iface;
+        } else {
+            console.log("uhhhh");
+        }
     }
 
     @action
@@ -135,9 +160,9 @@ export class MainState {
         }
     }
 
-
     @action
     replaceConfig(config: BotConfigFile) {
+        console.log("got fresh config from bot.");
         this.configuration = config;
     }
 
