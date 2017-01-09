@@ -1,11 +1,12 @@
-defmodule Module.concat([Farmbot, System, "rpi3", Mixfile]) do
+defmodule Module.concat([Farmbot, System, "development", Mixfile]) do
   use Mix.Project
+
   @version Path.join([__DIR__, "..", "..","..", "farmbot", "VERSION"])
   |> File.read!
   |> String.strip
 
   def project do
-    [app: :farmbot_system_rpi3,
+    [app: :farmbot_system_development,
      version: @version,
      build_path: "../../../_build",
      config_path: "../../../config/config.exs",
