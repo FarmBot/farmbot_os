@@ -10,10 +10,12 @@ defmodule Farmbot.CeleryScript.Command do
   alias Farmbot.CeleryScript.Ast
   alias Farmbot.Serial.Gcode.Handler, as: GHan
   alias Farmbot.Serial.Gcode.Parser, as: GParser
+  alias Farmbot.System, as: FBSys
   alias Amnesia
   use Amnesia
   alias Farmbot.Sync.Database.ToolSlot
   use ToolSlot
+
   @digital 0
   @pwm 1
   @shrug "¯\\\\_(ツ)_/\¯"
@@ -212,7 +214,6 @@ defmodule Farmbot.CeleryScript.Command do
     %Ast{kind: "explanation", args: %{message: message}, body: []}
   end
 
-  # TODO: FIXME: power off and reboot
   @doc """
     reboots your bot
       args: %{},
@@ -220,7 +221,7 @@ defmodule Farmbot.CeleryScript.Command do
   """
   @spec reboot(%{}, []) :: no_return
   def reboot(%{}, []) do
-    Logger.warn ">> can't reboot!"
+    FBSys.reboot
   end
 
   @doc """
@@ -230,7 +231,7 @@ defmodule Farmbot.CeleryScript.Command do
   """
   @spec power_off(%{}, []) :: no_return
   def power_off(%{}, []) do
-    Logger.warn ">> can't power off!"
+    FBSys.power_off
   end
 
   @type pair :: %Ast{kind: String.t, args: %{label: String.t, value: any}, body: []}

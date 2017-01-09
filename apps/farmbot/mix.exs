@@ -40,7 +40,7 @@ defmodule Farmbot.Mixfile do
           version: @version} ]
       },
      applications: applications(),
-     included_applications: [:gen_mqtt]]
+     included_applications: [:gen_mqtt, :farmbot_system]]
   end
 
   # common for test, prod, and dev
@@ -80,14 +80,13 @@ defmodule Farmbot.Mixfile do
       {:timex, "~> 3.0"}, # managing time. for the scheduler mostly.
       {:quantum, ">= 1.8.1"}, # cron jobs
       {:amnesia, github: "meh/amnesia"}, # database implementation
-      {:nerves,  "~> 0.4.0"}, # for building on embedded devices
-      {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
       {:gen_stage, "~> 0.7"},
       {:credo, "0.6.0-rc1",  only: [:dev, :test]},
       {:farmbot_filesystem,   in_umbrella: true},
       {:farmbot_network,      in_umbrella: true},
       {:farmbot_auth,         in_umbrella: true},
-      {:farmbot_configurator, in_umbrella: true}
+      {:farmbot_configurator, in_umbrella: true},
+      {:farmbot_system,       in_umbrella: true}
     ]
   end
 
