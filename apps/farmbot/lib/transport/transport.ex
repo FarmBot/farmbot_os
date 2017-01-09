@@ -37,7 +37,15 @@ defmodule Farmbot.Transport do
 
   def handle_call(:get_state, _from, state), do: {:reply, state, [], state}
 
-  def handle_events([%MonState{} = monstate], _from, _) do
+  def handle_events(events, _from, state) do
+    blah = Enum.map(events, fn(event) ->
+      do_handle(event)
+    end)
+    new_state = List.last(blah)
+    {:noreply, [new_state], new_state}
+  end
+
+  defp do_handle(%MonState{} = monstate) do
     new_state = %Serialized{
       mcu_params: monstate.hardware.mcu_params,
       location: monstate.hardware.location,
@@ -46,19 +54,14 @@ defmodule Farmbot.Transport do
       informational_settings: monstate.configuration.informational_settings,
       farm_scheduler: nil
     }
-    {:noreply, [new_state], new_state}
   end
 
-  def handle_events(t, _, state) do
-    # FIXME where is this coming from?
-    Logger.warn "FIX THIS: #{inspect t}"
-    {:noreply, [nil], state}
-  end
-
+  # Emit a binary
   def handle_cast({:emit, binary}, state) do
     {:noreply, [{:emit, binary}], state}
   end
 
+  # Emit a log message
   def handle_cast({:log, binary}, state) do
     {:noreply, [{:log, binary}], state}
   end

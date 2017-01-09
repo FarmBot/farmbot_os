@@ -107,20 +107,21 @@ defmodule Farmbot.FileSystem.ConfigStorage do
 
   @spec write!(map) :: {:noreply, map}
   defp write!(state) do
-    json = Poison.encode!(state)
-    Farmbot.FileSystem.transaction fn() ->
-      File.write!(@config_file, json)
-    end
+    do_write(state)
     {:noreply, state}
   end
 
   @spec write!(any, map) :: {:reply, any, map}
   defp write!(reply, state) do
+    do_write(state)
+    {:reply, reply, state}
+  end
+
+  defp do_write(state) do
     json = Poison.encode!(state)
     Farmbot.FileSystem.transaction fn() ->
       File.write!(@config_file, json)
     end
-    {:reply, reply, state}
   end
 
   # tries to parse contents. raises an exception if it can't

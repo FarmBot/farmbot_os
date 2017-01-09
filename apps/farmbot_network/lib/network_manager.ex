@@ -77,14 +77,15 @@ defmodule Farmbot.Network.Manager do
   defp start_interface({iface, %{
     "type" => "wired",
     "default" => "dhcp",
-    "settings" => _settings
-    }}, _event_manager)
+    } = _config}, _event_manager)
   do
     {:ok, pid} = InterimWiFi.setup iface, []
+    :ok
   end
 
 
   def handle_cast({:connected, iface, addr}, state) do
+    Logger.debug ">> is connected #{iface}@#{addr}"
     {:ok, ntp} = get_config("ntp")
     {:ok, ssh} = get_config("ssh")
     if ntp, do: Ntp.set_time
@@ -224,7 +225,6 @@ defmodule Farmbot.Network.Manager do
 
   # when this closes clean up everything
   def terminate(_reason,state) do
-    Nerves.Firmware.reboot
     do_all_down(state)
   end
 

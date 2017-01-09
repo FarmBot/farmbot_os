@@ -26,25 +26,23 @@ defmodule Farmbot.Transport.GenMqtt do
   end
 
   # GenStage callback.
-  def handle_events([%Ser{} = ser], _, {client, %Token{} = _} = state)
-  when is_pid(client) do
-    Client.cast(client, ser)
+  def handle_events(events, _, {_, nil} = state) do
+    # we don't have auth yet, so dont do anything with this event.
     {:noreply, [], state}
   end
 
-  def handle_events([{:emit, msg}], _, {client, %Token{} = _} = state)
-  when is_pid(client) do
-    Client.cast(client, {:emit, msg})
+  def handle_events(events, _, {client, %Token{} = _} = state) do
+    for event <- events do
+      do_handle(event, client)
+    end
     {:noreply, [], state}
   end
 
-  def handle_events([{:log, msg}], _, {client, %Token{} = _} = state)
-  when is_pid(client) do
-    Client.cast(client, {:log, msg})
-    {:noreply, [], state}
-  end
+  @spec do_handle(any, pid | nil) :: no_return
+  defp do_handle(event, client)
+    when is_pid(client), do: Client.cast(client, event)
 
-  def handle_events(_,_,state), do: {:noreply, [], state}
+  defp do_handle(_event, _client), do: :ok
 
   def handle_info({:authorization, %Token{} = t}, {nil, _}) do
     {:ok, pid} = start_client(t)

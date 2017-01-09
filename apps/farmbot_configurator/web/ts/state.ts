@@ -7,6 +7,7 @@ import {
     SendMessage,
     BotStateTree
 } from "farmbot";
+import * as _ from "lodash";
 import * as Axios from "axios";
 
 /** This isnt very good im sorry. */
@@ -105,6 +106,7 @@ export class MainState {
 
     @action
     uploadCreds(email: string, pass: string, server: string) {
+        this.configuration.authorization.server = server;
         Axios.post("/api/config/creds",
             { email, pass, server }).then((thing) => {
                 console.log("Credentials Uploaded!");
@@ -133,9 +135,11 @@ export class MainState {
     }
 
     @action
-    addInterface(name: string, iface: ConfigFileNetIface) {
+    updateInterface(ifaceName: string, update: Partial<ConfigFileNetIface>) {
         if (this.configuration.network) {
-            this.configuration.network.interfaces[name] = iface;
+            let iface = this.configuration.network.interfaces[ifaceName];
+            let thing = _.merge({}, iface, update);
+            this.configuration.network.interfaces[ifaceName] = thing;
         } else {
             console.log("uhhhh");
         }
