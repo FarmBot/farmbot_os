@@ -15,6 +15,10 @@ defmodule Farmbot.System.Network.SSH do
 
   def start_link(), do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
 
+  def stop(reason) do
+    GenServer.stop(__MODULE__, reason)
+  end
+
   def handle_info({:EXIT, port, reason}, state)
   when state == port do
     Logger.error ">>`s ssh client died: #{inspect reason}"

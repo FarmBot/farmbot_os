@@ -61,7 +61,7 @@ defmodule Farmbot.Configurator.Router do
     spawn fn() ->
       # sleep to allow the request to finish.
       Process.sleep(100)
-      Logger.debug "THAT ISNT WORKINGF YET!!!"
+      Farmbot.System.Network.restart
     end
     conn |> send_resp(200, "OK")
   end

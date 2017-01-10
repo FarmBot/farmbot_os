@@ -40,7 +40,7 @@ defmodule Farmbot.Mixfile do
           version: @version} ]
       },
      applications: applications(),
-     included_applications: [:gen_mqtt, :"farmbot_system_#{target(Mix.env)}"]]
+     included_applications: [:gen_mqtt]]
   end
 
   # common for test, prod, and dev
@@ -60,6 +60,7 @@ defmodule Farmbot.Mixfile do
       :quantum,
       :gen_stage,
       :nerves,
+      :"farmbot_system_#{target(Mix.env)}",
       :farmbot_system,
       :farmbot_auth,
       :farmbot_configurator,

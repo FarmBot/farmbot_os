@@ -30,8 +30,8 @@ defmodule Farmbot.System.Network.Ntp do
        :stderr_to_stdout])
      case handle_port(port) do
        :ok -> :ok
-       {:error, _} ->
-         Logger.debug ">> failed to get time. trying again."
+       {:error, reason} ->
+         Logger.debug ">> failed to get time: #{inspect reason} trying again."
          # kill old ntp if it exists
          System.cmd("killall", ["ntpd"])
          # sleep for a second
