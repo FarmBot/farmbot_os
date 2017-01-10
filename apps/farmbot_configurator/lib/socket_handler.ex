@@ -25,11 +25,11 @@ defmodule Farmbot.Configurator.SocketHandler do
     Logger.debug ">> encountered a new local websocket connection."
     # starts a ping pong deal, so the websocket doesnt close if the user takes
     # Too long to configurate.
-    :erlang.start_timer(@timer, self, [])
+    :erlang.start_timer(@timer, self(), [])
 
     # start the transport into the main Farmbot application.
     # This is where state updates, celeryscripts, logs, etc come from.
-    {:ok, stage} = transport.start_link(self)
+    {:ok, stage} = transport().start_link(self())
 
     # i dont actually remember what req is, but we don't use it.
     {:ok, req, stage, @timeout}
@@ -48,7 +48,7 @@ defmodule Farmbot.Configurator.SocketHandler do
 
   # this is the ping pong nonsense.
   def websocket_info({:timeout, _, []}, req, stage) do
-    :erlang.start_timer(@timer, self, [])
+    :erlang.start_timer(@timer, self(), [])
     {:reply, {:text, @ping}, req, stage}
   end
 
@@ -82,7 +82,7 @@ defmodule Farmbot.Configurator.SocketHandler do
   def websocket_terminate(_reason, _req, _stage) do
     Logger.debug ">> is closing a websocket connection."
     # make sure to stop anything when we finish up.
-    transport.stop_link(self)
+    transport().stop_link(self())
   end
 
   # little HACK to minimize compiler warnings.

@@ -12,8 +12,8 @@ defmodule Farmbot.HTTP do
   """
   @spec post(binary, binary) :: {:error, term} | http_resp
   def post(path, body) do
-    with {:ok, server} <- fetch_server,
-         {:ok, auth_headers} <- build_auth,
+    with {:ok, server} <- fetch_server(),
+         {:ok, auth_headers} <- build_auth(),
          do: HTTPotion.post("#{server}#{path}",
                             headers: auth_headers, body: body)
   end
@@ -23,8 +23,8 @@ defmodule Farmbot.HTTP do
   """
   @spec get(binary) :: {:error, term} | http_resp
   def get(path) do
-    with {:ok, server} <- fetch_server,
-         {:ok, auth_headers} <- build_auth,
+    with {:ok, server} <- fetch_server(),
+         {:ok, auth_headers} <- build_auth(),
          do: HTTPotion.get("#{server}#{path}", headers: auth_headers)
   end
 
@@ -38,8 +38,8 @@ defmodule Farmbot.HTTP do
     | :delete
   @spec req(verbs, binary, any) :: http_resp
   def req(verb, path, body \\ nil) do
-    with {:ok, server} <- fetch_server,
-         {:ok, auth_headers} <- build_auth
+    with {:ok, server} <- fetch_server(),
+         {:ok, auth_headers} <- build_auth()
     do
       options = [headers: auth_headers]
       if body do

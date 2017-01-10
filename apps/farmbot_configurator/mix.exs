@@ -36,8 +36,7 @@ defmodule Farmbot.Configurator.Mixfile do
       {:cowboy, "~> 1.0.0"},
       {:httpotion, "~> 3.0.0"},
       {:farmbot_auth, in_umbrella: true},
-      {:farmbot_filesystem, in_umbrella: true},
-      {:farmbot_network, in_umbrella: true}
+      {:farmbot_system, in_umbrella: true}
     ]
   end
 end

@@ -1,4 +1,4 @@
-defmodule Farmbot.Network.Hostapd do
+defmodule Farmbot.System.Network.Hostapd do
   @moduledoc """
     Manages an OS process of hostapd and DNSMASQ.
   """
@@ -45,7 +45,7 @@ defmodule Farmbot.Network.Hostapd do
     # Make sure the interface is in proper condition.
     :ok = hostapd_ip_settings_up(interface, ip_addr)
     # build the hostapd configuration
-    hostapd_conf = build_hostapd_conf(interface, build_ssid)
+    hostapd_conf = build_hostapd_conf(interface, build_ssid())
     # build a config file
     File.mkdir! "/tmp/hostapd"
     File.write! "/tmp/hostapd/#{@hostapd_conf_file}", hostapd_conf
@@ -111,7 +111,7 @@ defmodule Farmbot.Network.Hostapd do
 
   defp build_ssid do
     node_str =
-      node |> Atom.to_string
+      node() |> Atom.to_string
     [name, "nerves-" <> id] =
       node_str |> String.split("@")
     name <> "-" <> id

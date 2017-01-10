@@ -37,7 +37,8 @@ defmodule Farmbot.Transport do
 
   def handle_call(:get_state, _from, state), do: {:reply, state, [], state}
 
-  def handle_events(events, _from, state) do
+  # FIXME this will cause problems im sure.
+  def handle_events(events, _from, _state) do
     blah = Enum.map(events, fn(event) ->
       do_handle(event)
     end)
@@ -46,7 +47,7 @@ defmodule Farmbot.Transport do
   end
 
   defp do_handle(%MonState{} = monstate) do
-    new_state = %Serialized{
+    %Serialized{
       mcu_params: monstate.hardware.mcu_params,
       location: monstate.hardware.location,
       pins: monstate.hardware.pins,

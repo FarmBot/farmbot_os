@@ -1,4 +1,4 @@
-defmodule Farmbot.Network.Ntp do
+defmodule Farmbot.System.Network.Ntp do
   @moduledoc """
     Sets time.
   """
@@ -12,7 +12,7 @@ defmodule Farmbot.Network.Ntp do
   @spec set_time :: :ok | {:error, term}
   def set_time do
     Logger.debug ">> is getting time from NTP."
-    f = do_try_set_time
+    f = do_try_set_time()
     Logger.debug ">> ntp: #{inspect f}"
   end
 

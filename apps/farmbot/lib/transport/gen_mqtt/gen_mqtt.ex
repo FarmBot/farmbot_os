@@ -4,7 +4,6 @@ defmodule Farmbot.Transport.GenMqtt do
   use GenStage
   require Logger
   alias Farmbot.Token
-  alias Farmbot.Transport.Serialized, as: Ser
   @type state :: {pid | nil, Token.t | nil}
 
   @doc """
@@ -26,7 +25,7 @@ defmodule Farmbot.Transport.GenMqtt do
   end
 
   # GenStage callback.
-  def handle_events(events, _, {_, nil} = state) do
+  def handle_events(_events, _, {_, nil} = state) do
     # we don't have auth yet, so dont do anything with this event.
     {:noreply, [], state}
   end
