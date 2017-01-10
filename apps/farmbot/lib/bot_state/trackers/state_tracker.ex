@@ -7,7 +7,7 @@ defmodule Farmbot.StateTracker do
   @callback load(any) :: {:ok, map}
   defmacro __using__(name: name, model: model) do
     quote do
-      alias Farmbot.FileSystem.ConfigStorage, as: FBConfigStorage
+      alias Farmbot.System.FS.ConfigStorage, as: FBConfigStorage
 
       defmodule State, do: defstruct unquote(model)
 
@@ -39,11 +39,9 @@ defmodule Farmbot.StateTracker do
           {:error, reason} ->
             Logger.error ">> encountered an error starting #{n}" <>
               "#{inspect reason}"
-            Farmbot.factory_reset
           err ->
             Logger.error ">> encountered an unknown error in #{n}"
             <> ": #{inspect err}"
-            Farmbot.factory_reset
         end
       end
 
@@ -64,7 +62,6 @@ defmodule Farmbot.StateTracker do
 
       defp dispatch({:error, reason}) do
         Logger.error ">> encountered a fatal error in #{unquote(name)}."
-        Farmbot.factory_reset
       end
 
       defp broadcast(%unquote(name).State{} = state) do

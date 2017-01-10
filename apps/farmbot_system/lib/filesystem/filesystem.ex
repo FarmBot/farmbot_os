@@ -1,21 +1,18 @@
-defmodule Farmbot.FileSystem do
+defmodule Farmbot.System.FS do
   @moduledoc """
     Handles filesystem reads and writes and formatting.
   """
 
   require Logger
   use GenServer
-  @path Application.get_env(:farmbot_filesystem, :path)
+  @path Application.get_env(:farmbot_system, :path)
 
-  def start(_,[%{env: env, target: target}]),
-    do: Farmbot.FileSystem.Supervisor.start_link({env, target})
+  def start_link(target),
+    do: GenServer.start_link(__MODULE__, target, name: __MODULE__)
 
-  def start_link({env, target}),
-    do: GenServer.start_link(__MODULE__, {env, target}, name: __MODULE__)
-
-  def init({env, target}) do
-    Logger.debug ">> FileSystem Init"
-    mod = Module.concat([FileSystem, Utils, env, target])
+  def init(target) do
+    Logger.debug ">> #{target} FileSystem Init"
+    mod = Module.concat([Farmbot, System, target, FileSystem])
     mod.fs_init
     mod.mount_read_only
     {:ok, {mod, :read_only, 0}}
@@ -63,13 +60,9 @@ defmodule Farmbot.FileSystem do
   """
   def path, do: @path
 
-
-  @doc """
-    Resets all the data about this Farmbot
-  """
-  def factory_reset do
-    Logger.debug ">> is going to be completely reset! Goodbye!"
-    Farmbot.FileSystem.ConfigStorage.reset_config
-    System.halt(0)
-  end
+  # BEHAVIOR
+  @type return_type :: :ok | {:error, term}
+  @callback mount_read_only() :: return_type
+  @callback mount_read_write() :: return_type
+  @callback fs_init() :: return_type
 end

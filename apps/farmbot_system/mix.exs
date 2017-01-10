@@ -21,10 +21,11 @@ defmodule Farmbot.System.Mixfile do
   end
 
   def application do
-    [extra_applications: [:logger, :"farmbot_system_#{target(Mix.env)}"]]
+    [extra_applications: [:logger],
+     mod: {Farmbot.System.Supervisor, [target: target(Mix.env)]}]
   end
 
   defp deps do
-    [{:"farmbot_system_#{target(Mix.env)}", path: "systems/farmbot_system_#{target(Mix.env)}"}]
+    []
   end
 end

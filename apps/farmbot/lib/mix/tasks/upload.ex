@@ -28,10 +28,10 @@ defmodule Mix.Tasks.Farmbot.Curl do
                :hide,
                :use_stdio,
                :stderr_to_stdout])
-     handle_output
+     handle_output()
   end
 
-  def handle_output do
+  def handle_output() do
     receive do
       info -> handle_info(info)
     end
@@ -49,22 +49,22 @@ defmodule Mix.Tasks.Farmbot.Curl do
 
   def handle_info({_port, {:data, << <<35>>, <<_ :: binary>> >>}}) do
     IO.write("#")
-    handle_output
+    handle_output()
   end
 
   def handle_info({_port, {:data, << "\n", <<35>>, <<_ :: binary>> >>}}) do
     IO.write("#")
-    handle_output
+    handle_output()
   end
 
   def handle_info({_port, {:data, << "\r", <<35>>, <<_ :: binary>> >>}}) do
     IO.write("#")
-    handle_output
+    handle_output()
   end
 
   def handle_info({_port, {:data, _data}}) do
     # IO.puts(data)
-    handle_output
+    handle_output()
   end
 
   def handle_info({_port, {:exit_status, 7}}) do

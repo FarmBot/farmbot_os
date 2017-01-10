@@ -1,4 +1,4 @@
-defmodule Farmbot.FileSystem.ConfigStorage do
+defmodule Farmbot.System.FS.ConfigStorage do
   @moduledoc """
     Loads information according to a configuration JSON file.
     This does not handle the configuration file, it just holds all the
@@ -7,10 +7,10 @@ defmodule Farmbot.FileSystem.ConfigStorage do
   use GenServer
   require Logger
 
-  @config_file Application.get_env(:farmbot_filesystem, :path) <> "/config.json"
-  @default_config_file_name Application.get_env(:farmbot_filesystem, :config_file_name)
+  @config_file Application.get_env(:farmbot_system, :path) <> "/config.json"
+  @default_config_file_name Application.get_env(:farmbot_system, :config_file_name)
   defp default_config_file,
-    do: "#{:code.priv_dir(:farmbot_filesystem)}/static/#{@default_config_file_name}"
+    do: "#{:code.priv_dir(:farmbot_system)}/static/#{@default_config_file_name}"
 
   @type args :: binary
   @spec start_link(args) :: {:ok, pid}
@@ -31,15 +31,15 @@ defmodule Farmbot.FileSystem.ConfigStorage do
         {:ok, f}
       # if not start over with the default config file (from the priv dir)
       {:error, :enoent} ->
-        Logger.debug ">> is creating a new configuration file: #{default_config_file}"
-        reset_config
+        Logger.debug ">> is creating a new configuration file: #{default_config_file()}"
+        reset_config()
         init(@config_file)
     end
   end
 
   def reset_config do
-    Farmbot.FileSystem.transaction fn() ->
-      File.cp!(default_config_file, @config_file)
+    Farmbot.System.FS.transaction fn() ->
+      File.cp!(default_config_file(), @config_file)
     end
   end
 
@@ -119,7 +119,7 @@ defmodule Farmbot.FileSystem.ConfigStorage do
 
   defp do_write(state) do
     json = Poison.encode!(state)
-    Farmbot.FileSystem.transaction fn() ->
+    Farmbot.System.FS.transaction fn() ->
       File.write!(@config_file, json)
     end
   end

@@ -2,8 +2,8 @@ defmodule Farmbot.Configurator.Router do
   @moduledoc """
     Routes incoming connections.
   """
-  alias Farmbot.FileSystem.ConfigStorage
-  alias Farmbot.Network.Manager, as: NetMan
+  alias Farmbot.System.FS.ConfigStorage
+  alias Farmbot.System.Network, as: NetMan
   require Logger
 
   use Plug.Router
@@ -49,9 +49,19 @@ defmodule Farmbot.Configurator.Router do
     spawn fn() ->
       # sleep to allow the request to finish.
       Process.sleep(100)
-      Farmbot.FileSystem.factory_reset
+      Farmbot.System.factory_reset
     end
     conn |> send_resp(204, "GoodByeWorld!")
+  end
+
+  post "/api/try_log_in" do
+    Logger.debug "Trying to log in. "
+    spawn fn() ->
+      # sleep to allow the request to finish.
+      Process.sleep(100)
+      Logger.debug "THAT ISNT WORKINGF YET!!!"
+    end
+    conn |> send_resp(200, "OK")
   end
 
   # anything that doesn't match a rest end point gets the index.

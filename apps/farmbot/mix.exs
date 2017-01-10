@@ -40,7 +40,7 @@ defmodule Farmbot.Mixfile do
           version: @version} ]
       },
      applications: applications(),
-     included_applications: [:gen_mqtt, :farmbot_system]]
+     included_applications: [:gen_mqtt, :"farmbot_system_#{target(Mix.env)}"]]
   end
 
   # common for test, prod, and dev
@@ -59,9 +59,9 @@ defmodule Farmbot.Mixfile do
       :amnesia,
       :quantum,
       :gen_stage,
-      :farmbot_filesystem,
+      :nerves,
+      :farmbot_system,
       :farmbot_auth,
-      :farmbot_network,
       :farmbot_configurator,
    ]
   end
@@ -79,13 +79,13 @@ defmodule Farmbot.Mixfile do
       {:quantum, ">= 1.8.1"}, # cron jobs
       {:amnesia, github: "meh/amnesia"}, # database implementation
       {:gen_stage, "~> 0.7"},
+      {:nerves, "~> 0.4.0"},
       {:credo, "0.6.0-rc1",  only: [:dev, :test]},
-      {:nerves, "~> 0.4.0", only: [:prod]},
-      {:farmbot_filesystem,   in_umbrella: true},
-      {:farmbot_network,      in_umbrella: true},
+      {:ex_doc, "~> 0.14", only: :dev},
+      {:"farmbot_system_#{target(Mix.env)}", in_umbrella: true},
+      {:farmbot_system,       in_umbrella: true},
       {:farmbot_auth,         in_umbrella: true},
       {:farmbot_configurator, in_umbrella: true},
-      {:farmbot_system,       in_umbrella: true}
     ]
   end
 

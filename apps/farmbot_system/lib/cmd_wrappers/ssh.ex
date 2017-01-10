@@ -1,4 +1,4 @@
-defmodule Farmbot.Network.SSH do
+defmodule Farmbot.System.Network.SSH do
   @moduledoc """
     Module to manage SSH via an Erlang port.
   """
@@ -6,10 +6,10 @@ defmodule Farmbot.Network.SSH do
   require Logger
   @banner "/tmp/banner"
   @cmd "dropbear -R -F -a -B -b #{@banner}"
-    
+
   def init do
     Process.flag(:trap_exit, true)
-    make_banner
+    make_banner()
     {:ok, Port.open({:spawn, @cmd}, [:binary])}
   end
 
@@ -27,7 +27,7 @@ defmodule Farmbot.Network.SSH do
   end
 
   def terminate(_reason, _state) do
-    save_contents
+    save_contents()
   end
 
   def save_contents do

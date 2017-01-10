@@ -27,7 +27,7 @@ defmodule Farmbot.Auth.Mixfile do
       {:rsa, "~> 0.0.1"},
       {:nerves_lib, github: "nerves-project/nerves_lib"},
       {:poison, "~> 3.0"},
-      {:farmbot_filesystem, in_umbrella: true}
+      {:farmbot_system, in_umbrella: true}
    ]
   end
 end
