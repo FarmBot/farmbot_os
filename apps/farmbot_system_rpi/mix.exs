@@ -5,7 +5,7 @@ defmodule Module.concat([Farmbot, System, "rpi", Mixfile]) do
   |> String.strip
 
   def project do
-    [app: :farmbot_system_rpi3,
+    [app: :farmbot_system_rpi,
      version: @version,
      build_path: "../../_build",
      config_path: "../../config/config.exs",

@@ -1,6 +1,8 @@
 defmodule Module.concat([Farmbot,System,"development",Mixfile]) do
   use Mix.Project
-  @version Path.join([__DIR__, "..", "farmbot", "VERSION"]) |> File.read! |> String.strip
+  @version Path.join([__DIR__, "..", "farmbot", "VERSION"])
+  |> File.read!
+  |> String.strip
 
   def project do
     [app: :farmbot_system_development,

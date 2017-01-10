@@ -1,7 +1,7 @@
 defmodule Farmbot.Configurator.Mixfile do
   use Mix.Project
   System.put_env("NODE_ENV", Mix.env |> Atom.to_string)
-  def target(:prod), do: System.get_env("NERVES_TARGET") || "rpi3"
+  def target(:prod), do: System.get_env("NERVES_TARGET")
   def target(_), do: "development"
 
   def project do

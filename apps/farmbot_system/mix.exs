@@ -1,9 +1,11 @@
 defmodule Farmbot.System.Mixfile do
   use Mix.Project
-  @version Path.join([__DIR__, "..", "farmbot", "VERSION"]) |> File.read! |> String.strip
+  @version Path.join([__DIR__, "..", "farmbot", "VERSION"])
+  |> File.read!
+  |> String.strip
 
 
-  def target(:prod), do: System.get_env("NERVES_TARGET") || "rpi3"
+  def target(:prod), do: System.get_env("NERVES_TARGET")
   def target(_), do: "development"
 
   def project do
