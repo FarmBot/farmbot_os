@@ -1,4 +1,4 @@
-import { ConfigFileNetIface, IfaceType } from "./interfaces";
+import { ConfigFileNetIface } from "./interfaces";
 type WhateverItsJustAStub = {
     [name: string]: ConfigFileNetIface;
 };
@@ -9,7 +9,7 @@ export const STUB: WhateverItsJustAStub = {
         settings: {}
     },
     wlan0: {
-        type: "wired",
+        type: "wireless",
         default: "dhcp",
         settings: {
             ipv4_address: "0.0.0.0",

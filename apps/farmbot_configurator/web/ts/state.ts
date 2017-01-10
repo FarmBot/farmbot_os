@@ -63,7 +63,7 @@ export class MainState {
             os_auto_update: false,
             fw_auto_update: false,
             steps_per_mm: 500,
-            timezone: "fixme"
+            timezone: ""
         },
         hardware: { params: {} }
     };
@@ -117,21 +117,26 @@ export class MainState {
     }
 
     @action
-    blahOK(thing: Axios.AxiosXHR<string[]>) {
+    scanOK(thing: Axios.AxiosXHR<string[]>) {
+        // this.ssids = [
+        //     "Uncomment this code for prod.",
+        //     "Rick stubbed this."
+        // ];
         this.ssids = thing.data;
+        console.dir(thing.data);
     }
 
     @action
-    blahKO(thing: any) {
-        console.error("error scanning for wifi!");
+    scanKO(thing: any) {
+        alert("error scanning for wifi!");
         console.dir(thing);
     }
 
     /** requires the name of the interface we want to scan on. */
     scan(netIface: string) {
         Axios.post("/api/network/scan", { iface: netIface })
-            .then(this.blahOK.bind(this))
-            .catch(this.blahKO.bind(this))
+            .then(this.scanOK.bind(this))
+            .catch(this.scanKO.bind(this))
     }
 
     @action

@@ -10,6 +10,7 @@ import { BotConfigFile } from "./interfaces";
 import "../../node_modules/font-awesome/css/font-awesome.min.css";
 import "../../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import "../css/main.scss";
+import "react-select/dist/react-select.css";
 
 // mobx setting for more saftey in the safe things.
 useStrict(true);

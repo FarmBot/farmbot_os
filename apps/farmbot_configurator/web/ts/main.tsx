@@ -3,8 +3,9 @@ import { observer } from "mobx-react";
 import { observable, action } from "mobx";
 import { MainState } from "./state";
 import { ConfigFileNetIface } from "./interfaces";
-import { Sorry } from "./timezone_picker";
+import { TZSelect } from "./tz_select";
 import { STUB } from "./just_a_stub";
+import * as Select from "react-select";
 
 interface MainProps {
   mobx: MainState;
@@ -30,10 +31,8 @@ export class Main extends React.Component<MainProps, FormState> {
     this.state = { timezone: null, email: null, pass: null, server: null };
   }
 
-  @action
   handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
-    // alert("You bot is going to go offline!!!");
     let mainState = this.props.mobx;
     let fullFile = mainState.configuration;
 
@@ -58,12 +57,14 @@ export class Main extends React.Component<MainProps, FormState> {
 
     // upload config file.
     mainState.uploadConfigFile(fullFile);
-    mainState.tryLogIn;
+    mainState.tryLogIn();
   }
 
   // Handles the various input boxes.
-  handleTZChange(timezone: string) {
-    this.setState({ timezone });
+  handleTZChange(optn: Select.Option) {
+    let timezone = (optn.value || "").toString();
+    console.log("Hi?" + timezone);
+    this.setState({ timezone: timezone });
   }
   handleEmailChange(event: any) {
     this.setState({ email: (event.target.value || "") });
@@ -94,8 +95,10 @@ export class Main extends React.Component<MainProps, FormState> {
                   <button type="button"
                     onClick={() => { this.props.mobx.scan(ifaceName) } }>
                     Scan for WiFi </button>
-                  <input type="text" />
-                  <input type="text" />
+                  <Select value="Pick an SSID"
+                    options={this.props.mobx.ssids.map(x => ({ value: x, label: x }))} />
+                  <input type="text" placeholder="Wifi SSID" />
+                  <input type="password" placeholder="Wifi Key" />
 
                 </fieldset>;
 
@@ -161,7 +164,8 @@ export class Main extends React.Component<MainProps, FormState> {
           </div>
           <div className="widget-content">
             {/* timezone */}
-            <Sorry callback={this.handleTZChange} />
+            <TZSelect callback={this.handleTZChange}
+              current={this.props.mobx.configuration.configuration.timezone} />
 
             {/* Network */}
             {this.buildNetworkConfig(mainState.configuration.network ? mainState.configuration.network.interfaces : STUB)}
