@@ -36,7 +36,7 @@ defmodule Farmbot.Configurator.Router do
     conn |> send_resp(200, "ok")
   end
 
-  get "/api/network/scan" do
+  post "/api/network/scan" do
     {:ok, body, _} = read_body(conn)
     %{"iface" => iface} = Poison.decode!(body)
     scan = NetMan.scan(iface)
