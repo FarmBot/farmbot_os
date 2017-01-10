@@ -3,6 +3,8 @@ import { observer } from "mobx-react";
 import { observable, action } from "mobx";
 import { MainState } from "./state";
 import { ConfigFileNetIface } from "./interfaces";
+import { Sorry } from "./timezone_picker";
+import { STUB } from "./just_a_stub";
 
 interface MainProps {
   mobx: MainState;
@@ -60,8 +62,8 @@ export class Main extends React.Component<MainProps, FormState> {
   }
 
   // Handles the various input boxes.
-  handleTZChange(event: any) {
-    this.setState({ timezone: (event.target.value || "") });
+  handleTZChange(timezone: string) {
+    this.setState({ timezone });
   }
   handleEmailChange(event: any) {
     this.setState({ email: (event.target.value || "") });
@@ -73,7 +75,6 @@ export class Main extends React.Component<MainProps, FormState> {
     this.setState({ server: (event.target.value || "") });
   }
 
-  @action
   buildNetworkConfig(config: { [name: string]: ConfigFileNetIface }) {
     return <fieldset>
       <label htmlFor="network">
@@ -130,7 +131,7 @@ export class Main extends React.Component<MainProps, FormState> {
 
 
       {/* Only display if the bot is connected */}
-      <div hidden={!mainState.connected} className={`col-md-offset-3 col-md-6 
+      <div hidden={!mainState.connected} className={`col-md-offset-3 col-md-6
         col-sm-8 col-sm-offset-2`}>
 
         <div className="widget">
@@ -148,63 +149,35 @@ export class Main extends React.Component<MainProps, FormState> {
             {this.props.mobx.logs[this.props.mobx.logs.length - 1].message}
           </div>
         </div>
-
+        {/* Bot */}
         <div className="widget">
-
           <div className="widget-header">
-            <h5> Location </h5>
+            <h5>Bot</h5>
             <i className="fa fa-question-circle widget-help-icon">
               <div className="widget-help-text">
-                {`Current Location of your bot`}
-              </div>
+                Bot configuration.
+                </div>
             </i>
           </div>
-
           <div className="widget-content">
-            X: <input readOnly={true}
-              value={mainState.botStatus.location[0]} />
-            Y: <input readOnly={true}
-              value={mainState.botStatus.location[1]} />
-            Z: <input readOnly={true}
-              value={mainState.botStatus.location[2]} />
+            {/* timezone */}
+            <Sorry callback={this.handleTZChange} />
+
+            {/* Network */}
+            {this.buildNetworkConfig(mainState.configuration.network ? mainState.configuration.network.interfaces : STUB)}
           </div>
         </div>
 
+
+
         <form onSubmit={this.handleSubmit}>
-
-          {/* Bot */}
-          <div className="widget">
-            <div className="widget-header">
-              <h5>Bot</h5>
-              <i className="fa fa-question-circle widget-help-icon">
-                <div className="widget-help-text">
-                  {`Bot configuration.`}
-                </div>
-              </i>
-            </div>
-            <div className="widget-content">
-              {/* timezone */}
-              <fieldset>
-                <label htmlFor="timezone">
-                  TimeZone
-                </label>
-                <input
-                  id="timezone"
-                  onChange={this.handleTZChange} />
-              </fieldset>
-
-              {mainState.configuration.network ? this.buildNetworkConfig(mainState.configuration.network.interfaces) : <div></div>}
-
-            </div>
-          </div>
-
           {/* App */}
           <div className="widget">
             <div className="widget-header">
               <h5>Web App</h5>
               <i className="fa fa-question-circle widget-help-icon">
                 <div className="widget-help-text">
-                  {`Farmbot Application Configuration`}
+                  Farmbot Application Configuration
                 </div>
               </i>
             </div>
