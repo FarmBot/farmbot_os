@@ -4,7 +4,7 @@ defmodule Module.concat([Farmbot, System, "rpi3"]) do
 
   def reboot(), do: Nerves.Firmware.reboot()
 
-  def power_off(), do: Nerves.Firmware.power_off()
+  def power_off(), do: Nerves.Firmware.poweroff()
 
   def factory_reset() do
     Farmbot.System.FS.transaction fn() ->

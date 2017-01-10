@@ -23,7 +23,7 @@ defmodule Module.concat([Farmbot, System, "rpi", Mixfile]) do
 
   defp deps do
     [{:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi"},
-     {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"}.
+     {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
      {:farmbot_system, in_umbrella: true}]
   end
 end
