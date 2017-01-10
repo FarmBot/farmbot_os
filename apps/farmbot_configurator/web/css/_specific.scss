@@ -2,7 +2,8 @@
     .Select {
         margin-bottom: 1rem;
     }
-    .widget-content input[type="password"] {
+    .widget-content input[type="password"],
+    .widget-content input[type="text"] {
         margin-bottom: 1rem;
     }
 }
