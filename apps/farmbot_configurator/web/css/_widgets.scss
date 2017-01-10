@@ -1,5 +1,6 @@
 .widget {
     margin-bottom: 3rem;
+    position: relative;
 }
 
 .widget-header {
@@ -17,6 +18,14 @@
     p {
         font-size: 1rem;
         font-style: italic;
+    }
+    .fa-minus,
+    .fa-plus {
+        position: absolute;
+        top: 0.6rem;
+        right: 0.8rem;
+        font-size: 1.8rem;
+        cursor: pointer;
     }
 }
 
@@ -63,4 +72,7 @@ i.widget-help-icon {
     border-color: $light_gray;
     color: $dark_gray;
     padding: 1.25rem;
+    label {
+        font-size: 1.3rem;
+    }
 }

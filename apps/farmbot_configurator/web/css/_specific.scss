@@ -1,0 +1,22 @@
+.widget.wifi {
+    .Select {
+        margin-bottom: 1rem;
+    }
+    .widget-content input[type="password"] {
+        margin-bottom: 1rem;
+    }
+}
+
+.scan-button {
+    position: absolute;
+    top: 0.4rem;
+    right: 0;
+    padding: 0rem 1.2rem;
+}
+
+button[type="submit"] {
+    margin-top: 0;
+    width: 100%;
+    padding: 0.8rem 1.6rem;
+    margin-bottom: 2rem;
+}

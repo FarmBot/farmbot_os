@@ -6,6 +6,8 @@ import { ConfigFileNetIface } from "./interfaces";
 import { TZSelect } from "./tz_select";
 import { STUB } from "./just_a_stub";
 import * as Select from "react-select";
+import "../../node_modules/roboto-font/css/fonts.css";
+import "../../node_modules/font-awesome/css/font-awesome.css";
 
 interface MainProps {
   mobx: MainState;
@@ -17,6 +19,8 @@ interface FormState {
   email?: null | string;
   pass?: null | string;
   server?: null | string;
+  urlIsOpen?: boolean;
+  showPassword?: boolean;
 }
 
 @observer
@@ -28,7 +32,14 @@ export class Main extends React.Component<MainProps, FormState> {
     this.handleEmailChange = this.handleEmailChange.bind(this);
     this.handlePassChange = this.handlePassChange.bind(this);
     this.handleServerChange = this.handleServerChange.bind(this);
-    this.state = { timezone: null, email: null, pass: null, server: null };
+    this.state = {
+      timezone: null,
+      email: null,
+      pass: null,
+      server: null,
+      urlIsOpen: false,
+      showPassword: false
+    };
   }
 
   handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
@@ -77,106 +88,125 @@ export class Main extends React.Component<MainProps, FormState> {
   }
 
   buildNetworkConfig(config: { [name: string]: ConfigFileNetIface }) {
-    return <fieldset>
+    let passwordIsShown = this.state.showPassword ? "text" : "password";
+
+    return <div>
       <label htmlFor="network">
-        Network
+        Network Name/SSID
         </label>
       {
         Object.keys(config)
           .map((ifaceName) => {
-            let iface = config[ifaceName];
-            switch (iface.type) {
+            if (ifaceName.includes("wlan")) { // For first pass, we'll fix later
+              let iface = config[ifaceName];
               // Wireless interfaces need two input boxes
-              case "wireless":
-                return <fieldset key={ifaceName}>
-                  <label htmlFor={ifaceName}>
-                    {ifaceName}
-                  </label>
+              return <div>
+                <fieldset key={ifaceName}>
+                  <Select value="Select or type in a network name"
+                    options={this.props.mobx.ssids.map(x => ({
+                      value: x, label: x
+                    }))} />
+                  <span className="password-group">
+                    <i onClick={this.showHidePassword.bind(this)}
+                      className="fa fa-eye"></i>
+                    <input type={passwordIsShown} />
+                  </span>
                   <button type="button"
+                    className="scan-button"
                     onClick={() => { this.props.mobx.scan(ifaceName) } }>
-                    Scan for WiFi </button>
-                  <Select value="Pick an SSID"
-                    options={this.props.mobx.ssids.map(x => ({ value: x, label: x }))} />
-                  <input type="text" placeholder="Wifi SSID" />
-                  <input type="password" placeholder="Wifi Key" />
-
-                </fieldset>;
-
-              // wired interfaces just need a enabled/disabled button
-              case "wired":
-                return <fieldset key={ifaceName}>
-                  <label htmlFor={ifaceName}>
-                    {ifaceName}
-                  </label>
-                  <button type="button"
-                    onClick={() => {
-                      // Enable this interface.
-                      this.props.mobx.updateInterface(ifaceName, { default: "dhcp" });
-                    } }>
-                    Enable {ifaceName}
+                    Scan
                   </button>
-                </fieldset>;
+                </fieldset>
+              </div>
             }
           })
       }
-    </fieldset>
 
+      <fieldset>
+        {
+          /** TODO: Make this toggleable and rely on 
+           * state to determine checked-ness.
+           */
+        }
+        {
+          /**
+           * <button type="button"
+           * onClick={() => {
+           * // Enable this interface.
+           * this.props.mobx.updateInterface(ifaceName,
+           *   { default: "dhcp" });
+           * } }>
+           * Enable {ifaceName}
+           * </button>
+           * 
+           */
+        }
+        <label htmlFor="ethernet">Ethernet?</label>
+        <input type="checkbox" id="ethernet" />
+      </fieldset>
+    </div>
   }
 
+  showHideUrl() {
+    this.setState({ urlIsOpen: !this.state.urlIsOpen });
+  }
+
+  showHidePassword() {
+    this.setState({ showPassword: !this.state.showPassword });
+  }
 
   render() {
     let mainState = this.props.mobx;
+    let icon = this.state.urlIsOpen ? "minus" : "plus";
 
     return <div className="container">
       <h1>Configure your FarmBot</h1>
 
-      <h1 hidden={mainState.connected}> Good Luck!! </h1>
-
+      <h2 hidden={mainState.connected}>Trouble connecting to bot...</h2>
 
       {/* Only display if the bot is connected */}
       <div hidden={!mainState.connected} className={`col-md-offset-3 col-md-6
-        col-sm-8 col-sm-offset-2`}>
+        col-sm-8 col-sm-offset-2 col-xs-12`}>
 
-        <div className="widget">
-
+        {/* Timezone Widget */}
+        <div className="widget timezone">
           <div className="widget-header">
-            <h5> Logs </h5>
+            <h5>Location</h5>
             <i className="fa fa-question-circle widget-help-icon">
               <div className="widget-help-text">
                 {`Log messages from your bot`}
               </div>
             </i>
           </div>
-
           <div className="widget-content">
-            {this.props.mobx.logs[this.props.mobx.logs.length - 1].message}
+            <fieldset>
+              <label htmlFor="timezone">Timezone</label>
+              <TZSelect callback={this.handleTZChange}
+                current={this.props.mobx.configuration
+                  .configuration.timezone} />
+            </fieldset>
           </div>
         </div>
-        {/* Bot */}
-        <div className="widget">
+
+        {/* Wifi Widget */}
+        <div className="widget wifi">
           <div className="widget-header">
-            <h5>Bot</h5>
+            <h5>Wifi</h5>
             <i className="fa fa-question-circle widget-help-icon">
               <div className="widget-help-text">
                 Bot configuration.
-                </div>
+              </div>
             </i>
           </div>
           <div className="widget-content">
-            {/* timezone */}
-            <TZSelect callback={this.handleTZChange}
-              current={this.props.mobx.configuration.configuration.timezone} />
-
-            {/* Network */}
-            {this.buildNetworkConfig(mainState.configuration.network ? mainState.configuration.network.interfaces : STUB)}
+            {this.buildNetworkConfig(mainState.configuration.network ? mainState
+              .configuration.network.interfaces : STUB)}
           </div>
         </div>
 
-
-
+        {/* App Widget */}
         <form onSubmit={this.handleSubmit}>
-          {/* App */}
-          <div className="widget">
+          <div className="widget app">
             <div className="widget-header">
               <h5>Web App</h5>
               <i className="fa fa-question-circle widget-help-icon">
@@ -184,10 +214,10 @@ export class Main extends React.Component<MainProps, FormState> {
                   Farmbot Application Configuration
                 </div>
               </i>
+              <i onClick={this.showHideUrl.bind(this)}
+                className={`fa fa-${icon}`}></i>
             </div>
-
             <div className="widget-content">
-
               <fieldset>
                 <label htmlFor="email">
                   Email
@@ -204,20 +234,35 @@ export class Main extends React.Component<MainProps, FormState> {
                   onChange={this.handlePassChange} />
               </fieldset>
 
-              <fieldset>
-                <label htmlFor="url">
-                  Server:
+              {this.state.urlIsOpen && (
+                <fieldset>
+                  <label htmlFor="url">
+                    Server:
                 </label>
-                <input type="url" id="url"
-                  onChange={this.handleServerChange} />
-              </fieldset>
-
-              {/* Submit our web app credentials, and config file. */}
-              <button type="submit">Try to Log In</button>
-
+                  <input type="url" id="url"
+                    onChange={this.handleServerChange} />
+                </fieldset>
+              )}
             </div>
           </div>
+          {/* Submit our web app credentials, and config file. */}
+          <button type="submit">Save Configuration</button>
         </form>
+
+        {/* Logs Widget */}
+        <div className="widget">
+          <div className="widget-header">
+            <h5>Logs</h5>
+            <i className="fa fa-question-circle widget-help-icon">
+              <div className="widget-help-text">
+                {`Log messages from your bot`}
+              </div>
+            </i>
+          </div>
+          <div className="widget-content">
+            {this.props.mobx.logs[this.props.mobx.logs.length - 1].message}
+          </div>
+        </div>
       </div>
     </div>
   }
