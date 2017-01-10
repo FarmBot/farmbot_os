@@ -13,6 +13,8 @@ defmodule Farmbot.Configurator.Router do
   plug :dispatch
   plug CORSPlug
 
+  get "/", do: conn |> send_resp(200, make_html())
+
   get "/api/config" do
     # Already in json form.
     {:ok, config} = ConfigStorage.read_config_file
@@ -65,7 +67,7 @@ defmodule Farmbot.Configurator.Router do
   end
 
   # anything that doesn't match a rest end point gets the index.
-  match _, do: conn |> send_resp(200, make_html())
+  match _, do: conn |> send_resp(404, "not found")
 
   def make_html do
     "#{:code.priv_dir(:farmbot_configurator)}/static/index.html" |> File.read!
