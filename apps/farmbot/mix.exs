@@ -1,11 +1,19 @@
 defmodule Farmbot.Mixfile do
   use Mix.Project
 
-  def target(:prod), do: System.get_env("NERVES_TARGET") || "rpi3"
-  def target(_), do: System.get_env("NERVES_TARGET") || "development"
+  def target(:prod) do
+    blah = System.get_env("NERVES_TARGET") || "rpi3"
+    System.put_env("NERVES_TARGET", blah)
+    blah
+  end
+
+  def target(_), do: "development"
 
   @version Path.join(__DIR__, "VERSION") |> File.read! |> String.strip
-  @compat_version Path.join(__DIR__, "COMPAT") |> File.read! |> String.strip |> String.to_integer
+  @compat_version Path.join(__DIR__, "COMPAT")
+    |> File.read!
+    |> String.strip
+    |> String.to_integer
 
   def project do
     [app: :farmbot,
@@ -19,8 +27,8 @@ defmodule Farmbot.Mixfile do
      deps_path:   "../../deps/#{target(Mix.env)}",
      config_path: "../../config/config.exs",
      lockfile:    "../../mix.lock",
-     aliases: aliases(Mix.env),
-     deps: deps(Mix.env),
+     aliases:     aliases(Mix.env),
+     deps:        deps() ++ system(target(Mix.env)),
      name: "Farmbot",
      source_url: "https://github.com/Farmbot/farmbot_os",
      homepage_url: "http://farmbot.io",
@@ -30,121 +38,92 @@ defmodule Farmbot.Mixfile do
   end
 
   def application do
-    [mod: {Farmbot, [%{target: target(Mix.env), compat_version: @compat_version,
-                       version: @version, env: Mix.env}]},
-     applications: apps(Mix.env),
+    [mod:
+      { Farmbot,
+      [ %{target: target(Mix.env),
+          compat_version: @compat_version,
+          version: @version} ]
+      },
+     applications: applications(),
      included_applications: [:gen_mqtt]]
   end
 
   # common for test, prod, and dev
-  def apps do
-    [:logger,
-     :nerves_uart,
-     :nerves_interim_wifi,
-     :httpotion,
-     :poison,
-     :gen_stage,
-     :nerves_lib,
-     :rsa,
-     :runtime_tools,
-     :mustache,
-     :timex,
-     :farmbot_auth,
-     :farmbot_configurator,
-     :farmbot_filesystem,
-     :vmq_commons,
-     :amnesia,
-     :quantum]
-  end
-
-  # on device
-  def apps(:prod) do
-    apps ++ platform_apps(target(:prod)) ++ [:nerves, :nerves_firmware_http]
-  end
-
-  # dev
-  def apps(:dev), do: apps ++ []
-
-  # test
-  def apps(:test) do
-    apps ++ [
-      :plug,
-      :cors_plug,
-      :cowboy,
-      :faker,
-      :fake_nerves
-    ]
+  def applications do
+    [
+      :logger,
+      :nerves_uart,
+      :httpotion,
+      :poison,
+      :nerves_lib,
+      :rsa,
+      :runtime_tools,
+      :mustache,
+      :timex,
+      :vmq_commons,
+      :amnesia,
+      :quantum,
+      :gen_stage,
+      :nerves,
+      :"farmbot_system_#{target(Mix.env)}",
+      :farmbot_system,
+      :farmbot_auth,
+      :farmbot_configurator,
+   ]
   end
 
   def deps do
     [
-      {:nerves_uart, "~> 0.1.0"},
-      {:nerves_interim_wifi, "~> 0.1.0"},
-      {:httpotion, "~> 3.0.0"},
-      {:poison, "~> 3.0"},
-      {:gen_stage, "~> 0.4"},
-      {:nerves_lib, github: "nerves-project/nerves_lib"},
-      {:gen_mqtt, "~> 0.3.1"},
+      {:nerves_uart, "~> 0.1.0"}, # uart handling
+      {:httpotion, "~> 3.0.0"},  # http
+      {:poison, "~> 3.0"}, # json
+      {:nerves_lib, github: "nerves-project/nerves_lib"}, # this has a good uuid
+      {:gen_mqtt, "~> 0.3.1"}, # for rpc transport
       {:vmq_commons, "1.0.0", manager: :rebar3}, # This is for mqtt to work.
-      {:mustache, "~> 0.0.2"},
-      {:timex, "~> 3.0"},
-      {:amnesia, github: "meh/amnesia"},
-      {:quantum, ">= 1.8.1"},
-      {:farmbot_configurator, in_umbrella: true},
-      {:farmbot_auth, in_umbrella: true},
-      {:farmbot_filesystem, in_umbrella: true}
-    ]
-  end
-
-  def deps(:prod) do
-    deps ++ platform_deps(target(Mix.env)) ++ system(target(Mix.env)) ++
-    [
-     {:nerves,  "~> 0.4.0"},
-     {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"}
-    ]
-  end
-
-  def deps(:test) do
-    deps ++ deps(:dev) ++
-    [ {:plug, "~> 1.0"},
-      {:cors_plug, "~> 1.1"},
-      {:cowboy, "~> 1.0.0"},
-      {:excoveralls, "~> 0.5"},
-      {:faker, "~> 0.7"},
-      # {:fake_nerves, path: "/home/connor/farmbot/os/fake_nerves"},
-      {:fake_nerves, github: "ConnorRigby/fake_nerves"} 
-    ]
-  end
-
-  def deps(:dev) do
-    deps ++ [
-      {:credo, "~> 0.4"},
+      {:mustache, "~> 0.0.2"}, # string templating
+      {:timex, "~> 3.0"}, # managing time. for the scheduler mostly.
+      {:quantum, ">= 1.8.1"}, # cron jobs
+      {:amnesia, github: "meh/amnesia"}, # database implementation
+      {:gen_stage, "~> 0.7"},
+      {:nerves, "~> 0.4.0"},
+      {:credo, "0.6.0-rc1",  only: [:dev, :test]},
       {:ex_doc, "~> 0.14", only: :dev},
-      {:dialyxir, "~> 0.4"}]
-  end
-
-  def platform_deps("rpi3") do
-    [
-      {:nerves_leds, "~> 0.7.0"},
-      {:elixir_ale, "~> 0.5.5"}
+      {:faker, "~> 0.7", only: :test},
+      {:"farmbot_system_#{target(Mix.env)}", in_umbrella: true},
+      {:farmbot_system,       in_umbrella: true},
+      {:farmbot_auth,         in_umbrella: true},
+      {:farmbot_configurator, in_umbrella: true},
     ]
   end
 
-  def platform_deps("qemu"), do: []
-
-  def platform_apps("rpi3") do
-    [ :nerves_leds,
-      :elixir_ale ]
-  end
-
-  def platform_apps("qemu"), do: [:nerves_system_qemu_arm]
-
+  # this is for cross compilation to work
+  # New version of nerves might not need this?
   def aliases(:prod) do
     ["deps.precompile": ["nerves.precompile", "deps.precompile"],
      "deps.loadpaths":  ["deps.loadpaths", "nerves.loadpaths"]]
   end
 
+  # if not in prod mode nothing special.
   def aliases(_), do: []
 
-  def system(sys), do: [{:"nerves_system_#{sys}", in_umbrella: true}]
+  # the nerves_system_* dir to use for this build.
+  def system("development"), do: []
+  def system(sys) do
+    if File.exists?("../NERVES_SYSTEM_#{sys}") do
+      System.put_env("NERVES_SYSTEM", "../NERVES_SYSTEM_#{sys}")
+    end
+
+    # if the system is local (because we have changes to it) use that
+    if File.exists?("../nerves_system_#{sys}") do
+      [{:"nerves_system_#{sys}", in_umbrella: true}]
+    else
+      # if its not local we can try nerves. It probably wont work tho.
+      [{:"nerves_system_#{sys}", github: "nerves-project/nerves_system_#{sys}"}]
+    end
+  end
+
+  def webpack do
+    File.cd "../farmbot_configurator"
+    Farmbot.Configurator.WebPack.start_link
+  end
 end

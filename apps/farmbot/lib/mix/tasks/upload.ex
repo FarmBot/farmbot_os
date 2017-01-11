@@ -5,7 +5,7 @@ defmodule Mix.Tasks.Farmbot.Upload do
     ip_address = List.first(args)
     || "192.168.29.186" # I get to do this because i own it.
     curl_args = [
-      "-T", "_images/rpi3/farmbot.fw",
+      "-T", "_images/#{System.get_env("NERVES_TARGET")}/farmbot.fw",
       "http://#{ip_address}:8988/firmware",
       "-H", "Content-Type: application/x-firmware",
       "-H", "X-Reboot: true"]
@@ -28,10 +28,10 @@ defmodule Mix.Tasks.Farmbot.Curl do
                :hide,
                :use_stdio,
                :stderr_to_stdout])
-     handle_output
+     handle_output()
   end
 
-  def handle_output do
+  def handle_output() do
     receive do
       info -> handle_info(info)
     end
@@ -49,22 +49,22 @@ defmodule Mix.Tasks.Farmbot.Curl do
 
   def handle_info({_port, {:data, << <<35>>, <<_ :: binary>> >>}}) do
     IO.write("#")
-    handle_output
+    handle_output()
   end
 
   def handle_info({_port, {:data, << "\n", <<35>>, <<_ :: binary>> >>}}) do
     IO.write("#")
-    handle_output
+    handle_output()
   end
 
   def handle_info({_port, {:data, << "\r", <<35>>, <<_ :: binary>> >>}}) do
     IO.write("#")
-    handle_output
+    handle_output()
   end
 
   def handle_info({_port, {:data, _data}}) do
     # IO.puts(data)
-    handle_output
+    handle_output()
   end
 
   def handle_info({_port, {:exit_status, 7}}) do

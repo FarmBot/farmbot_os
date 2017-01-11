@@ -1,211 +1,176 @@
 import { observable, action } from "mobx";
+import { BotConfigFile, LogMsg, ConfigFileNetIface } from "./interfaces";
 import {
-    RpcMessage,
-    RpcRequest,
-    RpcResponse,
-    RpcNotification,
-    BotConfigFile
-} from "./interfaces";
-import { infer } from "./jsonrpc";
-import { uuid } from "./utils";
-/** messages that need to be resolved by the bot. */
-export interface RpcMessageDict { [propName: string]: RpcRequest | undefined; }
+    uuid,
+    CeleryNode,
+    isCeleryScript,
+    SendMessage,
+    BotStateTree
+} from "farmbot";
+import * as _ from "lodash";
+import * as Axios from "axios";
 
-/** sent back from the bot when asked to query the current network interfaces. */
-export type NetworkInterface = WirelessNetworkInterface
-    | WiredNetworkInterface
-    | HostNetworkInterface
-
-export interface BaseNetworkInterface {
-    /** the type of interfaces this is */
-    type: "wireless" | "ethernet" | "host"
-    /** ths name of this interface. */
-    name: string;
+/** This isnt very good im sorry. */
+function logOrStatus(mystery: any): "log" | "status" | "error" {
+    if (mystery["meta"]) {
+        return "log"
+    }
+    if (mystery["configuration"]) {
+        return "status";
+    }
+    return "error";
 }
 
-export interface WirelessNetworkInterface extends BaseNetworkInterface {
-    type: "wireless";
-    /** a list of wireless access points. */
-    ssids: string[];
-
-}
-
-export interface WiredNetworkInterface extends BaseNetworkInterface {
-    type: "ethernet";
-}
-
-export interface HostNetworkInterface extends BaseNetworkInterface {
-    type: "host"
-}
-
-export interface Log { }
 export class MainState {
     // PROPERTIES
-    @observable logs: Log[] = [];
+    /** Array of log messages */
+    @observable logs: LogMsg[] = [
+        {
+            meta: {
+                x: -1,
+                y: -2,
+                z: -3,
+                type: "info"
+            },
+            message: "Connecting to bot.",
+            channels: [],
+            created_at: 0
+        }
+    ];
+
+    /** are we connected to the bot. */
     @observable connected = false;
-    @observable messages: RpcMessageDict = {};
-    @observable networkInterfaces: NetworkInterface[] = [];
+
+    /** The current state. if we care about such a thing. */
+    @observable botStatus: BotStateTree = {
+        location: [-1, -2, -3],
+        farm_scheduler: {
+            process_info: [],
+        },
+        mcu_params: {},
+        configuration: {},
+        informational_settings: {},
+        pins: {}
+    }
+
+    /** This is the json file that the bot uses to boot up. */
     @observable configuration: BotConfigFile = {
-        network: {},
-        authorization: { server: null },
+        network: false,
+        authorization: {
+            server: "fixme"
+        },
         configuration: {
             os_auto_update: false,
             fw_auto_update: false,
-            timezone: null,
-            steps_per_mm: 500
+            steps_per_mm: 500,
+            timezone: ""
         },
         hardware: { params: {} }
-
     };
+
+    @observable ssids: string[] = [];
+
     // BEHAVIOR
+
+    @action
+    tryLogIn() {
+        return Axios.post("/api/try_log_in", { hey: "i_suck" });
+    }
+
+    @action
+    factoryReset() {
+        console.log("This may be a disaaster");
+        Axios.post("/api/factory_reset", {}).then((thing) => {
+            // I dont think this request will ever complete.
+        }).catch((thing) => {
+            // probably will hit a timeout here
+        });
+    }
+
+    @action
+    uploadConfigFile(config: BotConfigFile) {
+        return Axios.post("/api/config", config);
+    }
+
+    @action
+    uploadCreds(email: string, pass: string, server: string) {
+        this.configuration.authorization.server = server;
+        return Axios.post("/api/config/creds", { email, pass, server });
+    }
+
+    @action
+    scanOK(thing: Axios.AxiosXHR<string[]>) {
+        // this.ssids = [
+        //     "Uncomment this code for prod.",
+        //     "Rick stubbed this."
+        // ];
+        this.ssids = thing.data;
+        console.dir(thing.data);
+    }
+
+    @action
+    scanKO(thing: any) {
+        alert("error scanning for wifi!");
+        console.dir(thing);
+    }
+
+    /** requires the name of the interface we want to scan on. */
+    scan(netIface: string) {
+        Axios.post("/api/network/scan", { iface: netIface })
+            .then(this.scanOK.bind(this))
+            .catch(this.scanKO.bind(this))
+    }
+
+    @action
+    updateInterface(ifaceName: string, update: Partial<ConfigFileNetIface>) {
+        if (this.configuration.network) {
+            let iface = this.configuration.network.interfaces[ifaceName];
+            let thing = _.merge({}, iface, update);
+            this.configuration.network.interfaces[ifaceName] = thing;
+        } else {
+            console.log("could not find interface " + ifaceName);
+        }
+    }
+
     @action
     setConnected(bool: boolean) {
         this.connected = bool;
-    }
-
-    @action
-    deleteMe() {
-        this.configuration.network["eth0"] = { type: "ethernet", settings: { ip: { mode: "dhcp" } } }
-        delete(this.configuration.network["wlan0"]);
-    }
-
-    /*
-        So this function will files the mysterious message from the websocket.
-        so if it can infer the rpc type from it files to the 
-        coorosponding handle* which will return either a RpcMessage, or return 
-        void. if it response with a rpc message the handler should send that 
-        message to the other end of this connection.
-
-    */
-    @action
-    incomingMessage(mystery: RpcMessage): RpcMessage | void {
-        // console.log("Got: " + JSON.stringify(mystery));
-        let rpc = infer(mystery);
-        switch (rpc.kind) {
-            case "request":
-                return this.handleRequest(rpc.val);
-            case "response":
-                return this.handleResponse(rpc.val);
-            case "notification":
-                return this.handleNotification(rpc.val);
-            default:
-                console.warn("got malformed rpc message!");
-                console.dir(rpc.val);
-                return { method: "unhandled", id: null, params: [] }
-        }
-    }
-
-    private handleNotification(data: RpcNotification): void {
-        switch (data.method) {
-            case "log_message":
-                let message = data.params[0].message;
-                console.log("log_message: " + message);
-                this.logs.push(message);
-                return;
-            default:
-                console.log("could not handle: " + data.method);
-                return;
-        }
-    }
-
-    /** handles a response. Can possible return a notification if something went wrong */
-    private handleResponse(data: RpcResponse): void | RpcNotification {
-        let origin = this.messages[data.id];
-        if (origin) {
-            console.log(origin.method + " has been resolved.");
-            switch (origin.method) {
-                case "get_current_config":
-                    //todo: this needs to be checked. lol.
-                    let config: BotConfigFile = JSON.parse(data.result);
-                    state.configuration = config;
-                    break;
-                case "get_network_interfaces":
-                    console.log("got network interfaces.");
-                    // so does this: todo
-                    state.networkInterfaces = JSON.parse(data.result);
-                    break;
-                case "upload_config_file":
-                    console.log("Config file uploaded!");
-                    break;
-                case "web_app_creds":
-                    console.log("Credentials uploaded!");
-                    break;
-                case "try_log_in":
-                    console.log("Farmbot will try to log in.");
-                    break
-                default:
-                    console.warn("unhandlled response: " + origin.method);
-            }
-            // remove this request from the dictionary.
-            delete this.messages[data.id];
-            return;
-        } else {
-            console.warn("orphaned response: " + JSON.stringify(data));
-            return;
-        }
-    }
-
-    private handleRequest(data: RpcRequest): RpcResponse {
-        switch (data.method) {
-            // when we get a ping send a pong
-            case "ping":
-                return { error: null, id: data.id, result: "pong" }
-            default:
-                console.warn("Don't know how to handle: " + data.method);
-                return { error: "unhandled", id: data.id, result: "could not handle" };
-        }
-    }
-
-    @action
-    uploadAppCredentials(creds: { email: string, pass: string, server: string },
-        ws: WebSocket) {
-        console.log("Uploading web credentials");
-        this.makeRequest({
-            method: "web_app_creds",
-            params: [creds],
-            id: uuid()
-        }, ws);
-    }
-
-    @action
-    uploadConfigFile(ws: WebSocket) {
-        let config = this.configuration;
-        console.dir(config);
-        this.makeRequest({
-            method: "upload_config_file",
-            params: [{ config: config }],
-            id: uuid()
-        }, ws);
-    }
-
-    @action
-    tryLogIn(ws: WebSocket) {
-        this.makeRequest({
-            method: "try_log_in",
-            params: [],
-            id: uuid()
-        }, ws);
-    }
-
-    @action
-    makeRequest(req: RpcRequest, ws: WebSocket) {
-        console.log("requesting: " + req.method);
-        this.messages[req.id || "trash"] = req
-        ws.send(JSON.stringify(req));
         let that = this;
-        /** this is wrong */
-        setTimeout(function (ws) {
-            that.rejectRequest(req, "timeout");
-        }, 5000);
+        if (bool) {
+            Axios.get("/api/config").then((thing) => {
+                that.replaceConfig(thing.data as BotConfigFile);
+            }).catch((thing) => {
+                console.dir(thing);
+                console.warn("Couldn't parse current config????");
+                return;
+            });
+            if (this.configuration.network) {
+                console.log("Getting network information");
+
+            }
+        }
     }
 
     @action
-    rejectRequest(req: RpcRequest, reason: string) {
-        let messages = this.messages;
-        let origin = messages[req.id];
-        if (origin) {
-            // should probably splice it out of the array here but i suck
-            console.error(req.method + " failed because: " + reason);
+    replaceConfig(config: BotConfigFile) {
+        console.log("got fresh config from bot.");
+        this.configuration = config;
+    }
+
+    @action
+    incomingMessage(mystery: Object): any {
+        if (isCeleryScript(mystery)) {
+            console.log("What do i do with this?" + JSON.stringify(mystery));
+        } else {
+            switch (logOrStatus(mystery)) {
+                case "log":
+                    this.logs.push(mystery as LogMsg);
+                    return;
+                case "status":
+                    this.botStatus = (mystery as BotStateTree)
+                    return;
+                default: return;
+            }
         }
     }
 }

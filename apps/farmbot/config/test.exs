@@ -5,6 +5,6 @@ import_config "dev.exs"
 config :logger, :console,
   format: ""
 
-config :farmbot_filesystem,
+config :farmbot_system,
   path: "/tmp",
   config_file_name: "default_config.json"

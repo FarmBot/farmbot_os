@@ -1,0 +1,15 @@
+{
+  "network": false,
+  "authorization":{
+    "server": "https://my.farmbot.io"
+  },
+  "configuration":{
+    "os_auto_update":false,
+    "fw_auto_update":false,
+    "timezone":null,
+    "steps_per_mm":500
+  },
+  "hardware":{
+    "params":{}
+  }
+}

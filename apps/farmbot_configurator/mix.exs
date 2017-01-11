@@ -1,6 +1,8 @@
 defmodule Farmbot.Configurator.Mixfile do
   use Mix.Project
   System.put_env("NODE_ENV", Mix.env |> Atom.to_string)
+  def target(:prod), do: System.get_env("NERVES_TARGET")
+  def target(_), do: "development"
 
   def project do
     [app: :farmbot_configurator,
@@ -8,24 +10,22 @@ defmodule Farmbot.Configurator.Mixfile do
      elixir: "~> 1.3",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-    #  compilers: [:yecc, :leex, :erlang, :elixir, :xref, :app, :configurator],
-     deps: deps]
+     build_path: "../../_build",
+     config_path: "../../config/config.exs",
+     deps_path: "../../deps",
+     lockfile: "../../mix.lock",
+     target: target(Mix.env),
+     deps: deps()]
   end
 
   def application do
-    [mod: {Farmbot.Configurator, []},
-     applications: applications]
+    [ mod: {Farmbot.Configurator, []},
+      applications: applications() ]
   end
 
 
   defp applications do
-    [
-      :logger,
-      :plug,
-      :cors_plug,
-      :poison,
-      :cowboy
-    ]
+    [:logger, :plug, :cors_plug, :poison, :cowboy]
   end
 
   defp deps do
@@ -34,7 +34,9 @@ defmodule Farmbot.Configurator.Mixfile do
       {:cors_plug, "~> 1.1"},
       {:poison, "~> 3.0"},
       {:cowboy, "~> 1.0.0"},
-      {:httpotion, "~> 3.0.0"}
+      {:httpotion, "~> 3.0.0"},
+      {:farmbot_auth, in_umbrella: true},
+      {:farmbot_system, in_umbrella: true}
     ]
   end
 end

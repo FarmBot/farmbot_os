@@ -1,9 +1,10 @@
 defmodule Farmbot.Auth.Mixfile do
   use Mix.Project
+  @version Path.join([__DIR__, "..", "farmbot", "VERSION"]) |> File.read! |> String.strip
 
   def project do
     [app: :farmbot_auth,
-     version: "0.1.0",
+     version: @version,
      elixir: "~> 1.3",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -16,14 +17,16 @@ defmodule Farmbot.Auth.Mixfile do
 
   def application do
     [mod: {Farmbot.Auth, []},
-     applications: [:logger, :timex, :httpotion, :rsa, :nerves_lib, :poison]]
+     applications: [:logger, :httpotion, :rsa, :nerves_lib, :poison]]
   end
 
   defp deps do
-    [{:timex, "~> 3.0"},
-     {:httpotion, "~> 3.0.0"},
-     {:rsa, "~> 0.0.1"},
-     {:nerves_lib, github: "nerves-project/nerves_lib"},
-     {:poison, "~> 3.0"}]
+    [
+      {:httpotion, "~> 3.0.0"},
+      {:rsa, "~> 0.0.1"},
+      {:nerves_lib, github: "nerves-project/nerves_lib"},
+      {:poison, "~> 3.0"},
+      {:farmbot_system, in_umbrella: true}
+   ]
   end
 end

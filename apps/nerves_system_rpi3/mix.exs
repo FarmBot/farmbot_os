@@ -24,7 +24,7 @@ defmodule NervesSystemRpi3.Mixfile do
   defp deps do
     [{:nerves,  "~> 0.4.0"},
      {:nerves_toolchain_arm_unknown_linux_gnueabihf, "~> 0.8.0"}]
-    ++ [find_nerves_system_br]
+    ++ [find_nerves_system_br()]
   end
 
   def find_nerves_system_br do

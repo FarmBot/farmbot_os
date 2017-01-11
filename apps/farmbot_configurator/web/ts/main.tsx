@@ -1,11 +1,15 @@
 import * as React from "react";
 import { observer } from "mobx-react";
 import { observable, action } from "mobx";
-import { MainState, NetworkInterface } from "./state";
-
+import { MainState } from "./state";
+import { ConfigFileNetIface } from "./interfaces";
+import { TZSelect } from "./tz_select";
+import * as Select from "react-select";
+import "../../node_modules/roboto-font/css/fonts.css";
+import "../../node_modules/font-awesome/css/font-awesome.css";
 
 interface MainProps {
-  state: MainState;
+  mobx: MainState;
   ws: WebSocket;
 }
 
@@ -14,6 +18,9 @@ interface FormState {
   email?: null | string;
   pass?: null | string;
   server?: null | string;
+  urlIsOpen?: boolean;
+  showPassword?: boolean;
+  hiddenresetwidget?: null | number;
 }
 
 @observer
@@ -25,124 +32,278 @@ export class Main extends React.Component<MainProps, FormState> {
     this.handleEmailChange = this.handleEmailChange.bind(this);
     this.handlePassChange = this.handlePassChange.bind(this);
     this.handleServerChange = this.handleServerChange.bind(this);
-    this.state = { timezone: null, email: null, pass: null, server: null };
+    this.state = {
+      timezone: null,
+      email: null,
+      pass: null,
+      server: null,
+      urlIsOpen: false,
+      showPassword: false,
+      hiddenresetwidget: 0
+    };
   }
+
   @action
   handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
-    // alert("You bot is going to go offline!!!");
-    let mainState = this.props.state
-    let config = mainState.configuration.configuration;
-    config.timezone = this.state.timezone || "oops";
+    let mainState = this.props.mobx;
+    let fullFile = mainState.configuration;
+
+    let email = this.state.email;
+    let pass = this.state.pass;
+    let server = this.state.server;
+    let tz = this.state.timezone;
+
+    if (tz) {
+      fullFile.configuration.timezone = tz;
+    } else {
+      console.error("Timezone is invalid");
+      return;
+    }
+
+    if (email && pass && server) {
+      mainState.uploadCreds(email, pass, server)
+        .then((thing) => {
+          console.log("uploaded web app credentials!");
+        })
+        .catch((thing) => {
+          console.error("Error uploading web app credentials!")
+        });
+    } else {
+      console.error("Email, Password, or Server is incomplete")
+      return;
+    }
 
     // upload config file.
-    mainState.uploadConfigFile(this.props.ws);
-
-    // set credentials
-    mainState.uploadAppCredentials({
-      email: this.state.email || "oops",
-      pass: this.state.pass || "oops",
-      server: this.state.server || "oops"
-    }, this.props.ws);
-
-    // try to log in
-    this.props.state.tryLogIn(this.props.ws);
-    console.dir(this.state);
+    mainState.uploadConfigFile(fullFile)
+      .then((_thing) => {
+        console.log("uploaded config file. Going to try to log in");
+        mainState.tryLogIn().catch((t) => {
+          console.error("Something bad happend");
+          console.dir(t);
+        });
+      })
+      .catch((thing) => {
+        console.error("Error uploading config file: ");
+        console.dir(thing);
+      });
   }
 
-  handleTZChange(event: any) {
-    this.setState({ timezone: (event.target.value) });
+  // Handles the various input boxes.
+  handleTZChange(optn: Select.Option) {
+    let timezone = (optn.value || "").toString();
+    console.log("Hi? " + timezone);
+    this.setState({ timezone: timezone });
   }
   handleEmailChange(event: any) {
-    this.setState({ email: (event.target.value) });
+    this.setState({ email: (event.target.value || "") });
   }
   handlePassChange(event: any) {
-    this.setState({ pass: (event.target.value) });
+    this.setState({ pass: (event.target.value || "") });
   }
   handleServerChange(event: any) {
-    this.setState({ server: (event.target.value) });
+    this.setState({ server: (event.target.value || "") });
+  }
+
+  buildNetworkConfig(config: { [name: string]: ConfigFileNetIface }) {
+    let passwordIsShown = this.state.showPassword ? "text" : "password";
+    if (Object.keys(config).length === 0) {
+      return <div>
+        <label>
+          No Network devices detected!
+        </label>
+      </div>
+    }
+    return <div>
+      {
+        Object.keys(config)
+          .map((ifaceName) => {
+            let iface = config[ifaceName];
+            switch (iface.type) {
+              case "wireless":
+                return <div>
+                  <fieldset key={ifaceName}>
+                    <label>
+                      WiFi ( {ifaceName} )
+                    </label>
+                    <button type="button"
+                      className="scan-button"
+                      onClick={() => { this.props.mobx.scan(ifaceName) } }>
+                      scan
+                    </button>
+                    <Select value="Select or type in a network name"
+                      options={this.props.mobx.ssids.map(x => ({
+                        value: x, label: x
+                      }))} />
+                    <span className="password-group">
+                      <i onClick={this.showHidePassword.bind(this)}
+                        className="fa fa-eye"></i>
+                      <input type={passwordIsShown} />
+                    </span>
+                  </fieldset>
+                </div>
+
+              case "wired":
+                return <fieldset>
+                  <label>
+                    Enable Ethernet ( {ifaceName} )
+                  </label>
+                  <input checked={iface.default === "dhcp"} type="checkbox" onChange={(event) => {
+                    let c = event.currentTarget.checked;
+                    if (c) {
+                      // if the check is checked
+                      this.props.mobx.updateInterface(ifaceName, { default: "dhcp" })
+                    } else {
+                      this.props.mobx.updateInterface(ifaceName, { default: false })
+                    }
+                  } } />
+                </fieldset>
+            }
+          })
+      }
+    </div>
+  }
+
+  showHideUrl() {
+    this.setState({ urlIsOpen: !this.state.urlIsOpen });
+  }
+
+  showHidePassword() {
+    this.setState({ showPassword: !this.state.showPassword });
   }
 
   render() {
-    let mainState = this.props.state;
-    return (
-      <div>
-        {/* why are comments like this */}
-        <div hidden={mainState.connected}>
-          <h1> YOUR FARMBOT IS BROKEN!@!!!! </h1>
-        </div>
+    let mainState = this.props.mobx;
+    let icon = this.state.urlIsOpen ? "minus" : "plus";
 
-        {/* Only display this div if the bot is connected */}
-        <div hidden={!mainState.connected}>
-          <div>
+    return <div className="container">
+      <h1 onClick={() => {
+        this.setState({ hiddenresetwidget: this.state.hiddenresetwidget + 1 })
+      } }>Configure your FarmBot</h1>
 
-            <form onSubmit={this.handleSubmit}>
-              {/* Bot Config*/}
-              <h2> Bot Configuration </h2>
-              <p>
-                TimeZone: <input
-                  value={this.state.timezone || mainState.configuration.configuration.timezone
-                    || "America/Los_Angeles"}
-                  onChange={this.handleTZChange} />
-              </p>
+      <h2 hidden={mainState.connected}>Trouble connecting to bot...</h2>
 
-              {/* Network Config*/}
-              <h2> Network Configuration </h2>
-              <p>
-                <input type="button" onClick={
-                  () => {
-                    this.props.state.deleteMe();
-                  }
-                } value="Use Ethernet" />
-              </p>
+      {/* Only display if the bot is connected */}
+      <div hidden={!mainState.connected} className={`col-md-offset-3 col-md-6
+        col-sm-8 col-sm-offset-2 col-xs-12`}>
 
-              {/* App Config*/}
-              <h2> Web App Configuration </h2>
-              <p>
-                Email:
-                <input type="email"
-                  value={this.state.email || "admin@admin.com"}
-                  onChange={this.handleEmailChange} />
-              </p>
-              <p>
-                Password:
-                <input type="password"
-                  value={this.state.pass || "password123"}
-                  onChange={this.handlePassChange} />
-              </p>
-              <p>
-                Server:
-                <input type="url"
-                  value={this.state.server
-                    || mainState.configuration.authorization.server
-                    || "http://192.168.29.167:3000"}
-                  onChange={this.handleServerChange} />
-              </p>
-              <input onClick={() => {
-                mainState.uploadAppCredentials({
-                  email: this.state.email || "oops",
-                  pass: this.state.pass || "oops",
-                  server: this.state.server || "oops"
-                }, this.props.ws)
-              }} type="button" value="submit web app credentials"/>
-
-              {/*  Log in button*/}
-              <input type="submit" value="Log In" />
-            </form>
-
-            {/* not quite as good as "ticker" */}
-            <h4> Bot Logs </h4>
-            <ul>
-            {
-              mainState.logs.map((el,index) => {
-                el
-              })
-            }
-            </ul>
-
+        {/* Timezone Widget */}
+        <div className="widget timezone">
+          <div className="widget-header">
+            <h5>Location</h5>
+            <i className="fa fa-question-circle widget-help-icon">
+              <div className="widget-help-text">
+                {`What timezone your bot is in`}
+              </div>
+            </i>
+          </div>
+          <div className="widget-content">
+            <fieldset>
+              <label htmlFor="timezone">Timezone</label>
+              <TZSelect callback={this.handleTZChange}
+                current={this.props.mobx.configuration
+                  .configuration.timezone} />
+            </fieldset>
           </div>
         </div>
+
+        {/* Wifi Widget */}
+        <div className="widget wifi" hidden={mainState.configuration.network == true}>
+          <div className="widget-header">
+            <h5>Network</h5>
+            <i className="fa fa-question-circle widget-help-icon">
+              <div className="widget-help-text">
+                Bot configuration.
+              </div>
+            </i>
+          </div>
+          <div className="widget-content">
+            {this.buildNetworkConfig(
+              mainState.configuration.network ? mainState.configuration.network.interfaces : {})}
+          </div>
+        </div>
+
+        {/* App Widget */}
+        <form onSubmit={this.handleSubmit}>
+          <div className="widget app">
+            <div className="widget-header">
+              <h5>Web App</h5>
+              <i className="fa fa-question-circle widget-help-icon">
+                <div className="widget-help-text">
+                  Farmbot Application Configuration
+                </div>
+              </i>
+              <i onClick={this.showHideUrl.bind(this)}
+                className={`fa fa-${icon}`}></i>
+            </div>
+            <div className="widget-content">
+              <fieldset>
+                <label htmlFor="email">
+                  Email
+                </label>
+                <input type="email" id="email"
+                  onChange={this.handleEmailChange} />
+              </fieldset>
+
+              <fieldset>
+                <label htmlFor="password">
+                  Password
+                </label>
+                <input type="password"
+                  onChange={this.handlePassChange} />
+              </fieldset>
+
+              {this.state.urlIsOpen && (
+                <fieldset>
+                  <label htmlFor="url">
+                    Server:
+                </label>
+                  <input type="url" id="url"
+                    onChange={this.handleServerChange} />
+                </fieldset>
+              )}
+            </div>
+          </div>
+          {/* Submit our web app credentials, and config file. */}
+          <button type="submit">Save Configuration</button>
+        </form>
+
+        {/* Logs Widget */}
+        <div className="widget">
+          <div className="widget-header">
+            <h5>Logs</h5>
+            <i className="fa fa-question-circle widget-help-icon">
+              <div className="widget-help-text">
+                {`Log messages from your bot`}
+              </div>
+            </i>
+          </div>
+          <div className="widget-content">
+            {this.props.mobx.logs[this.props.mobx.logs.length - 1].message}
+          </div>
+        </div>
+
+        {/* Reset Widget */}
+        <div className="widget" hidden={this.state.hiddenresetwidget < 5}>
+          <div className="widget-header">
+            <h5>Factory Reset</h5>
+            <i className="fa fa-question-circle widget-help-icon">
+              <div className="widget-help-text">
+                {`uh`}
+              </div>
+            </i>
+          </div>
+          <div className="widget-content">
+            <fieldset>
+              <label> Be careful here! </label>
+              <button type="button" onClick={() => {
+                this.props.mobx.factoryReset();
+              } }> Factory Reset your bot! </button>
+            </fieldset>
+          </div>
+        </div>
+
       </div>
-    );
+    </div>
   }
 }

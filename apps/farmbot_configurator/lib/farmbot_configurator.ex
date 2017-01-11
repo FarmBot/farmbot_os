@@ -1,34 +1,40 @@
 defmodule Farmbot.Configurator do
+  @moduledoc """
+    A plug web application with a mini REST interface, and websocket handler.
+  """
+
   use Supervisor
-  alias Plug.Adapters.Cowboy
   alias Farmbot.Configurator.Router
-  alias Farmbot.Configurator.EventHandler
-  alias Farmbot.Configurator.EventManager
+  alias Farmbot.Configurator.SocketHandler
+  alias Plug.Adapters.Cowboy.Handler, as: CowboyHandler
   require Logger
   @port Application.get_env(:farmbot_configurator, :port, 4000)
-  @env Mix.env
 
-  def init(_) do
-    Logger.debug ">> Configurator init."
+  def init([]) do
+    Logger.debug ">> Configurator init!"
     children = [
-      worker(EventManager, [], []),
-      worker(EventHandler, [], []),
       Plug.Adapters.Cowboy.child_spec(
-        :http, Router, [], port: @port, dispatch: dispatch),
-      # worker(WebPack, [@env])
-     ]
-    opts = [strategy: :one_for_one, name: Farmbot.Configurator]
+        :http, Router, [], port: @port, dispatch: [dispatch()])
+     ] ++ maybe_webpack()
+    opts = [strategy: :one_for_one]
     supervise(children, opts)
   end
 
-  def start(_type, args), do: Supervisor.start_link(__MODULE__, args)
+  defp maybe_webpack do
+    if System.get_env("USE_WEBPACK") do
+      IO.puts "starting webpack"
+      [worker(Farmbot.Configurator.WebPack, [])]
+    else
+      []
+    end
+  end
 
+  def start(_type, _),
+    do: Supervisor.start_link(__MODULE__, [], name: __MODULE__)
+
+  # This is a copy paste magic that makes the websocket work.
+  # Im not entirely sure how it works, but it does.
   defp dispatch do
-  [
-    {:_, [
-      {"/ws", Farmbot.Configurator.SocketHandler, []},
-      {:_, Plug.Adapters.Cowboy.Handler, {Router, []}}
-    ]}
-  ]
+    {:_, [ {"/ws", SocketHandler, []}, {:_, CowboyHandler, {Router, []}}]}
   end
 end
