@@ -28,6 +28,6 @@ defmodule Farmbot.System.Mixfile do
   end
 
   defp deps do
-    []
+    [{:httpotion, "~> 3.0.0"}]
   end
 end

@@ -88,6 +88,7 @@ defmodule Farmbot.Mixfile do
       {:nerves, "~> 0.4.0"},
       {:credo, "0.6.0-rc1",  only: [:dev, :test]},
       {:ex_doc, "~> 0.14", only: :dev},
+      {:faker, "~> 0.7", only: :test},
       {:"farmbot_system_#{target(Mix.env)}", in_umbrella: true},
       {:farmbot_system,       in_umbrella: true},
       {:farmbot_auth,         in_umbrella: true},

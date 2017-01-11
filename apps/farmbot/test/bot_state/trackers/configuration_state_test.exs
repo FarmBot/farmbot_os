@@ -44,6 +44,6 @@ defmodule Farmbot.BotState.ConfigurationTest do
 
   defp get_state do
     Process.sleep(10)
-    StateDebugger.state |> Map.get(:configuration)
+    Farmbot.BotState.Monitor.get_state |> Map.get(:configuration)
   end
 end

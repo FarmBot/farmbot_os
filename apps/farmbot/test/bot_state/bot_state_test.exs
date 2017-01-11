@@ -98,7 +98,7 @@ defmodule Farmbot.BotStateTest do
     # and then get a value right after that (with a call)
     # if i start needing to do this in production code i will handle it then.
     Process.sleep(10)
-    StateDebugger.state
+    Farmbot.BotState.Monitor.get_state
     |> Map.get(:configuration)
     |> Map.get(:locks)
   end
@@ -120,7 +120,7 @@ defmodule Farmbot.BotStateTest do
 
   defp get_hardware_part(part) do
     Process.sleep(10)
-    StateDebugger.state
+    Farmbot.BotState.Monitor.get_state
     |> Map.get(:hardware)
     |> Map.get(part)
   end

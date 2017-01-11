@@ -22,7 +22,7 @@ env:
 before_install:
   - git clone https://github.com/elixir-lang/elixir
   - cd elixir
-  - git checkout v1.3
+  - git checkout v1.4
   - make clean
   - make
   - cd ..
