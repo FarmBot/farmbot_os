@@ -17,6 +17,7 @@ defmodule Farmbot.Sync do
   alias Farmbot.Sync.Helpers
   alias Farmbot.Auth
   alias Farmbot.Token
+  require Logger
 
   defdatabase Database do
     use Amnesia
@@ -57,14 +58,18 @@ defmodule Farmbot.Sync do
   """
   require IEx
   def sync do
+    Logger.debug(">> is syncing")
     with {:ok, token}       <- fetch_token(),
          {:ok, server}      <- fetch_server(),
          {:ok, resp}        <- fetch_sync_object(server, token),
          {:ok, json}        <- parse_http(resp),
          {:ok, parsed}      <- Poison.decode(json),
          {:ok, validated}   <- SyncObject.validate(parsed),
-         {:ok, ^validated}  <- enter_into_db(validated),
-         do: {:ok, validated}
+         {:ok, ^validated}  <- enter_into_db(validated)
+         do
+           Logger.debug(">> is synced")
+           {:ok, validated}
+         end
   end
 
   # WHAT THE HECK IS THIS

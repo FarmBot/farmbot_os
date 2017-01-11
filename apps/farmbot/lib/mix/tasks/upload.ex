@@ -5,7 +5,7 @@ defmodule Mix.Tasks.Farmbot.Upload do
     ip_address = List.first(args)
     || "192.168.29.186" # I get to do this because i own it.
     curl_args = [
-      "-T", "_images/rpi3/farmbot.fw",
+      "-T", "_images/#{System.get_env("NERVES_TARGET")}/farmbot.fw",
       "http://#{ip_address}:8988/firmware",
       "-H", "Content-Type: application/x-firmware",
       "-H", "X-Reboot: true"]

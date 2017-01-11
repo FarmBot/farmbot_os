@@ -22,7 +22,12 @@ defmodule Farmbot.System.Network do
   end
 
   # if networking is disabled.
-  defp parse_and_start_config(nil, _), do: :ok
+  defp parse_and_start_config(nil, _) do
+    spawn fn() ->
+      Process.sleep(2500) # simulate network coming up. (REALLY REALLY FAST)
+      Farmbot.System.Network.on_connect()
+    end
+  end
 
   defp parse_and_start_config(config, m) do
     for {interface, settings} <- config do
@@ -47,7 +52,9 @@ defmodule Farmbot.System.Network do
   """
   def restart() do
     stop_all()
-    start_all()
+    {:ok, interface_config} = get_config("interfaces")
+    m = mod(get_mod())
+    parse_and_start_config(interface_config, m)
   end
 
   @doc """
@@ -77,18 +84,6 @@ defmodule Farmbot.System.Network do
   end
 
   @doc """
-    Starts all interfaces
-  """
-  def start_all do
-    {:ok, interfaces} = get_config("interfaces")
-    if interfaces do
-      for {iface, settings} <- interfaces do
-        start_interface(iface, settings)
-      end
-    end
-  end
-
-  @doc """
     Connected to the World Wide Web. Should be called from the
     callback module.
   """
@@ -96,14 +91,12 @@ defmodule Farmbot.System.Network do
     # this happens because on wifi we try to do stuff before linux is
     # finished setting stuff up.
     Process.sleep(2000)
+    if fun, do: fun.()
     Logger.debug ">> is connected to the World Wide Web"
     {:ok, ssh} = get_config("ssh")
     {:ok, ntp} = get_config("ntp")
     if ssh, do: SSH.start_link
     if ntp, do: Ntp.set_time
-    if fun do
-      spawn fun
-    end
     Auth.try_log_in
   end
 
@@ -112,7 +105,10 @@ defmodule Farmbot.System.Network do
   defp get_config(key), do: GenServer.call(CS, {:get, Network, key})
   defp get_config, do: GenServer.call(CS, {:get, Network, :all})
 
+  defp get_mod, do: GenServer.call(__MODULE__, :get_mod)
+
   # GENSERVER STUFF
+  def handle_call(:get_mod, _, target), do: {:reply, target, target}
   def handle_call({:scan, interface_name}, _, target) do
      f = mod(target).scan(interface_name)
      {:reply, f, target}

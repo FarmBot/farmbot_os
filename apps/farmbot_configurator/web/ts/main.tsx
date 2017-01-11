@@ -4,7 +4,6 @@ import { observable, action } from "mobx";
 import { MainState } from "./state";
 import { ConfigFileNetIface } from "./interfaces";
 import { TZSelect } from "./tz_select";
-import { STUB } from "./just_a_stub";
 import * as Select from "react-select";
 import "../../node_modules/roboto-font/css/fonts.css";
 import "../../node_modules/font-awesome/css/font-awesome.css";
@@ -21,6 +20,7 @@ interface FormState {
   server?: null | string;
   urlIsOpen?: boolean;
   showPassword?: boolean;
+  hiddenresetwidget?: null | number;
 }
 
 @observer
@@ -38,10 +38,12 @@ export class Main extends React.Component<MainProps, FormState> {
       pass: null,
       server: null,
       urlIsOpen: false,
-      showPassword: false
+      showPassword: false,
+      hiddenresetwidget: 0
     };
   }
 
+  @action
   handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     let mainState = this.props.mobx;
@@ -60,21 +62,37 @@ export class Main extends React.Component<MainProps, FormState> {
     }
 
     if (email && pass && server) {
-      mainState.uploadCreds(email, pass, server);
+      mainState.uploadCreds(email, pass, server)
+        .then((thing) => {
+          console.log("uploaded web app credentials!");
+        })
+        .catch((thing) => {
+          console.error("Error uploading web app credentials!")
+        });
     } else {
       console.error("Email, Password, or Server is incomplete")
       return;
     }
 
     // upload config file.
-    mainState.uploadConfigFile(fullFile);
-    mainState.tryLogIn();
+    mainState.uploadConfigFile(fullFile)
+      .then((_thing) => {
+        console.log("uploaded config file. Going to try to log in");
+        mainState.tryLogIn().catch((t) => {
+          console.error("Something bad happend");
+          console.dir(t);
+        });
+      })
+      .catch((thing) => {
+        console.error("Error uploading config file: ");
+        console.dir(thing);
+      });
   }
 
   // Handles the various input boxes.
   handleTZChange(optn: Select.Option) {
     let timezone = (optn.value || "").toString();
-    console.log("Hi?" + timezone);
+    console.log("Hi? " + timezone);
     this.setState({ timezone: timezone });
   }
   handleEmailChange(event: any) {
@@ -89,61 +107,60 @@ export class Main extends React.Component<MainProps, FormState> {
 
   buildNetworkConfig(config: { [name: string]: ConfigFileNetIface }) {
     let passwordIsShown = this.state.showPassword ? "text" : "password";
-
-    return <div>
-      <label htmlFor="network">
-        Network Name/SSID
+    if (Object.keys(config).length === 0) {
+      return <div>
+        <label>
+          No Network devices detected!
         </label>
+      </div>
+    }
+    return <div>
       {
         Object.keys(config)
           .map((ifaceName) => {
-            if (ifaceName.includes("wlan")) { // For first pass, we'll fix later
-              let iface = config[ifaceName];
-              // Wireless interfaces need two input boxes
-              return <div>
-                <fieldset key={ifaceName}>
-                  <Select value="Select or type in a network name"
-                    options={this.props.mobx.ssids.map(x => ({
-                      value: x, label: x
-                    }))} />
-                  <span className="password-group">
-                    <i onClick={this.showHidePassword.bind(this)}
-                      className="fa fa-eye"></i>
-                    <input type={passwordIsShown} />
-                  </span>
-                  <button type="button"
-                    className="scan-button"
-                    onClick={() => { this.props.mobx.scan(ifaceName) } }>
-                    Scan
-                  </button>
+            let iface = config[ifaceName];
+            switch (iface.type) {
+              case "wireless":
+                return <div>
+                  <fieldset key={ifaceName}>
+                    <label>
+                      WiFi ( {ifaceName} )
+                    </label>
+                    <button type="button"
+                      className="scan-button"
+                      onClick={() => { this.props.mobx.scan(ifaceName) } }>
+                      scan
+                    </button>
+                    <Select value="Select or type in a network name"
+                      options={this.props.mobx.ssids.map(x => ({
+                        value: x, label: x
+                      }))} />
+                    <span className="password-group">
+                      <i onClick={this.showHidePassword.bind(this)}
+                        className="fa fa-eye"></i>
+                      <input type={passwordIsShown} />
+                    </span>
+                  </fieldset>
+                </div>
+
+              case "wired":
+                return <fieldset>
+                  <label>
+                    Enable Ethernet ( {ifaceName} )
+                  </label>
+                  <input checked={iface.default === "dhcp"} type="checkbox" onChange={(event) => {
+                    let c = event.currentTarget.checked;
+                    if (c) {
+                      // if the check is checked
+                      this.props.mobx.updateInterface(ifaceName, { default: "dhcp" })
+                    } else {
+                      this.props.mobx.updateInterface(ifaceName, { default: false })
+                    }
+                  } } />
                 </fieldset>
-              </div>
             }
           })
       }
-
-      <fieldset>
-        {
-          /** TODO: Make this toggleable and rely on 
-           * state to determine checked-ness.
-           */
-        }
-        {
-          /**
-           * <button type="button"
-           * onClick={() => {
-           * // Enable this interface.
-           * this.props.mobx.updateInterface(ifaceName,
-           *   { default: "dhcp" });
-           * } }>
-           * Enable {ifaceName}
-           * </button>
-           * 
-           */
-        }
-        <label htmlFor="ethernet">Ethernet?</label>
-        <input type="checkbox" id="ethernet" />
-      </fieldset>
     </div>
   }
 
@@ -160,7 +177,9 @@ export class Main extends React.Component<MainProps, FormState> {
     let icon = this.state.urlIsOpen ? "minus" : "plus";
 
     return <div className="container">
-      <h1>Configure your FarmBot</h1>
+      <h1 onClick={() => {
+        this.setState({ hiddenresetwidget: this.state.hiddenresetwidget + 1 })
+      } }>Configure your FarmBot</h1>
 
       <h2 hidden={mainState.connected}>Trouble connecting to bot...</h2>
 
@@ -174,7 +193,7 @@ export class Main extends React.Component<MainProps, FormState> {
             <h5>Location</h5>
             <i className="fa fa-question-circle widget-help-icon">
               <div className="widget-help-text">
-                {`Log messages from your bot`}
+                {`What timezone your bot is in`}
               </div>
             </i>
           </div>
@@ -189,9 +208,9 @@ export class Main extends React.Component<MainProps, FormState> {
         </div>
 
         {/* Wifi Widget */}
-        <div className="widget wifi">
+        <div className="widget wifi" hidden={mainState.configuration.network == true}>
           <div className="widget-header">
-            <h5>Wifi</h5>
+            <h5>Network</h5>
             <i className="fa fa-question-circle widget-help-icon">
               <div className="widget-help-text">
                 Bot configuration.
@@ -199,8 +218,8 @@ export class Main extends React.Component<MainProps, FormState> {
             </i>
           </div>
           <div className="widget-content">
-            {this.buildNetworkConfig(mainState.configuration.network ? mainState
-              .configuration.network.interfaces : STUB)}
+            {this.buildNetworkConfig(
+              mainState.configuration.network ? mainState.configuration.network.interfaces : {})}
           </div>
         </div>
 
@@ -263,6 +282,27 @@ export class Main extends React.Component<MainProps, FormState> {
             {this.props.mobx.logs[this.props.mobx.logs.length - 1].message}
           </div>
         </div>
+
+        {/* Reset Widget */}
+        <div className="widget" hidden={this.state.hiddenresetwidget < 5}>
+          <div className="widget-header">
+            <h5>Factory Reset</h5>
+            <i className="fa fa-question-circle widget-help-icon">
+              <div className="widget-help-text">
+                {`uh`}
+              </div>
+            </i>
+          </div>
+          <div className="widget-content">
+            <fieldset>
+              <label> Be careful here! </label>
+              <button type="button" onClick={() => {
+                this.props.mobx.factoryReset();
+              } }> Factory Reset your bot! </button>
+            </fieldset>
+          </div>
+        </div>
+
       </div>
     </div>
   }

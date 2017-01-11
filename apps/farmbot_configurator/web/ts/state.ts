@@ -74,14 +74,7 @@ export class MainState {
 
     @action
     tryLogIn() {
-        Axios.post("/api/try_log_in", {})
-            .then((thing) => {
-                console.warn("Bot going offline. (This is ok)");
-            })
-            .catch((thing) => {
-                console.error("something bad happened.");
-                console.dir(thing);
-            })
+        return Axios.post("/api/try_log_in", { hey: "i_suck" });
     }
 
     @action
@@ -96,24 +89,13 @@ export class MainState {
 
     @action
     uploadConfigFile(config: BotConfigFile) {
-        Axios.post("/api/config", config).then((thing) => {
-            console.log("Uploaded!");
-        }).catch((err) => {
-            console.warn("Problem uploading config!");
-            console.dir(err);
-        });
+        return Axios.post("/api/config", config);
     }
 
     @action
     uploadCreds(email: string, pass: string, server: string) {
         this.configuration.authorization.server = server;
-        Axios.post("/api/config/creds",
-            { email, pass, server }).then((thing) => {
-                console.log("Credentials Uploaded!");
-            }).catch((err) => {
-                console.warn("Problem uploading creds!");
-                console.dir(err);
-            });
+        return Axios.post("/api/config/creds", { email, pass, server });
     }
 
     @action
@@ -146,7 +128,7 @@ export class MainState {
             let thing = _.merge({}, iface, update);
             this.configuration.network.interfaces[ifaceName] = thing;
         } else {
-            console.log("uhhhh");
+            console.log("could not find interface " + ifaceName);
         }
     }
 

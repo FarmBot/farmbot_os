@@ -20,9 +20,19 @@ defmodule Module.concat([Farmbot, System, "rpi2", Network]) do
   end
 
   def start_interface(interface, %{"default" => "dhcp", "type" => "wired"} = s) do
-    {:ok, pid} = NervesWifi.setup(interface, [])
-    GenServer.cast(__MODULE__, {:start_interface, interface, s, pid})
-    :ok
+    case NervesWifi.setup(interface, []) do
+      {:ok, pid} ->
+        GenServer.cast(__MODULE__, {:start_interface, interface, s, pid})
+        :ok
+      {:error, :already_added} ->
+        :ok
+      {:error, reason} ->
+        Logger.error("Encountered an error starting #{interface}: #{reason}")
+        {:error, reason}
+      error ->
+        Logger.error("Encountered an error starting #{interface}: #{error}")
+        {:error, error}
+    end
   end
 
   def start_interface(interface,
@@ -81,7 +91,7 @@ defmodule Module.concat([Farmbot, System, "rpi2", Network]) do
           GenServer.stop(pid, :uhhh)
           {:reply, :ok, Map.delete(state, interface)}
         else
-          Logger.debug ">> cant stop: #{interface}"
+          Logger.warn ">> cant stop: #{interface}"
           {:reply, {:error, :not_implemented}, state}
         end
       _ -> {:reply, {:error, :not_started}, state}

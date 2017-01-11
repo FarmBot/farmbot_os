@@ -9,12 +9,23 @@ defmodule Farmbot.System.Network.Ntp do
     This will try 3 times to set the time. if it fails the thrid time,
     it will return an error
   """
-  @spec set_time :: :ok | {:error, term}
-  def set_time do
-    Logger.debug ">> is getting time from NTP."
-    f = do_try_set_time()
-    Logger.debug ">> ntp: #{inspect f}"
+  @spec set_time(integer) :: :ok | {:error, term}
+  def set_time(tries \\ 0)
+  def set_time(tries) when tries < 4 do
+    case HTTPotion.get("https://httpbin.org/ip") do
+      %HTTPotion.Response{} = _resp ->
+        Logger.debug ">> is getting time from NTP."
+        f = do_try_set_time()
+        Logger.debug ">> ntp: #{inspect f}"
+      _ ->
+      # I HATE NETWORK
+      Logger.warn ">> no internet. yet trying again in 5 seconds."
+      Process.sleep(5000)
+      set_time(tries + 1)
+    end
   end
+
+  def set_time(_), do: {:error, :timeout}
 
   defp do_try_set_time(), do: do_try_set_time(0)
   defp do_try_set_time(count) when count < 4 do

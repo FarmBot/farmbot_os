@@ -22,6 +22,7 @@ defmodule Farmbot.Configurator.Router do
   end
 
   post "/api/config" do
+    Logger.debug ">> router got config json"
     {:ok, body, _} = read_body(conn)
     rbody = Poison.decode!(body)
     # TODO THIS NEEDS SOME HARD CHECKING. PROBABLY IN THE CONFIG STORAGE MODULE
@@ -30,6 +31,7 @@ defmodule Farmbot.Configurator.Router do
   end
 
   post "/api/config/creds" do
+    Logger.debug ">> router got credentials"
     {:ok, body, _} = read_body(conn)
     %{"email" => email,"pass" => pass,"server" => server} = Poison.decode!(body)
     Farmbot.Auth.interim(email, pass, server)
@@ -62,6 +64,12 @@ defmodule Farmbot.Configurator.Router do
       # sleep to allow the request to finish.
       Process.sleep(100)
       Farmbot.System.Network.restart
+      case Farmbot.Auth.get_token do
+         {:ok, %Farmbot.Token{} = _t} ->
+           Logger.debug ">> Is logged in"
+         _ ->
+         Farmbot.Auth.try_log_in 
+      end
     end
     conn |> send_resp(200, "OK")
   end
