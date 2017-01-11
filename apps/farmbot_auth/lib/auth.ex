@@ -92,8 +92,13 @@ defmodule Farmbot.Auth do
     case GenServer.call(__MODULE__, :try_log_in) do
       {:ok, %Token{} = token} ->
         do_callbacks(token)
+        {:ok, token}
+      {:error, reason} -> 
+        Logger.error ">> Could not log in! #{inspect reason}"
+        {:error, reason}
       error ->
         Logger.error ">> Could not log in! #{inspect error}"
+        {:error, error}
     end
   end
   @doc """

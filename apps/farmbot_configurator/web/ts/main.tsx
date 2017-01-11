@@ -51,8 +51,10 @@ export class Main extends React.Component<MainProps, FormState> {
 
     let email = this.state.email;
     let pass = this.state.pass;
-    let server = this.state.server;
-    let tz = this.state.timezone;
+    let server = this.state.server || fullFile.authorization.server;
+    let tz = this.state.timezone || fullFile.configuration.timezone;
+    console.log("server: " + server);
+    console.log("timezone: " + tz);
 
     if (tz) {
       fullFile.configuration.timezone = tz;
@@ -202,9 +204,9 @@ export class Main extends React.Component<MainProps, FormState> {
           <div className="widget-content">
             <fieldset>
               <label htmlFor="timezone">Timezone</label>
-              <TZSelect callback={this.handleTZChange}
-                current={this.props.mobx.configuration
-                  .configuration.timezone} />
+              <TZSelect
+                callback={this.handleTZChange}
+                current={this.props.mobx.configuration.configuration.timezone} />
             </fieldset>
           </div>
         </div>
@@ -261,6 +263,7 @@ export class Main extends React.Component<MainProps, FormState> {
                     Server:
                 </label>
                   <input type="url" id="url"
+                    defaultValue={this.props.mobx.configuration.authorization.server}
                     onChange={this.handleServerChange} />
                 </fieldset>
               )}
