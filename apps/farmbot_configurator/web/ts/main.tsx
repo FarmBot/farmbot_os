@@ -90,10 +90,12 @@ export class Main extends React.Component<MainProps, FormState> {
   }
 
   // Handles the various input boxes.
+  @action
   handleTZChange(optn: Select.Option) {
     let timezone = (optn.value || "").toString();
     console.log("Hi? " + timezone);
     this.setState({ timezone: timezone });
+    this.props.mobx.configuration.configuration.timezone = timezone;
   }
   handleEmailChange(event: any) {
     this.setState({ email: (event.target.value || "") });

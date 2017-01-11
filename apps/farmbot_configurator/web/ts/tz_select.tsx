@@ -21,14 +21,14 @@ interface TZSelectProps {
 type TZSelectHandler = (e: Select.Option) => void;
 
 const ALL_TIMEZONES = [
-    { value: "America/Los_Angeles", label: "Los Angeles (Pacific" },
-    { value: "America/Puerto_Rico", label: "Puerto Rico (Atlantic" },
-    { value: "America/New_York", label: "New York (Eastern" },
-    { value: "America/Chicago", label: "Chicago (Central" },
-    { value: "America/Denver", label: "Denver (Mountain" },
-    { value: "America/Phoenix", label: "Phoenix (MST" },
-    { value: "America/Anchorage", label: "Anchorage (Alaska" },
-    { value: "Pacific/Honolulu", label: "Honolulu (Hawaii" },
+    { value: "America/Los_Angeles", label: "Los Angeles (Pacific)" },
+    { value: "America/Puerto_Rico", label: "Puerto Rico (Atlantic)" },
+    { value: "America/New_York", label: "New York (Eastern)" },
+    { value: "America/Chicago", label: "Chicago (Central)" },
+    { value: "America/Denver", label: "Denver (Mountain)" },
+    { value: "America/Phoenix", label: "Phoenix (MST)" },
+    { value: "America/Anchorage", label: "Anchorage (Alaska)" },
+    { value: "Pacific/Honolulu", label: "Honolulu (Hawaii)" },
     { value: "America/Adak", label: "Adak" },
     { value: "America/Anchorage", label: "Anchorage" },
     { value: "America/Anguilla", label: "Anguilla" },
