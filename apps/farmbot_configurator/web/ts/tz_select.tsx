@@ -7,7 +7,6 @@ import { observer } from "mobx-react";
  * <Sorry callback={ (tz: string) => { alert(`U picked ${tz}`) }} />
  */
 export function TZSelect({callback, current}: TZSelectProps) {
-    console.log("===" + (current || ""));
     return <Select options={ALL_TIMEZONES}
         value={current}
         onChange={callback} />
