@@ -10,7 +10,7 @@ defmodule Module.concat([Farmbot, System, "rpi2", Network]) do
 
   def init(_) do
     GenEvent.add_handler(event_manager(),
-    Module.concat([Farmbot, System, "rpi2", Network, EventManager]), [])
+    Module.concat([Farmbot, System, "rpi3", Network, EventManager]), [])
     {:ok, %{}}
   end
 

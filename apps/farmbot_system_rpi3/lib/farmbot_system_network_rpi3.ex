@@ -1,4 +1,4 @@
-defmodule Module.concat([Farmbot, System, "rpi3", Network]) do
+defmodule Module.concat([Farmbot, System, "rpi2", Network]) do
   @moduledoc false
   @behaviour Farmbot.System.Network
   use GenServer
@@ -10,7 +10,7 @@ defmodule Module.concat([Farmbot, System, "rpi3", Network]) do
 
   def init(_) do
     GenEvent.add_handler(event_manager(),
-    Module.concat([Farmbot, System, "rpi3", Network, EventManager]), [])
+    Module.concat([Farmbot, System, "rpi2", Network, EventManager]), [])
     {:ok, %{}}
   end
 
@@ -20,9 +20,19 @@ defmodule Module.concat([Farmbot, System, "rpi3", Network]) do
   end
 
   def start_interface(interface, %{"default" => "dhcp", "type" => "wired"} = s) do
-    {:ok, pid} = NervesWifi.setup(interface, [])
-    GenServer.cast(__MODULE__, {:start_interface, interface, s, pid})
-    :ok
+    case NervesWifi.setup(interface, []) do
+      {:ok, pid} ->
+        GenServer.cast(__MODULE__, {:start_interface, interface, s, pid})
+        :ok
+      {:error, :already_added} ->
+        :ok
+      {:error, reason} ->
+        Logger.error("Encountered an error starting #{interface}: #{reason}")
+        {:error, reason}
+      error ->
+        Logger.error("Encountered an error starting #{interface}: #{error}")
+        {:error, error}
+    end
   end
 
   def start_interface(interface,
@@ -81,7 +91,7 @@ defmodule Module.concat([Farmbot, System, "rpi3", Network]) do
           GenServer.stop(pid, :uhhh)
           {:reply, :ok, Map.delete(state, interface)}
         else
-          Logger.debug ">> cant stop: #{interface}"
+          Logger.warn ">> cant stop: #{interface}"
           {:reply, {:error, :not_implemented}, state}
         end
       _ -> {:reply, {:error, :not_started}, state}

@@ -5,9 +5,12 @@ defmodule Module.concat([Farmbot, System, "rpi3", Network, EventManager]) do
   def handle_event({:udhcpc, _, :bound,
     %{ipv4_address: _address, ifname: _interface}}, state)
   do
-    Farmbot.System.Network.on_connect(fn() ->
-      Farmbot.System.Network.stop_interface("wlan0")
-    end)
+    spawn fn() ->
+      Farmbot.System.Network.on_connect(fn() ->
+        Logger.debug ">> is waiting for linux and network and what not."
+        Process.sleep(5000) # ye old race linux condidtion
+      end)
+    end
     {:ok, state}
   end
 
