@@ -16,12 +16,35 @@ module.exports = {
       },
       {
         test: /\.scss$/,
-        exclude: /node_modules/,
         use: [
           'style-loader',
           'css-loader',
           'sass-loader'
         ]
-      }]
+      }, {
+        test: /\.css$/,
+        use: [
+          'style-loader',
+          'css-loader'
+        ]
+      }
+      ,
+      {
+        test: /\.woff/,
+        loader: "url-loader"
+      }, {
+        test: /\.woff2/,
+        loader: "url-loader"
+      }, {
+        test: /\.ttf/,
+        loader: "url-loader"
+      }, {
+        test: /\.eot/,
+        loader: "file-loader"
+      }, {
+        test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+        loader: "url-loader"
+      }
+    ]
   }
 }

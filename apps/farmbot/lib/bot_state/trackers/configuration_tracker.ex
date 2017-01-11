@@ -2,6 +2,7 @@ defmodule Farmbot.BotState.Configuration do
   @moduledoc """
     Stores the configuration of the bot.
   """
+
   use GenServer
   require Logger
   alias Farmbot.StateTracker
@@ -21,15 +22,13 @@ defmodule Farmbot.BotState.Configuration do
         controller_version: "loading...",
         compat_version: -1,
         target: "loading...",
-        environment: :loading,
         private_ip: nil,
         throttled: "loading..."
        }
     ]
 
   @type args
-    :: %{compat_version: integer, env: String.t,
-         target: String.t, version: String.t}
+    :: %{compat_version: integer, target: String.t, version: String.t}
   @type state ::
     %State{
       locks: [any],
@@ -45,7 +44,6 @@ defmodule Farmbot.BotState.Configuration do
   @spec load(args) :: {:ok, state} | {:error, atom}
   def load(
     %{compat_version: compat_version,
-      env: env,
       target: target,
       version: version})
   do
@@ -54,15 +52,14 @@ defmodule Farmbot.BotState.Configuration do
         controller_version: version,
         compat_version: compat_version,
         target: target,
-        environment: env,
         private_ip: "loading...",
         throttled: get_throttled()
       }
     }
-    with {:ok, os_a_u}   <- get_config(:os_auto_update),
-         {:ok, fw_a_u}   <- get_config(:fw_auto_update),
-         {:ok, timezone} <- get_config(:timezone),
-         {:ok, steps_pm} <- get_config(:steps_per_mm)
+    with {:ok, os_a_u}   <- get_config("os_auto_update"),
+         {:ok, fw_a_u}   <- get_config("fw_auto_update"),
+         {:ok, timezone} <- get_config("timezone"),
+         {:ok, steps_pm} <- get_config("steps_per_mm")
          do
            new_state =
              %State{initial |
@@ -77,23 +74,29 @@ defmodule Farmbot.BotState.Configuration do
   # This call should probably be a cast actually, and im sorry.
   # Returns true for configs that exist and are the correct typpe,
   # and false for anything else
-  # TODO make sure these are properly typed.
-  # probably BUG: thses shouldn't be strings anymore i dont think?
-  def handle_call({:update_config, "os_auto_update", value},
-    _from, %State{} = state)
-  when is_boolean(value) do
+  def handle_call({:update_config, "os_auto_update", f_value},
+   _from, %State{} = state) do
+    value = cond do
+      f_value == 1 -> true
+      f_value == 0 -> false
+      is_boolean(f_value) -> f_value
+    end
     new_config = Map.put(state.configuration, :os_auto_update, value)
     new_state = %State{state | configuration: new_config}
-    put_config(:os_auto_update, value)
+    put_config("os_auto_update", value)
     dispatch true, new_state
   end
 
-  def handle_call({:update_config, "fw_auto_update", value},
-    _from, %State{} = state)
-  when is_boolean(value) do
+  def handle_call({:update_config, "fw_auto_update", f_value},
+   _from, %State{} = state) do
+    value = cond do
+      f_value == 1 -> true
+      f_value == 0 -> false
+      is_boolean(f_value) -> f_value
+    end
     new_config = Map.put(state.configuration, :fw_auto_update, value)
     new_state = %State{state | configuration: new_config}
-    put_config(:fw_auto_update, value)
+    put_config("fw_auto_update", value)
     dispatch true, new_state
   end
 
@@ -101,7 +104,7 @@ defmodule Farmbot.BotState.Configuration do
   when is_bitstring(value) do
     new_config = Map.put(state.configuration, :timezone, value)
     new_state = %State{state | configuration: new_config}
-    put_config(:timezone, value)
+    put_config("timezone", value)
     dispatch true, new_state
   end
 
@@ -110,7 +113,7 @@ defmodule Farmbot.BotState.Configuration do
   when is_integer(value) do
     new_config = Map.put(state.configuration, :steps_per_mm, value)
     new_state = %State{state | configuration: new_config}
-    put_config(:steps_per_mm, value)
+    put_config("steps_per_mm", value)
     dispatch true, new_state
   end
 

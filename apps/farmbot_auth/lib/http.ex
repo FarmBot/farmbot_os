@@ -12,8 +12,8 @@ defmodule Farmbot.HTTP do
   """
   @spec post(binary, binary) :: {:error, term} | http_resp
   def post(path, body) do
-    with {:ok, server} <- fetch_server,
-         {:ok, auth_headers} <- build_auth,
+    with {:ok, server} <- fetch_server(),
+         {:ok, auth_headers} <- build_auth(),
          do: HTTPotion.post("#{server}#{path}",
                             headers: auth_headers, body: body)
   end
@@ -23,9 +23,32 @@ defmodule Farmbot.HTTP do
   """
   @spec get(binary) :: {:error, term} | http_resp
   def get(path) do
-    with {:ok, server} <- fetch_server,
-         {:ok, auth_headers} <- build_auth,
+    with {:ok, server} <- fetch_server(),
+         {:ok, auth_headers} <- build_auth(),
          do: HTTPotion.get("#{server}#{path}", headers: auth_headers)
+  end
+
+  @doc """
+    Builds a HTTP request.
+  """
+  @type verbs ::
+    :get
+    | :post
+    | :put
+    | :delete
+  @spec req(verbs, binary, any) :: http_resp
+  def req(verb, path, body \\ nil) do
+    with {:ok, server} <- fetch_server(),
+         {:ok, auth_headers} <- build_auth()
+    do
+      options = [headers: auth_headers]
+      if body do
+        options_with_body = Keyword.put(options, :body, body)
+        HTTPotion.request(verb, "#{server}#{path}", options_with_body)
+      else
+        HTTPotion.request(verb, "#{server}#{path}", options)
+      end
+    end
   end
 
   @doc """

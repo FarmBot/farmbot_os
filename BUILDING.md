@@ -1,9 +1,25 @@
 # Advanced Things that you shouldn't need to worry about.
 
+## Building an image
+Building a `*.img` file is rather simple, its one step farther than the regular build.
+
+```bash
+cd ~/farmbot/os/apps/farmbot
+export MIX_ENV=prod
+export NERVES_TARGET=<MY_BOARD_CHOICE_REPLACEME>
+# THIS COULD TAKE A WHILE DEPENDING ON YOUR MACHINE
+mix firmware
+# this is the actual .img generation, it should go pretty quick.
+fwup -a -d _images/farmbot/<MY_BOARD_CHOICE_REPLACEME>/farmbot.img -i \
+ _images/farmbot/<MY_BOARD_CHOICE_REPLACEME>/farmbot.fw -t complete
+```
+
 ## Documentation
-Documentation isn't stored in source control, because it is large and changes frequently.
-to view documentation do:
-if there is enough intersest they can be published on HEX.
+
+Documentation isn't stored in source control, because it is large and changes frequently. [Raise an issue](https://github.com/FarmBot/farmbot_os/issues/new) if you would like them published on HEX.
+
+To view documentation:
+
 ```bash
 cd ~/farmbot/os
 MIX_ENV=dev mix deps.get
@@ -11,7 +27,9 @@ MIX_ENV=dev mix docs
 ```
 
 ## Tests
-Tests aren't quite at the coverage we want, please help us!
+
+Tests coverage is a work in progress and all help is appreciated!
+
 ```bash
 export MIX_ENV=test
 mix deps.get
@@ -19,9 +37,12 @@ mix test
 ```
 
 ## Code Styling and Consistency
-Credo doesn't work very well on umbrella projects, so i only enforce credo on
+
+Credo doesn't work very well on umbrella projects, so I only enforce credo on
 the main application.
+
 Note: this will show all #TODOS in the application.
+
 ```bash
 cd ~/farmbot/os/apps/farmbot
 export MIX_ENV=dev
@@ -32,6 +53,7 @@ mix credo --strict
 
 
 ## Building the Linux RootFS
+
 ```bash
 cd ~/farmbot/os
 # this should set up the environment needed to build the system
@@ -83,16 +105,17 @@ MIX_ENV=prod NERVES_SYSTEM=~/farmbot/os/apps/NERVES_SYSTEM_* mix firmware
 MIX_ENV=prod bash scripts/burn.sh
 ```
 
-## Porting a new system
-If You want to use a different device for farmbot you will need to do several things:
+## Porting to a New System
 
-You can use the RPI3 system as a template to see what you will need
+There are several options for porting FarmBot to non-Raspberry Pi systems. One option is to use the RPI3 system as a template:
+
 ```bash
 cd ~/os/farmbot/os/apps
 mix new nerves_system_newboard
 ```
 
-now that needs to be populated. at bare minimum you will need several files. Use the RPI3 system as a template.
+At bare minimum you will need the following files files, using the RPI3 system as a template:
+
 ```
 nerves_system_newboard
 ├── rootfs-additions

@@ -1,0 +1,24 @@
+@import "./colors";
+@import "./global";
+@import "./widgets";
+@import "./specific";
+.container {
+    padding-top: 5rem;
+    max-width: 1298px;
+    position: relative;
+}
+
+.bot-logs {
+    position: absolute;
+    top: 7rem;
+}
+
+h1 {
+    margin-bottom: 3rem;
+}
+
+h1,
+h2 {
+    font-weight: 100;
+    text-align: center;
+}

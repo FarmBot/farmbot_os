@@ -16,8 +16,8 @@ defmodule Farmbot.Sync do
   import Syncable
   alias Farmbot.Sync.Helpers
   alias Farmbot.Auth
-  alias Farmbot.BotState
   alias Farmbot.Token
+  require Logger
 
   defdatabase Database do
     use Amnesia
@@ -56,17 +56,23 @@ defmodule Farmbot.Sync do
   @doc """
     Downloads the sync object form the API.
   """
+  require IEx
   def sync do
-    with {:ok, token}       <- fetch_token,
-         {:ok, server}      <- fetch_server,
+    Logger.debug(">> is syncing")
+    with {:ok, token}       <- fetch_token(),
+         {:ok, server}      <- fetch_server(),
          {:ok, resp}        <- fetch_sync_object(server, token),
          {:ok, json}        <- parse_http(resp),
          {:ok, parsed}      <- Poison.decode(json),
          {:ok, validated}   <- SyncObject.validate(parsed),
-         {:ok, ^validated}  <- enter_into_db(validated),
-         do: {:ok, validated}
+         {:ok, ^validated}  <- enter_into_db(validated)
+         do
+           Logger.debug(">> is synced")
+           {:ok, validated}
+         end
   end
 
+  # WHAT THE HECK IS THIS
   def enter_into_db(%SyncObject{} = so) do
     Amnesia.transaction do
       # We arent aloud to enumerate over a struct, so we turn it into a map here

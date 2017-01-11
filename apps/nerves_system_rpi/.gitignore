@@ -1,0 +1,7 @@
+/_build
+/cover
+/deps
+erl_crash.dump
+*.ez
+build.log
+.nerves

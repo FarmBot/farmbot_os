@@ -5,7 +5,6 @@
   ],
   "skip_files": [
     "lib/extras/downloader.ex",
-    "lib/extras/ssh.ex",
-    "lib/farmbot/rpc/state_serialized.ex"
+    "lib/extras/ssh.ex"
   ]
 }

@@ -18,7 +18,7 @@ defmodule Syncable do
       @enforce_keys unquote(model)
       generate_validation(unquote(name), unquote(model))
 
-      defp mutate(_k, v), do: {:ok, v}
+      def mutate(_k, v), do: {:ok, v}
       defoverridable [mutate: 2]
     end
   end
@@ -109,7 +109,7 @@ defmodule Syncable do
   """
   defmacro mutation(key, block) do
     quote do
-      defp mutate(unquote(key), var!(before)), unquote(block)
+      def mutate(unquote(key), var!(before)), unquote(block)
     end
   end
 
@@ -129,7 +129,7 @@ defmodule Syncable do
         unquote do_block
         # Throw this at the bottom so if the user definves a mutation
         # They wont need to account for all keys.
-        defp mutate(_k, v), do: {:ok, v}
+        def mutate(_k, v), do: {:ok, v}
       end
     end
   end

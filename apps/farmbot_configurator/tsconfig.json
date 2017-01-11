@@ -1,23 +1,23 @@
 {
-  "compilerOptions": {
-    "lib": [
-      "es7",
-      "dom"
+    "compilerOptions": {
+        "lib": [
+            "es7",
+            "dom"
+        ],
+        "target": "es5",
+        "module": "commonjs",
+        "jsx": "react",
+        "noImplicitAny": true,
+        "experimentalDecorators": true,
+        "allowUnreachableCode": false,
+        "strictNullChecks": true,
+        "sourceMap": true,
+        "noFallthroughCasesInSwitch": true
+    },
+    "exclude": [
+        "node_modules",
+        "typings"
     ],
-    "target": "es5",
-    "module": "commonjs",
-    "jsx": "react",
-    "noImplicitAny": true,
-    "experimentalDecorators": true,
-    "allowUnreachableCode": false,
-    "strictNullChecks": true,
-    "sourceMap": true,
-    "noFallthroughCasesInSwitch": true
-  },
-  "exclude": [
-    "node_modules",
-    "typings"
-  ],
-  "compileOnSave": false,
-  "buildOnSave": false
+    "compileOnSave": false,
+    "buildOnSave": false
 }

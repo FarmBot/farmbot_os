@@ -1,14 +1,25 @@
-defmodule WebPack do
+defmodule Farmbot.Configurator.WebPack do
+  @moduledoc """
+    This shouldnt' exist in production. Starts a webpack watch session.
+  """
   require Logger
   use GenServer
 
-  def start_link(env) do
-    GenServer.start_link(__MODULE__, env, name: __MODULE__)
+  def start_link do
+    GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  def init(:prod), do: {:ok, spawn fn() -> nil end}
-  def init(:dev) do
+  def init([]) do
     Logger.debug("Starting webpack")
+    Logger.debug "checking for node_modules"
+
+    if !File.exists?("node_modules") do
+      Logger.debug "npm installing. This will take a minute."
+      System.cmd "npm", ["install"]
+    else
+      Logger.debug "not npm installing"  
+    end
+
     port = Port.open({:spawn, "npm run watch"},
       [:stream,
        :binary,

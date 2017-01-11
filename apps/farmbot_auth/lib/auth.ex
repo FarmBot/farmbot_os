@@ -3,11 +3,11 @@ defmodule Farmbot.Auth do
     Gets a token and device information
   """
   @modules Application.get_env(:farmbot_auth, :callbacks) ++ [Farmbot.Auth]
-  @path Application.get_env(:farmbot_filesystem, :path)
+  @path Application.get_env(:farmbot_system, :path)
 
   use GenServer
   require Logger
-  alias Farmbot.FileSystem.ConfigStorage, as: CS
+  alias Farmbot.System.FS.ConfigStorage, as: CS
   alias Farmbot.Token
 
   @doc """
@@ -57,7 +57,7 @@ defmodule Farmbot.Auth do
       # We won
       %HTTPotion.Response{body: body, headers: _headers, status_code: 200} ->
         # save the secret to disk.
-        Farmbot.FileSystem.transaction fn() ->
+        Farmbot.System.FS.transaction fn() ->
           :ok = File.write(@path <> "/secret", :erlang.term_to_binary(secret))
         end
         Poison.decode!(body) |> Map.get("token") |> Token.create
@@ -78,11 +78,11 @@ defmodule Farmbot.Auth do
     will return either {:ok, server} or {:ok, nil}
   """
   @spec get_server :: {:ok, nil} | {:ok, String.t}
-  def get_server, do: GenServer.call(CS, {:get, Authorization, :server})
+  def get_server, do: GenServer.call(CS, {:get, Authorization, "server"})
 
   @spec put_server(String.t | nil) :: no_return
   defp put_server(server) when is_nil(server) or is_binary(server),
-    do: GenServer.cast(CS, {:put, Authorization, {:server, server}})
+    do: GenServer.cast(CS, {:put, Authorization, {"server", server}})
 
   @doc """
     Tries to log into web services with whatever auth method is stored in state.
@@ -119,7 +119,7 @@ defmodule Farmbot.Auth do
     Application entry point
   """
   def start(_type, args) do
-    Logger.debug(">> Starting Authorization services")
+    Logger.debug(">> Authorization init!")
     start_link(args)
   end
 
@@ -128,7 +128,7 @@ defmodule Farmbot.Auth do
   end
 
   # Genserver stuff
-  def init(_args), do: get_secret
+  def init(_args), do: get_secret()
 
   # casted creds, store them until something is ready to actually try a log in.
   def handle_cast({:interim, {email, pass, server}},_) do
@@ -154,7 +154,7 @@ defmodule Farmbot.Auth do
 
   def handle_call(:try_log_in, _, secret) when is_binary(secret) do
     Logger.debug ">> is trying to log in with a secret."
-    with {:ok, server} <- get_server,
+    with {:ok, server} <- get_server(),
          {:ok, %Token{} = token} <- get_token_from_server(secret, server)
     do
       {:reply, {:ok, token}, token}
@@ -168,8 +168,8 @@ defmodule Farmbot.Auth do
 
   def handle_call(:try_log_in, _, %Token{} = _token) do
     Logger.warn ">> already has a token. Fetching another."
-    with {:ok, server} <- get_server,
-         {:ok, secret} <- get_secret,
+    with {:ok, server} <- get_server(),
+         {:ok, secret} <- get_secret(),
          {:ok, %Token{} = token} <- get_token_from_server(secret, server)
     do
       {:reply, {:ok, token}, token}
