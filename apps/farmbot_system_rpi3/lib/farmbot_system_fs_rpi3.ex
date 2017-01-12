@@ -19,7 +19,7 @@ defmodule Module.concat([Farmbot, System, "rpi3", FileSystem]) do
     # check if the formatted flag exists
     with {:error, _} <- File.read("#{@state_path}/.formatted") do
       # If it does, format the state partition
-      :ok = format_state_part
+      :ok = format_state_part()
     else
       # If not, we are fine. continue
       _ -> :ok
@@ -28,14 +28,14 @@ defmodule Module.concat([Farmbot, System, "rpi3", FileSystem]) do
 
   @doc false
   def factory_reset do
-    :ok = format_state_part
+    :ok = format_state_part()
     :ok
   end
 
   defp parse_cmd({_, 0}), do: :ok
   defp parse_cmd({err, num}), do: raise "error doing command(#{num}): #{inspect err}"
 
-  defp format_state_part do
+  defp format_state_part() do
     # Format partition
     System.cmd("mkfs.#{@fs_type}", ["#{@block_device}", "-F"])
     # Mount it as read/write
