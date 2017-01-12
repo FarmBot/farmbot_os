@@ -6,12 +6,15 @@ version =
   |> String.strip
 
 pkg = :nerves_system_rpi
+nerves_target = "rpi"
 
 config pkg, :nerves_env,
   type: :system,
   version: version,
   compiler: :nerves_package,
-  artifact_url: [],
+  artifact_url: [
+    "https://github.com/Farmbot/farmbot_os/releases/download/farmbot.rootfs-#{nerves_target}-#{version}.tar.gz",
+    ],
   platform: Nerves.System.BR,
   platform_config: [
     defconfig: "nerves_defconfig",

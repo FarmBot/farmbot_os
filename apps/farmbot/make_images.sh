@@ -14,8 +14,8 @@ echo "Building firmware"
 mix firmware
 
 echo "Copying rootfs..."
-cp ../NERVES_SYSTEM_$NERVES_TARGET/images/nerves_system_$NERVES_TARGET.img \
-_images/$NERVES_TARGET/farmbot.rootfs-$NERVES_TARGET-$VERSION.img
+cp ../NERVES_SYSTEM_$NERVES_TARGET/nerves_system_$NERVES_TARGET.tar.gz \
+_images/$NERVES_TARGET/farmbot.rootfs-$NERVES_TARGET-$VERSION.tar.gz
 
 echo "Renaming firmware"
 mv _images/$NERVES_TARGET/farmbot.fw _images/$NERVES_TARGET/farmbot-$NERVES_TARGET-$VERSION.fw
