@@ -2,8 +2,9 @@ import * as React from "react";
 import { observer } from "mobx-react";
 import { observable, action } from "mobx";
 import { MainState } from "./state";
-import { ConfigFileNetIface } from "./interfaces";
+import { ConfigFileNetIface, IfaceType } from "./interfaces";
 import { TZSelect } from "./tz_select";
+import { AdvancedSettings } from "./advanced_settings";
 import * as Select from "react-select";
 import "../../node_modules/roboto-font/css/fonts.css";
 import "../../node_modules/font-awesome/css/font-awesome.css";
@@ -20,7 +21,10 @@ interface FormState {
   server?: null | string;
   urlIsOpen?: boolean;
   showPassword?: boolean;
-  hiddenresetwidget?: null | number;
+  hiddenAdvancedWidget?: null | number;
+  showCustomNetworkWidget?: null | boolean;
+  ssidSelection?: { [name: string]: string };
+  customInterface?: null | string;
 }
 
 @observer
@@ -39,7 +43,10 @@ export class Main extends React.Component<MainProps, FormState> {
       server: null,
       urlIsOpen: false,
       showPassword: false,
-      hiddenresetwidget: 0
+      hiddenAdvancedWidget: 0,
+      showCustomNetworkWidget: false,
+      ssidSelection: {},
+      customInterface: null
     };
   }
 
@@ -51,8 +58,10 @@ export class Main extends React.Component<MainProps, FormState> {
 
     let email = this.state.email;
     let pass = this.state.pass;
-    let server = this.state.server;
-    let tz = this.state.timezone;
+    let server = this.state.server || fullFile.authorization.server;
+    let tz = this.state.timezone || fullFile.configuration.timezone;
+    console.log("server: " + server);
+    console.log("timezone: " + tz);
 
     if (tz) {
       fullFile.configuration.timezone = tz;
@@ -90,10 +99,15 @@ export class Main extends React.Component<MainProps, FormState> {
   }
 
   // Handles the various input boxes.
+  @action
   handleTZChange(optn: Select.Option) {
     let timezone = (optn.value || "").toString();
     console.log("Hi? " + timezone);
     this.setState({ timezone: timezone });
+
+    // this is so we don't have to do null juggling from having too possible 
+    // places for this value to come from
+    this.props.mobx.configuration.configuration.timezone = timezone;
   }
   handleEmailChange(event: any) {
     this.setState({ email: (event.target.value || "") });
@@ -107,57 +121,197 @@ export class Main extends React.Component<MainProps, FormState> {
 
   buildNetworkConfig(config: { [name: string]: ConfigFileNetIface }) {
     let passwordIsShown = this.state.showPassword ? "text" : "password";
+    let ssidArray = this.props.mobx.ssids.map((val) => { return { value: val, label: val } });
+    let mobx = this.props.mobx;
+    let that = this;
+    let state = this.state;
+
+    let getSsidValue = function (ifaceName: string) {
+      let f = "couldn't find value";
+      if (state.ssidSelection) {
+        f = state.ssidSelection[ifaceName] || "no iface";
+      } else {
+        f = "no_selection";
+      }
+      return f;
+    }
+
+    let wirelessInputOrSelect = function (ifaceName: string, onChange: (value: string) => void) {
+      let ssids = mobx.ssids;
+      if (ssids.length === 0) {
+        // the ssid list is empty. You should enter your own
+        return <input placeholder="Enter a WiFi ssid or press SCAN"
+          onChange={(event) => {
+            onChange(event.currentTarget.value);
+          } } />
+      } else {
+        return <Select
+          value={getSsidValue(ifaceName)}
+          options={ssidArray}
+          onChange={(event: Select.Option) => {
+            onChange((event.value || "oops").toString());
+          } } />
+      }
+    }
+
+    // im sorry
+    let customInterfaceInputOrSelect = function (onChange: (value: string) => void) {
+      // am i even aloud to do this?
+      let blah = that.state.customInterface;
+      let blahConfig: ConfigFileNetIface = { type: "wired", default: "dhcp" };
+
+      let hidden = true;
+      if (that.state.hiddenAdvancedWidget > 4 || that.state.showCustomNetworkWidget == true) {
+        hidden = false;
+      }
+
+      // default to a regular input
+      let userInputThing = <input onChange={(event) => {
+        blah = event.currentTarget.value;
+        onChange(event.currentTarget.value);
+      } } />
+
+      // if the list is not empty, display a selection of them      
+      if (mobx.possibleInterfaces.length !== 0) {
+        userInputThing = <Select
+          value={blah || undefined} // lol
+          placeholder="select an interface"
+          options={mobx.possibleInterfaces.map((x) => { return { value: x, label: x } })}
+          onChange={(event: Select.Option) => {
+            let blah1 = (event.value || "oops").toString();
+            blah = blah1;
+            onChange(blah1);
+          } } />
+      }
+
+      // only show this widget if the state says so.
+      return <div hidden={hidden}>
+        <label>Custom Interface</label>
+        {userInputThing}
+        <fieldset>
+          <label> Wireless </label>
+          <input onChange={(event) => {
+            // if the user ticks this box, change the config to wireless or not
+            blahConfig.type = (event.currentTarget.checked ? "wireless" : "wired");
+          } }
+            defaultChecked={blahConfig.type == "wireless"}
+            type="checkbox" />
+        </fieldset>
+
+        {/* Add the interface to the config file */}
+        <button onClick={() => {
+          if (blah) {
+            console.log(blah);
+            console.log(blahConfig);
+            mobx.addInterface(blah, blahConfig);
+            that.forceUpdate(); // what am i doing.
+          }
+        } }> Save interface </button>
+      </div>;
+    }
+
     if (Object.keys(config).length === 0) {
       return <div>
-        <label>
-          No Network devices detected!
-        </label>
+        <fieldset>
+          <label>No Network devices detected!</label>
+          {/* Scan button */}
+          <button type="button"
+            className="scan-button"
+            onClick={() => {
+              mobx.enumerateInterfaces();
+              that.setState({ showCustomNetworkWidget: !that.state.showCustomNetworkWidget })
+            } }>
+            Add Custom Interface
+          </button>
+        </fieldset>
+        {customInterfaceInputOrSelect((value) => {
+          this.setState({ customInterface: value });
+        })}
       </div>
     }
     return <div>
+      {/* this widget is hidden unless the above button is ticked. */}
+      {customInterfaceInputOrSelect((value) => {
+        this.setState({ customInterface: value });
+      })}
       {
         Object.keys(config)
           .map((ifaceName) => {
             let iface = config[ifaceName];
             switch (iface.type) {
+              // if the interface is wireless display the 
+              // select box, and a password box
               case "wireless":
-                return <div>
-                  <fieldset key={ifaceName}>
+                return <div key={ifaceName}>
+                  <fieldset>
                     <label>
                       WiFi ( {ifaceName} )
                     </label>
+
+                    {/* Scan button */}
                     <button type="button"
                       className="scan-button"
                       onClick={() => { this.props.mobx.scan(ifaceName) } }>
-                      scan
+                      SCAN
                     </button>
-                    <Select value="Select or type in a network name"
-                      options={this.props.mobx.ssids.map(x => ({
-                        value: x, label: x
-                      }))} />
+
+                    {/*
+                      If there are ssids in the list, display a select box,
+                      if not display a raw input box
+                    */}
+                    {wirelessInputOrSelect(ifaceName, (value => {
+                      // update it in local state
+                      this.setState(
+                        // this will overrite any other wireless ssid selections.
+                        // will need to do a map.merge to avoid destroying any other selections
+                        // if that situation ever occurs
+                        {
+                          ssidSelection: {
+                            [ifaceName]: value
+                          }
+                        });
+                      // update it in the config 
+                      mobx.updateInterface(ifaceName,
+                        { settings: { ssid: value } });
+                    }))}
+
                     <span className="password-group">
                       <i onClick={this.showHidePassword.bind(this)}
                         className="fa fa-eye"></i>
-                      <input type={passwordIsShown} />
+
+                      <input type={passwordIsShown} onChange={(event) => {
+                        this.props.mobx.updateInterface(ifaceName,
+                          {
+                            settings: {
+                              psk: event.currentTarget.value,
+                              key_mgmt: "WPA-PSK"
+                            }
+                          })
+                      } } />
                     </span>
                   </fieldset>
                 </div>
 
               case "wired":
-                return <fieldset>
-                  <label>
-                    Enable Ethernet ( {ifaceName} )
-                  </label>
-                  <input checked={iface.default === "dhcp"} type="checkbox" onChange={(event) => {
-                    let c = event.currentTarget.checked;
-                    if (c) {
-                      // if the check is checked
-                      this.props.mobx.updateInterface(ifaceName, { default: "dhcp" })
-                    } else {
-                      this.props.mobx.updateInterface(ifaceName, { default: false })
-                    }
-                  } } />
-                </fieldset>
+                return <div key={ifaceName}>
+                  <fieldset>
+                    <label>
+                      Enable Ethernet ( {ifaceName} )
+                    </label>
+                    <input defaultChecked={iface.default === "dhcp"}
+                      type="checkbox" onChange={(event) => {
+                        let c = event.currentTarget.checked;
+                        if (c) {
+                          // if the check is checked
+                          this.props.mobx.updateInterface(ifaceName,
+                            { default: "dhcp" })
+                        } else {
+                          this.props.mobx.updateInterface(ifaceName,
+                            { default: false })
+                        }
+                      } } />
+                  </fieldset>
+                </div>
             }
           })
       }
@@ -178,7 +332,11 @@ export class Main extends React.Component<MainProps, FormState> {
 
     return <div className="container">
       <h1 onClick={() => {
-        this.setState({ hiddenresetwidget: this.state.hiddenresetwidget + 1 })
+        let val = this.state.hiddenAdvancedWidget + 1;
+        this.setState({ hiddenAdvancedWidget: val });
+        if (val > 4) {
+          this.props.mobx.enumerateInterfaces();
+        }
       } }>Configure your FarmBot</h1>
 
       <h2 hidden={mainState.connected}>Trouble connecting to bot...</h2>
@@ -200,20 +358,20 @@ export class Main extends React.Component<MainProps, FormState> {
           <div className="widget-content">
             <fieldset>
               <label htmlFor="timezone">Timezone</label>
-              <TZSelect callback={this.handleTZChange}
-                current={this.props.mobx.configuration
-                  .configuration.timezone} />
+              <TZSelect
+                callback={this.handleTZChange}
+                current={this.props.mobx.configuration.configuration.timezone} />
             </fieldset>
           </div>
         </div>
 
-        {/* Wifi Widget */}
+        {/* Network Widget */}
         <div className="widget wifi" hidden={mainState.configuration.network == true}>
           <div className="widget-header">
             <h5>Network</h5>
             <i className="fa fa-question-circle widget-help-icon">
               <div className="widget-help-text">
-                Bot configuration.
+                Bot Network Configuration
               </div>
             </i>
           </div>
@@ -259,6 +417,7 @@ export class Main extends React.Component<MainProps, FormState> {
                     Server:
                 </label>
                   <input type="url" id="url"
+                    defaultValue={this.props.mobx.configuration.authorization.server}
                     onChange={this.handleServerChange} />
                 </fieldset>
               )}
@@ -283,23 +442,18 @@ export class Main extends React.Component<MainProps, FormState> {
           </div>
         </div>
 
-        {/* Reset Widget */}
-        <div className="widget" hidden={this.state.hiddenresetwidget < 5}>
+        {/* Advanced Widget */}
+        <div className="widget" hidden={this.state.hiddenAdvancedWidget < 5}>
           <div className="widget-header">
-            <h5>Factory Reset</h5>
+            <h5>Advanced Settings</h5>
             <i className="fa fa-question-circle widget-help-icon">
               <div className="widget-help-text">
-                {`uh`}
+                {`Various advanced settings`}
               </div>
             </i>
           </div>
           <div className="widget-content">
-            <fieldset>
-              <label> Be careful here! </label>
-              <button type="button" onClick={() => {
-                this.props.mobx.factoryReset();
-              } }> Factory Reset your bot! </button>
-            </fieldset>
+            <AdvancedSettings mobx={mainState} />
           </div>
         </div>
 

@@ -40,6 +40,7 @@ export class MainState {
 
     /** are we connected to the bot. */
     @observable connected = false;
+    @observable possibleInterfaces: string[] = [];
 
     /** The current state. if we care about such a thing. */
     @observable botStatus: BotStateTree = {
@@ -131,6 +132,56 @@ export class MainState {
             console.log("could not find interface " + ifaceName);
         }
     }
+
+    @action
+    addInterface(ifaceName: string, thing: ConfigFileNetIface) {
+        if (this.configuration.network) {
+            this.configuration.network.interfaces[ifaceName] = thing;
+        } else {
+            this.configuration.network = { ntp: false, interfaces: {}, ssh: false };
+            this.configuration.network.interfaces[ifaceName] = thing;
+        }
+    }
+
+    enumerateInterfaces() {
+        Axios.get("/api/network/interfaces")
+            .then(this.enumerateInterfacesOK.bind(this))
+            .catch(this.enumerateInterfacesKO.bind(this))
+    }
+
+    @action
+    enumerateInterfacesOK(thing: Axios.AxiosXHR<string[]>) {
+        this.possibleInterfaces = thing.data;
+    }
+
+    @action
+    enumerateInterfacesKO(thing: any) {
+        this.possibleInterfaces = [];
+    }
+
+    @action
+    toggleNetwork() {
+        if (this.configuration.network) {
+            this.configuration.network = false;
+        } else {
+            this.configuration.network = { interfaces: {}, ntp: false, ssh: false };
+        }
+    }
+
+    @action
+    toggleSSH(b: boolean) {
+        if (this.configuration.network) {
+            this.configuration.network.ssh = b;
+        }
+    }
+
+    @action
+    toggleNTP(b: boolean) {
+        if (this.configuration.network) {
+            this.configuration.network.ntp = b;
+        }
+    }
+
 
     @action
     setConnected(bool: boolean) {

@@ -8,7 +8,7 @@ export interface ConfigFileWifiSettings {
     /** only psk and no security are supported. */
     key_mgmt: "WPA-PSK" | "NONE"
 }
-type IfaceType = "wired" | "wireless"
+export type IfaceType = "wired" | "wireless"
 
 /** the layout of a network interface config entry */
 export interface ConfigFileNetIface {
@@ -19,7 +19,7 @@ export interface ConfigFileNetIface {
      */
     type: IfaceType
     default: false | "hostapd" | "static" | "dhcp";
-    settings: {
+    settings?: {
         /** ip address for static or host mode. */
         ipv4_address?: string;
         /** subnet mask for static mode */
