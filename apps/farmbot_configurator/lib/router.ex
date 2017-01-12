@@ -48,6 +48,18 @@ defmodule Farmbot.Configurator.Router do
     end
   end
 
+  get "/api/network/interfaces" do
+    blah = Farmbot.System.Network.enumerate
+    case Poison.encode(blah) do
+      {:ok, interfaces} ->
+        conn |> send_resp(200, interfaces)
+      {:error, reason} ->
+        conn |> send_resp(500, "could not enumerate interfaces: #{inspect reason}")
+      error ->
+        conn |> send_resp(500, "could not enumerate interfaces: #{inspect error}")
+    end
+  end
+
   post "/api/factory_reset" do
     Logger.debug "goodbye."
     spawn fn() ->
@@ -68,7 +80,7 @@ defmodule Farmbot.Configurator.Router do
          {:ok, %Farmbot.Token{} = _t} ->
            Logger.debug ">> Is logged in"
          _ ->
-         Farmbot.Auth.try_log_in 
+         Farmbot.Auth.try_log_in
       end
     end
     conn |> send_resp(200, "OK")

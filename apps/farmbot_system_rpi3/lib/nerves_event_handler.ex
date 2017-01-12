@@ -20,11 +20,6 @@ defmodule Module.concat([Farmbot, System, "rpi3", Network, EventManager]) do
     {:ok, state}
   end
 
-    # def handle_event(event, state) do
-    #   Logger.warn "got event: #{inspect event}"
-    #   {:ok, state}
-    # end
-
     # handle stray events that we don't care about
   def handle_event(_, state), do: {:ok, state}
 end

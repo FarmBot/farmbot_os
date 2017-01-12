@@ -10,7 +10,7 @@ defmodule Module.concat([Farmbot, System, "rpi2", Network]) do
 
   def init(_) do
     GenEvent.add_handler(event_manager(),
-    Module.concat([Farmbot, System, "rpi3", Network, EventManager]), [])
+    Module.concat([Farmbot, System, "rpi2", Network, EventManager]), [])
     {:ok, %{}}
   end
 
@@ -20,9 +20,40 @@ defmodule Module.concat([Farmbot, System, "rpi2", Network]) do
   end
 
   def start_interface(interface, %{"default" => "dhcp", "type" => "wired"} = s) do
-    case NervesWifi.setup(interface, []) do
+    NervesWifi.setup(interface, []) |> cast_start_iface(interface, s)
+  end
+
+  def start_interface(interface,
+    %{"default" => "dhcp",
+      "type" => "wireless",
+      "settings" => settings} = s)
+  do
+    ssid = settings["ssid"]
+    case settings["key_mgmt"] do
+      "NONE" ->
+        NervesWifi.setup(interface, [ssid: ssid, key_mgmt: :NONE])
+        |> cast_start_iface(interface, s)
+      "WPA-PSK" ->
+        psk = settings["psk"]
+        NervesWifi.setup(interface,
+          [ssid: ssid, key_mgmt: :"WPA-PSK", psk: psk])
+        |> cast_start_iface(interface, s)
+    end
+    :ok
+  end
+
+  def start_interface(interface,
+  %{"default" => "hostapd",
+    "settings" => %{"ipv4_address" => ip_addr}, "type" => "wireless"} = s)
+  do
+    Hostapd.start_link([interface: interface, ip_address: ip_addr, manager: event_manager()])
+    |> cast_start_iface(interface, s)
+  end
+
+  def cast_start_iface(blah, interface, settings) do
+    case blah do
       {:ok, pid} ->
-        GenServer.cast(__MODULE__, {:start_interface, interface, s, pid})
+        GenServer.cast(__MODULE__, {:start_interface, interface, settings, pid})
         :ok
       {:error, :already_added} ->
         :ok
@@ -35,42 +66,22 @@ defmodule Module.concat([Farmbot, System, "rpi2", Network]) do
     end
   end
 
-  def start_interface(interface,
-    %{"default" => "dhcp",
-      "type" => "wireless",
-      "settings" => settings} = s)
-  do
-    ssid = settings["ssid"]
-    case settings["key_mgmt"] do
-      "NONE" ->
-        {:ok, pid} = NervesWifi.setup(interface, [ssid: ssid, key_mgmt: :NONE])
-        GenServer.cast(__MODULE__, {:start_interface, interface, s, pid})
-      "WPA-PSK" ->
-        psk = settings["psk"]
-        {:ok, pid}  = NervesWifi.setup(interface,
-          [ssid: ssid, key_mgmt: :"WPA-PSK", psk: psk])
-          GenServer.cast(__MODULE__, {:start_interface, interface, s, pid})
-    end
-    :ok
-  end
-
-  def start_interface(interface,
-  %{"default" => "hostapd",
-    "settings" => %{"ipv4_address" => ip_addr}, "type" => "wireless"} = s)
-  do
-    {:ok, pid} = Hostapd.start_link([interface: interface, ip_address: ip_addr, manager: event_manager()])
-    GenServer.cast(__MODULE__, {:start_interface, interface, s, pid})
-    :ok
-  end
-
   def stop_interface(interface) do
     GenServer.call(__MODULE__, {:stop_interface, interface})
   end
 
   def scan(iface) do
-    {hc, 0} = System.cmd("iw", [iface, "scan", "ap-force"])
-    hc |> clean_ssid
+    case System.cmd("iw", [iface, "scan", "ap-force"]) do
+      {res, 0} ->  res |> clean_ssid
+      _ ->
+      Logger.error ">> Could not scan on #{iface}. " <>
+       "The device either isn't wireless or uses the legacy WEXT driver."
+       []
+    end
   end
+
+
+  def enumerate, do: Nerves.NetworkInterface.interfaces -- ["lo"]
 
   defp event_manager, do: Nerves.NetworkInterface.event_manager()
   defp clean_ssid(hc) do

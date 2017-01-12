@@ -93,7 +93,7 @@ defmodule Farmbot.Auth do
       {:ok, %Token{} = token} ->
         do_callbacks(token)
         {:ok, token}
-      {:error, reason} -> 
+      {:error, reason} ->
         Logger.error ">> Could not log in! #{inspect reason}"
         {:error, reason}
       error ->
@@ -216,10 +216,8 @@ defmodule Farmbot.Auth do
   end
 
   defp do_callbacks(token) do
-    spawn(fn ->
-      Enum.all?(@modules, fn(module) ->
-        send(module, {:authorization, token})
-      end)
-    end)
+    spawn fn() ->
+      for module <- @modules, do: send(module, {:authorization, token})
+    end
   end
 end

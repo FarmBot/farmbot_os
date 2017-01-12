@@ -1,4 +1,4 @@
-defmodule Module.concat([Farmbot, System, "rpi2", Network, EventManager]) do
+defmodule Module.concat([Farmbot, System, "rpi", Network, EventManager]) do
   use GenEvent
   require Logger
 

@@ -48,6 +48,14 @@ defmodule Farmbot.System.Network do
   end
 
   @doc """
+    Lists all network interfaces that Farmbot Detected.
+  """
+  @spec enumerate() :: [String.t] | {:error, term}
+  def enumerate() do
+    GenServer.call(__MODULE__, :enumerate)
+  end
+
+  @doc """
     Restarts networking services. This will block.
   """
   def restart() do
@@ -114,6 +122,11 @@ defmodule Farmbot.System.Network do
      {:reply, f, target}
   end
 
+  def handle_call(:enumerate, _, target) do
+    f = mod(target).enumerate
+    {:reply, f, target}
+  end
+
   def handle_call({:start, interface, settings}, _, target) do
     f = mod(target).start_interface(interface, settings)
     {:reply, f, target}
@@ -137,7 +150,8 @@ defmodule Farmbot.System.Network do
 
   # Behavior
   @type return_type :: :ok | {:error, term}
-  @callback scan(String.t) :: [String.t]
+  @callback scan(String.t) :: [String.t] | {:error, term}
+  @callback enumerate() :: [String.t] | {:error, term}
   @callback start_interface(String.t, map) :: return_type
   @callback stop_interface(String.t) :: return_type
   @callback start_link :: {:ok, pid}
