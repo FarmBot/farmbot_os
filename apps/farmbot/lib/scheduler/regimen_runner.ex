@@ -1,5 +1,9 @@
 alias Farmbot.Sync.Database.Regimen
-# alias Farmbot.Sync.Database.RegimenItem
+alias Farmbot.Sync.Database.RegimenItem
+use Amnesia
+use Regimen
+use RegimenItem
+use Timex
 
 defmodule Farmbot.Scheduler.RegimenRunner do
   @moduledoc """
@@ -11,10 +15,6 @@ defmodule Farmbot.Scheduler.RegimenRunner do
     """
     @enforece_keys []
     defstruct @enforece_keys
-
-    @typedoc """
-
-    """
     @type t :: %__MODULE__{}
   end
 
@@ -29,11 +29,16 @@ defmodule Farmbot.Scheduler.RegimenRunner do
     {:ok, pid} | {:error, {:already_started, pid}}
   def start_link([%Regimen{} = reg]) do
     name = "Regimen.#{reg.id}" |> String.to_atom
-    GenServer.start_link(__MODULE__, [], name: name)
+    GenServer.start_link(__MODULE__, reg, name: name)
   end
   def start_link(regimen), do: start_link([regimen])
 
-  def init([]) do
+  def init(%Regimen{} = reg) do
+    start_time = midnight()
+    items = get_items(reg.id) |> sort()
+    first_time_offset = List.first(items).time_offset
+    f = Timex.shift(start_time, milliseconds: first_time_offset)
+    Logger.debug ">> [#{reg.name}] first item will run at: #{f.month}-#{f.day} at #{f.hour}:#{f.minute}"
     {:ok, []}
   end
   def handle_call(:get_state,_, state), do: {:reply, state, state}
@@ -44,5 +49,47 @@ defmodule Farmbot.Scheduler.RegimenRunner do
   def get_state(id) do
      name = "Regimen.#{id}" |> String.to_atom
      GenServer.call(name, :get_state)
+  end
+
+  def s do
+    Farmbot.Sync.sync
+    reg = Farmbot.Sync.get_regimen(2)
+    start_link(reg)
+  end
+
+  @doc """
+    Sorts regimen items by the closest time_offset to the farthest away
+  """
+  @spec sort([RegimenItem.t]) :: [RegimenItem.t]
+  def sort(items) do
+    Enum.sort(items, &(&1.time_offset <= &2.time_offset))
+  end
+
+  @doc """
+    Returns a DateTime object of the current time.
+  """
+  @spec now() :: DateTime.t
+  def now() do
+    tz = Farmbot.BotState.get_config :timezone
+    Timex.now(tz)
+  end
+
+  @doc """
+    Returns a DateTime object of midnight today.
+    for example if today is july 12 2044 8:14 AM
+    this will return: july 12 2044 12:00 AM
+  """
+  @spec midnight() :: DateTime.t
+  def midnight() do
+     Timex.shift(now(),
+     [hours: -now().hour, minutes: -now().minute, seconds: -now().second])
+  end
+
+  @spec get_items(integer) :: [RegimenItem.t]
+  defp get_items(regimen_id_) do
+    Amnesia.transaction do
+      Farmbot.Sync.Database.RegimenItem.where(regimen_id == regimen_id_)
+      |> Amnesia.Selection.values
+    end
   end
 end

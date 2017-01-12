@@ -74,6 +74,7 @@ defmodule Farmbot.Sync do
 
   # WHAT THE HECK IS THIS
   def enter_into_db(%SyncObject{} = so) do
+    clear_all(so)
     Amnesia.transaction do
       # We arent aloud to enumerate over a struct, so we turn it into a map here
       blah = Map.from_struct(so)
@@ -81,8 +82,8 @@ defmodule Farmbot.Sync do
       struct =
         blah
         |> Enum.map(fn({key, val}) ->
-            {key, parse_and_write(val)}
-           end)
+          {key, parse_and_write(val)}
+        end)
         # then turn it back into a map
         |> Map.new
         # then turn it back into a struct
@@ -92,6 +93,21 @@ defmodule Farmbot.Sync do
   end
 
   def enter_into_db(_), do: {:error, :bad_sync_object}
+
+  # This needs to happen before we start a transaction
+  def clear_all(%SyncObject{} = so) do
+    keys = Map.keys(so) -- [:__struct__]
+    for key <- keys do
+      atom_to_module(key).clear()
+    end
+  end
+
+  @spec atom_to_module(atom) :: term
+  defp atom_to_module(:device), do: Farmbot.Sync.Database.Device
+  defp atom_to_module(key) do
+    blah = key |> Atom.to_string |> Macro.camelize |> String.trim_trailing("s")
+    Module.concat([Farmbot.Sync.Database, blah])
+  end
 
   # make struct function pipable.
   defp to_struct(map, module), do: struct(module, map)

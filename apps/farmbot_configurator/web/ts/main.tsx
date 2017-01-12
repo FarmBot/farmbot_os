@@ -272,7 +272,7 @@ export class Main extends React.Component<MainProps, FormState> {
                         });
                       // update it in the config 
                       mobx.updateInterface(ifaceName,
-                        { settings: { ssid: value } });
+                        { type: "wireless", default: "dhcp", settings: { ssid: value } });
                     }))}
 
                     <span className="password-group">

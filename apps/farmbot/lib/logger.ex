@@ -170,13 +170,15 @@ defmodule Farmbot.Logger do
     m = Keyword.take(meta, [:module])
     case m do
       # Fileter by module. This probably is slow
-      [moduele: mod] -> filter_module(mod, message)
+      [module: mod] -> filter_module(mod, message)
+      [module: nil] -> filter_text(message)
       # anything else
-      _                            -> filter_text(message)
+      _ -> filter_text(message)
     end
   end
 
   defp filter_module(:"Elixir.Nerves.InterimWiFi", _m), do: {:ok, "[FILTERED]"}
+  defp filter_module(:"Elixir.Nerves.NetworkInterface", _m), do: nil
   defp filter_module(:"Elixir.Nerves.InterimWiFi.WiFiManager.EventHandler", _m), do: nil
   defp filter_module(_, message), do: {:ok, message}
 
