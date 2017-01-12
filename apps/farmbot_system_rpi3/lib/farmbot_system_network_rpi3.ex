@@ -99,7 +99,7 @@ defmodule Module.concat([Farmbot, System, "rpi3", Network]) do
     case state[interface] do
       {settings, pid} ->
         if settings["default"] == "hostapd" do
-          GenServer.stop(pid, :uhhh)
+          GenServer.stop(pid, :stop_interface)
           {:reply, :ok, Map.delete(state, interface)}
         else
           Logger.warn ">> cant stop: #{interface}"
