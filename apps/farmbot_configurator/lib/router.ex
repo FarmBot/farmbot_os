@@ -86,6 +86,16 @@ defmodule Farmbot.Configurator.Router do
     conn |> send_resp(200, "OK")
   end
 
+  get "/api/logs" do
+    logs = GenEvent.call(Logger, Farmbot.Logger, :messages)
+
+    only_messages = Enum.map(logs, fn(log) ->
+      log.message
+    end)
+    json = Poison.encode!(only_messages)
+    conn |> send_resp(200, json)
+  end
+  
   # anything that doesn't match a rest end point gets the index.
   match _, do: conn |> send_resp(404, "not found")
 
