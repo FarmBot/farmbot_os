@@ -5,6 +5,7 @@ defmodule Farmbot.BotState.Hardware do
 
   require Logger
   alias Farmbot.StateTracker
+
   @behaviour StateTracker
   use StateTracker,
       name: __MODULE__,
@@ -26,6 +27,45 @@ defmodule Farmbot.BotState.Hardware do
   @type mcu_params :: map
   @type pins :: map
   @type end_stops :: {integer,integer,integer,integer,integer,integer}
+
+  # Callback that happens when this module comes up
+  def load([]) do
+    {:ok, p} = get_config("params")
+    initial_state = %State{mcu_params: p}
+    # BUG: THIS CAN'T BE HERE BECAUSE IT TRIES TO CALL THIS GENSERVER DERP
+
+    spawn fn() ->
+      case set_initial_params(initial_state) do
+        {:ok, :no_params} ->
+          Logger.debug ">> is reading default Hardware params."
+          Farmbot.CeleryScript.Command.read_all_params(%{}, [])
+        :ok ->
+          Logger.debug ">> Hardware Params set"
+        {:error, reason} ->
+          Logger.error(">> Error setting Hardware Params: #{inspect reason}")
+      end
+    end
+
+    {:ok, initial_state}
+  end
+
+  @doc """
+    Takes a Hardware State object, and makes it happen
+  """
+  @spec set_initial_params(State.t) :: {:ok, :no_params} | :ok | {:error, term}
+  def set_initial_params(%State{} = state) do
+    if Enum.empty?(state.mcu_params) do
+      {:ok, :no_params}
+    else
+      # iterate over mcu_params and read each one
+      config_pairs = Enum.map(state.mcu_params, fn({param, val}) ->
+        %Farmbot.CeleryScript.Ast{kind: "pair",
+            args: %{label: param, value: val}, body: []}
+      end)
+      Farmbot.CeleryScript.Command.config_update(%{package: "arduino_firmware"},
+        config_pairs)
+    end
+  end
 
   def handle_call({:get_pin, pin_number}, _from, %State{} = state) do
     dispatch Map.get(state.pins, Integer.to_string(pin_number)), state
@@ -80,6 +120,7 @@ defmodule Farmbot.BotState.Hardware do
 
   def handle_cast({:set_param, {param_string, value}}, %State{} = state) do
     new_params = Map.put(state.mcu_params, param_string, value)
+    put_config("params", new_params)
     dispatch %State{state | mcu_params: new_params}
   end
 
