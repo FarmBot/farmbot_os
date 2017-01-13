@@ -89,20 +89,19 @@ defmodule Farmbot.CeleryScript.Command do
                         args: %{x: _x, y: _y, z: _z},
                         body: []} = already_done), do: already_done
 
-  def ast_to_coord(%Ast{kind: "tool", args: %{tool_id: id}, body: []}) do
-    blah =
-      Amnesia.transaction do
-        [asdf] =
-          ToolSlot.where(tool_id == id)
-          |> Amnesia.Selection.values
-          asdf
-      end
-
-    if blah do
-      coordinate(%{x: blah.x, y: blah.y, z: blah.z}, [])
-    else
-      Logger.error ">> could not find tool_slot with tool_id: #{id}"
-      :error
+  # NOTE(connor): don't change `tool_id_` back to `tool_id` what was happening
+  # Amnesia builds local variables by the name of "tool_id", so it was looking
+  # fortool_id == tool_id, which returned
+  # all of them, because every toolslots tool_id
+  # always equals that toolslots tool id lol
+  def ast_to_coord(%Ast{kind: "tool", args: %{tool_id: tool_id_}, body: []}) do
+    blah = Amnesia.transaction do
+      ToolSlot.where(tool_id == tool_id_) |> Amnesia.Selection.values
+    end
+    case blah do
+      [ts] -> coordinate(%{x: ts.x, y: ts.y, z: ts.z}, [])
+      _ -> Logger.error ">> could not find tool_slot with tool_id: #{tool_id_}"
+        :error
     end
   end
 
@@ -301,6 +300,7 @@ defmodule Farmbot.CeleryScript.Command do
        32,33,41,42,43,51,52,53,
        61,62,63,71,72,73,101,102,103]
    for param <- magic_numbers do
+     Process.sleep(10) # Makes this a bit more stable 
      GHan.block_send("F21 P#{param}")
    end
   end

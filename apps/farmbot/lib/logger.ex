@@ -62,6 +62,11 @@ defmodule Farmbot.Logger do
     IO.inspect error
     {:ok, :ok, {messages, false}}
   end
+
+  def handle_call(:messages, {messages, f}) do
+    {:ok, messages, {messages, f}}
+  end
+
   # Catch any stray calls.
   def handle_call(_, state), do: {:ok, :unhandled, state}
 
@@ -180,6 +185,9 @@ defmodule Farmbot.Logger do
   defp filter_module(:"Elixir.Nerves.InterimWiFi", _m), do: {:ok, "[FILTERED]"}
   defp filter_module(:"Elixir.Nerves.NetworkInterface", _m), do: nil
   defp filter_module(:"Elixir.Nerves.InterimWiFi.WiFiManager.EventHandler", _m), do: nil
+  defp filter_module(:"Elixir.Nerves.InterimWiFi.DHCPManager", _), do: nil
+  defp filter_module(:"Elixir.Nerves.NetworkInterface.Worker", _), do: nil
+  defp filter_module(:"Elixir.Nerves.InterimWiFi.DHCPManager.EventHandler", _), do: nil
   defp filter_module(_, message), do: {:ok, message}
 
   defp filter_text(message) when is_list(message), do: nil

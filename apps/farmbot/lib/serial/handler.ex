@@ -43,6 +43,12 @@ defmodule Farmbot.Serial.Handler do
     GenServer.call(__MODULE__, :resume)
   end
 
+  def available?, do: GenServer.call(__MODULE__, :available?)
+
+  def handle_call(:available?, _, nil), do: {:reply, false, nil}
+  def handle_call(:available?, _, {nerves, tty, handler}),
+    do: {:reply, true, {nerves, tty, handler}}
+
   def handle_call(:e_stop, _from, {nerves, tty, handler}) do
     UART.write(nerves, "E")
     UART.close(nerves)
