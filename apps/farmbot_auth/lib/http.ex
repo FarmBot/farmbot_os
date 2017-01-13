@@ -5,6 +5,9 @@ defmodule Farmbot.HTTP do
   alias Farmbot.Auth
   alias Farmbot.Token
 
+  @version Mix.Project.config[:version]
+  @target Mix.Project.config[:target]
+
   @type http_resp :: HTTPotion.Response.t | HTTPotion.ErrorResponse.t
 
   @doc """
@@ -64,6 +67,7 @@ defmodule Farmbot.HTTP do
     do
       {:ok,
         ["Content-Type": "application/json",
+         "User-Agent": "FarmbotOS/#{@version} (#{@target}) #{@target} ()",
          "Authorization": "Bearer " <> token.encoded]}
     else
       _ -> {:error, :no_token}

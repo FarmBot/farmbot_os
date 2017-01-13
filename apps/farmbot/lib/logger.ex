@@ -165,13 +165,25 @@ defmodule Farmbot.Logger do
   defp parse_channels([channels: channels]), do: channels
   defp parse_channels(_), do: []
 
-  @spec sanitize(binary, [any]) :: {:ok, String.t}
+  @spec sanitize(binary, [any]) :: {:ok, String.t} | nil
   defp sanitize(message, meta) do
-    case Keyword.take(meta, [:module]) do
-      Elixir.Nerves.InterimWiFi -> {:ok, "[FILTERED]"}
-      _                         -> {:ok, message}
+    m = Keyword.take(meta, [:module])
+    case m do
+      # Fileter by module. This probably is slow
+      [module: mod] -> filter_module(mod, message)
+      [module: nil] -> filter_text(message)
+      # anything else
+      _ -> filter_text(message)
     end
   end
+
+  defp filter_module(:"Elixir.Nerves.InterimWiFi", _m), do: {:ok, "[FILTERED]"}
+  defp filter_module(:"Elixir.Nerves.NetworkInterface", _m), do: nil
+  defp filter_module(:"Elixir.Nerves.InterimWiFi.WiFiManager.EventHandler", _m), do: nil
+  defp filter_module(_, message), do: {:ok, message}
+
+  defp filter_text(message) when is_list(message), do: nil
+  defp filter_text(m), do: {:ok, m}
 
   # Couuld probably do this inline but wheres the fun in that. its a functional
   # language isn't it?

@@ -7,6 +7,7 @@ defmodule Farmbot.Transport do
   """
   use GenStage
   require Logger
+  @old_scheduler_hack %{ process_info: [] }
 
   defmodule Serialized do
     @moduledoc false
@@ -53,18 +54,19 @@ defmodule Farmbot.Transport do
       pins: monstate.hardware.pins,
       configuration: monstate.configuration.configuration,
       informational_settings: monstate.configuration.informational_settings,
-      farm_scheduler: nil
+      farm_scheduler: @old_scheduler_hack
     }
   end
 
-  # Emit a binary
+  # Emit a message
   def handle_cast({:emit, binary}, state) do
+    IO.inspect binary
     {:noreply, [{:emit, binary}], state}
   end
 
   # Emit a log message
-  def handle_cast({:log, binary}, state) do
-    {:noreply, [{:log, binary}], state}
+  def handle_cast({:log, log}, state) do
+    {:noreply, [{:log, log}], state}
   end
 
   def emit(message) do

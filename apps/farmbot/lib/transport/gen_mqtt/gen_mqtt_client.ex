@@ -51,6 +51,8 @@ defmodule Farmbot.Transport.GenMqtt.Client do
     {:noreply, token}
   end
 
+  def terminate(:authorization, _), do: :ok
+
   def terminate(reason, _) do
     Logger.error ">>`s mqtt client died. #{inspect reason}"
     :ok
