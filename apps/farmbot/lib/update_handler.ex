@@ -1,9 +1,16 @@
+#HACK temp stub out all other platforms so we don't accidentally brick things that arent rpi3
+case Mix.Project.config[:target] do
+  # "When your language is written in your
+  # language so you use your language to decide
+  # weather to use your language to build your language" -- Xzibit
+  "rpi3" ->
 defmodule Farmbot.Updates.Handler do
   alias Farmbot.Auth
   alias Farmbot.BotState
   alias Nerves.Firmware
   require Logger
-  #TODO MOVE ME
+  #TODO(connor): please  refactor this into a target specific module.
+
   @moduledoc """
     Bunch of stuff to do updates.
   """
@@ -177,4 +184,6 @@ defmodule Farmbot.Updates.Handler do
       _ -> Logger.debug ">> won't check for firmware updates."
     end
   end
+end
+_ -> nil
 end
