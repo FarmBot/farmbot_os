@@ -95,7 +95,14 @@ defmodule Farmbot.Configurator.Router do
     json = Poison.encode!(only_messages)
     conn |> send_resp(200, json)
   end
-  
+
+  get "/api/state" do
+    Farmbot.BotState.Monitor.get_state
+     state = Farmbot.Transport.get_state
+     json = Poison.encode!(state)
+     conn |> send_resp(200, json)
+  end
+
   # anything that doesn't match a rest end point gets the index.
   match _, do: conn |> send_resp(404, "not found")
 
