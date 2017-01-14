@@ -89,7 +89,7 @@ defmodule Module.concat([Farmbot, System, "rpi3", Network]) do
     |> String.replace("\t", "")
     |> String.replace("\\x00", "")
     |> String.split("\n")
-    |> Enum.filter(fn(s) -> String.contains?(s, "SSID") end)
+    |> Enum.filter(fn(s) -> String.contains?(s, "SSID: ") end)
     |> Enum.map(fn(z) -> String.replace(z, "SSID: ", "") end)
     |> Enum.filter(fn(z) -> String.length(z) != 0 end)
   end
