@@ -31,22 +31,14 @@ defmodule Farmbot.BotState.Monitor do
 
   # When we get a state update from Hardware
   def handle_cast(%Hardware{} = new_things, %State{} = state) do
-    if new_things != state.hardware do
-      new_state = %State{state | hardware: new_things}
-      dispatch(new_state)
-    else
-      no_dispatch(state)
-    end
+    new_state = %State{state | hardware: new_things}
+    dispatch(new_state)
   end
 
   # When we get a state update from Configuration
   def handle_cast(%Configuration{} = new_things, %State{} = state) do
-    if new_things != state.configuration do
-      new_state = %State{state | configuration: new_things}
-      dispatch(new_state)
-    else
-      no_dispatch(state)
-    end
+    new_state = %State{state | configuration: new_things}
+    dispatch(new_state)
   end
 
   def handle_call(:get_state,_, state), do: {:reply, state, [state], state}
@@ -57,8 +49,7 @@ defmodule Farmbot.BotState.Monitor do
   def get_state, do: GenServer.call(__MODULE__, :get_state)
 
   @spec dispatch(State.t) :: no_return
-  defp dispatch(%State{} = state), do: {:noreply, [state], state}
-
-  @spec dispatch(State.t) :: no_return
-  defp no_dispatch(%State{} = state), do: {:noreply, [], state}
+  defp dispatch(%State{} = state) do
+      {:noreply, [state], state}
+  end
 end

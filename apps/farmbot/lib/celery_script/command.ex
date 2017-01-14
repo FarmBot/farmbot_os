@@ -300,7 +300,7 @@ defmodule Farmbot.CeleryScript.Command do
        32,33,41,42,43,51,52,53,
        61,62,63,71,72,73,101,102,103]
    for param <- magic_numbers do
-     Process.sleep(10) # Makes this a bit more stable 
+     Process.sleep(10) # Makes this a bit more stable
      GHan.block_send("F21 P#{param}")
    end
   end
@@ -551,7 +551,7 @@ defmodule Farmbot.CeleryScript.Command do
       "arduino_firmware" ->
         Farmbot.Updates.Handler.check_and_download_updates(:fw)
       "farmbot_os" ->
-        Farmbot.Updates.Handler.check_and_download_updates(:os)
+        Logger.warn "OS UPDATES WILL BE READY SOON"
       u -> Logger.debug ">> got a request to check updates for an " <>
         "unrecognized package: #{u}"
     end
