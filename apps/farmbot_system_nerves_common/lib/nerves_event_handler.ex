@@ -1,4 +1,4 @@
-defmodule Module.concat([Farmbot, System, "rpi2", Network, EventManager]) do
+defmodule Farmbot.System.NervesCommon.EventManager do
   use GenEvent
   require Logger
 

@@ -1,11 +1,11 @@
-defmodule Module.concat([Farmbot, System, "rpi3", Mixfile]) do
+defmodule Farmbot.System.NervesCommon.Mixfile do
   use Mix.Project
   @version Path.join([__DIR__, "..", "farmbot", "VERSION"])
   |> File.read!
   |> String.strip
 
   def project do
-    [app: :farmbot_system_rpi3,
+    [app: :farmbot_system_nerves_common,
      version: @version,
      build_path: "../../_build",
      config_path: "../../config/config.exs",
@@ -22,7 +22,8 @@ defmodule Module.concat([Farmbot, System, "rpi3", Mixfile]) do
   end
 
   defp deps do
-    [{:farmbot_system_nerves_common, in_umbrella: true},
+    [{:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi"},
+     {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
      {:farmbot_system, in_umbrella: true}]
   end
 end
