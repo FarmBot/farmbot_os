@@ -32,7 +32,13 @@ defmodule Farmbot.BotState.Monitor do
   # When we get a state update from Hardware
   def handle_cast(%Hardware{} = new_things, %State{} = state) do
     new_state = %State{state | hardware: new_things}
-    dispatch(new_state)
+    # NOTE(connor): this stops log messages from sending state.
+    # But is probably not good. Should fix logger, and this will go away
+    if state == new_state do
+      {:noreply, [], state}
+    else
+      dispatch(new_state)
+    end
   end
 
   # When we get a state update from Configuration

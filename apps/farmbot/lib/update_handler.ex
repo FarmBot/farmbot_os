@@ -1,13 +1,6 @@
-#HACK temp stub out all other platforms so we don't accidentally brick things that arent rpi3
-case Mix.Project.config[:target] do
-  # "When your language is written in your
-  # language so you use your language to decide
-  # weather to use your language to build your language" -- Xzibit
-  "rpi3" ->
 defmodule Farmbot.Updates.Handler do
   alias Farmbot.Auth
   alias Farmbot.BotState
-  alias Nerves.Firmware
   require Logger
   #TODO(connor): please  refactor this into a target specific module.
 
@@ -40,17 +33,6 @@ defmodule Farmbot.Updates.Handler do
     end
   end
 
-  @spec install_update(:os | :fw, String.t) :: :ok | {:error, atom}
-  defp install_update(:os, url) do
-    # This is where the actual download and update happens.
-    Logger.debug ">> found an operating system update. "
-    File.rm("/tmp/update.fw")
-    url |> Downloader.run("/tmp/update.fw") |> Firmware.upgrade_and_finalize
-    Logger.warn ">> is going down for an operating system update!",
-      channels: [:toast]
-    Process.sleep(5000)
-    Firmware.reboot
-  end
 
   defp install_update(:fw, url) do
     Logger.debug ">> found a firmware update!"
@@ -73,22 +55,6 @@ defmodule Farmbot.Updates.Handler do
     end
   end
 
-  @doc """
-    Shortcut checking updates for the OS
-  """
-  @spec check_updates(:os) :: update_output
-  def check_updates(:os) do
-    with {:ok, token} <- Auth.get_token,
-    do: check_updates(
-          token.unencoded.os_update_server,
-          BotState.get_os_version,
-          ".fw")
-  end
-
-  @doc """
-    Shortcut checking updates for the Firmware
-  """
-  @spec check_updates(:fw) :: update_output
   def check_updates(:fw) do
     with {:ok, token} <- Auth.get_token,
     do: check_updates(
@@ -97,8 +63,6 @@ defmodule Farmbot.Updates.Handler do
           ".hex")
   end
 
-  @spec check_updates(any) :: {:error, :probably_typo}
-  def check_updates(_), do: {:error, :probably_typo}
 
   @doc """
     Uses Github Release api to check for an update.
@@ -107,7 +71,7 @@ defmodule Farmbot.Updates.Handler do
   """
   @spec check_updates(String.t, String.t, String.t) :: update_output
   def check_updates(url, current_version, extension) do
-    resp = HTTPotion.get url, [headers: ["User-Agent": "Farmbot"]]
+    resp = HTTPotion.get url, [headers: ["User-Agent": "FarmbotOLD"]]
     with {:assets, new_version, assets} <- parse_resp(resp),
          true <- is_updates?(current_version, new_version),
          do: get_dl_url(assets, extension)
@@ -166,24 +130,18 @@ defmodule Farmbot.Updates.Handler do
   @spec parse_resp(any) :: {:error, :bad_resp}
   def parse_resp(_), do: {:error, :bad_resp}
 
-  @doc """
-    Forces a check according to configuration.
-  """
-  @spec do_update_check :: any
   def do_update_check do
     Logger.debug ">> is checking for updates."
 
     # check configuration.
     case BotState.get_config(:os_auto_update) do
-      true -> check_and_download_updates(:os)
-      _ -> Logger.debug ">> won't check for operating system updates."
+      true -> Farmbot.System.Updates.check_and_download_updates()
+      _ -> Logger.warn ">> won't check for operating system updates."
     end
 
     case BotState.get_config(:fw_auto_update) do
       true -> check_and_download_updates(:fw)
-      _ -> Logger.debug ">> won't check for firmware updates."
+      _ -> Logger.warn ">> won't check for firmware updates."
     end
   end
-end
-_ -> nil
 end

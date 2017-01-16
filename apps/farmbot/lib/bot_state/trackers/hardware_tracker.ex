@@ -64,6 +64,7 @@ defmodule Farmbot.BotState.Hardware do
       end)
       Farmbot.CeleryScript.Command.config_update(%{package: "arduino_firmware"},
         config_pairs)
+      :ok
     end
   end
 
