@@ -57,14 +57,11 @@ mix credo --strict
 ```bash
 cd ~/farmbot/os
 # this should set up the environment needed to build the system
-MIX_ENV=prod mix farmbot.system
-
-# If that gives an error try this:
-git clone https://github.com/nerves-project/nerves_system_br deps/nerves_system_br
-# then try again.
+export NERVES_TARGET=<MY_BOARD_CHOICE>
+make create-build-${NERVES_TARGET}
 
 # Now that the environment is set up you should change into the new dir it told you too.
-cd apps/NERVES_SYSTEM_*
+cd apps/NERVES_SYSTEM_${NERVES_TARGET}
 # from this dir we have a few different things we can configure in buildroot.
 
 # To add/remove linux packages.
@@ -94,15 +91,12 @@ make
 # on a core i7, 32 gigs or ram, nvme ssd machine, it takes about 15-20 minutes depending on if ccache is enabled.
 
 # when the rootfs build finishes to use said rootfs in building firmware:
-cd ~/farmbot/os
-MIX_ENV=prod NERVES_SYSTEM=~/farmbot/os/apps/NERVES_SYSTEM_* mix firmware
+cd ../farmbot
 
-# this can then be uploaded to the device. (note you need an ip address)
-MIX_ENV=prod NERVES_SYSTEM=~/farmbot/os/apps/NERVES_SYSTEM_* mix firmware --upload
+mix firmware
+# to burn to an sdcard. (this requires sudo)
+mix firmware.burn
 
-# or burned
-MIX_ENV=prod NERVES_SYSTEM=~/farmbot/os/apps/NERVES_SYSTEM_* mix firmware
-MIX_ENV=prod bash scripts/burn.sh
 ```
 
 ## Porting to a New System

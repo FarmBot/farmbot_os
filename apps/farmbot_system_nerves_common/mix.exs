@@ -4,13 +4,16 @@ defmodule Farmbot.System.NervesCommon.Mixfile do
   |> File.read!
   |> String.strip
 
+  def target(:prod), do: System.get_env("NERVES_TARGET")
+  def target(_), do: "development"
+
   def project do
     [app: :farmbot_system_nerves_common,
      version: @version,
      build_path: "../../_build",
-     config_path: "../../config/config.exs",
+     config_path: "../../farmbot_config.exs",
      deps_path: "../../deps",
-     lockfile: "../../mix.lock",
+     lockfile: "../../mix-#{target(Mix.env())}.lock",
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
