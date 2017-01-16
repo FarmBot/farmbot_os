@@ -89,12 +89,13 @@ defmodule Farmbot.System.NervesCommon.Network do
       def enumerate, do: Nerves.NetworkInterface.interfaces -- ["lo"]
 
       defp event_manager, do: Nerves.NetworkInterface.event_manager()
+      
       defp clean_ssid(hc) do
         hc
         |> String.replace("\t", "")
         |> String.replace("\\x00", "")
         |> String.split("\n")
-        |> Enum.filter(fn(s) -> String.contains?(s, "SSID") end)
+        |> Enum.filter(fn(s) -> String.contains?(s, "SSID: ") end)
         |> Enum.map(fn(z) -> String.replace(z, "SSID: ", "") end)
         |> Enum.filter(fn(z) -> String.length(z) != 0 end)
       end
