@@ -6,7 +6,7 @@ defmodule Farmbot do
   use Supervisor
   alias Farmbot.Sync.Database
 
-  def init(%{target: target, compat_version: compat_version, version: version})
+  def init(%{target: target, compat_version: compat_version, version: version, commit: commit})
   do
     children = [
       # handles communications between bot and arduino
@@ -14,7 +14,7 @@ defmodule Farmbot do
 
       # Handles tracking of various parts of the bots state.
       supervisor(Farmbot.BotState.Supervisor,
-        [%{target: target, compat_version: compat_version, version: version}],
+        [%{target: target, compat_version: compat_version, version: version, commit: commit}],
       restart: :permanent),
 
       # Handles Farmbot scheduler stuff.

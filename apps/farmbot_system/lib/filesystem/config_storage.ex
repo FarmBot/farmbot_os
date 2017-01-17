@@ -5,6 +5,7 @@ defmodule Farmbot.System.FS.ConfigStorage do
     information in an easy to reach place.
   """
   use GenServer
+  alias Farmbot.System.FS.ConfigFileMigrations, as: CFM
   require Logger
 
   @config_file Application.get_env(:farmbot_system, :path) <> "/config.json"
@@ -28,7 +29,11 @@ defmodule Farmbot.System.FS.ConfigStorage do
       {:ok, contents} ->
         Logger.debug ">> is loading its configuration file: #{path}"
         f = parse_json!(contents)
-        {:ok, f}
+        migrated = CFM.migrate(f)
+        if f != migrated do
+          write!(migrated)
+        end
+        {:ok, migrated}
       # if not start over with the default config file (from the priv dir)
       {:error, :enoent} ->
         Logger.debug ">> is creating a new configuration file: #{default_config_file()}"

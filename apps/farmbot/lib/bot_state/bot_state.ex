@@ -24,6 +24,15 @@ defmodule Farmbot.BotState do
   end
 
   @doc """
+    Sets the current steps per mm.
+  """
+  @spec set_steps_per_mm(integer, integer, integer) :: boolean
+  def set_steps_per_mm(x,y,z) do
+    GenServer.call(Configuration,
+      {:update_config, "steps_per_mm", %{x: x, y: y, z: z}})
+  end
+
+  @doc """
     Sets a pin under the given value
   """
   @spec set_pin_value(integer, integer) :: :ok
