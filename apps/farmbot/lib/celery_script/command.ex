@@ -340,6 +340,7 @@ defmodule Farmbot.CeleryScript.Command do
   """
   @spec execute(%{sequence_id: integer}, []) :: no_return
   def execute(%{sequence_id: id}, []) do
+    {:ok, _} = Farmbot.Sync.sync()
     Farmbot.Sync.get_sequence(id)
     |> Ast.parse
     |> do_command
