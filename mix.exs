@@ -8,7 +8,6 @@ defmodule FarmbotOs.Mixfile do
      elixir: "~> 1.4",
      version: @version,
      target: target(Mix.env),
-     config_path: "farmbot_config.exs",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      default_task: "warning",

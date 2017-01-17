@@ -12,9 +12,9 @@ defmodule Farmbot.Auth.Mixfile do
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      build_path: "../../_build",
-     config_path: "../../farmbot_config.exs",
+     config_path: "../../config/config.exs",
      deps_path: "../../deps",
-     lockfile: "../../mix-#{target(Mix.env())}.lock",
+     lockfile: "../../mix.lock",
      deps: deps()]
   end
 
