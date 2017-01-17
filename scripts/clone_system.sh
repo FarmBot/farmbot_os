@@ -1,10 +1,13 @@
 #!/bin/bash
-# sets up the environment for building the linux part of Farmbot.
+SYSTEM=$1
+NERVES_SYSTEM_BR_GIT="https://github.com/nerves-project/nerves_system_br"
 
-CWD=$PWD # this should be from the root of the project
-APPS_DIR=$CWD/apps
-TARGET_DIR=$APPS_DIR/nerves_system_$NERVES_TARGET
-BR_DIR=$CWD/deps/nerves_system_br
+if [ -d "apps/NERVES_SYSTEM_$SYSTEM" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  echo "NERVES_SYSTEM_$SYSTEM dir found."
+else
+  echo "NERVES_SYSTEM_$SYSTEM dir not found."
+  git clone $NERVES_SYSTEM_BR_GIT apps/nerves_system_br
+fi
 
-$BR_DIR/create-build.sh $TARGET_DIR/nerves_defconfig  $APPS_DIR/NERVES_SYSTEM_$NERVES_TARGET
-exit 0
+apps/nerves_system_br/create-build.sh apps/nerves_system_$SYSTEM/nerves_defconfig apps/NERVES_SYSTEM_$SYSTEM

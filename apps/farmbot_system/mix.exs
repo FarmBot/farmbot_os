@@ -1,5 +1,6 @@
 defmodule Farmbot.System.Mixfile do
   use Mix.Project
+
   @version Path.join([__DIR__, "..", "farmbot", "VERSION"])
   |> File.read!
   |> String.strip

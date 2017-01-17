@@ -26,7 +26,7 @@ defmodule Farmbot.Mixfile do
      build_path:  "../../_build/#{target(Mix.env)}",
      deps_path:   "../../deps/#{target(Mix.env)}",
      config_path: "../../config/config.exs",
-     lockfile:    "../../mix.lock",
+     lockfile: "../../mix.lock",
      aliases:     aliases(Mix.env),
      deps:        deps() ++ system(target(Mix.env)),
      name: "Farmbot",

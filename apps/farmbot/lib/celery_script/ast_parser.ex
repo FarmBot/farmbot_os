@@ -6,10 +6,11 @@ defmodule Farmbot.CeleryScript.Ast do
   @type t :: %__MODULE__{
     args: map,
     body: [t,...],
-    kind: String.t
+    kind: String.t,
+    comment: String.t | nil
   }
   @enforce_keys [:args, :body, :kind]
-  defstruct @enforce_keys
+  defstruct [:args, :body, :kind, :comment]
 
   @doc """
     Parses json and traverses the tree and turns everything can
@@ -19,25 +20,23 @@ defmodule Farmbot.CeleryScript.Ast do
   def parse({:ok, map}), do: parse(map) # this allows me to pipe from Poison
 
   @spec parse(map) :: t
-  def parse(%{"kind" => kind, "args" => args, "body" => body}) do
-    %__MODULE__{kind: kind, args: parse_args(args), body: parse(body)}
+
+  def parse(%{"kind" => kind, "args" => args} = thing) do
+    body = thing["body"] || []
+    comment = thing["comment"]
+    %__MODULE__{kind: kind, args: parse_args(args), body: parse(body), comment: comment}
   end
 
-  # The body is technically optional
-  def parse(%{"kind" => kind, "args" => args}) do
-    %__MODULE__{kind: kind, args: parse_args(args), body: []}
+  def parse(%{__struct__: _} = thing) do
+    thing |> Map.from_struct |> parse
   end
 
-  # If the map isnt stringed.
-  def parse(%{kind: kind, args: args, body: body}) do
-    %__MODULE__{kind: kind, args: parse_args(args), body: parse(body)}
+  def parse(%{kind: kind, args: args} = thing) do
+    body = thing[:body] || []
+    comment = thing[:comment]
+    %__MODULE__{kind: kind, body: parse(body), args: parse_args(args), comment: comment}
   end
 
-
-  # The body is technically optional
-  def parse(%{kind: kind, args: args}) do
-    %__MODULE__{kind: kind, args: parse_args(args), body: []}
-  end
 
   # You can give a list of nodes.
   @spec parse([map,...]) :: [t,...]
@@ -46,6 +45,7 @@ defmodule Farmbot.CeleryScript.Ast do
       acc ++ [parse(blah)]
     end)
   end
+
 
   def parse(_), do: %__MODULE__{kind: "nothing", args: %{}, body: []}
 

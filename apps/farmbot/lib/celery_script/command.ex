@@ -239,6 +239,7 @@ defmodule Farmbot.CeleryScript.Command do
       args: %{package: String.t},
       body: [Ast.t]
   """
+  # MUCH IF SORRY ABOUT THAT
   @spec config_update(%{package: package}, [pair]) :: no_return
   def config_update(%{package: "arduino_firmware"}, config_pairs) do
     blah = pairs_to_tuples(config_pairs)
@@ -549,9 +550,11 @@ defmodule Farmbot.CeleryScript.Command do
   def check_updates(%{package: package}, []) do
     case package do
       "arduino_firmware" ->
+        # TODO(Connor): Move this, and its contents somewhere else
         Farmbot.Updates.Handler.check_and_download_updates(:fw)
       "farmbot_os" ->
-        Logger.warn "OS UPDATES WILL BE READY SOON"
+        Farmbot.System.Updates.check_and_download_updates()
+
       u -> Logger.debug ">> got a request to check updates for an " <>
         "unrecognized package: #{u}"
     end
@@ -611,8 +614,10 @@ defmodule Farmbot.CeleryScript.Command do
   """
   @spec do_command(Ast.t) :: :no_instruction | any
   def do_command(%Ast{} = ast) do
-    # i wish there was a better way to do this?
     fun_name = String.to_atom(ast.kind)
+    # print the comment if it exists
+    if ast.comment, do: Logger.debug ">> [#{fun_name}] - #{ast.comment}"
+
     if function_exported?(__MODULE__, fun_name, 2) do
       Kernel.apply(__MODULE__, fun_name, [ast.args, ast.body])
     else
