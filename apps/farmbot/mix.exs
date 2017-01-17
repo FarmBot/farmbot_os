@@ -59,16 +59,16 @@ defmodule Farmbot.Mixfile do
       :rsa,
       :runtime_tools,
       :mustache,
-      :timex,
       :vmq_commons,
       :amnesia,
-      :quantum,
       :gen_stage,
       :nerves,
       :"farmbot_system_#{target(Mix.env)}",
       :farmbot_system,
       :farmbot_auth,
       :farmbot_configurator,
+      :quantum, # Quantum needs to start AFTER farmbot_system, so we can set up its dirs
+      :timex, # Timex needs to start AFTER farmbot_system, so we can set up its dirs
    ]
   end
 

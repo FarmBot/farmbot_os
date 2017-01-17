@@ -13,7 +13,7 @@ prod_env:
 
 clean:
 	$(info Cleaning)
-	rm -rf apps/NERVES_SYSTEM_*
+	# rm -rf apps/NERVES_SYSTEM_*
 	rm -rf apps/farmbot/_images
 	rm -rf deps
 	rm -rf _build

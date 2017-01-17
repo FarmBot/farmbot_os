@@ -12,6 +12,7 @@ defmodule Farmbot.System.NervesCommon.FileSystem do
     block_device: block_device)
   do
     quote do
+      require Logger
       # mount -t ext4 -o ro,remount /dev/mmcblk0p3 /state
 
       @doc false
@@ -31,6 +32,25 @@ defmodule Farmbot.System.NervesCommon.FileSystem do
           # If not, we are fine. continue
           _ -> :ok
         end
+
+        :ok = tzdata_hack()
+      end
+
+      @doc """
+        This needs to happen because tzdata by default polls and downloads
+        things to its release dir, which is read only in nerves environments.
+        to fix this we bundle the file it would normally download, and package
+        it into farmbot_system, then copy it to a configured dir for tzdata to
+        use because /tmp is read-write, we will just copy it there at every
+        boot becase its easier.
+      """
+      def tzdata_hack() do
+        Logger.debug ">> Hacking tzdata..."
+        # File.cp "#{:code.priv_dir(:tzdata)}/release_ets/2016j.ets", "/tmp"
+        File.mkdir "/tmp/release_ets"
+        File.cp_r "#{:code.priv_dir(:farmbot_system)}/release_ets/2016j.ets", "/tmp/release_ets/2016j.ets"
+        Logger.debug ">> Hacked!"
+        :ok
       end
 
       @doc false
