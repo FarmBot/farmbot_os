@@ -3,10 +3,13 @@ use Mix.Config
 target = Mix.Project.config[:target]
 mqtt_transport = Farmbot.Transport.GenMqtt
 
+config :logger,
+  utc_log: true
+
 # I force colors because they are important.
 config :logger, :console,
-  colors: [enabled: true],
-  utc_logs: true
+  colors: [enabled: true]
+
 
 # Iex needs colors too.
 config :iex, :colors,

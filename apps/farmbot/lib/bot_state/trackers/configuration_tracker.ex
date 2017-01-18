@@ -16,19 +16,23 @@ defmodule Farmbot.BotState.Configuration do
         os_auto_update: false,
         fw_auto_update: false,
         timezone:       nil,
-        steps_per_mm:   500
+        steps_per_mm:   %{x: 500, y: 500, z: 500}
       },
       informational_settings: %{
         controller_version: "loading...",
         compat_version: -1,
         target: "loading...",
         private_ip: nil,
-        throttled: "loading..."
+        throttled: "loading...",
+        commit: "loading..."
        }
     ]
 
   @type args
-    :: %{compat_version: integer, target: String.t, version: String.t}
+    :: %{compat_version: integer,
+         target: String.t,
+         version: String.t,
+         commit: String.t}
   @type state ::
     %State{
       locks: [any],
@@ -36,7 +40,7 @@ defmodule Farmbot.BotState.Configuration do
         os_auto_update: boolean,
         fw_auto_update: boolean,
         timezone: String.t,
-        steps_per_mm: integer
+        steps_per_mm: %{x: integer, y: integer, z: integer}
       },
       informational_settings: map # TODO type this
     }
@@ -45,7 +49,8 @@ defmodule Farmbot.BotState.Configuration do
   def load(
     %{compat_version: compat_version,
       target: target,
-      version: version})
+      version: version,
+      commit: commit})
   do
     initial = %State{
       informational_settings: %{
@@ -53,20 +58,21 @@ defmodule Farmbot.BotState.Configuration do
         compat_version: compat_version,
         target: target,
         private_ip: "loading...",
-        throttled: get_throttled()
+        throttled: get_throttled(),
+        commit: commit
       }
     }
     with {:ok, os_a_u}   <- get_config("os_auto_update"),
          {:ok, fw_a_u}   <- get_config("fw_auto_update"),
          {:ok, timezone} <- get_config("timezone"),
-         {:ok, steps_pm} <- get_config("steps_per_mm")
+         {:ok, %{"x" => spm_x, "y" => spm_y, "z" => spm_z}} <- get_config("steps_per_mm")
          do
            new_state =
              %State{initial |
                 configuration: %{os_auto_update: os_a_u,
                                  fw_auto_update: fw_a_u,
                                  timezone: timezone,
-                                 steps_per_mm: steps_pm}}
+                                 steps_per_mm: %{x: spm_x, y: spm_y, z: spm_z}}}
            {:ok, new_state}
          end
   end
@@ -108,9 +114,34 @@ defmodule Farmbot.BotState.Configuration do
     dispatch true, new_state
   end
 
-  def handle_call({:update_config, "steps_per_mm", value},
-    _from, %State{} = state)
-  when is_integer(value) do
+  # NOTE(connor): i think this should technically be a
+  # stringged map, but not going to worry
+  # about it till it comes up
+  def handle_call({:update_config, "steps_per_mm", %{x: _x, y: _y, z: _z} = value}, _, state) do
+    new_config = Map.put(state.configuration, :steps_per_mm, value)
+    new_state = %State{state | configuration: new_config}
+    put_config("steps_per_mm", value)
+    dispatch true, new_state
+  end
+
+  def handle_call({:update_config, "steps_per_mm_x", val}, _, state) do
+    value = %{state.configuration.steps_per_mm | x: val}
+    new_config = Map.put(state.configuration, :steps_per_mm, value)
+    new_state = %State{state | configuration: new_config}
+    put_config("steps_per_mm", value)
+    dispatch true, new_state
+  end
+
+  def handle_call({:update_config, "steps_per_mm_y", val}, _, state) do
+    value = %{state.configuration.steps_per_mm | y: val}
+    new_config = Map.put(state.configuration, :steps_per_mm, value)
+    new_state = %State{state | configuration: new_config}
+    put_config("steps_per_mm", value)
+    dispatch true, new_state
+  end
+
+  def handle_call({:update_config, "steps_per_mm_z", val}, _, state) do
+    value = %{state.configuration.steps_per_mm | z: val}
     new_config = Map.put(state.configuration, :steps_per_mm, value)
     new_state = %State{state | configuration: new_config}
     put_config("steps_per_mm", value)

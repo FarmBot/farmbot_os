@@ -8,7 +8,10 @@ defmodule Farmbot.BotState.Supervisor do
   require Logger
   alias Farmbot.EasterEggs
   def init(
-    %{target: target, compat_version: compat_version, version: version})
+    %{target: target,
+      compat_version: compat_version,
+      version: version,
+      commit: commit})
   do
     children = [
       worker(Farmbot.BotState.Monitor, [], [restart: :permanent]),
@@ -16,7 +19,8 @@ defmodule Farmbot.BotState.Supervisor do
       worker(Farmbot.BotState.Configuration, [
         %{compat_version: compat_version,
           target: target,
-          version: version}
+          version: version,
+          commit: commit}
         ], [restart: :permanent]),
 
       worker(Farmbot.BotState.Hardware,  [], [restart: :permanent]),

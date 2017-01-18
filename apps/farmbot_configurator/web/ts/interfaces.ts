@@ -97,7 +97,11 @@ export interface BotConfigFile {
         /** timezone of this bot */
         timezone: string;
         /** steps per milimeter for the arduino firmware */
-        steps_per_mm: number;
+        steps_per_mm: {
+            x: number;
+            y: number;
+            z: number;
+        };
     },
     /** hardware mcu stuff */
     hardware: {

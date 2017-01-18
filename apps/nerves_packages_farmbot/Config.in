@@ -1,0 +1,1 @@
+source "$NERVES_DEFCONFIG_DIR/../nerves_packages_farmbot/package/mruby/Config.in"

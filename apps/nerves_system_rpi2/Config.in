@@ -2,3 +2,4 @@
 #
 # If these are non-proprietary, please consider contributing them back to
 # Nerves or Buildroot.
+source "$NERVES_DEFCONFIG_DIR/../nerves_packages_farmbot/Config.in"

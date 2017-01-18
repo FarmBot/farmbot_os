@@ -15,6 +15,11 @@ defmodule Farmbot.Mixfile do
     |> String.strip
     |> String.to_integer
 
+  def commit() do
+    {t,_} = System.cmd("git", ["log", "--pretty=format:%h", "-1"])
+    t
+  end
+
   def project do
     [app: :farmbot,
      test_coverage: [tool: ExCoveralls],
@@ -40,9 +45,14 @@ defmodule Farmbot.Mixfile do
   def application do
     [mod:
       { Farmbot,
-      [ %{target: target(Mix.env),
-          compat_version: @compat_version,
-          version: @version} ]
+        [
+          %{
+            target: target(Mix.env),
+            compat_version: @compat_version,
+            version: @version,
+            commit: commit()
+            }
+        ]
       },
      applications: applications(),
      included_applications: [:gen_mqtt]]
@@ -59,16 +69,16 @@ defmodule Farmbot.Mixfile do
       :rsa,
       :runtime_tools,
       :mustache,
-      :timex,
       :vmq_commons,
       :amnesia,
-      :quantum,
       :gen_stage,
       :nerves,
       :"farmbot_system_#{target(Mix.env)}",
       :farmbot_system,
       :farmbot_auth,
       :farmbot_configurator,
+      :quantum, # Quantum needs to start AFTER farmbot_system, so we can set up its dirs
+      :timex, # Timex needs to start AFTER farmbot_system, so we can set up its dirs
    ]
   end
 

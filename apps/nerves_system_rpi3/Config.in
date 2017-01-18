@@ -1,1 +1,1 @@
-source "$NERVES_DEFCONFIG_DIR/package/mruby/Config.in"
+source "$NERVES_DEFCONFIG_DIR/../nerves_packages_farmbot/Config.in"

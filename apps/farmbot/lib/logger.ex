@@ -198,8 +198,12 @@ defmodule Farmbot.Logger do
   # Takes Loggers time stamp and converts it into a unix timestamp.
   defp parse_created_at({{year, month, day}, {hour, minute, second, _}}) do
     dt = Timex.to_datetime({{year, month, day}, {hour, minute, second}})
-    unix = dt |> Timex.to_unix
-    {:ok, unix}
+    # unix = dt |> Timex.to_unix
+    # IO.puts unix
+    f = DateTime.to_iso8601(dt)
+    # IO.inspect dt
+    # IO.inspect(f)
+    {:ok, f}
   end
   defp parse_created_at({_,_}), do: {:ok, :os.system_time}
   defp parse_created_at(_), do: nil
