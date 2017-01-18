@@ -110,7 +110,8 @@ defmodule Farmbot.Mixfile do
   # New version of nerves might not need this?
   def aliases(:prod) do
     ["deps.precompile": ["nerves.precompile", "deps.precompile"],
-     "deps.loadpaths":  ["deps.loadpaths", "nerves.loadpaths"]]
+     "deps.loadpaths":  ["deps.loadpaths", "nerves.loadpaths"],
+     "firmware.upload": ["farmbot.upload"]]
   end
 
   # if not in prod mode nothing special.

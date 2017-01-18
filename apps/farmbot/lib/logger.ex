@@ -41,7 +41,8 @@ defmodule Farmbot.Logger do
     channels = parse_channels(Keyword.take(metadata, [:channels]))
 
     # BUG: should not be poling the bot for its position.
-    pos = BotState.get_current_pos
+    # pos = BotState.get_current_pos
+    pos = [-1,-2,-3]
 
     # take logger time stamp and spit out a unix timestamp for the javascripts.
     with({:ok, created_at} <- parse_created_at(timestamp),

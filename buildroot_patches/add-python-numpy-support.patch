@@ -1,0 +1,59 @@
+diff --git a/package/opencv/Config.in b/package/opencv/Config.in
+index c046baa..6cb6183 100644
+--- a/package/opencv/Config.in
++++ b/package/opencv/Config.in
+@@ -119,7 +119,12 @@ config BR2_PACKAGE_OPENCV_LIB_PHOTO
+ 	help
+ 	  Include opencv_photo module into the OpenCV build.
+ 
+-comment "opencv_python module requires numpy which is not yet available."
++config BR2_PACKAGE_OPENCV_LIB_PYTHON
++	bool "python"
++	depends on BR2_PACKAGE_PYTHON
++	help
++	  Include opencv_python module into the OpenCV build.
++	  No python example is installed.
+ 
+ config BR2_PACKAGE_OPENCV_LIB_STITCHING
+ 	bool "stitching"
+diff --git a/package/opencv/opencv.mk b/package/opencv/opencv.mk
+index 947589b..58250ab 100644
+--- a/package/opencv/opencv.mk
++++ b/package/opencv/opencv.mk
+@@ -58,7 +58,6 @@ OPENCV_CONF_OPTS += \
+ 	-DBUILD_opencv_objdetect=$(if $(BR2_PACKAGE_OPENCV_LIB_OBJDETECT),ON,OFF) \
+ 	-DBUILD_opencv_ocl=OFF \
+ 	-DBUILD_opencv_photo=$(if $(BR2_PACKAGE_OPENCV_LIB_PHOTO),ON,OFF) \
+-	-DBUILD_opencv_python=OFF \
+ 	-DBUILD_opencv_stitching=$(if $(BR2_PACKAGE_OPENCV_LIB_STITCHING),ON,OFF) \
+ 	-DBUILD_opencv_superres=$(if $(BR2_PACKAGE_OPENCV_LIB_SUPERRES),ON,OFF) \
+ 	-DBUILD_opencv_ts=$(if $(BR2_PACKAGE_OPENCV_LIB_TS),ON,OFF) \
+@@ -138,7 +137,6 @@ OPENCV_CONF_OPTS += \
+ OPENCV_CONF_OPTS += \
+ 	-DBUILD_JASPER=OFF \
+ 	-DBUILD_JPEG=OFF \
+-	-DBUILD_NEW_PYTHON_SUPPORT=OFF \
+ 	-DBUILD_OPENEXR=OFF \
+ 	-DBUILD_PNG=OFF \
+ 	-DBUILD_TIFF=OFF \
+@@ -254,4 +252,20 @@ endef
+ OPENCV_POST_INSTALL_TARGET_HOOKS += OPENCV_CLEAN_INSTALL_DATA
+ endif
+ 
++ifeq ($(BR2_PACKAGE_OPENCV_LIB_PYTHON),y)
++OPENCV_CONF_OPTS += \
++	-DBUILD_opencv_python=ON \
++	-DBUILD_NEW_PYTHON_SUPPORT=ON \
++	-DPYTHON_EXECUTABLE=$(HOST_DIR)/usr/bin/python2                               \
++	-DPYTHON_INCLUDE_DIR=$(STAGING_DIR)/usr/include/python$(PYTHON_VERSION_MAJOR) \
++	-DPYTHON_LIBRARY=$(STAGING_DIR)/usr/lib/libpython$(PYTHON_VERSION_MAJOR).so   \
++	-DPYTHON_NUMPY_INCLUDE_DIR=$(STAGING_DIR)/usr/lib/python$(PYTHON_VERSION_MAJOR)/site-packages/numpy/core/include \
++	-DPYTHON_NUMPY_VERSION=$(PYTHON_NUMPY_VERSION)
++OPENCV_DEPENDENCIES += python python-numpy
++else
++OPENCV_CONF_OPTS += \
++	-DBUILD_opencv_python=ON \
++	-DBUILD_NEW_PYTHON_SUPPORT=OFF
++endif
++
+ $(eval $(cmake-package))

@@ -10,4 +10,5 @@ else
   git clone $NERVES_SYSTEM_BR_GIT apps/nerves_system_br
 fi
 
+cp buildroot_patches/*.patch apps/nerves_system_br/patches
 apps/nerves_system_br/create-build.sh apps/nerves_system_$SYSTEM/nerves_defconfig apps/NERVES_SYSTEM_$SYSTEM
