@@ -39,3 +39,10 @@ script:
   - mix deps.get
   - mix compile
   - MIX_ENV=test mix test
+
+cache:
+  directories:
+    - _build
+    - deps
+    - $HOME/.mix
+    - $HOME/.hex
