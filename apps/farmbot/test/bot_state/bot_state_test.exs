@@ -45,21 +45,17 @@ defmodule Farmbot.BotStateTest do
   end
 
   test "updates tons of configs" do
-    Farmbot.BotState.update_config("os_auto_update", false)
+    true = Farmbot.BotState.update_config("os_auto_update", false)
     os_auto_update = Farmbot.BotState.get_config(:os_auto_update)
     assert(os_auto_update == false)
 
-    Farmbot.BotState.update_config("fw_auto_update", false)
+    true = Farmbot.BotState.update_config("fw_auto_update", false)
     fw_auto_update = Farmbot.BotState.get_config(:fw_auto_update)
     assert(fw_auto_update == false)
 
-    Farmbot.BotState.update_config("timezone", "we dont even check this")
+    true = Farmbot.BotState.update_config("timezone", "we dont even check this")
     timezone = Farmbot.BotState.get_config(:timezone)
     assert(timezone == "we dont even check this")
-
-    Farmbot.BotState.update_config("steps_per_mm", 9001)
-    steps_per_mm = Farmbot.BotState.get_config(:steps_per_mm)
-    assert(steps_per_mm == 9001)
 
     fail = Farmbot.BotState.update_config("self_destruct_count_down", 10_000)
     assert(fail == false)
