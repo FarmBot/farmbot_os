@@ -20,6 +20,7 @@ clean:
 \t$(info Cleaning)
 \trm -rf apps/NERVES_SYSTEM_*
 \trm -rf apps/farmbot/_images
+\trm -rf apps/nerves_system_br
 \trm -rf deps
 \trm -rf _build
 
