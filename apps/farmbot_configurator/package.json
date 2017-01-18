@@ -11,7 +11,7 @@
     "axios": "^0.15.3",
     "bootstrap": "^3.3.7",
     "css-loader": "^0.26.1",
-    "farmbot": "2.6.0",
+    "farmbot": "3.0.4",
     "file-loader": "^0.9.0",
     "font-awesome": "^4.7.0",
     "lodash": "^4.17.2",
@@ -38,12 +38,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/farmbot/farmbot_configurator.git"
+    "url": "git+https://github.com/farmbot/farmbot_os.git"
   },
   "author": "Farmbot.IO",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/farmbot/farmbot_configurator/issues"
+    "url": "https://github.com/farmbot/farmbot_os/issues"
   },
-  "homepage": "https://github.com/farmbot/farmbot_configurator#readme"
+  "homepage": "https://github.com/farmbot/farmbot_os#readme"
 }
