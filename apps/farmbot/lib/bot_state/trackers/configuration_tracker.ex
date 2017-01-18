@@ -62,7 +62,7 @@ defmodule Farmbot.BotState.Configuration do
         commit: commit
       }
     }
-    with {:ok, os_a_u}   <- get_config("os_auto_update"),
+        with {:ok, os_a_u}   <- get_config("os_auto_update"),
          {:ok, fw_a_u}   <- get_config("fw_auto_update"),
          {:ok, timezone} <- get_config("timezone"),
          {:ok, %{"x" => spm_x, "y" => spm_y, "z" => spm_z}} <- get_config("steps_per_mm")

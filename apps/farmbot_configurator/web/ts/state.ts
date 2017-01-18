@@ -75,7 +75,7 @@ export class MainState {
 
     @action
     tryLogIn() {
-        return Axios.post("/api/try_log_in", { hey: "i_suck" });
+        return Axios.post("/api/try_log_in", { hey: "Smile!" });
     }
 
     @action

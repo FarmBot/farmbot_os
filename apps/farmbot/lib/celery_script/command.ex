@@ -610,6 +610,15 @@ defmodule Farmbot.CeleryScript.Command do
     Logger.warn ">> needs to be rebooted"
   end
 
+  @spec factory_reset(%{}, []) :: no_return
+  def factory_reset(%{}, []) do
+    Logger.warn(">> Going down for factory reset in 5 seconds!")
+    spawn fn ->
+      Process.sleep 5000
+      Farmbot.System.factory_reset()
+    end
+  end
+
   @doc """
     Executes an ast node.
   """
