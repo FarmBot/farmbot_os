@@ -111,7 +111,7 @@ defmodule Farmbot.Mixfile do
   def aliases(:prod) do
     ["deps.precompile": ["nerves.precompile", "deps.precompile"],
      "deps.loadpaths":  ["deps.loadpaths", "nerves.loadpaths"],
-     "firmware.upload": ["firmware", "farmbot.upload"]]
+     "firmware.upload": ["farmbot.upload"]]
   end
 
   # if not in prod mode nothing special.

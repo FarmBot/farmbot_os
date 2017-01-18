@@ -32,6 +32,8 @@ defmodule Farmbot.System.FS.ConfigStorage do
         migrated = CFM.migrate(f)
         if f != migrated do
           write!(migrated)
+        else
+          Logger.debug ">> no migrations"
         end
         {:ok, migrated}
       # if not start over with the default config file (from the priv dir)

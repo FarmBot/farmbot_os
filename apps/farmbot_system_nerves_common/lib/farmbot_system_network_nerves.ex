@@ -16,6 +16,7 @@ defmodule Farmbot.System.NervesCommon.Network do
       def init(_) do
         GenEvent.add_handler(event_manager(),
         Farmbot.System.NervesCommon.EventManager, [])
+        # Farmbot.System.NervesCommon.Cell.start_link
         {:ok, %{}}
       end
 
@@ -89,7 +90,7 @@ defmodule Farmbot.System.NervesCommon.Network do
       def enumerate, do: Nerves.NetworkInterface.interfaces -- ["lo"]
 
       defp event_manager, do: Nerves.NetworkInterface.event_manager()
-      
+
       defp clean_ssid(hc) do
         hc
         |> String.replace("\t", "")
