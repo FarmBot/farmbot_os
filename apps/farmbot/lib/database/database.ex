@@ -59,9 +59,7 @@ defmodule Farmbot.Sync do
   require IEx
   def sync do
     Logger.debug(">> is syncing")
-    with {:ok, token}       <- fetch_token(),
-         {:ok, server}      <- fetch_server(),
-         {:ok, resp}        <- fetch_sync_object(server, token),
+    with {:ok, resp}        <- fetch_sync_object(), # {:error, reason} | %HTTPoison.Response{}
          {:ok, json}        <- parse_http(resp),
          {:ok, parsed}      <- Poison.decode(json),
          {:ok, validated}   <- SyncObject.validate(parsed),
@@ -153,37 +151,22 @@ defmodule Farmbot.Sync do
   end
 
   @doc """
-    Gets a token from Auth
-  """
-  def fetch_token, do: Auth.get_token
-
-  @doc """
-    Gets the server from Auth.
-  """
-  def fetch_server, do: Auth.get_server
-
-  @doc """
     Tries to do an HTTP request on server/api/sync
   """
-  @spec fetch_sync_object(nil | String.t, Token.t | any)
-  :: {:error, atom} | {:ok, HTTPotion.Response.t | HTTPotion.ErrorResponse.t}
-  def fetch_sync_object(nil, _), do: {:error, :bad_server}
-  def fetch_sync_object(server, %Token{} = token) do
+  @spec fetch_sync_object() :: {:error, atom} | {:ok, HTTPoison.Response.t}
+  def fetch_sync_object() do
     headers =
       ["Content-Type": "application/json",
        "Authorization": "Bearer " <> token.encoded]
-    {:ok, HTTPotion.get("#{server}/api/sync", [headers: headers])}
+     case Farmbot.HTTP.get("/api/sync") do
+       %HTTPoison.Response{} = f -> {:ok, f}
+       {:error, %HTTPoison.Error{reason: reason}} -> {:error, reason}
+       error -> {:error, error}
+     end
   end
-  def fetch_sync_object(_server, _token), do: {:error, :bad_token}
 
-  @doc """
-    Parses HTTPotion responses
-  """
-  @spec parse_http(HTTPotion.Response.t | HTTPotion.ErrorResponse.t)
-  :: {:ok, map} | {:error, atom}
-  def parse_http(%HTTPotion.ErrorResponse{message: m}), do: {:error, m}
-  def parse_http(%HTTPotion.Response{body: b, headers: _headers, status_code: 200}) do
-    {:ok, b}
-  end
-  def parse_http(error), do: {:error, error}
+  @spec parse_http(any) :: {:ok, map} | {:error, atom}
+  defp parse_http({:error, reason}), do: {:error, reason}
+  defp parse_http(%HTTPoison.Response{body: b, status_code: 200}), do: {:ok, b}
+  defp parse_http(error), do: {:error, error}
 end

@@ -1,6 +1,5 @@
 defmodule Farmbot.Configurator.Mixfile do
   use Mix.Project
-  System.put_env("NODE_ENV", Mix.env |> Atom.to_string)
   def target(:prod), do: System.get_env("NERVES_TARGET")
   def target(_), do: "development"
 
@@ -14,7 +13,9 @@ defmodule Farmbot.Configurator.Mixfile do
      config_path: "../../config/config.exs",
      deps_path: "../../deps",
      lockfile: "../../mix.lock",
+     compilers:  [:ex_webpack] ++ Mix.compilers,
      target: target(Mix.env),
+     watch_webpack: Mix.env == :dev,
      deps: deps()]
   end
 
@@ -34,7 +35,7 @@ defmodule Farmbot.Configurator.Mixfile do
       {:cors_plug, "~> 1.1"},
       {:poison, "~> 3.0"},
       {:cowboy, "~> 1.0.0"},
-      {:httpotion, "~> 3.0.0"},
+      {:ex_webpack, "~> 0.1.0", runtime: false},
       {:farmbot_auth, in_umbrella: true},
       {:farmbot_system, in_umbrella: true}
     ]

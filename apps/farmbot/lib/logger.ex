@@ -120,8 +120,8 @@ defmodule Farmbot.Logger do
 
   # Parses what the api sends back. Will only ever return :ok even if there was
   # an error.
-  @spec parse_resp(HTTPotion.Response.t | HTTPotion.ErrorResponse.t) :: :ok
-  defp parse_resp(%HTTPotion.Response{status_code: 200}),
+  @spec parse_resp(any) :: :ok
+  defp parse_resp(%HTTPoison.Response{status_code: 200}),
     do: GenEvent.call(Elixir.Logger, Farmbot.Logger, :post_success)
   defp parse_resp(error),
     do: GenEvent.call(Elixir.Logger, Farmbot.Logger, {:post_fail, error})

@@ -5,3 +5,5 @@ config :nerves, :firmware,
 config :farmbot_configurator, port: 80
 config :tzdata, :data_dir, "/tmp"
 config :tzdata, :autoupdate, :disabled
+config :nerves_interim_wifi,
+  regulatory_domain: "US"

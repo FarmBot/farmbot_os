@@ -12,8 +12,8 @@ defmodule Farmbot.System.Network.Ntp do
   @spec set_time(integer) :: :ok | {:error, term}
   def set_time(tries \\ 0)
   def set_time(tries) when tries < 4 do
-    case HTTPotion.get("https://httpbin.org/ip") do
-      %HTTPotion.Response{} = _resp ->
+    case HTTPoison.get("https://httpbin.org/ip") do
+      %HTTPoison.Response{} = _resp ->
         Logger.debug ">> is getting time from NTP."
         f = do_try_set_time()
         Logger.debug ">> ntp: #{inspect f}"

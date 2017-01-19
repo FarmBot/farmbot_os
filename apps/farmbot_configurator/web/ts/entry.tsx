@@ -7,8 +7,10 @@ import { useStrict } from "mobx";
 import { wsInit } from "./web_socket";
 import { BotConfigFile } from "./interfaces";
 
+// CSS STUFF
 import "../../node_modules/font-awesome/css/font-awesome.min.css";
 import "../../node_modules/bootstrap/dist/css/bootstrap.min.css";
+import "../../node_modules/roboto-font/css/fonts.css";
 import "../css/main.scss";
 import "react-select/dist/react-select.css";
 
