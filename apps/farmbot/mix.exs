@@ -77,6 +77,7 @@ defmodule Farmbot.Mixfile do
       :farmbot_system,
       :farmbot_auth,
       :farmbot_configurator,
+      :farmware,
       :quantum, # Quantum needs to start AFTER farmbot_system, so we can set up its dirs
       :timex, # Timex needs to start AFTER farmbot_system, so we can set up its dirs
    ]
@@ -103,6 +104,7 @@ defmodule Farmbot.Mixfile do
       {:farmbot_system,       in_umbrella: true},
       {:farmbot_auth,         in_umbrella: true},
       {:farmbot_configurator, in_umbrella: true},
+      {:farmware, in_umbrella: true}
     ]
   end
 

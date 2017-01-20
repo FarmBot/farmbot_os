@@ -12,8 +12,7 @@ config :logger, :console,
 
 
 # Iex needs colors too.
-config :iex, :colors,
-  enabled: true
+config :iex, :colors, enabled: true
 
 # send a message to these modules when we successfully log in.
 config :farmbot_auth, callbacks: [mqtt_transport]
