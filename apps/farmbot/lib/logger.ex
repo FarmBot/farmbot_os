@@ -7,7 +7,6 @@ defmodule Farmbot.Logger do
   """
   alias Farmbot.Sync
   alias Farmbot.HTTP
-  alias Farmbot.BotState
   use GenEvent
   require Logger
 

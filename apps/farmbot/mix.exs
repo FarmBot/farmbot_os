@@ -64,6 +64,7 @@ defmodule Farmbot.Mixfile do
       :logger,
       :nerves_uart,
       :poison,
+      :httpoison,
       :nerves_lib,
       :rsa,
       :runtime_tools,
@@ -85,6 +86,7 @@ defmodule Farmbot.Mixfile do
     [
       {:nerves_uart, "~> 0.1.0"}, # uart handling
       {:poison, "~> 3.0"}, # json
+      {:httpoison, "~> 0.10.0"},
       {:nerves_lib, github: "nerves-project/nerves_lib"}, # this has a good uuid
       {:gen_mqtt, "~> 0.3.1"}, # for rpc transport
       {:vmq_commons, "1.0.0", manager: :rebar3}, # This is for mqtt to work.

@@ -9,7 +9,7 @@ defmodule Downloader do
 
   @spec run(String.t, String.t) :: String.t
   def run(url, dl_file) when is_bitstring url do
-    HTTPotion.get url, stream_to: self(), timeout: :infinity
+    HTTPoison.get url, stream_to: self(), timeout: :infinity
     receive_data(total_bytes: :unknown, data: "", dl_path: dl_file)
   end
 
@@ -17,12 +17,12 @@ defmodule Downloader do
   @lint false
   defp receive_data(total_bytes: total_bytes, data: data, dl_path: path) do
     receive do
-      %HTTPotion.AsyncHeaders{headers: h} ->
+      %HTTPoison.AsyncHeaders{headers: h} ->
         {total_bytes, _} = h[:"Content-Length"] |> Integer.parse
         Logger.debug ">> is downloading: #{mb(total_bytes)} MB"
         receive_data(total_bytes: total_bytes, data: data, dl_path: path)
 
-      %HTTPotion.AsyncChunk{chunk: new_data} ->
+      %HTTPoison.AsyncChunk{chunk: new_data} ->
         accumulated_data = data <> new_data
         # accumulated_bytes = byte_size(accumulated_data)
         # percent =
@@ -30,7 +30,7 @@ defmodule Downloader do
         receive_data(total_bytes: total_bytes,
                      data: accumulated_data, dl_path: path)
 
-      %HTTPotion.AsyncEnd{} ->
+      %HTTPoison.AsyncEnd{} ->
         File.write!(path, data)
         Logger.debug ">> is finished downloading #{inspect path}."
         path

@@ -15,8 +15,6 @@ defmodule Farmbot.Sync do
   use Amnesia
   import Syncable
   alias Farmbot.Sync.Helpers
-  alias Farmbot.Auth
-  alias Farmbot.Token
   require Logger
 
   defdatabase Database do
@@ -155,9 +153,6 @@ defmodule Farmbot.Sync do
   """
   @spec fetch_sync_object() :: {:error, atom} | {:ok, HTTPoison.Response.t}
   def fetch_sync_object() do
-    headers =
-      ["Content-Type": "application/json",
-       "Authorization": "Bearer " <> token.encoded]
      case Farmbot.HTTP.get("/api/sync") do
        %HTTPoison.Response{} = f -> {:ok, f}
        {:error, %HTTPoison.Error{reason: reason}} -> {:error, reason}

@@ -7,6 +7,7 @@ defmodule Farmbot.HTTP do
 
   @version Mix.Project.config[:version]
   @target Mix.Project.config[:target]
+  @ssl_hack [ ssl: [{:versions, [:'tlsv1.2']}] ]
 
   @type http_resp :: HTTPoison.Response.t |{:error, HTTPoison.ErrorResponse.t}
 
@@ -17,7 +18,7 @@ defmodule Farmbot.HTTP do
   def post(path, body) do
     with {:ok, server} <- fetch_server(),
          {:ok, auth_headers} <- build_auth(),
-         do: HTTPoison.post("#{server}#{path}", body, auth_headers)
+         do: p HTTPoison.post("#{server}#{path}", body, auth_headers, @ssl_hack)
   end
 
   @doc """
@@ -27,7 +28,7 @@ defmodule Farmbot.HTTP do
   def get(path) do
     with {:ok, server} <- fetch_server(),
          {:ok, auth_headers} <- build_auth(),
-         do: HTTPoison.get("#{server}#{path}", auth_headers)
+         do: p HTTPoison.get("#{server}#{path}", auth_headers, @ssl_hack)
   end
 
   @doc """
@@ -43,7 +44,7 @@ defmodule Farmbot.HTTP do
     with {:ok, server} <- fetch_server(),
          {:ok, auth_headers} <- build_auth()
     do
-      HTTPoison.request verb, "#{server}#{path}", body, [headers: auth_headers]
+      p HTTPoison.request verb, "#{server}#{path}", body, auth_headers, @ssl_hack
     end
   end
 
@@ -73,4 +74,7 @@ defmodule Farmbot.HTTP do
       {:ok, server} -> {:ok, server}
     end
   end
+
+  defp p({:ok, t}), do: t
+  defp p({:error, t}), do: t
 end

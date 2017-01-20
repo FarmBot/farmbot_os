@@ -30,11 +30,12 @@ defmodule Farmbot.System.FS.ConfigStorage do
         Logger.debug ">> is loading its configuration file: #{path}"
         f = parse_json!(contents)
         migrated = CFM.migrate(f)
-        if f != migrated do
-          write!(migrated)
-        else
-          Logger.debug ">> no migrations"
-        end
+        # NOTE(Connor):
+        # this will write the initial config file, the migrated one, or
+        # the current one at every boot.
+        # seems ineffecient but oh well
+        write!(migrated)
+        Logger.debug ">> no migrations"
         {:ok, migrated}
       # if not start over with the default config file (from the priv dir)
       {:error, :enoent} ->

@@ -6,6 +6,7 @@ defmodule Farmbot.System.Updates do
   @releases_url "https://api.github.com/repos/farmbot/farmbot_os/releases"
   @headers ["User-Agent": "FarmbotOS"]
   @target Mix.Project.config()[:target]
+  @ssl_hack [ ssl: [{:versions, [:'tlsv1.2']}] ]
   @path "/tmp/update.fw"
   require Logger
 
@@ -38,8 +39,8 @@ defmodule Farmbot.System.Updates do
   """
   @spec check_updates() :: {:update, String.t} | :no_updates | {:error, term}
   def check_updates() do
-    case HTTPoison.get(@releases_url <> "/latest", @headers) do
-       %HTTPoison.Response{body: body, status_code: 200} ->
+    case HTTPoison.get(@releases_url <> "/latest", @headers, @ssl_hack) do
+       {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
          json = Poison.decode!(body)
          version = json["tag_name"]
          version_without_v = String.trim_leading version, "v"

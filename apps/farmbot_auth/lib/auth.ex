@@ -4,6 +4,7 @@ defmodule Farmbot.Auth do
   """
   @modules Application.get_env(:farmbot_auth, :callbacks) ++ [__MODULE__]
   @path Application.get_env(:farmbot_system, :path)
+  @ssl_hack [ ssl: [{:versions, [:'tlsv1.2']}] ]
 
   use GenServer
   require Logger
@@ -14,10 +15,10 @@ defmodule Farmbot.Auth do
     Gets the public key from the API
   """
   def get_public_key(server) do
-    case HTTPoison.get("#{server}/api/public_key") do
-      %HTTPoison.Response{body: body, status_code: 200} ->
+    case HTTPoison.get("#{server}/api/public_key", [], @ssl_hack) do
+      {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
         {:ok, RSA.decode_key(body)}
-      {:error, %HTTPoison.Error{reason: reason}}} ->
+      {:error, %HTTPoison.Error{reason: reason}} ->
         {:error, reason}
       error ->
         {:error, error}
@@ -49,17 +50,18 @@ defmodule Farmbot.Auth do
   def get_token_from_server(secret, server) do
     # I am not sure why this is done this way other than it works.
     payload = Poison.encode!(%{user: %{credentials: :base64.encode_to_string(secret) |> String.Chars.to_string }} )
-    case HTTPoison.post "#{server}/api/tokens", [body: payload, headers: ["Content-Type": "application/json"]] do
+    IO.inspect payload
+    case HTTPoison.post "#{server}/api/tokens", payload, ["Content-Type": "application/json"], @ssl_hack do
       # bad Password
-      %HTTPoison.Response{status_code: 422} ->
+      {:ok, %HTTPoison.Response{status_code: 422}} ->
         {:error, :bad_password}
 
       # Token invalid. Need to try to get a new token here.
-      %HTTPoison.Response{status_code: 401} ->
+      {:ok, %HTTPoison.Response{status_code: 401}} ->
         {:error, :expired_token}
 
       # We won
-      %HTTPoison.Response{body: body, status_code: 200} ->
+      {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
         # save the secret to disk.
         Farmbot.System.FS.transaction fn() ->
           :ok = File.write(@path <> "/secret", :erlang.term_to_binary(secret))
@@ -67,7 +69,7 @@ defmodule Farmbot.Auth do
         Poison.decode!(body) |> Map.get("token") |> Token.create
 
       # HTTP errors
-      {:error, %HTTPoison.Response{reason: reason}} ->
+      {:error, %HTTPoison.Error{reason: reason}} ->
         {:error, reason}
     end
   end
