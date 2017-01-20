@@ -39,15 +39,14 @@ defmodule Farmbot.Transport do
   def handle_call(:get_state, _from, state), do: {:reply, state, [], state}
 
   # FIXME this will cause problems im sure.
-  def handle_events(events, _from, _state) do
-    blah = Enum.map(events, fn(event) ->
-      do_handle(event)
-    end)
-    new_state = List.last(blah)
-    {:noreply, [new_state], new_state}
+  def handle_events(events, _from, state) do
+    for event <- events do
+      Logger.info "#{__MODULE__} got event: #{inspect event} "
+    end
+    {:noreply, events, state}
   end
 
-  defp do_handle(%MonState{} = monstate) do
+  defp translate(%MonState{} = monstate) do
     %Serialized{
       mcu_params: monstate.hardware.mcu_params,
       location: monstate.hardware.location,
@@ -59,25 +58,25 @@ defmodule Farmbot.Transport do
   end
 
   # Emit a message
-  def handle_cast({:emit, binary}, state) do
-    IO.inspect binary
-    {:noreply, [{:emit, binary}], state}
+  def handle_cast({:emit, thing}, state) do
+    IO.inspect thing
+    GenStage.async_notify(__MODULE__, {:emit, thing})
+    {:noreply, [], state}
   end
 
   # Emit a log message
   def handle_cast({:log, log}, state) do
-    {:noreply, [{:log, log}], state}
+    GenStage.async_notify(__MODULE__, {:log, log})
+    {:noreply, [], state}
   end
 
-  def emit(message) do
-    GenStage.cast(__MODULE__, {:emit, message})
+  def handle_info({_from, %MonState{} = monstate}, _state) do
+    new_state = translate(monstate)
+    GenStage.async_notify(__MODULE__, {:status, new_state})
+    {:noreply, [], new_state}
   end
 
-  def log(message) do
-    GenStage.cast(__MODULE__, {:log, message})
-  end
-
-  def get_state do
-    GenServer.call(__MODULE__, :get_state)
-  end
+  def emit(message), do: GenStage.cast(__MODULE__, {:emit, message})
+  def log(message), do: GenStage.cast(__MODULE__, {:log, message})
+  def get_state, do: GenServer.call(__MODULE__, :get_state)
 end

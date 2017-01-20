@@ -41,7 +41,7 @@ defmodule Farmbot.BotState.Monitor do
     dispatch(new_state)
   end
 
-  def handle_call(:get_state,_, state), do: {:reply, state, [state], state}
+  def handle_call(:get_state,_, state), do: {:reply, state, [], state}
 
   @doc """
     Gets the current accumulated state.
@@ -50,6 +50,7 @@ defmodule Farmbot.BotState.Monitor do
 
   @spec dispatch(State.t) :: no_return
   defp dispatch(%State{} = state) do
-      {:noreply, [state], state}
+    GenStage.async_notify(__MODULE__, state)
+    {:noreply, [], state}
   end
 end
