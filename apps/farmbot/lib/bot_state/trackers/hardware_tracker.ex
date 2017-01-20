@@ -32,7 +32,6 @@ defmodule Farmbot.BotState.Hardware do
   def load([]) do
     {:ok, p} = get_config("params")
     initial_state = %State{mcu_params: p}
-    # BUG: THIS CAN'T BE HERE BECAUSE IT TRIES TO CALL THIS GENSERVER DERP
 
     spawn fn() ->
       case set_initial_params(initial_state) do
@@ -57,6 +56,13 @@ defmodule Farmbot.BotState.Hardware do
     if Enum.empty?(state.mcu_params) do
       {:ok, :no_params}
     else
+      # BUG(Connor): The first param is rather unstable for some reason.
+      # Try to send a fake packet just to make sure we have a good
+      # Connection to the Firmware
+
+      # Its magic
+      Farmbot.CeleryScript.Command.read_param(%{label: "param_version"}, [])
+
       # iterate over mcu_params and read each one
       config_pairs = Enum.map(state.mcu_params, fn({param, val}) ->
         %Farmbot.CeleryScript.Ast{kind: "pair",

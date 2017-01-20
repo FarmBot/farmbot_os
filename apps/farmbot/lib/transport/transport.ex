@@ -59,7 +59,11 @@ defmodule Farmbot.Transport do
 
   # Emit a message
   def handle_cast({:emit, thing}, state) do
-    IO.inspect thing
+    # don't Logger this because it will infinate loop.
+    # just trust me.
+    # logging a message here would cause logger to log a message, which
+    # causes a state send which would then emit a message...
+    IO.puts "emmitting: #{inspect thing}"
     GenStage.async_notify(__MODULE__, {:emit, thing})
     {:noreply, [], state}
   end
@@ -74,6 +78,11 @@ defmodule Farmbot.Transport do
     new_state = translate(monstate)
     GenStage.async_notify(__MODULE__, {:status, new_state})
     {:noreply, [], new_state}
+  end
+
+  def handle_info(event, state) do
+    IO.inspect event
+    {:noreply, [], state}
   end
 
   def emit(message), do: GenStage.cast(__MODULE__, {:emit, message})

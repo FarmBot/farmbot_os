@@ -13,10 +13,18 @@ defmodule Farmbot.Configurator.Mixfile do
      config_path: "../../config/config.exs",
      deps_path: "../../deps",
      lockfile: "../../mix.lock",
-     compilers:  [:ex_webpack] ++ Mix.compilers,
+     compilers:  Mix.compilers ++ maybe_use_webpack(),
      target: target(Mix.env),
      watch_webpack: Mix.env == :dev,
      deps: deps()]
+  end
+
+  # TODO(connor): Build this into `:ex_webpack`
+  defp maybe_use_webpack() do
+    case System.get_env("NO_WEBPACK") do
+      "true" -> []
+      _ -> [:ex_webpack]
+    end
   end
 
   def application do

@@ -56,16 +56,11 @@ defmodule Farmbot.Sync do
   """
   require IEx
   def sync do
-    Logger.debug(">> is syncing")
     with {:ok, resp}        <- fetch_sync_object(), # {:error, reason} | %HTTPoison.Response{}
          {:ok, json}        <- parse_http(resp),
          {:ok, parsed}      <- Poison.decode(json),
          {:ok, validated}   <- SyncObject.validate(parsed),
-         {:ok, ^validated}  <- enter_into_db(validated)
-         do
-           Logger.debug(">> is synced")
-           {:ok, validated}
-         end
+         do: enter_into_db(validated)
   end
 
   # WHAT THE HECK IS THIS

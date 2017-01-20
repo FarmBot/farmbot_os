@@ -50,7 +50,6 @@ defmodule Farmbot.Auth do
   def get_token_from_server(secret, server) do
     # I am not sure why this is done this way other than it works.
     payload = Poison.encode!(%{user: %{credentials: :base64.encode_to_string(secret) |> String.Chars.to_string }} )
-    IO.inspect payload
     case HTTPoison.post "#{server}/api/tokens", payload, ["Content-Type": "application/json"], @ssl_hack do
       # bad Password
       {:ok, %HTTPoison.Response{status_code: 422}} ->
