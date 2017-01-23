@@ -125,7 +125,9 @@ defmodule Farmbot.BotState.Hardware do
     dispatch %State{state | pins: new_pin_state}
   end
 
-  def handle_cast({:set_param, {param_string, value}}, %State{} = state) do
+  def handle_cast({:set_param, {param_atom, value}}, %State{} = state)
+  when is_atom(param_atom) do
+    param_string = Atom.to_string(param_atom)
     new_params = Map.put(state.mcu_params, param_string, value)
     put_config("params", new_params)
     dispatch %State{state | mcu_params: new_params}
