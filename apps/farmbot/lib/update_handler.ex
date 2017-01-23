@@ -112,10 +112,9 @@ defmodule Farmbot.Updates.Handler do
 
   @spec parse_resp(HTTPoison.Response.t) :: {:assets, Strint.t, String.t}
   def parse_resp(
-    %HTTPoison.Response{
+    {:ok, %HTTPoison.Response{
       body: body,
-      headers: _headers,
-      status_code: 200})
+      status_code: 200}})
   do
     json = Poison.decode!(body)
     "v" <> new_version = Map.get(json, "tag_name")

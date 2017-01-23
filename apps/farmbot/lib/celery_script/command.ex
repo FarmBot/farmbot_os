@@ -11,6 +11,7 @@ defmodule Farmbot.CeleryScript.Command do
   alias Farmbot.Serial.Gcode.Handler, as: GHan
   alias Farmbot.Serial.Gcode.Parser, as: GParser
   alias Farmbot.System, as: FBSys
+  alias Farmbot.Lib.Maths
   alias Amnesia
   use Amnesia
   alias Farmbot.Sync.Database.ToolSlot
@@ -57,13 +58,20 @@ defmodule Farmbot.CeleryScript.Command do
          %Ast{kind: "coordinate", args: %{x: xb, y: yb, z: zb}, body: []} <-
             ast_to_coord(offset)
     do
-      x = steps(xa + xb, :x)
-      y = steps(ya + yb, :y)
-      z = steps(za + zb, :z)
+      [x, y, z] =
+        [Maths.mm_to_steps(xa + xb, spm(:x)),
+         Maths.mm_to_steps(ya + yb, spm(:y)),
+         Maths.mm_to_steps(za + zb, spm(:z))]
       "G00 X#{x} Y#{y} Z#{z} S#{s}" |> GHan.block_send
     else
       _ -> Logger.error ">> error doing Move absolute!"
     end
+  end
+
+  defp spm(xyz) do
+    "steps_per_mm_#{xyz}"
+    |> String.to_atom
+    |> Farmbot.BotState.get_config()
   end
 
   @doc """
@@ -649,18 +657,5 @@ defmodule Farmbot.CeleryScript.Command do
       Logger.error ">> has no instruction for #{inspect ast}"
       :no_instruction
     end
-  end
-
-  @spec steps(integer, atom) :: integer
-  defp steps(mm, :x) do
-    mm * Farmbot.BotState.get_config(:steps_per_mm_x)
-  end
-
-  defp steps(mm, :y) do
-    mm * Farmbot.BotState.get_config(:steps_per_mm_y)
-  end
-
-  defp steps(mm, :z) do
-    mm * Farmbot.BotState.get_config(:steps_per_mm_z)
   end
 end

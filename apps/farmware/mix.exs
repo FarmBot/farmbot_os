@@ -23,6 +23,9 @@ defmodule Farmware.Mixfile do
   end
 
   defp deps do
-    [{:gen_stage, "0.10.0"}]
+    [
+      {:gen_stage, "0.10.0"},
+      {:farmbot_system, in_umbrella: true}
+    ]
   end
 end
