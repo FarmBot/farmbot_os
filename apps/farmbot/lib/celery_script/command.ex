@@ -57,6 +57,9 @@ defmodule Farmbot.CeleryScript.Command do
          %Ast{kind: "coordinate", args: %{x: xb, y: yb, z: zb}, body: []} <-
             ast_to_coord(offset)
     do
+      x = steps(xa + xb, :x)
+      y = steps(ya + yb, :y)
+      z = steps(za + zb, :z)
       "G00 X#{xa + xb} Y#{ya + yb} Z#{za + zb} S#{s}" |> GHan.block_send
     else
       _ -> Logger.error ">> error doing Move absolute!"
@@ -646,5 +649,18 @@ defmodule Farmbot.CeleryScript.Command do
       Logger.error ">> has no instruction for #{inspect ast}"
       :no_instruction
     end
+  end
+
+  @spec steps(integer, atom) :: integer
+  defp steps(mm, :x) do
+    mm * Farmbot.BotState.get_config(:steps_per_mm_x)
+  end
+
+  defp steps(mm, :y) do
+    mm * Farmbot.BotState.get_config(:steps_per_mm_y)
+  end
+
+  defp steps(mm, :z) do
+    mm * Farmbot.BotState.get_config(:steps_per_mm_z)
   end
 end
