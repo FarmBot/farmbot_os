@@ -60,7 +60,6 @@ defmodule Farmbot.System.Network.SSH do
   end
 
   def handle_info(_i, port) do
-    # IO.inspect i
     {:noreply, port}
   end
 

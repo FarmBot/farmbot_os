@@ -52,7 +52,7 @@ defmodule Farmbot.BotState do
 
   @doc """
     Sets a param to a particular value.
-    This should be the human readable atom version of the param.
+    This should be the human readable string version of the param.
   """
   @spec set_param(atom, integer) :: :ok
   def set_param(param, value) when is_atom(param) do

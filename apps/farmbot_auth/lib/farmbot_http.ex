@@ -1,14 +1,15 @@
 defmodule Farmbot.HTTP do
   @moduledoc """
-    Shortcuts to HTTPOtion because im Lazy.
+    Shortcuts to Http Client because im Lazy.
   """
   alias Farmbot.Auth
   alias Farmbot.Token
 
   @version Mix.Project.config[:version]
   @target Mix.Project.config[:target]
+  @ssl_hack [ ssl: [{:versions, [:'tlsv1.2']}] ]
 
-  @type http_resp :: HTTPotion.Response.t | HTTPotion.ErrorResponse.t
+  @type http_resp :: HTTPoison.Response.t |{:error, HTTPoison.ErrorResponse.t}
 
   @doc """
     POST request to the Farmbot Web Api
@@ -17,8 +18,7 @@ defmodule Farmbot.HTTP do
   def post(path, body) do
     with {:ok, server} <- fetch_server(),
          {:ok, auth_headers} <- build_auth(),
-         do: HTTPotion.post("#{server}#{path}",
-                            headers: auth_headers, body: body)
+         do: p HTTPoison.post("#{server}#{path}", body, auth_headers, @ssl_hack)
   end
 
   @doc """
@@ -28,7 +28,7 @@ defmodule Farmbot.HTTP do
   def get(path) do
     with {:ok, server} <- fetch_server(),
          {:ok, auth_headers} <- build_auth(),
-         do: HTTPotion.get("#{server}#{path}", headers: auth_headers)
+         do: p HTTPoison.get("#{server}#{path}", auth_headers, @ssl_hack)
   end
 
   @doc """
@@ -39,18 +39,12 @@ defmodule Farmbot.HTTP do
     | :post
     | :put
     | :delete
-  @spec req(verbs, binary, any) :: http_resp
-  def req(verb, path, body \\ nil) do
+  @spec req(verbs, binary, binary) :: http_resp
+  def req(verb, path, body \\ "") do
     with {:ok, server} <- fetch_server(),
          {:ok, auth_headers} <- build_auth()
     do
-      options = [headers: auth_headers]
-      if body do
-        options_with_body = Keyword.put(options, :body, body)
-        HTTPotion.request(verb, "#{server}#{path}", options_with_body)
-      else
-        HTTPotion.request(verb, "#{server}#{path}", options)
-      end
+      p HTTPoison.request verb, "#{server}#{path}", body, auth_headers, @ssl_hack
     end
   end
 
@@ -80,4 +74,7 @@ defmodule Farmbot.HTTP do
       {:ok, server} -> {:ok, server}
     end
   end
+
+  defp p({:ok, t}), do: t
+  defp p({:error, t}), do: t
 end

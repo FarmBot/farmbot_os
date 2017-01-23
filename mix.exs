@@ -11,6 +11,7 @@ defmodule FarmbotOs.Mixfile do
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      default_task: "warning",
+     aliases: aliases(),
      deps: []]
   end
 
@@ -21,6 +22,12 @@ defmodule FarmbotOs.Mixfile do
   end
 
   defp target(_), do: "development"
+
+  defp aliases() do
+    ["firmware": ["warning"],
+     "firmware.burn": ["warning"],
+     "firmware.upload": ["warning"]] 
+  end
 end
 
 defmodule Mix.Tasks.Warning do

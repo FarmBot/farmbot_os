@@ -24,11 +24,13 @@ defmodule Farmbot.System.Mixfile do
   end
 
   def application do
-    [extra_applications: [:logger],
+    [extra_applications: [:logger, :httpoison],
      mod: {Farmbot.System.Supervisor, [target: target(Mix.env)]}]
   end
 
   defp deps do
-    [{:httpotion, "~> 3.0.0"}]
+    [
+      {:httpoison, "~> 0.10.0"}
+    ]
   end
 end

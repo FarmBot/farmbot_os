@@ -5,6 +5,7 @@ defmodule Farmbot.Serial.Gcode.Handler do
   require Logger
   use GenServer
   alias Farmbot.BotState
+  alias Farmbot.Lib.Maths
 
   def start_link(nerves) do
     GenServer.start_link(__MODULE__, nerves, name: __MODULE__)
@@ -58,8 +59,11 @@ defmodule Farmbot.Serial.Gcode.Handler do
     {:noreply, state}
   end
 
-  def handle_cast({:report_current_position, x,y,z, _}, state) do
-    BotState.set_pos(x,y,z)
+  def handle_cast({:report_current_position, x_steps,y_steps,z_steps, _}, state) do
+    BotState.set_pos(
+      Maths.steps_to_mm(x_steps, spm(:x)),
+      Maths.steps_to_mm(y_steps, spm(:y)),
+      Maths.steps_to_mm(z_steps, spm(:z)))
     {:noreply, state}
   end
 
@@ -95,6 +99,12 @@ defmodule Farmbot.Serial.Gcode.Handler do
   end
 
   def handle_call(:state, _from, state), do: {:reply, state, state}
+
+  defp spm(xyz) do
+    "steps_per_mm_#{xyz}"
+    |> String.to_atom
+    |> Farmbot.BotState.get_config()
+  end
 
   @doc """
     Sends a message and blocks until it completes, or times out.

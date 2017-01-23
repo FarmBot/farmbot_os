@@ -11,13 +11,14 @@ defmodule Farmbot.CeleryScript.Command do
   alias Farmbot.Serial.Gcode.Handler, as: GHan
   alias Farmbot.Serial.Gcode.Parser, as: GParser
   alias Farmbot.System, as: FBSys
+  alias Farmbot.Lib.Maths
   alias Amnesia
   use Amnesia
   alias Farmbot.Sync.Database.ToolSlot
   use ToolSlot
 
   @digital 0
-  @pwm 1
+  # @pwm 1 # we don't use that yet, and its causing compiler warnings. Fix later
   @shrug "¯\\\\_(ツ)_/\¯"
   @type x :: integer
   @type y :: integer
@@ -57,10 +58,20 @@ defmodule Farmbot.CeleryScript.Command do
          %Ast{kind: "coordinate", args: %{x: xb, y: yb, z: zb}, body: []} <-
             ast_to_coord(offset)
     do
-      "G00 X#{xa + xb} Y#{ya + yb} Z#{za + zb} S#{s}" |> GHan.block_send
+      [x, y, z] =
+        [Maths.mm_to_steps(xa + xb, spm(:x)),
+         Maths.mm_to_steps(ya + yb, spm(:y)),
+         Maths.mm_to_steps(za + zb, spm(:z))]
+      "G00 X#{x} Y#{y} Z#{z} S#{s}" |> GHan.block_send
     else
       _ -> Logger.error ">> error doing Move absolute!"
     end
+  end
+
+  defp spm(xyz) do
+    "steps_per_mm_#{xyz}"
+    |> String.to_atom
+    |> Farmbot.BotState.get_config()
   end
 
   @doc """
@@ -143,8 +154,15 @@ defmodule Farmbot.CeleryScript.Command do
       body: []
   """
   @spec sync(%{}, []) :: no_return
-  def sync(%{}, []), do: Farmbot.Sync.sync
-
+  def sync(%{}, []) do
+    Logger.debug ">> is syncing!"
+    case Farmbot.Sync.sync do
+      {:ok, _} ->
+        Logger.debug ">> synced!"
+      {:error, reason} ->
+        Logger.error ">> encountered an error syncing!: #{inspect reason}"
+    end
+  end
   @doc """
     Handles an RPC Request.
       args: %{label: String.t},
@@ -294,12 +312,17 @@ defmodule Farmbot.CeleryScript.Command do
   """
   @spec read_all_params(%{}, []) :: no_return
   def read_all_params(%{}, []) do
-    # TODO: maybe don't do this as magic numbers. I dont even remember where
+    # TODO(Connor): maybe don't do this as magic numbers. I dont even remember where
     # these numbers came from
     magic_numbers =
       [0,11,12,13,21,22,23,31,
        32,33,41,42,43,51,52,53,
        61,62,63,71,72,73,101,102,103]
+   # BUG(Connor): The firmware (almost) always drops the first command.
+   # Possible fix? try to read a random param first, just to make sure we have
+   # a good connection??
+   GHan.block_send("F21 P0")
+
    for param <- magic_numbers do
      Process.sleep(10) # Makes this a bit more stable
      GHan.block_send("F21 P#{param}")

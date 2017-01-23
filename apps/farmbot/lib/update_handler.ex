@@ -71,7 +71,7 @@ defmodule Farmbot.Updates.Handler do
   """
   @spec check_updates(String.t, String.t, String.t) :: update_output
   def check_updates(url, current_version, extension) do
-    resp = HTTPotion.get url, [headers: ["User-Agent": "FarmbotOLD"]]
+    resp = HTTPoison.get url, ["User-Agent": "FarmbotOLD"]
     with {:assets, new_version, assets} <- parse_resp(resp),
          true <- is_updates?(current_version, new_version),
          do: get_dl_url(assets, extension)
@@ -109,16 +109,12 @@ defmodule Farmbot.Updates.Handler do
   @doc """
     Parses the httpotion response.
   """
-  @spec parse_resp(HTTPotion.ErrorResponse.t) :: {:error, String.t | atom}
-  def parse_resp(%HTTPotion.ErrorResponse{message: error}),
-    do: {:error, error}
 
-  @spec parse_resp(HTTPotion.Response.t) :: {:assets, Strint.t, String.t}
+  @spec parse_resp(HTTPoison.Response.t) :: {:assets, Strint.t, String.t}
   def parse_resp(
-    %HTTPotion.Response{
+    {:ok, %HTTPoison.Response{
       body: body,
-      headers: _headers,
-      status_code: 200})
+      status_code: 200}})
   do
     json = Poison.decode!(body)
     "v" <> new_version = Map.get(json, "tag_name")

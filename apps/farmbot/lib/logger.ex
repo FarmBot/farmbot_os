@@ -7,7 +7,6 @@ defmodule Farmbot.Logger do
   """
   alias Farmbot.Sync
   alias Farmbot.HTTP
-  alias Farmbot.BotState
   use GenEvent
   require Logger
 
@@ -59,8 +58,7 @@ defmodule Farmbot.Logger do
   # If the post succeeded, we clear the messages
   def handle_call(:post_success, {_, _}), do: {:ok, :ok, {[], false}}
   # If it did not succeed, keep the messages, and try again until it completes.
-  def handle_call({:post_fail, error}, {messages, _}) do
-    IO.inspect error
+  def handle_call({:post_fail, _error}, {messages, _}) do
     {:ok, :ok, {messages, false}}
   end
 
@@ -120,8 +118,8 @@ defmodule Farmbot.Logger do
 
   # Parses what the api sends back. Will only ever return :ok even if there was
   # an error.
-  @spec parse_resp(HTTPotion.Response.t | HTTPotion.ErrorResponse.t) :: :ok
-  defp parse_resp(%HTTPotion.Response{status_code: 200}),
+  @spec parse_resp(any) :: :ok
+  defp parse_resp(%HTTPoison.Response{status_code: 200}),
     do: GenEvent.call(Elixir.Logger, Farmbot.Logger, :post_success)
   defp parse_resp(error),
     do: GenEvent.call(Elixir.Logger, Farmbot.Logger, {:post_fail, error})
@@ -199,11 +197,7 @@ defmodule Farmbot.Logger do
   # Takes Loggers time stamp and converts it into a unix timestamp.
   defp parse_created_at({{year, month, day}, {hour, minute, second, _}}) do
     dt = Timex.to_datetime({{year, month, day}, {hour, minute, second}})
-    # unix = dt |> Timex.to_unix
-    # IO.puts unix
     f = DateTime.to_iso8601(dt)
-    # IO.inspect dt
-    # IO.inspect(f)
     {:ok, f}
   end
   defp parse_created_at({_,_}), do: {:ok, :os.system_time}

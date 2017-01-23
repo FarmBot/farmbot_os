@@ -18,8 +18,14 @@ defmodule Farmbot.Transport.WebSocket do
     {:consumer, socket, subscribe_to: [Farmbot.Transport]}
   end
 
+  # TODO(Connor): these are misleading 
   def handle_events(events, _, socket) do
     send(socket, events)
+    {:noreply, [], socket}
+  end
+
+  def handle_info({_from, event}, socket) do
+    send(socket, [event])
     {:noreply, [], socket}
   end
 

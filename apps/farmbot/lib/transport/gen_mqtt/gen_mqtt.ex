@@ -24,24 +24,12 @@ defmodule Farmbot.Transport.GenMqtt do
     end
   end
 
-  # GenStage callback.
-  def handle_events(_events, _, {_, nil} = state) do
-    # we don't have auth yet, so dont do anything with this event.
-    {:noreply, [], state}
-  end
-
-  def handle_events(events, _, {client, %Token{} = _} = state) do
+  def handle_events(events, _, {_client, %Token{} = _} = state) do
     for event <- events do
-      do_handle(event, client)
+      Logger.info("#{__MODULE__}: Got event: #{inspect event}")
     end
     {:noreply, [], state}
   end
-
-  @spec do_handle(any, pid | nil) :: no_return
-  defp do_handle(event, client)
-    when is_pid(client), do: Client.cast(client, event)
-
-  defp do_handle(_event, _client), do: :ok
 
   def handle_info({:authorization, %Token{} = t}, {nil, _}) do
     {:ok, pid} = start_client(t)
@@ -57,6 +45,18 @@ defmodule Farmbot.Transport.GenMqtt do
     end
     {:ok, pid} = start_client(new_t)
     {:noreply, [], {pid,new_t}}
+  end
+
+  def handle_info({_from, event}, {client, %Token{} = _token} = state)
+  when is_pid(client) do
+    Client.cast(client, event)
+    {:noreply, [], state}
+  end
+
+  def handle_info(_e, state) do
+    # catch other messages if we don't have a token, or client or
+    # we just don't know how to handle this message.
+    {:noreply, [], state}
   end
 
   @spec start_client(Token.t) :: {:ok, pid}

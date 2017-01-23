@@ -63,9 +63,8 @@ defmodule Farmbot.Mixfile do
     [
       :logger,
       :nerves_uart,
-      :httpotion,
-      :httpoison,
       :poison,
+      :httpoison,
       :nerves_lib,
       :rsa,
       :runtime_tools,
@@ -78,6 +77,7 @@ defmodule Farmbot.Mixfile do
       :farmbot_system,
       :farmbot_auth,
       :farmbot_configurator,
+      :farmware,
       :quantum, # Quantum needs to start AFTER farmbot_system, so we can set up its dirs
       :timex, # Timex needs to start AFTER farmbot_system, so we can set up its dirs
    ]
@@ -86,9 +86,8 @@ defmodule Farmbot.Mixfile do
   def deps do
     [
       {:nerves_uart, "~> 0.1.0"}, # uart handling
-      {:httpotion, "~> 3.0.0"},  # http
-      {:httpoison, "~> 0.10.0"},  # http
       {:poison, "~> 3.0"}, # json
+      {:httpoison, "~> 0.10.0"},
       {:nerves_lib, github: "nerves-project/nerves_lib"}, # this has a good uuid
       {:gen_mqtt, "~> 0.3.1"}, # for rpc transport
       {:vmq_commons, "1.0.0", manager: :rebar3}, # This is for mqtt to work.
@@ -105,6 +104,7 @@ defmodule Farmbot.Mixfile do
       {:farmbot_system,       in_umbrella: true},
       {:farmbot_auth,         in_umbrella: true},
       {:farmbot_configurator, in_umbrella: true},
+      {:farmware, in_umbrella: true}
     ]
   end
 
@@ -133,10 +133,5 @@ defmodule Farmbot.Mixfile do
       # if its not local we can try nerves. It probably wont work tho.
       [{:"nerves_system_#{sys}", github: "nerves-project/nerves_system_#{sys}"}]
     end
-  end
-
-  def webpack do
-    File.cd "../farmbot_configurator"
-    Farmbot.Configurator.WebPack.start_link
   end
 end

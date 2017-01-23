@@ -6,8 +6,6 @@ import { ConfigFileNetIface, IfaceType } from "./interfaces";
 import { TZSelect } from "./tz_select";
 import { AdvancedSettings } from "./advanced_settings";
 import * as Select from "react-select";
-import "../../node_modules/roboto-font/css/fonts.css";
-import "../../node_modules/font-awesome/css/font-awesome.css";
 
 interface MainProps {
   mobx: MainState;

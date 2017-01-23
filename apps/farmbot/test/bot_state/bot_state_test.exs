@@ -57,6 +57,16 @@ defmodule Farmbot.BotStateTest do
     timezone = Farmbot.BotState.get_config(:timezone)
     assert(timezone == "we dont even check this")
 
+    true = Farmbot.BotState.update_config("steps_per_mm_x", 123)
+    true = Farmbot.BotState.update_config("steps_per_mm_y", 456)
+    true = Farmbot.BotState.update_config("steps_per_mm_z", 789)
+
+    x = Farmbot.BotState.get_config(:steps_per_mm_x)
+    y = Farmbot.BotState.get_config(:steps_per_mm_y)
+    z = Farmbot.BotState.get_config(:steps_per_mm_z)
+
+    assert([x,y,z] == [123,456,789])
+
     fail = Farmbot.BotState.update_config("self_destruct_count_down", 10_000)
     assert(fail == false)
   end

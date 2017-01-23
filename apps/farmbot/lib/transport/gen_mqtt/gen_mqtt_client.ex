@@ -33,7 +33,7 @@ defmodule Farmbot.Transport.GenMqtt.Client do
     {:ok, token}
   end
 
-  def handle_cast(%Ser{} = ser, %Token{} = token) do
+  def handle_cast({:status, %Ser{} = ser}, %Token{} = token) do
     # IO.puts "!!! sending state"
     json = Poison.encode!(ser)
     GenMQTT.publish(self(), status_topic(token), json, 0, false)

@@ -1,0 +1,90 @@
+alias Experimental.GenStage
+defmodule Farmware.Tracker do
+  @moduledoc """
+    There is only one farmbot, so we can only execute one script at a time
+    This module should queue them up maybe?
+    similar to Rails worker system but no scaling?
+
+  """
+
+  defmodule State do
+    @moduledoc false
+    @type t :: %__MODULE__{
+      queue: [FarmScript.t], # list of farm scripts that should be ran?
+      worker: pid
+    }
+    defstruct [queue: [], worker: nil]
+  end
+
+  use GenStage
+  require Logger
+  alias Farmware.Worker
+  alias Farmware.FarmScript
+
+  def init(_) do
+    Logger.debug "Starting Farmware Tracker"
+    # trap the exit of worker process
+    Process.flag(:trap_exit, true)
+    {:ok, pid} = Worker.start_link()
+    {:producer, %State{worker: pid} }
+  end
+
+  @doc """
+    Starts the FarmScript tracker
+  """
+  def start_link() do
+    GenStage.start_link(__MODULE__, [], name: __MODULE__)
+  end
+
+  @doc """
+    Add a script to the queue
+    can we remove a script from the queue?
+  """
+  @spec add(FarmScript.t) :: no_return
+  def add(%FarmScript{} = scr) do
+    GenServer.cast(__MODULE__, {:add, scr})
+  end
+
+  @doc """
+    Gets the state of the tracker.
+  """
+  def get_state do
+    GenServer.call(__MODULE__, :get_state)
+  end
+
+  # GenStage stuffs
+
+  # handle_demand gets called when the Worker is done with whatever else it
+  # was doing.
+  def handle_demand(demand, state) when demand > 0 do
+    # reverse the events so they get executed in order.
+    events = Enum.reverse(state.queue)
+    Logger.debug "handling demand: #{inspect demand}: #{inspect events}"
+    # dispatch said events, and make sure to clear the queue.
+    {:noreply, events, %State{state | queue: []}}
+  end
+
+  # NOTE(connor): the queue will be backwards here
+  # account for that later, or just put it on the end of the list?
+  def handle_cast({:add, scr}, state) do
+    if state.queue == [],
+      do: {:noreply, [scr], %State{state | queue: []}},
+      else: {:noreply, [], %State{state | queue: [scr | state.queue]}}
+  end
+
+  def handle_call(:get_state, _from, state) do
+    {:reply, state, [], state}
+  end
+
+  # handle exit of worker process
+  def handle_info({:EXIT, pid, _reason}, state) do
+    if pid == state.worker do
+      Logger.error "Farmware Worker died"
+      {:ok, pid} = Worker.start_link
+      {:noreply, [], %State{state | worker: pid }}
+    else
+      Logger.debug "Farmware tracker intercepted a process exit...?"
+      {:noreply, [], state}
+    end
+  end
+end

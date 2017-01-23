@@ -20,3 +20,4 @@ erl_crash.dump
 node_modules
 npm*
 bundle.js
+cache

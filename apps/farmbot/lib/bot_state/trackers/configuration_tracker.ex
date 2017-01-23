@@ -16,7 +16,12 @@ defmodule Farmbot.BotState.Configuration do
         os_auto_update: false,
         fw_auto_update: false,
         timezone:       nil,
-        steps_per_mm:   %{x: 500, y: 500, z: 500}
+        steps_per_mm_x: 10,
+        steps_per_mm_y: 10,
+        steps_per_mm_z: 50,
+        distance_mm_x: 1500,
+        distance_mm_y: 3000,
+        distance_mm_z: 800
       },
       informational_settings: %{
         controller_version: "loading...",
@@ -40,7 +45,12 @@ defmodule Farmbot.BotState.Configuration do
         os_auto_update: boolean,
         fw_auto_update: boolean,
         timezone: String.t,
-        steps_per_mm: %{x: integer, y: integer, z: integer}
+        steps_per_mm_x: integer,
+        steps_per_mm_y: integer,
+        steps_per_mm_z: integer,
+        distance_mm_x: integer,
+        distance_mm_y: integer,
+        distance_mm_z: integer
       },
       informational_settings: map # TODO type this
     }
@@ -62,17 +72,27 @@ defmodule Farmbot.BotState.Configuration do
         commit: commit
       }
     }
-        with {:ok, os_a_u}   <- get_config("os_auto_update"),
+        with {:ok, os_a_u} <- get_config("os_auto_update"),
          {:ok, fw_a_u}   <- get_config("fw_auto_update"),
          {:ok, timezone} <- get_config("timezone"),
-         {:ok, %{"x" => spm_x, "y" => spm_y, "z" => spm_z}} <- get_config("steps_per_mm")
+         {:ok, spm_x} <- get_config("steps_per_mm_x"),
+         {:ok, spm_y} <- get_config("steps_per_mm_y"),
+         {:ok, spm_z} <- get_config("steps_per_mm_z"),
+         {:ok, len_x} <- get_config("distance_mm_x"),
+         {:ok, len_y} <- get_config("distance_mm_y"),
+         {:ok, len_z} <- get_config("distance_mm_z")
          do
            new_state =
              %State{initial |
                 configuration: %{os_auto_update: os_a_u,
                                  fw_auto_update: fw_a_u,
                                  timezone: timezone,
-                                 steps_per_mm: %{x: spm_x, y: spm_y, z: spm_z}}}
+                                 steps_per_mm_x: spm_x,
+                                 steps_per_mm_y: spm_y,
+                                 steps_per_mm_z: spm_z,
+                                 distance_mm_x:  len_x,
+                                 distance_mm_y:  len_y,
+                                 distance_mm_z:  len_z }}
            {:ok, new_state}
          end
   end
@@ -114,37 +134,51 @@ defmodule Farmbot.BotState.Configuration do
     dispatch true, new_state
   end
 
-  # NOTE(connor): i think this should technically be a
-  # stringged map, but not going to worry
-  # about it till it comes up
-  def handle_call({:update_config, "steps_per_mm", %{x: _x, y: _y, z: _z} = value}, _, state) do
-    new_config = Map.put(state.configuration, :steps_per_mm, value)
-    new_state = %State{state | configuration: new_config}
-    put_config("steps_per_mm", value)
-    dispatch true, new_state
-  end
-
   def handle_call({:update_config, "steps_per_mm_x", val}, _, state) do
-    value = %{state.configuration.steps_per_mm | x: val}
-    new_config = Map.put(state.configuration, :steps_per_mm, value)
-    new_state = %State{state | configuration: new_config}
-    put_config("steps_per_mm", value)
+    config = state.configuration
+    new_config = %{config | steps_per_mm_x: val}
+    new_state = %{state | configuration: new_config}
+    put_config("steps_per_mm_x", val)
     dispatch true, new_state
   end
 
   def handle_call({:update_config, "steps_per_mm_y", val}, _, state) do
-    value = %{state.configuration.steps_per_mm | y: val}
-    new_config = Map.put(state.configuration, :steps_per_mm, value)
-    new_state = %State{state | configuration: new_config}
-    put_config("steps_per_mm", value)
+    config = state.configuration
+    new_config = %{config | steps_per_mm_y: val}
+    new_state = %{state | configuration: new_config}
+    put_config("steps_per_mm_y", val)
     dispatch true, new_state
   end
 
   def handle_call({:update_config, "steps_per_mm_z", val}, _, state) do
-    value = %{state.configuration.steps_per_mm | z: val}
-    new_config = Map.put(state.configuration, :steps_per_mm, value)
-    new_state = %State{state | configuration: new_config}
-    put_config("steps_per_mm", value)
+    config = state.configuration
+    new_config = %{config | steps_per_mm_z: val}
+    new_state = %{state | configuration: new_config}
+    put_config("steps_per_mm_z", val)
+    dispatch true, new_state
+  end
+
+  def handle_call({:update_config, "distance_mm_x", val}, _, state) do
+    config = state.configuration
+    new_config = %{config | distance_mm_x: val}
+    new_state = %{state | configuration: new_config}
+    put_config("distance_mm_x", val)
+    dispatch true, new_state
+  end
+
+  def handle_call({:update_config, "distance_mm_y", val}, _, state) do
+    config = state.configuration
+    new_config = %{config | distance_mm_y: val}
+    new_state = %{state | configuration: new_config}
+    put_config("distance_mm_y", val)
+    dispatch true, new_state
+  end
+
+  def handle_call({:update_config, "distance_mm_z", val}, _, state) do
+    config = state.configuration
+    new_config = %{config | distance_mm_z: val}
+    new_state = %{state | configuration: new_config}
+    put_config("distance_mm_z", val)
     dispatch true, new_state
   end
 

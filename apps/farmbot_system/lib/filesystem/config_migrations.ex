@@ -10,7 +10,7 @@ defmodule Farmbot.System.FS.ConfigFileMigrations do
       * it takes a json map, and must return that map, but updated
       * when the migration runs successfully, it writes a file under the same name, but with `.migrated` at the
          _end of the file name, so we know not to migrate this again.
-      * does this for every file in the list, passing the last one to the next one. 
+      * does this for every file in the list, passing the last one to the next one.
 
     # example
       * we needed to change "steps_per_mm" from an integer, to a map: `%{x: int, y: int, z: int}`
@@ -32,7 +32,8 @@ defmodule Farmbot.System.FS.ConfigFileMigrations do
       if !(File.exists?(migrated)) do
         Logger.warn ">> running config migration: #{file}"
         {{:module, m, _s, _}, _} = Code.eval_file file, migrations_dir()
-        next = m.run(json)
+        # TODO(Connor): Find out why m.run can return nil?
+        next = m.run(json) || %{}
         # Write the .migrated file to the fs so we don't run this file at every boot
         Farmbot.System.FS.transaction fn() ->
           # write the contents of this migration, to the .migrated file.
