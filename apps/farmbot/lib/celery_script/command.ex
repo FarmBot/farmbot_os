@@ -60,7 +60,7 @@ defmodule Farmbot.CeleryScript.Command do
       x = steps(xa + xb, :x)
       y = steps(ya + yb, :y)
       z = steps(za + zb, :z)
-      "G00 X#{xa + xb} Y#{ya + yb} Z#{za + zb} S#{s}" |> GHan.block_send
+      "G00 X#{x} Y#{y} Z#{z} S#{s}" |> GHan.block_send
     else
       _ -> Logger.error ">> error doing Move absolute!"
     end
