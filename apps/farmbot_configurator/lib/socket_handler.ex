@@ -39,7 +39,7 @@ defmodule Farmbot.Configurator.SocketHandler do
   # i guess instead of running a timer i could just use this to send teh next
   # ping, but that sounds like it could suck up some bandwidth.
   def websocket_handle({:text, @pong}, req, stage), do: {:ok, req, stage}
-
+  
   # messages from the browser.
   def websocket_handle({:text, m}, req, stage) do
     Logger.debug ">> can't handle data from websocket: #{inspect m}"

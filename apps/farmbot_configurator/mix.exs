@@ -15,7 +15,10 @@ defmodule Farmbot.Configurator.Mixfile do
      lockfile: "../../mix.lock",
      compilers:  Mix.compilers ++ maybe_use_webpack(),
      target: target(Mix.env),
-     watch_webpack: Mix.env == :dev,
+
+     webpack_watch: Mix.env == :dev,
+     webpack_cd: "../farmbot_configurator",
+
      deps: deps()]
   end
 
@@ -43,7 +46,7 @@ defmodule Farmbot.Configurator.Mixfile do
       {:cors_plug, "~> 1.1"},
       {:poison, "~> 3.0"},
       {:cowboy, "~> 1.0.0"},
-      {:ex_webpack, "~> 0.1.0", runtime: false},
+      {:ex_webpack, "~> 0.1.1", runtime: false},
       {:farmbot_auth, in_umbrella: true},
       {:farmbot_system, in_umbrella: true}
     ]
