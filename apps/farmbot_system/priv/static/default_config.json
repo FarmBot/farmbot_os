@@ -7,7 +7,9 @@
     "os_auto_update":false,
     "fw_auto_update":false,
     "timezone":null,
-    "steps_per_mm":500
+    "steps_per_mm_x": 500,
+    "steps_per_mm_y": 500,
+    "steps_per_mm_z": 500
   },
   "hardware":{
     "params":{}

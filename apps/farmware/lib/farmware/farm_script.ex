@@ -8,11 +8,10 @@ defmodule Farmware.FarmScript do
     * there can only be one script executing at a time (because there is only one gantry)
     * probably only has access to `celery_script` nodes?
     * how to stop `System.cmd`
-    * uhhhhh
     * does std::farmbot take priority or scripts?
     * how to get scripts onto the bot?
     * how to handle failures?
-    *
+
 
   """
   @type t :: %__MODULE__{path: binary}
