@@ -19,7 +19,7 @@ defmodule Farmware.Worker do
   end
 
   defp initial_env() do
-    %{"WRITE_PATH" => "/tmp"}
+    %{"WRITE_PATH" => "/tmp", "BEGIN_CS" => "<<< "}
   end
 
   # when a queue of scripts comes in execute them in order
@@ -45,7 +45,7 @@ defmodule Farmware.Worker do
     {:noreply, [], environment}
   end
 
-  def get_env(environment) do
+  defp get_env(environment) do
     Enum.map(environment, fn({key, value}) ->
       {String.to_charlist(key), String.to_charlist(value)}
     end)

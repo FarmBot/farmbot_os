@@ -29,6 +29,6 @@ import_config "#{Mix.env}.exs"
 IO.puts "using #{target} configuration."
 import_config "hardware/#{target}/hardware.exs"
 
-config :ex_json_schema,
-  :remote_schema_resolver,
-  fn url -> HTTPoison.get!(url).body |> Poison.decode! end
+# config :ex_json_schema,
+  # :remote_schema_resolver,
+  # fn url -> HTTPoison.get!(url).body |> Poison.decode! end
