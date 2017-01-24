@@ -5,7 +5,9 @@ defmodule Farmbot.Transport.WebSocket do
   """
   use GenStage
   require Logger
-
+  
+  # TODO(Connor) THIS IS BACKWRDS
+  # Configurator starts this module, and it should be the other way.
   @doc """
     Starts a stage for a websocket handler.
   """
@@ -18,7 +20,7 @@ defmodule Farmbot.Transport.WebSocket do
     {:consumer, socket, subscribe_to: [Farmbot.Transport]}
   end
 
-  # TODO(Connor): these are misleading 
+  # TODO(Connor): these are misleading
   def handle_events(events, _, socket) do
     send(socket, events)
     {:noreply, [], socket}

@@ -172,12 +172,14 @@ defmodule Farmbot.Logger do
   @spec sanitize(binary, [any]) :: {:ok, String.t} | nil
   defp sanitize(message, meta) do
     m = Keyword.take(meta, [:module])
-    case m do
-      # Fileter by module. This probably is slow
-      [module: mod] -> filter_module(mod, message)
-      [module: nil] -> filter_text(message)
-      # anything else
-      _ -> filter_text(message)
+    if !meta[:nopub] do
+      case m do
+        # Fileter by module. This probably is slow
+        [module: mod] -> filter_module(mod, message)
+        [module: nil] -> filter_text(message)
+        # anything else
+        _ -> filter_text(message)
+      end
     end
   end
 

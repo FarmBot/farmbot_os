@@ -5,51 +5,63 @@ defmodule Farmware.FarmScript do
     speak Elixir.
 
     * right now we can support `python`, `sh` (no not `bash`), `mruby` (no not ruby) and `elixir`
+    * actually we can't support Elixir lol
     * there can only be one script executing at a time (because there is only one gantry)
     * probably only has access to `celery_script` nodes?
     * how to stop `System.cmd`
     * does std::farmbot take priority or scripts?
-    * how to get scripts onto the bot?
     * how to handle failures?
-
-
   """
-  @type t :: %__MODULE__{path: binary}
-  @enforce_keys [:path]
-  defstruct [:path]
+
+  @type t :: %__MODULE__{executable: binary, args: [binary], path: binary, name: binary}
+  @enforce_keys [:executable, :args, :path, :name]
+  defstruct [:executable, :args, :path, :name]
 
   require Logger
 
   @doc """
     Executes a farmscript?
-    WHATCHU KNOW BOUT ARBITRARY CODE EXECUTION
+    takes a FarmScript, and some environment vars. [{KEY, VALUE}]
+    Exits if anything unexpected happens for saftey.
   """
-  @spec run(t) :: pid
-  def run(%__MODULE__{} = thing) do
-    Logger.debug ">> is running #{inspect thing.path}"
-    # Process.flag(:trap_exit, true) # can i put this here?
-    port = Port.open({:spawn, thing.path},
+  @spec run(t, [{any, any}]) :: pid
+  def run(%__MODULE__{} = thing, env) do
+    Logger.debug ">> is setting environment for #{thing.name}"
+
+    blah = System.find_executable(thing.executable)
+    if !blah do
+      raise "#{thing.executable} does not exist!"
+    end
+
+    cwd = File.cwd!
+    File.cd!(thing.path)
+    port =
+      Port.open({:spawn_executable, blah},
       [:stream,
        :binary,
        :exit_status,
        :hide,
        :use_stdio,
-       :stderr_to_stdout])
-    handle_port(port)
+       :stderr_to_stdout, args: thing.args, env: env])
+    handle_port(port, thing)
+    # change back to where we started.
+    File.cd!(cwd)
   end
 
-  def handle_port(port) do
+  defp handle_port(port, %__MODULE__{} = thing) do
+    # Inside this probably we need to build some sort of
+    # timeout mech and handle zombie processes and what not.
     receive do
-      {^port, {:exit_status, status}} ->
-        Logger.debug ">> done! #{inspect status}"
+      {^port, {:exit_status, 0}} ->
+        Logger.debug ">> #{thing.name} completed!"
+      {^port, {:exit_status, s}} ->
+        Logger.error ">> #{thing.name} completed with errors! (#{s})"
       {^port, {:data, stuff}} ->
-        IO.puts stuff
-        handle_port(port)
-      something ->
-        Logger.debug ">> got info: #{inspect something}"
-        handle_port(port)
+        Logger.debug "[#{thing.name}]:<< " <> String.trim(stuff) <> " >>"
+        handle_port(port, thing)
+      _something ->
+        # Logger.debug ">> [#{thing.name}] [ got info: #{inspect something} ]"
+        handle_port(port, thing)
     end
   end
 end
-
-# Farmware.Tracker.add %Farmware.FarmScript{path: "echo hello"}

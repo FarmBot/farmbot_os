@@ -18,14 +18,16 @@ defmodule Farmware.Mixfile do
   end
 
   def application do
-    [extra_applications: [:logger],
+    [extra_applications: [:logger, :ex_json_schema],
      mod: {Farmware.Application, []}]
   end
 
   defp deps do
     [
       {:gen_stage, "0.10.0"},
-      {:farmbot_system, in_umbrella: true}
+      {:farmbot_system, in_umbrella: true},
+      {:ex_json_schema, "~> 0.5.3"},
+      {:httpoison, "~> 0.10.0"}
     ]
   end
 end

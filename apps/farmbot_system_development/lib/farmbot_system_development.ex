@@ -7,6 +7,7 @@ defmodule Module.concat([Farmbot,System,"development"]) do
     Farmbot.System.FS.transaction fn() ->
       File.rm_rf "/tmp/config.json"
       File.rm_rf "/tmp/secret"
+      File.rm_rf "/tmp/farmware"
       System.halt(0)
     end
   end
