@@ -633,6 +633,9 @@ defmodule Farmbot.CeleryScript.Command do
     Logger.warn ">> needs to be rebooted"
   end
 
+  @doc """
+    Factory resets bot.
+  """
   @spec factory_reset(%{}, []) :: no_return
   def factory_reset(%{}, []) do
     Logger.warn(">> Going down for factory reset in 5 seconds!")
@@ -640,6 +643,17 @@ defmodule Farmbot.CeleryScript.Command do
       Process.sleep 5000
       Farmbot.System.factory_reset()
     end
+  end
+
+  @doc """
+    Executes a farmware
+      args: %{package: String.t},
+      body: [pair]
+  """
+  @spec execute_farmare(%{package: String.t}, [pair]) :: no_return
+  def execute_farmare(%{package: package}, env_vars) do
+    real_args = pairs_to_tuples(env_vars)
+    Farmware.execute(package, real_args)
   end
 
   @doc """

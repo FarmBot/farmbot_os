@@ -12,6 +12,7 @@ defmodule Farmbot.System.NervesCommon do
         Farmbot.System.FS.transaction fn() ->
           File.rm_rf "#{path()}/config.json"
           File.rm_rf "#{path()}/secret"
+          File.rm_rf "#{path()}/farmware"
           reboot()
         end
       end
