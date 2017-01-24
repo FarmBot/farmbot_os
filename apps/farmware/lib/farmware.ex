@@ -6,14 +6,15 @@ defmodule Farmware do
   defmodule Manifest do
     @moduledoc false
     # This will need to be hosted somewhere first party.
-    @schema_location "http://192.168.29.165:1234/schema.json"
+    @schema_location "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/schema.json"
     use HTTPoison.Base
 
     def process_response_body(body) do
-      body
+      f = body
       |> Poison.decode!
       |> validate!()
       |> Enum.map(fn({k, v}) -> {String.to_atom(k), v} end)
+      {f, body}
     end
 
     defp validate!(body) do
@@ -40,7 +41,7 @@ defmodule Farmware do
   """
   def install(manifest_url) do
     Logger.debug "Getting Farmware Manifest"
-    manifest = Manifest.get!(manifest_url).body
+    {manifest, json} = Manifest.get!(manifest_url).body
     path = FS.path() <> "/farmware/#{manifest[:package]}"
 
     if File.exists?(path) do
@@ -54,11 +55,12 @@ defmodule Farmware do
     FS.transaction fn() ->
       File.mkdir!(path)
       unzip_file(zip_file_path, path)
+      File.write(path <> "/manifest.json", json)
     end
 
     File.rm! "/tmp/#{manifest[:package]}.zip"
     Logger.debug "Validating Farmware package"
-    case File.read(path <> "/farmware_manifest.json") do
+    case File.read(path <> "/manifest.json") do
       {:ok, _contents} ->
         Logger.debug ">> is installing Farmware: #{manifest[:package]}"
         manifest
@@ -67,7 +69,6 @@ defmodule Farmware do
         FS.transaction fn() ->
           File.rm_rf!(path)
         end
-
         raise("Not valid Farmware!")
     end
   end
@@ -92,7 +93,7 @@ defmodule Farmware do
     path = FS.path() <> "/farmware/#{package_name}"
     if File.exists?(path) do
       url =
-        File.read!(path <> "/farmware_manifest.json")
+        File.read!(path <> "/manifest.json")
         |> Poison.decode!
         |> Map.get("url")
       uninstall(package_name)
@@ -110,7 +111,7 @@ defmodule Farmware do
     path = FS.path() <> "/farmware/#{package_name}"
     if File.exists?(path) do
       manifest =
-        File.read!(path <> "/farmware_manifest.json")
+        File.read!(path <> "/manifest.json")
         |> Poison.decode!
       exe = manifest["executable"]
       args = manifest["args"]
