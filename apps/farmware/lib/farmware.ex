@@ -5,9 +5,9 @@ defmodule Farmware do
 
   defmodule Manifest do
     @moduledoc false
-    # This will need to be hosted somewhere first party.
-    @schema_location "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/schema.json"
+
     use HTTPoison.Base
+    @schema_location "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/schema.json"
 
     def process_response_body(body) do
       f = body
@@ -105,8 +105,9 @@ defmodule Farmware do
 
   @doc """
     Executes a Farmware Package
+    arguments is a list of strings to pass too the script
   """
-  def execute(package_name) do
+  def execute(package_name, envs \\ []) do
     Farmbot.BotState.Monitor.get_state()
     path = FS.path() <> "/farmware/#{package_name}"
     if File.exists?(path) do
@@ -115,8 +116,8 @@ defmodule Farmware do
         |> Poison.decode!
       exe = manifest["executable"]
       args = manifest["args"]
-      %FarmScript{executable: exe, args: args, path: path, name: package_name}
-      |> Tracker.add
+      %FarmScript{executable: exe, args: args, path: path, name: package_name, envs: envs}
+      |> Tracker.add()
     else
       raise "Could not find Farmware: #{package_name}"
     end

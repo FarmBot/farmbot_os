@@ -13,9 +13,9 @@ defmodule Farmware.FarmScript do
     * how to handle failures?
   """
 
-  @type t :: %__MODULE__{executable: binary, args: [binary], path: binary, name: binary}
-  @enforce_keys [:executable, :args, :path, :name]
-  defstruct [:executable, :args, :path, :name]
+  @type t :: %__MODULE__{executable: binary, args: [binary], path: binary, name: binary, envs: [{binary, binary}]}
+  @enforce_keys [:executable, :args, :path, :name, :envs]
+  defstruct [:executable, :args, :path, :name, :envs]
 
   require Logger
 
@@ -33,6 +33,14 @@ defmodule Farmware.FarmScript do
       raise "#{thing.executable} does not exist!"
     end
 
+    extra_env = Enum.map(thing.envs, fn({k, v}) ->
+      if is_bitstring(k) do
+        {String.to_charlist(k), String.to_charlist(v)}
+      else
+        {k, v}
+      end
+    end)
+
     cwd = File.cwd!
     File.cd!(thing.path)
     port =
@@ -42,7 +50,7 @@ defmodule Farmware.FarmScript do
        :exit_status,
        :hide,
        :use_stdio,
-       :stderr_to_stdout, args: thing.args, env: env])
+       :stderr_to_stdout, args: thing.args, env: env ++ extra_env])
     handle_port(port, thing)
     # change back to where we started.
     File.cd!(cwd)
