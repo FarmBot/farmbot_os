@@ -124,9 +124,30 @@ defmodule Farmware do
   end
 
   @doc """
+    Checks if a package is installed
+  """
+  def installed?(package_name) do
+    path = FS.path() <> "/farmware/#{package_name}"
+    File.exists?(path)
+  end
+
+  @doc """
     Lists all installed Farmware Packages
   """
   def list, do: File.ls!(FS.path() <> "/farmware/")
+
+  @doc """
+    Downloads and updates first party farmwares.
+  """
+  def get_first_party_farmware() do
+    farmwares = HTTPoison.get!("https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/manifest.json").body
+    |> Poison.decode!
+    for %{"name" => name, "manifest" => man} <- farmwares do
+      if !installed?(name),
+        do: install(name),
+      else: Logger.debug ">> #{name} is already installed"
+    end
+  end
 
   defp unzip_file(zip_file, path) when is_bitstring(zip_file) do
     cwd = File.cwd!

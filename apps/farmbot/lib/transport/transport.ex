@@ -16,7 +16,8 @@ defmodule Farmbot.Transport do
                :pins,
                :configuration,
                :informational_settings,
-               :farm_scheduler]
+               :farm_scheduler,
+               :farmware]
 
     @type t :: %__MODULE__{
       mcu_params: map,
@@ -24,7 +25,8 @@ defmodule Farmbot.Transport do
       pins: map,
       configuration: map,
       informational_settings: map,
-      farm_scheduler: map
+      farm_scheduler: map,
+      farmware: [String.t]
     }
   end
 
@@ -53,6 +55,9 @@ defmodule Farmbot.Transport do
       pins: monstate.hardware.pins,
       configuration: monstate.configuration.configuration,
       informational_settings: monstate.configuration.informational_settings,
+      # Hardcoded for now. There is actually a list function, but not worth
+      # managing it yet.
+      farmware: ["plant-detection"],
       farm_scheduler: @old_scheduler_hack
     }
   end

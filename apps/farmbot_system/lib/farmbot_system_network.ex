@@ -103,8 +103,10 @@ defmodule Farmbot.System.Network do
     Logger.debug ">> is connected to the World Wide Web"
     {:ok, ssh} = get_config("ssh")
     {:ok, ntp} = get_config("ntp")
+    {:ok, fpf} = get_config("first_party_farmware")
     if ssh, do: SSH.start_link
     if ntp, do: Ntp.set_time
+    if fpf, do: Farmware.get_first_party_farmware
     Auth.try_log_in
   end
 
