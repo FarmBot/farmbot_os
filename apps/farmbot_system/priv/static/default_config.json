@@ -8,9 +8,9 @@
   "fw_auto_update": false,
   "timezone": null,
   "first_party_farmware": false,
-  "steps_per_mm_x": 10,
-  "steps_per_mm_y": 10,
-  "steps_per_mm_z": 50,
+  "steps_per_mm_x": 5,
+  "steps_per_mm_y": 5,
+  "steps_per_mm_z": 25,
   "distance_mm_x": 1500,
   "distance_mm_y": 3000,
   "distance_mm_z": 800
