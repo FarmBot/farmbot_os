@@ -146,7 +146,7 @@ defmodule Farmware do
     |> Poison.decode!
     for %{"name" => name, "manifest" => man} <- farmwares do
       if !installed?(name),
-        do: install(name),
+        do: install(man),
       else: Logger.debug ">> #{name} is already installed"
     end
   end

@@ -9,6 +9,9 @@ defmodule Farmbot do
   def init(%{target: target, compat_version: compat_version, version: version, commit: commit})
   do
     children = [
+      # Handles external scripts and what not
+      supervisor(Farmware.Supervisor, [], restart: :permanent),
+      
       # handles communications between bot and arduino
       supervisor(Farmbot.Serial.Supervisor, [], restart: :permanent),
 
