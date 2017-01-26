@@ -651,6 +651,12 @@ defmodule Farmbot.CeleryScript.Command do
       body: [pair]
   """
   @spec execute_script(%{label: String.t}, [pair]) :: no_return
+  def execute_script(%{label: "image-capture"}, _env_vars) do
+    Logger.debug ">> Is doing hax!!@@"
+    Farmbot.Camera.capture()
+    Farmbot.Camera.blah()
+  end
+
   def execute_script(%{label: farmware}, env_vars) do
     real_args = pairs_to_tuples(env_vars)
     Farmware.execute(farmware, real_args)
