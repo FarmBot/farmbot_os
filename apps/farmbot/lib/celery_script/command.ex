@@ -647,13 +647,13 @@ defmodule Farmbot.CeleryScript.Command do
 
   @doc """
     Executes a farmware
-      args: %{package: String.t},
+      args: %{label: String.t},
       body: [pair]
   """
-  @spec execute_farmare(%{package: String.t}, [pair]) :: no_return
-  def execute_farmare(%{package: package}, env_vars) do
+  @spec execute_script(%{label: String.t}, [pair]) :: no_return
+  def execute_script(%{label: farmware}, env_vars) do
     real_args = pairs_to_tuples(env_vars)
-    Farmware.execute(package, real_args)
+    Farmware.execute(farmware, real_args)
   end
 
   @doc """

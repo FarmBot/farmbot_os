@@ -1,5 +1,6 @@
 alias Farmbot.BotState.Hardware.State,      as: Hardware
 alias Farmbot.BotState.Configuration.State, as: Configuration
+alias Farmbot.BotState.ProcessTracker, as: PT
 alias Experimental.GenStage
 defmodule Farmbot.BotState.Monitor do
   @moduledoc """
@@ -13,11 +14,13 @@ defmodule Farmbot.BotState.Monitor do
     @moduledoc false
     @type t :: %__MODULE__{
       hardware:      Hardware.t,
-      configuration: Configuration.t
+      configuration: Configuration.t,
+      process_info: PT.t
     }
     defstruct [
       hardware:      %Hardware{},
-      configuration: %Configuration{}
+      configuration: %Configuration{},
+      process_info:  %PT.State{}
     ]
   end
 
@@ -38,6 +41,11 @@ defmodule Farmbot.BotState.Monitor do
   # When we get a state update from Configuration
   def handle_cast(%Configuration{} = new_things, %State{} = state) do
     new_state = %State{state | configuration: new_things}
+    dispatch(new_state)
+  end
+
+  def handle_cast(%PT.State{} = new_things, %State{} = state) do
+    new_state = %State{state | process_info: new_things}
     dispatch(new_state)
   end
 

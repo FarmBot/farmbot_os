@@ -2,10 +2,11 @@ defmodule Farmbot.Camera do
   @moduledoc """
     Test module for taking photos with the rpi camera.
   """
-  @params ["-o", "/tmp/image.jpg", "-e", "jpg", "-t", "1",
-  "-w","1024", "-h", "1024"
-]
-  @command "raspistill"
+  # @params ["-o", "/tmp/image.jpg", "-e", "jpg", "-t", "1", "-w","1024", "-h", "1024"]
+  # @command "raspistill"
+
+  @params ["--save", "/tmp/image.jpg", "-d", "/dev/video0", "-r", "1280x720"]
+  @command "fswebcam"
   require Logger
 
   def ls do
@@ -44,11 +45,11 @@ defmodule Farmbot.Camera do
     attachment_url = url<>form_data["key"]
     Logger.debug "here: #{attachment_url}"
 
-    # json = Poison.encode!(
-    #   %{"attachment_url" => attachment_url, "meta" => %{x: 1, y: 1, z: 1}}
-    #   )
-    #
-    # Farmbot.HTTP.post "/api/images", json
+    json = Poison.encode!(
+      %{"attachment_url" => attachment_url, "meta" => %{x: 1, y: 1, z: 1}}
+      )
+
+    Farmbot.HTTP.post "/api/images", json
   end
 
 end
