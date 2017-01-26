@@ -119,7 +119,9 @@ defmodule Farmware do
       %FarmScript{executable: exe, args: args, path: path, name: package_name, envs: envs}
       |> Tracker.add()
     else
-      raise "Could not find Farmware: #{package_name}"
+      msg = ">> Could not find FarmWare: #{package_name}"
+      Logger.error msg
+      raise msg
     end
   end
 
