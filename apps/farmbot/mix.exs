@@ -55,7 +55,7 @@ defmodule Farmbot.Mixfile do
         ]
       },
      applications: applications(),
-     included_applications: [:gen_mqtt]]
+     included_applications: [:gen_mqtt, :ex_json_schema]]
   end
 
   # common for test, prod, and dev

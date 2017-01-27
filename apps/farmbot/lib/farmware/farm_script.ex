@@ -41,6 +41,11 @@ defmodule Farmware.FarmScript do
       end
     end)
 
+    Logger.debug ">> Serializing DB for Farmware"
+    sync_env =
+      Farmbot.Sync.sync
+      |> build_sync_env
+
     cwd = File.cwd!
     File.cd!(thing.path)
     port =
@@ -56,6 +61,16 @@ defmodule Farmware.FarmScript do
     File.cd!(cwd)
   end
 
+  defp build_sync_env({:ok, thing}) do
+    chars =
+      thing
+      |> Poison.encode!
+      |> String.to_charlist
+    {'DB', chars}
+  end
+
+  defp build_sync_env(_), do: {'DB', '{}'}
+
   defp handle_port(port, %__MODULE__{} = thing) do
     # Inside this probably we need to build some sort of
     # timeout mech and handle zombie processes and what not.
@@ -68,7 +83,7 @@ defmodule Farmware.FarmScript do
       {^port, {:data, stuff}} ->
         spawn fn() -> handle_script_output(stuff, thing) end
         handle_port(port, thing)
-        
+
       _something ->
         # Logger.debug ">> [#{thing.name}] [ got info: #{inspect something} ]"
         handle_port(port, thing)
@@ -93,6 +108,11 @@ defmodule Farmware.FarmScript do
         Farmbot.CeleryScript.Command.do_command(ast_node)
       _ -> Logger.error ">> Got invalid Celery Script from: #{thing.name}"
     end
+    do_sort(tail, acc, thing)
+  end
+
+  defp do_sort(["NODSL " <> some_code | tail ], acc, thing) do
+    Code.eval_string(some_code)
     do_sort(tail, acc, thing)
   end
 

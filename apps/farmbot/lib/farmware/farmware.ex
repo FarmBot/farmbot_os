@@ -80,7 +80,9 @@ defmodule Farmware do
     path = FS.path() <> "/farmware/#{package_name}"
     if File.exists?(path) do
       Logger.warn "uninstalling farmware: #{package_name}"
-      File.rm_rf!(path)
+      FS.transaction fn() ->
+        File.rm_rf!(path)
+      end
     else
       Logger.error "can not find farmware: #{package_name} to uninstall"
     end
