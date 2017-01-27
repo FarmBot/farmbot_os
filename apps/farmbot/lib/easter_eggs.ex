@@ -15,13 +15,16 @@ defmodule Farmbot.EasterEggs do
     Starts the Easter Eggs server. You can pass in a json map, a path to a
     json file, or nothing and it will load the default one.
   """
+  @spec start_link({:name, binary}) :: {:ok, pid}
   def start_link({:name, name}),
     do: GenServer.start_link(__MODULE__,
           "#{:code.priv_dir(:farmbot)}/static/easter_eggs.json", name: name)
 
+  @spec start_link({:name, binary}, {:path, binary}) :: {:ok, pid}
   def start_link({:name, name}, {:path, path}),
     do: GenServer.start_link(__MODULE__, path, name: name)
 
+  @spec start_link({:name, binary}, {:json, map}) :: {:ok, pid}
   def start_link({:name, name}, {:json, json}),
     do: GenServer.start_link(__MODULE__, json, name: name)
 
@@ -86,12 +89,15 @@ defmodule Farmbot.EasterEggs do
     GenServer.cast(pid, json_map)
   end
 
+  @spec get_random_minute :: integer
+  defp get_random_minute, do: 50..60 |> Enum.random
+
   @doc """
     Says a random sentence every twenty minutes by default.
   """
   @lint false # i dont want to alias Quantum.
   @spec start_cron_job(binary) :: :ok
-  def start_cron_job(schedule \\ "*/20 * * * *") do
+  def start_cron_job(schedule \\ "*/#{get_random_minute()} * * * *") do
     job = %Quantum.Job{
             schedule: schedule,
             task: fn -> Farmbot.EasterEggs.say_random_sentence end}
