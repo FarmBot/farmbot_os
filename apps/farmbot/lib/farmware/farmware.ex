@@ -38,8 +38,8 @@ defmodule Farmware do
   alias Farmware.Tracker
   require Logger
 
-  @spec raise_if_exists(binary) :: no_return
-  defp raise_if_exists(path) do
+  @spec raise_if_exists(binary, map) :: no_return
+  defp raise_if_exists(path, manifest) do
     if File.exists?(path) do
       raise "Could not install Farmware! #{manifest[:package]} already exists!"
     end
@@ -54,7 +54,7 @@ defmodule Farmware do
     {manifest, json} = Manifest.get!(manifest_url).body
     path = FS.path() <> "/farmware/#{manifest[:package]}"
 
-    raise_if_exists(path)
+    raise_if_exists(path, manifest)
 
     Logger.debug "Getting Farmware Package"
     zip_file_path = Downloader.run(manifest[:zip], "/tmp/#{manifest[:package]}.zip")
