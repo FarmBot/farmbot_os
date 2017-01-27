@@ -4,58 +4,26 @@ defmodule Farmbot.HTTP do
   """
   alias Farmbot.Auth
   alias Farmbot.Token
+  use HTTPoison.Base
 
   @version Mix.Project.config[:version]
   @target Mix.Project.config[:target]
-  @ssl_hack [ ssl: [{:versions, [:'tlsv1.2']}] ]
+  @ssl_hack [{:versions, [:'tlsv1.2']}]
 
   @type http_resp :: HTTPoison.Response.t |{:error, HTTPoison.ErrorResponse.t}
 
-  @doc """
-    POST request to the Farmbot Web Api
-  """
-  @spec post(binary, binary) :: {:error, term} | http_resp
-  def post(path, body) do
-    with {:ok, server} <- fetch_server(),
-         {:ok, auth_headers} <- build_auth(),
-         do: p HTTPoison.post("#{server}#{path}", body, auth_headers, @ssl_hack)
+  def process_url(url) do
+    {:ok, server} = fetch_server()
+    server <> url
   end
 
-  @doc """
-    GET request to the Farmbot Web Api
-  """
-  @spec get(binary) :: {:error, term} | http_resp
-  def get(path) do
-    with {:ok, server} <- fetch_server(),
-         {:ok, auth_headers} <- build_auth(),
-         do: p HTTPoison.get("#{server}#{path}", auth_headers, @ssl_hack)
+  def process_request_headers(_headers) do
+    {:ok, auth_headers} = build_auth()
+    auth_headers
   end
 
-  @doc """
-    Builds a HTTP request.
-  """
-  @type verbs ::
-    :get
-    | :post
-    | :put
-    | :delete
-  @spec req(verbs, binary, binary) :: http_resp
-  def req(verb, path, body \\ "") do
-    with {:ok, server} <- fetch_server(),
-         {:ok, auth_headers} <- build_auth()
-    do
-      p HTTPoison.request verb, "#{server}#{path}", body, auth_headers, @ssl_hack
-    end
-  end
+  def process_request_options(opts), do: opts |> Keyword.put(:ssl, @ssl_hack)
 
-  @doc """
-    Short cut for getting a path and piping it thro Poison.decode.
-  """
-  @spec get_to_json(binary) :: map
-  def get_to_json(path), do: path |> get |> Map.get(:body) |> Poison.decode!
-
-  @type headers :: ["Content-Type": String.t, "Authorization": String.t]
-  @spec build_auth :: {:ok, headers} | {:error, term}
   defp build_auth do
     with {:ok, %Token{} = token} <- Auth.get_token
     do
@@ -74,7 +42,4 @@ defmodule Farmbot.HTTP do
       {:ok, server} -> {:ok, server}
     end
   end
-
-  defp p({:ok, t}), do: t
-  defp p({:error, t}), do: t
 end

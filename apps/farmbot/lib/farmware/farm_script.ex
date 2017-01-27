@@ -41,10 +41,10 @@ defmodule Farmware.FarmScript do
       end
     end)
 
-    Logger.debug ">> Serializing DB for Farmware"
-    sync_env =
-      Farmbot.Sync.sync
-      |> build_sync_env
+    # Logger.debug ">> Serializing DB for Farmware"
+    # sync_env =
+    #   Farmbot.Sync.sync
+    #   |> build_sync_env
 
     cwd = File.cwd!
     File.cd!(thing.path)

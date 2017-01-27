@@ -1,7 +1,6 @@
 alias Farmbot.BotState.Hardware.State,      as: Hardware
 alias Farmbot.BotState.Configuration.State, as: Configuration
 alias Farmbot.BotState.ProcessTracker, as: PT
-alias Experimental.GenStage
 defmodule Farmbot.BotState.Monitor do
   @moduledoc """
     this is the master state tracker. It receives the states from

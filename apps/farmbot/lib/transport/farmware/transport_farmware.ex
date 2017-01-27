@@ -1,10 +1,16 @@
-alias Experimental.GenStage
 defmodule Farmbot.Transport.Farmware do
   @moduledoc """
     Transport for exchanging celeryscript too Farmware packages.
   """
   use GenStage
   require Logger
+
+  # GENSTAGE HACK
+  @spec handle_call(any, any, any) :: {:reply, any, any}
+  @spec handle_cast(any, any) :: {:noreply, any}
+  @spec handle_info(any, any) :: {:noreply, any}
+  @spec init(any) :: {:ok, any}
+  @spec handle_events(any, any, any) :: no_return
 
   @doc """
     Starts the handler that watches the mqtt client

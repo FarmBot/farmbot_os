@@ -35,12 +35,13 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_code("R99 " <> message) do {:debug_message, message} end
   def parse_code(code)  do {:unhandled_gcode, code} end
 
-  @doc """
+  @doc ~S"""
     Parses R82 codes
     Example:
       iex> Gcode.parse_report_current_position("X34 Y756 Z23")
       {:report_current_position, 34, 756, 23, "0"}
   """
+  @lint false
   @spec parse_report_current_position(binary)
   :: {:report_current_position, String.t, String.t, String.t, String.t}
   def parse_report_current_position(position) when is_bitstring(position),
@@ -60,7 +61,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
       String.to_integer(z), tag}
   end
 
-  @doc """
+  @doc ~S"""
     Parses End Stops. I don't think we actually use these yet.
     Example:
       iex> Gcode.parse_end_stops("XA1 XB1 YA0 YB1 ZA0 ZB1 Q123")
@@ -113,7 +114,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
   defp pes(48), do: 0
   defp pes(49), do: 1
 
-  @doc """
+  @doc ~S"""
     common function for report_(something)_value from gcode.
     Example:
       iex> Gcode.parse_pvq("P20 V100", :report_parameter_value)
@@ -123,17 +124,20 @@ defmodule Farmbot.Serial.Gcode.Parser do
       iex> Gcode.parse_pvq("P20 V100 Q12", :report_parameter_value)
       {:report_parameter_value, "20" ,"100", "12"}
   """
+  @lint false
   @spec parse_pvq(binary, :report_parameter_value)
   :: {:report_parameter_value, atom, integer, String.t}
   def parse_pvq(params, :report_parameter_value)
   when is_bitstring(params),
     do: params |> String.split(" ") |> do_parse_params
 
+  @lint false
   def parse_pvq(params, human_readable_param_name)
   when is_bitstring(params)
    and is_atom(human_readable_param_name),
    do: params |> String.split(" ") |> do_parse_pvq(human_readable_param_name)
 
+  @lint false
   defp do_parse_pvq([p, v], human_readable_param_name) do
     [_, rp] = String.split(p, "P")
     [_, rv] = String.split(v, "V")
@@ -166,7 +170,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
     {:report_parameter_value, parse_param(rp), String.to_integer(rv), rq}
   end
 
-  @doc """
+  @doc ~S"""
     Parses farmbot_arduino_firmware params.
     If we want the name of param "0"\n
     Example:
@@ -236,6 +240,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param("221") do :pin_guard_5_pin_nr end
   def parse_param("222") do :pin_guard_5_time_out end
   def parse_param("223") do :pin_guard_5_active_state end
+  @lint false
   def parse_param(param) when is_integer(param), do: parse_param("#{param}")
 
   @spec parse_param(atom) :: integer | nil
@@ -293,6 +298,6 @@ defmodule Farmbot.Serial.Gcode.Parser do
 
   def parse_param(_), do: nil
 
-  @spec qtag() :: String.t
-  defp qtag(), do: "0"
+  @spec qtag :: String.t
+  defp qtag, do: "0"
 end

@@ -86,7 +86,7 @@ defmodule Farmbot.Mixfile do
     [
       {:nerves_uart, "~> 0.1.0"}, # uart handling
       {:poison, "~> 3.0"}, # json
-      {:httpoison, "~> 0.10.0"},
+      {:httpoison, github: "edgurgel/httpoison"},
       {:nerves_lib, github: "nerves-project/nerves_lib"}, # this has a good uuid
       {:gen_mqtt, "~> 0.3.1"}, # for rpc transport
       {:vmq_commons, "1.0.0", manager: :rebar3}, # This is for mqtt to work.
@@ -94,10 +94,11 @@ defmodule Farmbot.Mixfile do
       {:timex, "~> 3.0"}, # managing time. for the scheduler mostly.
       {:quantum, ">= 1.8.1"}, # cron jobs
       {:amnesia, github: "meh/amnesia"}, # database implementation
-      {:gen_stage, "~> 0.7"},
+      {:gen_stage, "0.11.0"},
       {:nerves, "~> 0.4.0"},
       {:credo, "0.6.0-rc1",  only: [:dev, :test]},
       {:ex_doc, "~> 0.14", only: :dev},
+      {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
       {:ex_json_schema, "~> 0.5.3"},
       {:faker, "~> 0.7", only: :test},
       {:"farmbot_system_#{target(Mix.env)}", in_umbrella: true},
@@ -111,12 +112,15 @@ defmodule Farmbot.Mixfile do
   # New version of nerves might not need this?
   def aliases(:prod) do
     ["deps.precompile": ["nerves.precompile", "deps.precompile"],
-     "deps.loadpaths":  ["deps.loadpaths", "nerves.loadpaths"],
-     "firmware.upload": ["farmbot.upload"]]
+      "deps.loadpaths":  ["deps.loadpaths", "nerves.loadpaths"],
+      "firmware.upload": ["farmbot.upload"]]
   end
 
   # if not in prod mode nothing special.
-  def aliases(_), do: []
+  def aliases(_), do: [
+    "firmware": ["farmbot.warning"],
+    "credo": ["credo list --only readability,warning,todo,inspect,refactor --ignore-checks todo"]
+  ]
 
   # the nerves_system_* dir to use for this build.
   def system("development"), do: []

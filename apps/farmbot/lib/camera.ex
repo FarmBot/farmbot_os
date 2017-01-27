@@ -41,8 +41,8 @@ defmodule Farmbot.Camera do
     Logger.debug "Payload: #{inspect payload}"
     Logger.debug "Headers: #{inspect headers}"
 
-    blah = HTTPoison.post(url, {:multipart, payload}, headers)
-    Logger.debug "THIS THING HERE: #{inspect blah}"
+    resp = HTTPoison.post(url, {:multipart, payload}, headers)
+    Logger.debug "THIS THING HERE: #{inspect resp}"
     attachment_url = url<>form_data["key"]
     Logger.debug "here: #{attachment_url}"
 

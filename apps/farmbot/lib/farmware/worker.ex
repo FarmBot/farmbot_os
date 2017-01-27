@@ -1,4 +1,3 @@
-alias Experimental.GenStage
 defmodule Farmware.Worker do
   @moduledoc """
     Takes scripts off the queue, and executes them?

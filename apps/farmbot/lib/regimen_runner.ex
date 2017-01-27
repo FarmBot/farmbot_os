@@ -5,7 +5,7 @@ use Regimen
 use RegimenItem
 use Timex
 
-defmodule Farmbot.Scheduler.RegimenRunner do
+defmodule Farmbot.RegimenRunner do
   @moduledoc """
     Follows a regimen thru its life.
   """
@@ -33,28 +33,27 @@ defmodule Farmbot.Scheduler.RegimenRunner do
   end
   def start_link(regimen), do: start_link([regimen])
 
+  @spec init(Regimen.t) :: {:ok, State.t}
   def init(%Regimen{} = reg) do
     start_time = midnight()
-    items = get_items(reg.id) |> sort()
+    items = reg.id |> get_items() |> sort()
     first_time_offset = List.first(items).time_offset
     f = Timex.shift(start_time, milliseconds: first_time_offset)
     Logger.debug ">> [#{reg.name}] first item will run at: #{f.month}-#{f.day} at #{f.hour}:#{f.minute}"
     {:ok, []}
   end
+  @lint false
   def handle_call(:get_state,_, state), do: {:reply, state, state}
   def handle_call(_, _, state), do: {:reply, :unhandled, state}
+  @lint false
   def handle_cast(_, state), do: {:noreply, state}
+  @lint false
   def handle_info(_, state), do: {:noreply, state}
 
+  @spec get_state(integer) :: State.t
   def get_state(id) do
      name = "Regimen.#{id}" |> String.to_atom
      GenServer.call(name, :get_state)
-  end
-
-  def s do
-    Farmbot.Sync.sync
-    reg = Farmbot.Sync.get_regimen(2)
-    start_link(reg)
   end
 
   @doc """
@@ -68,8 +67,8 @@ defmodule Farmbot.Scheduler.RegimenRunner do
   @doc """
     Returns a DateTime object of the current time.
   """
-  @spec now() :: DateTime.t
-  def now() do
+  @spec now :: DateTime.t
+  def now do
     tz = Farmbot.BotState.get_config :timezone
     Timex.now(tz)
   end
@@ -79,12 +78,13 @@ defmodule Farmbot.Scheduler.RegimenRunner do
     for example if today is july 12 2044 8:14 AM
     this will return: july 12 2044 12:00 AM
   """
-  @spec midnight() :: DateTime.t
-  def midnight() do
+  @spec midnight :: DateTime.t
+  def midnight do
      Timex.shift(now(),
      [hours: -now().hour, minutes: -now().minute, seconds: -now().second])
   end
 
+  @lint false
   @spec get_items(integer) :: [RegimenItem.t]
   defp get_items(regimen_id_) do
     Amnesia.transaction do

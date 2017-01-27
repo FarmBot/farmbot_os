@@ -1,5 +1,4 @@
 defmodule Farmbot.Transport.GenMqtt.Client do
-
   @moduledoc """
     MQTT transport for farmbot RPC Commands.
   """
@@ -10,21 +9,31 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   alias Farmbot.CeleryScript.Command
   alias Farmbot.CeleryScript.Ast
 
+  @spec handle_call(any, any, any) :: {:reply, any, any}
+  @spec handle_cast(any, Token.t) :: ok
+  @spec handle_info(any, Token.t) :: ok
+
+  @type ok :: {:ok, Token.t}
+
+  @spec init(Token.t) :: ok
   def init(%Token{} = token), do: {:ok, token}
 
   @doc """
     Starts a mqtt client.
   """
+  @spec start_link(Token.t) :: {:ok, pid}
   def start_link(%Token{} = token) do
     GenMQTT.start_link(__MODULE__, token, build_opts(token))
   end
 
+  @spec on_connect(Token.t) :: ok
   def on_connect(%Token{} = token) do
     GenMQTT.subscribe(self(), [{bot_topic(token), 0}])
     Logger.debug ">> is up and running!"
     {:ok, token}
   end
 
+  @spec on_publish([String.t], binary, Token.t) :: ok
   def on_publish(["bot", _bot, "from_clients"], msg, %Token{} = token) do
     msg
     |> Poison.decode!
@@ -53,8 +62,8 @@ defmodule Farmbot.Transport.GenMqtt.Client do
     {:noreply, token}
   end
 
+  @spec terminate(any, any) :: no_return
   def terminate(:authorization, _), do: :ok
-
   def terminate(reason, _) do
     Logger.error ">>`s mqtt client died. #{inspect reason}"
     :ok
@@ -101,5 +110,9 @@ defmodule Farmbot.Transport.GenMqtt.Client do
     |> Poison.encode!
   end
 
+  @doc """
+    Cast info to a client
+  """
+  @spec cast(pid, any) :: no_return
   def cast(pid, info), do: GenMQTT.cast(pid, info)
 end

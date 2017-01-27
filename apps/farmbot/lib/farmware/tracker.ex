@@ -1,4 +1,3 @@
-alias Experimental.GenStage
 defmodule Farmware.Tracker do
   @moduledoc """
     There is only one farmbot, so we can only execute one script at a time

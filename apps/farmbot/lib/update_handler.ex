@@ -33,7 +33,7 @@ defmodule Farmbot.Updates.Handler do
     end
   end
 
-
+  @spec install_update(:fw, String.t) :: no_return
   defp install_update(:fw, url) do
     Logger.debug ">> found a firmware update!"
     File.rm("/tmp/update.hex")
@@ -55,6 +55,7 @@ defmodule Farmbot.Updates.Handler do
     end
   end
 
+  @spec check_updates(any) :: no_return
   def check_updates(:fw) do
     with {:ok, token} <- Auth.get_token,
     do: check_updates(
@@ -62,7 +63,6 @@ defmodule Farmbot.Updates.Handler do
           BotState.get_fw_version,
           ".hex")
   end
-
 
   @doc """
     Uses Github Release api to check for an update.
@@ -82,7 +82,7 @@ defmodule Farmbot.Updates.Handler do
   """
   @spec get_dl_url([any,...] | map, String.t)
   :: {:update, String.t} | {:error, atom}
-  def get_dl_url(assets, extension)
+  defp get_dl_url(assets, extension)
   when is_list(assets) do
     Enum.find_value(assets, {:error, :no_assets},
       fn asset ->
@@ -95,7 +95,7 @@ defmodule Farmbot.Updates.Handler do
       end)
   end
 
-  def get_dl_url(asset) when is_map(asset) do
+  defp get_dl_url(asset) when is_map(asset) do
     Map.get(asset, "browser_download_url")
   end
 
@@ -103,9 +103,13 @@ defmodule Farmbot.Updates.Handler do
     Checks if two strings are the same lol
   """
   @spec is_updates?(String.t, String.t) :: :no_updates | true
-  def is_updates?(current, new) when current == new, do: :no_updates
-  def is_updates?(_current, _new), do: true
-
+  def is_updates?(current, new) do
+    if current == new do
+      :no_updates
+    else
+      true
+    end
+  end
   @doc """
     Parses the httpotion response.
   """

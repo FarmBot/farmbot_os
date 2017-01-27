@@ -11,7 +11,7 @@ defmodule Farmbot do
     children = [
       # Handles external scripts and what not
       supervisor(Farmware.Supervisor, [], restart: :permanent),
-      
+
       # handles communications between bot and arduino
       supervisor(Farmbot.Serial.Supervisor, [], restart: :permanent),
 
@@ -19,9 +19,6 @@ defmodule Farmbot do
       supervisor(Farmbot.BotState.Supervisor,
         [%{target: target, compat_version: compat_version, version: version, commit: commit}],
       restart: :permanent),
-
-      # Handles Farmbot scheduler stuff.
-      worker(Farmbot.Scheduler, [], restart: :permanent),
 
       # Handles the passing of messages from one part of the system to another.
       supervisor(Farmbot.Transport.Supervisor, [], restart: :permanent),

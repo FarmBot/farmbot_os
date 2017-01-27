@@ -592,7 +592,7 @@ defmodule Farmbot.CeleryScript.Command do
   @spec read_param(%{label: String.t}, []) :: no_return
   def read_param(%{label: param_str}, []) do
     param_int = GParser.parse_param(param_str)
-    if (param_int) do
+    if param_int do
       GHan.block_send("F21 P#{param_int}")
     else
       Logger.error ">> got unknown param: #{param_str}"
