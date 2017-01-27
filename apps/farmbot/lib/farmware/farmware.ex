@@ -5,10 +5,10 @@ defmodule Farmware do
 
   defmodule Manifest do
     @moduledoc false
-
     use HTTPoison.Base
     @schema_location "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/schema.json"
 
+    @spec process_response_body(binary) :: {binary, list}
     def process_response_body(body) do
       f = body
       |> Poison.decode!
@@ -17,6 +17,7 @@ defmodule Farmware do
       {f, body}
     end
 
+    @spec validate!(map) :: map | no_return
     defp validate!(body) do
       case ExJsonSchema.Validator.validate(schema(), body) do
         :ok -> body
@@ -24,7 +25,8 @@ defmodule Farmware do
       end
     end
 
-    defp schema() do
+    @spec schema :: map
+    defp schema do
       HTTPoison.get!(@schema_location).body
       |> Poison.decode!
       |> ExJsonSchema.Schema.resolve
@@ -36,17 +38,23 @@ defmodule Farmware do
   alias Farmware.Tracker
   require Logger
 
+  @spec raise_if_exists(binary) :: no_return
+  defp raise_if_exists(path) do
+    if File.exists?(path) do
+      raise "Could not install Farmware! #{manifest[:package]} already exists!"
+    end
+  end
+
   @doc """
     Installs a package from a manifest url
   """
+  @spec install(binary) :: map | no_return
   def install(manifest_url) do
     Logger.debug "Getting Farmware Manifest"
     {manifest, json} = Manifest.get!(manifest_url).body
     path = FS.path() <> "/farmware/#{manifest[:package]}"
 
-    if File.exists?(path) do
-      raise "Could not install Farmware! #{manifest[:package]} already exists!"
-    end
+    raise_if_exists(path)
 
     Logger.debug "Getting Farmware Package"
     zip_file_path = Downloader.run(manifest[:zip], "/tmp/#{manifest[:package]}.zip")
@@ -76,6 +84,7 @@ defmodule Farmware do
   @doc """
     Uninstalls a Farmware package
   """
+  @spec uninstall(binary) :: no_return
   def uninstall(package_name) do
     path = FS.path() <> "/farmware/#{package_name}"
     if File.exists?(path) do
@@ -91,11 +100,13 @@ defmodule Farmware do
   @doc """
     Forces an update for a Farmware package
   """
+  @spec update(binary) :: no_return
   def update(package_name) do
     path = FS.path() <> "/farmware/#{package_name}"
     if File.exists?(path) do
       url =
-        File.read!(path <> "/manifest.json")
+        path <> "/manifest.json"
+        |> File.read!
         |> Poison.decode!
         |> Map.get("url")
       uninstall(package_name)
@@ -109,16 +120,20 @@ defmodule Farmware do
     Executes a Farmware Package
     arguments is a list of strings to pass too the script
   """
+  @spec execute(binary) :: no_return
+  @spec execute(binary, any) :: no_return
   def execute(package_name, envs \\ []) do
     Farmbot.BotState.Monitor.get_state()
     path = FS.path() <> "/farmware/#{package_name}"
     if File.exists?(path) do
       manifest =
-        File.read!(path <> "/manifest.json")
+        path <> "/manifest.json"
+        |> File.read!
         |> Poison.decode!
       exe = manifest["executable"]
       args = manifest["args"]
-      %FarmScript{executable: exe, args: args, path: path, name: package_name, envs: envs}
+      %FarmScript{executable: exe,
+        args: args, path: path, name: package_name, envs: envs}
       |> Tracker.add()
     else
       msg = ">> Could not find FarmWare: #{package_name}"
@@ -130,6 +145,7 @@ defmodule Farmware do
   @doc """
     Checks if a package is installed
   """
+  @spec installed?(binary) :: boolean
   def installed?(package_name) do
     path = FS.path() <> "/farmware/#{package_name}"
     File.exists?(path)
@@ -138,12 +154,15 @@ defmodule Farmware do
   @doc """
     Lists all installed Farmware Packages
   """
+  @spec list :: [binary]
   def list, do: File.ls!(FS.path() <> "/farmware/")
 
   @doc """
     Downloads and updates first party farmwares.
   """
-  def get_first_party_farmware() do
+  @lint false # TODO(Connor) nested for/if here
+  @spec get_first_party_farmware :: no_return
+  def get_first_party_farmware do
     farmwares = HTTPoison.get!("https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/manifest.json").body
     |> Poison.decode!
     for %{"name" => name, "manifest" => man} <- farmwares do
