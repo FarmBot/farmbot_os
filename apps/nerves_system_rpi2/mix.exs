@@ -20,9 +20,17 @@ defmodule NervesSystemRpi2.Mixfile do
   end
 
   defp deps do
-    [{:nerves, "~> 0.4.0"},
-     {:nerves_system_br, "~> 0.8.1"},
+    [{:nerves,  "~> 0.4.0"},
      {:nerves_toolchain_arm_unknown_linux_gnueabihf, "~> 0.8.0"}]
+    ++ [find_nerves_system_br()]
+  end
+
+  def find_nerves_system_br do
+    if File.exists?("../nerves_system_br") do
+      {:nerves_system_br, in_umbrella: true}
+    else
+      {:nerves_system_br, "~> 0.8.1"}
+    end
   end
 
   defp description do
