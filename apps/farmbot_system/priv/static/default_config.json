@@ -4,6 +4,7 @@
   "server": "https://my.farmbot.io"
  },
  "configuration": {
+  "user_env": {},
   "os_auto_update": false,
   "fw_auto_update": false,
   "timezone": null,

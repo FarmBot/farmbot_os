@@ -21,7 +21,8 @@ defmodule Farmbot.Transport do
                :pins,
                :configuration,
                :informational_settings,
-               :process_info]
+               :process_info,
+               :user_env]
 
     @type t :: %__MODULE__{
       mcu_params: map,
@@ -29,20 +30,16 @@ defmodule Farmbot.Transport do
       pins: map,
       configuration: map,
       informational_settings: map,
-      process_info: map}
+      process_info: map,
+      user_env: map}
   end
 
-  def start_link do
-    GenStage.start_link(__MODULE__, [], name: __MODULE__)
-  end
+  def start_link, do: GenStage.start_link(__MODULE__, [], name: __MODULE__)
 
-  def init([]) do
-    {:producer_consumer, %Serialized{}, subscribe_to: [Monitor]}
-  end
+  def init([]), do: {:producer_consumer, %Serialized{}, subscribe_to: [Monitor]}
 
   def handle_call(:get_state, _from, state), do: {:reply, state, [], state}
 
-  # FIXME this will cause problems im sure.
   def handle_events(events, _from, state) do
     for event <- events do
       Logger.info "#{__MODULE__} got event: #{inspect event} "
@@ -55,9 +52,10 @@ defmodule Farmbot.Transport do
       mcu_params: monstate.hardware.mcu_params,
       location: monstate.hardware.location,
       pins: monstate.hardware.pins,
-      configuration: monstate.configuration.configuration,
+      configuration: Map.delete(monstate.configuration.configuration, :user_env),
       informational_settings: monstate.configuration.informational_settings,
-      process_info: monstate.process_info
+      process_info: monstate.process_info,
+      user_env: monstate.configuration.configuration.user_env
     }
   end
 

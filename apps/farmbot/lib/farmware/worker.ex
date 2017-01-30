@@ -22,36 +22,53 @@ defmodule Farmware.Worker do
     {:consumer, initial_env(), subscribe_to: [@tracker]}
   end
 
+  @doc """
+    Gets the state
+  """
+  @spec get_state :: map
+  def get_state, do: GenServer.call(__MODULE__, :get_state)
+
   @spec initial_env :: env
   defp initial_env do
     %{"WRITE_PATH" => "/tmp", "BEGIN_CS" => "<<< "}
+    |> Map.merge(Farmbot.BotState.get_config(:user_env))
   end
 
   # when a queue of scripts comes in execute them in order
   @lint false
   def handle_events(farm_scripts, _from, environment) do
-    Logger.debug "#{__MODULE__} handling #{Enum.count(farm_scripts)} scripts"
+    Logger.debug "Farmware Worker handling #{Enum.count(farm_scripts)} scripts"
     for scr <- farm_scripts do
       FarmScript.run(scr, get_env(environment))
     end
-    Logger.debug "#{__MODULE__} done with farm_scripts"
+    Logger.debug "Farmware Worker done with farm_scripts"
     {:noreply, [], environment}
+  end
+
+  def handle_call(:get_state, _from, state) do
+    {:reply, state, [], state}
   end
 
   @lint false
   def handle_info(info, environment) do
-    Logger.debug ">> got unhandled info in Farmware Worker: #{inspect info}", nopub: true
+    Logger.debug ">> got unhandled info in " <>
+      "Farmware Worker: #{inspect info}", nopub: true
     {:noreply, [], environment}
   end
 
   @lint false
   def handle_cast({:status, status}, environment) do
-    {:noreply, [], Map.put(environment, "STATUS", Poison.encode!(status))}
+    env_map = status.user_env # this is kind of silly
+
+    new_env =
+      environment
+      |> Map.delete(:user_env) # delete user env so its doesnt exist twice
+      |> Map.put("STATUS", Poison.encode!(status))
+      |> Map.merge(env_map)
+    {:noreply, [], new_env}
   end
 
-  def handle_cast(_info, environment) do
-    {:noreply, [], environment}
-  end
+  def handle_cast(_info, environment), do: {:noreply, [], environment}
 
   @spec get_env(env) :: [{binary, binary}]
   defp get_env(environment) do

@@ -283,7 +283,6 @@ defmodule Farmbot.CeleryScript.Command do
     end
   end
 
-  # is this useful?
   @spec pairs_to_tuples([pair]) :: [tuple]
   defp pairs_to_tuples(config_pairs) do
     Enum.map(config_pairs, fn(%Ast{} = thing) ->
@@ -660,6 +659,18 @@ defmodule Farmbot.CeleryScript.Command do
   def execute_script(%{label: farmware}, env_vars) do
     real_args = pairs_to_tuples(env_vars)
     Farmware.execute(farmware, real_args)
+  end
+
+  @doc """
+    Sets a bunch of user environment variables for farmware
+      args: %{},
+      body: [pair]
+  """
+  @spec set_user_env(%{}, [pair]) :: no_return
+  def set_user_env(%{}, env_pairs) do
+     pairs_to_tuples(env_pairs)
+     |> Map.new
+     |> Farmbot.BotState.set_user_env
   end
 
   @doc """

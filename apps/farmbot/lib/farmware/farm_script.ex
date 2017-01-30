@@ -89,8 +89,6 @@ defmodule Farmware.FarmScript do
         handle_port(port, thing)
       after
         10_000 -> Logger.error ">> [#{thing.name}] Timed out"
-
-
     end
   end
 
