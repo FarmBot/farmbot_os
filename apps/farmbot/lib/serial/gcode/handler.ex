@@ -23,8 +23,9 @@ defmodule Farmbot.Serial.Gcode.Handler do
 
   @lint false
   @spec handle_cast(any, state) :: {:noreply, state}
+  # Don't log messages there is to many.
   def handle_cast({:debug_message, str}, state) do
-    Logger.debug ">> got a message from my arduino: #{str}"
+    IO.puts str
     {:noreply, state}
   end
 
@@ -101,8 +102,15 @@ defmodule Farmbot.Serial.Gcode.Handler do
      %{nerves: nerves, current: current, log: log ++ [{message, caller}]}}
   end
 
+  def handle_cast({:unhandled_gcode, code}, state) do
+    Logger.debug ">> got an unhandled gcode! #{code}"
+    {:noreply, state}
+  end
+
+  def handle_cast(:dont_handle_me, state), do: {:noreply, state}
+
   def handle_cast(event, state) do
-    Logger.debug ">> got an unhandled gcode! #{inspect event}"
+    Logger.debug ">> got an unhandled event! #{inspect event}"
     {:noreply, state}
   end
 

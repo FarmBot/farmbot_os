@@ -30,6 +30,7 @@ defmodule Farmbot.Mixfile do
      start_permanent: Mix.env == :prod,
      build_path:  "../../_build/#{target(Mix.env)}",
      deps_path:   "../../deps/#{target(Mix.env)}",
+     images_path: "../../images",
      config_path: "../../config/config.exs",
      lockfile: "../../mix.lock",
      aliases:     aliases(Mix.env),
@@ -72,7 +73,6 @@ defmodule Farmbot.Mixfile do
       :vmq_commons,
       :amnesia,
       :gen_stage,
-      :nerves,
       :"farmbot_system_#{target(Mix.env)}",
       :farmbot_system,
       :farmbot_auth,
@@ -95,7 +95,6 @@ defmodule Farmbot.Mixfile do
       {:quantum, ">= 1.8.1"}, # cron jobs
       {:amnesia, github: "meh/amnesia"}, # database implementation
       {:gen_stage, "0.11.0"},
-      {:nerves, "~> 0.4.0"},
       {:credo, "0.6.0-rc1",  only: [:dev, :test]},
       {:ex_doc, "~> 0.14", only: :dev},
       {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
