@@ -100,18 +100,30 @@ defmodule Farmbot.System.Network do
     # finished setting stuff up.
     Process.sleep(2000)
     if fun, do: fun.()
-    Logger.debug ">> is connected to the World Wide Web"
+    Logger.debug ">> is connected to the World Wide Web."
+    Logger.debug ">> is reading configurations."
     {:ok, ssh} = get_config("ssh")
     {:ok, ntp} = get_config("ntp")
-    if ssh, do: SSH.start_link
-    if ntp, do: Ntp.set_time
+    {:ok, _fpf} = get_config("first_party_farmware")
+    if ntp do
+      Logger.debug ">> ntp"
+      Ntp.set_time
+    end
+
+    if ssh do
+      Logger.debug ">> ssh"
+      SSH.start_link
+    end
+
+    # if fpf, do: Farmware.get_first_party_farmware
+    Logger.debug ">> Login"
     Auth.try_log_in
   end
 
   @spec get_config(String.t) :: {:ok, any}
-  @spec get_config() :: {:ok, false | map}
   defp get_config(key), do: GenServer.call(CS, {:get, Network, key})
-  defp get_config, do: GenServer.call(CS, {:get, Network, :all})
+  # @spec get_config() :: {:ok, false | map}
+  # defp get_config, do: GenServer.call(CS, {:get, Network, :all})
 
   defp get_mod, do: GenServer.call(__MODULE__, :get_mod)
 

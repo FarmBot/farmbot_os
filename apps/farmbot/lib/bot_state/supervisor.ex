@@ -24,6 +24,7 @@ defmodule Farmbot.BotState.Supervisor do
         ], [restart: :permanent]),
 
       worker(Farmbot.BotState.Hardware,  [], [restart: :permanent]),
+      worker(Farmbot.BotState.ProcessSupervisor, [], [restart: :permanent]),
       worker(EasterEggs, [name: EasterEggs], [restart: :permanent])
     ]
     opts = [strategy: :one_for_one]

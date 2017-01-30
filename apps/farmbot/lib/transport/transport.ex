@@ -1,4 +1,3 @@
-alias Experimental.GenStage
 alias Farmbot.BotState.Monitor
 alias Farmbot.BotState.Monitor.State, as: MonState
 defmodule Farmbot.Transport do
@@ -7,7 +6,13 @@ defmodule Farmbot.Transport do
   """
   use GenStage
   require Logger
-  @old_scheduler_hack %{ process_info: [] }
+
+  # GENSTAGE HACK
+  @spec handle_call(any, any, any) :: {:reply, any, any}
+  @spec handle_cast(any, any) :: {:noreply, any}
+  @spec handle_info(any, any) :: {:noreply, any}
+  @spec init(any) :: {:ok, any}
+  @spec handle_events(any, any, any) :: no_return
 
   defmodule Serialized do
     @moduledoc false
@@ -16,7 +21,8 @@ defmodule Farmbot.Transport do
                :pins,
                :configuration,
                :informational_settings,
-               :farm_scheduler]
+               :process_info,
+               :user_env]
 
     @type t :: %__MODULE__{
       mcu_params: map,
@@ -24,21 +30,16 @@ defmodule Farmbot.Transport do
       pins: map,
       configuration: map,
       informational_settings: map,
-      farm_scheduler: map
-    }
+      process_info: map,
+      user_env: map}
   end
 
-  def start_link do
-    GenStage.start_link(__MODULE__, [], name: __MODULE__)
-  end
+  def start_link, do: GenStage.start_link(__MODULE__, [], name: __MODULE__)
 
-  def init([]) do
-    {:producer_consumer, %Serialized{}, subscribe_to: [Monitor]}
-  end
+  def init([]), do: {:producer_consumer, %Serialized{}, subscribe_to: [Monitor]}
 
   def handle_call(:get_state, _from, state), do: {:reply, state, [], state}
 
-  # FIXME this will cause problems im sure.
   def handle_events(events, _from, state) do
     for event <- events do
       Logger.info "#{__MODULE__} got event: #{inspect event} "
@@ -51,9 +52,10 @@ defmodule Farmbot.Transport do
       mcu_params: monstate.hardware.mcu_params,
       location: monstate.hardware.location,
       pins: monstate.hardware.pins,
-      configuration: monstate.configuration.configuration,
+      configuration: Map.delete(monstate.configuration.configuration, :user_env),
       informational_settings: monstate.configuration.informational_settings,
-      farm_scheduler: @old_scheduler_hack
+      process_info: monstate.process_info,
+      user_env: monstate.configuration.configuration.user_env
     }
   end
 
@@ -80,11 +82,11 @@ defmodule Farmbot.Transport do
     {:noreply, [], new_state}
   end
 
-  def handle_info(event, state) do
-    IO.inspect event
-    {:noreply, [], state}
-  end
+  def handle_info(_event, state), do: {:noreply, [], state}
 
+  @spec emit(any) :: no_return
+  @spec log(any) :: no_return
+  @spec get_state :: State.t
   def emit(message), do: GenStage.cast(__MODULE__, {:emit, message})
   def log(message), do: GenStage.cast(__MODULE__, {:log, message})
   def get_state, do: GenServer.call(__MODULE__, :get_state)

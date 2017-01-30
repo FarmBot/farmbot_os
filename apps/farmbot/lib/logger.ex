@@ -10,10 +10,14 @@ defmodule Farmbot.Logger do
   use GenEvent
   require Logger
 
+  @type state :: {[log_message], posting?}
+
+  @spec init(any) :: {:ok, state}
   def init(_), do: {:ok, build_state()}
 
   # The example said ignore messages for other nodes, so im ignoring messages
   # for other nodes.
+  @lint false
   def handle_event({_level, gl, {Logger, _, _, _}}, state)
     when node(gl) != node()
   do
@@ -55,6 +59,7 @@ defmodule Farmbot.Logger do
 
   def handle_event(:flush, _state), do: {:ok, build_state()}
 
+  @lint false
   # If the post succeeded, we clear the messages
   def handle_call(:post_success, {_, _}), do: {:ok, :ok, {[], false}}
   # If it did not succeed, keep the messages, and try again until it completes.
@@ -69,8 +74,10 @@ defmodule Farmbot.Logger do
   # Catch any stray calls.
   def handle_call(_, state), do: {:ok, :unhandled, state}
 
+  @lint false
   def handle_info(_, state), do: dispatch state
 
+  @spec terminate(any, state) :: no_return
   def terminate(_,_) do
     # if this backend crashes just pop it out of the logger backends.
     # if we don't do this it bacomes a huge mess because of Logger
@@ -221,6 +228,6 @@ defmodule Farmbot.Logger do
   end
 
   @type posting? :: boolean
-  @spec build_state :: {[log_message], posting?}
+  @spec build_state :: state
   defp build_state, do: {[], false}
 end

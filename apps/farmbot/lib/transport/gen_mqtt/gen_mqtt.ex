@@ -1,6 +1,16 @@
 alias Farmbot.Transport.GenMqtt.Client, as: Client
-alias Experimental.GenStage
 defmodule Farmbot.Transport.GenMqtt do
+  @moduledoc """
+    Transport for GenMqtt
+  """
+
+  # GENSTAGE HACK
+  @spec handle_call(any, any, any) :: {:reply, any, any}
+  @spec handle_cast(any, any) :: {:noreply, any}
+  @spec handle_info(any, any) :: {:noreply, any}
+  @spec init(any) :: {:ok, any}
+  @spec handle_events(any, any, any) :: no_return
+
   use GenStage
   require Logger
   alias Farmbot.Token
@@ -36,6 +46,7 @@ defmodule Farmbot.Transport.GenMqtt do
     {:noreply, [], {pid, t}}
   end
 
+  @lint false # Why do i have to do this?
   def handle_info({:authorization, %Token{} = new_t}, {client, _})
   when is_pid(client) do
     # Probably a good idea to restart mqtt here.

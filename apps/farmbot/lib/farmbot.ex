@@ -17,11 +17,11 @@ defmodule Farmbot do
         [%{target: target, compat_version: compat_version, version: version, commit: commit}],
       restart: :permanent),
 
-      # Handles Farmbot scheduler stuff.
-      worker(Farmbot.Scheduler, [], restart: :permanent),
-
       # Handles the passing of messages from one part of the system to another.
       supervisor(Farmbot.Transport.Supervisor, [], restart: :permanent),
+      
+      # Handles external scripts and what not
+      supervisor(Farmware.Supervisor, [], restart: :permanent),
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)

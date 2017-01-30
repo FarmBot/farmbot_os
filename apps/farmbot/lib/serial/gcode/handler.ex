@@ -7,14 +7,22 @@ defmodule Farmbot.Serial.Gcode.Handler do
   alias Farmbot.BotState
   alias Farmbot.Lib.Maths
 
-  def start_link(nerves) do
-    GenServer.start_link(__MODULE__, nerves, name: __MODULE__)
-  end
+  @type state :: map
 
+  @doc """
+    Starts the gcode handler
+  """
+  @spec start_link(pid) :: {:ok, pid}
+  def start_link(nerves),
+    do: GenServer.start_link(__MODULE__, nerves, name: __MODULE__)
+
+  @spec init(pid) :: {:ok, state}
   def init(nerves) do
     {:ok, %{nerves: nerves, current: nil, log: []}}
   end
 
+  @lint false
+  @spec handle_cast(any, state) :: {:noreply, state}
   def handle_cast({:debug_message, str}, state) do
     Logger.debug ">> got a message from my arduino: #{str}"
     {:noreply, state}
@@ -98,8 +106,10 @@ defmodule Farmbot.Serial.Gcode.Handler do
     {:noreply, state}
   end
 
+  @spec handle_call(any, any, state) :: {:reply, any, state}
   def handle_call(:state, _from, state), do: {:reply, state, state}
 
+  @spec spm(atom) :: integer
   defp spm(xyz) do
     "steps_per_mm_#{xyz}"
     |> String.to_atom
@@ -138,11 +148,6 @@ defmodule Farmbot.Serial.Gcode.Handler do
   end
 
   # I think i put these here to clean up the logs
-  def terminate(:normal, _state) do
-    :ok
-  end
-
-  def terminate(_, _state) do
-    :ok
-  end
+  @spec terminate(atom, state) :: no_return
+  def terminate(:normal, _state), do: :ok
 end

@@ -54,8 +54,15 @@ defmodule Farmbot.Sync do
   @doc """
     Downloads the sync object form the API.
   """
-  require IEx
   def sync do
+    with {:ok, so} <- down(),
+         :ok <- up(),
+         do: {:ok, so}
+  end
+
+  # downloads all the information from the api
+  @spec down() :: {:ok, SyncObject.t} | {:error, term}
+  defp down() do
     with {:ok, resp}        <- fetch_sync_object(), # {:error, reason} | %HTTPoison.Response{}
          {:ok, json}        <- parse_http(resp),
          {:ok, parsed}      <- Poison.decode(json),
@@ -63,7 +70,11 @@ defmodule Farmbot.Sync do
          do: enter_into_db(validated)
   end
 
-  # WHAT THE HECK IS THIS
+  # uploads all the information to the api
+  @spec up() :: :ok | {:error, term}
+  #TODO(Connor) upload images to the api
+  defp up(), do: :ok
+
   def enter_into_db(%SyncObject{} = so) do
     clear_all(so)
     Amnesia.transaction do
@@ -149,7 +160,7 @@ defmodule Farmbot.Sync do
   @spec fetch_sync_object() :: {:error, atom} | {:ok, HTTPoison.Response.t}
   def fetch_sync_object() do
      case Farmbot.HTTP.get("/api/sync") do
-       %HTTPoison.Response{} = f -> {:ok, f}
+       {:ok, %HTTPoison.Response{} = f} -> {:ok, f}
        {:error, %HTTPoison.Error{reason: reason}} -> {:error, reason}
        error -> {:error, error}
      end

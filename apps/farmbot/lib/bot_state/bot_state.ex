@@ -95,9 +95,7 @@ defmodule Farmbot.BotState do
     Gets the current controller version
   """
   @spec get_os_version :: String.t
-  def get_os_version do
-    GenServer.call(Configuration, :get_version)
-  end
+  def get_os_version, do: GenServer.call(Configuration, :get_version)
 
   @doc """
     Gets the value of a param
@@ -120,6 +118,22 @@ defmodule Farmbot.BotState do
   @spec get_config(atom) :: nil | any
   def get_config(config_key) when is_atom(config_key) do
     GenServer.call(Configuration, {:get_config, config_key})
+  end
+
+  @doc """
+    Adds or updates a environment variable for Farmwares
+    takes either a key and a value, or a map of keys and values.
+    Creates new keys, or updates existing ones.
+  """
+  @spec set_user_env(String.t, String.t) :: boolean
+  def set_user_env(key, val) do
+    GenServer.call(Configuration,
+      {:update_config, "user_env", Map.new([{key, val}])})
+  end
+
+  @spec set_user_env(map) :: boolean
+  def set_user_env(map) when is_map(map) do
+    GenServer.call(Configuration, {:update_config, "user_env", map})
   end
 
   @spec get_lock(String.t) :: integer | nil

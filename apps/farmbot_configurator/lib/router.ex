@@ -9,9 +9,24 @@ defmodule Farmbot.Configurator.Router do
   use Plug.Router
   # this is so we can serve the bundle.js file.
   plug Plug.Static, at: "/", from: :farmbot_configurator
+  plug Plug.Static,
+  at: "/", from: "/tmp", gzip: false,
+  only: ~w(image.jpg)
   plug :match
   plug :dispatch
   plug CORSPlug
+
+  get "/image/latest" do
+    html =
+      """
+      <html>
+      <body>
+      <img src="/image.jpg">
+      </body>
+      </html>
+      """
+    conn |> send_resp(200, html)
+  end
 
   get "/", do: conn |> send_resp(200, make_html())
 

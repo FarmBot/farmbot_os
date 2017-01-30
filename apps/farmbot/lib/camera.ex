@@ -2,10 +2,12 @@ defmodule Farmbot.Camera do
   @moduledoc """
     Test module for taking photos with the rpi camera.
   """
-  @params ["-o", "/tmp/image.jpg", "-e", "jpg", "-t", "1",
-  "-w","1024", "-h", "1024"
-]
-  @command "raspistill"
+  # @params ["-o", "/tmp/image.jpg", "-e", "jpg", "-t", "1", "-w","1024", "-h", "1024"]
+  # @command "raspistill"
+
+  @params ~w"/tmp/image.jpg -d /dev/video0 -r 1280x720 --no-banner --gmt --skip 25 --set sharpness=15 --set gamma=10 --set contrast=75"
+  @command "fswebcam"
+  # "fswebcam --save /tmp/image.jpg -d /dev/video0 -r 1280x720 --no-banner --gmt --skip 25 --set sharpness=15 --set gamma=10 --set contrast=75"
   require Logger
 
   def ls do
@@ -39,16 +41,16 @@ defmodule Farmbot.Camera do
     Logger.debug "Payload: #{inspect payload}"
     Logger.debug "Headers: #{inspect headers}"
 
-    blah = HTTPoison.post(url, {:multipart, payload}, headers)
-    Logger.debug "THIS THING HERE: #{inspect blah}"
+    resp = HTTPoison.post(url, {:multipart, payload}, headers)
+    Logger.debug "THIS THING HERE: #{inspect resp}"
     attachment_url = url<>form_data["key"]
     Logger.debug "here: #{attachment_url}"
 
-    # json = Poison.encode!(
-    #   %{"attachment_url" => attachment_url, "meta" => %{x: 1, y: 1, z: 1}}
-    #   )
-    #
-    # Farmbot.HTTP.post "/api/images", json
+    json = Poison.encode!(
+      %{"attachment_url" => attachment_url, "meta" => %{x: 1, y: 1, z: 1}}
+      )
+
+    Farmbot.HTTP.post "/api/images", json
   end
 
 end

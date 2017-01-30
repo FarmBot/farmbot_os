@@ -283,7 +283,6 @@ defmodule Farmbot.CeleryScript.Command do
     end
   end
 
-  # is this useful?
   @spec pairs_to_tuples([pair]) :: [tuple]
   defp pairs_to_tuples(config_pairs) do
     Enum.map(config_pairs, fn(%Ast{} = thing) ->
@@ -592,7 +591,7 @@ defmodule Farmbot.CeleryScript.Command do
   @spec read_param(%{label: String.t}, []) :: no_return
   def read_param(%{label: param_str}, []) do
     param_int = GParser.parse_param(param_str)
-    if (param_int) do
+    if param_int do
       GHan.block_send("F21 P#{param_int}")
     else
       Logger.error ">> got unknown param: #{param_str}"
@@ -647,13 +646,31 @@ defmodule Farmbot.CeleryScript.Command do
 
   @doc """
     Executes a farmware
-      args: %{package: String.t},
+      args: %{label: String.t},
       body: [pair]
   """
-  @spec execute_farmare(%{package: String.t}, [pair]) :: no_return
-  def execute_farmare(%{package: package}, env_vars) do
+  @spec execute_script(%{label: String.t}, [pair]) :: no_return
+  def execute_script(%{label: "image-capture"}, _env_vars) do
+    Logger.debug ">> Is doing hax!!@@"
+    Farmbot.Camera.capture()
+    Farmbot.Camera.blah()
+  end
+
+  def execute_script(%{label: farmware}, env_vars) do
     real_args = pairs_to_tuples(env_vars)
-    Farmware.execute(package, real_args)
+    Farmware.execute(farmware, real_args)
+  end
+
+  @doc """
+    Sets a bunch of user environment variables for farmware
+      args: %{},
+      body: [pair]
+  """
+  @spec set_user_env(%{}, [pair]) :: no_return
+  def set_user_env(%{}, env_pairs) do
+     pairs_to_tuples(env_pairs)
+     |> Map.new
+     |> Farmbot.BotState.set_user_env
   end
 
   @doc """

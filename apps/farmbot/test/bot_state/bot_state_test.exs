@@ -124,6 +124,13 @@ defmodule Farmbot.BotStateTest do
     assert get_hardware_part(:mcu_params) == Farmbot.BotState.get_all_mcu_params
   end
 
+  test "sets some farmware env vars" do
+    r = Farmbot.BotState.set_user_env(%{"SUPER_COOL_VAR" => 123})
+    assert(r == true)
+    abc = Farmbot.BotState.set_user_env("DIFFERENT_COOL_VAR", "String value")
+    assert(abc == true)
+  end
+
   defp get_hardware_part(part) do
     Process.sleep(10)
     Farmbot.BotState.Monitor.get_state

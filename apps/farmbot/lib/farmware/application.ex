@@ -1,11 +1,9 @@
-defmodule Farmware.Application do
+defmodule Farmware.Supervisor do
   @moduledoc false
-
   require Logger
-  use Application
   alias Farmbot.System.FS
 
-  def start(_type, _args) do
+  def start_link() do
     import Supervisor.Spec, warn: false
     # create the farmware folder if it doesnt exist.
     check_dir()

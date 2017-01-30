@@ -13,6 +13,7 @@ defmodule Farmbot.BotState.Configuration do
     [
       locks: [],
       configuration: %{
+        user_env: %{},
         os_auto_update: false,
         fw_auto_update: false,
         timezone:       nil,
@@ -42,6 +43,7 @@ defmodule Farmbot.BotState.Configuration do
     %State{
       locks: [any],
       configuration: %{
+        user_env: map,
         os_auto_update: boolean,
         fw_auto_update: boolean,
         timezone: String.t,
@@ -72,7 +74,8 @@ defmodule Farmbot.BotState.Configuration do
         commit: commit
       }
     }
-        with {:ok, os_a_u} <- get_config("os_auto_update"),
+        with {:ok, user_env} <- get_config("user_env"),
+         {:ok, os_a_u} <- get_config("os_auto_update"),
          {:ok, fw_a_u}   <- get_config("fw_auto_update"),
          {:ok, timezone} <- get_config("timezone"),
          {:ok, spm_x} <- get_config("steps_per_mm_x"),
@@ -83,16 +86,17 @@ defmodule Farmbot.BotState.Configuration do
          {:ok, len_z} <- get_config("distance_mm_z")
          do
            new_state =
-             %State{initial |
-                configuration: %{os_auto_update: os_a_u,
-                                 fw_auto_update: fw_a_u,
-                                 timezone: timezone,
-                                 steps_per_mm_x: spm_x,
-                                 steps_per_mm_y: spm_y,
-                                 steps_per_mm_z: spm_z,
-                                 distance_mm_x:  len_x,
-                                 distance_mm_y:  len_y,
-                                 distance_mm_z:  len_z }}
+             %State{initial | configuration: %{
+                  user_env: user_env,
+                  os_auto_update: os_a_u,
+                  fw_auto_update: fw_a_u,
+                  timezone: timezone,
+                  steps_per_mm_x: spm_x,
+                  steps_per_mm_y: spm_y,
+                  steps_per_mm_z: spm_z,
+                  distance_mm_x:  len_x,
+                  distance_mm_y:  len_y,
+                  distance_mm_z:  len_z }}
            {:ok, new_state}
          end
   end
@@ -182,11 +186,21 @@ defmodule Farmbot.BotState.Configuration do
     dispatch true, new_state
   end
 
+  def handle_call({:update_config, "user_env", map}, _from, %State{} = state) do
+    config = state.configuration
+    f = Map.merge(config.user_env, map)
+    new_config = %{config | user_env: f}
+    new_state = %{state | configuration: new_config}
+    put_config("user_env", f)
+    dispatch true, new_state
+  end
+
   def handle_call({:update_config, key, _value}, _from, %State{} = state) do
     Logger.error(
     ">> got an invalid configuration in Configuration tracker: #{inspect key}")
     dispatch false, state
   end
+
 
   # Allow the frontend to do stuff again.
   def handle_call({:remove_lock, string}, _from,  %State{} = state) do

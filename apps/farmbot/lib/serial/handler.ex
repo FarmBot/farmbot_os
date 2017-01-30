@@ -1,15 +1,20 @@
 defmodule Farmbot.Serial.Handler do
+  @moduledoc """
+    Handles serial messages and keeping ports alive.
+  """
+
   alias Nerves.UART
   alias Farmbot.Serial.Gcode.Handler, as: GcodeHandler
   alias Farmbot.Serial.Gcode.Parser, as: GcodeParser
 
-  @moduledoc """
-    Handles serial messages and keeping ports alive.
-  """
   require Logger
+  use GenServer
+  @spec handle_call(any, any, any) :: {:reply, any, any}
+  @spec handle_cast(any, any) :: {:noreply, any}
+  @spec handle_info(any, any) :: {:noreply, any}
   @baud 115_200
-  # FIXME TEST ENV IS PROBABLY BROKEN
 
+  @spec init([]) :: {:ok, {pid, binary, pid}} | {:ok, nil}
   def init([]) do
     Process.flag(:trap_exit, true)
     {:ok, nerves} = UART.start_link
@@ -22,27 +27,37 @@ defmodule Farmbot.Serial.Handler do
     end
   end
 
-  def start_link(), do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
+  @doc """
+    Start the Serial Handler
+  """
+  @spec start_link :: {:ok, pid}
+  def start_link, do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
 
   @doc """
     Writes to a nerves uart tty. This only exists because
     I wanted to print what is being written
   """
-  @spec write(binary, pid) :: :ok
-  def write(str, caller)
-  when is_bitstring(str) do
-    GenServer.cast(__MODULE__, {:write, str <> " Q0", caller})
-    :ok
-  end
+  @lint false # something weird with `when`
+  @spec write(binary, pid) :: no_return
+  def write(str, caller) when is_bitstring(str),
+    do: GenServer.cast(__MODULE__, {:write, str <> " Q0", caller})
 
-  def e_stop do
-    GenServer.call(__MODULE__, :e_stop)
-  end
+  @doc """
+    Estop the arduino. This is super hacky.
+  """
+  @spec e_stop :: no_return
+  def e_stop, do: GenServer.call(__MODULE__, :e_stop)
 
-  def resume do
-    GenServer.call(__MODULE__, :resume)
-  end
+  @doc """
+    resume from an e_stop
+  """
+  @spec resume :: no_return
+  def resume, do: GenServer.call(__MODULE__, :resume)
 
+  @doc """
+    Checks if we have a serial connection
+  """
+  @spec available? :: boolean
   def available?, do: GenServer.call(__MODULE__, :available?)
 
   def handle_call(:available?, _, nil), do: {:reply, false, nil}
@@ -75,8 +90,8 @@ defmodule Farmbot.Serial.Handler do
     {:noreply, {nerves, tty, handler}}
   end
 
-  # TODO Rewrite this with an Erlang Port
   def handle_cast({:update_fw, hex_file, pid}, {nerves, tty, handler}) do
+    # TODO Rewrite this with an Erlang Port
     UART.close(nerves)
     params =
       ["-v",
@@ -92,14 +107,15 @@ defmodule Farmbot.Serial.Handler do
     {:noreply, {nerves, new_tty, handler}}
   end
 
-def handle_cast({:write, _str, caller}, nil) do
-  send(caller, :done)
-  {:noreply, nil}
-end
+  def handle_cast({:write, _str, caller}, nil) do
+    send(caller, :done)
+    {:noreply, nil}
+  end
 
-def handle_cast(_, nil), do: {:noreply, nil}
+  def handle_cast(_, nil), do: {:noreply, nil}
 
   # WHEN A FULL SERIAL MESSAGE COMES IN.
+  @lint false # i dont know why i have to do this?
   def handle_info({:nerves_uart, nerves_tty, message}, {pid, tty, handler})
   when is_binary(message) and nerves_tty == tty do
     gcode = GcodeParser.parse_code(String.strip(message))
@@ -108,7 +124,6 @@ def handle_cast(_, nil), do: {:noreply, nil}
   end
 
   def handle_info({:nerves_uart, _tty, {:partial, partial}}, state) do
-    # Log somethingdebug("Partial code: #{partial}")
     Logger.warn ">> got a partial gcode: #{partial}"
     {:noreply, state}
   end
@@ -176,13 +191,14 @@ def handle_cast(_, nil), do: {:noreply, nil}
     tty
   end
 
-  @spec list_ttys() :: [String.t,...]
-  defp list_ttys() do
+  @spec list_ttys :: [String.t,...]
+  defp list_ttys do
     UART.enumerate
     |> Map.drop(["ttyS0","ttyAMA0"])
     |> Map.to_list
   end
 
+  @spec terminate(any, any) :: no_return
   def terminate(:restart, {nerves, _tty, handler}) do
     GenServer.stop(nerves, :normal)
     GenServer.stop(handler, :normal)

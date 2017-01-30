@@ -2,9 +2,11 @@
   configs: [
     %{
       name: "default",
+      strict: true,
+      color: true,
       files: %{
-        included: ["lib/", "src/", "web/", "apps/"],
-        excluded: ["lib/farmbot/bot_state/trackers/state_tracker.ex", "lib/mix"]
+        included: ["lib/"],
+        excluded: ["lib/mix"]
       }
     }
   ]

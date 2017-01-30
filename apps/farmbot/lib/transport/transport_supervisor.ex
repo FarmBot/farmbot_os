@@ -5,6 +5,7 @@ defmodule Farmbot.Transport.Supervisor do
   use Supervisor
   @transports Application.get_env(:farmbot, :transports)
 
+  @spec init([]) :: {:ok, pid}
   def init([]) do
     children = build_children(@transports)
     opts = [strategy: :one_for_one]
@@ -14,10 +15,9 @@ defmodule Farmbot.Transport.Supervisor do
   @doc """
     Starts all the transports.
   """
-  def start_link() do
-    Supervisor.start_link(__MODULE__, [], name: __MODULE__)
-  end
+  def start_link, do: Supervisor.start_link(__MODULE__, [], name: __MODULE__)
 
+  @spec build_children([atom]) :: [Supervisor.child]
   defp build_children(transports) do
     [worker(Farmbot.Transport, [], restart: :permanent)] ++
     Enum.map(transports, fn(t) ->
