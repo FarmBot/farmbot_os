@@ -2,11 +2,12 @@ defmodule Plug.Streamer do
   alias Plug.Conn
   import Conn
   @behaviour Plug
+  @boundry "w58EW1cEpjzydSCq"
 
   def init(opts), do: opts
 
   def call(conn, _opts) do
-    conn = put_resp_header(conn, "content-type", "multipart/x-mixed-replace; boundary=w58EW1cEpjzydSCq")
+    conn = put_resp_header(conn, "content-type", "multipart/x-mixed-replace; boundary=#{@boundry}")
     conn = send_chunked(conn, 200)
     send_picture(conn)
     conn
@@ -16,7 +17,7 @@ defmodule Plug.Streamer do
     file = Farmbot.Camera.capture("/tmp/stream.jpg", ["-q"])
     Process.sleep(5)
     size = byte_size(file)
-    header = "------w58EW1cEpjzydSCq\r\nContent-Type: \"image/jpeg\"\r\nContent-length: #{size}\r\n\r\n"
+    header = "------#{@boundry}\r\nContent-Type: \"image/jpeg\"\r\nContent-length: #{size}\r\n\r\n"
     footer = "\r\n"
     with {:ok, conn} <- chunk(conn, header),
          {:ok, conn} <- chunk(conn, file),
@@ -26,12 +27,12 @@ defmodule Plug.Streamer do
 end
 
 defmodule Farmbot.Configurator.Streamer do
+  @moduledoc false
   require Logger
   use Plug.Router
   plug Plug.Logger
   plug Plug.Streamer
   plug :match
   plug :dispatch
-
   match _, do: conn
 end
