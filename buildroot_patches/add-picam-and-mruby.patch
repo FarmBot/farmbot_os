@@ -1,0 +1,289 @@
+diff --git a/package/Config.in b/package/Config.in
+index 8c8c33e..14c5e60 100644
+--- a/package/Config.in
++++ b/package/Config.in
+@@ -1793,4 +1793,9 @@ menu "Text editors and viewers"
+ 	source "package/vim/Config.in"
+ endmenu
+
++menu "Farmbot Packages"
++	source "package/mruby/Config.in"
++	source "package/python-picamera/Config.in"
++endmenu
++
+ endmenu
+diff --git a/package/mruby/Config.in b/package/mruby/Config.in
+new file mode 100644
+index 0000000..8e348ce
+--- /dev/null
++++ b/package/mruby/Config.in
+@@ -0,0 +1,5 @@
++config BR2_PACKAGE_MRUBY
++	bool "mruby"
++	help
++    mruby interpreter
++	  https://github.com/mruby/mruby
+diff --git a/package/mruby/build_config.rb b/package/mruby/build_config.rb
+new file mode 100644
+index 0000000..4db9df1
+--- /dev/null
++++ b/package/mruby/build_config.rb
+@@ -0,0 +1,49 @@
++MRuby::Toolchain.new(:openwrt) do |conf|
++  if ENV['TARGET_CC'] == nil
++    raise "Could not access env vars"
++  end
++  [conf.cc, conf.objc, conf.asm].each do |cc|
++    cc.command = ENV['TARGET_CC']
++    cc.flags = ENV['TARGET_CFLAGS']
++    cc.include_paths = ["#{MRUBY_ROOT}/include"]
++    cc.defines = %w(DISABLE_GEMS)
++    cc.option_include_path = '-I%s'
++    cc.option_define = '-D%s'
++    cc.compile_options = '%{flags} -o %{outfile} -c %{infile}'
++  end
++
++  [conf.cxx].each do |cxx|
++    cxx.command = ENV['TARGET_CXX']
++    cxx.flags = ENV['TARGET_CXXFLAGS']
++    cxx.include_paths = ["#{MRUBY_ROOT}/include"]
++    cxx.defines = %w(DISABLE_GEMS)
++    cxx.option_include_path = '-I%s'
++    cxx.option_define = '-D%s'
++    cxx.compile_options = '%{flags} -o %{outfile} -c %{infile}'
++   end
++
++  conf.linker do |linker|
++    linker.command = ENV['TARGET_CC']
++    linker.flags = ENV['TARGET_LDFLAGS']
++    linker.libraries = %w(m)
++    linker.library_paths = []
++    linker.option_library = '-l%s'
++    linker.option_library_path = '-L%s'
++    linker.link_options = '%{flags} -o %{outfile} %{objs} %{flags_before_libraries} %{libs} %{flags_after_libraries}'
++  end
++
++  conf.archiver do |archiver|
++    archiver.command = ENV['TARGET_AR']
++    archiver.archive_options = 'rs %{outfile} %{objs}'
++  end
++end
++
++MRuby::Build.new do |conf|
++  toolchain :gcc
++  conf.gembox 'farmbot'
++end
++
++MRuby::CrossBuild.new(ENV['ARCH']) do |conf|
++  toolchain :openwrt
++  conf.gembox 'farmbot'
++end
+diff --git a/package/mruby/farmbot.gembox b/package/mruby/farmbot.gembox
+new file mode 100644
+index 0000000..e607041
+--- /dev/null
++++ b/package/mruby/farmbot.gembox
+@@ -0,0 +1,82 @@
++MRuby::GemBox.new do |conf|
++  # Use standard Kernel#sprintf method
++  conf.gem :core => "mruby-sprintf"
++
++  # Use standard print/puts/p
++  conf.gem :core => "mruby-print"
++
++  # Use standard Math module
++  conf.gem :core => "mruby-math"
++
++  # Use standard Time class
++  conf.gem :core => "mruby-time"
++
++  # Use standard Struct class
++  conf.gem :core => "mruby-struct"
++
++  # Use Enumerable module extension
++  conf.gem :core => "mruby-enum-ext"
++
++  # Use String class extension
++  conf.gem :core => "mruby-string-ext"
++
++  # Use Numeric class extension
++  conf.gem :core => "mruby-numeric-ext"
++
++  # Use Array class extension
++  conf.gem :core => "mruby-array-ext"
++
++  # Use Hash class extension
++  conf.gem :core => "mruby-hash-ext"
++
++  # Use Range class extension
++  conf.gem :core => "mruby-range-ext"
++
++  # Use Proc class extension
++  conf.gem :core => "mruby-proc-ext"
++
++  # Use Symbol class extension
++  conf.gem :core => "mruby-symbol-ext"
++
++  # Use Random class
++  conf.gem :core => "mruby-random"
++
++  # Use Object class extension
++  conf.gem :core => "mruby-object-ext"
++
++  # Use ObjectSpace class
++  conf.gem :core => "mruby-objectspace"
++
++  # Use Fiber class
++  conf.gem :core => "mruby-fiber"
++
++  # Use Enumerator class (require mruby-fiber)
++  conf.gem :core => "mruby-enumerator"
++
++  # Use Enumerator::Lazy class (require mruby-enumerator)
++  conf.gem :core => "mruby-enum-lazy"
++
++  # Use toplevel object (main) methods extension
++  conf.gem :core => "mruby-toplevel-ext"
++
++  # Generate mirb command
++  conf.gem :core => "mruby-bin-mirb"
++
++  # Generate mruby command
++  conf.gem :core => "mruby-bin-mruby"
++
++  # Generate mruby-strip command
++  conf.gem :core => "mruby-bin-strip"
++
++  # Use Kernel module extension
++  conf.gem :core => "mruby-kernel-ext"
++
++  # Use class/module extension
++  conf.gem :core => "mruby-class-ext"
++
++  # Use mruby-compiler to build other mrbgems
++  conf.gem :core => "mruby-compiler"
++
++  # Use Thread
++  conf.gem :github => "mattn/mruby-thread"
++end
+diff --git a/package/mruby/mruby.mk b/package/mruby/mruby.mk
+new file mode 100644
+index 0000000..448ed27
+--- /dev/null
++++ b/package/mruby/mruby.mk
+@@ -0,0 +1,44 @@
++#############################################################
++#
++# mruby
++#
++#############################################################
++
++MRUBY_VERSION = master
++MRUBY_SITE = $(call github,mruby,mruby,$(MRUBY_VERSION))
++MRUBY_LICENSE = MIT
++MRUBY_LICENSE_FILES = LEGAL
++MRUBY_GEMBOX = $(@D)/mrbgems/farmbot.gembox
++MRUBY_CONFIG_RB = $(@D)/build_config.rb
++
++define MRUBY_BUILD_CMDS
++	cp package/mruby/build_config.rb $(MRUBY_CONFIG_RB)
++	cp package/mruby/farmbot.gembox $(MRUBY_GEMBOX)
++
++	export ARCH="$(ARCH)";\
++	export CC="$(CC)";\
++	export CFLAGS="$(CFLAGS)";\
++	export CXX="$(CXX)";\
++	export CXXFLAGS="$(CXXFLAGS)";\
++	export LD="$(CC)";\
++	export LDFLAGS="$(LDFLAGS)";\
++	export AR="$(AR)";\
++	export TARGET_CC="$(TARGET_CC)";\
++	export TARGET_CFLAGS="$(TARGET_CFLAGS)";\
++	export TARGET_CXX="$(TARGET_CXX)";\
++	export TARGET_CXXFLAGS="$(TARGET_CXXFLAGS)";\
++	export TARGET_LD="$(TARGET_CC)";\
++	export TARGET_LDFLAGS="$(TARGET_LDFLAGS)";\
++	export TARGET_AR="$(TARGET_AR)";\
++		$(@D)/minirake --directory $(@D)
++endef
++
++define MRUBY_INSTALL_TARGET_CMDS
++	$(INSTALL) -D -m 0755 $(@D)/build/$(ARCH)/bin/mruby $(STAGING_DIR)/usr/bin/
++endef
++
++define MRUBY_INSTALL_TARGET_CMDS
++	$(INSTALL) -D -m 0755 $(@D)/build/$(ARCH)/bin/mruby $(TARGET_DIR)/usr/bin/
++endef
++
++$(eval $(generic-package))
+diff --git a/package/python-picamera/001.remove-pi-check.patch b/package/python-picamera/001.remove-pi-check.patch
+new file mode 100644
+index 0000000..22abe5a
+--- /dev/null
++++ b/package/python-picamera/001.remove-pi-check.patch
+@@ -0,0 +1,33 @@
++diff --git a/setup.py b/setup.py
++index f6db373..5755e34 100644
++--- a/setup.py
+++++ b/setup.py
++@@ -94,23 +94,6 @@ __entry_points__ = {
++
++ class CustomInstallCommand(install):
++     def run(self):
++-        # Make sure we're installing on a Raspberry Pi
++-        on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
++-        if not on_rtd:
++-            try:
++-                with io.open('/proc/cpuinfo', 'r') as cpuinfo:
++-                    found = False
++-                    for line in cpuinfo:
++-                        if line.startswith('Hardware'):
++-                            found = True
++-                            label, value = line.strip().split(':', 1)
++-                            value = value.strip()
++-                            if value not in ('BCM2708', 'BCM2709', 'BCM2835', 'BCM2836'):
++-                                raise ValueError('This system does not appear to be a Raspberry Pi')
++-                    if not found:
++-                        raise ValueError('Unable to determine if this system is a Raspberry Pi')
++-            except IOError:
++-                raise ValueError('Unable to open /proc/cpuinfo')
++         install.run(self)
++
++
++@@ -143,4 +126,3 @@ def main():
++
++ if __name__ == '__main__':
++     main()
++-
+diff --git a/package/python-picamera/Config.in b/package/python-picamera/Config.in
+new file mode 100644
+index 0000000..23aeb55
+--- /dev/null
++++ b/package/python-picamera/Config.in
+@@ -0,0 +1,6 @@
++config BR2_PACKAGE_PYTHON_PICAM
++	bool "python-picam"
++	help
++	  This module provides Support for Raspberry Pi Cameras
++
++	  https://github.com/waveform80/picamera
+diff --git a/package/python-picamera/python-picam.mk b/package/python-picamera/python-picam.mk
+new file mode 100644
+index 0000000..2d6dedc
+--- /dev/null
++++ b/package/python-picamera/python-picam.mk
+@@ -0,0 +1,14 @@
++################################################################################
++#
++# python-picam
++#
++################################################################################
++
++PYTHON_PICAMERA_VERSION = master
++PYTHON_PICAMERA_SITE = git://github.com/waveform80/picamera
++PYTHON_PICAMERA_LICENSE = BSD-3-Clause
++PYTHON_PICAMERA_LICENSE_FILES = LICENSE.txt
++PYTHON_PICAMERA_SETUP_TYPE = setuptools
++PYTHON_PICAMERA_SITE_METHOD = git
++
++$(eval $(python-package))

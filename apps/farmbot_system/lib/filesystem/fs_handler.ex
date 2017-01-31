@@ -27,8 +27,13 @@ defmodule Farmbot.System.FS do
       Iex> transaction fn() -> File.write("/state/bs.txt" , "hey") end
   """
   @spec transaction(function) :: :ok | nil
-  def transaction(function)
-  def transaction(fun) when is_function(fun) do
+  def transaction(function, block? \\ false)
+  def transaction(fun, false) when is_function(fun) do
+    # HACK(Connor) i dont want to handle two different :add_transactions
+    GenServer.call(__MODULE__, {:add_transaction, fun, __MODULE__})
+  end
+
+  def transaction(fun, true) when is_function(fun) do
     timeout = 20_0000
     task = Task.async(fn() ->
       GenServer.call(__MODULE__, {:add_transaction, fun, self()})
@@ -66,6 +71,8 @@ defmodule Farmbot.System.FS do
     trans = Enum.reverse(queue)
     {:noreply, trans, []}
   end
+
+  def handle_info(_,state), do: {:noreply, [], state}
 
   @doc """
     Returns the path where farmbot keeps its persistant data.

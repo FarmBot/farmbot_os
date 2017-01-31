@@ -65,7 +65,7 @@ defmodule Farmware do
       File.mkdir!(path)
       unzip_file(zip_file_path, path)
       File.write(path <> "/manifest.json", json)
-    end
+    end, true
 
     File.rm! "/tmp/#{manifest[:package]}.zip"
     Logger.debug "Validating Farmware package"

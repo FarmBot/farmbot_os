@@ -28,14 +28,16 @@ defmodule Farmbot.System.FS.Worker do
 
   @spec handle_events([any], any, binary) :: {:noreply, [], binary}
   def handle_events(events, _from, mod) do
-    IO.puts "fs start"
     mod.mount_read_write
-    for {transaction, from} <- events do
+    for {transaction, cb} <- events do
       transaction.()
-      send from, {:ok, :ok}
+      if is_pid(cb) do
+        send cb, {:ok, :ok}
+      else
+        :ok
+      end
     end
     mod.mount_read_only
-    IO.puts "fs stop"
     {:noreply, [], mod}
   end
 
