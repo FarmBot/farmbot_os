@@ -22,6 +22,8 @@ defmodule Farmware.Tracker do
   @spec init(any) :: {:producer, State.t}
   def init(_) do
     Logger.debug "Starting Farmware Tracker"
+    unless File.exists?("/tmp/images"), do: File.mkdir_p("/tmp/images")
+
     # trap the exit of worker process
     Process.flag(:trap_exit, true)
     {:ok, pid} = Worker.start_link()

@@ -9,9 +9,6 @@ defmodule Farmbot do
   def init(%{target: target, compat_version: compat_version, version: version, commit: commit})
   do
     children = [
-      # handles communications between bot and arduino
-      supervisor(Farmbot.Serial.Supervisor, [], restart: :permanent),
-
       # Handles tracking of various parts of the bots state.
       supervisor(Farmbot.BotState.Supervisor,
         [%{target: target, compat_version: compat_version, version: version, commit: commit}],
@@ -19,9 +16,12 @@ defmodule Farmbot do
 
       # Handles the passing of messages from one part of the system to another.
       supervisor(Farmbot.Transport.Supervisor, [], restart: :permanent),
-      
+
       # Handles external scripts and what not
       supervisor(Farmware.Supervisor, [], restart: :permanent),
+      
+      # handles communications between bot and arduino
+      supervisor(Farmbot.Serial.Supervisor, [], restart: :permanent),
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)

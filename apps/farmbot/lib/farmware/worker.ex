@@ -30,7 +30,7 @@ defmodule Farmware.Worker do
 
   @spec initial_env :: env
   defp initial_env do
-    %{"WRITE_PATH" => "/tmp", "BEGIN_CS" => "<<< "}
+    %{"WRITE_PATH" => "/tmp", "BEGIN_CS" => "<<< ", "IMAGES" => "/tmp/images"}
     |> Map.merge(Farmbot.BotState.get_config(:user_env))
   end
 

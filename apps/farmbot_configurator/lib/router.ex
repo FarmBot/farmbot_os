@@ -7,30 +7,30 @@ defmodule Farmbot.Configurator.Router do
   require Logger
 
   use Plug.Router
+  # plug Plug.Logger
   # this is so we can serve the bundle.js file.
   plug Plug.Static, at: "/", from: :farmbot_configurator
-  plug Plug.Static,
-  at: "/", from: "/tmp", gzip: false,
-  only: ~w(image.jpg)
+  plug Plug.Static, at: "/image", from: "/tmp/images", gzip: false
   plug :match
   plug :dispatch
   plug CORSPlug
 
   get "/image/latest" do
+    list_images = fn() ->
+      File.ls!("/tmp/images")
+      |> Enum.reduce("", fn(image, acc) ->
+        acc <> "<img src=\"/image/#{image}\">"
+      end)
+    end
     html =
       """
       <html>
-      <body>
-      <img src="/image.jpg" alt="Take an image">
-      <form action=/image/capture>
-      <input type="submit" value="Capture">
-      </form>
-
-      <form action=/image/upload>
-      <input type="submit" value="upload">
-      </form>
-
-      </body>
+        <body>
+          <form action=/image/capture>
+            <input type="submit" value="Capture">
+          </form>
+          #{list_images.()}
+        </body>
       </html>
       """
     conn |> send_resp(200, html)
@@ -38,13 +38,6 @@ defmodule Farmbot.Configurator.Router do
 
   get "/image/capture" do
     Farmbot.Camera.capture()
-    conn
-    |> put_resp_header("location", "/image/latest")
-    |> send_resp(302, "OK")
-  end
-
-  get "/image/upload" do
-    Farmbot.Camera.blah()
     conn
     |> put_resp_header("location", "/image/latest")
     |> send_resp(302, "OK")

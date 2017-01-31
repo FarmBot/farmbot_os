@@ -32,7 +32,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_code("R41 " <> params), do: parse_pvq(params, :report_pin_value)
   def parse_code("R81 " <> params), do: parse_end_stops(params)
   def parse_code("R82 " <> position) do
-    IO.puts position
+    # IO.puts position
     parse_report_current_position(position)
   end
   def parse_code("R83 " <> v), do: {:report_software_version, String.to_integer(v)}
