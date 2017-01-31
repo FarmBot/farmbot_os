@@ -1,6 +1,14 @@
 # Changelog
 
+## v0.10.0
+
+  * New features
+    * Upgraded the Linux kernel to 4.4.43. This also removes the
+      call to mkknlimg which is no longer needed.
+    * Bump toolchain to use gcc 5.3 (previously using gcc 4.9.3)
+
 ## v0.9.1
+
 * Bug Fixes
   * Loosen mistaken nerves dep on `0.4.0` to `~> 0.4.0`
 

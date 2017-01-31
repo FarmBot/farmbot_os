@@ -4,18 +4,18 @@ defmodule Farmbot.System.FS do
   """
 
   require Logger
-  use GenServer
+  use GenStage
   @path Application.get_env(:farmbot_system, :path)
 
   def start_link(target),
-    do: GenServer.start_link(__MODULE__, target, name: __MODULE__)
+    do: GenStage.start_link(__MODULE__, target, name: __MODULE__)
 
   def init(target) do
     Logger.debug ">> #{target} FileSystem Init"
     mod = Module.concat([Farmbot, System, target, FileSystem])
     mod.fs_init
     mod.mount_read_only
-    {:ok, {mod, :read_only, 0}}
+    {:producer, []}
   end
 
   @doc """
@@ -27,32 +27,29 @@ defmodule Farmbot.System.FS do
       Iex> transaction fn() -> File.write("/state/bs.txt" , "hey") end
   """
   def transaction(fun) when is_function(fun) do
-    # this is kind of dirty
-    GenServer.call(__MODULE__, :transaction)
-    fun.()
-    GenServer.cast(__MODULE__, :transaction_finish)
+    GenServer.cast(__MODULE__, {:add_transaction, fun})
   end
 
-  # this was the first transaction.
-  def handle_call(:transaction, _, {mod, :read_only, 0}) do
-    mod.mount_read_write
-    {:reply, :ok, {mod, :read_write, 1}}
+  @spec get_state :: [any]
+  def get_state do
+    GenServer.call(__MODULE__, :get_state)
   end
 
-  # a transaction when there is already at least one other transaction happening.
-  def handle_call(:transaction, _, {mod, :read_write, count}) when count > 0 do
-    {:reply, :ok, {mod, :read_write, count + 1}}
+  def handle_call(:get_state, _, state), do: {:reply, [], state, state}
+
+  # where there is no other queued up stuff
+  def handle_cast({:add_transaction, fun}, []) do
+    {:noreply, [fun], []}
   end
 
-  # a transaction finished, but it wasnt the last one. so we don't mount read only yet.
-  def handle_cast(:transaction_finish, {mod, :read_write, count}) when count > 1 do
-    {:noreply, {mod, :read_write, count - 1}}
+  def handle_cast({:add_transaction, fun}, queue) do
+    Logger.debug ">> is queueing a fs transaction"
+    {:noreply, [], [fun | queue]}
   end
 
-  # the last transaction finished; remount read only
-  def handle_cast(:transaction_finish, {mod, :read_write, 1}) do
-    mod.mount_read_only
-    {:noreply, {mod, :read_only, 0}}
+  def handle_demand(demand, queue) when demand > 0 do
+    trans = Enum.reverse(queue)
+    {:noreply, trans, []}
   end
 
   @doc """

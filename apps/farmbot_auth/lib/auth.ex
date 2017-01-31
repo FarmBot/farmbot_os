@@ -78,16 +78,14 @@ defmodule Farmbot.Auth do
     Will return a token if one exists, nil if not.
     Returns {:error, reason} otherwise
   """
-  def get_token do
-    GenServer.call(__MODULE__, :get_token)
-  end
+  def get_token, do: GenServer.call(__MODULE__, :get_token)
 
   @doc """
     Gets teh server
     will return either {:ok, server} or {:ok, nil}
   """
   @spec get_server :: {:ok, nil} | {:ok, String.t}
-  def get_server, do: GenServer.call(CS, {:get, Authorization, "server"})
+  def get_server, do: GenServer.call(CS, {:get, Authorization, "server"}, 9_500)
 
   @spec put_server(String.t | nil) :: no_return
   defp put_server(server) when is_nil(server) or is_binary(server),
@@ -98,16 +96,23 @@ defmodule Farmbot.Auth do
   """
   @spec try_log_in :: {:ok, Token.t} | {:error, atom}
   def try_log_in do
-    case GenServer.call(__MODULE__, :try_log_in) do
-      {:ok, %Token{} = token} ->
-        do_callbacks(token)
-        {:ok, token}
-      {:error, reason} ->
-        Logger.error ">> Could not log in! #{inspect reason}"
-        {:error, reason}
-      error ->
-        Logger.error ">> Could not log in! #{inspect error}"
-        {:error, error}
+    try do
+      case GenServer.call(__MODULE__, :try_log_in) do
+        {:ok, %Token{} = token} ->
+          do_callbacks(token)
+          {:ok, token}
+        {:error, reason} ->
+          Logger.error ">> Could not log in! #{inspect reason}"
+          {:error, reason}
+        error ->
+          Logger.error ">> Could not log in! #{inspect error}"
+          {:error, error}
+      end
+    catch
+      thing ->
+        IO.inspect thing
+        Logger.error "I SAVED YOU FROM A RACE CONDITION. REBOOT"
+        {:error, thing}
     end
   end
   @doc """

@@ -30,7 +30,8 @@ defmodule Farmbot.System.Mixfile do
 
   defp deps do
     [
-      {:httpoison, github: "edgurgel/httpoison"}
+      {:httpoison, github: "edgurgel/httpoison"},
+      {:gen_stage, "0.11.0"}
     ]
   end
 end

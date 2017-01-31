@@ -2,10 +2,14 @@ defmodule Mix.Tasks.Farmbot.Upload do
   use Mix.Task
   @shortdoc "Uploads a file to a url"
   def run(args) do
+    img_path = Mix.Project.config[:images_path]
+    fw_file = Path.join(img_path, "farmbot.fw")
+    unless File.exists?(fw_file) do
+       raise "Could not find Firmware!"
+    end
     ip_address = List.first(args)
-    || "192.168.29.186" # I get to do this because i own it.
     curl_args = [
-      "-T", "_images/#{System.get_env("NERVES_TARGET")}/farmbot.fw",
+      "-T", "#{img_path}/farmbot.fw",
       "http://#{ip_address}:8988/firmware",
       "-H", "Content-Type: application/x-firmware",
       "-H", "X-Reboot: true"]

@@ -24,15 +24,8 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_code("R03 Q" <> tag) do {:error, tag} end
   def parse_code("R04") do {:busy, qtag()} end
   def parse_code("R04 Q" <> tag) do {:busy, tag} end
-  def parse_code("R05" <> r) do
-    IO.puts r
-    :dont_handle_me # Dont care about this right now.
-  end
-  def parse_code("R06" <> r) do
-    IO.puts r
-    :dont_handle_me # Dont care about this right now.
-  end
-
+  def parse_code("R05" <> r), do: :dont_handle_me # Dont care about this right now.
+  def parse_code("R06" <> r), do: :dont_handle_me # Dont care about this right now.
 
   def parse_code("R21 " <> params), do: parse_pvq(params, :report_parameter_value)
   def parse_code("R31 " <> params), do: parse_pvq(params, :report_status_value)

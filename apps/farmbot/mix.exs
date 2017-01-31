@@ -30,7 +30,7 @@ defmodule Farmbot.Mixfile do
      start_permanent: Mix.env == :prod,
      build_path:  "../../_build/#{target(Mix.env)}",
      deps_path:   "../../deps/#{target(Mix.env)}",
-     images_path: "../../images",
+     images_path: "../../images/#{target(Mix.env)}",
      config_path: "../../config/config.exs",
      lockfile: "../../mix.lock",
      aliases:     aliases(Mix.env),

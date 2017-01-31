@@ -13,7 +13,7 @@ config pkg, :nerves_env,
   version: version,
   compiler: :nerves_package,
   artifact_url: [
-    "https://github.com/Farmbot/farmbot_os/releases/download/farmbot.rootfs-#{nerves_target}-#{version}.tar.gz",
+    "https://github.com/FarmBot/farmbot_os/releases/download/v#{version}/farmbot.rootfs-#{pkg}-v#{version}.tar.gz"
   ],
   platform: Nerves.System.BR,
   platform_config: [
