@@ -61,6 +61,7 @@ defmodule Farmware do
     Logger.debug "Unpacking Farmware Package"
 
     FS.transaction fn() ->
+      Logger.debug "Installing farmware!"
       File.mkdir!(path)
       unzip_file(zip_file_path, path)
       File.write(path <> "/manifest.json", json)

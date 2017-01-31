@@ -11,7 +11,7 @@ defmodule Farmbot.System.FS.Worker do
   # What actually happens is it grabs them one at a time for some reason
   # Either way this seems to have fixed the race condition waiting for
   # teh transaction and mucking up state.
-  
+
   require Logger
   use GenStage
 
@@ -27,12 +27,15 @@ defmodule Farmbot.System.FS.Worker do
   end
 
   @spec handle_events([any], any, binary) :: {:noreply, [], binary}
-  def handle_events(events,_from, mod) do
+  def handle_events(events, _from, mod) do
+    IO.puts "fs start"
     mod.mount_read_write
-    for event <- events do
-      event.()
+    for {transaction, from} <- events do
+      transaction.()
+      send from, {:ok, :ok}
     end
     mod.mount_read_only
+    IO.puts "fs stop"
     {:noreply, [], mod}
   end
 
