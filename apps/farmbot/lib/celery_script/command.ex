@@ -310,23 +310,7 @@ defmodule Farmbot.CeleryScript.Command do
       body: []
   """
   @spec read_all_params(%{}, []) :: no_return
-  def read_all_params(%{}, []) do
-    # TODO(Connor): maybe don't do this as magic numbers. I dont even remember where
-    # these numbers came from
-    magic_numbers =
-      [0,11,12,13,21,22,23,31,
-       32,33,41,42,43,51,52,53,
-       61,62,63,71,72,73,101,102,103]
-   # BUG(Connor): The firmware (almost) always drops the first command.
-   # Possible fix? try to read a random param first, just to make sure we have
-   # a good connection??
-   GHan.block_send("F21 P0")
-
-   for param <- magic_numbers do
-     Process.sleep(10) # Makes this a bit more stable
-     GHan.block_send("F21 P#{param}")
-   end
-  end
+  def read_all_params(%{}, []), do: GHan.block_send("F20")
 
   @doc """
     Homes an axis

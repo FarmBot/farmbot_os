@@ -8,11 +8,12 @@ defmodule NervesSystemRpi2.Mixfile do
   def project do
     [app: :nerves_system_rpi2,
      version: @version,
-     elixir: "~> 1.2",
+     elixir: "~> 1.3",
      compilers: Mix.compilers ++ [:nerves_package],
      description: description(),
      package: package(),
-     deps: deps()]
+     deps: deps(),
+     aliases: ["deps.precompile": ["nerves.env", "deps.precompile"]]]
   end
 
   def application do
@@ -20,9 +21,27 @@ defmodule NervesSystemRpi2.Mixfile do
   end
 
   defp deps do
-    [{:nerves, "~> 0.4.0"},
-     {:nerves_system_br, "~> 0.8.1"},
-     {:nerves_toolchain_arm_unknown_linux_gnueabihf, "~> 0.8.0"}]
+    [find_nerves(), find_nerves_toolchain(), find_nerves_system_br()]
+  end
+
+  defp find_nerves_toolchain() do
+    {:nerves_toolchain_arm_unknown_linux_gnueabihf, "~> 0.9.0"}
+  end
+
+  defp find_nerves() do
+    if File.exists?("../nerves") do
+      {:nerves, in_umbrella: true, override: true}
+    else
+      {:nerves,  "~> 0.4.0"}
+    end
+  end
+
+  defp find_nerves_system_br do
+    if File.exists?("../nerves_system_br") do
+      {:nerves_system_br, in_umbrella: true}
+    else
+      {:nerves_system_br, "~> 0.9.2"}
+    end
   end
 
   defp description do

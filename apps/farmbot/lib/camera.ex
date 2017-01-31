@@ -18,12 +18,12 @@ defmodule Farmbot.Camera do
   def capture, do: System.cmd(@command, @params)
 
   def get_form_data_auth do
-    req = Farmbot.HTTP.get "/api/storage_auth"
+    {:ok, req} = Farmbot.HTTP.get "/api/storage_auth"
     req.body |> Poison.decode!
   end
 
   def blah do
-    req = Farmbot.HTTP.get("/api/storage_auth")
+    {:ok, req} = Farmbot.HTTP.get("/api/storage_auth")
     f = Poison.decode!(req.body)
     url = "https:" <> f["url"]
     form_data = f["form_data"]

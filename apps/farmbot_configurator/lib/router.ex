@@ -21,11 +21,33 @@ defmodule Farmbot.Configurator.Router do
       """
       <html>
       <body>
-      <img src="/image.jpg">
+      <img src="/image.jpg" alt="Take an image">
+      <form action=/image/capture>
+      <input type="submit" value="Capture">
+      </form>
+
+      <form action=/image/upload>
+      <input type="submit" value="upload">
+      </form>
+
       </body>
       </html>
       """
     conn |> send_resp(200, html)
+  end
+
+  get "/image/capture" do
+    Farmbot.Camera.capture()
+    conn
+    |> put_resp_header("location", "/image/latest")
+    |> send_resp(302, "OK")
+  end
+
+  get "/image/upload" do
+    Farmbot.Camera.blah()
+    conn
+    |> put_resp_header("location", "/image/latest")
+    |> send_resp(302, "OK")
   end
 
   get "/", do: conn |> send_resp(200, make_html())

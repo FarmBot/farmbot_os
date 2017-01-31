@@ -24,15 +24,21 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_code("R03 Q" <> tag) do {:error, tag} end
   def parse_code("R04") do {:busy, qtag()} end
   def parse_code("R04 Q" <> tag) do {:busy, tag} end
+  def parse_code("R05" <> r), do: :dont_handle_me # Dont care about this right now.
+  def parse_code("R06" <> r), do: :dont_handle_me # Dont care about this right now.
 
   def parse_code("R21 " <> params), do: parse_pvq(params, :report_parameter_value)
   def parse_code("R31 " <> params), do: parse_pvq(params, :report_status_value)
   def parse_code("R41 " <> params), do: parse_pvq(params, :report_pin_value)
   def parse_code("R81 " <> params), do: parse_end_stops(params)
-  def parse_code("R82 " <> position), do: parse_report_current_position(position)
+  def parse_code("R82 " <> position) do
+    IO.puts position
+    parse_report_current_position(position)
+  end
   def parse_code("R83 " <> v), do: {:report_software_version, String.to_integer(v)}
   def parse_code("R83") do {:report_software_version, -1} end
   def parse_code("R99 " <> message) do {:debug_message, message} end
+  def parse_code("Command" <> _), do: :dont_handle_me # I think this is a bug
   def parse_code(code)  do {:unhandled_gcode, code} end
 
   @doc ~S"""

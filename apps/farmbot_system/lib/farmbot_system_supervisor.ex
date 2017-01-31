@@ -11,6 +11,7 @@ defmodule Farmbot.System.Supervisor do
   def init(target: target) do
     children = [
       worker(Farmbot.System.FS, [target], restart: :permanent),
+      worker(Farmbot.System.FS.Worker, [target], restart: :permanent),
       worker(Farmbot.System.FS.ConfigStorage, [], restart: :permanent),
       worker(Farmbot.System.Network, [target], restart: :permanent)
     ]

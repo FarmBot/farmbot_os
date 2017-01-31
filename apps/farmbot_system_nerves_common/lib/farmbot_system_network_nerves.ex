@@ -3,7 +3,7 @@ defmodule Farmbot.System.NervesCommon.Network do
     Common network functionality for Nerves Devices.
   """
 
-  defmacro __using__(target: _target) do
+  defmacro __using__(target: _target, modules: modules) do
     quote do
       @behaviour Farmbot.System.Network
       use GenServer
@@ -14,6 +14,11 @@ defmodule Farmbot.System.NervesCommon.Network do
       def start_link(), do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
 
       def init(_) do
+        for module <- unquote(modules) do
+          System.cmd("modprobe", [module])
+        end
+        # wait for a few seconds for everything to settle
+        Process.sleep(5000)
         GenEvent.add_handler(event_manager(),
         Farmbot.System.NervesCommon.EventManager, [])
         # Farmbot.System.NervesCommon.Cell.start_link
