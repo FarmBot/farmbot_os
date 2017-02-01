@@ -1,6 +1,6 @@
 language: bash
 
-# sudo: required
+sudo: required
 dist: trusty
 
 env:
