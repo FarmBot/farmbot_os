@@ -9,7 +9,10 @@ defmodule Farmbot.StateTracker do
     quote do
       alias Farmbot.System.FS.ConfigStorage, as: FBConfigStorage
 
-      defmodule State, do: defstruct unquote(model)
+      defmodule State do
+        @moduledoc false
+        defstruct unquote(model)
+      end
 
       defp get_config(:all) do
         GenServer.call(FBConfigStorage, {:get, unquote(name), :all})
@@ -26,12 +29,12 @@ defmodule Farmbot.StateTracker do
       @doc """
         Starts a #{unquote(name)} state tracker.
       """
-      def start_link(), do: start_link([])
+      def start_link, do: start_link([])
       def start_link(args),
         do: GenServer.start_link(unquote(name), args, name: unquote(name))
 
       def init(args) do
-        n = Module.split(unquote(name)) |> List.last
+        n = unquote(name) |> Module.split |> List.last
         Logger.debug ">> is starting #{n}."
         case load(args) do
           {:ok, %State{} = state} ->

@@ -7,6 +7,7 @@ defmodule Farmbot.ImageWatcher do
 
   @checkup_frequency 10_000
   @images_path "/tmp/images"
+  @type state :: []
 
   @doc """
     Starts the Image Watcher
@@ -20,6 +21,7 @@ defmodule Farmbot.ImageWatcher do
     {:ok, []}
   end
 
+  @spec handle_info(any, state) :: {:noreply, state}
   def handle_info(:checkup, []) do
     do_checkup()
     {:noreply, []}
@@ -47,6 +49,7 @@ defmodule Farmbot.ImageWatcher do
     Logger.debug "Image Watcher trying to upload #{file_path}"
     Farmbot.HTTP.upload_file(file_path)
   end
+
   @spec print_thing(boolean, integer) :: :ok
   defp print_thing(_, count) when count == 0, do: :ok
   defp print_thing(true, _count) do

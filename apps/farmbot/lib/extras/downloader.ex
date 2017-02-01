@@ -7,8 +7,13 @@ defmodule Downloader do
   require Logger
   # TODO MOVE ME
 
+  @doc """
+    Downloads a file to a path. Returns the path
+  """
+  @spec run(binary, binary) :: binary
   def run(url, path) do
-    {:ok, %HTTPoison.Response{body: thing}} = HTTPoison.get(url, [], [follow_redirect: true])
+    {:ok, %HTTPoison.Response{body: thing}} =
+      HTTPoison.get(url, [], [follow_redirect: true])
     File.write!(path, thing)
     path
   end

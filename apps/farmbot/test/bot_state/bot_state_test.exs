@@ -90,10 +90,10 @@ defmodule Farmbot.BotStateTest do
   test "sets a lock and fails to set the same lock again" do
     str = "Bot doesnt work on christmas."
     Farmbot.BotState.add_lock(str)
-    old_locks = get_locks
+    old_locks = get_locks()
 
     Farmbot.BotState.add_lock(str)
-    new_locks = get_locks
+    new_locks = get_locks()
     assert(new_locks == old_locks)
   end
 

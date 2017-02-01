@@ -61,19 +61,18 @@ defmodule Farmbot.Sync do
   end
 
   # downloads all the information from the api
-  @spec down() :: {:ok, SyncObject.t} | {:error, term}
-  defp down() do
-    with {:ok, resp}        <- fetch_sync_object(), # {:error, reason} | %HTTPoison.Response{}
-         {:ok, json}        <- parse_http(resp),
-         {:ok, parsed}      <- Poison.decode(json),
-         {:ok, validated}   <- SyncObject.validate(parsed),
+  @spec down :: {:ok, SyncObject.t} | {:error, term}
+  defp down do
+    with {:ok, resp} <- fetch_sync_object(),
+         {:ok, json} <- parse_http(resp),
+         {:ok, parsed} <- Poison.decode(json),
+         {:ok, validated} <- SyncObject.validate(parsed),
          do: enter_into_db(validated)
   end
 
   # uploads all the information to the api
-  @spec up() :: :ok | {:error, term}
-  #TODO(Connor) upload images to the api
-  defp up(), do: :ok
+  @spec up :: :ok | {:error, term}
+  defp up, do: :ok
 
   def enter_into_db(%SyncObject{} = so) do
     clear_all(so)
@@ -157,8 +156,8 @@ defmodule Farmbot.Sync do
   @doc """
     Tries to do an HTTP request on server/api/sync
   """
-  @spec fetch_sync_object() :: {:error, atom} | {:ok, HTTPoison.Response.t}
-  def fetch_sync_object() do
+  @spec fetch_sync_object :: {:error, atom} | {:ok, HTTPoison.Response.t}
+  def fetch_sync_object do
      case Farmbot.HTTP.get("/api/sync") do
        {:ok, %HTTPoison.Response{} = f} -> {:ok, f}
        {:error, %HTTPoison.Error{reason: reason}} -> {:error, reason}

@@ -13,8 +13,12 @@ defmodule Farmbot.BotState.ProcessTracker do
   defmodule Info do
     @moduledoc false
     defstruct [:name, :uuid, :status, :stuff]
+    @typedoc """
+      Status of this process
+    """
     @type status :: atom
-    @type t :: %__MODULE__{name: String.t, uuid: binary, status: status, stuff: map}
+    @type t ::
+      %__MODULE__{name: String.t, uuid: binary, status: status, stuff: map}
   end
 
   defmodule State do
@@ -23,19 +27,22 @@ defmodule Farmbot.BotState.ProcessTracker do
     @type uuid :: binary
     @type kind :: :event | :farmware | :regimen
     @type t ::
-      %__MODULE__{events: [Info.t],
+      %__MODULE__{
+        events: [Info.t],
         regimens: [Info.t],
         farmwares: [Info.t]}
   end
 
-  def init(_) do
+  @spec init([]) :: {:ok, State.t}
+  def init([]) do
     {:ok, %State{}}
   end
 
   @doc """
     Starts the Process Tracker
   """
-  def start_link(), do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
+  @spec start_link :: {:ok, pid}
+  def start_link, do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
 
   @doc """
     Registers a kind, name with a database entry to be tracked
@@ -55,13 +62,15 @@ defmodule Farmbot.BotState.ProcessTracker do
     starts a process by its uuid.
   """
   @spec start_process(State.uuid) :: {:ok, pid} | {:error, term}
-  def start_process(uuid), do: GenServer.call(__MODULE__, {:start_process, uuid})
+  def start_process(uuid),
+    do: GenServer.call(__MODULE__, {:start_process, uuid})
 
   @doc """
     Stops a process by it's uuid.
   """
   @spec stop_process(State.uuid) :: :ok | {:error, term}
-  def stop_process(uuid), do: GenServer.call(__MODULE__, {:stop_process, uuid})
+  def stop_process(uuid),
+    do: GenServer.call(__MODULE__, {:stop_process, uuid})
 
   @doc """
     Lookup a uuid by its kind and name
@@ -74,8 +83,8 @@ defmodule Farmbot.BotState.ProcessTracker do
   @doc """
     Gets the state of the tracker.
   """
-  @spec get_state() :: State.t
-  def get_state(), do: GenServer.call(__MODULE__, :state)
+  @spec get_state :: State.t
+  def get_state, do: GenServer.call(__MODULE__, :state)
 
   # GenServer stuffs
 
@@ -122,7 +131,12 @@ defmodule Farmbot.BotState.ProcessTracker do
     Logger.debug ">> is registering a #{kind} as #{name}"
     uuid = UUID.generate
     key = kind_to_key(kind)
-    new_list = [%Info{name: name, uuid: uuid, status: :not_running, stuff: stuff} | Map.get(state, key)]
+    new_list = [
+      %Info{name: name,
+        uuid: uuid,
+        status: :not_running,
+        stuff: stuff} | Map.get(state, key)]
+
     new_state = %{state | key => new_list}
     dispatch(new_state)
   end
@@ -146,6 +160,7 @@ defmodule Farmbot.BotState.ProcessTracker do
   def terminate(_reason, _state), do: :ok #TODO(connor) save the state here?
 
   @spec nest_the_loops(State.uuid, State.t) :: {State.kind, Info.t} | nil
+  @lint {Credo.Check.Refactor.Nesting, false}
   defp nest_the_loops(uuid, state) do
     # I have to enumerate over all the processes "kind"s here...
     # this is the most javascript elixir i have ever wrote.

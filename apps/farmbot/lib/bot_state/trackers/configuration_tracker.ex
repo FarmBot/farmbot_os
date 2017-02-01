@@ -201,7 +201,6 @@ defmodule Farmbot.BotState.Configuration do
     dispatch false, state
   end
 
-
   # Allow the frontend to do stuff again.
   def handle_call({:remove_lock, string}, _from,  %State{} = state) do
     # Get the index of the lock

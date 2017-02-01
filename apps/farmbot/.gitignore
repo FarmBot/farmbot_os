@@ -12,3 +12,5 @@ erl_crash.dump
 npm-debug.log
 ttb_last_config
 cover
+
+doc

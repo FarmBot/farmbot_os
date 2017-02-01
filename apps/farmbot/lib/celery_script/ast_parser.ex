@@ -24,7 +24,10 @@ defmodule Farmbot.CeleryScript.Ast do
   def parse(%{"kind" => kind, "args" => args} = thing) do
     body = thing["body"] || []
     comment = thing["comment"]
-    %__MODULE__{kind: kind, args: parse_args(args), body: parse(body), comment: comment}
+    %__MODULE__{kind: kind,
+      args: parse_args(args),
+      body: parse(body),
+      comment: comment}
   end
 
   def parse(%{__struct__: _} = thing) do
@@ -34,9 +37,11 @@ defmodule Farmbot.CeleryScript.Ast do
   def parse(%{kind: kind, args: args} = thing) do
     body = thing[:body] || []
     comment = thing[:comment]
-    %__MODULE__{kind: kind, body: parse(body), args: parse_args(args), comment: comment}
+    %__MODULE__{kind: kind,
+      body: parse(body),
+      args: parse_args(args),
+      comment: comment}
   end
-
 
   # You can give a list of nodes.
   @spec parse([map,...]) :: [t,...]
@@ -45,7 +50,6 @@ defmodule Farmbot.CeleryScript.Ast do
       acc ++ [parse(blah)]
     end)
   end
-
 
   def parse(_), do: %__MODULE__{kind: "nothing", args: %{}, body: []}
 

@@ -49,6 +49,7 @@ defmodule Farmware do
     Installs a package from a manifest url
   """
   @spec install(binary) :: map | no_return
+  @lint {Credo.Check.Refactor.ABCSize, false}
   def install(manifest_url) do
     Logger.debug "Getting Farmware Manifest"
     {manifest, json} = Manifest.get!(manifest_url).body

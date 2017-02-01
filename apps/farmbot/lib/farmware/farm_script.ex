@@ -13,7 +13,15 @@ defmodule Farmware.FarmScript do
     * how to handle failures?
   """
 
-  @type t :: %__MODULE__{executable: binary, args: [binary], path: binary, name: binary, envs: [{binary, binary}]}
+  @typedoc """
+    The things required to describe a FarmScript
+  """
+  @type t ::
+    %__MODULE__{executable: binary,
+      args: [binary],
+      path: binary,
+      name: binary,
+      envs: [{binary, binary}]}
   @enforce_keys [:executable, :args, :path, :name, :envs]
   defstruct [:executable, :args, :path, :name, :envs]
 

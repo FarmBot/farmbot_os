@@ -3,7 +3,11 @@ defmodule Farmware.Supervisor do
   require Logger
   alias Farmbot.System.FS
 
-  def start_link() do
+  @doc """
+    Starts the Farmware Supervisor
+  """
+  @spec start_link :: {:ok, pid}
+  def start_link do
     import Supervisor.Spec, warn: false
     # create the farmware folder if it doesnt exist.
     check_dir()
@@ -12,15 +16,14 @@ defmodule Farmware.Supervisor do
     Supervisor.start_link(children, opts)
   end
 
-  defp check_dir() do
+  @spec check_dir :: no_return
+  defp check_dir do
     path = FS.path() <> "/farmware"
-    if !File.exists?(path) do
+    unless File.exists?(path) do
       Logger.debug ">> creating farmware dir."
       FS.transaction fn() ->
         File.mkdir(path)
       end
-    else
-      Logger.debug ">> farmware dir already exists."
     end
   end
 end

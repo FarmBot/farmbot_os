@@ -9,10 +9,9 @@ defmodule SyncableTest do
     syncable Person, [:legs, :arms]
   end
 
-
   setup_all do
     Amnesia.start
-    TestDB.create! Keyword.put([], :memory, [node])
+    TestDB.create! Keyword.put([], :memory, [node()])
   end
 
   test "gets keys for a syncable" do

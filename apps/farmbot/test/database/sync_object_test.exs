@@ -3,12 +3,12 @@ defmodule Farmbot.Sync.SyncObjectTest do
   use ExUnit.Case, async: true
 
   test "validates and creates a SyncObject" do
-    {:ok, blah } = Farmbot.Sync.SyncObject.validate(json_resp)
+    {:ok, blah } = Farmbot.Sync.SyncObject.validate(json_resp())
     assert blah.__struct__ == Farmbot.Sync.SyncObject
   end
 
   test "validates and does not raise an exception" do
-    blah = Farmbot.Sync.SyncObject.validate!({:ok, json_resp})
+    blah = Farmbot.Sync.SyncObject.validate!({:ok, json_resp()})
     assert blah.__struct__ == Farmbot.Sync.SyncObject
   end
 
@@ -42,44 +42,44 @@ defmodule Farmbot.Sync.SyncObjectTest do
   end
 
   test "makes sure all keys are validated" do
-    json1 = json_resp |> break("device")
+    json1 = json_resp() |> break("device")
     {:error, Farmbot.Sync.Database.Device, reason1} = Farmbot.Sync.SyncObject.validate(json1)
     assert reason1 == :bad_map
 
-    json2 = json_resp |> break("peripherals")
+    json2 = json_resp() |> break("peripherals")
     {:error, Farmbot.Sync.Database.Peripheral, reason2} = Farmbot.Sync.SyncObject.validate(json2)
     assert reason2 == [{:error, Farmbot.Sync.Database.Peripheral, :bad_map}]
 
-    json3 = json_resp |> break("plants")
+    json3 = json_resp() |> break("plants")
     {:error, Farmbot.Sync.Database.Plant, reason3} = Farmbot.Sync.SyncObject.validate(json3)
     assert reason3 == [{:error, Farmbot.Sync.Database.Plant, :bad_map}]
 
-    json4 = json_resp |> break("regimen_items")
+    json4 = json_resp() |> break("regimen_items")
     {:error, Farmbot.Sync.Database.RegimenItem, reason4} = Farmbot.Sync.SyncObject.validate(json4)
     assert reason4 == [{:error, Farmbot.Sync.Database.RegimenItem, :bad_map}]
 
-    json5 = json_resp |> break("regimens")
+    json5 = json_resp() |> break("regimens")
     {:error, Farmbot.Sync.Database.Regimen, reason5} = Farmbot.Sync.SyncObject.validate(json5)
     assert reason5 == [{:error, Farmbot.Sync.Database.Regimen, :bad_map}]
 
-    json6 = json_resp |> break("sequences")
+    json6 = json_resp() |> break("sequences")
     {:error, Farmbot.Sync.Database.Sequence, reason6} = Farmbot.Sync.SyncObject.validate(json6)
     assert reason6 == [{:error, Farmbot.Sync.Database.Sequence, :bad_map}]
 
-    json7 = json_resp |> break("tool_bays")
+    json7 = json_resp() |> break("tool_bays")
     {:error, Farmbot.Sync.Database.ToolBay, reason7} = Farmbot.Sync.SyncObject.validate(json7)
     assert reason7 == [{:error, Farmbot.Sync.Database.ToolBay, :bad_map}]
 
-    json8 = json_resp |> break("tool_slots")
+    json8 = json_resp() |> break("tool_slots")
     {:error, Farmbot.Sync.Database.ToolSlot, reason8} = Farmbot.Sync.SyncObject.validate(json8)
     assert reason8 == [{:error, Farmbot.Sync.Database.ToolSlot, :bad_map}]
 
-    json9 = json_resp |> break("tools")
+    json9 = json_resp() |> break("tools")
     {:error, Farmbot.Sync.Database.Tool, reason9} = Farmbot.Sync.SyncObject.validate(json9)
     assert reason9 == [{:error, Farmbot.Sync.Database.Tool, :bad_map}]
 
 
-    json10 = json_resp |> break("users")
+    json10 = json_resp() |> break("users")
     {:error, Farmbot.Sync.Database.User, reason10} = Farmbot.Sync.SyncObject.validate(json10)
     assert reason10 == [{:error, Farmbot.Sync.Database.User, :bad_map}]
 
@@ -89,17 +89,17 @@ defmodule Farmbot.Sync.SyncObjectTest do
     Map.put(map, key, ["failure"])
   end
 
-  def json_resp do
-    %{"device" => json_device,
-      "peripherals" => json_peripherals,
+  def json_resp() do
+    %{"device" => json_device(),
+      "peripherals" => json_peripherals(),
       "plants" => [],
-      "regimen_items" => json_regimen_items,
-      "regimens" => json_regimens,
-      "sequences" => json_sequences,
-      "tool_bays" => json_tool_bays,
-      "tool_slots" => json_tool_slots,
-      "tools" => json_tools,
-      "users" => json_users}
+      "regimen_items" => json_regimen_items(),
+      "regimens" => json_regimens(),
+      "sequences" => json_sequences(),
+      "tool_bays" => json_tool_bays(),
+      "tool_slots" => json_tool_slots(),
+      "tools" => json_tools(),
+      "users" => json_users()}
   end
 
   def json_device do
@@ -111,7 +111,7 @@ defmodule Farmbot.Sync.SyncObjectTest do
     }
   end
 
-  def json_peripherals,  do: [json_peripheral]
+  def json_peripherals,  do: [json_peripheral()]
   def json_peripheral do
     %{
       "id" => 1,
@@ -124,7 +124,7 @@ defmodule Farmbot.Sync.SyncObjectTest do
     }
   end
 
-  def json_regimens, do: [json_regimen]
+  def json_regimens, do: [json_regimen()]
   def json_regimen do
     %{
       "id" => 1,
@@ -134,7 +134,7 @@ defmodule Farmbot.Sync.SyncObjectTest do
     }
   end
 
-  def json_regimen_items, do: [json_regimen_item]
+  def json_regimen_items, do: [json_regimen_item()]
   def json_regimen_item do
     %{
       "id" => 1,
@@ -144,7 +144,7 @@ defmodule Farmbot.Sync.SyncObjectTest do
     }
   end
 
-  def json_sequences, do: [json_sequence]
+  def json_sequences, do: [json_sequence()]
   def json_sequence do
     %{
       "kind" => "sequence",
@@ -157,7 +157,7 @@ defmodule Farmbot.Sync.SyncObjectTest do
     }
   end
 
-  def json_tool_bays, do: [json_tool_bay]
+  def json_tool_bays, do: [json_tool_bay()]
   def json_tool_bay do
     %{
       "id" => 1,
@@ -166,7 +166,7 @@ defmodule Farmbot.Sync.SyncObjectTest do
     }
   end
 
-  def json_tool_slots, do: [json_tool_slot]
+  def json_tool_slots, do: [json_tool_slot()]
   def json_tool_slot do
     %{
       "id" => 1,
@@ -179,7 +179,7 @@ defmodule Farmbot.Sync.SyncObjectTest do
     }
   end
 
-  def json_tools, do: [json_tool]
+  def json_tools, do: [json_tool()]
   def json_tool do
     %{
       "id" => 1,
@@ -188,7 +188,7 @@ defmodule Farmbot.Sync.SyncObjectTest do
     }
   end
 
-  def json_users, do: [json_user]
+  def json_users, do: [json_user()]
   def json_user do
     %{
       "id" => 1,

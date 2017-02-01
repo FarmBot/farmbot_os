@@ -75,7 +75,7 @@ defmodule Farmbot.EasterEggs do
   @spec say_random_sentence(pid) :: :ok
   def say_random_sentence(pid \\ __MODULE__), do: GenServer.cast(pid, verb())
 
-  @doc """
+  @doc ~s"""
     Loads new json into the state.
     Example:
       iex> json = %{"nouns" => [%{"im_a_var" => "im a string"}],
@@ -116,6 +116,7 @@ defmodule Farmbot.EasterEggs do
   defp do_delete_job(_), do: :no_job
 
   # GEN SERVER CALLBACKS
+  @lint false
   def handle_cast(sentence, %{nouns: nouns, verbs: verbs})
   when is_binary(sentence) do
     rendered = Mustache.render sentence, nouns
@@ -123,19 +124,25 @@ defmodule Farmbot.EasterEggs do
     {:noreply, %{nouns: nouns, verbs: verbs}}
   end
 
+  @lint false
   def handle_cast(%{"nouns" => _, "verbs" => _} = json, _state) do
     {:ok, state} = parse_easter_eggs_json(json)
     {:noreply, state}
   end
 
+  @lint false
   def handle_cast(_event, state), do: {:noreply, state}
 
+  @lint false
   def handle_call(:state, _from, state), do: {:reply, state, state}
 
+  @lint false
   def handle_call(:verb, _from, %{nouns: n, verbs: v}) do
     rv = v |> Enum.random
     {:reply, rv, %{nouns: n, verbs: v}}
   end
   def handle_call(_event, _from, state), do: {:reply, :unhandled, state}
+
+  @lint false
   def handle_info(_event, state), do: {:noreply, state}
 end

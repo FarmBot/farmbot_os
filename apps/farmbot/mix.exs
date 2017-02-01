@@ -33,13 +33,12 @@ defmodule Farmbot.Mixfile do
      images_path: "../../images/#{target(Mix.env)}",
      config_path: "../../config/config.exs",
      lockfile: "../../mix.lock",
-     aliases:     aliases(Mix.env),
-     deps:        deps() ++ system(target(Mix.env)),
+     aliases: aliases(Mix.env),
+     deps: deps() ++ system(target(Mix.env)),
      name: "Farmbot",
      source_url: "https://github.com/Farmbot/farmbot_os",
      homepage_url: "http://farmbot.io",
-     docs: [main: "farmbot", # The main page in the docs
-            extras: ["README.md"]]
+     docs: [main: "farmbot", extras: ["../../README.md", "../../BUILDING.md"]]
    ]
   end
 
@@ -118,7 +117,8 @@ defmodule Farmbot.Mixfile do
   # if not in prod mode nothing special.
   def aliases(_), do: [
     "firmware": ["farmbot.warning"],
-    "credo": ["credo list --only readability,warning,todo,inspect,refactor --ignore-checks todo"]
+    "credo": ["credo list --only readability,warning,todo,inspect,refactor --ignore-checks todo,spec"],
+    "test": ["credo", "test"]
   ]
 
   # the nerves_system_* dir to use for this build.

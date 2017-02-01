@@ -45,6 +45,7 @@ defmodule Farmware.Worker do
     {:noreply, [], environment}
   end
 
+  @lint false
   def handle_call(:get_state, _from, state) do
     {:reply, state, [], state}
   end

@@ -1,5 +1,5 @@
 defmodule Farmbot.CeleryScript.Command do
-  @moduledoc """
+  @moduledoc ~s"""
     Actionable CeleryScript Commands.
     There should be very little side affects here. just serial commands and
     ways to execute those serial commands.
@@ -37,7 +37,7 @@ defmodule Farmbot.CeleryScript.Command do
   # ALSO THE COMPILER CAN'T PROPERLY CHECK SOMETHING BEING THAT THE ARGS ARE
   # NOT POSITIONAL.
 
-  @doc """
+  @doc ~s"""
     move_absolute to a prticular position.
       args: %{
         speed: integer,
@@ -52,6 +52,7 @@ defmodule Farmbot.CeleryScript.Command do
     location: coordinate_ast | Ast.t
   }
   @spec move_absolute(move_absolute_args, []) :: no_return
+  @lint {Credo.Check.Refactor.ABCSize, false}
   def move_absolute(%{speed: s, offset: offset, location: location}, []) do
     with %Ast{kind: "coordinate", args: %{x: xa, y: ya, z: za}, body: []} <-
             ast_to_coord(location),
@@ -74,7 +75,7 @@ defmodule Farmbot.CeleryScript.Command do
     |> Farmbot.BotState.get_config()
   end
 
-  @doc """
+  @doc ~s"""
     move_relative to a location
       args: %{speed: number, x: number, y: number, z: number}
       body: []
@@ -91,7 +92,7 @@ defmodule Farmbot.CeleryScript.Command do
     move_absolute(%{speed: speed, offset: offset, location: location}, [])
   end
 
-  @doc """
+  @doc ~s"""
     Convert an ast node to a coodinate or return :error.
   """
   @spec ast_to_coord(Ast.t) :: coordinate_ast | :error
@@ -105,6 +106,7 @@ defmodule Farmbot.CeleryScript.Command do
   # fortool_id == tool_id, which returned
   # all of them, because every toolslots tool_id
   # always equals that toolslots tool id lol
+  @lint {Credo.Check.Refactor.PipeChainStart, false}
   def ast_to_coord(%Ast{kind: "tool", args: %{tool_id: tool_id_}, body: []}) do
     blah = Amnesia.transaction do
       ToolSlot.where(tool_id == tool_id_) |> Amnesia.Selection.values
@@ -128,7 +130,7 @@ defmodule Farmbot.CeleryScript.Command do
     :error
   end
 
-  @doc """
+  @doc ~s"""
     coodinate
       args: %{x: integer, y: integer, z: integer}
       body: []
@@ -140,7 +142,7 @@ defmodule Farmbot.CeleryScript.Command do
     %Ast{kind: "coordinate", args: args, body: []}
   end
 
-  @doc """
+  @doc ~s"""
     read_status
       args: %{},
       body: []
@@ -148,7 +150,7 @@ defmodule Farmbot.CeleryScript.Command do
   @spec read_status(%{}, []) :: no_return
   def read_status(%{}, []), do: Farmbot.BotState.Monitor.get_state
 
-  @doc """
+  @doc ~s"""
     sync
       args: %{},
       body: []
@@ -163,7 +165,7 @@ defmodule Farmbot.CeleryScript.Command do
         Logger.error ">> encountered an error syncing!: #{inspect reason}"
     end
   end
-  @doc """
+  @doc ~s"""
     Handles an RPC Request.
       args: %{label: String.t},
       body: [Ast.t,...]
@@ -191,15 +193,15 @@ defmodule Farmbot.CeleryScript.Command do
   @spec handle_req({Ast.t, [explanation_type]}, String.t) :: no_return
   defp handle_req({_, []}, id) do
     # there were no failed asts.
-    rpc_ok(%{label: id}, []) |> Farmbot.Transport.emit
+    %{label: id} |> rpc_ok([]) |> Farmbot.Transport.emit
   end
 
   defp handle_req({_, failed}, id) do
     # there were some failed asts.
-    rpc_error(%{label: id}, failed) |> Farmbot.Transport.emit
+    %{label: id} |> rpc_error(failed) |> Farmbot.Transport.emit
   end
 
-  @doc """
+  @doc ~s"""
     Return for a valid Rpc Request
       args: %{label: String.t},
       body: []
@@ -209,7 +211,7 @@ defmodule Farmbot.CeleryScript.Command do
     %Ast{kind: "rpc_ok", args: %{label: id}, body: []}
   end
 
-  @doc """
+  @doc ~s"""
     bad return for a valid Rpc Request
       args: %{label: String.t},
       body: [Explanation]
@@ -219,7 +221,7 @@ defmodule Farmbot.CeleryScript.Command do
     %Ast{kind: "rpc_error", args: %{label: id}, body: explanations}
   end
 
-  @doc """
+  @doc ~s"""
     Explanation for an rpc error
       args: %{label: String.t},
       body: []
@@ -231,7 +233,7 @@ defmodule Farmbot.CeleryScript.Command do
     %Ast{kind: "explanation", args: %{message: message}, body: []}
   end
 
-  @doc """
+  @doc ~s"""
     reboots your bot
       args: %{},
       body: []
@@ -241,7 +243,7 @@ defmodule Farmbot.CeleryScript.Command do
     FBSys.reboot
   end
 
-  @doc """
+  @doc ~s"""
     Powers off your bot
       args: %{},
       body: []
@@ -251,8 +253,9 @@ defmodule Farmbot.CeleryScript.Command do
     FBSys.power_off
   end
 
-  @type pair :: %Ast{kind: String.t, args: %{label: String.t, value: any}, body: []}
-  @doc """
+  @type pair
+    :: %Ast{kind: String.t, args: %{label: String.t, value: any}, body: []}
+  @doc ~s"""
     Updates configuration on a package
       args: %{package: String.t},
       body: [Ast.t]
@@ -290,12 +293,13 @@ defmodule Farmbot.CeleryScript.Command do
     end)
   end
 
-  @doc """
+  @doc ~s"""
     calibrates an axis:
       args: %{axis: "x" | "y" | "z"}
       body: []
   """
   @spec calibrate(%{axis: String.t}, []) :: no_return
+  @lint {Credo.Check.Refactor.PipeChainStart, false}
   def calibrate(%{axis: axis}, []) do
     case axis do
       "x" -> "F14"
@@ -304,7 +308,7 @@ defmodule Farmbot.CeleryScript.Command do
     end |> GHan.block_send
   end
 
-  @doc """
+  @doc ~s"""
     Reads all mcu_params
       args: %{},
       body: []
@@ -312,7 +316,7 @@ defmodule Farmbot.CeleryScript.Command do
   @spec read_all_params(%{}, []) :: no_return
   def read_all_params(%{}, []), do: GHan.block_send("F20")
 
-  @doc """
+  @doc ~s"""
     Homes an axis
       args: %{axis: "x" | "y" | "z" | "all"},
       body: []
@@ -339,7 +343,7 @@ defmodule Farmbot.CeleryScript.Command do
     move_absolute(%{speed: speed, location: location, offset: blah }, [])
   end
 
-  @doc """
+  @doc ~s"""
     executes a thing
       args: %{sequence_id_id: integer}
       body: []
@@ -347,12 +351,13 @@ defmodule Farmbot.CeleryScript.Command do
   @spec execute(%{sequence_id: integer}, []) :: no_return
   def execute(%{sequence_id: id}, []) do
     {:ok, _} = Farmbot.Sync.sync()
-    Farmbot.Sync.get_sequence(id)
+    id
+    |> Farmbot.Sync.get_sequence
     |> Ast.parse
     |> do_command
   end
 
-  @doc """
+  @doc ~s"""
     does absolutely nothing.
       args: %{},
       body: []
@@ -361,7 +366,7 @@ defmodule Farmbot.CeleryScript.Command do
   @spec nothing(%{}, []) :: nothing_ast
   def nothing(args, body), do: %Ast{kind: "nothing", args: args, body: body}
 
-  @doc """
+  @doc ~s"""
     Executes a sequence. Be carefully.
       args: %{},
       body: [Ast.t]
@@ -375,7 +380,7 @@ defmodule Farmbot.CeleryScript.Command do
     end
   end
 
-  @doc """
+  @doc ~s"""
     Conditionally does something
       args: %{_else: Ast.t
               _then: Ast.t,
@@ -435,7 +440,7 @@ defmodule Farmbot.CeleryScript.Command do
 
   defp eval_if(_, _, _, _, _), do: Logger.debug "bad if operator"
 
-  @doc """
+  @doc ~s"""
     Logs a message to some places
       args: %{},
       body: []
@@ -468,7 +473,7 @@ defmodule Farmbot.CeleryScript.Command do
     ch
   end
 
-  @doc """
+  @doc ~s"""
     writes an arduino pin
     args: %{
     pin_number: integer,
@@ -477,7 +482,7 @@ defmodule Farmbot.CeleryScript.Command do
     },
     body: []
   """
-  @typedoc """
+  @typedoc ~s"""
     0 is digital
     1 is pwm
   """
@@ -498,7 +503,7 @@ defmodule Farmbot.CeleryScript.Command do
     Farmbot.BotState.set_pin_value(pin, val)
   end
 
-  @doc """
+  @doc ~s"""
     Reads an arduino pin
       args: %{
         label: String.t
@@ -515,7 +520,7 @@ defmodule Farmbot.CeleryScript.Command do
     "F42 P#{pin} M#{mode}" |> GHan.block_send
   end
 
-  @doc """
+  @doc ~s"""
     toggles a digital pin
       args: %{pin_number: String.t},
       body: []
@@ -539,7 +544,7 @@ defmodule Farmbot.CeleryScript.Command do
     end
   end
 
-  @doc """
+  @doc ~s"""
     sleeps for a number of milliseconds
       args: %{milliseconds: integer},
       body: []
@@ -547,7 +552,7 @@ defmodule Farmbot.CeleryScript.Command do
   @spec wait(%{milliseconds: integer}, []) :: no_return
   def wait(%{milliseconds: millis}, []), do: Process.sleep(millis)
 
-  @doc """
+  @doc ~s"""
     Checks updates for given package
       args: %{package: "arduino_firmware" | "farmbot_os"},
       body: []
@@ -567,7 +572,7 @@ defmodule Farmbot.CeleryScript.Command do
     end
   end
 
-  @doc """
+  @doc ~s"""
     Reads a param value
       args: %{label: String.t}
       body: []
@@ -582,7 +587,7 @@ defmodule Farmbot.CeleryScript.Command do
     end
   end
 
-  @doc """
+  @doc ~s"""
     Sends a warning message. Used for denoting hax and what not
       args: %{message: String.t}
       body: []
@@ -592,7 +597,7 @@ defmodule Farmbot.CeleryScript.Command do
     send_message(%{message: str <> @shrug, message_type: :warn}, [])
   end
 
-  @doc """
+  @doc ~s"""
     Locks the bot from movement until unlocked
       args: %{},
       body: []
@@ -606,7 +611,7 @@ defmodule Farmbot.CeleryScript.Command do
     shrug(%{message: ">> is lost. Probably a good idea to reboot."}, [])
   end
 
-  @doc """
+  @doc ~s"""
     unlocks the bot allowing movement again.
       args: %{},
       body: []
@@ -616,7 +621,7 @@ defmodule Farmbot.CeleryScript.Command do
     Logger.warn ">> needs to be rebooted"
   end
 
-  @doc """
+  @doc ~s"""
     Factory resets bot.
   """
   @spec factory_reset(%{}, []) :: no_return
@@ -628,7 +633,7 @@ defmodule Farmbot.CeleryScript.Command do
     end
   end
 
-  @doc """
+  @doc ~s"""
     Executes a farmware
       args: %{label: String.t},
       body: [pair]
@@ -637,7 +642,6 @@ defmodule Farmbot.CeleryScript.Command do
   def execute_script(%{label: "image-capture"}, _env_vars) do
     Logger.debug ">> Is doing hax!!@@"
     Farmbot.Camera.capture()
-    Farmbot.Camera.blah()
   end
 
   def execute_script(%{label: farmware}, env_vars) do
@@ -645,19 +649,20 @@ defmodule Farmbot.CeleryScript.Command do
     Farmware.execute(farmware, real_args)
   end
 
-  @doc """
+  @doc ~s"""
     Sets a bunch of user environment variables for farmware
       args: %{},
       body: [pair]
   """
   @spec set_user_env(%{}, [pair]) :: no_return
+  @lint {Credo.Check.Refactor.PipeChainStart, false}
   def set_user_env(%{}, env_pairs) do
      pairs_to_tuples(env_pairs)
      |> Map.new
      |> Farmbot.BotState.set_user_env
   end
 
-  @doc """
+  @doc ~s"""
     Executes an ast node.
   """
   @spec do_command(Ast.t) :: :no_instruction | any

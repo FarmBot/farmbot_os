@@ -2,7 +2,7 @@ defmodule Farmbot.EasterEggsTest do
   @moduledoc false
   use ExUnit.Case, async: true
   setup_all do
-    write_me = test_json |> Poison.encode!
+    write_me = test_json() |> Poison.encode!
     File.write!("/tmp/test.json", write_me)
     :ok
   end
@@ -14,7 +14,7 @@ defmodule Farmbot.EasterEggsTest do
   end
 
   test "starts the server with a json object" do
-    json = test_json_with_strings
+    json = test_json_with_strings()
     {:ok, pid} = Farmbot.EasterEggs.start_link({:name, :test_2}, {:json, json})
     assert is_pid(pid) == true
   end

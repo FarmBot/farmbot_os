@@ -49,13 +49,20 @@ defmodule Farmbot.Transport do
 
   defp translate(%MonState{} = monstate) do
     %Serialized{
-      mcu_params: monstate.hardware.mcu_params,
-      location: monstate.hardware.location,
-      pins: monstate.hardware.pins,
-      configuration: Map.delete(monstate.configuration.configuration, :user_env),
-      informational_settings: monstate.configuration.informational_settings,
-      process_info: monstate.process_info,
-      user_env: monstate.configuration.configuration.user_env
+      mcu_params:
+        monstate.hardware.mcu_params,
+      location:
+        monstate.hardware.location,
+      pins:
+        monstate.hardware.pins,
+      configuration:
+        Map.delete(monstate.configuration.configuration, :user_env),
+      informational_settings:
+        monstate.configuration.informational_settings,
+      process_info:
+        monstate.process_info,
+      user_env:
+        monstate.configuration.configuration.user_env
     }
   end
 

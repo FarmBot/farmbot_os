@@ -1,7 +1,7 @@
 defmodule Syncable do
   use Amnesia
-  @moduledoc """
-    Creates a syncable object from Farmbot's rest api.
+  @moduledoc ~s"""
+    Creates a syncable object from Farmbots rest api.
     Example:
       iex> defmodule BubbleGum do
       ...>    use Syncable, name: __MODULE__, model: [:flavors, :brands]
@@ -90,7 +90,7 @@ defmodule Syncable do
     end
   end
 
-  @doc """
+  @doc ~s"""
     Transforms the state before it is entered into the struct.
     Basically you call transform(key) do something end where something will be
     the new value for key.

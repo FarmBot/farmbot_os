@@ -26,7 +26,7 @@ defmodule Farmbot.BotState.Monitor do
   @doc """
     Starts the state producer.
   """
-  def start_link(), do: GenStage.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link, do: GenStage.start_link(__MODULE__, [], name: __MODULE__)
   def init([]), do: {:producer, %State{}}
 
   def handle_demand(_demand, state), do: dispatch state

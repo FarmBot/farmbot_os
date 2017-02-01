@@ -6,20 +6,26 @@ defmodule Farmbot do
   use Supervisor
   alias Farmbot.Sync.Database
 
-  def init(%{target: target, compat_version: compat_version, version: version, commit: commit})
+  @spec init(map) :: [{:ok, pid}]
+  def init(%{target: target,
+             compat_version: compat_version,
+             version: version,
+             commit: commit})
   do
     children = [
       # Handles tracking of various parts of the bots state.
       supervisor(Farmbot.BotState.Supervisor,
-        [%{target: target, compat_version: compat_version, version: version, commit: commit}],
-      restart: :permanent),
+        [%{target: target,
+           compat_version: compat_version,
+           version: version,
+           commit: commit}], restart: :permanent),
 
       # Handles the passing of messages from one part of the system to another.
       supervisor(Farmbot.Transport.Supervisor, [], restart: :permanent),
 
       # Handles external scripts and what not
       supervisor(Farmware.Supervisor, [], restart: :permanent),
-      
+
       # handles communications between bot and arduino
       supervisor(Farmbot.Serial.Supervisor, [], restart: :permanent),
     ]
@@ -27,6 +33,10 @@ defmodule Farmbot do
     supervise(children, opts)
   end
 
+  @doc """
+    Starts the Farmbot Application
+  """
+  @spec start(atom, [any]) :: {:ok, pid}
   def start(_, [args]) do
     Logger.debug ">> init!"
     Amnesia.start
