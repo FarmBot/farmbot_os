@@ -1,48 +1,23 @@
-language: erlang
-otp_release:
-  - 19.0
+language: bash
 
-# It would be possible to use the container-based infrastructure if
-# it ran trusty. However, it doesn't and wget is too old to use for
-# HTTPS to buildroot.net.
-sudo: required
+# sudo: required
 dist: trusty
 
-# Install dependencies
-addons:
-  apt:
-    packages:
-    - bc
-    - libssl-dev
-    - libmnl-dev
-
 env:
-  - TTY=test
+  global:
+    - ELIXIR_VERSION=1.4.0 ERLANG_VERSION=19.0
 
 before_install:
-  - git clone https://github.com/elixir-lang/elixir
-  - cd elixir
-  - git checkout v1.4
-  - make clean
-  - make
-  - cd ..
+  - wget https://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_$ERLANG_VERSION-1~ubuntu~trusty_amd64.deb;
+  - sudo dpkg -i esl-erlang_$ERLANG_VERSION-1~ubuntu~trusty_amd64.deb;
+  - wget https://github.com/elixir-lang/elixir/releases/download/v$ELIXIR_VERSION/Precompiled.zip
+  - unzip -d elixir Precompiled.zip
 
 before_script:
   - export PATH=`pwd`/elixir/bin:$PATH
 
 script:
-  - export MIX_ENV=test
   - mix local.hex --force
-  - mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez --force
   - mix local.rebar --force
-  - cd apps/farmbot
-  - mix deps.get
-  - mix compile
-  - MIX_ENV=test mix test
-
-cache:
-  directories:
-    - _build
-    - deps
-    - $HOME/.mix
-    - $HOME/.hex
+  - mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez --force
+  - make test
