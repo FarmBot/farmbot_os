@@ -118,7 +118,7 @@ defmodule Farmbot.Mixfile do
   def aliases(_), do: [
     "firmware": ["farmbot.warning"],
     "credo": ["credo list --only readability,warning,todo,inspect,refactor --ignore-checks todo,spec"],
-    "test": ["credo", "test"]
+    "test": ["test", "credo"]
   ]
 
   # the nerves_system_* dir to use for this build.

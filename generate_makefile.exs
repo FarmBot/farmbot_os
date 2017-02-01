@@ -24,7 +24,7 @@ clean:
 \trm -rf deps
 \trm -rf _build
 
-test: clean dev_env
+test: dev_env
 \tscripts/run_tests.sh
 
 ## End default portion.\n"
