@@ -29,7 +29,7 @@
   "mime": {:hex, :mime, "1.0.1", "05c393850524767d13a53627df71beeebb016205eb43bfbd92d14d24ec7a1b51", [:mix], []},
   "mimerl": {:hex, :mimerl, "1.0.2", "993f9b0e084083405ed8252b99460c4f0563e41729ab42d9074fd5e52439be88", [:rebar3], []},
   "mustache": {:hex, :mustache, "0.0.2", "870fbef411c47d17df06a57b8b3f69e26eb110cba0177c34e273db5d94369d9b", [:mix], []},
-  "nerves": {:hex, :nerves, "0.4.7", "c8d08348e6f717cf140da26dc374bcf2f6f7c2bec646073aeab049e08b588173", [:mix], [{:distillery, "~> 1.0", [hex: :distillery, optional: false]}]},
+  "nerves": {:git, "https://github.com/nerves-project/nerves.git", "a6c819d522de23bb6a984abf4e14a8b21f9ad3d9", []},
   "nerves_firmware": {:git, "https://github.com/nerves-project/nerves_firmware.git", "b783df3867c82dc0abe6770079077a6f922c00a9", []},
   "nerves_firmware_http": {:git, "https://github.com/nerves-project/nerves_firmware_http.git", "aec1a9301f965e9fdd6c76d0e435c3cc48d38425", []},
   "nerves_interim_wifi": {:git, "https://github.com/nerves-project/nerves_interim_wifi.git", "bd2c6e885596008b17ba4084c5a46b9814f5c93a", []},

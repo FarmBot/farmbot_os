@@ -15,6 +15,7 @@ defmodule Farmbot.Sync do
   use Amnesia
   import Syncable
   alias Farmbot.Sync.Helpers
+  alias Farmbot.ImageWatcher
   require Logger
 
   defdatabase Database do
@@ -72,7 +73,9 @@ defmodule Farmbot.Sync do
 
   # uploads all the information to the api
   @spec up :: :ok | {:error, term}
-  defp up, do: :ok
+  defp up do
+    with :ok <- ImageWatcher.force_upload, do: :ok
+  end
 
   def enter_into_db(%SyncObject{} = so) do
     clear_all(so)
