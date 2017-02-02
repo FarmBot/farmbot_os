@@ -1,11 +1,11 @@
 defmodule Farmbot.Configurator.Mixfile do
   use Mix.Project
-  def target(:prod), do: System.get_env("NERVES_TARGET")
-  def target(_), do: "development"
+  @version Path.join([__DIR__, "..", "farmbot", "VERSION"]) |> File.read! |> String.strip
+  @target System.get_env("MIX_TARGET") || "host"
 
   def project do
     [app: :farmbot_configurator,
-     version: "0.1.0",
+     version: @version,
      elixir: "~> 1.3",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -14,11 +14,9 @@ defmodule Farmbot.Configurator.Mixfile do
      deps_path: "../../deps",
      lockfile: "../../mix.lock",
      compilers:  Mix.compilers ++ maybe_use_webpack(),
-     target: target(Mix.env),
-
+     target: @target,
      webpack_watch: Mix.env == :dev,
      webpack_cd: "../farmbot_configurator",
-
      deps: deps()]
   end
 
@@ -31,14 +29,12 @@ defmodule Farmbot.Configurator.Mixfile do
   end
 
   def application do
-    [ mod: {Farmbot.Configurator, []},
-      applications: applications() ]
+    [mod: {Farmbot.Configurator, []},
+     applications: applications()]
   end
 
 
-  defp applications do
-    [:logger, :plug, :cors_plug, :poison, :cowboy]
-  end
+  defp applications, do: [:logger, :plug, :cors_plug, :poison, :cowboy]
 
   defp deps do
     [

@@ -29,7 +29,7 @@ defmodule NervesSystemRpi3.Mixfile do
     if File.exists?("../nerves") do
       {:nerves, in_umbrella: true, override: true}
     else
-      {:nerves, github: "nerves-project/nerves", override: true}
+      {:nerves, github: "nerves-project/nerves", branch: "target", override: true}
     end
   end
 

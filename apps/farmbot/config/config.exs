@@ -21,14 +21,12 @@ config :farmbot_auth, callbacks: [mqtt_transport]
 # frontend <-> bot transports.
 config :farmbot, transports: [mqtt_transport, farmware_transport]
 
-# Move this?
+config :nerves, :firmware,
+  rootfs_additions: "config/hardware/#{Mix.Project.config[:target]}/rootfs-additions"
 
 # Import configuration specific to out environment.
 import_config "#{Mix.env}.exs"
+
 # import config specific to our nerves_target
 IO.puts "using #{target} configuration."
 import_config "hardware/#{target}/hardware.exs"
-
-# config :ex_json_schema,
-  # :remote_schema_resolver,
-  # fn url -> HTTPoison.get!(url).body |> Poison.decode! end
