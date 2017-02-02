@@ -100,6 +100,7 @@ defmodule Farmbot.Mixfile do
     "credo": ["credo list --only readability,warning,todo,inspect,refactor --ignore-checks todo,spec"],
     "test": ["test", "credo"]]
 
+  # TODO(Connor) Maybe warn if building firmware in dev mode?
   defp aliases(_system) do
     ["deps.precompile": ["nerves.precompile", "deps.precompile"],
       "deps.loadpaths":  ["deps.loadpaths", "nerves.loadpaths"],

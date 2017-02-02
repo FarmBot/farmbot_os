@@ -4,8 +4,6 @@ defmodule Farmbot.System.NervesCommon.Mixfile do
   |> File.read!
   |> String.strip
 
-  @target System.get_env("MIX_TARGET") || "host"
-
   def project do
     [app: :farmbot_system_nerves_common,
      version: @version,

@@ -1,7 +1,6 @@
 defmodule Farmbot.Auth.Mixfile do
   use Mix.Project
   @version Path.join([__DIR__, "..", "farmbot", "VERSION"]) |> File.read! |> String.strip
-  @target System.get_env("MIX_TARGET") || "host"
 
   def project do
     [app: :farmbot_auth,
