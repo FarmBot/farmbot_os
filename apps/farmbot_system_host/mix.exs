@@ -1,12 +1,13 @@
-defmodule Module.concat([Farmbot,System,"development",Mixfile]) do
+defmodule Module.concat([Farmbot,System,"host",Mixfile]) do
   use Mix.Project
   @version Path.join([__DIR__, "..", "farmbot", "VERSION"])
   |> File.read!
   |> String.strip
 
   def project do
-    [app: :farmbot_system_development,
+    [app: :farmbot_system_host,
      version: @version,
+     # TODO(Connor) these might be wrong. FINDME
      build_path: "../../_build",
      config_path: "../../config/config.exs",
      deps_path: "../../deps",
@@ -17,11 +18,6 @@ defmodule Module.concat([Farmbot,System,"development",Mixfile]) do
      deps: deps()]
   end
 
-  def application do
-    [extra_applications: [:logger]]
-  end
-
-  defp deps do
-    [{:farmbot_system, in_umbrella: true}]
-  end
+  def application, do: [extra_applications: [:logger]]
+  defp deps, do: [{:farmbot_system, in_umbrella: true}]
 end

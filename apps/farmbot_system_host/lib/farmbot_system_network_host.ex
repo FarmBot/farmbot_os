@@ -1,4 +1,4 @@
-defmodule Module.concat([Farmbot, System, "development", Network]) do
+defmodule Module.concat([Farmbot, System, "host", Network]) do
   @moduledoc false
   @behaviour Farmbot.System.Network
   use GenServer

@@ -4,9 +4,6 @@ defmodule Farmbot.System.NervesCommon.Mixfile do
   |> File.read!
   |> String.strip
 
-  def target(:prod), do: System.get_env("NERVES_TARGET")
-  def target(_), do: "development"
-
   def project do
     [app: :farmbot_system_nerves_common,
      version: @version,
@@ -21,7 +18,11 @@ defmodule Farmbot.System.NervesCommon.Mixfile do
   end
 
   def application do
-    [extra_applications: [:logger, :nerves_interim_wifi, :nerves_firmware_http, :nerves_ssdp_server]]
+    [extra_applications:
+      [:logger,
+       :nerves_interim_wifi,
+       :nerves_firmware_http,
+       :nerves_ssdp_server]]
   end
 
   defp deps do

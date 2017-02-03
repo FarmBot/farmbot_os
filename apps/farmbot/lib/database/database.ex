@@ -159,9 +159,11 @@ defmodule Farmbot.Sync do
   @doc """
     Tries to do an HTTP request on server/api/sync
   """
+  # NOTE(Connor) we might need to chunk this out. Getting the entire sync
+  # object everytime is pretty time consuming
   @spec fetch_sync_object :: {:error, atom} | {:ok, HTTPoison.Response.t}
   def fetch_sync_object do
-     case Farmbot.HTTP.get("/api/sync") do
+     case Farmbot.HTTP.get("/api/sync", [], [recv_timeout: 20_000]) do
        {:ok, %HTTPoison.Response{} = f} -> {:ok, f}
        {:error, %HTTPoison.Error{reason: reason}} -> {:error, reason}
        error -> {:error, error}

@@ -60,9 +60,10 @@ defmodule Farmbot.BotState.ProcessTracker do
   def deregister(uuid), do: GenServer.cast(__MODULE__, {:deregister, uuid})
 
   @doc """
-    starts a process by its uuid.
+    starts a process by its uuid or info struct
   """
-  @spec start_process(State.uuid) :: {:ok, pid} | {:error, term}
+  @spec start_process(State.uuid | Info.t) :: {:ok, pid} | {:error, term}
+  def start_process(%Info{uuid: uuid}), do: start_process(uuid)
   def start_process(uuid),
     do: GenServer.call(__MODULE__, {:start_process, uuid})
 
@@ -103,7 +104,7 @@ defmodule Farmbot.BotState.ProcessTracker do
       Logger.debug ">> is starting a #{key} #{info.name}"
       mod = key_to_module(key)
       r = mod.execute(info.stuff)
-      # update status here
+      # TODO(Connor) update status here
       dispatch(r, state)
     else
       Logger.debug ">> could not find #{uuid} to start!"

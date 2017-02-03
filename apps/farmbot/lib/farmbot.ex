@@ -13,6 +13,8 @@ defmodule Farmbot do
              commit: commit})
   do
     children = [
+      # Generic counter.
+      worker(Counter, [], restart: :permanent),
       # Handles tracking of various parts of the bots state.
       supervisor(Farmbot.BotState.Supervisor,
         [%{target: target,

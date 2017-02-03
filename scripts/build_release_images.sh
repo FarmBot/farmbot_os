@@ -3,7 +3,7 @@
 SYSTEM=$1
 VERSION=$2
 export MIX_ENV=prod
-export NERVES_TARGET=$SYSTEM
+export MIX_TARGET=$SYSTEM
 REL_DIR=release-$VERSION
 mkdir -p $REL_DIR
 

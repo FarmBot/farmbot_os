@@ -1,13 +1,14 @@
 defmodule FarmbotOs.Mixfile do
   use Mix.Project
 
+  @target System.get_env("MIX_TARGET") || "host"
   @version Path.join(__DIR__, "VERSION") |> File.read! |> String.strip
 
   def project do
     [apps_path: "apps",
      elixir: "~> 1.4",
      version: @version,
-     target: target(Mix.env),
+     target: @target,
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      default_task: "warning",
@@ -15,18 +16,10 @@ defmodule FarmbotOs.Mixfile do
      deps: []]
   end
 
-  defp target(:prod) do
-    blah = System.get_env("NERVES_TARGET") || "rpi3"
-    System.put_env("NERVES_TARGET", blah)
-    blah
-  end
-
-  defp target(_), do: "development"
-
   defp aliases() do
-    ["firmware": ["warning"],
-     "firmware.burn": ["warning"],
-     "firmware.upload": ["warning"]] 
+    ["firmware":        ["warning"],
+     "firmware.burn":   ["warning"],
+     "firmware.upload": ["warning"]]
   end
 end
 
