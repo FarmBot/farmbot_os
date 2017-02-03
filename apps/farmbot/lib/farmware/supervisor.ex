@@ -33,7 +33,7 @@ defmodule Farmware.Supervisor do
       Logger.debug ">> creating farmware dir."
       FS.transaction fn() ->
         File.mkdir(path)
-      end
+      end, true
     end
   end
 end
