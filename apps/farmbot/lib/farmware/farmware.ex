@@ -36,6 +36,7 @@ defmodule Farmware do
   alias Farmbot.System.FS
   alias Farmware.FarmScript
   alias Farmware.Tracker
+  alias Farmbot.BotState.ProcessTracker, as: PT
   require Logger
 
   @spec raise_if_exists(binary, map) :: no_return
@@ -73,13 +74,14 @@ defmodule Farmware do
     case File.read(path <> "/manifest.json") do
       {:ok, _contents} ->
         Logger.debug ">> is installing Farmware: #{manifest[:package]}"
+        PT.register(:farmware, manifest[:package], manifest[:package])
         manifest
       _ ->
         Logger.debug "invalid farmware package!"
         FS.transaction fn() ->
           File.rm_rf!(path)
         end
-        raise("Not valid Farmware!")
+        raise "Not valid Farmware!"
     end
   end
 
@@ -137,6 +139,20 @@ defmodule Farmware do
       %FarmScript{executable: exe,
         args: args, path: path, name: package_name, envs: envs}
       |> Tracker.add()
+    else
+      msg = ">> Could not find FarmWare: #{package_name}"
+      Logger.error msg
+      raise msg
+    end
+  end
+
+  @spec info(String.t) :: map | no_return
+  def info(package_name) do
+    path = FS.path() <> "/farmware/#{package_name}"
+    if File.exists?(path) do
+      path <> "/manifest.json"
+      |> File.read!
+      |> Poison.decode!
     else
       msg = ">> Could not find FarmWare: #{package_name}"
       Logger.error msg

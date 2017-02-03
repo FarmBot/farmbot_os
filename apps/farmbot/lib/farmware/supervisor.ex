@@ -11,9 +11,19 @@ defmodule Farmware.Supervisor do
     import Supervisor.Spec, warn: false
     # create the farmware folder if it doesnt exist.
     check_dir()
+    # register the available farmwares in the ProcessTracker
+    register_farmwares()
     children = [worker(Farmware.Tracker, [])]
     opts = [strategy: :one_for_one, name: Farmware.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  @spec register_farmwares :: no_return
+  defp register_farmwares do
+    farmwares = File.ls!(FS.path() <> "/farmware")
+    for farmware <- farmwares do
+      Farmbot.BotState.ProcessTracker.register(:farmware, farmware, farmware)
+    end
   end
 
   @spec check_dir :: no_return
@@ -23,7 +33,7 @@ defmodule Farmware.Supervisor do
       Logger.debug ">> creating farmware dir."
       FS.transaction fn() ->
         File.mkdir(path)
-      end
+      end, true
     end
   end
 end

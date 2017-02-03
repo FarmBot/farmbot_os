@@ -15,6 +15,7 @@ defmodule Farmbot.Sync do
   use Amnesia
   import Syncable
   alias Farmbot.Sync.Helpers
+  alias Farmbot.ImageWatcher
   require Logger
 
   defdatabase Database do
@@ -72,7 +73,9 @@ defmodule Farmbot.Sync do
 
   # uploads all the information to the api
   @spec up :: :ok | {:error, term}
-  defp up, do: :ok
+  defp up do
+    with :ok <- ImageWatcher.force_upload, do: :ok
+  end
 
   def enter_into_db(%SyncObject{} = so) do
     clear_all(so)
@@ -156,9 +159,11 @@ defmodule Farmbot.Sync do
   @doc """
     Tries to do an HTTP request on server/api/sync
   """
+  # NOTE(Connor) we might need to chunk this out. Getting the entire sync
+  # object everytime is pretty time consuming
   @spec fetch_sync_object :: {:error, atom} | {:ok, HTTPoison.Response.t}
   def fetch_sync_object do
-     case Farmbot.HTTP.get("/api/sync") do
+     case Farmbot.HTTP.get("/api/sync", [], [recv_timeout: 20_000]) do
        {:ok, %HTTPoison.Response{} = f} -> {:ok, f}
        {:error, %HTTPoison.Error{reason: reason}} -> {:error, reason}
        error -> {:error, error}

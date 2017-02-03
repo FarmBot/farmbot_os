@@ -1,6 +1,7 @@
 use Mix.Config
 
 target = Mix.Project.config[:target]
+env = Mix.env()
 mqtt_transport = Farmbot.Transport.GenMqtt
 farmware_transport = Farmbot.Transport.Farmware
 
@@ -21,14 +22,12 @@ config :farmbot_auth, callbacks: [mqtt_transport]
 # frontend <-> bot transports.
 config :farmbot, transports: [mqtt_transport, farmware_transport]
 
-# Move this?
+config :nerves, :firmware,
+  rootfs_additions: "config/hardware/#{target}/rootfs-additions-#{env}"
 
 # Import configuration specific to out environment.
-import_config "#{Mix.env}.exs"
-# import config specific to our nerves_target
-IO.puts "using #{target} configuration."
-import_config "hardware/#{target}/hardware.exs"
+import_config "#{env}.exs"
 
-# config :ex_json_schema,
-  # :remote_schema_resolver,
-  # fn url -> HTTPoison.get!(url).body |> Poison.decode! end
+# import config specific to our nerves_target
+IO.puts "using #{target} - #{env} configuration."
+import_config "hardware/#{target}/hardware.exs"

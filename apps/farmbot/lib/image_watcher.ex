@@ -15,6 +15,12 @@ defmodule Farmbot.ImageWatcher do
   @spec start_link :: {:ok, pid}
   def start_link, do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
 
+  @doc """
+    Uploads all images if they exist.
+  """
+  @spec start_link :: :ok | {:error, atom}
+  def force_upload, do: do_checkup(false)
+
   @spec init([]) :: {:ok, any}
   def init([]) do
     do_send()
@@ -27,9 +33,10 @@ defmodule Farmbot.ImageWatcher do
     {:noreply, []}
   end
 
-  @spec do_checkup :: no_return
-  defp do_checkup do
+  @spec do_checkup(boolean) :: no_return
+  defp do_checkup(recurse? \\ true) do
     images = File.ls!(@images_path)
+
     images
     |> Enum.all?(fn(file) ->
       path = Path.join(@images_path, file)
@@ -37,11 +44,11 @@ defmodule Farmbot.ImageWatcher do
         {:ok, _} ->
           File.rm!(path)
           :ok
-        _ -> nil
+        {:error, reason} -> {:error, reason}
+        error -> {:error,  error}
       end
     end)
     |> print_thing(Enum.count(images)) # Sorry
-    do_send()
   end
 
   @spec try_upload(binary) :: {:ok, any} | {:error, any}

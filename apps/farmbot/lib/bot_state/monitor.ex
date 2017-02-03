@@ -29,22 +29,22 @@ defmodule Farmbot.BotState.Monitor do
   def start_link, do: GenStage.start_link(__MODULE__, [], name: __MODULE__)
   def init([]), do: {:producer, %State{}}
 
-  def handle_demand(_demand, state), do: dispatch state
+  def handle_demand(_demand, old_state), do: dispatch old_state
 
   # When we get a state update from Hardware
-  def handle_cast(%Hardware{} = new_things, %State{} = state) do
-    new_state = %State{state | hardware: new_things}
+  def handle_cast(%Hardware{} = new_things, %State{} = old_state) do
+    new_state = %State{old_state | hardware: new_things}
     dispatch(new_state)
   end
 
   # When we get a state update from Configuration
-  def handle_cast(%Configuration{} = new_things, %State{} = state) do
-    new_state = %State{state | configuration: new_things}
+  def handle_cast(%Configuration{} = new_things, %State{} = old_state) do
+    new_state = %State{old_state | configuration: new_things}
     dispatch(new_state)
   end
 
-  def handle_cast(%PT.State{} = new_things, %State{} = state) do
-    new_state = %State{state | process_info: new_things}
+  def handle_cast(%PT.State{} = new_things, %State{} = old_state) do
+    new_state = %State{old_state | process_info: new_things}
     dispatch(new_state)
   end
 
@@ -56,13 +56,13 @@ defmodule Farmbot.BotState.Monitor do
   def get_state, do: GenServer.call(__MODULE__, :get_state)
 
   @spec dispatch(State.t) :: {:noreply, [], State.t }
-  defp dispatch(%State{} = state) do
-    GenStage.async_notify(__MODULE__, state)
-    {:noreply, [], state}
+  defp dispatch(%State{} = new_state) do
+    GenStage.async_notify(__MODULE__, new_state)
+    {:noreply, [], new_state}
   end
   @spec dispatch(any, State.t) :: {:reply, any, [], State.t }
-  defp dispatch(reply, state) do
-    GenStage.async_notify(__MODULE__, state)
-    {:reply, reply, [], state}
+  defp dispatch(reply, new_state) do
+    GenStage.async_notify(__MODULE__, new_state)
+    {:reply, reply, [], new_state}
   end
 end
