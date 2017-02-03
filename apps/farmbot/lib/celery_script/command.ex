@@ -651,7 +651,8 @@ defmodule Farmbot.CeleryScript.Command do
 
   def execute_script(%{label: farmware}, env_vars) do
     set_user_env(%{}, env_vars)
-    Farmbot.BotState.ProcessTracker.lookup(:farmware, farmware)
+    :farmware
+    |> Farmbot.BotState.ProcessTracker.lookup(farmware)
     |> Farmbot.BotState.ProcessTracker.start_process()
   end
 
@@ -694,7 +695,7 @@ defmodule Farmbot.CeleryScript.Command do
     end
   end
 
-  defp check_count() do
+  defp check_count do
     if get_count() < @max_count  do
       inc_count()
     else
