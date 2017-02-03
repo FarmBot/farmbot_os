@@ -42,12 +42,10 @@ defmodule Farmbot.RegimenRunner do
     Logger.debug ">> [#{reg.name}] first item will run at: #{f.month}-#{f.day} at #{f.hour}:#{f.minute}"
     {:ok, []}
   end
-  @lint false
+
   def handle_call(:get_state,_, state), do: {:reply, state, state}
   def handle_call(_, _, state), do: {:reply, :unhandled, state}
-  @lint false
   def handle_cast(_, state), do: {:noreply, state}
-  @lint false
   def handle_info(_, state), do: {:noreply, state}
 
   @spec get_state(integer) :: State.t

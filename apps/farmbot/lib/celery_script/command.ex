@@ -16,6 +16,7 @@ defmodule Farmbot.CeleryScript.Command do
   use Amnesia
   alias Farmbot.Sync.Database.ToolSlot
   use ToolSlot
+  use Counter, __MODULE__
 
   @digital 0
   # @pwm 1 # we don't use that yet, and its causing compiler warnings. Fix later
@@ -23,6 +24,7 @@ defmodule Farmbot.CeleryScript.Command do
   @type x :: integer
   @type y :: integer
   @type z :: integer
+  @max_count 1_000
 
   # DISCLAIMER:
   # IF YOU SEE A HACK HERE RELATED TO A FIRMWARE COMMAND
@@ -350,7 +352,6 @@ defmodule Farmbot.CeleryScript.Command do
   """
   @spec execute(%{sequence_id: integer}, []) :: no_return
   def execute(%{sequence_id: id}, []) do
-    {:ok, _} = Farmbot.Sync.sync()
     id
     |> Farmbot.Sync.get_sequence
     |> Ast.parse
@@ -374,10 +375,13 @@ defmodule Farmbot.CeleryScript.Command do
   @spec sequence(%{}, [Ast.t]) :: no_return
   def sequence(_, body) do
     for ast <- body do
+      check_count()
       Logger.debug ">> doing: #{ast.kind}"
       do_command(ast)
       Logger.debug ">> done."
+      inc_count()
     end
+    reset_count()
   end
 
   @doc ~s"""
@@ -637,6 +641,7 @@ defmodule Farmbot.CeleryScript.Command do
     Executes a farmware
       args: %{label: String.t},
       body: [pair]
+    NOTE this is a shortcut to starting a process by uuid
   """
   @spec execute_script(%{label: String.t}, [pair]) :: no_return
   def execute_script(%{label: "image-capture"}, _env_vars) do
@@ -645,8 +650,16 @@ defmodule Farmbot.CeleryScript.Command do
   end
 
   def execute_script(%{label: farmware}, env_vars) do
-    real_args = pairs_to_tuples(env_vars)
-    Farmware.execute(farmware, real_args)
+    set_user_env(%{}, env_vars)
+    Farmbot.BotState.ProcessTracker.lookup(:farmware, farmware)
+    |> Farmbot.BotState.ProcessTracker.start_process()
+  end
+
+  @doc """
+    Starts a FarmProcess
+  """
+  def start_process(%{label: uuid}, []) do
+    Farmbot.BotState.ProcessTracker.start_process(uuid)
   end
 
   @doc ~s"""
@@ -667,15 +680,26 @@ defmodule Farmbot.CeleryScript.Command do
   """
   @spec do_command(Ast.t) :: :no_instruction | any
   def do_command(%Ast{} = ast) do
+    check_count()
     fun_name = String.to_atom(ast.kind)
     # print the comment if it exists
     if ast.comment, do: Logger.debug ">> [#{fun_name}] - #{ast.comment}"
 
     if function_exported?(__MODULE__, fun_name, 2) do
       Kernel.apply(__MODULE__, fun_name, [ast.args, ast.body])
+      dec_count()
     else
       Logger.error ">> has no instruction for #{inspect ast}"
       :no_instruction
+    end
+  end
+
+  defp check_count() do
+    if get_count() < @max_count  do
+      inc_count()
+    else
+      Logger.error ">> COUNT TOO HIGH!"
+      raise("TO MUCH RECURSION")
     end
   end
 end

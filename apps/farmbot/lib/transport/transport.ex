@@ -6,13 +6,9 @@ defmodule Farmbot.Transport do
   """
   use GenStage
   require Logger
-
-  # GENSTAGE HACK
-  @spec handle_call(any, any, any) :: {:reply, any, any}
-  @spec handle_cast(any, any) :: {:noreply, any}
-  @spec handle_info(any, any) :: {:noreply, any}
-  @spec init(any) :: {:ok, any}
-  @spec handle_events(any, any, any) :: no_return
+  use Counter, __MODULE__
+  # The max number of state updates before we force one
+  @max_inactive_count 100
 
   defmodule Serialized do
     @moduledoc false
@@ -83,10 +79,16 @@ defmodule Farmbot.Transport do
     {:noreply, [], state}
   end
 
-  def handle_info({_from, %MonState{} = monstate}, _state) do
+  def handle_info({_from, %MonState{} = monstate}, old_state) do
     new_state = translate(monstate)
-    GenStage.async_notify(__MODULE__, {:status, new_state})
-    {:noreply, [], new_state}
+    if (old_state == new_state) && (get_count() < @max_inactive_count) do
+      inc_count()
+      {:noreply, [], old_state}
+    else
+      reset_count()
+      GenStage.async_notify(__MODULE__, {:status, new_state})
+      {:noreply, [], new_state}
+    end
   end
 
   def handle_info(_event, state), do: {:noreply, [], state}
