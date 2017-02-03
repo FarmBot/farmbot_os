@@ -699,6 +699,7 @@ defmodule Farmbot.CeleryScript.Command do
       inc_count()
     else
       Logger.error ">> COUNT TOO HIGH!"
+      reset_count()
       raise("TO MUCH RECURSION")
     end
   end
