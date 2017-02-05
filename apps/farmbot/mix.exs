@@ -30,7 +30,7 @@ defmodule Farmbot.Mixfile do
      name: "Farmbot",
      source_url: "https://github.com/Farmbot/farmbot_os",
      homepage_url: "http://farmbot.io",
-     docs: [main: "farmbot", extras: ["../../README.md", "../../BUILDING.md"]]
+     docs: [main: "Farmbot", extras: ["../../README.md", "../../BUILDING.md"]]
    ]
   end
 
