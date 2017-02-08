@@ -702,10 +702,9 @@ defmodule Farmbot.CeleryScript.Command do
       args: %{point_id: integer},
       body: []
   """
-  @spec remove_point(%{point_id, integer}, []) :: no_return
-  def remove_point(%{point_id: p_id}, []) do
-    Farmbot.HTTP.delete("/api/points/#{p_id}")
-  end
+  @spec remove_point(%{point_id: integer}, []) :: no_return
+  def remove_point(%{point_id: p_id}, []),
+    do: Farmbot.HTTP.delete("/api/points/#{p_id}")
 
   @type pair ::
     %Ast{kind: String.t, args: %{label: String.t, value: any}, body: []}

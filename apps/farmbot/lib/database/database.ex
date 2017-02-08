@@ -17,6 +17,7 @@ defmodule Farmbot.Sync do
   alias Farmbot.Sync.Helpers
   alias Farmbot.ImageWatcher
   require Logger
+  @save_file "/tmp/sync_object.save"
 
   defdatabase Database do
     use Amnesia
@@ -59,8 +60,25 @@ defmodule Farmbot.Sync do
   """
   def sync do
     with {:ok, so} <- down(),
-         :ok <- up(),
-         do: {:ok, so}
+         :ok <- up()
+         do
+           save_recent_so(so)
+           {:ok, so}
+         end
+  end
+
+  defp save_recent_so(%SyncObject{} = so) do
+    f = so |> :erlang.term_to_binary
+    File.write(@save_file, f)
+  end
+
+  @spec load_recent_so :: {:ok, SyncObject.t} | no_return
+  def load_recent_so do
+    f =
+      @save_file
+      |> File.read!
+      |> :erlang.binary_to_term
+    {:ok, f}
   end
 
   # downloads all the information from the api
