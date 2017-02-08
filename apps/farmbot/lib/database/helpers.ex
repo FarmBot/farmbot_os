@@ -1,5 +1,6 @@
 alias Farmbot.Sync.Database.Device
 alias Farmbot.Sync.Database.Peripheral
+alias Farmbot.Sync.Database.Point
 alias Farmbot.Sync.Database.RegimenItem
 alias Farmbot.Sync.Database.Regimen
 alias Farmbot.Sync.Database.Sequence
@@ -15,6 +16,7 @@ defmodule Farmbot.Sync.Helpers do
   use Amnesia
   use Device
   use Peripheral
+  use Point
   use RegimenItem
   use Regimen
   use Sequence
@@ -41,6 +43,17 @@ defmodule Farmbot.Sync.Helpers do
   def get_peripheral(find_id) do
     Amnesia.transaction do
       Peripheral.where id == find_id
+    end
+    |> parse_selection
+  end
+
+  @doc """
+    Gets a point by id
+  """
+  @lint false
+  def get_point(find_id) do
+    Amnesia.transaction do
+      Point.where id == find_id
     end
     |> parse_selection
   end

@@ -29,6 +29,7 @@ defmodule Farmbot.Sync do
     syncable Peripheral,
       [:id, :device_id, :pin, :mode, :label, :created_at, :updated_at]
     syncable Plant, [:id, :device_id]
+    syncable Point, [:id, :radius, :x, :y, :z, :meta]
     syncable Regimen, [:id, :color, :name, :device_id]
     syncable RegimenItem, [:id, :time_offset, :regimen_id, :sequence_id]
     syncable Sequence, [:id, :args, :body, :color, :device_id, :kind, :name]
@@ -42,6 +43,7 @@ defmodule Farmbot.Sync do
   # Screw with context.
   def get_device(id), do: Helpers.get_device(id)
   def get_peripheral(id), do: Helpers.get_peripheral(id)
+  def get_point(id), do: Helpers.get_point(id)
   def get_regimen_item(id), do: Helpers.get_regimen_item(id)
   def get_regimen(id), do: Helpers.get_regimen(id)
   def get_sequence(id), do: Helpers.get_sequence(id)
