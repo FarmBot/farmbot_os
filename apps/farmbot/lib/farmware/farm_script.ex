@@ -96,9 +96,18 @@ defmodule Farmware.FarmScript do
       _something ->
         # Logger.debug ">> [#{thing.name}] [ got info: #{inspect something} ]"
         handle_port(port, thing)
+
       after
-        10_000 -> Logger.error ">> [#{thing.name}] Timed out"
+        10_000 ->
+          Logger.error ">> [#{thing.name}] Timed out"
+          kill_port(port)
     end
+  end
+
+  @spec kill_port(port) :: no_return
+  defp kill_port(port) do
+    info = Port.info(port)
+    if info, do: System.cmd("kill", ["#{info[:os_pid]}"])
   end
 
   # pattern matching is cool

@@ -75,13 +75,17 @@ defmodule Farmbot.HTTP do
   @spec finish_upload({:ok, HTTPoison.Response.t} |
     {:error, HTTPoison.Error.t}, binary)
     :: {:ok, HTTPoison.Response.t} | {:error, any}
-  defp finish_upload({:ok, _resp}, attachment_url) do
+
+  # We only want to upload if we get a 2XX response.
+  defp finish_upload({:ok, %HTTPoison.Response{status_code: s}}, attachment_url)
+  when s < 300 do
     [x, y, z] = Farmbot.BotState.get_current_pos
     meta = %{x: x, y: y, z: z}
     json = Poison.encode! %{"attachment_url" => attachment_url, "meta" => meta}
     Farmbot.HTTP.post "/api/images", json
   end
 
+  # This is just to strip the struct out of the error.
   defp finish_upload({:error, %HTTPoison.Error{reason: reason}}, aurl),
     do: finish_upload({:error, reason}, aurl)
 
