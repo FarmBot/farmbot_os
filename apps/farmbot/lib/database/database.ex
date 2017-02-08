@@ -17,6 +17,7 @@ defmodule Farmbot.Sync do
   alias Farmbot.Sync.Helpers
   alias Farmbot.ImageWatcher
   require Logger
+  @save_file "/tmp/sync_object.save"
 
   defdatabase Database do
     use Amnesia
@@ -29,6 +30,7 @@ defmodule Farmbot.Sync do
     syncable Peripheral,
       [:id, :device_id, :pin, :mode, :label, :created_at, :updated_at]
     syncable Plant, [:id, :device_id]
+    syncable Point, [:id, :radius, :x, :y, :z, :meta]
     syncable Regimen, [:id, :color, :name, :device_id]
     syncable RegimenItem, [:id, :time_offset, :regimen_id, :sequence_id]
     syncable Sequence, [:id, :args, :body, :color, :device_id, :kind, :name]
@@ -42,6 +44,7 @@ defmodule Farmbot.Sync do
   # Screw with context.
   def get_device(id), do: Helpers.get_device(id)
   def get_peripheral(id), do: Helpers.get_peripheral(id)
+  def get_point(id), do: Helpers.get_point(id)
   def get_regimen_item(id), do: Helpers.get_regimen_item(id)
   def get_regimen(id), do: Helpers.get_regimen(id)
   def get_sequence(id), do: Helpers.get_sequence(id)
@@ -57,8 +60,25 @@ defmodule Farmbot.Sync do
   """
   def sync do
     with {:ok, so} <- down(),
-         :ok <- up(),
-         do: {:ok, so}
+         :ok <- up()
+         do
+           save_recent_so(so)
+           {:ok, so}
+         end
+  end
+
+  defp save_recent_so(%SyncObject{} = so) do
+    f = so |> :erlang.term_to_binary
+    File.write(@save_file, f)
+  end
+
+  @spec load_recent_so :: {:ok, SyncObject.t} | no_return
+  def load_recent_so do
+    f =
+      @save_file
+      |> File.read!
+      |> :erlang.binary_to_term
+    {:ok, f}
   end
 
   # downloads all the information from the api

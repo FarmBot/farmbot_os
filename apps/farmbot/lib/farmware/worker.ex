@@ -35,7 +35,6 @@ defmodule Farmware.Worker do
   end
 
   # when a queue of scripts comes in execute them in order
-  @lint false
   def handle_events(farm_scripts, _from, environment) do
     Logger.debug "Farmware Worker handling #{Enum.count(farm_scripts)} scripts"
     for scr <- farm_scripts do
@@ -45,19 +44,19 @@ defmodule Farmware.Worker do
     {:noreply, [], environment}
   end
 
-  @lint false
   def handle_call(:get_state, _from, state) do
     {:reply, state, [], state}
   end
 
-  @lint false
+  # Discard leaking port info
+  def handle_info({port, _info}, s) when is_port(port), do: {:noreply, [], s}
+
   def handle_info(info, environment) do
     Logger.debug ">> got unhandled info in " <>
       "Farmware Worker: #{inspect info}", nopub: true
     {:noreply, [], environment}
   end
 
-  @lint false
   def handle_cast({:status, status}, environment) do
     env_map = status.user_env # this is kind of silly
 

@@ -5,6 +5,7 @@ defmodule Farmbot.Auth do
   @modules Application.get_env(:farmbot_auth, :callbacks) ++ [__MODULE__]
   @path Application.get_env(:farmbot_system, :path)
   @ssl_hack [ ssl: [{:versions, [:'tlsv1.2']}] ]
+  @six_hours (6 * 3_600_000)
 
   use GenServer
   require Logger
@@ -96,23 +97,16 @@ defmodule Farmbot.Auth do
   """
   @spec try_log_in :: {:ok, Token.t} | {:error, atom}
   def try_log_in do
-    try do
-      case GenServer.call(__MODULE__, :try_log_in) do
-        {:ok, %Token{} = token} ->
-          do_callbacks(token)
-          {:ok, token}
-        {:error, reason} ->
-          Logger.error ">> Could not log in! #{inspect reason}"
-          {:error, reason}
-        error ->
-          Logger.error ">> Could not log in! #{inspect error}"
-          {:error, error}
-      end
-    catch
-      thing ->
-        IO.inspect thing
-        Logger.error "I SAVED YOU FROM A RACE CONDITION. REBOOT"
-        {:error, thing}
+    case GenServer.call(__MODULE__, :try_log_in) do
+      {:ok, %Token{} = token} ->
+        do_callbacks(token)
+        {:ok, token}
+      {:error, reason} ->
+        Logger.error ">> Could not log in! #{inspect reason}"
+        {:error, reason}
+      error ->
+        Logger.error ">> Could not log in! #{inspect error}"
+        {:error, error}
     end
   end
   @doc """
@@ -142,12 +136,21 @@ defmodule Farmbot.Auth do
     start_link(args)
   end
 
+  @doc """
+    Starts the Auth GenServer
+  """
   def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__ )
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
   # Genserver stuff
-  def init(_args), do: get_secret()
+  def init(_args) do
+    s_a()
+    get_secret()
+  end
+
+  # sends a message after 6 hours to get a new token.
+  defp s_a, do: Process.send_after(__MODULE__, :new_token, @six_hours)
 
   # casted creds, store them until something is ready to actually try a log in.
   def handle_cast({:interim, {email, pass, server}},_) do
@@ -219,6 +222,17 @@ defmodule Farmbot.Auth do
   # when we get a token.
   def handle_info({:authorization, token}, _) do
     {:noreply, token}
+  end
+
+  # NOTE(Connor):
+  # This is pretty much a HACK to force MQTT to log in again every six hours
+  # Because it goes limp after long amounts of time.
+  def handle_info(:new_token, state) do
+    spawn fn() ->
+      try_log_in()
+      s_a()
+    end
+    {:noreply, state}
   end
 
   def terminate(:normal, state) do

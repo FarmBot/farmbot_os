@@ -37,22 +37,12 @@ defmodule Farmware.FarmScript do
     Logger.debug ">> is setting environment for #{thing.name}"
 
     blah = System.find_executable(thing.executable)
-    if !blah do
-      raise "#{thing.executable} does not exist!"
-    end
+    unless blah, do: raise "Could not find: #{thing.executable}!"
 
-    extra_env = Enum.map(thing.envs, fn({k, v}) ->
-      if is_bitstring(k) do
-        {String.to_charlist(k), String.to_charlist(v)}
-      else
-        {k, v}
-      end
-    end)
+    extra_env = build_extra_env(thing.envs)
 
-    # Logger.debug ">> Serializing DB for Farmware"
-    # sync_env =
-    #   Farmbot.Sync.sync
-    #   |> build_sync_env
+    Logger.debug ">> Serializing DB for Farmware"
+    sync_env = Farmbot.Sync.load_recent_so |> build_sync_env
 
     cwd = File.cwd!
     File.cd!(thing.path)
@@ -63,10 +53,21 @@ defmodule Farmware.FarmScript do
        :exit_status,
        :hide,
        :use_stdio,
-       :stderr_to_stdout, args: thing.args, env: env ++ extra_env])
+       :stderr_to_stdout,
+       args: thing.args,
+       env: env ++ extra_env ++ [sync_env]])
     handle_port(port, thing)
     # change back to where we started.
     File.cd!(cwd)
+  end
+
+  # Credo made me do it
+  @spec build_extra_env(list) :: [{charlist,charlist}]
+  defp build_extra_env(envs) do
+    Enum.map(envs, fn({k, v}) ->
+    if is_bitstring(k),
+      do: {String.to_charlist(k), String.to_charlist(v)}, else: {k, v}
+    end)
   end
 
   defp build_sync_env({:ok, thing}) do
@@ -95,9 +96,18 @@ defmodule Farmware.FarmScript do
       _something ->
         # Logger.debug ">> [#{thing.name}] [ got info: #{inspect something} ]"
         handle_port(port, thing)
+
       after
-        10_000 -> Logger.error ">> [#{thing.name}] Timed out"
+        10_000 ->
+          Logger.error ">> [#{thing.name}] Timed out"
+          kill_port(port)
     end
+  end
+
+  @spec kill_port(port) :: no_return
+  defp kill_port(port) do
+    info = Port.info(port)
+    if info, do: System.cmd("kill", ["#{info[:os_pid]}"])
   end
 
   # pattern matching is cool

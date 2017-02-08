@@ -140,18 +140,18 @@ Lets go thru those files and folders and explain what each one is.
     configures a nerves target. See RPI3 System for examples.
 * `nerves_defconfig`
     The buildroot configuration. Needs a bit of specifics.
-    ```
-    buildroot
-    ├── packages
-    |    ├── networking
-    |    |   ├── hostapd
-    |    |   ├── dnsmasq
-    |    |   ├── dropbear
-    |    |   └── iw
-    |    |
-    |    └── hardware handling
-    |        └── avrdude
-    |
-    └── filesystem
-        └── squashfs
-    ```
+```
+buildroot
+├── packages
+|    ├── networking
+|    |   ├── hostapd
+|    |   ├── dnsmasq
+|    |   ├── dropbear
+|    |   └── iw
+|    |
+|    └── hardware handling
+|        └── avrdude
+|
+└── filesystem
+   └── squashfs
+```
