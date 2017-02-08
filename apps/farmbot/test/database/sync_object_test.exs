@@ -28,6 +28,7 @@ defmodule Farmbot.Sync.SyncObjectTest do
       %{"device" => %{"id" => 1},
         "peripherals" => [],
         "plants" => [],
+        "points" => [],
         "regimen_items" => [],
         "regimens" => [],
         "sequences" => [],
@@ -83,6 +84,10 @@ defmodule Farmbot.Sync.SyncObjectTest do
     {:error, Farmbot.Sync.Database.User, reason10} = Farmbot.Sync.SyncObject.validate(json10)
     assert reason10 == [{:error, Farmbot.Sync.Database.User, :bad_map}]
 
+    json11 = json_resp() |> break("points")
+    {:error, Farmbot.Sync.Database.Point, reason11} = Farmbot.Sync.SyncObject.validate(json11)
+    assert reason11 == [{:error, Farmbot.Sync.Database.Point, :bad_map}]
+
   end
 
   def break(map, key) do
@@ -93,6 +98,7 @@ defmodule Farmbot.Sync.SyncObjectTest do
     %{"device" => json_device(),
       "peripherals" => json_peripherals(),
       "plants" => [],
+      "points" => json_points(),
       "regimen_items" => json_regimen_items(),
       "regimens" => json_regimens(),
       "sequences" => json_sequences(),
@@ -121,6 +127,18 @@ defmodule Farmbot.Sync.SyncObjectTest do
       "label" => Faker.Lorem.Shakespeare.hamlet,
       "created_at" => 12345,
       "updated_at" => 12345
+    }
+  end
+
+  def json_points, do: [json_point()]
+  def json_point do
+    %{"id" => 1,
+      "x" => 1,
+      "y" => 2,
+      "z" => 1,
+      "radius" => 3,
+      "created_at" => "2017-02-08T15:28:52.839Z",
+      "meta" => %{}
     }
   end
 
