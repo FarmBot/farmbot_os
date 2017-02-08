@@ -77,9 +77,6 @@ defmodule Farmbot.Updates.Handler do
          do: get_dl_url(assets, extension)
   end
 
-  @doc """
-    Gets the url with the given extension from the given Github assets
-  """
   @spec get_dl_url([any,...] | map, String.t)
   :: {:update, String.t} | {:error, atom}
   defp get_dl_url(assets, extension)

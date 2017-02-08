@@ -37,16 +37,11 @@ defmodule Farmware.FarmScript do
     Logger.debug ">> is setting environment for #{thing.name}"
 
     blah = System.find_executable(thing.executable)
-    if !blah do
-      raise "#{thing.executable} does not exist!"
-    end
+    unless blah, do: raise "Could not find: #{thing.executable}!"
 
     extra_env = Enum.map(thing.envs, fn({k, v}) ->
-      if is_bitstring(k) do
-        {String.to_charlist(k), String.to_charlist(v)}
-      else
-        {k, v}
-      end
+      if is_bitstring(k),
+        do: {String.to_charlist(k), String.to_charlist(v)}, else: {k, v}
     end)
 
     # Logger.debug ">> Serializing DB for Farmware"
@@ -69,15 +64,15 @@ defmodule Farmware.FarmScript do
     File.cd!(cwd)
   end
 
-  defp build_sync_env({:ok, thing}) do
-    chars =
-      thing
-      |> Poison.encode!
-      |> String.to_charlist
-    {'DB', chars}
-  end
-
-  defp build_sync_env(_), do: {'DB', '{}'}
+  # defp build_sync_env({:ok, thing}) do
+  #   chars =
+  #     thing
+  #     |> Poison.encode!
+  #     |> String.to_charlist
+  #   {'DB', chars}
+  # end
+  #
+  # defp build_sync_env(_), do: {'DB', '{}'}
 
   defp handle_port(port, %__MODULE__{} = thing) do
     # Inside this probably we need to build some sort of
