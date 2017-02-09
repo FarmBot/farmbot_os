@@ -1,4 +1,5 @@
 alias Farmbot.Sync.Database.Device
+alias Farmbot.Sync.Database.FarmEvent
 alias Farmbot.Sync.Database.Peripheral
 alias Farmbot.Sync.Database.Point
 alias Farmbot.Sync.Database.RegimenItem
@@ -15,6 +16,7 @@ defmodule Farmbot.Sync.Helpers do
   """
   use Amnesia
   use Device
+  use FarmEvent
   use Peripheral
   use Point
   use RegimenItem
@@ -32,6 +34,17 @@ defmodule Farmbot.Sync.Helpers do
   def get_device(find_id) do
     Amnesia.transaction do
       Device.where id == find_id
+    end
+    |> parse_selection
+  end
+
+  @doc """
+    Gets a farm event by id
+  """
+  @lint false
+  def get_farm_event(find_id) do
+    Amnesia.transaction do
+      FarmEvent.where id == find_id
     end
     |> parse_selection
   end
