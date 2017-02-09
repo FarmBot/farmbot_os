@@ -26,6 +26,7 @@ defmodule Farmbot.Sync.SyncObjectTest do
   test "gives meaningful messages when something is wrong" do
     json =
       %{"device" => %{"id" => 1},
+        "farm_events" => [],
         "peripherals" => [],
         "plants" => [],
         "points" => [],
@@ -88,14 +89,17 @@ defmodule Farmbot.Sync.SyncObjectTest do
     {:error, Farmbot.Sync.Database.Point, reason11} = Farmbot.Sync.SyncObject.validate(json11)
     assert reason11 == [{:error, Farmbot.Sync.Database.Point, :bad_map}]
 
+    json12 = json_resp() |> break("farm_events")
+    {:error, Farmbot.Sync.Database.FarmEvent, reason12} = Farmbot.Sync.SyncObject.validate(json12)
+    assert reason12 == [{:error, Farmbot.Sync.Database.FarmEvent, :bad_map}]
+
   end
 
-  def break(map, key) do
-    Map.put(map, key, ["failure"])
-  end
+  def break(map, key), do: Map.put(map, key, ["failure"])
 
   def json_resp() do
     %{"device" => json_device(),
+      "farm_events" => json_farm_events(),
       "peripherals" => json_peripherals(),
       "plants" => [],
       "points" => json_points(),
@@ -117,7 +121,22 @@ defmodule Farmbot.Sync.SyncObjectTest do
     }
   end
 
-  def json_peripherals,  do: [json_peripheral()]
+  def json_farm_events, do: [json_farm_event()]
+  def json_farm_event do
+    %{
+      "id" => 1,
+      "start_time" => "2017-02-08T15:28:52.839Z",
+      "end_time" => "2017-02-08T15:28:52.839Z",
+      "next_time" => "2017-02-08T15:28:52.839Z",
+      "repeat" => 1,
+      "time_unit" => "daily",
+      "executable_id" => 1,
+      "executable_type" => "sequence",
+      "calendar" => ["2017-02-08T15:28:52.839Z"]
+    }
+  end
+
+  def json_peripherals, do: [json_peripheral()]
   def json_peripheral do
     %{
       "id" => 1,

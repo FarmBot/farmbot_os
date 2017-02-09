@@ -54,7 +54,7 @@ defmodule Farmbot.Sync.SyncObject do
       "users" => json_users})
   do
     with {:ok, device}        <- DB.Device.validate(json_device),
-         {:ok, farm_events}   <- validate_list(DB.FarmEvents,  json_farm_events),
+         {:ok, farm_events}   <- validate_list(DB.FarmEvent,  json_farm_events),
          {:ok, peripherals}   <- validate_list(DB.Peripheral,  json_peripherals),
          {:ok, plants}        <- validate_list(DB.Plant,       json_plants),
          {:ok, points}        <- validate_list(DB.Point,       json_points),

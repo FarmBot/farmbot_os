@@ -1,4 +1,3 @@
-alias Farmbot.Sync.SyncObject
 defmodule Farmbot.Sync do
   @moduledoc """
     There is a quite a bit of macros going on here.
@@ -11,6 +10,7 @@ defmodule Farmbot.Sync do
   alias Farmbot.Sync.Helpers
   alias Farmbot.ImageWatcher
   require Logger
+  alias Farmbot.Sync.SyncObject
   @save_file "/tmp/sync_object.save"
 
   defdatabase Database do
@@ -33,7 +33,7 @@ defmodule Farmbot.Sync do
     syncable Tool, [:id, :name]
     syncable User, [:id, :device_id, :name, :email, :created_at, :updated_at]
     syncable FarmEvent,
-      [:id, :start_time, :env_time, :next_time,
+      [:id, :start_time, :end_time, :next_time,
        :repeat, :time_unit, :executable_id, :executable_type, :calendar]
   end
 
