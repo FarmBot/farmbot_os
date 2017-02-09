@@ -93,9 +93,7 @@ defmodule Farmware.FarmScript do
         spawn fn() -> handle_script_output(stuff, thing) end
         handle_port(port, thing)
 
-      _something ->
-        # Logger.debug ">> [#{thing.name}] [ got info: #{inspect something} ]"
-        handle_port(port, thing)
+      _something -> handle_port(port, thing)
 
       after
         10_000 ->

@@ -93,6 +93,8 @@ defmodule Farmware do
     path = FS.path() <> "/farmware/#{package_name}"
     if File.exists?(path) do
       Logger.warn "uninstalling farmware: #{package_name}"
+      info = Farmbot.BotState.ProcessTracker.lookup(:farmware, package_name)
+      deregister(info)
       FS.transaction fn() ->
         File.rm_rf!(path)
       end
@@ -100,6 +102,10 @@ defmodule Farmware do
       Logger.error "can not find farmware: #{package_name} to uninstall"
     end
   end
+
+  @spec deregister(map | nil) :: :ok
+  defp deregister(nil), do: :ok
+  defp deregister(i), do: Farmbot.BotState.ProcessTracker.deregister i.uuid
 
   @doc """
     Forces an update for a Farmware package
