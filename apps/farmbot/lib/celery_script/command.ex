@@ -642,16 +642,14 @@ defmodule Farmbot.CeleryScript.Command do
     NOTE this is a shortcut to starting a process by uuid
   """
   @spec execute_script(%{label: String.t}, [pair]) :: no_return
-  def execute_script(%{label: "image-capture"}, _env_vars) do
-    Logger.debug ">> Is doing hax!!@@"
-    Farmbot.Camera.capture()
-  end
-
   def execute_script(%{label: farmware}, env_vars) do
     set_user_env(%{}, env_vars)
-    :farmware
-    |> Farmbot.BotState.ProcessTracker.lookup(farmware)
-    |> Farmbot.BotState.ProcessTracker.start_process()
+    info = Farmbot.BotState.ProcessTracker.lookup(:farmware, farmware)
+    if info do
+      start_process(%{label: info.uuid}, [])
+    else
+      Logger.error ">> Could not locate: #{farmware}"
+    end
   end
 
   @doc """
@@ -695,6 +693,21 @@ defmodule Farmbot.CeleryScript.Command do
       %{x: c_args.x, y: c_args.y, z: c_args.z, radius: radius, meta: meta}
       |> Poison.encode!
     Farmbot.HTTP.post("/api/points", json)
+  end
+
+  @doc ~s"""
+    Takes a photo
+      args: %{},
+      body: []
+  """
+  @spec take_photo(%{}, []) :: no_return
+  def take_photo(%{}, []) do
+    info = Farmbot.BotState.ProcessTracker.lookup :farmware, "take-photo"
+    if info do
+      start_process(%{label: info.uuid}, [])
+    else
+      Farmbot.Camera.capture()
+    end
   end
 
   @doc """

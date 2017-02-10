@@ -11,6 +11,8 @@ defmodule Farmbot.Sync do
   alias Farmbot.ImageWatcher
   require Logger
   alias Farmbot.Sync.SyncObject
+  alias Farmbot.Sync.Database.Diff
+  alias Farmbot.BotState.ProcessTracker, as: PT
   @save_file "/tmp/sync_object.save"
 
   defdatabase Database do
@@ -122,6 +124,18 @@ defmodule Farmbot.Sync do
   end
 
   defp enter_into_db(%SyncObject{} = so) do
+    # HACK(Connor) please just ignore this
+    # This is some diffing on the old Farm Events.
+    spawn fn() ->
+      fes = Map.get(so, :farm_events)
+      list = fes |> Diff.diff |> MapSet.to_list
+      for farm_event <- list do
+        maybe_info = PT.lookup(:event, farm_event.id)
+        if maybe_info, do: PT.deregister(maybe_info.uuid)
+        PT.register(:event, farm_event.id, farm_event)
+      end
+    end
+
     clear_all(so)
     Amnesia.transaction do
       # We arent aloud to enumerate over a struct, so we turn it into a map here

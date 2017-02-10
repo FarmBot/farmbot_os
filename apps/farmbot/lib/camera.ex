@@ -20,11 +20,30 @@ defmodule Farmbot.Camera do
 
   def capture(path \\ nil, options \\ [])
   def capture(path, options) do
+    command = System.find_executable(@command)
     path = path || out_path()
-    System.cmd(@command, params(path, options))
+    port = Port.open({:spawn_executable, command},
+      [:stream,
+       :binary,
+       :exit_status,
+       :hide,
+       :use_stdio,
+       :stderr_to_stdout, args: params(path, options)])
+    handle_port(port)
     File.read!(path)
   end
 
-  def out_path, do: "/tmp/images/#{Timex.now |> DateTime.to_unix(:milliseconds)}.jpg"
+  defp handle_port(port) do
+    receive do
+      {^port, {:data, stuff}} ->
+        IO.puts stuff
+        handle_port(port)
+      {^port, {:exit_status, _}} -> :ok
+      _ -> handle_port(port)
+    after 10_000 -> Logger.error "[CAMERA] UHHHHHH"
+    end
+  end
+
+  defp out_path, do: "/tmp/images/#{Timex.now |> DateTime.to_unix(:milliseconds)}.jpg"
 
 end
