@@ -7,6 +7,7 @@ defmodule Farmware.Worker do
   use GenStage
   @tracker Farmware.Tracker
   alias Farmware.FarmScript
+  alias Farmbot.Transport.Farmware, as: Transport
 
   @type env :: map
 
@@ -30,7 +31,9 @@ defmodule Farmware.Worker do
 
   @spec initial_env :: env
   defp initial_env do
-    %{"WRITE_PATH" => "/tmp", "BEGIN_CS" => "<<< ", "IMAGES" => "/tmp/images"}
+    %{"WRITE_PATH" => "/tmp", # common write path (non persistant)
+      "BEGIN_CS" => "<<< ", # some in band signaling for executing celeryscript.
+      "IMAGES" => "/tmp/images"} # Dump images here to upload them to the api
     |> Map.merge(Farmbot.BotState.get_config(:user_env))
   end
 
@@ -38,7 +41,14 @@ defmodule Farmware.Worker do
   def handle_events(farm_scripts, _from, environment) do
     Logger.debug "Farmware Worker handling #{Enum.count(farm_scripts)} scripts"
     for scr <- farm_scripts do
+      # give ten seconds to accept a connection.
+      #TODO(Connor) this will cause problems im sure.
+      spawn fn() ->
+        Logger.debug ">> Is accepting a connection for 10 seconds."
+        Transport.farmware_start()
+      end
       FarmScript.run(scr, get_env(environment))
+      Transport.farmware_end()
     end
     Logger.debug "Farmware Worker done with farm_scripts"
     {:noreply, [], environment}
@@ -48,24 +58,13 @@ defmodule Farmware.Worker do
     {:reply, state, [], state}
   end
 
-  # Discard leaking port info
+  # Discard leaking port info from farmwares
   def handle_info({port, _info}, s) when is_port(port), do: {:noreply, [], s}
 
   def handle_info(info, environment) do
     Logger.debug ">> got unhandled info in " <>
       "Farmware Worker: #{inspect info}", nopub: true
     {:noreply, [], environment}
-  end
-
-  def handle_cast({:status, status}, environment) do
-    env_map = status.user_env # this is kind of silly
-
-    new_env =
-      environment
-      |> Map.delete(:user_env) # delete user env so its doesnt exist twice
-      |> Map.put("STATUS", Poison.encode!(status))
-      |> Map.merge(env_map)
-    {:noreply, [], new_env}
   end
 
   def handle_cast(_info, environment), do: {:noreply, [], environment}
