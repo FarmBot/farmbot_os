@@ -15,12 +15,13 @@ defmodule Farmbot.Transport.Redis do
     {:consumer, [], subscribe_to: [Farmbot.Transport]}
   end
 
-  def handle_info({_from, {:status, state}}, state) do
-    Redis.Client.input_value("BOT_STATUS", state)
+  def handle_info({_from, {:status, stuff}}, state) do
+    Redis.Client.input_value("BOT_STATUS", stuff)
     {:noreply, [], state}
   end
 
   def handle_info(event, state) do
+    IO.inspect event
     {:noreply, [], state}
   end
 end

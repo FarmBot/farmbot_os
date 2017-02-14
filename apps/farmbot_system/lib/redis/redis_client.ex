@@ -22,7 +22,7 @@ defmodule Redis.Client do
      {:ok, %{cli: port, queue: :queue.new(), blah: nil}}
   end
 
-  def handle_info({cli, {:data, info}}, state) do
+  def handle_info({_cli, {:data, info}}, state) do
     info = String.trim(info)
     if state.blah do GenServer.reply(state.blah, info) end
     {:noreply, %{state | blah: nil}}
@@ -46,7 +46,7 @@ defmodule Redis.Client do
   end
 
   def input_value(key, value) when is_list(value) do
-    input_list(key, list)
+    input_list(key, value)
   end
 
   def input_value(key, value) when is_tuple(value) do

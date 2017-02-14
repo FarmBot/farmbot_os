@@ -7,7 +7,6 @@ defmodule Farmware.Worker do
   use GenStage
   @tracker Farmware.Tracker
   alias Farmware.FarmScript
-  alias Farmbot.Transport.Farmware, as: Transport
 
   @type env :: map
 
@@ -43,12 +42,7 @@ defmodule Farmware.Worker do
     for scr <- farm_scripts do
       # give ten seconds to accept a connection.
       #TODO(Connor) this will cause problems im sure.
-      spawn fn() ->
-        Logger.debug ">> Is accepting a connection for 10 seconds."
-        Transport.farmware_start()
-      end
       FarmScript.run(scr, get_env(environment))
-      Transport.farmware_end()
     end
     Logger.debug "Farmware Worker done with farm_scripts"
     {:noreply, [], environment}

@@ -3,7 +3,6 @@ use Mix.Config
 target = Mix.Project.config[:target]
 env = Mix.env()
 mqtt_transport = Farmbot.Transport.GenMqtt
-farmware_transport = Farmbot.Transport.Farmware
 
 config :logger,
   utc_log: true
@@ -20,7 +19,7 @@ config :iex, :colors, enabled: true
 config :farmbot_auth, callbacks: [mqtt_transport]
 
 # frontend <-> bot transports.
-config :farmbot, transports: [mqtt_transport, farmware_transport]
+config :farmbot, transports: [mqtt_transport]
 
 config :nerves, :firmware,
   rootfs_additions: "config/hardware/#{target}/rootfs-additions-#{env}"
