@@ -53,31 +53,26 @@ defmodule Farmware.Tracker do
 
   # handle_demand gets called when the Worker is done with whatever else it
   # was doing.
-  @lint false
   def handle_demand(demand, state) when demand > 0 do
     # reverse the events so they get executed in order.
     events = Enum.reverse(state.queue)
-    Logger.debug "handling demand: #{inspect demand}: #{inspect events}"
     # dispatch said events, and make sure to clear the queue.
     {:noreply, events, %State{state | queue: []}}
   end
 
   # NOTE(connor): the queue will be backwards here
   # account for that later, or just put it on the end of the list?
-  @lint false
   def handle_cast({:add, scr}, state) do
     if state.queue == [],
       do: {:noreply, [scr], %State{state | queue: []}},
       else: {:noreply, [], %State{state | queue: [scr | state.queue]}}
   end
 
-  @lint false
   def handle_call(:get_state, _from, state) do
     {:reply, state, [], state}
   end
 
   # handle exit of worker process
-  @lint false
   def handle_info({:EXIT, pid, _reason}, state) do
     if pid == state.worker do
       Logger.error "Farmware Worker died"

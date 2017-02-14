@@ -17,10 +17,10 @@ defmodule Farmbot.CeleryScript.Ast do
     possibly be parsed.
   """
   @spec parse({:ok, map}) :: t
+  def parse(map_or_json_map)
   def parse({:ok, map}), do: parse(map) # this allows me to pipe from Poison
 
   @spec parse(map) :: t
-
   def parse(%{"kind" => kind, "args" => args} = thing) do
     body = thing["body"] || []
     comment = thing["comment"]

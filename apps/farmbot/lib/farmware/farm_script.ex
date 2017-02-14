@@ -70,6 +70,8 @@ defmodule Farmware.FarmScript do
     end)
   end
 
+  # Builds tuple of a serialized map
+  @spec build_sync_env({:ok, map}) :: {list[integer], list[integer]}
   defp build_sync_env({:ok, thing}) do
     chars =
       thing
@@ -81,8 +83,6 @@ defmodule Farmware.FarmScript do
   defp build_sync_env(_), do: {'DB', '{}'}
 
   defp handle_port(port, %__MODULE__{} = thing) do
-    # Inside this probably we need to build some sort of
-    # timeout mech and handle zombie processes and what not.
     receive do
       {^port, {:exit_status, 0}} ->
         Logger.debug ">> [#{thing.name}] completed!"
@@ -93,9 +93,7 @@ defmodule Farmware.FarmScript do
         spawn fn() -> handle_script_output(stuff, thing) end
         handle_port(port, thing)
 
-      _something ->
-        # Logger.debug ">> [#{thing.name}] [ got info: #{inspect something} ]"
-        handle_port(port, thing)
+      _something -> handle_port(port, thing)
 
       after
         10_000 ->

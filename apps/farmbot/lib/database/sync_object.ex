@@ -6,6 +6,7 @@ defmodule Farmbot.Sync.SyncObject do
   """
   @type t :: %__MODULE__{
     device: DB.Device.t,
+    farm_events: [DB.FarmEvent.t],
     peripherals: [DB.Peripheral.t],
     plants: [DB.Plant.t],
     points: [DB.Point.t],
@@ -19,6 +20,7 @@ defmodule Farmbot.Sync.SyncObject do
   }
   @keys [
     :device,
+    :farm_events,
     :peripherals,
     :plants,
     :points,
@@ -39,6 +41,7 @@ defmodule Farmbot.Sync.SyncObject do
   @lint false # Don't lint this function. Its not T H A T complex.
   def validate(
     %{"device" => json_device,
+      "farm_events" => json_farm_events,
       "peripherals" => json_peripherals,
       "plants" => json_plants,
       "points" => json_points,
@@ -51,6 +54,7 @@ defmodule Farmbot.Sync.SyncObject do
       "users" => json_users})
   do
     with {:ok, device}        <- DB.Device.validate(json_device),
+         {:ok, farm_events}   <- validate_list(DB.FarmEvent,  json_farm_events),
          {:ok, peripherals}   <- validate_list(DB.Peripheral,  json_peripherals),
          {:ok, plants}        <- validate_list(DB.Plant,       json_plants),
          {:ok, points}        <- validate_list(DB.Point,       json_points),
@@ -65,6 +69,7 @@ defmodule Farmbot.Sync.SyncObject do
            f =
              %__MODULE__{
                device:        device,
+               farm_events:   farm_events,
                peripherals:   peripherals,
                plants:        plants,
                points:        points,

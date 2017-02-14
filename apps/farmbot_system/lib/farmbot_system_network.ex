@@ -115,6 +115,13 @@ defmodule Farmbot.System.Network do
       SSH.start_link
     end
 
+    # Application.ensure_all_started(:timex, :normal)
+    # Application.ensure_all_started(:quantum, :normal)
+    # Logger.add_backend(Farmbot.Logger)
+    # Supervisor.start_child(Farmbot.System.Supervisor, Timex)
+    # Supervisor.start_child(Farmbot.System.Supervisor, Quantum)
+    # Farmbot.System.Supervisor
+
     # if fpf, do: Farmware.get_first_party_farmware
     Logger.debug ">> Login"
     Auth.try_log_in

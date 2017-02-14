@@ -1,22 +1,18 @@
-alias Farmbot.Sync.SyncObject
 defmodule Farmbot.Sync do
   @moduledoc """
     There is a quite a bit of macros going on here.
       * `defdatabase` comes from `Amnesia`
         * defindes a database. This should only show up once.
-      * `generate` comes from `Farmbot.Sync.Macros`
-        * Should happen once for every syncable object from the api.
-        * Needs to be given all the wanted keys that will exist from the api
-      * `mutation` comes from `Syncable`
-        * takes a key that exists in `generate module`
-        * given the variable `before` one can create a new value with that.
-        * must return {:ok, new_thing}
+      * syncable comes from `Syncable` and defines a database table.
   """
   use Amnesia
   import Syncable
   alias Farmbot.Sync.Helpers
   alias Farmbot.ImageWatcher
   require Logger
+  alias Farmbot.Sync.SyncObject
+  alias Farmbot.Sync.Database.Diff
+  alias Farmbot.BotState.ProcessTracker, as: PT
   @save_file "/tmp/sync_object.save"
 
   defdatabase Database do
@@ -29,7 +25,7 @@ defmodule Farmbot.Sync do
     syncable Device, [:id, :planting_area_id, :name, :webcam_url]
     syncable Peripheral,
       [:id, :device_id, :pin, :mode, :label, :created_at, :updated_at]
-    syncable Plant, [:id, :device_id]
+    syncable Plant, [:id, :device_id, :name, :x, :y, :radius]
     syncable Point, [:id, :radius, :x, :y, :z, :meta]
     syncable Regimen, [:id, :color, :name, :device_id]
     syncable RegimenItem, [:id, :time_offset, :regimen_id, :sequence_id]
@@ -38,21 +34,47 @@ defmodule Farmbot.Sync do
     syncable ToolSlot, [:id, :tool_bay_id, :tool_id, :name, :x, :y, :z]
     syncable Tool, [:id, :name]
     syncable User, [:id, :device_id, :name, :email, :created_at, :updated_at]
+    syncable FarmEvent,
+      [:id, :start_time, :end_time, :next_time,
+       :repeat, :time_unit, :executable_id, :executable_type, :calendar]
   end
 
   # These have to exist because Amnesia.where gets confused when you
   # Screw with context.
+  @doc "Gets a device by id"
   def get_device(id), do: Helpers.get_device(id)
+
+  @doc "Gets a farm event by id"
+  def get_farm_event(id), do: Helpers.get_farm_event(id)
+
+  @doc "Gets a peripheral by id"
   def get_peripheral(id), do: Helpers.get_peripheral(id)
+
+  @doc "Gets a point by id"
   def get_point(id), do: Helpers.get_point(id)
+
+  @doc "Gets a regimen item by id"
   def get_regimen_item(id), do: Helpers.get_regimen_item(id)
+
+  @doc "Gets a regimen by id"
   def get_regimen(id), do: Helpers.get_regimen(id)
+
+  @doc "Gets a sequence by id"
   def get_sequence(id), do: Helpers.get_sequence(id)
+
+  @doc "Gets a tool bay by id"
   def get_tool_bay(id), do: Helpers.get_tool_bay(id)
+
+  @doc "Gets a tool slot by id"
   def get_tool_slot(id), do: Helpers.get_tool_slot(id)
+
+  @doc "Gets a tool by id"
   def get_tool(id), do: Helpers.get_tool(id)
+
+  @doc "Gets a user by id"
   def get_user(id), do: Helpers.get_user(id)
 
+  @doc "Get The current device name"
   def device_name, do: Helpers.get_device_name
 
   @doc """
@@ -61,17 +83,22 @@ defmodule Farmbot.Sync do
   def sync do
     with {:ok, so} <- down(),
          :ok <- up()
-         do
-           save_recent_so(so)
-           {:ok, so}
-         end
+    do
+      save_recent_so(so)
+      {:ok, so}
+    end
   end
 
+  # TODO(Connor) put this in Redis.
+  @spec save_recent_so(SyncObject.t) :: no_return
   defp save_recent_so(%SyncObject{} = so) do
     f = so |> :erlang.term_to_binary
     File.write(@save_file, f)
   end
 
+  @doc """
+    Loads the most recent sync without actually syncing.
+  """
   @spec load_recent_so :: {:ok, SyncObject.t} | no_return
   def load_recent_so do
     f =
@@ -97,7 +124,19 @@ defmodule Farmbot.Sync do
     with :ok <- ImageWatcher.force_upload, do: :ok
   end
 
-  def enter_into_db(%SyncObject{} = so) do
+  defp enter_into_db(%SyncObject{} = so) do
+    # HACK(Connor) please just ignore this
+    # This is some diffing on the old Farm Events.
+    spawn fn() ->
+      fes = Map.get(so, :farm_events)
+      list = fes |> Diff.diff |> MapSet.to_list
+      for farm_event <- list do
+        maybe_info = PT.lookup(:event, farm_event.id)
+        if maybe_info, do: PT.deregister(maybe_info.uuid)
+        PT.register(:event, farm_event.id, farm_event)
+      end
+    end
+
     clear_all(so)
     Amnesia.transaction do
       # We arent aloud to enumerate over a struct, so we turn it into a map here
@@ -116,14 +155,12 @@ defmodule Farmbot.Sync do
     end
   end
 
-  def enter_into_db(_), do: {:error, :bad_sync_object}
+  defp enter_into_db(_), do: {:error, :bad_sync_object}
 
   # This needs to happen before we start a transaction
-  def clear_all(%SyncObject{} = so) do
+  defp clear_all(%SyncObject{} = so) do
     keys = Map.keys(so) -- [:__struct__]
-    for key <- keys do
-      atom_to_module(key).clear()
-    end
+    for key <- keys, do: atom_to_module(key).clear()
   end
 
   @spec atom_to_module(atom) :: term

@@ -35,9 +35,7 @@ defmodule Farmbot.BotState.ProcessTracker do
   end
 
   @spec init([]) :: {:ok, State.t}
-  def init([]) do
-    {:ok, %State{}}
-  end
+  def init([]), do: {:ok, %State{}}
 
   @doc """
     Starts the Process Tracker
