@@ -11,7 +11,9 @@ defmodule Farmbot.Transport do
   @max_inactive_count 100
 
   defmodule Serialized do
-    @moduledoc false
+    @moduledoc """
+      Serialized Bot State
+    """
     defstruct [:mcu_params,
                :location,
                :pins,

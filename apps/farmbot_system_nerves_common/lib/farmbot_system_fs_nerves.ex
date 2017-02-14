@@ -46,7 +46,8 @@ defmodule Farmbot.System.NervesCommon.FileSystem do
       """
       def tzdata_hack() do
         Logger.debug ">> Hacking tzdata..."
-        # File.cp "#{:code.priv_dir(:tzdata)}/release_ets/2016j.ets", "/tmp"
+        # File.cp "#{:code.priv_dir(:tzdata)}/release_ets/2016c.ets", "/tmp/"
+        File.write "/tmp/latest_remote_poll.txt", "2017-2-14"
         File.mkdir "/tmp/release_ets"
         File.cp_r "#{:code.priv_dir(:farmbot_system)}/release_ets/2016j.ets", "/tmp/release_ets/2016j.ets"
         Logger.debug ">> Hacked!"

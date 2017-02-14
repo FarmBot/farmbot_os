@@ -25,7 +25,7 @@ defmodule Farmbot.Sync do
     syncable Device, [:id, :planting_area_id, :name, :webcam_url]
     syncable Peripheral,
       [:id, :device_id, :pin, :mode, :label, :created_at, :updated_at]
-    syncable Plant, [:id, :device_id]
+    syncable Plant, [:id, :device_id, :name, :x, :y, :radius]
     syncable Point, [:id, :radius, :x, :y, :z, :meta]
     syncable Regimen, [:id, :color, :name, :device_id]
     syncable RegimenItem, [:id, :time_offset, :regimen_id, :sequence_id]
@@ -89,6 +89,7 @@ defmodule Farmbot.Sync do
     end
   end
 
+  # TODO(Connor) put this in Redis.
   @spec save_recent_so(SyncObject.t) :: no_return
   defp save_recent_so(%SyncObject{} = so) do
     f = so |> :erlang.term_to_binary
