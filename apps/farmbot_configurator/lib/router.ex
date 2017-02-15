@@ -106,11 +106,11 @@ defmodule Farmbot.Configurator.Router do
       # sleep to allow the request to finish.
       Process.sleep(100)
       Farmbot.System.Network.restart
+      File.cp("#{:code.priv_dir(:farmbot_configurator)}/on_failure.sh", "/tmp")
       case Farmbot.Auth.get_token do
          {:ok, %Farmbot.Token{} = _t} ->
            Logger.debug ">> Is logged in"
-         _ ->
-         Farmbot.Auth.try_log_in
+         _ -> Farmbot.Auth.try_log_in
       end
     end
     conn |> send_resp(200, "OK")

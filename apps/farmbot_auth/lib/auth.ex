@@ -65,6 +65,7 @@ defmodule Farmbot.Auth do
         # save the secret to disk.
         Farmbot.System.FS.transaction fn() ->
           :ok = File.write(@path <> "/secret", :erlang.term_to_binary(secret))
+          File.rm "tmp/on_failure.sh"
         end
         Poison.decode!(body) |> Map.get("token") |> Token.create
 
