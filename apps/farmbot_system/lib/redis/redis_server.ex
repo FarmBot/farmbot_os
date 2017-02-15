@@ -1,5 +1,5 @@
 defmodule Redis.Server do
-def config, do: ~s"""
+def config(path: dir), do: ~s"""
   bind 127.0.0.1
   protected-mode yes
   port 6379
@@ -17,7 +17,7 @@ def config, do: ~s"""
   rdbcompression yes
   rdbchecksum yes
   # dbfilename /tmp/dump.rdb
-  dir /tmp
+  dir #{dir}
   slave-serve-stale-data yes
   slave-read-only yes
   repl-diskless-sync no
@@ -41,12 +41,10 @@ def config, do: ~s"""
   @doc """
     Start the redis server.
   """
-  def start_link do
-    GenServer.start_link(__MODULE__, [], name: __MODULE__)
-  end
+  def start_link, do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
 
   def config_file() do
-    File.write("/tmp/redis.config", config())
+    File.write("/tmp/redis.config", config(path: Farmbot.System.FS.path))
     "/tmp/redis.config"
   end
 

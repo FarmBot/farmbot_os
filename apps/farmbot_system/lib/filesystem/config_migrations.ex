@@ -29,17 +29,18 @@ defmodule Farmbot.System.FS.ConfigFileMigrations do
       migrated = "#{@save_dir}/#{file}.migrated"
       # if there is no <timestamp>-<description>_migration.exs.migrated file
       # run the migration
-      if !(File.exists?(migrated)) do
+      unless File.exists?(migrated) do
         Logger.warn ">> running config migration: #{file}"
         {{:module, m, _s, _}, _} = Code.eval_file file, migrations_dir()
+        
         # TODO(Connor): Find out why m.run can return nil?
         next = m.run(json) || %{}
-        # Write the .migrated file to the fs so we don't run this file at every boot
+
         Farmbot.System.FS.transaction fn() ->
           # write the contents of this migration, to the .migrated file.
           File.write(migrated, Poison.encode!(next))
           Logger.warn ">> #{file} migration complete"
-        end
+        end, true
 
         # merge the current acc, with the just run migration
         Map.merge(json, next)

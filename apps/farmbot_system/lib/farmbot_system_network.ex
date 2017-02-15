@@ -104,7 +104,10 @@ defmodule Farmbot.System.Network do
     Logger.debug ">> is reading configurations."
     {:ok, ssh} = get_config("ssh")
     {:ok, ntp} = get_config("ntp")
-    {:ok, _fpf} = get_config("first_party_farmware")
+
+    # First Party Farmware is not really a network concern but here we are...
+    {:ok, fpf} = GenServer.call(CS, {:get, Configuration, "first_party_farmware"})
+
     if ntp do
       Logger.debug ">> ntp"
       Ntp.set_time
@@ -115,14 +118,8 @@ defmodule Farmbot.System.Network do
       SSH.start_link
     end
 
-    # Application.ensure_all_started(:timex, :normal)
-    # Application.ensure_all_started(:quantum, :normal)
-    # Logger.add_backend(Farmbot.Logger)
-    # Supervisor.start_child(Farmbot.System.Supervisor, Timex)
-    # Supervisor.start_child(Farmbot.System.Supervisor, Quantum)
-    # Farmbot.System.Supervisor
+    if fpf, do: Farmware.get_first_party_farmware
 
-    # if fpf, do: Farmware.get_first_party_farmware
     Logger.debug ">> Login"
     Auth.try_log_in
   end

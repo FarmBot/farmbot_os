@@ -48,6 +48,10 @@ defmodule Farmware.Worker do
     {:noreply, [], environment}
   end
 
+  def handle_call({:add_envs, map}, _, state) do
+    {:reply, :ok, [], Map.merge(state, map)}
+  end
+
   def handle_call(:get_state, _from, state) do
     {:reply, state, [], state}
   end
@@ -62,6 +66,10 @@ defmodule Farmware.Worker do
   end
 
   def handle_cast(_info, environment), do: {:noreply, [], environment}
+
+  def add_envs(map) do
+    GenServer.call(__MODULE__, {:add_envs, map})
+  end
 
   @spec get_env(env) :: [{binary, binary}]
   defp get_env(environment) do
