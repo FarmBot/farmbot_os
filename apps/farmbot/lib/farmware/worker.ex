@@ -49,7 +49,7 @@ defmodule Farmware.Worker do
   end
 
   def handle_call({:add_envs, map}, _, state) do
-    {:reply, :ok, [], Map.merge(state, map)} 
+    {:reply, :ok, [], Map.merge(state, map)}
   end
 
   def handle_call(:get_state, _from, state) do
