@@ -262,7 +262,7 @@ index 0000000..23aeb55
 +++ b/package/python-picamera/Config.in
 @@ -0,0 +1,6 @@
 +config BR2_PACKAGE_PYTHON_PICAM
-+	bool "python-picam"
++	bool "python-picamera"
 +	help
 +	  This module provides Support for Raspberry Pi Cameras
 +
@@ -275,7 +275,7 @@ index 0000000..2d6dedc
 @@ -0,0 +1,14 @@
 +################################################################################
 +#
-+# python-picam
++# python-picamera
 +#
 +################################################################################
 +

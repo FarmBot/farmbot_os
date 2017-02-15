@@ -15,9 +15,11 @@ defmodule Farmbot.Logger do
   @spec init(any) :: {:ok, state}
   def init(_), do: {:ok, build_state()}
 
+  # ten megs. i promise
+  @max_file_size 1.0e+7
+
   # The example said ignore messages for other nodes, so im ignoring messages
   # for other nodes.
-  @lint false
   def handle_event({_level, gl, {Logger, _, _, _}}, state)
     when node(gl) != node()
   do
@@ -73,8 +75,6 @@ defmodule Farmbot.Logger do
 
   # Catch any stray calls.
   def handle_call(_, state), do: {:ok, :unhandled, state}
-
-  @lint false
   def handle_info(_, state), do: dispatch state
 
   @spec terminate(any, state) :: no_return
@@ -90,10 +90,7 @@ defmodule Farmbot.Logger do
   end
 
   @spec emit(map) :: :ok
-  defp emit(msg) do
-    Farmbot.Transport.log(msg)
-    :ok
-  end
+  defp emit(msg), do: Farmbot.Transport.log(msg)
 
   # IF we are already posting messages to the api, no need to check the count.
   defp dispatch({messages, true}), do: {:ok, {messages, true}}
@@ -120,7 +117,30 @@ defmodule Farmbot.Logger do
         _ ->  nil
       end
     end)
+      str =
+        messages
+        |> Enum.map(fn(m) -> "#{m.created_at}: #{m.message}\n" end)
+        |> List.to_string
+    write_to_file(str)
     "/api/logs" |> HTTP.post(Poison.encode!(messages)) |> parse_resp
+  end
+
+  # Writes to a file in a transaction
+  @spec write_to_file(binary) :: no_return
+  defp write_to_file(str) do
+    Farmbot.System.FS.transaction fn() ->
+      path = Farmbot.System.FS.path <> "/log.txt"
+      case File.stat(path) do
+        # check the files size.
+        {:ok, %File.Stat{size: s}} when s > @max_file_size ->
+          File.write(path, "")
+        # if the file is there, we are fine.
+        {:ok, _stat} -> :ok
+        # if its not there create it. I dont think we HAVE to do this.
+        {:error, :enoent} -> File.write(path, "")
+      end
+      File.write(path, str, [:append])
+    end
   end
 
   # Parses what the api sends back. Will only ever return :ok even if there was
