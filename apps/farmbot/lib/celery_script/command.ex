@@ -665,11 +665,15 @@ defmodule Farmbot.CeleryScript.Command do
       body: [pair]
   """
   @spec set_user_env(%{}, [pair]) :: no_return
-  @lint {Credo.Check.Refactor.PipeChainStart, false}
   def set_user_env(%{}, env_pairs) do
-     pairs_to_tuples(env_pairs)
+     envs = pairs_to_tuples(env_pairs)
+     envs
      |> Map.new
      |> Farmbot.BotState.set_user_env
+
+     envs
+     |> Map.new
+     |> Farmware.Worker.add_envs
   end
 
   @doc ~s"""
