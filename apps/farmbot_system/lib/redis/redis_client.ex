@@ -1,13 +1,13 @@
 defmodule Redis.Client do
   use GenServer
   require Logger
+  # 15 minutes
+  @save_time 900000
 
   @doc """
     Start the redis server.
   """
-  def start_link do
-    GenServer.start_link(__MODULE__, [], name: __MODULE__)
-  end
+  def start_link, do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
 
   def init([]) do
     exe = System.find_executable("redis-cli")
@@ -19,6 +19,7 @@ defmodule Redis.Client do
        :use_stdio,
        :stderr_to_stdout,
        args: []])
+     Process.send_after(self(), :save, @save_time)
      {:ok, %{cli: port, queue: :queue.new(), blah: nil}}
   end
 
@@ -28,14 +29,25 @@ defmodule Redis.Client do
     {:noreply, %{state | blah: nil}}
   end
 
+  def handle_info(:save, state) do
+    # Since this is a function that doesnt get executed right now, we can
+    # have this GenServer call itself tehe
+    Farmbot.System.FS.transaction fn() -> Redis.Client.send("SAVE") end
+    # send ourselves a message in x seconds
+    Process.send_after(self(), :save, @save_time)
+    {:noreply, state}
+  end
+
   def handle_call({:send, str}, from, state) do
     Port.command(state.cli, str <> "\n")
     {:noreply, %{state | blah: from}}
   end
 
-  def send(str) do
-    GenServer.call(__MODULE__, {:send, str})
-  end
+  @doc """
+    Sends a command to redis client. This is blocking.
+  """
+  @spec send(binary) :: binary
+  def send(str), do: GenServer.call(__MODULE__, {:send, str})
 
   @doc """
     Input a value by a given key.
@@ -53,24 +65,26 @@ defmodule Redis.Client do
     input_value(key, Tuple.to_list(value))
   end
 
-  def input_value(key, value) do
-    send "SET #{key} #{value}"
-  end
+  def input_value(key, value), do: send "SET #{key} #{value}"
 
   @doc """
     Input a list to redis under key
   """
-  def input_list(key, list) do
-    "OK"
+  defp input_list(key, list) do
+    send("DEL #{key}")
+    rlist = Enum.reduce(list, "", fn(item, acc) ->
+      if is_binary(item) || is_integer(item),
+        do: acc <> " " <> "#{item}", else: acc
+    end)
+    send("RPUSH #{key} #{rlist}")
   end
 
-  @doc """
-    Input a map into redis
-  """
   @spec input_map(map | struct, String.t | nil) :: [String.t]
-  def input_map(map, bloop \\ nil)
-  def input_map(%{__struct__: _} = map, bloop), do: map |> Map.from_struct |> input_map(bloop)
-  def input_map(map, bloop) when is_map(map) do
+  defp input_map(map, bloop \\ nil)
+  defp input_map(%{__struct__: _} = map, bloop),
+    do: map |> Map.from_struct |> input_map(bloop)
+
+  defp input_map(map, bloop) when is_map(map) do
     Enum.map(map, fn({key, value}) ->
       cond do
         is_map(value) ->
@@ -80,7 +94,12 @@ defmodule Redis.Client do
             input_map(value, key)
           end
 
-        is_list(value) -> input_list(key, value)
+        is_list(value) ->
+          if bloop do
+            input_list("#{bloop}.#{key}", value)
+          else
+            input_list(key, value)
+          end
 
         true ->
           if bloop do
