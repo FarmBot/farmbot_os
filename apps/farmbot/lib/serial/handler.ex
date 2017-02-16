@@ -41,6 +41,7 @@ defmodule Farmbot.Serial.Handler do
   @spec write(binary, pid) :: no_return
   def write(str, caller) when is_bitstring(str),
     do: GenServer.cast(__MODULE__, {:write, str <> " Q0", caller})
+  _ = @lint # HACK(Connor) fix credo compiler warning
 
   @doc """
     Estop the arduino. This is super hacky.

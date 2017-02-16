@@ -9,7 +9,6 @@ config :logger, utc_log: true
 # I force colors because they are important.
 config :logger, :console, colors: [enabled: true]
 
-
 # Iex needs colors too.
 config :iex, :colors, enabled: true
 

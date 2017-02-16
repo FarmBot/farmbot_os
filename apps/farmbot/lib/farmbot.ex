@@ -13,6 +13,7 @@ defmodule Farmbot do
              commit: commit})
   do
     children = [
+      supervisor(Farmbot.Configurator, [], restart: :permanent),
       # Generic counter.
       worker(Counter, [], restart: :permanent),
       # The worker for diffing db entries.

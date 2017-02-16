@@ -9,7 +9,7 @@ defmodule Farmbot.Configurator.Router do
   use Plug.Router
   # plug Plug.Logger
   # this is so we can serve the bundle.js file.
-  plug Plug.Static, at: "/", from: :farmbot_configurator
+  plug Plug.Static, at: "/", from: :farmbot
   plug Plug.Static, at: "/image", from: "/tmp/images", gzip: false
   plug :match
   plug :dispatch
@@ -17,13 +17,14 @@ defmodule Farmbot.Configurator.Router do
 
   get "/image/latest" do
     list_images = fn() ->
-      File.ls!("/tmp/images")
+      "/tmp/images"
+      |> File.ls!
       |> Enum.reduce("", fn(image, acc) ->
         acc <> "<img src=\"/image/#{image}\">"
       end)
     end
     html =
-      """
+      ~s"""
       <html>
         <body>
           <form action=/image/capture>
@@ -105,13 +106,11 @@ defmodule Farmbot.Configurator.Router do
     spawn fn() ->
       # sleep to allow the request to finish.
       Process.sleep(100)
+
+      # restart network.
+      # not going to bother checking if it worked or not, (at least until i
+      # reimplement networking) because its so fragile.
       Farmbot.System.Network.restart
-      case Farmbot.Auth.get_token do
-         {:ok, %Farmbot.Token{} = _t} ->
-           Logger.debug ">> Is logged in"
-         _ ->
-         Farmbot.Auth.try_log_in
-      end
     end
     conn |> send_resp(200, "OK")
   end
@@ -136,7 +135,8 @@ defmodule Farmbot.Configurator.Router do
   # anything that doesn't match a rest end point gets the index.
   match _, do: conn |> send_resp(404, "not found")
 
-  def make_html do
-    "#{:code.priv_dir(:farmbot_configurator)}/static/index.html" |> File.read!
+  @spec make_html :: binary
+  defp make_html do
+    "#{:code.priv_dir(:farmbot)}/static/index.html" |> File.read!
   end
 end

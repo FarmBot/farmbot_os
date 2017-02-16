@@ -9,20 +9,22 @@ defmodule Farmbot.Configurator do
   alias Farmbot.Configurator.SocketHandler
   alias Plug.Adapters.Cowboy.Handler, as: CowboyHandler
   require Logger
-  @port Application.get_env(:farmbot_configurator, :port, 4000)
+
+  @port Application.get_env(:farmbot, :configurator_port, 4000)
+  @streamer_port Application.get_env(:farmbot, :streamer_port, 4040)
 
   def init([]) do
     Logger.debug ">> Configurator init!"
     children = [
-      Plug.Adapters.Cowboy.child_spec(:http, Router, [], port: @port, dispatch: [dispatch()]),
-      Plug.Adapters.Cowboy.child_spec(:http, Streamer, [], port: 4040)
+      Plug.Adapters.Cowboy.child_spec(:http, Router, [], port: @port,
+        dispatch: [dispatch()]),
+      Plug.Adapters.Cowboy.child_spec(:http, Streamer, [], port: @streamer_port)
      ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)
   end
 
-  def start(_type, _),
-    do: Supervisor.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link, do: Supervisor.start_link(__MODULE__, [], name: __MODULE__)
 
   defp dispatch do
     {:_, [{"/ws", SocketHandler, []}, {:_, CowboyHandler, {Router, []}}]}

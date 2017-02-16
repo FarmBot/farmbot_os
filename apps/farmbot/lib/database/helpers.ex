@@ -37,6 +37,7 @@ defmodule Farmbot.Sync.Helpers do
     end
     |> parse_selection
   end
+  _ = @lint # HACK(Connor) fix credo compiler warning
 
   @doc """
     Gets a farm event by id

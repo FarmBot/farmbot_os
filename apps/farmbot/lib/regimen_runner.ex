@@ -90,4 +90,5 @@ defmodule Farmbot.RegimenRunner do
       |> Amnesia.Selection.values
     end
   end
+  _ = @lint # HACK(Connor) fix credo compiler warning
 end

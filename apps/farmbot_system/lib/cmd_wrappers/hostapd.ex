@@ -34,6 +34,7 @@ defmodule Farmbot.System.Network.Hostapd do
   # Don't lint this. Its not too complex credo.
   # No but really TODO: make this a little less complex.
   @lint false
+  _ = @lint
   @doc false
   def init([interface: interface, ip_address: ip_addr, manager: manager]) do
     Logger.debug ">> is starting hostapd on #{interface}"
@@ -130,7 +131,7 @@ defmodule Farmbot.System.Network.Hostapd do
     dhcp-option=3,#{ip_addr}
     dhcp-option=6,#{ip_addr}
     dhcp-authoritative
-    # address=/#/#{ip_addr}
+    address=/#/#{ip_addr}
     """
   end
 

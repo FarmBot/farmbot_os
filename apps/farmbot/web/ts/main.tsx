@@ -23,6 +23,7 @@ interface FormState {
   showCustomNetworkWidget?: null | boolean;
   ssidSelection?: { [name: string]: string };
   customInterface?: null | string;
+  connecting?: boolean;
 }
 
 @observer
@@ -44,7 +45,8 @@ export class Main extends React.Component<MainProps, FormState> {
       hiddenAdvancedWidget: 0,
       showCustomNetworkWidget: false,
       ssidSelection: {},
-      customInterface: null
+      customInterface: null,
+      connecting: false
     };
   }
 
@@ -68,7 +70,9 @@ export class Main extends React.Component<MainProps, FormState> {
       return;
     }
 
-    if (email && pass && server) {
+    if ((email && pass && server) && this.state.connecting != true) {
+      // this.state.connecting = true;
+      this.setState({ connecting: true });
       mainState.uploadCreds(email, pass, server)
         .then((thing) => {
           console.log("uploaded web app credentials!");
@@ -77,7 +81,7 @@ export class Main extends React.Component<MainProps, FormState> {
           console.error("Error uploading web app credentials!")
         });
     } else {
-      console.error("Email, Password, or Server is incomplete")
+      console.error("Email, Password, or Server is incomplete or already connecting!")
       return;
     }
 
@@ -88,6 +92,7 @@ export class Main extends React.Component<MainProps, FormState> {
         mainState.tryLogIn().catch((t) => {
           console.error("Something bad happend");
           console.dir(t);
+          mainState.setConnected(false);
         });
       })
       .catch((thing) => {
@@ -103,7 +108,7 @@ export class Main extends React.Component<MainProps, FormState> {
     console.log("Hi? " + timezone);
     this.setState({ timezone: timezone });
 
-    // this is so we don't have to do null juggling from having too possible 
+    // this is so we don't have to do null juggling from having too possible
     // places for this value to come from
     this.props.mobx.configuration.configuration.timezone = timezone;
   }
@@ -141,14 +146,14 @@ export class Main extends React.Component<MainProps, FormState> {
         return <input placeholder="Enter a WiFi ssid or press SCAN"
           onChange={(event) => {
             onChange(event.currentTarget.value);
-          } } />
+          }} />
       } else {
         return <Select
           value={getSsidValue(ifaceName)}
           options={ssidArray}
           onChange={(event: Select.Option) => {
             onChange((event.value || "oops").toString());
-          } } />
+          }} />
       }
     }
 
@@ -167,9 +172,9 @@ export class Main extends React.Component<MainProps, FormState> {
       let userInputThing = <input onChange={(event) => {
         blah = event.currentTarget.value;
         onChange(event.currentTarget.value);
-      } } />
+      }} />
 
-      // if the list is not empty, display a selection of them      
+      // if the list is not empty, display a selection of them
       if (mobx.possibleInterfaces.length !== 0) {
         userInputThing = <Select
           value={blah || undefined} // lol
@@ -179,7 +184,7 @@ export class Main extends React.Component<MainProps, FormState> {
             let blah1 = (event.value || "oops").toString();
             blah = blah1;
             onChange(blah1);
-          } } />
+          }} />
       }
 
       // only show this widget if the state says so.
@@ -191,7 +196,7 @@ export class Main extends React.Component<MainProps, FormState> {
           <input onChange={(event) => {
             // if the user ticks this box, change the config to wireless or not
             blahConfig.type = (event.currentTarget.checked ? "wireless" : "wired");
-          } }
+          }}
             defaultChecked={blahConfig.type == "wireless"}
             type="checkbox" />
         </fieldset>
@@ -204,7 +209,7 @@ export class Main extends React.Component<MainProps, FormState> {
             mobx.addInterface(blah, blahConfig);
             that.forceUpdate(); // what am i doing.
           }
-        } }> Save interface </button>
+        }}> Save interface </button>
       </div>;
     }
 
@@ -218,7 +223,7 @@ export class Main extends React.Component<MainProps, FormState> {
             onClick={() => {
               mobx.enumerateInterfaces();
               that.setState({ showCustomNetworkWidget: !that.state.showCustomNetworkWidget })
-            } }>
+            }}>
             Add Custom Interface
           </button>
         </fieldset>
@@ -237,7 +242,7 @@ export class Main extends React.Component<MainProps, FormState> {
           .map((ifaceName) => {
             let iface = config[ifaceName];
             switch (iface.type) {
-              // if the interface is wireless display the 
+              // if the interface is wireless display the
               // select box, and a password box
               case "wireless":
                 return <div key={ifaceName}>
@@ -249,7 +254,7 @@ export class Main extends React.Component<MainProps, FormState> {
                     {/* Scan button */}
                     <button type="button"
                       className="scan-button"
-                      onClick={() => { this.props.mobx.scan(ifaceName) } }>
+                      onClick={() => { this.props.mobx.scan(ifaceName) }}>
                       SCAN
                     </button>
 
@@ -268,7 +273,7 @@ export class Main extends React.Component<MainProps, FormState> {
                             [ifaceName]: value
                           }
                         });
-                      // update it in the config 
+                      // update it in the config
                       mobx.updateInterface(ifaceName,
                         { type: "wireless", default: "dhcp", settings: { ssid: value } });
                     }))}
@@ -285,7 +290,7 @@ export class Main extends React.Component<MainProps, FormState> {
                               key_mgmt: "WPA-PSK"
                             }
                           })
-                      } } />
+                      }} />
                     </span>
                   </fieldset>
                 </div>
@@ -307,7 +312,7 @@ export class Main extends React.Component<MainProps, FormState> {
                           this.props.mobx.updateInterface(ifaceName,
                             { default: false })
                         }
-                      } } />
+                      }} />
                   </fieldset>
                 </div>
             }
@@ -327,6 +332,10 @@ export class Main extends React.Component<MainProps, FormState> {
   render() {
     let mainState = this.props.mobx;
     let icon = this.state.urlIsOpen ? "minus" : "plus";
+    let header = this.state.connecting ? "Configuration is Complete!" : "Configure Your FarmBot";
+    let text = this.state.connecting ? "FarmBot will now restart and attempt to connect to the web app. Login to your web app account to verify that FarmBot has connected. If it fails, the configurator will automatically restart and you can try again." : "Your web browser is having trouble connecting to the configurator. Are you using a modern updated browser? If so, your OS might be corrupted and need to be re-flashed";
+
+    let submitText = this.state.connecting ? "SUBMITTING CONFIGURATION!" : "SUBMIT CONFIGURATION";
 
     return <div className="container">
       <h1 onClick={() => {
@@ -335,9 +344,9 @@ export class Main extends React.Component<MainProps, FormState> {
         if (val > 4) {
           this.props.mobx.enumerateInterfaces();
         }
-      } }>Configure your FarmBot</h1>
+      }}>{header}</h1>
 
-      <h2 hidden={mainState.connected}>Trouble connecting to bot...</h2>
+      <h2 hidden={mainState.connected}> {text} </h2>
 
       {/* Only display if the bot is connected */}
       <div hidden={!mainState.connected} className={`col-md-offset-3 col-md-6
@@ -422,7 +431,7 @@ export class Main extends React.Component<MainProps, FormState> {
             </div>
           </div>
           {/* Submit our web app credentials, and config file. */}
-          <button type="submit">Save Configuration</button>
+          <button type="submit"> {submitText} </button>
         </form>
 
         {/* Logs Widget */}
