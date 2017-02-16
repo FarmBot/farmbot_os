@@ -14,3 +14,5 @@ ttb_last_config
 cover
 
 doc
+cache
+node_modules
