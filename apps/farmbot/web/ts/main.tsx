@@ -60,7 +60,6 @@ export class Main extends React.Component<MainProps, FormState> {
     let pass = this.state.pass;
     let server = this.state.server || fullFile.authorization.server;
     let tz = this.state.timezone || fullFile.configuration.timezone;
-    this.state.connecting = true;
     console.log("server: " + server);
     console.log("timezone: " + tz);
 
@@ -71,7 +70,9 @@ export class Main extends React.Component<MainProps, FormState> {
       return;
     }
 
-    if (email && pass && server) {
+    if ((email && pass && server) && this.state.connecting != true) {
+      // this.state.connecting = true;
+      this.setState({ connecting: true });
       mainState.uploadCreds(email, pass, server)
         .then((thing) => {
           console.log("uploaded web app credentials!");
@@ -80,7 +81,7 @@ export class Main extends React.Component<MainProps, FormState> {
           console.error("Error uploading web app credentials!")
         });
     } else {
-      console.error("Email, Password, or Server is incomplete")
+      console.error("Email, Password, or Server is incomplete or already connecting!")
       return;
     }
 
@@ -91,6 +92,7 @@ export class Main extends React.Component<MainProps, FormState> {
         mainState.tryLogIn().catch((t) => {
           console.error("Something bad happend");
           console.dir(t);
+          mainState.setConnected(false);
         });
       })
       .catch((thing) => {
@@ -333,6 +335,8 @@ export class Main extends React.Component<MainProps, FormState> {
     let header = this.state.connecting ? "Configuration is Complete!" : "Configure Your FarmBot";
     let text = this.state.connecting ? "FarmBot will now restart and attempt to connect to the web app. Login to your web app account to verify that FarmBot has connected. If it fails, the configurator will automatically restart and you can try again." : "Your web browser is having trouble connecting to the configurator. Are you using a modern updated browser? If so, your OS might be corrupted and need to be re-flashed";
 
+    let submitText = this.state.connecting ? "SUBMITTING CONFIGURATION!" : "SUBMIT CONFIGURATION";
+
     return <div className="container">
       <h1 onClick={() => {
         let val = this.state.hiddenAdvancedWidget + 1;
@@ -427,7 +431,7 @@ export class Main extends React.Component<MainProps, FormState> {
             </div>
           </div>
           {/* Submit our web app credentials, and config file. */}
-          <button type="submit">Save Configuration</button>
+          <button type="submit"> {submitText} </button>
         </form>
 
         {/* Logs Widget */}
