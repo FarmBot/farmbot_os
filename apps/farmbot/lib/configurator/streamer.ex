@@ -1,4 +1,7 @@
 defmodule Plug.Streamer do
+  @moduledoc """
+    Plug for streaming an image
+  """
   alias Plug.Conn
   import Conn
   @behaviour Plug
@@ -7,10 +10,10 @@ defmodule Plug.Streamer do
   def init(opts), do: opts
 
   def call(conn, _opts) do
-    conn = put_resp_header(conn, "content-type", "multipart/x-mixed-replace; boundary=#{@boundry}")
-    conn = send_chunked(conn, 200)
-    send_picture(conn)
-    conn
+    conn |>
+    put_resp_header("content-type", "multipart/x-mixed-replace; boundary=#{@boundry}")
+    |> send_chunked(200)
+    |> send_picture
   end
 
   defp send_picture(conn) do

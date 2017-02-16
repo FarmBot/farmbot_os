@@ -17,13 +17,14 @@ defmodule Farmbot.Configurator.Router do
 
   get "/image/latest" do
     list_images = fn() ->
-      File.ls!("/tmp/images")
+      "/tmp/images"
+      |> File.ls!
       |> Enum.reduce("", fn(image, acc) ->
         acc <> "<img src=\"/image/#{image}\">"
       end)
     end
     html =
-      """
+      ~s"""
       <html>
         <body>
           <form action=/image/capture>

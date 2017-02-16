@@ -11,7 +11,7 @@ defmodule Farmbot.Configurator.SocketHandler do
   alias Farmbot.Transport.WebSocket, as: WSTransport
   # alias Farmbot.Transport.Serialized, as: Ser
 
-  @timeout 60000 # terminate if no activity for one minute
+  @timeout 60_000 # terminate if no activity for one minute
   @ping "\"ping\""
   @pong "\"pong\""
   @timer 2000
@@ -39,7 +39,7 @@ defmodule Farmbot.Configurator.SocketHandler do
   # i guess instead of running a timer i could just use this to send teh next
   # ping, but that sounds like it could suck up some bandwidth.
   def websocket_handle({:text, @pong}, req, stage), do: {:ok, req, stage}
-  
+
   # messages from the browser.
   def websocket_handle({:text, m}, req, stage) do
     Logger.debug ">> can't handle data from websocket: #{inspect m}"

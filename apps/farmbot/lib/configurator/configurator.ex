@@ -16,7 +16,8 @@ defmodule Farmbot.Configurator do
   def init([]) do
     Logger.debug ">> Configurator init!"
     children = [
-      Plug.Adapters.Cowboy.child_spec(:http, Router, [], port: @port, dispatch: [dispatch()]),
+      Plug.Adapters.Cowboy.child_spec(:http, Router, [], port: @port,
+        dispatch: [dispatch()]),
       Plug.Adapters.Cowboy.child_spec(:http, Streamer, [], port: @streamer_port)
      ]
     opts = [strategy: :one_for_one]

@@ -45,7 +45,7 @@ defmodule Farmbot.Transport.GenMqtt do
     {:ok, pid} = start_client(t)
     {:noreply, [], {pid, t}}
   end
-  
+
   def handle_info({:authorization, %Token{} = new_t}, {client, _})
   when is_pid(client) do
     # Probably a good idea to restart mqtt here.
