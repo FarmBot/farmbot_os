@@ -9,7 +9,7 @@ defmodule Farmbot.Configurator.Router do
   use Plug.Router
   # plug Plug.Logger
   # this is so we can serve the bundle.js file.
-  plug Plug.Static, at: "/", from: :farmbot_configurator
+  plug Plug.Static, at: "/", from: :farmbot
   plug Plug.Static, at: "/image", from: "/tmp/images", gzip: false
   plug :match
   plug :dispatch
@@ -136,6 +136,6 @@ defmodule Farmbot.Configurator.Router do
 
   @spec make_html :: binary
   defp make_html do
-    "#{:code.priv_dir(:farmbot_configurator)}/static/index.html" |> File.read!
+    "#{:code.priv_dir(:farmbot)}/static/index.html" |> File.read!
   end
 end
