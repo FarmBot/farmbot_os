@@ -110,6 +110,28 @@ defmodule Farmbot.Auth do
         {:error, error}
     end
   end
+
+  # We want to try to get a token, and if it fails, we basically are going to
+  # End up in a limp state, so here if we dont get a token, just factory reset
+  @doc """
+    Tries to log in, but factory resets if it doesnt work
+  """
+  @spec try_log_in!(integer) :: {:ok, Token.t} | no_return
+  def try_log_in!(retries \\ 3)
+  def try_log_in!(r) when r == 0, do: Farmbot.System.factory_reset
+  def try_log_in!(retries) do
+    # Try to get a token.
+    case try_log_in do
+       {:ok, %Token{} = _t} = success ->
+         Logger.debug ">> Is logged in"
+         success
+       _ -> # no need to print message becasetry_log_indoes it for us.
+        # sleep for a second, then try again untill we are out of retries
+        Process.sleep(1000)
+        try_log_in!(retries - 1)
+    end
+  end
+
   @doc """
     Casts credentials to the Auth GenServer
   """

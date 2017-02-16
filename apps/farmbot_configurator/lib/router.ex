@@ -105,12 +105,17 @@ defmodule Farmbot.Configurator.Router do
     spawn fn() ->
       # sleep to allow the request to finish.
       Process.sleep(100)
+
+      # restart network.
+      # not going to bother checking if it worked or not, (at least until i
+      # reimplement networking) because its so fragile.
       Farmbot.System.Network.restart
-      File.cp("#{:code.priv_dir(:farmbot_configurator)}/on_failure.sh", "/tmp")
-      case Farmbot.Auth.get_token do
-         {:ok, %Farmbot.Token{} = _t} ->
-           Logger.debug ">> Is logged in"
-         _ -> Farmbot.Auth.try_log_in
+
+      # this is pretty much for host mode only. i think it is unreachable
+      # in production
+      unless match?({:ok, _}, Farmbot.Auth.get_token) do
+        Logger.debug ">> Could not log in! resetting!"
+        Farmbot.System.factory_reset
       end
     end
     conn |> send_resp(200, "OK")
@@ -136,7 +141,8 @@ defmodule Farmbot.Configurator.Router do
   # anything that doesn't match a rest end point gets the index.
   match _, do: conn |> send_resp(404, "not found")
 
-  def make_html do
+  @spec make_html :: binary
+  defp make_html do
     "#{:code.priv_dir(:farmbot_configurator)}/static/index.html" |> File.read!
   end
 end

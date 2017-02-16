@@ -22,12 +22,7 @@ defmodule Farmbot.System.Network do
   end
 
   # if networking is disabled.
-  defp parse_and_start_config(nil, _) do
-    spawn fn() ->
-      Process.sleep(2500) # simulate network coming up. (REALLY REALLY FAST)
-      Farmbot.System.Network.on_connect()
-    end
-  end
+  defp parse_and_start_config(nil, _), do: spawn fn -> Farmbot.Auth.try_log_in end
 
   defp parse_and_start_config(config, m) do
     for {interface, settings} <- config do
@@ -35,6 +30,9 @@ defmodule Farmbot.System.Network do
     end
   end
 
+  @doc """
+    Starts the network manager
+  """
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
@@ -121,7 +119,7 @@ defmodule Farmbot.System.Network do
     if fpf, do: Farmware.get_first_party_farmware
 
     Logger.debug ">> Login"
-    Auth.try_log_in
+    Auth.try_log_in!
   end
 
   @spec get_config(String.t) :: {:ok, any}
