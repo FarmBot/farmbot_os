@@ -110,13 +110,6 @@ defmodule Farmbot.Configurator.Router do
       # not going to bother checking if it worked or not, (at least until i
       # reimplement networking) because its so fragile.
       Farmbot.System.Network.restart
-
-      # this is pretty much for host mode only. i think it is unreachable
-      # in production
-      unless match?({:ok, _}, Farmbot.Auth.get_token) do
-        Logger.debug ">> Could not log in! resetting!"
-        Farmbot.System.factory_reset
-      end
     end
     conn |> send_resp(200, "OK")
   end

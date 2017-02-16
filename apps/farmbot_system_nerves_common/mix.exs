@@ -26,7 +26,7 @@ defmodule Farmbot.System.NervesCommon.Mixfile do
   end
 
   defp deps do
-    [{:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi"},
+    [{:nerves_interim_wifi, "~> 0.1.1"},
      {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
      {:nerves_ssdp_server, "~> 0.2.1"},
      {:farmbot_system, in_umbrella: true}]

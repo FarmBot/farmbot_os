@@ -131,7 +131,7 @@ defmodule Farmbot.System.Network.Hostapd do
     dhcp-option=3,#{ip_addr}
     dhcp-option=6,#{ip_addr}
     dhcp-authoritative
-    # address=/#/#{ip_addr}
+    address=/#/#{ip_addr}
     """
   end
 
