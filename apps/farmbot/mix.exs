@@ -24,10 +24,13 @@ defmodule Farmbot.Mixfile do
      deps_path:   "../../deps/#{@target}",
      images_path: "../../images/#{@target}",
      config_path: "../../config/config.exs",
+     compilers: Mix.compilers ++ maybe_use_webpack(),
      lockfile: "../../mix.lock",
      aliases: aliases(@target),
      deps:    deps() ++ system(@target),
      name: "Farmbot",
+     webpack_watch: Mix.env == :dev,
+     webpack_cd: ".",
      source_url: "https://github.com/Farmbot/farmbot_os",
      homepage_url: "http://farmbot.io",
      docs: [main: "Farmbot",
@@ -60,10 +63,12 @@ defmodule Farmbot.Mixfile do
       :vmq_commons,
       :amnesia,
       :gen_stage,
+      :plug,
+      :cors_plug,
+      :cowboy,
       :"farmbot_system_#{@target}",
       :farmbot_system,
       :farmbot_auth,
-      :farmbot_configurator,
       :quantum, # Quantum needs to start AFTER farmbot_system, so we can set up its dirs
       :timex, # Timex needs to start AFTER farmbot_system, so we can set up its dirs
    ]
@@ -87,18 +92,34 @@ defmodule Farmbot.Mixfile do
       {:ex_doc, "~> 0.14", only: :dev},
       {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
       {:faker, "~> 0.7", only: :test},
+
+      # Web stuff
+      {:plug, "~> 1.0"},
+      {:cors_plug, "~> 1.1"},
+      {:cowboy, "~> 1.0.0"},
+      {:ex_webpack, "~> 0.1.1", runtime: false},
       # Farmbot Stuff
       {:"farmbot_system_#{@target}", in_umbrella: true},
       {:farmbot_system,              in_umbrella: true},
-      {:farmbot_auth,                in_umbrella: true},
-      {:farmbot_configurator,        in_umbrella: true}
+      {:farmbot_auth,                in_umbrella: true}
     ]
   end
+
+
+  # TODO(connor): Build this into `:ex_webpack`
+  defp maybe_use_webpack() do
+    case System.get_env("NO_WEBPACK") do
+      "true" -> []
+      _ -> [:ex_webpack]
+    end
+  end
+
 
   # this is for cross compilation to work
   # New version of nerves might not need this?
   defp aliases("host"), do: [
     "firmware": ["farmbot.warning"],
+    "firmware.push": ["farmbot.warning"],
     "credo": ["credo list --only readability,warning,todo,inspect,refactor --ignore-checks todo,spec"],
     "test": ["test", "credo"]]
 
