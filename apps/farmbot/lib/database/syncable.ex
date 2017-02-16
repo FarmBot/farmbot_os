@@ -42,6 +42,7 @@ defmodule Syncable do
           _ -> {:error, unquote(name), {:missing_keys, blah}}
         end
       end
+      _ = @lint # HACK(Connor) fix credo compiler warning
 
       @doc """
         Makes sure an object can be built given keys:

@@ -21,7 +21,6 @@ defmodule Farmbot.Serial.Gcode.Handler do
     {:ok, %{nerves: nerves, current: nil, log: []}}
   end
 
-  @lint false
   @spec handle_cast(any, state) :: {:noreply, state}
   # Don't log messages there is to many.
   def handle_cast({:debug_message, str}, state) do

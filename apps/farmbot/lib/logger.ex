@@ -61,7 +61,6 @@ defmodule Farmbot.Logger do
 
   def handle_event(:flush, _state), do: {:ok, build_state()}
 
-  @lint false
   # If the post succeeded, we clear the messages
   def handle_call(:post_success, {_, _}), do: {:ok, :ok, {[], false}}
   # If it did not succeed, keep the messages, and try again until it completes.

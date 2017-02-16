@@ -83,6 +83,7 @@ defmodule Farmbot.Sync.SyncObject do
            {:ok, f}
          end
   end
+  _ = @lint # HACK(Connor) fix credo compiler warning
 
   def validate(thing) when is_map(thing) do
     req_string_keys = Enum.map(@keys, fn(key) -> Atom.to_string(key) end)

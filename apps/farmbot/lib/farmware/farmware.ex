@@ -84,6 +84,7 @@ defmodule Farmware do
         raise "Not valid Farmware!"
     end
   end
+  _ = @lint # HACK(Connor) fix credo compiler warning
 
   @doc """
     Uninstalls a Farmware package

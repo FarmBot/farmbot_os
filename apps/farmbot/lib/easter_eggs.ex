@@ -103,6 +103,7 @@ defmodule Farmbot.EasterEggs do
             task: fn -> Farmbot.EasterEggs.say_random_sentence end}
     Quantum.add_job(__MODULE__, job)
   end
+  _ = @lint # HACK(Connor) fix credo compiler warning
 
   @doc """
     Stops an already started job.

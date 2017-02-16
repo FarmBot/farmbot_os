@@ -70,6 +70,7 @@ defmodule Farmbot.CeleryScript.Command do
       _ -> Logger.error ">> error doing Move absolute!"
     end
   end
+  _ = @lint # HACK(Connor) fix credo compiler warning
 
   defp spm(xyz) do
     "steps_per_mm_#{xyz}"

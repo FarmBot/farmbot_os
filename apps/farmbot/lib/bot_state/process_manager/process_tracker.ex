@@ -178,6 +178,7 @@ defmodule Farmbot.BotState.ProcessTracker do
     end)
   end
   # END END END END END END # LOL
+    _ = @lint
 
   @spec dispatch(State.t) :: {:noreply, State.t}
   defp dispatch(state) do
