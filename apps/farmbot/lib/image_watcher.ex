@@ -19,7 +19,7 @@ defmodule Farmbot.ImageWatcher do
     Uploads all images if they exist.
   """
   @spec start_link :: :ok | {:error, atom}
-  def force_upload, do: do_checkup(false)
+  def force_upload, do: do_checkup()
 
   @spec init([]) :: {:ok, any}
   def init([]) do
@@ -33,8 +33,8 @@ defmodule Farmbot.ImageWatcher do
     {:noreply, []}
   end
 
-  @spec do_checkup(boolean) :: no_return
-  defp do_checkup(recurse? \\ true) do
+  @spec do_checkup :: no_return
+  defp do_checkup do
     images = File.ls!(@images_path)
 
     images

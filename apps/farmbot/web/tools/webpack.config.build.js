@@ -43,48 +43,13 @@ module.exports = {
   ],
   module: {
     rules: [
-      {
-        test: /\.tsx?$/,
-        loader: "ts-loader"
-      },
-      {
-        test: [/\.scss$/, /\.css$/],
-        loader: [
-          "style-loader",
-          ExtractTextPlugin.extract("css-loader!sass-loader")
-        ]
-      },
-      // {
-      //   test: /\.scss$/,
-      //   use: [
-      //     'style-loader',
-      //     'css-loader',
-      //     'sass-loader'
-      //   ]
-      // },
-      // {
-      //   test: /\.css$/,
-      //   use: [
-      //     'style-loader',
-      //     'css-loader'
-      //   ]
-      // },
-      {
-        test: /\.woff/,
-        loader: "url-loader"
-      }, {
-        test: /\.woff2/,
-        loader: "url-loader"
-      }, {
-        test: /\.ttf/,
-        loader: "url-loader"
-      }, {
-        test: /\.eot/,
-        loader: "file-loader"
-      }, {
-        test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-        loader: "url-loader"
-      }
+      { test: /\.tsx?$/, loader: "ts-loader" },
+      { test: [/\.scss$/, /\.css$/], loader: ExtractTextPlugin.extract("css-loader!sass-loader") },
+      { test: /\.woff/, loader: "url-loader" },
+      { test: /\.woff2/, loader: "url-loader" },
+      { test: /\.ttf/, loader: "url-loader" },
+      { test: /\.eot/, loader: "file-loader" },
+      { test: /\.svg(\?v=\d+\.\d+\.\d+)?$/, loader: "url-loader" }
     ]
   }
 }
