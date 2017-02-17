@@ -16,17 +16,19 @@ defmodule Farmbot.SysFormatter do
     Formats a string
   """
   @spec format({atom, atom} | [Logger.Formatter.pattern | binary],
-               Logger.level, Logger.message, Logger.Formatter.time,
-               Keyword.t, list(atom)) :: IO.chardata
+    Logger.level, Logger.message, Logger.Formatter.time,
+    Keyword.t, list(atom)) :: IO.chardata
 
+  @lint false
   def format(format, level, msg, timestamp, metadata, config_metadata) do
     metadata = metadata |> Keyword.take(config_metadata)
 
-    msg_str = format
+    format
       |> Logger.Formatter.format(level, msg, timestamp, metadata)
       |> try_string()
   end
 
+  @lint false
   defp try_string(stuff) do
     try do
       to_string(stuff)
