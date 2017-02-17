@@ -22,7 +22,10 @@ defmodule Farmbot.System.Network do
   end
 
   # if networking is disabled.
-  defp parse_and_start_config(nil, _), do: spawn fn -> Farmbot.Auth.try_log_in end
+  defp parse_and_start_config(nil, _), do: spawn(fn ->
+    Process.sleep(2000)
+    Farmbot.Auth.try_log_in 
+  end)
 
   defp parse_and_start_config(config, m) do
     for {interface, settings} <- config do

@@ -121,7 +121,7 @@ defmodule Farmbot.Auth do
   def try_log_in!(r) when r == 0, do: Farmbot.System.factory_reset
   def try_log_in!(retries) do
     # Try to get a token.
-    case try_log_in do
+    case try_log_in() do
        {:ok, %Token{} = _t} = success ->
          Logger.info ">> Is logged in"
          success

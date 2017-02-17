@@ -20,7 +20,7 @@ defmodule Farmbot.Transport.Redis do
     {:noreply, [], state}
   end
 
-  def handle_info(event, state) do
+  def handle_info(_event, state) do
     # IO.inspect event
     {:noreply, [], state}
   end
