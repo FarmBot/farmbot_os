@@ -116,31 +116,31 @@ defmodule Farmbot.Logger do
         _ ->  nil
       end
     end)
-      str =
-        messages
-        |> Enum.map(fn(m) -> "#{m.created_at}: #{m.message}\n" end)
-        |> List.to_string
-    write_to_file(str)
+      # str =
+      #   messages
+      #   |> Enum.map(fn(m) -> "#{m.created_at}: #{m.message}\n" end)
+      #   |> List.to_string
+    # write_to_file(str)
     "/api/logs" |> HTTP.post(Poison.encode!(messages)) |> parse_resp
   end
 
   # Writes to a file in a transaction
-  @spec write_to_file(binary) :: no_return
-  defp write_to_file(str) do
-    Farmbot.System.FS.transaction fn() ->
-      path = Farmbot.System.FS.path <> "/log.txt"
-      case File.stat(path) do
-        # check the files size.
-        {:ok, %File.Stat{size: s}} when s > @max_file_size ->
-          File.write(path, "")
-        # if the file is there, we are fine.
-        {:ok, _stat} -> :ok
-        # if its not there create it. I dont think we HAVE to do this.
-        {:error, :enoent} -> File.write(path, "")
-      end
-      File.write(path, str, [:append])
-    end
-  end
+  # @spec write_to_file(binary) :: no_return
+  # defp write_to_file(str) do
+  #   Farmbot.System.FS.transaction fn() ->
+  #     path = Farmbot.System.FS.path <> "/log.txt"
+  #     case File.stat(path) do
+  #       # check the files size.
+  #       {:ok, %File.Stat{size: s}} when s > @max_file_size ->
+  #         File.write(path, "")
+  #       # if the file is there, we are fine.
+  #       {:ok, _stat} -> :ok
+  #       # if its not there create it. I dont think we HAVE to do this.
+  #       {:error, :enoent} -> File.write(path, "")
+  #     end
+  #     File.write(path, str, [:append])
+  #   end
+  # end
 
   # Parses what the api sends back. Will only ever return :ok even if there was
   # an error.
@@ -223,9 +223,19 @@ defmodule Farmbot.Logger do
   # Couuld probably do this inline but wheres the fun in that. its a functional
   # language isn't it?
   # Takes Loggers time stamp and converts it into a unix timestamp.
-  defp parse_created_at({{year, month, day}, {hour, minute, second, _}}) do
-    dt = Timex.to_datetime({{year, month, day}, {hour, minute, second}})
-    f = DateTime.to_iso8601(dt)
+  defp parse_created_at({{year, month, day}, {hour, minute, second, _mil}}) do
+    f = %DateTime{year: year,
+      month: month,
+      day: day,
+      hour: hour,
+      minute: minute,
+      second: second,
+      microsecond: {0,0},
+      std_offset: 0,
+      time_zone: "Etc/UTC",
+      utc_offset: 0,
+      zone_abbr: "UTC"}
+    |> DateTime.to_iso8601
     {:ok, f}
   end
   defp parse_created_at({_,_}), do: {:ok, :os.system_time}

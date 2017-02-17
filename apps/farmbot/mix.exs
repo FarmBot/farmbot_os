@@ -47,7 +47,7 @@ defmodule Farmbot.Mixfile do
           version: @version,
           commit: commit()}]},
      applications: applications(),
-     included_applications: [:gen_mqtt, :ex_json_schema]]
+     included_applications: [:gen_mqtt, :ex_json_schema, :ex_syslogger]]
   end
 
   # common for test, prod, and dev
@@ -77,17 +77,27 @@ defmodule Farmbot.Mixfile do
   defp deps do
     [
       {:nerves_uart, "~> 0.1.0"}, # uart handling
+      {:nerves_lib, github: "nerves-project/nerves_lib"}, # this has a good uuid
+
       {:poison, "~> 3.0"}, # json
       {:httpoison, github: "edgurgel/httpoison"},
-      {:nerves_lib, github: "nerves-project/nerves_lib"}, # this has a good uuid
+      {:ex_json_schema, "~> 0.5.3"},
+
       {:gen_mqtt, "~> 0.3.1"}, # for rpc transport
       {:vmq_commons, "1.0.0", manager: :rebar3}, # This is for mqtt to work.
+
       {:mustache, "~> 0.0.2"}, # string templating
       {:timex, "~> 3.0"}, # managing time. for the scheduler mostly.
       {:quantum, ">= 1.8.1"}, # cron jobs
-      {:amnesia, github: "meh/amnesia"}, # database implementation
       {:gen_stage, "0.11.0"},
-      {:ex_json_schema, "~> 0.5.3"},
+
+      # Database
+      {:amnesia, github: "meh/amnesia"}, # database implementation
+
+      # Log to syslog
+      {:ex_syslogger, "~> 1.3.3", only: :prod},
+
+      # Test/Dev only
       {:credo, "0.6.0-rc1",  only: [:dev, :test]},
       {:ex_doc, "~> 0.14", only: :dev},
       {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
@@ -98,6 +108,7 @@ defmodule Farmbot.Mixfile do
       {:cors_plug, "~> 1.1"},
       {:cowboy, "~> 1.0.0"},
       {:ex_webpack, "~> 0.1.1", runtime: false},
+
       # Farmbot Stuff
       {:"farmbot_system_#{@target}", in_umbrella: true},
       {:farmbot_system,              in_umbrella: true},
