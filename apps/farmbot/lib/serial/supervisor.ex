@@ -14,7 +14,7 @@ defmodule Farmbot.Serial.Supervisor do
   """
   @spec start_link :: {:ok, pid}
   def start_link do
-    Logger.debug(">> is starting serial services")
+    Logger.info(">> is starting serial services")
     Supervisor.start_link(__MODULE__, [], name: __MODULE__)
   end
 end

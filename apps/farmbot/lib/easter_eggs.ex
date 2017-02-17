@@ -121,7 +121,7 @@ defmodule Farmbot.EasterEggs do
   def handle_cast(sentence, %{nouns: nouns, verbs: verbs})
   when is_binary(sentence) do
     rendered = Mustache.render sentence, nouns
-    Logger.debug ">> " <> rendered, type: :fun
+    Logger.info ">> " <> rendered, type: :fun
     {:noreply, %{nouns: nouns, verbs: verbs}}
   end
 

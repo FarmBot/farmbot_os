@@ -14,9 +14,9 @@ defmodule Farmbot.System.Network.Ntp do
   def set_time(tries) when tries < 4 do
     case HTTPoison.get("http://httpbin.org/ip") do
       {:ok, %HTTPoison.Response{}} = _resp ->
-        Logger.debug ">> is getting time from NTP."
+        Logger.info ">> is getting time from NTP."
         f = do_try_set_time()
-        Logger.debug ">> ntp: #{inspect f}"
+        Logger.info ">> ntp: #{inspect f}"
       thing ->
       # I HATE NETWORK
       Logger.warn ">> no internet. yet trying again in 5 seconds: #{inspect thing}"
@@ -30,7 +30,7 @@ defmodule Farmbot.System.Network.Ntp do
   defp do_try_set_time(), do: do_try_set_time(0)
   defp do_try_set_time(count) when count < 4 do
     # we try to set ntp time 3 times before giving up.
-    Logger.debug ">> trying to set time (try #{count})"
+    Logger.info ">> trying to set time (try #{count})"
     cmd = "ntpd -q -n -p 0.pool.ntp.org -p 1.pool.ntp.org"
     port = Port.open({:spawn, cmd},
       [:stream,
@@ -42,7 +42,7 @@ defmodule Farmbot.System.Network.Ntp do
      case handle_port(port) do
        :ok -> :ok
        {:error, reason} ->
-         Logger.debug ">> failed to get time: #{inspect reason} trying again."
+         Logger.info ">> failed to get time: #{inspect reason} trying again."
          # kill old ntp if it exists
          System.cmd("killall", ["ntpd"])
          # sleep for a second

@@ -19,33 +19,33 @@ defmodule Farmbot.Updates.Handler do
   @spec check_and_download_updates(:os | :fw)
   :: :ok | {:error, atom} | :no_updates
   def check_and_download_updates(something) do
-    Logger.debug ">> Is checking for updates: #{inspect something}"
+    Logger.info ">> Is checking for updates: #{inspect something}"
     case check_updates(something) do
       {:error, reason} ->
-        Logger.debug """
+        Logger.info """
           >> encountered an error checking for updates: #{inspect reason}.
           """
       {:update, url} ->
         install_update(something, url)
       :no_updates ->
-        Logger.debug(">> is already on the latest operating system version.",
+        Logger.info(">> is already on the latest operating system version.",
           channels: [:toast], type: :success)
     end
   end
 
   @spec install_update(:fw, String.t) :: no_return
   defp install_update(:fw, url) do
-    Logger.debug ">> found a firmware update!"
+    Logger.info ">> found a firmware update!"
     File.rm("/tmp/update.hex")
     file = Downloader.run(url, "/tmp/update.hex")
-    Logger.debug """
+    Logger.info """
       >> is installing a firmware update. I may act weird for a moment
       """,
       channels: [:toast]
     GenServer.cast(Farmbot.Serial.Handler, {:update_fw, file, self()})
     receive do
       :done ->
-        Logger.debug ">> is done installing a firmware update!", type: :success,
+        Logger.info ">> is done installing a firmware update!", type: :success,
           channels: [:toast]
       {:error, reason} ->
         Logger.error """
@@ -128,7 +128,7 @@ defmodule Farmbot.Updates.Handler do
   def parse_resp(_), do: {:error, :bad_resp}
 
   def do_update_check do
-    Logger.debug ">> is checking for updates."
+    Logger.info ">> is checking for updates."
 
     # check configuration.
     case BotState.get_config(:os_auto_update) do

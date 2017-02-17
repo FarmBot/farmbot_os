@@ -29,7 +29,7 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   @spec on_connect(Token.t) :: ok
   def on_connect(%Token{} = token) do
     GenMQTT.subscribe(self(), [{bot_topic(token), 0}])
-    Logger.debug ">> is up and running!"
+    Logger.info ">> is up and running!"
     {:ok, token}
   end
 
@@ -43,7 +43,6 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   end
 
   def handle_cast({:status, %Ser{} = ser}, %Token{} = token) do
-    # IO.puts "!!! sending state"
     json = Poison.encode!(ser)
     GenMQTT.publish(self(), status_topic(token), json, 0, false)
     {:ok, token}
@@ -56,14 +55,13 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   end
 
   def handle_cast({:emit, msg}, %Token{} = token) do
-    # IO.puts "[!!! sending message]"
     json = Poison.encode! msg
     GenMQTT.publish(self(), frontend_topic(token), json, 0, false)
     {:noreply, token}
   end
 
   @spec terminate(any, any) :: no_return
-  def terminate(:authorization, _), do: :ok
+  def terminate(:noamrl, _), do: :ok
   def terminate(reason, _) do
     Logger.error ">>`s mqtt client died. #{inspect reason}"
     :ok

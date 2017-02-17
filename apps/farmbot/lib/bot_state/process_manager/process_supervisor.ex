@@ -14,7 +14,7 @@ defmodule Farmbot.BotState.ProcessSupervisor do
 
   @spec init([]) :: {:ok, pid}
   def init([]) do
-    Logger.debug ">> Starting FarmProcess Supervisor"
+    Logger.info ">> Starting FarmProcess Supervisor"
     children = [
       worker(Farmbot.BotState.ProcessTracker, [], [restart: :permanent])
     ]

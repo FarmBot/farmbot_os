@@ -14,7 +14,7 @@ defmodule Farmbot.Configurator do
   @streamer_port Application.get_env(:farmbot, :streamer_port, 4040)
 
   def init([]) do
-    Logger.debug ">> Configurator init!"
+    Logger.info ">> Configurator init!"
     children = [
       Plug.Adapters.Cowboy.child_spec(:http, Router, [], port: @port,
         dispatch: [dispatch()]),

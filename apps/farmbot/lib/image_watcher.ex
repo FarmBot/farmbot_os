@@ -53,14 +53,14 @@ defmodule Farmbot.ImageWatcher do
 
   @spec try_upload(binary) :: {:ok, any} | {:error, any}
   defp try_upload(file_path) do
-    Logger.debug "Image Watcher trying to upload #{file_path}"
+    Logger.info "Image Watcher trying to upload #{file_path}"
     Farmbot.HTTP.upload_file(file_path)
   end
 
   @spec print_thing(boolean, integer) :: :ok
   defp print_thing(_, count) when count == 0, do: :ok
   defp print_thing(true, _count) do
-    Logger.debug "Image Watcher uploaded images", type: :success
+    Logger.info "Image Watcher uploaded images", type: :success
     :ok
   end
 

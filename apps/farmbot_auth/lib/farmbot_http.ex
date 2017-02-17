@@ -66,7 +66,7 @@ defmodule Farmbot.HTTP do
         Enum.map(form_data, fn({key, value}) ->
           if key == "file", do: {"file", file}, else:  {key, value}
         end)
-      Logger.debug ">> #{attachment_url} Should hopefully exist shortly!"
+      Logger.info ">> #{attachment_url} Should hopefully exist shortly!"
       HTTPoison.post(url, {:multipart, payload}, headers)
       |> finish_upload(attachment_url)
     end

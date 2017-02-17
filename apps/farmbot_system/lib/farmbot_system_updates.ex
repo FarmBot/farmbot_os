@@ -23,10 +23,10 @@ defmodule Farmbot.System.Updates do
   def check_and_download_updates() do
     case check_updates() do
       {:update, url} ->
-        Logger.debug ">> has found a new Operating System update!"
+        Logger.info ">> has found a new Operating System update!"
         install_updates(url)
       :no_updates ->
-        Logger.debug ">> is already on the latest Operating System version!"
+        Logger.info ">> is already on the latest Operating System version!"
         :no_updates
       {:error, reason} ->
         Logger.error ">> encountered an error checking for updates! #{reason}"

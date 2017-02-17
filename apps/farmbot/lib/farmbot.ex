@@ -43,7 +43,8 @@ defmodule Farmbot do
   """
   @spec start(atom, [any]) :: {:ok, pid}
   def start(_, [args]) do
-    Logger.debug ">> init!"
+    Logger.info ">> init!"
+    Logger.error "TEST"
     Amnesia.start
     Database.create! Keyword.put([], :memory, [node()])
     Database.wait(15_000)

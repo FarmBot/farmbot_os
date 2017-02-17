@@ -36,10 +36,10 @@ defmodule Farmbot.BotState.Hardware do
     spawn fn() ->
       case set_initial_params(initial_state) do
         {:ok, :no_params} ->
-          Logger.debug ">> is reading default Hardware params."
+          Logger.info ">> is reading default Hardware params."
           Farmbot.CeleryScript.Command.read_all_params(%{}, [])
         :ok ->
-          Logger.debug ">> Hardware Params set"
+          Logger.info ">> Hardware Params set"
         {:error, reason} ->
           Logger.error(">> Error setting Hardware Params: #{inspect reason}")
       end
@@ -109,7 +109,7 @@ defmodule Farmbot.BotState.Hardware do
       %{mode: mode, value: _} ->
         %{mode: mode, value: value}
     end
-    Logger.debug ">> set pin: #{pin}: #{new_pin_value.value}"
+    Logger.info ">> set pin: #{pin}: #{new_pin_value.value}"
     new_pin_state = Map.put(pin_state, Integer.to_string(pin), new_pin_value)
     dispatch %State{state | pins: new_pin_state}
   end

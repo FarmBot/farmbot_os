@@ -22,12 +22,12 @@ defmodule Farmbot.System.FS.ConfigStorage do
 
   @spec init(args) :: {:ok, map}
   def init(path) do
-    Logger.debug ">> Config Storage init!"
+    Logger.info ">> Config Storage init!"
     # Checks if the json file exists or not
     case File.read(path) do
       # if it does parse it
       {:ok, contents} ->
-        Logger.debug ">> is loading its configuration file: #{path}"
+        Logger.info ">> is loading its configuration file: #{path}"
         f = parse_json!(contents)
         migrated = CFM.migrate(f)
         # NOTE(Connor):
@@ -35,11 +35,11 @@ defmodule Farmbot.System.FS.ConfigStorage do
         # the current one at every boot.
         # seems ineffecient but oh well
         write!(migrated)
-        Logger.debug ">> no migrations"
+        Logger.info ">> no migrations"
         {:ok, migrated}
       # if not start over with the default config file (from the priv dir)
       {:error, :enoent} ->
-        Logger.debug ">> is creating a new configuration file: #{default_config_file()}"
+        Logger.info ">> is creating a new configuration file: #{default_config_file()}"
         reset_config()
         init(@config_file)
     end
@@ -76,7 +76,7 @@ defmodule Farmbot.System.FS.ConfigStorage do
   end
 
   def handle_call({:replace_config_file, new_state}, _, old_state) do
-    Logger.debug ">> is replacing #{inspect old_state} with #{inspect new_state}"
+    Logger.info ">> is replacing #{inspect old_state} with #{inspect new_state}"
     write!(:ok, new_state)
   end
 

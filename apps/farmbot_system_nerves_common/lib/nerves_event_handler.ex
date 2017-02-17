@@ -7,7 +7,7 @@ defmodule Farmbot.System.NervesCommon.EventManager do
   do
     spawn fn() ->
       Farmbot.System.Network.on_connect(fn() ->
-        Logger.debug ">> is waiting for linux and network and what not."
+        Logger.info ">> is waiting for linux and network and what not."
         Process.sleep(5000) # ye old race linux condidtion
       end)
     end
@@ -25,7 +25,7 @@ defmodule Farmbot.System.NervesCommon.EventManager do
 
     # just print hostapd data
   def handle_event({:hostapd, data}, state) do
-    Logger.debug ">> got some hostapd data: #{data}"
+    Logger.info ">> got some hostapd data: #{data}"
     {:ok, state}
   end
 
