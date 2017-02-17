@@ -30,7 +30,7 @@ defmodule Farmware.Supervisor do
   defp check_dir do
     path = FS.path() <> "/farmware"
     unless File.exists?(path) do
-      Logger.debug ">> creating farmware dir."
+      Logger.info ">> creating farmware dir."
       FS.transaction fn() ->
         File.mkdir(path)
       end, true

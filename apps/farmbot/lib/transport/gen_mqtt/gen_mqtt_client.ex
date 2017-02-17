@@ -29,7 +29,7 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   @spec on_connect(Token.t) :: ok
   def on_connect(%Token{} = token) do
     GenMQTT.subscribe(self(), [{bot_topic(token), 0}])
-    Logger.debug ">> is up and running!"
+    Logger.info ">> is up and running!"
     {:ok, token}
   end
 

@@ -7,7 +7,7 @@ mqtt_transport = Farmbot.Transport.GenMqtt
 config :logger, utc_log: true
 
 # I force colors because they are important.
-config :logger, :console, colors: [enabled: true]
+config :logger, :console, colors: [enabled: true, info: :cyan]
 
 # Iex needs colors too.
 config :iex, :colors, enabled: true

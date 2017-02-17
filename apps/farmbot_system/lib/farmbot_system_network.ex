@@ -13,7 +13,7 @@ defmodule Farmbot.System.Network do
   defp mod(target), do: Module.concat([Farmbot, System, target, Network])
 
   def init(target) do
-    Logger.debug ">> is starting networking"
+    Logger.info ">> is starting networking"
     m = mod(target)
     {:ok, _cb} = m.start_link
     {:ok, interface_config} = get_config("interfaces")
@@ -98,8 +98,8 @@ defmodule Farmbot.System.Network do
     # finished setting stuff up.
     Process.sleep(2000)
     if fun, do: fun.()
-    Logger.debug ">> is connected to the World Wide Web."
-    Logger.debug ">> is reading configurations."
+    Logger.info ">> is connected to the World Wide Web."
+    Logger.info ">> is reading configurations."
     {:ok, ssh} = get_config("ssh")
     {:ok, ntp} = get_config("ntp")
 
@@ -107,18 +107,18 @@ defmodule Farmbot.System.Network do
     {:ok, fpf} = GenServer.call(CS, {:get, Configuration, "first_party_farmware"})
 
     if ntp do
-      Logger.debug ">> ntp"
+      Logger.info ">> ntp"
       Ntp.set_time
     end
 
     if ssh do
-      Logger.debug ">> ssh"
+      Logger.info ">> ssh"
       SSH.start_link
     end
 
     if fpf, do: Farmware.get_first_party_farmware
 
-    Logger.debug ">> Login"
+    Logger.info ">> Login"
     Auth.try_log_in!
   end
 

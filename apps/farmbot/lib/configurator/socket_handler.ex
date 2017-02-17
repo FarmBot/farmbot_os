@@ -22,7 +22,7 @@ defmodule Farmbot.Configurator.SocketHandler do
 
   # Called on websocket connection initialization.
   def websocket_init(_type, req, _options) do
-    Logger.debug ">> encountered a new local websocket connection."
+    Logger.info ">> encountered a new local websocket connection."
     # starts a ping pong deal, so the websocket doesnt close if the user takes
     # Too long to configurate.
     :erlang.start_timer(@timer, self(), [])
@@ -42,7 +42,7 @@ defmodule Farmbot.Configurator.SocketHandler do
 
   # messages from the browser.
   def websocket_handle({:text, m}, req, stage) do
-    Logger.debug ">> can't handle data from websocket: #{inspect m}"
+    Logger.info ">> can't handle data from websocket: #{inspect m}"
     {:ok, req, stage}
   end
 
@@ -80,7 +80,7 @@ defmodule Farmbot.Configurator.SocketHandler do
   end
 
   def websocket_terminate(_reason, _req, _stage) do
-    Logger.debug ">> is closing a websocket connection."
+    Logger.info ">> is closing a websocket connection."
     # make sure to stop anything when we finish up.
     transport().stop_link(self())
   end

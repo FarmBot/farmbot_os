@@ -47,8 +47,11 @@ defmodule Farmbot.Mixfile do
           version: @version,
           commit: commit()}]},
      applications: applications(),
-     included_applications: [:gen_mqtt, :ex_json_schema, :ex_syslogger]]
+     included_applications: [:gen_mqtt, :ex_json_schema] ++ included_apps(Mix.env)]
   end
+
+  defp included_apps(:prod), do: [:ex_syslogger]
+  defp included_apps(_), do: []
 
   # common for test, prod, and dev
   defp applications do

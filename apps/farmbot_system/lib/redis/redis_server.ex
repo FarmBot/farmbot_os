@@ -74,7 +74,7 @@ def config(path: dir), do: ~s"""
   end
 
   def kill_redis do
-    Logger.debug "trying to kill old redis"
+    Logger.info "trying to kill old redis"
     case System.cmd("killall", ["redis-server"]) do
       {_, 0} ->
         Process.sleep(5000)

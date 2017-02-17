@@ -11,7 +11,7 @@ defmodule Farmbot.System.FS do
     do: GenStage.start_link(__MODULE__, target, name: __MODULE__)
 
   def init(target) do
-    Logger.debug ">> #{target} FileSystem Init"
+    Logger.info ">> #{target} FileSystem Init"
     mod = Module.concat([Farmbot, System, target, FileSystem])
     mod.fs_init
     mod.mount_read_only
@@ -63,7 +63,7 @@ defmodule Farmbot.System.FS do
   end
 
   def handle_call({:add_transaction, fun, pid}, _from, queue) do
-    Logger.debug ">> is queueing a fs transaction"
+    Logger.info ">> is queueing a fs transaction"
     {:reply, :ok, [], [{fun, pid} | queue]}
   end
 

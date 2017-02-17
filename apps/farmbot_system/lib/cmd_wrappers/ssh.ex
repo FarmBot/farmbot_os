@@ -11,18 +11,18 @@ defmodule Farmbot.System.Network.SSH do
   @var_run_dir "/var/run/dropbear"
 
   def init(_) do
-    Logger.debug ">> Is starting SSH service."
+    Logger.info ">> Is starting SSH service."
     Process.flag(:trap_exit, true)
     make_banner()
 
     # this is where dropbear puts keys and stuff.
     if !File.exists? @var_run_dir do
-      Logger.debug ">> needs to create a place for ssh keys."
+      Logger.info ">> needs to create a place for ssh keys."
       File.mkdir_p @var_run_dir
     end
 
     if File.exists? "#{FS.path()}/dropbear_ecdsa_host_key" do
-      Logger.debug ">> loading old ssh keys"
+      Logger.info ">> loading old ssh keys"
       File.cp "#{FS.path()}/dropbear_ecdsa_host_key", @var_run_dir
     end
 
@@ -54,7 +54,7 @@ defmodule Farmbot.System.Network.SSH do
   end
 
   def handle_info({_, {:data, data}}, port) when is_bitstring(data) do
-    Logger.debug ">> got ssh data: #{String.trim(data)}"
+    Logger.info ">> got ssh data: #{String.trim(data)}"
     save_contents()
     {:noreply, port}
   end
@@ -68,7 +68,7 @@ defmodule Farmbot.System.Network.SSH do
   end
 
   def save_contents do
-    Logger.debug ">> Saving ssh keys"
+    Logger.info ">> Saving ssh keys"
     case File.read "#{@var_run_dir}/dropbear_ecdsa_host_key" do
       {:ok, c} ->
         FS.transaction fn() ->

@@ -39,7 +39,7 @@ defmodule Farmbot.RegimenRunner do
     items = reg.id |> get_items() |> sort()
     first_time_offset = List.first(items).time_offset
     f = Timex.shift(start_time, milliseconds: first_time_offset)
-    Logger.debug ">> [#{reg.name}] first item will run at: #{f.month}-#{f.day} at #{f.hour}:#{f.minute}"
+    Logger.info ">> [#{reg.name}] first item will run at: #{f.month}-#{f.day} at #{f.hour}:#{f.minute}"
     {:ok, []}
   end
 

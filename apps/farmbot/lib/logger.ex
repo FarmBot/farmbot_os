@@ -16,7 +16,7 @@ defmodule Farmbot.Logger do
   def init(_), do: {:ok, build_state()}
 
   # ten megs. i promise
-  @max_file_size 1.0e+7
+  # @max_file_size 1.0e+7
 
   # The example said ignore messages for other nodes, so im ignoring messages
   # for other nodes.
@@ -68,9 +68,7 @@ defmodule Farmbot.Logger do
     {:ok, :ok, {messages, false}}
   end
 
-  def handle_call(:messages, {messages, f}) do
-    {:ok, messages, {messages, f}}
-  end
+  def handle_call(:messages, {messages, f}), do: {:ok, messages, {messages, f}}
 
   # Catch any stray calls.
   def handle_call(_, state), do: {:ok, :unhandled, state}
@@ -116,39 +114,19 @@ defmodule Farmbot.Logger do
         _ ->  nil
       end
     end)
-      # str =
-      #   messages
-      #   |> Enum.map(fn(m) -> "#{m.created_at}: #{m.message}\n" end)
-      #   |> List.to_string
-    # write_to_file(str)
     "/api/logs" |> HTTP.post(Poison.encode!(messages)) |> parse_resp
   end
-
-  # Writes to a file in a transaction
-  # @spec write_to_file(binary) :: no_return
-  # defp write_to_file(str) do
-  #   Farmbot.System.FS.transaction fn() ->
-  #     path = Farmbot.System.FS.path <> "/log.txt"
-  #     case File.stat(path) do
-  #       # check the files size.
-  #       {:ok, %File.Stat{size: s}} when s > @max_file_size ->
-  #         File.write(path, "")
-  #       # if the file is there, we are fine.
-  #       {:ok, _stat} -> :ok
-  #       # if its not there create it. I dont think we HAVE to do this.
-  #       {:error, :enoent} -> File.write(path, "")
-  #     end
-  #     File.write(path, str, [:append])
-  #   end
-  # end
 
   # Parses what the api sends back. Will only ever return :ok even if there was
   # an error.
   @spec parse_resp(any) :: :ok
-  defp parse_resp(%HTTPoison.Response{status_code: 200}),
+  defp parse_resp({:ok, %HTTPoison.Response{status_code: 200}}),
     do: GenEvent.call(Elixir.Logger, Farmbot.Logger, :post_success)
-  defp parse_resp(error),
-    do: GenEvent.call(Elixir.Logger, Farmbot.Logger, {:post_fail, error})
+
+  defp parse_resp(error) do
+    IO.inspect error
+    GenEvent.call(Elixir.Logger, Farmbot.Logger, {:post_fail, error})
+  end
 
   @type rpc_log_type
     :: :success
@@ -209,12 +187,25 @@ defmodule Farmbot.Logger do
     end
   end
 
-  defp filter_module(:"Elixir.Nerves.InterimWiFi", _m), do: {:ok, "[FILTERED]"}
-  defp filter_module(:"Elixir.Nerves.NetworkInterface", _m), do: nil
-  defp filter_module(:"Elixir.Nerves.InterimWiFi.WiFiManager.EventHandler", _m), do: nil
-  defp filter_module(:"Elixir.Nerves.InterimWiFi.DHCPManager", _), do: nil
-  defp filter_module(:"Elixir.Nerves.NetworkInterface.Worker", _), do: nil
-  defp filter_module(:"Elixir.Nerves.InterimWiFi.DHCPManager.EventHandler", _), do: nil
+  @filtered "[FILTERED]"
+  defp filter_module(:"Elixir.Nerves.InterimWiFi", _m),
+    do: {:ok, @filtered}
+
+  defp filter_module(:"Elixir.Nerves.NetworkInterface", _m),
+    do: {:ok, @filtered}
+
+  defp filter_module(:"Elixir.Nerves.InterimWiFi.WiFiManager.EventHandler", _m),
+    do: {:ok, @filtered}
+
+  defp filter_module(:"Elixir.Nerves.InterimWiFi.DHCPManager", _),
+    do: {:ok, @filtered}
+
+  defp filter_module(:"Elixir.Nerves.NetworkInterface.Worker", _),
+    do: {:ok, @filtered}
+
+  defp filter_module(:"Elixir.Nerves.InterimWiFi.DHCPManager.EventHandler", _),
+    do: {:ok, @filtered}
+
   defp filter_module(_, message), do: {:ok, message}
 
   defp filter_text(message) when is_list(message), do: nil
@@ -238,7 +229,6 @@ defmodule Farmbot.Logger do
     |> DateTime.to_iso8601
     {:ok, f}
   end
-  defp parse_created_at({_,_}), do: {:ok, :os.system_time}
   defp parse_created_at(_), do: nil
 
   @spec build_log(String.t, number, rpc_log_type, [channels], [integer])

@@ -160,10 +160,10 @@ defmodule Farmbot.CeleryScript.Command do
   """
   @spec sync(%{}, []) :: no_return
   def sync(%{}, []) do
-    Logger.debug ">> is syncing!"
+    Logger.info ">> is syncing!"
     case Farmbot.Sync.sync do
       {:ok, _} ->
-        Logger.debug ">> synced!"
+        Logger.info ">> synced!"
       {:error, reason} ->
         Logger.error ">> encountered an error syncing!: #{inspect reason}"
     end
@@ -268,7 +268,7 @@ defmodule Farmbot.CeleryScript.Command do
     for {param_str, val} <- blah do
       param_int = GParser.parse_param(param_str)
       if param_int do
-        Logger.debug ">> is updating #{param_str}: #{val}"
+        Logger.info ">> is updating #{param_str}: #{val}"
         "F22 P#{param_int} V#{val}" |> GHan.block_send
         # HACK read the param back because sometimes the firmware decides
         # our param sets arent important enough to keep
@@ -282,7 +282,7 @@ defmodule Farmbot.CeleryScript.Command do
   def config_update(%{package: "farmbot_os"}, config_pairs) do
     blah = pairs_to_tuples(config_pairs)
     for {key, val} <- blah do
-      Logger.debug ">> Updating #{key}: #{val}"
+      Logger.info ">> Updating #{key}: #{val}"
       Farmbot.BotState.update_config(key, val)
     end
   end
@@ -375,9 +375,9 @@ defmodule Farmbot.CeleryScript.Command do
   def sequence(_, body) do
     for ast <- body do
       check_count()
-      Logger.debug ">> doing: #{ast.kind}"
+      Logger.info ">> doing: #{ast.kind}"
       do_command(ast)
-      Logger.debug ">> done."
+      Logger.info ">> done."
       inc_count()
     end
     reset_count()
@@ -422,7 +422,7 @@ defmodule Farmbot.CeleryScript.Command do
     :: no_return
 
   defp eval_if({:error, lhs}, _op, _rhs, _then, _else) do
-    Logger.debug "Could not evaluate left hand side: #{lhs}"
+    Logger.info "Could not evaluate left hand side: #{lhs}"
   end
 
   defp eval_if(lhs, ">", rhs, then_, else_) do
@@ -441,7 +441,7 @@ defmodule Farmbot.CeleryScript.Command do
     if lhs != rhs, do: do_command(then_), else: do_command(else_)
   end
 
-  defp eval_if(_, _, _, _, _), do: Logger.debug "bad if operator"
+  defp eval_if(_, _, _, _, _), do: Logger.info "bad if operator"
 
   @doc ~s"""
     Logs a message to some places
@@ -459,7 +459,7 @@ defmodule Farmbot.CeleryScript.Command do
     :: no_return
   def send_message(%{message: m, message_type: m_type}, channels) do
     rendered = Mustache.render(m, get_message_stuff())
-    Logger.debug ">> #{rendered}", type: m_type, channels: parse_channels(channels)
+    Logger.info ">> #{rendered}", type: m_type, channels: parse_channels(channels)
   end
 
   @spec get_message_stuff :: %{x: x, y: y, z: z}
@@ -570,7 +570,7 @@ defmodule Farmbot.CeleryScript.Command do
       "farmbot_os" ->
         Farmbot.System.Updates.check_and_download_updates()
 
-      u -> Logger.debug ">> got a request to check updates for an " <>
+      u -> Logger.info ">> got a request to check updates for an " <>
         "unrecognized package: #{u}"
     end
   end
@@ -739,7 +739,7 @@ defmodule Farmbot.CeleryScript.Command do
     check_count()
     fun_name = String.to_atom(ast.kind)
     # print the comment if it exists
-    if ast.comment, do: Logger.debug ">> [#{fun_name}] - #{ast.comment}"
+    if ast.comment, do: Logger.info ">> [#{fun_name}] - #{ast.comment}"
 
     if function_exported?(__MODULE__, fun_name, 2) do
       Kernel.apply(__MODULE__, fun_name, [ast.args, ast.body])

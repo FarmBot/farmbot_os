@@ -34,14 +34,14 @@ defmodule Farmware.FarmScript do
   """
   @spec run(t, [{any, any}]) :: pid
   def run(%__MODULE__{} = thing, env) do
-    Logger.debug ">> is setting environment for #{thing.name}"
+    Logger.info ">> is setting environment for #{thing.name}"
 
     blah = System.find_executable(thing.executable)
     unless blah, do: raise "Could not find: #{thing.executable}!"
 
     extra_env = build_extra_env(thing.envs)
 
-    Logger.debug ">> Serializing DB for Farmware"
+    Logger.info ">> Serializing DB for Farmware"
     sync_env = Farmbot.Sync.load_recent_so |> build_sync_env
 
     cwd = File.cwd!
@@ -85,7 +85,7 @@ defmodule Farmware.FarmScript do
   defp handle_port(port, %__MODULE__{} = thing) do
     receive do
       {^port, {:exit_status, 0}} ->
-        Logger.debug ">> [#{thing.name}] completed!"
+        Logger.info ">> [#{thing.name}] completed!"
       {^port, {:exit_status, s}} ->
         Logger.error ">> [#{thing.name}] completed with errors! (#{s})"
 
@@ -135,6 +135,6 @@ defmodule Farmware.FarmScript do
   end
 
   defp do_sort([], acc, thing) do
-    Logger.debug ">> [#{thing.name}] "<> String.trim(acc)
+    Logger.info ">> [#{thing.name}] "<> String.trim(acc)
   end
 end
