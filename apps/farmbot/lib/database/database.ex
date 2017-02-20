@@ -9,7 +9,7 @@ defmodule Farmbot.Sync do
   use Amnesia
   import Syncable
   alias Farmbot.Sync.Helpers
-  # alias Farmbot.ImageWatcher
+  alias Farmbot.ImageWatcher
   # alias Farmbot.Sync.Database.Diff
   require Logger
   # alias Farmbot.BotState.ProcessTracker, as: PT
@@ -102,13 +102,17 @@ defmodule Farmbot.Sync do
   """
   @spec sync :: :ok | {:error, term}
   def sync do
+    Logger.info ">> is checking for images to be uploaded."
     :ok = ImageWatcher.force_upload
 
+    Logger.info ">> is clearing old data."
     # this is ugly sorry.
     for mod <- all_syncables() do
       mod.clear()
     end
-    
+
+    Logger.info ">> is downloading data!", type: :busy
+
     # Build a list of tasks
     {tasks, refs} =
       Enum.reduce(all_syncables(), {[], %{}}, fn(mod, {tasks, refs}) ->
@@ -145,7 +149,13 @@ defmodule Farmbot.Sync do
         end
       end)
     # if there are no errors, return success, if not, return the fails
-    if Enum.empty?(fails), do: success, else: {:error, fails}
+    if Enum.empty?(fails) do
+      Logger.info ">> is synced!", type: :success
+      success
+    else
+      Logger.error ">> encountered errors syncing: #{inspect fails}"
+      {:error, fails}
+    end
   end
 
   defp all_syncables, do: [
