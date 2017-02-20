@@ -531,7 +531,7 @@ defmodule Farmbot.CeleryScript.Command do
   end
 
   @spec do_toggle(String.t, integer) :: no_return
-  def do_toggle(pin, val) do
+  defp do_toggle(pin, val) do
     case val do
       # if it was off turn it on
       0 -> write_pin(%{pin_number: pin, pin_mode: @digital, pin_value: 1}, [])
@@ -646,11 +646,44 @@ defmodule Farmbot.CeleryScript.Command do
     end
   end
 
-  @doc """
+  @doc ~s"""
     Starts a FarmProcess
+      args: %{label: String.t},
+      body: []
   """
+  @spec start_process(%{label: String.t}) :: no_return
   def start_process(%{label: uuid}, []) do
     Farmbot.BotState.ProcessTracker.start_process(uuid)
+  end
+
+  @doc ~s"""
+    Install a farmware from a url
+      args: %{url: String.t},
+      body: []
+  """
+  @spec install_farmware(%{url: String.t}, []) :: no_return
+  def install_farmware(%{url: url}, []) do
+    Farmware.install(url)
+  end
+
+  @doc """
+    Uninstall a farmware by name.
+      args: %{package: String.t},
+      body: []
+  """
+  @spec uninstall_farmware(%{package: String.t}, []) :: no_return
+  def uninstall_farmware(%{package: package}, []) do
+    Farmware.uninstall(package)
+  end
+
+  @doc """
+    Update a farmware by its name
+      args: %{package: String.t},
+      body: []
+  """
+  @spec update_farmware(%{package: String.t}, []) :: no_return 
+  def update_farmware(%{package: package}, []) do
+    Farmware.update(package)
   end
 
   @doc ~s"""
@@ -693,6 +726,15 @@ defmodule Farmbot.CeleryScript.Command do
     Farmbot.HTTP.post("/api/points", json)
   end
 
+  @doc """
+    Removes a point from the API
+      args: %{point_id: integer},
+      body: []
+  """
+  @spec remove_point(%{point_id: integer}, []) :: no_return
+  def remove_point(%{point_id: p_id}, []),
+    do: Farmbot.HTTP.delete("/api/points/#{p_id}")
+
   @doc ~s"""
     Takes a photo
       args: %{},
@@ -708,17 +750,9 @@ defmodule Farmbot.CeleryScript.Command do
     end
   end
 
-  @doc """
-    Removes a point from the API
-      args: %{point_id: integer},
-      body: []
-  """
-  @spec remove_point(%{point_id: integer}, []) :: no_return
-  def remove_point(%{point_id: p_id}, []),
-    do: Farmbot.HTTP.delete("/api/points/#{p_id}")
-
   @type pair ::
     %Ast{kind: String.t, args: %{label: String.t, value: any}, body: []}
+
   @spec pair(%{label: String.t, value: any}, []) :: pair
   def pair(%{label: label, value: value}, []) do
     %Ast{kind: "pair", args: %{label: label, value: value}, body: []}
