@@ -44,7 +44,7 @@ defmodule Farmware.FarmScript do
     extra_env = build_extra_env(thing.envs)
 
     # get a token. this will raise if there is no token.
-    api_env = get_token
+    api_env = get_token()
 
     cwd = File.cwd!
     File.cd!(thing.path)

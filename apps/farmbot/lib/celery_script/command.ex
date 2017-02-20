@@ -26,6 +26,23 @@ defmodule Farmbot.CeleryScript.Command do
   @type z :: integer
   @max_count 1_000
 
+  celery =
+    "lib/celery_script/commands/"
+    |> File.ls!
+    |> Enum.reduce([], fn(file_name, acc) ->
+      case String.split(file_name, ".ex") do
+        [file_name, ""] ->
+          mod = Module.concat Farmbot.CeleryScript.Command,
+            Macro.camelize(file_name)
+          [{String.to_atom(file_name), mod} | acc]
+        _ -> acc
+      end
+    end)
+
+  for {fun, module} <- celery do
+    defdelegate unquote(fun)(args, body), to: module, as: :run
+  end
+
   # DISCLAIMER:
   # IF YOU SEE A HACK HERE RELATED TO A FIRMWARE COMMAND
   # IE: read_pin, write_pin, etc, DO NOT TRY TO FIX IT.
@@ -651,7 +668,7 @@ defmodule Farmbot.CeleryScript.Command do
       args: %{label: String.t},
       body: []
   """
-  @spec start_process(%{label: String.t}) :: no_return
+  @spec start_process(%{label: String.t}, []) :: no_return
   def start_process(%{label: uuid}, []) do
     Farmbot.BotState.ProcessTracker.start_process(uuid)
   end
@@ -681,7 +698,7 @@ defmodule Farmbot.CeleryScript.Command do
       args: %{package: String.t},
       body: []
   """
-  @spec update_farmware(%{package: String.t}, []) :: no_return 
+  @spec update_farmware(%{package: String.t}, []) :: no_return
   def update_farmware(%{package: package}, []) do
     Farmware.update(package)
   end
@@ -735,21 +752,6 @@ defmodule Farmbot.CeleryScript.Command do
   def remove_point(%{point_id: p_id}, []),
     do: Farmbot.HTTP.delete("/api/points/#{p_id}")
 
-  @doc ~s"""
-    Takes a photo
-      args: %{},
-      body: []
-  """
-  @spec take_photo(%{}, []) :: no_return
-  def take_photo(%{}, []) do
-    info = Farmbot.BotState.ProcessTracker.lookup :farmware, "take-photo"
-    if info do
-      start_process(%{label: info.uuid}, [])
-    else
-      Farmbot.Camera.capture()
-    end
-  end
-
   @type pair ::
     %Ast{kind: String.t, args: %{label: String.t, value: any}, body: []}
 
@@ -764,16 +766,22 @@ defmodule Farmbot.CeleryScript.Command do
   @spec do_command(Ast.t) :: :no_instruction | any
   def do_command(%Ast{} = ast) do
     check_count()
-    fun_name = String.to_atom(ast.kind)
+    kind = ast.kind
+    fun_name = String.to_atom kind
+    module = Module.concat Farmbot.CeleryScript.Command, Macro.camelize(kind)
     # print the comment if it exists
     if ast.comment, do: Logger.info ">> [#{fun_name}] - #{ast.comment}"
 
-    if function_exported?(__MODULE__, fun_name, 2) do
-      Kernel.apply(__MODULE__, fun_name, [ast.args, ast.body])
-      dec_count()
-    else
-      Logger.error ">> has no instruction for #{inspect ast}"
-      :no_instruction
+    cond do
+       function_exported?(__MODULE__, fun_name, 2) ->
+         Kernel.apply(__MODULE__, fun_name, [ast.args, ast.body])
+         dec_count()
+       Code.ensure_loaded?(module) ->
+         Kernel.apply(module, :run, [ast.args, ast.body])
+         dec_count()
+       true ->
+         Logger.error ">> has no instruction for #{inspect ast}"
+         :no_instruction
     end
   end
 
@@ -786,4 +794,7 @@ defmodule Farmbot.CeleryScript.Command do
       raise("TO MUCH RECURSION")
     end
   end
+
+  # behaviour
+  @callback run(map, [Ast.t]) :: any
 end
