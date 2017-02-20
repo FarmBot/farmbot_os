@@ -100,64 +100,100 @@ defmodule Farmbot.Sync do
   @doc """
     Downloads all the relevant information from the api
   """
-  @spec sync :: :ok | {:error, term}
+  @spec sync ::
+    {:ok, %{required(atom) => [map] | map}} | {:error, term}
+  # This is the most complex method in all of this application.
   def sync do
+    Farmbot.BotState.set_synced false
+    # TODO(Connor) Should probably move this to its own function
+    # but right now its only one thing
     Logger.info ">> is checking for images to be uploaded."
     :ok = ImageWatcher.force_upload
 
-    Logger.info ">> is clearing old data."
-    # this is ugly sorry.
-    for mod <- all_syncables() do
-      mod.clear()
-    end
+    # im so lazy.
+    syncables = all_syncables()
 
-    Logger.info ">> is downloading data!", type: :busy
+    # Clear the db (Enumeration 1)
+    clear_all(syncables)
 
-    # Build a list of tasks
-    {tasks, refs} =
-      Enum.reduce(all_syncables(), {[], %{}}, fn(mod, {tasks, refs}) ->
-        task = Task.async(fn ->
-          mod.fetch
-        end)
-        {[task | tasks], Map.put(refs, task, mod)}
-      end)
+    # Build a list of tasks (Enumeration 2)
+    {tasks, refs} = create_tasks(syncables)
 
-    # Wait for the tasks to finish
+    # Wait for the tasks to finish (I guess doesnt count)
     tasks_with_results = Task.yield_many(tasks, 20_000)
 
-    # enumerate the results
-    {success, fails} =
-      Enum.reduce(tasks_with_results, {%{}, []}, fn({task, res}, {success, fail}) ->
-        mod = refs[task]
-        case res do
-          # if the task completed.
-          {:ok, result} ->
-            # IO.inspect res
-            # {:ok, {:ok, [%Farmbot.Sync.Database.Tool{id: 1, name: "Trench Digging Tool"}]}}
-            # {:ok, {:ok, []}}
-            # IO.puts "\n"
-            case result do
-              {:ok, object} -> {Map.put(success, mod, object), fail}
-              {:error, _reason} = er -> {success, [{mod, er} | fail]}
-            end
+    # enumerate the results (Enumeration 3)
+    {success, fails} = task_results(tasks_with_results, refs)
 
-          # if after 10 seconds there was no result for this task, call it
-          # an error, and kill the task.
-          nil ->
-            Task.shutdown(task, :brutal_kill)
-            {success, [{mod, :timeout} | fail]}
-        end
+    # print logs etc (Enumeration 4)
+    return(success, fails)
+  end
+
+  @spec clear_all(syncables) :: [:ok] | no_return
+  defp clear_all(syncables) do
+    Logger.info ">> is clearing old data."
+    # this is ugly sorry.
+    for mod <- syncables do
+      mod.clear()
+    end
+  end
+
+  @spec create_tasks(syncables) :: {[Task.t], %{required(Task.t) => atom}}
+  defp create_tasks(syncables) do
+    Logger.info ">> is downloading data!", type: :busy
+    Enum.reduce(syncables, {[], %{}}, fn(mod, {tasks, refs}) ->
+      task = Task.async(fn ->
+        mod.fetch
       end)
+      {[task | tasks], Map.put(refs, task, mod)}
+    end)
+  end
+
+  @spec task_results([Task.t], %{required(Task.t) => atom}) ::
+    {%{required(atom) => [map] | map}, [{atom, term}]}
+  defp task_results(tasks_with_results, refs) do
+    Enum.reduce(tasks_with_results, {%{}, []},
+      fn({task, res}, {success, fail}) ->
+        mod = refs[task]
+        handle_results(mod, task, res, {success, fail})
+      end)
+  end
+
+  @spec handle_results(atom, Task.t, any,
+    {%{required(atom) => [map] | map}, [{atom, term}]})
+    :: { %{required(atom) => [map] | map}, [{atom, term}]}
+  defp handle_results(mod, _task, {:ok, results}, {success, fail}) do
+    case results do
+      {:ok, object} -> {Map.put(success, mod, object), fail}
+      {:error, _reason} = er -> {success, [{mod, er} | fail]}
+    end
+  end
+
+  defp handle_results(mod, task, _results, {success, fail}) do
+    Task.shutdown(task, :brutal_kill)
+    {success, [{mod, :timeout} | fail]}
+  end
+
+  @spec return(%{required(atom) => [map] | map}, [{:error, term}]) ::
+    {:ok, %{required(atom) => [map] | map}} | {:error, [{atom, term}]}
+  defp return(success, fails) do
     # if there are no errors, return success, if not, return the fails
     if Enum.empty?(fails) do
       Logger.info ">> is synced!", type: :success
-      success
+      Farmbot.BotState.set_synced true
+      {:ok, success}
     else
       Logger.error ">> encountered errors syncing: #{inspect fails}"
       {:error, fails}
     end
   end
 
+  @typedoc """
+    List of all syncables.
+  """
+  @type syncables :: [atom]
+
+  @spec all_syncables :: syncables
   defp all_syncables, do: [
     Database.Device,
     Database.Peripheral,

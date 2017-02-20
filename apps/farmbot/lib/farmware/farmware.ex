@@ -191,9 +191,13 @@ defmodule Farmware do
     farmwares = HTTPoison.get!("https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/manifest.json").body
     |> Poison.decode!
     for %{"name" => name, "manifest" => man} <- farmwares do
-      if !installed?(name),
-        do: install(man),
-      else: Logger.info ">> #{name} is already installed"
+      if installed?(name) do
+        # if its installed already update it
+        update(man)
+      else
+        # if not just install it.
+        install(man)
+      end
     end
   end
 

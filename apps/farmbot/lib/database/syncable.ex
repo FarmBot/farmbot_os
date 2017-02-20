@@ -14,6 +14,7 @@ defmodule Syncable do
   @doc """
     Builds a syncable
   """
+  @lint false # ABC and CC size is way to big
   defmacro syncable(module, api_resource, model, options \\ []) do
     {:__aliases__, _, [thing]} = module
     IO.puts "Defining syncable: #{inspect thing}, with keys: #{inspect model}"
@@ -25,7 +26,6 @@ defmodule Syncable do
           A #{unquote(module)} from the API.
           \nRequires: #{inspect unquote(model)}
         """
-
         @timeout 20_000
 
         # Throw this at the bottom so if the user definves a mutation
@@ -131,16 +131,16 @@ defmodule Syncable do
             Fetch a particular item from the API
           """
           def fetch!(id) do
-            Farmbot.HTTP.get!("#{unquote(api_resource)}/#{id}", [],
-              [recv_timeout: @timeout]).body
+            "#{unquote(api_resource)}/#{id}"
+            |> Farmbot.HTTP.get!([], [recv_timeout: @timeout]).body
             |> Poison.decode!(as: %unquote(module){})
             |> enter_into_db!
           end
 
           def fetch(id) do
             resp =
-              Farmbot.HTTP.get("#{unquote(api_resource)}/#{id}", [],
-                [recv_timeout: @timeout])
+              "#{unquote(api_resource)}/#{id}"
+              |> Farmbot.HTTP.get([], [recv_timeout: @timeout])
               |> handle_http
             with {:ok, body} <- resp,
                  {:ok, json} <- Poison.decode(body, as: %unquote(module){}),

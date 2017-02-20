@@ -30,7 +30,8 @@ defmodule Farmbot.BotState.Configuration do
         target: "loading...",
         private_ip: nil,
         throttled: "loading...",
-        commit: "loading..."
+        commit: "loading...",
+        synced: false
        }
     ]
 

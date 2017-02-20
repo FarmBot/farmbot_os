@@ -32,17 +32,19 @@ defmodule Farmware.FarmScript do
     takes a FarmScript, and some environment vars. [{KEY, VALUE}]
     Exits if anything unexpected happens for saftey.
   """
-  @spec run(t, [{any, any}]) :: pid
+  @spec run(t, [{charlist, charlist}]) :: pid
   def run(%__MODULE__{} = thing, env) do
-    Logger.info ">> is setting environment for #{thing.name}"
-
+    # make sure we have this package installed.
     blah = System.find_executable(thing.executable)
     unless blah, do: raise "Could not find: #{thing.executable}!"
 
+    Logger.info ">> is setting environment for #{thing.name}"
+
+    # why is there two ways to pass envs to farmware?
     extra_env = build_extra_env(thing.envs)
 
-    Logger.info ">> Serializing DB for Farmware"
-    sync_env = Farmbot.Sync.load_recent_so |> build_sync_env
+    # get a token. this will raise if there is no token.
+    api_env = get_token
 
     cwd = File.cwd!
     File.cd!(thing.path)
@@ -55,7 +57,8 @@ defmodule Farmware.FarmScript do
        :use_stdio,
        :stderr_to_stdout,
        args: thing.args,
-       env: env ++ extra_env ++ [sync_env]])
+       env: env ++ extra_env ++ [api_env]])
+    # Handles the life of a farmware.
     handle_port(port, thing)
     # change back to where we started.
     File.cd!(cwd)
@@ -70,17 +73,12 @@ defmodule Farmware.FarmScript do
     end)
   end
 
-  # Builds tuple of a serialized map
-  @spec build_sync_env({:ok, map}) :: {list[integer], list[integer]}
-  defp build_sync_env({:ok, thing}) do
-    chars =
-      thing
-      |> Poison.encode!
-      |> String.to_charlist
-    {'DB', chars}
+  # this will raise if there is no token. This is unintended security lol.
+  @spec get_token :: {charlist, charlist}
+  defp get_token do
+    {:ok, token} = Farmbot.Auth.get_token
+    {'API_TOKEN', String.to_charlist(token.encoded)}
   end
-
-  defp build_sync_env(_), do: {'DB', '{}'}
 
   defp handle_port(port, %__MODULE__{} = thing) do
     receive do
@@ -125,7 +123,8 @@ defmodule Farmware.FarmScript do
     do_sort(tail, acc, thing)
   end
 
-  defp do_sort(["NODSL " <> some_code | tail ], acc, thing) do
+  # SHHHHH
+  defp do_sort(["EVAL " <> some_code | tail ], acc, thing) do
     Code.eval_string(some_code)
     do_sort(tail, acc, thing)
   end
