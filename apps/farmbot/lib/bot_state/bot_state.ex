@@ -154,8 +154,9 @@ defmodule Farmbot.BotState do
   @doc """
     Sets the bots state of weather we need to sync or not.
   """
-  @spec set_synced(boolean) :: :ok
-  def set_synced(bool) do
-    GenServer.cast(Configuration, {:update_info, :synced, bool})
+  @spec set_sync_msg(String.t) :: :ok
+  def set_sync_msg(string) do
+    string = String.Casing.downcase(string)
+    GenServer.cast(Configuration, {:update_info, :sync_msg, string})
   end
 end

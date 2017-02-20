@@ -31,7 +31,7 @@ defmodule Farmbot.BotState.Configuration do
         private_ip: nil,
         throttled: "loading...",
         commit: "loading...",
-        synced: false
+        sync_msg: "sync now"
        }
     ]
 
@@ -72,7 +72,8 @@ defmodule Farmbot.BotState.Configuration do
         target: target,
         private_ip: "loading...",
         throttled: get_throttled(),
-        commit: commit
+        commit: commit,
+        sync_msg: "sync now"
       }
     }
         with {:ok, user_env} <- get_config("user_env"),

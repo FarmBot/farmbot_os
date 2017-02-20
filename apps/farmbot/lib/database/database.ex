@@ -104,7 +104,7 @@ defmodule Farmbot.Sync do
     {:ok, %{required(atom) => [map] | map}} | {:error, term}
   # This is the most complex method in all of this application.
   def sync do
-    Farmbot.BotState.set_synced false
+    Farmbot.BotState.set_sync_msg "syncing"
     # TODO(Connor) Should probably move this to its own function
     # but right now its only one thing
     Logger.info ">> is checking for images to be uploaded."
@@ -180,10 +180,11 @@ defmodule Farmbot.Sync do
     # if there are no errors, return success, if not, return the fails
     if Enum.empty?(fails) do
       Logger.info ">> is synced!", type: :success
-      Farmbot.BotState.set_synced true
+      Farmbot.BotState.set_sync_msg "synced"
       {:ok, success}
     else
       Logger.error ">> encountered errors syncing: #{inspect fails}"
+      Farmbot.BotState.set_sync_msg "sync error"
       {:error, fails}
     end
   end
