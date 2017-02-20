@@ -45,7 +45,11 @@ defmodule Farmbot.Configurator.Router do
   end
 
   get "/", do: conn |> send_resp(200, make_html())
-  get "/setup", do: conn |> send_resp(200, make_html())
+  get "/setup" do
+    conn
+    |> put_resp_header("location", "http://192.168.24.1/index.html")
+    |> send_resp(302, "OK")
+  end
 
   get "/api/config" do
     # Already in json form.

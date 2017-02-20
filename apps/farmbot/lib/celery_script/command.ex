@@ -159,15 +159,8 @@ defmodule Farmbot.CeleryScript.Command do
       body: []
   """
   @spec sync(%{}, []) :: no_return
-  def sync(%{}, []) do
-    Logger.info ">> is syncing!"
-    case Farmbot.Sync.sync do
-      {:ok, _} ->
-        Logger.info ">> synced!"
-      {:error, reason} ->
-        Logger.error ">> encountered an error syncing!: #{inspect reason}"
-    end
-  end
+  def sync(%{}, []), do: Farmbot.Sync.sync
+
   @doc ~s"""
     Handles an RPC Request.
       args: %{label: String.t},

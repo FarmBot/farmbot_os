@@ -150,4 +150,13 @@ defmodule Farmbot.BotState do
   def remove_lock(string) when is_bitstring(string) do
     GenServer.call(Configuration, {:remove_lock, string})
   end
+
+  @doc """
+    Sets the bots state of weather we need to sync or not.
+  """
+  @spec set_sync_msg(String.t) :: :ok
+  def set_sync_msg(string) do
+    string = String.Casing.downcase(string)
+    GenServer.cast(Configuration, {:update_info, :sync_status, string})
+  end
 end

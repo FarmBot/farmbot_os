@@ -79,7 +79,7 @@ defmodule Farmbot.Mixfile do
 
   defp deps do
     [
-      {:nerves_uart, "~> 0.1.0"}, # uart handling
+      {:nerves_uart, "0.1.1"}, # uart handling
       {:nerves_lib, github: "nerves-project/nerves_lib"}, # this has a good uuid
 
       {:poison, "~> 3.0"}, # json

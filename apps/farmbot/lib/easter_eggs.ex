@@ -90,7 +90,7 @@ defmodule Farmbot.EasterEggs do
   end
 
   @spec get_random_minute :: integer
-  defp get_random_minute, do: 50..60 |> Enum.random
+  defp get_random_minute, do: 200..300 |> Enum.random
 
   @doc """
     Says a random sentence every twenty minutes by default.
