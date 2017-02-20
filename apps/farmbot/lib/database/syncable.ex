@@ -20,7 +20,7 @@ defmodule Syncable do
     quote do
       singular = Keyword.get(unquote(options), :singular, false)
       deftable unquote(module)
-      deftable unquote(module), unquote(model), type: :bag do
+      deftable unquote(module), unquote(model), type: :ordered_set do
         @moduledoc """
           A #{unquote(module)} from the API.
           \nRequires: #{inspect unquote(model)}
@@ -36,6 +36,43 @@ defmodule Syncable do
         defp handle_http({:error, reason}), do: {:error, reason}
         defp handle_http(err), do: err
 
+        @doc """
+          Enter a singular or list of #{unquote(module)} into the DB
+        """
+        def enter_into_db(list_or_object)
+        def enter_into_db(list_of_objects) when is_list(list_of_objects) do
+          stuff = Amnesia.transaction do
+            list_of_objects
+            |> Enum.map(&unquote(module).write(&1))
+          end
+          {:ok, stuff}
+        end
+
+        def enter_into_db(object) do
+          stuff = Amnesia.transaction do
+            unquote(module).write(object)
+          end
+          {:ok, stuff}
+        end
+
+        @doc """
+          Same as `enter_into_db/1` but will raise errors if
+          problems are encountered.
+        """
+        def enter_into_db!(list_or_object)
+        def enter_into_db!(list_of_objects) when is_list(list_of_objects) do
+          Amnesia.transaction do
+            list_of_objects
+            |> Enum.map(&unquote(module).write(&1))
+          end
+        end
+
+        def enter_into_db!(object) do
+          Amnesia.transaction do
+            unquote(module).write!(object)
+          end
+        end
+
         if singular do
           @doc """
             Fetch all #{unquote(module)}s from the API
@@ -43,6 +80,7 @@ defmodule Syncable do
           def fetch! do
             Farmbot.HTTP.get!(unquote(api_resource)).body
             |> Poison.decode!(as: %unquote(module){})
+            |> enter_into_db!
           end
 
           @doc """
@@ -53,9 +91,9 @@ defmodule Syncable do
               unquote(api_resource)
               |> Farmbot.HTTP.get
               |> handle_http
-            with {:ok, body} <- resp do
-              Poison.decode(body, as: %unquote(module){})
-            end
+            with {:ok, body} <- resp,
+                 {:ok, json} <- Poison.decode(body, as: %unquote(module){}),
+            do: enter_into_db(json)
           end
 
         else # IF NOT SINGULAR
@@ -66,6 +104,7 @@ defmodule Syncable do
           def fetch! do
             Farmbot.HTTP.get!(unquote(api_resource)).body
             |> Poison.decode!(as: [%unquote(module){}])
+            |> enter_into_db!
           end
 
           @doc """
@@ -76,9 +115,9 @@ defmodule Syncable do
               unquote(api_resource)
               |> Farmbot.HTTP.get
               |> handle_http
-            with {:ok, body} <- resp do
-              Poison.decode(body, as: [%unquote(module){}])
-            end
+            with {:ok, body} <- resp,
+                 {:ok, json} <- Poison.decode(body, as: [%unquote(module){}]),
+                 do: enter_into_db(json)
           end
         end
 
@@ -90,15 +129,16 @@ defmodule Syncable do
           def fetch!(id) do
             Farmbot.HTTP.get!("#{unquote(api_resource)}/#{id}").body
             |> Poison.decode!(as: %unquote(module){})
+            |> enter_into_db!
           end
 
           def fetch(id) do
             resp =
               Farmbot.HTTP.get("#{unquote(api_resource)}/#{id}")
               |> handle_http
-            with {:ok, body} <- resp do
-              Poison.decode(body, as: %unquote(module){})
-            end
+            with {:ok, body} <- resp,
+                 {:ok, json} <- Poison.decode(body, as: %unquote(module){}),
+            do: enter_into_db(json)
           end
 
         end # unless singular

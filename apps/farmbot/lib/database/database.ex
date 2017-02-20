@@ -102,11 +102,19 @@ defmodule Farmbot.Sync do
   """
   @spec sync :: :ok | {:error, term}
   def sync do
-    # :ok = ImageWatcher.force_upload
+    :ok = ImageWatcher.force_upload
+
+    # this is ugly sorry.
+    for mod <- all_syncables() do
+      mod.clear()
+    end
+    
     # Build a list of tasks
     {tasks, refs} =
       Enum.reduce(all_syncables(), {[], %{}}, fn(mod, {tasks, refs}) ->
-        task = Task.async(fn -> mod.fetch end)
+        task = Task.async(fn ->
+          mod.fetch
+        end)
         {[task | tasks], Map.put(refs, task, mod)}
       end)
 
