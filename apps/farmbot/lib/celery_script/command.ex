@@ -11,7 +11,6 @@ defmodule Farmbot.CeleryScript.Command do
   alias Farmbot.Serial.Gcode.Handler, as: GHan
   alias Farmbot.Serial.Gcode.Parser, as: GParser
   alias Farmbot.System, as: FBSys
-  alias Farmbot.Lib.Maths
   alias Amnesia
   use Amnesia
   alias Farmbot.Sync.Database.ToolSlot
@@ -25,6 +24,10 @@ defmodule Farmbot.CeleryScript.Command do
   @type y :: integer
   @type z :: integer
   @max_count 1_000
+
+  # DELETEME
+  @type pair :: Farmbot.CeleryScript.Command.Pair.t
+  @type coordinate_ast :: Farmbot.CeleryScript.Command.Coordinate.t
 
   celery =
     "lib/celery_script/commands/"
@@ -56,61 +59,7 @@ defmodule Farmbot.CeleryScript.Command do
   # ALSO THE COMPILER CAN'T PROPERLY CHECK SOMETHING BEING THAT THE ARGS ARE
   # NOT POSITIONAL.
 
-  @doc ~s"""
-    move_absolute to a prticular position.
-      args: %{
-        speed: integer,
-        offset: coordinate_ast | Ast.t
-        location: coordinate_ast | Ast.t
-      },
-      body: []
-  """
-  @type move_absolute_args :: %{
-    speed: integer,
-    offset: coordinate_ast | Ast.t,
-    location: coordinate_ast | Ast.t
-  }
-  @spec move_absolute(move_absolute_args, []) :: no_return
-  @lint {Credo.Check.Refactor.ABCSize, false}
-  def move_absolute(%{speed: s, offset: offset, location: location}, []) do
-    with %Ast{kind: "coordinate", args: %{x: xa, y: ya, z: za}, body: []} <-
-            ast_to_coord(location),
-         %Ast{kind: "coordinate", args: %{x: xb, y: yb, z: zb}, body: []} <-
-            ast_to_coord(offset)
-    do
-      [x, y, z] =
-        [Maths.mm_to_steps(xa + xb, spm(:x)),
-         Maths.mm_to_steps(ya + yb, spm(:y)),
-         Maths.mm_to_steps(za + zb, spm(:z))]
-      "G00 X#{x} Y#{y} Z#{z} S#{s}" |> GHan.block_send
-    else
-      _ -> Logger.error ">> error doing Move absolute!"
-    end
-  end
-  _ = @lint # HACK(Connor) fix credo compiler warning
 
-  defp spm(xyz) do
-    "steps_per_mm_#{xyz}"
-    |> String.to_atom
-    |> Farmbot.BotState.get_config()
-  end
-
-  @doc ~s"""
-    move_relative to a location
-      args: %{speed: number, x: number, y: number, z: number}
-      body: []
-  """
-  @spec move_relative(%{speed: number, x: x, y: y, z: z}, [])
-    :: no_return
-  def move_relative(%{speed: speed, x: x, y: y, z: z}, []) do
-    # make a coordinate of the relative movement we want to do
-    location = coordinate(%{x: x, y: y, z: z}, [])
-
-    # get the current position, then turn it into another coord.
-    [cur_x,cur_y,cur_z] = Farmbot.BotState.get_current_pos
-    offset = coordinate(%{x: cur_x, y: cur_y, z: cur_z}, [])
-    move_absolute(%{speed: speed, offset: offset, location: location}, [])
-  end
 
   @doc ~s"""
     Convert an ast node to a coodinate or return :error.
@@ -149,34 +98,6 @@ defmodule Farmbot.CeleryScript.Command do
     Logger.warn ">> no conversion from #{inspect ast} to coordinate"
     :error
   end
-
-  @doc ~s"""
-    coodinate
-      args: %{x: integer, y: integer, z: integer}
-      body: []
-  """
-  @type coord_args :: %{x: x, y: y, z: z}
-  @type coordinate_ast :: %Ast{kind: String.t, args: coord_args, body: []}
-  @spec coordinate(coord_args, []) :: coordinate_ast
-  def coordinate(%{x: _x, y: _y, z: _z} = args, []) do
-    %Ast{kind: "coordinate", args: args, body: []}
-  end
-
-  @doc ~s"""
-    read_status
-      args: %{},
-      body: []
-  """
-  @spec read_status(%{}, []) :: no_return
-  def read_status(%{}, []), do: Farmbot.BotState.Monitor.get_state
-
-  @doc ~s"""
-    sync
-      args: %{},
-      body: []
-  """
-  @spec sync(%{}, []) :: no_return
-  def sync(%{}, []), do: Farmbot.Sync.sync
 
   @doc ~s"""
     Handles an RPC Request.
@@ -674,36 +595,6 @@ defmodule Farmbot.CeleryScript.Command do
   end
 
   @doc ~s"""
-    Install a farmware from a url
-      args: %{url: String.t},
-      body: []
-  """
-  @spec install_farmware(%{url: String.t}, []) :: no_return
-  def install_farmware(%{url: url}, []) do
-    Farmware.install(url)
-  end
-
-  @doc """
-    Uninstall a farmware by name.
-      args: %{package: String.t},
-      body: []
-  """
-  @spec uninstall_farmware(%{package: String.t}, []) :: no_return
-  def uninstall_farmware(%{package: package}, []) do
-    Farmware.uninstall(package)
-  end
-
-  @doc """
-    Update a farmware by its name
-      args: %{package: String.t},
-      body: []
-  """
-  @spec update_farmware(%{package: String.t}, []) :: no_return
-  def update_farmware(%{package: package}, []) do
-    Farmware.update(package)
-  end
-
-  @doc ~s"""
     Sets a bunch of user environment variables for farmware
       args: %{},
       body: [pair]
@@ -752,13 +643,6 @@ defmodule Farmbot.CeleryScript.Command do
   def remove_point(%{point_id: p_id}, []),
     do: Farmbot.HTTP.delete("/api/points/#{p_id}")
 
-  @type pair ::
-    %Ast{kind: String.t, args: %{label: String.t, value: any}, body: []}
-
-  @spec pair(%{label: String.t, value: any}, []) :: pair
-  def pair(%{label: label, value: value}, []) do
-    %Ast{kind: "pair", args: %{label: label, value: value}, body: []}
-  end
 
   @doc ~s"""
     Executes an ast node.

@@ -3,7 +3,7 @@ defmodule Farmbot.CeleryScript.Command.TakePhoto do
     TestCs
   """
 
-  alias Farmbot.CeleryScript.Ast
+  # alias Farmbot.CeleryScript.Ast
   alias Farmbot.CeleryScript.Command
   require Logger
   @behaviour Command
@@ -17,11 +17,9 @@ defmodule Farmbot.CeleryScript.Command.TakePhoto do
   def run(%{}, []) do
     info = Farmbot.BotState.ProcessTracker.lookup :farmware, "take-photo"
     if info do
-      %Ast{kind: "start_process", args: %{label: info.uuid}, body: []}
-      |> Command.do_command
+      Command.start_process(%{label: info.uuid}, [])
     else
       Farmbot.Camera.capture()
     end
   end
-
 end
