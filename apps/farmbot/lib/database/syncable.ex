@@ -26,6 +26,8 @@ defmodule Syncable do
           \nRequires: #{inspect unquote(model)}
         """
 
+        @timeout 20_000
+
         # Throw this at the bottom so if the user definves a mutation
         # They wont need to account for all keys.
         def mutate(_k, v), do: {:ok, v}
@@ -78,7 +80,8 @@ defmodule Syncable do
             Fetch all #{unquote(module)}s from the API
           """
           def fetch! do
-            Farmbot.HTTP.get!(unquote(api_resource)).body
+            Farmbot.HTTP.get!(unquote(api_resource), [],
+              [recv_timeout: @timeout]).body
             |> Poison.decode!(as: %unquote(module){})
             |> enter_into_db!
           end
@@ -89,7 +92,7 @@ defmodule Syncable do
           def fetch do
             resp =
               unquote(api_resource)
-              |> Farmbot.HTTP.get
+              |> Farmbot.HTTP.get([], [recv_timeout: @timeout])
               |> handle_http
             with {:ok, body} <- resp,
                  {:ok, json} <- Poison.decode(body, as: %unquote(module){}),
@@ -102,7 +105,8 @@ defmodule Syncable do
             errors are encountered.
           """
           def fetch! do
-            Farmbot.HTTP.get!(unquote(api_resource)).body
+            Farmbot.HTTP.get!(unquote(api_resource), [],
+              [recv_timeout: @timeout]).body
             |> Poison.decode!(as: [%unquote(module){}])
             |> enter_into_db!
           end
@@ -113,7 +117,7 @@ defmodule Syncable do
           def fetch do
             resp =
               unquote(api_resource)
-              |> Farmbot.HTTP.get
+              |> Farmbot.HTTP.get([], [recv_timeout: @timeout])
               |> handle_http
             with {:ok, body} <- resp,
                  {:ok, json} <- Poison.decode(body, as: [%unquote(module){}]),
@@ -127,14 +131,16 @@ defmodule Syncable do
             Fetch a particular item from the API
           """
           def fetch!(id) do
-            Farmbot.HTTP.get!("#{unquote(api_resource)}/#{id}").body
+            Farmbot.HTTP.get!("#{unquote(api_resource)}/#{id}", [],
+              [recv_timeout: @timeout]).body
             |> Poison.decode!(as: %unquote(module){})
             |> enter_into_db!
           end
 
           def fetch(id) do
             resp =
-              Farmbot.HTTP.get("#{unquote(api_resource)}/#{id}")
+              Farmbot.HTTP.get("#{unquote(api_resource)}/#{id}", [],
+                [recv_timeout: @timeout])
               |> handle_http
             with {:ok, body} <- resp,
                  {:ok, json} <- Poison.decode(body, as: %unquote(module){}),

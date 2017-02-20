@@ -123,7 +123,7 @@ defmodule Farmbot.Sync do
       end)
 
     # Wait for the tasks to finish
-    tasks_with_results = Task.yield_many(tasks, 5_000)
+    tasks_with_results = Task.yield_many(tasks, 20_000)
 
     # enumerate the results
     {success, fails} =
