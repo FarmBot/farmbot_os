@@ -157,6 +157,6 @@ defmodule Farmbot.BotState do
   @spec set_sync_msg(String.t) :: :ok
   def set_sync_msg(string) do
     string = String.Casing.downcase(string)
-    GenServer.cast(Configuration, {:update_info, :sync_msg, string})
+    GenServer.cast(Configuration, {:update_info, :sync_status, string})
   end
 end
