@@ -59,8 +59,6 @@ defmodule Farmbot.CeleryScript.Command do
   # ALSO THE COMPILER CAN'T PROPERLY CHECK SOMETHING BEING THAT THE ARGS ARE
   # NOT POSITIONAL.
 
-
-
   @doc ~s"""
     Convert an ast node to a coodinate or return :error.
   """
@@ -642,7 +640,6 @@ defmodule Farmbot.CeleryScript.Command do
   @spec remove_point(%{point_id: integer}, []) :: no_return
   def remove_point(%{point_id: p_id}, []),
     do: Farmbot.HTTP.delete("/api/points/#{p_id}")
-
 
   @doc ~s"""
     Executes an ast node.
