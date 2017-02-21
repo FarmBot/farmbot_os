@@ -17,7 +17,7 @@ defmodule Farmbot do
       # Generic counter.
       worker(Counter, [], restart: :permanent),
       # The worker for diffing db entries.
-      worker(Farmbot.Sync.Database.Diff, [], restart: :permanent),
+      worker(Farmbot.Sync.Supervisor, [], restart: :permanent),
       # Handles tracking of various parts of the bots state.
       supervisor(Farmbot.BotState.Supervisor,
         [%{target: target,

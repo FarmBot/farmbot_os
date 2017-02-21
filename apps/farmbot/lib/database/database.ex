@@ -40,7 +40,7 @@ defmodule Farmbot.Sync do
       [:id, :time_offset, :regimen_id, :sequence_id]
 
     syncable Sequence, "/api/sequences",
-      [:id, :args, :body, :color, :device_id, :kind, :name]
+      [:id, :args, :body, :color, :device_id, :kind, :name], diff: true
 
     syncable ToolBay, "/api/tool_bays",
       [:id, :device_id, :name]
@@ -56,7 +56,8 @@ defmodule Farmbot.Sync do
 
     syncable FarmEvent, "/api/farm_events",
       [:id, :start_time, :end_time, :next_time,
-       :repeat, :time_unit, :executable_id, :executable_type, :calendar]
+       :repeat, :time_unit, :executable_id, :executable_type, :calendar],
+      diff: true
   end
 
   # These have to exist because Amnesia.where gets confused when you
@@ -194,8 +195,11 @@ defmodule Farmbot.Sync do
   """
   @type syncables :: [atom]
 
+  @doc """
+    All syncables
+  """
   @spec all_syncables :: syncables
-  defp all_syncables, do: [
+  def all_syncables, do: [
     Database.Device,
     Database.Peripheral,
     Database.Plant,
