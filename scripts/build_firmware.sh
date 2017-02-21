@@ -5,4 +5,5 @@ export MIX_TARGET=$SYSTEM
 echo "building firmware for $SYSTEM"
 cd apps/farmbot
 mix deps.get
+npm instlal
 mix firmware
