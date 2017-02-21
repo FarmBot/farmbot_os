@@ -74,12 +74,12 @@ defmodule Syncable do
             def handle_cast({:register, object_list}, state) when is_list(object_list) do
               # new_state = register(state, object_list)
               new_set = MapSet.new(object_list)
-              unless MapSet.equal?(state.set, new_set) do
+              if MapSet.equal?(state.set, new_set) do
+                {:noreply, state}
+              else
                 diff = MapSet.difference(new_set, state.set)
                 GenEvent.notify(EM, {unquote(module), diff})
                 {:noreply, %{state | set: new_set}}
-              else
-                {:noreply, state}
               end
             end
 
@@ -102,7 +102,6 @@ defmodule Syncable do
           end
         # IF DIFF
         end
-
 
         @timeout 20_000
 

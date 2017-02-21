@@ -17,19 +17,19 @@ defmodule Farmbot.BotState.ProcessTracker do
       Status of this process
     """
     @type status :: atom
-    @type kind :: :event | :farmware | :regimen
+    @type kind :: :farm_event | :farmware | :regimen
     @type t ::
       %__MODULE__{name: String.t, uuid: binary, status: status, stuff: map}
   end
 
   defmodule State do
     @moduledoc false
-    defstruct [events: [], regimens: [], farmwares: []]
+    defstruct [farm_events: [], regimens: [], farmwares: []]
     @type uuid :: binary
-    @type kind :: :event | :farmware | :regimen
+    @type kind :: :farm_event | :farmware | :regimen
     @type t ::
       %__MODULE__{
-        events:    [Info.t],
+        farm_events:    [Info.t],
         regimens:  [Info.t],
         farmwares: [Info.t]}
   end
@@ -195,13 +195,13 @@ defmodule Farmbot.BotState.ProcessTracker do
   @spec cast(State.t) :: no_return
   defp cast(state), do: GenServer.cast(Farmbot.BotState.Monitor, state)
 
-  @spec kind_to_key(any) :: :events | :regimens | :farmwares | no_return
-  defp kind_to_key(:event), do: :events
+  @spec kind_to_key(any) :: :farm_events | :regimens | :farmwares | no_return
+  defp kind_to_key(:farm_event), do: :farm_events
   defp kind_to_key(:regimen), do: :regimens
   defp kind_to_key(:farmware), do: :farmwares
 
   @spec key_to_module(any) :: Farmware | RegimenRunner | :TODO | no_return
-  defp key_to_module(:events), do: :TODO
+  defp key_to_module(:farm_events), do: :TODO
   defp key_to_module(:regimens), do: RegimenRunner
   defp key_to_module(:farmwares), do: Farmware
 end

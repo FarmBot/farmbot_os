@@ -25,6 +25,9 @@ defmodule Farmbot do
            version: version,
            commit: commit}], restart: :permanent),
 
+      # Handles FarmEvents
+      supervisor(FarmEvent.Supervisor, [], restart: :permanent),
+
       # Handles the passing of messages from one part of the system to another.
       supervisor(Farmbot.Transport.Supervisor, [], restart: :permanent),
 
