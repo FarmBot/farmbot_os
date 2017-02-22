@@ -130,7 +130,6 @@ export class FBSelect extends React.Component<SelectProps, Partial<SelectState>>
     return <div className={"select " + (className || "")}>
       <div className="select-search-container">
         <input type="text"
-          readOnly={true}
           onChange={this.updateInput.bind(this)}
           onFocus={this.open.bind(this)}
           onBlur={this.maybeClose}
