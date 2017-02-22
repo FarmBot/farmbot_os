@@ -23,7 +23,18 @@ defmodule Farmbot.HTTP do
     auth_headers
   end
 
-  def process_request_options(opts), do: opts |> Keyword.put(:ssl, @ssl_hack)
+  def process_request_options(opts),
+    do: opts
+        |> Keyword.put(:ssl, @ssl_hack)
+        |> Keyword.put(:follow_redirect, true)
+
+  def process_status_code(401) do
+    Logger.info ">> Token is expired!"
+    Farmbot.Auth.try_log_in
+    401
+  end
+
+  def process_status_code(code), do: code
 
   @spec build_auth :: {:ok, [any]} | {:error, :no_token}
   defp build_auth do

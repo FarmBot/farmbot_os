@@ -261,6 +261,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(:movement_invert_motor_x) do 31 end
   def parse_param(:movement_invert_motor_y) do 32 end
   def parse_param(:movement_invert_motor_z) do 33 end
+  def parse_param(:moevment_secondary_motor_x) do 36 end
   def parse_param(:movement_steps_acc_dec_x) do 41 end
   def parse_param(:movement_steps_acc_dec_y) do 42 end
   def parse_param(:movement_steps_acc_dec_z) do 43 end

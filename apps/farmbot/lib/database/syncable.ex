@@ -28,6 +28,9 @@ defmodule Syncable do
           \nRequires: #{inspect unquote(model)}
         """
 
+        # TODO(Connor) something better for this???
+        @type t :: struct
+
         # if we want the diff manager, build it here.
         if diff do
           defmodule Diff do

@@ -7,7 +7,9 @@ defmodule FarmEvent.Supervisor do
 
   def init(_) do
     children = [
-      worker(FarmEvent.DiffHandler, [], [restart: :permanent])
+      supervisor(Sequence.Supervisor, [], [restart: :permanent]),
+      supervisor(Regimen.Supervisor, [], [restart: :permanent]),
+      worker(FarmEventRunner, [], [restart: :permanent])
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)

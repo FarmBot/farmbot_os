@@ -34,13 +34,13 @@ defmodule Farmbot.Sync do
       [:id, :radius, :x, :y, :z, :meta]
 
     syncable Regimen, "/api/regimens",
-      [:id, :color, :name, :device_id]
+      [:id, :color, :name, :device_id, :regimen_items]
 
-    syncable RegimenItem, "/api/regimen_items",
-      [:id, :time_offset, :regimen_id, :sequence_id]
+    # syncable RegimenItem, "/api/regimen_items",
+    #   [:id, :time_offset, :regimen_id, :sequence_id]
 
     syncable Sequence, "/api/sequences",
-      [:id, :args, :body, :color, :device_id, :kind, :name], diff: true
+      [:id, :args, :body, :color, :device_id, :kind, :name]
 
     syncable ToolBay, "/api/tool_bays",
       [:id, :device_id, :name]
@@ -56,8 +56,7 @@ defmodule Farmbot.Sync do
 
     syncable FarmEvent, "/api/farm_events",
       [:id, :start_time, :end_time, :next_time,
-       :repeat, :time_unit, :executable_id, :executable_type, :calendar],
-      diff: true
+       :repeat, :time_unit, :executable_id, :executable_type, :calendar]
   end
 
   # These have to exist because Amnesia.where gets confused when you
@@ -74,8 +73,8 @@ defmodule Farmbot.Sync do
   @doc "Gets a point by id"
   def get_point(id), do: Helpers.get_point(id)
 
-  @doc "Gets a regimen item by id"
-  def get_regimen_item(id), do: Helpers.get_regimen_item(id)
+  # @doc "Gets a regimen item by id"
+  # def get_regimen_item(id), do: Helpers.get_regimen_item(id)
 
   @doc "Gets a regimen by id"
   def get_regimen(id), do: Helpers.get_regimen(id)
@@ -213,4 +212,15 @@ defmodule Farmbot.Sync do
     # Database.User,
     Database.FarmEvent,
   ]
+
+  defmacro __using__(_) do
+    s = all_syncables()
+    quote do
+      use Amnesia
+      for mod <- unquote(s) do
+        alias mod
+        use mod
+      end
+    end
+  end
 end

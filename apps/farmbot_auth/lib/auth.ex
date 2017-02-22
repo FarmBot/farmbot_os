@@ -4,7 +4,7 @@ defmodule Farmbot.Auth do
   """
   @modules Application.get_env(:farmbot_auth, :callbacks) ++ [__MODULE__]
   @path Application.get_env(:farmbot_system, :path)
-  @ssl_hack [ ssl: [{:versions, [:'tlsv1.2']}] ]
+  @ssl_hack [ ssl: [{:versions, [:'tlsv1.2']}], follow_redirect: true]
   @six_hours (6 * 3_600_000)
 
   use GenServer
@@ -48,6 +48,9 @@ defmodule Farmbot.Auth do
     Get a token from the server with given token
   """
   @spec get_token_from_server(binary, String.t) :: {:ok, Token.t} | {:error, atom}
+  def get_token_from_server(nil, _server), do: {:error, :no_secret}
+  def get_token_from_server(_secret, nil), do: {:error, :no_server}
+
   def get_token_from_server(secret, server) do
     # I am not sure why this is done this way other than it works.
     payload = Poison.encode!(%{user: %{credentials: :base64.encode_to_string(secret) |> String.Chars.to_string }} )
@@ -143,7 +146,7 @@ defmodule Farmbot.Auth do
   @doc """
     Reads the secret file from disk
   """
-  @spec get_secret :: {:ok, nil | binary}
+  @spec get_secret :: {:ok, nil} | {:ok, binary}
   def get_secret do
     case File.read(@path <> "/secret") do
       {:ok, sec} -> {:ok, :erlang.binary_to_term(sec)}
@@ -227,8 +230,15 @@ defmodule Farmbot.Auth do
   end
 
   def handle_call(:try_log_in, _, nil) do
-    Logger.error ">> can't log in because i have no token or credentials!"
-    {:reply, {:error, :no_token}, nil}
+    {:ok, secret} = get_secret()
+    {:ok, server} = get_server()
+    with {:ok, %Token{} = token} <- get_token_from_server(secret, server) do
+       {:reply, {:ok, token}, token}
+     else
+       e ->
+         Logger.error ">> can't log in because i have no token or credentials!"
+         {:reply, e, nil}
+    end
   end
 
 

@@ -61,7 +61,7 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   end
 
   @spec terminate(any, any) :: no_return
-  def terminate(:noamrl, _), do: :ok
+  def terminate(:normal, _), do: :ok
   def terminate(reason, _) do
     Logger.error ">>`s mqtt client died. #{inspect reason}"
     :ok

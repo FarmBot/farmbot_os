@@ -295,8 +295,9 @@ defmodule Farmbot.CeleryScript.Command do
   @spec nothing(%{}, []) :: nothing_ast
   def nothing(args, body), do: %Ast{kind: "nothing", args: args, body: body}
 
+  # TODO(Connor) make this use the sequence runner
   @doc ~s"""
-    Executes a sequence. Be carefully.
+    Executes a sequence. this one is non blocking and needs to disapear.
       args: %{},
       body: [Ast.t]
   """

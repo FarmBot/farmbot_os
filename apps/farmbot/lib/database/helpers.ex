@@ -19,7 +19,7 @@ defmodule Farmbot.Sync.Helpers do
   use FarmEvent
   use Peripheral
   use Point
-  use RegimenItem
+  # use RegimenItem
   use Regimen
   use Sequence
   use ToolBay
@@ -72,16 +72,16 @@ defmodule Farmbot.Sync.Helpers do
     |> parse_selection
   end
 
-  @doc """
-    Gets a regimen_item by id
-  """
-  @lint false
-  def get_regimen_item(find_id) do
-    Amnesia.transaction do
-      RegimenItem.where id == find_id
-    end
-    |> parse_selection
-  end
+  # @doc """
+  #   Gets a regimen_item by id
+  # """
+  # @lint false
+  # def get_regimen_item(find_id) do
+  #   Amnesia.transaction do
+  #     RegimenItem.where id == find_id
+  #   end
+  #   |> parse_selection
+  # end
 
   @doc """
     Gets a regimen by id

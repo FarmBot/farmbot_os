@@ -79,26 +79,34 @@ defmodule Farmbot.Mixfile do
 
   defp deps do
     [
+      # Hardware stuff
       {:nerves_uart, "0.1.1"}, # uart handling
       {:nerves_lib, github: "nerves-project/nerves_lib"}, # this has a good uuid
 
-      {:poison, "~> 3.0"}, # json
-      {:httpoison, github: "edgurgel/httpoison"},
+      # http stuff
+      {:poison, "~> 3.0"},
       {:ex_json_schema, "~> 0.5.3"},
+      {:httpoison, github: "edgurgel/httpoison"},
 
+      # MQTT stuff
       {:gen_mqtt, "~> 0.3.1"}, # for rpc transport
       {:vmq_commons, "1.0.0", manager: :rebar3}, # This is for mqtt to work.
 
-      {:mustache, "~> 0.0.2"}, # string templating
+      # string templating
+      {:mustache, "~> 0.0.2"},
+
+      # Time stuff
       {:timex, "~> 3.0"}, # managing time. for the scheduler mostly.
       {:quantum, ">= 1.8.1"}, # cron jobs
-      {:gen_stage, "0.11.0"},
 
       # Database
       {:amnesia, github: "meh/amnesia"}, # database implementation
 
       # Log to syslog
       {:ex_syslogger, "~> 1.3.3", only: :prod},
+
+      # Other stuff
+      {:gen_stage, "0.11.0"},
 
       # Test/Dev only
       {:credo, "0.6.0-rc1",  only: [:dev, :test]},
@@ -110,10 +118,10 @@ defmodule Farmbot.Mixfile do
       {:plug, "~> 1.0"},
       {:cors_plug, "~> 1.1"},
       {:cowboy, "~> 1.0.0"},
-      {:ex_webpack, "~> 0.1.1", runtime: false},
+      {:ex_webpack, "~> 0.1.1", runtime: false, warn_missing: false},
 
       # Farmbot Stuff
-      {:"farmbot_system_#{@target}", in_umbrella: true},
+      {:"farmbot_system_#{@target}", in_umbrella: true, warn_missing: false},
       {:farmbot_system,              in_umbrella: true},
       {:farmbot_auth,                in_umbrella: true}
     ]
@@ -140,8 +148,8 @@ defmodule Farmbot.Mixfile do
   # TODO(Connor) Maybe warn if building firmware in dev mode?
   defp aliases(_system) do
     ["deps.precompile": ["nerves.precompile", "deps.precompile"],
-      "deps.loadpaths":  ["deps.loadpaths", "nerves.loadpaths"],
-      "firmware.upload": ["farmbot.upload"]]
+     "deps.loadpaths":  ["deps.loadpaths", "nerves.loadpaths"],
+     "firmware.upload": ["farmbot.upload"]]
   end
 
   # the nerves_system_* dir to use for this build.
@@ -152,7 +160,7 @@ defmodule Farmbot.Mixfile do
 
     # if the system is local (because we have changes to it) use that
     if File.exists?("../nerves_system_#{sys}"),
-      do:   [{:"nerves_system_#{sys}", in_umbrella: true}],
+      do:   [{:"nerves_system_#{sys}", in_umbrella: true, warn_missing: false}],
       else: Mix.raise("There is no existing system package for #{sys}")
   end
 end
