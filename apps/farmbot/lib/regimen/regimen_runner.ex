@@ -50,7 +50,7 @@ defmodule RegimenRunner do
   def handle_info(:execute, state) do
     {item, regimen} = pop_item(state.regimen)
     if item do
-      SequenceRunner.add_child(item.sequence, Timex.now())
+      Elixir.Sequence.Supervisor.add_child(item.sequence, Timex.now())
       next_item = List.first(regimen.regimen_items)
       if next_item do
         next_dt = Timex.shift(state.epoch, milliseconds: next_item.time_offset)
@@ -62,14 +62,14 @@ defmodule RegimenRunner do
       else
         Logger.debug ">> #{regimen.name} is complete!"
         spawn fn() ->
-          RegimenSupervisor.remove_child(regimen)
+          Elixir.Regimen.Supervisor.remove_child(regimen)
         end
         {:noreply, :finished}
       end
     else
       Logger.debug ">> #{regimen.name} is complete!"
       spawn fn() ->
-        RegimenSupervisor.remove_child(regimen)
+        Elixir.Regimen.Supervisor.remove_child(regimen)
       end
       {:noreply, :finished}
     end
@@ -79,11 +79,6 @@ defmodule RegimenRunner do
   # when there is more than one item pop the top one
   defp pop_item(%Regimen{regimen_items: [do_this_one | items ]} = r) do
     {do_this_one, %Regimen{r | regimen_items: items}}
-  end
-
-  # when there is only one item left
-  defp pop_item(%Regimen{regimen_items: [item]} = r) do
-    {item, %Regimen{r | regimen_items: []}}
   end
 
   @doc """

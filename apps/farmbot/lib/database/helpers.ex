@@ -2,7 +2,6 @@ alias Farmbot.Sync.Database.Device
 alias Farmbot.Sync.Database.FarmEvent
 alias Farmbot.Sync.Database.Peripheral
 alias Farmbot.Sync.Database.Point
-alias Farmbot.Sync.Database.RegimenItem
 alias Farmbot.Sync.Database.Regimen
 alias Farmbot.Sync.Database.Sequence
 alias Farmbot.Sync.Database.ToolBay

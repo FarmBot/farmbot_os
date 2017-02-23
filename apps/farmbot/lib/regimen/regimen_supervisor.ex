@@ -3,6 +3,7 @@ defmodule Regimen.Supervisor do
     Supervisor for Regimens
   """
   use Supervisor
+  @behaviour Farmbot.EventSupervisor
   def start_link, do: Supervisor.start_link(__MODULE__, [], name: __MODULE__)
 
   def init(_) do

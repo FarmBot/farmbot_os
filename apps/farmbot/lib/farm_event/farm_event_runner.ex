@@ -25,8 +25,18 @@ defmodule FarmEventRunner do
     new_state = if now do
       all_events = Amnesia.transaction do
         Amnesia.Selection.values(FarmEvent.where(true))
+        # |> Enum.map(fn(farm_event) ->
+        #   # get rid of all the items that happened before last_time
+        #   calendar = Enum.filter(farm_event.calendar, fn(iso_time) ->
+        #     dt = Timex.parse! iso_time, "{ISO:Extended}"
+        #     # we only want this time if it happened after the last_time
+        #     Timex.after?(dt, now)
+        #   end)
+        #   %{farm_event | calendar: calendar}
+        # end)
       end
       {late_events, new} = do_checkup(all_events, now, state)
+      # IO.inspect all_events
       unless Enum.empty?(late_events) do
         Logger.warn "TIME TO DO STUFF: #{inspect late_events} at: #{now.hour}:#{now.minute}"
         start_events(late_events, now)
@@ -43,18 +53,17 @@ defmodule FarmEventRunner do
   defp start_events([], _now), do: :ok
   defp start_events([event | rest], now) do
     r = event.__struct__ |> Module.split |> List.last |> Module.concat(Supervisor)
-    {:ok, pid} = r.add_child(event, now)
+    {:ok, _pid} = r.add_child(event, now)
     start_events(rest, now)
   end
 
-  def terminate(reason, fe) do
+  def terminate(_reason, _fe) do
     Logger.error "UH OH!"
   end
 
   @spec get_now :: DateTime.t | nil
   defp get_now do
-    tz = Farmbot.BotState.get_config :timezone
-    if tz, do: Timex.now(tz)
+    Timex.now()
   end
 
   @type late_event :: Regimen.t | Sequence.t
@@ -65,7 +74,9 @@ defmodule FarmEventRunner do
   # it to be async at some point
   @spec do_checkup([struct], DateTime.t, late_events, state) :: {late_events, state}
   defp do_checkup(list, time, late_events \\ [], state)
+
   defp do_checkup([], _now, late_events, state), do: {late_events, state}
+
   defp do_checkup([farm_event | rest], now, late_events, state) do
     {new_late, last_time} = check_event(farm_event, now, state[farm_event.id])
     new_state = Map.put(state, farm_event.id, last_time)
@@ -85,15 +96,13 @@ defmodule FarmEventRunner do
       |> lookup(f.executable_id)
 
     # build a local start time
-    {:ok, s_utc_dt, s_sec_offset} = DateTime.from_iso8601(f.start_time)
-    start_time = s_utc_dt |> Timex.shift(seconds: s_sec_offset)
+    start_time = Timex.parse! f.start_time, "{ISO:Extended}"
 
     # is now after the start time?
     started? = Timex.after? now, start_time
 
     # build a local end_time
-    {:ok, e_utc_dt, e_sec_offset} = DateTime.from_iso8601(f.end_time)
-    end_time = e_utc_dt |> Timex.shift(seconds: e_sec_offset)
+    end_time = Timex.parse! f.end_time, "{ISO:Extended}"
 
     # is now after the end time?
     finished? = Timex.after? now, end_time
@@ -120,35 +129,46 @@ defmodule FarmEventRunner do
   # we are started, not finished, and no last time
   defp should_run?(true, false, [first_time | _], nil, now) do
     # convert the first_time to a DateTime
-    {:ok, utc_dt, sec_offset} = DateTime.from_iso8601(first_time)
-    time = utc_dt |> Timex.shift(seconds: sec_offset)
+    dt = Timex.parse! first_time, "{ISO:Extended}"
     # if now is after the time, we are in fact late
-    if Timex.after?(now, time) do
+    if Timex.after?(now, dt) do
       {true, now}
      else
       {false, nil}
     end
   end
-
+require IEx
   # we are started, not finished, and no last time
   defp should_run?(true, false, calendar, last_time, now) do
-    # get rid of all events in the calendar that happened before last_time
-    backwards_calendar = Enum.reduce(calendar, [], fn(timestr, acc) ->
-      {:ok, utc_dt, sec_offset} = DateTime.from_iso8601(timestr)
-      time = utc_dt |> Timex.shift(seconds: sec_offset)
-      if Timex.before?(time, last_time) do
-        acc
-      else
-        [time | acc]
-      end
+    # IO.puts "calendar size: #{Enum.count(calendar)}"
+    IEx.pry
+    # get rid of all the items that happened before last_time
+    calendar = Enum.filter(calendar, fn(iso_time) ->
+      dt = Timex.parse! iso_time, "{ISO:Extended}"
+      # we only want this time if it happened after the last_time
+      Timex.after?(dt, last_time)
     end)
 
-    # reverse the calendar because Elixir
-    calendar = Enum.reverse(backwards_calendar)
+    f = Enum.map(calendar, fn(item) -> Timex.parse!(item, "{ISO:Extended}") |> Timex.format!("{relative}", :relative) end)
+
+
+    # DEBUG
+    now_str = now |> Timex.format!("{relative}", :relative)
+    last_time_str = if(last_time) do Timex.format!(last_time, "{relative}", :relative) else "none" end
+    c_item = List.first(calendar)
+    maybe_next_str = if(c_item) do Timex.parse!(c_item, "{ISO:Extended}") |> Timex.format!("{relative}", :relative) else "none" end
+    IO.puts "== NOW: #{inspect now_str}"
+    IO.puts "== LAST: #{inspect last_time_str}"
+    IO.puts "== MAYBE NEXT: #{inspect maybe_next_str}"
+    IO.puts "== #{Enum.count calendar} events are scheduled to happend after: #{inspect last_time_str}\n"
+    # IO.puts "new calendar size: #{Enum.count(calendar)}"
+
+    # DEBUG
 
     case calendar do
-      [time, _] ->
-        if Timex.after?(now, time), do: {true, now}, else: {false, last_time}
+      [iso_time |  _] ->
+        dt = Timex.parse! iso_time, "{ISO:Extended}"
+        if Timex.after?(now, dt), do: {true, dt}, else: {false, last_time}
       [] -> {false, last_time}
     end
   end
