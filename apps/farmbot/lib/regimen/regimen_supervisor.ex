@@ -17,7 +17,8 @@ defmodule Regimen.Supervisor do
   """
   def add_child(regimen, time) do
     Supervisor.start_child(__MODULE__,
-      worker(RegimenRunner, [regimen, time], [restart: :permanent, id: regimen.id]))
+      worker(RegimenRunner, [regimen, time],
+        [restart: :permanent, id: regimen.id]))
   end
 
   def remove_child(regimen) do

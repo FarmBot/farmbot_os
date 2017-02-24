@@ -10,7 +10,7 @@ defmodule Farmbot.System.Updates do
   @path "/tmp/update.fw"
   require Logger
 
-  # TODO(connor): THIS IS A MINOR IMPROVEMENT FROM THE LAST VERSION OF THIS FILE,
+  # TODO(connor): THIS IS A MINOR IMPROVEMENT FROM THE LAST VERSION OF THIS FILE
   # BUT IT DEFINATELY NEEDS FURTHER REFACTORING.
 
   @spec mod(atom) :: atom
@@ -19,8 +19,8 @@ defmodule Farmbot.System.Updates do
   @doc """
     Checks for updates, and if there is an update, downloads, and applies it.
   """
-  @spec check_and_download_updates() :: :ok | {:error, term} | :no_updates
-  def check_and_download_updates() do
+  @spec check_and_download_updates :: :ok | {:error, term} | :no_updates
+  def check_and_download_updates do
     case check_updates() do
       {:update, url} ->
         Logger.info ">> has found a new Operating System update!"
@@ -37,8 +37,8 @@ defmodule Farmbot.System.Updates do
   @doc """
     Checks for updates
   """
-  @spec check_updates() :: {:update, String.t} | :no_updates | {:error, term}
-  def check_updates() do
+  @spec check_updates :: {:update, String.t} | :no_updates | {:error, term}
+  def check_updates do
     case HTTPoison.get(@releases_url <> "/latest", @headers, @ssl_hack) do
        {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
          json = Poison.decode!(body)

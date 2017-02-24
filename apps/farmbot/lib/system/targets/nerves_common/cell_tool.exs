@@ -11,7 +11,7 @@ defmodule Farmbot.System.NervesCommon.Cell do
   @cell_ssdp_server "Nerves"
   @cell_ssdp_location "/_cell/"
 
-  def setup() do
+  def setup do
     config = Application.get_all_env(:nerves_cell)
     Logger.info "setting up cell"
     Nerves.SSDPServer.publish usn(config), @cell_ssdp_st, fields(config)
@@ -33,7 +33,7 @@ defmodule Farmbot.System.NervesCommon.Cell do
   # if value truthy, add field with value optionally transformed by fn
   @spec field(Keyword.t, atom, term, function) :: Keyword.t
   defp field(fields, key, val, f \\ &(&1)) do
-    if (val) do
+    if val do
       Keyword.put fields, key, f.(val)
     else
       fields
@@ -45,6 +45,7 @@ defmodule Farmbot.System.NervesCommon.Cell do
 
   # return a board ID, or :unknown if the board ID cannot be generated
   # REVIEW TODO cache in ets, move to library, handle other board types better
+  @lint false
   defp board_id do
     try do
       {raw_id, 0} = System.cmd "boardid", ["-n", "6"]

@@ -44,7 +44,7 @@ defmodule Farmbot.System.NervesCommon.FileSystem do
         use because /tmp is read-write, we will just copy it there at every
         boot becase its easier.
       """
-      def tzdata_hack() do
+      def tzdata_hack do
         Logger.info ">> Hacking tzdata..."
         # File.cp "#{:code.priv_dir(:tzdata)}/release_ets/2016c.ets", "/tmp/"
         File.write "/tmp/latest_remote_poll.txt", "2017-2-14"
@@ -64,12 +64,13 @@ defmodule Farmbot.System.NervesCommon.FileSystem do
       defp parse_cmd({err, num}),
         do: raise "error doing command(#{num}): #{inspect err}"
 
-      defp format_state_part() do
+      defp format_state_part do
         # Format partition
         System.cmd("mkfs.#{unquote(fs_type)}", ["#{unquote(block_device)}", "-F"])
         # Mount it as read/write
         # NOTE(connor): is there a reason i did this in band?
-        System.cmd("mount", ["-t", unquote(fs_type), "-o", "rw", unquote(block_device), unquote(state_path)])
+        System.cmd("mount", ["-t", unquote(fs_type), "-o", "rw",
+          unquote(block_device), unquote(state_path)])
         # Basically a flag that says the partition is formatted.
         File.write!("#{unquote(state_path)}/.formatted", "DONT CAT ME\n")
         :ok

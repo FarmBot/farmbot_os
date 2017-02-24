@@ -18,7 +18,7 @@ defmodule Farmbot.System.FS do
     {:producer, []}
   end
 
-  @doc """
+  @doc ~s"""
     Safely executes FileSystem commands.\n
     * mounts the file system as read_write
     * executes function
@@ -34,7 +34,7 @@ defmodule Farmbot.System.FS do
   end
 
   def transaction(fun, true) when is_function(fun) do
-    timeout = 20_0000
+    timeout = 200_000
     task = Task.async(fn() ->
       GenServer.call(__MODULE__, {:add_transaction, fun, self()})
       # FIXME(Connor) this is probably.. well terrible

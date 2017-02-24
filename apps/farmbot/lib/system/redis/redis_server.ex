@@ -5,9 +5,9 @@ defmodule Redis.Server do
   @port Application.get_env(:farmbot, :redis_port)
 
   if Mix.env() == :dev do
-    def should_bind(), do: "bind 0.0.0.0"
+    def should_bind, do: "bind 0.0.0.0"
   else
-    def should_bind(), do: "bind 127.0.0.1"
+    def should_bind, do: "bind 127.0.0.1"
   end
 
   def config(path: dir), do: ~s"""
@@ -54,7 +54,7 @@ defmodule Redis.Server do
   """
   def start_link, do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
 
-  def config_file() do
+  def config_file do
     File.write("/tmp/redis.config", config(path: Farmbot.System.FS.path))
     "/tmp/redis.config"
   end

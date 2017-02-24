@@ -78,7 +78,8 @@ defmodule Farmbot.HTTP do
           if key == "file", do: {"file", file}, else:  {key, value}
         end)
       Logger.info ">> #{attachment_url} Should hopefully exist shortly!"
-      HTTPoison.post(url, {:multipart, payload}, headers)
+      url
+      |> HTTPoison.post({:multipart, payload}, headers)
       |> finish_upload(attachment_url)
     end
   end

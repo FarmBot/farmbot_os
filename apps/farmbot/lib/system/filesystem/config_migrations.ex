@@ -23,6 +23,7 @@ defmodule Farmbot.System.FS.ConfigFileMigrations do
   @doc """
     Does the migrations
   """
+  @lint false # im scared to fix this one
   def migrate(json_map) do
     list_of_files = get_migrations()
     Enum.reduce(list_of_files, json_map, fn(file,json) ->

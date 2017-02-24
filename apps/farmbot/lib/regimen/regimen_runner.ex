@@ -24,6 +24,7 @@ defmodule RegimenRunner do
     GenServer.start_link(__MODULE__, [regimen, time], name: :"regimen-#{regimen.id}")
   end
 
+  @lint false
   def init([regimen, time]) do
     # parse and sort the regimen items
     items = regimen.regimen_items
@@ -34,7 +35,8 @@ defmodule RegimenRunner do
     if first_item do
       epoch = build_epoch(time)
       first_dt = Timex.shift(epoch, milliseconds: first_item.time_offset)
-      timestr = "#{first_dt.month}/#{first_dt.day}/#{first_dt.year} at: #{first_dt.hour}:#{first_dt.minute}"
+      timestr = "#{first_dt.month}/#{first_dt.day}/#{first_dt.year} " <>
+        "at: #{first_dt.hour}:#{first_dt.minute}"
       Logger.debug "your fist item will execute on #{timestr}"
       millisecond_offset = Timex.diff(first_dt, Timex.now(), :milliseconds)
       Process.send_after(self(), :execute, millisecond_offset)
@@ -47,6 +49,7 @@ defmodule RegimenRunner do
 
   def handle_call(:get_state, _from, state), do: {:reply, state, state}
 
+  @lint false
   def handle_info(:execute, state) do
     {item, regimen} = pop_item(state.regimen)
     if item do

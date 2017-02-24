@@ -1,8 +1,11 @@
 defmodule Redis.Client do
+  @moduledoc """
+    Command line redis client
+  """
   use GenServer
   require Logger
   # 15 minutes
-  @save_time 900000
+  @save_time 900_000
   @port Application.get_env(:farmbot, :redis_port)
 
   @doc """
@@ -83,6 +86,7 @@ defmodule Redis.Client do
   defp input_map(redis, %{__struct__: _} = map, bloop),
     do: input_map(redis, map |> Map.from_struct, bloop)
 
+  @lint false
   defp input_map(redis, map, bloop) when is_map(map) do
     Enum.map(map, fn({key, value}) ->
       cond do

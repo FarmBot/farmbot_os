@@ -11,7 +11,7 @@ defmodule Farmbot.System.NervesCommon.Network do
       alias Nerves.InterimWiFi, as: NervesWifi
       alias Farmbot.System.Network.Hostapd
 
-      def start_link(), do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
+      def start_link, do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
 
       def init(_) do
         for module <- unquote(modules) do
@@ -31,7 +31,7 @@ defmodule Farmbot.System.NervesCommon.Network do
       end
 
       def start_interface(interface, %{"default" => "dhcp", "type" => "wired"} = s) do
-        NervesWifi.setup(interface, []) |> cast_start_iface(interface, s)
+        interface |> NervesWifi.setup([]) |> cast_start_iface(interface, s)
       end
 
       def start_interface(interface,
@@ -42,12 +42,13 @@ defmodule Farmbot.System.NervesCommon.Network do
         ssid = settings["ssid"]
         case settings["key_mgmt"] do
           "NONE" ->
-            NervesWifi.setup(interface, [ssid: ssid, key_mgmt: :NONE])
+            interface
+            |> NervesWifi.setup([ssid: ssid, key_mgmt: :NONE])
             |> cast_start_iface(interface, s)
           "WPA-PSK" ->
             psk = settings["psk"]
-            NervesWifi.setup(interface,
-              [ssid: ssid, key_mgmt: :"WPA-PSK", psk: psk])
+            interface
+            |> NervesWifi.setup([ssid: ssid, key_mgmt: :"WPA-PSK", psk: psk])
             |> cast_start_iface(interface, s)
         end
         :ok
@@ -57,22 +58,26 @@ defmodule Farmbot.System.NervesCommon.Network do
       %{"default" => "hostapd",
         "settings" => %{"ipv4_address" => ip_addr}, "type" => "wireless"} = s)
       do
-        Hostapd.start_link([interface: interface, ip_address: ip_addr, manager: event_manager()])
+        [interface: interface, ip_address: ip_addr, manager: event_manager()]
+        |> Hostapd.start_link()
         |> cast_start_iface(interface, s)
       end
 
       def cast_start_iface(blah, interface, settings) do
         case blah do
           {:ok, pid} ->
-            GenServer.cast(__MODULE__, {:start_interface, interface, settings, pid})
+            GenServer.cast(__MODULE__,
+              {:start_interface, interface, settings, pid})
             :ok
           {:error, :already_added} ->
             :ok
           {:error, reason} ->
-            Logger.error("Encountered an error starting #{interface}: #{reason}")
+            Logger.error("Encountered an error starting " <>
+              "#{interface}: #{reason}")
             {:error, reason}
           error ->
-            Logger.error("Encountered an error starting #{interface}: #{error}")
+            Logger.error("Encountered an error starting " <>
+              "#{interface}: #{error}")
             {:error, error}
         end
       end
@@ -90,7 +95,6 @@ defmodule Farmbot.System.NervesCommon.Network do
            []
         end
       end
-
 
       def enumerate, do: Nerves.NetworkInterface.interfaces -- ["lo"]
 

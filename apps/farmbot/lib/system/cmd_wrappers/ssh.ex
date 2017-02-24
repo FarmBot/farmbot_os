@@ -30,7 +30,7 @@ defmodule Farmbot.System.Network.SSH do
     {:ok, port}
   end
 
-  def open_port() do
+  def open_port do
     Port.open({:spawn, @cmd},
       [:stream,
        :binary,
@@ -40,7 +40,7 @@ defmodule Farmbot.System.Network.SSH do
        :stderr_to_stdout])
   end
 
-  def start_link(), do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link, do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
 
   def stop(reason) do
     GenServer.stop(__MODULE__, reason)

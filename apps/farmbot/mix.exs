@@ -119,6 +119,7 @@ defmodule Farmbot.Mixfile do
       {:ex_doc, "~> 0.14", only: :dev},
       {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
       {:faker, "~> 0.7", only: :test},
+      {:excoveralls, "~> 0.6", only: :test},
 
       # Web stuff
       {:plug, "~> 1.0"},

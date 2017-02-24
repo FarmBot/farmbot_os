@@ -27,7 +27,7 @@ defmodule Farmbot.System.Network.Ntp do
 
   def set_time(_), do: {:error, :timeout}
 
-  defp do_try_set_time(), do: do_try_set_time(0)
+  defp do_try_set_time, do: do_try_set_time(0)
   defp do_try_set_time(count) when count < 4 do
     # we try to set ntp time 3 times before giving up.
     Logger.info ">> trying to set time (try #{count})"

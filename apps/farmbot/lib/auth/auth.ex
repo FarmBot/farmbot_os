@@ -35,10 +35,12 @@ defmodule Farmbot.Auth do
     Encrypts the key with the email, pass, and server
   """
   def encrypt(email, pass, pub_key) do
-    f = Poison.encode!(%{"email": email,
-                         "password": pass,
-                         "id": Nerves.Lib.UUID.generate,
-                         "version": 1})
+    f = %{
+      "email": email,
+      "password": pass,
+      "id": Nerves.Lib.UUID.generate,
+      "version": 1}
+    |> Poison.encode!()
     |> RSA.encrypt({:public, pub_key})
     |> String.Chars.to_string
     {:ok, f}
@@ -47,14 +49,19 @@ defmodule Farmbot.Auth do
   @doc """
     Get a token from the server with given token
   """
-  @spec get_token_from_server(binary, String.t) :: {:ok, Token.t} | {:error, atom}
+  @spec get_token_from_server(binary, String.t)
+    :: {:ok, Token.t} | {:error, atom}
   def get_token_from_server(nil, _server), do: {:error, :no_secret}
   def get_token_from_server(_secret, nil), do: {:error, :no_server}
 
   def get_token_from_server(secret, server) do
     # I am not sure why this is done this way other than it works.
-    payload = Poison.encode!(%{user: %{credentials: :base64.encode_to_string(secret) |> String.Chars.to_string }} )
-    case HTTPoison.post "#{server}/api/tokens", payload, ["Content-Type": "application/json"], @ssl_hack do
+    user = %{credentials: secret |> :base64.encode_to_string |> to_string}
+    payload = Poison.encode!(%{user: user})
+    req = HTTPoison.post("#{server}/api/tokens",
+      payload, ["Content-Type": "application/json"], @ssl_hack)
+
+    case req do
       # bad Password
       {:ok, %HTTPoison.Response{status_code: 422}} ->
         {:error, :bad_password}
@@ -70,7 +77,7 @@ defmodule Farmbot.Auth do
           :ok = File.write(@path <> "/secret", :erlang.term_to_binary(secret))
           File.rm "tmp/on_failure.sh"
         end
-        Poison.decode!(body) |> Map.get("token") |> Token.create
+        body |> Poison.decode! |> Map.get("token") |> Token.create
 
       # HTTP errors
       {:error, %HTTPoison.Error{reason: reason}} ->
@@ -233,7 +240,6 @@ defmodule Farmbot.Auth do
          {:reply, e, nil}
     end
   end
-
 
   # if we do have a token.
   def handle_call(:get_token, _from, %Token{} = token) do

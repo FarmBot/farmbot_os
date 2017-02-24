@@ -38,7 +38,8 @@ defmodule FarmEventRunner do
       {late_events, new} = do_checkup(all_events, now, state)
       # IO.inspect all_events
       unless Enum.empty?(late_events) do
-        Logger.warn "TIME TO DO STUFF: #{inspect late_events} at: #{now.hour}:#{now.minute}"
+        Logger.warn "TIME TO DO STUFF: #{inspect late_events} " <>
+          " at: #{now.hour}:#{now.minute}"
         start_events(late_events, now)
       end
       new
@@ -52,7 +53,10 @@ defmodule FarmEventRunner do
   @spec start_events([Sequence.t | Regimen.t], DateTime.t) :: no_return
   defp start_events([], _now), do: :ok
   defp start_events([event | rest], now) do
-    r = event.__struct__ |> Module.split |> List.last |> Module.concat(Supervisor)
+    r = event.__struct__
+      |> Module.split
+      |> List.last
+      |> Module.concat(Supervisor)
     {:ok, _pid} = r.add_child(event, now)
     start_events(rest, now)
   end
@@ -72,7 +76,8 @@ defmodule FarmEventRunner do
   # TODO(Connor) turn this into tasks
   # NOTE(Connor) yes i could have just done an Enum.reduce here, but i want
   # it to be async at some point
-  @spec do_checkup([struct], DateTime.t, late_events, state) :: {late_events, state}
+  @spec do_checkup([struct], DateTime.t, late_events, state)
+    :: {late_events, state}
   defp do_checkup(list, time, late_events \\ [], state)
 
   defp do_checkup([], _now, late_events, state), do: {late_events, state}
@@ -87,7 +92,8 @@ defmodule FarmEventRunner do
     end
   end
 
-  @spec check_event(FarmEvent.t, DateTime.t, DateTime.t) :: {late_event | nil, DateTime.t}
+  @spec check_event(FarmEvent.t, DateTime.t, DateTime.t)
+    :: {late_event | nil, DateTime.t}
   defp check_event(%FarmEvent{} = f, now, last_time) do
     # Get the executable out of the database
     event =
@@ -137,8 +143,9 @@ defmodule FarmEventRunner do
       {false, nil}
     end
   end
-require IEx
+
   # we are started, not finished, and no last time
+  @lint false
   defp should_run?(true, false, calendar, last_time, now) do
     # IO.puts "calendar size: #{Enum.count(calendar)}"
     # IEx.pry

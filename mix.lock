@@ -15,6 +15,7 @@
   "ex_json_schema": {:hex, :ex_json_schema, "0.5.3", "f2db8eb71ca7a836607d67021d1b9c24f192dd5d1ec6b6b1c89bc934fec3bf5e", [:mix], []},
   "ex_syslogger": {:hex, :ex_syslogger, "1.3.3", "914be2c8d759d60d853790815e6cf853e4cea9e24922c01b488c172ba0b7e105", [:mix], [{:poison, ">= 1.5.0", [hex: :poison, optional: true]}, {:syslog, "~> 1.0.2", [hex: :syslog, optional: false]}]},
   "ex_webpack": {:hex, :ex_webpack, "0.1.1", "d9deca1f9adfa1fa99ee2630f79756d741f17d4865bc808cd44577304fd053e3", [:mix], []},
+  "excoveralls": {:hex, :excoveralls, "0.6.2", "0e993d096f1fbb6e70a3daced5c89aac066bda6bce57829622aa2d1e2b338cfb", [:mix], [{:exjsx, "~> 3.0", [hex: :exjsx, optional: false]}, {:hackney, ">= 0.12.0", [hex: :hackney, optional: false]}]},
   "exjsx": {:hex, :exjsx, "3.2.1", "1bc5bf1e4fd249104178f0885030bcd75a4526f4d2a1e976f4b428d347614f0f", [:mix], [{:jsx, "~> 2.8.0", [hex: :jsx, optional: false]}]},
   "exquisite": {:hex, :exquisite, "0.1.7", "4106503e976f409246731b168cd76eb54262bd04f4facc5cba82c2f53982aaf0", [:mix], []},
   "faker": {:hex, :faker, "0.7.0", "2c42deeac7be717173c78c77fb3edc749fb5d5e460e33d01fe592ae99acc2f0d", [:mix], []},

@@ -14,8 +14,11 @@ defmodule Farmbot do
              commit: commit})
   do
     children = [
+      # system specifics
       supervisor(FBSYS, [target: target], restart: :permanent),
+      # auth services
       worker(Farmbot.Auth, [], restart: :permanent),
+      # web app
       supervisor(Farmbot.Configurator, [], restart: :permanent),
       # Generic counter.
       worker(Counter, [], restart: :permanent),

@@ -15,7 +15,7 @@ defmodule Farmbot.System.FS.ConfigStorage do
 
   @type args :: binary
   @spec start_link(args) :: {:ok, pid}
-  def start_link(), do: start_link([])
+  def start_link, do: start_link([])
   def start_link(_args) do
     GenServer.start_link(__MODULE__, @config_file, name: __MODULE__)
   end

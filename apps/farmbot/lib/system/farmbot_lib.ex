@@ -22,5 +22,5 @@ defmodule Farmbot.Lib do
     # divide back by spm.
     @spec steps_to_mm(integer, integer) :: integer
     def steps_to_mm(steps, spm), do: Kernel.div(steps, spm)
-  end    
+  end
 end

@@ -51,15 +51,15 @@ defmodule Farmbot.System.Network do
   @doc """
     Lists all network interfaces that Farmbot Detected.
   """
-  @spec enumerate() :: [String.t] | {:error, term}
-  def enumerate() do
+  @spec enumerate :: [String.t] | {:error, term}
+  def enumerate do
     GenServer.call(__MODULE__, :enumerate)
   end
 
   @doc """
     Restarts networking services. This will block.
   """
-  def restart() do
+  def restart do
     stop_all()
     {:ok, interface_config} = get_config("interfaces")
     m = mod(get_mod())

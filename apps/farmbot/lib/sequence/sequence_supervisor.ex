@@ -53,7 +53,6 @@ defmodule Sequence.Supervisor do
     GenServer.call(__MODULE__, :get_state)
   end
 
-
   @spec handle_call({:add, Sequence.t}, reference, state)
     :: {:reply, {:ok, pid}, state}
   def handle_call({:add, sequence}, _from, state) do

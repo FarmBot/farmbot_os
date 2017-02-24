@@ -17,7 +17,7 @@ defmodule Farmbot.System.Network.Hostapd do
   @dnsmasq_conf_file "dnsmasq.conf"
   @dnsmasq_pid_file "dnsmasq.pid"
 
-  @doc """
+  @doc ~s"""
     Example:
       Iex> Hostapd.start_link ip_address: "192.168.24.1",
       ...> manager: Farmbot.Network.Manager, interface: "wlan0"
@@ -33,9 +33,8 @@ defmodule Farmbot.System.Network.Hostapd do
 
   # Don't lint this. Its not too complex credo.
   # No but really TODO: make this a little less complex.
-  @lint false
-  _ = @lint
   @doc false
+  @lint false
   def init([interface: interface, ip_address: ip_addr, manager: manager]) do
     Logger.info ">> is starting hostapd on #{interface}"
     # We want to know if something does.
@@ -139,7 +138,7 @@ defmodule Farmbot.System.Network.Hostapd do
   defp kill(os_pid),
     do: :ok = System.cmd("kill", ["15", "#{os_pid}"]) |> print_cmd
 
-defp print_cmd({_, 0}), do: :ok
+  defp print_cmd({_, 0}), do: :ok
   defp print_cmd({res, num}) do
     Logger.error ">> encountered an error (#{num}): #{res}"
     :error
@@ -170,7 +169,6 @@ defp print_cmd({_, 0}), do: :ok
   end
 
   defp handle_dnsmasq(_,state), do: {:noreply, state}
-
 
   def terminate(_,state) do
     Logger.info ">> is stopping hostapd"
