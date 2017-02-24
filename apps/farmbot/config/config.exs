@@ -13,7 +13,7 @@ config :logger, :console, colors: [enabled: true, info: :cyan]
 config :iex, :colors, enabled: true
 
 # send a message to these modules when we successfully log in.
-config :farmbot_auth, callbacks: [mqtt_transport]
+config :farmbot, auth_callbacks: [mqtt_transport]
 
 # frontend <-> bot transports.
 config :farmbot, transports: [mqtt_transport]

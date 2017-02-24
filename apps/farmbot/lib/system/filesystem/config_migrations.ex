@@ -3,7 +3,7 @@ defmodule Farmbot.System.FS.ConfigFileMigrations do
     Migrates a state map to the current form.
 
     # Heres how they work
-      * this module lists all the files in "#{:code.priv_dir(:farmbot_system)}/migrations"
+      * this module lists all the files in "#{:code.priv_dir(:farmbot)}/migrations"
       * it sorts them in order of dates.
       * those files are just elixir script files `*.exs`
       * said file must export ONE module, with one function function named `run\1`
@@ -18,7 +18,7 @@ defmodule Farmbot.System.FS.ConfigFileMigrations do
   """
 
   require Logger
-  @save_dir Application.get_env(:farmbot_system, :path)
+  @save_dir Application.get_env(:farmbot, :path)
 
   @doc """
     Does the migrations
@@ -32,7 +32,7 @@ defmodule Farmbot.System.FS.ConfigFileMigrations do
       unless File.exists?(migrated) do
         Logger.warn ">> running config migration: #{file}"
         {{:module, m, _s, _}, _} = Code.eval_file file, migrations_dir()
-        
+
         # TODO(Connor): Find out why m.run can return nil?
         next = m.run(json) || %{}
 
@@ -68,6 +68,6 @@ defmodule Farmbot.System.FS.ConfigFileMigrations do
     end)
   end
 
-  defp migrations_dir, do: "#{:code.priv_dir(:farmbot_system)}/migrations"
+  defp migrations_dir, do: "#{:code.priv_dir(:farmbot)}/migrations"
 
 end

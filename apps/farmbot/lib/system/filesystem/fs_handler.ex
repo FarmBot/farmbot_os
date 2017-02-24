@@ -5,7 +5,7 @@ defmodule Farmbot.System.FS do
 
   require Logger
   use GenStage
-  @path Application.get_env(:farmbot_system, :path)
+  @path Application.get_env(:farmbot, :path)
 
   def start_link(target),
     do: GenStage.start_link(__MODULE__, target, name: __MODULE__)

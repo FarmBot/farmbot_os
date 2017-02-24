@@ -40,7 +40,7 @@ defmodule Farmbot.System.NervesCommon.FileSystem do
         This needs to happen because tzdata by default polls and downloads
         things to its release dir, which is read only in nerves environments.
         to fix this we bundle the file it would normally download, and package
-        it into farmbot_system, then copy it to a configured dir for tzdata to
+        it into farmbot, then copy it to a configured dir for tzdata to
         use because /tmp is read-write, we will just copy it there at every
         boot becase its easier.
       """
@@ -49,7 +49,7 @@ defmodule Farmbot.System.NervesCommon.FileSystem do
         # File.cp "#{:code.priv_dir(:tzdata)}/release_ets/2016c.ets", "/tmp/"
         File.write "/tmp/latest_remote_poll.txt", "2017-2-14"
         File.mkdir "/tmp/release_ets"
-        File.cp_r "#{:code.priv_dir(:farmbot_system)}/release_ets/2016j.ets", "/tmp/release_ets/2016j.ets"
+        File.cp_r "#{:code.priv_dir(:farmbot)}/release_ets/2016j.ets", "/tmp/release_ets/2016j.ets"
         Logger.info ">> Hacked!"
         :ok
       end

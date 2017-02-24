@@ -8,10 +8,10 @@ defmodule Farmbot.System.FS.ConfigStorage do
   alias Farmbot.System.FS.ConfigFileMigrations, as: CFM
   require Logger
 
-  @config_file Application.get_env(:farmbot_system, :path) <> "/config.json"
-  @default_config_file_name Application.get_env(:farmbot_system, :config_file_name)
+  @config_file Application.get_env(:farmbot, :path) <> "/config.json"
+  @default_config_file_name Application.get_env(:farmbot, :config_file_name)
   defp default_config_file,
-    do: "#{:code.priv_dir(:farmbot_system)}/static/#{@default_config_file_name}"
+    do: "#{:code.priv_dir(:farmbot)}/configs/#{@default_config_file_name}"
 
   @type args :: binary
   @spec start_link(args) :: {:ok, pid}

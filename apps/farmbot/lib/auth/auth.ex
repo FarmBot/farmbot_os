@@ -2,8 +2,8 @@ defmodule Farmbot.Auth do
   @moduledoc """
     Gets a token and device information
   """
-  @modules Application.get_env(:farmbot_auth, :callbacks) ++ [__MODULE__]
-  @path Application.get_env(:farmbot_system, :path)
+  @modules Application.get_env(:farmbot, :auth_callbacks) ++ [__MODULE__]
+  @path Application.get_env(:farmbot, :path)
   @ssl_hack [ ssl: [{:versions, [:'tlsv1.2']}], follow_redirect: true]
   @six_hours (6 * 3_600_000)
 
@@ -155,22 +155,15 @@ defmodule Farmbot.Auth do
   end
 
   @doc """
-    Application entry point
-  """
-  def start(_type, args) do
-    Logger.info(">> Authorization init!")
-    start_link(args)
-  end
-
-  @doc """
     Starts the Auth GenServer
   """
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
+  def start_link do
+    GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
   # Genserver stuff
-  def init(_args) do
+  def init([]) do
+    Logger.info(">> Authorization init!")
     s_a()
     get_secret()
   end
