@@ -18,6 +18,8 @@ config :farmbot_auth, callbacks: [mqtt_transport]
 # frontend <-> bot transports.
 config :farmbot, transports: [mqtt_transport]
 
+config :farmbot, redis_port: 6379
+
 config :nerves, :firmware,
   rootfs_additions: "config/hardware/#{target}/rootfs-additions-#{env}"
 

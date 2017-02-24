@@ -3,11 +3,12 @@ defmodule Redis.Client do
   require Logger
   # 15 minutes
   @save_time 900000
+  @port Application.get_env(:farmbot, :redis_port)
 
   @doc """
     Start the redis server.
   """
-  def start_link, do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link, do: GenServer.start_link(__MODULE__, [])
 
   def init([]) do
     exe = System.find_executable("redis-cli")
@@ -18,7 +19,7 @@ defmodule Redis.Client do
        :hide,
        :use_stdio,
        :stderr_to_stdout,
-       args: []])
+       args: ["-p", "#{@port}"]])
      Process.send_after(self(), :save, @save_time)
      {:ok, %{cli: port, queue: :queue.new(), blah: nil}}
   end
@@ -32,7 +33,8 @@ defmodule Redis.Client do
   def handle_info(:save, state) do
     # Since this is a function that doesnt get executed right now, we can
     # have this GenServer call itself tehe
-    Farmbot.System.FS.transaction fn() -> Redis.Client.send("SAVE") end
+    me = self()
+    Farmbot.System.FS.transaction fn() -> Redis.Client.send_redis(me, "SAVE") end
     # send ourselves a message in x seconds
     Process.send_after(self(), :save, @save_time)
     {:noreply, state}
@@ -46,66 +48,63 @@ defmodule Redis.Client do
   @doc """
     Sends a command to redis client. This is blocking.
   """
-  @spec send(binary) :: binary
-  def send(str), do: GenServer.call(__MODULE__, {:send, str})
+  @spec send_redis(pid, binary) :: binary
+  def send_redis(pid, str), do: GenServer.call(pid, {:send, str})
 
   @doc """
     Input a value by a given key.
   """
-  @spec input_value(String.t, any) :: [String.t]
-  def input_value(key, value) when is_map(value) do
-    input_map(%{key => value})
+  @spec input_value(pid, String.t, any) :: [String.t]
+  def input_value(redis, key, value) when is_map(value) do
+    input_map(redis, %{key => value})
   end
 
-  def input_value(key, value) when is_list(value) do
-    input_list(key, value)
+  def input_value(redis, key, value) when is_list(value) do
+    input_list(redis, key, value)
   end
 
-  def input_value(key, value) when is_tuple(value) do
-    input_value(key, Tuple.to_list(value))
+  def input_value(redis, key, value) when is_tuple(value) do
+    input_value(redis, key, Tuple.to_list(value))
   end
 
-  def input_value(key, value), do: send "SET #{key} #{value}"
+  def input_value(redis, key, value), do: send_redis redis, "SET #{key} #{value}"
 
-  @doc """
-    Input a list to redis under key
-  """
-  defp input_list(key, list) do
-    send("DEL #{key}")
+  defp input_list(redis, key, list) do
+    send_redis(redis, "DEL #{key}")
     rlist = Enum.reduce(list, "", fn(item, acc) ->
       if is_binary(item) || is_integer(item),
         do: acc <> " " <> "#{item}", else: acc
     end)
-    send("RPUSH #{key} #{rlist}")
+    send_redis(redis, "RPUSH #{key} #{rlist}")
   end
 
-  @spec input_map(map | struct, String.t | nil) :: [String.t]
-  defp input_map(map, bloop \\ nil)
-  defp input_map(%{__struct__: _} = map, bloop),
-    do: map |> Map.from_struct |> input_map(bloop)
+  @spec input_map(pid, map | struct, String.t | nil) :: [String.t]
+  defp input_map(redis, map, bloop \\ nil)
+  defp input_map(redis, %{__struct__: _} = map, bloop),
+    do: input_map(redis, map |> Map.from_struct, bloop)
 
-  defp input_map(map, bloop) when is_map(map) do
+  defp input_map(redis, map, bloop) when is_map(map) do
     Enum.map(map, fn({key, value}) ->
       cond do
         is_map(value) ->
           if bloop do
-            input_map(value, "#{bloop}.#{key}")
+            input_map(redis, value, "#{bloop}.#{key}")
           else
-            input_map(value, key)
+            input_map(redis, value, key)
           end
 
         is_list(value) ->
           if bloop do
-            input_list("#{bloop}.#{key}", value)
+            input_list(redis, "#{bloop}.#{key}", value)
           else
-            input_list(key, value)
+            input_list(redis, key, value)
           end
 
         true ->
           if bloop do
-            input_value("#{bloop}.#{key}", value)
+            input_value(redis, "#{bloop}.#{key}", value)
           else
-            input_value(key, value)
+            input_value(redis, key, value)
           end
       end
     end)

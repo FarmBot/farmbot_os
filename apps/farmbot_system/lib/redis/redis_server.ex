@@ -1,8 +1,19 @@
 defmodule Redis.Server do
-def config(path: dir), do: ~s"""
-  bind 127.0.0.1
+  @moduledoc """
+    Port for a redis server
+  """
+  @port Application.get_env(:farmbot, :redis_port)
+
+  if Mix.env() == :dev do
+    def should_bind(), do: "bind 0.0.0.0"
+  else
+    def should_bind(), do: "bind 127.0.0.1"
+  end
+
+  def config(path: dir), do: ~s"""
+  #{should_bind()}
   protected-mode yes
-  port 6379
+  port #{@port}
   tcp-backlog 511
   unixsocket /tmp/redis.sock
   unixsocketperm 700
@@ -12,7 +23,7 @@ def config(path: dir), do: ~s"""
   pidfile /var/run/redis_6379.pid
   loglevel notice
   logfile ""
-  databases 16
+  databases 1
   stop-writes-on-bgsave-error yes
   rdbcompression yes
   rdbchecksum yes
@@ -59,7 +70,7 @@ def config(path: dir), do: ~s"""
        :use_stdio,
        :stderr_to_stdout,
        args: ['#{config_file()}']])
-     Port.connect(port, self())
+    #  Port.connect(port, self())
      {:ok, port}
   end
 
