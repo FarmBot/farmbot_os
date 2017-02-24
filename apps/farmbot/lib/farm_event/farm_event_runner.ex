@@ -141,7 +141,7 @@ require IEx
   # we are started, not finished, and no last time
   defp should_run?(true, false, calendar, last_time, now) do
     # IO.puts "calendar size: #{Enum.count(calendar)}"
-    IEx.pry
+    # IEx.pry
     # get rid of all the items that happened before last_time
     calendar = Enum.filter(calendar, fn(iso_time) ->
       dt = Timex.parse! iso_time, "{ISO:Extended}"

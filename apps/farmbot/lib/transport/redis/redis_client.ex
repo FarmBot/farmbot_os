@@ -12,16 +12,18 @@ defmodule Farmbot.Transport.Redis do
   def start_link, do: GenStage.start_link(__MODULE__, [], name: __MODULE__)
 
   def init(_) do
-    {:consumer, [], subscribe_to: [Farmbot.Transport]}
+    {:ok, redis} = Redis.Client.start_link
+    Process.link(redis)
+    {:consumer, redis, subscribe_to: [Farmbot.Transport]}
   end
 
-  def handle_info({_from, {:status, stuff}}, state) do
-    Redis.Client.input_value("BOT_STATUS", stuff)
-    {:noreply, [], state}
+  def handle_info({_from, {:status, stuff}}, redis) do
+    Redis.Client.input_value(redis, "BOT_STATUS", stuff)
+    {:noreply, [], redis}
   end
 
-  def handle_info(_event, state) do
+  def handle_info(_event, redis) do
     # IO.inspect event
-    {:noreply, [], state}
+    {:noreply, [], redis}
   end
 end

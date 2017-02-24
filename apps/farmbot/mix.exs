@@ -46,7 +46,7 @@ defmodule Farmbot.Mixfile do
           compat_version: @compat_version,
           version: @version,
           commit: commit()}]},
-     applications: applications(),
+     applications: applications() ++ applications(@target),
      included_applications: [:gen_mqtt, :ex_json_schema] ++ included_apps(Mix.env)]
   end
 
@@ -59,6 +59,7 @@ defmodule Farmbot.Mixfile do
       :logger,
       :nerves_uart,
       :poison,
+      :rsa,
       :httpoison,
       :nerves_lib,
       :runtime_tools,
@@ -69,13 +70,17 @@ defmodule Farmbot.Mixfile do
       :plug,
       :cors_plug,
       :cowboy,
-      :"farmbot_system_#{@target}",
-      :farmbot_system,
-      :farmbot_auth,
-      :quantum, # Quantum needs to start AFTER farmbot_system, so we can set up its dirs
-      :timex, # Timex needs to start AFTER farmbot_system, so we can set up its dirs
+      :quantum, # Quantum needs to start AFTER farmbot, so we can set up its dirs
+      :timex, # Timex needs to start AFTER farmbot, so we can set up its dirs
    ]
   end
+
+  defp applications("host"), do: []
+  defp applications(_system), do: [
+    :nerves_interim_wifi,
+    :nerves_firmware_http,
+    :nerves_ssdp_server
+  ]
 
   defp deps do
     [
@@ -87,6 +92,7 @@ defmodule Farmbot.Mixfile do
       {:poison, "~> 3.0"},
       {:ex_json_schema, "~> 0.5.3"},
       {:httpoison, github: "edgurgel/httpoison"},
+      {:rsa, "~> 0.0.1"},
 
       # MQTT stuff
       {:gen_mqtt, "~> 0.3.1"}, # for rpc transport
@@ -120,10 +126,7 @@ defmodule Farmbot.Mixfile do
       {:cowboy, "~> 1.0.0"},
       {:ex_webpack, "~> 0.1.1", runtime: false, warn_missing: false},
 
-      # Farmbot Stuff
-      {:"farmbot_system_#{@target}", in_umbrella: true, warn_missing: false},
-      {:farmbot_system,              in_umbrella: true},
-      {:farmbot_auth,                in_umbrella: true}
+      {:tzdata, "~> 0.1.201601", override: true}
     ]
   end
 
@@ -160,7 +163,12 @@ defmodule Farmbot.Mixfile do
 
     # if the system is local (because we have changes to it) use that
     if File.exists?("../nerves_system_#{sys}"),
-      do:   [{:"nerves_system_#{sys}", in_umbrella: true, warn_missing: false}],
+      do:   [
+        {:"nerves_system_#{sys}", in_umbrella: true, warn_missing: false},
+        {:nerves_interim_wifi, "~> 0.1.1"},
+        {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
+        {:nerves_ssdp_server, "~> 0.2.1"},
+        ],
       else: Mix.raise("There is no existing system package for #{sys}")
   end
 end
