@@ -14,6 +14,8 @@ defmodule Farmbot.Mixfile do
 
   def project do
     [app: :farmbot,
+     description: "The Brains of the Farmbot Project",
+     package: package(),
      test_coverage: [tool: ExCoveralls],
      version: @version,
      target:  @target,
@@ -34,9 +36,18 @@ defmodule Farmbot.Mixfile do
      source_url: "https://github.com/Farmbot/farmbot_os",
      homepage_url: "http://farmbot.io",
      docs: [main: "Farmbot",
-            logo: "priv/static/farmbot_logo.png",
-            extras: ["../../README.md", "../../BUILDING.md"]]
+            logo: "../../docs/farmbot_logo.png",
+            extras: ["../../docs/BUILDING.md",
+              "../../docs/FAQ.md",
+              "../../docs/ENVIRONMENT.md",
+              "../../README.md"]]
    ]
+  end
+
+  def package do
+    [name: "Farmbot OS",
+    maintainers: "Farmbot.io",
+    licenses: "MIT"]
   end
 
   def application do
@@ -46,7 +57,7 @@ defmodule Farmbot.Mixfile do
           compat_version: @compat_version,
           version: @version,
           commit: commit()}]},
-     applications: applications(),
+     applications: applications() ++ applications(@target),
      included_applications: [:gen_mqtt, :ex_json_schema] ++ included_apps(Mix.env)]
   end
 
@@ -59,6 +70,7 @@ defmodule Farmbot.Mixfile do
       :logger,
       :nerves_uart,
       :poison,
+      :rsa,
       :httpoison,
       :nerves_lib,
       :runtime_tools,
@@ -69,30 +81,40 @@ defmodule Farmbot.Mixfile do
       :plug,
       :cors_plug,
       :cowboy,
-      :"farmbot_system_#{@target}",
-      :farmbot_system,
-      :farmbot_auth,
-      :quantum, # Quantum needs to start AFTER farmbot_system, so we can set up its dirs
-      :timex, # Timex needs to start AFTER farmbot_system, so we can set up its dirs
+      :quantum, # Quantum needs to start AFTER farmbot, so we can set up its dirs
+      :timex, # Timex needs to start AFTER farmbot, so we can set up its dirs
    ]
   end
 
+  defp applications("host"), do: []
+  defp applications(_system), do: [
+    :nerves_interim_wifi,
+    :nerves_firmware_http,
+    :nerves_ssdp_server
+  ]
+
   defp deps do
     [
+      # Hardware stuff
       {:nerves_uart, "0.1.1"}, # uart handling
       {:nerves_lib, github: "nerves-project/nerves_lib"}, # this has a good uuid
 
-      {:poison, "~> 3.0"}, # json
-      {:httpoison, github: "edgurgel/httpoison"},
+      # http stuff
+      {:poison, "~> 3.0"},
       {:ex_json_schema, "~> 0.5.3"},
+      {:httpoison, github: "edgurgel/httpoison"},
+      {:rsa, "~> 0.0.1"},
 
+      # MQTT stuff
       {:gen_mqtt, "~> 0.3.1"}, # for rpc transport
       {:vmq_commons, "1.0.0", manager: :rebar3}, # This is for mqtt to work.
 
-      {:mustache, "~> 0.0.2"}, # string templating
+      # string templating
+      {:mustache, "~> 0.0.2"},
+
+      # Time stuff
       {:timex, "~> 3.0"}, # managing time. for the scheduler mostly.
       {:quantum, ">= 1.8.1"}, # cron jobs
-      {:gen_stage, "0.11.0"},
 
       # Database
       {:amnesia, github: "meh/amnesia"}, # database implementation
@@ -100,22 +122,23 @@ defmodule Farmbot.Mixfile do
       # Log to syslog
       {:ex_syslogger, "~> 1.3.3", only: :prod},
 
+      # Other stuff
+      {:gen_stage, "0.11.0"},
+
       # Test/Dev only
       {:credo, "0.6.0-rc1",  only: [:dev, :test]},
       {:ex_doc, "~> 0.14", only: :dev},
       {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
       {:faker, "~> 0.7", only: :test},
+      {:excoveralls, "~> 0.6", only: :test},
 
       # Web stuff
       {:plug, "~> 1.0"},
       {:cors_plug, "~> 1.1"},
       {:cowboy, "~> 1.0.0"},
-      {:ex_webpack, "~> 0.1.1", runtime: false},
+      {:ex_webpack, "~> 0.1.1", runtime: false, warn_missing: false},
 
-      # Farmbot Stuff
-      {:"farmbot_system_#{@target}", in_umbrella: true},
-      {:farmbot_system,              in_umbrella: true},
-      {:farmbot_auth,                in_umbrella: true}
+      {:tzdata, "~> 0.1.201601", override: true}
     ]
   end
 
@@ -132,7 +155,7 @@ defmodule Farmbot.Mixfile do
   # this is for cross compilation to work
   # New version of nerves might not need this?
   defp aliases("host"), do: [
-    "firmware": ["farmbot.warning"],
+    "firmware": ["compile"],
     "firmware.push": ["farmbot.warning"],
     "credo": ["credo list --only readability,warning,todo,inspect,refactor --ignore-checks todo,spec"],
     "test": ["test", "credo"]]
@@ -140,8 +163,8 @@ defmodule Farmbot.Mixfile do
   # TODO(Connor) Maybe warn if building firmware in dev mode?
   defp aliases(_system) do
     ["deps.precompile": ["nerves.precompile", "deps.precompile"],
-      "deps.loadpaths":  ["deps.loadpaths", "nerves.loadpaths"],
-      "firmware.upload": ["farmbot.upload"]]
+     "deps.loadpaths":  ["deps.loadpaths", "nerves.loadpaths"],
+     "firmware.upload": ["farmbot.upload"]]
   end
 
   # the nerves_system_* dir to use for this build.
@@ -152,7 +175,12 @@ defmodule Farmbot.Mixfile do
 
     # if the system is local (because we have changes to it) use that
     if File.exists?("../nerves_system_#{sys}"),
-      do:   [{:"nerves_system_#{sys}", in_umbrella: true}],
+      do:   [
+        {:"nerves_system_#{sys}", in_umbrella: true, warn_missing: false},
+        {:nerves_interim_wifi, "~> 0.1.1"},
+        {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
+        {:nerves_ssdp_server, "~> 0.2.1"},
+        ],
       else: Mix.raise("There is no existing system package for #{sys}")
   end
 end

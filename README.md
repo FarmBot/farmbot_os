@@ -37,7 +37,7 @@ To update the firmware on the Raspberry Pi (Only version 3 for now) and the Ardu
 
 # Problems?
 
-See the [FAQ](FAQ.md)
+See the [FAQ](faq.html)
 If your problem isn't solved there please file an issue on [Github](https://github.com/FarmBot/farmbot_os/issues/new)
 
 # Want to Help?

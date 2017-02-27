@@ -133,7 +133,7 @@ defmodule Farmbot.BotState.Configuration do
   end
 
   def handle_call({:update_config, "timezone", value}, _from, %State{} = state)
-  when is_bitstring(value) do
+  when is_binary(value) do
     new_config = Map.put(state.configuration, :timezone, value)
     new_state = %State{state | configuration: new_config}
     put_config("timezone", value)

@@ -27,11 +27,10 @@ input:not([type="checkbox"]) {
     width: 100%;
     border: 0;
     padding: 6px 8px;
-    box-shadow: 0px 0px 10px $light_gray;
+    box-shadow: none;
     outline: none;
     &:focus {
         background-color: $white;
-        box-shadow: 0px 0px 10px $translucent;
     }
 }
 
@@ -92,6 +91,9 @@ button {
         border-top: 1px solid transparent!important;
         transform: translateY(1px);
     }
+    &.save-interface-button {
+        margin-bottom: 2rem;
+    }
 }
 
 fieldset {
@@ -127,8 +129,83 @@ fieldset {
         color: $dark_gray;
         cursor: pointer;
         position: absolute;
-        top: 0.2rem;
+        top: 6.8rem;
         right: 1rem;
         font-size: 1.6rem;
+        &.password {
+            &:hover {
+                color: $medium_gray;
+            }
+            color: $light_gray;
+        }
+    }
+    &.web {
+        .fa {
+            top: 2.8rem;
+        }
+    }
+    &:not(.web) {
+        input:first-of-type {
+            margin-bottom: 1rem;
+        }
+    }
+}
+
+.expand-logs-icon {
+    cursor: pointer;
+    margin-left: 1rem;
+    color: $light_gray;
+    &:hover {
+        color: $black;
+    }
+    &.is-expanded-true {
+        color: $black;
+    }
+}
+
+.select {
+    position: relative;
+    .select-results-container {
+        position: absolute;
+        left: 0;
+        right: 0;
+        z-index: 2;
+        max-height: 140px;
+        overflow: scroll;
+        &.is-open-false {
+            display: none;
+        }
+        &.is-open-true {
+            display: block;
+        }
+    }
+    .select-result {
+        background: $off_white;
+        padding: 0.2rem 0 0.2rem 1.4rem;
+        border-bottom: 1px solid $gray;
+        cursor: pointer;
+        &:hover {
+            background: $light_gray;
+        }
+        &.is-hidden {
+            display: none;
+        }
+        &.is-header {
+            text-transform: uppercase;
+            padding-left: 1rem;
+            border-bottom: none;
+            pointer-events: none;
+            label {
+                text-transform: uppercase;
+                font-weight: bold;
+                padding-left: 0px;
+            }
+        }
+        label {
+            margin-top: 0 !important;
+            text-transform: none;
+            font-weight: normal;
+            cursor: pointer;
+        }
     }
 }

@@ -2,7 +2,6 @@ alias Farmbot.Sync.Database.Device
 alias Farmbot.Sync.Database.FarmEvent
 alias Farmbot.Sync.Database.Peripheral
 alias Farmbot.Sync.Database.Point
-alias Farmbot.Sync.Database.RegimenItem
 alias Farmbot.Sync.Database.Regimen
 alias Farmbot.Sync.Database.Sequence
 alias Farmbot.Sync.Database.ToolBay
@@ -19,7 +18,7 @@ defmodule Farmbot.Sync.Helpers do
   use FarmEvent
   use Peripheral
   use Point
-  use RegimenItem
+  # use RegimenItem
   use Regimen
   use Sequence
   use ToolBay
@@ -72,16 +71,16 @@ defmodule Farmbot.Sync.Helpers do
     |> parse_selection
   end
 
-  @doc """
-    Gets a regimen_item by id
-  """
-  @lint false
-  def get_regimen_item(find_id) do
-    Amnesia.transaction do
-      RegimenItem.where id == find_id
-    end
-    |> parse_selection
-  end
+  # @doc """
+  #   Gets a regimen_item by id
+  # """
+  # @lint false
+  # def get_regimen_item(find_id) do
+  #   Amnesia.transaction do
+  #     RegimenItem.where id == find_id
+  #   end
+  #   |> parse_selection
+  # end
 
   @doc """
     Gets a regimen by id

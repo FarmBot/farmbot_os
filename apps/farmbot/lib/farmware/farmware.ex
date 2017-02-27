@@ -38,6 +38,7 @@ defmodule Farmware do
   alias Farmware.Tracker
   alias Farmbot.BotState.ProcessTracker, as: PT
   require Logger
+  @behaviour Farmbot.ProcessRunner
 
   @spec raise_if_exists(binary, map) :: no_return
   defp raise_if_exists(path, manifest) do
@@ -126,6 +127,16 @@ defmodule Farmware do
       raise "Could not find Farmware: #{package_name}"
     end
   end
+
+  @doc """
+    Starts a farm process. Callback from ProcessTracker
+  """
+  def start_process(package_name), do: execute(package_name)
+
+  @doc """
+    Stops a farm process. Callback from ProcessTracker
+  """
+  def stop_process(_package_name), do: :ok
 
   @doc """
     Executes a Farmware Package

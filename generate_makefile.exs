@@ -20,9 +20,17 @@ clean:
 \t$(info Cleaning)
 \trm -rf apps/NERVES_SYSTEM_*
 \trm -rf apps/farmbot/_images
+\trm -rf apps/farmbot/npm-debug*
+\trm -rf apps/farmbot/doc
+\trm -rf apps/farmbot/erl_crash.dump
+\trm -rf apps/farmbot/node_modules
+\trm -rf apps/farmbot/cache
 \trm -rf apps/nerves_system_br
 \trm -rf deps
 \trm -rf _build
+\trm -rf images
+\trm -rf doc
+\trm -rf erl_crash.dump
 
 test: dev_env
 \tscripts/run_tests.sh

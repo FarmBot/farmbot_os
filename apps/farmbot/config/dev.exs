@@ -1,4 +1,4 @@
 use Mix.Config
 config :farmbot,
-  configurator_port: 4000,
-  streamer_port: 4040
+  configurator_port: System.get_env("CONFIGURATOR_PORT") || 5000,
+  streamer_port: System.get_env("STREAMER_PORT") || 5050

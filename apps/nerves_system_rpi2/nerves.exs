@@ -1,7 +1,6 @@
 use Mix.Config
 
-version =
-  Path.join(__DIR__, "VERSION")
+@version Path.join([__DIR__, "..", "farmbot", "VERSION"])
   |> File.read!
   |> String.strip
 
@@ -13,7 +12,7 @@ config pkg, :nerves_env,
   version: version,
   compiler: :nerves_package,
   artifact_url: [
-    "https://github.com/FarmBot/farmbot_os/releases/download/v#{version}/farmbot.rootfs-#{pkg}-v#{version}.tar.gz"
+    "https://github.com/FarmBot/farmbot_os/releases/download/v#{version}/farmbot.rootfs-#{nerves_target}-#{version}.tar.gz"
   ],
   platform: Nerves.System.BR,
   platform_config: [

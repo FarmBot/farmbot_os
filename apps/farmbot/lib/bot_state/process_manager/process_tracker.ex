@@ -6,6 +6,7 @@ defmodule Farmbot.BotState.ProcessTracker do
     FarmbotJS will see the uuids here. If they are registered, that does not
     mean they are running.
   """
+
   use GenServer
   require Logger
   alias Nerves.Lib.UUID
@@ -17,21 +18,21 @@ defmodule Farmbot.BotState.ProcessTracker do
       Status of this process
     """
     @type status :: atom
-    @type kind :: :event | :farmware | :regimen
+    @type stuff :: any
+    @type kind :: :regimen | :farmware
     @type t ::
-      %__MODULE__{name: String.t, uuid: binary, status: status, stuff: map}
+      %__MODULE__{name: String.t, uuid: binary, status: status, stuff: stuff}
   end
 
   defmodule State do
     @moduledoc false
-    defstruct [events: [], regimens: [], farmwares: []]
+    defstruct [regimens: [], farmwares: []]
     @type uuid :: binary
-    @type kind :: :event | :farmware | :regimen
+    @type kind :: :farmware | :regimen
     @type t ::
       %__MODULE__{
-        events:    [Info.t],
-        regimens:  [Info.t],
-        farmwares: [Info.t]}
+        regimens:    [Info.t],
+        farmwares:   [Info.t]}
   end
 
   @spec init([]) :: {:ok, State.t}
@@ -101,7 +102,7 @@ defmodule Farmbot.BotState.ProcessTracker do
       {key, info} = thing
       Logger.info ">> is starting a #{key} #{info.name}"
       mod = key_to_module(key)
-      r = mod.execute(info.stuff)
+      r = mod.start_process(info.stuff)
       # TODO(Connor) update status here
       dispatch(r, state)
     else
@@ -115,7 +116,7 @@ defmodule Farmbot.BotState.ProcessTracker do
     if thing do
       {key, info} = thing
       Logger.info ">> is stoping a #{key} #{info.name}"
-      r = key_to_module(key).stop(info.uuid)
+      r = key_to_module(key).stop_process(info.stuff)
       # update status here
       dispatch(r, state)
     else
@@ -195,13 +196,11 @@ defmodule Farmbot.BotState.ProcessTracker do
   @spec cast(State.t) :: no_return
   defp cast(state), do: GenServer.cast(Farmbot.BotState.Monitor, state)
 
-  @spec kind_to_key(any) :: :events | :regimens | :farmwares | no_return
-  defp kind_to_key(:event), do: :events
+  @spec kind_to_key(any) :: :regimens | :farmwares | no_return
   defp kind_to_key(:regimen), do: :regimens
   defp kind_to_key(:farmware), do: :farmwares
 
-  @spec key_to_module(any) :: Farmware | RegimenRunner | :TODO | no_return
-  defp key_to_module(:events), do: :TODO
+  @spec key_to_module(any) :: Farmware | RegimenRunner
   defp key_to_module(:regimens), do: RegimenRunner
   defp key_to_module(:farmwares), do: Farmware
 end

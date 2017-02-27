@@ -44,7 +44,8 @@ defmodule Farmbot.ImageWatcher do
         {:ok, _} ->
           File.rm!(path)
           :ok
-        {:error, reason} -> {:error, reason}
+        {:error, reason} ->
+          {:error, reason}
         error -> {:error,  error}
       end
     end)

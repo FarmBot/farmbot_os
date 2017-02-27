@@ -5,6 +5,7 @@ defmodule Farmbot do
   require Logger
   use Supervisor
   alias Farmbot.Sync.Database
+  alias Farmbot.System.Supervisor, as: FBSYS
 
   @spec init(map) :: [{:ok, pid}]
   def init(%{target: target,
@@ -13,17 +14,25 @@ defmodule Farmbot do
              commit: commit})
   do
     children = [
+      # system specifics
+      supervisor(FBSYS, [target: target], restart: :permanent),
+      # auth services
+      worker(Farmbot.Auth, [], restart: :permanent),
+      # web app
       supervisor(Farmbot.Configurator, [], restart: :permanent),
       # Generic counter.
       worker(Counter, [], restart: :permanent),
       # The worker for diffing db entries.
-      worker(Farmbot.Sync.Database.Diff, [], restart: :permanent),
+      worker(Farmbot.Sync.Supervisor, [], restart: :permanent),
       # Handles tracking of various parts of the bots state.
       supervisor(Farmbot.BotState.Supervisor,
         [%{target: target,
            compat_version: compat_version,
            version: version,
            commit: commit}], restart: :permanent),
+
+      # Handles FarmEvents
+      supervisor(FarmEvent.Supervisor, [], restart: :permanent),
 
       # Handles the passing of messages from one part of the system to another.
       supervisor(Farmbot.Transport.Supervisor, [], restart: :permanent),
@@ -39,9 +48,10 @@ defmodule Farmbot do
   end
 
   @doc """
-    Starts the Farmbot Application
+    Entry Point to Farmbot
   """
   @spec start(atom, [any]) :: {:ok, pid}
+  def start(type, args)
   def start(_, [args]) do
     Logger.info ">> init!"
     Amnesia.start

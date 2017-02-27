@@ -6,6 +6,7 @@ import { ConfigFileNetIface, IfaceType } from "./interfaces";
 import { TZSelect } from "./tz_select";
 import { AdvancedSettings } from "./advanced_settings";
 import * as Select from "react-select";
+import * as _ from "lodash";
 
 interface MainProps {
   mobx: MainState;
@@ -18,7 +19,9 @@ interface FormState {
   pass?: null | string;
   server?: null | string;
   urlIsOpen?: boolean;
-  showPassword?: boolean;
+  showWifiPassword?: boolean;
+  showWebPassword?: boolean;
+  logExpanded?: boolean;
   hiddenAdvancedWidget?: null | number;
   showCustomNetworkWidget?: null | boolean;
   ssidSelection?: { [name: string]: string };
@@ -41,7 +44,9 @@ export class Main extends React.Component<MainProps, FormState> {
       pass: null,
       server: null,
       urlIsOpen: false,
-      showPassword: false,
+      showWifiPassword: false,
+      showWebPassword: false,
+      logExpanded: false,
       hiddenAdvancedWidget: 0,
       showCustomNetworkWidget: false,
       ssidSelection: {},
@@ -123,7 +128,7 @@ export class Main extends React.Component<MainProps, FormState> {
   }
 
   buildNetworkConfig(config: { [name: string]: ConfigFileNetIface }) {
-    let passwordIsShown = this.state.showPassword ? "text" : "password";
+    let wifiPasswordIsShown = this.state.showWifiPassword ? "text" : "password";
     let ssidArray = this.props.mobx.ssids.map((val) => { return { value: val, label: val } });
     let mobx = this.props.mobx;
     let that = this;
@@ -209,7 +214,10 @@ export class Main extends React.Component<MainProps, FormState> {
             mobx.addInterface(blah, blahConfig);
             that.forceUpdate(); // what am i doing.
           }
-        }}> Save interface </button>
+        }}
+          className="save-interface-button">
+          Save interface
+          </button>
       </div>;
     }
 
@@ -219,7 +227,7 @@ export class Main extends React.Component<MainProps, FormState> {
           <label>No Network devices detected!</label>
           {/* Scan button */}
           <button type="button"
-            className="scan-button"
+            className="add-interface-button"
             onClick={() => {
               mobx.enumerateInterfaces();
               that.setState({ showCustomNetworkWidget: !that.state.showCustomNetworkWidget })
@@ -246,7 +254,7 @@ export class Main extends React.Component<MainProps, FormState> {
               // select box, and a password box
               case "wireless":
                 return <div key={ifaceName}>
-                  <fieldset>
+                  <fieldset className="password-group">
                     <label>
                       WiFi ( {ifaceName} )
                     </label>
@@ -278,20 +286,18 @@ export class Main extends React.Component<MainProps, FormState> {
                         { type: "wireless", default: "dhcp", settings: { ssid: value } });
                     }))}
 
-                    <span className="password-group">
-                      <i onClick={this.showHidePassword.bind(this)}
-                        className="fa fa-eye"></i>
+                    <i onClick={this.showHideWifiPassword.bind(this)}
+                      className={"fa fa-eye " + wifiPasswordIsShown}></i>
 
-                      <input type={passwordIsShown} onChange={(event) => {
-                        this.props.mobx.updateInterface(ifaceName,
-                          {
-                            settings: {
-                              psk: event.currentTarget.value,
-                              key_mgmt: "WPA-PSK"
-                            }
-                          })
-                      }} />
-                    </span>
+                    <input type={wifiPasswordIsShown} onChange={(event) => {
+                      this.props.mobx.updateInterface(ifaceName,
+                        {
+                          settings: {
+                            psk: event.currentTarget.value,
+                            key_mgmt: "WPA-PSK"
+                          }
+                        })
+                    }} />
                   </fieldset>
                 </div>
 
@@ -325,15 +331,28 @@ export class Main extends React.Component<MainProps, FormState> {
     this.setState({ urlIsOpen: !this.state.urlIsOpen });
   }
 
-  showHidePassword() {
-    this.setState({ showPassword: !this.state.showPassword });
+  showHideWifiPassword() {
+    this.setState({ showWifiPassword: !this.state.showWifiPassword });
+  }
+
+  showHideWebPassword() {
+    this.setState({ showWebPassword: !this.state.showWebPassword });
+  }
+
+  toggleExpandedLog() {
+    this.setState({ logExpanded: !this.state.logExpanded });
   }
 
   render() {
     let mainState = this.props.mobx;
-    let icon = this.state.urlIsOpen ? "minus" : "plus";
+    let webPasswordIsShown = this.state.showWebPassword ? "text" : "password";
+    let icon = this.state.urlIsOpen ? "minus" : "cog";
     let header = this.state.connecting ? "Configuration is Complete!" : "Configure Your FarmBot";
     let text = this.state.connecting ? "FarmBot will now restart and attempt to connect to the web app. Login to your web app account to verify that FarmBot has connected. If it fails, the configurator will automatically restart and you can try again." : "Your web browser is having trouble connecting to the configurator. Are you using a modern updated browser? If so, your OS might be corrupted and need to be re-flashed";
+    let logMessage = mainState.logs[mainState.logs.length - 1].message
+    let finalMessage = (logMessage.length > 80 && !this.state.logExpanded) ?
+      _.truncate(logMessage, { length: 80 }) : logMessage;
+    let logIcon = this.state.logExpanded ? "minus" : "plus";
 
     let submitText = this.state.connecting ? "SUBMITTING CONFIGURATION!" : "SUBMIT CONFIGURATION";
 
@@ -410,12 +429,14 @@ export class Main extends React.Component<MainProps, FormState> {
                   onChange={this.handleEmailChange} />
               </fieldset>
 
-              <fieldset>
+              <fieldset className="password-group web">
                 <label htmlFor="password">
                   Password
                 </label>
-                <input type="password"
+                <input type={webPasswordIsShown}
                   onChange={this.handlePassChange} />
+                <i onClick={this.showHideWebPassword.bind(this)}
+                  className={"fa fa-eye " + webPasswordIsShown}></i>
               </fieldset>
 
               {this.state.urlIsOpen && (
@@ -444,8 +465,11 @@ export class Main extends React.Component<MainProps, FormState> {
               </div>
             </i>
           </div>
-          <div className="widget-content">
-            {this.props.mobx.logs[this.props.mobx.logs.length - 1].message}
+          <div className="widget-content log-message">
+            {finalMessage}
+            <i className={`fa fa-${logIcon} expand-logs-icon 
+            is-expanded-${this.state.logExpanded}`}
+              onClick={this.toggleExpandedLog.bind(this)}></i>
           </div>
         </div>
 

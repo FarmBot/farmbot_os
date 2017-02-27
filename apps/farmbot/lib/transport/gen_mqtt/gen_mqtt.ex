@@ -57,6 +57,11 @@ defmodule Farmbot.Transport.GenMqtt do
     {:noreply, [], {pid,new_t}}
   end
 
+  def handle_info({:authorization, %Token{} = new_t}, {_, _}) do
+    {:ok, pid} = start_client(new_t)
+    {:noreply, [], {pid,new_t}}
+  end
+
   def handle_info({_from, event}, {client, %Token{} = _token} = state)
   when is_pid(client) do
     Client.cast(client, event)
