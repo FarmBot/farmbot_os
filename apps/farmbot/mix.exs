@@ -31,6 +31,9 @@ defmodule Farmbot.Mixfile do
      aliases: aliases(@target),
      deps:    deps() ++ system(@target),
      name: "Farmbot",
+     preferred_cli_env: [
+       vcr: :test, "vcr.delete": :test, "vcr.check": :test, "vcr.show": :test
+     ],
      webpack_watch: Mix.env == :dev,
      webpack_cd: ".",
      source_url: "https://github.com/Farmbot/farmbot_os",

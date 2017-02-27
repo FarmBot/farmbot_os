@@ -19,52 +19,67 @@ defmodule Farmbot.AuthTest do
   end
 
   test "logs in" do
-    good_interim()
-    {:ok, login_token} = Farmbot.Auth.try_log_in
-    assert match?(%Farmbot.Token{}, login_token)
+    use_cassette "good_login" do
+      good_interim()
+      {:ok, login_token} = Farmbot.Auth.try_log_in
+      assert match?(%Farmbot.Token{}, login_token)
+    end
   end
 
   test "gets the current token" do
-    good_interim()
-    {:ok, login_token} = Farmbot.Auth.try_log_in
-    {:ok, token} = Auth.get_token
-    assert login_token == token
+    use_cassette "good_login" do
+      good_interim()
+      {:ok, login_token} = Farmbot.Auth.try_log_in
+      {:ok, token} = Auth.get_token
+      assert login_token == token
+    end
   end
 
   test "gets the current server" do
-    good_interim()
-    {:ok, server} = Auth.get_server
-    assert server == "http://localhost:3000"
+    use_cassette "good_login" do
+      good_interim()
+      {:ok, server} = Auth.get_server
+      assert server == "http://localhost:3000"
+    end
   end
 
   test "doesnt get a token on bad creds" do
-    bad_interim()
-    {:error, reason} = Auth.try_log_in
-    assert reason == :bad_password
+    use_cassette "bad_login" do
+      bad_interim()
+      {:error, reason} = Auth.try_log_in
+      assert reason == :bad_password
+    end
   end
 
   test "logs in aggressivly" do
-    good_interim()
-    {:ok, login_token} = Farmbot.Auth.try_log_in!
-    assert match?(%Farmbot.Token{}, login_token)
+    use_cassette "good_login" do
+      good_interim()
+      {:ok, login_token} = Farmbot.Auth.try_log_in!
+      assert match?(%Farmbot.Token{}, login_token)
+    end
   end
 
   test "logs in with creds, then with a secret" do
-    good_interim()
-    {:ok, login_token} = Farmbot.Auth.try_log_in
-    assert match?(%Farmbot.Token{}, login_token)
+    use_cassette "good_login" do
 
-    Process.sleep(100)
+      good_interim()
+      {:ok, login_token} = Farmbot.Auth.try_log_in
+      assert match?(%Farmbot.Token{}, login_token)
 
-    {:ok, new_token} = Farmbot.Auth.try_log_in
-    assert match?(%Farmbot.Token{}, new_token)
+      Process.sleep(100)
+
+      {:ok, new_token} = Farmbot.Auth.try_log_in
+      assert match?(%Farmbot.Token{}, new_token)
+    end
   end
 
   test "factory resets the bot on bad log in" do
-    bad_interim()
-    with_mock Farmbot.System, [factory_reset: fn -> :ok end] do
-      Auth.try_log_in!()
-      assert called Farmbot.System.factory_reset()
+    use_cassette "bad_login" do
+      bad_interim()
+      with_mock Farmbot.System, [factory_reset: fn -> :ok end] do
+        Auth.try_log_in!()
+        assert called Farmbot.System.factory_reset()
+      end
     end
   end
 

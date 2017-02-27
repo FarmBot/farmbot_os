@@ -1,0 +1,76 @@
+[
+  {
+    "request": {
+      "body": "{\"user\":{\"credentials\":\"h6Rzr2zfHXU7X+ESdNzmRtXRXuNzv91pKRe0Sp2Ul6krwjSjD0TY7OCBU34HyiTFcqj6G4N9uptzJXlHgRtfbmtuNkH2V6V1qdDfF2gIkv9kXL52IkWPMe1BTGi91UoLloBqlOV8P7wpJKUsQyRCGvOENtmRPG2EiSD6G6pS3dFe01i/MMqB46OJ9cuMHGIrHOk57Y9RbumvMUXKRbdxRu2rtiydV827NiGTyl649JvaKIlCwCnjMdYywlF0+mLa2lJqjEn5fs8KKbjTEE4mLufa6Q1VI9Lb2IS5v6F657KM1MTwV6jQuw9jzU1536h+IRoWCJiU2kfpJN8Pwv5Lag==\"}}",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "method": "post",
+      "options": {
+        "follow_redirect": true,
+        "ssl_options": {
+          "versions": [
+            "tlsv1.2"
+          ]
+        }
+      },
+      "request_body": "",
+      "url": "http://localhost:3000/api/tokens"
+    },
+    "response": {
+      "body": "{\"token\":{\"unencoded\":{\"sub\":\"admin@admin.com\",\"iat\":1488218753,\"jti\":\"aaa41dcb-bff2-4f83-853a-b97de9cac051\",\"iss\":\"//192.168.29.165:3000\",\"exp\":1491674753,\"mqtt\":\"192.168.29.165\",\"os_update_server\":\"https://api.github.com/repos/farmbot/farmbot_os/releases/latest\",\"fw_update_server\":\"https://api.github.com/repos/Farmbot/farmbot-arduino-firmware/releases/latest\",\"bot\":\"device_2\"},\"encoded\":\"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0ODgyMTg3NTMsImp0aSI6ImFhYTQxZGNiLWJmZjItNGY4My04NTNhLWI5N2RlOWNhYzA1MSIsImlzcyI6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5MTY3NDc1MywibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFybWJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZGF0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVhc2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV8yIn0.QN7TjQM19j_cJWLq42Dtfbz7IVJOaZTXV9G6U2bCHpLbE6cj8ZIAIXbAeR8h_oqmMq0VEDWOU70wXhxPkHsDuJku1Gvd3qP-S-lwTFE_PAIKj4qDaEkKj6g5faknvpAYKjg5BXhYj8M2qvL3txbEAA1jDKblqavhrjXS_MMgcrGUTbpSh8kfRkGS7DIci6aaBdFbzNoTcvEaJAsB330rnv5yzhqaiqb7RmMuQUv-vNP44uvWkEy-ZKcyQwf9NokwDYu_rBJDqm9NyBd9X9SV-FHAFW8NNL9SEhn0qk1UXSbJq0hj3RmGBJoicUBhzxFt_-eF8siGLFIZBO2u9e_SfQ\"},\"user\":{\"id\":2,\"device_id\":2,\"name\":\"Administrator\",\"email\":\"admin@admin.com\",\"created_at\":\"2017-02-23T22:48:56.833Z\",\"updated_at\":\"2017-02-27T06:44:30.271Z\",\"verified_at\":\"2017-02-23T22:48:56.852Z\",\"verification_token\":\"b5dc08eb-1e83-46d8-9797-4310f5fcf953\",\"agreed_to_terms_at\":null}}",
+      "headers": {
+        "X-Frame-Options": "SAMEORIGIN",
+        "X-XSS-Protection": "1; mode=block",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Type": "application/json; charset=utf-8",
+        "ETag": "W/\"00863d732878251f2bf5da48fa0021fd\"",
+        "Cache-Control": "max-age=0, private, must-revalidate",
+        "Set-Cookie": "_farmbot_session=Wk1xaStyOUI0eGN2Q1U0OE9qSFpoTnl5SVhJSEw0RnRxOVFZcGdQNUl2VG01Q3l4aGFXcWcyamVXWHB1TWdSZFNEV1pSVXpUbFhlNThQSVppTDZ5UXc9PS0tM3Z4Mkw0OUFxdjl5QWxPYWsxT0E5UT09--b99af9f4e74e822c260d3815836185f7a5924f3e; path=/; HttpOnly",
+        "X-Request-Id": "6b0ea043-e06a-4049-9aee-048f5b29a34e",
+        "X-Runtime": "0.056094",
+        "Vary": "Origin",
+        "Connection": "close",
+        "Server": "thin"
+      },
+      "status_code": 200,
+      "type": "ok"
+    }
+  },
+  {
+    "request": {
+      "body": "",
+      "headers": [],
+      "method": "get",
+      "options": {
+        "follow_redirect": true,
+        "ssl_options": {
+          "versions": [
+            "tlsv1.2"
+          ]
+        }
+      },
+      "request_body": "",
+      "url": "http://localhost:3000/api/public_key"
+    },
+    "response": {
+      "body": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsIgWhfZew/k4wE8hWf82\nRErhP1fsy8v6NbiR5HY06miqWNuIF1tKg+CHe+NoyaADUJ+Qfu/LIMvSN7USEHls\n9mEl5Kx1H27hbPgu+TuqqQTgS2rFsnLjWPTQFigH5KNm5HSoreq2/cXRGdXd9IuI\nwyVh4AFyvSxI7/GrWlKL6M1kZv39N56zlDt086L5OKltOGIVJF6uJypsXy02omEH\n4L/zd2npZKD8Y7kaFfNs5mnWw65IWr2tqjF7cp8ESN93ChwM7z4I+Xg+EghsEkHV\nNS4pdVgE5dyB10P/pNjjS52rs6uJD3M/Tigr9wS5T/qqbNmcksVT1aP8rWAys4Qn\nIQIDAQAB\n-----END PUBLIC KEY-----\n",
+      "headers": {
+        "X-Frame-Options": "SAMEORIGIN",
+        "X-XSS-Protection": "1; mode=block",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Type": "text/plain; charset=utf-8",
+        "ETag": "W/\"30b6abc31afb5f2e8804aa64029c73d4\"",
+        "Cache-Control": "max-age=0, private, must-revalidate",
+        "Set-Cookie": "_farmbot_session=K0dZbjdXeU1yeHptVldTNFFGL0FCMThGVUhWdlcvUW8xM1prM2JnN2xpeWM0R3h6dGprV0VXenJRbXIxc0JxaWRBaTY2WVViRm0wLzJDeUtYaGFXenc9PS0tZUIrRWN5TDJkNHJCSlFGaVpNN0w3dz09--e6798f123a262c4e815b87274cfd9165dad0ffb3; path=/; HttpOnly",
+        "X-Request-Id": "5558f10c-c411-475e-a816-b03494177577",
+        "X-Runtime": "0.001920",
+        "Vary": "Origin",
+        "Connection": "close",
+        "Server": "thin"
+      },
+      "status_code": 200,
+      "type": "ok"
+    }
+  }
+]

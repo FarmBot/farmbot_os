@@ -6,13 +6,17 @@ defmodule Farmbot.HTTPTest do
   # import Mock
 
   setup_all do
-    :ok = Auth.interim("admin@admin.com", "password123", "http://localhost:3000")
-    {:ok, token} = Auth.try_log_in
-    [token: token]
+    use_cassette "good_login" do
+      :ok = Auth.interim("admin@admin.com", "password123", "http://localhost:3000")
+      {:ok, token} = Auth.try_log_in
+      [token: token]
+    end
   end
 
   test "makes an api request" do
-    {:ok, resp} = HTTP.get "/api/corpuses"
-    assert match?(%HTTPoison.Response{}, resp)
+    use_cassette "good_corpus_request" do
+      {:ok, resp} = HTTP.get "/api/corpuses"
+      assert match?(%HTTPoison.Response{}, resp)
+    end
   end
 end
