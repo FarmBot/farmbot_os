@@ -86,6 +86,12 @@ defmodule Farmbot.Auth do
   end
 
   @doc """
+    Purges the token and creds.
+  """
+  @spec purge_token :: :ok | {:error, atom}
+  def purge_token, do: GenServer.call(__MODULE__, :purge_token)
+
+  @doc """
     Gets the token.
     Will return a token if one exists, nil if not.
     Returns {:error, reason} otherwise
@@ -145,9 +151,9 @@ defmodule Farmbot.Auth do
   @doc """
     Casts credentials to the Auth GenServer
   """
-  @spec interim(String.t, String.t, String.t) :: no_return
+  @spec interim(String.t, String.t, String.t) :: :ok
   def interim(email, pass, server) do
-    GenServer.cast(__MODULE__, {:interim, {email,pass,server}})
+    GenServer.call(__MODULE__, {:interim, {email,pass,server}})
   end
 
   @doc """
@@ -179,10 +185,15 @@ defmodule Farmbot.Auth do
   defp s_a, do: Process.send_after(__MODULE__, :new_token, @six_hours)
 
   # casted creds, store them until something is ready to actually try a log in.
-  def handle_cast({:interim, {email, pass, server}},_) do
+  def handle_call({:interim, {email, pass, server}}, _from, _state) do
     Logger.info ">> Got some new credentials."
     put_server(server)
-    {:noreply, {email,pass,server}}
+    {:reply, :ok, {email,pass,server}}
+  end
+
+  def handle_call(:purge_token, _, _state) do
+    put_server(nil)
+    {:reply, :ok, nil}
   end
 
   def handle_call(:try_log_in, _, {email, pass, server}) do
@@ -265,14 +276,6 @@ defmodule Farmbot.Auth do
       s_a()
     end
     {:noreply, state}
-  end
-
-  def terminate(:normal, state) do
-    Logger.info("AUTH DIED: #{inspect state}")
-  end
-
-  def terminate(reason, state) do
-    Logger.error("AUTH DIED: #{inspect {reason, state}}")
   end
 
   defp do_callbacks(token) do

@@ -8,3 +8,8 @@ config :logger, :console,
 config :farmbot,
   path: "/tmp",
   config_file_name: "default_config.json"
+
+config :farmbot, auth_callbacks: []
+
+# frontend <-> bot transports.
+config :farmbot, transports: []

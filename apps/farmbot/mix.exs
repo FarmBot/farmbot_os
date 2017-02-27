@@ -103,7 +103,7 @@ defmodule Farmbot.Mixfile do
       # http stuff
       {:poison, "~> 3.0"},
       {:ex_json_schema, "~> 0.5.3"},
-      {:httpoison, github: "edgurgel/httpoison"},
+      {:httpoison, github: "edgurgel/httpoison", override: true},
       {:rsa, "~> 0.0.1"},
 
       # MQTT stuff
@@ -132,6 +132,8 @@ defmodule Farmbot.Mixfile do
       {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
       {:faker, "~> 0.7", only: :test},
       {:excoveralls, "~> 0.6", only: :test},
+      {:exvcr, "~> 0.8", only: :test},
+      {:mock, "~> 0.2.0", only: :test},
 
       # Web stuff
       {:plug, "~> 1.0"},
