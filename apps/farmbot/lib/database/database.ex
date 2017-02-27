@@ -1,9 +1,9 @@
 defmodule Farmbot.Sync do
   @moduledoc """
     There is a quite a bit of macros going on here.
-      * `defdatabase` comes from `Amnesia`
-        * defindes a database. This should only show up once.
-      * syncable comes from `Syncable` and defines a database table.
+      * defdatabase comes from Amnesia
+      * defindes a database. This should only show up once.
+      * syncable comes from Syncable and defines a database table.
   """
 
   use Amnesia

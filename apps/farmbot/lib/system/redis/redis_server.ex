@@ -2,7 +2,7 @@ defmodule Redis.Server do
   @moduledoc """
     Port for a redis server
   """
-  @port Application.get_env(:farmbot, :redis_port)
+  @config Application.get_all_env(:farmbot)[:redis]
 
   if Mix.env() == :dev do
     def should_bind, do: "bind 0.0.0.0"
@@ -13,7 +13,7 @@ defmodule Redis.Server do
   def config(path: dir), do: ~s"""
   #{should_bind()}
   protected-mode yes
-  port #{@port}
+  port #{@config[:port]}
   tcp-backlog 511
   unixsocket /tmp/redis.sock
   unixsocketperm 700

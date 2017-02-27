@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.CS.New do
+  @moduledoc false
   use Mix.Task
   @shortdoc "Creates a new celery script command"
   def run([new_cs]) do

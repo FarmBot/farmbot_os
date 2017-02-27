@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Farmbot.Upload do
+  @moduledoc false
   use Mix.Task
   alias Mix.Tasks.Firmware.Push
   @shortdoc "Uploads a file to a url"

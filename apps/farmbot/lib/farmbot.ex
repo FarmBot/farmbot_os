@@ -48,9 +48,10 @@ defmodule Farmbot do
   end
 
   @doc """
-    Starts the Farmbot Application
+    Entry Point to Farmbot
   """
   @spec start(atom, [any]) :: {:ok, pid}
+  def start(type, args)
   def start(_, [args]) do
     Logger.info ">> init!"
     Amnesia.start

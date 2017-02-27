@@ -1,4 +1,5 @@
-# My bot doesn't boot on a fresh SD card!
+# Frequently Asked Questions
+## My bot doesn't boot on a fresh SD card!
 
 This could be one of a few things. These things are in order of probability.
 
@@ -13,32 +14,32 @@ This could be one of a few things. These things are in order of probability.
 * You have a bad SD Card.
 * You aren't using a Raspberry Pi 3 (Porting Farmbot is relatively simple).
 
-# Can I SSH into the Farmbot?
+## Can I SSH into the Farmbot?
 
-Yes, starting with version 2.1.1. The user is root and there is no password. This may change in future versions.
+Yes, starting with version `2.1.1`. The user is root and there is no password. This may change in future versions.
 
-# Why are my SSH keys invalid?
+## Why are my SSH keys invalid?
 
 Farmbot's `rootfs` file system is read only. SSH keys must be stored elsewhere. They may get lost if you pull the power to your Farmbot. Follow the directions in the shell to resolve the issue.
 
-# Can the shell run on HDMI rather than SSH?
+## Can the shell run on HDMI rather than SSH?
 
 Yes and no. HDMI will display an IEX (Elixir shell) session. You may access the shell via `ctrl+c` but this will kill Farmbot's main software.
 
-# SSH Has No Linux Utilities.
+## SSH Has No Linux Utilities.
 
 Farmbot is built using Buildroot, Which uses a very small Linux environment to minimize boot time and overhead. This gives us a Linux shell of `sh` and most utilities are provided by `busybox`.
 
-# Why aren't [X] or [Y] packages included?
+## Why aren't [X] or [Y] packages included?
 
 See the above answer. [Raise an issue](https://github.com/FarmBot/farmbot_os/issues/new) to request a package. Future versions of FarmBotOS may provide a plugin system. It is not implemented yet.
 
-# Does Farmbot support Ethernet rather than WIFI?
+## Does Farmbot support Ethernet rather than WIFI?
 
 Yes. When you log into the Farmbot Configurator wifi SSID, select `Use Ethernet`.
 **NOTE**: This can not be changed without a factory reset.
 
-# How do I factory reset my bot?
+## How do I factory reset my bot?
 
 This is not as trivial as you would think right now. (We are working on it.)
 

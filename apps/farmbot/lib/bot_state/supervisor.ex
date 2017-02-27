@@ -1,7 +1,7 @@
 defmodule Farmbot.BotState.Supervisor do
   @moduledoc """
-      Supervises the state tracker modules and an event manager that other
-      things can subscribe too.
+    Supervises the state tracker modules and an event manager that other
+    things can subscribe too.
   """
 
   use Supervisor

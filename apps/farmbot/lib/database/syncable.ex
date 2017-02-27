@@ -1,13 +1,6 @@
 defmodule Syncable do
   @moduledoc ~s"""
-    Creates a syncable object from Farmbots rest api.
-    Example:
-      iex> defmodule BubbleGum do
-      ...>    use Syncable, name: __MODULE__, model: [:flavors, :brands]
-      ...> end
-      iex> BubbleGum.create!(%{"flavors" => ["mint", "berry"],
-      ..>  "brands" => ["BigRed"]})
-           {:ok, %BubbleGum{flavors: ["mint", "berry"], brands:  ["BigRed"]}}
+    Defines the structs and amnesia tables for a Farmbot Syncable object
   """
   use Amnesia
 
@@ -149,7 +142,7 @@ defmodule Syncable do
         end
 
         @doc """
-          Same as `enter_into_db/1` but will raise errors if
+          Same as enter_into_db/1 but will raise errors if
           problems are encountered.
         """
         def enter_into_db!(list_or_object)

@@ -14,6 +14,8 @@ defmodule Farmbot.Mixfile do
 
   def project do
     [app: :farmbot,
+     description: "The Brains of the Farmbot Project",
+     package: package(),
      test_coverage: [tool: ExCoveralls],
      version: @version,
      target:  @target,
@@ -34,9 +36,18 @@ defmodule Farmbot.Mixfile do
      source_url: "https://github.com/Farmbot/farmbot_os",
      homepage_url: "http://farmbot.io",
      docs: [main: "Farmbot",
-            logo: "priv/static/farmbot_logo.png",
-            extras: ["../../README.md", "../../BUILDING.md"]]
+            logo: "../../docs/farmbot_logo.png",
+            extras: ["../../docs/BUILDING.md",
+              "../../docs/FAQ.md",
+              "../../docs/ENVIRONMENT.md",
+              "../../README.md"]]
    ]
+  end
+
+  def package do
+    [name: "Farmbot OS",
+    maintainers: "Farmbot.io",
+    licenses: "MIT"]
   end
 
   def application do
@@ -144,7 +155,7 @@ defmodule Farmbot.Mixfile do
   # this is for cross compilation to work
   # New version of nerves might not need this?
   defp aliases("host"), do: [
-    "firmware": ["farmbot.warning"],
+    "firmware": ["compile"],
     "firmware.push": ["farmbot.warning"],
     "credo": ["credo list --only readability,warning,todo,inspect,refactor --ignore-checks todo,spec"],
     "test": ["test", "credo"]]
