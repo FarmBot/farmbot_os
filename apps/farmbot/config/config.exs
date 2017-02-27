@@ -28,6 +28,8 @@ config :farmbot, :redis,
 config :tzdata, :data_dir, "/tmp"
 config :tzdata, :autoupdate, :disabled
 
+config :fs, path: "/tmp/images"
+
 # Import configuration specific to out environment.
 import_config "#{env}.exs"
 

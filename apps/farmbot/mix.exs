@@ -31,6 +31,9 @@ defmodule Farmbot.Mixfile do
      aliases: aliases(@target),
      deps:    deps() ++ system(@target),
      name: "Farmbot",
+     preferred_cli_env: [
+       vcr: :test, "vcr.delete": :test, "vcr.check": :test, "vcr.show": :test
+     ],
      webpack_watch: Mix.env == :dev,
      webpack_cd: ".",
      source_url: "https://github.com/Farmbot/farmbot_os",
@@ -82,7 +85,8 @@ defmodule Farmbot.Mixfile do
       :cors_plug,
       :cowboy,
       :quantum, # Quantum needs to start AFTER farmbot, so we can set up its dirs
-      :timex, # Timex needs to start AFTER farmbot, so we can set up its dirs
+      :timex, # Timex needs to start AFTER farmbot, so we can set up its dirs,
+      :fs
    ]
   end
 
@@ -102,7 +106,7 @@ defmodule Farmbot.Mixfile do
       # http stuff
       {:poison, "~> 3.0"},
       {:ex_json_schema, "~> 0.5.3"},
-      {:httpoison, github: "edgurgel/httpoison"},
+      {:httpoison, github: "edgurgel/httpoison", override: true},
       {:rsa, "~> 0.0.1"},
 
       # MQTT stuff
@@ -131,6 +135,8 @@ defmodule Farmbot.Mixfile do
       {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
       {:faker, "~> 0.7", only: :test},
       {:excoveralls, "~> 0.6", only: :test},
+      {:exvcr, "~> 0.8", only: :test},
+      {:mock, "~> 0.2.0", only: :test},
 
       # Web stuff
       {:plug, "~> 1.0"},
@@ -138,7 +144,8 @@ defmodule Farmbot.Mixfile do
       {:cowboy, "~> 1.0.0"},
       {:ex_webpack, "~> 0.1.1", runtime: false, warn_missing: false},
 
-      {:tzdata, "~> 0.1.201601", override: true}
+      {:tzdata, "~> 0.1.201601", override: true},
+      {:fs, "~> 0.9.1"}
     ]
   end
 
@@ -158,7 +165,7 @@ defmodule Farmbot.Mixfile do
     "firmware": ["compile"],
     "firmware.push": ["farmbot.warning"],
     "credo": ["credo list --only readability,warning,todo,inspect,refactor --ignore-checks todo,spec"],
-    "test": ["test", "credo"]]
+    "all_test": ["credo", "coveralls"]]
 
   # TODO(Connor) Maybe warn if building firmware in dev mode?
   defp aliases(_system) do

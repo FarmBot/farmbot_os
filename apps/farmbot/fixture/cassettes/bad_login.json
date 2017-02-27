@@ -1,0 +1,75 @@
+[
+  {
+    "request": {
+      "body": "",
+      "headers": [],
+      "method": "get",
+      "options": {
+        "follow_redirect": true,
+        "ssl_options": {
+          "versions": [
+            "tlsv1.2"
+          ]
+        }
+      },
+      "request_body": "",
+      "url": "http://localhost:3000/api/public_key"
+    },
+    "response": {
+      "body": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsIgWhfZew/k4wE8hWf82\nRErhP1fsy8v6NbiR5HY06miqWNuIF1tKg+CHe+NoyaADUJ+Qfu/LIMvSN7USEHls\n9mEl5Kx1H27hbPgu+TuqqQTgS2rFsnLjWPTQFigH5KNm5HSoreq2/cXRGdXd9IuI\nwyVh4AFyvSxI7/GrWlKL6M1kZv39N56zlDt086L5OKltOGIVJF6uJypsXy02omEH\n4L/zd2npZKD8Y7kaFfNs5mnWw65IWr2tqjF7cp8ESN93ChwM7z4I+Xg+EghsEkHV\nNS4pdVgE5dyB10P/pNjjS52rs6uJD3M/Tigr9wS5T/qqbNmcksVT1aP8rWAys4Qn\nIQIDAQAB\n-----END PUBLIC KEY-----\n",
+      "headers": {
+        "X-Frame-Options": "SAMEORIGIN",
+        "X-XSS-Protection": "1; mode=block",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Type": "text/plain; charset=utf-8",
+        "ETag": "W/\"30b6abc31afb5f2e8804aa64029c73d4\"",
+        "Cache-Control": "max-age=0, private, must-revalidate",
+        "Set-Cookie": "_farmbot_session=eTNpNXZmRTQzL3JzL01ZNzRzV3hqRUtjVDZlOWlLYk5iK2txcFA1VW4zREFSaTRIVHMzSW8yOEQrenFhS3NNWFhFWDIyYmdNd0JXSy9ibG1aRjc1N2c9PS0tT2NpdWN0dndINFJaYkFjOG5nWlM3QT09--456f41af57e9f942f1833d507c2cba46ffc0cdb8; path=/; HttpOnly",
+        "X-Request-Id": "90b67cf2-0c0a-4274-9508-76476a981d27",
+        "X-Runtime": "0.002242",
+        "Vary": "Origin",
+        "Connection": "close",
+        "Server": "thin"
+      },
+      "status_code": 200,
+      "type": "ok"
+    }
+  },
+  {
+    "request": {
+      "body": "{\"user\":{\"credentials\":\"NeNyFnguepkQqahIC8tFTgAZXn2/ccYiBpESZjVZwRBPsPZPw1E3CSOkZ+Qq3uYDzILdwRuXN83DIxA1pGpW9bZJ2k1k/lZd2s34o2CGvWXqd1nLxsRstwB5I/Hps22vA5G01AVfYdyI20tOIbpIs7nlr5ND1BaPkwsGvaPJPJGSzDwaPyx/OqfSSmqe6/VeVkv2TTShzxh4tmGZvbSIY/ePCKDFkIBh+SZLVL9MGV1rYxA0t/Tk2nhsrpZGzDo6y0tRCGanYFlbo4box8p5NMZcGMwsYkHo+VFK5OUqS211ecTSKgOFYd/NJOJchBHkRbGqKw3Kw8oaRGQZTrQVaA==\"}}",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "method": "post",
+      "options": {
+        "follow_redirect": true,
+        "ssl_options": {
+          "versions": [
+            "tlsv1.2"
+          ]
+        }
+      },
+      "request_body": "",
+      "url": "http://localhost:3000/api/tokens"
+    },
+    "response": {
+      "body": "{\"auth\":\"Bad email or password.\"}",
+      "headers": {
+        "X-Frame-Options": "SAMEORIGIN",
+        "X-XSS-Protection": "1; mode=block",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-cache",
+        "Set-Cookie": "_farmbot_session=N051Qnc5QzkrZDJwZDdIVmlLcHZtQzlYYklyOGZIU09lRGFLOVFrMjVybld3cnlTc0tCaWU3eVJ4aDBLK3lTWURJOGp6VWd4Zm1Nck1nTnQ0ZEllc0E9PS0teTR4ekMrbGRrSVRVZHF6ZjB5dzFHZz09--38312019616c6904ed6e7bf3792b8d4e46ddb04c; path=/; HttpOnly",
+        "X-Request-Id": "f146356f-0d5a-4f0c-a34c-f094216779f5",
+        "X-Runtime": "0.003680",
+        "Vary": "Origin",
+        "Connection": "close",
+        "Server": "thin"
+      },
+      "status_code": 422,
+      "type": "ok"
+    }
+  }
+]

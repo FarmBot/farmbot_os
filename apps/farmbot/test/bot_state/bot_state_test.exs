@@ -24,7 +24,7 @@ defmodule Farmbot.BotStateTest do
     assert(is_integer(x) and is_integer(y) and is_integer(z))
   end
 
-  test("Sets a new position") do
+  test "Sets a new position" do
     Farmbot.BotState.set_pos(45, 123, -666)
     [x,y,z] = Farmbot.BotState.get_current_pos
     assert(x == 45)
@@ -64,7 +64,6 @@ defmodule Farmbot.BotStateTest do
     x = Farmbot.BotState.get_config(:steps_per_mm_x)
     y = Farmbot.BotState.get_config(:steps_per_mm_y)
     z = Farmbot.BotState.get_config(:steps_per_mm_z)
-
     assert([x,y,z] == [123,456,789])
 
     fail = Farmbot.BotState.update_config("self_destruct_count_down", 10_000)
@@ -137,4 +136,11 @@ defmodule Farmbot.BotStateTest do
     |> Map.get(:hardware)
     |> Map.get(part)
   end
+
+  # defp get_config_part(part) do
+  #   Process.sleep(10)
+  #   Farmbot.BotState.Monitor.get_state
+  #   |> Map.get(:configuration)
+  #   |> Map.get(part)
+  # end
 end

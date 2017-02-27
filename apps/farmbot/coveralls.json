@@ -1,10 +1,4 @@
 {
-  "custom_stop_words": [
-    "ntpd",
-    "check_time_set"
-  ],
-  "skip_files": [
-    "lib/extras/downloader.ex",
-    "lib/extras/ssh.ex"
-  ]
+ "custom_stop_words": [],
+ "skip_files": []
 }

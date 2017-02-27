@@ -1,5 +1,6 @@
 defmodule Module.concat([Farmbot,System,"host"]) do
   @moduledoc false
+  @halt_on_exit Application.get_env(:farmbot, :halt_on_reset, true)
   @behaviour Farmbot.System
   def reboot, do: :ok
   def power_off, do: :ok
