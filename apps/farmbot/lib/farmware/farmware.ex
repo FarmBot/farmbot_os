@@ -124,7 +124,7 @@ defmodule Farmware do
       uninstall(package_name)
       install(url)
     else
-      raise "Could not find Farmware: #{package_name}"
+      raise "Could not find Farmware to update! #{package_name}"
     end
   end
 
@@ -204,7 +204,7 @@ defmodule Farmware do
     for %{"name" => name, "manifest" => man} <- farmwares do
       if installed?(name) do
         # if its installed already update it
-        update(man)
+        update(name)
       else
         # if not just install it.
         install(man)

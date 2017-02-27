@@ -82,7 +82,8 @@ defmodule Farmbot.Mixfile do
       :cors_plug,
       :cowboy,
       :quantum, # Quantum needs to start AFTER farmbot, so we can set up its dirs
-      :timex, # Timex needs to start AFTER farmbot, so we can set up its dirs
+      :timex, # Timex needs to start AFTER farmbot, so we can set up its dirs,
+      :fs
    ]
   end
 
@@ -138,7 +139,8 @@ defmodule Farmbot.Mixfile do
       {:cowboy, "~> 1.0.0"},
       {:ex_webpack, "~> 0.1.1", runtime: false, warn_missing: false},
 
-      {:tzdata, "~> 0.1.201601", override: true}
+      {:tzdata, "~> 0.1.201601", override: true},
+      {:fs, "~> 0.9.1"}
     ]
   end
 
@@ -158,7 +160,7 @@ defmodule Farmbot.Mixfile do
     "firmware": ["compile"],
     "firmware.push": ["farmbot.warning"],
     "credo": ["credo list --only readability,warning,todo,inspect,refactor --ignore-checks todo,spec"],
-    "test": ["test", "credo"]]
+    "all_test": ["credo", "coveralls"]]
 
   # TODO(Connor) Maybe warn if building firmware in dev mode?
   defp aliases(_system) do

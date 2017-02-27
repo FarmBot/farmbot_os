@@ -5,7 +5,6 @@ defmodule Farmbot.ImageWatcher do
   use GenServer
   require Logger
 
-  @checkup_frequency 10_000
   @images_path "/tmp/images"
   @type state :: []
 
@@ -18,12 +17,12 @@ defmodule Farmbot.ImageWatcher do
   @doc """
     Uploads all images if they exist.
   """
-  @spec start_link :: :ok | {:error, atom}
+  @spec force_upload :: no_return
   def force_upload, do: do_checkup()
 
   @spec init([]) :: {:ok, any}
   def init([]) do
-    do_send()
+    :fs.subscribe()
     {:ok, []}
   end
 
@@ -31,6 +30,28 @@ defmodule Farmbot.ImageWatcher do
   def handle_info(:checkup, []) do
     do_checkup()
     {:noreply, []}
+  end
+
+  def handle_info({_pid, {:fs, :file_event}, {path, [:modified, :closed]}},
+  state) do
+    if matches_any_pattern?(path, [~r{/tmp/images/.*(jpg|jpeg|png|gif)}]) do
+      do_checkup()
+    end
+    {:noreply, []}
+  end
+
+  def handle_info(_, state), do: {:noreply, state}
+
+  # Stolen from
+  # https://github.com/phoenixframework/
+  #  phoenix_live_reload/blob/151ce9e17c1b4ead79062098b70d4e6bc7c7e528
+  #  /lib/phoenix_live_reload/channel.ex#L27
+  defp matches_any_pattern?(path, patterns) do
+    path = to_string(path)
+
+    Enum.any?(patterns, fn pattern ->
+      String.match?(path, pattern)
+    end)
   end
 
   @spec do_checkup :: no_return
@@ -69,7 +90,4 @@ defmodule Farmbot.ImageWatcher do
     Logger.warn("Image Watcher couldn't upload all images!")
     :ok
   end
-
-  @spec do_send :: reference
-  defp do_send, do: Process.send_after(self(), :checkup, @checkup_frequency)
 end
