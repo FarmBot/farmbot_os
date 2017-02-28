@@ -22,6 +22,8 @@ defmodule Farmbot.ImageWatcher do
 
   @spec init([]) :: {:ok, any}
   def init([]) do
+    # TODO(Connor) kill :fs if this app dies. 
+    :fs_app.start(:normal, [])
     :fs.subscribe()
     {:ok, []}
   end

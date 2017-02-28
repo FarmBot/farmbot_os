@@ -17,7 +17,7 @@ config :iex, :colors, enabled: true
 config :farmbot, auth_callbacks: [mqtt_transport]
 
 # frontend <-> bot transports.
-config :farmbot, transports: [mqtt_transport]
+config :farmbot, transports: [mqtt_transport, redis_transport]
 
 # give the ability to start a redis server instance in dev mode.
 config :farmbot, :redis,

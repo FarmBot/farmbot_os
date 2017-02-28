@@ -42,6 +42,7 @@ defmodule Farmbot do
 
       # handles communications between bot and arduino
       supervisor(Farmbot.Serial.Supervisor, [], restart: :permanent),
+      worker(Farmbot.ImageWatcher, [], restart: :permanent)
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)
