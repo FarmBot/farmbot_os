@@ -1,6 +1,6 @@
 use Mix.Config
 
-version =  Path.join([__DIR__, "..", "farmbot", "VERSION"])
+version = Path.join([__DIR__, "..", "farmbot", "VERSION"])
 |> File.read!
 |> String.strip
 
