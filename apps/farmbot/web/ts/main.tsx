@@ -169,7 +169,7 @@ export class Main extends React.Component<MainProps, FormState> {
       let blahConfig: ConfigFileNetIface = { type: "wired", default: "dhcp" };
 
       let hidden = true;
-      if (that.state.hiddenAdvancedWidget > 4 || that.state.showCustomNetworkWidget == true) {
+      if ((that.state.hiddenAdvancedWidget as number) > 4 || that.state.showCustomNetworkWidget == true) {
         hidden = false;
       }
 
@@ -358,7 +358,7 @@ export class Main extends React.Component<MainProps, FormState> {
 
     return <div className="container">
       <h1 onClick={() => {
-        let val = this.state.hiddenAdvancedWidget + 1;
+        let val = (this.state.hiddenAdvancedWidget as number) + 1;
         this.setState({ hiddenAdvancedWidget: val });
         if (val > 4) {
           this.props.mobx.enumerateInterfaces();
@@ -474,7 +474,7 @@ export class Main extends React.Component<MainProps, FormState> {
         </div>
 
         {/* Advanced Widget */}
-        <div className="widget" hidden={this.state.hiddenAdvancedWidget < 5}>
+        <div className="widget" hidden={(this.state.hiddenAdvancedWidget as number) < 5}>
           <div className="widget-header">
             <h5>Advanced Settings</h5>
             <i className="fa fa-question-circle widget-help-icon">

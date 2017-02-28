@@ -32,7 +32,8 @@ defmodule Farmbot.Mixfile do
      deps:    deps() ++ system(@target),
      name: "Farmbot",
      preferred_cli_env: [
-       vcr: :test, "vcr.delete": :test, "vcr.check": :test, "vcr.show": :test
+       vcr: :test, "vcr.delete": :test, "vcr.check": :test, "vcr.show": :test,
+       "all_test": :test
      ],
      webpack_watch: Mix.env == :dev,
      webpack_cd: ".",
