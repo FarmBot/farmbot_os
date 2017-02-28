@@ -32,7 +32,7 @@ defmodule NervesSystemRpi2.Mixfile do
     if File.exists?("../nerves") do
       {:nerves, in_umbrella: true, override: true}
     else
-      {:nerves,  "~> 0.4.0"}
+      {:nerves,  "~> 0.4.8"}
     end
   end
 

@@ -32,7 +32,8 @@ defmodule Farmbot.Mixfile do
      deps:    deps() ++ system(@target),
      name: "Farmbot",
      preferred_cli_env: [
-       vcr: :test, "vcr.delete": :test, "vcr.check": :test, "vcr.show": :test
+       vcr: :test, "vcr.delete": :test, "vcr.check": :test, "vcr.show": :test,
+       "all_test": :test
      ],
      webpack_watch: Mix.env == :dev,
      webpack_cd: ".",
@@ -61,7 +62,7 @@ defmodule Farmbot.Mixfile do
           version: @version,
           commit: commit()}]},
      applications: applications() ++ applications(@target),
-     included_applications: [:gen_mqtt, :ex_json_schema] ++ included_apps(Mix.env)]
+     included_applications: [:gen_mqtt, :ex_json_schema, :fs] ++ included_apps(Mix.env)]
   end
 
   defp included_apps(:prod), do: [:ex_syslogger]
@@ -86,7 +87,6 @@ defmodule Farmbot.Mixfile do
       :cowboy,
       :quantum, # Quantum needs to start AFTER farmbot, so we can set up its dirs
       :timex, # Timex needs to start AFTER farmbot, so we can set up its dirs,
-      :fs
    ]
   end
 
