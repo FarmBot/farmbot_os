@@ -1,6 +1,6 @@
 defmodule AstTest do
   use ExUnit.Case, async: false
-  alias Farmbot.CeleryScript.Ast, as: Ast 
+  alias Farmbot.CeleryScript.Ast, as: Ast
   # %{"args" => %{"message" => "hello world"},
   #  "body" =>
   # [%{"args" => %{"channel_name" => "toast_error"}, "kind" => "channel"}], "kind" => "send_message"}
@@ -73,6 +73,28 @@ defmodule AstTest do
     # similar to that it would recurse forever
     random_ast_node = Enum.random(body)
     assert(random_ast_node.kind |> is_bitstring)
+  end
+
+  test "manually creates an ast" do
+    Ast.create("speak_spanish", %{words: "hello"}, body: [])
+  end
+
+  test "gives a nothing block for saftey on bad asts" do
+    maybe_ast = "some arbitrary data"
+    bloop = Ast.parse(maybe_ast)
+    assert match?(%Ast{}, bloop)
+    assert bloop.kind == "nothing"
+  end
+
+  test "does recursion" do
+    map = %{"kind" => "thing",
+      "args" => %{"arg_a" => "string",
+                  "arg_b" => %{"kind" => "thingb",
+                               "args" => %{}, "body" => []}},
+      "body" => []}
+    ast = Ast.parse(map)
+    assert map["kind"] == ast.kind
+    assert map["args"]["arg_b"]["kind"] == ast.args.arg_b.kind
   end
 
 end

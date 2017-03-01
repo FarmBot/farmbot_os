@@ -60,33 +60,35 @@ defmodule Farmbot.HTTP do
   @doc """
     Uploads a file to google storage
   """
-  @spec upload_file(binary) :: {:ok, map} | {:error, term}
+  @spec upload_file(binary) :: {:ok, HTTPoison.Response.t} | no_return
   def upload_file(file_name) do
-    with {:ok, resp} <- get("/api/storage_auth"),
-         {:ok, file} <- File.read(file_name)
-    do
-      body = Poison.decode!(resp.body)
-      url = "https:" <> body["url"]
-      form_data = body["form_data"]
-      attachment_url = url <> form_data["key"]
-      headers = [
-        {"Content-Type", "multipart/form-data"},
-        {"User-Agent", "FarmbotOS"}
-      ]
-      payload =
-        Enum.map(form_data, fn({key, value}) ->
-          if key == "file", do: {"file", file}, else:  {key, value}
-        end)
-      Logger.info ">> #{attachment_url} Should hopefully exist shortly!"
-      url
-      |> HTTPoison.post({:multipart, payload}, headers)
-      |> finish_upload(attachment_url)
+    unless File.exists?(file_name) do
+      raise("File not found")
     end
+    {:ok, %HTTPoison.Response{body: body,
+      status_code: 200}} = get("/api/storage_auth")
+
+    {:ok, file} = File.read(file_name)
+
+    body = Poison.decode!(body)
+    url = "https:" <> body["url"]
+    form_data = body["form_data"]
+    attachment_url = url <> form_data["key"]
+    headers = [
+      {"Content-Type", "multipart/form-data"},
+      {"User-Agent", "FarmbotOS"}
+    ]
+    payload =
+      Enum.map(form_data, fn({key, value}) ->
+        if key == "file", do: {"file", file}, else:  {key, value}
+      end)
+    Logger.info ">> #{attachment_url} Should hopefully exist shortly!"
+    url
+    |> HTTPoison.post({:multipart, payload}, headers)
+    |> finish_upload(attachment_url)
   end
 
-  @spec finish_upload({:ok, HTTPoison.Response.t} |
-    {:error, HTTPoison.Error.t}, binary)
-    :: {:ok, HTTPoison.Response.t} | {:error, any}
+  @spec finish_upload(any, binary) :: {:ok, HTTPoison.Response.t} | no_return
 
   # We only want to upload if we get a 2XX response.
   defp finish_upload({:ok, %HTTPoison.Response{status_code: s}}, attachment_url)
@@ -95,14 +97,5 @@ defmodule Farmbot.HTTP do
     meta = %{x: x, y: y, z: z}
     json = Poison.encode! %{"attachment_url" => attachment_url, "meta" => meta}
     Farmbot.HTTP.post "/api/images", json
-  end
-
-  # This is just to strip the struct out of the error.
-  defp finish_upload({:error, %HTTPoison.Error{reason: reason}}, aurl),
-    do: finish_upload({:error, reason}, aurl)
-
-  defp finish_upload({:error, reason}, _attachment_url) do
-    Logger.error(">> Could not upload file!: #{inspect reason}")
-    {:error, reason}
   end
 end

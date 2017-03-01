@@ -35,7 +35,7 @@ defmodule Farmbot.ImageWatcher do
   end
 
   def handle_info({_pid, {:fs, :file_event}, {path, [:modified, :closed]}},
-  state) do
+  _state) do
     if matches_any_pattern?(path, [~r{/tmp/images/.*(jpg|jpeg|png|gif)}]) do
       do_checkup()
     end

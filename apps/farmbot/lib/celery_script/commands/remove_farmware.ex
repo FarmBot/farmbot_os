@@ -1,4 +1,4 @@
-defmodule Farmbot.CeleryScript.Command.UninstallFarmware do
+defmodule Farmbot.CeleryScript.Command.RemoveFarmware do
   @moduledoc """
     Uninstall Farmware
   """

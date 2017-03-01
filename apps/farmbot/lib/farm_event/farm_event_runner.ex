@@ -156,7 +156,7 @@ defmodule FarmEventRunner do
       Timex.after?(dt, last_time)
     end)
 
-    f = Enum.map(calendar, fn(item) -> Timex.parse!(item, "{ISO:Extended}") |> Timex.format!("{relative}", :relative) end)
+    _f = Enum.map(calendar, fn(item) -> Timex.parse!(item, "{ISO:Extended}") |> Timex.format!("{relative}", :relative) end)
 
 
     # DEBUG

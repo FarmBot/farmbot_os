@@ -28,7 +28,6 @@ defmodule Farmbot.BotState.Configuration do
         compat_version: -1,
         target: "loading...",
         private_ip: nil,
-        throttled: "loading...",
         commit: "loading...",
         sync_status: "sync now"
        }
@@ -56,47 +55,39 @@ defmodule Farmbot.BotState.Configuration do
       informational_settings: map # TODO type this
     }
 
-  @spec load(args) :: {:ok, state} | {:error, atom}
-  def load(
-    %{compat_version: compat_version,
-      target: target,
-      version: version,
-      commit: commit})
-  do
+  @spec load(args) :: {:ok, state} | no_return
+  def load(args) do
     initial = %State{
       informational_settings: %{
-        controller_version: version,
-        compat_version: compat_version,
-        target: target,
+        controller_version: args.version,
+        compat_version: args.compat_version,
+        target: args.target,
         private_ip: "loading...",
-        throttled: get_throttled(),
-        commit: commit,
+        commit: args.commit,
         sync_status: "sync now"
       }
     }
-        with {:ok, user_env} <- get_config("user_env"),
-         {:ok, os_a_u} <- get_config("os_auto_update"),
-         {:ok, fw_a_u}   <- get_config("fw_auto_update"),
-         {:ok, spm_x} <- get_config("steps_per_mm_x"),
-         {:ok, spm_y} <- get_config("steps_per_mm_y"),
-         {:ok, spm_z} <- get_config("steps_per_mm_z"),
-         {:ok, len_x} <- get_config("distance_mm_x"),
-         {:ok, len_y} <- get_config("distance_mm_y"),
-         {:ok, len_z} <- get_config("distance_mm_z")
-         do
-           new_state =
-             %State{initial | configuration: %{
-                  user_env: user_env,
-                  os_auto_update: os_a_u,
-                  fw_auto_update: fw_a_u,
-                  steps_per_mm_x: spm_x,
-                  steps_per_mm_y: spm_y,
-                  steps_per_mm_z: spm_z,
-                  distance_mm_x:  len_x,
-                  distance_mm_y:  len_y,
-                  distance_mm_z:  len_z }}
-           {:ok, new_state}
-         end
+    {:ok, user_env} = get_config("user_env")
+    {:ok, os_a_u}   = get_config("os_auto_update")
+    {:ok, fw_a_u}   = get_config("fw_auto_update")
+    {:ok, spm_x}    = get_config("steps_per_mm_x")
+    {:ok, spm_y}    = get_config("steps_per_mm_y")
+    {:ok, spm_z}    = get_config("steps_per_mm_z")
+    {:ok, len_x}    = get_config("distance_mm_x")
+    {:ok, len_y}    = get_config("distance_mm_y")
+    {:ok, len_z}    = get_config("distance_mm_z")
+    new_state =
+      %State{initial | configuration: %{
+           user_env: user_env,
+           os_auto_update: os_a_u,
+           fw_auto_update: fw_a_u,
+           steps_per_mm_x: spm_x,
+           steps_per_mm_y: spm_y,
+           steps_per_mm_z: spm_z,
+           distance_mm_x:  len_x,
+           distance_mm_y:  len_y,
+           distance_mm_z:  len_z }}
+    {:ok, new_state}
   end
 
   # This call should probably be a cast actually, and im sorry.
@@ -253,18 +244,5 @@ defmodule Farmbot.BotState.Configuration do
   def handle_cast(event, %State{} = state) do
     Logger.error ">> got an unhandled cast in Configuration: #{inspect event}"
     dispatch state
-  end
-
-  defp get_throttled do
-    if File.exists?("/usr/bin/vcgencmd") do
-      {output, 0} = System.cmd("vcgencmd", ["get_throttled"])
-      [_, throttled] =
-        output
-        |> String.strip
-        |> String.split("=")
-      throttled
-    else
-      "0xDEVELOPMENT"
-    end
   end
 end

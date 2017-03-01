@@ -1,4 +1,4 @@
 {
  "custom_stop_words": [],
- "skip_files": []
+ "skip_files": ["lib/mix"]
 }
