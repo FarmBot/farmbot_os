@@ -94,8 +94,6 @@ export interface BotConfigFile {
         os_auto_update: boolean;
         /** auto update the arduino firmware */
         fw_auto_update: boolean;
-        /** timezone of this bot */
-        timezone: string;
         /** steps per milimeter for the arduino firmware */
         steps_per_mm: {
             x: number;

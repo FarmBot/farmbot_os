@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/FarmBot/farmbot_os.svg?branch=master)](https://travis-ci.org/FarmBot/farmbot_os.svg?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/FarmBot/farmbot_os/badge.svg)](https://coveralls.io/github/FarmBot/farmbot_os)
 
 # Farmbot OS
 The "brains" of the Farmbot Project

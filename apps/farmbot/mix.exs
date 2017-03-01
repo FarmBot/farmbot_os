@@ -29,11 +29,11 @@ defmodule Farmbot.Mixfile do
      compilers: Mix.compilers ++ maybe_use_webpack(),
      lockfile: "../../mix.lock",
      aliases: aliases(@target),
-     deps:    deps() ++ system(@target),
-     name: "Farmbot",
+     deps: deps() ++ system(@target),
      preferred_cli_env: [
        vcr: :test, "vcr.delete": :test, "vcr.check": :test, "vcr.show": :test,
-       "all_test": :test
+       "all_test": :test,
+       "coveralls": :test, "coveralls.detail": :test, "coveralls.post": :test, "coveralls.html": :test, "coveralls.travis": :test
      ],
      webpack_watch: Mix.env == :dev,
      webpack_cd: ".",
@@ -165,7 +165,9 @@ defmodule Farmbot.Mixfile do
     "firmware": ["compile"],
     "firmware.push": ["farmbot.warning"],
     "credo": ["credo list --only readability,warning,todo,inspect,refactor --ignore-checks todo,spec"],
-    "all_test": ["credo", "coveralls"]]
+    "all_test": ["credo", "coveralls"],
+    "travis_test": ["credo", "coveralls.travis"]
+  ]
 
   # TODO(Connor) Maybe warn if building firmware in dev mode?
   defp aliases(_system) do

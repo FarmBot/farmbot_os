@@ -7,6 +7,7 @@ defmodule Redis.Client do
   # 15 minutes
   @save_time 900_000
   @port Application.get_env(:farmbot, :redis_port)
+  @config Application.get_all_env(:farmbot)[:redis]
 
   @doc """
     Start the redis server.
@@ -22,7 +23,7 @@ defmodule Redis.Client do
        :hide,
        :use_stdio,
        :stderr_to_stdout,
-       args: ["-p", "#{@port}"]])
+       args: ["-p", "#{@config[:port]}"]])
      Process.send_after(self(), :save, @save_time)
      {:ok, %{cli: port, queue: :queue.new(), blah: nil}}
   end

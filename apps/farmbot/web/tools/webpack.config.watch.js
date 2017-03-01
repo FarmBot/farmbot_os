@@ -1,5 +1,9 @@
 module.exports = {
   resolve: {
+    alias: {
+      'react': 'react-lite',
+      'react-dom': 'react-lite'
+    },
     extensions: [".js", ".ts", ".json", ".tsx", ".css", ".scss"]
   },
   entry: "./web/ts/entry.tsx",

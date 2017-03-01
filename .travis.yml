@@ -27,4 +27,4 @@ script:
   - mix local.rebar --force
   - mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez --force
   - elixir generate_makefile.exs
-  - make test
+  - make travis_test
