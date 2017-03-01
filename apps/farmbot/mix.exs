@@ -165,7 +165,7 @@ defmodule Farmbot.Mixfile do
     "firmware": ["compile"],
     "firmware.push": ["farmbot.warning"],
     "credo": ["credo list --only readability,warning,todo,inspect,refactor --ignore-checks todo,spec"],
-    "all_test": ["credo", "coveralls"]
+    "all_test": ["credo", "coveralls"],
     "travis_test": ["credo", "coveralls.travis"]
   ]
 
