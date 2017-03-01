@@ -35,6 +35,9 @@ clean:
 test: dev_env
 \tscripts/run_tests.sh
 
+travis_test: dev_env
+\tscripts/run_travis_tests.sh
+
 ## End default portion.\n"
 
 build_system_part = fn(sys) ->
