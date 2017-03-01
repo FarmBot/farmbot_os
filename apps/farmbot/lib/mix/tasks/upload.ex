@@ -14,6 +14,10 @@ defmodule Mix.Tasks.Farmbot.Upload do
        raise "Could not find Firmware!"
     end
     ip_address = List.first(args)
-    Push.run([ip_address, "--firmware", "#{fw_file}", "--reboot", "true"])
+    if Code.ensure_loaded?(Push) do
+      Push.run([ip_address, "--firmware", "#{fw_file}", "--reboot", "true"])
+    else
+      Mix.raise("ERRRRR?")
+    end
   end
 end

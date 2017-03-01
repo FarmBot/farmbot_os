@@ -53,10 +53,6 @@ defmodule Farmbot.BotStateTest do
     fw_auto_update = Farmbot.BotState.get_config(:fw_auto_update)
     assert(fw_auto_update == false)
 
-    true = Farmbot.BotState.update_config("timezone", "we dont even check this")
-    timezone = Farmbot.BotState.get_config(:timezone)
-    assert(timezone == "we dont even check this")
-
     true = Farmbot.BotState.update_config("steps_per_mm_x", 123)
     true = Farmbot.BotState.update_config("steps_per_mm_y", 456)
     true = Farmbot.BotState.update_config("steps_per_mm_z", 789)

@@ -7,7 +7,6 @@
   "user_env": {},
   "os_auto_update": false,
   "fw_auto_update": false,
-  "timezone": null,
   "first_party_farmware": false,
   "steps_per_mm_x": 5,
   "steps_per_mm_y": 5,
