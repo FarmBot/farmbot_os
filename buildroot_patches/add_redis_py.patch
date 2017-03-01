@@ -1,0 +1,31 @@
+diff --git a/package/python-redispy/Config.in b/package/python-redispy/Config.in
+new file mode 100644
+index 0000000..298e7ad
+--- /dev/null
++++ b/package/python-redispy/Config.in
+@@ -0,0 +1,6 @@
++config BR2_PACKAGE_PYTHON_REDISPY
++	bool "python-redispy"
++	help
++	  The Python interface to the Redis key-value store.
++
++	  https://github.com/andymccurdy/redis-py
+diff --git a/package/python-redispy/python-redispy.mk b/package/python-redispy/python-redispy.mk
+new file mode 100644
+index 0000000..e91837e
+--- /dev/null
++++ b/package/python-redispy/python-redispy.mk
+@@ -0,0 +1,13 @@
++################################################################################
++#
++# python-redis-py
++#
++################################################################################
++
++PYTHON_REDISPY_VERSION = master
++PYTHON_REDISPY_SITE = git://github.com/andymccurdy/redis-py
++PYTHON_REDISPY_LICENSE_FILES = LICENSE
++PYTHON_REDISPY_SETUP_TYPE = setuptools
++PYTHON_REDISPY_SITE_METHOD = git
++
++$(eval $(python-package))

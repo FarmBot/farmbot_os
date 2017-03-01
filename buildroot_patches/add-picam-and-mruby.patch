@@ -2,13 +2,14 @@ diff --git a/package/Config.in b/package/Config.in
 index 8c8c33e..14c5e60 100644
 --- a/package/Config.in
 +++ b/package/Config.in
-@@ -1793,4 +1793,9 @@ menu "Text editors and viewers"
+@@ -1793,4 +1793,10 @@ menu "Text editors and viewers"
  	source "package/vim/Config.in"
  endmenu
 
 +menu "Farmbot Packages"
 +	source "package/mruby/Config.in"
 +	source "package/python-picamera/Config.in"
++ source "package/python-redispy/Config.in"
 +endmenu
 +
  endmenu
@@ -261,17 +262,17 @@ index 0000000..23aeb55
 --- /dev/null
 +++ b/package/python-picamera/Config.in
 @@ -0,0 +1,6 @@
-+config BR2_PACKAGE_PYTHON_PICAM
++config BR2_PACKAGE_PYTHON_PICAMERA
 +	bool "python-picamera"
 +	help
 +	  This module provides Support for Raspberry Pi Cameras
 +
 +	  https://github.com/waveform80/picamera
-diff --git a/package/python-picamera/python-picam.mk b/package/python-picamera/python-picam.mk
+diff --git a/package/python-picamera/python-picamera.mk b/package/python-picamera/python-picamera.mk
 new file mode 100644
 index 0000000..2d6dedc
 --- /dev/null
-+++ b/package/python-picamera/python-picam.mk
++++ b/package/python-picamera/python-picamera.mk
 @@ -0,0 +1,14 @@
 +################################################################################
 +#
