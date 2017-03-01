@@ -29,8 +29,7 @@ defmodule Farmbot.Mixfile do
      compilers: Mix.compilers ++ maybe_use_webpack(),
      lockfile: "../../mix.lock",
      aliases: aliases(@target),
-     deps:    deps() ++ system(@target),
-     name: "Farmbot",
+     deps: deps() ++ system(@target),
      preferred_cli_env: [
        vcr: :test, "vcr.delete": :test, "vcr.check": :test, "vcr.show": :test,
        "all_test": :test

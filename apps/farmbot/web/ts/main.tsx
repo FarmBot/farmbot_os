@@ -3,7 +3,6 @@ import { observer } from "mobx-react";
 import { observable, action } from "mobx";
 import { MainState } from "./state";
 import { ConfigFileNetIface, IfaceType } from "./interfaces";
-import { TZSelect } from "./tz_select";
 import { AdvancedSettings } from "./advanced_settings";
 import * as Select from "react-select";
 import * as _ from "lodash";
@@ -34,7 +33,6 @@ export class Main extends React.Component<MainProps, FormState> {
   constructor(props: MainProps) {
     super(props);
     this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleTZChange = this.handleTZChange.bind(this);
     this.handleEmailChange = this.handleEmailChange.bind(this);
     this.handlePassChange = this.handlePassChange.bind(this);
     this.handleServerChange = this.handleServerChange.bind(this);
@@ -64,16 +62,7 @@ export class Main extends React.Component<MainProps, FormState> {
     let email = this.state.email;
     let pass = this.state.pass;
     let server = this.state.server || fullFile.authorization.server;
-    let tz = this.state.timezone || fullFile.configuration.timezone;
     console.log("server: " + server);
-    console.log("timezone: " + tz);
-
-    if (tz) {
-      fullFile.configuration.timezone = tz;
-    } else {
-      console.error("Timezone is invalid");
-      return;
-    }
 
     if ((email && pass && server) && this.state.connecting != true) {
       // this.state.connecting = true;
@@ -106,17 +95,6 @@ export class Main extends React.Component<MainProps, FormState> {
       });
   }
 
-  // Handles the various input boxes.
-  @action
-  handleTZChange(optn: Select.Option) {
-    let timezone = (optn.value || "").toString();
-    console.log("Hi? " + timezone);
-    this.setState({ timezone: timezone });
-
-    // this is so we don't have to do null juggling from having too possible
-    // places for this value to come from
-    this.props.mobx.configuration.configuration.timezone = timezone;
-  }
   handleEmailChange(event: any) {
     this.setState({ email: (event.target.value || "") });
   }
@@ -370,26 +348,6 @@ export class Main extends React.Component<MainProps, FormState> {
       {/* Only display if the bot is connected */}
       <div hidden={!mainState.connected} className={`col-md-offset-3 col-md-6
         col-sm-8 col-sm-offset-2 col-xs-12`}>
-
-        {/* Timezone Widget */}
-        <div className="widget timezone">
-          <div className="widget-header">
-            <h5>Location</h5>
-            <i className="fa fa-question-circle widget-help-icon">
-              <div className="widget-help-text">
-                {`What timezone your bot is in`}
-              </div>
-            </i>
-          </div>
-          <div className="widget-content">
-            <fieldset>
-              <label htmlFor="timezone">Timezone</label>
-              <TZSelect
-                callback={this.handleTZChange}
-                current={this.props.mobx.configuration.configuration.timezone} />
-            </fieldset>
-          </div>
-        </div>
 
         {/* Network Widget */}
         <div className="widget wifi" hidden={mainState.configuration.network == true}>

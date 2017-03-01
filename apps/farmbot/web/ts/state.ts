@@ -63,8 +63,7 @@ export class MainState {
         configuration: {
             os_auto_update: false,
             fw_auto_update: false,
-            steps_per_mm: { x: 500, y: 500, z: 500 },
-            timezone: ""
+            steps_per_mm: { x: 500, y: 500, z: 500 }
         },
         hardware: { params: {} }
     };
