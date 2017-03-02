@@ -26,6 +26,7 @@ clean:
 \trm -rf apps/farmbot/node_modules
 \trm -rf apps/farmbot/cache
 \trm -rf apps/nerves_system_br
+\trm -rf apps/farmbot/cover
 \trm -rf deps
 \trm -rf _build
 \trm -rf images

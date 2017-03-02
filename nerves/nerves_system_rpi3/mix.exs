@@ -27,7 +27,7 @@ defmodule NervesSystemRpi3.Mixfile do
 
   defp find_nerves() do
     if File.exists?("../nerves") do
-      {:nerves, in_umbrella: true, override: true}
+      {:nerves, path: "../nerves"}
     else
       # {:nerves, github: "nerves-project/nerves", tag: "4d1f9bee92b65fc6fbd4f1c1685e46a55baebee1", override: true}
       {:nerves,  "~> 0.4.8"}
@@ -36,7 +36,7 @@ defmodule NervesSystemRpi3.Mixfile do
 
   defp find_nerves_system_br do
     if File.exists?("../nerves_system_br") do
-      {:nerves_system_br, in_umbrella: true}
+      {:nerves_system_br, path: "../nerves_system_br"}
     else
       {:nerves_system_br, "~> 0.9.2"}
     end
