@@ -5,7 +5,6 @@ defmodule Farmbot.Transport.Supervisor do
   use Supervisor
   @transports Application.get_env(:farmbot, :transports)
 
-  @spec init([]) :: {:ok, pid}
   def init([]) do
     children = build_children(@transports)
     opts = [strategy: :one_for_one]

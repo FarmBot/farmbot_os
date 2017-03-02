@@ -87,6 +87,7 @@ defmodule Farmbot.Transport do
       inc_count()
       {:noreply, [], old_state}
     else
+      dec_count() # HACK(Connor) Dialyzer hack
       reset_count()
       GenStage.async_notify(__MODULE__, {:status, new_state})
       {:noreply, [], new_state}

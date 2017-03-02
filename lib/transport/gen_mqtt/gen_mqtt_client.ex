@@ -9,10 +9,6 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   alias Farmbot.CeleryScript.Command
   alias Farmbot.CeleryScript.Ast
 
-  @spec handle_call(any, any, any) :: {:reply, any, any}
-  @spec handle_cast(any, Token.t) :: ok
-  @spec handle_info(any, Token.t) :: ok
-
   @type ok :: {:ok, Token.t}
 
   @spec init(Token.t) :: ok

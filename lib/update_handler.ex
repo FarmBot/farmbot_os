@@ -111,7 +111,8 @@ defmodule Farmbot.Updates.Handler do
     Parses the httpotion response.
   """
 
-  @spec parse_resp(HTTPoison.Response.t) :: {:assets, Strint.t, String.t}
+  @spec parse_resp(HTTPoison.Response.t)
+    :: {:assets, Strint.t, String.t} | {:error, :bad_resp}
   def parse_resp(
     {:ok, %HTTPoison.Response{
       body: body,
@@ -123,8 +124,6 @@ defmodule Farmbot.Updates.Handler do
     {:assets, new_version, assets}
   end
 
-  # If we happen to get something weird from httpotion
-  @spec parse_resp(any) :: {:error, :bad_resp}
   def parse_resp(_), do: {:error, :bad_resp}
 
   def do_update_check do

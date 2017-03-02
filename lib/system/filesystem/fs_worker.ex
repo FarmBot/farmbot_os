@@ -15,18 +15,15 @@ defmodule Farmbot.System.FS.Worker do
   require Logger
   use GenStage
 
-  @spec start_link(binary) :: {:ok, pid}
   def start_link(target) do
     GenStage.start_link(__MODULE__, target, name: __MODULE__)
   end
 
-  @spec init(binary) :: {:consumer, binary, subscribe_to: [Farmbot.System.FS]}
   def init(target) do
     mod = Module.concat([Farmbot, System, target, FileSystem])
     {:consumer, mod, subscribe_to: [Farmbot.System.FS]}
   end
 
-  @spec handle_events([any], any, binary) :: {:noreply, [], binary}
   def handle_events(events, _from, mod) do
     mod.mount_read_write
     for {transaction, cb} <- events do
@@ -41,13 +38,8 @@ defmodule Farmbot.System.FS.Worker do
     {:noreply, [], mod}
   end
 
-  def get_state do
-    GenServer.call(__MODULE__, :get_state)
-  end
-
   def handle_call(:get_state, _, state), do: {:reply, [], state, state}
 
-  @spec terminate(any,binary) :: :ok
   def terminate(_,mod) do
     mod.mount_read_only
     :ok

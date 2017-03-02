@@ -21,7 +21,7 @@ defmodule Sequence.Supervisor do
   """
   def start_link, do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
 
-  @spec init([]) :: {:ok, state}
+  # @spec init([]) :: {:ok, state}
   def init([]) do
     Process.flag(:trap_exit, true)
     {:ok, %{q: :queue.new(), blocks: [], running: nil}}

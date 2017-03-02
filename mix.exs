@@ -30,7 +30,7 @@ defmodule Farmbot.Mixfile do
      compilers: Mix.compilers ++ maybe_use_webpack(),
      aliases: aliases(@target),
      deps: deps() ++ system(@target),
-     dialyzer: [plt_add_deps: :project],
+     dialyzer: [plt_add_deps: :app_tree, plt_add_apps: [:mnesia, :hackney]],
      preferred_cli_env: [
        vcr: :test, "vcr.delete": :test, "vcr.check": :test, "vcr.show": :test,
        "all_test": :test,

@@ -10,9 +10,9 @@ defmodule Farmbot.Logger do
   use GenEvent
   require Logger
 
-  @type state :: {[log_message], posting?}
+  # @type state :: {[log_message], posting?}
 
-  @spec init(any) :: {:ok, state}
+  # @spec init(any) :: {:ok, state}
   def init(_), do: {:ok, build_state()}
 
   # ten megs. i promise
@@ -74,7 +74,6 @@ defmodule Farmbot.Logger do
   def handle_call(_, state), do: {:ok, :unhandled, state}
   def handle_info(_, state), do: dispatch state
 
-  @spec terminate(any, state) :: no_return
   def terminate(_,_) do
     # if this backend crashes just pop it out of the logger backends.
     # if we don't do this it bacomes a huge mess because of Logger
@@ -86,7 +85,7 @@ defmodule Farmbot.Logger do
     Logger.remove_backend(__MODULE__)
   end
 
-  @spec emit(map) :: :ok
+  # @spec emit(map) :: no_return
   defp emit(msg), do: Farmbot.Transport.log(msg)
 
   # IF we are already posting messages to the api, no need to check the count.
@@ -106,7 +105,7 @@ defmodule Farmbot.Logger do
   end
 
   # Posts an array of logs to the API.
-  @spec do_post([log_message],pid) :: :ok
+  # @spec do_post([log_message], pid) :: :ok
   defp do_post(m, _pid) do
     {messages, _} = Enum.partition(m, fn(message) ->
       case Poison.encode(message) do
@@ -119,7 +118,7 @@ defmodule Farmbot.Logger do
 
   # Parses what the api sends back. Will only ever return :ok even if there was
   # an error.
-  @spec parse_resp(any) :: :ok
+  # @spec parse_resp(any) :: :ok
   defp parse_resp({:ok, %HTTPoison.Response{status_code: 200}}),
     do: GenEvent.call(Elixir.Logger, Farmbot.Logger, :post_success)
 
@@ -128,32 +127,32 @@ defmodule Farmbot.Logger do
     GenEvent.call(Elixir.Logger, Farmbot.Logger, {:post_fail, error})
   end
 
-  @type rpc_log_type
-    :: :success
-     | :busy
-     | :warn
-     | :error
-     | :info
-     | :fun
-
-  @type logger_level
-    :: :info
-     | :debug
-     | :warn
-     | :error
-
-  @type channels :: :toast
-
-  @type meta :: [] | [type: rpc_log_type]
-  @type log_message
-  :: %{message: String.t,
-       channels: channels,
-       created_at: integer,
-       meta: %{
-          type: rpc_log_type,
-          x: integer,
-          y: integer,
-          z: integer}}
+  # @type rpc_log_type
+  #   :: :success
+  #    | :busy
+  #    | :warn
+  #    | :error
+  #    | :info
+  #    | :fun
+  #
+  # @type logger_level
+  #   :: :info
+  #    | :debug
+  #    | :warn
+  #    | :error
+  #
+  # @type channels :: :toast
+  #
+  # @type meta :: [] | [type: rpc_log_type]
+  # @type log_message
+  # :: %{message: String.t,
+  #      channels: channels,
+  #      created_at: integer,
+  #      meta: %{
+  #         type: rpc_log_type,
+  #         x: integer,
+  #         y: integer,
+  #         z: integer}}
 
   # Translates Logger levels into Farmbot levels.
   # :info -> :info
@@ -164,7 +163,7 @@ defmodule Farmbot.Logger do
   # Also takes some meta.
   # Meta should take priority over
   # Logger Levels.
-  @spec parse_type(logger_level, meta) :: rpc_log_type
+  # @spec parse_type(logger_level, meta) :: rpc_log_type
   defp parse_type(:debug, []), do: :info
   defp parse_type(level, []), do: level
   defp parse_type(_level, [type: type]), do: type
@@ -173,7 +172,7 @@ defmodule Farmbot.Logger do
   defp parse_channels([channels: channels]), do: channels
   defp parse_channels(_), do: []
 
-  @spec sanitize(binary, [any]) :: {:ok, String.t} | nil
+  # @spec sanitize(binary, [any]) :: {:ok, String.t} | nil
   defp sanitize(message, meta) do
     m = Keyword.take(meta, [:module])
     if !meta[:nopub] do
@@ -231,8 +230,8 @@ defmodule Farmbot.Logger do
   end
   defp parse_created_at(_), do: nil
 
-  @spec build_log(String.t, number, rpc_log_type, [channels], [integer])
-  :: {:ok, log_message}
+  # @spec build_log(String.t, number, rpc_log_type, [channels], [integer])
+  # :: {:ok, log_message}
   defp build_log(message, created_at, type, channels, [x,y,z]) do
     a =
       %{message: message,
@@ -246,7 +245,7 @@ defmodule Farmbot.Logger do
     {:ok, a}
   end
 
-  @type posting? :: boolean
-  @spec build_state :: state
+  # @type posting? :: boolean
+  # @spec build_state :: state
   defp build_state, do: {[], false}
 end

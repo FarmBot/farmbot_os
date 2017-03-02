@@ -3,15 +3,6 @@ defmodule Farmbot.Token do
     @moduledoc """
       The unencoded version of the token.
     """
-    @enforce_keys [:bot,
-                    :exp,
-                    :fw_update_server,
-                    :os_update_server,
-                    :iat,
-                    :iss,
-                    :jti,
-                    :mqtt,
-                    :sub]
     @type t :: %__MODULE__{
       # Github apis for bot and fw updates.
       fw_update_server: String.t,
@@ -45,7 +36,6 @@ defmodule Farmbot.Token do
   @moduledoc """
     Token Object
   """
-  @enforce_keys [:encoded, :unencoded]
   defstruct [:encoded, :unencoded]
   @type t :: %__MODULE__{
     encoded: binary,
@@ -55,8 +45,7 @@ defmodule Farmbot.Token do
   @doc """
     Creates a valid token from json.
   """
-  @spec create(map | {:ok, map}) :: t | :not_valid
-  def create({:ok, token}), do: create(token)
+  @spec create(map | {:ok, map}) :: {:ok, t} | :not_valid
   def create(%{"encoded" => encoded,
                "unencoded" =>
                 %{"bot" => bot,

@@ -13,14 +13,10 @@ defmodule Farmbot.System.FS.ConfigStorage do
   defp default_config_file,
     do: "#{:code.priv_dir(:farmbot)}/configs/#{@default_config_file_name}"
 
-  @type args :: binary
-  @spec start_link(args) :: {:ok, pid}
-  def start_link, do: start_link([])
-  def start_link(_args) do
+  def start_link do
     GenServer.start_link(__MODULE__, @config_file, name: __MODULE__)
   end
 
-  @spec init(args) :: {:ok, map}
   def init(path) do
     Logger.info ">> Config Storage init!"
     # Checks if the json file exists or not
@@ -133,6 +129,6 @@ defmodule Farmbot.System.FS.ConfigStorage do
   end
 
   # tries to parse contents. raises an exception if it can't
-  @spec parse_json!(args) :: map
+  @spec parse_json!(binary) :: map
   defp parse_json!(contents), do: contents |> Poison.decode!
 end
