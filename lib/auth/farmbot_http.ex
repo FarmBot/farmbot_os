@@ -65,12 +65,12 @@ defmodule Farmbot.HTTP do
     unless File.exists?(file_name) do
       raise("File not found")
     end
-    {:ok, %HTTPoison.Response{body: body,
+    {:ok, %HTTPoison.Response{body: rbody,
       status_code: 200}} = get("/api/storage_auth")
 
     {:ok, file} = File.read(file_name)
 
-    body = Poison.decode!(body)
+    body = Poison.decode!(rbody)
     url = "https:" <> body["url"]
     form_data = body["form_data"]
     attachment_url = url <> form_data["key"]
