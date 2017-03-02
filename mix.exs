@@ -107,6 +107,7 @@ defmodule Farmbot.Mixfile do
       # http stuff
       {:poison, "~> 3.0"},
       {:ex_json_schema, "~> 0.5.3"},
+      {:exjsx, "~> 3.2", override: true},
       {:httpoison, github: "edgurgel/httpoison", override: true},
       {:rsa, "~> 0.0.1"},
 
@@ -188,7 +189,8 @@ defmodule Farmbot.Mixfile do
       do:   [
         {:"nerves_system_#{sys}", warn_missing: false, path: "nerves/nerves_system_#{sys}"},
         {:nerves_interim_wifi, "~> 0.1.1"},
-        {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
+        # {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
+        {:nerves_firmware_http, "~> 0.3.1"},
         {:nerves_ssdp_server, "~> 0.2.1"},
         ],
       else: Mix.raise("There is no existing system package for #{sys}")

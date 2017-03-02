@@ -1,5 +1,3 @@
-IO.puts "Backing up old Makefile"
-File.cp "Makefile", "Makefile.bac"
 version =  Path.join(__DIR__, "VERSION") |> File.read! |> String.strip
 
 {commitish, _} = System.cmd("git", ["log", "--pretty=format:%hQQ%adQQ%f", "-1"])
@@ -18,20 +16,18 @@ prod_env:
 
 clean:
 \t$(info Cleaning)
-\trm -rf apps/NERVES_SYSTEM_*
-\trm -rf apps/farmbot/_images
-\trm -rf apps/farmbot/npm-debug*
-\trm -rf apps/farmbot/doc
-\trm -rf apps/farmbot/erl_crash.dump
-\trm -rf apps/farmbot/node_modules
-\trm -rf apps/farmbot/cache
-\trm -rf apps/nerves_system_br
-\trm -rf apps/farmbot/cover
+\trm -rf nerves/NERVES_SYSTEM_*
+\trm -rf nerves/nerves_system_br
+\trm -rf npm-debug*
+\trm -rf erl_crash.dump
+\trm -rf doc
+\trm -rf cover
 \trm -rf deps
+\trm -rf node_modules
+\trm -rf cache
 \trm -rf _build
 \trm -rf images
-\trm -rf doc
-\trm -rf erl_crash.dump
+\trm -rf _images
 
 test: dev_env
 \tscripts/run_tests.sh
@@ -72,7 +68,7 @@ release-#{sys}: #{sys}
 ## end #{sys} portion."
 end
 
-list = File.ls!("apps")
+list = File.ls!("nerves")
 only_systems = Enum.reduce(list, [], fn(d, acc) ->
   case d do
     # ignore nerves_system_br

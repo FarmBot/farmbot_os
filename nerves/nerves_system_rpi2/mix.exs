@@ -1,7 +1,7 @@
 defmodule NervesSystemRpi2.Mixfile do
   use Mix.Project
 
-  @version Path.join(__DIR__, "VERSION")
+  @version Path.join([__DIR__, "..", "..", "VERSION"])
     |> File.read!
     |> String.strip
 
@@ -30,7 +30,7 @@ defmodule NervesSystemRpi2.Mixfile do
 
   defp find_nerves() do
     if File.exists?("../nerves") do
-      {:nerves, in_umbrella: true, override: true}
+      {:nerves, path: "../nerves", override: true}
     else
       {:nerves,  "~> 0.4.8"}
     end
@@ -38,7 +38,7 @@ defmodule NervesSystemRpi2.Mixfile do
 
   defp find_nerves_system_br do
     if File.exists?("../nerves_system_br") do
-      {:nerves_system_br, in_umbrella: true}
+      {:nerves_system_br, path: "../nerves"}
     else
       {:nerves_system_br, "~> 0.9.2"}
     end
