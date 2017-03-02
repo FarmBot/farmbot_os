@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.CS.New do
+defmodule Mix.Tasks.Cs.New do
   @moduledoc false
   use Mix.Task
   @shortdoc "Creates a new celery script command"

@@ -216,8 +216,11 @@ defmodule Farmbot.CeleryScript.Command do
     end
   end
 
+  @doc """
+    Converts celery script pairs to tuples
+  """
   @spec pairs_to_tuples([pair]) :: [tuple]
-  defp pairs_to_tuples(config_pairs) do
+  def pairs_to_tuples(config_pairs) do
     Enum.map(config_pairs, fn(%Ast{} = thing) ->
       {thing.args.label, thing.args.value}
     end)
