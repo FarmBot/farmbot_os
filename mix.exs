@@ -182,11 +182,12 @@ defmodule Farmbot.Mixfile do
   defp system("host"), do: []
   defp system(sys) do
     if File.exists?("nerves/NERVES_SYSTEM_#{sys}"),
-      do: System.put_env("NERVES_SYSTEM", "nerves/NERVES_SYSTEM_#{sys}")
+      do: System.put_env("NERVES_SYSTEM", "nerves/NERVES_SYSTEM_#{sys}"),
+    else: IO.puts "HMM?"
 
     # if the system is local (because we have changes to it) use that
     if File.exists?("nerves/nerves_system_#{sys}"),
-      do:   [
+      do: [
         {:"nerves_system_#{sys}", warn_missing: false, path: "nerves/nerves_system_#{sys}"},
         {:nerves_interim_wifi, "~> 0.1.1"},
         # {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
