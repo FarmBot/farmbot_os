@@ -22,8 +22,6 @@ defmodule TokenTest do
             "sub" => email}}
 
     {:ok, f} = Token.create(decoded_json)
-    # should be aloud to give {:ok, map} to the Token.create function.
-    {:ok, ^f} = Token.create({:ok, decoded_json})
     une = f.unencoded
     assert(f.encoded == "asdfasdfasdfasdfasdfasdflalalalalas")
     assert(une.bot == bot_name)
