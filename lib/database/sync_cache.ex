@@ -49,6 +49,7 @@ defmodule Farmbot.Sync.Cache do
    end
 
    def handle_call({:add, list, verb}, _from, old_state) do
+     Farmbot.BotState.set_sync_msg "sync now"
      new_state = Enum.reduce(list, old_state, fn(cache_map, state) ->
        case cache_map.value do
          "*" ->

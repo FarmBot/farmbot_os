@@ -110,8 +110,30 @@ defmodule Farmbot.Sync do
     Logger.info ">> is checking for images to be uploaded."
     :ok = ImageWatcher.force_upload
 
+    out_of_sync = Farmbot.Sync.Cache.get_state
+    if Enum.empty?(out_of_sync) do
+      sync_all()
+    else
+      sync_some(out_of_sync)
+    end
+  end
+
+  @type stuff :: Farmbot.Sync.Cache.state
+  @spec sync_some(stuff)
+    :: {:ok, %{required(atom) => [map] | map}} | {:error, term}
+  defp sync_some(some) do
+    # TODO(Connor) this is incomplete
+    blerp = Enum.map(some, fn(cached_thing) ->
+      cached_thing.syncable
+    end)
+    sync_all(blerp)
+  end
+
+  @spec sync_all(atom)
+    :: {:ok, %{required(atom) => [map] | map}} | {:error, term}
+  defp sync_all(list_of_syncables \\ nil) do
     # im so lazy.
-    syncables = all_syncables()
+    syncables = list_of_syncables || all_syncables()
 
     # Clear the db (Enumeration 1)
     clear_all(syncables)
