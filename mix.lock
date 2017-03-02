@@ -50,7 +50,7 @@
   "nerves_wpa_supplicant": {:hex, :nerves_wpa_supplicant, "0.2.3", "2666b21bf0868f0d3b127930c3bacf59b178a0d015d308ae3985dcb7c1595870", [:make, :mix], [{:elixir_make, "~> 0.3", [hex: :elixir_make, optional: false]}]},
   "plug": {:hex, :plug, "1.3.2", "8391d8ba2e2c187de069211110a882599e851f64550c556163b5130e1e2dbc1b", [:mix], [{:cowboy, "~> 1.0.1 or ~> 1.1", [hex: :cowboy, optional: true]}, {:mime, "~> 1.0", [hex: :mime, optional: false]}]},
   "poison": {:hex, :poison, "3.1.0", "d9eb636610e096f86f25d9a46f35a9facac35609a7591b3be3326e99a0484665", [:mix], []},
-  "quantum": {:hex, :quantum, "1.9.0", "ec19ce81198a97ee5d5331c7c37ca81c3180884cacd65865de27a2db36c92440", [:mix], [{:calendar, "~> 0.16", [hex: :calendar, optional: false]}, {:crontab, "~> 1.0.0", [hex: :crontab, optional: false]}]},
+  "quantum": {:hex, :quantum, "1.8.1", "37c9ad0307cf47bd578507ce1ddda98746199b281e8afe91cbe44c21d56af983", [:mix], [{:calendar, "~> 0.16", [hex: :calendar, optional: false]}]},
   "ranch": {:hex, :ranch, "1.3.2", "e4965a144dc9fbe70e5c077c65e73c57165416a901bd02ea899cfd95aa890986", [:rebar3], []},
   "rsa": {:hex, :rsa, "0.0.1", "a63069f88ce342ffdf8448b7cdef4b39ba7dee3c1510644a39385c7e63ba246f", [:mix], []},
   "ssl_verify_fun": {:hex, :ssl_verify_fun, "1.1.1", "28a4d65b7f59893bc2c7de786dec1e1555bd742d336043fe644ae956c3497fbe", [:make, :rebar], []},
