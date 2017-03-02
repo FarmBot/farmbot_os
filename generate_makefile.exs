@@ -15,19 +15,7 @@ prod_env:
 \texport MIX_ENV=prod
 
 clean:
-\t$(info Cleaning)
-\trm -rf nerves/NERVES_SYSTEM_*
-\trm -rf nerves/nerves_system_br
-\trm -rf npm-debug*
-\trm -rf erl_crash.dump
-\trm -rf doc
-\trm -rf cover
-\trm -rf deps
-\trm -rf node_modules
-\trm -rf cache
-\trm -rf _build
-\trm -rf images
-\trm -rf _images
+
 
 test: dev_env
 \tscripts/run_tests.sh

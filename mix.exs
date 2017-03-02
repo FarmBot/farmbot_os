@@ -182,8 +182,8 @@ defmodule Farmbot.Mixfile do
   defp system("host"), do: []
   defp system(sys) do
     if File.exists?("nerves/NERVES_SYSTEM_#{sys}"),
-      do: System.put_env("NERVES_SYSTEM", "nerves/NERVES_SYSTEM_#{sys}"),
-    else: IO.puts "HMM?"
+      do: System.put_env("NERVES_SYSTEM", Path.absname("nerves/NERVES_SYSTEM_#{sys}", File.cwd!)),
+    else: raise "EFFFFFFF"
 
     # if the system is local (because we have changes to it) use that
     if File.exists?("nerves/nerves_system_#{sys}"),
