@@ -38,7 +38,7 @@ defmodule NervesSystemRpi2.Mixfile do
 
   defp find_nerves_system_br do
     if File.exists?("../nerves_system_br") do
-      {:nerves_system_br, path: "../nerves"}
+      {:nerves_system_br, path: "../nerves_system_br"}
     else
       {:nerves_system_br, "~> 0.9.2"}
     end
