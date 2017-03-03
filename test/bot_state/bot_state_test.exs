@@ -105,36 +105,36 @@ defmodule Farmbot.BotStateTest do
 
   test "sets sync msg to :synced" do
     :ok = Farmbot.BotState.set_sync_msg(:synced)
-    thing = get_config_part(:informational_settings)[:sync_msg]
+    thing = get_config_part(:informational_settings)[:sync_status]
     assert thing == :synced
   end
 
   test "sets sync msg to :sync_now" do
     :ok = Farmbot.BotState.set_sync_msg(:sync_now)
-    thing = get_config_part(:informational_settings)[:sync_msg]
+    thing = get_config_part(:informational_settings)[:sync_status]
     assert thing == :sync_now
   end
 
   test "sets sync msg to :syncing" do
     :ok = Farmbot.BotState.set_sync_msg(:syncing)
-    thing = get_config_part(:informational_settings)[:sync_msg]
+    thing = get_config_part(:informational_settings)[:sync_status]
     assert thing == :syncing
   end
 
   test "sets sync msg to :sync_error" do
     :ok = Farmbot.BotState.set_sync_msg(:sync_error)
-    thing = get_config_part(:informational_settings)[:sync_msg]
+    thing = get_config_part(:informational_settings)[:sync_status]
     assert thing == :sync_error
   end
 
   test "sets sync msg to :unknown" do
     :ok = Farmbot.BotState.set_sync_msg(:unknown)
-    thing = get_config_part(:informational_settings)[:sync_msg]
+    thing = get_config_part(:informational_settings)[:sync_status]
     assert thing == :unknown
   end
 
   test "raises an error if wrong sync message" do
-    assert_raise(Urm, fn() ->
+    assert_raise(FunctionClauseError, fn() ->
       Farmbot.BotState.set_sync_msg("some str?")
     end)
   end
