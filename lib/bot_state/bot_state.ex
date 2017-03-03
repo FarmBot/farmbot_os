@@ -127,19 +127,28 @@ defmodule Farmbot.BotState do
     GenServer.call(Configuration, {:update_config, "user_env", map})
   end
 
-  @spec get_lock(String.t) :: integer | nil
-  def get_lock(string) when is_bitstring(string) do
-    GenServer.call(Configuration, {:get_lock, string})
+  @doc """
+    Locks the bot
+  """
+  @spec lock_bot :: :ok | no_return
+  def lock_bot do
+    GenServer.cast(Configuration, {:update_info, :locked, true})
   end
 
-  @spec add_lock(String.t) :: :ok
-  def add_lock(string) when is_bitstring(string) do
-    GenServer.cast(Configuration, {:add_lock, string})
+  @doc """
+    Unlocks the bot
+  """
+  @spec unlock_bot :: :ok | no_return
+  def unlock_bot do
+    GenServer.cast(Configuration, {:update_info, :locked, false})
   end
 
-  @spec remove_lock(String.t) :: :ok | {:error, atom}
-  def remove_lock(string) when is_bitstring(string) do
-    GenServer.call(Configuration, {:remove_lock, string})
+  @doc """
+    Checks the bots lock status
+  """
+  @spec locked? :: boolean
+  def locked? do
+    GenServer.call(Configuration, :locked?)
   end
 
   @doc """

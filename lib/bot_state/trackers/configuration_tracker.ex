@@ -11,7 +11,6 @@ defmodule Farmbot.BotState.Configuration do
     name: __MODULE__,
     model:
     [
-      locks: [],
       configuration: %{
         user_env: %{},
         os_auto_update: false,
@@ -24,6 +23,7 @@ defmodule Farmbot.BotState.Configuration do
         distance_mm_z: 800
       },
       informational_settings: %{
+        locked: false,
         controller_version: "loading...",
         compat_version: -1,
         target: "loading...",
@@ -43,7 +43,6 @@ defmodule Farmbot.BotState.Configuration do
          commit: String.t}
   @type state ::
     %State{
-      locks: [any],
       configuration: %{
         user_env: map,
         os_auto_update: boolean,
@@ -65,6 +64,7 @@ defmodule Farmbot.BotState.Configuration do
       informational_settings: %{
         controller_version: args.version,
         compat_version: args.compat_version,
+        locked: false,
         target: args.target,
         private_ip: "loading...",
         commit: args.commit,
@@ -186,28 +186,8 @@ defmodule Farmbot.BotState.Configuration do
     dispatch false, state
   end
 
-  # Allow the frontend to do stuff again.
-  def handle_call({:remove_lock, string}, _from,  %State{} = state) do
-    # Get the index of the lock
-    maybe_index =
-      Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
-    # If we got an index, dispatch it.
-    if is_integer(maybe_index) do
-      new_state =
-        %State{state | locks: List.delete_at(state.locks, maybe_index)}
-
-      dispatch :ok, new_state
-    else
-      # if not something is wrong, just crash.
-      dispatch {:error, :no_index}, state
-    end
-  end
-
-  def handle_call({:get_lock, string}, _from, %State{} = state) do
-    # i could crash here, but eh.
-    maybe_index =
-      Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
-    dispatch(maybe_index, state)
+  def handle_call(:locked?, _, state) do
+    dispatch state.informational_settings.locked, state
   end
 
   def handle_call(:get_version, _from, %State{} = state) do
@@ -229,20 +209,6 @@ defmodule Farmbot.BotState.Configuration do
     new_info = Map.put(state.informational_settings, key, value)
     new_state = %State{state | informational_settings: new_info}
     dispatch new_state
-  end
-
-  # Lock the frontend from doing stuff
-  def handle_cast({:add_lock, string}, %State{} = state) do
-    maybe_index =
-      Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
-    # check if this lock already exists.
-    case maybe_index do
-      nil ->
-        new_state = %State{locks: state.locks ++ [%{reason: string}]}
-        dispatch new_state
-      _int ->
-        dispatch state
-    end
   end
 
   def handle_cast(event, %State{} = state) do

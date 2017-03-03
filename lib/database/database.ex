@@ -143,7 +143,6 @@ defmodule Farmbot.Sync do
   defp to_module_syncable(:users), do: Database.User
   defp to_module_syncable(:farm_events), do: Database.FarmEvent
 
-
   @spec sync_all(atom)
     :: {:ok, %{required(atom) => [map] | map}} | {:error, term}
   defp sync_all(list_of_syncables \\ nil) do
