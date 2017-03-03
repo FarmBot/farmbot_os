@@ -134,26 +134,6 @@ defmodule Farmbot.CeleryScript.Command do
   end
 
   @doc ~s"""
-    Return for a valid Rpc Request
-      args: %{label: String.t},
-      body: []
-  """
-  @spec rpc_ok(%{label: String.t}, []) :: Ast.t
-  def rpc_ok(%{label: id}, []) do
-    %Ast{kind: "rpc_ok", args: %{label: id}, body: []}
-  end
-
-  @doc ~s"""
-    bad return for a valid Rpc Request
-      args: %{label: String.t},
-      body: [Explanation]
-  """
-  @spec rpc_error(%{label: String.t}, [explanation_type]) :: Ast.t
-  def rpc_error(%{label: id}, explanations) do
-    %Ast{kind: "rpc_error", args: %{label: id}, body: explanations}
-  end
-
-  @doc ~s"""
     Explanation for an rpc error
       args: %{label: String.t},
       body: []
@@ -216,8 +196,11 @@ defmodule Farmbot.CeleryScript.Command do
     end
   end
 
+  @doc """
+    Converts celery script pairs to tuples
+  """
   @spec pairs_to_tuples([pair]) :: [tuple]
-  defp pairs_to_tuples(config_pairs) do
+  def pairs_to_tuples(config_pairs) do
     Enum.map(config_pairs, fn(%Ast{} = thing) ->
       {thing.args.label, thing.args.value}
     end)
@@ -285,15 +268,6 @@ defmodule Farmbot.CeleryScript.Command do
     |> Ast.parse
     |> do_command
   end
-
-  @doc ~s"""
-    does absolutely nothing.
-      args: %{},
-      body: []
-  """
-  @type nothing_ast :: %Ast{kind: String.t, args: %{}, body: []}
-  @spec nothing(%{}, []) :: nothing_ast
-  def nothing(args, body), do: %Ast{kind: "nothing", args: args, body: body}
 
   # TODO(Connor) make this use the sequence runner
   @doc ~s"""
@@ -537,11 +511,13 @@ defmodule Farmbot.CeleryScript.Command do
   """
   @spec emergency_lock(%{}, []) :: no_return
   def emergency_lock(%{}, []) do
-    # HACK / BUG the arduino firmware won't E stop for some reason, so all
-    # it's state gets wiped out. One day when the firmware works again
-    # we can reimplement this
-    Farmbot.Serial.Handler.e_stop
-    shrug(%{message: ">> is lost. Probably a good idea to reboot."}, [])
+    if Farmbot.BotState.locked? do
+      Logger.error "Bot already locked"
+    else
+      Farmbot.BotState.lock_bot()
+      Farmbot.Serial.Handler.e_stop
+    end
+    shrug("sorry about that. Farmbot needs to reboot", [])
   end
 
   @doc ~s"""
@@ -551,7 +527,8 @@ defmodule Farmbot.CeleryScript.Command do
   """
   @spec emergency_unlock(%{}, []) :: no_return
   def emergency_unlock(%{}, []) do
-    Logger.warn ">> needs to be rebooted"
+    shrug("sorry about that. Farmbot needs to reboot", [])
+    # Farmbot.BotState.unlock_bot()
   end
 
   @doc ~s"""
@@ -656,11 +633,11 @@ defmodule Farmbot.CeleryScript.Command do
 
     cond do
        function_exported?(__MODULE__, fun_name, 2) ->
+         dec_count()
          Kernel.apply(__MODULE__, fun_name, [ast.args, ast.body])
-         dec_count()
        Code.ensure_loaded?(module) ->
-         Kernel.apply(module, :run, [ast.args, ast.body])
          dec_count()
+         Kernel.apply(module, :run, [ast.args, ast.body])
        true ->
          Logger.error ">> has no instruction for #{inspect ast}"
          :no_instruction

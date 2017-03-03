@@ -20,6 +20,7 @@ erl_crash.dump
 npm*
 node_modules
 bundle.js
+cache
 
 erl_crash.dump
 ttb_last_config

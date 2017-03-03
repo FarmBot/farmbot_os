@@ -72,43 +72,6 @@ defmodule Farmbot.BotStateTest do
     assert(is_bitstring(os))
   end
 
-  test "sets and removes a lock" do
-    Farmbot.BotState.add_lock("e_stop")
-    v = Farmbot.BotState.get_lock("e_stop")
-    assert(is_integer(v))
-
-    Farmbot.BotState.remove_lock("e_stop")
-    v = Farmbot.BotState.get_lock("e_stop")
-    assert(v == nil)
-  end
-
-  test "sets a lock and fails to set the same lock again" do
-    str = "Bot doesnt work on christmas."
-    Farmbot.BotState.add_lock(str)
-    old_locks = get_locks()
-
-    Farmbot.BotState.add_lock(str)
-    new_locks = get_locks()
-    assert(new_locks == old_locks)
-  end
-
-  defp get_locks do
-    # this is because the tracker modules arent that fast
-    # and other than testing there is not a use case where
-    # one needs to set a value (with a cast)
-    # and then get a value right after that (with a call)
-    # if i start needing to do this in production code i will handle it then.
-    Process.sleep(10)
-    Farmbot.BotState.Monitor.get_state
-    |> Map.get(:configuration)
-    |> Map.get(:locks)
-  end
-
-  test "fails to remove a lock" do
-    fail = Farmbot.BotState.remove_lock("my dog stepped on my bot")
-    assert(fail == {:error, :no_index})
-  end
-
   test "sets end stops" do
     es = {1,1,1,1,1,1}
     Farmbot.BotState.set_end_stops(es)
@@ -126,6 +89,56 @@ defmodule Farmbot.BotStateTest do
     assert(abc == true)
   end
 
+  test "locks the bot then unlocks it" do
+    :ok = Farmbot.BotState.lock_bot
+    stuffA = get_config_part(:informational_settings)[:locked]
+    lockedA? = Farmbot.BotState.locked?
+    assert stuffA == true
+    assert stuffA == lockedA?
+
+    :ok = Farmbot.BotState.unlock_bot
+    stuffB = get_config_part(:informational_settings)[:locked]
+    lockedB? = Farmbot.BotState.locked?
+    assert stuffB == false
+    assert stuffB == lockedB?
+  end
+
+  test "sets sync msg to :synced" do
+    :ok = Farmbot.BotState.set_sync_msg(:synced)
+    thing = get_config_part(:informational_settings)[:sync_status]
+    assert thing == :synced
+  end
+
+  test "sets sync msg to :sync_now" do
+    :ok = Farmbot.BotState.set_sync_msg(:sync_now)
+    thing = get_config_part(:informational_settings)[:sync_status]
+    assert thing == :sync_now
+  end
+
+  test "sets sync msg to :syncing" do
+    :ok = Farmbot.BotState.set_sync_msg(:syncing)
+    thing = get_config_part(:informational_settings)[:sync_status]
+    assert thing == :syncing
+  end
+
+  test "sets sync msg to :sync_error" do
+    :ok = Farmbot.BotState.set_sync_msg(:sync_error)
+    thing = get_config_part(:informational_settings)[:sync_status]
+    assert thing == :sync_error
+  end
+
+  test "sets sync msg to :unknown" do
+    :ok = Farmbot.BotState.set_sync_msg(:unknown)
+    thing = get_config_part(:informational_settings)[:sync_status]
+    assert thing == :unknown
+  end
+
+  test "raises an error if wrong sync message" do
+    assert_raise(FunctionClauseError, fn() ->
+      Farmbot.BotState.set_sync_msg("some str?")
+    end)
+  end
+
   defp get_hardware_part(part) do
     Process.sleep(10)
     Farmbot.BotState.Monitor.get_state
@@ -133,10 +146,10 @@ defmodule Farmbot.BotStateTest do
     |> Map.get(part)
   end
 
-  # defp get_config_part(part) do
-  #   Process.sleep(10)
-  #   Farmbot.BotState.Monitor.get_state
-  #   |> Map.get(:configuration)
-  #   |> Map.get(part)
-  # end
+  defp get_config_part(part) do
+    Process.sleep(10)
+    Farmbot.BotState.Monitor.get_state
+    |> Map.get(:configuration)
+    |> Map.get(part)
+  end
 end

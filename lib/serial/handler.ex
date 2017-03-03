@@ -50,12 +50,6 @@ defmodule Farmbot.Serial.Handler do
   def e_stop, do: GenServer.call(__MODULE__, :e_stop)
 
   @doc """
-    resume from an e_stop
-  """
-  @spec resume :: no_return
-  def resume, do: GenServer.call(__MODULE__, :resume)
-
-  @doc """
     Checks if we have a serial connection
   """
   @spec available? :: boolean
@@ -65,13 +59,13 @@ defmodule Farmbot.Serial.Handler do
   def handle_call(:available?, _, {nerves, tty, handler}),
     do: {:reply, true, {nerves, tty, handler}}
 
-  def handle_call(:e_stop, _from, {nerves, tty, handler}) do
+  def handle_call(:e_stop, _from, {nerves, tty, _handler}) do
     UART.write(nerves, "E")
     UART.close(nerves)
     # Temp hack to try to stop a running command.
     UART.open(nerves, tty, speed: @baud, active: false)
     UART.close(nerves)
-    {:reply, :ok, {nerves, :e_stop, handler}}
+    {:reply, :ok, :crash}
   end
 
   def handle_call(:resume, _from, {nerves, :e_stop, handler}) do

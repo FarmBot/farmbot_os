@@ -11,7 +11,6 @@ defmodule Farmbot.BotState.Configuration do
     name: __MODULE__,
     model:
     [
-      locks: [],
       configuration: %{
         user_env: %{},
         os_auto_update: false,
@@ -24,15 +23,19 @@ defmodule Farmbot.BotState.Configuration do
         distance_mm_z: 800
       },
       informational_settings: %{
+        locked: false,
         controller_version: "loading...",
         compat_version: -1,
         target: "loading...",
         private_ip: nil,
         commit: "loading...",
-        sync_status: "sync now"
+        sync_status: :sync_now
        }
     ]
-
+  @typedoc """
+    The message for the sync button to display
+  """
+  @type sync_msg :: :sync_now | :syncing | :sync_error | :unknown
   @type args
     :: %{compat_version: integer,
          target: String.t,
@@ -40,7 +43,6 @@ defmodule Farmbot.BotState.Configuration do
          commit: String.t}
   @type state ::
     %State{
-      locks: [any],
       configuration: %{
         user_env: map,
         os_auto_update: boolean,
@@ -50,7 +52,8 @@ defmodule Farmbot.BotState.Configuration do
         steps_per_mm_z: integer,
         distance_mm_x: integer,
         distance_mm_y: integer,
-        distance_mm_z: integer
+        distance_mm_z: integer,
+        sync_status: sync_msg
       },
       informational_settings: map # TODO type this
     }
@@ -61,10 +64,11 @@ defmodule Farmbot.BotState.Configuration do
       informational_settings: %{
         controller_version: args.version,
         compat_version: args.compat_version,
+        locked: false,
         target: args.target,
         private_ip: "loading...",
         commit: args.commit,
-        sync_status: "sync now"
+        sync_status: :sync_now
       }
     }
     {:ok, user_env} = get_config("user_env")
@@ -182,28 +186,8 @@ defmodule Farmbot.BotState.Configuration do
     dispatch false, state
   end
 
-  # Allow the frontend to do stuff again.
-  def handle_call({:remove_lock, string}, _from,  %State{} = state) do
-    # Get the index of the lock
-    maybe_index =
-      Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
-    # If we got an index, dispatch it.
-    if is_integer(maybe_index) do
-      new_state =
-        %State{state | locks: List.delete_at(state.locks, maybe_index)}
-
-      dispatch :ok, new_state
-    else
-      # if not something is wrong, just crash.
-      dispatch {:error, :no_index}, state
-    end
-  end
-
-  def handle_call({:get_lock, string}, _from, %State{} = state) do
-    # i could crash here, but eh.
-    maybe_index =
-      Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
-    dispatch(maybe_index, state)
+  def handle_call(:locked?, _, state) do
+    dispatch state.informational_settings.locked, state
   end
 
   def handle_call(:get_version, _from, %State{} = state) do
@@ -225,20 +209,6 @@ defmodule Farmbot.BotState.Configuration do
     new_info = Map.put(state.informational_settings, key, value)
     new_state = %State{state | informational_settings: new_info}
     dispatch new_state
-  end
-
-  # Lock the frontend from doing stuff
-  def handle_cast({:add_lock, string}, %State{} = state) do
-    maybe_index =
-      Enum.find_index(state.locks, fn(%{reason: str}) -> str == string end)
-    # check if this lock already exists.
-    case maybe_index do
-      nil ->
-        new_state = %State{locks: state.locks ++ [%{reason: string}]}
-        dispatch new_state
-      _int ->
-        dispatch state
-    end
   end
 
   def handle_cast(event, %State{} = state) do

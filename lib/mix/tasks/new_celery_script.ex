@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.CS.New do
+defmodule Mix.Tasks.Cs.New do
   @moduledoc false
   use Mix.Task
   @shortdoc "Creates a new celery script command"
@@ -8,11 +8,37 @@ defmodule Mix.Tasks.CS.New do
       new_cs
       |> Macro.camelize
       |> build_module
-    path = "lib/celery_script/commands/#{new_cs}.ex"
-    File.write path, module_string
+
+    module_test_string =
+      new_cs
+      |> Macro.camelize
+      |> build_test_module
+
+    new_cs_path = "lib/celery_script/commands/#{new_cs}.ex"
+    new_cs_test_path = "test/celery_script/commands/#{new_cs}_test.exs"
+    if File.exists?(new_cs_path) do
+      Mix.raise("#{new_cs} already exists!!!!")
+    end
+    File.write new_cs_path, module_string
+    File.write new_cs_test_path, module_test_string
   end
 
   def run(_), do: Mix.raise("Unexpected args!")
+
+  defp build_test_module(camelized_kind) do
+    """
+    defmodule Farmbot.CeleryScript.Command.#{camelized_kind}Test do
+      use ExUnit.Case
+      alias Farmbot.CeleryScript.Ast
+      alias Farmbot.CeleryScript.Command
+
+      test "the truth" do
+        # TODO(Connor) fix the truth in #{camelized_kind}
+        assert true == false
+      end
+    end
+    """
+  end
 
   defp build_module(camelized_kind) do
     """

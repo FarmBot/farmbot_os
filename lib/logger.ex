@@ -82,7 +82,9 @@ defmodule Farmbot.Logger do
     # then printing a HUGE supervisor report
     # then Logger trying to add it again
     # etc
-    Logger.remove_backend(__MODULE__)
+    spawn fn() ->
+      Logger.remove_backend(__MODULE__)
+    end
   end
 
   # @spec emit(map) :: no_return
