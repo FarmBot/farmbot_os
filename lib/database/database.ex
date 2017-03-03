@@ -126,6 +126,7 @@ defmodule Farmbot.Sync do
     blerp = Enum.map(some, fn({syncable, _cached_thing}) ->
       to_module_syncable(syncable)
     end)
+    Farmbot.Sync.Cache.clear()
     sync_all(blerp)
   end
 
