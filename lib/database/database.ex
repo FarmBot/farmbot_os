@@ -25,25 +25,25 @@ defmodule Farmbot.Sync do
       [:id, :planting_area_id, :name, :webcam_url], singular: true
 
     syncable Peripheral, "/api/peripherals",
-      [:id, :device_id, :pin, :mode, :label, :created_at, :updated_at]
+      [:id, :pin, :mode, :label, :created_at, :updated_at]
 
     syncable Plant, "/api/plants",
-      [:id, :device_id, :name, :x, :y, :radius]
+      [:id, :name, :x, :y, :radius]
 
     syncable Point, "/api/points",
       [:id, :radius, :x, :y, :z, :meta]
 
     syncable Regimen, "/api/regimens",
-      [:id, :color, :name, :device_id, :regimen_items]
+      [:id, :color, :name, :regimen_items]
 
     # syncable RegimenItem, "/api/regimen_items",
     #   [:id, :time_offset, :regimen_id, :sequence_id]
 
     syncable Sequence, "/api/sequences",
-      [:id, :args, :body, :color, :device_id, :kind, :name]
+      [:id, :args, :body, :color, :kind, :name]
 
     syncable ToolBay, "/api/tool_bays",
-      [:id, :device_id, :name]
+      [:id, :name]
 
     syncable ToolSlot, "/api/tool_slots",
       [:id, :tool_bay_id, :tool_id, :name, :x, :y, :z]
@@ -52,7 +52,7 @@ defmodule Farmbot.Sync do
       [:id, :name]
 
     syncable User, "/api/users",
-      [:id, :device_id, :name, :email, :created_at, :updated_at]
+      [:id, :name, :email, :created_at, :updated_at]
 
     syncable FarmEvent, "/api/farm_events",
       [:id, :start_time, :end_time, :next_time,
@@ -126,6 +126,7 @@ defmodule Farmbot.Sync do
     blerp = Enum.map(some, fn({syncable, _cached_thing}) ->
       to_module_syncable(syncable)
     end)
+    Farmbot.Sync.Cache.clear()
     sync_all(blerp)
   end
 

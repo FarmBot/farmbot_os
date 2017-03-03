@@ -588,38 +588,6 @@ defmodule Farmbot.CeleryScript.Command do
   end
 
   @doc ~s"""
-    Adds a point to the API
-      args: %{location: coordinate.t, radius: integer}
-      body: [pair]
-  """
-  @spec add_point(%{location: coordinate_ast, radius: integer}, [pair])
-    :: no_return
-  def add_point(%{location: location, radius: radius}, pairs) do
-    # Turn the meta data into a map
-    meta =
-      pairs
-      |> pairs_to_tuples
-      |> Map.new
-
-    # validate the location
-    coord = ast_to_coord(location)
-    c_args = coord.args
-    json =
-      %{x: c_args.x, y: c_args.y, z: c_args.z, radius: radius, meta: meta}
-      |> Poison.encode!
-    Farmbot.HTTP.post("/api/points", json)
-  end
-
-  @doc """
-    Removes a point from the API
-      args: %{point_id: integer},
-      body: []
-  """
-  @spec remove_point(%{point_id: integer}, []) :: no_return
-  def remove_point(%{point_id: p_id}, []),
-    do: Farmbot.HTTP.delete("/api/points/#{p_id}")
-
-  @doc ~s"""
     Executes an ast node.
   """
   @spec do_command(Ast.t) :: :no_instruction | any
