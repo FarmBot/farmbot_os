@@ -14,7 +14,7 @@ defmodule SequenceRunnerTest do
     %Sequence{args: %{"is_outdated" => false,
        "version" => 4},
      body: [%{"args" => %{"message" => "Bot is at position {{ x }}, {{ y }}, {{ z }}.",
-          "message_type" => "success"}, "kind" => "send_message"}], color: "blue", device_id: nil, id: 186,
+          "message_type" => "success"}, "kind" => "send_message"}], color: "blue", id: 186,
      kind: "sequence", name: "errrrp"}
   end
 end
