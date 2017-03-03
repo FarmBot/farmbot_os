@@ -29,10 +29,13 @@ defmodule Farmbot.BotState.Configuration do
         target: "loading...",
         private_ip: nil,
         commit: "loading...",
-        sync_status: "sync now"
+        sync_status: :sync_now
        }
     ]
-
+  @typedoc """
+    The message for the sync button to display
+  """
+  @type sync_msg :: :sync_now | :syncing | :sync_error | :unknown
   @type args
     :: %{compat_version: integer,
          target: String.t,
@@ -50,7 +53,8 @@ defmodule Farmbot.BotState.Configuration do
         steps_per_mm_z: integer,
         distance_mm_x: integer,
         distance_mm_y: integer,
-        distance_mm_z: integer
+        distance_mm_z: integer,
+        sync_status: sync_msg
       },
       informational_settings: map # TODO type this
     }
@@ -64,7 +68,7 @@ defmodule Farmbot.BotState.Configuration do
         target: args.target,
         private_ip: "loading...",
         commit: args.commit,
-        sync_status: "sync now"
+        sync_status: :sync_now
       }
     }
     {:ok, user_env} = get_config("user_env")

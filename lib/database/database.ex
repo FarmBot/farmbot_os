@@ -104,7 +104,7 @@ defmodule Farmbot.Sync do
     {:ok, %{required(atom) => [map] | map}} | {:error, term}
   # This is the most complex method in all of this application.
   def sync do
-    Farmbot.BotState.set_sync_msg "syncing"
+    Farmbot.BotState.set_sync_msg :syncing
     # TODO(Connor) Should probably move this to its own function
     # but right now its only one thing
     Logger.info ">> is checking for images to be uploaded."
@@ -123,11 +123,26 @@ defmodule Farmbot.Sync do
     :: {:ok, %{required(atom) => [map] | map}} | {:error, term}
   defp sync_some(some) do
     # TODO(Connor) this is incomplete
-    blerp = Enum.map(some, fn(cached_thing) ->
-      cached_thing.syncable
+    blerp = Enum.map(some, fn({syncable, _cached_thing}) ->
+      to_module_syncable(syncable)
     end)
     sync_all(blerp)
   end
+
+  # ignore this pls
+  @spec to_module_syncable(atom) :: atom
+  defp to_module_syncable(:devices), do: Database.Device
+  defp to_module_syncable(:peripherals), do: Database.Peripheral
+  defp to_module_syncable(:plants), do: Database.Plant
+  defp to_module_syncable(:points), do: Database.Point
+  defp to_module_syncable(:regimens), do: Database.Regimen
+  defp to_module_syncable(:sequences), do: Database.Sequence
+  defp to_module_syncable(:tool_bays), do: Database.ToolBay
+  defp to_module_syncable(:tool_slots), do: Database.ToolSlot
+  defp to_module_syncable(:tools), do: Database.Tool
+  defp to_module_syncable(:users), do: Database.User
+  defp to_module_syncable(:farm_events), do: Database.FarmEvent
+
 
   @spec sync_all(atom)
     :: {:ok, %{required(atom) => [map] | map}} | {:error, term}
@@ -202,11 +217,11 @@ defmodule Farmbot.Sync do
     # if there are no errors, return success, if not, return the fails
     if Enum.empty?(fails) do
       Logger.info ">> is synced!", type: :success
-      Farmbot.BotState.set_sync_msg "synced"
+      Farmbot.BotState.set_sync_msg :synced
       {:ok, success}
     else
       Logger.error ">> encountered errors syncing: #{inspect fails}"
-      Farmbot.BotState.set_sync_msg "sync error"
+      Farmbot.BotState.set_sync_msg :sync_error
       {:error, fails}
     end
   end
