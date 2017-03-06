@@ -83,6 +83,38 @@ defmodule Farmbot.AuthTest do
     end
   end
 
+  test "keeps a backup in case of catastrophic issues secret" do
+     Auth.purge_token
+     use_cassette "good_login" do
+       good_interim()
+       {:ok, login_token} = Farmbot.Auth.try_log_in!
+       assert match?(%Farmbot.Token{}, login_token)
+
+       assert File.exists? "/tmp/secret.backup"
+
+       GenServer.stop(Farmbot.Auth, :uhhhh?)
+       File.rm("/tmp/secret") # this is the good file
+
+       {:ok, token} = Farmbot.Auth.try_log_in!
+       assert match?(%Farmbot.Token{}, token)
+     end
+  end
+
+  test "forces a new token" do
+    Auth.purge_token
+    use_cassette "good_login" do
+      good_interim()
+      {:ok, login_token} = Farmbot.Auth.try_log_in!
+      assert match?(%Farmbot.Token{}, login_token)
+    end
+
+    use_cassette "good_login_2" do
+      send Farmbot.Auth, :new_token
+      {:ok, token} = Farmbot.Auth.get_token
+      assert match?(%Farmbot.Token{}, token)
+    end
+  end
+
   defp good_interim do
     :ok = Auth.interim("admin@admin.com", "password123", "http://localhost:3000")
   end

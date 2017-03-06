@@ -70,6 +70,7 @@ export class Main extends React.Component<MainProps, FormState> {
       mainState.uploadCreds(email, pass, server)
         .then((thing) => {
           console.log("uploaded web app credentials!");
+          this.props.ws.close();
         })
         .catch((thing) => {
           console.error("Error uploading web app credentials!")

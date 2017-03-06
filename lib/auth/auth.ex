@@ -7,6 +7,8 @@ defmodule Farmbot.Auth do
   @ssl_hack [ ssl: [{:versions, [:'tlsv1.2']}], follow_redirect: true]
   @six_hours (6 * 3_600_000)
 
+  @secret_backup "/tmp/secret.backup"
+
   use GenServer
   require Logger
   alias Farmbot.System.FS.ConfigStorage, as: CS
@@ -75,6 +77,7 @@ defmodule Farmbot.Auth do
         # save the secret to disk.
         Farmbot.System.FS.transaction fn() ->
           :ok = File.write(@path <> "/secret", :erlang.term_to_binary(secret))
+          :ok = File.write(@secret_backup, :erlang.term_to_binary(secret))
           File.rm "tmp/on_failure.sh"
         end
         body |> Poison.decode! |> Map.get("token") |> Token.create
@@ -163,6 +166,17 @@ defmodule Farmbot.Auth do
   def get_secret do
     case File.read(@path <> "/secret") do
       {:ok, sec} -> {:ok, :erlang.binary_to_term(sec)}
+      _ -> try_get_backup()
+    end
+  end
+
+  @doc """
+    Tries to get the backup secret
+  """
+  @spec try_get_backup :: {:ok, nil} | {:ok, binary}
+  def try_get_backup do
+    case File.read(@secret_backup) do
+      {:ok, sec} -> {:ok, :erlang.binary_to_term(sec)}
       _ -> {:ok, nil}
     end
   end
@@ -179,6 +193,14 @@ defmodule Farmbot.Auth do
     Logger.info(">> Authorization init!")
     s_a()
     get_secret()
+  end
+
+  def terminate(_reason, _state) do
+    if File.exists?(@secret_backup) do
+      Farmbot.System.FS.transaction fn() ->
+        File.cp @secret_backup, "#{@path}/secret"
+      end
+    end
   end
 
   # sends a message after 6 hours to get a new token.
