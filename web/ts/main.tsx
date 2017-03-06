@@ -235,7 +235,7 @@ export class Main extends React.Component<MainProps, FormState> {
                 return <div key={ifaceName}>
                   <fieldset className="password-group">
                     <label>
-                      WiFi ( {ifaceName} )
+                      WiFi ({ifaceName})
                     </label>
 
                     {/* Scan button */}
@@ -262,20 +262,29 @@ export class Main extends React.Component<MainProps, FormState> {
                         });
                       // update it in the config
                       mobx.updateInterface(ifaceName,
-                        { type: "wireless", default: "dhcp", settings: { ssid: value } });
+                        { type: "wireless", default: "dhcp", settings: { ssid: value, key_mgmt: "NONE" } });
                     }))}
 
                     <i onClick={this.showHideWifiPassword.bind(this)}
                       className={"fa fa-eye " + wifiPasswordIsShown}></i>
 
                     <input type={wifiPasswordIsShown} onChange={(event) => {
-                      this.props.mobx.updateInterface(ifaceName,
-                        {
-                          settings: {
-                            psk: event.currentTarget.value,
-                            key_mgmt: "WPA-PSK"
-                          }
-                        })
+                      if (event.currentTarget.value.length === 0) {
+                        this.props.mobx.updateInterface(ifaceName,
+                          {
+                            settings: {
+                              key_mgmt: "NONE"
+                            }
+                          })
+                      } else {
+                        this.props.mobx.updateInterface(ifaceName,
+                          {
+                            settings: {
+                              psk: event.currentTarget.value,
+                              key_mgmt: "WPA-PSK"
+                            }
+                          })
+                      }
                     }} />
                   </fieldset>
                 </div>
