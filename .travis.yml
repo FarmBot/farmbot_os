@@ -1,30 +1,33 @@
 language: bash
-
 sudo: required
 dist: trusty
-
 addons:
   apt:
     packages:
     - libwxbase2.8-0
     - libwxgtk2.8-0
-
 env:
   global:
-    - ELIXIR_VERSION=1.4.0 ERLANG_VERSION=19.0
-
+  - ELIXIR_VERSION=1.4.0 ERLANG_VERSION=19.0
 before_install:
-  - wget https://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_$ERLANG_VERSION-1~ubuntu~trusty_amd64.deb;
-  - sudo dpkg -i esl-erlang_$ERLANG_VERSION-1~ubuntu~trusty_amd64.deb;
-  - wget https://github.com/elixir-lang/elixir/releases/download/v$ELIXIR_VERSION/Precompiled.zip
-  - unzip -d elixir Precompiled.zip
-
+- wget https://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_$ERLANG_VERSION-1~ubuntu~trusty_amd64.deb;
+- sudo dpkg -i esl-erlang_$ERLANG_VERSION-1~ubuntu~trusty_amd64.deb;
+- wget https://github.com/elixir-lang/elixir/releases/download/v$ELIXIR_VERSION/Precompiled.zip
+- unzip -d elixir Precompiled.zip
 before_script:
-  - export PATH=`pwd`/elixir/bin:$PATH
-
+- export PATH=`pwd`/elixir/bin:$PATH
 script:
-  - mix local.hex --force
-  - mix local.rebar --force
-  - mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez --force
-  - elixir generate_makefile.exs
-  - make travis_test
+- mix local.hex --force
+- mix local.rebar --force
+- mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez
+  --force
+- elixir generate_makefile.exs
+- make travis_test
+deploy:
+  provider: releases
+  api_key:
+    secure: QDrtyp9BGdOUVsZoTSMOplLCs/ySFguoHFoVi5jLzdEGnrXG8Xcds/2mVb3hJYetu//oaAgYHoOvOk61zuafXFXIh2uyPBBDt0Pt6YoN7/LQ1GFypGXDxKhMKnIjimx5HhqXXtzVz2GDpcbiIMRkvU1oE9gg8lLpoXa6Q1eDTNc=
+  file: release-latest/*
+  on:
+    branch: staging
+    repo: FarmBot/farmbot_os

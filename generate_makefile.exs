@@ -1,4 +1,5 @@
-version =  Path.join(__DIR__, "VERSION") |> File.read! |> String.strip
+version = Path.join(__DIR__, "VERSION") |> File.read! |> String.strip
+IO.puts version
 
 {commitish, _} = System.cmd("git", ["log", "--pretty=format:%hQQ%adQQ%f", "-1"])
 thing = String.split(commitish, "QQ")
@@ -90,3 +91,7 @@ release: clean #{Enum.map(only_systems, fn(a) -> " release-"<>a end)}"
 
 IO.puts "Writing file."
 File.write("Makefile", final)
+blah = "release-#{version}"
+IO.puts blah
+File.rm "./release-latest"
+File.ln_s(blah, "./release-latest")
