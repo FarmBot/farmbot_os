@@ -12,9 +12,8 @@ defmodule Downloader do
   """
   @spec run(binary, binary) :: binary
   def run(url, path) do
-    {:ok, %HTTPoison.Response{body: thing}} =
-      HTTPoison.get(url, [], [follow_redirect: true])
-    File.write!(path, thing)
+    {:ok, {_http, _headers, body}} = :httpc.request(String.to_charlist(url))
+    File.write!(path, body)
     path
   end
 end

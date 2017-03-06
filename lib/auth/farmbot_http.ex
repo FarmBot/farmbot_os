@@ -80,7 +80,7 @@ defmodule Farmbot.HTTP do
     ]
     payload =
       Enum.map(form_data, fn({key, value}) ->
-        if key == "file", do: {"file", file}, else:  {key, value}
+        if key == "file", do: {"file", file}, else: {key, value}
       end)
     Logger.info ">> #{attachment_url} Should hopefully exist shortly!"
     url

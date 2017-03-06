@@ -53,14 +53,15 @@ defmodule Farmware do
   @spec install(binary) :: map | no_return
   @lint {Credo.Check.Refactor.ABCSize, false}
   def install(manifest_url) do
-    Logger.info "Getting Farmware Manifest"
+    Logger.info "Getting Farmware Manifest: #{manifest_url}"
     {manifest, json} = Manifest.get!(manifest_url).body
     path = FS.path() <> "/farmware/#{manifest[:package]}"
 
     raise_if_exists(path, manifest)
 
-    Logger.info "Getting Farmware Package"
-    zip_file_path = Downloader.run(manifest[:zip], "/tmp/#{manifest[:package]}.zip")
+    zip_url = manifest[:zip]
+    Logger.info "Getting Farmware Package: #{zip_url}"
+    zip_file_path = Downloader.run(zip_url, "/tmp/#{manifest[:package]}.zip")
     Logger.info "Unpacking Farmware Package"
 
     FS.transaction fn() ->
