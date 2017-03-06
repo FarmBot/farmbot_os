@@ -8,6 +8,7 @@ defmodule Module.concat([Farmbot,System,"host"]) do
       File.rm_rf "/tmp/config.json"
       File.rm_rf "/tmp/secret"
       File.rm_rf "/tmp/farmware"
+      File.rm_rf "/tmp/secret.backup"
       System.halt(0)
     end
   end

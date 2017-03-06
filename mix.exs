@@ -88,6 +88,7 @@ defmodule Farmbot.Mixfile do
       :cowboy,
       :quantum, # Quantum needs to start AFTER farmbot, so we can set up its dirs
       :timex, # Timex needs to start AFTER farmbot, so we can set up its dirs,
+      :inets
    ]
   end
 
