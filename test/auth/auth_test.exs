@@ -94,6 +94,7 @@ defmodule Farmbot.AuthTest do
 
        GenServer.stop(Farmbot.Auth, :uhhhh?)
        File.rm("/tmp/secret") # this is the good file
+       Process.sleep(500)
 
        {:ok, token} = Farmbot.Auth.try_log_in!
        assert match?(%Farmbot.Token{}, token)
