@@ -27,14 +27,13 @@ defmodule Farmbot.System.FS do
       Iex> transaction fn() -> File.write("/state/bs.txt" , "hey") end
   """
   @spec transaction(function) :: :ok | nil
-  def transaction(function, block? \\ false)
-  def transaction(fun, false) when is_function(fun) do
+  def transaction(function, block? \\ false, timeout \\ 10_000)
+  def transaction(fun, false, _timeout) when is_function(fun) do
     # HACK(Connor) i dont want to handle two different :add_transactions
     GenServer.call(__MODULE__, {:add_transaction, fun, __MODULE__})
   end
 
-  def transaction(fun, true) when is_function(fun) do
-    timeout = 200_000
+  def transaction(fun, true, timeout) when is_function(fun) do
     task = Task.async(fn() ->
       GenServer.call(__MODULE__, {:add_transaction, fun, self()})
       # FIXME(Connor) this is probably.. well terrible

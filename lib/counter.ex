@@ -14,11 +14,7 @@ defmodule Counter do
   use GenServer
   def start_link, do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
 
-  def get_state, do: GenServer.call(__MODULE__, :get_state)
-
   def init(_), do: {:ok, %{}}
-
-  def handle_call(:get_state, _, state), do: {:reply, state, state}
 
   def handle_call({:get_count, m}, _, s) do
     if s[m], do: {:reply, s[m], s}, else: {:reply, 0, Map.put(s, m, 0)}

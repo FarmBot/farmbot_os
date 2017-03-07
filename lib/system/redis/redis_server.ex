@@ -17,8 +17,8 @@ defmodule Redis.Server do
   tcp-backlog 511
   unixsocket /tmp/redis.sock
   unixsocketperm 700
-  timeout 60
-  tcp-keepalive 300
+  timeout 0
+  tcp-keepalive 0
   supervised no
   pidfile /var/run/redis_6379.pid
   loglevel notice
