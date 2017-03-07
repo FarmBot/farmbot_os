@@ -6,7 +6,7 @@ defmodule Farmbot.Transport.Redis do
   require Logger
   @config Application.get_all_env(:farmbot)[:redis]
   @ping_time 5_000
-  @save_time 90_0000
+  @save_time 900_000
 
   @doc """
     Starts a stage for a Redis
@@ -18,6 +18,7 @@ defmodule Farmbot.Transport.Redis do
     {:ok, conn} = Redix.start_link(host: "localhost", port: @config[:port])
     Process.link(conn)
     Process.send_after(self(), :ping, @ping_time)
+    Process.send_after(self(), :save, @save_time)
     {:consumer, conn, subscribe_to: [Farmbot.Transport]}
   end
 

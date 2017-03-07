@@ -1,4 +1,8 @@
 defmodule Redis.Client.Public do
+  @moduledoc """
+    Public api for interfacing redis.
+  """
+
   @doc """
     Sends a command to redis. Blocks
   """
