@@ -88,7 +88,8 @@ defmodule Farmbot.Mixfile do
       :cowboy,
       :quantum, # Quantum needs to start AFTER farmbot, so we can set up its dirs
       :timex, # Timex needs to start AFTER farmbot, so we can set up its dirs,
-      :inets
+      :inets,
+      :redix
    ]
   end
 
@@ -125,6 +126,7 @@ defmodule Farmbot.Mixfile do
 
       # Database
       {:amnesia, github: "meh/amnesia"}, # database implementation
+      {:redix, ">= 0.0.0"},
 
       # Log to syslog
       {:ex_syslogger, "~> 1.3.3", only: :prod},
