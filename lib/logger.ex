@@ -9,7 +9,11 @@ defmodule Farmbot.Logger do
   alias Farmbot.HTTP
   use GenEvent
   require Logger
-  @save_path "/tmp/save.log"
+  @save_path Application.get_env(:farmbot, :path) <> "/logs.txt"
+
+  # ten megs. i promise
+  @max_file_size 1.0e+7
+  # @max_file_size 50000
 
   @typedoc """
     The state of the logger
@@ -48,9 +52,6 @@ defmodule Farmbot.Logger do
        meta: %{type: rpc_log_type}}
 
   def init(_), do: {:ok, %{logs: [], posting: false}}
-
-  # ten megs. i promise
-  @max_file_size 1.0e+7
 
   # The example said ignore messages for other nodes, so im ignoring messages
   # for other nodes.
@@ -107,49 +108,37 @@ defmodule Farmbot.Logger do
   @spec write_file([log_message]) :: no_return
   defp write_file(logs) do
     old = read_file()
-
-    bin = Enum.reduce(logs, old, fn(log, acc) ->
-      do_merge(acc, log.message)
+    new_file = Enum.reduce(logs, old, fn(log, acc) ->
+      acc <> log.message <> "\r\n"
     end)
+
+    bin = fifo(new_file)
 
     Farmbot.System.FS.transaction fn ->
       File.write(@save_path, bin <> "\r\n")
     end
   end
 
-  defp do_merge(acc, message) when byte_size(acc) > @max_file_size do
-    trim_amnt = message |> byte_size
-    new = trim(acc, trim_amnt + 2)
-    do_merge(new, message)
-  end
-
-  defp do_merge(acc, message) do
-    acc <> message <> "\r\n"
-  end
-
-  @spec trim(binary, integer) :: binary
-  defp trim(string, amount) when is_binary(string) do
-    string
-    |> String.split("\r\n")
-    |> trim_list(amount)
-  end
-
-  defp trim_list(list, integer, acc \\ "")
-  defp trim_list(list, integer, acc) when byte_size(acc) > integer, do: list
-  defp trim_list([head | tail], integer, acc) do
-    next = Enum.join(acc, head)
-    trim_list(tail, integer, next)
-  end
-
+  # reads the current file.
+  # if the file isnt found, returns an empty string
   @spec read_file :: binary
   defp read_file do
     case File.read(@save_path) do
-      {:ok, old} -> old
-      _ ->
-        time = Timex.now |> Timex.local |> Timex.format!("{ISO:Extended}")
-        "Log Started at: " <> "#{inspect time}\r\n"
+      {:ok, bin} -> bin
+      _ -> ""
     end
   end
+
+  # if the file is to big, fifo it
+  # trim lines off the file until it is smaller than @max_file_size
+  @spec fifo(binary) :: binary
+  defp fifo(new_file) when byte_size(new_file) > @max_file_size do
+    # IO.puts "file size: #{byte_size(new_file)}"
+    [_ | rest] = String.split(new_file, "\r\n")
+    fifo(Enum.join(rest, "\r\n"))
+  end
+
+  defp fifo(new_file), do: new_file
 
   # if this backend crashes just pop it out of the logger backends.
   # if we don't do this it bacomes a huge mess because of Logger
@@ -184,8 +173,9 @@ defmodule Farmbot.Logger do
 
   defp filter_text(">>" <> m), do: filter_text("#{Sync.device_name()}" <> m)
   defp filter_text(m) when is_binary(m) do
-    case Poison.encode(m) do
-      {:ok, _} -> m
+    try do
+      Poison.encode!(m)
+    rescue
       _ -> @filtered
     end
   end
