@@ -13,7 +13,7 @@ defmodule Farmbot.Logger do
 
   # ten megs. i promise
   @max_file_size 1.0e+7
-  # @max_file_size 50000
+  @filtered "[FILTERED]"
 
   @typedoc """
     The state of the logger
@@ -71,7 +71,12 @@ defmodule Farmbot.Logger do
     logs = [log | state.logs]
     if !state.posting and Enum.count(logs) >= 50 do
       # If not already posting, and more than 50 messages
-      spawn fn -> do_post(logs) end
+      spawn fn ->
+        filterd_logs = Enum.filter(logs, fn(log) ->
+          log.message != @filtered
+        end)
+        do_post(filterd_logs)
+      end
       {:ok, %{state | logs: logs, posting: true}}
     else
       {:ok, %{state | logs: logs}}
@@ -89,17 +94,14 @@ defmodule Farmbot.Logger do
     {:ok, :ok, %{state | posting: false}}
   end
 
+  def handle_call(:get_state, state), do: {:ok, state, state}
+
   @spec do_post([log_message]) :: no_return
+  @lint false
   defp do_post(logs) do
     try do
-      case HTTP.post("/api/logs", Poison.encode!(logs)) do
-        {:ok, _} ->
-          IO.puts "success"
-          GenEvent.call(Elixir.Logger, __MODULE__, :post_success)
-        e ->
-          IO.puts "FAILED TO POST LOGS: #{inspect e}"
-          raise "POST FAIL"
-      end
+      HTTP.post!("/api/logs", Poison.encode!(logs))
+      GenEvent.call(Elixir.Logger, __MODULE__, :post_success)
     rescue
       _ -> GenEvent.call(Elixir.Logger, __MODULE__, :post_fail)
     end
@@ -109,7 +111,11 @@ defmodule Farmbot.Logger do
   defp write_file(logs) do
     old = read_file()
     new_file = Enum.reduce(logs, old, fn(log, acc) ->
-      acc <> log.message <> "\r\n"
+      if log.message != @filtered do
+        acc <> log.message <> "\r\n"
+      else
+        acc
+      end
     end)
 
     bin = fifo(new_file)
@@ -158,7 +164,6 @@ defmodule Farmbot.Logger do
     end
   end
 
-  @filtered "[FILTERED]"
   @modules [
     :"Elixir.Nerves.InterimWiFi",
     :"Elixir.Nerves.NetworkInterface",
@@ -171,10 +176,12 @@ defmodule Farmbot.Logger do
   for module <- @modules, do: defp filter_module(_, unquote(module)), do: @filtered
   defp filter_module(message, _module), do: message
 
+  @lint false
   defp filter_text(">>" <> m), do: filter_text("#{Sync.device_name()}" <> m)
   defp filter_text(m) when is_binary(m) do
     try do
       Poison.encode!(m)
+      m
     rescue
       _ -> @filtered
     end
@@ -204,6 +211,6 @@ defmodule Farmbot.Logger do
     %{message: message,
       created_at: created_at,
       channels: channels,
-      meta: %{type: type}}
+      meta: %{type: type, x: 0, y: 0, z: 0}}
   end
 end

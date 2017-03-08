@@ -35,7 +35,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
     # IO.puts position
     parse_report_current_position(position)
   end
-  def parse_code("R83 " <> v), do: {:report_software_version, String.to_integer(v)}
+  def parse_code("R83 " <> v), do: {:report_software_version, v}
   def parse_code("R83") do {:report_software_version, -1} end
   def parse_code("R99 " <> message) do {:debug_message, message} end
   def parse_code("Command" <> _), do: :dont_handle_me # I think this is a bug

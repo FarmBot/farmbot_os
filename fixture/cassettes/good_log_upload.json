@@ -1,0 +1,205 @@
+[
+  {
+    "request": {
+      "body": "[{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 49\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 48\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 47\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 46\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 45\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 44\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 43\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 42\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 41\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 40\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 39\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 38\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 37\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 36\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 35\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 34\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 33\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 32\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 31\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 30\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 29\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 28\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 27\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 26\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 25\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 24\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 23\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 22\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 21\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 20\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 19\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 18\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 17\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 16\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 15\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 14\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 13\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 12\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 11\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 10\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 9\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 8\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 7\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 6\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 5\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 4\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 3\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 2\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 1\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]},{\"meta\":{\"z\":0,\"y\":0,\"x\":0,\"type\":\"debug\"},\"message\":\"Farmbot can count to: 0\",\"created_at\":\"2017-03-08T19:36:16Z\",\"channels\":[]}]",
+      "headers": {
+        "Content-Type": "application/json",
+        "User-Agent": "FarmbotOS/3.0.8-rc.4 (host) host ()",
+        "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0ODgyMTg3NTMsImp0aSI6ImFhYTQxZGNiLWJmZjItNGY4My04NTNhLWI5N2RlOWNhYzA1MSIsImlzcyI6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5MTY3NDc1MywibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFybWJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZGF0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVhc2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV8yIn0.QN7TjQM19j_cJWLq42Dtfbz7IVJOaZTXV9G6U2bCHpLbE6cj8ZIAIXbAeR8h_oqmMq0VEDWOU70wXhxPkHsDuJku1Gvd3qP-S-lwTFE_PAIKj4qDaEkKj6g5faknvpAYKjg5BXhYj8M2qvL3txbEAA1jDKblqavhrjXS_MMgcrGUTbpSh8kfRkGS7DIci6aaBdFbzNoTcvEaJAsB330rnv5yzhqaiqb7RmMuQUv-vNP44uvWkEy-ZKcyQwf9NokwDYu_rBJDqm9NyBd9X9SV-FHAFW8NNL9SEhn0qk1UXSbJq0hj3RmGBJoicUBhzxFt_-eF8siGLFIZBO2u9e_SfQ"
+      },
+      "method": "post",
+      "options": {
+        "follow_redirect": true,
+        "ssl_options": {
+          "versions": [
+            "tlsv1.2"
+          ]
+        }
+      },
+      "request_body": "",
+      "url": "http://localhost:3000/api/logs"
+    },
+    "response": {
+      "body": "[]",
+      "headers": {
+        "X-Frame-Options": "SAMEORIGIN",
+        "X-XSS-Protection": "1; mode=block",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Type": "application/json; charset=utf-8",
+        "ETag": "W/\"4f53cda18c2baa0c0354bb5f9a3ecbe5\"",
+        "Cache-Control": "max-age=0, private, must-revalidate",
+        "Set-Cookie": "_farmbot_session=b2V0ZkVBMzVTdXJNME9MMi91Z2F5UGI3Tzk5VnNQQUR0NE9mMkhMU3U3ekZuY282emZtWkpJd2VqQWlaTHMvSVo4OHBBdkRORGt4QzF0YVFNL3BDQ0E9PS0taDdablZuUkxydVJyL2wzdEpvZ0R0dz09--0278b4fd58c2544a095a336b1f67b2f59e9c26a3; path=/; HttpOnly",
+        "X-Request-Id": "a2c36033-48d9-4a02-99ff-e5f1fac4db1f",
+        "X-Runtime": "0.013417",
+        "Vary": "Origin",
+        "Connection": "close",
+        "Server": "thin"
+      },
+      "status_code": 200,
+      "type": "ok"
+    }
+  },
+  {
+    "request": {
+      "body": "",
+      "headers": [],
+      "method": "get",
+      "options": [],
+      "request_body": "",
+      "url": "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/manifest.json"
+    },
+    "response": {
+      "body": "[{\n \"manifest\": \"https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/packages/take-photo/manifest.json\",\n \"name\": \"take-photo\"\n}]\n",
+      "headers": {
+        "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'",
+        "Strict-Transport-Security": "max-age=31536000",
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "deny",
+        "X-XSS-Protection": "1; mode=block",
+        "ETag": "\"c2cf48f6b6ffbc4ce0dca2f362f1112cdcaa3440\"",
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "max-age=300",
+        "X-Geo-Block-List": "",
+        "X-GitHub-Request-Id": "C5BC:3257:131EF5D:13D0CA9:58C05D30",
+        "Content-Length": "151",
+        "Accept-Ranges": "bytes",
+        "Date": "Wed, 08 Mar 2017 19:36:17 GMT",
+        "Via": "1.1 varnish",
+        "Connection": "keep-alive",
+        "X-Served-By": "cache-lax8633-LAX",
+        "X-Cache": "MISS",
+        "X-Cache-Hits": "0",
+        "X-Timer": "S1489001776.919872,VS0,VE84",
+        "Vary": "Authorization,Accept-Encoding",
+        "Access-Control-Allow-Origin": "*",
+        "X-Fastly-Request-ID": "21bc1fb8a48931fc40f6c698ae3b29ce2cf3f646",
+        "Expires": "Wed, 08 Mar 2017 19:41:17 GMT",
+        "Source-Age": "0"
+      },
+      "status_code": 200,
+      "type": "ok"
+    }
+  },
+  {
+    "request": {
+      "body": "",
+      "headers": [],
+      "method": "get",
+      "options": [],
+      "request_body": "",
+      "url": "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/packages/take-photo/manifest.json"
+    },
+    "response": {
+      "body": "{\n \"package\": \"take-photo\",\n \"language\": \"python\",\n \"author\": \"Farmbot.io\",\n \"description\": \"Take a photo with a USB camera using Python OpenCV.\",\n \"version\": \"0.0.1\",\n \"min_os_version_major\": 3,\n \"url\": \"https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/packages/take-photo/manifest.json\",\n \"zip\": \"https://github.com/FarmBot-Labs/Take-Photo/archive/master.zip\",\n \"executable\": \"python\",\n \"args\": [\"Take-Photo-master/take_photo.py\"]\n}\n",
+      "headers": {
+        "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'",
+        "Strict-Transport-Security": "max-age=31536000",
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "deny",
+        "X-XSS-Protection": "1; mode=block",
+        "ETag": "\"1e2a19745f4e89c482bb8f817d8152df2a71cf5f\"",
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "max-age=300",
+        "X-Geo-Block-List": "",
+        "X-GitHub-Request-Id": "B06C:4085:1783C84:1871E93:58C05D2A",
+        "Content-Length": "459",
+        "Accept-Ranges": "bytes",
+        "Date": "Wed, 08 Mar 2017 19:36:17 GMT",
+        "Via": "1.1 varnish",
+        "Connection": "keep-alive",
+        "X-Served-By": "cache-lax8633-LAX",
+        "X-Cache": "MISS",
+        "X-Cache-Hits": "0",
+        "X-Timer": "S1489001777.035078,VS0,VE93",
+        "Vary": "Authorization,Accept-Encoding",
+        "Access-Control-Allow-Origin": "*",
+        "X-Fastly-Request-ID": "105c209ce6a888594069d677c2bca0d2bf7b33d2",
+        "Expires": "Wed, 08 Mar 2017 19:41:17 GMT",
+        "Source-Age": "0"
+      },
+      "status_code": 200,
+      "type": "ok"
+    }
+  },
+  {
+    "request": {
+      "body": "",
+      "headers": [],
+      "method": "get",
+      "options": [],
+      "request_body": "",
+      "url": "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/schema.json"
+    },
+    "response": {
+      "body": "{\n \"$schema\": \"http://json-schema.org/draft-04/schema#\",\n \"id\": \"https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/schema.json\",\n \"title\": \"Farmware Schema\",\n \"type\": \"object\",\n \"properties\": {\n  \"package\": {\n   \"description\": \"Package name\",\n   \"type\": \"string\"\n  },\n  \"language\": {\n   \"description\": \"Package programming language\",\n   \"type\": \"string\"\n  },\n  \"author\": {\n   \"description\": \"Package author\",\n   \"type\": \"string\"\n  },\n  \"description\": {\n   \"description\": \"Package description\",\n   \"type\": \"string\"\n  },\n  \"version\": {\n   \"description\": \"Package version\",\n   \"type\": \"string\"\n  },\n  \"min_os_version_major\": {\n   \"description\": \"Minimum Farmbot OS version\",\n   \"type\": \"integer\"\n  },\n  \"url\": {\n   \"description\": \"Url to locate this package\",\n   \"type\": \"string\"\n  },\n  \"zip\": {\n   \"description\": \"Url to locate the release of package\",\n   \"type\": \"string\"\n  },\n  \"executable\": {\n   \"description\": \"the name of the executable\",\n   \"type\": \"string\"\n  },\n  \"args\": {\n   \"description\": \"arguments to the executable\",\n   \"type\": \"array\"\n  }\n },\n \"required\": [\"package\", \"language\", \"author\", \"description\",\n  \"version\", \"min_os_version_major\", \"url\", \"zip\", \"args\", \"executable\"\n ]\n}\n",
+      "headers": {
+        "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'",
+        "Strict-Transport-Security": "max-age=31536000",
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "deny",
+        "X-XSS-Protection": "1; mode=block",
+        "ETag": "\"8055977089c586a4987c7cd8e651c377a19acb8e\"",
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "max-age=300",
+        "X-Geo-Block-List": "",
+        "X-GitHub-Request-Id": "D462:DCEB:264F2E6:277C60A:58C05D31",
+        "Content-Length": "1217",
+        "Accept-Ranges": "bytes",
+        "Date": "Wed, 08 Mar 2017 19:36:17 GMT",
+        "Via": "1.1 varnish",
+        "Connection": "keep-alive",
+        "X-Served-By": "cache-lax8633-LAX",
+        "X-Cache": "MISS",
+        "X-Cache-Hits": "0",
+        "X-Timer": "S1489001777.160132,VS0,VE82",
+        "Vary": "Authorization,Accept-Encoding",
+        "Access-Control-Allow-Origin": "*",
+        "X-Fastly-Request-ID": "7bfd7ec3c8a1ef4691816d693998bc815a8c44d4",
+        "Expires": "Wed, 08 Mar 2017 19:41:17 GMT",
+        "Source-Age": "0"
+      },
+      "status_code": 200,
+      "type": "ok"
+    }
+  },
+  {
+    "request": {
+      "body": "",
+      "headers": {
+        "Content-Type": "application/json",
+        "User-Agent": "FarmbotOS/3.0.8-rc.4 (host) host ()",
+        "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0ODgyMTg3NTMsImp0aSI6ImFhYTQxZGNiLWJmZjItNGY4My04NTNhLWI5N2RlOWNhYzA1MSIsImlzcyI6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5MTY3NDc1MywibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFybWJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZGF0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVhc2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV8yIn0.QN7TjQM19j_cJWLq42Dtfbz7IVJOaZTXV9G6U2bCHpLbE6cj8ZIAIXbAeR8h_oqmMq0VEDWOU70wXhxPkHsDuJku1Gvd3qP-S-lwTFE_PAIKj4qDaEkKj6g5faknvpAYKjg5BXhYj8M2qvL3txbEAA1jDKblqavhrjXS_MMgcrGUTbpSh8kfRkGS7DIci6aaBdFbzNoTcvEaJAsB330rnv5yzhqaiqb7RmMuQUv-vNP44uvWkEy-ZKcyQwf9NokwDYu_rBJDqm9NyBd9X9SV-FHAFW8NNL9SEhn0qk1UXSbJq0hj3RmGBJoicUBhzxFt_-eF8siGLFIZBO2u9e_SfQ"
+      },
+      "method": "get",
+      "options": {
+        "follow_redirect": true,
+        "ssl_options": {
+          "versions": [
+            "tlsv1.2"
+          ]
+        }
+      },
+      "request_body": "",
+      "url": "http://localhost:3000/api/logs"
+    },
+    "response": {
+      "body": "[{\"id\":1,\"created_at\":1489001238,\"message\":\"cultivate distributed markets\",\"meta\":{\"type\":[\"success\"]},\"channels\":[\"toast\"]},{\"id\":2,\"created_at\":1489001238,\"message\":\"seize intuitive initiatives\",\"meta\":{\"type\":[\"success\"]},\"channels\":[\"toast\"]},{\"id\":3,\"created_at\":1489001238,\"message\":\"monetize killer applications\",\"meta\":{\"type\":[\"error\"]},\"channels\":[\"toast\"]},{\"id\":4,\"created_at\":1489001238,\"message\":\"incentivize clicks-and-mortar partnerships\",\"meta\":{\"type\":[\"error\"]},\"channels\":[\"toast\"]},{\"id\":5,\"created_at\":1489001238,\"message\":\"incentivize enterprise content\",\"meta\":{\"type\":[\"fun\"]},\"channels\":[\"toast\"]},{\"id\":6,\"created_at\":1489001238,\"message\":\"innovate real-time eyeballs\",\"meta\":{\"type\":[\"error\"]},\"channels\":[\"toast\"]},{\"id\":7,\"created_at\":1489001238,\"message\":\"disintermediate intuitive infrastructures\",\"meta\":{\"type\":[\"info\"]},\"channels\":[\"toast\"]},{\"id\":8,\"created_at\":1489001238,\"message\":\"transition strategic models\",\"meta\":{\"type\":[\"busy\"]},\"channels\":[\"toast\"]},{\"id\":9,\"created_at\":1489001238,\"message\":\"matrix next-generation interfaces\",\"meta\":{\"type\":[\"fun\"]},\"channels\":[\"toast\"]},{\"id\":10,\"created_at\":1489001238,\"message\":\"brand open-source applications\",\"meta\":{\"type\":[\"busy\"]},\"channels\":[\"toast\"]},{\"id\":11,\"created_at\":1489001238,\"message\":\"incubate cross-platform functionalities\",\"meta\":{\"type\":[\"info\"]},\"channels\":[\"toast\"]},{\"id\":12,\"created_at\":1489001238,\"message\":\"facilitate cutting-edge deliverables\",\"meta\":{\"type\":[\"warn\"]},\"channels\":[\"toast\"]},{\"id\":13,\"created_at\":1489001238,\"message\":\"enhance synergistic web-readiness\",\"meta\":{\"type\":[\"info\"]},\"channels\":[\"toast\"]},{\"id\":14,\"created_at\":1489001238,\"message\":\"extend out-of-the-box infrastructures\",\"meta\":{\"type\":[\"busy\"]},\"channels\":[\"toast\"]},{\"id\":15,\"created_at\":1489001238,\"message\":\"monetize synergistic infrastructures\",\"meta\":{\"type\":[\"warn\"]},\"channels\":[\"toast\"]},{\"id\":16,\"created_at\":1489001238,\"message\":\"e-enable ubiquitous portals\",\"meta\":{\"type\":[\"warn\"]},\"channels\":[\"toast\"]},{\"id\":17,\"created_at\":1489001238,\"message\":\"extend rich web-readiness\",\"meta\":{\"type\":[\"error\"]},\"channels\":[\"toast\"]},{\"id\":18,\"created_at\":1489001238,\"message\":\"expedite back-end platforms\",\"meta\":{\"type\":[\"fun\"]},\"channels\":[\"toast\"]},{\"id\":19,\"created_at\":1489001238,\"message\":\"seize global platforms\",\"meta\":{\"type\":[\"fun\"]},\"channels\":[\"toast\"]},{\"id\":20,\"created_at\":1489001238,\"message\":\"disintermediate real-time action-items\",\"meta\":{\"type\":[\"error\"]},\"channels\":[\"toast\"]},{\"id\":21,\"created_at\":1489001238,\"message\":\"revolutionize front-end applications\",\"meta\":{\"type\":[\"success\"]},\"channels\":[\"toast\"]},{\"id\":22,\"created_at\":1489001238,\"message\":\"target strategic metrics\",\"meta\":{\"type\":[\"success\"]},\"channels\":[\"toast\"]},{\"id\":23,\"created_at\":1489001238,\"message\":\"brand strategic supply-chains\",\"meta\":{\"type\":[\"error\"]},\"channels\":[\"toast\"]},{\"id\":24,\"created_at\":1489001238,\"message\":\"transform holistic interfaces\",\"meta\":{\"type\":[\"warn\"]},\"channels\":[\"toast\"]},{\"id\":25,\"created_at\":1489001238,\"message\":\"expedite next-generation metrics\",\"meta\":{\"type\":[\"fun\"]},\"channels\":[\"toast\"]},{\"id\":26,\"created_at\":1489001238,\"message\":\"recontextualize enterprise initiatives\",\"meta\":{\"type\":[\"fun\"]},\"channels\":[\"toast\"]},{\"id\":27,\"created_at\":1489001238,\"message\":\"mesh user-centric methodologies\",\"meta\":{\"type\":[\"warn\"]},\"channels\":[\"toast\"]},{\"id\":28,\"created_at\":1489001238,\"message\":\"integrate holistic supply-chains\",\"meta\":{\"type\":[\"success\"]},\"channels\":[\"toast\"]},{\"id\":29,\"created_at\":1489001238,\"message\":\"grow cross-media synergies\",\"meta\":{\"type\":[\"busy\"]},\"channels\":[\"toast\"]},{\"id\":30,\"created_at\":1489001238,\"message\":\"grow frictionless systems\",\"meta\":{\"type\":[\"error\"]},\"channels\":[\"toast\"]},{\"id\":31,\"created_at\":1489001238,\"message\":\"transition strategic vortals\",\"meta\":{\"type\":[\"info\"]},\"channels\":[\"toast\"]},{\"id\":32,\"created_at\":1489001238,\"message\":\"target leading-edge partnerships\",\"meta\":{\"type\":[\"success\"]},\"channels\":[\"toast\"]},{\"id\":33,\"created_at\":1489001238,\"message\":\"implement B2B web-readiness\",\"meta\":{\"type\":[\"fun\"]},\"channels\":[\"toast\"]},{\"id\":34,\"created_at\":1489001238,\"message\":\"streamline B2C platforms\",\"meta\":{\"type\":[\"busy\"]},\"channels\":[\"toast\"]},{\"id\":35,\"created_at\":1489001238,\"message\":\"productize B2C e-markets\",\"meta\":{\"type\":[\"busy\"]},\"channels\":[\"toast\"]},{\"id\":36,\"created_at\":1489001532,\"message\":\"Farmbot is up and running!\",\"meta\":{\"x\":0,\"y\":0,\"z\":0,\"type\":\"info\"},\"channels\":[]},{\"id\":37,\"created_at\":1489001532,\"message\":\"Farmbot is trying to log in with a secret.\",\"meta\":{\"x\":0,\"y\":0,\"z\":0,\"type\":\"info\"},\"channels\":[]},{\"id\":38,\"created_at\":1489001532,\"message\":\"Farmbot is registering a farmware as take-photo\",\"meta\":{\"x\":0,\"y\":0,\"z\":0,\"type\":\"info\"},\"channels\":[]},{\"id\":39,\"created_at\":1489001532,\"message\":\"Farmbot is installing Farmware: take-photo\",\"meta\":{\"x\":0,\"y\":0,\"z\":0,\"type\":\"info\"},\"channels\":[]},{\"id\":40,\"created_at\":1489001532,\"message\":\"Validating Farmware package\",\"meta\":{\"x\":0,\"y\":0,\"z\":0,\"type\":\"info\"},\"channels\":[]},{\"id\":41,\"created_at\":1489001532,\"message\":\"Installing farmware!\",\"meta\":{\"x\":0,\"y\":0,\"z\":0,\"type\":\"info\"},\"channels\":[]},{\"id\":42,\"created_at\":1489001532,\"message\":\"Unpacking Farmware Package\",\"meta\":{\"x\":0,\"y\":0,\"z\":0,\"type\":\"info\"},\"channels\":[]},{\"id\":43,\"created_at\":1489001532,\"message\":\"Getting Farmware Package: https://github.com/FarmBot-Labs/Take-Photo/archive/master.zip\",\"meta\":{\"x\":0,\"y\":0,\"z\":0,\"type\":\"info\"},\"channels\":[]},{\"id\":44,\"created_at\":1489001532,\"message\":\"Getting Farmware Manifest: https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/packages/take-photo/manifest.json\",\"meta\":{\"x\":0,\"y\":0,\"z\":0,\"type\":\"info\"},\"channels\":[]},{\"id\":45,\"created_at\":1489001532,\"message\":\"Farmbot could not auto detect serial port. i tried: [\\\"ttyUSB0\\\"]\",\"meta\":{\"x\":0,\"y\":0,\"z\":0,\"type\":\"error\"},\"channels\":[]},{\"id\":46,\"created_at\":1489001532,\"message\":\"Farmbot is starting serial services\",\"meta\":{\"x\":0,\"y\":0,\"z\":0,\"type\":\"info\"},\"channels\":[]},{\"id\":47,\"created_at\":1489001532,\"message\":\"Starting Farmware Worker\",\"meta\":{\"x\":0,\"y\":0,\"z\":0,\"type\":\"info\"},\"channels\":[]},{\"id\":48,\"created_at\":1489001532,\"message\":\"Starting Farmware Tracker\",\"meta\":{\"x\":0,\"y\":0,\"z\":0,\"type\":\"info\"},\"channels\":[]},{\"id\":49,\"created_at\":1489001532,\"message\":\"Farmbot creating farmware dir.\",\"meta\":{\"x\":0,\"y\":0,\"z\":0,\"type\":\"info\"},\"channels\":[]}]",
+      "headers": {
+        "X-Frame-Options": "SAMEORIGIN",
+        "X-XSS-Protection": "1; mode=block",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Type": "application/json; charset=utf-8",
+        "ETag": "W/\"6038033382339d90265bd8bd412fb451\"",
+        "Cache-Control": "max-age=0, private, must-revalidate",
+        "Set-Cookie": "_farmbot_session=N0JYU2NpelJ5dnZjZUVKMW54V1hFQWxyUTZNZldaczNRYm8xajNKSkF3YUh6a0E1VTlieFEvYkJua0FqNkJ6Qi9kL3EzaHdmM0RhY0NYaGRIaXU0TGc9PS0tYjVNQUc1TE80YSs4WElpZ1lQcnh1UT09--9b674c5914c42d70a96d045161f0c97462ab3682; path=/; HttpOnly",
+        "X-Request-Id": "07ad4e9a-e3bb-49ea-9394-614aba2144d8",
+        "X-Runtime": "0.047064",
+        "Vary": "Origin",
+        "Connection": "close",
+        "Server": "thin"
+      },
+      "status_code": 200,
+      "type": "ok"
+    }
+  }
+]

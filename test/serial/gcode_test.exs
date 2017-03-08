@@ -45,8 +45,8 @@ defmodule Farmbot.Serial.Gcode.ParserTest do
   end
 
   test "parses software version" do
-    a = Farmbot.Serial.Gcode.Parser.parse_code("R83 0")
-    assert a == {:report_software_version, 0}
+    a = Farmbot.Serial.Gcode.Parser.parse_code("R83 version string")
+    assert a == {:report_software_version, "version string"}
 
     b = Farmbot.Serial.Gcode.Parser.parse_code("R83")
     assert b == {:report_software_version, -1}
