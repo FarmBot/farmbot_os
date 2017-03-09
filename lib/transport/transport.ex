@@ -38,6 +38,12 @@ defmodule Farmbot.Transport do
 
   def handle_call(:get_state, _from, state), do: {:reply, state, [], state}
 
+  def handle_call(:force_state_push, _from, state) do
+    reset_count()
+    GenStage.async_notify(__MODULE__, {:status, state})
+    {:reply, state, [], state}
+  end
+
   def handle_events(events, _from, state) do
     for event <- events do
       Logger.info "#{__MODULE__} got event: #{inspect event} "
@@ -87,7 +93,7 @@ defmodule Farmbot.Transport do
       inc_count()
       {:noreply, [], old_state}
     else
-      dec_count() # HACK(Connor) Dialyzer hack
+      # dec_count() # HACK(Connor) Dialyzer hack
       reset_count()
       GenStage.async_notify(__MODULE__, {:status, new_state})
       {:noreply, [], new_state}
@@ -96,10 +102,27 @@ defmodule Farmbot.Transport do
 
   def handle_info(_event, state), do: {:noreply, [], state}
 
+  @doc """
+    Emit a message over all transports
+  """
   @spec emit(any) :: no_return
-  @spec log(any) :: no_return
-  @spec get_state :: State.t
   def emit(message), do: GenStage.cast(__MODULE__, {:emit, message})
+
+  @doc """
+    Log a log message over all transports
+  """
+  @spec log(any) :: no_return
   def log(message), do: GenStage.cast(__MODULE__, {:log, message})
+
+  @doc """
+    Get the state
+  """
+  @spec get_state :: State.t
   def get_state, do: GenServer.call(__MODULE__, :get_state)
+
+  @doc """
+    Force a state push
+  """
+  @spec force_state_push :: State.t
+  def force_state_push, do: GenServer.call(__MODULE__, :force_state_push)
 end

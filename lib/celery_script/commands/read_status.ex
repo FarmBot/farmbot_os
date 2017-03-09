@@ -13,6 +13,6 @@ defmodule Farmbot.CeleryScript.Command.ReadStatus do
   """
   @spec run(%{}, []) :: no_return
   def run(%{}, []) do
-    Farmbot.BotState.Monitor.get_state
+    Farmbot.Transport.force_state_push()
   end
 end

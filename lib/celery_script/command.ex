@@ -173,6 +173,8 @@ defmodule Farmbot.CeleryScript.Command do
   # MUCH IF SORRY ABOUT THAT
   @spec config_update(%{package: package}, [pair]) :: no_return
   def config_update(%{package: "arduino_firmware"}, config_pairs) do
+    # side effects sup
+    GHan.block_send "F83"
     blah = pairs_to_tuples(config_pairs)
     for {param_str, val} <- blah do
       param_int = GParser.parse_param(param_str)
@@ -487,8 +489,9 @@ defmodule Farmbot.CeleryScript.Command do
   @spec read_param(%{label: String.t}, []) :: no_return
   def read_param(%{label: param_str}, []) do
     param_int = GParser.parse_param(param_str)
+    IO.puts "reading param"
     if param_int do
-      GHan.block_send("F21 P#{param_int}")
+      GHan.block_send("F21 P#{param_int}", 1000)
     else
       Logger.error ">> got unknown param: #{param_str}"
     end

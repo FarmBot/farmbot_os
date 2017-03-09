@@ -106,6 +106,12 @@ defmodule Farmbot.Serial.Gcode.Handler do
     {:noreply, state}
   end
 
+  def handle_cast({:report_software_version, version}, state) do
+    parsed_version = parse_version(version)
+    BotState.set_fw_version(parsed_version)
+    {:noreply, state}
+  end
+
   def handle_cast(:dont_handle_me, state), do: {:noreply, state}
 
   def handle_cast(event, state) do
@@ -123,15 +129,27 @@ defmodule Farmbot.Serial.Gcode.Handler do
     |> Farmbot.BotState.get_config()
   end
 
+  @spec parse_version(binary) :: binary
+  defp parse_version(version) do
+    [derp | _] = String.split(version, " Q0")
+    derp
+  end
+
   @doc """
     Sends a message and blocks until it completes, or times out.
     The default timeout is ten seconds.
   """
   @spec block_send(binary, integer) :: {:error, :no_serial} | atom
-  def block_send(str, timeout \\ 10_000) do
+  def block_send(str, timeout \\ 10_000)
+  def block_send(str, timeout) do
+    if str == "F83" do
+      IO.puts "UHHHH"
+      BotState.set_fw_version("WAITING FOR ARDUINO")
+    end
+
     if Farmbot.Serial.Handler.available? do
-      GenServer.cast(Farmbot.Serial.Gcode.Handler,{:send, str, self()})
-      __MODULE__.block(timeout) # is there a reason why i did this?
+      GenServer.cast(Farmbot.Serial.Gcode.Handler, {:send, str, self()})
+      block(timeout)
     else
       {:error, :no_serial}
     end

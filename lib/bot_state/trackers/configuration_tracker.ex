@@ -27,9 +27,9 @@ defmodule Farmbot.BotState.Configuration do
         controller_version: "loading...",
         compat_version: -1,
         target: "loading...",
-        private_ip: nil,
         commit: "loading...",
-        sync_status: :sync_now
+        sync_status: :sync_now,
+        firmware_version: "Arduino Disconnected!"
        }
     ]
   @typedoc """
@@ -66,9 +66,9 @@ defmodule Farmbot.BotState.Configuration do
         compat_version: args.compat_version,
         locked: false,
         target: args.target,
-        private_ip: "loading...",
         commit: args.commit,
-        sync_status: :sync_now
+        sync_status: :sync_now,
+        firmware_version: "Arduino Disconnected!"
       }
     }
     {:ok, user_env} = get_config("user_env")
@@ -192,6 +192,10 @@ defmodule Farmbot.BotState.Configuration do
 
   def handle_call(:get_version, _from, %State{} = state) do
     dispatch(state.informational_settings.controller_version, state)
+  end
+
+  def handle_call(:get_fw_version, _from, state) do
+    dispatch(state.informational_settings.firmware_version, state)
   end
 
   def handle_call({:get_config, key}, _from, %State{} = state)

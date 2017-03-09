@@ -34,3 +34,4 @@ Makefile.bac
 _images
 Makefile
 release-*
+dump.rdb
