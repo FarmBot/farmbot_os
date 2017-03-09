@@ -57,7 +57,6 @@ defmodule Farmbot.BotState.Hardware do
     # Connection to the Firmware
 
     Farmbot.CeleryScript.Command.read_param(%{label: "param_version"}, [])
-    Farmbot.Serial.Gcode.Handler.block_send "F83"
     if Enum.empty?(state.mcu_params) do
       {:ok, :no_params}
     else

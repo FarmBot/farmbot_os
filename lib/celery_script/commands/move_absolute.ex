@@ -7,7 +7,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
   alias Farmbot.CeleryScript.Command
   alias Farmbot.Lib.Maths
   require Logger
-  alias Farmbot.Serial.Gcode.Handler, as: GHan
+  alias Farmbot.Serial.Handler, as: UartHan
   # alias Farmbot.Serial.Gcode.Parser, as: GParser
   @behaviour Command
 
@@ -39,10 +39,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
         [Maths.mm_to_steps(xa + xb, spm(:x)),
          Maths.mm_to_steps(ya + yb, spm(:y)),
          Maths.mm_to_steps(za + zb, spm(:z))]
-      thing = "G00 X#{x} Y#{y} Z#{z} S#{s}" |> GHan.block_send
-      Logger.debug ">> Moved to: #{xa + xb}, #{ya + xb}, #{za + xb} " <>
-        "[#{inspect thing}]", type: :success
-      thing
+      "G00 X#{x} Y#{y} Z#{z} S#{s}" |> UartHan.write
     else
       _ -> Logger.error ">> error doing Move absolute!"
     end
