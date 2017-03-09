@@ -19,7 +19,7 @@ defmodule Farmbot.Serial.Supervisor do
 
   def init([]) do
     children = [
-      worker(UART, [[name: UART]], restart: :permanent, name: UART),
+      # worker(UART, [[name: UART]], restart: :permanent, name: UART),
       worker(DefaultTracker, [@default_tracker], restart: :permanent),
       worker(Task, [__MODULE__, :open_ttys, [__MODULE__, UART]], restart: :transient)
       # worker(Farmbot.Serial.Monitor, [UART], restart: :permanent)
@@ -42,17 +42,18 @@ defmodule Farmbot.Serial.Supervisor do
     Supervisor.stop(__MODULE__)
   end
 
-  @spec open_ttys(atom | pid, atom | pid) :: :ok | no_return
-  def open_ttys(supervisor, nerves_uart) do
+  @spec open_ttys(atom | pid) :: :ok | no_return
+  def open_ttys(supervisor) do
     UART.enumerate()
     |> Map.drop(["ttyS0","ttyAMA0"])
     |> Map.keys
-    |> try_open({supervisor, nerves_uart})
+    |> try_open(supervisor)
   end
 
-  @spec try_open([binary], {atom | pid, atom | pid}) :: :ok | no_return
+  @spec try_open([binary], atom | pid) :: :ok | no_return
   defp try_open([], _), do: :ok
-  defp try_open([tty | rest], {sup, nerves}) do
+  defp try_open([tty | rest], sup) do
+    {:ok, nerves} = UART.start_link()
     nerves
     |> UART.open(tty, speed: @baud, active: false)
     |> bleep(tty, {sup, nerves})

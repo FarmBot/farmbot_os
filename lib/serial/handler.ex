@@ -27,7 +27,7 @@ defmodule Farmbot.Serial.Handler do
     nerves: nerves,
     tty: binary,
     queue: :queue.queue,
-    handshake: nil | binary
+    handshakes: %{required(binary) => %{from: {pid, reference}, reply: any}}
   }
 
   @doc """
@@ -98,7 +98,7 @@ defmodule Farmbot.Serial.Handler do
     if do_handshake(nerves, tty, handshake) do
       update_default(self())
       # nerves |> UART.read(5000) |> validate(tty, handshake, {sup, nerves})
-      state = %{tty: tty, nerves: nerves, queue: :queue.new(), handshake: nil}
+      state = %{tty: tty, nerves: nerves, queue: :queue.new(), handshakes: %{}}
       {:ok, state}
     else
       :ignore
@@ -162,19 +162,23 @@ defmodule Farmbot.Serial.Handler do
   end
 
   def handle_call({:write, str}, from, state) do
-    # if the queue is empty, write this string now.
-    q = :queue.in(from, state.queue)
+    # generate a handshake
     handshake = generate_handshake()
-    UART.write(state.nerves, str <> " Q#{handshake}")
-    {:noreply, %{state | queue: q, handshake: handshake}}
+    handshakes = Map.put(state.handshakes, handshake, %{reply: nil, from: from})
+    # if the queue is empty, write this string now.
+    if :queue.is_empty(state.queue) do
+      UART.write(state.nerves, str <> " Q#{handshake}")
+      {:noreply, %{state | handshakes: handshakes}}
+    else
+      q = :queue.in({str, handshake}, state.queue)
+      {:noreply, %{state | queue: q, handshakes: handshakes}}
+    end
   end
 
   def handle_info({:nerves_uart, tty, gcode}, state) do
     unless tty != state.tty do
       parsed = Parser.parse_code(gcode)
-      # IO.puts "got info: #{inspect parsed}"
-      q = maybe_reply(parsed, state.queue)
-      handle_gcode(parsed, %{state | queue: q})
+      handle_gcode(parsed, state)
     end
   end
 
@@ -192,42 +196,57 @@ defmodule Farmbot.Serial.Handler do
     {:noreply, state}
   end
 
-  defp handle_gcode({:done, _}, state) do
-    {:noreply, state}
+  defp handle_gcode({:done, hs}, state) do
+    # reply to blerp if it exists
+    new_handshakes = maybe_reply(state, hs)
+
+    {thing, q} = :queue.out(state.queue)
+
+    unless thing == :empty do
+      {str, new_hs} = thing
+      UART.write(state.nerves, str <> " Q#{new_hs}")
+    end
+
+    {:noreply, %{state | handshakes: new_handshakes, queue: q}}
   end
 
   defp handle_gcode({:received, _}, state) do
     {:noreply, state}
   end
 
-  defp handle_gcode({:report_pin_value, pin, value, _}, state)
+  defp handle_gcode({:report_pin_value, pin, value, hs} = reply, state)
   when is_integer(pin) and is_integer(value) do
+    new_handshakes = set_reply(state, hs, reply)
     BotState.set_pin_value(pin, value)
-    {:noreply, state}
+    {:noreply, %{state | handshakes: new_handshakes}}
   end
 
-  defp handle_gcode({:report_current_position, x_steps,y_steps,z_steps, _}, state) do
+  defp handle_gcode({:report_current_position, x_steps,y_steps,z_steps, hs} = reply, state) do
     BotState.set_pos(
       Maths.steps_to_mm(x_steps, spm(:x)),
       Maths.steps_to_mm(y_steps, spm(:y)),
       Maths.steps_to_mm(z_steps, spm(:z)))
-    {:noreply, state}
+    new_handshakes = set_reply(state, hs, reply)
+    {:noreply, %{state | handshakes: new_handshakes}}
   end
 
-  defp handle_gcode({:report_parameter_value, param, value, _}, state)
+  defp handle_gcode({:report_parameter_value, param, value, hs} = reply, state)
   when is_atom(param) and is_integer(value) do
     BotState.set_param(param, value)
-    {:noreply, state}
+    new_handshakes = set_reply(state, hs, reply)
+    {:noreply, %{state | handshakes: new_handshakes}}
   end
 
-  defp handle_gcode({:reporting_end_stops, x1,x2,y1,y2,z1,z2, _}, state) do
+  defp handle_gcode({:reporting_end_stops, x1,x2,y1,y2,z1,z2, hs} = reply, state) do
     BotState.set_end_stops({x1,x2,y1,y2,z1,z2})
-    {:noreply, state}
+    new_handshakes = set_reply(state, hs, reply)
+    {:noreply, %{state | handshakes: new_handshakes}}
   end
 
-  defp handle_gcode({:report_software_version, version, _}, state) do
+  defp handle_gcode({:report_software_version, version, hs} = reply, state) do
     BotState.set_fw_version(version)
-    {:noreply, state}
+    new_handshakes = set_reply(state, hs, reply)
+    {:noreply, %{state | handshakes: new_handshakes}}
   end
 
   defp handle_gcode({:unhandled_gcode, code}, state) do
@@ -249,20 +268,26 @@ defmodule Farmbot.Serial.Handler do
     |> Farmbot.BotState.get_config()
   end
 
-  # we dont want to reply if we recieve these codes
-  @spec maybe_reply(any, :queue.queue) :: :queue.queue
-  defp maybe_reply({:idle, _}, q), do: q
-  defp maybe_reply({:done, _}, q), do: q
-  defp maybe_reply({:received, _}, q), do: q
+  @spec maybe_reply(state, binary) :: map
+  defp maybe_reply(state, hs) do
+    IO.inspect state
+    blerp = Map.get(state.handshakes, hs)
+    if blerp do
+      GenServer.reply(blerp.from, blerp.reply)
+      Map.delete(state.handshakes, hs)
+    else
+      state.handshakes
+    end
+  end
 
-  defp maybe_reply(code, q) do
-    {thing, q} = :queue.out(q)
-    case thing do
-      {:value, from} ->
-        GenServer.reply(from, code)
-        q
-      :empty ->
-        q
+  @spec set_reply(state, binary, any) :: map
+  defp set_reply(state, hs, reply) do
+    IO.inspect state
+    blerp = Map.get(state.handshakes, hs)
+    if blerp do
+      %{state.handshakes | hs => reply}
+    else
+      state.handshakes
     end
   end
 end
