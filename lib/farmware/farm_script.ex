@@ -25,7 +25,7 @@ defmodule Farmware.FarmScript do
   @enforce_keys [:executable, :args, :path, :name, :envs]
   defstruct [:executable, :args, :path, :name, :envs]
 
-  @timeout 20_000
+  @clean_up_timeout 900_000 # fifteen minutes
 
   require Logger
 
@@ -96,7 +96,7 @@ defmodule Farmware.FarmScript do
       _something -> handle_port(port, thing)
 
       after
-        @timeout ->
+        @clean_up_timeout ->
           Logger.error ">> [#{thing.name}] Timed out"
           kill_port(port)
     end
