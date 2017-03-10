@@ -80,7 +80,14 @@ defmodule Farmbot.BotState do
     This is just a shortcut
   """
   @spec get_fw_version :: String.t
-  def get_fw_version, do: get_param(:param_version)
+  def get_fw_version, do: GenServer.call(Configuration, :get_fw_version)
+
+  @doc """
+    Set the version
+  """
+  @spec set_fw_version(binary) :: no_return
+  def set_fw_version(v),
+    do: GenServer.cast(Configuration, {:update_info, :firmware_version, v})
 
   @doc """
     Gets the current controller version

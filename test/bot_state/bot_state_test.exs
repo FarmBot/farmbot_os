@@ -82,6 +82,12 @@ defmodule Farmbot.BotStateTest do
     assert get_hardware_part(:mcu_params) == Farmbot.BotState.get_all_mcu_params
   end
 
+  test "sets firmware version" do
+    Farmbot.BotState.set_fw_version("uhhhhh")
+    Process.sleep(100)
+    assert Farmbot.BotState.get_fw_version == "uhhhhh"
+  end
+
   test "sets some farmware env vars" do
     r = Farmbot.BotState.set_user_env(%{"SUPER_COOL_VAR" => 123})
     assert(r == true)

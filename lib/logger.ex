@@ -9,214 +9,190 @@ defmodule Farmbot.Logger do
   alias Farmbot.HTTP
   use GenEvent
   require Logger
-
-  # @type state :: {[log_message], posting?}
-
-  # @spec init(any) :: {:ok, state}
-  def init(_), do: {:ok, build_state()}
+  @save_path Application.get_env(:farmbot, :path) <> "/logs.txt"
 
   # ten megs. i promise
-  # @max_file_size 1.0e+7
+  @max_file_size 1.0e+7
+  @filtered "[FILTERED]"
+
+  @typedoc """
+    The state of the logger
+  """
+  @type state :: %{logs: [log_message], posting: boolean}
+
+  @typedoc """
+    Type of message for ticker
+  """
+  @type rpc_log_type
+    :: :success
+     | :busy
+     | :warn
+     | :error
+     | :info
+     | :fun
+
+  @typedoc """
+    Elixir Logger level type
+  """
+  @type logger_level
+    :: :info
+     | :debug
+     | :warn
+     | :error
+
+  @typedoc """
+    One day this will me more
+  """
+  @type channels :: :toast
+
+  @type log_message
+  :: %{message: String.t,
+       channels: channels,
+       created_at: integer,
+       meta: %{type: rpc_log_type}}
+
+  def init(_), do: {:ok, %{logs: [], posting: false}}
 
   # The example said ignore messages for other nodes, so im ignoring messages
   # for other nodes.
-  def handle_event({_level, gl, {Logger, _, _, _}}, state)
-    when node(gl) != node()
-  do
+  def handle_event({_, gl, {Logger, _, _, _}}, state) when node(gl) != node() do
     {:ok, state}
   end
 
-  # Tehe
-  def handle_event({l, f, {Logger, ">>" <> message, ts, meta}}, s) do
-    device_name = Sync.device_name
-    handle_event({l, f, {Logger, "#{device_name}" <> message, ts, meta}}, s)
-  end
-
   # The logger event.
-  def handle_event(
-    {level, _, {Logger, message, timestamp, metadata}},
-    {messages, posting?})
-  do
+  def handle_event({level, _, {Logger, message, timestamp, metadata}}, state) do
     # if there is type key in the meta we need that to have priority
-    relevent_meta = Keyword.take(metadata, [:type])
-    type = parse_type(level, relevent_meta)
-
-    # right now this will only ever be []
-    # But eventually it will be sms, email, twitter, etc
-    channels = parse_channels(Keyword.take(metadata, [:channels]))
-
-    # BUG: should not be poling the bot for its position.
-    # pos = BotState.get_current_pos
-    pos = [-1,-2,-3]
-
-    # take logger time stamp and spit out a unix timestamp for the javascripts.
-    with({:ok, created_at} <- parse_created_at(timestamp),
-         {:ok, san_m}      <- sanitize(message, metadata),
-         {:ok, log}        <- build_log(san_m, created_at, type, channels, pos),
-         :ok               <- emit(log),
-         do: dispatch({messages ++ [log], posting?}))
-    # if we got nil before, dont dispatch the new message into the buffer
-    || dispatch({messages, posting?})
-  end
-
-  def handle_event(:flush, _state), do: {:ok, build_state()}
-
-  # If the post succeeded, we clear the messages
-  def handle_call(:post_success, {_, _}), do: {:ok, :ok, {[], false}}
-  # If it did not succeed, keep the messages, and try again until it completes.
-  def handle_call({:post_fail, _error}, {messages, _}) do
-    {:ok, :ok, {messages, false}}
-  end
-
-  def handle_call(:messages, {messages, f}), do: {:ok, messages, {messages, f}}
-
-  # Catch any stray calls.
-  def handle_call(_, state), do: {:ok, :unhandled, state}
-  def handle_info(_, state), do: dispatch state
-
-  def terminate(_,_) do
-    # if this backend crashes just pop it out of the logger backends.
-    # if we don't do this it bacomes a huge mess because of Logger
-    # trying to restart this module
-    # then this module dying again
-    # then printing a HUGE supervisor report
-    # then Logger trying to add it again
-    # etc
-    spawn fn() ->
-      Logger.remove_backend(__MODULE__)
-    end
-  end
-
-  # @spec emit(map) :: no_return
-  defp emit(msg), do: Farmbot.Transport.log(msg)
-
-  # IF we are already posting messages to the api, no need to check the count.
-  defp dispatch({messages, true}), do: {:ok, {messages, true}}
-  # If we not already doing an HTTP Post to the api, check to see if we need to
-  # (check if the count of messages is greater than 50)
-  defp dispatch({messages, false}) do
-    if Enum.count(messages) > 50 do
-      pid = self() # var that = this;
-      spawn fn() ->
-        do_post(messages, pid)
+    type = Keyword.get(metadata, :type, level)
+    channels = Keyword.get(metadata, :channels, [])
+    created_at = parse_created_at(timestamp)
+    san_m = sanitize(message, metadata)
+    log = build_log(san_m, created_at, type, channels)
+    :ok = GenServer.cast(Farmbot.Transport, {:log, log})
+    logs = [log | state.logs]
+    if !state.posting and Enum.count(logs) >= 50 do
+      # If not already posting, and more than 50 messages
+      spawn fn ->
+        filterd_logs = Enum.filter(logs, fn(log) ->
+          log.message != @filtered
+        end)
+        do_post(filterd_logs)
       end
-      {:ok, {messages, true}}
+      {:ok, %{state | logs: logs, posting: true}}
     else
-      {:ok, {messages, false}}
+      {:ok, %{state | logs: logs}}
     end
   end
 
-  # Posts an array of logs to the API.
-  # @spec do_post([log_message], pid) :: :ok
-  defp do_post(m, _pid) do
-    {messages, _} = Enum.partition(m, fn(message) ->
-      case Poison.encode(message) do
-        {:ok, json} -> json
-        _ ->  nil
+  def handle_event(:flush, _state), do: {:ok, %{logs: [], posting: false}}
+
+  def handle_call(:post_success, state) do
+    write_file(Enum.reverse(state.logs))
+    {:ok, :ok, %{state | posting: false, logs: []}}
+  end
+
+  def handle_call(:post_fail, state) do
+    {:ok, :ok, %{state | posting: false}}
+  end
+
+  def handle_call(:get_state, state), do: {:ok, state, state}
+
+  @spec do_post([log_message]) :: no_return
+  @lint false
+  defp do_post(logs) do
+    try do
+      HTTP.post!("/api/logs", Poison.encode!(logs))
+      GenEvent.call(Elixir.Logger, __MODULE__, :post_success)
+    rescue
+      _ -> GenEvent.call(Elixir.Logger, __MODULE__, :post_fail)
+    end
+  end
+
+  @spec write_file([log_message]) :: no_return
+  defp write_file(logs) do
+    old = read_file()
+    new_file = Enum.reduce(logs, old, fn(log, acc) ->
+      if log.message != @filtered do
+        acc <> log.message <> "\r\n"
+      else
+        acc
       end
     end)
-    "/api/logs" |> HTTP.post(Poison.encode!(messages)) |> parse_resp
-  end
 
-  # Parses what the api sends back. Will only ever return :ok even if there was
-  # an error.
-  # @spec parse_resp(any) :: :ok
-  defp parse_resp({:ok, %HTTPoison.Response{status_code: 200}}),
-    do: GenEvent.call(Elixir.Logger, Farmbot.Logger, :post_success)
+    bin = fifo(new_file)
 
-  defp parse_resp(error) do
-    IO.inspect error
-    GenEvent.call(Elixir.Logger, Farmbot.Logger, {:post_fail, error})
-  end
-
-  # @type rpc_log_type
-  #   :: :success
-  #    | :busy
-  #    | :warn
-  #    | :error
-  #    | :info
-  #    | :fun
-  #
-  # @type logger_level
-  #   :: :info
-  #    | :debug
-  #    | :warn
-  #    | :error
-  #
-  # @type channels :: :toast
-  #
-  # @type meta :: [] | [type: rpc_log_type]
-  # @type log_message
-  # :: %{message: String.t,
-  #      channels: channels,
-  #      created_at: integer,
-  #      meta: %{
-  #         type: rpc_log_type,
-  #         x: integer,
-  #         y: integer,
-  #         z: integer}}
-
-  # Translates Logger levels into Farmbot levels.
-  # :info -> :info
-  # :debug -> :info
-  # :warn -> :warn
-  # :error -> :error
-  #
-  # Also takes some meta.
-  # Meta should take priority over
-  # Logger Levels.
-  # @spec parse_type(logger_level, meta) :: rpc_log_type
-  defp parse_type(:debug, []), do: :info
-  defp parse_type(level, []), do: level
-  defp parse_type(_level, [type: type]), do: type
-
-  # can't jsonify tuples.
-  defp parse_channels([channels: channels]), do: channels
-  defp parse_channels(_), do: []
-
-  # @spec sanitize(binary, [any]) :: {:ok, String.t} | nil
-  defp sanitize(message, meta) do
-    m = Keyword.take(meta, [:module])
-    if !meta[:nopub] do
-      case m do
-        # Fileter by module. This probably is slow
-        [module: mod] -> filter_module(mod, message)
-        [module: nil] -> filter_text(message)
-        # anything else
-        _ -> filter_text(message)
-      end
+    Farmbot.System.FS.transaction fn ->
+      File.write(@save_path, bin <> "\r\n")
     end
   end
 
-  @filtered "[FILTERED]"
-  defp filter_module(:"Elixir.Nerves.InterimWiFi", _m),
-    do: {:ok, @filtered}
+  # reads the current file.
+  # if the file isnt found, returns an empty string
+  @spec read_file :: binary
+  defp read_file do
+    case File.read(@save_path) do
+      {:ok, bin} -> bin
+      _ -> ""
+    end
+  end
 
-  defp filter_module(:"Elixir.Nerves.NetworkInterface", _m),
-    do: {:ok, @filtered}
+  # if the file is to big, fifo it
+  # trim lines off the file until it is smaller than @max_file_size
+  @spec fifo(binary) :: binary
+  defp fifo(new_file) when byte_size(new_file) > @max_file_size do
+    # IO.puts "file size: #{byte_size(new_file)}"
+    [_ | rest] = String.split(new_file, "\r\n")
+    fifo(Enum.join(rest, "\r\n"))
+  end
 
-  defp filter_module(:"Elixir.Nerves.InterimWiFi.WiFiManager.EventHandler", _m),
-    do: {:ok, @filtered}
+  defp fifo(new_file), do: new_file
 
-  defp filter_module(:"Elixir.Nerves.InterimWiFi.DHCPManager", _),
-    do: {:ok, @filtered}
+  # if this backend crashes just pop it out of the logger backends.
+  # if we don't do this it bacomes a huge mess because of Logger
+  # trying to restart this module
+  # then this module dying again
+  # then printing a HUGE supervisor report
+  # then Logger trying to add it again  etc
+  def terminate(_,_), do: spawn fn -> Logger.remove_backend(__MODULE__) end
 
-  defp filter_module(:"Elixir.Nerves.NetworkInterface.Worker", _),
-    do: {:ok, @filtered}
+  @spec sanitize(binary, [any]) :: String.t
+  defp sanitize(message, meta) do
+    module = Keyword.get(meta, :module)
+    unless meta[:nopub] do
+      message
+      |> filter_module(module)
+      |> filter_text()
+    end
+  end
 
-  defp filter_module(:"Elixir.Nerves.InterimWiFi.DHCPManager.EventHandler", _),
-    do: {:ok, @filtered}
+  @modules [
+    :"Elixir.Nerves.InterimWiFi",
+    :"Elixir.Nerves.NetworkInterface",
+    :"Elixir.Nerves.InterimWiFi.WiFiManager.EventHandler",
+    :"Elixir.Nerves.InterimWiFi.DHCPManager",
+    :"Elixir.Nerves.NetworkInterface.Worker",
+    :"Elixir.Nerves.InterimWiFi.DHCPManager.EventHandler"
+  ]
 
-  defp filter_module(_, message), do: {:ok, message}
+  for module <- @modules, do: defp filter_module(_, unquote(module)), do: @filtered
+  defp filter_module(message, _module), do: message
 
-  defp filter_text(message) when is_list(message), do: nil
-  defp filter_text(m), do: {:ok, m}
+  @lint false
+  defp filter_text(">>" <> m), do: filter_text("#{Sync.device_name()}" <> m)
+  defp filter_text(m) when is_binary(m) do
+    try do
+      Poison.encode!(m)
+      m
+    rescue
+      _ -> @filtered
+    end
+  end
+  defp filter_text(_message), do: @filtered
 
   # Couuld probably do this inline but wheres the fun in that. its a functional
   # language isn't it?
   # Takes Loggers time stamp and converts it into a unix timestamp.
   defp parse_created_at({{year, month, day}, {hour, minute, second, _mil}}) do
-    f = %DateTime{year: year,
+    %DateTime{year: year,
       month: month,
       day: day,
       hour: hour,
@@ -228,26 +204,13 @@ defmodule Farmbot.Logger do
       utc_offset: 0,
       zone_abbr: "UTC"}
     |> DateTime.to_iso8601
-    {:ok, f}
-  end
-  defp parse_created_at(_), do: nil
-
-  # @spec build_log(String.t, number, rpc_log_type, [channels], [integer])
-  # :: {:ok, log_message}
-  defp build_log(message, created_at, type, channels, [x,y,z]) do
-    a =
-      %{message: message,
-        created_at: created_at,
-        channels: channels,
-        meta: %{
-          type: type,
-          x: x,
-          y: y,
-          z: z}}
-    {:ok, a}
   end
 
-  # @type posting? :: boolean
-  # @spec build_state :: state
-  defp build_state, do: {[], false}
+  @spec build_log(String.t, number, rpc_log_type, [channels]) :: log_message
+  defp build_log(message, created_at, type, channels) do
+    %{message: message,
+      created_at: created_at,
+      channels: channels,
+      meta: %{type: type, x: 0, y: 0, z: 0}}
+  end
 end

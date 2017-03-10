@@ -8,7 +8,7 @@ defmodule Farmbot.CeleryScript.Command do
   """
   require Logger
   alias Farmbot.CeleryScript.Ast
-  alias Farmbot.Serial.Gcode.Handler, as: GHan
+  alias Farmbot.Serial.Handler, as: UartHan
   alias Farmbot.Serial.Gcode.Parser, as: GParser
   alias Farmbot.System, as: FBSys
   alias Amnesia
@@ -178,7 +178,7 @@ defmodule Farmbot.CeleryScript.Command do
       param_int = GParser.parse_param(param_str)
       if param_int do
         Logger.info ">> is updating #{param_str}: #{val}"
-        "F22 P#{param_int} V#{val}" |> GHan.block_send
+        "F22 P#{param_int} V#{val}" |> UartHan.write
         # HACK read the param back because sometimes the firmware decides
         # our param sets arent important enough to keep
         read_param(%{label: param_str}, [])
@@ -218,7 +218,7 @@ defmodule Farmbot.CeleryScript.Command do
       "x" -> "F14"
       "y" -> "F15"
       "z" -> "F16"
-    end |> GHan.block_send
+    end |> UartHan.write
   end
 
   @doc ~s"""
@@ -227,7 +227,7 @@ defmodule Farmbot.CeleryScript.Command do
       body: []
   """
   @spec read_all_params(%{}, []) :: no_return
-  def read_all_params(%{}, []), do: GHan.block_send("F20")
+  def read_all_params(%{}, []), do: UartHan.write("F20")
 
   @doc ~s"""
     Homes an axis
@@ -253,7 +253,7 @@ defmodule Farmbot.CeleryScript.Command do
       %{x: cur_x, y: cur_y, z: cur_z}
       |> Map.put(String.to_atom(axis), 0)
       |> coordinate([])
-    move_absolute(%{speed: speed, location: location, offset: blah }, [])
+    move_absolute(%{speed: speed, location: location, offset: blah}, [])
   end
 
   @doc ~s"""
@@ -403,7 +403,7 @@ defmodule Farmbot.CeleryScript.Command do
   def write_pin(%{pin_number: pin, pin_mode: mode, pin_value: val}, []) do
     # sets the pin mode in bot state.
     Farmbot.BotState.set_pin_mode(pin, mode)
-    "F41 P#{pin} V#{val} M#{mode}" |> GHan.block_send
+    "F41 P#{pin} V#{val} M#{mode}" |> UartHan.write
     # HACK read the pin back to make sure it worked
     read_pin(%{pin_number: pin, pin_mode: mode, label: "ack"}, [])
     # HACK the above hack doesnt work some times so we just force it to work.
@@ -424,7 +424,7 @@ defmodule Farmbot.CeleryScript.Command do
   :: no_return
   def read_pin(%{label: _, pin_number: pin, pin_mode: mode}, []) do
     Farmbot.BotState.set_pin_mode(pin, mode)
-    "F42 P#{pin} M#{mode}" |> GHan.block_send
+    "F42 P#{pin} M#{mode}" |> UartHan.write
   end
 
   @doc ~s"""
@@ -488,7 +488,7 @@ defmodule Farmbot.CeleryScript.Command do
   def read_param(%{label: param_str}, []) do
     param_int = GParser.parse_param(param_str)
     if param_int do
-      GHan.block_send("F21 P#{param_int}")
+      UartHan.write("F21 P#{param_int}", 1000)
     else
       Logger.error ">> got unknown param: #{param_str}"
     end
