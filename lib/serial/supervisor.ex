@@ -6,26 +6,6 @@ defmodule Farmbot.Serial.Supervisor do
   alias Farmbot.Serial.Handler
 
   @baud 115_200
-  @default_tracker :default_tracker
-
-  defmodule DefaultTracker do
-    @moduledoc false
-
-    @doc false
-    def start_link(name) do
-      Agent.start_link(fn() -> nil end, name: name)
-    end
-  end
-
-  def init([]) do
-    children = [
-      # worker(UART, [[name: UART]], restart: :permanent, name: UART),
-      worker(DefaultTracker, [@default_tracker], restart: :permanent),
-      worker(Task, [__MODULE__, :open_ttys, [__MODULE__, UART]], restart: :transient)
-      # worker(Farmbot.Serial.Monitor, [UART], restart: :permanent)
-    ]
-    supervise(children, strategy: :one_for_all)
-  end
 
   @doc """
     Start the serial supervisor
@@ -41,6 +21,14 @@ defmodule Farmbot.Serial.Supervisor do
   def stop do
     Supervisor.stop(__MODULE__)
   end
+
+  def init([]) do
+    children = [
+      worker(Task, [__MODULE__, :open_ttys, [__MODULE__]], restart: :transient)
+    ]
+    supervise(children, strategy: :one_for_all)
+  end
+
 
   @spec open_ttys(atom | pid) :: :ok | no_return
   def open_ttys(supervisor) do
@@ -69,5 +57,8 @@ defmodule Farmbot.Serial.Supervisor do
     {:ok, _pid} = Supervisor.start_child(sup, worker_spec)
   end
 
-  defp bleep(_resp, _tty, _sup_nerves), do: false
+  defp bleep(_resp, _tty, {_, nerves}) do
+    GenServer.stop(nerves, :normal)
+    false
+  end
 end

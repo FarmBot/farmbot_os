@@ -10,7 +10,6 @@ defmodule Farmbot.Serial.Handler do
   alias Farmbot.BotState
   alias Farmbot.Lib.Maths
 
-  @default_tracker :default_tracker
   @race_fix 5000
 
   @typedoc """
@@ -23,11 +22,24 @@ defmodule Farmbot.Serial.Handler do
   """
   @type nerves :: handler
 
+  @typedoc """
+    The current command in the buffer being worked on.
+  """
+  @type current :: %{
+    reply: nil | term,
+    handshake: binary,
+    timeout: reference | nil,
+    from: {pid, reference}
+  }
+
+  @typedoc """
+    State of the GenServer
+  """
   @type state :: %{
     nerves: nerves,
     tty: binary,
     queue: :queue.queue,
-    handshakes: %{required(binary) => %{from: {pid, reference}, reply: any}}
+    current: nil | current
   }
 
   @doc """
@@ -35,14 +47,6 @@ defmodule Farmbot.Serial.Handler do
   """
   def start_link(nerves, tty) do
     GenServer.start_link(__MODULE__, {nerves, tty})
-  end
-
-  @doc """
-    Gets the default UART handler
-  """
-  @spec get_default :: nil | pid
-  def get_default do
-    Agent.get(@default_tracker, fn(thing) -> thing end)
   end
 
   @doc """
@@ -67,7 +71,7 @@ defmodule Farmbot.Serial.Handler do
   def write(string, timeout \\ 7000, handler \\ __MODULE__)
   def write(str, timeout, handler) do
     if available?(handler) do
-      GenServer.call(handler, {:write, str}, timeout)
+      GenServer.call(handler, {:write, str, timeout}, :infinity)
     else
       {:error, :unavailable}
     end
@@ -78,6 +82,8 @@ defmodule Farmbot.Serial.Handler do
   @spec init({nerves, binary}) :: {:ok, state} | :ignore
   def init({nerves, tty}) do
     Logger.debug "Starting serial handler: #{tty}"
+
+    # Open the tty
     :ok = UART.open(nerves, tty)
 
     # configure framing
@@ -89,6 +95,7 @@ defmodule Farmbot.Serial.Handler do
     # Black magic to fix races
     Process.sleep(@race_fix)
 
+    # Flush the buffers so we start fresh
     UART.flush(nerves)
 
     # generate a handshake
@@ -96,11 +103,15 @@ defmodule Farmbot.Serial.Handler do
     Logger.debug "doing handshaking: #{handshake}"
 
     if do_handshake(nerves, tty, handshake) do
+      # If we have a good connection, link the nerves server to ourselves
+      # So it gets restarted if we die and vice versa
+      Process.link(nerves)
       update_default(self())
-      # nerves |> UART.read(5000) |> validate(tty, handshake, {sup, nerves})
-      state = %{tty: tty, nerves: nerves, queue: :queue.new(), handshakes: %{}}
+      state = %{tty: tty, nerves: nerves, queue: :queue.new(), current: nil}
       {:ok, state}
     else
+      # if we cant handshake, kill the previous Nerves
+      GenServer.stop(nerves, :normal)
       :ignore
     end
   end
@@ -120,14 +131,25 @@ defmodule Farmbot.Serial.Handler do
   end
 
   defp do_handshake(nerves, tty, handshake, retries) do
+    # Write a command to UART
     UART.write(nerves, "F83 #{handshake}")
+
+    # Wait for it to respong
     receive do
+      # if it sends a partial, we are probably out of sync
+      # flush the buffer and try again.
       {:nreves_uart, ^tty, {:partial, _}} ->
         UART.flush(nerves)
         do_handshake(nerves, tty, handshake)
+
+      # Recieved happens before our actual response, just go to the next one
+      # if it exists
       {:nerves_uart, ^tty, "R01" <> _} -> do_handshake(nerves, tty, handshake)
+
+      # This COULD be our handshake. Check it.
       {:nerves_uart, ^tty, str} ->
-        # Logger.debug "trying: #{str}"
+        # if it contains our handshake, check if its the right command.
+        # flush the buffer and return
         if String.contains?(str, handshake) do
           Logger.debug "Successfully completed handshake!"
           "R83 " <> version = String.trim(str, " " <> handshake)
@@ -135,12 +157,16 @@ defmodule Farmbot.Serial.Handler do
           UART.flush(nerves)
           true
         else
+          # If not, Move on to the next thing in the buffer.
           do_handshake(nerves, tty, handshake)
         end
       uh ->
+        # if we recieve some other stuff, we have a leak or something.
+        # I think this can be deleted.
         Logger.warn "Could not handshake: #{inspect uh}"
         false
       after
+        # After 2 seconds try again.
         2_000 ->
           Logger.warn "Could not handshake: timeout, retrying."
           do_handshake(nerves, tty, handshake, retries - 1)
@@ -149,112 +175,164 @@ defmodule Farmbot.Serial.Handler do
 
   @spec update_default(pid) :: :ok | no_return
   defp update_default(pid) do
-    Agent.update(@default_tracker, fn(_) ->
-      pid
-    end)
+    # lookup the old default pid
     old_pid = Process.whereis(__MODULE__)
+
+    # if one existst, unregister it.
     if old_pid do
       Logger.debug "Deregistering #{inspect old_pid} from default Serial Handler"
       Process.unregister(__MODULE__)
     end
 
+    # Either way, register this pid as the new one.
     Process.register(pid, __MODULE__)
   end
 
-  def handle_call({:write, str}, from, state) do
+  def handle_call(:get_state, _, state), do: {:reply, state, state}
+
+  # A new line to write.
+  def handle_call({:write, str, timeout}, from, state) do
     # generate a handshake
     handshake = generate_handshake()
-    handshakes = Map.put(state.handshakes, handshake, %{reply: nil, from: from})
     # if the queue is empty, write this string now.
     if :queue.is_empty(state.queue) do
+      IO.puts "empty"
+      ref = Process.send_after(self(), {:timeout, from, handshake}, timeout)
+      current = %{reply: nil, handshake: handshake, timeout: ref, from: from}
       UART.write(state.nerves, str <> " Q#{handshake}")
-      {:noreply, %{state | handshakes: handshakes}}
+      {:noreply, %{state | current: current}}
     else
-      q = :queue.in({str, handshake}, state.queue)
-      {:noreply, %{state | queue: q, handshakes: handshakes}}
+      IO.puts "queuing"
+      q = :queue.in({str, handshake, from, timeout}, state.queue)
+      {:noreply, %{state | queue: q}}
     end
   end
 
+  def handle_info({:timeout, from, handshake}, state) do
+    current = state.current
+    if current do
+      new_current = maybe_timeout({from, handshake}, current)
+      {:noreply, %{state | current: new_current}}
+    else
+      {:noreply, state}
+    end
+  end
+
+  def handle_info({:nerves_uart, _tty, {:partial, thing}}, state) do
+    Logger.warn ">> got partial gcode: #{thing}"
+    {:noreply, state}
+  end
+
+  # This is when we get a code in from nerves_uart
   def handle_info({:nerves_uart, tty, gcode}, state) do
     unless tty != state.tty do
       parsed = Parser.parse_code(gcode)
-      handle_gcode(parsed, state)
+      case parsed do
+        # if the code has a handshake and its not done
+        # we just want to handle the code. Nothing special.
+
+        # derp
+        {:debug_message, _message} ->
+          handle_gcode(parsed, state)
+
+        {_hs, :done} ->
+          current = if state.current do
+            # cancel the timer
+            Process.cancel_timer(state.current.timeout)
+            # reply to the client
+            GenServer.reply(state.current.from, state.current.reply)
+            nil
+          else
+            state.current
+          end
+          handle_gcode(:done, %{state | current: current})
+
+        # If its not done,
+        {hs, code} ->
+          current = if (state.current || false) && (state.current.handshake == hs) do
+            %{state.current | reply: code}
+          else
+            state.current
+          end
+          handle_gcode(code, %{state | current: current})
+
+        # anything else just handle the code.
+        _ -> handle_gcode(parsed, state)
+      end
     end
   end
 
-  defp handle_gcode({:debug_message, message}, state) do
-    Logger.info ">>'s arduino says: #{message}"
+  defp handle_gcode(:dont_handle_me, state), do: {:noreply, state}
+
+  defp handle_gcode(:idle, state) do
     {:noreply, state}
   end
 
-  defp handle_gcode({:idle, _}, state) do
-    {:noreply, state}
-  end
-
-  defp handle_gcode({:busy, _}, state) do
+  defp handle_gcode(:busy, state) do
     Logger.info ">>'s arduino is busy.", type: :busy
     {:noreply, state}
   end
 
-  defp handle_gcode({:done, hs}, state) do
-    # reply to blerp if it exists
-    new_handshakes = maybe_reply(state, hs)
+  defp handle_gcode(:done, state) do
+    # when we get done we need to check the queue for moar commands.
+    # if there is more create a new current map, start a new timer etc.
 
-    {thing, q} = :queue.out(state.queue)
-
-    unless thing == :empty do
-      {str, new_hs} = thing
-      UART.write(state.nerves, str <> " Q#{new_hs}")
+    # if there is nothing in the queue, nothing to do here.
+    if :queue.is_empty(state.queue) do
+      {:noreply, state}
+    # if there is something in the queue
+    else
+      {{str, handshake, from, millis}, q} = :queue.out(state.queue)
+      ref = Process.send_after(self(), {:timeout, from, handshake}, millis)
+      current = %{reply: nil, handshake: handshake, timeout: ref, from: from}
+      UART.write(state.nerves, str <> " Q#{handshake}")
+      {:noreply, %{state | current: current, queue: q}}
     end
-
-    {:noreply, %{state | handshakes: new_handshakes, queue: q}}
   end
 
-  defp handle_gcode({:received, _}, state) do
+  defp handle_gcode(:received, state) do
     {:noreply, state}
   end
 
-  defp handle_gcode({:report_pin_value, pin, value, hs} = reply, state)
-  when is_integer(pin) and is_integer(value) do
-    new_handshakes = set_reply(state, hs, reply)
-    BotState.set_pin_value(pin, value)
-    {:noreply, %{state | handshakes: new_handshakes}}
+  defp handle_gcode({:debug_message, _message}, state) do
+    # Logger.info ">>'s arduino says: #{message}"
+    {:noreply, state}
   end
 
-  defp handle_gcode({:report_current_position, x_steps,y_steps,z_steps, hs} = reply, state) do
+  defp handle_gcode({:report_pin_value, pin, value}, state)
+  when is_integer(pin) and is_integer(value) do
+    BotState.set_pin_value(pin, value)
+    {:noreply, state}
+  end
+
+  defp handle_gcode({:report_current_position, x_steps,y_steps,z_steps}, state) do
     BotState.set_pos(
       Maths.steps_to_mm(x_steps, spm(:x)),
       Maths.steps_to_mm(y_steps, spm(:y)),
       Maths.steps_to_mm(z_steps, spm(:z)))
-    new_handshakes = set_reply(state, hs, reply)
-    {:noreply, %{state | handshakes: new_handshakes}}
+    {:noreply, state}
   end
 
-  defp handle_gcode({:report_parameter_value, param, value, hs} = reply, state)
+  defp handle_gcode({:report_parameter_value, param, value}, state)
   when is_atom(param) and is_integer(value) do
     BotState.set_param(param, value)
-    new_handshakes = set_reply(state, hs, reply)
-    {:noreply, %{state | handshakes: new_handshakes}}
+    {:noreply, state}
   end
 
-  defp handle_gcode({:reporting_end_stops, x1,x2,y1,y2,z1,z2, hs} = reply, state) do
+  defp handle_gcode({:reporting_end_stops, x1,x2,y1,y2,z1,z2}, state) do
     BotState.set_end_stops({x1,x2,y1,y2,z1,z2})
-    new_handshakes = set_reply(state, hs, reply)
-    {:noreply, %{state | handshakes: new_handshakes}}
+    {:noreply, state}
   end
 
-  defp handle_gcode({:report_software_version, version, hs} = reply, state) do
+  defp handle_gcode({:report_software_version, version}, state) do
     BotState.set_fw_version(version)
-    new_handshakes = set_reply(state, hs, reply)
-    {:noreply, %{state | handshakes: new_handshakes}}
+    {:noreply, state}
   end
 
   defp handle_gcode({:unhandled_gcode, code}, state) do
     Logger.warn ">> got an unhandled gcode! #{code}"
     {:noreply, state}
   end
-
-  defp handle_gcode(:dont_handle_me, state), do: {:noreply, state}
 
   defp handle_gcode(parsed, state) do
     Logger.warn "Unhandled GCODE: #{inspect parsed}"
@@ -268,26 +346,16 @@ defmodule Farmbot.Serial.Handler do
     |> Farmbot.BotState.get_config()
   end
 
-  @spec maybe_reply(state, binary) :: map
-  defp maybe_reply(state, hs) do
-    IO.inspect state
-    blerp = Map.get(state.handshakes, hs)
-    if blerp do
-      GenServer.reply(blerp.from, blerp.reply)
-      Map.delete(state.handshakes, hs)
+  @spec maybe_timeout({{pid, reference}, binary}, current) :: current
+  defp maybe_timeout({from, handshake}, current) do
+    # if we actually are working on the thing that this timeout was created
+    # for, reply timeout to it.
+    if (current.from == from) and (current.handshake == handshake) do
+      GenServer.reply(from, {:error, :timeout})
+      nil
     else
-      state.handshakes
-    end
-  end
-
-  @spec set_reply(state, binary, any) :: map
-  defp set_reply(state, hs, reply) do
-    IO.inspect state
-    blerp = Map.get(state.handshakes, hs)
-    if blerp do
-      %{state.handshakes | hs => reply}
-    else
-      state.handshakes
+      # this was probably already finished or somthing. /shrug
+      current
     end
   end
 end
