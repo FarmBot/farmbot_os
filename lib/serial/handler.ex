@@ -107,6 +107,7 @@ defmodule Farmbot.Serial.Handler do
       # So it gets restarted if we die and vice versa
       Process.link(nerves)
       update_default(self())
+      UART.write(nerves, "F83 #{handshake}") # ???
       state = %{tty: tty, nerves: nerves, queue: :queue.new(), current: nil}
       {:ok, state}
     else
@@ -224,6 +225,7 @@ defmodule Farmbot.Serial.Handler do
   end
 
   # This is when we get a code in from nerves_uart
+  @lint false # this is just a mess sorry
   def handle_info({:nerves_uart, tty, gcode}, state) do
     unless tty != state.tty do
       parsed = Parser.parse_code(gcode)

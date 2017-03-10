@@ -29,7 +29,6 @@ defmodule Farmbot.Serial.Supervisor do
     supervise(children, strategy: :one_for_all)
   end
 
-
   @spec open_ttys(atom | pid) :: :ok | no_return
   def open_ttys(supervisor) do
     UART.enumerate()
