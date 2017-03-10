@@ -33,17 +33,7 @@ defmodule Farmbot.BotState.Hardware do
     {:ok, p} = get_config("params")
     initial_state = %State{mcu_params: p}
 
-    spawn fn() ->
-      case set_initial_params(initial_state) do
-        {:ok, :no_params} ->
-          Logger.info ">> is reading default Hardware params."
-          Farmbot.CeleryScript.Command.read_all_params(%{}, [])
-        :ok ->
-          Logger.info ">> Hardware Params set"
-        {:error, reason} ->
-          Logger.error(">> Error setting Hardware Params: #{inspect reason}")
-      end
-    end
+    # spawn(__MODULE__, :set_initial_params, [initial_state])
     {:ok, initial_state}
   end
 
@@ -56,10 +46,21 @@ defmodule Farmbot.BotState.Hardware do
     # Try to send a fake packet just to make sure we have a good
     # Connection to the Firmware
 
+    if !Farmbot.Serial.Handler.available? do
+      # UGHHHHHH
+      Logger.debug "Waiting for Serial..."
+      Process.sleep(100)
+      set_initial_params(state)
+    end
+
     Farmbot.CeleryScript.Command.read_param(%{label: "param_version"}, [])
+
     if Enum.empty?(state.mcu_params) do
+      Logger.debug "reading all mcu params."
+      Farmbot.CeleryScript.Command.read_all_params(%{}, [])
       {:ok, :no_params}
     else
+      Logger.debug "setting previous mcu commands."
       config_pairs = Enum.map(state.mcu_params, fn({param, val}) ->
         %Farmbot.CeleryScript.Ast{kind: "pair",
             args: %{label: param, value: val}, body: []}
@@ -90,6 +91,11 @@ defmodule Farmbot.BotState.Hardware do
     Logger.error ">> got an unhandled call in " <>
                  "Hardware tracker: #{inspect event}"
     dispatch :unhandled, state
+  end
+
+  def handle_cast(:eff, state) do
+    spawn(__MODULE__, :set_initial_params, [state])
+    dispatch state
   end
 
   def handle_cast({:set_pos, {x, y, z}}, %State{} = state) do

@@ -108,6 +108,7 @@ defmodule Farmbot.Serial.Handler do
       Process.link(nerves)
       update_default(self())
       UART.write(nerves, "F83 #{handshake}") # ???
+      do_hax()
       state = %{tty: tty, nerves: nerves, queue: :queue.new(), current: nil}
       {:ok, state}
     else
@@ -116,6 +117,10 @@ defmodule Farmbot.Serial.Handler do
       :ignore
     end
   end
+
+  # Shhhhh
+  @spec do_hax :: no_return
+  defp do_hax, do: GenServer.cast(Farmbot.BotState.Hardware, :eff)
 
   @spec generate_handshake :: binary
   defp generate_handshake do
@@ -197,13 +202,11 @@ defmodule Farmbot.Serial.Handler do
     handshake = generate_handshake()
     # if the queue is empty, write this string now.
     if :queue.is_empty(state.queue) do
-      IO.puts "empty"
       ref = Process.send_after(self(), {:timeout, from, handshake}, timeout)
       current = %{reply: nil, handshake: handshake, timeout: ref, from: from}
       UART.write(state.nerves, str <> " Q#{handshake}")
       {:noreply, %{state | current: current}}
     else
-      IO.puts "queuing"
       q = :queue.in({str, handshake, from, timeout}, state.queue)
       {:noreply, %{state | queue: q}}
     end
@@ -339,6 +342,10 @@ defmodule Farmbot.Serial.Handler do
   defp handle_gcode(parsed, state) do
     Logger.warn "Unhandled GCODE: #{inspect parsed}"
     {:noreply, state}
+  end
+
+  def terminate(_, _) do
+    Process.unregister(__MODULE__)
   end
 
   @spec spm(atom) :: integer

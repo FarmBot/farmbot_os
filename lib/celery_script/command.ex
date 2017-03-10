@@ -487,7 +487,6 @@ defmodule Farmbot.CeleryScript.Command do
   @spec read_param(%{label: String.t}, []) :: no_return
   def read_param(%{label: param_str}, []) do
     param_int = GParser.parse_param(param_str)
-    IO.puts "reading param"
     if param_int do
       UartHan.write("F21 P#{param_int}", 1000)
     else
