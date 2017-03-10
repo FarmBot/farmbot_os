@@ -4,7 +4,10 @@ defmodule Farmbot.Auth do
   """
   @modules Application.get_env(:farmbot, :auth_callbacks) ++ [__MODULE__]
   @path Application.get_env(:farmbot, :path)
-  @ssl_hack [ ssl: [{:versions, [:'tlsv1.2']}], follow_redirect: true]
+  @ssl_hack [
+    ssl: [{:versions, [:'tlsv1.2']}],
+    follow_redirect: true
+  ]
   @six_hours (6 * 3_600_000)
 
   @secret_backup "/tmp/secret.backup"

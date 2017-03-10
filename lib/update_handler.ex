@@ -42,17 +42,32 @@ defmodule Farmbot.Updates.Handler do
       >> is installing a firmware update. I may act weird for a moment
       """,
       channels: [:toast]
-    GenServer.cast(Farmbot.Serial.Handler, {:update_fw, file, self()})
-    receive do
-      :done ->
-        Logger.info ">> is done installing a firmware update!", type: :success,
-          channels: [:toast]
-      {:error, reason} ->
-        Logger.error """
-          >> encountered an error installing firmware update!: #{inspect reason}
-          """,
-          channels: [:toast]
+    if Farmbot.Serial.Handler.available? do
+      GenServer.cast(Farmbot.Serial.Handler, {:update_fw, file, self()})
+      receive do
+        :done ->
+          Logger.info ">> is done installing a firmware update!", type: :success,
+            channels: [:toast]
+        {:error, reason} ->
+          Logger.error """
+            >> encountered an error installing firmware update!: #{inspect reason}
+            """,
+            channels: [:toast]
+      end
+    else
+      Logger.debug "doing some magic..."
+      herp = Nerves.UART.enumerate()
+      |> Map.drop(["ttyS0","ttyAMA0"])
+      |> Map.keys
+      case herp do
+        [tty] ->
+          Logger.debug "magic complete!"
+          Farmbot.Serial.Handler.flash_firmware(tty, file, self())
+        _ ->
+          Logger.warn "Please only have one serial device when updating firmware"
+      end
     end
+
   end
 
   @spec check_updates(any) :: no_return

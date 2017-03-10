@@ -118,13 +118,14 @@ defmodule Farmbot.System.Network do
 
     if ssh do
       Logger.info ">> ssh"
-      SSH.start_link
+      spawn SSH, :start_link, []
     end
 
     if fpf, do: Farmware.get_first_party_farmware
 
     Logger.info ">> Login"
-    Auth.try_log_in!
+    r = Auth.try_log_in!
+    if r == {:error, :timeout}, do: Auth.try_log_in!, else: r
   end
 
   @spec get_config(String.t) :: {:ok, any}

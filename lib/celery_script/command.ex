@@ -517,7 +517,7 @@ defmodule Farmbot.CeleryScript.Command do
       Farmbot.BotState.lock_bot()
       Farmbot.Serial.Handler.e_stop
     end
-    shrug("sorry about that. Farmbot needs to reboot", [])
+    shrug(%{message: "sorry about that. Farmbot needs to reboot"}, [])
   end
 
   @doc ~s"""
@@ -527,8 +527,8 @@ defmodule Farmbot.CeleryScript.Command do
   """
   @spec emergency_unlock(%{}, []) :: no_return
   def emergency_unlock(%{}, []) do
-    shrug("sorry about that. Farmbot needs to reboot", [])
-    # Farmbot.BotState.unlock_bot()
+    shrug(%{message: "sorry about that. Farmbot needs to reboot"}, [])
+    Farmbot.BotState.unlock_bot()
   end
 
   @doc ~s"""

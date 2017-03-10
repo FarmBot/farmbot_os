@@ -77,12 +77,18 @@ defmodule Farmbot.Serial.Handler do
     end
   end
 
+  @doc """
+    Send the E stop command to the arduino.
+  """
+  @spec e_stop(handler) :: :ok | no_return
+  def e_stop(handler \\ __MODULE__) do
+    GenServer.call(handler, :e_stop)
+  end
+
   ## Private
 
-  @spec init({nerves, binary}) :: {:ok, state} | :ignore
-  def init({nerves, tty}) do
-    Logger.debug "Starting serial handler: #{tty}"
-
+  @spec open_tty(nerves, binary) :: :ok
+  defp open_tty(nerves, tty) do
     # Open the tty
     :ok = UART.open(nerves, tty)
 
@@ -97,6 +103,15 @@ defmodule Farmbot.Serial.Handler do
 
     # Flush the buffers so we start fresh
     UART.flush(nerves)
+
+    :ok
+  end
+
+  @spec init({nerves, binary}) :: {:ok, state} | :ignore
+  def init({nerves, tty}) do
+    Logger.debug "Starting serial handler: #{tty}"
+
+    :ok = open_tty(nerves, tty)
 
     # generate a handshake
     handshake = generate_handshake()
@@ -210,6 +225,27 @@ defmodule Farmbot.Serial.Handler do
       q = :queue.in({str, handshake, from, timeout}, state.queue)
       {:noreply, %{state | queue: q}}
     end
+  end
+
+  def handle_cast({:update_fw, hex_file, pid}, state) do
+    UART.close(state.nerves)
+    flash_firmware(state.tty, hex_file, pid)
+
+    :ok = open_tty(state.nerves, state.tty)
+
+    # generate a handshake
+    handshake = generate_handshake()
+    Logger.debug "doing handshaking: #{handshake}"
+
+    if do_handshake(state.nerves, state.tty, handshake) do
+      do_hax()
+      {:noreply, state}
+    else
+      # if we cant handshake, kill the previous Nerves
+      GenServer.stop(state.nerves, :normal)
+      :ignore
+    end
+
   end
 
   def handle_info({:timeout, from, handshake}, state) do
@@ -346,6 +382,30 @@ defmodule Farmbot.Serial.Handler do
 
   def terminate(_, _) do
     Process.unregister(__MODULE__)
+  end
+
+  def flash_firmware(tty, hex_file, pid) do
+    params =
+      ["-v",
+       "-patmega2560",
+       "-cwiring",
+       "-P/dev/#{tty}",
+       "-b115200",
+       "-D",
+       "-Uflash:w:#{hex_file}:i"]
+
+    "avrdude" |> System.cmd(params) |> log(pid)
+  end
+
+  defp log({_, 0}, pid) do
+    Logger.debug "FLASHED FIRMWARE!"
+    Farmbot.CeleryScript.Command.reboot(%{}, [])
+    send pid, :done
+  end
+
+  defp log(_, pid) do
+    Logger.error "FAILED TO FLASH FIRMWARE!"
+    send pid, :error
   end
 
   @spec spm(atom) :: integer
