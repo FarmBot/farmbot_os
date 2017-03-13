@@ -203,7 +203,7 @@ defmodule Farmbot.CeleryScript.Command do
   def pairs_to_tuples(config_pairs) do
     Enum.map(config_pairs, fn(%Ast{} = thing) ->
       if thing.args.label == nil do
-        Logger.error("FINDME: #{inspect config_pairs}") 
+        Logger.error("FINDME: #{inspect config_pairs}")
       end
       {thing.args.label, thing.args.value}
     end)

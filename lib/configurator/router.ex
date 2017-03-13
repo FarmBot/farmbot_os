@@ -165,7 +165,7 @@ defmodule Farmbot.Configurator.Router do
     conn |> send_resp(200, html)
   end
 
-  plug Plug.Parsers, parsers: [:urlencoded, :multipart], length: 111409842
+  plug Plug.Parsers, parsers: [:urlencoded, :multipart], length: 111_409_842
   post "/api/upload_firmware" do
     {:ok, _body, conn} = Plug.Conn.read_body(conn)
     upload = conn.body_params["firmware"]
