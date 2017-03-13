@@ -35,3 +35,4 @@ _images
 Makefile
 release-*
 dump.rdb
+#priv/firmware.hex

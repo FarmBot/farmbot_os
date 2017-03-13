@@ -127,6 +127,8 @@ defmodule Farmbot.Serial.Handler do
       state = %{tty: tty, nerves: nerves, queue: :queue.new(), current: nil}
       {:ok, state}
     else
+      Logger.warn "Handshake failed!"
+      deregister()
       # if we cant handshake, kill the previous Nerves
       GenServer.stop(nerves, :normal)
       :ignore
@@ -166,6 +168,7 @@ defmodule Farmbot.Serial.Handler do
       # Recieved happens before our actual response, just go to the next one
       # if it exists
       {:nerves_uart, ^tty, "R01" <> _} -> do_handshake(nerves, tty, handshake)
+      {:nerves_uart, ^tty, "Command:" <> _} -> do_handshake(nerves, tty, handshake)
 
       # This COULD be our handshake. Check it.
       {:nerves_uart, ^tty, str} ->
@@ -196,6 +199,13 @@ defmodule Farmbot.Serial.Handler do
 
   @spec update_default(pid) :: :ok | no_return
   defp update_default(pid) do
+    deregister()
+    # Either way, register this pid as the new one.
+    Process.register(pid, __MODULE__)
+  end
+
+  @spec deregister :: no_return
+  defp deregister do
     # lookup the old default pid
     old_pid = Process.whereis(__MODULE__)
 
@@ -204,9 +214,6 @@ defmodule Farmbot.Serial.Handler do
       Logger.debug "Deregistering #{inspect old_pid} from default Serial Handler"
       Process.unregister(__MODULE__)
     end
-
-    # Either way, register this pid as the new one.
-    Process.register(pid, __MODULE__)
   end
 
   def handle_call(:get_state, _, state), do: {:reply, state, state}
@@ -371,12 +378,12 @@ defmodule Farmbot.Serial.Handler do
   end
 
   defp handle_gcode({:unhandled_gcode, code}, state) do
-    Logger.warn ">> got an unhandled gcode! #{code}"
+    Logger.warn ">> got an misc gcode #{code}"
     {:noreply, state}
   end
 
   defp handle_gcode(parsed, state) do
-    Logger.warn "Unhandled GCODE: #{inspect parsed}"
+    Logger.warn "Unhandled message: #{inspect parsed}"
     {:noreply, state}
   end
 
@@ -395,11 +402,13 @@ defmodule Farmbot.Serial.Handler do
        "-Uflash:w:#{hex_file}:i"]
 
     "avrdude" |> System.cmd(params) |> log(pid)
+    handler = Process.whereis(__MODULE__)
+    if handler, do: spawn fn() -> GenServer.stop(handler, :normal) end
+    Farmbot.Serial.Supervisor.open_ttys(Farmbot.Serial.Supervisor, [tty])
   end
 
   defp log({_, 0}, pid) do
     Logger.debug "FLASHED FIRMWARE!"
-    Farmbot.CeleryScript.Command.reboot(%{}, [])
     send pid, :done
   end
 

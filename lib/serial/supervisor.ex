@@ -29,12 +29,10 @@ defmodule Farmbot.Serial.Supervisor do
     supervise(children, strategy: :one_for_all)
   end
 
-  @spec open_ttys(atom | pid) :: :ok | no_return
-  def open_ttys(supervisor) do
-    UART.enumerate()
-    |> Map.drop(["ttyS0","ttyAMA0"])
-    |> Map.keys
-    |> try_open(supervisor)
+  @spec open_ttys(atom | pid, [binary]) :: :ok | no_return
+  def open_ttys(supervisor, ttys \\ nil) do
+    blah = ttys || UART.enumerate() |> Map.drop(["ttyS0","ttyAMA0"]) |> Map.keys
+    blah |> try_open(supervisor)
   end
 
   @spec try_open([binary], atom | pid) :: :ok | no_return

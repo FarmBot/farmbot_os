@@ -49,12 +49,12 @@ export class Main extends React.Component<MainProps, FormState> {
       showCustomNetworkWidget: false,
       ssidSelection: {},
       customInterface: null,
-      connecting: false
+      connecting: false,
     };
   }
 
   @action
-  handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
+  async handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     let mainState = this.props.mobx;
     let fullFile = mainState.configuration;
@@ -65,8 +65,19 @@ export class Main extends React.Component<MainProps, FormState> {
     console.log("server: " + server);
 
     if ((email && pass && server) && this.state.connecting != true) {
-      // this.state.connecting = true;
       this.setState({ connecting: true });
+
+      // try to flash the arduino
+      if (!fullFile.hardware.custom_firmware) {
+        try {
+          await mainState.flashFW();
+          console.log("Firmware Flashed!!!");
+        } catch (_error) {
+          console.error("Firmware failed!");
+          return;
+        }
+      }
+
       mainState.uploadCreds(email, pass, server)
         .then((thing) => {
           console.log("uploaded web app credentials!");
@@ -75,6 +86,7 @@ export class Main extends React.Component<MainProps, FormState> {
         .catch((thing) => {
           console.error("Error uploading web app credentials!")
         });
+
     } else {
       console.error("Email, Password, or Server is incomplete or already connecting!")
       return;

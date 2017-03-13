@@ -160,10 +160,14 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param("21"), do: :movement_invert_endpoints_x
   def parse_param("22"), do: :movement_invert_endpoints_y
   def parse_param("23"), do: :movement_invert_endpoints_z
+  def parse_param("25"), do: :movement_enable_endpoints_x
+  def parse_param("26"), do: :movement_enable_endpoints_y
+  def parse_param("27"), do: :movement_enable_endpoints_z
   def parse_param("31"), do: :movement_invert_motor_x
   def parse_param("32"), do: :movement_invert_motor_y
   def parse_param("33"), do: :movement_invert_motor_z
   def parse_param("36"), do: :moevment_secondary_motor_x
+  def parse_param("37"), do: :movement_secondary_motor_invert_x
   def parse_param("41"), do: :movement_steps_acc_dec_x
   def parse_param("42"), do: :movement_steps_acc_dec_y
   def parse_param("43"), do: :movement_steps_acc_dec_z
@@ -217,7 +221,11 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(:movement_invert_motor_x), do: 31
   def parse_param(:movement_invert_motor_y), do: 32
   def parse_param(:movement_invert_motor_z), do: 33
+  def parse_param(:movement_enable_endpoints_x), do: 25 
+  def parse_param(:movement_enable_endpoints_y), do: 26 
+  def parse_param(:movement_enable_endpoints_z), do: 27 
   def parse_param(:moevment_secondary_motor_x), do: 36
+  def parse_param(:movement_secondary_motor_invert_x), do: 37
   def parse_param(:movement_steps_acc_dec_x), do: 41
   def parse_param(:movement_steps_acc_dec_y), do: 42
   def parse_param(:movement_steps_acc_dec_z), do: 43
@@ -260,6 +268,10 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(param_string) when is_bitstring(param_string),
     do: param_string |> String.to_atom |> parse_param
 
-  def parse_param(_), do: nil
+  def parse_param(uhh) do
+    require Logger
+    Logger.error("LOOK AT ME IM IMPORTANT: #{inspect uhh}")
+    nil
+  end
 
 end
