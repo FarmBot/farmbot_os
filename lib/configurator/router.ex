@@ -7,13 +7,23 @@ defmodule Farmbot.Configurator.Router do
   require Logger
 
   use Plug.Router
-  # plug Plug.Logger
+  plug Plug.Logger
   # this is so we can serve the bundle.js file.
   plug Plug.Static, at: "/", from: :farmbot
   plug Plug.Static, at: "/image", from: "/tmp/images", gzip: false
+  plug Plug.Parsers, parsers: [:urlencoded, :multipart], length: 111409842
+  plug Plug.Parsers, parsers: [:urlencoded, :json],
+                   pass:  ["text/*"],
+                   json_decoder: Poison
   plug :match
   plug :dispatch
   plug CORSPlug
+
+  target = Mix.Project.config[:target]
+
+  if Mix.env == :dev do
+     use Plug.Debugger, otp_app: :farmbot
+  end
 
   get "/image/latest" do
     list_images = fn() ->
@@ -135,6 +145,87 @@ defmodule Farmbot.Configurator.Router do
      state = Farmbot.Transport.get_state
      json = Poison.encode!(state)
      conn |> send_resp(200, json)
+  end
+
+  post "/api/upload_firmware" do
+    {:ok, _body, conn} = Plug.Conn.read_body(conn)
+    upload = conn.body_params["firmware"]
+    file = upload.path
+    case Path.extname(upload.filename) do
+      ".hex" ->
+        Logger.info "FLASHING ARDUINO!"
+        handle_arduino(file, conn)
+      ".fw" ->
+        Logger.info "FLASHING OS"
+        handle_os(file, conn)
+      _ ->
+        conn |> send_resp(400, "COULD NOT HANDLE #{upload.filename}")
+    end
+  end
+
+  defp handle_arduino(file, conn) do
+    errrm = fn(blerp) ->
+      receive do
+        :done ->
+          blerp |> send_resp(200, "OK")
+        {:error, reason} ->
+          blerp |> send_resp(400, IO.inspect (reason))
+      end
+    end
+
+    Logger.info ">> is installing a firmware update. "
+      <> " I may act weird for a moment", channels: [:toast]
+
+    if Farmbot.Serial.Handler.available? do
+      GenServer.cast(Farmbot.Serial.Handler, {:update_fw, file, self()})
+      errrm.(conn)
+    else
+      Logger.debug "doing some magic..."
+      herp = Nerves.UART.enumerate()
+      |> Map.drop(["ttyS0","ttyAMA0"])
+      |> Map.keys
+      case herp do
+        [tty] ->
+          Logger.debug "magic complete!"
+          Farmbot.Serial.Handler.flash_firmware(tty, file, self())
+          errrm.(conn)
+        _ ->
+          Logger.warn "Please only have one serial device when updating firmware"
+      end
+    end
+  end
+
+  if target != "host" do
+    defp handle_os(file, conn) do
+      Logger.info "Firmware update"
+      case Nerves.Firmware.upgrade_and_finalize(file) do
+        {:error, reason} -> conn |> send_resp(400, inspect(reason))
+        :ok ->
+          conn |> send_resp(200, "UPGRADING")
+          Process.sleep(2000)
+          Nerves.Firmware.reboot
+      end
+    end
+  else
+    defp handle_os(_file, conn), do: conn |> send_resp(200, "OK")
+  end
+
+
+  get "/firmware/upload" do
+    html = ~s"""
+    <html>
+    <body>
+    <p>
+    Upload a FarmbotOS Firmware file (.fw) or a Arduino Firmware file (.hex)
+    </p>
+    <form action="/api/upload_firmware" method="post" enctype="multipart/form-data" accept="*">
+      <input type="file" name="firmware" id="fileupload">
+      <input type="submit" value="submit">
+    </form>
+    </body>
+    </html>
+    """
+    conn |> send_resp(200, html)
   end
 
   # anything that doesn't match a rest end point gets the index.
