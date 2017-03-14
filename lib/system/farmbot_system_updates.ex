@@ -48,8 +48,19 @@ defmodule Farmbot.System.Updates do
   @doc """
     Checks for updates
   """
-  @spec check_updates :: {:update, String.t} | :no_updates | {:error, term}
+  @spec check_updates :: {:update, binary} | :no_updates | {:error, term}
   def check_updates do
+    current = Farmbot.BotState.get_os_version
+    if String.contains?(current, "rc") do
+      Logger.error "Release Candidate Releases don't currently support updates!"
+      :no_updates
+    else
+      do_http_req()
+    end
+  end
+
+  @spec check_updates :: {:update, binary} | :no_updates | {:error, term}
+  defp do_http_req do
     case HTTPoison.get(@releases_url <> "/latest", @headers, @ssl_hack) do
        {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
          json = Poison.decode!(body)
@@ -58,7 +69,6 @@ defmodule Farmbot.System.Updates do
          url = "https://github.com/FarmBot/farmbot_os/releases/download/#{version}/farmbot-#{@target}-#{version_without_v}.fw"
          {:update, url}
        {:error, %HTTPoison.Error{reason: reason}} -> {:error, reason}
-       error -> {:error, error}
     end
   end
 
