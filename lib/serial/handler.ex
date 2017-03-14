@@ -130,7 +130,9 @@ defmodule Farmbot.Serial.Handler do
       {:ok, state}
     else
       Logger.warn "Handshake failed!"
-      state = %{tty: tty, nerves: nerves, queue: :queue.new(), current: :no_firm}
+      state = %{
+        tty: tty, nerves: nerves, queue: :queue.new(), current: :no_firm
+      }
       {:ok, state}
     end
   end
