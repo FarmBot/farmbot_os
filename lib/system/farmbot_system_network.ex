@@ -116,12 +116,20 @@ defmodule Farmbot.System.Network do
       Ntp.set_time
     end
 
-    if ssh do
-      Logger.info ">> ssh"
-      spawn SSH, :start_link, []
+    try do
+      if ssh do
+        Logger.info ">> ssh"
+        spawn SSH, :start_link, []
+      end
+    rescue
+      error -> Logger.warn(">> Failed to start ssh: #{inspect error}")
     end
 
-    if fpf, do: Farmware.get_first_party_farmware
+    try do
+      if fpf, do: Farmware.get_first_party_farmware
+    rescue
+      error -> Logger.warn(">> Failed to install farmwares: #{inspect error}")
+    end
 
     Logger.info ">> Login"
     r = Auth.try_log_in!

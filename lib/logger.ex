@@ -43,11 +43,11 @@ defmodule Farmbot.Logger do
   @typedoc """
     One day this will me more
   """
-  @type channels :: :toast
+  @type channel :: :toast
 
   @type log_message
   :: %{message: String.t,
-       channels: channels,
+       channels: [channel],
        created_at: integer,
        meta: %{type: rpc_log_type}}
 
@@ -206,7 +206,7 @@ defmodule Farmbot.Logger do
     |> DateTime.to_iso8601
   end
 
-  @spec build_log(String.t, number, rpc_log_type, [channels]) :: log_message
+  @spec build_log(String.t, number, rpc_log_type, [channel]) :: log_message
   defp build_log(message, created_at, type, channels) do
     %{message: message,
       created_at: created_at,

@@ -6,7 +6,7 @@ config :farmbot,
 config :tzdata, :data_dir, "/tmp"
 config :tzdata, :autoupdate, :disabled
 
-config :quantum, cron: [ "5 1 * * *": {Farmbot.Updates.Handler, :do_update_check}]
+config :quantum, cron: [ "5 1 * * *": {Farmbot.System.Updates, :do_update_check}]
 
 config :nerves_interim_wifi, regulatory_domain: "US" #FIXME
 

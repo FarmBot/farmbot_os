@@ -60,7 +60,7 @@ defmodule Syncable do
 
             @doc false
             def terminate(_reason, _state) do
-              Logger.debug "#{unquote(module)} differ died"
+              Logger.info "#{unquote(module)} differ died"
             end
 
             # HANDLE_CALL

@@ -473,7 +473,7 @@ defmodule Farmbot.CeleryScript.Command do
     case package do
       "arduino_firmware" ->
         Logger.warn "Arduino Firmware is now coupled to farmbot_os and can't " <>
-        "updated individually."
+        "updated individually.", channels: :toast
       "farmbot_os" ->
         Farmbot.System.Updates.check_and_download_updates()
 

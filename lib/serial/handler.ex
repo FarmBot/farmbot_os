@@ -114,14 +114,14 @@ defmodule Farmbot.Serial.Handler do
   @spec init({nerves, binary}) :: {:ok, state} | :ignore
   def init({nerves, tty}) do
     Process.link(nerves)
-    Logger.debug "Starting serial handler: #{tty}"
+    Logger.info "Starting serial handler: #{tty}"
 
     :ok = open_tty(nerves, tty)
     update_default(self())
 
     # generate a handshake
     handshake = generate_handshake()
-    Logger.debug "doing handshaking: #{handshake}"
+    Logger.info "doing handshaking: #{handshake}"
 
     if do_handshake(nerves, tty, handshake) do
       UART.write(nerves, "F83 #{handshake}") # ???
@@ -151,7 +151,7 @@ defmodule Farmbot.Serial.Handler do
   defp do_handshake(nerves, tty, handshake, retries \\ 5)
 
   defp do_handshake(_, _, _, 0) do
-    Logger.debug "Could not handshake: to many retries."
+    Logger.info "Could not handshake: to many retries."
     false
   end
 
@@ -177,7 +177,7 @@ defmodule Farmbot.Serial.Handler do
         # if it contains our handshake, check if its the right command.
         # flush the buffer and return
         if String.contains?(str, handshake) do
-          Logger.debug "Successfully completed handshake!"
+          Logger.info "Successfully completed handshake!"
           "R83 " <> version = String.trim(str, " " <> handshake)
           Farmbot.BotState.set_fw_version(version)
           UART.flush(nerves)
@@ -213,7 +213,7 @@ defmodule Farmbot.Serial.Handler do
 
     # if one existst, unregister it.
     if old_pid do
-      Logger.debug "Deregistering #{inspect old_pid} from default Serial Handler"
+      Logger.info "Deregistering #{inspect old_pid} from default Serial Handler"
       Process.unregister(__MODULE__)
     end
   end
@@ -415,7 +415,7 @@ defmodule Farmbot.Serial.Handler do
   end
 
   defp log({_, 0}, pid) do
-    Logger.debug "FLASHED FIRMWARE!"
+    Logger.info "FLASHED FIRMWARE!"
     send pid, :done
   end
 
