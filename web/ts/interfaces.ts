@@ -66,11 +66,11 @@ export interface DhcpConfigFileNetIface extends ConfigFileNetIface {
     default: "dhcp";
 }
 
-/** Farmbot's Configuratrion 
+/** Farmbot's Configuratrion
  * doing an HTTP get to "/api/config" will give the bots current config.
 */
 export interface BotConfigFile {
-    /** network false indicates that farmbot will already have network 
+    /** network false indicates that farmbot will already have network
     *  when started.
     */
     network: {
@@ -92,8 +92,6 @@ export interface BotConfigFile {
     configuration: {
         /** auto update the operating system */
         os_auto_update: boolean;
-        /** auto update the arduino firmware */
-        fw_auto_update: boolean;
         /** steps per milimeter for the arduino firmware */
         steps_per_mm: {
             x: number;
@@ -104,6 +102,7 @@ export interface BotConfigFile {
     /** hardware mcu stuff */
     hardware: {
         params: McuParams;
+        custom_firmware: boolean;
     }
 }
 export type LogChannel = "toast";

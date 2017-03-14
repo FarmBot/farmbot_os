@@ -6,10 +6,11 @@ import { observer } from "mobx-react";
 interface Props {
     mobx: MainState;
 }
-export function AdvancedSettings({mobx}: Props) {
+export function AdvancedSettings({ mobx }: Props) {
     let ssh = false;
-    let ntp = false
+    let ntp = false;
     let hasNetwork = mobx.configuration.network ? true : false;
+    let customFW = false;
 
     if (mobx.configuration.network) {
         ssh = mobx.configuration.network.ssh;
@@ -22,8 +23,19 @@ export function AdvancedSettings({mobx}: Props) {
             <label> Factory Reset Your Bot </label>
             <button type="button" onClick={() => {
                 mobx.factoryReset();
-            } }> Factory Reset your bot! </button>
+            }}> Factory Reset your bot! </button>
         </fieldset>
+
+        {/* Allow the user to force custom firmware */}
+        <div>
+            <label> Use Custom Arduino Firmware </label>
+            <input type="checkbox"
+                defaultChecked={false}
+                onChange={(event) => {
+                    customFW = event.currentTarget.checked;
+                    mobx.CustomFW(customFW);
+                }} />
+        </div>
 
         {/* Allow the user to force network to be enabled */}
         <div>
@@ -33,8 +45,7 @@ export function AdvancedSettings({mobx}: Props) {
                 onChange={(event) => {
                     mobx.toggleNetwork();
                     hasNetwork = event.currentTarget.checked;
-                }
-                } />
+                }} />
         </div>
 
         {/* hide these settings if we dont have network */}
@@ -46,7 +57,7 @@ export function AdvancedSettings({mobx}: Props) {
                     onChange={(event) => {
                         let blah = event.currentTarget.checked;
                         mobx.toggleSSH(blah);
-                    } } />
+                    }} />
             </fieldset>
 
             {/* NTP  */}
@@ -56,9 +67,11 @@ export function AdvancedSettings({mobx}: Props) {
                     onChange={(event) => {
                         let blah = event.currentTarget.checked;
                         mobx.toggleNTP(blah);
-                    } } />
+                    }} />
             </fieldset>
         </div>
+
+
 
 
     </div>

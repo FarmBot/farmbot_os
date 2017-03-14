@@ -6,7 +6,6 @@
  "configuration": {
   "user_env": {},
   "os_auto_update": false,
-  "fw_auto_update": false,
   "first_party_farmware": true,
   "steps_per_mm_x": 5,
   "steps_per_mm_y": 5,
@@ -16,6 +15,7 @@
   "distance_mm_z": 800
  },
  "hardware": {
-  "params": {}
+  "params": {},
+  "custom_firmware": false
  }
 }

@@ -89,7 +89,8 @@ defmodule Farmbot.Mixfile do
       :quantum, # Quantum needs to start AFTER farmbot, so we can set up its dirs
       :timex, # Timex needs to start AFTER farmbot, so we can set up its dirs,
       :inets,
-      :redix
+      :redix,
+      :eex
    ]
   end
 
@@ -97,6 +98,7 @@ defmodule Farmbot.Mixfile do
   defp applications(_system), do: [
     :nerves_interim_wifi,
     :nerves_firmware_http,
+    :nerves_firmware,
     :nerves_ssdp_server
   ]
 
@@ -195,6 +197,7 @@ defmodule Farmbot.Mixfile do
         {:nerves_interim_wifi, "~> 0.1.1"},
         # {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
         {:nerves_firmware_http, "~> 0.3.1"},
+        {:nerves_firmware, "~> 0.3"},
         {:nerves_ssdp_server, "~> 0.2.1"},
         ],
       else: Mix.raise("There is no existing system package for #{sys}")

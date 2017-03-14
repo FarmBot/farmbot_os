@@ -62,10 +62,9 @@ export class MainState {
         },
         configuration: {
             os_auto_update: false,
-            fw_auto_update: false,
             steps_per_mm: { x: 500, y: 500, z: 500 }
         },
-        hardware: { params: {} }
+        hardware: { params: {}, custom_firmware: false }
     };
 
     @observable ssids: string[] = [];
@@ -140,6 +139,15 @@ export class MainState {
             this.configuration.network = { ntp: false, interfaces: {}, ssh: false };
             this.configuration.network.interfaces[ifaceName] = thing;
         }
+    }
+
+    @action
+    CustomFW(bool: boolean) {
+        this.configuration.hardware.custom_firmware = bool;
+    }
+
+    flashFW() {
+        return Axios.post("/api/flash_firmware");
     }
 
     enumerateInterfaces() {

@@ -7,42 +7,21 @@ defmodule Farmbot.Configurator.Router do
   require Logger
 
   use Plug.Router
-  # plug Plug.Logger
+  plug Plug.Logger
   # this is so we can serve the bundle.js file.
   plug Plug.Static, at: "/", from: :farmbot
   plug Plug.Static, at: "/image", from: "/tmp/images", gzip: false
+
+  @max_length 111_409_842
+  plug Plug.Parsers, parsers:
+    [:urlencoded, :multipart, :json], json_decoder: Poison, length: @max_length
   plug :match
   plug :dispatch
   plug CORSPlug
 
-  get "/image/latest" do
-    list_images = fn() ->
-      "/tmp/images"
-      |> File.ls!
-      |> Enum.reduce("", fn(image, acc) ->
-        acc <> "<img src=\"/image/#{image}\">"
-      end)
-    end
-    html =
-      ~s"""
-      <html>
-        <body>
-          <form action=/image/capture>
-            <input type="submit" value="Capture">
-          </form>
-          #{list_images.()}
-        </body>
-      </html>
-      """
-    conn |> send_resp(200, html)
-  end
+  target = Mix.Project.config[:target]
 
-  get "/image/capture" do
-    Farmbot.Camera.capture()
-    conn
-    |> put_resp_header("location", "/image/latest")
-    |> send_resp(302, "OK")
-  end
+  if Mix.env == :dev, do: use Plug.Debugger, otp_app: :farmbot
 
   get "/", do: conn |> send_resp(200, make_html())
   get "/setup" do
@@ -59,24 +38,23 @@ defmodule Farmbot.Configurator.Router do
 
   post "/api/config" do
     Logger.info ">> router got config json"
-    {:ok, body, _} = read_body(conn)
-    rbody = Poison.decode!(body)
-    # TODO THIS NEEDS SOME HARD CHECKING. PROBABLY IN THE CONFIG STORAGE MODULE
-    ConfigStorage.replace_config_file(rbody)
-    conn |> send_resp(200,body)
+    {:ok, _body, conn} = read_body(conn)
+    ConfigStorage.replace_config_file(conn.body_params)
+    conn |> send_resp(200, "OK")
   end
 
   post "/api/config/creds" do
     Logger.info ">> router got credentials"
-    {:ok, body, _} = read_body(conn)
-    %{"email" => email,"pass" => pass,"server" => server} = Poison.decode!(body)
+    {:ok, _body, conn} = read_body(conn)
+
+    %{"email" => email,"pass" => pass,"server" => server} = conn.body_params
     Farmbot.Auth.interim(email, pass, server)
-    conn |> send_resp(200, "ok")
+    conn |> send_resp(200, "OK")
   end
 
   post "/api/network/scan" do
-    {:ok, body, _} = read_body(conn)
-    %{"iface" => iface} = Poison.decode!(body)
+    {:ok, _body, conn} = read_body(conn)
+    %{"iface" => iface} = conn.body_params
     scan = NetMan.scan(iface)
     case scan do
       {:error, reason} -> conn |> send_resp(500, "could not scan: #{inspect reason}")
@@ -137,11 +115,126 @@ defmodule Farmbot.Configurator.Router do
      conn |> send_resp(200, json)
   end
 
+  post "/api/flash_firmware" do
+    "#{:code.priv_dir(:farmbot)}/firmware.hex" |> handle_arduino(conn)
+  end
+
+  get "/firmware/upload" do
+    html = ~s"""
+    <html>
+    <body>
+    <p>
+    Upload a FarmbotOS Firmware file (.fw) or a Arduino Firmware file (.hex)
+    </p>
+    <form action="/api/upload_firmware" method="post" enctype="multipart/form-data" accept="*">
+      <input type="file" name="firmware" id="fileupload">
+      <input type="submit" value="submit">
+    </form>
+    </body>
+    </html>
+    """
+    conn |> send_resp(200, html)
+  end
+
+  post "/api/upload_firmware" do
+    {:ok, _body, conn} = Plug.Conn.read_body(conn, length: @max_length)
+    %{"firmware" => upload} = conn.body_params
+    file = upload.path
+    case Path.extname(upload.filename) do
+      ".hex" ->
+        Logger.info "FLASHING ARDUINO!"
+        handle_arduino(file, conn)
+      ".fw" ->
+        Logger.info "FLASHING OS"
+        handle_os(file, conn)
+      _ -> conn |> send_resp(400, "COULD NOT HANDLE #{upload.filename}")
+    end
+  end
+
+  get "/image/latest" do
+    list_images = fn() ->
+      "/tmp/images"
+      |> File.ls!
+      |> Enum.reduce("", fn(image, acc) ->
+        acc <> "<img src=\"/image/#{image}\">"
+      end)
+    end
+    html =
+      ~s"""
+      <html>
+        <body>
+          <form action=/image/capture>
+            <input type="submit" value="Capture">
+          </form>
+          #{list_images.()}
+        </body>
+      </html>
+      """
+    conn |> send_resp(200, html)
+  end
+
+  get "/image/capture" do
+    Farmbot.Camera.capture()
+    conn
+    |> put_resp_header("location", "/image/latest")
+    |> send_resp(302, "OK")
+  end
+
   # anything that doesn't match a rest end point gets the index.
   match _, do: conn |> send_resp(404, "not found")
 
   @spec make_html :: binary
   defp make_html do
     "#{:code.priv_dir(:farmbot)}/static/index.html" |> File.read!
+  end
+
+  defp handle_arduino(file, conn) do
+    errrm = fn(blerp) ->
+      receive do
+        :done ->
+          blerp |> send_resp(200, "OK")
+        {:error, reason} ->
+          blerp |> send_resp(400, IO.inspect(reason))
+      end
+    end
+
+    Logger.info ">> is installing a firmware update. "
+      <> " I may act weird for a moment", channels: [:toast]
+
+    pid = Process.whereis(Farmbot.Serial.Handler)
+
+    if pid do
+      GenServer.cast(Farmbot.Serial.Handler, {:update_fw, file, self()})
+      errrm.(conn)
+    else
+      Logger.debug "doing some magic..."
+      herp = Nerves.UART.enumerate()
+      |> Map.drop(["ttyS0","ttyAMA0"])
+      |> Map.keys
+      case herp do
+        [tty] ->
+          Logger.debug "magic complete!"
+          Farmbot.Serial.Handler.flash_firmware(tty, file, self())
+          errrm.(conn)
+        _ ->
+          Logger.warn "Please only have one serial device when updating firmware"
+          conn |> send_resp(200, "OK")
+      end
+    end
+  end
+
+  if target != "host" do
+    defp handle_os(file, conn) do
+      Logger.info "Firmware update"
+      case Nerves.Firmware.upgrade_and_finalize(file) do
+        {:error, reason} -> conn |> send_resp(400, inspect(reason))
+        :ok ->
+          conn |> send_resp(200, "UPGRADING")
+          Process.sleep(2000)
+          Nerves.Firmware.reboot
+      end
+    end
+  else
+    defp handle_os(_file, conn), do: conn |> send_resp(200, "OK")
   end
 end

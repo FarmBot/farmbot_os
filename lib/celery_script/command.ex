@@ -202,6 +202,9 @@ defmodule Farmbot.CeleryScript.Command do
   @spec pairs_to_tuples([pair]) :: [tuple]
   def pairs_to_tuples(config_pairs) do
     Enum.map(config_pairs, fn(%Ast{} = thing) ->
+      if thing.args.label == nil do
+        Logger.error("FINDME: #{inspect config_pairs}")
+      end
       {thing.args.label, thing.args.value}
     end)
   end
@@ -469,8 +472,8 @@ defmodule Farmbot.CeleryScript.Command do
   def check_updates(%{package: package}, []) do
     case package do
       "arduino_firmware" ->
-        # TODO(Connor): Move this, and its contents somewhere else
-        Farmbot.Updates.Handler.check_and_download_updates(:fw)
+        Logger.warn "Arduino Firmware is now coupled to farmbot_os and can't " <>
+        "updated individually."
       "farmbot_os" ->
         Farmbot.System.Updates.check_and_download_updates()
 

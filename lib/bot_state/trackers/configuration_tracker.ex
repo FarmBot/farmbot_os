@@ -14,7 +14,6 @@ defmodule Farmbot.BotState.Configuration do
       configuration: %{
         user_env: %{},
         os_auto_update: false,
-        fw_auto_update: false,
         steps_per_mm_x: 10,
         steps_per_mm_y: 10,
         steps_per_mm_z: 50,
@@ -46,7 +45,6 @@ defmodule Farmbot.BotState.Configuration do
       configuration: %{
         user_env: map,
         os_auto_update: boolean,
-        fw_auto_update: boolean,
         steps_per_mm_x: integer,
         steps_per_mm_y: integer,
         steps_per_mm_z: integer,
@@ -73,7 +71,6 @@ defmodule Farmbot.BotState.Configuration do
     }
     {:ok, user_env} = get_config("user_env")
     {:ok, os_a_u}   = get_config("os_auto_update")
-    {:ok, fw_a_u}   = get_config("fw_auto_update")
     {:ok, spm_x}    = get_config("steps_per_mm_x")
     {:ok, spm_y}    = get_config("steps_per_mm_y")
     {:ok, spm_z}    = get_config("steps_per_mm_z")
@@ -84,7 +81,6 @@ defmodule Farmbot.BotState.Configuration do
       %State{initial | configuration: %{
            user_env: user_env,
            os_auto_update: os_a_u,
-           fw_auto_update: fw_a_u,
            steps_per_mm_x: spm_x,
            steps_per_mm_y: spm_y,
            steps_per_mm_z: spm_z,
@@ -107,19 +103,6 @@ defmodule Farmbot.BotState.Configuration do
     new_config = Map.put(state.configuration, :os_auto_update, value)
     new_state = %State{state | configuration: new_config}
     put_config("os_auto_update", value)
-    dispatch true, new_state
-  end
-
-  def handle_call({:update_config, "fw_auto_update", f_value},
-   _from, %State{} = state) do
-    value = cond do
-      f_value == 1 -> true
-      f_value == 0 -> false
-      is_boolean(f_value) -> f_value
-    end
-    new_config = Map.put(state.configuration, :fw_auto_update, value)
-    new_state = %State{state | configuration: new_config}
-    put_config("fw_auto_update", value)
     dispatch true, new_state
   end
 
