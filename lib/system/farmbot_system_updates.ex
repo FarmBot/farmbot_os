@@ -17,6 +17,17 @@ defmodule Farmbot.System.Updates do
   defp mod(target), do: Module.concat([Farmbot, System, target, Updates])
 
   @doc """
+    Checks for updates if the bot says so
+  """
+  def do_update_check do
+    if Farmbot.BotState.get_config(:os_auto_update) do
+      check_and_download_updates()
+    else
+      Logger.warn ">> Will not do update check!"
+    end
+  end
+
+  @doc """
     Checks for updates, and if there is an update, downloads, and applies it.
   """
   @spec check_and_download_updates :: :ok | {:error, term} | :no_updates

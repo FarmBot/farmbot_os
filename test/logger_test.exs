@@ -17,7 +17,7 @@ defmodule Farmbot.LoggerTest do
     Logger.flush
     use_cassette "good_log_upload" do
       for i <- 0..51 do
-        Logger.debug "Farmbot can count to: #{i}"
+        Logger.info "Farmbot can count to: #{i}"
       end
       Process.sleep(3000)
 
@@ -30,7 +30,7 @@ defmodule Farmbot.LoggerTest do
   test "gets the logger state" do
     Logger.flush
 
-    Logger.debug "hey world"
+    Logger.info "hey world"
     state = GenEvent.call(Logger, Farmbot.Logger, :get_state)
     assert is_list(state.logs)
     [log] = state.logs

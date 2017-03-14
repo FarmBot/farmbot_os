@@ -37,7 +37,7 @@ defmodule RegimenRunner do
       first_dt = Timex.shift(epoch, milliseconds: first_item.time_offset)
       timestr = "#{first_dt.month}/#{first_dt.day}/#{first_dt.year} " <>
         "at: #{first_dt.hour}:#{first_dt.minute}"
-      Logger.debug "your fist item will execute on #{timestr}"
+      Logger.info "your fist item will execute on #{timestr}"
       millisecond_offset = Timex.diff(first_dt, Timex.now(), :milliseconds)
       Process.send_after(self(), :execute, millisecond_offset)
       {:ok, %{epoch: epoch, regimen: %{regimen | regimen_items: items}, next_execution: first_dt}}
@@ -58,19 +58,19 @@ defmodule RegimenRunner do
       if next_item do
         next_dt = Timex.shift(state.epoch, milliseconds: next_item.time_offset)
         timestr = "#{next_dt.month}/#{next_dt.day}/#{next_dt.year} at: #{next_dt.hour}:#{next_dt.minute}"
-        Logger.debug "your next item will execute on #{timestr}"
+        Logger.info "your next item will execute on #{timestr}"
         millisecond_offset = Timex.diff(next_dt, Timex.now(), :milliseconds)
         Process.send_after(self(), :execute, millisecond_offset)
         {:ok, %{state | regimen: regimen, next_execution: next_dt}}
       else
-        Logger.debug ">> #{regimen.name} is complete!"
+        Logger.info ">> #{regimen.name} is complete!"
         spawn fn() ->
           Elixir.Regimen.Supervisor.remove_child(regimen)
         end
         {:noreply, :finished}
       end
     else
-      Logger.debug ">> #{regimen.name} is complete!"
+      Logger.info ">> #{regimen.name} is complete!"
       spawn fn() ->
         Elixir.Regimen.Supervisor.remove_child(regimen)
       end

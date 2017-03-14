@@ -60,12 +60,12 @@ defmodule Sequence.Supervisor do
     case state.running do
       {_pid, _sequence} ->
         # queue up a sequence
-        Logger.debug ">> is queing up a sequence"
+        Logger.info ">> is queing up a sequence"
         q = :queue.in(sequence, state.q)
         {:reply, {:ok, :queued}, %{state | q: q}}
       _ ->
         # start it now
-        Logger.debug ">> is starting a sequence"
+        Logger.info ">> is starting a sequence"
         {:ok, pid} = SequenceRunner.start_link(sequence)
         {:reply, {:ok, pid}, %{state | running: {pid, sequence}}}
     end
@@ -109,7 +109,7 @@ defmodule Sequence.Supervisor do
         Logger.info ">> no more sequences to run right now."
         {:noreply, %{state | q: q, running: nil}}
       {{:value, sequence}, q} ->
-        Logger.debug ">> is starting a sequence"
+        Logger.info ">> is starting a sequence"
         {:ok, pid} = SequenceRunner.start_link(sequence)
         {:noreply, %{state | q: q, running: {pid, sequence}}}
     end

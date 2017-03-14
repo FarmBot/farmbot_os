@@ -207,13 +207,13 @@ defmodule Farmbot.Configurator.Router do
       GenServer.cast(Farmbot.Serial.Handler, {:update_fw, file, self()})
       errrm.(conn)
     else
-      Logger.debug "doing some magic..."
+      Logger.info "doing some magic..."
       herp = Nerves.UART.enumerate()
       |> Map.drop(["ttyS0","ttyAMA0"])
       |> Map.keys
       case herp do
         [tty] ->
-          Logger.debug "magic complete!"
+          Logger.info "magic complete!"
           Farmbot.Serial.Handler.flash_firmware(tty, file, self())
           errrm.(conn)
         _ ->
