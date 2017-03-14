@@ -29,10 +29,24 @@ defmodule Farmbot.Serial.Supervisor do
     supervise(children, strategy: :one_for_all)
   end
 
-  @spec open_ttys(atom | pid, [binary]) :: :ok | no_return
-  def open_ttys(supervisor, ttys \\ nil) do
-    blah = ttys || UART.enumerate() |> Map.drop(["ttyS0","ttyAMA0"]) |> Map.keys
-    blah |> try_open(supervisor)
+  if Mix.Project.config[:target] != "host" do
+    @spec open_ttys(atom | pid, [binary]) :: :ok | no_return
+    def open_ttys(supervisor, ttys \\ nil) do
+      blah = ttys || UART.enumerate() |> Map.drop(["ttyS0","ttyAMA0"]) |> Map.keys
+      blah |> try_open(supervisor)
+    end
+  else
+    @spec open_ttys(atom | pid, [binary]) :: :ok | no_return
+    def open_ttys(supervisor, list \\ nil)
+    def open_ttys(supervisor, _) do
+      tty = System.get_env("ARDUINO_TTY")
+      if tty do
+        try_open([tty], supervisor)
+      else
+        Logger.warn ">> EXPORT ARDUINO_TTY to initialize arduino in Host mode"
+        :ok
+      end
+    end
   end
 
   @spec try_open([binary], atom | pid) :: :ok | no_return
