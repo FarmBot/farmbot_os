@@ -39,7 +39,7 @@ defmodule Farmbot.Serial.Handler do
     nerves: nerves,
     tty: binary,
     queue: :queue.queue,
-    current: nil | current
+    current: nil | :no_firm | current
   }
 
   @doc """
@@ -55,7 +55,11 @@ defmodule Farmbot.Serial.Handler do
   @spec available?(handler) :: boolean
   def available?(handler \\ __MODULE__) do
     uh = Process.whereis(handler)
-    if uh, do: true, else: false
+    if uh do
+      GenServer.call(uh, :available?)
+    else
+      false
+    end
   end
 
   @doc """
@@ -109,29 +113,25 @@ defmodule Farmbot.Serial.Handler do
 
   @spec init({nerves, binary}) :: {:ok, state} | :ignore
   def init({nerves, tty}) do
+    Process.link(nerves)
     Logger.debug "Starting serial handler: #{tty}"
 
     :ok = open_tty(nerves, tty)
+    update_default(self())
 
     # generate a handshake
     handshake = generate_handshake()
     Logger.debug "doing handshaking: #{handshake}"
 
     if do_handshake(nerves, tty, handshake) do
-      # If we have a good connection, link the nerves server to ourselves
-      # So it gets restarted if we die and vice versa
-      Process.link(nerves)
-      update_default(self())
       UART.write(nerves, "F83 #{handshake}") # ???
       do_hax()
       state = %{tty: tty, nerves: nerves, queue: :queue.new(), current: nil}
       {:ok, state}
     else
       Logger.warn "Handshake failed!"
-      deregister()
-      # if we cant handshake, kill the previous Nerves
-      GenServer.stop(nerves, :normal)
-      :ignore
+      state = %{tty: tty, nerves: nerves, queue: :queue.new(), current: :no_firm}
+      {:ok, state}
     end
   end
 
@@ -218,6 +218,13 @@ defmodule Farmbot.Serial.Handler do
 
   def handle_call(:get_state, _, state), do: {:reply, state, state}
 
+  def handle_call(:available?, _from, state) do
+    case state.current do
+      :no_firm -> {:reply, false, state}
+      _ -> {:reply, true, state}
+    end
+  end
+
   # A new line to write.
   def handle_call({:write, str, timeout}, from, state) do
     # generate a handshake
@@ -236,23 +243,11 @@ defmodule Farmbot.Serial.Handler do
 
   def handle_cast({:update_fw, hex_file, pid}, state) do
     UART.close(state.nerves)
+    Process.sleep(100)
     flash_firmware(state.tty, hex_file, pid)
-
-    :ok = open_tty(state.nerves, state.tty)
-
-    # generate a handshake
-    handshake = generate_handshake()
-    Logger.debug "doing handshaking: #{handshake}"
-
-    if do_handshake(state.nerves, state.tty, handshake) do
-      do_hax()
-      {:noreply, state}
-    else
-      # if we cant handshake, kill the previous Nerves
-      GenServer.stop(state.nerves, :normal)
-      :ignore
-    end
-
+    Process.sleep(5000)
+    {:ok, new_state} = init({state.nerves, state.tty})
+    {:noreply, new_state}
   end
 
   def handle_info({:timeout, from, handshake}, state) do
@@ -268,6 +263,11 @@ defmodule Farmbot.Serial.Handler do
   def handle_info({:nerves_uart, _tty, {:partial, thing}}, state) do
     Logger.warn ">> got partial gcode: #{thing}"
     {:noreply, state}
+  end
+
+  def handle_info({:nerves_uart, _tty, {:error, :eio}}, state) do
+    Logger.error "ARDUINO DISCONNECTED!"
+    {:noreply, %{state | queue: :queue.new(), current: nil}}
   end
 
   # This is when we get a code in from nerves_uart
@@ -382,6 +382,11 @@ defmodule Farmbot.Serial.Handler do
     {:noreply, state}
   end
 
+  defp handle_gcode({:error, :ebadf}, state) do
+    {:ok, new_state} = init({state.nerves, state.tty})
+    {:noreply, new_state}
+  end
+
   defp handle_gcode(parsed, state) do
     Logger.warn "Unhandled message: #{inspect parsed}"
     {:noreply, state}
@@ -402,9 +407,9 @@ defmodule Farmbot.Serial.Handler do
        "-Uflash:w:#{hex_file}:i"]
 
     "avrdude" |> System.cmd(params) |> log(pid)
-    handler = Process.whereis(__MODULE__)
-    if handler, do: spawn fn() -> GenServer.stop(handler, :normal) end
-    Farmbot.Serial.Supervisor.open_ttys(Farmbot.Serial.Supervisor, [tty])
+    # handler = Process.whereis(__MODULE__)
+    # if handler, do: spawn fn() -> GenServer.stop(handler, :normal) end
+    # Farmbot.Serial.Supervisor.open_ttys(Farmbot.Serial.Supervisor, [tty])
   end
 
   defp log({_, 0}, pid) do

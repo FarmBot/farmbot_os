@@ -12,9 +12,9 @@ defmodule Farmbot.Configurator.Router do
   plug Plug.Static, at: "/", from: :farmbot
   plug Plug.Static, at: "/image", from: "/tmp/images", gzip: false
 
-  plug Plug.Parsers, parsers: [:urlencoded, :json],
-                   pass:  ["*/*"],
-                   json_decoder: Poison
+  @max_length 111_409_842
+  plug Plug.Parsers, parsers:
+    [:urlencoded, :multipart, :json], json_decoder: Poison, length: @max_length
   plug :match
   plug :dispatch
   plug CORSPlug
@@ -22,35 +22,6 @@ defmodule Farmbot.Configurator.Router do
   target = Mix.Project.config[:target]
 
   if Mix.env == :dev, do: use Plug.Debugger, otp_app: :farmbot
-
-  get "/image/latest" do
-    list_images = fn() ->
-      "/tmp/images"
-      |> File.ls!
-      |> Enum.reduce("", fn(image, acc) ->
-        acc <> "<img src=\"/image/#{image}\">"
-      end)
-    end
-    html =
-      ~s"""
-      <html>
-        <body>
-          <form action=/image/capture>
-            <input type="submit" value="Capture">
-          </form>
-          #{list_images.()}
-        </body>
-      </html>
-      """
-    conn |> send_resp(200, html)
-  end
-
-  get "/image/capture" do
-    Farmbot.Camera.capture()
-    conn
-    |> put_resp_header("location", "/image/latest")
-    |> send_resp(302, "OK")
-  end
 
   get "/", do: conn |> send_resp(200, make_html())
   get "/setup" do
@@ -165,10 +136,9 @@ defmodule Farmbot.Configurator.Router do
     conn |> send_resp(200, html)
   end
 
-  plug Plug.Parsers, parsers: [:urlencoded, :multipart], length: 111_409_842
   post "/api/upload_firmware" do
-    {:ok, _body, conn} = Plug.Conn.read_body(conn)
-    upload = conn.body_params["firmware"]
+    {:ok, _body, conn} = Plug.Conn.read_body(conn, length: @max_length)
+    %{"firmware" => upload} = conn.body_params
     file = upload.path
     case Path.extname(upload.filename) do
       ".hex" ->
@@ -177,9 +147,37 @@ defmodule Farmbot.Configurator.Router do
       ".fw" ->
         Logger.info "FLASHING OS"
         handle_os(file, conn)
-      _ ->
-        conn |> send_resp(400, "COULD NOT HANDLE #{upload.filename}")
+      _ -> conn |> send_resp(400, "COULD NOT HANDLE #{upload.filename}")
     end
+  end
+
+  get "/image/latest" do
+    list_images = fn() ->
+      "/tmp/images"
+      |> File.ls!
+      |> Enum.reduce("", fn(image, acc) ->
+        acc <> "<img src=\"/image/#{image}\">"
+      end)
+    end
+    html =
+      ~s"""
+      <html>
+        <body>
+          <form action=/image/capture>
+            <input type="submit" value="Capture">
+          </form>
+          #{list_images.()}
+        </body>
+      </html>
+      """
+    conn |> send_resp(200, html)
+  end
+
+  get "/image/capture" do
+    Farmbot.Camera.capture()
+    conn
+    |> put_resp_header("location", "/image/latest")
+    |> send_resp(302, "OK")
   end
 
   # anything that doesn't match a rest end point gets the index.
@@ -203,7 +201,9 @@ defmodule Farmbot.Configurator.Router do
     Logger.info ">> is installing a firmware update. "
       <> " I may act weird for a moment", channels: [:toast]
 
-    if Farmbot.Serial.Handler.available? do
+    pid = Process.whereis(Farmbot.Serial.Handler)
+
+    if pid do
       GenServer.cast(Farmbot.Serial.Handler, {:update_fw, file, self()})
       errrm.(conn)
     else
