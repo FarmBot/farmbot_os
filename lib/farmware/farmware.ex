@@ -100,7 +100,7 @@ defmodule Farmware do
       deregister(info)
       FS.transaction fn() ->
         File.rm_rf!(path)
-      end
+      end, true
     else
       Logger.error "can not find farmware: #{package_name} to uninstall"
     end
