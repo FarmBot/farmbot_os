@@ -20,7 +20,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
 
   # TODO(Connor) Fix these
   def parse_code("R05" <> _r), do: :dont_handle_me # Dont care about this.
-  def parse_code("R06" <> _r), do: :dont_handle_me # Dont care about this.
+  def parse_code("R06 " <> r), do: parse_report_calibration(r)
 
   def parse_code("R21 " <> params), do: parse_pvq(params, :report_parameter_value)
   def parse_code("R31 " <> params), do: parse_pvq(params, :report_status_value)
@@ -32,7 +32,19 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_code("Command" <> _), do: :dont_handle_me # I think this is a bug
   def parse_code(code)  do {:unhandled_gcode, code} end
 
-  @spec parse_version(binary) :: binary
+  @spec parse_report_calibration(binary)
+    :: {binary, {:report_calibration, binary, binary}}
+  defp parse_report_calibration(r) do
+    [axis_and_status | [q]] = String.split(r, " Q")
+    <<a :: size(8), b :: size(8)>> = axis_and_status
+    case b do
+      48 -> {q, {:report_calibration, <<a>>, :idle}}
+      49 -> {q, {:report_calibration, <<a>>, :home}}
+      50 -> {q, {:report_calibration, <<a>>, :end}}
+    end
+  end
+
+  @spec parse_version(binary) :: {binary, {:report_software_version, binary}}
   defp parse_version(version) do
     [derp | [code]] = String.split(version, " Q")
     {code, {:report_software_version, derp}}
@@ -221,9 +233,9 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(:movement_invert_motor_x), do: 31
   def parse_param(:movement_invert_motor_y), do: 32
   def parse_param(:movement_invert_motor_z), do: 33
-  def parse_param(:movement_enable_endpoints_x), do: 25 
-  def parse_param(:movement_enable_endpoints_y), do: 26 
-  def parse_param(:movement_enable_endpoints_z), do: 27 
+  def parse_param(:movement_enable_endpoints_x), do: 25
+  def parse_param(:movement_enable_endpoints_y), do: 26
+  def parse_param(:movement_enable_endpoints_z), do: 27
   def parse_param(:moevment_secondary_motor_x), do: 36
   def parse_param(:movement_secondary_motor_invert_x), do: 37
   def parse_param(:movement_steps_acc_dec_x), do: 41
