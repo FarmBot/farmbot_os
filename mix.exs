@@ -114,7 +114,7 @@ defmodule Farmbot.Mixfile do
     [
 
       {:nerves, "0.5.1"},
-      {:nerves_runtime, "~> 0.1.0"},
+      {:nerves_runtime, "~> 0.1.0", only: [:prod, :dev]},
 
       # Hardware stuff
       {:nerves_uart, "0.1.2"}, # uart handling
