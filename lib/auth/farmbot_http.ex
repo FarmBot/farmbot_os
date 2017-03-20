@@ -9,7 +9,13 @@ defmodule Farmbot.HTTP do
 
   @version Mix.Project.config[:version]
   @target Mix.Project.config[:target]
-  @ssl_hack [{:versions, [:'tlsv1.2']}]
+  @twenty_five_seconds 25_000
+  @http_config [
+    ssl: [versions: [:'tlsv1.2']],
+    recv_timeout: @twenty_five_seconds,
+    timeout: @twenty_five_seconds,
+    follow_redirect: true
+  ]
 
   @type http_resp :: HTTPoison.Response.t | {:error, HTTPoison.ErrorResponse.t}
 
@@ -25,8 +31,9 @@ defmodule Farmbot.HTTP do
 
   def process_request_options(opts),
     do: opts
-        |> Keyword.put(:ssl, @ssl_hack)
-        |> Keyword.put(:follow_redirect, true)
+        |> Keyword.merge(@http_config, fn(_key, user_provided, _default) ->
+          user_provided
+        end)
 
   def process_status_code(401) do
     Logger.info ">> Token is expired!"

@@ -130,9 +130,16 @@ defmodule Farmbot.BotState.Hardware do
   def handle_cast({:set_param, {param_atom, value}}, %State{} = state)
   when is_atom(param_atom) do
     param_string = Atom.to_string(param_atom)
-    new_params = Map.put(state.mcu_params, param_string, value)
-    put_config("params", new_params)
-    dispatch %State{state | mcu_params: new_params}
+    if value != -1 do
+      new_params = Map.put(state.mcu_params, param_string, value)
+      put_config("params", new_params)
+      dispatch %State{state | mcu_params: new_params}
+    else
+      Logger.warn(">> wont save param value as -1")
+      new_params = Map.delete(state.mcu_params, param_string)
+      put_config("params", new_params)
+      dispatch %State{state | mcu_params: new_params}
+    end
   end
 
   def handle_cast({:set_end_stops, {xa,xb,ya,yb,za,zc}}, %State{} = state) do

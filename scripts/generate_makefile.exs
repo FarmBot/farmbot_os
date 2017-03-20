@@ -1,4 +1,4 @@
-version = Path.join(__DIR__, "VERSION") |> File.read! |> String.strip
+version = Path.join([__DIR__, "..", "VERSION"]) |> File.read! |> String.strip
 IO.puts version
 
 {commitish, _} = System.cmd("git", ["log", "--pretty=format:%hQQ%adQQ%f", "-1"])
@@ -33,6 +33,9 @@ clean:
 \trm -rf _build
 \trm -rf images
 \trm -rf _images
+\trm -rf latest-release
+\trm Makefile
+\telixir scripts/generate_makefile.exs
 
 test: dev_env
 \tscripts/run_tests.sh

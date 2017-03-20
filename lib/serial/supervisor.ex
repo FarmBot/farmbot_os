@@ -15,13 +15,6 @@ defmodule Farmbot.Serial.Supervisor do
     Supervisor.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  @doc """
-    Stop the Serial Supervisor
-  """
-  def stop do
-    Supervisor.stop(__MODULE__)
-  end
-
   def init([]) do
     children = [
       worker(Task, [__MODULE__, :open_ttys, [__MODULE__]], restart: :transient)

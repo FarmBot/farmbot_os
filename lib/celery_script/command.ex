@@ -165,37 +165,6 @@ defmodule Farmbot.CeleryScript.Command do
     FBSys.power_off
   end
 
-  @doc ~s"""
-    Updates configuration on a package
-      args: %{package: String.t},
-      body: [Ast.t]
-  """
-  # MUCH IF SORRY ABOUT THAT
-  @spec config_update(%{package: package}, [pair]) :: no_return
-  def config_update(%{package: "arduino_firmware"}, config_pairs) do
-    blah = pairs_to_tuples(config_pairs)
-    for {param_str, val} <- blah do
-      param_int = GParser.parse_param(param_str)
-      if param_int do
-        Logger.info ">> is updating #{param_str}: #{val}"
-        "F22 P#{param_int} V#{val}" |> UartHan.write
-        # HACK read the param back because sometimes the firmware decides
-        # our param sets arent important enough to keep
-        read_param(%{label: param_str}, [])
-      else
-        Logger.error ">> got an unrecognized param: #{param_str}"
-      end
-    end
-  end
-
-  def config_update(%{package: "farmbot_os"}, config_pairs) do
-    blah = pairs_to_tuples(config_pairs)
-    for {key, val} <- blah do
-      Logger.info ">> Updating #{key}: #{val}"
-      Farmbot.BotState.update_config(key, val)
-    end
-  end
-
   @doc """
     Converts celery script pairs to tuples
   """
@@ -464,10 +433,10 @@ defmodule Farmbot.CeleryScript.Command do
 
   @doc ~s"""
     Checks updates for given package
-      args: %{package: "arduino_firmware" | "farmbot_os"},
+      args: %{package: "farmbot_os"},
       body: []
   """
-  @type package :: String.t # "arduino_firmware" | "farmbot_os"
+  @type package :: String.t # "farmbot_os"
   @spec check_updates(%{package: package}, []) :: no_return
   def check_updates(%{package: package}, []) do
     case package do
@@ -532,18 +501,6 @@ defmodule Farmbot.CeleryScript.Command do
   def emergency_unlock(%{}, []) do
     shrug(%{message: "sorry about that. Farmbot needs to reboot"}, [])
     Farmbot.BotState.unlock_bot()
-  end
-
-  @doc ~s"""
-    Factory resets bot.
-  """
-  @spec factory_reset(%{}, []) :: no_return
-  def factory_reset(%{}, []) do
-    Logger.warn(">> Going down for factory reset in 5 seconds!")
-    spawn fn ->
-      Process.sleep 5000
-      Farmbot.System.factory_reset()
-    end
   end
 
   @doc ~s"""

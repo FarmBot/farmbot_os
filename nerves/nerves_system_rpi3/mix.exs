@@ -22,15 +22,14 @@ defmodule NervesSystemRpi3.Mixfile do
   end
 
   defp find_nerves_toolchain() do
-    {:nerves_toolchain_arm_unknown_linux_gnueabihf, "~> 0.9.0"}
+    {:nerves_toolchain_arm_unknown_linux_gnueabihf, "~> 0.10.0"}
   end
 
   defp find_nerves() do
     if File.exists?("../nerves") do
       {:nerves, path: "../nerves", override: true}
     else
-      # {:nerves, github: "nerves-project/nerves", tag: "4d1f9bee92b65fc6fbd4f1c1685e46a55baebee1", override: true}
-      {:nerves,  "~> 0.4.8"}
+      {:nerves, "0.5.1"}
     end
   end
 

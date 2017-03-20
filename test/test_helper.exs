@@ -1,8 +1,14 @@
 ExUnit.start
-IO.puts "deleting config and secret"
+Mix.shell.info [:green, "deleting config and secret"]
 File.rm_rf! "/tmp/config.json"
 File.rm_rf! "/tmp/secret"
 File.rm_rf! "/tmp/farmware"
+
+Mix.shell.info [:green, "Setting up faker"]
 Faker.start
+
+Mix.shell.info [:green, "Setting up vcr"]
 ExVCR.Config.cassette_library_dir("fixture/cassettes")
-:ok = Logger.remove_backend Farmbot.Logger
+
+Mix.shell.info [:green, "removeing logger"]
+Logger.remove_backend Farmbot.Logger

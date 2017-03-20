@@ -5,7 +5,11 @@ defmodule Farmbot.LoggerTest do
   require Logger
 
   setup_all do
+    Logger.flush()
     Logger.add_backend(Farmbot.Logger)
+    on_exit(fn() ->
+      Logger.remove_backend(Farmbot.Logger)
+    end)
     use_cassette "good_login" do
       :ok = Auth.interim("admin@admin.com", "password123", "http://localhost:3000")
       {:ok, token} = Auth.try_log_in
@@ -19,7 +23,7 @@ defmodule Farmbot.LoggerTest do
       for i <- 0..51 do
         Logger.info "Farmbot can count to: #{i}"
       end
-      Process.sleep(3000)
+      Process.sleep(100)
 
       r = Farmbot.HTTP.get! "/api/logs"
       body = Poison.decode!(r.body)

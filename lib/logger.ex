@@ -103,7 +103,11 @@ defmodule Farmbot.Logger do
       HTTP.post!("/api/logs", Poison.encode!(logs))
       GenEvent.call(Elixir.Logger, __MODULE__, :post_success)
     rescue
-      _ -> GenEvent.call(Elixir.Logger, __MODULE__, :post_fail)
+      e ->
+        unless e ==  %MatchError{term: {:error, :no_token}} do
+          IO.puts "Encountered an error uploading Logs!: #{inspect e}"
+        end
+        GenEvent.call(Elixir.Logger, __MODULE__, :post_fail)
     end
   end
 
@@ -164,17 +168,36 @@ defmodule Farmbot.Logger do
     end
   end
 
-  @modules [
+  @spec filter_module(binary, atom) :: binary
+  [
     :"Elixir.Nerves.InterimWiFi",
     :"Elixir.Nerves.NetworkInterface",
     :"Elixir.Nerves.InterimWiFi.WiFiManager.EventHandler",
+    :"Elixir.Nerves.InterimWiFi.WiFiManager",
     :"Elixir.Nerves.InterimWiFi.DHCPManager",
+    :"Elixir.Nerves.InterimWiFi.Udhcpc",
     :"Elixir.Nerves.NetworkInterface.Worker",
-    :"Elixir.Nerves.InterimWiFi.DHCPManager.EventHandler"
-  ]
+    :"Elixir.Nerves.InterimWiFi.DHCPManager.EventHandler",
+    :"Elixir.Nerves.WpaSupplicant"
+    # :"Elixir.Farmbot.System.NervesCommon.EventManager"
+  ] |> Enum.map(fn(module) ->
+    defp filter_module(_, unquote(module)) do
+      # IO.puts "filtering: #{inspect mod}"
+      # "FLERP: #{inspect mod}"
+      @filtered
+    end
+  end)
 
-  for module <- @modules, do: defp filter_module(_, unquote(module)), do: @filtered
-  defp filter_module(message, _module), do: message
+  defp filter_module(message, _module) do
+    # m = Atom.to_string(module)
+    # if String.contains?(m, "Nerves") do
+    #   IO.puts "HEY: #{m}"
+    #   message
+    # else
+    #   message
+    # end
+    message
+  end
 
   @lint false
   defp filter_text(">>" <> m), do: filter_text("#{Sync.device_name()}" <> m)

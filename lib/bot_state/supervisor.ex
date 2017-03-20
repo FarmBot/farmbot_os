@@ -4,6 +4,8 @@ defmodule Farmbot.BotState.Supervisor do
     things can subscribe too.
   """
 
+  @use_logger Application.get_env(:farmbot, :logger, true)
+
   use Supervisor
   require Logger
   alias Farmbot.EasterEggs
@@ -37,7 +39,7 @@ defmodule Farmbot.BotState.Supervisor do
     # like position and some configuraion.
     sup = Supervisor.start_link(__MODULE__, args, name: __MODULE__)
     EasterEggs.start_cron_job
-    Logger.add_backend(Farmbot.Logger)
+    if @use_logger, do: Logger.add_backend(Farmbot.Logger)
     sup
   end
 end
