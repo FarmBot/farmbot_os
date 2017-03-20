@@ -8,4 +8,5 @@ make
 sudo cp tty0tty.ko /lib/modules/$(uname -r)/kernel/drivers/misc/
 sudo depmod
 sudo modprobe tty0tty
+sudo chmod 666 /dev/tnt*;
 cd $CWD
