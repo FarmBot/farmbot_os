@@ -21,11 +21,7 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
     blah = pairs_to_tuples(config_pairs)
     current = Farmbot.BotState.get_all_mcu_params
 
-    # we only want to update the params that changed. This makes this operation
-    # way more stable.
-    params = Enum.filter(blah, fn({param_str, val}) ->
-      current[param_str] != val
-    end)
+    params = filter_params(blah, current)
 
     for {param_str, val} <- params do
       param_int = GParser.parse_param(param_str)
@@ -48,6 +44,13 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
       Logger.info ">> Updating #{key}: #{val}"
       Farmbot.BotState.update_config(key, val)
     end
+  end
+
+  @spec filter_params([{binary, any}], map) :: [{binary, any}]
+  defp filter_params(blah, current) do
+    Enum.filter(blah, fn({param_str, val}) ->
+      current[param_str] != val
+    end)
   end
 
 end

@@ -13,3 +13,5 @@ config :farmbot, auth_callbacks: []
 
 # frontend <-> bot transports.
 config :farmbot, transports: []
+
+config :farmbot, logger: false

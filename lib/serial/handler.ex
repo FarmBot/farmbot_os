@@ -53,10 +53,16 @@ defmodule Farmbot.Serial.Handler do
     Checks if we have a handler available
   """
   @spec available?(handler) :: boolean
-  def available?(handler \\ __MODULE__) do
+  def available?(handler \\ __MODULE__)
+
+  def available?(handler) when is_pid(handler) do
+    GenServer.call(handler, :available?)
+  end
+
+  def available?(handler) do
     uh = Process.whereis(handler)
     if uh do
-      GenServer.call(uh, :available?)
+      available?(uh)
     else
       false
     end

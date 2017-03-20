@@ -31,7 +31,7 @@ defmodule Farmbot.HTTP do
 
   def process_request_options(opts),
     do: opts
-        |> Keyword.merge(@http_config, fn(_key, user_provided, _default) ->  
+        |> Keyword.merge(@http_config, fn(_key, user_provided, _default) ->
           user_provided
         end)
 
