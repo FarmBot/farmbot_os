@@ -9,6 +9,7 @@ addons:
     - bc
     - libssl-dev
     - libsctp1
+    - libnl-dev
 
 env:
   global:
@@ -21,6 +22,7 @@ before_install:
 before_script:
 - export PATH=`pwd`/elixir/bin:$PATH
 script:
+- sudo apt-get install libnl-dev
 - scripts/tty0tty.sh
 - mix local.hex --force
 - mix local.rebar --force
