@@ -12,6 +12,12 @@ defmodule Farmbot.Mixfile do
     t
   end
 
+  Mix.shell.info([:green, """
+  Env
+    MIX_TARGET:   #{@target}
+    MIX_ENV:      #{Mix.env}
+  """, :reset])
+
   def project do
     [app: :farmbot,
      description: "The Brains of the Farmbot Project",
@@ -22,9 +28,9 @@ defmodule Farmbot.Mixfile do
      archives: [nerves_bootstrap: "~> 0.3.0"],
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     build_path: "_build/#{@target}",
-     deps_path: "deps/#{@target}",
-     images_path: "images/#{@target}", # this doesnt work on current version of nerves
+     build_path:  "_build/#{Mix.env()}/#{@target}",
+     deps_path:   "deps/#{Mix.env()}/#{@target}",
+     images_path: "images/#{Mix.env()}/#{@target}",
      config_path: "config/config.exs",
      lockfile: "mix.lock",
      compilers: Mix.compilers ++ maybe_use_webpack(),
@@ -40,12 +46,14 @@ defmodule Farmbot.Mixfile do
      webpack_cd: ".",
      source_url: "https://github.com/Farmbot/farmbot_os",
      homepage_url: "http://farmbot.io",
-     docs: [main: "Farmbot",
-            logo: "../../docs/farmbot_logo.png",
-            extras: ["../../docs/BUILDING.md",
-              "../../docs/FAQ.md",
-              "../../docs/ENVIRONMENT.md",
-              "../../README.md"]]
+     docs: [
+       main: "Farmbot",
+       logo: "../../docs/farmbot_logo.png",
+       extras: [
+         "../../docs/BUILDING.md",
+         "../../docs/FAQ.md",
+         "../../docs/ENVIRONMENT.md",
+         "../../README.md"]]
    ]
   end
 
@@ -105,7 +113,7 @@ defmodule Farmbot.Mixfile do
   defp deps do
     [
       # Hardware stuff
-      {:nerves_uart, "0.1.1"}, # uart handling
+      {:nerves_uart, "0.1.2"}, # uart handling
       {:nerves_lib, github: "nerves-project/nerves_lib"}, # this has a good uuid
 
       # http stuff
@@ -188,7 +196,7 @@ defmodule Farmbot.Mixfile do
   defp system(sys) do
     if File.exists?("nerves/NERVES_SYSTEM_#{sys}"),
       do: System.put_env("NERVES_SYSTEM", Path.absname("nerves/NERVES_SYSTEM_#{sys}", File.cwd!)),
-    else: raise "EFFFFFFF"
+    else: Mix.shell.info([:yellow, "No Buildroot dir found!"])
 
     # if the system is local (because we have changes to it) use that
     if File.exists?("nerves/nerves_system_#{sys}"),
