@@ -8,6 +8,7 @@ addons:
     - libwxgtk2.8-0
     - bc
     - libssl-dev
+    - libsctp1
 env:
   global:
   - ELIXIR_VERSION=1.4.1 ERLANG_VERSION=19.3
