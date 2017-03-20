@@ -9,7 +9,7 @@ defmodule Mix.Tasks.Farmbot.Upload do
     # TODO(Connor) change this back when nerves is stable again
     # img_path = Mix.Project.config[:images_path]
     # fw_file = Path.join(img_path, "#{otp_app}.fw")
-    fw_file = Path.join(["_images", "#{target}", "#{otp_app}.fw"])
+    fw_file = Path.join(["images", "#{Mix.env()}", "#{target}", "#{otp_app}.fw"])
     unless File.exists?(fw_file) do
        raise "Could not find Firmware!"
     end

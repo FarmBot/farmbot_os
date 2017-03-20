@@ -112,6 +112,10 @@ defmodule Farmbot.Mixfile do
 
   defp deps do
     [
+
+      {:nerves, "0.5.1"},
+      {:nerves_runtime, "~> 0.1.0"},
+
       # Hardware stuff
       {:nerves_uart, "0.1.2"}, # uart handling
       {:nerves_lib, github: "nerves-project/nerves_lib"}, # this has a good uuid
@@ -194,10 +198,12 @@ defmodule Farmbot.Mixfile do
   # the nerves_system_* dir to use for this build.
   defp system("host"), do: []
   defp system(sys) do
-    if File.exists?("nerves/NERVES_SYSTEM_#{sys}"),
-      do: System.put_env("NERVES_SYSTEM", Path.absname("nerves/NERVES_SYSTEM_#{sys}", File.cwd!)),
-    else: Mix.shell.info([:yellow, "No Buildroot dir found!"])
-
+    if File.exists?("nerves/NERVES_SYSTEM_#{sys}") do
+      sys_path = Path.absname("nerves/NERVES_SYSTEM_#{sys}", File.cwd!)
+      System.put_env("NERVES_SYSTEM", sys_path)
+    else
+      Mix.shell.info([:yellow, "No Buildroot dir found!"])
+    end
     # if the system is local (because we have changes to it) use that
     if File.exists?("nerves/nerves_system_#{sys}"),
       do: [

@@ -10,7 +10,7 @@ addons:
     - libssl-dev
 env:
   global:
-  - ELIXIR_VERSION=1.4.0 ERLANG_VERSION=19.0
+  - ELIXIR_VERSION=1.4.1 ERLANG_VERSION=19.3
 before_install:
 - wget https://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_$ERLANG_VERSION-1~ubuntu~trusty_amd64.deb;
 - sudo dpkg -i esl-erlang_$ERLANG_VERSION-1~ubuntu~trusty_amd64.deb;
@@ -21,7 +21,6 @@ before_script:
 script:
 - mix local.hex --force
 - mix local.rebar --force
-- mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez
-  --force
-- elixir generate_makefile.exs
+- mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez --force
+- elixir scripts/generate_makefile.exs
 - make travis_test
