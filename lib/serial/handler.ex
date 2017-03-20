@@ -241,7 +241,7 @@ defmodule Farmbot.Serial.Handler do
     if :queue.is_empty(state.queue) do
       ref = Process.send_after(self(), {:timeout, from, handshake}, timeout)
       current = %{reply: nil, handshake: handshake, timeout: ref, from: from}
-      UART.write(state.nerves, str <> " Q#{handshake}")
+      UART.write(state.nerves, str <> " #{handshake}")
       {:noreply, %{state | current: current}}
     else
       q = :queue.in({str, handshake, from, timeout}, state.queue)
