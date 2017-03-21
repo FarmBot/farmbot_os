@@ -1,5 +1,6 @@
 defmodule Farmbot.CeleryScript.Command.MoveAbsoluteTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
+
   alias Farmbot.CeleryScript.Ast
   alias Farmbot.CeleryScript.Command
 
@@ -17,6 +18,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsoluteTest do
     location = %Ast{kind: "coordinate", args: %{x: 1000, y: 0, z: 0}, body: []}
     offset = %Ast{kind: "coordinate", args: %{x: 0, y: 0, z: 0}, body: []}
     Command.move_absolute(%{speed: 800, offset: offset, location: location}, [])
+    Process.sleep(100) # wait for serial to catch up
     [newx, _newy, _newz] = Farmbot.BotState.get_current_pos
     assert newx == 1000
   end
@@ -25,6 +27,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsoluteTest do
     location = %Ast{kind: "coordinate", args: %{x: 1000, y: 0, z: 0}, body: []}
     offset = %Ast{kind: "coordinate", args: %{x: 500, y: 0, z: 0}, body: []}
     Command.move_absolute(%{speed: 800, offset: offset, location: location}, [])
+    Process.sleep(100) # wait for serial to catch up
     [newx, newy, newz] = Farmbot.BotState.get_current_pos
     assert newx == 1500
     assert newy == 0

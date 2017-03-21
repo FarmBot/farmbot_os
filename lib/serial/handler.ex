@@ -371,7 +371,9 @@ defmodule Farmbot.Serial.Handler do
 
   defp handle_gcode({:report_parameter_value, param, value}, state)
   when is_atom(param) and is_integer(value) do
-    BotState.set_param(param, value)
+    unless value == -1 do
+      BotState.set_param(param, value)
+    end
     {:noreply, state}
   end
 
