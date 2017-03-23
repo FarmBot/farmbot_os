@@ -1,3 +1,4 @@
+let resolve = require("path").resolve;
 module.exports = {
   resolve: {
     alias: {
@@ -9,7 +10,7 @@ module.exports = {
   entry: "./web/ts/entry.tsx",
   devtool: "source-map",
   output: {
-    path: "./priv/static/",
+    path: resolve("./priv/static/"),
     filename: "bundle.js",
     publicPath: "/",
   },
