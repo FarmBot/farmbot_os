@@ -241,7 +241,7 @@ defmodule Farmbot.Serial.Handler do
     if :queue.is_empty(state.queue) do
       ref = Process.send_after(self(), {:timeout, from, handshake}, timeout)
       current = %{reply: nil, handshake: handshake, timeout: ref, from: from}
-      UART.write(state.nerves, str <> " Q#{handshake}")
+      UART.write(state.nerves, str <> " #{handshake}")
       {:noreply, %{state | current: current}}
     else
       q = :queue.in({str, handshake, from, timeout}, state.queue)
@@ -371,7 +371,9 @@ defmodule Farmbot.Serial.Handler do
 
   defp handle_gcode({:report_parameter_value, param, value}, state)
   when is_atom(param) and is_integer(value) do
-    BotState.set_param(param, value)
+    unless value == -1 do
+      BotState.set_param(param, value)
+    end
     {:noreply, state}
   end
 

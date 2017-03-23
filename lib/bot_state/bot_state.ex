@@ -96,7 +96,7 @@ defmodule Farmbot.BotState do
   def get_os_version, do: GenServer.call(Configuration, :get_version)
 
   @doc """
-    Gets the value of a param
+    Gets the value of a hardware param
   """
   @spec get_param(atom) :: integer | nil
   def get_param(param), do: GenServer.call(Hardware, {:get_param, param})

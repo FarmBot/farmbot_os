@@ -2,6 +2,7 @@ var UglifyJsPlugin = require('webpack-uglify-js-plugin');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 var webpack = require('webpack');
+var resolve = require('path').resolve;
 
 module.exports = {
   resolve: {
@@ -14,7 +15,7 @@ module.exports = {
   entry: "./web/ts/entry.tsx",
   devtool: "source-map",
   output: {
-    path: "./priv/static/",
+    path: resolve("./priv/static/"),
     filename: "bundle.js",
     publicPath: "/",
   },
