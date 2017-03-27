@@ -24,6 +24,12 @@ before_script:
 script:
 - sudo apt-get install -qq linux-headers-`uname -r`
 - sudo apt-get install -qq libnl-dev
+- sudo apt-get install -qq libnl
+- sudo apt-get install -qq libmnl-dev
+- sudo apt-get install -qq libsdl2-dev
+- sudo apt-get install -qq libsdl-dev
+- sudo apt-get install -qq libglew-dev
+- sudo apt-get install -qq libglm-dev
 - scripts/tty0tty.sh
 - mix local.hex --force
 - mix local.rebar --force
