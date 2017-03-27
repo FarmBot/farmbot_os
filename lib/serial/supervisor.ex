@@ -29,12 +29,12 @@ defmodule Farmbot.Serial.Supervisor do
       blah |> try_open(supervisor)
     end
   else
+    @tty Application.get_env(:farmbot, :tty, nil)
     @spec open_ttys(atom | pid, [binary]) :: :ok | no_return
     def open_ttys(supervisor, list \\ nil)
     def open_ttys(supervisor, _) do
-      tty = System.get_env("ARDUINO_TTY")
-      if tty do
-        try_open([tty], supervisor)
+      if @tty do
+        try_open([@tty], supervisor)
       else
         Logger.warn ">> EXPORT ARDUINO_TTY to initialize arduino in Host mode"
         :ok

@@ -110,6 +110,7 @@ defmodule Farmbot.System.Network do
 
     # First Party Farmware is not really a network concern but here we are...
     {:ok, fpf} = GenServer.call(CS, {:get, Configuration, "first_party_farmware"})
+    IO.puts "FIRST PARTY FIRMWARE BOOL: #{inspect fpf}"
 
     if ntp do
       Logger.info ">> ntp"

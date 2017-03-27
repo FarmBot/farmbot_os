@@ -299,8 +299,8 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(:encoder_missed_steps_max_z), do: 113
 
   def parse_param(:encoder_scaling_x), do: 115
-  def parse_param(:encoder_scaling_x), do: 116
-  def parse_param(:encoder_scaling_x), do: 117
+  def parse_param(:encoder_scaling_y), do: 116
+  def parse_param(:encoder_scaling_z), do: 117
 
   def parse_param(:encoder_missed_steps_decay_x), do: 121
   def parse_param(:encoder_missed_steps_decay_y), do: 122

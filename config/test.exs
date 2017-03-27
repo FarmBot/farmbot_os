@@ -7,7 +7,8 @@ config :logger, :console,
 
 config :farmbot,
   path: "/tmp",
-  config_file_name: "default_config.json"
+  config_file_name: "default_config.json",
+  tty: "/dev/tnt1"
 
 config :farmbot, auth_callbacks: []
 

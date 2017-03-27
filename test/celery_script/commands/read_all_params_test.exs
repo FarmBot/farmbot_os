@@ -5,20 +5,20 @@ defmodule Farmbot.CeleryScript.Command.ReadAllParamsTest do
   alias Farmbot.CeleryScript.Command
 
   setup_all do
-    GcodeMockTest.common_setup()
+    Farmbot.Serial.HandlerTest.wait_for_serial_available()
+    :ok
   end
 
-  test "makes sure we have serial", %{handler: handler} do
-    assert is_pid(handler)
-    assert Farmbot.Serial.Handler.available?(handler) == true
+  test "makes sure we have serial" do
+    assert Farmbot.Serial.Handler.available?() == true
   end
 
-  test "reads all params", %{mock: mock} do
-    old = Farmbot.BotState.get_all_mcu_params
-    GcodeMockTest.invalidate_params(mock)
+  test "reads all params" do
+    # old = Farmbot.BotState.get_all_mcu_params
     Command.read_all_params(%{}, [])
     Process.sleep(100)
     new = Farmbot.BotState.get_all_mcu_params
-    assert old != new
+    assert is_map(new)
+    assert !Enum.empty?(new)
   end
 end

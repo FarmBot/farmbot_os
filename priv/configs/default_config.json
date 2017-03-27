@@ -6,7 +6,7 @@
  "configuration": {
   "user_env": {},
   "os_auto_update": false,
-  "first_party_farmware": true,
+  "first_party_farmware": false,
   "steps_per_mm_x": 5,
   "steps_per_mm_y": 5,
   "steps_per_mm_z": 25,

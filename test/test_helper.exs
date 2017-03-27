@@ -1,4 +1,8 @@
 ExUnit.start
+
+Mix.shell.info [:green, "Starting FarmbotSimulator"]
+# :ok = Application.ensure_started(:farmbot_simulator)
+
 Mix.shell.info [:green, "deleting config and secret"]
 File.rm_rf! "/tmp/config.json"
 File.rm_rf! "/tmp/secret"
