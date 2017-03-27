@@ -7,10 +7,12 @@ addons:
     - libwxbase2.8-0
     - libwxgtk2.8-0
     - bc
+    - clang-3.7
+    - g++-5
+    - gcc-5
     - libssl-dev
     - libsctp1
     - libnl-dev
-    - libnl
     - libmnl-dev
     - libsdl2-dev
     - libsdl-dev
