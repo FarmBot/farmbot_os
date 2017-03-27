@@ -22,6 +22,7 @@
   "exquisite": {:hex, :exquisite, "0.1.7", "4106503e976f409246731b168cd76eb54262bd04f4facc5cba82c2f53982aaf0", [:mix], []},
   "exvcr": {:hex, :exvcr, "0.8.7", "e76f33b10dfefbcf32afa6d6867140566d0d54797e352b47485eed0241dd7edf", [:mix], [{:exactor, "~> 2.2", [hex: :exactor, optional: false]}, {:exjsx, "~> 3.2", [hex: :exjsx, optional: false]}, {:httpoison, "~> 0.8", [hex: :httpoison, optional: true]}, {:httpotion, "~> 3.0", [hex: :httpotion, optional: true]}, {:ibrowse, "~> 4.2.2", [hex: :ibrowse, optional: true]}, {:meck, "~> 0.8.3", [hex: :meck, optional: false]}]},
   "faker": {:hex, :faker, "0.7.0", "2c42deeac7be717173c78c77fb3edc749fb5d5e460e33d01fe592ae99acc2f0d", [:mix], []},
+  "farmbot_simulator": {:hex, :farmbot_simulator, "0.1.1", "4e25f7f49863b6d10c600048149a82f6b62b08ad3f2cdc76a347b38adf9069d9", [:make, :mix], [{:elixir_make, "~> 0.4", [hex: :elixir_make, optional: false]}, {:nerves_uart, "~> 0.1.2", [hex: :nerves_uart, optional: false]}]},
   "fs": {:hex, :fs, "0.9.2", "ed17036c26c3f70ac49781ed9220a50c36775c6ca2cf8182d123b6566e49ec59", [:rebar], []},
   "gen_mqtt": {:hex, :gen_mqtt, "0.3.1", "6ce6af7c2bcb125d5b4125c67c5ab1f29bcec2638236509bcc6abf510a6661ed", [:mix], [{:vmq_commons, "1.0.0", [hex: :vmq_commons, optional: false]}]},
   "gen_stage": {:hex, :gen_stage, "0.11.0", "943bdfa85c75fa624e0a36a9d135baad20a523be040178f5a215444b45c66ea4", [:mix], []},

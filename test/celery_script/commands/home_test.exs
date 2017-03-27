@@ -5,7 +5,8 @@ defmodule Farmbot.CeleryScript.Command.HomeTest do
   alias Farmbot.CeleryScript.Command
 
   setup_all do
-    GcodeMockTest.common_setup()
+    Farmbot.Serial.HandlerTest.wait_for_serial_available()
+    :ok
   end
 
   setup do
@@ -13,9 +14,8 @@ defmodule Farmbot.CeleryScript.Command.HomeTest do
     :ok
   end
 
-  test "makes sure we have serial", %{handler: handler} do
-    assert is_pid(handler)
-    assert Farmbot.Serial.Handler.available?(handler) == true
+  test "makes sure we have serial" do
+    assert Farmbot.Serial.Handler.available?() == true
   end
 
   test "homes all axises" do

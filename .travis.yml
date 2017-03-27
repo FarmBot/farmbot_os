@@ -3,13 +3,24 @@ sudo: required
 dist: trusty
 addons:
   apt:
+    sources:
+      - llvm-toolchain-precise
+      - ubuntu-toolchain-r-test
     packages:
     - libwxbase2.8-0
     - libwxgtk2.8-0
     - bc
+    - clang-3.7
+    - g++-5
+    - gcc-5
     - libssl-dev
     - libsctp1
     - libnl-dev
+    - libmnl-dev
+    - libsdl2-dev
+    - libsdl-dev
+    - libglew-dev
+    - libglm-dev
 
 env:
   global:
@@ -23,7 +34,8 @@ before_script:
 - export PATH=`pwd`/elixir/bin:$PATH
 script:
 - sudo apt-get install -qq linux-headers-`uname -r`
-- sudo apt-get install -qq libnl-dev
+- if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
+- if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.7" CC="clang-3.7"; fi
 - scripts/tty0tty.sh
 - mix local.hex --force
 - mix local.rebar --force

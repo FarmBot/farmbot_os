@@ -136,6 +136,7 @@ defmodule Farmbot.Serial.Handler do
       {:ok, state}
     else
       Logger.warn "Handshake failed!"
+      IO.puts "BLERP"
       state = %{
         tty: tty, nerves: nerves, queue: :queue.new(), current: :no_firm
       }
@@ -250,12 +251,17 @@ defmodule Farmbot.Serial.Handler do
   end
 
   def handle_cast({:update_fw, hex_file, pid}, state) do
-    UART.close(state.nerves)
-    Process.sleep(100)
-    flash_firmware(state.tty, hex_file, pid)
-    Process.sleep(5000)
-    {:ok, new_state} = init({state.nerves, state.tty})
-    {:noreply, new_state}
+    if String.contains?(state.tty, "tnt") do
+      send(pid, :done)
+      {:noreply, state}
+    else
+      UART.close(state.nerves)
+      Process.sleep(100)
+      flash_firmware(state.tty, hex_file, pid)
+      Process.sleep(5000)
+      {:ok, new_state} = init({state.nerves, state.tty})
+      {:noreply, new_state}
+    end
   end
 
   def handle_info({:timeout, from, handshake}, state) do
