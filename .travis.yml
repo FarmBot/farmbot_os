@@ -33,7 +33,6 @@ script:
 - sudo apt-get install -qq linux-headers-`uname -r`
 - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
 - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.7" CC="clang-3.7"; fi
-- sudo apt-get install -qq libnl
 - sudo apt-get install -qq libmnl-dev
 - sudo apt-get install -qq libsdl2-dev
 - sudo apt-get install -qq libsdl-dev
