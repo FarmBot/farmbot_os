@@ -3,6 +3,9 @@ sudo: required
 dist: trusty
 addons:
   apt:
+    sources:
+      - llvm-toolchain-precise
+      - ubuntu-toolchain-r-test
     packages:
     - libwxbase2.8-0
     - libwxgtk2.8-0
