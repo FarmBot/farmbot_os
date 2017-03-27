@@ -162,7 +162,7 @@ defmodule Farmbot.Mixfile do
       {:cors_plug, "~> 1.1"},
       {:cowboy, "~> 1.0.0"},
       {:ex_webpack, "~> 0.1.1", runtime: false, warn_missing: false},
-      {:farmbot_simulator, "~> 0.1.0", only: [:test, :dev]},
+      {:farmbot_simulator, "~> 0.1.1", only: [:test, :dev]},
 
       {:tzdata, "~> 0.1.201601", override: true},
       {:fs, "~> 0.9.1"}
