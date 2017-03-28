@@ -23,7 +23,9 @@ defmodule Farmbot.Serial.HandlerTest do
       nil ->
         Process.sleep(10)
         wait_for_serial_available()
-      _ -> Farmbot.CeleryScript.Command.home(%{axis: "all"}, [])
+      _ ->
+        Farmbot.CeleryScript.Command.home(%{axis: "all"}, [])
+        Process.sleep(10)
     end
   end
 

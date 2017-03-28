@@ -21,7 +21,6 @@ defmodule Farmbot.System.NervesCommon.Network do
         Process.sleep(5000)
         GenEvent.add_handler(event_manager(),
         Farmbot.System.NervesCommon.EventManager, [])
-        # Farmbot.System.NervesCommon.Cell.start_link
         {:ok, %{}}
       end
 

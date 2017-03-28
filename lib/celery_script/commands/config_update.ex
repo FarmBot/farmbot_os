@@ -28,7 +28,6 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
       if param_int do
         Logger.info ">> is updating #{param_str}: #{val}"
         "F22 P#{param_int} V#{val}" |> UartHan.write
-        Process.sleep(500)
         # HACK read the param back because sometimes the firmware decides
         # our param sets arent important enough to keep
         read_param(%{label: param_str}, [])
@@ -48,9 +47,11 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
 
   @spec filter_params([{binary, any}], map) :: [{binary, any}]
   defp filter_params(blah, current) do
-    Enum.filter(blah, fn({param_str, val}) ->
+    result = Enum.filter(blah, fn({param_str, val}) ->
       current[param_str] != val
     end)
+    # Im sorry about this
+    if Enum.empty?(result), do: blah, else: result
   end
 
 end
