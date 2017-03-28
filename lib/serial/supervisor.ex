@@ -37,7 +37,7 @@ defmodule Farmbot.Serial.Supervisor do
           thing = {one_tty, [name: Farmbot.Serial.Handler]}
           try_open([thing], supervisor)
         ttys when is_list(ttys) ->
-          str
+          ttys
           |> Enum.map(fn(device) -> {device, []} end)
           |> try_open(supervisor)
       end
