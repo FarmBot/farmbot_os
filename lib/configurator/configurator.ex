@@ -11,14 +11,12 @@ defmodule Farmbot.Configurator do
   require Logger
 
   @port Application.get_env(:farmbot, :configurator_port, 4000)
-  @streamer_port Application.get_env(:farmbot, :streamer_port, 4040)
 
   def init([]) do
     Logger.info ">> Configurator init!"
     children = [
       Plug.Adapters.Cowboy.child_spec(:http, Router, [], port: @port,
         dispatch: [dispatch()]),
-      Plug.Adapters.Cowboy.child_spec(:http, Streamer, [], port: @streamer_port)
      ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)

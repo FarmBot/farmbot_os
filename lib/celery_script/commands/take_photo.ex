@@ -19,7 +19,7 @@ defmodule Farmbot.CeleryScript.Command.TakePhoto do
     if info do
       Command.start_process(%{label: info.uuid}, [])
     else
-      Farmbot.Camera.capture()
+      Logger.warn "take-photo is not installed!"
     end
   end
 end

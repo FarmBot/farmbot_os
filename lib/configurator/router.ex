@@ -174,7 +174,7 @@ defmodule Farmbot.Configurator.Router do
   end
 
   get "/image/capture" do
-    Farmbot.Camera.capture()
+    Farmbot.CeleryScript.Command.take_photo %{}, []
     conn
     |> put_resp_header("location", "/image/latest")
     |> send_resp(302, "OK")

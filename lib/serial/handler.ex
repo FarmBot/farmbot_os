@@ -136,7 +136,6 @@ defmodule Farmbot.Serial.Handler do
       {:ok, state}
     else
       Logger.warn "Handshake failed!"
-      IO.puts "BLERP"
       state = %{
         tty: tty, nerves: nerves, queue: :queue.new(), current: :no_firm
       }
@@ -336,6 +335,7 @@ defmodule Farmbot.Serial.Handler do
   end
 
   defp handle_gcode(:done, state) do
+    Process.sleep(100)
     # when we get done we need to check the queue for moar commands.
     # if there is more create a new current map, start a new timer etc.
 

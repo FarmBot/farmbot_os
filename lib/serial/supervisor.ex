@@ -23,12 +23,15 @@ defmodule Farmbot.Serial.Supervisor do
   end
 
   if Mix.Project.config[:target] != "host" do
+
     @spec open_ttys(atom | pid, [binary]) :: :ok | no_return
     def open_ttys(supervisor, ttys \\ nil) do
       blah = ttys || UART.enumerate() |> Map.drop(["ttyS0","ttyAMA0"]) |> Map.keys
       blah |> try_open(supervisor)
     end
+
   else
+
     @tty Application.get_env(:farmbot, :tty, nil)
     @spec open_ttys(atom | pid, [binary]) :: :ok | no_return
     def open_ttys(supervisor, list \\ nil)
@@ -40,6 +43,7 @@ defmodule Farmbot.Serial.Supervisor do
         :ok
       end
     end
+
   end
 
   @spec try_open([binary], atom | pid) :: :ok | no_return
