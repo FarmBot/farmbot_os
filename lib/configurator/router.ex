@@ -151,35 +151,6 @@ defmodule Farmbot.Configurator.Router do
     end
   end
 
-  get "/image/latest" do
-    list_images = fn() ->
-      "/tmp/images"
-      |> File.ls!
-      |> Enum.reduce("", fn(image, acc) ->
-        acc <> "<img src=\"/image/#{image}\">"
-      end)
-    end
-    html =
-      ~s"""
-      <html>
-        <body>
-          <form action=/image/capture>
-            <input type="submit" value="Capture">
-          </form>
-          #{list_images.()}
-        </body>
-      </html>
-      """
-    conn |> send_resp(200, html)
-  end
-
-  get "/image/capture" do
-    Farmbot.Camera.capture()
-    conn
-    |> put_resp_header("location", "/image/latest")
-    |> send_resp(302, "OK")
-  end
-
   # anything that doesn't match a rest end point gets the index.
   match _, do: conn |> send_resp(404, "not found")
 
@@ -194,7 +165,7 @@ defmodule Farmbot.Configurator.Router do
         :done ->
           blerp |> send_resp(200, "OK")
         {:error, reason} ->
-          blerp |> send_resp(400, IO.inspect(reason))
+          blerp |> send_resp(400, inspect(reason))
       end
     end
 

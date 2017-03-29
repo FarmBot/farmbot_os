@@ -5,12 +5,6 @@ defmodule Farmbot.Serial.Gcode.Parser do
 
   @spec parse_code(binary) :: {binary, tuple}
 
-  # ????
-  def parse_code("R0 Q" <> tag), do: {tag, :idle}
-  def parse_code("R1 Q" <> tag), do: {tag, :received}
-  def parse_code("R2 Q" <> tag), do: {tag, :done}
-  def parse_code("R3 Q" <> tag), do: {tag, :error}
-  def parse_code("R4 Q" <> tag), do: {tag, :busy}
   # / ???
   def parse_code("R00 Q" <> tag), do: {tag, :idle}
   def parse_code("R01 Q" <> tag), do: {tag, :received}
@@ -19,7 +13,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_code("R04 Q" <> tag), do: {tag, :busy}
 
   # TODO(Connor) Fix these
-  def parse_code("R05" <> _r), do: :dont_handle_me # Dont care about this.
+  def parse_code("R05" <> _r), do: {nil, :dont_handle_me} # Dont care about this.
   def parse_code("R06 " <> r), do: parse_report_calibration(r)
 
   def parse_code("R21 " <> params), do: parse_pvq(params, :report_parameter_value)
@@ -28,8 +22,8 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_code("R81 " <> params), do: parse_end_stops(params)
   def parse_code("R82 " <> params), do: parse_report_current_position(params)
   def parse_code("R83 " <> v), do: parse_version(v)
-  def parse_code("R99 " <> message) do {:debug_message, message} end
-  def parse_code("Command" <> _), do: :dont_handle_me # I think this is a bug
+  def parse_code("R99 " <> message) do {nil, {:debug_message, message}} end
+  def parse_code("Command" <> _), do: {nil, :dont_handle_me} # I think this is a bug
   def parse_code(code)  do {:unhandled_gcode, code} end
 
   @spec parse_report_calibration(binary)

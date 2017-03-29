@@ -1,7 +1,6 @@
 use Mix.Config
 config :farmbot,
-  configurator_port: 80,
-  streamer_port: 4040
+  configurator_port: 80
 
 config :tzdata, :data_dir, "/tmp"
 config :tzdata, :autoupdate, :disabled
