@@ -15,13 +15,11 @@ defmodule Farmbot.System.NervesCommon.Network do
 
       def init(_) do
         for module <- unquote(modules) do
-          System.cmd("modprobe", [module])
+          {_, 0} = System.cmd("modprobe", [module])
         end
         # wait for a few seconds for everything to settle
         Process.sleep(5000)
-        GenEvent.add_handler(event_manager(),
-        Farmbot.System.NervesCommon.EventManager, [])
-        {:ok, %{}}
+        {:ok, %{logging_in: false}}
       end
 
       # don't start this interface
@@ -57,7 +55,8 @@ defmodule Farmbot.System.NervesCommon.Network do
       %{"default" => "hostapd",
         "settings" => %{"ipv4_address" => ip_addr}, "type" => "wireless"} = s)
       do
-        [interface: interface, ip_address: ip_addr, manager: event_manager()]
+        {:ok, manager} = GenEvent.start_link()
+        [interface: interface, ip_address: ip_addr, manager: manager]
         |> Hostapd.start_link()
         |> cast_start_iface(interface, s)
       end
@@ -97,8 +96,6 @@ defmodule Farmbot.System.NervesCommon.Network do
 
       def enumerate, do: Nerves.NetworkInterface.interfaces -- ["lo"]
 
-      defp event_manager, do: Nerves.NetworkInterface.event_manager()
-
       defp clean_ssid(hc) do
         hc
         |> String.replace("\t", "")
@@ -110,6 +107,10 @@ defmodule Farmbot.System.NervesCommon.Network do
       end
 
       # GENSERVER STUFF
+
+      def handle_call(:logged_in, _from, state),
+        do: {:reply, :ok, %{state | logging_in: false}}
+
       def handle_call({:stop_interface, interface}, _, state) do
         case state[interface] do
           {settings, pid} ->
@@ -117,6 +118,9 @@ defmodule Farmbot.System.NervesCommon.Network do
               GenServer.stop(pid, :normal)
               {:reply, :ok, Map.delete(state, interface)}
             else
+              :ok = Registry.unregister(Nerves.NetworkInterface, interface)
+              :ok = Registry.unregister(Nerves.Udhcpc, interface)
+              :ok = Registry.unregister(Nerves.WpaSupplicant, interface)
               Logger.warn ">> cant stop: #{interface}"
               {:reply, {:error, :not_implemented}, state}
             end
@@ -125,13 +129,58 @@ defmodule Farmbot.System.NervesCommon.Network do
       end
 
       def handle_cast({:start_interface, interface, settings, pid}, state) do
+        {:ok, _} = Registry.register(Nerves.NetworkInterface, interface, [])
+        {:ok, _} = Registry.register(Nerves.Udhcpc, interface, [])
+        {:ok, _} = Registry.register(Nerves.WpaSupplicant, interface, [])
         {:noreply, Map.put(state, interface, {settings, pid})}
+      end
+
+      # ipv4_address: "192.168.29.241",
+      # ipv4_broadcast: "192.168.29.255",
+      # ipv4_gateway: "192.168.29.1",
+      # ipv4_subnet_mask: "255.255.255.0"
+
+      def handle_info({Nerves.Udhcpc, :bound, %{ifname: interface}}, state) do
+        if state.logging_in do
+          {:noreply, state}
+        else
+          that = self()
+          spawn fn() ->
+            Farmbot.System.Network.on_connect(fn() ->
+              Logger.info ">> is waiting for linux and network and what not."
+              Process.sleep(5000) # ye old race linux condidtion
+              GenServer.call(that, :logged_in)
+            end)
+          end
+          {:noreply, %{state | logging_in: true}}
+        end
+      end
+
+      def handle_info({Nerves.WpaSupplicant, {:error, :psk, :FAIL}, %{ifname: iface}}, state) do
+        Farmbot.System.factory_reset
+        {:noreply, state}
+      end
+
+      def handle_info({Nerves.WpaSupplicant, event, %{ifname: iface}}, state) when is_atom(event) do
+        event = event |> Atom.to_string
+        wrong_key? = event |> String.contains?("reason=WRONG_KEY")
+        not_found? = event |> String.contains?("CTRL-EVENT-NETWORK-NOT-FOUND")
+        if wrong_key?, do: Farmbot.System.factory_reset
+        if not_found?, do: Farmbot.System.factory_reset
+        {:noreply, state}
+      end
+
+      def handle_info(info, state) do
+        Logger.warn "derp"
+        IO.inspect info
+        {:noreply, state}
       end
 
       def terminate(_,_state) do
         # TODO STOP INTERFACES
         :ok
       end
+
     end
   end
 end

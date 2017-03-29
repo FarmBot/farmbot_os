@@ -5,7 +5,6 @@ defmodule Farmbot.Configurator do
 
   use Supervisor
   alias Farmbot.Configurator.Router
-  alias Farmbot.Configurator.Streamer
   alias Farmbot.Configurator.SocketHandler
   alias Plug.Adapters.Cowboy.Handler, as: CowboyHandler
   require Logger

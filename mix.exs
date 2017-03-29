@@ -209,7 +209,8 @@ defmodule Farmbot.Mixfile do
     if File.exists?("nerves/nerves_system_#{sys}"),
       do: [
         {:"nerves_system_#{sys}", warn_missing: false, path: "nerves/nerves_system_#{sys}"},
-        {:nerves_interim_wifi, "~> 0.1.1"},
+        # {:nerves_interim_wifi, "~> 0.2.0"},
+        {:nerves_interim_wifi, path: "../nerves_interim_wifi"},
         # {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
         {:nerves_firmware_http, "~> 0.3.1"},
         {:nerves_firmware, "~> 0.3"},
