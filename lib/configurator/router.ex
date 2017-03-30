@@ -30,6 +30,10 @@ defmodule Farmbot.Configurator.Router do
     |> send_resp(302, "OK")
   end
 
+  get "/api/ping" do
+    conn |> send_resp(200, "PONG") 
+  end
+
   get "/api/config" do
     # Already in json form.
     {:ok, config} = ConfigStorage.read_config_file
