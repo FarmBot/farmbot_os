@@ -38,6 +38,8 @@ defmodule Farmbot.Transport.GenMqtt.Client do
     {:ok, token}
   end
 
+  def on_disconnect(_), do: :shutdown
+
   def handle_cast({:status, %Ser{} = ser}, %Token{} = token) do
     json = Poison.encode!(ser)
     GenMQTT.publish(self(), status_topic(token), json, 0, false)
@@ -67,6 +69,8 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   defp build_opts(%Token{} = token) do
     [name: __MODULE__,
      host: token.unencoded.mqtt,
+     timeout: 10_000,
+     reconnect_timeout: 10_000,
      password: token.encoded,
      username: token.unencoded.bot,
      last_will_topic: [log_topic(token)],

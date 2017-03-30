@@ -27,6 +27,10 @@ defmodule Farmbot.Transport.GenMqtt do
     end
   end
 
+  def terminate(reason, _state) do
+    IO.inspect reason
+  end
+
   def handle_events(events, _, {_client, %Token{} = _} = state) do
     for event <- events do
       Logger.info("#{__MODULE__}: Got event: #{inspect event}")
@@ -68,5 +72,9 @@ defmodule Farmbot.Transport.GenMqtt do
   end
 
   @spec start_client(Token.t) :: {:ok, pid}
-  defp start_client(%Token{} = token), do: Client.start_link(token)
+  defp start_client(%Token{} = token) do
+    {:ok, pid} = Client.start_link(token)
+    true = Process.link(pid)
+    {:ok, pid}
+  end
 end
