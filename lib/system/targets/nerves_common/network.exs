@@ -171,8 +171,6 @@ defmodule Farmbot.System.NervesCommon.Network do
       end
 
       def handle_info(info, state) do
-        Logger.warn "derp"
-        IO.inspect info
         {:noreply, state}
       end
 
