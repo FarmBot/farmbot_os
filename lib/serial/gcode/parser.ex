@@ -3,6 +3,8 @@ defmodule Farmbot.Serial.Gcode.Parser do
     Parses farmbot_arduino_firmware G-Codes.
   """
 
+  require Logger
+
   @spec parse_code(binary) :: {binary, tuple}
 
   # / ???
@@ -328,7 +330,6 @@ defmodule Farmbot.Serial.Gcode.Parser do
     do: param_string |> String.to_atom |> parse_param
 
   def parse_param(uhh) do
-    require Logger
     Logger.error("LOOK AT ME IM IMPORTANT: #{inspect uhh}")
     nil
   end

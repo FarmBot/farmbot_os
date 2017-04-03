@@ -56,7 +56,7 @@ defmodule Mix.Tasks.Farmbot.Configurate do
     {server, user, pass}
   end
 
-  def configure_network(false), do: false
+  def configure_network(false, _), do: false
   def configure_network(%{"interfaces" => ifaces} = netconfig, ip) do
     blerp = Enum.map(ifaces, fn({iface, config}) ->
       configure_iface(iface, config, ip)
