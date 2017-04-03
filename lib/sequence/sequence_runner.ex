@@ -7,34 +7,55 @@ defmodule SequenceRunner do
   require Logger
   use GenServer
   alias Farmbot.CeleryScript.Ast
+  alias SequenceRunner.Binding
 
-  @type state :: Ast.t
+  defmodule State do
+    defstruct [:binding, :body, :current]
+  end
 
   @doc """
     Starts a sequence.
   """
-  def start_link(sequence), do: GenServer.start_link(__MODULE__, sequence)
+  def start_link(%Ast{} = seq), do: GenServer.start_link(__MODULE__, seq)
 
-  @spec init(Sequence.t) :: {:ok, state}
-  def init(sequence) do
+  def start_link(sequence) do
+    IO.puts "blerp"
     sequence = Ast.parse(sequence)
-    spawn __MODULE__, :work, [sequence, self()]
-    {:ok, sequence}
+    start_link(sequence)
   end
 
-  @spec handle_cast({:work, Ast.t}, state) :: {:noreply, state}
-  def handle_cast({:work, %Ast{} = seq}, _) do
-    spawn __MODULE__, :work, [seq, self()]
-    {:noreply, seq}
+  def init(%Ast{} = sequence) do
+    Logger.debug "initializing a sequence."
+    {:ok, binding} = Binding.start_link()
+    body = Enum.map(sequence.body, fn(ast) ->
+      ast
+    end)
+    current = do_work(body, self())
+    state = %State{binding: binding, body: body, current: current}
+    {:ok, state}
   end
 
-  @spec work(Ast.t, pid) :: no_return
-  def work(%Ast{body: []} = _sequence, pid) do
-    GenServer.stop(pid, :normal)
+  def handle_call({:next, []}, _from, state) do
+    {:stop, :normal, :ok, state}
   end
 
-  def work(%Ast{body: [next | rest]} = sequence, pid) do
-    Farmbot.CeleryScript.Command.do_command(next)
-    GenServer.cast(pid, {:work, %{sequence | body: rest}})
+  def handle_call({:next, body}, _, state) do
+    current = do_work(body, self())
+    {:reply, :ok, %{state | body: body, current: current}}
+  end
+
+  defp do_work(body, pid) do
+    spawn(__MODULE__, :work, [body, pid])
+  end
+
+  def work([item | rest], pid) do
+    Logger.debug "doing #{item.kind}"
+    Farmbot.CeleryScript.Command.do_command(item)
+    :ok = GenServer.call(pid, {:next, rest})
+  end
+
+  def terminate(_, state) do
+    Logger.debug "destroying sequence."
+    :ok = Binding.stop(state.binding)
   end
 end

@@ -148,8 +148,14 @@ defmodule Farmbot.Serial.Handler do
 
   def handle_info({:nerves_uart, tty, str}, state) when is_binary(str) do
     if tty == state.tty do
-      current = str |> Parser.parse_code |> do_handle(state.current)
-      {:noreply, %{state | current: current}}
+      try do
+        current = str |> Parser.parse_code |> do_handle(state.current)
+        {:noreply, %{state | current: current}}
+      rescue
+        e ->
+          Logger.warn "uh oh: #{inspect e}"
+          {:noreply, state}
+      end
     end
   end
 

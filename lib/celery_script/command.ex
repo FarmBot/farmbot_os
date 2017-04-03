@@ -241,22 +241,17 @@ defmodule Farmbot.CeleryScript.Command do
     |> do_command
   end
 
-  # TODO(Connor) make this use the sequence runner
   @doc ~s"""
     Executes a sequence. this one is non blocking and needs to disapear.
       args: %{},
       body: [Ast.t]
   """
   @spec sequence(%{}, [Ast.t]) :: no_return
-  def sequence(_, body) do
-    for ast <- body do
-      check_count()
-      Logger.info ">> doing: #{ast.kind}"
-      do_command(ast)
-      Logger.info ">> done."
-      inc_count()
-    end
-    reset_count()
+  def sequence(args, body) do
+    # rebuild the ast node
+    ast = %Ast{kind: "sequence", args: args, body: body}
+    {:ok, pid} = SequenceRunner.start_link(ast)
+    pid
   end
 
   @doc ~s"""
