@@ -8,6 +8,7 @@ defmodule SequenceRunner do
   use GenServer
   alias Farmbot.CeleryScript.Ast
   alias SequenceRunner.Binding
+  use Counter, __MODULE__
 
   defmodule State do
     defstruct [:binding, :body, :current]
@@ -36,6 +37,7 @@ defmodule SequenceRunner do
   end
 
   def handle_call({:next, []}, _from, state) do
+    reset_count()
     {:stop, :normal, :ok, state}
   end
 
@@ -44,18 +46,29 @@ defmodule SequenceRunner do
     {:reply, :ok, %{state | body: body, current: current}}
   end
 
+  def handle_call({:stop, reason}, _, state) do
+    {:stop, reason, :ok, state}
+  end
+
   defp do_work(body, pid) do
     spawn(__MODULE__, :work, [body, pid])
   end
 
   def work([item | rest], pid) do
-    Logger.debug "doing #{item.kind}"
-    Farmbot.CeleryScript.Command.do_command(item)
-    :ok = GenServer.call(pid, {:next, rest})
+    inc_count()
+    if get_count() > 1_000 do
+      :ok = GenServer.call(pid, {:stop, :recursing})
+    else
+      Logger.debug "doing #{item.kind}"
+      Farmbot.CeleryScript.Command.do_command(item)
+      :ok = GenServer.call(pid, {:next, rest})
+    end
   end
 
-  def terminate(_, state) do
-    Logger.debug "destroying sequence."
+  def terminate(reason, state) do
+    if reason != :normal do
+      Logger.error(">> Sequence died! #{inspect reason}")
+    end
     :ok = Binding.stop(state.binding)
   end
 end

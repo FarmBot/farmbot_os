@@ -1,3 +1,4 @@
+To enable us to help you with the issue, please provide as much information as possible about your device and the problem. At a minimum, provide:
 ### Step 1: Are you in the right place?
 This repository is for Farmbot OS problems.
 

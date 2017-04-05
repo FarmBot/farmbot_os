@@ -133,6 +133,7 @@ defmodule Farmbot.Sync do
   # ignore this pls
   @spec to_module_syncable(atom) :: atom
   defp to_module_syncable(:devices), do: Database.Device
+  defp to_module_syncable(:device), do: Database.Device
   defp to_module_syncable(:peripherals), do: Database.Peripheral
   defp to_module_syncable(:plants), do: Database.Plant
   defp to_module_syncable(:points), do: Database.Point
