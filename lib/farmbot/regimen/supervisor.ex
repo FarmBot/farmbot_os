@@ -1,4 +1,4 @@
-defmodule Regimen.Supervisor do
+defmodule Farmbot.Regimen.Supervisor do
   @moduledoc """
     Supervisor for Regimens
   """

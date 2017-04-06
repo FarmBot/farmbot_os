@@ -18,6 +18,7 @@ defmodule Farmbot.RegimenRunner do
   use GenServer
   use Amnesia
   use Farmbot.Sync.Database
+  alias Farmbot.Regimen.Supervisor, as: RegSup
   require Logger
 
   def start_link(regimen, time) do
@@ -53,7 +54,7 @@ defmodule Farmbot.RegimenRunner do
   def handle_info(:execute, state) do
     {item, regimen} = pop_item(state.regimen)
     if item do
-      Elixir.Sequence.Supervisor.add_child(item.sequence, Timex.now())
+      Farmbot.CeleryScript.Command.do_command(item)
       next_item = List.first(regimen.regimen_items)
       if next_item do
         next_dt = Timex.shift(state.epoch, milliseconds: next_item.time_offset)
@@ -65,14 +66,14 @@ defmodule Farmbot.RegimenRunner do
       else
         Logger.info ">> #{regimen.name} is complete!"
         spawn fn() ->
-          Elixir.Regimen.Supervisor.remove_child(regimen)
+          RegSup.remove_child(regimen)
         end
         {:noreply, :finished}
       end
     else
       Logger.info ">> #{regimen.name} is complete!"
       spawn fn() ->
-        Elixir.Regimen.Supervisor.remove_child(regimen)
+        RegSup.remove_child(regimen)
       end
       {:noreply, :finished}
     end

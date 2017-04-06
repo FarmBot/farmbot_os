@@ -1,4 +1,4 @@
-defmodule FarmEventRunner do
+defmodule Farmbot.FarmEventRunner do
   @moduledoc """
     Checks the database every 60 seconds for FarmEvents
   """

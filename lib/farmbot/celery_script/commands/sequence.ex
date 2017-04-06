@@ -5,6 +5,7 @@ defmodule Farmbot.CeleryScript.Command.Sequence do
 
   alias Farmbot.CeleryScript.Command
   alias Farmbot.CeleryScript.Ast
+  require Logger
 
   @behaviour Command
 
@@ -17,7 +18,8 @@ defmodule Farmbot.CeleryScript.Command.Sequence do
   def run(args, body) do
     # rebuild the ast node
     ast = %Ast{kind: "sequence", args: args, body: body}
-    {:ok, _pid} = Farmbot.SequenceRunner.start_link(ast)
-    # Elixir.Sequence.Supervisor.add_child(ast, Timex.now())
+    # Logger.debug "Starting sequence: #{inspect ast}"
+    {:ok, pid} = Farmbot.SequenceRunner.start_link(ast)
+    Farmbot.SequenceRunner.wait(pid)
   end
 end
