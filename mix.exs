@@ -2,10 +2,6 @@ defmodule Farmbot.Mixfile do
   use Mix.Project
   @target System.get_env("MIX_TARGET") || "host"
   @version Path.join(__DIR__, "VERSION") |> File.read! |> String.strip
-  @compat_version Path.join(__DIR__, "COMPAT")
-    |> File.read!
-    |> String.strip
-    |> String.to_integer
 
   defp commit() do
     {t,_} = System.cmd("git", ["log", "--pretty=format:%h", "-1"])
@@ -25,6 +21,7 @@ defmodule Farmbot.Mixfile do
      test_coverage: [tool: ExCoveralls],
      version: @version,
      target: @target,
+     commit: commit(),
      archives: [nerves_bootstrap: "~> 0.3.0"],
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -64,12 +61,7 @@ defmodule Farmbot.Mixfile do
   end
 
   def application do
-    [mod:
-      {Farmbot,
-       [%{target: @target,
-          compat_version: @compat_version,
-          version: @version,
-          commit: commit()}]},
+    [mod: {Farmbot, []},
      applications: applications() ++ applications(@target),
      included_applications: [:gen_mqtt, :ex_json_schema, :fs] ++ included_apps(Mix.env)]
   end
