@@ -78,25 +78,25 @@ defmodule CommandTest do
     assert coord == :error
   end
 
-  test "doesnt implode if a sequence relies on itself" do
-    use Amnesia
-    use Sequence
-
-    real_sequence = %Sequence{args: %{"is_outdated" => false,
-        "version" => 4},
-      body: [%{"args" => %{"_else" => %{"args" => %{}, "kind" => "nothing"},
-           "_then" => %{"args" => %{"sequence_id" => 40000}, "kind" => "execute"},
-           "lhs" => "x", "op" => "not", "rhs" => 10000}, "kind" => "_if"}],
-      color: "gray", id: 40000, kind: "sequence", name: "seq_a"}
-
-    Amnesia.transaction do
-      real_sequence |> Sequence.write
-    end
-
-    sequence = %Ast{kind: "execute", args: %{sequence_id: 40000}, body: []}
-
-    assert_raise(RuntimeError, "TO MUCH RECURSION", fn() ->
-      Command.do_command(sequence)
-    end)
-  end
+  # test "doesnt implode if a sequence relies on itself" do
+  #   use Amnesia
+  #   use Sequence
+  #
+  #   real_sequence = %Sequence{args: %{"is_outdated" => false,
+  #       "version" => 4},
+  #     body: [%{"args" => %{"_else" => %{"args" => %{}, "kind" => "nothing"},
+  #          "_then" => %{"args" => %{"sequence_id" => 40000}, "kind" => "execute"},
+  #          "lhs" => "x", "op" => "not", "rhs" => 10000}, "kind" => "_if"}],
+  #     color: "gray", id: 40000, kind: "sequence", name: "seq_a"}
+  #
+  #   Amnesia.transaction do
+  #     real_sequence |> Sequence.write
+  #   end
+  #
+  #   sequence = %Ast{kind: "execute", args: %{sequence_id: 40000}, body: []}
+  #
+  #   assert_raise(RuntimeError, "TO MUCH RECURSION", fn() ->
+  #     Command.do_command(sequence)
+  #   end)
+  # end
 end
