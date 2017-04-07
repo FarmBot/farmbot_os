@@ -48,7 +48,8 @@ defmodule Farmbot.CeleryScript.Command do
   @doc ~s"""
     Convert an ast node to a coodinate or return :error.
   """
-  @spec ast_to_coord(Ast.t) :: Farmbot.CeleryScript.Command.Coordinate.t | :error
+  @spec ast_to_coord(Ast.t)
+    :: Farmbot.CeleryScript.Command.Coordinate.t | :error
   def ast_to_coord(ast)
   def ast_to_coord(%Ast{kind: "coordinate",
                         args: %{x: _x, y: _y, z: _z},

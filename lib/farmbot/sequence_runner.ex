@@ -7,33 +7,68 @@ defmodule Farmbot.SequenceRunner do
   import Farmbot.CeleryScript.Command, only: [do_command: 1]
   require Logger
 
+  @typedoc """
+    This gets injected into the args of a sequence, and all of its children etc.
+    Mostly magic.
+  """
+  @type context :: %{parent: pid | nil}
+  @type sequence_pid :: pid
+
+  @type block :: {reference, pid}
+
+  @type state :: %{
+    blocks: [block],
+    body: [Ast.t]
+  }
+
+  @doc """
+    Starts a sequence.
+  """
   def start_link(ast) do
     GenServer.start_link(__MODULE__, ast, [])
   end
 
+  @doc """
+    Wait for thie sequence
+  """
+  @spec wait(sequence_pid) :: :ok | term
   def wait(sequence), do: GenServer.call(sequence, :wait, :infinity)
 
+  @doc """
+    Call a sequence
+  """
+  @spec call(sequence_pid, any) :: any
+  def call(sequence, call), do: GenServer.call(sequence, {:call, call})
+
   def init(ast) do
+    # if there is no previous context, build a new one
+    context = ast.args[:context] || empty_context()
 
-    context = ast.args[:context] || %{parent: nil}
-
-    IO.inspect context
-
+    # travers the ast, compile some stuff, validate some stuff etc.
     ast = traverse(ast, context)
+
+    # Setup the firt step
     [first | rest] = ast.body
     spawn __MODULE__, :work, [first, self()]
+
     {:ok, %{blocks: [], body: rest}}
   end
 
+  # This is a validation for if a sequence has a parent or not.
+  def handle_call({:call, :ping}, _, state) do
+    {:reply, :pong, state}
+  end
+
+  # Block til _this_ sequence finishes.
   def handle_call(:wait, from, state) do
     {:noreply, %{state | blocks: [from | state.blocks]}}
   end
 
+  # When a stop finishes and there is no more steps
   def handle_cast(:finished, %{body: []} = state) do
-    for from <- state.blocks do
-      GenServer.reply(from, :ok)
-    end
-    {:stop, :normal, []}
+    # Tell all things involved that this sequence is done.
+    :ok = reply_blocks(:ok, state.blocks)
+    {:stop, :normal, %{state | blocks: []}}
   end
 
   def handle_cast(:finished, %{body: rest} = state) do
@@ -42,11 +77,32 @@ defmodule Farmbot.SequenceRunner do
     {:noreply, %{state | body: rest}}
   end
 
+  # if we terminate for any non normal reason, make sure to reply
+  # to any blocks we had.
+  def terminate(reason, state) do
+    unless reason == :normal do
+      :ok = reply_blocks(reason, state.blocks)
+    end
+    :ok
+  end
+
+  @spec work(Ast.t, sequence_pid) :: :ok
   def work(ast, sequence) do
     do_command(ast)
     GenServer.cast(sequence, :finished)
   end
 
+  @typedoc """
+    Deconstructed ast node arg
+  """
+  @type arg :: {String.t, String.t | Ast.t}
+
+  @typedoc """
+    I don't remember what this is.
+  """
+  @type item :: any
+
+  @spec traverse(Ast.t, context) :: Ast.t
   defp traverse(ast, context)
 
   defp traverse(%{args: args, body: body} = ast, context) do
@@ -55,6 +111,7 @@ defmodule Farmbot.SequenceRunner do
     %Ast{ast | args: args, body: body} |> intercept_ast(context)
   end
 
+  @spec traverse_args(map | [arg], context, [arg]) :: map
   # traverse the k/v version of the args.
   defp traverse_args(args, context, acc \\ [])
 
@@ -73,6 +130,7 @@ defmodule Farmbot.SequenceRunner do
     traverse_args(rest, context, [arg | acc])
   end
 
+  @spec traverse_body([item], context, [item]) :: [item]
   # body traversal
   defp traverse_body(body, context, acc \\ [])
 
@@ -84,58 +142,34 @@ defmodule Farmbot.SequenceRunner do
     traverse_body(rest, context, [item | acc])
   end
 
-  defp intercept_arg({_key, _value} = arg, _context) do
-    # IO.puts "arg: #{inspect arg}"
-    arg
-  end
+  @spec intercept_arg(arg, context) :: arg
+  defp intercept_arg({_key, _value} = arg, _context), do: arg
 
-  defp intercept_item(item, _context) do
-    # IO.puts "item: #{inspect item}"
-    item
-  end
+  @spec intercept_item(item, context) :: item
+  defp intercept_item(item, _context), do: item
 
+  @spec intercept_ast(Ast.t, context) :: Ast.t
   # inject a new context into execute blocks for the next sequence to use.
   defp intercept_ast(%{kind: "execute"} = ast, _context) do
     context = new_context()
-    IO.puts "replacing context: #{inspect context}"
     %{ast | args: Map.put(ast.args, :context, context)}
   end
 
-  defp intercept_ast(%{kind: "call_parent"} = ast, context) do
-    IO.puts "replacing context: #{inspect context}"
-    %{ast | args: Map.put(ast.args, :context, context)}
+  # inject context into nodes other nodes
+  defp intercept_ast(ast, context),
+    do: %{ast | args: Map.put(ast.args, :context, context)}
+
+  @spec reply_blocks(term, [block]) :: any
+  defp reply_blocks(reply, blocks) do
+    for from <- blocks do
+      :ok = GenServer.reply(from, reply)
+    end
+    :ok
   end
 
-  defp intercept_ast(ast, _context) do
-    ast
-  end
-
+  @spec new_context :: context
   defp new_context, do: %{parent: self()}
-
-  def s do
-    # %Farmbot.CeleryScript.Ast{args: %{is_outdated: false, version: 4},
-    #  body: [%Farmbot.CeleryScript.Ast{args: %{message: "SHOULD HAPPEN FIRST!",
-    #      message_type: "success"}, body: [], comment: nil, kind: "send_message"},
-    #   %Farmbot.CeleryScript.Ast{args: %{_else: %Farmbot.CeleryScript.Ast{args: %{},
-    #       body: [], comment: nil, kind: "nothing"},
-    #      _then: %Farmbot.CeleryScript.Ast{args: %{sequence_id: 297}, body: [],
-    #       comment: nil, kind: "execute"}, lhs: "x", op: "is", rhs: 0}, body: [],
-    #    comment: nil, kind: "_if"},
-    #   %Farmbot.CeleryScript.Ast{args: %{message: "SHOULD HAPPEN LAST!",
-    #      message_type: "success"}, body: [], comment: nil, kind: "send_message"}],
-    #  comment: nil, kind: "sequence"}
-    %Farmbot.CeleryScript.Ast{args: %{is_outdated: false, version: 4},
-    body: [
-      %Farmbot.CeleryScript.Ast{args: %{message: "SHOULD HAPPEN FIRST!", message_type: "success"}, body: [], comment: nil, kind: "send_message"},
-      %Farmbot.CeleryScript.Ast{args: %{_else: %Farmbot.CeleryScript.Ast{args: %{}, body: [], comment: nil, kind: "nothing"},
-                                        _then: %Farmbot.CeleryScript.Ast{args: %{sequence_id: 297}, body: [], comment: nil, kind: "execute"},
-                                        lhs: "x", op: "is", rhs: 0}, body: [],
-                                comment: nil,
-                                kind: "_if"},
-      %Farmbot.CeleryScript.Ast{args: %{message: "SHOULD HAPPEN LAST!", message_type: "success"}, body: [], comment: nil, kind: "send_message"},
-      %Farmbot.CeleryScript.Ast{args: %{}, body: [], comment: nil, kind: "call_parent"}
-      ],
-    comment: nil, kind: "sequence"}
-  end
+  @spec empty_context :: context
+  defp empty_context, do: %{parent: nil}
 
 end

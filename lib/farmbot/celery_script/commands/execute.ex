@@ -30,6 +30,6 @@ defmodule Farmbot.CeleryScript.Command.Execute do
   end
 
   defp blerp do
-    %Farmbot.CeleryScript.Ast{args: %{}, body: [], comment: nil, kind: "call_parent"}
+    %Farmbot.CeleryScript.Ast{args: %{}, body: [], comment: nil, kind: "ping_parent"}
   end
 end

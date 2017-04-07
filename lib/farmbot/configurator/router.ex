@@ -31,7 +31,7 @@ defmodule Farmbot.Configurator.Router do
   end
 
   get "/api/ping" do
-    conn |> send_resp(200, "PONG") 
+    conn |> send_resp(200, "PONG")
   end
 
   get "/api/config" do

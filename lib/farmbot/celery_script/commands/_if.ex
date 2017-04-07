@@ -60,11 +60,13 @@ defmodule Farmbot.CeleryScript.Command.If do
   end
 
   defp eval_if(lhs, "is", rhs, then_, else_) do
-    if lhs == rhs, do: Command.do_command(then_), else: Command.do_command(else_)
+    if lhs == rhs,
+      do: Command.do_command(then_), else: Command.do_command(else_)
   end
 
   defp eval_if(lhs, "not", rhs, then_, else_) do
-    if lhs != rhs, do: Command.do_command(then_), else: Command.do_command(else_)
+    if lhs != rhs,
+      do: Command.do_command(then_), else: Command.do_command(else_)
   end
 
   defp eval_if(_, _, _, _, _), do: Logger.info "bad if operator"

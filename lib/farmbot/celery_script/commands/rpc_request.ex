@@ -26,14 +26,16 @@ defmodule Farmbot.CeleryScript.Command.RpcRequest do
         {[ast | win], fail}
       else
         exp = Command.explanation(%{message: "unhandled: #{fun_name}"}, [])
-        Logger.error ">> got an unhandled rpc request: #{fun_name} #{inspect ast}"
+        Logger.error ">> got an unhandled rpc "
+          <> "request: #{fun_name} #{inspect ast}"
         {win, [exp | fail]}
       end
     end)
     |> handle_req(id)
   end
 
-  @spec handle_req({Ast.t, [Command.Explanation.explanation_type]}, String.t) :: no_return
+  @spec handle_req({Ast.t, [Command.Explanation.explanation_type]}, String.t)
+    :: no_return
   defp handle_req({_, []}, id) do
     # there were no failed asts.
     %{label: id} |> Command.rpc_ok([]) |> Farmbot.Transport.emit

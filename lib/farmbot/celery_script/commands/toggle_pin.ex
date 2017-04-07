@@ -4,9 +4,9 @@ defmodule Farmbot.CeleryScript.Command.TogglePin do
   """
 
   alias Farmbot.CeleryScript.Command
-
   @behaviour Command
   @digital 1
+  import Command, [only: [write_pin: 2]]
 
   @doc ~s"""
     toggles a digital pin
@@ -26,9 +26,9 @@ defmodule Farmbot.CeleryScript.Command.TogglePin do
   defp do_toggle(pin, val) do
     case val do
       # if it was off turn it on
-      0 -> Command.write_pin(%{pin_number: pin, pin_mode: @digital, pin_value: 1}, [])
+      0 -> write_pin(%{pin_number: pin, pin_mode: @digital, pin_value: 1}, [])
       # if it was on (or analog) turn it off. (for safetey)
-      _ -> Command.write_pin(%{pin_number: pin, pin_mode: @digital, pin_value: 0}, [])
+      _ -> write_pin(%{pin_number: pin, pin_mode: @digital, pin_value: 0}, [])
     end
   end
 end
