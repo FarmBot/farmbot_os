@@ -173,7 +173,7 @@ defmodule Farmbot.Logger do
     :"Elixir.Nerves.InterimWiFi.Udhcpc",
     :"Elixir.Nerves.NetworkInterface.Worker",
     :"Elixir.Nerves.InterimWiFi.DHCPManager.EventHandler",
-    :"Elixir.Nerves.WpaSupplicant"
+    :"Elixir.Nerves.WpaSupplicant",
     :"Elixir.Farmbot.System.NervesCommon.EventManager"
   ]
 
