@@ -37,6 +37,7 @@ defmodule Farmbot.BotState.Supervisor do
     # like position and some configuraion.
     sup = Supervisor.start_link(__MODULE__, args, name: __MODULE__)
     EasterEggs.start_cron_job
+    Logger.flush()
     Logger.add_backend(Farmbot.Logger)
     sup
   end
