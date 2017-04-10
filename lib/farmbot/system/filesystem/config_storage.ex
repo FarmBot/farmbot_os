@@ -72,7 +72,6 @@ defmodule Farmbot.System.FS.ConfigStorage do
   end
 
   def handle_call({:replace_config_file, new_state}, _, old_state) do
-    Logger.info ">> is replacing #{inspect old_state} with #{inspect new_state}"
     write!(:ok, new_state)
   end
 
