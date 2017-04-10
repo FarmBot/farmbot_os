@@ -16,4 +16,4 @@ Mix.shell.info [:green, "Setting up vcr"]
 ExVCR.Config.cassette_library_dir("fixture/cassettes")
 
 Mix.shell.info [:green, "removeing logger"]
-Logger.remove_backend Farmbot.Logger
+Logger.remove_backend Logger.Backends.FarmbotLogger
