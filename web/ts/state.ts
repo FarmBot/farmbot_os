@@ -45,13 +45,16 @@ export class MainState {
     /** The current state. if we care about such a thing. */
     @observable botStatus: BotStateTree = {
         location: [-1, -2, -3],
-        farm_scheduler: {
-            process_info: [],
-        },
         mcu_params: {},
         configuration: {},
         informational_settings: {},
-        pins: {}
+        pins: {},
+        user_env: {},
+        process_info: {
+            farm_events: [],
+            regimens: [],
+            farmwares: []
+        }
     }
 
     /** This is the json file that the bot uses to boot up. */
@@ -217,6 +220,7 @@ export class MainState {
 
     @action
     incomingMessage(mystery: Object): any {
+        // console.log("GOT MEESSAGE");
         if (isCeleryScript(mystery)) {
             console.log("What do i do with this?" + JSON.stringify(mystery));
         } else {
@@ -225,7 +229,11 @@ export class MainState {
                     this.logs.push(mystery as LogMsg);
                     return;
                 case "status":
+                    console.log("hello" + JSON.stringify(mystery));
                     this.botStatus = (mystery as BotStateTree)
+                    return;
+                case "error":
+                    console.error("Got unhandled thing.");
                     return;
                 default: return;
             }
