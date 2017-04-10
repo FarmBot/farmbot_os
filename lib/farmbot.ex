@@ -52,14 +52,14 @@ defmodule Farmbot do
   # This has to be at runtime because you cant access your own apps
   # priv dir during Mix.Config.
   if Mix.env == :prod do
-    defp setup_nerves_fw() do
+    defp setup_nerves_fw do
       Logger.info ">> Setting up firmware signing!"
       file = "#{:code.priv_dir(:farmbot)}/fwup-key.pub"
       Application.put_env(:nerves_firmware, :pub_key_path, file)
       if File.exists?(file), do: :ok, else: {:error, :no_pub_file}
     end
   else
-    defp setup_nerves_fw() do
+    defp setup_nerves_fw do
       Logger.info ">> Disabling firmware signing!"
       Application.put_env(:nerves_firmware, :pub_key_path, nil)
       :ok
