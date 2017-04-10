@@ -12,7 +12,10 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   @type ok :: {:ok, Token.t}
 
   @spec init(Token.t) :: ok
-  def init(%Token{} = token), do: {:ok, token}
+  def init(%Token{} = token) do
+    Logger.debug ">> Starting mqtt!"
+    {:ok, token}
+  end
 
   @doc """
     Starts a mqtt client.

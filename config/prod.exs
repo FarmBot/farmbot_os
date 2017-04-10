@@ -32,3 +32,7 @@ config :logger, :ex_syslogger_info,
   facility: :kern,
   formatter: Farmbot.SysFormatter,
   option: [:pid, :cons]
+
+config :nerves_firmware,
+  priv_key_path: System.get_env("PRIV_KEY_PATH"),
+  pub_key_path: "/etc/fwup-key.pub"

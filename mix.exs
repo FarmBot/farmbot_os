@@ -205,7 +205,8 @@ defmodule Farmbot.Mixfile do
         {:nerves_interim_wifi, path: "../nerves_interim_wifi"},
         # {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
         {:nerves_firmware_http, "~> 0.3.1"},
-        {:nerves_firmware, "~> 0.3"},
+        # {:nerves_firmware, "~> 0.3"},
+        {:nerves_firmware, path: "../nerves_firmware", override: true},
         {:nerves_ssdp_server, "~> 0.2.1"},
         ],
       else: Mix.raise("There is no existing system package for #{sys}")

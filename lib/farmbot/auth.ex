@@ -304,6 +304,7 @@ defmodule Farmbot.Auth do
   end
 
   defp do_callbacks(token) do
+    Logger.debug ">> Successfully got a token!"
     spawn fn() ->
       for module <- @modules, do: send(module, {:authorization, token})
     end
