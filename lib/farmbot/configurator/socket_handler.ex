@@ -68,9 +68,11 @@ defmodule Farmbot.Configurator.SocketHandler do
     end
   end
 
-  def websocket_info([bot_state], req, stage) do
-    Poison.encode(bot_state)
-    {:ok, req, stage}
+  def websocket_info([{:status, bot_state}], req, stage) do
+    case Poison.encode(bot_state) do
+       {:ok, json} -> {:reply, {:text, json}, req, stage}
+       _ -> {:ok, req, stage}
+    end
   end
 
   # ignore unhandled messages.

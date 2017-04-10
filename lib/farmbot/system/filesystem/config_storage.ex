@@ -71,7 +71,7 @@ defmodule Farmbot.System.FS.ConfigStorage do
     {:reply, read, state}
   end
 
-  def handle_call({:replace_config_file, new_state}, _, old_state) do
+  def handle_call({:replace_config_file, new_state}, _, _old_state) do
     write!(:ok, new_state)
   end
 

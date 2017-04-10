@@ -8,10 +8,17 @@ if Code.ensure_loaded?(Mix.Tasks.Firmware.Push) do
     def run([ipaddr]) do
       otp_app = Mix.Project.config[:app]
       target = Mix.Project.config[:target]
-      fw_file = Path.join(["images", "#{Mix.env()}", "#{target}", "#{otp_app}.fw"])
+      fw_file =
+        if Mix.env == :prod do
+          Path.join(["images", "#{Mix.env()}", "#{target}", "#{otp_app}-signed.fw"])
+        else
+          Path.join(["images", "#{Mix.env()}", "#{target}", "#{otp_app}.fw"])
+        end
+
       unless File.exists?(fw_file) do
-         raise "Could not find Firmware!"
+         Mix.raise "Could not find Firmware! Did you forget to produce a signed image?"
       end
+
       Push.run([ipaddr, "--firmware", "#{fw_file}", "--reboot", "true"])
     end
   end
@@ -24,7 +31,7 @@ else
     @shortdoc "Uploads a file to a url"
     def run(_) do
       Mix.raise """
-      UH
+      Something in your environment is borked!
       """
     end
   end
