@@ -13,6 +13,7 @@ defmodule Farmbot do
   def start(type, args)
   def start(_, _args) do
     Logger.info ">> init!"
+    :ok = setup_nerves_fw(Mix.env())
     Amnesia.start
     Database.create! Keyword.put([], :memory, [node()])
     Database.wait(15_000)
@@ -46,5 +47,20 @@ defmodule Farmbot do
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)
+  end
+
+  # This has to be at runtime because you cant access your own apps
+  # priv dir during Mix.Config.
+  defp setup_nerves_fw(:prod) do
+    Logger.info ">> Setting up firmware signing!"
+    file = "#{:code.priv_dir(:farmbot)}/fwup-key.pub"
+    Application.put_env(:nerves_firmware, :pub_key_path, file)
+    if File.exists?(file), do: :ok, else: {:error, :no_pub_file}
+  end
+
+  defp setup_nerves_fw(_) do
+    Logger.info ">> Disabling firmware signing!"
+    Application.put_env(:nerves_firmware, :pub_key_path, nil)
+    :ok
   end
 end

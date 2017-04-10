@@ -185,7 +185,9 @@ defmodule Farmbot.Mixfile do
   defp aliases(_system) do
     ["deps.precompile": ["nerves.precompile", "deps.precompile"],
      "deps.loadpaths":  ["deps.loadpaths", "nerves.loadpaths"],
-     "firmware.upload": ["farmbot.upload"]]
+     "firmware.upload": ["farmbot.upload"],
+     "firmware.sign": ["farmbot.sign"]
+   ]
   end
 
   # the nerves_system_* dir to use for this build.

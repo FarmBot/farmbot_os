@@ -37,3 +37,6 @@ Makefile
 release-*
 dump.rdb
 #priv/firmware.hex
+
+# this file isnt stored here but just in case.
+fwup-key.priv
