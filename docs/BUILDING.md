@@ -22,7 +22,7 @@ We are going to set up the environment for building Farmbot OS
 mkdir farmbot
 cd farmbot
 git clone https://github.com/FarmBot/farmbot_os.git os
-cd os
+cd farmbot_os
 npm install
 ```
 

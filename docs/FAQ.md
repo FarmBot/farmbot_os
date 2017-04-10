@@ -14,9 +14,21 @@ This could be one of a few things. These things are in order of probability.
 * You have a bad SD Card.
 * You aren't using a Raspberry Pi 3 (Porting Farmbot is relatively simple).
 
+## Why can't i update my Arduino Firmware?
+
+as of version 3.8.0 we decided to bundle the arduino firmware into farmbot os. There was a couple reasons for this.
+* There is no more version conflicts between the firmware and operating system.
+* Applying updates during farmbot os runtime can be dangerous and was leaving peoples bot's unusable because of broken firmwares.
+
+Some more things to note, If you want to use a custom version of the firmware during configuration, make sure to do the following:
+* open advanced settings by tap/clicking the "Configure your Farmbot" text 10 times.
+* tick the "USE CUSTOM ARDUINO FIRMWARE" box.
+This doesn't do anything special, it just makes sure not to overwrite the existing firmware.
+
 ## Can I SSH into the Farmbot?
 
 Yes, starting with version `2.1.1`. The user is root and there is no password. This may change in future versions.
+NOTE: Ssh is disabled by default, so you will need to enable it during configuration if you want to use it.
 
 ## Why are my SSH keys invalid?
 
@@ -40,16 +52,4 @@ Yes. When you log into the Farmbot Configurator wifi SSID, select `Use Ethernet`
 **NOTE**: This can not be changed without a factory reset.
 
 ## How do I factory reset my bot?
-
-This is not as trivial as you would think right now. (We are working on it.)
-
-** EASY: ** Flash the SD card
-** Via HDMI monitor / IEx: ** `Farmbot.factory_reset()`
-
-** Via SSH: **
-
-```bash
-ssh root@<MY FARMBOT IP ADDRESS>
-rm /data/* -rf
-/usr/sbin/reboot
-```
+There are now buttons for factory reset on both the web application, and configurator.

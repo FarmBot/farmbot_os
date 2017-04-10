@@ -20,11 +20,10 @@ initial compile of the application and can be just generally annoying. to disabl
 this export `USE_WEBPACK=false`
 
 ## Configurator
-The Configurator app is started by default on port `5000` and the image streamer
-is on port `5050`. these can be changed by exporting in development mode only:
+The Configurator app is started by default on port `5000`.
+this can be changed by exporting in development mode only:
 ```bash
 CONFIGURATOR_PORT=4000
-STREAMER_PORT=4040
 ```
 
 ## Redis Server

@@ -4,8 +4,8 @@
       "body": "",
       "headers": {
         "Content-Type": "application/json",
-        "User-Agent": "FarmbotOS/3.0.7-staging (host) host ()",
-        "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0ODgyMTg3NTMsImp0aSI6ImFhYTQxZGNiLWJmZjItNGY4My04NTNhLWI5N2RlOWNhYzA1MSIsImlzcyI6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5MTY3NDc1MywibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFybWJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZGF0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVhc2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV8yIn0.QN7TjQM19j_cJWLq42Dtfbz7IVJOaZTXV9G6U2bCHpLbE6cj8ZIAIXbAeR8h_oqmMq0VEDWOU70wXhxPkHsDuJku1Gvd3qP-S-lwTFE_PAIKj4qDaEkKj6g5faknvpAYKjg5BXhYj8M2qvL3txbEAA1jDKblqavhrjXS_MMgcrGUTbpSh8kfRkGS7DIci6aaBdFbzNoTcvEaJAsB330rnv5yzhqaiqb7RmMuQUv-vNP44uvWkEy-ZKcyQwf9NokwDYu_rBJDqm9NyBd9X9SV-FHAFW8NNL9SEhn0qk1UXSbJq0hj3RmGBJoicUBhzxFt_-eF8siGLFIZBO2u9e_SfQ"
+        "User-Agent": "FarmbotOS/3.0.9-rc.1 (host) host ()",
+        "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0OTE1OTY5MTcsImp0aSI6IjdmMmU5ZGVlLWNhZjQtNGI4NC04ZDJmLTQzMTYxNmYxMGY5ZiIsImlzcyI6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5NTA1MjkxNywibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFybWJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZGF0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVhc2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV8yIn0.lfa92p6z1rjFeoCIvdtDEZtIWU-BjF5xEc5OdxHXsOwMHi-SnCXMLyzEZUKoTPf6M3DQuvEsUGR3iKfB451l4m_WD7ql_zp-opFQg8rYbZRBxviMJTmcV8Po_g2MeHFIE_mzFxya0uCfCkwPQm85ZJZfdveB8M4_iMR7mMj2_qPdkDHH-bl_NvfsG5kQhz0UkOxUhEwPkSS93eLUdq6Q54DtuItE1BTDqqBA7pAXUtp57dStIfYxW3u3WzSSMhXCNKCrS7c6BabzULoLS1m0-yokRwbiws0iRMyz7EajNVzYEgW81-0Dzn24q1NWar0Cq6uWP8rsa65A6w5drD947Q"
       },
       "method": "get",
       "options": {
@@ -14,23 +14,25 @@
           "versions": [
             "tlsv1.2"
           ]
-        }
+        },
+        "recv_timeout": 25000,
+        "connect_timeout": 25000
       },
       "request_body": "",
       "url": "http://localhost:3000/api/storage_auth"
     },
     "response": {
-      "body": "{\"verb\":\"POST\",\"url\":\"//storage.googleapis.com/farmbot-team/\",\"form_data\":{\"key\":\"temp1/e275222f-dca3-405d-8a17-0fce5c6b5acb.jpg\",\"acl\":\"public-read\",\"Content-Type\":\"image/jpeg\",\"policy\":\"eyJleHBpcmF0aW9uIjoiMjAxNy0wMy0wMVQyMTowOToyN1oiLCJjb25kaXRpb25zIjpbeyJidWNrZXQiOiJmYXJtYm90LXRlYW0ifSx7ImtleSI6InRlbXAxL2UyNzUyMjJmLWRjYTMtNDA1ZC04YTE3LTBmY2U1YzZiNWFjYi5qcGcifSx7ImFjbCI6InB1YmxpYy1yZWFkIn0seyJDb250ZW50LVR5cGUiOiJpbWFnZS9qcGVnIn0sWyJjb250ZW50LWxlbmd0aC1yYW5nZSIsMSw3MzQwMDMyXV19\",\"signature\":\"F7eh+ZQxUcUnkZUqvqxxQg2t7P0=\",\"GoogleAccessId\":\"GOOGSDXDNLBL7DHPNZTT\",\"file\":\"REPLACE_THIS_WITH_A_BINARY_JPEG_FILE\"},\"instructions\":\"Send a 'from-data' request to the URL provided.Then POST the resulting URL as an 'attachment_url' (json) to api/images/.\"}",
+      "body": "{\"verb\":\"POST\",\"url\":\"//storage.googleapis.com/farmbot-team/\",\"form_data\":{\"key\":\"temp1/2dec83bc-6766-47dd-b5d0-3dc67f008996.jpg\",\"acl\":\"public-read\",\"Content-Type\":\"image/jpeg\",\"policy\":\"eyJleHBpcmF0aW9uIjoiMjAxNy0wNC0wN1QyMToyODozN1oiLCJjb25kaXRpb25zIjpbeyJidWNrZXQiOiJmYXJtYm90LXRlYW0ifSx7ImtleSI6InRlbXAxLzJkZWM4M2JjLTY3NjYtNDdkZC1iNWQwLTNkYzY3ZjAwODk5Ni5qcGcifSx7ImFjbCI6InB1YmxpYy1yZWFkIn0seyJDb250ZW50LVR5cGUiOiJpbWFnZS9qcGVnIn0sWyJjb250ZW50LWxlbmd0aC1yYW5nZSIsMSw3MzQwMDMyXV19\",\"signature\":\"Uz3H1wNF4O+gVBxITNDB4i2la18=\",\"GoogleAccessId\":\"GOOGSDXDNLBL7DHPNZTT\",\"file\":\"REPLACE_THIS_WITH_A_BINARY_JPEG_FILE\"},\"instructions\":\"Send a 'from-data' request to the URL provided.Then POST the resulting URL as an 'attachment_url' (json) to api/images/.\"}",
       "headers": {
         "X-Frame-Options": "SAMEORIGIN",
         "X-XSS-Protection": "1; mode=block",
         "X-Content-Type-Options": "nosniff",
         "Content-Type": "application/json; charset=utf-8",
-        "ETag": "W/\"3166bddb428b3ca4c885029f778cd82c\"",
+        "ETag": "W/\"d10d713ec786e5253e278f50513c423f\"",
         "Cache-Control": "max-age=0, private, must-revalidate",
-        "Set-Cookie": "_farmbot_session=c3ZaVElDd1JsRkd3aEdOWHhRV0t0b0tnMENjd0xEdjM5c3VhOEdFcFN2T1ppNUd6SFBKTlJmUEdUdm9MYnJHanF6Rjl5eTVHeWdibjJSa05RT3l0VlE9PS0tLy8rUUJNRlhHMjNLVzA0WmZyc01Kdz09--31a8aac12cd88c4da2bd94b8f138ca5cbaffdb47; path=/; HttpOnly",
-        "X-Request-Id": "41cdf891-2de7-447f-aa3f-5b9090b3d1c7",
-        "X-Runtime": "0.032116",
+        "Set-Cookie": "_farmbot_session=VUFWbCtOYzZ2SlNXaTBtQldIWk52eStQbUVpQVhDSlVCdzNtTjJPWEtOWFA2M1AxRVJtZi9seDlSRUptS2JNSVhrbERGb1lXb2VqbzBQa1NLaTdhN3c9PS0tbVROZXhYaTFsT3VLd1JiZ1JaV0xBUT09--8f2d8bd648cb5c324ee01cc6cd4ef196b64091cb; path=/; HttpOnly",
+        "X-Request-Id": "a1a0d7c6-f127-486d-8248-745ebfeffd1e",
+        "X-Runtime": "0.013641",
         "Vary": "Origin",
         "Connection": "close",
         "Server": "thin"
@@ -41,7 +43,7 @@
   },
   {
     "request": {
-      "body": "{:multipart, [{\"Content-Type\", \"image/jpeg\"}, {\"GoogleAccessId\", \"GOOGSDXDNLBL7DHPNZTT\"}, {\"acl\", \"public-read\"}, {\"file\", <<137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 200, 0, 0, 0, 200, 8, 2, 0, 0, 0, 34, 58, 57, 201, 0, 0, 25, 116, 73, 68, 65, 84, 120, 156, 236, ...>>}, {\"key\", \"temp1/e275222f-dca3-405d-8a17-0fce5c6b5acb.jpg\"}, {\"policy\", \"eyJleHBpcmF0aW9uIjoiMjAxNy0wMy0wMVQyMTowOToyN1oiLCJjb25kaXRpb25zIjpbeyJidWNrZXQiOiJmYXJtYm90LXRlYW0ifSx7ImtleSI6InRlbXAxL2UyNzUyMjJmLWRjYTMtNDA1ZC04YTE3LTBmY2U1YzZiNWFjYi5qcGcifSx7ImFjbCI6InB1YmxpYy1yZWFkIn0seyJDb250ZW50LVR5cGUiOiJpbWFnZS9qcGVnIn0sWyJjb250ZW50LWxlbmd0aC1yYW5nZSIsMSw3MzQwMDMyXV19\"}, {\"signature\", \"F7eh+ZQxUcUnkZUqvqxxQg2t7P0=\"}]}",
+      "body": "{:multipart, [{\"Content-Type\", \"image/jpeg\"}, {\"GoogleAccessId\", \"GOOGSDXDNLBL7DHPNZTT\"}, {\"acl\", \"public-read\"}, {\"file\", <<137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 200, 0, 0, 0, 200, 8, 2, 0, 0, 0, 34, 58, 57, 201, 0, 0, 25, 116, 73, 68, 65, 84, 120, 156, 236, ...>>}, {\"key\", \"temp1/2dec83bc-6766-47dd-b5d0-3dc67f008996.jpg\"}, {\"policy\", \"eyJleHBpcmF0aW9uIjoiMjAxNy0wNC0wN1QyMToyODozN1oiLCJjb25kaXRpb25zIjpbeyJidWNrZXQiOiJmYXJtYm90LXRlYW0ifSx7ImtleSI6InRlbXAxLzJkZWM4M2JjLTY3NjYtNDdkZC1iNWQwLTNkYzY3ZjAwODk5Ni5qcGcifSx7ImFjbCI6InB1YmxpYy1yZWFkIn0seyJDb250ZW50LVR5cGUiOiJpbWFnZS9qcGVnIn0sWyJjb250ZW50LWxlbmd0aC1yYW5nZSIsMSw3MzQwMDMyXV19\"}, {\"signature\", \"Uz3H1wNF4O+gVBxITNDB4i2la18=\"}]}",
       "headers": {
         "Content-Type": "multipart/form-data",
         "User-Agent": "FarmbotOS"
@@ -54,12 +56,12 @@
     "response": {
       "body": "",
       "headers": {
-        "X-GUploader-UploadID": "AEnB2UopnsvkJwiBX_ZrfPAO_w35F71duVWDdmpjG5mrjRq2Y13CaY2IXMln3QeQsmSIVkUIBu8Rpl30uOO0Xv2G_qEo_Mfe6w",
+        "X-GUploader-UploadID": "AEnB2UpumivWWyA-QoXiO_YpU5Ae1_PGZkEHMS2EdDG1GIrg2cDF__uH3c_wO-4gAzYC40f0yazNc34t3-R6EXOsN6XiBPJUqA",
         "Vary": "Origin",
         "Content-Length": "0",
-        "Date": "Wed, 01 Mar 2017 20:09:28 GMT",
+        "Date": "Fri, 07 Apr 2017 20:28:38 GMT",
         "Server": "UploadServer",
-        "Alt-Svc": "quic=\":443\"; ma=2592000; v=\"36,35,34\""
+        "Alt-Svc": "quic=\":443\"; ma=2592000; v=\"37,36,35\""
       },
       "status_code": 204,
       "type": "ok"
@@ -67,11 +69,11 @@
   },
   {
     "request": {
-      "body": "{\"meta\":{\"z\":-666,\"y\":123,\"x\":45},\"attachment_url\":\"https://storage.googleapis.com/farmbot-team/temp1/e275222f-dca3-405d-8a17-0fce5c6b5acb.jpg\"}",
+      "body": "{\"meta\":{\"z\":0,\"y\":0,\"x\":0},\"attachment_url\":\"https://storage.googleapis.com/farmbot-team/temp1/2dec83bc-6766-47dd-b5d0-3dc67f008996.jpg\"}",
       "headers": {
         "Content-Type": "application/json",
-        "User-Agent": "FarmbotOS/3.0.7-staging (host) host ()",
-        "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0ODgyMTg3NTMsImp0aSI6ImFhYTQxZGNiLWJmZjItNGY4My04NTNhLWI5N2RlOWNhYzA1MSIsImlzcyI6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5MTY3NDc1MywibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFybWJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZGF0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVhc2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV8yIn0.QN7TjQM19j_cJWLq42Dtfbz7IVJOaZTXV9G6U2bCHpLbE6cj8ZIAIXbAeR8h_oqmMq0VEDWOU70wXhxPkHsDuJku1Gvd3qP-S-lwTFE_PAIKj4qDaEkKj6g5faknvpAYKjg5BXhYj8M2qvL3txbEAA1jDKblqavhrjXS_MMgcrGUTbpSh8kfRkGS7DIci6aaBdFbzNoTcvEaJAsB330rnv5yzhqaiqb7RmMuQUv-vNP44uvWkEy-ZKcyQwf9NokwDYu_rBJDqm9NyBd9X9SV-FHAFW8NNL9SEhn0qk1UXSbJq0hj3RmGBJoicUBhzxFt_-eF8siGLFIZBO2u9e_SfQ"
+        "User-Agent": "FarmbotOS/3.0.9-rc.1 (host) host ()",
+        "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0OTE1OTY5MTcsImp0aSI6IjdmMmU5ZGVlLWNhZjQtNGI4NC04ZDJmLTQzMTYxNmYxMGY5ZiIsImlzcyI6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5NTA1MjkxNywibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFybWJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZGF0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVhc2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV8yIn0.lfa92p6z1rjFeoCIvdtDEZtIWU-BjF5xEc5OdxHXsOwMHi-SnCXMLyzEZUKoTPf6M3DQuvEsUGR3iKfB451l4m_WD7ql_zp-opFQg8rYbZRBxviMJTmcV8Po_g2MeHFIE_mzFxya0uCfCkwPQm85ZJZfdveB8M4_iMR7mMj2_qPdkDHH-bl_NvfsG5kQhz0UkOxUhEwPkSS93eLUdq6Q54DtuItE1BTDqqBA7pAXUtp57dStIfYxW3u3WzSSMhXCNKCrS7c6BabzULoLS1m0-yokRwbiws0iRMyz7EajNVzYEgW81-0Dzn24q1NWar0Cq6uWP8rsa65A6w5drD947Q"
       },
       "method": "post",
       "options": {
@@ -80,23 +82,25 @@
           "versions": [
             "tlsv1.2"
           ]
-        }
+        },
+        "recv_timeout": 25000,
+        "connect_timeout": 25000
       },
       "request_body": "",
       "url": "http://localhost:3000/api/images"
     },
     "response": {
-      "body": "{\"id\":3,\"device_id\":2,\"attachment_processed_at\":null,\"updated_at\":\"2017-03-01T20:09:28.120Z\",\"created_at\":\"2017-03-01T20:09:28.120Z\",\"attachment_url\":\"http://placehold.it/640%3Ftext=Processing...\",\"meta\":{\"x\":45,\"y\":123,\"z\":-666}}",
+      "body": "{\"id\":7,\"device_id\":2,\"attachment_processed_at\":null,\"updated_at\":\"2017-04-07T20:28:38.669Z\",\"created_at\":\"2017-04-07T20:28:38.669Z\",\"attachment_url\":\"http://placehold.it/640%3Ftext=Processing...\",\"meta\":{\"x\":0,\"y\":0,\"z\":0}}",
       "headers": {
         "X-Frame-Options": "SAMEORIGIN",
         "X-XSS-Protection": "1; mode=block",
         "X-Content-Type-Options": "nosniff",
         "Content-Type": "application/json; charset=utf-8",
-        "ETag": "W/\"69c9c84264a28fc7496a056c9eb86347\"",
+        "ETag": "W/\"97a1bf6f5fe054641a87f3074dd344ec\"",
         "Cache-Control": "max-age=0, private, must-revalidate",
-        "Set-Cookie": "_farmbot_session=WHdocWJkdXlvMzc5a0drRys5bmRraVBWWGR0VnFnMEdJSkEyQno2NFNDUk9iaTJVWG9VSFV6dVZLQnNqSVV6RlJhT0ZJeXZ1WmlFUGkwR2tma3YxVEE9PS0tMTd6SzBHeTRUNXp3Q2t5QW4vdURNQT09--06c793c38ca90a934654d93d58f9474a4e08beda; path=/; HttpOnly",
-        "X-Request-Id": "dceb38ee-04ec-4f88-bbcc-1e72f14a6126",
-        "X-Runtime": "0.138640",
+        "Set-Cookie": "_farmbot_session=dVBrSjRpbDlNaEIzT0ZOTFpHRFF0MW41LzE2Wm1tSGkveUR5aHVZRXIwRENTbkJBN2FsYlJLeTdKUkYzUTBEbHhvV0RIVmNHK2dQV2JaZGVMcFgwaXc9PS0tWkVRYXVKams4RjdTVmFvNmtNNFZudz09--c41c04fa55ac4d33669305634de58585d26bbc2e; path=/; HttpOnly",
+        "X-Request-Id": "86a03ddd-cb7b-4a18-8d58-08e486c23164",
+        "X-Runtime": "0.073133",
         "Vary": "Origin",
         "Connection": "close",
         "Server": "thin"

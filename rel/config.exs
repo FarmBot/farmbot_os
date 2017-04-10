@@ -15,12 +15,10 @@ use Mix.Releases.Config,
 
 environment :dev do
   set cookie: :"gz`tgx[zM,ueL[g{Ji62{jiawNDZHH~PGkNQLa&R>R7c0SKziff4L,*&ZNG)(qu0"
-  set pre_start_hook: "rel/hooks/pre_start"
 end
 
 environment :prod do
   set cookie: :"gz`tgx[zM,ueL[g{Ji62{jiawNDZHH~PGkNQLa&R>R7c0SKziff4L,*&ZNG)(qu0"
-  set pre_start_hook: "rel/hooks/pre_start"
 end
 
 # You may define one or more releases in this file.

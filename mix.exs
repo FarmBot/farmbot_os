@@ -2,10 +2,6 @@ defmodule Farmbot.Mixfile do
   use Mix.Project
   @target System.get_env("MIX_TARGET") || "host"
   @version Path.join(__DIR__, "VERSION") |> File.read! |> String.strip
-  @compat_version Path.join(__DIR__, "COMPAT")
-    |> File.read!
-    |> String.strip
-    |> String.to_integer
 
   defp commit() do
     {t,_} = System.cmd("git", ["log", "--pretty=format:%h", "-1"])
@@ -25,6 +21,7 @@ defmodule Farmbot.Mixfile do
      test_coverage: [tool: ExCoveralls],
      version: @version,
      target: @target,
+     commit: commit(),
      archives: [nerves_bootstrap: "~> 0.3.0"],
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -64,12 +61,7 @@ defmodule Farmbot.Mixfile do
   end
 
   def application do
-    [mod:
-      {Farmbot,
-       [%{target: @target,
-          compat_version: @compat_version,
-          version: @version,
-          commit: commit()}]},
+    [mod: {Farmbot, []},
      applications: applications() ++ applications(@target),
      included_applications: [:gen_mqtt, :ex_json_schema, :fs] ++ included_apps(Mix.env)]
   end
@@ -162,7 +154,7 @@ defmodule Farmbot.Mixfile do
       {:cors_plug, "~> 1.1"},
       {:cowboy, "~> 1.0.0"},
       {:ex_webpack, "~> 0.1.1", runtime: false, warn_missing: false},
-      {:farmbot_simulator, "~> 0.1.1", only: [:test, :dev]},
+      {:farmbot_simulator, "~> 0.1.2", only: [:test, :dev]},
 
       {:tzdata, "~> 0.1.201601", override: true},
       {:fs, "~> 0.9.1"}
@@ -209,7 +201,8 @@ defmodule Farmbot.Mixfile do
     if File.exists?("nerves/nerves_system_#{sys}"),
       do: [
         {:"nerves_system_#{sys}", warn_missing: false, path: "nerves/nerves_system_#{sys}"},
-        {:nerves_interim_wifi, "~> 0.1.1"},
+        # {:nerves_interim_wifi, "~> 0.2.0"},
+        {:nerves_interim_wifi, path: "../nerves_interim_wifi"},
         # {:nerves_firmware_http, github: "nerves-project/nerves_firmware_http"},
         {:nerves_firmware_http, "~> 0.3.1"},
         {:nerves_firmware, "~> 0.3"},
