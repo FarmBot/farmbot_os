@@ -66,7 +66,7 @@ defmodule Farmbot.System.Updates do
          json = Poison.decode!(body)
          version = json["tag_name"]
          version_without_v = String.trim_leading version, "v"
-         url = "https://github.com/FarmBot/farmbot_os/releases/download/#{version}/farmbot-#{@target}-#{version_without_v}.fw"
+         url = "https://github.com/FarmBot/farmbot_os/releases/download/#{version}/farmbot-#{@target}-#{version_without_v}-signed.fw"
          {:update, url}
        {:error, %HTTPoison.Error{reason: reason}} -> {:error, reason}
     end

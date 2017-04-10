@@ -42,7 +42,7 @@ clean:
 \trm -rf cache
 \trm -rf _build
 \trm -rf images
-\trm -rf _images
+\trm -rf images
 \trm -rf latest-release
 \trm Makefile
 \telixir scripts/generate_makefile.exs
