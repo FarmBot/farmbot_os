@@ -1,4 +1,4 @@
-defmodule Farmbot.LoggerTest do
+defmodule Logger.Backends.FarmbotLoggerTest do
   use ExUnit.Case, async: false
   use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
   alias Farmbot.Auth
@@ -6,9 +6,9 @@ defmodule Farmbot.LoggerTest do
 
   setup_all do
     Logger.flush()
-    Logger.add_backend(Farmbot.Logger)
+    Logger.add_backend(Logger.Backends.FarmbotLogger)
     on_exit(fn() ->
-      Logger.remove_backend(Farmbot.Logger)
+      Logger.remove_backend(Logger.Backends.FarmbotLogger)
     end)
     use_cassette "good_login" do
       :ok = Auth.interim("admin@admin.com", "password123", "http://localhost:3000")
@@ -35,7 +35,7 @@ defmodule Farmbot.LoggerTest do
     Logger.flush
 
     Logger.info "hey world"
-    state = GenEvent.call(Logger, Farmbot.Logger, :get_state)
+    state = GenEvent.call(Logger, Logger.Backends.FarmbotLogger, :get_state)
     assert is_list(state.logs)
     [log] = state.logs
     assert log.message == "hey world"

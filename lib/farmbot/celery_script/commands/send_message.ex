@@ -19,7 +19,7 @@ defmodule Farmbot.CeleryScript.Command.SendMessage do
   # "fun"
   # "warn"
   # "error"
-  @type message_channel :: Farmbot.Logger.rpc_message_channel
+  @type message_channel :: Logger.Backends.FarmbotLogger.rpc_message_channel
 
   @spec run(%{message: String.t, message_type: message_type}, [Ast.t])
     :: no_return

@@ -28,6 +28,7 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
 
     total_count = Enum.count(params)
 
+    IO.puts "updating #{inspect params}"
     Enum.reduce(params, 0, fn(pair, count) ->
       do_update_param(pair)
       count = count + 1
@@ -50,7 +51,9 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
   defp check_version do
     case UartHan.write("F83") do
       {:report_software_version, _version} -> :ok
-      _ ->
+      e ->
+        IO.puts "got: #{inspect e}"
+        IO.puts "Waiting..."
         Process.sleep(2000)
         check_version()
     end
@@ -79,3 +82,4 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
   end
 
 end
+#C.config_update %{package: "arduino_firmware"}, [pair, pair2]

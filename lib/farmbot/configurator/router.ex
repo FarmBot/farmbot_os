@@ -34,6 +34,11 @@ defmodule Farmbot.Configurator.Router do
     conn |> send_resp(200, "PONG")
   end
 
+  get "/api/token" do
+    {:ok, token} = Farmbot.Auth.get_token()
+    conn |> make_json |> send_resp(200, Poison.encode!(token))
+  end
+
   get "/api/config" do
     # Already in json form.
     {:ok, config} = ConfigStorage.read_config_file
@@ -103,20 +108,20 @@ defmodule Farmbot.Configurator.Router do
   end
 
   get "/api/logs" do
-    logs = GenEvent.call(Logger, Farmbot.Logger, :messages)
-
+    logs = GenEvent.call(Logger, Logger.Backends.FarmbotLogger, :messages)
     only_messages = Enum.map(logs, fn(log) ->
       log.message
     end)
+
     json = Poison.encode!(only_messages)
-    conn |> send_resp(200, json)
+    conn |> make_json |> send_resp(200, json)
   end
 
   get "/api/state" do
     Farmbot.BotState.Monitor.get_state
      state = Farmbot.Transport.get_state
      json = Poison.encode!(state)
-     conn |> send_resp(200, json)
+     conn |> make_json |> send_resp(200, json)
   end
 
   post "/api/flash_firmware" do
@@ -157,6 +162,8 @@ defmodule Farmbot.Configurator.Router do
 
   # anything that doesn't match a rest end point gets the index.
   match _, do: conn |> send_resp(404, "not found")
+
+  defp make_json(conn), do: conn |> put_resp_content_type("application/json")
 
   @spec make_html :: binary
   defp make_html do

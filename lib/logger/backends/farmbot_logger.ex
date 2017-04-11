@@ -1,4 +1,4 @@
-defmodule Farmbot.Logger do
+defmodule Logger.Backends.FarmbotLogger do
   @moduledoc """
     Logger backend for logging to the frontend and dumping to the API.
     Takes messages that were logged useing Logger, if they can be
@@ -92,6 +92,10 @@ defmodule Farmbot.Logger do
 
   def handle_call(:post_fail, state) do
     {:ok, :ok, %{state | posting: false}}
+  end
+
+  def handle_call(:messages, state) do
+    {:ok, Enum.reverse(state.logs), state}
   end
 
   def handle_call(:get_state, state), do: {:ok, state, state}

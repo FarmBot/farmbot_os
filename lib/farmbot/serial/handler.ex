@@ -22,6 +22,9 @@ defmodule Farmbot.Serial.Handler do
 
   @type state :: {:hey, :fixme}
 
+  @default_timeout_ms 10_000
+  @max_timeouts 5
+
   @doc """
     Starts a UART GenServer
   """
@@ -67,7 +70,7 @@ defmodule Farmbot.Serial.Handler do
     Writes a string to the uart line
   """
   @spec write(binary, integer, handler) :: binary | {:error, atom}
-  def write(string, timeout \\ 7000, handler \\ __MODULE__)
+  def write(string, timeout \\ @default_timeout_ms, handler \\ __MODULE__)
   def write(str, timeout, handler) do
     if available?(handler) do
       GenServer.call(handler, {:write, str, timeout}, :infinity)
@@ -90,7 +93,7 @@ defmodule Farmbot.Serial.Handler do
     Process.link(nerves)
     :ok = open_tty(nerves, tty)
     GenServer.cast(Farmbot.BotState.Hardware, :eff)
-    {:ok, %{nerves: nerves, tty: tty, current: nil}}
+    {:ok, %{nerves: nerves, tty: tty, current: nil, timeouts: 0}}
   end
 
   def init(tty) when is_binary(tty) do
@@ -119,7 +122,9 @@ defmodule Farmbot.Serial.Handler do
 
   def handle_call({:write, str, timeout}, from, state) do
     handshake = generate_handshake()
-    UART.write(state.nerves, "#{str} #{handshake}")
+    writeme =  "#{str} #{handshake}"
+    IO.puts "writing: #{writeme}"
+    UART.write(state.nerves, writeme)
     timer = Process.send_after(self(), :timeout, timeout)
     current = %{status: nil, reply: nil, from: from, q: handshake, timer: timer}
     {:noreply, %{state | current: current}}
@@ -131,23 +136,36 @@ defmodule Farmbot.Serial.Handler do
     if String.contains?(state.tty, "tnt") do
       Logger.warn "Not a real arduino!"
       send(pid, :done)
+      {:noreply, state}
     else
       flash_firmware(state.tty, file, pid)
+      {:stop, :update, state}
     end
   end
 
   def handle_info(:timeout, state) do
     current = state.current
     if current do
+      IO.puts "Timing out current"
       GenServer.reply(current.from, :timeout)
-      {:noreply, %{state | current: nil}}
+    end
+    check_timeouts(state)
+  end
+
+  defp check_timeouts(state) do
+    if state.timeouts > @max_timeouts do
+      IO.puts "reached max timeouts!"
+      :ok = UART.close(state.nerves)
+      Process.sleep(5000)
+      {:stop, :max_timeouts, state}
     else
-      {:noreply, state}
+      {:noreply, %{state | current: nil, timeouts: state.timeouts + 1}}
     end
   end
 
   def handle_info({:nerves_uart, tty, str}, state) when is_binary(str) do
     if tty == state.tty do
+      IO.puts "Reading: #{str}"
       try do
         current = str |> Parser.parse_code |> do_handle(state.current)
         {:noreply, %{state | current: current}}
