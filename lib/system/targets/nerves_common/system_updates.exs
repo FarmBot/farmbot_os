@@ -22,7 +22,9 @@ defmodule Farmbot.System.NervesCommon.Updates do
         :ok = blerp()
         r = Farmbot.Serial.Handler.write "F83"
         case r do
-          {:report_software_version, @expected_version} -> :ok
+          {:report_software_version, @expected_version} ->
+            Logger.info "Firmware is already the correct version!"
+            :ok
           _ ->
             # we need to flash the firmware
             file = "#{:code.priv_dir(:farmbot)}/firmware.hex"
