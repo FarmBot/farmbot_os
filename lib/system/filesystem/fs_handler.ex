@@ -29,7 +29,7 @@ defmodule Farmbot.System.FS do
           File.rm!(update_file_path)
         end
       _ ->
-        Logger.info "Not in post update mode!" 
+        Logger.info "Not in post update mode!"
         :ok
     end
   end

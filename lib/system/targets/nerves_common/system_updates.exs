@@ -12,22 +12,20 @@ defmodule Farmbot.System.NervesCommon.Updates do
         if is_pid(pid) do
           :ok
         else
-          Logger.debug "No serial handler, waiting..."
+          Logger.warn "No serial handler yet, waiting..."
           Process.sleep(5000)
           blerp()
         end
       end
 
       def post_install do
+        :ok = blerp()
         r = Farmbot.Serial.Handler.write "F83"
         case r do
           {:report_software_version, @expected_version} -> :ok
           _ ->
             # we need to flash the firmware
             file = "#{:code.priv_dir(:farmbot)}/firmware.hex"
-
-            pid = Process.whereis(Farmbot.Serial.Handler)
-            :ok = blerp()
             Logger.warn "UPDATING FIRMWRE!!"
             GenServer.cast(Farmbot.Serial.Handler, {:update_fw, file, self()})
             wait_for_finish()
