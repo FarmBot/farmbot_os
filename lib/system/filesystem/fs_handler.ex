@@ -15,7 +15,23 @@ defmodule Farmbot.System.FS do
     mod = Module.concat([Farmbot, System, target, FileSystem])
     mod.fs_init
     mod.mount_read_only
+    spawn __MODULE__, :check_update_file, []
     {:producer, []}
+  end
+
+  def check_update_file do
+    update_file_path = "#{path()}/.post_update"
+    case File.stat(update_file_path) do
+      {:ok, _file} ->
+        Logger.info "We are in post update mode!"
+        Farmbot.System.Updates.post_install()
+        transaction fn ->
+          File.rm!(update_file_path)
+        end
+      _ ->
+        Logger.info "Not in post update mode!" 
+        :ok
+    end
   end
 
   @doc ~s"""
