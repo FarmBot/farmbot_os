@@ -105,9 +105,14 @@ defmodule Downloader do
         GenServer.reply(s.caller, {:error, status_code})
     end
   end
+
   def handle_info({:http, {error, _headers}}, s) do
     GenServer.reply(s.caller, {:error, error})
     {:noreply, s}
+  end
+
+  def terminate(reason, state) do
+    GenServer.reply(state.caller, {:error, reason})
   end
 
   def put_progress(size, max) do
