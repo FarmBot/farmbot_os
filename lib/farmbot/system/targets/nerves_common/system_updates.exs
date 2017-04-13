@@ -5,16 +5,21 @@ defmodule Farmbot.System.NervesCommon.Updates do
       require Logger
       @expected_version "GENESIS V.01.08.EXPERIMENTAL"
 
-      def install(path), do: Nerves.Firmware.upgrade_and_finalize(path)
+      def install(path), do: :ok = Nerves.Firmware.upgrade_and_finalize(path)
 
-      defp blerp do
+      defp blerp(tries \\ 0)
+      defp blerp(tries) when tries > 10 do
+        Logger.error "No serial handler"
+        :ok
+      end
+      defp blerp(tries) do
         pid = Process.whereis(Farmbot.Serial.Handler)
         if is_pid(pid) do
           :ok
         else
           Logger.warn "No serial handler yet, waiting..."
           Process.sleep(5000)
-          blerp()
+          blerp(tries + 1)
         end
       end
 

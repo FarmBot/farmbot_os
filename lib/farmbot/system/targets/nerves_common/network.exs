@@ -140,13 +140,21 @@ defmodule Farmbot.System.NervesCommon.Network do
       # ipv4_gateway: "192.168.29.1",
       # ipv4_subnet_mask: "255.255.255.0"
 
-      def handle_info({Nerves.Udhcpc, :bound, %{ifname: interface}}, state) do
+      def handle_info({Nerves.Udhcpc, :bound, %{ifname: interface, ipv4_address: ip}}, state) do
         if state.logging_in do
           {:noreply, state}
         else
           that = self()
           spawn fn() ->
             Farmbot.System.Network.on_connect(fn() ->
+              try do
+                {_, 0} = System.cmd("epmd", ["-daemon"])
+                :net_kernel.start(['farmbot@#{ip}'])
+              rescue
+                _ ->
+                  Logger.warn "could not start epmd or something"
+                  :ok
+              end
               Logger.info ">> is waiting for linux and network and what not."
               Process.sleep(5000) # ye old race linux condidtion
               GenServer.call(that, :logged_in)

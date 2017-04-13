@@ -52,6 +52,20 @@ defmodule Farmbot.Configurator.Router do
     conn |> send_resp(200, "OK")
   end
 
+  get "/api/disable_fw_signing" do
+    Logger.info "DISABLING FW SIGNING!!!"
+    Application.put_env(:nerves_firmware, :pub_key_path, nil)
+    conn |> send_resp(200, "OK")
+  end
+
+  get "/api/ace/*code" do
+    [code] = code
+    Logger.info "executing: #{inspect code}"
+    # conn |> send_resp(200, code)
+    r = Code.eval_string(code)
+    conn |> send_resp(200, "#{inspect r}")
+  end
+
   post "/api/config/creds" do
     Logger.info ">> router got credentials"
     {:ok, _body, conn} = read_body(conn)
