@@ -1,10 +1,14 @@
 defmodule Downloader do
+  @moduledoc """
+    Blatently ripped off
+    from: https://github.com/nerves-project/nerves/blob/master/lib/nerves/utils/http_client.ex
+  """
   use GenServer
 
   @progress_steps 50
   @redirect_status_codes [301, 302, 303, 307, 308]
 
-  def start_link() do
+  def start_link do
     start_httpc()
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
@@ -39,22 +43,24 @@ defmodule Downloader do
     }}
   end
 
-  def handle_call({:get, _url}, _from, %{number_of_redirects: n}=s) when n > 5 do
+  def handle_call({:get, _url}, _, %{number_of_redirects: n}=s) when n > 5 do
     GenServer.reply(s.caller, {:error, :too_many_redirects})
     {:noreply, %{s | url: nil, number_of_redirects: 0, caller: nil}}
   end
-  def handle_call({:get, url}, from, s) do
 
+  def handle_call({:get, url}, from, s) do
     headers = [
       {'Content-Type', 'application/octet-stream'}
     ]
 
     http_opts = [timeout: :infinity, autoredirect: false]
     opts = [stream: :self, receiver: self(), sync: false]
-    :httpc.request(:get, {String.to_char_list(url), headers}, http_opts, opts, :nerves)
+    :httpc.request(:get,
+      {String.to_char_list(url), headers}, http_opts, opts, :nerves)
     {:noreply, %{s | url: url, caller: from}}
   end
 
+  @lint false
   def handle_info({:http, {_, :stream_start, headers}}, s) do
     {_, content_length} =
       headers
@@ -112,7 +118,7 @@ defmodule Downloader do
     IO.write(:stderr, "\r|#{String.duplicate("=", completed)}#{String.duplicate(" ", unfilled)}| #{percent}% (#{bytes_to_mb(size)} / #{bytes_to_mb(max)}) MB")
   end
 
-  defp start_httpc() do
+  defp start_httpc do
     :inets.start(:httpc, profile: :nerves)
     opts = [
       max_sessions: 8,
