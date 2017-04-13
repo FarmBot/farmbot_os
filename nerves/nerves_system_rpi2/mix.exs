@@ -25,7 +25,7 @@ defmodule NervesSystemRpi2.Mixfile do
   end
 
   defp find_nerves_toolchain() do
-    {:nerves_toolchain_arm_unknown_linux_gnueabihf, "~> 0.9.0"}
+    {:nerves_toolchain_arm_unknown_linux_gnueabihf, "~> 0.10.0"}
   end
 
   defp find_nerves() do
