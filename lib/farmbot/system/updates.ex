@@ -9,6 +9,7 @@ defmodule Farmbot.System.Updates do
   @ssl_hack [ ssl: [{:versions, [:'tlsv1.2']}] ]
   @path "/tmp/update.fw"
   require Logger
+  alias Farmbot.System.FS
 
   # TODO(connor): THIS IS A MINOR IMPROVEMENT FROM THE LAST VERSION OF THIS FILE
   # BUT IT DEFINATELY NEEDS FURTHER REFACTORING.
@@ -80,7 +81,18 @@ defmodule Farmbot.System.Updates do
     # Ignore the compiler warning here.
     # "I'll fix it later i promise" -- Connor Rigby
     path = Downloader.run(url, @path)
+    FS.transaction fn ->
+      Logger.info "Seting up post update!"
+      path = "#{FS.path()}/.post_update"
+      :ok = File.write(path, "DONT CAT ME\r\n")
+    end
     mod(@target).install(path)
     Farmbot.System.reboot()
   end
+
+  @spec post_install :: no_return
+  def post_install, do: mod(@target).post_install()
+
+  @callback install(binary) :: no_return
+  @callback post_install() :: no_return
 end
