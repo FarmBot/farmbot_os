@@ -2,7 +2,9 @@
 [![Coverage Status](https://coveralls.io/repos/github/FarmBot/farmbot_os/badge.svg)](https://coveralls.io/github/FarmBot/farmbot_os)
 ---
 
+[comment]: <> (DONT CHANGE THE TEXT BELOW. It is used in documentation links.)
 # :floppy_disk: LATEST OS IMAGE DOWNLOADS
+[comment]: <> (DONT CHANGE THE TEXT ABOVE. It is used in documentation links.)
 
 |Raspbery Pi Version |
 |---|
