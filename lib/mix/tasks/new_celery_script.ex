@@ -14,8 +14,8 @@ defmodule Mix.Tasks.Cs.New do
       |> Macro.camelize
       |> build_test_module
 
-    new_cs_path = "lib/celery_script/commands/#{new_cs}.ex"
-    new_cs_test_path = "test/celery_script/commands/#{new_cs}_test.exs"
+    new_cs_path = "lib/farmbot/celery_script/commands/#{new_cs}.ex"
+    new_cs_test_path = "test/farmbot/celery_script/commands/#{new_cs}_test.exs"
     if File.exists?(new_cs_path) do
       Mix.raise("#{new_cs} already exists!!!!")
     end

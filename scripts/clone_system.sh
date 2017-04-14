@@ -15,4 +15,5 @@ if [ ! -f nerves/nerves_system_br/buildroot/.farmbot_applied_patches_list ]; the
   echo "Applying FarmbotOS patches"
   nerves/nerves_system_br/buildroot/support/scripts/apply-patches.sh nerves/nerves_system_br/buildroot patches
   cp nerves/nerves_system_br/buildroot/.applied_patches_list nerves/nerves_system_br/buildroot/.farmbot_applied_patches_list
+  nerves/nerves_system_br/create-build.sh nerves/nerves_system_$SYSTEM/nerves_defconfig nerves/NERVES_SYSTEM_$SYSTEM
 fi

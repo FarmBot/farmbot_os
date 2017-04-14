@@ -3,18 +3,23 @@ defmodule Farmbot.System.Updates do
     Check, download, apply updates
   """
 
-  @releases_url "https://api.github.com/repos/farmbot/farmbot_os/releases"
   @headers ["User-Agent": "FarmbotOS"]
   @target Mix.Project.config()[:target]
   @ssl_hack [ ssl: [{:versions, [:'tlsv1.2']}] ]
   @path "/tmp/update.fw"
   require Logger
+  alias Farmbot.System.FS
 
   # TODO(connor): THIS IS A MINOR IMPROVEMENT FROM THE LAST VERSION OF THIS FILE
   # BUT IT DEFINATELY NEEDS FURTHER REFACTORING.
 
   @spec mod(atom) :: atom
   defp mod(target), do: Module.concat([Farmbot, System, target, Updates])
+
+  defp releases_url do
+    {:ok, token} = Farmbot.Auth.get_token()
+    token.unencoded.os_update_server
+  end
 
   @doc """
     Checks for updates if the bot says so
@@ -34,7 +39,7 @@ defmodule Farmbot.System.Updates do
   def check_and_download_updates do
     case check_updates() do
       {:update, url} ->
-        Logger.info ">> has found a new Operating System update!"
+        Logger.info ">> has found a new Operating System update! #{url}"
         install_updates(url)
       :no_updates ->
         Logger.info ">> is already on the latest Operating System version!"
@@ -61,12 +66,16 @@ defmodule Farmbot.System.Updates do
 
   @spec check_updates :: {:update, binary} | :no_updates | {:error, term}
   defp do_http_req do
-    case HTTPoison.get(@releases_url <> "/latest", @headers, @ssl_hack) do
+    case HTTPoison.get(releases_url(), @headers, @ssl_hack) do
        {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
          json = Poison.decode!(body)
          version = json["tag_name"]
          version_without_v = String.trim_leading version, "v"
-         url = "https://github.com/FarmBot/farmbot_os/releases/download/#{version}/farmbot-#{@target}-#{version_without_v}-signed.fw"
+         list = json["assets"]
+         item = Enum.find(list, fn(item) ->
+           item["name"] == "farmbot-#{@target}-#{version_without_v}.fw"
+         end)
+         url = item["browser_download_url"]
          {:update, url}
        {:error, %HTTPoison.Error{reason: reason}} -> {:error, reason}
     end
@@ -79,8 +88,28 @@ defmodule Farmbot.System.Updates do
   def install_updates(url) do
     # Ignore the compiler warning here.
     # "I'll fix it later i promise" -- Connor Rigby
+    case Process.whereis(Downloader) do
+      pid when is_pid(pid) -> :ok
+      _ -> Downloader.start_link()
+    end
     path = Downloader.run(url, @path)
+    case File.stat(path) do
+      {:ok, file} ->
+        Logger.info "Found file: #{inspect file}"
+      e -> Logger.error "NO FILE: #{e}"
+    end
+    FS.transaction fn ->
+      Logger.info "Seting up post update!"
+      path = "#{FS.path()}/.post_update"
+      :ok = File.write(path, "DONT CAT ME\r\n")
+    end
     mod(@target).install(path)
     Farmbot.System.reboot()
   end
+
+  @spec post_install :: no_return
+  def post_install, do: mod(@target).post_install()
+
+  @callback install(binary) :: no_return
+  @callback post_install() :: no_return
 end
