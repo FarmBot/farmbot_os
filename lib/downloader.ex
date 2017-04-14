@@ -62,14 +62,9 @@ defmodule Downloader do
 
   @lint false
   def handle_info({:http, {_, :stream_start, headers}}, s) do
-    {_, content_length} =
-      headers
-      |> Enum.find(fn({key, _}) -> key == 'content-length' end)
-
-    {content_length, _} =
-      content_length
-      |> to_string()
-      |> Integer.parse()
+    #TODO This is sometimes nil
+    # Something about chunked transfer-encoding
+    content_length = maybe_content_length(headers)
 
     {_, filename} =
       headers
@@ -115,12 +110,37 @@ defmodule Downloader do
     GenServer.reply(state.caller, {:error, reason})
   end
 
+  def put_progress(size, nil) do
+    case rem(size, 2) do
+      0 ->
+        IO.write(:stderr, "\r|-=-=-=-=-=-=-=-=-=-=-=-=-| ---%")
+      _ ->
+        IO.write(:stderr, "\r|=-=-=-=-=-=-=-=-=-=-=-=-=| ---%")
+    end
+  end
+
   def put_progress(size, max) do
     fraction = (size / max)
     completed = trunc(fraction * @progress_steps)
     percent = trunc(fraction * 100)
     unfilled = @progress_steps - completed
     IO.write(:stderr, "\r|#{String.duplicate("=", completed)}#{String.duplicate(" ", unfilled)}| #{percent}% (#{bytes_to_mb(size)} / #{bytes_to_mb(max)}) MB")
+  end
+
+  defp maybe_content_length(headers) do
+    try do
+      {_, content_length} =
+        headers
+        |> Enum.find(fn({key, _}) -> key == 'content-length' end)
+
+      {content_length, _} =
+        content_length
+        |> to_string()
+        |> Integer.parse()
+      content_length
+    rescue
+      _ -> nil
+    end
   end
 
   defp start_httpc do
