@@ -1,5 +1,20 @@
 [![Build Status](https://travis-ci.org/FarmBot/farmbot_os.svg?branch=master)](https://travis-ci.org/FarmBot/farmbot_os.svg?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/FarmBot/farmbot_os/badge.svg)](https://coveralls.io/github/FarmBot/farmbot_os)
+---
+
+[comment]: <> (DONT CHANGE THE TEXT BELOW. It is used in documentation links.)
+# :floppy_disk: LATEST OS IMAGE DOWNLOADS
+[comment]: <> (DONT CHANGE THE TEXT ABOVE. It is used in documentation links.)
+
+|Raspbery Pi Version |
+|---|
+| :star: **[RPi V3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.2/farmbot-rpi3-3.1.2.img)**|
+|  [RPi V2](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.2/farmbot-rpi2-3.1.2.img) |
+|  [RPi 0, 1 and model B](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.2/farmbot-rpi-3.1.2.img) |
+|  [RPi 0w](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.2/farmbot-rpi0w-3.1.2.img) |
+
+
+---
 
 # Farmbot OS
 The "brains" of the Farmbot Project
