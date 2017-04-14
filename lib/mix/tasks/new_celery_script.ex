@@ -19,8 +19,8 @@ defmodule Mix.Tasks.Cs.New do
     if File.exists?(new_cs_path) do
       Mix.raise("#{new_cs} already exists!!!!")
     end
-    File.write new_cs_path, module_string
-    File.write new_cs_test_path, module_test_string
+    :ok = File.write new_cs_path, module_string
+    :ok = File.write new_cs_test_path, module_test_string
   end
 
   def run(_), do: Mix.raise("Unexpected args!")
