@@ -6,7 +6,7 @@
       color: true,
       files: %{
         included: ["lib/"],
-        excluded: ["lib/mix"]
+        excluded: ["lib/mix", "lib/downloader.ex"]
       }
     }
   ]

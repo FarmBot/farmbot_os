@@ -152,17 +152,6 @@ defmodule Farmbot.Serial.Handler do
     check_timeouts(state)
   end
 
-  defp check_timeouts(state) do
-    if state.timeouts > @max_timeouts do
-      IO.puts "reached max timeouts!"
-      :ok = UART.close(state.nerves)
-      Process.sleep(5000)
-      {:stop, :max_timeouts, state}
-    else
-      {:noreply, %{state | current: nil, timeouts: state.timeouts + 1}}
-    end
-  end
-
   def handle_info({:nerves_uart, tty, str}, state) when is_binary(str) do
     if tty == state.tty do
       IO.puts "Reading: #{str}"
@@ -271,6 +260,17 @@ defmodule Farmbot.Serial.Handler do
   defp handle_gcode(parsed) do
     Logger.warn "Unhandled message: #{inspect parsed}"
     {:reply, parsed}
+  end
+
+  defp check_timeouts(state) do
+    if state.timeouts > @max_timeouts do
+      IO.puts "reached max timeouts!"
+      :ok = UART.close(state.nerves)
+      Process.sleep(5000)
+      {:stop, :max_timeouts, state}
+    else
+      {:noreply, %{state | current: nil, timeouts: state.timeouts + 1}}
+    end
   end
 
   def flash_firmware(tty, hex_file, pid) do

@@ -14,13 +14,13 @@ defmodule Mix.Tasks.Cs.New do
       |> Macro.camelize
       |> build_test_module
 
-    new_cs_path = "lib/celery_script/commands/#{new_cs}.ex"
-    new_cs_test_path = "test/celery_script/commands/#{new_cs}_test.exs"
+    new_cs_path = "lib/farmbot/celery_script/commands/#{new_cs}.ex"
+    new_cs_test_path = "test/farmbot/celery_script/commands/#{new_cs}_test.exs"
     if File.exists?(new_cs_path) do
       Mix.raise("#{new_cs} already exists!!!!")
     end
-    File.write new_cs_path, module_string
-    File.write new_cs_test_path, module_test_string
+    :ok = File.write new_cs_path, module_string
+    :ok = File.write new_cs_test_path, module_test_string
   end
 
   def run(_), do: Mix.raise("Unexpected args!")

@@ -211,7 +211,7 @@ defmodule Farmbot.Mixfile do
 
         # {:nerves_firmware, "~> 0.3"},
         # {:nerves_firmware, path: "../nerves_firmware", override: true},
-        {:nerves_firmware, github: "ConnorRigby/nerves_firmware", override: true},
+        {:nerves_firmware, github: "nerves-project/nerves_firmware", override: true},
 
         {:nerves_ssdp_server, "~> 0.2.1"},
         ],

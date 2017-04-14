@@ -10,12 +10,12 @@ defmodule Farmbot.CeleryScript.Command.WritePin do
 
   @doc ~s"""
     writes an arduino pin
-    args: %{
-    pin_number: integer,
-    pin_mode: integer,
-    pin_value: integer
-    },
-    body: []
+      args: %{
+        pin_number: integer,
+        pin_mode: integer,
+        pin_value: integer
+      },
+      body: []
   """
   @spec run(%{pin_number: integer,
     pin_mode: Command.pin_mode,

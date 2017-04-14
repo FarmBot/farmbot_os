@@ -1,4 +1,2 @@
-*
-!.gitignore
-!nerves_system_*
+NERVES_SYSTEM_*
 nerves_system_br

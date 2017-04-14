@@ -7,14 +7,12 @@ defmodule Farmbot.Serial.Gcode.Parser do
 
   @spec parse_code(binary) :: {binary, tuple}
 
-  # / ???
   def parse_code("R00 Q" <> tag), do: {tag, :idle}
   def parse_code("R01 Q" <> tag), do: {tag, :received}
   def parse_code("R02 Q" <> tag), do: {tag, :done}
   def parse_code("R03 Q" <> tag), do: {tag, :error}
   def parse_code("R04 Q" <> tag), do: {tag, :busy}
 
-  # TODO(Connor) Fix these
   def parse_code("R05" <> _r), do: {nil, :dont_handle_me} # Dont care about this.
   def parse_code("R06 " <> r), do: parse_report_calibration(r)
 
@@ -263,7 +261,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(:movement_enable_endpoints_y), do: 26
   def parse_param(:movement_enable_endpoints_z), do: 27
 
-  def parse_param(:moevment_secondary_motor_x), do: 36
+  def parse_param(:movement_secondary_motor_x), do: 36
   def parse_param(:movement_secondary_motor_invert_x), do: 37
 
   def parse_param(:movement_steps_acc_dec_x), do: 41
@@ -329,9 +327,13 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(param_string) when is_bitstring(param_string),
     do: param_string |> String.to_atom |> parse_param
 
-  def parse_param(uhh) do
-    Logger.error("LOOK AT ME IM IMPORTANT: #{inspect uhh}")
-    nil
+  # derp.
+  if Mix.env == :dev do
+    def parse_param(uhh) do
+      Logger.error("LOOK AT ME IM IMPORTANT: #{inspect uhh}")
+      nil
+    end
+  else
+    def parse_param(_), do: nil
   end
-
 end
