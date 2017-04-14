@@ -8,13 +8,17 @@ defmodule Farmbot.CeleryScript.Command.Zero do
   @behaviour Command
 
   @doc ~s"""
-    Zero
-    args: %{axis: axis},
-    body: []
+    Set axis current position to "0":
+      args: %{axis: "x" | "y" | "z" | "all"}
+      body: []
   """
-  @spec run(%{axis: any}, []) :: no_return
-  def run(%{axis: _axis}, []) do
-    Logger.warn "ZERO IS TODO"
+  @spec run(%{axis: String.t}, []) :: no_return
+  @lint {Credo.Check.Refactor.PipeChainStart, false}
+  def run(%{axis: axis}, []) do
+    case axis do
+      "x" -> "F84 X1 Y0 Z0"
+      "y" -> "F84 X0 Y1 Z0"
+      "z" -> "F84 X0 Y0 Z1"
+    end |> UartHan.write
   end
-
 end
