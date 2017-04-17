@@ -88,6 +88,9 @@ defmodule Farmbot.SequenceRunner do
 
   @spec work(Ast.t, sequence_pid) :: :ok
   def work(ast, sequence) do
+    # This sleep makes sequences more stable and makes sure
+    # The bot was _actualy_ complete with the last command in real life.
+    Process.sleep(500)
     do_command(ast)
     GenServer.cast(sequence, :finished)
   end
