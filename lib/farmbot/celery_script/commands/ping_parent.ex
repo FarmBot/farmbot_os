@@ -15,9 +15,12 @@ defmodule Farmbot.CeleryScript.Command.PingParent do
     parent = context[:parent]
     if parent do
       :pong = Farmbot.SequenceRunner.call(parent, :ping)
+      IO.puts "Established communication with parent sequence: #{inspect parent}"
       Logger.debug "SUCCESS!!!!!"
+      :ok
     else
-      Logger.warn "THIS SEQUENCE HAS NO PARENT: #{inspect self()}"
+      IO.puts "This sequence has no parent. }"
+      :ok
     end
   end
 
