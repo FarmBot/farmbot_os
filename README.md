@@ -8,9 +8,9 @@
 
 |Raspbery Pi Version |
 |---|
-| :star: **[RPi V3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.2/farmbot-rpi3-3.1.2.img)**|
-|  [RPi V2](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.2/farmbot-rpi2-3.1.2.img) |
-|  [RPi 0, 1 and model B](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.2/farmbot-rpi-3.1.2.img) |
+| :star: **[RPi 3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.2/farmbot-rpi3-3.1.2.img)**|
+|  [RPi 2](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.2/farmbot-rpi2-3.1.2.img) |
+|  [RPi 0 and 1](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.2/farmbot-rpi-3.1.2.img) |
 |  [RPi 0w](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.2/farmbot-rpi0w-3.1.2.img) |
 
 
