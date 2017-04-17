@@ -58,22 +58,23 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
   @doc """
     Make sure we are at the correct position before moving on.
   """
+  def ensure_position(expected_x, expected_y, expected_z, retries \\ 0)
   def ensure_position(_,_,_, retries) when retries > 10 do
-    Logger.debug ">> Movement still not completed. Your bot might be stuck."
+    Logger.error ">> Movement still not completed. Your bot might be stuck."
     {:error, :not_moving}
   end
 
-  def ensure_position(expected_x, expected_y, expected_z, retries \\ 0) do
+  def ensure_position(expected_x, expected_y, expected_z, retries) do
     [cur_x, cur_y, cur_z] = Farmbot.BotState.get_current_pos
     if {expected_x, expected_y, expected_z} == {cur_x, cur_y, cur_z} do
-      Logger.debug ">> Completed movement: " <>
+      Logger.info ">> Completed movement: " <>
         "(#{expected_x}, #{expected_y}, #{expected_z})"
       :ok
     else
-      Logger.debug ">> Movement not complete: " <>
+      Logger.info ">> Movement not complete: " <>
         "(#{expected_x}, #{expected_y}, #{expected_z})"
       Process.sleep(500)
-      ensure_position(expected_x, expected_y, expected_z, retries + 1
+      ensure_position(expected_x, expected_y, expected_z, retries + 1)
     end
   end
 
