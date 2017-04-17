@@ -33,3 +33,18 @@
 * Syncing is now a multiple request action and is now much faster and safer.
 * change folder structure
 * begin adding redis support.
+
+# 3.0.8
+* Rewrite Serial handler and bundle FW into the OS.
+
+# 3.1.0
+* Fix a bug with unwanted Logs going to the frontend/backend.
+
+# 3.1.1
+* Bundle a new FW fixing z axis and gravity.
+
+# 3.1.2
+* Fix bug caused by Github changing their release api.
+
+# 3.1.2
+* Fix peripheral bug.
