@@ -3,7 +3,9 @@ defmodule Farmbot.System.NervesCommon.Updates do
     quote do
       @behaviour Farmbot.System.Updates
       require Logger
-      @expected_version "GENESIS V.01.08.EXPERIMENTAL"
+      
+      @expected_fw_version Application.get_env(Mix.Project.config[:app],
+        :expected_fw_version)
 
       def install(path), do: :ok = Nerves.Firmware.upgrade_and_finalize(path)
 
@@ -27,7 +29,7 @@ defmodule Farmbot.System.NervesCommon.Updates do
         :ok = blerp()
         r = Farmbot.Serial.Handler.write "F83"
         case r do
-          {:report_software_version, @expected_version} ->
+          {:report_software_version, @expected_fw_version} ->
             Logger.info "Firmware is already the correct version!"
             :ok
           _ ->

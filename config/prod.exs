@@ -1,14 +1,17 @@
 use Mix.Config
-config :farmbot,
+
+# Mix Configs
+app = Mix.Project.config[:app]
+
+config app,
   configurator_port: 80
 
-config :tzdata, :data_dir, "/tmp"
-config :tzdata, :autoupdate, :disabled
-
+# In production, we want a cron job for checking for updates.
 config :quantum, cron: [ "5 1 * * *": {Farmbot.System.Updates, :do_update_check}]
 
 config :nerves_interim_wifi, regulatory_domain: "US" #FIXME
 
+# Logger
 config :logger,
   backends: [
     :console,
