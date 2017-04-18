@@ -4,7 +4,7 @@ defmodule Downloader do
     from: https://github.com/nerves-project/nerves/blob/master/lib/nerves/utils/http_client.ex
   """
   use GenServer
-
+  require Logger
   @progress_steps 50
   @redirect_status_codes [301, 302, 303, 307, 308]
 
@@ -124,6 +124,7 @@ defmodule Downloader do
     completed = trunc(fraction * @progress_steps)
     percent = trunc(fraction * 100)
     unfilled = @progress_steps - completed
+    if rem(size, 10) == 0, do: Logger.info("Download: #{percent}%")
     IO.write(:stderr, "\r|#{String.duplicate("=", completed)}#{String.duplicate(" ", unfilled)}| #{percent}% (#{bytes_to_mb(size)} / #{bytes_to_mb(max)}) MB")
   end
 
