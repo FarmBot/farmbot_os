@@ -4,7 +4,7 @@ defmodule Farmbot.System.NervesCommon.Updates do
       @behaviour Farmbot.System.Updates
       require Logger
 
-      @expected_fw_version Application.get_all_env(:farmbot)[:expected_fw_version]
+      @exp_fw_version Application.get_all_env(:farmbot)[:expected_fw_version]
       def install(path), do: :ok = Nerves.Firmware.upgrade_and_finalize(path)
 
       defp blerp(tries \\ 0)
@@ -27,7 +27,7 @@ defmodule Farmbot.System.NervesCommon.Updates do
         :ok = blerp()
         r = Farmbot.Serial.Handler.write "F83"
         case r do
-          {:report_software_version, @expected_fw_version} ->
+          {:report_software_version, @exp_fw_version} ->
             Logger.info "Firmware is already the correct version!"
             :ok
           _ ->
