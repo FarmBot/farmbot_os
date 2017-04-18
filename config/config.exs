@@ -1,7 +1,10 @@
 use Mix.Config
 
+# Mix configs.
 target = Mix.Project.config[:target]
 env = Mix.env()
+
+# Transports
 mqtt_transport = Farmbot.Transport.GenMqtt
 redis_transport = Farmbot.Transport.Redis
 
@@ -19,6 +22,9 @@ config :farmbot, auth_callbacks: [mqtt_transport]
 # frontend <-> bot transports.
 config :farmbot, transports: [mqtt_transport, redis_transport]
 
+# bot <-> firmware transports.
+config :farmbot, expected_fw_version: "GENESIS V.01.07.EXPERIMENTAL"
+
 # give the ability to start a redis server instance in dev mode.
 config :farmbot, :redis,
   server: System.get_env("REDIS_SERVER") || false,
@@ -28,6 +34,7 @@ config :farmbot, :redis,
 config :tzdata, :data_dir, "/tmp"
 config :tzdata, :autoupdate, :disabled
 
+# Path for the `fs` module to watch.
 config :fs, path: "/tmp/images"
 
 # Import configuration specific to out environment.

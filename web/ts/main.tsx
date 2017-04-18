@@ -7,8 +7,6 @@ import { AdvancedSettings } from "./advanced_settings";
 import * as Select from "react-select";
 import * as _ from "lodash";
 
-let EXPECTED_FW_VERSION = "GENESIS V.01.07.EXPERIMENTAL"
-
 interface MainProps {
   mobx: MainState;
   ws: WebSocket;
@@ -73,7 +71,7 @@ export class Main extends React.Component<MainProps, FormState> {
       let doesntHaveCustomFW = !fullFile.hardware.custom_firmware;
 
       // check that the versions arent equal.
-      let fwVersionCheck = mainState.botStatus.informational_settings.firmware_version !== EXPECTED_FW_VERSION;
+      let fwVersionCheck = mainState.botStatus.informational_settings.firmware_version !== mainState.expected_fw_version;
       console.log("FINDME: " + fwVersionCheck);
       // try to flash the arduino
       if (doesntHaveCustomFW && fwVersionCheck) {
