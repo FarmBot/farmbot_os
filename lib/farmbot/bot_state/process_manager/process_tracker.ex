@@ -166,18 +166,18 @@ defmodule Farmbot.BotState.ProcessTracker do
     # I have to enumerate over all the processes "kind"s here...
     # this is the most javascript elixir i have ever wrote.
     # loop over all the keys
-    Enum.find_value(Map.from_struct(state), fn({_key, value} = stuff) ->
+    Enum.find_value(Map.from_struct(state), fn({key, value}) ->
         # loop over the values of those keys/kinds
         Enum.find_value(value, fn(info) ->
-          do_find(uuid, info, stuff)
+          do_find(uuid, info, key)
         end)
     end)
   end
 
-  defp do_find(uuid, info, stuff) do
+  defp do_find(uuid, info, key) do
     if uuid == info.uuid do
       # return the kind and the info
-      stuff
+      {key, info}
     else
       false
     end
