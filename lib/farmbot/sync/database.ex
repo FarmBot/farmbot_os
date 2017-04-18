@@ -116,15 +116,17 @@ defmodule Farmbot.Sync do
       _date_str ->
         out_of_sync = Farmbot.Sync.Cache.get_out_of_sync
         if Enum.empty?(out_of_sync) do
+          Logger.info ">> Cache empty. Doing full sync."
           sync_all()
         else
+          Logger.debug ">> Only syncing changed items."
           sync_some(out_of_sync)
         end
     end
   end
 
   @spec last_sync_path :: binary
-  defp last_sync_path, do: "#{Farmbot.System.FS.path()}/last_sync"
+  defp last_sync_path, do: "/tmp/last_sync"
 
   # Checks if this is the first sync or not.
   @spec check_last_sync() :: :no_last_sync | binary

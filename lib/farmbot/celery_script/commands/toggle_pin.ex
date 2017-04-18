@@ -6,7 +6,7 @@ defmodule Farmbot.CeleryScript.Command.TogglePin do
   alias Farmbot.CeleryScript.Command
   @behaviour Command
   @digital 0
-  @pwm 1
+  # @pwm 1
   import Command, [only: [write_pin: 2]]
 
   @doc ~s"""

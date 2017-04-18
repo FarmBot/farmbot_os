@@ -22,15 +22,14 @@ defmodule Farmbot.RegimenRunner do
   require Logger
 
   def start_link(regimen, time) do
-    GenServer.start_link(__MODULE__, [regimen, time], name: :"regimen-#{regimen.id}")
+    GenServer.start_link(__MODULE__,
+      [regimen, time],
+      name: :"regimen-#{regimen.id}")
   end
 
-  @lint false
   def init([regimen, time]) do
     # parse and sort the regimen items
-    items = regimen.regimen_items
-      |> Enum.map(&Item.parse(&1))
-      |> Enum.sort(&(&1.time_offset <= &2.time_offset))
+    items = filter_items(regimen)
     first_item = List.first(items)
 
     if first_item do
@@ -41,7 +40,12 @@ defmodule Farmbot.RegimenRunner do
       Logger.info "your fist item will execute on #{timestr}"
       millisecond_offset = Timex.diff(first_dt, Timex.now(), :milliseconds)
       Process.send_after(self(), :execute, millisecond_offset)
-      {:ok, %{epoch: epoch, regimen: %{regimen | regimen_items: items}, next_execution: first_dt}}
+      next = %{
+        epoch: epoch,
+        regimen: %{regimen | regimen_items: items},
+        next_execution: first_dt
+      }
+      {:ok, next}
     else
       Logger.warn ">> no items on regimen: #{regimen.name}"
       {:ok, %{}}
@@ -50,26 +54,35 @@ defmodule Farmbot.RegimenRunner do
 
   def handle_call(:get_state, _from, state), do: {:reply, state, state}
 
-  @lint false
   def handle_info(:execute, state) do
     {item, regimen} = pop_item(state.regimen)
     if item do
-      Farmbot.CeleryScript.Command.do_command(item)
-      next_item = List.first(regimen.regimen_items)
-      if next_item do
-        next_dt = Timex.shift(state.epoch, milliseconds: next_item.time_offset)
-        timestr = "#{next_dt.month}/#{next_dt.day}/#{next_dt.year} at: #{next_dt.hour}:#{next_dt.minute}"
-        Logger.info "your next item will execute on #{timestr}"
-        millisecond_offset = Timex.diff(next_dt, Timex.now(), :milliseconds)
-        Process.send_after(self(), :execute, millisecond_offset)
-        {:ok, %{state | regimen: regimen, next_execution: next_dt}}
-      else
-        Logger.info ">> #{regimen.name} is complete!"
-        spawn fn() ->
-          RegSup.remove_child(regimen)
-        end
-        {:noreply, :finished}
+      do_item(item, regimen, state)
+    else
+      Logger.info ">> #{regimen.name} is complete!"
+      spawn fn() ->
+        RegSup.remove_child(regimen)
       end
+      {:noreply, :finished}
+    end
+  end
+
+  defp filter_items(regimen) do
+    regimen.regimen_items
+      |> Enum.map(&Item.parse(&1))
+      |> Enum.sort(&(&1.time_offset <= &2.time_offset))
+  end
+
+  defp do_item(item, regimen, state) do
+    Farmbot.CeleryScript.Command.do_command(item)
+    next_item = List.first(regimen.regimen_items)
+    if next_item do
+      next_dt = Timex.shift(state.epoch, milliseconds: next_item.time_offset)
+      timestr = "#{next_dt.month}/#{next_dt.day}/#{next_dt.year} at: #{next_dt.hour}:#{next_dt.minute}"
+      Logger.info "your next item will execute on #{timestr}"
+      millisecond_offset = Timex.diff(next_dt, Timex.now(), :milliseconds)
+      Process.send_after(self(), :execute, millisecond_offset)
+      {:ok, %{state | regimen: regimen, next_execution: next_dt}}
     else
       Logger.info ">> #{regimen.name} is complete!"
       spawn fn() ->

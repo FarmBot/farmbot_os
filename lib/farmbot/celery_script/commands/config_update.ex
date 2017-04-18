@@ -15,7 +15,6 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
       args: %{package: String.t},
       body: [Ast.t]
   """
-  @lint false
   @spec run(%{package: Command.package}, [Command.pair]) :: no_return
   def run(%{package: "arduino_firmware"}, config_pairs) do
     # check the version to make sure we have a good connection to the firmware
@@ -32,7 +31,8 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
     Enum.reduce(params, 0, fn(pair, count) ->
       do_update_param(pair)
       count = count + 1
-      percent = ((count / total_count) * 100) |> trunc
+      percent = ((count / total_count) * 100)
+      percent = trunc(percent)
       if rem(percent, 10) == 0 do
         IO.puts "CONFIG UPDATE: #{percent}%"
       end
@@ -82,4 +82,3 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
   end
 
 end
-#C.config_update %{package: "arduino_firmware"}, [pair, pair2]

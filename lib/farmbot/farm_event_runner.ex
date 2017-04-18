@@ -145,7 +145,6 @@ defmodule Farmbot.FarmEventRunner do
   end
 
   # we are started, not finished, and no last time
-  @lint false
   defp should_run?(true, false, calendar, last_time, now) do
     # IO.puts "calendar size: #{Enum.count(calendar)}"
     # IEx.pry
@@ -156,21 +155,13 @@ defmodule Farmbot.FarmEventRunner do
       Timex.after?(dt, last_time)
     end)
 
-    _f = Enum.map(calendar, fn(item) -> Timex.parse!(item, "{ISO:Extended}") |> Timex.format!("{relative}", :relative) end)
+    _f = Enum.map(calendar, fn(item) ->
+      item
+      |> Timex.parse!("{ISO:Extended}")
+      |> Timex.format!("{relative}", :relative)
+    end)
 
-
-    # DEBUG
-    now_str = now |> Timex.format!("{relative}", :relative)
-    last_time_str = if(last_time) do Timex.format!(last_time, "{relative}", :relative) else "none" end
-    c_item = List.first(calendar)
-    maybe_next_str = if(c_item) do Timex.parse!(c_item, "{ISO:Extended}") |> Timex.format!("{relative}", :relative) else "none" end
-    IO.puts "== NOW: #{inspect now_str}"
-    IO.puts "== LAST: #{inspect last_time_str}"
-    IO.puts "== MAYBE NEXT: #{inspect maybe_next_str}"
-    IO.puts "== #{Enum.count calendar} events are scheduled to happend after: #{inspect last_time_str}\n"
-    # IO.puts "new calendar size: #{Enum.count(calendar)}"
-
-    # DEBUG
+    print_debug_info(last_time, now, calendar)
 
     case calendar do
       [iso_time |  _] ->
@@ -180,21 +171,45 @@ defmodule Farmbot.FarmEventRunner do
     end
   end
 
-  # THANKS AMNESIA
-  @lint false
+  defp print_debug_info(last_time, now, calendar) do
+    now_str = now |> Timex.format!("{relative}", :relative)
+    last_time_str = get_last_time_str(last_time)
+    c_item = List.first(calendar)
+    get_next_str(c_item)
+
+    maybe_next_str =
+    IO.puts "== NOW: #{inspect now_str}"
+    IO.puts "== LAST: #{inspect last_time_str}"
+    IO.puts "== MAYBE NEXT: #{inspect maybe_next_str}"
+    IO.puts "== #{Enum.count calendar} events are scheduled to happend after: #{inspect last_time_str}\n"
+    # IO.puts "new calendar size: #{Enum.count(calendar)}"
+  end
+
+  defp get_last_time_str(nil), do: "none"
+  defp get_last_time_str(last_time) do
+    Timex.format!(last_time, "{relative}", :relative)
+  end
+
+  defp get_next_str(nil), do: "none"
+  defp get_next_str(c_item) do
+    c_item
+    |> Timex.parse!("{ISO:Extended}")
+    |> Timex.format!("{relative}", :relative)
+  end
+
   @spec lookup(Sequence | Regimen, integer) :: Sequence.t | Regimen.t
   defp lookup(Sequence, sr_id) do
     [item] = Amnesia.transaction do
-      Sequence.where(id == sr_id)
-      |> Amnesia.Selection.values
+      f = Sequence.where(id == sr_id)
+      Amnesia.Selection.values(f)
     end
     item
   end
 
   defp lookup(Regimen, sr_id) do
     [item] = Amnesia.transaction do
-      Regimen.where(id == sr_id)
-      |> Amnesia.Selection.values
+      f = Regimen.where(id == sr_id)
+      Amnesia.Selection.values(f)
     end
     item
   end

@@ -101,7 +101,6 @@ defmodule Logger.Backends.FarmbotLogger do
   def handle_call(:get_state, state), do: {:ok, state, state}
 
   @spec do_post([log_message]) :: no_return
-  @lint false
   defp do_post(logs) do
     try do
       HTTP.post!("/api/logs", Poison.encode!(logs))
@@ -184,7 +183,6 @@ defmodule Logger.Backends.FarmbotLogger do
   for module <- @modules, do: defp filter_module(_, unquote(module)), do: @filtered
   defp filter_module(message, _module), do: message
 
-  @lint false
   defp filter_text(">>" <> m), do: filter_text("#{Sync.device_name()}" <> m)
   defp filter_text(m) when is_binary(m) do
     try do

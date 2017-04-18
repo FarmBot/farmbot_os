@@ -19,7 +19,6 @@ defmodule Farmbot.SysFormatter do
     Logger.level, Logger.message, Logger.Formatter.time,
     Keyword.t, list(atom)) :: IO.chardata
 
-  @lint false
   def format(format, level, msg, timestamp, metadata, config_metadata) do
     metadata = metadata |> Keyword.take(config_metadata)
 
@@ -28,7 +27,6 @@ defmodule Farmbot.SysFormatter do
       |> try_string()
   end
 
-  @lint false
   defp try_string(stuff) do
     try do
       to_string(stuff)

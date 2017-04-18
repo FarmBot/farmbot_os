@@ -6,7 +6,7 @@ defmodule Farmbot.Transport do
   """
   use GenStage
   require Logger
-  use Counter, __MODULE__
+
   # The max number of state updates before we force one
   @max_inactive_count 100
 
@@ -34,14 +34,12 @@ defmodule Farmbot.Transport do
 
   def start_link, do: GenStage.start_link(__MODULE__, [], name: __MODULE__)
 
-  def init([]), do: {:producer_consumer, %Serialized{}, subscribe_to: [Monitor]}
+  def init([]),
+    do: {:producer_consumer, {%Serialized{}, 0}, subscribe_to: [Monitor]}
 
-  def handle_call(:get_state, _from, state), do: {:reply, state, [], state}
-
-  def handle_call(:force_state_push, _from, state) do
-    reset_count()
-    GenStage.async_notify(__MODULE__, {:status, state})
-    {:reply, state, [], state}
+  def handle_call(:force_state_push, _from, {status, _}) do
+    GenStage.async_notify(__MODULE__, {:status, status})
+    {:reply, status, [], {status, 0}}
   end
 
   def handle_events(events, _from, state) do
@@ -87,16 +85,13 @@ defmodule Farmbot.Transport do
     {:noreply, [], state}
   end
 
-  def handle_info({_from, %MonState{} = monstate}, old_state) do
-    new_state = translate(monstate)
-    if (old_state == new_state) && (get_count() < @max_inactive_count) do
-      inc_count()
-      {:noreply, [], old_state}
+  def handle_info({_from, %MonState{} = monstate}, {old_status, count}) do
+    new_status = translate(monstate)
+    if (old_status == new_status) && (count < @max_inactive_count) do
+      {:noreply, [], {old_status, count + 1}}
     else
-      # dec_count() # HACK(Connor) Dialyzer hack
-      reset_count()
-      GenStage.async_notify(__MODULE__, {:status, new_state})
-      {:noreply, [], new_state}
+      GenStage.async_notify(__MODULE__, {:status, new_status})
+      {:noreply, [], {new_status, 0}}
     end
   end
 
@@ -113,12 +108,6 @@ defmodule Farmbot.Transport do
   """
   @spec log(any) :: no_return
   def log(message), do: GenStage.cast(__MODULE__, {:log, message})
-
-  @doc """
-    Get the state
-  """
-  @spec get_state :: State.t
-  def get_state, do: GenServer.call(__MODULE__, :get_state)
 
   @doc """
     Force a state push

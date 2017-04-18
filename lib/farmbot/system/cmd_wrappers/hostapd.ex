@@ -31,16 +31,7 @@ defmodule Farmbot.System.Network.Hostapd do
           name: name)
   end
 
-  # Don't lint this. Its not too complex credo.
-  # No but really TODO: make this a little less complex.
-  @doc false
-  @lint false
-  def init([interface: interface, ip_address: ip_addr, manager: manager]) do
-    Logger.info ">> is starting hostapd on #{interface}"
-    # We want to know if something does.
-    Process.flag :trap_exit, true
-    # ip_addr = @ip_addr
-
+  defp setup_hostapd(interface, ip_addr) do
     # HOSTAPD
     # Make sure the interface is in proper condition.
     :ok = hostapd_ip_settings_up(interface, ip_addr)
@@ -51,11 +42,14 @@ defmodule Farmbot.System.Network.Hostapd do
     File.write! "/tmp/hostapd/#{@hostapd_conf_file}", hostapd_conf
     hostapd_cmd = "hostapd -P /tmp/hostapd/#{@hostapd_pid_file} " <>
                   "/tmp/hostapd/#{@hostapd_conf_file}"
+
     hostapd_port = Port.open({:spawn, hostapd_cmd}, [:binary])
-    hostapd_os_pid = Port.info(hostapd_port) |> Keyword.get(:os_pid)
+    hostapd_os_pid = hostapd_port|> Port.info() |> Keyword.get(:os_pid)
+    {hostapd_port, hostapd_os_pid}
+  end
 
+  defp setup_dnsmasq(ip_addr) do
     # DNSMASQ
-
     dnsmasq_conf = build_dnsmasq_conf(ip_addr)
     File.mkdir!("/tmp/dnsmasq")
     :ok = File.write("/tmp/dnsmasq/#{@dnsmasq_conf_file}", dnsmasq_conf)
@@ -63,37 +57,47 @@ defmodule Farmbot.System.Network.Hostapd do
                   "/tmp/dnsmasq/#{@dnsmasq_pid_file} " <>
                   "--conf-dir=/tmp/dnsmasq"
     dnsmasq_port = Port.open({:spawn, dnsmasq_cmd}, [:binary])
-    dnsmasq_os_pid = Port.info(dnsmasq_port) |> Keyword.get(:os_pid)
+    dnsmasq_os_pid = dnsmasq_port|> Port.info() |> Keyword.get(:os_pid)
+    {dnsmasq_port, dnsmasq_os_pid}
+  end
 
-    state =  %State{hostapd: {hostapd_port, hostapd_os_pid},
-                    dnsmasq: {dnsmasq_port, dnsmasq_os_pid},
-                    interface: interface,
-                    ip_addr: ip_addr,
-                    manager: manager}
+  def init([interface: interface, ip_address: ip_addr, manager: manager]) do
+    Logger.info ">> is starting hostapd on #{interface}"
+    # We want to know if something does.
+    Process.flag :trap_exit, true
+
+    {hostapd_port, hostapd_os_pid} = setup_hostapd(interface, ip_addr)
+    {dnsmasq_port, dnsmasq_os_pid} = setup_dnsmasq(ip_addr)
+
+    state =  %State{
+      hostapd: {hostapd_port, hostapd_os_pid},
+      dnsmasq: {dnsmasq_port, dnsmasq_os_pid},
+      interface: interface,
+      ip_addr: ip_addr,
+      manager: manager
+    }
     {:ok,state}
   end
 
-  @lint false # don't lint this because piping System.cmd looks weird to me.
   defp hostapd_ip_settings_up(interface, ip_addr) do
     :ok =
-      System.cmd("ip", ["link", "set", "#{interface}", "up"])
+      "ip" |> System.cmd(["link", "set", "#{interface}", "up"])
       |> print_cmd
     :ok =
-      System.cmd("ip", ["addr", "add", "#{ip_addr}/24", "dev", "#{interface}"])
+      "ip" |> System.cmd(["addr", "add", "#{ip_addr}/24", "dev", "#{interface}"])
       |> print_cmd
     :ok
   end
 
-  @lint false # don't lint this because piping System.cmd looks weird to me.
   defp hostapd_ip_settings_down(interface, ip_addr) do
     :ok =
-      System.cmd("ip", ["link", "set", "#{interface}", "down"])
+      "ip" |> System.cmd(["link", "set", "#{interface}", "down"])
       |> print_cmd
     :ok =
-      System.cmd("ip", ["addr", "del", "#{ip_addr}/24", "dev", "#{interface}"])
+      "ip" |> System.cmd(["addr", "del", "#{ip_addr}/24", "dev", "#{interface}"])
       |> print_cmd
     :ok =
-      System.cmd("ip", ["link", "set", "#{interface}", "up"])
+      "ip" |> System.cmd(["link", "set", "#{interface}", "up"])
       |> print_cmd
     :ok
   end
@@ -134,9 +138,8 @@ defmodule Farmbot.System.Network.Hostapd do
     """
   end
 
-  @lint false # don't lint this because piping System.cmd looks weird to me.
   defp kill(os_pid),
-    do: :ok = System.cmd("kill", ["15", "#{os_pid}"]) |> print_cmd
+    do: :ok = "kill" |> System.cmd(["15", "#{os_pid}"]) |> print_cmd
 
   defp print_cmd({_, 0}), do: :ok
   defp print_cmd({res, num}) do

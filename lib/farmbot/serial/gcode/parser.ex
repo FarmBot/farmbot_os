@@ -50,7 +50,6 @@ defmodule Farmbot.Serial.Gcode.Parser do
       iex> Gcode.parse_report_current_position("X34 Y756 Z23")
       {:report_current_position, 34, 756, 23, "0"}
   """
-  @lint false
   @spec parse_report_current_position(binary)
   :: {binary, {:report_current_position, binary, binary, binary}}
   def parse_report_current_position(position) when is_bitstring(position),
@@ -109,14 +108,12 @@ defmodule Farmbot.Serial.Gcode.Parser do
       iex> Gcode.parse_pvq("P20 V100 Q12", :report_parameter_value)
       {:report_parameter_value, "20" ,"100", "12"}
   """
-  @lint false
   @spec parse_pvq(binary, :report_parameter_value)
   :: {:report_parameter_value, atom, integer, String.t}
   def parse_pvq(params, :report_parameter_value)
   when is_bitstring(params),
     do: params |> String.split(" ") |> do_parse_params
 
-  @lint false
   def parse_pvq(params, human_readable_param_name)
   when is_bitstring(params)
    and is_atom(human_readable_param_name),
@@ -239,7 +236,6 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param("221"), do: :pin_guard_5_pin_nr
   def parse_param("222"), do: :pin_guard_5_time_out
   def parse_param("223"), do: :pin_guard_5_active_state
-  @lint false
   def parse_param(param) when is_integer(param), do: parse_param("#{param}")
 
   @spec parse_param(atom) :: integer | nil

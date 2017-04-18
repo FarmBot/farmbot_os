@@ -60,7 +60,6 @@ defmodule Downloader do
     {:noreply, %{s | url: url, caller: from}}
   end
 
-  @lint false
   def handle_info({:http, {_, :stream_start, headers}}, s) do
     #TODO This is sometimes nil
     # Something about chunked transfer-encoding
