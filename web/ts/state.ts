@@ -41,6 +41,7 @@ export class MainState {
     /** are we connected to the bot. */
     @observable connected = false;
     @observable possibleInterfaces: string[] = [];
+    @observable expected_fw_version: undefined | string;
 
     /** The current state. if we care about such a thing. */
     @observable botStatus: BotStateTree = {
@@ -153,6 +154,10 @@ export class MainState {
         return Axios.post("/api/flash_firmware");
     }
 
+    getExpectedFWVersion() {
+        return Axios.get("/api/firmware/expected_version");
+    }
+
     enumerateInterfaces() {
         Axios.get("/api/network/interfaces")
             .then(this.enumerateInterfacesOK.bind(this))
@@ -198,18 +203,33 @@ export class MainState {
         this.connected = bool;
         let that = this;
         if (bool) {
-            Axios.get("/api/config").then((thing) => {
-                that.replaceConfig(thing.data as BotConfigFile);
-            }).catch((thing) => {
-                console.dir(thing);
-                console.warn("Couldn't parse current config????");
-                return;
-            });
+            Axios.get("/api/config")
+                .then((thing) => {
+                    that.replaceConfig(thing.data as BotConfigFile);
+                })
+                .catch((thing) => {
+                    console.dir(thing);
+                    console.warn("Couldn't parse current config????");
+                    return;
+                });
+
+            Axios.get("/api/firmware/expected_version")
+                .then((success) => {
+                    console.log("Got expected fw version: " + success.data);
+                    that.setExpected_fw((success.data as string));
+                })
+                .catch((e) => {
+                    console.error("ERROR getting expected fw version: " + e);
+                })
             if (this.configuration.network) {
                 console.log("Getting network information");
-
             }
         }
+    }
+
+    @action
+    setExpected_fw(version: string) {
+        this.expected_fw_version = version
     }
 
     @action

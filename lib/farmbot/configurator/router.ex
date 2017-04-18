@@ -6,13 +6,16 @@ defmodule Farmbot.Configurator.Router do
   alias Farmbot.System.Network, as: NetMan
   require Logger
 
+  # max length of a uploaded file.
+  @max_length 111_409_842
+  @expected_fw_version Application.get_all_env(:farmbot)[:expected_fw_version]
+
   use Plug.Router
   plug Plug.Logger
   # this is so we can serve the bundle.js file.
   plug Plug.Static, at: "/", from: :farmbot
   plug Plug.Static, at: "/image", from: "/tmp/images", gzip: false
 
-  @max_length 111_409_842
   plug Plug.Parsers, parsers:
     [:urlencoded, :multipart, :json], json_decoder: Poison, length: @max_length
   plug :match
@@ -30,118 +33,7 @@ defmodule Farmbot.Configurator.Router do
     |> send_resp(302, "OK")
   end
 
-  get "/api/ping" do
-    conn |> send_resp(200, "PONG")
-  end
-
-  get "/api/token" do
-    {:ok, token} = Farmbot.Auth.get_token()
-    conn |> make_json |> send_resp(200, Poison.encode!(token))
-  end
-
-  get "/api/config" do
-    # Already in json form.
-    {:ok, config} = ConfigStorage.read_config_file
-    conn |> send_resp(200, config)
-  end
-
-  post "/api/config" do
-    Logger.info ">> router got config json"
-    {:ok, _body, conn} = read_body(conn)
-    ConfigStorage.replace_config_file(conn.body_params)
-    conn |> send_resp(200, "OK")
-  end
-
-  get "/api/disable_fw_signing" do
-    Logger.info "DISABLING FW SIGNING!!!"
-    Application.put_env(:nerves_firmware, :pub_key_path, nil)
-    conn |> send_resp(200, "OK")
-  end
-
-  get "/api/ace/*code" do
-    [code] = code
-    Logger.info "executing: #{inspect code}"
-    # conn |> send_resp(200, code)
-    r = Code.eval_string(code)
-    conn |> send_resp(200, "#{inspect r}")
-  end
-
-  post "/api/config/creds" do
-    Logger.info ">> router got credentials"
-    {:ok, _body, conn} = read_body(conn)
-
-    %{"email" => email,"pass" => pass,"server" => server} = conn.body_params
-    Farmbot.Auth.interim(email, pass, server)
-    conn |> send_resp(200, "OK")
-  end
-
-  post "/api/network/scan" do
-    {:ok, _body, conn} = read_body(conn)
-    %{"iface" => iface} = conn.body_params
-    scan = NetMan.scan(iface)
-    case scan do
-      {:error, reason} -> conn |> send_resp(500, "could not scan: #{inspect reason}")
-      ssids -> conn |> send_resp(200, Poison.encode!(ssids))
-    end
-  end
-
-  get "/api/network/interfaces" do
-    blah = Farmbot.System.Network.enumerate
-    case Poison.encode(blah) do
-      {:ok, interfaces} ->
-        conn |> send_resp(200, interfaces)
-      {:error, reason} ->
-        conn |> send_resp(500, "could not enumerate interfaces: #{inspect reason}")
-      error ->
-        conn |> send_resp(500, "could not enumerate interfaces: #{inspect error}")
-    end
-  end
-
-  post "/api/factory_reset" do
-    Logger.info "goodbye."
-    spawn fn() ->
-      # sleep to allow the request to finish.
-      Process.sleep(100)
-      Farmbot.System.factory_reset
-    end
-    conn |> send_resp(204, "GoodByeWorld!")
-  end
-
-  post "/api/try_log_in" do
-    Logger.info "Trying to log in. "
-    spawn fn() ->
-      # sleep to allow the request to finish.
-      Process.sleep(100)
-
-      # restart network.
-      # not going to bother checking if it worked or not, (at least until i
-      # reimplement networking) because its so fragile.
-      Farmbot.System.Network.restart
-    end
-    conn |> send_resp(200, "OK")
-  end
-
-  get "/api/logs" do
-    logs = GenEvent.call(Logger, Logger.Backends.FarmbotLogger, :messages)
-    only_messages = Enum.map(logs, fn(log) ->
-      log.message
-    end)
-
-    json = Poison.encode!(only_messages)
-    conn |> make_json |> send_resp(200, json)
-  end
-
-  get "/api/state" do
-    Farmbot.BotState.Monitor.get_state
-     state = Farmbot.Transport.get_state
-     json = Poison.encode!(state)
-     conn |> make_json |> send_resp(200, json)
-  end
-
-  post "/api/flash_firmware" do
-    "#{:code.priv_dir(:farmbot)}/firmware.hex" |> handle_arduino(conn)
-  end
-
+  # Arduino-FW or FBOS Upload form.
   get "/firmware/upload" do
     html = ~s"""
     <html>
@@ -159,8 +51,134 @@ defmodule Farmbot.Configurator.Router do
     conn |> send_resp(200, html)
   end
 
+  # REST API
+
+  # Ping. You know.
+  get "/api/ping" do
+    conn |> send_resp(200, "PONG")
+  end
+
+  if Mix.env() == :dev do
+    # Get the current login token. DEV ONLY
+    get "/api/token" do
+      {:ok, token} = Farmbot.Auth.get_token()
+      conn |> make_json |> send_resp(200, Poison.encode!(token))
+    end
+
+    # Disable FW signing.
+    get "/api/disable_fw_signing" do
+      Logger.info "DISABLING FW SIGNING!!!"
+      Application.put_env(:nerves_firmware, :pub_key_path, nil)
+      conn |> send_resp(200, "OK")
+    end
+  end
+
+  ## CONFIG/AUTH
+
+  # Get the json config file
+  get "/api/config" do
+    # Already in json form.
+    {:ok, config} = ConfigStorage.read_config_file
+    conn |> send_resp(200, config)
+  end
+
+  # Post a new json config file. (from configurator)
+  post "/api/config" do
+    Logger.info ">> router got config json"
+    {:ok, _body, conn} = read_body(conn)
+    ConfigStorage.replace_config_file(conn.body_params)
+    conn |> send_resp(200, "OK")
+  end
+
+  # Interim credentials.
+  post "/api/config/creds" do
+    Logger.info ">> router got credentials"
+    {:ok, _body, conn} = read_body(conn)
+
+    %{"email" => email,"pass" => pass,"server" => server} = conn.body_params
+    Farmbot.Auth.interim(email, pass, server)
+    conn |> send_resp(200, "OK")
+  end
+
+  # Try to log in with interim creds + config.
+  post "/api/try_log_in" do
+    Logger.info "Trying to log in. "
+    spawn fn() ->
+      # sleep to allow the request to finish.
+      Process.sleep(100)
+
+      # restart network.
+      # not going to bother checking if it worked or not, (at least until i
+      # reimplement networking) because its so fragile.
+      Farmbot.System.Network.restart
+    end
+    conn |> send_resp(200, "OK")
+  end
+
+  ## NETWORK
+
+  # Scan for wireless networks.
+  post "/api/network/scan" do
+    {:ok, _body, conn} = read_body(conn)
+    %{"iface" => iface} = conn.body_params
+    scan = NetMan.scan(iface)
+    case scan do
+      {:error, reason} -> conn |> send_resp(500, "could not scan: #{inspect reason}")
+      ssids -> conn |> send_resp(200, Poison.encode!(ssids))
+    end
+  end
+
+  # Configured network Interfaces.
+  get "/api/network/interfaces" do
+    blah = Farmbot.System.Network.enumerate
+    case Poison.encode(blah) do
+      {:ok, interfaces} ->
+        conn |> send_resp(200, interfaces)
+      {:error, reason} ->
+        conn |> send_resp(500, "could not enumerate interfaces: #{inspect reason}")
+      error ->
+        conn |> send_resp(500, "could not enumerate interfaces: #{inspect error}")
+    end
+  end
+
+  ## STATE PARTS.
+
+  # Log messages.
+  get "/api/logs" do
+    logs = GenEvent.call(Logger, Logger.Backends.FarmbotLogger, :messages)
+    only_messages = Enum.map(logs, fn(log) ->
+      log.message
+    end)
+
+    json = Poison.encode!(only_messages)
+    conn |> make_json |> send_resp(200, json)
+  end
+
+  # Full state tree.
+  get "/api/state" do
+    Farmbot.BotState.Monitor.get_state
+     state = Farmbot.Transport.get_state
+     json = Poison.encode!(state)
+     conn |> make_json |> send_resp(200, json)
+  end
+
+  # Factory Reset bot.
+  post "/api/factory_reset" do
+    Logger.info "goodbye."
+    spawn fn() ->
+      # sleep to allow the request to finish.
+      Process.sleep(100)
+      Farmbot.System.factory_reset
+    end
+    conn |> send_resp(204, "GoodByeWorld!")
+  end
+
+  ## FIRMWARE
+
+  # FW upload.
   post "/api/upload_firmware" do
-    {:ok, _body, conn} = Plug.Conn.read_body(conn, length: @max_length)
+    ml = @max_length
+    {:ok, _body, conn} = Plug.Conn.read_body(conn, length: ml)
     %{"firmware" => upload} = conn.body_params
     file = upload.path
     case Path.extname(upload.filename) do
@@ -174,8 +192,20 @@ defmodule Farmbot.Configurator.Router do
     end
   end
 
+  # Flash fw that was bundled with the bot.
+  post "/api/flash_firmware" do
+    "#{:code.priv_dir(:farmbot)}/firmware.hex" |> handle_arduino(conn)
+  end
+
+  get "/api/firmware/expected_version" do
+    v = @expected_fw_version
+    conn |> send_resp(200, v)
+  end
+
   # anything that doesn't match a rest end point gets the index.
   match _, do: conn |> send_resp(404, "not found")
+
+  ## PRIVATE.
 
   defp make_json(conn), do: conn |> put_resp_content_type("application/json")
 

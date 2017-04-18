@@ -3,10 +3,8 @@ defmodule Farmbot.System.NervesCommon.Updates do
     quote do
       @behaviour Farmbot.System.Updates
       require Logger
-      
-      @expected_fw_version Application.get_env(Mix.Project.config[:app],
-        :expected_fw_version)
 
+      @expected_fw_version Application.get_all_env(:farmbot)[:expected_fw_version]
       def install(path), do: :ok = Nerves.Firmware.upgrade_and_finalize(path)
 
       defp blerp(tries \\ 0)
