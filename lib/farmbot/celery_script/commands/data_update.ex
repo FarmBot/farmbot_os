@@ -23,12 +23,14 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
   @type syncable :: :sequence | :regimen | :farm_event | :point
   @type verb :: :updated | :deleted
 
-  @spec parse_pairs([Pair.t]) :: [sync_cache_map]
-  defp parse_pairs(pairs) do
-    Enum.map(pairs, fn(%{args: %{label: syncable, value: number_or_wc}}) ->
-      %{syncable: parse_syncable_str(syncable),
-        value: parse_val_str(number_or_wc)}
-    end)
+  @spec parse_pairs([Pair.t], [sync_cache_map]) :: [sync_cache_map]
+  defp parse_pairs(pairs, acc \\ [])
+  defp parse_pairs([], acc), do: acc
+  defp parse_pairs([%{args: %{label: s, value: nowc}} | rest], acc) do
+    syncable = s |> parse_syncable_str()
+    value = nowc |> parse_val_str()
+    item = %{syncable: syncable, value: value}
+    parse_pairs(rest, [item | acc])
   end
 
   @spec parse_syncable_str(binary) :: syncable
@@ -39,5 +41,6 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
   defp parse_val_str(number), do: String.to_integer(number)
 
   @spec parse_verb_str(binary) :: verb
-  defp parse_verb_str(verb), do: String.to_atom(verb)
+  defp parse_verb_str("updated"), do: :updated
+  defp parse_verb_str("deleted"), do: :deleted
 end

@@ -31,9 +31,9 @@ defmodule Farmbot.Sync.Cache do
    @doc """
    Gets the state
    """
-   @spec get_state :: state
-   def get_state do
-     GenServer.call(__MODULE__, :get_state)
+   @spec get_out_of_sync :: state
+   def get_out_of_sync do
+     GenServer.call(__MODULE__, :get_out_of_sync)
    end
 
    @doc """
@@ -42,7 +42,7 @@ defmodule Farmbot.Sync.Cache do
    @spec clear :: :ok | no_return
    def clear, do: GenServer.call(__MODULE__, :clear)
 
-   def handle_call(:get_state, _, state), do: {:reply, state, state}
+   def handle_call(:get_out_of_sync, _, state), do: {:reply, state, state}
 
    def handle_call(:clear, _from, _state) do
      {:reply, :ok, %{}}

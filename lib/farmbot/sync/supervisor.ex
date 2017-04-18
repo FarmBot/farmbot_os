@@ -15,7 +15,7 @@ defmodule Farmbot.Sync.Supervisor do
     children = [
       worker(Farmbot.Sync.EventManager, [], [restart: :permanent]),
       worker(Farmbot.Sync.Cache, [], [restart: :permanent])
-      ] ++ build_children()
+    ] ++ build_children()
     opts = [strategy: :one_for_one]
     supervise(children, opts)
   end
