@@ -1,9 +1,6 @@
 use Mix.Config
 
-# Mix Configs
-app = Mix.Project.config[:app]
-
-config app,
+config :farmbot,
   configurator_port: 80
 
 # In production, we want a cron job for checking for updates.
