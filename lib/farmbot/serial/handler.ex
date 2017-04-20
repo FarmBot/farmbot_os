@@ -10,6 +10,8 @@ defmodule Farmbot.Serial.Handler do
   alias Farmbot.BotState
   alias Farmbot.Lib.Maths
 
+  use Farmbot.DebugLog
+
   @typedoc """
     Handler pid or name
   """
@@ -123,7 +125,7 @@ defmodule Farmbot.Serial.Handler do
   def handle_call({:write, str, timeout}, from, state) do
     handshake = generate_handshake()
     writeme =  "#{str} #{handshake}"
-    IO.puts "writing: #{writeme}"
+    debug_log "writing: #{writeme}"
     UART.write(state.nerves, writeme)
     timer = Process.send_after(self(), :timeout, timeout)
     current = %{status: nil, reply: nil, from: from, q: handshake, timer: timer}
@@ -146,7 +148,7 @@ defmodule Farmbot.Serial.Handler do
   def handle_info(:timeout, state) do
     current = state.current
     if current do
-      IO.puts "Timing out current"
+      debug_log "Timing out current"
       GenServer.reply(current.from, :timeout)
     end
     check_timeouts(state)
@@ -154,7 +156,7 @@ defmodule Farmbot.Serial.Handler do
 
   def handle_info({:nerves_uart, tty, str}, state) when is_binary(str) do
     if tty == state.tty do
-      IO.puts "Reading: #{str}"
+      debug_log "Reading: #{str}"
       try do
         current = str |> Parser.parse_code |> do_handle(state.current)
         {:noreply, %{state | current: current}}
@@ -264,7 +266,7 @@ defmodule Farmbot.Serial.Handler do
 
   defp check_timeouts(state) do
     if state.timeouts > @max_timeouts do
-      IO.puts "reached max timeouts!"
+      debug_log "reached max timeouts!"
       :ok = UART.close(state.nerves)
       Process.sleep(5000)
       {:stop, :max_timeouts, state}

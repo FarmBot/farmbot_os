@@ -9,6 +9,7 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
   alias Farmbot.Serial.Gcode.Parser, as: GParser
   @behaviour Command
   import Command
+  use Farmbot.DebugLog
 
   @doc ~s"""
     Updates configuration on a package
@@ -27,14 +28,14 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
 
     total_count = Enum.count(params)
 
-    IO.puts "updating #{inspect params}"
+    debug_log "updating #{inspect params}"
     Enum.reduce(params, 0, fn(pair, count) ->
       do_update_param(pair)
       count = count + 1
       percent = ((count / total_count) * 100)
       percent = trunc(percent)
       if rem(percent, 10) == 0 do
-        IO.puts "CONFIG UPDATE: #{percent}%"
+        debug_log "CONFIG UPDATE: #{percent}%"
       end
       count
     end)
@@ -52,8 +53,8 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
     case UartHan.write("F83") do
       {:report_software_version, _version} -> :ok
       e ->
-        IO.puts "got: #{inspect e}"
-        IO.puts "Waiting..."
+        debug_log "got: #{inspect e}"
+        debug_log "Waiting..."
         Process.sleep(2000)
         check_version()
     end

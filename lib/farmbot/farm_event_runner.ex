@@ -6,6 +6,7 @@ defmodule Farmbot.FarmEventRunner do
   use Amnesia
   use Farmbot.Sync.Database
   require Logger
+  use Farmbot.DebugLog
 
   @checkup_time 10_000
 
@@ -146,8 +147,6 @@ defmodule Farmbot.FarmEventRunner do
 
   # we are started, not finished, and no last time
   defp should_run?(true, false, calendar, last_time, now) do
-    # IO.puts "calendar size: #{Enum.count(calendar)}"
-    # IEx.pry
     # get rid of all the items that happened before last_time
     calendar = Enum.filter(calendar, fn(iso_time) ->
       dt = Timex.parse! iso_time, "{ISO:Extended}"
@@ -178,11 +177,10 @@ defmodule Farmbot.FarmEventRunner do
     get_next_str(c_item)
 
     maybe_next_str =
-    IO.puts "== NOW: #{inspect now_str}"
-    IO.puts "== LAST: #{inspect last_time_str}"
-    IO.puts "== MAYBE NEXT: #{inspect maybe_next_str}"
-    IO.puts "== #{Enum.count calendar} events are scheduled to happend after: #{inspect last_time_str}\n"
-    # IO.puts "new calendar size: #{Enum.count(calendar)}"
+    debug_log "== NOW: #{inspect now_str}"
+    debug_log "== LAST: #{inspect last_time_str}"
+    debug_log "== MAYBE NEXT: #{inspect maybe_next_str}"
+    debug_log "== #{Enum.count calendar} events are scheduled to happend after: #{inspect last_time_str}\n"
   end
 
   defp get_last_time_str(nil), do: "none"

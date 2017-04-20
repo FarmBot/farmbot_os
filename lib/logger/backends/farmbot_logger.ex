@@ -142,7 +142,6 @@ defmodule Logger.Backends.FarmbotLogger do
   # trim lines off the file until it is smaller than @max_file_size
   @spec fifo(binary) :: binary
   defp fifo(new_file) when byte_size(new_file) > @max_file_size do
-    # IO.puts "file size: #{byte_size(new_file)}"
     [_ | rest] = String.split(new_file, "\r\n")
     fifo(Enum.join(rest, "\r\n"))
   end

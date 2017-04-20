@@ -6,6 +6,7 @@ defmodule Farmbot.Transport do
   """
   use GenStage
   require Logger
+  use Farmbot.DebugLog
 
   # The max number of state updates before we force one
   @max_inactive_count 100
@@ -74,7 +75,7 @@ defmodule Farmbot.Transport do
     # just trust me.
     # logging a message here would cause logger to log a message, which
     # causes a state send which would then emit a message...
-    IO.puts "emmitting: #{inspect thing}"
+    debug_log "emmitting: #{inspect thing}"
     GenStage.async_notify(__MODULE__, {:emit, thing})
     {:noreply, [], state}
   end

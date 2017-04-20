@@ -47,6 +47,7 @@ defmodule Redis.Server do
   """
 
   use GenServer
+  use Farmbot.DebugLog
   require Logger
 
   @doc """
@@ -75,7 +76,7 @@ defmodule Redis.Server do
   end
 
   def handle_info({_port, {:data, info}}, port) do
-    IO.puts info
+    debug_log info
     {:noreply, port}
   end
 
