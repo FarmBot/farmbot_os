@@ -5,6 +5,7 @@ Provides a `debug_log/1` function.
 use_logger? =
   case System.get_env("DEBUG_LOGGER") do
     "false" -> false
+    nil -> false
     _ -> true
   end
 # Check fof if logger is enabled.
