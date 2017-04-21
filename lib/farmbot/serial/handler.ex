@@ -162,7 +162,7 @@ defmodule Farmbot.Serial.Handler do
         {:noreply, %{state | current: current}}
       rescue
         e ->
-          Logger.warn "uh oh: #{inspect e}"
+          Logger.warn "Encountered an error handling: #{str}: #{inspect e}"
           {:noreply, state}
       end
     end

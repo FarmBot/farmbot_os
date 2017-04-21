@@ -41,6 +41,7 @@
   "nerves": {:hex, :nerves, "0.5.1", "a55d73752e8f271c7aca5fbe47747f07d0e7760b5e858e7f8da17ab06287f49c", [:mix], [{:distillery, "~> 1.0", [hex: :distillery, optional: false]}]},
   "nerves_firmware": {:git, "https://github.com/nerves-project/nerves_firmware.git", "0f558ad2402cbd5b36bd7a8a10bc2b53167de14e", []},
   "nerves_firmware_http": {:hex, :nerves_firmware_http, "0.3.1", "e6ed2f8aa216df424a18ee56b6160b2aa7df9c3783406c93a61d92efd94acfac", [:mix], [{:cowboy, "~> 1.0", [hex: :cowboy, optional: false]}, {:exjsx, "~> 4.0", [hex: :exjsx, optional: false]}, {:nerves_firmware, "~> 0.3", [hex: :nerves_firmware, optional: false]}]},
+  "nerves_hal": {:git, "https://github.com/LeToteTeam/nerves_hal.git", "249139e985017fdf0c5839eefc59788f575c48dd", []},
   "nerves_interim_wifi": {:git, "https://github.com/nerves-project/nerves_interim_wifi.git", "42a70b8773adbbf2918e68262b47241c6fb61947", []},
   "nerves_lib": {:git, "https://github.com/nerves-project/nerves_lib.git", "aac351cb3e621831a317f2d2a078257161efa551", []},
   "nerves_network_interface": {:hex, :nerves_network_interface, "0.4.0", "a8e7662cd56fb4fe9060c891d35c43bbbff692ee6fd2d5efd538717da0cd96b8", [:make, :mix], [{:elixir_make, "~> 0.3", [hex: :elixir_make, optional: false]}]},

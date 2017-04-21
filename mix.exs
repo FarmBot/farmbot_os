@@ -74,6 +74,8 @@ defmodule Farmbot.Mixfile do
     [
       :logger,
       :nerves_uart,
+      :nerves_hal,
+      :nerves_runtime,
       :poison,
       :rsa,
       :httpoison,
@@ -106,7 +108,8 @@ defmodule Farmbot.Mixfile do
     [
 
       {:nerves, "0.5.1"},
-      {:nerves_runtime, "~> 0.1.0", only: [:prod, :dev]},
+      {:nerves_runtime, "~> 0.1.1"},
+      {:nerves_hal, github: "LeToteTeam/nerves_hal"},
 
       # Hardware stuff
       {:nerves_uart, "0.1.2"}, # uart handling
