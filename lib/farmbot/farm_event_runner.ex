@@ -6,6 +6,7 @@ defmodule Farmbot.FarmEventRunner do
   use Amnesia
   use Farmbot.Sync.Database
   require Logger
+  alias Farmbot.CeleryScript.Ast
   use Farmbot.DebugLog
 
   @checkup_time 10_000
@@ -54,11 +55,19 @@ defmodule Farmbot.FarmEventRunner do
   @spec start_events([Sequence.t | Regimen.t], DateTime.t) :: no_return
   defp start_events([], _now), do: :ok
   defp start_events([event | rest], now) do
-    r = event.__struct__
-      |> Module.split
-      |> List.last
-      |> Module.concat(Supervisor)
-    {:ok, _pid} = r.add_child(event, now)
+    cond do
+      match?(%Sequence{}, event) ->
+        ast = Ast.parse(event)
+        {:ok, _pid} = Elixir.Farmbot.SequenceRunner.start_link(ast)
+      match?(%Regimen{}, event) ->
+        r = event.__struct__
+          |> Module.split
+          |> List.last
+          |> Module.concat(Supervisor)
+        {:ok, _pid} = r.add_child(event, now)
+      true ->
+        Logger.error ">> Doesn't know how to handle event: #{inspect event}"
+    end
     start_events(rest, now)
   end
 

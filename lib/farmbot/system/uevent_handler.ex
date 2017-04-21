@@ -36,7 +36,7 @@ defmodule Farmbot.System.UeventHandler do
     Logger.debug ">> Coppying logs!"
     File.cp "#{Farmbot.System.FS.path()}/logs.txt", "#{@mountpath}/logs.txt"
 
-    :ok = maybe_flash_fw
+    :ok = maybe_flash_fw()
 
     :ok = unmount_part(devname)
     :ok
@@ -50,14 +50,14 @@ defmodule Farmbot.System.UeventHandler do
   defp mount_part(devname) do
     Logger.debug ">> Mounting flash drive storage!"
     :ok = File.mkdir_p(@mountpath)
-    :ok = System.cmd("mount", ["-t", "vfat", "/dev/#{devname}", "#{@mountpath}"])
+    :ok = "mount" |> System.cmd(["-t", "vfat", "/dev/#{devname}", "#{@mountpath}"])
     |> check_mount(devname)
     :ok
   end
 
   defp unmount_part(devname) do
     Logger.debug ">> Unmounting flash drive storage!"
-    :ok = System.cmd("umount", ["/dev/#{devname}"]) |> check_mount(devname)
+    :ok = "umount" |> System.cmd(["/dev/#{devname}"]) |> check_mount(devname)
   end
 
   defp check_mount({_, 0}, _devname), do: :ok
@@ -124,5 +124,5 @@ defmodule Farmbot.System.UeventHandler do
       end
     end
   end
-  
+
 end

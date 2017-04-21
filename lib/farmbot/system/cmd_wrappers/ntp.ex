@@ -5,7 +5,7 @@ defmodule Farmbot.System.Network.Ntp do
 
   require Logger
   use Farmbot.DebugLog
-  
+
   @doc """
     Tries to set the time from ntp.
     This will try 3 times to set the time. if it fails the thrid time,
