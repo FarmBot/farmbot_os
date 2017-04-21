@@ -108,7 +108,8 @@ defmodule Farmbot.Mixfile do
     [
 
       {:nerves, "0.5.1"},
-      {:nerves_runtime, "~> 0.1.1"},
+      # {:nerves_runtime, "~> 0.1.1"},
+      {:nerves_runtime, github: "nerves-project/nerves_runtime", override: true},
       {:nerves_hal, github: "LeToteTeam/nerves_hal"},
 
       # Hardware stuff

@@ -9,6 +9,7 @@ defmodule Logger.Backends.FarmbotLogger do
   alias Farmbot.HTTP
   use GenEvent
   require Logger
+  use Farmbot.DebugLog
   @save_path Application.get_env(:farmbot, :path) <> "/logs.txt"
 
   # ten megs. i promise
@@ -86,11 +87,13 @@ defmodule Logger.Backends.FarmbotLogger do
   def handle_event(:flush, _state), do: {:ok, %{logs: [], posting: false}}
 
   def handle_call(:post_success, state) do
+    debug_log "Logs uploaded!"
     write_file(Enum.reverse(state.logs))
     {:ok, :ok, %{state | posting: false, logs: []}}
   end
 
   def handle_call(:post_fail, state) do
+    debug_log "Logs failed to upload!"
     {:ok, :ok, %{state | posting: false}}
   end
 
@@ -112,6 +115,7 @@ defmodule Logger.Backends.FarmbotLogger do
 
   @spec write_file([log_message]) :: no_return
   defp write_file(logs) do
+    debug_log("Writing log file!")
     old = read_file()
     new_file = Enum.reduce(logs, old, fn(log, acc) ->
       if log.message != @filtered do
