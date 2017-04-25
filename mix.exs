@@ -63,7 +63,7 @@ defmodule Farmbot.Mixfile do
   def application do
     [mod: {Farmbot, []},
      applications: applications() ++ applications(@target),
-     included_applications: [:gen_mqtt, :ex_json_schema, :fs] ++ included_apps(Mix.env)]
+     included_applications: [:gen_mqtt, :ex_json_schema, :fs, :ex_rollbar] ++ included_apps(Mix.env)]
   end
 
   defp included_apps(:prod), do: [:ex_syslogger]
@@ -140,6 +140,7 @@ defmodule Farmbot.Mixfile do
 
       # Log to syslog
       {:ex_syslogger, "~> 1.3.3", only: :prod},
+      {:ex_rollbar, path: "../ex_rollbar"},
 
       # Other stuff
       {:gen_stage, "0.11.0"},

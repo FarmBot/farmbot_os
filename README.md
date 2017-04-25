@@ -6,12 +6,17 @@
 # :floppy_disk: LATEST OS IMAGE DOWNLOADS
 [comment]: <> (DONT CHANGE THE TEXT ABOVE. It is used in documentation links.)
 
+## _*Important*_
+For now we are only building and supporting Raspberry Pi 3. Pull Requests are very welcome
+if you spot a bug or fix, but for now we suggest obtaining a Raspberry Pi 3 for the best support. 
+
+
 |Raspbery Pi Version |
 |---|
 | :star: **[RPi 3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.3/farmbot-rpi3-3.1.3.img)**|
-|  [RPi 2](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.3/farmbot-rpi2-3.1.3.img) |
-|  [RPi 0 and 1](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.3/farmbot-rpi-3.1.3.img) |
-|  [RPi 0w](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.3/farmbot-rpi0w-3.1.3.img) |
+[comment]: <> (|  [RPi 2](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.3/farmbot-rpi2-3.1.3.img) |)
+[comment]: <> (|  [RPi 0 and 1](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.3/farmbot-rpi-3.1.3.img) |)
+[comment]: <> (|  [RPi 0w](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.3/farmbot-rpi0w-3.1.3.img) |)
 
 
 ---

@@ -147,12 +147,15 @@ defmodule Farmbot.System.NervesCommon.Network do
           that = self()
           spawn fn() ->
             Farmbot.System.Network.on_connect(fn() ->
+              if interface == "eth0" do
+                stop_interface("wlan0")
+              end
               try do
                 {_, 0} = System.cmd("epmd", ["-daemon"])
                 :net_kernel.start(['farmbot@#{ip}'])
               rescue
                 _ ->
-                  Logger.warn "could not start epmd or something"
+                  Logger.warn "could not start epmd or net_kernel"
                   :ok
               end
               Logger.info ">> is waiting for linux and network and what not."

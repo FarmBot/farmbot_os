@@ -23,7 +23,10 @@ config :farmbot, auth_callbacks: [mqtt_transport]
 config :farmbot, transports: [mqtt_transport, redis_transport]
 
 # bot <-> firmware transports.
-config :farmbot, expected_fw_version: "GENESIS V.01.07.EXPERIMENTAL"
+config :farmbot, expected_fw_version: "GENESIS V.01.08.EXPERIMENTAL"
+
+# Rollbar
+config :farmbot, rollbar_access_token: "dcd79b191ab84aa3b28259cbb80e2060"
 
 # give the ability to start a redis server instance in dev mode.
 config :farmbot, :redis,

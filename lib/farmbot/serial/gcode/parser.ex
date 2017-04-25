@@ -326,7 +326,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
   # derp.
   if Mix.env == :dev do
     def parse_param(uhh) do
-      Logger.error("LOOK AT ME IM IMPORTANT: #{inspect uhh}")
+      Logger.error("LOOK AT ME IM IMPORTANT: #{inspect uhh}", rollbar: false)
       nil
     end
   else
