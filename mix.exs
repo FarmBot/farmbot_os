@@ -63,7 +63,7 @@ defmodule Farmbot.Mixfile do
   def application do
     [mod: {Farmbot, []},
      applications: applications() ++ applications(@target),
-     included_applications: [:gen_mqtt, :ex_json_schema, :fs] ++ included_apps(Mix.env)]
+     included_applications: [:gen_mqtt, :ex_json_schema, :fs, :ex_rollbar] ++ included_apps(Mix.env)]
   end
 
   defp included_apps(:prod), do: [:ex_syslogger]
@@ -74,6 +74,8 @@ defmodule Farmbot.Mixfile do
     [
       :logger,
       :nerves_uart,
+      :nerves_hal,
+      :nerves_runtime,
       :poison,
       :rsa,
       :httpoison,
@@ -106,7 +108,9 @@ defmodule Farmbot.Mixfile do
     [
 
       {:nerves, "0.5.1"},
-      {:nerves_runtime, "~> 0.1.0", only: [:prod, :dev]},
+      # {:nerves_runtime, "~> 0.1.1"},
+      {:nerves_runtime, github: "nerves-project/nerves_runtime", override: true},
+      {:nerves_hal, github: "LeToteTeam/nerves_hal"},
 
       # Hardware stuff
       {:nerves_uart, "0.1.2"}, # uart handling
@@ -136,6 +140,8 @@ defmodule Farmbot.Mixfile do
 
       # Log to syslog
       {:ex_syslogger, "~> 1.3.3", only: :prod},
+      {:ex_rollbar, "0.1.1"},
+      # {:ex_rollbar, path: "../ex_rollbar"},
 
       # Other stuff
       {:gen_stage, "0.11.0"},

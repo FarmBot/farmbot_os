@@ -104,8 +104,10 @@ end)
 
 IO.puts "Defining release for #{version}"
 final = initial_mod <>
+# "\n\n## Release will build all the systems.
+# release: clean #{Enum.map(only_systems, fn(a) -> " release-"<>a end)}"
 "\n\n## Release will build all the systems.
-release: clean #{Enum.map(only_systems, fn(a) -> " release-"<>a end)}"
+release: clean release-rpi3"
 
 IO.puts "Writing file."
 File.write("Makefile", final)

@@ -5,6 +5,7 @@ defmodule Farmbot.CeleryScript.Command.PingParent do
 
   alias Farmbot.CeleryScript.Command
   require Logger
+  use Farmbot.DebugLog
 
   @behaviour Command
 
@@ -15,10 +16,10 @@ defmodule Farmbot.CeleryScript.Command.PingParent do
     parent = context[:parent]
     if parent do
       :pong = Farmbot.SequenceRunner.call(parent, :ping)
-      IO.puts "Established communication with parent sequence: #{inspect parent}"
+      debug_log "Established communication with parent sequence: #{inspect parent}"
       :ok
     else
-      IO.puts "This sequence has no parent."
+      debug_log "This sequence has no parent."
       :ok
     end
   end

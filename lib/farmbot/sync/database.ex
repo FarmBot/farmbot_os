@@ -103,16 +103,45 @@ defmodule Farmbot.Sync do
   # This is the most complex method in all of this application.
   def sync do
     Farmbot.BotState.set_sync_msg :syncing
+
     # TODO(Connor) Should probably move this to its own function
     # but right now its only one thing
     Logger.info ">> is checking for images to be uploaded."
     :ok = ImageWatcher.force_upload
 
-    out_of_sync = Farmbot.Sync.Cache.get_state
-    if Enum.empty?(out_of_sync) do
-      sync_all()
-    else
-      sync_some(out_of_sync)
+    case check_last_sync() do
+      :no_last_sync ->
+        Logger.info ">> Could not find sync cache. Creating new."
+        sync_all()
+      _date_str ->
+        out_of_sync = Farmbot.Sync.Cache.get_out_of_sync
+        if Enum.empty?(out_of_sync) do
+          Logger.info ">> Cache empty. Doing full sync."
+          sync_all()
+        else
+          Logger.debug ">> Only syncing changed items."
+          sync_some(out_of_sync)
+        end
+    end
+  end
+
+  @spec last_sync_path :: binary
+  defp last_sync_path, do: "/tmp/last_sync"
+
+  # Checks if this is the first sync or not.
+  @spec check_last_sync() :: :no_last_sync | binary
+  defp check_last_sync do
+    case File.read(last_sync_path()) do
+      {:ok, date} -> String.trim date
+      _ -> :no_last_sync
+    end
+  end
+
+  @spec set_last_sync :: :ok | {:error, :file.posix}
+  defp set_last_sync do
+    now_str = Timex.now() |> to_string
+    Farmbot.System.FS.transaction fn() ->
+      File.write(last_sync_path(), now_str)
     end
   end
 
@@ -217,6 +246,8 @@ defmodule Farmbot.Sync do
     if Enum.empty?(fails) do
       Logger.info ">> is synced!", type: :success
       Farmbot.BotState.set_sync_msg :synced
+      # This might be concidered a side effect.
+      set_last_sync()
       {:ok, success}
     else
       Logger.error ">> encountered errors syncing: #{inspect fails}"

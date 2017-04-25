@@ -23,14 +23,19 @@ defmodule Farmbot.System.FS.ConfigFileMigrations do
   @doc """
     Does the migrations
   """
-  @lint false # im scared to fix this one
   def migrate(json_map) do
     list_of_files = get_migrations()
     Enum.reduce(list_of_files, json_map, fn(file,json) ->
       migrated = "#{@save_dir}/#{file}.migrated"
       # if there is no <timestamp>-<description>_migration.exs.migrated file
       # run the migration
-      unless File.exists?(migrated) do
+
+      # Check the file existance.
+      if File.exists?(migrated) do
+        # if we don't run a migration, just take the accumulator
+        json
+      else
+        # Run the migration
         Logger.warn ">> running config migration: #{file}"
         {{:module, m, _s, _}, _} = Code.eval_file file, migrations_dir()
 
@@ -45,9 +50,6 @@ defmodule Farmbot.System.FS.ConfigFileMigrations do
 
         # merge the current acc, with the just run migration
         Map.merge(json, next)
-      else
-        # if we don't run a migration, just take the accumulator
-        json
       end
     end)
   end

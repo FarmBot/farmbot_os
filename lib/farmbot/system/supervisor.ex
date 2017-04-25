@@ -15,7 +15,8 @@ defmodule Farmbot.System.Supervisor do
       worker(Farmbot.System.FS, [@target], restart: :permanent),
       worker(Farmbot.System.FS.Worker, [@target], restart: :permanent),
       worker(Farmbot.System.FS.ConfigStorage, [], restart: :permanent),
-      worker(Farmbot.System.Network, [@target], restart: :permanent)
+      worker(Farmbot.System.Network, [@target], restart: :permanent),
+      worker(Farmbot.System.UeventHandler, [], restart: :permanent)
     ] ++ maybe_redis()
     opts = [strategy: :one_for_one]
     supervise(children, opts)

@@ -9,13 +9,13 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
   alias Farmbot.Serial.Gcode.Parser, as: GParser
   @behaviour Command
   import Command
+  use Farmbot.DebugLog
 
   @doc ~s"""
     Updates configuration on a package
       args: %{package: String.t},
       body: [Ast.t]
   """
-  @lint false
   @spec run(%{package: Command.package}, [Command.pair]) :: no_return
   def run(%{package: "arduino_firmware"}, config_pairs) do
     # check the version to make sure we have a good connection to the firmware
@@ -28,13 +28,14 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
 
     total_count = Enum.count(params)
 
-    IO.puts "updating #{inspect params}"
+    debug_log "updating #{inspect params}"
     Enum.reduce(params, 0, fn(pair, count) ->
       do_update_param(pair)
       count = count + 1
-      percent = ((count / total_count) * 100) |> trunc
+      percent = ((count / total_count) * 100)
+      percent = trunc(percent)
       if rem(percent, 10) == 0 do
-        IO.puts "CONFIG UPDATE: #{percent}%"
+        debug_log "CONFIG UPDATE: #{percent}%"
       end
       count
     end)
@@ -52,8 +53,8 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
     case UartHan.write("F83") do
       {:report_software_version, _version} -> :ok
       e ->
-        IO.puts "got: #{inspect e}"
-        IO.puts "Waiting..."
+        debug_log "got: #{inspect e}"
+        debug_log "Waiting..."
         Process.sleep(2000)
         check_version()
     end
@@ -68,7 +69,9 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
       # our param sets arent important enough to keep
       read_param(%{label: param_str}, [])
     else
-      Logger.error ">> got an unrecognized param: #{param_str}"
+      to_rollbar? = param_str != "nil"
+      Logger.error ">> got an unrecognized" <>
+        " param: #{inspect param_str}", rollbar: to_rollbar?
     end
   end
 
@@ -82,4 +85,3 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
   end
 
 end
-#C.config_update %{package: "arduino_firmware"}, [pair, pair2]

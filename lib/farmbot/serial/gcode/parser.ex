@@ -50,7 +50,6 @@ defmodule Farmbot.Serial.Gcode.Parser do
       iex> Gcode.parse_report_current_position("X34 Y756 Z23")
       {:report_current_position, 34, 756, 23, "0"}
   """
-  @lint false
   @spec parse_report_current_position(binary)
   :: {binary, {:report_current_position, binary, binary, binary}}
   def parse_report_current_position(position) when is_bitstring(position),
@@ -109,14 +108,12 @@ defmodule Farmbot.Serial.Gcode.Parser do
       iex> Gcode.parse_pvq("P20 V100 Q12", :report_parameter_value)
       {:report_parameter_value, "20" ,"100", "12"}
   """
-  @lint false
   @spec parse_pvq(binary, :report_parameter_value)
   :: {:report_parameter_value, atom, integer, String.t}
   def parse_pvq(params, :report_parameter_value)
   when is_bitstring(params),
     do: params |> String.split(" ") |> do_parse_params
 
-  @lint false
   def parse_pvq(params, human_readable_param_name)
   when is_bitstring(params)
    and is_atom(human_readable_param_name),
@@ -161,9 +158,16 @@ defmodule Farmbot.Serial.Gcode.Parser do
   @spec parse_param(binary | integer) :: atom | nil
   def parse_param("0"), do: :param_version
 
+  def parse_param("2"), do: :param_config_ok
+  def parse_param("3"), do: :param_use_eeprom
+
   def parse_param("11"), do: :movement_timeout_x
   def parse_param("12"), do: :movement_timeout_y
   def parse_param("13"), do: :movement_timeout_z
+
+  def parse_param("15"), do: :movement_keep_active_x_default
+  def parse_param("16"), do: :movement_keep_active_y_default
+  def parse_param("17"), do: :movement_keep_active_z_default
 
   def parse_param("21"), do: :movement_invert_endpoints_x
   def parse_param("22"), do: :movement_invert_endpoints_y
@@ -216,6 +220,14 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param("122"), do: :encoder_missed_steps_decay_y
   def parse_param("123"), do: :encoder_missed_steps_decay_z
 
+  def parse_param("125"), do: :encoder_use_for_pos_x
+  def parse_param("126"), do: :encoder_use_for_pos_y
+  def parse_param("127"), do: :encoder_use_for_pos_z
+
+  def parse_param("131"), do: :encoder_invert_x
+  def parse_param("132"), do: :encoder_invert_y
+  def parse_param("133"), do: :encoder_invert_z
+
   def parse_param("141"), do: :movement_axis_nr_steps_x
   def parse_param("142"), do: :movement_axis_nr_steps_y
   def parse_param("143"), do: :movement_axis_nr_steps_z
@@ -239,15 +251,21 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param("221"), do: :pin_guard_5_pin_nr
   def parse_param("222"), do: :pin_guard_5_time_out
   def parse_param("223"), do: :pin_guard_5_active_state
-  @lint false
   def parse_param(param) when is_integer(param), do: parse_param("#{param}")
 
   @spec parse_param(atom) :: integer | nil
   def parse_param(:param_version), do: 0
 
+  def parse_param(:param_config_ok), do: 2
+  def parse_param(:param_use_eeprom), do: 3
+
   def parse_param(:movement_timeout_x), do: 11
   def parse_param(:movement_timeout_y), do: 12
   def parse_param(:movement_timeout_z), do: 13
+
+  def parse_param(:movement_keep_active_x_default), do: 15
+  def parse_param(:movement_keep_active_y_default), do: 16
+  def parse_param(:movement_keep_active_z_default), do: 17
 
   def parse_param(:movement_invert_endpoints_x), do: 21
   def parse_param(:movement_invert_endpoints_y), do: 22
@@ -300,6 +318,14 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(:encoder_missed_steps_decay_y), do: 122
   def parse_param(:encoder_missed_steps_decay_z), do: 123
 
+  def parse_param(:encoder_use_for_pos_x), do: 125
+  def parse_param(:encoder_use_for_pos_y), do: 126
+  def parse_param(:encoder_use_for_pos_z), do: 127
+
+  def parse_param(:encoder_invert_x), do: 131
+  def parse_param(:encoder_invert_y), do: 132
+  def parse_param(:encoder_invert_z), do: 133
+
   def parse_param(:movement_axis_nr_steps_x), do: 141
   def parse_param(:movement_axis_nr_steps_y), do: 142
   def parse_param(:movement_axis_nr_steps_z), do: 143
@@ -330,7 +356,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
   # derp.
   if Mix.env == :dev do
     def parse_param(uhh) do
-      Logger.error("LOOK AT ME IM IMPORTANT: #{inspect uhh}")
+      Logger.error("LOOK AT ME IM IMPORTANT: #{inspect uhh}", rollbar: false)
       nil
     end
   else

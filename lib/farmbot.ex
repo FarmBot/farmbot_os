@@ -22,8 +22,6 @@ defmodule Farmbot do
 
   def init(_args) do
     children = [
-      # Generic counter.
-      worker(Counter, [], restart: :permanent),
       # System specifics.
       supervisor(FBSYS, [], restart: :permanent),
       # Auth services.

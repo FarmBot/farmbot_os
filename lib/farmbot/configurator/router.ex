@@ -157,7 +157,7 @@ defmodule Farmbot.Configurator.Router do
   # Full state tree.
   get "/api/state" do
     Farmbot.BotState.Monitor.get_state
-     state = Farmbot.Transport.get_state
+     state = :sys.get_state(Farmbot.Transport)
      json = Poison.encode!(state)
      conn |> make_json |> send_resp(200, json)
   end

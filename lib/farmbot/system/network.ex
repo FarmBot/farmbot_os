@@ -9,6 +9,10 @@ defmodule Farmbot.System.Network do
   alias Farmbot.System.Network.Ntp
   alias Farmbot.Auth
 
+  @access_token Application.get_env(:farmbot, :rollbar_access_token)
+  @commit Mix.Project.config[:commit]
+  @target Mix.Project.config[:target]
+
   @spec mod(atom) :: atom
   defp mod(target), do: Module.concat([Farmbot, System, target, Network])
 
@@ -135,8 +139,28 @@ defmodule Farmbot.System.Network do
     end
 
     Logger.info ">> Login"
-    r = Auth.try_log_in!
-    if r == {:error, :timeout}, do: Auth.try_log_in!, else: r
+    {:ok, token} = Auth.try_log_in!
+    :ok = maybe_setup_rollbar(token)
+    {:ok, token}
+  end
+
+  def maybe_setup_rollbar(token) do
+    if String.contains?(token.unencoded.iss, "farmbot.io") and @access_token do
+      Logger.info ">> Setting up rollbar!"
+      :ok = ExRollbar.setup access_token: @access_token,
+        environment: token.unencoded.iss,
+        enable_logger: true,
+        person_id: token.unencoded.bot,
+        person_email: token.unencoded.sub,
+        person_username: token.unencoded.bot,
+        framework: "Nerves",
+        code_version: @commit,
+        custom: %{target: @target}
+      :ok
+    else
+      Logger.info ">> Not Setting up rollbar!"
+      :ok
+    end
   end
 
   @spec get_config(String.t) :: {:ok, any}

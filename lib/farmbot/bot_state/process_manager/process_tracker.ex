@@ -162,7 +162,6 @@ defmodule Farmbot.BotState.ProcessTracker do
   def terminate(_reason, _state), do: :ok #TODO(connor) save the state here?
 
   @spec nest_the_loops(State.uuid, State.t) :: {State.kind, Info.t} | nil
-  @lint {Credo.Check.Refactor.Nesting, false}
   defp nest_the_loops(uuid, state) do
     # I have to enumerate over all the processes "kind"s here...
     # this is the most javascript elixir i have ever wrote.
@@ -170,17 +169,19 @@ defmodule Farmbot.BotState.ProcessTracker do
     Enum.find_value(Map.from_struct(state), fn({key, value}) ->
         # loop over the values of those keys/kinds
         Enum.find_value(value, fn(info) ->
-          if uuid == info.uuid do
-            # return the kind and the info
-            {key, info}
-          else
-            false
-          end
+          do_find(uuid, info, key)
         end)
     end)
   end
-  # END END END END END END # LOL
-    _ = @lint
+
+  defp do_find(uuid, info, key) do
+    if uuid == info.uuid do
+      # return the kind and the info
+      {key, info}
+    else
+      false
+    end
+  end
 
   @spec dispatch(State.t) :: {:noreply, State.t}
   defp dispatch(state) do

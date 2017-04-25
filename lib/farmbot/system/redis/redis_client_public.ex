@@ -42,32 +42,46 @@ defmodule Redis.Client.Public do
   defp input_map(redis, %{__struct__: _} = map, bloop),
     do: input_map(redis, map |> Map.from_struct, bloop)
 
-  @lint false
   defp input_map(redis, map, bloop) when is_map(map) do
-    Enum.map(map, fn({key, value}) ->
+    f = Enum.map(map, fn({key, value}) ->
       cond do
+        # When value is a map, we need to go deeper.
         is_map(value) ->
-          if bloop do
-            input_map(redis, value, "#{bloop}.#{key}")
-          else
-            input_map(redis, value, key)
-          end
+          handle_map_value(bloop, redis, key, value)
 
+        # When its a map we have to do some magic.
         is_list(value) ->
-          if bloop do
-            input_list(redis, "#{bloop}.#{key}", value)
-          else
-            input_list(redis, key, value)
-          end
+          handle_list_value(bloop, redis, key, value)
 
+        # if neither of those
         true ->
-          if bloop do
-            input_value(redis, "#{bloop}.#{key}", value)
-          else
-            input_value(redis, key, value)
-          end
+          handle_rest_value(bloop, redis, key, value)
       end
     end)
-    |> List.flatten
+    List.flatten(f)
+  end
+
+  defp handle_map_value(bloop, redis, key, value) do
+    if bloop do
+      input_map(redis, value, "#{bloop}.#{key}")
+    else
+      input_map(redis, value, key)
+    end
+  end
+
+  defp handle_list_value(bloop, redis, key, value) do
+    if bloop do
+      input_list(redis, "#{bloop}.#{key}", value)
+    else
+      input_list(redis, key, value)
+    end
+  end
+
+  defp handle_rest_value(bloop, redis, key, value) do
+    if bloop do
+      input_value(redis, "#{bloop}.#{key}", value)
+    else
+      input_value(redis, key, value)
+    end
   end
 end

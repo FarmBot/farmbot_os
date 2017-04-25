@@ -51,7 +51,6 @@ defmodule Farmware do
     Installs a package from a manifest url
   """
   @spec install(binary) :: map | no_return
-  @lint {Credo.Check.Refactor.ABCSize, false}
   def install(manifest_url) do
     Logger.info "Getting Farmware Manifest: #{manifest_url}"
     {manifest, json} = Manifest.get!(manifest_url).body
@@ -64,6 +63,18 @@ defmodule Farmware do
     zip_file_path = Downloader.run(zip_url, "/tmp/#{manifest[:package]}.zip")
     Logger.info "Unpacking Farmware Package"
 
+    :ok = do_install_and_cleanup(path, zip_file_path, json, manifest)
+
+    Logger.info "Validating Farmware package"
+
+    if File.exists?(path <> "/manifest.json") do
+      register(manifest)
+    else
+      error_clean_up(path)
+    end
+  end
+
+  defp do_install_and_cleanup(path, zip_file_path, json, manifest) do
     FS.transaction fn() ->
       Logger.info "Installing farmware!"
       File.mkdir!(path)
@@ -72,21 +83,21 @@ defmodule Farmware do
     end, true
 
     File.rm! "/tmp/#{manifest[:package]}.zip"
-    Logger.info "Validating Farmware package"
-    case File.read(path <> "/manifest.json") do
-      {:ok, _contents} ->
-        Logger.info ">> is installing Farmware: #{manifest[:package]}"
-        PT.register(:farmware, manifest[:package], manifest[:package])
-        manifest
-      _ ->
-        Logger.info "invalid farmware package!"
-        FS.transaction fn() ->
-          File.rm_rf!(path)
-        end
-        raise "Not valid Farmware!"
-    end
   end
-  _ = @lint # HACK(Connor) fix credo compiler warning
+
+  defp error_clean_up(path) do
+    Logger.info "invalid farmware package!"
+    FS.transaction fn() ->
+      File.rm_rf!(path)
+    end, true
+    raise "Not valid Farmware!"
+  end
+
+  defp register(manifest) do
+    Logger.info ">> is installing Farmware: #{manifest[:package]}"
+    PT.register(:farmware, manifest[:package], manifest[:package])
+    manifest
+  end
 
   @doc """
     Uninstalls a Farmware package
@@ -197,19 +208,22 @@ defmodule Farmware do
   @doc """
     Downloads and updates first party farmwares.
   """
-  @lint false # TODO(Connor) nested for/if here
   @spec get_first_party_farmware :: no_return
   def get_first_party_farmware do
     farmwares = HTTPoison.get!("https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/manifest.json").body
     |> Poison.decode!
-    for %{"name" => name, "manifest" => man} <- farmwares do
-      if installed?(name) do
-        # if its installed already update it
-        update(name)
-      else
-        # if not just install it.
-        install(man)
-      end
+    for %{"name" => name, "manifest" => manifest} <- farmwares do
+      maybe_install(name, manifest)
+    end
+  end
+
+  defp maybe_install(name, manifest) do
+    if installed?(name) do
+      # if its installed already update it
+      update(name)
+    else
+      # if not just install it.
+      install(manifest)
     end
   end
 

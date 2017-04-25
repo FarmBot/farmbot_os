@@ -11,8 +11,6 @@ defmodule Farmbot.CeleryScript.Command.Home do
       args: %{axis: "x" | "y" | "z" | "all"},
       body: []
   """
-  # HACK
-  # F11 F12 F13 and G28 are all cureently broken.
   @type axis :: String.t # "x" | "y" | "z" | "all"
   @spec run(%{axis: axis}, []) :: no_return
   def run(%{axis: "all"}, []) do

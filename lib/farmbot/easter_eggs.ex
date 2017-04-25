@@ -95,7 +95,6 @@ defmodule Farmbot.EasterEggs do
   @doc """
     Says a random sentence every twenty minutes by default.
   """
-  @lint false # i dont want to alias Quantum.
   @spec start_cron_job(binary) :: :ok
   def start_cron_job(schedule \\ "*/#{get_random_minute()} * * * *") do
     job = %Quantum.Job{
@@ -103,7 +102,6 @@ defmodule Farmbot.EasterEggs do
             task: fn -> Farmbot.EasterEggs.say_random_sentence end}
     Quantum.add_job(__MODULE__, job)
   end
-  _ = @lint # HACK(Connor) fix credo compiler warning
 
   @doc """
     Stops an already started job.
@@ -112,12 +110,10 @@ defmodule Farmbot.EasterEggs do
   def stop_cron_job, do: __MODULE__ |> Quantum.find_job() |> do_delete_job
 
   @spec do_delete_job(any) :: :no_job | map
-  @lint false # i dont want to alias Quantum.
   defp do_delete_job(%Quantum.Job{name: j_name}), do: Quantum.delete_job(j_name)
   defp do_delete_job(_), do: :no_job
 
   # GEN SERVER CALLBACKS
-  @lint false
   def handle_cast(sentence, %{nouns: nouns, verbs: verbs})
   when is_binary(sentence) do
     rendered = Mustache.render sentence, nouns
@@ -125,25 +121,20 @@ defmodule Farmbot.EasterEggs do
     {:noreply, %{nouns: nouns, verbs: verbs}}
   end
 
-  @lint false
   def handle_cast(%{"nouns" => _, "verbs" => _} = json, _state) do
     {:ok, state} = parse_easter_eggs_json(json)
     {:noreply, state}
   end
 
-  @lint false
   def handle_cast(_event, state), do: {:noreply, state}
 
-  @lint false
   def handle_call(:state, _from, state), do: {:reply, state, state}
 
-  @lint false
   def handle_call(:verb, _from, %{nouns: n, verbs: v}) do
     rv = v |> Enum.random
     {:reply, rv, %{nouns: n, verbs: v}}
   end
   def handle_call(_event, _from, state), do: {:reply, :unhandled, state}
 
-  @lint false
   def handle_info(_event, state), do: {:noreply, state}
 end

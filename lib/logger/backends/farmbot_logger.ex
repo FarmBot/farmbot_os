@@ -9,6 +9,7 @@ defmodule Logger.Backends.FarmbotLogger do
   alias Farmbot.HTTP
   use GenEvent
   require Logger
+  use Farmbot.DebugLog
   @save_path Application.get_env(:farmbot, :path) <> "/logs.txt"
 
   # ten megs. i promise
@@ -86,11 +87,13 @@ defmodule Logger.Backends.FarmbotLogger do
   def handle_event(:flush, _state), do: {:ok, %{logs: [], posting: false}}
 
   def handle_call(:post_success, state) do
+    debug_log "Logs uploaded!"
     write_file(Enum.reverse(state.logs))
     {:ok, :ok, %{state | posting: false, logs: []}}
   end
 
   def handle_call(:post_fail, state) do
+    debug_log "Logs failed to upload!"
     {:ok, :ok, %{state | posting: false}}
   end
 
@@ -101,7 +104,6 @@ defmodule Logger.Backends.FarmbotLogger do
   def handle_call(:get_state, state), do: {:ok, state, state}
 
   @spec do_post([log_message]) :: no_return
-  @lint false
   defp do_post(logs) do
     try do
       HTTP.post!("/api/logs", Poison.encode!(logs))
@@ -113,6 +115,7 @@ defmodule Logger.Backends.FarmbotLogger do
 
   @spec write_file([log_message]) :: no_return
   defp write_file(logs) do
+    debug_log("Writing log file!")
     old = read_file()
     new_file = Enum.reduce(logs, old, fn(log, acc) ->
       if log.message != @filtered do
@@ -143,7 +146,6 @@ defmodule Logger.Backends.FarmbotLogger do
   # trim lines off the file until it is smaller than @max_file_size
   @spec fifo(binary) :: binary
   defp fifo(new_file) when byte_size(new_file) > @max_file_size do
-    # IO.puts "file size: #{byte_size(new_file)}"
     [_ | rest] = String.split(new_file, "\r\n")
     fifo(Enum.join(rest, "\r\n"))
   end
@@ -178,13 +180,12 @@ defmodule Logger.Backends.FarmbotLogger do
     :"Elixir.Nerves.NetworkInterface.Worker",
     :"Elixir.Nerves.InterimWiFi.DHCPManager.EventHandler",
     :"Elixir.Nerves.WpaSupplicant",
-    :"Elixir.Farmbot.System.NervesCommon.EventManager"
+    :"Elixir.Farmbot.System.NervesCommon.EventManager",
   ]
 
   for module <- @modules, do: defp filter_module(_, unquote(module)), do: @filtered
   defp filter_module(message, _module), do: message
 
-  @lint false
   defp filter_text(">>" <> m), do: filter_text("#{Sync.device_name()}" <> m)
   defp filter_text(m) when is_binary(m) do
     try do

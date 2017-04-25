@@ -13,12 +13,10 @@ defmodule Farmbot.CeleryScript.Command.Calibrate do
       body: []
   """
   @spec run(%{axis: String.t}, []) :: no_return
-  @lint {Credo.Check.Refactor.PipeChainStart, false}
-  def run(%{axis: axis}, []) do
-    case axis do
-      "x" -> "F14"
-      "y" -> "F15"
-      "z" -> "F16"
-    end |> UartHan.write
-  end
+  def run(%{axis: axis}, []), do: do_write(axis)
+
+  @spec do_write(binary) :: no_return
+  defp do_write("x"), do: UartHan.write "F14"
+  defp do_write("y"), do: UartHan.write "F15"
+  defp do_write("z"), do: UartHan.write "F16"
 end

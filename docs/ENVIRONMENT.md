@@ -2,6 +2,10 @@
 There are a number of things that can (and should) be configured at compile time
 via shell environment variables.
 
+## IO debugger
+If you want more verbose logs you can export `DEBUG_LOGGER`. This will cause (a lot of) messages
+to be displayed on the current tty. 
+
 ## Mix Environment
 you can set `MIX_ENV=prod` or `MIX_ENV=dev` (default) to change the environment
 of the farmbot application.

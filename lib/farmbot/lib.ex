@@ -21,6 +21,16 @@ defmodule Farmbot.Lib do
     # if we never allow sending of steps we should always be able to
     # divide back by spm.
     @spec steps_to_mm(integer, integer) :: integer
+
+    def steps_to_mm(steps, spm) when is_binary(spm) do
+      case Integer.parse(spm) do
+        {int, _} -> steps_to_mm(steps, int)
+        _ ->
+          raise "Can not converts steps (#{steps}) to millimeters!" <>
+            " #{inspect spm} must be an integer!"
+      end
+    end
+
     def steps_to_mm(steps, spm), do: Kernel.div(steps, spm)
   end
 end

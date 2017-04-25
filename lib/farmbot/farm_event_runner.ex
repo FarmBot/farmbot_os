@@ -6,6 +6,8 @@ defmodule Farmbot.FarmEventRunner do
   use Amnesia
   use Farmbot.Sync.Database
   require Logger
+  alias Farmbot.CeleryScript.Ast
+  use Farmbot.DebugLog
 
   @checkup_time 10_000
 
@@ -53,11 +55,19 @@ defmodule Farmbot.FarmEventRunner do
   @spec start_events([Sequence.t | Regimen.t], DateTime.t) :: no_return
   defp start_events([], _now), do: :ok
   defp start_events([event | rest], now) do
-    r = event.__struct__
-      |> Module.split
-      |> List.last
-      |> Module.concat(Supervisor)
-    {:ok, _pid} = r.add_child(event, now)
+    cond do
+      match?(%Sequence{}, event) ->
+        ast = Ast.parse(event)
+        {:ok, _pid} = Elixir.Farmbot.SequenceRunner.start_link(ast)
+      match?(%Regimen{}, event) ->
+        r = event.__struct__
+          |> Module.split
+          |> List.last
+          |> Module.concat(Supervisor)
+        {:ok, _pid} = r.add_child(event, now)
+      true ->
+        Logger.error ">> Doesn't know how to handle event: #{inspect event}"
+    end
     start_events(rest, now)
   end
 
@@ -145,10 +155,7 @@ defmodule Farmbot.FarmEventRunner do
   end
 
   # we are started, not finished, and no last time
-  @lint false
   defp should_run?(true, false, calendar, last_time, now) do
-    # IO.puts "calendar size: #{Enum.count(calendar)}"
-    # IEx.pry
     # get rid of all the items that happened before last_time
     calendar = Enum.filter(calendar, fn(iso_time) ->
       dt = Timex.parse! iso_time, "{ISO:Extended}"
@@ -156,21 +163,13 @@ defmodule Farmbot.FarmEventRunner do
       Timex.after?(dt, last_time)
     end)
 
-    _f = Enum.map(calendar, fn(item) -> Timex.parse!(item, "{ISO:Extended}") |> Timex.format!("{relative}", :relative) end)
+    _f = Enum.map(calendar, fn(item) ->
+      item
+      |> Timex.parse!("{ISO:Extended}")
+      |> Timex.format!("{relative}", :relative)
+    end)
 
-
-    # DEBUG
-    now_str = now |> Timex.format!("{relative}", :relative)
-    last_time_str = if(last_time) do Timex.format!(last_time, "{relative}", :relative) else "none" end
-    c_item = List.first(calendar)
-    maybe_next_str = if(c_item) do Timex.parse!(c_item, "{ISO:Extended}") |> Timex.format!("{relative}", :relative) else "none" end
-    IO.puts "== NOW: #{inspect now_str}"
-    IO.puts "== LAST: #{inspect last_time_str}"
-    IO.puts "== MAYBE NEXT: #{inspect maybe_next_str}"
-    IO.puts "== #{Enum.count calendar} events are scheduled to happend after: #{inspect last_time_str}\n"
-    # IO.puts "new calendar size: #{Enum.count(calendar)}"
-
-    # DEBUG
+    print_debug_info(last_time, now, calendar)
 
     case calendar do
       [iso_time |  _] ->
@@ -180,21 +179,44 @@ defmodule Farmbot.FarmEventRunner do
     end
   end
 
-  # THANKS AMNESIA
-  @lint false
+  defp print_debug_info(last_time, now, calendar) do
+    now_str = now |> Timex.format!("{relative}", :relative)
+    last_time_str = get_last_time_str(last_time)
+    c_item = List.first(calendar)
+    get_next_str(c_item)
+
+    maybe_next_str =
+    debug_log "== NOW: #{inspect now_str}"
+    debug_log "== LAST: #{inspect last_time_str}"
+    debug_log "== MAYBE NEXT: #{inspect maybe_next_str}"
+    debug_log "== #{Enum.count calendar} events are scheduled to happend after: #{inspect last_time_str}\n"
+  end
+
+  defp get_last_time_str(nil), do: "none"
+  defp get_last_time_str(last_time) do
+    Timex.format!(last_time, "{relative}", :relative)
+  end
+
+  defp get_next_str(nil), do: "none"
+  defp get_next_str(c_item) do
+    c_item
+    |> Timex.parse!("{ISO:Extended}")
+    |> Timex.format!("{relative}", :relative)
+  end
+
   @spec lookup(Sequence | Regimen, integer) :: Sequence.t | Regimen.t
   defp lookup(Sequence, sr_id) do
     [item] = Amnesia.transaction do
-      Sequence.where(id == sr_id)
-      |> Amnesia.Selection.values
+      f = Sequence.where(id == sr_id)
+      Amnesia.Selection.values(f)
     end
     item
   end
 
   defp lookup(Regimen, sr_id) do
     [item] = Amnesia.transaction do
-      Regimen.where(id == sr_id)
-      |> Amnesia.Selection.values
+      f = Regimen.where(id == sr_id)
+      Amnesia.Selection.values(f)
     end
     item
   end

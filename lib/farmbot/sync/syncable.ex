@@ -7,7 +7,6 @@ defmodule Syncable do
   @doc """
     Builds a syncable
   """
-  @lint false # ABC and CC size is way to big
   defmacro syncable(module, api_resource, model, options \\ []) do
     {:__aliases__, _, [thing]} = module
     IO.puts "Defining syncable: #{inspect thing}, with keys: #{inspect model}"

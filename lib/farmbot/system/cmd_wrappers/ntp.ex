@@ -4,6 +4,8 @@ defmodule Farmbot.System.Network.Ntp do
   """
 
   require Logger
+  use Farmbot.DebugLog
+
   @doc """
     Tries to set the time from ntp.
     This will try 3 times to set the time. if it fails the thrid time,
@@ -60,7 +62,7 @@ defmodule Farmbot.System.Network.Ntp do
       {^port, {:data, "ntpd: bad address" <> _}} -> {:error, :bad_address}
       # print things that ntp says
       {^port, {:data, data}} ->
-        IO.puts "ntp got stuff: #{data}"
+        debug_log "ntp got stuff: #{data}"
         handle_port(port)
       # when ntp exits, check to make sure its REALLY set
       {^port, {:exit_status, 0}} ->

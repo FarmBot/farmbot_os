@@ -11,9 +11,6 @@ defmodule Farmbot.CeleryScript.Command do
   use Amnesia
   alias Farmbot.Sync.Database.ToolSlot
   use ToolSlot
-  use Counter, __MODULE__
-
-  @max_count 1_000
 
   celery =
     "lib/farmbot/celery_script/commands/"
@@ -60,10 +57,10 @@ defmodule Farmbot.CeleryScript.Command do
   # fortool_id == tool_id, which returned
   # all of them, because every toolslots tool_id
   # always equals that toolslots tool id lol
-  @lint {Credo.Check.Refactor.PipeChainStart, false}
   def ast_to_coord(%Ast{kind: "tool", args: %{tool_id: tool_id_}, body: []}) do
     blah = Amnesia.transaction do
-      ToolSlot.where(tool_id == tool_id_) |> Amnesia.Selection.values
+      stuff = ToolSlot.where(tool_id == tool_id_)
+      Amnesia.Selection.values(stuff)
     end
     case blah do
       [ts] -> coordinate(%{x: ts.x, y: ts.y, z: ts.z}, [])
@@ -102,7 +99,6 @@ defmodule Farmbot.CeleryScript.Command do
   """
   @spec do_command(Ast.t) :: :no_instruction | any
   def do_command(%Ast{} = ast) do
-    check_count()
     kind = ast.kind
     fun_name = String.to_atom kind
     module = Module.concat Farmbot.CeleryScript.Command, Macro.camelize(kind)
@@ -111,24 +107,12 @@ defmodule Farmbot.CeleryScript.Command do
 
     cond do
        function_exported?(__MODULE__, fun_name, 2) ->
-         dec_count()
          Kernel.apply(__MODULE__, fun_name, [ast.args, ast.body])
        Code.ensure_loaded?(module) ->
-         dec_count()
          Kernel.apply(module, :run, [ast.args, ast.body])
        true ->
          Logger.error ">> has no instruction for #{inspect ast}"
          :no_instruction
-    end
-  end
-
-  defp check_count do
-    if get_count() < @max_count  do
-      inc_count()
-    else
-      Logger.error ">> COUNT TOO HIGH!"
-      reset_count()
-      raise("TO MUCH RECURSION")
     end
   end
 
