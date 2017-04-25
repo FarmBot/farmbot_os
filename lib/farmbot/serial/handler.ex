@@ -162,7 +162,7 @@ defmodule Farmbot.Serial.Handler do
         {:noreply, %{state | current: current}}
       rescue
         e ->
-          Logger.warn "Encountered an error handling: #{str}: #{inspect e}"
+          Logger.warn "Encountered an error handling: #{str}: #{inspect e}", rollbar: false
           {:noreply, state}
       end
     end
@@ -260,7 +260,8 @@ defmodule Farmbot.Serial.Handler do
   end
 
   defp handle_gcode(parsed) do
-    Logger.warn "Unhandled message: #{inspect parsed}"
+    Logger.warn "Unhandled message:" <>
+      " #{inspect parsed}", rollbar: false
     {:reply, parsed}
   end
 

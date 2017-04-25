@@ -158,9 +158,16 @@ defmodule Farmbot.Serial.Gcode.Parser do
   @spec parse_param(binary | integer) :: atom | nil
   def parse_param("0"), do: :param_version
 
+  def parse_param("2"), do: :param_config_ok
+  def parse_param("3"), do: :param_use_eeprom
+
   def parse_param("11"), do: :movement_timeout_x
   def parse_param("12"), do: :movement_timeout_y
   def parse_param("13"), do: :movement_timeout_z
+
+  def parse_param("15"), do: :movement_keep_active_x_default
+  def parse_param("16"), do: :movement_keep_active_y_default
+  def parse_param("17"), do: :movement_keep_active_z_default
 
   def parse_param("21"), do: :movement_invert_endpoints_x
   def parse_param("22"), do: :movement_invert_endpoints_y
@@ -213,6 +220,14 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param("122"), do: :encoder_missed_steps_decay_y
   def parse_param("123"), do: :encoder_missed_steps_decay_z
 
+  def parse_param("125"), do: :encoder_use_for_pos_x
+  def parse_param("126"), do: :encoder_use_for_pos_y
+  def parse_param("127"), do: :encoder_use_for_pos_z
+
+  def parse_param("131"), do: :encoder_invert_x
+  def parse_param("132"), do: :encoder_invert_y
+  def parse_param("133"), do: :encoder_invert_z
+
   def parse_param("141"), do: :movement_axis_nr_steps_x
   def parse_param("142"), do: :movement_axis_nr_steps_y
   def parse_param("143"), do: :movement_axis_nr_steps_z
@@ -241,9 +256,16 @@ defmodule Farmbot.Serial.Gcode.Parser do
   @spec parse_param(atom) :: integer | nil
   def parse_param(:param_version), do: 0
 
+  def parse_param(:param_config_ok), do: 2
+  def parse_param(:param_use_eeprom), do: 3
+
   def parse_param(:movement_timeout_x), do: 11
   def parse_param(:movement_timeout_y), do: 12
   def parse_param(:movement_timeout_z), do: 13
+
+  def parse_param(:movement_keep_active_x_default), do: 15
+  def parse_param(:movement_keep_active_y_default), do: 16
+  def parse_param(:movement_keep_active_z_default), do: 17
 
   def parse_param(:movement_invert_endpoints_x), do: 21
   def parse_param(:movement_invert_endpoints_y), do: 22
@@ -295,6 +317,14 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(:encoder_missed_steps_decay_x), do: 121
   def parse_param(:encoder_missed_steps_decay_y), do: 122
   def parse_param(:encoder_missed_steps_decay_z), do: 123
+
+  def parse_param(:encoder_use_for_pos_x), do: 125
+  def parse_param(:encoder_use_for_pos_y), do: 126
+  def parse_param(:encoder_use_for_pos_z), do: 127
+
+  def parse_param(:encoder_invert_x), do: 131
+  def parse_param(:encoder_invert_y), do: 132
+  def parse_param(:encoder_invert_z), do: 133
 
   def parse_param(:movement_axis_nr_steps_x), do: 141
   def parse_param(:movement_axis_nr_steps_y), do: 142

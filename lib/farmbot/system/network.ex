@@ -10,6 +10,8 @@ defmodule Farmbot.System.Network do
   alias Farmbot.Auth
 
   @access_token Application.get_env(:farmbot, :rollbar_access_token)
+  @commit Mix.Project.config[:commit]
+  @target Mix.Project.config[:target]
 
   @spec mod(atom) :: atom
   defp mod(target), do: Module.concat([Farmbot, System, target, Network])
@@ -150,7 +152,10 @@ defmodule Farmbot.System.Network do
         enable_logger: true,
         person_id: token.unencoded.bot,
         person_email: token.unencoded.sub,
-        person_username: token.unencoded.bot
+        person_username: token.unencoded.bot,
+        framework: "Nerves",
+        code_version: @commit,
+        custom: %{target: @target}
       :ok
     else
       Logger.info ">> Not Setting up rollbar!"

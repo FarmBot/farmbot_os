@@ -69,8 +69,9 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
       # our param sets arent important enough to keep
       read_param(%{label: param_str}, [])
     else
+      to_rollbar? = param_str != "nil"
       Logger.error ">> got an unrecognized" <>
-        " param: #{param_str}", rollbar: param_str != nil
+        " param: #{inspect param_str}", rollbar: to_rollbar?
     end
   end
 
