@@ -16,8 +16,6 @@ defmodule Farmbot.CeleryScript.Command.Sequence do
   """
   @spec run(%{}, [Ast.t]) :: no_return
   def run(args, body) do
-    # IO.inspect args
-    # IO.inspect body
     # rebuild the ast node
     ast = %Ast{kind: "sequence", args: args, body: body}
     # Logger.debug "Starting sequence: #{inspect ast}"

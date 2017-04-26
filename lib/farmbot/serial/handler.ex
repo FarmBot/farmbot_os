@@ -277,26 +277,56 @@ defmodule Farmbot.Serial.Handler do
   end
 
   def flash_firmware(tty, hex_file, pid) do
-    params =
-      ["-v",
-       "-patmega2560",
+    Logger.info ">> Starging arduino firmware flash", type: :busy
+    args =
+      ["-patmega2560",
        "-cwiring",
        "-P/dev/#{tty}",
        "-b115200",
-       "-D",
+       "-D", "-q", "-q", "-V",
        "-Uflash:w:#{hex_file}:i"]
 
-    "avrdude" |> System.cmd(params) |> log(pid)
+     avrdude = System.find_executable("avrdude")
+     port_args = [
+       :stream,
+       :binary,
+       :exit_status,
+       :hide,
+       :use_stdio,
+       :stderr_to_stdout,
+       args: args
+     ]
+     port = Port.open({:spawn_executable, avrdude}, port_args)
+     timer = Process.send_after(self(), :flash_timeout, 20_000)
+     r = handle_port(port, timer)
+     send(pid, r)
   end
 
-  defp log({_, 0}, pid) do
-    Logger.info "FLASHED FIRMWARE!"
-    send pid, :done
-  end
-
-  defp log(stuff, pid) do
-    Logger.error "FAILED TO FLASH FIRMWARE!"
-    send pid, {:error, stuff}
+  defp handle_port(port, timer) do
+    receive do
+      {^port, {:data, contents}} ->
+        debug_log(contents)
+        handle_port(port, timer)
+      {^port, {:exit_status, 0}} ->
+        Logger.info(">> Flashed new arduino firmware", type: :success)
+        Process.cancel_timer(timer)
+        :done
+      {^port, {:exit_status, error_code}} ->
+        Logger.error ">> Could not flash firmware (#{error_code})"
+        Process.cancel_timer(timer)
+        {:error, error_code}
+      :flash_timeout ->
+        Logger.error ">> Timed out flashing firmware!"
+        # info = Port.info(port)
+        # if info do
+        #   send port, {self(), :close}
+        #   "kill" |> System.cmd(["15", "#{info.os_pid}"])
+        # end
+        {:error, :flash_timeout}
+      after 21_000 ->
+        Logger.error ">> Timed out flashing firmware!"
+        {:error, :flash_timeout}
+    end
   end
 
   @spec spm(atom) :: integer

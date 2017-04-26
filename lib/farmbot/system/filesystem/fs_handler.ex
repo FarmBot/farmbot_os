@@ -24,9 +24,13 @@ defmodule Farmbot.System.FS do
     case File.stat(update_file_path) do
       {:ok, _file} ->
         Logger.info "We are in post update mode!"
-        Farmbot.System.Updates.post_install()
+        result = Farmbot.System.Updates.post_install()
         transaction fn ->
+          Logger.info "Cleaning up post update mode!", type: :busy
           File.rm!(update_file_path)
+        end, true
+        if result == :reboot do
+          Farmbot.System.reboot()
         end
       _ ->
         Logger.info "Not in post update mode!"
@@ -62,7 +66,7 @@ defmodule Farmbot.System.FS do
       {:ok, result} ->
         result
       nil ->
-        Logger.error "Failed to execute FS transaction  in#{timeout}ms"
+        Logger.error "Failed to execute FS transaction  in #{timeout} ms"
         nil
     end
   end

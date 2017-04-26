@@ -135,7 +135,7 @@ defmodule Farmbot.BotState.Hardware do
       put_config("params", new_params)
       dispatch %State{state | mcu_params: new_params}
     else
-      Logger.warn(">> wont save param value as -1")
+      Logger.info(">> wont save param value as -1", type: :warn)
       new_params = Map.delete(state.mcu_params, param_string)
       put_config("params", new_params)
       dispatch %State{state | mcu_params: new_params}

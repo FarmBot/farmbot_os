@@ -144,24 +144,33 @@ defmodule Farmbot.System.Network do
     {:ok, token}
   end
 
-  def maybe_setup_rollbar(token) do
-    if String.contains?(token.unencoded.iss, "farmbot.io") and @access_token do
-      Logger.info ">> Setting up rollbar!"
-      :ok = ExRollbar.setup access_token: @access_token,
-        environment: token.unencoded.iss,
-        enable_logger: true,
-        person_id: token.unencoded.bot,
-        person_email: token.unencoded.sub,
-        person_username: token.unencoded.bot,
-        framework: "Nerves",
-        code_version: @commit,
-        custom: %{target: @target}
-      :ok
-    else
-      Logger.info ">> Not Setting up rollbar!"
-      :ok
+  if Mix.env == :prod do
+
+    def maybe_setup_rollbar(token) do
+      if String.contains?(token.unencoded.iss, "farmbot.io") and @access_token do
+        Logger.info ">> Setting up rollbar!"
+        :ok = ExRollbar.setup access_token: @access_token,
+          environment: token.unencoded.iss,
+          enable_logger: true,
+          person_id: token.unencoded.bot,
+          person_email: token.unencoded.sub,
+          person_username: token.unencoded.bot,
+          framework: "Nerves",
+          code_version: @commit,
+          custom: %{target: @target}
+        :ok
+      else
+        Logger.info ">> Not Setting up rollbar!"
+        :ok
+      end
     end
+
+  else
+
+    def maybe_setup_rollbar(_), do: Logger.info ">> Not Setting up rollbar!"
+
   end
+
 
   @spec get_config(String.t) :: {:ok, any}
   defp get_config(key), do: GenServer.call(CS, {:get, Network, key})

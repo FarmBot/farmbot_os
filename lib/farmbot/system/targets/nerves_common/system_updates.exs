@@ -4,36 +4,46 @@ defmodule Farmbot.System.NervesCommon.Updates do
       @behaviour Farmbot.System.Updates
       require Logger
 
-      @exp_fw_version Application.get_all_env(:farmbot)[:expected_fw_version]
       def install(path), do: :ok = Nerves.Firmware.upgrade_and_finalize(path)
 
       defp blerp(tries \\ 0)
+
       defp blerp(tries) when tries > 10 do
-        Logger.error "No serial handler"
+        Logger.info "No serial handler", type: :warn
         :ok
       end
+
       defp blerp(tries) do
         pid = Process.whereis(Farmbot.Serial.Handler)
         if is_pid(pid) do
-          :ok
+          r = Farmbot.Serial.Handler.write "F83"
+          if r == :timeout do
+            Logger.info "Got timeout waiting for serial handler. Trying again"
+            blerp(tries + 1)
+          else
+            :ok
+          end
         else
-          Logger.warn "No serial handler yet, waiting..."
+          Logger.info "No serial handler yet, waiting...", type: :warn
           Process.sleep(5000)
           blerp(tries + 1)
         end
       end
 
       def post_install do
+        Logger.info ">> Is doing post install stuff."
         :ok = blerp()
         r = Farmbot.Serial.Handler.write "F83"
+        exp = Application.get_all_env(:farmbot)[:expected_fw_version]
         case r do
-          {:report_software_version, @exp_fw_version} ->
+          {:report_software_version, version} when version == exp ->
             Logger.info "Firmware is already the correct version!"
             :ok
-          _ ->
+          other ->
             # we need to flash the firmware
+            IO.warn "#{inspect other}"
             file = "#{:code.priv_dir(:farmbot)}/firmware.hex"
-            Logger.warn "UPDATING FIRMWRE!!"
+            Logger.info ">> Doing post update firmware flash.", type: :warn
             GenServer.cast(Farmbot.Serial.Handler, {:update_fw, file, self()})
             wait_for_finish()
         end
@@ -42,7 +52,7 @@ defmodule Farmbot.System.NervesCommon.Updates do
       defp wait_for_finish do
         receive do
           :done -> :ok
-          _e -> :ok
+          _e -> :reboot
         end
       end
 
