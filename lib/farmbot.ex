@@ -7,12 +7,15 @@ defmodule Farmbot do
   alias Farmbot.Sync.Database
   alias Farmbot.System.Supervisor, as: FBSYS
 
+  @version Mix.Project.config[:version]
+  @commit Mix.Project.config[:commit]
+
   @doc """
     Entry Point to Farmbot
   """
   def start(type, args)
   def start(_, _args) do
-    Logger.info ">> init!"
+    Logger.info ">> Booting Farmbot OS version: #{@version} - #{@commit}"
     :ok = setup_nerves_fw()
     Amnesia.start
     Database.create! Keyword.put([], :memory, [node()])

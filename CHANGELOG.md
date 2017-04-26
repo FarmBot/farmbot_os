@@ -46,5 +46,9 @@
 # 3.1.2
 * Fix bug caused by Github changing their release api.
 
-# 3.1.2
+# 3.1.3
 * Fix peripheral bug.
+
+# 3.1.4
+* Bundle new FW
+* Add Rollbar client
