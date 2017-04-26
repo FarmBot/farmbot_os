@@ -171,7 +171,6 @@ defmodule Farmbot.System.Network do
 
   end
 
-
   @spec get_config(String.t) :: {:ok, any}
   defp get_config(key), do: GenServer.call(CS, {:get, Network, key})
   # @spec get_config() :: {:ok, false | map}
