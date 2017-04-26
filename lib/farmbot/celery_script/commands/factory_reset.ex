@@ -25,7 +25,7 @@ defmodule Farmbot.CeleryScript.Command.FactoryReset do
   end
 
   def run(%{package: "arduino_firmware"}, []) do
-    do_fac_reset_fw(true)
+    do_fac_reset_fw()
   end
 
   @spec do_fac_reset_fw(boolean) :: no_return
@@ -48,8 +48,8 @@ defmodule Farmbot.CeleryScript.Command.FactoryReset do
     f = %{config_file | "hardware" => %{config_file["hardware"] | "params" => %{}}}
     Farmbot.System.FS.transaction fn() ->
       File.write file, Poison.encode!(f)
-    end
-
+    end, true
+    GenServer.stop(Farmbot.Serial.Handler, :reset)
     if reboot, do: Farmbot.System.reboot()
   end
 

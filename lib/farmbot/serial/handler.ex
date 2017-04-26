@@ -148,7 +148,7 @@ defmodule Farmbot.Serial.Handler do
   def handle_info(:timeout, state) do
     current = state.current
     if current do
-      debug_log "Timing out current"
+      debug_log "Timing out current: #{inspect current}"
       GenServer.reply(current.from, :timeout)
     end
     check_timeouts(state)
@@ -182,14 +182,19 @@ defmodule Farmbot.Serial.Handler do
 
   @spec do_handle({binary, any}, map | nil) :: map | nil
   defp do_handle({_qcode, parsed}, current) when is_map(current) do
-    case handle_gcode(parsed) do
+    results = handle_gcode(parsed)
+    debug_log "Handling results: #{inspect results}"
+    case results do
       {:status, :done} ->
+        debug_log "replying to #{inspect current.from} with: #{inspect current.reply}"
         GenServer.reply(current.from, current.reply)
         Process.cancel_timer(current.timer)
         nil
       {:status, status} -> %{current | status: status}
       {:reply, reply} -> %{current | reply: reply}
-      _ -> current
+      thing ->
+        debug_log "Unexpected thing: #{inspect thing}"
+        current
     end
   end
 
@@ -214,9 +219,11 @@ defmodule Farmbot.Serial.Handler do
   defp handle_gcode(:received), do: {:status, :received}
 
   defp handle_gcode({:debug_message, message}) do
-    Logger.info ">>'s arduino says: #{message}"
+    debug_log "R99 #{message}"
     nil
   end
+
+  defp handle_gcode(:report_params_complete), do: {:reply, :report_params_complete}
 
   defp handle_gcode({:report_pin_value, pin, value} = reply)
   when is_integer(pin) and is_integer(value) do
@@ -277,7 +284,7 @@ defmodule Farmbot.Serial.Handler do
   end
 
   def flash_firmware(tty, hex_file, pid) do
-    Logger.info ">> Starging arduino firmware flash", type: :busy
+    Logger.info ">> Starting arduino firmware flash", type: :busy
     args =
       ["-patmega2560",
        "-cwiring",
