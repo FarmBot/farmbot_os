@@ -64,17 +64,22 @@ defmodule Downloader do
     #TODO This is sometimes nil
     # Something about chunked transfer-encoding
     content_length = maybe_content_length(headers)
-
-    {_, filename} =
-      headers
-      |> Enum.find(fn({key, _}) -> key == 'content-disposition' end)
-    filename =
+    filename = try do
+      {_, filename} =
+        headers
+        |> Enum.find(fn({key, _}) -> key == 'content-disposition' end)
       filename
       |> to_string
       |> String.split(";")
       |> List.last
       |> String.strip
       |> String.trim("filename=")
+    rescue
+      _ ->
+        "unknown-filename"
+    end
+
+
     {:noreply, %{s | content_length: content_length, filename: filename}}
   end
 

@@ -7,6 +7,8 @@ defmodule Farmbot.Serial.Gcode.Parser do
 
   @spec parse_code(binary) :: {binary, tuple}
 
+  # Code.eval_file("lib/test.exs")
+
   def parse_code("R00 Q" <> tag), do: {tag, :idle}
   def parse_code("R01 Q" <> tag), do: {tag, :received}
   def parse_code("R02 Q" <> tag), do: {tag, :done}
@@ -16,6 +18,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_code("R05" <> _r), do: {nil, :dont_handle_me} # Dont care about this.
   def parse_code("R06 " <> r), do: parse_report_calibration(r)
 
+  def parse_code("R20 Q" <> tag), do: {tag, :report_params_complete}
   def parse_code("R21 " <> params), do: parse_pvq(params, :report_parameter_value)
   def parse_code("R31 " <> params), do: parse_pvq(params, :report_status_value)
   def parse_code("R41 " <> params), do: parse_pvq(params, :report_pin_value)
@@ -165,9 +168,9 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param("12"), do: :movement_timeout_y
   def parse_param("13"), do: :movement_timeout_z
 
-  def parse_param("15"), do: :movement_keep_active_x_default
-  def parse_param("16"), do: :movement_keep_active_y_default
-  def parse_param("17"), do: :movement_keep_active_z_default
+  def parse_param("15"), do: :movement_keep_active_x
+  def parse_param("16"), do: :movement_keep_active_y
+  def parse_param("17"), do: :movement_keep_active_z
 
   def parse_param("21"), do: :movement_invert_endpoints_x
   def parse_param("22"), do: :movement_invert_endpoints_y
@@ -263,9 +266,9 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(:movement_timeout_y), do: 12
   def parse_param(:movement_timeout_z), do: 13
 
-  def parse_param(:movement_keep_active_x_default), do: 15
-  def parse_param(:movement_keep_active_y_default), do: 16
-  def parse_param(:movement_keep_active_z_default), do: 17
+  def parse_param(:movement_keep_active_x), do: 15
+  def parse_param(:movement_keep_active_y), do: 16
+  def parse_param(:movement_keep_active_z), do: 17
 
   def parse_param(:movement_invert_endpoints_x), do: 21
   def parse_param(:movement_invert_endpoints_y), do: 22
@@ -356,7 +359,8 @@ defmodule Farmbot.Serial.Gcode.Parser do
   # derp.
   if Mix.env == :dev do
     def parse_param(uhh) do
-      Logger.error("LOOK AT ME IM IMPORTANT: #{inspect uhh}", rollbar: false)
+      Logger.error("Unrecognized param needs implementation " <>
+        "#{inspect uhh}", rollbar: false)
       nil
     end
   else

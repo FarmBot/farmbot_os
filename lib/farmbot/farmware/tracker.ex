@@ -73,9 +73,9 @@ defmodule Farmware.Tracker do
   end
 
   # handle exit of worker process
-  def handle_info({:EXIT, pid, _reason}, state) do
+  def handle_info({:EXIT, pid, reason}, state) do
     if pid == state.worker do
-      Logger.error "Farmware Worker died"
+      Logger.error "Farmware Worker died: #{inspect reason}"
       {:ok, pid} = Worker.start_link
       {:noreply, [], %State{state | worker: pid }}
     else

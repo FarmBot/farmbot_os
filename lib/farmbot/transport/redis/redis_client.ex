@@ -42,7 +42,6 @@ defmodule Farmbot.Transport.Redis do
   end
 
   def handle_info(_event, redis) do
-    # IO.inspect event
     {:noreply, [], redis}
   end
 end

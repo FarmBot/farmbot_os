@@ -145,7 +145,7 @@ defmodule Farmbot.Auth do
     # Try to get a token.
     case try_log_in() do
        {:ok, %Token{} = _t} = success ->
-         Logger.info ">> Is logged in"
+         Logger.info ">> Is logged in", type: :success
          success
        _ -> # no need to print message becasetry_log_indoes it for us.
         # sleep for a second, then try again untill we are out of retries
@@ -251,7 +251,7 @@ defmodule Farmbot.Auth do
   end
 
   def handle_call(:try_log_in, _, %Token{} = _token) do
-    Logger.warn ">> already has a token. Fetching another."
+    Logger.info ">> already has a token. Fetching another.", type: :busy
     with {:ok, server} <- get_server(),
          {:ok, secret} <- get_secret(),
          {:ok, %Token{} = token} <- get_token_from_server(secret, server)
@@ -272,7 +272,8 @@ defmodule Farmbot.Auth do
        {:reply, {:ok, token}, token}
      else
        e ->
-         Logger.error ">> can't log in because i have no token or credentials!"
+         msg = ">> can't log in because i have no token or credentials!"
+         Logger.info msg, type: :error
          {:reply, e, nil}
     end
   end
@@ -304,7 +305,7 @@ defmodule Farmbot.Auth do
   end
 
   defp do_callbacks(token) do
-    Logger.debug ">> Successfully got a token!"
+    Logger.info ">> Successfully got a token!", type: :success
     spawn fn() ->
       for module <- @modules, do: send(module, {:authorization, token})
     end

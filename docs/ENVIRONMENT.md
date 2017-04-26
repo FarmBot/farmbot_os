@@ -2,9 +2,12 @@
 There are a number of things that can (and should) be configured at compile time
 via shell environment variables.
 
+## Firmware Signing
+We Produce signed releases in PROD environment. export `PRIV_KEY_FILE` to be the private key file.
+
 ## IO debugger
 If you want more verbose logs you can export `DEBUG_LOGGER`. This will cause (a lot of) messages
-to be displayed on the current tty. 
+to be displayed on the current tty.
 
 ## Mix Environment
 you can set `MIX_ENV=prod` or `MIX_ENV=dev` (default) to change the environment

@@ -46,5 +46,15 @@
 # 3.1.2
 * Fix bug caused by Github changing their release api.
 
-# 3.1.2
+# 3.1.3
 * Fix peripheral bug.
+
+# 3.1.4
+* Bundle new FW
+* Add Rollbar client
+
+# 3.1.5
+* Clean up a ton of log messages causing RollBar problems.
+* Finally rewrite the firmware uploader.
+* Bump Firmware Version.
+* Misc bug fixes.

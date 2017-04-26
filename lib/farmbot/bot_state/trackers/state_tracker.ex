@@ -64,7 +64,8 @@ defmodule Farmbot.StateTracker do
       end
 
       defp dispatch({:error, reason}) do
-        Logger.error ">> encountered a fatal error in #{unquote(name)}."
+        Logger.error ">> encountered a fatal " <>
+          " error in #{unquote(name)}: #{inspect reason}"
       end
 
       defp broadcast(%unquote(name).State{} = state) do

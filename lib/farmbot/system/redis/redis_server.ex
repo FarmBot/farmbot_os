@@ -80,8 +80,7 @@ defmodule Redis.Server do
     {:noreply, port}
   end
 
-  def handle_info({_port, info}, port) do
-    IO.inspect info
+  def handle_info({_port, _info}, port) do
     {:noreply, port}
   end
 

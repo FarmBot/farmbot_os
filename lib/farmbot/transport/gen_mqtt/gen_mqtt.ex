@@ -27,8 +27,8 @@ defmodule Farmbot.Transport.GenMqtt do
     end
   end
 
-  def terminate(reason, _state) do
-    IO.inspect reason
+  def terminate(_reason, _state) do
+    :ok
   end
 
   def handle_events(events, _, {_client, %Token{} = _} = state) do

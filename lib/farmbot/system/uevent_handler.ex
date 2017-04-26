@@ -71,7 +71,6 @@ defmodule Farmbot.System.UeventHandler do
     os_file = "#{@mountpath}/#{@app}-#{@target}.fw"
 
     debug_log "Checking for emergency flash files."
-    IO.inspect {fw_file, os_file}
 
     case File.stat(fw_file) do
       {:ok, _file} ->  handle_arduino(fw_file)

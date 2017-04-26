@@ -44,7 +44,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
     { combined_x, combined_y, combined_z } = { xa + xb, ya + yb, za + zb }
     {x, y, z} = do_math(combined_x, combined_y, combined_z)
     "G00 X#{x} Y#{y} Z#{z} S#{speed}" |> UartHan.write
-    ensure_position(combined_x, combined_y, combined_z)
+    # ensure_position(combined_x, combined_y, combined_z)
   end
 
   defp do_math(combined_x, combined_y, combined_z) do
@@ -58,27 +58,27 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
     |> String.to_atom
     |> Farmbot.BotState.get_config()
 
-  @doc """
-    Make sure we are at the correct position before moving on.
-  """
-  def ensure_position(expected_x, expected_y, expected_z, retries \\ 0)
-  def ensure_position(_,_,_, retries) when retries > 10 do
-    Logger.error ">> Movement still not completed. Your bot might be stuck."
-    {:error, :not_moving}
-  end
-
-  def ensure_position(expected_x, expected_y, expected_z, retries) do
-    [cur_x, cur_y, cur_z] = Farmbot.BotState.get_current_pos
-    if {expected_x, expected_y, expected_z} == {cur_x, cur_y, cur_z} do
-      Logger.info ">> Completed movement: " <>
-        "(#{expected_x}, #{expected_y}, #{expected_z})"
-      :ok
-    else
-      Logger.info ">> Movement not complete: " <>
-        "(#{expected_x}, #{expected_y}, #{expected_z})"
-      Process.sleep(500)
-      ensure_position(expected_x, expected_y, expected_z, retries + 1)
-    end
-  end
+  # @doc """
+  #   Make sure we are at the correct position before moving on.
+  # """
+  # def ensure_position(expected_x, expected_y, expected_z, retries \\ 0)
+  # def ensure_position(_,_,_, retries) when retries > 10 do
+  #   Logger.error ">> Movement still not completed. Your bot might be stuck."
+  #   {:error, :not_moving}
+  # end
+  #
+  # def ensure_position(expected_x, expected_y, expected_z, retries) do
+  #   [cur_x, cur_y, cur_z] = Farmbot.BotState.get_current_pos
+  #   if {expected_x, expected_y, expected_z} == {cur_x, cur_y, cur_z} do
+  #     Logger.info ">> Completed movement: " <>
+  #       "(#{expected_x}, #{expected_y}, #{expected_z})"
+  #     :ok
+  #   else
+  #     Logger.info ">> Movement not complete: " <>
+  #       "(#{expected_x}, #{expected_y}, #{expected_z})"
+  #     Process.sleep(500)
+  #     ensure_position(expected_x, expected_y, expected_z, retries + 1)
+  #   end
+  # end
 
 end

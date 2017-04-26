@@ -18,7 +18,7 @@ if use_logger? do
     defmacro __using__(_opts) do
       quote do
 
-        IO.warn "Setting up DebugLogger: #{__MODULE__}", []
+        # IO.puts "Setting up DebugLogger: #{__MODULE__}", []
         def debug_log(str), do: IO.puts "[#{__MODULE__}] #{str}"
 
       end # quote
@@ -35,11 +35,11 @@ else
 
     defmacro __using__(_opts) do
       quote do
-        warning = """
-        Disabling DebugLogger: #{__MODULE__}
-        If you want to debug #{__MODULE__}, export: DEBUG_LOGGER=true
-        """
-        IO.warn warning, []
+        # warning = """
+        # Disabling DebugLogger: #{__MODULE__}
+        # If you want to debug #{__MODULE__}, export: DEBUG_LOGGER=true
+        # """
+        # IO.warn warning, []
         def debug_log(_str), do: :ok
       end # quote
 

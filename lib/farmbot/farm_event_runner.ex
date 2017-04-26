@@ -38,7 +38,6 @@ defmodule Farmbot.FarmEventRunner do
         # end)
       end
       {late_events, new} = do_checkup(all_events, now, state)
-      # IO.inspect all_events
       unless Enum.empty?(late_events) do
         Logger.warn "TIME TO DO STUFF: #{inspect late_events} " <>
           " at: #{now.hour}:#{now.minute}"
@@ -71,8 +70,8 @@ defmodule Farmbot.FarmEventRunner do
     start_events(rest, now)
   end
 
-  def terminate(_reason, _fe) do
-    Logger.error "UH OH!"
+  def terminate(reason, _fe) do
+    Logger.error "Farm Event Runner died. #{inspect reason}"
   end
 
   @spec get_now :: DateTime.t | nil
