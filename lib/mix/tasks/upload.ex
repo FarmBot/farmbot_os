@@ -8,12 +8,7 @@ if Code.ensure_loaded?(Mix.Tasks.Firmware.Push) do
     def run([ipaddr]) do
       otp_app = Mix.Project.config[:app]
       target = Mix.Project.config[:target]
-      fw_file =
-        if Mix.env == :prod do
-          Path.join(["images", "#{Mix.env()}", "#{target}", "#{otp_app}-signed.fw"])
-        else
-          Path.join(["images", "#{Mix.env()}", "#{target}", "#{otp_app}.fw"])
-        end
+      fw_file = Path.join(["images", "#{Mix.env()}", "#{target}", "#{otp_app}.fw"])
 
       unless File.exists?(fw_file) do
          Mix.raise "Could not find Firmware! Did you forget to produce a signed image?"

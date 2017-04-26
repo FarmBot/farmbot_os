@@ -165,9 +165,9 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param("12"), do: :movement_timeout_y
   def parse_param("13"), do: :movement_timeout_z
 
-  def parse_param("15"), do: :movement_keep_active_x_default
-  def parse_param("16"), do: :movement_keep_active_y_default
-  def parse_param("17"), do: :movement_keep_active_z_default
+  def parse_param("15"), do: :movement_keep_active_x
+  def parse_param("16"), do: :movement_keep_active_y
+  def parse_param("17"), do: :movement_keep_active_z
 
   def parse_param("21"), do: :movement_invert_endpoints_x
   def parse_param("22"), do: :movement_invert_endpoints_y
