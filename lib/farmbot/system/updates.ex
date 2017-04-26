@@ -28,7 +28,7 @@ defmodule Farmbot.System.Updates do
     if Farmbot.BotState.get_config(:os_auto_update) do
       check_and_download_updates()
     else
-      Logger.warn ">> Will not do update check!"
+      Logger.info ">> Will not do update check!"
     end
   end
 
@@ -39,10 +39,12 @@ defmodule Farmbot.System.Updates do
   def check_and_download_updates do
     case check_updates() do
       {:update, url} ->
-        Logger.info ">> has found a new Operating System update! #{url}"
+        Logger.info ">> has found a new Operating System update! #{url}",
+          type: :busy
         install_updates(url)
       :no_updates ->
-        Logger.info ">> is already on the latest Operating System version!"
+        Logger.info ">> is already on the latest Operating System version!",
+          type: :success
         :no_updates
       {:error, reason} ->
         Logger.error ">> encountered an error checking for updates! #{reason}"
@@ -57,7 +59,8 @@ defmodule Farmbot.System.Updates do
   def check_updates do
     current = Farmbot.BotState.get_os_version
     if String.contains?(current, "rc") do
-      Logger.error "Release Candidate Releases don't currently support updates!"
+      msg = "Release Candidate Releases don't currently support updates!"
+      Logger.info msg, type: :warn
       :no_updates
     else
       do_http_req()
@@ -95,11 +98,11 @@ defmodule Farmbot.System.Updates do
     path = Downloader.run(url, @path)
     case File.stat(path) do
       {:ok, file} ->
-        Logger.info "Found file: #{inspect file}"
-      e -> Logger.error "NO FILE: #{e}"
+        Logger.info "Found file: #{inspect file}", type: :success
+      e -> Logger.error "Could not find update file: #{inspect e}"
     end
     FS.transaction fn ->
-      Logger.info "Seting up post update!"
+      Logger.info "Seting up post update!", type: :busy
       path = "#{FS.path()}/.post_update"
       :ok = File.write(path, "DONT CAT ME\r\n")
     end

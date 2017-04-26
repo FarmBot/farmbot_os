@@ -106,14 +106,15 @@ defmodule Farmware do
   def uninstall(package_name) do
     path = FS.path() <> "/farmware/#{package_name}"
     if File.exists?(path) do
-      Logger.warn "uninstalling farmware: #{package_name}"
+      Logger.info "uninstalling farmware: #{package_name}", type: :busy
       info = Farmbot.BotState.ProcessTracker.lookup(:farmware, package_name)
       deregister(info)
       FS.transaction fn() ->
         File.rm_rf!(path)
       end, true
     else
-      Logger.error "can not find farmware: #{package_name} to uninstall"
+      msg = "can not find farmware: #{package_name} to uninstall"
+      Logger.info msg, type: :error
     end
   end
 
@@ -171,7 +172,7 @@ defmodule Farmware do
       |> Tracker.add()
     else
       msg = ">> Could not find FarmWare: #{package_name}"
-      Logger.error msg
+      Logger.info msg, type: :error
       raise msg
     end
   end
@@ -185,7 +186,7 @@ defmodule Farmware do
       |> Poison.decode!
     else
       msg = ">> Could not find FarmWare: #{package_name}"
-      Logger.error msg
+      Logger.info msg, type: :error
       raise msg
     end
   end
