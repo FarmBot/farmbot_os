@@ -52,3 +52,9 @@
 # 3.1.4
 * Bundle new FW
 * Add Rollbar client
+
+# 3.1.5
+* Clean up a ton of log messages causing RollBar problems.
+* Finally rewrite the firmware uploader.
+* Bump Firmware Version.
+* Misc bug fixes.
