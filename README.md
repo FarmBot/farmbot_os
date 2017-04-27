@@ -13,7 +13,7 @@ if you spot a bug or fix, but for now we suggest obtaining a Raspberry Pi 3 for 
 
 |Raspbery Pi Version |
 |---|
-| :star: **[RPi 3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.5/farmbot-rpi3-3.1.5.img)**|
+| :star: **[RPi 3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.4/farmbot-rpi3-3.1.4.img)**|
 <!--
 |  [RPi 2](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.3/farmbot-rpi2-3.1.3.img) |
 |  [RPi 0 and 1](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.3/farmbot-rpi-3.1.3.img) |
