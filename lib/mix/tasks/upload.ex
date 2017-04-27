@@ -11,11 +11,13 @@ if Code.ensure_loaded?(Mix.Tasks.Firmware.Push) do
       fw_file = if Enum.find(rest, fn(flag) ->
         flag == "--signed"
       end) do
-        Mix.shell.info "Using signed image"
-        Path.join(["images", "#{Mix.env()}", "#{target}", "#{otp_app}-signed.fw"])
+        path = Path.join(["images", "#{Mix.env()}", "#{target}", "#{otp_app}-signed.fw"])
+        Mix.shell.info "Using signed image: #{path}"
+        path
       else
-        Mix.shell.info "Using unsigned image"
-        Path.join(["images", "#{Mix.env()}", "#{target}", "#{otp_app}.fw"])
+        path = Path.join(["images", "#{Mix.env()}", "#{target}", "#{otp_app}.fw"])
+        Mix.shell.info "Using unsigned image: #{path}"
+        path
       end
       Push.run([ipaddr, "--firmware", "#{fw_file}", "--reboot", "true"])
     end

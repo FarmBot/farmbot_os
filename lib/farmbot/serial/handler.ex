@@ -10,7 +10,7 @@ defmodule Farmbot.Serial.Handler do
   alias Farmbot.BotState
   alias Farmbot.Lib.Maths
 
-  use Farmbot.DebugLog
+  use Farmbot.DebugLog, enable: false
 
   @typedoc """
     Handler pid or name
@@ -94,8 +94,15 @@ defmodule Farmbot.Serial.Handler do
   def init({nerves, tty}) when is_pid(nerves) and is_binary(tty) do
     Process.link(nerves)
     :ok = open_tty(nerves, tty)
-    GenServer.cast(Farmbot.BotState.Hardware, :eff)
-    {:ok, %{nerves: nerves, tty: tty, current: nil, timeouts: 0}}
+    state = %{
+      nerves: nerves,
+      tty: tty,
+      current: nil,
+      timeouts: 0,
+      status: :busy,
+      initialized: false
+    }
+    {:ok, state}
   end
 
   def init(tty) when is_binary(tty) do
@@ -120,9 +127,9 @@ defmodule Farmbot.Serial.Handler do
 
   def handle_call(:get_state, _, state), do: {:reply, state, state}
 
-  def handle_call(:available?, _, state), do: {:reply, true, state}
+  def handle_call(:available?, _, state), do: {:reply, state.initialized, state}
 
-  def handle_call({:write, str, timeout}, from, state) do
+  def handle_call({:write, str, timeout}, from, %{status: :idle} = state) do
     handshake = generate_handshake()
     writeme =  "#{str} #{handshake}"
     debug_log "writing: #{writeme}"
@@ -130,6 +137,11 @@ defmodule Farmbot.Serial.Handler do
     timer = Process.send_after(self(), :timeout, timeout)
     current = %{status: nil, reply: nil, from: from, q: handshake, timer: timer}
     {:noreply, %{state | current: current}}
+  end
+
+  def handle_call({:write, _str, _timeout}, _from, %{status: status} = state) do
+    debug_log "Serial Handler status: #{status}"
+    {:reply, {:error, :bad_status}, state}
   end
 
   def handle_cast({:update_fw, file, pid}, state) do
@@ -154,21 +166,30 @@ defmodule Farmbot.Serial.Handler do
     check_timeouts(state)
   end
 
-  def handle_info({:nerves_uart, tty, str}, state) when is_binary(str) do
-    if tty == state.tty do
-      debug_log "Reading: #{str}"
-      try do
-        current = str |> Parser.parse_code |> do_handle(state.current)
-        {:noreply, %{state | current: current}}
-      rescue
-        e ->
-          Logger.warn "Encountered an error handling: #{str}: #{inspect e}", rollbar: false
-          {:noreply, state}
-      end
+  def handle_info({:nerves_uart, _tty, {:partial, _}}, s), do: {:noreply, s}
+
+  def handle_info({:nerves_uart, _, str}, %{initialized: false} = state) do
+    if String.contains?(str, "R00") do
+      debug_log "Initializing Serial!"
+      GenServer.cast(Farmbot.BotState.Hardware, :eff)
+      {:noreply, %{state | initialized: true, status: :idle}}
+    else
+      debug_log "Serial not initialized yet."
+      {:noreply, state}
     end
   end
 
-  def handle_info({:nerves_uart, _tty, {:partial, _}}, s), do: {:noreply, s}
+  def handle_info({:nerves_uart, _, str}, state) when is_binary(str) do
+    debug_log "Reading: #{str}"
+    try do
+      current = str |> Parser.parse_code |> do_handle(state.current)
+      {:noreply, %{state | current: current, status: current[:status] || :idle}}
+    rescue
+      e ->
+        Logger.warn "Encountered an error handling: #{str}: #{inspect e}", rollbar: false
+        {:noreply, state}
+    end
+  end
 
   def handle_info({:nerves_uart, tty, {:error, error}}, state) do
     Logger.error "#{tty} handler exiting!: #{error}"
@@ -262,7 +283,7 @@ defmodule Farmbot.Serial.Handler do
   defp handle_gcode(:dont_handle_me), do: nil
 
   defp handle_gcode({:unhandled_gcode, code}) do
-    Logger.warn ">> got an misc gcode #{code}"
+    Logger.info ">> got an misc gcode #{code}", type: :warn
     {:reply, code}
   end
 

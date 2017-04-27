@@ -15,18 +15,19 @@ if use_logger? do
   defmodule Farmbot.DebugLog do
     @moduledoc mdoc
 
+    defmacro __using__(enable: false) do
+      quote do
+        def debug_log(_str), do: :ok
+      end
+    end
+
     defmacro __using__(_opts) do
       quote do
-
-        # IO.puts "Setting up DebugLogger: #{__MODULE__}", []
         def debug_log(str), do: IO.puts "[#{__MODULE__}] #{str}"
-
       end # quote
-
     end # defmacro
-
   end # defmodule
-
+  
 else
 
   # We dont enable Debug logger. Stub everything.

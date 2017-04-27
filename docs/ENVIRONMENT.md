@@ -6,7 +6,7 @@ via shell environment variables.
 We Produce signed releases in PROD environment. export `PRIV_KEY_FILE` to be the private key file.
 
 ## IO debugger
-If you want more verbose logs you can export `DEBUG_LOGGER`. This will cause (a lot of) messages
+If you want more verbose logs you can export `DEBUG_LOG`. This will cause (a lot of) messages
 to be displayed on the current tty.
 
 ## Mix Environment

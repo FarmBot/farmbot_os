@@ -60,14 +60,31 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
     end
   end
 
+  defp write_and_read(int_and_str, val, tries \\ 0)
+  defp write_and_read({_param_int, param_str}, _val, tries) when tries > 5 do
+    Logger.info ">> failed to update update: #{param_str}!"
+    {:error, :timeout}
+  end
+
+  defp write_and_read({param_int, param_str}, val, tries) do
+    Logger.info ">> is updating #{param_str}: #{val}"
+    case "F22 P#{param_int} V#{val}" |> UartHan.write do
+      :timeout -> write_and_read({param_int, param_str}, val, tries + 1)
+      _ -> :ok
+    end
+
+    # HACK read the param back because sometimes the firmware decides
+    # our param sets arent important enough to keep
+    case read_param(%{label: param_str}, []) do
+      :timeout -> write_and_read({param_int, param_str}, val, tries + 1)
+      _ -> :ok
+    end
+  end
+
   defp do_update_param({param_str, val}) do
     param_int = GParser.parse_param(param_str)
     if param_int do
-      Logger.info ">> is updating #{param_str}: #{val}"
-      "F22 P#{param_int} V#{val}" |> UartHan.write
-      # HACK read the param back because sometimes the firmware decides
-      # our param sets arent important enough to keep
-      read_param(%{label: param_str}, [])
+      write_and_read({param_int, param_str}, val)
     else
       to_rollbar? = param_str != "nil"
       Logger.error ">> got an unrecognized" <>
