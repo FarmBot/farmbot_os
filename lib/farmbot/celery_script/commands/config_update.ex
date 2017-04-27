@@ -29,16 +29,25 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
     total_count = Enum.count(params)
 
     debug_log "updating #{inspect params}"
-    Enum.reduce(params, 0, fn(pair, count) ->
-      do_update_param(pair)
-      count = count + 1
-      percent = ((count / total_count) * 100)
-      percent = trunc(percent)
-      if rem(percent, 10) == 0 do
-        debug_log "CONFIG UPDATE: #{percent}%"
+    count =
+      Enum.reduce(params, 0, fn(pair, count) ->
+        do_update_param(pair)
+        count = count + 1
+        percent = ((count / total_count) * 100)
+        percent = trunc(percent)
+        if rem(percent, 10) == 0 do
+          debug_log "CONFIG UPDATE: #{percent}%"
+        end
+        count
+      end)
+
+    if count > 5 do
+      "F20" |> UartHan.write
+    else
+      for {param_str, _val} <- params do
+        read_param(%{label: param_str}, [])
       end
-      count
-    end)
+    end
   end
 
   def run(%{package: "farmbot_os"}, config_pairs) do
@@ -68,23 +77,25 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
 
   defp write_and_read({param_int, param_str}, val, tries) do
     Logger.info ">> is updating #{param_str}: #{val}"
-    case "F22 P#{param_int} V#{val}" |> UartHan.write do
+    results = "F22 P#{param_int} V#{val}" |> UartHan.write
+    Logger.info "RESULTS: #{inspect results}"
+    case results do
       :timeout -> write_and_read({param_int, param_str}, val, tries + 1)
       _ -> :ok
     end
 
-    # HACK read the param back because sometimes the firmware decides
-    # our param sets arent important enough to keep
-    case read_param(%{label: param_str}, []) do
-      :timeout -> write_and_read({param_int, param_str}, val, tries + 1)
-      _ -> :ok
-    end
+    # # HACK read the param back because sometimes the firmware decides
+    # # our param sets arent important enough to keep
+    # case read_param(%{label: param_str}, []) do
+    #   :timeout -> write_and_read({param_int, param_str}, val, tries + 1)
+    #   _ -> :ok
+    # end
   end
 
   defp do_update_param({param_str, val}) do
     param_int = GParser.parse_param(param_str)
     if param_int do
-      write_and_read({param_int, param_str}, val)
+      r = write_and_read({param_int, param_str}, val)
     else
       to_rollbar? = param_str != "nil"
       Logger.error ">> got an unrecognized" <>

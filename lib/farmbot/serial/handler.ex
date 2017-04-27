@@ -10,7 +10,8 @@ defmodule Farmbot.Serial.Handler do
   alias Farmbot.BotState
   alias Farmbot.Lib.Maths
 
-  use Farmbot.DebugLog, enable: false
+  # use Farmbot.DebugLog, enable: false
+  use Farmbot.DebugLog
 
   @typedoc """
     Handler pid or name
@@ -170,11 +171,14 @@ defmodule Farmbot.Serial.Handler do
 
   def handle_info({:nerves_uart, _, str}, %{initialized: false} = state) do
     if String.contains?(str, "R00") do
-      debug_log "Initializing Serial!"
-      GenServer.cast(Farmbot.BotState.Hardware, :eff)
+      Logger.info "Initializing Firmware!"
+      fn ->
+        Process.sleep(2000)
+        GenServer.cast(Farmbot.BotState.Hardware, :eff)
+      end.()
       {:noreply, %{state | initialized: true, status: :idle}}
     else
-      debug_log "Serial not initialized yet."
+      debug_log "Serial not initialized yet: #{str}"
       {:noreply, state}
     end
   end
