@@ -68,7 +68,7 @@ defmodule Farmbot.System.Network do
   def restart do
     stop_all()
     {:ok, interface_config} = get_config("interfaces")
-    m = mod(get_mod())
+    m = mod(get_mod()) # wtf is this?
     parse_and_start_config(interface_config, m)
   end
 

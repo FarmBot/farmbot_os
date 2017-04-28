@@ -32,6 +32,8 @@ export interface ConfigFileNetIface {
         ssid?: string;
         /** psk for wifi */
         psk?: string;
+        /** Ignore this interface. (its magic) */
+        ignore?: boolean;
     }
 }
 

@@ -78,7 +78,6 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
   defp write_and_read({param_int, param_str}, val, tries) do
     Logger.info ">> is updating #{param_str}: #{val}"
     results = "F22 P#{param_int} V#{val}" |> UartHan.write
-    Logger.info "RESULTS: #{inspect results}"
     case results do
       :timeout -> write_and_read({param_int, param_str}, val, tries + 1)
       _ -> :ok

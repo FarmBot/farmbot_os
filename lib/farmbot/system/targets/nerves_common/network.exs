@@ -3,7 +3,10 @@ defmodule Farmbot.System.NervesCommon.Network do
     Common network functionality for Nerves Devices.
   """
 
-  defmacro __using__(target: _target, modules: modules) do
+  defmacro __using__(opts) do
+    modules = Keyword.get(opts, :modules, [])
+    callback = Keyword.get(opts, :callback)
+    target = Keyword.get(opts, :target)
     quote do
       @behaviour Farmbot.System.Network
       use GenServer
@@ -17,8 +20,17 @@ defmodule Farmbot.System.NervesCommon.Network do
         for module <- unquote(modules) do
           {_, 0} = System.cmd("modprobe", [module])
         end
+
         # wait for a few seconds for everything to settle
         Process.sleep(5000)
+
+        # execute a callback if supplied.
+        cb = unquote(callback)
+        if cb do
+          Logger.info ">> doing target specific setup: #{unquote(target)}"
+          cb.()
+        end
+
         {:ok, %{logging_in: false}}
       end
 
@@ -84,13 +96,38 @@ defmodule Farmbot.System.NervesCommon.Network do
         GenServer.call(__MODULE__, {:stop_interface, interface})
       end
 
-      def scan(iface) do
+      def scan(iface), do: do_scan(iface)
+
+      def do_scan(iface, retry \\ false)
+
+      def do_scan(iface, true) do
+        {:ok, _} = NervesWifi.setup(iface)
+        Process.sleep(1000)
+        results =
+          case do_iw_scan(iface) do
+            {:ok, f} -> f
+            {:error, _} ->
+              Logger.error ">> Could not scan on #{iface}. " <>
+               "The device either isn't wireless or uses the legacy WEXT driver."
+              []
+          end
+        NervesWifi.teardown(iface)
+        results
+      end
+
+      def do_scan(iface, false) do
+        case do_iw_scan(iface) do
+          {:ok, results} -> results
+          {:error, _} -> do_scan(iface, true)
+        end
+      end
+
+      defp do_iw_scan(iface) do
         case System.cmd("iw", [iface, "scan", "ap-force"]) do
-          {res, 0} ->  res |> clean_ssid
-          _ ->
-          Logger.error ">> Could not scan on #{iface}. " <>
-           "The device either isn't wireless or uses the legacy WEXT driver."
-           []
+          {res, 0} ->
+            f = res |> clean_ssid
+            {:ok, f}
+          e -> {:error, e}
         end
       end
 
@@ -108,8 +145,10 @@ defmodule Farmbot.System.NervesCommon.Network do
 
       # GENSERVER STUFF
 
-      def handle_call(:logged_in, _from, state),
-        do: {:reply, :ok, %{state | logging_in: false}}
+      def handle_call(:logged_in, _from, state) do
+        # Tear down hostapd here
+        {:reply, :ok, %{state | logging_in: false}}
+      end
 
       def handle_call({:stop_interface, interface}, _, state) do
         case state[interface] do
@@ -135,21 +174,15 @@ defmodule Farmbot.System.NervesCommon.Network do
         {:noreply, Map.put(state, interface, {settings, pid})}
       end
 
-      # ipv4_address: "192.168.29.241",
-      # ipv4_broadcast: "192.168.29.255",
-      # ipv4_gateway: "192.168.29.1",
-      # ipv4_subnet_mask: "255.255.255.0"
-
       def handle_info({Nerves.Udhcpc, :bound, %{ifname: interface, ipv4_address: ip}}, state) do
         if state.logging_in do
           {:noreply, state}
         else
           that = self()
           spawn fn() ->
+
             Farmbot.System.Network.on_connect(fn() ->
-              if interface == "eth0" do
-                stop_interface("wlan0")
-              end
+
               try do
                 {_, 0} = System.cmd("epmd", ["-daemon"])
                 :net_kernel.start(['farmbot@#{ip}'])
@@ -162,6 +195,7 @@ defmodule Farmbot.System.NervesCommon.Network do
               Process.sleep(5000) # ye old race linux condidtion
               GenServer.call(that, :logged_in)
             end)
+
           end
           {:noreply, %{state | logging_in: true}}
         end

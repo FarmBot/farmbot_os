@@ -48,9 +48,9 @@ defmodule Farmbot.System.Network.Hostapd do
     {hostapd_port, hostapd_os_pid}
   end
 
-  defp setup_dnsmasq(ip_addr) do
+  defp setup_dnsmasq(ip_addr, interface) do
     # DNSMASQ
-    dnsmasq_conf = build_dnsmasq_conf(ip_addr)
+    dnsmasq_conf = build_dnsmasq_conf(ip_addr, interface)
     File.mkdir!("/tmp/dnsmasq")
     :ok = File.write("/tmp/dnsmasq/#{@dnsmasq_conf_file}", dnsmasq_conf)
     dnsmasq_cmd = "dnsmasq -k --dhcp-lease " <>
@@ -67,7 +67,7 @@ defmodule Farmbot.System.Network.Hostapd do
     Process.flag :trap_exit, true
 
     {hostapd_port, hostapd_os_pid} = setup_hostapd(interface, ip_addr)
-    {dnsmasq_port, dnsmasq_os_pid} = setup_dnsmasq(ip_addr)
+    {dnsmasq_port, dnsmasq_os_pid} = setup_dnsmasq(ip_addr, interface)
 
     state =  %State{
       hostapd: {hostapd_port, hostapd_os_pid},
@@ -121,20 +121,19 @@ defmodule Farmbot.System.Network.Hostapd do
     name <> "-" <> id
   end
 
-  defp build_dnsmasq_conf(ip_addr) do
+  defp build_dnsmasq_conf(ip_addr, interface) do
     [a, b, c, _] = ip_addr |> String.split(".")
     first_part = "#{a}.#{b}.#{c}."
     """
-    # bogus-priv
-    # server=/localnet/#{ip_addr}
-    # local=/localnet/
-    interface=wlan0
-    # domain=localnet
+    interface=#{interface}
     dhcp-range=#{first_part}50,#{first_part}250,2h
     dhcp-option=3,#{ip_addr}
     dhcp-option=6,#{ip_addr}
     dhcp-authoritative
     address=/#/#{ip_addr}
+    server=/farmbot/#{ip_addr}
+    local=/farmbot/
+    domain=farmbot
     """
   end
 

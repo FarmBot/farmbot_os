@@ -26,6 +26,8 @@ defmodule Farmbot.Configurator.Router do
 
   if Mix.env == :dev, do: use Plug.Debugger, otp_app: :farmbot
 
+  forward "/wobserver", to: Wobserver.Web.Router
+
   get "/", do: conn |> send_resp(200, make_html())
   get "/setup" do
     conn

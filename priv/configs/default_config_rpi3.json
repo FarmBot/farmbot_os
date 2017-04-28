@@ -3,11 +3,17 @@
   "interfaces": {
    "wlan0": {
     "type": "wireless",
+    "default": false
+   },
+   "wlan1": {
+    "type": "wireless",
     "default": "hostapd",
     "settings": {
-     "ipv4_address": "192.168.24.1"
+     "ipv4_address": "192.168.24.1",
+     "ignore": true
     }
    },
+
    "eth0": {
     "type": "wired",
     "default": false
