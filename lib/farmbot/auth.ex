@@ -213,11 +213,11 @@ defmodule Farmbot.Auth do
 
     # Try to get a token.
     case try_log_in() do
-       {:ok, %Token{}} = success ->
+       {:ok, %Token{} = token} = success ->
          :ok = GenServer.call(__MODULE__, {:set_broadcast, true})
 
          Logger.info ">> Is logged in", type: :success
-         broadcast({:new_token, success})
+         broadcast({:new_token, token})
          success
        _ -> # no need to print message becasetry_log_indoes it for us.
         # sleep for a second, then try again untill we are out of retries

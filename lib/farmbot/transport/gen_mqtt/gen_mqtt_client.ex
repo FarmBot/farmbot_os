@@ -40,10 +40,16 @@ defmodule Farmbot.Transport.GenMqtt.Client do
 
   @spec on_publish([String.t], binary, Token.t) :: ok
   def on_publish(["bot", _bot, "from_clients"], msg, %Token{} = token) do
-    msg
-    |> Poison.decode!
-    |> Ast.parse
-    |> Command.do_command
+    # dont crash mqtt here because it sends an ugly message to rollbar
+    try do
+      msg
+      |> Poison.decode!
+      |> Ast.parse
+      |> Command.do_command
+    rescue
+      e ->
+        Logger.error ">> Saved mqtt client from cs death: #{inspect e}"
+    end
     {:ok, token}
   end
 

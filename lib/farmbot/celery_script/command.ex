@@ -105,15 +105,25 @@ defmodule Farmbot.CeleryScript.Command do
     # print the comment if it exists
     if ast.comment, do: Logger.info ">> [#{fun_name}] - #{ast.comment}"
 
-    cond do
-       function_exported?(__MODULE__, fun_name, 2) ->
-         Kernel.apply(__MODULE__, fun_name, [ast.args, ast.body])
-       Code.ensure_loaded?(module) ->
-         Kernel.apply(module, :run, [ast.args, ast.body])
-       true ->
-         Logger.error ">> has no instruction for #{inspect ast}"
-         :no_instruction
+    try do
+
+      cond do
+         function_exported?(__MODULE__, fun_name, 2) ->
+           Kernel.apply(__MODULE__, fun_name, [ast.args, ast.body])
+         Code.ensure_loaded?(module) ->
+           Kernel.apply(module, :run, [ast.args, ast.body])
+         true ->
+           Logger.error ">> has no instruction for #{inspect ast}"
+           :no_instruction
+      end
+
+    rescue
+      e -> Logger.error ">> could not execute #{inspect ast} #{inspect e}"
     end
+  end
+
+  def do_command(not_cs_node) do
+    Logger.error ">> can not handle: #{inspect not_cs_node}"
   end
 
   # behaviour

@@ -15,6 +15,16 @@ defmodule Farmbot.Auth.Subscription do
     {:ok, nil}
   end
 
+  def handle_info({Farmbot.Auth, {:error, :bad_password}}, _) do
+    get_new()
+    {:noreply, nil}
+  end
+
+  def handle_info({Farmbot.Auth, {:error, :expired_token}}, _) do
+    get_new()
+    {:noreply, nil}
+  end
+
   def handle_info({Farmbot.Auth, {:new_token, token}}, _) do
     {:noreply, token}
   end
@@ -22,5 +32,11 @@ defmodule Farmbot.Auth.Subscription do
   def handle_info({Farmbot.Auth, message}, state) do
     debug_log "unhandled auth message: #{inspect message}"
     {:noreply, state}
+  end
+
+  defp get_new() do
+    fn ->
+      Farmbot.Auth.try_log_in!
+    end
   end
 end
