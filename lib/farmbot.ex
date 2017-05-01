@@ -25,6 +25,7 @@ defmodule Farmbot do
 
   def init(_args) do
     children = [
+      supervisor(Registry, [:duplicate,  Farmbot.Registry]),
       # System specifics.
       supervisor(FBSYS, [], restart: :permanent),
       # Auth services.

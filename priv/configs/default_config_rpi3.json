@@ -1,10 +1,12 @@
 {
  "network": {
   "interfaces": {
+
    "wlan0": {
     "type": "wireless",
     "default": false
    },
+
    "wlan1": {
     "type": "wireless",
     "default": "hostapd",

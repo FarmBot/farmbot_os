@@ -2,64 +2,118 @@ defmodule Farmbot.Auth do
   @moduledoc """
     Gets a token and device information
   """
-  @modules Application.get_env(:farmbot, :auth_callbacks) ++ [__MODULE__]
-  @path Application.get_env(:farmbot, :path)
+
   @ssl_hack [
     ssl: [{:versions, [:'tlsv1.2']}],
     follow_redirect: true
   ]
   @six_hours (6 * 3_600_000)
 
-  @secret_backup "/tmp/secret.backup"
-
   use GenServer
   require Logger
-  alias Farmbot.System.FS.ConfigStorage, as: CS
+  alias Farmbot.System.FS
+  alias FS.ConfigStorage, as: CS
   alias Farmbot.Token
+  alias Farmbot.Auth.Subscription, as: Sub
+
+  @typedoc """
+    The public key that lives at http://<server>/api/public_key
+  """
+  @type public_key :: binary
+
+  @typedoc """
+    Encrypted secret
+  """
+  @type secret :: binary
+
+  @typedoc """
+    Server auth is connected to.
+  """
+  @type server :: binary
+
+  @typedoc """
+    Password binary
+  """
+  @type password :: binary
+
+  @typedoc """
+    Email binary
+  """
+  @type email :: binary
+
+  @typedoc """
+    Interim credentials.
+  """
+  @type interim :: {email, password, server}
 
   @doc """
     Gets the public key from the API
   """
+  @spec get_public_key(server) :: {:ok, public_key} | {:error, term}
   def get_public_key(server) do
     case HTTPoison.get("#{server}/api/public_key", [], @ssl_hack) do
       {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
-        {:ok, RSA.decode_key(body)}
+        decode_key(body)
       {:error, %HTTPoison.Error{reason: reason}} ->
         {:error, reason}
-      error ->
-        {:error, error}
+    end
+  end
+
+  @spec decode_key(binary) :: {:ok, public_key} | {:error, term}
+  defp decode_key(binary) do
+    try do
+      r = RSA.decode_key(binary)
+      {:ok, r}
+    rescue
+      e -> {:error, e}
     end
   end
 
   @doc """
-    Returns the list of callback modules.
-  """
-  def modules, do: @modules
-
-  @doc """
     Encrypts the key with the email, pass, and server
   """
+  @spec encrypt(email, password, public_key) :: {:ok, binary} | {:error, term}
   def encrypt(email, pass, pub_key) do
-    f = %{
-      "email": email,
-      "password": pass,
-      "id": Nerves.Lib.UUID.generate,
-      "version": 1}
-    |> Poison.encode!()
-    |> RSA.encrypt({:public, pub_key})
-    |> String.Chars.to_string
-    {:ok, f}
+    try do
+      f = %{
+        "email": email,
+        "password": pass,
+        "id": Nerves.Lib.UUID.generate,
+        "version": 1}
+      |> Poison.encode!()
+      |> RSA.encrypt({:public, pub_key})
+      |> String.Chars.to_string
+      {:ok, f}
+    rescue
+      e -> {:error, e}
+    end
   end
 
   @doc """
     Get a token from the server with given token
   """
-  @spec get_token_from_server(binary, String.t)
-    :: {:ok, Token.t} | {:error, atom}
-  def get_token_from_server(nil, _server), do: {:error, :no_secret}
-  def get_token_from_server(_secret, nil), do: {:error, :no_server}
+  @spec get_token_from_server(secret, server, boolean)
+    :: {:ok, Token.t} | {:error, term}
+  def get_token_from_server(secret, server, should_broadcast?)
 
-  def get_token_from_server(secret, server) do
+  def get_token_from_server(nil, _server, sbc) do
+    thing = {:error, :no_secret}
+    if sbc do
+      broadcast(thing)
+    end
+    thing
+  end
+
+  # This one shouldn't happen anymore I think.
+  def get_token_from_server(_secret, nil, sbc) do
+    thing = {:error, :no_server}
+    if sbc do
+      broadcast(thing)
+    end
+    thing
+  end
+
+  def get_token_from_server(secret, server, sbc) do
     # I am not sure why this is done this way other than it works.
     user = %{credentials: secret |> :base64.encode_to_string |> to_string}
     payload = Poison.encode!(%{user: user})
@@ -69,25 +123,36 @@ defmodule Farmbot.Auth do
     case req do
       # bad Password
       {:ok, %HTTPoison.Response{status_code: 422}} ->
-        {:error, :bad_password}
+        thing = {:error, :bad_password}
+        maybe_broadcast(sbc, thing)
+        thing
 
       # Token invalid. Need to try to get a new token here.
       {:ok, %HTTPoison.Response{status_code: 401}} ->
-        {:error, :expired_token}
+        thing = {:error, :expired_token}
+        maybe_broadcast(sbc, thing)
+        thing
 
       # We won
       {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
-        # save the secret to disk.
-        Farmbot.System.FS.transaction fn() ->
-          :ok = File.write(@path <> "/secret", :erlang.term_to_binary(secret))
-          :ok = File.write(@secret_backup, :erlang.term_to_binary(secret))
-          File.rm "tmp/on_failure.sh"
-        end
-        body |> Poison.decode! |> Map.get("token") |> Token.create
+        Logger.info ">> got a token!", type: :success
+        save_secret(secret)
+        {:ok, token} = body |> Poison.decode! |> Map.get("token") |> Token.create
+        maybe_broadcast(sbc, {:new_token, token})
+        {:ok, token}
 
       # HTTP errors
       {:error, %HTTPoison.Error{reason: reason}} ->
-        {:error, reason}
+        thing = {:error, reason}
+        maybe_broadcast(sbc, thing)
+        thing
+    end
+  end
+
+  @spec maybe_broadcast(boolean, any) :: no_return
+  defp maybe_broadcast(bool, thing) do
+    if bool do
+      broadcast(thing)
     end
   end
 
@@ -102,18 +167,14 @@ defmodule Farmbot.Auth do
     Will return a token if one exists, nil if not.
     Returns {:error, reason} otherwise
   """
+  @spec get_token :: {:ok, Token.t} | nil | {:error, term}
   def get_token, do: GenServer.call(__MODULE__, :get_token)
 
   @doc """
-    Gets teh server
-    will return either {:ok, server} or {:ok, nil}
+    Gets the server.
   """
-  @spec get_server :: {:ok, nil} | {:ok, String.t}
-  def get_server, do: GenServer.call(CS, {:get, Authorization, "server"}, 9_500)
-
-  @spec put_server(String.t | nil) :: no_return
-  defp put_server(server) when is_nil(server) or is_binary(server),
-    do: GenServer.cast(CS, {:put, Authorization, {"server", server}})
+  @spec get_server :: server
+  def get_server, do: GenServer.call(__MODULE__, :get_server)
 
   @doc """
     Tries to log into web services with whatever auth method is stored in state.
@@ -122,10 +183,9 @@ defmodule Farmbot.Auth do
   def try_log_in do
     case GenServer.call(__MODULE__, :try_log_in) do
       {:ok, %Token{} = token} ->
-        do_callbacks(token)
         {:ok, token}
       {:error, reason} ->
-        Logger.error ">> Could not log in! #{inspect reason}"
+        Logger.info ">> Could not log in! #{inspect reason}", type: :error
         {:error, reason}
       error ->
         Logger.error ">> Could not log in! #{inspect error}"
@@ -140,12 +200,24 @@ defmodule Farmbot.Auth do
   """
   @spec try_log_in!(integer) :: {:ok, Token.t} | no_return
   def try_log_in!(retries \\ 3)
-  def try_log_in!(r) when r == 0, do: Farmbot.System.factory_reset
+
+  def try_log_in!(r) when r == 0 do
+    Logger.info ">> Could not log in!", type: :error
+    Farmbot.System.factory_reset
+  end
+
   def try_log_in!(retries) do
+    Logger.info ">> is logging in..."
+    # disable broadcasting
+    :ok = GenServer.call(__MODULE__, {:set_broadcast, false})
+
     # Try to get a token.
     case try_log_in() do
-       {:ok, %Token{} = _t} = success ->
+       {:ok, %Token{}} = success ->
+         :ok = GenServer.call(__MODULE__, {:set_broadcast, true})
+
          Logger.info ">> Is logged in", type: :success
+         broadcast({:new_token, success})
          success
        _ -> # no need to print message becasetry_log_indoes it for us.
         # sleep for a second, then try again untill we are out of retries
@@ -157,140 +229,133 @@ defmodule Farmbot.Auth do
   @doc """
     Casts credentials to the Auth GenServer
   """
-  @spec interim(String.t, String.t, String.t) :: :ok
+  @spec interim(email, password, server) :: :ok
   def interim(email, pass, server) do
     GenServer.call(__MODULE__, {:interim, {email,pass,server}})
   end
 
   @doc """
-    Reads the secret file from disk
-  """
-  @spec get_secret :: {:ok, nil} | {:ok, binary}
-  def get_secret do
-    case File.read(@path <> "/secret") do
-      {:ok, sec} -> {:ok, :erlang.binary_to_term(sec)}
-      _ -> try_get_backup()
-    end
-  end
-
-  @doc """
-    Tries to get the backup secret
-  """
-  @spec try_get_backup :: {:ok, nil} | {:ok, binary}
-  def try_get_backup do
-    case File.read(@secret_backup) do
-      {:ok, sec} -> {:ok, :erlang.binary_to_term(sec)}
-      _ -> {:ok, nil}
-    end
-  end
-
-  @doc """
     Starts the Auth GenServer
   """
-  def start_link do
-    GenServer.start_link(__MODULE__, [], name: __MODULE__)
-  end
+  def start_link, do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
+
+  @typedoc """
+    State for this GenServer
+  """
+  @type state :: %{
+    server: nil | server,
+    secret: nil | secret,
+    timer: any,
+    interim: nil | interim,
+    token: nil | Token.t,
+    broadcast: boolean
+  }
 
   # Genserver stuff
   def init([]) do
     Logger.info(">> Authorization init!")
-    s_a()
-    get_secret()
+    timer = s_a()
+    {:ok, sub} = Sub.start_link
+    {:ok, server} = load_server()
+    state = %{
+      server: server,
+      secret: load_secret(),
+      interim: nil,
+      token: nil,
+      timer: timer,
+      sub: sub,
+      broadcast: true
+    }
+    {:ok, state}
   end
 
-  def terminate(_reason, _state) do
-    if File.exists?(@secret_backup) do
-      Farmbot.System.FS.transaction fn() ->
-        File.cp @secret_backup, "#{@path}/secret"
-      end
+  def terminate(_reason, state) do
+    timer = state.timer
+    if timer do
+      Process.cancel_timer(timer)
     end
   end
 
-  # sends a message after 6 hours to get a new token.
-  defp s_a, do: Process.send_after(__MODULE__, :new_token, @six_hours)
+  def handle_call({:set_broadcast, bool}, _, state) do
+    {:reply, :ok, %{state | broadcast: bool}}
+  end
+
+  def handle_call(:get_server, _, state) do
+    {:reply, {:ok, state.server}, state}
+  end
 
   # casted creds, store them until something is ready to actually try a log in.
-  def handle_call({:interim, {email, pass, server}}, _from, _state) do
+  def handle_call({:interim, {email, pass, server}}, _from, state) do
     Logger.info ">> Got some new credentials."
-    put_server(server)
-    {:reply, :ok, {email,pass,server}}
+    save_server(server)
+    {:reply, :ok, %{state | interim: {email, pass, server}}}
   end
 
-  def handle_call(:purge_token, _, _state) do
-    put_server(nil)
-    {:reply, :ok, nil}
+  def handle_call(:purge_token, _, state) do
+    broadcast :purge_token
+    {:reply, :ok, clear_state(state)}
   end
 
-  def handle_call(:try_log_in, _, {email, pass, server}) do
-    Logger.info ">> is trying to log in with credentials."
+  # Match on the token first.
+  def handle_call(:try_log_in, _, %{token: %Token{}= _old, server: server, secret: secret} = state) do
+    Logger.info ">> already has a token. Fetching another.", type: :busy
+    secret = secret || load_secret()
+    case get_token_from_server(secret, server, state.broadcast) do
+      {:ok, %Token{} = token} ->
+        {:reply, {:ok, token}, %{state | token: token}}
+      e ->
+        {:reply, e, clear_state(state)}
+    end
+  end
+
+  # Next choice will be interim
+  def handle_call(:try_log_in, _, %{interim: {email, pass, server}} = state) do
+    Logger.info ">> is trying to log in with credentials.", type: :busy
     with {:ok, pub_key} <- get_public_key(server),
          {:ok, secret } <- encrypt(email, pass, pub_key),
-         {:ok, %Token{} = token} <- get_token_from_server(secret, server)
+         {:ok, %Token{} = token} <- get_token_from_server(secret, server, state.broadcast)
     do
-      {:reply, {:ok, token}, token}
+      next_state = %{state |
+        interim: nil,
+        token: token,
+        secret: secret,
+        server: server
+      }
+      {:reply, {:ok, token}, next_state}
     else
-      e ->
-        Logger.error ">> error getting token #{inspect e}"
-        put_server(nil)
-        {:reply, e, nil}
+      e -> {:reply, e, clear_state(state)}
     end
   end
 
-  def handle_call(:try_log_in, _, secret) when is_binary(secret) do
-    Logger.info ">> is trying to log in with a secret."
-    with {:ok, server} <- get_server(),
-         {:ok, %Token{} = token} <- get_token_from_server(secret, server)
-    do
-      {:reply, {:ok, token}, token}
-    else
-      e ->
-        Logger.error ">> error getting token #{inspect e}"
-        put_server(nil)
-        {:reply, e, nil}
+  def handle_call(:try_log_in, _, %{secret: secret, server: server} = state) when is_binary(secret) do
+    Logger.info ">> is trying to log in with a secret.", type: :busy
+    case get_token_from_server(secret, server, state.broadcast) do
+      {:ok, %Token{} = t} ->
+        {:reply, {:ok, t}, %{state | token: t}}
+      e -> {:reply, e, clear_state(state)}
     end
   end
 
-  def handle_call(:try_log_in, _, %Token{} = _token) do
-    Logger.info ">> already has a token. Fetching another.", type: :busy
-    with {:ok, server} <- get_server(),
-         {:ok, secret} <- get_secret(),
-         {:ok, %Token{} = token} <- get_token_from_server(secret, server)
-    do
-      {:reply, {:ok, token}, token}
-    else
+  def handle_call(:try_log_in, _, %{secret: nil, server: server} = state) do
+    Logger.info ">> is trying to load old secret.", type: :busy
+    # Try to load the secret file
+    secret = load_secret()
+    case get_token_from_server(secret, server, state.broadcast) do
+      {:ok, %Token{} = token} ->
+        {:reply, {:ok, token}, token}
       e ->
-        Logger.error ">> error getting token #{inspect e}"
-        put_server(nil)
-        {:reply, e, nil}
-    end
-  end
-
-  def handle_call(:try_log_in, _, nil) do
-    {:ok, secret} = get_secret()
-    {:ok, server} = get_server()
-    with {:ok, %Token{} = token} <- get_token_from_server(secret, server) do
-       {:reply, {:ok, token}, token}
-     else
-       e ->
-         msg = ">> can't log in because i have no token or credentials!"
-         Logger.info msg, type: :error
-         {:reply, e, nil}
+        {:reply, e, state}
     end
   end
 
   # if we do have a token.
-  def handle_call(:get_token, _from, %Token{} = token) do
-    {:reply, {:ok, token}, token}
+  def handle_call(:get_token, _, %{token: %Token{}} = state) do
+    {:reply, {:ok, state.token}, state}
   end
 
   # if we dont.
-  def handle_call(:get_token, _, not_token) do
-    {:reply, nil, not_token}
-  end
-
-  # when we get a token.
-  def handle_info({:authorization, token}, _) do
-    {:noreply, token}
+  def handle_call(:get_token, _, %{token: nil} = state) do
+    {:reply, nil, state}
   end
 
   # NOTE(Connor):
@@ -299,15 +364,46 @@ defmodule Farmbot.Auth do
   def handle_info(:new_token, state) do
     spawn fn() ->
       try_log_in()
-      s_a()
     end
-    {:noreply, state}
+    new_timer = s_a()
+    {:noreply, %{state | timer: new_timer}}
   end
 
-  defp do_callbacks(token) do
-    Logger.info ">> Successfully got a token!", type: :success
-    spawn fn() ->
-      for module <- @modules, do: send(module, {:authorization, token})
+  defp broadcast(message) do
+    Registry.dispatch(Farmbot.Registry, __MODULE__, fn entries ->
+      for {pid, _} <- entries, do: send(pid, {__MODULE__, message})
+    end)
+  end
+
+  @spec clear_state(state) :: state
+  defp clear_state(state) do
+    %{state | interim: nil, secret: nil, token: nil}
+  end
+
+  @spec load_server :: {:ok, server}
+  defp load_server,
+    do: GenServer.call(CS, {:get, Authorization, "server"}, 9_500)
+
+  @spec save_server(server) :: :ok
+  defp save_server(server) when is_binary(server),
+    do: GenServer.cast(CS, {:put, Authorization, {"server", server}})
+
+  @spec load_secret :: secret | nil
+  defp load_secret do
+    case File.read(FS.path() <> "/secret") do
+      {:ok, sec} -> :erlang.binary_to_term(sec)
+      _e -> nil
     end
   end
+
+  @spec save_secret(secret) :: no_return
+  defp save_secret(secret) do
+    # save the secret to disk.
+    FS.transaction fn() ->
+      File.write(FS.path() <> "/secret", :erlang.term_to_binary(secret))
+    end
+  end
+
+  # sends a message after 6 hours to get a new token.
+  defp s_a, do: Process.send_after(__MODULE__, :new_token, @six_hours)
 end

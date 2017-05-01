@@ -60,6 +60,7 @@ defmodule Farmbot.Configurator.Router do
     conn |> send_resp(200, "PONG")
   end
 
+  # These things should only be enabled in dev mode.
   if Mix.env() == :dev do
     # Get the current login token. DEV ONLY
     get "/api/token" do
