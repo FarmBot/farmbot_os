@@ -9,10 +9,6 @@ defmodule Farmbot.System.Network do
   alias Farmbot.System.Network.Ntp
   alias Farmbot.Auth
 
-  @access_token Application.get_env(:farmbot, :rollbar_access_token)
-  @commit Mix.Project.config[:commit]
-  @target Mix.Project.config[:target]
-
   @spec mod(atom) :: atom
   defp mod(target), do: Module.concat([Farmbot, System, target, Network])
 
@@ -102,14 +98,14 @@ defmodule Farmbot.System.Network do
     Connected to the World Wide Web. Should be called from the
     callback module.
   """
-  def on_connect(fun \\ nil) do
+  def on_connect(pre_fun \\ nil, post_fun \\ nil) do
     Supervisor.start_child(Farmbot.System.Supervisor,
       Supervisor.Spec.worker(Downloader, [], [restart: :permanent]))
 
     # this happens because on wifi we try to do stuff before linux is
     # finished setting stuff up.
     Process.sleep(2000)
-    if fun, do: fun.()
+    if pre_fun, do: pre_fun.()
     Logger.info ">> is connected to the World Wide Web."
     Logger.info ">> is reading configurations."
     {:ok, ssh} = get_config("ssh")
@@ -141,10 +137,19 @@ defmodule Farmbot.System.Network do
     Logger.info ">> Login"
     {:ok, token} = Auth.try_log_in!
     :ok = maybe_setup_rollbar(token)
+
+    if post_fun do
+      post_fun.(token)
+    end
     {:ok, token}
   end
 
   if Mix.env == :prod do
+
+    # Only set these attributes if we are in prod pls
+    @access_token Application.get_env(:farmbot, :rollbar_access_token)
+    @commit Mix.Project.config[:commit]
+    @target Mix.Project.config[:target]
 
     def maybe_setup_rollbar(token) do
       if String.contains?(token.unencoded.iss, "farmbot.io") and @access_token do

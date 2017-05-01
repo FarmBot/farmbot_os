@@ -154,7 +154,9 @@ defmodule Farmbot.System.NervesCommon.Network do
         case state[interface] do
           {settings, pid} ->
             if settings["default"] == "hostapd" do
-              GenServer.stop(pid, :normal)
+              if Process.alive?(pid) do
+                GenServer.stop(pid, :normal)
+              end
               {:reply, :ok, Map.delete(state, interface)}
             else
               :ok = Registry.unregister(Nerves.NetworkInterface, interface)
@@ -194,6 +196,14 @@ defmodule Farmbot.System.NervesCommon.Network do
               Logger.info ">> is waiting for linux and network and what not."
               Process.sleep(5000) # ye old race linux condidtion
               GenServer.call(that, :logged_in)
+            end,
+            fn(token) ->
+               for {key, value} <- state do
+                 if match?({%{"default" => "hostapd"}, _}, value) do
+                   Logger.info "Killing #{key}"
+                   stop_interface(key)
+                 end
+               end
             end)
 
           end
