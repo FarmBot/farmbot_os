@@ -34,8 +34,8 @@ defmodule Farmbot.Auth.Subscription do
     {:noreply, state}
   end
 
-  defp get_new() do
-    fn ->
+  defp get_new do
+    spawn fn ->
       Farmbot.Auth.try_log_in!
     end
   end

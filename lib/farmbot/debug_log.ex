@@ -27,7 +27,7 @@ if use_logger? do
       end # quote
     end # defmacro
   end # defmodule
-  
+
 else
 
   # We dont enable Debug logger. Stub everything.

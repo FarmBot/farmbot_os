@@ -61,12 +61,10 @@ defmodule Farmbot.Auth do
 
   @spec decode_key(binary) :: {:ok, public_key} | {:error, term}
   defp decode_key(binary) do
-    try do
-      r = RSA.decode_key(binary)
-      {:ok, r}
+    r = RSA.decode_key(binary)
+    {:ok, r}
     rescue
       e -> {:error, e}
-    end
   end
 
   @doc """
@@ -74,19 +72,17 @@ defmodule Farmbot.Auth do
   """
   @spec encrypt(email, password, public_key) :: {:ok, binary} | {:error, term}
   def encrypt(email, pass, pub_key) do
-    try do
-      f = %{
-        "email": email,
-        "password": pass,
-        "id": Nerves.Lib.UUID.generate,
-        "version": 1}
-      |> Poison.encode!()
-      |> RSA.encrypt({:public, pub_key})
-      |> String.Chars.to_string
-      {:ok, f}
+    f = %{
+      "email": email,
+      "password": pass,
+      "id": Nerves.Lib.UUID.generate,
+      "version": 1}
+    |> Poison.encode!()
+    |> RSA.encrypt({:public, pub_key})
+    |> String.Chars.to_string
+    {:ok, f}
     rescue
       e -> {:error, e}
-    end
   end
 
   @doc """
@@ -311,23 +307,24 @@ defmodule Farmbot.Auth do
   # Next choice will be interim
   def handle_call(:try_log_in, _, %{interim: {email, pass, server}} = state) do
     Logger.info ">> is trying to log in with credentials.", type: :busy
-    with {:ok, pub_key} <- get_public_key(server),
-         {:ok, secret } <- encrypt(email, pass, pub_key),
-         {:ok, %Token{} = token} <- get_token_from_server(secret, server, state.broadcast)
-    do
-      next_state = %{state |
-        interim: nil,
-        token: token,
-        secret: secret,
-        server: server
-      }
-      {:reply, {:ok, token}, next_state}
-    else
+    {:ok, pub_key} = get_public_key(server)
+    {:ok, secret } = encrypt(email, pass, pub_key)
+    case get_token_from_server(secret, server, state.broadcast) do
+      {:ok, %Token{} = token} ->
+        next_state = %{state |
+          interim: nil,
+          token: token,
+          secret: secret,
+          server: server
+        }
+        {:reply, {:ok, token}, next_state}
       e -> {:reply, e, clear_state(state)}
     end
   end
 
-  def handle_call(:try_log_in, _, %{secret: secret, server: server} = state) when is_binary(secret) do
+  def handle_call(:try_log_in, _,
+      %{secret: secret, server: server} = state) when is_binary(secret) do
+
     Logger.info ">> is trying to log in with a secret.", type: :busy
     case get_token_from_server(secret, server, state.broadcast) do
       {:ok, %Token{} = t} ->

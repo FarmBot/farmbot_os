@@ -94,53 +94,75 @@ defmodule Farmbot.System.Network do
     end
   end
 
+  defp maybe_set_time do
+    {:ok, ntp} = get_config("ntp")
+    if ntp do
+      Logger.info ">> starting ntp client."
+      Ntp.set_time
+    end
+    :ok
+  end
+
+  defp maybe_start_ssh do
+    {:ok, ssh} = get_config("ssh")
+    try do
+      if ssh do
+        Logger.info ">> starting SSH server."
+        spawn SSH, :start_link, []
+      end
+      :ok
+    rescue
+      error ->
+        Logger.warn(">> Failed to start ssh: #{inspect error}")
+        :ok
+    end
+  end
+
+  defp maybe_get_fpf do
+    # First Party Farmware is not really a network concern but here we are...
+    {:ok, fpf} = GenServer.call(CS, {:get, Configuration, "first_party_farmware"})
+
+    try do
+      if fpf do
+        Logger.info ">> is installing first party Farmwares."
+        Farmware.get_first_party_farmware
+      end
+    rescue
+      error -> Logger.warn(">> Failed to install farmwares: #{inspect error}")
+    end
+  end
+
   @doc """
     Connected to the World Wide Web. Should be called from the
     callback module.
   """
   def on_connect(pre_fun \\ nil, post_fun \\ nil) do
+    # Start the Downloader http client.
     Supervisor.start_child(Farmbot.System.Supervisor,
       Supervisor.Spec.worker(Downloader, [], [restart: :permanent]))
 
     # this happens because on wifi we try to do stuff before linux is
     # finished setting stuff up.
     Process.sleep(2000)
+
+    # If we were supplied a pre connect callback, do that.
     if pre_fun, do: pre_fun.()
+
     Logger.info ">> is connected to the World Wide Web."
-    Logger.info ">> is reading configurations."
-    {:ok, ssh} = get_config("ssh")
-    {:ok, ntp} = get_config("ntp")
 
-    # First Party Farmware is not really a network concern but here we are...
-    {:ok, fpf} = GenServer.call(CS, {:get, Configuration, "first_party_farmware"})
+    :ok = maybe_set_time()
+    :ok = maybe_start_ssh()
+    :ok = maybe_get_fpf()
 
-    if ntp do
-      Logger.info ">> ntp"
-      Ntp.set_time
-    end
-
-    try do
-      if ssh do
-        Logger.info ">> ssh"
-        spawn SSH, :start_link, []
-      end
-    rescue
-      error -> Logger.warn(">> Failed to start ssh: #{inspect error}")
-    end
-
-    try do
-      if fpf, do: Farmware.get_first_party_farmware
-    rescue
-      error -> Logger.warn(">> Failed to install farmwares: #{inspect error}")
-    end
-
-    Logger.info ">> Login"
+    Logger.info ">> is trying to log in."
     {:ok, token} = Auth.try_log_in!
+
     :ok = maybe_setup_rollbar(token)
 
     if post_fun do
       post_fun.(token)
     end
+
     {:ok, token}
   end
 
