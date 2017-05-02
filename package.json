@@ -22,7 +22,7 @@
   "optimize-css-assets-webpack-plugin": "^1.3.0",
   "react": "^15.5.4",
   "react-dom": "^15.5.4",
-  "react-select": "^1.0.0-rc.2",
+  "react-input-autosize": "1.1.0",
   "roboto-font": "^0.1.0",
   "roboto-fontface": "^0.6.0",
   "sass-loader": "^4.1.0",
