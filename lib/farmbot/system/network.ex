@@ -127,8 +127,11 @@ defmodule Farmbot.System.Network do
         Logger.info ">> is installing first party Farmwares."
         Farmware.get_first_party_farmware
       end
+      :ok
     rescue
-      error -> Logger.warn(">> Failed to install farmwares: #{inspect error}")
+      error ->
+        Logger.warn(">> Failed to install farmwares: #{inspect error}")
+        :ok
     end
   end
 
