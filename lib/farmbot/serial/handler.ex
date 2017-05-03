@@ -163,8 +163,11 @@ defmodule Farmbot.Serial.Handler do
     if current do
       debug_log "Timing out current: #{inspect current}"
       GenServer.reply(current.from, :timeout)
+      check_timeouts(state)
+    else
+      debug_log "Got stray timeout."
+      {:noreply, %{state | current: nil}}
     end
-    check_timeouts(state)
   end
 
   def handle_info({:nerves_uart, _tty, {:partial, _}}, s), do: {:noreply, s}
@@ -215,10 +218,17 @@ defmodule Farmbot.Serial.Handler do
         GenServer.reply(current.from, current.reply)
         Process.cancel_timer(current.timer)
         nil
+      {:status, :busy} ->
+        debug_log "refreshing timer."
+        Process.cancel_timer(current.timer)
+        timer = Process.send_after(self(), :timeout, 5000)
+        %{current | status: :busy, timer: timer}
       {:status, status} -> %{current | status: status}
       {:reply, reply} -> %{current | reply: reply}
       thing ->
-        debug_log "Unexpected thing: #{inspect thing}"
+        unless is_nil(thing) do
+          debug_log "Unexpected thing: #{inspect thing}"
+        end
         current
     end
   end
