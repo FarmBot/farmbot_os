@@ -55,6 +55,11 @@ defmodule Farmbot.Configurator.Router do
     conn |> send_resp(200, html)
   end
 
+  get "/firmware/shell" do
+    html = File.read! "#{:code.priv_dir(:farmbot)}/static/firmware_shell.html"
+    conn |> send_resp(200, html)
+  end
+
   # REST API
 
   # Ping. You know.
