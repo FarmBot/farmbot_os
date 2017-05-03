@@ -247,6 +247,19 @@ export class Main extends React.Component<MainProps, FormState> {
         Object.keys(config)
           .map((ifaceName) => {
             let iface = config[ifaceName];
+            let settings = config[ifaceName].settings
+            let ignoreInterface: boolean;
+
+            if (settings) {
+              ignoreInterface = settings.ignore || false
+
+            } else {
+              ignoreInterface = false;
+            }
+
+            if (ignoreInterface) {
+              return <div></div>;
+            }
             switch (iface.type) {
               // if the interface is wireless display the
               // select box, and a password box

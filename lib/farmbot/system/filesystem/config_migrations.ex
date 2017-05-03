@@ -36,7 +36,7 @@ defmodule Farmbot.System.FS.ConfigFileMigrations do
         json
       else
         # Run the migration
-        Logger.warn ">> running config migration: #{file}"
+        Logger.info ">> running config migration: #{file}"
         {{:module, m, _s, _}, _} = Code.eval_file file, migrations_dir()
 
         # TODO(Connor): Find out why m.run can return nil?
@@ -45,7 +45,7 @@ defmodule Farmbot.System.FS.ConfigFileMigrations do
         Farmbot.System.FS.transaction fn() ->
           # write the contents of this migration, to the .migrated file.
           File.write(migrated, Poison.encode!(next))
-          Logger.warn ">> #{file} migration complete"
+          Logger.info ">> #{file} migration complete", type: :success
         end, true
 
         # merge the current acc, with the just run migration

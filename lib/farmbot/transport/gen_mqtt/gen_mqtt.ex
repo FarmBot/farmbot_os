@@ -18,6 +18,7 @@ defmodule Farmbot.Transport.GenMqtt do
 
   @spec init(state) :: {:consumer, state, subscribe_to: [Farmbot.Transport]}
   def init(initial) do
+    Registry.register(Farmbot.Registry, Farmbot.Auth, [])
     case Farmbot.Auth.get_token do
       {:ok, %Token{} = t} ->
         {:ok, pid} = Client.start_link(t)
@@ -38,12 +39,12 @@ defmodule Farmbot.Transport.GenMqtt do
     {:noreply, [], state}
   end
 
-  def handle_info({:authorization, %Token{} = t}, {nil, _}) do
-    {:ok, pid} = start_client(t)
-    {:noreply, [], {pid, t}}
+  def handle_info({Farmbot.Auth, {:new_token, token}}, {nil, _}) do
+    {:ok, pid} = start_client(token)
+    {:noreply, [], {pid, token}}
   end
 
-  def handle_info({:authorization, %Token{} = new_t}, {client, _})
+  def handle_info({Farmbot.Auth, {:new_token, new_t}}, {client, _})
   when is_pid(client) do
     # Probably a good idea to restart mqtt here.
     Logger.info ">> needs to restart MQTT"

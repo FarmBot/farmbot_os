@@ -2,8 +2,8 @@ let resolve = require("path").resolve;
 module.exports = {
   resolve: {
     alias: {
-      'react': 'react-lite',
-      'react-dom': 'react-lite'
+      // 'react': 'react-lite',
+      // 'react-dom': 'react-lite'
     },
     extensions: [".js", ".ts", ".json", ".tsx", ".css", ".scss"]
   },

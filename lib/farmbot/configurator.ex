@@ -24,6 +24,10 @@ defmodule Farmbot.Configurator do
   def start_link, do: Supervisor.start_link(__MODULE__, [], name: __MODULE__)
 
   defp dispatch do
-    {:_, [{"/ws", SocketHandler, []}, {:_, CowboyHandler, {Router, []}}]}
+    {:_, [
+      {"/ws", SocketHandler, []},
+      {"/debug_log", Farmbot.DebugLog.SocketHandler, []},
+      {:_, CowboyHandler, {Router, []}},
+      ]}
   end
 end

@@ -62,7 +62,7 @@ defmodule Farmbot.Mixfile do
 
   def application do
     [mod: {Farmbot, []},
-     applications: applications() ++ applications(@target),
+     applications: applications() ++ target_applications(@target) ++ env_applications(Mix.env()),
      included_applications: [:gen_mqtt, :ex_json_schema, :fs, :ex_rollbar] ++ included_apps(Mix.env)]
   end
 
@@ -96,13 +96,19 @@ defmodule Farmbot.Mixfile do
    ]
   end
 
-  defp applications("host"), do: []
-  defp applications(_system), do: [
+  defp target_applications("host"), do: []
+  defp target_applications(_system), do: [
     :nerves_interim_wifi,
     :nerves_firmware_http,
     :nerves_firmware,
     :nerves_ssdp_server
   ]
+
+  defp env_applications(:prod), do: []
+  defp env_applications(:dev), do: [
+    :wobserver
+  ]
+  defp env_applications(_), do: []
 
   defp deps do
     [
@@ -154,13 +160,15 @@ defmodule Farmbot.Mixfile do
       {:excoveralls, "~> 0.6", only: :test},
       {:exvcr, "~> 0.8", only: :test},
       {:mock, "~> 0.2.0", only: :test},
+      {:wobserver, "~> 0.1.7", only: :dev},
 
       # Web stuff
-      {:plug, "~> 1.0"},
-      {:cors_plug, "~> 1.1"},
-      {:cowboy, "~> 1.0.0"},
+      {:plug, "~> 1.3"},
+      {:cors_plug, "~> 1.2"},
+      {:cowboy, "~> 1.1"},
       {:ex_webpack, "~> 0.1.1", runtime: false, warn_missing: false},
-      {:farmbot_simulator, "~> 0.1.2", only: [:test, :dev]},
+      {:farmbot_simulator, "~> 0.1.3", only: [:test, :dev]},
+      # {:farmbot_simulator, path: "../farmbot_simulator", only: [:test, :dev]},
 
       {:tzdata, "~> 0.1.201601", override: true},
       {:fs, "~> 0.9.1"}
@@ -210,8 +218,8 @@ defmodule Farmbot.Mixfile do
       do: [
         {:"nerves_system_#{sys}", warn_missing: false, path: "nerves/nerves_system_#{sys}"},
         # {:nerves_interim_wifi, "~> 0.2.0"},
-        # {:nerves_interim_wifi, path: "../nerves_interim_wifi"},
-        {:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi"},
+        {:nerves_interim_wifi, path: "../nerves_interim_wifi"},
+        # {:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi"},
 
         {:nerves_firmware_http, "~> 0.3.1"},
 

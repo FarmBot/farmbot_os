@@ -172,6 +172,10 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param("16"), do: :movement_keep_active_y
   def parse_param("17"), do: :movement_keep_active_z
 
+  def parse_param("18"), do: :movement_home_at_boot_x
+  def parse_param("19"), do: :movement_home_at_boot_y
+  def parse_param("20"), do: :movement_home_at_boot_z
+
   def parse_param("21"), do: :movement_invert_endpoints_x
   def parse_param("22"), do: :movement_invert_endpoints_y
   def parse_param("23"), do: :movement_invert_endpoints_z
@@ -190,6 +194,10 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param("41"), do: :movement_steps_acc_dec_x
   def parse_param("42"), do: :movement_steps_acc_dec_y
   def parse_param("43"), do: :movement_steps_acc_dec_z
+
+  def parse_param("45"), do: :movement_stop_at_home_x
+  def parse_param("46"), do: :movement_stop_at_home_y
+  def parse_param("47"), do: :movement_stop_at_home_z
 
   def parse_param("51"), do: :movement_home_up_x
   def parse_param("52"), do: :movement_home_up_y
@@ -270,6 +278,10 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(:movement_keep_active_y), do: 16
   def parse_param(:movement_keep_active_z), do: 17
 
+  def parse_param(:movement_home_at_boot_x), do: 18
+  def parse_param(:movement_home_at_boot_y), do: 19
+  def parse_param(:movement_home_at_boot_z), do: 20
+
   def parse_param(:movement_invert_endpoints_x), do: 21
   def parse_param(:movement_invert_endpoints_y), do: 22
   def parse_param(:movement_invert_endpoints_z), do: 23
@@ -288,6 +300,10 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(:movement_steps_acc_dec_x), do: 41
   def parse_param(:movement_steps_acc_dec_y), do: 42
   def parse_param(:movement_steps_acc_dec_z), do: 43
+
+  def parse_param(:movement_stop_at_home_x), do: 45
+  def parse_param(:movement_stop_at_home_y), do: 46
+  def parse_param(:movement_stop_at_home_z), do: 47
 
   def parse_param(:movement_home_up_x), do: 51
   def parse_param(:movement_home_up_y), do: 52

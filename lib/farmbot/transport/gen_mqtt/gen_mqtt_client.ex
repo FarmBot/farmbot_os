@@ -28,16 +28,28 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   @spec on_connect(Token.t) :: ok
   def on_connect(%Token{} = token) do
     GenMQTT.subscribe(self(), [{bot_topic(token), 0}])
-    Logger.info ">> is up and running!"
+
+    fn ->
+      Process.sleep(10)
+      Logger.info ">> is up and running!"
+      Farmbot.Transport.force_state_push
+    end.()
+
     {:ok, token}
   end
 
   @spec on_publish([String.t], binary, Token.t) :: ok
   def on_publish(["bot", _bot, "from_clients"], msg, %Token{} = token) do
-    msg
-    |> Poison.decode!
-    |> Ast.parse
-    |> Command.do_command
+    # dont crash mqtt here because it sends an ugly message to rollbar
+    try do
+      msg
+      |> Poison.decode!
+      |> Ast.parse
+      |> Command.do_command
+    rescue
+      e ->
+        Logger.error ">> Saved mqtt client from cs death: #{inspect e}"
+    end
     {:ok, token}
   end
 

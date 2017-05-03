@@ -10,8 +10,6 @@ config :farmbot,
   config_file_name: "default_config.json",
   tty: "/dev/tnt1"
 
-config :farmbot, auth_callbacks: []
-
 # frontend <-> bot transports.
 config :farmbot, transports: []
 

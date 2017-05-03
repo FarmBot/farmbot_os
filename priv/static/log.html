@@ -1,0 +1,14 @@
+<html><body>
+<textarea rows="50" cols="230" name="output" id="the_log"> </textarea>
+<script type="text/javascript">
+  function log(msg) {
+    let el = document.getElementById("the_log");
+    el.value = (msg + "\n") + (el.value || "");
+  }
+  var ws = new WebSocket("ws://" + window.location.host + "/debug_log");
+  ws.onopen = function () { log("CONNECTED!"); }
+  ws.onmessage = function (e) { log(e.data); }
+  ws.onclose = function () { log("CONNECTION CLOSED!"); }
+  ws.onerror = function () { log("CONNECTION ERROR!!"); }
+</script>
+</body></html>

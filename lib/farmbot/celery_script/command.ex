@@ -94,6 +94,10 @@ defmodule Farmbot.CeleryScript.Command do
     end)
   end
 
+  defp maybe_print_comment(nil, _), do: :ok
+  defp maybe_print_comment(comment, fun_name),
+    do: Logger.info ">> [#{fun_name}] - #{comment}"
+
   @doc ~s"""
     Executes an ast tree.
   """
@@ -102,18 +106,24 @@ defmodule Farmbot.CeleryScript.Command do
     kind = ast.kind
     fun_name = String.to_atom kind
     module = Module.concat Farmbot.CeleryScript.Command, Macro.camelize(kind)
-    # print the comment if it exists
-    if ast.comment, do: Logger.info ">> [#{fun_name}] - #{ast.comment}"
 
-    cond do
-       function_exported?(__MODULE__, fun_name, 2) ->
-         Kernel.apply(__MODULE__, fun_name, [ast.args, ast.body])
-       Code.ensure_loaded?(module) ->
-         Kernel.apply(module, :run, [ast.args, ast.body])
-       true ->
-         Logger.error ">> has no instruction for #{inspect ast}"
-         :no_instruction
+    # print the comment if it exists
+    maybe_print_comment(ast.comment, fun_name)
+
+    if Code.ensure_loaded?(module) do
+      try do
+        Kernel.apply(module, :run, [ast.args, ast.body])
+      rescue
+        e -> Logger.error ">> could not execute #{inspect ast} #{inspect e}"
+      end
+    else
+      Logger.error ">> has no instruction for #{inspect ast}"
+      :no_instruction
     end
+  end
+
+  def do_command(not_cs_node) do
+    Logger.error ">> can not handle: #{inspect not_cs_node}"
   end
 
   # behaviour

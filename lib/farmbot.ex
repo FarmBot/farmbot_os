@@ -25,6 +25,8 @@ defmodule Farmbot do
 
   def init(_args) do
     children = [
+      maybe_debug_logger() | [
+      supervisor(Registry, [:duplicate,  Farmbot.Registry]),
       # System specifics.
       supervisor(FBSYS, [], restart: :permanent),
       # Auth services.
@@ -44,15 +46,20 @@ defmodule Farmbot do
       # handles communications between bot and arduino.
       supervisor(Farmbot.Serial.Supervisor, [], restart: :permanent),
       # Watches the images directory and uploads them.
-      worker(Farmbot.ImageWatcher, [], restart: :permanent)
-    ]
+      worker(Farmbot.ImageWatcher, [], restart: :permanent)]
+    ] |> List.flatten
     opts = [strategy: :one_for_one]
     supervise(children, opts)
   end
 
+
   # This has to be at runtime because you cant access your own apps
   # priv dir during Mix.Config.
   if Mix.env == :prod do
+    defp maybe_debug_logger do
+      []
+    end
+
     defp setup_nerves_fw do
       Logger.info ">> Setting up firmware signing!"
       file = "#{:code.priv_dir(:farmbot)}/fwup-key.pub"
@@ -60,6 +67,13 @@ defmodule Farmbot do
       if File.exists?(file), do: :ok, else: {:error, :no_pub_file}
     end
   else
+    defp maybe_debug_logger do
+      [
+        worker(Farmbot.DebugLog, [], restart: :permanent),
+      ]
+    end
+
+
     defp setup_nerves_fw do
       Logger.info ">> Disabling firmware signing!"
       Application.put_env(:nerves_firmware, :pub_key_path, nil)

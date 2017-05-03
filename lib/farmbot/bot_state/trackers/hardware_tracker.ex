@@ -132,12 +132,11 @@ defmodule Farmbot.BotState.Hardware do
     param_string = Atom.to_string(param_atom)
     if value != -1 do
       new_params = Map.put(state.mcu_params, param_string, value)
-      put_config("params", new_params)
+      # put_config("params", new_params)
       dispatch %State{state | mcu_params: new_params}
     else
-      Logger.info(">> wont save param value as -1", type: :warn)
       new_params = Map.delete(state.mcu_params, param_string)
-      put_config("params", new_params)
+      # put_config("params", new_params)
       dispatch %State{state | mcu_params: new_params}
     end
   end

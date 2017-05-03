@@ -26,7 +26,13 @@ defmodule Farmbot.Configurator.Router do
 
   if Mix.env == :dev, do: use Plug.Debugger, otp_app: :farmbot
 
-  get "/", do: conn |> send_resp(200, make_html())
+  if Mix.env == :dev do
+    forward "/wobserver", to: Wobserver.Web.Router
+  end
+
+  get "/", do: conn |> send_resp(200, make_html("index"))
+  get "/firmware/shell", do: conn |> send_resp(200, make_html("firmware_shell"))
+  get "/logger", do: conn |> send_resp(200, make_html("log"))
   get "/setup" do
     conn
     |> put_resp_header("location", "http://192.168.24.1/index.html")
@@ -58,6 +64,7 @@ defmodule Farmbot.Configurator.Router do
     conn |> send_resp(200, "PONG")
   end
 
+  # These things should only be enabled in dev mode.
   if Mix.env() == :dev do
     # Get the current login token. DEV ONLY
     get "/api/token" do
@@ -209,9 +216,9 @@ defmodule Farmbot.Configurator.Router do
 
   defp make_json(conn), do: conn |> put_resp_content_type("application/json")
 
-  @spec make_html :: binary
-  defp make_html do
-    "#{:code.priv_dir(:farmbot)}/static/index.html" |> File.read!
+  @spec make_html(binary) :: binary
+  defp make_html(file) do
+    "#{:code.priv_dir(:farmbot)}/static/#{file}.html" |> File.read!
   end
 
   defp handle_arduino(file, conn) do
