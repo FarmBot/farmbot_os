@@ -1,20 +1,43 @@
 <html>
+
 <head>
 
-  <script type="text/javascript">
-
-  </script>
-
 </head>
+
 <body>
 
-<p>
-Enter A GCODE command:
-<form name="inputform">
-  <input name="command">
-  <input type="submit" name="submitbutton">
-</form>
-<p>
-<textarea rows="50" cols="100" name="output">
+  <p>
+    Enter A GCODE command:
+    <form name="inputform" id="the_form">
+      <input name="command" id="the_input">
+      <input type="submit" name="submitbutton">
+    </form>
+    <p>
+      <textarea rows="50" cols="100" name="output" id="the_log">
 </textarea>
+      <script type="text/javascript">
+        var input1 = document.getElementById("the_input");
+
+        function log(msg) {
+          let el = document.getElementById("the_log");
+          el.value = ("\n\n" + (el.value || "") + "\n\n") + msg;
+        }
+
+        var ws = new WebSocket("ws://localhost:5000/debug_log");
+
+        ws.onopen = function () { log("CONNECTED!"); }
+        ws.onmessage = function (e) { log(e.data); }
+        ws.onclose = function () { log("CONNECTION CLOSED!"); }
+        ws.onerror = function () { log("CONNECTION ERROR!!"); }
+
+        document
+          .getElementById("the_form")
+          .addEventListener("submit", function (event) {
+            event.preventDefault();
+            let v = input1.value;
+            log("SENT: " + v);
+            input1.value = "";
+          });
+      </script>
+
 </body>
