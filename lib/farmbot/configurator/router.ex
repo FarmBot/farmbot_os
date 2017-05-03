@@ -30,7 +30,9 @@ defmodule Farmbot.Configurator.Router do
     forward "/wobserver", to: Wobserver.Web.Router
   end
 
-  get "/", do: conn |> send_resp(200, make_html())
+  get "/", do: conn |> send_resp(200, make_html("index"))
+  get "/firmware/shell", do: conn |> send_resp(200, make_html("firmware_shell"))
+  get "/logger", do: conn |> send_resp(200, make_html("log"))
   get "/setup" do
     conn
     |> put_resp_header("location", "http://192.168.24.1/index.html")
@@ -52,11 +54,6 @@ defmodule Farmbot.Configurator.Router do
     </body>
     </html>
     """
-    conn |> send_resp(200, html)
-  end
-
-  get "/firmware/shell" do
-    html = File.read! "#{:code.priv_dir(:farmbot)}/static/firmware_shell.html"
     conn |> send_resp(200, html)
   end
 
@@ -219,9 +216,9 @@ defmodule Farmbot.Configurator.Router do
 
   defp make_json(conn), do: conn |> put_resp_content_type("application/json")
 
-  @spec make_html :: binary
-  defp make_html do
-    "#{:code.priv_dir(:farmbot)}/static/index.html" |> File.read!
+  @spec make_html(binary) :: binary
+  defp make_html(file) do
+    "#{:code.priv_dir(:farmbot)}/static/#{file}.html" |> File.read!
   end
 
   defp handle_arduino(file, conn) do

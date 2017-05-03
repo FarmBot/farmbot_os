@@ -34,7 +34,12 @@ defmodule Farmbot.DebugLog.SocketHandler do
 
   # messages from the browser.
   def websocket_handle({:text, m}, req, state) do
-    Logger.info ">> can't handle data from websocket: #{inspect m}"
+    case Poison.decode(m) do
+      {:ok, json} ->
+        handle_json(json)
+      {:error, _reason} ->
+        Logger.info ">> Debug log got non json"
+    end
     {:ok, req, state}
   end
 
@@ -50,5 +55,13 @@ defmodule Farmbot.DebugLog.SocketHandler do
 
   def websocket_terminate(_reason, _req, _state) do
     GenEvent.remove_handler(Farmbot.DebugLog, Handler, [])
+  end
+
+  defp handle_json(%{"to_firmware" => gcode}) do
+    Farmbot.Serial.Handler.write(gcode)
+  end
+
+  defp handle_json(m) do
+    Logger.info ">> can't handle data from websocket: #{inspect m}"
   end
 end

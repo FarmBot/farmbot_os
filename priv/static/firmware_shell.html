@@ -1,43 +1,95 @@
 <html>
-
-<head>
-
-</head>
-
-<body>
-
-  <p>
+  <body>
+    <p>
     Enter A GCODE command:
     <form name="inputform" id="the_form">
-      <input name="command" id="the_input">
+      <input name="command" id="the_input" onkeydown="handle_key_press(event)" autocomplete="off">
       <input type="submit" name="submitbutton">
     </form>
     <p>
-      <textarea rows="50" cols="100" name="output" id="the_log">
-</textarea>
-      <script type="text/javascript">
-        var input1 = document.getElementById("the_input");
+    <textarea rows="50" cols="230" name="output" id="the_log"> </textarea>
+    <script type="text/javascript">
+      var input1 = document.getElementById("the_input");
+      var ws = new WebSocket("ws://" + window.location.host + "/debug_log");
+      var cmd_history = [];
+      var history_index = 0;
 
-        function log(msg) {
-          let el = document.getElementById("the_log");
-          el.value = ("\n\n" + (el.value || "") + "\n\n") + msg;
+      ws.onopen = function () { log("CONNECTED!"); }
+      ws.onclose = function () { log("CONNECTION CLOSED!"); }
+      ws.onerror = function () { log("CONNECTION ERROR!!"); }
+      ws.onmessage = function (e) {
+        message = e.data || "";
+        mpart = message.split("]:")[0]
+        module = mpart.substring(2);
+        if(module === "Elixir.Farmbot.Serial.Handler") {
+          log(e.data);
         }
+      }
 
-        var ws = new WebSocket("ws://localhost:5000/debug_log");
+      function log(msg) {
+        let el = document.getElementById("the_log");
+        el.value = (msg + "\n") + (el.value || "");
+      }
 
-        ws.onopen = function () { log("CONNECTED!"); }
-        ws.onmessage = function (e) { log(e.data); }
-        ws.onclose = function () { log("CONNECTION CLOSED!"); }
-        ws.onerror = function () { log("CONNECTION ERROR!!"); }
+      function send_to_fw(str) {
+        json = {
+          to_firmware: str
+        }
+        ws.send(JSON.stringify(json));
+      }
 
-        document
-          .getElementById("the_form")
-          .addEventListener("submit", function (event) {
-            event.preventDefault();
-            let v = input1.value;
-            log("SENT: " + v);
-            input1.value = "";
-          });
-      </script>
+      function handle_key_press(e) {
+        var next;
+        switch(e.key){
+          case "ArrowUp":
+            history_index++;
+            if(history_index === 0) {
+              next = "";
+            } else {
+              next = cmd_history[history_index -1];
+            }
+            if(next){
+              input1.value = next;
+            } else {
+              // input1.value = "";
+              history_index--;
+            }
+            break;
 
-</body>
+          case "ArrowDown":
+            history_index--;
+            if(history_index === 0) {
+              next = "";
+            } else {
+              next = cmd_history[history_index -1];
+            }
+            if(next){
+              input1.value = next;
+            } else {
+              input1.value = "";
+              history_index = 0;
+            }
+          break;
+
+          default:
+          break;
+        }
+      }
+
+      document
+        .getElementById("the_form")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+          let v = input1.value;
+          if(v !== ""){
+            console.log("adding: " + v);
+            cmd_history.unshift(v);
+            history_index = 0;
+            send_to_fw(v);
+          }
+          input1.value = "";
+        });
+    </script>
+
+  </body>
+</html>

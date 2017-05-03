@@ -3,7 +3,7 @@ mdoc = """
 Provides a `debug_log/1` function.
 """
 use_logger? =
-  case System.get_env("DEBUG_LOGGER") do
+  case System.get_env("DEBUG_LOG") do
     "false" -> false
     nil -> false
     _ -> true
@@ -80,15 +80,11 @@ else
 
     defmacro __using__(_opts) do
       quote do
-        # warning = """
-        # Disabling DebugLogger: #{__MODULE__}
-        # If you want to debug #{__MODULE__}, export: DEBUG_LOGGER=true
-        # """
-        # IO.warn warning, []
         def debug_log(_str), do: :ok
       end # quote
-
     end # defmacro
+
+    # def start_link, do: {:ok, self()}
 
   end # defmodule
 
