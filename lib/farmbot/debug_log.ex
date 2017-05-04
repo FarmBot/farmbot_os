@@ -4,7 +4,7 @@ Provides a `debug_log/1` function.
 """
 
 use_logger? = fn() ->
-  if Mix.env() == :dev do
+  if Mix.env() == :dev || Mix.env() == :test do
     (System.get_env("DEBUG_LOG") || false)
   else
     Mix.shell.info "Not allowing `DebugLog` in `:prod` build."

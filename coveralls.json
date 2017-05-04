@@ -3,6 +3,8 @@
  "skip_files": [
   "lib/mix",
   "lib/farmbot/system/",
-  "lib/farmbot/easter_eggs.ex"
+  "lib/farmbot/easter_eggs.ex",
+  "lib/farmbot/debug_log.ex",
+  "lib/farmbot/debug_log"
  ]
 }

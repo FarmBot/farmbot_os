@@ -11,7 +11,7 @@
           "lib/downloader.ex",
           "lib/farmbot/sysformatter.ex",
           "lib/logger/backends/farmbot_logger.ex",
-          "lib/farmbot/sync/syncable.ex"
+          "lib/farmbot/sync/syncable.ex",
         ]
       }
     }
