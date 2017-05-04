@@ -39,7 +39,7 @@ defmodule Farmbot.FarmEventRunner do
       end
       {late_events, new} = do_checkup(all_events, now, state)
       unless Enum.empty?(late_events) do
-        Logger.warn "TIME TO DO STUFF: #{inspect late_events} " <>
+        Logger.info "Time for event to run: #{inspect late_events} " <>
           " at: #{now.hour}:#{now.minute}"
         start_events(late_events, now)
       end
