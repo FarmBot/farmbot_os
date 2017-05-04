@@ -23,7 +23,33 @@ defmodule Farmbot.Serial.Handler do
   """
   @type nerves :: handler
 
-  @type state :: {:hey, :fixme}
+  @typedoc """
+    Status of the arduino
+  """
+  @type status :: :busy | :done
+
+  @typedoc """
+    State for this GenServer
+  """
+  @type state :: %{
+    nerves: nerves,
+    tty: binary,
+    current: current,
+    timeouts: integer,
+    status: status,
+    initialized: boolean
+  }
+
+  @typedoc """
+    The current message being handled
+  """
+  @type current :: %{
+    timer: reference,
+    reply: tuple,
+    status: status,
+    from: {pid, reference},
+    q: binary
+  } | nil
 
   @default_timeout_ms 10_000
   @max_timeouts 5
@@ -213,28 +239,38 @@ defmodule Farmbot.Serial.Handler do
     results = handle_gcode(parsed)
     debug_log "Handling results: #{inspect results}"
     case results do
-      {:status, :done} ->
-        debug_log "replying to #{inspect current.from} with: #{inspect current.reply}"
-        GenServer.reply(current.from, current.reply)
-        Process.cancel_timer(current.timer)
-        nil
-      {:status, :busy} ->
-        debug_log "refreshing timer."
-        Process.cancel_timer(current.timer)
-        timer = Process.send_after(self(), :timeout, 5000)
-        %{current | status: :busy, timer: timer}
+      {:status, :done} -> handle_done(current)
+      {:status, :busy} -> handle_busy(current)
       {:status, status} -> %{current | status: status}
       {:reply, reply} -> %{current | reply: reply}
-      thing ->
-        unless is_nil(thing) do
-          debug_log "Unexpected thing: #{inspect thing}"
-        end
-        current
+      thing -> handle_other(thing, current)
     end
   end
 
   defp do_handle({_qcode, parsed}, nil) do
     handle_gcode(parsed)
+    nil
+  end
+
+  @spec handle_busy(current) :: current
+  defp handle_busy(current) do
+    debug_log "refreshing timer."
+    Process.cancel_timer(current.timer)
+    timer = Process.send_after(self(), :timeout, 5000)
+    %{current | status: :busy, timer: timer}
+  end
+
+  defp handle_other(thing, current) do
+    unless is_nil(thing) do
+      debug_log "Unexpected thing: #{inspect thing}"
+    end
+    current
+  end
+
+  defp handle_done(current) do
+    debug_log "replying to #{inspect current.from} with: #{inspect current.reply}"
+    GenServer.reply(current.from, current.reply)
+    Process.cancel_timer(current.timer)
     nil
   end
 

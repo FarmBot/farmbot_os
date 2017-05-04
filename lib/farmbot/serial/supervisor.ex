@@ -46,12 +46,15 @@ defmodule Farmbot.Serial.Supervisor do
 
     # If running in the host environment the proper tty is expected to be in
     # the environment
-    @tty System.get_env("ARDUINO_TTY") || Application.get_env(:farmbot, :tty)
+    defp get_tty do
+      System.get_env("ARDUINO_TTY") || Application.get_env(:farmbot, :tty)
+    end
+
     @spec open_ttys(atom | pid, [binary]) :: :ok | no_return
     def open_ttys(supervisor, list \\ nil)
     def open_ttys(supervisor, _) do
-      if @tty do
-        thing = {@tty, [name: Farmbot.Serial.Handler]}
+      if get_tty() do
+        thing = {get_tty(), [name: Farmbot.Serial.Handler]}
         try_open([thing], supervisor)
       else
         Logger.warn ">> EXPORT ARDUINO_TTY to initialize arduino in Host mode"

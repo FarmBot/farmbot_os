@@ -40,7 +40,7 @@
   "mock": {:hex, :mock, "0.2.1", "bfdba786903e77f9c18772dee472d020ceb8ef000783e737725a4c8f54ad28ec", [:mix], [{:meck, "~> 0.8.2", [hex: :meck, optional: false]}]},
   "mustache": {:hex, :mustache, "0.0.2", "870fbef411c47d17df06a57b8b3f69e26eb110cba0177c34e273db5d94369d9b", [:mix], []},
   "nerves": {:hex, :nerves, "0.5.1", "a55d73752e8f271c7aca5fbe47747f07d0e7760b5e858e7f8da17ab06287f49c", [:mix], [{:distillery, "~> 1.0", [hex: :distillery, optional: false]}]},
-  "nerves_firmware": {:git, "https://github.com/nerves-project/nerves_firmware.git", "0f558ad2402cbd5b36bd7a8a10bc2b53167de14e", []},
+  "nerves_firmware": {:git, "https://github.com/nerves-project/nerves_firmware.git", "0f558ad2402cbd5b36bd7a8a10bc2b53167de14e", [tag: "0f558ad2402cbd5b36bd7a8a10bc2b53167de14e"]},
   "nerves_firmware_http": {:hex, :nerves_firmware_http, "0.3.1", "e6ed2f8aa216df424a18ee56b6160b2aa7df9c3783406c93a61d92efd94acfac", [:mix], [{:cowboy, "~> 1.0", [hex: :cowboy, optional: false]}, {:exjsx, "~> 4.0", [hex: :exjsx, optional: false]}, {:nerves_firmware, "~> 0.3", [hex: :nerves_firmware, optional: false]}]},
   "nerves_hal": {:git, "https://github.com/LeToteTeam/nerves_hal.git", "249139e985017fdf0c5839eefc59788f575c48dd", []},
   "nerves_interim_wifi": {:git, "https://github.com/nerves-project/nerves_interim_wifi.git", "42a70b8773adbbf2918e68262b47241c6fb61947", []},

@@ -52,7 +52,6 @@ defmodule Farmbot do
     supervise(children, opts)
   end
 
-
   # This has to be at runtime because you cant access your own apps
   # priv dir during Mix.Config.
   if Mix.env == :prod do
@@ -72,7 +71,6 @@ defmodule Farmbot do
         worker(Farmbot.DebugLog, [], restart: :permanent),
       ]
     end
-
 
     defp setup_nerves_fw do
       Logger.info ">> Disabling firmware signing!"

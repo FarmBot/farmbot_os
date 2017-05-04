@@ -2,12 +2,17 @@
 mdoc = """
 Provides a `debug_log/1` function.
 """
-use_logger? =
-  case System.get_env("DEBUG_LOG") do
-    "false" -> false
-    nil -> false
-    _ -> true
+
+use_logger? = fn() ->
+  if Mix.env() == :dev || Mix.env() == :test do
+    (System.get_env("DEBUG_LOG") || false)
+  else
+    Mix.shell.info "Not allowing `DebugLog` in `:prod` build."
+    System.delete_env("DEBUG_LOG")
+    false
   end
+end.()
+
 # Check fof if logger is enabled.
 if use_logger? do
 
@@ -27,9 +32,7 @@ if use_logger? do
       """
       use GenEvent
 
-      def init(state) do
-        {:ok, state}
-      end
+      def init(state), do: {:ok, state}
 
       def handle_event({module, str}, state) when is_binary(str) do
         unless Map.get(state, module) do
@@ -71,7 +74,6 @@ if use_logger? do
     end
   end # defmodule
 
-
 else
 
   # We dont enable Debug logger. Stub everything.
@@ -84,7 +86,7 @@ else
       end # quote
     end # defmacro
 
-    # def start_link, do: {:ok, self()}
+    def start_link, do: GenEvent.start_link(name: __MODULE__)
 
   end # defmodule
 

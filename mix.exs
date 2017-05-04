@@ -218,14 +218,14 @@ defmodule Farmbot.Mixfile do
       do: [
         {:"nerves_system_#{sys}", warn_missing: false, path: "nerves/nerves_system_#{sys}"},
         # {:nerves_interim_wifi, "~> 0.2.0"},
-        {:nerves_interim_wifi, path: "../nerves_interim_wifi"},
-        # {:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi"},
+        # {:nerves_interim_wifi, path: "../nerves_interim_wifi"},
+        {:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi"},
 
         {:nerves_firmware_http, "~> 0.3.1"},
 
         # {:nerves_firmware, "~> 0.3"},
         # {:nerves_firmware, path: "../nerves_firmware", override: true},
-        {:nerves_firmware, github: "nerves-project/nerves_firmware", override: true},
+        {:nerves_firmware, github: "nerves-project/nerves_firmware", tag: "0f558ad2402cbd5b36bd7a8a10bc2b53167de14e", override: true},
 
         {:nerves_ssdp_server, "~> 0.2.1"},
         ],
