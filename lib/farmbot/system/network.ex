@@ -31,15 +31,15 @@ defmodule Farmbot.System.Network do
     Farmbot.Auth.try_log_in
   end)
 
-  defp maybe_get_fpf do
-    {:ok, fpf} = GenServer.call(CS, {:get, Configuration, "first_party_farmware"})
-    if fpf, do: Farmware.get_first_party_farmware
-  end
-
   defp parse_and_start_config(config, m) do
     for {interface, settings} <- config do
         m.start_interface(interface, settings)
     end
+  end
+
+  defp maybe_get_fpf do
+    {:ok, fpf} = GenServer.call(CS, {:get, Configuration, "first_party_farmware"})
+    if fpf, do: Farmware.get_first_party_farmware
   end
 
   @doc """
