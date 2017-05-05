@@ -24,8 +24,10 @@ defmodule Farmbot.System.Network do
   # if networking is disabled.
   defp parse_and_start_config(nil, _), do: spawn(fn ->
     Process.sleep(2000)
-    {:ok, fpf} = GenServer.call(CS, {:get, Configuration, "first_party_farmware"})
-    if fpf, do: Farmware.get_first_party_farmware
+    spawn fn ->
+      maybe_get_fpf()
+    end
+
     Farmbot.Auth.try_log_in
   end)
 
@@ -33,6 +35,11 @@ defmodule Farmbot.System.Network do
     for {interface, settings} <- config do
         m.start_interface(interface, settings)
     end
+  end
+
+  defp maybe_get_fpf do
+    {:ok, fpf} = GenServer.call(CS, {:get, Configuration, "first_party_farmware"})
+    if fpf, do: Farmware.get_first_party_farmware
   end
 
   @doc """

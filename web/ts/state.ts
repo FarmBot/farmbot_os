@@ -42,6 +42,7 @@ export class MainState {
     @observable connected = false;
     @observable possibleInterfaces: string[] = [];
     @observable expected_fw_version: undefined | string;
+    @observable last_factory_reset_reason: string;
 
     /** The current state. if we care about such a thing. */
     @observable botStatus: BotStateTree = {
@@ -220,11 +221,22 @@ export class MainState {
                 })
                 .catch((e) => {
                     console.error("ERROR getting expected fw version: " + e);
+                });
+
+            Axios.get("/api/last_factory_reset_reason")
+                .then((success) => {
+                    console.log("Got last factory reset reason");
+                    that.setLastFactoryResetReason((success.data as string));
                 })
-            if (this.configuration.network) {
-                console.log("Getting network information");
-            }
+                .catch((e) => {
+                    console.error("Error getting last fac reset reason: " + e);
+                });
         }
+    }
+
+    @action
+    setLastFactoryResetReason(reason: string) {
+        this.last_factory_reset_reason = reason;
     }
 
     @action

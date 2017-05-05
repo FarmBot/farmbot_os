@@ -212,7 +212,10 @@ defmodule Farmbot.System.NervesCommon.Network do
       end
 
       def handle_info({Nerves.WpaSupplicant, {:error, :psk, :FAIL}, %{ifname: iface}}, state) do
-        Farmbot.System.factory_reset
+        Farmbot.System.factory_reset("""
+        I could not authenticate with the access point. This could be a bad
+        password, or an unsupported network type.
+        """)
         {:noreply, state}
       end
 
@@ -220,8 +223,15 @@ defmodule Farmbot.System.NervesCommon.Network do
         event = event |> Atom.to_string
         wrong_key? = event |> String.contains?("reason=WRONG_KEY")
         not_found? = event |> String.contains?("CTRL-EVENT-NETWORK-NOT-FOUND")
-        if wrong_key?, do: Farmbot.System.factory_reset
-        if not_found?, do: Farmbot.System.factory_reset
+        if wrong_key?, do: Farmbot.System.factory_reset("""
+        I could not authenticate with the access point. This could be a bad
+        password, or an unsupported network type.
+        """)
+
+        if not_found?, do: Farmbot.System.factory_reset("""
+        I could not find the wifi access point. Check that it was inputted correctly.
+        """)
+
         {:noreply, state}
       end
 
