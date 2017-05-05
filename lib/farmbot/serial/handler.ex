@@ -281,7 +281,7 @@ defmodule Farmbot.Serial.Handler do
   defp handle_gcode(:idle), do: {:status, :idle}
 
   defp handle_gcode(:busy) do
-    Logger.info ">>'s arduino is busy.", type: :busy
+    # Logger.info ">>'s arduino is busy.", type: :busy
     {:status, :busy}
   end
 
