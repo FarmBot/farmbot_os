@@ -7,7 +7,7 @@ defmodule Farmbot.Auth do
     ssl: [{:versions, [:'tlsv1.2']}],
     follow_redirect: true
   ]
-  @six_hours (6 * 3_600_000)
+  @timeout_time (2 * 3_600_000)
 
   use GenServer
   require Logger
@@ -402,5 +402,5 @@ defmodule Farmbot.Auth do
   end
 
   # sends a message after 6 hours to get a new token.
-  defp s_a, do: Process.send_after(__MODULE__, :new_token, @six_hours)
+  defp s_a, do: Process.send_after(__MODULE__, :new_token, @timeout_time)
 end
