@@ -31,6 +31,8 @@ defmodule Farmbot.Configurator.SocketHandler do
     # This is where state updates, celeryscripts, logs, etc come from.
     {:ok, stage} = transport().start_link(self())
 
+    Process.send_after(self(), :force_state_push, 500)
+
     # i dont actually remember what req is, but we don't use it.
     {:ok, req, stage, @timeout}
   end
@@ -73,6 +75,13 @@ defmodule Farmbot.Configurator.SocketHandler do
        {:ok, json} -> {:reply, {:text, json}, req, stage}
        _ -> {:ok, req, stage}
     end
+  end
+
+  def websocket_info(:force_state_push, req, stage) do
+    spawn fn() ->
+      Farmbot.Transport.force_state_push
+    end
+    {:ok, req, stage}
   end
 
   # ignore unhandled messages.

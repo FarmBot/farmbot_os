@@ -68,8 +68,10 @@ export class Main extends React.Component<MainProps, FormState> {
       // check that we arent wanting to use custom firmware.
       let doesntHaveCustomFW = !fullFile.hardware.custom_firmware;
 
+      let cur_fw_ver = mainState.botStatus.informational_settings.firmware_version
       // check that the versions arent equal.
-      let fwVersionCheck = mainState.botStatus.informational_settings.firmware_version !== mainState.expected_fw_version;
+      let fwVersionCheck = cur_fw_ver !== mainState.expected_fw_version;
+      console.log("Current detected version: " + cur_fw_ver + " expected version: " + mainState.expected_fw_version);
       console.log("FINDME: " + fwVersionCheck);
       // try to flash the arduino
       if (doesntHaveCustomFW && fwVersionCheck) {
@@ -398,7 +400,7 @@ export class Main extends React.Component<MainProps, FormState> {
         col-sm-8 col-sm-offset-2 col-xs-12`}>
 
         <div hidden={hideFRText}>
-          <h4> Something caused a factory reset last time. Here;s what I know: </h4>
+          <h4> Something caused a factory reset last time. Here's what I know: </h4>
           <p>
             {lastFRText}
           </p>

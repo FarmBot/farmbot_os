@@ -223,7 +223,7 @@ defmodule Farmbot.Auth do
        er -> # no need to print message becasetry_log_indoes it for us.
         # sleep for a second, then try again untill we are out of retry
         Process.sleep(1000)
-        try_log_in!(retry - 1, "Try #{retry}: #{inspect er}\n" <> error_str)
+        try_log_in!(retry + 1, "Try #{retry}: #{inspect er}\n" <> error_str)
     end
   end
 

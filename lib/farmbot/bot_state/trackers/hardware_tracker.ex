@@ -53,8 +53,6 @@ defmodule Farmbot.BotState.Hardware do
       set_initial_params(state)
     end
 
-    Farmbot.CeleryScript.Command.read_param(%{label: "param_version"}, [])
-
     if Enum.empty?(state.mcu_params) do
       Logger.info "reading all mcu params."
       Farmbot.CeleryScript.Command.read_all_params(%{}, [])
