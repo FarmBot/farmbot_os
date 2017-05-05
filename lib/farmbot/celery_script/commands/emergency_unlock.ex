@@ -7,13 +7,14 @@ defmodule Farmbot.CeleryScript.Command.EmergencyUnlock do
   @behaviour Command
 
   @doc ~s"""
-    unlocks the bot allowing movement again.
+    unlocks bot from movement
       args: %{},
       body: []
   """
   @spec run(%{}, []) :: no_return
   def run(%{}, []) do
-    Command.shrug(%{message: "sorry about that. Farmbot needs to reboot"}, [])
+    Farmbot.BotState.set_sync_msg(:sync_now)
     Farmbot.BotState.unlock_bot()
+    Farmbot.Serial.Handler.emergency_unlock()
   end
 end
