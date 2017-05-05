@@ -17,7 +17,7 @@ defmodule Farmbot.System do
   @doc """
     Factory resets your bot.
   """
-  def factory_reset, do: mod(@target).factory_reset
+  def factory_reset(reason), do: mod(@target).factory_reset(reason)
 
   @spec mod(atom) :: atom
   defp mod(target), do: Module.concat([Farmbot, System, target])
@@ -25,5 +25,5 @@ defmodule Farmbot.System do
   # Behavior
   @callback reboot() :: no_return
   @callback power_off() :: no_return
-  @callback factory_reset() :: no_return
+  @callback factory_reset(binary) :: no_return
 end

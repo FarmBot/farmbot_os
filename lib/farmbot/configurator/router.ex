@@ -169,13 +169,22 @@ defmodule Farmbot.Configurator.Router do
      conn |> make_json |> send_resp(200, json)
   end
 
+  get "/api/last_factory_reset_reason" do
+    case File.read("#{Farmbot.System.FS.path()}/factory_reset_reason") do
+      {:ok, text} ->
+        conn |> send_resp(200, text)
+      _ ->
+        conn |> send_resp(200, "")
+    end
+  end
+
   # Factory Reset bot.
   post "/api/factory_reset" do
     Logger.info "goodbye."
     spawn fn() ->
       # sleep to allow the request to finish.
       Process.sleep(100)
-      Farmbot.System.factory_reset
+      Farmbot.System.factory_reset("Local Configurator request.")
     end
     conn |> send_resp(204, "GoodByeWorld!")
   end

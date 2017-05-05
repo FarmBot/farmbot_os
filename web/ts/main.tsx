@@ -13,7 +13,6 @@ interface MainProps {
 }
 
 interface FormState {
-  timezone?: null | string;
   email?: null | string;
   pass?: null | string;
   server?: null | string;
@@ -37,7 +36,6 @@ export class Main extends React.Component<MainProps, FormState> {
     this.handlePassChange = this.handlePassChange.bind(this);
     this.handleServerChange = this.handleServerChange.bind(this);
     this.state = {
-      timezone: null,
       email: null,
       pass: null,
       server: null,
@@ -376,6 +374,14 @@ export class Main extends React.Component<MainProps, FormState> {
 
     let submitText = this.state.connecting ? "SUBMITTING CONFIGURATION!" : "SUBMIT CONFIGURATION";
 
+    let lastFRText = mainState.last_factory_reset_reason;
+    let hideFRText: boolean;
+    if (lastFRText === "") {
+      hideFRText = true;
+    } else {
+      hideFRText = false;
+    }
+
     return <div className="container">
       <h1 onClick={() => {
         let val = (this.state.hiddenAdvancedWidget as number) + 1;
@@ -390,6 +396,14 @@ export class Main extends React.Component<MainProps, FormState> {
       {/* Only display if the bot is connected */}
       <div hidden={!mainState.connected} className={`col-md-offset-3 col-md-6
         col-sm-8 col-sm-offset-2 col-xs-12`}>
+
+        <div hidden={hideFRText}>
+          <h4> Something caused a factory reset last time. Here;s what I know: </h4>
+          <p>
+            {lastFRText}
+          </p>
+          <p />
+        </div>
 
         {/* Network Widget */}
         <div className="widget wifi" hidden={mainState.configuration.network == true}>
@@ -489,6 +503,6 @@ export class Main extends React.Component<MainProps, FormState> {
         </div>
 
       </div>
-    </div>
+    </div >
   }
 }
