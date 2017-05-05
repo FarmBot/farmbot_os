@@ -164,14 +164,15 @@ defmodule Farmbot.BotState do
   @type sync_msg :: Configuration.sync_msg
   @spec set_sync_msg(sync_msg) :: :ok
   def set_sync_msg(sync_msg)
-  def set_sync_msg(:synced = thing),
+
+  def set_sync_msg(:sync_error = thing), do: do_set_sync_msg(thing)
+  def set_sync_msg(:sync_now = thing),   do: do_set_sync_msg(thing)
+  def set_sync_msg(:syncing = thing),    do: do_set_sync_msg(thing)
+  def set_sync_msg(:unknown = thing),    do: do_set_sync_msg(thing)
+  def set_sync_msg(:locked = thing),     do: do_set_sync_msg(thing)
+  def set_sync_msg(:synced = thing),     do: do_set_sync_msg(thing)
+
+  defp do_set_sync_msg(thing),
     do: GenServer.cast(Configuration, {:update_info, :sync_status, thing})
-  def set_sync_msg(:sync_now = thing),
-    do: GenServer.cast(Configuration, {:update_info, :sync_status, thing})
-  def set_sync_msg(:syncing = thing),
-    do: GenServer.cast(Configuration, {:update_info, :sync_status, thing})
-  def set_sync_msg(:sync_error = thing),
-    do: GenServer.cast(Configuration, {:update_info, :sync_status, thing})
-  def set_sync_msg(:unknown = thing),
-    do: GenServer.cast(Configuration, {:update_info, :sync_status, thing})
+
 end

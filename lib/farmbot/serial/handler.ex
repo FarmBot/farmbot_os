@@ -111,9 +111,17 @@ defmodule Farmbot.Serial.Handler do
   @doc """
     Send the E stop command to the arduino.
   """
-  @spec e_stop(handler) :: :ok | no_return
-  def e_stop(handler \\ __MODULE__) do
-    GenServer.call(handler, :e_stop)
+  @spec emergency_lock(handler) :: :ok | no_return
+  def emergency_lock(handler \\ __MODULE__) do
+    GenServer.call(handler, :emergency_lock)
+  end
+
+  @doc """
+    Tell the arduino its fine now.
+  """
+  @spec emergency_unlock(handler) :: :ok | no_return
+  def emergency_unlock(handler \\ __MODULE__) do
+    GenServer.call(handler, :emergency_unlock)
   end
 
   ## Private
@@ -150,6 +158,27 @@ defmodule Farmbot.Serial.Handler do
     # Flush the buffers so we start fresh
     :ok = UART.flush(nerves)
     :ok
+  end
+
+  def handle_call(:emergency_lock, _, state) do
+    UART.write(state.nerves, "E")
+    current = state.current
+    if current do
+      Process.cancel_timer(current.timer)
+    end
+    next = %{state |
+      current: nil,
+      timeouts: 0,
+      status: :locked,
+      initialized: false
+    }
+    {:reply, :ok, next}
+  end
+
+  def handle_call(:emergency_unlock, _, state) do
+    UART.write(state.nerves, "F09")
+    next = %{state | status: :idle, initialized: false}
+    {:reply, :ok, next}
   end
 
   def handle_call(:get_state, _, state), do: {:reply, state, state}
