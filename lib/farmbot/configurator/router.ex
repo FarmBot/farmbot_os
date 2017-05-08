@@ -258,8 +258,12 @@ defmodule Farmbot.Configurator.Router do
           Logger.info "magic complete!"
           Farmbot.Serial.Handler.flash_firmware(tty, file, self())
           errrm.(conn)
+        [] ->
+          Logger.info "Could not detect arduino.", type: :warn
+          conn |> send_resp(200, "OK")
         _ ->
-          Logger.warn "Please only have one serial device when updating firmware"
+          Logger.info "Please only have one serial "
+          <> " device when updating firmware", type: :warn
           conn |> send_resp(200, "OK")
       end
     end

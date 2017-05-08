@@ -37,11 +37,6 @@ defmodule Farmbot.System.Network do
     end
   end
 
-  defp maybe_get_fpf do
-    {:ok, fpf} = GenServer.call(CS, {:get, Configuration, "first_party_farmware"})
-    if fpf, do: Farmware.get_first_party_farmware
-  end
-
   @doc """
     Starts the network manager
   """
