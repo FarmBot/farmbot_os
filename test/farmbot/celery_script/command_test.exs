@@ -25,24 +25,17 @@ defmodule CommandTest do
 
   test "converts a tool to a coodinate" do
     use Amnesia
-    use ToolBay
     use ToolSlot
     use Tool
     x = 1
     y = 2
     z = 3
+    tool_slot = %ToolSlot{id: 503, tool_id: 97, name: "uh", x: 1, y: 2, z: 3}
+    |> ToolSlot.write
 
-    {_tool_bay, tool_slot, _tool} = Amnesia.transaction do
-      tool_bay = %ToolBay{id: 999, name: "byron_bay"} |> ToolBay.write
-
-      tool_slot = %ToolSlot{id: 503,
-        tool_bay_id: 999, tool_id: 97, name: "uh", x: 1, y: 2, z: 3}
-      |> ToolSlot.write
-
-
-      tool = %Tool{id: 97, name: "lazer"} |> Tool.write
-
-      {tool_bay, tool_slot, tool}
+    tool = %Tool{id: 97, name: "lazer"} |> Tool.write
+    
+    {tool_slot, tool}
     end
 
     ast = %Ast{kind: "tool", args: %{tool_id: 97}, body: []}
