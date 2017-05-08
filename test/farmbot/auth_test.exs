@@ -78,7 +78,7 @@ defmodule Farmbot.AuthTest do
       bad_interim()
       with_mock Farmbot.System, [factory_reset: fn(_reason) -> :ok end] do
         Auth.try_log_in!()
-        assert called Farmbot.System.factory_reset("reason")
+        assert called Farmbot.System.factory_reset(:_)
       end
     end
   end
