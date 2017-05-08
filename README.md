@@ -56,7 +56,7 @@ Instalation should be fairly straight forward, you will need a computer for this
 
 # Problems?
 
-See the [FAQ](faq.html)
+See the [FAQ](docs/FAQ.md)
 If your problem isn't solved there please file an issue on [Github](https://github.com/FarmBot/farmbot_os/issues/new)
 
 # Want to Help?
