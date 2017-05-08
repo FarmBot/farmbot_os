@@ -29,6 +29,8 @@ defmodule Farmbot.Auth.Subscription do
     {:noreply, token}
   end
 
+  def handle_info({Farmbot.Auth, :purge_token}, _), do: {:noreply, nil}
+
   def handle_info({Farmbot.Auth, message}, state) do
     debug_log "unhandled auth message: #{inspect message}"
     {:noreply, state}

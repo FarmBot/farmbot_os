@@ -4,8 +4,8 @@
       "body": "",
       "headers": {
         "Content-Type": "application/json",
-        "User-Agent": "FarmbotOS/3.0.9-rc.1 (host) host ()",
-        "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0OTE1OTY5MTcsImp0aSI6IjdmMmU5ZGVlLWNhZjQtNGI4NC04ZDJmLTQzMTYxNmYxMGY5ZiIsImlzcyI6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5NTA1MjkxNywibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFybWJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZGF0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVhc2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV8yIn0.lfa92p6z1rjFeoCIvdtDEZtIWU-BjF5xEc5OdxHXsOwMHi-SnCXMLyzEZUKoTPf6M3DQuvEsUGR3iKfB451l4m_WD7ql_zp-opFQg8rYbZRBxviMJTmcV8Po_g2MeHFIE_mzFxya0uCfCkwPQm85ZJZfdveB8M4_iMR7mMj2_qPdkDHH-bl_NvfsG5kQhz0UkOxUhEwPkSS93eLUdq6Q54DtuItE1BTDqqBA7pAXUtp57dStIfYxW3u3WzSSMhXCNKCrS7c6BabzULoLS1m0-yokRwbiws0iRMyz7EajNVzYEgW81-0Dzn24q1NWar0Cq6uWP8rsa65A6w5drD947Q"
+        "User-Agent": "FarmbotOS/3.1.6 (host) host ()",
+        "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0OTQyNjYzODQsImp0aSI6IjZiNDNkNzU2LTc5NWQtNDY5Ni04NjU2LTI5NjEyY2MyMTAzYSIsImlzcyI6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5NzcyMjM4NCwibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFybWJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZGF0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVhc2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV8yIn0.iMJMNy2-ata3zZlfFIFejgtljkr7cgZtySLeur-4vBDhg2_L2SBHml47-g7YbWXMmEEPfGDUm23d1zzXXZGgBRniHg2y98NxuN2wYK9ypuEAkc3d07lOCcRhhbbfnctLrrKEhWnve_9LzIpP2CbSmqLfm3wBPxSmBaxVg8GyNCQfABsDFuUi7GHoU2rEfGOs3rjXWaiKIvjIUr-xsMdeJ3ErZ20wySBqAjHFyf_MpszClpLMJGSCkXr8j3B03-oKvL2yPdezUqOn-LA1gW7ezhMawZ4S4GIAiZBfueX2g4OHS7dnr71U92ZAhkA2jmC2_eUxDF4I-B07nYsM59FEsg"
       },
       "method": "get",
       "options": {
@@ -22,17 +22,17 @@
       "url": "http://localhost:3000/api/storage_auth"
     },
     "response": {
-      "body": "{\"verb\":\"POST\",\"url\":\"//storage.googleapis.com/farmbot-team/\",\"form_data\":{\"key\":\"temp1/2dec83bc-6766-47dd-b5d0-3dc67f008996.jpg\",\"acl\":\"public-read\",\"Content-Type\":\"image/jpeg\",\"policy\":\"eyJleHBpcmF0aW9uIjoiMjAxNy0wNC0wN1QyMToyODozN1oiLCJjb25kaXRpb25zIjpbeyJidWNrZXQiOiJmYXJtYm90LXRlYW0ifSx7ImtleSI6InRlbXAxLzJkZWM4M2JjLTY3NjYtNDdkZC1iNWQwLTNkYzY3ZjAwODk5Ni5qcGcifSx7ImFjbCI6InB1YmxpYy1yZWFkIn0seyJDb250ZW50LVR5cGUiOiJpbWFnZS9qcGVnIn0sWyJjb250ZW50LWxlbmd0aC1yYW5nZSIsMSw3MzQwMDMyXV19\",\"signature\":\"Uz3H1wNF4O+gVBxITNDB4i2la18=\",\"GoogleAccessId\":\"GOOGSDXDNLBL7DHPNZTT\",\"file\":\"REPLACE_THIS_WITH_A_BINARY_JPEG_FILE\"},\"instructions\":\"Send a 'from-data' request to the URL provided.Then POST the resulting URL as an 'attachment_url' (json) to api/images/.\"}",
+      "body": "{\"verb\":\"POST\",\"url\":\"//storage.googleapis.com/farmbot-team/\",\"form_data\":{\"key\":\"temp1/c0d20ffa-7bdc-41f0-968e-4711661b5198.jpg\",\"acl\":\"public-read\",\"Content-Type\":\"image/jpeg\",\"policy\":\"eyJleHBpcmF0aW9uIjoiMjAxNy0wNS0wOFQxODo1OTo1MloiLCJjb25kaXRpb25zIjpbeyJidWNrZXQiOiJmYXJtYm90LXRlYW0ifSx7ImtleSI6InRlbXAxL2MwZDIwZmZhLTdiZGMtNDFmMC05NjhlLTQ3MTE2NjFiNTE5OC5qcGcifSx7ImFjbCI6InB1YmxpYy1yZWFkIn0seyJDb250ZW50LVR5cGUiOiJpbWFnZS9qcGVnIn0sWyJjb250ZW50LWxlbmd0aC1yYW5nZSIsMSw3MzQwMDMyXV19\",\"signature\":\"rsg7qCwZCRJ4U8mbo5HJh72EQqM=\",\"GoogleAccessId\":\"GOOGSDXDNLBL7DHPNZTT\",\"file\":\"REPLACE_THIS_WITH_A_BINARY_JPEG_FILE\"},\"instructions\":\"Send a 'from-data' request to the URL provided.Then POST the resulting URL as an 'attachment_url' (json) to api/images/.\"}",
       "headers": {
         "X-Frame-Options": "SAMEORIGIN",
         "X-XSS-Protection": "1; mode=block",
         "X-Content-Type-Options": "nosniff",
         "Content-Type": "application/json; charset=utf-8",
-        "ETag": "W/\"d10d713ec786e5253e278f50513c423f\"",
+        "ETag": "W/\"cfb7c553708c181f5280bf953c236468\"",
         "Cache-Control": "max-age=0, private, must-revalidate",
-        "Set-Cookie": "_farmbot_session=VUFWbCtOYzZ2SlNXaTBtQldIWk52eStQbUVpQVhDSlVCdzNtTjJPWEtOWFA2M1AxRVJtZi9seDlSRUptS2JNSVhrbERGb1lXb2VqbzBQa1NLaTdhN3c9PS0tbVROZXhYaTFsT3VLd1JiZ1JaV0xBUT09--8f2d8bd648cb5c324ee01cc6cd4ef196b64091cb; path=/; HttpOnly",
-        "X-Request-Id": "a1a0d7c6-f127-486d-8248-745ebfeffd1e",
-        "X-Runtime": "0.013641",
+        "Set-Cookie": "_farmbot_session=bnVMRXFWSm9jWTV4R2JMU0s0aS9ibUdTKzV0NWR2a3FhekZBM0hnNFh2TXlMZjJ3ZGN6aEg3NUZ0b3hWOEhvNnU0K0F0aUpWd243dWRUY0NnekR5b0E9PS0tbVp2eGVmK0JKdkRkbzVaNEdRbTB2UT09--896ff3f9ddb5042862189d3e333e2ada53f88554; path=/; HttpOnly",
+        "X-Request-Id": "24687912-bbe6-4807-a7c3-1a444381f3bf",
+        "X-Runtime": "0.013849",
         "Vary": "Origin",
         "Connection": "close",
         "Server": "thin"
@@ -43,7 +43,7 @@
   },
   {
     "request": {
-      "body": "{:multipart, [{\"Content-Type\", \"image/jpeg\"}, {\"GoogleAccessId\", \"GOOGSDXDNLBL7DHPNZTT\"}, {\"acl\", \"public-read\"}, {\"file\", <<137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 200, 0, 0, 0, 200, 8, 2, 0, 0, 0, 34, 58, 57, 201, 0, 0, 25, 116, 73, 68, 65, 84, 120, 156, 236, ...>>}, {\"key\", \"temp1/2dec83bc-6766-47dd-b5d0-3dc67f008996.jpg\"}, {\"policy\", \"eyJleHBpcmF0aW9uIjoiMjAxNy0wNC0wN1QyMToyODozN1oiLCJjb25kaXRpb25zIjpbeyJidWNrZXQiOiJmYXJtYm90LXRlYW0ifSx7ImtleSI6InRlbXAxLzJkZWM4M2JjLTY3NjYtNDdkZC1iNWQwLTNkYzY3ZjAwODk5Ni5qcGcifSx7ImFjbCI6InB1YmxpYy1yZWFkIn0seyJDb250ZW50LVR5cGUiOiJpbWFnZS9qcGVnIn0sWyJjb250ZW50LWxlbmd0aC1yYW5nZSIsMSw3MzQwMDMyXV19\"}, {\"signature\", \"Uz3H1wNF4O+gVBxITNDB4i2la18=\"}]}",
+      "body": "{:multipart, [{\"Content-Type\", \"image/jpeg\"}, {\"GoogleAccessId\", \"GOOGSDXDNLBL7DHPNZTT\"}, {\"acl\", \"public-read\"}, {\"file\", <<137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 200, 0, 0, 0, 200, 8, 2, 0, 0, 0, 34, 58, 57, 201, 0, 0, 25, 116, 73, 68, 65, 84, 120, 156, 236, ...>>}, {\"key\", \"temp1/c0d20ffa-7bdc-41f0-968e-4711661b5198.jpg\"}, {\"policy\", \"eyJleHBpcmF0aW9uIjoiMjAxNy0wNS0wOFQxODo1OTo1MloiLCJjb25kaXRpb25zIjpbeyJidWNrZXQiOiJmYXJtYm90LXRlYW0ifSx7ImtleSI6InRlbXAxL2MwZDIwZmZhLTdiZGMtNDFmMC05NjhlLTQ3MTE2NjFiNTE5OC5qcGcifSx7ImFjbCI6InB1YmxpYy1yZWFkIn0seyJDb250ZW50LVR5cGUiOiJpbWFnZS9qcGVnIn0sWyJjb250ZW50LWxlbmd0aC1yYW5nZSIsMSw3MzQwMDMyXV19\"}, {\"signature\", \"rsg7qCwZCRJ4U8mbo5HJh72EQqM=\"}]}",
       "headers": {
         "Content-Type": "multipart/form-data",
         "User-Agent": "FarmbotOS"
@@ -56,10 +56,10 @@
     "response": {
       "body": "",
       "headers": {
-        "X-GUploader-UploadID": "AEnB2UpumivWWyA-QoXiO_YpU5Ae1_PGZkEHMS2EdDG1GIrg2cDF__uH3c_wO-4gAzYC40f0yazNc34t3-R6EXOsN6XiBPJUqA",
+        "X-GUploader-UploadID": "AEnB2Uoj51yV9ZBboLZApJdu6I_BZZe5ZoJ8ojub2t-viO6EUkcF2MXDY5AIHbpE7wlhjeyaIm-d6AI73N-VLMDZqypmdEBDlQ",
         "Vary": "Origin",
         "Content-Length": "0",
-        "Date": "Fri, 07 Apr 2017 20:28:38 GMT",
+        "Date": "Mon, 08 May 2017 17:59:53 GMT",
         "Server": "UploadServer",
         "Alt-Svc": "quic=\":443\"; ma=2592000; v=\"37,36,35\""
       },
@@ -69,11 +69,11 @@
   },
   {
     "request": {
-      "body": "{\"meta\":{\"z\":0,\"y\":0,\"x\":0},\"attachment_url\":\"https://storage.googleapis.com/farmbot-team/temp1/2dec83bc-6766-47dd-b5d0-3dc67f008996.jpg\"}",
+      "body": "{\"meta\":{\"z\":0,\"y\":0,\"x\":0},\"attachment_url\":\"https://storage.googleapis.com/farmbot-team/temp1/c0d20ffa-7bdc-41f0-968e-4711661b5198.jpg\"}",
       "headers": {
         "Content-Type": "application/json",
-        "User-Agent": "FarmbotOS/3.0.9-rc.1 (host) host ()",
-        "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0OTE1OTY5MTcsImp0aSI6IjdmMmU5ZGVlLWNhZjQtNGI4NC04ZDJmLTQzMTYxNmYxMGY5ZiIsImlzcyI6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5NTA1MjkxNywibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFybWJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZGF0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVhc2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV8yIn0.lfa92p6z1rjFeoCIvdtDEZtIWU-BjF5xEc5OdxHXsOwMHi-SnCXMLyzEZUKoTPf6M3DQuvEsUGR3iKfB451l4m_WD7ql_zp-opFQg8rYbZRBxviMJTmcV8Po_g2MeHFIE_mzFxya0uCfCkwPQm85ZJZfdveB8M4_iMR7mMj2_qPdkDHH-bl_NvfsG5kQhz0UkOxUhEwPkSS93eLUdq6Q54DtuItE1BTDqqBA7pAXUtp57dStIfYxW3u3WzSSMhXCNKCrS7c6BabzULoLS1m0-yokRwbiws0iRMyz7EajNVzYEgW81-0Dzn24q1NWar0Cq6uWP8rsa65A6w5drD947Q"
+        "User-Agent": "FarmbotOS/3.1.6 (host) host ()",
+        "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0OTQyNjYzODQsImp0aSI6IjZiNDNkNzU2LTc5NWQtNDY5Ni04NjU2LTI5NjEyY2MyMTAzYSIsImlzcyI6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5NzcyMjM4NCwibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFybWJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZGF0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVhc2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV8yIn0.iMJMNy2-ata3zZlfFIFejgtljkr7cgZtySLeur-4vBDhg2_L2SBHml47-g7YbWXMmEEPfGDUm23d1zzXXZGgBRniHg2y98NxuN2wYK9ypuEAkc3d07lOCcRhhbbfnctLrrKEhWnve_9LzIpP2CbSmqLfm3wBPxSmBaxVg8GyNCQfABsDFuUi7GHoU2rEfGOs3rjXWaiKIvjIUr-xsMdeJ3ErZ20wySBqAjHFyf_MpszClpLMJGSCkXr8j3B03-oKvL2yPdezUqOn-LA1gW7ezhMawZ4S4GIAiZBfueX2g4OHS7dnr71U92ZAhkA2jmC2_eUxDF4I-B07nYsM59FEsg"
       },
       "method": "post",
       "options": {
@@ -90,17 +90,17 @@
       "url": "http://localhost:3000/api/images"
     },
     "response": {
-      "body": "{\"id\":7,\"device_id\":2,\"attachment_processed_at\":null,\"updated_at\":\"2017-04-07T20:28:38.669Z\",\"created_at\":\"2017-04-07T20:28:38.669Z\",\"attachment_url\":\"http://placehold.it/640%3Ftext=Processing...\",\"meta\":{\"x\":0,\"y\":0,\"z\":0}}",
+      "body": "{\"id\":4,\"device_id\":2,\"attachment_processed_at\":null,\"updated_at\":\"2017-05-08T17:59:53.355Z\",\"created_at\":\"2017-05-08T17:59:53.355Z\",\"attachment_url\":\"http://placehold.it/640%3Ftext=Processing...\",\"meta\":{\"x\":0,\"y\":0,\"z\":0}}",
       "headers": {
         "X-Frame-Options": "SAMEORIGIN",
         "X-XSS-Protection": "1; mode=block",
         "X-Content-Type-Options": "nosniff",
         "Content-Type": "application/json; charset=utf-8",
-        "ETag": "W/\"97a1bf6f5fe054641a87f3074dd344ec\"",
+        "ETag": "W/\"276db2f084bc138c8d7134f0f90c056b\"",
         "Cache-Control": "max-age=0, private, must-revalidate",
-        "Set-Cookie": "_farmbot_session=dVBrSjRpbDlNaEIzT0ZOTFpHRFF0MW41LzE2Wm1tSGkveUR5aHVZRXIwRENTbkJBN2FsYlJLeTdKUkYzUTBEbHhvV0RIVmNHK2dQV2JaZGVMcFgwaXc9PS0tWkVRYXVKams4RjdTVmFvNmtNNFZudz09--c41c04fa55ac4d33669305634de58585d26bbc2e; path=/; HttpOnly",
-        "X-Request-Id": "86a03ddd-cb7b-4a18-8d58-08e486c23164",
-        "X-Runtime": "0.073133",
+        "Set-Cookie": "_farmbot_session=V3FjU1E3dFQ0d1YxNHF0NmFyL2Znb0Z0WDlVQS82WXZOalVleGMvWlM3Tm9TeVZCVHhkTEZlMU5JblVnazJFWFVKNDF5bFRsZ2gzdis3VlloRFpLVlE9PS0tdFA5QzQwRGJJV1hIUlRCMll5Vi9hZz09--dcd9aeb7148580db447cb210900990ba0d182cd0; path=/; HttpOnly",
+        "X-Request-Id": "3751a58a-a74a-48a8-a165-4d16538de39d",
+        "X-Runtime": "0.048415",
         "Vary": "Origin",
         "Connection": "close",
         "Server": "thin"

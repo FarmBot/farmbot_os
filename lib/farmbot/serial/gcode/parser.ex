@@ -23,8 +23,13 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_code("R31 " <> params), do: parse_pvq(params, :report_status_value)
   def parse_code("R41 " <> params), do: parse_pvq(params, :report_pin_value)
   def parse_code("R81 " <> params), do: parse_end_stops(params)
-  def parse_code("R82 " <> params), do: parse_report_current_position(params)
+
+  def parse_code("R82 " <> p), do: report_xyz(p, :report_current_position)
   def parse_code("R83 " <> v), do: parse_version(v)
+
+  def parse_code("R84 " <> p), do: report_xyz(p, :report_encoder_position_scaled)
+  def parse_code("R85 " <> p), do: report_xyz(p, :report_encoder_position_raw)
+
   def parse_code("R99 " <> message) do {nil, {:debug_message, message}} end
   def parse_code("Command" <> _), do: {nil, :dont_handle_me} # I think this is a bug
   def parse_code(code)  do {:unhandled_gcode, code} end
@@ -47,19 +52,17 @@ defmodule Farmbot.Serial.Gcode.Parser do
     {code, {:report_software_version, derp}}
   end
 
-  @doc ~S"""
-    Parses R82 codes
-    Example:
-      iex> Gcode.parse_report_current_position("X34 Y756 Z23")
-      {:report_current_position, 34, 756, 23, "0"}
-  """
-  @spec parse_report_current_position(binary)
-  :: {binary, {:report_current_position, binary, binary, binary}}
-  def parse_report_current_position(position) when is_bitstring(position),
-    do: position |> String.split(" ") |> do_parse_pos
+  @type reporter :: :report_current_position
+    | :report_encoder_position_scaled
+    | :report_encoder_position_raw
 
-  defp do_parse_pos(["X" <> x, "Y" <> y, "Z" <> z, "Q" <> tag]) do
-    {tag, {:report_current_position,
+  @spec report_xyz(binary, reporter)
+  :: {binary, {reporter, binary, binary, binary}}
+  defp report_xyz(position, reporter) when is_bitstring(position),
+    do: position |> String.split(" ") |> do_parse_pos(reporter)
+
+  defp do_parse_pos(["X" <> x, "Y" <> y, "Z" <> z, "Q" <> tag], reporter) do
+    {tag, {reporter,
       String.to_integer(x),
       String.to_integer(y),
       String.to_integer(z)}}
@@ -69,10 +72,10 @@ defmodule Farmbot.Serial.Gcode.Parser do
     Parses End Stops. I don't think we actually use these yet.
     Example:
       iex> Gcode.parse_end_stops("XA1 XB1 YA0 YB1 ZA0 ZB1 Q123")
-      {:reporting_end_stops, "1", "1", "0", "1", "0", "1", "123"}
+      {:report_end_stops, "1", "1", "0", "1", "0", "1", "123"}
   """
   @spec parse_end_stops(binary)
-  :: {:reporting_end_stops,
+  :: {:report_end_stops,
       binary,
       binary,
       binary,
@@ -89,7 +92,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
       "ZA", za :: size(8), 32,
       "ZB", zb :: size(8), 32,
       "Q", tag :: binary
-    >>), do: {tag, {:reporting_end_stops,
+    >>), do: {tag, {:report_end_stops,
               xa |> pes,
               xb |> pes,
               ya |> pes,
@@ -243,6 +246,10 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param("142"), do: :movement_axis_nr_steps_y
   def parse_param("143"), do: :movement_axis_nr_steps_z
 
+  def parse_param("145"), do: :movement_stop_at_max_x
+  def parse_param("146"), do: :movement_stop_at_max_y
+  def parse_param("147"), do: :movement_stop_at_max_z
+
   def parse_param("201"), do: :pin_guard_1_pin_nr
   def parse_param("202"), do: :pin_guard_1_pin_time_out
   def parse_param("203"), do: :pin_guard_1_active_state
@@ -348,6 +355,10 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(:movement_axis_nr_steps_x), do: 141
   def parse_param(:movement_axis_nr_steps_y), do: 142
   def parse_param(:movement_axis_nr_steps_z), do: 143
+
+  def parse_param(:movement_stop_at_max_x), do: 145
+  def parse_param(:movement_stop_at_max_y), do: 146
+  def parse_param(:movement_stop_at_max_z), do: 147
 
   def parse_param(:pin_guard_1_pin_nr), do: 201
   def parse_param(:pin_guard_1_pin_time_out), do: 202

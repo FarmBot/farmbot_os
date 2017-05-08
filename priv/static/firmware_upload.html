@@ -1,0 +1,11 @@
+<html>
+  <body>
+    <p>
+    Upload a FarmbotOS Firmware file (.fw) or a Arduino Firmware file (.hex)
+    </p>
+    <form action="/api/upload_firmware" method="post" enctype="multipart/form-data" accept="*">
+      <input type="file" name="firmware" id="fileupload">
+      <input type="submit" value="submit">
+    </form>
+  </body>
+</html>
