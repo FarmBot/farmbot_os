@@ -347,9 +347,19 @@ defmodule Farmbot.Serial.Handler do
     {:reply, reply}
   end
 
-  defp handle_gcode({:reporting_end_stops, x1,x2,y1,y2,z1,z2} = reply) do
+  defp handle_gcode({:report_end_stops, x1,x2,y1,y2,z1,z2} = reply) do
     BotState.set_end_stops({x1,x2,y1,y2,z1,z2})
     {:reply, reply}
+  end
+
+  defp handle_gcode({:report_encoder_position_scaled, x, y, z}) do
+    debug_log "scaled encoders: #{inspect {x, y, z}}"
+    nil
+  end
+
+  defp handle_gcode({:report_encoder_position_raw, x, y, z}) do
+    debug_log "raw encoders: #{inspect {x, y, z}}"
+    nil
   end
 
   defp handle_gcode({:report_software_version, version} = reply) do
