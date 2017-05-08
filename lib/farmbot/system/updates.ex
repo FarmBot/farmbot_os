@@ -101,13 +101,22 @@ defmodule Farmbot.System.Updates do
         Logger.info "Found file: #{inspect file}", type: :success
       e -> Logger.error "Could not find update file: #{inspect e}"
     end
+
+    setup_post_update()
+
+    mod(@target).install(path)
+    Farmbot.System.reboot()
+  end
+
+  @doc """
+    Will cause `post_install/0` to be called next reboot.
+  """
+  def setup_post_update() do
     FS.transaction fn ->
       Logger.info "Seting up post update!", type: :busy
       path = "#{FS.path()}/.post_update"
       :ok = File.write(path, "DONT CAT ME\r\n")
-    end
-    mod(@target).install(path)
-    Farmbot.System.reboot()
+    end, true
   end
 
   @spec post_install :: no_return

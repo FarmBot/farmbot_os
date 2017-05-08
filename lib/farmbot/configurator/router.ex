@@ -41,20 +41,7 @@ defmodule Farmbot.Configurator.Router do
 
   # Arduino-FW or FBOS Upload form.
   get "/firmware/upload" do
-    html = ~s"""
-    <html>
-    <body>
-    <p>
-    Upload a FarmbotOS Firmware file (.fw) or a Arduino Firmware file (.hex)
-    </p>
-    <form action="/api/upload_firmware" method="post" enctype="multipart/form-data" accept="*">
-      <input type="file" name="firmware" id="fileupload">
-      <input type="submit" value="submit">
-    </form>
-    </body>
-    </html>
-    """
-    conn |> send_resp(200, html)
+    conn |> send_resp(200, make_html("firmware_upload"))
   end
 
   # REST API
@@ -271,7 +258,8 @@ defmodule Farmbot.Configurator.Router do
 
   if target != "host" do
     defp handle_os(file, conn) do
-      Logger.info "Firmware update"
+      Logger.info "Firmware update from network."
+      Farmbot.System.Updates.setup_post_update()
       case Nerves.Firmware.upgrade_and_finalize(file) do
         {:error, reason} -> conn |> send_resp(400, inspect(reason))
         :ok ->
