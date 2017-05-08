@@ -111,7 +111,7 @@ defmodule Farmbot.System.Updates do
   @doc """
     Will cause `post_install/0` to be called next reboot.
   """
-  def setup_post_update() do
+  def setup_post_update do
     FS.transaction fn ->
       Logger.info "Seting up post update!", type: :busy
       path = "#{FS.path()}/.post_update"
