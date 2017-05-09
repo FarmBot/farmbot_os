@@ -212,7 +212,7 @@ defmodule Logger.Backends.FarmbotLogger do
       time_zone: "Etc/UTC",
       utc_offset: 0,
       zone_abbr: "UTC"}
-    |> DateTime.to_iso8601
+    |> DateTime.to_unix#(:milliseconds)
   end
 
   @spec build_log(String.t, number, rpc_log_type, [channel]) :: log_message
