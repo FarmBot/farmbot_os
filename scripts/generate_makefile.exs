@@ -8,9 +8,9 @@ IO.puts "Finding private key."
 priv_key_path = System.get_env("PRIV_KEY_FILE") || nil
 
 if priv_key_path do
-  IO.puts "Found private key!"
+  IO.puts("Found private key!")
 else
-  IO.warn "Could not find private key!", []
+  IO.puts("Could not find private key!")
 end
 
 IO.puts "Building default portions"
