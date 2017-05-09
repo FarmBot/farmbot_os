@@ -1,4 +1,9 @@
 language: elixir
+elixir:
+  - 1.4.2
+otp_release:
+  - 19.0.0
+
 sudo: required
 dist: trusty
 addons:
