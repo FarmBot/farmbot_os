@@ -34,9 +34,8 @@ defmodule CommandTest do
     |> ToolSlot.write
 
     tool = %Tool{id: 97, name: "lazer"} |> Tool.write
-    
-    {tool_slot, tool}
-    end
+
+    # {tool_slot, tool}
 
     ast = %Ast{kind: "tool", args: %{tool_id: 97}, body: []}
     coord = Command.ast_to_coord(ast)
