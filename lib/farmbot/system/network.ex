@@ -138,6 +138,19 @@ defmodule Farmbot.System.Network do
   end
 
   @doc """
+  Checks for nxdomain. reboots if `nxdomain`.
+  """
+  def connection_test do
+    case HTTPoison.get("https://my.farmbot.io") do
+      {:ok, _} ->
+        Logger.info ">> connection test complete", type: :success
+        :ok
+      {:error, %HTTPoison.Error{id: nil, reason: :nxdomain}} ->
+        Farmbot.System.reboot
+    end
+  end
+
+  @doc """
     Connected to the World Wide Web. Should be called from the
     callback module.
   """
@@ -148,12 +161,13 @@ defmodule Farmbot.System.Network do
 
     # this happens because on wifi we try to do stuff before linux is
     # finished setting stuff up.
-    Process.sleep(2000)
+    # Process.sleep(2000)
 
     # If we were supplied a pre connect callback, do that.
     if pre_fun, do: pre_fun.()
 
-    Logger.info ">> is connected to the World Wide Web."
+    Logger.info ">> doing connection test...", type: :busy
+    :ok = connection_test()
 
     :ok = maybe_set_time()
     :ok = maybe_start_ssh()
