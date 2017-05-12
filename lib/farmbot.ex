@@ -4,7 +4,6 @@ defmodule Farmbot do
   """
   require Logger
   use Supervisor
-  alias Farmbot.Sync.Database
   alias Farmbot.System.Supervisor, as: FBSYS
 
   @version Mix.Project.config[:version]
@@ -17,9 +16,6 @@ defmodule Farmbot do
   def start(_, _args) do
     Logger.info ">> Booting Farmbot OS version: #{@version} - #{@commit}"
     :ok = setup_nerves_fw()
-    Amnesia.start
-    Database.create! Keyword.put([], :memory, [node()])
-    Database.wait(15_000)
     Supervisor.start_link(__MODULE__, [], name: Farmbot.Supervisor)
   end
 

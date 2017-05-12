@@ -11,16 +11,14 @@ defmodule Farmbot.Sync.Cache do
      optional(syncable) => {syncable, binary | [non_neg_integer]}
    }
 
-   def start_link do
-     GenServer.start_link(__MODULE__, [],  name: __MODULE__)
-   end
-
-   def init([]) do
-     {:ok, %{}}
-   end
+   @doc """
+    Start the Sync Cache
+   """
+   def start_link, do: GenServer.start_link(__MODULE__, [],  name: __MODULE__)
+   def init([]), do: {:ok, %{}}
 
    @doc """
-   adds a map of sync things or something
+    adds a map of sync things or something
    """
    @spec add([DataUpdate.sync_cache_map], DataUpdate.verb)
     :: :ok | no_return
@@ -29,7 +27,7 @@ defmodule Farmbot.Sync.Cache do
    end
 
    @doc """
-   Gets the state
+    Gets the state
    """
    @spec get_out_of_sync :: state
    def get_out_of_sync do
@@ -37,7 +35,7 @@ defmodule Farmbot.Sync.Cache do
    end
 
    @doc """
-   Clears the cache
+    Clears the cache
    """
    @spec clear :: :ok | no_return
    def clear, do: GenServer.call(__MODULE__, :clear)

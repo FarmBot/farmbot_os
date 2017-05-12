@@ -83,7 +83,6 @@ defmodule Farmbot.Mixfile do
       :runtime_tools,
       :mustache,
       :vmq_commons,
-      :amnesia,
       :gen_stage,
       :plug,
       :cors_plug,
@@ -141,7 +140,6 @@ defmodule Farmbot.Mixfile do
       {:quantum, ">= 1.8.1"}, # cron jobs
 
       # Database
-      {:amnesia, github: "meh/amnesia"}, # database implementation
       {:redix, ">= 0.0.0"},
 
       # Log to syslog
