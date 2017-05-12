@@ -141,12 +141,16 @@ defmodule Farmbot.System.Network do
   Checks for nxdomain. reboots if `nxdomain`.
   """
   def connection_test do
-    case HTTPoison.get("https://my.farmbot.io") do
+    Logger.info ">> doing connection test...", type: :busy
+    case HTTPoison.get("http://neverssl.com/") do
       {:ok, _} ->
         Logger.info ">> connection test complete", type: :success
         :ok
       {:error, %HTTPoison.Error{id: nil, reason: :nxdomain}} ->
         Farmbot.System.reboot
+      error ->
+        Farmbot.System.factory_reset("Fatal Error during "
+          <> "connection test! #{inspect error}")
     end
   end
 
@@ -166,7 +170,6 @@ defmodule Farmbot.System.Network do
     # If we were supplied a pre connect callback, do that.
     if pre_fun, do: pre_fun.()
 
-    Logger.info ">> doing connection test...", type: :busy
     :ok = connection_test()
 
     :ok = maybe_set_time()

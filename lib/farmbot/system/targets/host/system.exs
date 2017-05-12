@@ -6,10 +6,9 @@ defmodule Module.concat([Farmbot,System,"host"]) do
   def power_off, do: :ok
 
   def factory_reset(reason) do
+    files = path() |> File.ls!()
     Farmbot.System.FS.transaction fn() ->
-      File.rm_rf "/tmp/config.json"
-      File.rm_rf "/tmp/secret"
-      File.rm_rf "/tmp/farmware"
+      File.rm_rf files
       File.write("#{path()}/factory_reset_reason", reason)
     end, true
     System.halt(0)
