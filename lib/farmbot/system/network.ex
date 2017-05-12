@@ -163,10 +163,6 @@ defmodule Farmbot.System.Network do
     Supervisor.start_child(Farmbot.System.Supervisor,
       Supervisor.Spec.worker(Downloader, [], [restart: :permanent]))
 
-    # this happens because on wifi we try to do stuff before linux is
-    # finished setting stuff up.
-    # Process.sleep(2000)
-
     # If we were supplied a pre connect callback, do that.
     if pre_fun, do: pre_fun.()
 
