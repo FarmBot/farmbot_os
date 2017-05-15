@@ -133,6 +133,7 @@ defmodule Farmbot.Auth do
       {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
         Logger.info ">> got a token!", type: :success
         save_secret(secret)
+        remove_last_factory_reset_reason()
         {:ok, token} = body |> Poison.decode! |> Map.get("token") |> Token.create
         maybe_broadcast(sbc, {:new_token, token})
         {:ok, token}
@@ -194,15 +195,19 @@ defmodule Farmbot.Auth do
   @doc """
     Tries to log in, but factory resets if it doesnt work
   """
-  @spec try_log_in!(integer) :: {:ok, Token.t} | no_return
-  def try_log_in!(retries \\ 3)
+  @spec try_log_in!(integer, binary) :: {:ok, Token.t} | no_return
+  def try_log_in!(retries \\ 0 , error_str \\ "")
 
-  def try_log_in!(r) when r == 0 do
+  def try_log_in!(r, error_str) when r >= 3 do
     Logger.info ">> Could not log in!", type: :error
-    Farmbot.System.factory_reset
+    Farmbot.System.factory_reset("""
+    Could not log in to web application.
+    This is probably due to a bad username or password.
+    #{error_str}
+    """)
   end
 
-  def try_log_in!(retries) do
+  def try_log_in!(retry, error_str) do
     Logger.info ">> is logging in..."
     # disable broadcasting
     :ok = GenServer.call(__MODULE__, {:set_broadcast, false})
@@ -215,10 +220,10 @@ defmodule Farmbot.Auth do
          Logger.info ">> Is logged in", type: :success
          broadcast({:new_token, token})
          success
-       _ -> # no need to print message becasetry_log_indoes it for us.
-        # sleep for a second, then try again untill we are out of retries
+       er -> # no need to print message becasetry_log_indoes it for us.
+        # sleep for a second, then try again untill we are out of retry
         Process.sleep(1000)
-        try_log_in!(retries - 1)
+        try_log_in!(retry + 1, "Try #{retry}: #{inspect er}\n" <> error_str)
     end
   end
 
@@ -398,6 +403,13 @@ defmodule Farmbot.Auth do
     # save the secret to disk.
     FS.transaction fn() ->
       File.write(FS.path() <> "/secret", :erlang.term_to_binary(secret))
+    end
+  end
+
+  @spec remove_last_factory_reset_reason :: no_return
+  defp remove_last_factory_reset_reason do
+    FS.transaction fn() ->
+      File.rm "#{FS.path()}/factory_reset_reason"
     end
   end
 

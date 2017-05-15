@@ -24,9 +24,15 @@ defmodule Farmbot.CeleryScript.Command.ReadAllParams do
   end
 
   defp do_thing(tries) do
-    case UartHan.write("F20") do
+    Logger.info ">> read all params try #{tries + 1}"
+    UartHan.write "F83"
+    results = case UartHan.write("F20") do
       :timeout -> do_thing(tries + 1)
       other -> other
+    end
+
+    unless match?({:error, _}, results) do
+      Logger.info ">> Read all params", type: :success
     end
   end
 

@@ -33,7 +33,7 @@ defmodule Farmbot.Serial.Gcode.ParserTest do
 
   test "parses end stops" do
     a = Farmbot.Serial.Gcode.Parser.parse_code("R81 XA1 XB1 YA1 YB1 ZA1 ZB1 Q10")
-    assert a == {"10", {:reporting_end_stops, 1, 1, 1, 1, 1, 1}}
+    assert a == {"10", {:report_end_stops, 1, 1, 1, 1, 1, 1}}
   end
 
   test "parses software version" do

@@ -34,17 +34,11 @@ defmodule Farmbot.Sync do
     syncable Regimen, "/api/regimens",
       [:id, :color, :name, :regimen_items]
 
-    # syncable RegimenItem, "/api/regimen_items",
-    #   [:id, :time_offset, :regimen_id, :sequence_id]
-
     syncable Sequence, "/api/sequences",
       [:id, :args, :body, :color, :kind, :name]
 
-    syncable ToolBay, "/api/tool_bays",
-      [:id, :name]
-
     syncable ToolSlot, "/api/tool_slots",
-      [:id, :tool_bay_id, :tool_id, :name, :x, :y, :z]
+      [:id, :tool_id, :name, :x, :y, :z]
 
     syncable Tool, "/api/tools",
       [:id, :name]
@@ -79,9 +73,6 @@ defmodule Farmbot.Sync do
 
   @doc "Gets a sequence by id"
   def get_sequence(id), do: Helpers.get_sequence(id)
-
-  @doc "Gets a tool bay by id"
-  def get_tool_bay(id), do: Helpers.get_tool_bay(id)
 
   @doc "Gets a tool slot by id"
   def get_tool_slot(id), do: Helpers.get_tool_slot(id)
@@ -166,7 +157,6 @@ defmodule Farmbot.Sync do
   defp to_module_syncable(:points), do: Database.Point
   defp to_module_syncable(:regimens), do: Database.Regimen
   defp to_module_syncable(:sequences), do: Database.Sequence
-  defp to_module_syncable(:tool_bays), do: Database.ToolBay
   defp to_module_syncable(:tool_slots), do: Database.ToolSlot
   defp to_module_syncable(:tools), do: Database.Tool
   defp to_module_syncable(:users), do: Database.User
@@ -273,7 +263,6 @@ defmodule Farmbot.Sync do
     Database.Regimen,
     # Database.RegimenItem,
     Database.Sequence,
-    Database.ToolBay,
     Database.ToolSlot,
     Database.Tool,
     # Database.User,

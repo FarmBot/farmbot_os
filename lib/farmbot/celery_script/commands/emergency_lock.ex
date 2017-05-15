@@ -18,9 +18,9 @@ defmodule Farmbot.CeleryScript.Command.EmergencyLock do
     if Farmbot.BotState.locked? do
       Logger.info "Bot already locked", type: :warn
     else
+      Farmbot.BotState.set_sync_msg(:locked)
       Farmbot.BotState.lock_bot()
-      Farmbot.Serial.Handler.e_stop
+      Farmbot.Serial.Handler.emergency_lock()
     end
-    Command.shrug(%{message: "sorry about that. Farmbot needs to reboot"}, [])
   end
 end

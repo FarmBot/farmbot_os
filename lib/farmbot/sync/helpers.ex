@@ -4,7 +4,6 @@ alias Farmbot.Sync.Database.Peripheral
 alias Farmbot.Sync.Database.Point
 alias Farmbot.Sync.Database.Regimen
 alias Farmbot.Sync.Database.Sequence
-alias Farmbot.Sync.Database.ToolBay
 alias Farmbot.Sync.Database.ToolSlot
 alias Farmbot.Sync.Database.Tool
 alias Farmbot.Sync.Database.User
@@ -21,7 +20,6 @@ defmodule Farmbot.Sync.Helpers do
   # use RegimenItem
   use Regimen
   use Sequence
-  use ToolBay
   use ToolSlot
   use Tool
   use User
@@ -92,16 +90,6 @@ defmodule Farmbot.Sync.Helpers do
   def get_sequence(find_id) do
     f = Amnesia.transaction do
       Sequence.where id == find_id
-    end
-    parse_selection f
-  end
-
-  @doc """
-    Gets a tool_bay by id
-  """
-  def get_tool_bay(find_id) do
-    f = Amnesia.transaction do
-      ToolBay.where id == find_id
     end
     parse_selection f
   end

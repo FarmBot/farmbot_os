@@ -41,20 +41,7 @@ defmodule Farmbot.Configurator.Router do
 
   # Arduino-FW or FBOS Upload form.
   get "/firmware/upload" do
-    html = ~s"""
-    <html>
-    <body>
-    <p>
-    Upload a FarmbotOS Firmware file (.fw) or a Arduino Firmware file (.hex)
-    </p>
-    <form action="/api/upload_firmware" method="post" enctype="multipart/form-data" accept="*">
-      <input type="file" name="firmware" id="fileupload">
-      <input type="submit" value="submit">
-    </form>
-    </body>
-    </html>
-    """
-    conn |> send_resp(200, html)
+    conn |> send_resp(200, make_html("firmware_upload"))
   end
 
   # REST API
@@ -169,13 +156,22 @@ defmodule Farmbot.Configurator.Router do
      conn |> make_json |> send_resp(200, json)
   end
 
+  get "/api/last_factory_reset_reason" do
+    case File.read("#{Farmbot.System.FS.path()}/factory_reset_reason") do
+      {:ok, text} ->
+        conn |> send_resp(200, text)
+      _ ->
+        conn |> send_resp(200, "")
+    end
+  end
+
   # Factory Reset bot.
   post "/api/factory_reset" do
     Logger.info "goodbye."
     spawn fn() ->
       # sleep to allow the request to finish.
       Process.sleep(100)
-      Farmbot.System.factory_reset
+      Farmbot.System.factory_reset("Local Configurator request.")
     end
     conn |> send_resp(204, "GoodByeWorld!")
   end
@@ -249,8 +245,12 @@ defmodule Farmbot.Configurator.Router do
           Logger.info "magic complete!"
           Farmbot.Serial.Handler.flash_firmware(tty, file, self())
           errrm.(conn)
+        [] ->
+          Logger.info "Could not detect arduino.", type: :warn
+          conn |> send_resp(200, "OK")
         _ ->
-          Logger.warn "Please only have one serial device when updating firmware"
+          Logger.info "Please only have one serial "
+          <> " device when updating firmware", type: :warn
           conn |> send_resp(200, "OK")
       end
     end
@@ -258,7 +258,8 @@ defmodule Farmbot.Configurator.Router do
 
   if target != "host" do
     defp handle_os(file, conn) do
-      Logger.info "Firmware update"
+      Logger.info "Firmware update from network."
+      Farmbot.System.Updates.setup_post_update()
       case Nerves.Firmware.upgrade_and_finalize(file) do
         {:error, reason} -> conn |> send_resp(400, inspect(reason))
         :ok ->

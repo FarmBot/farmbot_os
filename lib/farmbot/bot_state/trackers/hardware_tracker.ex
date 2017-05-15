@@ -48,19 +48,17 @@ defmodule Farmbot.BotState.Hardware do
 
     if !Farmbot.Serial.Handler.available? do
       # UGHHHHHH
-      Logger.info "Waiting for Serial..."
+      Logger.info ">> Is waiting for Serial before updating params."
       Process.sleep(100)
       set_initial_params(state)
     end
 
-    Farmbot.CeleryScript.Command.read_param(%{label: "param_version"}, [])
-
     if Enum.empty?(state.mcu_params) do
-      Logger.info "reading all mcu params."
+      Logger.info ">> is reading all mcu params."
       Farmbot.CeleryScript.Command.read_all_params(%{}, [])
       {:ok, :no_params}
     else
-      Logger.info "setting previous mcu commands."
+      Logger.info ">> is setting previous mcu commands."
       config_pairs = Enum.map(state.mcu_params, fn({param, val}) ->
         %Farmbot.CeleryScript.Ast{kind: "pair",
             args: %{label: param, value: val}, body: []}

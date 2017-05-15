@@ -34,7 +34,7 @@ defmodule Farmbot.BotState.Configuration do
   @typedoc """
     The message for the sync button to display
   """
-  @type sync_msg :: :sync_now | :syncing | :sync_error | :unknown
+  @type sync_msg :: :sync_now | :syncing | :sync_error | :unknown | :locked
   @type state ::
     %State{
       configuration: %{

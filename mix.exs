@@ -99,7 +99,7 @@ defmodule Farmbot.Mixfile do
   defp target_applications("host"), do: []
   defp target_applications(_system), do: [
     :nerves_interim_wifi,
-    :nerves_firmware_http,
+    # :nerves_firmware_http,
     :nerves_firmware,
     :nerves_ssdp_server
   ]
@@ -221,7 +221,7 @@ defmodule Farmbot.Mixfile do
         # {:nerves_interim_wifi, path: "../nerves_interim_wifi"},
         {:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi"},
 
-        {:nerves_firmware_http, "~> 0.3.1"},
+        # {:nerves_firmware_http, "~> 0.3.1"},
 
         # {:nerves_firmware, "~> 0.3"},
         # {:nerves_firmware, path: "../nerves_firmware", override: true},

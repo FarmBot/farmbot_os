@@ -20,7 +20,7 @@ defmodule Farmbot.CeleryScript.Command.FactoryReset do
     spawn fn ->
       Process.sleep 5000
       do_fac_reset_fw()
-      Farmbot.System.factory_reset()
+      Farmbot.System.factory_reset("I was asked by a CeleryScript command.")
     end
   end
 

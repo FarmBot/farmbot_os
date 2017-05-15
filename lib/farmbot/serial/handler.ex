@@ -111,9 +111,17 @@ defmodule Farmbot.Serial.Handler do
   @doc """
     Send the E stop command to the arduino.
   """
-  @spec e_stop(handler) :: :ok | no_return
-  def e_stop(handler \\ __MODULE__) do
-    GenServer.call(handler, :e_stop)
+  @spec emergency_lock(handler) :: :ok | no_return
+  def emergency_lock(handler \\ __MODULE__) do
+    GenServer.call(handler, :emergency_lock)
+  end
+
+  @doc """
+    Tell the arduino its fine now.
+  """
+  @spec emergency_unlock(handler) :: :ok | no_return
+  def emergency_unlock(handler \\ __MODULE__) do
+    GenServer.call(handler, :emergency_unlock)
   end
 
   ## Private
@@ -150,6 +158,27 @@ defmodule Farmbot.Serial.Handler do
     # Flush the buffers so we start fresh
     :ok = UART.flush(nerves)
     :ok
+  end
+
+  def handle_call(:emergency_lock, _, state) do
+    UART.write(state.nerves, "E")
+    current = state.current
+    if current do
+      Process.cancel_timer(current.timer)
+    end
+    next = %{state |
+      current: nil,
+      timeouts: 0,
+      status: :locked,
+      initialized: false
+    }
+    {:reply, :ok, next}
+  end
+
+  def handle_call(:emergency_unlock, _, state) do
+    UART.write(state.nerves, "F09")
+    next = %{state | status: :idle, initialized: false}
+    {:reply, :ok, next}
   end
 
   def handle_call(:get_state, _, state), do: {:reply, state, state}
@@ -318,9 +347,19 @@ defmodule Farmbot.Serial.Handler do
     {:reply, reply}
   end
 
-  defp handle_gcode({:reporting_end_stops, x1,x2,y1,y2,z1,z2} = reply) do
+  defp handle_gcode({:report_end_stops, x1,x2,y1,y2,z1,z2} = reply) do
     BotState.set_end_stops({x1,x2,y1,y2,z1,z2})
     {:reply, reply}
+  end
+
+  defp handle_gcode({:report_encoder_position_scaled, x, y, z}) do
+    debug_log "scaled encoders: #{inspect {x, y, z}}"
+    nil
+  end
+
+  defp handle_gcode({:report_encoder_position_raw, x, y, z}) do
+    debug_log "raw encoders: #{inspect {x, y, z}}"
+    nil
   end
 
   defp handle_gcode({:report_software_version, version} = reply) do
