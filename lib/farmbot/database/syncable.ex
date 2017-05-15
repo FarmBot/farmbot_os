@@ -6,8 +6,17 @@ defmodule Farmbot.Database.Syncable do
   @doc """
     Pipe a HTTP request thru this. Trust me :tm:
   """
-  def parse_resp(_resp, _module) do
-
+  def parse_resp({:error, message}, _module), do: {:error, message}
+  def parse_resp({:ok, %{status_code: 200, body: resp_body}}, module)
+    stuff = resp_body |> Poison.decode!
+    cond do
+      is_list(stuff) -> Poison.decode!(as: [struct(module)])
+      is_map(stuff)  -> Poison.decode!(as:  struct(module) )
+      true           -> {:error, "Hashes and arrays only, please."}
+    end
+  end
+  def parse_resp({:ok, whatevs}, _module) do
+    {:error, whatevs}
   end
 
   @doc false
@@ -34,19 +43,24 @@ defmodule Farmbot.Database.Syncable do
       @doc """
         Fetches all `#{unquote(__MODULE__)}` objects from the API.
       """
-      def fetch do
-        "/api" <> unquote(plural)
-        |> HTTP.get()
-        |> parse_resp(unquote(__MODULE__))
+      def fetch(then) do
+        result = "/api" <> unquote(plural)
+                    |> HTTP.get()
+                    |> parse_resp(unquote(__MODULE__))
+        case then do
+          {module, function, params} -> apply(module, function, [result | params])
+          anon                       -> anon.(result)
+        end
       end
 
       @doc """
         Fetches a specific `#{unquote(__MODULE__)}` from the API, by it's id.
       """
-      def fetch(id) do
-        "/api" <> unquote(singular) <> "/#{id}"
-        |> HTTP.get()
-        |> parse_resp(unquote(__MODULE__))
+      def fetch(id, then) do
+        results = "/api" <> unquote(singular) <> "/#{id}"
+                    |> HTTP.get()
+                    |> parse_resp(unquote(__MODULE__))
+        then.(results)
       end
 
     end
