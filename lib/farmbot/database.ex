@@ -5,6 +5,7 @@ defmodule Farmbot.Database do
 
   use GenServer
   require Logger
+  alias Farmbot.HTTP
 
   @typedoc """
     The module name of the object you want to access.
@@ -66,12 +67,57 @@ defmodule Farmbot.Database do
       update: [resource_identifier]
     }
   }
-
+  syncable_modules =
+    "lib/farmbot/database/syncable/"
+    |> File.ls!
+    |> Enum.map(fn(file_name) ->
+         mod_name_str = String.trim(file_name, ".ex")
+         mod_name     = Macro.camelize(mod_name_str)
+         Module.concat([Farmbot.Database.Syncable, mod_name])
+    end)
   @doc """
     Sync up with the API.
   """
   def sync do
+    outdated = GenServer.call(__MODULE__, :get_outdated)
+    if Enum.empty?(outdated) do
+      # Full sync - need all the things
+      for module_name <- all_the_syncables() do
+        module_name.fetch()
+      end
+    else
+      outdated
+        |> Map.to_list
+        |> map_out_date
+    end
+  end
 
+  def all_the_syncables() do
+   unquote(syncable_modules)
+  end
+
+  defp map_out_date([]) do
+    :ok
+  end
+
+  defp map_out_date([{verb, items} | rest]) do
+    flush_outdate(verb, items)
+    map_out_date(rest)
+  end
+
+  defp flush_outdate(:add, resource_id_list) do
+    # push into the index
+  end
+
+  defp flush_outdate(:remove, resource_id_list) do
+    # splice out of the index
+  end
+
+  defp flush_outdate(:update, resource_id_list) do
+  end
+
+  def handle_call(:get_outdated, _, state) do
+    {:reply, state.outdated, state}
   end
 
   @doc """
