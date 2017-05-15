@@ -20,7 +20,7 @@ config :iex, :colors, enabled: true
 config :farmbot, transports: [mqtt_transport, redis_transport]
 
 # bot <-> firmware transports.
-config :farmbot, expected_fw_version: "GENESIS.V.01.12.EXPERIMENTAL"
+config :farmbot, expected_fw_version: "GENESIS.V.01.13.EXPERIMENTAL"
 
 # Rollbar
 config :farmbot, rollbar_access_token: "dcd79b191ab84aa3b28259cbb80e2060"
