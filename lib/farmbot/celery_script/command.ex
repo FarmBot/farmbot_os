@@ -8,9 +8,7 @@ defmodule Farmbot.CeleryScript.Command do
   """
   require Logger
   alias Farmbot.CeleryScript.Ast
-  use Amnesia
-  alias Farmbot.Sync.Database.ToolSlot
-  use ToolSlot
+  alias Farmbot.Database.Syncable.Point
 
   celery =
     "lib/farmbot/celery_script/commands/"
@@ -52,20 +50,12 @@ defmodule Farmbot.CeleryScript.Command do
                         args: %{x: _x, y: _y, z: _z},
                         body: []} = already_done), do: already_done
 
-  # NOTE(connor): don't change `tool_id_` back to `tool_id` what was happening
-  # Amnesia builds local variables by the name of "tool_id", so it was looking
-  # fortool_id == tool_id, which returned
-  # all of them, because every toolslots tool_id
-  # always equals that toolslots tool id lol
-  def ast_to_coord(%Ast{kind: "tool", args: %{tool_id: tool_id_}, body: []}) do
-    blah = Amnesia.transaction do
-      stuff = ToolSlot.where(tool_id == tool_id_)
-      Amnesia.Selection.values(stuff)
-    end
-    case blah do
-      [ts] -> coordinate(%{x: ts.x, y: ts.y, z: ts.z}, [])
-      _ -> Logger.error ">> could not find tool_slot with tool_id: #{tool_id_}"
-        :error
+  def ast_to_coord(%Ast{kind: "tool", args: %{tool_id: tool_id}, body: []}) do
+    ts = Point.get_tool(tool_id)
+    if ts do
+      coordinate(%{x: ts.x, y: ts.y, z: ts.z}, [])
+    else
+      :error
     end
   end
 

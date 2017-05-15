@@ -21,6 +21,9 @@ defmodule Farmbot.Regimen.Supervisor do
         [restart: :permanent, id: regimen.id]))
   end
 
+  @doc """
+    Remove a child from this supervisor.
+  """
   def remove_child(regimen) do
     Supervisor.terminate_child(__MODULE__, regimen.id)
     Supervisor.delete_child(__MODULE__, regimen.id)

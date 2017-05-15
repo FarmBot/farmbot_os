@@ -1,9 +1,8 @@
 defmodule Farmbot.Sync do
   @moduledoc """
-
+    Depreciated?
   """
 
-  import Syncable
   alias Farmbot.ImageWatcher
   require Logger
 
@@ -189,15 +188,4 @@ defmodule Farmbot.Sync do
     # Database.User,
     Database.FarmEvent,
   ]
-
-  defmacro __using__(_) do
-    s = all_syncables()
-    quote do
-      use Amnesia
-      for mod <- unquote(s) do
-        alias mod
-        use mod
-      end
-    end
-  end
 end

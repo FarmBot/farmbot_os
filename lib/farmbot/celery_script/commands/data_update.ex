@@ -4,9 +4,15 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
   """
 
   alias Farmbot.CeleryScript.Command
-  alias Farmbot.Sync.Cache
+  alias Farmbot.Database
   require Logger
   @behaviour Command
+
+  @typedoc """
+    The verb from DataUpdate:
+    https://github.com/FarmBot/farmbot-js/blob/master/src/corpus.ts#L611
+  """
+  @type verb :: :add | :remove | :update
 
   @doc ~s"""
     SyncInvalidate
@@ -15,23 +21,17 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
   """
   @spec run(%{value: String.t}, [Pair.t]) :: no_return
   def run(%{value: verb}, pairs) do
-    pairs |> parse_pairs |> Cache.add(parse_verb_str(verb))
+    verb = parse_verb_str(verb)
+    Enum.each(pairs, fn(%{args: %{label: s, value: nowc}}) ->
+      syncable = s |> parse_syncable_str()
+      value = nowc |> parse_val_str()
+      Database.set_outdated(syncable, verb, value)
+    end)
   end
 
   @type number_or_wildcard :: non_neg_integer | binary # "*"
-  @type sync_cache_map :: %{syncable: syncable, value: number_or_wildcard}
   @type syncable :: :sequence | :regimen | :farm_event | :point
-  @type verb :: :updated | :deleted
-
-  @spec parse_pairs([Pair.t], [sync_cache_map]) :: [sync_cache_map]
-  defp parse_pairs(pairs, acc \\ [])
-  defp parse_pairs([], acc), do: acc
-  defp parse_pairs([%{args: %{label: s, value: nowc}} | rest], acc) do
-    syncable = s |> parse_syncable_str()
-    value = nowc |> parse_val_str()
-    item = %{syncable: syncable, value: value}
-    parse_pairs(rest, [item | acc])
-  end
+  #FIXME ^
 
   @spec parse_syncable_str(binary) :: syncable
   defp parse_syncable_str(str), do: String.to_atom(str)
@@ -41,8 +41,7 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
   defp parse_val_str(number), do: String.to_integer(number)
 
   @spec parse_verb_str(binary) :: verb
-  defp parse_verb_str(str), do: String.to_atom(str)
-  # defp parse_verb_str("updated"), do: :updated
-  # defp parse_verb_str("deleted"), do: :deleted
-  # defp parse_verb_str("deleted"), do: :deleted
+  defp parse_verb_str("add"), do: :add
+  defp parse_verb_str("remove"), do: :remove
+  defp parse_verb_str("update"), do: :update
 end

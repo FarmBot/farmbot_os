@@ -1,4 +1,4 @@
-defmodule Farmbot.Sync.Cache do
+defmodule Farmbot.Database.Cache do
    @moduledoc """
     Keeps a cache of what needs to be synced.
    """

@@ -30,7 +30,7 @@ defmodule Farmbot do
       # Web app.
       supervisor(Farmbot.Configurator, [], restart: :permanent),
       # The worker for diffing db entries.
-      worker(Farmbot.Sync.Supervisor, [], restart: :permanent),
+      worker(Farmbot.Database.Supervisor, [], restart: :permanent),
       # Handles tracking of various parts of the bots state.
       supervisor(Farmbot.BotState.Supervisor, [], restart: :permanent),
       # Handles FarmEvents.

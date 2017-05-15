@@ -3,11 +3,13 @@ defmodule Farmbot.FarmEventRunner do
     Checks the database every 60 seconds for FarmEvents
   """
   use GenServer
-  use Amnesia
-  use Farmbot.Sync.Database
   require Logger
   alias Farmbot.CeleryScript.Ast
   use Farmbot.DebugLog
+
+  alias Farmbot.Database.Syncable.Sequence
+  alias Farmbot.Database.Syncable.Regimen
+  alias Farmbot.Database.Syncable.FarmEvent
 
   @checkup_time 10_000
 
@@ -25,18 +27,19 @@ defmodule Farmbot.FarmEventRunner do
   def handle_info(:checkup, state) do
     now = get_now()
     new_state = if now do
-      all_events = Amnesia.transaction do
-        Amnesia.Selection.values(FarmEvent.where(true))
-        # |> Enum.map(fn(farm_event) ->
-        #   # get rid of all the items that happened before last_time
-        #   calendar = Enum.filter(farm_event.calendar, fn(iso_time) ->
-        #     dt = Timex.parse! iso_time, "{ISO:Extended}"
-        #     # we only want this time if it happened after the last_time
-        #     Timex.after?(dt, now)
-        #   end)
-        #   %{farm_event | calendar: calendar}
-        # end)
-      end
+      # all_events = Amnesia.transaction do
+      #   Amnesia.Selection.values(FarmEvent.where(true))
+      #   # |> Enum.map(fn(farm_event) ->
+      #   #   # get rid of all the items that happened before last_time
+      #   #   calendar = Enum.filter(farm_event.calendar, fn(iso_time) ->
+      #   #     dt = Timex.parse! iso_time, "{ISO:Extended}"
+      #   #     # we only want this time if it happened after the last_time
+      #   #     Timex.after?(dt, now)
+      #   #   end)
+      #   #   %{farm_event | calendar: calendar}
+      #   # end)
+      # end
+      all_events = FarmEvent.all()
       {late_events, new} = do_checkup(all_events, now, state)
       unless Enum.empty?(late_events) do
         Logger.info "Time for event to run: #{inspect late_events} " <>
@@ -204,19 +207,5 @@ defmodule Farmbot.FarmEventRunner do
   end
 
   @spec lookup(Sequence | Regimen, integer) :: Sequence.t | Regimen.t
-  defp lookup(Sequence, sr_id) do
-    [item] = Amnesia.transaction do
-      f = Sequence.where(id == sr_id)
-      Amnesia.Selection.values(f)
-    end
-    item
-  end
-
-  defp lookup(Regimen, sr_id) do
-    [item] = Amnesia.transaction do
-      f = Regimen.where(id == sr_id)
-      Amnesia.Selection.values(f)
-    end
-    item
-  end
+  defp lookup(module, sr_id), do: apply(module, :by_id, [sr_id])
 end

@@ -16,10 +16,10 @@ defmodule Farmbot.RegimenRunner do
   end
 
   use GenServer
-  use Amnesia
-  use Farmbot.Sync.Database
   alias Farmbot.Regimen.Supervisor, as: RegSup
   require Logger
+
+  alias Farmbot.Database.Syncable.Regimen
 
   def start_link(regimen, time) do
     GenServer.start_link(__MODULE__,

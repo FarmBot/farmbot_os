@@ -1,4 +1,4 @@
-defmodule Farmbot.Sync.Supervisor do
+defmodule Farmbot.Database.Supervisor do
   @moduledoc """
     Database Supervisor
   """
@@ -13,7 +13,8 @@ defmodule Farmbot.Sync.Supervisor do
 
   def init([]) do
     children = [
-      worker(Farmbot.Sync.Cache, [], [restart: :permanent])
+      worker(Farmbot.Database.Cache, [], [restart: :permanent]),
+      worker(Farmbot.Database, [], [restart: :permanent])
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)
