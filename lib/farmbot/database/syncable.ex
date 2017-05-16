@@ -3,7 +3,9 @@ defmodule Farmbot.Database.Syncable do
     Defines a syncable.
   """
 
-  defstruct [:ref_id, :body]
+  @enforce_keys [:ref_id, :body]
+  defstruct @enforce_keys
+
 
   @type ref_id :: Farmbot.Database.ref_id
   @type t :: %__MODULE__{ref_id: ref_id, body: map}
@@ -15,14 +17,23 @@ defmodule Farmbot.Database.Syncable do
   def parse_resp({:ok, %{status_code: 200, body: resp_body}}, module) do
     stuff = resp_body |> Poison.decode!
     cond do
-      is_list(stuff) -> Enum.map(stuff, fn(item) -> struct(module, item) end)
-      is_map(stuff)  -> Poison.decode!(as: struct(stuff))
+      is_list(stuff) -> Enum.map(stuff, fn(item) -> to_struct(item, module) end)
+      is_map(stuff)  -> to_struct(stuff, module)
       true           -> {:error, "Hashes and arrays only, please."}
     end
   end
 
   def parse_resp({:ok, whatevs}, _module) do
     {:error, whatevs}
+  end
+
+  defp to_struct(item, module) do
+    item =
+      item |> Enum.map(fn({key, value}) ->
+        {String.to_atom(key), value}
+      end)
+      |> Map.new()
+    struct(module, item)
   end
 
   @doc false
@@ -47,22 +58,22 @@ defmodule Farmbot.Database.Syncable do
       def plural_url, do: unquote(plural)
 
       @doc """
-        Get a `#{unquote(__MODULE__)}` by its Api id.
+        Get a `#{__MODULE__}` by its Api id.
       """
-      def by_id(id), do: Database.get_by_id(unquote(__MODULE__), id)
+      def by_id(id), do: Database.get_by_id(__MODULE__, id)
 
       @doc """
-        Get all `#{unquote(__MODULE__)}` items.
+        Get all `#{__MODULE__}` items.
       """
-      def all, do: Database.get_all(unquote(__MODULE__))
+      def all, do: Database.get_all(__MODULE__)
 
       @doc """
-        Fetches all `#{unquote(__MODULE__)}` objects from the API.
+        Fetches all `#{__MODULE__}` objects from the API.
       """
       def fetch(then) do
         result = "/api" <> unquote(plural)
                     |> HTTP.get()
-                    |> parse_resp(unquote(__MODULE__))
+                    |> parse_resp(__MODULE__)
         case then do
           {module, function, args} -> apply(module, function, [result | args])
           anon                     -> anon.(result)
@@ -70,13 +81,16 @@ defmodule Farmbot.Database.Syncable do
       end
 
       @doc """
-        Fetches a specific `#{unquote(__MODULE__)}` from the API, by it's id.
+        Fetches a specific `#{__MODULE__}` from the API, by it's id.
       """
       def fetch(id, then) do
-        results = "/api" <> unquote(singular) <> "/#{id}"
+        result = "/api" <> unquote(singular) <> "/#{id}"
                     |> HTTP.get()
-                    |> parse_resp(unquote(__MODULE__))
-        then.(results)
+                    |> parse_resp(__MODULE__)
+        case then do
+          {module, function, args} -> apply(module, function, [result | args])
+          anon                     -> anon.(result)
+        end
       end
     end
   end

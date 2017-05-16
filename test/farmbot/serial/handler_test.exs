@@ -32,5 +32,4 @@ defmodule Farmbot.Serial.HandlerTest do
         Process.sleep(10)
     end
   end
-
 end

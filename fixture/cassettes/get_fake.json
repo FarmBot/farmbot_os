@@ -18,20 +18,20 @@
    "connect_timeout": 25000
   },
   "request_body": "",
-  "url": "http://localhost:3000/api/fakes"
+  "url": "http://localhost:3000/api/fake/2"
  },
  "response": {
-  "body": "[{\"id\":2,\"foo\":\"BAR\",\"bar\":\"baz\"},{\"id\":3,\"foo\":\"hey!\",\"bar\":\"blah\"}]",
+  "body": "{\"id\":2,\"foo\":\"BAR\",\"bar\":\"baz\"}",
   "headers": {
    "X-Frame-Options": "SAMEORIGIN",
    "X-XSS-Protection": "1; mode=block",
    "X-Content-Type-Options": "nosniff",
    "Content-Type": "application/json; charset=utf-8",
-   "ETag": "W/\"043855152d68e55106aec3dea025254c\"",
+   "ETag": "W/\"92675ca236be3e6469e748e5513f1d4c\"",
    "Cache-Control": "max-age=0, private, must-revalidate",
-   "Set-Cookie": "_farmbot_session=YUh0NHpScWdabnVUWXJ5Z2FIUHNaSk14blN3NTlwVS9TdU53K1U2Y2NBTmxSeVdWalRmMlpJOHF5eTY5TDJ2Mmdpa0VTbW1qYWpqWnpvemhGZWxQeWc9PS0tNGIyenZWd2R1S3RjL01VblRucDRuZz09--21b3aea7ed5f0f374fd89e84cdcfe91b7ca153a5; path=/; HttpOnly",
-   "X-Request-Id": "c307713d-f961-49ab-9866-2433477da898",
-   "X-Runtime": "0.013511",
+   "Set-Cookie": "_farmbot_session=cSswMFVUN3lEUndWMzAvZnhWa3Z3N2xYNHgxS25tM25BaVZJL2N2RjJpMnpsV1RmTXJTQngwalBZZ01FRXVCdEVXdWpIWkZjZW5iaGN4cDBmSEwwOEE9PS0tVm9Oa2QrOFQyQ0dUd1N0bmlWN2pTUT09--01af2d77069882162404a3f717315baceaf019f3; path=/; HttpOnly",
+   "X-Request-Id": "cc88f74f-87fc-41ef-9255-1ec2a31bdbaa",
+   "X-Runtime": "0.010134",
    "Vary": "Origin",
    "Connection": "close",
    "Server": "thin"

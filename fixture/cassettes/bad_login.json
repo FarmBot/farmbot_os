@@ -1,7 +1,43 @@
 [
   {
     "request": {
-      "body": "{\"user\":{\"credentials\":\"MNoimWme/awADT892LhTDYvueXAad68IVmVg838qE3Nw0eV4cLvANqAZICrKmsUqWr2OBkhVWWBeA20LdUWL5BOfElMMKwWHC68r76Eep0JmTR7gVM9zH8hkjHWcFRYlzi7B4U7v1UTG7AKV+eISPRtbgdkn3mfaPdIobR2jJ9lL01G50n8T3wdjgHQ/y1W8k7e2fxG3Cq1D85/31znpdLR7pw78UHWMJVwTU95fnoVNoil21+nooCfRFOMpOX/ZZJfG/S5UcCHD7Un1YVF481M49KvspKQ3LIQbBVzXMisHKmRVxdx6Wgw6PEEHcA1TkeS5Yk7+1DvI/Pj8WUbiXg==\"}}",
+      "body": "",
+      "headers": [],
+      "method": "get",
+      "options": {
+        "follow_redirect": true,
+        "ssl_options": {
+          "versions": [
+            "tlsv1.2"
+          ]
+        }
+      },
+      "request_body": "",
+      "url": "http://localhost:3000/api/public_key"
+    },
+    "response": {
+      "body": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsIgWhfZew/k4wE8hWf82\nRErhP1fsy8v6NbiR5HY06miqWNuIF1tKg+CHe+NoyaADUJ+Qfu/LIMvSN7USEHls\n9mEl5Kx1H27hbPgu+TuqqQTgS2rFsnLjWPTQFigH5KNm5HSoreq2/cXRGdXd9IuI\nwyVh4AFyvSxI7/GrWlKL6M1kZv39N56zlDt086L5OKltOGIVJF6uJypsXy02omEH\n4L/zd2npZKD8Y7kaFfNs5mnWw65IWr2tqjF7cp8ESN93ChwM7z4I+Xg+EghsEkHV\nNS4pdVgE5dyB10P/pNjjS52rs6uJD3M/Tigr9wS5T/qqbNmcksVT1aP8rWAys4Qn\nIQIDAQAB\n-----END PUBLIC KEY-----\n",
+      "headers": {
+        "X-Frame-Options": "SAMEORIGIN",
+        "X-XSS-Protection": "1; mode=block",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Type": "text/plain; charset=utf-8",
+        "ETag": "W/\"30b6abc31afb5f2e8804aa64029c73d4\"",
+        "Cache-Control": "max-age=0, private, must-revalidate",
+        "Set-Cookie": "_farmbot_session=bjB4bjZ1RDFOS2VkS25GVG9WQnVFRmQxT2hoNTRlcUNFc29oK0N1NE44bkw4VzEzK3ZlODMwc2lRNGw3aWp2UnpxbGJMc1lhQTQrbEFjTmxpQlR2MEE9PS0tc2NWc0xqK1hrSGdLWi9PcGtobW55QT09--2e4f413f3c28d1c2d5a49dc84aa501a1619d951f; path=/; HttpOnly",
+        "X-Request-Id": "956775b4-6070-49b1-b99a-b432decc21e9",
+        "X-Runtime": "0.002116",
+        "Vary": "Origin",
+        "Connection": "close",
+        "Server": "thin"
+      },
+      "status_code": 200,
+      "type": "ok"
+    }
+  },
+  {
+    "request": {
+      "body": "{\"user\":{\"credentials\":\"o+SzhIszkRnYSJy+ew43n4IBeRd7k03/Gsdv5OeJ5AF1RKxYqTtd56JUmxyfSv0HodUNrNhtuQL0RmtLQEXuLZCcuDIMunomVow4u0BtANMQsJtV0JsfBtVk6r78mAvo5poGf8tFkfYNY1kRA7U1hwft2PJShZd94ATMIDaewTvePbphENByl0f3B/W4k4tWPHi9NTEeFLF7IYSqLOlmyOmXBaHNrWW5Fy+m7JbAtEU5ILnkKcnOmKiT8R7ayzyJDjB/rJT2Mf7nHts5gB+7QjgXzPrCY9RoB7cRHyfIB0eqHgM7174B1p7HHhS5YmreHkcSZfbHDE/K/oyTJ8S7sA==\"}}",
       "headers": {
         "Content-Type": "application/json"
       },
@@ -25,50 +61,14 @@
         "X-Content-Type-Options": "nosniff",
         "Content-Type": "application/json; charset=utf-8",
         "Cache-Control": "no-cache",
-        "Set-Cookie": "_farmbot_session=Z1FNOWMvNFM1RE9xSGhyNVF6aEtVUS9LM1VCVGt0akxGbjhqZ25LSHJ0YW5mbm41UlB6RURiK3VvcElsQ1BTQnJPSFlmclpObjZIZGVkQnFpeVRWUVE9PS0taXYybUo0VXFwWStGSExHY1BFQ21tUT09--a7a5c61177fd17d6c9188a3b5180ccefd63fa2fe; path=/; HttpOnly",
-        "X-Request-Id": "87a576c4-77e3-432c-9713-d640be6c050d",
-        "X-Runtime": "0.006899",
+        "Set-Cookie": "_farmbot_session=dWpGYU8rbWdIRE1SYlViYXpKSTNMQnczUDR3ZUxOSnBBcUMyeVpmM0Y3cVd3MWIrdmVNMjhLaXc0N2ZxK1RhRzJEODRXbTZLbkZMVVYvTG9hRjMwdXc9PS0td2RXek1tNjlxbkhzQ1FCTWMraCt3UT09--66d287e2d52ff5fc8d70772504d11f46c833c129; path=/; HttpOnly",
+        "X-Request-Id": "b1ff1a5d-36c9-4ce0-901e-313d3bcfe27e",
+        "X-Runtime": "0.003800",
         "Vary": "Origin",
         "Connection": "close",
         "Server": "thin"
       },
       "status_code": 422,
-      "type": "ok"
-    }
-  },
-  {
-    "request": {
-      "body": "",
-      "headers": [],
-      "method": "get",
-      "options": {
-        "follow_redirect": true,
-        "ssl_options": {
-          "versions": [
-            "tlsv1.2"
-          ]
-        }
-      },
-      "request_body": "",
-      "url": "http://localhost:3000/api/public_key"
-    },
-    "response": {
-      "body": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0WwjkWvkwcdCHEF51NAz\n7bH/wuIks4bd+J9uvl/DRKgDEv46+4u0Gbk3m/qMmE1J7P2R8qw9/hwEqnGgUCQK\nHtJQnlxs9qbvcZl9oEj1FmHsenqQtz0pHidV54kEBs4TZh+S5GkifHaRMvxAtCTO\nHkg//i3qCCO6HOHJGzSn3w/1vglP26cAorEeNl3n4zTq5QaFFW9s+KgKdWBbinWe\nLYrpdd8DEXO2D+SkYFN0f0e+gtpO9urZxiOiKZmh86EMxymzShwswogvzTs3pKvH\ne73i4WC3O130osf+Sx+1CkXAamTF/UaJUAmigebh5RmMC6xlx6bxbTj5lQ2nn1nS\nVwIDAQAB\n-----END PUBLIC KEY-----\n",
-      "headers": {
-        "X-Frame-Options": "SAMEORIGIN",
-        "X-XSS-Protection": "1; mode=block",
-        "X-Content-Type-Options": "nosniff",
-        "Content-Type": "text/plain; charset=utf-8",
-        "ETag": "W/\"db202dec7f86dfc83420cecb2cdeb851\"",
-        "Cache-Control": "max-age=0, private, must-revalidate",
-        "Set-Cookie": "_farmbot_session=V3RQejJiWFF0MXpvMUt0eHp5NEFsMXN1ejRpTHFNQ2pPS2dvOVN5Y01xTkl1d2hXSWdxTHNxcmR0NkxHUG1mT25HekE2ZWJQWUIxSlhKdnFYU0RmTWc9PS0tSDRRVTB2aWVXbnZQRnhraXFqQXJoZz09--424d62c9c7ddf5f8559b2d567daa2c2d78a1abfb; path=/; HttpOnly",
-        "X-Request-Id": "42a71cc4-4f1d-4622-8b7d-b5efd25feccd",
-        "X-Runtime": "0.003232",
-        "Vary": "Origin",
-        "Connection": "close",
-        "Server": "thin"
-      },
-      "status_code": 200,
       "type": "ok"
     }
   }

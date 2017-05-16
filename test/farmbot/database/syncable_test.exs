@@ -30,12 +30,25 @@ defmodule Farmbot.SyncableTest do
     assert(Fake.plural_url == "/fakes")
   end
 
-  def get_all_by_id_callback(result), do: result
+  def get_all_by_id_callback(result) do
+    result
+  end
 
-  test "get_all_by_id()", context do
+  test "fetch all of a resource", _context do
     use_cassette "get_fakes" do
-      result = Fake.fetch({__MODULE__, :get_all_by_id_callback, []})
-      IEx.pry
+      results = Fake.fetch({__MODULE__, :get_all_by_id_callback, []})
+      item = List.first(results)
+      assert item.__struct__ == Fake
+      assert is_integer(item.id)
     end
   end
+
+  test "fetch a particular id of a resource" do
+    use_cassette "get_fake" do
+      item = Fake.fetch(2, {__MODULE__, :get_all_by_id_callback, []})
+      assert item.__struct__ == Fake
+      assert is_integer(item.id)
+    end
+  end
+
 end
