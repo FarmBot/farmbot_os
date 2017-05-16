@@ -13,6 +13,7 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
     https://github.com/FarmBot/farmbot-js/blob/master/src/corpus.ts#L611
   """
   @type verb :: :add | :remove | :update
+  require IEx
 
   @doc ~s"""
     SyncInvalidate
@@ -38,6 +39,7 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
 
   @spec parse_val_str(binary) :: number_or_wildcard
   defp parse_val_str("*"), do: "*"
+  defp parse_val_str(int) when is_integer(int), do: int
   defp parse_val_str(number), do: String.to_integer(number)
 
   @spec parse_verb_str(binary) :: verb

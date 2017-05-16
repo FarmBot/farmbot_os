@@ -1,6 +1,6 @@
 defmodule Farmbot.DatabaseTest do
   alias Farmbot.TestHelpers
-  import TestHelpers, only: [read_json: 1]
+  import TestHelpers, only: [read_json: 1, tag_item: 2]
   use ExUnit.Case, async: false
   alias Farmbot.Database, as: DB
   alias DB.Syncable.Point
@@ -9,6 +9,7 @@ defmodule Farmbot.DatabaseTest do
   setup_all do
     []
   end
+
 
   test "adds a record to the local db" do
     # modulename = Enum.random(DB.all_the_syncables())
@@ -75,11 +76,4 @@ defmodule Farmbot.DatabaseTest do
     assert item.body == updated
   end
 
-  defp tag_item(map, tag) do
-    updated_map =
-      map
-      |> Enum.map(fn({key, val}) ->  {String.to_atom(key), val} end)
-      |> Map.new()
-    struct(tag, updated_map)
-  end
 end
