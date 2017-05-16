@@ -5,16 +5,16 @@ defmodule Database.Syncable.Fake do
 end
 
 defmodule Farmbot.SyncableTest do
-  alias Farmbot.TestHelpers
   alias Database.Syncable.Fake
+  alias Farmbot.TestHelpers
   import TestHelpers, only: [read_json: 1, tag_item: 2]
-  use ExUnit.Case, async: false
-  alias Farmbot.Database, as: DB
-  alias DB.Syncable.Point
   require IEx
+  use ExUnit.Case, async: false
+  use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
 
   setup_all do
-    [my_fake: %Fake{}]
+    [my_fake: %Fake{},
+     token:   TestHelpers.login()]
   end
 
   test "defines a syncable", context do
@@ -23,10 +23,19 @@ defmodule Farmbot.SyncableTest do
   end
 
   test "singular URLs", context do
-    assert(context.my_fake.__struct__.singular_url == "/fake")
+    assert(Fake.singular_url == "/fake")
   end
 
   test "plural URLs", context do
-    assert(context.my_fake.__struct__.plural_url == "/fakes")
+    assert(Fake.plural_url == "/fakes")
+  end
+
+  def get_all_by_id_callback(result), do: result
+
+  test "get_all_by_id()", context do
+    use_cassette "get_fakes" do
+      result = Fake.fetch({__MODULE__, :get_all_by_id_callback, []})
+      IEx.pry
+    end
   end
 end

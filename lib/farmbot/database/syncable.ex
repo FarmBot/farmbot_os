@@ -12,14 +12,15 @@ defmodule Farmbot.Database.Syncable do
     Pipe a HTTP request thru this. Trust me :tm:
   """
   def parse_resp({:error, message}, _module), do: {:error, message}
-  def parse_resp({:ok, %{status_code: 200, body: resp_body}}, _module) do
+  def parse_resp({:ok, %{status_code: 200, body: resp_body}}, module) do
     stuff = resp_body |> Poison.decode!
     cond do
-      is_list(stuff) -> Poison.decode!(as: [struct(stuff)])
-      is_map(stuff)  -> Poison.decode!(as:  struct(stuff) )
+      is_list(stuff) -> Enum.map(stuff, fn(item) -> struct(module, item) end)
+      is_map(stuff)  -> Poison.decode!(as: struct(stuff))
       true           -> {:error, "Hashes and arrays only, please."}
     end
   end
+
   def parse_resp({:ok, whatevs}, _module) do
     {:error, whatevs}
   end
