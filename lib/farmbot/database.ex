@@ -74,7 +74,7 @@ defmodule Farmbot.Database do
   @doc """
     All the tags that the Database knows about.
   """
-  def all_the_syncables() do
+  def all_the_syncables do
     unquote(syncable_modules)
   end
 
@@ -117,7 +117,8 @@ defmodule Farmbot.Database do
   end
 
   def commit_records({:error, reason}, mod_name) do
-    Logger.error("#{mod_name}: #{reason}")
+    Logger.error("#{mod_name}: #{inspect reason}")
+    {:error, reason}
   end
 
   defp map_out_date([]) do
@@ -139,7 +140,6 @@ defmodule Farmbot.Database do
 
   defp flush_outdated(:update, resource_id_list) do
   end
-
 
   @doc """
     Sets outdated api resources.
@@ -172,12 +172,18 @@ defmodule Farmbot.Database do
   def init([]) do
     state = %{
       all: [],
-      by_kind: %{},
+      by_kind: generate_keys(all_the_syncables()),
       by_kind_and_id: %{},
       outdated: %{},
       refs: %{}
     }
     {:ok, state}
+  end
+
+  defp generate_keys(keys) do
+    keys
+    |> Enum.map(fn(key) -> {key, []} end)
+    |> Map.new
   end
 
   def handle_call({:get_by, kind, id}, _, state) do
@@ -238,9 +244,9 @@ defmodule Farmbot.Database do
     end
   end
 
-  @spec get_by_kind_and_id(state, syncable,integer) :: resource_map | nil
+  @spec get_by_kind_and_id(state, syncable, integer) :: resource_map | nil
   defp get_by_kind_and_id(state, kind, id) do
-    case state.by_kind[kind] do
+    case state.by_kind_and_id[{kind, id}] do
       {_kind, _local_id, db_id} = ref when id == db_id ->
         state.refs[ref]
       _ -> nil
@@ -261,6 +267,7 @@ defmodule Farmbot.Database do
     # Do we have it already?
     maybe_old = get_by_kind_and_id(state, kind, id)
     if maybe_old do
+      debug_log("updating old record")
       already_exists = maybe_old
       # if it existed, update it.
       # set the ref from the old one.
@@ -268,6 +275,7 @@ defmodule Farmbot.Database do
       new_refs = %{state.refs | new.resource_identifier => new}
       %{state | refs: new_refs}
     else
+      debug_log("inputting new record")
       # if not, just add it.
       rid =  new_resource_identifier(record)
 

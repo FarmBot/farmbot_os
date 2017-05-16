@@ -13,7 +13,6 @@ defmodule Farmbot.Database.Supervisor do
 
   def init([]) do
     children = [
-      worker(Farmbot.Database.Cache, [], [restart: :permanent]),
       worker(Farmbot.Database, [], [restart: :permanent])
     ]
     opts = [strategy: :one_for_one]

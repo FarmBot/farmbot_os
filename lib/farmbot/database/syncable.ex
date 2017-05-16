@@ -36,6 +36,16 @@ defmodule Farmbot.Database.Syncable do
       defstruct unquote(model) ++ [:id]
 
       @doc """
+        The Singular api endpoing url.
+      """
+      def singular_url, do: unquote(singular)
+
+      @doc """
+        The plural api endpoint.
+      """
+      def plural_url, do: unquote(plural)
+
+      @doc """
         Get a `#{unquote(__MODULE__)}` by its Api id.
       """
       def by_id(id), do: Database.get_by_id(unquote(__MODULE__), id)

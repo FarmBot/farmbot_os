@@ -35,9 +35,16 @@ defmodule Farmbot.Mixfile do
      deps: deps() ++ system(@target),
      dialyzer: [plt_add_deps: :app_tree, plt_add_apps: [:mnesia, :hackney]],
      preferred_cli_env: [
-       vcr: :test, "vcr.delete": :test, "vcr.check": :test, "vcr.show": :test,
-       "all_test": :test,
-       "coveralls": :test, "coveralls.detail": :test, "coveralls.post": :test, "coveralls.html": :test, "coveralls.travis": :test
+       "vcr":              :test,
+       "vcr.delete":       :test,
+       "vcr.check":        :test,
+       "vcr.show":         :test,
+       "all_test":         :test,
+      #  "coveralls":        :test,
+      #  "coveralls.detail": :test,
+      #  "coveralls.post":   :test,
+      #  "coveralls.html":   :test,
+      #  "coveralls.travis": :test
      ],
      webpack_watch: Mix.env == :dev,
      webpack_cd: ".",
@@ -56,8 +63,8 @@ defmodule Farmbot.Mixfile do
 
   def package do
     [name: "Farmbot OS",
-    maintainers: "Farmbot.io",
-    licenses: "MIT"]
+     maintainers: "Farmbot.io",
+     licenses: "MIT"]
   end
 
   def application do
