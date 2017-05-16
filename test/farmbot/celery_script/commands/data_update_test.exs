@@ -6,7 +6,6 @@ defmodule Farmbot.CeleryScript.Command.DataUpdateTest do
   alias Farmbot.Database, as: DB
   alias DB.Syncable.Point
   alias Farmbot.TestHelpers
-  alias Farmbot.CeleryScript.Command.DataUpdate
   require IEx
 
 

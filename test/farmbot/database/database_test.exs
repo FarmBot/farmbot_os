@@ -76,4 +76,18 @@ defmodule Farmbot.DatabaseTest do
     assert item.body == updated
   end
 
+  test "toggles awaiting state for resources" do
+    DB.set_awaiting(Point, 0, 0)
+    assert(DB.get_awaiting(Point))
+
+    DB.unset_awaiting(Point)
+    refute(DB.get_awaiting(Point))
+
+    DB.set_awaiting(Point, 0, 0)
+    assert(DB.get_awaiting(Point))
+
+    DB.unset_awaiting(Point)
+    refute(DB.get_awaiting(Point))
+  end
+
 end

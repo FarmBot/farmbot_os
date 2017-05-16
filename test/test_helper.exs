@@ -62,7 +62,7 @@ defmodule Farmbot.TestHelpers do
     :ok = DB.commit_records(tagged, module)
   end
 
-  defp tag_item(map, tag) do
+  def tag_item(map, tag) do
     updated_map =
       map
       |> Enum.map(fn({key, val}) ->  {String.to_atom(key), val} end)
