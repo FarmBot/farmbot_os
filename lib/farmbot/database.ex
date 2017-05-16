@@ -120,7 +120,6 @@ defmodule Farmbot.Database do
     Logger.error("#{mod_name}: #{reason}")
   end
 
-
   defp map_out_date([]) do
     :ok
   end
@@ -191,33 +190,7 @@ defmodule Farmbot.Database do
   end
 
   def handle_call({:update_or_create, record}, _, state) do
-    # get some info
-    kind = Map.get(record, :__struct__)
-    id = Map.fetch!(record, :id)
-
-    # Do we have it already?
-    maybe_old = get_by_kind_and_id(state, kind, id)
-
-    new_state = if maybe_old do
-      already_exists = maybe_old
-      # if it existed, update it.
-      # set the ref from the old one.
-      new = %{already_exists | body: record}
-      new_refs = %{state.refs | new.resource_identifier => new}
-      %{state | refs: new_refs}
-    else
-      # if not, just add it.
-      rid =  new_resource_identifier(record)
-
-      new_syncable = %Syncable{
-        body: record,
-        resource_identifier: rid
-      }
-      new_refs = Map.put(state.refs, rid, new_syncable)
-      %{state | refs: new_refs}
-    end
-
-    {:reply, :ok, new_state}
+    {:reply, :ok, reindex(state, record)}
   end
 
   def handle_call(:get_outdated, _, state) do
@@ -278,5 +251,41 @@ defmodule Farmbot.Database do
   defp new_resource_identifier(%{__struct__: syncable, id: id}) do
     # TODO(Connor) One day, we will need a local id.
     {syncable, -1, id}
+  end
+
+  defp reindex(state, record) do
+    # get some info
+    kind = Map.get(record, :__struct__)
+    id = Map.fetch!(record, :id)
+
+    # Do we have it already?
+    maybe_old = get_by_kind_and_id(state, kind, id)
+    if maybe_old do
+      already_exists = maybe_old
+      # if it existed, update it.
+      # set the ref from the old one.
+      new = %{already_exists | body: record}
+      new_refs = %{state.refs | new.resource_identifier => new}
+      %{state | refs: new_refs}
+    else
+      # if not, just add it.
+      rid =  new_resource_identifier(record)
+
+      new_syncable = %Syncable{
+        body: record,
+        resource_identifier: rid
+      }
+
+      all            = [rid | state.all]
+      by_kind        = %{ state.by_kind | kind => [rid | state.by_kind[kind]] }
+      new_refs       = Map.put(state.refs, rid, new_syncable)
+      by_kind_and_id = Map.put(state.by_kind_and_id, {kind, id}, rid)
+
+      %{ state |
+         refs:           new_refs,
+         all:            all,
+         by_kind:        by_kind,
+         by_kind_and_id: by_kind_and_id }
+    end
   end
 end

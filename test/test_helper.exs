@@ -17,3 +17,18 @@ ExVCR.Config.cassette_library_dir("fixture/cassettes")
 
 Mix.shell.info [:green, "removeing logger"]
 Logger.remove_backend Logger.Backends.FarmbotLogger
+
+defmodule Farmbot.TestHelpers do
+  alias Farmbot.Auth
+  use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
+
+  def login(email \\ "admin@admin.com",
+            pass  \\ "password123",
+            url   \\ "http://localhost:3000") do
+    use_cassette "good_login" do
+      :ok = Auth.interim(email, pass, url)
+      {:ok, token} = Auth.try_log_in
+      token
+    end
+  end
+end
