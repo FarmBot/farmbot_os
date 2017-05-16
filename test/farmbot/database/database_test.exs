@@ -32,10 +32,10 @@ defmodule Farmbot.DatabaseTest do
   end
 
   test "wont commit errornous things to db" do
-    item = "random_not_json: {}, this isnt formatted_properly!"
-    mod = Enum.random(DB.all_the_syncables())
-    error = Poison.decode(item)
-    old = DB.get_all(mod)
+    item   = "random_not_json: {}, this isnt formatted_properly!"
+    mod    = Enum.random(DB.all_the_syncables())
+    error  = Poison.decode(item)
+    old    = DB.get_all(mod)
 
     DB.commit_records(error, mod)
 
@@ -44,8 +44,8 @@ defmodule Farmbot.DatabaseTest do
   end
 
   test "gets an item out of the database" do
-    modulename = Point
-    plural = modulename.plural_url()
+    modulename  = Point
+    plural      = modulename.plural_url()
     points_json = read_json("#{plural}.json")
     random_item = Enum.random(points_json) |> tag_item(modulename)
 
