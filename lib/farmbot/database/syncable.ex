@@ -3,6 +3,11 @@ defmodule Farmbot.Database.Syncable do
     Defines a syncable.
   """
 
+  defstruct [:resource_identifier, :body]
+
+  @type resource_identifier :: Farmbot.Database.resource_identifier
+  @type t :: %__MODULE__{resource_identifier: resource_identifier, body: map}
+
   @doc """
     Pipe a HTTP request thru this. Trust me :tm:
   """
@@ -10,8 +15,8 @@ defmodule Farmbot.Database.Syncable do
   def parse_resp({:ok, %{status_code: 200, body: resp_body}}, module) do
     stuff = resp_body |> Poison.decode!
     cond do
-      is_list(stuff) -> Poison.decode!(as: [struct(module)])
-      is_map(stuff)  -> Poison.decode!(as:  struct(module) )
+      is_list(stuff) -> Poison.decode!(as: [struct(stuff)])
+      is_map(stuff)  -> Poison.decode!(as:  struct(stuff) )
       true           -> {:error, "Hashes and arrays only, please."}
     end
   end
@@ -28,7 +33,7 @@ defmodule Farmbot.Database.Syncable do
       alias Farmbot.Database
       alias Farmbot.HTTP
       import Farmbot.Database.Syncable, only: [parse_resp: 2]
-      defstruct unquote(model) ++ [:uuid, :id]
+      defstruct unquote(model) ++ [:id]
 
       @doc """
         Get a `#{unquote(__MODULE__)}` by its Api id.

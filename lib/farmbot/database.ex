@@ -4,12 +4,14 @@ defmodule Farmbot.Database do
   """
 
   use GenServer
+  use Farmbot.DebugLog
   require Logger
+  alias Farmbot.Database.Syncable
 
   @typedoc """
     The module name of the object you want to access.
   """
-  @type syncable :: :device | :farm_event | atom
+  @type syncable :: atom
 
   @typedoc """
     The incremental id givin to resources.
@@ -29,15 +31,7 @@ defmodule Farmbot.Database do
   @typedoc """
     Held in `refs`.
   """
-  @type resource_map :: %{kind: syncable, uuid: uuid, body: body}
-
-  @typedoc """
-    The contents of a `syncable`.
-  """
-  @type body :: map
-
-  @typedoc false
-  @type uuid :: binary
+  @type resource_map :: Farmbot.Database.Syncable.t
 
   @typedoc false
   @type verb :: Farmbot.CeleryScript.Command.DataUpdate.verb
@@ -55,18 +49,19 @@ defmodule Farmbot.Database do
     by_kind_and_id: %{
       required({syncable, db_id}) => resource_identifier
     },
-    by_uuid: %{
-      required(uuid) => resource_identifier
-    },
+
     refs: %{
       required(resource_identifier) => resource_map
     },
+
     outdated: %{
       add:    [resource_identifier],
       remove: [resource_identifier],
       update: [resource_identifier]
     }
   }
+
+  # This pulls all the module names by their filename.
   syncable_modules =
     "lib/farmbot/database/syncable/"
     |> File.ls!
@@ -75,6 +70,14 @@ defmodule Farmbot.Database do
          mod_name     = Macro.camelize(mod_name_str)
          Module.concat([Farmbot.Database.Syncable, mod_name])
     end)
+
+  @doc """
+    All the tags that the Database knows about.
+  """
+  def all_the_syncables() do
+    unquote(syncable_modules)
+  end
+
   @doc """
     Sync up with the API.
   """
@@ -84,6 +87,7 @@ defmodule Farmbot.Database do
     if Enum.empty?(outdated) do
       # Full sync - need all the things
       for module_name <- all_the_syncables() do
+        # see: `syncable.ex`. This is some macro magic.
         module_name.fetch({__MODULE__, :commit_records, [module_name]})
       end
     else
@@ -93,26 +97,29 @@ defmodule Farmbot.Database do
     end
   end
 
+  @doc """
+    Commits a list of records to the db.
+  """
+  def commit_records(list_or_single_record, module_name)
   def commit_records([record | rest], mod_name) do
-    commit_records(record)
-    commit_records(rest)
+    debug_log "Staring db commit with: #{mod_name}"
+    commit_records(record, mod_name)
+    commit_records(rest, mod_name)
   end
 
   def commit_records([], mod_name) do
+    debug_log "DB commit finish: #{mod_name}"
     :ok
   end
 
-  def commit_records(record, mod_name) when is_map(record) do
-    GenServer.call({:update_or_create, record})
+  def commit_records(record, _mod_name) when is_map(record) do
+    GenServer.call(__MODULE__, {:update_or_create, record})
   end
 
   def commit_records({:error, reason}, mod_name) do
     Logger.error("#{mod_name}: #{reason}")
   end
 
-  def all_the_syncables() do
-   unquote(syncable_modules)
-  end
 
   defp map_out_date([]) do
     :ok
@@ -134,9 +141,6 @@ defmodule Farmbot.Database do
   defp flush_outdated(:update, resource_id_list) do
   end
 
-  def handle_call(:get_outdated, _, state) do
-    {:reply, state.outdated, state}
-  end
 
   @doc """
     Sets outdated api resources.
@@ -157,12 +161,6 @@ defmodule Farmbot.Database do
   @spec get_all(syncable) :: [resource_map]
   def get_all(kind), do: GenServer.call(__MODULE__, {:get_all, kind})
 
-  @doc """
-    Get a resource by its (local) uuid.
-  """
-  @spec get_by_uuid(uuid) :: resource_map | nil
-  def get_by_uuid(uuid), do: GenServer.call(__MODULE__, {:get_by, uuid})
-
   ## GenServer
 
   @doc """
@@ -177,7 +175,6 @@ defmodule Farmbot.Database do
       all: [],
       by_kind: %{},
       by_kind_and_id: %{},
-      by_uuid: %{},
       outdated: %{},
       refs: %{}
     }
@@ -189,22 +186,44 @@ defmodule Farmbot.Database do
     {:reply, r, state}
   end
 
-  def handle_call({:get_by, uuid}, _, state) do
-    r = case state.by_uuid[uuid] do
-      {_syncable, _local_id, _db_id} = ref ->
-        state.refs[ref]
-      _ -> nil
-    end
-    {:reply, r, state}
-  end
-
   def handle_call({:get_all, syncable}, _, state) do
-    {:reply, get_all(state, syncable), state}
+    {:reply, get_all_by_kind(state, syncable), state}
   end
 
   def handle_call({:update_or_create, record}, _, state) do
+    # get some info
+    kind = Map.get(record, :__struct__)
+    id = Map.fetch!(record, :id)
+
     # Do we have it already?
+    maybe_old = get_by_kind_and_id(state, kind, id)
+
+    new_state = if maybe_old do
+      already_exists = maybe_old
+      # if it existed, update it.
+      # set the ref from the old one.
+      new = %{already_exists | body: record}
+      new_refs = %{state.refs | new.resource_identifier => new}
+      %{state | refs: new_refs}
+    else
+      # if not, just add it.
+      rid =  new_resource_identifier(record)
+
+      new_syncable = %Syncable{
+        body: record,
+        resource_identifier: rid
+      }
+      new_refs = Map.put(state.refs, rid, new_syncable)
+      %{state | refs: new_refs}
+    end
+
+    {:reply, :ok, new_state}
   end
+
+  def handle_call(:get_outdated, _, state) do
+    {:reply, state.outdated, state}
+  end
+
   # wildcard is easy
   def handle_cast({:set_outdated, syncable, verb, "*"}, state) do
     # get a list of all references of this type.
@@ -236,7 +255,8 @@ defmodule Farmbot.Database do
   end
 
   # returns all the references of syncable
-  defp get_all(state, syncable) do
+  @spec get_all_by_kind(state, syncable) :: [resource_map]
+  defp get_all_by_kind(state, syncable) do
     all = state.by_kind[syncable]
     if all do
       Enum.map(all, fn(ref) -> state.refs[ref] end)
@@ -245,11 +265,18 @@ defmodule Farmbot.Database do
     end
   end
 
+  @spec get_by_kind_and_id(state, syncable,integer) :: resource_map | nil
   defp get_by_kind_and_id(state, kind, id) do
     case state.by_kind[kind] do
       {_kind, _local_id, db_id} = ref when id == db_id ->
         state.refs[ref]
       _ -> nil
     end
+  end
+
+  @spec new_resource_identifier(map) :: resource_identifier
+  defp new_resource_identifier(%{__struct__: syncable, id: id}) do
+    # TODO(Connor) One day, we will need a local id.
+    {syncable, -1, id}
   end
 end
