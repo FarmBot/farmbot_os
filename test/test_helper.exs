@@ -27,6 +27,7 @@ Farmbot.DebugLog.filter(Farmbot.Serial.Handler)
 defmodule Farmbot.TestHelpers do
   alias Farmbot.Auth
   use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
+  alias Farmbot.Database, as: DB
 
   def login(email \\ "admin@admin.com",
             pass  \\ "password123",
@@ -51,5 +52,21 @@ defmodule Farmbot.TestHelpers do
     "fixture/api_fixture/#{file}"
     |> File.read!()
     |> Poison.decode!
+  end
+
+  def seed_db(module, json) do
+    tagged = Enum.map(json, fn(item) ->
+      tag_item(item, module)
+    end)
+
+    :ok = DB.commit_records(tagged, module)
+  end
+
+  defp tag_item(map, tag) do
+    updated_map =
+      map
+      |> Enum.map(fn({key, val}) ->  {String.to_atom(key), val} end)
+      |> Map.new()
+    struct(tag, updated_map)
   end
 end

@@ -145,7 +145,15 @@ defmodule Farmbot.Database do
     Sets outdated api resources.
   """
   def set_outdated(syncable, verb, value) do
-    GenServer.cast(__MODULE__, {:set_outdated, syncable, verb, value})
+    debug_log("setting outdated: #{syncable} #{verb}")
+    GenServer.call(__MODULE__, {:set_outdated, syncable, verb, value})
+  end
+
+  @doc """
+    Gets the outdated api recources for syncable and verb
+  """
+  def get_outdated(syncable, verb) do
+    GenServer.call(__MODULE__, {:get_outdated, syncable, verb})
   end
 
   @doc """
@@ -174,7 +182,7 @@ defmodule Farmbot.Database do
       all: [],
       by_kind: generate_keys(all_the_syncables()),
       by_kind_and_id: %{},
-      outdated: %{},
+      outdated: generate_keys([:add, :remove, :update]),
       refs: %{}
     }
     {:ok, state}
@@ -199,12 +207,19 @@ defmodule Farmbot.Database do
     {:reply, :ok, reindex(state, record)}
   end
 
-  def handle_call(:get_outdated, _, state) do
-    {:reply, state.outdated, state}
+  def handle_call({:get_outdated, module, verb}, _, state) do
+    r =
+      Enum.filter(state.outdated[verb], fn(ref) ->
+        if ref do
+          item = Map.fetch!(state.refs, ref)
+          item.body.__struct__ != module
+        end
+      end)
+    {:reply, r, state}
   end
 
   # wildcard is easy
-  def handle_cast({:set_outdated, syncable, verb, "*"}, state) do
+  def handle_call({:set_outdated, syncable, verb, "*"}, _, state) do
     # get a list of all references of this type.
     all = state.by_kind[syncable]
 
@@ -213,10 +228,10 @@ defmodule Farmbot.Database do
 
     # update the state.
     new_state = %{state | outdated: new_outdated}
-    {:noreply, new_state}
+    {:reply, :ok, new_state}
   end
 
-  def handle_cast({:set_outdated, syncable, verb, id}, state) do
+  def handle_call({:set_outdated, syncable, verb, id}, _, state) do
     # get the reference by its kind and id.
     ref = get_by_kind_and_id(state, syncable, id)
 
@@ -230,7 +245,7 @@ defmodule Farmbot.Database do
     new_outdated = %{state.outdated | verb => new_by_verb}
 
     new_state = %{state | outdated: new_outdated}
-    {:noreply, new_state}
+    {:reply, :ok, new_state}
   end
 
   # returns all the references of syncable
