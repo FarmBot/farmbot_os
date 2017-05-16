@@ -7,7 +7,7 @@ defmodule Farmbot.Database.Syncable do
     Pipe a HTTP request thru this. Trust me :tm:
   """
   def parse_resp({:error, message}, _module), do: {:error, message}
-  def parse_resp({:ok, %{status_code: 200, body: resp_body}}, module)
+  def parse_resp({:ok, %{status_code: 200, body: resp_body}}, module) do
     stuff = resp_body |> Poison.decode!
     cond do
       is_list(stuff) -> Poison.decode!(as: [struct(module)])
@@ -48,8 +48,8 @@ defmodule Farmbot.Database.Syncable do
                     |> HTTP.get()
                     |> parse_resp(unquote(__MODULE__))
         case then do
-          {module, function, params} -> apply(module, function, [result | params])
-          anon                       -> anon.(result)
+          {module, function, args} -> apply(module, function, [result | args])
+          anon                     -> anon.(result)
         end
       end
 
@@ -62,8 +62,6 @@ defmodule Farmbot.Database.Syncable do
                     |> parse_resp(unquote(__MODULE__))
         then.(results)
       end
-
     end
   end
-
 end

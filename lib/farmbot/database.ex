@@ -5,7 +5,6 @@ defmodule Farmbot.Database do
 
   use GenServer
   require Logger
-  alias Farmbot.HTTP
 
   @typedoc """
     The module name of the object you want to access.
@@ -52,6 +51,7 @@ defmodule Farmbot.Database do
     by_kind: %{
       required(syncable) => [resource_identifier]
     },
+
     by_kind_and_id: %{
       required({syncable, db_id}) => resource_identifier
     },
@@ -80,16 +80,34 @@ defmodule Farmbot.Database do
   """
   def sync do
     outdated = GenServer.call(__MODULE__, :get_outdated)
+    # TODO: Probably better ways to do this.
     if Enum.empty?(outdated) do
       # Full sync - need all the things
       for module_name <- all_the_syncables() do
-        module_name.fetch()
+        module_name.fetch({__MODULE__, :commit_records, [module_name]})
       end
     else
       outdated
         |> Map.to_list
         |> map_out_date
     end
+  end
+
+  def commit_records([record | rest], mod_name) do
+    commit_records(record)
+    commit_records(rest)
+  end
+
+  def commit_records([], mod_name) do
+    :ok
+  end
+
+  def commit_records(record, mod_name) when is_map(record) do
+    GenServer.call({:update_or_create, record})
+  end
+
+  def commit_records({:error, reason}, mod_name) do
+    Logger.error("#{mod_name}: #{reason}")
   end
 
   def all_the_syncables() do
@@ -101,19 +119,19 @@ defmodule Farmbot.Database do
   end
 
   defp map_out_date([{verb, items} | rest]) do
-    flush_outdate(verb, items)
+    flush_outdated(verb, items)
     map_out_date(rest)
   end
 
-  defp flush_outdate(:add, resource_id_list) do
+  defp flush_outdated(:add, resource_id_list) do
     # push into the index
   end
 
-  defp flush_outdate(:remove, resource_id_list) do
+  defp flush_outdated(:remove, resource_id_list) do
     # splice out of the index
   end
 
-  defp flush_outdate(:update, resource_id_list) do
+  defp flush_outdated(:update, resource_id_list) do
   end
 
   def handle_call(:get_outdated, _, state) do
@@ -184,6 +202,9 @@ defmodule Farmbot.Database do
     {:reply, get_all(state, syncable), state}
   end
 
+  def handle_call({:update_or_create, record}, _, state) do
+    # Do we have it already?
+  end
   # wildcard is easy
   def handle_cast({:set_outdated, syncable, verb, "*"}, state) do
     # get a list of all references of this type.
