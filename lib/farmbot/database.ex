@@ -3,10 +3,10 @@ defmodule Farmbot.Database do
     Database Implementation.
   """
 
-  use GenServer
+  alias Farmbot.Database.Syncable
   use Farmbot.DebugLog
   require Logger
-  alias Farmbot.Database.Syncable
+  use GenServer
 
   @typedoc """
     The module name of the object you want to access.
@@ -40,25 +40,11 @@ defmodule Farmbot.Database do
     State of the DB
   """
   @type state :: %{
-    all: [ref_id],
-
-    by_kind: %{
-      required(syncable) => [ref_id]
-    },
-
-    by_kind_and_id: %{
-      required({syncable, db_id}) => ref_id
-    },
-
-    refs: %{
-      required(ref_id) => resource_map
-    },
-
-    awaiting: %{
-      add:    [ref_id],
-      remove: [ref_id],
-      update: [ref_id]
-    }
+    by_kind_and_id: %{ required({syncable, db_id}) => ref_id       },
+    awaiting:       %{ required(syncable)          => boolean      },
+    by_kind:        %{ required(syncable)          => [ref_id]     },
+    refs:           %{ required(ref_id)            => resource_map },
+    all:            [ref_id],
   }
 
   # This pulls all the module names by their filename.
@@ -115,16 +101,25 @@ defmodule Farmbot.Database do
   @doc """
     Sets awaiting api resources.
   """
+  @spec set_awaiting(syncable, verb, any) :: :ok | no_return
   def set_awaiting(syncable, verb, value) do
     debug_log("setting awaiting: #{syncable} #{verb}")
     GenServer.call(__MODULE__, {:set_awaiting, syncable, verb, value})
   end
 
   @doc """
+    Unsets awaiting api resources.
+  """
+  @spec unset_awaiting(syncable) :: :ok | no_return
+  def unset_awaiting(syncable),
+    do: GenServer.call(__MODULE__, {:unset_awaiting, syncable})
+
+  @doc """
     Gets the awaiting api recources for syncable and verb
   """
-  def get_awaiting(syncable, verb) do
-    GenServer.call(__MODULE__, {:get_awaiting, syncable, verb})
+  @spec get_awaiting(syncable) :: boolean
+  def get_awaiting(syncable) do
+    GenServer.call(__MODULE__, {:get_awaiting, syncable})
   end
 
   @doc """
@@ -149,19 +144,25 @@ defmodule Farmbot.Database do
   end
 
   def init([]) do
+    initial_by_kind_and_id = %{}
+    initial_awaiting       = generate_keys(all_the_syncables(), true)
+    initial_by_kind        = generate_keys(all_the_syncables())
+    initial_refs           = %{}
+    initial_all            = []
+
     state = %{
-      all: [],
-      by_kind: generate_keys(all_the_syncables()),
-      by_kind_and_id: %{},
-      awaiting: generate_keys([:add, :remove, :update]),
-      refs: %{}
+      by_kind_and_id: initial_by_kind_and_id,
+      awaiting:       initial_awaiting,
+      by_kind:        initial_by_kind,
+      refs:           initial_refs,
+      all:            initial_all,
     }
     {:ok, state}
   end
 
-  defp generate_keys(keys) do
+  defp generate_keys(keys, default \\ []) do
     keys
-    |> Enum.map(fn(key) -> {key, []} end)
+    |> Enum.map(fn(key) -> {key, default} end)
     |> Map.new
   end
 
@@ -178,46 +179,16 @@ defmodule Farmbot.Database do
     {:reply, :ok, reindex(state, record)}
   end
 
-  def handle_call({:get_awaiting, module, verb}, _, state) do
-    r =
-      Enum.filter(state.awaiting[verb], fn(ref) ->
-        item = Map.fetch!(state.refs, ref)
-        item.body.__struct__ != module
-      end)
-    {:reply, r, state}
+  def handle_call({:get_awaiting, module}, _, state) do
+    {:reply, Map.fetch!(state.awaiting, module), state}
   end
 
-  # wildcard is easy
-  # TODO(Rick): Not the right idea. "*" will need to do a force re-sync.
-  #             All resource of type "syncable".
-  def handle_call({:set_awaiting, syncable, verb, "*"}, _, state) do
-    raise "Not yet implemented."
+  def handle_call({:set_awaiting, syncable, _verb, _}, _, state) do
+    {:reply, :ok, %{ state | awaiting: %{ state.awaiting | syncable => true} }}
   end
 
-  def handle_call({:set_awaiting, syncable, :add, id}, _, state) do
-    ref           = new_ref_id(syncable, id)
-    next_awaiting = %{state.awaiting | add: [ref | state.awaiting.add]}
-    next_state    = %{state | awaiting: next_awaiting}
-    {:no_reply, :ok, next_state}
-  end
-
-  def handle_call({:set_awaiting, syncable, verb, id}, _, state) do
-    # get the reference by its kind and id.
-
-    item = get_by_kind_and_id(state, syncable, id) || raise "#{syncable} num" <>
-      "ber #{ id } not found."
-
-    # old list of things that were out dated
-    old_by_verb = state.awaiting[verb]
-
-    # new list
-    new_by_verb = [item.ref_id | old_by_verb]
-
-    # update the verb with new info from above.
-    new_awaiting = %{state.awaiting | verb => new_by_verb}
-
-    new_state = %{state | awaiting: new_awaiting}
-    {:reply, :ok, new_state}
+  def handle_call({:unset_awaiting, syncable}, _, state) do
+    {:reply, :ok, %{ state | awaiting: %{ state.awaiting | syncable => false} }}
   end
 
   # returns all the references of syncable
@@ -242,12 +213,6 @@ defmodule Farmbot.Database do
 
   @spec new_ref_id(map) :: ref_id
   defp new_ref_id(%{__struct__: syncable, id: id}) do
-    # TODO(Connor) One day, we will need a local id.
-    {syncable, -1, id}
-  end
-
-  @spec new_ref_id(syncable, integer) :: ref_id
-  defp new_ref_id(syncable, id) do
     # TODO(Connor) One day, we will need a local id.
     {syncable, -1, id}
   end

@@ -13,7 +13,6 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
     https://github.com/FarmBot/farmbot-js/blob/master/src/corpus.ts#L611
   """
   @type verb :: :add | :remove | :update
-  require IEx
 
   @doc ~s"""
     SyncInvalidate
@@ -31,11 +30,12 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
   end
 
   @type number_or_wildcard :: non_neg_integer | binary # "*"
-  @type syncable :: :sequence | :regimen | :farm_event | :point
-  #FIXME ^
+  @type syncable ::  Farmbot.Database.syncable
 
   @spec parse_syncable_str(binary) :: syncable
-  defp parse_syncable_str(str), do: Module.concat([Farmbot.Database.Syncable, str])
+  defp parse_syncable_str(str) do
+    Module.concat([Farmbot.Database.Syncable, Macro.camelize(str)])
+  end
 
   @spec parse_val_str(binary) :: number_or_wildcard
   defp parse_val_str("*"), do: "*"

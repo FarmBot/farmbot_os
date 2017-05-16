@@ -19,29 +19,31 @@ defmodule Farmbot.CeleryScript.Command.DataUpdateTest do
     [json: json]
   end
 
-  test "data update add single module", context do
-    item  = List.first(context.json)
-    id    = item["id"]
-    ast   = ast("add", [pair("Point", id)])
-    old_state = :sys.get_state(DB)
-    old   = DB.get_awaiting(Point, :add)
+  setup do
+    DB.unset_awaiting(Point)
+  end
+
+  # test "data_update add single resource", context do
+  #   item  = List.first(context.json)
+  #   id    = item["id"]
+  #   ast   = ast("add", [pair("Point", id)])
+  #   old   = DB.get_awaiting(Point, :add)
+  #
+  #   Command.do_command(ast)
+  #
+  #   new = DB.get_awaiting(Point, :add)
+  #   assert Enum.count(new) > Enum.count(old)
+  # end
+
+  test "data_updates causes awaiting to be true." do
+    ast = ast("add", [pair("Point", "*")])
+
+    old = DB.get_awaiting(Point)
+    refute(old)
 
     Command.do_command(ast)
-    Process.sleep(4000)
-    new_state = :sys.get_state(DB)
-    new = DB.get_awaiting(Point, :add)
-    assert Enum.count(new) > Enum.count(old)
-  end
-
-  test "data update all of a module" do
-    # ast = ast(:add, [pair("Point", "*")])
-  end
-
-  test "data update delete" do
-  end
-
-  test "data update update" do
-
+    new = DB.get_awaiting(Point)
+    assert(new)
   end
 
   def ast(verb, pairs) do
