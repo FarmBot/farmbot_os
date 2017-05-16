@@ -26,7 +26,7 @@ defmodule Farmbot.Database do
   @typedoc """
     Identifies a resource by its `syncable` (kind), `local_id`, and `db_id`
   """
-  @type resource_identifier :: {syncable, local_id, db_id}
+  @type ref_id :: {syncable, local_id, db_id}
 
   @typedoc """
     Held in `refs`.
@@ -40,24 +40,24 @@ defmodule Farmbot.Database do
     State of the DB
   """
   @type state :: %{
-    all: [resource_identifier],
+    all: [ref_id],
 
     by_kind: %{
-      required(syncable) => [resource_identifier]
+      required(syncable) => [ref_id]
     },
 
     by_kind_and_id: %{
-      required({syncable, db_id}) => resource_identifier
+      required({syncable, db_id}) => ref_id
     },
 
     refs: %{
-      required(resource_identifier) => resource_map
+      required(ref_id) => resource_map
     },
 
-    outdated: %{
-      add:    [resource_identifier],
-      remove: [resource_identifier],
-      update: [resource_identifier]
+    awaiting: %{
+      add:    [ref_id],
+      remove: [ref_id],
+      update: [ref_id]
     }
   }
 
@@ -82,18 +82,9 @@ defmodule Farmbot.Database do
     Sync up with the API.
   """
   def sync do
-    outdated = GenServer.call(__MODULE__, :get_outdated)
-    # TODO: Probably better ways to do this.
-    if Enum.empty?(outdated) do
-      # Full sync - need all the things
-      for module_name <- all_the_syncables() do
-        # see: `syncable.ex`. This is some macro magic.
-        module_name.fetch({__MODULE__, :commit_records, [module_name]})
-      end
-    else
-      outdated
-        |> Map.to_list
-        |> map_out_date
+    for module_name <- all_the_syncables() do
+      # see: `syncable.ex`. This is some macro magic.
+      module_name.fetch({__MODULE__, :commit_records, [module_name]})
     end
   end
 
@@ -121,39 +112,19 @@ defmodule Farmbot.Database do
     {:error, reason}
   end
 
-  defp map_out_date([]) do
-    :ok
-  end
-
-  defp map_out_date([{verb, items} | rest]) do
-    flush_outdated(verb, items)
-    map_out_date(rest)
-  end
-
-  defp flush_outdated(:add, resource_id_list) do
-    # push into the index
-  end
-
-  defp flush_outdated(:remove, resource_id_list) do
-    # splice out of the index
-  end
-
-  defp flush_outdated(:update, resource_id_list) do
+  @doc """
+    Sets awaiting api resources.
+  """
+  def set_awaiting(syncable, verb, value) do
+    debug_log("setting awaiting: #{syncable} #{verb}")
+    GenServer.call(__MODULE__, {:set_awaiting, syncable, verb, value})
   end
 
   @doc """
-    Sets outdated api resources.
+    Gets the awaiting api recources for syncable and verb
   """
-  def set_outdated(syncable, verb, value) do
-    debug_log("setting outdated: #{syncable} #{verb}")
-    GenServer.call(__MODULE__, {:set_outdated, syncable, verb, value})
-  end
-
-  @doc """
-    Gets the outdated api recources for syncable and verb
-  """
-  def get_outdated(syncable, verb) do
-    GenServer.call(__MODULE__, {:get_outdated, syncable, verb})
+  def get_awaiting(syncable, verb) do
+    GenServer.call(__MODULE__, {:get_awaiting, syncable, verb})
   end
 
   @doc """
@@ -182,7 +153,7 @@ defmodule Farmbot.Database do
       all: [],
       by_kind: generate_keys(all_the_syncables()),
       by_kind_and_id: %{},
-      outdated: generate_keys([:add, :remove, :update]),
+      awaiting: generate_keys([:add, :remove, :update]),
       refs: %{}
     }
     {:ok, state}
@@ -207,44 +178,45 @@ defmodule Farmbot.Database do
     {:reply, :ok, reindex(state, record)}
   end
 
-  def handle_call({:get_outdated, module, verb}, _, state) do
+  def handle_call({:get_awaiting, module, verb}, _, state) do
     r =
-      Enum.filter(state.outdated[verb], fn(ref) ->
-        if ref do
-          item = Map.fetch!(state.refs, ref)
-          item.body.__struct__ != module
-        end
+      Enum.filter(state.awaiting[verb], fn(ref) ->
+        item = Map.fetch!(state.refs, ref)
+        item.body.__struct__ != module
       end)
     {:reply, r, state}
   end
 
   # wildcard is easy
-  def handle_call({:set_outdated, syncable, verb, "*"}, _, state) do
-    # get a list of all references of this type.
-    all = state.by_kind[syncable]
-
-    # update the updated field
-    new_outdated = %{state.outdated | verb => all}
-
-    # update the state.
-    new_state = %{state | outdated: new_outdated}
-    {:reply, :ok, new_state}
+  # TODO(Rick): Not the right idea. "*" will need to do a force re-sync.
+  #             All resource of type "syncable".
+  def handle_call({:set_awaiting, syncable, verb, "*"}, _, state) do
+    raise "Not yet implemented."
   end
 
-  def handle_call({:set_outdated, syncable, verb, id}, _, state) do
+  def handle_call({:set_awaiting, syncable, :add, id}, _, state) do
+    ref           = new_ref_id(syncable, id)
+    next_awaiting = %{state.awaiting | add: [ref | state.awaiting.add]}
+    next_state    = %{state | awaiting: next_awaiting}
+    {:no_reply, :ok, next_state}
+  end
+
+  def handle_call({:set_awaiting, syncable, verb, id}, _, state) do
     # get the reference by its kind and id.
-    ref = get_by_kind_and_id(state, syncable, id)
+
+    item = get_by_kind_and_id(state, syncable, id) || raise "#{syncable} num" <>
+      "ber #{ id } not found."
 
     # old list of things that were out dated
-    old_by_verb = state.outdated[verb]
+    old_by_verb = state.awaiting[verb]
 
-    # new list ^
-    new_by_verb = [ref | old_by_verb]
+    # new list
+    new_by_verb = [item.ref_id | old_by_verb]
 
     # update the verb with new info from above.
-    new_outdated = %{state.outdated | verb => new_by_verb}
+    new_awaiting = %{state.awaiting | verb => new_by_verb}
 
-    new_state = %{state | outdated: new_outdated}
+    new_state = %{state | awaiting: new_awaiting}
     {:reply, :ok, new_state}
   end
 
@@ -268,8 +240,14 @@ defmodule Farmbot.Database do
     end
   end
 
-  @spec new_resource_identifier(map) :: resource_identifier
-  defp new_resource_identifier(%{__struct__: syncable, id: id}) do
+  @spec new_ref_id(map) :: ref_id
+  defp new_ref_id(%{__struct__: syncable, id: id}) do
+    # TODO(Connor) One day, we will need a local id.
+    {syncable, -1, id}
+  end
+
+  @spec new_ref_id(syncable, integer) :: ref_id
+  defp new_ref_id(syncable, id) do
     # TODO(Connor) One day, we will need a local id.
     {syncable, -1, id}
   end
@@ -287,16 +265,16 @@ defmodule Farmbot.Database do
       # if it existed, update it.
       # set the ref from the old one.
       new = %{already_exists | body: record}
-      new_refs = %{state.refs | new.resource_identifier => new}
+      new_refs = %{state.refs | new.ref_id => new}
       %{state | refs: new_refs}
     else
       debug_log("inputting new record")
       # if not, just add it.
-      rid =  new_resource_identifier(record)
+      rid =  new_ref_id(record)
 
       new_syncable = %Syncable{
         body: record,
-        resource_identifier: rid
+        ref_id: rid
       }
 
       all            = [rid | state.all]

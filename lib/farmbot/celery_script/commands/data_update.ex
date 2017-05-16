@@ -26,7 +26,7 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
     Enum.each(pairs, fn(%{args: %{label: s, value: nowc}}) ->
       syncable = s |> parse_syncable_str()
       value = nowc |> parse_val_str()
-      Database.set_outdated(syncable, verb, value)
+      Database.set_awaiting(syncable, verb, value)
     end)
   end
 
@@ -35,7 +35,7 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
   #FIXME ^
 
   @spec parse_syncable_str(binary) :: syncable
-  defp parse_syncable_str(str), do: String.to_atom(str)
+  defp parse_syncable_str(str), do: Module.concat([Farmbot.Database.Syncable, str])
 
   @spec parse_val_str(binary) :: number_or_wildcard
   defp parse_val_str("*"), do: "*"

@@ -23,11 +23,13 @@ defmodule Farmbot.CeleryScript.Command.DataUpdateTest do
     item  = List.first(context.json)
     id    = item["id"]
     ast   = ast("add", [pair("Point", id)])
-    old   = DB.get_outdated(Point, :add)
+    old_state = :sys.get_state(DB)
+    old   = DB.get_awaiting(Point, :add)
 
     Command.do_command(ast)
-
-    new = DB.get_outdated(Point, :add)
+    Process.sleep(4000)
+    new_state = :sys.get_state(DB)
+    new = DB.get_awaiting(Point, :add)
     assert Enum.count(new) > Enum.count(old)
   end
 

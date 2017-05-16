@@ -3,10 +3,10 @@ defmodule Farmbot.Database.Syncable do
     Defines a syncable.
   """
 
-  defstruct [:resource_identifier, :body]
+  defstruct [:ref_id, :body]
 
-  @type resource_identifier :: Farmbot.Database.resource_identifier
-  @type t :: %__MODULE__{resource_identifier: resource_identifier, body: map}
+  @type ref_id :: Farmbot.Database.ref_id
+  @type t :: %__MODULE__{ref_id: ref_id, body: map}
 
   @doc """
     Pipe a HTTP request thru this. Trust me :tm:
