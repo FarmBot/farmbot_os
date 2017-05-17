@@ -37,14 +37,14 @@ defmodule Farmbot.CeleryScript.Command do
   @doc ~s"""
     Convert an ast node to a coodinate or return :error.
   """
-  @spec ast_to_coord(Ast.context, Ast.t) :: context
+  @spec ast_to_coord(Ast.context, Ast.t) :: Ast.context
   def ast_to_coord(ast)
   def ast_to_coord(
     context,
     %Ast{kind: "coordinate",
          args: %{x: _x, y: _y, z: _z},
          body: []} = already_done),
-   do: Ast.Context.push_data(context, alread_done)
+   do: Ast.Context.push_data(context, already_done)
 
   def ast_to_coord(
     context,
@@ -65,7 +65,7 @@ defmodule Farmbot.CeleryScript.Command do
     coordinate(%{x: 0, y: 0, z: 0}, [], context)
   end
 
-  def ast_to_coord(_ast, _context) do
+  def ast_to_coord(ast, _context) do
     raise "No implicit conversion from #{inspect ast} to coordinate!"
   end
 

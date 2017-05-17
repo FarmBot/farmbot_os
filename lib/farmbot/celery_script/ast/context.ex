@@ -20,7 +20,7 @@ defmodule Farmbot.CeleryScript.Ast.Context do
     %{context | data_stack: new_ds}
   end
 
-  @spec pop_data(t) :: {any, context}
+  @spec pop_data(t) :: {any, t}
   def pop_data(context) do
     [result | rest] = context.data_stack
     {result, %{context | data_stack: rest}}
