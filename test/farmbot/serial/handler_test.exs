@@ -18,15 +18,21 @@ defmodule Farmbot.Serial.HandlerTest do
     assert state.tty == "/dev/tnt1"
   end
 
-  def wait_for_serial_available do
+  def wait_for_serial_available(count \\ 0)
+
+  def wait_for_serial_available(count) when count > 10 do
+    flunk "this probably isnt going to fix itself"
+  end
+
+  def wait_for_serial_available(count) do
     case Process.whereis(Handler) do
       nil ->
         Process.sleep(10)
-        wait_for_serial_available()
+        wait_for_serial_available(count + 1)
       _ ->
         unless Handler.available? do
           Process.sleep(100)
-          wait_for_serial_available()
+          wait_for_serial_available(count + 1)
         end
         Farmbot.CeleryScript.Command.home(%{axis: "all"}, [])
         Process.sleep(10)

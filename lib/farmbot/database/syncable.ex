@@ -6,7 +6,6 @@ defmodule Farmbot.Database.Syncable do
   @enforce_keys [:ref_id, :body]
   defstruct @enforce_keys
 
-
   @type ref_id :: Farmbot.Database.ref_id
   @type t :: %__MODULE__{ref_id: ref_id, body: map}
 
@@ -17,23 +16,14 @@ defmodule Farmbot.Database.Syncable do
   def parse_resp({:ok, %{status_code: 200, body: resp_body}}, module) do
     stuff = resp_body |> Poison.decode!
     cond do
-      is_list(stuff) -> Enum.map(stuff, fn(item) -> to_struct(item, module) end)
-      is_map(stuff)  -> to_struct(stuff, module)
+      is_list(stuff) -> Enum.map(stuff, fn(item) -> module.to_struct(item) end)
+      is_map(stuff)  -> module.to_struct(stuff)
       true           -> {:error, "Hashes and arrays only, please."}
     end
   end
 
   def parse_resp({:ok, whatevs}, _module) do
     {:error, whatevs}
-  end
-
-  defp to_struct(item, module) do
-    item =
-      item |> Enum.map(fn({key, value}) ->
-        {String.to_atom(key), value}
-      end)
-      |> Map.new()
-    struct(module, item)
   end
 
   @doc false
@@ -92,6 +82,20 @@ defmodule Farmbot.Database.Syncable do
           anon                     -> anon.(result)
         end
       end
+
+      @doc """
+        Changes a string map, to a struct
+      """
+      def to_struct(item) do
+        module = __MODULE__
+        sym_keys = Map.keys(%__MODULE__{})
+        str_keys = Enum.map(sym_keys, fn(key) -> Atom.to_string(key) end)
+
+        next = Map.take(item, str_keys)
+        new = Map.new(next, fn({key, val}) -> {String.to_atom(key), val} end)
+        struct(module, new)
+      end
+
     end
   end
 end
