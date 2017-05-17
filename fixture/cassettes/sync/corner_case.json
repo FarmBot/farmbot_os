@@ -1,0 +1,79 @@
+[
+  {
+    "request": {
+      "body": "{\"user\":{\"credentials\":\"QLrBmQraNsjRV4t08xB8BvQi1rLupz6X7+HOxuyUYk62JbzDVeC4pulnBduut/K6iRUXB7H+mYVW69TRvffVunuGNjX3pTTL5lJuGjnH5EadDDN6TB9ap+FYLnn3BILM/w9ej4r1ChMkCHUPWcsJlp8ZIISBjBBQvCQP0WYk1TMCvzFcli4eJxPwMSGb4lTnWmZFl0XbH83FlLysPgH0RHnzgnDH/WJxsfAJ1BZBVidH3nOnynQVy2FHpfaeR5UJH230PJTefOqhJWVdcvLwk2IkaabztS7O9pgvoHvBrEzua9QRIFpyiaTr07Q6g/XPkqtZhxNv+xOJa9Loal8SCQ==\"}}",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "method": "post",
+      "options": {
+        "follow_redirect": true,
+        "ssl_options": {
+          "versions": [
+            "tlsv1.2"
+          ]
+        }
+      },
+      "request_body": "",
+      "url": "http://localhost:3000/api/tokens"
+    },
+    "response": {
+      "body": "{\"auth\":\"You are most likely on the wrong server env. That's not a valid public key.\"}",
+      "headers": {
+        "X-Frame-Options": "SAMEORIGIN",
+        "X-XSS-Protection": "1; mode=block",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-cache",
+        "Set-Cookie": "_farmbot_session=R1VBc2lvdm85ZTRWK2hmZHZWdDE1WlBLZUk3RE45Q2gzektSYS8xMVZHcDl4YnZFYk5TdExxY21helVKdG5YZWRONld0cFM3Q1lWcmVsbmZrNS9pM1E9PS0tbDREREN3TlhNNTJiTU04ckhVMGtmUT09--c1d55d21c6a67e7e08352b33ef51411316d22b96; path=/; HttpOnly",
+        "X-Request-Id": "0a4e3dd4-c87e-4093-b460-59bbda305992",
+        "X-Runtime": "0.013516",
+        "Vary": "Origin",
+        "Connection": "close",
+        "Server": "thin"
+      },
+      "status_code": 422,
+      "type": "ok"
+    }
+  },
+  {
+    "request": {
+      "body": "",
+      "headers": {
+        "Content-Type": "application/json",
+        "User-Agent": "FarmbotOS/3.1.6 (host) host ()",
+        "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0OTUwMzIwMTAsImp0aSI6ImUyM2YyNzI0LTAyZWMtNDk2OC1iNjc5LWI4MTQ0YjI3N2JiZiIsImlzcyI6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5ODQ4ODAxMCwibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFybWJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZGF0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVhc2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV84In0.UcBgq4pxoXeR6TYv9lYd90LAlGczZMjuvqT1Yc4R8xIk_Jy6bumhq7mI-Hoi9iKBhPU3XMpifXoIyqb1UdC1MBJyHMpPYjZoJLmm4v3XEug_rTu4RcaO7r_r1dZAh2C5TPVXBydcDe02loGC4_YmQPwWixhqJO_6vFF7JEDHir4bihbdfV-P4uZhpUcw-I1Eht4zCMjlmWaL5xcKUdSf-TuSQGNi0Ib0GkZs2wXan2bgv_wBfFEaZ4vmoZO1NM43jaykDssOaxP9hN7FKDdJ4mXL7r9XS7KtXpVQPycUYsfr-lPvid9cfKQFv-STakiDot8uGOYr1CH6I9erQMlhnQ"
+      },
+      "method": "get",
+      "options": {
+        "follow_redirect": true,
+        "ssl_options": {
+          "versions": [
+            "tlsv1.2"
+          ]
+        },
+        "recv_timeout": 25000,
+        "connect_timeout": 25000
+      },
+      "request_body": "",
+      "url": "http://localhost:3000/api/regimens"
+    },
+    "response": {
+      "body": "{\"error\":{\"jwt\":\"JSON Web Token is not valid.\",\"strategy\":\"jwt\"}}",
+      "headers": {
+        "X-Frame-Options": "SAMEORIGIN",
+        "X-XSS-Protection": "1; mode=block",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-cache",
+        "X-Request-Id": "50ec45b0-e6c5-44a0-b47f-3990b6880931",
+        "X-Runtime": "0.052535",
+        "Vary": "Origin",
+        "Connection": "close",
+        "Server": "thin"
+      },
+      "status_code": 401,
+      "type": "ok"
+    }
+  }
+]
