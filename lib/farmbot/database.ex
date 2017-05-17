@@ -39,6 +39,7 @@ defmodule Farmbot.Database do
   @typedoc false
   @type db :: pid
 
+  @typedoc false
   @type syncable_object :: map
 
   @typedoc """
@@ -65,15 +66,14 @@ defmodule Farmbot.Database do
   @doc """
     All the tags that the Database knows about.
   """
-  def all_the_syncables do
-    unquote(syncable_modules)
-  end
+  @spec all_syncable_modules :: [syncable]
+  def all_syncable_modules, do: unquote(syncable_modules)
 
   @doc """
     Sync up with the API.
   """
   def sync(db) do
-    for module_name <- all_the_syncables() do
+    for module_name <- all_syncable_modules() do
       # see: `syncable.ex`. This is some macro magic.
       debug_log "Syncing: #{module_name} on db: #{inspect db}"
       module_name.fetch({__MODULE__, :commit_records,  [db, module_name]})
@@ -151,12 +151,12 @@ defmodule Farmbot.Database do
   @doc """
     Start the Database
   """
-  def start_link(opts), do: GenServer.start_link(__MODULE__, [], [opts])
+  def start_link(opts \\ []), do: GenServer.start_link(__MODULE__, [], [opts])
 
   def init([]) do
     initial_by_kind_and_id = %{}
-    initial_awaiting       = generate_keys(all_the_syncables(), true)
-    initial_by_kind        = generate_keys(all_the_syncables())
+    initial_awaiting       = generate_keys(all_syncable_modules(), true)
+    initial_by_kind        = generate_keys(all_syncable_modules())
     initial_refs           = %{}
     initial_all            = []
 
@@ -269,4 +269,5 @@ defmodule Farmbot.Database do
          by_kind_and_id: by_kind_and_id }
     end
   end
+
 end

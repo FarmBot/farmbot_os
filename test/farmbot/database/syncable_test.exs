@@ -9,6 +9,7 @@ defmodule Farmbot.SyncableTest do
   alias Farmbot.TestHelpers
   require IEx
   use ExUnit.Case, async: false
+  doctest Farmbot.Database.Syncable
   use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
 
   setup_all do

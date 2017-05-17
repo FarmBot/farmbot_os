@@ -6,6 +6,7 @@ defmodule Farmbot.CeleryScript.Command.DataUpdateTest do
   alias Farmbot.Database, as: DB
   alias DB.Syncable.Point
   alias Farmbot.TestHelpers
+  alias Farmbot.CeleryScript.Command.DataUpdate
   require IEx
 
 
@@ -27,9 +28,9 @@ defmodule Farmbot.CeleryScript.Command.DataUpdateTest do
     old = DB.get_awaiting(context.pid, Point)
     refute(old)
 
-    Command.do_command(ast)
+    DataUpdate.run(ast.args, ast.body)
+
     new = DB.get_awaiting(context.pid, Point)
-    IEx.pry
     assert(new)
   end
 

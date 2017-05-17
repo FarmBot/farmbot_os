@@ -7,24 +7,28 @@ defmodule Farmbot.FarmEventRunner do
   alias Farmbot.CeleryScript.Ast
   use Farmbot.DebugLog
 
-  alias Farmbot.Database.Syncable.Sequence
-  alias Farmbot.Database.Syncable.Regimen
-  alias Farmbot.Database.Syncable.FarmEvent
+  alias Farmbot.Database
+  alias Database.Syncable.Sequence
+  alias Database.Syncable.Regimen
+  alias Database.Syncable.FarmEvent
 
   @checkup_time 10_000
 
-  @type state :: %{required(integer) => DateTime.t}
+  @type database :: Database.db
+  @type state :: {database, %{required(integer) => DateTime.t}}
 
-  def start_link do
-    GenServer.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link(database) do
+    GenServer.start_link(__MODULE__, database, name: __MODULE__)
   end
 
-  def init([]) do
+  def init(database) do
+    pid = if is_atom(database), do: Process.whereis(database), else: database
+    Process.link(pid)
     send self(), :checkup
-    {:ok, %{}}
+    {:ok, {pid, %{}}}
   end
 
-  def handle_info(:checkup, state) do
+  def handle_info(:checkup, {db, state}) do
     now = get_now()
     new_state = if now do
       # all_events = Amnesia.transaction do
@@ -39,7 +43,9 @@ defmodule Farmbot.FarmEventRunner do
       #   #   %{farm_event | calendar: calendar}
       #   # end)
       # end
-      all_events = FarmEvent.all() |> Enum.map(fn(thing) -> thing.body end)
+      all_events = Database.get_all(db, FarmEvent)
+      |> Enum.map(fn(thing) -> thing.body end)
+
       {late_events, new} = do_checkup(all_events, now, state)
       unless Enum.empty?(late_events) do
         Logger.info "Time for event to run: #{inspect late_events} " <>
@@ -51,7 +57,7 @@ defmodule Farmbot.FarmEventRunner do
       state
     end
     Process.send_after self(), :checkup, @checkup_time
-    {:noreply, new_state}
+    {:noreply, {db, new_state}}
   end
 
   @spec start_events([Sequence.t | Regimen.t], DateTime.t) :: no_return

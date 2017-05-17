@@ -15,7 +15,7 @@ defmodule Farmbot.DatabaseTest do
 
   test "sync" do
     {:ok, db} = DB.start_link([])
-    DB.flush(db)
+    :ok = DB.flush(db)
 
     use_cassette "sync/corner_case" do
       before_state = :sys.get_state(db)
@@ -31,7 +31,7 @@ defmodule Farmbot.DatabaseTest do
 
 
   test "adds a record to the local db", %{db: db} do
-    # modulename = Enum.random(DB.all_the_syncables())
+    # modulename = Enum.random(DB.all_syncable_modules())
     modulename = Point
     plural = modulename.plural_url()
     points_json = read_json("#{plural}.json")
@@ -53,7 +53,7 @@ defmodule Farmbot.DatabaseTest do
 
   test "wont commit errornous things to db", %{db: db} do
     item   = "random_not_json: {}, this isnt formatted_properly!"
-    mod    = Enum.random(DB.all_the_syncables())
+    mod    = Enum.random(DB.all_syncable_modules())
     error  = Poison.decode(item)
     old    = DB.get_all(db,mod)
 

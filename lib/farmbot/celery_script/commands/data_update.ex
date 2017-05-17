@@ -25,7 +25,7 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
     Enum.each(pairs, fn(%{args: %{label: s, value: nowc}}) ->
       syncable = s |> parse_syncable_str()
       value = nowc |> parse_val_str()
-      Database.set_awaiting(syncable, verb, value)
+      :ok = Database.set_awaiting(syncable, verb, value)
     end)
   end
 
