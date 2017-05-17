@@ -25,4 +25,14 @@ defmodule Farmbot.CeleryScript.Ast.Context do
     [result | rest] = context.data_stack
     {result, %{context | data_stack: rest}}
   end
+
+  @doc """
+    Returns an empty context object for those times you don't care about
+    side effects or execution.
+  """
+  @spec new() :: Ast.context
+  def new() do
+    %__MODULE__{ data_stack: [],
+                 database:   Farmbot.Database }
+  end
 end

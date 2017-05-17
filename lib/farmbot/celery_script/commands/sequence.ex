@@ -3,8 +3,7 @@ defmodule Farmbot.CeleryScript.Command.Sequence do
     Sequence
   """
 
-  alias Farmbot.CeleryScript.Command
-  alias Farmbot.CeleryScript.Ast
+  alias Farmbot.CeleryScript.{Command, Ast}
   require Logger
 
   @behaviour Command

@@ -3,7 +3,7 @@ defmodule Farmbot.CeleryScript.Command.StartProcess do
     StartProcess
   """
 
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Ast}
   @behaviour Command
 
   @doc ~s"""
@@ -11,8 +11,9 @@ defmodule Farmbot.CeleryScript.Command.StartProcess do
       args: %{label: String.t},
       body: []
   """
-  @spec run(%{label: String.t}, []) :: no_return
-  def run(%{label: uuid}, []) do
+  @spec run(%{label: String.t}, [], Ast.context) :: Ast.context
+  def run(%{label: uuid}, [], context) do
     Farmbot.BotState.ProcessTracker.start_process(uuid)
+    context
   end
 end

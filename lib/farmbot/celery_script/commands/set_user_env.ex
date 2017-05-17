@@ -3,7 +3,7 @@ defmodule Farmbot.CeleryScript.Command.SetUserEnv do
     SetUserEnv
   """
 
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Ast}
   @behaviour Command
 
   @doc ~s"""
@@ -11,8 +11,8 @@ defmodule Farmbot.CeleryScript.Command.SetUserEnv do
       args: %{},
       body: [pair]
   """
-  @spec run(%{}, [Command.Pair.t]) :: no_return
-  def run(%{}, env_pairs) do
+  @spec run(%{}, [Command.Pair.t], Ast.context) :: Ast.context
+  def run(%{}, env_pairs, context) do
      envs = Command.pairs_to_tuples(env_pairs)
      envs
      |> Map.new
@@ -21,5 +21,6 @@ defmodule Farmbot.CeleryScript.Command.SetUserEnv do
      envs
      |> Map.new
      |> Farmware.Worker.add_envs
+     context
   end
 end

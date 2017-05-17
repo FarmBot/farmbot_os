@@ -5,6 +5,7 @@ defmodule Farmbot.BotState.Hardware do
 
   require Logger
   alias Farmbot.StateTracker
+  alias Farmbot.CeleryScript.{Ast, Command}
 
   @behaviour StateTracker
   use StateTracker,
@@ -55,7 +56,7 @@ defmodule Farmbot.BotState.Hardware do
 
     if Enum.empty?(state.mcu_params) do
       Logger.info ">> is reading all mcu params."
-      Farmbot.CeleryScript.Command.read_all_params(%{}, [])
+      Command.read_all_params(%{}, [], Ast.Context.new())
       {:ok, :no_params}
     else
       Logger.info ">> is setting previous mcu commands."
@@ -63,8 +64,8 @@ defmodule Farmbot.BotState.Hardware do
         %Farmbot.CeleryScript.Ast{kind: "pair",
             args: %{label: param, value: val}, body: []}
       end)
-      Farmbot.CeleryScript.Command.config_update(%{package: "arduino_firmware"},
-        config_pairs)
+      Command.config_update(%{package: "arduino_firmware"},
+        config_pairs, Ast.Context.new())
       :ok
     end
   end

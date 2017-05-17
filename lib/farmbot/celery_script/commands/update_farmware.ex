@@ -4,7 +4,7 @@ defmodule Farmbot.CeleryScript.Command.UpdateFarmware do
   """
 
   # alias Farmbot.CeleryScript.Ast
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Ast}
   require Logger
   @behaviour Command
 
@@ -13,8 +13,9 @@ defmodule Farmbot.CeleryScript.Command.UpdateFarmware do
       args: %{package: String.t},
       body: []
   """
-  @spec run(%{package: String.t}, []) :: no_return
-  def run(%{package: package}, []) do
+  @spec run(%{package: String.t}, [], Ast.context) :: Ast.context
+  def run(%{package: package}, [], context) do
     Farmware.update(package)
+    context
   end
 end

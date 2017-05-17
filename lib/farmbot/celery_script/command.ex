@@ -38,7 +38,7 @@ defmodule Farmbot.CeleryScript.Command do
     Convert an ast node to a coodinate or return :error.
   """
   @spec ast_to_coord(Ast.context, Ast.t) :: Ast.context
-  def ast_to_coord(ast)
+  def ast_to_coord(context, ast)
   def ast_to_coord(
     context,
     %Ast{kind: "coordinate",

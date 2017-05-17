@@ -16,7 +16,7 @@ defmodule Farmbot.CeleryScript.Command.Execute do
   @spec run(%{sequence_id: integer}, [], Ast.context) :: Ast.context
   def run(%{sequence_id: id} = args, [], context) do
     context.database
-    |> Farmbot.Database.by_kind_id(Sequence, id)
+    |> Farmbot.Database.get_by_id(Sequence, id)
     |> Ast.parse
     |> merge_args(args)
     |> delete_me()

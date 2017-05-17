@@ -47,7 +47,7 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
       "F20" |> UartHan.write
     else
       for {param_str, _val} <- params do
-        read_param(%{label: param_str}, [])
+        read_param(%{label: param_str}, [], context)
       end
     end
     context
