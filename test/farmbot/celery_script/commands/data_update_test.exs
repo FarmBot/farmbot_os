@@ -1,36 +1,39 @@
 defmodule Farmbot.CeleryScript.Command.DataUpdateTest do
   use ExUnit.Case, async: false
 
-  alias Farmbot.CeleryScript.Ast
-  # alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Ast}
   alias Farmbot.Database, as: DB
   alias DB.Syncable.Point
   alias Farmbot.TestHelpers
-  alias Farmbot.CeleryScript.Command.DataUpdate
+  alias Command.DataUpdate
   require IEx
 
 
   setup_all do
-    json = TestHelpers.read_json("points.json")
-    {:ok, pid} = DB.start_link([])
-    :ok        = Farmbot.TestHelpers.seed_db(pid, Point, json)
+    json          = TestHelpers.read_json("points.json")
+    {:ok, db_pid} = DB.start_link([])
+    :ok           = Farmbot.TestHelpers.seed_db(db_pid, Point, json)
 
-    [json: json, pid: pid]
+    [
+      json: json,
+      db_pid: db_pid,
+      cs_context: %Ast.Context{data_stack: [], database: db_pid}
+    ]
   end
 
   setup context do
-    DB.unset_awaiting(context.pid, Point)
+    DB.unset_awaiting(context.db_pid, Point)
   end
 
   test "data_updates causes awaiting to be true.", context do
     ast = ast("add", [pair("Point", "*")])
 
-    old = DB.get_awaiting(context.pid, Point)
+    old = DB.get_awaiting(context.db_pid, Point)
     refute(old)
 
-    DataUpdate.run(ast.args, ast.body)
+    DataUpdate.run(ast.args, ast.body, context.cs_context)
 
-    new = DB.get_awaiting(context.pid, Point)
+    new = DB.get_awaiting(context.db_pid, Point)
     assert(new)
   end
 

@@ -28,6 +28,7 @@ defmodule Farmware.FarmScript do
   @clean_up_timeout 900_000 # fifteen minutes
 
   require Logger
+  alias Farmbot.CeleryScript.{Command, Ast}
 
   @doc """
     Executes a farmscript?
@@ -118,8 +119,8 @@ defmodule Farmware.FarmScript do
   defp do_sort(["<<< " <> json | tail ], acc, thing) do
     case Poison.decode(json) do
       {:ok, thing} ->
-        ast_node = Farmbot.CeleryScript.Ast.parse(thing)
-        Farmbot.CeleryScript.Command.do_command(ast_node)
+        ast_node = Ast.parse(thing)
+        Command.do_command(ast_node, Ast.Context.new())
       _ -> Logger.error ">> Got invalid Celery Script from: #{thing.name}"
     end
     do_sort(tail, acc, thing)

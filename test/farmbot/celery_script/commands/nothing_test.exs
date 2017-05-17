@@ -1,7 +1,7 @@
 defmodule Farmbot.CeleryScript.Command.NothingTest do
   use ExUnit.Case
-  alias Farmbot.CeleryScript.Ast
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Ast}
+
   test "does nothing" do
     json = ~s"""
     {
@@ -10,7 +10,9 @@ defmodule Farmbot.CeleryScript.Command.NothingTest do
     }
     """
     ast = json |> Poison.decode!() |> Ast.parse
-    r = Command.do_command(ast)
+    context = Command.do_command(ast, Ast.Context.new())
+    {r, _final_context} = Ast.Context.pop_data(context)
+    assert is_map(r)
     assert r.kind == "nothing"
   end
 end

@@ -1,12 +1,11 @@
 defmodule Farmbot.CeleryScript.Command.HomeTest do
   use ExUnit.Case, async: false
 
-  # alias Farmbot.CeleryScript.Ast
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Ast}
 
   setup_all do
     Farmbot.Serial.HandlerTest.wait_for_serial_available()
-    :ok
+    [cs_context: Ast.Context.new()]
   end
 
   setup do
@@ -18,8 +17,8 @@ defmodule Farmbot.CeleryScript.Command.HomeTest do
     assert Farmbot.Serial.Handler.available?() == true
   end
 
-  test "homes all axises" do
-    Command.home(%{axis: "all"}, [])
+  test "homes all axises", %{cs_context: context} do
+    Command.home(%{axis: "all"}, [], context)
     Process.sleep(500)
     [x, y, z] = Farmbot.BotState.get_current_pos
     assert x == 0
@@ -27,9 +26,9 @@ defmodule Farmbot.CeleryScript.Command.HomeTest do
     assert z == 0
   end
 
-  test "homes x" do
+  test "homes x", %{cs_context: context} do
     [_x, y, z] = Farmbot.BotState.get_current_pos
-    Command.home(%{axis: "x"}, [])
+    Command.home(%{axis: "x"}, [], context)
     Process.sleep(500)
     [new_x, new_y, new_z] = Farmbot.BotState.get_current_pos
     assert new_x == 0
@@ -37,9 +36,9 @@ defmodule Farmbot.CeleryScript.Command.HomeTest do
     assert z == new_z
   end
 
-  test "homes y" do
+  test "homes y", %{cs_context: context} do
     [x, _y, z] = Farmbot.BotState.get_current_pos
-    Command.home(%{axis: "y"}, [])
+    Command.home(%{axis: "y"}, [], context)
     Process.sleep(500)
     [new_x, new_y, new_z] = Farmbot.BotState.get_current_pos
     assert x == new_x
@@ -47,9 +46,9 @@ defmodule Farmbot.CeleryScript.Command.HomeTest do
     assert z == new_z
   end
 
-  test "homes z" do
+  test "homes z", %{cs_context: context} do
     [x, y, _z] = Farmbot.BotState.get_current_pos
-    Command.home(%{axis: "z"}, [])
+    Command.home(%{axis: "z"}, [], context)
     Process.sleep(500)
     [new_x, new_y, new_z] = Farmbot.BotState.get_current_pos
     assert x == new_x

@@ -9,6 +9,7 @@ defmodule Farmbot.CeleryScript.Command do
   require Logger
   alias Farmbot.CeleryScript.Ast
   alias Farmbot.Database.Syncable.Point
+  use Farmbot.DebugLog
 
   celery =
     "lib/farmbot/celery_script/commands/"
@@ -40,19 +41,20 @@ defmodule Farmbot.CeleryScript.Command do
   @spec ast_to_coord(Ast.context, Ast.t) :: Ast.context
   def ast_to_coord(context, ast)
   def ast_to_coord(
-    context,
+    %Ast.Context{} = context,
     %Ast{kind: "coordinate",
          args: %{x: _x, y: _y, z: _z},
          body: []} = already_done),
    do: Ast.Context.push_data(context, already_done)
 
   def ast_to_coord(
-    context,
+    %Ast.Context{} = context,
     %Ast{kind: "tool", args: %{tool_id: tool_id}, body: []})
   do
     ts = nil
     if ts do
-      coordinate(%{x: ts.x, y: ts.y, z: ts.z}, [], context)
+      next_context = coordinate(%{x: ts.x, y: ts.y, z: ts.z}, [], context)
+      raise_if_not_context_or_return_context("coordinate", next_context)
     else
       raise "Could not find tool_slot with tool_id: #{tool_id}"
     end
@@ -61,12 +63,13 @@ defmodule Farmbot.CeleryScript.Command do
   # is this one a good idea?
   # there might be too expectations here: it could return the current position,
   # or 0
-  def ast_to_coord(%Ast{kind: "nothing", args: _, body: _}, context) do
-    coordinate(%{x: 0, y: 0, z: 0}, [], context)
+  def ast_to_coord(%Ast.Context{} = context, %Ast{kind: "nothing", args: _, body: _}) do
+    next_context = coordinate(%{x: 0, y: 0, z: 0}, [], context)
+    raise_if_not_context_or_return_context("coordinate", next_context)
   end
 
-  def ast_to_coord(ast, _context) do
-    raise "No implicit conversion from #{inspect ast} to coordinate!"
+  def ast_to_coord(%Ast.Context{} = context, %Ast{} = ast) do
+    raise "No implicit conversion from #{inspect ast} to coordinate! context: #{inspect context}"
   end
 
   @doc """
@@ -89,7 +92,7 @@ defmodule Farmbot.CeleryScript.Command do
   @doc ~s"""
     Executes an ast tree.
   """
-  @spec do_command(Ast.t) :: :no_instruction | any
+  @spec do_command(Ast.t, Ast.context) :: Ast.context | no_return
   def do_command(%Ast{} = ast, context) do
     kind = ast.kind
     module = Module.concat Farmbot.CeleryScript.Command, Macro.camelize(kind)
@@ -99,18 +102,27 @@ defmodule Farmbot.CeleryScript.Command do
 
     if Code.ensure_loaded?(module) do
       try do
-        Kernel.apply(module, :run, [ast.args, ast.body, context])
+        next_context = Kernel.apply(module, :run, [ast.args, ast.body, context])
+        raise_if_not_context_or_return_context(kind, next_context)
       rescue
-        e -> Logger.error ">> could not execute #{inspect ast} #{inspect e}"
+        e ->
+          debug_log("Could not execute: #{inspect ast}, #{inspect e}")
+          Logger.error ">> could not execute #{inspect ast} #{inspect e}"
+          stack_trace = System.stacktrace
+          reraise(e, stack_trace)
       end
     else
-      Logger.error ">> has no instruction for #{inspect ast}"
-      :no_instruction
+      raise ">> has no instruction for #{inspect ast}"
     end
   end
 
-  def do_command(not_cs_node) do
-    Logger.error ">> can not handle: #{inspect not_cs_node}"
+  def do_command(not_cs_node, _) do
+    raise ">> can not handle: #{inspect not_cs_node}"
+  end
+
+  defp raise_if_not_context_or_return_context(_, %Ast.Context{} = next), do: next
+  defp raise_if_not_context_or_return_context(last_kind, not_context) do
+    raise "[#{last_kind}] bad return value! #{inspect not_context}"
   end
 
   # behaviour

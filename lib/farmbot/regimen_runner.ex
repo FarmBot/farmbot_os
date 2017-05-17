@@ -20,6 +20,7 @@ defmodule Farmbot.RegimenRunner do
   require Logger
 
   alias Farmbot.Database.Syncable.Regimen
+  alias Farmbot.CeleryScript.{Command, Ast}
 
   def start_link(regimen, time) do
     GenServer.start_link(__MODULE__,
@@ -74,7 +75,7 @@ defmodule Farmbot.RegimenRunner do
   end
 
   defp do_item(item, regimen, state) do
-    Farmbot.CeleryScript.Command.do_command(item)
+    Command.do_command(item, Ast.Context.new())
     next_item = List.first(regimen.regimen_items)
     if next_item do
       next_dt = Timex.shift(state.epoch, milliseconds: next_item.time_offset)

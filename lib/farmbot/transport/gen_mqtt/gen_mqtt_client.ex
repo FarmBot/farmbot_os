@@ -6,8 +6,7 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   require Logger
   alias Farmbot.Transport.Serialized, as: Ser
   alias Farmbot.Token
-  alias Farmbot.CeleryScript.Command
-  alias Farmbot.CeleryScript.Ast
+  alias Farmbot.CeleryScript.{Command, Ast}
 
   @type ok :: {:ok, Token.t}
 
@@ -45,7 +44,7 @@ defmodule Farmbot.Transport.GenMqtt.Client do
       msg
       |> Poison.decode!
       |> Ast.parse
-      |> Command.do_command
+      |> Command.do_command(Ast.Context.new())
     rescue
       e ->
         Logger.error ">> Saved mqtt client from cs death: #{inspect e}"

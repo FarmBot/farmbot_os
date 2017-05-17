@@ -1,9 +1,12 @@
 defmodule CommandTest do
   use ExUnit.Case, async: false
-  alias Farmbot.CeleryScript.Ast
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Ast}
 
-  test "doesnt freak out on no instruction" do
+  setup_all do
+    [cs_context: Ast.Context.new()]
+  end
+
+  test "doesnt freak out on no instruction", %{cs_context: context} do
     json = ~s"""
     {
       "kind": "bring_down_network",
@@ -11,14 +14,21 @@ defmodule CommandTest do
     }
     """
     cs = Poison.decode!(json) |> Ast.parse()
-    r = Command.do_command(cs)
-    assert r == :no_instruction
+    assert_raise RuntimeError, fn() ->
+      Command.do_command(cs, context)
+    end
   end
 
-  test "converts a coordinate to coordinates" do
+  test "converts a coordinate to coordinates", %{cs_context: context} do
     # a coordinate is already a coordinate
-    ast_a = %Ast{kind: "coordinate", args: %{x: 1, y: 1, z: 1}, body: []}
-    coord_a = Command.ast_to_coord(ast_a)
+    ast_a   = %Ast{kind: "coordinate", args: %{x: 1, y: 1, z: 1}, body: []}
+    context = Command.ast_to_coord(context, ast_a)
+    {coord_a, next_context} = Ast.Context.pop_data(context)
+
+    assert is_map(coord_a)
+
+    assert is_map(next_context)
+
     assert ast_a.kind == coord_a.kind
   end
 
@@ -55,18 +65,21 @@ defmodule CommandTest do
   #   assert r == :error
   # end
 
-  test "gives the origin on nothing" do
+  test "gives the origin on nothing", %{cs_context: context} do
     nothing = %Ast{kind: "nothing", args: %{}, body: []}
-    coord = Command.ast_to_coord(nothing)
+    {coord, context} = Command.ast_to_coord(context, nothing) |> Ast.Context.pop_data
+    assert is_map(coord)
+    assert is_map(context)
     assert coord.args.x == 0
     assert coord.args.y == 0
     assert coord.args.z == 0
   end
 
-  test "gives an error on unknown asts" do
+  test "gives an error on unknown asts", %{cs_context: context} do
     blerp = %Ast{kind: "blerp", args: %{}, body: []}
-    coord = Command.ast_to_coord(blerp)
-    assert coord == :error
+    assert_raise RuntimeError, fn ->
+      Command.ast_to_coord(context, blerp)
+    end
   end
 
   # test "doesnt implode if a sequence relies on itself" do

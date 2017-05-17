@@ -1,6 +1,7 @@
 defmodule Farmbot.Serial.HandlerTest do
   use ExUnit.Case, async: false
   alias Farmbot.Serial.Handler
+  alias Farmbot.CeleryScript.{Command, Ast}
 
   setup_all do
     :ok = wait_for_serial_available()
@@ -20,7 +21,7 @@ defmodule Farmbot.Serial.HandlerTest do
 
   def wait_for_serial_available(count \\ 0)
 
-  def wait_for_serial_available(count) when count > 10 do
+  def wait_for_serial_available(count) when count > 1000 do
     flunk "this probably isnt going to fix itself"
     {:error, :timeout}
   end
@@ -29,13 +30,15 @@ defmodule Farmbot.Serial.HandlerTest do
     case Process.whereis(Handler) do
       nil ->
         Process.sleep(10)
+        IO.puts "waiting for serial: #{inspect self()}"
         wait_for_serial_available(count + 1)
       _ ->
         unless Handler.available? do
-          Process.sleep(100)
+          Process.sleep(10)
+          IO.puts "waiting for serial: #{inspect self()}"
           wait_for_serial_available(count + 1)
         end
-        Farmbot.CeleryScript.Command.home(%{axis: "all"}, [])
+        Command.home(%{axis: "all"}, [], Ast.Context.new())
         Process.sleep(10)
         :ok
     end

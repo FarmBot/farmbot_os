@@ -3,6 +3,8 @@ defmodule Farmbot.CeleryScript.Ast.Context do
     Context serves as an execution sandbox for all CeleryScript
   """
 
+  alias Farmbot.CeleryScript.Ast
+
   @enforce_keys [:database]
   defstruct [:database, data_stack: []]
 
@@ -14,13 +16,13 @@ defmodule Farmbot.CeleryScript.Ast.Context do
     data_stack: [any]
   }
 
-  @spec push_data(t, any) :: t
-  def push_data(context, data) do
+  @spec push_data(t, Ast.t) :: t
+  def push_data(%__MODULE__{} = context, %Ast{} = data) do
     new_ds = [data | context.data_stack]
     %{context | data_stack: new_ds}
   end
 
-  @spec pop_data(t) :: {any, t}
+  @spec pop_data(t) :: {Ast.t, t}
   def pop_data(context) do
     [result | rest] = context.data_stack
     {result, %{context | data_stack: rest}}

@@ -8,7 +8,7 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
   alias Farmbot.Serial.Handler, as: UartHan
   alias Farmbot.Serial.Gcode.Parser, as: GParser
   @behaviour Command
-  import Command
+  import Command, only: [read_param: 3, pairs_to_tuples: 1]
   use Farmbot.DebugLog
 
   @doc ~s"""
