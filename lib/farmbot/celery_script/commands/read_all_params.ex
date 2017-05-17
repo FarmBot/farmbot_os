@@ -4,6 +4,7 @@ defmodule Farmbot.CeleryScript.Command.ReadAllParams do
   """
 
   alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.Ast
   alias Farmbot.Serial.Handler, as: UartHan
   @behaviour Command
   require Logger
@@ -13,8 +14,11 @@ defmodule Farmbot.CeleryScript.Command.ReadAllParams do
       args: %{},
       body: []
   """
-  @spec run(%{}, []) :: no_return
-  def run(%{}, []), do: do_thing()
+  @spec run(%{}, [], Ast.context) :: Ast.context
+  def run(%{}, [], context) do
+    do_thing()
+    context
+  end
 
   defp do_thing(tries \\ 0)
 

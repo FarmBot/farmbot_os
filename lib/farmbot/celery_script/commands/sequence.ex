@@ -14,8 +14,9 @@ defmodule Farmbot.CeleryScript.Command.Sequence do
       args: %{},
       body: [Ast.t]
   """
-  @spec run(%{}, [Ast.t]) :: no_return
-  def run(args, body) do
+  @spec run(%{}, [Ast.t], Ast.context) :: Ast.context
+  def run(args, body, context) do
+    #TODO(connor) wait for all rpcs to be done first.
     # rebuild the ast node
     ast = %Ast{kind: "sequence", args: args, body: body}
     # Logger.debug "Starting sequence: #{inspect ast}"

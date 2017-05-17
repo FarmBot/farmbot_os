@@ -6,7 +6,9 @@ defmodule Farmbot.CeleryScript.Command.Pair do
   alias Farmbot.CeleryScript.Ast
   alias Farmbot.CeleryScript.Command
   require Logger
+
   @behaviour Command
+
   @type t ::
     %Ast{kind: String.t, args: %{label: String.t, value: any}, body: []}
 
@@ -17,6 +19,7 @@ defmodule Farmbot.CeleryScript.Command.Pair do
   """
   @spec run(%{label: String.t, value: any}, []) :: t
   def run(%{label: label, value: value}, []) do
-    %Ast{kind: "pair", args: %{label: label, value: value}, body: []}
+    data = %Ast{kind: "pair", args: %{label: label, value: value}, body: []}
+    Ast.Context.push_data(context, data)
   end
 end

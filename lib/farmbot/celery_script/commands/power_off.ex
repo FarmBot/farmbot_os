@@ -11,8 +11,10 @@ defmodule Farmbot.CeleryScript.Command.PowerOff do
       args: %{},
       body: []
   """
-  @spec run(%{}, []) :: no_return
-  def run(%{}, []) do
+  @spec run(%{}, [], Ast.context) :: Ast.context
+  def run(%{}, [], context) do
     Farmbot.System.power_off()
+    context
+    # ^ lol
   end
 end

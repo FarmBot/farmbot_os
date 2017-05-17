@@ -21,11 +21,12 @@ defmodule Farmbot.CeleryScript.Command.SendMessage do
   # "error"
   @type message_channel :: Logger.Backends.FarmbotLogger.rpc_message_channel
 
-  @spec run(%{message: String.t, message_type: message_type}, [Ast.t])
-    :: no_return
-  def run(%{message: m, message_type: m_type}, channels) do
+  @spec run(%{message: String.t, message_type: message_type}, [Ast.t], Ast.context)
+    :: Ast.context
+  def run(%{message: m, message_type: m_type}, channels, context) do
     rendered = Mustache.render(m, get_message_stuff())
     Logger.info ">> #{rendered}", type: m_type, channels: parse_channels(channels)
+    context
   end
 
   @spec get_message_stuff :: %{x: Command.x, y: Command.y, z: Command.z}

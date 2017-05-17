@@ -5,6 +5,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
 
   alias Farmbot.CeleryScript.Ast
   alias Farmbot.CeleryScript.Command
+  import Command, only: [ast_to_coord: 2]
   alias Farmbot.Lib.Maths
   require Logger
   alias Farmbot.Serial.Handler, as: UartHan
@@ -29,15 +30,16 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
   }
   @spec run(move_absolute_args, [], Ast.context) :: Ast.context
   def run(%{speed: s, offset: offset, location: location}, [], context) do
-    with %Ast{kind: "coordinate", args: %{x: xa, y: ya, z: za}, body: []} <-
-            Command.ast_to_coord(location, context),
-         %Ast{kind: "coordinate", args: %{x: xb, y: yb, z: zb}, body: []} <-
-            Command.ast_to_coord(offset, context)
-    do
-      do_move({xa, ya, za}, {xb, yb, zb}, s)
-    else
-      error -> Logger.error ">> error doing Move absolute: #{inspect error}"
-    end
+    new_context             = ast_to_coord(context, location)
+    {location, new_context} = Ast.Context.pop_data(new_context)
+
+    new_context           = ast_to_coord(context, offset)
+    {offset, new_context} = Ast.Context.pop_data(new_context)
+
+    a = {location.args.x, location.args.y, location.args.z}
+    b = {offset.args.x,   offset.args.y,    offset.args.z }
+    do_move(a, b, speed)
+
     context
   end
 

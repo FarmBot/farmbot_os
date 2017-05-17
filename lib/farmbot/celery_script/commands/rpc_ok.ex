@@ -10,11 +10,12 @@ defmodule Farmbot.CeleryScript.Command.RpcOk do
 
   @doc ~s"""
     Return for a valid Rpc Request
-      args: %{label: String.t},
+      args: %{label: binary},
       body: []
   """
-  @spec run(%{label: String.t}, []) :: Ast.t
-  def run(%{label: id}, []) do
-    %Ast{kind: "rpc_ok", args: %{label: id}, body: []}
+  @spec run(%{label: binary}, [], Ast.context) :: Ast.context
+  def run(%{label: id}, [], context) do
+    data = %Ast{kind: "rpc_ok", args: %{label: id}, body: []}
+    Ast.Context.push_data(data, context)
   end
 end

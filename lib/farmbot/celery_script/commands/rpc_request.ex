@@ -13,36 +13,43 @@ defmodule Farmbot.CeleryScript.Command.RpcRequest do
       args: %{label: String.t},
       body: [Ast.t,...]
   """
-  @spec run(%{label: String.t}, [Ast.t, ...]) :: no_return
-  def run(%{label: id}, more_stuff) do
+  @spec run(%{label: String.t}, [Ast.t, ...], Ast.context) :: Ast.context
+  def run(%{label: id}, more_stuff, context) do
     more_stuff
     |> Enum.reduce({[],[]}, fn(ast, {win, fail}) ->
       fun_name = String.to_atom(ast.kind)
-      if function_exported?(Command, fun_name, 2) do
+      if function_exported?(Command, fun_name, 3) do
         # actually do the stuff here?
-        spawn fn() ->
-          Command.do_command(ast)
-        end
+        Command.do_command(ast, context)
         {[ast | win], fail}
       else
-        exp = Command.explanation(%{message: "unhandled: #{fun_name}"}, [])
+        new_context = Command.explanation(%{message: "unhandled: #{fun_name}"}, [], context)
+        {exp, _} = Ast.Context.pop_data(new_context)
         Logger.error ">> got an unhandled rpc "
           <> "request: #{fun_name} #{inspect ast}"
         {win, [exp | fail]}
       end
     end)
-    |> handle_req(id)
+    |> handle_req(id, context)
   end
 
-  @spec handle_req({Ast.t, [Command.Explanation.explanation_type]}, String.t)
-    :: no_return
-  defp handle_req({_, []}, id) do
+  @spec handle_req(
+    {Ast.t, [Command.Explanation.explanation_type]},
+    binary,
+    Ast.context) :: Ast.context
+  defp handle_req({_, []}, id, context) do
     # there were no failed asts.
-    %{label: id} |> Command.rpc_ok([]) |> Farmbot.Transport.emit
+    context = Command.rpc_ok(%{label: id}, [], context)
+    {item, context} = Ast.Context.pop_data(context)
+    Farmbot.Transport.emit(item)
+    context
   end
 
-  defp handle_req({_, failed}, id) do
+  defp handle_req({_, failed}, id, context) do
     # there were some failed asts.
-    %{label: id} |> Command.rpc_error(failed) |> Farmbot.Transport.emit
+    context = Command.rpc_error(%{label: id}, failed, context)
+    {item, context} = Ast.Context.pop_data(context)
+    Farmbot.Transport.emit(item)
+    context
   end
 end

@@ -28,12 +28,6 @@ defmodule Farmbot.CeleryScript.Command do
   end
 
   # DISCLAIMER:
-  # IF YOU SEE A HACK HERE RELATED TO A FIRMWARE COMMAND
-  # IE: read_pin, write_pin, etc, DO NOT TRY TO FIX IT.
-  # IT WORKS, AND DOES NOT CAUSE SIDE EFFECTS (unless it does ¯\_(ツ)_/¯)
-  # (unless of course the arduino firmware is fixed.)
-
-  # DISCLAIMER #2:
   # PLEASE MAKE SURE EVERYTHING IS TYPESPECED AND DOC COMMENENTED IN HERE.
   # SOME NODES, ARE HARD TO TEST,
   # AND SOME NODES CAN CAUSE CATASTROPHIC DISASTERS
@@ -43,32 +37,36 @@ defmodule Farmbot.CeleryScript.Command do
   @doc ~s"""
     Convert an ast node to a coodinate or return :error.
   """
-  @spec ast_to_coord(Ast.t)
-    :: Farmbot.CeleryScript.Command.Coordinate.t | :error
+  @spec ast_to_coord(Ast.context, Ast.t) :: context
   def ast_to_coord(ast)
-  def ast_to_coord(%Ast{kind: "coordinate",
-                        args: %{x: _x, y: _y, z: _z},
-                        body: []} = already_done), do: already_done
+  def ast_to_coord(
+    context,
+    %Ast{kind: "coordinate",
+         args: %{x: _x, y: _y, z: _z},
+         body: []} = already_done),
+   do: Ast.Context.push_data(context, alread_done)
 
-  def ast_to_coord(%Ast{kind: "tool", args: %{tool_id: tool_id}, body: []}) do
-    ts = Point.get_tool(tool_id)
+  def ast_to_coord(
+    context,
+    %Ast{kind: "tool", args: %{tool_id: tool_id}, body: []})
+  do
+    ts = nil
     if ts do
-      coordinate(%{x: ts.x, y: ts.y, z: ts.z}, [])
+      coordinate(%{x: ts.x, y: ts.y, z: ts.z}, [], context)
     else
-      :error
+      raise "Could not find tool_slot with tool_id: #{tool_id}"
     end
   end
 
   # is this one a good idea?
   # there might be too expectations here: it could return the current position,
   # or 0
-  def ast_to_coord(%Ast{kind: "nothing", args: _, body: _}) do
-    coordinate(%{x: 0, y: 0, z: 0}, [])
+  def ast_to_coord(%Ast{kind: "nothing", args: _, body: _}, context) do
+    coordinate(%{x: 0, y: 0, z: 0}, [], context)
   end
 
-  def ast_to_coord(ast) do
-    Logger.warn ">> no conversion from #{inspect ast} to coordinate"
-    :error
+  def ast_to_coord(_ast, _context) do
+    raise "No implicit conversion from #{inspect ast} to coordinate!"
   end
 
   @doc """
