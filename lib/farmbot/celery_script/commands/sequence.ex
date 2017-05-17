@@ -15,11 +15,11 @@ defmodule Farmbot.CeleryScript.Command.Sequence do
   """
   @spec run(%{}, [Ast.t], Ast.context) :: Ast.context
   def run(args, body, context) do
-    #TODO(connor) wait for all rpcs to be done first.
     # rebuild the ast node
-    ast = %Ast{kind: "sequence", args: args, body: body}
+    ast          = %Ast{kind: "sequence", args: args, body: body}
     # Logger.debug "Starting sequence: #{inspect ast}"
-    {:ok, pid} = Farmbot.SequenceRunner.start_link(ast)
-    Farmbot.SequenceRunner.wait(pid)
+    {:ok, pid}   = Farmbot.SequenceRunner.start_link(ast, context)
+    next_context = Farmbot.SequenceRunner.wait(pid)
+    next_context
   end
 end

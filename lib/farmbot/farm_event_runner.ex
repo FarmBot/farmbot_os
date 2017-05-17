@@ -5,12 +5,12 @@ defmodule Farmbot.FarmEventRunner do
   use GenServer
   require Logger
   alias Farmbot.CeleryScript.Ast
+  alias Farmbot.CeleryScript.Ast.Context
+
   use Farmbot.DebugLog
 
   alias Farmbot.Database
-  alias Database.Syncable.Sequence
-  alias Database.Syncable.Regimen
-  alias Database.Syncable.FarmEvent
+  alias Database.Syncable.{Sequence, Regimen, FarmEvent}
 
   @checkup_time 10_000
 
@@ -65,8 +65,9 @@ defmodule Farmbot.FarmEventRunner do
   defp start_events([event | rest], now) do
     cond do
       match?(%Sequence{}, event) ->
-        ast = Ast.parse(event)
-        {:ok, _pid} = Elixir.Farmbot.SequenceRunner.start_link(ast)
+        ast     = Ast.parse(event)
+        context = Context.new()
+        {:ok, _pid} = Elixir.Farmbot.SequenceRunner.start_link(ast, context)
       match?(%Regimen{}, event) ->
         r = event.__struct__
           |> Module.split

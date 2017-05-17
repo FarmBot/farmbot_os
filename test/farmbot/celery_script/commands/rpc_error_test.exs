@@ -1,9 +1,12 @@
 defmodule Farmbot.CeleryScript.Command.RpcErrorTest do
   use ExUnit.Case
-  alias Farmbot.CeleryScript.Ast
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Ast}
 
-  test "rpc ok" do
+  setup_all do
+    [cs_context: Ast.Context.new()]
+  end
+
+  test "rpc ok", %{cs_context: context} do
     id = "random thing that should be a uuid"
     error_message = "the world exploded!"
     error_json = ~s"""
@@ -19,11 +22,14 @@ defmodule Farmbot.CeleryScript.Command.RpcErrorTest do
       "body": [#{error_json}]
     }
     """
-    resp =
-      json
-      |> Poison.decode!
-      |> Ast.parse
-      |> Command.do_command
+    ast = json |> Poison.decode! |> Ast.parse
+    next_context = Command.do_command(ast, context)
+
+    assert is_map(next_context)
+    assert next_context.__struct__ == Ast.Context
+
+    {resp, _final_context} = Ast.Context.pop_data(next_context)
+
     assert resp.kind == "rpc_error"
     assert resp.args.label == id
 

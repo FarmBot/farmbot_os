@@ -2,7 +2,7 @@ defmodule Farmbot.CeleryScript.Command.DataUpdateTest do
   use ExUnit.Case, async: false
 
   alias Farmbot.CeleryScript.Ast
-  alias Farmbot.CeleryScript.Command
+  # alias Farmbot.CeleryScript.Command
   alias Farmbot.Database, as: DB
   alias DB.Syncable.Point
   alias Farmbot.TestHelpers
