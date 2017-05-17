@@ -13,8 +13,8 @@ defmodule Farmbot.CeleryScript.Command.CheckUpdates do
       body: []
   """
   @type package :: String.t # "farmbot_os"
-  @spec run(%{package: package}, []) :: no_return
-  def run(%{package: package}, []) do
+  @spec run(%{package: package}, [], Ast.context) :: Ast.context
+  def run(%{package: package}, [], context) do
     case package do
       "arduino_firmware" ->
         Logger.warn "Arduino Firmware is now coupled to farmbot_os and can't " <>
@@ -24,6 +24,7 @@ defmodule Farmbot.CeleryScript.Command.CheckUpdates do
 
       u -> Logger.info ">> got a request to check updates for an " <>
         "unrecognized package: #{u}"
+      context
     end
   end
 end

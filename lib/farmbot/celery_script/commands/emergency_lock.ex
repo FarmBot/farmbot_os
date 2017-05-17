@@ -13,8 +13,8 @@ defmodule Farmbot.CeleryScript.Command.EmergencyLock do
       args: %{},
       body: []
   """
-  @spec run(%{}, []) :: no_return
-  def run(%{}, []) do
+  @spec run(%{}, [], Ast.context) :: Ast.context
+  def run(%{}, [], context) do
     if Farmbot.BotState.locked? do
       Logger.info "Bot already locked", type: :warn
     else
@@ -22,5 +22,6 @@ defmodule Farmbot.CeleryScript.Command.EmergencyLock do
       Farmbot.BotState.lock_bot()
       Farmbot.Serial.Handler.emergency_lock()
     end
+    context
   end
 end

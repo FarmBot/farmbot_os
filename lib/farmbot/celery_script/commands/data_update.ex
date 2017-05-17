@@ -19,14 +19,15 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
     args: %{value: String.t},
     body: [Pair.t]
   """
-  @spec run(%{value: String.t}, [Pair.t]) :: no_return
-  def run(%{value: verb}, pairs) do
+  @spec run(%{value: String.t}, [Pair.t], Ast.context) :: Ast.context
+  def run(%{value: verb}, pairs, context) do
     verb = parse_verb_str(verb)
     Enum.each(pairs, fn(%{args: %{label: s, value: nowc}}) ->
       syncable = s |> parse_syncable_str()
       value = nowc |> parse_val_str()
-      :ok = Database.set_awaiting(syncable, verb, value)
+      :ok = Database.set_awaiting(context.db, syncable, verb, value)
     end)
+    context
   end
 
   @type number_or_wildcard :: non_neg_integer | binary # "*"

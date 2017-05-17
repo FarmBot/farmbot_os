@@ -3,12 +3,38 @@ defmodule Farmbot.CeleryScript.Ast do
     Handy functions for turning various data types into Farbot Celery Script
     Ast nodes.
   """
+  @type context :: Context.t
+  @type args :: map
   @type t :: %__MODULE__{
-    args: map,
+    args: args,
     body: [t,...],
     kind: String.t,
     comment: String.t | nil
   }
+
+  defmodule Context do
+    @moduledoc """"
+      Context serves as an execution sandbox for all CeleryScript
+    """
+    @enforce_keys [:database]
+    defstruct [:database, data_stack: []]
+    @type t :: %__MODULE__{
+      database: pid | atom,
+      data_stack: [any]
+    }
+
+    @spec push_data(t, any) :: t
+    def push_data(context, data) do
+      new_ds = [data | context.data_stack]
+      %{context | data_stack: new_ds}
+    end
+
+    @spec pop_data(t) :: {any, context}
+    def pop_data(context) do
+      [result | rest] = context.data_stack
+      {result, %{context | data_stack: rest}}
+    end
+  end
   @enforce_keys [:args, :body, :kind]
   defstruct [:args, :body, :kind, :comment]
 

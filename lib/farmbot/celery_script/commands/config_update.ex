@@ -16,8 +16,10 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
       args: %{package: String.t},
       body: [Ast.t]
   """
-  @spec run(%{package: Command.package}, [Command.pair]) :: no_return
-  def run(%{package: "arduino_firmware"}, config_pairs) do
+  @spec run(%{package: Command.package},
+            [Command.pair],
+            Ast.context) :: Ast.context
+  def run(%{package: "arduino_firmware"}, config_pairs, context) do
     # check the version to make sure we have a good connection to the firmware
     :ok = check_version()
 
@@ -48,14 +50,16 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
         read_param(%{label: param_str}, [])
       end
     end
+    context
   end
 
-  def run(%{package: "farmbot_os"}, config_pairs) do
+  def run(%{package: "farmbot_os"}, config_pairs, context) do
     blah = pairs_to_tuples(config_pairs)
     for {key, val} <- blah do
       Logger.info ">> Updating #{key}: #{val}"
       Farmbot.BotState.update_config(key, val)
     end
+    context
   end
 
   defp check_version do

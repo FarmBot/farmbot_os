@@ -11,10 +11,11 @@ defmodule Farmbot.CeleryScript.Command.EmergencyUnlock do
       args: %{},
       body: []
   """
-  @spec run(%{}, []) :: no_return
-  def run(%{}, []) do
+  @spec run(%{}, [], Ast.context) :: Ast.context
+  def run(%{}, [], context) do
     Farmbot.BotState.set_sync_msg(:sync_now)
     Farmbot.BotState.unlock_bot()
     Farmbot.Serial.Handler.emergency_unlock()
+    context
   end
 end

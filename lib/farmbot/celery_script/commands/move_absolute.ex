@@ -27,17 +27,18 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
     offset: coordinate_ast | Ast.t,
     location: coordinate_ast | Ast.t
   }
-  @spec run(move_absolute_args, []) :: no_return
-  def run(%{speed: s, offset: offset, location: location}, []) do
+  @spec run(move_absolute_args, [], Ast.context) :: Ast.context
+  def run(%{speed: s, offset: offset, location: location}, [], context) do
     with %Ast{kind: "coordinate", args: %{x: xa, y: ya, z: za}, body: []} <-
-            Command.ast_to_coord(location),
+            Command.ast_to_coord(location, context),
          %Ast{kind: "coordinate", args: %{x: xb, y: yb, z: zb}, body: []} <-
-            Command.ast_to_coord(offset)
+            Command.ast_to_coord(offset, context)
     do
       do_move({xa, ya, za}, {xb, yb, zb}, s)
     else
       error -> Logger.error ">> error doing Move absolute: #{inspect error}"
     end
+    context
   end
 
   defp do_move({xa, ya, za}, {xb, yb, zb}, speed) do

@@ -14,18 +14,20 @@ defmodule Farmbot.CeleryScript.Command.FactoryReset do
       args: %{package: "farmbot_os" | "arduino_firmware"}
       body: []
   """
-  @spec run(%{package: binary}, []) :: no_return
-  def run(%{package: "farmbot_os"}, []) do
+  @spec run(%{package: binary}, [], Ast.context) :: Ast.context
+  def run(%{package: "farmbot_os"}, [], context) do
     Logger.info(">> Going down for factory reset in 5 seconds!", type: :warn)
     spawn fn ->
       Process.sleep 5000
       do_fac_reset_fw()
       Farmbot.System.factory_reset("I was asked by a CeleryScript command.")
     end
+    context
   end
 
-  def run(%{package: "arduino_firmware"}, []) do
+  def run(%{package: "arduino_firmware"}, [], context) do
     do_fac_reset_fw()
+    context
   end
 
   @spec do_fac_reset_fw(boolean) :: no_return

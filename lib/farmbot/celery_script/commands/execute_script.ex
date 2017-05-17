@@ -13,14 +13,15 @@ defmodule Farmbot.CeleryScript.Command.ExecuteScript do
       body: [pair]
     NOTE this is a shortcut to starting a process by uuid
   """
-  @spec run(%{label: String.t}, [Command.Pair.t]) :: no_return
-  def run(%{label: farmware}, env_vars) do
-    Command.set_user_env(%{}, env_vars)
+  @spec run(%{label: String.t}, [Command.Pair.t], Ast.context) :: Ast.context
+  def run(%{label: farmware}, env_vars, context) do
+    Command.set_user_env(%{}, env_vars, context)
     info = Farmbot.BotState.ProcessTracker.lookup(:farmware, farmware)
     if info do
-      Command.start_process(%{label: info.uuid}, [])
+      Command.start_process(%{label: info.uuid}, [], context)
     else
       Logger.error ">> Could not locate: #{farmware}"
     end
+    context
   end
 end

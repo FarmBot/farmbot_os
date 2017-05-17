@@ -24,7 +24,7 @@ defmodule Farmbot.CeleryScript.Command do
     end)
 
   for {fun, module} <- celery do
-    defdelegate unquote(fun)(args, body), to: module, as: :run
+    defdelegate unquote(fun)(args, body, context), to: module, as: :run
   end
 
   # DISCLAIMER:
@@ -92,17 +92,16 @@ defmodule Farmbot.CeleryScript.Command do
     Executes an ast tree.
   """
   @spec do_command(Ast.t) :: :no_instruction | any
-  def do_command(%Ast{} = ast) do
+  def do_command(%Ast{} = ast, context) do
     kind = ast.kind
-    fun_name = String.to_atom kind
     module = Module.concat Farmbot.CeleryScript.Command, Macro.camelize(kind)
 
     # print the comment if it exists
-    maybe_print_comment(ast.comment, fun_name)
+    maybe_print_comment(ast.comment, kind)
 
     if Code.ensure_loaded?(module) do
       try do
-        Kernel.apply(module, :run, [ast.args, ast.body])
+        Kernel.apply(module, :run, [ast.args, ast.body, context])
       rescue
         e -> Logger.error ">> could not execute #{inspect ast} #{inspect e}"
       end
@@ -117,5 +116,5 @@ defmodule Farmbot.CeleryScript.Command do
   end
 
   # behaviour
-  @callback run(map, [Ast.t]) :: any
+  @callback run(Ast.args, [Ast.t], Ast.context) :: Ast.context
 end
