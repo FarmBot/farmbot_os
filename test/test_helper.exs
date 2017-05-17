@@ -54,12 +54,11 @@ defmodule Farmbot.TestHelpers do
     |> Poison.decode!
   end
 
-  def seed_db(module, json) do
+  def seed_db(pid, module, json) do
     tagged = Enum.map(json, fn(item) ->
       tag_item(item, module)
     end)
-
-    :ok = DB.commit_records(tagged, module)
+    :ok = DB.commit_records(tagged, pid, module)
   end
 
   def tag_item(map, tag) do

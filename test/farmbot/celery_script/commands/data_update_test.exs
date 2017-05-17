@@ -10,38 +10,26 @@ defmodule Farmbot.CeleryScript.Command.DataUpdateTest do
 
 
   setup_all do
-    # TestHelpers.login()
     json = TestHelpers.read_json("points.json")
+    {:ok, pid} = DB.start_link([])
+    :ok        = Farmbot.TestHelpers.seed_db(pid, Point, json)
 
-    Farmbot.TestHelpers.seed_db(Point, json)
-    :ok
-    [json: json]
+    [json: json, pid: pid]
   end
 
-  setup do
-    DB.unset_awaiting(Point)
+  setup context do
+    DB.unset_awaiting(context.pid, Point)
   end
 
-  # test "data_update add single resource", context do
-  #   item  = List.first(context.json)
-  #   id    = item["id"]
-  #   ast   = ast("add", [pair("Point", id)])
-  #   old   = DB.get_awaiting(Point, :add)
-  #
-  #   Command.do_command(ast)
-  #
-  #   new = DB.get_awaiting(Point, :add)
-  #   assert Enum.count(new) > Enum.count(old)
-  # end
-
-  test "data_updates causes awaiting to be true." do
+  test "data_updates causes awaiting to be true.", context do
     ast = ast("add", [pair("Point", "*")])
 
-    old = DB.get_awaiting(Point)
+    old = DB.get_awaiting(context.pid, Point)
     refute(old)
 
     Command.do_command(ast)
-    new = DB.get_awaiting(Point)
+    new = DB.get_awaiting(context.pid, Point)
+    IEx.pry
     assert(new)
   end
 

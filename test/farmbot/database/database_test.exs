@@ -25,7 +25,6 @@ defmodule Farmbot.DatabaseTest do
 
       after_state  = :sys.get_state(db)
       after_count  = Enum.count(after_state.all)
-      IEx.pry
       assert(before_count < after_count)
     end
   end

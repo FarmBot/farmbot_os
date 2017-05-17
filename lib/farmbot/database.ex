@@ -72,7 +72,7 @@ defmodule Farmbot.Database do
   @doc """
     Sync up with the API.
   """
-  def sync(db \\ __MODULE__) do
+  def sync(db) do
     for module_name <- all_the_syncables() do
       # see: `syncable.ex`. This is some macro magic.
       debug_log "Syncing: #{module_name} on db: #{inspect db}"
@@ -108,13 +108,13 @@ defmodule Farmbot.Database do
   @doc """
     Clear the entire DB
   """
-  def flush(db \\ __MODULE__), do: GenServer.call(db, :flush)
+  def flush(db), do: GenServer.call(db, :flush)
 
   @doc """
     Sets awaiting api resources.
   """
   @spec set_awaiting(db, syncable, verb, any) :: :ok | no_return
-  def set_awaiting(db \\ __MODULE__, syncable, verb, value) do
+  def set_awaiting(db, syncable, verb, value) do
     debug_log("setting awaiting: #{syncable} #{verb}")
     GenServer.call(db, {:set_awaiting, syncable, verb, value})
   end
@@ -123,14 +123,14 @@ defmodule Farmbot.Database do
     Unsets awaiting api resources.
   """
   @spec unset_awaiting(db, syncable) :: :ok | no_return
-  def unset_awaiting(db \\ __MODULE__, syncable),
+  def unset_awaiting(db, syncable),
     do: GenServer.call(db, {:unset_awaiting, syncable})
 
   @doc """
     Gets the awaiting api recources for syncable and verb
   """
   @spec get_awaiting(db, syncable) :: boolean
-  def get_awaiting(db \\ __MODULE__, syncable) do
+  def get_awaiting(db, syncable) do
     GenServer.call(db, {:get_awaiting, syncable})
   end
 
@@ -138,13 +138,13 @@ defmodule Farmbot.Database do
     Get a resource by its kind and id.
   """
   @spec get_by_id(db, syncable, db_id) :: resource_map | nil
-  def get_by_id(db \\ __MODULE__, kind, id), do: GenServer.call(db, {:get_by, kind, id})
+  def get_by_id(db, kind, id), do: GenServer.call(db, {:get_by, kind, id})
 
   @doc """
     Get all resources of this kind.
   """
   @spec get_all(db, syncable) :: [resource_map]
-  def get_all(db \\ __MODULE__, kind), do: GenServer.call(db, {:get_all, kind})
+  def get_all(db, kind), do: GenServer.call(db, {:get_all, kind})
 
   ## GenServer
 
