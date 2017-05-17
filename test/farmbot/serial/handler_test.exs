@@ -3,7 +3,7 @@ defmodule Farmbot.Serial.HandlerTest do
   alias Farmbot.Serial.Handler
 
   setup_all do
-    wait_for_serial_available()
+    :ok = wait_for_serial_available()
     :ok
   end
 
@@ -22,6 +22,7 @@ defmodule Farmbot.Serial.HandlerTest do
 
   def wait_for_serial_available(count) when count > 10 do
     flunk "this probably isnt going to fix itself"
+    {:error, :timeout}
   end
 
   def wait_for_serial_available(count) do
@@ -36,6 +37,7 @@ defmodule Farmbot.Serial.HandlerTest do
         end
         Farmbot.CeleryScript.Command.home(%{axis: "all"}, [])
         Process.sleep(10)
+        :ok
     end
   end
 end

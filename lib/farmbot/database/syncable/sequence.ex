@@ -5,5 +5,5 @@ defmodule Farmbot.Database.Syncable.Sequence do
 
   alias Farmbot.Database
   alias Database.Syncable
-  use Syncable, model: [], endpoint: {"/sequence", "/sequences"}
+  use Syncable, model: [], endpoint: {"/sequences", "/sequences"}
 end

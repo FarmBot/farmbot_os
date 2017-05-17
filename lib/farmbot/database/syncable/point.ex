@@ -15,7 +15,7 @@ defmodule Farmbot.Database.Syncable.Point do
     :x,
     :y,
     :z,
-  ], endpoint: {"/point", "/points"}
+  ], endpoint: {"/points", "/points"}
 
   def get_tool(_tool_id) do
     #FIXME

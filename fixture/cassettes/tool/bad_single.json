@@ -1,0 +1,43 @@
+[
+  {
+    "request": {
+      "body": "",
+      "headers": {
+        "Content-Type": "application/json",
+        "User-Agent": "FarmbotOS/3.1.6 (host) host ()",
+        "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0OTUwMzIwMTEsImp0aSI6ImM0ODcyMjkxLTNlMGMtNDMwYS04YjUyLTVmZDZhMGZkMjljYiIsImlzcyI6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5ODQ4ODAxMSwibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFybWJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZGF0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVhc2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV84In0.eloqyFYKwTWRlRN1sNnVC9J8u5vkAchIglAG6sPjuUk8Ri0Ui9O4qU1TD6VmrtJlbLPQbl_IAfy0ydyaxNo9ap-7QodZ_JQQCS0AoPhlq9SoGdxAKTvF-AP9EGuohoyfBhOssHyNH272HQgyUEmBBED2UBPj-0R_0sh5LyGZ4M1imx8LF41u9j5CNTrNfxFsVwythDtWomri3p3REMVdNjqrh4roWjU4e7krGx9PlP3pMXdRPPNYBd59fclbMr_s_rc3jCOBtkCBSlrMgLt0vxbrXWSS8NQxY_cUB8OlWxuLvIsEf5c8FoqOhU0oqvgJJP0cGfW8tfARBoPnxNKSJA"
+      },
+      "method": "get",
+      "options": {
+        "follow_redirect": true,
+        "ssl_options": {
+          "versions": [
+            "tlsv1.2"
+          ]
+        },
+        "recv_timeout": 25000,
+        "connect_timeout": 25000
+      },
+      "request_body": "",
+      "url": "http://localhost:3000/api/tools/-1"
+    },
+    "response": {
+      "body": "{\"error\":\"Document not found.\"}",
+      "headers": {
+        "X-Frame-Options": "SAMEORIGIN",
+        "X-XSS-Protection": "1; mode=block",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-cache",
+        "Set-Cookie": "_farmbot_session=bnNGajdyZUk5NXhhd05mUW5PLzNmYzFGODhTY2k1MFNLZ0xFRk53YnpOekFFUkZQQitHZGtnbEY5SmVPSEdQbEJsS0tub2FNRTVoYTZjZ2RXdFU4NWp6bWcwelU0NUV2ajJ6MWh3NmFpRlpTMHpQOGg1bW01bmE0aE9INHhnb2d2QTdLSjNGbkJqUXF5cUlGcDBVSzJ2K05rRkNYTE1lL1dtTUEzTktRSTZsKzNObkE4QzVnWE5CckdqTkhJYjg3LS10Y0x3Ty85N0tHWlRya05uTzAzTVVRPT0%3D--1d310be878eeb340242c11ffa33c14850eea9427; path=/; HttpOnly",
+        "X-Request-Id": "835a25ac-9aff-4233-a1cf-94622dfcfb61",
+        "X-Runtime": "0.009430",
+        "Vary": "Origin",
+        "Connection": "close",
+        "Server": "thin"
+      },
+      "status_code": 404,
+      "type": "ok"
+    }
+  }
+]

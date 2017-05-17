@@ -1,0 +1,44 @@
+[
+  {
+    "request": {
+      "body": "",
+      "headers": {
+        "Content-Type": "application/json",
+        "User-Agent": "FarmbotOS/3.1.6 (host) host ()",
+        "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0OTUwMzIwMTAsImp0aSI6ImUyM2YyNzI0LTAyZWMtNDk2OC1iNjc5LWI4MTQ0YjI3N2JiZiIsImlzcyI6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5ODQ4ODAxMCwibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFybWJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZGF0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVhc2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV84In0.UcBgq4pxoXeR6TYv9lYd90LAlGczZMjuvqT1Yc4R8xIk_Jy6bumhq7mI-Hoi9iKBhPU3XMpifXoIyqb1UdC1MBJyHMpPYjZoJLmm4v3XEug_rTu4RcaO7r_r1dZAh2C5TPVXBydcDe02loGC4_YmQPwWixhqJO_6vFF7JEDHir4bihbdfV-P4uZhpUcw-I1Eht4zCMjlmWaL5xcKUdSf-TuSQGNi0Ib0GkZs2wXan2bgv_wBfFEaZ4vmoZO1NM43jaykDssOaxP9hN7FKDdJ4mXL7r9XS7KtXpVQPycUYsfr-lPvid9cfKQFv-STakiDot8uGOYr1CH6I9erQMlhnQ"
+      },
+      "method": "get",
+      "options": {
+        "follow_redirect": true,
+        "ssl_options": {
+          "versions": [
+            "tlsv1.2"
+          ]
+        },
+        "recv_timeout": 25000,
+        "connect_timeout": 25000
+      },
+      "request_body": "",
+      "url": "http://localhost:3000/api/points/71"
+    },
+    "response": {
+      "body": "{\"id\":71,\"created_at\":\"2017-05-16T22:23:07.424Z\",\"updated_at\":\"2017-05-16T22:23:07.424Z\",\"device_id\":8,\"meta\":{},\"name\":\"Slot One.\",\"pointer_type\":\"ToolSlot\",\"radius\":50.0,\"x\":10.0,\"y\":10.0,\"z\":10.0,\"tool_id\":1}",
+      "headers": {
+        "X-Frame-Options": "SAMEORIGIN",
+        "X-XSS-Protection": "1; mode=block",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Type": "application/json; charset=utf-8",
+        "ETag": "W/\"4dc6bf2e0dab63a369aaaf8347de0db7\"",
+        "Cache-Control": "max-age=0, private, must-revalidate",
+        "Set-Cookie": "_farmbot_session=QVJ0bkljWHJMVnNOR3JSY1lCSEx6cEc5SnRtRzhRQ0NoVGhBL051WEJjT0NMV3MxQzRIQVorMVZ5a09pcXdBbFhmbWg5dkU2RXAveWFPWE9uZTVWbWc9PS0tY0tzTlJPcCt1ZWVJckJvVGxJcGFBZz09--5c0d41b9e8c73808e7160f501fccd6d814723340; path=/; HttpOnly",
+        "X-Request-Id": "c91a087a-489a-49e5-ba82-050edc2d3d53",
+        "X-Runtime": "0.010872",
+        "Vary": "Origin",
+        "Connection": "close",
+        "Server": "thin"
+      },
+      "status_code": 200,
+      "type": "ok"
+    }
+  }
+]

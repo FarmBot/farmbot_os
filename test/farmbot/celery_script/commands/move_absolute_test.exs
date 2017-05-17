@@ -5,7 +5,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsoluteTest do
   alias Farmbot.CeleryScript.Command
 
   setup_all do
-    Farmbot.Serial.HandlerTest.wait_for_serial_available()
+    :ok = Farmbot.Serial.HandlerTest.wait_for_serial_available()
     :ok
   end
 

@@ -12,5 +12,5 @@ defmodule Farmbot.Database.Syncable.FarmEvent do
     :executable_id,
     :executable_type,
     :calendar
-  ], endpoint: {"/farm_event", "/farm_events"}
+  ], endpoint: {"/farm_events", "/farm_events"}
 end

@@ -5,5 +5,5 @@ defmodule Farmbot.Database.Syncable.Tool do
 
   alias Farmbot.Database
   alias Database.Syncable
-  use Syncable, model: [], endpoint: {"/tool", "/tools"}
+  use Syncable, model: [], endpoint: {"/tools", "/tools"}
 end

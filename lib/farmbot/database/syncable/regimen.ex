@@ -7,5 +7,5 @@ defmodule Farmbot.Database.Syncable.Regimen do
   alias Database.Syncable
   use Syncable, model: [
     :regimen_items
-  ], endpoint: {"/regimen", "/regimens"}
+  ], endpoint: {"/regimens", "/regimens"}
 end

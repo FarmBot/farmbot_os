@@ -34,7 +34,7 @@ defmodule AllSyncablesTestHelper do
 
         test "successfully fetches some stuff from the api", %{module: mod} do
           human_readable_name = Module.split(mod) |> List.last
-          filename = "successful_#{human_readable_name}"
+          filename = "#{human_readable_name}/success_many"
           use_cassette filename do
             results = mod.fetch({__MODULE__, :callback, []})
             item = Enum.random(results)
@@ -42,25 +42,29 @@ defmodule AllSyncablesTestHelper do
           end
         end
 
-        test "gets a particular item from the api", %{module: mod, id: id} do
-          human_readable_name = Module.split(mod) |> List.last
-          filename = "successful_#{human_readable_name}_single"
-          use_cassette filename do
-            results = mod.fetch(id, {__MODULE__, :callback, []})
-            refute is_error?(results)
-            assert results.__struct__ == mod
-            assert results.id == id
+        unless unquote(id) == :no_show do
+          test "gets a particular item from the api", %{module: mod, id: id} do
+            human_readable_name = Module.split(mod) |> List.last
+            filename = "#{human_readable_name}/success_single"
+            use_cassette filename do
+              results = mod.fetch(id, {__MODULE__, :callback, []})
+              refute is_error?(results)
+              assert results.__struct__ == mod
+              assert results.id == id
+            end
           end
         end
 
+
         test "handles errors for stuff from the api", %{module: mod} do
           human_readable_name = Module.split(mod) |> List.last
-          filename = "bad_#{human_readable_name}"
+          filename = "#{human_readable_name}/bad_single"
           use_cassette filename do
             results = mod.fetch(-1, {__MODULE__, :callback, []})
             assert is_error?(results)
           end
         end
+
 
         def callback(results), do: results
 
@@ -76,11 +80,11 @@ end
 
 defmodule AllSyncablesTest do
   import AllSyncablesTestHelper
-  test_syncable Sequence, -1
-  test_syncable Point, -1
-  test_syncable Peripheral, -1
-  test_syncable Regimen, -1
-  test_syncable Tool, -1
-  test_syncable FarmEvent, -1
-  test_syncable Device, -1
+  test_syncable Sequence,   2
+  test_syncable Point,      71
+  test_syncable Tool,       1
+  test_syncable FarmEvent,  :no_show
+  test_syncable Peripheral, :no_show
+  test_syncable Regimen,    :no_show
+  # test_syncable Device, -1
 end
