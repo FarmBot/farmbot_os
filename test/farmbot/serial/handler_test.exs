@@ -1,5 +1,5 @@
 defmodule Farmbot.Serial.HandlerTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
   alias Farmbot.Serial.Handler
 
   setup_all do

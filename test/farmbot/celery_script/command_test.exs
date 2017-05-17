@@ -1,5 +1,5 @@
 defmodule CommandTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
   alias Farmbot.CeleryScript.Ast
   alias Farmbot.CeleryScript.Command
 

@@ -7,7 +7,6 @@ end
 defmodule Farmbot.SyncableTest do
   alias Database.Syncable.Fake
   alias Farmbot.TestHelpers
-  import TestHelpers, only: [read_json: 1, tag_item: 2]
   require IEx
   use ExUnit.Case, async: false
   use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
@@ -22,11 +21,11 @@ defmodule Farmbot.SyncableTest do
     assert(context.my_fake.__struct__ == Fake)
   end
 
-  test "singular URLs", context do
+  test "singular URLs" do
     assert(Fake.singular_url == "/fake")
   end
 
-  test "plural URLs", context do
+  test "plural URLs" do
     assert(Fake.plural_url == "/fakes")
   end
 

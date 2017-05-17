@@ -36,6 +36,11 @@ defmodule Farmbot.Database do
   @typedoc false
   @type verb :: Farmbot.CeleryScript.Command.DataUpdate.verb
 
+  @typedoc false
+  @type db :: pid
+
+  @type syncable_object :: map
+
   @typedoc """
     State of the DB
   """
@@ -67,81 +72,86 @@ defmodule Farmbot.Database do
   @doc """
     Sync up with the API.
   """
-  def sync do
+  def sync(db \\ __MODULE__) do
     for module_name <- all_the_syncables() do
       # see: `syncable.ex`. This is some macro magic.
-      module_name.fetch({__MODULE__, :commit_records, [module_name]})
+      debug_log "Syncing: #{module_name} on db: #{inspect db}"
+      module_name.fetch({__MODULE__, :commit_records,  [db, module_name]})
     end
   end
 
   @doc """
     Commits a list of records to the db.
   """
-  def commit_records(list_or_single_record, module_name)
-  def commit_records([record | rest], mod_name) do
-    debug_log "Staring db commit with: #{mod_name}"
-    commit_records(record, mod_name)
-    commit_records(rest, mod_name)
+  @spec commit_records([map] | map, db, syncable) :: :ok | {:error, term}
+  def commit_records(list_or_single_record, db, module_name)
+  def commit_records([record | rest], db, mod_name) do
+    debug_log "Staring db commit with: #{mod_name} on db: #{inspect db}"
+    commit_records(record, db, mod_name)
+    commit_records(rest, db, mod_name)
   end
 
-  def commit_records([], mod_name) do
-    debug_log "DB commit finish: #{mod_name}"
+  def commit_records([], db, mod_name) do
+    debug_log "DB commit finish: #{mod_name} on db: #{inspect db}"
     :ok
   end
 
-  def commit_records(record, _mod_name) when is_map(record) do
-    GenServer.call(__MODULE__, {:update_or_create, record})
+  def commit_records(record, db, _mod_name) when is_map(record) do
+    GenServer.call(db, {:update_or_create, record})
   end
 
-  def commit_records({:error, reason}, mod_name) do
+  def commit_records({:error, reason}, _db, mod_name) do
     Logger.error("#{mod_name}: #{inspect reason}")
     {:error, reason}
   end
 
   @doc """
+    Clear the entire DB
+  """
+  def flush(db \\ __MODULE__), do: GenServer.call(db, :flush)
+
+  @doc """
     Sets awaiting api resources.
   """
-  @spec set_awaiting(syncable, verb, any) :: :ok | no_return
-  def set_awaiting(syncable, verb, value) do
+  @spec set_awaiting(db, syncable, verb, any) :: :ok | no_return
+  def set_awaiting(db \\ __MODULE__, syncable, verb, value) do
     debug_log("setting awaiting: #{syncable} #{verb}")
-    GenServer.call(__MODULE__, {:set_awaiting, syncable, verb, value})
+    GenServer.call(db, {:set_awaiting, syncable, verb, value})
   end
 
   @doc """
     Unsets awaiting api resources.
   """
-  @spec unset_awaiting(syncable) :: :ok | no_return
-  def unset_awaiting(syncable),
-    do: GenServer.call(__MODULE__, {:unset_awaiting, syncable})
+  @spec unset_awaiting(db, syncable) :: :ok | no_return
+  def unset_awaiting(db \\ __MODULE__, syncable),
+    do: GenServer.call(db, {:unset_awaiting, syncable})
 
   @doc """
     Gets the awaiting api recources for syncable and verb
   """
-  @spec get_awaiting(syncable) :: boolean
-  def get_awaiting(syncable) do
-    GenServer.call(__MODULE__, {:get_awaiting, syncable})
+  @spec get_awaiting(db, syncable) :: boolean
+  def get_awaiting(db \\ __MODULE__, syncable) do
+    GenServer.call(db, {:get_awaiting, syncable})
   end
 
   @doc """
     Get a resource by its kind and id.
   """
-  @spec get_by_id(syncable, db_id) :: resource_map | nil
-  def get_by_id(kind, id), do: GenServer.call(__MODULE__, {:get_by, kind, id})
+  @spec get_by_id(db, syncable, db_id) :: resource_map | nil
+  def get_by_id(db \\ __MODULE__, kind, id), do: GenServer.call(db, {:get_by, kind, id})
 
   @doc """
     Get all resources of this kind.
   """
-  @spec get_all(syncable) :: [resource_map]
-  def get_all(kind), do: GenServer.call(__MODULE__, {:get_all, kind})
+  @spec get_all(db, syncable) :: [resource_map]
+  def get_all(db \\ __MODULE__, kind), do: GenServer.call(db, {:get_all, kind})
 
   ## GenServer
 
   @doc """
     Start the Database
   """
-  def start_link do
-    GenServer.start_link(__MODULE__, [], name: __MODULE__)
-  end
+  def start_link(opts), do: GenServer.start_link(__MODULE__, [], [opts])
 
   def init([]) do
     initial_by_kind_and_id = %{}
@@ -164,6 +174,11 @@ defmodule Farmbot.Database do
     keys
     |> Enum.map(fn(key) -> {key, default} end)
     |> Map.new
+  end
+
+  def handle_call(:flush, _, _state) do
+    {:ok, state} = init([])
+    {:reply, :ok, state}
   end
 
   def handle_call({:get_by, kind, id}, _, state) do

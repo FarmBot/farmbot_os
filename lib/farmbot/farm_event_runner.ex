@@ -39,7 +39,7 @@ defmodule Farmbot.FarmEventRunner do
       #   #   %{farm_event | calendar: calendar}
       #   # end)
       # end
-      all_events = FarmEvent.all()
+      all_events = FarmEvent.all() |> Enum.map(fn(thing) -> thing.body end)
       {late_events, new} = do_checkup(all_events, now, state)
       unless Enum.empty?(late_events) do
         Logger.info "Time for event to run: #{inspect late_events} " <>
@@ -109,7 +109,7 @@ defmodule Farmbot.FarmEventRunner do
   defp check_event(%FarmEvent{} = f, now, last_time) do
     # Get the executable out of the database
     event =
-      [Database, f.executable_type |> String.to_atom]
+      [Farmbot.Database, Syncable, f.executable_type |> String.to_atom]
       |> Module.concat
       |> lookup(f.executable_id)
 

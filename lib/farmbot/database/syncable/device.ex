@@ -7,5 +7,5 @@ defmodule Farmbot.Database.Syncable.Device do
   alias Database.Syncable
   use Syncable, model: [
     :name
-  ], endpoint: {"/device", "/devices"}
+  ], endpoint: {"/device", "/device"}
 end

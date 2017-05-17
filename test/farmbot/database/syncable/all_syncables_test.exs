@@ -7,7 +7,7 @@ alias Syncable.Peripheral
 alias Syncable.Regimen
 alias Syncable.Tool
 alias Syncable.FarmEvent
-alias Syncable.Device
+# alias Syncable.Device
 
 defmodule AllSyncablesTestHelper do
 
