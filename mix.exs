@@ -176,7 +176,7 @@ defmodule Farmbot.Mixfile do
 
       # {:farmbot_simulator, "~> 0.1.3", only: [:test, :dev]},
       # {:farmbot_simulator, path: "../farmbot_simulator", only: [:test, :dev]},
-      {:farmbot_simulator, github: "ConnorRigby/farmbot_simulator", only: [:test, :dev]},
+      {:farmbot_simulator, github: "farmbot-labs/farmbot_simulator", only: [:test, :dev]},
 
       {:tzdata, "~> 0.1.201601", override: true},
       {:fs, "~> 0.9.1"}
