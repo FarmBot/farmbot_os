@@ -1,11 +1,10 @@
 defmodule Farmbot.CeleryScript.Command.HomeTest do
   use ExUnit.Case, async: false
 
-  alias Farmbot.CeleryScript.{Command, Ast}
+  alias Farmbot.CeleryScript.Command
 
   setup_all do
-    Farmbot.Serial.HandlerTest.wait_for_serial_available()
-    [cs_context: Ast.Context.new()]
+    Farmbot.Test.SerialHelper.full_setup()
   end
 
   setup do
@@ -13,8 +12,8 @@ defmodule Farmbot.CeleryScript.Command.HomeTest do
     :ok
   end
 
-  test "makes sure we have serial" do
-    assert Farmbot.Serial.Handler.available?() == true
+  test "makes sure we have serial", %{cs_context: context} do
+    assert Farmbot.Serial.Handler.available?(context.serial) == true
   end
 
   test "homes all axises", %{cs_context: context} do

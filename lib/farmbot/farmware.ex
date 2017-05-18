@@ -158,7 +158,6 @@ defmodule Farmware do
   @spec execute(binary) :: no_return
   @spec execute(binary, any) :: no_return
   def execute(package_name, envs \\ []) do
-    Farmbot.BotState.Monitor.get_state()
     path = FS.path() <> "/farmware/#{package_name}"
     if File.exists?(path) do
       manifest =

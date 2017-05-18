@@ -8,15 +8,18 @@ defmodule Farmbot.BotState.Monitor do
   """
   use GenStage
   require Logger
+  alias Farmbot.CeleryScript.Ast.Context
 
   defmodule State do
     @moduledoc false
     @type t :: %__MODULE__{
+      context:       Context.t,
       hardware:      Hardware.t,
       configuration: Configuration.t,
       process_info: PT.t
     }
     defstruct [
+      context:       nil,
       hardware:      %Hardware{},
       configuration: %Configuration{},
       process_info:  %PT.State{}
@@ -26,8 +29,9 @@ defmodule Farmbot.BotState.Monitor do
   @doc """
     Starts the state producer.
   """
-  def start_link, do: GenStage.start_link(__MODULE__, [], name: __MODULE__)
-  def init([]), do: {:producer, %State{}}
+  def start_link(%Context{} = ctx, opts), do: GenStage.start_link(__MODULE__, ctx, opts)
+
+  def init(context), do: {:producer, %State{context: context}}
 
   def handle_demand(_demand, old_state), do: dispatch old_state
 
@@ -48,21 +52,15 @@ defmodule Farmbot.BotState.Monitor do
     dispatch(new_state)
   end
 
-  def handle_call(:get_state,_, state), do: dispatch(state, state)
-
-  @doc """
-    Gets the current accumulated state.
-  """
-  def get_state, do: GenServer.call(__MODULE__, :get_state)
-
   @spec dispatch(State.t) :: {:noreply, [], State.t }
   defp dispatch(%State{} = new_state) do
-    GenStage.async_notify(__MODULE__, new_state)
+    GenStage.async_notify(new_state.context.monitor, new_state)
     {:noreply, [], new_state}
   end
-  @spec dispatch(any, State.t) :: {:reply, any, [], State.t }
-  defp dispatch(reply, new_state) do
-    GenStage.async_notify(__MODULE__, new_state)
-    {:reply, reply, [], new_state}
-  end
+  # 
+  # @spec dispatch(any, State.t) :: {:reply, any, [], State.t }
+  # defp dispatch(reply, new_state) do
+  #   GenStage.async_notify(new_state.context.monitor, new_state)
+  #   {:reply, reply, [], new_state}
+  # end
 end

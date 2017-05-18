@@ -4,12 +4,11 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsoluteTest do
   alias Farmbot.CeleryScript.{Command, Ast}
 
   setup_all do
-    :ok = Farmbot.Serial.HandlerTest.wait_for_serial_available()
-    [cs_context: Ast.Context.new()]
+    Farmbot.Test.SerialHelper.full_setup()
   end
 
-  test "makes sure we have serial" do
-    assert Farmbot.Serial.Handler.available?() == true
+  test "makes sure we have serial", %{cs_context: context} do
+    assert Farmbot.Serial.Handler.available?(context.serial) == true
   end
 
   test "moves to a location", %{cs_context: context} do

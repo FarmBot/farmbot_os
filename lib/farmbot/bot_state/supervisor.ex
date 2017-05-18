@@ -4,28 +4,30 @@ defmodule Farmbot.BotState.Supervisor do
     things can subscribe too.
   """
 
+  alias Farmbot.CeleryScript.Ast.Context
+
   @use_logger Application.get_env(:farmbot, :logger, true)
 
   use Supervisor
   require Logger
   alias Farmbot.EasterEggs
-  def init([]) do
+  def init(ctx) do
     children = [
-      worker(Farmbot.BotState.Monitor, [], [restart: :permanent]),
-      worker(Farmbot.BotState.Configuration, [], [restart: :permanent]),
-      worker(Farmbot.BotState.Hardware,  [], [restart: :permanent]),
-      worker(Farmbot.BotState.ProcessSupervisor, [], [restart: :permanent]),
-      worker(EasterEggs, [name: EasterEggs], [restart: :permanent])
+      worker(Farmbot.BotState.Monitor,           [ctx, name: Farmbot.BotState.Monitor           ], [restart: :permanent]),
+      worker(Farmbot.BotState.Configuration,     [ctx, name: Farmbot.BotState.Configuration     ], [restart: :permanent]),
+      worker(Farmbot.BotState.Hardware,          [ctx, name: Farmbot.BotState.Hardware          ], [restart: :permanent]),
+      worker(Farmbot.BotState.ProcessSupervisor, [ctx, name: Farmbot.BotState.ProcessSupervisor ], [restart: :permanent]),
+      worker(EasterEggs,                         [name: EasterEggs], [restart: :permanent])
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)
   end
 
-  def start_link do
+  def start_link(%Context{} = ctx, opts) do
     # We have to start all the monitors and what not
     # and then add the logger backent because the logger backend asks for stuff
     # like position and some configuraion.
-    sup = Supervisor.start_link(__MODULE__, [], name: __MODULE__)
+    sup = Supervisor.start_link(__MODULE__, ctx, opts)
     EasterEggs.start_cron_job
     if @use_logger, do: Logger.add_backend(Logger.Backends.FarmbotLogger)
     sup

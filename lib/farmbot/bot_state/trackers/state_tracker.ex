@@ -4,14 +4,17 @@ defmodule Farmbot.StateTracker do
     simple states that can be easily represented as a struct with key value
     pairs.
   """
-  @callback load(any) :: {:ok, map}
+  
+  alias Farmbot.CeleryScript.Ast.Context
+
+  @callback load() :: {:ok, map}
   defmacro __using__(name: name, model: model) do
     quote do
       alias Farmbot.System.FS.ConfigStorage, as: FBConfigStorage
 
       defmodule State do
         @moduledoc false
-        defstruct unquote(model)
+        defstruct unquote(model) ++ [:context]
       end
 
       defp get_config(:all) do
@@ -29,27 +32,24 @@ defmodule Farmbot.StateTracker do
       @doc """
         Starts a #{unquote(name)} state tracker.
       """
-      def start_link, do: start_link([])
-      def start_link(args),
-        do: GenServer.start_link(unquote(name), args, name: unquote(name))
+      def start_link(%Context{} = ctx, opts),
+        do: GenServer.start_link(unquote(name), ctx, opts)
 
-      def init(args) do
+      def init(ctx) do
         n = unquote(name) |> Module.split |> List.last
         Logger.info ">> is starting #{n}."
-        case load(args) do
+        case load() do
           {:ok, %State{} = state} ->
-            {:ok, broadcast(state)}
+            {:ok, broadcast(%{state | context: ctx})}
           {:error, reason} ->
             Logger.error ">> encountered an error starting #{n}" <>
               "#{inspect reason}"
-          err ->
-            Logger.error ">> encountered an unknown error in #{n}"
-            <> ": #{inspect err}"
+            {:error, reason}
         end
       end
 
       # this should be overriden.
-      def load(_args), do: {:ok, %State{}}
+      def load(), do: {:ok, %State{}}
 
       defp dispatch(reply, %unquote(name).State{} = state) do
         broadcast(state)
@@ -69,13 +69,13 @@ defmodule Farmbot.StateTracker do
       end
 
       defp broadcast(%unquote(name).State{} = state) do
-        GenServer.cast(Farmbot.BotState.Monitor, state)
+        GenServer.cast(state.context.monitor, state)
         state
       end
 
       defp broadcast(_), do: dispatch {:error, :bad_dispatch}
 
-      defoverridable [load: 1]
+      defoverridable [load: 0]
     end
   end
 end

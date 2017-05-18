@@ -6,7 +6,7 @@ end
 
 defmodule Farmbot.SyncableTest do
   alias Database.Syncable.Fake
-  alias Farmbot.TestHelpers
+  alias Farmbot.Test.Helpers
   require IEx
   use ExUnit.Case, async: false
   use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
@@ -18,7 +18,7 @@ defmodule Farmbot.SyncableTest do
   setup_all do
     context = Context.new()
     [my_fake: %Fake{},
-     token:   TestHelpers.login(context.auth)]
+     token:   Helpers.login(context.auth)]
   end
 
   test "defines a syncable", context do

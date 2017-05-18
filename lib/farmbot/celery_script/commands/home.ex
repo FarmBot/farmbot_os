@@ -23,7 +23,7 @@ defmodule Farmbot.CeleryScript.Command.Home do
 
   def run(%{axis: axis}, [], context)
   when is_bitstring(axis) do
-    [cur_x, cur_y, cur_z] = Farmbot.BotState.get_current_pos
+    [cur_x, cur_y, cur_z] = Farmbot.BotState.get_current_pos(context)
     speed = 100
 
     next_context1 = Command.nothing(%{}, [], context)

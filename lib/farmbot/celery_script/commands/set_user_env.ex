@@ -14,9 +14,8 @@ defmodule Farmbot.CeleryScript.Command.SetUserEnv do
   @spec run(%{}, [Command.Pair.t], Ast.context) :: Ast.context
   def run(%{}, env_pairs, context) do
      envs = Command.pairs_to_tuples(env_pairs)
-     envs
-     |> Map.new
-     |> Farmbot.BotState.set_user_env
+     map = envs |> Map.new
+     Farmbot.BotState.set_user_env(context, map)
 
      envs
      |> Map.new

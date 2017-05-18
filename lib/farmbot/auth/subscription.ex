@@ -5,12 +5,13 @@ defmodule Farmbot.Auth.Subscription do
 
   use GenServer
   use Farmbot.DebugLog
+  alias Farmbot.CeleryScript.Ast.Context
 
-  def start_link(context, opts \\ []) do
+  def start_link(%Context{} = context, opts \\ []) do
     GenServer.start_link(__MODULE__, context, opts)
   end
 
-  def init(context) do
+  def init(%Context{} = context) do
     Registry.register(Farmbot.Registry, Farmbot.Auth, [])
     {:ok, %{context: context, token: nil}}
   end
@@ -29,14 +30,14 @@ defmodule Farmbot.Auth.Subscription do
     {:noreply, %{state | token: token}}
   end
 
-  def handle_info({Farmbot.Auth, :purge_token}, state), do: {:noreply, %{state | context: state}}
+  def handle_info({Farmbot.Auth, :purge_token}, state), do: {:noreply, %{state | token: nil}}
 
   def handle_info({Farmbot.Auth, message}, state) do
     debug_log "unhandled auth message: #{inspect message}"
     {:noreply, state}
   end
 
-  defp get_new(context) do
+  defp get_new(%Context{} = context) do
     spawn fn ->
       Farmbot.Auth.try_log_in!(context.auth)
     end

@@ -34,12 +34,11 @@ defmodule Farmbot.CeleryScript.Command.FactoryReset do
   defp do_fac_reset_fw(context, reboot \\ false) do
     Logger.info(">> Going to reset my arduino!", type: :warn)
     params =
-      Farmbot.BotState.get_all_mcu_params()
+      Farmbot.BotState.get_all_mcu_params(context)
       |> Enum.map(fn({key, _value}) ->
         if key do
-          key
-          |> String.to_existing_atom()
-          |> Farmbot.BotState.set_param(-1)
+          param = key |> String.to_existing_atom()
+          Farmbot.BotState.set_param(context, param, -1)
         end
         pair(%{label: key, value: -1}, [], context)
       end)

@@ -18,8 +18,8 @@ defmodule Farmbot.CeleryScript.Command.TogglePin do
   def run(%{pin_number: pin}, [], context) do
     # if we are trying to toggle an analog pin, make it digital i guess?
     # if it was analog, it will result in becoming 0
-    Farmbot.BotState.set_pin_mode(pin, @digital)
-    %{mode: @digital, value: val} = Farmbot.BotState.get_pin(pin)
+    Farmbot.BotState.set_pin_mode(context, pin, @digital)
+    %{mode: @digital, value: val} = Farmbot.BotState.get_pin(context, pin)
     do_toggle(pin, val, context)
     context
   end

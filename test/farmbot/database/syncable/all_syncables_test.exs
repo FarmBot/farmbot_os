@@ -25,7 +25,7 @@ defmodule AllSyncablesTestHelper do
           [
             module: unquote(module),
             id:     unquote(id),
-            token:  Farmbot.TestHelpers.login(context.auth),
+            token:  Farmbot.Test.Helpers.login(context.auth),
           ]
         end
 

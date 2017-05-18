@@ -3,8 +3,7 @@ defmodule Farmbot.CeleryScript.Command.SendMessage do
     SendMessage
   """
 
-  alias Farmbot.CeleryScript.Command
-  alias Farmbot.CeleryScript.Ast
+  alias Farmbot.CeleryScript.{Command, Ast}
   require Logger
 
   @behaviour Command
@@ -24,14 +23,14 @@ defmodule Farmbot.CeleryScript.Command.SendMessage do
   @spec run(%{message: String.t, message_type: message_type}, [Ast.t], Ast.context)
     :: Ast.context
   def run(%{message: m, message_type: m_type}, channels, context) do
-    rendered = Mustache.render(m, get_message_stuff())
+    rendered = Mustache.render(m, get_message_stuff(context))
     Logger.info ">> #{rendered}", type: m_type, channels: parse_channels(channels)
     context
   end
 
-  @spec get_message_stuff :: %{x: Command.x, y: Command.y, z: Command.z}
-  defp get_message_stuff do
-    [x, y, z] = Farmbot.BotState.get_current_pos
+  @spec get_message_stuff(Ast.context) :: %{x: Command.x, y: Command.y, z: Command.z}
+  defp get_message_stuff(context) do
+    [x, y, z] = Farmbot.BotState.get_current_pos(context)
     %{x: x, y: y, z: z}
   end
 

@@ -21,21 +21,20 @@ defmodule Farmbot.CeleryScript.Command.If do
   @spec run(%{}, [], Ast.context) :: Ast.context
   def run(%{_else: else_, _then: then_, lhs: lhs, op: op, rhs: rhs }, [], ctx) do
     lhs
-    |> eval_lhs
+    |> eval_lhs(ctx)
     |> eval_if(op, rhs, then_, else_, ctx)
   end
 
   # figure out what the user wanted
-  @spec eval_lhs(String.t) :: integer | {:error, String.t}
+  @spec eval_lhs(String.t, Ast.context) :: integer | {:error, String.t}
 
-  defp eval_lhs("pin" <> num) do
-    num
-    |> String.to_integer
-    |> Farmbot.BotState.get_pin || {:error, "pin" <> num}
+  defp eval_lhs("pin" <> num, %Ast.Context{} = context) do
+    thing = String.to_integer(num)
+    Farmbot.BotState.get_pin(context, thing) || {:error, "pin" <> num}
   end
 
-  defp eval_lhs(axis) do
-    [x, y, z] = Farmbot.BotState.get_current_pos
+  defp eval_lhs(axis, %Ast.Context{} = context) do
+    [x, y, z] = Farmbot.BotState.get_current_pos(context)
     case axis do
       "x" -> x
       "y" -> y
@@ -72,7 +71,7 @@ defmodule Farmbot.CeleryScript.Command.If do
 
   defp eval_if(lhs, "not", rhs, then_, else_, context) do
     if lhs != rhs,
-      do: Command.do_command(then_, context), 
+      do: Command.do_command(then_, context),
     else: Command.do_command(else_, context)
   end
 

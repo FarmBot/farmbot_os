@@ -40,11 +40,12 @@ config :tzdata, :autoupdate, :disabled
 # Path for the `fs` module to watch.
 config :fs, path: "/tmp/images"
 
-# Import configuration specific to out environment.
-import_config "#{env}.exs"
-
 # import config specific to our nerves_target
 IO.puts "using #{target} - #{env} configuration."
 import_config "hardware/#{target}/hardware.exs"
 config :nerves, :firmware,
   rootfs_additions: "config/hardware/#{target}/rootfs-additions-#{env}"
+
+
+# Import configuration specific to out environment.
+import_config "#{env}.exs"

@@ -24,7 +24,7 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
     :ok = check_version(context)
 
     blah = pairs_to_tuples(config_pairs)
-    current = Farmbot.BotState.get_all_mcu_params
+    current = Farmbot.BotState.get_all_mcu_params(context)
 
     params = filter_params(blah, current)
 
@@ -57,13 +57,13 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
     blah = pairs_to_tuples(config_pairs)
     for {key, val} <- blah do
       Logger.info ">> Updating #{key}: #{val}"
-      Farmbot.BotState.update_config(key, val)
+      Farmbot.BotState.update_config(context, key, val)
     end
     context
   end
 
   defp check_version(context) do
-    case UartHan.write("F83", context.serial) do
+    case UartHan.write(context.serial, "F83") do
       {:report_software_version, _version} -> :ok
       e ->
         debug_log "got: #{inspect e}"

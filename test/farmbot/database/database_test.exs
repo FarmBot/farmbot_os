@@ -1,6 +1,6 @@
 defmodule Farmbot.DatabaseTest do
-  alias Farmbot.TestHelpers
-  import TestHelpers, only: [read_json: 1, tag_item: 2]
+  alias Farmbot.Test.Helpers
+  import Helpers, only: [read_json: 1, tag_item: 2]
 
   use ExUnit.Case, async: false
   alias Farmbot.Database, as: DB
@@ -12,7 +12,7 @@ defmodule Farmbot.DatabaseTest do
   setup_all do
     {:ok, db} = DB.start_link([])
     context = Context.new()
-    [token: TestHelpers.login(context.auth), db: db]
+    [token: Helpers.login(context.auth), db: db]
   end
 
   test "sync" do

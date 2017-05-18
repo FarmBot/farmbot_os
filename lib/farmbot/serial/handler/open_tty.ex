@@ -7,12 +7,24 @@ defmodule Farmbot.Serial.Handler.OpenTTY do
 
   @baud 115_200
 
+  defp ensure_supervisor(sup) when is_atom(sup) do
+    case Process.whereis(sup) do
+      pid when is_pid(pid) -> ensure_supervisor(pid)
+      _ -> ensure_supervisor(sup)
+    end
+  end
+
+  defp ensure_supervisor(sup) when is_pid(sup) do
+    if Process.alive?(sup), do: :ok, else: ensure_supervisor(sup)
+  end
+
   if Mix.Project.config[:target] != "host" do
 
     # if runnin on the device, enumerate any uart devices and open them
     # individually.
     @spec open_ttys(atom | pid, [binary]) :: :ok | no_return
     def open_ttys(supervisor, ttys \\ nil) do
+      ensure_supervisor(supervisor)
       blah = ttys || UART.enumerate() |> Map.drop(["ttyS0","ttyAMA0"]) |> Map.keys
       case blah do
         [one_tty] ->
@@ -30,7 +42,7 @@ defmodule Farmbot.Serial.Handler.OpenTTY do
     # the environment
     defp get_tty do
       case Application.get_env(:farmbot, :tty) do
-        {:system, env} -> System.get_env("ARDUINO_TTY")
+        {:system, env} -> System.get_env(env)
         tty when is_binary(tty) -> tty
         _ -> nil
       end
@@ -39,6 +51,7 @@ defmodule Farmbot.Serial.Handler.OpenTTY do
     @spec open_ttys(atom | pid, [binary]) :: :ok | no_return
     def open_ttys(supervisor, list \\ nil)
     def open_ttys(supervisor, _) do
+      ensure_supervisor(supervisor)
       if get_tty() do
         thing = {get_tty(), [name: Farmbot.Serial.Handler]}
         try_open([thing], supervisor)
@@ -56,21 +69,21 @@ defmodule Farmbot.Serial.Handler.OpenTTY do
     {:ok, nerves} = UART.start_link()
     nerves
     |> UART.open(tty, speed: @baud, active: false)
-    |> bleep({tty, opts}, sup, nerves)
+    |> supervise_process({tty, opts}, sup, nerves)
 
     try_open(rest, sup)
   end
 
-  @spec bleep(any, binary, atom | pid, atom | pid)
+  @spec supervise_process(any, binary, atom | pid, atom | pid)
     :: {:ok, pid} | false | no_return
-  defp bleep(:ok, {tty, opts}, sup, nerves) do
+  defp supervise_process(:ok, {tty, opts}, sup, nerves) do
     worker_spec = worker(Handler, [nerves, tty, opts], [restart: :permanent])
     UART.close(nerves)
     Process.sleep(1500)
     {:ok, _pid} = Supervisor.start_child(sup, worker_spec)
   end
 
-  defp bleep(resp, {tty, _opts}, _, nerves) do
+  defp supervise_process(resp, {tty, _opts}, _, nerves) do
     GenServer.stop(nerves, :normal)
     raise "Could not open #{tty}: #{inspect resp}"
     false

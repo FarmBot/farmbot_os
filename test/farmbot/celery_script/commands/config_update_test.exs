@@ -4,16 +4,15 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdateTest do
   alias Farmbot.CeleryScript.{Command, Ast}
 
   setup_all do
-    Farmbot.Serial.HandlerTest.wait_for_serial_available()
-    [cs_context: Ast.Context.new()]
+    Farmbot.Test.SerialHelper.full_setup()
   end
 
   defp pair(key, val) do
     %Ast{kind: "pair", args: %{label: key, value: val}, body: []}
   end
 
-  test "makes sure we have serial" do
-    assert Farmbot.Serial.Handler.available?() == true
+  test "makes sure we have serial", %{cs_context: context} do
+    assert Farmbot.Serial.Handler.available?(context.serial) == true
   end
 
   test "sets some hardware params",  %{cs_context: context} do

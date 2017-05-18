@@ -2,7 +2,7 @@ defmodule Farmbot.Token do
   require IEx
   defimpl Inspect, for: __MODULE__ do
     def inspect(dict, _opts) do
-      << a :: size(16), rest :: binary>>  = dict.encoded
+      << a :: size(16), _rest :: binary>>  = dict.encoded
       "#Token<#{a}>"
     end
   end

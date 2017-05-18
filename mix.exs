@@ -40,11 +40,12 @@ defmodule Farmbot.Mixfile do
        "vcr.check":        :test,
        "vcr.show":         :test,
        "all_test":         :test,
-      #  "coveralls":        :test,
-      #  "coveralls.detail": :test,
-      #  "coveralls.post":   :test,
-      #  "coveralls.html":   :test,
-      #  "coveralls.travis": :test
+       "test":             :test,
+       "coveralls":        :test,
+       "coveralls.detail": :test,
+       "coveralls.post":   :test,
+       "coveralls.html":   :test,
+       "coveralls.travis": :test
      ],
      webpack_watch: Mix.env == :dev,
      webpack_cd: ".",
@@ -172,8 +173,8 @@ defmodule Farmbot.Mixfile do
       {:cors_plug, "~> 1.2"},
       {:cowboy, "~> 1.1"},
       {:ex_webpack, "~> 0.1.1", runtime: false, warn_missing: false},
-      {:farmbot_simulator, "~> 0.1.3", only: [:test, :dev]},
-      # {:farmbot_simulator, path: "../farmbot_simulator", only: [:test, :dev]},
+      # {:farmbot_simulator, "~> 0.1.3", only: [:test, :dev]},
+      {:farmbot_simulator, path: "../farmbot_simulator", only: [:test, :dev]},
 
       {:tzdata, "~> 0.1.201601", override: true},
       {:fs, "~> 0.9.1"}

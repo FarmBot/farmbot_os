@@ -1,30 +1,73 @@
-Mix.shell.info [:green, "Starting ExCoveralls"]
-{:ok, _} = Application.ensure_all_started(:excoveralls)
+defmodule Farmbot.Test.SerialHelper do
+  use GenServer
+  # use ExUnit.Case, async: false
+  alias Farmbot.CeleryScript.Ast.Context
 
-ExUnit.start
+  def setup_serial do
+    context = Context.new()
+    {ttya, ttyb} = slot = get_slot()
+    {:ok, hand} = Farmbot.Serial.Handler.start_link(ttyb, [])
+    {:ok, firm} = FirmwareSimulator.start_link(ttya, [])
+    context = %{context | serial: hand}
+    IO.puts "claiming slot: #{inspect slot}"
+    {{hand, firm}, slot, context}
+  end
 
-Mix.shell.info [:green, "Starting FarmbotSimulator"]
-:ok = Application.ensure_started(:farmbot_simulator)
+  def teardown_serial(slot, _context, {hand, firm}) do
+    IO.puts "releaseing slot: #{inspect slot}"
+    spawn fn() ->
+      GenServer.stop(hand, :shutdown)
+      GenServer.stop(firm, :shutdown)
 
-Process.sleep(100)
+    end
+    done_with_slot(slot)
+  end
 
-Mix.shell.info [:green, "deleting config and secret"]
-File.rm_rf! "/tmp/config.json"
-File.rm_rf! "/tmp/secret"
-File.rm_rf! "/tmp/farmware"
+  def start_link do
+    GenServer.start_link(__MODULE__, [], name: __MODULE__)
+  end
 
-Mix.shell.info [:green, "Setting up faker"]
-Faker.start
+  def get_slot do
+    GenServer.call(__MODULE__, :get_slot, :infinity)
+  end
 
-Mix.shell.info [:green, "Setting up vcr"]
-ExVCR.Config.cassette_library_dir("fixture/cassettes")
+  def done_with_slot(slot) do
+    GenServer.call(__MODULE__, {:done_with_slot, slot})
+  end
 
-Mix.shell.info [:green, "removeing logger"]
-Logger.remove_backend Logger.Backends.FarmbotLogger
+  def init([]) do
+    slots = [{"tnt0", "tnt1"}, {"tnt2", "tnt3"}, {"tnt4", "tnt5"}, {"tnt6", "tnt7"}]
+    slot_map = Map.new(slots, fn(slot) -> {slot, nil} end)
+    {:ok, %{slots: slot_map, waiting_for_slots: []}}
+  end
 
-Farmbot.DebugLog.filter(Farmbot.Serial.Handler)
+  def handle_call(:get_slot, from, state) do
+    slot = Enum.find_value(state.slots, fn({slot, user}) ->
+      unless user do
+        slot
+      end
+    end)
 
-defmodule Farmbot.TestHelpers do
+    if slot do
+      {:reply, slot, %{state | slots: %{state.slots | slot => from}}}
+    else
+      new_waiting = [from | state.waiting_for_slots]
+      {:noreply, %{state | waiting_for_slots: new_waiting}}
+    end
+  end
+
+  def handle_call({:done_with_slot, slot}, from, state) do
+    case Enum.reverse state.waiting_for_slots do
+      [next_in_line | rest] ->
+        GenServer.reply(next_in_line, slot)
+        {:reply, :ok, %{state | waiting_for_slots: rest, slots: %{state.slots | slot => from}}}
+      [] ->
+        {:reply, :ok, %{state | slots: %{state.slots | slot => nil}}}
+    end
+  end
+end
+
+defmodule Farmbot.Test.Helpers do
   alias Farmbot.Auth
   use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
   alias Farmbot.Database, as: DB
@@ -72,3 +115,31 @@ defmodule Farmbot.TestHelpers do
     struct(tag, updated_map)
   end
 end
+
+
+Mix.shell.info [:green, "Starting ExCoveralls"]
+{:ok, _} = Application.ensure_all_started(:excoveralls)
+
+# Mix.shell.info [:green, "Starting FarmbotSimulator"]
+# :ok = Application.ensure_started(:farmbot_simulator)
+
+Process.sleep(100)
+
+Mix.shell.info [:green, "deleting config and secret"]
+File.rm_rf! "/tmp/config.json"
+File.rm_rf! "/tmp/secret"
+File.rm_rf! "/tmp/farmware"
+
+Mix.shell.info [:green, "Setting up faker"]
+Faker.start
+
+Mix.shell.info [:green, "Setting up vcr"]
+ExVCR.Config.cassette_library_dir("fixture/cassettes")
+
+Mix.shell.info [:green, "removeing logger"]
+Logger.remove_backend Logger.Backends.FarmbotLogger
+
+# Farmbot.DebugLog.filter(Farmbot.Serial.Handler)
+{:ok, pid} = Farmbot.Test.SerialHelper.start_link()
+Process.link(pid)
+ExUnit.start

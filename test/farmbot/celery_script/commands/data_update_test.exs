@@ -4,15 +4,15 @@ defmodule Farmbot.CeleryScript.Command.DataUpdateTest do
   alias Farmbot.CeleryScript.{Command, Ast}
   alias Farmbot.Database, as: DB
   alias DB.Syncable.Point
-  alias Farmbot.TestHelpers
+  alias Farmbot.Test.Helpers
   alias Command.DataUpdate
   require IEx
 
 
   setup_all do
-    json          = TestHelpers.read_json("points.json")
+    json          = Test.Helpers.read_json("points.json")
     {:ok, db_pid} = DB.start_link([])
-    :ok           = Farmbot.TestHelpers.seed_db(db_pid, Point, json)
+    :ok           = Farmbot.Test.Helpers.seed_db(db_pid, Point, json)
     context = Ast.Context.new()
     [
       json: json,

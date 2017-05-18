@@ -6,11 +6,10 @@ import_config "dev.exs"
 #   format: ""
 
 config :farmbot,
-  path: "/tmp",
+  path: "/tmp/farmbot_test",
   config_file_name: "default_config.json",
-  tty: "/dev/tnt1"
+  tty: "/dev/tnt1",
+  logger: false
 
-# frontend <-> bot transports.
-config :farmbot, transports: []
 
-config :farmbot, logger: false
+config :farmbot_simulator, :tty, "tnt0"

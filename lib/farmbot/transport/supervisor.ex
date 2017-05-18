@@ -4,11 +4,20 @@ defmodule Farmbot.Transport.Supervisor do
   """
   use Supervisor
   alias Farmbot.CeleryScript.Ast.Context
-  @transports Application.get_env(:farmbot, :transports)
+
+  env = Mix.env()
 
   def init(context) do
-    children = build_children(@transports, context)
-    opts = [strategy: :one_for_one]
+
+    if unquote(env) == :test do
+      Mix.shell.info [:green, "Deleting environment!!!!!!"]
+      Application.delete_env(:farmbot, :transports)
+      Application.put_env(:farmbot, :transports, [])
+    end
+
+    transports = Application.get_env(:farmbot, :transports)
+    children   = build_children(transports, context)
+    opts       = [strategy: :one_for_one]
     supervise(children, opts)
   end
 

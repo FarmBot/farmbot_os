@@ -5,8 +5,8 @@ defmodule Farmbot.CeleryScript.Ast.Context do
 
   alias Farmbot.CeleryScript.Ast
 
-  @enforce_keys [:auth, :database, :network, :serial]
-  defstruct     [:auth, :database, :network, :serial, data_stack: []]
+  @enforce_keys [:auth, :database, :network, :serial, :hardware, :configuration]
+  defstruct     [:auth, :database, :network, :serial, :hardware, :configuration, data_stack: []]
 
   @typedoc false
   @type database  :: Farmbot.Database.database
@@ -20,14 +20,22 @@ defmodule Farmbot.CeleryScript.Ast.Context do
   @typedoc false
   @type serial    :: Farmbot.Serial.Handler.handler
 
+  @typedoc false
+  @type hardware    :: Farmbot.BotState.Hardware.hardware
+
+  @typedoc false
+  @type configuration    :: Farmbot.BotState.Configuration.configuration
+
   @typedoc """
     Stuff to be passed from one CS Node to another
   """
   @type t :: %__MODULE__{
-    database:   database,
-    auth:       auth,
-    network:    network,
-    serial:     serial,
+    database:      database,
+    auth:          auth,
+    network:       network,
+    serial:        serial,
+    configuration: configuration,
+    hardware:      hardware,
     data_stack: [Ast.t]
   }
 
@@ -51,10 +59,12 @@ defmodule Farmbot.CeleryScript.Ast.Context do
   @spec new :: Ast.context
   def new do
     %__MODULE__{ data_stack: [],
-                 database:   Farmbot.Database,
-                 network:    Farmbot.System.Network,
-                 serial:     Farmbot.Serial.Handler,
-                 auth:       Farmbot.Auth,
+                 configuration: Farmbot.BotState.Configuration,
+                 hardware:      Farmbot.BotState.Hardware,
+                 database:      Farmbot.Database,
+                 network:       Farmbot.System.Network,
+                 serial:        Farmbot.Serial.Handler,
+                 auth:          Farmbot.Auth,
     }
   end
 end

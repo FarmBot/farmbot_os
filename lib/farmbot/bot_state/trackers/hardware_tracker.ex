@@ -30,11 +30,10 @@ defmodule Farmbot.BotState.Hardware do
   @type end_stops :: {integer,integer,integer,integer,integer,integer}
 
   # Callback that happens when this module comes up
-  def load([]) do
+  def load do
     {:ok, p} = get_config("params")
     initial_state = %State{mcu_params: p}
 
-    # spawn(__MODULE__, :set_initial_params, [initial_state])
     {:ok, initial_state}
   end
 
