@@ -5,8 +5,10 @@ defmodule Farmbot.CeleryScript.Ast.Context do
 
   alias Farmbot.CeleryScript.Ast
 
-  @enforce_keys [:auth, :database, :network, :serial, :hardware, :configuration]
-  defstruct     [:auth, :database, :network, :serial, :hardware, :configuration, data_stack: []]
+  @enforce_keys [:auth, :database, :network, :serial, :hardware,
+                 :monitor, :configuration]
+  defstruct     [:auth, :database, :network, :serial, :hardware,
+                 :monitor,:configuration, data_stack: []]
 
   @typedoc false
   @type database  :: Farmbot.Database.database
@@ -24,6 +26,9 @@ defmodule Farmbot.CeleryScript.Ast.Context do
   @type hardware    :: Farmbot.BotState.Hardware.hardware
 
   @typedoc false
+  @type monitor    :: Farmbot.BotState.Monitor.monitor
+
+  @typedoc false
   @type configuration    :: Farmbot.BotState.Configuration.configuration
 
   @typedoc """
@@ -35,8 +40,9 @@ defmodule Farmbot.CeleryScript.Ast.Context do
     network:       network,
     serial:        serial,
     configuration: configuration,
+    monitor:       monitor,
     hardware:      hardware,
-    data_stack: [Ast.t]
+    data_stack:    [Ast.t]
   }
 
 
@@ -61,6 +67,7 @@ defmodule Farmbot.CeleryScript.Ast.Context do
     %__MODULE__{ data_stack: [],
                  configuration: Farmbot.BotState.Configuration,
                  hardware:      Farmbot.BotState.Hardware,
+                 monitor:       Farmbot.BotState.Monitor,
                  database:      Farmbot.Database,
                  network:       Farmbot.System.Network,
                  serial:        Farmbot.Serial.Handler,

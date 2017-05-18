@@ -7,7 +7,7 @@ defmodule Farmware.Worker do
   use GenStage
   @tracker Farmware.Tracker
   alias Farmware.FarmScript
-
+  alias Farmbot.CeleryScript.Ast.Context
   @type env :: map
 
   @doc """
@@ -30,10 +30,11 @@ defmodule Farmware.Worker do
 
   @spec initial_env :: env
   defp initial_env do
+    context = Context.new()
     %{"WRITE_PATH" => "/tmp", # common write path (non persistant)
       "BEGIN_CS" => "<<< ", # some in band signaling for executing celeryscript.
       "IMAGES" => "/tmp/images"} # Dump images here to upload them to the api
-    |> Map.merge(Farmbot.BotState.get_config(:user_env))
+    |> Map.merge(Farmbot.BotState.get_config(context, :user_env))
   end
 
   # when a queue of scripts comes in execute them in order

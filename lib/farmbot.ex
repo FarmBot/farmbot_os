@@ -33,7 +33,7 @@ defmodule Farmbot do
       # The worker for diffing db entries.
       worker(Farmbot.Database.Supervisor, [], restart: :permanent),
       # Handles tracking of various parts of the bots state.
-      supervisor(Farmbot.BotState.Supervisor, [name: Farmbot.BotState.Supervisor], restart: :permanent),
+      supervisor(Farmbot.BotState.Supervisor, [context, [name: Farmbot.BotState.Supervisor]], restart: :permanent),
       # Handles FarmEvents.
       supervisor(Farmbot.FarmEvent.Supervisor, [], restart: :permanent),
       # Handles the passing of messages from one part of the system to another.

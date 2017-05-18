@@ -11,6 +11,7 @@ defmodule Farmbot.BotState.ProcessTracker do
   require Logger
   alias Nerves.Lib.UUID
   alias Farmbot.RegimenRunner
+  alias Farmbot.CeleryScript.Ast.Context
 
   defmodule Info do
     @moduledoc false
@@ -42,8 +43,8 @@ defmodule Farmbot.BotState.ProcessTracker do
   @doc """
     Starts the Process Tracker
   """
-  @spec start_link :: {:ok, pid}
-  def start_link, do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link(%Context{} = context, opts),
+     do: GenServer.start_link(__MODULE__, [], opts)
 
   @doc """
     Registers a kind, name with a database entry to be tracked

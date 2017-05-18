@@ -103,9 +103,11 @@ defmodule Farmbot.HTTP do
   # We only want to upload if we get a 2XX response.
   defp finish_upload({:ok, %HTTPoison.Response{status_code: s}}, attachment_url)
   when s < 300 do
-    [x, y, z] = Farmbot.BotState.get_current_pos
-    meta = %{x: x, y: y, z: z}
-    json = Poison.encode! %{"attachment_url" => attachment_url, "meta" => meta}
+    context   = Context.new()
+    [x, y, z] = Farmbot.BotState.get_current_pos(context)
+    meta      = %{x: x, y: y, z: z}
+    json      = Poison.encode! %{"attachment_url" => attachment_url,
+                                 "meta" => meta}
     Farmbot.HTTP.post "/api/images", json
   end
 end
