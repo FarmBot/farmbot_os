@@ -22,7 +22,7 @@ defmodule Farmbot.BotState do
   @spec set_pos(context, integer,integer,integer) :: :ok
   def set_pos(%Context{} = context, x, y, z)
   when is_integer(x) and is_integer(y) and is_integer(z) do
-    GenServer.cast(context.hardware, {:set_pos, {x, y, z}})
+    GenServer.call(context.hardware, {:set_pos, {x, y, z}})
   end
 
   @doc """

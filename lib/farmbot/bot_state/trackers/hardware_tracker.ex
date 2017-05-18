@@ -85,6 +85,11 @@ defmodule Farmbot.BotState.Hardware do
     dispatch Map.get(state.mcu_params, param), state
   end
 
+  def handle_call({:set_pos, {x, y, z}}, _from, %State{} = state) do
+    IO.puts "!!! SET POS #{x} !!!"
+    dispatch [x, y, z], %State{state | location: [x,y,z]}
+  end
+
   def handle_call(event, _from, %State{} = state) do
     Logger.error ">> got an unhandled call in " <>
                  "Hardware tracker: #{inspect event}"
@@ -94,10 +99,6 @@ defmodule Farmbot.BotState.Hardware do
   def handle_cast({:serial_ready, context}, state) do
     spawn(__MODULE__, :set_initial_params, [state, context])
     dispatch state
-  end
-
-  def handle_cast({:set_pos, {x, y, z}}, %State{} = state) do
-    dispatch %State{state | location: [x,y,z]}
   end
 
   def handle_cast({:set_pin_value, {pin, value}}, %State{} = state) do

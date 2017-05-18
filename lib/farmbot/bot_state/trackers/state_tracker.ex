@@ -4,7 +4,7 @@ defmodule Farmbot.StateTracker do
     simple states that can be easily represented as a struct with key value
     pairs.
   """
-  
+
   alias Farmbot.CeleryScript.Ast.Context
 
   @callback load() :: {:ok, map}

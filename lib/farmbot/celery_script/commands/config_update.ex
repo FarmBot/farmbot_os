@@ -65,6 +65,7 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
   defp check_version(context) do
     case UartHan.write(context.serial, "F83") do
       {:report_software_version, _version} -> :ok
+      nil -> :ok # FIXME!!
       e ->
         debug_log "got: #{inspect e}"
         debug_log "Waiting..."

@@ -1,19 +1,18 @@
 defmodule Farmbot.Test.SerialHelper do
   use GenServer
-  # use ExUnit.Case, async: false
   alias Farmbot.CeleryScript.Ast.Context
 
   def setup_serial do
     context = Context.new()
     {ttya, ttyb} = slot = get_slot()
-    {:ok, hand} = Farmbot.Serial.Handler.start_link(ttyb, [])
+    {:ok, hand} = Farmbot.Serial.Handler.start_link(context, ttyb, [])
     {:ok, firm} = FirmwareSimulator.start_link(ttya, [])
     context = %{context | serial: hand}
     IO.puts "claiming slot: #{inspect slot}"
     {{hand, firm}, slot, context}
   end
 
-  def teardown_serial(slot, _context, {hand, firm}) do
+  def teardown_serial({hand, firm}, slot) do
     IO.puts "releaseing slot: #{inspect slot}"
     spawn fn() ->
       GenServer.stop(hand, :shutdown)
@@ -64,6 +63,27 @@ defmodule Farmbot.Test.SerialHelper do
       [] ->
         {:reply, :ok, %{state | slots: %{state.slots | slot => nil}}}
     end
+  end
+end
+
+defmodule Farmbot.Test.Helpers.SerialTemplate do
+  alias Farmbot.Serial.Handler
+  alias Farmbot.Test.SerialHelper
+  use ExUnit.CaseTemplate
+
+  defp wait_for_serial(handler) do
+    unless Handler.available? do
+      IO.puts "waiting for serial..."
+      Process.sleep(100)
+      wait_for_serial(handler)
+    end
+  end
+
+  setup_all do
+    {{hand, firm}, slot, context} = SerialHelper.setup_serial()
+
+     on_exit fn() -> SerialHelper.teardown_serial({hand, firm}, slot) end
+     [cs_context: context, serial_handler: hand, firmware_sim: firm]
   end
 end
 

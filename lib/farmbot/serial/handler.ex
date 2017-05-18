@@ -328,10 +328,16 @@ defmodule Farmbot.Serial.Handler do
   end
 
   defp handle_gcode({:report_current_position, x_steps, y_steps, z_steps} = reply, %Context{} = ctx) do
-    BotState.set_pos( ctx,
-      Maths.steps_to_mm(x_steps, spm(:x, ctx)),
-      Maths.steps_to_mm(y_steps, spm(:y, ctx)),
-      Maths.steps_to_mm(z_steps, spm(:z, ctx)))
+    debug_log "Position reported: #{x_steps}"
+    thing_x = spm(:x, ctx)
+    debug_log "Got spm_x: #{thing_x}"
+    thing_y = spm(:y, ctx)
+    thing_z = spm(:z, ctx)
+    r = BotState.set_pos(ctx,
+      Maths.steps_to_mm(x_steps, thing_x),
+      Maths.steps_to_mm(y_steps, thing_y),
+      Maths.steps_to_mm(z_steps, thing_z))
+    debug_log "Position report reply: #{inspect r}"
     {:reply, reply}
   end
 
@@ -444,8 +450,7 @@ defmodule Farmbot.Serial.Handler do
 
   @spec spm(atom, Context.t) :: integer
   defp spm(xyz, %Context{} = ctx) do
-    "steps_per_mm_#{xyz}"
-    |> String.to_atom
-    |> Farmbot.BotState.get_config(ctx)
+    spm = "steps_per_mm_#{xyz}" |> String.to_atom
+    Farmbot.BotState.get_config(ctx, spm)
   end
 end
