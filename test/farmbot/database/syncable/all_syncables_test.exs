@@ -9,6 +9,8 @@ alias Syncable.Tool
 alias Syncable.FarmEvent
 # alias Syncable.Device
 
+alias Farmbot.CeleryScript.Ast.Context
+
 defmodule AllSyncablesTestHelper do
 
   defmacro test_syncable(module, id) do
@@ -18,13 +20,12 @@ defmodule AllSyncablesTestHelper do
         use ExUnit.Case, async: false
         use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
 
-
         setup_all do
-          Farmbot.TestHelpers.login()
+          context = Context.new()
           [
             module: unquote(module),
             id:     unquote(id),
-            token:  Farmbot.TestHelpers.login(),
+            token:  Farmbot.TestHelpers.login(context.auth),
           ]
         end
 

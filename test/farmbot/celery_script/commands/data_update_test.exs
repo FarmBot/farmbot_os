@@ -13,11 +13,11 @@ defmodule Farmbot.CeleryScript.Command.DataUpdateTest do
     json          = TestHelpers.read_json("points.json")
     {:ok, db_pid} = DB.start_link([])
     :ok           = Farmbot.TestHelpers.seed_db(db_pid, Point, json)
-
+    context = Ast.Context.new()
     [
       json: json,
       db_pid: db_pid,
-      cs_context: %Ast.Context{data_stack: [], database: db_pid}
+      cs_context: %{context | database: db_pid}
     ]
   end
 

@@ -29,12 +29,15 @@ defmodule Farmbot.TestHelpers do
   use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
   alias Farmbot.Database, as: DB
 
-  def login(email \\ "admin@admin.com",
-            pass  \\ "password123",
-            url   \\ "http://localhost:3000") do
+  def login(auth, creds \\ nil) do
+    creds = creds || %{
+      email:  "admin@admin.com",
+      pass:  "password123",
+      url:  "http://localhost:3000"
+    }
     use_cassette "good_login" do
-      :ok = Auth.interim(email, pass, url)
-      {:ok, token} = Auth.try_log_in
+      :ok = Auth.interim(auth, creds.email, creds.pass, creds.url)
+      {:ok, token} = Auth.try_log_in(auth)
       token
     end
   end

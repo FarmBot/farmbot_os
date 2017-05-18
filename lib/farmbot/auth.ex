@@ -261,7 +261,7 @@ defmodule Farmbot.Auth do
   def init(context) do
     Logger.info(">> Authorization init!")
     timer = s_a(self())
-    {:ok, sub} = Sub.start_link(%Context{context | auth: self()}, name: Sub)
+    {:ok, sub} = Sub.start_link(%Context{context | auth: self()}, [])
     {:ok, server} = load_server()
     state = %{
       server: server,

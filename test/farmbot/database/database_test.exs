@@ -4,13 +4,15 @@ defmodule Farmbot.DatabaseTest do
 
   use ExUnit.Case, async: false
   alias Farmbot.Database, as: DB
+  alias Farmbot.CeleryScript.Ast.Context
   alias DB.Syncable.Point
   use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
   require IEx
 
   setup_all do
     {:ok, db} = DB.start_link([])
-    [token: TestHelpers.login(), db: db]
+    context = Context.new()
+    [token: TestHelpers.login(context.auth), db: db]
   end
 
   test "sync" do
