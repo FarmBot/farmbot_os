@@ -26,7 +26,7 @@ defmodule Farmbot.CeleryScript.Command.WritePin do
           context) do
     # sets the pin mode in bot state.
     Farmbot.BotState.set_pin_mode(pin, mode)
-    "F41 P#{pin} V#{val} M#{mode}" |> UartHan.write
+    UartHan.write(context.serial, "F41 P#{pin} V#{val} M#{mode}")
     # HACK read the pin back to make sure it worked
     read_pin_args = %{pin_number: pin, pin_mode: mode, label: "ack"}
     new_context   = Command.read_pin(read_pin_args, [], context)

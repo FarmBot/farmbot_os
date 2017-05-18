@@ -20,7 +20,7 @@ defmodule Farmbot.CeleryScript.Command.EmergencyLock do
     else
       Farmbot.BotState.set_sync_msg(:locked)
       Farmbot.BotState.lock_bot()
-      Farmbot.Serial.Handler.emergency_lock()
+      Farmbot.Serial.Handler.emergency_lock(context)
     end
     context
   end

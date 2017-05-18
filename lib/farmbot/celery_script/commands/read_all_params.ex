@@ -22,7 +22,7 @@ defmodule Farmbot.CeleryScript.Command.ReadAllParams do
 
   defp do_thing(context, tries \\ 0)
 
-  defp do_thing(context, tries) when tries > 5 do
+  defp do_thing(_context, tries) when tries > 5 do
     Logger.info ">> Could not read params. Firmware not responding!", type: :warn
     {:error, :to_many_retries}
   end

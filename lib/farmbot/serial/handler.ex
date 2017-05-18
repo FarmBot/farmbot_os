@@ -3,12 +3,13 @@ defmodule Farmbot.Serial.Handler do
     Handles communication between farmbot and uart devices
   """
 
-  use GenServer
-  require Logger
-  alias Nerves.UART
-  alias Farmbot.Serial.Gcode.Parser
   alias Farmbot.BotState
+  alias Farmbot.CeleryScript.Ast.Context
   alias Farmbot.Lib.Maths
+  alias Farmbot.Serial.Gcode.Parser
+  alias Nerves.UART
+  require Logger
+  use GenServer
 
   # use Farmbot.DebugLog, enable: false
   use Farmbot.DebugLog
@@ -242,7 +243,8 @@ defmodule Farmbot.Serial.Handler do
       Logger.info "Initializing Firmware!"
       fn ->
         Process.sleep(2000)
-        GenServer.cast(Farmbot.BotState.Hardware, :eff)
+        ready = {:serial_ready, Context.new()}
+        GenServer.cast(Farmbot.BotState.Hardware, ready)
       end.()
       {:noreply, %{state | initialized: true, status: :idle}}
     else

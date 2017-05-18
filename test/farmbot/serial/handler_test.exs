@@ -30,12 +30,10 @@ defmodule Farmbot.Serial.HandlerTest do
     case Process.whereis(Handler) do
       nil ->
         Process.sleep(10)
-        IO.puts "waiting for serial: #{inspect self()}"
         wait_for_serial_available(count + 1)
       _ ->
         unless Handler.available? do
           Process.sleep(10)
-          IO.puts "waiting for serial: #{inspect self()}"
           wait_for_serial_available(count + 1)
         end
         Command.home(%{axis: "all"}, [], Ast.Context.new())

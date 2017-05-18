@@ -18,6 +18,7 @@ defmodule Farmbot.DebugLog.SocketHandler do
   end
 
   require Logger
+  alias Farmbot.CeleryScript.Ast.Context
 
   @timeout :infinity
 
@@ -58,7 +59,7 @@ defmodule Farmbot.DebugLog.SocketHandler do
   end
 
   defp handle_json(%{"to_firmware" => gcode}) do
-    Farmbot.Serial.Handler.write(gcode)
+    Farmbot.Serial.Handler.write(Context.new().serial, gcode)
   end
 
   defp handle_json(m) do

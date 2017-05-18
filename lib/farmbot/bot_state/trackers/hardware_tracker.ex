@@ -41,22 +41,22 @@ defmodule Farmbot.BotState.Hardware do
   @doc """
     Takes a Hardware State object, and makes it happen
   """
-  @spec set_initial_params(State.t) :: {:ok, :no_params} | :ok | {:error, term}
-  def set_initial_params(%State{} = state) do
+  @spec set_initial_params(State.t, Ast.context) :: {:ok, :no_params} | :ok | {:error, term}
+  def set_initial_params(%State{} = state, %Ast.Context{} = context) do
     # BUG(Connor): The first param is rather unstable for some reason.
     # Try to send a fake packet just to make sure we have a good
     # Connection to the Firmware
 
-    if !Farmbot.Serial.Handler.available? do
+    if !Farmbot.Serial.Handler.available?(context.serial) do
       # UGHHHHHH
       Logger.info ">> Is waiting for Serial before updating params."
       Process.sleep(100)
-      set_initial_params(state)
+      set_initial_params(state, context)
     end
 
     if Enum.empty?(state.mcu_params) do
       Logger.info ">> is reading all mcu params."
-      Command.read_all_params(%{}, [], Ast.Context.new())
+      Command.read_all_params(%{}, [], context)
       {:ok, :no_params}
     else
       Logger.info ">> is setting previous mcu commands."
@@ -65,7 +65,7 @@ defmodule Farmbot.BotState.Hardware do
             args: %{label: param, value: val}, body: []}
       end)
       Command.config_update(%{package: "arduino_firmware"},
-        config_pairs, Ast.Context.new())
+        config_pairs, context)
       :ok
     end
   end
@@ -92,8 +92,8 @@ defmodule Farmbot.BotState.Hardware do
     dispatch :unhandled, state
   end
 
-  def handle_cast(:eff, state) do
-    spawn(__MODULE__, :set_initial_params, [state])
+  def handle_cast({:serial_ready, context}, state) do
+    spawn(__MODULE__, :set_initial_params, [state, context])
     dispatch state
   end
 
