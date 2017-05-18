@@ -54,6 +54,16 @@ defmodule Farmbot.Serial.Handler do
   @default_timeout_ms 10_000
   @max_timeouts 5
 
+  def find_tty do
+    case Application.get_env(:farmbot, :tty) do
+      {:system, env} ->
+        System.get_env(env)
+      tty when is_binary(tty) -> tty
+      nil ->
+        UART.enumerate() |> Map.keys
+    end
+  end
+
   @doc """
     Starts a UART GenServer
   """
@@ -72,7 +82,7 @@ defmodule Farmbot.Serial.Handler do
     Checks if we have a handler available
   """
   @spec available?(handler) :: boolean
-  def available?(handler \\ __MODULE__)
+  def available?(handler)
 
   # If handler is a pid
   def available?(handler) when is_pid(handler) do
@@ -93,13 +103,13 @@ defmodule Farmbot.Serial.Handler do
     Gets the state of a handler
   """
   @spec get_state(handler) :: state
-  def get_state(handler \\ __MODULE__), do: GenServer.call(handler, :get_state)
+  def get_state(handler), do: GenServer.call(handler, :get_state)
 
   @doc """
     Writes a string to the uart line
   """
   @spec write(binary, integer, handler) :: binary | {:error, atom}
-  def write(string, timeout \\ @default_timeout_ms, handler \\ __MODULE__)
+  def write(string, timeout \\ @default_timeout_ms, handler)
   def write(str, timeout, handler) do
     if available?(handler) do
       GenServer.call(handler, {:write, str, timeout}, :infinity)
@@ -112,7 +122,7 @@ defmodule Farmbot.Serial.Handler do
     Send the E stop command to the arduino.
   """
   @spec emergency_lock(handler) :: :ok | no_return
-  def emergency_lock(handler \\ __MODULE__) do
+  def emergency_lock(handler) do
     GenServer.call(handler, :emergency_lock)
   end
 
@@ -120,7 +130,7 @@ defmodule Farmbot.Serial.Handler do
     Tell the arduino its fine now.
   """
   @spec emergency_unlock(handler) :: :ok | no_return
-  def emergency_unlock(handler \\ __MODULE__) do
+  def emergency_unlock(handler) do
     GenServer.call(handler, :emergency_unlock)
   end
 

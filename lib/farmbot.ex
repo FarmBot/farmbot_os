@@ -41,7 +41,8 @@ defmodule Farmbot do
       # Handles external scripts and what not.
       supervisor(Farmware.Supervisor, [], restart: :permanent),
       # handles communications between bot and arduino.
-      supervisor(Farmbot.Serial.Supervisor, [], restart: :permanent),
+      worker(Task, [Farmbot.Serial.Handler.OpenTTY, :open_ttys, [__MODULE__]], restart: :transient),
+      # worker(Farmbot.Serial.Handler, ["/dev/ttyfail", name: Farmbot.Serial.Handler], restart: :permanent),
       # Watches the images directory and uploads them.
       worker(Farmbot.ImageWatcher, [], restart: :permanent)
     ]

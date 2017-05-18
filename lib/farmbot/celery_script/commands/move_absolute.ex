@@ -38,15 +38,15 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
 
     a = {location.args.x, location.args.y, location.args.z}
     b = {offset.args.x,   offset.args.y,    offset.args.z }
-    do_move(a, b, s)
+    do_move(a, b, s, context)
 
     new_context3
   end
 
-  defp do_move({xa, ya, za}, {xb, yb, zb}, speed) do
+  defp do_move({xa, ya, za}, {xb, yb, zb}, speed, context) do
     { combined_x, combined_y, combined_z } = { xa + xb, ya + yb, za + zb }
     {x, y, z} = do_math(combined_x, combined_y, combined_z)
-    "G00 X#{x} Y#{y} Z#{z} S#{speed}" |> UartHan.write
+    "G00 X#{x} Y#{y} Z#{z} S#{speed}" |> UartHan.write(context.serial)
     # ensure_position(combined_x, combined_y, combined_z)
   end
 

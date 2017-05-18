@@ -21,7 +21,7 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
             Ast.context) :: Ast.context
   def run(%{package: "arduino_firmware"}, config_pairs, context) do
     # check the version to make sure we have a good connection to the firmware
-    :ok = check_version()
+    :ok = check_version(context)
 
     blah = pairs_to_tuples(config_pairs)
     current = Farmbot.BotState.get_all_mcu_params
@@ -33,7 +33,7 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
     debug_log "updating #{inspect params}"
     count =
       Enum.reduce(params, 0, fn(pair, count) ->
-        do_update_param(pair)
+        do_update_param(context, pair)
         count = count + 1
         percent = ((count / total_count) * 100)
         percent = trunc(percent)
@@ -44,7 +44,7 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
       end)
 
     if count > 5 do
-      "F20" |> UartHan.write
+      "F20" |> UartHan.write (context.serial)
     else
       for {param_str, _val} <- params do
         read_param(%{label: param_str}, [], context)
@@ -62,28 +62,28 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
     context
   end
 
-  defp check_version do
-    case UartHan.write("F83") do
+  defp check_version(context) do
+    case UartHan.write("F83", context.serial) do
       {:report_software_version, _version} -> :ok
       e ->
         debug_log "got: #{inspect e}"
         debug_log "Waiting..."
         Process.sleep(2000)
-        check_version()
+        check_version(context)
     end
   end
 
-  defp write_and_read(int_and_str, val, tries \\ 0)
-  defp write_and_read({_param_int, param_str}, _val, tries) when tries > 5 do
+  defp write_and_read(context, int_and_str, val, tries \\ 0)
+  defp write_and_read(context, {_param_int, param_str}, _val, tries) when tries > 5 do
     Logger.info ">> failed to update update: #{param_str}!"
     {:error, :timeout}
   end
 
-  defp write_and_read({param_int, param_str}, val, tries) do
+  defp write_and_read(context, {param_int, param_str}, val, tries) do
     Logger.info ">> is updating #{param_str}: #{val}"
-    results = "F22 P#{param_int} V#{val}" |> UartHan.write
+    results = "F22 P#{param_int} V#{val}" |> UartHan.write(context.serial)
     case results do
-      :timeout -> write_and_read({param_int, param_str}, val, tries + 1)
+      :timeout -> write_and_read(context, {param_int, param_str}, val, tries + 1)
       _ -> :ok
     end
 
@@ -95,10 +95,10 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
     # end
   end
 
-  defp do_update_param({param_str, val}) do
+  defp do_update_param(context, {param_str, val}) do
     param_int = GParser.parse_param(param_str)
     if param_int do
-      r = write_and_read({param_int, param_str}, val)
+      r = write_and_read(context, {param_int, param_str}, val)
     else
       to_rollbar? = param_str != "nil"
       Logger.error ">> got an unrecognized" <>

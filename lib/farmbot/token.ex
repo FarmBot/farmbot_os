@@ -1,21 +1,16 @@
 defmodule Farmbot.Token do
-
-  defimpl Inspect, for: Token do
-      def inspect(_dict, _opts) do
-        "#Token<  >"
-      end
+  require IEx
+  defimpl Inspect, for: __MODULE__ do
+    def inspect(dict, _opts) do
+      << a :: size(16), rest :: binary>>  = dict.encoded
+      "#Token<#{a}>"
+    end
   end
 
   defmodule Unencoded do
     @moduledoc """
       The unencoded version of the token.
     """
-
-    defimpl Inspect, for: Token do
-        def inspect(_dict, _opts) do
-          "#Token.Unencoded<  >"
-        end
-    end
 
     @type t :: %__MODULE__{
       # Github apis for bot and fw updates.

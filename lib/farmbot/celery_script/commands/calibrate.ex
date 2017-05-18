@@ -14,12 +14,12 @@ defmodule Farmbot.CeleryScript.Command.Calibrate do
   """
   @spec run(%{axis: String.t}, [], Ast.context) :: Ast.context
   def run(%{axis: axis}, [], context) do
-    do_write(axis)
+    do_write(axis, context)
     context
   end
 
   @spec do_write(binary) :: no_return
-  defp do_write("x"), do: UartHan.write "F14"
-  defp do_write("y"), do: UartHan.write "F15"
-  defp do_write("z"), do: UartHan.write "F16"
+  defp do_write("x", context), do: UartHan.write context.serial "F14"
+  defp do_write("y", context), do: UartHan.write context.serial "F15"
+  defp do_write("z", context), do: UartHan.write context.serial "F16"
 end

@@ -1,29 +1,11 @@
-defmodule Farmbot.Serial.Supervisor do
+defmodule Farmbot.Serial.Handler.OpenTTY do
   @moduledoc false
-  use Supervisor
-  require Logger
   alias Nerves.UART
   alias Farmbot.Serial.Handler
+  use Farmbot.DebugLog
+  import Supervisor.Spec
 
   @baud 115_200
-
-  @doc """
-    Start the serial supervisor
-  """
-  def start_link do
-    Logger.info ">> is starting serial services"
-    Supervisor.start_link(__MODULE__, [], name: __MODULE__)
-  end
-
-  def init([]) do
-    children = [
-      # Here we start a task for opening ttys. Since they can change depending
-      # on who made the arduino, what drivers are running etc, we cant hard
-      # code it.
-      worker(Task, [__MODULE__, :open_ttys, [__MODULE__]], restart: :transient)
-    ]
-    supervise(children, strategy: :one_for_all)
-  end
 
   if Mix.Project.config[:target] != "host" do
 
@@ -47,7 +29,11 @@ defmodule Farmbot.Serial.Supervisor do
     # If running in the host environment the proper tty is expected to be in
     # the environment
     defp get_tty do
-      System.get_env("ARDUINO_TTY") || Application.get_env(:farmbot, :tty)
+      case Application.get_env(:farmbot, :tty) do
+        {:system, env} -> System.get_env("ARDUINO_TTY")
+        tty when is_binary(tty) -> tty
+        _ -> nil
+      end
     end
 
     @spec open_ttys(atom | pid, [binary]) :: :ok | no_return
@@ -57,7 +43,7 @@ defmodule Farmbot.Serial.Supervisor do
         thing = {get_tty(), [name: Farmbot.Serial.Handler]}
         try_open([thing], supervisor)
       else
-        Logger.warn ">> EXPORT ARDUINO_TTY to initialize arduino in Host mode"
+        debug_log ">> Please export ARDUINO_TTY in your environment"
         :ok
       end
     end
@@ -85,8 +71,8 @@ defmodule Farmbot.Serial.Supervisor do
   end
 
   defp bleep(resp, {tty, _opts}, _, nerves) do
-    Logger.error "Could not open #{tty}: #{inspect resp}"
     GenServer.stop(nerves, :normal)
+    raise "Could not open #{tty}: #{inspect resp}"
     false
   end
 end

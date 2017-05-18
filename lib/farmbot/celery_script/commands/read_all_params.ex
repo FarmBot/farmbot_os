@@ -16,21 +16,21 @@ defmodule Farmbot.CeleryScript.Command.ReadAllParams do
   """
   @spec run(%{}, [], Ast.context) :: Ast.context
   def run(%{}, [], context) do
-    do_thing()
+    do_thing(context)
     context
   end
 
-  defp do_thing(tries \\ 0)
+  defp do_thing(context, tries \\ 0)
 
-  defp do_thing(tries) when tries > 5 do
+  defp do_thing(context, tries) when tries > 5 do
     Logger.info ">> Could not read params. Firmware not responding!", type: :warn
     {:error, :to_many_retries}
   end
 
-  defp do_thing(tries) do
+  defp do_thing(context, tries) do
     Logger.info ">> read all params try #{tries + 1}"
-    UartHan.write "F83"
-    results = case UartHan.write("F20") do
+    UartHan.write context.serial, "F83"
+    results = case UartHan.write(context.serial, "F20") do
       :timeout -> do_thing(tries + 1)
       other -> other
     end

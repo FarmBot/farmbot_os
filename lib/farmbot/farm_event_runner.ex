@@ -214,5 +214,7 @@ defmodule Farmbot.FarmEventRunner do
   end
 
   @spec lookup(Sequence | Regimen, integer) :: Sequence.t | Regimen.t
-  defp lookup(module, sr_id), do: apply(module, :by_id, [sr_id])
+  defp lookup(module, sr_id) do
+    Database.get_by_id(Database, module, sr_id)
+  end
 end
