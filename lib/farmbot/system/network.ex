@@ -10,6 +10,8 @@ defmodule Farmbot.System.Network do
   alias Farmbot.Auth
   alias Farmbot.CeleryScript.Ast.Context
 
+  env = Mix.env()
+
   @type netman :: pid
 
   @spec mod(atom | binary | Context.t) :: atom
@@ -32,7 +34,9 @@ defmodule Farmbot.System.Network do
       maybe_get_fpf()
     end
 
-    Farmbot.Auth.try_log_in(context.auth)
+    unless unquote(env) == :test do
+      Farmbot.Auth.try_log_in(context.auth)
+    end
   end)
 
   defp parse_and_start_config(%Context{} = context, config, m) do

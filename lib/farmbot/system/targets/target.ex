@@ -5,6 +5,12 @@ unless target == "host" do
   for file <- nc_files, do: Code.eval_file(file, nerves_common_path)
 end
 
-path = "lib/farmbot/system/targets/#{target}"
+path = case Mix.env() do
+  :test ->
+    "lib/farmbot/system/targets/#{target}_test"
+  _ ->
+    "lib/farmbot/system/targets/#{target}"
+end
+
 files = File.ls! path
 for file <- files, do: Code.eval_file(file, path)
