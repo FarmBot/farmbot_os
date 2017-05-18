@@ -79,7 +79,8 @@ defmodule Farmware.FarmScript do
   # this will raise if there is no token. This is unintended security lol.
   @spec get_token :: {charlist, charlist}
   defp get_token do
-    {:ok, token} = Farmbot.Auth.get_token
+    context = Farmbot.CeleryScript.Ast.Context.new()
+    {:ok, token} = Farmbot.Auth.get_token(context.auth)
     {'API_TOKEN', String.to_charlist(token.encoded)}
   end
 

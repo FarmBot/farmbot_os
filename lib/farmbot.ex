@@ -20,13 +20,14 @@ defmodule Farmbot do
   end
 
   def init(_args) do
+    context = Farmbot.CeleryScript.Ast.Context.new()
     children = [
-      worker(Farmbot.DebugLog, [], restart: :permanent),
+      worker(Farmbot.DebugLog, [],               restart: :permanent),
       supervisor(Registry, [:duplicate,  Farmbot.Registry]),
       # System specifics.
-      supervisor(FBSYS, [], restart: :permanent),
+      supervisor(FBSYS,    [context, [name: FBSYS]],        restart: :permanent),
       # Auth services.
-      worker(Farmbot.Auth, [], restart: :permanent),
+      worker(Farmbot.Auth, [context, [name: Farmbot.Auth]], restart: :permanent),
       # Web app.
       supervisor(Farmbot.Configurator, [], restart: :permanent),
       # The worker for diffing db entries.
@@ -36,7 +37,7 @@ defmodule Farmbot do
       # Handles FarmEvents.
       supervisor(Farmbot.FarmEvent.Supervisor, [], restart: :permanent),
       # Handles the passing of messages from one part of the system to another.
-      supervisor(Farmbot.Transport.Supervisor, [], restart: :permanent),
+      supervisor(Farmbot.Transport.Supervisor, [context, [name: Farmbot.Transport.Supervisor]], restart: :permanent),
       # Handles external scripts and what not.
       supervisor(Farmware.Supervisor, [], restart: :permanent),
       # handles communications between bot and arduino.

@@ -5,14 +5,16 @@ defmodule Farmbot.CeleryScript.Ast.Context do
 
   alias Farmbot.CeleryScript.Ast
 
-  @enforce_keys [:database]
-  defstruct [:database, data_stack: []]
+  @enforce_keys [:auth, :database, :network]
+  defstruct     [:auth, :database, :network, data_stack: []]
 
   @typedoc """
     Stuff to be passed from one CS Node to another
   """
   @type t :: %__MODULE__{
-    database: pid | atom,
+    database:   Farmbot.Database.database,
+    auth:       Farmbot.Auth.auth,
+    network:    Farmbot.System.Network.netman,
     data_stack: [any]
   }
 
@@ -32,9 +34,11 @@ defmodule Farmbot.CeleryScript.Ast.Context do
     Returns an empty context object for those times you don't care about
     side effects or execution.
   """
-  @spec new() :: Ast.context
-  def new() do
+  @spec new :: Ast.context
+  def new do
     %__MODULE__{ data_stack: [],
+                 auth:       Farmbot.Auth,
+                 network:    Farmbot.System.Network,
                  database:   Farmbot.Database }
   end
 end

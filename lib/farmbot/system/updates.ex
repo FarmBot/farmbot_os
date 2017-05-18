@@ -16,8 +16,9 @@ defmodule Farmbot.System.Updates do
   @spec mod(atom) :: atom
   defp mod(target), do: Module.concat([Farmbot, System, target, Updates])
 
-  defp releases_url do
-    {:ok, token} = Farmbot.Auth.get_token()
+  defp releases_url() do
+    context = Farmbot.CeleryScript.Ast.Context.new()
+    {:ok, token} = Farmbot.Auth.get_token(context.auth)
     token.unencoded.os_update_server
   end
 

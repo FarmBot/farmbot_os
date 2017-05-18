@@ -34,6 +34,6 @@ defmodule Farmbot.CeleryScript.Command.Home do
     {location, next_context4} = Ast.Context.pop_data(next_context3)
     Command.move_absolute(%{speed: speed, location: location, offset: blah},
                           [],
-                          next_context3)
+                          next_context4)
   end
 end

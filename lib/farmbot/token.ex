@@ -1,8 +1,22 @@
 defmodule Farmbot.Token do
+
+  defimpl Inspect, for: Token do
+      def inspect(_dict, _opts) do
+        "#Token<  >"
+      end
+  end
+
   defmodule Unencoded do
     @moduledoc """
       The unencoded version of the token.
     """
+
+    defimpl Inspect, for: Token do
+        def inspect(_dict, _opts) do
+          "#Token.Unencoded<  >"
+        end
+    end
+
     @type t :: %__MODULE__{
       # Github apis for bot and fw updates.
       fw_update_server: String.t,

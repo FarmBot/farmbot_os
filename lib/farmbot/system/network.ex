@@ -8,90 +8,95 @@ defmodule Farmbot.System.Network do
   alias Farmbot.System.Network.SSH
   alias Farmbot.System.Network.Ntp
   alias Farmbot.Auth
+  alias Farmbot.CeleryScript.Ast.Context
 
-  @spec mod(atom) :: atom
-  defp mod(target), do: Module.concat([Farmbot, System, target, Network])
+  @type netman :: pid
 
-  def init(target) do
+  @spec mod(atom | binary | Context.t) :: atom
+  defp mod(%Context{} = context), do: mod(context.network)
+  defp mod(target) when is_atom(target) or is_binary(target), do: Module.concat([Farmbot, System, target, Network])
+
+  def init([%Context{} = context, target]) do
     Logger.info ">> is starting networking"
     m = mod(target)
     {:ok, _cb} = m.start_link
     {:ok, interface_config} = get_config("interfaces")
-    parse_and_start_config(interface_config, m)
-    {:ok, target}
+    parse_and_start_config(context, interface_config, m)
+    {:ok, %{context: context, target: target}}
   end
 
   # if networking is disabled.
-  defp parse_and_start_config(nil, _), do: spawn(fn ->
+  defp parse_and_start_config(%Context{} = context, nil, _), do: spawn(fn ->
     Process.sleep(2000)
     spawn fn ->
       maybe_get_fpf()
     end
 
-    Farmbot.Auth.try_log_in
+    Farmbot.Auth.try_log_in(context.auth)
   end)
 
-  defp parse_and_start_config(config, m) do
+  defp parse_and_start_config(%Context{} = context, config, m) do
     for {interface, settings} <- config do
-        m.start_interface(interface, settings)
+        m.start_interface(context, interface, settings)
     end
   end
 
   @doc """
     Starts the network manager
   """
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
+  def start_link(%Context{} = context, target, opts) do
+    GenServer.start_link(__MODULE__, [context, target], opts)
   end
 
   @doc """
     Scans for wireless ssids.
   """
-  @spec scan(String.t) :: [String.t]
-  def scan(interface_name) do
-    GenServer.call(__MODULE__, {:scan, interface_name})
+  @spec scan(netman, binary) :: [binary]
+  def scan(netman, interface_name) do
+    GenServer.call(netman, {:scan, interface_name})
   end
 
   @doc """
     Lists all network interfaces that Farmbot Detected.
   """
-  @spec enumerate :: [String.t] | {:error, term}
-  def enumerate do
-    GenServer.call(__MODULE__, :enumerate)
+  @spec enumerate(netman) :: [binary] | {:error, term}
+  def enumerate(netman) do
+    GenServer.call(netman, :enumerate)
   end
 
   @doc """
     Restarts networking services. This will block.
   """
-  def restart do
-    stop_all()
+  def restart(netman) when is_atom(netman) or is_pid(netman) do
+    stop_all(netman)
     {:ok, interface_config} = get_config("interfaces")
-    m = mod(get_mod()) # wtf is this?
-    parse_and_start_config(interface_config, m)
+    m = mod(get_mod(netman)) # wtf is this?
+    context = get_context(netman)
+    parse_and_start_config(context, interface_config, m)
   end
 
   @doc """
     Starts an interface
   """
-  def start_interface(interface, settings) do
-    GenServer.call(__MODULE__, {:start, interface, settings}, :infinity)
+  def start_interface(netman, interface, settings) do
+    GenServer.call(netman, {:start, interface, settings}, :infinity)
   end
 
   @doc """
     Stops an interface
   """
-  def stop_interface(interface) do
-    GenServer.call(__MODULE__, {:stop, interface}, :infinity)
+  def stop_interface(netman, interface) do
+    GenServer.call(netman, {:stop, interface}, :infinity)
   end
 
   @doc """
     Stops all interfaces
   """
-  def stop_all do
+  def stop_all(netman) do
     {:ok, interfaces} = get_config("interfaces")
     if interfaces do
       for {iface, _} <- interfaces do
-        stop_interface(iface)
+        stop_interface(netman, iface)
       end
     end
   end
@@ -137,6 +142,10 @@ defmodule Farmbot.System.Network do
     end
   end
 
+  defp get_context(netman) when is_atom(netman) or is_pid(netman) do
+    GenServer.call(netman, :get_context)
+  end
+
   @doc """
   Checks for nxdomain. reboots if `nxdomain`.
   """
@@ -158,7 +167,8 @@ defmodule Farmbot.System.Network do
     Connected to the World Wide Web. Should be called from the
     callback module.
   """
-  def on_connect(pre_fun \\ nil, post_fun \\ nil) do
+  def on_connect(context, pre_fun \\ nil, post_fun \\ nil)
+  def on_connect(context, pre_fun, post_fun) do
     # Start the Downloader http client.
     Supervisor.start_child(Farmbot.System.Supervisor,
       Supervisor.Spec.worker(Downloader, [], [restart: :permanent]))
@@ -173,7 +183,7 @@ defmodule Farmbot.System.Network do
     :ok = maybe_get_fpf()
 
     Logger.info ">> is trying to log in."
-    {:ok, token} = Auth.try_log_in!
+    {:ok, token} = Auth.try_log_in!(context.auth)
 
     :ok = maybe_setup_rollbar(token)
 
@@ -216,15 +226,18 @@ defmodule Farmbot.System.Network do
 
   end
 
-  @spec get_config(String.t) :: {:ok, any}
+  @spec get_config(binary) :: {:ok, any}
   defp get_config(key), do: GenServer.call(CS, {:get, Network, key})
   # @spec get_config() :: {:ok, false | map}
   # defp get_config, do: GenServer.call(CS, {:get, Network, :all})
 
-  defp get_mod, do: GenServer.call(__MODULE__, :get_mod)
+  defp get_mod(netman), do: GenServer.call(netman, :get_mod)
 
   # GENSERVER STUFF
-  def handle_call(:get_mod, _, target), do: {:reply, target, target}
+
+  def handle_call(:get_context, _, state), do: {:reply, state.context, state}
+
+  def handle_call(:get_mod, _, state), do: {:reply, state.target, state}
   def handle_call({:scan, interface_name}, _, target) do
      f = mod(target).scan(interface_name)
      {:reply, f, target}
@@ -258,9 +271,9 @@ defmodule Farmbot.System.Network do
 
   # Behavior
   @type return_type :: :ok | {:error, term}
-  @callback scan(String.t) :: [String.t] | {:error, term}
-  @callback enumerate() :: [String.t] | {:error, term}
-  @callback start_interface(String.t, map) :: return_type
-  @callback stop_interface(String.t) :: return_type
+  @callback scan(binary) :: [binary] | {:error, term}
+  @callback enumerate() :: [binary] | {:error, term}
+  @callback start_interface(binary, map) :: return_type
+  @callback stop_interface(binary) :: return_type
   @callback start_link :: {:ok, pid}
 end

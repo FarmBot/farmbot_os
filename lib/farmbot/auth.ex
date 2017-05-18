@@ -15,11 +15,15 @@ defmodule Farmbot.Auth do
   alias FS.ConfigStorage, as: CS
   alias Farmbot.Token
   alias Farmbot.Auth.Subscription, as: Sub
+  alias Farmbot.CeleryScript.Ast.Context
 
   @typedoc """
     The public key that lives at http://<server>/api/public_key
   """
   @type public_key :: binary
+
+  @typedoc false
+  @type auth :: pid
 
   @typedoc """
     Encrypted secret
@@ -156,29 +160,29 @@ defmodule Farmbot.Auth do
   @doc """
     Purges the token and creds.
   """
-  @spec purge_token :: :ok | {:error, atom}
-  def purge_token, do: GenServer.call(__MODULE__, :purge_token)
+  @spec purge_token(auth) :: :ok | {:error, atom}
+  def purge_token(auth), do: GenServer.call(auth, :purge_token)
 
   @doc """
     Gets the token.
     Will return a token if one exists, nil if not.
     Returns {:error, reason} otherwise
   """
-  @spec get_token :: {:ok, Token.t} | nil | {:error, term}
-  def get_token, do: GenServer.call(__MODULE__, :get_token)
+  @spec get_token(auth) :: {:ok, Token.t} | nil | {:error, term}
+  def get_token(auth), do: GenServer.call(auth, :get_token)
 
   @doc """
     Gets the server.
   """
-  @spec get_server :: server
-  def get_server, do: GenServer.call(__MODULE__, :get_server)
+  @spec get_server(auth) :: server
+  def get_server(auth), do: GenServer.call(auth, :get_server)
 
   @doc """
     Tries to log into web services with whatever auth method is stored in state.
   """
-  @spec try_log_in :: {:ok, Token.t} | {:error, atom}
-  def try_log_in do
-    case GenServer.call(__MODULE__, :try_log_in) do
+  @spec try_log_in(auth) :: {:ok, Token.t} | {:error, atom}
+  def try_log_in(auth) do
+    case GenServer.call(auth, :try_log_in) do
       {:ok, %Token{} = token} ->
         {:ok, token}
       {:error, reason} ->
@@ -195,10 +199,10 @@ defmodule Farmbot.Auth do
   @doc """
     Tries to log in, but factory resets if it doesnt work
   """
-  @spec try_log_in!(integer, binary) :: {:ok, Token.t} | no_return
-  def try_log_in!(retries \\ 0 , error_str \\ "")
+  @spec try_log_in!(auth, integer, binary) :: {:ok, Token.t} | no_return
+  def try_log_in!(auth, retries \\ 0 , error_str \\ "")
 
-  def try_log_in!(r, error_str) when r >= 3 do
+  def try_log_in!(_auth, r, error_str) when r >= 3 do
     Logger.info ">> Could not log in!", type: :error
     Farmbot.System.factory_reset("""
     Could not log in to web application.
@@ -207,15 +211,15 @@ defmodule Farmbot.Auth do
     """)
   end
 
-  def try_log_in!(retry, error_str) do
+  def try_log_in!(auth, retry, error_str) do
     Logger.info ">> is logging in..."
     # disable broadcasting
-    :ok = GenServer.call(__MODULE__, {:set_broadcast, false})
+    :ok = GenServer.call(auth, {:set_broadcast, false})
 
     # Try to get a token.
-    case try_log_in() do
+    case try_log_in(auth) do
        {:ok, %Token{} = token} = success ->
-         :ok = GenServer.call(__MODULE__, {:set_broadcast, true})
+         :ok = GenServer.call(auth, {:set_broadcast, true})
 
          Logger.info ">> Is logged in", type: :success
          broadcast({:new_token, token})
@@ -230,15 +234,15 @@ defmodule Farmbot.Auth do
   @doc """
     Casts credentials to the Auth GenServer
   """
-  @spec interim(email, password, server) :: :ok
-  def interim(email, pass, server) do
-    GenServer.call(__MODULE__, {:interim, {email,pass,server}})
+  @spec interim(auth, email, password, server) :: :ok
+  def interim(auth, email, pass, server) do
+    GenServer.call(auth, {:interim, {email,pass,server}})
   end
 
   @doc """
     Starts the Auth GenServer
   """
-  def start_link, do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link(context, opts), do: GenServer.start_link(__MODULE__, context, opts)
 
   @typedoc """
     State for this GenServer
@@ -252,19 +256,20 @@ defmodule Farmbot.Auth do
     broadcast: boolean
   }
 
-  # Genserver stuff
-  def init([]) do
+  ## Genserver stuff
+
+  def init(context) do
     Logger.info(">> Authorization init!")
-    timer = s_a()
-    {:ok, sub} = Sub.start_link
+    timer = s_a(self())
+    {:ok, sub} = Sub.start_link(%Context{context | auth: self()}, name: Sub)
     {:ok, server} = load_server()
     state = %{
       server: server,
+      sub: sub,
       secret: load_secret(),
       interim: nil,
       token: nil,
       timer: timer,
-      sub: sub,
       broadcast: true
     }
     {:ok, state}
@@ -365,9 +370,9 @@ defmodule Farmbot.Auth do
   # Because it goes limp after long amounts of time.
   def handle_info(:new_token, state) do
     spawn fn() ->
-      try_log_in()
+      try_log_in(self())
     end
-    new_timer = s_a()
+    new_timer = s_a(self())
     {:noreply, %{state | timer: new_timer}}
   end
 
@@ -414,5 +419,5 @@ defmodule Farmbot.Auth do
   end
 
   # sends a message after 6 hours to get a new token.
-  defp s_a, do: Process.send_after(__MODULE__, :new_token, @timeout_time)
+  defp s_a(auth), do: Process.send_after(auth, :new_token, @timeout_time)
 end

@@ -6,6 +6,7 @@ defmodule Farmbot.HTTP do
   alias Farmbot.Token
   use HTTPoison.Base
   require Logger
+  alias Farmbot.CeleryScript.Ast.Context
 
   @version Mix.Project.config[:version]
   @target Mix.Project.config[:target]
@@ -19,13 +20,15 @@ defmodule Farmbot.HTTP do
 
   @type http_resp :: HTTPoison.Response.t | {:error, HTTPoison.ErrorResponse.t}
 
+  defp context, do: Context.new()
+
   def process_url(url) do
-    {:ok, server} = fetch_server()
+    {:ok, server} = fetch_server(context().auth)
     server <> url
   end
 
   def process_request_headers(_headers) do
-    {:ok, auth_headers} = build_auth()
+    {:ok, auth_headers} = build_auth(context())
     auth_headers
   end
 
@@ -37,15 +40,15 @@ defmodule Farmbot.HTTP do
 
   def process_status_code(401) do
     Logger.info ">> Token is expired!"
-    Farmbot.Auth.try_log_in
+    Farmbot.Auth.try_log_in!(context().auth)
     401
   end
 
   def process_status_code(code), do: code
 
-  @spec build_auth :: {:ok, [any]} | {:error, :no_token}
-  defp build_auth do
-    with {:ok, %Token{} = token} <- Auth.get_token
+  @spec build_auth(Context.t) :: {:ok, [any]} | {:error, :no_token}
+  defp build_auth(%Context{} = context) do
+    with {:ok, %Token{} = token} <- Auth.get_token(context.auth)
     do
       {:ok,
         ["Content-Type": "application/json",
@@ -56,9 +59,9 @@ defmodule Farmbot.HTTP do
     end
   end
 
-  @spec fetch_server :: {:error, :no_server} | {:ok, binary}
-  defp fetch_server do
-    case Auth.get_server do
+  @spec fetch_server(Context.auth) :: {:error, :no_server} | {:ok, binary}
+  defp fetch_server(auth) do
+    case Auth.get_server(auth) do
       {:ok, nil} -> {:error, :no_server}
       {:ok, server} -> {:ok, server}
     end

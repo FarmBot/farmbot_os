@@ -8,7 +8,7 @@ defmodule Farmbot.CeleryScript.Command do
   """
   require Logger
   alias Farmbot.CeleryScript.Ast
-  alias Farmbot.Database.Syncable.Point
+  # alias Farmbot.Database.Syncable.Point
   use Farmbot.DebugLog
 
   celery =

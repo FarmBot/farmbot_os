@@ -17,7 +17,10 @@ config :logger, :console, colors: [enabled: true, info: :cyan]
 config :iex, :colors, enabled: true
 
 # frontend <-> bot transports.
-config :farmbot, transports: [mqtt_transport, redis_transport]
+config :farmbot, transports: [
+  {mqtt_transport,  name: mqtt_transport},
+  # {redis_transport, name: redis_transport}
+]
 
 # bot <-> firmware transports.
 config :farmbot, expected_fw_version: "GENESIS.V.01.12.EXPERIMENTAL"

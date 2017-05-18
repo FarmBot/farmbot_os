@@ -4,6 +4,7 @@ defmodule Farmbot.Configurator.Router do
   """
   alias Farmbot.System.FS.ConfigStorage
   alias Farmbot.System.Network, as: NetMan
+  alias Farmbot.CeleryScript.Ast.Context
   require Logger
 
   # max length of a uploaded file.
@@ -55,7 +56,7 @@ defmodule Farmbot.Configurator.Router do
   if Mix.env() == :dev do
     # Get the current login token. DEV ONLY
     get "/api/token" do
-      {:ok, token} = Farmbot.Auth.get_token()
+      {:ok, token} = Farmbot.Auth.get_token(context().auth)
       conn |> make_json |> send_resp(200, Poison.encode!(token))
     end
 
@@ -86,17 +87,19 @@ defmodule Farmbot.Configurator.Router do
 
   # Interim credentials.
   post "/api/config/creds" do
+
     Logger.info ">> router got credentials"
     {:ok, _body, conn} = read_body(conn)
 
     %{"email" => email,"pass" => pass,"server" => server} = conn.body_params
-    Farmbot.Auth.interim(email, pass, server)
+    Farmbot.Auth.interim(context().auth, email, pass, server)
     conn |> send_resp(200, "OK")
   end
 
   # Try to log in with interim creds + config.
   post "/api/try_log_in" do
     Logger.info "Trying to log in. "
+
     spawn fn() ->
       # sleep to allow the request to finish.
       Process.sleep(100)
@@ -104,7 +107,7 @@ defmodule Farmbot.Configurator.Router do
       # restart network.
       # not going to bother checking if it worked or not, (at least until i
       # reimplement networking) because its so fragile.
-      Farmbot.System.Network.restart
+      Farmbot.System.Network.restart(context().network)
     end
     conn |> send_resp(200, "OK")
   end
@@ -113,9 +116,10 @@ defmodule Farmbot.Configurator.Router do
 
   # Scan for wireless networks.
   post "/api/network/scan" do
+
     {:ok, _body, conn} = read_body(conn)
     %{"iface" => iface} = conn.body_params
-    scan = NetMan.scan(iface)
+    scan = NetMan.scan(context().network, iface)
     case scan do
       {:error, reason} -> conn |> send_resp(500, "could not scan: #{inspect reason}")
       ssids -> conn |> send_resp(200, Poison.encode!(ssids))
@@ -124,7 +128,7 @@ defmodule Farmbot.Configurator.Router do
 
   # Configured network Interfaces.
   get "/api/network/interfaces" do
-    blah = Farmbot.System.Network.enumerate
+    blah = Farmbot.System.Network.enumerate(context().network)
     case Poison.encode(blah) do
       {:ok, interfaces} ->
         conn |> send_resp(200, interfaces)
@@ -209,6 +213,8 @@ defmodule Farmbot.Configurator.Router do
   match _, do: conn |> send_resp(404, "not found")
 
   ## PRIVATE.
+
+  defp context(), do: Context.new()
 
   defp make_json(conn), do: conn |> put_resp_content_type("application/json")
 
