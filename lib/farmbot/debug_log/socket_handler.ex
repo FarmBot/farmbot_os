@@ -11,13 +11,14 @@ defmodule Farmbot.DebugLog.SocketHandler do
       {:ok, pid}
     end
 
-    def handle_event({module, string}, pid) do
+    def handle_event({module, {_color, string}}, pid) do
       send pid, "[#{module}]: #{string}"
       {:ok, pid}
     end
   end
 
   require Logger
+  alias Farmbot.Context
 
   @timeout :infinity
 
@@ -58,7 +59,8 @@ defmodule Farmbot.DebugLog.SocketHandler do
   end
 
   defp handle_json(%{"to_firmware" => gcode}) do
-    Farmbot.Serial.Handler.write(gcode)
+    ctx = Context.new()
+    Farmbot.Serial.Handler.write(ctx, gcode)
   end
 
   defp handle_json(m) do

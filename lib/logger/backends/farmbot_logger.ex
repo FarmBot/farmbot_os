@@ -5,7 +5,6 @@ defmodule Logger.Backends.FarmbotLogger do
     jsonified, adds them too a buffer, when that buffer hits a certain
     size, it tries to dump the messages onto the API.
   """
-  alias Farmbot.Sync
   alias Farmbot.HTTP
   use GenEvent
   require Logger
@@ -186,7 +185,7 @@ defmodule Logger.Backends.FarmbotLogger do
   for module <- @modules, do: defp filter_module(_, unquote(module)), do: @filtered
   defp filter_module(message, _module), do: message
 
-  defp filter_text(">>" <> m), do: filter_text("#{Sync.device_name()}" <> m)
+  defp filter_text(">>" <> m), do: filter_text("FIXME " <> m)
   defp filter_text(m) when is_binary(m) do
     try do
       Poison.encode!(m)

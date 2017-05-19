@@ -3,81 +3,77 @@ defmodule Farmbot.FarmEventRunner do
     Checks the database every 60 seconds for FarmEvents
   """
   use GenServer
-  use Amnesia
-  use Farmbot.Sync.Database
   require Logger
   alias Farmbot.CeleryScript.Ast
+  alias Farmbot.Context
+
   use Farmbot.DebugLog
+
+  alias Farmbot.Database
+  alias Database.Syncable.{Sequence, Regimen, FarmEvent}
 
   @checkup_time 10_000
 
-  @type state :: %{required(integer) => DateTime.t}
+  @type database :: Database.db
+  @type state :: {database, %{required(integer) => DateTime.t}}
 
-  def start_link do
-    GenServer.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link(%Context{} = context, opts) do
+    GenServer.start_link(__MODULE__, context, opts)
   end
 
-  def init([]) do
+  def init(context) do
     send self(), :checkup
-    {:ok, %{}}
+    {:ok, {context, %{} }}
   end
 
-  def handle_info(:checkup, state) do
+  def handle_info(:checkup, {context, state}) do
     now = get_now()
     new_state = if now do
-      all_events = Amnesia.transaction do
-        Amnesia.Selection.values(FarmEvent.where(true))
-        # |> Enum.map(fn(farm_event) ->
-        #   # get rid of all the items that happened before last_time
-        #   calendar = Enum.filter(farm_event.calendar, fn(iso_time) ->
-        #     dt = Timex.parse! iso_time, "{ISO:Extended}"
-        #     # we only want this time if it happened after the last_time
-        #     Timex.after?(dt, now)
-        #   end)
-        #   %{farm_event | calendar: calendar}
-        # end)
-      end
-      {late_events, new} = do_checkup(all_events, now, state)
+      all_events =
+        context
+          |> Database.get_all(FarmEvent)
+          |> Enum.map(fn(thing) -> thing.body end)
+
+      {late_events, new} = do_checkup(context, all_events, now, state)
       unless Enum.empty?(late_events) do
         Logger.info "Time for event to run: #{inspect late_events} " <>
           " at: #{now.hour}:#{now.minute}"
-        start_events(late_events, now)
+        start_events(context, late_events, now)
       end
       new
     else
       state
     end
     Process.send_after self(), :checkup, @checkup_time
-    {:noreply, new_state}
+    {:noreply, {context, new_state}}
   end
 
-  @spec start_events([Sequence.t | Regimen.t], DateTime.t) :: no_return
-  defp start_events([], _now), do: :ok
-  defp start_events([event | rest], now) do
+  @spec start_events(Context.t, [Sequence.t | Regimen.t], DateTime.t)
+    :: no_return
+  defp start_events(_context, [], _now), do: :ok
+  defp start_events(context, [event | rest], now) do
     cond do
       match?(%Sequence{}, event) ->
-        ast = Ast.parse(event)
-        {:ok, _pid} = Elixir.Farmbot.SequenceRunner.start_link(ast)
+        ast     = Ast.parse(event)
+        {:ok, _pid} = Elixir.Farmbot.SequenceRunner.start_link(ast, context)
       match?(%Regimen{}, event) ->
         r = event.__struct__
           |> Module.split
           |> List.last
           |> Module.concat(Supervisor)
-        {:ok, _pid} = r.add_child(event, now)
+        {:ok, _pid} = r.add_child(context, event, now)
       true ->
         Logger.error ">> Doesn't know how to handle event: #{inspect event}"
     end
-    start_events(rest, now)
+    start_events(context, rest, now)
   end
 
   def terminate(reason, _fe) do
     Logger.error "Farm Event Runner died. #{inspect reason}"
   end
 
-  @spec get_now :: DateTime.t | nil
-  defp get_now do
-    Timex.now()
-  end
+  @spec get_now :: DateTime.t
+  defp get_now, do: Timex.now()
 
   @type late_event :: Regimen.t | Sequence.t
   @type late_events :: [late_event]
@@ -85,30 +81,33 @@ defmodule Farmbot.FarmEventRunner do
   # TODO(Connor) turn this into tasks
   # NOTE(Connor) yes i could have just done an Enum.reduce here, but i want
   # it to be async at some point
-  @spec do_checkup([struct], DateTime.t, late_events, state)
+  @spec do_checkup(Context.t, [struct], DateTime.t, late_events, state)
     :: {late_events, state}
-  defp do_checkup(list, time, late_events \\ [], state)
+  defp do_checkup(context, list, time, late_events \\ [], state)
 
-  defp do_checkup([], _now, late_events, state), do: {late_events, state}
+  defp do_checkup(_, [], _now, late_events, state), do: {late_events, state}
 
-  defp do_checkup([farm_event | rest], now, late_events, state) do
-    {new_late, last_time} = check_event(farm_event, now, state[farm_event.id])
+  defp do_checkup(%Context{} = ctx,
+    [farm_event | rest], now, late_events, state)
+  do
+    {new_late, last_time} = check_event(ctx,
+      farm_event, now, state[farm_event.id])
+
     new_state = Map.put(state, farm_event.id, last_time)
     if new_late do
-      do_checkup(rest, now, [new_late | late_events], new_state)
+      do_checkup(ctx, rest, now, [new_late | late_events], new_state)
     else
-      do_checkup(rest, now, late_events, new_state)
+      do_checkup(ctx, rest, now, late_events, new_state)
     end
   end
 
-  @spec check_event(FarmEvent.t, DateTime.t, DateTime.t)
+  @spec check_event(Context.t, FarmEvent.t, DateTime.t, DateTime.t)
     :: {late_event | nil, DateTime.t}
-  defp check_event(%FarmEvent{} = f, now, last_time) do
+  defp check_event(%Context{} = ctx, %FarmEvent{} = f, now, last_time) do
     # Get the executable out of the database
-    event =
-      [Database, f.executable_type |> String.to_atom]
-      |> Module.concat
-      |> lookup(f.executable_id)
+    thing = [Farmbot.Database, Syncable, f.executable_type |> String.to_atom]
+    mod = Module.concat(thing)
+    event = lookup(ctx, mod, f.executable_id)
 
     # build a local start time
     start_time = Timex.parse! f.start_time, "{ISO:Extended}"
@@ -203,20 +202,8 @@ defmodule Farmbot.FarmEventRunner do
     |> Timex.format!("{relative}", :relative)
   end
 
-  @spec lookup(Sequence | Regimen, integer) :: Sequence.t | Regimen.t
-  defp lookup(Sequence, sr_id) do
-    [item] = Amnesia.transaction do
-      f = Sequence.where(id == sr_id)
-      Amnesia.Selection.values(f)
-    end
-    item
-  end
-
-  defp lookup(Regimen, sr_id) do
-    [item] = Amnesia.transaction do
-      f = Regimen.where(id == sr_id)
-      Amnesia.Selection.values(f)
-    end
-    item
+  @spec lookup(Context.t, Sequence | Regimen, integer) :: Sequence.t | Regimen.t
+  defp lookup(%Context{} = ctx, module, sr_id) do
+    Database.get_by_id(ctx, module, sr_id)
   end
 end

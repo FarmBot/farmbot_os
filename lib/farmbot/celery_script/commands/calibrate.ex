@@ -12,11 +12,14 @@ defmodule Farmbot.CeleryScript.Command.Calibrate do
       args: %{axis: "x" | "y" | "z"}
       body: []
   """
-  @spec run(%{axis: String.t}, []) :: no_return
-  def run(%{axis: axis}, []), do: do_write(axis)
+  @spec run(%{axis: String.t}, [], Ast.context) :: Ast.context
+  def run(%{axis: axis}, [], context) do
+    do_write(axis, context)
+    context
+  end
 
-  @spec do_write(binary) :: no_return
-  defp do_write("x"), do: UartHan.write "F14"
-  defp do_write("y"), do: UartHan.write "F15"
-  defp do_write("z"), do: UartHan.write "F16"
+  @spec do_write(binary, Ast.context) :: no_return
+  defp do_write("x", context), do: UartHan.write(context, "F14")
+  defp do_write("y", context), do: UartHan.write(context, "F15")
+  defp do_write("z", context), do: UartHan.write(context, "F16")
 end

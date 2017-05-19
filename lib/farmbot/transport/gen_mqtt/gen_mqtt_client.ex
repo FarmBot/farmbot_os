@@ -6,27 +6,28 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   require Logger
   alias Farmbot.Transport.Serialized, as: Ser
   alias Farmbot.Token
-  alias Farmbot.CeleryScript.Command
-  alias Farmbot.CeleryScript.Ast
+  alias Farmbot.CeleryScript.{Command, Ast}
+  alias Farmbot.Context
 
-  @type ok :: {:ok, Token.t}
+  @type state :: {Token.t, Context.t}
+
+  @type ok :: {:ok, state}
 
   @spec init(Token.t) :: ok
-  def init(%Token{} = token) do
+  def init([%Context{} = context, %Token{} = token]) do
     Logger.debug ">> Starting mqtt!"
-    {:ok, token}
+    {:ok, {token, context}}
   end
 
   @doc """
     Starts a mqtt client.
   """
-  @spec start_link(Token.t) :: {:ok, pid}
-  def start_link(%Token{} = token) do
-    GenMQTT.start_link(__MODULE__, token, build_opts(token))
+  def start_link(%Context{} = context, %Token{} = token) do
+    GenMQTT.start_link(__MODULE__, [context, token], build_opts(token))
   end
 
-  @spec on_connect(Token.t) :: ok
-  def on_connect(%Token{} = token) do
+  @spec on_connect(state) :: ok
+  def on_connect({%Token{} = token, %Context{} = _context} = state) do
     GenMQTT.subscribe(self(), [{bot_topic(token), 0}])
 
     fn ->
@@ -35,42 +36,42 @@ defmodule Farmbot.Transport.GenMqtt.Client do
       Farmbot.Transport.force_state_push
     end.()
 
-    {:ok, token}
+    {:ok, state}
   end
 
-  @spec on_publish([String.t], binary, Token.t) :: ok
-  def on_publish(["bot", _bot, "from_clients"], msg, %Token{} = token) do
+  @spec on_publish([String.t], binary, state) :: ok
+  def on_publish(["bot", _bot, "from_clients"], msg, {%Token{} = token, %Context{} = context}) do
     # dont crash mqtt here because it sends an ugly message to rollbar
     try do
       msg
       |> Poison.decode!
       |> Ast.parse
-      |> Command.do_command
+      |> Command.do_command(context)
     rescue
       e ->
         Logger.error ">> Saved mqtt client from cs death: #{inspect e}"
     end
-    {:ok, token}
+    {:ok, {token, context}}
   end
 
   def on_disconnect(_), do: :shutdown
 
-  def handle_cast({:status, %Ser{} = ser}, %Token{} = token) do
+  def handle_cast({:status, %Ser{} = ser}, {%Token{} = token, %Context{} = con}) do
     json = Poison.encode!(ser)
     GenMQTT.publish(self(), status_topic(token), json, 0, false)
-    {:ok, token}
+    {:ok, {token, con}}
   end
 
-  def handle_cast({:log, msg}, %Token{} = token) do
+  def handle_cast({:log, msg}, {%Token{} = token, %Context{} = con}) do
     json = Poison.encode! msg
     GenMQTT.publish(self(), log_topic(token), json, 0, false)
-    {:ok, token}
+    {:ok, {token, con}}
   end
 
-  def handle_cast({:emit, msg}, %Token{} = token) do
+  def handle_cast({:emit, msg}, {%Token{} = token, context}) do
     json = Poison.encode! msg
     GenMQTT.publish(self(), frontend_topic(token), json, 0, false)
-    {:noreply, token}
+    {:noreply, {token, context}}
   end
 
   def terminate(_,_), do: :ok

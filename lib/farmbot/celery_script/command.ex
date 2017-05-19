@@ -6,11 +6,10 @@ defmodule Farmbot.CeleryScript.Command do
     this means minimal logging, minimal bot state changeing (if its not the
     result of a gcode) etc.
   """
+  alias   Farmbot.CeleryScript.Ast
+  alias   Farmbot.Database.Selectors
   require Logger
-  alias Farmbot.CeleryScript.Ast
-  use Amnesia
-  alias Farmbot.Sync.Database.ToolSlot
-  use ToolSlot
+  use     Farmbot.DebugLog
 
   celery =
     "lib/farmbot/celery_script/commands/"
@@ -26,16 +25,10 @@ defmodule Farmbot.CeleryScript.Command do
     end)
 
   for {fun, module} <- celery do
-    defdelegate unquote(fun)(args, body), to: module, as: :run
+    defdelegate unquote(fun)(args, body, context), to: module, as: :run
   end
 
   # DISCLAIMER:
-  # IF YOU SEE A HACK HERE RELATED TO A FIRMWARE COMMAND
-  # IE: read_pin, write_pin, etc, DO NOT TRY TO FIX IT.
-  # IT WORKS, AND DOES NOT CAUSE SIDE EFFECTS (unless it does ¯\_(ツ)_/¯)
-  # (unless of course the arduino firmware is fixed.)
-
-  # DISCLAIMER #2:
   # PLEASE MAKE SURE EVERYTHING IS TYPESPECED AND DOC COMMENENTED IN HERE.
   # SOME NODES, ARE HARD TO TEST,
   # AND SOME NODES CAN CAUSE CATASTROPHIC DISASTERS
@@ -45,40 +38,47 @@ defmodule Farmbot.CeleryScript.Command do
   @doc ~s"""
     Convert an ast node to a coodinate or return :error.
   """
-  @spec ast_to_coord(Ast.t)
-    :: Farmbot.CeleryScript.Command.Coordinate.t | :error
-  def ast_to_coord(ast)
-  def ast_to_coord(%Ast{kind: "coordinate",
-                        args: %{x: _x, y: _y, z: _z},
-                        body: []} = already_done), do: already_done
+  @spec ast_to_coord(Ast.context, Ast.t) :: Ast.context
+  def ast_to_coord(context, ast)
+  def ast_to_coord(
+    %Farmbot.Context{} = context,
+    %Ast{kind: "coordinate",
+         args: %{x: _x, y: _y, z: _z},
+         body: []} = already_done),
+   do: Farmbot.Context.push_data(context, already_done)
 
-  # NOTE(connor): don't change `tool_id_` back to `tool_id` what was happening
-  # Amnesia builds local variables by the name of "tool_id", so it was looking
-  # fortool_id == tool_id, which returned
-  # all of them, because every toolslots tool_id
-  # always equals that toolslots tool id lol
-  def ast_to_coord(%Ast{kind: "tool", args: %{tool_id: tool_id_}, body: []}) do
-    blah = Amnesia.transaction do
-      stuff = ToolSlot.where(tool_id == tool_id_)
-      Amnesia.Selection.values(stuff)
-    end
-    case blah do
-      [ts] -> coordinate(%{x: ts.x, y: ts.y, z: ts.z}, [])
-      _ -> Logger.error ">> could not find tool_slot with tool_id: #{tool_id_}"
-        :error
+  def ast_to_coord(
+    %Farmbot.Context{} = context,
+    %Ast{kind: "tool", args: %{tool_id: tool_id}, body: []})
+  do
+    ts = nil
+    if ts do
+      next_context = coordinate(%{x: ts.x, y: ts.y, z: ts.z}, [], context)
+      raise_if_not_context_or_return_context("coordinate", next_context)
+    else
+      raise "Could not find tool_slot with tool_id: #{tool_id}"
     end
   end
 
   # is this one a good idea?
-  # there might be too expectations here: it could return the current position,
+  # there might be two expectations here: it could return the current position,
   # or 0
-  def ast_to_coord(%Ast{kind: "nothing", args: _, body: _}) do
-    coordinate(%{x: 0, y: 0, z: 0}, [])
+  def ast_to_coord(%Farmbot.Context{} = context, %Ast{kind: "nothing", args: _, body: _}) do
+    next_context = coordinate(%{x: 0, y: 0, z: 0}, [], context)
+    raise_if_not_context_or_return_context("coordinate", next_context)
   end
 
-  def ast_to_coord(ast) do
-    Logger.warn ">> no conversion from #{inspect ast} to coordinate"
-    :error
+  def ast_to_coord(%Farmbot.Context{} = context,
+                   %Ast{kind: "point",
+                        args: %{pointer_type: pt_t, pointer_id: pt_id},
+                        body: _}) do
+    %{body: p}   = Selectors.find_point(context, pt_t, pt_id)
+    next_context = coordinate(%{x: p.x, y: p.y, z: p.z}, [], context)
+    raise_if_not_context_or_return_context("coordinate", next_context)
+  end
+
+  def ast_to_coord(%Farmbot.Context{} = context, %Ast{} = ast) do
+    raise "No implicit conversion from #{inspect ast} to coordinate! context: #{inspect context}"
   end
 
   @doc """
@@ -101,31 +101,39 @@ defmodule Farmbot.CeleryScript.Command do
   @doc ~s"""
     Executes an ast tree.
   """
-  @spec do_command(Ast.t) :: :no_instruction | any
-  def do_command(%Ast{} = ast) do
+  @spec do_command(Ast.t, Ast.context) :: Ast.context | no_return
+  def do_command(%Ast{} = ast, context) do
     kind = ast.kind
-    fun_name = String.to_atom kind
     module = Module.concat Farmbot.CeleryScript.Command, Macro.camelize(kind)
 
     # print the comment if it exists
-    maybe_print_comment(ast.comment, fun_name)
+    maybe_print_comment(ast.comment, kind)
 
     if Code.ensure_loaded?(module) do
       try do
-        Kernel.apply(module, :run, [ast.args, ast.body])
+        next_context = Kernel.apply(module, :run, [ast.args, ast.body, context])
+        raise_if_not_context_or_return_context(kind, next_context)
       rescue
-        e -> Logger.error ">> could not execute #{inspect ast} #{inspect e}"
+        e ->
+          debug_log("Could not execute: #{inspect ast}, #{inspect e}")
+          Logger.error ">> could not execute #{inspect ast} #{inspect e}"
+          stack_trace = System.stacktrace
+          reraise(e, stack_trace)
       end
     else
-      Logger.error ">> has no instruction for #{inspect ast}"
-      :no_instruction
+      raise ">> has no instruction for #{inspect ast}"
     end
   end
 
-  def do_command(not_cs_node) do
-    Logger.error ">> can not handle: #{inspect not_cs_node}"
+  def do_command(not_cs_node, _) do
+    raise ">> can not handle: #{inspect not_cs_node}"
+  end
+
+  defp raise_if_not_context_or_return_context(_, %Farmbot.Context{} = next), do: next
+  defp raise_if_not_context_or_return_context(last_kind, not_context) do
+    raise "[#{last_kind}] bad return value! #{inspect not_context}"
   end
 
   # behaviour
-  @callback run(map, [Ast.t]) :: any
+  @callback run(Ast.args, [Ast.t], Ast.context) :: Ast.context
 end

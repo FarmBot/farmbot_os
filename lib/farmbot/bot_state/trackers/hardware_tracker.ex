@@ -5,6 +5,7 @@ defmodule Farmbot.BotState.Hardware do
 
   require Logger
   alias Farmbot.StateTracker
+  alias Farmbot.CeleryScript.{Ast, Command}
 
   @behaviour StateTracker
   use StateTracker,
@@ -29,42 +30,42 @@ defmodule Farmbot.BotState.Hardware do
   @type end_stops :: {integer,integer,integer,integer,integer,integer}
 
   # Callback that happens when this module comes up
-  def load([]) do
+  def load do
     {:ok, p} = get_config("params")
     initial_state = %State{mcu_params: p}
 
-    # spawn(__MODULE__, :set_initial_params, [initial_state])
     {:ok, initial_state}
   end
 
   @doc """
     Takes a Hardware State object, and makes it happen
   """
-  @spec set_initial_params(State.t) :: {:ok, :no_params} | :ok | {:error, term}
-  def set_initial_params(%State{} = state) do
+  @spec set_initial_params(State.t, Ast.context)
+    :: {:ok, :no_params} | :ok | {:error, term}
+  def set_initial_params(%State{} = state, %Farmbot.Context{} = context) do
     # BUG(Connor): The first param is rather unstable for some reason.
     # Try to send a fake packet just to make sure we have a good
     # Connection to the Firmware
 
-    if !Farmbot.Serial.Handler.available? do
+    if !Farmbot.Serial.Handler.available?(context) do
       # UGHHHHHH
-      Logger.info "Waiting for Serial..."
+      Logger.info ">> Is waiting for Serial before updating params."
       Process.sleep(100)
-      set_initial_params(state)
+      set_initial_params(state, context)
     end
 
     if Enum.empty?(state.mcu_params) do
-      Logger.info "reading all mcu params."
-      Farmbot.CeleryScript.Command.read_all_params(%{}, [])
+      Logger.info ">> is reading all mcu params."
+      Command.read_all_params(%{}, [], context)
       {:ok, :no_params}
     else
-      Logger.info "setting previous mcu commands."
+      Logger.info ">> is setting previous mcu commands."
       config_pairs = Enum.map(state.mcu_params, fn({param, val}) ->
         %Farmbot.CeleryScript.Ast{kind: "pair",
             args: %{label: param, value: val}, body: []}
       end)
-      Farmbot.CeleryScript.Command.config_update(%{package: "arduino_firmware"},
-        config_pairs)
+      Command.config_update(%{package: "arduino_firmware"},
+        config_pairs, context)
       :ok
     end
   end
@@ -85,19 +86,19 @@ defmodule Farmbot.BotState.Hardware do
     dispatch Map.get(state.mcu_params, param), state
   end
 
+  def handle_call({:set_pos, {x, y, z}}, _from, %State{} = state) do
+    dispatch [x, y, z], %State{state | location: [x,y,z]}
+  end
+
   def handle_call(event, _from, %State{} = state) do
     Logger.error ">> got an unhandled call in " <>
                  "Hardware tracker: #{inspect event}"
     dispatch :unhandled, state
   end
 
-  def handle_cast(:eff, state) do
-    spawn(__MODULE__, :set_initial_params, [state])
+  def handle_cast({:serial_ready, context}, state) do
+    spawn(__MODULE__, :set_initial_params, [state, context])
     dispatch state
-  end
-
-  def handle_cast({:set_pos, {x, y, z}}, %State{} = state) do
-    dispatch %State{state | location: [x,y,z]}
   end
 
   def handle_cast({:set_pin_value, {pin, value}}, %State{} = state) do

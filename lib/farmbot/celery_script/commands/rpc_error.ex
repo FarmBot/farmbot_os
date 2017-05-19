@@ -13,8 +13,10 @@ defmodule Farmbot.CeleryScript.Command.RpcError do
       args: %{label: String.t},
       body: [Explanation]
   """
-  @spec run(%{label: String.t}, [Command.explanation_type]) :: Ast.t
-  def run(%{label: id}, explanations) do
-    %Ast{kind: "rpc_error", args: %{label: id}, body: explanations}
+  @spec run(%{label: String.t},
+    [Command.explanation_type], Ast.context) :: Ast.context
+  def run(%{label: id}, explanations, context) do
+    item = %Ast{kind: "rpc_error", args: %{label: id}, body: explanations}
+    Farmbot.Context.push_data(context, item)
   end
 end

@@ -3,12 +3,33 @@ defmodule Farmbot.CeleryScript.Ast do
     Handy functions for turning various data types into Farbot Celery Script
     Ast nodes.
   """
+
+  alias Farmbot.Context
+
+  defimpl Inspect, for: __MODULE__ do
+    def inspect(thing, _) do
+      "#CeleryScript<#{thing.kind}>"
+    end
+  end
+
+  @typedoc false
+  @type context :: Context.t
+
+  @typedoc """
+    CeleryScript args.
+  """
+  @type args :: map
+
+  @typedoc """
+    Type for CeleryScript Ast's.
+  """
   @type t :: %__MODULE__{
-    args: map,
+    args: args,
     body: [t,...],
     kind: String.t,
     comment: String.t | nil
   }
+
   @enforce_keys [:args, :body, :kind]
   defstruct [:args, :body, :kind, :comment]
 

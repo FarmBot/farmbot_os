@@ -2,18 +2,19 @@ defmodule Farmbot.ImageWatcherTest do
   use ExUnit.Case, async: false
   use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
   alias Farmbot.Auth
-  # import Mock
+  alias Farmbot.Context
 
   setup_all do
-    Auth.purge_token
+    context = Context.new()
+    Auth.purge_token(context.auth)
     # Makes sure the dirs are empty
     File.rm_rf "/tmp/images"
     File.mkdir "/tmp/images"
     Farmbot.ImageWatcher.force_upload()
 
     use_cassette "good_login" do
-      :ok = Auth.interim("admin@admin.com", "password123", "http://localhost:3000")
-      {:ok, token} = Auth.try_log_in
+      :ok = Auth.interim(context.auth, "admin@admin.com", "password123", "http://localhost:3000")
+      {:ok, token} = Auth.try_log_in(context.auth)
       [token: token]
     end
   end

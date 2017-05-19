@@ -3,8 +3,7 @@ defmodule Farmbot.CeleryScript.Command.Sequence do
     Sequence
   """
 
-  alias Farmbot.CeleryScript.Command
-  alias Farmbot.CeleryScript.Ast
+  alias Farmbot.CeleryScript.{Command, Ast}
   require Logger
 
   @behaviour Command
@@ -14,12 +13,13 @@ defmodule Farmbot.CeleryScript.Command.Sequence do
       args: %{},
       body: [Ast.t]
   """
-  @spec run(%{}, [Ast.t]) :: no_return
-  def run(args, body) do
+  @spec run(%{}, [Ast.t], Ast.context) :: Ast.context
+  def run(args, body, context) do
     # rebuild the ast node
-    ast = %Ast{kind: "sequence", args: args, body: body}
+    ast          = %Ast{kind: "sequence", args: args, body: body}
     # Logger.debug "Starting sequence: #{inspect ast}"
-    {:ok, pid} = Farmbot.SequenceRunner.start_link(ast)
-    Farmbot.SequenceRunner.wait(pid)
+    {:ok, pid}   = Farmbot.SequenceRunner.start_link(ast, context)
+    next_context = Farmbot.SequenceRunner.wait(pid)
+    next_context
   end
 end

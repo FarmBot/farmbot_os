@@ -14,9 +14,10 @@ defmodule Farmbot.System.NervesCommon.Updates do
       end
 
       defp blerp(tries) do
-        pid = Process.whereis(Farmbot.Serial.Handler)
+        ctx = Farmbot.Context.new()
+        pid = Process.whereis(ctx.serial)
         if is_pid(pid) do
-          r = Farmbot.Serial.Handler.write "F83"
+          r = Farmbot.Serial.Handler.write ctx, "F83"
           if r == :timeout do
             Logger.info "Got timeout waiting for serial handler. Trying again"
             blerp(tries + 1)
@@ -33,7 +34,8 @@ defmodule Farmbot.System.NervesCommon.Updates do
       def post_install do
         Logger.info ">> Is doing post install stuff."
         :ok = blerp()
-        r = Farmbot.Serial.Handler.write "F83"
+        ctx = Farmbot.Context.new
+        r = Farmbot.Serial.Handler.write ctx, "F83"
         exp = Application.get_all_env(:farmbot)[:expected_fw_version]
         case r do
           {:report_software_version, version} when version == exp ->
@@ -44,7 +46,7 @@ defmodule Farmbot.System.NervesCommon.Updates do
             IO.warn "#{inspect other}"
             file = "#{:code.priv_dir(:farmbot)}/firmware.hex"
             Logger.info ">> Doing post update firmware flash.", type: :warn
-            GenServer.cast(Farmbot.Serial.Handler, {:update_fw, file, self()})
+            GenServer.cast(ctx.serial, {:update_fw, file, self()})
             wait_for_finish()
         end
       end

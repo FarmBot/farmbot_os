@@ -1,0 +1,44 @@
+[
+  {
+    "request": {
+      "body": "",
+      "headers": {
+        "Content-Type": "application/json",
+        "User-Agent": "FarmbotOS/3.1.6 (host) host ()",
+        "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0OTUwMzIwMTAsImp0aSI6ImUyM2YyNzI0LTAyZWMtNDk2OC1iNjc5LWI4MTQ0YjI3N2JiZiIsImlzcyI6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5ODQ4ODAxMCwibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFybWJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZGF0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVhc2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV84In0.UcBgq4pxoXeR6TYv9lYd90LAlGczZMjuvqT1Yc4R8xIk_Jy6bumhq7mI-Hoi9iKBhPU3XMpifXoIyqb1UdC1MBJyHMpPYjZoJLmm4v3XEug_rTu4RcaO7r_r1dZAh2C5TPVXBydcDe02loGC4_YmQPwWixhqJO_6vFF7JEDHir4bihbdfV-P4uZhpUcw-I1Eht4zCMjlmWaL5xcKUdSf-TuSQGNi0Ib0GkZs2wXan2bgv_wBfFEaZ4vmoZO1NM43jaykDssOaxP9hN7FKDdJ4mXL7r9XS7KtXpVQPycUYsfr-lPvid9cfKQFv-STakiDot8uGOYr1CH6I9erQMlhnQ"
+      },
+      "method": "get",
+      "options": {
+        "follow_redirect": true,
+        "ssl_options": {
+          "versions": [
+            "tlsv1.2"
+          ]
+        },
+        "recv_timeout": 25000,
+        "connect_timeout": 25000
+      },
+      "request_body": "",
+      "url": "http://localhost:3000/api/regimens"
+    },
+    "response": {
+      "body": "[{\"id\":1,\"name\":\"Test Regimen 456\",\"color\":\"gray\",\"device_id\":8,\"regimen_items\":[{\"id\":1,\"regimen_id\":1,\"sequence_id\":1,\"time_offset\":300000},{\"id\":2,\"regimen_id\":1,\"sequence_id\":1,\"time_offset\":173100000},{\"id\":3,\"regimen_id\":1,\"sequence_id\":1,\"time_offset\":345900000}]}]",
+      "headers": {
+        "X-Frame-Options": "SAMEORIGIN",
+        "X-XSS-Protection": "1; mode=block",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Type": "application/json; charset=utf-8",
+        "ETag": "W/\"9a0f20d596b040006a3023a77674ac34\"",
+        "Cache-Control": "max-age=0, private, must-revalidate",
+        "Set-Cookie": "_farmbot_session=UktiNkp0NWg3RFhENEs4WlBuWit1MG50cDVVK2JlbHRVNGxjSTRNMGJsYnRORm8wWmZFREtpakNkLzJhUlJReGQxbjF5bWJaSFpyMm1RbXB3UG1ES3c9PS0tTEdLWlhBVDlrVm5qMkVSaUQrNHV3UT09--b98b2f4d4633397d79c354995c6a9830f9fbf7f6; path=/; HttpOnly",
+        "X-Request-Id": "a5b33a6b-fd23-4c6d-a85e-541ccb81d89e",
+        "X-Runtime": "0.010228",
+        "Vary": "Origin",
+        "Connection": "close",
+        "Server": "thin"
+      },
+      "status_code": 200,
+      "type": "ok"
+    }
+  }
+]

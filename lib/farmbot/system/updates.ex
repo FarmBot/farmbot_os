@@ -9,6 +9,7 @@ defmodule Farmbot.System.Updates do
   @path "/tmp/update.fw"
   require Logger
   alias Farmbot.System.FS
+  alias Farmbot.Context
 
   # TODO(connor): THIS IS A MINOR IMPROVEMENT FROM THE LAST VERSION OF THIS FILE
   # BUT IT DEFINATELY NEEDS FURTHER REFACTORING.
@@ -17,7 +18,8 @@ defmodule Farmbot.System.Updates do
   defp mod(target), do: Module.concat([Farmbot, System, target, Updates])
 
   defp releases_url do
-    {:ok, token} = Farmbot.Auth.get_token()
+    context = Farmbot.Context.new()
+    {:ok, token} = Farmbot.Auth.get_token(context.auth)
     token.unencoded.os_update_server
   end
 
@@ -25,7 +27,8 @@ defmodule Farmbot.System.Updates do
     Checks for updates if the bot says so
   """
   def do_update_check do
-    if Farmbot.BotState.get_config(:os_auto_update) do
+    context = Farmbot.Context.new()
+    if Farmbot.BotState.get_config(context, :os_auto_update) do
       check_and_download_updates()
     else
       Logger.info ">> Will not do update check!"
@@ -57,7 +60,8 @@ defmodule Farmbot.System.Updates do
   """
   @spec check_updates :: {:update, binary} | :no_updates | {:error, term}
   def check_updates do
-    current = Farmbot.BotState.get_os_version
+    context = Context.new()
+    current = Farmbot.BotState.get_os_version(context)
     if String.contains?(current, "rc") do
       msg = "Release Candidate Releases don't currently support updates!"
       Logger.info msg, type: :warn

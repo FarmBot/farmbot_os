@@ -3,6 +3,14 @@ defmodule Farmbot.RegimenRunner do
     Runs a regimen
   """
 
+  use GenServer
+  alias Farmbot.Regimen.Supervisor, as: RegSup
+  require Logger
+
+  alias Farmbot.Database.Syncable.Regimen
+  alias Farmbot.CeleryScript.Command
+  alias Farmbot.Context
+
   defmodule Item do
     @moduledoc false
     @type t :: %__MODULE__{time_offset: integer,
@@ -15,19 +23,13 @@ defmodule Farmbot.RegimenRunner do
     end
   end
 
-  use GenServer
-  use Amnesia
-  use Farmbot.Sync.Database
-  alias Farmbot.Regimen.Supervisor, as: RegSup
-  require Logger
-
-  def start_link(regimen, time) do
+  def start_link(%Context{} = ctx, regimen, time) do
     GenServer.start_link(__MODULE__,
-      [regimen, time],
+      [ctx, regimen, time],
       name: :"regimen-#{regimen.id}")
   end
 
-  def init([regimen, time]) do
+  def init([ctx, regimen, time]) do
     # parse and sort the regimen items
     items = filter_items(regimen)
     first_item = List.first(items)
@@ -43,12 +45,13 @@ defmodule Farmbot.RegimenRunner do
       next = %{
         epoch: epoch,
         regimen: %{regimen | regimen_items: items},
-        next_execution: first_dt
+        next_execution: first_dt,
+        context: ctx
       }
       {:ok, next}
     else
       Logger.warn ">> no items on regimen: #{regimen.name}"
-      {:ok, %{}}
+      {:ok, %{context: ctx}}
     end
   end
 
@@ -61,7 +64,7 @@ defmodule Farmbot.RegimenRunner do
     else
       Logger.info ">> #{regimen.name} is complete!"
       spawn fn() ->
-        RegSup.remove_child(regimen)
+        RegSup.remove_child(state.context, regimen)
       end
       {:noreply, :finished}
     end
@@ -74,7 +77,7 @@ defmodule Farmbot.RegimenRunner do
   end
 
   defp do_item(item, regimen, state) do
-    Farmbot.CeleryScript.Command.do_command(item)
+    Command.do_command(item, state.context)
     next_item = List.first(regimen.regimen_items)
     if next_item do
       next_dt = Timex.shift(state.epoch, milliseconds: next_item.time_offset)
@@ -86,7 +89,7 @@ defmodule Farmbot.RegimenRunner do
     else
       Logger.info ">> #{regimen.name} is complete!"
       spawn fn() ->
-        RegSup.remove_child(regimen)
+        RegSup.remove_child(state.context, regimen)
       end
       {:noreply, :finished}
     end

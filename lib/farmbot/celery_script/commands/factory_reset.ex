@@ -4,7 +4,7 @@ defmodule Farmbot.CeleryScript.Command.FactoryReset do
   """
 
   # alias Farmbot.CeleryScript.Ast
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Ast}
   require Logger
   @behaviour Command
   import Command
@@ -14,34 +14,36 @@ defmodule Farmbot.CeleryScript.Command.FactoryReset do
       args: %{package: "farmbot_os" | "arduino_firmware"}
       body: []
   """
-  @spec run(%{package: binary}, []) :: no_return
-  def run(%{package: "farmbot_os"}, []) do
+  @spec run(%{package: binary}, [], Ast.context) :: Ast.context
+  def run(%{package: "farmbot_os"}, [], context) do
     Logger.info(">> Going down for factory reset in 5 seconds!", type: :warn)
     spawn fn ->
       Process.sleep 5000
-      do_fac_reset_fw()
+      do_fac_reset_fw(context)
       Farmbot.System.factory_reset("I was asked by a CeleryScript command.")
     end
+    context
   end
 
-  def run(%{package: "arduino_firmware"}, []) do
-    do_fac_reset_fw()
+  def run(%{package: "arduino_firmware"}, [], context) do
+    do_fac_reset_fw(context)
+    context
   end
 
-  @spec do_fac_reset_fw(boolean) :: no_return
-  defp do_fac_reset_fw(reboot \\ false) do
+  @spec do_fac_reset_fw(Ast.context, boolean) :: no_return
+  defp do_fac_reset_fw(context, reboot \\ false) do
     Logger.info(">> Going to reset my arduino!", type: :warn)
     params =
-      Farmbot.BotState.get_all_mcu_params()
+      context
+      |> Farmbot.BotState.get_all_mcu_params()
       |> Enum.map(fn({key, _value}) ->
         if key do
-          key
-          |> String.to_existing_atom()
-          |> Farmbot.BotState.set_param(-1)
+          param = key |> String.to_existing_atom()
+          Farmbot.BotState.set_param(context, param, -1)
         end
-        pair(%{label: key, value: -1}, [])
+        pair(%{label: key, value: -1}, [], context)
       end)
-    config_update(%{package: "arduino_firmware"}, params)
+    config_update(%{package: "arduino_firmware"}, params, context)
 
     file = "#{Farmbot.System.FS.path()}/config.json"
     config_file = file |> File.read!() |> Poison.decode!()
@@ -49,7 +51,7 @@ defmodule Farmbot.CeleryScript.Command.FactoryReset do
     Farmbot.System.FS.transaction fn() ->
       File.write file, Poison.encode!(f)
     end, true
-    GenServer.stop(Farmbot.Serial.Handler, :reset)
+    GenServer.stop(context.serial, :reset)
     if reboot, do: Farmbot.System.reboot()
   end
 

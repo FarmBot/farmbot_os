@@ -33,9 +33,9 @@ defmodule Farmbot.Transport do
       user_env: map}
   end
 
-  def start_link, do: GenStage.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link(context, opts), do: GenStage.start_link(__MODULE__, [context], opts)
 
-  def init([]),
+  def init(_context),
     do: {:producer_consumer, {%Serialized{}, 0}, subscribe_to: [Monitor]}
 
   def handle_call(:force_state_push, _from, {status, _}) do

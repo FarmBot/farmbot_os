@@ -1,0 +1,42 @@
+[{
+ "request": {
+  "body": "",
+  "headers": {
+   "Content-Type": "application/json",
+   "User-Agent": "FarmbotOS/3.1.6 (host) host ()",
+   "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0OTQ5NzQ3MDMsImp0aSI6IjZiZmI1ZTQ2LWJkZDMtNDg2My1iMjY1LTg5NTY0NWUzNTBlMiIsImlzcyI6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5ODQzMDcwMywibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFybWJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZGF0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVhc2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV84In0.TFG9CtKkm-ecVk6e8P9C4zaZIJFUGjZqaxoCinA2Qh1foFsG4dEP-KgBo4iR3k0hXvZymNyCuNa6ft-QCAP45J0WsNohurtA885Hp5TN7eNNr5-5r3_Z6UfzM26HhPsldrfxYvjjU-D4vrQZoeoioU5TTRtEXvSLVEviDZAebViWlTvWH094ff6xExOJqyYTyeZNTPlW_6y9zDIRa9MJKvlyOl0iZ5DlTmtB1cMASXbxyjhS_5y1wu1mVUMtISuOcKjozsUP7mMb_2BElKAk-f7xWnQlv2C8iYp0DrgjaM5AB_vu3CMMUS9Tg3-hTlZ1qlaLQzYsc8lMWi-h6N5G5w"
+  },
+  "method": "get",
+  "options": {
+   "follow_redirect": true,
+   "ssl_options": {
+    "versions": [
+     "tlsv1.2"
+    ]
+   },
+   "recv_timeout": 25000,
+   "connect_timeout": 25000
+  },
+  "request_body": "",
+  "url": "http://localhost:3000/api/fake/2"
+ },
+ "response": {
+  "body": "{\"id\":2,\"foo\":\"BAR\",\"bar\":\"baz\"}",
+  "headers": {
+   "X-Frame-Options": "SAMEORIGIN",
+   "X-XSS-Protection": "1; mode=block",
+   "X-Content-Type-Options": "nosniff",
+   "Content-Type": "application/json; charset=utf-8",
+   "ETag": "W/\"92675ca236be3e6469e748e5513f1d4c\"",
+   "Cache-Control": "max-age=0, private, must-revalidate",
+   "Set-Cookie": "_farmbot_session=cSswMFVUN3lEUndWMzAvZnhWa3Z3N2xYNHgxS25tM25BaVZJL2N2RjJpMnpsV1RmTXJTQngwalBZZ01FRXVCdEVXdWpIWkZjZW5iaGN4cDBmSEwwOEE9PS0tVm9Oa2QrOFQyQ0dUd1N0bmlWN2pTUT09--01af2d77069882162404a3f717315baceaf019f3; path=/; HttpOnly",
+   "X-Request-Id": "cc88f74f-87fc-41ef-9255-1ec2a31bdbaa",
+   "X-Runtime": "0.010134",
+   "Vary": "Origin",
+   "Connection": "close",
+   "Server": "thin"
+  },
+  "status_code": 200,
+  "type": "ok"
+ }
+}]

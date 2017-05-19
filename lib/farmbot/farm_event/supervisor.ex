@@ -3,12 +3,14 @@ defmodule Farmbot.FarmEvent.Supervisor do
     Supervisor for FarmEvents
   """
   use Supervisor
-  def start_link, do: Supervisor.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link(ctx, opts), do: Supervisor.start_link(__MODULE__, ctx, opts)
 
-  def init(_) do
+  def init(context) do
     children = [
-      worker(Farmbot.Regimen.Supervisor, [], [restart: :permanent]),
-      worker(Farmbot.FarmEventRunner, [], [restart: :permanent])
+      worker(Farmbot.Regimen.Supervisor,
+        [context, [name: Farmbot.Regimen.Supervisor ]], [restart: :permanent]),
+      worker(Farmbot.FarmEventRunner,
+        [context, [name: Farmbot.FarmEventRunner    ]], [restart: :permanent])
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)

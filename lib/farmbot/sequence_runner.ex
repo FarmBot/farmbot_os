@@ -4,14 +4,14 @@ defmodule Farmbot.SequenceRunner do
   """
   use GenServer
   alias Farmbot.CeleryScript.Ast
-  import Farmbot.CeleryScript.Command, only: [do_command: 1]
+  import Farmbot.CeleryScript.Command, only: [do_command: 2]
   require Logger
 
   @typedoc """
     This gets injected into the args of a sequence, and all of its children etc.
     Mostly magic.
   """
-  @type context :: %{parent: pid | nil}
+  @type context :: Ast.context
   @type sequence_pid :: pid
 
   @type block :: {reference, pid}
@@ -24,8 +24,8 @@ defmodule Farmbot.SequenceRunner do
   @doc """
     Starts a sequence.
   """
-  def start_link(ast) do
-    GenServer.start_link(__MODULE__, ast, [])
+  def start_link(ast, context) do
+    GenServer.start_link(__MODULE__, [ast, context], [])
   end
 
   @doc """
@@ -40,18 +40,12 @@ defmodule Farmbot.SequenceRunner do
   @spec call(sequence_pid, any) :: any
   def call(sequence, call), do: GenServer.call(sequence, {:call, call})
 
-  def init(ast) do
-    # if there is no previous context, build a new one
-    context = ast.args[:context] || empty_context()
-
-    # travers the ast, compile some stuff, validate some stuff etc.
-    ast = traverse(ast, context)
-
+  def init(ast, first_context) do
     # Setup the firt step
     [first | rest] = ast.body
-    spawn __MODULE__, :work, [first, self()]
+    spawn __MODULE__, :work, [{first, first_context}, self()]
 
-    {:ok, %{blocks: [], body: rest}}
+    {:ok, %{blocks: [], body: rest, context: first_context}}
   end
 
   # This is a validation for if a sequence has a parent or not.
@@ -65,114 +59,38 @@ defmodule Farmbot.SequenceRunner do
   end
 
   # When a stop finishes and there is no more steps
-  def handle_cast(:finished, %{body: []} = state) do
+  def handle_cast({:finished, next_context}, %{body: []} = state) do
     # Tell all things involved that this sequence is done.
-    :ok = reply_blocks(:ok, state.blocks)
-    {:stop, :normal, %{state | blocks: []}}
+    :ok = reply_blocks(state.blocks, next_context)
+    {:stop, :normal, %{state | blocks: [], context: next_context}}
   end
 
-  def handle_cast(:finished, %{body: rest} = state) do
+  def handle_cast({:finished, next_context}, %{body: rest} = state) do
     [first | rest] = rest
-    spawn __MODULE__, :work, [first, self()]
-    {:noreply, %{state | body: rest}}
+    spawn __MODULE__, :work, [{first, next_context}, self()]
+    {:noreply, %{state | body: rest, context: next_context}}
   end
 
   # if we terminate for any non normal reason, make sure to reply
   # to any blocks we had.
-  def terminate(reason, state) do
-    unless reason == :normal do
-      :ok = reply_blocks(reason, state.blocks)
-    end
-    :ok
+  def terminate(_reason, state) do
+    :ok = reply_blocks(state.blocks, state.context)
   end
 
   @spec work(Ast.t, sequence_pid) :: :ok
-  def work(ast, sequence) do
+  def work({ast, context}, sequence) do
     # This sleep makes sequences more stable and makes sure
     # The bot was _actualy_ complete with the last command in real life.
     Process.sleep(500)
-    do_command(ast)
-    GenServer.cast(sequence, :finished)
+    next_context = do_command(ast, context)
+    GenServer.cast(sequence, {:finished, next_context})
   end
 
-  @typedoc """
-    Deconstructed ast node arg
-  """
-  @type arg :: {String.t, String.t | Ast.t}
-
-  @typedoc """
-    I don't remember what this is.
-  """
-  @type item :: any
-
-  @spec traverse(Ast.t, context) :: Ast.t
-  defp traverse(ast, context)
-
-  defp traverse(%{args: args, body: body} = ast, context) do
-    args = traverse_args(args, context)
-    body = traverse_body(body, context)
-    %Ast{ast | args: args, body: body} |> intercept_ast(context)
-  end
-
-  @spec traverse_args(map | [arg], context, [arg]) :: map
-  # traverse the k/v version of the args.
-  defp traverse_args(args, context, acc \\ [])
-
-  defp traverse_args(%{} = args, context, []), do: traverse_args(Map.to_list(args), context, [])
-
-  # Turn it back into a map when we are done.
-  defp traverse_args([], _context, acc), do: Map.new(acc)
-
-  defp traverse_args([{key, value} | rest], context, acc) do
-    value = if match?(%Ast{}, value) do
-      traverse(value, context)
-    else
-      value
-    end
-    arg = intercept_arg({key, value}, context)
-    traverse_args(rest, context, [arg | acc])
-  end
-
-  @spec traverse_body([item], context, [item]) :: [item]
-  # body traversal
-  defp traverse_body(body, context, acc \\ [])
-
-  # When we finish, make sure to reverse the list otherwise its backwards
-  defp traverse_body([], _context, acc), do: acc |> Enum.reverse
-
-  defp traverse_body([item | rest], context, acc) do
-    item = item |> traverse(context) |> intercept_item(context)
-    traverse_body(rest, context, [item | acc])
-  end
-
-  @spec intercept_arg(arg, context) :: arg
-  defp intercept_arg({_key, _value} = arg, _context), do: arg
-
-  @spec intercept_item(item, context) :: item
-  defp intercept_item(item, _context), do: item
-
-  @spec intercept_ast(Ast.t, context) :: Ast.t
-  # inject a new context into execute blocks for the next sequence to use.
-  defp intercept_ast(%{kind: "execute"} = ast, _context) do
-    context = new_context()
-    %{ast | args: Map.put(ast.args, :context, context)}
-  end
-
-  # inject context into nodes other nodes
-  defp intercept_ast(ast, context),
-    do: %{ast | args: Map.put(ast.args, :context, context)}
-
-  @spec reply_blocks(term, [block]) :: any
-  defp reply_blocks(reply, blocks) do
+  @spec reply_blocks([block], context) :: :ok
+  defp reply_blocks(blocks, context) do
     for from <- blocks do
-      :ok = GenServer.reply(from, reply)
+      :ok = GenServer.reply(from, context)
     end
     :ok
   end
-
-  @spec new_context :: context
-  defp new_context, do: %{parent: self()}
-  @spec empty_context :: context
-  defp empty_context, do: %{parent: nil}
-
 end

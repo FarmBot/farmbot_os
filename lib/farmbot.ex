@@ -4,7 +4,6 @@ defmodule Farmbot do
   """
   require Logger
   use Supervisor
-  alias Farmbot.Sync.Database
   alias Farmbot.System.Supervisor, as: FBSYS
 
   @version Mix.Project.config[:version]
@@ -17,36 +16,42 @@ defmodule Farmbot do
   def start(_, _args) do
     Logger.info ">> Booting Farmbot OS version: #{@version} - #{@commit}"
     :ok = setup_nerves_fw()
-    Amnesia.start
-    Database.create! Keyword.put([], :memory, [node()])
-    Database.wait(15_000)
     Supervisor.start_link(__MODULE__, [], name: Farmbot.Supervisor)
   end
 
   def init(_args) do
+    context = Farmbot.Context.new()
     children = [
       worker(Farmbot.DebugLog, [], restart: :permanent),
-      supervisor(Registry, [:duplicate,  Farmbot.Registry]),
-      # System specifics.
-      supervisor(FBSYS, [], restart: :permanent),
-      # Auth services.
-      worker(Farmbot.Auth, [], restart: :permanent),
-      # Web app.
+      supervisor(Registry,     [:duplicate,  Farmbot.Registry]),
+      supervisor(FBSYS,
+        [context, [name: FBSYS                        ]], restart: :permanent),
+
+      worker(Farmbot.Auth,
+        [context, [name: Farmbot.Auth                 ]], restart: :permanent),
+
+      worker(Farmbot.Database,
+        [context, [name: Farmbot.Database             ]], restart: :permanent),
+
+      supervisor(Farmbot.BotState.Supervisor,
+        [context, [name: Farmbot.BotState.Supervisor  ]], restart: :permanent),
+
+      supervisor(Farmbot.FarmEvent.Supervisor,
+        [context, [name: Farmbot.FarmEvent.Supervisor ]], restart: :permanent),
+
+      supervisor(Farmbot.Transport.Supervisor,
+        [context, [name: Farmbot.Transport.Supervisor ]], restart: :permanent),
+
+      supervisor(Farmware.Supervisor,
+        [context, [name: Farmware.Supervisor          ]], restart: :permanent),
+
+      worker(Farmbot.ImageWatcher,
+        [context, [name: Farmbot.ImageWatcher         ]], restart: :permanent),
+
+      worker(Task, [Farmbot.Serial.Handler.OpenTTY, :open_ttys, [__MODULE__]],
+        restart: :transient),
+
       supervisor(Farmbot.Configurator, [], restart: :permanent),
-      # The worker for diffing db entries.
-      worker(Farmbot.Sync.Supervisor, [], restart: :permanent),
-      # Handles tracking of various parts of the bots state.
-      supervisor(Farmbot.BotState.Supervisor, [], restart: :permanent),
-      # Handles FarmEvents.
-      supervisor(Farmbot.FarmEvent.Supervisor, [], restart: :permanent),
-      # Handles the passing of messages from one part of the system to another.
-      supervisor(Farmbot.Transport.Supervisor, [], restart: :permanent),
-      # Handles external scripts and what not.
-      supervisor(Farmware.Supervisor, [], restart: :permanent),
-      # handles communications between bot and arduino.
-      supervisor(Farmbot.Serial.Supervisor, [], restart: :permanent),
-      # Watches the images directory and uploads them.
-      worker(Farmbot.ImageWatcher, [], restart: :permanent)
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)

@@ -5,17 +5,20 @@ defmodule Farmbot.BotState.ProcessSupervisor do
 
   use Supervisor
   require Logger
+  alias Farmbot.Context
 
   @doc """
     Starts the Farm Procss Supervisor
   """
-  @spec start_link :: {:ok, pid}
-  def start_link, do: Supervisor.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link(%Context{} = ctx, opts),
+    do: Supervisor.start_link(__MODULE__, ctx, opts)
 
-  def init([]) do
+  def init(ctx) do
     Logger.info ">> Starting FarmProcess Supervisor"
     children = [
-      worker(Farmbot.BotState.ProcessTracker, [], [restart: :permanent])
+      worker(Farmbot.BotState.ProcessTracker,
+             [ctx, [name: Farmbot.BotState.ProcessTracker]],
+             [restart: :permanent])
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)

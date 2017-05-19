@@ -24,9 +24,9 @@
         "Content-Type": "text/plain; charset=utf-8",
         "ETag": "W/\"30b6abc31afb5f2e8804aa64029c73d4\"",
         "Cache-Control": "max-age=0, private, must-revalidate",
-        "Set-Cookie": "_farmbot_session=MmFlWjJFMVVNVEhnZmUyQ3VvYkc3OWliODFDcFFGZEx4ci9lU1YwOGxocmwrNGV6TVJaeklVLzUrdjlDRHBYdkgxeFVLVVdDTFdjQ3lGc2N4UHFZbGc9PS0tQ1hkUTJvZC93azRkdmw3Z3QyZW1Hdz09--4828a85bbe3f3079af7d6137219a6f019fda9386; path=/; HttpOnly",
-        "X-Request-Id": "b12874d1-d17b-4c49-884c-3ce5bfbb8824",
-        "X-Runtime": "0.002076",
+        "Set-Cookie": "_farmbot_session=R1oxQjJ6dEl1b3JqTERyMXlEVFJoMHY1ZnFWekFQWmkyYU85K1FSTEJpTTFybnRHWmxQUktQWUptN0UrWEV0Nk1YVmdPOVZObmQ0QWh0V0UySmxTQUE9PS0tTDZTRCtGSVZ0U2xxY0M2WFU0bTJhdz09--492cf2b686404f4db87f3f33c8fc61e52dd283e0; path=/; HttpOnly",
+        "X-Request-Id": "2e66cd9e-110a-4176-aa65-21f0d49221f7",
+        "X-Runtime": "0.002131",
         "Vary": "Origin",
         "Connection": "close",
         "Server": "thin"
@@ -37,7 +37,7 @@
   },
   {
     "request": {
-      "body": "{\"user\":{\"credentials\":\"fGIvSYZm8b+vf41k1yh1TEkZ/lJB3LPb2yX1QPRL2lbYVQrKBNFfpLlFWcccjlABJcFGrbOYLGlmWm7o+LIDobkxYjIlt1tGnyiIQYXKlJgURmrcy9RIgXfXQOM+oMpWDFprki8kD5Mlt/XcbxGAbhx0iBhV2Dc3ZYFmMwVN0mK0xMH0n9Db8C+vYcOMoSNlO/UJfZsfmPowTE3CQ9Puk9NOK5Kg1VOQVTszE/2FMxNIYHoOYiMoDccw4mHrOT2StSvOBhFfIXR8vEifFnqAHZHusLlbtnWoQKD/iSncOHpUs+Tzck72YsfA3/0hJ0yo+zP3cKlhRZuuO4sjBMmbCA==\"}}",
+      "body": "{\"user\":{\"credentials\":\"FOxrRakM3SKMWeYp+EKR9MZY5eGcU0wkXHg99hGS+KylZJ7DzFNqbS8QVHxp/Pj8UglJ3z6zPfS2mbuHZQcl2mJ9ScsnEL3hkqJgCXW1m37Ar5jHLeI31O2NkOOkQMJALV8BqOTmGnflCmisxAh0rOtlSCkgcJw9W5az4FlHEriFmOxk7PEq3DGoSRoRKOrWedJ8Aa9J152nbQB8Ss01sTRGlsGZov18Lk/GZ1YFG3CTv/Mm353E/i5M9F0EC7JQPKn8ko9vPrqJEmcsdDSv0tAhuL9/bJ9paIOMjrDlRCM3mlW+mZjr1ss1qFtSV7y8RWFU4VT1ptIP7VvfHa/nnw==\"}}",
       "headers": {
         "Content-Type": "application/json"
       },
@@ -54,17 +54,17 @@
       "url": "http://localhost:3000/api/tokens"
     },
     "response": {
-      "body": "{\"token\":{\"unencoded\":{\"sub\":\"admin@admin.com\",\"iat\":1494266384,\"jti\":\"6b43d756-795d-4696-8656-29612cc2103a\",\"iss\":\"//192.168.29.165:3000\",\"exp\":1497722384,\"mqtt\":\"192.168.29.165\",\"os_update_server\":\"https://api.github.com/repos/farmbot/farmbot_os/releases/latest\",\"fw_update_server\":\"https://api.github.com/repos/Farmbot/farmbot-arduino-firmware/releases/latest\",\"bot\":\"device_2\"},\"encoded\":\"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0OTQyNjYzODQsImp0aSI6IjZiNDNkNzU2LTc5NWQtNDY5Ni04NjU2LTI5NjEyY2MyMTAzYSIsImlzcyI6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5NzcyMjM4NCwibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFybWJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZGF0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVhc2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV8yIn0.iMJMNy2-ata3zZlfFIFejgtljkr7cgZtySLeur-4vBDhg2_L2SBHml47-g7YbWXMmEEPfGDUm23d1zzXXZGgBRniHg2y98NxuN2wYK9ypuEAkc3d07lOCcRhhbbfnctLrrKEhWnve_9LzIpP2CbSmqLfm3wBPxSmBaxVg8GyNCQfABsDFuUi7GHoU2rEfGOs3rjXWaiKIvjIUr-xsMdeJ3ErZ20wySBqAjHFyf_MpszClpLMJGSCkXr8j3B03-oKvL2yPdezUqOn-LA1gW7ezhMawZ4S4GIAiZBfueX2g4OHS7dnr71U92ZAhkA2jmC2_eUxDF4I-B07nYsM59FEsg\"},\"user\":{\"id\":2,\"device_id\":2,\"name\":\"Administrator\",\"email\":\"admin@admin.com\",\"created_at\":\"2017-04-20T20:01:02.082Z\",\"updated_at\":\"2017-05-03T17:10:35.353Z\",\"verified_at\":\"2017-04-20T20:01:02.099Z\",\"verification_token\":\"70d33dee-19a6-418d-8e78-b76d9f072ce0\",\"agreed_to_terms_at\":null}}",
+      "body": "{\"token\":{\"unencoded\":{\"sub\":\"admin@admin.com\",\"iat\":1495032010,\"jti\":\"e23f2724-02ec-4968-b679-b8144b277bbf\",\"iss\":\"//192.168.29.165:3000\",\"exp\":1498488010,\"mqtt\":\"192.168.29.165\",\"os_update_server\":\"https://api.github.com/repos/farmbot/farmbot_os/releases/latest\",\"fw_update_server\":\"https://api.github.com/repos/Farmbot/farmbot-arduino-firmware/releases/latest\",\"bot\":\"device_8\"},\"encoded\":\"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0OTUwMzIwMTAsImp0aSI6ImUyM2YyNzI0LTAyZWMtNDk2OC1iNjc5LWI4MTQ0YjI3N2JiZiIsImlzcyI6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5ODQ4ODAxMCwibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFybWJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZGF0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVhc2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV84In0.UcBgq4pxoXeR6TYv9lYd90LAlGczZMjuvqT1Yc4R8xIk_Jy6bumhq7mI-Hoi9iKBhPU3XMpifXoIyqb1UdC1MBJyHMpPYjZoJLmm4v3XEug_rTu4RcaO7r_r1dZAh2C5TPVXBydcDe02loGC4_YmQPwWixhqJO_6vFF7JEDHir4bihbdfV-P4uZhpUcw-I1Eht4zCMjlmWaL5xcKUdSf-TuSQGNi0Ib0GkZs2wXan2bgv_wBfFEaZ4vmoZO1NM43jaykDssOaxP9hN7FKDdJ4mXL7r9XS7KtXpVQPycUYsfr-lPvid9cfKQFv-STakiDot8uGOYr1CH6I9erQMlhnQ\"},\"user\":{\"id\":6,\"device_id\":8,\"name\":\"Administrator\",\"email\":\"admin@admin.com\",\"created_at\":\"2017-05-16T22:23:06.508Z\",\"updated_at\":\"2017-05-17T14:38:56.800Z\",\"verified_at\":\"2017-05-16T22:23:06.522Z\",\"verification_token\":\"e29250dc-0b63-4532-916e-37463ba5c343\",\"agreed_to_terms_at\":null}}",
       "headers": {
         "X-Frame-Options": "SAMEORIGIN",
         "X-XSS-Protection": "1; mode=block",
         "X-Content-Type-Options": "nosniff",
         "Content-Type": "application/json; charset=utf-8",
-        "ETag": "W/\"6a3fa8ddb3eaa65ad0731ce9c13bb17f\"",
+        "ETag": "W/\"8fd4bf71f2f04711adc964749c5f51d1\"",
         "Cache-Control": "max-age=0, private, must-revalidate",
-        "Set-Cookie": "_farmbot_session=djhybGZ1OU0rNzIzbjNKdlkxdFkwcW02UTZKcEx4YUtwZ1BNL2J6WXJjOG81S29XcEJMb1R0RUU4K0JBeGZPTEdPTXFUWkhrUDZwY0t6Q3VWS1VFQUE9PS0tQ2U1eWJlNloraE1LZElrWUtzSE5EQT09--ce70f8703184c2ab509d81ed65116eef41719b17; path=/; HttpOnly",
-        "X-Request-Id": "c69663cf-0b11-456d-98de-76ad88f6e4a7",
-        "X-Runtime": "0.190185",
+        "Set-Cookie": "_farmbot_session=b0lmdzgxdnpiUkVsM0VqVUVsVjRBTmhNVnQxRTdsVTJaZGdRcFJiNnhWNW5rRzRBQ29KaytjVlFOUzhJTlR2WVVCNHAyU0REYURQL25rcG1Lakxkenc9PS0tNGNXUVZod2UrTUpJaVhnVEdkRktKQT09--19ba2137d8c3b22ca271f72b2baa4ec5dbdc2d32; path=/; HttpOnly",
+        "X-Request-Id": "c3844c7f-688c-4381-b7da-d67f7db410c1",
+        "X-Runtime": "0.056839",
         "Vary": "Origin",
         "Connection": "close",
         "Server": "thin"

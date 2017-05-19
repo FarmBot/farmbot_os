@@ -3,7 +3,7 @@ defmodule Farmbot.CeleryScript.Command.Wait do
     Wait
   """
 
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Ast}
 
   @behaviour Command
 
@@ -12,6 +12,9 @@ defmodule Farmbot.CeleryScript.Command.Wait do
       args: %{milliseconds: integer},
       body: []
   """
-  @spec run(%{milliseconds: integer}, []) :: no_return
-  def run(%{milliseconds: millis}, []), do: Process.sleep(millis)
+  @spec run(%{milliseconds: integer}, [], Ast.context) :: Ast.context
+  def run(%{milliseconds: millis}, [], context) do
+    Process.sleep(millis)
+    context
+  end
 end

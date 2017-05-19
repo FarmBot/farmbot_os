@@ -4,7 +4,7 @@ defmodule Farmbot.CeleryScript.Command.TakePhoto do
   """
 
   # alias Farmbot.CeleryScript.Ast
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Ast}
   require Logger
   @behaviour Command
 
@@ -13,13 +13,13 @@ defmodule Farmbot.CeleryScript.Command.TakePhoto do
       args: %{},
       body: []
   """
-  @spec run(%{}, []) :: no_return
-  def run(%{}, []) do
-    info = Farmbot.BotState.ProcessTracker.lookup :farmware, "take-photo"
-    if info do
-      Command.start_process(%{label: info.uuid}, [])
+  @spec run(%{}, [], Ast.context) :: Ast.context
+  def run(%{}, [], context) do
+    i = Farmbot.BotState.ProcessTracker.lookup context, :farmware, "take-photo"
+    if i do
+      Command.start_process(%{label: i.uuid}, [], context)
     else
-      Logger.warn "take-photo is not installed!"
+      raise "take-photo is not installed!"
     end
   end
 end

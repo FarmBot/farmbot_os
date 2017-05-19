@@ -13,14 +13,14 @@ defmodule Farmbot.CeleryScript.Command.Execute do
       args: %{sequence_id_id: integer}
       body: []
   """
-  @spec run(%{sequence_id: integer}, []) :: no_return
-  def run(%{sequence_id: id} = args, []) do
-    id
-    |> Farmbot.Sync.get_sequence
+  @spec run(%{sequence_id: integer}, [], Ast.context) :: Ast.context
+  def run(%{sequence_id: id} = args, [], context) do
+    context.database
+    |> Farmbot.Database.get_by_id(Sequence, id)
     |> Ast.parse
     |> merge_args(args)
     |> delete_me()
-    |> Command.do_command
+    |> Command.do_command(context)
   end
 
   defp merge_args(ast, args), do: %{ast | args: Map.merge(ast.args, args)}
@@ -28,7 +28,7 @@ defmodule Farmbot.CeleryScript.Command.Execute do
   defp delete_me(ast) do
     %{ast | body: [blerp() | ast.body]}
   end
-
+  # CONTENTS UNDER PRESSURE
   defp blerp do
     %Farmbot.CeleryScript.Ast{args: %{}, body: [], comment: nil, kind: "ping_parent"}
   end

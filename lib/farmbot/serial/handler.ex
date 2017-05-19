@@ -3,12 +3,13 @@ defmodule Farmbot.Serial.Handler do
     Handles communication between farmbot and uart devices
   """
 
-  use GenServer
-  require Logger
-  alias Nerves.UART
-  alias Farmbot.Serial.Gcode.Parser
   alias Farmbot.BotState
+  alias Farmbot.Context
   alias Farmbot.Lib.Maths
+  alias Farmbot.Serial.Gcode.Parser
+  alias Nerves.UART
+  require Logger
+  use GenServer
 
   # use Farmbot.DebugLog, enable: false
   use Farmbot.DebugLog
@@ -32,6 +33,7 @@ defmodule Farmbot.Serial.Handler do
     State for this GenServer
   """
   @type state :: %{
+    context: Context.t,
     nerves: nerves,
     tty: binary,
     current: current,
@@ -57,52 +59,51 @@ defmodule Farmbot.Serial.Handler do
   @doc """
     Starts a UART GenServer
   """
-  def start_link(nerves, tty, opts) when is_pid(nerves) and is_binary(tty) do
-    GenServer.start_link(__MODULE__, {nerves, tty}, opts)
+  def start_link(%Context{} = ctx, nerves, tty, opts)
+  when is_pid(nerves) and is_binary(tty) do
+    GenServer.start_link(__MODULE__, {ctx, nerves, tty}, opts)
   end
 
   @doc """
     Starts a UART GenServer
   """
-  def start_link(tty, opts) when is_binary(tty) do
-    GenServer.start_link(__MODULE__, tty, opts)
+  def start_link(%Context{} = ctx, tty, opts) when is_binary(tty) do
+    GenServer.start_link(__MODULE__, {ctx, tty}, opts)
   end
 
   @doc """
     Checks if we have a handler available
   """
-  @spec available?(handler) :: boolean
-  def available?(handler \\ __MODULE__)
+  @spec available?(Context.t) :: boolean
+  def available?(context)
 
   # If handler is a pid
-  def available?(handler) when is_pid(handler) do
-    GenServer.call(handler, :available?)
+  def available?(%Context{serial: handler}) when is_pid(handler) do
+    if Process.alive?(handler) do
+      GenServer.call(handler, :available?)
+    else
+      false
+    end
   end
 
   # if its a name, look it up
-  def available?(handler) do
-    uh = Process.whereis(handler)
+  def available?(%Context{serial: handler} = ctx) when is_atom(handler) do
+    uh = Process.whereis(ctx.serial)
     if uh do
-      available?(uh)
+      available?(%{ctx | serial: uh})
     else
       false
     end
   end
 
   @doc """
-    Gets the state of a handler
-  """
-  @spec get_state(handler) :: state
-  def get_state(handler \\ __MODULE__), do: GenServer.call(handler, :get_state)
-
-  @doc """
     Writes a string to the uart line
   """
-  @spec write(binary, integer, handler) :: binary | {:error, atom}
-  def write(string, timeout \\ @default_timeout_ms, handler \\ __MODULE__)
-  def write(str, timeout, handler) do
-    if available?(handler) do
-      GenServer.call(handler, {:write, str, timeout}, :infinity)
+  @spec write(Context.t, binary, integer) :: binary | {:error, atom}
+  def write(context, string, timeout \\ @default_timeout_ms)
+  def write(%Context{} = ctx, str, timeout) when is_binary(str) and is_number(timeout) do
+    if available?(ctx) do
+      GenServer.call(ctx.serial, {:write, str, timeout}, :infinity)
     else
       {:error, :unavailable}
     end
@@ -111,25 +112,34 @@ defmodule Farmbot.Serial.Handler do
   @doc """
     Send the E stop command to the arduino.
   """
-  @spec emergency_lock(handler) :: :ok | no_return
-  def emergency_lock(handler \\ __MODULE__) do
-    GenServer.call(handler, :emergency_lock)
+  @spec emergency_lock(Context.t) :: :ok | no_return
+  def emergency_lock(%Context{} = ctx) do
+    if available?(ctx) do
+      GenServer.call(ctx.serial, :emergency_lock)
+    else
+      {:error, :unavailable}
+    end
   end
 
   @doc """
     Tell the arduino its fine now.
   """
-  @spec emergency_unlock(handler) :: :ok | no_return
-  def emergency_unlock(handler \\ __MODULE__) do
-    GenServer.call(handler, :emergency_unlock)
+  @spec emergency_unlock(Context.t) :: :ok | no_return
+  def emergency_unlock(%Context{} = ctx)  do
+    if available?(ctx) do
+      GenServer.call(ctx.serial, :emergency_unlock)
+    else
+      {:error, :unavailable}
+    end
   end
 
   ## Private
 
-  def init({nerves, tty}) when is_pid(nerves) and is_binary(tty) do
+  def init({ctx, nerves, tty}) when is_pid(nerves) and is_binary(tty) do
     Process.link(nerves)
     :ok = open_tty(nerves, tty)
     state = %{
+      context: ctx,
       nerves: nerves,
       tty: tty,
       current: nil,
@@ -140,9 +150,9 @@ defmodule Farmbot.Serial.Handler do
     {:ok, state}
   end
 
-  def init(tty) when is_binary(tty) do
+  def init({ctx, tty}) when is_binary(tty) do
     {:ok, nerves} = UART.start_link()
-    init({nerves, tty})
+    init({ctx, nerves, tty})
   end
 
   @spec open_tty(nerves, binary) :: :ok
@@ -181,11 +191,9 @@ defmodule Farmbot.Serial.Handler do
     {:reply, :ok, next}
   end
 
-  def handle_call(:get_state, _, state), do: {:reply, state, state}
-
   def handle_call(:available?, _, state), do: {:reply, state.initialized, state}
 
-  def handle_call({:write, str, timeout}, from, %{status: :idle} = state) do
+  def handle_call({:write, str, timeout}, from, %{status: :idle} = state) when is_binary(str) do
     handshake = generate_handshake()
     writeme =  "#{str} #{handshake}"
     debug_log "writing: #{writeme}"
@@ -208,7 +216,7 @@ defmodule Farmbot.Serial.Handler do
       send(pid, :done)
       {:noreply, state}
     else
-      flash_firmware(state.tty, file, pid)
+      flash_firmware(state.context, state.tty, file, pid)
       {:stop, :update, state}
     end
   end
@@ -232,7 +240,8 @@ defmodule Farmbot.Serial.Handler do
       Logger.info "Initializing Firmware!"
       fn ->
         Process.sleep(2000)
-        GenServer.cast(Farmbot.BotState.Hardware, :eff)
+        ready = {:serial_ready, Context.new()}
+        GenServer.cast(state.context.hardware, ready)
       end.()
       {:noreply, %{state | initialized: true, status: :idle}}
     else
@@ -244,7 +253,9 @@ defmodule Farmbot.Serial.Handler do
   def handle_info({:nerves_uart, _, str}, state) when is_binary(str) do
     debug_log "Reading: #{str}"
     try do
-      current = str |> Parser.parse_code |> do_handle(state.current)
+      current = str
+        |> Parser.parse_code
+        |> do_handle(state.current, state.context)
       {:noreply, %{state | current: current, status: current[:status] || :idle}}
     rescue
       e ->
@@ -263,9 +274,9 @@ defmodule Farmbot.Serial.Handler do
     GenServer.stop(state.nerves, reason)
   end
 
-  @spec do_handle({binary, any}, map | nil) :: map | nil
-  defp do_handle({_qcode, parsed}, current) when is_map(current) do
-    results = handle_gcode(parsed)
+  @spec do_handle({binary, any}, map | nil, Context.t) :: map | nil
+  defp do_handle({_qcode, parsed}, current, %Context{} = ctx) when is_map(current) do
+    results = handle_gcode(parsed, ctx)
     debug_log "Handling results: #{inspect results}"
     case results do
       {:status, :done} -> handle_done(current)
@@ -276,8 +287,8 @@ defmodule Farmbot.Serial.Handler do
     end
   end
 
-  defp do_handle({_qcode, parsed}, nil) do
-    handle_gcode(parsed)
+  defp do_handle({_qcode, parsed}, nil, %Context{} = ctx) do
+    handle_gcode(parsed, ctx)
     nil
   end
 
@@ -306,77 +317,81 @@ defmodule Farmbot.Serial.Handler do
   @spec generate_handshake :: binary
   defp generate_handshake, do: "Q#{:rand.uniform(99)}"
 
-  @spec handle_gcode(any) :: {:status, any} | {:reply, any} | nil
-  defp handle_gcode(:idle), do: {:status, :idle}
+  @spec handle_gcode(any, Context.t) :: {:status, any} | {:reply, any} | nil
+  defp handle_gcode(:idle, %Context{} = _ctx), do: {:status, :idle}
 
-  defp handle_gcode(:busy) do
+  defp handle_gcode(:busy, %Context{} = _ctx) do
     # Logger.info ">>'s arduino is busy.", type: :busy
     {:status, :busy}
   end
 
-  defp handle_gcode(:done), do: {:status, :done}
+  defp handle_gcode(:done, %Context{} = _ctx), do: {:status, :done}
 
-  defp handle_gcode(:received), do: {:status, :received}
+  defp handle_gcode(:received, %Context{} = _ctx), do: {:status, :received}
 
-  defp handle_gcode({:debug_message, message}) do
+  defp handle_gcode({:debug_message, message}, %Context{} = _ctx) do
     debug_log "R99 #{message}"
     nil
   end
 
-  defp handle_gcode(:report_params_complete), do: {:reply, :report_params_complete}
+  defp handle_gcode(:report_params_complete, %Context{} = _ctx), do: {:reply, :report_params_complete}
 
-  defp handle_gcode({:report_pin_value, pin, value} = reply)
+  defp handle_gcode({:report_pin_value, pin, value} = reply, %Context{} = ctx)
   when is_integer(pin) and is_integer(value) do
-    BotState.set_pin_value(pin, value)
+    BotState.set_pin_value(ctx, pin, value)
     {:reply, reply}
   end
 
-  defp handle_gcode({:report_current_position, x_steps, y_steps, z_steps} = reply) do
-    BotState.set_pos(
-      Maths.steps_to_mm(x_steps, spm(:x)),
-      Maths.steps_to_mm(y_steps, spm(:y)),
-      Maths.steps_to_mm(z_steps, spm(:z)))
+  defp handle_gcode({:report_current_position, x_steps, y_steps, z_steps} = reply, %Context{} = ctx) do
+    thing_x = spm(:x, ctx)
+    thing_y = spm(:y, ctx)
+    thing_z = spm(:z, ctx)
+    r = BotState.set_pos(ctx,
+      Maths.steps_to_mm(x_steps, thing_x),
+      Maths.steps_to_mm(y_steps, thing_y),
+      Maths.steps_to_mm(z_steps, thing_z))
+    debug_log "Position report reply: #{inspect r}"
     {:reply, reply}
   end
 
-  defp handle_gcode({:report_parameter_value, param, value} = reply)
+  defp handle_gcode({:report_parameter_value, param, value} = reply, %Context{} = ctx)
   when is_atom(param) and is_integer(value) do
     unless value == -1 do
-      BotState.set_param(param, value)
+      BotState.set_param(ctx, param, value)
     end
     {:reply, reply}
   end
 
-  defp handle_gcode({:report_end_stops, x1,x2,y1,y2,z1,z2} = reply) do
-    BotState.set_end_stops({x1,x2,y1,y2,z1,z2})
+  defp handle_gcode({:report_end_stops, x1,x2,y1,y2,z1,z2} = reply, %Context{} = ctx) do
+    BotState.set_end_stops(ctx, {x1,x2,y1,y2,z1,z2})
     {:reply, reply}
   end
 
-  defp handle_gcode({:report_encoder_position_scaled, x, y, z}) do
+  defp handle_gcode({:report_encoder_position_scaled, x, y, z}, %Context{} = _ctx) do
     debug_log "scaled encoders: #{inspect {x, y, z}}"
     nil
   end
 
-  defp handle_gcode({:report_encoder_position_raw, x, y, z}) do
+  defp handle_gcode({:report_encoder_position_raw, x, y, z}, %Context{} = _ctx) do
     debug_log "raw encoders: #{inspect {x, y, z}}"
     nil
   end
 
-  defp handle_gcode({:report_software_version, version} = reply) do
-    BotState.set_fw_version(version)
+  defp handle_gcode({:report_software_version, version} = reply, %Context{} = ctx) do
+    BotState.set_fw_version(version, ctx)
     {:reply, reply}
   end
 
-  defp handle_gcode(:error), do: {:reply, :error}
+  defp handle_gcode(:error, %Context{} = _ctx), do: {:reply, :error}
 
-  defp handle_gcode(:dont_handle_me), do: nil
+  defp handle_gcode(:dont_handle_me, %Context{} = _ctx), do: nil
 
-  defp handle_gcode({:unhandled_gcode, code}) do
+  defp handle_gcode({:unhandled_gcode, code}, %Context{} = _ctx) do
     Logger.info ">> got an misc gcode #{code}", type: :warn
     {:reply, code}
   end
 
-  defp handle_gcode(parsed) do
+  defp handle_gcode(parsed, %Context{} = _ctx) do
     Logger.warn "Unhandled message:" <>
       " #{inspect parsed}", rollbar: false
     {:reply, parsed}
@@ -393,7 +408,7 @@ defmodule Farmbot.Serial.Handler do
     end
   end
 
-  def flash_firmware(tty, hex_file, pid) do
+  def flash_firmware(%Context{} = _ctx, tty, hex_file, pid) do
     Logger.info ">> Starting arduino firmware flash", type: :busy
     args =
       ["-patmega2560",
@@ -446,10 +461,9 @@ defmodule Farmbot.Serial.Handler do
     end
   end
 
-  @spec spm(atom) :: integer
-  defp spm(xyz) do
-    "steps_per_mm_#{xyz}"
-    |> String.to_atom
-    |> Farmbot.BotState.get_config()
+  @spec spm(atom, Context.t) :: integer
+  defp spm(xyz, %Context{} = ctx) do
+    spm = "steps_per_mm_#{xyz}" |> String.to_atom
+    Farmbot.BotState.get_config(ctx, spm)
   end
 end

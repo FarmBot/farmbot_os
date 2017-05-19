@@ -11,6 +11,7 @@ defmodule Farmbot.BotState.ProcessTracker do
   require Logger
   alias Nerves.Lib.UUID
   alias Farmbot.RegimenRunner
+  alias Farmbot.Context
 
   defmodule Info do
     @moduledoc false
@@ -27,66 +28,65 @@ defmodule Farmbot.BotState.ProcessTracker do
 
   defmodule State do
     @moduledoc false
-    defstruct [regimens: [], farmwares: []]
+    defstruct [regimens: [], farmwares: [], context: nil]
     @type uuid :: binary
     @type kind :: :farmware | :regimen
     @type t ::
       %__MODULE__{
         regimens:    [Info.t],
-        farmwares:   [Info.t]}
+        farmwares:   [Info.t],
+        context: Context.t
+      }
   end
 
-  @spec init([]) :: {:ok, State.t}
-  def init([]), do: {:ok, %State{}}
+  def init(%Context{} = ctx), do: {:ok, %State{context: ctx}}
 
   @doc """
     Starts the Process Tracker
   """
-  @spec start_link :: {:ok, pid}
-  def start_link, do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link(%Context{} = context, opts),
+     do: GenServer.start_link(__MODULE__, context, opts)
 
   @doc """
     Registers a kind, name with a database entry to be tracked
   """
-  @spec register(State.kind, String.t, map) :: no_return
-  def register(kind, name, stuff) do
-    GenServer.cast(__MODULE__, {:register, kind, name, stuff})
+  @spec register(Context.t, State.kind, String.t, map) :: no_return
+  def register(%Context{} = context, kind, name, stuff) do
+    GenServer.cast(context.process_tracker, {:register, kind, name, stuff})
   end
 
   @doc """
     DeRegisters a pid.
   """
-  @spec deregister(State.uuid) :: no_return
-  def deregister(uuid), do: GenServer.cast(__MODULE__, {:deregister, uuid})
+  @spec deregister(Context.t, State.uuid) :: no_return
+  def deregister(%Context{} = context, uuid),
+    do: GenServer.cast(context.process_tracker, {:deregister, uuid})
 
   @doc """
     starts a process by its uuid or info struct
   """
-  @spec start_process(State.uuid | Info.t) :: {:ok, pid} | {:error, term}
-  def start_process(%Info{uuid: uuid}), do: start_process(uuid)
-  def start_process(uuid),
-    do: GenServer.call(__MODULE__, {:start_process, uuid})
+  @spec start_process(Context.t, State.uuid | Info.t)
+    :: {:ok, pid} | {:error, term}
+  def start_process(%Context{} = ctx, %Info{uuid: uuid}),
+    do: start_process(ctx, uuid)
+
+  def start_process(%Context{} = ctx, uuid),
+    do: GenServer.call(ctx.process_tracker, {:start_process, uuid})
 
   @doc """
     Stops a process by it's uuid.
   """
-  @spec stop_process(State.uuid) :: :ok | {:error, term}
-  def stop_process(uuid),
-    do: GenServer.call(__MODULE__, {:stop_process, uuid})
+  @spec stop_process(Context.t, State.uuid) :: :ok | {:error, term}
+  def stop_process(%Context{} = ctx, uuid),
+    do: GenServer.call(ctx.process_tracker, {:stop_process, uuid})
 
   @doc """
     Lookup a uuid by its kind and name
   """
-  @spec lookup(State.kind, String.t) :: Info.t
-  def lookup(kind, name) do
-    GenServer.call(__MODULE__, {:lookup, kind, name})
+  @spec lookup(Context.t, State.kind, String.t) :: Info.t
+  def lookup(%Context{} = ctx, kind, name) do
+    GenServer.call(ctx.process_tracker, {:lookup, kind, name})
   end
-
-  @doc """
-    Gets the state of the tracker.
-  """
-  @spec get_state :: State.t
-  def get_state, do: GenServer.call(__MODULE__, :state)
 
   # GenServer stuffs
 
@@ -159,7 +159,7 @@ defmodule Farmbot.BotState.ProcessTracker do
 
   def handle_cast(_cast, _, state), do: dispatch(state)
   def handle_info(_info, _, state), do: dispatch(state)
-  def terminate(_reason, _state), do: :ok #TODO(connor) save the state here?
+  def terminate(_reason, _state), do: :ok
 
   @spec nest_the_loops(State.uuid, State.t) :: {State.kind, Info.t} | nil
   defp nest_the_loops(uuid, state) do
@@ -189,14 +189,14 @@ defmodule Farmbot.BotState.ProcessTracker do
     {:noreply, state}
   end
 
-  @spec dispatch(any, State.t) :: {:reply, any, State.t}
+  @spec dispatch(term, State.t) :: {:reply, term, State.t}
   defp dispatch(reply, state) do
     cast(state)
     {:reply, reply, state}
   end
 
   @spec cast(State.t) :: no_return
-  defp cast(state), do: GenServer.cast(Farmbot.BotState.Monitor, state)
+  defp cast(state), do: GenServer.cast(state.context.monitor, state)
 
   @spec kind_to_key(any) :: :regimens | :farmwares | no_return
   defp kind_to_key(:regimen), do: :regimens

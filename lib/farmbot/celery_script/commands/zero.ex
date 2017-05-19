@@ -2,8 +2,8 @@ defmodule Farmbot.CeleryScript.Command.Zero do
   @moduledoc """
     Zero
   """
+  alias Farmbot.CeleryScript.{Command, Ast}
   alias Farmbot.Serial.Handler, as: UartHan
-  alias Farmbot.CeleryScript.Command
   require Logger
   @behaviour Command
 
@@ -12,11 +12,14 @@ defmodule Farmbot.CeleryScript.Command.Zero do
       args: %{axis: "x" | "y" | "z" | "all"}
       body: []
   """
-  @spec run(%{axis: String.t}, []) :: no_return
-  def run(%{axis: axis}, []), do: do_write(axis)
+  @spec run(%{axis: String.t}, [], Ast.ctx) :: Ast.context
+  def run(%{axis: axis}, [], context) do
+    do_write(axis, context)
+    context
+  end
 
-  @spec do_write(binary) :: no_return
-  defp do_write("x"), do: "F84 X1 Y0 Z0" |> UartHan.write
-  defp do_write("y"), do: "F84 X0 Y1 Z0" |> UartHan.write
-  defp do_write("z"), do: "F84 X0 Y0 Z1" |> UartHan.write
+  @spec do_write(binary, Ast.context) :: no_return
+  defp do_write("x", ctx), do: UartHan.write(ctx, "F84 X1 Y0 Z0")
+  defp do_write("y", ctx), do: UartHan.write(ctx, "F84 X0 Y1 Z0")
+  defp do_write("z", ctx), do: UartHan.write(ctx, "F84 X0 Y0 Z1")
 end

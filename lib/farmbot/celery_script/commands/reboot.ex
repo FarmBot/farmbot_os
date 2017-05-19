@@ -4,6 +4,7 @@ defmodule Farmbot.CeleryScript.Command.Reboot do
   """
 
   alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.Ast
   @behaviour Command
 
   @doc ~s"""
@@ -11,8 +12,10 @@ defmodule Farmbot.CeleryScript.Command.Reboot do
       args: %{},
       body: []
   """
-  @spec run(%{}, []) :: no_return
-  def run(%{}, []) do
+  @spec run(%{}, [], Ast.context) :: Ast.context
+  def run(%{}, [], context) do
     Farmbot.System.reboot()
+    context
+    # ^ LOL
   end
 end

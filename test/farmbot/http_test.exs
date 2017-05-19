@@ -3,13 +3,14 @@ defmodule Farmbot.HTTPTest do
   use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
   alias Farmbot.Auth
   alias Farmbot.HTTP
-  # import Mock
+  alias Farmbot.Context
 
   setup_all do
+    context = Context.new()
     use_cassette "good_login" do
-      :ok = Auth.interim("admin@admin.com", "password123", "http://localhost:3000")
-      {:ok, token} = Auth.try_log_in
-      [token: token]
+      :ok = Auth.interim(context.auth, "admin@admin.com", "password123", "http://localhost:3000")
+      {:ok, token} = Auth.try_log_in(context.auth)
+      [token: token, cs_context: context]
     end
   end
 

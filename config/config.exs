@@ -17,7 +17,10 @@ config :logger, :console, colors: [enabled: true, info: :cyan]
 config :iex, :colors, enabled: true
 
 # frontend <-> bot transports.
-config :farmbot, transports: [mqtt_transport, redis_transport]
+config :farmbot, transports: [
+  {mqtt_transport,  name: mqtt_transport},
+  # {redis_transport, name: redis_transport}
+]
 
 # bot <-> firmware transports.
 config :farmbot, expected_fw_version: "GENESIS.V.01.12.EXPERIMENTAL"
@@ -37,11 +40,12 @@ config :tzdata, :autoupdate, :disabled
 # Path for the `fs` module to watch.
 config :fs, path: "/tmp/images"
 
-# Import configuration specific to out environment.
-import_config "#{env}.exs"
-
 # import config specific to our nerves_target
 IO.puts "using #{target} - #{env} configuration."
 import_config "hardware/#{target}/hardware.exs"
 config :nerves, :firmware,
   rootfs_additions: "config/hardware/#{target}/rootfs-additions-#{env}"
+
+
+# Import configuration specific to out environment.
+import_config "#{env}.exs"

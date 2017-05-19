@@ -1,7 +1,6 @@
 defmodule Farmbot.CeleryScript.Command.RebootTest do
   use ExUnit.Case, async: false
-  alias Farmbot.CeleryScript.Ast
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Ast}
 
   import Mock
 
@@ -15,7 +14,7 @@ defmodule Farmbot.CeleryScript.Command.RebootTest do
       """
       ast = json |> Poison.decode!() |> Ast.parse
 
-      Command.do_command(ast)
+      Command.do_command(ast, Farmbot.Context.new())
       assert called Farmbot.System.reboot
     end
 

@@ -4,6 +4,7 @@ defmodule Farmbot.Transport.Redis do
   """
   use GenStage
   require Logger
+  alias Farmbot.Context
   @config Application.get_all_env(:farmbot)[:redis]
   @ping_time 5_000
   @save_time 900_000
@@ -11,10 +12,10 @@ defmodule Farmbot.Transport.Redis do
   @doc """
     Starts a stage for a Redis
   """
-  @spec start_link :: {:ok, pid}
-  def start_link, do: GenStage.start_link(__MODULE__, [], name: __MODULE__)
+  @spec start_link(Context.t, [{atom, any}]) :: {:ok, pid}
+  def start_link(context, opts), do: GenStage.start_link(__MODULE__, context, opts)
 
-  def init(_) do
+  def init(%Context{} = _context) do
     {:ok, conn} = Redix.start_link(host: "localhost", port: @config[:port])
     Process.link(conn)
     Process.send_after(self(), :ping, @ping_time)

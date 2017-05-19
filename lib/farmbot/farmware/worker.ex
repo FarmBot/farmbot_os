@@ -7,19 +7,23 @@ defmodule Farmware.Worker do
   use GenStage
   @tracker Farmware.Tracker
   alias Farmware.FarmScript
+  alias Farmbot.Context
 
   @type env :: map
 
   @doc """
     Starts the Farmware Worker
   """
-  @spec start_link :: {:ok, pid}
-  def start_link, do: GenStage.start_link(__MODULE__, %{}, name: __MODULE__)
+  def start_link(%Context{} = ctx, args),
+    do: GenStage.start_link(__MODULE__, ctx, args)
 
-  @spec init(map) :: {:consumer, env, subscribe_to: [atom]}
-  def init(_) do
+  def init(context) do
     Logger.info "Starting Farmware Worker"
-    {:consumer, initial_env(), subscribe_to: [@tracker]}
+
+    {
+      :consumer,
+      %{env: initial_env(context), context: context}, subscribe_to: [@tracker]
+    }
   end
 
   @doc """
@@ -28,24 +32,22 @@ defmodule Farmware.Worker do
   @spec get_state :: map
   def get_state, do: GenServer.call(__MODULE__, :get_state)
 
-  @spec initial_env :: env
-  defp initial_env do
+  @spec initial_env(Context.t) :: env
+  defp initial_env(%Context{} = context) do
     %{"WRITE_PATH" => "/tmp", # common write path (non persistant)
       "BEGIN_CS" => "<<< ", # some in band signaling for executing celeryscript.
       "IMAGES" => "/tmp/images"} # Dump images here to upload them to the api
-    |> Map.merge(Farmbot.BotState.get_config(:user_env))
+    |> Map.merge(Farmbot.BotState.get_config(context, :user_env))
   end
 
   # when a queue of scripts comes in execute them in order
-  def handle_events(farm_scripts, _from, environment) do
+  def handle_events(farm_scripts, _from, %{env: environment} = state) do
     Logger.info "Farmware Worker handling #{Enum.count(farm_scripts)} scripts"
     for scr <- farm_scripts do
-      # give ten seconds to accept a connection.
-      #TODO(Connor) this will cause problems im sure.
-      FarmScript.run(scr, get_env(environment))
+      FarmScript.run(state.context, scr, get_env(environment))
     end
     Logger.info "Farmware Worker done with farm_scripts"
-    {:noreply, [], environment}
+    {:noreply, [], state}
   end
 
   def handle_call({:add_envs, map}, _, state) do
@@ -67,8 +69,8 @@ defmodule Farmware.Worker do
 
   def handle_cast(_info, environment), do: {:noreply, [], environment}
 
-  def add_envs(map) do
-    GenServer.call(__MODULE__, {:add_envs, map})
+  def add_envs(%Context{} = context, map) do
+    GenServer.call(context.farmware_worker, {:add_envs, map})
   end
 
   @spec get_env(env) :: [{binary, binary}]

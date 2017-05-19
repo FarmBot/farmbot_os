@@ -35,9 +35,17 @@ defmodule Farmbot.Mixfile do
      deps: deps() ++ system(@target),
      dialyzer: [plt_add_deps: :app_tree, plt_add_apps: [:mnesia, :hackney]],
      preferred_cli_env: [
-       vcr: :test, "vcr.delete": :test, "vcr.check": :test, "vcr.show": :test,
-       "all_test": :test,
-       "coveralls": :test, "coveralls.detail": :test, "coveralls.post": :test, "coveralls.html": :test, "coveralls.travis": :test
+       "vcr":              :test,
+       "vcr.delete":       :test,
+       "vcr.check":        :test,
+       "vcr.show":         :test,
+       "all_test":         :test,
+       "test":             :test,
+       "coveralls":        :test,
+       "coveralls.detail": :test,
+       "coveralls.post":   :test,
+       "coveralls.html":   :test,
+       "coveralls.travis": :test
      ],
      webpack_watch: Mix.env == :dev,
      webpack_cd: ".",
@@ -56,8 +64,8 @@ defmodule Farmbot.Mixfile do
 
   def package do
     [name: "Farmbot OS",
-    maintainers: "Farmbot.io",
-    licenses: "MIT"]
+     maintainers: "Farmbot.io",
+     licenses: "MIT"]
   end
 
   def application do
@@ -83,7 +91,6 @@ defmodule Farmbot.Mixfile do
       :runtime_tools,
       :mustache,
       :vmq_commons,
-      :amnesia,
       :gen_stage,
       :plug,
       :cors_plug,
@@ -141,7 +148,6 @@ defmodule Farmbot.Mixfile do
       {:quantum, ">= 1.8.1"}, # cron jobs
 
       # Database
-      {:amnesia, github: "meh/amnesia"}, # database implementation
       {:redix, ">= 0.0.0"},
 
       # Log to syslog
@@ -167,8 +173,10 @@ defmodule Farmbot.Mixfile do
       {:cors_plug, "~> 1.2"},
       {:cowboy, "~> 1.1"},
       {:ex_webpack, "~> 0.1.1", runtime: false, warn_missing: false},
-      {:farmbot_simulator, "~> 0.1.3", only: [:test, :dev]},
+
+      # {:farmbot_simulator, "~> 0.1.3", only: [:test, :dev]},
       # {:farmbot_simulator, path: "../farmbot_simulator", only: [:test, :dev]},
+      {:farmbot_simulator, github: "farmbot-labs/farmbot_simulator", only: [:test, :dev]},
 
       {:tzdata, "~> 0.1.201601", override: true},
       {:fs, "~> 0.9.1"}
