@@ -14,8 +14,8 @@ defmodule Farmware.Worker do
   @doc """
     Starts the Farmware Worker
   """
-  def start_link(%Context{} = ctx),
-    do: GenStage.start_link(__MODULE__, ctx)
+  def start_link(%Context{} = ctx, args),
+    do: GenStage.start_link(__MODULE__, ctx, args)
 
   def init(context) do
     Logger.info "Starting Farmware Worker"

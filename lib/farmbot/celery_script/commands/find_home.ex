@@ -21,18 +21,18 @@ defmodule Farmbot.CeleryScript.Command.FindHome do
     context
   end
 
-  def run(%{axis: "x"}, [], %{serial: serial} = context) do
-    UartHan.write serial, "F11"
+  def run(%{axis: "x"}, [], context) do
+    UartHan.write context, "F11"
     context
   end
 
-  def run(%{axis: "y"}, [], %{serial: serial} = context) do
-    UartHan.write serial, "F12"
+  def run(%{axis: "y"}, [], context) do
+    UartHan.write context, "F12"
     context
   end
 
-  def run(%{axis: "z"}, [], %{serial: serial} = context) do
-    UartHan.write serial, "F13"
+  def run(%{axis: "z"}, [], context) do
+    UartHan.write context, "F13"
     context
   end
 end

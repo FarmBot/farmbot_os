@@ -19,7 +19,7 @@ defmodule Farmbot.CeleryScript.Command.Calibrate do
   end
 
   @spec do_write(binary, Ast.context) :: no_return
-  defp do_write("x", context), do: UartHan.write(context.serial, "F14")
-  defp do_write("y", context), do: UartHan.write(context.serial, "F15")
-  defp do_write("z", context), do: UartHan.write(context.serial, "F16")
+  defp do_write("x", context), do: UartHan.write(context, "F14")
+  defp do_write("y", context), do: UartHan.write(context, "F15")
+  defp do_write("z", context), do: UartHan.write(context, "F16")
 end

@@ -13,7 +13,7 @@ defmodule Farmbot.CeleryScript.Command.Sync do
   """
   @spec run(%{}, [], Ast.context) :: Ast.context
   def run(%{}, [], context) do
-    Farmbot.Database.sync(context.database)
+    Farmbot.Database.sync(context)
     context
   end
 end

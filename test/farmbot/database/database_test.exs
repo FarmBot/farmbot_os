@@ -12,20 +12,21 @@ defmodule Farmbot.DatabaseTest do
   setup_all do
     ctx = Context.new()
     {:ok, db} = DB.start_link(ctx, [])
-    context = Context.new()
-    [token: Helpers.login(context.auth), db: db]
+    context = %{ctx | database: db}
+    [token: Helpers.login(context.auth), cs_context: context]
   end
 
   test "sync" do
     ctx = Context.new()
     {:ok, db} = DB.start_link(ctx, [])
-    :ok = DB.flush(db)
+    context = %{ctx | database: db}
+    :ok = DB.flush(context)
 
     use_cassette "sync/corner_case" do
       before_state = :sys.get_state(db)
       before_count = Enum.count(before_state.all)
 
-      DB.sync(db)
+      DB.sync(context)
 
       after_state  = :sys.get_state(db)
       after_count  = Enum.count(after_state.all)
@@ -34,13 +35,13 @@ defmodule Farmbot.DatabaseTest do
   end
 
 
-  test "adds a record to the local db", %{db: db} do
+  test "adds a record to the local db", %{cs_context: ctx} do
     # modulename = Enum.random(DB.all_syncable_modules())
     modulename = Point
     plural = modulename.plural_url()
     points_json = read_json("#{plural}.json")
 
-    old = DB.get_all(db, modulename)
+    old = DB.get_all(ctx, modulename)
 
     tagged = Enum.map(points_json, fn(item) ->
       thing = tag_item(item, modulename)
@@ -49,25 +50,25 @@ defmodule Farmbot.DatabaseTest do
       thing
     end)
 
-    :ok = DB.commit_records(tagged, db, modulename)
+    :ok = DB.commit_records(tagged, ctx, modulename)
 
-    new = DB.get_all(db, modulename)
+    new = DB.get_all(ctx, modulename)
     assert Enum.count(new) > Enum.count(old)
   end
 
-  test "wont commit errornous things to db", %{db: db} do
+  test "wont commit errornous things to db", %{cs_context: ctx} do
     item   = "random_not_json: {}, this isnt formatted_properly!"
     mod    = Enum.random(DB.all_syncable_modules())
     error  = Poison.decode(item)
-    old    = DB.get_all(db,mod)
+    old    = DB.get_all(ctx, mod)
 
-    DB.commit_records(error, db, mod)
+    DB.commit_records(error, ctx, mod)
 
-    new = DB.get_all(db, mod)
+    new = DB.get_all(ctx, mod)
     assert Enum.count(new) == Enum.count(old)
   end
 
-  test "gets an item out of the database", %{db: db} do
+  test "gets an item out of the database", %{cs_context: ctx} do
     modulename  = Point
     plural      = modulename.plural_url()
     points_json = read_json("#{plural}.json")
@@ -75,13 +76,13 @@ defmodule Farmbot.DatabaseTest do
 
     id = random_item.id
 
-    :ok = DB.commit_records(random_item, db, modulename)
-    item = DB.get_by_id(db, modulename, id)
+    :ok = DB.commit_records(random_item, ctx, modulename)
+    item = DB.get_by_id(ctx, modulename, id)
     assert !is_nil(item)
     assert item.body == random_item
   end
 
-  test "updates an old item", %{db: db} do
+  test "updates an old item", %{cs_context: ctx} do
     modulename = Point
     plural = modulename.plural_url()
     points_json = read_json("#{plural}.json")
@@ -89,28 +90,28 @@ defmodule Farmbot.DatabaseTest do
 
     id = random_item.id
 
-    :ok = DB.commit_records(random_item, db, modulename)
+    :ok = DB.commit_records(random_item, ctx, modulename)
     updated = %{random_item | name: "hurdur"}
 
-    :ok = DB.commit_records(updated, db, modulename)
+    :ok = DB.commit_records(updated, ctx, modulename)
 
-    item = DB.get_by_id(db, modulename, id)
+    item = DB.get_by_id(ctx, modulename, id)
 
     assert item.body == updated
   end
 
-  test "toggles awaiting state for resources", %{db: db} do
-    DB.set_awaiting(db, Point, 0, 0)
-    assert(DB.get_awaiting(db, Point))
+  test "toggles awaiting state for resources", %{cs_context: ctx} do
+    DB.set_awaiting(ctx, Point, 0, 0)
+    assert(DB.get_awaiting(ctx, Point))
 
-    DB.unset_awaiting(db, Point)
-    refute(DB.get_awaiting(db, Point))
+    DB.unset_awaiting(ctx, Point)
+    refute(DB.get_awaiting(ctx, Point))
 
-    DB.set_awaiting(db, Point, 0, 0)
-    assert(DB.get_awaiting(db, Point))
+    DB.set_awaiting(ctx, Point, 0, 0)
+    assert(DB.get_awaiting(ctx, Point))
 
-    DB.unset_awaiting(db, Point)
-    refute(DB.get_awaiting(db, Point))
+    DB.unset_awaiting(ctx, Point)
+    refute(DB.get_awaiting(ctx, Point))
   end
 
 end

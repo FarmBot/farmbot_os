@@ -50,7 +50,7 @@ defmodule Farmbot.CeleryScript.Command.FactoryReset do
     Farmbot.System.FS.transaction fn() ->
       File.write file, Poison.encode!(f)
     end, true
-    GenServer.stop(Farmbot.Serial.Handler, :reset)
+    GenServer.stop(context.serial, :reset)
     if reboot, do: Farmbot.System.reboot()
   end
 

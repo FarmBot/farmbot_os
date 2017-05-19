@@ -73,19 +73,23 @@ defmodule Farmbot.Serial.Handler do
   @doc """
     Checks if we have a handler available
   """
-  @spec available?(handler) :: boolean
-  def available?(handler)
+  @spec available?(Context.t) :: boolean
+  def available?(context)
 
   # If handler is a pid
-  def available?(handler) when is_pid(handler) or is_atom(handler) do
-    GenServer.call(handler, :available?)
+  def available?(%Context{serial: handler}) when is_pid(handler) do
+    if Process.alive?(handler) do
+      GenServer.call(handler, :available?)
+    else
+      false
+    end
   end
 
   # if its a name, look it up
-  def available?(handler) when is_pid(handler) or is_atom(handler) do
-    uh = Process.whereis(handler)
+  def available?(%Context{serial: handler} = ctx) when is_atom(handler) do
+    uh = Process.whereis(ctx.serial)
     if uh do
-      available?(uh)
+      available?(%{ctx | serial: uh})
     else
       false
     end
@@ -94,11 +98,11 @@ defmodule Farmbot.Serial.Handler do
   @doc """
     Writes a string to the uart line
   """
-  @spec write(handler, binary, integer) :: binary | {:error, atom}
-  def write(handler, string, timeout \\ @default_timeout_ms)
-  def write(handler, str, timeout) when is_pid(handler) or is_atom(handler) and is_binary(str) and is_number(timeout) do
-    if available?(handler) do
-      GenServer.call(handler, {:write, str, timeout}, :infinity)
+  @spec write(Context.t, binary, integer) :: binary | {:error, atom}
+  def write(context, string, timeout \\ @default_timeout_ms)
+  def write(%Context{} = ctx, str, timeout) when is_binary(str) and is_number(timeout) do
+    if available?(ctx) do
+      GenServer.call(ctx.serial, {:write, str, timeout}, :infinity)
     else
       {:error, :unavailable}
     end
@@ -107,17 +111,25 @@ defmodule Farmbot.Serial.Handler do
   @doc """
     Send the E stop command to the arduino.
   """
-  @spec emergency_lock(handler) :: :ok | no_return
-  def emergency_lock(handler) when is_pid(handler) or is_atom(handler) do
-    GenServer.call(handler, :emergency_lock)
+  @spec emergency_lock(Context.t) :: :ok | no_return
+  def emergency_lock(%Context{} = ctx) do
+    if available?(ctx) do
+      GenServer.call(ctx.serial, :emergency_lock)
+    else
+      {:error, :unavailable}
+    end
   end
 
   @doc """
     Tell the arduino its fine now.
   """
-  @spec emergency_unlock(handler) :: :ok | no_return
-  def emergency_unlock(handler)  when is_pid(handler) or is_atom(handler) do
-    GenServer.call(handler, :emergency_unlock)
+  @spec emergency_unlock(Context.t) :: :ok | no_return
+  def emergency_unlock(%Context{} = ctx)  do
+    if available?(ctx) do
+      GenServer.call(ctx.serial, :emergency_unlock)
+    else
+      {:error, :unavailable}
+    end
   end
 
   ## Private
@@ -203,7 +215,7 @@ defmodule Farmbot.Serial.Handler do
       send(pid, :done)
       {:noreply, state}
     else
-      flash_firmware(state.tty, file, pid)
+      flash_firmware(state.context, state.tty, file, pid)
       {:stop, :update, state}
     end
   end
@@ -328,9 +340,7 @@ defmodule Farmbot.Serial.Handler do
   end
 
   defp handle_gcode({:report_current_position, x_steps, y_steps, z_steps} = reply, %Context{} = ctx) do
-    debug_log "Position reported: #{x_steps}"
     thing_x = spm(:x, ctx)
-    debug_log "Got spm_x: #{thing_x}"
     thing_y = spm(:y, ctx)
     thing_z = spm(:z, ctx)
     r = BotState.set_pos(ctx,
@@ -395,7 +405,7 @@ defmodule Farmbot.Serial.Handler do
     end
   end
 
-  def flash_firmware(tty, hex_file, pid) do
+  def flash_firmware(%Context{} = _ctx, tty, hex_file, pid) do
     Logger.info ">> Starting arduino firmware flash", type: :busy
     args =
       ["-patmega2560",

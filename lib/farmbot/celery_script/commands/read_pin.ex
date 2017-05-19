@@ -23,7 +23,7 @@ defmodule Farmbot.CeleryScript.Command.ReadPin do
   :: Ast.context
   def run(%{label: _, pin_number: pin, pin_mode: mode}, [], context) do
     Farmbot.BotState.set_pin_mode(context, pin, mode)
-    UartHan.write(context.serial, "F42 P#{pin} M#{mode}")
+    UartHan.write(context, "F42 P#{pin} M#{mode}")
     context
   end
 end

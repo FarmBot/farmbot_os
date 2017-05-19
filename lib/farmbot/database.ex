@@ -4,7 +4,8 @@ defmodule Farmbot.Database do
   """
 
   alias Farmbot.Database.Syncable
-  use Farmbot.DebugLog
+  alias Farmbot.Context
+  use Farmbot.DebugLog, color: :LIGHT_PURPLE
   require Logger
   use GenServer
 
@@ -72,35 +73,44 @@ defmodule Farmbot.Database do
   @doc """
     Sync up with the API.
   """
-  def sync(db) do
-    for module_name <- all_syncable_modules() do
-      # see: `syncable.ex`. This is some macro magic.
-      debug_log "Syncing: #{module_name} on db: #{inspect db}"
-      module_name.fetch({__MODULE__, :commit_records,  [db, module_name]})
+  @spec sync(Context.t) :: no_return
+  def sync(%Context{} = ctx) do
+    Farmbot.BotState.set_sync_msg(ctx, :syncing)
+    try do
+      for module_name <- all_syncable_modules() do
+        # see: `syncable.ex`. This is some macro magic.
+        debug_log "Syncing: #{module_name}"
+        module_name.fetch({__MODULE__, :commit_records,  [ctx, module_name]})
+      end
+      Farmbot.BotState.set_sync_msg(ctx, :synced)
+    rescue
+      e ->
+        Logger.info ">> Encountered error syncing, #{inspect e}", type: :error
+        Farmbot.BotState.set_sync_msg(ctx, :sync_error)
     end
   end
 
   @doc """
     Commits a list of records to the db.
   """
-  @spec commit_records([map] | map, db, syncable) :: :ok | {:error, term}
-  def commit_records(list_or_single_record, db, module_name)
-  def commit_records([record | rest], db, mod_name) do
-    debug_log "Staring db commit with: #{mod_name} on db: #{inspect db}"
-    commit_records(record, db, mod_name)
-    commit_records(rest, db, mod_name)
+  @spec commit_records([map] | map, Context.t, syncable) :: :ok | {:error, term}
+  def commit_records(list_or_single_record, context, module_name)
+  def commit_records([record | rest], %Context{} = ctx, mod_name) do
+    debug_log "DB commit start: [#{mod_name}]"
+    commit_records(record, ctx, mod_name)
+    commit_records(rest, ctx, mod_name)
   end
 
-  def commit_records([], db, mod_name) do
-    debug_log "DB commit finish: #{mod_name} on db: #{inspect db}"
+  def commit_records([], %Context{} = _ctx, mod_name) do
+    debug_log "DB commit finish: [#{mod_name}]"
     :ok
   end
 
-  def commit_records(record, db, _mod_name) when is_map(record) do
-    GenServer.call(db, {:update_or_create, record})
+  def commit_records(record, %Context{} = ctx, _mod_name) when is_map(record) do
+    GenServer.call(ctx.database, {:update_or_create, record})
   end
 
-  def commit_records({:error, reason}, _db, mod_name) do
+  def commit_records({:error, reason}, _context, mod_name) do
     Logger.error("#{mod_name}: #{inspect reason}")
     {:error, reason}
   end
@@ -108,13 +118,13 @@ defmodule Farmbot.Database do
   @doc """
     Clear the entire DB
   """
-  def flush(db), do: GenServer.call(db, :flush)
+  def flush(%Context{} = ctx), do: GenServer.call(ctx.database, :flush)
 
   @doc """
     Sets awaiting api resources.
   """
-  @spec set_awaiting(db, syncable, verb, any) :: :ok | no_return
-  def set_awaiting(db, syncable, verb, value) do
+  @spec set_awaiting(Context.t, syncable, verb, any) :: :ok | no_return
+  def set_awaiting(%Context{database: db}, syncable, verb, value) do
     debug_log("setting awaiting: #{syncable} #{verb}")
     GenServer.call(db, {:set_awaiting, syncable, verb, value})
   end
@@ -122,29 +132,29 @@ defmodule Farmbot.Database do
   @doc """
     Unsets awaiting api resources.
   """
-  @spec unset_awaiting(db, syncable) :: :ok | no_return
-  def unset_awaiting(db, syncable),
+  @spec unset_awaiting(Context.t, syncable) :: :ok | no_return
+  def unset_awaiting(%Context{database: db}, syncable),
     do: GenServer.call(db, {:unset_awaiting, syncable})
 
   @doc """
     Gets the awaiting api recources for syncable and verb
   """
-  @spec get_awaiting(db, syncable) :: boolean
-  def get_awaiting(db, syncable) do
+  @spec get_awaiting(Context.t, syncable) :: boolean
+  def get_awaiting(%Context{database: db}, syncable) do
     GenServer.call(db, {:get_awaiting, syncable})
   end
 
   @doc """
     Get a resource by its kind and id.
   """
-  @spec get_by_id(db, syncable, db_id) :: resource_map | nil
-  def get_by_id(db, kind, id), do: GenServer.call(db, {:get_by, kind, id})
+  @spec get_by_id(Context.t, syncable, db_id) :: resource_map | nil
+  def get_by_id(%Context{database: db}, kind, id), do: GenServer.call(db, {:get_by, kind, id})
 
   @doc """
     Get all resources of this kind.
   """
-  @spec get_all(db, syncable) :: [resource_map]
-  def get_all(db, kind), do: GenServer.call(db, {:get_all, kind})
+  @spec get_all(Context.t, syncable) :: [resource_map]
+  def get_all(%Context{database: db}, kind), do: GenServer.call(db, {:get_all, kind})
 
   ## GenServer
 

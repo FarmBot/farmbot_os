@@ -37,7 +37,7 @@ defmodule Farmbot.StateTracker do
 
       def init(ctx) do
         n = unquote(name) |> Module.split |> List.last
-        Logger.info ">> is starting #{n}."
+        Logger.info ">> is starting #{n} tracker."
         case load() do
           {:ok, %State{} = state} ->
             {:ok, broadcast(%{state | context: ctx})}

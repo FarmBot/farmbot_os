@@ -46,7 +46,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
   defp do_move({xa, ya, za}, {xb, yb, zb}, speed, context) do
     { combined_x, combined_y, combined_z } = { xa + xb, ya + yb, za + zb }
     {x, y, z} = do_math(combined_x, combined_y, combined_z, context)
-    UartHan.write(context.serial, "G00 X#{x} Y#{y} Z#{z} S#{speed}")
+    UartHan.write(context, "G00 X#{x} Y#{y} Z#{z} S#{speed}")
   end
 
   defp do_math(combined_x, combined_y, combined_z, context) do

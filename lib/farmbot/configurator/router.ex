@@ -235,10 +235,11 @@ defmodule Farmbot.Configurator.Router do
     Logger.info ">> is installing a firmware update. "
       <> " I may act weird for a moment", channels: [:toast]
 
-    pid = Process.whereis(Farmbot.Serial.Handler)
+    ctx = context()
+    pid = Process.whereis(ctx.serial)
 
     if pid do
-      GenServer.cast(Farmbot.Serial.Handler, {:update_fw, file, self()})
+      GenServer.cast(ctx.serial, {:update_fw, file, self()})
       errrm.(conn)
     else
       Logger.info "doing some magic..."
@@ -248,7 +249,7 @@ defmodule Farmbot.Configurator.Router do
       case herp do
         [tty] ->
           Logger.info "magic complete!"
-          Farmbot.Serial.Handler.flash_firmware(tty, file, self())
+          Farmbot.Serial.Handler.flash_firmware(ctx, tty, file, self())
           errrm.(conn)
         [] ->
           Logger.info "Could not detect arduino.", type: :warn

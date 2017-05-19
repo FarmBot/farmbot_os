@@ -44,7 +44,7 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
       end)
 
     if count > 5 do
-      UartHan.write(context.serial, "F20")
+      UartHan.write(context, "F20")
     else
       for {param_str, _val} <- params do
         read_param(%{label: param_str}, [], context)
@@ -63,7 +63,7 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
   end
 
   defp check_version(context) do
-    case UartHan.write(context.serial, "F83") do
+    case UartHan.write(context, "F83") do
       {:report_software_version, _version} -> :ok
       nil -> :ok # FIXME!!
       e ->
@@ -83,7 +83,7 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
   defp write_and_read(context, {param_int, param_str}, val, tries) do
     Logger.info ">> is updating #{param_str}: #{val}"
     gcode = "F22 P#{param_int} V#{val}"
-    results = UartHan.write(context.serial, gcode)
+    results = UartHan.write(context, gcode)
     case results do
       :timeout -> write_and_read(context, {param_int, param_str}, val, tries + 1)
       _ -> :ok

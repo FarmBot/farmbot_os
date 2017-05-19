@@ -46,7 +46,7 @@ defmodule Farmbot.BotState.Hardware do
     # Try to send a fake packet just to make sure we have a good
     # Connection to the Firmware
 
-    if !Farmbot.Serial.Handler.available?(context.serial) do
+    if !Farmbot.Serial.Handler.available?(context) do
       # UGHHHHHH
       Logger.info ">> Is waiting for Serial before updating params."
       Process.sleep(100)

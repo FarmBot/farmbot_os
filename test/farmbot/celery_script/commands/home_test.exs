@@ -6,7 +6,7 @@ defmodule Farmbot.CeleryScript.Command.HomeTest do
 
   describe "home" do
     test "makes sure we have serial", %{cs_context: context} do
-      assert Farmbot.Serial.Handler.available?(context.serial) == true
+      assert Farmbot.Serial.Handler.available?(context) == true
     end
 
     test "homes all axises", %{cs_context: context} do

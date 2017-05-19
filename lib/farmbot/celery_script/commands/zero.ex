@@ -19,7 +19,7 @@ defmodule Farmbot.CeleryScript.Command.Zero do
   end
 
   @spec do_write(binary, Ast.context) :: no_return
-  defp do_write("x", ctx), do: UartHan.write(ctx.serial, "F84 X1 Y0 Z0")
-  defp do_write("y", ctx), do: UartHan.write(ctx.serial, "F84 X0 Y1 Z0")
-  defp do_write("z", ctx), do: UartHan.write(ctx.serial, "F84 X0 Y0 Z1")
+  defp do_write("x", ctx), do: UartHan.write(ctx, "F84 X1 Y0 Z0")
+  defp do_write("y", ctx), do: UartHan.write(ctx, "F84 X0 Y1 Z0")
+  defp do_write("z", ctx), do: UartHan.write(ctx, "F84 X0 Y0 Z1")
 end

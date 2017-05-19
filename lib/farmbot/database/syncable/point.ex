@@ -21,14 +21,4 @@ defmodule Farmbot.Database.Syncable.Point do
     #FIXME
     nil
   end
-
-  # THIS WAS A BAD_IDEA
-  # alias Farmbot.Database.Syncable.Point
-
-  # def to_tag(%Point{pointer_type: "GenericPointer"} = point), do: point
-  #
-  # def to_tag(%Point{pointer_type: pointer_type} = point) do
-  #   mname = Module.concat([Point, pointer_type])
-  #   mname |> struct(Map.from_struct(point))
-  # end
 end

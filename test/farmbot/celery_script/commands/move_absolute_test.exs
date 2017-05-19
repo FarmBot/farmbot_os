@@ -7,7 +7,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsoluteTest do
 
   describe "move_absolute" do
     test "makes sure we have serial", %{cs_context: context} do
-      assert Farmbot.Serial.Handler.available?(context.serial) == true
+      assert Farmbot.Serial.Handler.available?(context) == true
     end
 
     test "moves to a location", %{cs_context: context} do
@@ -50,8 +50,8 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsoluteTest do
     test "moves to a good plant", %{cs_context: context} do
       json          = Helpers.read_json("points.json")
       {:ok, db_pid} = DB.start_link(context, [])
-      :ok           = Helpers.seed_db(db_pid, Point, json)
       context       = %{context | database: db_pid}
+      :ok           = Helpers.seed_db(context, Point, json)
       item          = List.first(json)
 
       type          = item["pointer_type"]

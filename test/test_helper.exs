@@ -71,17 +71,17 @@ defmodule Farmbot.Test.Helpers.SerialTemplate do
   alias Farmbot.Test.SerialHelper
   use ExUnit.CaseTemplate
 
-  defp wait_for_serial(handler) do
-    unless Handler.available?(handler) do
+  defp wait_for_serial(context) do
+    unless Handler.available?(context) do
       # IO.puts "waiting for serial..."
       Process.sleep(100)
-      wait_for_serial(handler)
+      wait_for_serial(context)
     end
   end
 
   setup_all do
     {{hand, firm}, slot, context} = SerialHelper.setup_serial()
-    wait_for_serial(hand)
+    wait_for_serial(context)
 
      on_exit fn() -> SerialHelper.teardown_serial({hand, firm}, slot) end
      [cs_context: context, serial_handler: hand, firmware_sim: firm]
@@ -121,11 +121,11 @@ defmodule Farmbot.Test.Helpers do
     |> Poison.decode!
   end
 
-  def seed_db(pid, module, json) do
+  def seed_db(context, module, json) do
     tagged = Enum.map(json, fn(item) ->
       tag_item(item, module)
     end)
-    :ok = DB.commit_records(tagged, pid, module)
+    :ok = DB.commit_records(tagged, context, module)
   end
 
   def tag_item(map, tag) do
@@ -159,8 +159,8 @@ ExVCR.Config.cassette_library_dir("fixture/cassettes")
 
 Mix.shell.info [:green, "removeing logger"]
 Logger.remove_backend Logger.Backends.FarmbotLogger
+Farmbot.DebugLog.filter(:all)
 
-# Farmbot.DebugLog.filter(Farmbot.Serial.Handler)
 {:ok, pid} = Farmbot.Test.SerialHelper.start_link()
 Process.link(pid)
 ExUnit.start

@@ -5,7 +5,7 @@ defmodule Farmbot.Serial.HandlerTest do
   describe "does serial tests" do
 
       test "checks serial availablity", %{cs_context: context} do
-        bool = Handler.available?(context.serial)
+        bool = Handler.available?(context)
         assert bool == true
       end
 

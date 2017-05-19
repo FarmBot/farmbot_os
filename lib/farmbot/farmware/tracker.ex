@@ -28,7 +28,7 @@ defmodule Farmware.Tracker do
 
     # trap the exit of worker process
     Process.flag(:trap_exit, true)
-    {:ok, pid} = Worker.start_link(context)
+    {:ok, pid} = Worker.start_link(context, name: Worker)
     {:producer, %State{worker: pid, context: context} }
   end
 
@@ -64,15 +64,11 @@ defmodule Farmware.Tracker do
       else: {:noreply, [], %State{state | queue: [scr | state.queue]}}
   end
 
-  def handle_call(:get_state, _from, state) do
-    {:reply, state, [], state}
-  end
-
   # handle exit of worker process
   def handle_info({:EXIT, pid, reason}, state) do
     if pid == state.worker do
       Logger.error "Farmware Worker died: #{inspect reason}"
-      {:ok, pid} = Worker.start_link(state.context)
+      {:ok, pid} = Worker.start_link(state.context, name: Worker)
       {:noreply, [], %State{state | worker: pid }}
     else
       Logger.info "Farmware tracker intercepted a process exit...?"

@@ -5,10 +5,32 @@ defmodule Farmbot.Context do
 
   alias Farmbot.CeleryScript.Ast
 
-  @enforce_keys [:auth, :database, :network, :serial, :hardware,
-                 :monitor, :configuration]
-  defstruct     [:auth, :database, :network, :serial, :hardware,
-                 :monitor,:configuration, data_stack: []]
+  modules = [
+    :auth,
+    :database,
+    :network,
+    :serial,
+    :hardware,
+    :monitor,
+    :configuration,
+    :farmware_worker,
+    :farmware_tracker
+  ]
+
+  @enforce_keys modules
+  defstruct [ {:data_stack, []} | modules ]
+
+  defimpl Inspect, for: __MODULE__ do
+    def inspect(thing, _) do
+      default_context = Farmbot.Context.new() |> Map.from_struct |> Map.delete(:data_stack)
+      thing = thing |> Map.from_struct() |> Map.delete(:data_stack)
+      if thing == default_context do
+        "#Context<default>"
+      else
+        "#Context<#{thing}>"
+      end
+    end
+  end
 
   @typedoc false
   @type database      :: Farmbot.Database.database
@@ -31,17 +53,26 @@ defmodule Farmbot.Context do
   @typedoc false
   @type configuration :: Farmbot.BotState.Configuration.configuration
 
+  @typedoc false
+  @type farmware_tracker :: Farmware.tracker
+
+  @typedoc false
+  @type farmware_worker :: Farmware.worker
+
   @typedoc """
     Stuff to be passed from one CS Node to another
   """
   @type t :: %__MODULE__{
-    database:      database,
-    auth:          auth,
-    network:       network,
-    serial:        serial,
-    configuration: configuration,
-    monitor:       monitor,
-    hardware:      hardware,
+    database:        database,
+    auth:            auth,
+    network:         network,
+    serial:          serial,
+    configuration:   configuration,
+    monitor:         monitor,
+    hardware:        hardware,
+    farmware_worker: farmware_worker,
+    farmware_tracker: farmware_worker,
+
     data_stack:    [Ast.t]
   }
 
@@ -65,13 +96,15 @@ defmodule Farmbot.Context do
   @spec new :: Ast.context
   def new do
     %__MODULE__{ data_stack: [],
-                 configuration: Farmbot.BotState.Configuration,
-                 hardware:      Farmbot.BotState.Hardware,
-                 monitor:       Farmbot.BotState.Monitor,
-                 database:      Farmbot.Database,
-                 network:       Farmbot.System.Network,
-                 serial:        Farmbot.Serial.Handler,
-                 auth:          Farmbot.Auth,
+                 farmware_worker:  Farmware.Worker,
+                 farmware_tracker: Farmware.Tracker,
+                 configuration:    Farmbot.BotState.Configuration,
+                 hardware:         Farmbot.BotState.Hardware,
+                 monitor:          Farmbot.BotState.Monitor,
+                 database:         Farmbot.Database,
+                 network:          Farmbot.System.Network,
+                 serial:           Farmbot.Serial.Handler,
+                 auth:             Farmbot.Auth,
     }
   end
 end

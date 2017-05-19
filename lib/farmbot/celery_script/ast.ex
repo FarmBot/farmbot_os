@@ -6,6 +6,12 @@ defmodule Farmbot.CeleryScript.Ast do
 
   alias Farmbot.Context
 
+  defimpl Inspect, for: __MODULE__ do
+    def inspect(thing, _) do
+      "#CeleryScript<#{thing.kind}>"
+    end
+  end
+
   @typedoc false
   @type context :: Context.t
 

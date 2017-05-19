@@ -72,7 +72,7 @@ defmodule Farmbot.CeleryScript.Command do
                    %Ast{kind: "point",
                         args: %{pointer_type: pt_t, pointer_id: pt_id},
                         body: _}) do
-    %{body: p}   = Selectors.find_point(context.database, pt_t, pt_id)
+    %{body: p}   = Selectors.find_point(context, pt_t, pt_id)
     next_context = coordinate(%{x: p.x, y: p.y, z: p.z}, [], context)
     raise_if_not_context_or_return_context("coordinate", next_context)
   end

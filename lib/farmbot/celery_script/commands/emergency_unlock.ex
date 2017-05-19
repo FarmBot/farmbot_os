@@ -15,6 +15,6 @@ defmodule Farmbot.CeleryScript.Command.EmergencyUnlock do
   def run(%{}, [], context) do
     Farmbot.BotState.set_sync_msg(context, :sync_now)
     Farmbot.BotState.unlock_bot(context)
-    Farmbot.Serial.Handler.emergency_unlock(context.serial)
+    Farmbot.Serial.Handler.emergency_unlock(context)
   end
 end

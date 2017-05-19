@@ -10,7 +10,7 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdateTest do
 
   describe "config_update" do
     test "makes sure we have serial", %{cs_context: context} do
-      assert Farmbot.Serial.Handler.available?(context.serial) == true
+      assert Farmbot.Serial.Handler.available?(context) == true
     end
 
     test "sets some hardware params",  %{cs_context: context} do

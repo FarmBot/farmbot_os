@@ -29,8 +29,8 @@ defmodule Farmbot.CeleryScript.Command.ReadAllParams do
 
   defp do_thing(context, tries) do
     Logger.info ">> read all params try #{tries + 1}"
-    UartHan.write context.serial, "F83"
-    results = case UartHan.write(context.serial, "F20") do
+    UartHan.write context, "F83"
+    results = case UartHan.write(context, "F20") do
       :timeout -> do_thing(tries + 1)
       other -> other
     end

@@ -3,12 +3,47 @@ defmodule Farmbot.DebugLog do
   Provides a `debug_log/1` function.
   """
 
+  def color(:NC),           do: "\e[0m"
+  def color(:WHITE),        do: "\e[1;37m"
+  def color(:BLACK),        do: "\e[0;30m"
+  def color(:BLUE),         do: "\e[0;34m"
+  def color(:LIGHT_BLUE),   do: "\e[1;34m"
+  def color(:GREEN),        do: "\e[0;32m"
+  def color(:LIGHT_GREEN),  do: "\e[1;32m"
+  def color(:CYAN),         do: "\e[0;36m"
+  def color(:LIGHT_CYAN),   do: "\e[1;36m"
+  def color(:RED),          do: "\e[0;31m"
+  def color(:LIGHT_RED),    do: "\e[1;31m"
+  def color(:PURPLE),       do: "\e[0;35m"
+  def color(:LIGHT_PURPLE), do: "\e[1;35m"
+  def color(:BROWN),        do: "\e[0;33m"
+  def color(:YELLOW),       do: "\e[1;33m"
+  def color(:GRAY),         do: "\e[0;30m"
+  def color(:LIGHT_GRAY),   do: "\e[0;37m"
+
+
   @doc """
     enables the `debug_log/1` function.
   """
-  defmacro __using__(_opts) do
+  defmacro __using__(opts) do
+    color = Keyword.get(opts, :color)
+    name = Keyword.get(opts, :name)
     quote do
-      def debug_log(str), do: GenEvent.notify Farmbot.DebugLog, {__MODULE__, str}
+
+      defp get_module do
+        unquote(name) || __MODULE__ |> Module.split() |> List.last
+      end
+
+      if unquote(color) do
+        defp debug_log(str) do
+          GenEvent.notify Farmbot.DebugLog, {get_module(), {unquote(color), str}}
+        end
+      else
+        defp debug_log(str) do
+          GenEvent.notify Farmbot.DebugLog, {get_module(), {:BLUE, str}}
+        end
+      end # if color
+
     end # quote
   end # defmacro
 
@@ -18,13 +53,23 @@ defmodule Farmbot.DebugLog do
     """
     use GenEvent
 
+    @doc false
+    defdelegate color(color), to: Farmbot.DebugLog
+
     def init(state), do: {:ok, state}
 
-    def handle_event({module, str}, state) when is_binary(str) do
-      unless Map.get(state, module) do
-        IO.puts "[#{module}] #{str}"
+    def handle_event(_, :all), do: {:ok, :all}
+
+    def handle_event({module, {color, str}}, state) when is_binary(str) do
+      filter_me? = Map.get(state, module)
+      unless filter_me? do
+        IO.puts "#{color(color)} [#{module}]#{color(:NC)} #{str}"
       end
       {:ok, state}
+    end
+
+    def handle_call({:filter, :all}, _state) do
+      {:ok, :all}
     end
 
     def handle_call({:filter, module}, state) do
@@ -32,7 +77,11 @@ defmodule Farmbot.DebugLog do
     end
 
     def handle_call({:unfilter, module}, state) do
-      {:ok, :ok, Map.delete(state, module)}
+      if state == :all do
+        {:ok, :error, state}
+      else
+        {:ok, :ok, Map.delete(state, module)}
+      end
     end
   end
 
