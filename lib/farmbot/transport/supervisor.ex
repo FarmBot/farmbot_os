@@ -24,11 +24,16 @@ defmodule Farmbot.Transport.Supervisor do
   @doc """
     Starts all the transports.
   """
-  def start_link(context, opts), do: Supervisor.start_link(__MODULE__, context, opts)
+  def start_link(context, opts),
+    do: Supervisor.start_link(__MODULE__, context, opts)
 
   @spec build_children([atom], Context.t) :: [Supervisor.child]
   defp build_children(transports, %Context{} = context) do
-    [worker(Farmbot.Transport, [context, [name: Farmbot.Transport]], restart: :permanent)] ++
+    [
+      worker(Farmbot.Transport,
+        [context, [name: Farmbot.Transport]],
+        restart: :permanent)
+    ] ++
     Enum.map(transports, fn(t) ->
       case t do
         module when is_atom(module) ->

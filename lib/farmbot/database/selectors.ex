@@ -8,7 +8,6 @@ defmodule Farmbot.Database.Selectors do
   alias Farmbot.Context
   alias Syncable.Point
 
-
   @spec find_point(Context.t, binary, integer) :: Syncable.t
   # TODO(Rick): Add pattern match to DB param?
   def find_point(context, "Plant"          = pt, id), do: _find_point(context, pt, id)

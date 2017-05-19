@@ -65,8 +65,11 @@ defmodule Farmbot.BotState.ProcessTracker do
   @doc """
     starts a process by its uuid or info struct
   """
-  @spec start_process(Context.t, State.uuid | Info.t) :: {:ok, pid} | {:error, term}
-  def start_process(%Context{} = ctx, %Info{uuid: uuid}), do: start_process(ctx, uuid)
+  @spec start_process(Context.t, State.uuid | Info.t)
+    :: {:ok, pid} | {:error, term}
+  def start_process(%Context{} = ctx, %Info{uuid: uuid}),
+    do: start_process(ctx, uuid)
+
   def start_process(%Context{} = ctx, uuid),
     do: GenServer.call(ctx.process_tracker, {:start_process, uuid})
 

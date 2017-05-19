@@ -7,7 +7,7 @@ defmodule Farmbot.StateTracker do
 
   alias Farmbot.Context
 
-  @callback load() :: {:ok, map}
+  @callback load :: {:ok, map}
   defmacro __using__(name: name, model: model) do
     quote do
       alias Farmbot.System.FS.ConfigStorage, as: FBConfigStorage
@@ -49,7 +49,7 @@ defmodule Farmbot.StateTracker do
       end
 
       # this should be overriden.
-      def load(), do: {:ok, %State{}}
+      def load, do: {:ok, %State{}}
 
       defp dispatch(reply, %unquote(name).State{} = state) do
         broadcast(state)

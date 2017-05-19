@@ -95,8 +95,6 @@ defmodule Farmware.FarmScript do
         spawn fn() -> handle_script_output(stuff, thing, ctx) end
         handle_port(port, thing, ctx)
 
-      _something -> handle_port(port, thing, ctx)
-
       after
         @clean_up_timeout ->
           Logger.error ">> [#{thing.name}] Timed out"

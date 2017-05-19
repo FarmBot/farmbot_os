@@ -59,7 +59,8 @@ defmodule Farmbot.Serial.Handler do
   @doc """
     Starts a UART GenServer
   """
-  def start_link(%Context{} = ctx, nerves, tty, opts) when is_pid(nerves) and is_binary(tty) do
+  def start_link(%Context{} = ctx, nerves, tty, opts)
+  when is_pid(nerves) and is_binary(tty) do
     GenServer.start_link(__MODULE__, {ctx, nerves, tty}, opts)
   end
 
@@ -252,7 +253,9 @@ defmodule Farmbot.Serial.Handler do
   def handle_info({:nerves_uart, _, str}, state) when is_binary(str) do
     debug_log "Reading: #{str}"
     try do
-      current = str |> Parser.parse_code |> do_handle(state.current, state.context)
+      current = str
+        |> Parser.parse_code
+        |> do_handle(state.current, state.context)
       {:noreply, %{state | current: current, status: current[:status] || :idle}}
     rescue
       e ->

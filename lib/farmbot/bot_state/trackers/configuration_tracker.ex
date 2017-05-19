@@ -56,7 +56,7 @@ defmodule Farmbot.BotState.Configuration do
   @commit  Mix.Project.config()[:commit]
 
   @spec load() :: {:ok, state} | no_return
-  def load() do
+  def load do
     initial = %State{
       informational_settings: %{
         controller_version: @version,

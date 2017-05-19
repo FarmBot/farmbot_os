@@ -213,7 +213,7 @@ defmodule Farmbot.Configurator.Router do
 
   ## PRIVATE.
 
-  defp context(), do: Context.new()
+  defp context, do: Context.new()
 
   defp make_json(conn), do: conn |> put_resp_content_type("application/json")
 

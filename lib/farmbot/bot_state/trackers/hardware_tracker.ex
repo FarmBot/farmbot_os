@@ -40,7 +40,8 @@ defmodule Farmbot.BotState.Hardware do
   @doc """
     Takes a Hardware State object, and makes it happen
   """
-  @spec set_initial_params(State.t, Ast.context) :: {:ok, :no_params} | :ok | {:error, term}
+  @spec set_initial_params(State.t, Ast.context)
+    :: {:ok, :no_params} | :ok | {:error, term}
   def set_initial_params(%State{} = state, %Farmbot.Context{} = context) do
     # BUG(Connor): The first param is rather unstable for some reason.
     # Try to send a fake packet just to make sure we have a good

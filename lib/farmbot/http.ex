@@ -47,8 +47,8 @@ defmodule Farmbot.HTTP do
   def process_status_code(code), do: code
 
   @spec build_auth(Context.t) :: {:ok, [any]} | {:error, :no_token}
-  defp build_auth(%Context{} = context) do
-    with {:ok, %Token{} = token} <- Auth.get_token(context.auth)
+  defp build_auth(%Context{} = ctx) do
+    with {:ok, %Token{} = token} <- Auth.get_token(ctx.auth)
     do
       {:ok,
         ["Content-Type": "application/json",
@@ -103,8 +103,8 @@ defmodule Farmbot.HTTP do
   # We only want to upload if we get a 2XX response.
   defp finish_upload({:ok, %HTTPoison.Response{status_code: s}}, attachment_url)
   when s < 300 do
-    context   = Context.new()
-    [x, y, z] = Farmbot.BotState.get_current_pos(context)
+    ctx   = Context.new()
+    [x, y, z] = Farmbot.BotState.get_current_pos(ctx)
     meta      = %{x: x, y: y, z: z}
     json      = Poison.encode! %{"attachment_url" => attachment_url,
                                  "meta" => meta}

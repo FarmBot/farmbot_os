@@ -21,7 +21,6 @@ defmodule Farmbot.DebugLog do
   def color(:GRAY),         do: "\e[0;30m"
   def color(:LIGHT_GRAY),   do: "\e[0;37m"
 
-
   @doc """
     enables the `debug_log/1` function.
   """
@@ -36,7 +35,8 @@ defmodule Farmbot.DebugLog do
 
       if unquote(color) do
         defp debug_log(str) do
-          GenEvent.notify Farmbot.DebugLog, {get_module(), {unquote(color), str}}
+          GenEvent.notify(Farmbot.DebugLog,
+            {get_module(), {unquote(color), str}})
         end
       else
         defp debug_log(str) do

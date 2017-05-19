@@ -75,7 +75,8 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
   end
 
   defp write_and_read(_context, int_and_str, val, tries \\ 0)
-  defp write_and_read(_context, {_param_int, param_str}, _val, tries) when tries > 5 do
+  defp write_and_read(_context, {_param_int, param_str}, _val, tries)
+  when tries > 5 do
     Logger.info ">> failed to update update: #{param_str}!"
     {:error, :timeout}
   end
@@ -85,7 +86,8 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
     gcode = "F22 P#{param_int} V#{val}"
     results = UartHan.write(context, gcode)
     case results do
-      :timeout -> write_and_read(context, {param_int, param_str}, val, tries + 1)
+      :timeout ->
+        write_and_read(context, {param_int, param_str}, val, tries + 1)
       _ -> :ok
     end
 

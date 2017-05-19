@@ -2,7 +2,7 @@ defmodule Farmbot.RegimenRunner do
   @moduledoc """
     Runs a regimen
   """
-  
+
   use GenServer
   alias Farmbot.Regimen.Supervisor, as: RegSup
   require Logger

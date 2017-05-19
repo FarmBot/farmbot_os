@@ -29,8 +29,10 @@ defmodule Farmbot.FarmEventRunner do
   def handle_info(:checkup, {context, state}) do
     now = get_now()
     new_state = if now do
-      all_events = Database.get_all(context, FarmEvent)
-      |> Enum.map(fn(thing) -> thing.body end)
+      all_events =
+        context
+          |> Database.get_all(FarmEvent)
+          |> Enum.map(fn(thing) -> thing.body end)
 
       {late_events, new} = do_checkup(context, all_events, now, state)
       unless Enum.empty?(late_events) do
@@ -46,7 +48,8 @@ defmodule Farmbot.FarmEventRunner do
     {:noreply, {context, new_state}}
   end
 
-  @spec start_events(Context.t, [Sequence.t | Regimen.t], DateTime.t) :: no_return
+  @spec start_events(Context.t, [Sequence.t | Regimen.t], DateTime.t)
+    :: no_return
   defp start_events(_context, [], _now), do: :ok
   defp start_events(context, [event | rest], now) do
     cond do
@@ -84,8 +87,12 @@ defmodule Farmbot.FarmEventRunner do
 
   defp do_checkup(_, [], _now, late_events, state), do: {late_events, state}
 
-  defp do_checkup(%Context{} = ctx, [farm_event | rest], now, late_events, state) do
-    {new_late, last_time} = check_event(ctx, farm_event, now, state[farm_event.id])
+  defp do_checkup(%Context{} = ctx,
+    [farm_event | rest], now, late_events, state)
+  do
+    {new_late, last_time} = check_event(ctx,
+      farm_event, now, state[farm_event.id])
+
     new_state = Map.put(state, farm_event.id, last_time)
     if new_late do
       do_checkup(ctx, rest, now, [new_late | late_events], new_state)

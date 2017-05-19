@@ -108,8 +108,8 @@ defmodule Farmware do
     path = FS.path() <> "/farmware/#{package_name}"
     if File.exists?(path) do
       Logger.info "uninstalling farmware: #{package_name}", type: :busy
-      info = Farmbot.BotState.ProcessTracker.lookup(ctx, :farmware, package_name)
-      deregister(ctx, info)
+      i = Farmbot.BotState.ProcessTracker.lookup(ctx, :farmware, package_name)
+      deregister(ctx, i)
       FS.transaction fn() ->
         File.rm_rf!(path)
       end, true

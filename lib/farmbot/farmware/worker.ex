@@ -19,7 +19,11 @@ defmodule Farmware.Worker do
 
   def init(context) do
     Logger.info "Starting Farmware Worker"
-    {:consumer, %{env: initial_env(context), context: context}, subscribe_to: [@tracker]}
+
+    {
+      :consumer,
+      %{env: initial_env(context), context: context}, subscribe_to: [@tracker]
+    }
   end
 
   @doc """

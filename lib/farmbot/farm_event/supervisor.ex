@@ -7,8 +7,10 @@ defmodule Farmbot.FarmEvent.Supervisor do
 
   def init(context) do
     children = [
-      worker(Farmbot.Regimen.Supervisor, [context, [name: Farmbot.Regimen.Supervisor ]], [restart: :permanent]),
-      worker(Farmbot.FarmEventRunner,    [context, [name: Farmbot.FarmEventRunner    ]], [restart: :permanent])
+      worker(Farmbot.Regimen.Supervisor,
+        [context, [name: Farmbot.Regimen.Supervisor ]], [restart: :permanent]),
+      worker(Farmbot.FarmEventRunner,
+        [context, [name: Farmbot.FarmEventRunner    ]], [restart: :permanent])
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)

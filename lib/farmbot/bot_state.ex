@@ -14,7 +14,8 @@ defmodule Farmbot.BotState do
     Gets the current position of the bot. Returns [x,y,z]
   """
   @spec get_current_pos(context) :: [integer, ...]
-  def get_current_pos(%Context{} = context), do: GenServer.call(context.hardware, :get_current_pos)
+  def get_current_pos(%Context{} = context),
+    do: GenServer.call(context.hardware, :get_current_pos)
 
   @doc """
     Sets the position to givin position.
@@ -29,7 +30,8 @@ defmodule Farmbot.BotState do
     Sets a pin under the given value
   """
   @spec set_pin_value(context, integer, integer) :: :ok
-  def set_pin_value(%Context{} = context, pin, value) when is_integer(pin) and is_integer(value) do
+  def set_pin_value(%Context{} = context, pin, value)
+  when is_integer(pin) and is_integer(value) do
     GenServer.cast(context.hardware, {:set_pin_value, {pin, value}})
   end
 
@@ -64,7 +66,9 @@ defmodule Farmbot.BotState do
     Gets the map of every param.
     Useful for resetting params if the arduino flops
   """
-  @spec get_all_mcu_params(context) :: Farmbot.BotState.Hardware.State.mcu_params
+  @spec get_all_mcu_params(context)
+    :: Farmbot.BotState.Hardware.State.mcu_params
+
   def get_all_mcu_params(%Context{} = context) do
     GenServer.call(context.hardware, :get_all_mcu_params)
   end
@@ -82,26 +86,30 @@ defmodule Farmbot.BotState do
     This is just a shortcut
   """
   @spec get_fw_version(context)  :: String.t
-  def get_fw_version(%Context{} = context), do: GenServer.call(context.configuration, :get_fw_version)
+  def get_fw_version(%Context{} = context),
+    do: GenServer.call(context.configuration, :get_fw_version)
 
   @doc """
     Set the version
   """
   @spec set_fw_version(context, binary) :: no_return
-  def set_fw_version(%Context{} = context, v),
-    do: GenServer.cast(context.configuration, {:update_info, :firmware_version, v})
+  def set_fw_version(%Context{} = context, v) do
+    GenServer.cast(context.configuration, {:update_info, :firmware_version, v})
+  end
 
   @doc """
     Gets the current controller version
   """
   @spec get_os_version(context) :: String.t
-  def get_os_version(%Context{} = context), do: GenServer.call(context.configuration, :get_version)
+  def get_os_version(%Context{} = context),
+    do: GenServer.call(context.configuration, :get_version)
 
   @doc """
     Gets the value of a hardware param
   """
   @spec get_param(context, atom) :: integer | nil
-  def get_param(%Context{} = context, param), do: GenServer.call(context.hardware, {:get_param, param})
+  def get_param(%Context{} = context, param),
+    do: GenServer.call(context.hardware, {:get_param, param})
 
   @doc """
     Update a config under key
@@ -167,14 +175,25 @@ defmodule Farmbot.BotState do
   @spec set_sync_msg(context, sync_msg) :: :ok
   def set_sync_msg(context, sync_msg)
 
-  def set_sync_msg(%Context{} = ctx, :sync_error = thing), do: do_set_sync_msg(ctx, thing)
-  def set_sync_msg(%Context{} = ctx, :sync_now = thing),   do: do_set_sync_msg(ctx, thing)
-  def set_sync_msg(%Context{} = ctx, :syncing = thing),    do: do_set_sync_msg(ctx, thing)
-  def set_sync_msg(%Context{} = ctx, :unknown = thing),    do: do_set_sync_msg(ctx, thing)
-  def set_sync_msg(%Context{} = ctx, :locked = thing),     do: do_set_sync_msg(ctx, thing)
-  def set_sync_msg(%Context{} = ctx, :synced = thing),     do: do_set_sync_msg(ctx, thing)
+  def set_sync_msg(%Context{} = ctx, :sync_error = thing),
+    do: do_set_sync_msg(ctx, thing)
 
-  defp do_set_sync_msg(%Context{} = context, thing),
-    do: GenServer.cast(context.configuration, {:update_info, :sync_status, thing})
+  def set_sync_msg(%Context{} = ctx, :sync_now = thing),
+    do: do_set_sync_msg(ctx, thing)
 
+  def set_sync_msg(%Context{} = ctx, :syncing = thing),
+    do: do_set_sync_msg(ctx, thing)
+
+  def set_sync_msg(%Context{} = ctx, :unknown = thing),
+    do: do_set_sync_msg(ctx, thing)
+
+  def set_sync_msg(%Context{} = ctx, :locked = thing),
+    do: do_set_sync_msg(ctx, thing)
+
+  def set_sync_msg(%Context{} = ctx, :synced = thing),
+    do: do_set_sync_msg(ctx, thing)
+
+  defp do_set_sync_msg(%Context{} = context, thing) do
+    GenServer.cast(context.configuration, {:update_info, :sync_status, thing})
+  end
 end

@@ -20,8 +20,6 @@ defmodule Farmware.Tracker do
     defstruct [queue: [], worker: nil, context: nil]
   end
 
-
-
   def init(context) do
     Logger.info "Starting Farmware Tracker"
     unless File.exists?("/tmp/images"), do: File.mkdir_p("/tmp/images")

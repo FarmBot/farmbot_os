@@ -33,7 +33,8 @@ defmodule Farmware.Supervisor do
   defp register_farmwares(%Context{} = ctx) do
     farmwares = File.ls!(FS.path() <> "/farmware")
     for farmware <- farmwares do
-      Farmbot.BotState.ProcessTracker.register(ctx.process_tracker, :farmware, farmware, farmware)
+      Farmbot.BotState.ProcessTracker.register(ctx.process_tracker,
+        :farmware, farmware, farmware)
     end
   end
 

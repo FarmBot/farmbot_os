@@ -22,7 +22,11 @@ defmodule Farmbot.Context do
 
   defimpl Inspect, for: __MODULE__ do
     def inspect(thing, _) do
-      default_context = Farmbot.Context.new() |> Map.from_struct |> Map.delete(:data_stack)
+      default_context =
+        Farmbot.Context.new()
+        |> Map.from_struct
+        |> Map.delete(:data_stack)
+
       thing = thing |> Map.from_struct() |> Map.delete(:data_stack)
       if thing == default_context do
         "#Context<default>"
@@ -75,7 +79,6 @@ defmodule Farmbot.Context do
 
     data_stack:    [Ast.t]
   }
-
 
   @spec push_data(t, Ast.t) :: t
   def push_data(%__MODULE__{} = context, %Ast{} = data) do

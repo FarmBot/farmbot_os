@@ -57,7 +57,7 @@ defmodule Farmbot.BotState.Monitor do
     GenStage.async_notify(new_state.context.monitor, new_state)
     {:noreply, [], new_state}
   end
-  # 
+  #
   # @spec dispatch(any, State.t) :: {:reply, any, [], State.t }
   # defp dispatch(reply, new_state) do
   #   GenStage.async_notify(new_state.context.monitor, new_state)

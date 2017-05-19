@@ -18,6 +18,7 @@ defmodule Farmbot.CeleryScript.Command.MoveRelative do
   """
   @spec run(%{speed: number, x: x, y: y, z: z}, [], Ast.context)
     :: Ast.context
+
   def run(%{speed: speed, x: x, y: y, z: z}, [], context) do
     # make a coordinate of the relative movement we want to do
     loc                      = %{x: x, y: y, z: z}
@@ -28,9 +29,9 @@ defmodule Farmbot.CeleryScript.Command.MoveRelative do
     [cur_x,cur_y,cur_z]      = Farmbot.BotState.get_current_pos(context)
 
     # Make another coord for the offset
-    args                     = %{x: cur_x, y: cur_y, z: cur_z}
-    new_context3             = Command.coordinate(args, [], new_context2)
-    {offset, new_context4}    = Farmbot.Context.pop_data(new_context3)
+    coord_args               = %{x: cur_x, y: cur_y, z: cur_z}
+    new_context3             = Command.coordinate(coord_args, [], new_context2)
+    {offset, new_context4}   = Farmbot.Context.pop_data(new_context3)
 
     args = %{speed: speed, offset: offset, location: location}
     Command.move_absolute(args, [], new_context4)
