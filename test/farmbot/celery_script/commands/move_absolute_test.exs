@@ -1,6 +1,9 @@
 defmodule Farmbot.CeleryScript.Command.MoveAbsoluteTest do
   alias Farmbot.CeleryScript.{Command, Ast}
-  use Farmbot.Test.Helpers.SerialTemplate, async: false
+  alias Farmbot.Database, as: DB
+  alias DB.Syncable.Point
+  alias Farmbot.Test.Helpers
+  use   Helpers.SerialTemplate, async: false
 
   describe "move_absolute" do
     test "makes sure we have serial", %{cs_context: context} do
@@ -31,7 +34,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsoluteTest do
     test "moves to a bad *plant* location", %{cs_context: context} do
       [_curx, _cury, _curz] = Farmbot.BotState.get_current_pos(context)
       location = %Ast{kind: "point",
-                      args: %{point_type: "Plant", point_id: 123},
+                      args: %{pointer_type: "Plant", pointer_id: 123},
                       body: []}
       offset   = %Ast{kind: "coordinate",
                       args: %{x: 0, y: 0, z: 0},
@@ -48,9 +51,22 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsoluteTest do
       json          = Helpers.read_json("points.json")
       {:ok, db_pid} = DB.start_link([])
       :ok           = Helpers.seed_db(db_pid, Point, json)
-      context       = Ast.Context.new()
+      context       = %{context | database: db_pid}
+      item          = List.first(json)
 
-      # TODO: Insert bogus point or whatevs.
+      type          = item["pointer_type"]
+      id            = item["id"]
+
+      location      = %Ast{kind: "point", args: %{pointer_type: type, pointer_id: id}, body: []}
+      offset        = %Ast{kind: "coordinate", args: %{x: 0, y: 0, z: 0}, body: []}
+      Command.move_absolute(%{speed: 8000, offset: offset, location: location}, [], context)
+
+      Process.sleep(100) # wait for serial to catch up
+      [x, y, z]     = Farmbot.BotState.get_current_pos(context)
+      assert x == item["x"]
+      assert y == item["y"]
+      assert z == item["z"]
+
     end
   end
 

@@ -70,9 +70,9 @@ defmodule Farmbot.CeleryScript.Command do
 
   def ast_to_coord(%Ast.Context{} = context,
                    %Ast{kind: "point",
-                        args: %{point_type: pt_t, point_id: pt_id},
+                        args: %{pointer_type: pt_t, pointer_id: pt_id},
                         body: _}) do
-    p            = Selectors.find_point(context.database, pt_t, pt_id)
+    %{body: p}   = Selectors.find_point(context.database, pt_t, pt_id)
     next_context = coordinate(%{x: p.x, y: p.y, z: p.z}, [], context)
     raise_if_not_context_or_return_context("coordinate", next_context)
   end

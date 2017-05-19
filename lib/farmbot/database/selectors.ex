@@ -19,7 +19,7 @@ defmodule Farmbot.Database.Selectors do
     result = Database.get_by_id(db, Point, point_id) || raise "" <>
       "Can't find #{point_t} with ID #{point_id}"
 
-    case result.body.point_type do
+    case result.body.pointer_type do
       point_t -> result
       _       -> raise "POINT FAILURE: id/types don't match: " <>
                        "#{point_id}/#{point_t}"
