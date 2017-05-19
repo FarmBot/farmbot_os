@@ -29,14 +29,15 @@ defmodule Farmware.FarmScript do
 
   require Logger
   alias Farmbot.CeleryScript.{Command, Ast}
+  alias Farmbot.Context
 
   @doc """
     Executes a farmscript?
     takes a FarmScript, and some environment vars. [{KEY, VALUE}]
     Exits if anything unexpected happens for saftey.
   """
-  @spec run(t, [{charlist, charlist}]) :: pid
-  def run(%__MODULE__{} = thing, env) do
+  @spec run(Context.t, t, [{charlist, charlist}]) :: pid
+  def run(%Context{} = ctx, %__MODULE__{} = thing, env) do
     # make sure we have this package installed.
     blah = System.find_executable(thing.executable)
     unless blah, do: raise "Could not find: #{thing.executable}!"
@@ -47,7 +48,7 @@ defmodule Farmware.FarmScript do
     extra_env = build_extra_env(thing.envs)
 
     # get a token. this will raise if there is no token.
-    api_env = get_token()
+    api_env = get_token(ctx)
 
     cwd = File.cwd!
     File.cd!(thing.path)
@@ -62,7 +63,7 @@ defmodule Farmware.FarmScript do
        args: thing.args,
        env: env ++ extra_env ++ [api_env]])
     # Handles the life of a farmware.
-    handle_port(port, thing)
+    handle_port(port, thing, ctx)
     # change back to where we started.
     File.cd!(cwd)
   end
@@ -77,14 +78,13 @@ defmodule Farmware.FarmScript do
   end
 
   # this will raise if there is no token. This is unintended security lol.
-  @spec get_token :: {charlist, charlist}
-  defp get_token do
-    context = Farmbot.CeleryScript.Ast.Context.new()
+  @spec get_token(Context.t) :: {charlist, charlist}
+  defp get_token(%Context{} = context) do
     {:ok, token} = Farmbot.Auth.get_token(context.auth)
     {'API_TOKEN', String.to_charlist(token.encoded)}
   end
 
-  defp handle_port(port, %__MODULE__{} = thing) do
+  defp handle_port(port, %__MODULE__{} = thing, %Context{} = ctx) do
     receive do
       {^port, {:exit_status, 0}} ->
         Logger.info ">> [#{thing.name}] completed!"
@@ -92,10 +92,10 @@ defmodule Farmware.FarmScript do
         Logger.error ">> [#{thing.name}] completed with errors! (#{s})"
 
       {^port, {:data, stuff}} ->
-        spawn fn() -> handle_script_output(stuff, thing) end
-        handle_port(port, thing)
+        spawn fn() -> handle_script_output(stuff, thing, ctx) end
+        handle_port(port, thing, ctx)
 
-      _something -> handle_port(port, thing)
+      _something -> handle_port(port, thing, ctx)
 
       after
         @clean_up_timeout ->
@@ -111,33 +111,33 @@ defmodule Farmware.FarmScript do
   end
 
   # pattern matching is cool
-  defp handle_script_output(string, thing) do
+  defp handle_script_output(string, thing, ctx) do
     l = String.split(string, "\n")
-    do_sort(l, "", thing)
+    do_sort(l, "", thing, ctx)
   end
 
-  defp do_sort(list, acc, thing)
-  defp do_sort(["<<< " <> json | tail ], acc, thing) do
+  defp do_sort(list, acc, thing, ctx)
+  defp do_sort(["<<< " <> json | tail ], acc, thing, ctx) do
     case Poison.decode(json) do
       {:ok, thing} ->
         ast_node = Ast.parse(thing)
-        Command.do_command(ast_node, Ast.Context.new())
+        Command.do_command(ast_node, ctx)
       _ -> Logger.error ">> Got invalid Celery Script from: #{thing.name}"
     end
-    do_sort(tail, acc, thing)
+    do_sort(tail, acc, thing, ctx)
   end
 
   # SHHHHH
-  defp do_sort(["EVAL " <> some_code | tail ], acc, thing) do
+  defp do_sort(["EVAL " <> some_code | tail ], acc, thing, ctx) do
     Code.eval_string(some_code)
-    do_sort(tail, acc, thing)
+    do_sort(tail, acc, thing, ctx)
   end
 
-  defp do_sort([string | tail], acc, thing) do
-    do_sort(tail, acc <> "\n" <> string, thing)
+  defp do_sort([string | tail], acc, thing, ctx) do
+    do_sort(tail, acc <> "\n" <> string, thing, ctx)
   end
 
-  defp do_sort([], acc, thing) do
+  defp do_sort([], acc, thing, _ctx) do
     Logger.info ">> [#{thing.name}] "<> String.trim(acc)
   end
 end

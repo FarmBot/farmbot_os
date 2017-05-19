@@ -151,7 +151,7 @@ defmodule Farmbot.Database do
   @doc """
     Start the Database
   """
-  def start_link(opts \\ []), do: GenServer.start_link(__MODULE__, [], [opts])
+  def start_link(_context, opts), do: GenServer.start_link(__MODULE__, [], opts)
 
   def init([]) do
     initial_by_kind_and_id = %{}

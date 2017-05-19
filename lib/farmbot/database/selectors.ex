@@ -20,9 +20,8 @@ defmodule Farmbot.Database.Selectors do
       "Can't find #{point_t} with ID #{point_id}"
 
     case result.body.pointer_type do
-      point_t -> result
-      _       -> raise "POINT FAILURE: id/types don't match: " <>
-                       "#{point_id}/#{point_t}"
+      type when type == point_t -> result
+      _ -> raise "POINT FAILURE: id/types don't match: #{point_id}/#{point_t}"
     end
   end
 end

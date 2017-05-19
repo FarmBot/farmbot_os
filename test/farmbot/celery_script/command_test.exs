@@ -3,7 +3,7 @@ defmodule CommandTest do
   alias Farmbot.CeleryScript.{Command, Ast}
 
   setup_all do
-    [cs_context: Ast.Context.new()]
+    [cs_context: Farmbot.Context.new()]
   end
 
   test "doesnt freak out on no instruction", %{cs_context: context} do
@@ -23,7 +23,7 @@ defmodule CommandTest do
     # a coordinate is already a coordinate
     ast_a   = %Ast{kind: "coordinate", args: %{x: 1, y: 1, z: 1}, body: []}
     context = Command.ast_to_coord(context, ast_a)
-    {coord_a, next_context} = Ast.Context.pop_data(context)
+    {coord_a, next_context} = Farmbot.Context.pop_data(context)
 
     assert is_map(coord_a)
 
@@ -67,7 +67,7 @@ defmodule CommandTest do
 
   test "gives the origin on nothing", %{cs_context: context} do
     nothing = %Ast{kind: "nothing", args: %{}, body: []}
-    {coord, context} = Command.ast_to_coord(context, nothing) |> Ast.Context.pop_data
+    {coord, context} = Command.ast_to_coord(context, nothing) |> Farmbot.Context.pop_data
     assert is_map(coord)
     assert is_map(context)
     assert coord.args.x == 0

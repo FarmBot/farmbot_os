@@ -24,7 +24,7 @@ defmodule Farmbot.CeleryScript.Command.RpcRequest do
         {[ast | win], fail}
       else
         new_context = Command.explanation(%{message: "unhandled: #{fun_name}"}, [], context)
-        {exp, _} = Ast.Context.pop_data(new_context)
+        {exp, _} = Farmbot.Context.pop_data(new_context)
         Logger.error ">> got an unhandled rpc "
           <> "request: #{fun_name} #{inspect ast}"
         {win, [exp | fail]}
@@ -40,7 +40,7 @@ defmodule Farmbot.CeleryScript.Command.RpcRequest do
   defp handle_req({_, []}, id, context) do
     # there were no failed asts.
     context = Command.rpc_ok(%{label: id}, [], context)
-    {item, context} = Ast.Context.pop_data(context)
+    {item, context} = Farmbot.Context.pop_data(context)
     Farmbot.Transport.emit(item)
     context
   end
@@ -48,7 +48,7 @@ defmodule Farmbot.CeleryScript.Command.RpcRequest do
   defp handle_req({_, failed}, id, context) do
     # there were some failed asts.
     context = Command.rpc_error(%{label: id}, failed, context)
-    {item, context} = Ast.Context.pop_data(context)
+    {item, context} = Farmbot.Context.pop_data(context)
     Farmbot.Transport.emit(item)
     context
   end

@@ -21,6 +21,6 @@ defmodule Farmbot.CeleryScript.Command.Coordinate do
   @spec run(coord_args, [], Ast.context) :: Ast.context
   def run(%{x: _x, y: _y, z: _z} = args, [], context) do
     result = %Ast{kind: "coordinate", args: args, body: []}
-    Ast.Context.push_data(context, result)
+    Farmbot.Context.push_data(context, result)
   end
 end

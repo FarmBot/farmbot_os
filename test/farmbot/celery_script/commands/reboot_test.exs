@@ -14,7 +14,7 @@ defmodule Farmbot.CeleryScript.Command.RebootTest do
       """
       ast = json |> Poison.decode!() |> Ast.parse
 
-      Command.do_command(ast, Ast.Context.new())
+      Command.do_command(ast, Farmbot.Context.new())
       assert called Farmbot.System.reboot
     end
 

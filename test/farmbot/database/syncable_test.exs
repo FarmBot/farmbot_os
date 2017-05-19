@@ -11,7 +11,7 @@ defmodule Farmbot.SyncableTest do
   use ExUnit.Case, async: false
   use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
 
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
 
   doctest Farmbot.Database.Syncable
 

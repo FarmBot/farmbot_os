@@ -17,6 +17,6 @@ defmodule Farmbot.CeleryScript.Command.RpcError do
     [Command.explanation_type], Ast.context) :: Ast.context
   def run(%{label: id}, explanations, context) do
     item = %Ast{kind: "rpc_error", args: %{label: id}, body: explanations}
-    Ast.Context.push_data(context, item)
+    Farmbot.Context.push_data(context, item)
   end
 end

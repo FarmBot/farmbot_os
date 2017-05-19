@@ -41,7 +41,7 @@ defmodule Farmbot.BotState.Hardware do
     Takes a Hardware State object, and makes it happen
   """
   @spec set_initial_params(State.t, Ast.context) :: {:ok, :no_params} | :ok | {:error, term}
-  def set_initial_params(%State{} = state, %Ast.Context{} = context) do
+  def set_initial_params(%State{} = state, %Farmbot.Context{} = context) do
     # BUG(Connor): The first param is rather unstable for some reason.
     # Try to send a fake packet just to make sure we have a good
     # Connection to the Firmware
@@ -86,7 +86,6 @@ defmodule Farmbot.BotState.Hardware do
   end
 
   def handle_call({:set_pos, {x, y, z}}, _from, %State{} = state) do
-    IO.puts "!!! SET POS #{x} !!!"
     dispatch [x, y, z], %State{state | location: [x,y,z]}
   end
 

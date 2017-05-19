@@ -1,4 +1,4 @@
-defmodule Farmbot.CeleryScript.Ast.Context do
+defmodule Farmbot.Context do
   @moduledoc """
     Context serves as an execution sandbox for all CeleryScript
   """
@@ -11,25 +11,25 @@ defmodule Farmbot.CeleryScript.Ast.Context do
                  :monitor,:configuration, data_stack: []]
 
   @typedoc false
-  @type database  :: Farmbot.Database.database
+  @type database      :: Farmbot.Database.database
 
   @typedoc false
-  @type auth      :: Farmbot.Auth.auth
+  @type auth          :: Farmbot.Auth.auth
 
   @typedoc false
-  @type network   :: Farmbot.System.Network.netman
+  @type network       :: Farmbot.System.Network.netman
 
   @typedoc false
-  @type serial    :: Farmbot.Serial.Handler.handler
+  @type serial        :: Farmbot.Serial.Handler.handler
 
   @typedoc false
-  @type hardware    :: Farmbot.BotState.Hardware.hardware
+  @type hardware      :: Farmbot.BotState.Hardware.hardware
 
   @typedoc false
-  @type monitor    :: Farmbot.BotState.Monitor.monitor
+  @type monitor       :: Farmbot.BotState.Monitor.monitor
 
   @typedoc false
-  @type configuration    :: Farmbot.BotState.Configuration.configuration
+  @type configuration :: Farmbot.BotState.Configuration.configuration
 
   @typedoc """
     Stuff to be passed from one CS Node to another
@@ -53,7 +53,7 @@ defmodule Farmbot.CeleryScript.Ast.Context do
   end
 
   @spec pop_data(t) :: {Ast.t, t}
-  def pop_data(context) do
+  def pop_data(%__MODULE__{} = context) do
     [result | rest] = context.data_stack
     {result, %{context | data_stack: rest}}
   end

@@ -4,7 +4,13 @@ defmodule Farmbot.Regimen.Supervisor do
   """
   use Supervisor
   @behaviour Farmbot.EventSupervisor
-  def start_link, do: Supervisor.start_link(__MODULE__, [], name: __MODULE__)
+  alias Farmbot.Context
+
+  @doc """
+    Start a Regimen Supervisor
+  """
+  def start_link(%Context{} = context, opts),
+    do: Supervisor.start_link(__MODULE__, context, opts)
 
   def init(_) do
     children = []
@@ -15,17 +21,17 @@ defmodule Farmbot.Regimen.Supervisor do
   @doc """
     Add a child to this supervisor
   """
-  def add_child(regimen, time) do
-    Supervisor.start_child(__MODULE__,
-      worker(Farmbot.RegimenRunner, [regimen, time],
+  def add_child(%Context{} = context, regimen, time) do
+    Supervisor.start_child(context.regimen_supervisor,
+      worker(Farmbot.RegimenRunner, [context, regimen, time],
         [restart: :permanent, id: regimen.id]))
   end
 
   @doc """
     Remove a child from this supervisor.
   """
-  def remove_child(regimen) do
-    Supervisor.terminate_child(__MODULE__, regimen.id)
-    Supervisor.delete_child(__MODULE__, regimen.id)
+  def remove_child(%Context{} = context, regimen) do
+    Supervisor.terminate_child(context.regimen_supervisor, regimen.id)
+    Supervisor.delete_child(context.regimen_supervisor, regimen.id)
   end
 end

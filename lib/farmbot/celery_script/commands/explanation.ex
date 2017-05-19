@@ -17,6 +17,6 @@ defmodule Farmbot.CeleryScript.Command.Explanation do
   @spec run(%{message: String.t}, [], Ast.context) :: Ast.context
   def run(%{message: message}, [], context) do
     result = %Ast{kind: "explanation", args: %{message: message}, body: []}
-    Ast.Context.push_data(context, result)
+    Farmbot.Context.push_data(context, result)
   end
 end

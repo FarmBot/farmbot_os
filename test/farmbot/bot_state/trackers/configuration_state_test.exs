@@ -1,6 +1,6 @@
 defmodule Farmbot.BotState.ConfigurationTest do
   use ExUnit.Case, async: false
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
 
   setup_all do
     cs_context = Context.new()

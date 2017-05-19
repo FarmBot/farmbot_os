@@ -28,12 +28,12 @@ defmodule Farmbot.CeleryScript.Command.If do
   # figure out what the user wanted
   @spec eval_lhs(String.t, Ast.context) :: integer | {:error, String.t}
 
-  defp eval_lhs("pin" <> num, %Ast.Context{} = context) do
+  defp eval_lhs("pin" <> num, %Farmbot.Context{} = context) do
     thing = String.to_integer(num)
     Farmbot.BotState.get_pin(context, thing) || {:error, "pin" <> num}
   end
 
-  defp eval_lhs(axis, %Ast.Context{} = context) do
+  defp eval_lhs(axis, %Farmbot.Context{} = context) do
     [x, y, z] = Farmbot.BotState.get_current_pos(context)
     case axis do
       "x" -> x

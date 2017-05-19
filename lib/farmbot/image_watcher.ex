@@ -4,6 +4,7 @@ defmodule Farmbot.ImageWatcher do
   """
   use GenServer
   require Logger
+  alias Farmbot.Context
 
   @images_path "/tmp/images"
   @type state :: []
@@ -11,8 +12,8 @@ defmodule Farmbot.ImageWatcher do
   @doc """
     Starts the Image Watcher
   """
-  @spec start_link :: {:ok, pid}
-  def start_link, do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link(%Context{} = ctx, opts),
+    do: GenServer.start_link(__MODULE__, ctx, opts)
 
   @doc """
     Uploads all images if they exist.
@@ -20,8 +21,7 @@ defmodule Farmbot.ImageWatcher do
   @spec force_upload :: no_return
   def force_upload, do: do_checkup()
 
-  @spec init([]) :: {:ok, any}
-  def init([]) do
+  def init(_context) do
     # TODO(Connor) kill :fs if this app dies.
     :fs_app.start(:normal, [])
     :fs.subscribe()

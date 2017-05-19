@@ -20,6 +20,6 @@ defmodule Farmbot.CeleryScript.Command.Pair do
     data = %Ast{ kind: "pair",
                  args: %{label: label, value: value},
                  body: [] }
-    Ast.Context.push_data(context, data)
+    Farmbot.Context.push_data(context, data)
   end
 end

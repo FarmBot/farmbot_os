@@ -3,7 +3,7 @@ defmodule Farmbot.Transport.Supervisor do
     Supervises services that communicate with the outside world.
   """
   use Supervisor
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
 
   env = Mix.env()
 

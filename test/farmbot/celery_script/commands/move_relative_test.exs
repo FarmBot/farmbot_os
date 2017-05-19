@@ -8,7 +8,7 @@ defmodule Farmbot.CeleryScript.Command.MoveRelativeTest do
       assert Farmbot.Serial.Handler.available?(context.serial) == true
     end
 
-    test "moves to a location", %{cs_context: context} = ctx do
+    test "moves to a location", %{cs_context: context} do
       [_, _, _] = Farmbot.BotState.set_pos(context, 500,0,0)
       [oldx, oldy, oldz] = Farmbot.BotState.get_current_pos(context)
 

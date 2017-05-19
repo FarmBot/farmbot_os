@@ -5,7 +5,7 @@ defmodule Farmbot.BotState.ProcessSupervisor do
 
   use Supervisor
   require Logger
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
 
   @doc """
     Starts the Farm Procss Supervisor

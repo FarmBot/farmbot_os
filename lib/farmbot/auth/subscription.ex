@@ -5,7 +5,7 @@ defmodule Farmbot.Auth.Subscription do
 
   use GenServer
   use Farmbot.DebugLog
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
 
   def start_link(%Context{} = context, opts \\ []) do
     GenServer.start_link(__MODULE__, context, opts)

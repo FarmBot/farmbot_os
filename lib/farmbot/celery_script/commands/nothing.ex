@@ -17,6 +17,6 @@ defmodule Farmbot.CeleryScript.Command.Nothing do
   @spec run(%{}, [], Ast.context) :: Ast.context
   def run(args, body, context) do
     thing = %Ast{kind: "nothing", args: args, body: body}
-    Ast.Context.push_data(context, thing)
+    Farmbot.Context.push_data(context, thing)
   end
 end

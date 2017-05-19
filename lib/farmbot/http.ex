@@ -6,7 +6,7 @@ defmodule Farmbot.HTTP do
   alias Farmbot.Token
   use HTTPoison.Base
   require Logger
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
 
   @version Mix.Project.config[:version]
   @target Mix.Project.config[:target]

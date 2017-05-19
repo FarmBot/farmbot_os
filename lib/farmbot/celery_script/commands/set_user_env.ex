@@ -17,9 +17,8 @@ defmodule Farmbot.CeleryScript.Command.SetUserEnv do
      map = envs |> Map.new
      Farmbot.BotState.set_user_env(context, map)
 
-     envs
-     |> Map.new
-     |> Farmware.Worker.add_envs
+     env = envs |> Map.new
+     Farmware.Worker.add_envs(context, env)
      context
   end
 end

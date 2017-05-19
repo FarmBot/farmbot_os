@@ -4,7 +4,7 @@ defmodule Farmbot.Configurator.Router do
   """
   alias Farmbot.System.FS.ConfigStorage
   alias Farmbot.System.Network, as: NetMan
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
   require Logger
 
   # max length of a uploaded file.
@@ -154,10 +154,9 @@ defmodule Farmbot.Configurator.Router do
 
   # Full state tree.
   get "/api/state" do
-    Farmbot.BotState.Monitor.get_state
-     state = :sys.get_state(Farmbot.Transport)
-     json = Poison.encode!(state)
-     conn |> make_json |> send_resp(200, json)
+    state = :sys.get_state(Farmbot.Transport)
+    json = Poison.encode!(state)
+    conn |> make_json |> send_resp(200, json)
   end
 
   get "/api/last_factory_reset_reason" do

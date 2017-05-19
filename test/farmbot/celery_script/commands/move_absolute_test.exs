@@ -49,7 +49,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsoluteTest do
 
     test "moves to a good plant", %{cs_context: context} do
       json          = Helpers.read_json("points.json")
-      {:ok, db_pid} = DB.start_link([])
+      {:ok, db_pid} = DB.start_link(context, [])
       :ok           = Helpers.seed_db(db_pid, Point, json)
       context       = %{context | database: db_pid}
       item          = List.first(json)

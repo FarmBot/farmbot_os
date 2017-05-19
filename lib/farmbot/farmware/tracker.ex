@@ -5,49 +5,45 @@ defmodule Farmware.Tracker do
     similar to Rails worker system but no scaling?
   """
 
+  use GenStage
+  require Logger
+  alias Farmware.{FarmScript, Worker}
+  alias Farmbot.Context
+
   defmodule State do
     @moduledoc false
     @type t :: %__MODULE__{
       queue: [FarmScript.t], # list of farm scripts that should be ran?
-      worker: pid
+      worker: pid,
+      context: Context.t
     }
-    defstruct [queue: [], worker: nil]
+    defstruct [queue: [], worker: nil, context: nil]
   end
 
-  use GenStage
-  require Logger
-  alias Farmware.Worker
-  alias Farmware.FarmScript
 
-  @spec init(any) :: {:producer, State.t}
-  def init(_) do
+
+  def init(context) do
     Logger.info "Starting Farmware Tracker"
     unless File.exists?("/tmp/images"), do: File.mkdir_p("/tmp/images")
 
     # trap the exit of worker process
     Process.flag(:trap_exit, true)
-    {:ok, pid} = Worker.start_link()
-    {:producer, %State{worker: pid} }
+    {:ok, pid} = Worker.start_link(context)
+    {:producer, %State{worker: pid, context: context} }
   end
 
   @doc """
     Starts the FarmScript tracker
   """
-  @spec start_link :: {:ok, pid}
-  def start_link, do: GenStage.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link(%Context{} = ctx, opts),
+    do: GenStage.start_link(__MODULE__, ctx, opts)
 
   @doc """
     Add a script to the queue
     can we remove a script from the queue?
   """
-  @spec add(FarmScript.t) :: no_return
-  def add(%FarmScript{} = scr), do: GenServer.cast(__MODULE__, {:add, scr})
-
-  @doc """
-    Gets the state of the tracker.
-  """
-  @spec get_state :: State.t
-  def get_state, do: GenServer.call(__MODULE__, :get_state)
+  @spec add(Context.t, FarmScript.t) :: no_return
+  def add(%Context{} = ctx, %FarmScript{} = scr), do: GenServer.cast(ctx.farmware_tracker, {:add, scr})
 
   # GenStage stuffs
 
@@ -76,7 +72,7 @@ defmodule Farmware.Tracker do
   def handle_info({:EXIT, pid, reason}, state) do
     if pid == state.worker do
       Logger.error "Farmware Worker died: #{inspect reason}"
-      {:ok, pid} = Worker.start_link
+      {:ok, pid} = Worker.start_link(state.context)
       {:noreply, [], %State{state | worker: pid }}
     else
       Logger.info "Farmware tracker intercepted a process exit...?"

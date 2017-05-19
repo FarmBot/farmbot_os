@@ -15,9 +15,9 @@ defmodule Farmbot.CeleryScript.Command.TakePhoto do
   """
   @spec run(%{}, [], Ast.context) :: Ast.context
   def run(%{}, [], context) do
-    info = Farmbot.BotState.ProcessTracker.lookup :farmware, "take-photo"
-    if info do
-      Command.start_process(%{label: info.uuid}, [], context)
+    i = Farmbot.BotState.ProcessTracker.lookup context, :farmware, "take-photo"
+    if i do
+      Command.start_process(%{label: i.uuid}, [], context)
     else
       raise "take-photo is not installed!"
     end

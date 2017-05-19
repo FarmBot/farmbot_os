@@ -4,19 +4,21 @@ defmodule Farmbot.DatabaseTest do
 
   use ExUnit.Case, async: false
   alias Farmbot.Database, as: DB
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
   alias DB.Syncable.Point
   use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
   require IEx
 
   setup_all do
-    {:ok, db} = DB.start_link([])
+    ctx = Context.new()
+    {:ok, db} = DB.start_link(ctx, [])
     context = Context.new()
     [token: Helpers.login(context.auth), db: db]
   end
 
   test "sync" do
-    {:ok, db} = DB.start_link([])
+    ctx = Context.new()
+    {:ok, db} = DB.start_link(ctx, [])
     :ok = DB.flush(db)
 
     use_cassette "sync/corner_case" do

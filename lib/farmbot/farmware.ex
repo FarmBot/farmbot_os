@@ -34,10 +34,11 @@ defmodule Farmware do
   end
 
   alias Farmbot.System.FS
-  alias Farmware.FarmScript
-  alias Farmware.Tracker
+  alias Farmware.{Tracker, FarmScript}
   alias Farmbot.BotState.ProcessTracker, as: PT
+  alias Farmbot.Context
   require Logger
+
   @behaviour Farmbot.ProcessRunner
 
   @spec raise_if_exists(binary, map) :: no_return
@@ -50,8 +51,8 @@ defmodule Farmware do
   @doc """
     Installs a package from a manifest url
   """
-  @spec install(binary) :: map | no_return
-  def install(manifest_url) do
+  @spec install(Context.t, binary) :: map | no_return
+  def install(%Context{} = ctx, manifest_url) do
     Logger.info "Getting Farmware Manifest: #{manifest_url}"
     {manifest, json} = Manifest.get!(manifest_url).body
     path = FS.path() <> "/farmware/#{manifest[:package]}"
@@ -68,7 +69,7 @@ defmodule Farmware do
     Logger.info "Validating Farmware package"
 
     if File.exists?(path <> "/manifest.json") do
-      register(manifest)
+      register(ctx, manifest)
     else
       error_clean_up(path)
     end
@@ -93,22 +94,22 @@ defmodule Farmware do
     raise "Not valid Farmware!"
   end
 
-  defp register(manifest) do
+  defp register(%Context{} = ctx, manifest) do
     Logger.info ">> is installing Farmware: #{manifest[:package]}"
-    PT.register(:farmware, manifest[:package], manifest[:package])
+    PT.register(ctx, :farmware, manifest[:package], manifest[:package])
     manifest
   end
 
   @doc """
     Uninstalls a Farmware package
   """
-  @spec uninstall(binary) :: no_return
-  def uninstall(package_name) do
+  @spec uninstall(Context.t, binary) :: no_return
+  def uninstall(%Context{} = ctx, package_name) do
     path = FS.path() <> "/farmware/#{package_name}"
     if File.exists?(path) do
       Logger.info "uninstalling farmware: #{package_name}", type: :busy
-      info = Farmbot.BotState.ProcessTracker.lookup(:farmware, package_name)
-      deregister(info)
+      info = Farmbot.BotState.ProcessTracker.lookup(ctx, :farmware, package_name)
+      deregister(ctx, info)
       FS.transaction fn() ->
         File.rm_rf!(path)
       end, true
@@ -118,15 +119,16 @@ defmodule Farmware do
     end
   end
 
-  @spec deregister(map | nil) :: :ok
-  defp deregister(nil), do: :ok
-  defp deregister(i), do: Farmbot.BotState.ProcessTracker.deregister i.uuid
+  @spec deregister(Context.t, map | nil) :: :ok
+  defp deregister(%Context{} = _, nil), do: :ok
+  defp deregister(%Context{} = ctx, i),
+    do: Farmbot.BotState.ProcessTracker.deregister ctx, i.uuid
 
   @doc """
     Forces an update for a Farmware package
   """
-  @spec update(binary) :: no_return
-  def update(package_name) do
+  @spec update(Context.t, binary) :: no_return
+  def update(%Context{} = ctx, package_name) do
     path = FS.path() <> "/farmware/#{package_name}"
     if File.exists?(path) do
       url =
@@ -134,8 +136,8 @@ defmodule Farmware do
         |> File.read!
         |> Poison.decode!
         |> Map.get("url")
-      uninstall(package_name)
-      install(url)
+      uninstall(ctx, package_name)
+      install(ctx, url)
     else
       raise "Could not find Farmware to update! #{package_name}"
     end
@@ -144,20 +146,21 @@ defmodule Farmware do
   @doc """
     Starts a farm process. Callback from ProcessTracker
   """
-  def start_process(package_name), do: execute(package_name)
+  def start_process(%Context{} = ctx, package_name),
+    do: execute(ctx, package_name)
 
   @doc """
     Stops a farm process. Callback from ProcessTracker
   """
-  def stop_process(_package_name), do: :ok
+  def stop_process(%Context{} = _ctx, _package_name), do: :ok
 
   @doc """
     Executes a Farmware Package
     arguments is a list of strings to pass too the script
   """
-  @spec execute(binary) :: no_return
-  @spec execute(binary, any) :: no_return
-  def execute(package_name, envs \\ []) do
+  @spec execute(Context.t, binary) :: no_return
+  @spec execute(Context.t, binary, any) :: no_return
+  def execute(%Context{} = ctx, package_name, envs \\ []) do
     path = FS.path() <> "/farmware/#{package_name}"
     if File.exists?(path) do
       manifest =
@@ -166,9 +169,12 @@ defmodule Farmware do
         |> Poison.decode!
       exe = manifest["executable"]
       args = manifest["args"]
-      %FarmScript{executable: exe,
-        args: args, path: path, name: package_name, envs: envs}
-      |> Tracker.add()
+      item = %FarmScript{executable: exe,
+                         args: args,
+                         path: path,
+                         name: package_name,
+                         envs: envs}
+      Tracker.add(ctx, item)
     else
       msg = ">> Could not find FarmWare: #{package_name}"
       Logger.info msg, type: :error
@@ -208,22 +214,22 @@ defmodule Farmware do
   @doc """
     Downloads and updates first party farmwares.
   """
-  @spec get_first_party_farmware :: no_return
-  def get_first_party_farmware do
+  @spec get_first_party_farmware(Context.t) :: no_return
+  def get_first_party_farmware(%Context{} = ctx) do
     farmwares = HTTPoison.get!("https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/manifest.json").body
     |> Poison.decode!
     for %{"name" => name, "manifest" => manifest} <- farmwares do
-      maybe_install(name, manifest)
+      maybe_install(ctx, name, manifest)
     end
   end
 
-  defp maybe_install(name, manifest) do
+  defp maybe_install(%Context{} = ctx, name, manifest) do
     if installed?(name) do
       # if its installed already update it
-      update(name)
+      update(ctx, name)
     else
       # if not just install it.
-      install(manifest)
+      install(ctx, manifest)
     end
   end
 

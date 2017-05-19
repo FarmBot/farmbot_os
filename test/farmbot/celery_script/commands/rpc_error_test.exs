@@ -3,7 +3,7 @@ defmodule Farmbot.CeleryScript.Command.RpcErrorTest do
   alias Farmbot.CeleryScript.{Command, Ast}
 
   setup_all do
-    [cs_context: Ast.Context.new()]
+    [cs_context: Farmbot.Context.new()]
   end
 
   test "rpc ok", %{cs_context: context} do
@@ -26,9 +26,9 @@ defmodule Farmbot.CeleryScript.Command.RpcErrorTest do
     next_context = Command.do_command(ast, context)
 
     assert is_map(next_context)
-    assert next_context.__struct__ == Ast.Context
+    assert next_context.__struct__ == Farmbot.Context
 
-    {resp, _final_context} = Ast.Context.pop_data(next_context)
+    {resp, _final_context} = Farmbot.Context.pop_data(next_context)
 
     assert resp.kind == "rpc_error"
     assert resp.args.label == id

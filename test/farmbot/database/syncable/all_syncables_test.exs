@@ -9,7 +9,7 @@ alias Syncable.Tool
 alias Syncable.FarmEvent
 # alias Syncable.Device
 
-alias Farmbot.CeleryScript.Ast.Context
+alias Farmbot.Context
 
 defmodule AllSyncablesTestHelper do
 

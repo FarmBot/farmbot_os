@@ -4,7 +4,7 @@ defmodule Farmbot.Serial.Handler do
   """
 
   alias Farmbot.BotState
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
   alias Farmbot.Lib.Maths
   alias Farmbot.Serial.Gcode.Parser
   alias Nerves.UART

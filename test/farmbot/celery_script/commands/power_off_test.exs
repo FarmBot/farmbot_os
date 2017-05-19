@@ -14,7 +14,7 @@ defmodule Farmbot.CeleryScript.Command.PowerOffTest do
       """
       ast = json |> Poison.decode!() |> Ast.parse
 
-      Command.do_command(ast, Ast.Context.new())
+      Command.do_command(ast, Farmbot.Context.new())
       assert called Farmbot.System.power_off
     end
 

@@ -5,7 +5,7 @@ defmodule Farmbot.FarmEventRunner do
   use GenServer
   require Logger
   alias Farmbot.CeleryScript.Ast
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
 
   use Farmbot.DebugLog
 
@@ -17,32 +17,24 @@ defmodule Farmbot.FarmEventRunner do
   @type database :: Database.db
   @type state :: {database, %{required(integer) => DateTime.t}}
 
-  def start_link(database) do
-    GenServer.start_link(__MODULE__, database, name: __MODULE__)
+  def start_link(%Context{} = context, opts) do
+    GenServer.start_link(__MODULE__, context.database, opts)
   end
 
-  def init(database) do
-    pid = if is_atom(database), do: Process.whereis(database), else: database
-    Process.link(pid)
+  def init(db) when is_atom(db) do
+    pid = Process.whereis(db)
+    init(pid)
+  end
+
+  def init(database) when is_pid(database) do
+    Process.link(database)
     send self(), :checkup
-    {:ok, {pid, %{}}}
+    {:ok, {database, %{} }}
   end
 
   def handle_info(:checkup, {db, state}) do
     now = get_now()
     new_state = if now do
-      # all_events = Amnesia.transaction do
-      #   Amnesia.Selection.values(FarmEvent.where(true))
-      #   # |> Enum.map(fn(farm_event) ->
-      #   #   # get rid of all the items that happened before last_time
-      #   #   calendar = Enum.filter(farm_event.calendar, fn(iso_time) ->
-      #   #     dt = Timex.parse! iso_time, "{ISO:Extended}"
-      #   #     # we only want this time if it happened after the last_time
-      #   #     Timex.after?(dt, now)
-      #   #   end)
-      #   #   %{farm_event | calendar: calendar}
-      #   # end)
-      # end
       all_events = Database.get_all(db, FarmEvent)
       |> Enum.map(fn(thing) -> thing.body end)
 

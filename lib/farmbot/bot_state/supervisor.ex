@@ -4,7 +4,7 @@ defmodule Farmbot.BotState.Supervisor do
     things can subscribe too.
   """
 
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
 
   @use_logger Application.get_env(:farmbot, :logger, true)
 

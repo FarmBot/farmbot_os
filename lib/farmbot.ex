@@ -20,31 +20,20 @@ defmodule Farmbot do
   end
 
   def init(_args) do
-    context = Farmbot.CeleryScript.Ast.Context.new()
+    context = Farmbot.Context.new()
     children = [
-      worker(Farmbot.DebugLog, [],               restart: :permanent),
-      supervisor(Registry, [:duplicate,  Farmbot.Registry]),
-      # System specifics.
-      supervisor(FBSYS,    [context, [name: FBSYS]],        restart: :permanent),
-      # Auth services.
-      worker(Farmbot.Auth, [context, [name: Farmbot.Auth]], restart: :permanent),
-      # Web app.
-      supervisor(Farmbot.Configurator, [], restart: :permanent),
-      # The worker for diffing db entries.
-      worker(Farmbot.Database.Supervisor, [], restart: :permanent),
-      # Handles tracking of various parts of the bots state.
-      supervisor(Farmbot.BotState.Supervisor, [context, [name: Farmbot.BotState.Supervisor]], restart: :permanent),
-      # Handles FarmEvents.
-      supervisor(Farmbot.FarmEvent.Supervisor, [], restart: :permanent),
-      # Handles the passing of messages from one part of the system to another.
-      supervisor(Farmbot.Transport.Supervisor, [context, [name: Farmbot.Transport.Supervisor]], restart: :permanent),
-      # Handles external scripts and what not.
-      supervisor(Farmware.Supervisor, [], restart: :permanent),
-      # handles communications between bot and arduino.
+      worker(Farmbot.DebugLog, [], restart: :permanent),
+      supervisor(Registry,     [:duplicate,  Farmbot.Registry]),
+      supervisor(FBSYS,                        [context, [name: FBSYS                        ]], restart: :permanent),
+      worker(Farmbot.Auth,                     [context, [name: Farmbot.Auth                 ]], restart: :permanent),
+      worker(Farmbot.Database,                 [context, [name: Farmbot.Database             ]], restart: :permanent),
+      supervisor(Farmbot.BotState.Supervisor,  [context, [name: Farmbot.BotState.Supervisor  ]], restart: :permanent),
+      supervisor(Farmbot.FarmEvent.Supervisor, [context, [name: Farmbot.FarmEvent.Supervisor ]], restart: :permanent),
+      supervisor(Farmbot.Transport.Supervisor, [context, [name: Farmbot.Transport.Supervisor ]], restart: :permanent),
+      supervisor(Farmware.Supervisor,          [context, [name: Farmware.Supervisor          ]], restart: :permanent),
+      worker(Farmbot.ImageWatcher,             [context, [name: Farmbot.ImageWatcher         ]], restart: :permanent),
       worker(Task, [Farmbot.Serial.Handler.OpenTTY, :open_ttys, [__MODULE__]], restart: :transient),
-      # worker(Farmbot.Serial.Handler, ["/dev/ttyfail", name: Farmbot.Serial.Handler], restart: :permanent),
-      # Watches the images directory and uploads them.
-      worker(Farmbot.ImageWatcher, [], restart: :permanent)
+      supervisor(Farmbot.Configurator, [], restart: :permanent),
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)

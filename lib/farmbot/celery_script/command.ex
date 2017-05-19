@@ -41,14 +41,14 @@ defmodule Farmbot.CeleryScript.Command do
   @spec ast_to_coord(Ast.context, Ast.t) :: Ast.context
   def ast_to_coord(context, ast)
   def ast_to_coord(
-    %Ast.Context{} = context,
+    %Farmbot.Context{} = context,
     %Ast{kind: "coordinate",
          args: %{x: _x, y: _y, z: _z},
          body: []} = already_done),
-   do: Ast.Context.push_data(context, already_done)
+   do: Farmbot.Context.push_data(context, already_done)
 
   def ast_to_coord(
-    %Ast.Context{} = context,
+    %Farmbot.Context{} = context,
     %Ast{kind: "tool", args: %{tool_id: tool_id}, body: []})
   do
     ts = nil
@@ -63,12 +63,12 @@ defmodule Farmbot.CeleryScript.Command do
   # is this one a good idea?
   # there might be two expectations here: it could return the current position,
   # or 0
-  def ast_to_coord(%Ast.Context{} = context, %Ast{kind: "nothing", args: _, body: _}) do
+  def ast_to_coord(%Farmbot.Context{} = context, %Ast{kind: "nothing", args: _, body: _}) do
     next_context = coordinate(%{x: 0, y: 0, z: 0}, [], context)
     raise_if_not_context_or_return_context("coordinate", next_context)
   end
 
-  def ast_to_coord(%Ast.Context{} = context,
+  def ast_to_coord(%Farmbot.Context{} = context,
                    %Ast{kind: "point",
                         args: %{pointer_type: pt_t, pointer_id: pt_id},
                         body: _}) do
@@ -77,7 +77,7 @@ defmodule Farmbot.CeleryScript.Command do
     raise_if_not_context_or_return_context("coordinate", next_context)
   end
 
-  def ast_to_coord(%Ast.Context{} = context, %Ast{} = ast) do
+  def ast_to_coord(%Farmbot.Context{} = context, %Ast{} = ast) do
     raise "No implicit conversion from #{inspect ast} to coordinate! context: #{inspect context}"
   end
 
@@ -129,7 +129,7 @@ defmodule Farmbot.CeleryScript.Command do
     raise ">> can not handle: #{inspect not_cs_node}"
   end
 
-  defp raise_if_not_context_or_return_context(_, %Ast.Context{} = next), do: next
+  defp raise_if_not_context_or_return_context(_, %Farmbot.Context{} = next), do: next
   defp raise_if_not_context_or_return_context(last_kind, not_context) do
     raise "[#{last_kind}] bad return value! #{inspect not_context}"
   end

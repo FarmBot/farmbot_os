@@ -18,7 +18,7 @@ defmodule Farmbot.DebugLog.SocketHandler do
   end
 
   require Logger
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
 
   @timeout :infinity
 

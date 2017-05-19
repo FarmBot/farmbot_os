@@ -15,7 +15,7 @@ defmodule Farmbot.CeleryScript.Command.RemoveFarmware do
   """
   @spec run(%{package: String.t}, [], Ast.context) :: Ast.context
   def run(%{package: package}, [], context) do
-    Farmware.uninstall(package)
+    Farmware.uninstall(context, package)
     context
   end
 end

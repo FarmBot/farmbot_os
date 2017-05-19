@@ -15,7 +15,7 @@ defmodule Farmbot.CeleryScript.Command.UpdateFarmware do
   """
   @spec run(%{package: String.t}, [], Ast.context) :: Ast.context
   def run(%{package: package}, [], context) do
-    Farmware.update(package)
+    Farmware.update(context, package)
     context
   end
 end

@@ -10,8 +10,8 @@ defmodule Farmbot.CeleryScript.Command.NothingTest do
     }
     """
     ast = json |> Poison.decode!() |> Ast.parse
-    context = Command.do_command(ast, Ast.Context.new())
-    {r, _final_context} = Ast.Context.pop_data(context)
+    context = Command.do_command(ast, Farmbot.Context.new())
+    {r, _final_context} = Farmbot.Context.pop_data(context)
     assert is_map(r)
     assert r.kind == "nothing"
   end

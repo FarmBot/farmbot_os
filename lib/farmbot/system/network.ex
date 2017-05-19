@@ -8,7 +8,7 @@ defmodule Farmbot.System.Network do
   alias Farmbot.System.Network.SSH
   alias Farmbot.System.Network.Ntp
   alias Farmbot.Auth
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
 
   env = Mix.env()
 
@@ -31,9 +31,10 @@ defmodule Farmbot.System.Network do
   defp parse_and_start_config(%Context{} = context, nil, _), do: spawn(fn ->
     Process.sleep(2000)
     spawn fn ->
-      maybe_get_fpf()
+      maybe_get_fpf(context)
     end
 
+    # FIXME(Connor) this is stupid
     unless unquote(env) == :test do
       Farmbot.Auth.try_log_in(context.auth)
     end
@@ -129,14 +130,14 @@ defmodule Farmbot.System.Network do
     end
   end
 
-  defp maybe_get_fpf do
+  defp maybe_get_fpf(%Context{} = ctx) do
     # First Party Farmware is not really a network concern but here we are...
     {:ok, fpf} = GenServer.call(CS, {:get, Configuration, "first_party_farmware"})
 
     try do
       if fpf do
         Logger.info ">> is installing first party Farmwares."
-        Farmware.get_first_party_farmware
+        Farmware.get_first_party_farmware(ctx)
       end
       :ok
     rescue
@@ -184,7 +185,7 @@ defmodule Farmbot.System.Network do
 
     :ok = maybe_set_time()
     :ok = maybe_start_ssh()
-    :ok = maybe_get_fpf()
+    :ok = maybe_get_fpf(context)
 
     Logger.info ">> is trying to log in."
     {:ok, token} = Auth.try_log_in!(context.auth)

@@ -4,7 +4,7 @@ defmodule Farmbot.CeleryScript.Ast do
     Ast nodes.
   """
 
-  alias Ast.Context
+  alias Farmbot.Context
 
   @typedoc false
   @type context :: Context.t

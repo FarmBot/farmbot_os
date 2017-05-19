@@ -13,7 +13,7 @@ defmodule Farmbot.CeleryScript.Command.StartProcess do
   """
   @spec run(%{label: String.t}, [], Ast.context) :: Ast.context
   def run(%{label: uuid}, [], context) do
-    Farmbot.BotState.ProcessTracker.start_process(uuid)
+    Farmbot.BotState.ProcessTracker.start_process(context, uuid)
     context
   end
 end

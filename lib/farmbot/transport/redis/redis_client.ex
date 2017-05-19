@@ -4,7 +4,7 @@ defmodule Farmbot.Transport.Redis do
   """
   use GenStage
   require Logger
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
   @config Application.get_all_env(:farmbot)[:redis]
   @ping_time 5_000
   @save_time 900_000

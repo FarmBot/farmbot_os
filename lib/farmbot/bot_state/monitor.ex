@@ -8,7 +8,7 @@ defmodule Farmbot.BotState.Monitor do
   """
   use GenStage
   require Logger
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
 
   defmodule State do
     @moduledoc false

@@ -3,7 +3,7 @@ defmodule Farmbot.HTTPTest do
   use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
   alias Farmbot.Auth
   alias Farmbot.HTTP
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
 
   setup_all do
     context = Context.new()

@@ -5,7 +5,7 @@ defmodule Farmbot.StateTracker do
     pairs.
   """
 
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
 
   @callback load() :: {:ok, map}
   defmacro __using__(name: name, model: model) do

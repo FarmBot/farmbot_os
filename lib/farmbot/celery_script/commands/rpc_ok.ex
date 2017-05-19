@@ -15,6 +15,6 @@ defmodule Farmbot.CeleryScript.Command.RpcOk do
   @spec run(%{label: binary}, [], Ast.context) :: Ast.context
   def run(%{label: id}, [], context) do
     data = %Ast{kind: "rpc_ok", args: %{label: id}, body: []}
-    Ast.Context.push_data(context, data)
+    Farmbot.Context.push_data(context, data)
   end
 end

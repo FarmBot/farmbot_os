@@ -16,7 +16,7 @@ defmodule Farmbot.CeleryScript.Command.ExecuteScript do
   @spec run(%{label: String.t}, [Command.Pair.t], Ast.context) :: Ast.context
   def run(%{label: farmware}, env_vars, context) do
     Command.set_user_env(%{}, env_vars, context)
-    info = Farmbot.BotState.ProcessTracker.lookup(:farmware, farmware)
+    info = Farmbot.BotState.ProcessTracker.lookup(context, :farmware, farmware)
     if info do
       Command.start_process(%{label: info.uuid}, [], context)
     else

@@ -7,7 +7,7 @@ defmodule Farmbot.Transport.GenMqtt do
   use GenStage
   require Logger
   alias Farmbot.Token
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
 
   @type state :: {pid | nil, Token.t | nil}
 

@@ -2,7 +2,7 @@ defmodule Logger.Backends.FarmbotLoggerTest do
   use ExUnit.Case, async: false
   use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
   alias Farmbot.Auth
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
   require Logger
 
   setup_all do

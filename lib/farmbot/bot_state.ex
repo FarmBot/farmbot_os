@@ -5,7 +5,7 @@ defmodule Farmbot.BotState do
   """
 
   require Logger
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
 
   @typedoc false
   @type context :: Context.t

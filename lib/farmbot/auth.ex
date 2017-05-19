@@ -15,7 +15,7 @@ defmodule Farmbot.Auth do
   alias FS.ConfigStorage, as: CS
   alias Farmbot.Token
   alias Farmbot.Auth.Subscription, as: Sub
-  alias Farmbot.CeleryScript.Ast.Context
+  alias Farmbot.Context
 
   @typedoc """
     The public key that lives at http://<server>/api/public_key

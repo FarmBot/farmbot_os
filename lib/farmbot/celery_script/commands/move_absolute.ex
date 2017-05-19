@@ -31,10 +31,10 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
   @spec run(move_absolute_args, [], Ast.context) :: Ast.context
   def run(%{speed: s, offset: offset, location: location}, [], context) do
     new_context              = ast_to_coord(context, location)
-    {location, new_context1} = Ast.Context.pop_data(new_context)
+    {location, new_context1} = Farmbot.Context.pop_data(new_context)
 
     new_context2             = ast_to_coord(new_context1, offset)
-    {offset, new_context3}   = Ast.Context.pop_data(new_context2)
+    {offset, new_context3}   = Farmbot.Context.pop_data(new_context2)
 
     a = {location.args.x, location.args.y, location.args.z}
     b = {offset.args.x,   offset.args.y,    offset.args.z }
@@ -55,7 +55,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
       Maths.mm_to_steps(combined_z, spm(:z, context)) }
   end
 
-  defp spm(xyz, %Ast.Context{} = ctx) do
+  defp spm(xyz, %Farmbot.Context{} = ctx) do
     thing = "steps_per_mm_#{xyz}" |> String.to_atom
     Farmbot.BotState.get_config(ctx, thing)
   end

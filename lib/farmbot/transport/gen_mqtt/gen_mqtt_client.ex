@@ -7,7 +7,7 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   alias Farmbot.Transport.Serialized, as: Ser
   alias Farmbot.Token
   alias Farmbot.CeleryScript.{Command, Ast}
-  alias Ast.Context
+  alias Farmbot.Context
 
   @type state :: {Token.t, Context.t}
 
