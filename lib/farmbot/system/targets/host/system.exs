@@ -1,4 +1,4 @@
-defmodule Module.concat([Farmbot,System,"host"]) do 
+defmodule Module.concat([Farmbot,System,"host"]) do
   @moduledoc false
   @behaviour Farmbot.System
 
@@ -13,7 +13,6 @@ defmodule Module.concat([Farmbot,System,"host"]) do
       File.rm_rf files
       File.write("#{path()}/factory_reset_reason", reason)
     end, true
-    IEx.pry
     System.halt(0)
   end
 

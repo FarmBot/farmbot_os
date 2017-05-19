@@ -27,6 +27,31 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsoluteTest do
       assert newy == 0
       assert newz == 0
     end
+
+    test "moves to a bad *plant* location", %{cs_context: context} do
+      [_curx, _cury, _curz] = Farmbot.BotState.get_current_pos(context)
+      location = %Ast{kind: "point",
+                      args: %{point_type: "Plant", point_id: 123},
+                      body: []}
+      offset   = %Ast{kind: "coordinate",
+                      args: %{x: 0, y: 0, z: 0},
+                      body: []}
+      args     = %{speed:    8000,
+                   offset:   offset,
+                   location: location}
+      assert_raise RuntimeError, "Can't find Plant with ID 123", fn ->
+        Command.move_absolute(args, [], context)
+      end
+    end
+
+    test "moves to a good plant", %{cs_context: context} do
+      json          = Helpers.read_json("points.json")
+      {:ok, db_pid} = DB.start_link([])
+      :ok           = Helpers.seed_db(db_pid, Point, json)
+      context       = Ast.Context.new()
+
+      # TODO: Insert bogus point or whatevs.
+    end
   end
 
 end

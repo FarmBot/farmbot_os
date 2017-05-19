@@ -6,10 +6,10 @@ defmodule Farmbot.CeleryScript.Command do
     this means minimal logging, minimal bot state changeing (if its not the
     result of a gcode) etc.
   """
+  alias   Farmbot.CeleryScript.Ast
+  alias   Farmbot.Database.Selectors
   require Logger
-  alias Farmbot.CeleryScript.Ast
-  # alias Farmbot.Database.Syncable.Point
-  use Farmbot.DebugLog
+  use     Farmbot.DebugLog
 
   celery =
     "lib/farmbot/celery_script/commands/"
@@ -61,10 +61,19 @@ defmodule Farmbot.CeleryScript.Command do
   end
 
   # is this one a good idea?
-  # there might be too expectations here: it could return the current position,
+  # there might be two expectations here: it could return the current position,
   # or 0
   def ast_to_coord(%Ast.Context{} = context, %Ast{kind: "nothing", args: _, body: _}) do
     next_context = coordinate(%{x: 0, y: 0, z: 0}, [], context)
+    raise_if_not_context_or_return_context("coordinate", next_context)
+  end
+
+  def ast_to_coord(%Ast.Context{} = context,
+                   %Ast{kind: "point",
+                        args: %{point_type: pt_t, point_id: pt_id},
+                        body: _}) do
+    p            = Selectors.find_point(context.database, pt_t, pt_id)
+    next_context = coordinate(%{x: p.x, y: p.y, z: p.z}, [], context)
     raise_if_not_context_or_return_context("coordinate", next_context)
   end
 

@@ -14,9 +14,6 @@ defmodule Farmbot.CeleryScript.Command.MoveRelativeTest do
 
       Command.move_relative(%{speed: 800, x: 100, y: 0, z: 0}, [], context)
       Process.sleep(600)
-
-      # IEx.pry
-      # :sys.get_state(ctx.firmware_sim).position_handler |> :sys.get_state
       [newx, newy, newz] = Farmbot.BotState.get_current_pos(context)
       assert newx == (oldx + 100)
       assert newy == oldy
