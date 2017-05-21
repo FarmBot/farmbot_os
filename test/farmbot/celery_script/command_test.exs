@@ -34,7 +34,7 @@ defmodule CommandTest do
 
   alias Farmbot.Context
   alias Farmbot.Database
-  alias Database.Point
+  alias Database.Syncable.Point
   alias Farmbot.CeleryScript.Ast
 
   test "converts a tool to a coordinate" do
