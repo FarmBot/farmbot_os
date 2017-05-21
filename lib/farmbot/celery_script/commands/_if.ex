@@ -3,9 +3,9 @@ defmodule Farmbot.CeleryScript.Command.If do
     If
   """
 
-  alias Farmbot.CeleryScript.Command
-  alias Farmbot.CeleryScript.Ast
-  require Logger
+  alias Farmbot.CeleryScript.{Command, Ast}
+  alias Farmbot.Context
+  use Farmbot.DebugLog
 
   @behaviour Command
 
@@ -31,17 +31,18 @@ defmodule Farmbot.CeleryScript.Command.If do
   # figure out what the user wanted
   @spec eval_lhs(binary, Ast.context) :: integer
 
-  defp eval_lhs("pin" <> num, %Farmbot.Context{} = context) do
-    thing = String.to_integer(num)
-    Farmbot.BotState.get_pin(context, thing) || {:error, "pin" <> num}
-  end
-
-  defp eval_lhs(axis, %Farmbot.Context{} = context) do
+  defp eval_lhs(lhs, %Farmbot.Context{} = context) do
     [x, y, z] = Farmbot.BotState.get_current_pos(context)
-    case axis do
-      "x" -> x
-      "y" -> y
-      "z" -> z
+    case lhs do
+      "x"             -> x
+      "y"             -> y
+      "z"             -> z
+      "pin" <> number ->
+        thing = number |> String.trim |> String.to_integer
+        %{value: val} = Farmbot.BotState.get_pin(context, thing)
+        val
+      _   ->
+        nil
     end
   end
 
@@ -50,27 +51,33 @@ defmodule Farmbot.CeleryScript.Command.If do
 
   defp eval_if({lhs, ">", rhs}, then_, else_, context) do
     if lhs > rhs,
-      do:   Command.do_command(then_, context),
-    else: Command.do_command(else_, context)
+      do: print_and_execute(then_, lhs > rhs, context),
+    else: print_and_execute(else_, lhs > rhs, context)
   end
 
   defp eval_if({lhs, "<", rhs}, then_, else_, context) do
     if lhs < rhs,
-      do:   Command.do_command(then_, context),
-    else: Command.do_command(else_, context)
+      do: print_and_execute(then_, lhs < rhs, context),
+    else: print_and_execute(else_, lhs < rhs, context)
   end
 
   defp eval_if({lhs, "is", rhs}, then_, else_, context) do
     if lhs == rhs,
-      do: Command.do_command(then_, context),
-    else: Command.do_command(else_, context)
+      do: print_and_execute(then_, lhs == rhs, context),
+    else: print_and_execute(else_, lhs == rhs, context)
   end
 
   defp eval_if({lhs, "not", rhs}, then_, else_, context) do
     if lhs != rhs,
-      do: Command.do_command(then_, context),
-    else: Command.do_command(else_, context)
+      do: print_and_execute(then_, lhs != rhs, context),
+    else: print_and_execute(else_, lhs != rhs, context)
   end
 
-  defp eval_if({_, _, _}, _, _, _context), do: raise "Bad operator in if!"
+  defp eval_if({_, op, _}, _, _, _context),
+    do: raise "Bad operator in if #{inspect op}"
+
+  defp print_and_execute(%Ast{} = ast, bool, %Context{} = ctx) do
+    debug_log "if evaluated: #{bool}, doing: #{inspect ast}"
+    Command.do_command(ast, ctx)
+  end
 end

@@ -51,13 +51,9 @@ defmodule Farmbot.CeleryScript.Command do
     %Farmbot.Context{} = context,
     %Ast{kind: "tool", args: %{tool_id: tool_id}, body: []})
   do
-    ts = nil
-    if ts do
-      next_context = coordinate(%{x: ts.x, y: ts.y, z: ts.z}, [], context)
-      raise_if_not_context_or_return_context("coordinate", next_context)
-    else
-      raise "Could not find tool_slot with tool_id: #{tool_id}"
-    end
+    %{body: ts}  = Farmbot.Database.Syncable.Point.get_tool(context, tool_id)
+    next_context = coordinate(%{x: ts.x, y: ts.y, z: ts.z}, [], context)
+    raise_if_not_context_or_return_context("coordinate", next_context)
   end
 
   # is this one a good idea?

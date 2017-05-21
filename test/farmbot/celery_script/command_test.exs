@@ -1,6 +1,7 @@
 defmodule CommandTest do
   use ExUnit.Case, async: false
   alias Farmbot.CeleryScript.{Command, Ast}
+  import Mock
 
   setup_all do
     [cs_context: Farmbot.Context.new()]
@@ -16,6 +17,23 @@ defmodule CommandTest do
     cs = Poison.decode!(json) |> Ast.parse()
     assert_raise RuntimeError, fn() ->
       Command.do_command(cs, context)
+    end
+  end
+
+  test "rescues from bad things", %{cs_context: context} do
+    with_mock Farmbot.CeleryScript.Command.Nothing, [run: fn(_,_,_) ->
+      raise "Mucking About with Mocks"
+    end] do
+      assert_raise RuntimeError, fn() ->
+        nothing_ast = %Ast{kind: "nothing", args: %{}, body: [], comment: "hey!"}
+        Command.do_command(nothing_ast, context)
+      end
+    end
+  end
+
+  test "cant execute random data that is not a cs node", %{cs_context: context} do
+    assert_raise RuntimeError, fn() ->
+      Command.do_command("shut the door its cold in here!", context)
     end
   end
 
@@ -50,10 +68,10 @@ defmodule CommandTest do
 
     tool_ast              = %Ast{kind: "tool", args: %{tool_id: tool_id}, body: []}
     new_context           = Command.ast_to_coord(ctx, tool_ast)
-    {coord, new_context2} = Context.pop_data(new_context)
-    assert coord.x == point.x
-    assert coord.y == point.y
-    assert coord.z == point.z
+    {coord, _new_context2} = Context.pop_data(new_context)
+    assert coord.args.x == point.x
+    assert coord.args.y == point.y
+    assert coord.args.z == point.z
   end
 
   test "raises if there is no tool_slot or something" do
