@@ -244,7 +244,7 @@ defmodule Farmbot.Database do
 
   defp reindex(state, record) do
     # get some info
-    kind = Map.get(record, :__struct__)
+    kind = Map.fetch!(record, :__struct__)
     id = Map.fetch!(record, :id)
 
     # Do we have it already?

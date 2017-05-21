@@ -32,38 +32,41 @@ defmodule CommandTest do
     assert ast_a.kind == coord_a.kind
   end
 
-  # test "converts a tool to a coodinate" do
-  #   use Amnesia
-  #   use ToolSlot
-  #   use Tool
-  #   x = 1
-  #   y = 2
-  #   z = 3
-  #   tool_slot = %ToolSlot{id: 503, tool_id: 97, name: "uh", x: 1, y: 2, z: 3}
-  #   |> ToolSlot.write
-  #
-  #   tool = %Tool{id: 97, name: "lazer"} |> Tool.write
-  #
-  #   # {tool_slot, tool}
-  #
-  #   ast = %Ast{kind: "tool", args: %{tool_id: 97}, body: []}
-  #   coord = Command.ast_to_coord(ast)
-  #   coord_x = coord.args.x
-  #   assert coord_x == x
-  #   assert coord_x == tool_slot.x
-  #
-  #   coord_z = coord.args.z
-  #   assert coord_z == z
-  #   assert coord_z == tool_slot.z
-  #
-  #   coord_y = coord.args.y
-  #   assert coord_y == y
-  #   assert coord_y == tool_slot.y
-  #
-  #   bad_tool = %Ast{kind: "tool", args: %{tool_id: 98}, body: []}
-  #   r = Command.ast_to_coord(bad_tool)
-  #   assert r == :error
-  # end
+  alias Farmbot.Context
+  alias Farmbot.Database
+  alias Database.Point
+  alias Farmbot.CeleryScript.Ast
+
+  test "converts a tool to a coordinate" do
+    ctx = Context.new()
+    {:ok, database} = Database.start_link(ctx, [])
+    ctx = %{ctx | database: database}
+
+    tool_id = 66
+
+    point = %Point{id: 6, x: 1, y: 2, z: 3, pointer_type: "tool_slot", tool_id: tool_id}
+
+    Database.commit_records point, ctx, Point
+
+    tool_ast              = %Ast{kind: "tool", args: %{tool_id: tool_id}, body: []}
+    new_context           = Command.ast_to_coord(ctx, tool_ast)
+    {coord, new_context2} = Context.pop_data(new_context)
+    assert coord.x == point.x
+    assert coord.y == point.y
+    assert coord.z == point.z
+  end
+
+  test "raises if there is no tool_slot or something" do
+    ctx        = Context.new()
+    {:ok, pid} = Database.start_link(ctx, [])
+
+    ctx = %{ctx | database: pid}
+
+    tool_ast              = %Ast{kind: "tool", args: %{tool_id: 905}, body: []}
+    assert_raise RuntimeError, "Could not find tool_slot with tool_id: 905", fn() ->
+      Command.ast_to_coord(ctx, tool_ast)
+    end
+  end
 
   test "gives the origin on nothing", %{cs_context: context} do
     nothing = %Ast{kind: "nothing", args: %{}, body: []}
