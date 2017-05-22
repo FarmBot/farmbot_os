@@ -126,10 +126,24 @@ defmodule Farmbot.Serial.Handler do
   """
   @spec emergency_unlock(Context.t) :: :ok | no_return
   def emergency_unlock(%Context{} = ctx)  do
-    if available?(ctx) do
+    # We check for aliveness here, not availableness.
+    if is_alive?(ctx) do
       GenServer.call(ctx.serial, :emergency_unlock)
     else
       {:error, :unavailable}
+    end
+  end
+
+  defp is_alive?(%Context{serial: serial}) when is_pid(serial) do
+    Process.alive?(serial)
+  end
+
+  defp is_alive?(%Context{serial: serial} = ctx) when is_atom(serial) do
+    pid = Process.whereis(serial)
+    if pid do
+      is_alive?(%{ctx | serial: pid})
+    else
+      false
     end
   end
 
@@ -172,14 +186,11 @@ defmodule Farmbot.Serial.Handler do
 
   def handle_call(:emergency_lock, _, state) do
     UART.write(state.nerves, "E")
-    current = state.current
-    if current do
-      Process.cancel_timer(current.timer)
-    end
+    status = handle_locked(state.current)
     next = %{state |
       current: nil,
       timeouts: 0,
-      status: :locked,
+      status: status,
       initialized: false
     }
     {:reply, :ok, next}
@@ -240,8 +251,7 @@ defmodule Farmbot.Serial.Handler do
       Logger.info "Initializing Firmware!"
       fn ->
         Process.sleep(2000)
-        ready = {:serial_ready, Context.new()}
-        GenServer.cast(state.context.hardware, ready)
+        GenServer.cast(state.context.hardware, {:serial_ready, state.context})
       end.()
       {:noreply, %{state | initialized: true, status: :idle}}
     else
@@ -253,10 +263,12 @@ defmodule Farmbot.Serial.Handler do
   def handle_info({:nerves_uart, _, str}, state) when is_binary(str) do
     debug_log "Reading: #{str}"
     try do
-      current = str
-        |> Parser.parse_code
-        |> do_handle(state.current, state.context)
-      {:noreply, %{state | current: current, status: current[:status] || :idle}}
+      case str |> Parser.parse_code |> do_handle(state.current, state.context) do
+        :locked ->
+          {:noreply, %{state | current: nil, status: :locked}}
+        current ->
+          {:noreply, %{state | current: current, status: current[:status] || :idle}}
+      end
     rescue
       e ->
         Logger.warn "Encountered an error handling: #{str}: #{inspect e}", rollbar: false
@@ -274,22 +286,31 @@ defmodule Farmbot.Serial.Handler do
     GenServer.stop(state.nerves, reason)
   end
 
-  @spec do_handle({binary, any}, map | nil, Context.t) :: map | nil
+  @spec do_handle({binary, any}, current | nil, Context.t) :: current | nil | :locked
   defp do_handle({_qcode, parsed}, current, %Context{} = ctx) when is_map(current) do
     results = handle_gcode(parsed, ctx)
     debug_log "Handling results: #{inspect results}"
     case results do
-      {:status, :done} -> handle_done(current)
-      {:status, :busy} -> handle_busy(current)
-      {:status, status} -> %{current | status: status}
-      {:reply, reply} -> %{current | reply: reply}
-      thing -> handle_other(thing, current)
+      {:status, :done}   -> handle_done(current)
+      {:status, :busy}   -> handle_busy(current)
+      {:status, :locked} -> handle_locked(current)
+      {:status, status}  -> %{current | status: status}
+      {:reply,  reply}   -> %{current | reply: reply}
+      thing              -> handle_other(thing, current)
     end
   end
 
   defp do_handle({_qcode, parsed}, nil, %Context{} = ctx) do
     handle_gcode(parsed, ctx)
     nil
+  end
+
+  @spec handle_locked(current) :: :locked
+  defp handle_locked(current) do
+    if current do
+      Process.cancel_timer(current.timer)
+    end
+    :locked
   end
 
   @spec handle_busy(current) :: current
@@ -318,6 +339,8 @@ defmodule Farmbot.Serial.Handler do
   defp generate_handshake, do: "Q#{:rand.uniform(99)}"
 
   @spec handle_gcode(any, Context.t) :: {:status, any} | {:reply, any} | nil
+
+  defp handle_gcode(:report_emergency_lock, %Context{} = _ctx), do: {:status, :locked}
   defp handle_gcode(:idle, %Context{} = _ctx), do: {:status, :idle}
 
   defp handle_gcode(:busy, %Context{} = _ctx) do

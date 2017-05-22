@@ -18,10 +18,14 @@ defmodule Farmbot.CeleryScript.Command.EmergencyLock do
     if Farmbot.BotState.locked?(context) do
       raise "Bot is already locked"
     else
-      Farmbot.BotState.set_sync_msg(context, :locked)
-      Farmbot.BotState.lock_bot(context)
-      Farmbot.Serial.Handler.emergency_lock(context)
+      do_lock(context)
     end
     context
+  end
+
+  defp do_lock(context) do
+    :ok = Farmbot.Serial.Handler.emergency_lock(context)
+    :ok = Farmbot.BotState.set_sync_msg(context, :locked)
+    :ok = Farmbot.BotState.lock_bot(context)
   end
 end

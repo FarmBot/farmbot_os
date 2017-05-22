@@ -10,8 +10,6 @@ defmodule Farmbot.System.Network do
   alias Farmbot.Auth
   alias Farmbot.Context
 
-  env = Mix.env()
-
   @type netman :: pid
 
   @spec mod(atom | binary | Context.t) :: atom
@@ -33,17 +31,20 @@ defmodule Farmbot.System.Network do
     spawn fn ->
       maybe_get_fpf(context)
     end
-
-    # FIXME(Connor) this is stupid
-    unless unquote(env) == :test do
-      Farmbot.Auth.try_log_in(context.auth)
-    end
+    maybe_log_in(context)
   end)
+
 
   defp parse_and_start_config(%Context{} = context, config, m) do
     for {interface, settings} <- config do
         m.start_interface(context, interface, settings)
     end
+  end
+
+
+  case Mix.env do
+    :test -> defp maybe_log_in(_ctx), do: :ok
+    _     -> defp maybe_log_in(ctx), do: Farmbot.Auth.try_log_in(ctx.auth)
   end
 
   @doc """
