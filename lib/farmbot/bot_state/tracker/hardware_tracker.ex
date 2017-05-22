@@ -4,7 +4,7 @@ defmodule Farmbot.BotState.Hardware do
   """
 
   require Logger
-  alias Farmbot.StateTracker
+  alias Farmbot.BotState.StateTracker
   alias Farmbot.CeleryScript.{Ast, Command}
 
   @behaviour StateTracker

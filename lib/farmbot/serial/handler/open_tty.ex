@@ -15,7 +15,13 @@ defmodule Farmbot.Serial.Handler.OpenTTY do
   end
 
   defp ensure_supervisor(sup) when is_pid(sup) do
-    if Process.alive?(sup), do: :ok, else: ensure_supervisor(sup)
+    if Process.alive?(sup) do
+      debug_log "Serial has a supervisor."
+      :ok
+    else
+      debug_log "Waiting for serial to find a supervisor."
+      ensure_supervisor(sup)
+    end
   end
 
   if Mix.Project.config[:target] != "host" do
@@ -28,12 +34,11 @@ defmodule Farmbot.Serial.Handler.OpenTTY do
       blah = ttys || UART.enumerate() |> Map.drop(["ttyS0","ttyAMA0"]) |> Map.keys
       case blah do
         [one_tty] ->
+          debug_log "trying to open: #{one_tty}"
           thing = {one_tty, [name: Farmbot.Serial.Handler]}
           try_open([thing], supervisor)
         ttys when is_list(ttys) ->
-          ttys
-          |> Enum.map(fn(device) -> {device, []} end)
-          |> try_open(supervisor)
+          raise "Too many ttys!"
       end
     end
   else

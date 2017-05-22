@@ -1,4 +1,4 @@
-defmodule Farmbot.StateTracker do
+defmodule Farmbot.BotState.StateTracker do
   @moduledoc """
     Common functionality for modules that need to track
     simple states that can be easily represented as a struct with key value

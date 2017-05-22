@@ -36,17 +36,14 @@ defmodule Farmbot do
       supervisor(Farmbot.BotState.Supervisor,
         [context, [name: Farmbot.BotState.Supervisor  ]], restart: :permanent),
 
-      supervisor(Farmbot.FarmEvent.Supervisor,
-        [context, [name: Farmbot.FarmEvent.Supervisor ]], restart: :permanent),
+      # supervisor(Farmbot.FarmEvent.Supervisor,
+      #   [context, [name: Farmbot.FarmEvent.Supervisor ]], restart: :permanent),
 
       supervisor(Farmbot.Transport.Supervisor,
         [context, [name: Farmbot.Transport.Supervisor ]], restart: :permanent),
 
-      supervisor(Farmware.Supervisor,
-        [context, [name: Farmware.Supervisor          ]], restart: :permanent),
-
-      worker(Farmbot.ImageWatcher,
-        [context, [name: Farmbot.ImageWatcher         ]], restart: :permanent),
+      # worker(Farmbot.ImageWatcher,
+        # [context, [name: Farmbot.ImageWatcher         ]], restart: :permanent),
 
       worker(Task, [Farmbot.Serial.Handler.OpenTTY, :open_ttys, [__MODULE__]],
         restart: :transient),

@@ -9,9 +9,9 @@ defmodule Farmbot.System.UeventHandler do
   @mountpath "/tmp/drive"
   @target Mix.Project.config[:target]
   @app Mix.Project.config[:app]
-
-  def start_link do
-    GenStage.start_link(__MODULE__, :ok, name: __MODULE__)
+  alias Farmbot.Context
+  def start_link(%Context{} = _ctx, _target, opts) do
+    GenStage.start_link(__MODULE__, :ok, opts)
   end
 
   def init(:ok) do

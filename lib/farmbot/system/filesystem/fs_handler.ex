@@ -6,9 +6,10 @@ defmodule Farmbot.System.FS do
   require Logger
   use GenStage
   @path Application.get_env(:farmbot, :path)
+  alias Farmbot.Context
 
-  def start_link(target),
-    do: GenStage.start_link(__MODULE__, target, name: __MODULE__)
+  def start_link(%Context{} = _ctx, target, opts),
+    do: GenStage.start_link(__MODULE__, target, opts)
 
   def init(target) do
     Logger.info ">> #{target} FileSystem Init"

@@ -23,7 +23,7 @@ defmodule Farmbot.Auth do
   @type public_key :: binary
 
   @typedoc false
-  @type auth :: pid
+  @type auth :: pid | atom
 
   @typedoc """
     Encrypted secret

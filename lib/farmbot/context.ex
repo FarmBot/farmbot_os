@@ -13,8 +13,8 @@ defmodule Farmbot.Context do
     :hardware,
     :monitor,
     :configuration,
-    :farmware_worker,
-    :farmware_tracker
+    :http,
+    :transport
   ]
 
   @enforce_keys modules
@@ -31,7 +31,7 @@ defmodule Farmbot.Context do
       if thing == default_context do
         "#Context<default>"
       else
-        "#Context<#{thing}>"
+        "#Context<#{inspect thing}>"
       end
     end
   end
@@ -58,26 +58,25 @@ defmodule Farmbot.Context do
   @type configuration :: Farmbot.BotState.Configuration.configuration
 
   @typedoc false
-  @type farmware_tracker :: Farmware.tracker
+  @type http :: Farmbot.HTTP.http
 
   @typedoc false
-  @type farmware_worker :: Farmware.worker
+  @type transport :: Farmbot.Transport.transport
 
   @typedoc """
     Stuff to be passed from one CS Node to another
   """
   @type t :: %__MODULE__{
-    database:        database,
-    auth:            auth,
-    network:         network,
-    serial:          serial,
-    configuration:   configuration,
-    monitor:         monitor,
-    hardware:        hardware,
-    farmware_worker: farmware_worker,
-    farmware_tracker: farmware_worker,
-
-    data_stack:    [Ast.t]
+    database:         database,
+    auth:             auth,
+    network:          network,
+    serial:           serial,
+    configuration:    configuration,
+    monitor:          monitor,
+    hardware:         hardware,
+    http:             http,
+    transport:        transport,
+    data_stack:       [Ast.t]
   }
 
   @spec push_data(t, Ast.t) :: t
@@ -99,15 +98,15 @@ defmodule Farmbot.Context do
   @spec new :: Ast.context
   def new do
     %__MODULE__{ data_stack: [],
-                 farmware_worker:  Farmware.Worker,
-                 farmware_tracker: Farmware.Tracker,
                  configuration:    Farmbot.BotState.Configuration,
+                 transport:        Farmbot.Transport,
                  hardware:         Farmbot.BotState.Hardware,
-                 monitor:          Farmbot.BotState.Monitor,
                  database:         Farmbot.Database,
+                 monitor:          Farmbot.BotState.Monitor,
                  network:          Farmbot.System.Network,
                  serial:           Farmbot.Serial.Handler,
                  auth:             Farmbot.Auth,
+                 http:             Farmbot.HTTP
     }
   end
 end

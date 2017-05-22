@@ -53,7 +53,7 @@ defmodule Redis.Server do
   @doc """
     Start the redis server.
   """
-  def start_link, do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link(_, opts), do: GenServer.start_link(__MODULE__, [], opts)
 
   def config_file do
     File.write("/tmp/redis.config", config(path: Farmbot.System.FS.path))

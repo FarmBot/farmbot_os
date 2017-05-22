@@ -14,23 +14,16 @@ defmodule Farmbot.BotState.Supervisor do
   def init(ctx) do
     children = [
       worker(Farmbot.BotState.Monitor,
-        [ctx, [name: Farmbot.BotState.Monitor]],
-        [restart: :permanent]),
+        [ctx, [name: Farmbot.BotState.Monitor]]),
 
       worker(Farmbot.BotState.Configuration,
-        [ctx, [name: Farmbot.BotState.Configuration]],
-        [restart: :permanent]),
+        [ctx, [name: Farmbot.BotState.Configuration]]),
 
       worker(Farmbot.BotState.Hardware,
-        [ctx, [name: Farmbot.BotState.Hardware]],
-        [restart: :permanent]),
-
-      worker(Farmbot.BotState.ProcessSupervisor,
-        [ctx, [name: Farmbot.BotState.ProcessSupervisor]],
-        [restart: :permanent]),
+        [ctx, [name: Farmbot.BotState.Hardware]]),
 
       worker(EasterEggs,
-        [name: EasterEggs], [restart: :permanent])
+        [name: EasterEggs])
     ]
 
     opts = [strategy: :one_for_one]

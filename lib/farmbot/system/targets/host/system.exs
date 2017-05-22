@@ -2,8 +2,6 @@ defmodule Module.concat([Farmbot,System,"host"]) do
   @moduledoc false
   @behaviour Farmbot.System
 
-  require IEx
-
   def reboot, do: :ok
   def power_off, do: :ok
 

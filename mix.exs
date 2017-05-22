@@ -99,7 +99,8 @@ defmodule Farmbot.Mixfile do
       :timex, # Timex needs to start AFTER farmbot, so we can set up its dirs,
       :inets,
       :redix,
-      :eex
+      :eex,
+      # :system_registry
    ]
   end
 
@@ -179,7 +180,8 @@ defmodule Farmbot.Mixfile do
       {:farmbot_simulator, github: "farmbot-labs/farmbot_simulator", only: [:test, :dev]},
 
       {:tzdata, "~> 0.1.201601", override: true},
-      {:fs, "~> 0.9.1"}
+      {:fs, "~> 0.9.1"},
+      # {:system_registry, "~> 0.1"}
     ]
   end
 

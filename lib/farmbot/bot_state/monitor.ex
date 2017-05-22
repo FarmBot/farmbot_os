@@ -1,6 +1,5 @@
 alias Farmbot.BotState.Hardware.State,      as: Hardware
 alias Farmbot.BotState.Configuration.State, as: Configuration
-alias Farmbot.BotState.ProcessTracker, as: PT
 defmodule Farmbot.BotState.Monitor do
   @moduledoc """
     this is the master state tracker. It receives the states from
@@ -16,13 +15,11 @@ defmodule Farmbot.BotState.Monitor do
       context:       Context.t,
       hardware:      Hardware.t,
       configuration: Configuration.t,
-      process_info: PT.t
     }
     defstruct [
       context:       nil,
       hardware:      %Hardware{},
       configuration: %Configuration{},
-      process_info:  %PT.State{}
     ]
   end
 
@@ -47,20 +44,9 @@ defmodule Farmbot.BotState.Monitor do
     dispatch(new_state)
   end
 
-  def handle_cast(%PT.State{} = new_things, %State{} = old_state) do
-    new_state = %State{old_state | process_info: new_things}
-    dispatch(new_state)
-  end
-
   @spec dispatch(State.t) :: {:noreply, [], State.t }
   defp dispatch(%State{} = new_state) do
     GenStage.async_notify(new_state.context.monitor, new_state)
     {:noreply, [], new_state}
   end
-  #
-  # @spec dispatch(any, State.t) :: {:reply, any, [], State.t }
-  # defp dispatch(reply, new_state) do
-  #   GenStage.async_notify(new_state.context.monitor, new_state)
-  #   {:reply, reply, [], new_state}
-  # end
 end

@@ -14,12 +14,20 @@ defmodule Farmbot.System.Network do
 
   @spec mod(atom | binary | Context.t) :: atom
   defp mod(%Context{} = context), do: mod(context.network)
-  defp mod(target) when is_atom(target) or is_binary(target), do: Module.concat([Farmbot, System, target, Network])
+  defp mod(target) when is_atom(target) or is_binary(target),
+    do: Module.concat([Farmbot, System, target, Network])
+
+  @doc """
+    Starts the network manager
+  """
+  def start_link(%Context{} = context, target, opts) do
+    GenServer.start_link(__MODULE__, [context, target], opts)
+  end
 
   def init([%Context{} = context, target]) do
     Logger.info ">> is starting networking"
     m = mod(target)
-    {:ok, _cb} = m.start_link
+    {:ok, _cb} = m.start_link(context)
     {:ok, interface_config} = get_config("interfaces")
     parse_and_start_config(context, interface_config, m)
     {:ok, %{context: context, target: target}}
@@ -43,13 +51,6 @@ defmodule Farmbot.System.Network do
   case Mix.env do
     :test -> defp maybe_log_in(_ctx), do: :ok
     _     -> defp maybe_log_in(ctx), do: Farmbot.Auth.try_log_in(ctx.auth)
-  end
-
-  @doc """
-    Starts the network manager
-  """
-  def start_link(%Context{} = context, target, opts) do
-    GenServer.start_link(__MODULE__, [context, target], opts)
   end
 
   @doc """
@@ -172,7 +173,7 @@ defmodule Farmbot.System.Network do
     callback module.
   """
   def on_connect(context, pre_fun \\ nil, post_fun \\ nil)
-  def on_connect(context, pre_fun, post_fun) do
+  def on_connect(%Context{} = context, pre_fun, post_fun) do
     # Start the Downloader http client.
     Supervisor.start_child(Farmbot.System.Supervisor,
       Supervisor.Spec.worker(Downloader, [], [restart: :permanent]))
@@ -242,32 +243,32 @@ defmodule Farmbot.System.Network do
   def handle_call(:get_context, _, state), do: {:reply, state.context, state}
 
   def handle_call(:get_mod, _, state), do: {:reply, state.target, state}
-  def handle_call({:scan, interface_name}, _, target) do
-     f = mod(target).scan(interface_name)
-     {:reply, f, target}
+  def handle_call({:scan, interface_name}, _, state) do
+     f = mod(state.target).scan(state.context, interface_name)
+     {:reply, f, state}
   end
 
-  def handle_call(:enumerate, _, target) do
-    f = mod(target).enumerate
-    {:reply, f, target}
+  def handle_call(:enumerate, _, state) do
+    f = mod(state.target).enumerate(state.context)
+    {:reply, f, state}
   end
 
-  def handle_call({:start, interface, settings}, _, target) do
-    f = mod(target).start_interface(interface, settings)
-    {:reply, f, target}
+  def handle_call({:start, interface, settings}, _, state) do
+    f = mod(state.target).start_interface(state.context, interface, settings)
+    {:reply, f, state}
   end
 
-  def handle_call({:stop, interface}, _, target) do
-    f = mod(target).stop_interface(interface)
-    {:reply, f, target}
+  def handle_call({:stop, interface}, _, state) do
+    f = mod(state.target).stop_interface(state.context, interface)
+    {:reply, f, state}
   end
 
-  def terminate(reason, target) do
+  def terminate(reason, state) do
     ssh_pid = Process.whereis(SSH)
     if ssh_pid do
        SSH.stop(reason)
     end
-    target_pid = Process.whereis(mod(target))
+    target_pid = Process.whereis(mod(state.target))
     if target_pid do
       GenServer.stop(target_pid, reason)
     end
@@ -275,9 +276,9 @@ defmodule Farmbot.System.Network do
 
   # Behavior
   @type return_type :: :ok | {:error, term}
-  @callback scan(binary) :: [binary] | {:error, term}
-  @callback enumerate() :: [binary] | {:error, term}
-  @callback start_interface(binary, map) :: return_type
-  @callback stop_interface(binary) :: return_type
-  @callback start_link :: {:ok, pid}
+  @callback scan(Context.t, binary) :: [binary] | {:error, term}
+  @callback enumerate(Context.t) :: [binary] | {:error, term}
+  @callback start_interface(Context.t, binary, map) :: return_type
+  @callback stop_interface(Context.t, binary) :: return_type
+  @callback start_link(Context.t) :: {:ok, pid}
 end

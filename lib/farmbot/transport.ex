@@ -1,4 +1,3 @@
-alias Farmbot.BotState.Monitor
 alias Farmbot.BotState.Monitor.State, as: MonState
 defmodule Farmbot.Transport do
   @moduledoc """
@@ -7,6 +6,7 @@ defmodule Farmbot.Transport do
   use GenStage
   require Logger
   use Farmbot.DebugLog
+  alias Farmbot.Context
 
   # The max number of state updates before we force one
   @max_inactive_count 100
@@ -33,20 +33,21 @@ defmodule Farmbot.Transport do
       user_env: map}
   end
 
-  def start_link(context, opts), do: GenStage.start_link(__MODULE__, [context], opts)
+  def start_link(%Context{} = ctx, opts) do
+    GenStage.start_link(__MODULE__, [ctx], opts)
+  end
 
-  def init(_context),
-    do: {:producer_consumer, {%Serialized{}, 0}, subscribe_to: [Monitor]}
+  def init([context]) do
+    context = %{context | transport: self()}
+    {:producer_consumer, {%Serialized{}, 0, context}, subscribe_to: [context.monitor]}
+  end
 
-  def handle_call(:force_state_push, _from, {status, _}) do
-    GenStage.async_notify(__MODULE__, {:status, status})
-    {:reply, status, [], {status, 0}}
+  def handle_call(:force_state_push, _from, {status, _, context}) do
+    GenStage.async_notify(context.transport, {:status, status})
+    {:reply, status, [], {status, 0, context}}
   end
 
   def handle_events(events, _from, state) do
-    for event <- events do
-      Logger.info "#{__MODULE__} got event: #{inspect event} "
-    end
     {:noreply, events, state}
   end
 
@@ -63,36 +64,37 @@ defmodule Farmbot.Transport do
       informational_settings:
         monstate.configuration.informational_settings,
       process_info:
-        monstate.process_info,
+        # monstate.process_info,
+        %{},
       user_env:
         monstate.configuration.configuration.user_env
     }
   end
 
   # Emit a message
-  def handle_cast({:emit, thing}, state) do
+  def handle_cast({:emit, thing}, {_status, _count, context} = state) do
     # don't Logger this because it will infinate loop.
     # just trust me.
     # logging a message here would cause logger to log a message, which
     # causes a state send which would then emit a message...
     debug_log "emmitting: #{inspect thing}"
-    GenStage.async_notify(__MODULE__, {:emit, thing})
+    GenStage.async_notify(context.transport, {:emit, thing})
     {:noreply, [], state}
   end
 
   # Emit a log message
-  def handle_cast({:log, log}, state) do
-    GenStage.async_notify(__MODULE__, {:log, log})
+  def handle_cast({:log, log}, {_status, _count, context} = state) do
+    GenStage.async_notify(context.transport, {:log, log})
     {:noreply, [], state}
   end
 
-  def handle_info({_from, %MonState{} = monstate}, {old_status, count}) do
+  def handle_info({_from, %MonState{} = monstate}, {old_status, count, context}) do
     new_status = translate(monstate)
     if (old_status == new_status) && (count < @max_inactive_count) do
       {:noreply, [], {old_status, count + 1}}
     else
-      GenStage.async_notify(__MODULE__, {:status, new_status})
-      {:noreply, [], {new_status, 0}}
+      GenStage.async_notify(context.transport, {:status, new_status})
+      {:noreply, [], {new_status, 0, context}}
     end
   end
 
@@ -101,18 +103,18 @@ defmodule Farmbot.Transport do
   @doc """
     Emit a message over all transports
   """
-  @spec emit(any) :: no_return
-  def emit(message), do: GenStage.cast(__MODULE__, {:emit, message})
+  @spec emit(Context.t, term) :: :ok
+  def emit(%Context{} = ctx, message), do: GenStage.cast(ctx.transport, {:emit, message})
 
   @doc """
     Log a log message over all transports
   """
-  @spec log(any) :: no_return
-  def log(message), do: GenStage.cast(__MODULE__, {:log, message})
+  @spec log(Context.t, term) :: :ok
+  def log(%Context{} = ctx, message), do: GenStage.cast(ctx.transport, {:log, message})
 
   @doc """
     Force a state push
   """
-  @spec force_state_push :: State.t
-  def force_state_push, do: GenServer.call(__MODULE__, :force_state_push)
+  @spec force_state_push(Context.t) :: State.t
+  def force_state_push(%Context{} = ctx), do: GenServer.call(ctx.transport, :force_state_push)
 end

@@ -179,7 +179,6 @@ defmodule Logger.Backends.FarmbotLogger do
     :"Elixir.Nerves.NetworkInterface.Worker",
     :"Elixir.Nerves.InterimWiFi.DHCPManager.EventHandler",
     :"Elixir.Nerves.WpaSupplicant",
-    :"Elixir.Farmbot.System.NervesCommon.EventManager",
   ]
 
   for module <- @modules, do: defp filter_module(_, unquote(module)), do: @filtered

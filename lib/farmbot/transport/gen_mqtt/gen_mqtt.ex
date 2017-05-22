@@ -8,31 +8,29 @@ defmodule Farmbot.Transport.GenMqtt do
   require Logger
   alias Farmbot.Token
   alias Farmbot.Context
+  use Farmbot.DebugLog
 
   @type state :: {pid | nil, Token.t | nil}
 
   @doc """
     Starts the handler that watches the mqtt client
   """
-  @spec start_link(Context.t, [{atom, any}]) :: {:ok, pid}
-  def start_link(context, opts \\ []),
-    do: GenStage.start_link(__MODULE__, {nil, nil, context}, opts)
+  def start_link(%Context{} = ctx, opts),
+    do: GenStage.start_link(__MODULE__, {nil, nil, ctx}, opts)
 
-  @spec init(state) :: {:consumer, state, subscribe_to: [Farmbot.Transport]}
   def init(initial) do
+    debug_log "Starting mqtt"
     {_, _, context} = initial
     Registry.register(Farmbot.Registry, Farmbot.Auth, [])
-    case Farmbot.Auth.get_token(context.auth) do
+    maybe_token = Farmbot.Auth.get_token(context.auth)
+    debug_log "checking for old token"
+    case maybe_token do
       {:ok, %Token{} = t} ->
         {:ok, pid} = start_client(context, t)
-        {:consumer, {pid, t, context}, subscribe_to: [Farmbot.Transport]}
+        {:consumer, {pid, t, context}, subscribe_to: [context.transport]}
       _ ->
-      {:consumer, initial, subscribe_to: [Farmbot.Transport]}
+      {:consumer, initial, subscribe_to: [context.transport]}
     end
-  end
-
-  def terminate(_reason, _state) do
-    :ok
   end
 
   def handle_events(events, _, {_client, %Token{} = _, _context} = state) do

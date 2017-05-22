@@ -5,7 +5,7 @@ defmodule Farmbot.BotState.Configuration do
 
   use GenServer
   require Logger
-  alias Farmbot.StateTracker
+  alias Farmbot.BotState.StateTracker
   @behaviour StateTracker
 
   use StateTracker,
