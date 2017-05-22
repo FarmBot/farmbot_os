@@ -8,7 +8,8 @@ defmodule Farmbot.Context.Tracker do
   @doc "Gets current context"
   def get_context(tracker), do: GenServer.call(tracker, :get_context)
 
-  modules  = Context.new() |> Map.from_struct |> Map.delete(:data_stack) |> Map.keys
+  modules =
+    Context.new() |> Map.from_struct |> Map.delete(:data_stack) |> Map.keys
 
   for module <- modules do
 

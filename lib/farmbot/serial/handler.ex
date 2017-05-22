@@ -262,19 +262,19 @@ defmodule Farmbot.Serial.Handler do
     end
   end
 
-  def handle_info({:nerves_uart, _, str}, state) when is_binary(str) do
+  def handle_info({:nerves_uart, _, str}, s) when is_binary(str) do
     debug_log "Reading: #{str}"
     try do
-      case str |> Parser.parse_code |> do_handle(state.current, state.context) do
+      case str |> Parser.parse_code |> do_handle(s.current, s.context) do
         :locked ->
-          {:noreply, %{state | current: nil, status: :locked}}
+          {:noreply, %{s | current: nil, status: :locked}}
         current ->
-          {:noreply, %{state | current: current, status: current[:status] || :idle}}
+          {:noreply, %{s | current: current, status: current[:status] || :idle}}
       end
     rescue
       e ->
         Logger.warn "Encountered an error handling: #{str}: #{inspect e}", rollbar: false
-        {:noreply, state}
+        {:noreply, s}
     end
   end
 
@@ -288,8 +288,10 @@ defmodule Farmbot.Serial.Handler do
     GenServer.stop(state.nerves, reason)
   end
 
-  @spec do_handle({binary, any}, current | nil, Context.t) :: current | nil | :locked
-  defp do_handle({_qcode, parsed}, current, %Context{} = ctx) when is_map(current) do
+  @spec do_handle({binary, any}, current | nil, Context.t)
+    :: current | nil | :locked
+  defp do_handle({_qcode, parsed}, current, %Context{} = ctx)
+  when is_map(current) do
     results = handle_gcode(parsed, ctx)
     debug_log "Handling results: #{inspect results}"
     case results do
