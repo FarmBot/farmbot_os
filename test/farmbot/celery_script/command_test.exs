@@ -1,6 +1,7 @@
 defmodule CommandTest do
   use ExUnit.Case, async: false
   alias Farmbot.CeleryScript.{Command, Ast}
+  import Mock
 
   setup_all do
     [cs_context: Farmbot.Context.new()]
@@ -19,6 +20,23 @@ defmodule CommandTest do
     end
   end
 
+  test "rescues from bad things", %{cs_context: context} do
+    with_mock Farmbot.CeleryScript.Command.Nothing, [run: fn(_,_,_) ->
+      raise "Mucking About with Mocks"
+    end] do
+      assert_raise RuntimeError, fn() ->
+        nothing_ast = %Ast{kind: "nothing", args: %{}, body: [], comment: "hey!"}
+        Command.do_command(nothing_ast, context)
+      end
+    end
+  end
+
+  test "cant execute random data that is not a cs node", %{cs_context: context} do
+    assert_raise RuntimeError, fn() ->
+      Command.do_command("shut the door its cold in here!", context)
+    end
+  end
+
   test "converts a coordinate to coordinates", %{cs_context: context} do
     # a coordinate is already a coordinate
     ast_a   = %Ast{kind: "coordinate", args: %{x: 1, y: 1, z: 1}, body: []}
@@ -32,38 +50,41 @@ defmodule CommandTest do
     assert ast_a.kind == coord_a.kind
   end
 
-  # test "converts a tool to a coodinate" do
-  #   use Amnesia
-  #   use ToolSlot
-  #   use Tool
-  #   x = 1
-  #   y = 2
-  #   z = 3
-  #   tool_slot = %ToolSlot{id: 503, tool_id: 97, name: "uh", x: 1, y: 2, z: 3}
-  #   |> ToolSlot.write
-  #
-  #   tool = %Tool{id: 97, name: "lazer"} |> Tool.write
-  #
-  #   # {tool_slot, tool}
-  #
-  #   ast = %Ast{kind: "tool", args: %{tool_id: 97}, body: []}
-  #   coord = Command.ast_to_coord(ast)
-  #   coord_x = coord.args.x
-  #   assert coord_x == x
-  #   assert coord_x == tool_slot.x
-  #
-  #   coord_z = coord.args.z
-  #   assert coord_z == z
-  #   assert coord_z == tool_slot.z
-  #
-  #   coord_y = coord.args.y
-  #   assert coord_y == y
-  #   assert coord_y == tool_slot.y
-  #
-  #   bad_tool = %Ast{kind: "tool", args: %{tool_id: 98}, body: []}
-  #   r = Command.ast_to_coord(bad_tool)
-  #   assert r == :error
-  # end
+  alias Farmbot.Context
+  alias Farmbot.Database
+  alias Database.Syncable.Point
+  alias Farmbot.CeleryScript.Ast
+
+  test "converts a tool to a coordinate" do
+    ctx = Context.new()
+    {:ok, database} = Database.start_link(ctx, [])
+    ctx = %{ctx | database: database}
+
+    tool_id = 66
+
+    point = %Point{id: 6, x: 1, y: 2, z: 3, pointer_type: "tool_slot", tool_id: tool_id}
+
+    Database.commit_records point, ctx, Point
+
+    tool_ast              = %Ast{kind: "tool", args: %{tool_id: tool_id}, body: []}
+    new_context           = Command.ast_to_coord(ctx, tool_ast)
+    {coord, _new_context2} = Context.pop_data(new_context)
+    assert coord.args.x == point.x
+    assert coord.args.y == point.y
+    assert coord.args.z == point.z
+  end
+
+  test "raises if there is no tool_slot or something" do
+    ctx        = Context.new()
+    {:ok, pid} = Database.start_link(ctx, [])
+
+    ctx = %{ctx | database: pid}
+
+    tool_ast              = %Ast{kind: "tool", args: %{tool_id: 905}, body: []}
+    assert_raise RuntimeError, "Could not find tool_slot with tool_id: 905", fn() ->
+      Command.ast_to_coord(ctx, tool_ast)
+    end
+  end
 
   test "gives the origin on nothing", %{cs_context: context} do
     nothing = %Ast{kind: "nothing", args: %{}, body: []}

@@ -5,16 +5,22 @@ defmodule Farmbot.Transport.Supervisor do
   use Supervisor
   alias Farmbot.Context
 
-  env = Mix.env()
+  case Mix.env do
+    :test ->
+      defp setup_env do
+        Mix.shell.info [:green, "Deleting environment!!!!!!"]
+        Application.delete_env(:farmbot, :transports)
+        Application.put_env(:farmbot, :transports, [])
+        :ok
+      end
+    _ ->
+      defp setup_env do
+        :ok
+      end
+  end
 
   def init(context) do
-
-    if unquote(env) == :test do
-      Mix.shell.info [:green, "Deleting environment!!!!!!"]
-      Application.delete_env(:farmbot, :transports)
-      Application.put_env(:farmbot, :transports, [])
-    end
-
+    :ok = setup_env()
     transports = Application.get_env(:farmbot, :transports)
     children   = build_children(transports, context)
     opts       = [strategy: :one_for_one]
@@ -24,8 +30,8 @@ defmodule Farmbot.Transport.Supervisor do
   @doc """
     Starts all the transports.
   """
-  def start_link(context, opts),
-    do: Supervisor.start_link(__MODULE__, context, opts)
+  def start_link(%Context{} = ctx, opts),
+    do: Supervisor.start_link(__MODULE__, ctx, opts)
 
   @spec build_children([atom], Context.t) :: [Supervisor.child]
   defp build_children(transports, %Context{} = context) do

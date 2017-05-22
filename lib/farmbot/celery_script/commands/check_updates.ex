@@ -17,14 +17,13 @@ defmodule Farmbot.CeleryScript.Command.CheckUpdates do
   def run(%{package: package}, [], context) do
     case package do
       "arduino_firmware" ->
-        Logger.warn "Arduino Firmware is now coupled to farmbot_os and can't " <>
-        "updated individually.", channels: :toast
+        raise "arduino firmware is now bundled into the OS."
+
       "farmbot_os" ->
         Farmbot.System.Updates.check_and_download_updates()
 
-      u -> Logger.info ">> got a request to check updates for an " <>
-        "unrecognized package: #{u}"
-      context
+      u -> raise("unknown package: #{u}")
     end
+    context
   end
 end
