@@ -7,7 +7,6 @@ defmodule Farmbot.DatabaseTest do
   alias Farmbot.Context
   alias DB.Syncable.Point
   use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
-  require IEx
 
   setup_all do
     ctx = Context.new()

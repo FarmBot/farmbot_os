@@ -73,16 +73,19 @@ defmodule Farmbot.Database do
   @doc """
     Sync up with the API.
   """
-  @spec sync(Context.t) :: no_return
+  @spec sync(Context.t) :: :ok | no_return
   def sync(%Context{} = ctx) do
     Farmbot.BotState.set_sync_msg(ctx, :syncing)
     try do
       for module_name <- all_syncable_modules() do
         # see: `syncable.ex`. This is some macro magic.
-        debug_log "Syncing: #{module_name}"
-        module_name.fetch({__MODULE__, :commit_records,  [ctx, module_name]})
+        debug_log "#{module_name} Sync begin."
+        :ok = module_name.fetch({__MODULE__, :commit_records,  [ctx, module_name]})
+        debug_log "#{module_name} Sync finish."
+        :ok
       end
       Farmbot.BotState.set_sync_msg(ctx, :synced)
+      :ok
     rescue
       e ->
         Logger.info ">> Encountered error syncing, #{inspect e}", type: :error
@@ -106,7 +109,8 @@ defmodule Farmbot.Database do
     :ok
   end
 
-  def commit_records(record, %Context{} = ctx, _mod_name) when is_map(record) do
+  def commit_records(record, %Context{} = ctx, mod_name) when is_map(record) do
+    debug_log "DB doing commit_record [#{mod_name}]"
     GenServer.call(ctx.database, {:update_or_create, record})
   end
 
