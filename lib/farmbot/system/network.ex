@@ -34,13 +34,11 @@ defmodule Farmbot.System.Network do
     maybe_log_in(context)
   end)
 
-
   defp parse_and_start_config(%Context{} = context, config, m) do
     for {interface, settings} <- config do
         m.start_interface(context, interface, settings)
     end
   end
-
 
   case Mix.env do
     :test -> defp maybe_log_in(_ctx), do: :ok

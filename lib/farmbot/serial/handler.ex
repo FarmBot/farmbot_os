@@ -101,7 +101,8 @@ defmodule Farmbot.Serial.Handler do
   """
   @spec write(Context.t, binary, integer) :: binary | {:error, atom}
   def write(context, string, timeout \\ @default_timeout_ms)
-  def write(%Context{} = ctx, str, timeout) when is_binary(str) and is_number(timeout) do
+  def write(%Context{} = ctx, str, timeout)
+  when is_binary(str) and is_number(timeout) do
     if available?(ctx) do
       GenServer.call(ctx.serial, {:write, str, timeout}, :infinity)
     else
@@ -204,7 +205,8 @@ defmodule Farmbot.Serial.Handler do
 
   def handle_call(:available?, _, state), do: {:reply, state.initialized, state}
 
-  def handle_call({:write, str, timeout}, from, %{status: :idle} = state) when is_binary(str) do
+  def handle_call({:write, str, timeout}, from, %{status: :idle} = state)
+  when is_binary(str) do
     handshake = generate_handshake()
     writeme =  "#{str} #{handshake}"
     debug_log "writing: #{writeme}"
