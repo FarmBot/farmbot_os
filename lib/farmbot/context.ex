@@ -18,23 +18,33 @@ defmodule Farmbot.Context do
   ]
 
   @enforce_keys modules
-  defstruct [ {:data_stack, []} | modules ]
+  keys = [{:data_stack, []}, :ref]
+  defstruct Enum.concat(keys, modules)
 
-  defimpl Inspect, for: __MODULE__ do
-    def inspect(thing, _) do
-      default_context =
-        Farmbot.Context.new()
-        |> Map.from_struct
-        |> Map.delete(:data_stack)
-
-      thing = thing |> Map.from_struct() |> Map.delete(:data_stack)
-      if thing == default_context do
-        "#Context<default>"
-      else
-        "#Context<special>"
-      end
+  defmacro __using__(_) do
+    quote do
+      alias Farmbot.Context
+      alias Farmbot.Context.Tracker
     end
   end
+
+  defimpl Inspect, for: __MODULE__ do
+    def inspect(%{ref: ref}, _) when is_reference(ref) do
+      "#Reference<" <> rest = inspect ref
+      info = String.trim(rest, ">")
+      "#Context<#{info}>"
+    end
+
+    def inspect(_,_) do
+      "#Context<:invalid>"
+    end
+  end
+
+  @behaviour Access
+  def fetch(%__MODULE__{} = ctx, key), do: Map.fetch(ctx, key)
+  def get(%__MODULE__{} = ctx, key, _default), do: Map.fetch(ctx, key)
+  def get_and_update(%__MODULE__{}, _, _), do: raise "Cant update #{__MODULE__} struct!"
+  def pop(%__MODULE__{}, _), do: raise "Cant pop #{__MODULE__} struct!"
 
   @typedoc false
   @type database      :: Farmbot.Database.database
@@ -76,6 +86,7 @@ defmodule Farmbot.Context do
     hardware:         hardware,
     http:             http,
     transport:        transport,
+    ref:              reference,
     data_stack:       [Ast.t]
   }
 
@@ -98,6 +109,7 @@ defmodule Farmbot.Context do
   @spec new :: Ast.context
   def new do
     %__MODULE__{ data_stack: [],
+                 ref:        make_ref(),
                  configuration:    Farmbot.BotState.Configuration,
                  transport:        Farmbot.Transport,
                  hardware:         Farmbot.BotState.Hardware,

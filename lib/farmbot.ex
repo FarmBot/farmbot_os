@@ -21,9 +21,14 @@ defmodule Farmbot do
 
   def init(_args) do
     context = Farmbot.Context.new()
+    # ctx_tracker = %Farmbot.Context.Tracker{pid: Farmbot.Context.Tracker}
     children = [
       worker(Farmbot.DebugLog, [], restart: :permanent),
       supervisor(Registry,     [:duplicate,  Farmbot.Registry]),
+
+      worker(Farmbot.Context.Tracker,
+        [context, [name: Farmbot.Context.Tracker     ]], restart: :permanent),
+
       supervisor(FBSYS,
         [context, [name: FBSYS                        ]], restart: :permanent),
 
