@@ -60,7 +60,7 @@ defmodule Farmbot.HTTP do
         _ -> nil
       end
     state = %{
-      context: ctx,
+      context: %{ctx | http: self()},
       token:   maybe_token,
       requests: %{}
     }
@@ -72,61 +72,66 @@ defmodule Farmbot.HTTP do
       status_code: nil,
       body: "",
       headers: [],
-      redirects: 0
     }
   end
 
-  def handle_call({:request, method, url, body, headers, opts} = request, from, state) do
+  defp create_request({:request, method, url, body, headers, opts} = request, from, state) do
     {save_to_file, opts} = Keyword.pop(opts, :to_file, false)
-    new_opts = Keyword.put(opts, :stream_to, self())
+    new_opts = Keyword.put(opts, :stream_to, state.context.http)
     options = Keyword.merge(@http_config, new_opts)
     %AsyncResponse{id: ref} = HTTPoison.request!(method, url, body, headers, options)
     r_map = {from, request, empty_request()}
     requests = Map.put(state.requests, ref, r_map)
-    {:noreply, %{state | requests: requests}}
+    debug_log "Creating request: #{inspect ref}"
+    %{state | requests: requests}
+  end
+
+  def handle_call({:request, method, url, body, headers, opts} = request, from, state) do
+    new_state = create_request(request, from, state)
+    {:noreply, new_state}
   end
 
   def handle_info(%AsyncStatus{id: ref, code: code}, state) do
-    request = state[ref]
+    request = state.requests[ref]
     case request do
       {_from, _request, map} ->
-        new_request = %{request | status_code: code}
+        new_request = %{map | status_code: code}
         new_requests = %{state.requests | ref => new_request}
         %{state | requests: new_requests}
       _ ->
-        debug_log "Unrecognized ref: #{inspect ref}"
+        debug_log "Unrecognized ref (Status): #{inspect ref}"
         {:noreply, state}
     end
   end
 
   def handle_info(%AsyncHeaders{id: ref, headers: headers}, state) do
-    request = state[ref]
+    request = state.requests[ref]
     case request do
       {_from, _request, map} ->
         new_request  = %{request | headers: headers}
         new_requests = %{state.requests | ref => new_request}
         %{state | requests: new_requests}
       _ ->
-        debug_log "Unrecognized ref: #{inspect ref}"
+        debug_log "Unrecognized ref (Headers): #{inspect ref}"
         {:noreply, state}
     end
   end
 
   def handle_info(%AsyncChunk{id: ref, chunk: chunk}, state) do
-    request = state[ref]
+    request = state.requests[ref]
     case request do
       {_from, _request, map} ->
         new_request = %{request | body: request.body <> chunk}
         new_requests = %{state.requests | ref => new_request}
         %{state | requests: new_requests}
       _ ->
-        debug_log "Unrecognized ref: #{inspect ref}"
+        debug_log "Unrecognized ref (Chunk): #{inspect ref}"
         {:noreply, state}
     end
   end
 
   def handle_info(%AsyncEnd{id: ref}     = info, state) do
-    request = state[ref]
+    request = state.requests[ref]
     case request do
       {from, _request, %{
         status_code: code,
@@ -143,30 +148,33 @@ defmodule Farmbot.HTTP do
         new_requests = Map.delete(state.requests, ref)
         {:noreply, %{state | requests: new_requests}}
       _ ->
-        debug_log "Unrecognized ref: #{inspect ref}"
+        debug_log "Unrecognized ref (End): #{inspect ref}"
         {:noreply, state}
     end
   end
 
-  def handle_info(%AsyncRedirect{id: ref} = red, state) do
-    request = state[ref]
+  def handle_info(%AsyncRedirect{id: ref, to: new_url} = red, state) do
+    request = state.requests[ref]
     case request do
-      {from, _request, %{
-        status_code: code,
-        headers: headers,
-        body: body
+      {from, {:request, method, _url, body, headers, opts},
+      %{
+        status_code: _code,
+        headers: _headers,
+        body: _body
       }} ->
-        debug_log "#{inspect ref} following redirect"
-        reply = %Response{
-          status_code: code,
-          headers: headers,
-          body: body
-        }
-        GenServer.reply(from, reply)
-        new_requests = Map.delete(state.requests, ref)
-        {:noreply, %{state | requests: new_requests}}
+
+        # require IEx
+        # IEx.pry
+
+        debug_log "Following redirect #{inspect ref}"
+        new_request  = {:request, method, new_url, body, headers, opts}
+        new_requests = state.requests |> Map.delete(ref)
+        new_state    = %{state | requests: new_requests}
+        new_state_1  = create_request(new_request, from, state)
+        debug_log "new_state1: #{inspect new_state_1}"
+        {:noreply, new_state_1}
       _ ->
-        debug_log "Unrecognized ref: #{inspect ref}"
+        debug_log "Unrecognized ref (Redirect): #{inspect ref}"
         {:noreply, state}
     end
   end
