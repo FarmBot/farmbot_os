@@ -1,3 +1,125 @@
+defmodule Farmbot.Test.HTTPHelper do
+  alias HTTPoison.{Response,
+    AsyncResponse,
+    AsyncChunk,
+    AsyncStatus,
+    AsyncHeaders,
+    AsyncEnd,
+    # Error,
+    # AsyncRedirect
+  }
+  import Mock
+
+  defmodule FakeAsync do
+
+    defp ensure_mock(%{headers: _header, body: _body, status_code: _code}), do: :ok
+    defp ensure_mock(_), do: raise "mock is invalid, please supply: [:headers, :body, :code]"
+
+    def do_fake_request({_method, _url, _body, _headers, _options} = request, mock) do
+      ensure_mock(mock)
+      ref = make_ref()
+      spawn __MODULE__, :stage_one, [request, ref, mock]
+      %AsyncResponse{id: ref}
+    end
+
+    def stage_one({_method, _url, _body, _headers, options} = request, ref, mock) do
+      s2  = Keyword.fetch!(options, :stream_to)
+      code = mock.status_code
+      msg = %AsyncStatus{id: ref, code: code}
+      send s2, msg
+      stage_two(request, ref, mock)
+    end
+
+    def stage_two({_method, _url, _body, _headers, options} = request, ref, mock) do
+      s2  = Keyword.fetch!(options, :stream_to)
+      headers = mock.headers
+      msg = %AsyncHeaders{headers: headers, id: ref}
+      send s2, msg
+      stage_three(request, ref, mock)
+    end
+
+    def stage_three({_method, _url, _body, _headers, options} = request, ref, mock) do
+      body = mock.body
+      s2  = Keyword.fetch!(options, :stream_to)
+      msg = %AsyncChunk{chunk: body, id: ref}
+      send s2, msg
+      stage_four(request, ref, mock)
+    end
+
+    def stage_four({_method, _url, _body, _headers, options}, ref, _mock) do
+      s2  = Keyword.fetch!(options, :stream_to)
+      msg = %AsyncEnd{id: ref}
+      send s2, msg
+      :ok
+    end
+  end
+end
+
+defmodule Farmbot.Tets.HTTPTemplate do
+  use ExUnit.CaseTemplate
+  alias Farmbot.{Context, HTTP, Auth, Token}
+  alias Farmbot.Test.HTTPHelper
+  import Mock
+
+  defmacro mock_http(mock, fun) do
+
+    quote do
+      with_mock HTTPoison, [request!: fn(method, url, body, headers, options) ->
+        request = {method, url, body, headers, options}
+        HTTPHelper.FakeAsync.do_fake_request(request, unquote(mock))
+      end] do
+        unquote(fun).()
+      end
+    end
+
+  end
+
+  def mock_api(mock, context, fun) do
+    tkn = %{"token" => %{"encoded" => "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0OTUwMzIwMTAsImp0aSI6ImUyM2YyNzI0LTAyZWMtNDk2OC1iNjc5LWI4MTQ0YjI3N2JiZiIsImlzcyI6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5ODQ4ODAxMCwibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFybWJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZGF0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVhc2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV84In0.UcBgq4pxoXeR6TYv9lYd90LAlGczZMjuvqT1Yc4R8xIk_Jy6bumhq7mI-Hoi9iKBhPU3XMpifXoIyqb1UdC1MBJyHMpPYjZoJLmm4v3XEug_rTu4RcaO7r_r1dZAh2C5TPVXBydcDe02loGC4_YmQPwWixhqJO_6vFF7JEDHir4bihbdfV-P4uZhpUcw-I1Eht4zCMjlmWaL5xcKUdSf-TuSQGNi0Ib0GkZs2wXan2bgv_wBfFEaZ4vmoZO1NM43jaykDssOaxP9hN7FKDdJ4mXL7r9XS7KtXpVQPycUYsfr-lPvid9cfKQFv-STakiDot8uGOYr1CH6I9erQMlhnQ",
+    "unencoded" => %{"bot" => "device_8", "exp" => 1498488010,
+      "fw_update_server" => "https://api.github.com/repos/Farmbot/farmbot-arduino-firmware/releases/latest",
+      "iat" => 1495032010, "iss" => "//192.168.29.165:3000",
+      "jti" => "e23f2724-02ec-4968-b679-b8144b277bbf",
+      "mqtt" => "192.168.29.165",
+      "os_update_server" => "https://api.github.com/repos/farmbot/farmbot_os/releases/latest",
+      "sub" => "admin@admin.com"}},
+      "user" => %{"agreed_to_terms_at" => nil,
+      "created_at" => "2017-05-16T22:23:06.508Z", "device_id" => 8,
+      "email" => "admin@admin.com", "id" => 6, "name" => "Administrator",
+      "updated_at" => "2017-05-17T14:38:56.800Z",
+      "verification_token" => "e29250dc-0b63-4532-916e-37463ba5c343",
+      "verified_at" => "2017-05-16T22:23:06.522Z"}}
+    token = Farmbot.Token.create! tkn["token"]
+    :sys.replace_state(context.auth, fn(old) ->
+      %{old | token: token}
+    end)
+
+    :sys.replace_state(context.http, fn(old) ->
+      new_context = %{old.context | auth: context.auth}
+      %{old | context: new_context}
+    end)
+    # THIS IS BAD ^ 
+
+    mock_http(mock, fun)
+  end
+
+  using do
+    quote do
+      import Farmbot.Tets.HTTPTemplate
+      import Mock
+    end
+  end
+
+  setup_all do
+    context = Context.new
+    {:ok, http} = HTTP.start_link(context, [])
+    context = %{context | http: http}
+    {:ok, auth} = Auth.start_link(context, [])
+    context = %{context | auth: auth}
+    [cs_context: context]
+  end
+end
+
 defmodule Farmbot.Test.SerialHelper do
   use GenServer
   alias Farmbot.Context
@@ -89,22 +211,7 @@ defmodule Farmbot.Test.Helpers.SerialTemplate do
 end
 
 defmodule Farmbot.Test.Helpers do
-  alias Farmbot.Auth
-  use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
   alias Farmbot.Database, as: DB
-
-  def login(auth, creds \\ nil) do
-    creds = creds || %{
-      email:  "admin@admin.com",
-      pass:  "password123",
-      url:  "http://localhost:3000"
-    }
-    use_cassette "good_login" do
-      :ok = Auth.interim(auth, creds.email, creds.pass, creds.url)
-      {:ok, token} = Auth.try_log_in(auth)
-      token
-    end
-  end
 
   def random_file(dir \\ "fixture/api_fixture"),
     do: File.ls!(dir) |> Enum.random

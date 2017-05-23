@@ -31,7 +31,7 @@ defmodule Farmbot.Context do
       if thing == default_context do
         "#Context<default>"
       else
-        "#Context<#{inspect thing}>"
+        "#Context<special>"
       end
     end
   end

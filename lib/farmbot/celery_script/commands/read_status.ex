@@ -14,7 +14,7 @@ defmodule Farmbot.CeleryScript.Command.ReadStatus do
   """
   @spec run(%{}, [], Ast.context) :: Ast.context
   def run(%{}, [], context) do
-    Farmbot.Transport.force_state_push()
+    Farmbot.Transport.force_state_push(context)
     context
   end
 end
