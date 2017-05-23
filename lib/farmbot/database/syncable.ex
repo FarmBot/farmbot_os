@@ -8,6 +8,7 @@ defmodule Farmbot.Database.Syncable do
 
   @type ref_id :: Farmbot.Database.ref_id
   @type t :: %__MODULE__{ref_id: ref_id, body: map}
+  alias Farmbot.Context
 
   @doc """
     Pipe a HTTP request thru this. Trust me :tm:
@@ -70,26 +71,24 @@ defmodule Farmbot.Database.Syncable do
       @doc """
         Fetches all `#{__MODULE__}` objects from the API.
       """
-      def fetch(then) do
-        result = "/api" <> unquote(plural)
-                    |> HTTP.get()
-                    |> parse_resp(__MODULE__)
+      def fetch(%Context{} = context, then) do
+        url = "/api" <> unquote(plural)
+        result = context |> HTTP.get(url) |> parse_resp(__MODULE__)
         case then do
-          {module, function, args} -> apply(module, function, [result | args])
-          anon                     -> anon.(result)
+          {module, function, args}    -> apply(module, function, [result | args])
+          anon when is_function(anon) -> anon.(result)
         end
       end
 
       @doc """
         Fetches a specific `#{__MODULE__}` from the API, by it's id.
       """
-      def fetch(id, then) do
-        result = "/api" <> unquote(singular) <> "/#{id}"
-                    |> HTTP.get()
-                    |> parse_resp(__MODULE__)
+      def fetch(%Context{} = context, id, then) do
+        url = "/api" <> unquote(singular) <> "/#{id}"
+        result = context |> HTTP.get(url) |> parse_resp(__MODULE__)
         case then do
-          {module, function, args} -> apply(module, function, [result | args])
-          anon                     -> anon.(result)
+          {module, function, args}    -> apply(module, function, [result | args])
+          anon when is_function(anon) -> anon.(result)
         end
       end
 

@@ -29,8 +29,10 @@ defmodule Farmbot.DebugLog do
     name = Keyword.get(opts, :name)
     quote do
 
-      defp get_module do
-        unquote(name) || __MODULE__ |> Module.split() |> List.last
+      if unquote(name) do
+        defp get_module, do: unquote(name)
+      else
+        defp get_module, do: __MODULE__ |> Module.split() |> List.last
       end
 
       if unquote(color) do

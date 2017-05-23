@@ -5,7 +5,7 @@ defmodule Logger.Backends.FarmbotLogger do
     jsonified, adds them too a buffer, when that buffer hits a certain
     size, it tries to dump the messages onto the API.
   """
-  alias Farmbot.HTTP
+  alias Farmbot.{Context, HTTP}
   use GenEvent
   require Logger
   use Farmbot.DebugLog
@@ -51,7 +51,7 @@ defmodule Logger.Backends.FarmbotLogger do
        created_at: integer,
        meta: %{type: rpc_log_type}}
 
-  def init(_), do: {:ok, %{logs: [], posting: false}}
+  def init(%Context{} = ctx), do: {:ok, %{logs: [], posting: false, context: ctx}}
 
   # The example said ignore messages for other nodes, so im ignoring messages
   # for other nodes.
@@ -75,7 +75,7 @@ defmodule Logger.Backends.FarmbotLogger do
         filterd_logs = Enum.filter(logs, fn(log) ->
           log.message != @filtered
         end)
-        do_post(filterd_logs)
+        do_post(state.context, filterd_logs)
       end
       {:ok, %{state | logs: logs, posting: true}}
     else
@@ -102,10 +102,10 @@ defmodule Logger.Backends.FarmbotLogger do
 
   def handle_call(:get_state, state), do: {:ok, state, state}
 
-  @spec do_post([log_message]) :: no_return
-  defp do_post(logs) do
+  @spec do_post(Context.t, [log_message]) :: no_return
+  defp do_post(%Context{} = ctx, logs) do
     try do
-      HTTP.post!("/api/logs", Poison.encode!(logs))
+      HTTP.post(ctx, "/api/logs", Poison.encode!(logs))
       GenEvent.call(Elixir.Logger, __MODULE__, :post_success)
     rescue
       _ -> GenEvent.call(Elixir.Logger, __MODULE__, :post_fail)

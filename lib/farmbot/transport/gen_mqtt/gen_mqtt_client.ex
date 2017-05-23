@@ -8,6 +8,8 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   alias Farmbot.Token
   alias Farmbot.CeleryScript.{Command, Ast}
   alias Farmbot.Context
+  use Farmbot.DebugLog, name: MqttClient
+
 
   @type state :: {Token.t, Context.t}
 
@@ -27,13 +29,13 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   end
 
   @spec on_connect(state) :: ok
-  def on_connect({%Token{} = token, %Context{} = _context} = state) do
+  def on_connect({%Token{} = token, %Context{} = context} = state) do
     GenMQTT.subscribe(self(), [{bot_topic(token), 0}])
 
     fn ->
       Process.sleep(10)
       Logger.info ">> is up and running!"
-      Farmbot.Transport.force_state_push
+      Farmbot.Transport.force_state_push(context)
     end.()
 
     {:ok, state}
