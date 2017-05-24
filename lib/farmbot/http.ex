@@ -11,7 +11,6 @@ defmodule Farmbot.HTTP do
     AsyncHeaders,
     AsyncEnd,
     Error,
-    AsyncRedirect
   }
 
   @version Mix.Project.config[:version]
@@ -22,7 +21,7 @@ defmodule Farmbot.HTTP do
       ssl: [versions: [:'tlsv1.2']],
       recv_timeout: timeout,
       timeout: timeout,
-      follow_redirect: true
+      # follow_redirect: true
     ]
   end
 
@@ -42,8 +41,9 @@ defmodule Farmbot.HTTP do
 
   def request!(context, method, url, body \\ "", headers \\ [], opts \\ [])
   def request!(%Context{} = ctx, method, url, body, headers, opts) do
+    debug_log "doing request!"
     case request(ctx, method, url, body, headers, opts) do
-      {:ok, %Response{} = response} -> response.body
+      {:ok, %Response{} = response} -> response
       {:error, er} ->
         raise "Http request #{inspect method} : #{inspect url} failed! #{inspect er}"
     end
@@ -60,8 +60,13 @@ defmodule Farmbot.HTTP do
   """
   def get!(context, url, body \\ "", headers \\ [], opts \\ [])
   def get!(%Context{} = ctx, url, body, headers, opts) do
-    %Response{status_code: 200, body: response_body} = request!(ctx, url, :get, body, headers, opts)
-    response_body
+    case request!(ctx, :get, url, body, headers, opts) do
+      %Response{status_code: 200, body: response_body} ->
+        debug_log "get! complete."
+        response_body
+      %Response{status_code: code, body: body} ->
+        raise "Invalid http response code: #{code} body: #{body}"
+    end
   end
 
 
@@ -71,8 +76,17 @@ defmodule Farmbot.HTTP do
   @doc """
     Downloads a file to the filesystem
   """
-  def download_file!(%Context{} = _ctx, _url) do
-    raise "Downlaoding is still todo!"
+  def download_file!(%Context{} = ctx, url, path) do
+    opts = [to_file: path]
+    r    =  request(ctx, :get, url, "", [], opts)
+    case r do
+      {:ok, %Response{status_code: 200}} -> path
+      {:error, er} ->
+        if File.exists?(path) do
+          File.rm! path
+        end
+        raise "Failed to download file: #{inspect er}"
+    end
   end
 
   @doc """
@@ -99,24 +113,37 @@ defmodule Farmbot.HTTP do
     {:ok, state}
   end
 
-  defp empty_request, do: %{ status_code: nil, body: "", headers: []}
+  defp empty_request, do: %{ status_code: nil, body: "", headers: [], file: nil, redirect: false}
 
   defp create_request({:request, method, url, body, headers, opts} = request, from, state) do
-    {_save_to_file, opts} = Keyword.pop(opts, :to_file, false)
+    debug_log "http request: #{method} #{url}"
+    {save_to_file, opts} = Keyword.pop(opts, :to_file, false)
     {timeout,       opts} = Keyword.pop(opts, :fb_timeout, :infinity)
     new_opts   = Keyword.put(opts, :stream_to, state.context.http)
     options    = Keyword.merge(http_config(timeout), new_opts)
     user_agent = {"User-Agent", "FarmbotOS/#{@version} (#{@target}) #{@target}"}
     headers    = [user_agent | headers]
     try do
+      debug_log "Trying to create request"
       %AsyncResponse{id: ref} = HTTPoison.request!(method, url, body, headers, options)
-      r_map    = {from, request, empty_request()}
+      empty_request = empty_request()
+      populated = if save_to_file do
+        if File.exists?(save_to_file) do
+          debug_log "Deleting file with the same name"
+          File.rm!(save_to_file)
+        end
+        File.touch!(save_to_file)
+        %{empty_request | file: save_to_file}
+      else
+        empty_request
+      end
+      r_map    = {from, request, populated}
       requests = Map.put(state.requests, ref, r_map)
-      debug_log "Creating request: #{inspect ref}"
+      debug_log "Request created: #{inspect ref}"
       %{state | requests: requests}
     rescue
       e ->
-        debug_log "Error doing request: #{inspect request}"
+        debug_log "Error doing request: #{inspect request} #{inspect e}"
         GenServer.reply(from, {:error, e})
         state
     end
@@ -145,6 +172,7 @@ defmodule Farmbot.HTTP do
   end
 
   def handle_call({:request, _method, _url, _body, _headers, _opts} = request, from, state) do
+    debug_log "http request begin"
     new_state = create_request(request, from, state)
     {:noreply, new_state}
   end
@@ -162,20 +190,6 @@ defmodule Farmbot.HTTP do
     end
   end
 
-  def handle_info(%AsyncStatus{id: ref, code: code}, state) do
-    request = state.requests[ref]
-    case request do
-      {from, request, map} ->
-        debug_log "Got status: #{inspect ref} code: #{code}"
-        new_map = %{map | status_code: code}
-        new_requests = %{state.requests | ref => {from, request, new_map}}
-        {:noreply, %{state | requests: new_requests}}
-      _ ->
-        debug_log "Unrecognized ref (Status): #{inspect ref}"
-        {:noreply, state}
-    end
-  end
-
   def handle_info(%AsyncHeaders{id: ref, headers: headers}, state) do
     request = state.requests[ref]
     case request do
@@ -189,10 +203,33 @@ defmodule Farmbot.HTTP do
     end
   end
 
+  def handle_info(%AsyncStatus{id: ref, code: code}, state) do
+    request = state.requests[ref]
+    case request do
+      {from, request, map} ->
+        debug_log "Got status: #{inspect ref} code: #{code}"
+        new_map = %{map | status_code: code}
+        next_map =
+          if code == 302 do
+            %{new_map | redirect: true}
+          else
+            %{new_map | redirect: false}
+          end
+        new_requests = %{state.requests | ref => {from, request, next_map}}
+        {:noreply, %{state | requests: new_requests}}
+      _ ->
+        debug_log "Unrecognized ref (Status): #{inspect ref}"
+        {:noreply, state}
+    end
+  end
+
   def handle_info(%AsyncChunk{id: ref, chunk: chunk}, state) do
     request = state.requests[ref]
     case request do
       {from, request, map} ->
+        if (is_binary(map.file)) and (map.redirect != true) do
+          File.write!(map.file, chunk, [:write, :append])
+        end
         new_map = %{map | body: map.body <> chunk}
         new_requests = %{state.requests | ref => {from, request, new_map}}
         {:noreply, %{state | requests: new_requests}}
@@ -205,6 +242,25 @@ defmodule Farmbot.HTTP do
   def handle_info(%AsyncEnd{id: ref}, state) do
     request = state.requests[ref]
     case request do
+      {from, {:request, method, _url, body, headers, opts}, %{redirect: true} = map} ->
+        # remove this request from the state
+        new_requests = Map.delete(state.requests, ref)
+        next_state = %{state | requests: new_requests}
+
+        # get the next url
+        next_url = Enum.find_value(map.headers, fn({header, val}) -> if header == "Location" or header == "location", do: val, else: nil end)
+
+        if next_url do
+          # create a new request
+          debug_log "Doing redirect: #{inspect ref}"
+          next_state = create_request({:request, method, next_url, body, headers, opts}, from, next_state)
+          {:noreply, next_state}
+        else
+          debug_log "Could not redirect because server did not provide a new location"
+          GenServer.reply(from, {:error, :redirect_error})
+          {:noreply, next_state}
+        end
+
       {from, _request, %{
         status_code: code,
         headers: headers,
@@ -224,25 +280,6 @@ defmodule Farmbot.HTTP do
         {:noreply, state}
     end
   end
-
-  def handle_info(%AsyncRedirect{id: ref, to: new_url}, state) do
-    request = state.requests[ref]
-    case request do
-      {from, {:request, method, _url, body, headers, opts},_ } ->
-        debug_log "Following redirect #{inspect ref}"
-        new_requests = state.requests |> Map.delete(ref)
-        new_state    = %{state | requests: new_requests}
-
-        new_request  = {:request, method, new_url, body, headers, opts}
-        new_state_1  = create_request(new_request, from, new_state)
-        {:noreply, new_state_1}
-      _ ->
-        debug_log "Unrecognized ref (Redirect): #{inspect ref}"
-        {:noreply, state}
-    end
-  end
-
-
 end
 # defmodule Farmbot.HTTP do
 #   @moduledoc """

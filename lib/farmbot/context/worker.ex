@@ -12,7 +12,7 @@ defmodule Farmbot.Context.Worker do
 
       @doc "Start a #{__MODULE__} worker"
       def start_link(%Context{} = ctx, opts) do
-        debug_log "Starting worker"
+        debug_log "Starting worker: #{__MODULE__}"
         GenServer.start_link(__MODULE__, ctx, opts)
       end
 

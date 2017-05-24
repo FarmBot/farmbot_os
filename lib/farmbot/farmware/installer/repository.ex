@@ -40,7 +40,7 @@ defmodule Farmbot.Farmware.Installer.Repository do
      validate_repo!(rest, [entry | acc])
   end
 
-  defp validate_repo!([], acc), do: acc
+  defp validate_repo!([], acc), do: %__MODULE__{entries: acc}
 
   @doc """
     Must return the url that holds this manifest.

@@ -5,10 +5,9 @@ defmodule Farmbot.System.Network do
   require Logger
   use GenServer
   alias Farmbot.System.FS.ConfigStorage, as: CS
-  alias Farmbot.System.Network.SSH
-  alias Farmbot.System.Network.Ntp
-  alias Farmbot.Auth
-  alias Farmbot.Context
+  alias Farmbot.System.Network.{Ntp, SSH}
+  alias Farmbot.{Context, Auth}
+  use Farmbot.DebugLog
 
   @type netman :: pid
 
@@ -142,7 +141,8 @@ defmodule Farmbot.System.Network do
       :ok
     rescue
       error ->
-        Logger.warn(">> Failed to install farmwares: #{inspect error}")
+        Logger.warn(">> Failed to install first party farmwares: #{inspect error}")
+        debug_log "#{inspect System.stacktrace()}"
         :ok
     end
   end

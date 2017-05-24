@@ -24,9 +24,10 @@ defmodule Farmbot.Farmware.Installer do
     debug_log "Installing a Farmware from: #{url}"
     print_json_debug_info(json)
     ensure_correct_version!(json)
-    dl_path      = Farmbot.HTTP.download_file!(ctx, json["zip"])
     package_path = "#{package_path()}/#{json["package"]}"
+    dl_path      = Farmbot.HTTP.download_file!(ctx, json["zip"], "/tmp/#{json["package"]}.zip")
     FS.transaction fn() ->
+      File.mkdir!(package_path)
       unzip! dl_path, package_path
     end, true
     Farmware.new(json)
@@ -34,7 +35,7 @@ defmodule Farmbot.Farmware.Installer do
 
   defp ensure_correct_version!(%{"min_os_version_major" => major}) do
     ver_int = @version |> String.first() |> String.to_integer
-    if major != ver_int do
+    if major >= ver_int do
        raise "Version mismatch! Farmbot is: #{ver_int} Farmware requires: #{major}"
      else
        :ok
@@ -42,11 +43,11 @@ defmodule Farmbot.Farmware.Installer do
   end
 
   defp print_json_debug_info(json) do
-    json
-    |> Enum.reduce("", fn({key, val}, acc) ->
-        " #{key} => #{inspect val}\n" <> acc
-       end)
-    |> debug_log
+    stuff = Enum.reduce(json, "", fn({key, val}, acc) ->
+      "\t#{key} => #{inspect val}\n" <> acc
+    end)
+    debug_log "Json: \n#{stuff}"
+
   end
 
   @doc """
@@ -68,11 +69,12 @@ defmodule Farmbot.Farmware.Installer do
   """
   @spec enable_repo!(Context.t, atom) :: :ok | no_return
   def enable_repo!(%Context{} = ctx, module) when is_atom(module) do
-    debug_log "Syncing repo: #{module}"
+    debug_log "repo: #{module} is syncing"
     # make sure we have a valid repository here.
     ensure_module!(module)
     :ok        = ensure_dirs!()
-    binary     = Farmbot.HTTP.get!(ctx, module.url())
+    url        = module.url()
+    binary     = Farmbot.HTTP.get!(ctx, url)
     json       = Poison.decode!(binary)
     repository = Repository.validate!(json)
 
@@ -92,11 +94,13 @@ defmodule Farmbot.Farmware.Installer do
   end
 
   defp ensure_dir!(path) do
+    debug_log "Ensuring dir: #{inspect path}"
     unless File.exists?(path) do
       FS.transaction fn() ->
         File.mkdir_p!(path)
       end
     end
+    :ok
   end
 
   defp ensure_not_synced!(module) when is_atom(module) do
@@ -118,7 +122,11 @@ defmodule Farmbot.Farmware.Installer do
   end
 
   defp ensure_module!(module) do
-    unless function_exported?(module, :url, 0) do
+    {:module, real} = Code.ensure_loaded(module)
+    if function_exported?(real, :url, 0) do
+      debug_log "repo #{module} is loaded"
+      :ok
+    else
       raise "Could not load repository: #{inspect module}"
     end
   end

@@ -35,6 +35,9 @@ defmodule Farmbot do
       worker(Farmbot.Auth,
         [context, [name: Farmbot.Auth                 ]], restart: :permanent),
 
+      worker(Farmbot.HTTP,
+        [context, [name: Farmbot.HTTP                 ]], restart: :permanent),
+
       worker(Farmbot.Database,
         [context, [name: Farmbot.Database             ]], restart: :permanent),
 
