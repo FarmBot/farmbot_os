@@ -40,11 +40,47 @@ defmodule Farmbot.HTTP do
     GenServer.call(ctx.http, {:request, method, url, body, headers, opts}, :infinity)
   end
 
+  def request!(context, method, url, body \\ "", headers \\ [], opts \\ [])
+  def request!(%Context{} = ctx, method, url, body, headers, opts) do
+    case request(ctx, method, url, body, headers, opts) do
+      {:ok, %Response{} = response} -> response.body
+      {:error, er} ->
+        raise "Http request #{inspect method} : #{inspect url} failed! #{inspect er}"
+    end
+  end
+
+  @doc """
+    HTTP GET.
+  """
   def get(context, url, body \\ "", headers \\ [], opts \\ [])
   def get(%Context{} = ctx, url, body, headers, opts), do: request(ctx, :get, url, body, headers, opts)
 
+  @doc """
+    Same as `get/5` but raise if errors and returns the response body.
+  """
+  def get!(context, url, body \\ "", headers \\ [], opts \\ [])
+  def get!(%Context{} = ctx, url, body, headers, opts) do
+    %Response{status_code: 200, body: response_body} = request!(ctx, url, :get, body, headers, opts)
+    response_body
+  end
+
+
   def post(context, url, body \\ "", headers \\ [], opts \\ [])
   def post(%Context{} = ctx, url, body, headers, opts), do: request(ctx, :post, url, body, headers, opts)
+
+  @doc """
+    Downloads a file to the filesystem
+  """
+  def download_file!(%Context{} = _ctx, _url) do
+    raise "Downlaoding is still todo!"
+  end
+
+  @doc """
+    Uploads a file to the API
+  """
+  def upload_file!(%Context{} = _ctx, _url) do
+    raise "Uplaoding to the API is still TODO"
+  end
 
   ## GenServer Stuff
 

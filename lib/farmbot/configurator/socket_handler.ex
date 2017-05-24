@@ -79,7 +79,7 @@ defmodule Farmbot.Configurator.SocketHandler do
 
   def websocket_info(:force_state_push, req, stage) do
     spawn fn() ->
-      Farmbot.Transport.force_state_push
+      Farmbot.Transport.force_state_push(Farmbot.Context.new())
     end
     {:ok, req, stage}
   end

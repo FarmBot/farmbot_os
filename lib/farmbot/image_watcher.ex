@@ -77,7 +77,7 @@ defmodule Farmbot.ImageWatcher do
   @spec try_upload(Context.t, binary) :: {:ok, any} | {:error, any}
   defp try_upload(%Context{} = ctx, file_path) do
     Logger.info "Image Watcher trying to upload #{file_path}"
-    Farmbot.HTTP.upload_file(ctx, file_path)
+    Farmbot.HTTP.upload_file!(ctx, file_path)
   end
 
   @spec print_thing(boolean, integer) :: :ok

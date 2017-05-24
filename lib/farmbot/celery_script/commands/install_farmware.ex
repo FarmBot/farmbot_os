@@ -3,9 +3,7 @@ defmodule Farmbot.CeleryScript.Command.InstallFarmware do
     Install Farmware
   """
 
-  # alias Farmbot.CeleryScript.Ast
   alias Farmbot.CeleryScript.Command
-  require Logger
   @behaviour Command
 
   @doc ~s"""
@@ -15,7 +13,7 @@ defmodule Farmbot.CeleryScript.Command.InstallFarmware do
   """
   @spec run(%{url: String.t}, [], Ast.context) :: Ast.context
   def run(%{url: url}, [], context) do
-    Farmware.install(context, url)
+    Farmbot.Farmware.Manager.install!(context, url)
     context
   end
 end

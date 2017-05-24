@@ -1,5 +1,6 @@
 defmodule Farmbot.Test.HTTPHelper do
-  alias HTTPoison.{Response,
+  alias HTTPoison.{
+    # Response,
     AsyncResponse,
     AsyncChunk,
     AsyncStatus,
@@ -57,7 +58,7 @@ end
 
 defmodule Farmbot.Tets.HTTPTemplate do
   use ExUnit.CaseTemplate
-  alias Farmbot.{Context, HTTP, Auth, Token}
+  alias Farmbot.{Context, HTTP, Auth}
   alias Farmbot.Test.HTTPHelper
   import Mock
 
@@ -98,7 +99,7 @@ defmodule Farmbot.Tets.HTTPTemplate do
       new_context = %{old.context | auth: context.auth}
       %{old | context: new_context}
     end)
-    # THIS IS BAD ^ 
+    # THIS IS BAD ^
 
     mock_http(mock, fun)
   end

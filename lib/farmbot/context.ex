@@ -14,7 +14,8 @@ defmodule Farmbot.Context do
     :monitor,
     :configuration,
     :http,
-    :transport
+    :transport,
+    :farmware_manager
   ]
 
   @enforce_keys modules
@@ -47,31 +48,34 @@ defmodule Farmbot.Context do
   def pop(%__MODULE__{}, _), do: raise "Cant pop #{__MODULE__} struct!"
 
   @typedoc false
-  @type database      :: Farmbot.Database.database
+  @type database         :: Farmbot.Database.database
 
   @typedoc false
-  @type auth          :: Farmbot.Auth.auth
+  @type auth             :: Farmbot.Auth.auth
 
   @typedoc false
-  @type network       :: Farmbot.System.Network.netman
+  @type network          :: Farmbot.System.Network.netman
 
   @typedoc false
-  @type serial        :: Farmbot.Serial.Handler.handler
+  @type serial           :: Farmbot.Serial.Handler.handler
 
   @typedoc false
-  @type hardware      :: Farmbot.BotState.Hardware.hardware
+  @type hardware         :: Farmbot.BotState.Hardware.hardware
 
   @typedoc false
-  @type monitor       :: Farmbot.BotState.Monitor.monitor
+  @type monitor          :: Farmbot.BotState.Monitor.monitor
 
   @typedoc false
-  @type configuration :: Farmbot.BotState.Configuration.configuration
+  @type configuration    :: Farmbot.BotState.Configuration.configuration
 
   @typedoc false
-  @type http :: Farmbot.HTTP.http
+  @type http             :: Farmbot.HTTP.http
 
   @typedoc false
-  @type transport :: Farmbot.Transport.transport
+  @type transport        :: Farmbot.Transport.transport
+
+  @typedoc false
+  @type farmware_manager :: Farmbot.Farmware.Manager.manager
 
   @typedoc """
     Stuff to be passed from one CS Node to another
@@ -86,6 +90,7 @@ defmodule Farmbot.Context do
     hardware:         hardware,
     http:             http,
     transport:        transport,
+    farmware_manager: farmware_manager,
     ref:              reference,
     data_stack:       [Ast.t]
   }
@@ -110,6 +115,7 @@ defmodule Farmbot.Context do
   def new do
     %__MODULE__{ data_stack: [],
                  ref:        make_ref(),
+                 farmware_manager: Farmbot.Farmware.Tracker,
                  configuration:    Farmbot.BotState.Configuration,
                  transport:        Farmbot.Transport,
                  hardware:         Farmbot.BotState.Hardware,

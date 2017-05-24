@@ -137,7 +137,7 @@ defmodule Farmbot.System.Network do
     try do
       if fpf do
         Logger.info ">> is installing first party Farmwares."
-        Farmware.get_first_party_farmware(ctx)
+        Farmbot.Farmware.Installer.enable_repo!(ctx, Farmbot.Farmware.Installer.Repository.Farmbot)
       end
       :ok
     rescue
