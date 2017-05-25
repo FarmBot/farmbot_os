@@ -49,6 +49,9 @@ defmodule Farmbot.Transport.GenMqtt.Client do
       |> Poison.decode!
       |> Ast.parse
       |> Command.do_command(context)
+    catch
+      :exit, thing ->
+        debug_log "caught a stray exit: #{inspect thing}"
     rescue
       e ->
         Logger.error ">> Saved mqtt client from cs death: #{inspect e}"

@@ -5,7 +5,16 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
 
   alias Farmbot.CeleryScript.Command
   alias Farmbot.Database
-  require Logger
+  alias Database.Syncable.{
+    Device,
+    FarmEvent,
+    Peripheral,
+    Point,
+    Regimen,
+    Sequence,
+    Tool
+  }
+  use Farmbot.DebugLog
   @behaviour Command
 
   @typedoc """
@@ -24,8 +33,12 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
     verb = parse_verb_str(verb)
     Enum.each(pairs, fn(%{args: %{label: s, value: nowc}}) ->
       syncable = s |> parse_syncable_str()
-      value = nowc |> parse_val_str()
-      :ok = Database.set_awaiting(context, syncable, verb, value)
+      if syncable do
+        value = nowc |> parse_val_str()
+        :ok = Database.set_awaiting(context, syncable, verb, value)
+      else
+        :ok
+      end
     end)
     context
   end
@@ -34,9 +47,18 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
   @type syncable ::  Farmbot.Database.syncable
 
   @spec parse_syncable_str(binary) :: syncable
+  defp parse_syncable_str("regimens"), do: Regimen
+  defp parse_syncable_str("peripherals"), do: Peripheral
+  defp parse_syncable_str("sequences"), do: Sequence
+  defp parse_syncable_str("farm_events"), do: FarmEvent
+  defp parse_syncable_str("tools"), do: Tool
+  defp parse_syncable_str("points"), do: Point
+  defp parse_syncable_str("devices"), do: Device
+
   defp parse_syncable_str(str) do
-    Module.concat([Farmbot.Database.Syncable, Macro.camelize(str)])
+    debug_log "no such syncable: #{str}"
   end
+
 
   @spec parse_val_str(binary) :: number_or_wildcard
   defp parse_val_str("*"), do: "*"

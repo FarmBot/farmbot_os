@@ -145,6 +145,12 @@ defmodule Farmbot.BotState do
   end
 
   @doc """
+    Gets the user environment.
+  """
+  @spec get_user_env(context) :: map
+  def get_user_env(%Context{} = ctx), do: get_config(ctx, :user_env)
+
+  @doc """
     Locks the bot
   """
   @spec lock_bot(context) :: :ok | no_return

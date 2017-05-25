@@ -8,7 +8,8 @@ defmodule Module.concat([Farmbot,System,"host"]) do
   def factory_reset(reason) do
     files = path() |> File.ls!()
     Farmbot.System.FS.transaction fn() ->
-      File.rm_rf files
+      File.rm_rf! "#{path()}"
+      File.mkdir_p! "#{path()}"
       File.write("#{path()}/factory_reset_reason", reason)
     end, true
     System.halt(0)

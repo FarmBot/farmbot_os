@@ -36,14 +36,13 @@ defmodule Logger.Backends.FarmbotLogger do
   """
   @type logger_level
     :: :info
-     | :debug
      | :warn
      | :error
 
   @typedoc """
     One day this will me more
   """
-  @type channel :: :toast
+  @type channel :: :toast | :email
 
   @type log_message
   :: %{message: String.t,
@@ -109,7 +108,7 @@ defmodule Logger.Backends.FarmbotLogger do
   @spec do_post(Context.t, [log_message]) :: no_return
   defp do_post(%Context{} = ctx, logs) do
     try do
-      HTTP.post(ctx, "/api/logs", Poison.encode!(logs))
+      {:ok, %{status_code: 200}} = HTTP.post(ctx, "/api/logs", Poison.encode!(logs))
       GenEvent.call(Elixir.Logger, __MODULE__, :post_success)
     rescue
       _ -> GenEvent.call(Elixir.Logger, __MODULE__, :post_fail)
@@ -218,6 +217,10 @@ defmodule Logger.Backends.FarmbotLogger do
   end
 
   @spec build_log(String.t, number, rpc_log_type, [channel]) :: log_message
+  defp build_log(message, created_at, :debug, channels) do
+    build_log(message, created_at, :info, channels)
+  end
+  
   defp build_log(message, created_at, type, channels) do
     %{message: message,
       created_at: created_at,

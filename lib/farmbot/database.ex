@@ -43,17 +43,6 @@ defmodule Farmbot.Database do
   @typedoc false
   @type syncable_object :: map
 
-  @typedoc """
-    State of the DB
-  """
-  @type state :: %{
-    by_kind_and_id: %{ required({syncable, db_id}) => ref_id       },
-    awaiting:       %{ required(syncable)          => boolean      },
-    by_kind:        %{ required(syncable)          => [ref_id]     },
-    refs:           %{ required(ref_id)            => resource_map },
-    all:            [ref_id],
-  }
-
   # This pulls all the module names by their filename.
   syncable_modules =
     "lib/farmbot/database/syncable/"
@@ -78,13 +67,20 @@ defmodule Farmbot.Database do
     Farmbot.BotState.set_sync_msg(ctx, :syncing)
     try do
       for module_name <- all_syncable_modules() do
-        # see: `syncable.ex`. This is some macro magic.
-        debug_log "#{module_name} Sync begin."
-        :ok = module_name.fetch(ctx, {__MODULE__,
-          :commit_records,  [ctx, module_name]})
+        if get_awaiting(ctx, module_name) do
+          # see: `syncable.ex`. This is some macro magic.
+          debug_log "#{module_name} Sync begin."
+          :ok = module_name.fetch(ctx, {__MODULE__,
+            :commit_records,  [ctx, module_name]})
 
-        debug_log "#{module_name} Sync finish."
-        :ok
+          debug_log "#{module_name} Sync finish."
+          :ok = unset_awaiting(ctx, module_name)
+          :ok
+        else
+          debug_log "#{module_name} already up to date."
+          :ok
+        end
+
       end
       Farmbot.BotState.set_sync_msg(ctx, :synced)
       :ok
@@ -164,6 +160,38 @@ defmodule Farmbot.Database do
 
   ## GenServer
 
+  defmodule State do
+    @moduledoc false
+    alias Farmbot.Database.DB
+
+    defimpl Inspect, for: __MODULE__ do
+      def inspect(thing, _) do
+        "#DatabaseState<#{inspect thing.all}>"
+      end
+    end
+
+    defstruct [
+      :by_kind_and_id,
+      :awaiting,
+      :by_kind,
+      :refs,
+      :all
+    ]
+
+    @type t :: %{
+      by_kind_and_id: %{ required({DB.syncable, DB.db_id}) => DB.ref_id       },
+      awaiting:       %{ required(DB.syncable)             => boolean         },
+      by_kind:        %{ required(DB.syncable)             => [DB.ref_id]     },
+      refs:           %{ required(DB.ref_id)               => DB.resource_map },
+      all:            [DB.ref_id],
+    }
+  end
+
+  @typedoc """
+    State of the DB
+  """
+  @type state :: State.t
+
   @doc """
     Start the Database
   """
@@ -176,7 +204,7 @@ defmodule Farmbot.Database do
     initial_refs           = %{}
     initial_all            = []
 
-    state = %{
+    state = %State{
       by_kind_and_id: initial_by_kind_and_id,
       awaiting:       initial_awaiting,
       by_kind:        initial_by_kind,
