@@ -5,6 +5,7 @@ defmodule Farmbot.BotState.Supervisor do
   """
 
   alias Farmbot.Context
+  use Farmbot.DebugLog, name: BotStateSupervisor
 
   @use_logger Application.get_env(:farmbot, :logger, true)
 
@@ -36,7 +37,13 @@ defmodule Farmbot.BotState.Supervisor do
     # like position and some configuraion.
     sup = Supervisor.start_link(__MODULE__, ctx, opts)
     EasterEggs.start_cron_job
-    if @use_logger, do: Logger.add_backend(Logger.Backends.FarmbotLogger)
+    # TODO change this stuff to tasks
+    if @use_logger do
+      debug_log "Using Farmbot Logger"
+      {:ok, _pid} = Logger.add_backend(Logger.Backends.FarmbotLogger, ctx)
+    else
+      debug_log "Not using Farmbot Logger"
+    end
     sup
   end
 end

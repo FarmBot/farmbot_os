@@ -27,15 +27,18 @@ defmodule Farmbot.Farmware.Installer do
     package_path = "#{package_path()}/#{json["package"]}"
     dl_path      = Farmbot.HTTP.download_file!(ctx, json["zip"], "/tmp/#{json["package"]}.zip")
     FS.transaction fn() ->
-      File.mkdir!(package_path)
+      File.mkdir_p!(package_path)
       unzip! dl_path, package_path
+      File.write! "#{package_path}/manifest.json", binary
     end, true
-    Farmware.new(json)
+    fw = Farmware.new(json)
+    debug_log "Installed new Farmware: #{inspect fw}"
+    fw
   end
 
   defp ensure_correct_version!(%{"min_os_version_major" => major}) do
     ver_int = @version |> String.first() |> String.to_integer
-    if major >= ver_int do
+    if major > ver_int do
        raise "Version mismatch! Farmbot is: #{ver_int} Farmware requires: #{major}"
      else
        :ok
@@ -81,10 +84,33 @@ defmodule Farmbot.Farmware.Installer do
     :ok = ensure_not_synced!(module)
     # do the installs
     for entry <- repository.entries do
-      :ok = Manager.install(ctx, entry.manifest)
+      :ok = Manager.install!(ctx, entry.manifest)
     end
 
-    set_synced!(module)
+    :ok = set_synced!(module)
+  end
+
+  @doc """
+    Lists all the farmwares
+  """
+  @spec list_installed! :: [Farmware.t]
+  def list_installed! do
+    ensure_dirs!()
+    dirs = File.ls! package_path()
+    try do
+      Enum.map(dirs, fn(dir) ->
+        package_dir = "#{package_path()}/#{dir}"
+        json = File.read!("#{package_dir}/manifest.json") |> Poison.decode!
+        ensure_correct_version!(json)
+        Farmware.new(json)
+      end)
+    rescue
+      e ->
+        FS.transaction fn() ->
+          File.rm_rf!(package_path())
+        end, true
+        reraise e, Elixir.System.stacktrace()
+    end
   end
 
   defp ensure_dirs! do
@@ -98,7 +124,7 @@ defmodule Farmbot.Farmware.Installer do
     unless File.exists?(path) do
       FS.transaction fn() ->
         File.mkdir_p!(path)
-      end
+      end, true
     end
     :ok
   end
@@ -136,9 +162,11 @@ defmodule Farmbot.Farmware.Installer do
   defp package_path, do: "#{path()}/packages"
 
   defp unzip!(zip_file, path) when is_bitstring(zip_file) do
+    debug_log "Unzipping #{zip_file} to #{path}"
     cwd = File.cwd!
     File.cd! path
     :zip.unzip(String.to_charlist(zip_file))
+    debug_log "Done unzipping #{zip_file} to #{path}"
     File.cd! cwd
   end
 

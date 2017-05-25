@@ -72,8 +72,8 @@ defmodule Farmbot.Database.Syncable do
         Fetches all `#{__MODULE__}` objects from the API.
       """
       def fetch(%Context{} = context, then) do
-        url = "/api" <> unquote(plural)
-        result = context |> HTTP.get(url) |> parse_resp(__MODULE__)
+        url = "/api" <> plural_url()
+        result = HTTP.get(context, url) |> parse_resp(__MODULE__)
         case then do
           {module, function, args}    -> apply(module, function, [result | args])
           anon when is_function(anon) -> anon.(result)

@@ -115,7 +115,7 @@ defmodule Farmbot.Context do
   def new do
     %__MODULE__{ data_stack: [],
                  ref:        make_ref(),
-                 farmware_manager: Farmbot.Farmware.Tracker,
+                 farmware_manager: Farmbot.Farmware.Manager,
                  configuration:    Farmbot.BotState.Configuration,
                  transport:        Farmbot.Transport,
                  hardware:         Farmbot.BotState.Hardware,

@@ -80,7 +80,7 @@ defmodule Farmbot.Database do
       for module_name <- all_syncable_modules() do
         # see: `syncable.ex`. This is some macro magic.
         debug_log "#{module_name} Sync begin."
-        :ok = module_name.fetch({__MODULE__,
+        :ok = module_name.fetch(ctx, {__MODULE__,
           :commit_records,  [ctx, module_name]})
 
         debug_log "#{module_name} Sync finish."

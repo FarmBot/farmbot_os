@@ -63,9 +63,7 @@ defmodule Farmbot.Transport do
         Map.delete(monstate.configuration.configuration, :user_env),
       informational_settings:
         monstate.configuration.informational_settings,
-      process_info:
-        # monstate.process_info,
-        %{},
+      process_info: monstate.process_info,
       user_env:
         monstate.configuration.configuration.user_env
     }
@@ -91,7 +89,7 @@ defmodule Farmbot.Transport do
   def handle_info({_from, %MonState{} = monstate}, {old_status, count, context}) do
     new_status = translate(monstate)
     if (old_status == new_status) && (count < @max_inactive_count) do
-      {:noreply, [], {old_status, count + 1}}
+      {:noreply, [], {old_status, count + 1, context}}
     else
       GenStage.async_notify(context.transport, {:status, new_status})
       {:noreply, [], {new_status, 0, context}}

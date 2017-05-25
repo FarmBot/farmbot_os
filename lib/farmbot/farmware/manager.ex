@@ -15,10 +15,15 @@ defmodule Farmbot.Farmware.Manager do
   @typedoc false
   @type url    :: binary
 
-  @type state :: %{
-    context: Context.t,
-    farmwares: %{optional(uuid) => Farmware.t}
-  }
+  defmodule State do
+    defstruct [:context, :farmwares]
+    @type t :: %{
+      context: Context.t,
+      farmwares: %{optional(Farmbot.Farmware.Manager.uuid) => Farmware.t}
+    }
+  end
+
+  @type state :: State.t
 
   @doc """
     Looks up a `farmware` by its uuid or name.
@@ -71,9 +76,12 @@ defmodule Farmbot.Farmware.Manager do
   def install(%Context{farmware_manager: fwt} = ctx, url) do
     try do
       %Farmware{} = fw = Installer.install!(ctx, url)
+      debug_log "Begin register for #{inspect fw}"
       GenServer.call(fwt, {:register, fw.uuid, fw})
     rescue
-      e -> {:error, e}
+      e ->
+        debug_log "Rescued from error: #{inspect e}"
+        {:error, e}
     end
   end
 
@@ -112,16 +120,21 @@ defmodule Farmbot.Farmware.Manager do
   ## GenServer stuff
 
   def init(ctx) do
-    state = %{
+    list_of_fws = Installer.list_installed!()
+    already_installed = Map.new(list_of_fws, fn(%Farmware{} = fw) ->
+      {fw.uuid, fw}
+    end)
+    state = %State{
       context: ctx,
-      farmwares: %{}
+      farmwares: already_installed
     }
+    dispatch nil, state
     {:ok, state}
   end
 
   def handle_call({:lookup, uuid}, _, state) do
     reply     = fetch_fw(state, uuid)
-    {:reply, reply, state}
+    dispatch reply, state
   end
 
   def handle_call({:lookup_by_name, name}, _, state) do
@@ -132,20 +145,27 @@ defmodule Farmbot.Farmware.Manager do
           {:ok, fw}
         end
       end)
-    {:reply, reply, state}
+    dispatch reply, state
   end
 
 
   def handle_call({:register, uuid, %Farmware{} = fw}, _, state) do
-    new_fws = Map.put(state, uuid, fw)
+    new_fws = Map.put(state.farmwares, uuid, fw)
     reply   = :ok
-    {:reply, reply, %{ state | farmwares: new_fws}}
+    debug_log "Registered Farmware: #{inspect fw}"
+    dispatch reply, %{ state | farmwares: new_fws}
   end
 
   def handle_call({:unregister, uuid}, _, state) do
     reply   = fetch_fw(state, uuid)
     new_fws = Map.delete(state.farmwares, uuid)
-    {:reply, reply, %{state | farmwares: new_fws}}
+    dispatch reply, %{state | farmwares: new_fws}
+  end
+
+  @spec dispatch(term, state) :: {:reply, term, state}
+  defp dispatch(reply, state) do
+    GenServer.cast(Farmbot.BotState.Monitor, state)
+    {:reply, reply, state}
   end
 
 

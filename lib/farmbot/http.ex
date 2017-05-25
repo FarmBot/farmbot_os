@@ -80,7 +80,9 @@ defmodule Farmbot.HTTP do
     opts = [to_file: path]
     r    =  request(ctx, :get, url, "", [], opts)
     case r do
-      {:ok, %Response{status_code: 200}} -> path
+      {:ok, %Response{status_code: 200}} ->
+        debug_log "Download complete: #{path}"
+        path
       {:error, er} ->
         if File.exists?(path) do
           File.rm! path
@@ -153,11 +155,12 @@ defmodule Farmbot.HTTP do
     maybe_token = Auth.get_token(state.context.auth)
     case maybe_token do
       {:ok, %Token{encoded: enc}} ->
+        {:ok, server} = Auth.get_server(state.context.auth)
         auth         = {"Authorization", "Bearer " <> enc  }
         content_type = {"Content-Type",  "application/json"}
         new_headers1 = [content_type | headers     ]
         new_headers2 = [auth         | new_headers1]
-        request = {:request, method, url, body, new_headers2, opts}
+        request = {:request, method, "#{server}#{url}", body, new_headers2, opts}
         create_request(request, from, state)
       _ ->
         GenServer.reply(from, {:error, :no_token})

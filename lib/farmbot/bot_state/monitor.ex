@@ -1,5 +1,6 @@
 alias Farmbot.BotState.Hardware.State,      as: Hardware
 alias Farmbot.BotState.Configuration.State, as: Configuration
+alias Farmbot.Farmware.Manager.State,       as: FarmwareManagerState
 defmodule Farmbot.BotState.Monitor do
   @moduledoc """
     this is the master state tracker. It receives the states from
@@ -15,11 +16,13 @@ defmodule Farmbot.BotState.Monitor do
       context:       Context.t,
       hardware:      Hardware.t,
       configuration: Configuration.t,
+      process_info:  %{farmwares: %{name: binary, uuid: binary}}
     }
     defstruct [
       context:       nil,
       hardware:      %Hardware{},
       configuration: %Configuration{},
+      process_info:  %{farmwares: %{}}
     ]
   end
 
@@ -41,6 +44,13 @@ defmodule Farmbot.BotState.Monitor do
   # When we get a state update from Configuration
   def handle_cast(%Configuration{} = new_things, %State{} = old_state) do
     new_state = %State{old_state | configuration: new_things}
+    dispatch(new_state)
+  end
+
+  def handle_cast(%FarmwareManagerState{farmwares: fws}, %State{} = old_state) do
+    list = Enum.map(fws, fn({_uuid, fw}) -> %{name: fw.name, uuid: fw.uuid, version: fw.meta.version} end)
+    new_process_info = %{old_state.process_info | farmwares: list}
+    new_state        = %{old_state | process_info: new_process_info}
     dispatch(new_state)
   end
 

@@ -51,7 +51,11 @@ defmodule Logger.Backends.FarmbotLogger do
        created_at: integer,
        meta: %{type: rpc_log_type}}
 
-  def init(%Context{} = ctx), do: {:ok, %{logs: [], posting: false, context: ctx}}
+  def init(_) do
+    ctx = Farmbot.Context.new()
+    debug_log "Starting Farmbot Logger"
+    {:ok, %{logs: [], posting: false, context: ctx}}
+  end
 
   # The example said ignore messages for other nodes, so im ignoring messages
   # for other nodes.
@@ -67,7 +71,7 @@ defmodule Logger.Backends.FarmbotLogger do
     created_at = parse_created_at(timestamp)
     san_m = sanitize(message, metadata)
     log = build_log(san_m, created_at, type, channels)
-    :ok = GenServer.cast(Farmbot.Transport, {:log, log})
+    :ok = GenServer.cast(state.context.transport, {:log, log})
     logs = [log | state.logs]
     if !state.posting and Enum.count(logs) >= 50 do
       # If not already posting, and more than 50 messages

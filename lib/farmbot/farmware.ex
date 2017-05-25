@@ -61,10 +61,9 @@ defmodule Farmbot.Farmware do
     meta:       Meta.t
   }
 
-  defimpl Inspect, for: Inspect do
-    def inspect(thing, _) do
-      "#Farmware<#{thing.name}>"
-    end
+  defimpl Inspect, for: __MODULE__ do
+    def inspect(%{name: name}, _), do: "#Farmware<#{name}>"
+    def inspect(_thing, _), do: "#Farmware<:invalid>"
   end
 
   @doc """
