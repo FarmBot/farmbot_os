@@ -29,7 +29,7 @@ defmodule Farmbot.Transport.Supervisor do
   end
 
   defp default_transport(%Context{} = ctx) do
-    worker(Farmbot.Transport, [ctx, [name: Farmbot.Transport]])
+    worker(Farmbot.Transport, [ctx, [name: Farmbot.Transport]], restart: :permanent)
   end
 
   @doc """
@@ -47,7 +47,7 @@ defmodule Farmbot.Transport.Supervisor do
           worker(module, [context, []], restart: :permanent)
         {module, opts} when is_atom(module) ->
           debug_log "starting transport: #{module} with opts: #{inspect opts}"
-          worker(module, [context, [opts]], restart: :permanent)
+          worker(module, [context, opts], restart: :permanent)
       end
     end)
   end

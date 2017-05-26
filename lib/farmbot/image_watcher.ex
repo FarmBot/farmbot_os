@@ -5,6 +5,7 @@ defmodule Farmbot.ImageWatcher do
   use GenServer
   require Logger
   alias Farmbot.Context
+  use Farmbot.DebugLog
 
   @images_path "/tmp/images"
   @type state :: []
@@ -22,6 +23,8 @@ defmodule Farmbot.ImageWatcher do
   def force_upload(%Context{} = ctx), do: do_checkup(ctx)
 
   def init(context) do
+    debug_log "Ensuring #{@images_path} exists."
+    File.mkdir_p! @images_path
     # TODO(Connor) kill :fs if this app dies.
     :fs_app.start(:normal, [])
     :fs.subscribe()

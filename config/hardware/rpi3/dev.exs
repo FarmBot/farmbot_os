@@ -22,6 +22,10 @@ config :farmbot,
   path: "/state",
   config_file_name: "default_config_rpi3.json"
 
+config :logger, :console,
+  format: "\n$time $metadata[$level] $levelpad$message\n",
+  metadata: [:module]
+
 # In production, we want a cron job for checking for updates.
 config :quantum, cron: [ "5 1 * * *": {Farmbot.System.Updates, :do_update_check}]
 

@@ -67,11 +67,13 @@ defmodule Farmbot.Transport.GenMqtt do
     {:noreply, [], state}
   end
 
-  def handle_info(_e, state) do
-    # catch other messages if we don't have a token, or client or
-    # we just don't know how to handle this message.
-    {:noreply, [], state}
-  end
+  def handle_info(_, {nil, nil, _context} = state), do: {:noreply, [], state}
+
+  # def handle_info(_e, state) do
+  #   # catch other messages if we don't have a token, or client or
+  #   # we just don't know how to handle this message.
+  #   {:noreply, [], state}
+  # end
 
   @spec start_client(Context.t, Token.t) :: {:ok, pid}
   defp start_client(%Context{} = context, %Token{} = token) do

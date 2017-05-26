@@ -65,14 +65,19 @@ defmodule Farmbot.System.NervesCommon.FileSystem do
         do: raise "error doing command(#{num}): #{inspect err}"
 
       defp format_state_part do
+        state_path =  unquote(state_path)
         # Format partition
         System.cmd("mkfs.#{unquote(fs_type)}", ["#{unquote(block_device)}", "-F"])
         # Mount it as read/write
         # NOTE(connor): is there a reason i did this in band?
         System.cmd("mount", ["-t", unquote(fs_type), "-o", "rw",
-          unquote(block_device), unquote(state_path)])
+          unquote(block_device), state_path])
         # Basically a flag that says the partition is formatted.
         File.write!("#{unquote(state_path)}/.formatted", "DONT CAT ME\n")
+
+        File.mkdir_p! "#{state_path}/farmware"
+        File.mkdir_p! "#{state_path}/farmware/packages"
+        File.mkdir_p! "#{state_path}/farmware/repos"
         :ok
       end
     end

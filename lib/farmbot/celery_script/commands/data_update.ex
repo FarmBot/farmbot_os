@@ -44,19 +44,20 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
   end
 
   @type number_or_wildcard :: non_neg_integer | binary # "*"
-  @type syncable ::  Farmbot.Database.syncable
+  @type syncable ::  Farmbot.Database.syncable | nil
 
   @spec parse_syncable_str(binary) :: syncable
-  defp parse_syncable_str("regimens"), do: Regimen
+  defp parse_syncable_str("regimens"),    do: Regimen
   defp parse_syncable_str("peripherals"), do: Peripheral
-  defp parse_syncable_str("sequences"), do: Sequence
+  defp parse_syncable_str("sequences"),   do: Sequence
   defp parse_syncable_str("farm_events"), do: FarmEvent
-  defp parse_syncable_str("tools"), do: Tool
-  defp parse_syncable_str("points"), do: Point
-  defp parse_syncable_str("devices"), do: Device
+  defp parse_syncable_str("tools"),       do: Tool
+  defp parse_syncable_str("points"),      do: Point
+  defp parse_syncable_str("device"),      do: Device
 
   defp parse_syncable_str(str) do
     debug_log "no such syncable: #{str}"
+    nil
   end
 
 

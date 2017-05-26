@@ -8,20 +8,26 @@ defmodule Farmbot.Serial.Handler.OpenTTY do
 
   @baud 115_200
 
-  defp ensure_supervisor(sup) when is_atom(sup) do
+  defp ensure_supervisor(sup, retries \\ 0)
+
+  defp ensure_supervisor(sup, retries) when retries > 25 do
+    :error
+  end
+
+  defp ensure_supervisor(sup, retries) when is_atom(sup) do
     case Process.whereis(sup) do
-      pid when is_pid(pid) -> ensure_supervisor(pid)
-      _ -> ensure_supervisor(sup)
+      pid when is_pid(pid) -> ensure_supervisor(pid, retries + 1)
+      _ -> ensure_supervisor(sup, retries + 1)
     end
   end
 
-  defp ensure_supervisor(sup) when is_pid(sup) do
+  defp ensure_supervisor(sup, retries) when is_pid(sup) do
     if Process.alive?(sup) do
       debug_log "Serial has a supervisor."
       :ok
     else
       debug_log "Waiting for serial to find a supervisor."
-      ensure_supervisor(sup)
+      ensure_supervisor(sup, retries + 1)
     end
   end
 

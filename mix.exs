@@ -235,7 +235,8 @@ defmodule Farmbot.Mixfile do
 
         # {:nerves_firmware, "~> 0.3"},
         # {:nerves_firmware, path: "../nerves_firmware", override: true},
-        {:nerves_firmware, github: "nerves-project/nerves_firmware", tag: "0f558ad2402cbd5b36bd7a8a10bc2b53167de14e", override: true},
+        {:nerves_firmware, github: "nerves-project/nerves_firmware", override: true},
+        # {:nerves_firmware, github: "nerves-project/nerves_firmware", tag: "0f558ad2402cbd5b36bd7a8a10bc2b53167de14e", override: true},
 
         {:nerves_ssdp_server, "~> 0.2.1"},
         ],

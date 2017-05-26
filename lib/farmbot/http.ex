@@ -36,7 +36,7 @@ defmodule Farmbot.HTTP do
   def request(context, method, url, body \\ "", headers \\ [], opts \\ [])
 
   def request(%Context{} = ctx, method, url, body, headers, opts) do
-    GenServer.call(ctx.http, {:request, method, url, body, headers, opts}, :infinity)
+    GenServer.call(ctx.http, {:request, method, url, body, headers, opts}, 30_000)
   end
 
   def request!(context, method, url, body \\ "", headers \\ [], opts \\ [])
@@ -71,7 +71,10 @@ defmodule Farmbot.HTTP do
 
 
   def post(context, url, body \\ "", headers \\ [], opts \\ [])
-  def post(%Context{} = ctx, url, body, headers, opts), do: request(ctx, :post, url, body, headers, opts)
+  def post(%Context{} = ctx, url, body, headers, opts) do
+    debug_log "doing http post: \n" <> body
+    request(ctx, :post, url, body, headers, opts)
+  end
 
   @doc """
     Downloads a file to the filesystem
@@ -108,6 +111,7 @@ defmodule Farmbot.HTTP do
   end
 
   def init(ctx) do
+    Process.flag(:trap_exit, true)
     state = %{
       context: %{ctx | http: self()},
       requests: %{}
@@ -126,7 +130,7 @@ defmodule Farmbot.HTTP do
     user_agent = {"User-Agent", "FarmbotOS/#{@version} (#{@target}) #{@target}"}
     headers    = [user_agent | headers]
     try do
-      debug_log "Trying to create request"
+      debug_log "Trying to create request: #{inspect options}"
       %AsyncResponse{id: ref} = HTTPoison.request!(method, url, body, headers, options)
       empty_request = empty_request()
       populated = if save_to_file do
@@ -282,6 +286,11 @@ defmodule Farmbot.HTTP do
         debug_log "Unrecognized ref (End): #{inspect ref}"
         {:noreply, state}
     end
+  end
+  def handle_info(e, state) do
+    require IEx
+    IEx.pry
+    {:noreply, state}
   end
 end
 # defmodule Farmbot.HTTP do

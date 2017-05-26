@@ -59,7 +59,10 @@ defmodule Farmbot.Transport.GenMqtt.Client do
     {:ok, {token, context}}
   end
 
-  def on_disconnect(_), do: :shutdown
+  def on_disconnect(disconnect) do
+    require IEx
+    IEx.pry
+  end
 
   def handle_cast({:status, %Ser{} = ser}, {%Token{} = token, %Context{} = con}) do
     json = Poison.encode!(ser)
@@ -79,11 +82,15 @@ defmodule Farmbot.Transport.GenMqtt.Client do
     {:noreply, {token, context}}
   end
 
-  def terminate(_,_), do: :ok
+  def terminate(a, state) do
+    require IEx
+    IEx.pry 
+  end
 
   @spec build_opts(Token.t) :: GenMQTT.option
   defp build_opts(%Token{} = token) do
-    [name: __MODULE__,
+    [
+   # name: __MODULE__,
      host: token.unencoded.mqtt,
      timeout: 10_000,
      reconnect_timeout: 10_000,

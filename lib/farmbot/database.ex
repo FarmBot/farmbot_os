@@ -59,12 +59,18 @@ defmodule Farmbot.Database do
   @spec all_syncable_modules :: [syncable]
   def all_syncable_modules, do: unquote(syncable_modules)
 
+  defp set_syncing(ctx, msg) do
+    :ok = Farmbot.BotState.set_sync_msg(ctx, msg)
+    :ok
+  end
+
   @doc """
     Sync up with the API.
   """
+  # TODO(Connor) this is slow.
   @spec sync(Context.t) :: :ok | no_return
   def sync(%Context{} = ctx) do
-    Farmbot.BotState.set_sync_msg(ctx, :syncing)
+    set_syncing(ctx, :syncing)
     try do
       for module_name <- all_syncable_modules() do
         if get_awaiting(ctx, module_name) do
@@ -82,12 +88,12 @@ defmodule Farmbot.Database do
         end
 
       end
-      Farmbot.BotState.set_sync_msg(ctx, :synced)
+      set_syncing(ctx, :synced)
       :ok
     rescue
       e ->
         Logger.info ">> Encountered error syncing, #{inspect e}", type: :error
-        Farmbot.BotState.set_sync_msg(ctx, :sync_error)
+        set_syncing(ctx, :sync_error)
     end
   end
 

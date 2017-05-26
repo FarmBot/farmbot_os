@@ -23,6 +23,9 @@ defmodule Mix.Tasks.Farmbot.Upload do
     http_opts = [relaxed: true, autoredirect: true]
     opts = []
 
+
+    :ok = do_ping_bot(ip_address)
+
     {:ok, file} = :file.read_file('#{file_name}')
     file = :binary.bin_to_list(file)
     url = 'http://#{ip_address}/api/upload_firmware'
@@ -37,6 +40,27 @@ defmodule Mix.Tasks.Farmbot.Upload do
       {url, headers, content_type, body},
       http_opts, opts)
     |> response
+  end
+
+  defp do_ping_bot(ip_address) do
+    url = 'http://#{ip_address}/api/ping'
+    headers = []
+    :httpc.request(:get, {url, headers}, [], []) |> ping_response
+  end
+
+  defp ping_response({:ok, {{_, 200, _}, _, _}}) do
+    Mix.shell.info "Connected to bot!"
+    :ok
+  end
+
+  defp ping_response({:ok, {{_, status_code, _}, _, error}}) do
+    Mix.shell.info "\nCould not connect to bot! #{status_code} #{inspect error}"
+    {:error, status_code, error}
+  end
+
+  defp ping_response({:error, error}) do
+    Mix.shell.info "\nCould not connect to bot! #{inspect error}"
+    {:error, error}
   end
 
   defp start_httpc() do
