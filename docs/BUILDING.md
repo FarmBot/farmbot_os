@@ -29,7 +29,7 @@ npm install
 ## Compile the application
 From here you will have to choose your own adventure. You get to choose if you
 want development mode or production mode, and you get to choose the target you
-want to build the executables for. see the [ENVIRONMENT](environment.html) for more details
+want to build the executables for. see the [ENVIRONMENT](environment.md) for more details
 This will take a while depending on you machine.
 ```bash
 export MIX_ENV=prod
