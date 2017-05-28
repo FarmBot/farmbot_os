@@ -58,3 +58,10 @@
 * Finally rewrite the firmware uploader.
 * Bump Firmware Version.
 * Misc bug fixes.
+
+# 3.1.6
+* Bundle new FW (01.13)
+* Increase WiFi Stability
+* Refresh auth token more frequently
+* Clean up noisy log messages
+
