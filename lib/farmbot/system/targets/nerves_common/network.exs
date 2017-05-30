@@ -33,7 +33,7 @@ defmodule Farmbot.System.NervesCommon.Network do
           cb.()
         end
 
-        {:ok, %{logging_in: false, context: context}}
+        {:ok, %{logging_in: false, context: context, retries: 0}}
       end
 
       # don't start this interface
@@ -221,6 +221,13 @@ defmodule Farmbot.System.NervesCommon.Network do
         {:noreply, state}
       end
 
+      def handle_info({Nerves.WpaSupplicant, event, %{ifname: iface}}, %{retries: retries} = state) when retries > 5 do
+        Farmbot.System.factory_reset("""
+        I could not find the wifi access point. Check that it was inputted correctly.
+        I tried #{retries} times and still found nothing. Maybe I'm not close enough to the access point?
+        """)
+      end
+
       def handle_info({Nerves.WpaSupplicant, event, %{ifname: iface}}, state) when is_atom(event) do
         event = event |> Atom.to_string
         wrong_key? = event |> String.contains?("reason=WRONG_KEY")
@@ -230,11 +237,11 @@ defmodule Farmbot.System.NervesCommon.Network do
         password, or an unsupported network type.
         """)
 
-        if not_found?, do: Farmbot.System.factory_reset("""
-        I could not find the wifi access point. Check that it was inputted correctly.
-        """)
-
-        {:noreply, state}
+        if not_found? do
+          {:noreply, %{state | retries + 1}}
+        else
+          {:noreply, state}
+        end
       end
 
       def handle_info(info, state) do
