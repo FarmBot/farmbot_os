@@ -105,12 +105,10 @@ defmodule Farmbot.BotState.Hardware do
     pin_state = state.pins
     new_pin_value =
     case Map.get(pin_state, Integer.to_string(pin)) do
-      nil                     ->
-        %{mode: -1,   value: value}
-      %{mode: mode, value: _} ->
-        %{mode: mode, value: value}
+      nil                     -> %{mode: -1,   value: value}
+      %{mode: mode, value: _} -> %{mode: mode, value: value}
     end
-    Logger.info ">> set pin: #{pin}: #{new_pin_value.value}"
+    Logger.info ">> Pin #{pin} is #{new_pin_value.value}"
     new_pin_state = Map.put(pin_state, Integer.to_string(pin), new_pin_value)
     dispatch %State{state | pins: new_pin_state}
   end
