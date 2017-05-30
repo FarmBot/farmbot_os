@@ -288,8 +288,6 @@ defmodule Farmbot.HTTP do
     end
   end
   def handle_info(e, state) do
-    require IEx
-    IEx.pry
     {:noreply, state}
   end
 end

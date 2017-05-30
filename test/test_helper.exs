@@ -56,7 +56,7 @@ defmodule Farmbot.Test.HTTPHelper do
   end
 end
 
-defmodule Farmbot.Tets.HTTPTemplate do
+defmodule Farmbot.Tests.HTTPTemplate do
   use ExUnit.CaseTemplate
   alias Farmbot.{Context, HTTP, Auth}
   alias Farmbot.Test.HTTPHelper
@@ -74,39 +74,63 @@ defmodule Farmbot.Tets.HTTPTemplate do
     end
 
   end
+  def fake_token do
+    %{"encoded" => "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1p" <>
+                   "bkBhZG1pbi5jb20iLCJpYXQiOjE0OTUwMzIwMTAsImp0aSI6ImUyM" <>
+                   "2YyNzI0LTAyZWMtNDk2OC1iNjc5LWI4MTQ0YjI3N2JiZiIsImlzcy" <>
+                   "I6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5ODQ4ODA" <>
+                   "xMCwibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3Nl" <>
+                   "cnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFyb" <>
+                   "WJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZG" <>
+                   "F0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9" <>
+                   "zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVh" <>
+                   "c2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV84In0.UcBgq4pxoXeR6" <>
+                   "TYv9lYd90LAlGczZMjuvqT1Yc4R8xIk_Jy6bumhq7mI-Hoi9i"     <>
+                   "KBhPU3XMpifXoIyqb1UdC1MBJyHMpPYjZoJLmm4v3XEug_rTu4Rca" <>
+                   "O7r_r1dZAh2C5TPVXBydcDe02loGC4_YmQPwWixhqJO_6vFF7JEDH" <>
+                   "ir4bihbdfV-P4uZhpUcw-I1Eht4zCMjlmWaL5xcKUdSf-TuSQGNi0" <>
+                   "Ib0GkZs2wXan2bgv_wBfFEaZ4vmoZO1NM43jaykDssOaxP9hN7FKD" <>
+                   "dJ4mXL7r9XS7KtXpVQPycUYsfr-lPvid9cfKQFv-STakiDot8uGOY" <>
+                   "r1CH6I9erQMlhnQ",
+      "unencoded" => %{
+          "bot"              => "device_8",
+          "exp"              => 1498488010,
+          "fw_update_server" => "https://api.github.com/repos/Farmbot/farmb" <>
+                                "ot-arduino-firmware/releases/latest",
+          "iat"              => 1495032010,
+          "iss"              => "//192.168.29.165:3000",
+          "jti"              => "e23f2724-02ec-4968-b679-b8144b277bbf",
+          "mqtt"             => "192.168.29.165",
+          "os_update_server" => "https://api.github.com/repos/farmbot/farmb" <>
+                                "ot_os/releases/latest",
+          "sub"              => "admin@admin.com"
+        }
+      }
+  end
 
-  def mock_api(mock, context, fun) do
-    tkn = %{"token" => %{"encoded" => "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpYXQiOjE0OTUwMzIwMTAsImp0aSI6ImUyM2YyNzI0LTAyZWMtNDk2OC1iNjc5LWI4MTQ0YjI3N2JiZiIsImlzcyI6Ii8vMTkyLjE2OC4yOS4xNjU6MzAwMCIsImV4cCI6MTQ5ODQ4ODAxMCwibXF0dCI6IjE5Mi4xNjguMjkuMTY1Iiwib3NfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvZmFybWJvdC9mYXJtYm90X29zL3JlbGVhc2VzL2xhdGVzdCIsImZ3X3VwZGF0ZV9zZXJ2ZXIiOiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL0Zhcm1ib3QvZmFybWJvdC1hcmR1aW5vLWZpcm13YXJlL3JlbGVhc2VzL2xhdGVzdCIsImJvdCI6ImRldmljZV84In0.UcBgq4pxoXeR6TYv9lYd90LAlGczZMjuvqT1Yc4R8xIk_Jy6bumhq7mI-Hoi9iKBhPU3XMpifXoIyqb1UdC1MBJyHMpPYjZoJLmm4v3XEug_rTu4RcaO7r_r1dZAh2C5TPVXBydcDe02loGC4_YmQPwWixhqJO_6vFF7JEDHir4bihbdfV-P4uZhpUcw-I1Eht4zCMjlmWaL5xcKUdSf-TuSQGNi0Ib0GkZs2wXan2bgv_wBfFEaZ4vmoZO1NM43jaykDssOaxP9hN7FKDdJ4mXL7r9XS7KtXpVQPycUYsfr-lPvid9cfKQFv-STakiDot8uGOYr1CH6I9erQMlhnQ",
-    "unencoded" => %{"bot" => "device_8", "exp" => 1498488010,
-      "fw_update_server" => "https://api.github.com/repos/Farmbot/farmbot-arduino-firmware/releases/latest",
-      "iat" => 1495032010, "iss" => "//192.168.29.165:3000",
-      "jti" => "e23f2724-02ec-4968-b679-b8144b277bbf",
-      "mqtt" => "192.168.29.165",
-      "os_update_server" => "https://api.github.com/repos/farmbot/farmbot_os/releases/latest",
-      "sub" => "admin@admin.com"}},
-      "user" => %{"agreed_to_terms_at" => nil,
-      "created_at" => "2017-05-16T22:23:06.508Z", "device_id" => 8,
-      "email" => "admin@admin.com", "id" => 6, "name" => "Administrator",
-      "updated_at" => "2017-05-17T14:38:56.800Z",
-      "verification_token" => "e29250dc-0b63-4532-916e-37463ba5c343",
-      "verified_at" => "2017-05-16T22:23:06.522Z"}}
-    token = Farmbot.Token.create! tkn["token"]
+  def replace_auth_state(context) do
+    token = Farmbot.Token.create! fake_token()
     :sys.replace_state(context.auth, fn(old) ->
       %{old | token: token}
     end)
+  end
 
+  def replace_http_state(context) do
     :sys.replace_state(context.http, fn(old) ->
       new_context = %{old.context | auth: context.auth}
       %{old | context: new_context}
     end)
-    # THIS IS BAD ^
+  end
 
+  def mock_api(mock, context, fun) do
+    replace_auth_state(context)
+    replace_http_state(context)
     mock_http(mock, fun)
   end
 
   using do
     quote do
-      import Farmbot.Tets.HTTPTemplate
+      import Farmbot.Tests.HTTPTemplate
       import Mock
     end
   end

@@ -17,9 +17,8 @@ defmodule Farmbot.CeleryScript.Command.ExecuteScript do
   def run(%{label: uuid}, env_vars, context) do
     Command.set_user_env(%{}, env_vars, context)
     case Manager.lookup(context, uuid) do
-      {:ok, %Farmware{} = fw} ->
-        Runtime.execute(context, fw)
-      {:error, e} -> raise "Could not locate farmware: #{e}"
+      {:ok, %Farmware{} = fw} -> Runtime.execute(context, fw)
+      {:error, e}             -> raise "Could not locate farmware: #{e}"
     end
   end
 end
