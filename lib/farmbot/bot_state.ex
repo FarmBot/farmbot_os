@@ -200,6 +200,6 @@ defmodule Farmbot.BotState do
     do: do_set_sync_msg(ctx, thing)
 
   defp do_set_sync_msg(%Context{} = context, thing) do
-    GenServer.cast(context.configuration, {:update_info, :sync_status, thing})
+    GenServer.cast(context.configuration, {:update_sync_message, thing})
   end
 end

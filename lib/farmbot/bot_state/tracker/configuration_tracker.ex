@@ -48,7 +48,14 @@ defmodule Farmbot.BotState.Configuration do
         distance_mm_z: integer,
         sync_status: sync_msg
       },
-      informational_settings: map # TODO type this
+      informational_settings: %{
+        locked: boolean,
+        controller_version: binary,
+        target: binary,
+        commit: binary,
+        sync_status: sync_msg,
+        firmware_version: binary
+       }
     }
 
   @version Mix.Project.config()[:version]
@@ -191,13 +198,25 @@ defmodule Farmbot.BotState.Configuration do
   end
 
   def handle_cast({:update_info, key, value}, %State{} = state) do
-    new_info = Map.put(state.informational_settings, key, value)
-    new_state = %State{state | informational_settings: new_info}
-    dispatch new_state
+    dispatch do_update_info(state, key, value)
+  end
+
+  def handle_cast({:update_sync_message, thing}, %State{} = state) do
+    if state.informational_settings.locked do
+      dispatch state
+    else
+      dispatch do_update_info(state, :sync_status, thing)
+    end
   end
 
   def handle_cast(event, %State{} = state) do
     Logger.error ">> got an unhandled cast in Configuration: #{inspect event}"
     dispatch state
+  end
+
+  @spec do_update_info(State.t, binary | atom, term) :: State.t
+  defp do_update_info(%State{} = state, key, value) do
+    new_info = Map.put(state.informational_settings, key, value)
+    %State{state | informational_settings: new_info}
   end
 end
