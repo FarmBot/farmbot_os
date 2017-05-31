@@ -1,7 +1,7 @@
 defmodule Farmbot.HTTP do
   use GenServer
   alias Farmbot.{Auth, Context, Token}
-  alias Farmbot.HTTP.{Response, Client}
+  alias Farmbot.HTTP.{Response, Client, Error}
   require Logger
   use Farmbot.DebugLog
 
@@ -16,32 +16,37 @@ defmodule Farmbot.HTTP do
     * `body` is a binary http payload
     * `opts` is a keyword list of options.
   """
-  def request(context, method, url, body \\ "", headers \\ [], opts \\ [])
-
   def request(%Context{} = ctx, method, url, body, headers, opts) do
     GenServer.call(ctx.http, {:request, method, url, body, headers, opts}, 30_000)
   end
 
-  def request!(context, method, url, body \\ "", headers \\ [], opts \\ [])
   def request!(%Context{} = ctx, method, url, body, headers, opts) do
-    debug_log "doing request!"
     case request(ctx, method, url, body, headers, opts) do
       {:ok, response} -> response
       {:error, er} ->
-        raise "Http request #{inspect method} : #{inspect url} failed! #{inspect er}"
+        raise Error, "Http request #{inspect method} : #{inspect url} failed! #{inspect er}"
     end
   end
 
-  @doc """
-    HTTP GET.
-  """
-  def get(context, url, body \\ "", headers \\ [], opts \\ [])
-  def get(%Context{} = ctx, url, body, headers, opts), do: request(ctx, :get, url, body, headers, opts)
+  methods = [:get, :post]
 
-  def post(context, url, body \\ "", headers \\ [], opts \\ [])
-  def post(%Context{} = ctx, url, body, headers, opts) do
-    debug_log "doing http post: \n" <> body
-    request(ctx, :post, url, body, headers, opts)
+  for verb <- methods do
+    @doc """
+      HTTP #{verb} request.
+    """
+    def unquote(verb)(context, url, body \\ "", headers \\ [], opts \\ [])
+    def unquote(verb)(%Context{} = ctx, url, body, headers, opts) do
+       request(ctx, unquote(verb), url, body, headers, opts)
+    end
+
+    @doc """
+      Same as #{verb}/5 but raises if there is an error.
+    """
+    fun_name = "#{verb}!" |> String.to_atom
+    def unquote(fun_name)(context, url, body \\ "", headers \\ [], opts \\ [])
+    def unquote(fun_name)(%Context{} = ctx, url, body, headers, opts) do
+      request!(ctx, unquote(verb), url, body, headers, opts)
+    end
   end
 
   @doc """
