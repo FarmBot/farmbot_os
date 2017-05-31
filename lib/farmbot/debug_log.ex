@@ -26,7 +26,7 @@ defmodule Farmbot.DebugLog do
   """
   defmacro __using__(opts) do
     color = Keyword.get(opts, :color)
-    name = Keyword.get(opts, :name)
+    name  = Keyword.get(opts, :name)
     quote do
 
       if unquote(name) do
@@ -42,7 +42,8 @@ defmodule Farmbot.DebugLog do
         end
       else
         defp debug_log(str) do
-          GenEvent.notify Farmbot.DebugLog, {get_module(), {:BLUE, str}}
+          IO.puts "Stubbed out. Sorry. - RC"
+          # GenEvent.notify Farmbot.DebugLog, {Farmbot.DebugLog, {:BLUE, str}}
         end
       end # if color
 

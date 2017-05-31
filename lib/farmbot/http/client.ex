@@ -13,7 +13,6 @@ defmodule Farmbot.HTTP.Client do
 
   @type from :: {pid, reference}
 
-  @spec start_link(from, request) :: GenServer.on_start
 
   @redirect_status_codes [301, 302, 303, 307, 308]
 
