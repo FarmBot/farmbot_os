@@ -42,8 +42,7 @@ defmodule Farmbot.DebugLog do
         end
       else
         defp debug_log(str) do
-          IO.puts "Stubbed out. Sorry. - RC"
-          # GenEvent.notify Farmbot.DebugLog, {Farmbot.DebugLog, {:BLUE, str}}
+          GenEvent.notify Farmbot.DebugLog, {Farmbot.DebugLog, {:BLUE, str}}
         end
       end # if color
 
