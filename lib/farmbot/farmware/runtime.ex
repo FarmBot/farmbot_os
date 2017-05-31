@@ -80,19 +80,19 @@ defmodule Farmbot.Farmware.Runtime do
   @spec handle_script_output(state, binary) :: Context.t | no_return
   defp handle_script_output(%State{} = state, data) do
     <<uuid :: size(288) >> = state.uuid
-    if match?(<<_ :: size(288), rest :: binary >>, data) do
-      << ^uuid :: size(288), json :: binary >> = data
-      debug_log "going to try to do: #{json}"
-      new_context =
-        json
-          |> String.trim()
-          |> Poison.decode!()
-          |> CeleryScript.Ast.parse()
-          |> CeleryScript.Command.do_command(state.context)
-      %{state | context: new_context}
-    else
-      debug_log("[#{state.farmware.name}] Sent data: #{data}")
-      %{state | output: [data | state.output]}
+    case data do
+      << ^uuid :: size(288), json :: binary >> ->
+        debug_log "going to try to do: #{json}"
+        new_context =
+          json
+            |> String.trim()
+            |> Poison.decode!()
+            |> CeleryScript.Ast.parse()
+            |> CeleryScript.Command.do_command(state.context)
+        %{state | context: new_context}
+      _data ->
+        debug_log("[#{state.farmware.name}] Sent data: #{data}")
+        %{state | output: [data | state.output]}
     end
   end
 
