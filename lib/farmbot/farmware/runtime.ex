@@ -47,8 +47,7 @@ defmodule Farmbot.Farmware.Runtime do
     result = Poison.decode(String.trim(data))
     case result do
       {:ok, json} ->
-        do_stuff(ctx, json)
-        handle_port(ctx, fw, port)
+        handle_port(do_stuff(ctx, json), fw, port)
       {:error, _} ->
         debug_log("MALFORMED FARMWARE INPUT. EXITING....")
         kill_port(port)

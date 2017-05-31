@@ -1,10 +1,12 @@
 defmodule Farmbot.Farmware.RuntimeTest do
   @moduledoc false
-  use ExUnit.Case, async: false
   alias Farmbot.{Farmware, Context, CeleryScript}
+  alias Farmbot.CeleryScript.Command.Nothing
   alias Farmbot.Farmware.Runtime
+  import Mock
+  use ExUnit.Case, async: false
 
-  test "Runs a farmware" do
+  test_with_mock "Runs a farmware", Nothing, [:passthrough], [] do
     json_stuff = Poison.encode!(%CeleryScript.Ast{
       kind: "nothing",
       args: %{},
@@ -27,6 +29,8 @@ defmodule Farmbot.Farmware.RuntimeTest do
     }
     context = Context.new()
     Farmbot.Tests.HTTPTemplate.replace_auth_state(context)
-    wow     = Runtime.execute(context, fake_fw)
+
+    Runtime.execute(context, fake_fw)
+    assert called Nothing.run(%{}, [], :_)
   end
 end
