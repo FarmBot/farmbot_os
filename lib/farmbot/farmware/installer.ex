@@ -16,11 +16,11 @@ defmodule Farmbot.Farmware.Installer do
   """
   @spec install!(Context.t, binary) :: Farmware.t | no_return
   def install!(%Context{} = ctx, url) do
-    :ok    = ensure_dirs!()
-    schema = ensure_schema!()
-    binary = Farmbot.HTTP.get!(ctx, url)
-    json   = Poison.decode!(binary)
-    :ok    = validate_json!(schema, json)
+    :ok             = ensure_dirs!()
+    schema          = ensure_schema!()
+    %{body: binary} = Farmbot.HTTP.get!(ctx, url)
+    json            = Poison.decode!(binary)
+    :ok             = validate_json!(schema, json)
     debug_log "Installing a Farmware from: #{url}"
     print_json_debug_info(json)
     ensure_correct_version!(json)
@@ -75,11 +75,11 @@ defmodule Farmbot.Farmware.Installer do
     debug_log "repo: #{module} is syncing"
     # make sure we have a valid repository here.
     ensure_module!(module)
-    :ok        = ensure_dirs!()
-    url        = module.url()
-    binary     = Farmbot.HTTP.get!(ctx, url)
-    json       = Poison.decode!(binary)
-    repository = Repository.validate!(json)
+    :ok             = ensure_dirs!()
+    url             = module.url()
+    %{body: binary} = Farmbot.HTTP.get!(ctx, url)
+    json            = Poison.decode!(binary)
+    repository      = Repository.validate!(json)
 
     :ok = ensure_not_synced!(module)
     # do the installs

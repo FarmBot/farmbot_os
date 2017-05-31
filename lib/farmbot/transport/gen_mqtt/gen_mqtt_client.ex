@@ -60,8 +60,7 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   end
 
   def on_disconnect(disconnect) do
-    require IEx
-    IEx.pry
+    raise "Not implemented"
   end
 
   def handle_cast({:status, %Ser{} = ser}, {%Token{} = token, %Context{} = con}) do
@@ -83,8 +82,7 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   end
 
   def terminate(a, state) do
-    require IEx
-    IEx.pry 
+    raise "Not implemented"
   end
 
   @spec build_opts(Token.t) :: GenMQTT.option

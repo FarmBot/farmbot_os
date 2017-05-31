@@ -142,7 +142,7 @@ defmodule Farmbot.System.Network do
     rescue
       error ->
         Logger.warn(">> failed to install first party farmwares: #{inspect error}")
-        # debug_log "#{inspect System.stacktrace()}"
+        debug_log "#{inspect System.stacktrace()}"
         :ok
     end
   end

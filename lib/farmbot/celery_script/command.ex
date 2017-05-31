@@ -84,7 +84,7 @@ defmodule Farmbot.CeleryScript.Command do
   def pairs_to_tuples(config_pairs) do
     Enum.map(config_pairs, fn(%Ast{} = thing) ->
       if thing.args.label == nil do
-        Logger.error("Label was nil! #{inspect config_pairs}")
+        Logger.info("Label was nil! #{inspect config_pairs}", type: :error)
       end
       {thing.args.label, thing.args.value}
     end)
@@ -112,7 +112,7 @@ defmodule Farmbot.CeleryScript.Command do
       rescue
         e ->
           debug_log("Could not execute: #{inspect ast}, #{inspect e}")
-          Logger.error ">> could not execute #{inspect ast} #{inspect e}"
+          Logger.info ">> could not execute #{inspect ast} #{inspect e}", type: :error
           stack_trace = System.stacktrace
           reraise(e, stack_trace)
       end

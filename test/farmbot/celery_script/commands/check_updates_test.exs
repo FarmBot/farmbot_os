@@ -28,6 +28,4 @@ defmodule Farmbot.CeleryScript.Command.CheckUpdatesTest do
       assert called Farmbot.System.Updates.check_and_download_updates
     end
   end
-
-
 end

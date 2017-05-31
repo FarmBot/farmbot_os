@@ -1,5 +1,5 @@
 defmodule Farmbot.HTTPTest do
-  use Farmbot.Tets.HTTPTemplate, async: false
+  use Farmbot.Tests.HTTPTemplate, async: false
   alias Farmbot.Auth
   alias Farmbot.HTTP
   alias Farmbot.Context

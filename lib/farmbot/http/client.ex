@@ -23,6 +23,12 @@ defmodule Farmbot.HTTP.Client do
 
   @redirect_status_codes [301, 302, 303, 307, 308]
 
+  @doc """
+    Execute the HTTP request.
+  """
+  @spec execute(client) :: :ok
+  def execute(client), do: GenServer.cast(client, :execute)
+
   ## GenServer Stuff
 
   @doc """
@@ -42,27 +48,33 @@ defmodule Farmbot.HTTP.Client do
   def stop(client, reason \\ :normal), do: GenServer.stop(client, reason)
 
   def init({from, request, fb_opts}) do
-    start_httpc()
-    {method, url, body, headers} = ensure_request(request)
-    self        = self()
-    debug_log "[#{inspect self}] Starting request: #{inspect request}"
-    http_opts   = [timeout: :infinity, autoredirect: false]
-    opts        = [stream: :self, receiver: self, sync: false]
-    # headers     = [{'Content-Type', 'application/octet-stream'} | headers]
-    url_headers = {url, headers}
-    {:ok, ref}  = :httpc.request(method, url_headers, http_opts, opts, :farmbot_http)
-
+    {_method, _url, _body, _headers} = actual_request = ensure_request(request)
     state = %{
+      file:           nil,
       noreply:        false,
-      opts:           opts,
+      fb_opts:        fb_opts,
       status_code:    nil,
-      request:        request,
+      request:        actual_request,
       headers:        [],
       from:           from,
-      ref:            ref,
+      ref:            nil,
       buffer:         "",
     }
     {:ok, state}
+  end
+
+  def handle_cast(:execute, state) do
+    start_httpc()
+    file                         = maybe_open_file(state.fb_opts)
+    {method, url, body, headers} = ensure_request(state.request)
+    http_opts                    = [timeout: :infinity, autoredirect: false]
+    opts                         = [stream: :self, receiver: self(), sync: false]
+    url_and_headers              = {url, headers}
+    {:ok, ref}                   = :httpc.request(method, url_and_headers, http_opts, opts, :farmbot_http)
+
+    state = %{ state | ref: ref, file: file}
+    debug_log "[#{inspect self}] Starting request: #{inspect state.request}"
+    {:noreply, state}
   end
 
   # This handles the redirecting of http requests.
@@ -83,7 +95,10 @@ defmodule Farmbot.HTTP.Client do
       new_request                = ensure_request({method, new_url, body, headers})
 
       # start a new client for that request.
-      spawn __MODULE__, :start_link, [state.from, new_request, state.opts]
+      spawn fn() ->
+        {:ok, pid} = start_link(state.from, new_request, state.fb_opts)
+        :ok        = execute(pid)
+      end
 
       # stop this client, but don't reply because something else is going to reply for it.
       finish_request %{state | noreply: true}
@@ -114,6 +129,7 @@ defmodule Farmbot.HTTP.Client do
     # debug_log "[#{inspect self()}] got stream data"
     # append it into the buffer.
     buffer = state.buffer <> data
+    :ok    = maybe_stream_to_file(state.file, data)
     {:noreply, %{state | buffer: buffer}}
   end
 
@@ -137,6 +153,7 @@ defmodule Farmbot.HTTP.Client do
       GenServer.reply(state.from, {:ok, build_resp(state)})
     end
     debug_log "[#{inspect self()}] HTTP Request seems to be finished."
+    :ok = maybe_close_file(state.file)
     :ok
   end
 
@@ -144,7 +161,28 @@ defmodule Farmbot.HTTP.Client do
   def terminate(reason, state) do
     # If there is an error always reply.
     GenServer.reply(state.from, {:error, reason})
+    :ok = maybe_close_file(state.file)
     :ok
+  end
+
+  defp maybe_open_file(opts) do
+    case Keyword.get(opts, :file) do
+      file_name when is_binary(file_name) ->
+        debug_log "[#{inspect self()}] opening file: #{inspect file_name}"
+        :ok       = File.touch(file_name)
+        {:ok, fd} = :file.open(file_name, [:write, :raw])
+        fd
+      nil -> nil
+    end
+  end
+
+  defp maybe_close_file(nil), do: :ok
+  defp maybe_close_file(fd), do: :file.close(fd)
+
+  defp maybe_stream_to_file(nil, _data), do: :ok
+  defp maybe_stream_to_file(fd, data) when is_binary(data) do
+    debug_log "[#{inspect self()}] writing data to file."
+    :ok = :file.write(fd, data)
   end
 
   @spec finish_request(state, term) :: {:stop, term, state}
