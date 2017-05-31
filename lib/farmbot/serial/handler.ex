@@ -152,17 +152,20 @@ defmodule Farmbot.Serial.Handler do
 
   def init({ctx, nerves, tty}) when is_pid(nerves) and is_binary(tty) do
     Process.link(nerves)
-    :ok = open_tty(nerves, tty)
-    state = %{
-      context: ctx,
-      nerves: nerves,
-      tty: tty,
-      current: nil,
-      timeouts: 0,
-      status: :busy,
-      initialized: false
-    }
-    {:ok, state}
+    case open_tty(nerves, tty) do
+      :ok ->
+        state = %{
+          context: ctx,
+          nerves: nerves,
+          tty: tty,
+          current: nil,
+          timeouts: 0,
+          status: :busy,
+          initialized: false
+        }
+        {:ok, state}
+      _   -> {:stop, :normal, :no_state}
+    end
   end
 
   def init({ctx, tty}) when is_binary(tty) do
@@ -173,16 +176,18 @@ defmodule Farmbot.Serial.Handler do
   @spec open_tty(nerves, binary) :: :ok
   defp open_tty(nerves, tty) do
     # Open the tty
-    :ok = UART.open(nerves, tty)
+    case UART.open(nerves, tty) do
+      :ok ->
+        :ok = UART.configure(nerves,
+          framing: {UART.Framing.Line, separator: "\r\n"},
+          active: true,
+          rx_framing_timeout: 500)
 
-    :ok = UART.configure(nerves,
-      framing: {UART.Framing.Line, separator: "\r\n"},
-      active: true,
-      rx_framing_timeout: 500)
-
-    # Flush the buffers so we start fresh
-    :ok = UART.flush(nerves)
-    :ok
+        # Flush the buffers so we start fresh
+        :ok = UART.flush(nerves)
+        :ok
+      err -> err
+    end
   end
 
   def handle_call(:emergency_lock, _, state) do
@@ -246,6 +251,11 @@ defmodule Farmbot.Serial.Handler do
     end
   end
 
+  def handle_info({:nerves_uart, tty, {:error, error}}, state) do
+    Logger.error "#{tty} handler exiting!: #{error}"
+    {:stop, error, state}
+  end
+
   def handle_info({:nerves_uart, _tty, {:partial, _}}, s), do: {:noreply, s}
 
   def handle_info({:nerves_uart, _, str}, %{initialized: false} = state) do
@@ -278,14 +288,10 @@ defmodule Farmbot.Serial.Handler do
     end
   end
 
-  def handle_info({:nerves_uart, tty, {:error, error}}, state) do
-    Logger.error "#{tty} handler exiting!: #{error}"
-    {:stop, error, state}
-  end
-
+  def terminate(_, :no_state), do: :ok
   def terminate(reason, state) do
     UART.close(state.nerves)
-    GenServer.stop(state.nerves, reason)
+    UART.stop(state.nerves)
   end
 
   @spec do_handle({binary, any}, current | nil, Context.t)

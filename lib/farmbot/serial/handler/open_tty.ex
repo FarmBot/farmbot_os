@@ -91,8 +91,9 @@ defmodule Farmbot.Serial.Handler.OpenTTY do
   @spec supervise_process(any, binary, atom | pid, atom | pid)
     :: {:ok, pid} | false | no_return
   defp supervise_process(:ok, {tty, %Context{} = ctx, opts}, sup, nerves) do
-    worker_spec = worker(Handler, [ctx, nerves, tty, opts], [restart: :permanent])
+    worker_spec = worker(Handler, [ctx, tty, opts], [restart: :permanent])
     UART.close(nerves)
+    UART.stop(nerves)
     Process.sleep(1500)
     {:ok, _pid} = Supervisor.start_child(sup, worker_spec)
   end
