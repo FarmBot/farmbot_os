@@ -99,7 +99,7 @@ defmodule Farmbot.Serial.Handler.OpenTTY do
 
   defp supervise_process(resp, {tty, %Context{}, _opts}, _, nerves) do
     GenServer.stop(nerves, :normal)
-    raise "Could not open #{tty}: #{inspect resp}"
-    false
+    debug_log "could not open tty: #{tty}, #{inspect resp}"
+    System.halt(255)
   end
 end

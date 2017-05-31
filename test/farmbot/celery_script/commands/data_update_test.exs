@@ -6,8 +6,6 @@ defmodule Farmbot.CeleryScript.Command.DataUpdateTest do
   alias DB.Syncable.Point
   alias Farmbot.Test.Helpers
   alias Command.DataUpdate
-  require IEx
-
 
   setup_all do
     json          = Helpers.read_json("points.json")
