@@ -6,7 +6,6 @@ defmodule Module.concat([Farmbot,System,"host"]) do
   def power_off, do: :ok
 
   def factory_reset(reason) do
-    files = path() |> File.ls!()
     Farmbot.System.FS.transaction fn() ->
       File.rm_rf! "#{path()}"
       File.mkdir_p! "#{path()}"

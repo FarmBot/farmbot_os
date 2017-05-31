@@ -53,7 +53,8 @@ defmodule Farmbot.HTTP do
     Downloads a file to the filesystem
   """
   def download_file!(%Context{} = ctx, url, path) do
-    raise "Failed to download file: #{inspect :todo}"
+    %Response{} = get! ctx, url, "", [], file: path
+    path
   end
 
   @doc """
@@ -82,8 +83,19 @@ defmodule Farmbot.HTTP do
 
   def handle_call({:request, method, url, body, headers, opts}, from, state) do
     debug_log "Starting client."
-    {:ok, pid} = Client.start_link(from, {method, url, body, headers}, opts)
-    :ok        = Client.execute(pid)
+    case url do
+      "/api" <> _  ->
+        {:ok, server}           = Auth.get_server(state.context.auth)
+        {:ok, %Token{encoded: enc}}  = Auth.get_token(state.context.auth)
+        url = "#{server}#{url}"
+        header = {'Authorization', 'Bearer #{enc}'}
+        {:ok, pid} = Client.start_link(from, {method, url, body, [header | headers]}, opts)
+        :ok        = Client.execute(pid)
+      _ ->
+        {:ok, pid} = Client.start_link(from, {method, url, body, headers}, opts)
+        :ok        = Client.execute(pid)
+    end
+
     {:noreply, state}
   end
 

@@ -6,6 +6,7 @@ defmodule Farmbot.CeleryScript.Command.ExecuteScript do
   alias Farmbot.CeleryScript.Command
   alias Farmbot.Farmware
   alias Farmware.{Manager, Runtime}
+  import Farmbot.Lib.Helpers
   @behaviour Command
 
   @doc ~s"""
@@ -14,12 +15,16 @@ defmodule Farmbot.CeleryScript.Command.ExecuteScript do
       body: [pair]
   """
   @spec run(%{label: binary}, [Command.Pair.t], Ast.context) :: Ast.context | no_return
-  def run(%{label: uuid}, env_vars, context) do
+  def run(%{label: uuid}, env_vars, context) when is_uuid(uuid) do
     Command.set_user_env(%{}, env_vars, context)
     case Manager.lookup(context, uuid) do
-      {:ok, %Farmware{} = fw} ->
-        Runtime.execute(context, fw)
+      {:ok, %Farmware{} = fw} -> Runtime.execute(context, fw) # This returns a context
       {:error, e}             -> raise "Could not locate farmware: #{e}"
     end
+  end
+
+  def run(thing, body, ctx) do
+    require IEx
+    IEx.pry
   end
 end

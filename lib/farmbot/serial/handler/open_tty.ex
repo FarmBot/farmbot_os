@@ -10,7 +10,7 @@ defmodule Farmbot.Serial.Handler.OpenTTY do
 
   defp ensure_supervisor(sup, retries \\ 0)
 
-  defp ensure_supervisor(sup, retries) when retries > 25 do
+  defp ensure_supervisor(_sup, retries) when retries > 25 do
     :error
   end
 
@@ -44,8 +44,11 @@ defmodule Farmbot.Serial.Handler.OpenTTY do
           debug_log "trying to open: #{one_tty}"
           thing = {one_tty, ctx, [name: Farmbot.Serial.Handler]}
           try_open([thing], supervisor)
+        [] ->
+          debug_log "no ttys detected"
+          :ok
         ttys when is_list(ttys) ->
-          raise "Too many ttys!"
+          raise "Too many ttys!: #{inspect ttys}"
       end
     end
   else

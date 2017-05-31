@@ -5,7 +5,6 @@ defmodule Farmbot.Farmware.Runtime do
   use Farmbot.DebugLog, name: FarmwareRuntime
   alias Farmbot.{Farmware, Context, BotState, Auth, CeleryScript}
   alias Farmware.RuntimeError, as: FarmwareRuntimeError
-  alias Farmbot.Farmware.Manager
   require Logger
 
   @clean_up_timeout 30000
@@ -17,7 +16,14 @@ defmodule Farmbot.Farmware.Runtime do
   def execute(%Context{} = ctx, %Farmware{} = fw) do
     debug_log "Starting execution of #{inspect fw}"
     env        = environment(ctx)
-    exec       = System.find_executable(fw.executable)
+    exec       = System.find_executable(fw.executable) || raise FarmwareRuntimeError, message: "Could not locate #{fw.executable}"
+    cwd        = File.cwd!
+
+    case File.cd(fw.path) do
+      :ok -> :ok
+      err -> raise FarmwareRuntimeError, message: "could not change directory: #{inspect err}"
+    end
+
     port       = Port.open({:spawn_executable, exec}, [:stream,
                                                        :binary,
                                                        :exit_status,
@@ -27,6 +33,7 @@ defmodule Farmbot.Farmware.Runtime do
                                                        args: fw.args,
                                                        env: env ])
     %Context{} = new_ctx = handle_port(ctx, fw, port)
+    File.cd!(cwd)
     new_ctx
   end
 
@@ -53,7 +60,7 @@ defmodule Farmbot.Farmware.Runtime do
       {:ok, json_map} ->
         ctx |> execute_celery_script(json_map) |> handle_port(fw, port)
       {:error, _} ->
-        debug_log("MALFORMED FARMWARE INPUT. EXITING....")
+        debug_log("[#{fw.name}] Sent data: #{data}")
         :ok = maybe_kill_port(port)
         ctx
     end
@@ -71,7 +78,7 @@ defmodule Farmbot.Farmware.Runtime do
     port_info  = Port.info(port)
     if port_info do
       os_pid   = Keyword.get(port_info, :os_pid)
-      {0, ""}  = System.cmd("kill", ["-9", os_pid])
+      System.cmd("kill", ["-9", "#{os_pid}"])
       :ok
     else
       debug_log("Port info was nil.")

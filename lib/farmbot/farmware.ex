@@ -2,6 +2,7 @@ defmodule Farmbot.Farmware do
   @moduledoc """
     Farmware Data Type
   """
+  alias Farmbot.Farmware.Installer
 
   defmodule Meta do
     @moduledoc """
@@ -41,6 +42,7 @@ defmodule Farmbot.Farmware do
     :meta,
     :args,
     :url,
+    :path
   ]
 
   @typedoc false
@@ -58,7 +60,8 @@ defmodule Farmbot.Farmware do
     name:       binary,
     url:        url,
     args:       [binary],
-    meta:       Meta.t
+    meta:       Meta.t,
+    path:       Path.t
   }
 
   defimpl Inspect, for: __MODULE__ do
@@ -87,6 +90,7 @@ defmodule Farmbot.Farmware do
       args:       args,
       name:       name,
       url:        url,
+      path:       "#{Installer.package_path()}/#{name}",
       meta: %Meta{
         min_os_version_major: min_os_version_major ,
         description:          description,

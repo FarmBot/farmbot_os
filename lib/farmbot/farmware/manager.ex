@@ -120,13 +120,9 @@ defmodule Farmbot.Farmware.Manager do
   ## GenServer stuff
 
   def init(ctx) do
-    list_of_fws = Installer.list_installed!()
-    already_installed = Map.new(list_of_fws, fn(%Farmware{} = fw) ->
-      {fw.uuid, fw}
-    end)
     state = %State{
       context: ctx,
-      farmwares: already_installed
+      farmwares: %{}
     }
     dispatch nil, state
     {:ok, state}

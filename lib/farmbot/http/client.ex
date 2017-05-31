@@ -73,7 +73,7 @@ defmodule Farmbot.HTTP.Client do
     {:ok, ref}                   = :httpc.request(method, url_and_headers, http_opts, opts, :farmbot_http)
 
     state = %{ state | ref: ref, file: file}
-    debug_log "[#{inspect self}] Starting request: #{inspect state.request}"
+    debug_log "[#{inspect self}] Starting request"
     {:noreply, state}
   end
 
@@ -143,7 +143,7 @@ defmodule Farmbot.HTTP.Client do
   # HTTP errors should just error out.
   def handle_info({:http, {error, headers}}, state) do
     new_state = %{state | headers: headers}
-    finish_request state, error
+    finish_request new_state, error
   end
 
   # If we exit in a NORMAL state, we reply with :ok

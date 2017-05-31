@@ -7,7 +7,7 @@ defmodule Farmbot.Farmware.Installer do
   alias Farmware.Manager
   alias Farmware.Installer.Repository
   alias System.FS
-  use Farmbot.DebugLog
+  use Farmbot.DebugLog, name: FarmwareInstaller
   @version Mix.Project.config[:version]
 
   @doc """
@@ -22,35 +22,62 @@ defmodule Farmbot.Farmware.Installer do
     json            = Poison.decode!(binary)
     :ok             = validate_json!(schema, json)
     debug_log "Installing a Farmware from: #{url}"
-    print_json_debug_info(json)
-    ensure_correct_version!(json)
+    ensure_correct_os_version!(json)
     package_path = "#{package_path()}/#{json["package"]}"
-    dl_path      = Farmbot.HTTP.download_file!(ctx, json["zip"], "/tmp/#{json["package"]}.zip")
-    FS.transaction fn() ->
-      File.mkdir_p!(package_path)
-      unzip! dl_path, package_path
-      File.write! "#{package_path}/manifest.json", binary
-    end, true
-    fw = Farmware.new(json)
-    debug_log "Installed new Farmware: #{inspect fw}"
-    fw
+
+    case check_package(package_path, json) do
+      :needs_install ->
+        dl_path      = Farmbot.HTTP.download_file!(ctx, json["zip"], "/tmp/#{json["package"]}.zip")
+        FS.transaction fn() ->
+          File.mkdir_p!(package_path)
+          unzip! dl_path, package_path
+          File.write! "#{package_path}/manifest.json", binary
+        end, true
+        fw = Farmware.new(json)
+        debug_log "Installed new Farmware: #{inspect fw}"
+        fw
+      {:noop, fw} ->
+        debug_log "#{inspect fw} is installed and up to date."
+        fw
+    end
   end
 
-  defp ensure_correct_version!(%{"min_os_version_major" => major}) do
+  defp check_package(path, json) do
+    check_package_exists(path) || check_manifests(path, json)
+  end
+
+  defp check_package_exists(path) do
+    unless File.exists?(path), do: :needs_install
+  end
+
+  defp check_manifests(path, new) do
+    case File.read("#{path}/manifest.json") do
+      {:ok, bin} ->
+        current = Poison.decode!(bin)
+        check_manifests_version(current, new)
+      _ -> :needs_install
+    end
+  end
+
+  # Checks two manifests. If the new one has a newer version, say upgrade, if not noop
+  defp check_manifests_version(%{"version" => current_version} = current, %{"version" => new_version}) do
+    case Version.compare(current_version, new_version) do
+      # if bot versions are equal noop
+      :eq -> {:noop, Farmware.new(current)}
+      # if current version is greater noop (but something weird might be going on)
+      :gt -> {:noop, Farmware.new(current)}
+      # if the current version is less than new version we install.
+      :lg -> :needs_install
+    end
+  end
+
+  defp ensure_correct_os_version!(%{"min_os_version_major" => major}) do
     ver_int = @version |> String.first() |> String.to_integer
     if major > ver_int do
        raise "Version mismatch! Farmbot is: #{ver_int} Farmware requires: #{major}"
      else
        :ok
     end
-  end
-
-  defp print_json_debug_info(json) do
-    stuff = Enum.reduce(json, "", fn({key, val}, acc) ->
-      "\t#{key} => #{inspect val}\n" <> acc
-    end)
-    debug_log "Json: \n#{stuff}"
-
   end
 
   @doc """
@@ -61,7 +88,7 @@ defmodule Farmbot.Farmware.Installer do
   def uninstall!(%Context{} = _ctx, %Farmware{} = fw) do
     :ok    = ensure_dirs!()
     debug_log "Uninstalling a Farmware from: #{inspect fw}"
-    package_path = "#{package_path()}/#{fw.name}"
+    package_path = fw.path
     FS.transaction fn() ->
       File.rm_rf!(package_path)
     end, true
@@ -81,7 +108,6 @@ defmodule Farmbot.Farmware.Installer do
     json            = Poison.decode!(binary)
     repository      = Repository.validate!(json)
 
-    :ok = ensure_not_synced!(module)
     # do the installs
     for entry <- repository.entries do
       :ok = Manager.install!(ctx, entry.manifest)
@@ -101,7 +127,7 @@ defmodule Farmbot.Farmware.Installer do
       Enum.map(dirs, fn(dir) ->
         package_dir = "#{package_path()}/#{dir}"
         json = File.read!("#{package_dir}/manifest.json") |> Poison.decode!
-        ensure_correct_version!(json)
+        ensure_correct_os_version!(json)
         Farmware.new(json)
       end)
     rescue
@@ -129,15 +155,6 @@ defmodule Farmbot.Farmware.Installer do
     :ok
   end
 
-  defp ensure_not_synced!(module) when is_atom(module) do
-    path = "#{repo_path()}/#{module}"
-    if File.exists?(path) do
-      raise "Could not sync #{module} is already synced up!"
-    else
-      :ok
-    end
-  end
-
   defp set_synced!(module) when is_atom(module) do
      path = "#{repo_path()}/#{module}"
      FS.transaction fn() ->
@@ -157,9 +174,9 @@ defmodule Farmbot.Farmware.Installer do
     end
   end
 
-  defp path, do: "#{FS.path()}/farmware"
-  defp repo_path, do: "#{path()}/repos"
-  defp package_path, do: "#{path()}/packages"
+  def path, do: "#{FS.path()}/farmware"
+  def repo_path, do: "#{path()}/repos"
+  def package_path, do: "#{path()}/packages"
 
   defp unzip!(zip_file, path) when is_bitstring(zip_file) do
     debug_log "Unzipping #{zip_file} to #{path}"

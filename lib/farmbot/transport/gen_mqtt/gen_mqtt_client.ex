@@ -60,7 +60,7 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   end
 
   def on_disconnect(disconnect) do
-    raise "Not implemented"
+    raise "Not implemented: #{inspect disconnect}"
   end
 
   def handle_cast({:status, %Ser{} = ser}, {%Token{} = token, %Context{} = con}) do
@@ -79,10 +79,6 @@ defmodule Farmbot.Transport.GenMqtt.Client do
     json = Poison.encode! msg
     GenMQTT.publish(self(), frontend_topic(token), json, 0, false)
     {:noreply, {token, context}}
-  end
-
-  def terminate(a, state) do
-    raise "Not implemented"
   end
 
   @spec build_opts(Token.t) :: GenMQTT.option

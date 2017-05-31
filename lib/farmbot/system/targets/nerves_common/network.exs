@@ -239,7 +239,7 @@ defmodule Farmbot.System.NervesCommon.Network do
         """)
 
         if not_found? do
-          {:noreply, %{state | retries + 1}}
+          {:noreply, %{state | retries: state.retries + 1}}
         else
           {:noreply, state}
         end
