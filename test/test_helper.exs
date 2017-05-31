@@ -311,7 +311,7 @@ ExVCR.Config.cassette_library_dir("fixture/cassettes")
 
 Mix.shell.info [:green, "removeing logger"]
 Logger.remove_backend Logger.Backends.FarmbotLogger
-Farmbot.DebugLog.filter(:all)
+# Farmbot.DebugLog.filter(:all)
 
 {:ok, pid} = Farmbot.Test.SerialHelper.start_link()
 Process.link(pid)
