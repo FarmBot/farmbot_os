@@ -271,6 +271,9 @@ defmodule Farmbot.Test.Helpers do
   end
 end
 
+Mix.shell.info [:green, "Checking init and stuff"]
+fb_pid = Process.whereis(Farmbot.Supervisor) || Mix.raise "Farmbot isn't alive. Not testing."
+Process.alive?(fb_pid) || Mix.raise "Farmbot isn't alive. Not testing."
 
 Mix.shell.info [:green, "Starting ExCoveralls"]
 {:ok, _} = Application.ensure_all_started(:excoveralls)
