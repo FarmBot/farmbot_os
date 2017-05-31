@@ -15,4 +15,4 @@ config :farmbot, :redis,
 config :farmbot, transports: []
 
 # We hopefully don't need logger  ¯\_(ツ)_/¯
-config :logger, :console, format: ""
+# config :logger, :console, format: ""

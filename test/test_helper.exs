@@ -238,6 +238,8 @@ end
 defmodule Farmbot.Test.Helpers do
   alias Farmbot.Database, as: DB
 
+  def login(_), do: raise "FIXME!"
+
   def random_file(dir \\ "fixture/api_fixture"),
     do: File.ls!(dir) |> Enum.random
 
