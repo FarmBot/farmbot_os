@@ -1,7 +1,7 @@
 defmodule Farmbot.HTTP do
   use     GenServer
   alias   Farmbot.{Auth, Context, Token}
-  alias   Farmbot.HTTP.{Response, Client, Error, Types, Helpers}
+  alias   Farmbot.HTTP.{Response, Client, Error, Types, Helpers, Multipart}
   import  Helpers
   require Logger
   use     Farmbot.DebugLog
@@ -71,12 +71,14 @@ defmodule Farmbot.HTTP do
     end
 
     %Response{status_code: 200, body: rbody} = get!(ctx, "/api/storage_auth")
+    boundr                                   = Multipart.boundry()
     body                                     = Poison.decode!(rbody)
     {:ok, file}                              = File.read!(filename)
     url                                      = "https:"  <> body["url"]
     form_data                                = body["form_data"]
     attachment_url                           = url <> form_data["key"]
-    headers                                  = [ {'Content-Type', 'multipart/form-data'}, user_agent_header() ]
+    headers =
+      [ Multipart.multi_part_header(boundry), user_agent_header() ]
     payload =
       Enum.map(form_data, fn({key, value}) ->
         if key == "file", do: {"file", file}, else: {key, value}
@@ -158,5 +160,7 @@ defmodule Farmbot.HTTP do
   @spec add_header(Types.headers, Types.header) :: Types.headers
   defp add_header(headers, new), do: [new | headers]
 
-  defp user_agent_header(), do: {'User-Agent', 'FarmbotOS/#{@version} (#{@target}) #{@target} ()'}
+  def user_agent_header() do
+    {'User-Agent', 'FarmbotOS/#{@version} (#{@target}) #{@target} ()'}
+  end
 end

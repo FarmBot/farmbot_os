@@ -410,7 +410,7 @@ defmodule Farmbot.Serial.Handler do
   end
 
   defp handle_gcode({:report_software_version, version} = reply, %Context{} = ctx) do
-    BotState.set_fw_version(version, ctx)
+    BotState.set_fw_version(ctx, version)
     {:reply, reply}
   end
 
