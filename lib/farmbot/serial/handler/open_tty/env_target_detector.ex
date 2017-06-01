@@ -7,6 +7,7 @@ defmodule Farmbot.Serial.Handler.OpenTTY.EnvTargetDetector do
       @doc false
       def try_detect_tty do
         debug_log "using test/host tty opener."
+        nil
       end
     end
   end
@@ -17,6 +18,7 @@ defmodule Farmbot.Serial.Handler.OpenTTY.EnvTargetDetector do
       @doc false
       def try_detect_tty do
         debug_log "using dev/host tty opener."
+        nil
       end
     end
   end
