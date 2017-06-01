@@ -1,7 +1,7 @@
 defmodule Farmbot.HTTP.Client do
   use GenServer
   use Farmbot.DebugLog, name: HTTPClient
-  alias Farmbot.HTTP.{Response, DownloadClient, Types}
+  alias Farmbot.HTTP.{Response, Types}
 
   @typedoc false
   @type client :: pid

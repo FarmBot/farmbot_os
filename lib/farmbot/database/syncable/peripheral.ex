@@ -5,5 +5,9 @@ defmodule Farmbot.Database.Syncable.Peripheral do
 
   alias Farmbot.Database
   alias Database.Syncable
-  use Syncable, model: [], endpoint: {"/peripherals", "/peripherals"}
+  use Syncable, model: [
+    :pin,
+    :mode,
+    :label  
+  ], endpoint: {"/peripherals", "/peripherals"}
 end

@@ -39,9 +39,8 @@ defmodule Farmbot.CeleryScript.Command.SendMessage do
 
   @spec parse_channels([Ast.t]) :: [message_channel]
   defp parse_channels(l) do
-    {ch, _} = Enum.partition(l, fn(channel_ast) ->
-      channel_ast.args["channel_name"]
+    Enum.map(l, fn(%{kind: "channel", args: %{channel_name: ch}}) ->
+      ch
     end)
-    ch
   end
 end

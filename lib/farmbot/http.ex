@@ -71,18 +71,22 @@ defmodule Farmbot.HTTP do
     end
 
     %Response{status_code: 200, body: rbody} = get!(ctx, "/api/storage_auth")
-    boundr                                   = Multipart.boundry()
+    boundry                                  = Multipart.new_boundry()
     body                                     = Poison.decode!(rbody)
-    {:ok, file}                              = File.read!(filename)
+    file                                     = File.read!(filename)
     url                                      = "https:"  <> body["url"]
     form_data                                = body["form_data"]
     attachment_url                           = url <> form_data["key"]
-    headers =
-      [ Multipart.multi_part_header(boundry), user_agent_header() ]
     payload =
-      Enum.map(form_data, fn({key, value}) ->
-        if key == "file", do: {"file", file}, else: {key, value}
+      Map.new(form_data, fn({key, value}) ->
+        if key == "file", do: {:file, {filename, file}}, else: {key, value}
       end)
+    payload      = Multipart.format(payload, boundry)
+    headers = [
+      {'Content-Length', byte_size(payload)},
+      Multipart.multi_part_header(boundry),
+      user_agent_header()
+    ]
     ggl_response = post!(ctx, url, payload, headers, [])
     debug_log "#{attachment_url} should exist shortly."
     :ok = finish_upload!(ggl_response, ctx, attachment_url)

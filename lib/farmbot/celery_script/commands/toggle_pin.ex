@@ -33,7 +33,7 @@ defmodule Farmbot.CeleryScript.Command.TogglePin do
         write_pin(args, [], context)
       # if it was on (or analog) turn it off. (for safetey)
       _ ->
-        args = %{pin_number: pin, pin_mode: @digital, pin_value: 1}
+        args = %{pin_number: pin, pin_mode: @digital, pin_value: 0}
         write_pin(args, [], context)
     end
   end

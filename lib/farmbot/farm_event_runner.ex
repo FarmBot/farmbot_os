@@ -204,6 +204,11 @@ defmodule Farmbot.FarmEventRunner do
 
   @spec lookup(Context.t, Sequence | Regimen, integer) :: Sequence.t | Regimen.t
   defp lookup(%Context{} = ctx, module, sr_id) do
-    Database.get_by_id(ctx, module, sr_id)
+    item = Database.get_by_id(ctx, module, sr_id)
+    unless item do
+      raise "Could not find #{inspect module} by id: #{sr_id}"
+    end
+
+    item.body
   end
 end
