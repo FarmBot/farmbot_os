@@ -16,7 +16,7 @@ defmodule Farmbot.BotState.Monitor do
       context:       Context.t,
       hardware:      Hardware.t,
       configuration: Configuration.t,
-      process_info:  %{farmwares: %{name: binary, uuid: binary}}
+      process_info:  %{farmwares: %{name: binary, uuid: binary, version: binary}}
     }
     defstruct [
       context:       nil,
