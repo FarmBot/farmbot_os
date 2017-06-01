@@ -85,22 +85,32 @@ defmodule Farmbot.HTTP do
     debug_log "Starting client."
     case url do
       "/api" <> _  ->
-        {:ok, server}           = Auth.get_server(state.context.auth)
-        {:ok, %Token{encoded: enc}}  = Auth.get_token(state.context.auth)
-        url = "#{server}#{url}"
-        header = {'Authorization', 'Bearer #{enc}'}
-        {:ok, pid} = Client.start_link(from, {method, url, body, [header | headers]}, opts)
-        :ok        = Client.execute(pid)
+        state.context.auth
+        |> Auth.get_token()
+        |> build_api_request(state.context, {method, url, body, headers, opts}, from)
       _ ->
         {:ok, pid} = Client.start_link(from, {method, url, body, headers}, opts)
         :ok        = Client.execute(pid)
     end
-
     {:noreply, state}
   end
 
   def handle_info({:EXIT, _old_client, _reason}, state) do
     debug_log "Client finished."
     {:noreply, state}
+  end
+
+  defp build_api_request({:ok, %Token{encoded: enc}}, %Context{} = ctx, request, from) do
+    {method, url, body, headers, opts} = request
+    {:ok, server}                      = Auth.get_server(ctx.auth)
+    url                                = "#{server}#{url}"
+    header                             = {'Authorization', 'Bearer #{enc}'}
+    {:ok, pid} = Client.start_link(from, {method, url, body, [header | headers]}, opts)
+    :ok        = Client.execute(pid)
+  end
+
+  defp build_api_request(_, _, _, _) do
+    debug_log "Don't have a token. Not doing API request."
+    :ok
   end
 end

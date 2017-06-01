@@ -64,9 +64,6 @@ defmodule Farmbot.Serial.Handler do
     GenServer.start_link(__MODULE__, {ctx, nerves, tty}, opts)
   end
 
-  @doc """
-    Starts a UART GenServer
-  """
   def start_link(%Context{} = ctx, tty, opts) when is_binary(tty) do
     GenServer.start_link(__MODULE__, {ctx, tty}, opts)
   end
@@ -164,7 +161,9 @@ defmodule Farmbot.Serial.Handler do
           initialized: false
         }
         {:ok, state}
-      _   -> {:stop, :normal, :no_state}
+      err   ->
+        debug_log "could not open tty: #{inspect err}"
+        {:stop, :normal, :no_state}
     end
   end
 
@@ -176,7 +175,7 @@ defmodule Farmbot.Serial.Handler do
   @spec open_tty(nerves, binary) :: :ok
   defp open_tty(nerves, tty) do
     # Open the tty
-    case UART.open(nerves, tty) do
+    case UART.open(nerves, tty, speed: 115200, active: true) do
       :ok ->
         :ok = UART.configure(nerves,
           framing: {UART.Framing.Line, separator: "\r\n"},
@@ -289,7 +288,7 @@ defmodule Farmbot.Serial.Handler do
   end
 
   def terminate(_, :no_state), do: :ok
-  def terminate(reason, state) do
+  def terminate(_reason, state) do
     UART.close(state.nerves)
     UART.stop(state.nerves)
   end

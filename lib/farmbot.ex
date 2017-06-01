@@ -53,8 +53,8 @@ defmodule Farmbot do
       worker(Farmbot.ImageWatcher,
         [context, [name: Farmbot.ImageWatcher         ]], restart: :permanent),
 
-      worker(Task, [Farmbot.Serial.Handler.OpenTTY, :open_ttys, [Farmbot.Supervisor, context]],
-        restart: :transient),
+      supervisor(Farmbot.Serial.Supervisor,
+        [context, [name: Farmbot.Serial.Supervisor    ]], restart: :permanent),
 
       supervisor(Farmbot.Configurator, [], restart: :permanent),
 
