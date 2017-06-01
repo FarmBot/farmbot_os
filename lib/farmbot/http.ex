@@ -156,8 +156,9 @@ defmodule Farmbot.HTTP do
     :ok        = Client.execute(pid)
   end
 
-  defp build_api_request(_, _, _, _) do
+  defp build_api_request(_, _, _, from) do
     debug_log "Don't have a token. Not doing API request."
+    GenServer.reply(from, {:error, :no_token})
     :ok
   end
 
