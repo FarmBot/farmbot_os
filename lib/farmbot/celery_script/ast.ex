@@ -5,6 +5,7 @@ defmodule Farmbot.CeleryScript.Ast do
   """
 
   alias Farmbot.Context
+  alias Farmbot.CeleryScript.Error
 
   defimpl Inspect, for: __MODULE__ do
     def inspect(thing, _) do
@@ -71,7 +72,7 @@ defmodule Farmbot.CeleryScript.Ast do
     end)
   end
 
-  def parse(_), do: %__MODULE__{kind: "nothing", args: %{}, body: []}
+  def parse(other_thing), do: raise Error, message: "#{inspect other_thing} could not be parsed as CeleryScript."
 
   # TODO: This is a pretty heavy memory leak, what should happen is
   # The corpus should create a bunch of atom, and then this should be

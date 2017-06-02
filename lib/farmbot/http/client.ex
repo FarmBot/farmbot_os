@@ -1,7 +1,7 @@
 defmodule Farmbot.HTTP.Client do
   use GenServer
   use Farmbot.DebugLog, name: HTTPClient
-  alias Farmbot.HTTP.{Response, DownloadClient, Types}
+  alias Farmbot.HTTP.{Response, Types}
 
   @typedoc false
   @type client :: pid
@@ -69,12 +69,23 @@ defmodule Farmbot.HTTP.Client do
     {method, url, body, headers} = ensure_request(state.request)
     http_opts                    = [timeout: :infinity, autoredirect: false]
     opts                         = [stream: :self, receiver: self(), sync: false]
-    url_and_headers              = {url, headers}
-    {:ok, ref}                   = :httpc.request(method, url_and_headers, http_opts, opts, :farmbot_http)
+    httpc_request                = build_httpc_request(method, url, body, headers)
+    case :httpc.request(method, httpc_request, http_opts, opts, :farmbot_http) do
+      {:ok, ref} ->
+        state = %{ state | ref: ref, file: file}
+        debug_log "[#{inspect self()}] Starting request"
+        {:noreply, state}
+      {:error, reason} ->
+        debug_log "[#{inspect self()}] failed to create request: #{inspect reason}"
+        finish_request state, reason
+    end
 
-    state = %{ state | ref: ref, file: file}
-    debug_log "[#{inspect self}] Starting request"
-    {:noreply, state}
+  end
+
+  defp build_httpc_request(:get, url, _body, headers), do: {url, headers}
+  defp build_httpc_request(_method, url, body, headers) do
+    content_type = get_from_headers('content-type', headers) || 'application/json'
+    {url, headers, content_type, body}
   end
 
   # This handles the redirecting of http requests.
@@ -83,7 +94,7 @@ defmodule Farmbot.HTTP.Client do
   state)
   when status_code in @redirect_status_codes do
     # find the lcoation in the headers.
-    new_url = get_location_from_headers(headers)
+    new_url = get_from_headers('location', headers)
 
     # if we have a url
     if new_url do
@@ -195,14 +206,14 @@ defmodule Farmbot.HTTP.Client do
 
   defp ensure_request({_method, _url, _body, _headers} = req), do: req
 
-  @spec get_location_from_headers(Types.headers) :: Types.url
-  defp get_location_from_headers([{header, val} | _])
-  when header == 'location', do: val
+  @spec get_from_headers(char_list, Types.headers) :: Types.url
+  defp get_from_headers(find, headers)
+  defp get_from_headers(find, [{header, val} | _]) when header == find, do: val
 
-  defp get_location_from_headers([_ | rest]),
-    do: get_location_from_headers(rest)
+  defp get_from_headers(find, [_ | rest]),
+    do: get_from_headers(find, rest)
 
-  defp get_location_from_headers([]), do: nil
+  defp get_from_headers(_find, []), do: nil
 
   defp start_httpc do
     :inets.start(:httpc, profile: :farmbot_http)

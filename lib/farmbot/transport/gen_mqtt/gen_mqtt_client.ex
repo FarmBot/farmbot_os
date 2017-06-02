@@ -54,7 +54,7 @@ defmodule Farmbot.Transport.GenMqtt.Client do
         debug_log "caught a stray exit: #{inspect thing}"
     rescue
       e ->
-        Logger.error ">> Saved mqtt client from cs death: #{inspect e}"
+        debug_log "Saved mqtt from death: #{inspect e}"
     end
     {:ok, {token, context}}
   end

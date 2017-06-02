@@ -13,11 +13,12 @@ defmodule Farmbot.Farmware.RuntimeTest do
       body: []
     })
     fake_fw = %Farmware{
-      executable: "echo",
+      path:       "/tmp/",
+      executable: "bash",
       uuid:       Nerves.Lib.UUID.bingenerate(),
       name:       "spectrometer",
       url:        "",
-      args:       [json_stuff],
+      args:       ["-c", "echo $BEGIN_CELERYSCRIPT #{inspect json_stuff}"],
       meta:       %{
         min_os_version_major: "1" ,
         description:          "This is a fixture farmware for tests.",

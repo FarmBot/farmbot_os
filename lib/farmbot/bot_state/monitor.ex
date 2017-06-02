@@ -48,8 +48,7 @@ defmodule Farmbot.BotState.Monitor do
   end
 
   def handle_cast(%FarmwareManagerState{farmwares: fws}, %State{} = old_state) do
-    list = Enum.map(fws, fn({_uuid, fw}) -> %{name: fw.name, uuid: fw.uuid, version: fw.meta.version} end)
-    new_process_info = %{old_state.process_info | farmwares: list}
+    new_process_info = %{old_state.process_info | farmwares: fws}
     new_state        = %{old_state | process_info: new_process_info}
     dispatch(new_state)
   end

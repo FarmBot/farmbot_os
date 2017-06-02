@@ -2,10 +2,12 @@ defmodule Farmbot.SequenceRunner do
   @moduledoc """
     Runs a sequence
   """
-  use GenServer
-  alias Farmbot.CeleryScript.Ast
-  import Farmbot.CeleryScript.Command, only: [do_command: 2]
+  use     GenServer
+  alias   Farmbot.{CeleryScript, Context, DebugLog}
+  alias   CeleryScript.Ast
+  import  CeleryScript.Command, only: [do_command: 2]
   require Logger
+  use     DebugLog
 
   @typedoc """
     This gets injected into the args of a sequence, and all of its children etc.
@@ -24,8 +26,8 @@ defmodule Farmbot.SequenceRunner do
   @doc """
     Starts a sequence.
   """
-  def start_link(ast, context) do
-    GenServer.start_link(__MODULE__, [ast, context], [])
+  def start_link(%Ast{} = ast, %Context{} = ctx) do
+    GenServer.start_link(__MODULE__, {ast, ctx}, [])
   end
 
   @doc """
@@ -40,7 +42,8 @@ defmodule Farmbot.SequenceRunner do
   @spec call(sequence_pid, any) :: any
   def call(sequence, call), do: GenServer.call(sequence, {:call, call})
 
-  def init(ast, first_context) do
+  def init({ast, first_context}) do
+    debug_log "[#{inspect self()}] Sequence init."
     # Setup the firt step
     [first | rest] = ast.body
     spawn __MODULE__, :work, [{first, first_context}, self()]
@@ -48,13 +51,9 @@ defmodule Farmbot.SequenceRunner do
     {:ok, %{blocks: [], body: rest, context: first_context}}
   end
 
-  # This is a validation for if a sequence has a parent or not.
-  def handle_call({:call, :ping}, _, state) do
-    {:reply, :pong, state}
-  end
-
   # Block til _this_ sequence finishes.
   def handle_call(:wait, from, state) do
+    debug_log "[#{inspect self()}] beginning wait."
     {:noreply, %{state | blocks: [from | state.blocks]}}
   end
 
@@ -74,11 +73,13 @@ defmodule Farmbot.SequenceRunner do
   # if we terminate for any non normal reason, make sure to reply
   # to any blocks we had.
   def terminate(_reason, state) do
+    debug_log "[#{inspect self()}] Sequence Exiting."
     :ok = reply_blocks(state.blocks, state.context)
   end
 
   @spec work(Ast.t, sequence_pid) :: :ok
   def work({ast, context}, sequence) do
+    debug_log "[#{inspect self()}] doing work: #{inspect ast}"
     # This sleep makes sequences more stable and makes sure
     # The bot was _actualy_ complete with the last command in real life.
     Process.sleep(500)

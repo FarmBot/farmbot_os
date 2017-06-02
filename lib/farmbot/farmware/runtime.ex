@@ -7,6 +7,17 @@ defmodule Farmbot.Farmware.Runtime do
   alias Farmware.RuntimeError, as: FarmwareRuntimeError
   require Logger
 
+  defmodule State do
+    @moduledoc false
+    defstruct [:uuid, :port, :farmware, :context, :output]
+
+    @typedoc false
+    @type t :: %__MODULE__{uuid: binary, port: port, farmware: Farmware.t, context: Context.t, output: [binary]}
+  end
+
+  @typedoc false
+  @type state :: State.t
+
   @clean_up_timeout 30000
 
   @doc """
@@ -15,7 +26,8 @@ defmodule Farmbot.Farmware.Runtime do
   @spec execute(Context.t, Farmware.t) :: Context.t | no_return
   def execute(%Context{} = ctx, %Farmware{} = fw) do
     debug_log "Starting execution of #{inspect fw}"
-    env        = environment(ctx)
+    uuid       = Nerves.Lib.UUID.generate()
+    env        = environment(ctx, uuid)
     exec       = System.find_executable(fw.executable) || raise FarmwareRuntimeError, message: "Could not locate #{fw.executable}"
     cwd        = File.cwd!
 
@@ -24,28 +36,40 @@ defmodule Farmbot.Farmware.Runtime do
       err -> raise FarmwareRuntimeError, message: "could not change directory: #{inspect err}"
     end
 
-    port       = Port.open({:spawn_executable, exec}, [:stream,
-                                                       :binary,
-                                                       :exit_status,
-                                                       :hide,
-                                                       :use_stdio,
-                                                       :stderr_to_stdout,
-                                                       args: fw.args,
-                                                       env: env ])
-    %Context{} = new_ctx = handle_port(ctx, fw, port)
+    port = Port.open({:spawn_executable, exec},
+      [:stream,
+       :binary,
+       :exit_status,
+       :hide,
+       :use_stdio,
+       :stderr_to_stdout,
+       args: fw.args,
+       env: env ])
+
+    state = %State{
+      uuid:     uuid,
+      port:     port,
+      farmware: fw,
+      context:  ctx,
+      output:   []
+    }
+
+    %Context{} = new_ctx = handle_port(state)
     File.cd!(cwd)
     new_ctx
   end
 
-  defp handle_port(%Context{} = ctx, %Farmware{} = fw, port) do
+  @spec handle_port(state) :: Context.t | no_return
+  defp handle_port(%State{port: port, farmware: fw} = state) do
     receive do
       {^port, {:exit_status, 0}} ->
-        Logger.info ">> [#{fw.name}] completed!"
-        ctx
+        Logger.info ">> [#{fw.name}] completed!", type: :success
+        state.context
       {^port, {:exit_status, s}} ->
         raise FarmwareRuntimeError, message: "#{fw.name} completed with errors! (#{s})"
       {^port, {:data, data}} ->
-        handle_script_output(ctx, fw, data, port)
+        %State{} = new_state = handle_script_output(state, data)
+        handle_port(new_state)
       after
         @clean_up_timeout ->
           :ok = maybe_kill_port(port)
@@ -53,23 +77,23 @@ defmodule Farmbot.Farmware.Runtime do
     end
   end
 
-  @spec handle_script_output(Context.t, Farmware.t, binary, port) :: Context.t
-  defp handle_script_output(%Context{} = ctx, fw, data, port) do
-    result = Poison.decode(String.trim(data))
-    case result do
-      {:ok, json_map} ->
-        ctx |> execute_celery_script(json_map) |> handle_port(fw, port)
-      {:error, _} ->
-        debug_log("[#{fw.name}] Sent data: #{data}")
-        :ok = maybe_kill_port(port)
-        ctx
+  @spec handle_script_output(state, binary) :: Context.t | no_return
+  defp handle_script_output(%State{} = state, data) do
+    <<uuid :: size(288) >> = state.uuid
+    case data do
+      << ^uuid :: size(288), json :: binary >> ->
+        debug_log "going to try to do: #{json}"
+        new_context =
+          json
+            |> String.trim()
+            |> Poison.decode!()
+            |> CeleryScript.Ast.parse()
+            |> CeleryScript.Command.do_command(state.context)
+        %{state | context: new_context}
+      _data ->
+        debug_log("[#{state.farmware.name}] Sent data: #{data}")
+        %{state | output: [data | state.output]}
     end
-  end
-
-  @spec execute_celery_script(Context.t, map) :: Context.t | no_return
-  defp execute_celery_script(%Context{} = ctx, json_map) do
-    ast = CeleryScript.Ast.parse(json_map)
-    CeleryScript.Command.do_command(ast, ctx)
   end
 
   @spec maybe_kill_port(port) :: :ok
@@ -86,14 +110,14 @@ defmodule Farmbot.Farmware.Runtime do
     end
   end
 
-  defp environment(%Context{} = ctx) do
-    envs = BotState.get_user_env(ctx)
-    wow  = Auth.get_token(ctx.auth)
-    {:ok, %Farmbot.Token{} = tkn} = wow
-    envs = Map.put(envs, "API_TOKEN", tkn)
-    Enum.map(envs, fn({key, val}) ->
-      {to_erl_safe(key), to_erl_safe(val)}
-    end)
+  defp environment(%Context{} = ctx, uuid) do
+    envs                          = BotState.get_user_env(ctx)
+    {:ok, %Farmbot.Token{} = tkn} = Auth.get_token(ctx.auth)
+    envs                          = envs
+                                    |> Map.put("API_TOKEN",          tkn)
+                                    |> Map.put("BEGIN_CELERYSCRIPT", uuid)
+                                    |> Map.put("IMAGES_DIR",         "/tmp/images")
+    Enum.map(envs, fn({key, val}) -> {to_erl_safe(key), to_erl_safe(val)} end)
   end
 
   defp to_erl_safe(%Farmbot.Token{encoded: enc}), do: to_erl_safe(enc)

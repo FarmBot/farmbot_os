@@ -271,6 +271,24 @@ defmodule Farmbot.Test.Helpers do
   end
 end
 
+defmodule Farmbot.Test.Helpers.Checkup do
+
+  defp do_exit do
+    Mix.shell.info([:red, "Farmbot isn't alive. Not testing."])
+    System.halt(255)
+  end
+
+  def checkup do
+    fb_pid = Process.whereis(Farmbot.Supervisor) || do_exit()
+    Process.alive?(fb_pid)                       || do_exit()
+    Process.sleep(500)
+    checkup()
+  end
+end
+
+Mix.shell.info [:green, "Checking init and stuff"]
+
+spawn Farmbot.Test.Helpers.Checkup, :checkup, []
 
 Mix.shell.info [:green, "Starting ExCoveralls"]
 {:ok, _} = Application.ensure_all_started(:excoveralls)
