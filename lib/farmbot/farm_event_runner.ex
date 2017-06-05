@@ -2,15 +2,16 @@ defmodule Farmbot.FarmEventRunner do
   @moduledoc """
     Checks the database every 60 seconds for FarmEvents
   """
-  use GenServer
   require Logger
-  alias Farmbot.CeleryScript.Ast
-  alias Farmbot.Context
-
-  use Farmbot.DebugLog
-
-  alias Farmbot.Database
-  alias Database.Syncable.{Sequence, Regimen, FarmEvent}
+  alias   Farmbot.{Context, DebugLog, Database, CeleryScript}
+  alias   CeleryScript.Ast
+  use     DebugLog
+  use     GenServer
+  alias   Database.Syncable.{
+    Sequence,
+    Regimen,
+    FarmEvent
+  }
 
   @checkup_time 10_000
 
@@ -28,6 +29,7 @@ defmodule Farmbot.FarmEventRunner do
 
   def handle_info(:checkup, {context, state}) do
     now = get_now()
+    debug_log "Doing checkup: #{inspect now}"
     new_state = if now do
       all_events =
         context
@@ -51,17 +53,13 @@ defmodule Farmbot.FarmEventRunner do
   @spec start_events(Context.t, [Sequence.t | Regimen.t], DateTime.t)
     :: no_return
   defp start_events(_context, [], _now), do: :ok
-  defp start_events(context, [event | rest], now) do
+  defp start_events(%Context{} = context, [event | rest], now) do
     cond do
       match?(%Sequence{}, event) ->
         ast     = Ast.parse(event)
         {:ok, _pid} = Elixir.Farmbot.SequenceRunner.start_link(ast, context)
       match?(%Regimen{}, event) ->
-        r = event.__struct__
-          |> Module.split
-          |> List.last
-          |> Module.concat(Supervisor)
-        {:ok, _pid} = r.add_child(context, event, now)
+        {:ok, _pid} = Farmbot.Regimen.Supervisor.add_child(context, event, now)
       true ->
         Logger.error ">> Doesn't know how to handle event: #{inspect event}"
     end

@@ -15,7 +15,8 @@ defmodule Farmbot.Context do
     :configuration,
     :http,
     :transport,
-    :farmware_manager
+    :farmware_manager,
+    :regimen_supervisor
   ]
 
   @enforce_keys modules
@@ -77,21 +78,25 @@ defmodule Farmbot.Context do
   @typedoc false
   @type farmware_manager :: Farmbot.Farmware.Manager.manager
 
+  @typedoc false
+  @type regimen_supervisor :: Farmbot.Regimen.Supervisor.supervisor
+
   @typedoc """
     Stuff to be passed from one CS Node to another
   """
   @type t :: %__MODULE__{
-    database:         database,
-    auth:             auth,
-    network:          network,
-    serial:           serial,
-    configuration:    configuration,
-    monitor:          monitor,
-    hardware:         hardware,
-    http:             http,
-    transport:        transport,
-    farmware_manager: farmware_manager,
-    ref:              reference,
+    database:           database,
+    auth:               auth,
+    network:            network,
+    serial:             serial,
+    configuration:      configuration,
+    monitor:            monitor,
+    hardware:           hardware,
+    http:               http,
+    transport:          transport,
+    farmware_manager:   farmware_manager,
+    ref:                reference,
+    regimen_supervisor: regimen_supervisor,
     data_stack:       [Ast.t]
   }
 
@@ -115,16 +120,17 @@ defmodule Farmbot.Context do
   def new do
     %__MODULE__{ data_stack: [],
                  ref:        make_ref(),
-                 farmware_manager: Farmbot.Farmware.Manager,
-                 configuration:    Farmbot.BotState.Configuration,
-                 transport:        Farmbot.Transport,
-                 hardware:         Farmbot.BotState.Hardware,
-                 database:         Farmbot.Database,
-                 monitor:          Farmbot.BotState.Monitor,
-                 network:          Farmbot.System.Network,
-                 serial:           Farmbot.Serial.Handler,
-                 auth:             Farmbot.Auth,
-                 http:             Farmbot.HTTP
+                 regimen_supervisor: Farmbot.Regimen.Supervisor,
+                 farmware_manager:   Farmbot.Farmware.Manager,
+                 configuration:      Farmbot.BotState.Configuration,
+                 transport:          Farmbot.Transport,
+                 hardware:           Farmbot.BotState.Hardware,
+                 database:           Farmbot.Database,
+                 monitor:            Farmbot.BotState.Monitor,
+                 network:            Farmbot.System.Network,
+                 serial:             Farmbot.Serial.Handler,
+                 auth:               Farmbot.Auth,
+                 http:               Farmbot.HTTP
     }
   end
 end

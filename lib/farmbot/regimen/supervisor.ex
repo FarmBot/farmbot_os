@@ -6,6 +6,8 @@ defmodule Farmbot.Regimen.Supervisor do
   @behaviour Farmbot.EventSupervisor
   alias Farmbot.Context
 
+  @type supervisor :: pid | atom
+
   @doc """
     Start a Regimen Supervisor
   """
