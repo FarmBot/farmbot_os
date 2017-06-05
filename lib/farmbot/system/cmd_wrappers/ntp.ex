@@ -4,7 +4,8 @@ defmodule Farmbot.System.Network.Ntp do
   """
 
   require Logger
-  use Farmbot.DebugLog
+  alias Farmbot.{Context, HTTP, DebugLog}
+  use   DebugLog
 
   @doc """
     Tries to set the time from ntp.
@@ -14,8 +15,8 @@ defmodule Farmbot.System.Network.Ntp do
   @spec set_time(integer) :: :ok | {:error, term}
   def set_time(tries \\ 0)
   def set_time(tries) when tries < 4 do
-    case HTTPoison.get("http://httpbin.org/ip") do
-      {:ok, %HTTPoison.Response{}} = _resp ->
+    case HTTP.get(Context.new(), "http://httpbin.org/ip") do
+      {:ok, %HTTP.Response{}} = _resp ->
         Logger.info ">> is getting time from NTP."
         f = do_try_set_time()
         Logger.info ">> ntp: #{inspect f}"

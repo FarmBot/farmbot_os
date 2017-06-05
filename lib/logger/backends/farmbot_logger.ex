@@ -63,6 +63,11 @@ defmodule Logger.Backends.FarmbotLogger do
   end
 
   # The logger event.
+  def handle_event({_level, _, {Logger, _, _, _}}, %{context: nil} = state) do
+    debug_log "Ignoreing message because no context"
+    {:ok, state}
+  end
+
   def handle_event({level, _, {Logger, message, timestamp, metadata}}, state) do
     # if there is type key in the meta we need that to have priority
     type = Keyword.get(metadata, :type, level)
