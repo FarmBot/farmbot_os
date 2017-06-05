@@ -84,7 +84,9 @@ defmodule Farmbot.HTTP.Client do
 
   defp build_httpc_request(:get, url, _body, headers), do: {url, headers}
   defp build_httpc_request(_method, url, body, headers) do
-    content_type = get_from_headers('content-type', headers) || 'application/json'
+    content_type =
+      get_from_headers('content-type', headers) || 'application/json'
+    debug_log "[#{inspect self()}] using content-type: #{content_type}"
     {url, headers, content_type, body}
   end
 
@@ -218,9 +220,9 @@ defmodule Farmbot.HTTP.Client do
   defp start_httpc do
     :inets.start(:httpc, profile: :farmbot_http)
     opts = [
-      max_sessions: 8,
-      max_keep_alive_length: 4,
-      max_pipeline_length: 4,
+      max_sessions: 9000,
+      max_keep_alive_length: 9000,
+      max_pipeline_length: 9000,
       keep_alive_timeout: 120_000,
       pipeline_timeout: 60_000
     ]

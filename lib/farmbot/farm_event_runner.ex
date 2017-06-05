@@ -187,7 +187,7 @@ defmodule Farmbot.FarmEventRunner do
     debug_log "== NOW: #{inspect now_str}"
     debug_log "== LAST: #{inspect last_time_str}"
     debug_log "== MAYBE NEXT: #{inspect maybe_next_str}"
-    debug_log "== #{Enum.count calendar} events are scheduled to happend after: #{inspect last_time_str}\n"
+    debug_log "== #{Enum.count calendar} events are scheduled to happen after: #{inspect last_time_str}\n"
   end
 
   defp get_last_time_str(nil), do: "none"

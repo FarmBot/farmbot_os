@@ -18,7 +18,7 @@ defmodule Logger.Backends.FarmbotLogger do
   @typedoc """
     The state of the logger
   """
-  @type state :: %{logs: [log_message], posting: boolean}
+  @type state :: %{logs: [log_message], posting: boolean, context: nil | Context.t}
 
   @typedoc """
     Type of message for ticker
@@ -51,9 +51,9 @@ defmodule Logger.Backends.FarmbotLogger do
        meta: %{type: rpc_log_type}}
 
   def init(_) do
-    ctx = Farmbot.Context.new()
+    # ctx = Farmbot.Context.new()
     debug_log "Starting Farmbot Logger"
-    {:ok, %{logs: [], posting: false, context: ctx}}
+    {:ok, %{logs: [], posting: false, context: nil}}
   end
 
   # The example said ignore messages for other nodes, so im ignoring messages
@@ -68,14 +68,14 @@ defmodule Logger.Backends.FarmbotLogger do
     type = Keyword.get(metadata, :type, level)
     channels = Keyword.get(metadata, :channels, [])
     created_at = parse_created_at(timestamp)
-    san_m = sanitize(message, metadata)
+    san_m = sanitize(message, metadata, state)
     log = build_log(san_m, created_at, type, channels)
     :ok = GenServer.cast(state.context.transport, {:log, log})
     logs = [log | state.logs]
     if (!state.posting) and (Enum.count(logs) >= 50) do
       # If not already posting, and more than 50 messages
       spawn fn ->
-        debug_log "going to try to post"
+        # debug_log "going to try to post"
         filterd_logs = Enum.filter(logs, fn(log) ->
           log.message != @filtered
         end)
@@ -83,7 +83,7 @@ defmodule Logger.Backends.FarmbotLogger do
       end
       {:ok, %{state | logs: logs, posting: true}}
     else
-      debug_log "not posting and logs less than 50"
+      # debug_log "not posting and logs less than 50"
       {:ok, %{state | logs: logs}}
     end
   end
@@ -103,6 +103,10 @@ defmodule Logger.Backends.FarmbotLogger do
 
   def handle_call(:messages, state) do
     {:ok, Enum.reverse(state.logs), state}
+  end
+
+  def handle_call({:context, %Context{} = ctx}, state) do
+    {:ok, :ok, %{state | context: ctx}}
   end
 
   def handle_call(:get_state, state), do: {:ok, state, state}
@@ -167,13 +171,13 @@ defmodule Logger.Backends.FarmbotLogger do
   # then Logger trying to add it again  etc
   def terminate(_,_), do: spawn fn -> Logger.remove_backend(__MODULE__) end
 
-  @spec sanitize(binary, [any]) :: String.t
-  defp sanitize(message, meta) do
+  @spec sanitize(binary, [any], state) :: String.t
+  defp sanitize(message, meta, state) do
     module = Keyword.get(meta, :module)
     unless meta[:nopub] do
       message
       |> filter_module(module)
-      |> filter_text()
+      |> filter_text(state)
     end
   end
 
@@ -192,8 +196,17 @@ defmodule Logger.Backends.FarmbotLogger do
   for module <- @modules, do: defp filter_module(_, unquote(module)), do: @filtered
   defp filter_module(message, _module), do: message
 
-  defp filter_text(">>" <> m), do: filter_text("FIXME " <> m)
-  defp filter_text(m) when is_binary(m) do
+  defp filter_text(">>" <> m, state) do
+    device = try do
+      Farmbot.Database.Selectors.get_device(state.context)
+    rescue
+      _e in Farmbot.Database.Selectors.Error -> %{name: "Farmbot"}
+    end
+
+    filter_text(device.name <> m, state)
+  end
+
+  defp filter_text(m, _state) when is_binary(m) do
     try do
       Poison.encode!(m)
       m
@@ -201,7 +214,7 @@ defmodule Logger.Backends.FarmbotLogger do
       _ -> @filtered
     end
   end
-  defp filter_text(_message), do: @filtered
+  defp filter_text(_message, _state), do: @filtered
 
   # Couuld probably do this inline but wheres the fun in that. its a functional
   # language isn't it?

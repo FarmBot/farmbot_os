@@ -6,8 +6,13 @@ defmodule Farmbot.Database.Syncable do
   @enforce_keys [:ref_id, :body]
   defstruct @enforce_keys
 
+  @typedoc """
+    Module structs.
+  """
+  @type body :: map
+
   @type ref_id :: Farmbot.Database.ref_id
-  @type t :: %__MODULE__{ref_id: ref_id, body: map}
+  @type t :: %__MODULE__{ref_id: ref_id, body: body}
   alias Farmbot.Context
 
   @doc """

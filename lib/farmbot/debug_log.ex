@@ -36,14 +36,18 @@ defmodule Farmbot.DebugLog do
       end
 
       if unquote(color) do
+
         defp debug_log(str) do
           GenEvent.notify(Farmbot.DebugLog,
             {get_module(), {unquote(color), str}})
         end
+
       else
+
         defp debug_log(str) do
           GenEvent.notify Farmbot.DebugLog, {get_module(), {:BLUE, str}}
         end
+        
       end # if color
 
     end # quote

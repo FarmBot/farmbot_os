@@ -79,11 +79,10 @@ defmodule Farmbot.HTTP do
     attachment_url                           = url <> form_data["key"]
     payload =
       Map.new(form_data, fn({key, value}) ->
-        if key == "file", do: {:file, {filename, file}}, else: {key, value}
+        if key == "file", do: {"file", {Path.basename(filename), file}}, else: {key, value}
       end)
-    payload      = Multipart.format(payload, boundry)
+    payload = Multipart.format(payload, boundry)
     headers = [
-      {'Content-Length', byte_size(payload)},
       Multipart.multi_part_header(boundry),
       user_agent_header()
     ]
