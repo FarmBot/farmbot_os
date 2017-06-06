@@ -134,6 +134,7 @@ defmodule Farmbot.Auth do
         save_secret(secret)
         remove_last_factory_reset_reason()
         {:ok, token} = body |> Poison.decode! |> Map.get("token") |> Token.create
+        token = %{token | unencoded: %{token.unencoded | iss: server}}
         maybe_broadcast(sbc, {:new_token, token})
         {:ok, token}
 

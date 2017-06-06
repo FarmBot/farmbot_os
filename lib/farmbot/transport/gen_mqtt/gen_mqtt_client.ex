@@ -2,33 +2,27 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   @moduledoc """
     MQTT transport for farmbot RPC Commands.
   """
-  use GenMQTT
   require Logger
-  alias Farmbot.Transport.Serialized, as: Ser
-  alias Farmbot.Token
-  alias Farmbot.CeleryScript.{Command, Ast}
-  alias Farmbot.Context
-  use Farmbot.DebugLog, name: MqttClient
-
-
-  @type state :: {Token.t, Context.t}
-
-  @type ok :: {:ok, state}
-
-  @spec init(Token.t) :: ok
-  def init([%Context{} = context, %Token{} = token]) do
-    Logger.debug ">> Starting mqtt!"
-    {:ok, {token, context}}
-  end
+  alias   Farmbot.Transport.Serialized, as: Ser
+  alias   Farmbot.Token
+  alias   Farmbot.CeleryScript.{Command, Ast}
+  alias   Farmbot.{Context, Token}
+  use     Farmbot.DebugLog, name: MqttClient
+  use     GenMQTT
 
   @doc """
     Starts a mqtt client.
   """
   def start_link(%Context{} = context, %Token{} = token) do
-    GenMQTT.start_link(__MODULE__, [context, token], build_opts(token))
+    GenMQTT.start_link(__MODULE__, {context, token}, build_opts(token))
   end
 
-  @spec on_connect(state) :: ok
+  def init({%Context{} = context, %Token{} = token}) do
+    Logger.debug ">> Starting mqtt!"
+    # Process.send_after(self(), :r_u_alive_bb?, 1000)
+    {:ok, {token, context}}
+  end
+
   def on_connect({%Token{} = token, %Context{} = context} = state) do
     GenMQTT.subscribe(self(), [{bot_topic(token), 0}])
 
@@ -41,58 +35,61 @@ defmodule Farmbot.Transport.GenMqtt.Client do
     {:ok, state}
   end
 
-  @spec on_publish([String.t], binary, state) :: ok
   def on_publish(["bot", _bot, "from_clients"], msg, {%Token{} = token, %Context{} = context}) do
-    # dont crash mqtt here because it sends an ugly message to rollbar
     try do
-      msg
-      |> Poison.decode!
-      |> Ast.parse
-      |> Command.do_command(context)
-    catch
-      :exit, thing ->
-        debug_log "caught a stray exit: #{inspect thing}"
+      new_context =
+        msg
+        |> Poison.decode!
+        |> Ast.parse
+        |> Command.do_command(context)
+      {:ok, {token, new_context}}
     rescue
-      e ->
-        debug_log "Saved mqtt from death: #{inspect e}"
+      e in Farmbot.CeleryScript.Error ->
+        debug_log "CeleryScript execution error: #{inspect e}"
+        Logger.info "CeleryScript execution error: #{e.message}", type: :error
+        {:ok, {token, context}}
     end
-    {:ok, {token, context}}
-  end
 
-  def on_disconnect(disconnect) do
-    raise "Not implemented: #{inspect disconnect}"
   end
 
   def handle_cast({:status, %Ser{} = ser}, {%Token{} = token, %Context{} = con}) do
+    # debug_log "Got bot status."
     json = Poison.encode!(ser)
     GenMQTT.publish(self(), status_topic(token), json, 0, false)
     {:ok, {token, con}}
   end
 
   def handle_cast({:log, msg}, {%Token{} = token, %Context{} = con}) do
+    # debug_log "Got Log message."
     json = Poison.encode! msg
     GenMQTT.publish(self(), log_topic(token), json, 0, false)
     {:ok, {token, con}}
   end
 
   def handle_cast({:emit, msg}, {%Token{} = token, context}) do
+    # debug_log "Emitting: #{inspect msg}"
     json = Poison.encode! msg
     GenMQTT.publish(self(), frontend_topic(token), json, 0, false)
     {:noreply, {token, context}}
   end
 
+  # def handle_info(:r_u_alive_bb?, {%Token{} = tkn, %Context{} = ctx}) do
+  #   # debug_log "Got alive checkup"
+  #   Process.send_after(self(), :r_u_alive_bb?, 1000)
+  #   {:noreply, {tkn, ctx}}
+  # end
+
   @spec build_opts(Token.t) :: GenMQTT.option
   defp build_opts(%Token{} = token) do
     [
-   # name: __MODULE__,
-     host: token.unencoded.mqtt,
-     timeout: 10_000,
      reconnect_timeout: 10_000,
-     password: token.encoded,
-     username: token.unencoded.bot,
-     last_will_topic: [log_topic(token)],
-     last_will_msg: build_last_will_message(token),
-     last_will_qos: 0
+     last_will_topic:   [log_topic(token)],
+     last_will_msg:     build_last_will_message(token),
+     last_will_qos:     0,
+     username:          token.unencoded.bot,
+     password:          token.encoded,
+     timeout:           10_000,
+     host:              token.unencoded.mqtt,
     ]
   end
 

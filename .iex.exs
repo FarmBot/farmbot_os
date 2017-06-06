@@ -15,7 +15,7 @@ if Code.ensure_loaded? Farmbot do
     DebugLog,
     FarmEventRunner,
     Lib,
-    SequenceRunner,
+    Sequence.Runner,
     Token,
     Configurator,
     EasterEggs,

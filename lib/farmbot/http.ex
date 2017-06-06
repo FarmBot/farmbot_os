@@ -118,9 +118,11 @@ defmodule Farmbot.HTTP do
   end
 
   def init(ctx) do
+    Registry.register(Farmbot.Registry, Farmbot.Auth, [])
     Process.flag(:trap_exit, true)
     state = %{
       context: %{ctx | http: self()},
+      token:   nil
     }
     {:ok, state}
   end
@@ -129,9 +131,7 @@ defmodule Farmbot.HTTP do
     debug_log "Starting client."
     case url do
       "/api" <> _  ->
-        state.context.auth
-        |> Auth.get_token()
-        |> build_api_request(state.context, {method, url, body, headers, opts}, from)
+        build_api_request(state.token, state.context, {method, url, body, headers, opts}, from)
       _ ->
         {:ok, pid} = Client.start_link(from, {method, url, body, headers}, opts)
         :ok        = Client.execute(pid)
@@ -139,14 +139,19 @@ defmodule Farmbot.HTTP do
     {:noreply, state}
   end
 
+  def handle_info({Auth, {:new_token, token}}, state) do
+    {:noreply, %{state | token: token}}
+  end
+
+  def handle_info({Auth, :purge_token}, state), do: {:noreply, %{state | token: nil}}
+
   def handle_info({:EXIT, _old_client, _reason}, state) do
     debug_log "Client finished."
     {:noreply, state}
   end
 
-  defp build_api_request({:ok, %Token{encoded: enc}}, %Context{} = ctx, request, from) do
+  defp build_api_request(%Token{encoded: enc, unencoded: %{iss: server}}, %Context{} = _ctx, request, from) do
     {method, url, body, headers, opts} = request
-    {:ok, server}                      = Auth.get_server(ctx.auth)
     url                                = "#{server}#{url}"
     auth_header                        = {'Authorization', 'Bearer #{enc}'}
     user_agent_header                  = user_agent_header()

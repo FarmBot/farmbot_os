@@ -50,6 +50,7 @@ defmodule Farmbot.HTTP.Client do
   def init({from, request, fb_opts}) do
     {_method, _url, _body, _headers} = actual_request = ensure_request(request)
     state = %{
+      stream_pid:     nil,
       file:           nil,
       noreply:        false,
       fb_opts:        fb_opts,
@@ -68,7 +69,7 @@ defmodule Farmbot.HTTP.Client do
     file                         = maybe_open_file(state.fb_opts)
     {method, url, body, headers} = ensure_request(state.request)
     http_opts                    = [timeout: :infinity, autoredirect: false]
-    opts                         = [stream: :self, receiver: self(), sync: false]
+    opts                         = [stream: {:self, :once}, receiver: self(), sync: false]
     httpc_request                = build_httpc_request(method, url, body, headers)
     case :httpc.request(method, httpc_request, http_opts, opts, :farmbot_http) do
       {:ok, ref} ->
@@ -131,9 +132,10 @@ defmodule Farmbot.HTTP.Client do
   end
 
   # Start streaming data.
-  def handle_info({:http, {_ref, :stream_start, headers} }, state) do
+  def handle_info({:http, {_ref, :stream_start, headers, pid} }, state) do
     debug_log "[#{inspect self()}] got headers."
-    new_state = %{state | headers: headers}
+    new_state = %{state | headers: headers, stream_pid: pid}
+    :httpc.stream_next(pid)
     {:noreply, new_state}
   end
 
@@ -143,13 +145,14 @@ defmodule Farmbot.HTTP.Client do
     # append it into the buffer.
     buffer = state.buffer <> data
     :ok    = maybe_stream_to_file(state.file, data)
+    :httpc.stream_next(state.stream_pid)
     {:noreply, %{state | buffer: buffer}}
   end
 
   # Stream is finished.
-  def handle_info({:http, {_ref, :stream_end, _headers}}, state) do
+  def handle_info({:http, {_ref, :stream_end, headers}}, state) do
     debug_log "[#{inspect self()}] stream finish"
-    new_state = %{state | status_code: 200}
+    new_state = %{state | status_code: 200, headers: headers}
     finish_request new_state
   end
 

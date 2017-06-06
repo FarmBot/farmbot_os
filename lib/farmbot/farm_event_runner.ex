@@ -57,7 +57,7 @@ defmodule Farmbot.FarmEventRunner do
     cond do
       match?(%Sequence{}, event) ->
         ast     = Ast.parse(event)
-        {:ok, _pid} = Elixir.Farmbot.SequenceRunner.start_link(ast, context)
+        Farmbot.CeleryScript.Command.do_command(ast, context)
       match?(%Regimen{}, event) ->
         {:ok, _pid} = Farmbot.Regimen.Supervisor.add_child(context, event, now)
       true ->

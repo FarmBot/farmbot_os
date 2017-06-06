@@ -18,18 +18,19 @@ defmodule Farmbot.Transport.GenMqtt do
   def start_link(%Context{} = ctx, opts),
     do: GenStage.start_link(__MODULE__, {nil, nil, ctx}, opts)
 
-  def init(initial) do
+  def init({nil, nil, context}) do
+    Process.flag(:trap_exit, true)
     debug_log "Starting mqtt"
-    {_, _, context} = initial
     Registry.register(Farmbot.Registry, Farmbot.Auth, [])
     maybe_token = Farmbot.Auth.get_token(context.auth)
     debug_log "checking for old token"
+    # Process.send_after(self(), :checkup, 1000)
     case maybe_token do
       {:ok, %Token{} = t} ->
         {:ok, pid} = start_client(context, t)
         {:consumer, {pid, t, context}, subscribe_to: [context.transport]}
       _ ->
-      {:consumer, initial, subscribe_to: [context.transport]}
+      {:consumer, {nil, nil, context}, subscribe_to: [context.transport]}
     end
   end
 
@@ -61,13 +62,38 @@ defmodule Farmbot.Transport.GenMqtt do
     {:noreply, [], {pid, new_t, context}}
   end
 
+  # def handle_info(:checkup, {nil, nil, _context} = state) do
+  #   debug_log "Got checkup. No token."
+  #   Process.send_after(self(), :checkup, 1000)
+  #   {:noreply, [], state}
+  # end
+  #
+  # def handle_info(:checkup, {pid, %Token{} = tkn, %Context{} = ctx}) when is_pid(pid) do
+  #   debug_log "Got checkup."
+  #   pid =
+  #     if Process.alive?(pid) do
+  #       debug_log "Client is alive."
+  #       pid
+  #     else
+  #       debug_log "Client is not alive. Restarting."
+  #       {:ok, new_pid} = start_client(ctx, tkn)
+  #       new_pid
+  #     end
+  #   Process.send_after(self(), :checkup, 1000)
+  #   {:noreply, [], {pid, tkn, ctx}}
+  # end
+
   def handle_info({_from, event}, {client, %Token{} = _token, _context} = state)
   when is_pid(client) do
     Client.cast(client, event)
     {:noreply, [], state}
   end
 
-  def handle_info(_, {nil, nil, _context} = state), do: {:noreply, [], state}
+  def handle_info({_from, event}, {nil, nil, %Context{}} = state) do
+    {:noreply, [], state}
+  end
+
+  # def handle_info(_, {nil, nil, _context} = state), do: {:noreply, [], state}
 
   # def handle_info(_e, state) do
   #   # catch other messages if we don't have a token, or client or

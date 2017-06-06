@@ -3,7 +3,7 @@ defmodule Farmbot.CeleryScript.Command.If do
     If
   """
 
-  alias Farmbot.CeleryScript.{Command, Ast}
+  alias Farmbot.CeleryScript.{Command, Ast, Error}
   alias Farmbot.Context
   use Farmbot.DebugLog
 
@@ -37,12 +37,20 @@ defmodule Farmbot.CeleryScript.Command.If do
       "x"             -> x
       "y"             -> y
       "z"             -> z
-      "pin" <> number ->
-        thing = number |> String.trim |> String.to_integer
-        %{value: val} = Farmbot.BotState.get_pin(context, thing)
-        val
-      _   ->
-        nil
+      "pin" <> number -> lookup_pin(context, number)
+      _               -> nil
+    end
+  end
+
+  @spec lookup_pin(Context.t, binary) :: integer | no_return
+  defp lookup_pin(context, number) do
+    thing   = number |> String.trim |> String.to_integer
+    pin_map = Farmbot.BotState.get_pin(context, thing)
+    case pin_map do
+      %{value: val} -> val
+      nil           -> raise Error, context: context,
+      message: "Could not get value of pin #{number}. " <>
+        "You should manually use read_pin block before this IF block."
     end
   end
 

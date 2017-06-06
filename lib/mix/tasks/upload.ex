@@ -20,6 +20,7 @@ defmodule Mix.Tasks.Farmbot.Upload do
     Mix.shell.info "Trying to uploading firmware: #{file_name}"
 
     context     = Farmbot.Context.new()
+    Registry.start_link(:duplicate,  Farmbot.Registry)
     {:ok, _}    = Farmbot.DebugLog.start_link()
     {:ok, http} = Farmbot.HTTP.start_link(context, [])
     context     = %{context | http: http}
