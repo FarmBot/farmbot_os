@@ -86,7 +86,6 @@ defmodule Farmbot.Mixfile do
       :nerves_runtime,
       :poison,
       :rsa,
-      :httpoison,
       :nerves_lib,
       :runtime_tools,
       :mustache,
@@ -134,7 +133,6 @@ defmodule Farmbot.Mixfile do
       {:poison, "~> 3.0"},
       {:ex_json_schema, "~> 0.5.3"},
       {:exjsx, "~> 3.2", override: true},
-      {:httpoison, github: "edgurgel/httpoison", override: true},
       {:rsa, "~> 0.0.1"},
 
       # MQTT stuff

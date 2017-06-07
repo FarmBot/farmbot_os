@@ -106,28 +106,20 @@ defmodule Farmbot.CeleryScript.Command do
     maybe_print_comment(ast.comment, kind)
 
     if Code.ensure_loaded?(module) do
-      try do
-        next_context = Kernel.apply(module, :run, [ast.args, ast.body, context])
-        raise_if_not_context_or_return_context(kind, next_context)
-      rescue
-        e ->
-          debug_log("Could not execute: #{inspect ast}, #{inspect e}")
-          Logger.info ">> could not execute #{inspect ast} #{inspect e}", type: :error
-          stack_trace = System.stacktrace
-          reraise(e, stack_trace)
-      end
+      next_context = apply(module, :run, [ast.args, ast.body, context])
+      raise_if_not_context_or_return_context(kind, next_context)
     else
-      raise ">> has no instruction for #{inspect ast}"
+      raise Farmbot.CeleryScript.Error, message: "No instruction for #{inspect ast}", context: context
     end
   end
 
   def do_command(not_cs_node, _) do
-    raise ">> can not handle: #{inspect not_cs_node}"
+    raise Farmbot.CeleryScript.Error, message: "Can not handle: #{inspect not_cs_node}"
   end
 
   defp raise_if_not_context_or_return_context(_, %Farmbot.Context{} = next), do: next
   defp raise_if_not_context_or_return_context(last_kind, not_context) do
-    raise "[#{last_kind}] bad return value! #{inspect not_context}"
+    raise Farmbot.CeleryScript.Error, message: "[#{last_kind}] bad return value! #{inspect not_context}"
   end
 
   # behaviour

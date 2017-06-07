@@ -7,35 +7,34 @@ defmodule Farmbot.HTTP.Multipart do
     Helper for turning a map into a multipart binary.
   """
   def format(map, boundry) when is_map(map) do
-    field_parts = Enum.map(map, fn({field_name, field_content}) ->
-      formatted = format_field_and_content(boundry, field_name, field_content)
-      Enum.join(formatted, "\r\n")
+    {file_parts, field_parts} = Enum.partition(map, fn({_key, value}) ->
+      match?({_filename, _binary}, value)
     end)
 
-    stuff = Enum.join(field_parts, "\r\n") <> "\r\n--#{boundry}\r\n"
-    require IEx
-    IEx.pry
-  end
-
-  defp format_field_and_content(boundry, :file, {file_name, content}) do
+    dbound = "#{dashes()}#{boundry}"
     [
-      "--#{boundry}",
-      "Content-Disposition: format-data; name=\"file\"; filename=\"#{file_name}\"",
-      # "Content-Type: application/octet-stream",
-      "",
-      # content,
-      "binary_data"
-    ]
-  end
+      Enum.map(field_parts, fn({field_name, field_content}) ->
+        [
+          dbound,
+          "Content-Disposition: form-data; name=\"#{field_name}\"",
+          "",
+          field_content,
+        ]
+      end),
 
-  defp format_field_and_content(boundry, field_name, field_content) do
-    field_content = String.trim(field_content)
-    [
-      "--#{boundry}",
-      "Content-Disposition: form-data; name=\"#{field_name}\"",
-      "",
-      field_content,
-    ]
+      Enum.map(file_parts, fn({field_name, {filename, binary}}) ->
+        [
+          dbound,
+          "Content-Disposition: form-data; name=\"#{field_name}\"; filename=\"#{filename}\"",
+          "Content-Type: #{content_type(filename)}",
+          "",
+          binary,
+          "",
+        ]
+      end),
+      "#{dbound}--",
+      ""
+    ] |> List.flatten |> Enum.join("\r\n")
   end
 
   def new_boundry do
@@ -45,43 +44,20 @@ defmodule Farmbot.HTTP.Multipart do
       part_c :: binary - size(4), <<45>>,
       part_d :: binary - size(4), <<45>>,
       part_e :: binary - size(12)>> = uuid
-    part_a <> part_b <> part_c <> part_d <> part_e
+    [part_a, part_b, part_c, part_d, part_e] |> Enum.shuffle() |> Enum.join()
   end
 
   def multi_part_header(boundry) do
-    {'Content-Type', 'multipart/form-data; boundry=#{dashes()}#{boundry}'}
+    {'content-type', 'multipart/form-data; boundary=----------#{boundry}'}
   end
 
-  defp dashes, do: "----------"
-end
+  defp dashes, do: "------------"
 
-# format_multipart_formdata(Boundary, Fields, Files) ->
-#     FieldParts = lists:map(fun({FieldName, FieldContent}) ->
-#                                    [lists:concat(["--", Boundary]),
-#                                     lists:concat(["Content-Disposition: form-data; name=\"",atom_to_list(FieldName),"\""]),
-#                                     "",
-#                                     FieldContent]
-#                            end, Fields),
-#
-#     FieldParts2 = lists:append(FieldParts),
-#     FileParts = lists:map(fun({FieldName, FileName, FileContent}) ->
-#                                   [lists:concat(["--", Boundary]),
-#                                    lists:concat(["Content-Disposition: format-data; name=\"",atom_to_list(FieldName),"\"; filename=\"",FileName,"\""]),
-#                                    lists:concat(["Content-Type: ", "application/octet-stream"]),
-#                                    "",
-#                                    FileContent]
-#                           end, Files),
-#     FileParts2 = lists:append(FileParts),
-#     EndingParts = [lists:concat(["--", Boundary, "--"]), ""],
-#     Parts = lists:append([FieldParts2, FileParts2, EndingParts]),
-#     string:join(Parts, "\r\n").
-#
-#
-#
-# Data = binary_to_list(file:read_file("/path/to/a/file")),
-# URL = "http://localhost.com/some/place/",
-# Boundary = "------------a450glvjfEoqerAc1p431paQlfDac152cadADfd",
-# Body = format_multipart_formdata(Boundary, [{task_id, TaskId}, {position, Position}], [{file, "file", Data}]),
-# ContentType = lists:concat(["multipart/form-data; boundary=", Boundary]),
-# Headers = [{"Content-Length", integer_to_list(length(Body))}],
-# http:request(post, {URL, Headers, ContentType, Body}, [], []).
+  defp content_type(filename) do
+    case Path.extname(filename) do
+      ".jpg"  -> "image/jpeg"
+      ".jpeg" -> "image/jpeg"
+      _       -> "application/octet-stream"
+    end
+  end
+end

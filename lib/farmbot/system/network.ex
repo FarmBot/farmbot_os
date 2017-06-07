@@ -3,11 +3,11 @@ defmodule Farmbot.System.Network do
     Network functionality.
   """
   require Logger
-  use GenServer
-  alias Farmbot.System.FS.ConfigStorage, as: CS
-  alias Farmbot.System.Network.{Ntp, SSH}
-  alias Farmbot.{Context, Auth}
-  use Farmbot.DebugLog
+  alias   Farmbot.System.FS.ConfigStorage, as: CS
+  alias   Farmbot.System.Network.{Ntp, SSH}
+  alias   Farmbot.{Context, Auth, HTTP, DebugLog}
+  use     DebugLog
+  use     GenServer
 
   @type netman :: pid
 
@@ -154,13 +154,13 @@ defmodule Farmbot.System.Network do
   @doc """
   Checks for nxdomain. reboots if `nxdomain`.
   """
-  def connection_test do
+  def connection_test(%Context{} = ctx) do
     Logger.info ">> doing connection test...", type: :busy
-    case HTTPoison.get("http://neverssl.com/") do
+    case HTTP.get(ctx, "http://neverssl.com/") do
       {:ok, _} ->
         Logger.info ">> connection test complete", type: :success
         :ok
-      {:error, %HTTPoison.Error{id: nil, reason: :nxdomain}} ->
+      {:error, :nxdomain} ->
         Farmbot.System.reboot
       error ->
         Farmbot.System.factory_reset("Fatal Error during "
@@ -181,7 +181,7 @@ defmodule Farmbot.System.Network do
     # If we were supplied a pre connect callback, do that.
     if pre_fun, do: pre_fun.()
 
-    :ok = connection_test()
+    :ok = connection_test(context)
 
     :ok = maybe_set_time()
     :ok = maybe_start_ssh()

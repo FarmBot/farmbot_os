@@ -134,7 +134,7 @@ defmodule Farmbot.Database do
   @spec set_awaiting(Context.t, syncable, verb, any) :: :ok | no_return
   def set_awaiting(%Context{database: db} = ctx, syncable, verb, value) do
     debug_log("setting awaiting: #{syncable} #{verb}")
-    # FIXME(connor) YAY SIDE EFFECTS 
+    # FIXME(connor) YAY SIDE EFFECTS
     set_syncing(ctx, :sync_now)
     GenServer.call(db, {:set_awaiting, syncable, verb, value})
   end

@@ -6,8 +6,13 @@ defmodule Farmbot.Database.Syncable do
   @enforce_keys [:ref_id, :body]
   defstruct @enforce_keys
 
+  @typedoc """
+    Module structs.
+  """
+  @type body :: map
+
   @type ref_id :: Farmbot.Database.ref_id
-  @type t :: %__MODULE__{ref_id: ref_id, body: map}
+  @type t :: %__MODULE__{ref_id: ref_id, body: body}
   alias Farmbot.Context
 
   @doc """
@@ -15,11 +20,20 @@ defmodule Farmbot.Database.Syncable do
   """
   def parse_resp({:error, message}, _module), do: {:error, message}
   def parse_resp({:ok, %{status_code: 200, body: resp_body}}, module) do
+    try do
+
+
     stuff = resp_body |> Poison.decode!
     cond do
       is_list(stuff) -> Enum.map(stuff, fn(item) -> module.to_struct(item) end)
       is_map(stuff)  -> module.to_struct(stuff)
       true           -> {:error, "Hashes and arrays only, please."}
+    end
+  rescue
+    e in Poison.SyntaxError ->
+      require IEx
+      IEx.pry
+      reraise Poison.SyntaxError, e, System.stacktrace()
     end
   end
 
