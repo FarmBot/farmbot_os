@@ -5,7 +5,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
 
   alias Farmbot.CeleryScript.Ast
   alias Farmbot.CeleryScript.Command
-  import Command, only: [ast_to_coord: 2]
+  import Command, only: [ast_to_coord: 2, ensure_gcode: 2]
   alias Farmbot.Lib.Maths
   require Logger
   alias Farmbot.Serial.Handler, as: UartHan
@@ -38,15 +38,15 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
 
     a = {location.args.x, location.args.y, location.args.z}
     b = {offset.args.x,   offset.args.y,    offset.args.z }
-    do_move(a, b, s, context)
-
-    new_context3
+    do_move(a, b, s, new_context3)
   end
 
   defp do_move({xa, ya, za}, {xb, yb, zb}, speed, context) do
     { combined_x, combined_y, combined_z } = { xa + xb, ya + yb, za + zb }
     {x, y, z} = do_math(combined_x, combined_y, combined_z, context)
-    UartHan.write(context, "G00 X#{x} Y#{y} Z#{z} S#{speed}")
+    context
+    |> UartHan.write("G00 X#{x} Y#{y} Z#{z} S#{speed}")
+    |> ensure_gcode(context)
   end
 
   defp do_math(combined_x, combined_y, combined_z, context) do

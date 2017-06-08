@@ -209,15 +209,29 @@ defmodule Farmbot.System.Network do
     def maybe_setup_rollbar(token) do
       if String.contains?(token.unencoded.iss, "farmbot.io") and @access_token do
         Logger.info ">> Setting up rollbar!"
-        :ok = ExRollbar.setup access_token: @access_token,
-          environment: token.unencoded.iss,
-          enable_logger: true,
-          person_id: token.unencoded.bot,
-          person_email: token.unencoded.sub,
+        Application.put_env(:rollbax, :access_token, @access_token)
+        Application.put_env(:rollbax, :environment,  token.unencoded.iss)
+        Application.put_env(:rollbax, :enabled,      true)
+        Application.put_env(:rollbas, :custom,       %{target: @target})
+
+        Application.put_env(:farmbot, :rollbar_occurrence_data, %{
+          person_id:       token.unencoded.bot,
+          person_email:    token.unencoded.sub,
           person_username: token.unencoded.bot,
-          framework: "Nerves",
-          code_version: @commit,
-          custom: %{target: @target}
+          framework:       "Nerves",
+          code_version:    @commit,
+        })
+
+        Application.ensure_all_started(:rollbax)
+        # :ok = ExRollbar.setup access_token: @access_token,
+        #   environment: token.unencoded.iss,
+        #   enable_logger: true,
+        #   person_id: token.unencoded.bot,
+        #   person_email: token.unencoded.sub,
+        #   person_username: token.unencoded.bot,
+        #   framework: "Nerves",
+        #   code_version: @commit,
+        #   custom: %{target: @target}
         :ok
       else
         Logger.info ">> Not Setting up rollbar!"

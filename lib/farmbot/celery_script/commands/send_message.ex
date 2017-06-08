@@ -5,7 +5,7 @@ defmodule Farmbot.CeleryScript.Command.SendMessage do
 
   alias   Farmbot.CeleryScript.{Command, Ast}
   alias   Farmbot.Context
-  import  Command, only: [read_pin_or_raise: 3]
+  # import  Command, only: [read_pin_or_raise: 3]
   require Logger
 
   @behaviour Command
@@ -34,14 +34,14 @@ defmodule Farmbot.CeleryScript.Command.SendMessage do
 
   @spec get_message_stuff(Ast.context, [Ast.t])
     :: %{x: Command.x, y: Command.y, z: Command.z}
-  defp get_message_stuff(%Context{} = context, pairs) do
+  defp get_message_stuff(%Context{} = context, _pairs) do
     [x, y, z] = Farmbot.BotState.get_current_pos(context)
     coords    = %{x: x, y: y, z: z}
     pins      = Map.new(0..70, fn(num) ->
                       pin_val =
                         case Farmbot.BotState.get_pin(context, num) do
                           %{value: val} -> val
-                          _             -> :unknown 
+                          _             -> :unknown
                             # read_pin_or_raise(context, num,  pairs)
                         end
                       {:"pin#{num}", pin_val}
