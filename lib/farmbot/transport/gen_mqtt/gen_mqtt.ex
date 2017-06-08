@@ -89,7 +89,7 @@ defmodule Farmbot.Transport.GenMqtt do
     {:noreply, [], state}
   end
 
-  def handle_info({_from, event}, {nil, nil, %Context{}} = state) do
+  def handle_info({_from, _event}, {nil, nil, %Context{}} = state) do
     {:noreply, [], state}
   end
 

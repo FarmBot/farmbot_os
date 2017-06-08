@@ -3,8 +3,8 @@ defmodule Farmbot.CeleryScript.Command.If do
     If
   """
 
-  alias Farmbot.CeleryScript.{Command, Ast, Error}
-  import Command, only: [do_command: 2]
+  alias Farmbot.CeleryScript.{Command, Ast}
+  import Command, only: [do_command: 2, read_pin_or_raise: 3]
   alias Farmbot.Context
   use Farmbot.DebugLog
 
@@ -49,21 +49,9 @@ defmodule Farmbot.CeleryScript.Command.If do
     pin_map = Farmbot.BotState.get_pin(context, thing)
     case pin_map do
       %{value: val} -> val
-      nil           -> read_or_raise(context, number, pairs)
-    end
-  end
-
-  defp read_or_raise(%Context{} = ctx, number, pairs) do
-    if Enum.find(pairs, fn(pair) ->
-      match?(%Ast{kind: "pair", args: %{label: "eager_read_pin"}}, pair)
-    end) do
-      ast = %Ast{kind: "read_pin", args: %{label: "", pin_mode: 0, pin_number: String.to_integer(number)}, body: []}
-      new_context = do_command(ast, ctx)
-      lookup_pin(new_context, number, [])
-    else
-      raise Error, context: ctx,
-        message: "Could not get value of pin #{number}. " <>
-      "You should manually use read_pin block before this IF step."
+      nil           ->
+        new_context = read_pin_or_raise(context, number, pairs)
+        lookup_pin(new_context, number, [])
     end
   end
 
@@ -99,6 +87,6 @@ defmodule Farmbot.CeleryScript.Command.If do
 
   defp print_and_execute(%Ast{} = ast, bool, %Context{} = ctx) do
     debug_log "if evaluated: #{bool}, doing: #{inspect ast}"
-    Command.do_command(ast, ctx)
+    do_command(ast, ctx)
   end
 end

@@ -3,7 +3,7 @@ defmodule Farmbot.CeleryScript.Command.EmergencyUnlock do
     EmergencyUnlock
   """
 
-  alias Farmbot.CeleryScript.{Command, Message}
+  alias Farmbot.CeleryScript.{Command, Error}
   @behaviour Command
 
   @doc ~s"""

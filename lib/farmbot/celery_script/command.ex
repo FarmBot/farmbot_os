@@ -6,8 +6,9 @@ defmodule Farmbot.CeleryScript.Command do
     this means minimal logging, minimal bot state changeing (if its not the
     result of a gcode) etc.
   """
-  alias   Farmbot.CeleryScript.Ast
+  alias   Farmbot.CeleryScript.{Ast, Error}
   alias   Farmbot.Database.Selectors
+  alias   Farmbot.Context
   require Logger
   use     Farmbot.DebugLog
 
@@ -94,22 +95,41 @@ defmodule Farmbot.CeleryScript.Command do
   defp maybe_print_comment(comment, fun_name),
     do: Logger.info ">> [#{fun_name}] - #{comment}"
 
+  def read_pin_or_raise(%Context{} = ctx, number, pairs) do
+    if Enum.find(pairs, fn(pair) ->
+      match?(%Ast{kind: "pair", args: %{label: "eager_read_pin"}}, pair)
+    end) do
+      ast = %Ast{kind: "read_pin", args: %{label: "", pin_mode: 0, pin_number: String.to_integer(number)}, body: []}
+      do_command(ast, ctx)
+    else
+      raise Error, context: ctx,
+        message: "Could not get value of pin #{number}. " <>
+      "You should manually use read_pin block before this step."
+    end
+  end
+
   @doc ~s"""
     Executes an ast tree.
   """
   @spec do_command(Ast.t, Ast.context) :: Ast.context | no_return
-  def do_command(%Ast{} = ast, context) do
+  def do_command(%Ast{} = ast, %Context{} = context) do
     kind = ast.kind
     module = Module.concat Farmbot.CeleryScript.Command, Macro.camelize(kind)
 
     # print the comment if it exists
     maybe_print_comment(ast.comment, kind)
 
-    if Code.ensure_loaded?(module) do
-      next_context = apply(module, :run, [ast.args, ast.body, context])
-      raise_if_not_context_or_return_context(kind, next_context)
-    else
-      raise Farmbot.CeleryScript.Error, message: "No instruction for #{inspect ast}", context: context
+    try do
+      if Code.ensure_loaded?(module) do
+          next_context = apply(module, :run, [ast.args, ast.body, context])
+          raise_if_not_context_or_return_context(kind, next_context)
+      else
+        raise Farmbot.CeleryScript.Error, message: "No instruction for #{inspect ast}", context: context
+      end
+    rescue
+      e in Farmbot.CeleryScript.Error ->
+        Logger.info "Failed to execute CeleryScript: #{e.message}", type: :error
+        reraise e, System.stacktrace
     end
   end
 

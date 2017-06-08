@@ -77,9 +77,9 @@ defmodule Farmbot.Transport.GenMqtt.Client do
     {:noreply, state}
   end
 
-  def handle_info({:EXIT, pid, reason}, state) do
+  def handle_info({:EXIT, pid, _reason}, state) do
     if pid in state.cs_nodes do
-      Logger.info "CeleryScript Execution error: #{inspect reason}", type: :error
+      # this step did not execute properly.
       {:ok, %{state | cs_nodes: List.delete(state.cs_nodes, pid)}}
     else
       {:ok, state}
