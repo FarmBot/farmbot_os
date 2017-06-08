@@ -88,7 +88,7 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
     case results do
       :timeout ->
         write_and_read(context, {param_int, param_str}, val, tries + 1)
-      _ -> :ok
+      _ -> context
     end
 
     # # HACK read the param back because sometimes the firmware decides

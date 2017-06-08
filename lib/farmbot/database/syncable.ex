@@ -31,8 +31,8 @@ defmodule Farmbot.Database.Syncable do
     end
   rescue
     e in Poison.SyntaxError ->
-      require IEx
-      IEx.pry
+      # require IEx
+      # IEx.pry
       reraise Poison.SyntaxError, e, System.stacktrace()
     end
   end

@@ -4,6 +4,7 @@ defmodule Farmbot.CeleryScript.Command.If do
   """
 
   alias Farmbot.CeleryScript.{Command, Ast, Error}
+  import Command, only: [do_command: 2]
   alias Farmbot.Context
   use Farmbot.DebugLog
 
@@ -19,8 +20,8 @@ defmodule Farmbot.CeleryScript.Command.If do
       body: []
   """
   @spec run(%{}, [], Ast.context) :: Ast.context
-  def run(%{_else: else_, _then: then_, lhs: lhs, op: op, rhs: rhs }, [], ctx) do
-    left = lhs |> eval_lhs(ctx)
+  def run(%{_else: else_, _then: then_, lhs: lhs, op: op, rhs: rhs }, pairs, ctx) do
+    left = lhs |> eval_lhs(ctx, pairs)
     unless is_integer(left) do
       raise "could not evaluate left hand side of if statment! #{inspect lhs}"
     end
@@ -29,28 +30,40 @@ defmodule Farmbot.CeleryScript.Command.If do
   end
 
   # figure out what the user wanted
-  @spec eval_lhs(binary, Ast.context) :: integer
+  @spec eval_lhs(binary, Ast.context, [Ast.t]) :: integer
 
-  defp eval_lhs(lhs, %Farmbot.Context{} = context) do
+  defp eval_lhs(lhs, %Farmbot.Context{} = context, pairs) do
     [x, y, z] = Farmbot.BotState.get_current_pos(context)
     case lhs do
       "x"             -> x
       "y"             -> y
       "z"             -> z
-      "pin" <> number -> lookup_pin(context, number)
+      "pin" <> number -> lookup_pin(context, number, pairs)
       _               -> nil
     end
   end
 
-  @spec lookup_pin(Context.t, binary) :: integer | no_return
-  defp lookup_pin(context, number) do
+  @spec lookup_pin(Context.t, binary, [Ast.t]) :: integer | no_return
+  defp lookup_pin(context, number, pairs) do
     thing   = number |> String.trim |> String.to_integer
     pin_map = Farmbot.BotState.get_pin(context, thing)
     case pin_map do
       %{value: val} -> val
-      nil           -> raise Error, context: context,
-      message: "Could not get value of pin #{number}. " <>
-        "You should manually use read_pin block before this IF block."
+      nil           -> read_or_raise(context, number, pairs)
+    end
+  end
+
+  defp read_or_raise(%Context{} = ctx, number, pairs) do
+    if Enum.find(pairs, fn(pair) ->
+      match?(%Ast{kind: "pair", args: %{label: "eager_read_pin"}}, pair)
+    end) do
+      ast = %Ast{kind: "read_pin", args: %{label: "", pin_mode: 0, pin_number: String.to_integer(number)}, body: []}
+      new_context = do_command(ast, ctx)
+      lookup_pin(new_context, number, [])
+    else
+      raise Error, context: ctx,
+        message: "Could not get value of pin #{number}. " <>
+      "You should manually use read_pin block before this IF step."
     end
   end
 
