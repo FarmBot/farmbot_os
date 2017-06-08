@@ -19,7 +19,7 @@ defmodule Farmbot.Transport.GenMqtt do
     do: GenStage.start_link(__MODULE__, {nil, nil, ctx}, opts)
 
   def init({nil, nil, context}) do
-    Process.flag(:trap_exit, true)
+    # Process.flag(:trap_exit, true)
     debug_log "Starting mqtt"
     Registry.register(Farmbot.Registry, Farmbot.Auth, [])
     maybe_token = Farmbot.Auth.get_token(context.auth)

@@ -3,7 +3,7 @@ defmodule Farmbot.CeleryScript.Command.EmergencyUnlock do
     EmergencyUnlock
   """
 
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Message}
   @behaviour Command
 
   @doc ~s"""
@@ -19,7 +19,7 @@ defmodule Farmbot.CeleryScript.Command.EmergencyUnlock do
       :ok = Farmbot.BotState.set_sync_msg(context, :sync_now)
       context
     else
-      raise "Bot is not locked"
+      raise Error, message: "Bot is not locked"
     end
 
   end
