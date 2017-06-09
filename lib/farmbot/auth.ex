@@ -221,18 +221,15 @@ defmodule Farmbot.Auth do
 
   def try_log_in!(auth, retry, error_str) do
     Logger.info ">> is logging in..."
-    # disable broadcasting
     :ok = GenServer.call(auth, {:set_broadcast, false})
-
-    # Try to get a token.
-    case try_log_in(auth) do
-       {:ok, %Token{} = token} = success ->
-         :ok = GenServer.call(auth, {:set_broadcast, true})
-
-         Logger.info ">> Is logged in", type: :success
-         broadcast({:new_token, token})
-         success
-       er -> # no need to print message becasetry_log_indoes it for us.
+    try do
+      {:ok, %Token{} = token} = success = try_log_in(auth)
+      :ok = GenServer.call(auth, {:set_broadcast, true})
+      Logger.info ">> Is logged in", type: :success
+      broadcast({:new_token, token})
+      success
+    rescue
+      er ->
         # sleep for a second, then try again untill we are out of retry
         Process.sleep(1000)
         try_log_in!(retry + 1, "Try #{retry}: #{inspect er}\n" <> error_str)
