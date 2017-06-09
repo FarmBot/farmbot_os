@@ -13,7 +13,7 @@ defmodule Farmbot.CeleryScript.Command.EmergencyLock do
       args: %{},
       body: []
   """
-  @spec run(%{}, [], Ast.context) :: Ast.context
+  @spec run(%{}, [], Context.t) :: Context.t
   def run(%{}, [], context) do
     if Farmbot.BotState.locked?(context) do
       raise Error, message: "Bot is already locked"

@@ -26,6 +26,7 @@ defmodule Farmbot.Farmware.Runtime do
   @spec execute(Context.t, Farmware.t) :: Context.t | no_return
   def execute(%Context{} = ctx, %Farmware{} = fw) do
     debug_log "Starting execution of #{inspect fw}"
+    debug_log "Starting execution of: #{inspect fw}"
     uuid       = Nerves.Lib.UUID.generate()
     env        = environment(ctx, uuid)
     exec       = System.find_executable(fw.executable) || raise FarmwareRuntimeError, message: "Could not locate #{fw.executable}"

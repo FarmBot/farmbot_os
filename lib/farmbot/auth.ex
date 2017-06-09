@@ -111,9 +111,9 @@ defmodule Farmbot.Auth do
 
   def get_token_from_server(%Context{} = ctx, secret, server, sbc) do
     # I am not sure why this is done this way other than it works.
-    user = %{credentials: secret |> :base64.encode_to_string |> to_string}
+    user    = %{credentials: secret |> :base64.encode_to_string |> to_string}
     payload = Poison.encode!(%{user: user})
-    req = HTTP.post(ctx, "#{server}/api/tokens", payload, [], [])
+    req     = HTTP.post(ctx, "#{server}/api/tokens", payload, [], [])
 
     case req do
       # bad Password
@@ -130,6 +130,7 @@ defmodule Farmbot.Auth do
 
       # We won
       {:ok, %HTTP.Response{body: body, status_code: 200}} ->
+        maybe_retry(ctx, secret, server, sbc, body)
         Logger.info ">> got a token!", type: :success
         save_secret(secret)
         remove_last_factory_reset_reason()
@@ -142,6 +143,13 @@ defmodule Farmbot.Auth do
       {:error, _reason} = thing ->
         maybe_broadcast(sbc, thing)
         thing
+    end
+  end
+
+  defp maybe_retry(%Context{} = ctx, secret, server, sbc, body) do
+    case Poison.decode(body) do
+      {:ok,    _} -> :ok
+      {:error, _} -> get_token_from_server(%Context{} = ctx, secret, server, sbc)
     end
   end
 

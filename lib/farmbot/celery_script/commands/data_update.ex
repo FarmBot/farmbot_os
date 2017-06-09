@@ -28,7 +28,7 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
     args: %{value: String.t},
     body: [Pair.t]
   """
-  @spec run(%{value: String.t}, [Pair.t], Ast.context) :: Ast.context
+  @spec run(%{value: String.t}, [Pair.t], Context.t) :: Context.t
   def run(%{value: verb}, pairs, context) do
     verb = parse_verb_str(verb)
     Enum.each(pairs, fn(%{args: %{label: s, value: nowc}}) ->

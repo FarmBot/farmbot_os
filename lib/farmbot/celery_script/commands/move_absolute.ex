@@ -28,7 +28,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
     offset: coordinate_ast | Ast.t,
     location: coordinate_ast | Ast.t
   }
-  @spec run(move_absolute_args, [], Ast.context) :: Ast.context
+  @spec run(move_absolute_args, [], Context.t) :: Context.t
   def run(%{speed: s, offset: offset, location: location}, [], context) do
     new_context              = ast_to_coord(context, location)
     {location, new_context1} = Farmbot.Context.pop_data(new_context)

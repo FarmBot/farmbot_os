@@ -5,7 +5,7 @@ defmodule Farmbot.BotState.Hardware do
 
   require Logger
   alias Farmbot.BotState.StateTracker
-  alias Farmbot.CeleryScript.{Ast, Command}
+  alias Farmbot.CeleryScript.Command
 
   @behaviour StateTracker
   use StateTracker,
@@ -40,7 +40,7 @@ defmodule Farmbot.BotState.Hardware do
   @doc """
     Takes a Hardware State object, and makes it happen
   """
-  @spec set_initial_params(State.t, Ast.context)
+  @spec set_initial_params(State.t, Context.t)
     :: {:ok, :no_params} | :ok | {:error, term}
   def set_initial_params(%State{} = state, %Farmbot.Context{} = context) do
     # BUG(Connor): The first param is rather unstable for some reason.

@@ -11,7 +11,7 @@ defmodule Farmbot.CeleryScript.Command.InstallFarmware do
       args: %{url: String.t},
       body: []
   """
-  @spec run(%{url: String.t}, [], Ast.context) :: Ast.context
+  @spec run(%{url: String.t}, [], Context.t) :: Context.t
   def run(%{url: url}, [], context) do
     Farmbot.Farmware.Manager.install!(context, url)
     context

@@ -116,7 +116,7 @@ defmodule Farmbot.Context do
     Returns an empty context object for those times you don't care about
     side effects or execution.
   """
-  @spec new :: Ast.context
+  @spec new :: Context.t
   def new do
     %__MODULE__{ data_stack: [],
                  ref:        make_ref(),

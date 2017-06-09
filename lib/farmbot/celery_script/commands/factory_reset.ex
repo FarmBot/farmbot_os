@@ -3,7 +3,7 @@ defmodule Farmbot.CeleryScript.Command.FactoryReset do
     FactoryReset
   """
 
-  alias      Farmbot.CeleryScript.{Command, Ast}
+  alias      Farmbot.CeleryScript.{Command}
   alias      Farmbot.Context
   require    Logger
   @behaviour Command
@@ -14,10 +14,11 @@ defmodule Farmbot.CeleryScript.Command.FactoryReset do
       args: %{package: "farmbot_os" | "arduino_firmware"}
       body: []
   """
-  @spec run(%{package: binary}, [], Ast.context) :: Ast.context
+  @spec run(%{package: binary}, [], Context.t) :: Context.t
   def run(%{package: "farmbot_os"}, [], context) do
     Logger.info(">> Going down for factory reset in 5 seconds!", type: :warn)
     spawn fn ->
+      Farmbot.BotState.set_sync_msg(context, :maintenance)
       Process.sleep 5000
       # do_fac_reset_fw(context)
       Farmbot.System.factory_reset("I was asked by a CeleryScript command.")
@@ -30,9 +31,10 @@ defmodule Farmbot.CeleryScript.Command.FactoryReset do
     context
   end
 
-  @spec do_fac_reset_fw(Ast.context, boolean) :: no_return
+  @spec do_fac_reset_fw(Context.t, boolean) :: no_return
   defp do_fac_reset_fw(context, reboot \\ false) do
     Logger.info(">> Going to reset my arduino!", type: :warn)
+    Farmbot.BotState.set_sync_msg(context, :maintenance)
     params_map           = Farmbot.BotState.get_all_mcu_params(context)
     context1             = to_pairs(Map.to_list(params_map), context)
     {params, context2}   = get_params(Enum.count(params_map), context1)
@@ -52,6 +54,7 @@ defmodule Farmbot.CeleryScript.Command.FactoryReset do
     if reboot do
       Farmbot.System.reboot()
     else
+      Farmbot.BotState.set_sync_msg(context3, :sync_now)
       context3
     end
   end

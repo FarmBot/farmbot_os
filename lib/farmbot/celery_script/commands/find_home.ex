@@ -13,7 +13,7 @@ defmodule Farmbot.CeleryScript.Command.FindHome do
       body: []
   """
   @type axis :: String.t # "x" | "y" | "z" | "all"
-  @spec run(%{axis: axis}, [], Ast.context) :: Ast.context
+  @spec run(%{axis: axis}, [], Context.t) :: Context.t
   def run(%{axis: "all"}, [], context) do
     run(%{axis: "z"}, [], context) # <= FindHome z FIRST to prevent plant damage
     run(%{axis: "y"}, [], context)

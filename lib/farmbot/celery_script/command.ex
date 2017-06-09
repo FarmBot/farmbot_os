@@ -39,7 +39,7 @@ defmodule Farmbot.CeleryScript.Command do
   @doc ~s"""
     Convert an ast node to a coodinate or return :error.
   """
-  @spec ast_to_coord(Ast.context, Ast.t) :: Ast.context
+  @spec ast_to_coord(Context.t, Ast.t) :: Context.t
   def ast_to_coord(context, ast)
   def ast_to_coord(
     %Context{} = context,
@@ -135,7 +135,7 @@ defmodule Farmbot.CeleryScript.Command do
   @doc ~s"""
     Executes an ast tree.
   """
-  @spec do_command(Ast.t, Ast.context) :: Ast.context | no_return
+  @spec do_command(Ast.t, Context.t) :: Context.t | no_return
   def do_command(%Ast{} = ast, %Context{} = context) do
     try do
       do_execute_command(ast, context)
@@ -177,5 +177,5 @@ defmodule Farmbot.CeleryScript.Command do
   end
 
   # behaviour
-  @callback run(Ast.args, [Ast.t], Ast.context) :: Ast.context
+  @callback run(Ast.args, [Ast.t], Context.t) :: Context.t
 end

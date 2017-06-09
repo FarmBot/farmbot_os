@@ -18,7 +18,7 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
   """
   @spec run(%{package: Command.package},
             [Command.pair],
-            Ast.context) :: Ast.context
+            Context.t) :: Context.t
   def run(%{package: "arduino_firmware"}, config_pairs, context) do
     # check the version to make sure we have a good connection to the firmware
     :ok = check_version(context)

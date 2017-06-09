@@ -13,7 +13,7 @@ defmodule Farmbot.Sequence.Runner do
     This gets injected into the args of a sequence, and all of its children etc.
     Mostly magic.
   """
-  @type context :: Ast.context
+  @type context :: Context.t
   @type sequence_pid :: pid
 
   @type block :: {reference, pid}

@@ -11,7 +11,7 @@ defmodule Farmbot.CeleryScript.Command.EmergencyUnlock do
       args: %{},
       body: []
   """
-  @spec run(%{}, [], Ast.context) :: Ast.context
+  @spec run(%{}, [], Context.t) :: Context.t
   def run(%{}, [], context) do
     if Farmbot.BotState.locked?(context) do
       :ok = Farmbot.Serial.Handler.emergency_unlock(context)

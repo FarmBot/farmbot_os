@@ -4,7 +4,6 @@ defmodule Farmbot.CeleryScript.Command.MoveRelative do
   """
 
   alias Farmbot.CeleryScript.Command
-  alias Farmbot.CeleryScript.Ast
 
   @behaviour Command
   @type x :: Command.Coordinate.x
@@ -16,8 +15,8 @@ defmodule Farmbot.CeleryScript.Command.MoveRelative do
       args: %{speed: number, x: number, y: number, z: number}
       body: []
   """
-  @spec run(%{speed: number, x: x, y: y, z: z}, [], Ast.context)
-    :: Ast.context
+  @spec run(%{speed: number, x: x, y: y, z: z}, [], Context.t)
+    :: Context.t
 
   def run(%{speed: speed, x: x, y: y, z: z}, [], context) do
     # make a coordinate of the relative movement we want to do

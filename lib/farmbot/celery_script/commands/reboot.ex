@@ -4,7 +4,8 @@ defmodule Farmbot.CeleryScript.Command.Reboot do
   """
 
   require    Logger
-  alias      Farmbot.CeleryScript.{Ast, Command}
+  alias      Farmbot.CeleryScript.Command
+  alias      Farmbot.Context
   @behaviour Command
 
   @doc ~s"""
@@ -12,10 +13,11 @@ defmodule Farmbot.CeleryScript.Command.Reboot do
       args: %{},
       body: []
   """
-  @spec run(%{}, [], Ast.context) :: Ast.context
-  def run(%{}, [], context) do
+  @spec run(%{}, [], Context.t) :: Context.t
+  def run(%{}, [], %Context{} = context) do
     spawn fn ->
       Logger.warn ">> was told to reboot. See you soon!"
+      Farmbot.BotState.set_sync_msg(context, :maintenance)
       Process.sleep(2000)
       Farmbot.System.reboot()
     end

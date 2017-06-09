@@ -19,7 +19,7 @@ defmodule Farmbot.CeleryScript.Command.If do
               rhs: integer},
       body: []
   """
-  @spec run(%{}, [], Ast.context) :: Ast.context
+  @spec run(%{}, [], Context.t) :: Context.t
   def run(%{_else: else_, _then: then_, lhs: lhs, op: op, rhs: rhs }, pairs, ctx) do
     left = lhs |> eval_lhs(ctx, pairs)
     unless is_integer(left) do
@@ -30,7 +30,7 @@ defmodule Farmbot.CeleryScript.Command.If do
   end
 
   # figure out what the user wanted
-  @spec eval_lhs(binary, Ast.context, [Ast.t]) :: integer
+  @spec eval_lhs(binary, Context.t, [Ast.t]) :: integer
 
   defp eval_lhs(lhs, %Farmbot.Context{} = context, pairs) do
     [x, y, z] = Farmbot.BotState.get_current_pos(context)
@@ -56,7 +56,7 @@ defmodule Farmbot.CeleryScript.Command.If do
   end
 
   @spec eval_if({integer, String.t, integer},
-    Ast.t, Ast.t, Ast.context) :: Ast.context
+    Ast.t, Ast.t, Context.t) :: Context.t
 
   defp eval_if({lhs, ">", rhs}, then_, else_, context) do
     if lhs > rhs,
