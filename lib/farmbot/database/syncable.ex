@@ -81,6 +81,11 @@ defmodule Farmbot.Database.Syncable do
       def fetch(%Context{} = context, then) do
         url = "/api" <> plural_url()
         result = context |> HTTP.get(url) |> parse_resp(__MODULE__)
+
+        if function_exported?(__MODULE__, :on_sync, 2) do
+          apply __MODULE__, :on_sync, [context, result]
+        end
+
         case then do
           {module, fun, args}    -> apply(module, fun, [result | args])
           anon when is_function(anon) -> anon.(result)
@@ -93,6 +98,11 @@ defmodule Farmbot.Database.Syncable do
       def fetch(%Context{} = context, id, then) do
         url = "/api" <> unquote(singular) <> "/#{id}"
         result = context |> HTTP.get(url) |> parse_resp(__MODULE__)
+
+        if function_exported?(__MODULE__, :on_sync, 2) do
+          apply __MODULE__, :on_sync, [context, result]
+        end
+        
         case then do
           {module, fun, args}    -> apply(module, fun, [result | args])
           anon when is_function(anon) -> anon.(result)
