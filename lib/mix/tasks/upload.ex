@@ -38,7 +38,7 @@ defmodule Mix.Tasks.Farmbot.Upload do
     headers = [ct]
 
     Mix.shell.info "Uploading..."
-    r = Farmbot.HTTP.post! context, upload_url, payload, headers, []
+    r = Farmbot.HTTP.post! context, upload_url, payload, headers, [timeout: 60_000]
     unless match?(%{status_code: 200}, r) do
       Mix.raise "Failed to upload firmware: #{format r}"
     end

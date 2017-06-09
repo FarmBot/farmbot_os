@@ -132,7 +132,7 @@ defmodule Farmbot.System.UeventHandler do
     else
       Logger.info "doing some magic..."
       herp = Nerves.UART.enumerate()
-      |> Map.drop(["ttyS0","ttyAMA0"])
+      |> Map.drop(["ttyS0", "ttyAMA0"])
       |> Map.keys
       case herp do
         [tty] ->

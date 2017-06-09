@@ -47,7 +47,7 @@ defmodule Farmbot.DebugLog do
         defp debug_log(str) do
           GenEvent.notify Farmbot.DebugLog, {get_module(), {:BLUE, str}}
         end
-        
+
       end # if color
 
     end # quote

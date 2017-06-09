@@ -6,7 +6,8 @@ defmodule Farmbot.Serial.Supervisor do
 
   def init(%Context{} = ctx) do
     children = [
-      worker(Task, [OpenTTY, :open_ttys, [ctx, __MODULE__]], restart: :transient),
+      worker(Task,
+        [OpenTTY, :open_ttys, [ctx, __MODULE__]], restart: :transient),
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)

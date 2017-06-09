@@ -1,4 +1,8 @@
 defmodule Farmbot.HTTP.Client do
+  @moduledoc """
+    One off process for a single http client.
+  """
+
   use GenServer
   use Farmbot.DebugLog, name: HTTPClient
   alias Farmbot.HTTP.{Response, Types}
@@ -69,15 +73,20 @@ defmodule Farmbot.HTTP.Client do
     file                         = maybe_open_file(state.fb_opts)
     {method, url, body, headers} = ensure_request(state.request)
     http_opts                    = [timeout: :infinity, autoredirect: false]
-    opts                         = [stream: {:self, :once}, receiver: self(), sync: false]
-    httpc_request                = build_httpc_request(method, url, body, headers)
-    case :httpc.request(method, httpc_request, http_opts, opts, :farmbot_http) do
+    opts                         = [
+      stream:   {:self, :once},
+      receiver: self(),
+      sync:     false
+    ]
+    crequest                  = build_httpc_request(method, url, body, headers)
+    case :httpc.request(method, crequest, http_opts, opts, :farmbot_http) do
       {:ok, ref} ->
         state = %{ state | ref: ref, file: file}
         debug_log "[#{inspect self()}] Starting request"
         {:noreply, state}
       {:error, reason} ->
-        debug_log "[#{inspect self()}] failed to create request: #{inspect reason}"
+        debug_log "[#{inspect self()}] failed to create " <>
+          "request: #{inspect reason}"
         finish_request state, reason
     end
 
@@ -106,7 +115,7 @@ defmodule Farmbot.HTTP.Client do
       # get the request out of the previous state.
       {method, _, body, headers} = ensure_request(state.request)
       # build the new request.
-      new_request                = ensure_request({method, new_url, body, headers})
+      new_request             = ensure_request({method, new_url, body, headers})
 
       # start a new client for that request.
       spawn fn() ->
@@ -114,20 +123,28 @@ defmodule Farmbot.HTTP.Client do
         :ok        = execute(pid)
       end
 
-      # stop this client, but don't reply because something else is going to reply for it.
+      # stop this client, but don't reply because
+      # something else is going to reply for it.
       finish_request %{state | noreply: true}
     else
       # if we dont have a url, error.
-      debug_log "[#{inspect self()}] could not redirect because no server was provided."
+      debug_log "[#{inspect self()}] could not redirect " <>
+        "because no server was provided."
       finish_request state, :redirect_fail
     end
   end
 
-  # This happens when there is an http request that does NOT have a status code of
+  # This happens when there is an http
+  # request that does NOT have a status code of
   # 200 or 206.
-  def handle_info( {:http, {_ref, {{_ver, status_code, _msg}, headers, body} } }, state) do
+  def handle_info(
+    {:http, {_ref, {{_ver, status_code, _msg}, headers, body}}}, state
+  ) do
     debug_log "[#{inspect self()}] got stream status: #{status_code}"
-    new_state = %{state | status_code: status_code, buffer: body, headers: headers}
+    new_state = %{state | status_code: status_code,
+      buffer:  body,
+      headers: headers
+    }
     finish_request new_state
   end
 
@@ -145,7 +162,7 @@ defmodule Farmbot.HTTP.Client do
     # append it into the buffer.
     buffer = state.buffer <> data
     :ok    = maybe_stream_to_file(state.file, data)
-    :httpc.stream_next(state.stream_pid)
+    :ok    = :httpc.stream_next(state.stream_pid)
     {:noreply, %{state | buffer: buffer}}
   end
 
@@ -157,9 +174,8 @@ defmodule Farmbot.HTTP.Client do
   end
 
   # HTTP errors should just error out.
-  def handle_info({:http, {error, headers}}, state) do
-    new_state = %{state | headers: headers}
-    finish_request new_state, error
+  def handle_info({:http, {_ref, {:error, reason}}}, state) do
+    finish_request state, reason
   end
 
   # If we exit in a NORMAL state, we reply with :ok

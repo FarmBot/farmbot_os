@@ -19,7 +19,7 @@ defmodule Farmbot.Transport.GenMqtt do
     do: GenStage.start_link(__MODULE__, {nil, nil, ctx}, opts)
 
   def init({nil, nil, context}) do
-    Process.flag(:trap_exit, true)
+    # Process.flag(:trap_exit, true)
     debug_log "Starting mqtt"
     Registry.register(Farmbot.Registry, Farmbot.Auth, [])
     maybe_token = Farmbot.Auth.get_token(context.auth)
@@ -62,34 +62,13 @@ defmodule Farmbot.Transport.GenMqtt do
     {:noreply, [], {pid, new_t, context}}
   end
 
-  # def handle_info(:checkup, {nil, nil, _context} = state) do
-  #   debug_log "Got checkup. No token."
-  #   Process.send_after(self(), :checkup, 1000)
-  #   {:noreply, [], state}
-  # end
-  #
-  # def handle_info(:checkup, {pid, %Token{} = tkn, %Context{} = ctx}) when is_pid(pid) do
-  #   debug_log "Got checkup."
-  #   pid =
-  #     if Process.alive?(pid) do
-  #       debug_log "Client is alive."
-  #       pid
-  #     else
-  #       debug_log "Client is not alive. Restarting."
-  #       {:ok, new_pid} = start_client(ctx, tkn)
-  #       new_pid
-  #     end
-  #   Process.send_after(self(), :checkup, 1000)
-  #   {:noreply, [], {pid, tkn, ctx}}
-  # end
-
   def handle_info({_from, event}, {client, %Token{} = _token, _context} = state)
   when is_pid(client) do
     Client.cast(client, event)
     {:noreply, [], state}
   end
 
-  def handle_info({_from, event}, {nil, nil, %Context{}} = state) do
+  def handle_info({_from, _event}, {nil, nil, %Context{}} = state) do
     {:noreply, [], state}
   end
 

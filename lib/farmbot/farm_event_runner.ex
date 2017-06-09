@@ -29,7 +29,7 @@ defmodule Farmbot.FarmEventRunner do
 
   def handle_info(:checkup, {context, state}) do
     now = get_now()
-    debug_log "Doing checkup: #{inspect now}"
+    # debug_log "Doing checkup: #{inspect now}"
     new_state = if now do
       all_events =
         context

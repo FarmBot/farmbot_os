@@ -13,7 +13,7 @@ defmodule Farmbot.CeleryScript.Command.Execute do
       args: %{sequence_id_id: integer}
       body: []
   """
-  @spec run(%{sequence_id: integer}, [], Ast.context) :: Ast.context
+  @spec run(%{sequence_id: integer}, [], Context.t) :: Context.t
   def run(%{sequence_id: id}, [], context) do
     sequence = Farmbot.Database.get_by_id(context, Sequence, id)
     unless sequence do

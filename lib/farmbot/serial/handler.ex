@@ -175,7 +175,7 @@ defmodule Farmbot.Serial.Handler do
   @spec open_tty(nerves, binary) :: :ok
   defp open_tty(nerves, tty) do
     # Open the tty
-    case UART.open(nerves, tty, speed: 115200, active: true) do
+    case UART.open(nerves, tty, speed: 115_200, active: true) do
       :ok ->
         :ok = UART.configure(nerves,
           framing: {UART.Framing.Line, separator: "\r\n"},
@@ -273,17 +273,11 @@ defmodule Farmbot.Serial.Handler do
 
   def handle_info({:nerves_uart, _, str}, s) when is_binary(str) do
     debug_log "Reading: #{str}"
-    try do
-      case str |> Parser.parse_code |> do_handle(s.current, s.context) do
-        :locked ->
-          {:noreply, %{s | current: nil, status: :locked}}
-        current ->
-          {:noreply, %{s | current: current, status: current[:status] || :idle}}
-      end
-    rescue
-      e ->
-        Logger.warn "Encountered an error handling: #{str}: #{inspect e}", rollbar: false
-        {:noreply, s}
+    case str |> Parser.parse_code |> do_handle(s.current, s.context) do
+      :locked ->
+        {:noreply, %{s | current: nil, status: :locked}}
+      current ->
+        {:noreply, %{s | current: current, status: current[:status] || :idle}}
     end
   end
 
@@ -394,8 +388,10 @@ defmodule Farmbot.Serial.Handler do
     {:reply, reply}
   end
 
-  defp handle_gcode({:report_end_stops, x1,x2,y1,y2,z1,z2} = reply, %Context{} = ctx) do
-    BotState.set_end_stops(ctx, {x1,x2,y1,y2,z1,z2})
+  defp handle_gcode(
+    {:report_end_stops, x1, x2, y1, y2, z1, z2} = reply, %Context{} = ctx)
+  do
+    BotState.set_end_stops(ctx, {x1, x2, y1, y2, z1, z2})
     {:reply, reply}
   end
 

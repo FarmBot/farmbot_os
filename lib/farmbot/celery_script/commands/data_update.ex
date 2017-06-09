@@ -28,7 +28,7 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
     args: %{value: String.t},
     body: [Pair.t]
   """
-  @spec run(%{value: String.t}, [Pair.t], Ast.context) :: Ast.context
+  @spec run(%{value: String.t}, [Pair.t], Context.t) :: Context.t
   def run(%{value: verb}, pairs, context) do
     verb = parse_verb_str(verb)
     Enum.each(pairs, fn(%{args: %{label: s, value: nowc}}) ->
@@ -59,7 +59,6 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
     debug_log "no such syncable: #{str}"
     nil
   end
-
 
   @spec parse_val_str(binary) :: number_or_wildcard
   defp parse_val_str("*"), do: "*"

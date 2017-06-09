@@ -249,7 +249,7 @@ defmodule Farmbot.System.NervesCommon.Network do
         {:noreply, state}
       end
 
-      def terminate(_,_state) do
+      def terminate(_, _state) do
         # TODO STOP INTERFACES
         :ok
       end

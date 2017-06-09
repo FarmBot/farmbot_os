@@ -25,7 +25,7 @@ defmodule Farmbot.System.FS.ConfigFileMigrations do
   """
   def migrate(json_map) do
     list_of_files = get_migrations()
-    Enum.reduce(list_of_files, json_map, fn(file,json) ->
+    Enum.reduce(list_of_files, json_map, fn(file, json) ->
       migrated = "#{@save_dir}/#{file}.migrated"
       # if there is no <timestamp>-<description>_migration.exs.migrated file
       # run the migration

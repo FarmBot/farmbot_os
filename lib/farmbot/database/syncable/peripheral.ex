@@ -8,6 +8,6 @@ defmodule Farmbot.Database.Syncable.Peripheral do
   use Syncable, model: [
     :pin,
     :mode,
-    :label  
+    :label
   ], endpoint: {"/peripherals", "/peripherals"}
 end

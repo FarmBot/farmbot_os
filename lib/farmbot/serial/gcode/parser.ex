@@ -29,7 +29,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
 
   def parse_code("R84 " <> p), do: report_xyz(p, :report_encoder_position_scaled)
   def parse_code("R85 " <> p), do: report_xyz(p, :report_encoder_position_raw)
-  def parse_code("R87"), do: :report_emergency_lock
+  def parse_code("R87 Q" <> q), do: {q, :report_emergency_lock}
 
   def parse_code("R99 " <> message) do {nil, {:debug_message, message}} end
   def parse_code("Command" <> _), do: {nil, :dont_handle_me} # I think this is a bug
@@ -167,6 +167,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
 
   def parse_param("2"), do: :param_config_ok
   def parse_param("3"), do: :param_use_eeprom
+  def parse_param("4"), do: :param_e_stop_on_mov_err
 
   def parse_param("11"), do: :movement_timeout_x
   def parse_param("12"), do: :movement_timeout_y
@@ -277,6 +278,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
 
   def parse_param(:param_config_ok), do: 2
   def parse_param(:param_use_eeprom), do: 3
+  def parse_param(:param_e_stop_on_mov_err), do: 4
 
   def parse_param(:movement_timeout_x), do: 11
   def parse_param(:movement_timeout_y), do: 12

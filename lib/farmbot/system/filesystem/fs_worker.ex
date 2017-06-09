@@ -41,7 +41,7 @@ defmodule Farmbot.System.FS.Worker do
 
   def handle_call(:get_state, _, state), do: {:reply, [], state, state}
 
-  def terminate(_,mod) do
+  def terminate(_, mod) do
     mod.mount_read_only
     :ok
   end

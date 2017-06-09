@@ -19,11 +19,12 @@ defmodule Farmbot.Transport.GenMqtt.Client do
 
   def init({%Context{} = context, %Token{} = token}) do
     Logger.debug ">> Starting mqtt!"
+    Process.flag(:trap_exit, true)
     # Process.send_after(self(), :r_u_alive_bb?, 1000)
-    {:ok, {token, context}}
+    {:ok, %{token: token, context: context, cs_nodes: []}}
   end
 
-  def on_connect({%Token{} = token, %Context{} = context} = state) do
+  def on_connect(%{token: token, context: context} = state) do
     GenMQTT.subscribe(self(), [{bot_topic(token), 0}])
 
     fn ->
@@ -35,42 +36,54 @@ defmodule Farmbot.Transport.GenMqtt.Client do
     {:ok, state}
   end
 
-  def on_publish(["bot", _bot, "from_clients"], msg, {%Token{} = token, %Context{} = context}) do
-    try do
+  def on_publish(["bot", _bot, "from_clients"], msg, state) do
+    this = self()
+    pid = spawn fn() ->
       new_context =
         msg
         |> Poison.decode!
         |> Ast.parse
-        |> Command.do_command(context)
-      {:ok, {token, new_context}}
-    rescue
-      e in Farmbot.CeleryScript.Error ->
-        debug_log "CeleryScript execution error: #{inspect e}"
-        Logger.info "CeleryScript execution error: #{e.message}", type: :error
-        {:ok, {token, context}}
+        |> Command.do_command(state.context)
+        cast(this, {:context, self(), new_context})
     end
-
+    {:ok, %{state | cs_nodes: [pid | state.cs_nodes]}}
   end
 
-  def handle_cast({:status, %Ser{} = ser}, {%Token{} = token, %Context{} = con}) do
+  def handle_cast(_, %{token: nil} = state), do: {:stop, :no_token, state}
+
+  def handle_cast({:context, pid, %Context{} = ctx}, state)do
+    new_nodes = List.delete(state.cs_nodes, pid)
+    {:ok, %{state | context: ctx, cs_nodes: new_nodes}}
+  end
+
+  def handle_cast({:status, %Ser{} = ser}, state) do
     # debug_log "Got bot status."
     json = Poison.encode!(ser)
-    GenMQTT.publish(self(), status_topic(token), json, 0, false)
-    {:ok, {token, con}}
+    GenMQTT.publish(self(), status_topic(state.token), json, 0, false)
+    {:ok, state}
   end
 
-  def handle_cast({:log, msg}, {%Token{} = token, %Context{} = con}) do
+  def handle_cast({:log, msg}, state) do
     # debug_log "Got Log message."
     json = Poison.encode! msg
-    GenMQTT.publish(self(), log_topic(token), json, 0, false)
-    {:ok, {token, con}}
+    GenMQTT.publish(self(), log_topic(state.token), json, 0, false)
+    {:ok, state}
   end
 
-  def handle_cast({:emit, msg}, {%Token{} = token, context}) do
+  def handle_cast({:emit, msg}, state) do
     # debug_log "Emitting: #{inspect msg}"
     json = Poison.encode! msg
-    GenMQTT.publish(self(), frontend_topic(token), json, 0, false)
-    {:noreply, {token, context}}
+    GenMQTT.publish(self(), frontend_topic(state.token), json, 0, false)
+    {:noreply, state}
+  end
+
+  def handle_info({:EXIT, pid, _reason}, state) do
+    if pid in state.cs_nodes do
+      # this step did not execute properly.
+      {:ok, %{state | cs_nodes: List.delete(state.cs_nodes, pid)}}
+    else
+      {:ok, state}
+    end
   end
 
   # def handle_info(:r_u_alive_bb?, {%Token{} = tkn, %Context{} = ctx}) do

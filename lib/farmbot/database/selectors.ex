@@ -16,9 +16,14 @@ defmodule Farmbot.Database.Selectors do
     * "GenericPointer"
   """
   @spec find_point(Context.t, binary, integer) :: Syncable.t | no_return
-  def find_point(context, "Plant"          = pt, id), do: do_find_point(context, pt, id)
-  def find_point(context, "ToolSlot"       = pt, id), do: do_find_point(context, pt, id)
-  def find_point(context, "GenericPointer" = pt, id), do: do_find_point(context, pt, id)
+  def find_point(%Context{} = context, "Plant"          = pt, id),
+    do: do_find_point(context, pt, id)
+
+  def find_point(%Context{} = context, "ToolSlot"       = pt, id),
+    do: do_find_point(context, pt, id)
+
+  def find_point(%Context{} = context, "GenericPointer" = pt, id),
+    do: do_find_point(context, pt, id)
 
   @spec do_find_point(Context.t, binary, integer) :: Point.t
   defp do_find_point(%Context{} = ctx, point_t, point_id) do

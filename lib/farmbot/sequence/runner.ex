@@ -13,7 +13,7 @@ defmodule Farmbot.Sequence.Runner do
     This gets injected into the args of a sequence, and all of its children etc.
     Mostly magic.
   """
-  @type context :: Ast.context
+  @type context :: Context.t
   @type sequence_pid :: pid
 
   @type block :: {reference, pid}
@@ -22,6 +22,8 @@ defmodule Farmbot.Sequence.Runner do
     blocks: [block],
     body: [Ast.t]
   }
+
+  @step_timeout 15_000
 
   @doc """
     Starts a sequence.
@@ -37,30 +39,48 @@ defmodule Farmbot.Sequence.Runner do
     [first | rest] = ast.body
     pid = spawn __MODULE__, :work, [{first, first_context}, self()]
     Process.link(pid)
-
-    {:ok, %{body: rest, context: first_context, caller: caller, worker: pid}}
+    timer = Process.send_after(:timeout, self(), @step_timeout)
+    state = %{
+      body: rest,
+      context: first_context,
+      caller: caller,
+      worker: pid,
+      timer: timer
+    }
+    {:ok, state}
   end
 
   # When a stop finishes and there is no more steps
   def handle_cast({:finished, next_context}, %{body: []} = state) do
+    Process.cancel_timer(state.timer)
     send(state.caller, {self(), next_context})
-    {:stop, :normal, %{state | context: next_context}}
+    {:stop, :normal, %{state | context: next_context, timer: nil}}
   end
 
   def handle_cast({:finished, next_context}, %{body: rest} = state) do
+    Process.cancel_timer(state.timer)
     send(state.caller, {self(), next_context})
     [first | rest] = rest
     pid = spawn __MODULE__, :work, [{first, next_context}, self()]
     Process.link(pid)
-    {:noreply, %{state | body: rest, context: next_context, worker: pid}}
+    timer = Process.send_after(:timeout, self(), @step_timeout)
+    new_state = %{state | body: rest,
+      context: next_context,
+      worker: pid,
+      timer: timer
+    }
+    {:noreply, new_state}
   end
 
   def handle_info({:EXIT, _, :normal}, state), do: {:noreply, state}
 
-  def handle_info({:EXIT, pid, reason}, %{worker: worker} = state) when pid == worker do
+  def handle_info({:EXIT, pid, reason}, %{worker: worker} = state)
+  when pid == worker do
     debug_log "Sequence terminating."
     {:stop, reason, state}
   end
+
+  def handle_info(:timeout, state), do: {:stop, :timeout, %{state | timer: nil}}
 
   @spec work({Ast.t, Context.t}, sequence_pid) :: :ok
   def work({ast, context}, sequence) do
@@ -68,6 +88,8 @@ defmodule Farmbot.Sequence.Runner do
     # This sleep makes sequences more stable and makes sure
     # The bot was _actualy_ complete with the last command in real life.
     Process.sleep(500)
-    GenServer.cast(sequence, {:finished, do_command(ast, context)})
+    # this might raise.
+    new_context = do_command(ast, context)
+    GenServer.cast(sequence, {:finished, new_context})
   end
 end

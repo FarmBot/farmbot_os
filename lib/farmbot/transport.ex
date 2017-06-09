@@ -25,7 +25,7 @@ defmodule Farmbot.Transport do
 
     @type t :: %__MODULE__{
       mcu_params: map,
-      location: [integer,...],
+      location: [integer, ...],
       pins: map,
       configuration: map,
       informational_settings: map,
@@ -39,7 +39,8 @@ defmodule Farmbot.Transport do
 
   def init([context]) do
     context = %{context | transport: self()}
-    {:producer_consumer, {%Serialized{}, 0, context}, subscribe_to: [context.monitor]}
+    s = {%Serialized{}, 0, context}
+    {:producer_consumer, s, subscribe_to: [context.monitor]}
   end
 
   def handle_call(:force_state_push, _from, {status, _, context}) do

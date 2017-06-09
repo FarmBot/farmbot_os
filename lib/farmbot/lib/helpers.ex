@@ -22,4 +22,8 @@ defmodule Farmbot.Lib.Helpers do
       byte_size(unquote(uuid)) == 36
     end
   end
+
+  def rollbar_occurrence_data do
+    Application.get_env(:farmbot, :rollbar_occurrence_data, %{})
+  end
 end

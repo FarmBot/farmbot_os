@@ -16,7 +16,7 @@ defmodule Farmbot.CeleryScript.Command.RpcRequest do
   @spec run(%{label: String.t}, [Ast.t, ...], Ast.context) :: Ast.context
   def run(%{label: id}, more_stuff, context) do
     more_stuff
-    |> Enum.reduce({[],[]}, fn(ast, {win, fail}) ->
+    |> Enum.reduce({[], []}, fn(ast, {win, fail}) ->
       fun_name = String.to_atom(ast.kind)
       if function_exported?(Command, fun_name, 3) do
         # actually do the stuff here?

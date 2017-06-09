@@ -15,6 +15,8 @@ defmodule Logger.Backends.FarmbotLogger do
   @max_file_size 1.0e+7
   @filtered "[FILTERED]"
 
+  @log_amnt 5
+
   @typedoc """
     The state of the logger
   """
@@ -77,7 +79,7 @@ defmodule Logger.Backends.FarmbotLogger do
     log = build_log(san_m, created_at, type, channels)
     :ok = GenServer.cast(state.context.transport, {:log, log})
     logs = [log | state.logs]
-    if (!state.posting) and (Enum.count(logs) >= 50) do
+    if (!state.posting) and (Enum.count(logs) >= @log_amnt) do
       # If not already posting, and more than 50 messages
       spawn fn ->
         # debug_log "going to try to post"

@@ -5,29 +5,30 @@ defmodule Farmbot.BotState.Hardware do
 
   require Logger
   alias Farmbot.BotState.StateTracker
-  alias Farmbot.CeleryScript.{Ast, Command}
+  alias Farmbot.CeleryScript.Command
 
   @behaviour StateTracker
   use StateTracker,
       name: __MODULE__,
       model: [
-        location: [-1,-1,-1],
-        end_stops: {-1,-1,-1,-1,-1,-1},
+        # credo:disable-for-next-line
+        location:   [ -1, -1 ,-1 ],
+        end_stops:  { -1, -1, -1, -1, -1, -1 },
         mcu_params: %{},
-        pins: %{},
+        pins:       %{},
       ]
 
   @type t :: %__MODULE__.State{
-    location: location,
-    end_stops: end_stops,
+    location:   location,
+    end_stops:  end_stops,
     mcu_params: mcu_params,
-    pins: pins,
+    pins:       pins,
   }
 
-  @type location :: [number, ...]
+  @type location   :: [number, ...]
   @type mcu_params :: map
-  @type pins :: map
-  @type end_stops :: {integer,integer,integer,integer,integer,integer}
+  @type pins       :: map
+  @type end_stops  :: {integer, integer, integer, integer, integer, integer}
 
   # Callback that happens when this module comes up
   def load do
@@ -40,7 +41,7 @@ defmodule Farmbot.BotState.Hardware do
   @doc """
     Takes a Hardware State object, and makes it happen
   """
-  @spec set_initial_params(State.t, Ast.context)
+  @spec set_initial_params(State.t, Context.t)
     :: {:ok, :no_params} | :ok | {:error, term}
   def set_initial_params(%State{} = state, %Farmbot.Context{} = context) do
     # BUG(Connor): The first param is rather unstable for some reason.
@@ -87,7 +88,7 @@ defmodule Farmbot.BotState.Hardware do
   end
 
   def handle_call({:set_pos, {x, y, z}}, _from, %State{} = state) do
-    dispatch [x, y, z], %State{state | location: [x,y,z]}
+    dispatch [x, y, z], %State{state | location: [x, y, z]}
   end
 
   def handle_call(event, _from, %State{} = state) do
@@ -138,8 +139,8 @@ defmodule Farmbot.BotState.Hardware do
     end
   end
 
-  def handle_cast({:set_end_stops, {xa,xb,ya,yb,za,zc}}, %State{} = state) do
-    dispatch %State{state | end_stops: {xa,xb,ya,yb,za,zc}}
+  def handle_cast({:set_end_stops, {xa, xb, ya, yb, za, zc}}, state) do
+    dispatch %State{state | end_stops: {xa, xb, ya, yb, za, zc}}
   end
 
   # catch all.

@@ -71,7 +71,12 @@ defmodule Farmbot.Mixfile do
   def application do
     [mod: {Farmbot, []},
      applications: applications() ++ target_applications(@target) ++ env_applications(Mix.env()),
-     included_applications: [:gen_mqtt, :ex_json_schema, :fs, :ex_rollbar] ++ included_apps(Mix.env)]
+     included_applications: [
+       :gen_mqtt,
+       :ex_json_schema,
+       :fs,
+      #  :rollbax
+     ] ++ included_apps(Mix.env)]
   end
 
   defp included_apps(:prod), do: [:ex_syslogger]
@@ -151,14 +156,15 @@ defmodule Farmbot.Mixfile do
 
       # Log to syslog
       {:ex_syslogger, "~> 1.3.3", only: :prod},
-      {:ex_rollbar, "0.1.1"},
-      # {:ex_rollbar, path: "../ex_rollbar"},
+      {:ex_rollbar, "0.1.2"},
+      # {:rollbax, "~> 0.6"},
+      # {:ex_rollbar, path: "../../ex_rollbar"},
 
       # Other stuff
       {:gen_stage, "0.11.0"},
 
       # Test/Dev only
-      {:credo, "0.6.0-rc1",  only: [:dev, :test]},
+      {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.14", only: :dev},
       {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
       {:faker, "~> 0.7", only: :test},
@@ -198,7 +204,7 @@ defmodule Farmbot.Mixfile do
   defp aliases("host"), do: [
     "firmware": ["compile"],
     "firmware.push": ["farmbot.warning"],
-    "credo": ["credo list --only readability,warning,todo,inspect,refactor --ignore-checks todo,spec"],
+    "credo": ["credo list --only readability,warning,todo,inspect,refactor --ignore-checks todo,spec,longquoteblock,preferimplicittry"],
     "all_test": ["credo", "coveralls"],
     "travis_test": ["credo", "coveralls.travis"]
   ]

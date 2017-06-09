@@ -40,8 +40,10 @@ defmodule Farmbot.BotState.Supervisor do
     # TODO change this stuff to tasks
     if @use_logger do
       debug_log "Using Farmbot Logger"
-      {:ok, _pid} = Logger.add_backend(Logger.Backends.FarmbotLogger)
-      :ok = GenEvent.call(Logger, Logger.Backends.FarmbotLogger, {:context, ctx})
+      Logger.flush()
+      backend     = Logger.Backends.FarmbotLogger
+      {:ok, _pid} = Logger.add_backend(backend)
+      :ok         = GenEvent.call(Logger, backend, {:context, ctx})
     else
       debug_log "Not using Farmbot Logger"
     end

@@ -7,7 +7,9 @@ defmodule Farmbot.Farmware.Supervisor do
 
   def init(%Context{} = ctx) do
     children = [
-      worker(Farmware.Manager, [ctx, [name: Farmware.Manager]], restart: :permanent)
+      worker(Farmware.Manager,
+        [ctx, [name: Farmware.Manager]],
+          restart: :permanent)
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)
