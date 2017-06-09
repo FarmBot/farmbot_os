@@ -27,8 +27,12 @@ defmodule Farmbot.CeleryScript.Command.Sequence do
   @spec wait_for_sequence(pid, Context.t) :: Context.t
   defp wait_for_sequence(pid, old_context) do
     receive do
-      {^pid, %Context{} = ctx} -> ctx
-      {^pid, {:error, _reason}} -> old_context
+      {^pid, %Context{} = ctx}  ->
+        Logger.info "Sequence complete.", type: :success
+        ctx
+      {^pid, {:error, _reason}} ->
+        Logger.error "Sequence completed with error. See log."
+        old_context
     end
   end
 end

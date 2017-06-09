@@ -17,9 +17,15 @@ defmodule Farmbot.HTTP do
     * `body` is a binary http payload
     * `opts` is a keyword list of options.
   """
-  @spec request(Context.t, Types.method, Types.url, Types.body, Types.headers, Keyword.t) :: {:ok, Response.t} | {:error, term}
+  @spec request(Context.t,
+    Types.method,
+    Types.url,
+    Types.body,
+    Types.headers,
+    Keyword.t) :: {:ok, Response.t} | {:error, term}
   def request(%Context{} = ctx, method, url, body, headers, opts) do
-    GenServer.call(ctx.http, {:request, method, url, body, headers, opts}, 30_000)
+    {timeout, opts} = Keyword.pop(opts, :timeout, 30_000)
+    GenServer.call(ctx.http, {:request, method, url, body, headers, opts}, timeout)
   end
 
   @spec request!(Context.t, Types.method, Types.url, Types.body, Types.headers, Keyword.t) :: Response.t | no_return
@@ -131,6 +137,7 @@ defmodule Farmbot.HTTP do
     debug_log "Starting client."
     case url do
       "/api" <> _  ->
+        debug_log "I think this is a farmbot api request: #{url}"
         build_api_request(state.token, state.context, {method, url, body, headers, opts}, from)
       _ ->
         {:ok, pid} = Client.start_link(from, {method, url, body, headers}, opts)

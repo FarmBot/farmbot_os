@@ -157,9 +157,8 @@ defmodule Farmbot.HTTP.Client do
   end
 
   # HTTP errors should just error out.
-  def handle_info({:http, {error, headers}}, state) do
-    new_state = %{state | headers: headers}
-    finish_request new_state, error
+  def handle_info({:http, {_ref, {:error, reason}}}, state) do
+    finish_request state, reason
   end
 
   # If we exit in a NORMAL state, we reply with :ok

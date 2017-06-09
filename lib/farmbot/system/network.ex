@@ -160,8 +160,15 @@ defmodule Farmbot.System.Network do
       {:ok, _} ->
         Logger.info ">> connection test complete", type: :success
         :ok
-      {:error, :nxdomain} ->
-        Farmbot.System.reboot
+      {:error, {:failed_connect, err_list }} = err ->
+        if {:inet, [:inet], :nxdomain} in err_list do
+          debug_log "escaping from nxdomain."
+          Farmbot.System.reboot
+        else
+          debug_log "not escaping."
+          Farmbot.System.factory_reset("Fatal Error during "
+            <> "connection test! #{inspect err}")
+        end
       error ->
         Farmbot.System.factory_reset("Fatal Error during "
           <> "connection test! #{inspect error}")
@@ -209,29 +216,31 @@ defmodule Farmbot.System.Network do
     def maybe_setup_rollbar(token) do
       if String.contains?(token.unencoded.iss, "farmbot.io") and @access_token do
         Logger.info ">> Setting up rollbar!"
-        Application.put_env(:rollbax, :access_token, @access_token)
-        Application.put_env(:rollbax, :environment,  token.unencoded.iss)
-        Application.put_env(:rollbax, :enabled,      true)
-        Application.put_env(:rollbas, :custom,       %{target: @target})
-
-        Application.put_env(:farmbot, :rollbar_occurrence_data, %{
-          person_id:       token.unencoded.bot,
-          person_email:    token.unencoded.sub,
-          person_username: token.unencoded.bot,
-          framework:       "Nerves",
-          code_version:    @commit,
-        })
-
-        Application.ensure_all_started(:rollbax)
-        # :ok = ExRollbar.setup access_token: @access_token,
-        #   environment: token.unencoded.iss,
-        #   enable_logger: true,
-        #   person_id: token.unencoded.bot,
-        #   person_email: token.unencoded.sub,
+        # Application.put_env(:rollbax, :access_token, @access_token)
+        # Application.put_env(:rollbax, :environment,  token.unencoded.iss)
+        # Application.put_env(:rollbax, :enabled,      true)
+        # Application.put_env(:rollbas, :custom,       %{target: @target})
+        #
+        # Application.put_env(:farmbot, :rollbar_occurrence_data, %{
+        #   person_id:       token.unencoded.bot,
+        #   person_email:    token.unencoded.sub,
         #   person_username: token.unencoded.bot,
-        #   framework: "Nerves",
-        #   code_version: @commit,
-        #   custom: %{target: @target}
+        #   framework:       "Nerves",
+        #   code_version:    @commit,
+        # })
+        # Application.ensure_all_started(:rollbax)
+
+        :ok = ExRollbar.setup [
+          person_username: token.unencoded.bot,
+          # enable_logger:   true,
+          person_email:    token.unencoded.sub,
+          code_version:    @commit,
+          access_token:    @access_token,
+          environment:     token.unencoded.iss,
+          person_id:       token.unencoded.bot,
+          framework:       "Nerves",
+          custom:          %{target: @target}
+        ]
         :ok
       else
         Logger.info ">> Not Setting up rollbar!"

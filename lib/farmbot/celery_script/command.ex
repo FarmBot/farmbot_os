@@ -53,7 +53,12 @@ defmodule Farmbot.CeleryScript.Command do
     %Ast{kind: "tool", args: %{tool_id: tool_id}, body: []})
   do
     %{body: ts}  = Farmbot.Database.Syncable.Point.get_tool(context, tool_id)
-    next_context = coordinate(%{x: ts.x, y: ts.y, z: ts.z}, [], context)
+    point_map = %{
+      x: ts.x,
+      y: ts.y,
+      z: ts.z
+    }
+    next_context = coordinate(point_map, [], context)
     raise_if_not_context_or_return_context("coordinate", next_context)
   end
 
@@ -136,8 +141,14 @@ defmodule Farmbot.CeleryScript.Command do
       do_execute_command(ast, context)
     rescue
       e in Farmbot.CeleryScript.Error ->
-        Logger.info "Failed to execute CeleryScript: #{e.message}", type: :error
-        reraise e, System.stacktrace
+        Logger.error "Failed to execute CeleryScript: #{e.message}"
+        reraise e, System.stacktrace()
+      exception ->
+        Logger.error "Unknown error happend executing CeleryScript."
+        # debug_log "CeleryScript Error: #{inspect exception}"
+        stacktrace = System.stacktrace()
+        ExRollbar.report(:error, exception, stacktrace, [custom: %{context: context}])
+        reraise exception, stacktrace
     end
   end
 

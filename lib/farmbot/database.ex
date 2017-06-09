@@ -89,6 +89,7 @@ defmodule Farmbot.Database do
 
       end
       set_syncing(ctx, :synced)
+      Logger.info ">> is synced!", type: :success
       :ok
     rescue
       e ->
@@ -250,12 +251,67 @@ defmodule Farmbot.Database do
     {:reply, Map.fetch!(state.awaiting, module), state}
   end
 
+  def handle_call({:set_awaiting, syncable, :remove, int_or_wildcard}, _, state) do
+    new_state =
+      case int_or_wildcard do
+        "*" -> remove_all_syncable(state, syncable)
+        num -> remove_syncable(state, syncable, num)
+      end
+    {:reply, :ok, %{ new_state | awaiting: %{ state.awaiting | syncable => true } }}
+  end
+
   def handle_call({:set_awaiting, syncable, _verb, _}, _, state) do
     {:reply, :ok, %{ state | awaiting: %{ state.awaiting | syncable => true} }}
   end
 
   def handle_call({:unset_awaiting, syncable}, _, state) do
     {:reply, :ok, %{ state | awaiting: %{ state.awaiting | syncable => false} }}
+  end
+
+  @spec remove_all_syncable(state, syncable) :: state
+  defp remove_all_syncable(state, syncable) do
+    new_all = Enum.reject(state.all, fn({s, _, _}) -> s == syncable end)
+
+    new_by_kind_and_id = state.by_kind_and_id
+      |> Enum.reject(fn({{s, _}, _}) -> s == syncable end)
+      |> Map.new
+
+    new_refs = state.refs
+      |> Enum.reject(fn({{s, _, _}, _}) -> s == syncable end)
+      |> Map.new()
+
+    %{
+      state |
+      by_kind_and_id: new_by_kind_and_id,
+      by_kind:        %{state.by_kind | syncable => []},
+      refs:           new_refs,
+      all:            new_all
+     }
+  end
+
+  @spec remove_syncable(state, syncable, integer) :: state
+  defp remove_syncable(state, syncable, num) do
+    new_all = Enum.reject(state.all, fn({s, _, id}) ->
+      (s == syncable) && (id == num)
+    end)
+
+
+    new_by_kind_and_id = state.by_kind_and_id
+      |> Enum.reject(fn({{s, id}, _}) -> (s == syncable) && (id == num) end)
+      |> Map.new
+
+    new_refs = state.refs
+      |> Enum.reject(fn({{s, _, id}, _}) ->
+       (s == syncable) && (id == num)
+      end)
+      |> Map.new()
+
+    %{
+      state |
+      by_kind_and_id: new_by_kind_and_id,
+      all:            new_all,
+      refs:           new_refs,
+     }
   end
 
   # returns all the references of syncable
@@ -287,7 +343,7 @@ defmodule Farmbot.Database do
   defp reindex(state, record) do
     # get some info
     kind = Map.fetch!(record, :__struct__)
-    id = Map.fetch!(record, :id)
+    id   = Map.fetch!(record, :id)
 
     # Do we have it already?
     maybe_old = get_by_kind_and_id(state, kind, id)

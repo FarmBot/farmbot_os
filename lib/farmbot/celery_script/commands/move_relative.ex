@@ -22,7 +22,7 @@ defmodule Farmbot.CeleryScript.Command.MoveRelative do
   def run(%{speed: speed, x: x, y: y, z: z}, [], context) do
     # make a coordinate of the relative movement we want to do
     loc                      = %{x: x, y: y, z: z}
-    new_context1              = Command.coordinate(loc, [], context)
+    new_context1             = Command.coordinate(loc, [], context)
     {location, new_context2} = Farmbot.Context.pop_data(new_context1)
 
     # get the current position, then turn it into another coord.

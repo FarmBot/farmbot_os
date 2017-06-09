@@ -273,17 +273,11 @@ defmodule Farmbot.Serial.Handler do
 
   def handle_info({:nerves_uart, _, str}, s) when is_binary(str) do
     debug_log "Reading: #{str}"
-    try do
-      case str |> Parser.parse_code |> do_handle(s.current, s.context) do
-        :locked ->
-          {:noreply, %{s | current: nil, status: :locked}}
-        current ->
-          {:noreply, %{s | current: current, status: current[:status] || :idle}}
-      end
-    rescue
-      e ->
-        Logger.warn "Encountered an error handling: #{str}: #{inspect e}", rollbar: false
-        {:noreply, s}
+    case str |> Parser.parse_code |> do_handle(s.current, s.context) do
+      :locked ->
+        {:noreply, %{s | current: nil, status: :locked}}
+      current ->
+        {:noreply, %{s | current: current, status: current[:status] || :idle}}
     end
   end
 
