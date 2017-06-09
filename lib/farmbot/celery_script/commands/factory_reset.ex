@@ -19,7 +19,7 @@ defmodule Farmbot.CeleryScript.Command.FactoryReset do
     Logger.info(">> Going down for factory reset in 5 seconds!", type: :warn)
     spawn fn ->
       Process.sleep 5000
-      do_fac_reset_fw(context)
+      # do_fac_reset_fw(context)
       Farmbot.System.factory_reset("I was asked by a CeleryScript command.")
     end
     context
