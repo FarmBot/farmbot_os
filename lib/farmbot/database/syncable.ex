@@ -6,6 +6,7 @@ defmodule Farmbot.Database.Syncable do
   @enforce_keys [:ref_id, :body]
   defstruct @enforce_keys
 
+
   @typedoc """
     Module structs.
   """
@@ -13,31 +14,26 @@ defmodule Farmbot.Database.Syncable do
 
   @type ref_id :: Farmbot.Database.ref_id
   @type t :: %__MODULE__{ref_id: ref_id, body: body}
-  alias Farmbot.Context
+  alias  Farmbot.Context
+  import Farmbot.HTTP.Helpers
+  alias __MODULE__.Error
 
   @doc """
     Pipe a HTTP request thru this. Trust me :tm:
   """
   def parse_resp({:error, message}, _module), do: {:error, message}
-  def parse_resp({:ok, %{status_code: 200, body: resp_body}}, module) do
-    try do
-      stuff = resp_body |> Poison.decode!
+  def parse_resp({:ok, %{status_code: code, body: resp_body}}, module)
+  when is_2xx(code) do
+    parsed = resp_body |> Poison.decode!
     cond do
-      is_list(stuff) -> Enum.map(stuff, fn(item) -> module.to_struct(item) end)
-      is_map(stuff)  -> module.to_struct(stuff)
-      true           -> {:error, "Hashes and arrays only, please."}
-    end
-  rescue
-    e in Poison.SyntaxError ->
-      # require IEx
-      # IEx.pry
-      reraise Poison.SyntaxError, e, System.stacktrace()
+      is_list(parsed) -> Enum.map(parsed, fn(item) -> module.to_struct(item) end)
+      is_map(parsed)  -> module.to_struct(parsed)
+      true            -> raise Error,
+        message: "Don't know how to handle: #{inspect parsed}"
     end
   end
 
-  def parse_resp({:ok, whatevs}, _module) do
-    {:error, whatevs}
-  end
+  def parse_resp({:ok, whatevs}, _module), do: {:error, whatevs}
 
   @doc ~s"""
     Builds common functionality for all Syncable Resources. `args` takes two keywords.
@@ -63,8 +59,8 @@ defmodule Farmbot.Database.Syncable do
   """
   defmacro __using__(args) do
     model = Keyword.get(args, :model) || raise "You need a model!"
-    {singular, plural} = Keyword.get(args, :endpoint) || raise "Syncable requ"
-     <> "ires a endpoint: {singular_url, plural_url}"
+    {singular, plural} = Keyword.get(args, :endpoint) || raise Error,
+      message: "Syncable requires a endpoint: {singular_url, plural_url}"
     quote do
       alias Farmbot.HTTP
       import Farmbot.Database.Syncable, only: [parse_resp: 2]

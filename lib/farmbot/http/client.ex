@@ -145,7 +145,7 @@ defmodule Farmbot.HTTP.Client do
     # append it into the buffer.
     buffer = state.buffer <> data
     :ok    = maybe_stream_to_file(state.file, data)
-    :httpc.stream_next(state.stream_pid)
+    :ok    = :httpc.stream_next(state.stream_pid)
     {:noreply, %{state | buffer: buffer}}
   end
 

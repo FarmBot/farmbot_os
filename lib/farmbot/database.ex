@@ -71,31 +71,42 @@ defmodule Farmbot.Database do
   @spec sync(Context.t) :: :ok | no_return
   def sync(%Context{} = ctx) do
     set_syncing(ctx, :syncing)
-    try do
-      for module_name <- all_syncable_modules() do
-        if get_awaiting(ctx, module_name) do
-          # see: `syncable.ex`. This is some macro magic.
-          debug_log "#{module_name} Sync begin."
-          :ok = module_name.fetch(ctx, {__MODULE__,
-            :commit_records,  [ctx, module_name]})
-
-          debug_log "#{module_name} Sync finish."
-          :ok = unset_awaiting(ctx, module_name)
-          :ok
-        else
-          debug_log "#{module_name} already up to date."
-          :ok
-        end
-
+    for module_name <- all_syncable_modules() do
+      if get_awaiting(ctx, module_name) do
+        :ok = do_sync(ctx, module_name)
+      else
+        debug_log "#{module_name} already up to date."
+        :ok
       end
-      set_syncing(ctx, :synced)
-      Logger.info ">> is synced!", type: :success
-      :ok
+
+    end
+    set_syncing(ctx, :synced)
+    Logger.info ">> is synced!", type: :success
+    :ok
+  end
+
+  defp do_sync(context, module_name, retries \\ 0)
+  defp do_sync(%Context{} = _ctx, module_name, retries) when retries > 4 do
+    debug_log "#{module_name} failed to sync too many times. (#{retries})"
+    Logger.error ">> failed to sync #{module_name} to many times."
+    :ok
+  end
+
+  defp do_sync(%Context{} = ctx, module_name, retries) do
+    # see: `syncable.ex`. This is some macro magic.
+    debug_log "#{module_name} Sync begin."
+
+    try do
+      :ok = module_name.fetch(ctx, {__MODULE__,
+      :commit_records,  [ctx, module_name]})
     rescue
       e ->
-        Logger.info ">> Encountered error syncing, #{inspect e}", type: :error
-        set_syncing(ctx, :sync_error)
+        debug_log "#{module_name} Sync error: #{inspect e}"
+        do_sync(ctx, module_name, retries + 1)
     end
+
+    debug_log "#{module_name} Sync finish."
+    :ok = unset_awaiting(ctx, module_name)
   end
 
   @doc """
@@ -294,7 +305,6 @@ defmodule Farmbot.Database do
     new_all = Enum.reject(state.all, fn({s, _, id}) ->
       (s == syncable) && (id == num)
     end)
-
 
     new_by_kind_and_id = state.by_kind_and_id
       |> Enum.reject(fn({{s, id}, _}) -> (s == syncable) && (id == num) end)
