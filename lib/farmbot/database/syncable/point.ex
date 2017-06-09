@@ -5,7 +5,8 @@ defmodule Farmbot.Database.Syncable.Point do
 
   alias Farmbot.Context
   alias Farmbot.Database
-  alias Database.Syncable
+  alias Database.{Syncable, Selectors}
+  alias Selectors.Error, as: SelectorError
   use Syncable, model: [
     :pointer_type,
     :created_at,
@@ -29,7 +30,10 @@ defmodule Farmbot.Database.Syncable.Point do
     end
 
     unless maybe_point do
-      raise "Could not find tool_slot with tool_id: #{tool_id}"
+      raise SelectorError,
+        syncable: __MODULE__,
+        syncable_id: tool_id,
+        message: "Could not find tool_slot with tool_id: #{tool_id}"
     end
 
     maybe_point
