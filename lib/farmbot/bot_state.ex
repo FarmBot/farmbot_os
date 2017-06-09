@@ -20,7 +20,7 @@ defmodule Farmbot.BotState do
   @doc """
     Sets the position to givin position.
   """
-  @spec set_pos(context, integer,integer,integer) :: :ok
+  @spec set_pos(context, integer, integer, integer) :: :ok
   def set_pos(%Context{} = context, x, y, z)
   when is_integer(x) and is_integer(y) and is_integer(z) do
     GenServer.call(context.hardware, {:set_pos, {x, y, z}})
@@ -58,8 +58,8 @@ defmodule Farmbot.BotState do
     Sets the current end stops
   """
   @spec set_end_stops(context, Farmbot.BotState.Hardware.State.end_stops) :: :ok
-  def set_end_stops(%Context{} = context, {xa,xb,ya,yb,za,zc}) do
-    GenServer.cast(context.hardware, {:set_end_stops, {xa,xb,ya,yb,za,zc}})
+  def set_end_stops(%Context{} = context, {xa, xb, ya, yb, za, zc}) do
+    GenServer.cast(context.hardware, {:set_end_stops, {xa, xb, ya, yb, za, zc}})
   end
 
   @doc """

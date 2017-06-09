@@ -131,17 +131,20 @@ defmodule Farmbot.System.Network do
 
   defp maybe_get_fpf(%Context{} = ctx) do
     # First Party Farmware is not really a network concern but here we are...
-    {:ok, fpf} = GenServer.call(CS, {:get, Configuration, "first_party_farmware"})
+    call       = {:get, Configuration, "first_party_farmware"}
+    {:ok, fpf} = GenServer.call(CS, call)
 
     try do
       if fpf do
-        Logger.info ">> is installing first party Farmwares."
-        Farmbot.Farmware.Installer.enable_repo!(ctx, Farmbot.Farmware.Installer.Repository.Farmbot)
+        Logger.info ">> is installing first party Farmwares.", type: :busy
+        repo = Farmbot.Farmware.Installer.Repository.Farmbot
+        Farmbot.Farmware.Installer.enable_repo!(ctx, repo)
       end
       :ok
     rescue
       error ->
-        Logger.warn(">> failed to install first party farmwares: #{inspect error}")
+        Logger.warn(">> failed to install first party farmwares: " <>
+         " #{inspect error}")
         debug_log "#{inspect System.stacktrace()}"
         :ok
     end

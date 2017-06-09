@@ -62,27 +62,6 @@ defmodule Farmbot.Transport.GenMqtt do
     {:noreply, [], {pid, new_t, context}}
   end
 
-  # def handle_info(:checkup, {nil, nil, _context} = state) do
-  #   debug_log "Got checkup. No token."
-  #   Process.send_after(self(), :checkup, 1000)
-  #   {:noreply, [], state}
-  # end
-  #
-  # def handle_info(:checkup, {pid, %Token{} = tkn, %Context{} = ctx}) when is_pid(pid) do
-  #   debug_log "Got checkup."
-  #   pid =
-  #     if Process.alive?(pid) do
-  #       debug_log "Client is alive."
-  #       pid
-  #     else
-  #       debug_log "Client is not alive. Restarting."
-  #       {:ok, new_pid} = start_client(ctx, tkn)
-  #       new_pid
-  #     end
-  #   Process.send_after(self(), :checkup, 1000)
-  #   {:noreply, [], {pid, tkn, ctx}}
-  # end
-
   def handle_info({_from, event}, {client, %Token{} = _token, _context} = state)
   when is_pid(client) do
     Client.cast(client, event)

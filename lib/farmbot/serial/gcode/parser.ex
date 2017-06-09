@@ -280,7 +280,6 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(:param_use_eeprom), do: 3
   def parse_param(:param_e_stop_on_mov_err), do: 4
 
-
   def parse_param(:movement_timeout_x), do: 11
   def parse_param(:movement_timeout_y), do: 12
   def parse_param(:movement_timeout_z), do: 13

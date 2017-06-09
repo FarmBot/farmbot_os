@@ -3,7 +3,6 @@ defmodule Farmbot.Context.Tracker do
     Tracks the current context.
   """
 
-
   alias Farmbot.Context
   use GenServer
 

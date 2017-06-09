@@ -16,6 +16,7 @@ defmodule Farmbot.Farmware.Manager do
   @type url    :: binary
 
   defmodule State do
+    @moduledoc false
     defstruct [:context, :farmwares]
     @type t :: %{
       context: Context.t,
@@ -144,7 +145,6 @@ defmodule Farmbot.Farmware.Manager do
     dispatch reply, state
   end
 
-
   def handle_call({:register, uuid, %Farmware{} = fw}, _, state) do
     new_fws = Map.put(state.farmwares, uuid, fw)
     reply   = :ok
@@ -163,7 +163,6 @@ defmodule Farmbot.Farmware.Manager do
     GenServer.cast(Farmbot.BotState.Monitor, state)
     {:reply, reply, state}
   end
-
 
   @spec fetch_fw(state, uuid) :: {:ok, Farmware.t} | {:error, :not_found}
   defp fetch_fw(state, uuid) do

@@ -14,7 +14,9 @@ defmodule Farmbot.Serial.Handler.OpenTTY do
     tty = try_detect_tty()
     if tty do
       debug_log "Trying to open tty."
-      worker_spec = worker(Handler, [ctx, tty, [name: Handler]], [restart: :permanent])
+      worker_spec = worker(Handler,
+        [ctx, tty, [name: Handler]],
+          [restart: :permanent])
       {:ok, _} = Supervisor.start_child(supervisor, worker_spec)
     else
       debug_log "Not opening tty."

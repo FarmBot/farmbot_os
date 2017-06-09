@@ -40,5 +40,4 @@ defmodule Farmbot.Sequence.Manager do
     {:stop, :normal, state}
   end
 
-
 end

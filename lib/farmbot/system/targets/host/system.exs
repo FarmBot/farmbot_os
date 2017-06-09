@@ -1,4 +1,4 @@
-defmodule Module.concat([Farmbot,System,"host"]) do
+defmodule Module.concat([Farmbot, System, "host"]) do
   @moduledoc false
   @behaviour Farmbot.System
 

@@ -25,7 +25,7 @@ defmodule Farmbot.CeleryScript.Command.MoveRelative do
     {location, new_context2} = Farmbot.Context.pop_data(new_context1)
 
     # get the current position, then turn it into another coord.
-    [cur_x,cur_y,cur_z]      = Farmbot.BotState.get_current_pos(context)
+    [cur_x, cur_y, cur_z]      = Farmbot.BotState.get_current_pos(context)
 
     # Make another coord for the offset
     coord_args               = %{x: cur_x, y: cur_y, z: cur_z}

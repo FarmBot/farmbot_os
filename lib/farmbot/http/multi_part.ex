@@ -13,28 +13,36 @@ defmodule Farmbot.HTTP.Multipart do
 
     dbound = "#{dashes()}#{boundry}"
     [
-      Enum.map(field_parts, fn({field_name, field_content}) ->
-        [
-          dbound,
-          "Content-Disposition: form-data; name=\"#{field_name}\"",
-          "",
-          field_content,
-        ]
-      end),
-
-      Enum.map(file_parts, fn({field_name, {filename, binary}}) ->
-        [
-          dbound,
-          "Content-Disposition: form-data; name=\"#{field_name}\"; filename=\"#{filename}\"",
-          "Content-Type: #{content_type(filename)}",
-          "",
-          binary,
-          "",
-        ]
-      end),
+      do_field_parts(dbound, field_parts),
+      do_file_parts(dbound,   file_parts),
       "#{dbound}--",
       ""
     ] |> List.flatten |> Enum.join("\r\n")
+  end
+
+  defp do_field_parts(dbound, field_parts) do
+    Enum.map(field_parts, fn({field_name, field_content}) ->
+      [
+        dbound,
+        "Content-Disposition: form-data; name=\"#{field_name}\"",
+        "",
+        field_content,
+      ]
+    end)
+  end
+
+  defp do_file_parts(dbound, file_parts) do
+    Enum.map(file_parts, fn({field_name, {filename, binary}}) ->
+      [
+        dbound,
+        "Content-Disposition: form-data; " <> # please don't break.
+          "name=\"#{field_name}\"; filename=\"#{filename}\"",
+        "Content-Type: #{content_type(filename)}",
+        "",
+        binary,
+        "",
+      ]
+    end)
   end
 
   def new_boundry do

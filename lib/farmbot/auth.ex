@@ -134,7 +134,12 @@ defmodule Farmbot.Auth do
         Logger.info ">> got a token!", type: :success
         save_secret(secret)
         remove_last_factory_reset_reason()
-        {:ok, token} = body |> Poison.decode! |> Map.get("token") |> Token.create
+
+        {:ok, token} = body
+                        |> Poison.decode!
+                        |> Map.get("token")
+                        |> Token.create
+
         token = %{token | unencoded: %{token.unencoded | iss: server}}
         maybe_broadcast(sbc, {:new_token, token})
         {:ok, token}
@@ -146,10 +151,10 @@ defmodule Farmbot.Auth do
     end
   end
 
-  defp maybe_retry(%Context{} = ctx, secret, server, sbc, body) do
+  defp maybe_retry(%Context{} = ctx, sec, server, sbc, body) do
     case Poison.decode(body) do
       {:ok,    _} -> :ok
-      {:error, _} -> get_token_from_server(%Context{} = ctx, secret, server, sbc)
+      {:error, _} -> get_token_from_server(%Context{} = ctx, sec, server, sbc)
     end
   end
 
@@ -239,13 +244,14 @@ defmodule Farmbot.Auth do
   """
   @spec interim(auth, email, password, server) :: :ok
   def interim(auth, email, pass, server) do
-    GenServer.call(auth, {:interim, {email,pass,server}})
+    GenServer.call(auth, {:interim, {email, pass, server}})
   end
 
   @doc """
     Starts the Auth GenServer
   """
-  def start_link(context, opts), do: GenServer.start_link(__MODULE__, context, opts)
+  def start_link(context, opts),
+    do: GenServer.start_link(__MODULE__, context, opts)
 
   @typedoc """
     State for this GenServer
@@ -309,29 +315,31 @@ defmodule Farmbot.Auth do
   end
 
   # Match on the token first.
-  def handle_call(:try_log_in, _, %{token: %Token{}= _old, server: server, secret: secret} = state) do
+  def handle_call(:try_log_in, _,
+    %{token: %Token{}= _old, server: server, secret: secret} = s)
+  do
     Logger.info ">> already has a token. Fetching another.", type: :busy
     secret = secret || load_secret()
-    case get_token_from_server(state.context, secret, server, state.broadcast) do
+    case get_token_from_server(s.context, secret, server, s.broadcast) do
       {:ok, %Token{} = token} ->
-        {:reply, {:ok, token}, %{state | token: token}}
+        {:reply, {:ok, token}, %{s | token: token}}
       e ->
-        {:reply, e, clear_state(state)}
+        {:reply, e, clear_state(s)}
     end
   end
 
   # Next choice will be interim
-  def handle_call(:try_log_in, _, %{interim: {email, pass, server}} = state) do
+  def handle_call(:try_log_in, _, %{interim: {email, pass, ser}} = state) do
     Logger.info ">> is trying to log in with credentials.", type: :busy
-    {:ok, pub_key} = get_public_key(state.context, server)
+    {:ok, pub_key} = get_public_key(state.context, ser)
     {:ok, secret } = encrypt(email, pass, pub_key)
-    case get_token_from_server(state.context, secret, server, state.broadcast) do
+    case get_token_from_server(state.context, secret, ser, state.broadcast) do
       {:ok, %Token{} = token} ->
         next_state = %{state |
           interim: nil,
           token: token,
           secret: secret,
-          server: server
+          server: ser
         }
         {:reply, {:ok, token}, next_state}
       e -> {:reply, e, clear_state(state)}
@@ -339,25 +347,26 @@ defmodule Farmbot.Auth do
   end
 
   def handle_call(:try_log_in, _,
-      %{secret: secret, server: server} = state) when is_binary(secret) do
+      %{secret: secret, server: server} = s) when is_binary(secret)
+  do
 
     Logger.info ">> is trying to log in with a secret.", type: :busy
-    case get_token_from_server(state.context, secret, server, state.broadcast) do
+    case get_token_from_server(s.context, secret, server, s.broadcast) do
       {:ok, %Token{} = t} ->
-        {:reply, {:ok, t}, %{state | token: t}}
-      e -> {:reply, e, clear_state(state)}
+        {:reply, {:ok, t}, %{s | token: t}}
+      e -> {:reply, e, clear_state(s)}
     end
   end
 
-  def handle_call(:try_log_in, _, %{secret: nil, server: server} = state) do
+  def handle_call(:try_log_in, _, %{secret: nil, server: server} = s) do
     Logger.info ">> is trying to load old secret.", type: :busy
     # Try to load the secret file
     secret = load_secret()
-    case get_token_from_server(state.context, secret, server, state.broadcast) do
+    case get_token_from_server(s.context, secret, server, s.broadcast) do
       {:ok, %Token{} = token} ->
         {:reply, {:ok, token}, token}
       e ->
-        {:reply, e, state}
+        {:reply, e, s}
     end
   end
 

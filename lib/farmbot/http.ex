@@ -1,4 +1,7 @@
 defmodule Farmbot.HTTP do
+  @moduledoc """
+    Farmbot HTTP adapter for accessing the world and farmbot web api easily.
+  """
   use     GenServer
   alias   Farmbot.{Auth, Context, Token}
   alias   Farmbot.HTTP.{Response, Client, Error, Types, Helpers, Multipart}
@@ -23,17 +26,26 @@ defmodule Farmbot.HTTP do
     Types.body,
     Types.headers,
     Keyword.t) :: {:ok, Response.t} | {:error, term}
+    # credo:disable-for-next-line
   def request(%Context{} = ctx, method, url, body, headers, opts) do
     {timeout, opts} = Keyword.pop(opts, :timeout, 30_000)
-    GenServer.call(ctx.http, {:request, method, url, body, headers, opts}, timeout)
+    r               = {:request, method, url, body, headers, opts}
+    GenServer.call(ctx.http, r, timeout)
   end
 
-  @spec request!(Context.t, Types.method, Types.url, Types.body, Types.headers, Keyword.t) :: Response.t | no_return
+  @spec request!(Context.t,
+    Types.method,
+    Types.url,
+    Types.body,
+    Types.headers,
+    Keyword.t) :: Response.t | no_return
+  # credo:disable-for-next-line
   def request!(%Context{} = ctx, method, url, body, headers, opts) do
     case request(ctx, method, url, body, headers, opts) do
       {:ok, response} -> response
       {:error, er} ->
-        raise Error, message: "Http request #{inspect method} : #{inspect url} failed! #{inspect er}"
+        raise Error, message: "Http request #{inspect method} :" <>
+          " #{inspect url} failed! #{inspect er}"
     end
   end
 
@@ -59,7 +71,8 @@ defmodule Farmbot.HTTP do
   end
 
   @doc """
-    Downloads a file to the filesystem. Will return the path to the downloaded file.
+    Downloads a file to the filesystem.
+    Will return the path to the downloaded file.
   """
   @spec download_file!(Context.t, Types.url, Path.t) :: Path.t
   def download_file!(%Context{} = ctx, url, path) do
@@ -85,23 +98,25 @@ defmodule Farmbot.HTTP do
     attachment_url                           = url <> form_data["key"]
     payload =
       Map.new(form_data, fn({key, value}) ->
-        if key == "file", do: {"file", {Path.basename(filename), file}}, else: {key, value}
+        if key == "file",
+          do: {"file", {Path.basename(filename), file}}, else: {key, value}
       end)
-    payload = Multipart.format(payload, boundry)
+    real_payload = Multipart.format(payload, boundry)
     headers = [
       Multipart.multi_part_header(boundry),
       user_agent_header()
     ]
-    ggl_response = post!(ctx, url, payload, headers, [])
+    ggl_response = post!(ctx, url, real_payload, headers, [])
     debug_log "#{attachment_url} should exist shortly."
     :ok = finish_upload!(ggl_response, ctx, attachment_url)
     :ok
   end
 
-  defp finish_upload!(%Response{status_code: s}, %Context{} = ctx, attachment_url) when is_2xx(s) do
+  defp finish_upload!(%Response{status_code: s}, %Context{} = ctx, atch_url)
+  when is_2xx(s) do
     [x, y, z] = Farmbot.BotState.get_current_pos(ctx)
     meta      = %{x: x, y: y, z: z}
-    json      = Poison.encode! %{"attachment_url" => attachment_url,
+    json      = Poison.encode! %{"attachment_url" => atch_url,
                                  "meta" => meta}
     res       = post! ctx, "/api/images", json, [], []
     unless is_2xx(res.status_code) do
@@ -138,7 +153,8 @@ defmodule Farmbot.HTTP do
     case url do
       "/api" <> _  ->
         debug_log "I think this is a farmbot api request: #{url}"
-        build_api_request(state.token, state.context, {method, url, body, headers, opts}, from)
+        r = {method, url, body, headers, opts}
+        build_api_request(state.token, state.context, r, from)
       _ ->
         {:ok, pid} = Client.start_link(from, {method, url, body, headers}, opts)
         :ok        = Client.execute(pid)
@@ -150,19 +166,26 @@ defmodule Farmbot.HTTP do
     {:noreply, %{state | token: token}}
   end
 
-  def handle_info({Auth, :purge_token}, state), do: {:noreply, %{state | token: nil}}
+  def handle_info({Auth, :purge_token}, state),
+    do: {:noreply, %{state | token: nil}}
 
   def handle_info({:EXIT, _old_client, _reason}, state) do
     debug_log "Client finished."
     {:noreply, state}
   end
 
-  defp build_api_request(%Token{encoded: enc, unencoded: %{iss: server}}, %Context{} = _ctx, request, from) do
-    {method, url, body, headers, opts} = request
-    url                                = "#{server}#{url}"
-    auth_header                        = {'Authorization', 'Bearer #{enc}'}
-    user_agent_header                  = user_agent_header()
-    headers                            = headers |> add_header(auth_header) |> add_header(user_agent_header)
+  defp build_api_request(%Token{
+      encoded: enc,
+      unencoded: %{iss: server}},
+    %Context{} = _ctx, request, from)
+  do
+    {method, slug, body, old_headers, opts} = request
+    url                                     = "#{server}#{slug}"
+    auth_header                             = {'Authorization', 'Bearer #{enc}'}
+    uah                                     = user_agent_header()
+    headers                                 = old_headers
+                                              |> add_header(auth_header)
+                                              |> add_header(uah)
     {:ok, pid} = Client.start_link(from, {method, url, body, headers}, opts)
     :ok        = Client.execute(pid)
   end
@@ -176,7 +199,7 @@ defmodule Farmbot.HTTP do
   @spec add_header(Types.headers, Types.header) :: Types.headers
   defp add_header(headers, new), do: [new | headers]
 
-  def user_agent_header() do
+  def user_agent_header do
     {'User-Agent', 'FarmbotOS/#{@version} (#{@target}) #{@target} ()'}
   end
 end

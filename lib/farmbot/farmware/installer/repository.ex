@@ -4,8 +4,9 @@ defmodule Farmbot.Farmware.Installer.Repository do
   """
 
   defmodule Entry do
+    @moduledoc false
     @enforce_keys [:name, :manifest]
-    defstruct [:name, :manifest]
+    defstruct     [:name, :manifest]
 
     @typedoc """
       * `name` is the name of the Farmware

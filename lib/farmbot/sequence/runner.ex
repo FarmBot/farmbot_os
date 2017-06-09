@@ -40,7 +40,14 @@ defmodule Farmbot.Sequence.Runner do
     pid = spawn __MODULE__, :work, [{first, first_context}, self()]
     Process.link(pid)
     timer = Process.send_after(:timeout, self(), @step_timeout)
-    {:ok, %{body: rest, context: first_context, caller: caller, worker: pid, timer: timer}}
+    state = %{
+      body: rest,
+      context: first_context,
+      caller: caller,
+      worker: pid,
+      timer: timer
+    }
+    {:ok, state}
   end
 
   # When a stop finishes and there is no more steps
@@ -57,12 +64,18 @@ defmodule Farmbot.Sequence.Runner do
     pid = spawn __MODULE__, :work, [{first, next_context}, self()]
     Process.link(pid)
     timer = Process.send_after(:timeout, self(), @step_timeout)
-    {:noreply, %{state | body: rest, context: next_context, worker: pid, timer: timer}}
+    new_state = %{state | body: rest,
+      context: next_context,
+      worker: pid,
+      timer: timer
+    }
+    {:noreply, new_state}
   end
 
   def handle_info({:EXIT, _, :normal}, state), do: {:noreply, state}
 
-  def handle_info({:EXIT, pid, reason}, %{worker: worker} = state) when pid == worker do
+  def handle_info({:EXIT, pid, reason}, %{worker: worker} = state)
+  when pid == worker do
     debug_log "Sequence terminating."
     {:stop, reason, state}
   end

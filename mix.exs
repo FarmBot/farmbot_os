@@ -164,7 +164,7 @@ defmodule Farmbot.Mixfile do
       {:gen_stage, "0.11.0"},
 
       # Test/Dev only
-      {:credo, "0.6.0-rc1",  only: [:dev, :test]},
+      {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.14", only: :dev},
       {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
       {:faker, "~> 0.7", only: :test},
@@ -204,7 +204,7 @@ defmodule Farmbot.Mixfile do
   defp aliases("host"), do: [
     "firmware": ["compile"],
     "firmware.push": ["farmbot.warning"],
-    "credo": ["credo list --only readability,warning,todo,inspect,refactor --ignore-checks todo,spec"],
+    "credo": ["credo list --only readability,warning,todo,inspect,refactor --ignore-checks todo,spec,longquoteblock,preferimplicittry"],
     "all_test": ["credo", "coveralls"],
     "travis_test": ["credo", "coveralls.travis"]
   ]

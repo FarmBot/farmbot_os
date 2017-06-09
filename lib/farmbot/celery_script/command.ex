@@ -147,7 +147,8 @@ defmodule Farmbot.CeleryScript.Command do
         Logger.error "Unknown error happend executing CeleryScript."
         # debug_log "CeleryScript Error: #{inspect exception}"
         stacktrace = System.stacktrace()
-        ExRollbar.report(:error, exception, stacktrace, [custom: %{context: context}])
+        opts       = [custom: %{context: context}]
+        ExRollbar.report(:error, exception, stacktrace, opts)
         reraise exception, stacktrace
     end
   end

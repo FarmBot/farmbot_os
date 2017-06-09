@@ -60,7 +60,6 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
     nil
   end
 
-
   @spec parse_val_str(binary) :: number_or_wildcard
   defp parse_val_str("*"), do: "*"
   defp parse_val_str(int) when is_integer(int), do: int

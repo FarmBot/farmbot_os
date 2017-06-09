@@ -101,7 +101,7 @@ defmodule Farmbot.System.FS.ConfigStorage do
     write! new_state
   end
 
-  def terminate(_,_), do: nil
+  def terminate(_, _), do: nil
 
   defp module_to_key(module),
     do: module

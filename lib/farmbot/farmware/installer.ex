@@ -5,7 +5,7 @@ defmodule Farmbot.Farmware.Installer do
 
   alias Farmbot.{Context, Farmware, System}
   alias Farmware.Manager
-  alias Farmware.Installer.Repository
+  alias Farmware.Installer.{Repository, Error}
   alias System.FS
   use Farmbot.DebugLog, name: FarmwareInstaller
   @version Mix.Project.config[:version]
@@ -27,7 +27,9 @@ defmodule Farmbot.Farmware.Installer do
 
     case check_package(package_path, json) do
       :needs_install ->
-        dl_path      = Farmbot.HTTP.download_file!(ctx, json["zip"], "/tmp/#{json["package"]}.zip")
+        dl_path      = Farmbot.HTTP.download_file!(ctx,
+          json["zip"], "/tmp/#{json["package"]}.zip")
+
         FS.transaction fn() ->
           File.mkdir_p!(package_path)
           unzip! dl_path, package_path
@@ -59,12 +61,16 @@ defmodule Farmbot.Farmware.Installer do
     end
   end
 
-  # Checks two manifests. If the new one has a newer version, say upgrade, if not noop
-  defp check_manifests_version(%{"version" => current_version} = current, %{"version" => new_version}) do
+  # Checks two manifests. If the new one has a newer version,
+  # say upgrade, if not noop
+  defp check_manifests_version(
+    %{"version" => current_version} = current, %{"version" => new_version})
+  do
     case Version.compare(current_version, new_version) do
       # if bot versions are equal noop
       :eq -> {:noop, Farmware.new(current)}
-      # if current version is greater noop (but something weird might be going on)
+      # if current version is greater
+      # noop (but something weird might be going on)
       :gt -> {:noop, Farmware.new(current)}
       # if the current version is less than new version we install.
       :lg -> :needs_install
@@ -74,7 +80,8 @@ defmodule Farmbot.Farmware.Installer do
   defp ensure_correct_os_version!(%{"min_os_version_major" => major}) do
     ver_int = @version |> String.first() |> String.to_integer
     if major > ver_int do
-       raise "Version mismatch! Farmbot is: #{ver_int} Farmware requires: #{major}"
+       raise Error, message: "Version mismatch! " <>
+        "Farmbot is: #{ver_int} Farmware requires: #{major}"
      else
        :ok
     end
@@ -126,7 +133,7 @@ defmodule Farmbot.Farmware.Installer do
     try do
       Enum.map(dirs, fn(dir) ->
         package_dir = "#{package_path()}/#{dir}"
-        json = File.read!("#{package_dir}/manifest.json") |> Poison.decode!
+        json = "#{package_dir}/manifest.json" |> File.read! |> Poison.decode!
         ensure_correct_os_version!(json)
         Farmware.new(json)
       end)
@@ -191,15 +198,20 @@ defmodule Farmbot.Farmware.Installer do
     Ensures the schema has been resolved.
   """
   def ensure_schema! do
-    schema_path() |> File.read!() |> Poison.decode!() |> ExJsonSchema.Schema.resolve()
+    schema_path()
+      |> File.read!()
+      |> Poison.decode!()
+      |> ExJsonSchema.Schema.resolve()
   end
 
-  defp schema_path, do: "#{:code.priv_dir(:farmbot)}/static/farmware_schema.json"
+  defp schema_path,
+    do: "#{:code.priv_dir(:farmbot)}/static/farmware_schema.json"
 
   defp validate_json!(schema, json) do
     case ExJsonSchema.Validator.validate(schema, json) do
       :ok              -> :ok
-      {:error, reason} ->  raise "Error parsing manifest #{inspect reason}"
+      {:error, reason} ->  raise Error,
+        message: "Could not parse manifest: #{inspect reason}"
     end
   end
 

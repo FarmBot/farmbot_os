@@ -175,7 +175,7 @@ defmodule Farmbot.Serial.Handler do
   @spec open_tty(nerves, binary) :: :ok
   defp open_tty(nerves, tty) do
     # Open the tty
-    case UART.open(nerves, tty, speed: 115200, active: true) do
+    case UART.open(nerves, tty, speed: 115_200, active: true) do
       :ok ->
         :ok = UART.configure(nerves,
           framing: {UART.Framing.Line, separator: "\r\n"},
@@ -388,8 +388,10 @@ defmodule Farmbot.Serial.Handler do
     {:reply, reply}
   end
 
-  defp handle_gcode({:report_end_stops, x1,x2,y1,y2,z1,z2} = reply, %Context{} = ctx) do
-    BotState.set_end_stops(ctx, {x1,x2,y1,y2,z1,z2})
+  defp handle_gcode(
+    {:report_end_stops, x1, x2, y1, y2, z1, z2} = reply, %Context{} = ctx)
+  do
+    BotState.set_end_stops(ctx, {x1, x2, y1, y2, z1, z2})
     {:reply, reply}
   end
 

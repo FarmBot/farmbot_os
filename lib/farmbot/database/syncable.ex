@@ -6,7 +6,6 @@ defmodule Farmbot.Database.Syncable do
   @enforce_keys [:ref_id, :body]
   defstruct @enforce_keys
 
-
   @typedoc """
     Module structs.
   """
@@ -26,7 +25,7 @@ defmodule Farmbot.Database.Syncable do
   when is_2xx(code) do
     parsed = resp_body |> Poison.decode!
     cond do
-      is_list(parsed) -> Enum.map(parsed, fn(item) -> module.to_struct(item) end)
+      is_list(parsed) -> Enum.map(parsed, fn(i) -> module.to_struct(i) end)
       is_map(parsed)  -> module.to_struct(parsed)
       true            -> raise Error,
         message: "Don't know how to handle: #{inspect parsed}"
@@ -81,9 +80,9 @@ defmodule Farmbot.Database.Syncable do
       """
       def fetch(%Context{} = context, then) do
         url = "/api" <> plural_url()
-        result = HTTP.get(context, url) |> parse_resp(__MODULE__)
+        result = context |> HTTP.get(url) |> parse_resp(__MODULE__)
         case then do
-          {module, function, args}    -> apply(module, function, [result | args])
+          {module, fun, args}    -> apply(module, fun, [result | args])
           anon when is_function(anon) -> anon.(result)
         end
       end
@@ -95,7 +94,7 @@ defmodule Farmbot.Database.Syncable do
         url = "/api" <> unquote(singular) <> "/#{id}"
         result = context |> HTTP.get(url) |> parse_resp(__MODULE__)
         case then do
-          {module, function, args}    -> apply(module, function, [result | args])
+          {module, fun, args}    -> apply(module, fun, [result | args])
           anon when is_function(anon) -> anon.(result)
         end
       end

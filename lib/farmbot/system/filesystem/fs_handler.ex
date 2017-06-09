@@ -92,7 +92,7 @@ defmodule Farmbot.System.FS do
     {:noreply, trans, []}
   end
 
-  def handle_info(_,state), do: {:noreply, [], state}
+  def handle_info(_, state), do: {:noreply, [], state}
 
   @doc """
     Returns the path where farmbot keeps its persistant data.

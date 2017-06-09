@@ -20,16 +20,18 @@ defmodule Farmbot.Transport.Supervisor do
       end
   end
 
-  def init(context) do
+  def init(ctx) do
     :ok = setup_env()
     transports = Application.get_env(:farmbot, :transports)
-    children   = [ default_transport(context) | build_children(transports, context)]
+    children   = [ default_transport(ctx) | build_children(transports, ctx)]
     opts       = [strategy: :one_for_one]
     supervise(children, opts)
   end
 
   defp default_transport(%Context{} = ctx) do
-    worker(Farmbot.Transport, [ctx, [name: Farmbot.Transport]], restart: :permanent)
+    worker(Farmbot.Transport,
+      [ctx, [name: Farmbot.Transport]],
+        restart: :permanent)
   end
 
   @doc """

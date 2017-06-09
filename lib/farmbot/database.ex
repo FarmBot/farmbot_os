@@ -170,13 +170,15 @@ defmodule Farmbot.Database do
     Get a resource by its kind and id.
   """
   @spec get_by_id(Context.t, syncable, db_id) :: resource_map | nil
-  def get_by_id(%Context{database: db}, kind, id), do: GenServer.call(db, {:get_by, kind, id})
+  def get_by_id(%Context{database: db}, kind, id),
+    do: GenServer.call(db, {:get_by, kind, id})
 
   @doc """
     Get all resources of this kind.
   """
   @spec get_all(Context.t, syncable) :: [resource_map]
-  def get_all(%Context{database: db}, kind), do: GenServer.call(db, {:get_all, kind})
+  def get_all(%Context{database: db}, kind),
+    do: GenServer.call(db, {:get_all, kind})
 
   ## GenServer
 
@@ -262,13 +264,19 @@ defmodule Farmbot.Database do
     {:reply, Map.fetch!(state.awaiting, module), state}
   end
 
-  def handle_call({:set_awaiting, syncable, :remove, int_or_wildcard}, _, state) do
+  def handle_call(
+    {:set_awaiting, syncable, :remove, int_or_wildcard}, _, state)
+  do
     new_state =
       case int_or_wildcard do
         "*" -> remove_all_syncable(state, syncable)
         num -> remove_syncable(state, syncable, num)
       end
-    {:reply, :ok, %{ new_state | awaiting: %{ state.awaiting | syncable => true } }}
+    {
+      :reply,
+      :ok,
+      %{ new_state | awaiting: %{ state.awaiting | syncable => true } }
+    }
   end
 
   def handle_call({:set_awaiting, syncable, _verb, _}, _, state) do

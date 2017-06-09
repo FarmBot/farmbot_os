@@ -58,7 +58,8 @@ defmodule Farmbot do
 
       supervisor(Farmbot.Configurator, [], restart: :permanent),
 
-      supervisor(Farmbot.Farmware.Supervisor, [context, [name: Farmbot.Farmware.Supervisor]], restart: :permanent)
+      supervisor(Farmbot.Farmware.Supervisor, [context,
+        [name: Farmbot.Farmware.Supervisor            ]], restart: :permanent)
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)

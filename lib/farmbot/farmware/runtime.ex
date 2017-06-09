@@ -12,13 +12,19 @@ defmodule Farmbot.Farmware.Runtime do
     defstruct [:uuid, :port, :farmware, :context, :output]
 
     @typedoc false
-    @type t :: %__MODULE__{uuid: binary, port: port, farmware: Farmware.t, context: Context.t, output: [binary]}
+    @type t :: %__MODULE__{
+      uuid: binary,
+      port: port,
+      farmware: Farmware.t,
+      context: Context.t,
+      output: [binary]
+    }
   end
 
   @typedoc false
   @type state :: State.t
 
-  @clean_up_timeout 30000
+  @clean_up_timeout 30_000
 
   @doc """
     Executes a Farmware inside a safe sandbox
@@ -29,12 +35,14 @@ defmodule Farmbot.Farmware.Runtime do
     debug_log "Starting execution of: #{inspect fw}"
     uuid       = Nerves.Lib.UUID.generate()
     env        = environment(ctx, uuid)
-    exec       = System.find_executable(fw.executable) || raise FarmwareRuntimeError, message: "Could not locate #{fw.executable}"
+    exec       = lookup_exec_or_raise(fw.executable)
     cwd        = File.cwd!
 
     case File.cd(fw.path) do
       :ok -> :ok
-      err -> raise FarmwareRuntimeError, message: "could not change directory: #{inspect err}"
+      err ->
+        raise FarmwareRuntimeError,
+          message: "could not change directory: #{inspect err}"
     end
 
     port = Port.open({:spawn_executable, exec},
@@ -58,6 +66,11 @@ defmodule Farmbot.Farmware.Runtime do
     %Context{} = new_ctx = handle_port(state)
     File.cd!(cwd)
     new_ctx
+  end
+
+  defp lookup_exec_or_raise(exec) do
+    System.find_executable(exec) || raise FarmwareRuntimeError,
+      message: "Could not locate #{exec}"
   end
 
   @spec handle_port(state) :: Context.t | no_return

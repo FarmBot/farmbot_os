@@ -37,7 +37,7 @@ defmodule Farmbot.Context do
       "#Context<#{info}>"
     end
 
-    def inspect(_,_) do
+    def inspect(_, _) do
       "#Context<:invalid>"
     end
   end
