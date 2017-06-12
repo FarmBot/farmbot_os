@@ -1,9 +1,7 @@
 defmodule AstTest do
   use ExUnit.Case, async: false
   alias Farmbot.CeleryScript.Ast, as: Ast
-  # %{"args" => %{"message" => "hello world"},
-  #  "body" =>
-  # [%{"args" => %{"channel_name" => "toast_error"}, "kind" => "channel"}], "kind" => "send_message"}
+
   test "parses an ast from a stringed map" do
     test_ast =
       %{"args" => %{"message" => "hello world"},
@@ -79,11 +77,11 @@ defmodule AstTest do
     Ast.create("speak_spanish", %{words: "hello"}, body: [])
   end
 
-  test "gives a nothing block for saftey on bad asts" do
+  test "raises an error on bad data" do
     maybe_ast = "some arbitrary data"
-    bloop = Ast.parse(maybe_ast)
-    assert match?(%Ast{}, bloop)
-    assert bloop.kind == "nothing"
+    assert_raise Farmbot.CeleryScript.Error, fn() ->
+      Ast.parse(maybe_ast)
+    end
   end
 
   test "does recursion" do

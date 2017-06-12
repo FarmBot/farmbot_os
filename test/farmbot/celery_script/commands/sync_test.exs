@@ -11,8 +11,7 @@ defmodule Farmbot.CeleryScript.Command.SyncTest do
     {:ok, db}   = Database.start_link(ctx, [])
     # {:ok, auth} = Farmbot.Auth.start_link(ctx, [])
     ctx = %{ctx | database: db}
-    token = Helpers.login(ctx.auth)
-    [cs_context: ctx, token: token]
+    [cs_context: Helpers.login(ctx)]
   end
 
   test "syncs the bot", %{cs_context: ctx} do

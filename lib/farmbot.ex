@@ -26,9 +26,6 @@ defmodule Farmbot do
       worker(Farmbot.DebugLog, [], restart: :permanent),
       supervisor(Registry,     [:duplicate,  Farmbot.Registry]),
 
-      worker(Farmbot.Context.Tracker,
-        [context, [name: Farmbot.Context.Tracker     ]], restart: :permanent),
-
       supervisor(FBSYS,
         [context, [name: FBSYS                        ]], restart: :permanent),
 

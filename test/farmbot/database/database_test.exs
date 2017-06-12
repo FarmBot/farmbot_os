@@ -1,18 +1,18 @@
 defmodule Farmbot.DatabaseTest do
   alias Farmbot.Test.Helpers
-  import Helpers, only: [read_json: 1, tag_item: 2]
 
   use ExUnit.Case, async: false
   alias Farmbot.Database, as: DB
   alias Farmbot.Context
   alias DB.Syncable.Point
-  use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
+  alias Farmbot.Test.Helpers
+  import Helpers, only: [tag_item: 2]
 
   setup_all do
     ctx = Context.new()
     {:ok, db} = DB.start_link(ctx, [])
     context = %{ctx | database: db}
-    [cs_context: context]
+    [cs_context: Helpers.login(context)]
   end
 
   # HTTP STUB IS R BROKE
@@ -39,11 +39,12 @@ defmodule Farmbot.DatabaseTest do
     # modulename = Enum.random(DB.all_syncable_modules())
     modulename = Point
     plural = modulename.plural_url()
-    points_json = read_json("#{plural}.json")
+    points_json = File.read!("fixture/api_fixture/points.json")
+    points = Poison.decode!(points_json) |> Poison.decode!
 
     old = DB.get_all(ctx, modulename)
 
-    tagged = Enum.map(points_json, fn(item) ->
+    tagged = Enum.map(points, fn(item) ->
       thing = tag_item(item, modulename)
       assert(thing.__struct__ == modulename)
       assert(is_number(thing.id))
@@ -71,8 +72,9 @@ defmodule Farmbot.DatabaseTest do
   test "gets an item out of the database", %{cs_context: ctx} do
     modulename  = Point
     plural      = modulename.plural_url()
-    points_json = read_json("#{plural}.json")
-    random_item = Enum.random(points_json) |> tag_item(modulename)
+    points_json = File.read!("fixture/api_fixture/points.json")
+    points      = Poison.decode!(points_json) |> Poison.decode!
+    random_item = Enum.random(points) |> tag_item(modulename)
 
     id = random_item.id
 
@@ -85,8 +87,9 @@ defmodule Farmbot.DatabaseTest do
   test "updates an old item", %{cs_context: ctx} do
     modulename = Point
     plural = modulename.plural_url()
-    points_json = read_json("#{plural}.json")
-    random_item = Enum.random(points_json) |> tag_item(modulename)
+    points_json = File.read!("fixture/api_fixture/points.json")
+    points      = Poison.decode!(points_json) |> Poison.decode!
+    random_item = Enum.random(points) |> tag_item(modulename)
 
     id = random_item.id
 

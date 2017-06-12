@@ -18,14 +18,13 @@ defmodule AllSyncablesTestHelper do
 
       defmodule Module.concat(["#{unquote(module)}Test"]) do
         use ExUnit.Case, async: false
-        use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
 
         setup_all do
           context = Context.new()
           [
-            module: unquote(module),
-            id:     unquote(id),
-            token:  Farmbot.Test.Helpers.login(context.auth),
+            module:     unquote(module),
+            id:         unquote(id),
+            cs_context: Farmbot.Test.Helpers.login(context),
           ]
         end
 
@@ -33,44 +32,36 @@ defmodule AllSyncablesTestHelper do
           assert unquote(module) == mod
         end
 
-        test "successfully fetches some stuff from the api", %{module: mod} do
+        test "successfully fetches some stuff from the api", %{module: mod, cs_context: ctx} do
           human_readable_name = Module.split(mod) |> List.last
-          filename = "#{human_readable_name}/success_many"
-          use_cassette filename do
-            results = mod.fetch({__MODULE__, :callback, []})
-            item = Enum.random(results)
-            assert item.__struct__ == mod
-          end
+          results = mod.fetch(ctx, {__MODULE__, :callback, []})
+          item = Enum.random(results)
+          assert item.__struct__ == mod
+
         end
 
         unless unquote(id) == :no_show do
-          test "gets a particular item from the api", %{module: mod, id: id} do
+          test "gets a particular item from the api", %{module: mod, id: id, cs_context: ctx} do
             human_readable_name = Module.split(mod) |> List.last
-            filename = "#{human_readable_name}/success_single"
-            use_cassette filename do
-              results = mod.fetch(id, {__MODULE__, :callback, []})
-              refute is_error?(results)
-              assert results.__struct__ == mod
-              assert results.id == id
-            end
+            results = mod.fetch(ctx, id, {__MODULE__, :callback, []})
+            refute is_error?(results)
+            assert results.__struct__ == mod
+            assert results.id == id
           end
         end
 
 
-        test "handles errors for stuff from the api", %{module: mod} do
-          human_readable_name = Module.split(mod) |> List.last
-          filename = "#{human_readable_name}/bad_single"
-          use_cassette filename do
-            results = mod.fetch(-1, {__MODULE__, :callback, []})
-            assert is_error?(results)
-          end
-        end
+        # test "handles errors for stuff from the api", %{module: mod, cs_context: ctx} do
+        #   human_readable_name = Module.split(mod) |> List.last
+        #   results = mod.fetch(ctx, -1, {__MODULE__, :callback, []})
+        #   assert is_error?(results)
+        # end
 
 
         def callback(results), do: results
-
-        defp is_error?(results)
-        defp is_error?({:error, _}), do: true
+        # 
+        # defp is_error?(results)
+        # defp is_error?({:error, _}), do: true
         defp is_error?(_), do: false
 
       end

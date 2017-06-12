@@ -146,7 +146,13 @@ defmodule Farmbot.Farmware.Manager do
   end
 
   def handle_call({:register, uuid, %Farmware{} = fw}, _, state) do
-    new_fws = Map.put(state.farmwares, uuid, fw)
+    new_fws =
+      case Enum.find(state.farmwares, fn({_existing_uuid, existing_fw}) ->
+        existing_fw.name == fw.name
+      end) do
+        {existing_uuid, _old_fw} -> Map.put(state.farmwares, existing_uuid, fw)
+        _                        -> Map.put(state.farmwares, uuid,          fw)
+      end
     reply   = :ok
     debug_log "Registered Farmware: #{inspect fw}"
     dispatch reply, %{ state | farmwares: new_fws}

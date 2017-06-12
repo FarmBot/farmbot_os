@@ -3,7 +3,7 @@ defmodule Farmbot.CeleryScript.Command.ExecuteScript do
     ExecuteScript
   """
 
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Error}
   alias Farmbot.Farmware
   alias Farmware.{Manager, Runtime}
   import Farmbot.Lib.Helpers
@@ -20,7 +20,10 @@ defmodule Farmbot.CeleryScript.Command.ExecuteScript do
     Command.set_user_env(%{}, env_vars, context)
     case Manager.lookup(context, uuid) do
       {:ok, %Farmware{} = fw} -> Runtime.execute(context, fw)
-      {:error, e}             -> raise "Could not locate farmware: #{e}"
+      {:error, e}             ->
+        raise Error,
+          message: "Could not locate farmware: #{e}",
+          context: context
     end
   end
 end

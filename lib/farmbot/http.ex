@@ -8,6 +8,7 @@ defmodule Farmbot.HTTP do
   import  Helpers
   require Logger
   use     Farmbot.DebugLog
+  use     Context, requires: [Auth]
 
   @version Mix.Project.config[:version]
   @target  Mix.Project.config[:target]

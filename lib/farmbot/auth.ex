@@ -12,6 +12,7 @@ defmodule Farmbot.Auth do
   alias   Farmbot.Auth.Subscription, as: Sub
   use     GenServer
   use     DebugLog
+  use     Context, requires: [HTTP]
 
   @typedoc """
     The public key that lives at http://<server>/api/public_key
@@ -257,7 +258,7 @@ defmodule Farmbot.Auth do
     context:   Context.t,
     server:    nil | server,
     secret:    nil | secret,
-    timer:     any,
+    timer:     reference,
     interim:   nil | interim,
     token:     nil | Token.t,
     broadcast: boolean
@@ -361,7 +362,7 @@ defmodule Farmbot.Auth do
     secret = load_secret()
     case get_token_from_server(s.context, secret, server, s.broadcast) do
       {:ok, %Token{} = token} ->
-        {:reply, {:ok, token}, token}
+        {:reply, {:ok, token}, %{s | token: token}}
       e ->
         {:reply, e, s}
     end

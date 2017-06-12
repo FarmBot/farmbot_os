@@ -7,9 +7,7 @@ end
 defmodule Farmbot.SyncableTest do
   alias Database.Syncable.Fake
   alias Farmbot.Test.Helpers
-  require IEx
   use ExUnit.Case, async: false
-  use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
 
   alias Farmbot.Context
 
@@ -18,7 +16,7 @@ defmodule Farmbot.SyncableTest do
   setup_all do
     context = Context.new()
     [my_fake: %Fake{},
-     token:   Helpers.login(context.auth)]
+     cs_context:   Helpers.login(context)]
   end
 
   test "defines a syncable", context do
@@ -38,21 +36,17 @@ defmodule Farmbot.SyncableTest do
     result
   end
 
-  test "fetch all of a resource", _context do
-    use_cassette "fake/get_fakes" do
-      results = Fake.fetch({__MODULE__, :get_all_by_id_callback, []})
-      item = List.first(results)
-      assert item.__struct__ == Fake
-      assert is_integer(item.id)
-    end
+  test "fetch all of a resource", %{cs_context: ctx} do
+    results = Fake.fetch(ctx, {__MODULE__, :get_all_by_id_callback, []})
+    item    = List.first(results)
+    assert item.__struct__ == Fake
+    assert is_integer(item.id)
   end
 
-  test "fetch a particular id of a resource" do
-    use_cassette "fake/get_fake" do
-      item = Fake.fetch(2, {__MODULE__, :get_all_by_id_callback, []})
-      assert item.__struct__ == Fake
-      assert is_integer(item.id)
-    end
+  test "fetch a particular id of a resource", %{cs_context: ctx} do
+    item = Fake.fetch(ctx, 2, {__MODULE__, :get_all_by_id_callback, []})
+    assert item.__struct__ == Fake
+    assert is_integer(item.id)
   end
 
 end
