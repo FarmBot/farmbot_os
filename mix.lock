@@ -46,7 +46,7 @@
   "nerves_interim_wifi": {:git, "https://github.com/nerves-project/nerves_interim_wifi.git", "42a70b8773adbbf2918e68262b47241c6fb61947", []},
   "nerves_lib": {:git, "https://github.com/nerves-project/nerves_lib.git", "aac351cb3e621831a317f2d2a078257161efa551", []},
   "nerves_network_interface": {:hex, :nerves_network_interface, "0.4.0", "a8e7662cd56fb4fe9060c891d35c43bbbff692ee6fd2d5efd538717da0cd96b8", [:make, :mix], [{:elixir_make, "~> 0.3", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm"},
-  "nerves_runtime": {:git, "https://github.com/nerves-project/nerves_runtime.git", "d5fe649b4ce5c5ac7a7ab89083ecaee0d9214b94", []},
+  "nerves_runtime": {:git, "https://github.com/nerves-project/nerves_runtime.git", "06da20aed5e391f0c885d69d2155126ecc4ca527", []},
   "nerves_ssdp_server": {:hex, :nerves_ssdp_server, "0.2.1", "2d010552023fc1a724e8cb5c92479a58552976e6f805b6dbf09babd31f923b8f", [:mix], [], "hexpm"},
   "nerves_system_br": {:hex, :nerves_system_br, "0.9.4", "5096a9dfec49d4663ccb94c4a4fe45885303fbf31108f7e9400369bdec94b5e7", [:mix], [], "hexpm"},
   "nerves_toolchain_arm_unknown_linux_gnueabihf": {:hex, :nerves_toolchain_arm_unknown_linux_gnueabihf, "0.10.0", "18200c6cc3fcda1cbe263b7f7d50ff05db495b881ade9436cd1667b3e8e62429", [:mix], [{:nerves, "~> 0.4", [hex: :nerves, repo: "hexpm", optional: false]}, {:nerves_toolchain_ctng, "~> 0.9", [hex: :nerves_toolchain_ctng, repo: "hexpm", optional: false]}], "hexpm"},

@@ -102,7 +102,7 @@ defmodule Farmbot.Database.Syncable do
         if function_exported?(__MODULE__, :on_sync, 2) do
           apply __MODULE__, :on_sync, [context, result]
         end
-        
+
         case then do
           {module, fun, args}    -> apply(module, fun, [result | args])
           anon when is_function(anon) -> anon.(result)
