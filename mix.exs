@@ -71,7 +71,12 @@ defmodule Farmbot.Mixfile do
   def application do
     [mod: {Farmbot, []},
      applications: applications() ++ target_applications(@target) ++ env_applications(Mix.env()),
-     included_applications: [:gen_mqtt, :ex_json_schema, :fs, :ex_rollbar] ++ included_apps(Mix.env)]
+     included_applications: [
+       :gen_mqtt,
+       :ex_json_schema,
+       :fs,
+      #  :rollbax
+     ] ++ included_apps(Mix.env)]
   end
 
   defp included_apps(:prod), do: [:ex_syslogger]
@@ -86,7 +91,6 @@ defmodule Farmbot.Mixfile do
       :nerves_runtime,
       :poison,
       :rsa,
-      :httpoison,
       :nerves_lib,
       :runtime_tools,
       :mustache,
@@ -99,7 +103,8 @@ defmodule Farmbot.Mixfile do
       :timex, # Timex needs to start AFTER farmbot, so we can set up its dirs,
       :inets,
       :redix,
-      :eex
+      :eex,
+      # :system_registry
    ]
   end
 
@@ -133,7 +138,6 @@ defmodule Farmbot.Mixfile do
       {:poison, "~> 3.0"},
       {:ex_json_schema, "~> 0.5.3"},
       {:exjsx, "~> 3.2", override: true},
-      {:httpoison, github: "edgurgel/httpoison", override: true},
       {:rsa, "~> 0.0.1"},
 
       # MQTT stuff
@@ -152,14 +156,15 @@ defmodule Farmbot.Mixfile do
 
       # Log to syslog
       {:ex_syslogger, "~> 1.3.3", only: :prod},
-      {:ex_rollbar, "0.1.1"},
-      # {:ex_rollbar, path: "../ex_rollbar"},
+      {:ex_rollbar, "0.1.2"},
+      # {:rollbax, "~> 0.6"},
+      # {:ex_rollbar, path: "../../ex_rollbar"},
 
       # Other stuff
       {:gen_stage, "0.11.0"},
 
       # Test/Dev only
-      {:credo, "0.6.0-rc1",  only: [:dev, :test]},
+      {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.14", only: :dev},
       {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
       {:faker, "~> 0.7", only: :test},
@@ -179,7 +184,8 @@ defmodule Farmbot.Mixfile do
       {:farmbot_simulator, github: "farmbot-labs/farmbot_simulator", only: [:test, :dev]},
 
       {:tzdata, "~> 0.1.201601", override: true},
-      {:fs, "~> 0.9.1"}
+      {:fs, "~> 0.9.1"},
+      # {:system_registry, "~> 0.1"}
     ]
   end
 
@@ -198,7 +204,7 @@ defmodule Farmbot.Mixfile do
   defp aliases("host"), do: [
     "firmware": ["compile"],
     "firmware.push": ["farmbot.warning"],
-    "credo": ["credo list --only readability,warning,todo,inspect,refactor --ignore-checks todo,spec"],
+    "credo": ["credo list --only readability,warning,todo,inspect,refactor --ignore-checks todo,spec,longquoteblock,preferimplicittry"],
     "all_test": ["credo", "coveralls"],
     "travis_test": ["credo", "coveralls.travis"]
   ]
@@ -233,7 +239,8 @@ defmodule Farmbot.Mixfile do
 
         # {:nerves_firmware, "~> 0.3"},
         # {:nerves_firmware, path: "../nerves_firmware", override: true},
-        {:nerves_firmware, github: "nerves-project/nerves_firmware", tag: "0f558ad2402cbd5b36bd7a8a10bc2b53167de14e", override: true},
+        {:nerves_firmware, github: "nerves-project/nerves_firmware", override: true},
+        # {:nerves_firmware, github: "nerves-project/nerves_firmware", tag: "0f558ad2402cbd5b36bd7a8a10bc2b53167de14e", override: true},
 
         {:nerves_ssdp_server, "~> 0.2.1"},
         ],

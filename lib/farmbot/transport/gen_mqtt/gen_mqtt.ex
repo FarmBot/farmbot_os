@@ -8,31 +8,30 @@ defmodule Farmbot.Transport.GenMqtt do
   require Logger
   alias Farmbot.Token
   alias Farmbot.Context
+  use Farmbot.DebugLog
 
   @type state :: {pid | nil, Token.t | nil}
 
   @doc """
     Starts the handler that watches the mqtt client
   """
-  @spec start_link(Context.t, [{atom, any}]) :: {:ok, pid}
-  def start_link(context, opts \\ []),
-    do: GenStage.start_link(__MODULE__, {nil, nil, context}, opts)
+  def start_link(%Context{} = ctx, opts),
+    do: GenStage.start_link(__MODULE__, {nil, nil, ctx}, opts)
 
-  @spec init(state) :: {:consumer, state, subscribe_to: [Farmbot.Transport]}
-  def init(initial) do
-    {_, _, context} = initial
+  def init({nil, nil, context}) do
+    # Process.flag(:trap_exit, true)
+    debug_log "Starting mqtt"
     Registry.register(Farmbot.Registry, Farmbot.Auth, [])
-    case Farmbot.Auth.get_token(context.auth) do
+    maybe_token = Farmbot.Auth.get_token(context.auth)
+    debug_log "checking for old token"
+    # Process.send_after(self(), :checkup, 1000)
+    case maybe_token do
       {:ok, %Token{} = t} ->
         {:ok, pid} = start_client(context, t)
-        {:consumer, {pid, t, context}, subscribe_to: [Farmbot.Transport]}
+        {:consumer, {pid, t, context}, subscribe_to: [context.transport]}
       _ ->
-      {:consumer, initial, subscribe_to: [Farmbot.Transport]}
+      {:consumer, {nil, nil, context}, subscribe_to: [context.transport]}
     end
-  end
-
-  def terminate(_reason, _state) do
-    :ok
   end
 
   def handle_events(events, _, {_client, %Token{} = _, _context} = state) do
@@ -69,11 +68,17 @@ defmodule Farmbot.Transport.GenMqtt do
     {:noreply, [], state}
   end
 
-  def handle_info(_e, state) do
-    # catch other messages if we don't have a token, or client or
-    # we just don't know how to handle this message.
+  def handle_info({_from, _event}, {nil, nil, %Context{}} = state) do
     {:noreply, [], state}
   end
+
+  # def handle_info(_, {nil, nil, _context} = state), do: {:noreply, [], state}
+
+  # def handle_info(_e, state) do
+  #   # catch other messages if we don't have a token, or client or
+  #   # we just don't know how to handle this message.
+  #   {:noreply, [], state}
+  # end
 
   @spec start_client(Context.t, Token.t) :: {:ok, pid}
   defp start_client(%Context{} = context, %Token{} = token) do

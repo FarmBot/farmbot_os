@@ -6,8 +6,9 @@ defmodule Farmbot.CeleryScript.Command do
     this means minimal logging, minimal bot state changeing (if its not the
     result of a gcode) etc.
   """
-  alias   Farmbot.CeleryScript.Ast
+  alias   Farmbot.CeleryScript.{Ast, Error}
   alias   Farmbot.Database.Selectors
+  alias   Farmbot.Context
   require Logger
   use     Farmbot.DebugLog
 
@@ -38,33 +39,38 @@ defmodule Farmbot.CeleryScript.Command do
   @doc ~s"""
     Convert an ast node to a coodinate or return :error.
   """
-  @spec ast_to_coord(Ast.context, Ast.t) :: Ast.context
+  @spec ast_to_coord(Context.t, Ast.t) :: Context.t
   def ast_to_coord(context, ast)
   def ast_to_coord(
-    %Farmbot.Context{} = context,
+    %Context{} = context,
     %Ast{kind: "coordinate",
          args: %{x: _x, y: _y, z: _z},
          body: []} = already_done),
-   do: Farmbot.Context.push_data(context, already_done)
+   do: Context.push_data(context, already_done)
 
   def ast_to_coord(
-    %Farmbot.Context{} = context,
+    %Context{} = context,
     %Ast{kind: "tool", args: %{tool_id: tool_id}, body: []})
   do
     %{body: ts}  = Farmbot.Database.Syncable.Point.get_tool(context, tool_id)
-    next_context = coordinate(%{x: ts.x, y: ts.y, z: ts.z}, [], context)
+    point_map = %{
+      x: ts.x,
+      y: ts.y,
+      z: ts.z
+    }
+    next_context = coordinate(point_map, [], context)
     raise_if_not_context_or_return_context("coordinate", next_context)
   end
 
   # is this one a good idea?
   # there might be two expectations here: it could return the current position,
   # or 0
-  def ast_to_coord(%Farmbot.Context{} = context, %Ast{kind: "nothing", args: _, body: _}) do
+  def ast_to_coord(%Context{} = context, %Ast{kind: "nothing", args: _, body: _}) do
     next_context = coordinate(%{x: 0, y: 0, z: 0}, [], context)
     raise_if_not_context_or_return_context("coordinate", next_context)
   end
 
-  def ast_to_coord(%Farmbot.Context{} = context,
+  def ast_to_coord(%Context{} = context,
                    %Ast{kind: "point",
                         args: %{pointer_type: pt_t, pointer_id: pt_id},
                         body: _}) do
@@ -73,8 +79,10 @@ defmodule Farmbot.CeleryScript.Command do
     raise_if_not_context_or_return_context("coordinate", next_context)
   end
 
-  def ast_to_coord(%Farmbot.Context{} = context, %Ast{} = ast) do
-    raise "No implicit conversion from #{inspect ast} to coordinate! context: #{inspect context}"
+  def ast_to_coord(%Context{} = context, %Ast{} = ast) do
+    raise Error, context: context,
+      message: "No implicit conversion from #{inspect ast} " <>
+        " to coordinate! context: #{inspect context}"
   end
 
   @doc """
@@ -84,7 +92,7 @@ defmodule Farmbot.CeleryScript.Command do
   def pairs_to_tuples(config_pairs) do
     Enum.map(config_pairs, fn(%Ast{} = thing) ->
       if thing.args.label == nil do
-        Logger.error("Label was nil! #{inspect config_pairs}")
+        Logger.info("Label was nil! #{inspect config_pairs}", type: :error)
       end
       {thing.args.label, thing.args.value}
     end)
@@ -94,42 +102,81 @@ defmodule Farmbot.CeleryScript.Command do
   defp maybe_print_comment(comment, fun_name),
     do: Logger.info ">> [#{fun_name}] - #{comment}"
 
+  @doc """
+    Helper method to read pin or raise an error.
+  """
+  def read_pin_or_raise(%Context{} = ctx, number, pairs) do
+    if Enum.find(pairs, fn(pair) ->
+      match?(%Ast{kind: "pair", args: %{label: "eager_read_pin"}}, pair)
+    end) do
+      ast = %Ast{
+        kind: "read_pin",
+        args: %{label: "", pin_mode: 0, pin_number: String.to_integer(number)},
+        body: []
+      }
+      do_command(ast, ctx)
+    else
+      raise Error, context: ctx,
+        message: "Could not get value of pin #{number}. " <>
+          "You should manually use read_pin block before this step."
+    end
+  end
+
+  @doc """
+    Makes sure serial is not unavailable.
+  """
+  def ensure_gcode({:error, reason}, %Context{} = context) do
+    raise Error, context: context,
+      message: "Could not execute gcode. #{inspect reason}"
+  end
+
+  def ensure_gcode(_, %Context{} = ctx), do: ctx
+
   @doc ~s"""
     Executes an ast tree.
   """
-  @spec do_command(Ast.t, Ast.context) :: Ast.context | no_return
-  def do_command(%Ast{} = ast, context) do
-    kind = ast.kind
-    module = Module.concat Farmbot.CeleryScript.Command, Macro.camelize(kind)
-
-    # print the comment if it exists
-    maybe_print_comment(ast.comment, kind)
-
-    if Code.ensure_loaded?(module) do
-      try do
-        next_context = Kernel.apply(module, :run, [ast.args, ast.body, context])
-        raise_if_not_context_or_return_context(kind, next_context)
-      rescue
-        e ->
-          debug_log("Could not execute: #{inspect ast}, #{inspect e}")
-          Logger.error ">> could not execute #{inspect ast} #{inspect e}"
-          stack_trace = System.stacktrace
-          reraise(e, stack_trace)
-      end
-    else
-      raise ">> has no instruction for #{inspect ast}"
+  @spec do_command(Ast.t, Context.t) :: Context.t | no_return
+  def do_command(%Ast{} = ast, %Context{} = context) do
+    try do
+      do_execute_command(ast, context)
+    rescue
+      e in Farmbot.CeleryScript.Error ->
+        Logger.error "Failed to execute CeleryScript: #{e.message}"
+        reraise e, System.stacktrace()
+      exception ->
+        Logger.error "Unknown error happend executing CeleryScript."
+        # debug_log "CeleryScript Error: #{inspect exception}"
+        stacktrace = System.stacktrace()
+        opts       = [custom: %{context: context}]
+        ExRollbar.report(:error, exception, stacktrace, opts)
+        reraise exception, stacktrace
     end
   end
 
   def do_command(not_cs_node, _) do
-    raise ">> can not handle: #{inspect not_cs_node}"
+    raise Farmbot.CeleryScript.Error,
+      message: "Can not handle: #{inspect not_cs_node}"
   end
 
-  defp raise_if_not_context_or_return_context(_, %Farmbot.Context{} = next), do: next
+  defp do_execute_command(%Ast{} = ast, %Context{} = context) do
+    kind   = ast.kind
+    module = Module.concat Farmbot.CeleryScript.Command, Macro.camelize(kind)
+    if Code.ensure_loaded?(module) do
+        maybe_print_comment(ast.comment, ast.kind)
+        next_context = apply(module, :run, [ast.args, ast.body, context])
+        raise_if_not_context_or_return_context(kind, next_context)
+    else
+      raise Farmbot.CeleryScript.Error, context: context,
+        message: "No instruction for #{inspect ast}"
+    end
+  end
+
+  defp raise_if_not_context_or_return_context(_, %Context{} = next), do: next
   defp raise_if_not_context_or_return_context(last_kind, not_context) do
-    raise "[#{last_kind}] bad return value! #{inspect not_context}"
+    raise Farmbot.CeleryScript.Error,
+      message: "[#{last_kind}] bad return value! #{inspect not_context}"
   end
 
   # behaviour
-  @callback run(Ast.args, [Ast.t], Ast.context) :: Ast.context
+  @callback run(Ast.args, [Ast.t], Context.t) :: Context.t
 end

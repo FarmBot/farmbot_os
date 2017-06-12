@@ -3,23 +3,30 @@ defmodule Farmbot.System.Network do
     Network functionality.
   """
   require Logger
-  use GenServer
-  alias Farmbot.System.FS.ConfigStorage, as: CS
-  alias Farmbot.System.Network.SSH
-  alias Farmbot.System.Network.Ntp
-  alias Farmbot.Auth
-  alias Farmbot.Context
+  alias   Farmbot.System.FS.ConfigStorage, as: CS
+  alias   Farmbot.System.Network.{Ntp, SSH}
+  alias   Farmbot.{Context, Auth, HTTP, DebugLog}
+  use     DebugLog
+  use     GenServer
 
   @type netman :: pid
 
   @spec mod(atom | binary | Context.t) :: atom
   defp mod(%Context{} = context), do: mod(context.network)
-  defp mod(target) when is_atom(target) or is_binary(target), do: Module.concat([Farmbot, System, target, Network])
+  defp mod(target) when is_atom(target) or is_binary(target),
+    do: Module.concat([Farmbot, System, target, Network])
+
+  @doc """
+    Starts the network manager
+  """
+  def start_link(%Context{} = context, target, opts) do
+    GenServer.start_link(__MODULE__, [context, target], opts)
+  end
 
   def init([%Context{} = context, target]) do
     Logger.info ">> is starting networking"
     m = mod(target)
-    {:ok, _cb} = m.start_link
+    {:ok, _cb} = m.start_link(context)
     {:ok, interface_config} = get_config("interfaces")
     parse_and_start_config(context, interface_config, m)
     {:ok, %{context: context, target: target}}
@@ -43,13 +50,6 @@ defmodule Farmbot.System.Network do
   case Mix.env do
     :test -> defp maybe_log_in(_ctx), do: :ok
     _     -> defp maybe_log_in(ctx), do: Farmbot.Auth.try_log_in(ctx.auth)
-  end
-
-  @doc """
-    Starts the network manager
-  """
-  def start_link(%Context{} = context, target, opts) do
-    GenServer.start_link(__MODULE__, [context, target], opts)
   end
 
   @doc """
@@ -131,17 +131,21 @@ defmodule Farmbot.System.Network do
 
   defp maybe_get_fpf(%Context{} = ctx) do
     # First Party Farmware is not really a network concern but here we are...
-    {:ok, fpf} = GenServer.call(CS, {:get, Configuration, "first_party_farmware"})
+    call       = {:get, Configuration, "first_party_farmware"}
+    {:ok, fpf} = GenServer.call(CS, call)
 
     try do
       if fpf do
-        Logger.info ">> is installing first party Farmwares."
-        Farmware.get_first_party_farmware(ctx)
+        Logger.info ">> is installing first party Farmwares.", type: :busy
+        repo = Farmbot.Farmware.Installer.Repository.Farmbot
+        Farmbot.Farmware.Installer.enable_repo!(ctx, repo)
       end
       :ok
     rescue
       error ->
-        Logger.warn(">> Failed to install farmwares: #{inspect error}")
+        Logger.warn(">> failed to install first party farmwares: " <>
+         " #{inspect error}")
+        debug_log "#{inspect System.stacktrace()}"
         :ok
     end
   end
@@ -153,14 +157,21 @@ defmodule Farmbot.System.Network do
   @doc """
   Checks for nxdomain. reboots if `nxdomain`.
   """
-  def connection_test do
+  def connection_test(%Context{} = ctx) do
     Logger.info ">> doing connection test...", type: :busy
-    case HTTPoison.get("http://neverssl.com/") do
+    case HTTP.get(ctx, "http://neverssl.com/") do
       {:ok, _} ->
         Logger.info ">> connection test complete", type: :success
         :ok
-      {:error, %HTTPoison.Error{id: nil, reason: :nxdomain}} ->
-        Farmbot.System.reboot
+      {:error, {:failed_connect, err_list }} = err ->
+        if {:inet, [:inet], :nxdomain} in err_list do
+          debug_log "escaping from nxdomain."
+          Farmbot.System.reboot
+        else
+          debug_log "not escaping."
+          Farmbot.System.factory_reset("Fatal Error during "
+            <> "connection test! #{inspect err}")
+        end
       error ->
         Farmbot.System.factory_reset("Fatal Error during "
           <> "connection test! #{inspect error}")
@@ -172,7 +183,7 @@ defmodule Farmbot.System.Network do
     callback module.
   """
   def on_connect(context, pre_fun \\ nil, post_fun \\ nil)
-  def on_connect(context, pre_fun, post_fun) do
+  def on_connect(%Context{} = context, pre_fun, post_fun) do
     # Start the Downloader http client.
     Supervisor.start_child(Farmbot.System.Supervisor,
       Supervisor.Spec.worker(Downloader, [], [restart: :permanent]))
@@ -180,7 +191,7 @@ defmodule Farmbot.System.Network do
     # If we were supplied a pre connect callback, do that.
     if pre_fun, do: pre_fun.()
 
-    :ok = connection_test()
+    :ok = connection_test(context)
 
     :ok = maybe_set_time()
     :ok = maybe_start_ssh()
@@ -208,15 +219,31 @@ defmodule Farmbot.System.Network do
     def maybe_setup_rollbar(token) do
       if String.contains?(token.unencoded.iss, "farmbot.io") and @access_token do
         Logger.info ">> Setting up rollbar!"
-        :ok = ExRollbar.setup access_token: @access_token,
-          environment: token.unencoded.iss,
-          enable_logger: true,
-          person_id: token.unencoded.bot,
-          person_email: token.unencoded.sub,
+        # Application.put_env(:rollbax, :access_token, @access_token)
+        # Application.put_env(:rollbax, :environment,  token.unencoded.iss)
+        # Application.put_env(:rollbax, :enabled,      true)
+        # Application.put_env(:rollbas, :custom,       %{target: @target})
+        #
+        # Application.put_env(:farmbot, :rollbar_occurrence_data, %{
+        #   person_id:       token.unencoded.bot,
+        #   person_email:    token.unencoded.sub,
+        #   person_username: token.unencoded.bot,
+        #   framework:       "Nerves",
+        #   code_version:    @commit,
+        # })
+        # Application.ensure_all_started(:rollbax)
+
+        :ok = ExRollbar.setup [
           person_username: token.unencoded.bot,
-          framework: "Nerves",
-          code_version: @commit,
-          custom: %{target: @target}
+          # enable_logger:   true,
+          person_email:    token.unencoded.sub,
+          code_version:    @commit,
+          access_token:    @access_token,
+          environment:     token.unencoded.iss,
+          person_id:       token.unencoded.bot,
+          framework:       "Nerves",
+          custom:          %{target: @target}
+        ]
         :ok
       else
         Logger.info ">> Not Setting up rollbar!"
@@ -242,32 +269,32 @@ defmodule Farmbot.System.Network do
   def handle_call(:get_context, _, state), do: {:reply, state.context, state}
 
   def handle_call(:get_mod, _, state), do: {:reply, state.target, state}
-  def handle_call({:scan, interface_name}, _, target) do
-     f = mod(target).scan(interface_name)
-     {:reply, f, target}
+  def handle_call({:scan, interface_name}, _, state) do
+     f = mod(state.target).scan(state.context, interface_name)
+     {:reply, f, state}
   end
 
-  def handle_call(:enumerate, _, target) do
-    f = mod(target).enumerate
-    {:reply, f, target}
+  def handle_call(:enumerate, _, state) do
+    f = mod(state.target).enumerate(state.context)
+    {:reply, f, state}
   end
 
-  def handle_call({:start, interface, settings}, _, target) do
-    f = mod(target).start_interface(interface, settings)
-    {:reply, f, target}
+  def handle_call({:start, interface, settings}, _, state) do
+    f = mod(state.target).start_interface(state.context, interface, settings)
+    {:reply, f, state}
   end
 
-  def handle_call({:stop, interface}, _, target) do
-    f = mod(target).stop_interface(interface)
-    {:reply, f, target}
+  def handle_call({:stop, interface}, _, state) do
+    f = mod(state.target).stop_interface(state.context, interface)
+    {:reply, f, state}
   end
 
-  def terminate(reason, target) do
+  def terminate(reason, state) do
     ssh_pid = Process.whereis(SSH)
     if ssh_pid do
        SSH.stop(reason)
     end
-    target_pid = Process.whereis(mod(target))
+    target_pid = Process.whereis(mod(state.target))
     if target_pid do
       GenServer.stop(target_pid, reason)
     end
@@ -275,9 +302,9 @@ defmodule Farmbot.System.Network do
 
   # Behavior
   @type return_type :: :ok | {:error, term}
-  @callback scan(binary) :: [binary] | {:error, term}
-  @callback enumerate() :: [binary] | {:error, term}
-  @callback start_interface(binary, map) :: return_type
-  @callback stop_interface(binary) :: return_type
-  @callback start_link :: {:ok, pid}
+  @callback scan(Context.t, binary) :: [binary] | {:error, term}
+  @callback enumerate(Context.t) :: [binary] | {:error, term}
+  @callback start_interface(Context.t, binary, map) :: return_type
+  @callback stop_interface(Context.t, binary) :: return_type
+  @callback start_link(Context.t) :: {:ok, pid}
 end

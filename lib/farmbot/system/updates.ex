@@ -3,13 +3,11 @@ defmodule Farmbot.System.Updates do
     Check, download, apply updates
   """
 
-  @headers ["User-Agent": "FarmbotOS"]
   @target Mix.Project.config()[:target]
-  @ssl_hack [ ssl: [{:versions, [:'tlsv1.2']}] ]
   @path "/tmp/update.fw"
   require Logger
   alias Farmbot.System.FS
-  alias Farmbot.Context
+  alias Farmbot.{Context, HTTP}
 
   # TODO(connor): THIS IS A MINOR IMPROVEMENT FROM THE LAST VERSION OF THIS FILE
   # BUT IT DEFINATELY NEEDS FURTHER REFACTORING.
@@ -17,8 +15,7 @@ defmodule Farmbot.System.Updates do
   @spec mod(atom) :: atom
   defp mod(target), do: Module.concat([Farmbot, System, target, Updates])
 
-  defp releases_url do
-    context = Farmbot.Context.new()
+  defp releases_url(%Context{} = context) do
     {:ok, token} = Farmbot.Auth.get_token(context.auth)
     token.unencoded.os_update_server
   end
@@ -67,14 +64,14 @@ defmodule Farmbot.System.Updates do
       Logger.info msg, type: :warn
       :no_updates
     else
-      do_http_req()
+      do_http_req(context)
     end
   end
 
   @spec check_updates :: {:update, binary} | :no_updates | {:error, term}
-  defp do_http_req do
-    case HTTPoison.get(releases_url(), @headers, @ssl_hack) do
-       {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
+  defp do_http_req(%Context{} = ctx) do
+    case HTTP.get(ctx, releases_url(ctx)) do
+       {:ok, %HTTP.Response{body: body, status_code: 200}} ->
          json = Poison.decode!(body)
          version = json["tag_name"]
          version_without_v = String.trim_leading version, "v"
@@ -84,7 +81,7 @@ defmodule Farmbot.System.Updates do
          end)
          url = item["browser_download_url"]
          {:update, url}
-       {:error, %HTTPoison.Error{reason: reason}} -> {:error, reason}
+       {:error, reason} -> {:error, reason}
     end
   end
 

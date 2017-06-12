@@ -5,7 +5,7 @@ defmodule Logger.Backends.FarmbotLogger do
     jsonified, adds them too a buffer, when that buffer hits a certain
     size, it tries to dump the messages onto the API.
   """
-  alias Farmbot.HTTP
+  alias Farmbot.{Context, HTTP}
   use GenEvent
   require Logger
   use Farmbot.DebugLog
@@ -15,10 +15,12 @@ defmodule Logger.Backends.FarmbotLogger do
   @max_file_size 1.0e+7
   @filtered "[FILTERED]"
 
+  @log_amnt 5
+
   @typedoc """
     The state of the logger
   """
-  @type state :: %{logs: [log_message], posting: boolean}
+  @type state :: %{logs: [log_message], posting: boolean, context: nil | Context.t}
 
   @typedoc """
     Type of message for ticker
@@ -36,14 +38,13 @@ defmodule Logger.Backends.FarmbotLogger do
   """
   @type logger_level
     :: :info
-     | :debug
      | :warn
      | :error
 
   @typedoc """
     One day this will me more
   """
-  @type channel :: :toast
+  @type channel :: :toast | :email
 
   @type log_message
   :: %{message: String.t,
@@ -51,7 +52,11 @@ defmodule Logger.Backends.FarmbotLogger do
        created_at: integer,
        meta: %{type: rpc_log_type}}
 
-  def init(_), do: {:ok, %{logs: [], posting: false}}
+  def init(_) do
+    # ctx = Farmbot.Context.new()
+    debug_log "Starting Farmbot Logger"
+    {:ok, %{logs: [], posting: false, context: nil}}
+  end
 
   # The example said ignore messages for other nodes, so im ignoring messages
   # for other nodes.
@@ -60,30 +65,37 @@ defmodule Logger.Backends.FarmbotLogger do
   end
 
   # The logger event.
+  def handle_event({_level, _, {Logger, _, _, _}}, %{context: nil} = state) do
+    debug_log "Ignoreing message because no context"
+    {:ok, state}
+  end
+
   def handle_event({level, _, {Logger, message, timestamp, metadata}}, state) do
     # if there is type key in the meta we need that to have priority
     type = Keyword.get(metadata, :type, level)
     channels = Keyword.get(metadata, :channels, [])
     created_at = parse_created_at(timestamp)
-    san_m = sanitize(message, metadata)
+    san_m = sanitize(message, metadata, state)
     log = build_log(san_m, created_at, type, channels)
-    :ok = GenServer.cast(Farmbot.Transport, {:log, log})
+    :ok = GenServer.cast(state.context.transport, {:log, log})
     logs = [log | state.logs]
-    if !state.posting and Enum.count(logs) >= 50 do
+    if (!state.posting) and (Enum.count(logs) >= @log_amnt) do
       # If not already posting, and more than 50 messages
       spawn fn ->
+        # debug_log "going to try to post"
         filterd_logs = Enum.filter(logs, fn(log) ->
           log.message != @filtered
         end)
-        do_post(filterd_logs)
+        do_post(state.context, filterd_logs)
       end
       {:ok, %{state | logs: logs, posting: true}}
     else
+      # debug_log "not posting and logs less than 50"
       {:ok, %{state | logs: logs}}
     end
   end
 
-  def handle_event(:flush, _state), do: {:ok, %{logs: [], posting: false}}
+  def handle_event(:flush, state), do: {:ok, %{state | logs: [], posting: false}}
 
   def handle_call(:post_success, state) do
     debug_log "Logs uploaded!"
@@ -100,15 +112,22 @@ defmodule Logger.Backends.FarmbotLogger do
     {:ok, Enum.reverse(state.logs), state}
   end
 
+  def handle_call({:context, %Context{} = ctx}, state) do
+    {:ok, :ok, %{state | context: ctx}}
+  end
+
   def handle_call(:get_state, state), do: {:ok, state, state}
 
-  @spec do_post([log_message]) :: no_return
-  defp do_post(logs) do
+  @spec do_post(Context.t, [log_message]) :: no_return
+  defp do_post(%Context{} = ctx, logs) do
     try do
-      HTTP.post!("/api/logs", Poison.encode!(logs))
-      GenEvent.call(Elixir.Logger, __MODULE__, :post_success)
+      debug_log "doing post"
+      {:ok, %{status_code: 200}} = HTTP.post(ctx, "/api/logs", Poison.encode!(logs))
+      :ok = GenEvent.call(Elixir.Logger, __MODULE__, :post_success)
     rescue
-      _ -> GenEvent.call(Elixir.Logger, __MODULE__, :post_fail)
+      e ->
+        debug_log "post failed: #{inspect e}"
+        :ok = GenEvent.call(Elixir.Logger, __MODULE__, :post_fail)
     end
   end
 
@@ -159,13 +178,13 @@ defmodule Logger.Backends.FarmbotLogger do
   # then Logger trying to add it again  etc
   def terminate(_,_), do: spawn fn -> Logger.remove_backend(__MODULE__) end
 
-  @spec sanitize(binary, [any]) :: String.t
-  defp sanitize(message, meta) do
+  @spec sanitize(binary, [any], state) :: String.t
+  defp sanitize(message, meta, state) do
     module = Keyword.get(meta, :module)
     unless meta[:nopub] do
       message
       |> filter_module(module)
-      |> filter_text()
+      |> filter_text(state)
     end
   end
 
@@ -179,14 +198,22 @@ defmodule Logger.Backends.FarmbotLogger do
     :"Elixir.Nerves.NetworkInterface.Worker",
     :"Elixir.Nerves.InterimWiFi.DHCPManager.EventHandler",
     :"Elixir.Nerves.WpaSupplicant",
-    :"Elixir.Farmbot.System.NervesCommon.EventManager",
   ]
 
   for module <- @modules, do: defp filter_module(_, unquote(module)), do: @filtered
   defp filter_module(message, _module), do: message
 
-  defp filter_text(">>" <> m), do: filter_text("FIXME " <> m)
-  defp filter_text(m) when is_binary(m) do
+  defp filter_text(">>" <> m, state) do
+    device = try do
+      Farmbot.Database.Selectors.get_device(state.context)
+    rescue
+      _e in Farmbot.Database.Selectors.Error -> %{name: "Farmbot"}
+    end
+
+    filter_text(device.name <> m, state)
+  end
+
+  defp filter_text(m, _state) when is_binary(m) do
     try do
       Poison.encode!(m)
       m
@@ -194,7 +221,7 @@ defmodule Logger.Backends.FarmbotLogger do
       _ -> @filtered
     end
   end
-  defp filter_text(_message), do: @filtered
+  defp filter_text(_message, _state), do: @filtered
 
   # Couuld probably do this inline but wheres the fun in that. its a functional
   # language isn't it?
@@ -215,6 +242,10 @@ defmodule Logger.Backends.FarmbotLogger do
   end
 
   @spec build_log(String.t, number, rpc_log_type, [channel]) :: log_message
+  defp build_log(message, created_at, :debug, channels) do
+    build_log(message, created_at, :info, channels)
+  end
+
   defp build_log(message, created_at, type, channels) do
     %{message: message,
       created_at: created_at,

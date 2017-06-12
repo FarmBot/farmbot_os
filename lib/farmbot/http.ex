@@ -1,113 +1,206 @@
 defmodule Farmbot.HTTP do
   @moduledoc """
-    Shortcuts to Http Client because im Lazy.
+    Farmbot HTTP adapter for accessing the world and farmbot web api easily.
   """
-  alias Farmbot.Auth
-  alias Farmbot.Token
-  use HTTPoison.Base
+  use     GenServer
+  alias   Farmbot.{Auth, Context, Token}
+  alias   Farmbot.HTTP.{Response, Client, Error, Types, Helpers, Multipart}
+  import  Helpers
   require Logger
-  alias Farmbot.Context
+  use     Farmbot.DebugLog
+  use     Context, requires: [Auth]
 
   @version Mix.Project.config[:version]
-  @target Mix.Project.config[:target]
-  @twenty_five_seconds 25_000
-  @http_config [
-    ssl: [versions: [:'tlsv1.2']],
-    recv_timeout: @twenty_five_seconds,
-    timeout: @twenty_five_seconds,
-    follow_redirect: true
-  ]
+  @target  Mix.Project.config[:target]
 
-  @type http_resp :: HTTPoison.Response.t | {:error, HTTPoison.ErrorResponse.t}
-
-  defp context, do: Context.new()
-
-  def process_url(url) do
-    {:ok, server} = fetch_server(context().auth)
-    server <> url
+  @doc """
+    Make an HTTP Request.
+    * `context` is a Farmbot.Context
+    * `method` can be an atom representing an HTTP verb
+    * `url` is a binary url
+    * `body` is a binary http payload
+    * `opts` is a keyword list of options.
+  """
+  @spec request(Context.t,
+    Types.method,
+    Types.url,
+    Types.body,
+    Types.headers,
+    Keyword.t) :: {:ok, Response.t} | {:error, term}
+    # credo:disable-for-next-line
+  def request(%Context{} = ctx, method, url, body, headers, opts) do
+    {timeout, opts} = Keyword.pop(opts, :timeout, 30_000)
+    r               = {:request, method, url, body, headers, opts}
+    GenServer.call(ctx.http, r, timeout)
   end
 
-  def process_request_headers(_headers) do
-    {:ok, auth_headers} = build_auth(context())
-    auth_headers
-  end
-
-  def process_request_options(opts),
-    do: opts
-        |> Keyword.merge(@http_config, fn(_key, user_provided, _default) ->
-          user_provided
-        end)
-
-  def process_status_code(401) do
-    Logger.info ">> Token is expired!"
-    Farmbot.Auth.try_log_in!(context().auth)
-    401
-  end
-
-  def process_status_code(code), do: code
-
-  @spec build_auth(Context.t) :: {:ok, [any]} | {:error, :no_token}
-  defp build_auth(%Context{} = ctx) do
-    with {:ok, %Token{} = token} <- Auth.get_token(ctx.auth)
-    do
-      {:ok,
-        ["Content-Type": "application/json",
-         "User-Agent": "FarmbotOS/#{@version} (#{@target}) #{@target} ()",
-         "Authorization": "Bearer " <> token.encoded]}
-    else
-      _ -> {:error, :no_token}
+  @spec request!(Context.t,
+    Types.method,
+    Types.url,
+    Types.body,
+    Types.headers,
+    Keyword.t) :: Response.t | no_return
+  # credo:disable-for-next-line
+  def request!(%Context{} = ctx, method, url, body, headers, opts) do
+    case request(ctx, method, url, body, headers, opts) do
+      {:ok, response} -> response
+      {:error, er} ->
+        raise Error, message: "Http request #{inspect method} :" <>
+          " #{inspect url} failed! #{inspect er}"
     end
   end
 
-  @spec fetch_server(Context.auth) :: {:error, :no_server} | {:ok, binary}
-  defp fetch_server(auth) do
-    case Auth.get_server(auth) do
-      {:ok, nil} -> {:error, :no_server}
-      {:ok, server} -> {:ok, server}
+  methods = [:get, :post]
+
+  for verb <- methods do
+    @doc """
+      HTTP #{verb} request.
+    """
+    def unquote(verb)(context, url, body \\ "", headers \\ [], opts \\ [])
+    def unquote(verb)(%Context{} = ctx, url, body, headers, opts) do
+       request(ctx, unquote(verb), url, body, headers, opts)
+    end
+
+    @doc """
+      Same as #{verb}/5 but raises if there is an error.
+    """
+    fun_name = "#{verb}!" |> String.to_atom
+    def unquote(fun_name)(context, url, body \\ "", headers \\ [], opts \\ [])
+    def unquote(fun_name)(%Context{} = ctx, url, body, headers, opts) do
+      request!(ctx, unquote(verb), url, body, headers, opts)
     end
   end
 
   @doc """
-    Uploads a file to google storage
+    Downloads a file to the filesystem.
+    Will return the path to the downloaded file.
   """
-  @spec upload_file(binary) :: {:ok, HTTPoison.Response.t} | no_return
-  def upload_file(file_name) do
-    unless File.exists?(file_name) do
-      raise("File not found")
-    end
-    {:ok, %HTTPoison.Response{body: rbody,
-      status_code: 200}} = get("/api/storage_auth")
-
-    {:ok, file} = File.read(file_name)
-
-    body = Poison.decode!(rbody)
-    url = "https:" <> body["url"]
-    form_data = body["form_data"]
-    attachment_url = url <> form_data["key"]
-    headers = [
-      {"Content-Type", "multipart/form-data"},
-      {"User-Agent", "FarmbotOS"}
-    ]
-    payload =
-      Enum.map(form_data, fn({key, value}) ->
-        if key == "file", do: {"file", file}, else: {key, value}
-      end)
-    Logger.info ">> #{attachment_url} Should hopefully exist shortly!"
-    url
-    |> HTTPoison.post({:multipart, payload}, headers)
-    |> finish_upload(attachment_url)
+  @spec download_file!(Context.t, Types.url, Path.t) :: Path.t
+  def download_file!(%Context{} = ctx, url, path) do
+    %Response{} = get! ctx, url, "", [], file: path
+    path
   end
 
-  @spec finish_upload(any, binary) :: {:ok, HTTPoison.Response.t} | no_return
+  @doc """
+    Uploads a file to the API
+  """
+  @spec upload_file!(Context.t, Path.t) :: :ok | no_return
+  def upload_file!(%Context{} = ctx, filename) do
+    unless File.exists?(filename) do
+      raise Error, message: "#{filename} not found"
+    end
 
-  # We only want to upload if we get a 2XX response.
-  defp finish_upload({:ok, %HTTPoison.Response{status_code: s}}, attachment_url)
-  when s < 300 do
-    ctx   = Context.new()
+    %Response{status_code: 200, body: rbody} = get!(ctx, "/api/storage_auth")
+    boundry                                  = Multipart.new_boundry()
+    body                                     = Poison.decode!(rbody)
+    file                                     = File.read!(filename)
+    url                                      = "https:"  <> body["url"]
+    form_data                                = body["form_data"]
+    attachment_url                           = url <> form_data["key"]
+    payload =
+      Map.new(form_data, fn({key, value}) ->
+        if key == "file",
+          do: {"file", {Path.basename(filename), file}}, else: {key, value}
+      end)
+    real_payload = Multipart.format(payload, boundry)
+    headers = [
+      Multipart.multi_part_header(boundry),
+      user_agent_header()
+    ]
+    ggl_response = post!(ctx, url, real_payload, headers, [])
+    debug_log "#{attachment_url} should exist shortly."
+    :ok = finish_upload!(ggl_response, ctx, attachment_url)
+    :ok
+  end
+
+  defp finish_upload!(%Response{status_code: s}, %Context{} = ctx, atch_url)
+  when is_2xx(s) do
     [x, y, z] = Farmbot.BotState.get_current_pos(ctx)
     meta      = %{x: x, y: y, z: z}
-    json      = Poison.encode! %{"attachment_url" => attachment_url,
+    json      = Poison.encode! %{"attachment_url" => atch_url,
                                  "meta" => meta}
-    Farmbot.HTTP.post "/api/images", json
+    res       = post! ctx, "/api/images", json, [], []
+    unless is_2xx(res.status_code) do
+      raise Error, message: "Api refused upload: #{inspect res}"
+    end
+    :ok
+  end
+
+  defp finish_upload!(response, _ctx, _attachment_url) do
+    raise Error, message: "bad status from GCS: #{inspect response}"
+  end
+
+  ## GenServer Stuff
+
+  @doc """
+    Start a HTTP adapter.
+  """
+  def start_link(%Context{} = ctx, opts) do
+    GenServer.start_link(__MODULE__, ctx, opts)
+  end
+
+  def init(ctx) do
+    Registry.register(Farmbot.Registry, Farmbot.Auth, [])
+    Process.flag(:trap_exit, true)
+    state = %{
+      context: %{ctx | http: self()},
+      token:   nil
+    }
+    {:ok, state}
+  end
+
+  def handle_call({:request, method, url, body, headers, opts}, from, state) do
+    debug_log "Starting client."
+    case url do
+      "/api" <> _  ->
+        debug_log "I think this is a farmbot api request: #{url}"
+        r = {method, url, body, headers, opts}
+        build_api_request(state.token, state.context, r, from)
+      _ ->
+        {:ok, pid} = Client.start_link(from, {method, url, body, headers}, opts)
+        :ok        = Client.execute(pid)
+    end
+    {:noreply, state}
+  end
+
+  def handle_info({Auth, {:new_token, token}}, state) do
+    {:noreply, %{state | token: token}}
+  end
+
+  def handle_info({Auth, :purge_token}, state),
+    do: {:noreply, %{state | token: nil}}
+
+  def handle_info({:EXIT, _old_client, _reason}, state) do
+    debug_log "Client finished."
+    {:noreply, state}
+  end
+
+  defp build_api_request(%Token{
+      encoded: enc,
+      unencoded: %{iss: server}},
+    %Context{} = _ctx, request, from)
+  do
+    {method, slug, body, old_headers, opts} = request
+    url                                     = "#{server}#{slug}"
+    auth_header                             = {'Authorization', 'Bearer #{enc}'}
+    uah                                     = user_agent_header()
+    headers                                 = old_headers
+                                              |> add_header(auth_header)
+                                              |> add_header(uah)
+    {:ok, pid} = Client.start_link(from, {method, url, body, headers}, opts)
+    :ok        = Client.execute(pid)
+  end
+
+  defp build_api_request(_, _, _, from) do
+    debug_log "Don't have a token. Not doing API request."
+    GenServer.reply(from, {:error, :no_token})
+    :ok
+  end
+
+  @spec add_header(Types.headers, Types.header) :: Types.headers
+  defp add_header(headers, new), do: [new | headers]
+
+  def user_agent_header do
+    {'User-Agent', 'FarmbotOS/#{@version} (#{@target}) #{@target} ()'}
   end
 end

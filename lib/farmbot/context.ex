@@ -13,71 +13,111 @@ defmodule Farmbot.Context do
     :hardware,
     :monitor,
     :configuration,
-    :farmware_worker,
-    :farmware_tracker
+    :http,
+    :transport,
+    :farmware_manager,
+    :regimen_supervisor
   ]
 
   @enforce_keys modules
-  defstruct [ {:data_stack, []} | modules ]
+  keys = [{:data_stack, []}, :ref]
+  defstruct Enum.concat(keys, modules)
 
-  defimpl Inspect, for: __MODULE__ do
-    def inspect(thing, _) do
-      default_context =
-        Farmbot.Context.new()
-        |> Map.from_struct
-        |> Map.delete(:data_stack)
+  @doc false
+  defmacro __using__(opts) do
+    reqs = Keyword.fetch!(opts, :requires)
+    quote do
+      alias      Farmbot.Context
+      @behaviour Context.Consumer
 
-      thing = thing |> Map.from_struct() |> Map.delete(:data_stack)
-      if thing == default_context do
-        "#Context<default>"
-      else
-        "#Context<#{thing}>"
-      end
+      @doc false
+      def requirements, do: unquote(reqs)
     end
   end
 
-  @typedoc false
-  @type database      :: Farmbot.Database.database
+  defimpl Inspect, for: __MODULE__ do
+    def inspect(%{ref: ref}, _) when is_reference(ref) do
+      "#Reference<" <> rest = inspect ref
+      info = String.trim(rest, ">")
+      "#Context<#{info}>"
+    end
+
+    def inspect(_, _) do
+      "#Context<:invalid>"
+    end
+  end
+
+  @behaviour Access
+  def fetch(%__MODULE__{} = ctx, key), do: Map.fetch(ctx, key)
+  def get(%__MODULE__{} = ctx, key, _default), do: Map.fetch(ctx, key)
+  def get_and_update(%__MODULE__{}, _, _), do: raise "Cant update #{__MODULE__} struct!"
+  def pop(%__MODULE__{}, _), do: raise "Cant pop #{__MODULE__} struct!"
 
   @typedoc false
-  @type auth          :: Farmbot.Auth.auth
+  @type database           :: Farmbot.Database.database
 
   @typedoc false
-  @type network       :: Farmbot.System.Network.netman
+  @type auth               :: Farmbot.Auth.auth
 
   @typedoc false
-  @type serial        :: Farmbot.Serial.Handler.handler
+  @type network            :: Farmbot.System.Network.netman
 
   @typedoc false
-  @type hardware      :: Farmbot.BotState.Hardware.hardware
+  @type serial             :: Farmbot.Serial.Handler.handler
 
   @typedoc false
-  @type monitor       :: Farmbot.BotState.Monitor.monitor
+  @type hardware           :: Farmbot.BotState.Hardware.hardware
 
   @typedoc false
-  @type configuration :: Farmbot.BotState.Configuration.configuration
+  @type monitor            :: Farmbot.BotState.Monitor.monitor
 
   @typedoc false
-  @type farmware_tracker :: Farmware.tracker
+  @type configuration      :: Farmbot.BotState.Configuration.configuration
 
   @typedoc false
-  @type farmware_worker :: Farmware.worker
+  @type http               :: Farmbot.HTTP.http
+
+  @typedoc false
+  @type transport          :: Farmbot.Transport.transport
+
+  @typedoc false
+  @type farmware_manager   :: Farmbot.Farmware.Manager.manager
+
+  @typedoc false
+  @type regimen_supervisor :: Farmbot.Regimen.Supervisor.supervisor
+
+  @typedoc """
+    List of usable modules
+  """
+  @type modules :: Farmbot.Database |
+    Farmbot.Auth |
+    Farmbot.System.Network |
+    Farmbot.Serial.Handler |
+    Farmbot.BotState.Hardware |
+    Farmbot.BotState.Monitor |
+    Farmbot.BotState.Configuration |
+    Farmbot.HTTP |
+    Farmbot.Transport |
+    Farmbot.Farmware.Manager |
+    Farmbot.Regimen.Supervisor
 
   @typedoc """
     Stuff to be passed from one CS Node to another
   """
   @type t :: %__MODULE__{
-    database:        database,
-    auth:            auth,
-    network:         network,
-    serial:          serial,
-    configuration:   configuration,
-    monitor:         monitor,
-    hardware:        hardware,
-    farmware_worker: farmware_worker,
-    farmware_tracker: farmware_worker,
-
-    data_stack:    [Ast.t]
+    database:           database,
+    auth:               auth,
+    network:            network,
+    serial:             serial,
+    configuration:      configuration,
+    monitor:            monitor,
+    hardware:           hardware,
+    http:               http,
+    transport:          transport,
+    farmware_manager:   farmware_manager,
+    ref:                reference,
+    regimen_supervisor: regimen_supervisor,
+    data_stack:       [Ast.t]
   }
 
   @spec push_data(t, Ast.t) :: t
@@ -96,18 +136,21 @@ defmodule Farmbot.Context do
     Returns an empty context object for those times you don't care about
     side effects or execution.
   """
-  @spec new :: Ast.context
+  @spec new :: Context.t
   def new do
     %__MODULE__{ data_stack: [],
-                 farmware_worker:  Farmware.Worker,
-                 farmware_tracker: Farmware.Tracker,
-                 configuration:    Farmbot.BotState.Configuration,
-                 hardware:         Farmbot.BotState.Hardware,
-                 monitor:          Farmbot.BotState.Monitor,
-                 database:         Farmbot.Database,
-                 network:          Farmbot.System.Network,
-                 serial:           Farmbot.Serial.Handler,
-                 auth:             Farmbot.Auth,
+                 ref:        make_ref(),
+                 regimen_supervisor: Farmbot.Regimen.Supervisor,
+                 farmware_manager:   Farmbot.Farmware.Manager,
+                 configuration:      Farmbot.BotState.Configuration,
+                 transport:          Farmbot.Transport,
+                 hardware:           Farmbot.BotState.Hardware,
+                 database:           Farmbot.Database,
+                 monitor:            Farmbot.BotState.Monitor,
+                 network:            Farmbot.System.Network,
+                 serial:             Farmbot.Serial.Handler,
+                 auth:               Farmbot.Auth,
+                 http:               Farmbot.HTTP
     }
   end
 end

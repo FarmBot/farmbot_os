@@ -1,0 +1,60 @@
+{
+ "$schema": "http://json-schema.org/draft-04/schema#",
+ "id": "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/schema.json",
+ "title": "Farmware Schema",
+ "type": "object",
+ "properties": {
+  "package": {
+   "description": "Package name",
+   "type": "string"
+  },
+  "language": {
+   "description": "Package programming language",
+   "type": "string"
+  },
+  "author": {
+   "description": "Package author",
+   "type": "string"
+  },
+  "description": {
+   "description": "Package description",
+   "type": "string"
+  },
+  "version": {
+   "description": "Package version",
+   "type": "string"
+  },
+  "min_os_version_major": {
+   "description": "Minimum Farmbot OS version",
+   "type": "integer"
+  },
+  "url": {
+   "description": "Url to locate this package",
+   "type": "string"
+  },
+  "zip": {
+   "description": "Url to locate the release of package",
+   "type": "string"
+  },
+  "executable": {
+   "description": "the name of the executable",
+   "type": "string"
+  },
+  "args": {
+   "description": "arguments to the executable",
+   "type": "array"
+  }
+ },
+ "required": [
+  "package",
+  "language",
+  "author",
+  "description",
+  "version",
+  "min_os_version_major",
+  "url",
+  "zip",
+  "args",
+  "executable"
+ ]
+}

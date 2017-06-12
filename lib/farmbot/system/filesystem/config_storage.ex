@@ -7,14 +7,15 @@ defmodule Farmbot.System.FS.ConfigStorage do
   use GenServer
   alias Farmbot.System.FS.ConfigFileMigrations, as: CFM
   require Logger
+  alias Farmbot.Context
 
   @config_file Application.get_env(:farmbot, :path) <> "/config.json"
   @default_config_file_name Application.get_env(:farmbot, :config_file_name)
   defp default_config_file,
     do: "#{:code.priv_dir(:farmbot)}/configs/#{@default_config_file_name}"
 
-  def start_link do
-    GenServer.start_link(__MODULE__, @config_file, name: __MODULE__)
+  def start_link(%Context{} = _ctx, opts) do
+    GenServer.start_link(__MODULE__, @config_file, opts)
   end
 
   def init(path) do
@@ -100,7 +101,7 @@ defmodule Farmbot.System.FS.ConfigStorage do
     write! new_state
   end
 
-  def terminate(_,_), do: nil
+  def terminate(_, _), do: nil
 
   defp module_to_key(module),
     do: module

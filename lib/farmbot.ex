@@ -21,14 +21,19 @@ defmodule Farmbot do
 
   def init(_args) do
     context = Farmbot.Context.new()
+    # ctx_tracker = %Farmbot.Context.Tracker{pid: Farmbot.Context.Tracker}
     children = [
       worker(Farmbot.DebugLog, [], restart: :permanent),
       supervisor(Registry,     [:duplicate,  Farmbot.Registry]),
+
       supervisor(FBSYS,
         [context, [name: FBSYS                        ]], restart: :permanent),
 
       worker(Farmbot.Auth,
         [context, [name: Farmbot.Auth                 ]], restart: :permanent),
+
+      worker(Farmbot.HTTP,
+        [context, [name: Farmbot.HTTP                 ]], restart: :permanent),
 
       worker(Farmbot.Database,
         [context, [name: Farmbot.Database             ]], restart: :permanent),
@@ -42,16 +47,16 @@ defmodule Farmbot do
       supervisor(Farmbot.Transport.Supervisor,
         [context, [name: Farmbot.Transport.Supervisor ]], restart: :permanent),
 
-      supervisor(Farmware.Supervisor,
-        [context, [name: Farmware.Supervisor          ]], restart: :permanent),
-
       worker(Farmbot.ImageWatcher,
         [context, [name: Farmbot.ImageWatcher         ]], restart: :permanent),
 
-      worker(Task, [Farmbot.Serial.Handler.OpenTTY, :open_ttys, [__MODULE__]],
-        restart: :transient),
+      supervisor(Farmbot.Serial.Supervisor,
+        [context, [name: Farmbot.Serial.Supervisor    ]], restart: :permanent),
 
       supervisor(Farmbot.Configurator, [], restart: :permanent),
+
+      supervisor(Farmbot.Farmware.Supervisor, [context,
+        [name: Farmbot.Farmware.Supervisor            ]], restart: :permanent)
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)

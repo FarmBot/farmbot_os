@@ -76,7 +76,7 @@ defmodule Farmbot.System.Network.Hostapd do
       ip_addr: ip_addr,
       manager: manager
     }
-    {:ok,state}
+    {:ok, state}
   end
 
   defp hostapd_ip_settings_up(interface, ip_addr) do
@@ -147,8 +147,8 @@ defmodule Farmbot.System.Network.Hostapd do
   end
 
   def handle_info({port, {:data, data}}, state) do
-    {hostapd_port,_} = state.hostapd
-    {dnsmasq_port,_} = state.dnsmasq
+    {hostapd_port, _} = state.hostapd
+    {dnsmasq_port, _} = state.dnsmasq
     cond do
       port == hostapd_port ->
         handle_hostapd(data, state)
@@ -163,16 +163,16 @@ defmodule Farmbot.System.Network.Hostapd do
     GenEvent.notify(state.manager, {:hostapd, String.trim(data)})
     {:noreply, state}
   end
-  defp handle_hostapd(_,state), do: {:noreply, state}
+  defp handle_hostapd(_, state), do: {:noreply, state}
 
   defp handle_dnsmasq(data, state) when is_bitstring(data) do
     GenEvent.notify(state.manager, {:dnsmasq, String.trim(data)})
     {:noreply, state}
   end
 
-  defp handle_dnsmasq(_,state), do: {:noreply, state}
+  defp handle_dnsmasq(_, state), do: {:noreply, state}
 
-  def terminate(_,state) do
+  def terminate(_, state) do
     Logger.info ">> is stopping hostapd"
     {_hostapd_port, hostapd_pid} = state.hostapd
     {_dnsmasq_port, dnsmasq_pid} = state.dnsmasq

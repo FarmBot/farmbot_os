@@ -4,6 +4,7 @@ defmodule Farmbot.CeleryScript.Command.If do
   """
 
   alias Farmbot.CeleryScript.{Command, Ast}
+  import Command, only: [do_command: 2, read_pin_or_raise: 3]
   alias Farmbot.Context
   use Farmbot.DebugLog
 
@@ -18,9 +19,9 @@ defmodule Farmbot.CeleryScript.Command.If do
               rhs: integer},
       body: []
   """
-  @spec run(%{}, [], Ast.context) :: Ast.context
-  def run(%{_else: else_, _then: then_, lhs: lhs, op: op, rhs: rhs }, [], ctx) do
-    left = lhs |> eval_lhs(ctx)
+  @spec run(%{}, [], Context.t) :: Context.t
+  def run(%{_else: else_, _then: then_, lhs: lhs, op: op, rhs: rhs }, pairs, ctx) do
+    left = lhs |> eval_lhs(ctx, pairs)
     unless is_integer(left) do
       raise "could not evaluate left hand side of if statment! #{inspect lhs}"
     end
@@ -29,25 +30,33 @@ defmodule Farmbot.CeleryScript.Command.If do
   end
 
   # figure out what the user wanted
-  @spec eval_lhs(binary, Ast.context) :: integer
+  @spec eval_lhs(binary, Context.t, [Ast.t]) :: integer
 
-  defp eval_lhs(lhs, %Farmbot.Context{} = context) do
+  defp eval_lhs(lhs, %Farmbot.Context{} = context, pairs) do
     [x, y, z] = Farmbot.BotState.get_current_pos(context)
     case lhs do
       "x"             -> x
       "y"             -> y
       "z"             -> z
-      "pin" <> number ->
-        thing = number |> String.trim |> String.to_integer
-        %{value: val} = Farmbot.BotState.get_pin(context, thing)
-        val
-      _   ->
-        nil
+      "pin" <> number -> lookup_pin(context, number, pairs)
+      _               -> nil
+    end
+  end
+
+  @spec lookup_pin(Context.t, binary, [Ast.t]) :: integer | no_return
+  defp lookup_pin(context, number, pairs) do
+    thing   = number |> String.trim |> String.to_integer
+    pin_map = Farmbot.BotState.get_pin(context, thing)
+    case pin_map do
+      %{value: val} -> val
+      nil           ->
+        new_context = read_pin_or_raise(context, number, pairs)
+        lookup_pin(new_context, number, [])
     end
   end
 
   @spec eval_if({integer, String.t, integer},
-    Ast.t, Ast.t, Ast.context) :: Ast.context
+    Ast.t, Ast.t, Context.t) :: Context.t
 
   defp eval_if({lhs, ">", rhs}, then_, else_, context) do
     if lhs > rhs,
@@ -78,6 +87,6 @@ defmodule Farmbot.CeleryScript.Command.If do
 
   defp print_and_execute(%Ast{} = ast, bool, %Context{} = ctx) do
     debug_log "if evaluated: #{bool}, doing: #{inspect ast}"
-    Command.do_command(ast, ctx)
+    do_command(ast, ctx)
   end
 end

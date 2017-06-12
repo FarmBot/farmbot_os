@@ -14,9 +14,10 @@ defmodule Farmbot.System.FS.Worker do
 
   require Logger
   use GenStage
+  alias Farmbot.Context
 
-  def start_link(target) do
-    GenStage.start_link(__MODULE__, target, name: __MODULE__)
+  def start_link(%Context{} = _ctx, target, opts) do
+    GenStage.start_link(__MODULE__, target, opts)
   end
 
   def init(target) do
@@ -40,7 +41,7 @@ defmodule Farmbot.System.FS.Worker do
 
   def handle_call(:get_state, _, state), do: {:reply, [], state, state}
 
-  def terminate(_,mod) do
+  def terminate(_, mod) do
     mod.mount_read_only
     :ok
   end

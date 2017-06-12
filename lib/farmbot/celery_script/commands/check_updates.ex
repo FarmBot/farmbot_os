@@ -13,7 +13,7 @@ defmodule Farmbot.CeleryScript.Command.CheckUpdates do
       body: []
   """
   @type package :: String.t # "farmbot_os"
-  @spec run(%{package: package}, [], Ast.context) :: Ast.context
+  @spec run(%{package: package}, [], Context.t) :: Context.t
   def run(%{package: package}, [], context) do
     case package do
       "arduino_firmware" ->

@@ -11,10 +11,13 @@ defmodule Farmbot.CeleryScript.Command.PowerOff do
       args: %{},
       body: []
   """
-  @spec run(%{}, [], Ast.context) :: Ast.context
+  @spec run(%{}, [], Context.t) :: Context.t
   def run(%{}, [], context) do
-    Farmbot.System.power_off()
+    spawn fn ->
+      Farmbot.BotState.set_sync_msg(context, :maintenance)
+      Process.sleep(2000)
+      Farmbot.System.power_off()
+    end
     context
-    # ^ lol
   end
 end

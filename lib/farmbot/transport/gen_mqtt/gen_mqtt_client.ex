@@ -2,91 +2,107 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   @moduledoc """
     MQTT transport for farmbot RPC Commands.
   """
-  use GenMQTT
   require Logger
-  alias Farmbot.Transport.Serialized, as: Ser
-  alias Farmbot.Token
-  alias Farmbot.CeleryScript.{Command, Ast}
-  alias Farmbot.Context
-
-  @type state :: {Token.t, Context.t}
-
-  @type ok :: {:ok, state}
-
-  @spec init(Token.t) :: ok
-  def init([%Context{} = context, %Token{} = token]) do
-    Logger.debug ">> Starting mqtt!"
-    {:ok, {token, context}}
-  end
+  alias   Farmbot.Transport.Serialized, as: Ser
+  alias   Farmbot.Token
+  alias   Farmbot.CeleryScript.{Command, Ast}
+  alias   Farmbot.{Context, Token}
+  use     Farmbot.DebugLog, name: MqttClient
+  use     GenMQTT
 
   @doc """
     Starts a mqtt client.
   """
   def start_link(%Context{} = context, %Token{} = token) do
-    GenMQTT.start_link(__MODULE__, [context, token], build_opts(token))
+    GenMQTT.start_link(__MODULE__, {context, token}, build_opts(token))
   end
 
-  @spec on_connect(state) :: ok
-  def on_connect({%Token{} = token, %Context{} = _context} = state) do
+  def init({%Context{} = context, %Token{} = token}) do
+    Logger.debug ">> Starting mqtt!"
+    Process.flag(:trap_exit, true)
+    # Process.send_after(self(), :r_u_alive_bb?, 1000)
+    {:ok, %{token: token, context: context, cs_nodes: []}}
+  end
+
+  def on_connect(%{token: token, context: context} = state) do
     GenMQTT.subscribe(self(), [{bot_topic(token), 0}])
 
     fn ->
       Process.sleep(10)
       Logger.info ">> is up and running!"
-      Farmbot.Transport.force_state_push
+      Farmbot.Transport.force_state_push(context)
     end.()
 
     {:ok, state}
   end
 
-  @spec on_publish([String.t], binary, state) :: ok
-  def on_publish(["bot", _bot, "from_clients"], msg, {%Token{} = token, %Context{} = context}) do
-    # dont crash mqtt here because it sends an ugly message to rollbar
-    try do
-      msg
-      |> Poison.decode!
-      |> Ast.parse
-      |> Command.do_command(context)
-    rescue
-      e ->
-        Logger.error ">> Saved mqtt client from cs death: #{inspect e}"
+  def on_publish(["bot", _bot, "from_clients"], msg, state) do
+    this = self()
+    pid = spawn fn() ->
+      new_context =
+        msg
+        |> Poison.decode!
+        |> Ast.parse
+        |> Command.do_command(state.context)
+        cast(this, {:context, self(), new_context})
     end
-    {:ok, {token, context}}
+    {:ok, %{state | cs_nodes: [pid | state.cs_nodes]}}
   end
 
-  def on_disconnect(_), do: :shutdown
+  def handle_cast(_, %{token: nil} = state), do: {:stop, :no_token, state}
 
-  def handle_cast({:status, %Ser{} = ser}, {%Token{} = token, %Context{} = con}) do
+  def handle_cast({:context, pid, %Context{} = ctx}, state)do
+    new_nodes = List.delete(state.cs_nodes, pid)
+    {:ok, %{state | context: ctx, cs_nodes: new_nodes}}
+  end
+
+  def handle_cast({:status, %Ser{} = ser}, state) do
+    # debug_log "Got bot status."
     json = Poison.encode!(ser)
-    GenMQTT.publish(self(), status_topic(token), json, 0, false)
-    {:ok, {token, con}}
+    GenMQTT.publish(self(), status_topic(state.token), json, 0, false)
+    {:ok, state}
   end
 
-  def handle_cast({:log, msg}, {%Token{} = token, %Context{} = con}) do
+  def handle_cast({:log, msg}, state) do
+    # debug_log "Got Log message."
     json = Poison.encode! msg
-    GenMQTT.publish(self(), log_topic(token), json, 0, false)
-    {:ok, {token, con}}
+    GenMQTT.publish(self(), log_topic(state.token), json, 0, false)
+    {:ok, state}
   end
 
-  def handle_cast({:emit, msg}, {%Token{} = token, context}) do
+  def handle_cast({:emit, msg}, state) do
+    # debug_log "Emitting: #{inspect msg}"
     json = Poison.encode! msg
-    GenMQTT.publish(self(), frontend_topic(token), json, 0, false)
-    {:noreply, {token, context}}
+    GenMQTT.publish(self(), frontend_topic(state.token), json, 0, false)
+    {:noreply, state}
   end
 
-  def terminate(_,_), do: :ok
+  def handle_info({:EXIT, pid, _reason}, state) do
+    if pid in state.cs_nodes do
+      # this step did not execute properly.
+      {:ok, %{state | cs_nodes: List.delete(state.cs_nodes, pid)}}
+    else
+      {:ok, state}
+    end
+  end
+
+  # def handle_info(:r_u_alive_bb?, {%Token{} = tkn, %Context{} = ctx}) do
+  #   # debug_log "Got alive checkup"
+  #   Process.send_after(self(), :r_u_alive_bb?, 1000)
+  #   {:noreply, {tkn, ctx}}
+  # end
 
   @spec build_opts(Token.t) :: GenMQTT.option
   defp build_opts(%Token{} = token) do
-    [name: __MODULE__,
-     host: token.unencoded.mqtt,
-     timeout: 10_000,
+    [
      reconnect_timeout: 10_000,
-     password: token.encoded,
-     username: token.unencoded.bot,
-     last_will_topic: [log_topic(token)],
-     last_will_msg: build_last_will_message(token),
-     last_will_qos: 0
+     last_will_topic:   [log_topic(token)],
+     last_will_msg:     build_last_will_message(token),
+     last_will_qos:     0,
+     username:          token.unencoded.bot,
+     password:          token.encoded,
+     timeout:           10_000,
+     host:              token.unencoded.mqtt,
     ]
   end
 

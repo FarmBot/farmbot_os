@@ -43,17 +43,6 @@ defmodule Farmbot.Database do
   @typedoc false
   @type syncable_object :: map
 
-  @typedoc """
-    State of the DB
-  """
-  @type state :: %{
-    by_kind_and_id: %{ required({syncable, db_id}) => ref_id       },
-    awaiting:       %{ required(syncable)          => boolean      },
-    by_kind:        %{ required(syncable)          => [ref_id]     },
-    refs:           %{ required(ref_id)            => resource_map },
-    all:            [ref_id],
-  }
-
   # This pulls all the module names by their filename.
   syncable_modules =
     "lib/farmbot/database/syncable/"
@@ -70,29 +59,54 @@ defmodule Farmbot.Database do
   @spec all_syncable_modules :: [syncable]
   def all_syncable_modules, do: unquote(syncable_modules)
 
+  defp set_syncing(ctx, msg) do
+    :ok = Farmbot.BotState.set_sync_msg(ctx, msg)
+    :ok
+  end
+
   @doc """
     Sync up with the API.
   """
+  # TODO(Connor) this is slow.
   @spec sync(Context.t) :: :ok | no_return
   def sync(%Context{} = ctx) do
-    Farmbot.BotState.set_sync_msg(ctx, :syncing)
-    try do
-      for module_name <- all_syncable_modules() do
-        # see: `syncable.ex`. This is some macro magic.
-        debug_log "#{module_name} Sync begin."
-        :ok = module_name.fetch({__MODULE__,
-          :commit_records,  [ctx, module_name]})
-
-        debug_log "#{module_name} Sync finish."
+    set_syncing(ctx, :syncing)
+    for module_name <- all_syncable_modules() do
+      if get_awaiting(ctx, module_name) do
+        :ok = do_sync(ctx, module_name)
+      else
+        debug_log "#{module_name} already up to date."
         :ok
       end
-      Farmbot.BotState.set_sync_msg(ctx, :synced)
-      :ok
+
+    end
+    set_syncing(ctx, :synced)
+    Logger.info ">> is synced!", type: :success
+    :ok
+  end
+
+  defp do_sync(context, module_name, retries \\ 0)
+  defp do_sync(%Context{} = _ctx, module_name, retries) when retries > 4 do
+    debug_log "#{module_name} failed to sync too many times. (#{retries})"
+    Logger.error ">> failed to sync #{module_name} to many times."
+    :ok
+  end
+
+  defp do_sync(%Context{} = ctx, module_name, retries) do
+    # see: `syncable.ex`. This is some macro magic.
+    debug_log "#{module_name} Sync begin."
+
+    try do
+      :ok = module_name.fetch(ctx, {__MODULE__,
+      :commit_records,  [ctx, module_name]})
     rescue
       e ->
-        Logger.info ">> Encountered error syncing, #{inspect e}", type: :error
-        Farmbot.BotState.set_sync_msg(ctx, :sync_error)
+        debug_log "#{module_name} Sync error: #{inspect e}"
+        do_sync(ctx, module_name, retries + 1)
     end
+
+    debug_log "#{module_name} Sync finish."
+    :ok = unset_awaiting(ctx, module_name)
   end
 
   @doc """
@@ -130,8 +144,10 @@ defmodule Farmbot.Database do
     Sets awaiting api resources.
   """
   @spec set_awaiting(Context.t, syncable, verb, any) :: :ok | no_return
-  def set_awaiting(%Context{database: db}, syncable, verb, value) do
+  def set_awaiting(%Context{database: db} = ctx, syncable, verb, value) do
     debug_log("setting awaiting: #{syncable} #{verb}")
+    # FIXME(connor) YAY SIDE EFFECTS
+    set_syncing(ctx, :sync_now)
     GenServer.call(db, {:set_awaiting, syncable, verb, value})
   end
 
@@ -154,15 +170,49 @@ defmodule Farmbot.Database do
     Get a resource by its kind and id.
   """
   @spec get_by_id(Context.t, syncable, db_id) :: resource_map | nil
-  def get_by_id(%Context{database: db}, kind, id), do: GenServer.call(db, {:get_by, kind, id})
+  def get_by_id(%Context{database: db}, kind, id),
+    do: GenServer.call(db, {:get_by, kind, id})
 
   @doc """
     Get all resources of this kind.
   """
   @spec get_all(Context.t, syncable) :: [resource_map]
-  def get_all(%Context{database: db}, kind), do: GenServer.call(db, {:get_all, kind})
+  def get_all(%Context{database: db}, kind),
+    do: GenServer.call(db, {:get_all, kind})
 
   ## GenServer
+
+  defmodule State do
+    @moduledoc false
+    alias Farmbot.Database.DB
+
+    defimpl Inspect, for: __MODULE__ do
+      def inspect(thing, _) do
+        "#DatabaseState<#{inspect thing.all}>"
+      end
+    end
+
+    defstruct [
+      :by_kind_and_id,
+      :awaiting,
+      :by_kind,
+      :refs,
+      :all
+    ]
+
+    @type t :: %{
+      by_kind_and_id: %{ required({DB.syncable, DB.db_id}) => DB.ref_id       },
+      awaiting:       %{ required(DB.syncable)             => boolean         },
+      by_kind:        %{ required(DB.syncable)             => [DB.ref_id]     },
+      refs:           %{ required(DB.ref_id)               => DB.resource_map },
+      all:            [DB.ref_id],
+    }
+  end
+
+  @typedoc """
+    State of the DB
+  """
+  @type state :: State.t
 
   @doc """
     Start the Database
@@ -176,7 +226,7 @@ defmodule Farmbot.Database do
     initial_refs           = %{}
     initial_all            = []
 
-    state = %{
+    state = %State{
       by_kind_and_id: initial_by_kind_and_id,
       awaiting:       initial_awaiting,
       by_kind:        initial_by_kind,
@@ -214,12 +264,72 @@ defmodule Farmbot.Database do
     {:reply, Map.fetch!(state.awaiting, module), state}
   end
 
+  def handle_call(
+    {:set_awaiting, syncable, :remove, int_or_wildcard}, _, state)
+  do
+    new_state =
+      case int_or_wildcard do
+        "*" -> remove_all_syncable(state, syncable)
+        num -> remove_syncable(state, syncable, num)
+      end
+    {
+      :reply,
+      :ok,
+      %{ new_state | awaiting: %{ state.awaiting | syncable => true } }
+    }
+  end
+
   def handle_call({:set_awaiting, syncable, _verb, _}, _, state) do
     {:reply, :ok, %{ state | awaiting: %{ state.awaiting | syncable => true} }}
   end
 
   def handle_call({:unset_awaiting, syncable}, _, state) do
     {:reply, :ok, %{ state | awaiting: %{ state.awaiting | syncable => false} }}
+  end
+
+  @spec remove_all_syncable(state, syncable) :: state
+  defp remove_all_syncable(state, syncable) do
+    new_all = Enum.reject(state.all, fn({s, _, _}) -> s == syncable end)
+
+    new_by_kind_and_id = state.by_kind_and_id
+      |> Enum.reject(fn({{s, _}, _}) -> s == syncable end)
+      |> Map.new
+
+    new_refs = state.refs
+      |> Enum.reject(fn({{s, _, _}, _}) -> s == syncable end)
+      |> Map.new()
+
+    %{
+      state |
+      by_kind_and_id: new_by_kind_and_id,
+      by_kind:        %{state.by_kind | syncable => []},
+      refs:           new_refs,
+      all:            new_all
+     }
+  end
+
+  @spec remove_syncable(state, syncable, integer) :: state
+  defp remove_syncable(state, syncable, num) do
+    new_all = Enum.reject(state.all, fn({s, _, id}) ->
+      (s == syncable) && (id == num)
+    end)
+
+    new_by_kind_and_id = state.by_kind_and_id
+      |> Enum.reject(fn({{s, id}, _}) -> (s == syncable) && (id == num) end)
+      |> Map.new
+
+    new_refs = state.refs
+      |> Enum.reject(fn({{s, _, id}, _}) ->
+       (s == syncable) && (id == num)
+      end)
+      |> Map.new()
+
+    %{
+      state |
+      by_kind_and_id: new_by_kind_and_id,
+      all:            new_all,
+      refs:           new_refs,
+     }
   end
 
   # returns all the references of syncable
@@ -251,7 +361,7 @@ defmodule Farmbot.Database do
   defp reindex(state, record) do
     # get some info
     kind = Map.fetch!(record, :__struct__)
-    id = Map.fetch!(record, :id)
+    id   = Map.fetch!(record, :id)
 
     # Do we have it already?
     maybe_old = get_by_kind_and_id(state, kind, id)

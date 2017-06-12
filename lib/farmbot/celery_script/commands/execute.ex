@@ -3,8 +3,8 @@ defmodule Farmbot.CeleryScript.Command.Execute do
     Execute
   """
 
-  alias Farmbot.CeleryScript.Command
-  alias Farmbot.CeleryScript.Ast
+  alias Farmbot.CeleryScript.{Ast, Command, Error}
+  alias Farmbot.Database.Syncable.Sequence
 
   @behaviour Command
 
@@ -13,23 +13,12 @@ defmodule Farmbot.CeleryScript.Command.Execute do
       args: %{sequence_id_id: integer}
       body: []
   """
-  @spec run(%{sequence_id: integer}, [], Ast.context) :: Ast.context
-  def run(%{sequence_id: id} = args, [], context) do
-    context.database
-    |> Farmbot.Database.get_by_id(Sequence, id)
-    |> Ast.parse
-    |> merge_args(args)
-    |> delete_me()
-    |> Command.do_command(context)
-  end
-
-  defp merge_args(ast, args), do: %{ast | args: Map.merge(ast.args, args)}
-
-  defp delete_me(ast) do
-    %{ast | body: [blerp() | ast.body]}
-  end
-  # CONTENTS UNDER PRESSURE
-  defp blerp do
-    %Farmbot.CeleryScript.Ast{args: %{}, body: [], comment: nil, kind: "ping_parent"}
+  @spec run(%{sequence_id: integer}, [], Context.t) :: Context.t
+  def run(%{sequence_id: id}, [], context) do
+    sequence = Farmbot.Database.get_by_id(context, Sequence, id)
+    unless sequence do
+      raise Error, message: "Could not find sequence by id: #{id}"
+    end
+    sequence |> Map.get(:body) |> Ast.parse |> Command.do_command(context)
   end
 end

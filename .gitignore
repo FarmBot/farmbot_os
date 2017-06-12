@@ -40,3 +40,4 @@ dump.rdb
 
 # this file isnt stored here but just in case.
 fwup-key.priv
+.env

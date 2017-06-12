@@ -1,6 +1,10 @@
 defmodule CommandTest do
   use ExUnit.Case, async: false
-  alias Farmbot.CeleryScript.{Command, Ast}
+  alias Farmbot.CeleryScript.{Command, Ast, Error}
+  alias Farmbot.Context
+  alias Farmbot.Database
+  alias Farmbot.Database.Selectors.Error, as: SelectorError
+  alias Database.Syncable.Point
   import Mock
 
   setup_all do
@@ -15,16 +19,16 @@ defmodule CommandTest do
     }
     """
     cs = Poison.decode!(json) |> Ast.parse()
-    assert_raise RuntimeError, fn() ->
+    assert_raise Error, fn() ->
       Command.do_command(cs, context)
     end
   end
 
   test "rescues from bad things", %{cs_context: context} do
     with_mock Farmbot.CeleryScript.Command.Nothing, [run: fn(_,_,_) ->
-      raise "Mucking About with Mocks"
+      raise Error, message: "Mucking About with Mocks"
     end] do
-      assert_raise RuntimeError, fn() ->
+      assert_raise Error, fn() ->
         nothing_ast = %Ast{kind: "nothing", args: %{}, body: [], comment: "hey!"}
         Command.do_command(nothing_ast, context)
       end
@@ -32,7 +36,7 @@ defmodule CommandTest do
   end
 
   test "cant execute random data that is not a cs node", %{cs_context: context} do
-    assert_raise RuntimeError, fn() ->
+    assert_raise Error, fn() ->
       Command.do_command("shut the door its cold in here!", context)
     end
   end
@@ -49,11 +53,6 @@ defmodule CommandTest do
 
     assert ast_a.kind == coord_a.kind
   end
-
-  alias Farmbot.Context
-  alias Farmbot.Database
-  alias Database.Syncable.Point
-  alias Farmbot.CeleryScript.Ast
 
   test "converts a tool to a coordinate" do
     ctx = Context.new()
@@ -81,7 +80,7 @@ defmodule CommandTest do
     ctx = %{ctx | database: pid}
 
     tool_ast              = %Ast{kind: "tool", args: %{tool_id: 905}, body: []}
-    assert_raise RuntimeError, "Could not find tool_slot with tool_id: 905", fn() ->
+    assert_raise SelectorError, "Could not find tool_slot with tool_id: 905", fn() ->
       Command.ast_to_coord(ctx, tool_ast)
     end
   end
@@ -98,7 +97,7 @@ defmodule CommandTest do
 
   test "gives an error on unknown asts", %{cs_context: context} do
     blerp = %Ast{kind: "blerp", args: %{}, body: []}
-    assert_raise RuntimeError, fn ->
+    assert_raise Error, fn ->
       Command.ast_to_coord(context, blerp)
     end
   end
@@ -120,7 +119,7 @@ defmodule CommandTest do
   #
   #   sequence = %Ast{kind: "execute", args: %{sequence_id: 40000}, body: []}
   #
-  #   assert_raise(RuntimeError, "TO MUCH RECURSION", fn() ->
+  #   assert_raise(Error, "TO MUCH RECURSION", fn() ->
   #     Command.do_command(sequence)
   #   end)
   # end

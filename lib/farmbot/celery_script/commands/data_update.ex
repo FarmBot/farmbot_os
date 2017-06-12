@@ -5,7 +5,16 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
 
   alias Farmbot.CeleryScript.Command
   alias Farmbot.Database
-  require Logger
+  alias Database.Syncable.{
+    Device,
+    FarmEvent,
+    Peripheral,
+    Point,
+    Regimen,
+    Sequence,
+    Tool
+  }
+  use Farmbot.DebugLog
   @behaviour Command
 
   @typedoc """
@@ -19,23 +28,37 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
     args: %{value: String.t},
     body: [Pair.t]
   """
-  @spec run(%{value: String.t}, [Pair.t], Ast.context) :: Ast.context
+  @spec run(%{value: String.t}, [Pair.t], Context.t) :: Context.t
   def run(%{value: verb}, pairs, context) do
     verb = parse_verb_str(verb)
     Enum.each(pairs, fn(%{args: %{label: s, value: nowc}}) ->
       syncable = s |> parse_syncable_str()
-      value = nowc |> parse_val_str()
-      :ok = Database.set_awaiting(context, syncable, verb, value)
+      if syncable do
+        value = nowc |> parse_val_str()
+        :ok = Database.set_awaiting(context, syncable, verb, value)
+      else
+        raise Farmbot.CeleryScript.Error,
+          message: "Could not translate syncable: #{s}"
+      end
     end)
     context
   end
 
   @type number_or_wildcard :: non_neg_integer | binary # "*"
-  @type syncable ::  Farmbot.Database.syncable
+  @type syncable ::  Farmbot.Database.syncable | nil
 
   @spec parse_syncable_str(binary) :: syncable
+  defp parse_syncable_str("regimens"),    do: Regimen
+  defp parse_syncable_str("peripherals"), do: Peripheral
+  defp parse_syncable_str("sequences"),   do: Sequence
+  defp parse_syncable_str("farm_events"), do: FarmEvent
+  defp parse_syncable_str("tools"),       do: Tool
+  defp parse_syncable_str("points"),      do: Point
+  defp parse_syncable_str("device"),      do: Device
+
   defp parse_syncable_str(str) do
-    Module.concat([Farmbot.Database.Syncable, Macro.camelize(str)])
+    debug_log "no such syncable: #{str}"
+    nil
   end
 
   @spec parse_val_str(binary) :: number_or_wildcard

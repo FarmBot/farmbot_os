@@ -5,6 +5,7 @@ defmodule Farmbot.BotState.Supervisor do
   """
 
   alias Farmbot.Context
+  use Farmbot.DebugLog, name: BotStateSupervisor
 
   @use_logger Application.get_env(:farmbot, :logger, true)
 
@@ -14,23 +15,16 @@ defmodule Farmbot.BotState.Supervisor do
   def init(ctx) do
     children = [
       worker(Farmbot.BotState.Monitor,
-        [ctx, [name: Farmbot.BotState.Monitor]],
-        [restart: :permanent]),
+        [ctx, [name: Farmbot.BotState.Monitor]]),
 
       worker(Farmbot.BotState.Configuration,
-        [ctx, [name: Farmbot.BotState.Configuration]],
-        [restart: :permanent]),
+        [ctx, [name: Farmbot.BotState.Configuration]]),
 
       worker(Farmbot.BotState.Hardware,
-        [ctx, [name: Farmbot.BotState.Hardware]],
-        [restart: :permanent]),
-
-      worker(Farmbot.BotState.ProcessSupervisor,
-        [ctx, [name: Farmbot.BotState.ProcessSupervisor]],
-        [restart: :permanent]),
+        [ctx, [name: Farmbot.BotState.Hardware]]),
 
       worker(EasterEggs,
-        [name: EasterEggs], [restart: :permanent])
+        [name: EasterEggs])
     ]
 
     opts = [strategy: :one_for_one]
@@ -43,7 +37,16 @@ defmodule Farmbot.BotState.Supervisor do
     # like position and some configuraion.
     sup = Supervisor.start_link(__MODULE__, ctx, opts)
     EasterEggs.start_cron_job
-    if @use_logger, do: Logger.add_backend(Logger.Backends.FarmbotLogger)
+    # TODO change this stuff to tasks
+    if @use_logger do
+      debug_log "Using Farmbot Logger"
+      Logger.flush()
+      backend     = Logger.Backends.FarmbotLogger
+      {:ok, _pid} = Logger.add_backend(backend)
+      :ok         = GenEvent.call(Logger, backend, {:context, ctx})
+    else
+      debug_log "Not using Farmbot Logger"
+    end
     sup
   end
 end

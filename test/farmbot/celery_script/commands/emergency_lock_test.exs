@@ -1,5 +1,5 @@
 defmodule Farmbot.CeleryScript.Command.EmergencyLockTest do
-  alias Farmbot.CeleryScript.{Command, Ast}
+  alias Farmbot.CeleryScript.{Command, Ast, Error}
   use Farmbot.Test.Helpers.SerialTemplate, async: false
 
   describe "emergency_lock" do
@@ -16,7 +16,7 @@ defmodule Farmbot.CeleryScript.Command.EmergencyLockTest do
       assert config_state.informational_settings.sync_status == :locked
       assert config_state.informational_settings.locked == true
 
-      assert_raise RuntimeError, "Bot is already locked", fn() ->
+      assert_raise Error, "Bot is already locked", fn() ->
         Command.do_command(ast, context)
       end
     end

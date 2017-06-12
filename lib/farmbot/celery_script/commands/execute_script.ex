@@ -3,25 +3,27 @@ defmodule Farmbot.CeleryScript.Command.ExecuteScript do
     ExecuteScript
   """
 
-  alias Farmbot.CeleryScript.Command
-  require Logger
+  alias Farmbot.CeleryScript.{Command, Error}
+  alias Farmbot.Farmware
+  alias Farmware.{Manager, Runtime}
+  import Farmbot.Lib.Helpers
   @behaviour Command
 
   @doc ~s"""
     Executes a farmware
-      args: %{label: String.t},
+      args: %{label: uuid},
       body: [pair]
-    NOTE this is a shortcut to starting a process by uuid
   """
-  @spec run(%{label: String.t}, [Command.Pair.t], Ast.context) :: Ast.context
-  def run(%{label: farmware}, env_vars, context) do
+  @spec run(%{label: binary},
+    [Command.Pair.t], Context.t) :: Context.t | no_return
+  def run(%{label: uuid}, env_vars, context) when is_uuid(uuid) do
     Command.set_user_env(%{}, env_vars, context)
-    info = Farmbot.BotState.ProcessTracker.lookup(context, :farmware, farmware)
-    if info do
-      Command.start_process(%{label: info.uuid}, [], context)
-    else
-      Logger.error ">> Could not locate: #{farmware}"
+    case Manager.lookup(context, uuid) do
+      {:ok, %Farmware{} = fw} -> Runtime.execute(context, fw)
+      {:error, e}             ->
+        raise Error,
+          message: "Could not locate farmware: #{e}",
+          context: context
     end
-    context
   end
 end

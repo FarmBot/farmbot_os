@@ -4,6 +4,7 @@ defmodule Farmbot.Transport.Supervisor do
   """
   use Supervisor
   alias Farmbot.Context
+  use Farmbot.DebugLog
 
   case Mix.env do
     :test ->
@@ -19,12 +20,18 @@ defmodule Farmbot.Transport.Supervisor do
       end
   end
 
-  def init(context) do
+  def init(ctx) do
     :ok = setup_env()
     transports = Application.get_env(:farmbot, :transports)
-    children   = build_children(transports, context)
+    children   = [ default_transport(ctx) | build_children(transports, ctx)]
     opts       = [strategy: :one_for_one]
     supervise(children, opts)
+  end
+
+  defp default_transport(%Context{} = ctx) do
+    worker(Farmbot.Transport,
+      [ctx, [name: Farmbot.Transport]],
+        restart: :permanent)
   end
 
   @doc """
@@ -35,17 +42,14 @@ defmodule Farmbot.Transport.Supervisor do
 
   @spec build_children([atom], Context.t) :: [Supervisor.child]
   defp build_children(transports, %Context{} = context) do
-    [
-      worker(Farmbot.Transport,
-        [context, [name: Farmbot.Transport]],
-        restart: :permanent)
-    ] ++
     Enum.map(transports, fn(t) ->
       case t do
         module when is_atom(module) ->
-          worker(module, [context], restart: :permanent)
-        {module, opts} ->
-          worker(module, [context, [opts]], restart: :permanent)
+          debug_log "starting tansport: #{module}"
+          worker(module, [context, []], restart: :permanent)
+        {module, opts} when is_atom(module) ->
+          debug_log "starting transport: #{module} with opts: #{inspect opts}"
+          worker(module, [context, opts], restart: :permanent)
       end
     end)
   end

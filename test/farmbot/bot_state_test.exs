@@ -94,6 +94,7 @@ defmodule Farmbot.BotStateTest do
   end
 
   test "sets sync msg to :synced", %{cs_context: context} do
+    context = %{context | serial: nil}
     :ok = Farmbot.BotState.set_sync_msg(context, :synced)
     thing = get_config_part(:informational_settings, context)[:sync_status]
     assert thing == :synced

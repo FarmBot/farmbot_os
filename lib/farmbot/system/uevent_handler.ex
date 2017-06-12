@@ -9,27 +9,27 @@ defmodule Farmbot.System.UeventHandler do
   @mountpath "/tmp/drive"
   @target Mix.Project.config[:target]
   @app Mix.Project.config[:app]
-
-  def start_link do
-    GenStage.start_link(__MODULE__, :ok, name: __MODULE__)
+  alias Farmbot.Context
+  def start_link(%Context{} = ctx, _target, opts) do
+    GenStage.start_link(__MODULE__, ctx, opts)
   end
 
-  def init(:ok) do
+  def init(ctx) do
     # Starts a permanent subscription to the broadcaster
     # which will automatically start requesting items.
-    {:consumer, :ok, subscribe_to: [Nerves.Runtime.Kernel.UEvent]}
+    {:consumer, ctx, subscribe_to: [Nerves.Runtime.Kernel.UEvent]}
   end
 
-  def handle_events(events, _from, state) do
+  def handle_events(events, _from, ctx) do
     for event <- events do
-      handle_thing(event)
+      handle_thing(event, ctx)
     end
-    {:noreply, [], state}
+    {:noreply, [], ctx}
   end
 
   defp handle_thing({:uevent, _, %{
       action: "add", devname: devname, devtype: "partition", subsystem: "block"
-     }})
+     }}, _ctx)
   do
     Logger.debug ">> Flash drive plugged in!!!"
     :ok = mount_part(devname)
@@ -42,8 +42,29 @@ defmodule Farmbot.System.UeventHandler do
     :ok
   end
 
-  defp handle_thing(_event) do
-    debug_log("Not Handling uevent.")
+  defp handle_thing({:uevent, _, %{
+    action: "add", devname: _tty, subsystem: "tty"
+  }}, %Context{} = ctx) do
+    pid =
+      case ctx.serial do
+        serial when is_atom(serial) -> Process.whereis(serial)
+        serial when is_pid(serial)  -> serial
+      end
+    alive? =
+      if pid do
+        Process.alive?(pid)
+      end
+
+    if alive? do
+      debug_log "Already have a serial handler. Not making a new one."
+    else
+      debug_log "Going to try to start a new serial handler."
+      Farmbot.Serial.Handler.OpenTTY.open_ttys(ctx, Farmbot.Serial.Supervisor)
+    end
+  end
+
+  defp handle_thing(event, _ctx) do
+    debug_log("Not Handling uevent: #{inspect event}")
     :ok
   end
 
@@ -111,7 +132,7 @@ defmodule Farmbot.System.UeventHandler do
     else
       Logger.info "doing some magic..."
       herp = Nerves.UART.enumerate()
-      |> Map.drop(["ttyS0","ttyAMA0"])
+      |> Map.drop(["ttyS0", "ttyAMA0"])
       |> Map.keys
       case herp do
         [tty] ->

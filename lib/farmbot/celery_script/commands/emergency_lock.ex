@@ -3,7 +3,7 @@ defmodule Farmbot.CeleryScript.Command.EmergencyLock do
     EmergencyLock
   """
 
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Error}
   require Logger
 
   @behaviour Command
@@ -13,10 +13,10 @@ defmodule Farmbot.CeleryScript.Command.EmergencyLock do
       args: %{},
       body: []
   """
-  @spec run(%{}, [], Ast.context) :: Ast.context
+  @spec run(%{}, [], Context.t) :: Context.t
   def run(%{}, [], context) do
     if Farmbot.BotState.locked?(context) do
-      raise "Bot is already locked"
+      raise Error, message: "Bot is already locked"
     else
       do_lock(context)
     end

@@ -13,10 +13,12 @@ defmodule Farmbot.System.NervesCommon.Network do
       require Logger
       alias Nerves.InterimWiFi, as: NervesWifi
       alias Farmbot.System.Network.Hostapd
+      alias Farmbot.Context
 
-      def start_link, do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
+      def start_link(%Context{} = ctx),
+        do: GenServer.start_link(__MODULE__, ctx, name: __MODULE__)
 
-      def init(_) do
+      def init(context) do
         for module <- unquote(modules) do
           {_, 0} = System.cmd("modprobe", [module])
         end
@@ -31,19 +33,19 @@ defmodule Farmbot.System.NervesCommon.Network do
           cb.()
         end
 
-        {:ok, %{logging_in: false}}
+        {:ok, %{logging_in: false, context: context, retries: 0}}
       end
 
       # don't start this interface
-      def start_interface(_interface, %{"default" => false}) do
+      def start_interface(%Context{} = ctx, _interface, %{"default" => false}) do
         :ok
       end
 
-      def start_interface(interface, %{"default" => "dhcp", "type" => "wired"} = s) do
+      def start_interface(%Context{} = ctx, interface, %{"default" => "dhcp", "type" => "wired"} = s) do
         interface |> NervesWifi.setup([]) |> cast_start_iface(interface, s)
       end
 
-      def start_interface(interface,
+      def start_interface(%Context{} = ctx, interface,
         %{"default" => "dhcp",
           "type" => "wireless",
           "settings" => settings} = s)
@@ -63,7 +65,7 @@ defmodule Farmbot.System.NervesCommon.Network do
         :ok
       end
 
-      def start_interface(interface,
+      def start_interface(%Context{} = ctx, interface,
       %{"default" => "hostapd",
         "settings" => %{"ipv4_address" => ip_addr}, "type" => "wireless"} = s)
       do
@@ -92,11 +94,11 @@ defmodule Farmbot.System.NervesCommon.Network do
         end
       end
 
-      def stop_interface(interface) do
+      def stop_interface(%Context{} = _ctx, interface) do
         GenServer.call(__MODULE__, {:stop_interface, interface})
       end
 
-      def scan(iface), do: do_scan(iface)
+      def scan(%Context{} = ctx, iface), do: do_scan(iface)
 
       def do_scan(iface, retry \\ false)
 
@@ -131,7 +133,7 @@ defmodule Farmbot.System.NervesCommon.Network do
         end
       end
 
-      def enumerate, do: Nerves.NetworkInterface.interfaces -- ["lo"]
+      def enumerate(%Context{} = _ctx), do: Nerves.NetworkInterface.interfaces -- ["lo"]
 
       defp clean_ssid(hc) do
         hc
@@ -183,7 +185,7 @@ defmodule Farmbot.System.NervesCommon.Network do
           that = self()
           spawn fn() ->
 
-            Farmbot.System.Network.on_connect(fn() ->
+            Farmbot.System.Network.on_connect(state.context, fn() ->
 
               try do
                 {_, 0} = System.cmd("epmd", ["-daemon"])
@@ -201,7 +203,7 @@ defmodule Farmbot.System.NervesCommon.Network do
                for {key, value} <- state do
                  if match?({%{"default" => "hostapd"}, _}, value) do
                    Logger.info "Killing #{key}"
-                   stop_interface(key)
+                   stop_interface(state.context, key)
                  end
                end
             end)
@@ -211,15 +213,23 @@ defmodule Farmbot.System.NervesCommon.Network do
         end
       end
 
-      def handle_info({Nerves.WpaSupplicant, {:error, :psk, :FAIL}, %{ifname: iface}}, state) do
+      def handle_info({Nerves.WpaSupplicant, {:error, :psk, :FAIL}, %{ifname: _iface}}, state) do
         Farmbot.System.factory_reset("""
         I could not authenticate with the access point. This could be a bad
         password, or an unsupported network type.
         """)
+        {:stop, :factory_reset, state}
+      end
+
+      def handle_info({Nerves.WpaSupplicant, _event, %{ifname: _iface}}, %{retries: retries} = state) when retries > 5 do
+        Farmbot.System.factory_reset("""
+        I could not find the wifi access point. Check that it was inputted correctly.
+        I tried #{retries} times and still found nothing. Maybe I'm not close enough to the access point?
+        """)
         {:noreply, state}
       end
 
-      def handle_info({Nerves.WpaSupplicant, event, %{ifname: iface}}, state) when is_atom(event) do
+      def handle_info({Nerves.WpaSupplicant, event, %{ifname: _iface}}, state) when is_atom(event) do
         event = event |> Atom.to_string
         wrong_key? = event |> String.contains?("reason=WRONG_KEY")
         not_found? = event |> String.contains?("CTRL-EVENT-NETWORK-NOT-FOUND")
@@ -228,18 +238,18 @@ defmodule Farmbot.System.NervesCommon.Network do
         password, or an unsupported network type.
         """)
 
-        if not_found?, do: Farmbot.System.factory_reset("""
-        I could not find the wifi access point. Check that it was inputted correctly.
-        """)
-
-        {:noreply, state}
+        if not_found? do
+          {:noreply, %{state | retries: state.retries + 1}}
+        else
+          {:noreply, state}
+        end
       end
 
       def handle_info(info, state) do
         {:noreply, state}
       end
 
-      def terminate(_,_state) do
+      def terminate(_, _state) do
         # TODO STOP INTERFACES
         :ok
       end

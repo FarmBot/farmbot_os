@@ -5,6 +5,7 @@ defmodule Farmbot.ImageWatcher do
   use GenServer
   require Logger
   alias Farmbot.Context
+  use Farmbot.DebugLog
 
   @images_path "/tmp/images"
   @type state :: []
@@ -18,28 +19,29 @@ defmodule Farmbot.ImageWatcher do
   @doc """
     Uploads all images if they exist.
   """
-  @spec force_upload :: no_return
-  def force_upload, do: do_checkup()
+  @spec force_upload(Context.t) :: no_return
+  def force_upload(%Context{} = ctx), do: do_checkup(ctx)
 
-  def init(_context) do
+  def init(context) do
+    debug_log "Ensuring #{@images_path} exists."
+    File.mkdir_p! @images_path
     # TODO(Connor) kill :fs if this app dies.
     :fs_app.start(:normal, [])
     :fs.subscribe()
-    {:ok, []}
+    {:ok, %{context: context}}
   end
 
-  @spec handle_info(any, state) :: {:noreply, state}
-  def handle_info(:checkup, []) do
-    do_checkup()
-    {:noreply, []}
+  def handle_info(:checkup, state) do
+    do_checkup(state.context)
+    {:noreply, state}
   end
 
   def handle_info({_pid, {:fs, :file_event}, {path, [:modified, :closed]}},
-  _state) do
+  state) do
     if matches_any_pattern?(path, [~r{/tmp/images/.*(jpg|jpeg|png|gif)}]) do
-      do_checkup()
+      do_checkup(state.context)
     end
-    {:noreply, []}
+    {:noreply, state}
   end
 
   def handle_info(_, state), do: {:noreply, state}
@@ -56,14 +58,14 @@ defmodule Farmbot.ImageWatcher do
     end)
   end
 
-  @spec do_checkup :: no_return
-  defp do_checkup do
+  @spec do_checkup(Context.t) :: no_return
+  defp do_checkup(%Context{} = context) do
     images = File.ls!(@images_path)
 
     images
     |> Enum.all?(fn(file) ->
       path = Path.join(@images_path, file)
-      case try_upload(path) do
+      case try_upload(context, path) do
         {:ok, _} ->
           File.rm!(path)
           :ok
@@ -75,10 +77,10 @@ defmodule Farmbot.ImageWatcher do
     |> print_thing(Enum.count(images)) # Sorry
   end
 
-  @spec try_upload(binary) :: {:ok, any} | {:error, any}
-  defp try_upload(file_path) do
+  @spec try_upload(Context.t, binary) :: {:ok, any} | {:error, any}
+  defp try_upload(%Context{} = ctx, file_path) do
     Logger.info "Image Watcher trying to upload #{file_path}"
-    Farmbot.HTTP.upload_file(file_path)
+    Farmbot.HTTP.upload_file!(ctx, file_path)
   end
 
   @spec print_thing(boolean, integer) :: :ok

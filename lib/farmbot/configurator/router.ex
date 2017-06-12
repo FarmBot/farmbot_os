@@ -91,7 +91,7 @@ defmodule Farmbot.Configurator.Router do
     Logger.info ">> router got credentials"
     {:ok, _body, conn} = read_body(conn)
 
-    %{"email" => email,"pass" => pass,"server" => server} = conn.body_params
+    %{"email" => email, "pass" => pass, "server" => server} = conn.body_params
     Farmbot.Auth.interim(context().auth, email, pass, server)
     conn |> send_resp(200, "OK")
   end
@@ -244,7 +244,7 @@ defmodule Farmbot.Configurator.Router do
     else
       Logger.info "doing some magic..."
       herp = Nerves.UART.enumerate()
-      |> Map.drop(["ttyS0","ttyAMA0"])
+      |> Map.drop(["ttyS0", "ttyAMA0"])
       |> Map.keys
       case herp do
         [tty] ->

@@ -5,6 +5,7 @@ defmodule Farmbot.CeleryScript.Ast do
   """
 
   alias Farmbot.Context
+  alias Farmbot.CeleryScript.Error
 
   defimpl Inspect, for: __MODULE__ do
     def inspect(thing, _) do
@@ -24,9 +25,9 @@ defmodule Farmbot.CeleryScript.Ast do
     Type for CeleryScript Ast's.
   """
   @type t :: %__MODULE__{
-    args: args,
-    body: [t,...],
-    kind: String.t,
+    args:    args,
+    body:    [t, ...],
+    kind:    String.t,
     comment: String.t | nil
   }
 
@@ -37,10 +38,9 @@ defmodule Farmbot.CeleryScript.Ast do
     Parses json and traverses the tree and turns everything can
     possibly be parsed.
   """
-  @spec parse({:ok, map}) :: t
+  @spec parse({:ok, map} | map | [map, ...]) :: t
   def parse(map_or_json_map)
 
-  @spec parse(map) :: t
   def parse(%{"kind" => kind, "args" => args} = thing) do
     body = thing["body"] || []
     comment = thing["comment"]
@@ -64,14 +64,13 @@ defmodule Farmbot.CeleryScript.Ast do
   end
 
   # You can give a list of nodes.
-  @spec parse([map,...]) :: [t,...]
   def parse(body) when is_list(body) do
     Enum.reduce(body, [], fn(blah, acc) ->
       acc ++ [parse(blah)]
     end)
   end
 
-  def parse(_), do: %__MODULE__{kind: "nothing", args: %{}, body: []}
+  def parse(other_thing), do: raise Error, message: "#{inspect other_thing} could not be parsed as CeleryScript."
 
   # TODO: This is a pretty heavy memory leak, what should happen is
   # The corpus should create a bunch of atom, and then this should be

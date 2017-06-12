@@ -2,15 +2,16 @@ defmodule Farmbot.FarmEventRunner do
   @moduledoc """
     Checks the database every 60 seconds for FarmEvents
   """
-  use GenServer
   require Logger
-  alias Farmbot.CeleryScript.Ast
-  alias Farmbot.Context
-
-  use Farmbot.DebugLog
-
-  alias Farmbot.Database
-  alias Database.Syncable.{Sequence, Regimen, FarmEvent}
+  alias   Farmbot.{Context, DebugLog, Database, CeleryScript}
+  alias   CeleryScript.Ast
+  use     DebugLog
+  use     GenServer
+  alias   Database.Syncable.{
+    Sequence,
+    Regimen,
+    FarmEvent
+  }
 
   @checkup_time 10_000
 
@@ -28,6 +29,7 @@ defmodule Farmbot.FarmEventRunner do
 
   def handle_info(:checkup, {context, state}) do
     now = get_now()
+    # debug_log "Doing checkup: #{inspect now}"
     new_state = if now do
       all_events =
         context
@@ -51,17 +53,13 @@ defmodule Farmbot.FarmEventRunner do
   @spec start_events(Context.t, [Sequence.t | Regimen.t], DateTime.t)
     :: no_return
   defp start_events(_context, [], _now), do: :ok
-  defp start_events(context, [event | rest], now) do
+  defp start_events(%Context{} = context, [event | rest], now) do
     cond do
       match?(%Sequence{}, event) ->
         ast     = Ast.parse(event)
-        {:ok, _pid} = Elixir.Farmbot.SequenceRunner.start_link(ast, context)
+        Farmbot.CeleryScript.Command.do_command(ast, context)
       match?(%Regimen{}, event) ->
-        r = event.__struct__
-          |> Module.split
-          |> List.last
-          |> Module.concat(Supervisor)
-        {:ok, _pid} = r.add_child(context, event, now)
+        {:ok, _pid} = Farmbot.Regimen.Supervisor.add_child(context, event, now)
       true ->
         Logger.error ">> Doesn't know how to handle event: #{inspect event}"
     end
@@ -187,7 +185,7 @@ defmodule Farmbot.FarmEventRunner do
     debug_log "== NOW: #{inspect now_str}"
     debug_log "== LAST: #{inspect last_time_str}"
     debug_log "== MAYBE NEXT: #{inspect maybe_next_str}"
-    debug_log "== #{Enum.count calendar} events are scheduled to happend after: #{inspect last_time_str}\n"
+    debug_log "== #{Enum.count calendar} events are scheduled to happen after: #{inspect last_time_str}\n"
   end
 
   defp get_last_time_str(nil), do: "none"
@@ -204,6 +202,11 @@ defmodule Farmbot.FarmEventRunner do
 
   @spec lookup(Context.t, Sequence | Regimen, integer) :: Sequence.t | Regimen.t
   defp lookup(%Context{} = ctx, module, sr_id) do
-    Database.get_by_id(ctx, module, sr_id)
+    item = Database.get_by_id(ctx, module, sr_id)
+    unless item do
+      raise "Could not find #{inspect module} by id: #{sr_id}"
+    end
+
+    item.body
   end
 end
