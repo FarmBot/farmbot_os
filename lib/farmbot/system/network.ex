@@ -219,8 +219,6 @@ defmodule Farmbot.System.Network do
         debug_log("#{inspect exception}")
         Farmbot.System.factory_reset("#{inspect exception}")
     end
-
-
   end
 
   if Mix.env == :prod do
