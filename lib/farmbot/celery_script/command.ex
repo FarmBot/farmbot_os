@@ -132,6 +132,19 @@ defmodule Farmbot.CeleryScript.Command do
 
   def ensure_gcode(_, %Context{} = ctx), do: ctx
 
+  def ensure_position(results, {x_step, y_step, z_step}, %Context{} = ctx) do
+    context = ensure_gcode(results, ctx) # this might raise.
+    case results do
+      {:report_current_possition, {actual_x_step, actual_y_step, actual_z_step}} ->
+        if {actual_x_step, actual_y_step, actual_z_step} == {x_step, y_step, z_step} do
+          {true, context}
+        else
+          {false, context}
+        end
+      _ -> {false, context}
+    end
+  end
+
   @doc ~s"""
     Executes an ast tree.
   """
