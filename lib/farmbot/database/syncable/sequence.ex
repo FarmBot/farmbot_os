@@ -3,7 +3,7 @@ defmodule Farmbot.Database.Syncable.Sequence do
     A Sequence from the Farmbot API.
   """
 
-  alias Farmbot.Database
+  alias Farmbot.{Context, Database}
   alias Database.Syncable
   use Syncable, model: [
     :version,

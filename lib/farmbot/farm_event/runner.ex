@@ -1,9 +1,10 @@
-defmodule Farmbot.FarmEventRunner do
+defmodule Farmbot.FarmEvent.Runner do
   @moduledoc """
     Checks the database every 60 seconds for FarmEvents
   """
   require Logger
   alias   Farmbot.{Context, DebugLog, Database, CeleryScript}
+  import  Farmbot.FarmEvent.Executer
   alias   CeleryScript.Ast
   use     DebugLog
   use     GenServer
@@ -34,12 +35,11 @@ defmodule Farmbot.FarmEventRunner do
       all_events =
         context
           |> Database.get_all(FarmEvent)
-          |> Enum.map(fn(thing) -> thing.body end)
+          |> Enum.map(fn(db_object) -> db_object.body end)
 
       {late_events, new} = do_checkup(context, all_events, now, state)
       unless Enum.empty?(late_events) do
-        Logger.info "Time for event to run: #{inspect late_events} " <>
-          " at: #{now.hour}:#{now.minute}"
+        Logger.info "Time for event to run at: #{now.hour}:#{now.minute}"
         start_events(context, late_events, now)
       end
       new
@@ -54,15 +54,7 @@ defmodule Farmbot.FarmEventRunner do
     :: no_return
   defp start_events(_context, [], _now), do: :ok
   defp start_events(%Context{} = context, [event | rest], now) do
-    cond do
-      match?(%Sequence{}, event) ->
-        ast     = Ast.parse(event)
-        Farmbot.CeleryScript.Command.do_command(ast, context)
-      match?(%Regimen{}, event) ->
-        {:ok, _pid} = Farmbot.Regimen.Supervisor.add_child(context, event, now)
-      true ->
-        Logger.error ">> Doesn't know how to handle event: #{inspect event}"
-    end
+    execute_event(event, context, now)
     start_events(context, rest, now)
   end
 
@@ -103,9 +95,9 @@ defmodule Farmbot.FarmEventRunner do
     :: {late_event | nil, DateTime.t}
   defp check_event(%Context{} = ctx, %FarmEvent{} = f, now, last_time) do
     # Get the executable out of the database
-    thing = [Farmbot.Database, Syncable, f.executable_type |> String.to_atom]
-    mod = Module.concat(thing)
-    event = lookup(ctx, mod, f.executable_id)
+    mod_list = [Farmbot.Database, Syncable, f.executable_type |> String.to_atom]
+    mod      = Module.safe_concat(mod_list)
+    event    = lookup(ctx, mod, f.executable_id)
 
     # build a local start time
     start_time = Timex.parse! f.start_time, "{ISO:Extended}"

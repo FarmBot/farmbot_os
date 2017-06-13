@@ -65,6 +65,12 @@ defmodule Farmbot.Database.Syncable do
       import Farmbot.Database.Syncable, only: [parse_resp: 2]
       defstruct unquote(model) ++ [:id]
 
+      defimpl Inspect, for: __MODULE__ do
+        def inspect(syncable, _) do
+          "#Syncable<#{List.last(Module.split(__MODULE__))} #{syncable.id}>"
+        end
+      end
+
       @doc """
         The Singular api endpoing url.
       """

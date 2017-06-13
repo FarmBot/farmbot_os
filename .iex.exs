@@ -13,7 +13,7 @@ if Code.ensure_loaded? Farmbot do
     RegimenRunner,
     CeleryScript,
     DebugLog,
-    FarmEventRunner,
+    FarmEvent.Runner,
     Lib,
     Sequence.Runner,
     Token,

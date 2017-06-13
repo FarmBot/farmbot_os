@@ -9,10 +9,6 @@ defmodule Farmbot.Sequence.Runner do
   require Logger
   use     DebugLog
 
-  @typedoc """
-    This gets injected into the args of a sequence, and all of its children etc.
-    Mostly magic.
-  """
   @type context :: Context.t
   @type sequence_pid :: pid
 
