@@ -26,7 +26,7 @@ defmodule Farmbot.System.Updates do
   def do_update_check do
     context = Farmbot.Context.new()
     if Farmbot.BotState.get_config(context, :os_auto_update) do
-      check_and_download_updates()
+      check_and_download_updates(context)
     else
       Logger.info ">> Will not do update check!"
     end
@@ -35,13 +35,14 @@ defmodule Farmbot.System.Updates do
   @doc """
     Checks for updates, and if there is an update, downloads, and applies it.
   """
-  @spec check_and_download_updates :: :ok | {:error, term} | :no_updates
-  def check_and_download_updates do
-    case check_updates() do
+  @spec check_and_download_updates(Context.t)
+    :: :ok | {:error, term} | :no_updates
+  def check_and_download_updates(%Context{} = ctx) do
+    case check_updates(ctx) do
       {:update, url} ->
         Logger.info ">> has found a new Operating System update! #{url}",
           type: :busy
-        install_updates(url)
+        install_updates(ctx, url)
       :no_updates ->
         Logger.info ">> is already on the latest Operating System version!",
           type: :success
@@ -55,9 +56,9 @@ defmodule Farmbot.System.Updates do
   @doc """
     Checks for updates
   """
-  @spec check_updates :: {:update, binary} | :no_updates | {:error, term}
-  def check_updates do
-    context = Context.new()
+  @spec check_updates(Context.t)
+    :: {:update, binary} | :no_updates | {:error, term}
+  def check_updates(%Context{} = context) do
     current = Farmbot.BotState.get_os_version(context)
     if String.contains?(current, "rc") do
       msg = "Release Candidate Releases don't currently support updates!"
@@ -68,7 +69,8 @@ defmodule Farmbot.System.Updates do
     end
   end
 
-  @spec check_updates :: {:update, binary} | :no_updates | {:error, term}
+  @spec check_updates(Context.t)
+    :: {:update, binary} | :no_updates | {:error, term}
   defp do_http_req(%Context{} = ctx) do
     case HTTP.get(ctx, releases_url(ctx)) do
        {:ok, %HTTP.Response{body: body, status_code: 200}} ->
@@ -88,15 +90,11 @@ defmodule Farmbot.System.Updates do
   @doc """
     Installs an update from a url
   """
-  @spec install_updates(String.t) :: no_return
-  def install_updates(url) do
+  @spec install_updates(Context.t, String.t) :: no_return
+  def install_updates(%Context{} = context, url) do
     # Ignore the compiler warning here.
     # "I'll fix it later i promise" -- Connor Rigby
-    case Process.whereis(Downloader) do
-      pid when is_pid(pid) -> :ok
-      _ -> Downloader.start_link()
-    end
-    path = Downloader.run(url, @path)
+    path = HTTP.download_file!(context, url, @path)
     case File.stat(path) do
       {:ok, file} ->
         Logger.info "Found file: #{inspect file}", type: :success

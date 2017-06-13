@@ -9,8 +9,9 @@ defmodule Farmbot.FarmEvent.Supervisor do
     children = [
       worker(Farmbot.Regimen.Supervisor,
         [context, [name: Farmbot.Regimen.Supervisor ]], [restart: :permanent]),
+
       worker(Farmbot.FarmEvent.Runner,
-        [context, [name: Farmbot.FarmEvent.Runner    ]], [restart: :permanent])
+        [context, [name: Farmbot.FarmEvent.Runner   ]], [restart: :permanent])
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)

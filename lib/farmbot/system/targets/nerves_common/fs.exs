@@ -30,7 +30,9 @@ defmodule Farmbot.System.NervesCommon.FileSystem do
           :ok = format_state_part()
         else
           # If not, we are fine. continue
-          _ -> :ok
+          _ ->
+            File.touch "/tmp/authorized_keys"
+            :ok
         end
 
         :ok = tzdata_hack()

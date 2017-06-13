@@ -5,7 +5,6 @@ defmodule Farmbot.FarmEvent.Runner do
   require Logger
   alias   Farmbot.{Context, DebugLog, Database, CeleryScript}
   import  Farmbot.FarmEvent.Executer
-  alias   CeleryScript.Ast
   use     DebugLog
   use     GenServer
   alias   Database.Syncable.{

@@ -75,7 +75,8 @@ defmodule Farmbot.Mixfile do
        :gen_mqtt,
        :ex_json_schema,
        :fs,
-      #  :rollbax
+       :ex_rollbar,
+       :ssh
      ] ++ included_apps(Mix.env)]
   end
 

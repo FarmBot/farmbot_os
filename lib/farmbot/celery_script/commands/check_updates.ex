@@ -4,7 +4,7 @@ defmodule Farmbot.CeleryScript.Command.CheckUpdates do
   """
 
   require Logger
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Error}
   @behaviour Command
 
   @doc ~s"""
@@ -17,12 +17,13 @@ defmodule Farmbot.CeleryScript.Command.CheckUpdates do
   def run(%{package: package}, [], context) do
     case package do
       "arduino_firmware" ->
-        raise "arduino firmware is now bundled into the OS."
+        raise Error, context: context,
+          message: "arduino firmware is now bundled into the OS."
 
       "farmbot_os" ->
-        Farmbot.System.Updates.check_and_download_updates()
+        Farmbot.System.Updates.check_and_download_updates(context)
 
-      u -> raise("unknown package: #{u}")
+      u -> raise(Error, message: "unknown package: #{u}", context: context)
     end
     context
   end
