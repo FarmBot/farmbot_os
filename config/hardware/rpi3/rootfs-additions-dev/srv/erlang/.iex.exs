@@ -10,7 +10,7 @@ if Code.ensure_loaded? Farmbot do
     Database,
     FarmEvent,
     ImageWatcher,
-    RegimenRunner,
+    Regimen.Runner,
     CeleryScript,
     DebugLog,
     FarmEvent.Runner,

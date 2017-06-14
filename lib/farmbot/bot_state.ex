@@ -116,7 +116,7 @@ defmodule Farmbot.BotState do
   """
   @spec update_config(context, String.t, any) :: :ok | {:error, atom}
   def update_config(%Context{} = context, config_key, value)
-  when is_bitstring(config_key) do
+  when is_binary(config_key) do
     GenServer.call(context.configuration, {:update_config, config_key, value})
   end
 

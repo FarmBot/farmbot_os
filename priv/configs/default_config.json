@@ -4,6 +4,7 @@
   "server": "http://localhost:3000"
  },
  "configuration": {
+  "timezone": null,
   "user_env": {},
   "os_auto_update": false,
   "first_party_farmware": false,

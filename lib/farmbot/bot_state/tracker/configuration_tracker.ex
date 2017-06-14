@@ -13,6 +13,7 @@ defmodule Farmbot.BotState.Configuration do
     model:
     [
       configuration: %{
+        timezone: nil,
         user_env: %{},
         os_auto_update: false,
         steps_per_mm_x: 10,
@@ -38,6 +39,7 @@ defmodule Farmbot.BotState.Configuration do
   @type state ::
     %State{
       configuration: %{
+        timezone: nil | binary,
         user_env: map,
         os_auto_update: boolean,
         steps_per_mm_x: integer,
@@ -82,9 +84,11 @@ defmodule Farmbot.BotState.Configuration do
     {:ok, len_x}    = get_config("distance_mm_x")
     {:ok, len_y}    = get_config("distance_mm_y")
     {:ok, len_z}    = get_config("distance_mm_z")
+    {:ok, tz}       = get_config("timezone")
     new_state =
       %State{initial | configuration: %{
-           user_env: user_env,
+           user_env:       user_env,
+           timezone:       tz,
            os_auto_update: os_a_u,
            steps_per_mm_x: spm_x,
            steps_per_mm_y: spm_y,
@@ -165,6 +169,14 @@ defmodule Farmbot.BotState.Configuration do
     new_config = %{config | user_env: f}
     new_state = %{state | configuration: new_config}
     put_config("user_env", f)
+    dispatch true, new_state
+  end
+
+  def handle_call({:update_config, "timezone", tz}, _, state) do
+    config = state.configuration
+    new_config = %{config | timezone: tz}
+    new_state = %{state | configuration: new_config}
+    put_config("timezone", tz)
     dispatch true, new_state
   end
 

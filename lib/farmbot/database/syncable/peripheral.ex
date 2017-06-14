@@ -14,16 +14,16 @@ defmodule Farmbot.Database.Syncable.Peripheral do
     :label
   ], endpoint: {"/peripherals", "/peripherals"}
 
-  def on_sync(context, object_or_list)
+  def on_fetch(context, object_or_list)
 
-  def on_sync(%Context{} = _, []), do: :ok
+  def on_fetch(%Context{} = _, []), do: :ok
 
-  def on_sync(%Context{} = context, [%__MODULE__{} = first | rest]) do
-    on_sync(context, first)
-    on_sync(context, rest)
+  def on_fetch(%Context{} = context, [%__MODULE__{} = first | rest]) do
+    on_fetch(context, first)
+    on_fetch(context, rest)
   end
 
-  def on_sync(%Context{} = context, %__MODULE__{pin: pin, mode: mode, label: label}) do
+  def on_fetch(%Context{} = context, %__MODULE__{pin: pin, mode: mode, label: label}) do
     spawn fn ->
       :ok = Farmbot.BotState.set_pin_mode(context, pin, mode)
       ast = %Ast{

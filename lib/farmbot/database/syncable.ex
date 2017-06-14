@@ -88,8 +88,8 @@ defmodule Farmbot.Database.Syncable do
         url = "/api" <> plural_url()
         result = context |> HTTP.get(url) |> parse_resp(__MODULE__)
 
-        if function_exported?(__MODULE__, :on_sync, 2) do
-          apply __MODULE__, :on_sync, [context, result]
+        if function_exported?(__MODULE__, :on_fetch, 2) do
+          apply __MODULE__, :on_fetch, [context, result]
         end
 
         case then do
@@ -105,8 +105,8 @@ defmodule Farmbot.Database.Syncable do
         url = "/api" <> unquote(singular) <> "/#{id}"
         result = context |> HTTP.get(url) |> parse_resp(__MODULE__)
 
-        if function_exported?(__MODULE__, :on_sync, 2) do
-          apply __MODULE__, :on_sync, [context, result]
+        if function_exported?(__MODULE__, :on_fetch, 2) do
+          apply __MODULE__, :on_fetch, [context, result]
         end
 
         case then do
