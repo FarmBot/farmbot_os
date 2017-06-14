@@ -15,7 +15,6 @@ defmodule Farmbot.Regimen.Runner do
     defexception [:epoch, :regimen, :message]
   end
 
-
   defmodule Item do
     @moduledoc false
     @type t :: %__MODULE__{
@@ -131,15 +130,16 @@ defmodule Farmbot.Regimen.Runner do
   end
 
   def build_next_state(
-    %Regimen{} = regimen, %Item{} = next_item, %Context{} = context, pid, state)
+    %Regimen{} = regimen,
+    %Item{} = nx_itm, %Context{} = context,
+    pid, state)
   do
-    next_dt         = Timex.shift(state.epoch, milliseconds: next_item.time_offset)
+    next_dt         = Timex.shift(state.epoch, milliseconds: nx_itm.time_offset)
     now             = Timex.now(Farmbot.BotState.get_config(context, :timezone))
     offset_from_now = Timex.diff(next_dt, now, :milliseconds)
 
-    # if the offset from now is negative, we may want to handle this differently?
-    timer = if (offset_from_now < 0) and (offset_from_now < -60000) do
-      Logger.info "[#{regimen.name}] #{[next_item.name]} has been scheduled " <>
+    timer = if (offset_from_now < 0) and (offset_from_now < -60_000) do
+      Logger.info "[#{regimen.name}] #{[nx_itm.name]} has been scheduled " <>
         "to happen more than one minute ago: #{offset_from_now} Skipping it."
       Process.send_after(pid, :skip, 1000)
     else

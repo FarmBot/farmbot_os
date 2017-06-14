@@ -65,7 +65,9 @@ defmodule Farmbot.CeleryScript.Command do
   # is this one a good idea?
   # there might be two expectations here: it could return the current position,
   # or 0
-  def ast_to_coord(%Context{} = context, %Ast{kind: "nothing", args: _, body: _}) do
+  def ast_to_coord(%Context{} = context,
+    %Ast{kind: "nothing", args: _, body: _})
+  do
     next_context = coordinate(%{x: 0, y: 0, z: 0}, [], context)
     raise_if_not_context_or_return_context("coordinate", next_context)
   end
@@ -135,8 +137,11 @@ defmodule Farmbot.CeleryScript.Command do
   def ensure_position(results, {x_step, y_step, z_step}, %Context{} = ctx) do
     context = ensure_gcode(results, ctx) # this might raise.
     case results do
-      {:report_current_possition, {actual_x_step, actual_y_step, actual_z_step}} ->
-        if {actual_x_step, actual_y_step, actual_z_step} == {x_step, y_step, z_step} do
+      {:report_current_possition,
+        {actual_x_step, actual_y_step, actual_z_step}} ->
+        if {actual_x_step, actual_y_step, actual_z_step} ==
+            {x_step, y_step, z_step}
+        do
           {true, context}
         else
           {false, context}
