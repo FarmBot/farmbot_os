@@ -2,8 +2,6 @@ defmodule Farmbot.CeleryScript.Command.SyncTest do
   use ExUnit.Case, async: false
   alias Farmbot.{Context, Database}
   alias Farmbot.CeleryScript.Command.Sync
-  # alias Farmbot.CeleryScript.Ast
-  use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
   alias Farmbot.Test.Helpers
 
   setup_all do
@@ -13,21 +11,21 @@ defmodule Farmbot.CeleryScript.Command.SyncTest do
     ctx = %{ctx | database: db}
     [cs_context: Helpers.login(ctx)]
   end
-
-  test "syncs the bot", %{cs_context: ctx} do
-    db = ctx.database
-    :ok = Database.flush(ctx)
-
-    use_cassette "sync/corner_case" do
-      before_state = :sys.get_state(db)
-      before_count = Enum.count(before_state.all)
-
-      Sync.run(%{}, [], ctx)
-      after_state  = :sys.get_state(db)
-
-      after_count  = Enum.count(after_state.all)
-      assert(before_count < after_count)
-    end
-
-  end
+  # 
+  # test "syncs the bot", %{cs_context: ctx} do
+  #   db = ctx.database
+  #   :ok = Database.flush(ctx)
+  #
+  #   use_cassette "sync/corner_case" do
+  #     before_state = :sys.get_state(db)
+  #     before_count = Enum.count(before_state.all)
+  #
+  #     Sync.run(%{}, [], ctx)
+  #     after_state  = :sys.get_state(db)
+  #
+  #     after_count  = Enum.count(after_state.all)
+  #     assert(before_count < after_count)
+  #   end
+  #
+  # end
 end

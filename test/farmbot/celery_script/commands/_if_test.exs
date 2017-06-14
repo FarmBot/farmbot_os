@@ -1,6 +1,6 @@
 defmodule Farmbot.CeleryScript.IfTest do
   use ExUnit.Case, async: false
-  alias Farmbot.CeleryScript.{Ast, Command}
+  alias Farmbot.CeleryScript.{Ast, Command, Error}
   alias Command.If
   alias Farmbot.Context
 
@@ -18,7 +18,7 @@ defmodule Farmbot.CeleryScript.IfTest do
     args     = %{_else: else_ast, _then: then_ast, lhs: lhs, rhs: rhs, op: op}
     ast      = %Ast{kind: "_if", args: args, body: []}
 
-    assert_raise RuntimeError, "could not evaluate left hand side of if statment! #{inspect lhs}", fn() ->
+    assert_raise Error, "Got unexpected left hand side of IF: some arbitrary property", fn() ->
       If.run(ast.args, ast.body, context)
     end
   end
@@ -32,7 +32,7 @@ defmodule Farmbot.CeleryScript.IfTest do
     args     = %{_else: else_ast, _then: then_ast, lhs: lhs, rhs: rhs, op: op}
     ast      = %Ast{kind: "_if", args: args, body: []}
 
-    assert_raise RuntimeError, "Bad operator in if #{inspect op}", fn() ->
+    assert_raise Error, "Bad operator in if #{inspect op}", fn() ->
       If.run(ast.args, ast.body, context)
     end
   end
