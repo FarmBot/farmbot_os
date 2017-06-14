@@ -3,13 +3,13 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
     Update Farmware
   """
 
-  alias Farmbot.CeleryScript.Ast
-  alias Farmbot.CeleryScript.Command
-  import Command, only: [ast_to_coord: 2, ensure_position: 2]
-  alias Farmbot.Lib.Maths
+  alias   Farmbot.CeleryScript.Ast
+  alias   Farmbot.CeleryScript.Command
+  import  Command, only: [ast_to_coord: 2, ensure_position: 3]
+  alias   Farmbot.Lib.Maths
   require Logger
-  alias Farmbot.Serial.Handler, as: UartHan
-
+  alias   Farmbot.Serial.Handler, as: UartHan
+  alias   Farmbot.Context
   @behaviour Command
 
   @type coordinate_ast :: Command.Coordinate.t
@@ -42,9 +42,9 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
     do_move(a, b, s, new_context3)
   end
 
-  defp do_mode(move, offset, speed, context, retries \\ 0)
+  defp do_move(move, offset, speed, context, retries \\ 0)
 
-  defp do_move({xa, ya, za}, {xb, yb, zb}, speed, %Context{} = context, retries) do
+  defp do_move({xa, ya, za} = move, {xb, yb, zb} = offset, speed, %Context{} = context, retries) do
     if retries > 3 do
       raise Farmbot.CeleryScript.Error, context: context,
         message: "Failed to execute movement command."
@@ -52,11 +52,12 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
 
     { combined_x, combined_y, combined_z } = { xa + xb, ya + yb, za + zb }
     {x, y, z} = do_math(combined_x, combined_y, combined_z, context)
+
     {ensured?, new_context} = context
       |> UartHan.write("G00 X#{x} Y#{y} Z#{z} S#{speed}")
       |> ensure_position({x, y, z}, context)
 
-    if ensured do
+    if ensured? do
       new_context
     else
       Logger.info "Retrying movement", type: :busy

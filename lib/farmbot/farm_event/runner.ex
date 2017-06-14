@@ -3,7 +3,7 @@ defmodule Farmbot.FarmEvent.Runner do
     Checks the database every 60 seconds for FarmEvents
   """
   require Logger
-  alias   Farmbot.{Context, DebugLog, Database, CeleryScript}
+  alias   Farmbot.{Context, DebugLog, Database}
   import  Farmbot.FarmEvent.Executer
   use     DebugLog
   use     GenServer
