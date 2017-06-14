@@ -69,14 +69,15 @@ defmodule Farmbot.Mixfile do
   end
 
   def application do
-    [mod: {Farmbot, []},
+    [mod:          {Farmbot, []},
      applications: applications() ++ target_applications(@target) ++ env_applications(Mix.env()),
      included_applications: [
-       :gen_mqtt,
+       :nerves_ssdp_client,
        :ex_json_schema,
-       :fs,
        :ex_rollbar,
-       :ssh
+       :gen_mqtt,
+       :ssh,
+       :fs,
      ] ++ included_apps(Mix.env)]
   end
 
@@ -90,6 +91,7 @@ defmodule Farmbot.Mixfile do
       :nerves_uart,
       :nerves_hal,
       :nerves_runtime,
+      :nerves_ssdp_server,
       :poison,
       :rsa,
       :nerves_lib,
@@ -105,16 +107,13 @@ defmodule Farmbot.Mixfile do
       :inets,
       :redix,
       :eex,
-      # :system_registry
    ]
   end
 
   defp target_applications("host"), do: []
   defp target_applications(_system), do: [
     :nerves_interim_wifi,
-    # :nerves_firmware_http,
     :nerves_firmware,
-    :nerves_ssdp_server
   ]
 
   defp env_applications(:prod), do: []
@@ -127,7 +126,6 @@ defmodule Farmbot.Mixfile do
     [
 
       {:nerves, "0.5.1"},
-      # {:nerves_runtime, "~> 0.1.1"},
       {:nerves_runtime, github: "nerves-project/nerves_runtime", override: true},
       {:nerves_hal, github: "LeToteTeam/nerves_hal"},
 
@@ -158,11 +156,11 @@ defmodule Farmbot.Mixfile do
       # Log to syslog
       {:ex_syslogger, "~> 1.3.3", only: :prod},
       {:ex_rollbar, "0.1.2"},
-      # {:rollbax, "~> 0.6"},
-      # {:ex_rollbar, path: "../../ex_rollbar"},
 
       # Other stuff
-      {:gen_stage, "0.11.0"},
+      {:gen_stage,          "0.11.0"  },
+      {:nerves_ssdp_server, "~> 0.2.2"},
+      {:nerves_ssdp_client, "~> 0.1.0"},
 
       # Test/Dev only
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
@@ -180,13 +178,10 @@ defmodule Farmbot.Mixfile do
       {:cowboy, "~> 1.1"},
       {:ex_webpack, "~> 0.1.1", runtime: false, warn_missing: false},
 
-      # {:farmbot_simulator, "~> 0.1.3", only: [:test, :dev]},
-      # {:farmbot_simulator, path: "../farmbot_simulator", only: [:test, :dev]},
       {:farmbot_simulator, github: "farmbot-labs/farmbot_simulator", only: [:test, :dev]},
 
       {:tzdata, "~> 0.1.201601", override: true},
       {:fs, "~> 0.9.1"},
-      # {:system_registry, "~> 0.1"}
     ]
   end
 
@@ -232,18 +227,8 @@ defmodule Farmbot.Mixfile do
     if File.exists?("nerves/nerves_system_#{sys}"),
       do: [
         {:"nerves_system_#{sys}", warn_missing: false, path: "nerves/nerves_system_#{sys}"},
-        # {:nerves_interim_wifi, "~> 0.2.0"},
-        # {:nerves_interim_wifi, path: "../nerves_interim_wifi"},
         {:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi"},
-
-        # {:nerves_firmware_http, "~> 0.3.1"},
-
-        # {:nerves_firmware, "~> 0.3"},
-        # {:nerves_firmware, path: "../nerves_firmware", override: true},
         {:nerves_firmware, github: "nerves-project/nerves_firmware", override: true},
-        # {:nerves_firmware, github: "nerves-project/nerves_firmware", tag: "0f558ad2402cbd5b36bd7a8a10bc2b53167de14e", override: true},
-
-        {:nerves_ssdp_server, "~> 0.2.1"},
         ],
       else: Mix.raise("There is no existing system package for #{sys}")
   end

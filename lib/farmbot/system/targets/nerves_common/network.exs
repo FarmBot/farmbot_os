@@ -9,11 +9,13 @@ defmodule Farmbot.System.NervesCommon.Network do
     target = Keyword.get(opts, :target)
     quote do
       @behaviour Farmbot.System.Network
-      use GenServer
+      use     GenServer
       require Logger
-      alias Nerves.InterimWiFi, as: NervesWifi
-      alias Farmbot.System.Network.Hostapd
-      alias Farmbot.Context
+      alias   Nerves.InterimWiFi, as: NervesWifi
+      alias   Nerves.{NetworkInterface, Udhcpc, WpaSupplicant, SSDPServer}
+      alias   Farmbot.System.Network.Hostapd
+      alias   Farmbot.Context
+      use     Farmbot.DebugLog
 
       def start_link(%Context{} = ctx),
         do: GenServer.start_link(__MODULE__, ctx, name: __MODULE__)
@@ -133,7 +135,7 @@ defmodule Farmbot.System.NervesCommon.Network do
         end
       end
 
-      def enumerate(%Context{} = _ctx), do: Nerves.NetworkInterface.interfaces -- ["lo"]
+      def enumerate(%Context{} = _ctx), do: NetworkInterface.interfaces -- ["lo"]
 
       defp clean_ssid(hc) do
         hc
@@ -141,14 +143,13 @@ defmodule Farmbot.System.NervesCommon.Network do
         |> String.replace("\\x00", "")
         |> String.split("\n")
         |> Enum.filter(fn(s) -> String.contains?(s, "SSID: ") end)
-        |> Enum.map(fn(z) -> String.replace(z, "SSID: ", "") end)
+        |> Enum.map(fn(z)    -> String.replace(z, "SSID: ", "") end)
         |> Enum.filter(fn(z) -> String.length(z) != 0 end)
       end
 
       # GENSERVER STUFF
 
       def handle_call(:logged_in, _from, state) do
-        # Tear down hostapd here
         {:reply, :ok, %{state | logging_in: false}}
       end
 
@@ -161,9 +162,9 @@ defmodule Farmbot.System.NervesCommon.Network do
               end
               {:reply, :ok, Map.delete(state, interface)}
             else
-              :ok = Registry.unregister(Nerves.NetworkInterface, interface)
-              :ok = Registry.unregister(Nerves.Udhcpc, interface)
-              :ok = Registry.unregister(Nerves.WpaSupplicant, interface)
+              :ok = Registry.unregister(NetworkInterface, interface)
+              :ok = Registry.unregister(Udhcpc, interface)
+              :ok = Registry.unregister(WpaSupplicant, interface)
               Logger.warn ">> cant stop: #{interface}"
               {:reply, {:error, :not_implemented}, state}
             end
@@ -172,33 +173,50 @@ defmodule Farmbot.System.NervesCommon.Network do
       end
 
       def handle_cast({:start_interface, interface, settings, pid}, state) do
-        {:ok, _} = Registry.register(Nerves.NetworkInterface, interface, [])
-        {:ok, _} = Registry.register(Nerves.Udhcpc, interface, [])
-        {:ok, _} = Registry.register(Nerves.WpaSupplicant, interface, [])
+        {:ok, _} = Registry.register(NetworkInterface, interface, [])
+        {:ok, _} = Registry.register(Udhcpc, interface, [])
+        {:ok, _} = Registry.register(WpaSupplicant, interface, [])
         {:noreply, Map.put(state, interface, {settings, pid})}
       end
 
-      def handle_info({Nerves.Udhcpc, :bound, %{ifname: interface, ipv4_address: ip}}, state) do
-        if state.logging_in do
-          {:noreply, state}
-        else
-          that = self()
-          spawn fn() ->
+      def handle_info({:ssdp_timer, ip, uuid} = msg, state) do
+        fields   = ssdp_fields(ip)
+        {:ok, _} = SSDPServer.publish "uuid:#{uuid}", "nerves:farmbot", fields
+        {:noreply, state}
+      end
 
-            Farmbot.System.Network.on_connect(state.context, fn() ->
+      def handle_info(
+        {Udhcpc, :bound, %{ifname: interface, ipv4_address: ip}},
+        %{logging_in: true} = state
+      ) do
+        {:noreply, state}
+      end
 
+      def handle_info(
+        {Udhcpc, :bound, %{ifname: interface, ipv4_address: ip}},
+        state
+      ) do
+        that = self()
+        spawn fn() ->
+          Farmbot.System.Network.on_connect(state.context,
+            # before callback
+            fn() ->
               try do
                 {_, 0} = System.cmd("epmd", ["-daemon"])
                 :net_kernel.start(['farmbot@#{ip}'])
               rescue
                 _ ->
-                  Logger.warn "could not start epmd or net_kernel"
+                  debug_log "could not start epmd or net_kernel"
                   :ok
               end
               Logger.info ">> is waiting for linux and network and what not."
               Process.sleep(5000) # ye old race linux condidtion
+              uuid = Nerves.Lib.UUID.generate()
+              send(that, {:ssdp_timer, ip, uuid})
               GenServer.call(that, :logged_in)
             end,
+
+            # after callback
             fn(token) ->
                for {key, value} <- state do
                  if match?({%{"default" => "hostapd"}, _}, value) do
@@ -208,12 +226,11 @@ defmodule Farmbot.System.NervesCommon.Network do
                end
             end)
 
-          end
-          {:noreply, %{state | logging_in: true}}
         end
+        {:noreply, %{state | logging_in: true}}
       end
 
-      def handle_info({Nerves.WpaSupplicant, {:error, :psk, :FAIL}, %{ifname: _iface}}, state) do
+      def handle_info({WpaSupplicant, {:error, :psk, :FAIL}, %{ifname: _iface}}, state) do
         Farmbot.System.factory_reset("""
         I could not authenticate with the access point. This could be a bad
         password, or an unsupported network type.
@@ -221,7 +238,10 @@ defmodule Farmbot.System.NervesCommon.Network do
         {:stop, :factory_reset, state}
       end
 
-      def handle_info({Nerves.WpaSupplicant, _event, %{ifname: _iface}}, %{retries: retries} = state) when retries > 5 do
+      def handle_info(
+        {WpaSupplicant, _event, %{ifname: _iface}},
+        %{retries: retries} = state
+      ) when retries > 5 do
         Farmbot.System.factory_reset("""
         I could not find the wifi access point. Check that it was inputted correctly.
         I tried #{retries} times and still found nothing. Maybe I'm not close enough to the access point?
@@ -229,7 +249,10 @@ defmodule Farmbot.System.NervesCommon.Network do
         {:noreply, state}
       end
 
-      def handle_info({Nerves.WpaSupplicant, event, %{ifname: _iface}}, state) when is_atom(event) do
+      def handle_info(
+        {WpaSupplicant, event, %{ifname: _iface}},
+        state
+      ) when is_atom(event) do
         event = event |> Atom.to_string
         wrong_key? = event |> String.contains?("reason=WRONG_KEY")
         not_found? = event |> String.contains?("CTRL-EVENT-NETWORK-NOT-FOUND")
@@ -252,6 +275,15 @@ defmodule Farmbot.System.NervesCommon.Network do
       def terminate(_, _state) do
         # TODO STOP INTERFACES
         :ok
+      end
+
+      defp ssdp_fields(ip) do
+        [
+          location:        "http://#{ip}/ssdp",
+          server:          "Farmbot",
+          node:            node(),
+          "cache-control": "max-age=1800"
+        ]
       end
 
     end
