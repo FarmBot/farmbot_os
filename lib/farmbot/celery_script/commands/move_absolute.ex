@@ -46,7 +46,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
   defp do_move({xa, ya, za} = move, {xb, yb, zb} = offset, speed, %Context{} = context, retries) do
     if retries > Farmbot.BotState.get_config(context, :max_movement_retries) do
       raise Farmbot.CeleryScript.Error, context: context,
-        message: "Failed to execute movement command."
+        message: "Failed to execute movement command. Motors may be stalled."
     end
 
     { combined_x, combined_y, combined_z } = { xa + xb, ya + yb, za + zb }

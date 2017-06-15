@@ -3,7 +3,7 @@ defmodule Farmbot.CeleryScript.Command.Sequence do
     Sequence
   """
 
-  alias      Farmbot.CeleryScript.{Ast, Command, Types}
+  alias      Farmbot.CeleryScript.{Ast, Command, Error, Types}
   alias      Farmbot.Context
   require    Logger
   @behaviour Command
@@ -29,9 +29,9 @@ defmodule Farmbot.CeleryScript.Command.Sequence do
       {^pid, %Context{} = ctx}  ->
         Logger.info "Sequence complete.", type: :success
         ctx
-      {^pid, {:error, _reason}} ->
-        Logger.error "Sequence completed with error. See log."
-        old_context
+      {^pid, {:error, reason}} ->
+        raise Error, context: old_context,
+          message: "sequence error: #{inspect reason}"
     end
   end
 end
