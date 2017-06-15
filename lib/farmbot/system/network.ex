@@ -123,13 +123,12 @@ defmodule Farmbot.System.Network do
 
   else
 
-    defp read_ssh_public_key do
-      case File.read "#{System.get_env("HOME")}/.ssh/id_rsa.pub" do
-        {:ok, bin} -> String.trim(bin)
-        _          -> nil
-      end
+    results = case File.read "#{System.get_env("HOME")}/.ssh/id_rsa.pub" do
+      {:ok, bin} -> String.trim(bin)
+      _          -> nil
     end
 
+    defp read_ssh_public_key, do: unquote(results)
   end
 
   defp maybe_start_ssh do
