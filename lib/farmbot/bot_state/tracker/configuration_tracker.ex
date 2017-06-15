@@ -21,7 +21,8 @@ defmodule Farmbot.BotState.Configuration do
         steps_per_mm_z: 50,
         distance_mm_x: 1500,
         distance_mm_y: 3000,
-        distance_mm_z: 800
+        distance_mm_z: 800,
+        max_movement_retries: nil
       },
       informational_settings: %{
         locked: false,
@@ -48,6 +49,7 @@ defmodule Farmbot.BotState.Configuration do
         distance_mm_x: integer,
         distance_mm_y: integer,
         distance_mm_z: integer,
+        max_movement_retries: integer,
         sync_status: sync_msg
       },
       informational_settings: %{
@@ -85,17 +87,20 @@ defmodule Farmbot.BotState.Configuration do
     {:ok, len_y}    = get_config("distance_mm_y")
     {:ok, len_z}    = get_config("distance_mm_z")
     {:ok, tz}       = get_config("timezone")
+    {:ok, mmr}      = get_config("max_movement_retries")
     new_state =
       %State{initial | configuration: %{
-           user_env:       user_env,
-           timezone:       tz,
-           os_auto_update: os_a_u,
-           steps_per_mm_x: spm_x,
-           steps_per_mm_y: spm_y,
-           steps_per_mm_z: spm_z,
-           distance_mm_x:  len_x,
-           distance_mm_y:  len_y,
-           distance_mm_z:  len_z }}
+           user_env:             user_env,
+           timezone:             tz,
+           os_auto_update:       os_a_u,
+           max_movement_retries: mmr,
+           steps_per_mm_x:       spm_x,
+           steps_per_mm_y:       spm_y,
+           steps_per_mm_z:       spm_z,
+           distance_mm_x:        len_x,
+           distance_mm_y:        len_y,
+           distance_mm_z:        len_z
+    }}
     {:ok, new_state}
   end
 
@@ -109,74 +114,47 @@ defmodule Farmbot.BotState.Configuration do
       f_value == 0 -> false
       is_boolean(f_value) -> f_value
     end
-    new_config = Map.put(state.configuration, :os_auto_update, value)
-    new_state = %State{state | configuration: new_config}
-    put_config("os_auto_update", value)
-    dispatch true, new_state
+    update_config(state, :os_auto_update, value)
   end
 
   def handle_call({:update_config, "steps_per_mm_x", val}, _, state) do
-    config = state.configuration
-    new_config = %{config | steps_per_mm_x: val}
-    new_state = %{state | configuration: new_config}
-    put_config("steps_per_mm_x", val)
-    dispatch true, new_state
+    update_config(state, :steps_per_mm_x, val)
   end
 
   def handle_call({:update_config, "steps_per_mm_y", val}, _, state) do
-    config = state.configuration
-    new_config = %{config | steps_per_mm_y: val}
-    new_state = %{state | configuration: new_config}
-    put_config("steps_per_mm_y", val)
-    dispatch true, new_state
+    update_config(state, :steps_per_mm_y, val)
   end
 
   def handle_call({:update_config, "steps_per_mm_z", val}, _, state) do
-    config = state.configuration
-    new_config = %{config | steps_per_mm_z: val}
-    new_state = %{state | configuration: new_config}
-    put_config("steps_per_mm_z", val)
-    dispatch true, new_state
+    update_config(state, :steps_per_mm_z, val)
   end
 
   def handle_call({:update_config, "distance_mm_x", val}, _, state) do
-    config = state.configuration
-    new_config = %{config | distance_mm_x: val}
-    new_state = %{state | configuration: new_config}
-    put_config("distance_mm_x", val)
-    dispatch true, new_state
+    update_config(state, :distance_mm_x, val)
   end
 
   def handle_call({:update_config, "distance_mm_y", val}, _, state) do
-    config = state.configuration
-    new_config = %{config | distance_mm_y: val}
-    new_state = %{state | configuration: new_config}
-    put_config("distance_mm_y", val)
-    dispatch true, new_state
+    update_config(state, :distance_mm_y, val)
   end
 
   def handle_call({:update_config, "distance_mm_z", val}, _, state) do
-    config = state.configuration
-    new_config = %{config | distance_mm_z: val}
-    new_state = %{state | configuration: new_config}
-    put_config("distance_mm_z", val)
-    dispatch true, new_state
+    update_config(state, :distance_mm_z, val)
+  end
+
+  def handle_call({:update_config, "max_movement_retries", val}, _, state) do
+    update_config(state, :max_movement_retries, val)
+  end
+
+  def handle_call({:update_config, "timezone", val}, _, state) do
+    update_config(state, :timezone, val)
   end
 
   def handle_call({:update_config, "user_env", map}, _from, %State{} = state) do
-    config = state.configuration
-    f = Map.merge(config.user_env, map)
+    config     = state.configuration
+    f          = Map.merge(config.user_env, map)
     new_config = %{config | user_env: f}
-    new_state = %{state | configuration: new_config}
+    new_state  = %{state | configuration: new_config}
     put_config("user_env", f)
-    dispatch true, new_state
-  end
-
-  def handle_call({:update_config, "timezone", tz}, _, state) do
-    config = state.configuration
-    new_config = %{config | timezone: tz}
-    new_state = %{state | configuration: new_config}
-    put_config("timezone", tz)
     dispatch true, new_state
   end
 
@@ -230,5 +208,13 @@ defmodule Farmbot.BotState.Configuration do
   defp do_update_info(%State{} = state, key, value) do
     new_info = Map.put(state.informational_settings, key, value)
     %State{state | informational_settings: new_info}
+  end
+
+  defp update_config(state, key, val) do
+    config = state.configuration
+    new_config = %{config | key => val}
+    new_state = %{state | configuration: new_config}
+    put_config(to_string(key), val)
+    dispatch true, new_state
   end
 end

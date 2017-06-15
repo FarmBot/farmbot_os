@@ -3,7 +3,7 @@ defmodule Farmbot.CeleryScript.Command.Sync do
     Sync
   """
 
-  alias      Farmbot.CeleryScript.{Ast, Command}
+  alias      Farmbot.CeleryScript.Command
   alias      Farmbot.{Context, Database}
   @behaviour Command
 
@@ -12,7 +12,7 @@ defmodule Farmbot.CeleryScript.Command.Sync do
       args: %{},
       body: []
   """
-  def run(_, _, context) do
+  def run(_, _, %Context{} = context) do
     :ok = Database.sync(context)
     context
   end

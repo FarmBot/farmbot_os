@@ -37,7 +37,7 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
         value = nowc |> parse_val_str()
         :ok = Database.set_awaiting(context, syncable, verb, value)
       else
-        raise Farmbot.CeleryScript.Error,
+        raise Farmbot.CeleryScript.Error, context: context,
           message: "Could not translate syncable: #{s}"
       end
     end)

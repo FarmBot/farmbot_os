@@ -44,7 +44,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
   defp do_move(move, offset, speed, context, retries \\ 0)
 
   defp do_move({xa, ya, za} = move, {xb, yb, zb} = offset, speed, %Context{} = context, retries) do
-    if retries > 3 do
+    if retries > Farmbot.BotState.get_config(context, :max_movement_retries) do
       raise Farmbot.CeleryScript.Error, context: context,
         message: "Failed to execute movement command."
     end
