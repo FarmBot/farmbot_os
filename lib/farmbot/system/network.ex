@@ -114,8 +114,26 @@ defmodule Farmbot.System.Network do
     :ok
   end
 
+  if Mix.env() == :prod do
+
+    defp read_ssh_public_key do
+      {:ok, public_key} = get_config("ssh")
+      public_key
+    end
+
+  else
+
+    defp read_ssh_public_key do
+      case File.read "#{System.get_env("HOME")}/.ssh/id_rsa.pub" do
+        {:ok, bin} -> String.trim(bin)
+        _          -> nil
+      end
+    end
+
+  end
+
   defp maybe_start_ssh do
-    {:ok, public_key}      = get_config("ssh")
+    public_key      = read_ssh_public_key()
     ssh_dir         = '/ssh'
     ssh_dir_exists? = File.exists?(ssh_dir)
     shell = {Elixir.IEx, :start, []}

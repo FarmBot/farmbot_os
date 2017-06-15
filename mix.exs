@@ -132,7 +132,7 @@ defmodule Farmbot.Mixfile do
       # Hardware stuff
       {:nerves_uart, "0.1.2"}, # uart handling
       {:nerves_lib, github: "nerves-project/nerves_lib"}, # this has a good uuid
-      {:bootloader, github: "nerves-project/bootloader"},
+      # {:bootloader, github: "nerves-project/bootloader"},
 
       # http stuff
       {:poison, "~> 3.0"},
