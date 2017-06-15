@@ -116,19 +116,19 @@ defmodule Farmbot.System.Network do
 
   if Mix.env() == :prod do
 
-    defp read_ssh_public_key do
+    def read_ssh_public_key do
       {:ok, public_key} = get_config("ssh")
       public_key
     end
 
   else
 
-    results = case File.read "#{System.get_env("HOME")}/.ssh/id_rsa.pub" do
+    results = case File.read("#{System.get_env("HOME")}/.ssh/id_rsa.pub") do
       {:ok, bin} -> String.trim(bin)
       _          -> nil
     end
 
-    defp read_ssh_public_key, do: unquote(results)
+    def read_ssh_public_key, do: unquote(results)
   end
 
   defp maybe_start_ssh do
