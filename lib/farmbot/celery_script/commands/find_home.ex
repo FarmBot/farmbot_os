@@ -3,7 +3,7 @@ defmodule Farmbot.CeleryScript.Command.FindHome do
     FindHome
   """
 
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Types}
   alias Farmbot.Serial.Handler, as: UartHan
   @behaviour Command
 
@@ -12,8 +12,7 @@ defmodule Farmbot.CeleryScript.Command.FindHome do
       args: %{axis: "x" | "y" | "z" | "all"},
       body: []
   """
-  @type axis :: String.t # "x" | "y" | "z" | "all"
-  @spec run(%{axis: axis}, [], Context.t) :: Context.t
+  @spec run(%{axis: Types.axis}, [], Context.t) :: Context.t
   def run(%{axis: "all"}, [], context) do
     run(%{axis: "z"}, [], context) # <= FindHome z FIRST to prevent plant damage
     run(%{axis: "y"}, [], context)

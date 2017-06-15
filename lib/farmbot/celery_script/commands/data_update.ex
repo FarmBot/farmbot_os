@@ -3,7 +3,7 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
     SyncInvalidate
   """
 
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Types}
   alias Farmbot.Database
   alias Database.Syncable.{
     Device,
@@ -28,7 +28,7 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
     args: %{value: String.t},
     body: [Pair.t]
   """
-  @spec run(%{value: String.t}, [Pair.t], Context.t) :: Context.t
+  @spec run(%{value: binary}, Types.pairs, Context.t) :: Context.t
   def run(%{value: verb}, pairs, context) do
     verb = parse_verb_str(verb)
     Enum.each(pairs, fn(%{args: %{label: s, value: nowc}}) ->

@@ -3,7 +3,8 @@ defmodule Farmbot.CeleryScript.Command.RemoveFarmware do
     Uninstall Farmware
   """
 
-  alias Farmbot.CeleryScript.{Command, Ast}
+  alias      Farmbot.CeleryScript.Command
+  alias      Farmbot.Context
   @behaviour Command
 
   @doc ~s"""
@@ -11,7 +12,7 @@ defmodule Farmbot.CeleryScript.Command.RemoveFarmware do
       args: %{package: uuid},
       body: []
   """
-  @spec run(%{package: binary}, [], Ast.context) :: Ast.context
+  @spec run(%{package: binary}, [], Context.t) :: Context.t
   def run(%{package: uuid}, [], context) do
     Farmbot.Farmware.Manager.uninstall!(context, uuid)
     context

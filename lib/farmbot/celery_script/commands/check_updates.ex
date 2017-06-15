@@ -4,7 +4,7 @@ defmodule Farmbot.CeleryScript.Command.CheckUpdates do
   """
 
   require Logger
-  alias Farmbot.CeleryScript.{Command, Error}
+  alias Farmbot.CeleryScript.{Command, Types, Error}
   @behaviour Command
 
   @doc ~s"""
@@ -12,7 +12,7 @@ defmodule Farmbot.CeleryScript.Command.CheckUpdates do
       args: %{package: "farmbot_os"},
       body: []
   """
-  @type package :: String.t # "farmbot_os"
+  @type package :: Types.package # "farmbot_os"
   @spec run(%{package: package}, [], Context.t) :: Context.t
   def run(%{package: package}, [], context) do
     case package do

@@ -3,18 +3,17 @@ defmodule Farmbot.CeleryScript.Command.Sequence do
     Sequence
   """
 
-  alias Farmbot.CeleryScript.{Command, Ast}
-  alias Farmbot.Context
-  require Logger
-
+  alias      Farmbot.CeleryScript.{Ast, Command, Types}
+  alias      Farmbot.Context
+  require    Logger
   @behaviour Command
 
   @doc ~s"""
     Executes a sequence. this one is non blocking and needs to disapear.
       args: %{},
-      body: [Ast.t]
+      body: [Types.ast]
   """
-  @spec run(%{}, [Ast.t], Context.t) :: Context.t
+  @spec run(%{}, [Types.ast], Context.t) :: Context.t
   def run(args, body, %Context{} = context) do
     # rebuild the ast node
     ast          = %Ast{kind: "sequence", args: args, body: body}

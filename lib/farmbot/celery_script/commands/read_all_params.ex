@@ -3,18 +3,18 @@ defmodule Farmbot.CeleryScript.Command.ReadAllParams do
     ReadAllParams
   """
 
-  alias Farmbot.CeleryScript.Command
-  alias Farmbot.CeleryScript.Ast
-  alias Farmbot.Serial.Handler, as: UartHan
+  alias      Farmbot.CeleryScript.Command
+  alias      Farmbot.Serial.Handler, as: UartHan
+  alias      Farmbot.Context
+  require    Logger
   @behaviour Command
-  require Logger
 
   @doc ~s"""
     Reads all mcu_params
       args: %{},
       body: []
   """
-  @spec run(%{}, [], Ast.context) :: Ast.context
+  @spec run(%{}, [], Context.t) :: Context.t
   def run(%{}, [], context) do
     do_thing(context)
     context

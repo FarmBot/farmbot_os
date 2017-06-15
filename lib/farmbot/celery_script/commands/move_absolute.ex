@@ -3,16 +3,15 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
     Update Farmware
   """
 
-  alias   Farmbot.CeleryScript.Ast
-  alias   Farmbot.CeleryScript.Command
-  import  Command, only: [ast_to_coord: 2, ensure_position: 3]
-  alias   Farmbot.Lib.Maths
-  require Logger
-  alias   Farmbot.Serial.Handler, as: UartHan
-  alias   Farmbot.Context
+  alias      Farmbot.CeleryScript.{Command, Types}
+  import     Command, only: [ast_to_coord: 2, ensure_position: 3]
+  alias      Farmbot.Lib.Maths
+  require    Logger
+  alias      Farmbot.Serial.Handler, as: UartHan
+  alias      Farmbot.Context
   @behaviour Command
 
-  @type coordinate_ast :: Command.Coordinate.t
+  @type coordinate_ast :: Types.coord_ast
 
   @doc ~s"""
     move_absolute to a prticular position.
@@ -25,8 +24,8 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
   """
   @type move_absolute_args :: %{
     speed: integer,
-    offset: coordinate_ast | Ast.t,
-    location: coordinate_ast | Ast.t
+    offset: coordinate_ast   | Types.ast,
+    location: coordinate_ast | Types.ast
   }
   @spec run(move_absolute_args, [], Context.t) :: Context.t
   def run(%{speed: s, offset: offset, location: location}, [], context) do

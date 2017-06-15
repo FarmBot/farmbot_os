@@ -3,8 +3,8 @@ defmodule Farmbot.CeleryScript.Command.PowerOff do
     power_off
   """
 
-  alias   Farmbot.CeleryScript.Command
-  require Logger
+  alias      Farmbot.CeleryScript.Command
+  require    Logger
   @behaviour Command
 
   @doc ~s"""

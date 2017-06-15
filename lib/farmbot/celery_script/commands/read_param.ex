@@ -3,19 +3,19 @@ defmodule Farmbot.CeleryScript.Command.ReadParam do
     ReadParam
   """
 
-  alias Farmbot.CeleryScript.Command
-  alias Farmbot.CeleryScript.Ast
-  alias Farmbot.Serial.Handler, as: UartHan
-  alias Farmbot.Serial.Gcode.Parser, as: GParser
+  alias      Farmbot.CeleryScript.Command
+  alias      Farmbot.Serial.Handler, as: UartHan
+  alias      Farmbot.Serial.Gcode.Parser, as: GParser
+  alias      Farmbot.Context
+  require    Logger
   @behaviour Command
-  require Logger
 
   @doc ~s"""
     Reads a param value
-      args: %{label: String.t}
+      args: %{label: binary}
       body: []
   """
-  @spec run(%{label: String.t}, [], Ast.context) :: Ast.context
+  @spec run(%{label: binary}, [], Context.t) :: Context.t
   def run(%{label: param_str}, [], context) do
     param_int = GParser.parse_param(param_str)
     if param_int do

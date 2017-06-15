@@ -3,7 +3,7 @@ defmodule Farmbot.CeleryScript.Command.FactoryReset do
     FactoryReset
   """
 
-  alias      Farmbot.CeleryScript.{Command}
+  alias      Farmbot.CeleryScript.{Command, Types}
   alias      Farmbot.Context
   require    Logger
   @behaviour Command
@@ -14,7 +14,7 @@ defmodule Farmbot.CeleryScript.Command.FactoryReset do
       args: %{package: "farmbot_os" | "arduino_firmware"}
       body: []
   """
-  @spec run(%{package: binary}, [], Context.t) :: Context.t
+  @spec run(%{package: Types.package}, [], Context.t) :: Context.t
   def run(%{package: "farmbot_os"}, [], context) do
     Logger.info(">> Going down for factory reset in 5 seconds!", type: :warn)
     spawn fn ->

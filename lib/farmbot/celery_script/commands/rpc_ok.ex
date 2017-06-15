@@ -3,8 +3,8 @@ defmodule Farmbot.CeleryScript.Command.RpcOk do
     RpcOk
   """
 
-  alias Farmbot.CeleryScript.{Command, Ast}
-  require Logger
+  alias      Farmbot.CeleryScript.{Ast, Command}
+  alias      Farmbot.Context
   @behaviour Command
 
   @doc ~s"""
@@ -12,7 +12,7 @@ defmodule Farmbot.CeleryScript.Command.RpcOk do
       args: %{label: binary},
       body: []
   """
-  @spec run(%{label: binary}, [], Ast.context) :: Ast.context
+  @spec run(%{label: binary}, [], Context.t) :: Context.t
   def run(%{label: id}, [], context) do
     data = %Ast{kind: "rpc_ok", args: %{label: id}, body: []}
     Farmbot.Context.push_data(context, data)

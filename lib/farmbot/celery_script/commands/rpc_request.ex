@@ -3,9 +3,9 @@ defmodule Farmbot.CeleryScript.Command.RpcRequest do
     RpcOk
   """
 
-  alias Farmbot.CeleryScript.Ast
-  alias Farmbot.CeleryScript.Command
-  require Logger
+  alias      Farmbot.CeleryScript.{Command, Types}
+  alias      Farmbot.Context
+  require    Logger
   @behaviour Command
 
   @doc ~s"""
@@ -13,7 +13,7 @@ defmodule Farmbot.CeleryScript.Command.RpcRequest do
       args: %{label: String.t},
       body: [Ast.t,...]
   """
-  @spec run(%{label: String.t}, [Ast.t, ...], Ast.context) :: Ast.context
+  @spec run(%{label: binary}, [Types.ast], Context.t) :: Context.t
   def run(%{label: id}, more_stuff, context) do
     more_stuff
     |> Enum.reduce({[], []}, fn(ast, {win, fail}) ->
@@ -35,10 +35,9 @@ defmodule Farmbot.CeleryScript.Command.RpcRequest do
     |> handle_req(id, context)
   end
 
-  @spec handle_req(
-    {Ast.t, [Command.Explanation.explanation_type]},
+  @spec handle_req({Types.ast, [Types.explanation_ast]},
     binary,
-    Ast.context) :: Ast.context
+    Context.t) :: Context.t
   defp handle_req({_, []}, id, context) do
     # there were no failed asts.
     context1 = Command.rpc_ok(%{label: id}, [], context)

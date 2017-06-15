@@ -3,9 +3,9 @@ defmodule Farmbot.CeleryScript.Command.WritePin do
     WritePin
   """
 
-  alias Farmbot.CeleryScript.{Command, Ast}
-  alias Farmbot.Serial.Handler, as: UartHan
-
+  alias      Farmbot.CeleryScript.{Command, Types}
+  alias      Farmbot.Context
+  alias      Farmbot.Serial.Handler, as: UartHan
   @behaviour Command
 
   @doc ~s"""
@@ -17,10 +17,8 @@ defmodule Farmbot.CeleryScript.Command.WritePin do
       },
       body: []
   """
-  @spec run(%{pin_number: integer,
-    pin_mode: Command.pin_mode,
-    pin_value: integer}, [], Ast.context)
-  :: Ast.context
+  @spec run(%{pin_number: Types.pin_number, pin_mode: Types.pin_mode,
+    pin_value: integer}, [], Context.t) :: Context.t
   def run(%{pin_number: pin, pin_mode: mode, pin_value: val},
           [],
           context) do

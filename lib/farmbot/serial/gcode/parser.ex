@@ -18,7 +18,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_code("R05" <> _r), do: {nil, :dont_handle_me} # Dont care about this.
   def parse_code("R06 " <> r), do: parse_report_calibration(r)
 
-  def parse_code("R20 Q" <> tag), do: {tag, :report_params_complete}
+  def parse_code("R20 Q" <> tag),   do: {tag, :report_params_complete}
   def parse_code("R21 " <> params), do: parse_pvq(params, :report_parameter_value)
   def parse_code("R31 " <> params), do: parse_pvq(params, :report_status_value)
   def parse_code("R41 " <> params), do: parse_pvq(params, :report_pin_value)

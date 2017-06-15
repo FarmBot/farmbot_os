@@ -137,7 +137,7 @@ defmodule Farmbot.CeleryScript.Command do
   def ensure_position(results, {x_step, y_step, z_step}, %Context{} = ctx) do
     context = ensure_gcode(results, ctx) # this might raise.
     case results do
-      {:report_current_possition,
+      {:report_current_position,
         {actual_x_step, actual_y_step, actual_z_step}} ->
         if {actual_x_step, actual_y_step, actual_z_step} ==
             {x_step, y_step, z_step}

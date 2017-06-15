@@ -3,8 +3,8 @@ defmodule Farmbot.CeleryScript.Command.ReadStatus do
     ReadStatus
   """
 
-  alias Farmbot.CeleryScript.Command
-  alias Farmbot.CeleryScript.Ast
+  alias      Farmbot.CeleryScript.Command
+  alias      Farmbot.Context
   @behaviour Command
 
   @doc ~s"""
@@ -12,7 +12,7 @@ defmodule Farmbot.CeleryScript.Command.ReadStatus do
       args: %{},
       body: []
   """
-  @spec run(%{}, [], Ast.context) :: Ast.context
+  @spec run(%{}, [], Context.t) :: Context.t
   def run(%{}, [], context) do
     Farmbot.Transport.force_state_push(context)
     context

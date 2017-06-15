@@ -3,8 +3,7 @@ defmodule Farmbot.CeleryScript.Command.Explanation do
     Explanation
   """
 
-  alias Farmbot.CeleryScript.Command
-  alias Farmbot.CeleryScript.Ast
+  alias Farmbot.CeleryScript.{Command, Ast}
   @behaviour Command
 
   @doc ~s"""
@@ -12,9 +11,7 @@ defmodule Farmbot.CeleryScript.Command.Explanation do
       args: %{label: String.t},
       body: []
   """
-  @type explanation_type ::
-    %Ast{kind: String.t, args: %{message: String.t}, body: []}
-  @spec run(%{message: String.t}, [], Context.t) :: Context.t
+  @spec run(%{message: binary}, [], Context.t) :: Context.t
   def run(%{message: message}, [], context) do
     result = %Ast{kind: "explanation", args: %{message: message}, body: []}
     Farmbot.Context.push_data(context, result)
