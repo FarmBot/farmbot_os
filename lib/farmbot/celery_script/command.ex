@@ -152,7 +152,7 @@ defmodule Farmbot.CeleryScript.Command do
       do_execute_command(ast, context)
     rescue
       e in Farmbot.CeleryScript.Error ->
-        Logger.error "Failed to execute CeleryScript: #{e.message}"
+        Logger.error "Failed to execute #{ast.kind}: #{e.message}"
         reraise e, System.stacktrace()
       exception ->
         Logger.error "Unknown error happend executing CeleryScript."
