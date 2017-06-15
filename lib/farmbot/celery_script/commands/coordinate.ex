@@ -6,7 +6,6 @@ defmodule Farmbot.CeleryScript.Command.Coordinate do
   alias Farmbot.CeleryScript.{Command, Ast, Types}
   @behaviour Command
 
-
   @doc ~s"""
     coodinate
       args: %{x: integer, y: integer, z: integer}

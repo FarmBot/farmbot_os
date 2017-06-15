@@ -73,48 +73,69 @@ defmodule Farmbot.Database do
   # TODO(Connor) this is slow.
   @spec sync(Context.t) :: :ok | no_return
   def sync(%Context{} = ctx) do
-    set_syncing(ctx,    :syncing   )
+    set_syncing(ctx,    :syncing)
     broadcast_sync(ctx, :sync_start)
-    for module_name <- all_syncable_modules() do
-      if get_awaiting(ctx, module_name) do
-        :ok = do_sync(ctx, module_name)
-      else
-        debug_log "#{module_name} already up to date."
-        :ok
-      end
 
-    end
-    set_syncing(ctx,    :synced  )
+    all     = all_syncable_modules()
+    tasks   = Enum.map(all, fn(module) ->
+      Task.async(__MODULE__, :sync_module, [ctx, module, 0])
+    end)
+
+    results = Enum.partition(tasks, fn(task) ->
+      Task.await(task) == :ok
+    end)
+
+    handle_sync_results(ctx, results)
     broadcast_sync(ctx, :sync_end)
-    Logger.info ">> is synced!", type: :success
     :ok
   end
 
-  defp do_sync(context, module_name, retries \\ 0)
-  defp do_sync(%Context{} = ctx, module_name, retries) when retries > 4 do
+  defp handle_sync_results(%Context{} = ctx, {_, []}) do
+    set_syncing(ctx, :synced)
+    Logger.info ">> is synced.", type: :success
+    :ok
+  end
+
+  defp handle_sync_results(%Context{} = ctx, {_, _}) do
+    set_syncing(ctx, :sync_error)
+    Logger.info ">> encountered errors syncing.", type: :error
+    :ok
+  end
+
+  @doc """
+    Sync a particular module
+  """
+  def sync_module(context, module_name, retries \\ 0)
+  def sync_module(%Context{} = ctx, module_name, retries) when retries > 4 do
     debug_log "#{module_name} failed to sync too many times. (#{retries})"
     Logger.error ">> failed to sync #{module_name} to many times."
     set_syncing(ctx,    :sync_error)
     broadcast_sync(ctx, :sync_error)
-    :ok
+    :error
   end
 
-  defp do_sync(%Context{} = ctx, module_name, retries) do
+  def sync_module(%Context{} = ctx, module_name, retries) do
     # see: `syncable.ex`. This is some macro magic.
     debug_log "#{module_name} Sync begin."
 
-    try do
-      :ok = module_name.fetch(ctx, {__MODULE__,
-      :commit_records,  [ctx, module_name]})
-    rescue
-      e ->
-        debug_log "#{module_name} Sync error: #{inspect e}"
-        IO.warn "#{module_name} HEY LOOK AT ME: #{inspect e}"
-        do_sync(ctx, module_name, retries + 1)
-    end
+    if get_awaiting(ctx, module_name) do
+      try do
+        :ok = module_name.fetch(ctx, {__MODULE__,
+        :commit_records,  [ctx, module_name]})
 
-    debug_log "#{module_name} Sync finish."
-    :ok = unset_awaiting(ctx, module_name)
+        debug_log "#{module_name} Sync finish."
+        :ok = unset_awaiting(ctx, module_name)
+        :ok
+      rescue
+        e ->
+          debug_log "#{module_name} Sync error: #{inspect e}"
+          IO.warn "#{module_name} HEY LOOK AT ME: #{inspect e}"
+          sync_module(ctx, module_name, retries + 1)
+      end
+    else
+      debug_log "#{module_name} Sync finish."
+      :ok
+    end
   end
 
   @doc """

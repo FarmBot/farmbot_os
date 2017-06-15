@@ -10,8 +10,7 @@ defmodule Farmbot.Database.Syncable.Device do
     :timezone
   ], endpoint: {"/device", "/device"}
 
-  def on_fetch(%Context{} = context, %__MODULE__{timezone: _tz}) do
-    tz = "America/Los_Angeles"
+  def on_fetch(%Context{} = context, %__MODULE__{timezone: tz}) do
     true = Farmbot.BotState.update_config(context, "timezone", tz)
   end
 end

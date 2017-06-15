@@ -85,7 +85,9 @@ defmodule Farmbot.CeleryScript.Types do
   }
   ```
   """
-  @type explanation_ast :: %Ast{kind: binary, args: %{message: binary}, body: []}
+
+  @type expl_ast_args   :: %{message: binary}
+  @type explanation_ast :: %Ast{kind: binary, args: expl_ast_args, body: []}
 
   @typedoc "Integer representing a pin on the arduino."
   @type pin_number  :: 0..69
