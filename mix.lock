@@ -1,4 +1,5 @@
 %{"amnesia": {:git, "https://github.com/meh/amnesia.git", "9094607fe61dc65a77ba71ae75a994847eb1dba5", []},
+  "bootloader": {:git, "https://github.com/nerves-project/bootloader.git", "c77b81c56689a8dbda2ce9f78f4432e3540a9b81", []},
   "bunt": {:hex, :bunt, "0.2.0", "951c6e801e8b1d2cbe58ebbd3e616a869061ddadcc4863d0a2182541acae9a38", [:mix], [], "hexpm"},
   "calendar": {:hex, :calendar, "0.17.1", "5c7dfffde2b68011c2d6832ff1a15496292de965a3b57b3fad32405f1176f024", [:mix], [{:tzdata, "~> 0.5.8 or ~> 0.1.201603", [hex: :tzdata, repo: "hexpm", optional: false]}], "hexpm"},
   "certifi": {:hex, :certifi, "1.0.0", "1c787a85b1855ba354f0b8920392c19aa1d06b0ee1362f9141279620a5be2039", [:rebar3], [], "hexpm"},

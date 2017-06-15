@@ -28,6 +28,7 @@ end
 
 release :farmbot do
   set version: current_version(:farmbot)
+  plugin Bootloader.Plugin
   if System.get_env("NERVES_SYSTEM") do
     set dev_mode: false
     set include_src: false

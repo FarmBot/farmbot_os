@@ -30,3 +30,8 @@ IO.puts "using #{target} - #{env} configuration."
 import_config "hardware/#{target}/#{env}.exs"
 config :nerves, :firmware,
   rootfs_additions: "config/hardware/#{target}/rootfs-additions-#{env}"
+
+config :bootloader,
+  overlay_path: "/tmp/erl_bootloader",
+  init: [],
+  app: :farmbot
