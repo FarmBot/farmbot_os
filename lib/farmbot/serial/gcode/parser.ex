@@ -20,6 +20,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
 
   def parse_code("R20 Q" <> tag),   do: {tag, :report_params_complete}
   def parse_code("R21 " <> params), do: parse_pvq(params, :report_parameter_value)
+  def parse_code("R23 " <> params), do: parse_report_axis_calibration(params)
   def parse_code("R31 " <> params), do: parse_pvq(params, :report_status_value)
   def parse_code("R41 " <> params), do: parse_pvq(params, :report_pin_value)
   def parse_code("R81 " <> params), do: parse_end_stops(params)
@@ -45,6 +46,11 @@ defmodule Farmbot.Serial.Gcode.Parser do
       49 -> {q, {:report_calibration, <<a>>, :home}}
       50 -> {q, {:report_calibration, <<a>>, :end}}
     end
+  end
+
+  defp parse_report_axis_calibration(params) do
+    ["P" <> parm, "V" <> val, "Q" <> tag] = String.split(params, " ")
+    {tag, {:report_axis_calibration, parse_param(parm), String.to_integer(val)}}
   end
 
   @spec parse_version(binary) :: {binary, {:report_software_version, binary}}

@@ -388,6 +388,15 @@ defmodule Farmbot.Serial.Handler do
     {:reply, reply}
   end
 
+  defp handle_gcode({:report_axis_calibration, param, value} = reply, %Context{} = ctx) do
+    BotState.set_param(ctx, param, value)
+    {:reply, reply}
+  end
+
+  defp handle_gcode({:report_calibration, _, _} = reply, %Context{} = _ctx) do
+    {:reply, reply}
+  end
+
   defp handle_gcode(
     {:report_end_stops, x1, x2, y1, y2, z1, z2} = reply, %Context{} = ctx)
   do
