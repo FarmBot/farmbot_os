@@ -24,14 +24,12 @@ defmodule Farmbot.Database.Syncable.Peripheral do
   end
 
   def on_fetch(%Context{} = context, %__MODULE__{pin: pin, mode: mode, label: label}) do
-    spawn fn ->
-      :ok = Farmbot.BotState.set_pin_mode(context, pin, mode)
-      ast = %Ast{
-        kind: "read_pin",
-        args: %{pin_number: pin, pin_mode: mode, label: label},
-        body: []
-      }
-      Command.do_command(ast, context)
-    end
+    :ok = Farmbot.BotState.set_pin_mode(context, pin, mode)
+    ast = %Ast{
+      kind: "read_pin",
+      args: %{pin_number: pin, pin_mode: mode, label: label},
+      body: []
+    }
+    Command.do_command(ast, context)
   end
 end

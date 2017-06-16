@@ -70,23 +70,24 @@ defmodule Farmbot.Database do
   @doc """
     Sync up with the API.
   """
-  # TODO(Connor) this is slow.
   @spec sync(Context.t) :: :ok | no_return
   def sync(%Context{} = ctx) do
-    set_syncing(ctx,    :syncing)
-    broadcast_sync(ctx, :sync_start)
+    unless syncing?(ctx) do
+      set_syncing(ctx,    :syncing)
+      broadcast_sync(ctx, :sync_start)
 
-    all     = all_syncable_modules()
-    tasks   = Enum.map(all, fn(module) ->
-      Task.async(__MODULE__, :sync_module, [ctx, module, 0])
-    end)
+      all     = all_syncable_modules()
+      tasks   = Enum.map(all, fn(module) ->
+        Task.async(__MODULE__, :sync_module, [ctx, module, 0])
+      end)
 
-    results = Enum.partition(tasks, fn(task) ->
-      Task.await(task) == :ok
-    end)
+      results = Enum.partition(tasks, fn(task) ->
+        Task.await(task) == :ok
+      end)
 
-    handle_sync_results(ctx, results)
-    broadcast_sync(ctx, :sync_end)
+      handle_sync_results(ctx, results)
+      broadcast_sync(ctx, :sync_end)
+    end
     :ok
   end
 
@@ -170,6 +171,11 @@ defmodule Farmbot.Database do
   def flush(%Context{} = ctx), do: GenServer.call(ctx.database, :flush)
 
   @doc """
+    Checks if we are currently syncing the DB.
+  """
+  def syncing?(%Context{database: db}), do: GenServer.call(db, :is_syncing?)
+
+  @doc """
     Hooks into database events.
     will receive events in the form of:
     * `{Farmbot.Database, {syncable, `action`, id}}`
@@ -247,6 +253,7 @@ defmodule Farmbot.Database do
       :awaiting,
       :by_kind,
       :context,
+      :syncing,
       :hooks,
       :refs,
       :all
@@ -257,6 +264,7 @@ defmodule Farmbot.Database do
       awaiting:       %{ required(DB.syncable)             => boolean         },
       by_kind:        %{ required(DB.syncable)             => [DB.ref_id]     },
       context:        Context.t,
+      syncing:        boolean,
       hooks:          [pid | atom],
       refs:           %{ required(DB.ref_id)               => DB.resource_map },
       all:            [DB.ref_id],
@@ -287,6 +295,7 @@ defmodule Farmbot.Database do
       awaiting:       initial_awaiting,
       by_kind:        initial_by_kind,
       context:        context,
+      syncing:        false,
       hooks:          initial_hooks,
       refs:           initial_refs,
       all:            initial_all,
@@ -304,8 +313,16 @@ defmodule Farmbot.Database do
     for hook <- state.hooks do
       broadcast(hook, msg)
     end
-    {:noreply, state}
+
+    new_state = case msg do
+      :sync_start -> %{state | syncing: true}
+      :sync_end   -> %{state | syncing: false}
+      _           -> state
+    end
+    {:noreply, new_state}
   end
+
+  def handle_call(:is_syncing?, _, state), do: {:reply, state.syncing, state}
 
   def handle_call(:flush, _, old_state) do
     {:ok, new_state} = init([])

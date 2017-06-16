@@ -82,7 +82,7 @@ defmodule Farmbot.Mixfile do
   end
 
   defp included_apps(:prod), do: [:ex_syslogger]
-  defp included_apps(_), do: []
+  defp included_apps(_),     do: []
 
   # common for test, prod, and dev
   defp applications do
@@ -105,6 +105,7 @@ defmodule Farmbot.Mixfile do
       :quantum, # Quantum needs to start AFTER farmbot, so we can set up its dirs
       :timex, # Timex needs to start AFTER farmbot, so we can set up its dirs,
       :inets,
+      :ssl,
       :redix,
       :eex,
    ]
@@ -117,14 +118,11 @@ defmodule Farmbot.Mixfile do
   ]
 
   defp env_applications(:prod), do: []
-  defp env_applications(:dev), do: [
-    :wobserver
-  ]
-  defp env_applications(_), do: []
+  defp env_applications(:dev),  do: [:wobserver]
+  defp env_applications(_),     do: []
 
   defp deps do
     [
-
       {:nerves, "0.5.1"},
       {:nerves_runtime, github: "nerves-project/nerves_runtime", override: true},
       {:nerves_hal, github: "LeToteTeam/nerves_hal"},
@@ -155,7 +153,8 @@ defmodule Farmbot.Mixfile do
       {:redix, ">= 0.0.0"},
 
       # Log to syslog
-      {:ex_syslogger, "~> 1.3.3", only: :prod},
+      # {:ex_syslogger, "~> 1.3.3", only: :prod},
+      {:ex_syslogger, github: "slashmili/ex_syslogger", only: :prod},
       {:ex_rollbar, "0.1.2"},
 
       # Other stuff
