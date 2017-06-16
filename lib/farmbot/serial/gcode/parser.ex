@@ -28,8 +28,8 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_code("R82 " <> p), do: report_xyz(p, :report_current_position)
   def parse_code("R83 " <> v), do: parse_version(v)
 
-  def parse_code("R84 " <> p), do: report_xyz(p, :report_encoder_position_scaled)
-  def parse_code("R85 " <> p), do: report_xyz(p, :report_encoder_position_raw)
+  def parse_code("R84 " <> p),  do: report_xyz(p, :report_encoder_position_scaled)
+  def parse_code("R85 " <> p),  do: report_xyz(p, :report_encoder_position_raw)
   def parse_code("R87 Q" <> q), do: {q, :report_emergency_lock}
 
   def parse_code("R99 " <> message) do {nil, {:debug_message, message}} end

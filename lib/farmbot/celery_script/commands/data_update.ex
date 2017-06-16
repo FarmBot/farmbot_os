@@ -67,7 +67,7 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
   defp parse_val_str(number), do: String.to_integer(number)
 
   @spec parse_verb_str(binary) :: verb
-  defp parse_verb_str("add"), do: :add
+  defp parse_verb_str("add"),    do: :add
   defp parse_verb_str("remove"), do: :remove
   defp parse_verb_str("update"), do: :update
 end

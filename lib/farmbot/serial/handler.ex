@@ -299,7 +299,6 @@ defmodule Farmbot.Serial.Handler do
       {:status, :locked} -> handle_locked(current)
       {:status, status}  -> %{current | status: status}
       {:reply,  reply}   -> %{current | reply: reply}
-      :noop              -> current
       thing              -> handle_other(thing, current)
     end
   end
@@ -336,7 +335,7 @@ defmodule Farmbot.Serial.Handler do
     debug_log "replying to #{inspect current.from} with: #{inspect current.reply}"
     GenServer.reply(current.from, current.reply)
     Process.cancel_timer(current.timer)
-    :noop
+    nil
   end
 
   @spec generate_handshake :: binary
@@ -347,15 +346,15 @@ defmodule Farmbot.Serial.Handler do
   defp handle_gcode(:report_emergency_lock, _),    do: {:status, :locked}
   defp handle_gcode(:idle, %Context{} = _ctx),     do: {:status, :idle}
   defp handle_gcode(:busy, %Context{} = _ctx),     do: {:status, :busy}
-  defp handle_gcode(:noop, %Context{} = _ctx),     do: :noop
   defp handle_gcode(:done, %Context{} = _ctx),     do: {:status, :done}
   defp handle_gcode(:received, %Context{} = _ctx), do: {:status, :received}
   defp handle_gcode(:error, %Context{} = _ctx),    do: {:reply, :error}
   defp handle_gcode(:report_params_complete, _),   do: {:reply, :report_params_complete}
+  defp handle_gcode(:noop, %Context{} = _ctx),     do: nil
 
   defp handle_gcode({:debug_message, message}, %Context{} = _ctx) do
     debug_log "R99 #{message}"
-    :noop
+    nil
   end
 
 
@@ -402,12 +401,12 @@ defmodule Farmbot.Serial.Handler do
 
   defp handle_gcode({:report_encoder_position_scaled, x, y, z}, %Context{} = _ctx) do
     debug_log "scaled encoders: #{inspect {x, y, z}}"
-    :noop
+    nil
   end
 
   defp handle_gcode({:report_encoder_position_raw, x, y, z}, %Context{} = _ctx) do
     debug_log "raw encoders: #{inspect {x, y, z}}"
-    :noop
+    nil
   end
 
   defp handle_gcode({:report_software_version, version} = reply, %Context{} = ctx) do

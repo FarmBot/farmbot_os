@@ -246,6 +246,7 @@ defmodule Farmbot.Database do
       :by_kind_and_id,
       :awaiting,
       :by_kind,
+      :context,
       :hooks,
       :refs,
       :all
@@ -255,6 +256,7 @@ defmodule Farmbot.Database do
       by_kind_and_id: %{ required({DB.syncable, DB.db_id}) => DB.ref_id       },
       awaiting:       %{ required(DB.syncable)             => boolean         },
       by_kind:        %{ required(DB.syncable)             => [DB.ref_id]     },
+      context:        Context.t,
       hooks:          [pid | atom],
       refs:           %{ required(DB.ref_id)               => DB.resource_map },
       all:            [DB.ref_id],
@@ -269,9 +271,10 @@ defmodule Farmbot.Database do
   @doc """
     Start the Database
   """
-  def start_link(_context, opts), do: GenServer.start_link(__MODULE__, [], opts)
+  def start_link(%Context{} = ctx, opts),
+    do: GenServer.start_link(__MODULE__, ctx, opts)
 
-  def init([]) do
+  def init(context) do
     initial_by_kind_and_id = %{}
     initial_awaiting       = generate_keys(all_syncable_modules(), true)
     initial_by_kind        = generate_keys(all_syncable_modules())
@@ -283,6 +286,7 @@ defmodule Farmbot.Database do
       by_kind_and_id: initial_by_kind_and_id,
       awaiting:       initial_awaiting,
       by_kind:        initial_by_kind,
+      context:        context,
       hooks:          initial_hooks,
       refs:           initial_refs,
       all:            initial_all,
@@ -468,6 +472,8 @@ defmodule Farmbot.Database do
          by_kind_and_id: by_kind_and_id }
     end
   end
+
+  def terminate(_reason, state), do: set_syncing(state.context, :sync_now)
 
   defp broadcast_to_hooks([], _syncable, _action, _id), do: :ok
   defp broadcast_to_hooks([hook | rest], syncable, action, id) do
