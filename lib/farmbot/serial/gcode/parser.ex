@@ -50,7 +50,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
 
   defp parse_report_axis_calibration(params) do
     ["P" <> parm, "V" <> val, "Q" <> tag] = String.split(params, " ")
-    if param in ["141", "142", "143"] do
+    if parm in ["141", "142", "143"] do
       {tag, {:report_axis_calibration, parse_param(parm), String.to_integer(val)}}
     else
       {tag, :noop}
