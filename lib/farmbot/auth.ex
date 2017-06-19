@@ -152,7 +152,8 @@ defmodule Farmbot.Auth do
   defp maybe_retry(%Context{} = ctx, sec, server, sbc, body) do
     case Poison.decode(body) do
       {:ok, decoded}    -> decoded
-      {:error, _, _} -> get_token_from_server(%Context{} = ctx, sec, server, sbc)
+      {:error, _, _}    ->
+        get_token_from_server(%Context{} = ctx, sec, server, sbc)
     end
   end
 
