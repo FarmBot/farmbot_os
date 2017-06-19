@@ -83,7 +83,7 @@ defmodule Farmbot.Sequence.Runner do
     debug_log "[#{inspect self()}] doing work: #{inspect ast}"
     # This sleep makes sequences more stable and makes sure
     # The bot was _actualy_ complete with the last command in real life.
-    Process.sleep(500)
+    Process.sleep(1000)
     # this might raise.
     new_context = do_command(ast, context)
     GenServer.cast(sequence, {:finished, new_context})
