@@ -271,13 +271,27 @@ defmodule Farmbot.Serial.Handler do
     end
   end
 
-  def handle_info({:nerves_uart, _, str}, s) when is_binary(str) do
+  def handle_info({:nerves_uart, _, str}, state) when is_binary(str) do
     debug_log "Reading: #{str}"
-    case str |> Parser.parse_code |> do_handle(s.current, s.context) do
+    case str |> Parser.parse_code |> do_handle(state.current, state.context) do
       :locked ->
-        {:noreply, %{s | current: nil, status: :locked}}
+        {:noreply, %{state | current: nil, status: :locked}}
+      {:callback, str} ->
+        debug_log "doing callback: #{str}"
+
+        if state.current.timer do
+          Process.cancel_timer state.current.timer
+        end
+        writeme =  "#{str} #{state.current.q}"
+        UART.write(state.nerves, writeme)
+        timer = Process.send_after(self(), :timeout, @default_timeout_ms)
+        current = %{state.current |
+          timer: timer
+        }
+        {:noreply, %{state | current: current}}
       current ->
-        {:noreply, %{s | current: current, status: current[:status] || :idle}}
+        next = %{state | current: current, status: current[:status] || :idle}
+        {:noreply, next}
     end
   end
 
@@ -298,6 +312,7 @@ defmodule Farmbot.Serial.Handler do
       {:status, :busy}   -> handle_busy(current)
       {:status, :locked} -> handle_locked(current)
       {:status, status}  -> %{current | status: status}
+      {:callback, str}   -> {:callback, str}
       {:reply,  reply}   -> %{current | reply: reply}
       thing              -> handle_other(thing, current)
     end
@@ -357,7 +372,6 @@ defmodule Farmbot.Serial.Handler do
     nil
   end
 
-
   defp handle_gcode({:report_pin_value, pin, value} = reply, %Context{} = ctx)
   when is_integer(pin) and is_integer(value) do
     BotState.set_pin_value(ctx, pin, value)
@@ -384,13 +398,15 @@ defmodule Farmbot.Serial.Handler do
     {:reply, reply}
   end
 
-  defp handle_gcode({:report_axis_calibration, param, value} = reply, %Context{} = ctx) do
-    BotState.set_param(ctx, param, value)
-    {:reply, reply}
+  defp handle_gcode({:report_axis_calibration, param, value}, _ctx) do
+    p = Parser.parse_param(param)
+    {:callback, "F22 P#{p} V#{value}"}
   end
 
-  defp handle_gcode({:report_calibration, _, _} = reply, %Context{} = _ctx),
-    do: {:reply, reply}
+  defp handle_gcode({:report_calibration, axis, status} = reply, _ctx) do
+    Logger.info ">> Calibration message: #{axis}: #{status}"
+    {:reply, reply}
+  end
 
   defp handle_gcode(
     {:report_end_stops, x1, x2, y1, y2, z1, z2} = reply, %Context{} = ctx)
