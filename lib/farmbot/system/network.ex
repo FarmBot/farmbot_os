@@ -4,7 +4,7 @@ defmodule Farmbot.System.Network do
   """
   require Logger
   alias   Farmbot.System.FS.ConfigStorage, as: CS
-  alias   Farmbot.System.Network.{Ntp, SSH}
+  alias   Farmbot.System.Network.Ntp
   alias   Farmbot.{Context, Auth, HTTP, DebugLog}
   use     DebugLog
   use     GenServer
@@ -114,18 +114,44 @@ defmodule Farmbot.System.Network do
     :ok
   end
 
+  if Mix.env() == :prod do
+
+    def read_ssh_public_key do
+      {:ok, public_key} = get_config("ssh")
+      public_key
+    end
+
+  else
+
+    results = case File.read("#{System.get_env("HOME")}/.ssh/id_rsa.pub") do
+      {:ok, bin} -> String.trim(bin)
+      _          -> nil
+    end
+
+    def read_ssh_public_key, do: unquote(results)
+  end
+
   defp maybe_start_ssh do
-    {:ok, ssh} = get_config("ssh")
-    try do
-      if ssh do
-        Logger.info ">> starting SSH server."
-        spawn SSH, :start_link, []
-      end
+    public_key      = read_ssh_public_key()
+    ssh_dir         = '/ssh'
+    ssh_dir_exists? = File.exists?(ssh_dir)
+    shell = {Elixir.IEx, :start, []}
+    # shell = {Elixir.Nerves.Runtime.Shell, :start, []}
+    if is_binary(public_key) and ssh_dir_exists? do
+      File.write "#{ssh_dir}/authorized_keys", public_key
+      debug_log "Starting SSH."
+      :ok = :ssh.start()
+      opts =
+        [
+          {:shell,      shell},
+          {:system_dir, ssh_dir},
+          {:user_dir,   ssh_dir},
+        ]
+      {:ok, _sshd} = :ssh.daemon(22, opts)
       :ok
-    rescue
-      error ->
-        Logger.warn(">> Failed to start ssh: #{inspect error}")
-        :ok
+    else
+      debug_log "Not starting SSH"
+      :ok
     end
   end
 
@@ -184,29 +210,32 @@ defmodule Farmbot.System.Network do
   """
   def on_connect(context, pre_fun \\ nil, post_fun \\ nil)
   def on_connect(%Context{} = context, pre_fun, post_fun) do
-    # Start the Downloader http client.
-    Supervisor.start_child(Farmbot.System.Supervisor,
-      Supervisor.Spec.worker(Downloader, [], [restart: :permanent]))
+    try do
+      # If we were supplied a pre connect callback, do that.
+      if pre_fun, do: pre_fun.()
 
-    # If we were supplied a pre connect callback, do that.
-    if pre_fun, do: pre_fun.()
+      :ok = connection_test(context)
 
-    :ok = connection_test(context)
+      :ok = maybe_set_time()
+      :ok = maybe_start_ssh()
+      :ok = maybe_get_fpf(context)
 
-    :ok = maybe_set_time()
-    :ok = maybe_start_ssh()
-    :ok = maybe_get_fpf(context)
+      Logger.info ">> is trying to log in."
+      {:ok, token} = Auth.try_log_in!(context.auth)
 
-    Logger.info ">> is trying to log in."
-    {:ok, token} = Auth.try_log_in!(context.auth)
+      :ok = maybe_setup_rollbar(token)
 
-    :ok = maybe_setup_rollbar(token)
+      if post_fun do
+        post_fun.(token)
+      end
 
-    if post_fun do
-      post_fun.(token)
+      {:ok, token}
+    rescue
+      exception ->
+        Logger.error "Farmbot failed to log in."
+        debug_log("#{inspect exception}")
+        Farmbot.System.factory_reset("#{inspect exception}")
     end
-
-    {:ok, token}
   end
 
   if Mix.env == :prod do
@@ -290,10 +319,6 @@ defmodule Farmbot.System.Network do
   end
 
   def terminate(reason, state) do
-    ssh_pid = Process.whereis(SSH)
-    if ssh_pid do
-       SSH.stop(reason)
-    end
     target_pid = Process.whereis(mod(state.target))
     if target_pid do
       GenServer.stop(target_pid, reason)
@@ -301,7 +326,7 @@ defmodule Farmbot.System.Network do
   end
 
   # Behavior
-  @type return_type :: :ok | {:error, term}
+  @type     return_type :: :ok | {:error, term}
   @callback scan(Context.t, binary) :: [binary] | {:error, term}
   @callback enumerate(Context.t) :: [binary] | {:error, term}
   @callback start_interface(Context.t, binary, map) :: return_type

@@ -15,11 +15,12 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_code("R03 Q" <> tag), do: {tag, :error}
   def parse_code("R04 Q" <> tag), do: {tag, :busy}
 
-  def parse_code("R05" <> _r), do: {nil, :dont_handle_me} # Dont care about this.
+  def parse_code("R05" <> _r), do: {nil, :noop} # Dont care about this.
   def parse_code("R06 " <> r), do: parse_report_calibration(r)
 
-  def parse_code("R20 Q" <> tag), do: {tag, :report_params_complete}
+  def parse_code("R20 Q" <> tag),   do: {tag, :report_params_complete}
   def parse_code("R21 " <> params), do: parse_pvq(params, :report_parameter_value)
+  def parse_code("R23 " <> params), do: parse_report_axis_calibration(params)
   def parse_code("R31 " <> params), do: parse_pvq(params, :report_status_value)
   def parse_code("R41 " <> params), do: parse_pvq(params, :report_pin_value)
   def parse_code("R81 " <> params), do: parse_end_stops(params)
@@ -27,12 +28,12 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_code("R82 " <> p), do: report_xyz(p, :report_current_position)
   def parse_code("R83 " <> v), do: parse_version(v)
 
-  def parse_code("R84 " <> p), do: report_xyz(p, :report_encoder_position_scaled)
-  def parse_code("R85 " <> p), do: report_xyz(p, :report_encoder_position_raw)
+  def parse_code("R84 " <> p),  do: report_xyz(p, :report_encoder_position_scaled)
+  def parse_code("R85 " <> p),  do: report_xyz(p, :report_encoder_position_raw)
   def parse_code("R87 Q" <> q), do: {q, :report_emergency_lock}
 
   def parse_code("R99 " <> message) do {nil, {:debug_message, message}} end
-  def parse_code("Command" <> _), do: {nil, :dont_handle_me} # I think this is a bug
+  def parse_code("Command" <> _), do: {nil, :noop} # I think this is a bug
   def parse_code(code)  do {:unhandled_gcode, code} end
 
   @spec parse_report_calibration(binary)
@@ -44,6 +45,17 @@ defmodule Farmbot.Serial.Gcode.Parser do
       48 -> {q, {:report_calibration, <<a>>, :idle}}
       49 -> {q, {:report_calibration, <<a>>, :home}}
       50 -> {q, {:report_calibration, <<a>>, :end}}
+    end
+  end
+
+  defp parse_report_axis_calibration(params) do
+    ["P" <> parm, "V" <> val, "Q" <> tag] = String.split(params, " ")
+    if parm in ["141", "142", "143"] do
+      uh  = :report_axis_calibration
+      msg = {uh, parse_param(parm), String.to_integer(val)}
+      {tag, msg}
+    else
+      {tag, :noop}
     end
   end
 

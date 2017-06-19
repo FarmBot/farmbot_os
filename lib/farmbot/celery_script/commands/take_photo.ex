@@ -3,8 +3,9 @@ defmodule Farmbot.CeleryScript.Command.TakePhoto do
     Take a photo
   """
 
-  alias Farmbot.CeleryScript.{Command, Ast}
-  alias Farmbot.Farmware
+  alias      Farmbot.CeleryScript.{Command, Error}
+  alias      Farmbot.{Context, Farmware}
+  import     Command, only: [execute_script: 3]
   @behaviour Command
 
   @doc ~s"""
@@ -12,11 +13,12 @@ defmodule Farmbot.CeleryScript.Command.TakePhoto do
       args: %{},
       body: []
   """
-  @spec run(%{}, [], Ast.context) :: Ast.context
+  @spec run(%{}, [], Context.t) :: Context.t
   def run(%{}, [], context) do
     case Farmware.Manager.lookup_by_name(context, "take-photo") do
-      {:ok, %Farmware{} = fw} -> Farmware.Runtime.execute(context, fw)
-      {:error, e} -> raise "Could not execute take photo: #{inspect e}"
+      {:ok, %Farmware{} = fw} -> execute_script(%{label: fw.uuid}, [], context)
+      {:error, e}             -> raise Error, context: context,
+        message: "Could not execute take photo: #{inspect e}"
     end
   end
 end

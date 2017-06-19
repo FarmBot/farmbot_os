@@ -185,9 +185,9 @@ export class MainState {
     }
 
     @action
-    toggleSSH(b: boolean) {
+    enableSSH(public_key: string) {
         if (this.configuration.network) {
-            this.configuration.network.ssh = b;
+            this.configuration.network.ssh = public_key;
         }
     }
 

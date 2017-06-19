@@ -216,7 +216,14 @@ defmodule Farmbot.Serial.Handler do
     debug_log "writing: #{writeme}"
     UART.write(state.nerves, writeme)
     timer = Process.send_after(self(), :timeout, timeout)
-    current = %{status: nil, reply: nil, from: from, q: handshake, timer: timer}
+    current = %{
+      status:   nil,
+      reply:    nil,
+      from:     from,
+      q:        handshake,
+      timer:    timer,
+      callback: nil
+    }
     {:noreply, %{state | current: current}}
   end
 
@@ -271,13 +278,17 @@ defmodule Farmbot.Serial.Handler do
     end
   end
 
-  def handle_info({:nerves_uart, _, str}, s) when is_binary(str) do
+  def handle_info({:nerves_uart, _, str}, state) when is_binary(str) do
     debug_log "Reading: #{str}"
-    case str |> Parser.parse_code |> do_handle(s.current, s.context) do
-      :locked ->
-        {:noreply, %{s | current: nil, status: :locked}}
+    case str |> Parser.parse_code |> do_handle(state.current, state.context) do
+      :locked -> {:noreply, %{state | current: nil, status: :locked}}
+      {:callback, str, current} ->
+        debug_log "setting callback: #{str}"
+        :ok = UART.write(state.nerves, str)
+        {:noreply, %{state | current: current}}
       current ->
-        {:noreply, %{s | current: current, status: current[:status] || :idle}}
+        next = %{state | current: current, status: current[:status] || :idle}
+        {:noreply, next}
     end
   end
 
@@ -298,6 +309,7 @@ defmodule Farmbot.Serial.Handler do
       {:status, :busy}   -> handle_busy(current)
       {:status, :locked} -> handle_locked(current)
       {:status, status}  -> %{current | status: status}
+      {:callback, str}   -> %{current | callback: str}
       {:reply,  reply}   -> %{current | reply: reply}
       thing              -> handle_other(thing, current)
     end
@@ -333,9 +345,24 @@ defmodule Farmbot.Serial.Handler do
 
   defp handle_done(current) do
     debug_log "replying to #{inspect current.from} with: #{inspect current.reply}"
-    GenServer.reply(current.from, current.reply)
-    Process.cancel_timer(current.timer)
-    nil
+    if current.callback do
+      Process.cancel_timer(current.timer)
+      handshake = generate_handshake()
+      writeme   =  "#{current.callback} #{handshake}"
+      timer     = Process.send_after(self(), :timeout, @default_timeout_ms)
+      current   = %{
+        status:   nil,
+        reply:    nil,
+        from:     current.from,
+        q:        handshake,
+        timer:    timer,
+        callback: nil
+      }
+      {:callback, writeme, current}
+    else
+      GenServer.reply(current.from, current.reply)
+      nil
+    end
   end
 
   @spec generate_handshake :: binary
@@ -343,24 +370,19 @@ defmodule Farmbot.Serial.Handler do
 
   @spec handle_gcode(any, Context.t) :: {:status, any} | {:reply, any} | nil
 
-  defp handle_gcode(:report_emergency_lock, %Context{} = _ctx), do: {:status, :locked}
-  defp handle_gcode(:idle, %Context{} = _ctx), do: {:status, :idle}
-
-  defp handle_gcode(:busy, %Context{} = _ctx) do
-    # Logger.info ">>'s arduino is busy.", type: :busy
-    {:status, :busy}
-  end
-
-  defp handle_gcode(:done, %Context{} = _ctx), do: {:status, :done}
-
+  defp handle_gcode(:report_emergency_lock, _),    do: {:status, :locked}
+  defp handle_gcode(:idle, %Context{} = _ctx),     do: {:status, :idle}
+  defp handle_gcode(:busy, %Context{} = _ctx),     do: {:status, :busy}
+  defp handle_gcode(:done, %Context{} = _ctx),     do: {:status, :done}
   defp handle_gcode(:received, %Context{} = _ctx), do: {:status, :received}
+  defp handle_gcode(:error, %Context{} = _ctx),    do: {:reply, :error}
+  defp handle_gcode(:report_params_complete, _),   do: {:reply, :report_params_complete}
+  defp handle_gcode(:noop, %Context{} = _ctx),     do: nil
 
   defp handle_gcode({:debug_message, message}, %Context{} = _ctx) do
     debug_log "R99 #{message}"
     nil
   end
-
-  defp handle_gcode(:report_params_complete, %Context{} = _ctx), do: {:reply, :report_params_complete}
 
   defp handle_gcode({:report_pin_value, pin, value} = reply, %Context{} = ctx)
   when is_integer(pin) and is_integer(value) do
@@ -388,6 +410,17 @@ defmodule Farmbot.Serial.Handler do
     {:reply, reply}
   end
 
+  defp handle_gcode({:report_axis_calibration, param, value}, ctx) do
+    p = Parser.parse_param(param)
+    BotState.set_param(ctx, param, value)
+    {:callback, "F22 P#{p} V#{value}"}
+  end
+
+  defp handle_gcode({:report_calibration, axis, status} = reply, _ctx) do
+    Logger.info ">> Calibration message: #{axis}: #{status}"
+    {:reply, reply}
+  end
+
   defp handle_gcode(
     {:report_end_stops, x1, x2, y1, y2, z1, z2} = reply, %Context{} = ctx)
   do
@@ -410,18 +443,13 @@ defmodule Farmbot.Serial.Handler do
     {:reply, reply}
   end
 
-  defp handle_gcode(:error, %Context{} = _ctx), do: {:reply, :error}
-
-  defp handle_gcode(:dont_handle_me, %Context{} = _ctx), do: nil
-
   defp handle_gcode({:unhandled_gcode, code}, %Context{} = _ctx) do
-    Logger.info ">> got an misc gcode #{code}", type: :warn
+    Logger.warn ">> got an misc gcode #{code}"
     {:reply, code}
   end
 
   defp handle_gcode(parsed, %Context{} = _ctx) do
-    Logger.warn "Unhandled message:" <>
-      " #{inspect parsed}", rollbar: false
+    Logger.warn "Unhandled message: #{inspect parsed}"
     {:reply, parsed}
   end
 

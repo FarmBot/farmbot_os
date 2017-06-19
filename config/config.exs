@@ -13,7 +13,7 @@ config :logger, :console, colors: [enabled: true, info: :cyan]
 config :iex, :colors, enabled: true
 
 # bot <-> firmware transports.
-config :farmbot, expected_fw_version: "GENESIS.V.01.13.EXPERIMENTAL"
+config :farmbot, expected_fw_version: "GENESIS.V.01.14.EXPERIMENTAL"
 
 # Rollbar
 config :farmbot, rollbar_access_token: "dcd79b191ab84aa3b28259cbb80e2060"

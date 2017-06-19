@@ -103,17 +103,20 @@ defmodule Farmbot.Transport do
     Emit a message over all transports
   """
   @spec emit(Context.t, term) :: :ok
-  def emit(%Context{} = ctx, message), do: GenStage.cast(ctx.transport, {:emit, message})
+  def emit(%Context{} = ctx, message),
+    do: GenStage.cast(ctx.transport, {:emit, message})
 
   @doc """
     Log a log message over all transports
   """
   @spec log(Context.t, term) :: :ok
-  def log(%Context{} = ctx, message), do: GenStage.cast(ctx.transport, {:log, message})
+  def log(%Context{} = ctx, message),
+    do: GenStage.cast(ctx.transport, {:log, message})
 
   @doc """
     Force a state push
   """
   @spec force_state_push(Context.t) :: State.t
-  def force_state_push(%Context{} = ctx), do: GenServer.call(ctx.transport, :force_state_push)
+  def force_state_push(%Context{} = ctx),
+    do: GenServer.call(ctx.transport, :force_state_push)
 end

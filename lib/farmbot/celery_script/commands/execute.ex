@@ -17,8 +17,12 @@ defmodule Farmbot.CeleryScript.Command.Execute do
   def run(%{sequence_id: id}, [], context) do
     sequence = Farmbot.Database.get_by_id(context, Sequence, id)
     unless sequence do
-      raise Error, message: "Could not find sequence by id: #{id}"
+      raise Error, context: context,
+        message: "Could not find sequence by id: #{id}"
     end
-    sequence |> Map.get(:body) |> Ast.parse |> Command.do_command(context)
+
+    sequence.body
+    |> Ast.parse()
+    |> Command.do_command(context)
   end
 end

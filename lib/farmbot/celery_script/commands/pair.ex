@@ -2,13 +2,8 @@ defmodule Farmbot.CeleryScript.Command.Pair do
   @moduledoc """
     Pair
   """
-  alias Farmbot.CeleryScript.{Command, Ast}
-  require Logger
-
+  alias      Farmbot.CeleryScript.{Ast, Command}
   @behaviour Command
-
-  @type t ::
-    %Ast{kind: String.t, args: %{label: String.t, value: any}, body: []}
 
   @doc ~s"""
     Create a Pair object

@@ -65,7 +65,9 @@ defmodule Farmbot.CeleryScript.Command do
   # is this one a good idea?
   # there might be two expectations here: it could return the current position,
   # or 0
-  def ast_to_coord(%Context{} = context, %Ast{kind: "nothing", args: _, body: _}) do
+  def ast_to_coord(%Context{} = context,
+    %Ast{kind: "nothing", args: _, body: _})
+  do
     next_context = coordinate(%{x: 0, y: 0, z: 0}, [], context)
     raise_if_not_context_or_return_context("coordinate", next_context)
   end
@@ -132,6 +134,15 @@ defmodule Farmbot.CeleryScript.Command do
 
   def ensure_gcode(_, %Context{} = ctx), do: ctx
 
+  def ensure_position(results, expected_pos, %Context{} = ctx) do
+    context = ensure_gcode(results, ctx) # this might raise.
+    case results do
+      {:report_current_position, act_x, act_y, act_z} ->
+        {{act_x, act_y, act_z} == expected_pos, context}
+      _ -> {false, context}
+    end
+  end
+
   @doc ~s"""
     Executes an ast tree.
   """
@@ -141,7 +152,7 @@ defmodule Farmbot.CeleryScript.Command do
       do_execute_command(ast, context)
     rescue
       e in Farmbot.CeleryScript.Error ->
-        Logger.error "Failed to execute CeleryScript: #{e.message}"
+        Logger.error "Failed to execute #{ast.kind}: #{e.message}"
         reraise e, System.stacktrace()
       exception ->
         Logger.error "Unknown error happend executing CeleryScript."

@@ -7,7 +7,7 @@ interface Props {
     mobx: MainState;
 }
 export function AdvancedSettings({ mobx }: Props) {
-    let ssh = false;
+    let ssh: string | false = false;
     let ntp = false;
     let hasNetwork = mobx.configuration.network ? true : false;
     let customFW = false;
@@ -53,11 +53,10 @@ export function AdvancedSettings({ mobx }: Props) {
             {/* SSH  */}
             <fieldset>
                 <label> Enable SSH </label>
-                <input type="checkbox" defaultChecked={ssh}
-                    onChange={(event) => {
-                        let blah = event.currentTarget.checked;
-                        mobx.toggleSSH(blah);
-                    }} />
+                <input onChange={(event) => {
+                    let blah = event.currentTarget.value;
+                      mobx.enableSSH(blah);
+                  }} />
             </fieldset>
 
             {/* NTP  */}

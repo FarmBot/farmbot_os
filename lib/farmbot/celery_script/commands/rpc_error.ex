@@ -3,9 +3,8 @@ defmodule Farmbot.CeleryScript.Command.RpcError do
     RpcError
   """
 
-  alias Farmbot.CeleryScript.Ast
-  alias Farmbot.CeleryScript.Command
-  require Logger
+  alias      Farmbot.CeleryScript.{Ast, Command, Types}
+  alias      Farmbot.Context
   @behaviour Command
 
   @doc ~s"""
@@ -13,8 +12,7 @@ defmodule Farmbot.CeleryScript.Command.RpcError do
       args: %{label: String.t},
       body: [Explanation]
   """
-  @spec run(%{label: String.t},
-    [Command.explanation_type], Ast.context) :: Ast.context
+  @spec run(%{label: binary}, [Types.explanation_ast], Context.t) :: Context.t
   def run(%{label: id}, explanations, context) do
     item = %Ast{kind: "rpc_error", args: %{label: id}, body: explanations}
     Farmbot.Context.push_data(context, item)

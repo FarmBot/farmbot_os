@@ -3,7 +3,8 @@ defmodule Farmbot.CeleryScript.Command.UpdateFarmware do
     Update Farmware
   """
 
-  alias Farmbot.CeleryScript.{Command, Ast}
+  alias      Farmbot.CeleryScript.{Command, Types}
+  alias      Farmbot.Context
   @behaviour Command
 
   @doc ~s"""
@@ -11,7 +12,7 @@ defmodule Farmbot.CeleryScript.Command.UpdateFarmware do
       args: %{package: String.t},
       body: []
   """
-  @spec run(%{package: String.t}, [], Ast.context) :: Ast.context
+  @spec run(%{package: Types.package}, [], Context.t) :: Context.t
   def run(%{package: uuid}, [], context) do
     Farmbot.Farmware.Manager.update!(context, uuid)
     context

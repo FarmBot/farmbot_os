@@ -83,7 +83,7 @@ export interface BotConfigFile {
         /** Should this bot set time after boot. */
         ntp: boolean;
         /** ssh */
-        ssh: boolean;
+        ssh: string | false;
     } | false;
     /** Just holds the server. All other authorization should use a jwt */
     authorization: {

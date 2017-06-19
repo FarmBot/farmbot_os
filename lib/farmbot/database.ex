@@ -64,49 +64,79 @@ defmodule Farmbot.Database do
     :ok
   end
 
+  defp broadcast_sync(%Context{database: db}, msg),
+    do: GenServer.cast(db, {:broadcast_sync, msg})
+
   @doc """
     Sync up with the API.
   """
-  # TODO(Connor) this is slow.
   @spec sync(Context.t) :: :ok | no_return
   def sync(%Context{} = ctx) do
-    set_syncing(ctx, :syncing)
-    for module_name <- all_syncable_modules() do
-      if get_awaiting(ctx, module_name) do
-        :ok = do_sync(ctx, module_name)
-      else
-        debug_log "#{module_name} already up to date."
-        :ok
-      end
+    unless syncing?(ctx) do
+      set_syncing(ctx,    :syncing)
+      broadcast_sync(ctx, :sync_start)
 
+      all     = all_syncable_modules()
+      tasks   = Enum.map(all, fn(module) ->
+        Task.async(__MODULE__, :sync_module, [ctx, module, 0])
+      end)
+
+      results = Enum.partition(tasks, fn(task) ->
+        Task.await(task) == :ok
+      end)
+
+      handle_sync_results(ctx, results)
+      broadcast_sync(ctx, :sync_end)
     end
-    set_syncing(ctx, :synced)
-    Logger.info ">> is synced!", type: :success
     :ok
   end
 
-  defp do_sync(context, module_name, retries \\ 0)
-  defp do_sync(%Context{} = _ctx, module_name, retries) when retries > 4 do
+  defp handle_sync_results(%Context{} = ctx, {_, []}) do
+    set_syncing(ctx, :synced)
+    Logger.info ">> is synced.", type: :success
+    :ok
+  end
+
+  defp handle_sync_results(%Context{} = ctx, {_, _}) do
+    set_syncing(ctx, :sync_error)
+    Logger.info ">> encountered errors syncing.", type: :error
+    :ok
+  end
+
+  @doc """
+    Sync a particular module
+  """
+  def sync_module(context, module_name, retries \\ 0)
+  def sync_module(%Context{} = ctx, module_name, retries) when retries > 4 do
     debug_log "#{module_name} failed to sync too many times. (#{retries})"
     Logger.error ">> failed to sync #{module_name} to many times."
-    :ok
+    set_syncing(ctx,    :sync_error)
+    broadcast_sync(ctx, :sync_error)
+    :error
   end
 
-  defp do_sync(%Context{} = ctx, module_name, retries) do
+  def sync_module(%Context{} = ctx, module_name, retries) do
     # see: `syncable.ex`. This is some macro magic.
     debug_log "#{module_name} Sync begin."
 
-    try do
-      :ok = module_name.fetch(ctx, {__MODULE__,
-      :commit_records,  [ctx, module_name]})
-    rescue
-      e ->
-        debug_log "#{module_name} Sync error: #{inspect e}"
-        do_sync(ctx, module_name, retries + 1)
-    end
+    if get_awaiting(ctx, module_name) do
+      try do
+        :ok = module_name.fetch(ctx, {__MODULE__,
+        :commit_records,  [ctx, module_name]})
 
-    debug_log "#{module_name} Sync finish."
-    :ok = unset_awaiting(ctx, module_name)
+        debug_log "#{module_name} Sync finish."
+        :ok = unset_awaiting(ctx, module_name)
+        :ok
+      rescue
+        e ->
+          debug_log "#{module_name} Sync error: #{inspect e}"
+          IO.warn "#{module_name} HEY LOOK AT ME: #{inspect e}"
+          sync_module(ctx, module_name, retries + 1)
+      end
+    else
+      debug_log "#{module_name} Sync finish."
+      :ok
+    end
   end
 
   @doc """
@@ -139,6 +169,32 @@ defmodule Farmbot.Database do
     Clear the entire DB
   """
   def flush(%Context{} = ctx), do: GenServer.call(ctx.database, :flush)
+
+  @doc """
+    Checks if we are currently syncing the DB.
+  """
+  def syncing?(%Context{database: db}), do: GenServer.call(db, :is_syncing?)
+
+  @doc """
+    Hooks into database events.
+    will receive events in the form of:
+    * `{Farmbot.Database, {syncable, `action`, id}}`
+
+    Will also receive severl other special messages.
+    * {Farmbot.Database, `:sync_start`}
+    * {Farmbot.Database, `:sync_end`  }
+    * {Farmbot.Database, `:sync_error`}
+
+    ## Action
+      * `add`    - an item was added
+      * `update` - an item was modified
+      * `remove` - an item was deleted
+        * if `action` is remove, `id` may be "*" meaning all syncables were removed.
+  """
+  def hook(%Context{database:   db}, pid), do: GenServer.call(db, {:hook,   pid})
+
+  @doc "Unsubscribes from database events."
+  def unhook(%Context{database: db}, pid), do: GenServer.call(db, {:unhook, pid})
 
   @doc """
     Sets awaiting api resources.
@@ -196,6 +252,9 @@ defmodule Farmbot.Database do
       :by_kind_and_id,
       :awaiting,
       :by_kind,
+      :context,
+      :syncing,
+      :hooks,
       :refs,
       :all
     ]
@@ -204,6 +263,9 @@ defmodule Farmbot.Database do
       by_kind_and_id: %{ required({DB.syncable, DB.db_id}) => DB.ref_id       },
       awaiting:       %{ required(DB.syncable)             => boolean         },
       by_kind:        %{ required(DB.syncable)             => [DB.ref_id]     },
+      context:        Context.t,
+      syncing:        boolean,
+      hooks:          [pid | atom],
       refs:           %{ required(DB.ref_id)               => DB.resource_map },
       all:            [DB.ref_id],
     }
@@ -217,12 +279,14 @@ defmodule Farmbot.Database do
   @doc """
     Start the Database
   """
-  def start_link(_context, opts), do: GenServer.start_link(__MODULE__, [], opts)
+  def start_link(%Context{} = ctx, opts),
+    do: GenServer.start_link(__MODULE__, ctx, opts)
 
-  def init([]) do
+  def init(context) do
     initial_by_kind_and_id = %{}
     initial_awaiting       = generate_keys(all_syncable_modules(), true)
     initial_by_kind        = generate_keys(all_syncable_modules())
+    initial_hooks          = []
     initial_refs           = %{}
     initial_all            = []
 
@@ -230,6 +294,9 @@ defmodule Farmbot.Database do
       by_kind_and_id: initial_by_kind_and_id,
       awaiting:       initial_awaiting,
       by_kind:        initial_by_kind,
+      context:        context,
+      syncing:        false,
+      hooks:          initial_hooks,
       refs:           initial_refs,
       all:            initial_all,
     }
@@ -242,9 +309,33 @@ defmodule Farmbot.Database do
     |> Map.new
   end
 
-  def handle_call(:flush, _, _state) do
-    {:ok, state} = init([])
-    {:reply, :ok, state}
+  def handle_cast({:broadcast_sync, msg}, state) do
+    for hook <- state.hooks do
+      broadcast(hook, msg)
+    end
+
+    new_state = case msg do
+      :sync_start -> %{state | syncing: true}
+      :sync_end   -> %{state | syncing: false}
+      _           -> state
+    end
+    {:noreply, new_state}
+  end
+
+  def handle_call(:is_syncing?, _, state), do: {:reply, state.syncing, state}
+
+  def handle_call(:flush, _, old_state) do
+    {:ok, new_state} = init([])
+    {:reply, :ok, %{new_state | hooks: old_state}}
+  end
+
+  def handle_call({:hook, pid}, _, state) do
+    {:reply, :ok, %{state | hooks: [pid | state.hooks]}}
+  end
+
+  def handle_call({:unhook, pid}, _, state) do
+    new_hooks = List.delete(state.hooks, pid)
+    {:reply, :ok, %{state | hooks: new_hooks}}
   end
 
   def handle_call({:get_by, kind, id}, _, state) do
@@ -272,6 +363,7 @@ defmodule Farmbot.Database do
         "*" -> remove_all_syncable(state, syncable)
         num -> remove_syncable(state, syncable, num)
       end
+    broadcast_to_hooks(state.hooks, syncable, :remove, int_or_wildcard)
     {
       :reply,
       :ok,
@@ -372,6 +464,7 @@ defmodule Farmbot.Database do
       # set the ref from the old one.
       new = %{already_exists | body: record}
       new_refs = %{state.refs | new.ref_id => new}
+      broadcast_to_hooks(state.hooks, kind, :update, id)
       %{state | refs: new_refs}
     else
       debug_log("inputting new record")
@@ -388,12 +481,25 @@ defmodule Farmbot.Database do
       new_refs       = Map.put(state.refs, rid, new_syncable)
       by_kind_and_id = Map.put(state.by_kind_and_id, {kind, id}, rid)
 
+      broadcast_to_hooks(state.hooks, kind, :add, id)
       %{ state |
          refs:           new_refs,
          all:            all,
          by_kind:        by_kind,
          by_kind_and_id: by_kind_and_id }
     end
+  end
+
+  def terminate(_reason, state), do: set_syncing(state.context, :sync_now)
+
+  defp broadcast_to_hooks([], _syncable, _action, _id), do: :ok
+  defp broadcast_to_hooks([hook | rest], syncable, action, id) do
+    broadcast(hook, {syncable, action, id})
+    broadcast_to_hooks(rest, syncable, action, id)
+  end
+
+  defp broadcast(hook, msg) do
+    send(hook, {__MODULE__, msg})
   end
 
 end
