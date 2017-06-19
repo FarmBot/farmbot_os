@@ -47,15 +47,11 @@ defmodule Farmbot.Farmware.Manager do
   """
   @spec uninstall(Context, uuid) :: :ok | {:error, term}
   def uninstall(%Context{farmware_manager: fwt} = ctx, uuid) do
-    try do
-      case lookup(ctx, uuid) do
-        {:ok, %Farmware{} = fw} ->
-          Installer.uninstall!(ctx, fw)
-          GenServer.call(fwt, {:unregister, uuid})
-        {:error, reason}        -> raise reason
-      end
-    rescue
-      e -> {:error, e}
+    case lookup(ctx, uuid) do
+      {:ok, %Farmware{} = fw} ->
+        Installer.uninstall!(ctx,  fw)
+        GenServer.call(fwt, {:unregister, uuid})
+      {:error, reason}        -> {:error, reason}
     end
   end
 
@@ -65,8 +61,8 @@ defmodule Farmbot.Farmware.Manager do
   @spec uninstall!(Context.t, uuid) :: :ok | no_return
   def uninstall!(%Context{} = ctx, uuid) do
     case uninstall(ctx, uuid) do
-      :ok -> :ok
-      {:error, e} -> raise e
+      {:ok, %Farmware{} = fw} -> fw
+      {:error, e}        -> raise RuntimeError, e
     end
   end
 
