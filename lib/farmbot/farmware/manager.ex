@@ -109,9 +109,13 @@ defmodule Farmbot.Farmware.Manager do
   def update!(%Context{} = ctx, uuid), do: do_update(ctx, uuid)
 
   defp do_update(%Context{} = ctx, uuid) do
-    {:ok, %Farmware{url: old_url}} = lookup(ctx, uuid)
-    :ok = uninstall!(ctx, uuid)
-    :ok = install!(ctx, old_url)
+    case lookup(ctx, uuid) do
+      {:ok, %Farmware{url: old_url}} ->
+        uninstall!(ctx, uuid)
+        install!(ctx, old_url)
+      {:error, reason} -> raise RuntimeError, "Could not update: #{inspect reason}"
+    end
+
   end
 
   ## GenServer stuff
