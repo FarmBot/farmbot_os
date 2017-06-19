@@ -11,7 +11,7 @@ defmodule Farmbot.CeleryScript.Command.ExecuteScript do
 
   @doc ~s"""
     Executes a farmware
-      args: %{label: uuid},
+      args: %{label: uuid or name},
       body: [pair]
   """
   @spec run(%{label: binary}, Types.pairs, Context.t) :: Context.t | no_return
@@ -20,14 +20,17 @@ defmodule Farmbot.CeleryScript.Command.ExecuteScript do
     case Manager.lookup(context, uuid) do
       {:ok, %Farmware{} = fw} -> Runtime.execute(new_context, fw)
       {:error, e}             ->
-        raise Error,
+        raise Error, context: new_context
           message: "Could not locate farmware: #{e}",
-          context: new_context
     end
   end
 
-  def run(%{label: not_uuid}, _, context) do
-    raise Error, context: context,
-      message: "Expected a uuid but got: #{inspect not_uuid}"
+  def run(%{label: not_uuid}, envs, context) when is_binary(not_uuid) do
+    case Farmware.lookup_by_name(context, not_uuid) do
+      {:ok, fw}   -> run(%{label: fw.uuid}, envs, context)
+      {:error, e} ->
+        raise Error, context: context,
+          message: "Could not locate farmware by name: #{not_uuid}",
+    end
   end
 end
