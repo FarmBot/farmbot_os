@@ -131,15 +131,12 @@ defmodule Farmbot.Auth do
 
       # We won
       {:ok, %HTTP.Response{body: body, status_code: 200}} ->
-        maybe_retry(ctx, secret, server, sbc, body)
+        decoded = maybe_retry(ctx, secret, server, sbc, body)
         Logger.info ">> got a token!", type: :success
         save_secret(secret)
         remove_last_factory_reset_reason()
 
-        {:ok, token} = body
-                        |> Poison.decode!
-                        |> Map.get("token")
-                        |> Token.create
+        {:ok, token} = decoded |> Map.get("token") |> Token.create
 
         token = %{token | unencoded: %{token.unencoded | iss: server}}
         maybe_broadcast(sbc, {:new_token, token})
@@ -154,8 +151,8 @@ defmodule Farmbot.Auth do
 
   defp maybe_retry(%Context{} = ctx, sec, server, sbc, body) do
     case Poison.decode(body) do
-      {:ok,    _} -> :ok
-      {:error, _} -> get_token_from_server(%Context{} = ctx, sec, server, sbc)
+      {:ok, decoded}    -> decoded
+      {:error, _, _} -> get_token_from_server(%Context{} = ctx, sec, server, sbc)
     end
   end
 

@@ -216,7 +216,14 @@ defmodule Farmbot.Serial.Handler do
     debug_log "writing: #{writeme}"
     UART.write(state.nerves, writeme)
     timer = Process.send_after(self(), :timeout, timeout)
-    current = %{status: nil, reply: nil, from: from, q: handshake, timer: timer}
+    current = %{
+      status:   nil,
+      reply:    nil,
+      from:     from,
+      q:        handshake,
+      timer:    timer,
+      callback: nil
+    }
     {:noreply, %{state | current: current}}
   end
 
@@ -274,20 +281,10 @@ defmodule Farmbot.Serial.Handler do
   def handle_info({:nerves_uart, _, str}, state) when is_binary(str) do
     debug_log "Reading: #{str}"
     case str |> Parser.parse_code |> do_handle(state.current, state.context) do
-      :locked ->
-        {:noreply, %{state | current: nil, status: :locked}}
-      {:callback, str} ->
-        debug_log "doing callback: #{str}"
-
-        if state.current.timer do
-          Process.cancel_timer state.current.timer
-        end
-        writeme =  "#{str} #{state.current.q}"
-        UART.write(state.nerves, writeme)
-        timer = Process.send_after(self(), :timeout, @default_timeout_ms)
-        current = %{state.current |
-          timer: timer
-        }
+      :locked -> {:noreply, %{state | current: nil, status: :locked}}
+      {:callback, str, current} ->
+        debug_log "setting callback: #{str}"
+        :ok = UART.write(state.nerves, str)
         {:noreply, %{state | current: current}}
       current ->
         next = %{state | current: current, status: current[:status] || :idle}
@@ -312,7 +309,7 @@ defmodule Farmbot.Serial.Handler do
       {:status, :busy}   -> handle_busy(current)
       {:status, :locked} -> handle_locked(current)
       {:status, status}  -> %{current | status: status}
-      {:callback, str}   -> {:callback, str}
+      {:callback, str}   -> %{current | callback: str}
       {:reply,  reply}   -> %{current | reply: reply}
       thing              -> handle_other(thing, current)
     end
@@ -348,9 +345,24 @@ defmodule Farmbot.Serial.Handler do
 
   defp handle_done(current) do
     debug_log "replying to #{inspect current.from} with: #{inspect current.reply}"
-    GenServer.reply(current.from, current.reply)
-    Process.cancel_timer(current.timer)
-    nil
+    if current.callback do
+      Process.cancel_timer(current.timer)
+      handshake = generate_handshake()
+      writeme   =  "#{current.callback} #{handshake}"
+      timer     = Process.send_after(self(), :timeout, @default_timeout_ms)
+      current   = %{
+        status:   nil,
+        reply:    nil,
+        from:     current.from,
+        q:        handshake,
+        timer:    timer,
+        callback: nil
+      }
+      {:callback, writeme, current}
+    else
+      GenServer.reply(current.from, current.reply)
+      nil
+    end
   end
 
   @spec generate_handshake :: binary
@@ -398,8 +410,9 @@ defmodule Farmbot.Serial.Handler do
     {:reply, reply}
   end
 
-  defp handle_gcode({:report_axis_calibration, param, value}, _ctx) do
+  defp handle_gcode({:report_axis_calibration, param, value}, ctx) do
     p = Parser.parse_param(param)
+    BotState.set_param(ctx, param, value)
     {:callback, "F22 P#{p} V#{value}"}
   end
 
