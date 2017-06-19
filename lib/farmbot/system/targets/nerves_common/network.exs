@@ -180,8 +180,10 @@ defmodule Farmbot.System.NervesCommon.Network do
       end
 
       def handle_info({:ssdp_timer, ip, uuid} = msg, state) do
-        fields   = ssdp_fields(ip)
-        {:ok, _} = SSDPServer.publish "uuid:#{uuid}", "nerves:farmbot", fields
+        spawn fn() ->
+          fields   = ssdp_fields(ip)
+          {:ok, _} = SSDPServer.publish "uuid:#{uuid}", "nerves:farmbot", fields
+        end
         {:noreply, state}
       end
 
