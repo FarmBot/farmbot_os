@@ -3,14 +3,13 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
     Update Farmware
   """
 
-  alias      Farmbot.CeleryScript.{Command, Types, Error}
+  alias      Farmbot.CeleryScript.{Command, Types}
   import     Command, only: [ast_to_coord: 2]
   alias      Farmbot.Lib.Maths
   require    Logger
   alias      Farmbot.Serial.Handler, as: UartHan
   alias      Farmbot.Context
   @behaviour Command
-  def serial?, do: true
 
   @type coordinate_ast :: Types.coord_ast
 
@@ -41,42 +40,8 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
     {xb, yb, zb} = {offset.args.x,   offset.args.y,    offset.args.z }
     { combined_x, combined_y, combined_z } = { xa + xb, ya + yb, za + zb }
     {x, y, z} = do_math(combined_x, combined_y, combined_z, context)
-    case UartHan.write(new_context3, "G00 X#{x} Y#{y} Z#{z} S#{speed}") do
-      {:error, reason} -> do_raise(new_context3, "#{inspect reason}")
-      :error           -> do_raise(new_context3, "unknown error from the arduino.")
-      _                -> new_context3
-    end
+    UartHan.write(new_context3, "G00 X#{x} Y#{y} Z#{z} S#{speed}")
   end
-
-  defp do_raise(context, msg) do
-    raise Error, context: context, message: "encountered error moving: #{msg}"
-  end
-
-  # defp do_move(move, offset, speed, context, retries \\ 0)
-  #
-  # defp do_move(
-  # {xa, ya, za} = move, {xb, yb, zb} = offset,
-  # speed, %Context{} = context, retries) do
-  #   if retries >
-  # Farmbot.BotState.get_config(context, :max_movement_retries) do
-  #     raise Farmbot.CeleryScript.Error, context: context,
-  #       message: "Failed to execute movement command. Motors may be stalled."
-  #   end
-  #
-  #   { combined_x, combined_y, combined_z } = { xa + xb, ya + yb, za + zb }
-  #   {x, y, z} = do_math(combined_x, combined_y, combined_z, context)
-  #
-  #   {ensured?, new_context} = context
-  #     |> UartHan.write("G00 X#{x} Y#{y} Z#{z} S#{speed}")
-  #     |> ensure_position({x, y, z}, context)
-  #
-  #   if ensured? do
-  #     new_context
-  #   else
-  #     Logger.info "Retrying movement", type: :busy
-  #     do_move(move, offset, speed, context, retries + 1)
-  #   end
-  # end
 
   defp do_math(combined_x, combined_y, combined_z, context) do
     { Maths.mm_to_steps(combined_x, spm(:x, context)),

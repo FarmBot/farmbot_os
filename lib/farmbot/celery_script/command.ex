@@ -29,13 +29,6 @@ defmodule Farmbot.CeleryScript.Command do
     defdelegate unquote(fun)(args, body, context), to: module, as: :run
   end
 
-  # DISCLAIMER:
-  # PLEASE MAKE SURE EVERYTHING IS TYPESPECED AND DOC COMMENENTED IN HERE.
-  # SOME NODES, ARE HARD TO TEST,
-  # AND SOME NODES CAN CAUSE CATASTROPHIC DISASTERS
-  # ALSO THE COMPILER CAN'T PROPERLY CHECK SOMETHING BEING THAT THE ARGS ARE
-  # NOT POSITIONAL.
-
   @doc ~s"""
     Convert an ast node to a coodinate or return :error.
   """
@@ -104,52 +97,13 @@ defmodule Farmbot.CeleryScript.Command do
   defp maybe_print_comment(comment, fun_name),
     do: Logger.info ">> [#{fun_name}] - #{comment}"
 
-  @doc """
-    Helper method to read pin or raise an error.
-  """
-  def read_pin_or_raise(%Context{} = ctx, number, pairs) do
-    if Enum.find(pairs, fn(pair) ->
-      match?(%Ast{kind: "pair", args: %{label: "eager_read_pin"}}, pair)
-    end) do
-      ast = %Ast{
-        kind: "read_pin",
-        args: %{label: "", pin_mode: 0, pin_number: String.to_integer(number)},
-        body: []
-      }
-      do_command(ast, ctx)
-    else
-      raise Error, context: ctx,
-        message: "Could not get value of pin #{number}. " <>
-          "You should manually use read_pin block before this step."
-    end
-  end
-
-  @doc """
-    Makes sure serial is not unavailable.
-  """
-  def ensure_gcode({:error, reason}, %Context{} = context) do
-    raise Error, context: context,
-      message: "Could not execute gcode. #{inspect reason}"
-  end
-
-  def ensure_gcode(_, %Context{} = ctx), do: ctx
-
-  def ensure_position(results, expected_pos, %Context{} = ctx) do
-    context = ensure_gcode(results, ctx) # this might raise.
-    case results do
-      {:report_current_position, act_x, act_y, act_z} ->
-        {{act_x, act_y, act_z} == expected_pos, context}
-      _ -> {false, context}
-    end
-  end
-
   @doc ~s"""
     Executes an ast tree.
   """
   @spec do_command(Ast.t, Context.t) :: Context.t | no_return
   def do_command(%Ast{} = ast, %Context{} = context) do
     try do
-      do_wait_for_serial(ast, context)
+      do_wait_for_serial(context)
       do_execute_command(ast, context)
     rescue
       e in Farmbot.CeleryScript.Error ->
@@ -170,14 +124,11 @@ defmodule Farmbot.CeleryScript.Command do
       message: "Can not handle: #{inspect not_cs_node}"
   end
 
-  defp do_wait_for_serial(%Ast{} = ast, %Context{} = ctx) do
-    module = get_module!(ast)
-    if function_exported?(module, :serial?, 0) do
-      case Farmbot.Serial.Handler.wait_for_available(ctx) do
-        :ok              -> :ok
-        {:error, reason} -> raise Farmbot.CeleryScript.Error, context: ctx,
-          message: "Could not establish communication with arduino: #{inspect reason}"
-      end
+  defp do_wait_for_serial(%Context{} = ctx) do
+    case Farmbot.Serial.Handler.wait_for_available(ctx) do
+      :ok              -> :ok
+      {:error, reason} -> raise Farmbot.CeleryScript.Error, context: ctx,
+        message: "Could not establish communication with arduino: #{inspect reason}"
     end
   end
 
@@ -210,6 +161,4 @@ defmodule Farmbot.CeleryScript.Command do
 
   # behaviour
   @callback run(Ast.args, [Ast.t], Context.t) :: Context.t
-  @callback serial?() :: boolean
-  @optional_callbacks [serial?: 0]
 end
