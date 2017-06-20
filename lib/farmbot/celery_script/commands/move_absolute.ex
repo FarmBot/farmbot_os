@@ -3,13 +3,14 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
     Update Farmware
   """
 
-  alias      Farmbot.CeleryScript.{Command, Types}
-  import     Command, only: [ast_to_coord: 2, ensure_position: 3]
+  alias      Farmbot.CeleryScript.{Command, Types, Error}
+  import     Command, only: [ast_to_coord: 2]
   alias      Farmbot.Lib.Maths
   require    Logger
   alias      Farmbot.Serial.Handler, as: UartHan
   alias      Farmbot.Context
   @behaviour Command
+  def serial?, do: true
 
   @type coordinate_ast :: Types.coord_ast
 
@@ -40,8 +41,15 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
     {xb, yb, zb} = {offset.args.x,   offset.args.y,    offset.args.z }
     { combined_x, combined_y, combined_z } = { xa + xb, ya + yb, za + zb }
     {x, y, z} = do_math(combined_x, combined_y, combined_z, context)
-    UartHan.write(new_context3, "G00 X#{x} Y#{y} Z#{z} S#{speed}")
-    new_context3
+    case UartHan.write(new_context3, "G00 X#{x} Y#{y} Z#{z} S#{speed}") do
+      {:error, reason} -> do_raise(new_context3, "#{inspect reason}")
+      :error           -> do_raise(new_context3, "unknown error from the arduino.")
+      _                -> new_context3
+    end
+  end
+
+  defp do_raise(context, msg) do
+    raise Error, context: context, message: "encountered error moving: #{msg}"
   end
 
   # defp do_move(move, offset, speed, context, retries \\ 0)

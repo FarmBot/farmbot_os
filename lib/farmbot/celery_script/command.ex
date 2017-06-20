@@ -149,7 +149,7 @@ defmodule Farmbot.CeleryScript.Command do
   @spec do_command(Ast.t, Context.t) :: Context.t | no_return
   def do_command(%Ast{} = ast, %Context{} = context) do
     try do
-      do_wait_for_serial(context)
+      do_wait_for_serial(ast, context)
       do_execute_command(ast, context)
     rescue
       e in Farmbot.CeleryScript.Error ->
@@ -170,23 +170,34 @@ defmodule Farmbot.CeleryScript.Command do
       message: "Can not handle: #{inspect not_cs_node}"
   end
 
-  defp do_wait_for_serial(%Context{} = ctx) do
-    case Farmbot.Serial.Handler.wait_for_available(ctx) do
-      :ok              -> :ok
-      {:error, reason} -> raise Farmbot.CeleryScript.Error, context: ctx,
-        message: "Could not establish communication with arduino: #{inspect reason}"
+  defp do_wait_for_serial(%Ast{} = ast, %Context{} = ctx) do
+    module = get_module!(ast)
+    if function_exported?(module, :serial?, 0) do
+      case Farmbot.Serial.Handler.wait_for_available(ctx) do
+        :ok              -> :ok
+        {:error, reason} -> raise Farmbot.CeleryScript.Error, context: ctx,
+          message: "Could not establish communication with arduino: #{inspect reason}"
+      end
     end
   end
 
   defp do_execute_command(%Ast{} = ast, %Context{} = context) do
-    kind   = ast.kind
-    module = Module.concat Farmbot.CeleryScript.Command, Macro.camelize(kind)
-    if Code.ensure_loaded?(module) do
-        maybe_print_comment(ast.comment, ast.kind)
-        next_context = apply(module, :run, [ast.args, ast.body, context])
-        raise_if_not_context_or_return_context(kind, next_context)
+    kind         = ast.kind
+    module       = get_module!(ast)
+    maybe_print_comment(ast.comment, ast.kind)
+    next_context = apply(module, :run, [ast.args, ast.body, context])
+    raise_if_not_context_or_return_context(kind, next_context)
+  end
+
+  @doc """
+    Gets the module assosiated with an ast node or raises.
+  """
+  def get_module!(%Ast{} = ast) do
+    mod = Module.concat(Farmbot.CeleryScript.Command, Macro.camelize(ast.kind))
+    if Code.ensure_loaded?(mod) do
+      mod
     else
-      raise Farmbot.CeleryScript.Error, context: context,
+      raise Farmbot.CeleryScript.Error,
         message: "No instruction for #{inspect ast}"
     end
   end
@@ -199,4 +210,6 @@ defmodule Farmbot.CeleryScript.Command do
 
   # behaviour
   @callback run(Ast.args, [Ast.t], Context.t) :: Context.t
+  @callback serial?() :: boolean
+  @optional_callbacks [serial?: 0]
 end

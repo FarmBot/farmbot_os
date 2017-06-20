@@ -54,7 +54,7 @@ defmodule Farmbot.Serial.Handler do
   } | nil
 
   @default_timeout_ms 10_000
-  @max_timeouts 5
+  @max_timeouts 10
 
   @doc """
     Starts a UART GenServer
@@ -279,7 +279,7 @@ defmodule Farmbot.Serial.Handler do
     current = state.current
     if current do
       debug_log "Timing out current: #{inspect current}"
-      GenServer.reply(current.from, :timeout)
+      GenServer.reply(current.from, {:error, :timeout})
       check_timeouts(state)
     else
       debug_log "Got stray timeout."
@@ -327,7 +327,7 @@ defmodule Farmbot.Serial.Handler do
         :ok = UART.write(state.nerves, str)
         {:noreply, %{state | current: current}}
       current ->
-        next = %{state | current: current, status: current[:status] || :idle}
+        next = %{state | current: current, status: current[:status] || :idle, timeouts: 0}
         if next.status == :idle do
           waiting = do_resolve_waiting(state.waiting)
           {:noreply, %{next | waiting: waiting}}
@@ -385,7 +385,7 @@ defmodule Farmbot.Serial.Handler do
   defp handle_busy(current) do
     debug_log "refreshing timer."
     Process.cancel_timer(current.timer)
-    timer = Process.send_after(self(), :timeout, 5000)
+    timer = Process.send_after(self(), :timeout, @default_timeout_ms)
     %{current | status: :busy, timer: timer}
   end
 
