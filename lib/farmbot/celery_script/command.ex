@@ -149,6 +149,7 @@ defmodule Farmbot.CeleryScript.Command do
   @spec do_command(Ast.t, Context.t) :: Context.t | no_return
   def do_command(%Ast{} = ast, %Context{} = context) do
     try do
+      do_wait_for_serial(context)
       do_execute_command(ast, context)
     rescue
       e in Farmbot.CeleryScript.Error ->
@@ -167,6 +168,14 @@ defmodule Farmbot.CeleryScript.Command do
   def do_command(not_cs_node, _) do
     raise Farmbot.CeleryScript.Error,
       message: "Can not handle: #{inspect not_cs_node}"
+  end
+
+  defp do_wait_for_serial(%Context{} = ctx) do
+    case Farmbot.Serial.Handler.wait_for_available(ctx) do
+      :ok              -> :ok
+      {:error, reason} -> raise Farmbot.CeleryScript.Error, context: ctx,
+        message: "Could not establish communication with arduino: #{inspect reason}"
+    end
   end
 
   defp do_execute_command(%Ast{} = ast, %Context{} = context) do
