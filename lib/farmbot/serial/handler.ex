@@ -54,7 +54,7 @@ defmodule Farmbot.Serial.Handler do
   } | nil
 
   @default_timeout_ms 10_000
-  @max_timeouts 5
+  @max_timeouts 10
 
   @doc """
     Starts a UART GenServer
@@ -69,7 +69,27 @@ defmodule Farmbot.Serial.Handler do
   end
 
   @doc """
-    Checks if we have a handler available
+  Blocks the calling process until serial is ready.
+  """
+  @spec wait_for_available(Context.t) :: :ok | {:error, term}
+  def wait_for_available(%Context{serial: handler} = context)
+    when is_atom(handler)
+  do
+    pid = Process.whereis(handler)
+    if is_pid(pid) and Process.alive?(pid) do
+      new = %{context | serial: pid}
+      wait_for_available(new)
+    else
+      {:error, :noproc}
+    end
+  end
+
+  def wait_for_available(%Context{serial: handler}) do
+    GenServer.call(handler, :wait_for_available)
+  end
+
+  @doc """
+  Checks if we have a handler available
   """
   @spec available?(Context.t) :: boolean
   def available?(context)
@@ -152,12 +172,13 @@ defmodule Farmbot.Serial.Handler do
     case open_tty(nerves, tty) do
       :ok ->
         state = %{
-          context: ctx,
-          nerves: nerves,
-          tty: tty,
-          current: nil,
-          timeouts: 0,
-          status: :busy,
+          context:     ctx,
+          nerves:      nerves,
+          tty:         tty,
+          current:     nil,
+          timeouts:    0,
+          status:      :busy,
+          waiting:     [],
           initialized: false
         }
         {:ok, state}
@@ -186,6 +207,15 @@ defmodule Farmbot.Serial.Handler do
         :ok = UART.flush(nerves)
         :ok
       err -> err
+    end
+  end
+
+  def handle_call(:wait_for_available, from, state) do
+    if state.status == :idle do
+      {:reply, :ok, state}
+    else
+      Process.send_after(self(), {:waiting_timeout, from}, 10_000)
+      {:noreply, %{state | waiting: [from | state.waiting]}}
     end
   end
 
@@ -249,11 +279,21 @@ defmodule Farmbot.Serial.Handler do
     current = state.current
     if current do
       debug_log "Timing out current: #{inspect current}"
-      GenServer.reply(current.from, :timeout)
+      GenServer.reply(current.from, {:error, :timeout})
       check_timeouts(state)
     else
       debug_log "Got stray timeout."
       {:noreply, %{state | current: nil}}
+    end
+  end
+
+  def handle_info({:waiting_timeout, from}, state) do
+    if from in state.waiting do
+      debug_log("Arduino is taking too long. Timing out waiting process: #{inspect from}")
+      GenServer.reply(from, {:error, :timeout})
+      {:noreply, %{state | waiting: List.delete(state.waiting, from)}}
+    else
+      {:noreply, state}
     end
   end
 
@@ -287,8 +327,15 @@ defmodule Farmbot.Serial.Handler do
         :ok = UART.write(state.nerves, str)
         {:noreply, %{state | current: current}}
       current ->
-        next = %{state | current: current, status: current[:status] || :idle}
-        {:noreply, next}
+        next = %{state |
+          current: current, status: current[:status] || :idle, timeouts: 0
+        }
+        if next.status == :idle do
+          waiting = do_resolve_waiting(state.waiting)
+          {:noreply, %{next | waiting: waiting}}
+        else
+          {:noreply, next}
+        end
     end
   end
 
@@ -296,6 +343,14 @@ defmodule Farmbot.Serial.Handler do
   def terminate(_reason, state) do
     UART.close(state.nerves)
     UART.stop(state.nerves)
+  end
+
+  defp do_resolve_waiting(list) do
+    from = List.last(list)
+    if from do
+      GenServer.reply(from, :ok)
+    end
+    List.delete(list, from)
   end
 
   @spec do_handle({binary, any}, current | nil, Context.t)
@@ -332,7 +387,7 @@ defmodule Farmbot.Serial.Handler do
   defp handle_busy(current) do
     debug_log "refreshing timer."
     Process.cancel_timer(current.timer)
-    timer = Process.send_after(self(), :timeout, 5000)
+    timer = Process.send_after(self(), :timeout, @default_timeout_ms)
     %{current | status: :busy, timer: timer}
   end
 

@@ -7,8 +7,6 @@ defmodule Farmbot.Serial.Gcode.Parser do
 
   @spec parse_code(binary) :: {binary, tuple}
 
-  # Code.eval_file("lib/test.exs")
-
   def parse_code("R00 Q" <> tag), do: {tag, :idle}
   def parse_code("R01 Q" <> tag), do: {tag, :received}
   def parse_code("R02 Q" <> tag), do: {tag, :done}

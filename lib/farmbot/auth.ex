@@ -55,6 +55,8 @@ defmodule Farmbot.Auth do
     case HTTP.get(ctx, "#{server}/api/public_key") do
       {:ok, %HTTP.Response{body: body, status_code: 200}} ->
         decode_key(body)
+      {:ok, %HTTP.Response{body: body, status_code: code}} ->
+        {:error, "Unexpected response (#{code}): #{inspect body}"}
       {:error, reason} ->
         {:error, reason}
     end
