@@ -31,11 +31,10 @@ defmodule Farmbot.Farmware.Runtime do
   """
   @spec execute(Context.t, Farmware.t) :: Context.t | no_return
   def execute(%Context{} = ctx, %Farmware{} = fw) do
-    debug_log "Starting execution of #{inspect fw}"
     debug_log "Starting execution of: #{inspect fw}"
     uuid       = Nerves.Lib.UUID.generate()
     env        = environment(ctx, uuid)
-    exec       = lookup_exec_or_raise(fw.executable)
+    exec       = lookup_exec_or_raise(fw.executable, fw.path)
     cwd        = File.cwd!
 
     case File.cd(fw.path) do
@@ -63,14 +62,32 @@ defmodule Farmbot.Farmware.Runtime do
       output:   []
     }
 
-    %Context{} = new_ctx = handle_port(state)
-    File.cd!(cwd)
-    new_ctx
+    try do
+      ctx = handle_port(state)
+      File.cd!(cwd)
+      ctx
+    rescue
+      e ->
+        File.cd!(cwd)
+        reraise(e, System.stacktrace)
+    end
+
   end
 
-  defp lookup_exec_or_raise(exec) do
-    System.find_executable(exec) || raise FarmwareRuntimeError,
-      message: "Could not locate #{exec}"
+  defp lookup_exec_or_raise(exec, path) do
+    real_exe =
+      if File.exists?("#{path}/exec") do
+        "#{path}/exec"
+      else
+        System.find_executable(exec)
+      end
+
+    if real_exe do
+      real_exe
+    else
+      raise FarmwareRuntimeError,
+        message: "Could not locate #{exec}"
+    end
   end
 
   @spec handle_port(state) :: Context.t | no_return
@@ -105,7 +122,7 @@ defmodule Farmbot.Farmware.Runtime do
             |> CeleryScript.Command.do_command(state.context)
         %{state | context: new_context}
       _data ->
-        debug_log("[#{state.farmware.name}] Sent data: #{data}")
+        Logger.info("[#{state.farmware.name}] Sent data: #{data}")
         %{state | output: [data | state.output]}
     end
   end
