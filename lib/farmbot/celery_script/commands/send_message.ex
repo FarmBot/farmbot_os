@@ -40,7 +40,6 @@ defmodule Farmbot.CeleryScript.Command.SendMessage do
                         case Farmbot.BotState.get_pin(context, num) do
                           %{value: val} -> val
                           _             -> :unknown
-                            # read_pin_or_raise(context, num,  pairs)
                         end
                       {:"pin#{num}", pin_val}
                     end)

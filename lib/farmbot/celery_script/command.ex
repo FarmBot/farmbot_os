@@ -29,13 +29,6 @@ defmodule Farmbot.CeleryScript.Command do
     defdelegate unquote(fun)(args, body, context), to: module, as: :run
   end
 
-  # DISCLAIMER:
-  # PLEASE MAKE SURE EVERYTHING IS TYPESPECED AND DOC COMMENENTED IN HERE.
-  # SOME NODES, ARE HARD TO TEST,
-  # AND SOME NODES CAN CAUSE CATASTROPHIC DISASTERS
-  # ALSO THE COMPILER CAN'T PROPERLY CHECK SOMETHING BEING THAT THE ARGS ARE
-  # NOT POSITIONAL.
-
   @doc ~s"""
     Convert an ast node to a coodinate or return :error.
   """
@@ -103,45 +96,6 @@ defmodule Farmbot.CeleryScript.Command do
   defp maybe_print_comment(nil, _), do: :ok
   defp maybe_print_comment(comment, fun_name),
     do: Logger.info ">> [#{fun_name}] - #{comment}"
-
-  @doc """
-    Helper method to read pin or raise an error.
-  """
-  def read_pin_or_raise(%Context{} = ctx, number, pairs) do
-    if Enum.find(pairs, fn(pair) ->
-      match?(%Ast{kind: "pair", args: %{label: "eager_read_pin"}}, pair)
-    end) do
-      ast = %Ast{
-        kind: "read_pin",
-        args: %{label: "", pin_mode: 0, pin_number: String.to_integer(number)},
-        body: []
-      }
-      do_command(ast, ctx)
-    else
-      raise Error, context: ctx,
-        message: "Could not get value of pin #{number}. " <>
-          "You should manually use read_pin block before this step."
-    end
-  end
-
-  @doc """
-    Makes sure serial is not unavailable.
-  """
-  def ensure_gcode({:error, reason}, %Context{} = context) do
-    raise Error, context: context,
-      message: "Could not execute gcode. #{inspect reason}"
-  end
-
-  def ensure_gcode(_, %Context{} = ctx), do: ctx
-
-  def ensure_position(results, expected_pos, %Context{} = ctx) do
-    context = ensure_gcode(results, ctx) # this might raise.
-    case results do
-      {:report_current_position, act_x, act_y, act_z} ->
-        {{act_x, act_y, act_z} == expected_pos, context}
-      _ -> {false, context}
-    end
-  end
 
   @doc ~s"""
     Executes an ast tree.
