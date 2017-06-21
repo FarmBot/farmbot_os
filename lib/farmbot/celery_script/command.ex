@@ -124,12 +124,16 @@ defmodule Farmbot.CeleryScript.Command do
       message: "Can not handle: #{inspect not_cs_node}"
   end
 
-  def do_wait_for_serial(%Context{} = ctx) do
-    case Farmbot.Serial.Handler.wait_for_available(ctx) do
-      :ok              -> :ok
-      {:error, reason} -> raise Farmbot.CeleryScript.Error, context: ctx,
-        message: "Could not establish communication with arduino: #{inspect reason}"
-    end
+  case Mix.Project.config[:target] do
+    "host" -> def do_wait_for_serial(_), do: :ok
+    _      ->
+      def do_wait_for_serial(%Context{} = ctx) do
+        case Farmbot.Serial.Handler.wait_for_available(ctx) do
+          :ok              -> :ok
+          {:error, reason} -> raise Farmbot.CeleryScript.Error, context: ctx,
+            message: "Could not establish communication with arduino: #{inspect reason}"
+        end
+      end
   end
 
   defp do_execute_command(%Ast{} = ast, %Context{} = context) do

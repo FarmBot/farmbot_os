@@ -43,7 +43,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
     UartHan.write(new_context3, "G00 X#{x} Y#{y} Z#{z} S#{speed}")
     max = Farmbot.BotState.get_config(new_context3, :max_movement_retries)
     new_context3 |> ensure_position(
-        {combined_x, combined_y,combined_z},
+        {combined_x, combined_y, combined_z},
         {x, y, z, speed},
         max)
   end
@@ -60,7 +60,10 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
 
   defp ensure_position(context, exp_pos_mm, _, max_retries, retries)
   when max_retries == retries do
-    do_raise(context, exp_pos_mm)
+    case do_compare_pos(context, exp_pos_mm) do
+      true  -> context
+      false -> do_raise(context, exp_pos_mm)
+    end
   end
 
   defp ensure_position(context,

@@ -327,7 +327,9 @@ defmodule Farmbot.Serial.Handler do
         :ok = UART.write(state.nerves, str)
         {:noreply, %{state | current: current}}
       current ->
-        next = %{state | current: current, status: current[:status] || :idle, timeouts: 0}
+        next = %{state |
+          current: current, status: current[:status] || :idle, timeouts: 0
+        }
         if next.status == :idle do
           waiting = do_resolve_waiting(state.waiting)
           {:noreply, %{next | waiting: waiting}}
