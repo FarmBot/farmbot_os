@@ -1,10 +1,10 @@
-defmodule Farmbot.FarmEventRunner do
+defmodule Farmbot.FarmEvent.Runner do
   @moduledoc """
     Checks the database every 60 seconds for FarmEvents
   """
   require Logger
-  alias   Farmbot.{Context, DebugLog, Database, CeleryScript}
-  alias   CeleryScript.Ast
+  alias   Farmbot.{Context, DebugLog, Database}
+  import  Farmbot.FarmEvent.Executer
   use     DebugLog
   use     GenServer
   alias   Database.Syncable.{
@@ -13,7 +13,7 @@ defmodule Farmbot.FarmEventRunner do
     FarmEvent
   }
 
-  @checkup_time 10_000
+  @checkup_time 20_000
 
   @type database :: Database.db
   @type state :: {database, %{required(integer) => DateTime.t}}
@@ -22,47 +22,64 @@ defmodule Farmbot.FarmEventRunner do
     GenServer.start_link(__MODULE__, context, opts)
   end
 
-  def init(context) do
+  def init(%{database: db} = context) when is_pid(db) do
+    Process.link(db)
+    Database.hook(context, self())
     send self(), :checkup
-    {:ok, {context, %{} }}
+    {:ok, {context, nil, %{} }}
   end
 
-  def handle_info(:checkup, {context, state}) do
+  def init(%{database: db} = context) when is_atom(db) do
+    db_pid = Process.whereis(db) || raise "Could not find Database pid."
+    init(%{context | database: db_pid})
+  end
+
+  def handle_info({Database, :sync_start}, {context, timer, state}) do
+    debug_log "Pausing FarmEvent runner until sync finishes."
+    if timer do
+      Process.cancel_timer(timer)
+    end
+    {:noreply, {context, nil, state}}
+  end
+
+  def handle_info({Database, :sync_end}, {context, timer, state}) do
+    debug_log "Resuming FarmEvent runner."
+    if timer do
+      Process.cancel_timer(timer)
+    end
+    new_timer = Process.send_after self(), :checkup, @checkup_time
+    {:noreply, {context, new_timer, state}}
+  end
+
+  def handle_info({Database, _}, state), do: {:noreply, state}
+
+  def handle_info(:checkup, {context, _, state}) do
     now = get_now()
     # debug_log "Doing checkup: #{inspect now}"
     new_state = if now do
       all_events =
         context
           |> Database.get_all(FarmEvent)
-          |> Enum.map(fn(thing) -> thing.body end)
+          |> Enum.map(fn(db_object) -> db_object.body end)
 
       {late_events, new} = do_checkup(context, all_events, now, state)
       unless Enum.empty?(late_events) do
-        Logger.info "Time for event to run: #{inspect late_events} " <>
-          " at: #{now.hour}:#{now.minute}"
+        Logger.info "Time for event to run at: #{now.hour}:#{now.minute}"
         start_events(context, late_events, now)
       end
       new
     else
       state
     end
-    Process.send_after self(), :checkup, @checkup_time
-    {:noreply, {context, new_state}}
+    timer = Process.send_after self(), :checkup, @checkup_time
+    {:noreply, {context, timer, new_state}}
   end
 
   @spec start_events(Context.t, [Sequence.t | Regimen.t], DateTime.t)
     :: no_return
   defp start_events(_context, [], _now), do: :ok
   defp start_events(%Context{} = context, [event | rest], now) do
-    cond do
-      match?(%Sequence{}, event) ->
-        ast     = Ast.parse(event)
-        Farmbot.CeleryScript.Command.do_command(ast, context)
-      match?(%Regimen{}, event) ->
-        {:ok, _pid} = Farmbot.Regimen.Supervisor.add_child(context, event, now)
-      true ->
-        Logger.error ">> Doesn't know how to handle event: #{inspect event}"
-    end
+    execute_event(event, context, now)
     start_events(context, rest, now)
   end
 
@@ -103,9 +120,9 @@ defmodule Farmbot.FarmEventRunner do
     :: {late_event | nil, DateTime.t}
   defp check_event(%Context{} = ctx, %FarmEvent{} = f, now, last_time) do
     # Get the executable out of the database
-    thing = [Farmbot.Database, Syncable, f.executable_type |> String.to_atom]
-    mod = Module.concat(thing)
-    event = lookup(ctx, mod, f.executable_id)
+    mod_list = [Farmbot.Database, Syncable, f.executable_type |> String.to_atom]
+    mod      = Module.safe_concat(mod_list)
+    event    = lookup(ctx, mod, f.executable_id)
 
     # build a local start time
     start_time = Timex.parse! f.start_time, "{ISO:Extended}"

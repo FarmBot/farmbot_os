@@ -37,7 +37,7 @@ defmodule Farmbot.Sequence.Manager do
   when pid == sequence_pid do
     debug_log "Caught sequence exit error: #{inspect reason}"
     send state.caller, {self(), {:error, reason}}
-    {:stop, :normal, state}
+    {:stop, reason, state}
   end
 
 end

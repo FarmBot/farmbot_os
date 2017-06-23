@@ -3,12 +3,12 @@ defmodule Farmbot.CeleryScript.Command.MoveRelative do
     MoveRel
   """
 
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Types}
 
   @behaviour Command
-  @type x :: Command.Coordinate.x
-  @type y :: Command.Coordinate.y
-  @type z :: Command.Coordinate.z
+  @type x :: Types.coord_x
+  @type y :: Types.coord_y
+  @type z :: Types.coord_z
 
   @doc ~s"""
     move_relative to a location

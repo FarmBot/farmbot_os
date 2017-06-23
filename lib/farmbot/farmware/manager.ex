@@ -47,15 +47,11 @@ defmodule Farmbot.Farmware.Manager do
   """
   @spec uninstall(Context, uuid) :: :ok | {:error, term}
   def uninstall(%Context{farmware_manager: fwt} = ctx, uuid) do
-    try do
-      case lookup(ctx, uuid) do
-        {:ok, %Farmware{} = fw} ->
-          Installer.uninstall!(ctx, fw)
-          GenServer.call(fwt, {:unregister, uuid})
-        {:error, reason}        -> raise reason
-      end
-    rescue
-      e -> {:error, e}
+    case lookup(ctx, uuid) do
+      {:ok, %Farmware{} = fw} ->
+        Installer.uninstall!(ctx,  fw)
+        GenServer.call(fwt, {:unregister, uuid})
+      {:error, reason}        -> {:error, reason}
     end
   end
 
@@ -65,8 +61,8 @@ defmodule Farmbot.Farmware.Manager do
   @spec uninstall!(Context.t, uuid) :: :ok | no_return
   def uninstall!(%Context{} = ctx, uuid) do
     case uninstall(ctx, uuid) do
-      :ok -> :ok
-      {:error, e} -> raise e
+      {:ok, %Farmware{} = fw} -> fw
+      {:error, e}        -> raise RuntimeError, e
     end
   end
 
@@ -113,9 +109,13 @@ defmodule Farmbot.Farmware.Manager do
   def update!(%Context{} = ctx, uuid), do: do_update(ctx, uuid)
 
   defp do_update(%Context{} = ctx, uuid) do
-    {:ok, %Farmware{url: old_url}} = lookup(ctx, uuid)
-    :ok = uninstall!(ctx, uuid)
-    :ok = install!(ctx, old_url)
+    case lookup(ctx, uuid) do
+      {:ok, %Farmware{url: old_url}} ->
+        uninstall!(ctx, uuid)
+        install!(ctx, old_url)
+      {:error, reason} -> raise RuntimeError, "Could not update: #{inspect reason}"
+    end
+
   end
 
   ## GenServer stuff
@@ -146,7 +146,13 @@ defmodule Farmbot.Farmware.Manager do
   end
 
   def handle_call({:register, uuid, %Farmware{} = fw}, _, state) do
-    new_fws = Map.put(state.farmwares, uuid, fw)
+    new_fws =
+      case Enum.find(state.farmwares, fn({_existing_uuid, existing_fw}) ->
+        existing_fw.name == fw.name
+      end) do
+        {existing_uuid, _old_fw} -> Map.put(state.farmwares, existing_uuid, fw)
+        _                        -> Map.put(state.farmwares, uuid,          fw)
+      end
     reply   = :ok
     debug_log "Registered Farmware: #{inspect fw}"
     dispatch reply, %{ state | farmwares: new_fws}

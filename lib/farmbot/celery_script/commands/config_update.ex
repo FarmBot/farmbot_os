@@ -3,7 +3,7 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
     ConfigUpdate
   """
 
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Types}
   require Logger
   alias Farmbot.Serial.Handler, as: UartHan
   alias Farmbot.Serial.Gcode.Parser, as: GParser
@@ -16,9 +16,7 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
       args: %{package: String.t},
       body: [Ast.t]
   """
-  @spec run(%{package: Command.package},
-            [Command.pair],
-            Context.t) :: Context.t
+  @spec run(%{package: Types.package}, Types.pairs_ast, Context.t) :: Context.t
   def run(%{package: "arduino_firmware"}, config_pairs, context) do
     # check the version to make sure we have a good connection to the firmware
     :ok = check_version(context)

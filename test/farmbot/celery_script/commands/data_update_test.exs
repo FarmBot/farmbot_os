@@ -8,7 +8,7 @@ defmodule Farmbot.CeleryScript.Command.DataUpdateTest do
   alias Command.DataUpdate
 
   setup_all do
-    json          = Helpers.read_json("points.json")
+    json          = Helpers.read_json("points.json") |> Poison.decode!
     context       = Farmbot.Context.new()
     {:ok, db_pid} = DB.start_link(context, [])
     context       = %{context | database: db_pid}
@@ -24,7 +24,7 @@ defmodule Farmbot.CeleryScript.Command.DataUpdateTest do
   end
 
   test "data_updates causes awaiting to be true.", context do
-    ast = ast("add", [pair("Point", "*")])
+    ast = ast("add", [pair("points", "*")])
 
     old = DB.get_awaiting(context.cs_context, Point)
     refute(old)

@@ -7,8 +7,11 @@ defmodule Mix.Tasks.Farmbot.Upload do
     otp_app = Mix.Project.config[:app]
     target  = Mix.Project.config[:target]
 
-    {keywords, [ip_address], _} =
-      opts |> OptionParser.parse(switches: [signed: :boolean])
+    {keywords, ip_address} =
+      case opts |> OptionParser.parse(switches: [signed: :boolean]) do
+        {keywords, [ip_address], _} -> {keywords, ip_address}
+        {keywords, [], _}           -> {keywords, try_discover()}
+      end
 
     signed_bool = Keyword.get(keywords, :signed, false)
     file_name   = Path.join(["images", "#{Mix.env()}", "#{target}", find_file_name(otp_app, signed_bool)])
@@ -51,4 +54,17 @@ defmodule Mix.Tasks.Farmbot.Upload do
 
   defp find_file_name(otp_app, true),  do: "#{otp_app}-signed.fw"
   defp find_file_name(otp_app, false), do: "#{otp_app}.fw"
+
+  defp try_discover do
+    devices = Mix.Tasks.Farmbot.Discover.run([])
+    case devices do
+      [device]          -> device.host
+      [_device | _more] -> do_raise("detected more than one farmbot.")
+      []                -> do_raise("could not detect farmbot.")
+    end
+  end
+
+  defp do_raise(msg) do
+    Mix.raise "#{msg} Please supply the ip address of your bot."
+  end
 end

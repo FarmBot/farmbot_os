@@ -3,7 +3,7 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
     SyncInvalidate
   """
 
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Types}
   alias Farmbot.Database
   alias Database.Syncable.{
     Device,
@@ -28,7 +28,7 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
     args: %{value: String.t},
     body: [Pair.t]
   """
-  @spec run(%{value: String.t}, [Pair.t], Context.t) :: Context.t
+  @spec run(%{value: binary}, Types.pairs, Context.t) :: Context.t
   def run(%{value: verb}, pairs, context) do
     verb = parse_verb_str(verb)
     Enum.each(pairs, fn(%{args: %{label: s, value: nowc}}) ->
@@ -37,7 +37,8 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
         value = nowc |> parse_val_str()
         :ok = Database.set_awaiting(context, syncable, verb, value)
       else
-        :ok
+        raise Farmbot.CeleryScript.Error, context: context,
+          message: "Could not translate syncable: #{s}"
       end
     end)
     context
@@ -66,7 +67,7 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
   defp parse_val_str(number), do: String.to_integer(number)
 
   @spec parse_verb_str(binary) :: verb
-  defp parse_verb_str("add"), do: :add
+  defp parse_verb_str("add"),    do: :add
   defp parse_verb_str("remove"), do: :remove
   defp parse_verb_str("update"), do: :update
 end

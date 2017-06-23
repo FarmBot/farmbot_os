@@ -25,8 +25,8 @@ defmodule Farmbot.Regimen.Supervisor do
   """
   def add_child(%Context{} = context, regimen, time) do
     Supervisor.start_child(context.regimen_supervisor,
-      worker(Farmbot.RegimenRunner, [context, regimen, time],
-        [restart: :permanent, id: regimen.id]))
+      worker(Farmbot.Regimen.Runner, [context, regimen, time],
+        [restart: :transient, id: regimen.id]))
   end
 
   @doc """

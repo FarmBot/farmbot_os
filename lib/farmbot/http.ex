@@ -8,6 +8,7 @@ defmodule Farmbot.HTTP do
   import  Helpers
   require Logger
   use     Farmbot.DebugLog
+  use     Context, requires: [Auth]
 
   @version Mix.Project.config[:version]
   @target  Mix.Project.config[:target]
@@ -152,7 +153,6 @@ defmodule Farmbot.HTTP do
     debug_log "Starting client."
     case url do
       "/api" <> _  ->
-        debug_log "I think this is a farmbot api request: #{url}"
         r = {method, url, body, headers, opts}
         build_api_request(state.token, state.context, r, from)
       _ ->

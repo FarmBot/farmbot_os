@@ -28,11 +28,12 @@ end
 
 release :farmbot do
   set version: current_version(:farmbot)
+  # plugin Bootloader.Plugin
   if System.get_env("NERVES_SYSTEM") do
-    set dev_mode: false
-    set include_src: false
-    set include_erts: System.get_env("ERL_LIB_DIR")
+    set dev_mode:            false
+    set include_src:         false
+    set include_erts:        System.get_env("ERL_LIB_DIR")
     set include_system_libs: System.get_env("ERL_SYSTEM_LIB_DIR")
-    set vm_args: "rel/vm.args"
+    set vm_args:             "rel/vm.args"
   end
 end

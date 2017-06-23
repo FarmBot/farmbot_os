@@ -1,17 +1,26 @@
 defmodule Farmbot.Farmware.RuntimeTest do
   @moduledoc false
   alias Farmbot.{Farmware, Context, CeleryScript}
-  alias Farmbot.CeleryScript.Command.Nothing
   alias Farmbot.Farmware.Runtime
-  import Mock
   use ExUnit.Case, async: false
 
-  test_with_mock "Runs a farmware", Nothing, [:passthrough], [] do
-    json_stuff = Poison.encode!(%CeleryScript.Ast{
+  setup_all do
+    context      = Context.new()
+    new_context  = Farmbot.Test.Helpers.Context.replace_http(context)
+    {:ok, auth}  = Farmbot.Auth.start_link(new_context, [])
+    new_context1 = %{new_context | auth: auth}
+    Farmbot.Auth.try_log_in!(new_context1.auth)
+    [cs_context: new_context1]
+  end
+
+  test "Runs a farmware", %{cs_context: ctx} do
+    nothing_node = %CeleryScript.Ast{
       kind: "nothing",
       args: %{},
       body: []
-    })
+    }
+    json_stuff   = Poison.encode!(nothing_node)
+
     fake_fw = %Farmware{
       path:       "/tmp/",
       executable: "bash",
@@ -28,10 +37,10 @@ defmodule Farmbot.Farmware.RuntimeTest do
         zip:                  "hello.zip"
       }
     }
-    context = Context.new()
-    Farmbot.Tests.HTTPTemplate.replace_auth_state(context)
 
-    Runtime.execute(context, fake_fw)
-    assert called Nothing.run(%{}, [], :_)
+    new_context             = Runtime.execute(ctx, fake_fw)
+    {nothing, new_context1} = Context.pop_data(new_context)
+    assert nothing     == nothing_node
+    assert new_context != new_context1
   end
 end

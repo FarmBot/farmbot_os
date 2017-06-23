@@ -3,7 +3,7 @@ defmodule Farmbot.CeleryScript.Command.Calibrate do
     Calibrate
   """
 
-  alias Farmbot.CeleryScript.Command
+  alias Farmbot.CeleryScript.{Command, Types}
   alias Farmbot.Serial.Handler, as: UartHan
   @behaviour Command
 
@@ -12,7 +12,7 @@ defmodule Farmbot.CeleryScript.Command.Calibrate do
       args: %{axis: "x" | "y" | "z"}
       body: []
   """
-  @spec run(%{axis: String.t}, [], Context.t) :: Context.t
+  @spec run(%{axis: Types.axis}, [], Context.t) :: Context.t
   def run(%{axis: axis}, [], context) do
     do_write(axis, context)
     context

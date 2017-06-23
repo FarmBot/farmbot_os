@@ -29,13 +29,6 @@ defmodule Farmbot.CeleryScript.Command do
     defdelegate unquote(fun)(args, body, context), to: module, as: :run
   end
 
-  # DISCLAIMER:
-  # PLEASE MAKE SURE EVERYTHING IS TYPESPECED AND DOC COMMENENTED IN HERE.
-  # SOME NODES, ARE HARD TO TEST,
-  # AND SOME NODES CAN CAUSE CATASTROPHIC DISASTERS
-  # ALSO THE COMPILER CAN'T PROPERLY CHECK SOMETHING BEING THAT THE ARGS ARE
-  # NOT POSITIONAL.
-
   @doc ~s"""
     Convert an ast node to a coodinate or return :error.
   """
@@ -65,7 +58,9 @@ defmodule Farmbot.CeleryScript.Command do
   # is this one a good idea?
   # there might be two expectations here: it could return the current position,
   # or 0
-  def ast_to_coord(%Context{} = context, %Ast{kind: "nothing", args: _, body: _}) do
+  def ast_to_coord(%Context{} = context,
+    %Ast{kind: "nothing", args: _, body: _})
+  do
     next_context = coordinate(%{x: 0, y: 0, z: 0}, [], context)
     raise_if_not_context_or_return_context("coordinate", next_context)
   end
@@ -102,46 +97,17 @@ defmodule Farmbot.CeleryScript.Command do
   defp maybe_print_comment(comment, fun_name),
     do: Logger.info ">> [#{fun_name}] - #{comment}"
 
-  @doc """
-    Helper method to read pin or raise an error.
-  """
-  def read_pin_or_raise(%Context{} = ctx, number, pairs) do
-    if Enum.find(pairs, fn(pair) ->
-      match?(%Ast{kind: "pair", args: %{label: "eager_read_pin"}}, pair)
-    end) do
-      ast = %Ast{
-        kind: "read_pin",
-        args: %{label: "", pin_mode: 0, pin_number: String.to_integer(number)},
-        body: []
-      }
-      do_command(ast, ctx)
-    else
-      raise Error, context: ctx,
-        message: "Could not get value of pin #{number}. " <>
-          "You should manually use read_pin block before this step."
-    end
-  end
-
-  @doc """
-    Makes sure serial is not unavailable.
-  """
-  def ensure_gcode({:error, reason}, %Context{} = context) do
-    raise Error, context: context,
-      message: "Could not execute gcode. #{inspect reason}"
-  end
-
-  def ensure_gcode(_, %Context{} = ctx), do: ctx
-
   @doc ~s"""
     Executes an ast tree.
   """
   @spec do_command(Ast.t, Context.t) :: Context.t | no_return
   def do_command(%Ast{} = ast, %Context{} = context) do
     try do
+      do_wait_for_serial(context)
       do_execute_command(ast, context)
     rescue
       e in Farmbot.CeleryScript.Error ->
-        Logger.error "Failed to execute CeleryScript: #{e.message}"
+        Logger.error "Failed to execute #{ast.kind}: #{e.message}"
         reraise e, System.stacktrace()
       exception ->
         Logger.error "Unknown error happend executing CeleryScript."
@@ -158,15 +124,35 @@ defmodule Farmbot.CeleryScript.Command do
       message: "Can not handle: #{inspect not_cs_node}"
   end
 
+  case Mix.Project.config[:target] do
+    "host" -> def do_wait_for_serial(_), do: :ok
+    _      ->
+      def do_wait_for_serial(%Context{} = ctx) do
+        case Farmbot.Serial.Handler.wait_for_available(ctx) do
+          :ok              -> :ok
+          {:error, reason} -> raise Farmbot.CeleryScript.Error, context: ctx,
+            message: "Could not establish communication with arduino: #{inspect reason}"
+        end
+      end
+  end
+
   defp do_execute_command(%Ast{} = ast, %Context{} = context) do
-    kind   = ast.kind
-    module = Module.concat Farmbot.CeleryScript.Command, Macro.camelize(kind)
-    if Code.ensure_loaded?(module) do
-        maybe_print_comment(ast.comment, ast.kind)
-        next_context = apply(module, :run, [ast.args, ast.body, context])
-        raise_if_not_context_or_return_context(kind, next_context)
+    kind         = ast.kind
+    module       = get_module!(ast)
+    maybe_print_comment(ast.comment, ast.kind)
+    next_context = apply(module, :run, [ast.args, ast.body, context])
+    raise_if_not_context_or_return_context(kind, next_context)
+  end
+
+  @doc """
+    Gets the module assosiated with an ast node or raises.
+  """
+  def get_module!(%Ast{} = ast) do
+    mod = Module.concat(Farmbot.CeleryScript.Command, Macro.camelize(ast.kind))
+    if Code.ensure_loaded?(mod) do
+      mod
     else
-      raise Farmbot.CeleryScript.Error, context: context,
+      raise Farmbot.CeleryScript.Error,
         message: "No instruction for #{inspect ast}"
     end
   end

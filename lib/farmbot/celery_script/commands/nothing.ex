@@ -3,9 +3,7 @@ defmodule Farmbot.CeleryScript.Command.Nothing do
     Nothing
   """
 
-  alias Farmbot.CeleryScript.Ast
-  alias Farmbot.CeleryScript.Command
-  require Logger
+  alias      Farmbot.CeleryScript.{Ast, Command}
   @behaviour Command
 
   @doc ~s"""
@@ -13,7 +11,7 @@ defmodule Farmbot.CeleryScript.Command.Nothing do
       args: %{},
       body: []
   """
-  @type nothing_ast :: %Ast{kind: String.t, args: %{}, body: []}
+
   @spec run(%{}, [], Context.t) :: Context.t
   def run(args, body, context) do
     thing = %Ast{kind: "nothing", args: args, body: body}

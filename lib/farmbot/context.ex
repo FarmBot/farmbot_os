@@ -23,10 +23,15 @@ defmodule Farmbot.Context do
   keys = [{:data_stack, []}, :ref]
   defstruct Enum.concat(keys, modules)
 
-  defmacro __using__(_) do
+  @doc false
+  defmacro __using__(opts) do
+    reqs = Keyword.fetch!(opts, :requires)
     quote do
-      alias Farmbot.Context
-      alias Farmbot.Context.Tracker
+      alias      Farmbot.Context
+      @behaviour Context.Consumer
+
+      @doc false
+      def requirements, do: unquote(reqs)
     end
   end
 
@@ -49,37 +54,52 @@ defmodule Farmbot.Context do
   def pop(%__MODULE__{}, _), do: raise "Cant pop #{__MODULE__} struct!"
 
   @typedoc false
-  @type database         :: Farmbot.Database.database
+  @type database           :: Farmbot.Database.database
 
   @typedoc false
-  @type auth             :: Farmbot.Auth.auth
+  @type auth               :: Farmbot.Auth.auth
 
   @typedoc false
-  @type network          :: Farmbot.System.Network.netman
+  @type network            :: Farmbot.System.Network.netman
 
   @typedoc false
-  @type serial           :: Farmbot.Serial.Handler.handler
+  @type serial             :: Farmbot.Serial.Handler.handler
 
   @typedoc false
-  @type hardware         :: Farmbot.BotState.Hardware.hardware
+  @type hardware           :: Farmbot.BotState.Hardware.hardware
 
   @typedoc false
-  @type monitor          :: Farmbot.BotState.Monitor.monitor
+  @type monitor            :: Farmbot.BotState.Monitor.monitor
 
   @typedoc false
-  @type configuration    :: Farmbot.BotState.Configuration.configuration
+  @type configuration      :: Farmbot.BotState.Configuration.configuration
 
   @typedoc false
-  @type http             :: Farmbot.HTTP.http
+  @type http               :: Farmbot.HTTP.http
 
   @typedoc false
-  @type transport        :: Farmbot.Transport.transport
+  @type transport          :: Farmbot.Transport.transport
 
   @typedoc false
-  @type farmware_manager :: Farmbot.Farmware.Manager.manager
+  @type farmware_manager   :: Farmbot.Farmware.Manager.manager
 
   @typedoc false
   @type regimen_supervisor :: Farmbot.Regimen.Supervisor.supervisor
+
+  @typedoc """
+    List of usable modules
+  """
+  @type modules :: Farmbot.Database |
+    Farmbot.Auth |
+    Farmbot.System.Network |
+    Farmbot.Serial.Handler |
+    Farmbot.BotState.Hardware |
+    Farmbot.BotState.Monitor |
+    Farmbot.BotState.Configuration |
+    Farmbot.HTTP |
+    Farmbot.Transport |
+    Farmbot.Farmware.Manager |
+    Farmbot.Regimen.Supervisor
 
   @typedoc """
     Stuff to be passed from one CS Node to another

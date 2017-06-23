@@ -4,7 +4,7 @@ defmodule Farmbot.HTTP.Client do
   """
 
   use GenServer
-  use Farmbot.DebugLog, name: HTTPClient
+  use Farmbot.DebugLog, name: HTTPClient, color: :PURPLE
   alias Farmbot.HTTP.{Response, Types}
 
   @typedoc false

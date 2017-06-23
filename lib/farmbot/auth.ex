@@ -12,6 +12,7 @@ defmodule Farmbot.Auth do
   alias   Farmbot.Auth.Subscription, as: Sub
   use     GenServer
   use     DebugLog
+  use     Context, requires: [HTTP]
 
   @typedoc """
     The public key that lives at http://<server>/api/public_key
@@ -54,6 +55,8 @@ defmodule Farmbot.Auth do
     case HTTP.get(ctx, "#{server}/api/public_key") do
       {:ok, %HTTP.Response{body: body, status_code: 200}} ->
         decode_key(body)
+      {:ok, %HTTP.Response{body: body, status_code: code}} ->
+        {:error, "Unexpected response (#{code}): #{inspect body}"}
       {:error, reason} ->
         {:error, reason}
     end
@@ -130,15 +133,12 @@ defmodule Farmbot.Auth do
 
       # We won
       {:ok, %HTTP.Response{body: body, status_code: 200}} ->
-        maybe_retry(ctx, secret, server, sbc, body)
+        decoded = maybe_retry(ctx, secret, server, sbc, body)
         Logger.info ">> got a token!", type: :success
         save_secret(secret)
         remove_last_factory_reset_reason()
 
-        {:ok, token} = body
-                        |> Poison.decode!
-                        |> Map.get("token")
-                        |> Token.create
+        {:ok, token} = decoded |> Map.get("token") |> Token.create
 
         token = %{token | unencoded: %{token.unencoded | iss: server}}
         maybe_broadcast(sbc, {:new_token, token})
@@ -153,8 +153,9 @@ defmodule Farmbot.Auth do
 
   defp maybe_retry(%Context{} = ctx, sec, server, sbc, body) do
     case Poison.decode(body) do
-      {:ok,    _} -> :ok
-      {:error, _} -> get_token_from_server(%Context{} = ctx, sec, server, sbc)
+      {:ok, decoded}    -> decoded
+      {:error, _, _}    ->
+        get_token_from_server(%Context{} = ctx, sec, server, sbc)
     end
   end
 
@@ -221,18 +222,15 @@ defmodule Farmbot.Auth do
 
   def try_log_in!(auth, retry, error_str) do
     Logger.info ">> is logging in..."
-    # disable broadcasting
     :ok = GenServer.call(auth, {:set_broadcast, false})
-
-    # Try to get a token.
-    case try_log_in(auth) do
-       {:ok, %Token{} = token} = success ->
-         :ok = GenServer.call(auth, {:set_broadcast, true})
-
-         Logger.info ">> Is logged in", type: :success
-         broadcast({:new_token, token})
-         success
-       er -> # no need to print message becasetry_log_indoes it for us.
+    try do
+      {:ok, %Token{} = token} = success = try_log_in(auth)
+      :ok = GenServer.call(auth, {:set_broadcast, true})
+      Logger.info ">> Is logged in", type: :success
+      broadcast({:new_token, token})
+      success
+    rescue
+      er ->
         # sleep for a second, then try again untill we are out of retry
         Process.sleep(1000)
         try_log_in!(retry + 1, "Try #{retry}: #{inspect er}\n" <> error_str)
@@ -260,7 +258,7 @@ defmodule Farmbot.Auth do
     context:   Context.t,
     server:    nil | server,
     secret:    nil | secret,
-    timer:     any,
+    timer:     reference,
     interim:   nil | interim,
     token:     nil | Token.t,
     broadcast: boolean
@@ -364,7 +362,7 @@ defmodule Farmbot.Auth do
     secret = load_secret()
     case get_token_from_server(s.context, secret, server, s.broadcast) do
       {:ok, %Token{} = token} ->
-        {:reply, {:ok, token}, token}
+        {:reply, {:ok, token}, %{s | token: token}}
       e ->
         {:reply, e, s}
     end

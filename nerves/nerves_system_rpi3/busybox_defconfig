@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.26.2
-# Fri Apr 28 07:30:21 2017
+# Fri Jun 16 09:15:21 2017
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -232,7 +232,7 @@ CONFIG_ID=y
 # CONFIG_GROUPS is not set
 # CONFIG_INSTALL is not set
 # CONFIG_FEATURE_INSTALL_LONG_OPTIONS is not set
-# CONFIG_LN is not set
+CONFIG_LN=y
 # CONFIG_LOGNAME is not set
 CONFIG_LS=y
 # CONFIG_FEATURE_LS_FILETYPES is not set
@@ -253,8 +253,8 @@ CONFIG_SHA256SUM=y
 # Common options for md5sum, sha1sum, sha256sum, sha512sum, sha3sum
 #
 CONFIG_FEATURE_MD5_SHA1_SUM_CHECK=y
-# CONFIG_MKDIR is not set
-# CONFIG_FEATURE_MKDIR_LONG_OPTIONS is not set
+CONFIG_MKDIR=y
+CONFIG_FEATURE_MKDIR_LONG_OPTIONS=y
 # CONFIG_MKFIFO is not set
 # CONFIG_MKNOD is not set
 # CONFIG_MV is not set
