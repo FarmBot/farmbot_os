@@ -85,7 +85,7 @@ defmodule Farmbot.Serial.Handler do
   end
 
   def wait_for_available(%Context{serial: handler}) do
-    GenServer.call(handler, :wait_for_available)
+    GenServer.call(handler, :wait_for_available, 12_000)
   end
 
   @doc """
@@ -211,11 +211,12 @@ defmodule Farmbot.Serial.Handler do
   end
 
   def handle_call(:wait_for_available, from, state) do
-    if state.status == :idle do
-      {:reply, :ok, state}
-    else
-      Process.send_after(self(), {:waiting_timeout, from}, 10_000)
-      {:noreply, %{state | waiting: [from | state.waiting]}}
+    case state.status do
+      :idle   -> {:reply, :ok,               state}
+      :locked -> {:reply, {:error, :locked}, state}
+      _       ->
+        Process.send_after(self(), {:waiting_timeout, from}, 10_000)
+        {:noreply, %{state | waiting: [from | state.waiting]}}
     end
   end
 

@@ -129,9 +129,12 @@ defmodule Farmbot.CeleryScript.Command do
     _      ->
       def do_wait_for_serial(%Context{} = ctx) do
         case Farmbot.Serial.Handler.wait_for_available(ctx) do
-          :ok              -> :ok
-          {:error, reason} -> raise Farmbot.CeleryScript.Error, context: ctx,
-            message: "Could not establish communication with arduino: #{inspect reason}"
+          :ok               -> :ok
+          {:error, :locked} -> :ok
+          {:error, reason}  ->
+            raise Farmbot.CeleryScript.Error, context: ctx,
+              message: "Could not establish communication " <>
+                       "with arduino: #{inspect reason}"
         end
       end
   end
