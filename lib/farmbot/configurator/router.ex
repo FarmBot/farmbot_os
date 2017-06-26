@@ -34,11 +34,6 @@ defmodule Farmbot.Configurator.Router do
   get "/", do: conn |> send_resp(200, make_html("index"))
   get "/firmware/shell", do: conn |> send_resp(200, make_html("firmware_shell"))
   get "/logger", do: conn |> send_resp(200, make_html("log"))
-  get "/setup" do
-    conn
-    |> put_resp_header("location", "http://192.168.24.1/index.html")
-    |> send_resp(302, "OK")
-  end
 
   # Arduino-FW or FBOS Upload form.
   get "/firmware/upload" do
@@ -209,7 +204,11 @@ defmodule Farmbot.Configurator.Router do
   end
 
   # anything that doesn't match a rest end point gets the index.
-  match _, do: conn |> send_resp(404, "not found")
+  match _ do
+    conn
+    |> put_resp_header("location", "http://192.168.24.1/index.html")
+    |> send_resp(302, "OK")
+  end
 
   ## PRIVATE.
 
