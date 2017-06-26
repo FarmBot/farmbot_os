@@ -103,7 +103,7 @@ defmodule Farmbot.CeleryScript.Command do
   @spec do_command(Ast.t, Context.t) :: Context.t | no_return
   def do_command(%Ast{} = ast, %Context{} = context) do
     try do
-      do_wait_for_serial(context)
+      do_wait_for_serial(ast.kind, context)
       do_execute_command(ast, context)
     rescue
       e in Farmbot.CeleryScript.Error ->
@@ -125,15 +125,29 @@ defmodule Farmbot.CeleryScript.Command do
   end
 
   case Mix.Project.config[:target] do
-    "host" -> def do_wait_for_serial(_), do: :ok
+    "host" -> def do_wait_for_serial(_,_), do: :ok
     _      ->
-      def do_wait_for_serial(%Context{} = ctx) do
+
+
+      @req_ser [
+        "move_absolute",
+        "home",
+        "pin_write",
+        "pin_read"
+      ]
+
+      def do_wait_for_serial(cmd, %Context{} = ctx) when cmd in @req_ser do
         case Farmbot.Serial.Handler.wait_for_available(ctx) do
-          :ok              -> :ok
-          {:error, reason} -> raise Farmbot.CeleryScript.Error, context: ctx,
-            message: "Could not establish communication with arduino: #{inspect reason}"
+          :ok               -> :ok
+          {:error, :locked} -> :ok
+          {:error, reason}  ->
+            raise Farmbot.CeleryScript.Error, context: ctx,
+              message: "Could not establish communication " <>
+                       "with arduino: #{inspect reason}"
         end
       end
+
+      def do_wait_for_serial(_cmd_str, _ctx), do: :ok
   end
 
   defp do_execute_command(%Ast{} = ast, %Context{} = context) do

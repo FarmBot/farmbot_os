@@ -73,7 +73,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
       true  -> context
       false ->
         {goto_steps_x, goto_steps_y, goto_steps_z, speed} = goto_pos_steps
-        Farmbot.CeleryScript.Command.do_wait_for_serial(context)
+        Farmbot.CeleryScript.Command.do_wait_for_serial("move_absolute", context)
         UartHan.write(context,
           "G00 X#{goto_steps_x} Y#{goto_steps_y} Z#{goto_steps_z} S#{speed}")
         ensure_position(context, exp_pos_mm,

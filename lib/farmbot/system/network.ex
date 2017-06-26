@@ -147,7 +147,7 @@ defmodule Farmbot.System.Network do
           {:system_dir, ssh_dir},
           {:user_dir,   ssh_dir},
         ]
-      {:ok, _sshd} = :ssh.daemon(22, opts)
+      :ssh.daemon(22, opts)
       :ok
     else
       debug_log "Not starting SSH"
