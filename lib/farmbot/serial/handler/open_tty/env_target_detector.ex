@@ -18,7 +18,7 @@ defmodule Farmbot.Serial.Handler.OpenTTY.EnvTargetDetector do
       @doc false
       def try_detect_tty do
         debug_log "using dev/host tty opener."
-        nil
+        System.get_env("ARDUINO_TTY")
       end
     end
   end

@@ -156,6 +156,7 @@ defmodule Farmbot.HTTP do
         r = {method, url, body, headers, opts}
         build_api_request(state.token, state.context, r, from)
       _ ->
+        headers    = headers |> add_header(user_agent_header())
         {:ok, pid} = Client.start_link(from, {method, url, body, headers}, opts)
         :ok        = Client.execute(pid)
     end
