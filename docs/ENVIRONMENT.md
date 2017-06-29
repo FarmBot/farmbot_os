@@ -6,11 +6,11 @@ via shell environment variables.
 We Produce signed releases in PROD environment. export `PRIV_KEY_FILE` to be the private key file.
 
 ## Mix Environment
-you can set `MIX_ENV=prod` or `MIX_ENV=dev` (default) to change the environment
+You can set `MIX_ENV=prod` or `MIX_ENV=dev` (default) to change the environment
 of the farmbot application.
 
 ## Mix Target
-When building firmware you can set the target.
+When building firmware you can set the target:
 `MIX_TARGET=rpi2`
 
 ## Webpack
@@ -30,7 +30,7 @@ CONFIGURATOR_PORT=4000
 ```
 
 ## Redis Server
-In development mode you can export
+In development mode you can export:
 ```bash
 REDIS_SERVER=true
 REDIS_SERVER_PORT=6379
