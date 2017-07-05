@@ -116,7 +116,7 @@ defmodule Farmbot.Auth do
     # I am not sure why this is done this way other than it works.
     user    = %{credentials: secret |> :base64.encode_to_string |> to_string}
     payload = Poison.encode!(%{user: user})
-    req     = HTTP.post(ctx, "#{server}/api/tokens", payload, [], [])
+    req     = HTTP.post(ctx, "#{server}/api/tokens", payload, [{"Content-Type", "application/json"}], [])
 
     case req do
       # bad Password

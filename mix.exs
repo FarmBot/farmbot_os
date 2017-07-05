@@ -108,6 +108,7 @@ defmodule Farmbot.Mixfile do
       :ssl,
       :redix,
       :eex,
+      :httpoison
    ]
   end
 
@@ -137,6 +138,7 @@ defmodule Farmbot.Mixfile do
       {:ex_json_schema, "~> 0.5.3"},
       {:exjsx, "~> 3.2", override: true},
       {:rsa, "~> 0.0.1"},
+      {:httpoison, "~> 0.12"},
 
       # MQTT stuff
       {:gen_mqtt, "~> 0.3.1"}, # for rpc transport
