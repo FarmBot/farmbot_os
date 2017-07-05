@@ -138,8 +138,17 @@ defmodule Farmbot.Auth do
         save_secret(secret)
         remove_last_factory_reset_reason()
 
-        {:ok, token} = decoded |> Map.get("token") |> Token.create
+        token =
+          case decoded do
+            {:ok, %Token{} = tkn}    -> tkn
+            other when is_map(other) ->
+              other
+              |> Map.get("token")
+              |> Token.create
+              |> fn({:ok, tkn}) -> tkn end.() # ugh
+          end
 
+        # update the iss to be the server for normalization later.
         token = %{token | unencoded: %{token.unencoded | iss: server}}
         maybe_broadcast(sbc, {:new_token, token})
         {:ok, token}
