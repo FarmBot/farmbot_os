@@ -65,3 +65,13 @@
 * Refresh auth token more frequently
 * Clean up noisy log messages
 
+# 4.0.0
+* bundle new Arduino Firmware
+* overhaul HTTP adapter
+* start fixing cross cutting concerns within the application
+
+# 4.0.1
+* fix bug in E-Stop
+
+# 4.0.2
+* add a progress bar to http client for downloads.

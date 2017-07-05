@@ -3,9 +3,10 @@ defmodule Farmbot.HTTP.Client do
     One off process for a single http client.
   """
 
-  use GenServer
-  use Farmbot.DebugLog, name: HTTPClient, color: :PURPLE
-  alias Farmbot.HTTP.{Response, Types}
+  use     GenServer
+  use     Farmbot.DebugLog, name: HTTPClient, color: :PURPLE
+  alias   Farmbot.HTTP.{Response, Types}
+  require Logger
 
   @typedoc false
   @type client :: pid
@@ -64,6 +65,8 @@ defmodule Farmbot.HTTP.Client do
       from:           from,
       ref:            nil,
       buffer:         "",
+      length:         nil,
+      prog_timer:     nil
     }
     {:ok, state}
   end
@@ -151,7 +154,15 @@ defmodule Farmbot.HTTP.Client do
   # Start streaming data.
   def handle_info({:http, {_ref, :stream_start, headers, pid} }, state) do
     debug_log "[#{inspect self()}] got headers."
-    new_state = %{state | headers: headers, stream_pid: pid}
+    pt     = Process.send_after(self(), :log_progress, 2000)
+    length = 'content-length' |> get_from_headers(headers) |> parse_integer
+    debug_log "[#{inspect self()}] length: #{length || "no content-length"}."
+    new_state = %{state |
+                  headers:    headers,
+                  stream_pid: pid,
+                  length:     length,
+                  prog_timer: pt
+                }
     :httpc.stream_next(pid)
     {:noreply, new_state}
   end
@@ -166,6 +177,18 @@ defmodule Farmbot.HTTP.Client do
     {:noreply, %{state | buffer: buffer}}
   end
 
+  def handle_info({:http,
+   {_ref, :stream_end, headers}},
+   %{length: len, buffer: buffer} = state)
+   when is_number(len) and (len != byte_size(buffer))
+  do
+    debug_log "[#{inspect self()}] Got stream end, but buffer size is " <>
+      " not the same as `content-length`" <>
+      " #{len} / #{byte_size(buffer)}"
+    new_state = %{state | status_code: 200, headers: headers}
+    finish_request new_state
+  end
+
   # Stream is finished.
   def handle_info({:http, {_ref, :stream_end, headers}}, state) do
     debug_log "[#{inspect self()}] stream finish"
@@ -178,12 +201,47 @@ defmodule Farmbot.HTTP.Client do
     finish_request state, reason
   end
 
+  def handle_info(:log_progress, %{length: len} = state) when is_number(len) do
+    state.buffer |> byte_size() |> log_progress(len)
+    pt = Process.send_after(self(), :log_progress, 1000)
+    {:noreply, %{state | prog_timer: pt}}
+  end
+
+  def handle_info(:log_progress, state) do
+    mb = state.buffer |> byte_size() |> bytes_to_mb() |> round()
+    Logger.info "Download progress: #{mb}"
+    pt = Process.send_after(self(), :log_progress, 1000)
+    {:noreply, %{state | prog_timer: pt}}
+  end
+
+  defp parse_integer(nil), do: nil
+  defp parse_integer(cl) do
+    case cl |> to_string |> Integer.parse() do
+      {num, _} when is_number(num) -> num
+      _                            -> nil
+    end
+  end
+
+  defp bytes_to_mb(bytes),      do: (bytes / 1024)  / 1024
+  defp to_percent(part, whole), do: (part / whole) *  100
+
+  defp log_progress(dl_bytes, ttl_bytes) do
+    {dl_mb, total_mb} = {dl_bytes |> bytes_to_mb(), ttl_bytes |> bytes_to_mb()}
+    percent           = dl_mb |> to_percent(total_mb)
+    Logger.info "Download progress: #{percent |> round |> round_percent()}%",
+      type: :busy
+  end
+
+  defp round_percent(num) when num > 98, do: 100
+  defp round_percent(num), do: num
+
   # If we exit in a NORMAL state, we reply with :ok
   def terminate(:normal, state) do
     unless state.noreply do
       # Unless nothing told us not to, do reply.
       GenServer.reply(state.from, {:ok, build_resp(state)})
     end
+
     debug_log "[#{inspect self()}] HTTP Request seems to be finished."
     :ok = maybe_close_file(state.file)
     :ok
@@ -213,7 +271,7 @@ defmodule Farmbot.HTTP.Client do
 
   defp maybe_stream_to_file(nil, _data), do: :ok
   defp maybe_stream_to_file(fd, data) when is_binary(data) do
-    debug_log "[#{inspect self()}] writing data to file."
+    # debug_log "[#{inspect self()}] writing data to file."
     :ok = :file.write(fd, data)
   end
 

@@ -84,8 +84,8 @@ defmodule Farmbot.HTTP do
   @doc """
     Uploads a file to the API
   """
-  @spec upload_file!(Context.t, Path.t) :: :ok | no_return
-  def upload_file!(%Context{} = ctx, filename) do
+  @spec upload_file!(Context.t, Path.t, map) :: :ok | no_return
+  def upload_file!(%Context{} = ctx, filename, meta \\ %{}) do
     unless File.exists?(filename) do
       raise Error, message: "#{filename} not found"
     end
@@ -109,24 +109,22 @@ defmodule Farmbot.HTTP do
     ]
     ggl_response = post!(ctx, url, real_payload, headers, [])
     debug_log "#{attachment_url} should exist shortly."
-    :ok = finish_upload!(ggl_response, ctx, attachment_url)
+    :ok = finish_upload!(ggl_response, ctx, attachment_url, meta)
     :ok
   end
 
-  defp finish_upload!(%Response{status_code: s}, %Context{} = ctx, atch_url)
+  defp finish_upload!(%Response{status_code: s}, %Context{} = ctx, atch_url, meta)
   when is_2xx(s) do
-    [x, y, z] = Farmbot.BotState.get_current_pos(ctx)
-    meta      = %{x: x, y: y, z: z}
-    json      = Poison.encode! %{"attachment_url" => atch_url,
-                                 "meta" => meta}
-    res       = post! ctx, "/api/images", json, [], []
+    json = Poison.encode! %{"attachment_url" => atch_url,
+                            "meta" => meta}
+    res = post! ctx, "/api/images", json, [], []
     unless is_2xx(res.status_code) do
       raise Error, message: "Api refused upload: #{inspect res}"
     end
     :ok
   end
 
-  defp finish_upload!(response, _ctx, _attachment_url) do
+  defp finish_upload!(response, _ctx, _attachment_url, _) do
     raise Error, message: "bad status from GCS: #{inspect response}"
   end
 
@@ -156,6 +154,7 @@ defmodule Farmbot.HTTP do
         r = {method, url, body, headers, opts}
         build_api_request(state.token, state.context, r, from)
       _ ->
+        headers    = headers |> add_header(user_agent_header())
         {:ok, pid} = Client.start_link(from, {method, url, body, headers}, opts)
         :ok        = Client.execute(pid)
     end

@@ -1,5 +1,8 @@
 defmodule Mix.Tasks.Farmbot.Sign do
-  @moduledoc false
+  @moduledoc """
+  usage: MIX_TARGET=rpi3 mix farmbot.sign ../fwup-key.priv
+  """
+
   use Mix.Task
   @shortdoc "Signs a fw image"
 
