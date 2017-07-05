@@ -3,7 +3,7 @@ defmodule Mix.Tasks.Farmbot.Slack do
   use Mix.Task
   alias Farmbot.{Context, HTTP}
   alias HTTP.Multipart
-  @shortdoc "Signs a fw image"
+  @shortdoc "Upload an image to farmbot slack."
 
   def run(opts) do
     Registry.start_link(:duplicate,  Farmbot.Registry)
@@ -30,7 +30,7 @@ defmodule Mix.Tasks.Farmbot.Slack do
     filename = "#{otp_app}-#{Mix.env()}-#{commit}#{if signed?, do: "-signed-", else: "-"}#{time}.fw"
     comment  = Enum.join(uhh, " ")
 
-    Mix.shell.info [:green, "Uploading: #{filename}"]
+    Mix.shell.info [:green, "Uploading: #{filename} (#{fw_file})"]
 
     boundry   = Multipart.new_boundry()
     file      = File.read!(fw_file)

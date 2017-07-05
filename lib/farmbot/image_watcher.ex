@@ -7,8 +7,7 @@ defmodule Farmbot.ImageWatcher do
   alias Farmbot.Context
   use Farmbot.DebugLog
 
-  @images_path "/tmp/images"
-  @type state :: []
+  @images_path "/tmp/images/"
 
   @doc """
     Starts the Image Watcher
@@ -16,32 +15,44 @@ defmodule Farmbot.ImageWatcher do
   def start_link(%Context{} = ctx, opts),
     do: GenServer.start_link(__MODULE__, ctx, opts)
 
-  @doc """
-    Uploads all images if they exist.
-  """
-  @spec force_upload(Context.t) :: no_return
-  def force_upload(%Context{} = ctx), do: do_checkup(ctx)
-
   def init(context) do
     debug_log "Ensuring #{@images_path} exists."
+    File.rm_rf!   @images_path
     File.mkdir_p! @images_path
-    # TODO(Connor) kill :fs if this app dies.
     :fs_app.start(:normal, [])
     :fs.subscribe()
-    {:ok, %{context: context}}
-  end
-
-  def handle_info(:checkup, state) do
-    do_checkup(state.context)
-    {:noreply, state}
+    Process.flag(:trap_exit, true)
+    {:ok, %{context: context, uploads: %{}}}
   end
 
   def handle_info({_pid, {:fs, :file_event}, {path, [:modified, :closed]}},
   state) do
     if matches_any_pattern?(path, [~r{/tmp/images/.*(jpg|jpeg|png|gif)}]) do
-      do_checkup(state.context)
+      [x, y, z] = Farmbot.BotState.get_current_pos(state.context)
+      meta = %{x: x, y: y, z: z}
+      pid = spawn __MODULE__, :upload, [state.context, path, meta]
+      {:noreply, %{state | uploads: Map.put(state.uploads, pid, {path, meta, 0})}}
+    else
+      {:noreply, state}
     end
-    {:noreply, state}
+  end
+
+  def handle_info({:EXIT, pid, reason}, state) do
+    case state.uploads[pid] do
+      nil                   -> {:noreply, state}
+      {path, _meta, 6 = ret} ->
+        Logger.error ">> failed to upload #{path} #{ret} times. Giving up."
+        File.rm path
+        {:noreply, %{state | uploads: Map.delete(state.uploads, pid)}}
+      {path, meta, retries}  ->
+        Logger.warn ">> faile to upload #{path} #{inspect reason}. Going to retry."
+        Process.sleep(1000 * retries)
+        new_pid = spawn __MODULE__, :upload, [state.context, path, meta]
+        new_uploads = state
+          |> Map.delete(pid)
+          |> Map.put(new_pid, {path, meta, retries + 1})
+        {:noreply, %{state | uploads: new_uploads}}
+    end
   end
 
   def handle_info(_, state), do: {:noreply, state}
@@ -52,46 +63,16 @@ defmodule Farmbot.ImageWatcher do
   #  /lib/phoenix_live_reload/channel.ex#L27
   defp matches_any_pattern?(path, patterns) do
     path = to_string(path)
-
     Enum.any?(patterns, fn pattern ->
       String.match?(path, pattern)
     end)
   end
 
-  @spec do_checkup(Context.t) :: no_return
-  defp do_checkup(%Context{} = context) do
-    images = File.ls!(@images_path)
-
-    images
-    |> Enum.all?(fn(file) ->
-      path = Path.join(@images_path, file)
-      case try_upload(context, path) do
-        {:ok, _} ->
-          File.rm!(path)
-          :ok
-        {:error, reason} ->
-          {:error, reason}
-        error -> {:error,  error}
-      end
-    end)
-    |> print_thing(Enum.count(images)) # Sorry
-  end
-
-  @spec try_upload(Context.t, binary) :: {:ok, any} | {:error, any}
-  defp try_upload(%Context{} = ctx, file_path) do
-    Logger.info "Image Watcher trying to upload #{file_path}"
-    Farmbot.HTTP.upload_file!(ctx, file_path)
-  end
-
-  @spec print_thing(boolean, integer) :: :ok
-  defp print_thing(_, count) when count == 0, do: :ok
-  defp print_thing(true, _count) do
-    Logger.info "Image Watcher uploaded images", type: :success
-    :ok
-  end
-
-  defp print_thing(false, _count) do
-    Logger.warn("Image Watcher couldn't upload all images!")
-    :ok
+  @spec upload(Context.t, binary, map) :: {:ok, any} | {:error, any}
+  def upload(%Context{} = ctx, file_path, meta) do
+    Logger.info "Image Watcher trying to upload #{file_path}", type: :busy
+    Farmbot.HTTP.upload_file!(ctx, file_path, meta)
+    File.rm!(file_path)
+    Logger.info "Image Watcher uploaded #{file_path}", type: :success
   end
 end
