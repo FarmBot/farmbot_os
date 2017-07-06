@@ -23,40 +23,20 @@ defmodule Farmbot do
     context = Farmbot.Context.new()
     # ctx_tracker = %Farmbot.Context.Tracker{pid: Farmbot.Context.Tracker}
     children = [
-      worker(Farmbot.DebugLog, [], restart: :permanent),
-      supervisor(Registry,     [:duplicate,  Farmbot.Registry]),
-
-      supervisor(FBSYS,
-        [context, [name: FBSYS                        ]], restart: :permanent),
-
-      worker(Farmbot.Auth,
-        [context, [name: Farmbot.Auth                 ]], restart: :permanent),
-
-      worker(Farmbot.HTTP,
-        [context, [name: Farmbot.HTTP                 ]], restart: :permanent),
-
-      worker(Farmbot.Database,
-        [context, [name: Farmbot.Database             ]], restart: :permanent),
-
-      supervisor(Farmbot.BotState.Supervisor,
-        [context, [name: Farmbot.BotState.Supervisor  ]], restart: :permanent),
-
-      supervisor(Farmbot.FarmEvent.Supervisor,
-        [context, [name: Farmbot.FarmEvent.Supervisor ]], restart: :permanent),
-
-      supervisor(Farmbot.Transport.Supervisor,
-        [context, [name: Farmbot.Transport.Supervisor ]], restart: :permanent),
-
-      worker(Farmbot.ImageWatcher,
-        [context, [name: Farmbot.ImageWatcher         ]], restart: :permanent),
-
-      supervisor(Farmbot.Serial.Supervisor,
-        [context, [name: Farmbot.Serial.Supervisor    ]], restart: :permanent),
-
-      supervisor(Farmbot.Configurator, [], restart: :permanent),
-
-      supervisor(Farmbot.Farmware.Supervisor, [context,
-        [name: Farmbot.Farmware.Supervisor            ]], restart: :permanent)
+      worker(Farmbot.DebugLog, []),
+      supervisor(Registry, [:duplicate,  Farmbot.Registry]),
+      supervisor(FBSYS,                   [context, [name: FBSYS]]),
+      worker(Farmbot.Auth,                [context, [name: Farmbot.Auth]]),
+      worker(Farmbot.FactoryResetWatcher, [context, context.auth, []]),
+      worker(Farmbot.HTTP,                [context, [name: Farmbot.HTTP]]),
+      worker(Farmbot.Database,            [context, [name: Farmbot.Database]]),
+      supervisor(Farmbot.BotState.Supervisor,  [context, [name: Farmbot.BotState.Supervisor  ]]),
+      supervisor(Farmbot.FarmEvent.Supervisor, [context, [name: Farmbot.FarmEvent.Supervisor ]]),
+      supervisor(Farmbot.Transport.Supervisor, [context, [name: Farmbot.Transport.Supervisor ]]),
+      worker(Farmbot.ImageWatcher,             [context, [name: Farmbot.ImageWatcher         ]]),
+      supervisor(Farmbot.Serial.Supervisor,    [context, [name: Farmbot.Serial.Supervisor    ]]),
+      supervisor(Farmbot.Configurator, []),
+      supervisor(Farmbot.Farmware.Supervisor,  [context, [name: Farmbot.Farmware.Supervisor]])
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)

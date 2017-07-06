@@ -207,7 +207,7 @@ defmodule Farmbot.Auth do
         Logger.info ">> Could not log in! #{inspect reason}", type: :error
         {:error, reason}
       error ->
-        Logger.error ">> Could not log in! #{inspect error}"
+        Logger.error ">> Could not log in! #{inspect error}", type: :error
         {:error, error}
     end
   end

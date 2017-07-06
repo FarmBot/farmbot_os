@@ -6,8 +6,13 @@ env = Mix.env()
 
 config :logger, utc_log: true
 
+config :ssl, protocol_version: :"tlsv1.2"
+
 # I force colors because they are important.
-config :logger, :console, colors: [enabled: true, info: :cyan]
+config :logger, :console,
+  colors: [enabled: true, info: :cyan],
+  metadata: [:module],
+  format: "$time $metadata[$level] $levelpad$message\n"
 
 # Iex needs colors too.
 config :iex, :colors, enabled: true

@@ -13,6 +13,7 @@ defmodule Farmbot.HTTP do
     AsyncEnd,
   }
   alias   Farmbot.HTTP.Response
+  import  Farmbot.HTTP.Helpers
   require Logger
   use     Farmbot.DebugLog
 
@@ -70,12 +71,42 @@ defmodule Farmbot.HTTP do
     end
   end
 
-  def upload_file(ctx, url, path)
-  def upload_file!(ctx, url, path)
+  def upload_file(ctx, path, meta \\ %{}) do
+    if File.exists?(path) do
+      ctx |> get("/api/storage_auth") |> do_multipart_request(ctx, path)
+    else
+      {:error, "#{path} not found"}
+    end
+  end
+
+  defp do_multipart_request({:ok, %Response{status_code: code, body: bin_body}}, ctx, path) when is_2xx(code) do
+    with {:ok, body} <- Poison.decode(bin_body),
+         {:ok, file} <- File.read(path) do
+           url            = "https:" <> body["url"]
+           form_data      = body["form_data"]
+           attachment_url = url <> form_data["key"]
+           mp = Enum.map(form_data, fn({key, val}) -> if key == "file", do: {"file", file}, else: {key, val} end)
+           HTTPoison.post!(url, {:multipart, mp})
+           #TODO(Connor) fix when gcs is back up and running
+         end
+  end
+
+  defp do_multipart_request({:error, reason}), do: {:error, reason}
+
+  def upload_file!(ctx, path, meta \\ %{}) do
+    case upload_file(ctx, path, meta) do
+      {:ok, _} -> :ok
+      {:error, reason} -> raise reason
+    end
+  end
+
   # GenServer
 
   defmodule State do
     defstruct [:token, :requests]
+    defimpl Inspect, for: __MODULE__ do
+      def inspect(state, _), do: "#HTTPState<token: #{state.token}>"
+    end
   end
 
   defmodule Buffer do
@@ -86,7 +117,7 @@ defmodule Farmbot.HTTP do
     GenServer.start_link(__MODULE__, ctx, opts)
   end
 
-  def init(ctx) do
+  def init(_ctx) do
     Registry.register(Farmbot.Registry, Farmbot.Auth, [])
     state = %State{token: nil, requests: %{}}
     {:ok, state}
@@ -100,20 +131,7 @@ defmodule Farmbot.HTTP do
     # Pattern match the url.
     case url do
       "/api" <> _ -> do_api_request({method, url, body, headers, opts, from}, state)
-      _           ->
-        {:ok, %AsyncResponse{id: ref}} = HTTPoison.request(method, url, body, headers, opts)
-        timeout = Process.send_after(self(), {:timeout, ref}, 30_000)
-        req = %Buffer{
-          id:          ref,
-          from:        from,
-          timeout:     timeout,
-          file:        file,
-          data:        "",
-          headers:     nil,
-          status_code: nil,
-          request:     {method, url, body, headers, opts},
-        }
-        {:noreply, %{state | requests: Map.put(state.requests, ref, req)}}
+      _           -> do_normal_request({method, url, body, headers, opts, from}, file, state)
     end
   end
 
@@ -140,7 +158,7 @@ defmodule Farmbot.HTTP do
       %Buffer{} = buffer ->
         HTTPoison.stream_next(%AsyncResponse{id: ref})
         {:noreply, %{state | requests: %{state.requests | ref => %{buffer | headers: headers}}}}
-      nil                -> {:noreply, state}
+      nil -> {:noreply, state}
     end
   end
 
@@ -162,10 +180,18 @@ defmodule Farmbot.HTTP do
     end
   end
 
+  def handle_info({Auth, {:new_token, %Token{} = token}}, state),
+    do: {:noreply, %{state | token: token}}
+
+  def handle_info({Auth, :purge_token}, state),
+    do: {:noreply, %{state | token: nil}}
+
+  def handle_info({Auth, {:error, _error}}, state), do: {:noreply, state}
+
   def terminate({:error, reason}, state), do: terminate(reason, state)
 
   def terminate(reason, state) do
-    for buffer <- state.requests do
+    for {_ref, buffer} <- state.requests do
       maybe_close_file(buffer.file)
       GenServer.reply buffer.from, {:error, reason}
     end
@@ -196,7 +222,7 @@ defmodule Farmbot.HTTP do
 
   defp maybe_log_progress(%Buffer{file: file}) when is_nil(file), do: :ok
 
-  defp maybe_log_progress(%Buffer{file: file} = buffer) do
+  defp maybe_log_progress(%Buffer{file: _file} = buffer) do
     data_mbs = buffer.data |> byte_size() |> bytes_to_mb()
     case Enum.find_value(buffer.headers, fn({header, val}) -> if header == "Content-Length", do: val, else: nil end) do
       numstr when is_binary(numstr) ->
@@ -227,39 +253,57 @@ defmodule Farmbot.HTTP do
               |> add_header({"Authorization", "Bearer " <> tkn.encoded})
               |> add_header({"Content-Type", "application/json"})
     url = tkn.unencoded.iss <> url
-    {:ok, %AsyncResponse{id: ref}} = HTTPoison.request(method, url, body, headers, opts)
-    timeout = Process.send_after(self(), {:timeout, ref}, 30_000)
-    req = %Buffer{
-      id:          ref,
-      from:        from,
-      timeout:     timeout,
-      data:        "",
-      headers:     nil,
-      status_code: nil,
-      request:     {method, url, body, headers, opts},
-    }
-    {:noreply, %{state | requests: Map.put(state.requests, ref, req)}}
+    do_normal_request({method, url, body, headers, opts, from}, nil, state)
+  end
+
+  defp do_normal_request({method, url, body, headers, opts, from}, file, state) do
+    case HTTPoison.request(method, url, body, headers, opts) do
+      {:ok, %AsyncResponse{id: ref}} ->
+        timeout = Process.send_after(self(), {:timeout, ref}, 30_000)
+        req = %Buffer{
+          id:          ref,
+          from:        from,
+          timeout:     timeout,
+          file:        file,
+          data:        "",
+          headers:     nil,
+          status_code: nil,
+          request:     {method, url, body, headers, opts},
+        }
+        {:noreply, %{state | requests: Map.put(state.requests, ref, req)}}
+      {:error, %HTTPoison.Error{reason: reason}} -> {:reply, {:error, reason}, state}
+      {:error, reason}                           -> {:reply, {:error, reason}, state}
+    end
+  end
+
+  defp do_redirect_request(%Buffer{} = buffer, redir, state) do
+    {method, _url, body, headers, opts} = buffer.request
+    case HTTPoison.request(method, redir, body, headers, opts) do
+      {:ok, %AsyncResponse{id: ref}} ->
+        req = %Buffer{
+          id:          ref,
+          from:        buffer.from,
+          file:        buffer.file,
+          data:        "",
+          headers:     nil,
+          status_code: nil,
+          request:     {method, redir, body, headers, opts},
+        }
+        state = %{state | requests: Map.delete(state.requests, buffer.id)}
+        state = %{state | requests: Map.put(state.requests, ref, req)}
+        {:noreply, state}
+      {:error, %HTTPoison.Error{reason: reason}} -> {:reply, {:error, reason}, state}
+      {:error, reason}                           -> {:reply, {:error, reason}, state}
+    end
   end
 
   defp finish_request(%Buffer{status_code: status_code} = buffer, state) when status_code in @redirect_status_codes do
     redir = Enum.find_value(buffer.headers, fn({header, val}) -> if header == "Location", do: val, else: false end)
     if redir do
-      {method, _url, body, headers, opts} = buffer.request
-      {:ok, %AsyncResponse{id: ref}} = HTTPoison.request(method, redir, body, headers, opts)
-      req = %Buffer{
-        id:          ref,
-        from:        buffer.from,
-        file:        buffer.file,
-        data:        "",
-        headers:     nil,
-        status_code: nil,
-        request:     {method, redir, body, headers, opts},
-      }
-      state = %{state | requests: Map.delete(state.requests, buffer.id)}
-      state = %{state | requests: Map.put(state.requests, ref, req)}
-      {:noreply, state}
+      do_redirect_request(buffer, redir, state)
     else
       GenServer.reply(buffer.from, {:error, :no_server_for_redirect})
+      {:noreply, state}
     end
   end
 
@@ -274,12 +318,6 @@ defmodule Farmbot.HTTP do
     {:noreply, %{state | requests: Map.delete(state.requests, buffer.id)}}
   end
 
-  def handle_info({Auth, {:new_token, token}}, state),
-    do: {:noreply, %{state | token: token}}
-
-  def handle_info({Auth, :purge_token}, state),
-    do: {:noreply, %{state | token: nil}}
-
   defp fb_headers(headers) do
     headers |> add_header({"User-Agent", "FarmbotOS/#{@version} (#{@target}) #{@target} ()"})
   end
@@ -288,7 +326,8 @@ defmodule Farmbot.HTTP do
 
   defp fb_opts(opts) do
     Keyword.merge(opts, [
-      ssl: [{:versions, [:'tlsv1.2']}],
+      # ssl: [{:versions, [:'tlsv1.2']}],
+      hackney:         [:insecure],
       recv_timeout:    :infinity,
       timeout:         :infinity,
       stream_to:       self(),

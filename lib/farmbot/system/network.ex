@@ -189,15 +189,13 @@ defmodule Farmbot.System.Network do
       {:ok, _} ->
         Logger.info ">> connection test complete", type: :success
         :ok
-      {:error, {:failed_connect, err_list }} = err ->
-        if {:inet, [:inet], :nxdomain} in err_list do
-          debug_log "escaping from nxdomain."
-          Farmbot.System.reboot
-        else
-          debug_log "not escaping."
-          Farmbot.System.factory_reset("Fatal Error during "
-            <> "connection test! #{inspect err}")
-        end
+      {:error, :nxdomain} ->
+        debug_log "escaping from nxdomain."
+        Farmbot.System.reboot
+      {:error, reason}    ->
+        debug_log "not escaping."
+        Farmbot.System.factory_reset("Fatal Error during "
+          <> "connection test! #{inspect reason}")
       error ->
         Farmbot.System.factory_reset("Fatal Error during "
           <> "connection test! #{inspect error}")
