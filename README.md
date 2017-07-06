@@ -8,12 +8,12 @@
 
 ## _*Important*_
 For now we are only building and supporting Raspberry Pi 3. Pull Requests are very welcome
-if you spot a bug or fix, but for now we suggest obtaining a Raspberry Pi 3 for the best support. 
+if you spot a bug or fix, but for now we suggest obtaining a Raspberry Pi 3 for the best support.
 
 
 |Raspbery Pi Version |
 |---|
-| :star: **[RPi 3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v4.0.0/farmbot-rpi3-4.0.0.img)**|
+| :star: **[RPi 3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v4.0.2/farmbot-rpi3-4.0.2.img)**|
 <!--
 |  [RPi 2](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.3/farmbot-rpi2-3.1.3.img) |
 |  [RPi 0 and 1](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.3/farmbot-rpi-3.1.3.img) |
