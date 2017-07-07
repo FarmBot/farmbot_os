@@ -363,8 +363,8 @@ defmodule Farmbot.HTTP do
     Keyword.merge(opts, [
       ssl: [{:versions, [:'tlsv1.2']}],
       hackney:         [:insecure, pool: :farmbot_http_pool],
-      recv_timeout:    10_0_0_0_0,
-      timeout:         10_0_0_0_0,
+      recv_timeout:    :infinity,
+      timeout:         :infinity,
       stream_to:       self(),
       follow_redirect: false,
       async:           :once
