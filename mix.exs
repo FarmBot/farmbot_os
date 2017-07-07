@@ -33,7 +33,11 @@ defmodule Farmbot.Mixfile do
      compilers: Mix.compilers ++ maybe_use_webpack(),
      aliases: aliases(@target),
      deps: deps() ++ system(@target),
-     dialyzer: [plt_add_deps: :app_tree, plt_add_apps: [:mnesia, :hackney]],
+     dialyzer: [
+       plt_add_deps: :transitive,
+       plt_add_apps: [:mnesia, :hackney, :elixir],
+       flags:        []
+     ],
      preferred_cli_env: [
        "vcr":              :test,
        "vcr.delete":       :test,
@@ -53,12 +57,12 @@ defmodule Farmbot.Mixfile do
      homepage_url: "http://farmbot.io",
      docs: [
        main: "Farmbot",
-       logo: "../../docs/farmbot_logo.png",
+       logo: "./priv/static/farmbot_logo.png",
        extras: [
-         "../../docs/BUILDING.md",
-         "../../docs/FAQ.md",
-         "../../docs/ENVIRONMENT.md",
-         "../../README.md"]]
+         "./docs/BUILDING.md",
+         "./docs/FAQ.md",
+         "./docs/ENVIRONMENT.md",
+         "./README.md"]]
    ]
   end
 
@@ -207,12 +211,11 @@ defmodule Farmbot.Mixfile do
     "travis_test": ["credo", "coveralls.travis"]
   ]
 
-  # TODO(Connor) Maybe warn if building firmware in dev mode?
   defp aliases(_system) do
     ["deps.precompile": ["nerves.precompile", "deps.precompile"],
      "deps.loadpaths":  ["deps.loadpaths", "nerves.loadpaths"],
      "firmware.upload": ["farmbot.upload"],
-     "firmware.sign": ["farmbot.sign"]
+     "firmware.sign":   ["farmbot.sign"]
    ]
   end
 

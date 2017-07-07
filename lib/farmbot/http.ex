@@ -53,7 +53,7 @@ defmodule Farmbot.HTTP do
     end
   end
 
-  methods = [:get, :post]
+  methods = [:get, :post, :delete, :patch, :put, :options]
 
   for verb <- methods do
     @doc """

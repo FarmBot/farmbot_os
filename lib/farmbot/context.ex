@@ -23,18 +23,6 @@ defmodule Farmbot.Context do
   keys = [{:data_stack, []}, :ref]
   defstruct Enum.concat(keys, modules)
 
-  @doc false
-  defmacro __using__(opts) do
-    reqs = Keyword.fetch!(opts, :requires)
-    quote do
-      alias      Farmbot.Context
-      @behaviour Context.Consumer
-
-      @doc false
-      def requirements, do: unquote(reqs)
-    end
-  end
-
   defimpl Inspect, for: __MODULE__ do
     def inspect(%{ref: ref}, _) when is_reference(ref) do
       "#Reference<" <> rest = inspect ref
@@ -48,43 +36,37 @@ defmodule Farmbot.Context do
   end
 
   @behaviour Access
+  @doc false
   def fetch(%__MODULE__{} = ctx, key), do: Map.fetch(ctx, key)
+  @doc false
   def get(%__MODULE__{} = ctx, key, _default), do: Map.fetch(ctx, key)
+  @doc false
   def get_and_update(%__MODULE__{}, _, _), do: raise "Cant update #{__MODULE__} struct!"
+  @doc false
   def pop(%__MODULE__{}, _), do: raise "Cant pop #{__MODULE__} struct!"
 
   @typedoc false
-  @type database           :: Farmbot.Database.database
-
+  @type database           :: Farmbot.Behaviour.Database.server
   @typedoc false
-  @type auth               :: Farmbot.Auth.auth
-
+  @type auth               :: Farmbot.Behaviour.Auth.otp_server
   @typedoc false
-  @type network            :: Farmbot.System.Network.netman
-
+  @type network            :: Farmbot.Behaviour.Network.server
   @typedoc false
-  @type serial             :: Farmbot.Serial.Handler.handler
-
+  @type serial             :: Farmbot.Behaviour.Serial.server
   @typedoc false
-  @type hardware           :: Farmbot.BotState.Hardware.hardware
-
+  @type hardware           :: Farmbot.Behaviour.Hardware.server
   @typedoc false
-  @type monitor            :: Farmbot.BotState.Monitor.monitor
-
+  @type monitor            :: Farmbot.Behaviour.Monitor.server
   @typedoc false
-  @type configuration      :: Farmbot.BotState.Configuration.configuration
-
+  @type configuration      :: Farmbot.Behaviour.Configuration.server
   @typedoc false
-  @type http               :: Farmbot.HTTP.http
-
+  @type http               :: Farmbot.Behaviour.HTTP.server
   @typedoc false
-  @type transport          :: Farmbot.Transport.transport
-
+  @type transport          :: Farmbot.Behaviour.Transport.server
   @typedoc false
-  @type farmware_manager   :: Farmbot.Farmware.Manager.manager
-
+  @type farmware_manager   :: Farmbot.Behaviour.FarmwareManager.server
   @typedoc false
-  @type regimen_supervisor :: Farmbot.Regimen.Supervisor.supervisor
+  @type regimen_supervisor :: Farmbot.Behaviour.RegimenSupervisor.server
 
   @typedoc """
     List of usable modules
