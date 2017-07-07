@@ -143,6 +143,7 @@ defmodule Farmbot.Mixfile do
       {:exjsx, "~> 3.2", override: true},
       {:rsa, "~> 0.0.1"},
       {:httpoison, "~> 0.12"},
+      {:hackney, path: "../hackney", override: true},
 
       # MQTT stuff
       {:gen_mqtt, "~> 0.3.1"}, # for rpc transport

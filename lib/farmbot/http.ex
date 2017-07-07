@@ -246,7 +246,7 @@ defmodule Farmbot.HTTP do
         File.rm(file)
         :ok       = File.touch(filename)
         {:ok, fd} = :file.open(filename, [:write, :raw])
-        {fd, opts}
+        {fd, Keyword.merge(opts, [stream_to: self(), async: :once])}
       _ -> {nil, opts}
     end
   end
@@ -300,6 +300,9 @@ defmodule Farmbot.HTTP do
 
   defp do_normal_request({method, url, body, headers, opts, from}, file, state) do
     case HTTPoison.request(method, url, body, headers, opts) do
+      {:ok, %HTTPoison.Response{body: body, headers: headers, status_code: code}} ->
+        GenServer.reply(from, {:ok, %Response{body: body, headers: headers, status_code: code}})
+        {:noreply, state}
       {:ok, %AsyncResponse{id: ref}} ->
         timeout = Process.send_after(self(), {:timeout, ref}, 30_000)
         req = %Buffer{
@@ -381,9 +384,9 @@ defmodule Farmbot.HTTP do
       hackney:         [:insecure, pool: :farmbot_http_pool],
       recv_timeout:    :infinity,
       timeout:         :infinity,
-      stream_to:       self(),
+      # stream_to:       self(),
       follow_redirect: false,
-      async:           :once
+      # async:           :once
       ])
   end
 
