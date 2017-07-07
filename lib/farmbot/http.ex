@@ -12,8 +12,8 @@ defmodule Farmbot.HTTP do
     AsyncChunk,
     AsyncEnd,
   }
-  alias   Farmbot.HTTP.Response
-  import  Farmbot.HTTP.Helpers
+  alias   Farmbot.HTTP.{Response, Helpers, Error}
+  import  Helpers
   require Logger
   use     Farmbot.DebugLog
 
@@ -47,8 +47,9 @@ defmodule Farmbot.HTTP do
 
   def request!(ctx, method, url, body, headers, opts) do
     case request(ctx, method, url, body, headers, opts) do
-      {:ok, response} -> response
-      {:error, error} -> raise error
+      {:ok, %Response{status_code: code} = resp} when is_2xx(code) -> resp
+      {:ok, %Response{} = resp} -> raise Error, resp
+      {:error, error}           -> raise Error, error
     end
   end
 
@@ -75,53 +76,72 @@ defmodule Farmbot.HTTP do
 
   def download_file(ctx, url, path) do
     case get(ctx, url, "", [], file: path) do
-      {:ok, %Response{}} -> {:ok, path}
-      {:error, reason}   -> {:error, reason}
+      {:ok, %Response{status_code: code}} when is_2xx(code) -> {:ok, path}
+      {:ok, %Response{} = resp} -> {:error, resp}
+      {:error, reason}          -> {:error, reason}
     end
   end
 
   def download_file!(ctx, url, path) do
     case download_file(ctx, url, path) do
       {:ok, path}      -> path
-      {:error, reason} -> raise reason
+      {:error, reason} -> raise Error, reason
     end
   end
 
-  def upload_file(ctx, path, meta \\ %{}) do
+  def upload_file(ctx, path, meta \\ nil) do
     if File.exists?(path) do
-      ctx |> get("/api/storage_auth") |> do_multipart_request(ctx, path)
+      ctx |> get("/api/storage_auth") |> do_multipart_request(ctx, meta || %{x: -1, y: -1, z: -1}, path)
     else
       {:error, "#{path} not found"}
     end
   end
 
-  defp do_multipart_request({:ok, %Response{status_code: code, body: bin_body}}, ctx, path) when is_2xx(code) do
+  def upload_file!(ctx, path, meta \\ %{}) do
+    case upload_file(ctx, path, meta) do
+      :ok -> :ok
+      {:error, reason} -> raise Error, reason
+    end
+  end
+
+  defp do_multipart_request({:ok, %Response{status_code: code, body: bin_body}}, ctx, meta, path) when is_2xx(code) do
     with {:ok, body} <- Poison.decode(bin_body),
          {:ok, file} <- File.read(path) do
            url            = "https:" <> body["url"]
            form_data      = body["form_data"]
            attachment_url = url <> form_data["key"]
            mp = Enum.map(form_data, fn({key, val}) -> if key == "file", do: {"file", file}, else: {key, val} end)
-           HTTPoison.post!(url, {:multipart, mp})
-           #TODO(Connor) fix when gcs is back up and running
+           ctx
+            |> post(url, {:multipart, mp})
+            |> finish_upload(ctx, attachment_url, meta)
          end
   end
 
-  defp do_multipart_request({:error, reason}), do: {:error, reason}
+  defp do_multipart_request({:ok, %Response{} = response}, _ctx, _meta, _path), do: {:error, response}
 
-  def upload_file!(ctx, path, meta \\ %{}) do
-    case upload_file(ctx, path, meta) do
-      {:ok, _} -> :ok
-      {:error, reason} -> raise reason
+  defp do_multipart_request({:error, reason}, _ctx, _meta, _path), do: {:error, reason}
+
+  defp finish_upload({:ok, %Response{status_code: code}}, ctx, atch_url, meta) when is_2xx(code) do
+    with {:ok, body} <- Poison.encode(%{"attachment_url" => atch_url, "meta" => meta}) do
+      case post(ctx, "/api/images", body) do
+        {:ok, %Response{status_code: code}} when is_2xx(code) ->
+          debug_log("#{atch_url} should exit shortly.")
+          :ok
+        {:ok, %Response{} = response} -> {:error, response}
+        {:error, reason}              -> {:error, reason}
+      end
     end
   end
+
+  defp finish_upload({:ok, %Response{} = resp}, _ctx, _url, _meta), do: {:error, resp}
+  defp finish_upload({:error, reason}, _ctx, _url, _meta),          do: {:error, reason}
 
   # GenServer
 
   defmodule State do
     defstruct [:token, :requests]
     defimpl Inspect, for: __MODULE__ do
-      def inspect(state, _), do: "#HTTPState<token: #{state.token}>"
+      def inspect(state, _), do: "#HTTPState<token: #{inspect state.token}>"
     end
   end
 
@@ -135,6 +155,7 @@ defmodule Farmbot.HTTP do
 
   def init(_ctx) do
     Registry.register(Farmbot.Registry, Farmbot.Auth, [])
+    # Process.flag(:trap_exit, true)
     state = %State{token: nil, requests: %{}}
     {:ok, state}
   end
@@ -143,7 +164,7 @@ defmodule Farmbot.HTTP do
     {file, opts} = maybe_open_file(opts)
     opts         = fb_opts(opts)
     headers      = fb_headers(headers)
-
+    # debug_log "#{inspect Tuple.delete_at(from, 0)} Request start (#{url})"
     # Pattern match the url.
     case url do
       "/api" <> _ -> do_api_request({method, url, body, headers, opts, from}, state)
@@ -163,6 +184,7 @@ defmodule Farmbot.HTTP do
   def handle_info(%AsyncStatus{code: code, id: ref}, state) do
     case state.requests[ref] do
       %Buffer{} = buffer ->
+        # debug_log "#{inspect Tuple.delete_at(buffer.from, 0)} Got Status."
         HTTPoison.stream_next(%AsyncResponse{id: ref})
         {:noreply, %{state | requests: %{state.requests | ref => %{buffer | status_code: code}}}}
       nil                -> {:noreply, state}
@@ -172,6 +194,7 @@ defmodule Farmbot.HTTP do
   def handle_info(%AsyncHeaders{headers: headers, id: ref}, state) do
     case state.requests[ref] do
       %Buffer{} = buffer ->
+        # debug_log("#{inspect Tuple.delete_at(buffer.from, 0)} Got headers")
         HTTPoison.stream_next(%AsyncResponse{id: ref})
         {:noreply, %{state | requests: %{state.requests | ref => %{buffer | headers: headers}}}}
       nil -> {:noreply, state}
@@ -191,7 +214,9 @@ defmodule Farmbot.HTTP do
 
   def handle_info(%AsyncEnd{id: ref}, state) do
     case state.requests[ref] do
-      %Buffer{} = buffer -> finish_request(buffer, state)
+      %Buffer{} = buffer ->
+        # debug_log "#{inspect Tuple.delete_at(buffer.from, 0)} Request finish."
+        finish_request(buffer, state)
       nil                -> {:noreply, state}
     end
   end
@@ -260,8 +285,9 @@ defmodule Farmbot.HTTP do
   defp bytes_to_mb(bytes),      do: (bytes / 1024)  / 1024
   defp to_percent(part, whole), do: (part / whole) *  100
 
-  defp do_api_request({_method, _url, _body, _headers, _opts, _from}, %{token: nil} = state) do
-    {:reply, {:error, :no_token}, state}
+  defp do_api_request({_method, _url, _body, _headers, _opts, from}, %{token: nil} = state) do
+    GenServer.reply(from, {:error, :no_token})
+    {:noreply, state}
   end
 
   defp do_api_request({method, url, body, headers, opts, from}, %{token: tkn} = state) do
@@ -287,8 +313,12 @@ defmodule Farmbot.HTTP do
           request:     {method, url, body, headers, opts},
         }
         {:noreply, %{state | requests: Map.put(state.requests, ref, req)}}
-      {:error, %HTTPoison.Error{reason: reason}} -> {:reply, {:error, reason}, state}
-      {:error, reason}                           -> {:reply, {:error, reason}, state}
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        GenServer.reply from, {:error, reason}
+        {:noreply, state}
+      {:error, reason}                           ->
+        GenServer.reply from, {:error, reason}
+        {:noreply, state}
     end
   end
 
@@ -308,12 +338,17 @@ defmodule Farmbot.HTTP do
         state = %{state | requests: Map.delete(state.requests, buffer.id)}
         state = %{state | requests: Map.put(state.requests, ref, req)}
         {:noreply, state}
-      {:error, %HTTPoison.Error{reason: reason}} -> {:reply, {:error, reason}, state}
-      {:error, reason}                           -> {:reply, {:error, reason}, state}
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        GenServer.reply buffer.from, {:error, reason}
+        {:noreply, state}
+      {:error, reason}                           ->
+        GenServer.reply buffer.from, {:error, reason}
+        {:noreply, state}
     end
   end
 
   defp finish_request(%Buffer{status_code: status_code} = buffer, state) when status_code in @redirect_status_codes do
+    debug_log "#{inspect Tuple.delete_at(buffer.from, 0)} Trying to redirect: (#{status_code})"
     redir = Enum.find_value(buffer.headers, fn({header, val}) -> if header == "Location", do: val, else: false end)
     if redir do
       do_redirect_request(buffer, redir, state)
@@ -323,7 +358,7 @@ defmodule Farmbot.HTTP do
     end
   end
 
-  defp finish_request(buffer, state) do
+  defp finish_request(%Buffer{} = buffer, state) do
     response = %Response{
       status_code: buffer.status_code,
       body:        buffer.data,
@@ -342,10 +377,10 @@ defmodule Farmbot.HTTP do
 
   defp fb_opts(opts) do
     Keyword.merge(opts, [
-      # ssl: [{:versions, [:'tlsv1.2']}],
-      hackney:         [:insecure],
-      recv_timeout:    :infinity,
-      timeout:         :infinity,
+      ssl: [{:versions, [:'tlsv1.2']}],
+      hackney:         [:insecure, pool: :farmbot_http_pool],
+      recv_timeout:    10_0_0_0_0,
+      timeout:         10_0_0_0_0,
       stream_to:       self(),
       follow_redirect: false,
       async:           :once

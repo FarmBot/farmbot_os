@@ -28,6 +28,7 @@ defmodule Farmbot do
       supervisor(FBSYS,                   [context, [name: FBSYS]]),
       worker(Farmbot.Auth,                [context, [name: Farmbot.Auth]]),
       worker(Farmbot.FactoryResetWatcher, [context, context.auth, []]),
+      :hackney_pool.child_spec(:farmbot_http_pool, [timeout: 30_000, max_connections: 1000]),
       worker(Farmbot.HTTP,                [context, [name: Farmbot.HTTP]]),
       worker(Farmbot.Database,            [context, [name: Farmbot.Database]]),
       supervisor(Farmbot.BotState.Supervisor,  [context, [name: Farmbot.BotState.Supervisor  ]]),
