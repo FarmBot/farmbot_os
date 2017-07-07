@@ -17,16 +17,32 @@ defmodule Farmbot.HTTP do
   require Logger
   use     Farmbot.DebugLog
 
+  @behaviour Farmbot.Behaviour.HTTP
+
   @version Mix.Project.config[:version]
   @target  Mix.Project.config[:target]
   @redirect_status_codes [301, 302, 303, 307, 308]
 
+  @doc """
+  Make an http request. Will not raise.
+  * `method` - can be any http verb
+  * `url`    - fully formatted url or an api slug.
+  * `body`   - body can be any of:
+    * binary
+    * `{:multipart, [{binary_key, binary_value}]}`
+  * headers  - `[{binary_key, binary_value}]`
+  * opts     - Keyword opts to be passed to adapter (hackney/httpoison)
+    * `file` - option to  be passed if the output should be saved to a file.
+  """
   def request(context, method, url, body \\ "", headers \\ [], opts \\ [])
 
   def request(%Context{http: http}, method, url, body, headers, opts) do
     GenServer.call(http, {:req, method, url, body, headers, opts}, :infinity)
   end
 
+  @doc """
+  Same as `request/6` - but raises a `Farmbot.HTTP.Error` exception.
+  """
   def request!(context, method, url, body \\ "", headers \\ [], opts \\ [])
 
   def request!(ctx, method, url, body, headers, opts) do
@@ -48,7 +64,7 @@ defmodule Farmbot.HTTP do
     end
 
     @doc """
-      Same as #{verb}/5 but raises if there is an error.
+      Same as #{verb}/5 but raises Farmbot.HTTP.Error exception.
     """
     fun_name = "#{verb}!" |> String.to_atom
     def unquote(fun_name)(context, url, body \\ "", headers \\ [], opts \\ [])
