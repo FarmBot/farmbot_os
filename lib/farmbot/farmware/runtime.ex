@@ -27,6 +27,24 @@ defmodule Farmbot.Farmware.Runtime do
 
   @clean_up_timeout 30_000
 
+  #this is so stupid
+  defp lookup_port do
+    path = "#{Farmbot.System.FS.path()}/farmware/port"
+    last = case File.read(path) do
+      {:error, :enoent} -> 8000
+      str               -> str |> String.trim() |> String.to_integer()
+    end
+
+    if last > 8099 do
+      File.write!(path, "#{8000}")
+      8000
+    else
+      File.write!(path, "#{last + 1}")
+      last + 1
+    end
+
+  end
+
   @doc """
     Executes a Farmware inside a safe sandbox
   """
@@ -36,10 +54,11 @@ defmodule Farmbot.Farmware.Runtime do
     Process.flag(:trap_exit, true)
     uuid          = Nerves.Lib.UUID.generate()
     fw_jwt        = %Farmware.JWT{start_time: Timex.now() |> DateTime.to_iso8601()}
-    env           = environment(ctx, fw_jwt)
+    port          = lookup_port()
+    env           = environment(ctx, fw_jwt, port)
     exec          = lookup_exec_or_raise(fw.executable, fw.path)
     cwd           = File.cwd!
-    {:ok, server} = Farmware.HTTPServer.start_link(fw_jwt)
+    {:ok, server} = Farmware.HTTPServer.start_link(ctx, fw_jwt, port)
 
     case File.cd(fw.path) do
       :ok -> :ok
@@ -116,25 +135,6 @@ defmodule Farmbot.Farmware.Runtime do
     end
   end
 
-  @spec handle_script_output(state, binary) :: Context.t | no_return
-  defp handle_script_output(%State{} = state, data) do
-    <<uuid :: size(288) >> = state.uuid
-    case data do
-      << ^uuid :: size(288), json :: binary >> ->
-        debug_log "going to try to do: #{json}"
-        new_context =
-          json
-            |> String.trim()
-            |> Poison.decode!()
-            |> CeleryScript.Ast.parse()
-            |> CeleryScript.Command.do_command(state.context)
-        %{state | context: new_context}
-      _data ->
-        Logger.info("[#{state.farmware.name}] Sent data: #{data}")
-        %{state | output: [data | state.output]}
-    end
-  end
-
   @spec maybe_kill_port(port) :: :ok
   defp maybe_kill_port(port) do
     debug_log "trying to kill port: #{inspect port}"
@@ -149,13 +149,14 @@ defmodule Farmbot.Farmware.Runtime do
     end
   end
 
-  defp environment(%Context{} = ctx, fw_jwt) do
+  defp environment(%Context{} = ctx, fw_jwt, port) do
     fw_tkn_enc                    = fw_jwt |> Poison.encode! |> :base64.encode()
     envs                          = BotState.get_user_env(ctx)
     {:ok, %Farmbot.Token{} = tkn} = Auth.get_token(ctx.auth)
     envs                          = envs
-                                    |> Map.put("API_TOKEN",          tkn)
+                                    |> Map.put("API_TOKEN", tkn)
                                     |> Map.put("FARMWARE_TOKEN", fw_tkn_enc)
+                                    |> Map.put("FARMWARE_URL", "http://localhost:#{port}/")
                                     |> Map.put("IMAGES_DIR", "/tmp/images")
     Enum.map(envs, fn({key, val}) -> {to_erl_safe(key), to_erl_safe(val)} end)
   end

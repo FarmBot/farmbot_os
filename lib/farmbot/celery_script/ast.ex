@@ -9,7 +9,7 @@ defmodule Farmbot.CeleryScript.Ast do
 
   defimpl Inspect, for: __MODULE__ do
     def inspect(thing, _) do
-      "#CeleryScript<#{thing.kind}: [:#{Enum.join(Map.keys(thing.args), ", :")}]>"
+      "#CeleryScript<#{thing.kind}: #{Map.keys(thing.args)}>"
     end
   end
 

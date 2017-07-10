@@ -31,7 +31,7 @@ defmodule Farmbot.Farmware.Manager do
   """
   @spec lookup(Context.t, uuid) :: {:ok, Farmware.t} | {:error, term}
   def lookup(%Context{farmware_manager: fwt}, uuid) do
-     GenServer.call(fwt, {:lookup, uuid})
+    GenServer.call(fwt, {:lookup, uuid})
   end
 
   @doc """
@@ -122,8 +122,8 @@ defmodule Farmbot.Farmware.Manager do
 
   def init(ctx) do
     state = %State{
-      context: ctx,
-      farmwares: %{}
+      context:   ctx,
+      farmwares: %{},
     }
     dispatch nil, state
     {:ok, state}

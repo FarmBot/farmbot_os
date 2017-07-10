@@ -3,27 +3,53 @@ defmodule Farmbot.Farmware.HTTPServer do
   alias Farmbot.Farmware.JWT
   use   Plug.Router
 
-  @max_length 111_409_842
-  plug Plug.Parsers, parsers:
-    [:urlencoded, :multipart, :json], json_decoder: Poison, length: @max_length
   plug :match
   plug :dispatch
 
-  def start_link(%Context{} = context, %JWT{} = token) do
-    Plug.Adapters.Cowboy.http __MODULE__, [jwt: token], [port: 8081]
+  def start_link(%Context{} = context, %JWT{} = token, port) do
+    Plug.Adapters.Cowboy.http __MODULE__, [jwt: token, context: context], [port: port]
   end
 
   def init(opts), do: opts
 
   def call(conn, opts) do
     jwt     = Keyword.fetch!(opts, :jwt)
+    ctx     = Keyword.fetch!(opts, :context)
     jwt_enc = jwt |> Poison.encode!() |> :base64.encode()
     case conn |> get_req_header("authorization") do
-      ["bearer " <> ^jwt_enc] -> send_resp(conn, 200, "ok")
-      [^jwt_enc] -> send_resp(conn, 200, "ok")
-      _ -> send_resp(conn, 422, "Bad token")
+      ["bearer " <> ^jwt_enc] -> handle(conn, conn.method, conn.request_path, ctx)
+      _                       -> send_resp(conn, 422, "Bad token")
     end
   end
 
-  match _, do: send_resp(conn, 500, "wuh oh")
+  defp handle(conn, "GET", "/", _ctx) do
+    send_resp(conn, 200, "<html> <head> </head> <body> ... </body> </html>")
+  end
+
+  defp handle(conn, "GET", "/status", ctx) do
+    ctx
+    |> Farmbot.Transport.force_state_push()
+    |> Poison.encode!
+    |> fn(state) -> conn
+      |> put_resp_header("content-type", "application/json")
+      |> send_resp(200, state)
+    end.()
+  end
+
+  defp handle(conn, "POST", "/celery_script", ctx) do
+    try do
+      {:ok, body, conn} = conn |> read_body()
+      ast = body |> Poison.decode! |> Farmbot.CeleryScript.Ast.parse()
+      _new_ctx = Farmbot.CeleryScript.Command.do_command(ast, ctx)
+      conn
+      |> put_resp_header("location", "/status")
+      |> send_resp(302, "redirect")
+    rescue
+      e in Farmbot.CeleryScript.Error -> conn |> send_resp(500, "CeleryScript error: #{e.message}")
+      e in Poison.SyntaxError         -> conn |> send_resp(500, "JSON Parse error:   #{e.message}")
+      e                               -> conn |> send_resp(500, "Unknown Error:      #{inspect e}")
+    end
+  end
+
+  match _ , do: send_resp(conn, 500, "Unknown Error.")
 end

@@ -97,9 +97,9 @@ defmodule Farmbot.Context do
     http:               http,
     transport:          transport,
     farmware_manager:   farmware_manager,
-    ref:                reference,
     regimen_supervisor: regimen_supervisor,
-    data_stack:       [Ast.t]
+    ref:                reference,
+    data_stack:         [Ast.t]
   }
 
   @spec push_data(t, Ast.t) :: t
