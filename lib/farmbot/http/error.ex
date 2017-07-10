@@ -9,8 +9,8 @@ defmodule Farmbot.HTTP.Error do
     %__MODULE__{message: String.trim("#{inspect desc}")}
   end
 
-  def exception(%Response{status_code: code} = resp) do
-    %__MODULE__{message: "HTTP Request failed (#{code})", response: resp}
+  def exception(%Response{status_code: code, body: body} = resp) do
+    %__MODULE__{message: "HTTP Request failed (#{code}) body: #{body}", response: resp}
   end
 
   def exception(other) do

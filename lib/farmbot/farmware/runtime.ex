@@ -3,7 +3,7 @@ defmodule Farmbot.Farmware.Runtime do
     Executes a farmware
   """
   use     Farmbot.DebugLog, name: FarmwareRuntime
-  alias   Farmbot.{Farmware, Context, BotState, Auth, CeleryScript}
+  alias   Farmbot.{Farmware, Context, BotState, Auth}
   alias   Farmware.RuntimeError, as: FarmwareRuntimeError
   alias   Farmbot.Farmware.Runtime.HTTPServer.JWT, as: FarmwareJWT
   alias   Farmbot.Farmware.Runtime.HTTPServer
@@ -85,7 +85,7 @@ defmodule Farmbot.Farmware.Runtime do
 
   #this is so stupid
   defp lookup_port do
-    path = "#{Farmbot.System.FS.path()}/farmware/port"
+    path = "/tmp/farmware-port"
     last = case File.read(path) do
       {:error, :enoent} -> 8000
       {:ok, str}        -> str |> String.trim() |> String.to_integer()

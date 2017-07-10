@@ -22,7 +22,7 @@ defmodule Farmbot.Mixfile do
      version: @version,
      target: @target,
      commit: commit(),
-     archives: [nerves_bootstrap: "~> 0.4.0"],
+     archives: [nerves_bootstrap: "~> 0.5.1"],
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      build_path:  "_build/#{Mix.env()}/#{@target}",
