@@ -107,11 +107,11 @@ defmodule Farmbot.CeleryScript.Command do
       do_execute_command(ast, context)
     rescue
       e in Farmbot.CeleryScript.Error ->
-        Logger.error "Failed to execute #{ast.kind}: #{e.message}"
+        Logger.error "Failed to execute #{ast.kind}: #{inspect e.message}"
         reraise e, System.stacktrace()
       exception ->
         Logger.error "Unknown error happend executing CeleryScript."
-        # debug_log "CeleryScript Error: #{inspect exception}"
+        debug_log "CeleryScript Error: #{inspect exception}"
         stacktrace = System.stacktrace()
         opts       = [custom: %{context: context}]
         ExRollbar.report(:error, exception, stacktrace, opts)

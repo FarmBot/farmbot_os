@@ -4,53 +4,56 @@ defmodule Farmbot.HTTP do
   """
   use     GenServer
   alias   Farmbot.{Auth, Context, Token}
-  alias   Farmbot.HTTP.{Response, Client, Error, Types, Helpers, Multipart}
+  alias   HTTPoison
+  alias   HTTPoison.{
+    AsyncResponse,
+    AsyncStatus,
+    AsyncHeaders,
+    AsyncChunk,
+    AsyncEnd,
+  }
+  alias   Farmbot.HTTP.{Response, Helpers, Error}
   import  Helpers
   require Logger
   use     Farmbot.DebugLog
-  use     Context, requires: [Auth]
+
+  @behaviour Farmbot.Behaviour.HTTP
 
   @version Mix.Project.config[:version]
   @target  Mix.Project.config[:target]
+  @redirect_status_codes [301, 302, 303, 307, 308]
 
   @doc """
-    Make an HTTP Request.
-    * `context` is a Farmbot.Context
-    * `method` can be an atom representing an HTTP verb
-    * `url` is a binary url
-    * `body` is a binary http payload
-    * `opts` is a keyword list of options.
+  Make an http request. Will not raise.
+  * `method` - can be any http verb
+  * `url`    - fully formatted url or an api slug.
+  * `body`   - body can be any of:
+    * binary
+    * `{:multipart, [{binary_key, binary_value}]}`
+  * headers  - `[{binary_key, binary_value}]`
+  * opts     - Keyword opts to be passed to adapter (hackney/httpoison)
+    * `file` - option to  be passed if the output should be saved to a file.
   """
-  @spec request(Context.t,
-    Types.method,
-    Types.url,
-    Types.body,
-    Types.headers,
-    Keyword.t) :: {:ok, Response.t} | {:error, term}
-    # credo:disable-for-next-line
-  def request(%Context{} = ctx, method, url, body, headers, opts) do
-    {timeout, opts} = Keyword.pop(opts, :timeout, 30_000)
-    r               = {:request, method, url, body, headers, opts}
-    GenServer.call(ctx.http, r, timeout)
+  def request(context, method, url, body \\ "", headers \\ [], opts \\ [])
+
+  def request(%Context{http: http}, method, url, body, headers, opts) do
+    GenServer.call(http, {:req, method, url, body, headers, opts}, :infinity)
   end
 
-  @spec request!(Context.t,
-    Types.method,
-    Types.url,
-    Types.body,
-    Types.headers,
-    Keyword.t) :: Response.t | no_return
-  # credo:disable-for-next-line
-  def request!(%Context{} = ctx, method, url, body, headers, opts) do
+  @doc """
+  Same as `request/6` - but raises a `Farmbot.HTTP.Error` exception.
+  """
+  def request!(context, method, url, body \\ "", headers \\ [], opts \\ [])
+
+  def request!(ctx, method, url, body, headers, opts) do
     case request(ctx, method, url, body, headers, opts) do
-      {:ok, response} -> response
-      {:error, er} ->
-        raise Error, message: "Http request #{inspect method} :" <>
-          " #{inspect url} failed! #{inspect er}"
+      {:ok, %Response{status_code: code} = resp} when is_2xx(code) -> resp
+      {:ok, %Response{} = resp} -> raise Error, resp
+      {:error, error}           -> raise Error, error
     end
   end
 
-  methods = [:get, :post]
+  methods = [:get, :post, :delete, :patch, :put, :options]
 
   for verb <- methods do
     @doc """
@@ -62,7 +65,7 @@ defmodule Farmbot.HTTP do
     end
 
     @doc """
-      Same as #{verb}/5 but raises if there is an error.
+      Same as #{verb}/5 but raises Farmbot.HTTP.Error exception.
     """
     fun_name = "#{verb}!" |> String.to_atom
     def unquote(fun_name)(context, url, body \\ "", headers \\ [], opts \\ [])
@@ -71,134 +74,328 @@ defmodule Farmbot.HTTP do
     end
   end
 
-  @doc """
-    Downloads a file to the filesystem.
-    Will return the path to the downloaded file.
-  """
-  @spec download_file!(Context.t, Types.url, Path.t) :: Path.t
-  def download_file!(%Context{} = ctx, url, path) do
-    %Response{} = get! ctx, url, "", [], file: path
-    path
-  end
-
-  @doc """
-    Uploads a file to the API
-  """
-  @spec upload_file!(Context.t, Path.t, map) :: :ok | no_return
-  def upload_file!(%Context{} = ctx, filename, meta \\ %{}) do
-    unless File.exists?(filename) do
-      raise Error, message: "#{filename} not found"
+  def download_file(ctx, url, path) do
+    case get(ctx, url, "", [], file: path) do
+      {:ok, %Response{status_code: code}} when is_2xx(code) -> {:ok, path}
+      {:ok, %Response{} = resp} -> {:error, resp}
+      {:error, reason}          -> {:error, reason}
     end
-
-    %Response{status_code: 200, body: rbody} = get!(ctx, "/api/storage_auth")
-    boundry                                  = Multipart.new_boundry()
-    body                                     = Poison.decode!(rbody)
-    file                                     = File.read!(filename)
-    url                                      = "https:"  <> body["url"]
-    form_data                                = body["form_data"]
-    attachment_url                           = url <> form_data["key"]
-    payload =
-      Map.new(form_data, fn({key, value}) ->
-        if key == "file",
-          do: {"file", {Path.basename(filename), file}}, else: {key, value}
-      end)
-    real_payload = Multipart.format(payload, boundry)
-    headers = [
-      Multipart.multi_part_header(boundry),
-      user_agent_header()
-    ]
-    ggl_response = post!(ctx, url, real_payload, headers, [])
-    debug_log "#{attachment_url} should exist shortly."
-    :ok = finish_upload!(ggl_response, ctx, attachment_url, meta)
-    :ok
   end
 
-  defp finish_upload!(%Response{status_code: s}, %Context{} = ctx, atch_url, meta)
-  when is_2xx(s) do
-    json = Poison.encode! %{"attachment_url" => atch_url,
-                            "meta" => meta}
-    res = post! ctx, "/api/images", json, [], []
-    unless is_2xx(res.status_code) do
-      raise Error, message: "Api refused upload: #{inspect res}"
+  def download_file!(ctx, url, path) do
+    case download_file(ctx, url, path) do
+      {:ok, path}      -> path
+      {:error, reason} -> raise Error, reason
     end
-    :ok
   end
 
-  defp finish_upload!(response, _ctx, _attachment_url, _) do
-    raise Error, message: "bad status from GCS: #{inspect response}"
+  def upload_file(ctx, path, meta \\ nil) do
+    if File.exists?(path) do
+      ctx |> get("/api/storage_auth") |> do_multipart_request(ctx, meta || %{x: -1, y: -1, z: -1}, path)
+    else
+      {:error, "#{path} not found"}
+    end
   end
 
-  ## GenServer Stuff
+  def upload_file!(ctx, path, meta \\ %{}) do
+    case upload_file(ctx, path, meta) do
+      :ok -> :ok
+      {:error, reason} -> raise Error, reason
+    end
+  end
 
-  @doc """
-    Start a HTTP adapter.
-  """
+  defp do_multipart_request({:ok, %Response{status_code: code, body: bin_body}}, ctx, meta, path) when is_2xx(code) do
+    with {:ok, body} <- Poison.decode(bin_body),
+         {:ok, file} <- File.read(path) do
+           url            = "https:" <> body["url"]
+           form_data      = body["form_data"]
+           attachment_url = url <> form_data["key"]
+           mp = Enum.map(form_data, fn({key, val}) -> if key == "file", do: {"file", file}, else: {key, val} end)
+           ctx
+            |> post(url, {:multipart, mp})
+            |> finish_upload(ctx, attachment_url, meta)
+         end
+  end
+
+  defp do_multipart_request({:ok, %Response{} = response}, _ctx, _meta, _path), do: {:error, response}
+
+  defp do_multipart_request({:error, reason}, _ctx, _meta, _path), do: {:error, reason}
+
+  defp finish_upload({:ok, %Response{status_code: code}}, ctx, atch_url, meta) when is_2xx(code) do
+    with {:ok, body} <- Poison.encode(%{"attachment_url" => atch_url, "meta" => meta}) do
+      case post(ctx, "/api/images", body) do
+        {:ok, %Response{status_code: code}} when is_2xx(code) ->
+          debug_log("#{atch_url} should exit shortly.")
+          :ok
+        {:ok, %Response{} = response} -> {:error, response}
+        {:error, reason}              -> {:error, reason}
+      end
+    end
+  end
+
+  defp finish_upload({:ok, %Response{} = resp}, _ctx, _url, _meta), do: {:error, resp}
+  defp finish_upload({:error, reason}, _ctx, _url, _meta),          do: {:error, reason}
+
+  # GenServer
+
+  defmodule State do
+    defstruct [:token, :requests]
+    defimpl Inspect, for: __MODULE__ do
+      def inspect(state, _), do: "#HTTPState<token: #{inspect state.token}>"
+    end
+  end
+
+  defmodule Buffer do
+    defstruct [:data, :headers, :status_code, :request, :from, :id, :file, :timeout]
+  end
+
   def start_link(%Context{} = ctx, opts) do
     GenServer.start_link(__MODULE__, ctx, opts)
   end
 
-  def init(ctx) do
+  def init(_ctx) do
     Registry.register(Farmbot.Registry, Farmbot.Auth, [])
-    Process.flag(:trap_exit, true)
-    state = %{
-      context: %{ctx | http: self()},
-      token:   nil
-    }
+    # Process.flag(:trap_exit, true)
+    state = %State{token: nil, requests: %{}}
     {:ok, state}
   end
 
-  def handle_call({:request, method, url, body, headers, opts}, from, state) do
-    debug_log "Starting client."
+  def handle_call({:req, method, url, body, headers, opts}, from, state) do
+    {file, opts} = maybe_open_file(opts)
+    opts         = fb_opts(opts)
+    headers      = fb_headers(headers)
+    # debug_log "#{inspect Tuple.delete_at(from, 0)} Request start (#{url})"
+    # Pattern match the url.
     case url do
-      "/api" <> _  ->
-        r = {method, url, body, headers, opts}
-        build_api_request(state.token, state.context, r, from)
-      _ ->
-        headers    = headers |> add_header(user_agent_header())
-        {:ok, pid} = Client.start_link(from, {method, url, body, headers}, opts)
-        :ok        = Client.execute(pid)
+      "/api" <> _ -> do_api_request({method, url, body, headers, opts, from}, state)
+      _           -> do_normal_request({method, url, body, headers, opts, from}, file, state)
     end
-    {:noreply, state}
   end
 
-  def handle_info({Auth, {:new_token, token}}, state) do
-    {:noreply, %{state | token: token}}
+  def handle_info({:timeout, ref}, state) do
+    case state.requests[ref] do
+      %Buffer{} = buffer ->
+        GenServer.reply buffer.from, {:error, :timeout}
+        {:noreply, %{state | requests: Map.delete(state.requests, ref)}}
+      nil                -> {:noreply, state}
+    end
   end
+
+  def handle_info(%AsyncStatus{code: code, id: ref}, state) do
+    case state.requests[ref] do
+      %Buffer{} = buffer ->
+        # debug_log "#{inspect Tuple.delete_at(buffer.from, 0)} Got Status."
+        HTTPoison.stream_next(%AsyncResponse{id: ref})
+        {:noreply, %{state | requests: %{state.requests | ref => %{buffer | status_code: code}}}}
+      nil                -> {:noreply, state}
+    end
+  end
+
+  def handle_info(%AsyncHeaders{headers: headers, id: ref}, state) do
+    case state.requests[ref] do
+      %Buffer{} = buffer ->
+        # debug_log("#{inspect Tuple.delete_at(buffer.from, 0)} Got headers")
+        HTTPoison.stream_next(%AsyncResponse{id: ref})
+        {:noreply, %{state | requests: %{state.requests | ref => %{buffer | headers: headers}}}}
+      nil -> {:noreply, state}
+    end
+  end
+
+  def handle_info(%AsyncChunk{chunk: chunk, id: ref}, state) do
+    case state.requests[ref] do
+      %Buffer{} = buffer ->
+        maybe_log_progress(buffer)
+        maybe_stream_to_file(buffer.file, buffer.status_code, chunk)
+        HTTPoison.stream_next(%AsyncResponse{id: ref})
+        {:noreply, %{state | requests: %{state.requests | ref => %{buffer | data: buffer.data <> chunk}}}}
+      nil                -> {:noreply, state}
+    end
+  end
+
+  def handle_info(%AsyncEnd{id: ref}, state) do
+    case state.requests[ref] do
+      %Buffer{} = buffer ->
+        # debug_log "#{inspect Tuple.delete_at(buffer.from, 0)} Request finish."
+        finish_request(buffer, state)
+      nil                -> {:noreply, state}
+    end
+  end
+
+  def handle_info({Auth, {:new_token, %Token{} = token}}, state),
+    do: {:noreply, %{state | token: token}}
 
   def handle_info({Auth, :purge_token}, state),
     do: {:noreply, %{state | token: nil}}
 
-  def handle_info({:EXIT, _old_client, _reason}, state) do
-    debug_log "Client finished."
+  def handle_info({Auth, {:error, _error}}, state), do: {:noreply, state}
+
+  def terminate({:error, reason}, state), do: terminate(reason, state)
+
+  def terminate(reason, state) do
+    for {_ref, buffer} <- state.requests do
+      maybe_close_file(buffer.file)
+      GenServer.reply buffer.from, {:error, reason}
+    end
+  end
+
+  defp maybe_open_file(opts) do
+    {file, opts} = Keyword.pop(opts, :file)
+    case file do
+      filename when is_binary(filename) ->
+        debug_log "Opening file: #{filename}"
+        File.rm(file)
+        :ok       = File.touch(filename)
+        {:ok, fd} = :file.open(filename, [:write, :raw])
+        {fd, Keyword.merge(opts, [stream_to: self(), async: :once])}
+      _ -> {nil, opts}
+    end
+  end
+
+  defp maybe_stream_to_file(nil, _,     _data), do: :ok
+  defp maybe_stream_to_file(_,   code,  _data) when code in @redirect_status_codes, do: :ok
+  defp maybe_stream_to_file(fd,  _code,  data) when is_binary(data) do
+    # debug_log "[#{inspect self()}] writing data to file."
+    :ok = :file.write(fd, data)
+  end
+
+  defp maybe_close_file(nil), do: :ok
+  defp maybe_close_file(fd), do: :file.close(fd)
+
+  defp maybe_log_progress(%Buffer{file: file}) when is_nil(file), do: :ok
+
+  defp maybe_log_progress(%Buffer{file: _file} = buffer) do
+    data_mbs = buffer.data |> byte_size() |> bytes_to_mb()
+    case Enum.find_value(buffer.headers, fn({header, val}) -> if header == "Content-Length", do: val, else: nil end) do
+      numstr when is_binary(numstr) ->
+        total = numstr |> String.to_integer() |> bytes_to_mb()
+        do_log to_percent(data_mbs, total)
+      _ -> do_log(data_mbs, false)
+    end
+  end
+
+  defp do_log(num, percent \\ true)
+
+  defp do_log(num, percent) when (rem(round(num), 5)) == 0 do
+    id = if percent, do: "%", else: "MB"
+    Logger.info "Download progress: #{round(num)}#{id}", type: :busy
+  end
+
+  defp do_log(_,_), do: :ok
+
+  defp bytes_to_mb(bytes),      do: (bytes / 1024)  / 1024
+  defp to_percent(part, whole), do: (part / whole) *  100
+
+  defp do_api_request({_method, _url, _body, _headers, _opts, from}, %{token: nil} = state) do
+    GenServer.reply(from, {:error, :no_token})
     {:noreply, state}
   end
 
-  defp build_api_request(%Token{
-      encoded: enc,
-      unencoded: %{iss: server}},
-    %Context{} = _ctx, request, from)
-  do
-    {method, slug, body, old_headers, opts} = request
-    url                                     = "#{server}#{slug}"
-    auth_header                             = {'Authorization', 'Bearer #{enc}'}
-    uah                                     = user_agent_header()
-    headers                                 = old_headers
-                                              |> add_header(auth_header)
-                                              |> add_header(uah)
-    {:ok, pid} = Client.start_link(from, {method, url, body, headers}, opts)
-    :ok        = Client.execute(pid)
+  defp do_api_request({method, url, body, headers, opts, from}, %{token: tkn} = state) do
+    headers = headers
+              |> add_header({"Authorization", "Bearer " <> tkn.encoded})
+              |> add_header({"Content-Type", "application/json"})
+    url = tkn.unencoded.iss <> url
+    do_normal_request({method, url, body, headers, opts, from}, nil, state)
   end
 
-  defp build_api_request(_, _, _, from) do
-    debug_log "Don't have a token. Not doing API request."
-    GenServer.reply(from, {:error, :no_token})
-    :ok
+  defp do_normal_request({method, url, body, headers, opts, from}, file, state) do
+    case HTTPoison.request(method, url, body, headers, opts) do
+      {:ok, %HTTPoison.Response{status_code: code, headers: resp_headers}} when code in @redirect_status_codes ->
+        redir = Enum.find_value(resp_headers, fn({header, val}) -> if header == "Location", do: val, else: false end)
+        if redir do
+          do_normal_request({method, redir, body, headers, opts, from}, file, state)
+        else
+          GenServer.reply(from, {:error, :no_server_for_redirect})
+          {:noreply, state}
+        end
+      {:ok, %HTTPoison.Response{body: body, headers: headers, status_code: code}} ->
+        GenServer.reply(from, {:ok, %Response{body: body, headers: headers, status_code: code}})
+        {:noreply, state}
+      {:ok, %AsyncResponse{id: ref}} ->
+        timeout = Process.send_after(self(), {:timeout, ref}, 30_000)
+        req = %Buffer{
+          id:          ref,
+          from:        from,
+          timeout:     timeout,
+          file:        file,
+          data:        "",
+          headers:     nil,
+          status_code: nil,
+          request:     {method, url, body, headers, opts},
+        }
+        {:noreply, %{state | requests: Map.put(state.requests, ref, req)}}
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        GenServer.reply from, {:error, reason}
+        {:noreply, state}
+      {:error, reason}                           ->
+        GenServer.reply from, {:error, reason}
+        {:noreply, state}
+    end
   end
 
-  @spec add_header(Types.headers, Types.header) :: Types.headers
+  defp do_redirect_request(%Buffer{} = buffer, redir, state) do
+    {method, _url, body, headers, opts} = buffer.request
+    case HTTPoison.request(method, redir, body, headers, opts) do
+      {:ok, %AsyncResponse{id: ref}} ->
+        req = %Buffer{
+          id:          ref,
+          from:        buffer.from,
+          file:        buffer.file,
+          data:        "",
+          headers:     nil,
+          status_code: nil,
+          request:     {method, redir, body, headers, opts},
+        }
+        state = %{state | requests: Map.delete(state.requests, buffer.id)}
+        state = %{state | requests: Map.put(state.requests, ref, req)}
+        {:noreply, state}
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        GenServer.reply buffer.from, {:error, reason}
+        {:noreply, state}
+      {:error, reason}                           ->
+        GenServer.reply buffer.from, {:error, reason}
+        {:noreply, state}
+    end
+  end
+
+  defp finish_request(%Buffer{status_code: status_code} = buffer, state) when status_code in @redirect_status_codes do
+    debug_log "#{inspect Tuple.delete_at(buffer.from, 0)} Trying to redirect: (#{status_code})"
+    redir = Enum.find_value(buffer.headers, fn({header, val}) -> if header == "Location", do: val, else: false end)
+    if redir do
+      do_redirect_request(buffer, redir, state)
+    else
+      GenServer.reply(buffer.from, {:error, :no_server_for_redirect})
+      {:noreply, state}
+    end
+  end
+
+  defp finish_request(%Buffer{} = buffer, state) do
+    response = %Response{
+      status_code: buffer.status_code,
+      body:        buffer.data,
+      headers:     buffer.headers
+    }
+    maybe_close_file(buffer.file)
+    GenServer.reply(buffer.from, {:ok, response})
+    {:noreply, %{state | requests: Map.delete(state.requests, buffer.id)}}
+  end
+
+  defp fb_headers(headers) do
+    headers |> add_header({"User-Agent", "FarmbotOS/#{@version} (#{@target}) #{@target} ()"})
+  end
+
   defp add_header(headers, new), do: [new | headers]
 
-  def user_agent_header do
-    {'User-Agent', 'FarmbotOS/#{@version} (#{@target}) #{@target} ()'}
+  defp fb_opts(opts) do
+    Keyword.merge(opts, [
+      ssl: [{:versions, [:'tlsv1.2']}],
+      hackney:         [:insecure, pool: :farmbot_http_pool],
+      recv_timeout:    :infinity,
+      timeout:         :infinity,
+      # stream_to:       self(),
+      # follow_redirect: false,
+      # async:           :once
+      ])
   end
+
 end

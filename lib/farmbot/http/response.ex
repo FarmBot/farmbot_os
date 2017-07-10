@@ -1,12 +1,12 @@
 defmodule Farmbot.HTTP.Response do
-  @moduledoc """
-    a valid http response.
-  """
-  defstruct [:status_code, :body, :headers]
+  @moduledoc "HTTP Response"
+  defstruct [:body, :headers, :status_code]
 
+  @typedoc "HTTP Response"
   @type t :: %__MODULE__{
-    status_code: pos_integer,
-    body: binary,
-    headers: [{char_list, char_list}]
+    body:        Farmbot.Behaviour.HTTP.body,
+    headers:     Farmbot.Behaviour.HTTP.headers,
+    status_code: Farmbot.Behaviour.HTTP.status_code
   }
+
 end

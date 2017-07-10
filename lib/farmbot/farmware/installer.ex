@@ -181,8 +181,8 @@ defmodule Farmbot.Farmware.Installer do
     end
   end
 
-  def path, do: "#{FS.path()}/farmware"
-  def repo_path, do: "#{path()}/repos"
+  def path,         do: "#{FS.path()}/farmware"
+  def repo_path,    do: "#{path()}/repos"
   def package_path, do: "#{path()}/packages"
 
   defp unzip!(zip_file, path) when is_bitstring(zip_file) do
