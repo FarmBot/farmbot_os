@@ -51,5 +51,6 @@ defmodule Farmbot.Farmware.HTTPServer do
     end
   end
 
-  match _ , do: send_resp(conn, 500, "Unknown Error.")
+  defp handle(conn, _, _, _), do: conn |> send_resp(404, "Unknown route.")
+  match _ , do: send_resp(conn, 404, "Unknown route.")
 end
