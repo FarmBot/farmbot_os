@@ -300,6 +300,14 @@ defmodule Farmbot.HTTP do
 
   defp do_normal_request({method, url, body, headers, opts, from}, file, state) do
     case HTTPoison.request(method, url, body, headers, opts) do
+      {:ok, %HTTPoison.Response{status_code: code, headers: resp_headers}} when code in @redirect_status_codes ->
+        redir = Enum.find_value(resp_headers, fn({header, val}) -> if header == "Location", do: val, else: false end)
+        if redir do
+          do_normal_request({method, redir, body, headers, opts, from}, file, state)
+        else
+          GenServer.reply(from, {:error, :no_server_for_redirect})
+          {:noreply, state}
+        end
       {:ok, %HTTPoison.Response{body: body, headers: headers, status_code: code}} ->
         GenServer.reply(from, {:ok, %Response{body: body, headers: headers, status_code: code}})
         {:noreply, state}
@@ -385,7 +393,7 @@ defmodule Farmbot.HTTP do
       recv_timeout:    :infinity,
       timeout:         :infinity,
       # stream_to:       self(),
-      follow_redirect: false,
+      # follow_redirect: false,
       # async:           :once
       ])
   end

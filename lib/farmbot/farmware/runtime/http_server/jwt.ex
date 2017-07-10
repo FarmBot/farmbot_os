@@ -1,4 +1,4 @@
-defmodule Farmbot.Farmware.JWT do
+defmodule Farmbot.Farmware.Runtime.HTTPServer.JWT do
   @moduledoc "Farmware JWT"
 
   defstruct [:start_time]

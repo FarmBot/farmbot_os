@@ -5,6 +5,9 @@ defmodule Farmbot.Farmware.Runtime do
   use     Farmbot.DebugLog, name: FarmwareRuntime
   alias   Farmbot.{Farmware, Context, BotState, Auth, CeleryScript}
   alias   Farmware.RuntimeError, as: FarmwareRuntimeError
+  alias   Farmbot.Farmware.Runtime.HTTPServer.JWT, as: FarmwareJWT
+  alias   Farmbot.Farmware.Runtime.HTTPServer
+
   require Logger
 
   defmodule State do
@@ -27,24 +30,6 @@ defmodule Farmbot.Farmware.Runtime do
 
   @clean_up_timeout 30_000
 
-  #this is so stupid
-  defp lookup_port do
-    path = "#{Farmbot.System.FS.path()}/farmware/port"
-    last = case File.read(path) do
-      {:error, :enoent} -> 8000
-      str               -> str |> String.trim() |> String.to_integer()
-    end
-
-    if last > 8099 do
-      File.write!(path, "#{8000}")
-      8000
-    else
-      File.write!(path, "#{last + 1}")
-      last + 1
-    end
-
-  end
-
   @doc """
     Executes a Farmware inside a safe sandbox
   """
@@ -53,12 +38,12 @@ defmodule Farmbot.Farmware.Runtime do
     debug_log "Starting execution of: #{inspect fw}"
     Process.flag(:trap_exit, true)
     uuid          = Nerves.Lib.UUID.generate()
-    fw_jwt        = %Farmware.JWT{start_time: Timex.now() |> DateTime.to_iso8601()}
-    port          = lookup_port()
-    env           = environment(ctx, fw_jwt, port)
+    fw_jwt        = %FarmwareJWT{start_time: Timex.now() |> DateTime.to_iso8601()}
+    http_port     = lookup_port()
+    env           = environment(ctx, fw_jwt, http_port)
     exec          = lookup_exec_or_raise(fw.executable, fw.path)
     cwd           = File.cwd!
-    {:ok, server} = Farmware.HTTPServer.start_link(ctx, fw_jwt, port)
+    {:ok, server} = HTTPServer.start_link(ctx, fw_jwt, http_port)
 
     case File.cd(fw.path) do
       :ok -> :ok
@@ -87,13 +72,33 @@ defmodule Farmbot.Farmware.Runtime do
     }
 
     try do
-      ctx = handle_port(state)
+      %Context{} = ctx = handle_port(state)
       File.cd!(cwd)
+      HTTPServer.stop http_port
       ctx
     rescue
       e ->
         File.cd!(cwd)
         reraise(e, System.stacktrace)
+    end
+  end
+
+  #this is so stupid
+  defp lookup_port do
+    path = "#{Farmbot.System.FS.path()}/farmware/port"
+    last = case File.read(path) do
+      {:error, :enoent} -> 8000
+      {:ok, str}        -> str |> String.trim() |> String.to_integer()
+    end
+
+    if last > 8099 do
+      debug_log("using: #{8000}")
+      File.write!(path, "#{8000}")
+      8000
+    else
+      debug_log("using: #{last + 1}")
+      File.write!(path, "#{last + 1}")
+      last + 1
     end
 
   end
@@ -124,6 +129,7 @@ defmodule Farmbot.Farmware.Runtime do
         raise FarmwareRuntimeError, message: "#{fw.name} completed with errors! (#{s})"
       {^port, {:data, data}} ->
         debug_log "[#{inspect fw}] sent data: #{data}"
+        handle_port(state)
       {:EXIT, pid, reason} ->
         debug_log "something died: #{inspect pid} #{inspect reason}"
         maybe_kill_port(port)
