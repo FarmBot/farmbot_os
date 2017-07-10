@@ -128,7 +128,7 @@ defmodule Farmbot.Farmware.Runtime do
       {^port, {:exit_status, s}} ->
         raise FarmwareRuntimeError, message: "#{fw.name} completed with errors! (#{s})"
       {^port, {:data, data}} ->
-        debug_log "[#{inspect fw}] sent data: #{data}"
+        debug_log "[#{inspect fw}] sent data: \r\n===========\r\n\r\n#{data} \r\n==========="
         handle_port(state)
       {:EXIT, pid, reason} ->
         debug_log "something died: #{inspect pid} #{inspect reason}"

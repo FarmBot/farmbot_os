@@ -121,10 +121,18 @@ defmodule Farmbot.Farmware.Manager do
   ## GenServer stuff
 
   def init(ctx) do
+    root_path = "#{Farmbot.System.FS.path()}/farmware/packages"
+    installed = root_path |> File.ls!
+    fws = Map.new(installed, fn(name) ->
+      fw = "#{root_path}/#{name}/manifest.json" |> File.read!() |> Poison.decode! |> Farmware.new
+      {fw.uuid, fw}
+    end)
+
     state = %State{
       context:   ctx,
-      farmwares: %{},
+      farmwares: fws,
     }
+
     dispatch nil, state
     {:ok, state}
   end
