@@ -35,7 +35,6 @@ defmodule Mix.Tasks.Farmbot.Upload do
     Farmbot.HTTP.get! context, ping_url
     Mix.shell.info [:green, "Connected to bot."]
 
-    file           = File.read!(file_name)
     payload        = [
       {:file, file_name}
     ]
