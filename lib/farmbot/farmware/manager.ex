@@ -122,6 +122,9 @@ defmodule Farmbot.Farmware.Manager do
 
   def init(ctx) do
     root_path = "#{Farmbot.System.FS.path()}/farmware/packages"
+    Farmbot.System.FS.transaction fn() ->
+      File.mkdir_p root_path
+    end, true
     installed = root_path |> File.ls!
     fws = Map.new(installed, fn(name) ->
       fw = "#{root_path}/#{name}/manifest.json" |> File.read!() |> Poison.decode! |> Farmware.new
