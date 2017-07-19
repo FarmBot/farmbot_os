@@ -37,7 +37,7 @@ defmodule Farmbot.Farmware.Installer do
           File.write! "#{package_path}/manifest.json", binary
         end, true
         fw = Farmware.new(json)
-        Logger.info ">> installed new Farmware: #{inspect fw}", type: :successs
+        Logger.info ">> installed new Farmware: #{fw.name}", type: :successs
         fw
       {:noop, fw} ->
         debug_log "#{inspect fw} is installed and up to date."

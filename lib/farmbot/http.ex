@@ -125,7 +125,7 @@ defmodule Farmbot.HTTP do
     with {:ok, body} <- Poison.encode(%{"attachment_url" => atch_url, "meta" => meta}) do
       case post(ctx, "/api/images", body) do
         {:ok, %Response{status_code: code}} when is_2xx(code) ->
-          debug_log("#{atch_url} should exit shortly.")
+          debug_log("#{atch_url} should exist shortly.")
           :ok
         {:ok, %Response{} = response} -> {:error, response}
         {:error, reason}              -> {:error, reason}
