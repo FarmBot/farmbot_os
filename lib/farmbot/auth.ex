@@ -12,40 +12,16 @@ defmodule Farmbot.Auth do
   alias   Farmbot.Auth.Subscription, as: Sub
   use     GenServer
   use     DebugLog
-  use     Context, requires: [HTTP]
+  alias   Farmbot.Behaviour.Auth, as: Behaviour
 
-  @typedoc """
-    The public key that lives at http://<server>/api/public_key
-  """
-  @type public_key :: binary
-
-  @typedoc false
-  @type auth :: pid | atom
-
-  @typedoc """
-    Encrypted secret
-  """
-  @type secret :: binary
-
-  @typedoc """
-    Server auth is connected to.
-  """
-  @type server :: binary
-
-  @typedoc """
-    Password binary
-  """
-  @type password :: binary
-
-  @typedoc """
-    Email binary
-  """
-  @type email :: binary
-
-  @typedoc """
-    Interim credentials.
-  """
-  @type interim :: {email, password, server}
+  @behaviour Behaviour
+  @typep server     :: Behaviour.server
+  @typep public_key :: Behaviour.public_key
+  @typep email      :: Behaviour.email
+  @typep password   :: Behaviour.password
+  @typep secret     :: Behaviour.secret
+  @typep auth       :: Behaviour.server
+  @typep interim    :: Behaviour.interim
 
   @doc """
     Gets the public key from the API
@@ -116,7 +92,7 @@ defmodule Farmbot.Auth do
     # I am not sure why this is done this way other than it works.
     user    = %{credentials: secret |> :base64.encode_to_string |> to_string}
     payload = Poison.encode!(%{user: user})
-    req     = HTTP.post(ctx, "#{server}/api/tokens", payload, [], [])
+    req     = HTTP.post(ctx, "#{server}/api/tokens", payload, [{"Content-Type", "application/json"}], [])
 
     case req do
       # bad Password
@@ -207,7 +183,7 @@ defmodule Farmbot.Auth do
         Logger.info ">> Could not log in! #{inspect reason}", type: :error
         {:error, reason}
       error ->
-        Logger.error ">> Could not log in! #{inspect error}"
+        Logger.error ">> Could not log in! #{inspect error}", type: :error
         {:error, error}
     end
   end
@@ -257,13 +233,11 @@ defmodule Farmbot.Auth do
   @doc """
     Starts the Auth GenServer
   """
+  @spec start_link(Context.t, GenServer.options) :: GenServer.on_start
   def start_link(context, opts),
     do: GenServer.start_link(__MODULE__, context, opts)
 
-  @typedoc """
-    State for this GenServer
-  """
-  @type state :: %{
+  @typep state :: %{
     context:   Context.t,
     server:    nil | server,
     secret:    nil | secret,

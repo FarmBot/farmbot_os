@@ -2,12 +2,12 @@ defmodule Farmbot.Farmware.Installer do
   @moduledoc """
     Handles the installing and uninstalling of packages
   """
-
-  alias Farmbot.{Context, Farmware, System}
-  alias Farmware.Manager
-  alias Farmware.Installer.{Repository, Error}
-  alias System.FS
-  use Farmbot.DebugLog, name: FarmwareInstaller
+  require Logger
+  alias   Farmbot.{Context, Farmware, System}
+  alias   Farmware.Manager
+  alias   Farmware.Installer.{Repository, Error}
+  alias   System.FS
+  use     Farmbot.DebugLog, name: FarmwareInstaller
   @version Mix.Project.config[:version]
 
   @doc """
@@ -30,13 +30,14 @@ defmodule Farmbot.Farmware.Installer do
         dl_path      = Farmbot.HTTP.download_file!(ctx,
           json["zip"], "/tmp/#{json["package"]}.zip")
 
+        Logger.info ">> is installing a farmware: #{json["package"]}", type: :busy
         FS.transaction fn() ->
           File.mkdir_p!(package_path)
           unzip! dl_path, package_path
           File.write! "#{package_path}/manifest.json", binary
         end, true
         fw = Farmware.new(json)
-        debug_log "Installed new Farmware: #{inspect fw}"
+        Logger.info ">> installed new Farmware: #{fw.name}", type: :successs
         fw
       {:noop, fw} ->
         debug_log "#{inspect fw} is installed and up to date."
@@ -181,8 +182,8 @@ defmodule Farmbot.Farmware.Installer do
     end
   end
 
-  def path, do: "#{FS.path()}/farmware"
-  def repo_path, do: "#{path()}/repos"
+  def path,         do: "#{FS.path()}/farmware"
+  def repo_path,    do: "#{path()}/repos"
   def package_path, do: "#{path()}/packages"
 
   defp unzip!(zip_file, path) when is_bitstring(zip_file) do

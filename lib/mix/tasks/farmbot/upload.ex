@@ -22,6 +22,8 @@ defmodule Mix.Tasks.Farmbot.Upload do
 
     Mix.shell.info "Trying to uploading firmware: #{file_name}"
 
+    Application.ensure_all_started(:httpoison)
+
     context     = Farmbot.Context.new()
     Registry.start_link(:duplicate,  Farmbot.Registry)
     {:ok, _}    = Farmbot.DebugLog.start_link()
@@ -33,15 +35,14 @@ defmodule Mix.Tasks.Farmbot.Upload do
     Farmbot.HTTP.get! context, ping_url
     Mix.shell.info [:green, "Connected to bot."]
 
-    boundry        = Farmbot.HTTP.Multipart.new_boundry()
-    file           = File.read!(file_name)
-    payload        = %{firmware: {file_name, file}}
-    payload        = Farmbot.HTTP.Multipart.format(payload, boundry)
-    ct = Farmbot.HTTP.Multipart.multi_part_header(boundry)
-    headers = [ct]
-
+    payload        = [
+      {:file, file_name}
+    ]
+    # payload = [{:file, file_name}]
     Mix.shell.info "Uploading..."
-    r = Farmbot.HTTP.post! context, upload_url, payload, headers, [timeout: 60_000]
+    # headers = ["content-type", "http/form_data"]
+    r = Farmbot.HTTP.post! context, upload_url, {:multipart, payload}
+
     unless match?(%{status_code: 200}, r) do
       Mix.raise "Failed to upload firmware: #{format r}"
     end

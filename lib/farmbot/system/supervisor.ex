@@ -26,6 +26,7 @@ defmodule Farmbot.System.Supervisor do
 
       worker(Network,
         [context, @target, [name: Network]]),
+      worker(Farmbot.FactoryResetWatcher, [context, Network, []]),
 
       worker(Farmbot.System.UeventHandler,
         [context, @target, [name: Farmbot.System.UeventHandler]])
