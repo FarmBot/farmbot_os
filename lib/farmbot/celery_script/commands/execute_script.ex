@@ -3,10 +3,11 @@ defmodule Farmbot.CeleryScript.Command.ExecuteScript do
     ExecuteScript
   """
 
-  alias Farmbot.CeleryScript.{Command, Error, Types}
-  alias Farmbot.Farmware
-  alias Farmware.{Manager, Runtime}
-  import Farmbot.Lib.Helpers
+  alias   Farmbot.CeleryScript.{Command, Error, Types}
+  alias   Farmbot.Farmware
+  alias   Farmware.{Manager, Runtime}
+  import  Farmbot.Lib.Helpers
+  require Logger
   @behaviour Command
 
   @doc ~s"""
@@ -18,7 +19,9 @@ defmodule Farmbot.CeleryScript.Command.ExecuteScript do
   def run(%{label: uuid}, env_vars, context) when is_uuid(uuid) do
     new_context = Command.set_user_env(%{}, env_vars, context)
     case Manager.lookup(context, uuid) do
-      {:ok, %Farmware{} = fw} -> Runtime.execute(new_context, fw)
+      {:ok, %Farmware{} = fw} ->
+        Logger.debug ">> Starting Farmware: #{fw.name}", type: :busy
+        Runtime.execute(new_context, fw)
       {:error, e}             ->
         raise Error, context: new_context,
           message: "Could not locate farmware: #{e}"
