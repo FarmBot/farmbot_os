@@ -22,7 +22,6 @@ defmodule Farmbot.BotState.Configuration do
         distance_mm_x: 1500,
         distance_mm_y: 3000,
         distance_mm_z: 800,
-        max_movement_retries: nil
       },
       informational_settings: %{
         locked: false,
@@ -49,7 +48,6 @@ defmodule Farmbot.BotState.Configuration do
         distance_mm_x: integer,
         distance_mm_y: integer,
         distance_mm_z: integer,
-        max_movement_retries: integer,
         sync_status: sync_msg
       },
       informational_settings: %{
@@ -87,13 +85,11 @@ defmodule Farmbot.BotState.Configuration do
     {:ok, len_y}    = get_config("distance_mm_y")
     {:ok, len_z}    = get_config("distance_mm_z")
     {:ok, tz}       = get_config("timezone")
-    {:ok, mmr}      = get_config("max_movement_retries")
     new_state =
       %State{initial | configuration: %{
            user_env:             user_env,
            timezone:             tz,
            os_auto_update:       os_a_u,
-           max_movement_retries: mmr,
            steps_per_mm_x:       spm_x,
            steps_per_mm_y:       spm_y,
            steps_per_mm_z:       spm_z,
@@ -139,10 +135,6 @@ defmodule Farmbot.BotState.Configuration do
 
   def handle_call({:update_config, "distance_mm_z", val}, _, state) do
     update_config(state, :distance_mm_z, val)
-  end
-
-  def handle_call({:update_config, "max_movement_retries", val}, _, state) do
-    update_config(state, :max_movement_retries, val)
   end
 
   def handle_call({:update_config, "timezone", val}, _, state) do
