@@ -34,7 +34,7 @@ defmodule Farmbot.System.Network.Ntp do
   defp do_try_set_time(count) when count < 4 do
     # we try to set ntp time 3 times before giving up.
     Logger.info ">> trying to set time (try #{count})"
-    cmd = "ntpd -q -n -p 0.pool.ntp.org -p 1.pool.ntp.org"
+    cmd = "ntpd -p 0.pool.ntp.org -p 1.pool.ntp.org"
     port = Port.open({:spawn, cmd},
       [:stream,
        :binary,
