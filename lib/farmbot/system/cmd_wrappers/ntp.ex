@@ -4,7 +4,7 @@ defmodule Farmbot.System.Network.Ntp do
   """
 
   require Logger
-  alias Farmbot.{Context, HTTP, DebugLog}
+  alias Farmbot.{DebugLog}
   use   DebugLog
 
   @doc """
@@ -15,63 +15,42 @@ defmodule Farmbot.System.Network.Ntp do
   @spec set_time(integer) :: :ok | {:error, term}
   def set_time(tries \\ 0)
   def set_time(tries) when tries < 4 do
-    case HTTP.get(Context.new(), "http://httpbin.org/ip") do
-      {:ok, %HTTP.Response{}} = _resp ->
-        Logger.info ">> is getting time from NTP."
-        f = do_try_set_time()
-        Logger.info ">> ntp: #{inspect f}"
-      thing ->
-      # I HATE NETWORK
-      Logger.warn ">> no internet. yet trying again in 5 seconds: #{inspect thing}"
-      Process.sleep(5000)
-      set_time(tries + 1)
+    Process.sleep(1000 * tries)
+    case :inet_res.gethostbyname('0.pool.ntp.org') do
+      {:ok, {:hostent, _url, _, _, _, _}} ->
+        do_try_set_time(tries)
+      {:error, err} ->
+        debug_log "Failed to set time (#{tries}): DNS Lookup: #{inspect err}"
+        set_time(tries + 1)
     end
   end
 
   def set_time(_), do: {:error, :timeout}
 
-  defp do_try_set_time, do: do_try_set_time(0)
-  defp do_try_set_time(count) when count < 4 do
+  defp do_try_set_time(tries) when tries < 4 do
     # we try to set ntp time 3 times before giving up.
-    Logger.info ">> trying to set time (try #{count})"
-    cmd = "ntpd -p 0.pool.ntp.org -p 1.pool.ntp.org"
-    port = Port.open({:spawn, cmd},
-      [:stream,
-       :binary,
-       :exit_status,
-       :hide,
-       :use_stdio,
-       :stderr_to_stdout])
-     case handle_port(port) do
-       :ok -> :ok
-       {:error, reason} ->
-         Logger.info ">> failed to get time: #{inspect reason} trying again."
-         # kill old ntp if it exists
-         System.cmd("killall", ["ntpd"])
-         # sleep for a second
-         Process.sleep(1000)
-         do_try_set_time(count + 1)
-     end
-  end
-  defp do_try_set_time(_) do
-    {:error, :timeout}
+    Logger.info ">> trying to set time (try #{tries})"
+    :os.cmd('ntpd -p 0.pool.ntp.org -p 1.pool.ntp.org')
+    wait_for_time(tries)
   end
 
-  defp handle_port(port) do
-    receive do
-      # This is so ugly lol
-      {^port, {:data, "ntpd: bad address" <> _}} -> {:error, :bad_address}
-      # print things that ntp says
-      {^port, {:data, data}} ->
-        debug_log "ntp got stuff: #{data}"
-        handle_port(port)
-      # when ntp exits, check to make sure its REALLY set
-      {^port, {:exit_status, 0}} ->
-        if :os.system_time(:seconds) < 1_474_929 do
-          {:error, :not_set}
-        else
-          :ok
-        end
+  defp wait_for_time(tries, loops \\ 0)
+
+  defp wait_for_time(tries, loops) when loops > 5 do
+    :os.cmd('killall ntpd')
+    set_time(tries)
+  end
+
+  defp wait_for_time(tries, loops) do
+    case :os.system_time do
+      t when t > 1_474_929 ->
+        Logger.flush()
+        Logger.info ">> Time is set.", type: :success
+        :ok
+      _ ->
+        Process.sleep(1_000 * loops)
+        wait_for_time(tries, loops + 1)
     end
   end
+
 end

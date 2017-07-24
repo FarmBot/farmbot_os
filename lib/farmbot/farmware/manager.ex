@@ -88,7 +88,7 @@ defmodule Farmbot.Farmware.Manager do
   def install!(%Context{} = ctx, url) do
     case install(ctx, url) do
       :ok -> :ok
-      {:error, e} -> raise e
+      {:error, e} -> reraise e, System.stacktrace()
     end
   end
 

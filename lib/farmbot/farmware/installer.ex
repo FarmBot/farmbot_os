@@ -74,7 +74,7 @@ defmodule Farmbot.Farmware.Installer do
       # noop (but something weird might be going on)
       :gt -> {:noop, Farmware.new(current)}
       # if the current version is less than new version we install.
-      :lg -> :needs_install
+      :lt -> :needs_install
     end
   end
 
