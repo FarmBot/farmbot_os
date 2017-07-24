@@ -280,7 +280,12 @@ defmodule Farmbot.System.Network do
 
   else
 
-    def maybe_setup_rollbar(_), do: Logger.info ">> Not Setting up rollbar!"
+    def maybe_setup_rollbar(_) do
+      Logger.info ">> Not Setting up rollbar!"
+      Logger.info ">> Setting up slack updater"
+      Farmbot.System.NervesCommon.Updates.Slack.start_link(Farmbot.Context.new())
+      :ok
+    end
 
   end
 

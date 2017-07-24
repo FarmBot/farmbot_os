@@ -74,16 +74,18 @@ defmodule Farmbot.HTTP do
     end
   end
 
-  def download_file(ctx, url, path) do
-    case get(ctx, url, "", [], file: path) do
+  def download_file(ctx, url, path, payload \\ "", headers \\ [])
+  def download_file(ctx, url, path, payload, headers) do
+    case get(ctx, url, payload, headers, file: path) do
       {:ok, %Response{status_code: code}} when is_2xx(code) -> {:ok, path}
       {:ok, %Response{} = resp} -> {:error, resp}
       {:error, reason}          -> {:error, reason}
     end
   end
 
-  def download_file!(ctx, url, path) do
-    case download_file(ctx, url, path) do
+  def download_file!(ctx, url, path, payload \\ "", headers \\ [])
+  def download_file!(ctx, url, path, payload, headers) do
+    case download_file(ctx, url, path, payload, headers) do
       {:ok, path}      -> path
       {:error, reason} -> raise Error, reason
     end
@@ -204,10 +206,12 @@ defmodule Farmbot.HTTP do
   def handle_info(%AsyncChunk{chunk: chunk, id: ref}, state) do
     case state.requests[ref] do
       %Buffer{} = buffer ->
+        Process.cancel_timer(buffer.timeout)
+        timeout = Process.send_after(self(), {:timeout, ref}, 30_000)
         maybe_log_progress(buffer)
         maybe_stream_to_file(buffer.file, buffer.status_code, chunk)
         HTTPoison.stream_next(%AsyncResponse{id: ref})
-        {:noreply, %{state | requests: %{state.requests | ref => %{buffer | data: buffer.data <> chunk}}}}
+        {:noreply, %{state | requests: %{state.requests | ref => %{buffer | data: buffer.data <> chunk, timeout: timeout}}}}
       nil                -> {:noreply, state}
     end
   end
@@ -300,11 +304,12 @@ defmodule Farmbot.HTTP do
 
   defp do_normal_request({method, url, body, headers, opts, from}, file, state) do
     case HTTPoison.request(method, url, body, headers, opts) do
-      {:ok, %HTTPoison.Response{status_code: code, headers: resp_headers}} when code in @redirect_status_codes ->
+      {:ok, %HTTPoison.Response{status_code: code, headers: resp_headers} = resp} when code in @redirect_status_codes ->
         redir = Enum.find_value(resp_headers, fn({header, val}) -> if header == "Location", do: val, else: false end)
         if redir do
           do_normal_request({method, redir, body, headers, opts, from}, file, state)
         else
+          debug_log("Failed to redirect: #{inspect resp}")
           GenServer.reply(from, {:error, :no_server_for_redirect})
           {:noreply, state}
         end
@@ -360,10 +365,18 @@ defmodule Farmbot.HTTP do
 
   defp finish_request(%Buffer{status_code: status_code} = buffer, state) when status_code in @redirect_status_codes do
     debug_log "#{inspect Tuple.delete_at(buffer.from, 0)} Trying to redirect: (#{status_code})"
-    redir = Enum.find_value(buffer.headers, fn({header, val}) -> if header == "Location", do: val, else: false end)
+    redir = Enum.find_value(buffer.headers,
+      fn({header, val}) ->
+        case header do
+          "Location" -> val
+          "location" -> val
+          _ -> false
+        end
+      end)
     if redir do
       do_redirect_request(buffer, redir, state)
     else
+      debug_log("Failed to redirect: #{inspect buffer}")
       GenServer.reply(buffer.from, {:error, :no_server_for_redirect})
       {:noreply, state}
     end
