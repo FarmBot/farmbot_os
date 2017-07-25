@@ -63,6 +63,7 @@
   "redix": {:hex, :redix, "0.5.1", "2bf874a186cc759791b8defdd0bfaa752784716bd48241f6aa972a20e7f95745", [:mix], [{:connection, "~> 1.0", [hex: :connection, optional: false]}]},
   "rollbax": {:hex, :rollbax, "0.8.2", "204a47a83fe32745def19ea0307b297395c00315fb85f30dfda04d5009b5ecb9", [:mix], [{:hackney, "~> 1.1", [hex: :hackney, repo: "hexpm", optional: false]}, {:poison, "~> 1.4 or ~> 2.0 or ~> 3.0", [hex: :poison, repo: "hexpm", optional: false]}], "hexpm"},
   "rsa": {:hex, :rsa, "0.0.1", "a63069f88ce342ffdf8448b7cdef4b39ba7dee3c1510644a39385c7e63ba246f", [:mix], []},
+  "socket": {:hex, :socket, "0.3.12", "4a6543815136503fee67eff0932da1742fad83f84c49130c854114153cc549a6", [:mix], []},
   "ssl_verify_fun": {:hex, :ssl_verify_fun, "1.1.1", "28a4d65b7f59893bc2c7de786dec1e1555bd742d336043fe644ae956c3497fbe", [:make, :rebar], []},
   "syslog": {:hex, :syslog, "1.0.2", "9cf72c0986675a170c03b210e49700845a0f7b61e96d302a3ba0df82963daf60", [:rebar], []},
   "system_registry": {:hex, :system_registry, "0.1.2", "b6dba36c575786f1848e18a1155a2b6bd82f607f0ae9dc88185d6b7dc3fcdf60", [:mix], []},

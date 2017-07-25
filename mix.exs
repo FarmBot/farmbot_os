@@ -110,6 +110,7 @@ defmodule Farmbot.Mixfile do
       :timex, # Timex needs to start AFTER farmbot, so we can set up its dirs,
       :inets,
       :ssl,
+      :socket,
       :redix,
       :eex,
       :httpoison
@@ -143,6 +144,7 @@ defmodule Farmbot.Mixfile do
       {:exjsx, "~> 3.2", override: true},
       {:rsa, "~> 0.0.1"},
       {:httpoison, "~> 0.12"},
+      {:socket, "~> 0.3"},
       # {:hackney, path: "../hackney", override: true},
 
       # MQTT stuff
