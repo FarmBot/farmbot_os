@@ -206,7 +206,7 @@ defmodule Farmbot.HTTP do
   def handle_info(%AsyncChunk{chunk: chunk, id: ref}, state) do
     case state.requests[ref] do
       %Buffer{} = buffer ->
-        Process.cancel_timer(buffer.timeout)
+        if buffer.timeout, do: Process.cancel_timer(buffer.timeout)
         timeout = Process.send_after(self(), {:timeout, ref}, 30_000)
         maybe_log_progress(buffer)
         maybe_stream_to_file(buffer.file, buffer.status_code, chunk)
@@ -388,6 +388,7 @@ defmodule Farmbot.HTTP do
       body:        buffer.data,
       headers:     buffer.headers
     }
+    if buffer.timeout, do: Process.cancel_timer(buffer.timeout)
     maybe_close_file(buffer.file)
     GenServer.reply(buffer.from, {:ok, response})
     {:noreply, %{state | requests: Map.delete(state.requests, buffer.id)}}
