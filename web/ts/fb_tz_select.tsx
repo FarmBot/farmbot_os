@@ -79,9 +79,8 @@ export class FBSelect extends React.Component<SelectProps, Partial<SelectState>>
         .map((p, i) => {
           let key = this.generateKey(p, i);
           return <div onMouseDown={() => { this.handleSelectOption(p); }}
-            key={key}
-            <Comp {...p}
-            />
+            key={key}>
+            <Comp {...p} />
           </div>;
         });
     } else {
