@@ -10,6 +10,17 @@ defmodule Farmbot.BotState do
   @typedoc false
   @type context :: Context.t
 
+  def download_progress_fun(%Context{} = ctx, name) do
+    fn(part, total) ->
+      percent = ((part / total) * 100) |> round()
+      Farmbot.BotState.set_job_progress(ctx, name, percent)
+    end
+  end
+
+  def set_job_progress(%Context{} = context, name, percent) do
+    GenServer.call(context.monitor, {:set_job_progress, name, percent})
+  end
+
   @doc """
     Gets the current position of the bot. Returns [x,y,z]
   """

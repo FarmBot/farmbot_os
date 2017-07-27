@@ -94,7 +94,9 @@ defmodule Farmbot.System.Updates do
   def install_updates(%Context{} = context, url) do
     # Ignore the compiler warning here.
     # "I'll fix it later i promise" -- Connor Rigby
-    path = HTTP.download_file!(context, url, @path)
+    # "i promise I will fix this one day..." -- Connor Rigby
+    fun = Farmbot.BotState.download_progress_fun(context, "FBOS_OTA")
+    path = HTTP.download_file!(context, url, @path, fun)
     case File.stat(path) do
       {:ok, file} ->
         Logger.info "Found file: #{inspect file}", type: :success
