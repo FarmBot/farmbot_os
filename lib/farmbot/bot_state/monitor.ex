@@ -1,6 +1,7 @@
 alias Farmbot.BotState.Hardware.State,      as: Hardware
 alias Farmbot.BotState.Configuration.State, as: Configuration
 alias Farmbot.Farmware.Manager.State,       as: FarmwareManagerState
+alias Farmbot.BotState.JobProgress
 defmodule Farmbot.BotState.Monitor do
   @moduledoc """
     this is the master state tracker. It receives the states from
@@ -16,6 +17,7 @@ defmodule Farmbot.BotState.Monitor do
       context:       Context.t,
       hardware:      Hardware.t,
       configuration: Configuration.t,
+      jobs:          %{optional(binary) => JobProgress.t},
       process_info:  %{
         farmwares: %{name: binary, uuid: binary, version: binary}
       }
@@ -24,7 +26,8 @@ defmodule Farmbot.BotState.Monitor do
       context:       nil,
       hardware:      %Hardware{},
       configuration: %Configuration{},
-      process_info:  %{farmwares: %{}}
+      jobs:          %{},
+      process_info:  %{farmwares: %{}},
     ]
   end
 
@@ -54,6 +57,17 @@ defmodule Farmbot.BotState.Monitor do
     new_state        = %{old_state | process_info: new_process_info}
     dispatch(new_state)
   end
+
+  def handle_call({:set_job_progress, name, percent}, _from, state) do
+    obj       = state.jobs[name] || %{status: :working, percent: percent}
+    jobs      = Map.put(state.jobs, name, %{obj | status: build_status(percent), percent: percent})
+    new_state = %{state | jobs: jobs}
+    GenStage.async_notify(new_state.context.monitor, new_state)
+    {:reply, :ok, [], new_state}
+  end
+
+  defp build_status(100), do: :complete
+  defp build_status(_), do: :working
 
   @spec dispatch(State.t) :: {:noreply, [], State.t }
   defp dispatch(%State{} = new_state) do

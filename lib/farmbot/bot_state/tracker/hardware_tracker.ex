@@ -12,20 +12,27 @@ defmodule Farmbot.BotState.Hardware do
       name: __MODULE__,
       model: [
         # credo:disable-for-next-line
-        location:   [ -1, -1 ,-1 ],
+        location_data: %{
+          position:         %{x: -1, y: -1, z: -1},
+          raw_encoders:     %{x: -1, y: -1, z: -1},
+          scaled_encoders:  %{x: -1, y: -1, z: -1},
+        },
         end_stops:  { -1, -1, -1, -1, -1, -1 },
         mcu_params: %{},
         pins:       %{},
       ]
 
   @type t :: %__MODULE__.State{
-    location:   location,
+    location_data: location_data,
     end_stops:  end_stops,
     mcu_params: mcu_params,
     pins:       pins,
   }
 
-  @type location   :: [number, ...]
+  @type vec_3_pos :: %{x: integer, y: integer, z: integer}
+
+  @type location_data :: %{position: vec_3_pos, raw_encoders: vec_3_pos, scaled_encoders: vec_3_pos}
+
   @type mcu_params :: map
   @type pins       :: map
   @type end_stops  :: {integer, integer, integer, integer, integer, integer}
@@ -76,7 +83,8 @@ defmodule Farmbot.BotState.Hardware do
   end
 
   def handle_call(:get_current_pos, _from, %State{} = state) do
-    dispatch state.location, state
+    pos = state.location_data.position
+    dispatch [pos.x, pos.y, pos.z], state
   end
 
   def handle_call(:get_all_mcu_params, _from, %State{} = state) do
@@ -88,7 +96,18 @@ defmodule Farmbot.BotState.Hardware do
   end
 
   def handle_call({:set_pos, {x, y, z}}, _from, %State{} = state) do
-    dispatch [x, y, z], %State{state | location: [x, y, z]}
+    new_loc = %{state.location_data | position: %{x: x, y: y, z: z}}
+    dispatch [x, y, z], %State{state | location_data: new_loc}
+  end
+
+  def handle_call({:set_scaled_encoders, {x, y, z}}, _from, %State{} = state) do
+    new_loc = %{state.location_data | scaled_encoders: %{x: x, y: y, z: z}}
+    dispatch [x, y, z], %State{state | location_data: new_loc}
+  end
+
+  def handle_call({:set_raw_encoders, {x, y, z}}, _from, %State{} = state) do
+    new_loc = %{state.location_data | raw_encoders: %{x: x, y: y, z: z}}
+    dispatch [x, y, z], %State{state | location_data: new_loc}
   end
 
   def handle_call(event, _from, %State{} = state) do

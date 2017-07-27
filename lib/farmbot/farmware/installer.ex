@@ -27,8 +27,9 @@ defmodule Farmbot.Farmware.Installer do
 
     case check_package(package_path, json) do
       :needs_install ->
+        fun = Farmbot.BotState.download_progress_fun(ctx, json["package"])
         dl_path      = Farmbot.HTTP.download_file!(ctx,
-          json["zip"], "/tmp/#{json["package"]}.zip")
+          json["zip"], "/tmp/#{json["package"]}.zip", fun)
 
         Logger.info ">> is installing a farmware: #{json["package"]}", type: :busy
         FS.transaction fn() ->
