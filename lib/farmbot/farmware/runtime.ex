@@ -26,9 +26,7 @@ defmodule Farmbot.Farmware.Runtime do
   end
 
   @typedoc false
-  @type state :: State.t
-
-  @clean_up_timeout 30_000
+  @typep state :: State.t
 
   @doc """
     Executes a Farmware inside a safe sandbox
@@ -132,26 +130,7 @@ defmodule Farmbot.Farmware.Runtime do
         handle_port(state)
       {:EXIT, pid, reason} ->
         debug_log "something died: #{inspect pid} #{inspect reason}"
-        maybe_kill_port(port)
         state.context
-      after
-        @clean_up_timeout ->
-          :ok = maybe_kill_port(port)
-          raise FarmwareRuntimeError, message: "#{fw.name} time out"
-    end
-  end
-
-  @spec maybe_kill_port(port) :: :ok
-  defp maybe_kill_port(port) do
-    debug_log "trying to kill port: #{inspect port}"
-    port_info  = Port.info(port)
-    if port_info do
-      os_pid   = Keyword.get(port_info, :os_pid)
-      System.cmd("kill", ["-9", "#{os_pid}"])
-      :ok
-    else
-      debug_log("Port info was nil.")
-      :ok
     end
   end
 
