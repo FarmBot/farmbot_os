@@ -11,12 +11,17 @@ defmodule Farmbot.Transport do
   # The max number of state updates before we force one
   @max_inactive_count 100
 
+
   defmodule Serialized do
     @moduledoc """
       Serialized Bot State
     """
+
+    @type pos_vec3 :: %{x: integer, y: integer, z: integer}
+
     defstruct [:mcu_params,
-               :location,
+               :location_data,
+               :jobs,
                :pins,
                :configuration,
                :informational_settings,
@@ -25,7 +30,8 @@ defmodule Farmbot.Transport do
 
     @type t :: %__MODULE__{
       mcu_params: map,
-      location: [integer, ...],
+      jobs: %{optional(binary) => Farmbot.BotState.JobProgress.t},
+      location_data: %{position: pos_vec3, scaled_encoders: pos_vec3, raw_encoders: pos_vec3},
       pins: map,
       configuration: map,
       informational_settings: map,
@@ -56,8 +62,9 @@ defmodule Farmbot.Transport do
     %Serialized{
       mcu_params:
         monstate.hardware.mcu_params,
-      location:
-        monstate.hardware.location,
+      location_data:
+        monstate.hardware.location_data,
+      jobs: monstate.jobs,
       pins:
         monstate.hardware.pins,
       configuration:

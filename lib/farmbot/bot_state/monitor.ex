@@ -1,6 +1,7 @@
 alias Farmbot.BotState.Hardware.State,      as: Hardware
 alias Farmbot.BotState.Configuration.State, as: Configuration
 alias Farmbot.Farmware.Manager.State,       as: FarmwareManagerState
+alias Farmbot.BotState.JobProgress
 defmodule Farmbot.BotState.Monitor do
   @moduledoc """
     this is the master state tracker. It receives the states from
@@ -16,6 +17,7 @@ defmodule Farmbot.BotState.Monitor do
       context:       Context.t,
       hardware:      Hardware.t,
       configuration: Configuration.t,
+      jobs:          %{optional(binary) => JobProgress.t},
       process_info:  %{
         farmwares: %{name: binary, uuid: binary, version: binary}
       }
@@ -24,7 +26,8 @@ defmodule Farmbot.BotState.Monitor do
       context:       nil,
       hardware:      %Hardware{},
       configuration: %Configuration{},
-      process_info:  %{farmwares: %{}}
+      jobs:          %{},
+      process_info:  %{farmwares: %{}},
     ]
   end
 
