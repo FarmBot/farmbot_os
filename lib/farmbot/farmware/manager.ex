@@ -31,7 +31,7 @@ defmodule Farmbot.Farmware.Manager do
   """
   @spec lookup(Context.t, uuid) :: {:ok, Farmware.t} | {:error, term}
   def lookup(%Context{farmware_manager: fwt}, uuid) do
-     GenServer.call(fwt, {:lookup, uuid})
+    GenServer.call(fwt, {:lookup, uuid})
   end
 
   @doc """
@@ -88,7 +88,7 @@ defmodule Farmbot.Farmware.Manager do
   def install!(%Context{} = ctx, url) do
     case install(ctx, url) do
       :ok -> :ok
-      {:error, e} -> raise e
+      {:error, e} -> reraise e, System.stacktrace()
     end
   end
 
@@ -121,10 +121,21 @@ defmodule Farmbot.Farmware.Manager do
   ## GenServer stuff
 
   def init(ctx) do
+    root_path = "#{Farmbot.System.FS.path()}/farmware/packages"
+    Farmbot.System.FS.transaction fn() ->
+      File.mkdir_p root_path
+    end, true
+    installed = root_path |> File.ls!
+    fws = Map.new(installed, fn(name) ->
+      fw = "#{root_path}/#{name}/manifest.json" |> File.read!() |> Poison.decode! |> Farmware.new
+      {fw.uuid, fw}
+    end)
+
     state = %State{
-      context: ctx,
-      farmwares: %{}
+      context:   ctx,
+      farmwares: fws,
     }
+
     dispatch nil, state
     {:ok, state}
   end

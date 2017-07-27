@@ -2,11 +2,11 @@ defmodule Mix.Tasks.Farmbot.Slack do
   @moduledoc "Upload a file to slack. Requires a slack key env var."
   use Mix.Task
   alias Farmbot.{Context, HTTP}
-  alias HTTP.Multipart
   @shortdoc "Upload an image to farmbot slack."
 
   def run(opts) do
     Registry.start_link(:duplicate,  Farmbot.Registry)
+    Application.ensure_all_started(:httpoison)
 
     {keywords, uhh, _} = opts |> OptionParser.parse(switches: [signed: :boolean])
     signed?          = Keyword.get(keywords, :signed, false)
@@ -19,7 +19,6 @@ defmodule Mix.Tasks.Farmbot.Slack do
     commit           = Mix.Project.config[:commit]
     fw_file          = Path.join(["images", "#{Mix.env()}", "#{target}",
       (if signed?, do: "#{otp_app}-signed.fw", else: "#{otp_app}.fw")])
-    # fw_file = "/tmp/hello.txt"
 
     unless File.exists?(fw_file) do
       Mix.raise "Could not find firmware: #{fw_file}"
@@ -32,11 +31,9 @@ defmodule Mix.Tasks.Farmbot.Slack do
 
     Mix.shell.info [:green, "Uploading: #{filename} (#{fw_file})"]
 
-    boundry   = Multipart.new_boundry()
-    file      = File.read!(fw_file)
     url       = "https://slack.com/api/files.upload"
     form_data = %{
-      "file"            => "replace_me",
+      :file             => fw_file,
       "token"           => token,
       "channels"        => "embedded-systems",
       "filename"        => filename,
@@ -50,17 +47,12 @@ defmodule Mix.Tasks.Farmbot.Slack do
       #{String.trim(comment)}
       """
     }
-    payload =
-      Map.new(form_data, fn({key, value}) ->
-        if key == "file",
-          do: {"file", {Path.basename(fw_file), file}}, else: {key, value}
-      end)
-    real_payload = Multipart.format(payload, boundry)
+    payload = Enum.map(form_data, fn({key, val}) -> {key, val} end)
+    real_payload = {:multipart, payload}
     headers = [
-      Multipart.multi_part_header(boundry),
       {'User-Agent', 'Farmbot HTTP Adapter'}
     ]
-    %{body: body} = HTTP.post!(ctx, url, real_payload, headers, [timeout: :infinity])
+    %{body: body} = HTTP.post!(ctx, url, real_payload, headers)
     ok?           = body |> Poison.decode!() |> Map.get("ok", false)
     notify_opts = ~w"""
     -u normal -i #{:code.priv_dir(otp_app)}/static/farmbot_logo.png -a farmbot_build

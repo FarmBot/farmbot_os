@@ -22,7 +22,7 @@ defmodule Farmbot.Mixfile do
      version: @version,
      target: @target,
      commit: commit(),
-     archives: [nerves_bootstrap: "~> 0.3.0"],
+     archives: [nerves_bootstrap: "~> 0.5.1"],
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      build_path:  "_build/#{Mix.env()}/#{@target}",
@@ -33,7 +33,11 @@ defmodule Farmbot.Mixfile do
      compilers: Mix.compilers ++ maybe_use_webpack(),
      aliases: aliases(@target),
      deps: deps() ++ system(@target),
-     dialyzer: [plt_add_deps: :app_tree, plt_add_apps: [:mnesia, :hackney]],
+     dialyzer: [
+       plt_add_deps: :transitive,
+       plt_add_apps: [:mnesia, :hackney, :elixir],
+       flags:        []
+     ],
      preferred_cli_env: [
        "vcr":              :test,
        "vcr.delete":       :test,
@@ -53,12 +57,12 @@ defmodule Farmbot.Mixfile do
      homepage_url: "http://farmbot.io",
      docs: [
        main: "Farmbot",
-       logo: "../../docs/farmbot_logo.png",
+       logo: "./priv/static/farmbot_logo.png",
        extras: [
-         "../../docs/BUILDING.md",
-         "../../docs/FAQ.md",
-         "../../docs/ENVIRONMENT.md",
-         "../../README.md"]]
+         "./docs/BUILDING.md",
+         "./docs/FAQ.md",
+         "./docs/ENVIRONMENT.md",
+         "./README.md"]]
    ]
   end
 
@@ -106,8 +110,10 @@ defmodule Farmbot.Mixfile do
       :timex, # Timex needs to start AFTER farmbot, so we can set up its dirs,
       :inets,
       :ssl,
+      :socket,
       :redix,
       :eex,
+      :httpoison
    ]
   end
 
@@ -137,6 +143,9 @@ defmodule Farmbot.Mixfile do
       {:ex_json_schema, "~> 0.5.3"},
       {:exjsx, "~> 3.2", override: true},
       {:rsa, "~> 0.0.1"},
+      {:httpoison, "~> 0.12"},
+      {:socket, "~> 0.3"},
+      # {:hackney, path: "../hackney", override: true},
 
       # MQTT stuff
       {:gen_mqtt, "~> 0.3.1"}, # for rpc transport
@@ -205,12 +214,11 @@ defmodule Farmbot.Mixfile do
     "travis_test": ["credo", "coveralls.travis"]
   ]
 
-  # TODO(Connor) Maybe warn if building firmware in dev mode?
   defp aliases(_system) do
     ["deps.precompile": ["nerves.precompile", "deps.precompile"],
      "deps.loadpaths":  ["deps.loadpaths", "nerves.loadpaths"],
      "firmware.upload": ["farmbot.upload"],
-     "firmware.sign": ["farmbot.sign"]
+     "firmware.sign":   ["farmbot.sign"]
    ]
   end
 

@@ -30,8 +30,6 @@ export interface SelectProps {
   placeholder?: string;
   /** Determines what label to show in the select box. */
   value: string | null;
-  /** A property to prevent keyboards on mobile. */
-  readOnly?: boolean;
 }
 
 export interface SelectState {
@@ -81,10 +79,8 @@ export class FBSelect extends React.Component<SelectProps, Partial<SelectState>>
         .map((p, i) => {
           let key = this.generateKey(p, i);
           return <div onMouseDown={() => { this.handleSelectOption(p); }}
-            key={key}
-            readOnly={this.props.readOnly}>
-            <Comp {...p}
-            />
+            key={key}>
+            <Comp {...p} />
           </div>;
         });
     } else {

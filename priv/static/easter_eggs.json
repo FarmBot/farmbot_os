@@ -1,13 +1,32 @@
 {
   "nouns" : [
     {"fav_song_link": "https://www.youtube.com/watch?v=d4nbfPZa9Ws"},
-    {"fav_activity": "gardening"}
+    {"fav_activity": "gardening"},
+    {"fav_movie": "Star Wars"}
   ],
   "verbs" : [
     "is listening to :musical_score: {{fav_song_link}}",
     "is jamming out to {{fav_song_link}} :musical_score:",
     "is doing my favorite activity {{fav_activity}}",
+    "is watching {{fav_movie}} :film_projector:",
     "wants to know when it should water it's plants? :sweat_drops: :sweat_drops:",
-    "is getting kind of bored... :clock830: :zzz:"
+    "is getting kind of bored... :clock830: :zzz:",
+    "is happy",
+    "is ecstatic",
+    "is lonely",
+    "is on strike",
+    "says hi",
+    "says hello",
+    "is growing vegetables for you",
+    "is watching for squirrels",
+    "sees plants in the clouds :cloud: :seedling:",
+    "is singing",
+    "wants a bath",
+    ":robot_face:",
+    ">:(",
+    "(>'-')>",
+    ":)",
+    "9____9",
+    "¯\\_(ツ)_/¯"
   ]
 }

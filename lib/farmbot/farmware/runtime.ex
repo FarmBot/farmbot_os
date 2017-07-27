@@ -2,22 +2,26 @@ defmodule Farmbot.Farmware.Runtime do
   @moduledoc """
     Executes a farmware
   """
-  use Farmbot.DebugLog, name: FarmwareRuntime
-  alias Farmbot.{Farmware, Context, BotState, Auth, CeleryScript}
-  alias Farmware.RuntimeError, as: FarmwareRuntimeError
+  use     Farmbot.DebugLog, name: FarmwareRuntime
+  alias   Farmbot.{Farmware, Context, BotState, Auth}
+  alias   Farmware.RuntimeError, as: FarmwareRuntimeError
+  alias   Farmbot.Farmware.Runtime.HTTPServer.JWT, as: FarmwareJWT
+  alias   Farmbot.Farmware.Runtime.HTTPServer
+
   require Logger
 
   defmodule State do
     @moduledoc false
-    defstruct [:uuid, :port, :farmware, :context, :output]
+    defstruct [:uuid, :port, :farmware, :context, :output, :server]
 
     @typedoc false
     @type t :: %__MODULE__{
-      uuid: binary,
-      port: port,
+      server:   GenServer.server,
+      uuid:     binary,
+      port:     port,
       farmware: Farmware.t,
-      context: Context.t,
-      output: [binary]
+      context:  Context.t,
+      output:   [binary]
     }
   end
 
@@ -32,10 +36,14 @@ defmodule Farmbot.Farmware.Runtime do
   @spec execute(Context.t, Farmware.t) :: Context.t | no_return
   def execute(%Context{} = ctx, %Farmware{} = fw) do
     debug_log "Starting execution of: #{inspect fw}"
-    uuid       = Nerves.Lib.UUID.generate()
-    env        = environment(ctx, uuid)
-    exec       = lookup_exec_or_raise(fw.executable, fw.path)
-    cwd        = File.cwd!
+    Process.flag(:trap_exit, true)
+    uuid          = Nerves.Lib.UUID.generate()
+    fw_jwt        = %FarmwareJWT{start_time: Timex.now() |> DateTime.to_iso8601()}
+    http_port     = lookup_port()
+    env           = environment(ctx, fw_jwt, http_port)
+    exec          = lookup_exec_or_raise(fw.executable, fw.path)
+    cwd           = File.cwd!
+    {:ok, server} = HTTPServer.start_link(ctx, fw_jwt, http_port)
 
     case File.cd(fw.path) do
       :ok -> :ok
@@ -55,6 +63,7 @@ defmodule Farmbot.Farmware.Runtime do
        env: env ])
 
     state = %State{
+      server:   server,
       uuid:     uuid,
       port:     port,
       farmware: fw,
@@ -63,13 +72,33 @@ defmodule Farmbot.Farmware.Runtime do
     }
 
     try do
-      ctx = handle_port(state)
+      %Context{} = ctx = handle_port(state)
       File.cd!(cwd)
+      HTTPServer.stop http_port
       ctx
     rescue
       e ->
         File.cd!(cwd)
         reraise(e, System.stacktrace)
+    end
+  end
+
+  #this is so stupid
+  defp lookup_port do
+    path = "/tmp/farmware-port"
+    last = case File.read(path) do
+      {:error, :enoent} -> 8000
+      {:ok, str}        -> str |> String.trim() |> String.to_integer()
+    end
+
+    if last > 8099 do
+      debug_log("using: #{8000}")
+      File.write!(path, "#{8000}")
+      8000
+    else
+      debug_log("using: #{last + 1}")
+      File.write!(path, "#{last + 1}")
+      last + 1
     end
 
   end
@@ -99,31 +128,16 @@ defmodule Farmbot.Farmware.Runtime do
       {^port, {:exit_status, s}} ->
         raise FarmwareRuntimeError, message: "#{fw.name} completed with errors! (#{s})"
       {^port, {:data, data}} ->
-        %State{} = new_state = handle_script_output(state, data)
-        handle_port(new_state)
+        debug_log "[#{inspect fw}] sent data: \r\n===========\r\n\r\n#{data} \r\n==========="
+        handle_port(state)
+      {:EXIT, pid, reason} ->
+        debug_log "something died: #{inspect pid} #{inspect reason}"
+        maybe_kill_port(port)
+        state.context
       after
         @clean_up_timeout ->
           :ok = maybe_kill_port(port)
           raise FarmwareRuntimeError, message: "#{fw.name} time out"
-    end
-  end
-
-  @spec handle_script_output(state, binary) :: Context.t | no_return
-  defp handle_script_output(%State{} = state, data) do
-    <<uuid :: size(288) >> = state.uuid
-    case data do
-      << ^uuid :: size(288), json :: binary >> ->
-        debug_log "going to try to do: #{json}"
-        new_context =
-          json
-            |> String.trim()
-            |> Poison.decode!()
-            |> CeleryScript.Ast.parse()
-            |> CeleryScript.Command.do_command(state.context)
-        %{state | context: new_context}
-      _data ->
-        Logger.info("[#{state.farmware.name}] Sent data: #{data}")
-        %{state | output: [data | state.output]}
     end
   end
 
@@ -141,13 +155,15 @@ defmodule Farmbot.Farmware.Runtime do
     end
   end
 
-  defp environment(%Context{} = ctx, uuid) do
+  defp environment(%Context{} = ctx, fw_jwt, port) do
+    fw_tkn_enc                    = fw_jwt |> Poison.encode! |> :base64.encode()
     envs                          = BotState.get_user_env(ctx)
     {:ok, %Farmbot.Token{} = tkn} = Auth.get_token(ctx.auth)
     envs                          = envs
-                                    |> Map.put("API_TOKEN",          tkn)
-                                    |> Map.put("BEGIN_CELERYSCRIPT", uuid)
-                                    |> Map.put("IMAGES_DIR",         "/tmp/images")
+                                    |> Map.put("API_TOKEN", tkn)
+                                    |> Map.put("FARMWARE_TOKEN", fw_tkn_enc)
+                                    |> Map.put("FARMWARE_URL", "http://localhost:#{port}/")
+                                    |> Map.put("IMAGES_DIR", "/tmp/images")
     Enum.map(envs, fn({key, val}) -> {to_erl_safe(key), to_erl_safe(val)} end)
   end
 

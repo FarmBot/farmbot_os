@@ -23,7 +23,7 @@ defmodule Farmbot.Database.Syncable do
   def parse_resp({:error, message}, _module), do: {:error, message}
   def parse_resp({:ok, %{status_code: code, body: resp_body}}, module)
   when is_2xx(code) do
-    parsed = resp_body |> Poison.decode!
+    parsed = resp_body |> String.trim() |> Poison.decode |> handle_json_output(resp_body)
     cond do
       is_list(parsed) -> Enum.map(parsed, fn(i) -> module.to_struct(i) end)
       is_map(parsed)  -> module.to_struct(parsed)
@@ -33,6 +33,18 @@ defmodule Farmbot.Database.Syncable do
   end
 
   def parse_resp({:ok, whatevs}, _module), do: {:error, whatevs}
+
+  defp handle_json_output(res, resp_body) do
+    case res do
+      {:ok, body} -> body
+      {:error, :invalid, _pos} ->
+        spawn(fn() ->
+          IO.puts "INVALID JSON \r\n\r\n #{inspect resp_body} \r\n\r\n"
+        end)
+
+        raise Error, message: "Bad json"
+    end
+  end
 
   @doc ~s"""
     Builds common functionality for all Syncable Resources. `args` takes two keywords.

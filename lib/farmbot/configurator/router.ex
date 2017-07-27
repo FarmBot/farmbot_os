@@ -180,7 +180,11 @@ defmodule Farmbot.Configurator.Router do
   post "/api/upload_firmware" do
     ml = @max_length
     {:ok, _body, conn} = Plug.Conn.read_body(conn, length: ml)
-    %{"firmware" => upload} = conn.body_params
+    upload = case conn.body_params do
+      %{"file"     => upload} -> upload
+      %{"firmware" => upload} -> upload
+    end
+
     file = upload.path
     case Path.extname(upload.filename) do
       ".hex" ->

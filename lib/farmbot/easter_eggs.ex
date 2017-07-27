@@ -90,13 +90,16 @@ defmodule Farmbot.EasterEggs do
   end
 
   @spec get_random_minute :: integer
-  defp get_random_minute, do: 200..300 |> Enum.random
+  defp get_random_minute, do: 0..59 |> Enum.random
+
+  @spec get_random_hour :: integer
+  defp get_random_hour, do: 1..3 |> Enum.random
 
   @doc """
-    Says a random sentence every twenty minutes by default.
+    Says a random sentence at a random minute every 1 to 3 hours.
   """
   @spec start_cron_job(binary) :: :ok
-  def start_cron_job(schedule \\ "*/#{get_random_minute()} * * * *") do
+  def start_cron_job(schedule \\ "#{get_random_minute()} */#{get_random_hour()} * * *") do
     job = %Quantum.Job{
             schedule: schedule,
             task: fn -> Farmbot.EasterEggs.say_random_sentence end}

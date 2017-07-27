@@ -15,6 +15,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
 
   def parse_code("R05" <> _r), do: {nil, :noop} # Dont care about this.
   def parse_code("R06 " <> r), do: parse_report_calibration(r)
+  def parse_code("R07 " <> _), do: {nil, :noop}
 
   def parse_code("R20 Q" <> tag),   do: {tag, :report_params_complete}
   def parse_code("R21 " <> params), do: parse_pvq(params, :report_parameter_value)
@@ -178,6 +179,7 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param("2"), do: :param_config_ok
   def parse_param("3"), do: :param_use_eeprom
   def parse_param("4"), do: :param_e_stop_on_mov_err
+  def parse_param("5"), do: :param_mov_nr_retry
 
   def parse_param("11"), do: :movement_timeout_x
   def parse_param("12"), do: :movement_timeout_y
@@ -289,6 +291,8 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(:param_config_ok), do: 2
   def parse_param(:param_use_eeprom), do: 3
   def parse_param(:param_e_stop_on_mov_err), do: 4
+  def parse_param(:param_mov_nr_retry), do: 5
+
 
   def parse_param(:movement_timeout_x), do: 11
   def parse_param(:movement_timeout_y), do: 12

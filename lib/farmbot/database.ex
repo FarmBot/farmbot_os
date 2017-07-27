@@ -75,6 +75,7 @@ defmodule Farmbot.Database do
     unless syncing?(ctx) do
       set_syncing(ctx,    :syncing)
       broadcast_sync(ctx, :sync_start)
+      Logger.info ">> is syncing", type: :busy
 
       all     = all_syncable_modules()
       tasks   = Enum.map(all, fn(module) ->
@@ -108,8 +109,7 @@ defmodule Farmbot.Database do
   """
   def sync_module(context, module_name, retries \\ 0)
   def sync_module(%Context{} = ctx, module_name, retries) when retries > 4 do
-    debug_log "#{module_name} failed to sync too many times. (#{retries})"
-    Logger.error ">> failed to sync #{module_name} to many times."
+    Logger.error ">> failed to sync #{module_name |> human_readable_module()} to many times."
     set_syncing(ctx,    :sync_error)
     broadcast_sync(ctx, :sync_error)
     :error
@@ -117,26 +117,31 @@ defmodule Farmbot.Database do
 
   def sync_module(%Context{} = ctx, module_name, retries) do
     # see: `syncable.ex`. This is some macro magic.
-    debug_log "#{module_name} Sync begin."
+    debug_log "#{module_name |> human_readable_module()} Sync begin."
+    # Logger.debug(">> is syncing: #{module_name |> human_readable_module()}", type: :busy)
 
     if get_awaiting(ctx, module_name) do
       try do
         :ok = module_name.fetch(ctx, {__MODULE__,
         :commit_records,  [ctx, module_name]})
 
-        debug_log "#{module_name} Sync finish."
+        # debug_log "#{module_name} Sync finish."
+        # Logger.debug(">> synced: #{module_name |> human_readable_module()}", type: :success)
         :ok = unset_awaiting(ctx, module_name)
         :ok
       rescue
         e ->
-          debug_log "#{module_name} Sync error: #{inspect e}"
-          IO.warn "#{module_name} HEY LOOK AT ME: #{inspect e}"
+          Logger.warn("Retrying sync: #{module_name |> human_readable_module()}")
           sync_module(ctx, module_name, retries + 1)
       end
     else
-      debug_log "#{module_name} Sync finish."
+      debug_log "#{module_name |> human_readable_module()} Sync finish."
       :ok
     end
+  end
+
+  defp human_readable_module(mod) do
+    mod |> Module.split() |> List.last()
   end
 
   @doc """
