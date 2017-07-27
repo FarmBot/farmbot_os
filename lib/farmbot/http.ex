@@ -265,10 +265,10 @@ defmodule Farmbot.HTTP do
   defp maybe_close_file(nil), do: :ok
   defp maybe_close_file(fd), do: :file.close(fd)
 
-  defp maybe_log_progress(%Buffer{file: file}) when is_nil(file), do: :ok
+  defp maybe_log_progress(%Buffer{file: file, progress_callback: pcb})
+  when is_nil(file) or is_nil(pcb), do: :ok
 
   defp maybe_log_progress(%Buffer{file: _file} = buffer) do
-    data_mbs = buffer.data |> byte_size() |> bytes_to_mb()
     case Enum.find_value(buffer.headers, fn({header, val}) -> if header == "Content-Length", do: val, else: nil end) do
       numstr when is_binary(numstr) ->
         total = numstr |> String.to_integer() |> bytes_to_mb()
@@ -276,18 +276,6 @@ defmodule Farmbot.HTTP do
       _ -> do_log(data_mbs, false)
     end
   end
-
-  defp do_log(num, percent \\ true)
-
-  defp do_log(num, percent) when (rem(round(num), 5)) == 0 do
-    id = if percent, do: "%", else: "MB"
-    Logger.info "Download progress: #{round(num)}#{id}", type: :busy
-  end
-
-  defp do_log(_,_), do: :ok
-
-  defp bytes_to_mb(bytes),      do: (bytes / 1024)  / 1024
-  defp to_percent(part, whole), do: (part / whole) *  100
 
   defp do_api_request({_method, _url, _body, _headers, _opts, from}, %{token: nil} = state) do
     GenServer.reply(from, {:error, :no_token})
