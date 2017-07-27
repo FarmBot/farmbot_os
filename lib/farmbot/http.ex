@@ -265,8 +265,8 @@ defmodule Farmbot.HTTP do
   defp maybe_close_file(nil), do: :ok
   defp maybe_close_file(fd), do: :file.close(fd)
 
-  defp maybe_log_progress(%Buffer{file: file, progress_callback: pcb})
-  when is_nil(file) or is_nil(pcb), do: :ok
+  defp maybe_log_progress(%Buffer{file: file})
+  when is_nil(file), do: :ok
 
   defp maybe_log_progress(%Buffer{file: _file} = buffer) do
     :ok
