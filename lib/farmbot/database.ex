@@ -130,7 +130,7 @@ defmodule Farmbot.Database do
         :ok = unset_awaiting(ctx, module_name)
         :ok
       rescue
-        e ->
+        _e ->
           Logger.warn("Retrying sync: #{module_name |> human_readable_module()}")
           sync_module(ctx, module_name, retries + 1)
       end
