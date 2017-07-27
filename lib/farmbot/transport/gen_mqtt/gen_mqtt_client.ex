@@ -29,6 +29,10 @@ defmodule Farmbot.Transport.GenMqtt.Client do
 
     fn ->
       Process.sleep(10)
+      Logger.flush()
+      backend     = Logger.Backends.FarmbotLogger
+      {:ok, _pid} = Logger.add_backend(backend)
+      :ok         = GenEvent.call(Logger, backend, {:context, context})
       Logger.info ">> is up and running!"
       Farmbot.Transport.force_state_push(context)
     end.()
@@ -84,6 +88,11 @@ defmodule Farmbot.Transport.GenMqtt.Client do
     else
       {:ok, state}
     end
+  end
+
+  def terminate(_, _) do
+    be = Logger.Backends.FarmbotLogger
+    Logger.remove_backend(be)
   end
 
   # def handle_info(:r_u_alive_bb?, {%Token{} = tkn, %Context{} = ctx}) do
