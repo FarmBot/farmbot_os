@@ -12,9 +12,7 @@ defmodule Farmbot.Auth do
   alias   Farmbot.Auth.Subscription, as: Sub
   use     GenServer
   use     DebugLog
-  alias   Farmbot.Behaviour.Auth, as: Behaviour
 
-  @behaviour Behaviour
   @typep server     :: Behaviour.server
   @typep public_key :: Behaviour.public_key
   @typep email      :: Behaviour.email
