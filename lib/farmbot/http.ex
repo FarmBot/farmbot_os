@@ -269,12 +269,17 @@ defmodule Farmbot.HTTP do
   when is_nil(file) or is_nil(pcb), do: :ok
 
   defp maybe_log_progress(%Buffer{file: _file} = buffer) do
-    case Enum.find_value(buffer.headers, fn({header, val}) -> if header == "Content-Length", do: val, else: nil end) do
-      numstr when is_binary(numstr) ->
-        total = numstr |> String.to_integer() |> bytes_to_mb()
-        do_log to_percent(data_mbs, total)
-      _ -> do_log(data_mbs, false)
-    end
+    :ok
+    # buffer.headers
+    # |> Enum.find_value(fn({header, val}) ->
+    #   if header == "Content-Length", do: val, else: nil
+    # end)
+    # |> case do
+    #   nil -> :ok
+    #   numstr when is_binary(numstr) ->
+    #     total_bytes = numstr |> String.to_integer()
+    #     byte_size()
+    # end
   end
 
   defp do_api_request({_method, _url, _body, _headers, _opts, from}, %{token: nil} = state) do
