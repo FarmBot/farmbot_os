@@ -59,7 +59,7 @@ defmodule Farmbot.BotState.Monitor do
   end
 
   def handle_call({:set_job_progress, name, percent}, _from, state) do
-    obj       = state.jobs[name] || %{status: :ok, percent: percent}
+    obj       = state.jobs[name] || %{status: :working, percent: percent}
     jobs      = Map.put(state.jobs, name, %{obj | status: build_status(percent), percent: percent})
     new_state = %{state | jobs: jobs}
     GenStage.async_notify(new_state.context.monitor, new_state)
@@ -67,7 +67,7 @@ defmodule Farmbot.BotState.Monitor do
   end
 
   defp build_status(100), do: :complete
-  defp build_status(_), do: :ok
+  defp build_status(_), do: :working
 
   @spec dispatch(State.t) :: {:noreply, [], State.t }
   defp dispatch(%State{} = new_state) do

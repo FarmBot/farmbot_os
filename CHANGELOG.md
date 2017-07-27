@@ -77,3 +77,5 @@
 * add a progress bar to http client for downloads.
 * Bundle new Arduino Firmware.
 * Rewrite Farmware Handler again, to use HTTP/REST this time instead of STDIN/STDOUT.
+* Add location_data to bot state. This includes encoder position.
+* Add `jobs` field to bot state.
