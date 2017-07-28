@@ -15,10 +15,16 @@ defmodule Farmbot.Sequence.Manager do
   end
 
   def init({ctx, sequence_ast, pid}) do
-    Process.flag(:trap_exit, true)
-    {:ok, sequence_pid} = Runner.start_link(ctx, sequence_ast, self())
-    Process.link(sequence_pid)
-    {:ok, %{context: ctx, caller: pid, sequence_pid: sequence_pid}}
+    case Runner.start_link(ctx, sequence_ast, self()) do
+      {:ok, pid} ->
+        Process.flag(:trap_exit, true)
+        Process.link(sequence_pid)
+        {:ok, %{context: ctx, caller: pid, sequence_pid: sequence_pid}}
+      :ignore ->
+        send(pid, {self(), ctx})
+        :ignore
+      err -> {:stop, err}
+    end
   end
 
   def handle_info({pid, %Context{} = ctx}, %{sequence_pid: sequence_pid} = state)

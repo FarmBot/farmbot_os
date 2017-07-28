@@ -28,6 +28,11 @@ defmodule Farmbot.Sequence.Runner do
     GenServer.start_link(__MODULE__, {ast, ctx, caller}, [])
   end
 
+  def init({%{body: []}, context, caller}) do
+    send caller, {self(), context}
+    :ignore
+  end
+
   def init({ast, first_context, caller}) do
     Process.flag(:trap_exit, true)
     debug_log "[#{inspect self()}] Sequence init."

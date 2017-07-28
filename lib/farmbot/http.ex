@@ -289,6 +289,8 @@ defmodule Farmbot.HTTP do
     headers = headers
               |> add_header({"Authorization", "Bearer " <> tkn.encoded})
               |> add_header({"Content-Type", "application/json"})
+
+    opts = opts |> Keyword.put(:timeout, :infinity)
     url = tkn.unencoded.iss <> url
     do_normal_request({method, url, body, headers, opts, from}, nil, state)
   end
