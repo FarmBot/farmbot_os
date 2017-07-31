@@ -14,14 +14,14 @@ defmodule Farmbot.Sequence.Manager do
     GenServer.start_link(__MODULE__, {ctx, sequence, caller}, opts)
   end
 
-  def init({ctx, sequence_ast, pid}) do
+  def init({ctx, sequence_ast, sequence_pid}) do
     case Runner.start_link(ctx, sequence_ast, self()) do
       {:ok, pid} ->
         Process.flag(:trap_exit, true)
         Process.link(sequence_pid)
         {:ok, %{context: ctx, caller: pid, sequence_pid: sequence_pid}}
       :ignore ->
-        send(pid, {self(), ctx})
+        send(sequence_pid, {self(), ctx})
         :ignore
       err -> {:stop, err}
     end
