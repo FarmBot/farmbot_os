@@ -209,9 +209,10 @@ defmodule Farmbot.Configurator.Router do
 
   # anything that doesn't match a rest end point gets the index.
   match _ do
-    conn
-    |> put_resp_header("location", "http://192.168.24.1/index.html")
-    |> send_resp(302, "OK")
+    # conn
+    # |> put_resp_header("location", "http://192.168.24.1/index.html")
+    # |> send_resp(302, "OK")
+    conn |> send_resp(200, make_html("index"))
   end
 
   ## PRIVATE.
