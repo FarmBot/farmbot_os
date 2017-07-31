@@ -1,5 +1,6 @@
 defmodule Farmbot.Serial.HandlerTest do
   alias Farmbot.Serial.Handler
+  @moduletag [:farmbot_serial]
   use Farmbot.Test.Helpers.SerialTemplate, async: false
 
   describe "does serial tests" do
