@@ -11,8 +11,7 @@ defmodule Farmbot.Farmware.Installer do
   @version Mix.Project.config[:version]
 
   @doc """
-    Installs a farmware.
-    Does not register to the Manager.
+  Installs a farmware.
   """
   @spec install!(Context.t, binary) :: Farmware.t | no_return
   def install!(%Context{} = ctx, url) do
@@ -39,6 +38,7 @@ defmodule Farmbot.Farmware.Installer do
         end, true
         fw = Farmware.new(json)
         Logger.info ">> installed new Farmware: #{fw.name}", type: :successs
+        Manager.reindex(ctx)
         fw
       {:noop, fw} ->
         debug_log "#{inspect fw} is installed and up to date."
@@ -90,17 +90,17 @@ defmodule Farmbot.Farmware.Installer do
   end
 
   @doc """
-    Uninstalls a farmware.
-    Does no unregister from the Manager.
+  Uninstalls a farmware.
   """
   @spec uninstall!(Context.t, Farmware.t) :: :ok | no_return
-  def uninstall!(%Context{} = _ctx, %Farmware{} = fw) do
+  def uninstall!(%Context{} = ctx, %Farmware{} = fw) do
     :ok    = ensure_dirs!()
     debug_log "Uninstalling a Farmware from: #{inspect fw}"
     package_path = fw.path
     FS.transaction fn() ->
       File.rm_rf!(package_path)
     end, true
+    Manager.reindex(ctx)
   end
 
   @doc """
@@ -119,7 +119,7 @@ defmodule Farmbot.Farmware.Installer do
 
     # do the installs
     for entry <- repository.entries do
-      :ok = Manager.install!(ctx, entry.manifest)
+      install!(ctx, entry.manifest)      
     end
 
     :ok = set_synced!(module)
