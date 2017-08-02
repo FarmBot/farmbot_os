@@ -46,8 +46,7 @@ defmodule Farmbot.Farmware.Runtime do
     case File.cd(fw.path) do
       :ok -> :ok
       err ->
-        raise FarmwareRuntimeError,
-          message: "could not change directory: #{inspect err}"
+        raise FarmwareRuntimeError, "could not change directory: #{inspect err}"
     end
 
     port = Port.open({:spawn_executable, exec},
@@ -112,8 +111,7 @@ defmodule Farmbot.Farmware.Runtime do
     if real_exe do
       real_exe
     else
-      raise FarmwareRuntimeError,
-        message: "Could not locate #{exec}"
+      raise FarmwareRuntimeError, "Could not locate #{exec}"
     end
   end
 
@@ -124,7 +122,7 @@ defmodule Farmbot.Farmware.Runtime do
         Logger.info ">> [#{fw.name}] completed!", type: :success
         state.context
       {^port, {:exit_status, s}} ->
-        raise FarmwareRuntimeError, message: "#{fw.name} completed with errors! (#{s})"
+        raise FarmwareRuntimeError, "#{fw.name} completed with errors! (#{s})"
       {^port, {:data, data}} ->
         debug_log "[#{inspect fw}] sent data: \r\n===========\r\n\r\n#{data} \r\n==========="
         handle_port(state)

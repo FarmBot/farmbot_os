@@ -109,6 +109,9 @@ defmodule Farmbot.CeleryScript.Command do
       e in Farmbot.CeleryScript.Error ->
         Logger.error "Failed to execute #{ast.kind}: #{inspect e.message}"
         reraise e, System.stacktrace()
+      e in Farmbot.Farmware.RuntimeError ->
+        Logger.error "Farmware Error! #{e.message}"
+        reraise e, System.stacktrace()
       exception ->
         Logger.error "Unknown error happend executing CeleryScript."
         debug_log "CeleryScript Error: #{inspect exception}"
