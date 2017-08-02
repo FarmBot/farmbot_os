@@ -1,6 +1,15 @@
 defmodule Farmbot.FarmEvent.Runner do
   @moduledoc """
-    Checks the database every 60 seconds for FarmEvents
+  Checks the database every 20 seconds for FarmEvents
+
+  ## Rules for FarmEvent execution.
+  * Regimen
+    * ignore `end_time`.
+    * ignore calendar.
+    * if start_time is more than 60 seconds passed due, assume it already started, and don't start it again.
+  * Sequence
+    * if `start_time` is late, check the calendar.
+      * for each item in the calendar, check if it's event is more than 60 seconds in the past. if not, execute it.
   """
   require Logger
   alias   Farmbot.{Context, DebugLog, Database}
@@ -61,8 +70,9 @@ defmodule Farmbot.FarmEvent.Runner do
         context
           |> Database.get_all(FarmEvent)
           |> Enum.map(fn(db_object) -> db_object.body end)
-
+      debug_log "BEGIN CHECKUP"
       {late_events, new} = do_checkup(context, all_events, now, state)
+      debug_log "\r\n =======================\r\n"
       unless Enum.empty?(late_events) do
         Logger.info "Time for event to run at: #{now.hour}:#{now.minute}"
         start_events(context, late_events, now)
@@ -119,56 +129,59 @@ defmodule Farmbot.FarmEvent.Runner do
   @spec check_event(Context.t, FarmEvent.t, DateTime.t, DateTime.t)
     :: {late_event | nil, DateTime.t}
   defp check_event(%Context{} = ctx, %FarmEvent{} = f, now, last_time) do
-    # Get the executable out of the database
+    # Get the executable out of the database this may fail.
     mod_list = [Farmbot.Database, Syncable, f.executable_type |> String.to_atom]
     mod      = Module.safe_concat(mod_list)
     event    = lookup(ctx, mod, f.executable_id)
 
-    # build a local start time
+    # build a local start time and end time
     start_time = Timex.parse! f.start_time, "{ISO:Extended}"
+    end_time   = Timex.parse! f.end_time,   "{ISO:Extended}"
 
-    # is now after the start time?
-    started? = Timex.after? now, start_time
-
-    # build a local end_time
-    end_time = Timex.parse! f.end_time, "{ISO:Extended}"
-
-    # is now after the end time?
+    # get local bool of if the event is started and finished.
+    started?  = Timex.after? now, start_time
     finished? = Timex.after? now, end_time
 
-    # Check if we need to run, and return the last time we ran
-    {run?, last_time} =
-      should_run?(started?, finished?, f.calendar, last_time, now)
-    if run? do
-      {event, last_time}
-    else
-      {nil, last_time}
+    case f.executable_type do
+      "Regimen"  ->
+        # checks starts time agains now minus one minute.
+        too_old? = abd
+        # if the event is started and not too_old, it needs to be executed.
+        if started? and not too_old?, do: {event, now}, else: {nil, last_time}
+      "Sequence" ->
+        # if the event was started and not finished yet., we need to enumerate the calendar
+        # and check each event against now, the start_time, and the last_time.
+        if started? and not finished? do
+          {run?, next_time} = should_run_sequence?(f.calendar, last_time, now)
+          if run?, do: {event, next_time}, else: {nil, last_time}
+        else
+          {nil, last_time}
+        end
     end
   end
 
-  @spec should_run?(boolean, boolean, [String.t], DateTime.t | nil, DateTime.t)
-    :: {late_event | nil, DateTime.t | nil}
-  defp should_run?(started?, finished?, calendar, last_time, now)
+  defp should_run_sequence?(calendar, last_time, now)
 
-  # if we arent started yet, there wont be any to run
-  defp should_run?(false, _, _, last_time, _), do: {nil, last_time}
-  # if we ARE finished, doesnt matter
-  defp should_run?(_, true, _, last_time, _), do: {nil, last_time}
-
-  # we are started, not finished, and no last time
-  defp should_run?(true, false, [first_time | _], nil, now) do
+  # if there is no last time, check if time is passed now within 60 seconds.
+  defp should_run_sequence?([time | _], nil, now) do
     # convert the first_time to a DateTime
     dt = Timex.parse! first_time, "{ISO:Extended}"
     # if now is after the time, we are in fact late
     if Timex.after?(now, dt) do
-      {true, now}
+      # if that time is greater than 60 seconods, this event is _too_ late, or already executed.
+      # make sure to return nil as the last time because it stil hasnt executed yet.
+      if too_old?, do: {false, nil}, else: {true, now}
      else
       {false, nil}
     end
   end
 
+  defp should_run_sequence?(calendar, last_time, now) do
+    # FIXME
+  end
+
   # we are started, not finished, and no last time
-  defp should_run?(true, false, calendar, last_time, now) do
+  defp should_run_sequence?(true, false, calendar, last_time, now) do
     # get rid of all the items that happened before last_time
     calendar = Enum.filter(calendar, fn(iso_time) ->
       dt = Timex.parse! iso_time, "{ISO:Extended}"
