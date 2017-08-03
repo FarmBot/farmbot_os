@@ -82,6 +82,7 @@ defmodule Farmbot.Mixfile do
        :gen_mqtt,
        :ssh,
        :fs,
+       :uuid
      ] ++ included_apps(Mix.env)]
   end
 
@@ -98,7 +99,6 @@ defmodule Farmbot.Mixfile do
       :nerves_ssdp_server,
       :poison,
       :rsa,
-      :nerves_lib,
       :runtime_tools,
       :mustache,
       :vmq_commons,
@@ -134,8 +134,7 @@ defmodule Farmbot.Mixfile do
 
       # Hardware stuff
       {:nerves_uart, "0.1.2"}, # uart handling
-      {:nerves_lib, github: "nerves-project/nerves_lib"}, # this has a good uuid
-      # {:bootloader, github: "nerves-project/bootloader"},
+      { :uuid, "~> 1.1" },
 
       # http stuff
       {:poison, "~> 3.0"},

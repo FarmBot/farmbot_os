@@ -35,7 +35,7 @@ defmodule Farmbot.Farmware.Runtime do
   def execute(%Context{} = ctx, %Farmware{} = fw) do
     debug_log "Starting execution of: #{inspect fw}"
     Process.flag(:trap_exit, true)
-    uuid          = Nerves.Lib.UUID.generate()
+    uuid          = UUID.uuid1()
     fw_jwt        = %FarmwareJWT{start_time: Timex.now() |> DateTime.to_iso8601()}
     http_port     = lookup_port()
     env           = environment(ctx, fw_jwt, http_port)

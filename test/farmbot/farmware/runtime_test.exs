@@ -24,7 +24,7 @@ defmodule Farmbot.Farmware.RuntimeTest do
     fake_fw = %Farmware{
       path:       "/tmp/",
       executable: "bash",
-      uuid:       Nerves.Lib.UUID.bingenerate(),
+      uuid:       UUID.uuid1(),
       name:       "spectrometer",
       url:        "",
       args:       ["-c", "echo $BEGIN_CELERYSCRIPT #{inspect json_stuff}"],
