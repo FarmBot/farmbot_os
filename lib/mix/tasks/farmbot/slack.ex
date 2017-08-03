@@ -19,7 +19,6 @@ defmodule Mix.Tasks.Farmbot.Slack do
     commit           = Mix.Project.config[:commit]
     fw_file          = Path.join(["images", "#{Mix.env()}", "#{target}",
       (if signed?, do: "#{otp_app}-signed.fw", else: "#{otp_app}.fw")])
-    # fw_file = "/tmp/hello.txt"
 
     unless File.exists?(fw_file) do
       Mix.raise "Could not find firmware: #{fw_file}"
@@ -34,7 +33,6 @@ defmodule Mix.Tasks.Farmbot.Slack do
 
     url       = "https://slack.com/api/files.upload"
     form_data = %{
-      "file"            => "replace_me",
       :file             => fw_file,
       "token"           => token,
       "channels"        => "embedded-systems",

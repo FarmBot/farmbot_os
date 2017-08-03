@@ -22,7 +22,7 @@ defmodule Farmbot.Mixfile do
      version: @version,
      target: @target,
      commit: commit(),
-     archives: [nerves_bootstrap: "~> 0.5.1"],
+     archives: [nerves_bootstrap: "~> 0.6.0"],
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      build_path:  "_build/#{Mix.env()}/#{@target}",
@@ -143,7 +143,6 @@ defmodule Farmbot.Mixfile do
       {:exjsx, "~> 3.2", override: true},
       {:rsa, "~> 0.0.1"},
       {:httpoison, "~> 0.12"},
-      # {:hackney, path: "../hackney", override: true},
 
       # MQTT stuff
       {:gen_mqtt, "~> 0.3.1"}, # for rpc transport

@@ -10,6 +10,17 @@ defmodule Farmbot.BotState do
   @typedoc false
   @type context :: Context.t
 
+  def download_progress_fun(%Context{} = ctx, name) do
+    fn(part, total) ->
+      percent = ((part / total) * 100) |> round()
+      Farmbot.BotState.set_job_progress(ctx, name, percent)
+    end
+  end
+
+  def set_job_progress(%Context{} = context, name, percent) do
+    GenServer.call(context.monitor, {:set_job_progress, name, percent})
+  end
+
   @doc """
     Gets the current position of the bot. Returns [x,y,z]
   """
@@ -20,10 +31,20 @@ defmodule Farmbot.BotState do
   @doc """
     Sets the position to givin position.
   """
-  @spec set_pos(context, integer, integer, integer) :: :ok
+  @spec set_pos(context, integer, integer, integer) :: [integer, ...]
   def set_pos(%Context{} = context, x, y, z)
   when is_integer(x) and is_integer(y) and is_integer(z) do
     GenServer.call(context.hardware, {:set_pos, {x, y, z}})
+  end
+
+  @doc "Set scaled encoder value."
+  def set_scaled_encoders(%Context{} = context, x, y, z) do
+    GenServer.call(context.hardware, {:set_scaled_encoders, {x, y, z}})
+  end
+
+  @doc "Set raw encoder value."
+  def set_raw_encoders(%Context{} = context, x, y, z) do
+    GenServer.call(context.hardware, {:set_raw_encoders, {x, y, z}})
   end
 
   @doc """

@@ -14,27 +14,30 @@ defmodule Farmbot.Sequence.Manager do
     GenServer.start_link(__MODULE__, {ctx, sequence, caller}, opts)
   end
 
-  def init({ctx, sequence_ast, pid}) do
-    Process.flag(:trap_exit, true)
-    {:ok, sequence_pid} = Runner.start_link(ctx, sequence_ast, self())
-    Process.link(sequence_pid)
-    {:ok, %{context: ctx, caller: pid, sequence_pid: sequence_pid}}
+  def init({ctx, sequence_ast, sequence_pid}) do
+    case Runner.start_link(ctx, sequence_ast, self()) do
+      {:ok, pid} ->
+        Process.flag(:trap_exit, true)
+        Process.link(sequence_pid)
+        {:ok, %{context: ctx, caller: pid, sequence_pid: sequence_pid}}
+      :ignore ->
+        send(sequence_pid, {self(), ctx})
+        :ignore
+      err -> {:stop, err}
+    end
   end
 
-  def handle_info({pid, %Context{} = ctx}, %{sequence_pid: sequence_pid} = state)
-  when pid == sequence_pid do
+  def handle_info({_pid, %Context{} = ctx}, %{sequence_pid: _sequence_pid} = state)  do
     {:noreply, %{state | context: ctx}}
   end
 
-  def handle_info({:EXIT, pid, :normal}, %{sequence_pid: sequence_pid} = state)
-  when pid == sequence_pid do
+  def handle_info({:EXIT, _pid, :normal}, %{sequence_pid: _sequence_pid} = state) do
     debug_log "Sequence completed successfully."
     send state.caller, {self(), state.context}
     {:stop, :normal, state}
   end
 
-  def handle_info({:EXIT, pid, reason}, %{sequence_pid: sequence_pid} = state)
-  when pid == sequence_pid do
+  def handle_info({:EXIT, _pid, reason}, %{sequence_pid: _sequence_pid} = state) do
     debug_log "Caught sequence exit error: #{inspect reason}"
     send state.caller, {self(), {:error, reason}}
     {:stop, reason, state}

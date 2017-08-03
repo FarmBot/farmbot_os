@@ -484,14 +484,14 @@ defmodule Farmbot.Serial.Handler do
     {:reply, reply}
   end
 
-  defp handle_gcode({:report_encoder_position_scaled, x, y, z}, %Context{} = _ctx) do
-    debug_log "scaled encoders: #{inspect {x, y, z}}"
-    nil
+  defp handle_gcode({:report_encoder_position_scaled, x, y, z} = reply, %Context{} = ctx) do
+    BotState.set_scaled_encoders(ctx, x, y, z)
+    {:reply, reply}
   end
 
-  defp handle_gcode({:report_encoder_position_raw, x, y, z}, %Context{} = _ctx) do
-    debug_log "raw encoders: #{inspect {x, y, z}}"
-    nil
+  defp handle_gcode({:report_encoder_position_raw, x, y, z} = reply, %Context{} = ctx) do
+    BotState.set_raw_encoders(ctx, x, y, z)
+    {:reply, reply}
   end
 
   defp handle_gcode({:report_software_version, version} = reply, %Context{} = ctx) do

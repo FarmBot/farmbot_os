@@ -37,7 +37,6 @@ defmodule Farmbot.Farmware do
 
   defstruct [
     :executable,
-    :uuid,
     :name,
     :meta,
     :args,
@@ -45,19 +44,18 @@ defmodule Farmbot.Farmware do
     :path
   ]
 
-  @typedoc false
-  @type uuid :: binary
-
   @typedoc """
     The url used to get updates, reinstall, etc.
   """
   @type url :: binary
 
+  @typedoc "Farmware name"
+  @type name :: binary
+
   @typedoc "Farmware Struct"
   @type t :: %__MODULE__{
     executable: binary,
-    uuid:       uuid,
-    name:       binary,
+    name:       name,
     url:        url,
     args:       [binary],
     meta:       Meta.t,
@@ -86,7 +84,6 @@ defmodule Farmbot.Farmware do
     }) do
     %__MODULE__{
       executable: exe,
-      uuid:       Nerves.Lib.UUID.generate(),
       args:       args,
       name:       name,
       url:        url,
