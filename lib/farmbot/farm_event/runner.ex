@@ -18,20 +18,21 @@ defmodule Farmbot.FarmEvent.Runner do
   use     DebugLog
   use     GenServer
   alias   Database.Syncable.{
-    Sequence,
-    Regimen,
+    # Sequence,
+    # Regimen,
     FarmEvent
   }
 
   @checkup_time 20_000
 
-  @type database :: Database.db
-  @type state :: {database, %{required(integer) => DateTime.t}}
-
+  @doc "Start the FarmEvent Runner."
   def start_link(%Context{} = context, opts) do
     GenServer.start_link(__MODULE__, context, opts)
   end
 
+  ## GenServer Callbacks.
+
+  # State is a map of farm_event id's to last execution time.
   def init(%{database: db} = context) when is_pid(db) do
     Process.link(db)
     Database.hook(context, self())
@@ -39,11 +40,15 @@ defmodule Farmbot.FarmEvent.Runner do
     {:ok, {context, nil, %{} }}
   end
 
+  # We rely on the database, so we need its pid. Look it up, or error if it
+  # isn't a thing.
   def init(%{database: db} = context) when is_atom(db) do
     db_pid = Process.whereis(db) || raise "Could not find Database pid."
     init(%{context | database: db_pid})
   end
 
+  # When a sync starts, we don't want to be checking up on things while
+  # the sync is happening.
   def handle_info({Database, :sync_start}, {context, timer, state}) do
     debug_log "Pausing FarmEvent runner until sync finishes."
     if timer do
@@ -52,6 +57,7 @@ defmodule Farmbot.FarmEvent.Runner do
     {:noreply, {context, nil, state}}
   end
 
+  # When the sync finishes, resume the timer.
   def handle_info({Database, :sync_end}, {context, timer, state}) do
     debug_log "Resuming FarmEvent runner."
     if timer do
@@ -61,83 +67,55 @@ defmodule Farmbot.FarmEvent.Runner do
     {:noreply, {context, new_timer, state}}
   end
 
+  # ignore other database events.
+  #TODO(Connor) we might need to handle Sequence delete events?
   def handle_info({Database, _}, state), do: {:noreply, state}
 
+  # This is the timer message.
   def handle_info(:checkup, {context, _, state}) do
     now = get_now()
-    # debug_log "Doing checkup: #{inspect now}"
-    new_state = if now do
-      all_events =
-        context
-          |> Database.get_all(FarmEvent)
-          |> Enum.map(fn(%{body: actual}) -> actual end)
 
-      # debug_log "BEGIN CHECKUP"
-      {late_events, new} = do_checkup(context, all_events, now, state)
-      # debug_log "\r\n =======================\r\n"
-      unless Enum.empty?(late_events) do
-        Logger.info "Time for event to run at: #{now.hour}:#{now.minute}"
-        start_events(context, late_events, now)
-      end
-      new
-    else
-      state
+    # get all the farm_events.
+    all_events =
+      context
+        |> Database.get_all(FarmEvent)
+        |> Enum.map(fn(%{body: actual}) -> actual end)
+
+    # do checkup is the bulk of the work.
+    {late_events, new} = do_checkup(context, all_events, now, state)
+
+    #TODO(Connor) Conditionally start events based on some state info.
+    unless Enum.empty?(late_events) do
+      Logger.info "Time for event to run at: #{now.hour}:#{now.minute}"
+      start_events(context, late_events, now)
     end
+
+    # Start a new timer.
     timer = Process.send_after self(), :checkup, @checkup_time
-    {:noreply, {context, timer, new_state}}
+    {:noreply, {context, timer, new}}
   end
 
-  @spec start_events(Context.t, [Sequence.t | Regimen.t], DateTime.t)
-    :: no_return
-  defp start_events(_context, [], _now), do: :ok
-  defp start_events(%Context{} = context, [event | rest], now) do
-    spawn fn() ->
-      execute_event(event, context, now)
-    end
-    start_events(context, rest, now)
-  end
-
-  @spec get_now :: DateTime.t
-  defp get_now, do: Timex.now()
-
-  # is then more than 1 minute in the past?
-  defp is_too_old?(now, then) do
-    blah = fn(dt) -> "#{dt.hour}:#{dt.minute}:#{dt.second}" end
-    seconds = DateTime.to_unix(now, :second) - DateTime.to_unix(then, :second)
-    c = seconds > 60 # not in MS here
-    debug_log "is checking #{blah.(now)} - #{blah.(then)} = #{seconds} seconds ago. is_too_old? => #{c}"
-    # require IEx; IEx.pry
-    c
-  end
-
-  @type late_event :: Regimen.t | Sequence.t
-  @type late_events :: [late_event]
-
-  # TODO(Connor) turn this into tasks
-  # NOTE(Connor) yes i could have just done an Enum.reduce here, but i want
-  # it to be async at some point
-  @spec do_checkup(Context.t, [struct], DateTime.t, late_events, state)
-    :: {late_events, state}
+  # Check each events, and put late ones in `late_events` accumulator.
   defp do_checkup(context, list, time, late_events \\ [], state)
 
+  # When there are no more events to be enumerated.
   defp do_checkup(_, [], _now, late_events, state), do: {late_events, state}
 
-  defp do_checkup(%Context{} = ctx,
-    [farm_event | rest], now, late_events, state)
-  do
-    {new_late, last_time} = check_event(ctx,
-      farm_event, now, state[farm_event.id])
+  # Enumerate all the things.
+  defp do_checkup(%Context{} = ctx, [farm_event | rest], now, late_events, state) do
+    # new_late will be a executable event (Regimen or Sequence.)
+    {new_late_event, last_time} = check_event(ctx, farm_event, now, state[farm_event.id])
 
+    # update state.
     new_state = Map.put(state, farm_event.id, last_time)
-    if new_late do
-      do_checkup(ctx, rest, now, [new_late | late_events], new_state)
-    else
-      do_checkup(ctx, rest, now, late_events, new_state)
+    case new_late_event do
+      # if `new_late_event` is nil, don't accumulate it.
+      nil   -> do_checkup(ctx, rest, now, late_events, new_state)
+      # if there is a new event, accumulate it.
+      event -> do_checkup(ctx, rest, now, [event | late_events], new_state)
     end
   end
 
-  @spec check_event(Context.t, FarmEvent.t, DateTime.t, DateTime.t)
-    :: {late_event | nil, DateTime.t}
   defp check_event(%Context{} = ctx, %FarmEvent{} = f, now, last_time) do
     # Get the executable out of the database this may fail.
     mod_list = [Farmbot.Database, Syncable, f.executable_type |> String.to_atom]
@@ -152,14 +130,14 @@ defmodule Farmbot.FarmEvent.Runner do
     started?  = Timex.after? now, start_time
     finished? = Timex.after? now, end_time
 
-    debug_log "#{inspect event} starts: #{inspect start_time} | ends: #{inspect end_time} | started? #{started?} | finished? #{finished?}"
-
     case f.executable_type do
       "Regimen"  -> maybe_start_regimen(started?, start_time, last_time, event, now)
       "Sequence" -> maybe_start_sequence(started?, finished?, f, last_time, event, now)
     end
   end
 
+  ## THIS IS WHERE LOGIC GETS UGLY.
+  ## SEE THE MODULEDOC FOR MORE INFO ON THESE WEIRD RULES.
 
   # We only want to start the regiment if it is started, and not older than a minute.
   defp maybe_start_regimen(started?, start_time, last_time, event, now)
@@ -179,9 +157,10 @@ defmodule Farmbot.FarmEvent.Runner do
     {nil, last_time}
   end
 
-  # We only want to check if the sequence is started, and not finished.
+  # signals the start of a sequence based on the described logic.
   defp maybe_start_sequence(started?, finished?, farm_event, last_time, event, now)
 
+  # We only want to check if the sequence is started, and not finished.
   defp maybe_start_sequence(_started? = true, _finished? = false, farm_event, last_time, event, now) do
     {run?, next_time} = should_run_sequence?(farm_event.calendar, last_time, now)
     case run? do
@@ -200,16 +179,19 @@ defmodule Farmbot.FarmEvent.Runner do
     end
   end
 
+  # if started is false, the event isn't ready to be executed.
   defp maybe_start_sequence(_started? = false, _fin, _farm_event, last_time, event, _now) do
     debug_log "#{inspect event} is not started yet."
     {nil, last_time}
   end
 
+  # if the event is finished (but not a "never" time_unit), we don't execute.
   defp maybe_start_sequence(_started?, _finished? = true, _farm_event, last_time, event, _now) do
     debug_log "#{inspect event} is finished."
     {nil, last_time}
   end
 
+  # Checks  if we shoudl run a sequence or not. returns {event | nil, time | nil}
   defp should_run_sequence?(calendar, last_time, now)
 
   # if there is no last time, check if time is passed now within 60 seconds.
@@ -255,13 +237,34 @@ defmodule Farmbot.FarmEvent.Runner do
 
   end
 
-  @spec lookup(Context.t, Sequence | Regimen, integer) :: Sequence.t | Regimen.t | no_return
+  # Enumeration is complete.
+  defp start_events(_context, [], _now), do: :ok
+
+  # Enumerate the events to be started.
+  defp start_events(%Context{} = context, [event | rest], now) do
+    # Spawn to be non blocking here. Maybe link to this process? i don't know.
+    spawn fn() -> execute_event(event, context, now) end
+    # Continue enumeration.
+    start_events(context, rest, now)
+  end
+
+  # Don't know why i did this.
+  defp get_now, do: Timex.now()
+
+  # is then more than 1 minute in the past?
+  defp is_too_old?(now, then) do
+    blah = fn(dt) -> "#{dt.hour}:#{dt.minute}:#{dt.second}" end
+    seconds = DateTime.to_unix(now, :second) - DateTime.to_unix(then, :second)
+    c = seconds > 60 # not in MS here
+    debug_log "is checking #{blah.(now)} - #{blah.(then)} = #{seconds} seconds ago. is_too_old? => #{c}"
+    c
+  end
+
   defp lookup(%Context{} = ctx, module, sr_id) do
     item = Database.get_by_id(ctx, module, sr_id)
     unless item do
       raise "Could not find #{inspect module} by id: #{sr_id}"
     end
-
-    item.body
+    item.body || raise "#{module} #{sr_id} has no body."
   end
 end
