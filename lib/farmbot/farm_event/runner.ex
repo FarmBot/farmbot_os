@@ -10,6 +10,7 @@ defmodule Farmbot.FarmEvent.Runner do
   * Sequence
     * if `start_time` is late, check the calendar.
       * for each item in the calendar, check if it's event is more than 60 seconds in the past. if not, execute it.
+    * if there is only one event in the calendar, ignore the `end_time`
   """
   require Logger
   alias   Farmbot.{Context, DebugLog, Database}
@@ -22,7 +23,7 @@ defmodule Farmbot.FarmEvent.Runner do
     FarmEvent
   }
 
-  @checkup_time 5_000
+  @checkup_time 20_000
 
   @type database :: Database.db
   @type state :: {database, %{required(integer) => DateTime.t}}
@@ -69,12 +70,6 @@ defmodule Farmbot.FarmEvent.Runner do
       all_events =
         context
           |> Database.get_all(FarmEvent)
-          |> fn(list_or_nil) ->
-            case list_or_nil do
-              list when is_list(list) -> list
-              nil -> []
-            end
-          end.()
           |> Enum.map(fn(%{body: actual}) -> actual end)
 
       # debug_log "BEGIN CHECKUP"
@@ -107,9 +102,12 @@ defmodule Farmbot.FarmEvent.Runner do
 
   # is then more than 1 minute in the past?
   defp is_too_old?(now, then) do
-    blah = fn(dt) -> "#{dt.hour}:#{dt.minute}" end
-    debug_log "is checking #{blah.(now)} vs #{blah.(then)}"
-    Timex.compare(now, then, :minutes) > 1
+    blah = fn(dt) -> "#{dt.hour}:#{dt.minute}:#{dt.second}" end
+    seconds = DateTime.to_unix(now, :second) - DateTime.to_unix(then, :second)
+    c = seconds > 60 # not in MS here
+    debug_log "is checking #{blah.(now)} - #{blah.(then)} = #{seconds} seconds ago. is_too_old? => #{c}"
+    # require IEx; IEx.pry
+    c
   end
 
   @type late_event :: Regimen.t | Sequence.t
@@ -157,32 +155,59 @@ defmodule Farmbot.FarmEvent.Runner do
     debug_log "#{inspect event} starts: #{inspect start_time} | ends: #{inspect end_time} | started? #{started?} | finished? #{finished?}"
 
     case f.executable_type do
-      "Regimen"  ->
-        # checks starts time agains now minus one minute.
-        too_old? = is_too_old?(now, start_time)
-        # if the event is started and not too_old, it needs to be executed.
-        if started? and not too_old? do
-          {event, now}
-        else
-          debug_log "Regimen Event (#{inspect event}) is not started (#{started?}) or too_old: (#{too_old?})"
-          {nil, last_time}
-        end
-      "Sequence" ->
-        # if the event was started and not finished yet., we need to enumerate the calendar
-        # and check each event against now, the start_time, and the last_time.
-        if started? and not finished? do
-          {run?, next_time} = should_run_sequence?(f.calendar, last_time, now)
-          if run? do
-            {event, next_time}
-          else
-            debug_log "(#{inspect event}) Not running sequence started?: #{started?} finished? #{finished?}"
-            {nil, last_time}
-          end
-        else
-          debug_log "Sequence event (#{inspect event}) is not started (#{started?}) or is finished (#{finished?})"
-          {nil, last_time}
-        end
+      "Regimen"  -> maybe_start_regimen(started?, start_time, last_time, event, now)
+      "Sequence" -> maybe_start_sequence(started?, finished?, f, last_time, event, now)
     end
+  end
+
+
+  # We only want to start the regiment if it is started, and not older than a minute.
+  defp maybe_start_regimen(started?, start_time, last_time, event, now)
+  defp maybe_start_regimen(_started? = true, start_time, last_time, event, now) do
+    case is_too_old?(now, start_time) do
+      true  ->
+        debug_log "#{inspect event} is too old to start."
+        {nil, last_time}
+      false ->
+        debug_log "#{inspect event} not to old; starting."
+        {event, now}
+    end
+  end
+
+  defp maybe_start_regimen(_started? = false, _start_time, last_time, event, _) do
+    debug_log "#{inspect event} is not started yet."
+    {nil, last_time}
+  end
+
+  # We only want to check if the sequence is started, and not finished.
+  defp maybe_start_sequence(started?, finished?, farm_event, last_time, event, now)
+
+  defp maybe_start_sequence(_started? = true, _finished? = false, farm_event, last_time, event, now) do
+    {run?, next_time} = should_run_sequence?(farm_event.calendar, last_time, now)
+    case run? do
+      true  -> {event, next_time}
+      false -> {nil, last_time}
+    end
+  end
+
+  # if `farm_event.time_unit` is "never" we can't use the `end_time`.
+  # if we have no `last_time`, time to execute.
+  defp maybe_start_sequence(true, _, %{time_unit: "never"} = f, _last_time = nil, event, now) do
+    debug_log "Ignoring end_time."
+    case should_run_sequence?(f.calendar, nil, now) do
+      {true, next} -> {event, next}
+      {false,   _} -> {nil,   nil }
+    end
+  end
+
+  defp maybe_start_sequence(_started? = false, _fin, _farm_event, last_time, event, _now) do
+    debug_log "#{inspect event} is not started yet."
+    {nil, last_time}
+  end
+
+  defp maybe_start_sequence(_started?, _finished? = true, _farm_event, last_time, event, _now) do
+    debug_log "#{inspect event} is finished."
+    {nil, last_time}
   end
 
   defp should_run_sequence?(calendar, last_time, now)
@@ -194,8 +219,7 @@ defmodule Farmbot.FarmEvent.Runner do
     dt = Timex.parse! first_time, "{ISO:Extended}"
     # if now is after the time, we are in fact late
     if Timex.after?(now, dt) do
-      # if that time is greater than 60 seconods, this event is _too_ late, or already executed.
-      {true, now}
+        {true, now}
      else
        # make sure to return nil as the last time because it stil hasnt executed yet.
        debug_log "Sequence Event not ready yet."
@@ -218,12 +242,15 @@ defmodule Farmbot.FarmEvent.Runner do
         dt = Timex.parse! iso_time, "{ISO:Extended}"
         if Timex.after?(now, dt) do
           {true, dt}
+          # too_old? = is_too_old?(now, dt)
+          # if too_old?, do: {false, last_time}, else: {true, dt}
         else
+          debug_log "Sequence Event not ready yet."
           {false, dt}
         end
-        # too_old? = is_too_old?(now, dt)
-        # if not too_old?, do: {true, dt}, else: {false, last_time}
-      [] -> {false, last_time}
+      [] ->
+        debug_log "No items in calendar."
+        {false, last_time}
     end
 
   end
