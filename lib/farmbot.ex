@@ -7,37 +7,33 @@ defmodule Farmbot do
   alias Farmbot.System.Supervisor, as: FBSYS
 
   @version Mix.Project.config[:version]
-  @commit Mix.Project.config[:commit]
+  @commit  Mix.Project.config[:commit]
 
   @doc """
-    Entry Point to Farmbot
+  Entry Point to Farmbot
   """
   def start(type, args)
-  def start(_, _args) do
+  def start(_, args) do
     Logger.info ">> Booting Farmbot OS version: #{@version} - #{@commit}"
-    :ok = setup_nerves_fw()
-    Supervisor.start_link(__MODULE__, [], name: Farmbot.Supervisor)
+    case Supervisor.start_link(__MODULE__, args, name: Farmbot) do
+      {:ok, pid} -> {:ok, pid}
+      {:error, reason} -> Farmbot.System.factory_reset(reason)
+    end
   end
 
-  def init(_args) do
-    context = Farmbot.Context.new()
-    # ctx_tracker = %Farmbot.Context.Tracker{pid: Farmbot.Context.Tracker}
+  def init(args) do
     children = [
       worker(Farmbot.DebugLog, []),
       supervisor(Registry, [:duplicate,  Farmbot.Registry]),
-      supervisor(FBSYS,                   [context, [name: FBSYS]]),
-      worker(Farmbot.Auth,                [context, [name: Farmbot.Auth]]),
-      worker(Farmbot.FactoryResetWatcher, [context, context.auth, []]),
-      :hackney_pool.child_spec(:farmbot_http_pool, [timeout: 30_000, max_connections: 1000]),
-      worker(Farmbot.HTTP,                [context, [name: Farmbot.HTTP]]),
-      worker(Farmbot.Database,            [context, [name: Farmbot.Database]]),
-      supervisor(Farmbot.BotState.Supervisor,  [context, [name: Farmbot.BotState.Supervisor  ]]),
-      supervisor(Farmbot.FarmEvent.Supervisor, [context, [name: Farmbot.FarmEvent.Supervisor ]]),
-      supervisor(Farmbot.Transport.Supervisor, [context, [name: Farmbot.Transport.Supervisor ]]),
-      worker(Farmbot.ImageWatcher,             [context, [name: Farmbot.ImageWatcher         ]]),
-      supervisor(Farmbot.Serial.Supervisor,    [context, [name: Farmbot.Serial.Supervisor    ]]),
-      supervisor(Farmbot.Configurator, []),
-      supervisor(Farmbot.Farmware.Supervisor,  [context, [name: Farmbot.Farmware.Supervisor]])
+
+      supervisor(Farmbot.System.Supervisor,    [args, [name: Farmbot.System.Supervisor    ]]),
+      supervisor(Farmbot.HTTP.Supervisor,      [args, [name: Farmbot.HTTP.Supervisor      ]]),
+      supervisor(Farmbot.BotState.Supervisor,  [args, [name: Farmbot.BotState.Supervisor  ]]),
+      supervisor(Farmbot.FarmEvent.Supervisor, [args, [name: Farmbot.FarmEvent.Supervisor ]]), # amybe make this a child of the database?
+      supervisor(Farmbot.Transport.Supervisor, [args, [name: Farmbot.Transport.Supervisor ]]),
+      supervisor(Farmbot.Serial.Supervisor,    [args, [name: Farmbot.Serial.Supervisor    ]]),
+      supervisor(Farmbot.Farmware.Supervisor,  [args, [name: Farmbot.Farmware.Supervisor  ]]),
+      worker(Farmbot.ImageWatcher,             [args, [name: Farmbot.ImageWatcher         ]]), # this may need to move too.
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)
