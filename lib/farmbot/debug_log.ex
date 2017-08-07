@@ -92,16 +92,15 @@ defmodule Farmbot.DebugLog do
   end
 
   @doc """
-    Start the Debug Logger
+  Start the Debug Logger
   """
-  def start_link do
-    {:ok, pid} = GenEvent.start_link(name: __MODULE__)
-    :ok = GenEvent.add_handler(pid, Handler, %{})
-    {:ok, pid}
+  def start_link(event_server) do
+    :ok = GenEvent.add_handler(event_server, Handler, %{})
+    {:ok, self()}
   end
 
   @doc """
-    Filter a module from the handler.
+  Filter a module from the handler.
   """
   def filter(module) do
     GenEvent.call(__MODULE__, Handler, {:filter, module})
