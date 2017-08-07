@@ -121,11 +121,11 @@ defmodule Farmbot.Serial.Handler do
   def write(%Context{} = ctx, str, timeout)
   when is_binary(str) and is_number(timeout) do
     if available?(ctx) do
-      try do
-        fn() -> debug_log("write begin from: #{inspect Process.info(self())}") end.()
-      rescue
-        _ -> :ok
-      end
+      # try do
+      #   fn() -> debug_log("write begin from: #{inspect Process.info(self())}") end.()
+      # rescue
+      #   _ -> :ok
+      # end
       GenServer.call(ctx.serial, {:write, str, timeout}, :infinity)
     else
       {:error, :unavailable}
@@ -383,7 +383,8 @@ defmodule Farmbot.Serial.Handler do
     debug_log "Parsing echo: #{echo}"
     case echo do
       # R08 means valid command + whatever you wrote.
-      "R08 " <> ^writeme       -> :ok
+      "R08 " <> echo ->
+        if echo |> String.trim() |> String.contains?(writeme), do: :ok, else: {:error, :bad_echo}
       # R09  means invalid command.
       << "R09", _ :: binary >> -> {:error, :invalid}
       # R87 is E stop
