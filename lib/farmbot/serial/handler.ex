@@ -222,7 +222,7 @@ defmodule Farmbot.Serial.Handler do
 
   def handle_call(:emergency_lock, _, state) do
     UART.write(state.nerves, "E")
-    status = handle_locked(state.current)
+    status = handle_locked(state.current, state.context)
     next = %{state |
       current: nil,
       timeouts: 0,
@@ -363,7 +363,7 @@ defmodule Farmbot.Serial.Handler do
     case results do
       {:status, :done}   -> handle_done(current)
       {:status, :busy}   -> handle_busy(current)
-      {:status, :locked} -> handle_locked(current, context)
+      {:status, :locked} -> handle_locked(current, ctx)
       {:status, status}  -> %{current | status: status}
       {:callback, str}   -> %{current | callback: str}
       {:reply,  reply}   -> %{current | reply: reply}
@@ -382,7 +382,7 @@ defmodule Farmbot.Serial.Handler do
       Process.cancel_timer(current.timer)
     end
     # Side effects.
-    Farmbot.BotState.lock_bot(context)
+    Farmbot.BotState.lock_bot(ctx)
     :locked
   end
 
