@@ -372,7 +372,8 @@ defmodule Farmbot.Serial.Handler do
       _ ->
         # this could return {:error, reason}
         with {:ok, bin} <- UART.read(nerves) do
-          recieve_echo(nerves,  writeme, acc <> bin)
+          # this is a hack. Pls FIXME.
+          recieve_echo(nerves,  writeme, acc <> bin <> "\r\n")
         end
     end
   end
