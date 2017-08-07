@@ -254,14 +254,14 @@ defmodule Farmbot.Serial.Handler do
     handshake = generate_handshake()
     writeme =  "#{str} #{handshake}"
 
-    :ok = configure_uart(state.nerves, false)
+    # :ok = configure_uart(state.nerves, false)
 
     debug_log "writing: #{writeme}"
     :ok = UART.write(state.nerves, writeme)
 
     echo_ok = recieve_echo(state.nerves, writeme, "")
 
-    :ok = configure_uart(state.nerves, true)
+    # :ok = configure_uart(state.nerves, true)
     case echo_ok do
       :ok ->
         debug_log "timing this out in #{timeout} ms."
@@ -370,12 +370,12 @@ defmodule Farmbot.Serial.Handler do
   end
 
   # This function should be called after every write and makes a couple assumptions.
-  # the `configuration` for `nerves` is ecpected to be in passive mode
   defp recieve_echo(nerves, writeme, acc) do
     debug_log "Waiting for echo: sent: #{writeme} have: #{acc}"
     # this could return {:error, reason}
-    with {:ok, bin} <- UART.read(nerves) do
-      (acc <> bin) |> parse_echo(writeme)
+    receive do
+      {:nerves_uart, _, str} when is_binary(str) -> parse_echo(acc <> bin)
+      {:nerves_uart, _, {:error, reason}} -> {:error, reason}
     end
   end
 
