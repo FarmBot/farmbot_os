@@ -363,18 +363,9 @@ defmodule Farmbot.Serial.Handler do
   # the `configuration` for `nerves` is ecpected to be in passive mode
   defp recieve_echo(nerves, writeme, acc) do
     debug_log "Waiting for echo: sent: #{writeme} have: #{acc}"
-    # This is the recursion check.
-    case String.last(acc) do
-      # if the last character is a carrage return, we got the entire echo.
-      "\r\n" -> parse_echo(acc, writeme)
-      # if the last character is not a carrage return,
-      # we need moar characters.
-      _ ->
-        # this could return {:error, reason}
-        with {:ok, bin} <- UART.read(nerves) do
-          # this is a hack. Pls FIXME.
-          recieve_echo(nerves,  writeme, acc <> bin <> "\r\n")
-        end
+    # this could return {:error, reason}
+    with {:ok, bin} <- UART.read(nerves) do
+      (acc <> bin) |> parse_echo(writeme)
     end
   end
 
