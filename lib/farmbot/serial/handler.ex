@@ -408,6 +408,9 @@ defmodule Farmbot.Serial.Handler do
     :: current | nil | :locked
   defp do_handle({_qcode, parsed}, current, %Context{} = ctx)
   when is_map(current) do
+    if current.timer do
+      true = Process.cancel_timer(current.timer)
+    end
     results = handle_gcode(parsed, ctx)
     debug_log "Handling results: #{inspect results}"
     case results do
