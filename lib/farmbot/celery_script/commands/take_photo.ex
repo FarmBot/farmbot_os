@@ -16,7 +16,7 @@ defmodule Farmbot.CeleryScript.Command.TakePhoto do
   @spec run(%{}, [], Context.t) :: Context.t
   def run(%{}, [], context) do
     case Farmware.Manager.lookup_by_name(context, "take-photo") do
-      {:ok, %Farmware{} = fw} -> execute_script(%{label: fw.uuid}, [], context)
+      {:ok, %Farmware{} = fw} -> execute_script(%{label: fw.name}, [], context)
       {:error, e}             -> raise Error, context: context,
         message: "Could not execute take photo: #{inspect e}"
     end

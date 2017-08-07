@@ -17,8 +17,6 @@ defmodule Farmbot.HTTP do
   require Logger
   use     Farmbot.DebugLog
 
-  @behaviour Farmbot.Behaviour.HTTP
-
   @version Mix.Project.config[:version]
   @target  Mix.Project.config[:target]
   @redirect_status_codes [301, 302, 303, 307, 308]
@@ -74,18 +72,18 @@ defmodule Farmbot.HTTP do
     end
   end
 
-  def download_file(ctx, url, path, payload \\ "", headers \\ [])
-  def download_file(ctx, url, path, payload, headers) do
-    case get(ctx, url, payload, headers, file: path) do
+  def download_file(ctx, url, path, progress_callback \\ nil, payload \\ "", headers \\ [])
+  def download_file(ctx, url, path, progress_callback, payload, headers) do
+    case get(ctx, url, payload, headers, file: path, progress_callback: progress_callback) do
       {:ok, %Response{status_code: code}} when is_2xx(code) -> {:ok, path}
       {:ok, %Response{} = resp} -> {:error, resp}
       {:error, reason}          -> {:error, reason}
     end
   end
 
-  def download_file!(ctx, url, path, payload \\ "", headers \\ [])
-  def download_file!(ctx, url, path, payload, headers) do
-    case download_file(ctx, url, path, payload, headers) do
+  def download_file!(ctx, url, path, progress_callback \\ nil, payload \\ "", headers \\ [])
+  def download_file!(ctx, url, path, progress_callback, payload, headers) do
+    case download_file(ctx, url, path, progress_callback, payload, headers) do
       {:ok, path}      -> path
       {:error, reason} -> raise Error, reason
     end
@@ -148,7 +146,7 @@ defmodule Farmbot.HTTP do
   end
 
   defmodule Buffer do
-    defstruct [:data, :headers, :status_code, :request, :from, :id, :file, :timeout]
+    defstruct [:data, :headers, :status_code, :request, :from, :id, :file, :timeout, :progress_callback]
   end
 
   def start_link(%Context{} = ctx, opts) do
@@ -265,21 +263,21 @@ defmodule Farmbot.HTTP do
   defp maybe_close_file(nil), do: :ok
   defp maybe_close_file(fd), do: :file.close(fd)
 
-  defp maybe_log_progress(%Buffer{file: file})
-  when is_nil(file), do: :ok
+  defp maybe_log_progress(%Buffer{file: file, progress_callback: pcb})
+  when is_nil(file) or is_nil(pcb), do: :ok
 
   defp maybe_log_progress(%Buffer{file: _file} = buffer) do
-    :ok
-    # buffer.headers
-    # |> Enum.find_value(fn({header, val}) ->
-    #   if header == "Content-Length", do: val, else: nil
-    # end)
-    # |> case do
-    #   nil -> :ok
-    #   numstr when is_binary(numstr) ->
-    #     total_bytes = numstr |> String.to_integer()
-    #     byte_size()
-    # end
+    buffer.headers
+    |> Enum.find_value(fn({header, val}) ->
+      if header == "Content-Length", do: val, else: nil
+    end)
+    |> case do
+      nil -> :ok
+      numstr when is_binary(numstr) ->
+        total_bytes      = numstr |> String.to_integer()
+        downloaded_bytes = byte_size(buffer.data)
+        buffer.progress_callback.(downloaded_bytes, total_bytes)
+    end
   end
 
   defp do_api_request({_method, _url, _body, _headers, _opts, from}, %{token: nil} = state) do
@@ -291,6 +289,8 @@ defmodule Farmbot.HTTP do
     headers = headers
               |> add_header({"Authorization", "Bearer " <> tkn.encoded})
               |> add_header({"Content-Type", "application/json"})
+
+    opts = opts |> Keyword.put(:timeout, :infinity)
     url = tkn.unencoded.iss <> url
     do_normal_request({method, url, body, headers, opts, from}, nil, state)
   end
@@ -319,6 +319,7 @@ defmodule Farmbot.HTTP do
           data:        "",
           headers:     nil,
           status_code: nil,
+          progress_callback: Keyword.fetch!(opts, :progress_callback),
           request:     {method, url, body, headers, opts},
         }
         {:noreply, %{state | requests: Map.put(state.requests, ref, req)}}

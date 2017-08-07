@@ -5,25 +5,26 @@ defmodule Farmbot.CeleryScript.Command.RemoveFarmware do
 
   alias      Farmbot.CeleryScript.{Command, Error}
   alias      Farmbot.Context
-  import     Farmbot.Lib.Helpers
   require    Logger
   @behaviour Command
 
   @doc ~s"""
     Uninstall a farmware
-      args: %{package: uuid},
+      args: %{package: name},
       body: []
   """
   @spec run(%{package: binary}, [], Context.t) :: Context.t
-  def run(%{package: uuid}, [], %Context{} = context) when is_uuid(uuid) do
+  def run(%{package: name}, [], %Context{} = context) do
     Logger.info "Uninstalling a Farmware!", type: :busy
-    fw = Farmbot.Farmware.Manager.uninstall! context, uuid
-    Logger.info "Uninstalled: #{fw.name}", type: :success
-    context
-  end
-
-  def run(%{package: _not_uuid}, _, %Context{} = context) do
-    raise Error, context: context,
-      message: "To uninstall a farmware, please supply a UUID."
+    case Farmbot.Farmware.Manager.lookup_by_name(context, name) do
+      {:ok, fw} ->
+        Farmbot.Farmware.Installer.uninstall! context, fw
+        Logger.info "Uninstalled: #{fw.name}", type: :success
+        context
+      {:error, e} ->
+        Farmbot.Farmware.Manager.reindex(context)
+        raise Error, context: context,
+          message: "Could not locate farmware: #{e}"
+    end
   end
 end

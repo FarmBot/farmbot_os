@@ -213,7 +213,7 @@ defmodule Farmbot.System.NervesCommon.Network do
               end
               Logger.info ">> is waiting for linux and network and what not."
               Process.sleep(5000) # ye old race linux condidtion
-              uuid = Nerves.Lib.UUID.generate()
+              uuid = UUID.uuid1()
               send(that, {:ssdp_timer, ip, uuid})
               GenServer.call(that, :logged_in)
             end,

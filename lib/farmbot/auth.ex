@@ -12,9 +12,7 @@ defmodule Farmbot.Auth do
   alias   Farmbot.Auth.Subscription, as: Sub
   use     GenServer
   use     DebugLog
-  alias   Farmbot.Behaviour.Auth, as: Behaviour
 
-  @behaviour Behaviour
   @typep server     :: Behaviour.server
   @typep public_key :: Behaviour.public_key
   @typep email      :: Behaviour.email
@@ -54,7 +52,7 @@ defmodule Farmbot.Auth do
     f = %{
       "email": email,
       "password": pass,
-      "id": Nerves.Lib.UUID.generate,
+      "id": UUID.uuid1,
       "version": 1}
     |> Poison.encode!()
     |> RSA.encrypt({:public, pub_key})

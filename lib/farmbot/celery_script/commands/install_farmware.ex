@@ -13,7 +13,7 @@ defmodule Farmbot.CeleryScript.Command.InstallFarmware do
   """
   @spec run(%{url: binary}, [], Context.t) :: Context.t
   def run(%{url: url}, [], context) do
-    Farmbot.Farmware.Manager.install!(context, url)
+    Farmbot.Farmware.Installer.install!(context, url)
     context
   end
 end

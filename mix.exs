@@ -82,6 +82,7 @@ defmodule Farmbot.Mixfile do
        :gen_mqtt,
        :ssh,
        :fs,
+       :uuid
      ] ++ included_apps(Mix.env)]
   end
 
@@ -98,7 +99,6 @@ defmodule Farmbot.Mixfile do
       :nerves_ssdp_server,
       :poison,
       :rsa,
-      :nerves_lib,
       :runtime_tools,
       :mustache,
       :vmq_commons,
@@ -110,7 +110,6 @@ defmodule Farmbot.Mixfile do
       :timex, # Timex needs to start AFTER farmbot, so we can set up its dirs,
       :inets,
       :ssl,
-      :socket,
       :redix,
       :eex,
       :httpoison
@@ -135,8 +134,7 @@ defmodule Farmbot.Mixfile do
 
       # Hardware stuff
       {:nerves_uart, "0.1.2"}, # uart handling
-      {:nerves_lib, github: "nerves-project/nerves_lib"}, # this has a good uuid
-      # {:bootloader, github: "nerves-project/bootloader"},
+      { :uuid, "~> 1.1" },
 
       # http stuff
       {:poison, "~> 3.0"},
@@ -144,8 +142,6 @@ defmodule Farmbot.Mixfile do
       {:exjsx, "~> 3.2", override: true},
       {:rsa, "~> 0.0.1"},
       {:httpoison, "~> 0.12"},
-      {:socket, "~> 0.3"},
-      # {:hackney, path: "../hackney", override: true},
 
       # MQTT stuff
       {:gen_mqtt, "~> 0.3.1"}, # for rpc transport
