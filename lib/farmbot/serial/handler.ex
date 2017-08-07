@@ -576,7 +576,7 @@ defmodule Farmbot.Serial.Handler do
        "-cwiring",
        "-P/dev/#{tty}",
        "-b115200",
-       "-D", "-q", "-q", "-V",
+       "-D", "-q", "-V",
        "-Uflash:w:#{hex_file}:i"]
 
      avrdude = System.find_executable("avrdude")
