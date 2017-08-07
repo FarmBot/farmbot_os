@@ -121,6 +121,11 @@ defmodule Farmbot.Serial.Handler do
   def write(%Context{} = ctx, str, timeout)
   when is_binary(str) and is_number(timeout) do
     if available?(ctx) do
+      try do
+        fn() -> debug_log("write begin from: #{inspect Process.info(self())}") end.()
+      rescue
+        _ -> :ok
+      end
       GenServer.call(ctx.serial, {:write, str, timeout}, :infinity)
     else
       {:error, :unavailable}
@@ -207,6 +212,7 @@ defmodule Farmbot.Serial.Handler do
   end
 
   defp configure_uart(nerves, active) do
+    debug_log "reconfigureing uart: #{active}"
     UART.configure(nerves,
       framing: {UART.Framing.Line, separator: "\r\n"},
       active: active,
@@ -247,14 +253,18 @@ defmodule Farmbot.Serial.Handler do
   when is_binary(str) do
     handshake = generate_handshake()
     writeme =  "#{str} #{handshake}"
-    debug_log "writing: #{writeme}"
+
     :ok = configure_uart(state.nerves, false)
 
+    debug_log "writing: #{writeme}"
     :ok = UART.write(state.nerves, writeme)
+
     echo_ok = recieve_echo(state.nerves, writeme, "")
+
     :ok = configure_uart(state.nerves, true)
     case echo_ok do
       :ok ->
+        debug_log "timing this out in #{timeout} ms."
         timer = Process.send_after(self(), :timeout, timeout)
         current = %{
           status:   nil,
