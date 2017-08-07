@@ -198,16 +198,19 @@ defmodule Farmbot.Serial.Handler do
     # Open the tty
     case UART.open(nerves, tty, speed: 115_200, active: true) do
       :ok ->
-        :ok = UART.configure(nerves,
-          framing: {UART.Framing.Line, separator: "\r\n"},
-          active: true,
-          rx_framing_timeout: 500)
-
+        :ok = configure_uart(nerves, true)
         # Flush the buffers so we start fresh
         :ok = UART.flush(nerves)
         :ok
       err -> err
     end
+  end
+
+  defp configure_uart(nerves, active) do
+    UART.configure(nerves,
+      framing: {UART.Framing.Line, separator: "\r\n"},
+      active: active,
+      rx_framing_timeout: 500)
   end
 
   def handle_call(:wait_for_available, from, state) do
@@ -245,17 +248,27 @@ defmodule Farmbot.Serial.Handler do
     handshake = generate_handshake()
     writeme =  "#{str} #{handshake}"
     debug_log "writing: #{writeme}"
-    UART.write(state.nerves, writeme)
-    timer = Process.send_after(self(), :timeout, timeout)
-    current = %{
-      status:   nil,
-      reply:    nil,
-      from:     from,
-      q:        handshake,
-      timer:    timer,
-      callback: nil
-    }
-    {:noreply, %{state | current: current}}
+    :ok = configure_uart(state.nerves, false)
+
+    :ok = UART.write(state.nerves, writeme)
+    echo_ok = recieve_echo(state.nerves, writeme, "")
+    :ok = configure_uart(state.nerves, true)
+    case echo_ok do
+      :ok ->
+        timer = Process.send_after(self(), :timeout, timeout)
+        current = %{
+          status:   nil,
+          reply:    nil,
+          from:     from,
+          q:        handshake,
+          timer:    timer,
+          callback: nil
+        }
+        {:noreply, %{state | current: current}}
+      {:error, reason} ->
+        {:reply, {:error, reason}, %{state | current: nil}}
+    end
+
   end
 
   def handle_call({:write, _str, _timeout}, _from, %{status: status} = state) do
@@ -344,6 +357,26 @@ defmodule Farmbot.Serial.Handler do
   def terminate(_reason, state) do
     UART.close(state.nerves)
     UART.stop(state.nerves)
+  end
+
+  defp recieve_echo(nerves, writeme, acc) do
+    case String.last(acc) do
+      "\r\n" -> do_parse_echo(acc, writeme)
+      _ ->
+        case UART.read(nerves) do
+          {:ok, bin}       -> recieve_echo(nerves,  writeme, acc <> bin)
+          {:error, reason} -> {:error, reason}
+        end
+    end
+  end
+
+  defp do_parse_echo(acc, writeme) do
+    case acc do
+      "R08 " <> ^writeme       -> :ok
+      << "R09", _ :: binary >> -> {:error, :invalid}
+      << "R87", _ :: binary >> -> {:error, :emergency_lock}
+      other                    -> {:error, "unhandled echo: #{other}"}
+    end
   end
 
   defp do_resolve_waiting(list) do
