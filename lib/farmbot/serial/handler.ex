@@ -363,7 +363,7 @@ defmodule Farmbot.Serial.Handler do
     case results do
       {:status, :done}   -> handle_done(current)
       {:status, :busy}   -> handle_busy(current)
-      {:status, :locked} -> handle_locked(current)
+      {:status, :locked} -> handle_locked(current, context)
       {:status, status}  -> %{current | status: status}
       {:callback, str}   -> %{current | callback: str}
       {:reply,  reply}   -> %{current | reply: reply}
@@ -376,11 +376,13 @@ defmodule Farmbot.Serial.Handler do
     nil
   end
 
-  @spec handle_locked(current) :: :locked
-  defp handle_locked(current) do
+  @spec handle_locked(current, Context.t) :: :locked
+  defp handle_locked(current, ctx) do
     if current do
       Process.cancel_timer(current.timer)
     end
+    # Side effects.
+    Farmbot.BotState.lock_bot(context)
     :locked
   end
 
