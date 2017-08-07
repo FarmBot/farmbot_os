@@ -359,21 +359,32 @@ defmodule Farmbot.Serial.Handler do
     UART.stop(state.nerves)
   end
 
+  # This function should be called after every write and makes a couple assumptions.
+  # the `configuration` for `nerves` is ecpected to be in passive mode
   defp recieve_echo(nerves, writeme, acc) do
+    debug_log "Waiting for echo: sent: #{writeme} have: #{acc}"
+    # This is the recursion check.
     case String.last(acc) do
-      "\r\n" -> do_parse_echo(acc, writeme)
+      # if the last character is a carrage return, we got the entire echo.
+      "\r\n" -> parse_echo(acc, writeme)
+      # if the last character is not a carrage return,
+      # we need moar characters.
       _ ->
-        case UART.read(nerves) do
-          {:ok, bin}       -> recieve_echo(nerves,  writeme, acc <> bin)
-          {:error, reason} -> {:error, reason}
+        # this could return {:error, reason}
+        with {:ok, bin} <- UART.read(nerves) do
+          recieve_echo(nerves,  writeme, acc <> bin)
         end
     end
   end
 
-  defp do_parse_echo(acc, writeme) do
-    case acc do
+  defp parse_echo(echo, writeme) do
+    debug_log "Parsing echo: #{echo}"
+    case echo do
+      # R08 means valid command + whatever you wrote.
       "R08 " <> ^writeme       -> :ok
+      # R09  means invalid command.
       << "R09", _ :: binary >> -> {:error, :invalid}
+      # R87 is E stop
       << "R87", _ :: binary >> -> {:error, :emergency_lock}
       other                    -> {:error, "unhandled echo: #{other}"}
     end
