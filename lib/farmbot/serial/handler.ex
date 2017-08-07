@@ -351,6 +351,9 @@ defmodule Farmbot.Serial.Handler do
         :ok = UART.write(state.nerves, str)
         {:noreply, %{state | current: current}}
       current ->
+        if state.current.timer do
+          true = Process.cancel_timer(state.current.timer)
+        end
         next = %{state |
           current: current, status: current[:status] || :idle, timeouts: 0
         }
@@ -426,7 +429,7 @@ defmodule Farmbot.Serial.Handler do
   @spec handle_locked(current, Context.t) :: :locked
   defp handle_locked(current, ctx) do
     if current do
-      Process.cancel_timer(current.timer)
+      true = Process.cancel_timer(current.timer)
     end
     # Side effects.
     Farmbot.BotState.lock_bot(ctx)
@@ -436,7 +439,7 @@ defmodule Farmbot.Serial.Handler do
   @spec handle_busy(current) :: current
   defp handle_busy(current) do
     debug_log "refreshing timer."
-    Process.cancel_timer(current.timer)
+    true = Process.cancel_timer(current.timer)
     timer = Process.send_after(self(), :timeout, @default_timeout_ms)
     %{current | status: :busy, timer: timer}
   end
@@ -465,7 +468,7 @@ defmodule Farmbot.Serial.Handler do
       }
       {:callback, writeme, current}
     else
-      GenServer.reply(current.from, current.reply)
+      GenServer.reply(current.from, current.reply || "R02")
       nil
     end
   end
