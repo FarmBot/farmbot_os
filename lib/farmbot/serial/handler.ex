@@ -53,7 +53,7 @@ defmodule Farmbot.Serial.Handler do
     q: binary
   } | nil
 
-  @default_timeout_ms 10_000
+  @default_timeout_ms 15_000
   @max_timeouts 10
 
   @doc """

@@ -29,6 +29,11 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
   }
   @spec run(move_absolute_args, [], Context.t) :: Context.t
   def run(%{speed: speed, offset: offset, location: location}, _, ctx) do
+    case UartHan.wait_for_available(ctd) do
+      {:error, reason} -> raise Error "Failed to start movement: #{inspect reason}"
+      _ -> :noop
+    end
+
     Logger.info ">> Doing movement.", type: :busy
     new_context              = ast_to_coord(ctx, location)
     {location, new_context1} = Farmbot.Context.pop_data(new_context)
@@ -40,7 +45,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
     {xb, yb, zb} = {offset.args.x,   offset.args.y,    offset.args.z }
     { combined_x, combined_y, combined_z } = { xa + xb, ya + yb, za + zb }
     {x, y, z} = do_math(combined_x, combined_y, combined_z, new_context3)
-    case UartHan.write(new_context3, "G00 X#{x} Y#{y} Z#{z} S#{speed}") do
+    case UartHan.write(new_context3, "G00 X#{x} Y#{y} Z#{z} S#{speed}", 10_000) do
       {:error, reason} -> raise Error, "Movement failed: #{reason}"
       _ ->
         Logger.info ">> Movement complete.", type: :success
