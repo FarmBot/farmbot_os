@@ -302,11 +302,16 @@ defmodule Farmbot.Serial.Handler do
   def handle_info(:timeout, state) do
     current = state.current
     if current do
-      debug_log "Timing out current: #{inspect current}"
-      GenServer.reply(current.from, {:error, :timeout})
-      check_timeouts(state)
+      if current.reply do
+        debug_log "ignoring timeout. This transaction seems fine."
+        {:noreply, %{state | current: %{current | timer: nil}}}
+      else
+        debug_log "timing out current: #{inspect current}"
+        GenServer.reply(current.from, {:error, :timeout})
+        check_timeouts(state)
+      end
     else
-      debug_log "Got stray timeout."
+      debug_log "got stray timeout."
       {:noreply, %{state | current: nil}}
     end
   end
