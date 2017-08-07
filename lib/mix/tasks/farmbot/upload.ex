@@ -41,7 +41,7 @@ defmodule Mix.Tasks.Farmbot.Upload do
     # payload = [{:file, file_name}]
     Mix.shell.info "Uploading..."
     # headers = ["content-type", "http/form_data"]
-    r = Farmbot.HTTP.post! context, upload_url, {:multipart, payload}, timeout: :infinity
+    r = Farmbot.HTTP.post! context, upload_url, {:multipart, payload}, [], timeout: :infinity
 
     unless match?(%{status_code: 200}, r) do
       Mix.raise "Failed to upload firmware: #{format r}"
