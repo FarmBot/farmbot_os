@@ -29,8 +29,8 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
   }
   @spec run(move_absolute_args, [], Context.t) :: Context.t
   def run(%{speed: speed, offset: offset, location: location}, _, ctx) do
-    case UartHan.wait_for_available(ctd) do
-      {:error, reason} -> raise Error "Failed to start movement: #{inspect reason}"
+    case UartHan.wait_for_available(ctx) do
+      {:error, reason} -> raise Error, "Failed to start movement: #{inspect reason}"
       _ -> :noop
     end
 
