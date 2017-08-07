@@ -356,9 +356,7 @@ defmodule Farmbot.Serial.Handler do
         :ok = UART.write(state.nerves, str)
         {:noreply, %{state | current: current}}
       current ->
-        if state.current.timer do
-          true = Process.cancel_timer(state.current.timer)
-        end
+
         next = %{state |
           current: current, status: current[:status] || :idle, timeouts: 0
         }
@@ -436,9 +434,9 @@ defmodule Farmbot.Serial.Handler do
 
   @spec handle_locked(current, Context.t) :: :locked
   defp handle_locked(current, ctx) do
-    if current do
-      true = Process.cancel_timer(current.timer)
-    end
+
+
+
     # Side effects.
     Farmbot.BotState.lock_bot(ctx)
     :locked
