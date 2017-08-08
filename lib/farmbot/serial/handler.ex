@@ -412,7 +412,7 @@ defmodule Farmbot.Serial.Handler do
   defp do_handle({_qcode, parsed}, current, %Context{} = ctx)
   when is_map(current) do
     if current.timer do
-      true = Process.cancel_timer(current.timer)
+      Process.cancel_timer(current.timer)
     end
     results = handle_gcode(parsed, ctx)
     debug_log "Handling results: #{inspect results}"
@@ -433,10 +433,7 @@ defmodule Farmbot.Serial.Handler do
   end
 
   @spec handle_locked(current, Context.t) :: :locked
-  defp handle_locked(current, ctx) do
-
-
-
+  defp handle_locked(_current, ctx) do
     # Side effects.
     Farmbot.BotState.lock_bot(ctx)
     :locked
@@ -445,7 +442,7 @@ defmodule Farmbot.Serial.Handler do
   @spec handle_busy(current) :: current
   defp handle_busy(current) do
     debug_log "refreshing timer."
-    true = Process.cancel_timer(current.timer)
+    Process.cancel_timer(current.timer)
     timer = Process.send_after(self(), :timeout, @default_timeout_ms)
     %{current | status: :busy, timer: timer}
   end
