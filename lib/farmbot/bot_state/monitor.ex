@@ -60,7 +60,7 @@ defmodule Farmbot.BotState.Monitor do
   end
 
   def handle_call({:set_job_progress, name, progress}, _from, state) do
-    debug_log "setting job progress: #{name} - #{inspect progress}"
+    # debug_log "setting job progress: #{name} - #{inspect progress}"
     jobs      = Map.put(state.jobs, name, progress)
     new_state = %{state | jobs: jobs}
     GenStage.async_notify(new_state.context.monitor, new_state)

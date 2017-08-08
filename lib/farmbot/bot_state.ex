@@ -22,7 +22,7 @@ defmodule Farmbot.BotState do
 
         # if we don't know the total just spit out the bytes.
         total == nil ->
-          debug_log "#{name} - #{bytes} bytes."
+          # debug_log "#{name} - #{bytes} bytes."
           %JobProgress.Bytes{bytes: bytes}
         # if the number of bytes == the total bytes, percentage side is complete.
         (div(bytes,total)) == 1 ->
@@ -31,7 +31,7 @@ defmodule Farmbot.BotState do
         # anything else is a percent.
         true ->
           percent = ((bytes / total) * 100) |> round()
-          debug_log "#{name} - #{bytes}/#{total} = #{percent}%"
+          # debug_log "#{name} - #{bytes}/#{total} = #{percent}%"
           %JobProgress.Percent{percent: percent}
       end
       Farmbot.BotState.set_job_progress(ctx, name, prog)
