@@ -18,12 +18,15 @@ defmodule Farmbot.CeleryScript.Command.Sequence do
     # rebuild the ast node
     ast          = %Ast{kind: "sequence", args: args, body: body}
     # Logger.debug "Starting sequence: #{inspect ast}"
-    {:ok, pid}   = Farmbot.Sequence.Manager.start_link(context, ast, self())
-    next_context = wait_for_sequence(pid, context)
-    next_context
+    case Farmbot.Sequence.Manager.start_link(context, ast, self()) do
+      {:ok, pid} -> wait_for_sequence(pid, context)
+      :ignore    ->
+        Logger.info "Sequence complete.", type: :success
+        context
+    end
   end
 
-  @spec wait_for_sequence(pid, Context.t) :: Context.t
+  @spec wait_for_sequence(pid, Context.t) :: Context.t | no_return
   defp wait_for_sequence(pid, old_context) do
     receive do
       {^pid, %Context{} = ctx}  ->
