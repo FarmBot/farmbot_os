@@ -146,7 +146,7 @@ defmodule Farmbot.HTTP do
   end
 
   defmodule Buffer do
-    defstruct [:data, :headers, :status_code, :request, :from, :id, :file, :timeout, :progress_callback]
+    defstruct [:data, :headers, :status_code, :request, :from, :id, :file, :timeout, :progress_callback, :file_size]
   end
 
   def start_link(%Context{} = ctx, opts) do
@@ -195,8 +195,17 @@ defmodule Farmbot.HTTP do
     case state.requests[ref] do
       %Buffer{} = buffer ->
         # debug_log("#{inspect Tuple.delete_at(buffer.from, 0)} Got headers")
+        file_size = Enum.find_value(headers, fn({header, val}) ->
+          case header do
+            "Content-Length" -> val
+            "content_length" -> val
+            header ->
+              debug_log "nope: #{header}"
+              nil
+          end
+        end)
         HTTPoison.stream_next(%AsyncResponse{id: ref})
-        {:noreply, %{state | requests: %{state.requests | ref => %{buffer | headers: headers}}}}
+        {:noreply, %{state | requests: %{state.requests | ref => %{buffer | headers: headers, file_size: file_size}}}}
       nil -> {:noreply, state}
     end
   end
@@ -269,23 +278,14 @@ defmodule Farmbot.HTTP do
     :ok
   end
 
-  defp maybe_log_progress(%Buffer{file: _file} = buffer) do
-    buffer.headers
-    |> Enum.find_value(fn({header, val}) ->
-      case header do
-        "Content-Length" -> val
-        "content_length" -> val
-        header ->
-          debug_log "nope: #{header}"
-          nil
-      end
-    end)
-    |> case do
-      nil -> debug_log "no content length!"
+  defp maybe_log_progress(%Buffer{file: _file, file_size: fs} = buffer) do
+    downloaded_bytes = byte_size(buffer.data)
+    case fs do
       numstr when is_binary(numstr) ->
-        total_bytes      = numstr |> String.to_integer()
-        downloaded_bytes = byte_size(buffer.data)
+        total_bytes = numstr |> String.to_integer()
         buffer.progress_callback.(downloaded_bytes, total_bytes)
+      other when (other in [:complete]) or is_nil(other) ->
+        buffer.progress_callback.(downloaded_bytes, other)
     end
   end
 
@@ -395,7 +395,10 @@ defmodule Farmbot.HTTP do
     }
     if buffer.timeout, do: Process.cancel_timer(buffer.timeout)
     maybe_close_file(buffer.file)
-    maybe_log_progress(buffer)
+    case buffer.file_size do
+      nil  -> maybe_log_progress(%{buffer | file_size: :complete})
+      _num -> maybe_log_progress(%{buffer | file_size: "#{byte_size(buffer.data)}"})
+    end
     GenServer.reply(buffer.from, {:ok, response})
     {:noreply, %{state | requests: Map.delete(state.requests, buffer.id)}}
   end
