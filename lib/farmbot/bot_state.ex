@@ -6,19 +6,41 @@ defmodule Farmbot.BotState do
 
   require Logger
   alias Farmbot.Context
+  use Farmbot.DebugLog
 
   @typedoc false
   @type context :: Context.t
 
   def download_progress_fun(%Context{} = ctx, name) do
-    fn(part, total) ->
-      percent = ((part / total) * 100) |> round()
-      Farmbot.BotState.set_job_progress(ctx, name, percent)
+    alias Farmbot.BotState.JobProgress
+    fn(bytes, total) ->
+      prog = cond do
+        # if the total is complete spit out the bytes, and put a status of complete.
+        total == :complete ->
+          debug_log "#{name} complete."
+          %JobProgress.Bytes{bytes: bytes, status: :complete}
+
+        # if we don't know the total just spit out the bytes.
+        total == nil ->
+          # debug_log "#{name} - #{bytes} bytes."
+          %JobProgress.Bytes{bytes: bytes}
+        # if the number of bytes == the total bytes, percentage side is complete.
+        (div(bytes,total)) == 1 ->
+          debug_log "#{name} complete."
+          %JobProgress.Percent{percent: 100, status: :complete}
+        # anything else is a percent.
+        true ->
+          percent = ((bytes / total) * 100) |> round()
+          # debug_log "#{name} - #{bytes}/#{total} = #{percent}%"
+          %JobProgress.Percent{percent: percent}
+      end
+      Farmbot.BotState.set_job_progress(ctx, name, prog)
     end
   end
 
-  def set_job_progress(%Context{} = context, name, percent) do
-    GenServer.call(context.monitor, {:set_job_progress, name, percent})
+  @doc "Set job progress."
+  def set_job_progress(%Context{} = context, name, progress) do
+    GenServer.call(context.monitor, {:set_job_progress, name, progress})
   end
 
   @doc """

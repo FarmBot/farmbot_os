@@ -10,6 +10,7 @@ defmodule Farmbot.BotState.Monitor do
   use GenStage
   require Logger
   alias Farmbot.Context
+  use Farmbot.DebugLog
 
   defmodule State do
     @moduledoc false
@@ -59,15 +60,12 @@ defmodule Farmbot.BotState.Monitor do
   end
 
   def handle_call({:set_job_progress, name, progress}, _from, state) do
-    obj       = state.jobs[name] || %{status: :working, progress: progress}
-    jobs      = Map.put(state.jobs, name, %{obj | status: build_status(progress), progress: progress})
+    # debug_log "setting job progress: #{name} - #{inspect progress}"
+    jobs      = Map.put(state.jobs, name, progress)
     new_state = %{state | jobs: jobs}
     GenStage.async_notify(new_state.context.monitor, new_state)
     {:reply, :ok, [], new_state}
   end
-
-  defp build_status(100), do: :complete
-  defp build_status(_),   do: :working
 
   @spec dispatch(State.t) :: {:noreply, [], State.t }
   defp dispatch(%State{} = new_state) do
