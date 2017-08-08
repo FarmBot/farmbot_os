@@ -40,6 +40,11 @@ defmodule Farmbot.Transport.GenMqtt.Client do
     {:ok, state}
   end
 
+  def on_connect_error(reason, state) do
+    Logger.error ">> Failed to connect to mqtt: #{inspect reason}"
+    {:ok, state}
+  end
+
   def on_publish(["bot", _bot, "from_clients"], msg, state) do
     this = self()
     pid = spawn fn() ->

@@ -30,8 +30,6 @@ defmodule Farmbot.CeleryScript.Command.Home do
     args = Map.put(%{x: cur_x, y: cur_y, z: cur_z}, String.to_atom(axis), 0)
     next_context3 = Command.coordinate(args, [], next_context2)
     {location, next_context4} = Farmbot.Context.pop_data(next_context3)
-    Command.move_absolute(%{speed: speed, location: location, offset: blah},
-                          [],
-                          next_context4)
+    Command.move_absolute(%{speed: speed, location: location, offset: blah}, [], next_context4)
   end
 end

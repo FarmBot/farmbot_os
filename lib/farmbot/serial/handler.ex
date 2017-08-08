@@ -53,7 +53,7 @@ defmodule Farmbot.Serial.Handler do
     q: binary
   } | nil
 
-  @default_timeout_ms 10_000
+  @default_timeout_ms 15_000
   @max_timeouts 10
 
   @doc """
@@ -121,6 +121,11 @@ defmodule Farmbot.Serial.Handler do
   def write(%Context{} = ctx, str, timeout)
   when is_binary(str) and is_number(timeout) do
     if available?(ctx) do
+      # try do
+      #   fn() -> debug_log("write begin from: #{inspect Process.info(self())}") end.()
+      # rescue
+      #   _ -> :ok
+      # end
       GenServer.call(ctx.serial, {:write, str, timeout}, :infinity)
     else
       {:error, :unavailable}
@@ -198,16 +203,20 @@ defmodule Farmbot.Serial.Handler do
     # Open the tty
     case UART.open(nerves, tty, speed: 115_200, active: true) do
       :ok ->
-        :ok = UART.configure(nerves,
-          framing: {UART.Framing.Line, separator: "\r\n"},
-          active: true,
-          rx_framing_timeout: 500)
-
+        :ok = configure_uart(nerves, true)
         # Flush the buffers so we start fresh
         :ok = UART.flush(nerves)
         :ok
       err -> err
     end
+  end
+
+  defp configure_uart(nerves, active) do
+    debug_log "reconfigureing uart: #{active}"
+    UART.configure(nerves,
+      framing: {UART.Framing.Line, separator: "\r\n"},
+      active: active,
+      rx_framing_timeout: 500)
   end
 
   def handle_call(:wait_for_available, from, state) do
@@ -222,7 +231,7 @@ defmodule Farmbot.Serial.Handler do
 
   def handle_call(:emergency_lock, _, state) do
     UART.write(state.nerves, "E")
-    status = handle_locked(state.current)
+    status = handle_locked(state.current, state.context)
     next = %{state |
       current: nil,
       timeouts: 0,
@@ -244,18 +253,32 @@ defmodule Farmbot.Serial.Handler do
   when is_binary(str) do
     handshake = generate_handshake()
     writeme =  "#{str} #{handshake}"
+
+    # :ok = configure_uart(state.nerves, false)
+
     debug_log "writing: #{writeme}"
-    UART.write(state.nerves, writeme)
-    timer = Process.send_after(self(), :timeout, timeout)
-    current = %{
-      status:   nil,
-      reply:    nil,
-      from:     from,
-      q:        handshake,
-      timer:    timer,
-      callback: nil
-    }
-    {:noreply, %{state | current: current}}
+    :ok = UART.write(state.nerves, writeme)
+
+    echo_ok = recieve_echo(state.nerves, writeme, "")
+
+    # :ok = configure_uart(state.nerves, true)
+    case echo_ok do
+      :ok ->
+        debug_log "timing this out in #{timeout} ms."
+        timer = Process.send_after(self(), :timeout, timeout)
+        current = %{
+          status:   nil,
+          reply:    nil,
+          from:     from,
+          q:        handshake,
+          timer:    timer,
+          callback: nil
+        }
+        {:noreply, %{state | current: current}}
+      {:error, reason} ->
+        {:reply, {:error, reason}, %{state | current: nil}}
+    end
+
   end
 
   def handle_call({:write, _str, _timeout}, _from, %{status: status} = state) do
@@ -279,11 +302,16 @@ defmodule Farmbot.Serial.Handler do
   def handle_info(:timeout, state) do
     current = state.current
     if current do
-      debug_log "Timing out current: #{inspect current}"
-      GenServer.reply(current.from, {:error, :timeout})
-      check_timeouts(state)
+      if current.reply do
+        debug_log "ignoring timeout. This transaction seems fine."
+        {:noreply, %{state | current: %{current | timer: nil}}}
+      else
+        debug_log "timing out current: #{inspect current}"
+        GenServer.reply(current.from, {:error, :timeout})
+        check_timeouts(state)
+      end
     else
-      debug_log "Got stray timeout."
+      debug_log "got stray timeout."
       {:noreply, %{state | current: nil}}
     end
   end
@@ -328,6 +356,7 @@ defmodule Farmbot.Serial.Handler do
         :ok = UART.write(state.nerves, str)
         {:noreply, %{state | current: current}}
       current ->
+
         next = %{state |
           current: current, status: current[:status] || :idle, timeouts: 0
         }
@@ -346,6 +375,30 @@ defmodule Farmbot.Serial.Handler do
     UART.stop(state.nerves)
   end
 
+  # This function should be called after every write and makes a couple assumptions.
+  defp recieve_echo(_nerves, writeme, acc) do
+    debug_log "Waiting for echo: sent: #{writeme} have: #{acc}"
+    # this could return {:error, reason}
+    receive do
+      {:nerves_uart, _, bin} when is_binary(bin) -> parse_echo(acc <> bin, writeme)
+      {:nerves_uart, _, {:error, reason}} -> {:error, reason}
+    end
+  end
+
+  defp parse_echo(echo, writeme) do
+    debug_log "Parsing echo: #{echo}"
+    case echo do
+      # R08 means valid command + whatever you wrote.
+      "R08 " <> echo ->
+        if echo |> String.trim() |> String.contains?(writeme), do: :ok, else: {:error, :bad_echo}
+      # R09  means invalid command.
+      << "R09", _ :: binary >> -> {:error, :invalid}
+      # R87 is E stop
+      << "R87", _ :: binary >> -> {:error, :emergency_lock}
+      other                    -> {:error, "unhandled echo: #{other}"}
+    end
+  end
+
   defp do_resolve_waiting(list) do
     from = List.last(list)
     if from do
@@ -358,12 +411,15 @@ defmodule Farmbot.Serial.Handler do
     :: current | nil | :locked
   defp do_handle({_qcode, parsed}, current, %Context{} = ctx)
   when is_map(current) do
+    if current.timer do
+      Process.cancel_timer(current.timer)
+    end
     results = handle_gcode(parsed, ctx)
     debug_log "Handling results: #{inspect results}"
     case results do
       {:status, :done}   -> handle_done(current)
       {:status, :busy}   -> handle_busy(current)
-      {:status, :locked} -> handle_locked(current)
+      {:status, :locked} -> handle_locked(current, ctx)
       {:status, status}  -> %{current | status: status}
       {:callback, str}   -> %{current | callback: str}
       {:reply,  reply}   -> %{current | reply: reply}
@@ -376,11 +432,10 @@ defmodule Farmbot.Serial.Handler do
     nil
   end
 
-  @spec handle_locked(current) :: :locked
-  defp handle_locked(current) do
-    if current do
-      Process.cancel_timer(current.timer)
-    end
+  @spec handle_locked(current, Context.t) :: :locked
+  defp handle_locked(_current, ctx) do
+    # Side effects.
+    Farmbot.BotState.lock_bot(ctx)
     :locked
   end
 
@@ -416,7 +471,7 @@ defmodule Farmbot.Serial.Handler do
       }
       {:callback, writeme, current}
     else
-      GenServer.reply(current.from, current.reply)
+      GenServer.reply(current.from, current.reply || "R02")
       nil
     end
   end
@@ -527,7 +582,7 @@ defmodule Farmbot.Serial.Handler do
        "-cwiring",
        "-P/dev/#{tty}",
        "-b115200",
-       "-D", "-q", "-q", "-V",
+       "-D", "-q", "-V",
        "-Uflash:w:#{hex_file}:i"]
 
      avrdude = System.find_executable("avrdude")
