@@ -6,6 +6,7 @@ defmodule Farmbot.BotState do
 
   require Logger
   alias Farmbot.Context
+  use Farmbot.DebugLog
 
   @typedoc false
   @type context :: Context.t
@@ -13,6 +14,7 @@ defmodule Farmbot.BotState do
   def download_progress_fun(%Context{} = ctx, name) do
     fn(part, total) ->
       percent = ((part / total) * 100) |> round()
+      debug_log "#{name} - #{part}/#{total} = #{percent}%"
       Farmbot.BotState.set_job_progress(ctx, name, percent)
     end
   end

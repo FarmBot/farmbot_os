@@ -264,15 +264,24 @@ defmodule Farmbot.HTTP do
   defp maybe_close_file(fd), do: :file.close(fd)
 
   defp maybe_log_progress(%Buffer{file: file, progress_callback: pcb})
-  when is_nil(file) or is_nil(pcb), do: :ok
+  when is_nil(file) or is_nil(pcb) do
+    debug_log "File (#{inspect file}) or progress callback: #{inspect pcb} are nil"
+    :ok
+  end
 
   defp maybe_log_progress(%Buffer{file: _file} = buffer) do
     buffer.headers
     |> Enum.find_value(fn({header, val}) ->
-      if header == "Content-Length", do: val, else: nil
+      case header do
+        "Content-Length" -> val
+        "content_length" -> val
+        header ->
+          debug_log "nope: #{header}"
+          nil
+      end
     end)
     |> case do
-      nil -> :ok
+      nil -> debug_log "no content length!"
       numstr when is_binary(numstr) ->
         total_bytes      = numstr |> String.to_integer()
         downloaded_bytes = byte_size(buffer.data)
@@ -300,6 +309,7 @@ defmodule Farmbot.HTTP do
       {:ok, %HTTPoison.Response{status_code: code, headers: resp_headers} = resp} when code in @redirect_status_codes ->
         redir = Enum.find_value(resp_headers, fn({header, val}) -> if header == "Location", do: val, else: false end)
         if redir do
+          debug_log "redirect"
           do_normal_request({method, redir, body, headers, opts, from}, file, state)
         else
           debug_log("Failed to redirect: #{inspect resp}")
@@ -336,7 +346,7 @@ defmodule Farmbot.HTTP do
     {method, _url, body, headers, opts} = buffer.request
     case HTTPoison.request(method, redir, body, headers, opts) do
       {:ok, %AsyncResponse{id: ref}} ->
-        req = %Buffer{
+        req = %Buffer{ buffer |
           id:          ref,
           from:        buffer.from,
           file:        buffer.file,
@@ -377,6 +387,7 @@ defmodule Farmbot.HTTP do
   end
 
   defp finish_request(%Buffer{} = buffer, state) do
+    debug_log "Request finish."
     response = %Response{
       status_code: buffer.status_code,
       body:        buffer.data,
@@ -384,6 +395,7 @@ defmodule Farmbot.HTTP do
     }
     if buffer.timeout, do: Process.cancel_timer(buffer.timeout)
     maybe_close_file(buffer.file)
+    maybe_log_progress(buffer)
     GenServer.reply(buffer.from, {:ok, response})
     {:noreply, %{state | requests: Map.delete(state.requests, buffer.id)}}
   end
