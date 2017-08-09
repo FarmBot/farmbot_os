@@ -54,7 +54,7 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
   def run(%{package: "farmbot_os"}, config_pairs, context) do
     blah = pairs_to_tuples(config_pairs)
     for {key, val} <- blah do
-      Logger.info ">> Updating #{key}: #{val}"
+      debug_log "Updating #{key}: #{val}"
       Farmbot.BotState.update_config(context, key, val)
     end
     context
@@ -80,7 +80,7 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
   end
 
   defp write_and_read(context, {param_int, param_str}, val, tries) do
-    Logger.info ">> is updating #{param_str}: #{val}"
+    debug_log "Updating #{param_str}: #{val}"
     gcode = "F22 P#{param_int} V#{val}"
     results = UartHan.write(context, gcode)
     case results do
@@ -88,13 +88,6 @@ defmodule Farmbot.CeleryScript.Command.ConfigUpdate do
         write_and_read(context, {param_int, param_str}, val, tries + 1)
       _ -> context
     end
-
-    # # HACK read the param back because sometimes the firmware decides
-    # # our param sets arent important enough to keep
-    # case read_param(%{label: param_str}, []) do
-    #   :timeout -> write_and_read({param_int, param_str}, val, tries + 1)
-    #   _ -> :ok
-    # end
   end
 
   defp do_update_param(context, {param_str, val}) do

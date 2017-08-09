@@ -160,7 +160,7 @@ defmodule Farmbot.Mixfile do
       # Log to syslog
       # {:ex_syslogger, "~> 1.3.3", only: :prod},
       {:ex_syslogger, github: "slashmili/ex_syslogger", only: :prod},
-      {:ex_rollbar, "0.1.2"},
+      {:ex_rollbar, "0.1.3"},
 
       # Other stuff
       {:gen_stage,          "0.11.0"  },

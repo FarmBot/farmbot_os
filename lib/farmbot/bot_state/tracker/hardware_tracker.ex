@@ -11,12 +11,12 @@ defmodule Farmbot.BotState.Hardware do
   use StateTracker,
       name: __MODULE__,
       model: [
-        # credo:disable-for-next-line
         location_data: %{
           position:         %{x: -1, y: -1, z: -1},
           raw_encoders:     %{x: -1, y: -1, z: -1},
           scaled_encoders:  %{x: -1, y: -1, z: -1},
         },
+        busy: false,
         end_stops:  { -1, -1, -1, -1, -1, -1 },
         mcu_params: %{},
         pins:       %{},
@@ -26,6 +26,7 @@ defmodule Farmbot.BotState.Hardware do
     location_data: location_data,
     end_stops:  end_stops,
     mcu_params: mcu_params,
+    busy: boolean,
     pins:       pins,
   }
 
@@ -76,6 +77,10 @@ defmodule Farmbot.BotState.Hardware do
         config_pairs, context)
       :ok
     end
+  end
+
+  def handle_call({:set_busy, bool}, _, %State{} = state) do
+    dispatch :ok, %State{state | busy: bool}
   end
 
   def handle_call({:get_pin, pin_number}, _from, %State{} = state) do
