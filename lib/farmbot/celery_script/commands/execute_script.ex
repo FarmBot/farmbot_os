@@ -19,7 +19,7 @@ defmodule Farmbot.CeleryScript.Command.ExecuteScript do
     new_context = Command.set_user_env(%{}, env_vars, context)
     case Manager.lookup_by_name(context, name) do
       {:ok, %Farmware{} = fw} ->
-        Logger.debug ">> Starting Farmware: #{fw.name}", type: :busy
+        Logger.info ">> Starting Farmware: #{fw.name}", type: :busy
         Runtime.execute(new_context, fw)
       {:error, e}             ->
         raise Error, context: new_context,

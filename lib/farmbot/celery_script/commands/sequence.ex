@@ -17,7 +17,6 @@ defmodule Farmbot.CeleryScript.Command.Sequence do
   def run(args, body, %Context{} = context) do
     # rebuild the ast node
     ast          = %Ast{kind: "sequence", args: args, body: body}
-    # Logger.debug "Starting sequence: #{inspect ast}"
     case Farmbot.Sequence.Manager.start_link(context, ast, self()) do
       {:ok, pid} -> wait_for_sequence(pid, context)
       :ignore    ->

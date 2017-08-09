@@ -32,6 +32,7 @@ defmodule Logger.Backends.FarmbotLogger do
      | :error
      | :info
      | :fun
+     | :debug
 
   @typedoc """
     Elixir Logger level type
@@ -40,6 +41,7 @@ defmodule Logger.Backends.FarmbotLogger do
     :: :info
      | :warn
      | :error
+     | :debug
 
   @typedoc """
     One day this will me more
@@ -242,10 +244,6 @@ defmodule Logger.Backends.FarmbotLogger do
   end
 
   @spec build_log(String.t, number, rpc_log_type, [channel]) :: log_message
-  defp build_log(message, created_at, :debug, channels) do
-    build_log(message, created_at, :info, channels)
-  end
-
   defp build_log(message, created_at, type, channels) do
     %{message: message,
       created_at: created_at,
