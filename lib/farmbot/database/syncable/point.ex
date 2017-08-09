@@ -23,19 +23,10 @@ defmodule Farmbot.Database.Syncable.Point do
     Turn a tool into a Point.
   """
   def get_tool(%Context{} = context, tool_id) do
-    all         = Database.get_all context, __MODULE__
-    require IEx; IEx.pry
-    maybe_point = Enum.find all, fn(%{body: point}) ->
-      point.tool_id == tool_id
-    end
-
-    unless maybe_point do
-      raise SelectorError,
-        syncable: __MODULE__,
-        syncable_id: tool_id,
-        message: "Could not find tool_slot with tool_id: #{tool_id}"
-    end
-
-    maybe_point
+    context
+    |> (Database.get_all(__MODULE__)) || []
+    |> (Enum.find(fn(%{body: point}) -> point.tool_id == tool_id end)) ||
+    raise SelectorError, syncable: __MODULE__, syncable_id: tool_id,
+                         message: "Could not find tool_slot with tool_id: #{tool_id}"
   end
 end
