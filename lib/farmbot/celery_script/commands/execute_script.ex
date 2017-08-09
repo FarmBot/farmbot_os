@@ -23,7 +23,7 @@ defmodule Farmbot.CeleryScript.Command.ExecuteScript do
         Runtime.execute(new_context, fw)
       {:error, e}             ->
         raise Error, context: new_context,
-          message: "Could not locate farmware: #{e}"
+          message: "Could not execute farmware #{name} #{String.trim(inspect(e))}"
     end
   end
 end
