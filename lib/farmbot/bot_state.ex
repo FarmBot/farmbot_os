@@ -43,6 +43,11 @@ defmodule Farmbot.BotState do
     GenServer.call(context.monitor, {:set_job_progress, name, progress})
   end
 
+  @doc "Sets the `busy` flag in the bot's state."
+  def set_busy(%Context{} = ctx, bool) do
+    GenServer.call(ctx.hardware, {:set_busy, bool})
+  end
+
   @doc """
     Gets the current position of the bot. Returns [x,y,z]
   """
