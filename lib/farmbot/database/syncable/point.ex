@@ -24,7 +24,7 @@ defmodule Farmbot.Database.Syncable.Point do
   """
   def get_tool(%Context{} = context, tool_id) do
     all         = Database.get_all context, __MODULE__
-
+    require IEx; IEx.pry
     maybe_point = Enum.find all, fn(%{body: point}) ->
       point.tool_id == tool_id
     end
