@@ -276,6 +276,7 @@ defmodule Farmbot.Serial.Handler do
         }
         {:noreply, %{state | current: current}}
       {:error, reason} ->
+        Farmbot.BotState.set_busy(state.context, false)
         {:reply, {:error, reason}, %{state | current: nil}}
     end
 
@@ -417,8 +418,8 @@ defmodule Farmbot.Serial.Handler do
     results = handle_gcode(parsed, ctx)
     debug_log "Handling results: #{inspect results}"
     case results do
-      {:status, :done}   -> handle_done(current)
-      {:status, :busy}   -> handle_busy(current)
+      {:status, :done}   -> handle_done(current, ctx)
+      {:status, :busy}   -> handle_busy(current, ctx)
       {:status, :locked} -> handle_locked(current, ctx)
       {:status, status}  -> %{current | status: status}
       {:callback, str}   -> %{current | callback: str}
@@ -439,10 +440,10 @@ defmodule Farmbot.Serial.Handler do
     :locked
   end
 
-  @spec handle_busy(current) :: current
-  defp handle_busy(current) do
+  defp handle_busy(current, context) do
     debug_log "refreshing timer."
     Process.cancel_timer(current.timer)
+    Farmbot.BotState.set_busy(context, true)
     timer = Process.send_after(self(), :timeout, @default_timeout_ms)
     %{current | status: :busy, timer: timer}
   end
@@ -454,8 +455,9 @@ defmodule Farmbot.Serial.Handler do
     current
   end
 
-  defp handle_done(current) do
+  defp handle_done(current, context) do
     debug_log "replying to #{inspect current.from} with: #{inspect current.reply}"
+    Farmbot.BotState.set_busy(context, false)
     if current.callback do
       Process.cancel_timer(current.timer)
       handshake = generate_handshake()

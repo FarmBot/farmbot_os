@@ -432,12 +432,8 @@ defmodule Farmbot.Database do
   # returns all the references of syncable
   @spec get_all_by_kind(state, syncable) :: [resource_map]
   defp get_all_by_kind(state, syncable) do
-    all = state.by_kind[syncable]
-    if all do
-      Enum.map(all, fn(ref) -> state.refs[ref] end)
-    else
-      []
-    end
+    all = state.by_kind[syncable] || []
+    Enum.map(all, fn(ref) -> state.refs[ref] end)
   end
 
   @spec get_by_kind_and_id(state, syncable, integer) :: resource_map | nil
