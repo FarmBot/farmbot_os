@@ -118,15 +118,12 @@ defmodule Farmbot.Database do
   def sync_module(%Context{} = ctx, module_name, retries) do
     # see: `syncable.ex`. This is some macro magic.
     debug_log "#{module_name |> human_readable_module()} Sync begin."
-    # Logger.debug(">> is syncing: #{module_name |> human_readable_module()}", type: :busy)
 
     if get_awaiting(ctx, module_name) do
       try do
         :ok = module_name.fetch(ctx, {__MODULE__,
         :commit_records,  [ctx, module_name]})
 
-        # debug_log "#{module_name} Sync finish."
-        # Logger.debug(">> synced: #{module_name |> human_readable_module()}", type: :success)
         :ok = unset_awaiting(ctx, module_name)
         :ok
       rescue
