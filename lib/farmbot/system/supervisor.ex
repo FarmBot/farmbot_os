@@ -5,9 +5,6 @@ defmodule Farmbot.System.Supervisor do
   use    Supervisor
   alias  Farmbot.System.Init
   import Init
-  alias  Init.{
-    Firmware
-  }
 
 
   error_msg = """

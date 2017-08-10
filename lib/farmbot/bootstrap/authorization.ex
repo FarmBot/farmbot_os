@@ -1,20 +1,21 @@
 defmodule Farmbot.Bootstrap.Authorization do
   @moduledoc "Functionality responsible for getting a JWT."
 
-  @doc "Supervisor worker child spec for an authorization implementation."
-  @spec child_spec(module, Supervisor.options) :: Supervisor.Spec.spec()
-  def child_spec(module, opts) do
-    {module, {module, :authorize, []}, :permanent, 5000, :worker, [module]}
-  end
+  @typedoc "Email used to configure this bot."
+  @type email :: binary
+
+  @typedoc "Password used to configure this bot."
+  @type password :: binary
+
+  @typedoc "Server used to configure this bot."
+  @type server :: binary
+
+  @typedoc "Token that was fetched with the credentials."
+  @type token :: binary
 
   @doc """
   Callback for an authorization implementation.
-  Should return {:ok, }
+  Should return {:ok, token} | {:error, term}
   """
-  @callback authorize(Supervisor.options) :: Supervisor.Spec.on_start_child()
-
-  @doc """
-  Get a token from an implementation.
-  """
-  @callback get_token()
+  @callback authorize(email, password, server) :: {:ok, token} | {:error, term}
 end
