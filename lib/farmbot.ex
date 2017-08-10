@@ -23,11 +23,11 @@ defmodule Farmbot do
   def init(args) do
     children = [
       supervisor(Registry, [:duplicate,  Farmbot.Registry]),
-      supervisor(Farmbot.System.Supervisor,    [args, [name: Farmbot.System.Supervisor    ]]),
-      # supervisor(Farmbot.HTTP.Supervisor,      [args, [name: Farmbot.HTTP.Supervisor      ]]),
-      # supervisor(Farmbot.BotState.Supervisor,  [args, [name: Farmbot.BotState.Supervisor  ]]),
-      # supervisor(Farmbot.Transport.Supervisor, [args, [name: Farmbot.Transport.Supervisor ]]), # Can this be a child of the bot's state maybe?
+      supervisor(Farmbot.System.Supervisor,      [args, [name: Farmbot.System.Supervisor      ]]),
+      supervisor(Farmbot.Bootstrap.Supervisor,   [args, [name: Farmbot.Bootstrap.Supervisor ]]),
+      # supervisor(Farmbot.Transport.Supervisor, [args, [name: Farmbot.Transport.Supervisor ]]),
       # supervisor(Farmbot.FarmEvent.Supervisor, [args, [name: Farmbot.FarmEvent.Supervisor ]]), # maybe make this a child of the database?
+      # supervisor(Farmbot.Firmware.Supervisor,  [args, [name: Farmbot.Firmware.Supervisor  ]]),
       # supervisor(Farmbot.Serial.Supervisor,    [args, [name: Farmbot.Serial.Supervisor    ]]),
       # supervisor(Farmbot.Farmware.Supervisor,  [args, [name: Farmbot.Farmware.Supervisor  ]]),
       # worker(Farmbot.ImageWatcher,             [args, [name: Farmbot.ImageWatcher         ]]), # this may need to move too.

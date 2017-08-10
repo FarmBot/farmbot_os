@@ -2,7 +2,7 @@ use Mix.Config
 
 # Mix configs.
 target = Mix.Project.config[:target]
-env = Mix.env()
+env    = Mix.env()
 
 config :logger, utc_log: true
 
@@ -16,9 +16,6 @@ config :logger, :console,
 
 # Iex needs colors too.
 config :iex, :colors, enabled: true
-
-# Rollbar
-config :farmbot, rollbar_access_token: "dcd79b191ab84aa3b28259cbb80e2060"
 
 # This is usually in the `priv` dir of :tzdata, but our fs is read only.
 config :tzdata, :data_dir, "/tmp"

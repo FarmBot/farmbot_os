@@ -1,1 +1,0 @@
-"[{\"id\":1,\"name\":\"Test Regimen 456\",\"color\":\"gray\",\"device_id\":8,\"regimen_items\":[{\"id\":1,\"regimen_id\":1,\"sequence_id\":1,\"time_offset\":300000},{\"id\":2,\"regimen_id\":1,\"sequence_id\":1,\"time_offset\":173100000},{\"id\":3,\"regimen_id\":1,\"sequence_id\":1,\"time_offset\":345900000}]}]"

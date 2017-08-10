@@ -3,7 +3,12 @@ defmodule Farmbot.System.Supervisor do
   Supervises Platform specific stuff for Farmbot to operate
   """
   use    Supervisor
-  import Farmbot.System.Init
+  alias  Farmbot.System.Init
+  import Init
+  alias  Init.{
+    Firmware
+  }
+
 
   error_msg = """
   Please configure your environment's init system!
@@ -17,10 +22,8 @@ defmodule Farmbot.System.Supervisor do
   end
 
   def init(args) do
-    children = Enum.map(@children, fn(child) ->
-      fb_init(child, [args, [name: child]])
-    end)
-    opts = [strategy: :one_for_all]
-    supervise(children, opts)
+    @children
+    |> Enum.map(fn(child) -> fb_init(child, [args, [name: child]]) end)
+    |> supervise([strategy: :one_for_all])
   end
 end
