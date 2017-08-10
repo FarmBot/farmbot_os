@@ -411,7 +411,7 @@ export class Main extends React.Component<MainProps, FormState> {
       {/* Display if the bot is disconnected */}
       <div hidden={mainState.connected}>
         <h2 > {text} </h2>
-        <div hidden={!this.state.connecting} className="portal-problem-note">
+        <div hidden={this.state.connecting} className="portal-problem-note">
           <h3>Note:</h3>
           <p>
             {TEXT_PORTAL_PROBLEM}
