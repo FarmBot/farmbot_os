@@ -27,6 +27,21 @@ interface FormState {
   connecting?: boolean;
 }
 
+const TEXT_CONFIGURATION_COMPLETE =
+  `FarmBot will now restart and attempt to connect to the web app.
+  Login to your web app account to verify that FarmBot has connected.
+  If it fails, the configurator will automatically restart and you can try again.`
+
+const TEXT_CONFIGURATION_TROUBLE =
+  `Your web browser is having trouble connecting to the configurator.
+  Are you using a modern updated browser?
+  If so, your OS might be corrupted and need to be re-flashed.`;
+
+const TEXT_PORTAL_PROBLEM =
+  `The automatic pop-up window for connecting to networks on Mac computers
+ does not work with the FarmBot WiFi configurator.
+ Please open the full Safari or Chrome web browser and navigate to `;
+
 @observer
 export class Main extends React.Component<MainProps, FormState> {
   constructor(props: MainProps) {
@@ -368,7 +383,7 @@ export class Main extends React.Component<MainProps, FormState> {
     let webPasswordIsShown = this.state.showWebPassword ? "text" : "password";
     let icon = this.state.urlIsOpen ? "minus" : "cog";
     let header = this.state.connecting ? "Configuration is Complete!" : "Configure Your FarmBot";
-    let text = this.state.connecting ? "FarmBot will now restart and attempt to connect to the web app. Login to your web app account to verify that FarmBot has connected. If it fails, the configurator will automatically restart and you can try again." : "Your web browser is having trouble connecting to the configurator. Are you using a modern updated browser? If so, your OS might be corrupted and need to be re-flashed";
+    let text = this.state.connecting ? TEXT_CONFIGURATION_COMPLETE : TEXT_CONFIGURATION_TROUBLE;
     let logMessage = mainState.logs[mainState.logs.length - 1].message
     let finalMessage = (logMessage.length > 80 && !this.state.logExpanded) ?
       _.truncate(logMessage, { length: 80 }) : logMessage;
@@ -393,7 +408,17 @@ export class Main extends React.Component<MainProps, FormState> {
         }
       }}>{header}</h1>
 
-      <h2 hidden={mainState.connected}> {text} </h2>
+      {/* Display if the bot is disconnected */}
+      <div hidden={mainState.connected}>
+        <h2 > {text} </h2>
+        <div hidden={this.state.connecting} className="portal-problem-note">
+          <h3>Note:</h3>
+          <p>
+            {TEXT_PORTAL_PROBLEM}
+            <a href="http://farmbot.io/setup" target="_blank">FarmBot.io/setup</a>
+          </p>
+        </div>
+      </div>
 
       {/* Only display if the bot is connected */}
       <div hidden={!mainState.connected} className={`col-md-offset-3 col-md-6
@@ -483,7 +508,7 @@ export class Main extends React.Component<MainProps, FormState> {
           </div>
           <div className="widget-content log-message">
             {finalMessage}
-            <i className={`fa fa-${logIcon} expand-logs-icon 
+            <i className={`fa fa-${logIcon} expand-logs-icon
             is-expanded-${this.state.logExpanded}`}
               onClick={this.toggleExpandedLog.bind(this)}></i>
           </div>
