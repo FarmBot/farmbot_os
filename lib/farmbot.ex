@@ -24,9 +24,11 @@ defmodule Farmbot do
     children = [
       supervisor(Farmbot.System.Supervisor,      [args, [name: Farmbot.System.Supervisor    ]]),
       supervisor(Farmbot.Bootstrap.Supervisor,   [args, [name: Farmbot.Bootstrap.Supervisor ]]),
-      supervisor(Farmbot.FarmEvent.Supervisor,   [args, [name: Farmbot.FarmEvent.Supervisor ]]),
-      supervisor(Farmbot.Firmware.Supervisor,    [args, [name: Farmbot.Firmware.Supervisor  ]]),
-      supervisor(Farmbot.Farmware.Supervisor,    [args, [name: Farmbot.Farmware.Supervisor  ]]),
+      # supervisor(Farmbot.FarmEvent.Supervisor,   [args, [name: Farmbot.FarmEvent.Supervisor ]]),
+      # supervisor(Farmbot.Firmware.Supervisor,    [args, [name: Farmbot.Firmware.Supervisor  ]]),
+      # supervisor(Farmbot.Farmware.Supervisor,    [args, [name: Farmbot.Farmware.Supervisor  ]]),
+
+      ## LEGACY
       # supervisor(Farmbot.Transport.Supervisor, [args, [name: Farmbot.Transport.Supervisor ]]),
       # supervisor(Farmbot.Serial.Supervisor,    [args, [name: Farmbot.Serial.Supervisor    ]]),
       # worker(Farmbot.ImageWatcher,             [args, [name: Farmbot.ImageWatcher         ]]), # this may need to move too.

@@ -7,7 +7,7 @@ defmodule Farmbot.System do
   Please configure your `:system_tasks` behaviour!
   """
 
-  @system_tasks Application.get_env(:farmbot, :behaviour, :system_tasks) || Mix.raise error_msg
+  @system_tasks Application.get_env(:farmbot, :behaviour)[:system_tasks] || Mix.raise error_msg
 
   @typedoc "Reason for a task to execute. Should be human readable."
   @type reason :: binary
@@ -31,15 +31,28 @@ defmodule Farmbot.System do
 
   #TODO(Connor) Format `unparsed_reason` into a human readable binary.
 
+  use Farmbot.DebugLog
+
   @doc "Remove all configuration data, and reboot."
   @spec factory_reset(unparsed_reason) :: no_return
-  def factory_reset(reason), do: @system_tasks.factory_reset(reason)
+  def factory_reset(reason) do
+    try do
+      raise "Doing factory reset: #{inspect reason}"
+    rescue
+      e ->
+        debug_log e.message <> " #{inspect System.stacktrace()}"
+        @system_tasks.factory_reset(reason)
+    end
+  end
 
   @doc "Reboot."
   @spec reboot(unparsed_reason) :: no_return
-  def reboot(reason), do: @system_tasks.reboot(reason)
+  def reboot(reason) do
+    @system_tasks.reboot(reason)
+  end
 
   @doc "Shutdown."
   @spec shutdown(unparsed_reason) :: no_return
-  def shutdown(reason), do: @system_tasks.shutdown(reason)
-end
+  def shutdown(reason) do
+    @system_tasks.shutdown(reason)
+end end
