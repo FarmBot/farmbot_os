@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/FarmBot/farmbot_os.svg?branch=master)](https://travis-ci.org/FarmBot/farmbot_os.svg?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/FarmBot/farmbot_os/badge.svg)](https://coveralls.io/github/FarmBot/farmbot_os)
-![Built with Nerves](http://nerves-project.org/images/badge/built-with-nerves-badge.svg {width=85px height=25px})
+[![Built with Nerves](http://nerves-project.org/images/badge/nerves-badge_75x39_white.png)](http://nerves-project.org/)
 ---
 
 [comment]: <> (DONT CHANGE THE TEXT BELOW. It is used in documentation links.)
