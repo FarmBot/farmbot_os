@@ -25,91 +25,13 @@ defmodule Farmbot.DebugLog do
     enables the `debug_log/1` function.
   """
   defmacro __using__(opts) do
-    color = Keyword.get(opts, :color)
-    name  = Keyword.get(opts, :name)
+    ccolor = Keyword.get(opts, :color) || :NC
     quote do
-
-      if unquote(name) do
-        defp get_module, do: unquote(name)
-      else
-        defp get_module, do: __MODULE__ |> Module.split() |> List.last
-      end
-
-      if unquote(color) do
-
-        defp debug_log(str) do
-          GenEvent.notify(Farmbot.DebugLog,
-            {get_module(), {unquote(color), str}})
-        end
-
-      else
-
-        defp debug_log(str) do
-          GenEvent.notify Farmbot.DebugLog, {get_module(), {:BLUE, str}}
-        end
-
-      end # if color
-
-    end # quote
-  end # defmacro
-
-  defmodule Handler do
-    @moduledoc """
-      Handler for DebugLogger
-    """
-    use GenEvent
-
-    @doc false
-    defdelegate color(color), to: Farmbot.DebugLog
-
-    def init(state), do: {:ok, state}
-
-    def handle_event(_, :all), do: {:ok, :all}
-
-    def handle_event({module, {color, str}}, state) when is_binary(str) do
-      filter_me? = Map.get(state, module)
-      unless filter_me? do
-        IO.puts "#{color(color)} [#{module}]#{color(:NC)} #{str}"
-      end
-      {:ok, state}
-    end
-
-    def handle_call({:filter, :all}, _state) do
-      {:ok, :all}
-    end
-
-    def handle_call({:filter, module}, state) do
-      {:ok, :ok, Map.put(state, module, :filterme)}
-    end
-
-    def handle_call({:unfilter, module}, state) do
-      if state == :all do
-        {:ok, :error, state}
-      else
-        {:ok, :ok, Map.delete(state, module)}
-      end
-    end
-  end
-
-  @doc """
-  Start the Debug Logger
-  """
-  def start_link(event_server) do
-    :ok = GenEvent.add_handler(event_server, Handler, %{})
-    {:ok, self()}
-  end
-
-  @doc """
-  Filter a module from the handler.
-  """
-  def filter(module) do
-    GenEvent.call(__MODULE__, Handler, {:filter, module})
-  end
-
-  @doc """
-    Unfilter a module from the handler.
-  """
-  def unfilter(module) do
-    GenEvent.call(__MODULE__, Handler, {:unfilter, module})
-  end
-end # defmodule
+      import Farmbot.DebugLog
+      def debug_log(msg) do
+        module = __MODULE__ |> Module.split() |> Enum.take(-2)
+        IO.puts "#{color(unquote(ccolor))}[#{module}] #{msg}#{color(:NC)}"
+      end  # debug log
+    end    # quote
+  end      # defmacro
+end        # defmodule

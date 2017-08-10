@@ -17,9 +17,6 @@ config :logger, :console,
 # Iex needs colors too.
 config :iex, :colors, enabled: true
 
-# bot <-> firmware transports.
-config :farmbot, expected_fw_version: "4.0.2"
-
 # Rollbar
 config :farmbot, rollbar_access_token: "dcd79b191ab84aa3b28259cbb80e2060"
 

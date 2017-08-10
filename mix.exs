@@ -30,6 +30,7 @@ defmodule Farmbot.Mixfile do
      images_path: "images/#{Mix.env()}/#{@target}",
      config_path: "config/config.exs",
      lockfile: "mix.lock",
+     elixirc_paths: elixirc_paths(Mix.env, @target),
      compilers: Mix.compilers ++ maybe_use_webpack(),
      aliases: aliases(@target),
      deps: deps() ++ system(@target),
@@ -190,7 +191,6 @@ defmodule Farmbot.Mixfile do
     ]
   end
 
-
   # TODO(connor): Build this into `:ex_webpack`
   defp maybe_use_webpack() do
     case System.get_env("NO_WEBPACK") do
@@ -199,6 +199,13 @@ defmodule Farmbot.Mixfile do
     end
   end
 
+  defp elixirc_paths(:test, "host") do
+    ["./lib", "./nerves/host", "./test/support"]
+  end
+
+  defp elixirc_paths(_env, target) do
+    ["./lib", "./nerves/#{target}"]
+  end
 
   # this is for cross compilation to work
   # New version of nerves might not need this?
