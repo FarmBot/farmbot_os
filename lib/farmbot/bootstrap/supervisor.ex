@@ -10,45 +10,44 @@ defmodule Farmbot.Bootstrap.Supervisor do
 
   For example:
 
-    ## config.exs
-    ```
-    use Mix.Config
+  # config.exs
+      use Mix.Config
 
-    config :farmbot, :init, [
-      Farmbot.Configurator
-    ]
+      config :farmbot, :init, [
+        Farmbot.Configurator
+      ]
 
-    config :farmbot, :behaviour,
-      authorization: Farmbot.Configurator
-    ```
+      config :farmbot, :behaviour,
+        authorization: Farmbot.Configurator
 
-    ## farmbot_configurator.ex
+  # farmbot_configurator.ex
 
-    ```
-    defmodule Farmbot.Configurator do
-      @moduledoc false
-      @behaviour Farmbot.System.Init
-      @behaviour Farmbot.Bootstrap.Authorization
+      defmodule Farmbot.Configurator do
+        @moduledoc false
+        @behaviour Farmbot.System.Init
+        @behaviour Farmbot.Bootstrap.Authorization
 
-      # Callback for Farmbot.System.Init.
-      # This can return {:ok, pid} if it should be a supervisor.
-      def start_link(_args, _opts) do
-        creds = [
-          email: "some_user@some_server.org",
-          password: "some_secret_password_dont_actually_store_in_plain_text",
-          server:   "https://my.farmbot.io"
-        ]
-        Application.put_env(:farmbot, :behaviour, creds)
-        :ignore
+        # Callback for Farmbot.System.Init.
+        # This can return {:ok, pid} if it should be a supervisor.
+        def start_link(_args, _opts) do
+          creds = [
+            email: "some_user@some_server.org",
+            password: "some_secret_password_dont_actually_store_in_plain_text",
+            server:   "https://my.farmbot.io"
+          ]
+          Application.put_env(:farmbot, :behaviour, creds)
+          :ignore
+        end
+
+        # Callback for Farmbot.Bootstrap.Authorization.
+        # Should return `{:ok, token}` where `token` is a binary jwt, or
+        # {:error, reason} reason can be anything, but a binary is easiest to
+        # Parse.
+        def authorize(email, password, server) do
+          # some intense http stuff or whatever.
+          {:ok, token}
+        end
       end
-
-      # Callback for Farmbot.Bootstrap.Authorization
-      def authorize(email, password, server) do
-        # some intense http stuff or whatever.
-        {:ok, token}
-      end
-    end
-    ```
 
   This will cause the `creds` to be stored in the application's environment.
   This moduld then will try to use the configured module to `authorize`.
@@ -75,7 +74,13 @@ defmodule Farmbot.Bootstrap.Supervisor do
     end
   end
 
-  @spec get_creds() :: {Farmbot.Bootstrap.Authorization.email, Farmbot.Bootstrap.Authorization.password, Farmbot.Bootstrap.Authorization.server} | {:error, binary}
+  @typedoc "Authorization credentials."
+  @type auth :: {Farmbot.Bootstrap.Authorization.email,
+                 Farmbot.Bootstrap.Authorization.password,
+                 Farmbot.Bootstrap.Authorization.server}
+
+
+  @spec get_creds() :: auth | {:error, term}
   defp get_creds do
     try do
       # Get out authorization data out of the environment.

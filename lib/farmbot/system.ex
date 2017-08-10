@@ -13,7 +13,7 @@ defmodule Farmbot.System do
   @type reason :: binary
 
   @typedoc "Any ole data that caused a factory reset. Will try to format it as a human readable binary."
-  @type unparsed_reason :: any
+  @type unparsed_reason :: term
 
   @doc """
   Should remove all persistant data. this includes:
