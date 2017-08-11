@@ -1,0 +1,6 @@
+{
+  "skip_files": [
+    "test/support",
+    "nerves/"
+  ]
+}

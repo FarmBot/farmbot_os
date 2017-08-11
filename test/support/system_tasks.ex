@@ -48,6 +48,10 @@ defmodule Farmbot.Test.SystemTasks do
     {:reply, :ok, [thing | state]}
   end
 
+  def handle_call(:fetch_last, _, [] = state) do
+    {:reply, nil, state}
+  end
+
   def handle_call(:fetch_last, _, [last | _rest] = state) do
     {:reply, last, state}
   end

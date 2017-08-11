@@ -11,10 +11,11 @@ defmodule Farmbot do
   @doc """
   Entry Point to Farmbot
   """
-  def start(type, args)
-  def start(_, args) do
+  def start(type, start_opts)
+  def start(_, start_opts) do
     Logger.info ">> Booting Farmbot OS version: #{@version} - #{@commit}"
-    case Supervisor.start_link(__MODULE__, args, [name: Farmbot]) do
+    name = Keyword.get(start_opts, :name, __MODULE__)
+    case Supervisor.start_link(__MODULE__, [], [name: name]) do
       {:ok, pid}       -> {:ok, pid}
       {:error, reason} -> Farmbot.System.factory_reset(reason)
     end
