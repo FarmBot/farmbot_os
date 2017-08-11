@@ -1,12 +1,11 @@
 use Mix.Config
 
-config :farmbot, :init, [
-
-]
+# dev environment doesn't need any special init stuff.
+config :farmbot, :init, []
 
 # Configure Farmbot Behaviours.
 config :farmbot, :behaviour,
-  # Should implement Farmbot.Bootstrap.Authorization behaviour.
-  authorization: Farmbot.Host.Authorization,
   # Should implement Farmbot.System behaviour.
-  system_tasks:  Farmbot.Host.System
+  system_tasks:  Farmbot.Host.SystemTasks
+
+import_config "../../auth_secret.exs"

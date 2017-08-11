@@ -41,3 +41,6 @@ dump.rdb
 # this file isnt stored here but just in case.
 fwup-key.priv
 .env
+
+# secret config stuffs for dev environment.
+config/auth_secret.exs

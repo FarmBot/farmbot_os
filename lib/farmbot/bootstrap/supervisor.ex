@@ -103,7 +103,7 @@ defmodule Farmbot.Bootstrap.Supervisor do
         ]
         opts = [strategy: :one_for_all]
         supervise(children, opts)
-      {:error, reason} -> {:error, reason}
+      {:error, reason} -> Farmbot.System.factory_reset(reason)
     end
   end
 end

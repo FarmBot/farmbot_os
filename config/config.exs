@@ -24,6 +24,17 @@ config :tzdata, :autoupdate, :disabled
 # Path for the `fs` module to watch.
 config :fs, path: "/tmp/images"
 
+# Configure your our system.
+# Default implementation needs no special stuff.
+config :farmbot, :init, [
+
+]
+
+# Configure Farmbot Behaviours.
+config :farmbot, :behaviour, [
+  authorization: Farmbot.Bootstrap.Authorization,
+]
+
 # import config specific to our nerves_target
 IO.puts "using #{target} - #{env} configuration."
 import_config "hardware/#{target}/#{env}.exs"

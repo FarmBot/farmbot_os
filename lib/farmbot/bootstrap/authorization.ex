@@ -18,4 +18,9 @@ defmodule Farmbot.Bootstrap.Authorization do
   Should return {:ok, token} | {:error, term}
   """
   @callback authorize(email, password, server) :: {:ok, token} | {:error, term}
+  
+  @doc "Authorizes with the farmbot api."
+  def authorize(email, password, server) do
+    {:error, :noimpl}
+  end
 end
