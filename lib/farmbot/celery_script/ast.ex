@@ -1,10 +1,9 @@
 defmodule Farmbot.CeleryScript.Ast do
   @moduledoc """
-    Handy functions for turning various data types into Farbot Celery Script
-    Ast nodes.
+  Handy functions for turning various data types into Farbot Celery Script
+  Ast nodes.
   """
 
-  alias Farmbot.Context
   alias Farmbot.CeleryScript.Error
 
   defimpl Inspect, for: __MODULE__ do
@@ -13,16 +12,14 @@ defmodule Farmbot.CeleryScript.Ast do
     end
   end
 
-  @typedoc false
-  @type context :: Context.t
 
   @typedoc """
-    CeleryScript args.
+  CeleryScript args.
   """
   @type args :: map
 
   @typedoc """
-    Type for CeleryScript Ast's.
+  Type for CeleryScript Ast's.
   """
   @type t :: %__MODULE__{
     args:    args,
@@ -35,8 +32,8 @@ defmodule Farmbot.CeleryScript.Ast do
   defstruct [:args, :body, :kind, :comment]
 
   @doc """
-    Parses json and traverses the tree and turns everything can
-    possibly be parsed.
+  Parses json and traverses the tree and turns everything can
+  possibly be parsed.
   """
   @spec parse({:ok, map} | map | [map, ...]) :: t
   def parse(map_or_json_map)
@@ -89,8 +86,8 @@ defmodule Farmbot.CeleryScript.Ast do
   end
 
   @doc """
-    Creates a new AST node. No validation is preformed on this other than making
-    sure its syntax is valid.
+  Creates a new AST node. No validation is preformed on this other than making
+  sure its syntax is valid.
   """
   def create(kind, args, body) when is_map(args) and is_list(body) do
     %__MODULE__{kind: kind, args: args, body: body}
