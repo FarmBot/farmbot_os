@@ -396,7 +396,9 @@ defmodule Farmbot.Serial.Handler do
       << "R09", _ :: binary >> -> {:error, :invalid}
       # R87 is E stop
       << "R87", _ :: binary >> -> {:error, :emergency_lock}
-      other                    -> {:error, "unhandled echo: #{other}"}
+      other                    -> 
+        debug_log "Got an unhandled echo. Expecting: #{writeme} but got: #{echo}"
+        {:error, "unhandled echo: #{other}"}
     end
   end
 
