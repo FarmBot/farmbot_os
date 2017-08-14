@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/FarmBot/farmbot_os.svg?branch=master)](https://travis-ci.org/FarmBot/farmbot_os.svg?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/FarmBot/farmbot_os/badge.svg)](https://coveralls.io/github/FarmBot/farmbot_os)
+[![Built with Nerves](http://nerves-project.org/images/badge/nerves-badge_75x39_white.png)](http://nerves-project.org/)
 ---
 
 [comment]: <> (DONT CHANGE THE TEXT BELOW. It is used in documentation links.)
@@ -13,13 +14,7 @@ if you spot a bug or fix, but for now we suggest obtaining a Raspberry Pi 3 for 
 
 |Raspbery Pi Version |
 |---|
-| :star: **[RPi 3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v4.0.1/farmbot-rpi3-4.0.1.img)**|
-<!--
-|  [RPi 2](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.3/farmbot-rpi2-3.1.3.img) |
-|  [RPi 0 and 1](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.3/farmbot-rpi-3.1.3.img) |
-|  [RPi 0w](https://github.com/FarmBot/farmbot_os/releases/download/v3.1.3/farmbot-rpi0w-3.1.3.img) |
--->
-
+| :star: **[RPi 3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v5.0.1/farmbot-rpi3-5.0.1.img)**|
 ---
 
 # Farmbot OS
@@ -32,19 +27,19 @@ Instalation should be fairly straight forward, you will need a computer for this
 ### Windows users
 
  1. download and install [Etcher](https://etcher.io/).
- 2. download the [latest release](https://github.com/FarmBot/farmbot_os/releases).
- 3. insert an SD Card into your PC.
- 4. open Etcher, and select the `.img` file you just downloaded.
- 5. select your SD Card.
- 6. Burn.
+ 0. download the [latest release](#floppy_disk-latest-os-image-downloads).
+ 0. insert an SD Card into your PC.
+ 0. open Etcher, and select the `.img` file you just downloaded.
+ 0. select your SD Card.
+ 0. Burn.
 
 ### Linux/OSX
 
- 1. download the [latest release](https://github.com/FarmBot/farmbot_os/releases).
- 2. ```dd if=</path/to/file> of=/dev/<sddevice> bs=4``` or use [Etcher](https://etcher.io/).
+ 1. download the [latest release](#floppy_disk-latest-os-image-downloads).
+ 0. ```dd if=</path/to/file> of=/dev/<sddevice> bs=4``` or use [Etcher](https://etcher.io/).
 
- ## Running
- 0. Plug your SD Card into your Raspberry Pi
+## Running
+ 1. Plug your SD Card into your Raspberry Pi
  0. Plug your Arduino into your Raspberry Pi
  0. Plug your power into your Raspberry Pi
  0. From a WiFi enabled device*, search for the SSID `farmbot-XXXX`

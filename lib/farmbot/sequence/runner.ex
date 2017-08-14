@@ -34,12 +34,10 @@ defmodule Farmbot.Sequence.Runner do
   end
 
   def init({ast, first_context, caller}) do
-    Process.flag(:trap_exit, true)
     debug_log "[#{inspect self()}] Sequence init."
     # Setup the firt step
     [first | rest] = ast.body
     pid = spawn __MODULE__, :work, [{first, first_context}, self()]
-    Process.link(pid)
     timer = Process.send_after(:timeout, self(), @step_timeout)
     state = %{
       body: rest,
@@ -49,6 +47,12 @@ defmodule Farmbot.Sequence.Runner do
       timer: timer
     }
     {:ok, state}
+  end
+
+  def handle_cast({:error, ex}, state) do
+    Process.cancel_timer(state.timer)
+    send(state.caller, {self(), {:error, ex}})
+    {:stop, :normal, state}
   end
 
   # When a stop finishes and there is no more steps
@@ -73,14 +77,6 @@ defmodule Farmbot.Sequence.Runner do
     {:noreply, new_state}
   end
 
-  def handle_info({:EXIT, _, :normal}, state), do: {:noreply, state}
-
-  def handle_info({:EXIT, pid, reason}, %{worker: worker} = state)
-  when pid == worker do
-    debug_log "Sequence terminating."
-    {:stop, reason, state}
-  end
-
   def handle_info(:timeout, state), do: {:stop, :timeout, %{state | timer: nil}}
 
   @spec work({Ast.t, Context.t}, sequence_pid) :: :ok
@@ -88,7 +84,12 @@ defmodule Farmbot.Sequence.Runner do
     debug_log "[#{inspect self()}] doing work: #{inspect ast}"
     Process.sleep(1000)
     # this might raise.
-    new_context = do_command(ast, context)
-    GenServer.cast(sequence, {:finished, new_context})
+    
+    try do
+      new_context = do_command(ast, context)
+      GenServer.cast(sequence, {:finished, new_context})
+    rescue
+      e -> GenServer.cast(sequence, {:error, e})
+    end
   end
 end

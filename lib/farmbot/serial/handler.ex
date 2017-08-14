@@ -276,6 +276,7 @@ defmodule Farmbot.Serial.Handler do
         }
         {:noreply, %{state | current: current}}
       {:error, reason} ->
+        Farmbot.BotState.set_busy(state.context, false)
         {:reply, {:error, reason}, %{state | current: nil}}
     end
 
@@ -395,7 +396,9 @@ defmodule Farmbot.Serial.Handler do
       << "R09", _ :: binary >> -> {:error, :invalid}
       # R87 is E stop
       << "R87", _ :: binary >> -> {:error, :emergency_lock}
-      other                    -> {:error, "unhandled echo: #{other}"}
+      other                    -> 
+        debug_log "Got an unhandled echo. Expecting: #{writeme} but got: #{echo}"
+        {:error, "unhandled echo: #{other}"}
     end
   end
 
@@ -417,8 +420,8 @@ defmodule Farmbot.Serial.Handler do
     results = handle_gcode(parsed, ctx)
     debug_log "Handling results: #{inspect results}"
     case results do
-      {:status, :done}   -> handle_done(current)
-      {:status, :busy}   -> handle_busy(current)
+      {:status, :done}   -> handle_done(current, ctx)
+      {:status, :busy}   -> handle_busy(current, ctx)
       {:status, :locked} -> handle_locked(current, ctx)
       {:status, status}  -> %{current | status: status}
       {:callback, str}   -> %{current | callback: str}
@@ -439,10 +442,10 @@ defmodule Farmbot.Serial.Handler do
     :locked
   end
 
-  @spec handle_busy(current) :: current
-  defp handle_busy(current) do
+  defp handle_busy(current, context) do
     debug_log "refreshing timer."
     Process.cancel_timer(current.timer)
+    Farmbot.BotState.set_busy(context, true)
     timer = Process.send_after(self(), :timeout, @default_timeout_ms)
     %{current | status: :busy, timer: timer}
   end
@@ -454,8 +457,9 @@ defmodule Farmbot.Serial.Handler do
     current
   end
 
-  defp handle_done(current) do
+  defp handle_done(current, context) do
     debug_log "replying to #{inspect current.from} with: #{inspect current.reply}"
+    :ok = Farmbot.BotState.set_busy(context, false)
     if current.callback do
       Process.cancel_timer(current.timer)
       handshake = generate_handshake()
@@ -482,7 +486,6 @@ defmodule Farmbot.Serial.Handler do
   @spec handle_gcode(any, Context.t) :: {:status, any} | {:reply, any} | nil
 
   defp handle_gcode(:report_emergency_lock, _),    do: {:status, :locked}
-  defp handle_gcode(:idle, %Context{} = _ctx),     do: {:status, :idle}
   defp handle_gcode(:busy, %Context{} = _ctx),     do: {:status, :busy}
   defp handle_gcode(:done, %Context{} = _ctx),     do: {:status, :done}
   defp handle_gcode(:received, %Context{} = _ctx), do: {:status, :received}
@@ -490,6 +493,10 @@ defmodule Farmbot.Serial.Handler do
   defp handle_gcode(:report_params_complete, _),   do: {:reply, :report_params_complete}
   defp handle_gcode(:noop, %Context{} = _ctx),     do: nil
 
+  defp handle_gcode(:idle, %Context{} = ctx) do 
+    :ok = Farmbot.BotState.set_busy(ctx, false)
+    {:status, :idle}
+  end
   defp handle_gcode({:debug_message, message}, %Context{} = _ctx) do
     debug_log "R99 #{message}"
     nil

@@ -61,7 +61,7 @@ defmodule Mix.Tasks.Farmbot.Slack do
     System.cmd("notify-send", [notify_opts | ["Farmbot Uploader", message]] |> List.flatten())
   end
 
-  defp format_date_time(%{atime: {{yr,m,day}, {hr, min, sec}}}) do
+  defp format_date_time(%{mtime: {{yr,m,day}, {hr, min, sec}}}) do
     dt = %DateTime{
       hour: hr,
       year: yr,

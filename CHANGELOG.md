@@ -73,9 +73,14 @@
 # 4.0.1
 * fix bug in E-Stop
 
-# 4.0.2
+# 5.0.0
 * add a progress bar to http client for downloads.
 * Bundle new Arduino Firmware.
 * Rewrite Farmware Handler again, to use HTTP/REST this time instead of STDIN/STDOUT.
 * Add location_data to bot state. This includes encoder position.
 * Add `jobs` field to bot state.
+
+# 5.0.1
+* Fix not being able to move to a point in some cases.
+* Fix a sub sequence never returning.
+* add `busy` flag to the bot's state. 

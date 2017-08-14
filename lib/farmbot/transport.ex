@@ -70,7 +70,8 @@ defmodule Farmbot.Transport do
       configuration:
         Map.delete(monstate.configuration.configuration, :user_env),
       informational_settings:
-        monstate.configuration.informational_settings,
+        monstate.configuration.informational_settings
+        |> Map.merge(%{busy: monstate.hardware.busy}),
       process_info: monstate.process_info,
       user_env:
         monstate.configuration.configuration.user_env
@@ -90,6 +91,7 @@ defmodule Farmbot.Transport do
 
   # Emit a log message
   def handle_cast({:log, log}, {_status, _count, context} = state) do
+    debug_log "sending log: [#{log.message}]"
     GenStage.async_notify(context.transport, {:log, log})
     {:noreply, [], state}
   end

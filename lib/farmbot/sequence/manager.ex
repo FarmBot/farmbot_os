@@ -14,14 +14,14 @@ defmodule Farmbot.Sequence.Manager do
     GenServer.start_link(__MODULE__, {ctx, sequence, caller}, opts)
   end
 
-  def init({ctx, sequence_ast, sequence_pid}) do
+  def init({ctx, sequence_ast, caller}) do
     case Runner.start_link(ctx, sequence_ast, self()) do
-      {:ok, pid} ->
+      {:ok, sequence_pid} ->
         Process.flag(:trap_exit, true)
         Process.link(sequence_pid)
-        {:ok, %{context: ctx, caller: pid, sequence_pid: sequence_pid}}
+        {:ok, %{context: ctx, caller: caller, sequence_pid: sequence_pid}}
       :ignore ->
-        send(sequence_pid, {self(), ctx})
+        send(caller, {self(), ctx})
         :ignore
       err -> {:stop, err}
     end
@@ -29,6 +29,12 @@ defmodule Farmbot.Sequence.Manager do
 
   def handle_info({_pid, %Context{} = ctx}, %{sequence_pid: _sequence_pid} = state)  do
     {:noreply, %{state | context: ctx}}
+  end
+
+  def handle_info({_pid, {:error, ex}}, state) do
+    debug_log "Sequence error."
+    send state.caller, {self(), {:error, ex}}
+    {:stop, :normal, state}
   end
 
   def handle_info({:EXIT, _pid, :normal}, %{sequence_pid: _sequence_pid} = state) do
@@ -40,7 +46,7 @@ defmodule Farmbot.Sequence.Manager do
   def handle_info({:EXIT, _pid, reason}, %{sequence_pid: _sequence_pid} = state) do
     debug_log "Caught sequence exit error: #{inspect reason}"
     send state.caller, {self(), {:error, reason}}
-    {:stop, reason, state}
+    {:stop, :normal, state}
   end
 
 end

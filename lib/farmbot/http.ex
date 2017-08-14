@@ -199,9 +199,7 @@ defmodule Farmbot.HTTP do
           case header do
             "Content-Length" -> val
             "content_length" -> val
-            header ->
-              debug_log "nope: #{header}"
-              nil
+            _header          -> nil
           end
         end)
         HTTPoison.stream_next(%AsyncResponse{id: ref})

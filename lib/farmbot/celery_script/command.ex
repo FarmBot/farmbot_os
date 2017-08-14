@@ -8,6 +8,7 @@ defmodule Farmbot.CeleryScript.Command do
   """
   alias   Farmbot.CeleryScript.{Ast, Error}
   alias   Farmbot.Database.Selectors
+  alias Selectors.Error, as: SelectorError
   alias   Farmbot.Context
   require Logger
   use     Farmbot.DebugLog
@@ -111,6 +112,9 @@ defmodule Farmbot.CeleryScript.Command do
         reraise e, System.stacktrace()
       e in Farmbot.Farmware.RuntimeError ->
         Logger.error "Farmware Error! #{e.message}"
+        reraise e, System.stacktrace()
+      e in SelectorError ->
+        Logger.error "Database error! #{e.message}"
         reraise e, System.stacktrace()
       exception ->
         Logger.error "Unknown error happend executing CeleryScript."

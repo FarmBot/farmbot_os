@@ -18,7 +18,7 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   end
 
   def init({%Context{} = context, %Token{} = token}) do
-    Logger.debug ">> Starting mqtt!"
+    Logger.info ">> Starting mqtt!", type: :busy
     Process.flag(:trap_exit, true)
     # Process.send_after(self(), :r_u_alive_bb?, 1000)
     {:ok, %{token: token, context: context, cs_nodes: []}}
@@ -33,7 +33,7 @@ defmodule Farmbot.Transport.GenMqtt.Client do
       backend     = Logger.Backends.FarmbotLogger
       {:ok, _pid} = Logger.add_backend(backend)
       :ok         = GenEvent.call(Logger, backend, {:context, context})
-      Logger.info ">> is up and running!"
+      Logger.info ">> is up and running!", type: :success
       Farmbot.Transport.force_state_push(context)
     end.()
 
