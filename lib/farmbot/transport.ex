@@ -91,6 +91,7 @@ defmodule Farmbot.Transport do
 
   # Emit a log message
   def handle_cast({:log, log}, {_status, _count, context} = state) do
+    debug_log "sending log: [#{log.message}]"
     GenStage.async_notify(context.transport, {:log, log})
     {:noreply, [], state}
   end

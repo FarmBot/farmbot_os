@@ -31,6 +31,12 @@ defmodule Farmbot.Sequence.Manager do
     {:noreply, %{state | context: ctx}}
   end
 
+  def handle_info({_pid, {:error, ex}}, state) do
+    debug_log "Sequence error."
+    send state.caller, {self(), {:error, ex}}
+    {:stop, :normal, state}
+  end
+
   def handle_info({:EXIT, _pid, :normal}, %{sequence_pid: _sequence_pid} = state) do
     debug_log "Sequence completed successfully."
     send state.caller, {self(), state.context}
@@ -40,7 +46,7 @@ defmodule Farmbot.Sequence.Manager do
   def handle_info({:EXIT, _pid, reason}, %{sequence_pid: _sequence_pid} = state) do
     debug_log "Caught sequence exit error: #{inspect reason}"
     send state.caller, {self(), {:error, reason}}
-    {:stop, reason, state}
+    {:stop, :normal, state}
   end
 
 end
