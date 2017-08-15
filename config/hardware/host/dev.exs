@@ -3,6 +3,10 @@ use Mix.Config
 # dev environment doesn't need any special init stuff.
 config :farmbot, :init, []
 
+config :Farmbot, :transport, [
+  Farmbot.BotState.Transport.GenMqtt
+]
+
 # Configure Farmbot Behaviours.
 config :farmbot, :behaviour,
   # Should implement Farmbot.System behaviour.

@@ -8,6 +8,8 @@ defmodule Farmbot.BotState.Supervisor do
     Transport
   }
 
+  alias Farmbot.Firmware, as: FW
+
   @doc "Start the BotState stack."
   def start_link(token, opts \\ []) do
     Supervisor.start_link(__MODULE__, token, opts)
@@ -25,6 +27,9 @@ defmodule Farmbot.BotState.Supervisor do
 
       # Transport part.
       supervisor(Transport.Supervisor, [token, BotState, [name: Transport.Supervisor]])
+
+      # Firmware part.
+      # supervisor(FW.Supervisor, [name: FW.Supervisor])
     ]
     supervise(children, [strategy: :one_for_one])
   end

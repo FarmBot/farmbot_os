@@ -10,6 +10,8 @@ config :farmbot, :authorization, [
 # We reconfigure this later in tests.
 config :farmbot, :init, []
 
+config :farmbot, :transport, []
+
 # Replace some things to stub them out.
 config :farmbot, :behaviour, [
   # Auth needs to be stubbed to not use configuration.
