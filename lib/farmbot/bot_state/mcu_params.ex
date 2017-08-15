@@ -137,14 +137,5 @@ defmodule Farmbot.BotState.McuParams do
     param_e_stop_on_mov_err: number,
     param_version: number,
   }
-  use GenServer
-  require Logger
-
-  def start_link(args, opts \\ []) do
-    GenServer.start_link(__MODULE__, args, opts)
-  end
-
-  def init(_args) do
-    {:ok, %__MODULE__{}}
-  end
+  use Farmbot.BotState.Lib.Partition
 end

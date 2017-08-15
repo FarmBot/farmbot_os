@@ -1,6 +1,6 @@
 defmodule Farmbot.BotState.Configuration do
   @moduledoc "Externally Editable configuration data"
-  
+
   defstruct [
     os_auto_update: false,
     steps_per_mm_x: 25,
@@ -16,15 +16,5 @@ defmodule Farmbot.BotState.Configuration do
     steps_per_mm_z: number
   }
 
-  use GenServer
-  require Logger
-
-  @doc "Start the Configuration Server"
-  def start_link(args, opts) do
-    GenServer.start_link(__MODULE__, args, opts)
-  end
-
-  def init(_) do
-    {:ok, %__MODULE__{}}
-  end
+  use Farmbot.BotState.Lib.Partition
 end

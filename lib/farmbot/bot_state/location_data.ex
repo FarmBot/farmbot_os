@@ -1,12 +1,25 @@
 defmodule Farmbot.BotState.LocationData do
   @moduledoc "Data about the bot's location in space"
-  
-  defmodule Farmbot.BotState.Vec3 do
+
+  defmodule Vec3 do
     @moduledoc "3 Position Vector used for locations"
     defstruct [:x, :y, :z]
 
+    @typedoc "x position."
+    @type x :: number
+
+    @typedoc "y position."
+    @type y :: number
+
+    @typedoc "z position."
+    @type z :: number
+
     @typedoc "3 Position vector used for location data"
-    @type t :: %__MODULE__{x: number, y: number, z: number}
+    @type t :: %__MODULE__{x: x , y: y , z: z }
+
+    @doc "Builds a new 3 position vector."
+    @spec new(x, y, z) :: t
+    def new(x, y, z), do: %__MODULE__{x: x, y: y, z: z}
   end
 
   defstruct [
@@ -22,15 +35,5 @@ defmodule Farmbot.BotState.LocationData do
     raw_encoders: Vec3.t
   }
 
-  use GenServer
-  require Logger
-
-  @doc "Start the location server"
-  def start_link(args, opts \\ []) do
-    GenServer.start_link(__MODULE__, args, opts)
-  end
-
-  def init(_args) do
-    {:ok, %__MODULE__{}}
-  end
+  use Farmbot.BotState.Lib.Partition
 end

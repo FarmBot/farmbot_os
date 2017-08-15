@@ -3,7 +3,7 @@ defmodule Farmbot.BotState.InformationalSettings do
 
   defmodule SyncStatus do
     @moduledoc "Enum of all available statuses for the sync message."
-    
+
     @statuses [
       :locked,
       :maintenance,
@@ -13,13 +13,13 @@ defmodule Farmbot.BotState.InformationalSettings do
       :syncing,
       :unknown
     ]
-    
+
     @typedoc "Status of the sync bar"
-    @type t :: :locked | 
-               :maintenance | 
-               :sync_error | 
-               :sync_now | 
-               :synced | 
+    @type t :: :locked |
+               :maintenance |
+               :sync_error |
+               :sync_now |
+               :synced |
                :syncing |
                :unknown
 
@@ -31,6 +31,8 @@ defmodule Farmbot.BotState.InformationalSettings do
       raise "unknown sync status: #{unknown}"
     end
   end
+
+  @version Mix.Project.config[:version]
 
   defstruct [
     controller_version: @version,
@@ -49,15 +51,5 @@ defmodule Farmbot.BotState.InformationalSettings do
     sync_status: SyncStatus.t
   }
 
-  use GenServer
-  require Logger
-
-  @doc "Start the InformationalSettings Server"
-  def start_link(args, opts \\ []) do
-    GenServer.start_link(__MODULE__, args, opts)
-  end
-
-  def init(_args) do
-    {:ok, %__MODULE__{}}
-  end
+  use Farmbot.BotState.Lib.Partition
 end

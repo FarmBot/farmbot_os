@@ -15,11 +15,11 @@ defmodule Farmbot.BotState do
   defstruct [
     configuration: %Configuration{},
     informational_settings: %InformationalSettings{},
-    jobs: %{},
     location_data: %LocationData{},
     mcu_params: %McuParams{},
-    pins: %{},
     process_info: %ProcessInfo{},
+    jobs: %{},
+    pins: %{},
     user_env: %{},
   ]
 
@@ -29,6 +29,7 @@ defmodule Farmbot.BotState do
     configuration: Configuration.t,
     location_data: LocationData.t,
     process_info:  ProcessInfo.t,
+    mcu_params:    McuParams.t,
     jobs:     %{optional(binary) => Job.t},
     pins:     %{optional(number) => Pin.t},
     user_env: %{optional(binary) => binary}
@@ -71,7 +72,7 @@ defmodule Farmbot.BotState do
   require Logger
 
   # these modules have seperate process backing them.
-  @update_mods [InformationalSettings, Configuration, LocationData, ProcessInfo]
+  @update_mods [InformationalSettings, Configuration, LocationData, ProcessInfo, McuParams]
 
   defmodule PrivateState do
     @moduledoc "State for the GenServer."
@@ -87,11 +88,11 @@ defmodule Farmbot.BotState do
   end
 
   @doc "Start the Bot State Server."
-  def start_link(args, opts \\ []) do
-    GenServer.start_link(__MODULE__, args, opts)
+  def start_link(opts \\ []) do
+    GenServer.start_link(__MODULE__, [], opts)
   end
 
-  def init(_args) do
+  def init([]) do
     {:ok, %PrivateState{}}
   end
 
@@ -99,8 +100,8 @@ defmodule Farmbot.BotState do
   # Only except updates from module backed by a process somewhere.
   def handle_cast({:update, module, value}, priv) when module in @update_mods do
     ["Farmbot", "BotState", camel] = Module.split(module)
-    new_bot_state = %{priv.bot_state | Macro.underscore(camel) => value}
-    dispatch state, new_bot_state
+    new_bot_state = %{priv.bot_state | :"#{Macro.underscore(camel)}" => value}
+    dispatch priv, new_bot_state
   end
 
   def handle_call(:subscribe, {pid, _ref}, priv) do
@@ -108,7 +109,7 @@ defmodule Farmbot.BotState do
     if pid in priv.subscribers do
       {:reply, {:error, :already_subscribed}, priv}
     else
-      send pid {:bot_state, priv.bot_state}
+      send pid, {:bot_state, priv.bot_state}
       {:reply, :ok, %{priv | subscribers: [pid | priv.subscribers]}}
     end
   end
@@ -125,7 +126,7 @@ defmodule Farmbot.BotState do
 
   # Dispatches a new state to all the subscribers.
   defp dispatch(%PrivateState{subscribers: subs} = priv, %__MODULE__{} = new) do
-    for sub in subs do
+    for sub <- subs do
       send sub, {:bot_state, new}
     end
     {:noreply, %{priv | bot_state: new}}
