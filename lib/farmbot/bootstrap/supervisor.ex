@@ -56,9 +56,15 @@ defmodule Farmbot.Bootstrap.Supervisor do
   """
 
   use Supervisor
+  alias Farmbot.Bootstrap.Authorization, as: Auth
+  require Logger
 
   error_msg = """
   Please configure an authorization module!
+  for example:
+      config: :farmbot, :behaviour, [
+        authorization: Farmbot.Bootstrap.Authorization
+      ]
   """
   @auth_task Application.get_env(:farmbot, :behaviour)[:authorization] || Mix.raise(error_msg)
 
@@ -68,28 +74,36 @@ defmodule Farmbot.Bootstrap.Supervisor do
   end
 
   def init(args) do
+    Logger.info "Beginning Authorization."
+    # try to find the creds.
     case get_creds() do
+      # do the actual supervisor init if we have creds. This may still fail.
       {email, pass, server} -> actual_init(args, email, pass, server)
+      # This will cause a factory reset.
       {:error, reason}      -> {:error, reason}
     end
   end
 
   @typedoc "Authorization credentials."
-  @type auth :: {Farmbot.Bootstrap.Authorization.email,
-                 Farmbot.Bootstrap.Authorization.password,
-                 Farmbot.Bootstrap.Authorization.server}
-
+  @type auth :: {Auth.email, Auth.password, Auth.server}
 
   @spec get_creds() :: auth | {:error, term}
   defp get_creds do
     try do
       # Get out authorization data out of the environment.
-      email  = Application.get_env(:farmbot, :authorization)[:email]    || raise ArgumentError, "No email provided."
-      pass   = Application.get_env(:farmbot, :authorization)[:password] || raise ArgumentError, "No password provided."
-      server = Application.get_env(:farmbot, :authorization)[:server]   || raise ArgumentError, "No server provided."
+      # for host environment this will be configured at compile time.
+      # for target environment it will be configured by `configurator`.
+      email  = Application.get_env(:farmbot, :authorization)[:email   ] || raise Auth.Error, "No email provided."
+      pass   = Application.get_env(:farmbot, :authorization)[:password] || raise Auth.Error, "No password provided."
+      server = Application.get_env(:farmbot, :authorization)[:server  ] || raise Auth.Error, "No server provided."
       {email, pass, server}
     rescue
-      e in ArgumentError -> {:error, e.message}
+      # If there was an auth error, just take the message.
+      # it makes the factory reset reason look nicer.
+      e in Auth.Error -> {:error, e.message}
+      # any other error, reraise it and let application.start/2 catch it.
+      # the error will be formatted from there.
+      e -> reraise e, System.stacktrace()
     end
   end
 
@@ -105,6 +119,9 @@ defmodule Farmbot.Bootstrap.Supervisor do
         ]
         opts = [strategy: :one_for_all]
         supervise(children, opts)
+      # I don't actually _have_ to factory reset here. It would get detected ad
+      # an application start fail and we would factory_reset from there,
+      # the error message is just way more useful here.
       {:error, reason} -> Farmbot.System.factory_reset(reason)
     end
   end
