@@ -396,7 +396,9 @@ defmodule Farmbot.Serial.Handler do
       << "R09", _ :: binary >> -> {:error, :invalid}
       # R87 is E stop
       << "R87", _ :: binary >> -> {:error, :emergency_lock}
-      other                    -> {:error, "unhandled echo: #{other}"}
+      other                    -> 
+        debug_log "Got an unhandled echo. Expecting: #{writeme} but got: #{echo}"
+        {:error, "unhandled echo: #{other}"}
     end
   end
 
@@ -457,7 +459,7 @@ defmodule Farmbot.Serial.Handler do
 
   defp handle_done(current, context) do
     debug_log "replying to #{inspect current.from} with: #{inspect current.reply}"
-    Farmbot.BotState.set_busy(context, false)
+    :ok = Farmbot.BotState.set_busy(context, false)
     if current.callback do
       Process.cancel_timer(current.timer)
       handshake = generate_handshake()
@@ -484,7 +486,6 @@ defmodule Farmbot.Serial.Handler do
   @spec handle_gcode(any, Context.t) :: {:status, any} | {:reply, any} | nil
 
   defp handle_gcode(:report_emergency_lock, _),    do: {:status, :locked}
-  defp handle_gcode(:idle, %Context{} = _ctx),     do: {:status, :idle}
   defp handle_gcode(:busy, %Context{} = _ctx),     do: {:status, :busy}
   defp handle_gcode(:done, %Context{} = _ctx),     do: {:status, :done}
   defp handle_gcode(:received, %Context{} = _ctx), do: {:status, :received}
@@ -492,6 +493,10 @@ defmodule Farmbot.Serial.Handler do
   defp handle_gcode(:report_params_complete, _),   do: {:reply, :report_params_complete}
   defp handle_gcode(:noop, %Context{} = _ctx),     do: nil
 
+  defp handle_gcode(:idle, %Context{} = ctx) do 
+    :ok = Farmbot.BotState.set_busy(ctx, false)
+    {:status, :idle}
+  end
   defp handle_gcode({:debug_message, message}, %Context{} = _ctx) do
     debug_log "R99 #{message}"
     nil
