@@ -3,15 +3,7 @@ defmodule Farmbot.BotState.Transport.Supervisor do
   Supervises services that communicate with the outside world.
   """
   use Supervisor
-
-  @error_msg """
-  Could not find :transport configuration.
-  config.exs should have:
-
-  config: :farmbot, :transport, [
-    # any transport modules here.
-  ]
-  """
+  import Farmbot.BotState.Transport, only: [transports: 0]
 
   @doc "Start the Transport Supervisor."
   def start_link(token, bot_state_tracker, opts \\ []) do
@@ -19,9 +11,8 @@ defmodule Farmbot.BotState.Transport.Supervisor do
   end
 
   def init([token, bot_state_tracker]) do
-    transports = Application.get_env(:farmbot, :transport) || raise @error_msg
     # Start workers that consume the bots state, and push it somewhere else.
-    children = Enum.map(transports, fn(transport) ->
+    children = Enum.map(transports(), fn(transport) ->
       worker(transport, [token, bot_state_tracker, [name: transport]])
     end)
     opts = [strategy: :one_for_one]

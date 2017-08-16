@@ -3,7 +3,7 @@ use Mix.Config
 # dev environment doesn't need any special init stuff.
 config :farmbot, :init, []
 
-config :Farmbot, :transport, [
+config :farmbot, :transport, [
   Farmbot.BotState.Transport.GenMqtt
 ]
 

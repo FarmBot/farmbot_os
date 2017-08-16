@@ -6,7 +6,7 @@ defmodule Farmbot.HTTP.Error do
   defexception [:message, :response]
 
   def exception(desc) when is_atom(desc) or is_binary(desc) do
-    %__MODULE__{message: String.trim("#{inspect desc}")}
+    %__MODULE__{message: String.trim(desc)}
   end
 
   def exception(%Response{status_code: code, body: body} = resp) do
@@ -14,7 +14,7 @@ defmodule Farmbot.HTTP.Error do
   end
 
   def exception(other) do
-    %__MODULE__{message: "Unknown error: #{inspect other}"}
+    %__MODULE__{message: "Unknown HTTP error: #{inspect other}"}
   end
 
   def message(%{message: message}), do: message

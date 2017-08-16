@@ -31,6 +31,7 @@ defmodule Farmbot.BotState.Supervisor do
       # Firmware part.
       # supervisor(FW.Supervisor, [name: FW.Supervisor])
     ]
-    supervise(children, [strategy: :one_for_one])
+    # We set one_for_all here, since all of these link to `BotState`
+    supervise(children, [strategy: :one_for_all])
   end
 end
