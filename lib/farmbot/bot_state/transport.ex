@@ -13,7 +13,7 @@ defmodule Farmbot.BotState.Transport do
   """
 
   @doc "Start a transport."
-  @callback start_link(Farmbot.Bootstrap.Authorization.token, Farmbot.BotState.state_server, GenServer.opts) :: GenServer.on_start()
+  @callback start_link(Farmbot.Bootstrap.Authorization.token, Farmbot.BotState.state_server) :: GenServer.on_start()
 
   @doc "Log a message."
   @callback log(Farmbot.Log.t) :: :ok

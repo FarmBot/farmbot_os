@@ -1,7 +1,34 @@
 defmodule Farmbot do
   @moduledoc """
   Supervises the individual modules that make up the Farmbot Application.
+  This is the entry point of the application.
+
+  Here is kind of how the tree works.
+      + `Farmbot` - the Entry point of the app.
+      |
+      +---> + `Farmbot.System.Supervisor`    - The `init` system.
+      |
+      +---> + `Farmbot.Bootstrap.Supervisor` - Bootstraps into the main app.
+            |
+            +---> +` Farmbot.BotState.Superviror` - The main application.
+                  |
+                  +---> `BotState`               - Unions the next 5 modules.
+                  |
+                  +---> `InformationalSettings`  - Externally imutable settings.
+                  |
+                  +---> `Configuration`          - Externally mutable settings.
+                  |
+                  +---> `LocationData`           - Where the bot is in space.
+                  |
+                  +---> `McuParams`              - mutable hardware configuration.
+                  |
+                  +---> `ProcessInfo`            - Information about running processes on the bot.
+                  |
+                  +---> `Transport.Supervisor`   - Consumes the bot's state and talks to the rest of the world.
+                  |
+                  +---> `Firmware.Supervisor`    - Communicates with the `arduino-firmware`.
   """
+
   require Logger
   use Supervisor
 

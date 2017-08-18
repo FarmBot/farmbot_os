@@ -5,22 +5,33 @@ defmodule Farmbot.BotState.Transport.GenMqtt do
   use GenMQTT
   require Logger
 
+  # Callback function
+  def emit(msg), do: emit(__MODULE__, msg)
+
+  @doc "Emit a message on `client`."
+  def emit(client, msg) do
+    GenMQTT.cast(client, {:emit, msg})
+  end
+
+  # Callback function
+  def log(log), do: log(__MODULE__, log)
+
+  @doc "Log a message on `client`."
+  def log(client, log) do
+    GenMQTT.cast(client, {:log, log})
+  end
+
+  # Callback function.
+  def start_link(bin_token, bot_state_tracker, name \\ __MODULE__) do
+    token = Farmbot.Jwt.decode!(bin_token)
+    GenMQTT.start_link(__MODULE__, [token.bot, bot_state_tracker], build_opts(bin_token, token, name))
+  end
+
+  ## Server Implementation.
+
   defmodule State do
     @moduledoc false
     defstruct [bot: nil, connected: false]
-  end
-
-  def emit(msg) do
-    GenMQTT.cast(__MODULE__, {:emit, msg})
-  end
-
-  def log(log) do
-    GenMQTT.cast(__MODULE__, {:log, log})
-  end
-
-  def start_link(bin_token, bot_state_tracker, opts \\ []) do
-    token = Farmbot.Jwt.decode!(bin_token)
-    GenMQTT.start_link(__MODULE__, [token.bot, bot_state_tracker], build_opts(bin_token, token, opts))
   end
 
   def init([bot, bot_state_tracker]) do
@@ -82,8 +93,9 @@ defmodule Farmbot.BotState.Transport.GenMqtt do
     |> Poison.encode!
   end
 
-  defp build_opts(bin_token, %{mqtt: mqtt, bot: bot}, opts) do
+  defp build_opts(bin_token, %{mqtt: mqtt, bot: bot}, name) do
     [
+      name: name,
       reconnect_timeout: 10_000,
       last_will_topic:   [log_topic(bot)],
       last_will_msg:     build_last_will_message(bot),
@@ -93,7 +105,6 @@ defmodule Farmbot.BotState.Transport.GenMqtt do
       timeout:           10_000,
       host:              mqtt
     ]
-    |> Keyword.merge(opts)
   end
 
 end
