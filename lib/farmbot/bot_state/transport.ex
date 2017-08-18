@@ -1,12 +1,3 @@
-defmodule Farmbot.Log do
-  defstruct [
-    :meta,
-    :message,
-    :created_at,
-    :channels
-  ]
-end
-
 defmodule Farmbot.BotState.Transport do
   @moduledoc """
   Serializes Farmbot's state to be send out to any subscribed transports.
