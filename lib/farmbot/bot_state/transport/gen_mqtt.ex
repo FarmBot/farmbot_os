@@ -60,6 +60,7 @@ defmodule Farmbot.BotState.Transport.GenMqtt do
   def handle_info({:bot_state, bs}, state) do
     json = Poison.encode!(bs)
     GenMQTT.publish(self(), status_topic(state.bot), json, 0, false)
+    {:noreply, state}
   end
 
   def handle_cast(_, %{connected: false} = state), do: {:noreply, state}

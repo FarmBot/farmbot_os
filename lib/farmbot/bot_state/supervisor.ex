@@ -26,10 +26,10 @@ defmodule Farmbot.BotState.Supervisor do
       worker(McuParams,                [BotState, [name: McuParams]]),
 
       # Transport part.
-      supervisor(Transport.Supervisor, [token, BotState, [name: Transport.Supervisor]])
+      supervisor(Transport.Supervisor, [token, BotState, [name: Transport.Supervisor]]),
 
       # Firmware part.
-      # supervisor(FW.Supervisor, [name: FW.Supervisor])
+      supervisor(FW.Supervisor, [BotState, InformationalSettings, Configuration, LocationData, McuParams, [name: FW.Supervisor]])
     ]
     # We set one_for_all here, since all of these link to `BotState`
     supervise(children, [strategy: :one_for_all])

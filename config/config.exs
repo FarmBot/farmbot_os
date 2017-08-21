@@ -29,14 +29,18 @@ config :fs, path: "/tmp/images"
 config :farmbot, :init, [ ]
 
 # Transports.
-config :farmbot, :transport, [ ] 
+config :farmbot, :transport, [ ]
 
 
 # Configure Farmbot Behaviours.
 config :farmbot, :behaviour, [
   authorization: Farmbot.Bootstrap.Authorization,
+  firmware: Farmbot.Firmware.UartHandler
 ]
 
+config :farmbot, :uart_handler, [
+  tty: "/dev/ttyACM0"
+]
 
 # import config specific to our nerves_target
 IO.puts "using #{target} - #{env} configuration."

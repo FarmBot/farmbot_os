@@ -11,7 +11,7 @@ defmodule Farmbot.BotState.InformationalSettings do
       :sync_now,
       :synced,
       :syncing,
-      :unknown
+      :unknown,
     ]
 
     @typedoc "Status of the sync bar"
@@ -39,7 +39,8 @@ defmodule Farmbot.BotState.InformationalSettings do
     firmware_version: :disconnected,
     throttled: false,
     private_ip: :disconnected,
-    sync_status: SyncStatus.status(:sync_now)
+    sync_status: SyncStatus.status(:sync_now),
+    busy: true
   ]
 
   @typedoc "Information Settings."
@@ -48,8 +49,17 @@ defmodule Farmbot.BotState.InformationalSettings do
     firmware_version: :disconnected | Version.version,
     throttled: boolean,
     private_ip: :disconnected | Version.version,
-    sync_status: SyncStatus.t
+    sync_status: SyncStatus.t,
+    busy: boolean
   }
 
   use Farmbot.BotState.Lib.Partition
+
+  def set_busy(part, busy) do
+    GenServer.call(part, {:set_busy, busy})
+  end
+
+  def partition_call({:set_busy, busy}, _, state) do
+    {:reply, :ok, %{state | busy: busy}}
+  end
 end
