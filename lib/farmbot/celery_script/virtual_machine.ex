@@ -1,6 +1,6 @@
 defmodule Farmbot.CeleryScript.VirtualMachine do
   @moduledoc "Virtual Machine."
- 
+
   alias Farmbot.CeleryScript.Ast
   alias Farmbot.CeleryScript.VirtualMachine.{
     InstructionSet,
@@ -15,8 +15,8 @@ defmodule Farmbot.CeleryScript.VirtualMachine do
   @typep stack_frame :: StackFrame.t
 
   defstruct [
-    instruction_set: %InstructionSet{}, 
-    call_stack: [], 
+    instruction_set: %InstructionSet{},
+    call_stack: [],
     program: [],
     pc: -1,
     running: true
@@ -32,8 +32,8 @@ defmodule Farmbot.CeleryScript.VirtualMachine do
   }
 
   # increment the program counter by one.
-  defp inc_pc(%__MODULE__{pc: pc} = vm), do: %{vm | pc: pc + 1} 
-  
+  defp inc_pc(%__MODULE__{pc: pc} = vm), do: %{vm | pc: pc + 1}
+
   def step(%__MODULE__{running: true} = vm) do
     vm
     |> inc_pc()
@@ -41,15 +41,15 @@ defmodule Farmbot.CeleryScript.VirtualMachine do
   end
 
   def step(%__MODULE__{running: false} = vm), do: vm
-  
+
   defp do_step(%__MODULE__{} = vm) do
     case vm.program |> Enum.at(vm.pc) do
-      %Ast{kind: kind, args: args, body: body} = ast -> 
+      %Ast{kind: kind, args: args, body: body} = ast ->
         debug_log "doing: #{inspect ast}"
 
         # Turn kind into an instruction
         instruction = Module.concat([kind])
-        
+
         # Lookup the implementation. This could raise.
         impl = vm.instruction_set[instruction]
 
@@ -61,7 +61,7 @@ defmodule Farmbot.CeleryScript.VirtualMachine do
           impl.eval(vm)
         rescue
           ex in VmError -> reraise(ex, System.stacktrace())
-          ex -> raise VmError, machine: vm, exception: ex  
+          ex -> raise VmError, machine: vm, exception: ex
         end
       nil -> %{vm | running: false}
     end
