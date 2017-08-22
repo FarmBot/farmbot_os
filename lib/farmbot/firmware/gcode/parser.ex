@@ -1,4 +1,4 @@
-defmodule Farmbot.Serial.Gcode.Parser do
+defmodule Farmbot.Firmware.Gcode.Parser do
   @moduledoc """
     Parses farmbot_arduino_firmware G-Codes.
   """
@@ -40,10 +40,10 @@ defmodule Farmbot.Serial.Gcode.Parser do
   defp parse_report_calibration(r) do
     [axis_and_status | [q]] = String.split(r, " Q")
     <<a :: size(8), b :: size(8)>> = axis_and_status
-    case b do
-      48 -> {q, {:report_calibration, <<a>>, :idle}}
-      49 -> {q, {:report_calibration, <<a>>, :home}}
-      50 -> {q, {:report_calibration, <<a>>, :end}}
+    case <<b>> do
+      "0" -> {q, {:report_calibration, <<a>>, :idle}}
+      "1" -> {q, {:report_calibration, <<a>>, :home}}
+      "2" -> {q, {:report_calibration, <<a>>, :end}}
     end
   end
 

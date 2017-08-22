@@ -6,7 +6,7 @@ defmodule Farmbot.Firmware.UartHandler do
   use GenServer
   use Farmbot.DebugLog
   alias Nerves.UART
-  alias Farmbot.Serial.Gcode.Parser
+  alias Farmbot.Firmware.Gcode.Parser
   require Logger
 
   @default_timeout_ms 15_000
