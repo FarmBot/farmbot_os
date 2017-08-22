@@ -11,6 +11,7 @@ defmodule Farmbot.HTTP.Supervisor do
   def init(args) do
     children = []
     opts = [strategy: :one_for_all]
+    supervise(children, opts)
   end
 
 end

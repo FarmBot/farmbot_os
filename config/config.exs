@@ -35,7 +35,12 @@ config :farmbot, :transport, [ ]
 # Configure Farmbot Behaviours.
 config :farmbot, :behaviour, [
   authorization: Farmbot.Bootstrap.Authorization,
-  firmware: Farmbot.Firmware.UartHandler
+
+  # uncomment this line if you have a real arduino plugged in. You will also need
+  # ensure the config for `:uart_handler` is correct.
+  # firmware_handler: Farmbot.Firmware.UartHandler,
+  firmware_handler: Farmbot.Host.FirmwareHandlerStub
+
 ]
 
 config :farmbot, :uart_handler, [

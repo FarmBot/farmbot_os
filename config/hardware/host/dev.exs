@@ -11,5 +11,5 @@ config :farmbot, :transport, [
 config :farmbot, :behaviour,
   # Should implement Farmbot.System behaviour.
   system_tasks:  Farmbot.Host.SystemTasks
-
+  
 import_config "../../auth_secret.exs"

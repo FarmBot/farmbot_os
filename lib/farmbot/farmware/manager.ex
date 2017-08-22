@@ -1,21 +1,23 @@
 defmodule Farmbot.Farmware.Manager do
   @moduledoc """
-    Tracks and manages Farmware
+  Tracks and manages Farmware
   """
-  use Farmbot.Context.Worker
   alias Farmbot.Farmware
+  alias Farmbot.BotState.ProcessInfo
 
   @typedoc false
-  @type manager :: atom | pid
+  @type manager :: GenServer.server
 
   @typedoc false
-  @type url    :: binary
+  @type url :: binary
 
   defmodule State do
     @moduledoc false
-    defstruct [:context, :farmwares]
+    defstruct [:bot_state, :process_info, :token, :farmwares]
     @type t :: %{
-      context: Context.t,
+      bot_state: GenServer.server,
+      process_info: GenServer.server,
+      token: binary,
       farmwares: %{optional(Farmware.name) => Farmware.t}
     }
   end
@@ -29,24 +31,27 @@ defmodule Farmbot.Farmware.Manager do
   @doc """
   Lookup a Farmware.
   """
-  @spec lookup_by_name(Context.t, name) :: {:ok, Farmware.t} | {:error, term}
-  def lookup_by_name(%Context{farmware_manager: fwt}, name) do
-    GenServer.call(fwt, {:lookup_by_name, name})
+  @spec lookup_by_name(manager, name) :: {:ok, Farmware.t} | {:error, term}
+  def lookup_by_name(manager, name) do
+    GenServer.call(manager, {:lookup_by_name, name})
   end
 
   @doc "ReIndex the manager."
-  @spec reindex(Context.t) :: state
-  def reindex(%Context{farmware_manager: fwt}) do
-    GenServer.call(fwt, :reindex)
+  @spec reindex(manager) :: state
+  def reindex(manager) do
+    GenServer.call(manager, :reindex)
+  end
+
+  @doc "Starts the farmware manager."
+  def start_link(token, bot_state, process_info, opts \\ []) do
+    GenServer.start_link(__MODULE__, [token, bot_state, process_info], opts)
   end
 
   ## GenServer stuff
 
-  def init(ctx) do
-    root_path = "#{Farmbot.System.FS.path()}/farmware/packages"
-    Farmbot.System.FS.transaction fn() ->
-      File.mkdir_p root_path
-    end, true
+  def init([token, bot_state, process_info]) do
+    root_path = "./tmp/farmbot/farmware/packages"
+    File.mkdir_p root_path
     installed = root_path |> File.ls!
     fws = Map.new(installed, fn(name) ->
       fw = "#{root_path}/#{name}/manifest.json" |> File.read!() |> Poison.decode! |> Farmware.new
@@ -54,11 +59,13 @@ defmodule Farmbot.Farmware.Manager do
     end)
 
     state = %State{
-      context:   ctx,
+      bot_state: bot_state,
+      process_info: process_info,
+      token: token,
       farmwares: fws,
     }
 
-    dispatch nil, state
+    dispatch process_info, nil, state
     {:ok, state}
   end
 
@@ -70,17 +77,17 @@ defmodule Farmbot.Farmware.Manager do
           {:ok, fw}
         end
       end)
-    dispatch reply, state
+    dispatch state.process_info, reply, state
   end
 
   def handle_call(:reindex, _, state) do
     {:ok, new} = init(state.context)
-    dispatch :ok, new
+    dispatch state.process_info, :ok, new
   end
 
-  @spec dispatch(term, state) :: {:reply, term, state}
-  defp dispatch(reply, state) do
-    GenServer.cast(Farmbot.BotState.Monitor, state)
+  @spec dispatch(GenServer.server, term, state) :: {:reply, term, state}
+  defp dispatch(process_info, reply, state) do
+    :ok = ProcessInfo.update_farmwares(process_info, state.farmwares)
     {:reply, reply, state}
   end
 end

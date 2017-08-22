@@ -1,9 +1,9 @@
 defmodule Farmbot.HTTP do
   @moduledoc """
-    Farmbot HTTP adapter for accessing the world and farmbot web api easily.
+  Farmbot HTTP adapter for accessing the world and farmbot web api easily.
   """
   use     GenServer
-  alias   Farmbot.{Auth, Context, Token}
+  alias   Farmbot.{Auth, Token}
   alias   HTTPoison
   alias   HTTPoison.{
     AsyncResponse,
@@ -32,19 +32,19 @@ defmodule Farmbot.HTTP do
   * opts     - Keyword opts to be passed to adapter (hackney/httpoison)
     * `file` - option to  be passed if the output should be saved to a file.
   """
-  def request(context, method, url, body \\ "", headers \\ [], opts \\ [])
+  def request(http, method, url, body \\ "", headers \\ [], opts \\ [])
 
-  def request(%Context{http: http}, method, url, body, headers, opts) do
+  def request(http, method, url, body, headers, opts) do
     GenServer.call(http, {:req, method, url, body, headers, opts}, :infinity)
   end
 
   @doc """
   Same as `request/6` - but raises a `Farmbot.HTTP.Error` exception.
   """
-  def request!(context, method, url, body \\ "", headers \\ [], opts \\ [])
+  def request!(http, method, url, body \\ "", headers \\ [], opts \\ [])
 
-  def request!(ctx, method, url, body, headers, opts) do
-    case request(ctx, method, url, body, headers, opts) do
+  def request!(http, method, url, body, headers, opts) do
+    case request(http, method, url, body, headers, opts) do
       {:ok, %Response{status_code: code} = resp} when is_2xx(code) -> resp
       {:ok, %Response{} = resp} -> raise Error, resp
       {:error, error}           -> raise Error, error
@@ -55,75 +55,75 @@ defmodule Farmbot.HTTP do
 
   for verb <- methods do
     @doc """
-      HTTP #{verb} request.
+    HTTP #{verb} request.
     """
-    def unquote(verb)(context, url, body \\ "", headers \\ [], opts \\ [])
-    def unquote(verb)(%Context{} = ctx, url, body, headers, opts) do
-       request(ctx, unquote(verb), url, body, headers, opts)
+    def unquote(verb)(http, url, body \\ "", headers \\ [], opts \\ [])
+    def unquote(verb)(http, url, body, headers, opts) do
+       request(http, unquote(verb), url, body, headers, opts)
     end
 
     @doc """
-      Same as #{verb}/5 but raises Farmbot.HTTP.Error exception.
+    Same as #{verb}/5 but raises Farmbot.HTTP.Error exception.
     """
     fun_name = "#{verb}!" |> String.to_atom
-    def unquote(fun_name)(context, url, body \\ "", headers \\ [], opts \\ [])
-    def unquote(fun_name)(%Context{} = ctx, url, body, headers, opts) do
-      request!(ctx, unquote(verb), url, body, headers, opts)
+    def unquote(fun_name)(http, url, body \\ "", headers \\ [], opts \\ [])
+    def unquote(fun_name)(http, url, body, headers, opts) do
+      request!(http, unquote(verb), url, body, headers, opts)
     end
   end
 
-  def download_file(ctx, url, path, progress_callback \\ nil, payload \\ "", headers \\ [])
-  def download_file(ctx, url, path, progress_callback, payload, headers) do
-    case get(ctx, url, payload, headers, file: path, progress_callback: progress_callback) do
+  def download_file(http, url, path, progress_callback \\ nil, payload \\ "", headers \\ [])
+  def download_file(http, url, path, progress_callback, payload, headers) do
+    case get(http, url, payload, headers, file: path, progress_callback: progress_callback) do
       {:ok, %Response{status_code: code}} when is_2xx(code) -> {:ok, path}
       {:ok, %Response{} = resp} -> {:error, resp}
       {:error, reason}          -> {:error, reason}
     end
   end
 
-  def download_file!(ctx, url, path, progress_callback \\ nil, payload \\ "", headers \\ [])
-  def download_file!(ctx, url, path, progress_callback, payload, headers) do
-    case download_file(ctx, url, path, progress_callback, payload, headers) do
+  def download_file!(http, url, path, progress_callback \\ nil, payload \\ "", headers \\ [])
+  def download_file!(http, url, path, progress_callback, payload, headers) do
+    case download_file(http, url, path, progress_callback, payload, headers) do
       {:ok, path}      -> path
       {:error, reason} -> raise Error, reason
     end
   end
 
-  def upload_file(ctx, path, meta \\ nil) do
+  def upload_file(http, path, meta \\ nil) do
     if File.exists?(path) do
-      ctx |> get("/api/storage_auth") |> do_multipart_request(ctx, meta || %{x: -1, y: -1, z: -1}, path)
+      http |> get("/api/storage_auth") |> do_multipart_request(http, meta || %{x: -1, y: -1, z: -1}, path)
     else
       {:error, "#{path} not found"}
     end
   end
 
-  def upload_file!(ctx, path, meta \\ %{}) do
-    case upload_file(ctx, path, meta) do
+  def upload_file!(http, path, meta \\ %{}) do
+    case upload_file(http, path, meta) do
       :ok -> :ok
       {:error, reason} -> raise Error, reason
     end
   end
 
-  defp do_multipart_request({:ok, %Response{status_code: code, body: bin_body}}, ctx, meta, path) when is_2xx(code) do
+  defp do_multipart_request({:ok, %Response{status_code: code, body: bin_body}}, http, meta, path) when is_2xx(code) do
     with {:ok, body} <- Poison.decode(bin_body),
          {:ok, file} <- File.read(path) do
            url            = "https:" <> body["url"]
            form_data      = body["form_data"]
            attachment_url = url <> form_data["key"]
            mp = Enum.map(form_data, fn({key, val}) -> if key == "file", do: {"file", file}, else: {key, val} end)
-           ctx
+           http
             |> post(url, {:multipart, mp})
-            |> finish_upload(ctx, attachment_url, meta)
+            |> finish_upload(http, attachment_url, meta)
          end
   end
 
-  defp do_multipart_request({:ok, %Response{} = response}, _ctx, _meta, _path), do: {:error, response}
+  defp do_multipart_request({:ok, %Response{} = response}, _http, _meta, _path), do: {:error, response}
 
-  defp do_multipart_request({:error, reason}, _ctx, _meta, _path), do: {:error, reason}
+  defp do_multipart_request({:error, reason}, _http, _meta, _path), do: {:error, reason}
 
-  defp finish_upload({:ok, %Response{status_code: code}}, ctx, atch_url, meta) when is_2xx(code) do
+  defp finish_upload({:ok, %Response{status_code: code}}, http, atch_url, meta) when is_2xx(code) do
     with {:ok, body} <- Poison.encode(%{"attachment_url" => atch_url, "meta" => meta}) do
-      case post(ctx, "/api/images", body) do
+      case post(http, "/api/images", body) do
         {:ok, %Response{status_code: code}} when is_2xx(code) ->
           debug_log("#{atch_url} should exist shortly.")
           :ok
@@ -133,15 +133,15 @@ defmodule Farmbot.HTTP do
     end
   end
 
-  defp finish_upload({:ok, %Response{} = resp}, _ctx, _url, _meta), do: {:error, resp}
-  defp finish_upload({:error, reason}, _ctx, _url, _meta),          do: {:error, reason}
+  defp finish_upload({:ok, %Response{} = resp}, _http, _url, _meta), do: {:error, resp}
+  defp finish_upload({:error, reason}, _http, _url, _meta),          do: {:error, reason}
 
   # GenServer
 
   defmodule State do
     defstruct [:token, :requests]
     defimpl Inspect, for: __MODULE__ do
-      def inspect(state, _), do: "#HTTPState<token: #{inspect state.token}>"
+      def inspect(state, _), do: "#HTTPState<>"
     end
   end
 
@@ -149,14 +149,12 @@ defmodule Farmbot.HTTP do
     defstruct [:data, :headers, :status_code, :request, :from, :id, :file, :timeout, :progress_callback, :file_size]
   end
 
-  def start_link(%Context{} = ctx, opts) do
-    GenServer.start_link(__MODULE__, ctx, opts)
+  def start_link(token, opts) do
+    GenServer.start_link(__MODULE__, token, opts)
   end
 
-  def init(_ctx) do
-    Registry.register(Farmbot.Registry, Farmbot.Auth, [])
-    # Process.flag(:trap_exit, true)
-    state = %State{token: nil, requests: %{}}
+  def init(token) do
+    state = %State{token: token, requests: %{}}
     {:ok, state}
   end
 
@@ -230,14 +228,6 @@ defmodule Farmbot.HTTP do
     end
   end
 
-  def handle_info({Auth, {:new_token, %Token{} = token}}, state),
-    do: {:noreply, %{state | token: token}}
-
-  def handle_info({Auth, :purge_token}, state),
-    do: {:noreply, %{state | token: nil}}
-
-  def handle_info({Auth, {:error, _error}}, state), do: {:noreply, state}
-
   def terminate({:error, reason}, state), do: terminate(reason, state)
 
   def terminate(reason, state) do
@@ -287,18 +277,13 @@ defmodule Farmbot.HTTP do
     end
   end
 
-  defp do_api_request({_method, _url, _body, _headers, _opts, from}, %{token: nil} = state) do
-    GenServer.reply(from, {:error, :no_token})
-    {:noreply, state}
-  end
-
   defp do_api_request({method, url, body, headers, opts, from}, %{token: tkn} = state) do
     headers = headers
-              |> add_header({"Authorization", "Bearer " <> tkn.encoded})
+              |> add_header({"Authorization", "Bearer " <> tkn})
               |> add_header({"Content-Type", "application/json"})
 
     opts = opts |> Keyword.put(:timeout, :infinity)
-    url = tkn.unencoded.iss <> url
+    url = Farmbot.Jwt.decode!(tkn).iss <> url
     do_normal_request({method, url, body, headers, opts, from}, nil, state)
   end
 

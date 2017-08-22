@@ -1,9 +1,10 @@
 defmodule Farmbot.Farmware.Runtime do
   @moduledoc """
-    Executes a farmware
+  Executes a farmware
   """
+
   use     Farmbot.DebugLog, name: FarmwareRuntime
-  alias   Farmbot.{Farmware, Context, BotState, Auth}
+  alias   Farmbot.{Farmware, BotState}
   alias   Farmware.RuntimeError, as: FarmwareRuntimeError
   alias   Farmbot.Farmware.Runtime.HTTPServer.JWT, as: FarmwareJWT
   alias   Farmbot.Farmware.Runtime.HTTPServer
@@ -12,7 +13,7 @@ defmodule Farmbot.Farmware.Runtime do
 
   defmodule State do
     @moduledoc false
-    defstruct [:uuid, :port, :farmware, :context, :output, :server]
+    defstruct [:uuid, :port, :farmware, :output, :server]
 
     @typedoc false
     @type t :: %__MODULE__{
@@ -20,7 +21,6 @@ defmodule Farmbot.Farmware.Runtime do
       uuid:     binary,
       port:     port,
       farmware: Farmware.t,
-      context:  Context.t,
       output:   [binary]
     }
   end
@@ -29,19 +29,18 @@ defmodule Farmbot.Farmware.Runtime do
   @typep state :: State.t
 
   @doc """
-    Executes a Farmware inside a safe sandbox
+  Executes a Farmware inside a safe sandbox
   """
-  @spec execute(Context.t, Farmware.t) :: Context.t | no_return
-  def execute(%Context{} = ctx, %Farmware{} = fw) do
+  def execute(token, bot_state, %Farmware{} = fw) do
     debug_log "Starting execution of: #{inspect fw}"
     Process.flag(:trap_exit, true)
     uuid          = UUID.uuid1()
     fw_jwt        = %FarmwareJWT{start_time: Timex.now() |> DateTime.to_iso8601()}
     http_port     = lookup_port()
-    env           = environment(ctx, fw_jwt, http_port)
+    env           = environment(token, bot_state, fw_jwt, http_port)
     exec          = lookup_exec_or_raise(fw.executable, fw.path)
     cwd           = File.cwd!
-    {:ok, server} = HTTPServer.start_link(ctx, fw_jwt, http_port)
+    {:ok, server} = HTTPServer.start_link(fw_jwt, http_port)
 
     case File.cd(fw.path) do
       :ok -> :ok
@@ -64,15 +63,14 @@ defmodule Farmbot.Farmware.Runtime do
       uuid:     uuid,
       port:     port,
       farmware: fw,
-      context:  ctx,
       output:   []
     }
 
     try do
-      %Context{} = ctx = handle_port(state)
+      handle_port(state)
       File.cd!(cwd)
       HTTPServer.stop http_port
-      ctx
+      :ok
     rescue
       e ->
         File.cd!(cwd)
@@ -115,12 +113,11 @@ defmodule Farmbot.Farmware.Runtime do
     end
   end
 
-  @spec handle_port(state) :: Context.t | no_return
   defp handle_port(%State{port: port, farmware: fw} = state) do
     receive do
       {^port, {:exit_status, 0}} ->
         Logger.info ">> [#{fw.name}] completed!", type: :success
-        state.context
+        :ok
       {^port, {:exit_status, s}} ->
         raise FarmwareRuntimeError, "#{fw.name} completed with errors! (#{s})"
       {^port, {:data, data}} ->
@@ -128,23 +125,21 @@ defmodule Farmbot.Farmware.Runtime do
         handle_port(state)
       {:EXIT, pid, reason} ->
         debug_log "something died: #{inspect pid} #{inspect reason}"
-        state.context
+        :ok
     end
   end
 
-  defp environment(%Context{} = ctx, fw_jwt, port) do
+  defp environment(token, bot_state, fw_jwt, port) do
     fw_tkn_enc                    = fw_jwt |> Poison.encode! |> :base64.encode()
-    envs                          = BotState.get_user_env(ctx)
-    {:ok, %Farmbot.Token{} = tkn} = Auth.get_token(ctx.auth)
+    envs                          = BotState.get_user_env(bot_state)
     envs                          = envs
-                                    |> Map.put("API_TOKEN", tkn)
+                                    |> Map.put("API_TOKEN", token)
                                     |> Map.put("FARMWARE_TOKEN", fw_tkn_enc)
                                     |> Map.put("FARMWARE_URL", "http://localhost:#{port}/")
                                     |> Map.put("IMAGES_DIR", "/tmp/images")
     Enum.map(envs, fn({key, val}) -> {to_erl_safe(key), to_erl_safe(val)} end)
   end
 
-  defp to_erl_safe(%Farmbot.Token{encoded: enc}), do: to_erl_safe(enc)
   defp to_erl_safe(binary) when is_binary(binary), do: to_charlist(binary)
   defp to_erl_safe(map) when is_map(map), do: map |> Poison.encode! |> to_erl_safe()
   defp to_erl_safe(number) when is_number(number), do: number
