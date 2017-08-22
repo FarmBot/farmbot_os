@@ -6,6 +6,12 @@ defmodule Farmbot.BotState.InformationalSettingsTest do
 
   @version Mix.Project.config[:version]
 
+  setup do
+    {:ok, bot_state_tracker} = Farmbot.BotState.start_link()
+    {:ok, part} = Settings.start_link(bot_state_tracker, [])
+    [info_settings: part]
+  end
+
   test "checks default values" do
     info = %Settings{}
     assert info.controller_version == @version
@@ -21,5 +27,13 @@ defmodule Farmbot.BotState.InformationalSettingsTest do
     assert_raise RuntimeError, "unknown sync status: out_of_syc", fn() ->
       status(:out_of_syc)
     end
+  end
+
+  test "sets busy", ctx do
+    Settings.set_busy(ctx.info_settings, true)
+    assert :sys.get_state(ctx.info_settings).public.busy == true
+
+    Settings.set_busy(ctx.info_settings, false)
+    assert :sys.get_state(ctx.info_settings).public.busy == false
   end
 end

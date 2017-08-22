@@ -4,7 +4,6 @@ defmodule Farmbot.BotState.Transport.Supervisor do
   """
   use Supervisor
   import Farmbot.BotState.Transport, only: [transports: 0]
-  alias Farmbot.BotState.Transport.Registry
 
   @doc "Start the Transport Supervisor."
   def start_link(token, bot_state_tracker, opts \\ []) do
