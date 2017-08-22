@@ -4,7 +4,6 @@ defmodule Farmbot.ImageWatcher do
   """
   use GenServer
   require Logger
-  alias Farmbot.Context
   use Farmbot.DebugLog
 
   @images_path "/tmp/images/"
@@ -12,25 +11,26 @@ defmodule Farmbot.ImageWatcher do
   @doc """
     Starts the Image Watcher
   """
-  def start_link(%Context{} = ctx, opts),
-    do: GenServer.start_link(__MODULE__, ctx, opts)
+  def start_link(http, opts) do
+    GenServer.start_link(__MODULE__, http, opts)
+  end
 
-  def init(context) do
+  def init(http) do
     debug_log "Ensuring #{@images_path} exists."
     File.rm_rf!   @images_path
     File.mkdir_p! @images_path
     :fs_app.start(:normal, [])
     :fs.subscribe()
     Process.flag(:trap_exit, true)
-    {:ok, %{context: context, uploads: %{}}}
+    {:ok, %{http: http, uploads: %{}}}
   end
 
-  def handle_info({_pid, {:fs, :file_event}, {path, [:modified, :closed]}},
-  state) do
+  def handle_info({_pid, {:fs, :file_event}, {path, [:modified, :closed]}}, state) do
     if matches_any_pattern?(path, [~r{/tmp/images/.*(jpg|jpeg|png|gif)}]) do
-      [x, y, z] = Farmbot.BotState.get_current_pos(state.context)
+      [x, y, z] = [-9000, -9000, -9000]
+      Logger.warn "FIX THIS"
       meta = %{x: x, y: y, z: z}
-      pid = spawn __MODULE__, :upload, [state.context, path, meta]
+      pid = spawn __MODULE__, :upload, [state.http, path, meta]
       {:noreply, %{state | uploads: Map.put(state.uploads, pid, {path, meta, 0})}}
     else
       {:noreply, state}
@@ -47,7 +47,7 @@ defmodule Farmbot.ImageWatcher do
       {path, meta, retries}  ->
         Logger.warn ">> faile to upload #{path} #{inspect reason}. Going to retry."
         Process.sleep(1000 * retries)
-        new_pid = spawn __MODULE__, :upload, [state.context, path, meta]
+        new_pid = spawn __MODULE__, :upload, [state.http, path, meta]
         new_uploads = state
           |> Map.delete(pid)
           |> Map.put(new_pid, {path, meta, retries + 1})
@@ -68,10 +68,9 @@ defmodule Farmbot.ImageWatcher do
     end)
   end
 
-  @spec upload(Context.t, binary, map) :: {:ok, any} | {:error, any}
-  def upload(%Context{} = ctx, file_path, meta) do
+  def upload(http, file_path, meta) do
     Logger.info "Image Watcher trying to upload #{file_path}", type: :busy
-    Farmbot.HTTP.upload_file!(ctx, file_path, meta)
+    Farmbot.HTTP.upload_file!(http, file_path, meta)
     File.rm!(file_path)
     Logger.info "Image Watcher uploaded #{file_path}", type: :success
   end

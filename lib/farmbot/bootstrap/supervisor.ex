@@ -93,17 +93,12 @@ defmodule Farmbot.Bootstrap.Supervisor do
       # Get out authorization data out of the environment.
       # for host environment this will be configured at compile time.
       # for target environment it will be configured by `configurator`.
-      email  = Application.get_env(:farmbot, :authorization)[:email   ] || raise Auth.Error, "No email provided."
-      pass   = Application.get_env(:farmbot, :authorization)[:password] || raise Auth.Error, "No password provided."
-      server = Application.get_env(:farmbot, :authorization)[:server  ] || raise Auth.Error, "No server provided."
+      email  = Application.get_env(:farmbot, :authorization)[:email   ] || raise "No email provided."
+      pass   = Application.get_env(:farmbot, :authorization)[:password] || raise "No password provided."
+      server = Application.get_env(:farmbot, :authorization)[:server  ] || raise "No server provided."
       {email, pass, server}
     rescue
-      # If there was an auth error, just take the message.
-      # it makes the factory reset reason look nicer.
-      e in Auth.Error -> {:error, e.message}
-      # any other error, reraise it and let application.start/2 catch it.
-      # the error will be formatted from there.
-      e -> reraise e, System.stacktrace()
+      e -> {:error, Exception.message(e)}
     end
   end
 

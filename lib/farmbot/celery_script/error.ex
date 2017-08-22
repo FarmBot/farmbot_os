@@ -1,6 +1,4 @@
 defmodule Farmbot.CeleryScript.Error do
-  defexception [
-    {:context, nil},
-    :message
-  ]
+  @moduledoc "Implementme.sh"
+  defexception [:message]
 end

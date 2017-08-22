@@ -13,8 +13,6 @@ defmodule Farmbot.Bootstrap.Authorization do
   @typedoc "Token that was fetched with the credentials."
   @type token :: binary
 
-  alias Farmbot.Bootstrap.Authorization.Error
-
   @doc """
   Callback for an authorization implementation.
   Should return {:ok, token} | {:error, term}

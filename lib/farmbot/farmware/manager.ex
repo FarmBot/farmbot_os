@@ -81,7 +81,7 @@ defmodule Farmbot.Farmware.Manager do
   end
 
   def handle_call(:reindex, _, state) do
-    {:ok, new} = init(state.context)
+    {:ok, new} = init([state.token, state.bot_state, state.process_info])
     dispatch state.process_info, :ok, new
   end
 
