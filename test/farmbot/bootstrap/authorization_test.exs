@@ -16,8 +16,9 @@ defmodule Farmbot.Bootstrap.AuthorizationTest do
     res = Auth.authorize(ctx.email, ctx.password, ctx.server)
     assert match?({:ok, _}, res)
     {:ok, bin_tkn} = res
-    empty_token = struct(Farmbot.Jwt)
-    assert match?(empty_token, Farmbot.Jwt.decode!(bin_tkn))
+    tkn = Farmbot.Jwt.decode!(bin_tkn)
+    assert tkn.bot == "device_2"
+    assert tkn.sub == "admin@admin.com"
   end
 
   test "gives a nice error on bad credentials.", ctx do

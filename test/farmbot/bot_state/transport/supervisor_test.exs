@@ -32,7 +32,7 @@ defmodule Farmbot.BotState.Transport.SupervisorTest do
     child = TestTransport
     Application.put_env(:farmbot, :transport, [child])
 
-    {:ok, tp_sup} = TPSup.start_link(ctx.token, ctx.bot_state_tracker, [])
+    {:ok, _tp_sup} = TPSup.start_link(ctx.token, ctx.bot_state_tracker, [])
     assert is_pid(Process.whereis(TestTransport))
     assert :sys.get_state(TestTransport) == [ctx.token, ctx.bot_state_tracker]
   end
