@@ -25,9 +25,6 @@ defmodule Farmbot.Farmware.Runtime do
     }
   end
 
-  @typedoc false
-  @typep state :: State.t
-
   @doc """
   Executes a Farmware inside a safe sandbox
   """

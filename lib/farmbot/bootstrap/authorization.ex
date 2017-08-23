@@ -49,7 +49,7 @@ defmodule Farmbot.Bootstrap.Authorization do
     |> Poison.encode!
     |> RSA.encrypt({:public, rsa_key})
     |> Base.encode64
-    payload = %{user:  %{credentials: secret}} |> Poison.encode
+    %{user:  %{credentials: secret}} |> Poison.encode
   end
 
   defp request_token(server, payload) do
@@ -71,5 +71,5 @@ defmodule Farmbot.Bootstrap.Authorization do
     {:error, msg}
   end
 
-  defp handle_error({:error, reason} = error), do: error
+  defp handle_error({:error, _reason} = error), do: error
 end

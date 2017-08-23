@@ -10,7 +10,6 @@ defmodule Farmbot.Firmware.UartHandler do
   require Logger
 
   @default_timeout_ms 15_000
-  @max_timeouts 10
 
   @doc """
   Writes a string to the uart line

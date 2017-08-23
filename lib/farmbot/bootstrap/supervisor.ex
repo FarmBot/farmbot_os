@@ -102,7 +102,7 @@ defmodule Farmbot.Bootstrap.Supervisor do
     end
   end
 
-  defp actual_init(args, email, pass, server) do
+  defp actual_init(_args, email, pass, server) do
     # get a token
     case @auth_task.authorize(email, pass, server) do
       {:ok, token} ->

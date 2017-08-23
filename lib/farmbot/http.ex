@@ -3,7 +3,6 @@ defmodule Farmbot.HTTP do
   Farmbot HTTP adapter for accessing the world and farmbot web api easily.
   """
   use     GenServer
-  alias   Farmbot.{Auth, Token}
   alias   HTTPoison
   alias   HTTPoison.{
     AsyncResponse,
@@ -141,7 +140,7 @@ defmodule Farmbot.HTTP do
   defmodule State do
     defstruct [:token, :requests]
     defimpl Inspect, for: __MODULE__ do
-      def inspect(state, _), do: "#HTTPState<>"
+      def inspect(_state, _), do: "#HTTPState<>"
     end
   end
 
