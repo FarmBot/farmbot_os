@@ -39,7 +39,7 @@ defmodule Farmbot.System do
     try do
       raise "Doing factory reset: #{inspect reason}", System.stacktrace()
     rescue
-      e ->
+      _e ->
         # debug_log "Doing factory reset: #{inspect e}"
         # debug_log "#{inspect System.stacktrace()}"
         @system_tasks.factory_reset(reason)
