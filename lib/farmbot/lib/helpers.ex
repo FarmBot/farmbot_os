@@ -23,7 +23,4 @@ defmodule Farmbot.Lib.Helpers do
     end
   end
 
-  def rollbar_occurrence_data do
-    Application.get_env(:farmbot, :rollbar_occurrence_data, %{})
-  end
 end
