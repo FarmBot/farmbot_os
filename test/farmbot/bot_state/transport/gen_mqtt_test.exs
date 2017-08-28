@@ -70,10 +70,15 @@ defmodule Farmbot.BotState.Transport.GenMqttTest do
       end
     end
 
-    defp wait_for_connected(mqtt) do
+    defp wait_for_connected(mqtt, retries \\ 0)
+    defp wait_for_connected(_, retries) when retries > 10 do
+      flunk("Mqtt not connected.")
+    end
+
+    defp wait_for_connected(mqtt, retries) do
       unless get_state(mqtt).connected do
         Process.sleep(100)
-        wait_for_connected(mqtt)
+        wait_for_connected(mqtt, retries + 1)
       end
 
       assert get_state(mqtt).connected

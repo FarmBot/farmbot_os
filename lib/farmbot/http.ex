@@ -46,11 +46,12 @@ defmodule Farmbot.HTTP do
     case request(http, method, url, body, headers, opts) do
       {:ok, %Response{status_code: code} = resp} when is_2xx(code) -> resp
       {:ok, %Response{} = resp} -> raise Error, resp
-      {:error, error}           -> raise Error, error
+      {:error, error} when is_binary(error) or is_atom(error) -> raise Error, "#{error}"
+      {:error, error} -> raise Error, inspect error
     end
   end
 
-  methods = [:get, :post, :delete, :patch, :put, :options]
+  methods = [:get, :post, :delete, :patch, :put]
 
   for verb <- methods do
     @doc """
