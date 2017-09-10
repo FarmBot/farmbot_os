@@ -83,18 +83,18 @@ defmodule Farmbot.Database.Syncable do
       end
 
       @doc "Find an item by id from the database."
-      def get_by_id(database, id) do
-        Farmbot.Database.RecordStorage.get_by_id(database, __MODULE__, id)
+      def get_by_id(record_storage, id) do
+        Farmbot.Database.RecordStorage.get_by_id(record_storage, __MODULE__, id)
       end
 
       @doc "Get all items."
-      def get_all(database) do
-        Farmbot.Database.RecordStorage.get_all(database, __MODULE__)
+      def get_all(record_storage) do
+        Farmbot.Database.RecordStorage.get_all(record_storage, __MODULE__)
       end
 
       @doc "Flush all items."
-      def flush(database) do
-        Farmbot.Database.RecordStorage.flush(database, __MODULE__)
+      def flush(record_storage) do
+        Farmbot.Database.RecordStorage.flush(record_storage, __MODULE__)
       end
 
       @doc """
