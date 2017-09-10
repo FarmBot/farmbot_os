@@ -1,9 +1,6 @@
 defmodule Farmbot.Bootstrap.Supervisor do
   @moduledoc """
-  Starts services that require Authorization.
-  this includes things like
-  * HTTP
-  * Realtime transports (MQTT, Websockets, etc)
+  Bootstraps the application.
 
   It is expected that there is authorization credentials in the application's
   environment by this point. This can be configured via a `Farmbot.Init` module.
