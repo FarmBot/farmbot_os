@@ -1,6 +1,6 @@
-defmodule Farmbot.ImageWatcher do
+defmodule Farmbot.HTTP.ImageUploader do
   @moduledoc """
-    Watches a directory on the File System and uploads images
+  Watches a directory on the File System and uploads images
   """
   use GenServer
   require Logger

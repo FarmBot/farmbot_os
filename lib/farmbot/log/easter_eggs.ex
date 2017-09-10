@@ -1,6 +1,6 @@
-defmodule Farmbot.EasterEggs do
+defmodule Farmbot.Log.EasterEggs do
   @moduledoc """
-    Just some random stuff that Farmbot likes to say and do from time to time.
+  Just some random stuff that Farmbot likes to say and do from time to time.
   """
   use GenServer
   require Logger
@@ -12,8 +12,8 @@ defmodule Farmbot.EasterEggs do
   @type parsed_noun :: map # %{some_key: "some_value"}
 
   @doc """
-    Starts the Easter Eggs server. You can pass in a json map, a path to a
-    json file, or nothing and it will load the default one.
+  Starts the Easter Eggs server. You can pass in a json map, a path to a
+  json file, or nothing and it will load the default one.
   """
   @spec start_link({:name, binary}) :: {:ok, pid}
   def start_link({:name, name}),
@@ -64,25 +64,25 @@ defmodule Farmbot.EasterEggs do
   end
 
   @doc """
-    Gets a random Farmbot verb
+  Gets a random Farmbot verb
   """
   @spec verb(pid) :: String.t
   def verb(pid \\ __MODULE__), do: GenServer.call(pid, :verb)
 
   @doc """
-    Logs a random "fun" sentence to the Web Interface.
+  Logs a random "fun" sentence to the Web Interface.
   """
   @spec say_random_sentence(pid) :: :ok
   def say_random_sentence(pid \\ __MODULE__), do: GenServer.cast(pid, verb())
 
   @doc ~s"""
-    Loads new json into the state.
-    Example:
-      iex> json = %{"nouns" => [%{"im_a_var" => "im a string"}],
-      ...> "verbs" => ["says look at me! {{im_a_var}}!"]}
-      iex> #{__MODULE__}.load_json(json)
-      iex> #{__MODULE__}.say_random_sentence()
-      #=> "Farmbot says look at me! im a string!"
+  Loads new json into the state.
+  Example:
+    iex> json = %{"nouns" => [%{"im_a_var" => "im a string"}],
+    ...> "verbs" => ["says look at me! {{im_a_var}}!"]}
+    iex> #{__MODULE__}.load_json(json)
+    iex> #{__MODULE__}.say_random_sentence()
+    #=> "Farmbot says look at me! im a string!"
   """
   @spec load_json(json_map) :: :ok
   def load_json(%{"nouns" => _, "verbs" => _} = json_map, pid \\ __MODULE__) do
@@ -96,7 +96,7 @@ defmodule Farmbot.EasterEggs do
   defp get_random_hour, do: 1..3 |> Enum.random
 
   @doc """
-    Says a random sentence at a random minute every 1 to 3 hours.
+  Says a random sentence at a random minute every 1 to 3 hours.
   """
   @spec start_cron_job(binary) :: :ok
   def start_cron_job(schedule \\ "#{get_random_minute()} */#{get_random_hour()} * * *") do
