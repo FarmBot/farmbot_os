@@ -101,7 +101,7 @@ defmodule Farmbot.Bootstrap.Supervisor do
     end
   end
 
-  defp actual_init(args, email, pass, server) do
+  defp actual_init(_args, email, pass, server) do
     Logger.info "Beginning authorization: #{email} - #{server}"
     # get a token
     case @auth_task.authorize(email, pass, server) do

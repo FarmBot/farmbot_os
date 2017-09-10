@@ -3,7 +3,6 @@ defmodule Farmbot.Database.Syncable.Point do
   A Point from the Farmbot API.
   """
 
-  alias Farmbot.Context
   alias Farmbot.Database
   alias Database.{Syncable, Selectors}
   alias Selectors.Error, as: SelectorError
@@ -22,9 +21,9 @@ defmodule Farmbot.Database.Syncable.Point do
   @doc """
   Turn a tool into a Point.
   """
-  def get_tool(%Context{} = context, tool_id) do
-    context
-    |> Database.get_all(__MODULE__)
+  def get_tool(record_storage, tool_id) do
+    record_storage
+    |> Database.RecordStorage.get_all(__MODULE__)
     |> Enum.find(fn(%{body: point}) -> point.tool_id == tool_id end) ||
     raise SelectorError, syncable: __MODULE__, syncable_id: tool_id,
                          message: "Could not find tool_slot with tool_id: #{tool_id}"

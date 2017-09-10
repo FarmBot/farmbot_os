@@ -5,7 +5,7 @@ defmodule Farmbot.Firmware do
   require Logger
 
   alias Farmbot.BotState
-  alias Farmbot.BotState.{
+  alias BotState.{
     InformationalSettings,
     LocationData
   }

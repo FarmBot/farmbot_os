@@ -8,7 +8,7 @@ defmodule Farmbot.HTTP.Supervisor do
     Supervisor.start_link(__MODULE__, args, opts)
   end
 
-  def init(args) do
+  def init(_args) do
     children = []
     opts = [strategy: :one_for_all]
     supervise(children, opts)
