@@ -1,7 +1,7 @@
 defmodule Farmbot.Mixfile do
   use Mix.Project
   @target System.get_env("MIX_TARGET") || "host"
-  @version Path.join(__DIR__, "VERSION") |> File.read! |> String.strip
+  @version Path.join(__DIR__, "VERSION") |> File.read! |> String.trim
 
   defp commit() do
     {t,_} = System.cmd("git", ["log", "--pretty=format:%h", "-1"])
@@ -25,9 +25,9 @@ defmodule Farmbot.Mixfile do
      archives: [nerves_bootstrap: "~> 0.6.0"],
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     build_path:  "_build/#{Mix.env()}/#{@target}",
-     deps_path:   "deps/#{Mix.env()}/#{@target}",
-     images_path: "images/#{Mix.env()}/#{@target}",
+     deps_path: "deps/#{@target}",
+     build_path: "_build/#{@target}",
+     lockfile: "mix.lock.#{@target}",
      config_path: "config/config.exs",
      lockfile: "mix.lock",
      elixirc_paths: elixirc_paths(Mix.env, @target),
@@ -55,19 +55,24 @@ defmodule Farmbot.Mixfile do
      docs: [
        main: "Farmbot",
        logo: "priv/static/farmbot_logo.png",
-       extras: ["./docs/*"]
+       extras: [
+         "docs/BUILDING.md",
+         "docs/ENVIRONMENT.md",
+         "docs/FAQ.md",
+         "docs/RELEASING.md"
+       ]
      ]
    ]
   end
 
 
   def application do
-    [mod: {Farmbot, []}]
+    [mod: {Farmbot, []}, extra_applications: [:logger]]
   end
 
   defp deps do
     [
-      {:nerves, "~> 0.7.5"},
+      {:nerves, "~> 0.7.5", runtime: false},
 
       {:gen_mqtt, "~> 0.3.1"},
       {:vmq_commons, "1.0.0", manager: :rebar3},
@@ -80,7 +85,7 @@ defmodule Farmbot.Mixfile do
       {:tzdata, "~> 0.1.201601", override: true},
       {:timex, "~> 3.1.13"},
 
-      {:fs, "~> 0.9.1"},
+      # {:fs, "~> 0.9.1"},
       {:nerves_uart, "0.1.2"},
       {:uuid, "~> 1.1" },
     ]
@@ -88,26 +93,30 @@ defmodule Farmbot.Mixfile do
 
   defp deps("host") do
     [
-
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.14", only: :dev},
       {:excoveralls, "~> 0.6", only: :test},
       {:mock, "~> 0.2.0", only: :test},
-
-
     ]
   end
 
-  defp deps(_target) do
-    [
-      {:ex_syslogger, github: "slashmili/ex_syslogger", only: :prod}
+  defp deps(target) do
+    [ system(target),
+      {:bootloader, "~> 0.1"},
+      {:nerves_runtime, "~> 0.4"},
+      {:ex_syslogger, github: "slashmili/ex_syslogger", only: :prod},
+      {:nerves_init_gadget, "~> 0.2", only: :dev}
     ]
   end
+
+  defp system("rpi0"), do: {:nerves_system_rpi0, ">= 0.0.0", runtime: false}
 
   defp package do
-    [name: "Farmbot OS",
-    maintainers: "Farmbot.io",
-    licenses: "MIT"]
+    [
+      name: "Farmbot OS",
+      maintainers: "Farmbot.io",
+      licenses: "MIT"
+    ]
   end
 
   defp elixirc_paths(:test, "host") do
