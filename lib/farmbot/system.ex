@@ -36,14 +36,7 @@ defmodule Farmbot.System do
   @doc "Remove all configuration data, and reboot."
   @spec factory_reset(unparsed_reason) :: no_return
   def factory_reset(reason) do
-    try do
-      raise "Doing factory reset: #{inspect reason}", System.stacktrace()
-    rescue
-      e ->
-        debug_log "Doing factory reset: #{inspect e}"
-        debug_log "#{inspect System.stacktrace()}"
-        @system_tasks.factory_reset(reason)
-    end
+    @system_tasks.factory_reset(reason)
   end
 
   @doc "Reboot."

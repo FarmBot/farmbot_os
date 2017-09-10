@@ -74,7 +74,6 @@ defmodule Farmbot.Bootstrap.Supervisor do
   end
 
   def init(args) do
-    Logger.info "Beginning Authorization."
     # try to find the creds.
     case get_creds() do
       # do the actual supervisor init if we have creds. This may still fail.
@@ -103,14 +102,13 @@ defmodule Farmbot.Bootstrap.Supervisor do
   end
 
   defp actual_init(args, email, pass, server) do
+    Logger.info "Beginning authorization: #{email} - #{server}"
     # get a token
     case @auth_task.authorize(email, pass, server) do
       {:ok, token} ->
         children = [
           supervisor(Farmbot.BotState.Supervisor,    [token, [name: Farmbot.BotState.Supervisor  ]]),
           supervisor(Farmbot.HTTP.Supervisor,      [token, [name: Farmbot.HTTP.Supervisor]]),
-
-          # supervisor(Farmbot.Transport.Supervisor, [token, [name: Farmbot.Transport.Supervisor]])
         ]
         opts = [strategy: :one_for_all]
         supervise(children, opts)

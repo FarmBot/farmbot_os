@@ -10,6 +10,7 @@ defmodule Farmbot.Firmware do
     LocationData
   }
 
+  @doc "Public API for handling a gcode."
   def handle_gcode(firmware, code), do: GenServer.call(firmware, {:handle_gcode, code})
 
   def start_link(bot_state, informational_settings, configuration, location_data, mcu_params, handler_mod, opts) do

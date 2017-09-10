@@ -44,7 +44,7 @@ defmodule Farmbot.Test.SystemTasks do
     {:ok, []}
   end
 
-  def handle_call({action, reason} = thing, _, state) do
+  def handle_call({_action, _reason} = thing, _, state) do
     {:reply, :ok, [thing | state]}
   end
 
