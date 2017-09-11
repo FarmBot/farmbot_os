@@ -87,8 +87,10 @@ defmodule Farmbot.BotState.Configuration do
     {:ok, len_y}    = get_config("distance_mm_y")
     {:ok, len_z}    = get_config("distance_mm_z")
     {:ok, tz}       = get_config("timezone")
+    {:ok, fw_hw}    = get_config("firmware_hardware")
     new_state =
       %State{initial | configuration: %{
+           firmware_hardware:    fw_hw,
            user_env:             user_env,
            timezone:             tz,
            os_auto_update:       os_a_u,
