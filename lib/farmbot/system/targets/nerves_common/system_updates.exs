@@ -44,7 +44,7 @@ defmodule Farmbot.System.NervesCommon.Updates do
           other ->
             # we need to flash the firmware
             IO.warn "#{inspect other}"
-            file = "#{:code.priv_dir(:farmbot)}/firmware.hex"
+            file = "#{:code.priv_dir(:farmbot)}/#{Farmbot.BotState.get_fw_hardware(ctx)}-firmware.hex"
             Logger.info ">> Doing post update firmware flash.", type: :warn
             GenServer.cast(ctx.serial, {:update_fw, file, self()})
             wait_for_finish()

@@ -13,6 +13,7 @@ defmodule Farmbot.BotState.Configuration do
     model:
     [
       configuration: %{
+        firmware_hardware: :arduino,
         timezone: nil,
         user_env: %{},
         os_auto_update: false,
@@ -39,6 +40,7 @@ defmodule Farmbot.BotState.Configuration do
   @type state ::
     %State{
       configuration: %{
+        firmware_hardware: :arduino | :farmduino,
         timezone: nil | binary,
         user_env: map,
         os_auto_update: boolean,
@@ -166,6 +168,10 @@ defmodule Farmbot.BotState.Configuration do
 
   def handle_call(:get_fw_version, _from, state) do
     dispatch(state.informational_settings.firmware_version, state)
+  end
+
+  def handle_call(:get_fw_hardware, _from, state) do
+    dispatch(state.configuration.firmware_hardware, state)
   end
 
   def handle_call({:get_config, key}, _from, %State{} = state)

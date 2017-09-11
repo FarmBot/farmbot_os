@@ -4,6 +4,7 @@
   "server": "http://localhost:3000"
  },
  "configuration": {
+  "firmware_hardware": "arduino",
   "timezone": null,
   "user_env": {},
   "os_auto_update": false,

@@ -199,7 +199,8 @@ defmodule Farmbot.Configurator.Router do
 
   # Flash fw that was bundled with the bot.
   post "/api/flash_firmware" do
-    "#{:code.priv_dir(:farmbot)}/firmware.hex" |> handle_arduino(conn)
+    "#{:code.priv_dir(:farmbot)}/#{Farmbot.BotState.get_fw_hardware(context())}-firmware.hex"
+    |> handle_arduino(conn)
   end
 
   get "/api/firmware/expected_version" do
