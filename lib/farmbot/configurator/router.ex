@@ -159,7 +159,7 @@ defmodule Farmbot.Configurator.Router do
       {:ok, text} ->
         conn |> send_resp(200, text)
       _ ->
-        conn |> send_resp(200, "")
+        conn |> send_resp(200, "[\"No previos Factory Reset\"]")
     end
   end
 
