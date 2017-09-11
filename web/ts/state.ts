@@ -67,7 +67,7 @@ export class MainState {
         },
         configuration: {
             os_auto_update: false,
-            steps_per_mm: { x: 500, y: 500, z: 500 }
+            firmware_hardware: "arduino",
         },
         hardware: { params: {}, custom_firmware: false }
     };
@@ -149,6 +149,10 @@ export class MainState {
     @action
     CustomFW(bool: boolean) {
         this.configuration.hardware.custom_firmware = bool;
+    }
+
+    SetFWHW(kind: "arduino" | "farmduino") {
+      this.configuration.configuration.firmware_hardware = kind;
     }
 
     flashFW() {

@@ -23,6 +23,7 @@ interface FormState {
   hiddenAdvancedWidget?: null | number;
   showCustomNetworkWidget?: null | boolean;
   ssidSelection?: { [name: string]: string };
+  fw_hw_selection?: "arduino" | "farmduino";
   customInterface?: null | string;
   connecting?: boolean;
 }
@@ -61,6 +62,7 @@ export class Main extends React.Component<MainProps, FormState> {
       hiddenAdvancedWidget: 0,
       showCustomNetworkWidget: false,
       ssidSelection: {},
+      fw_hw_selection: "arduino",
       customInterface: null,
       connecting: false,
     };
@@ -69,6 +71,7 @@ export class Main extends React.Component<MainProps, FormState> {
   @action
   async handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
+    this.props.mobx.SetFWHW(this.state.fw_hw_selection || "arduino");
     let mainState = this.props.mobx;
     let fullFile = mainState.configuration;
 
@@ -80,25 +83,25 @@ export class Main extends React.Component<MainProps, FormState> {
     if ((email && pass && server) && this.state.connecting != true) {
       this.setState({ connecting: true });
 
-      // check that we arent wanting to use custom firmware.
-      let doesntHaveCustomFW = !fullFile.hardware.custom_firmware;
-
-      let cur_fw_ver = mainState.botStatus.informational_settings.firmware_version
-      // check that the versions arent equal.
-      let fwVersionCheck = cur_fw_ver !== mainState.expected_fw_version;
-      console.log("Current detected version: " + cur_fw_ver + " expected version: " + mainState.expected_fw_version);
-      console.log("FINDME: " + fwVersionCheck);
-      // try to flash the arduino
-      if (doesntHaveCustomFW && fwVersionCheck) {
-        try {
-          console.log("FLASHING FW");
-          await mainState.flashFW();
-          console.log("Firmware Flashed!!!");
-        } catch (_error) {
-          console.error("Firmware failed!");
-          return;
-        }
-      }
+      // // check that we arent wanting to use custom firmware.
+      // let doesntHaveCustomFW = !fullFile.hardware.custom_firmware;
+      //
+      // let cur_fw_ver = mainState.botStatus.informational_settings.firmware_version
+      // // check that the versions arent equal.
+      // let fwVersionCheck = cur_fw_ver !== mainState.expected_fw_version;
+      // console.log("Current detected version: " + cur_fw_ver + " expected version: " + mainState.expected_fw_version);
+      // console.log("FINDME: " + fwVersionCheck);
+      // // try to flash the arduino
+      // if (doesntHaveCustomFW && fwVersionCheck) {
+      //   try {
+      //     console.log("FLASHING FW");
+      //     await mainState.flashFW();
+      //     console.log("Firmware Flashed!!!");
+      //   } catch (_error) {
+      //     console.error("Firmware failed!");
+      //     return;
+      //   }
+      // }
 
       mainState.uploadCreds(email, pass, server)
         .then((thing) => {
@@ -495,6 +498,22 @@ export class Main extends React.Component<MainProps, FormState> {
           {/* Submit our web app credentials, and config file. */}
           <button type="submit"> {submitText} </button>
         </form>
+
+        {/* Hardware Widget */}
+        <div className="widget">
+          <div className="widget-header">
+            <h5> Hardware </h5>
+            <Select
+              value={this.state.fw_hw_selection}
+              options={[{ value: "arduino", label: "arduino" }, {value: "farmduino", label: "farmduino"}]}
+              onChange={(event: Select.Option) => {
+                let value = event.value;
+                if(value == "arduino" || value == "farmduino") {
+                  this.setState({fw_hw_selection: value});
+                }
+              }} />
+          </div>
+        </div>
 
         {/* Logs Widget */}
         <div className="widget">
