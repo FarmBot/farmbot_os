@@ -1,6 +1,7 @@
 defmodule FarmbotTestSupport do
   @moduledoc "Test Helpers."
   import Farmbot.DebugLog, only: [color: 1]
+  require Logger
 
   defp error(err) do
     """
@@ -16,6 +17,7 @@ defmodule FarmbotTestSupport do
   end
 
   def preflight_checks do
+    Logger.info "Starting Preflight Checks."
     with {:ok, tkn} <- ping_api(),
          :ok <- ping_mqtt(tkn) do
            :ok
@@ -28,14 +30,18 @@ defmodule FarmbotTestSupport do
     server   = Application.get_env(:farmbot, :authorization)[:server]
     email    = Application.get_env(:farmbot, :authorization)[:email]
     password = Application.get_env(:farmbot, :authorization)[:password]
+    Logger.info "Preflight check: api: #{server}"
     case Farmbot.Bootstrap.Authorization.authorize(email, password, server) do
       {:error, _reason} -> :api
-      {:ok, tkn} -> {:ok, tkn}
+      {:ok, tkn} ->
+        Logger.info "Preflight check api complete."
+        {:ok, tkn}
     end
   end
 
   defp ping_mqtt(tkn) do
     url = Farmbot.Jwt.decode!(tkn).mqtt
+    Logger.info "Preflight check: mqtt: #{url}"
     case :gen_tcp.connect(to_charlist(url), 1883, [:binary]) do
       {:error, _} -> :mqtt
       {:ok, port} -> :gen_tcp.close(port)

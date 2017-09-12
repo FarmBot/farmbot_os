@@ -72,4 +72,5 @@ defmodule Farmbot.Bootstrap.Authorization do
   end
 
   defp handle_error({:error, _reason} = error), do: error
+  defp handle_error({:error, :invalid, _} = error), do: error
 end

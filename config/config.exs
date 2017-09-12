@@ -26,36 +26,24 @@ config :fs, path: "/tmp/images"
 
 # Configure your our system.
 # Default implementation needs no special stuff.
-config :farmbot, :init, [
-  Farmbot.Bootstrap.Configurator
-]
+# See Farmbot.System.Supervisor and Farmbot.System.Init for details.
+config :farmbot, :init, []
 
 # Transports.
-config :farmbot, :transport, [
-  Farmbot.BotState.Transport.GenMqtt
-]
+config :farmbot, :transport, []
 
 
 # Configure Farmbot Behaviours.
 config :farmbot, :behaviour, [
   authorization: Farmbot.Bootstrap.Authorization,
-
-  # uncomment this line if you have a real arduino plugged in. You will also need
-  # ensure the config for `:uart_handler` is correct.
-  # firmware_handler: Farmbot.Firmware.UartHandler,
-  firmware_handler: Farmbot.Host.FirmwareHandlerStub,
-  system_tasks: Farmbot.Host.SystemTasks
 ]
 
-config :farmbot, :uart_handler, [
-  tty: "/dev/ttyACM0"
-]
-
-config :nerves_firmware_ssh,
-  authorized_keys: [
-    File.read!(Path.join(System.user_home!, ".ssh/id_rsa.pub"))
-  ]
-
-config :bootloader,
-  init: [:nerves_runtime, :nerves_init_gadget],
-  app: :farmbot
+case target do
+  "host" -> import_config("host/#{env}.exs")
+  _ ->
+    if File.exists?("config/#{target}/#{env}.exs") do
+      import_config("#{target}/#{env}.exs")
+    else
+      import_config("target/#{env}.exs")
+    end
+end

@@ -98,11 +98,12 @@ defmodule Farmbot.Bootstrap.Supervisor do
     end
   end
 
-  defp actual_init(_args, email, pass, server) do
-    Logger.info "Beginning authorization: #{email} - #{server}"
+  defp actual_init(args, email, pass, server) do
+    Logger.info "Beginning authorization: #{@auth_task} - #{email} - #{server}"
     # get a token
     case @auth_task.authorize(email, pass, server) do
       {:ok, token} ->
+        Logger.info "Successful authorization: #{@auth_task} - #{email} - #{server}"
         children = [
           supervisor(Farmbot.BotState.Supervisor,    [token, [name: Farmbot.BotState.Supervisor  ]]),
           supervisor(Farmbot.HTTP.Supervisor,      [token, [name: Farmbot.HTTP.Supervisor]]),
@@ -113,6 +114,9 @@ defmodule Farmbot.Bootstrap.Supervisor do
       # an application start fail and we would factory_reset from there,
       # the error message is just way more useful here.
       {:error, reason} -> Farmbot.System.factory_reset(reason)
+      # If we got invalid json, just try again.
+      # FIXME(Connor) Why does this happen?
+      {:error, :invalid, _} -> actual_init(args, email, pass, server)
     end
   end
 end

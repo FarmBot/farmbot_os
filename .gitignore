@@ -42,6 +42,6 @@ dump.rdb
 fwup-key.priv
 .env
 # secret config stuffs for dev environment.
-config/auth_secret.exs
+auth_secret.exs
 flash_fw.sh
 tmp
