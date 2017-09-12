@@ -43,5 +43,7 @@ fwup-key.priv
 .env
 # secret config stuffs for dev environment.
 auth_secret.exs
+auth_secret_test.exs
+
 flash_fw.sh
 tmp
