@@ -98,7 +98,6 @@ defmodule Farmbot.Configurator.Router do
     spawn fn() ->
       # sleep to allow the request to finish.
       Process.sleep(100)
-      require IEx; IEx.pry
 
       # restart network.
       # not going to bother checking if it worked or not, (at least until i
