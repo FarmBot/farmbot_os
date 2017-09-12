@@ -38,11 +38,6 @@ defmodule Farmbot.Mixfile do
        flags:        []
      ],
      preferred_cli_env: [
-       "vcr":              :test,
-       "vcr.delete":       :test,
-       "vcr.check":        :test,
-       "vcr.show":         :test,
-       "all_test":         :test,
        "test":             :test,
        "coveralls":        :test,
        "coveralls.detail": :test,
@@ -104,7 +99,6 @@ defmodule Farmbot.Mixfile do
     [ system(target),
       {:bootloader, "~> 0.1"},
       {:nerves_runtime, "~> 0.4"},
-      {:ex_syslogger, github: "slashmili/ex_syslogger", only: :prod},
       {:nerves_init_gadget, "~> 0.2", only: :dev}
     ]
   end
