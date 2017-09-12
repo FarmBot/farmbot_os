@@ -283,7 +283,7 @@ defmodule Farmbot.Configurator.Router do
             |> Map.fetch!("configuration")
             |> Map.fetch!("firmware_hardware")
 
-            hex_file = "#{code.priv_dir(:farmbot)}/#{hw}-firmware.hex"
+            hex_file = "#{:code.priv_dir(:farmbot)}/#{hw}-firmware.hex"
             :os.cmd('avrdude -patmega2560 -cwiring -P/dev/#{tty} -b115200 -D -q -V -Uflash:w:#{hex_file}:i')
             Process.sleep(3000)
 
