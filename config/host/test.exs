@@ -14,6 +14,5 @@ config :farmbot, :transport, []
 # Configure Farmbot Behaviours.
 config :farmbot, :behaviour, [
   authorization: Farmbot.Test.Authorization,
-  firmware_handler: Farmbot.Host.FirmwareHandlerStub,
   system_tasks: Farmbot.Test.SystemTasks
 ]

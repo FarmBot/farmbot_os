@@ -3,7 +3,11 @@ use Mix.Config
 # Configure your our system.
 # Default implementation needs no special stuff.
 config :farmbot, :init, [
-  # Farmbot.Bootstrap.Configurator
+  # initialize the FW module here.
+  Farmbot.Firmware.AutoDetector
+  # initialize the configuration.
+  # This bring up a captive portal if needed.
+  Farmbot.Bootstrap.Configurator,
 ]
 
 # Transports.
@@ -15,12 +19,7 @@ config :farmbot, :transport, [
 # Configure Farmbot Behaviours.
 config :farmbot, :behaviour, [
   authorization: Farmbot.Bootstrap.Authorization,
-  firmware_handler: Farmbot.Firmware.UartHandler,
-  system_tasks: Farmbot.Host.SystemTasks
-]
-
-config :farmbot, :uart_handler, [
-  tty: "/dev/ttyACM0"
+  system_tasks: Farmbot.Target.SystemTasks
 ]
 
 config :nerves_firmware_ssh,

@@ -30,12 +30,14 @@ config :fs, path: "/tmp/images"
 config :farmbot, :init, []
 
 # Transports.
+# See Farmbot.BotState.Transport for details.
 config :farmbot, :transport, []
 
 
 # Configure Farmbot Behaviours.
 config :farmbot, :behaviour, [
   authorization: Farmbot.Bootstrap.Authorization,
+  firmware_handler: Farmbot.Firmware.StubHandler,
 ]
 
 case target do

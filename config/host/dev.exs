@@ -7,8 +7,7 @@ import_config("auth_secret.exs")
 
 # Configure your our system.
 # Default implementation needs no special stuff.
-config :farmbot, :init, [
-]
+config :farmbot, :init, []
 
 # Transports.
 config :farmbot, :transport, [
@@ -18,11 +17,8 @@ config :farmbot, :transport, [
 
 # Configure Farmbot Behaviours.
 config :farmbot, :behaviour, [
+  # Default Authorization behaviour.
   authorization: Farmbot.Bootstrap.Authorization,
-
-  # uncomment this line if you have a real arduino plugged in. You will also need
-  # ensure the config for `:uart_handler` is correct.
-  # firmware_handler: Farmbot.Firmware.UartHandler,
-  firmware_handler: Farmbot.Host.FirmwareHandlerStub,
+  # SystemTasks for host mode.
   system_tasks: Farmbot.Host.SystemTasks
 ]
