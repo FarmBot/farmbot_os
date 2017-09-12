@@ -33,6 +33,8 @@ Makefile.bac
 
 /images
 /_nerves-tmp
+nerves_system_*
+NERVES_SYSTEM_*
 Makefile
 release-*
 dump.rdb

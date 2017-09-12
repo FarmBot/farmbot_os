@@ -41,6 +41,7 @@ defmodule  Farmbot.Bootstrap.Configurator do
       _ ->
         Logger.info "Building new config."
         import Supervisor.Spec
+        :ets.new(:session, [:named_table, :public, read_concurrency: true])
         children = [
           Plug.Adapters.Cowboy.child_spec(:http, Farmbot.Bootstrap.Configurator.Router, [], [port: 4001])
         ]

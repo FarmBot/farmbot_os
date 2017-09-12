@@ -4,7 +4,13 @@
       Configure your Farmbot! - <%= page %>
     </title>
   </head>
-  <div id=<%= page %>>
-  <%= render.() %>
-  </div>
+
+  <body>
+    <div id="content">
+      <div id=<%= page %>>
+        <%= render.() %>
+      </div>
+    </div>
+  </body>
+
 </html>
