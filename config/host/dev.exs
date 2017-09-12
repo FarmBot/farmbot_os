@@ -9,7 +9,10 @@ config :farmbot, data_path: "tmp/"
 
 # Configure your our system.
 # Default implementation needs no special stuff.
-config :farmbot, :init, []
+config :farmbot, :init, [
+  # DELETEME
+  Farmbot.Bootstrap.Configurator,
+]
 
 # Transports.
 config :farmbot, :transport, [

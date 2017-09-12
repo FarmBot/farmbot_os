@@ -1,0 +1,10 @@
+<html>
+  <head>
+    <title>
+      Configure your Farmbot! - <%= page %>
+    </title>
+  </head>
+  <div id=<%= page %>>
+  <%= render.() %>
+  </div>
+</html>

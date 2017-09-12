@@ -42,7 +42,7 @@ defmodule  Farmbot.Bootstrap.Configurator do
         Logger.info "Building new config."
         import Supervisor.Spec
         children = [
-          
+          Plug.Adapters.Cowboy.child_spec(:http, Farmbot.Bootstrap.Configurator.Router, [], [port: 4001])
         ]
         opts = [strategy: :one_for_one]
         supervise(children, opts)

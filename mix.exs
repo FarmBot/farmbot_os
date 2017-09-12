@@ -83,6 +83,9 @@ defmodule Farmbot.Mixfile do
       # {:fs, "~> 0.9.1"},
       {:nerves_uart, "0.1.2"},
       {:uuid, "~> 1.1" },
+
+      {:cowboy, "~> 1.0.0"},
+      {:plug, "~> 1.0"},
     ]
   end
 
