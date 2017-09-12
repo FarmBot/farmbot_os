@@ -1,13 +1,16 @@
 use Mix.Config
 
+config :farmbot, data_path: "/state"
+
 # Configure your our system.
 # Default implementation needs no special stuff.
 config :farmbot, :init, [
-  # initialize the FW module here.
-  Farmbot.Firmware.AutoDetector
   # initialize the configuration.
   # This bring up a captive portal if needed.
   Farmbot.Bootstrap.Configurator,
+
+  # Start up Network
+  Farmbot.System.Network
 ]
 
 # Transports.

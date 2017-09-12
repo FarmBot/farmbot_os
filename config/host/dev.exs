@@ -5,6 +5,8 @@ end
 
 import_config("auth_secret.exs")
 
+config :farmbot, data_path: "tmp/"
+
 # Configure your our system.
 # Default implementation needs no special stuff.
 config :farmbot, :init, []
