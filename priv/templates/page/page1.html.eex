@@ -1,5 +1,6 @@
 Lets configure Network!
-<form action="network" method="post">
+<form action="next">
   <input> SSID </input>
   <input> PSK </input>
+  <button> next </button>
 </form>

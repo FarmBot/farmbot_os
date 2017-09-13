@@ -1,1 +1,7 @@
-2
+Lets configure Network!
+<form action="next">
+  <input> Email </input>
+  <input> Password </input>
+  <input> Server </input>
+  <button> next </button>
+</form>
