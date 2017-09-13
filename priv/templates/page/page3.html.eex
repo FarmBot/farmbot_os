@@ -1,0 +1,9 @@
+Now lets configure your Arduino or Farmduino
+<form action="next" method="post">
+  <label for="hardware"> Select your device </label>
+  <select id="hardware" name="hardware">
+    <option value="farmduino"> Farmduino </option>
+    <option value="arduino"> Arduino Mega </option>
+  </select>
+  <button> next </button>
+</form>

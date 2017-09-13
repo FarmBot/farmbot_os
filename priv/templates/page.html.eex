@@ -6,8 +6,9 @@
   </head>
 
   <body>
+    <%= inspect(conn |> Map.from_struct |> Map.get(:private, %{}) |> Map.get(:plug_session)) %>
     <div id="content">
-      <div id=<%= page %>>
+      <div id=<%= page %> >
         <%= render.() %>
       </div>
     </div>

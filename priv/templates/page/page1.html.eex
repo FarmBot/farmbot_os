@@ -1,6 +1,64 @@
 Lets configure Network!
-<form action="next">
-  <input> SSID </input>
-  <input> PSK </input>
-  <button> next </button>
+<script>
+window["ScanWifi"] = function() {
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/scan_wifi", false);
+  xhr.send();
+  var resp = JSON.parse(xhr.responseText);
+  var elem = document.getElementById("wifi");
+  elem.hidden=false;
+
+
+  var elem = document.getElementById("ssid");
+  var opts = ""; for(var i = 0; i < resp.length; i++) {opts = opts + "<option value=" + resp[i] + " >" + resp[i] +  "</option>\n"}
+  elem.innerHTML = opts;
+}
+
+window["UseEthernet"] = function() {
+  var elem = document.getElementById("ethernet");
+  elem.hidden=false;
+}
+</script>
+
+<form action="next" method="post" enctype="multipart/form-data">
+  <button type="button" onclick="ScanWifi()"> Scan for Wifi </button>
+  <button type="button" onclick="UseEthernet()"> Use Ethernet </button>
+
+  <div id="wifi" hidden="true">
+    <label for="ssid"> Select your SSID </label>
+    <!-- This will get populated by the ScanWifi function. -->
+    <select id="ssid" name="ssid"> </select>
+    <label for="psk"> Password </label>
+    <input id="psk" name="psk" type="password">
+
+    <button type="button" onclick="document.getElementById('wifi_static_settings').hidden=false;"> Use static settings </button>
+
+    <div id="wifi_static_settings" hidden="true" disabled="true">
+      <label for="ipv4_address"> ip address </label>
+      <input id="ipv4_address" name="ipv4_address">
+
+      <label for="ipv4_subnet_mask"> subnet mask </label>
+      <input id="ipv4_subnet_mask" name="ipv4_subnet_mask">
+
+      <label for="nameservers"> ip address </label>
+      <input id="nameservers" name="nameservers">
+    </div>
+  </div>
+
+  <div id="ethernet" hidden="true">
+    <button type="button" onclick="document.getElementById('eth_static_settings').hidden=false;"> Use static settings </button>
+
+    <div id="eth_static_settings" hidden="true">
+      <label for="ipv4_address"> ip address </label>
+      <input id="ipv4_address" name="ipv4_address">
+
+      <label for="ipv4_subnet_mask"> subnet mask </label>
+      <input id="ipv4_subnet_mask" name="ipv4_subnet_mask">
+
+      <label for="nameservers"> ip address </label>
+      <input id="nameservers" name="nameservers">
+    </div>
+  </div>
+
+  <button type="submit"> next </button>
 </form>

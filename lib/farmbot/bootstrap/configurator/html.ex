@@ -9,7 +9,7 @@ defmodule Farmbot.Bootstrap.Configurator.HTML do
   end
 
   @doc "Render a page in the `priv/templates/page` dir."
-  def render(page) do
-    eval_file("page", [page: page, render: fn -> eval_file("page/#{page}") end])
+  def render(page, conn \\ %{}) do
+    eval_file("page", [page: page, conn: conn, render: fn -> eval_file("page/#{page}") end])
   end
 end

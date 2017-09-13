@@ -21,14 +21,15 @@ defmodule  Farmbot.Bootstrap.Configurator do
   """
   def start_link(_, opts) do
     Logger.info "Configuring Farmbot."
-    case Supervisor.start_link(__MODULE__, [self()], opts) do
-      {:ok, pid} ->
-        receive do
-          :ok -> stop(pid, :ignore)
-          {:error, _reason} = err -> stop(pid, err)
-        end
-      :ignore -> :ignore
-    end
+    sup = Supervisor.start_link(__MODULE__, [self()], opts)
+    # case supervisor do
+    #   {:ok, pid} ->
+    #     receive do
+    #       :ok -> stop(pid, :ignore)
+    #       {:error, _reason} = err -> stop(pid, err)
+    #     end
+    #   :ignore -> :ignore
+    # end
   end
 
   def init(cb) do
