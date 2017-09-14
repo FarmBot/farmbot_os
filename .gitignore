@@ -41,4 +41,5 @@ tmp
 # this file isnt stored here but just in case.
 fwup-key.priv
 .env
-config/auth_secret.exs
+auth_secret.exs
+auth_secret_test.exs
