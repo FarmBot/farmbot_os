@@ -25,8 +25,7 @@ defmodule Farmbot.ImageWatcher do
     {:ok, %{context: context, uploads: %{}}}
   end
 
-  def handle_info({_pid, {:fs, :file_event}, {path, [:modified, :closed]}},
-  state) do
+  def handle_info({_pid, {:fs, :file_event}, {path, _}}, state) do
     if matches_any_pattern?(path, [~r{/tmp/images/.*(jpg|jpeg|png|gif)}]) do
       [x, y, z] = Farmbot.BotState.get_current_pos(state.context)
       meta = %{x: x, y: y, z: z}
@@ -63,9 +62,13 @@ defmodule Farmbot.ImageWatcher do
   #  /lib/phoenix_live_reload/channel.ex#L27
   defp matches_any_pattern?(path, patterns) do
     path = to_string(path)
-    Enum.any?(patterns, fn pattern ->
-      String.match?(path, pattern)
-    end)
+    if String.contains?(path, "~") do
+      false
+    else
+      Enum.any?(patterns, fn pattern ->
+        String.match?(path, pattern)
+      end)
+    end
   end
 
   @spec upload(Context.t, binary, map) :: {:ok, any} | {:error, any}
