@@ -41,7 +41,6 @@ export class MainState {
     /** are we connected to the bot. */
     @observable connected = false;
     @observable possibleInterfaces: string[] = [];
-    @observable expected_fw_version: undefined | string;
     @observable last_factory_reset_reason: string;
 
     /** The current state. if we care about such a thing. */
@@ -104,10 +103,6 @@ export class MainState {
 
     @action
     scanOK(thing: Axios.AxiosXHR<string[]>) {
-        // this.ssids = [
-        //     "Uncomment this code for prod.",
-        //     "Rick stubbed this."
-        // ];
         this.ssids = thing.data;
         console.dir(thing.data);
     }
@@ -151,16 +146,10 @@ export class MainState {
         this.configuration.hardware.custom_firmware = bool;
     }
 
+    @action
     SetFWHW(kind: "arduino" | "farmduino") {
+      console.log("Setting fw hardware: " + kind);
       this.configuration.configuration.firmware_hardware = kind;
-    }
-
-    flashFW() {
-        return Axios.post("/api/flash_firmware");
-    }
-
-    getExpectedFWVersion() {
-        return Axios.get("/api/firmware/expected_version");
     }
 
     enumerateInterfaces() {
@@ -218,15 +207,6 @@ export class MainState {
                     return;
                 });
 
-            Axios.get("/api/firmware/expected_version")
-                .then((success) => {
-                    console.log("Got expected fw version: " + success.data);
-                    that.setExpected_fw((success.data as string));
-                })
-                .catch((e) => {
-                    console.error("ERROR getting expected fw version: " + e);
-                });
-
             Axios.get("/api/last_factory_reset_reason")
                 .then((success) => {
                     console.log("Got last factory reset reason");
@@ -241,11 +221,6 @@ export class MainState {
     @action
     setLastFactoryResetReason(reason: string) {
         this.last_factory_reset_reason = reason;
-    }
-
-    @action
-    setExpected_fw(version: string) {
-        this.expected_fw_version = version
     }
 
     @action
@@ -265,7 +240,6 @@ export class MainState {
                     this.logs.push(mystery as LogMsg);
                     return;
                 case "status":
-                    console.log("hello" + JSON.stringify(mystery));
                     this.botStatus = (mystery as BotStateTree)
                     return;
                 case "error":

@@ -9,7 +9,6 @@ defmodule Farmbot.Configurator.Router do
 
   # max length of a uploaded file.
   @max_length 111_409_842
-  @expected_fw_version Application.get_all_env(:farmbot)[:expected_fw_version]
 
   use Plug.Router
   plug Plug.Logger
@@ -270,17 +269,20 @@ defmodule Farmbot.Configurator.Router do
     end
 
     defp do_fw_hack do
+      Logger.info "Doing FW Flash hack."
+      # Filesystem access race condition. Sorry.
+      Process.sleep(1000)
       case Nerves.UART.enumerate() |> Map.keys() |> Kernel.--(["ttyAMA0", "ttyS0"]) do
         [tty] ->
           spawn fn() ->
             :ok = Supervisor.terminate_child(Farmbot.Supervisor, Farmbot.Serial.Supervisor)
-
             hw = Farmbot.System.FS.path()
             |> Path.join("config.json")
             |> File.read!()
             |> Poison.decode!()
             |> Map.fetch!("configuration")
             |> Map.fetch!("firmware_hardware")
+            Logger.info "FLASHING FW: #{hw}"
 
             hex_file = "#{:code.priv_dir(:farmbot)}/#{hw}-firmware.hex"
             :os.cmd('avrdude -patmega2560 -cwiring -P/dev/#{tty} -b115200 -D -q -V -Uflash:w:#{hex_file}:i')

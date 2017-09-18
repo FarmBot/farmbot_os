@@ -71,8 +71,11 @@ export class Main extends React.Component<MainProps, FormState> {
   @action
   async handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
-    this.props.mobx.SetFWHW(this.state.fw_hw_selection || "arduino");
     let mainState = this.props.mobx;
+
+    console.log("fw hw: " + (this.state.fw_hw_selection || "Unconfigured!"));
+    mainState.SetFWHW(this.state.fw_hw_selection || "arduino");
+
     let fullFile = mainState.configuration;
 
     let email = this.state.email;
@@ -82,27 +85,6 @@ export class Main extends React.Component<MainProps, FormState> {
 
     if ((email && pass && server) && this.state.connecting != true) {
       this.setState({ connecting: true });
-
-      // // check that we arent wanting to use custom firmware.
-      // let doesntHaveCustomFW = !fullFile.hardware.custom_firmware;
-      //
-      // let cur_fw_ver = mainState.botStatus.informational_settings.firmware_version
-      // // check that the versions arent equal.
-      // let fwVersionCheck = cur_fw_ver !== mainState.expected_fw_version;
-      // console.log("Current detected version: " + cur_fw_ver + " expected version: " + mainState.expected_fw_version);
-      // console.log("FINDME: " + fwVersionCheck);
-      // // try to flash the arduino
-      // if (doesntHaveCustomFW && fwVersionCheck) {
-      //   try {
-      //     console.log("FLASHING FW");
-      //     await mainState.flashFW();
-      //     console.log("Firmware Flashed!!!");
-      //   } catch (_error) {
-      //     console.error("Firmware failed!");
-      //     return;
-      //   }
-      // }
-
       mainState.uploadCreds(email, pass, server)
         .then((thing) => {
           console.log("uploaded web app credentials!");
@@ -116,6 +98,8 @@ export class Main extends React.Component<MainProps, FormState> {
       console.error("Email, Password, or Server is incomplete or already connecting!")
       return;
     }
+
+
 
     // upload config file.
     mainState.uploadConfigFile(fullFile)
