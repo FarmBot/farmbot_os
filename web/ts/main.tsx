@@ -43,6 +43,11 @@ const TEXT_PORTAL_PROBLEM =
  does not work with the FarmBot WiFi configurator.
  Please open the full Safari or Chrome web browser and navigate to `;
 
+const hardwareOptions = [
+  { value: "arduino", label: "Arduino/RAMPS (Genesis v1.2)" },
+  { value: "farmduino", label: "Farmduino (Genesis v1.3)" }
+]
+
 @observer
 export class Main extends React.Component<MainProps, FormState> {
   constructor(props: MainProps) {
@@ -425,7 +430,7 @@ export class Main extends React.Component<MainProps, FormState> {
             <h5>Network</h5>
             <i className="fa fa-question-circle widget-help-icon">
               <div className="widget-help-text">
-                Bot Network Configuration
+                FarmBot Network Configuration
               </div>
             </i>
           </div>
@@ -435,14 +440,16 @@ export class Main extends React.Component<MainProps, FormState> {
           </div>
         </div>
 
-        {/* App Widget */}
+        {/* Form */}
         <form onSubmit={this.handleSubmit}>
+
+          {/* App Widget */}
           <div className="widget app">
             <div className="widget-header">
               <h5>Web App</h5>
               <i className="fa fa-question-circle widget-help-icon">
                 <div className="widget-help-text">
-                  Farmbot Application Configuration
+                  FarmBot Web Application Configuration
                 </div>
               </i>
               <i onClick={this.showHideUrl.bind(this)}
@@ -479,25 +486,33 @@ export class Main extends React.Component<MainProps, FormState> {
               )}
             </div>
           </div>
+
+          {/* Hardware Widget */}
+          <div className="widget">
+            <div className="widget-header">
+              <h5> Hardware </h5>
+              <i className="fa fa-question-circle widget-help-icon">
+                <div className="widget-help-text">
+                  Select your FarmBot board electronics or kit version.
+              </div>
+              </i>
+            </div>
+            <div className="widget-content">
+              <Select
+                value={this.state.fw_hw_selection}
+                options={hardwareOptions}
+                onChange={(event: Select.Option) => {
+                  let value = event.value;
+                  if (value == "arduino" || value == "farmduino") {
+                    this.setState({ fw_hw_selection: value });
+                  }
+                }} />
+            </div>
+          </div>
+
           {/* Submit our web app credentials, and config file. */}
           <button type="submit"> {submitText} </button>
         </form>
-
-        {/* Hardware Widget */}
-        <div className="widget">
-          <div className="widget-header">
-            <h5> Hardware </h5>
-            <Select
-              value={this.state.fw_hw_selection}
-              options={[{ value: "arduino", label: "arduino" }, {value: "farmduino", label: "farmduino"}]}
-              onChange={(event: Select.Option) => {
-                let value = event.value;
-                if(value == "arduino" || value == "farmduino") {
-                  this.setState({fw_hw_selection: value});
-                }
-              }} />
-          </div>
-        </div>
 
         {/* Logs Widget */}
         <div className="widget">
@@ -505,7 +520,7 @@ export class Main extends React.Component<MainProps, FormState> {
             <h5>Logs</h5>
             <i className="fa fa-question-circle widget-help-icon">
               <div className="widget-help-text">
-                {`Log messages from your bot`}
+                View log messages from your FarmBot.
               </div>
             </i>
           </div>
