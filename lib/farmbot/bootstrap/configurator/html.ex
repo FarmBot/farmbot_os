@@ -9,7 +9,8 @@ defmodule Farmbot.Bootstrap.Configurator.HTML do
   end
 
   @doc "Render a page in the `priv/templates/page` dir."
-  def render(page, conn \\ %{}) do
+  def render(page, conn \\ %{__struct__: Elixir}) do
+    # The default arg here is kind of a hack.
     eval_file("page", [page: page, conn: conn, render: fn -> eval_file("page/#{page}") end])
   end
 end

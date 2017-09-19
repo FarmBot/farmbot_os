@@ -5,6 +5,8 @@ unless File.exists?("config/host/auth_secret_test.exs") do
 end
 import_config("auth_secret_test.exs")
 
+config :farmbot, data_path: "tmp/"
+
 config :farmbot, :init, []
 
 # Transports.
