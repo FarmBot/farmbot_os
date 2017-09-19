@@ -4,12 +4,14 @@ defmodule Farmbot.HTTP.Supervisor do
   use Supervisor
 
   @doc "Start HTTP services."
-  def start_link(args, opts \\ []) do
-    Supervisor.start_link(__MODULE__, args, opts)
+  def start_link(token, opts \\ []) do
+    Supervisor.start_link(__MODULE__, token, opts)
   end
 
-  def init(_args) do
-    children = []
+  def init(token) do
+    children = [
+      worker(Farmbot.HTTP, [token, [name: Farmbot.HTTP]])
+    ]
     opts = [strategy: :one_for_all]
     supervise(children, opts)
   end

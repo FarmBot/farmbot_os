@@ -283,7 +283,9 @@ defmodule Farmbot.HTTP do
               |> add_header({"Content-Type", "application/json"})
 
     opts = opts |> Keyword.put(:timeout, :infinity)
-    url = Farmbot.Jwt.decode!(tkn).iss <> url
+    #TODO Fix this.
+    url = "https:" <> Farmbot.Jwt.decode!(tkn).iss <> url
+    IO.inspect(url)
     do_normal_request({method, url, body, headers, opts, from}, nil, state)
   end
 
