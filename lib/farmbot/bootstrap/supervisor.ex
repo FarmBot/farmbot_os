@@ -106,7 +106,7 @@ defmodule Farmbot.Bootstrap.Supervisor do
         Logger.info "Successful authorization: #{@auth_task} - #{email} - #{server}"
         children = [
           supervisor(Farmbot.BotState.Supervisor,    [token, [name: Farmbot.BotState.Supervisor  ]]),
-          supervisor(Farmbot.HTTP.Supervisor,      [token, [name: Farmbot.HTTP.Supervisor]]),
+          supervisor(Farmbot.HTTP.Supervisor,        [token, [name: Farmbot.HTTP.Supervisor]]),
         ]
         opts = [strategy: :one_for_all]
         supervise(children, opts)
