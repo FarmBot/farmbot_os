@@ -13,6 +13,7 @@ defmodule Farmbot.BotState.Configuration do
     model:
     [
       configuration: %{
+        firmware_hardware: :arduino,
         timezone: nil,
         user_env: %{},
         os_auto_update: false,
@@ -39,6 +40,7 @@ defmodule Farmbot.BotState.Configuration do
   @type state ::
     %State{
       configuration: %{
+        firmware_hardware: :arduino | :farmduino,
         timezone: nil | binary,
         user_env: map,
         os_auto_update: boolean,
@@ -85,8 +87,10 @@ defmodule Farmbot.BotState.Configuration do
     {:ok, len_y}    = get_config("distance_mm_y")
     {:ok, len_z}    = get_config("distance_mm_z")
     {:ok, tz}       = get_config("timezone")
+    {:ok, fw_hw}    = get_config("firmware_hardware")
     new_state =
       %State{initial | configuration: %{
+           firmware_hardware:    fw_hw,
            user_env:             user_env,
            timezone:             tz,
            os_auto_update:       os_a_u,
@@ -166,6 +170,10 @@ defmodule Farmbot.BotState.Configuration do
 
   def handle_call(:get_fw_version, _from, state) do
     dispatch(state.informational_settings.firmware_version, state)
+  end
+
+  def handle_call(:get_fw_hardware, _from, state) do
+    dispatch(state.configuration.firmware_hardware, state)
   end
 
   def handle_call({:get_config, key}, _from, %State{} = state)

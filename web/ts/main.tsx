@@ -23,6 +23,7 @@ interface FormState {
   hiddenAdvancedWidget?: null | number;
   showCustomNetworkWidget?: null | boolean;
   ssidSelection?: { [name: string]: string };
+  fw_hw_selection?: "arduino" | "farmduino";
   customInterface?: null | string;
   connecting?: boolean;
 }
@@ -41,6 +42,11 @@ const TEXT_PORTAL_PROBLEM =
   `The automatic pop-up window for connecting to networks on Mac computers
  does not work with the FarmBot WiFi configurator.
  Please open the full Safari or Chrome web browser and navigate to `;
+
+const hardwareOptions = [
+  { value: "arduino", label: "Arduino/RAMPS (Genesis v1.2)" },
+  { value: "farmduino", label: "Farmduino (Genesis v1.3)" }
+]
 
 @observer
 export class Main extends React.Component<MainProps, FormState> {
@@ -61,6 +67,7 @@ export class Main extends React.Component<MainProps, FormState> {
       hiddenAdvancedWidget: 0,
       showCustomNetworkWidget: false,
       ssidSelection: {},
+      fw_hw_selection: "arduino",
       customInterface: null,
       connecting: false,
     };
@@ -70,6 +77,10 @@ export class Main extends React.Component<MainProps, FormState> {
   async handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     let mainState = this.props.mobx;
+
+    console.log("fw hw: " + (this.state.fw_hw_selection || "Unconfigured!"));
+    mainState.SetFWHW(this.state.fw_hw_selection || "arduino");
+
     let fullFile = mainState.configuration;
 
     let email = this.state.email;
@@ -79,27 +90,6 @@ export class Main extends React.Component<MainProps, FormState> {
 
     if ((email && pass && server) && this.state.connecting != true) {
       this.setState({ connecting: true });
-
-      // check that we arent wanting to use custom firmware.
-      let doesntHaveCustomFW = !fullFile.hardware.custom_firmware;
-
-      let cur_fw_ver = mainState.botStatus.informational_settings.firmware_version
-      // check that the versions arent equal.
-      let fwVersionCheck = cur_fw_ver !== mainState.expected_fw_version;
-      console.log("Current detected version: " + cur_fw_ver + " expected version: " + mainState.expected_fw_version);
-      console.log("FINDME: " + fwVersionCheck);
-      // try to flash the arduino
-      if (doesntHaveCustomFW && fwVersionCheck) {
-        try {
-          console.log("FLASHING FW");
-          await mainState.flashFW();
-          console.log("Firmware Flashed!!!");
-        } catch (_error) {
-          console.error("Firmware failed!");
-          return;
-        }
-      }
-
       mainState.uploadCreds(email, pass, server)
         .then((thing) => {
           console.log("uploaded web app credentials!");
@@ -113,6 +103,8 @@ export class Main extends React.Component<MainProps, FormState> {
       console.error("Email, Password, or Server is incomplete or already connecting!")
       return;
     }
+
+
 
     // upload config file.
     mainState.uploadConfigFile(fullFile)
@@ -438,7 +430,7 @@ export class Main extends React.Component<MainProps, FormState> {
             <h5>Network</h5>
             <i className="fa fa-question-circle widget-help-icon">
               <div className="widget-help-text">
-                Bot Network Configuration
+                FarmBot Network Configuration
               </div>
             </i>
           </div>
@@ -448,14 +440,16 @@ export class Main extends React.Component<MainProps, FormState> {
           </div>
         </div>
 
-        {/* App Widget */}
+        {/* Form */}
         <form onSubmit={this.handleSubmit}>
+
+          {/* App Widget */}
           <div className="widget app">
             <div className="widget-header">
               <h5>Web App</h5>
               <i className="fa fa-question-circle widget-help-icon">
                 <div className="widget-help-text">
-                  Farmbot Application Configuration
+                  FarmBot Web Application Configuration
                 </div>
               </i>
               <i onClick={this.showHideUrl.bind(this)}
@@ -492,6 +486,30 @@ export class Main extends React.Component<MainProps, FormState> {
               )}
             </div>
           </div>
+
+          {/* Hardware Widget */}
+          <div className="widget">
+            <div className="widget-header">
+              <h5> Hardware </h5>
+              <i className="fa fa-question-circle widget-help-icon">
+                <div className="widget-help-text">
+                  Select your FarmBot board electronics or kit version.
+              </div>
+              </i>
+            </div>
+            <div className="widget-content">
+              <Select
+                value={this.state.fw_hw_selection}
+                options={hardwareOptions}
+                onChange={(event: Select.Option) => {
+                  let value = event.value;
+                  if (value == "arduino" || value == "farmduino") {
+                    this.setState({ fw_hw_selection: value });
+                  }
+                }} />
+            </div>
+          </div>
+
           {/* Submit our web app credentials, and config file. */}
           <button type="submit"> {submitText} </button>
         </form>
@@ -502,7 +520,7 @@ export class Main extends React.Component<MainProps, FormState> {
             <h5>Logs</h5>
             <i className="fa fa-question-circle widget-help-icon">
               <div className="widget-help-text">
-                {`Log messages from your bot`}
+                View log messages from your FarmBot.
               </div>
             </i>
           </div>
