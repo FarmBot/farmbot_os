@@ -86,6 +86,8 @@ defmodule Farmbot.Mixfile do
 
       {:cowboy, "~> 1.0.0"},
       {:plug, "~> 1.0"},
+      {:ecto, "~> 2.2.2"},
+      {:sqlite_ecto2, "~> 2.2.1"}
     ]
   end
 
@@ -107,6 +109,7 @@ defmodule Farmbot.Mixfile do
   end
 
   defp system("rpi0"), do: {:nerves_system_rpi0, ">= 0.0.0", runtime: false}
+  defp system("qemu_arm"), do: {:nerves_system_qemu_arm, ">= 0.0.0", runtime: false}
 
   defp package do
     [
@@ -117,20 +120,18 @@ defmodule Farmbot.Mixfile do
   end
 
   defp elixirc_paths(:test, "host") do
-    ["./lib", "./nerves/host", "./test/support"]
+    ["./lib", "./nerves/farmbot/host", "./test/support"]
   end
 
   defp elixirc_paths(_env, target) do
-    ["./lib", "./nerves/#{target}"]
+    ["./lib", "./nerves/farmbot/target"]
   end
 
   defp aliases("host"), do: []
 
   defp aliases(_system) do
     ["deps.precompile": ["nerves.precompile", "deps.precompile"],
-     "deps.loadpaths":  ["deps.loadpaths", "nerves.loadpaths"],
-     "firmware.upload": ["farmbot.upload"],
-     "firmware.sign":   ["farmbot.sign"]
-   ]
+     "deps.loadpaths":  ["deps.loadpaths", "nerves.loadpaths"]
+    ]
   end
 end

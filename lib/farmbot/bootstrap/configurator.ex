@@ -21,7 +21,7 @@ defmodule  Farmbot.Bootstrap.Configurator do
   """
   def start_link(_, opts) do
     Logger.info "Configuring Farmbot."
-    sup = Supervisor.start_link(__MODULE__, [self()], opts)
+    supervisor = Supervisor.start_link(__MODULE__, [self()], opts)
     # case supervisor do
     #   {:ok, pid} ->
     #     receive do
@@ -51,7 +51,7 @@ defmodule  Farmbot.Bootstrap.Configurator do
     end
   end
 
-  defp stop(supervisor, status) do
+  def stop(supervisor, status) do
     Supervisor.stop(supervisor, :normal)
     status
   end

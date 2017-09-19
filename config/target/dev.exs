@@ -1,16 +1,23 @@
 use Mix.Config
 
-config :farmbot, data_path: "/state"
+config :farmbot, Farmbot.Repo,
+  adapter: Sqlite.Ecto2,
+  database: "/root/#{Mix.env()}.sqlite3"
+
+config :farmbot, data_path: "/root"
 
 # Configure your our system.
 # Default implementation needs no special stuff.
 config :farmbot, :init, [
+  # Run migrations and whatnot.
+  Farmbot.Target.Ecto,
+
   # initialize the configuration.
   # This bring up a captive portal if needed.
   Farmbot.Bootstrap.Configurator,
 
   # Start up Network
-  Farmbot.System.Network
+  Farmbot.Target.Network
 ]
 
 # Transports.

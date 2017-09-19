@@ -33,12 +33,17 @@ config :farmbot, :init, []
 # See Farmbot.BotState.Transport for details.
 config :farmbot, :transport, []
 
-
 # Configure Farmbot Behaviours.
 config :farmbot, :behaviour, [
   authorization: Farmbot.Bootstrap.Authorization,
   firmware_handler: Farmbot.Firmware.StubHandler,
 ]
+
+config :farmbot, Farmbot.Repo,
+  adapter: Sqlite.Ecto2,
+  database: "#{env}.sqlite3"
+
+config :farmbot, ecto_repos: [Farmbot.Repo]
 
 case target do
   "host" -> import_config("host/#{env}.exs")

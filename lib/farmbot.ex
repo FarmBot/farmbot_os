@@ -50,6 +50,7 @@ defmodule Farmbot do
 
   def init(args) do
     children = [
+      supervisor(Farmbot.Repo, []),
       supervisor(Farmbot.System.Supervisor,      [args, [name: Farmbot.System.Supervisor    ]]),
       supervisor(Farmbot.Bootstrap.Supervisor,   [args, [name: Farmbot.Bootstrap.Supervisor ]]),
       # supervisor(Farmbot.FarmEvent.Supervisor,   [args, [name: Farmbot.FarmEvent.Supervisor ]]),

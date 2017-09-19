@@ -19,7 +19,6 @@ defmodule Farmbot.System do
   Should remove all persistant data. this includes:
   * network config
   * credentials
-  * database
   """
   @callback factory_reset(reason) :: no_return
 
@@ -49,5 +48,5 @@ defmodule Farmbot.System do
   @spec shutdown(unparsed_reason) :: no_return
   def shutdown(reason) do
     @system_tasks.shutdown(reason)
-  end 
+  end
 end
