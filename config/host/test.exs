@@ -18,3 +18,10 @@ config :farmbot, :behaviour, [
   authorization: Farmbot.Test.Authorization,
   system_tasks: Farmbot.Test.SystemTasks
 ]
+
+config :farmbot, Farmbot.Repo,
+  adapter: Sqlite.Ecto2,
+  database: "test.sqlite3",
+  pool: Ecto.Adapters.SQL.Sandbox
+
+config :farmbot, ecto_repos: [Farmbot.Repo]

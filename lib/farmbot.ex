@@ -44,7 +44,9 @@ defmodule Farmbot do
     name = Keyword.get(start_opts, :name, __MODULE__)
     case Supervisor.start_link(__MODULE__, [], [name: name]) do
       {:ok, pid}       -> {:ok, pid}
-      {:error, reason} -> Farmbot.System.factory_reset(reason)
+      {:error, reason} ->
+        Farmbot.System.factory_reset(reason)
+        exit(reason)
     end
   end
 
