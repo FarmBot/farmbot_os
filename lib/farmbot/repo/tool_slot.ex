@@ -8,7 +8,7 @@ defmodule Farmbot.Repo.ToolSlot do
     field :tool_id, :integer
   end
 
-  use Farmbot.Repo.Syncable
+  use Farmbot.Repo.Syncable, sync: :false
   @required_fields [:id, :tool_id]
 
   def changeset(farm_event, params \\ %{}) do

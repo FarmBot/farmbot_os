@@ -6,21 +6,19 @@ defmodule Farmbot.Repo.Point do
 
   schema "points" do
     field :name, :string
-    field :x, :float
-    field :y, :float
-    field :z, :float
+    field :x, Farmbot.Repo.JSONFloatType
+    field :y, Farmbot.Repo.JSONFloatType
+    field :z, Farmbot.Repo.JSONFloatType
     field :meta, Farmbot.Repo.JSONType
-    field :pointer_type, Farmbot.Repo.Point.PointerType
-    field :pointer_id, :integer
+    field :pointer_type, Farmbot.Repo.ModuleType.Point
   end
 
   use Farmbot.Repo.Syncable
-  @required_fields [:id, :name, :x, :y, :z, :meta, :pointer_type, :pointer_id]
+  @required_fields [:id, :name, :x, :y, :z, :meta, :pointer_type]
 
   def changeset(farm_event, params \\ %{}) do
     farm_event
     |> cast(params, @required_fields)
     |> validate_required(@required_fields)
-    |> unique_constraint(:id)
   end
 end

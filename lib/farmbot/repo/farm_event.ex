@@ -15,7 +15,7 @@ defmodule Farmbot.Repo.FarmEvent do
     field :end_time,        :utc_datetime
     field :repeat,          :integer
     field :time_unit,       :string
-    field :executable_type, Farmbot.Repo.FarmEvent.ExecutableType
+    field :executable_type, Farmbot.Repo.ModuleType.FarmEvent
     field :executable_id,   :integer
   end
 

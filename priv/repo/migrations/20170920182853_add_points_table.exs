@@ -10,7 +10,6 @@ defmodule Farmbot.Repo.Migrations.AddPointsTable do
       add :z,  :float
       add :meta, :text
       add :pointer_type, :string
-      add :pointer_id, :integer
     end
 
     create unique_index("points", [:id])

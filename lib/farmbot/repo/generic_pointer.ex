@@ -7,7 +7,7 @@ defmodule Farmbot.Repo.GenericPointer do
   schema "generic_pointers" do
   end
 
-  use Farmbot.Repo.Syncable
+  use Farmbot.Repo.Syncable, sync: false
   @required_fields [:id]
 
   def changeset(peripheral, params \\ %{}) do

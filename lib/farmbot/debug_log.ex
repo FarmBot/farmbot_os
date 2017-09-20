@@ -20,6 +20,10 @@ defmodule Farmbot.DebugLog do
   def color(:YELLOW),       do: "\e[1;33m"
   def color(:GRAY),         do: "\e[0;30m"
   def color(:LIGHT_GRAY),   do: "\e[0;37m"
+  def color(:RANDOM) do
+    Enum.random([:NC, :WHITE, :BLACK, :BLUE, :LIGHT_BLUE, :GREEN, :LIGHT_GREEN, :CYAN, :LIGHT_CYAN, :RED, :LIGHT_RED, :PURPLE, :LIGHT_PURPLE, :BROWN, :YELLOW, :GRAY, :LIGHT_GRAY])
+    |> color()
+  end
 
   @doc """
     enables the `debug_log/1` function.

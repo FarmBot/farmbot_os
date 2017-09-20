@@ -1,16 +1,30 @@
 defmodule Farmbot.Repo do
+  @moduledoc "Storage for Farmbot Resources."
   use Ecto.Repo, otp_app: :farmbot, adapter: Sqlite.Ecto2
 
   alias Farmbot.Repo.{
-    FarmEvent, Peripheral
+    FarmEvent, GenericPointer, Peripheral,
+    Point, Regimen, Sequence, ToolSlot, Tool
   }
 
-  @syncables [FarmEvent, Peripheral]
-  def syncables, do: @syncables
+  @default_syncables [FarmEvent, GenericPointer, Peripheral,
+                      Point, Regimen, Sequence, ToolSlot, Tool]
 
-  def sync!(http) do
+  @doc "A list of all the resources."
+  def syncables, do: Application.get_env(:farmbot, :repo)[:farmbot_syncables] || @default_syncables
+
+  @doc "Sync all the modules that export a `sync/1` function."
+  def sync!(http \\ Farmbot.HTTP) do
     for syncable <- syncables() do
-      syncable.sync!(http)
+      if Code.ensure_loaded?(syncable) and function_exported?(syncable, :sync!, 1) do
+        spawn fn() ->
+          syncable.sync!(http)
+        end
+        :ok
+      end
+      :ok
     end
+    :ok
   end
+
 end
