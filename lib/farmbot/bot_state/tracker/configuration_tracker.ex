@@ -104,6 +104,25 @@ defmodule Farmbot.BotState.Configuration do
     {:ok, new_state}
   end
 
+  def handle_call({:update_config, "firmware_hardware", hw}, _from, state) when hw in ["farmduino", "arduino", :farmduino, :arduino] do
+    spawn fn() ->
+      hex_file = "#{:code.priv_dir(:farmbot)}/#{hw}-firmware.hex"
+      tty = :sys.get_state(Farmbot.Context.new().serial).tty
+      :ok = Supervisor.terminate_child(Farmbot.Supervisor, Farmbot.Serial.Supervisor)
+      Process.sleep(3000)
+
+      :os.cmd('avrdude -patmega2560 -cwiring -P/dev/#{tty} -b115200 -D -q -V -Uflash:w:#{hex_file}:i')
+      Supervisor.restart_child(Farmbot.Supervisor, Farmbot.Serial.Supervisor)
+    end
+
+    update_config(state, :firmware_hardware, hw)
+  end
+
+  def handle_call({:update_config, "firmware_hardware", value}, _from, state) do
+    Logger.error "#{value} is an unrecognized firmware hardware."
+    dispatch :error, state
+  end
+
   # This call should probably be a cast actually, and im sorry.
   # Returns true for configs that exist and are the correct typpe,
   # and false for anything else

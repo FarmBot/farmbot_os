@@ -31,14 +31,15 @@ defmodule Farmbot.System.NervesCommon.Updates do
         end
       end
 
+      @exp_fws Application.get_all_env(:farmbot)[:expected_fw_version]
+
       def post_install do
         Logger.info ">> Is doing post install stuff."
         :ok = blerp()
         ctx = Farmbot.Context.new
         r = Farmbot.Serial.Handler.write ctx, "F83"
-        exp = Application.get_all_env(:farmbot)[:expected_fw_version]
         case r do
-          {:report_software_version, version} when version == exp ->
+          {:report_software_version, version} when version in @exp_fws ->
             Logger.info "Firmware is already the correct version!"
             :ok
           other ->

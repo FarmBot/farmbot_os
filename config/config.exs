@@ -18,7 +18,7 @@ config :logger, :console,
 config :iex, :colors, enabled: true
 
 # bot <-> firmware transports.
-config :farmbot, expected_fw_version: "4.0.2"
+config :farmbot, expected_fw_version: ["5.0.3.F", "5.0.3.R"]
 
 # Rollbar
 config :farmbot, rollbar_access_token: "dcd79b191ab84aa3b28259cbb80e2060"
