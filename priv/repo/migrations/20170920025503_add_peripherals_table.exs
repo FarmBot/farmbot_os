@@ -7,8 +7,7 @@ defmodule Farmbot.Repo.Migrations.AddPeripheralsTable do
       add :pin, :integer
       add :mode, :integer
       add :label, :string
-      add :created_at, :utc_datetime
-      add :updated_at, :utc_datetime
     end
+    create unique_index("peripherals", [:id])
   end
 end

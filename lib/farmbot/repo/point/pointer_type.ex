@@ -1,14 +1,10 @@
-defmodule Farmbot.Repo.FarmEvent.ExecutableType do
-  @executable_types ~w(Sequence Regimen)
-
+defmodule Farmbot.Repo.Point.PointerType do
   @moduledoc """
-  Custom Ecto.Type for FarmEvent :executable_type field.
-
-      * Ensures the value is in #{inspect @executable_types}.
-      * Changes to the module implementation when loaded from the DB.
+  Custom Ecto.Type for Pointer
   """
 
   @behaviour Ecto.Type
+  @valid_pointer_types ["GenericPointer", "ToolSlot"]
 
 
   def type, do: :string
@@ -16,7 +12,7 @@ defmodule Farmbot.Repo.FarmEvent.ExecutableType do
   def cast(string), do: {:ok, string}
 
   # Load from DB
-  Enum.map(@executable_types, fn(exp) ->
+  Enum.map(@valid_pointer_types, fn(exp) ->
     def load(unquote(exp)) do
       {:ok, Module.concat([Farmbot, Repo, unquote(exp)])}
     end
@@ -25,7 +21,7 @@ defmodule Farmbot.Repo.FarmEvent.ExecutableType do
   def load(_), do: :error
 
   # Dump to DB
-  Enum.map(@executable_types, fn(exp) ->
+  Enum.map(@valid_pointer_types, fn(exp) ->
     def dump(unquote(exp)) do
       {:ok, unquote(exp)}
     end

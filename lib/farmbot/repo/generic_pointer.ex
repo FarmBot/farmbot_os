@@ -1,19 +1,14 @@
-defmodule Farmbot.Repo.Peripheral do
-  @moduledoc """
-  Peripherals are descriptors for pins/modes.
-  """
+defmodule Farmbot.Repo.GenericPointer do
+  @moduledoc "A GenericPointer is just a normal pointer with no special stuff."
 
   use Ecto.Schema
   import Ecto.Changeset
 
-  schema "peripherals" do
-    field :pin, :integer
-    field :mode, :integer
-    field :label, :string
+  schema "generic_pointers" do
   end
 
   use Farmbot.Repo.Syncable
-  @required_fields [:id, :pin, :mode, :label]
+  @required_fields [:id]
 
   def changeset(peripheral, params \\ %{}) do
     peripheral
