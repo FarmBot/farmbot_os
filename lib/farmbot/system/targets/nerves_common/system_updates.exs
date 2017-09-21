@@ -31,20 +31,21 @@ defmodule Farmbot.System.NervesCommon.Updates do
         end
       end
 
+      @exp_fws Application.get_all_env(:farmbot)[:expected_fw_version]
+
       def post_install do
         Logger.info ">> Is doing post install stuff."
         :ok = blerp()
         ctx = Farmbot.Context.new
         r = Farmbot.Serial.Handler.write ctx, "F83"
-        exp = Application.get_all_env(:farmbot)[:expected_fw_version]
         case r do
-          {:report_software_version, version} when version == exp ->
+          {:report_software_version, version} when version in @exp_fws ->
             Logger.info "Firmware is already the correct version!"
             :ok
           other ->
             # we need to flash the firmware
             IO.warn "#{inspect other}"
-            file = "#{:code.priv_dir(:farmbot)}/firmware.hex"
+            file = "#{:code.priv_dir(:farmbot)}/#{Farmbot.BotState.get_fw_hardware(ctx)}-firmware.hex"
             Logger.info ">> Doing post update firmware flash.", type: :warn
             GenServer.cast(ctx.serial, {:update_fw, file, self()})
             wait_for_finish()

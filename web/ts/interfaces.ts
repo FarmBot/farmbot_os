@@ -94,12 +94,7 @@ export interface BotConfigFile {
     configuration: {
         /** auto update the operating system */
         os_auto_update: boolean;
-        /** steps per milimeter for the arduino firmware */
-        steps_per_mm: {
-            x: number;
-            y: number;
-            z: number;
-        };
+        firmware_hardware: "arduino" | "farmduino";
     },
     /** hardware mcu stuff */
     hardware: {

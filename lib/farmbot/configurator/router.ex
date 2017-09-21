@@ -9,7 +9,6 @@ defmodule Farmbot.Configurator.Router do
 
   # max length of a uploaded file.
   @max_length 111_409_842
-  @expected_fw_version Application.get_all_env(:farmbot)[:expected_fw_version]
 
   use Plug.Router
   plug Plug.Logger
@@ -93,8 +92,8 @@ defmodule Farmbot.Configurator.Router do
 
   # Try to log in with interim creds + config.
   post "/api/try_log_in" do
-    Logger.info "Trying to log in. "
-
+    Logger.info "Trying to log in."
+    do_fw_hack()
     spawn fn() ->
       # sleep to allow the request to finish.
       Process.sleep(100)
@@ -197,16 +196,6 @@ defmodule Farmbot.Configurator.Router do
     end
   end
 
-  # Flash fw that was bundled with the bot.
-  post "/api/flash_firmware" do
-    "#{:code.priv_dir(:farmbot)}/firmware.hex" |> handle_arduino(conn)
-  end
-
-  get "/api/firmware/expected_version" do
-    v = @expected_fw_version
-    conn |> send_resp(200, v)
-  end
-
   # anything that doesn't match a rest end point gets the index.
   match _ do
     # conn
@@ -278,7 +267,35 @@ defmodule Farmbot.Configurator.Router do
           Nerves.Firmware.reboot
       end
     end
+
+    defp do_fw_hack do
+      Logger.info "Doing FW Flash hack."
+      # Filesystem access race condition. Sorry.
+      Process.sleep(1000)
+      case Nerves.UART.enumerate() |> Map.keys() |> Kernel.--(["ttyAMA0", "ttyS0"]) do
+        [tty] ->
+          spawn fn() ->
+            :ok = Supervisor.terminate_child(Farmbot.Supervisor, Farmbot.Serial.Supervisor)
+            hw = Farmbot.System.FS.path()
+            |> Path.join("config.json")
+            |> File.read!()
+            |> Poison.decode!()
+            |> Map.fetch!("configuration")
+            |> Map.fetch!("firmware_hardware")
+            Logger.info "FLASHING FW: #{hw}"
+
+            hex_file = "#{:code.priv_dir(:farmbot)}/#{hw}-firmware.hex"
+            :os.cmd('avrdude -patmega2560 -cwiring -P/dev/#{tty} -b115200 -D -q -V -Uflash:w:#{hex_file}:i')
+            Process.sleep(3000)
+
+            Supervisor.restart_child(Farmbot.Supervisor, Farmbot.Serial.Supervisor)
+          end
+        _ -> Logger.error ">> Could not auto detect a firmware device."
+      end
+    end
+
   else
     defp handle_os(_file, conn), do: conn |> send_resp(200, "OK")
+    defp do_fw_hack(), do: :ok
   end
 end

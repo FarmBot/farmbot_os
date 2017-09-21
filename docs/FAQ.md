@@ -27,8 +27,10 @@ This doesn't do anything special, it just makes sure not to overwrite the existi
 
 ## Can I SSH into the Farmbot?
 
-Yes, starting with version `2.1.1`. The user is root and there is no password. This may change in future versions.
-NOTE: Ssh is disabled by default, so you will need to enable it during configuration if you want to use it.
+as of `3.0.0` SSH has changed.
+* Still disabled by default.
+* Can not be enabled in Prod environments. (so if you downloaded a .img file from our "Releases" page.)
+
 
 ## Why are my SSH keys invalid?
 

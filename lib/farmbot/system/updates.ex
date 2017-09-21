@@ -72,19 +72,31 @@ defmodule Farmbot.System.Updates do
   @spec check_updates(Context.t)
     :: {:update, binary} | :no_updates | {:error, term}
   defp do_http_req(%Context{} = ctx) do
-    case HTTP.get(ctx, releases_url(ctx)) do
-       {:ok, %HTTP.Response{body: body, status_code: 200}} ->
-         json = Poison.decode!(body)
-         version = json["tag_name"]
-         version_without_v = String.trim_leading version, "v"
-         list = json["assets"]
-         item = Enum.find(list, fn(item) ->
-           item["name"] == "farmbot-#{@target}-#{version_without_v}.fw"
-         end)
-         url = item["browser_download_url"]
-         {:update, url}
-       {:error, reason} -> {:error, reason}
-    end
+    with {:ok, %{body: body, status_code: 200}} <- HTTP.get(ctx, releases_url(ctx)),
+         {:ok, resp} <- Poison.decode(body),
+         {:ok, "v" <> version_str} = Map.fetch(resp, "tag_name"),
+         {:ok, version} = Version.parse(version_str),
+         {:ok, list} = Map.fetch(resp, "assets")
+         do
+           cur_os_ver_str = Farmbot.BotState.get_os_version(ctx)
+           {:ok, cur_ver} = Version.parse(cur_os_ver_str)
+           case Version.compare(version, cur_ver) do
+             :gt ->
+               url = Enum.find(list, fn(item) ->
+                 item["name"] == "farmbot-#{@target}-#{version_str}.fw"
+               end)["browser_download_url"]
+
+               {:update, url}
+             :eq -> :no_updates
+             :lt -> :no_updates
+           end
+         else
+           {:ok, %HTTP.Response{body: body, status_code: code}} ->
+             {:error, "Http request failed: body: #{body} status_code: #{code}"}
+           {:error, _} = err -> err
+           :error -> {:error, :unknown_error}
+           nil -> {:error, :unknown_error}
+         end
   end
 
   @doc """

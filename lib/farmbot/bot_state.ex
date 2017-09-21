@@ -129,6 +129,10 @@ defmodule Farmbot.BotState do
     GenServer.call(context.hardware, {:get_pin, pin_number})
   end
 
+  def get_fw_hardware(%Context{configuration: config}) do
+    GenServer.call(config, :get_fw_hardware)
+  end
+
   @doc """
     Gets the current firmware version
     This is just a shortcut

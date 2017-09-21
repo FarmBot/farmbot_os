@@ -110,7 +110,7 @@ defmodule Farmbot.HTTP do
            url            = "https:" <> body["url"]
            form_data      = body["form_data"]
            attachment_url = url <> form_data["key"]
-           mp = Enum.map(form_data, fn({key, val}) -> if key == "file", do: {"file", file}, else: {key, val} end)
+           mp = Enum.map(form_data, fn({key, val}) -> if key == "file", do: {"file", file}, else: {key, val} end) |> Enum.reverse()
            ctx
             |> post(url, {:multipart, mp})
             |> finish_upload(ctx, attachment_url, meta)
