@@ -4,7 +4,6 @@ defmodule Farmbot.Firmware.UartHandler do
   """
 
   use GenServer
-  use Farmbot.DebugLog
   alias Nerves.UART
   alias Farmbot.Firmware.Gcode.Parser
   require Logger

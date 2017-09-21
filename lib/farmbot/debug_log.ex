@@ -1,8 +1,7 @@
 defmodule Farmbot.DebugLog do
-  @moduledoc """
-  Provides a `debug_log/1` function.
-  """
+  @moduledoc false
 
+  @doc false
   def color(:NC),           do: "\e[0m"
   def color(:WHITE),        do: "\e[1;37m"
   def color(:BLACK),        do: "\e[0;30m"
@@ -24,18 +23,4 @@ defmodule Farmbot.DebugLog do
     Enum.random([:NC, :WHITE, :BLACK, :BLUE, :LIGHT_BLUE, :GREEN, :LIGHT_GREEN, :CYAN, :LIGHT_CYAN, :RED, :LIGHT_RED, :PURPLE, :LIGHT_PURPLE, :BROWN, :YELLOW, :GRAY, :LIGHT_GRAY])
     |> color()
   end
-
-  @doc """
-    enables the `debug_log/1` function.
-  """
-  defmacro __using__(opts) do
-    ccolor = Keyword.get(opts, :color) || :NC
-    quote do
-      import Farmbot.DebugLog
-      def debug_log(msg) do
-        module = __MODULE__ |> Module.split() |> Enum.take(-2)
-        IO.puts "#{color(unquote(ccolor))}[#{module}] #{msg}#{color(:NC)}"
-      end  # debug log
-    end    # quote
-  end      # defmacro
-end        # defmodule
+end

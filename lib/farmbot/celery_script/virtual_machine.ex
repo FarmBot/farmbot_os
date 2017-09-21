@@ -6,9 +6,8 @@ defmodule Farmbot.CeleryScript.VirtualMachine do
     InstructionSet,
     StackFrame
   }
+  require Logger
   alias Farmbot.CeleryScript.VirtualMachine.RuntimeError, as: VmError
-
-  use Farmbot.DebugLog
 
   @typep instruction_set :: InstructionSet.t
   @typep ast :: Ast.t
@@ -45,7 +44,7 @@ defmodule Farmbot.CeleryScript.VirtualMachine do
   defp do_step(%__MODULE__{} = vm) do
     case vm.program |> Enum.at(vm.pc) do
       %Ast{kind: kind, args: args, body: body} = ast ->
-        debug_log "doing: #{inspect ast}"
+        Logger.info "Doing #{inspect ast}"
 
         # Turn kind into an instruction
         instruction = Module.concat([kind])

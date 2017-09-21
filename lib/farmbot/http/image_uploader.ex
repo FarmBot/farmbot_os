@@ -4,19 +4,17 @@ defmodule Farmbot.HTTP.ImageUploader do
   """
   use GenServer
   require Logger
-  use Farmbot.DebugLog
 
   @images_path "/tmp/images/"
 
   @doc """
-    Starts the Image Watcher
+  Starts the Image Watcher
   """
   def start_link(http, opts) do
     GenServer.start_link(__MODULE__, http, opts)
   end
 
   def init(http) do
-    debug_log "Ensuring #{@images_path} exists."
     File.rm_rf!   @images_path
     File.mkdir_p! @images_path
     :fs_app.start(:normal, [])

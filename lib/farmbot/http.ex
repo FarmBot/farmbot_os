@@ -14,7 +14,6 @@ defmodule Farmbot.HTTP do
   alias   Farmbot.HTTP.{Response, Helpers, Error}
   import  Helpers
   require Logger
-  use     Farmbot.DebugLog
 
   @version Mix.Project.config[:version]
   @target  Mix.Project.config[:target]
@@ -125,7 +124,7 @@ defmodule Farmbot.HTTP do
     with {:ok, body} <- Poison.encode(%{"attachment_url" => atch_url, "meta" => meta}) do
       case post(http, "/api/images", body) do
         {:ok, %Response{status_code: code}} when is_2xx(code) ->
-          debug_log("#{atch_url} should exist shortly.")
+          # debug_log("#{atch_url} should exist shortly.")
           :ok
         {:ok, %Response{} = response} -> {:error, response}
         {:error, reason}              -> {:error, reason}
@@ -241,7 +240,7 @@ defmodule Farmbot.HTTP do
     {file, opts} = Keyword.pop(opts, :file)
     case file do
       filename when is_binary(filename) ->
-        debug_log "Opening file: #{filename}"
+        # debug_log "Opening file: #{filename}"
         File.rm(file)
         :ok       = File.touch(filename)
         {:ok, fd} = :file.open(filename, [:write, :raw])
@@ -262,7 +261,7 @@ defmodule Farmbot.HTTP do
 
   defp maybe_log_progress(%Buffer{file: file, progress_callback: pcb})
   when is_nil(file) or is_nil(pcb) do
-    debug_log "File (#{inspect file}) or progress callback: #{inspect pcb} are nil"
+    # debug_log "File (#{inspect file}) or progress callback: #{inspect pcb} are nil"
     :ok
   end
 
@@ -291,13 +290,13 @@ defmodule Farmbot.HTTP do
 
   defp do_normal_request({method, url, body, headers, opts, from}, file, state) do
     case HTTPoison.request(method, url, body, headers, opts) do
-      {:ok, %HTTPoison.Response{status_code: code, headers: resp_headers} = resp} when code in @redirect_status_codes ->
+      {:ok, %HTTPoison.Response{status_code: code, headers: resp_headers}} when code in @redirect_status_codes ->
         redir = Enum.find_value(resp_headers, fn({header, val}) -> if header == "Location", do: val, else: false end)
         if redir do
-          debug_log "redirect"
+          # debug_log "redirect"
           do_normal_request({method, redir, body, headers, opts, from}, file, state)
         else
-          debug_log("Failed to redirect: #{inspect resp}")
+          # debug_log("Failed to redirect: #{inspect resp}")
           GenServer.reply(from, {:error, :no_server_for_redirect})
           {:noreply, state}
         end
@@ -353,7 +352,7 @@ defmodule Farmbot.HTTP do
   end
 
   defp finish_request(%Buffer{status_code: status_code} = buffer, state) when status_code in @redirect_status_codes do
-    debug_log "#{inspect Tuple.delete_at(buffer.from, 0)} Trying to redirect: (#{status_code})"
+    # debug_log "#{inspect Tuple.delete_at(buffer.from, 0)} Trying to redirect: (#{status_code})"
     redir = Enum.find_value(buffer.headers,
       fn({header, val}) ->
         case header do
@@ -365,14 +364,14 @@ defmodule Farmbot.HTTP do
     if redir do
       do_redirect_request(buffer, redir, state)
     else
-      debug_log("Failed to redirect: #{inspect buffer}")
+      # debug_log("Failed to redirect: #{inspect buffer}")
       GenServer.reply(buffer.from, {:error, :no_server_for_redirect})
       {:noreply, state}
     end
   end
 
   defp finish_request(%Buffer{} = buffer, state) do
-    debug_log "Request finish."
+    # debug_log "Request finish."
     response = %Response{
       status_code: buffer.status_code,
       body:        buffer.data,
