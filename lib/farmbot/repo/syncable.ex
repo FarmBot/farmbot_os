@@ -2,8 +2,8 @@ defmodule Farmbot.Repo.Syncable do
   @moduledoc "Behaviour for syncable modules."
 
   @doc "Sync this module."
-  @callback sync!(GenServer.server) :: any | no_return
-  @optional_callbacks [sync!: 1]
+  @callback sync!(module, GenServer.server) :: any | no_return
+  @optional_callbacks [sync!: 2]
 
   @doc "Changes iso8601 times to DateTime structs."
   def ensure_time(struct, []), do: struct
@@ -30,7 +30,7 @@ defmodule Farmbot.Repo.Syncable do
             3) For each record in the list, checks if the item exists already,
             4) Inserts or Updates each item in the list into the Repo.
         """
-        def sync!(http) do
+        def sync!(repo, http) do
           {_, source} = struct(__MODULE__).__meta__.source
           color = Farmbot.DebugLog.color(:RANDOM)
           Logger.info "#{color}[#{source}] Begin sync."
@@ -42,14 +42,14 @@ defmodule Farmbot.Repo.Syncable do
           # |> fn(obj) -> IO.inspect(obj); obj end.()
           |> Enum.each(fn(obj) ->
             # We need to check if this object exists in the database.
-            case Farmbot.Repo.get(__MODULE__, obj.id) do
+            case repo.get(__MODULE__, obj.id) do
               # If it does not, just return the newly created object.
               nil -> obj
               # if there is an existing record, copy the ecto  meta from the old
               # record. This allows `insert_or_update` to work properly.
               existing -> %{obj | __meta__: existing.__meta__}
             end
-            |>  __MODULE__.changeset() |> Farmbot.Repo.insert_or_update!()
+            |>  __MODULE__.changeset() |> repo.insert_or_update!()
           end)
           Logger.info "#{color}[#{source}] Complete sync."
         end
@@ -57,9 +57,9 @@ defmodule Farmbot.Repo.Syncable do
       end
 
       @doc "Fetch all #{__MODULE__}'s from the Repo."
-      def fetch_all() do
+      def fetch_all(repo) do
         import Ecto.Query
-        (from i in __MODULE__, select: i) |> Farmbot.Repo.all()
+        (from i in __MODULE__, select: i) |> repo.all()
       end
     end
 
