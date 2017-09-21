@@ -19,9 +19,16 @@ config :farmbot, :behaviour, [
   system_tasks: Farmbot.Test.SystemTasks
 ]
 
-config :farmbot, Farmbot.Repo,
+config :farmbot, Farmbot.Repo.A,
   adapter: Sqlite.Ecto2,
-  database: "test.sqlite3",
+  database: "test_A.sqlite3",
+  priv: "priv/repo",
   pool: Ecto.Adapters.SQL.Sandbox
 
-config :farmbot, ecto_repos: [Farmbot.Repo]
+config :farmbot, Farmbot.Repo.B,
+  adapter: Sqlite.Ecto2,
+  database: "test_B.sqlite3",
+  priv: "priv/repo",
+  pool: Ecto.Adapters.SQL.Sandbox
+
+config :farmbot, ecto_repos: [Farmbot.Repo.A, Farmbot.Repo.B]

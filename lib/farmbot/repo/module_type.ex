@@ -6,9 +6,12 @@ defmodule Farmbot.Repo.ModuleType do
   defmacro __using__(opts) do
     mods = Keyword.fetch!(opts, :valid_mods)
     quote do
-      @valid_mods unquote(mods)
-      @moduledoc "Custom Ecto.Type for changing a string field to one of #{inspect @valid_mods}"
+      @valid_short_strs unquote(mods)
+      @valid_mods Enum.map(unquote(mods), fn(mod) -> Module.concat([Farmbot, Repo, mod]) end)
+
+      @moduledoc "Custom Ecto.Type for changing a string field to one of #{inspect @valid_short_strs}"
       @behaviour Ecto.Type
+      require Logger
 
       def type, do: :string
 
@@ -25,23 +28,29 @@ defmodule Farmbot.Repo.ModuleType do
         end
       end
 
-      # Load from DB
-      Enum.map(@valid_mods, fn(exp) ->
-        def load(exp) do
-          {:ok, Module.concat([Farmbot, Repo, exp])}
-        end
-      end)
+      def load(exp) when exp in @valid_short_strs do
+        {:ok, Module.concat([Farmbot, Repo, exp])}
+      end
 
-      def load(_), do: :error
+      def load(exp) when exp in @valid_mods do
+        {:ok, exp}
+      end
 
-      # Dump to DB
-      Enum.map(@valid_mods, fn(exp) ->
-        def dump(exp) do
-          {:ok, exp}
-        end
-      end)
+      def load("Elixir." <> _ = mod), do: String.to_atom(mod) |> load()
 
-      def dump(_), do: :error
+      def load(_fail) do
+        :error
+      end
+
+      def dump(exp) when exp in @valid_short_strs do
+        {:ok, Module.concat([Farmbot, Repo, exp])}
+      end
+
+      def dump(fail) do
+        Logger.error "failed to load #{inspect fail}"
+        :error
+      end
+
     end
   end
 end

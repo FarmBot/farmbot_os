@@ -4,7 +4,7 @@ defmodule Farmbot.Repo.FarmEventTest do
   use ExUnit.Case
 
   setup do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Repo.A)
   end
 
   @farm_event_seq %{"end_time" => "2017-09-20T19:07:00.000000Z", "executable_id" => 132,
@@ -17,11 +17,11 @@ defmodule Farmbot.Repo.FarmEventTest do
     |> Poison.encode!
     |> Poison.decode!(as: %FarmEvent{})
     |> FarmEvent.changeset()
-    |> Repo.insert())
+    |> Repo.A.insert())
 
     import Ecto.Query
     id = @farm_event_seq["id"]
-    [fe] = (from fe in FarmEvent, where: fe.id == ^id, select: fe) |> Repo.all()
+    [fe] = (from fe in FarmEvent, where: fe.id == ^id, select: fe) |> Repo.A.all()
     assert fe.executable_type == Repo.Sequence
     assert fe.start_time.__struct__ == DateTime
 
@@ -33,9 +33,9 @@ defmodule Farmbot.Repo.FarmEventTest do
          |> Poison.encode!
          |> Poison.decode!(as: %FarmEvent{})
          |> FarmEvent.changeset()
-    msg = ~S(value `"UnknownResource"` for `Farmbot.Repo.FarmEvent.executable_type` in `insert` does not match type Farmbot.Repo.FarmEvent.ExecutableType)
+    msg = ~S(value `"UnknownResource"` for `Farmbot.Repo.FarmEvent.executable_type` in `insert` does not match type Farmbot.Repo.ModuleType.FarmEvent)
     assert_raise Ecto.ChangeError, msg, fn() ->
-      Repo.insert(cs)
+      Repo.A.insert!(cs)
     end
   end
 

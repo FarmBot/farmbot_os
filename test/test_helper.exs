@@ -5,4 +5,5 @@ end
 
 # Start ExUnit.
 ExUnit.start([capture_log: true])
-Ecto.Adapters.SQL.Sandbox.mode(Farmbot.Repo, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Farmbot.Repo.A, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Farmbot.Repo.B, :manual)
