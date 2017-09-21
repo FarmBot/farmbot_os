@@ -88,3 +88,9 @@
 # 5.0.2
 * Fix a bug causing `busy` to be set erroneously.
 * add note to configurator for osx users.
+
+# 5.0.3
+* Add selector for firmware hardware to Configurator.
+* Fix an OS update bug.
+* Fix an image upload bug.
+* Fix a farmware download bug.
