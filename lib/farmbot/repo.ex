@@ -23,7 +23,7 @@ defmodule Farmbot.Repo do
     {:reply, repo, repos}
   end
 
-  def handle_call(:flip, _, [repo_a, repo_b] = repos) do
+  def handle_call(:flip, _, [repo_a, repo_b]) do
     {:reply, repo_b, [repo_b, repo_a]}
   end
 

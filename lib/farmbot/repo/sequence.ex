@@ -16,8 +16,6 @@ defmodule Farmbot.Repo.Sequence do
     defdelegate dump(data), to: JSONType
     defdelegate type,       to: JSONType
 
-    def dump(data), do: JSONType.dump(data)
-
     def load(text) do
       {:ok, data} = text |> JSONType.load()
       res = Enum.map(data, fn(data) ->

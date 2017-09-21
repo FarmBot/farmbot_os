@@ -51,6 +51,7 @@ defmodule Farmbot do
   end
 
   def init(args) do
+    require IEx; IEx.pry
     children = [
       supervisor(Farmbot.System.Supervisor,      [args, [name: Farmbot.System.Supervisor    ]]),
       supervisor(Farmbot.Bootstrap.Supervisor,   [args, [name: Farmbot.Bootstrap.Supervisor ]]),
