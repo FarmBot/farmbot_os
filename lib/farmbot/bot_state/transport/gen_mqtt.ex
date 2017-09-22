@@ -83,25 +83,10 @@ defmodule Farmbot.BotState.Transport.GenMqtt do
   defp status_topic(bot),   do: "bot/#{bot}/status"
   defp log_topic(bot),      do: "bot/#{bot}/logs"
 
-  defp build_last_will_message(bot) do
-    %{message: bot <> " is offline!",
-      created_at: :os.system_time(:seconds),
-      channels: [:toast],
-      meta: %{
-        type: :error,
-        x: -1,
-        y: -1,
-        z: -1}}
-    |> Poison.encode!
-  end
-
   defp build_opts(bin_token, %{mqtt: mqtt, bot: bot}, name) do
     [
       name: name,
       reconnect_timeout: 10_000,
-      last_will_topic:   [log_topic(bot)],
-      last_will_msg:     build_last_will_message(bot),
-      last_will_qos:     0,
       username:          bot,
       password:          bin_token,
       timeout:           10_000,
