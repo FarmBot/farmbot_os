@@ -45,6 +45,16 @@ defmodule Farmbot.BotState.Transport.GenMqtt do
     {:ok, %{state | connected: true}}
   end
 
+  def on_connect_error(:invalid_credentials, _) do
+    msg = """
+    Failed to authenticate with the message broker!
+    This is likely a problem with your server/broker configuration.
+    """
+    Logger.error ">> #{msg}"
+    Farmbot.System.factory_reset(msg)
+    {:ok, state}
+  end
+
   def on_connect_error(reason, state) do
     Logger.error ">> Failed to connect to mqtt: #{inspect reason}"
     {:ok, state}
