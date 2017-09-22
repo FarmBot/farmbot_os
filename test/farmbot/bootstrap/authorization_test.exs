@@ -18,7 +18,6 @@ defmodule Farmbot.Bootstrap.AuthorizationTest do
     {:ok, bin_tkn} = res
     tkn = Farmbot.Jwt.decode!(bin_tkn)
     assert tkn.bot == "device_2"
-    assert tkn.sub == "admin@admin.com"
   end
 
   test "gives a nice error on bad credentials.", ctx do

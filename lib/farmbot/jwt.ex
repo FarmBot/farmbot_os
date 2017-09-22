@@ -7,7 +7,6 @@ defmodule Farmbot.Jwt do
     :iss,
     :mqtt,
     :os_update_server,
-    :sub
   ]
 
   @typedoc "Type def for Farmbot Web Token."
@@ -17,7 +16,6 @@ defmodule Farmbot.Jwt do
     iss: binary,
     mqtt: binary,
     os_update_server: binary,
-    sub: binary
   }
 
   @doc "Decode a token."

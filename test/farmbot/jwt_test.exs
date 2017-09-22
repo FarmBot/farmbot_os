@@ -18,7 +18,6 @@ defmodule Farmbot.JwtTest do
 
     {:ok, token} = r
     assert Jwt.decode!(tkn) == token
-    assert token.sub == "admin@admin.com"
     assert token.bot == "device_2"
     assert token.exp == 1505883605
     assert token.iss == "//192.168.29.204:3000"
