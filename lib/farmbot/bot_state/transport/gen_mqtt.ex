@@ -45,7 +45,7 @@ defmodule Farmbot.BotState.Transport.GenMqtt do
     {:ok, %{state | connected: true}}
   end
 
-  def on_connect_error(:invalid_credentials, _) do
+  def on_connect_error(:invalid_credentials, state) do
     msg = """
     Failed to authenticate with the message broker!
     This is likely a problem with your server/broker configuration.
