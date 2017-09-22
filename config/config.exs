@@ -39,15 +39,19 @@ config :farmbot, :behaviour, [
   firmware_handler: Farmbot.Firmware.StubHandler,
 ]
 
-repos = [Farmbot.Repo.A,  Farmbot.Repo.B, Farmbot.ConfigStorage]
+repos = [Farmbot.Repo.A,  Farmbot.Repo.B, Farmbot.System.ConfigStorage]
 config :farmbot, ecto_repos: repos
 
-for repo <- repos do
+for repo <- [Farmbot.Repo.A, Farmbot.Repo.B] do
   config :farmbot, repo,
     adapter: Sqlite.Ecto2,
     database: "#{repo}-#{env}.sqlite3",
     priv: "priv/repo"
 end
+
+config :farmbot, Farmbot.System.ConfigStorage,
+  adapter: Sqlite.Ecto2,
+  database: "config-#{env}.sqlite3"
 
 case target do
   "host" -> import_config("host/#{env}.exs")

@@ -31,4 +31,4 @@ config :farmbot, Farmbot.Repo.B,
   priv: "priv/repo",
   pool: Ecto.Adapters.SQL.Sandbox
 
-config :farmbot, ecto_repos: [Farmbot.Repo.A, Farmbot.Repo.B]
+config :farmbot, ecto_repos: [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage]
