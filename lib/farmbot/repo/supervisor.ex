@@ -1,7 +1,7 @@
 defmodule Farmbot.Repo.Supervisor do
   @moduledoc "Hey!"
 
-  @repos Application.get_env(:farmbot, :ecto_repos)
+  @repos [Farmbot.Repo.A, Farmbot.Repo.B]
 
   use Supervisor
   def start_link(token, opts \\ []) do

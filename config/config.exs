@@ -39,7 +39,7 @@ config :farmbot, :behaviour, [
   firmware_handler: Farmbot.Firmware.StubHandler,
 ]
 
-repos = [Farmbot.Repo.A,  Farmbot.Repo.B]
+repos = [Farmbot.Repo.A,  Farmbot.Repo.B, Farmbot.ConfigStorage]
 config :farmbot, ecto_repos: repos
 
 for repo <- repos do

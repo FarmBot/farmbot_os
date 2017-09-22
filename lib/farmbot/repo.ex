@@ -65,7 +65,7 @@ defmodule Farmbot.Repo do
   end
 end
 
-repos = Application.get_env(:farmbot, :ecto_repos) || Mix.raise "There are no repos!"
+repos = [Farmbot.Repo.A, Farmbot.Repo.B]
 for repo <- repos do
   defmodule repo do
     use Farmbot.Repo
