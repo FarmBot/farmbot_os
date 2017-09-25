@@ -3,35 +3,28 @@ defmodule Farmbot.System.ConfigStorage.Migrations.AddEAVTables do
 
   def change do
 
-    # "network", "authorization", etc
-    create table("config_groups") do
-      add :name, :string
+    create table("groups") do
+      add :group_name, :string
     end
 
-    # Name of the key
-    create table("config_keys") do
-      add :name, :string
-    end
-
-    ## POSSIBLE TYPES
-    create table("config_value_numbers") do
-      add :value, :float
-    end
-
-    create table("config_value_strings") do
+    create table("string_values") do
       add :value, :string
     end
 
-    create table("config_value_booleans") do
+    create table("bool_values") do
       add :value, :boolean
     end
 
-    # How to find the things
+    create table("float_values") do
+      add :value, :float
+    end
+
     create table("configs") do
-      add :config_group_id,   :id
-      add :config_key_id,     :id
-      add :config_value_id,   :id
-      add :config_value_type, :string
+      add :group_id, references(:groups), null: false
+      add :string_value_id, references(:string_values)
+      add :bool_value_id, references(:bool_values)
+      add :float_value_id, references(:float_values)
+      add :key, :string
     end
   end
 
