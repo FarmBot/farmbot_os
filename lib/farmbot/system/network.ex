@@ -221,8 +221,6 @@ defmodule Farmbot.System.Network do
       Logger.info ">> is trying to log in."
       {:ok, token} = Auth.try_log_in!(context.auth)
 
-      :ok = maybe_setup_rollbar(token)
-
       if post_fun do
         post_fun.(token)
       end
@@ -234,58 +232,6 @@ defmodule Farmbot.System.Network do
         debug_log("#{inspect exception}")
         Farmbot.System.factory_reset("#{inspect exception}")
     end
-  end
-
-  if Mix.env == :prod do
-
-    # Only set these attributes if we are in prod pls
-    @access_token Application.get_env(:farmbot, :rollbar_access_token)
-    @commit Mix.Project.config[:commit]
-    @target Mix.Project.config[:target]
-
-    def maybe_setup_rollbar(token) do
-      if String.contains?(token.unencoded.iss, "farmbot.io") and @access_token do
-        Logger.info ">> Setting up rollbar!"
-        # Application.put_env(:rollbax, :access_token, @access_token)
-        # Application.put_env(:rollbax, :environment,  token.unencoded.iss)
-        # Application.put_env(:rollbax, :enabled,      true)
-        # Application.put_env(:rollbas, :custom,       %{target: @target})
-        #
-        # Application.put_env(:farmbot, :rollbar_occurrence_data, %{
-        #   person_id:       token.unencoded.bot,
-        #   person_email:    token.unencoded.sub,
-        #   person_username: token.unencoded.bot,
-        #   framework:       "Nerves",
-        #   code_version:    @commit,
-        # })
-        # Application.ensure_all_started(:rollbax)
-
-        :ok = ExRollbar.setup [
-          person_username: token.unencoded.bot,
-          # enable_logger:   true,
-          person_email:    token.unencoded.sub,
-          code_version:    @commit,
-          access_token:    @access_token,
-          environment:     token.unencoded.iss,
-          person_id:       token.unencoded.bot,
-          framework:       "Nerves",
-          custom:          %{target: @target}
-        ]
-        :ok
-      else
-        Logger.info ">> Not Setting up rollbar!"
-        :ok
-      end
-    end
-
-  else
-
-    def maybe_setup_rollbar(_) do
-      Logger.info ">> Not Setting up rollbar!"
-      Logger.info ">> Setting up slack updater"
-      :ok
-    end
-
   end
 
   @spec get_config(binary) :: {:ok, any}

@@ -8,12 +8,10 @@ defmodule Farmbot.Token do
 
   defmodule Unencoded do
     @moduledoc """
-      The unencoded version of the token.
+    The unencoded version of the token.
     """
 
     @type t :: %__MODULE__{
-      # Github apis for bot and fw updates.
-      fw_update_server: String.t,
       os_update_server: String.t,
 
       # Dates for when the token expires and was issued at.
@@ -33,7 +31,6 @@ defmodule Farmbot.Token do
     }
     defstruct [:bot,
                :exp,
-               :fw_update_server,
                :os_update_server,
                :iat,
                :iss,
@@ -58,7 +55,6 @@ defmodule Farmbot.Token do
                "unencoded" =>
                 %{"bot" => bot,
                   "exp" => exp,
-                  "fw_update_server" => fw_update_server,
                   "os_update_server" => os_update_server,
                   "iat" => iat,
                   "iss" => iss,
@@ -76,7 +72,6 @@ defmodule Farmbot.Token do
              jti: jti,
              mqtt: mqtt,
              sub: sub,
-             fw_update_server: fw_update_server,
              os_update_server: os_update_server
              }}
      {:ok, f}
