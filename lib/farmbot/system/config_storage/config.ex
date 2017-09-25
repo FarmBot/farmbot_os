@@ -3,6 +3,7 @@ defmodule Farmbot.System.ConfigStorage.Config do
 
   use Ecto.Schema
   import Ecto.Changeset
+  alias Farmbot.System.ConfigStorage.{Group, BoolValue, FloatValue, StringValue}
 
   schema "configs" do
     belongs_to :group, Group
