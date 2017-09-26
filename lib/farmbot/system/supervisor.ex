@@ -11,11 +11,13 @@ defmodule Farmbot.System.Supervisor do
   end
 
   def init(args) do
-    :farmbot
-    |> Application.get_env(:init)
-    |> Enum.map(fn(child) -> fb_init(child, [args, [name: child]]) end)
-    |> Kernel.++([supervisor(Farmbot.System.ConfigStorage, [])])
-    |> Enum.reverse()
-    |> supervise([strategy: :one_for_all])
+    children = [
+      supervisor(Farmbot.System.Init.Ecto, [[], []]),
+      supervisor(Farmbot.System.ConfigStorage, [])
+    ]
+
+    init_mods = Application.get_env(:farmbot, :init)
+      |> Enum.map(fn(child) -> fb_init(child, [args, [name: child]]) end)
+    supervise(children ++ init_mods, [strategy: :one_for_all])
   end
 end

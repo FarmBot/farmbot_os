@@ -33,6 +33,7 @@ defmodule Farmbot.System do
   @doc "Remove all configuration data, and reboot."
   @spec factory_reset(unparsed_reason) :: no_return
   def factory_reset(reason) do
+    Farmbot.System.Init.Ecto.drop()
     @system_tasks.factory_reset(reason)
   end
 

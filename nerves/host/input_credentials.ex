@@ -7,6 +7,7 @@ defmodule Farmbot.Host.InputCredentials do
   end
 
   def init(_) do
+    # require IEx; IEx.pry
     # Get out authorization data out of the environment.
     # for host environment this will be configured at compile time.
     # for target environment it will be configured by `configurator`.
