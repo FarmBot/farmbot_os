@@ -1,4 +1,4 @@
-defmodule Farmbot.Bootstrap.Configurator.HTML do
+defmodule Farmbot.Target.Bootstrap.Configurator.HTML do
   @moduledoc """
   Helpers for HTML parsing and stuff.
   """

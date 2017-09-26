@@ -53,7 +53,8 @@ defmodule Farmbot.System.ConfigStorage.Migrations.SeedGroups do
 
   defp populate_config_values("settings", group_id) do
     create_value(BoolValue, false) |> create_config(group_id, "os_auto_update")
-    create_value(BoolValue, true) |> create_config(group_id, "first_party_farmware")
+    create_value(BoolValue, true)  |> create_config(group_id, "first_boot")
+    create_value(BoolValue, true)  |> create_config(group_id, "first_party_farmware")
     create_value(StringValue, nil) |> create_config(group_id, "timezone")
   end
 

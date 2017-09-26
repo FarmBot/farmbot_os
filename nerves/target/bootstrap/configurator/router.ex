@@ -1,4 +1,4 @@
-defmodule Farmbot.Bootstrap.Configurator.Router do
+defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   @moduledoc "Routes web connections."
 
   use Plug.Router
@@ -15,7 +15,7 @@ defmodule Farmbot.Bootstrap.Configurator.Router do
   plug :match
   plug :dispatch
 
-  import Farmbot.Bootstrap.Configurator.HTML
+  import Farmbot.Target.Bootstrap.Configurator.HTML
   require Logger
 
   get "/" do

@@ -4,6 +4,7 @@ defmodule Farmbot.Target.Network do
   @behaviour Farmbot.System.Init
 
   def start_link(_, _opts) do
+    require IEx; IEx.pry
     :ignore
   end
 end
