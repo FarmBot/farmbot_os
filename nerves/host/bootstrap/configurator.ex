@@ -7,7 +7,6 @@ defmodule Farmbot.Host.Bootstrap.Configurator do
   end
 
   def init(_) do
-    # require IEx; IEx.pry
     # Get out authorization data out of the environment.
     # for host environment this will be configured at compile time.
     # for target environment it will be configured by `configurator`.
@@ -18,8 +17,6 @@ defmodule Farmbot.Host.Bootstrap.Configurator do
     ConfigStorage.update_config_value(:string, "authorization", "password", pass)
     ConfigStorage.update_config_value(:string, "authorization", "server",   server)
     ConfigStorage.update_config_value(:string, "authorization", "token",    nil)
-    # require IEx; IEx.pry
-    # Process.sleep(1000)
     :ignore
   end
 

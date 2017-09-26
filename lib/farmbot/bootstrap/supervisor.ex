@@ -103,7 +103,7 @@ defmodule Farmbot.Bootstrap.Supervisor do
     case @auth_task.authorize(email, pass, server) do
       {:ok, token} ->
         Logger.info "Successful authorization: #{@auth_task} - #{email} - #{server}"
-        ConfigStorage.update_config_value(:boolean, "authorization", "first_boot", false)
+        ConfigStorage.update_config_value(:bool, "settings", "first_boot", false)
         ConfigStorage.update_config_value(:string, "authorization", "token", token)
         children = [
           supervisor(Farmbot.BotState.Supervisor,    [token, [name: Farmbot.BotState.Supervisor  ]]),

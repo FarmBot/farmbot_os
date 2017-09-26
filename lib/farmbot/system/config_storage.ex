@@ -30,6 +30,10 @@ defmodule Farmbot.System.ConfigStorage do
     |> Map.fetch!(:value)
   end
 
+  def get_config_value(type, _, _) do
+    raise "Unsupported type: #{type}"
+  end
+
   def update_config_value(type, group_name, key_name, value) when type in [:bool, :float, :string] do
     __MODULE__
     |> apply(:"get_#{type}_value", [group_name, key_name])
@@ -37,11 +41,19 @@ defmodule Farmbot.System.ConfigStorage do
     |> update!()
   end
 
+  def update_config_value(type, _, _, _) do
+    raise "Unsupported type: #{type}"
+  end
+
   def get_bool_value(group_name, key_name) do
     group_id = get_group_id(group_name)
-    [type_id]  = (from c in Config, where: c.group_id == ^group_id and c.key == ^key_name, select: c.bool_value_id) |> all()
-    [val] = (from v in BoolValue, where: v.id == ^type_id, select: v) |> all()
-    val
+    case (from c in Config, where: c.group_id == ^group_id and c.key == ^key_name, select: c.bool_value_id) |> all() do
+      [type_id] ->
+        [val] = (from v in BoolValue, where: v.id == ^type_id, select: v) |> all()
+        val
+      [] ->
+        raise "no such key #{key_name}"
+    end
   end
 
   def get_float_value(group_name, key_name) do

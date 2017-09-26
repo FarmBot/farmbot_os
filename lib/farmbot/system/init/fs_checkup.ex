@@ -16,12 +16,17 @@ defmodule Farmbot.System.Init.FSCheckup do
   end
 
   defp do_checkup do
-    case File.write(Path.join(@data_path, "boot"), "Hello") do
+    check_file = Path.join(@data_path, "boot")
+    unless File.exists?(@data_path) do
+      File.mkdir(@data_path)
+    end
+    Logger.info "Checking #{check_file}"
+    case File.write(check_file, "Hello") do
       :ok ->
-        Process.sleep(500) 
+        Process.sleep(500)
         :ok
-      _ ->
-        Logger.info "Filesystem not up yet..."
+      err ->
+        Logger.info "Filesystem not up yet (#{inspect err})..."
         Process.sleep(1000)
         do_checkup()
     end

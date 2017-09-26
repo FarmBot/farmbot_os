@@ -20,14 +20,13 @@ config :farmbot, :init, [
   Farmbot.Target.Bootstrap.Configurator,
 
   # Start up Network
-  # Farmbot.Target.Network
+  Farmbot.Target.Network
 ]
 
 # Transports.
 config :farmbot, :transport, [
   Farmbot.BotState.Transport.GenMqtt
 ]
-
 
 # Configure Farmbot Behaviours.
 config :farmbot, :behaviour, [
@@ -41,5 +40,5 @@ config :nerves_firmware_ssh,
   ]
 
 config :bootloader,
-  init: [:nerves_runtime, :nerves_init_gadget],
+  init: [:nerves_runtime],
   app: :farmbot
