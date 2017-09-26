@@ -10,14 +10,12 @@ config :farmbot, data_path: "tmp/"
 # Configure your our system.
 # Default implementation needs no special stuff.
 config :farmbot, :init, [
-  Farmbot.Host.InputCredentials,
-  # DELETEME
-  Farmbot.Bootstrap.Configurator,
+  Farmbot.Host.Bootstrap.Configurator,
 ]
 
 # Transports.
 config :farmbot, :transport, [
-  # Farmbot.BotState.Transport.GenMqtt
+  Farmbot.BotState.Transport.GenMqtt
 ]
 
 

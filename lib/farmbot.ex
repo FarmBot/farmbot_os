@@ -45,6 +45,7 @@ defmodule Farmbot do
     case Supervisor.start_link(__MODULE__, [], [name: name]) do
       {:ok, pid}       -> {:ok, pid}
       {:error, reason} ->
+        Logger.error "Doing factory_reset #{inspect reason}"
         Farmbot.System.factory_reset(reason)
         exit(reason)
     end

@@ -1,7 +1,7 @@
 defmodule Farmbot.Repo.FarmEventTest do
   alias Farmbot.Repo
   alias Farmbot.Repo.FarmEvent
-  use ExUnit.Case
+  use ExUnit.Case, async: false
 
   setup do
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(Repo.A)

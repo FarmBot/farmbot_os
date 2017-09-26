@@ -45,8 +45,7 @@ config :farmbot, ecto_repos: repos
 for repo <- [Farmbot.Repo.A, Farmbot.Repo.B] do
   config :farmbot, repo,
     adapter: Sqlite.Ecto2,
-    database: "#{repo}-#{env}.sqlite3",
-    priv: "priv/repo"
+    database: "#{repo}-#{env}.sqlite3"
 end
 
 config :farmbot, Farmbot.System.ConfigStorage,

@@ -62,8 +62,16 @@ defmodule Farmbot.System.Init.Ecto do
     migrations_path =
       (Application.get_env(:farmbot, repo)[:priv] || Path.join((:code.priv_dir(:farmbot) |> to_string), Module.split(repo) |> List.last() |> Macro.underscore()))
       |> Kernel.<>("/migrations")
-    migrated = migrator.(repo, migrations_path, :up, opts)
+
+      pool = repo.config[:pool]
+      migrated =
+        if function_exported?(pool, :unboxed_run, 2) do
+          pool.unboxed_run(repo, fn -> migrator.(repo, migrations_path, :up, opts) end)
+        else
+          migrator.(repo, migrations_path, :up, opts)
+        end
     pid && repo.stop(pid)
     Mix.Ecto.restart_apps_if_migrated(apps, migrated)
+    Process.sleep(500)
   end
 end

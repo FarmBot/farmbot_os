@@ -7,7 +7,9 @@ import_config("auth_secret_test.exs")
 
 config :farmbot, data_path: "tmp/"
 
-config :farmbot, :init, []
+config :farmbot, :init, [
+  Farmbot.Host.Bootstrap.Configurator
+]
 
 # Transports.
 config :farmbot, :transport, []

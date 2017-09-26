@@ -12,6 +12,7 @@ defmodule Farmbot.System.Supervisor do
 
   def init(args) do
     children = [
+      worker(Farmbot.System.Init.FSCheckup, [[], []]),
       supervisor(Farmbot.System.Init.Ecto, [[], []]),
       supervisor(Farmbot.System.ConfigStorage, [])
     ]

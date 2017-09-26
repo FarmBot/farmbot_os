@@ -1,4 +1,4 @@
-defmodule Farmbot.Host.InputCredentials do
+defmodule Farmbot.Host.Bootstrap.Configurator do
   @behaviour Farmbot.System.Init
   alias Farmbot.System.ConfigStorage
 
