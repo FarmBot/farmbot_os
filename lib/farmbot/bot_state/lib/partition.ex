@@ -42,11 +42,15 @@ defmodule Farmbot.BotState.Lib.Partition do
   @doc "Optional callback for handle_info."
   @callback partition_info(term, PrivateState.public) :: noreply | stop
 
+  @doc "Otional callback for saveing state."
+  @callback save_state(PrivateState.public) :: :ok | :error
+
   @optional_callbacks [
     partition_init: 1,
     partition_call: 3,
     partition_info: 2,
-    partition_cast: 2
+    partition_cast: 2,
+    save_state: 1
   ]
 
   @doc "Dispatches to the bot state tracker."
@@ -92,21 +96,27 @@ defmodule Farmbot.BotState.Lib.Partition do
       def handle_call(call, from, %PrivateState{} = priv) do
         case partition_call(call, from, priv.public) do
           {:reply, reply, pub} -> dispatch reply, %{priv | public: pub}
-          {:noreply, pub} -> dispatch %{priv | public: pub}
+          {:noreply, pub} ->
+            save_public_data(pub)
+            dispatch %{priv | public: pub}
           other -> other
         end
       end
 
       def handle_cast(cast, %PrivateState{} = priv) do
         case partition_cast(cast, priv.public) do
-          {:noreply, pub} -> dispatch %{priv | public: pub}
+          {:noreply, pub} ->
+            save_public_data(pub)
+            dispatch %{priv | public: pub}
           other -> other
         end
       end
 
       def handle_info(info, %PrivateState{} = priv) do
         case partition_info(info, priv.public) do
-          {:noreply, pub} -> dispatch %{priv | public: pub}
+          {:noreply, pub} ->
+            save_public_data(pub)
+            dispatch %{priv | public: pub}
           other -> other
         end
       end
@@ -132,10 +142,19 @@ defmodule Farmbot.BotState.Lib.Partition do
         {:noreply, public}
       end
 
+      defp save_public_data(pub) do
+        if function_exported?(__MODULE__, :save_state, 1) do
+          :ok = apply(__MODULE__, :save_state, [pub])
+        else
+          :ok
+        end
+      end
+
       defoverridable [partition_init: 1,
                       partition_call: 3,
                       partition_cast: 2,
-                      partition_info: 2]
+                      partition_info: 2,
+                      ]
     end
   end
 end

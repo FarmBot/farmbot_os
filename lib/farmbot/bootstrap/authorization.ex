@@ -59,8 +59,8 @@ defmodule Farmbot.Bootstrap.Authorization do
 
     case :httpc.request(:post, request, [], []) do
       {:ok, {{_, 200, _}, _, resp  }} -> {:ok, resp}
-      {:ok, {{_, 422, _}, _, _resp }} ->
-        {:error, "Failed to authorize with the Farmbot web application at: #{server}"}
+      {:ok, {{_, code, _}, _, _resp }} ->
+        {:error, "Failed to authorize with the Farmbot web application at: #{server} with code: #{code}"}
       {:error, error} -> {:error, error}
     end
 
