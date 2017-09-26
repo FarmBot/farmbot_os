@@ -33,8 +33,7 @@ defmodule Farmbot.System.ConfigStorage do
   def update_config_value(type, group_name, key_name, value) when type in [:bool, :float, :string] do
     __MODULE__
     |> apply(:"get_#{type}_value", [group_name, key_name])
-    |> Map.put(:value, value)
-    |> BoolValue.changeset()
+    |> Ecto.Changeset.change(value: value)
     |> update!()
   end
 

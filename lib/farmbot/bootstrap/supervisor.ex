@@ -54,6 +54,7 @@ defmodule Farmbot.Bootstrap.Supervisor do
 
   use Supervisor
   alias Farmbot.Bootstrap.Authorization, as: Auth
+  alias Farmbot.System.ConfigStorage
   require Logger
 
   error_msg = """
@@ -86,15 +87,13 @@ defmodule Farmbot.Bootstrap.Supervisor do
   @spec get_creds() :: auth | {:error, term}
   defp get_creds do
     try do
-      # Get out authorization data out of the environment.
-      # for host environment this will be configured at compile time.
-      # for target environment it will be configured by `configurator`.
-      email  = Application.get_env(:farmbot, :authorization)[:email   ] || raise "No email provided."
-      pass   = Application.get_env(:farmbot, :authorization)[:password] || raise "No password provided."
-      server = Application.get_env(:farmbot, :authorization)[:server  ] || raise "No server provided."
+      email  = ConfigStorage.get_config_value(:string, "authorization", "email")    || raise "No email provided."
+      pass   = ConfigStorage.get_config_value(:string, "authorization", "password") || raise "No password provided."
+      server = ConfigStorage.get_config_value(:string, "authorization", "server")   || raise "No server provided."
       {email, pass, server}
     rescue
-      e -> {:error, Exception.message(e)}
+      e in RuntimeError -> {:error, Exception.message(e)}
+      e -> reraise(e, System.stacktrace())
     end
   end
 

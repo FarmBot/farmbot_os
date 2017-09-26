@@ -119,12 +119,16 @@ defmodule Farmbot.Mixfile do
     ]
   end
 
+  defp elixirc_paths(:dev, "host") do
+    ["./lib", "./nerves/host"]
+  end
+
   defp elixirc_paths(:test, "host") do
-    ["./lib", "./nerves/farmbot/host", "./test/support"]
+    ["./lib", "./nerves/host", "./test/support"]
   end
 
   defp elixirc_paths(_env, target) do
-    ["./lib", "./nerves/farmbot/target"]
+    ["./lib", "./nerves/target"]
   end
 
   defp aliases("host"), do: []
