@@ -13,6 +13,8 @@ defmodule Farmbot.System.Init.Ecto do
     :ignore
   end
 
+
+  @doc "Replacement for Mix.Tasks.Ecto.Create"
   def setup do
     repos = Application.get_env(:farmbot, :ecto_repos)
     for repo <- repos do
@@ -27,8 +29,8 @@ defmodule Farmbot.System.Init.Ecto do
     end
   end
 
+  @doc "Replacement for Mix.Tasks.Ecto.Drop"
   def drop do
-
     repos = Application.get_env(:farmbot, :ecto_repos)
     for repo <- repos do
       case drop(repo) do
@@ -39,7 +41,11 @@ defmodule Farmbot.System.Init.Ecto do
     end
   end
 
-  @doc "Migrate all repos"
+  def drop(repo) do
+    repo.__adapter__.storage_down(repo.config)
+  end
+
+  @doc "Replacement for Mix.Tasks.Ecto.Migrate"
   def migrate do
     repos = Application.get_env(:farmbot, :ecto_repos)
     for repo <- repos do
@@ -59,9 +65,5 @@ defmodule Farmbot.System.Init.Ecto do
     migrated = migrator.(repo, migrations_path, :up, opts)
     pid && repo.stop(pid)
     Mix.Ecto.restart_apps_if_migrated(apps, migrated)
-  end
-
-  def drop(repo) do
-    repo.__adapter__.storage_down(repo.config)
   end
 end
