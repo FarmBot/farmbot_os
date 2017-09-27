@@ -52,9 +52,8 @@ defmodule Farmbot.Mixfile do
        logo: "priv/static/farmbot_logo.png",
        extras: [
          "docs/BUILDING.md",
-         "docs/ENVIRONMENT.md",
          "docs/FAQ.md",
-         "docs/RELEASING.md"
+         "README.md"
        ]
      ]
    ]
