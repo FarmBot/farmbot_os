@@ -31,7 +31,8 @@ config :farmbot, :transport, [
 # Configure Farmbot Behaviours.
 config :farmbot, :behaviour, [
   authorization: Farmbot.Bootstrap.Authorization,
-  system_tasks: Farmbot.Target.SystemTasks
+  system_tasks: Farmbot.Target.SystemTasks,
+  firmware_handler: Farmbot.Firmware.UartHandler
 ]
 
 config :nerves_firmware_ssh,

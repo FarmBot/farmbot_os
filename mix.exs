@@ -59,7 +59,6 @@ defmodule Farmbot.Mixfile do
    ]
   end
 
-
   def application do
     [mod: {Farmbot, []}, extra_applications: [:logger]]
   end
