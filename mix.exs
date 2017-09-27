@@ -103,10 +103,12 @@ defmodule Farmbot.Mixfile do
     [ system(target),
       {:bootloader, "~> 0.1"},
       {:nerves_runtime, "~> 0.4"},
-      {:nerves_init_gadget, "~> 0.2", only: :dev}
+      {:nerves_network, "~> 0.3"},
+      {:nerves_firmware_ssh, "~> 0.2"},
     ]
   end
 
+  defp system("rpi3"), do: {:nerves_system_rpi3, "~> 0.16.1", runtime: false}
   defp system("rpi0"), do: {:nerves_system_rpi0, ">= 0.0.0", runtime: false}
   defp system("qemu_arm"), do: {:nerves_system_qemu_arm, ">= 0.0.0", runtime: false}
 
@@ -126,7 +128,7 @@ defmodule Farmbot.Mixfile do
     ["./lib", "./nerves/host", "./test/support"]
   end
 
-  defp elixirc_paths(_env, target) do
+  defp elixirc_paths(_env, _target) do
     ["./lib", "./nerves/target"]
   end
 
