@@ -59,7 +59,6 @@ defmodule Farmbot.Mixfile do
    ]
   end
 
-
   def application do
     [mod: {Farmbot, []}, extra_applications: [:logger]]
   end
@@ -108,7 +107,7 @@ defmodule Farmbot.Mixfile do
     ]
   end
 
-  defp system("rpi3"), do: {:nerves_system_rpi3, "~> 0.16.1", runtime: false}
+  defp system("rpi3"), do: {:nerves_system_farmbot_rpi3, "0.16.2-farmbot", runtime: false}
   defp system("rpi0"), do: {:nerves_system_rpi0, ">= 0.0.0", runtime: false}
   defp system("qemu_arm"), do: {:nerves_system_qemu_arm, ">= 0.0.0", runtime: false}
 
