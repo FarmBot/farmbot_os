@@ -15,7 +15,7 @@ defmodule Logger.Backends.FarmbotLogger do
   @max_file_size 1.0e+7
   @filtered "[FILTERED]"
 
-  @log_amnt 5
+  @log_amnt 10
 
   @typedoc """
     The state of the logger
