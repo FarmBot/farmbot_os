@@ -9,6 +9,7 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   alias   Farmbot.{Context, Token}
   use     Farmbot.DebugLog, name: MqttClient
   use     GenMQTT
+  @max_thottle_msgs 6
 
   @doc """
     Starts a mqtt client.
@@ -20,11 +21,12 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   def init({%Context{} = context, %Token{} = token}) do
     Logger.info ">> Starting mqtt!", type: :busy
     Process.flag(:trap_exit, true)
-    {:ok, %{token: token, context: context, cs_nodes: []}}
+    {:ok, %{token: token, context: context, cs_nodes: [], throttle: 0}}
   end
 
   def on_connect(%{token: token, context: context} = state) do
     GenMQTT.subscribe(self(), [{bot_topic(token), 0}])
+    Process.send_after(self(), :throttle_timeout, 1000)
 
     fn ->
       Process.sleep(10)
@@ -73,10 +75,20 @@ defmodule Farmbot.Transport.GenMqtt.Client do
     {:ok, %{state | context: ctx, cs_nodes: new_nodes}}
   end
 
+  def handle_cast({:status, _}, %{throttle: throttle} = state) when throttle > @max_thottle_msgs do
+    debug_log "throttling status."
+    {:ok, state}
+  end
+
   def handle_cast({:status, %Ser{} = ser}, state) do
     # debug_log "Got bot status."
     json = Poison.encode!(ser)
     GenMQTT.publish(self(), status_topic(state.token), json, 0, false)
+    {:ok, %{state | throttle: state.throttle + 1}}
+  end
+
+  def handle_cast({:log, _}, %{throttle: throttle} = state) when throttle > @max_thottle_msgs do
+    debug_log "throttling log."
     {:ok, state}
   end
 
@@ -84,7 +96,7 @@ defmodule Farmbot.Transport.GenMqtt.Client do
     # debug_log "Got Log message."
     json = Poison.encode! msg
     GenMQTT.publish(self(), log_topic(state.token), json, 0, false)
-    {:ok, state}
+    {:ok, %{state | throttle: state.throttle + 1}}
   end
 
   def handle_cast({:emit, msg}, state) do
@@ -92,6 +104,13 @@ defmodule Farmbot.Transport.GenMqtt.Client do
     json = Poison.encode! msg
     GenMQTT.publish(self(), frontend_topic(state.token), json, 0, false)
     {:noreply, state}
+  end
+
+  def handle_info(:throttle_timeout, state) do
+    debug_log "resetting throttle count"
+    # spawn fn() -> Farmbot.Transport.force_state_push(state.context) end
+    Process.send_after(self(), :throttle_timeout, 1000)
+    {:ok, %{state | throttle: 0}}
   end
 
   def handle_info({:EXIT, pid, _reason}, state) do
