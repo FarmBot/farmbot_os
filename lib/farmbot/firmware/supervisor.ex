@@ -5,14 +5,15 @@ defmodule Farmbot.Firmware.Supervisor do
   @error_msg "Please configure a Firmware handler."
 
   @doc "Start the Firmware Supervisor."
-  def start_link(bot_state, informational_settings, configuration, location_data, mcu_params, opts \\ []) do
-    Supervisor.start_link(__MODULE__, [bot_state, informational_settings, configuration, location_data, mcu_params], opts)
+  def start_link(opts \\ []) do
+    Supervisor.start_link(__MODULE__, [], opts)
   end
 
-  def init([bot_state, informational_settings, configuration, location_data, mcu_params]) do
+  def init([]) do
     handler_mod = Application.get_env(:farmbot, :behaviour)[:firmware_handler] || raise @error_msg
     children = [
-      worker(Farmbot.Firmware, [bot_state, informational_settings, configuration, location_data, mcu_params, handler_mod, [name: Farmbot.Firmware]])
+      worker(Farmbot.Firmware.UartHandler, [[name: Farmbot.Firmware.UartHandler]]),
+      worker(Farmbot.Firmware, [[name: Farmbot.Firmware]])
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)

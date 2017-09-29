@@ -3,7 +3,7 @@ defmodule Farmbot.Firmware.UartHandler do
   Handles communication between farmbot and uart devices
   """
 
-  use GenServer
+  use GenStage
   alias Nerves.UART
   alias Farmbot.Firmware.Gcode.Parser
   require Logger
@@ -12,12 +12,12 @@ defmodule Farmbot.Firmware.UartHandler do
   Writes a string to the uart line
   """
   def write(handler, string) do
-    GenServer.call(handler, {:write, string}, :infinity)
+    GenStage.call(handler, {:write, string}, :infinity)
   end
 
   @doc "Starts a UART GenServer"
-  def start_link(firmware, opts) do
-    GenServer.start_link(__MODULE__, firmware, opts)
+  def start_link(opts) do
+    GenStage.start_link(__MODULE__, [], opts)
   end
 
   ## Private
@@ -25,17 +25,17 @@ defmodule Farmbot.Firmware.UartHandler do
   defmodule State do
     @moduledoc false
     defstruct [
-      :firmware,
-      :nerves
+      :nerves,
+      :codes
     ]
   end
 
-  def init(firmware) do
+  def init([]) do
     tty = Application.get_env(:farmbot, :uart_handler)[:tty] || raise "Please configure uart handler!"
     {:ok, nerves} = UART.start_link()
     Process.link(nerves)
     case open_tty(nerves, tty) do
-      :ok -> {:ok, %State{firmware: firmware, nerves: nerves}}
+      :ok -> {:producer, %State{nerves: nerves, codes: []}}
       err -> {:stop, err, :no_state}
     end
   end
@@ -65,16 +65,24 @@ defmodule Farmbot.Firmware.UartHandler do
   def handle_info({:nerves_uart, _, bin}, state) do
     case Parser.parse_code(bin) do
       {:unhandled_gcode, code_str} ->
-        Logger.warn "Got unhandled code: #{code_str}"
+        # Logger.warn "Got unhandled code: #{code_str}"
+        {:noreply, [], state}
       {_q, gcode} ->
-        _reply = Farmbot.Firmware.handle_gcode(state.firmware, gcode)
+        do_dispatch([gcode | state.codes], state)
     end
-    {:noreply, state}
   end
 
   def handle_call({:write, stuff}, _from, state) do
     UART.write(state.nerves, stuff)
-    {:reply, :ok, state}
+    {:reply, :ok, [], state}
+  end
+
+  def handle_demand(_amnt, state) do
+    do_dispatch(state.codes, state)
+  end
+
+  defp do_dispatch(codes, state) do
+    {:noreply, Enum.reverse(codes), %{state | codes: []}}
   end
 
 end
