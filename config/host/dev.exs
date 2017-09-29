@@ -24,5 +24,11 @@ config :farmbot, :behaviour, [
   # Default Authorization behaviour.
   authorization: Farmbot.Bootstrap.Authorization,
   # SystemTasks for host mode.
-  system_tasks: Farmbot.Host.SystemTasks
+  system_tasks: Farmbot.Host.SystemTasks,
+
+  firmware_handler: Farmbot.Firmware.UartHandler
+]
+
+config :farmbot, :uart_handler, [
+  tty: "/dev/ttyACM0"
 ]

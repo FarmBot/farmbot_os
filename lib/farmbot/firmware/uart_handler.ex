@@ -8,13 +8,11 @@ defmodule Farmbot.Firmware.UartHandler do
   alias Farmbot.Firmware.Gcode.Parser
   require Logger
 
-  @default_timeout_ms 15_000
-
   @doc """
   Writes a string to the uart line
   """
   def write(handler, string) do
-    GenServer.call(handler, {:write, string, @default_timeout_ms}, :infinity)
+    GenServer.call(handler, {:write, string}, :infinity)
   end
 
   @doc "Starts a UART GenServer"
@@ -72,6 +70,11 @@ defmodule Farmbot.Firmware.UartHandler do
         _reply = Farmbot.Firmware.handle_gcode(state.firmware, gcode)
     end
     {:noreply, state}
+  end
+
+  def handle_call({:write, stuff}, _from, state) do
+    UART.write(state.nerves, stuff)
+    {:reply, :ok, state}
   end
 
 end
