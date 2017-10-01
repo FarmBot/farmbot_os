@@ -26,7 +26,7 @@ config :farmbot, :behaviour, [
   # SystemTasks for host mode.
   system_tasks: Farmbot.Host.SystemTasks,
 
-  firmware_handler: Farmbot.Firmware.UartHandler
+  # firmware_handler: Farmbot.Firmware.UartHandler
 ]
 
 config :farmbot, :uart_handler, [

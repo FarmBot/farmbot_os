@@ -5,7 +5,6 @@ defmodule Farmbot.Firmware.UartHandler do
 
   use GenStage
   alias Nerves.UART
-  alias Farmbot.Firmware.Gcode.Parser
   require Logger
 
   @doc """
@@ -15,7 +14,7 @@ defmodule Farmbot.Firmware.UartHandler do
     GenStage.call(handler, {:write, string}, :infinity)
   end
 
-  @doc "Starts a UART GenServer"
+  @doc "Starts a UART Firmware Handler."
   def start_link(opts) do
     GenStage.start_link(__MODULE__, [], opts)
   end
@@ -62,14 +61,12 @@ defmodule Farmbot.Firmware.UartHandler do
     {:stop, {:error, reason}, state}
   end
 
-  def handle_info({:nerves_uart, _, bin}, state) do
-    case Parser.parse_code(bin) do
-      {:unhandled_gcode, code_str} ->
-        # Logger.warn "Got unhandled code: #{code_str}"
-        {:noreply, [], state}
-      {_q, gcode} ->
-        do_dispatch([gcode | state.codes], state)
-    end
+  def handle_info({:nerves_uart, _, {:unhandled_gcode, _code_str}}, state) do
+    {:noreply, [], state}
+  end
+
+  def handle_info({:nerves_uart, _, {_q, gcode}}, state) do
+    do_dispatch([gcode | state.codes], state)
   end
 
   def handle_call({:write, stuff}, _from, state) do

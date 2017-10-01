@@ -4,12 +4,15 @@ defmodule Farmbot.Firmware do
   use GenStage
   require Logger
 
+  @handler Application.get_env(:farmbot, :behaviour)[:firmware_handler] || raise "No fw handler."
+
+  @doc "Start the firmware services."
   def start_link(opts) do
     GenStage.start_link(__MODULE__, [], opts)
   end
 
   def init([]) do
-    {:producer_consumer, [], subscribe_to: [Farmbot.Firmware.UartHandler]}
+    {:producer_consumer, [], subscribe_to: [@handler]}
   end
 
   def handle_events(gcodes, _from, state) do
@@ -31,7 +34,7 @@ defmodule Farmbot.Firmware do
     {:location_data, %{position: %{x: x, y: y, z: z}}}
   end
 
-  def handle_gcode(code) do
+  def handle_gcode(_code) do
     # Logger.warn "unhandled code: #{inspect code}"
     nil
   end
