@@ -1,6 +1,6 @@
 defmodule Farmbot.Firmware.StubHandler do
   @moduledoc "Stubs out firmware functionality when you don't have an arduino."
-  use GenServer
+  use GenStage
   require Logger
 
   @doc "Start the firmware handler stub."

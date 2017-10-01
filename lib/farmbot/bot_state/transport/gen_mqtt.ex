@@ -2,28 +2,86 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
   use GenStage
   require Logger
 
+  defmodule Client do
+    @moduledoc "Underlying client for interfacing MQTT."
+    use GenMQTT
+    require Logger
+
+    @doc "Start a MQTT Client."
+    def start_link(device, token, server) do
+      GenMQTT.start_link(__MODULE__, {device, server}, [
+        reconnect_timeout: 10_000,
+        username:          device,
+        password:          token,
+        timeout:           10_000,
+        host:              server
+      ])
+    end
+
+    def push_bot_state(client, state) do
+      GenMQTT.cast(client, {:bot_state, state})
+    end
+
+    def init(device) do
+      {:ok, %{connected: false, device: device}}
+    end
+
+    def on_connect_error(:invalid_credentials, state) do
+      msg = """
+      Failed to authenticate with the message broker!
+      This is likely a problem with your server/broker configuration.
+      """
+      Logger.error ">> #{msg}"
+      Farmbot.System.factory_reset(msg)
+      {:ok, state}
+    end
+
+    def on_connect_error(reason, state) do
+      Logger.error ">> Failed to connect to mqtt: #{inspect reason}"
+      {:ok, state}
+    end
+
+    def on_connect(state) do
+      GenMQTT.subscribe(self(), [{bot_topic(state.device), 0}])
+      Logger.info ">> Connected!"
+      {:ok, %{state | connected: true}}
+    end
+
+    def on_publish(["bot", _bot, "from_clients"], msg, state) do
+      Logger.warn "not implemented yet: #{inspect msg}"
+      {:ok, state}
+    end
+
+    def handle_cast({:bot_state, bs}, state) do
+      Logger.info "Got bot state update"
+      json = Poison.encode!(bs)
+      GenMQTT.publish(self(), status_topic(state.server), json, 0, false)
+      {:noreply, state}
+    end
+
+    defp frontend_topic(bot), do: "bot/#{bot}/from_device"
+    defp bot_topic(bot),      do: "bot/#{bot}/from_clients"
+    defp status_topic(bot),   do: "bot/#{bot}/status"
+    defp log_topic(bot),      do: "bot/#{bot}/logs"
+  end
+
   def start_link(opts) do
     GenStage.start_link(__MODULE__, [], opts)
   end
 
   def init([]) do
-    {:ok, pid} = Farmbot.Transport.GenMQTTClient.start_link()
-    {:consumer, {pid, nil}, subscribe_to: [Farmbot.BotState]}
+    token = Farmbot.System.ConfigStorage.get_config_value(:string, "authorization", "token")
+    {:ok, %{bot: device, mqtt: mqtt_server}} = Farmbot.Jwt.decode(token)
+    {:ok, client} = Client.start_link(device, token, mqtt_server)
+    {:consumer, {%{client: client}, nil}, subscribe_to: [Farmbot.BotState]}
   end
 
-  def handle_events(events, _, {pid, state}) do
-    new_state = blah(events, state)
-    if new_state != state do
-      send pid, {:bot_state, new_state}
-      Logger.info "State: #{inspect new_state}"
-    else
-      # Logger.info "no change"
+  def handle_events(events, _, {%{client: client} = internal_state, old_bot_state}) do
+    new_bot_state = Enum.last(events)
+    if new_bot_state != old_bot_state do
+      Client.push_bot_state client, new_bot_state
+      Logger.info "State: #{inspect new_bot_state}"
     end
-    {:noreply, [], {pid, new_state}}
-  end
-
-  def blah([], state), do: state
-  def blah([event | rest], _state) do
-    blah(rest, event)
+    {:noreply, [], {internal_state, new_bot_state}}
   end
 end
