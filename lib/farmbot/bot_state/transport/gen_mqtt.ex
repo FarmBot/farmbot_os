@@ -1,4 +1,5 @@
 defmodule Farmbot.BotState.Transport.GenMQTT do
+  @moduledoc "MQTT BotState Transport."
   use GenStage
   require Logger
 
@@ -80,6 +81,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
     defp log_topic(bot),      do: "bot/#{bot}/logs"
   end
 
+  @doc "Start the MQTT Transport."
   def start_link(opts) do
     GenStage.start_link(__MODULE__, [], opts)
   end
@@ -87,7 +89,6 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
   def init([]) do
     token = Farmbot.System.ConfigStorage.get_config_value(:string, "authorization", "token")
     {:ok, %{bot: device, mqtt: mqtt_server}} = Farmbot.Jwt.decode(token)
-    IO.puts "Got mqtt server: #{mqtt_server}"
     {:ok, client} = Client.start_link(device, token, mqtt_server)
     {:consumer, {%{client: client}, nil}, subscribe_to: [Farmbot.BotState, Farmbot.Logger]}
   end
