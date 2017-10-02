@@ -71,6 +71,6 @@
   "tzdata": {:hex, :tzdata, "0.1.201605", "0c4184819b9d6adedcc02107b68321c45d8e853def7a32629b7961b9f2e95f33", [:mix], [], "hexpm"},
   "unicode_util_compat": {:hex, :unicode_util_compat, "0.2.0", "dbbccf6781821b1c0701845eaf966c9b6d83d7c3bfc65ca2b78b88b8678bfa35", [:rebar3], [], "hexpm"},
   "uuid": {:hex, :uuid, "1.1.7", "007afd58273bc0bc7f849c3bdc763e2f8124e83b957e515368c498b641f7ab69", [:mix], [], "hexpm"},
-  "vmq_commons": {:hex, :vmq_commons, "1.0.0", "5f5005c12db33f92f40e818a3617fb148972d59adcf99298c9d3808ef3582e34", [:rebar3], [], "hexpm"},
+  "vmq_commons": {:git, "https://github.com/farmbot-labs/vmq_commons.git", "e780a297d5807a3537723d590036d37abce07cc5", []},
   "websocket_client": {:hex, :websocket_client, "1.2.1", "a965ce0be5583c90347400bceca66629e4debd5feb9bd516107e2924bdf39dad", [:rebar3], [], "hexpm"},
   "wobserver": {:hex, :wobserver, "0.1.7", "377b9a2903728b62e4e89d4e200ec17d60669ccdd3ed72b23a2ab3a2c079694d", [:mix], [{:cowboy, "~> 1.1", [hex: :cowboy, repo: "hexpm", optional: false]}, {:httpoison, "~> 0.11", [hex: :httpoison, repo: "hexpm", optional: false]}, {:plug, "~> 1.3", [hex: :plug, repo: "hexpm", optional: false]}, {:poison, "~> 2.0 or ~> 3.0", [hex: :poison, repo: "hexpm", optional: false]}, {:websocket_client, "~> 1.2", [hex: :websocket_client, repo: "hexpm", optional: false]}], "hexpm"}}

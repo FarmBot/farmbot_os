@@ -83,6 +83,8 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   def handle_cast({:log, msg}, state) do
     # debug_log "Got Log message."
     json = Poison.encode! msg
+    # c = self()
+    # require IEx; IEx.pry
     GenMQTT.publish(self(), log_topic(state.token), json, 0, false)
     {:ok, state}
   end
@@ -111,14 +113,16 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   @spec build_opts(Token.t) :: GenMQTT.option
   defp build_opts(%Token{} = token) do
     [
+     clean_session: true,
      reconnect_timeout: 10_000,
+     timeout:           10_000,
      last_will_topic:   [log_topic(token)],
      last_will_msg:     build_last_will_message(token),
-     last_will_qos:     1,
+     last_will_qos:     0,
      last_will_retain:  false,
      username:          token.unencoded.bot,
+     client:            token.unencoded.bot <> "-" <> UUID.uuid1,
      password:          token.encoded,
-     timeout:           10_000,
      host:              token.unencoded.mqtt,
     ]
   end

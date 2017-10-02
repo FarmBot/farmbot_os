@@ -145,7 +145,7 @@ defmodule Farmbot.Mixfile do
 
       # MQTT stuff
       {:gen_mqtt, "~> 0.3.1"}, # for rpc transport
-      {:vmq_commons, "1.0.0", manager: :rebar3}, # This is for mqtt to work.
+      {:vmq_commons, github: "farmbot-labs/vmq_commons", override: true},
 
       # string templating
       {:mustache, "~> 0.0.2"},
