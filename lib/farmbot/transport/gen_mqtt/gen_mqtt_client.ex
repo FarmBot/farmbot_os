@@ -20,7 +20,6 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   def init({%Context{} = context, %Token{} = token}) do
     Logger.info ">> Starting mqtt!", type: :busy
     Process.flag(:trap_exit, true)
-    # Process.send_after(self(), :r_u_alive_bb?, 1000)
     {:ok, %{token: token, context: context, cs_nodes: []}}
   end
 
@@ -40,8 +39,17 @@ defmodule Farmbot.Transport.GenMqtt.Client do
     {:ok, state}
   end
 
+  def on_connect_error(:invalid_credentials, _) do
+    msg = """
+    Failed to authenticate with the message broker!
+    This is likely a problem with your server/broker configuration.
+    """
+    Logger.error ">> #{msg}"
+    Farmbot.System.factory_reset(msg)
+  end
+
   def on_connect_error(reason, state) do
-    Logger.error ">> Failed to connect to mqtt: #{inspect reason}"
+    Logger.error ">> Failed to connect to mqtt #{state.token.unencoded.mqtt}: #{inspect reason}"
     {:ok, state}
   end
 
@@ -75,6 +83,8 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   def handle_cast({:log, msg}, state) do
     # debug_log "Got Log message."
     json = Poison.encode! msg
+    # c = self()
+    # require IEx; IEx.pry
     GenMQTT.publish(self(), log_topic(state.token), json, 0, false)
     {:ok, state}
   end
@@ -100,23 +110,19 @@ defmodule Farmbot.Transport.GenMqtt.Client do
     Logger.remove_backend(be)
   end
 
-  # def handle_info(:r_u_alive_bb?, {%Token{} = tkn, %Context{} = ctx}) do
-  #   # debug_log "Got alive checkup"
-  #   Process.send_after(self(), :r_u_alive_bb?, 1000)
-  #   {:noreply, {tkn, ctx}}
-  # end
-
   @spec build_opts(Token.t) :: GenMQTT.option
   defp build_opts(%Token{} = token) do
     [
+     clean_session: true,
      reconnect_timeout: 10_000,
+     timeout:           10_000,
      last_will_topic:   [log_topic(token)],
      last_will_msg:     build_last_will_message(token),
-     last_will_qos:     1,
+     last_will_qos:     0,
      last_will_retain:  false,
      username:          token.unencoded.bot,
+     client:            token.unencoded.bot <> "-" <> UUID.uuid1,
      password:          token.encoded,
-     timeout:           10_000,
      host:              token.unencoded.mqtt,
     ]
   end
