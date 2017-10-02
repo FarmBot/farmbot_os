@@ -11,7 +11,7 @@ config :ssl, protocol_version: :"tlsv1.2"
 # I force colors because they are important.
 config :logger, :console,
   colors: [enabled: true, info: :cyan],
-  metadata: [:module],
+  metadata: [],
   format: "$time $metadata[$level] $levelpad$message\n"
 
 # Iex needs colors too.
