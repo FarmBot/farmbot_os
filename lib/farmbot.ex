@@ -20,6 +20,14 @@ defmodule Farmbot do
   end
 
   def init(_args) do
+    Logger.info ">> Loading consolidated protocols."
+    for beamfile <- Path.wildcard("/srv/erlang/lib/farmbot-*/consolidated/*.beam") do
+      beamfile
+      |> String.replace_suffix(".beam","")
+      |> to_charlist()
+      |> :code.load_abs()
+    end
+
     context = Farmbot.Context.new()
     # ctx_tracker = %Farmbot.Context.Tracker{pid: Farmbot.Context.Tracker}
     children = [
