@@ -65,6 +65,7 @@ defmodule Farmbot.BotState.Configuration do
   @version Mix.Project.config()[:version]
   @target  Mix.Project.config()[:target]
   @commit  Mix.Project.config()[:commit]
+  @env     Mix.env()
 
   @spec load() :: {:ok, state} | no_return
   def load do
@@ -73,8 +74,10 @@ defmodule Farmbot.BotState.Configuration do
         controller_version: @version,
         target: @target,
         commit: @commit,
+        env: @env,
         locked: false,
         sync_status: :sync_now,
+        node_name: node(),
         firmware_version: "Arduino Disconnected!"
       }
     }
