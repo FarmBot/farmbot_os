@@ -22,11 +22,42 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     render_page(conn, "network", info)
   end
 
-  post "/configure_network" do
-    require IEx; IEx.pry
+  get "/firmware" do
+    render_page(conn, "firmware")
   end
 
+  post "/configure_network" do
+    {:ok, _, conn} = read_body conn
+    sorted = conn.body_params |> sort_network_configs
+    redir(conn, "/firmware")
+  end
+
+  defp sort_network_configs(map, acc \\ %{})
+
+  defp sort_network_configs(map, acc) when is_map(map) do
+    sort_network_configs(Map.to_list(map), acc)
+  end
+
+  defp sort_network_configs([{key, val} | rest], acc) do
+    [iface, key] = String.split(key, "_")
+    acc = case acc[iface] do
+      map when is_map(map) -> %{acc | iface => Map.merge(acc[iface], %{key => val})}
+      nil -> Map.put(acc, iface, %{key => val})
+    end
+
+    sort_network_configs(rest, acc)
+  end
+
+  defp sort_network_configs([], acc), do: acc
+
+
   match _, do: send_resp(conn, 404, "Page not found")
+
+  defp redir(conn, loc) do
+    conn
+    |> put_resp_header("location", loc)
+    |> send_resp(302, loc)
+  end
 
   defp render_page(conn, page, info \\ []) do
     page

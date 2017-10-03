@@ -11,20 +11,20 @@
             """
             <fieldset>
               <legend> #{interface} </legend>
-              enable: <input type=checkbox name=enable_#{interface}>
+              enable: <input type=checkbox name=#{interface}_enable>
             </fieldset>
             """
           %{type: :wireless, ssids: ssids} ->
             """
             <fieldset>
               <legend> #{interface} </legend>
-              enable: <input type=checkbox name=enable_#{interface}>
-              ssid: <select name=ssid_#{interface}>
+              enable: <input type=checkbox name=#{interface}_enable>
+              ssid: <select name=#{interface}_ssid>
                 #{Enum.reduce(ssids, "", fn(ssid, acc) ->
                   acc <> "<option value=#{ssid}> #{ssid} </option>"
                 end)}
               </select>
-              psk: <input type=password name=psk_#{interface}>
+              psk: <input type=password name=#{interface}_psk>
             </fieldset>
             """
         end
