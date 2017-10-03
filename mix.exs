@@ -60,7 +60,7 @@ defmodule Farmbot.Mixfile do
   end
 
   def application do
-    [mod: {Farmbot, []}, extra_applications: [:logger]]
+    [mod: {Farmbot, []}, extra_applications: [:logger, :eex]]
   end
 
   defp deps do
@@ -121,7 +121,7 @@ defmodule Farmbot.Mixfile do
   end
 
   defp elixirc_paths(:dev, "host") do
-    ["./lib", "./nerves/host"]
+    ["./lib", "./nerves/host", "./nerves/target"]
   end
 
   defp elixirc_paths(:test, "host") do

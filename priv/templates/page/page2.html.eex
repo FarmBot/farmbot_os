@@ -1,7 +1,0 @@
-Lets configure the Farmbot Web App
-<form action="next" enctype="multipart/form-data", method="post">
-  <input> Email </input>
-  <input> Password </input>
-  <input> Server </input>
-  <button> next </button>
-</form>

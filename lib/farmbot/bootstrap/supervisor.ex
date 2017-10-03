@@ -109,6 +109,7 @@ defmodule Farmbot.Bootstrap.Supervisor do
           supervisor(Farmbot.BotState.Supervisor,    [token, [name: Farmbot.BotState.Supervisor  ]]),
           supervisor(Farmbot.HTTP.Supervisor,        [token, [name: Farmbot.HTTP.Supervisor]]),
           supervisor(Farmbot.Repo.Supervisor,        [token, [name: Farmbot.Repo.Supervisor]]),
+          Plug.Adapters.Cowboy.child_spec(:http, Farmbot.Target.Bootstrap.Configurator.Router, [], [port: 4000]),
         ]
         opts = [strategy: :one_for_all]
         supervise(children, opts)
