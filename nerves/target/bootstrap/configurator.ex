@@ -22,14 +22,14 @@ defmodule  Farmbot.Target.Bootstrap.Configurator do
   def start_link(_, opts) do
     Logger.info "Configuring Farmbot."
     supervisor = Supervisor.start_link(__MODULE__, [self()], opts)
-    # case supervisor do
-    #   {:ok, pid} ->
-    #     receive do
-    #       :ok -> stop(pid, :ignore)
-    #       {:error, _reason} = err -> stop(pid, err)
-    #     end
-    #   :ignore -> :ignore
-    # end
+    case supervisor do
+      {:ok, pid} ->
+        receive do
+          :ok -> stop(pid, :ignore)
+          {:error, _reason} = err -> stop(pid, err)
+        end
+      :ignore -> :ignore
+    end
   end
 
   def init(cb) do
@@ -39,7 +39,8 @@ defmodule  Farmbot.Target.Bootstrap.Configurator do
       import Supervisor.Spec
       :ets.new(:session, [:named_table, :public, read_concurrency: true])
       children = [
-        Plug.Adapters.Cowboy.child_spec(:http, Farmbot.Target.Bootstrap.Configurator.Router, [], [port: 4001])
+        Plug.Adapters.Cowboy.child_spec(:http, Farmbot.Target.Bootstrap.Configurator.Router, [], [port: 80]),
+        worker(Farmbot.Target.Bootstrap.Configurator.CaptivePortal, [cb])
       ]
       opts = [strategy: :one_for_one]
       supervise(children, opts)

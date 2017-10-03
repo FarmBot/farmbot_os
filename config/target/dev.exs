@@ -14,9 +14,9 @@ config :farmbot, Farmbot.System.ConfigStorage,
 
 config :farmbot, data_path: "/root"
 
-# Configure your our system.
-# Default implementation needs no special stuff.
+# Configure your our init system.
 config :farmbot, :init, [
+  # Allows for first boot configuration.
   Farmbot.Target.Bootstrap.Configurator,
 
   # Start up Network
