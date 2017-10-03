@@ -4,4 +4,5 @@
 !farmbot_logo.png
 !*.html
 !farmware_schema.json
+!templates
 !templates/*

@@ -1,0 +1,37 @@
+<html>
+  <head>
+    <title> Configure Farmbot's Network </title>
+  </head>
+  <body>
+
+    <form action="configure_network" method="post">
+      <%= for {interface, settings} <- interfaces do
+        case settings do
+          %{type: :wired} ->
+            """
+            <fieldset>
+              <legend> #{interface} </legend>
+              enable: <input type=checkbox name=enable_#{interface}>
+            </fieldset>
+            """
+          %{type: :wireless, ssids: ssids} ->
+            """
+            <fieldset>
+              <legend> #{interface} </legend>
+              enable: <input type=checkbox name=enable_#{interface}>
+              ssid: <select name=ssid_#{interface}>
+                #{Enum.reduce(ssids, "", fn(ssid, acc) ->
+                  acc <> "<option value=#{ssid}> #{ssid} </option>"
+                end)}
+              </select>
+              psk: <input type=password name=psk_#{interface}>
+            </fieldset>
+            """
+        end
+      end %>
+      <input type=submit>
+    </form>
+
+  </boty>
+
+</html>
