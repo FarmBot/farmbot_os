@@ -30,6 +30,6 @@ defmodule Farmbot.Bootstrap.AuthorizationTest do
     assert match?({:error, _}, res)
     {:error, message} = res
     # This shoud _probably_ be fixed on the API.
-    assert message == "Failed to authorize with the Farmbot web application at: #{ctx.server} with code: #{500}"
+    assert message == "Failed to authorize with the Farmbot web application at: #{ctx.server} with code: #{422}"
   end
 end

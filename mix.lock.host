@@ -45,4 +45,4 @@
   "tzdata": {:hex, :tzdata, "0.1.201605", "0c4184819b9d6adedcc02107b68321c45d8e853def7a32629b7961b9f2e95f33", [], [], "hexpm"},
   "unicode_util_compat": {:hex, :unicode_util_compat, "0.3.1", "a1f612a7b512638634a603c8f401892afbf99b8ce93a45041f8aaca99cadb85e", [], [], "hexpm"},
   "uuid": {:hex, :uuid, "1.1.7", "007afd58273bc0bc7f849c3bdc763e2f8124e83b957e515368c498b641f7ab69", [], [], "hexpm"},
-  "vmq_commons": {:hex, :vmq_commons, "1.0.0", "5f5005c12db33f92f40e818a3617fb148972d59adcf99298c9d3808ef3582e34", [], [], "hexpm"}}
+  "vmq_commons": {:git, "https://github.com/farmbot-labs/vmq_commons.git", "e780a297d5807a3537723d590036d37abce07cc5", []}}

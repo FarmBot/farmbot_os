@@ -68,7 +68,7 @@ defmodule Farmbot.Mixfile do
       {:nerves, "~> 0.7.5", runtime: false},
 
       {:gen_mqtt, "~> 0.3.1"},
-      {:vmq_commons, "1.0.0", manager: :rebar3},
+      {:vmq_commons, github: "farmbot-labs/vmq_commons", override: true},
 
       {:poison, "~> 3.0"},
       {:ex_json_schema, "~> 0.5.3"},
