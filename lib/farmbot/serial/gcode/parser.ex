@@ -220,6 +220,10 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param("52"), do: :movement_home_up_y
   def parse_param("53"), do: :movement_home_up_z
 
+  def parse_param("55"), do: :movement_step_per_mm_x
+  def parse_param("56"), do: :movement_step_per_mm_y
+  def parse_param("57"), do: :movement_step_per_mm_z
+
   def parse_param("61"), do: :movement_min_spd_x
   def parse_param("62"), do: :movement_min_spd_y
   def parse_param("63"), do: :movement_min_spd_z
@@ -332,6 +336,10 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(:movement_home_up_x), do: 51
   def parse_param(:movement_home_up_y), do: 52
   def parse_param(:movement_home_up_z), do: 53
+
+  def parse_param(:movement_step_per_mm_x), do: 55
+  def parse_param(:movement_step_per_mm_y), do: 56
+  def parse_param(:movement_step_per_mm_z), do: 57 
 
   def parse_param(:movement_min_spd_x), do: 61
   def parse_param(:movement_min_spd_y), do: 62
