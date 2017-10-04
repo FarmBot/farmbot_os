@@ -52,7 +52,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
     {xb, yb, zb} = {offset.args.x,   offset.args.y,    offset.args.z }
     { combined_x, combined_y, combined_z } = { xa + xb, ya + yb, za + zb }
     {x, y, z} = {combined_x, combined_y, combined_z}
-    case UartHan.write(new_context3, "G00 X#{x} Y#{y} Z#{z} A#{spd_perc_x} B#{spd_perc_y} C#{spd_perc_z}", 10_000) do
+    case UartHan.write(new_context3, "G00 X#{x} Y#{y} Z#{z} A#{spd_perc_x} B#{spd_perc_y} C#{spd_perc_z}", 30_000) do
       {:error, reason} -> raise Error, "Movement failed: #{reason}"
       _ ->
         Logger.info ">> Movement complete.", type: :success
