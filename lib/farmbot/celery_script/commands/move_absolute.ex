@@ -33,9 +33,9 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
       _ -> :noop
     end
 
-    max_spd_x = Farmbot.BotState.get_param context, "movement_max_spd_x"
-    max_spd_y = Farmbot.BotState.get_param context, "movement_max_spd_y"
-    max_spd_z = Farmbot.BotState.get_param context, "movement_max_spd_z"
+    max_spd_x = Farmbot.BotState.get_param ctx, "movement_max_spd_x"
+    max_spd_y = Farmbot.BotState.get_param ctx, "movement_max_spd_y"
+    max_spd_z = Farmbot.BotState.get_param ctx, "movement_max_spd_z"
 
     spd_perc_x = ((speed / 100) * max_spd_x) |> round
     spd_perc_y = ((speed / 100) * max_spd_y) |> round
