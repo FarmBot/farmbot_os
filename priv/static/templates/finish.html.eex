@@ -1,6 +1,7 @@
 <html>
   <head>
     <title> Your all done! </title>
+    <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
     You're all set. Farmbot will now reboot. It will reboot if any configs are

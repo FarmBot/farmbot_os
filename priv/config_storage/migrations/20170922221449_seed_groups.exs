@@ -4,7 +4,7 @@ defmodule Farmbot.System.ConfigStorage.Migrations.SeedGroups do
   alias ConfigStorage.{Config, Group, StringValue, BoolValue, FloatValue}
   import Ecto.Query, only: [from: 2]
 
-  @group_names ["network", "network_interface", "authorization", "hardware", "hardware_params", "settings", "user_env"]
+  @group_names ["authorization", "hardware", "hardware_params", "settings", "user_env"]
 
   def change do
     populate_config_groups()
@@ -26,15 +26,6 @@ defmodule Farmbot.System.ConfigStorage.Migrations.SeedGroups do
     end
   end
 
-  defp populate_config_values("network", group_id) do
-    create_value(BoolValue, false) |> create_config(group_id, "ssh")
-    create_value(BoolValue, true) |> create_config(group_id, "ntp")
-  end
-
-  defp populate_config_values("network_interface", group_id) do
-
-  end
-
   defp populate_config_values("authorization", group_id) do
     create_value(StringValue, "https://my.farmbot.io") |> create_config(group_id, "server")
     create_value(StringValue, nil) |> create_config(group_id, "email")
@@ -43,7 +34,6 @@ defmodule Farmbot.System.ConfigStorage.Migrations.SeedGroups do
   end
 
   defp populate_config_values("hardware", group_id) do
-    create_value(BoolValue, false) |> create_config(group_id, "custom_fw")
     create_value(StringValue, nil) |> create_config(group_id, "firmware_hardware")
   end
 

@@ -14,6 +14,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   plug :dispatch
 
   require Logger
+  alias Farmbot.System.ConfigStorage
 
   get "/", do: render_page(conn, "index")
 
@@ -30,7 +31,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   end
 
     defp do_iw_scan(iface) do
-    case System.cmd("iw", [iface, "scan", "ap-force"]) do
+    case System.cmd("sudo", ["iw", iface, "scan", "ap-force"]) do
       {res, 0} -> res |> clean_ssid
       e -> raise "Could not scan for wifi: #{inspect e}"
     end
@@ -51,13 +52,17 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   end
 
   get "/credentials" do
-    render_page(conn, "credentials")
+    email  = ConfigStorage.get_config_value(:string, "authorization", "email")    || ""
+    pass   = ConfigStorage.get_config_value(:string, "authorization", "password") || ""
+    server = ConfigStorage.get_config_value(:string, "authorization", "server")   || ""
+    ConfigStorage.update_config_value(:string, "authorization", "token",    nil)
+    render_page(conn, "credentials", [server: server, email: email, password: pass])
   end
 
   post "/configure_network" do
     {:ok, _, conn} = read_body conn
-    sorted = conn.body_params |> sort_network_configs
-    #TODO(Connor) store network stuff in DB.
+    :ok = conn.body_params |> sort_network_configs |> input_network_configs
+
     redir(conn, "/firmware")
   end
 
@@ -79,11 +84,35 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
   defp sort_network_configs([], acc), do: acc
 
+  defp input_network_configs(conf_map)
+
+  defp input_network_configs(conf_map) when is_map(conf_map) do
+    conf_map |> Map.to_list() |> input_network_configs
+  end
+
+  defp input_network_configs([{iface,  settings} | rest]) do
+    if settings["enabled"] == "on" do
+      %ConfigStorage.NetworkInterface{
+        type: settings["type"],
+        
+      }
+    end
+    input_network_configs(rest)
+  end
+
+  defp input_network_configs([]) do
+    :ok
+  end
+
   post "/configure_firmware" do
     {:ok, _, conn} = read_body conn
     case conn.body_params do
       %{"firmware_hardware" => hw} when hw in ["arduino", "farmduino"] ->
+        ConfigStorage.update_config_value(:string, "hardware", "firmware_hardware", hw)
         #TODO Flash firmware here.
+        redir(conn, "/credentials")
+      %{"firmware_hardware" => "custom"} ->
+        ConfigStorage.update_config_value(:string, "hardware", "firmware_hardware", "custom")
         redir(conn, "/credentials")
       _ ->  send_resp(conn, 500, "Bad firmware_hardware!")
     end
@@ -93,7 +122,10 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     {:ok, _, conn} = read_body conn
     case conn.body_params do
       %{"email" => email, "password" => pass, "server" => server} ->
-        # TODO(connor) save email and pass into db
+        ConfigStorage.update_config_value(:string, "authorization", "email",    email)
+        ConfigStorage.update_config_value(:string, "authorization", "password", pass)
+        ConfigStorage.update_config_value(:string, "authorization", "server",   server)
+        ConfigStorage.update_config_value(:string, "authorization", "token",    nil)
         render_page(conn, "finish")
       _ -> send_resp(conn, 500, "invalid request.")
     end

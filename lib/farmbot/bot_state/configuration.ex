@@ -5,14 +5,14 @@ defmodule Farmbot.BotState.Configuration do
   defstruct [
     os_auto_update: false,
     first_party_farmware: true,
-    timezone: nil
+    timezone: nil,
+    firmware_hardware: nil
   ]
 
   @typedoc "Config data"
   @type t :: %__MODULE__{
     os_auto_update: boolean,
     first_party_farmware: boolean,
-    timezone: binary | nil
   }
 
   use Farmbot.BotState.Lib.Partition

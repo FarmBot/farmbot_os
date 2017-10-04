@@ -26,6 +26,13 @@ defmodule Farmbot.System.ConfigStorage.Migrations.AddEAVTables do
       add :float_value_id, references(:float_values)
       add :key, :string
     end
+
+    create table("network_interfaces") do
+      add :interface_name, :string, null: false
+      add :interface_type, :string, null: false
+      add :interface_ssid, :string
+      add :interface_psk,  :string
+    end
   end
 
 end
