@@ -18,8 +18,32 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   get "/", do: render_page(conn, "index")
 
   get "/network" do
-    info = [interfaces: %{eth0: %{type: :wired}, wlan0: %{type: :wireless, ssids: ["hello", "world"]}}]
+    interfaces = Nerves.NetworkInterface.interfaces()
+    info = [interfaces: Map.new(interfaces, fn(iface) ->
+      if String.first(iface) == "w" do
+        {iface, %{type: :wireless, ssids: do_iw_scan(iface)}}
+      else
+        {iface, %{type: :wired}}
+      end
+    end)]
     render_page(conn, "network", info)
+  end
+
+    defp do_iw_scan(iface) do
+    case System.cmd("iw", [iface, "scan", "ap-force"]) do
+      {res, 0} -> res |> clean_ssid
+      e -> raise "Could not scan for wifi: #{inspect e}"
+    end
+  end
+
+  defp clean_ssid(hc) do
+    hc
+    |> String.replace("\t", "")
+    |> String.replace("\\x00", "")
+    |> String.split("\n")
+    |> Enum.filter(fn(s) -> String.contains?(s, "SSID: ") end)
+    |> Enum.map(fn(z)    -> String.replace(z, "SSID: ", "") end)
+    |> Enum.filter(fn(z) -> String.length(z) != 0 end)
   end
 
   get "/firmware" do
@@ -33,6 +57,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   post "/configure_network" do
     {:ok, _, conn} = read_body conn
     sorted = conn.body_params |> sort_network_configs
+    #TODO(Connor) store network stuff in DB.
     redir(conn, "/firmware")
   end
 

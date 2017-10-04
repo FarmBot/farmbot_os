@@ -95,6 +95,8 @@ defmodule Farmbot.Mixfile do
       {:ex_doc, "~> 0.14", only: :dev},
       {:excoveralls, "~> 0.6", only: :test},
       {:mock, "~> 0.2.0", only: :test},
+      {:nerves_network, "~> 0.3"},
+      
     ]
   end
 
