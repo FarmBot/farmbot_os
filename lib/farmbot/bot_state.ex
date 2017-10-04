@@ -58,9 +58,9 @@ defmodule Farmbot.BotState do
   @doc """
     Sets the position to givin position.
   """
-  @spec set_pos(context, integer, integer, integer) :: [integer, ...]
+  @spec set_pos(context, float, float, float) :: [float, ...]
   def set_pos(%Context{} = context, x, y, z)
-  when is_integer(x) and is_integer(y) and is_integer(z) do
+  when is_float(x) and is_float(y) and is_float(z) do
     GenServer.call(context.hardware, {:set_pos, {x, y, z}})
   end
 

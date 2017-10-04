@@ -527,7 +527,7 @@ defmodule Farmbot.Serial.Handler do
   end
 
   defp handle_gcode({:report_calibration, axis, status} = reply, _ctx) do
-    Logger.info ">> Calibration message: #{axis}: #{status}"
+    Logger.info ">> #{format_calibration_message(axis, status)}"
     {:reply, reply}
   end
 
@@ -561,6 +561,18 @@ defmodule Farmbot.Serial.Handler do
   defp handle_gcode(parsed, %Context{} = _ctx) do
     Logger.warn "Unhandled message: #{inspect parsed}"
     {:reply, parsed}
+  end
+
+  defp format_calibration_message(axis, :idle) do
+    "axis #{axis} is entering idle state."
+  end
+
+  defp format_calibration_message(axis, :home) do
+    "axis #{axis} is moving toward home."
+  end
+
+  defp format_calibration_message(axis, :end) do
+    "axis #{axis} is moving toward the end of the axis."
   end
 
   defp check_timeouts(state) do
