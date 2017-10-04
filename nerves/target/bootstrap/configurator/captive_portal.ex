@@ -6,7 +6,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
 
     defmodule State do
       @moduledoc false
-      defstruct [:hostapd, :interface]
+      defstruct [:hostapd, :interface, :ip_addr]
     end
 
     use GenServer
@@ -35,6 +35,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
       state =  %State{
         hostapd: {hostapd_port, hostapd_os_pid},
         interface: interface,
+        ip_addr: "192.168.24.1"
       }
       {:ok, state}
     end
@@ -136,21 +137,20 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
   require Logger
   @interface "wlan0"
 
-  def start_link(cb) do
-    GenServer.start_link(__MODULE__, [cb], name: __MODULE__)
+  def start_link() do
+    GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  def init([cb]) do
+  def init([]) do
     Logger.debug "Starting captive portal."
     {:ok, hostapd} = Hostapd.start_link(interface: @interface)
     {:ok, dhcp_server} = DHCPServer.start_link(interface: @interface)
-    {:ok, %{callback: cb, hostapd: hostapd, hcp_server: dhcp_server}}
+    {:ok, %{hostapd: hostapd, dhcp_server: dhcp_server}}
   end
 
   def terminate(_, state) do
     Logger.debug "Stopping captive portal."
     GenServer.stop(state.hostapd, :normal)
     GenServer.stop(state.dhcp_server, :normal)
-    send state.callback, :ok
   end
 end

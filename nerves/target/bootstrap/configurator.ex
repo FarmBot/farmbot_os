@@ -24,15 +24,21 @@ defmodule  Farmbot.Target.Bootstrap.Configurator do
     supervisor = Supervisor.start_link(__MODULE__, [self()], opts)
     case supervisor do
       {:ok, pid} ->
-        receive do
-          :ok -> stop(pid, :ignore)
-          {:error, _reason} = err -> stop(pid, err)
-        end
+        wait(pid)
       :ignore -> :ignore
     end
   end
 
-  def init(cb) do
+  defp wait(pid) do
+    if Process.alive?(pid) do
+      Process.sleep(10)
+      wait(pid)
+    else
+      :ignore
+    end
+  end
+
+  def init(_) do
     first_boot? = ConfigStorage.get_config_value(:bool, "settings", "first_boot")
     if first_boot? do
       Logger.info "Building new configuration."
@@ -40,7 +46,7 @@ defmodule  Farmbot.Target.Bootstrap.Configurator do
       :ets.new(:session, [:named_table, :public, read_concurrency: true])
       children = [
         Plug.Adapters.Cowboy.child_spec(:http, Farmbot.Target.Bootstrap.Configurator.Router, [], [port: 80]),
-        worker(Farmbot.Target.Bootstrap.Configurator.CaptivePortal, [cb])
+        worker(Farmbot.Target.Bootstrap.Configurator.CaptivePortal, [])
       ]
       opts = [strategy: :one_for_one]
       supervise(children, opts)

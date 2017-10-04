@@ -66,6 +66,13 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     redir(conn, "/firmware")
   end
 
+  get "/finish" do
+    conn = render_page(conn, "finish")
+    Supervisor.terminate_child(Farmbot.Target.Bootstrap.Configurator, Farmbot.Target.Bootstrap.Configurator.CaptivePortal)
+    Supervisor.stop Farmbot.Target.Bootstrap.Configurator, :normal
+    conn
+  end
+
   defp sort_network_configs(map, acc \\ %{})
 
   defp sort_network_configs(map, acc) when is_map(map) do
@@ -140,7 +147,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
         ConfigStorage.update_config_value(:string, "authorization", "password", pass)
         ConfigStorage.update_config_value(:string, "authorization", "server",   server)
         ConfigStorage.update_config_value(:string, "authorization", "token",    nil)
-        render_page(conn, "finish")
+        redir(conn, "/finish")
       _ -> send_resp(conn, 500, "invalid request.")
     end
   end
