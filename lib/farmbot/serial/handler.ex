@@ -5,7 +5,6 @@ defmodule Farmbot.Serial.Handler do
 
   alias Farmbot.BotState
   alias Farmbot.Context
-  alias Farmbot.Lib.Maths
   alias Farmbot.Serial.Gcode.Parser
   alias Nerves.UART
   require Logger
@@ -396,7 +395,7 @@ defmodule Farmbot.Serial.Handler do
       << "R09", _ :: binary >> -> {:error, :invalid}
       # R87 is E stop
       << "R87", _ :: binary >> -> {:error, :emergency_lock}
-      other                    -> 
+      other                    ->
         debug_log "Got an unhandled echo. Expecting: #{writeme} but got: #{echo}"
         {:error, "unhandled echo: #{other}"}
     end
@@ -493,7 +492,7 @@ defmodule Farmbot.Serial.Handler do
   defp handle_gcode(:report_params_complete, _),   do: {:reply, :report_params_complete}
   defp handle_gcode(:noop, %Context{} = _ctx),     do: nil
 
-  defp handle_gcode(:idle, %Context{} = ctx) do 
+  defp handle_gcode(:idle, %Context{} = ctx) do
     :ok = Farmbot.BotState.set_busy(ctx, false)
     {:status, :idle}
   end
@@ -508,15 +507,8 @@ defmodule Farmbot.Serial.Handler do
     {:reply, reply}
   end
 
-  defp handle_gcode({:report_current_position, x_steps, y_steps, z_steps} = reply, %Context{} = ctx) do
-    thing_x = spm(:x, ctx)
-    thing_y = spm(:y, ctx)
-    thing_z = spm(:z, ctx)
-    r = BotState.set_pos(ctx,
-      Maths.steps_to_mm(x_steps, thing_x),
-      Maths.steps_to_mm(y_steps, thing_y),
-      Maths.steps_to_mm(z_steps, thing_z))
-    debug_log "Position report reply: #{inspect r}"
+  defp handle_gcode({:report_current_position, x, y, z} = reply, %Context{} = ctx) do
+    BotState.set_pos(ctx, x, y, z)
     {:reply, reply}
   end
 
@@ -633,11 +625,5 @@ defmodule Farmbot.Serial.Handler do
         Logger.error ">> Timed out flashing firmware!"
         {:error, :flash_timeout}
     end
-  end
-
-  @spec spm(atom, Context.t) :: integer
-  defp spm(xyz, %Context{} = ctx) do
-    spm = "steps_per_mm_#{xyz}" |> String.to_atom
-    Farmbot.BotState.get_config(ctx, spm)
   end
 end

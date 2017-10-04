@@ -17,12 +17,6 @@ defmodule Farmbot.BotState.Configuration do
         timezone: nil,
         user_env: %{},
         os_auto_update: false,
-        steps_per_mm_x: 10,
-        steps_per_mm_y: 10,
-        steps_per_mm_z: 50,
-        distance_mm_x: 1500,
-        distance_mm_y: 3000,
-        distance_mm_z: 800,
       },
       informational_settings: %{
         locked: false,
@@ -44,12 +38,6 @@ defmodule Farmbot.BotState.Configuration do
         timezone: nil | binary,
         user_env: map,
         os_auto_update: boolean,
-        steps_per_mm_x: integer,
-        steps_per_mm_y: integer,
-        steps_per_mm_z: integer,
-        distance_mm_x: integer,
-        distance_mm_y: integer,
-        distance_mm_z: integer,
         sync_status: sync_msg
       },
       informational_settings: %{
@@ -83,12 +71,6 @@ defmodule Farmbot.BotState.Configuration do
     }
     {:ok, user_env} = get_config("user_env")
     {:ok, os_a_u}   = get_config("os_auto_update")
-    {:ok, spm_x}    = get_config("steps_per_mm_x")
-    {:ok, spm_y}    = get_config("steps_per_mm_y")
-    {:ok, spm_z}    = get_config("steps_per_mm_z")
-    {:ok, len_x}    = get_config("distance_mm_x")
-    {:ok, len_y}    = get_config("distance_mm_y")
-    {:ok, len_z}    = get_config("distance_mm_z")
     {:ok, tz}       = get_config("timezone")
     {:ok, fw_hw}    = get_config("firmware_hardware")
     new_state =
@@ -97,12 +79,6 @@ defmodule Farmbot.BotState.Configuration do
            user_env:             user_env,
            timezone:             tz,
            os_auto_update:       os_a_u,
-           steps_per_mm_x:       spm_x,
-           steps_per_mm_y:       spm_y,
-           steps_per_mm_z:       spm_z,
-           distance_mm_x:        len_x,
-           distance_mm_y:        len_y,
-           distance_mm_z:        len_z
     }}
     {:ok, new_state}
   end
@@ -138,30 +114,6 @@ defmodule Farmbot.BotState.Configuration do
       is_boolean(f_value) -> f_value
     end
     update_config(state, :os_auto_update, value)
-  end
-
-  def handle_call({:update_config, "steps_per_mm_x", val}, _, state) do
-    update_config(state, :steps_per_mm_x, val)
-  end
-
-  def handle_call({:update_config, "steps_per_mm_y", val}, _, state) do
-    update_config(state, :steps_per_mm_y, val)
-  end
-
-  def handle_call({:update_config, "steps_per_mm_z", val}, _, state) do
-    update_config(state, :steps_per_mm_z, val)
-  end
-
-  def handle_call({:update_config, "distance_mm_x", val}, _, state) do
-    update_config(state, :distance_mm_x, val)
-  end
-
-  def handle_call({:update_config, "distance_mm_y", val}, _, state) do
-    update_config(state, :distance_mm_y, val)
-  end
-
-  def handle_call({:update_config, "distance_mm_z", val}, _, state) do
-    update_config(state, :distance_mm_z, val)
   end
 
   def handle_call({:update_config, "timezone", val}, _, state) do
