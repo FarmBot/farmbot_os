@@ -31,7 +31,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   end
 
     defp do_iw_scan(iface) do
-    case System.cmd("sudo", ["iw", iface, "scan", "ap-force"]) do
+    case System.cmd("iw", [iface, "scan", "ap-force"]) do
       {res, 0} -> res |> clean_ssid
       e -> raise "Could not scan for wifi: #{inspect e}"
     end
@@ -95,13 +95,17 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
       case settings["type"] do
         "wireless" ->
           %ConfigStorage.NetworkInterface{
+            name: iface,
             type: "wireless",
             ssid: Map.fetch!(settings, "ssid"),
             psk: Map.fetch!(settings, "psk"),
             ipv4_method: "dhcp"
           }
         "wired" ->
-          %ConfigStorage.NetworkInterface{type: "wired", ipv4_method: "dhcp"}
+          %ConfigStorage.NetworkInterface{name: iface,
+            type: "wired",
+            ipv4_method: "dhcp"
+          }
       end
       |> ConfigStorage.insert!()
     end
