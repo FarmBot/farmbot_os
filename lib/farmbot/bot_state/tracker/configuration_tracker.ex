@@ -109,6 +109,7 @@ defmodule Farmbot.BotState.Configuration do
 
   def handle_call({:update_config, "firmware_hardware", hw}, _from, state) when hw in ["farmduino", "arduino", :farmduino, :arduino] do
     spawn fn() ->
+      Logger.warn "Flashing fw"
       hex_file = "#{:code.priv_dir(:farmbot)}/#{hw}-firmware.hex"
       tty = :sys.get_state(Farmbot.Context.new().serial).tty
       :ok = Supervisor.terminate_child(Farmbot.Supervisor, Farmbot.Serial.Supervisor)
