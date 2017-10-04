@@ -1,17 +1,30 @@
 <html>
-  <head>
-    <title> Configure your firmware </title>
-  </head>
 
-  <body>
-    <form action=configure_firmware method=post>
-      <fieldset>
-        <select name=firmware_hardware>
-          <option value="arduino"> Arduino + Ramps </option>
-          <option value="farmduino"> Farmduino </option>
-        </select>
-      </fieldset>
-      <input type=submit>
-    </form>
-  </body>
+<head>
+  <title> Configure your firmware </title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body>
+  <h1>Configure your FarmBot</h1>
+  <div class="widget">
+    <div class="widget-header">
+      <h5>Firmware</h5>
+    </div>
+    <div class="widget-content">
+      <form action=configure_firmware method=post>
+        <fieldset>
+          <select name=firmware_hardware>
+            <option value="arduino"> Arduino/RAMPS (Genesis v1.2) </option>
+            <option value="farmduino"> Farmduino (Genesis v1.3) </option>
+          </select>
+        </fieldset>
+    </div>
+  </div>
+  <div class="button">
+    <input type=submit value="next">
+  </div>
+  </form>
+</body>
+
 </html>
