@@ -33,6 +33,14 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
       _ -> :noop
     end
 
+    max_spd_x = Farmbot.BotState.get_param context, "movement_max_spd_x"
+    max_spd_y = Farmbot.BotState.get_param context, "movement_max_spd_y"
+    max_spd_z = Farmbot.BotState.get_param context, "movement_max_spd_z"
+
+    spd_perc_x = ((speed / 100) * max_spd_x) |> round
+    spd_perc_y = ((speed / 100) * max_spd_y) |> round
+    spd_perc_z = ((speed / 100) * max_spd_z) |> round
+
     Logger.info ">> Doing movement.", type: :busy
     new_context              = ast_to_coord(ctx, location)
     {location, new_context1} = Farmbot.Context.pop_data(new_context)
@@ -44,7 +52,7 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
     {xb, yb, zb} = {offset.args.x,   offset.args.y,    offset.args.z }
     { combined_x, combined_y, combined_z } = { xa + xb, ya + yb, za + zb }
     {x, y, z} = {combined_x, combined_y, combined_z}
-    case UartHan.write(new_context3, "G00 X#{x} Y#{y} Z#{z} S#{speed}", 10_000) do
+    case UartHan.write(new_context3, "G00 X#{x} Y#{y} Z#{z} A#{spd_perc_x} B#{spd_perc_y} C#{spd_perc_z}", 10_000) do
       {:error, reason} -> raise Error, "Movement failed: #{reason}"
       _ ->
         Logger.info ">> Movement complete.", type: :success
