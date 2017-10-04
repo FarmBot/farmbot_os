@@ -22,7 +22,7 @@
     "react": "^15.5.4",
     "react-dom": "^15.5.4",
     "react-input-autosize": "1.1.0",
-    "react-select": "^1.0.0-rc.10",
+    "react-select": "1.0.0-rc.3",
     "roboto-font": "^0.1.0",
     "roboto-fontface": "^0.6.0",
     "sass-loader": "^4.1.0",
