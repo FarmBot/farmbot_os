@@ -11,6 +11,8 @@ defmodule Farmbot.System.ConfigStorage.NetworkInterface do
     field :ssid, :string
     field :security, :string
     field :psk,  :string
+
+    field :ipv4_method, :string
   end
 
   @required_fields [:name, :type]
