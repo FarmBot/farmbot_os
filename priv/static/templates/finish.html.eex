@@ -1,0 +1,9 @@
+<html>
+  <head>
+    <title> Your all done! </title>
+  </head>
+  <body>
+    You're all set. Farmbot will now reboot. It will reboot if any configs are
+    incorrect.
+  </body>
+</html>

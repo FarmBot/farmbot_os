@@ -1,6 +1,7 @@
 <html>
   <head>
     <title> Configure your Farmbot </title>
+    <link rel="/styles.css">
   </head>
   <body>
     Get ready to configure your farmbot!

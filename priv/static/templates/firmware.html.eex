@@ -4,6 +4,14 @@
   </head>
 
   <body>
-    YAY
+    <form action=configure_firmware method=post>
+      <fieldset>
+        <select name=firmware_hardware>
+          <option value="arduino"> Arduino + Ramps </option>
+          <option value="farmduino"> Farmduino </option>
+        </select>
+      </fieldset>
+      <input type=submit>
+    </form>
   </body>
 </html>

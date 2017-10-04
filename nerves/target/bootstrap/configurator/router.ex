@@ -26,6 +26,10 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     render_page(conn, "firmware")
   end
 
+  get "/credentials" do
+    render_page(conn, "credentials")
+  end
+
   post "/configure_network" do
     {:ok, _, conn} = read_body conn
     sorted = conn.body_params |> sort_network_configs
@@ -50,6 +54,25 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
   defp sort_network_configs([], acc), do: acc
 
+  post "/configure_firmware" do
+    {:ok, _, conn} = read_body conn
+    case conn.body_params do
+      %{"firmware_hardware" => hw} when hw in ["arduino", "farmduino"] ->
+        #TODO Flash firmware here.
+        redir(conn, "/credentials")
+      _ ->  send_resp(conn, 500, "Bad firmware_hardware!")
+    end
+  end
+
+  post "/configure_credentials" do
+    {:ok, _, conn} = read_body conn
+    case conn.body_params do
+      %{"email" => email, "password" => pass} ->
+        # TODO(connor) save email and pass into db
+        render_page(conn, "finish")
+      _ -> send_resp(conn, 500, "invalid request.")
+    end
+  end
 
   match _, do: send_resp(conn, 404, "Page not found")
 
