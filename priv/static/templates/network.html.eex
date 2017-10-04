@@ -20,6 +20,7 @@
             <fieldset>
               <label>Enable Ethernet ( #{interface} )</label>
               <input type=checkbox name=#{interface}_enable>
+              <input hidden=true name=#{interface}_type value=wired>
             </fieldset>
             """
           %{type: :wireless, ssids: ssids} ->
@@ -35,6 +36,7 @@
               </select>
               <label>Password</label>
               <input type=password name=#{interface}_psk>
+              <input hidden=true name=#{interface}_type value=wireless>
             </fieldset>
             """
         end

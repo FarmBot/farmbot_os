@@ -7,10 +7,11 @@ defmodule Farmbot.System.ConfigStorage.NetworkInterface do
   schema "network_interfaces" do
     field :name, :string, null: false
     field :type, :string, null: false
+
     ## For wireless interfaces
     field :ssid, :string
-    field :security, :string
     field :psk,  :string
+    field :security, :string
 
     field :ipv4_method, :string
   end

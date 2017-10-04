@@ -28,10 +28,14 @@ defmodule Farmbot.System.ConfigStorage.Migrations.AddEAVTables do
     end
 
     create table("network_interfaces") do
-      add :interface_name, :string, null: false
-      add :interface_type, :string, null: false
-      add :interface_ssid, :string
-      add :interface_psk,  :string
+      add :name, :string, null: false
+      add :type, :string, null: false
+
+      add :ssid, :string
+      add :psk,  :string
+      add :security, :string
+      
+      add :ipv4_method, :string
     end
   end
 

@@ -91,7 +91,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   end
 
   defp input_network_configs([{iface,  settings} | rest]) do
-    if settings["enabled"] == "on" do
+    if settings["enable"] == "on" do
+      Logger.info "inputting #{iface} - #{inspect settings}"
       case settings["type"] do
         "wireless" ->
           %ConfigStorage.NetworkInterface{
@@ -99,6 +100,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
             type: "wireless",
             ssid: Map.fetch!(settings, "ssid"),
             psk: Map.fetch!(settings, "psk"),
+            security: "WPA-PSK",
             ipv4_method: "dhcp"
           }
         "wired" ->
