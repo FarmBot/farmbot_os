@@ -92,7 +92,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   post "/configure_credentials" do
     {:ok, _, conn} = read_body conn
     case conn.body_params do
-      %{"email" => email, "password" => pass} ->
+      %{"email" => email, "password" => pass, "server" => server} ->
         # TODO(connor) save email and pass into db
         render_page(conn, "finish")
       _ -> send_resp(conn, 500, "invalid request.")
