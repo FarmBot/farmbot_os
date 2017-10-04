@@ -43,3 +43,4 @@ fwup-key.priv
 .env
 auth_secret.exs
 auth_secret_test.exs
+*.sqlite3
