@@ -15,7 +15,7 @@ config :farmbot, :init, [
 
 # Transports.
 config :farmbot, :transport, [
-  Farmbot.BotState.Transport.GenMqtt
+  Farmbot.BotState.Transport.GenMQTT
 ]
 
 

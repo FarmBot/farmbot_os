@@ -1,76 +1,41 @@
 defmodule Farmbot.Firmware do
   @moduledoc "Allows communication with the firmware."
 
-  use GenServer
+  use GenStage
   require Logger
 
-  alias Farmbot.BotState
-  alias BotState.{
-    InformationalSettings,
-    LocationData
-  }
+  @handler Application.get_env(:farmbot, :behaviour)[:firmware_handler] || raise "No fw handler."
 
-  @doc "Public API for handling a gcode."
-  def handle_gcode(firmware, code), do: GenServer.call(firmware, {:handle_gcode, code})
-
-  def start_link(bot_state, informational_settings, configuration, location_data, mcu_params, handler_mod, opts) do
-    GenServer.start_link(__MODULE__, [bot_state, informational_settings, configuration, location_data, mcu_params, handler_mod], opts)
+  @doc "Start the firmware services."
+  def start_link(opts) do
+    GenStage.start_link(__MODULE__, [], opts)
   end
 
-  defmodule State do
-    defstruct [
-      :bot_state,
-      :informational_settings,
-      :configuration,
-      :location_data,
-      :mcu_params,
-      :handler_mod,
-      :handler
-    ]
+  def init([]) do
+    {:producer_consumer, [], subscribe_to: [@handler]}
   end
 
-  def init([bot_state, informational_settings, configuration, location_data, mcu_params, handler_mod]) do
-    {:ok, handler} = handler_mod.start_link(self(), name: handler_mod)
-    Process.link(handler)
-    s = %State{
-      bot_state: bot_state,
-      informational_settings: informational_settings,
-      configuration: configuration,
-      location_data: location_data,
-      mcu_params: mcu_params,
-      handler_mod: handler_mod,
-      handler: handler
-    }
-    {:ok, s}
+  def handle_events(gcodes, _from, state) do
+    {:noreply, handle_gcodes(gcodes), state}
   end
 
-  def handle_call({:handle_gcode, :idle}, _, state) do
-    reply = InformationalSettings.set_busy(state.informational_settings, false)
-    {:reply, reply, state}
+  def handle_gcodes(codes, acc \\ [])
+  def handle_gcodes([], acc), do: Enum.reverse(acc)
+  def handle_gcodes([code | rest], acc) do
+    res = handle_gcode(code)
+    if res do
+      handle_gcodes(rest, [res | acc])
+    else
+      handle_gcodes(rest, acc)
+    end
   end
 
-  def handle_call({:handle_gcode, {:report_current_position, x, y, z}}, _, state) do
-    reply = LocationData.report_current_position(state.location_data, x, y, z)
-    {:reply, reply, state}
+  def handle_gcode({:report_current_position, x, y, z}) do
+    {:location_data, %{position: %{x: x, y: y, z: z}}}
   end
 
-  def handle_call({:handle_gcode, {:report_encoder_position_scaled, x, y, z}}, _, state) do
-    reply = LocationData.report_encoder_position_scaled(state.location_data, x, y, z)
-    {:reply, reply, state}
-  end
-
-  def handle_call({:handle_gcode, {:report_encoder_position_raw, x, y, z}}, _, state) do
-    reply = LocationData.report_encoder_position_raw(state.location_data, x, y, z)
-    {:reply, reply, state}
-  end
-
-  def handle_call({:handle_gcode, {:report_end_stops, xa, xb, ya, yb, za, zb}}, _, state) do
-    reply = LocationData.report_end_stops(state.location_data, xa, xb, ya, yb, za, zb)
-    {:reply, reply, state}
-  end
-
-  def handle_call({:handle_gcode, code}, _, state) do
-    Logger.warn "Got misc gcode: #{inspect code}"
-    {:reply, {:error, :unhandled}, state}
+  def handle_gcode(_code) do
+    # Logger.warn "unhandled code: #{inspect code}"
+    nil
   end
 end

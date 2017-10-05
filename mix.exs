@@ -70,6 +70,8 @@ defmodule Farmbot.Mixfile do
       {:gen_mqtt, "~> 0.3.1"},
       {:vmq_commons, github: "farmbot-labs/vmq_commons", override: true},
 
+      {:gen_stage, "~> 0.12"},
+
       {:poison, "~> 3.0"},
       {:ex_json_schema, "~> 0.5.3"},
       {:rsa, "~> 0.0.1"},
