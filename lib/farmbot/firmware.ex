@@ -3,13 +3,33 @@ defmodule Farmbot.Firmware do
 
   use GenStage
   require Logger
+  
+  defmodule Handler do
+    @moduledoc """
+    Any module that implements this behaviour should be a GenStage.
 
+    The implementng stage should communicate with the various Farmbot
+    hardware such as motors and encoders. The `Farmbot.Firmware` module
+    will subscribe_to: the implementing handler. Events should be
+    Gcodes as parsed by `Farmbot.Firmware.Gcode.Parser`.
+    """
+    
+    @doc "Start a firmware handler."
+    @callback start_link :: GenServer.on_start
+
+    @doc "Write a gcode."
+    @callback write(Farmbot.Firmware.Gcode.t) :: :ok | {:error, term}
+  end
+  
   @handler Application.get_env(:farmbot, :behaviour)[:firmware_handler] || raise "No fw handler."
 
   @doc "Start the firmware services."
-  def start_link(opts) do
-    GenStage.start_link(__MODULE__, [], opts)
+  def start_link do
+    GenStage.start_link(__MODULE__, [], [name: __MODULE__])
   end
+
+  @doc "Writes a Gcode to a the running hand:ler"
+  def write(code), do: @handler.write(code)
 
   def init([]) do
     {:producer_consumer, [], subscribe_to: [@handler]}
@@ -34,8 +54,8 @@ defmodule Farmbot.Firmware do
     {:location_data, %{position: %{x: x, y: y, z: z}}}
   end
 
-  def handle_gcode(_code) do
-    # Logger.warn "unhandled code: #{inspect code}"
+  def handle_gcode(code) do
+    Logger.warn "unhandled code: #{inspect code}"
     nil
   end
 end

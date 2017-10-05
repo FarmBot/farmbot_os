@@ -1,6 +1,6 @@
 defmodule Farmbot.Firmware.Gcode.Parser do
   @moduledoc """
-    Parses farmbot_arduino_firmware G-Codes.
+  Parses farmbot_arduino_firmware G-Codes.
   """
 
   require Logger

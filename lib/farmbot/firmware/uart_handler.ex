@@ -10,13 +10,13 @@ defmodule Farmbot.Firmware.UartHandler do
   @doc """
   Writes a string to the uart line
   """
-  def write(handler, string) do
-    GenStage.call(handler, {:write, string}, :infinity)
+  def write(code) do
+    GenStage.call(__MODULE__, {:write, code}, :infinity)
   end
 
   @doc "Starts a UART Firmware Handler."
-  def start_link(opts) do
-    GenStage.start_link(__MODULE__, [], opts)
+  def start_link do
+    GenStage.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
   ## Private
@@ -30,11 +30,13 @@ defmodule Farmbot.Firmware.UartHandler do
   end
 
   def init([]) do
+    # If in dev environment, it is expected that this be done at compile time.
+    # If ini target environment, this should be done by `Farmbot.Firmware.AutoDetector`. 
     tty = Application.get_env(:farmbot, :uart_handler)[:tty] || raise "Please configure uart handler!"
     {:ok, nerves} = UART.start_link()
     Process.link(nerves)
     case open_tty(nerves, tty) do
-      :ok -> {:producer, %State{nerves: nerves, codes: []}}
+      :ok -> {:producer, %State{nerves: nerves, codes: []}}  
       err -> {:stop, err, :no_state}
     end
   end
@@ -57,10 +59,13 @@ defmodule Farmbot.Firmware.UartHandler do
       rx_framing_timeout: 500)
   end
 
+  # if there is an error, we assume something bad has happened, and we probably
+  # Are better off crashing here, and being restarted.
   def handle_info({:nerves_uart, _, {:error, reason}}, state) do
     {:stop, {:error, reason}, state}
   end
 
+  # Unhandled gcodes just get ignored.
   def handle_info({:nerves_uart, _, {:unhandled_gcode, _code_str}}, state) do
     {:noreply, [], state}
   end
@@ -70,8 +75,8 @@ defmodule Farmbot.Firmware.UartHandler do
   end
 
   def handle_call({:write, stuff}, _from, state) do
-    UART.write(state.nerves, stuff)
-    {:reply, :ok, [], state}
+    r = UART.write(state.nerves, stuff)
+    {:reply, r, [], state}
   end
 
   def handle_demand(_amnt, state) do

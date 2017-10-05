@@ -3,14 +3,15 @@ defmodule Farmbot.Firmware.StubHandler do
   use GenStage
   require Logger
 
-  @doc "Start the firmware handler stub."
-  def start_link(opts) do
+  @behaviour Farmbot.Firmware.Handler
+
+  def start_link do
     Logger.warn("Firmware is being stubbed.")
-    GenStage.start_link(__MODULE__, [], opts)
+    GenStage.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
-  def write(handler, string) do
-    GenStage.call(handler, {:write, string})
+  def write(code) do
+    GenStage.call(__MODULE__, {:write, code})
   end
 
   def init([]) do
