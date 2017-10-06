@@ -32,6 +32,7 @@ defmodule Farmbot.CeleryScript.Command.Sequence do
         Logger.info "Sequence complete.", type: :success
         ctx
       {^pid, {:error, reason}} ->
+        Farmbot.CeleryScript.Command.EmergencyLock.run(%{}, [], old_context)
         raise Error, context: old_context,
           message: "sequence error: #{inspect reason}"
     end
