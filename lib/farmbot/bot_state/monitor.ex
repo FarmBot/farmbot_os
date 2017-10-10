@@ -20,7 +20,7 @@ defmodule Farmbot.BotState.Monitor do
       configuration: Configuration.t,
       jobs:          %{optional(binary) => JobProgress.t},
       process_info:  %{
-        farmwares: %{name: binary, uuid: binary, version: binary}
+        farmwares: %{name: binary, uuid: binary, version: binary, config: term}
       }
     }
     defstruct [

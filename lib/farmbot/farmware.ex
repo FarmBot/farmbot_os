@@ -15,7 +15,7 @@ defmodule Farmbot.Farmware do
       :description,
       :version,
       :min_os_version_major,
-      :zip
+      :zip,
     ]
 
     @typedoc "Various garbage we don't care that much about."
@@ -25,7 +25,7 @@ defmodule Farmbot.Farmware do
       language:             binary,
       version:              binary,
       author:               binary,
-      zip:                  binary
+      zip:                  binary,
     }
 
     defimpl Inspect, for: __MODULE__ do
@@ -41,7 +41,8 @@ defmodule Farmbot.Farmware do
     :meta,
     :args,
     :url,
-    :path
+    :path,
+    :config
   ]
 
   @typedoc """
@@ -80,14 +81,15 @@ defmodule Farmbot.Farmware do
     "url" => url,
     "zip" => zip,
     "executable" => exe,
-    "args" => args
-    }) do
+    "args" => args,
+    } = new) do
     %__MODULE__{
       executable: exe,
       args:       args,
       name:       name,
       url:        url,
       path:       "#{Installer.package_path()}/#{name}",
+      config:     new["config"] || [],
       meta: %Meta{
         min_os_version_major: min_os_version_major ,
         description:          description,

@@ -40,6 +40,10 @@
    "description": "the name of the executable",
    "type": "string"
   },
+  "config": {
+    "description": "optional config data",
+    "type": "array"
+  },
   "args": {
    "description": "arguments to the executable",
    "type": "array"
