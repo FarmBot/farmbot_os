@@ -5,14 +5,17 @@ defmodule Farmbot.Host.SystemTasks do
   require Logger
 
   def factory_reset(reason) do
-    Logger.debug "Host factory reset: #{inspect reason}"
+    Logger.error "Host factory reset: #{reason}"
     shutdown(reason)
   end
 
   def reboot(_reason) do
     Application.stop(:farmbot)
     Application.start(:farmbot)
+    :init.reboot()
   end
 
-  def shutdown(_reason), do: :init.stop()
+  def shutdown(_reason) do
+    :init.stop()
+  end
 end

@@ -105,18 +105,20 @@ defmodule Farmbot.Bootstrap.Supervisor do
         Logger.info "Successful authorization: #{@auth_task} - #{email} - #{server}"
         ConfigStorage.update_config_value(:bool, "settings", "first_boot", false)
         ConfigStorage.update_config_value(:string, "authorization", "token", token)
+        ConfigStorage.update_config_value(:string, "authorization", "last_shutdown_reason", nil)
         children = [
           supervisor(Farmbot.BotState.Supervisor,    [token, [name: Farmbot.BotState.Supervisor  ]]),
           supervisor(Farmbot.HTTP.Supervisor,        [token, [name: Farmbot.HTTP.Supervisor]]),
           supervisor(Farmbot.Repo.Supervisor,        [token, [name: Farmbot.Repo.Supervisor]]),
-          Plug.Adapters.Cowboy.child_spec(:http, Farmbot.Target.Bootstrap.Configurator.Router, [], [port: 4000]),
         ]
         opts = [strategy: :one_for_all]
         supervise(children, opts)
       # I don't actually _have_ to factory reset here. It would get detected ad
       # an application start fail and we would factory_reset from there,
       # the error message is just way more useful here.
-      {:error, reason} -> Farmbot.System.factory_reset(reason)
+      {:error, reason} ->
+        Farmbot.System.factory_reset(reason)
+        :ignore
       # If we got invalid json, just try again.
       # FIXME(Connor) Why does this happen?
       {:error, :invalid, _} -> actual_init(args, email, pass, server)

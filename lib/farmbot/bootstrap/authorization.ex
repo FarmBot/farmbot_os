@@ -31,7 +31,9 @@ defmodule Farmbot.Bootstrap.Authorization do
            Map.fetch(map,  "encoded")
          else
            :error -> {:error, "unknown error."}
-           err -> handle_error(err)
+           err ->
+             require IEx; IEx.pry
+             err
          end
   end
 
@@ -65,12 +67,4 @@ defmodule Farmbot.Bootstrap.Authorization do
     end
 
   end
-
-  defp handle_error({:error, {:failed_connect, [{:to_address, {domain, 443}}, {:inet, [:inet], :nxdomain}]}}) do
-    msg = "Failed to connect to #{domain}"
-    {:error, msg}
-  end
-
-  defp handle_error({:error, _reason} = error), do: error
-  defp handle_error({:error, :invalid, _} = error), do: error
 end

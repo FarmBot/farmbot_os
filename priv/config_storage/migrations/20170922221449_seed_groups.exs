@@ -31,6 +31,7 @@ defmodule Farmbot.System.ConfigStorage.Migrations.SeedGroups do
     create_value(StringValue, nil) |> create_config(group_id, "email")
     create_value(StringValue, nil) |> create_config(group_id, "password")
     create_value(StringValue, nil) |> create_config(group_id, "token")
+    create_value(StringValue, nil) |> create_config(group_id, "last_shutdown_reason")
   end
 
   defp populate_config_values("hardware", group_id) do

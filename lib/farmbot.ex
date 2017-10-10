@@ -44,10 +44,10 @@ defmodule Farmbot do
     name = Keyword.get(start_opts, :name, __MODULE__)
     case Supervisor.start_link(__MODULE__, [], [name: name]) do
       {:ok, pid}       -> {:ok, pid}
-      {:error, reason} ->
-        Logger.error "Doing factory_reset #{inspect reason}"
-        Farmbot.System.factory_reset(reason)
-        exit(reason)
+      error ->
+        Logger.error "Uncaught startup error!"
+        Farmbot.System.factory_reset(error)
+        exit(error)
     end
   end
 

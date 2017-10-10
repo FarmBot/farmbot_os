@@ -96,9 +96,8 @@ defmodule Farmbot.Mixfile do
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.14", only: :dev},
       {:excoveralls, "~> 0.6", only: :test},
-      {:mock, "~> 0.2.0", only: :test},
-      {:nerves_network, "~> 0.3"},
-      
+      {:mock, "~> 0.2.0", only: :test}
+
     ]
   end
 
@@ -125,7 +124,7 @@ defmodule Farmbot.Mixfile do
   end
 
   defp elixirc_paths(:dev, "host") do
-    ["./lib", "./nerves/host", "./nerves/target"]
+    ["./lib", "./nerves/host"]
   end
 
   defp elixirc_paths(:test, "host") do
