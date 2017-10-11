@@ -3,7 +3,7 @@ defmodule Farmbot.Firmware do
 
   use GenStage
   require Logger
-  
+
   defmodule Handler do
     @moduledoc """
     Any module that implements this behaviour should be a GenStage.
@@ -13,19 +13,19 @@ defmodule Farmbot.Firmware do
     will subscribe_to: the implementing handler. Events should be
     Gcodes as parsed by `Farmbot.Firmware.Gcode.Parser`.
     """
-    
+
     @doc "Start a firmware handler."
-    @callback start_link :: GenServer.on_start
+    @callback start_link :: GenServer.on_start()
 
     @doc "Write a gcode."
-    @callback write(Farmbot.Firmware.Gcode.t) :: :ok | {:error, term}
+    @callback write(Farmbot.Firmware.Gcode.t()) :: :ok | {:error, term}
   end
-  
-  @handler Application.get_env(:farmbot, :behaviour)[:firmware_handler] || raise "No fw handler."
+
+  @handler Application.get_env(:farmbot, :behaviour)[:firmware_handler] || raise("No fw handler.")
 
   @doc "Start the firmware services."
   def start_link do
-    GenStage.start_link(__MODULE__, [], [name: __MODULE__])
+    GenStage.start_link(__MODULE__, [], name: __MODULE__)
   end
 
   @doc "Writes a Gcode to a the running hand:ler"
@@ -41,8 +41,10 @@ defmodule Farmbot.Firmware do
 
   def handle_gcodes(codes, acc \\ [])
   def handle_gcodes([], acc), do: Enum.reverse(acc)
+
   def handle_gcodes([code | rest], acc) do
     res = handle_gcode(code)
+
     if res do
       handle_gcodes(rest, [res | acc])
     else
@@ -55,7 +57,7 @@ defmodule Farmbot.Firmware do
   end
 
   def handle_gcode(code) do
-    Logger.warn "unhandled code: #{inspect code}"
+    Logger.warn("unhandled code: #{inspect(code)}")
     nil
   end
 end

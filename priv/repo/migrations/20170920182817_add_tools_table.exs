@@ -3,11 +3,10 @@ defmodule Farmbot.Repo.Migrations.AddToolsTable do
 
   def change do
     create table("tools", primary_key: false) do
-      add :id, :integer
-      add :name, :string
+      add(:id, :integer)
+      add(:name, :string)
     end
 
-    create unique_index("tools", [:id])
-    
+    create(unique_index("tools", [:id]))
   end
 end

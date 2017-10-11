@@ -3,10 +3,10 @@ defmodule Farmbot.Repo.Migrations.AddRegimensTable do
 
   def change do
     create table("regimens", primary_key: false) do
-      add :id, :integer
-      add :name, :string
+      add(:id, :integer)
+      add(:name, :string)
     end
 
-    create unique_index("regimens", [:id])
+    create(unique_index("regimens", [:id]))
   end
 end

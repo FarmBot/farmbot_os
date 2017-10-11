@@ -13,10 +13,10 @@ defmodule Farmbot.System.Init.Ecto do
     :ignore
   end
 
-
   @doc "Replacement for Mix.Tasks.Ecto.Create"
   def setup do
     repos = Application.get_env(:farmbot, :ecto_repos)
+
     for repo <- repos do
       setup(repo)
     end
@@ -24,6 +24,7 @@ defmodule Farmbot.System.Init.Ecto do
 
   def setup(repo) do
     db_file = Application.get_env(:farmbot, repo)[:database]
+
     unless File.exists?(db_file) do
       :ok = repo.__adapter__.storage_up(repo.config)
     end
@@ -32,6 +33,7 @@ defmodule Farmbot.System.Init.Ecto do
   @doc "Replacement for Mix.Tasks.Ecto.Drop"
   def drop do
     repos = Application.get_env(:farmbot, :ecto_repos)
+
     for repo <- repos do
       case drop(repo) do
         :ok -> :ok
@@ -48,6 +50,7 @@ defmodule Farmbot.System.Init.Ecto do
   @doc "Replacement for Mix.Tasks.Ecto.Migrate"
   def migrate do
     repos = Application.get_env(:farmbot, :ecto_repos)
+
     for repo <- repos do
       # setup(repo)
       migrate(repo)
@@ -59,17 +62,24 @@ defmodule Farmbot.System.Init.Ecto do
     {:ok, pid, apps} = Mix.Ecto.ensure_started(repo, opts)
 
     migrator = &Ecto.Migrator.run/4
+
     migrations_path =
-      (Application.get_env(:farmbot, repo)[:priv] || Path.join((:code.priv_dir(:farmbot) |> to_string), Module.split(repo) |> List.last() |> Macro.underscore()))
+      (Application.get_env(:farmbot, repo)[:priv] ||
+         Path.join(
+           :code.priv_dir(:farmbot) |> to_string,
+           Module.split(repo) |> List.last() |> Macro.underscore()
+         ))
       |> Kernel.<>("/migrations")
 
-      pool = repo.config[:pool]
-      migrated =
-        if function_exported?(pool, :unboxed_run, 2) do
-          pool.unboxed_run(repo, fn -> migrator.(repo, migrations_path, :up, opts) end)
-        else
-          migrator.(repo, migrations_path, :up, opts)
-        end
+    pool = repo.config[:pool]
+
+    migrated =
+      if function_exported?(pool, :unboxed_run, 2) do
+        pool.unboxed_run(repo, fn -> migrator.(repo, migrations_path, :up, opts) end)
+      else
+        migrator.(repo, migrations_path, :up, opts)
+      end
+
     pid && repo.stop(pid)
     Mix.Ecto.restart_apps_if_migrated(apps, migrated)
     Process.sleep(500)

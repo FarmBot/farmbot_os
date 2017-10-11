@@ -15,7 +15,7 @@ defmodule Farmbot.SystemTest do
   end
 
   test "does shutdown" do
-    Farmbot.System.shutdown "see you soon!"
+    Farmbot.System.shutdown("see you soon!")
     last = Farmbot.Test.SystemTasks.fetch_last()
     assert last == {:shutdown, "see you soon!"}
   end

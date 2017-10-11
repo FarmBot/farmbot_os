@@ -13,7 +13,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
     require Logger
 
     @hostapd_conf_file "hostapd.conf"
-    @hostapd_pid_file  "hostapd.pid"
+    @hostapd_pid_file "hostapd.pid"
 
     @doc ~s"""
       Example:
@@ -26,17 +26,18 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
 
     def init(opts) do
       # We want to know if something does.
-      Process.flag :trap_exit, true
+      Process.flag(:trap_exit, true)
       interface = Keyword.fetch!(opts, :interface)
-      Logger.info ">> is starting hostapd on #{interface}"
+      Logger.info(">> is starting hostapd on #{interface}")
 
       {hostapd_port, hostapd_os_pid} = setup_hostapd(interface, "192.168.24.1")
 
-      state =  %State{
+      state = %State{
         hostapd: {hostapd_port, hostapd_os_pid},
         interface: interface,
         ip_addr: "192.168.24.1"
       }
+
       {:ok, state}
     end
 
@@ -46,36 +47,47 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
       # build the hostapd configuration
       hostapd_conf = build_hostapd_conf(interface, build_ssid())
       # build a config file
-      File.mkdir! "/tmp/hostapd"
-      File.write! "/tmp/hostapd/#{@hostapd_conf_file}", hostapd_conf
-      hostapd_cmd = "hostapd -P /tmp/hostapd/#{@hostapd_pid_file} " <>
-                    "/tmp/hostapd/#{@hostapd_conf_file}"
+      File.mkdir!("/tmp/hostapd")
+      File.write!("/tmp/hostapd/#{@hostapd_conf_file}", hostapd_conf)
+
+      hostapd_cmd =
+        "hostapd -P /tmp/hostapd/#{@hostapd_pid_file} " <> "/tmp/hostapd/#{@hostapd_conf_file}"
 
       hostapd_port = Port.open({:spawn, hostapd_cmd}, [:binary])
-      hostapd_os_pid = hostapd_port|> Port.info() |> Keyword.get(:os_pid)
+      hostapd_os_pid = hostapd_port |> Port.info() |> Keyword.get(:os_pid)
       {hostapd_port, hostapd_os_pid}
     end
 
     defp hostapd_ip_settings_up(interface, ip_addr) do
       :ok =
-        "ip" |> System.cmd(["link", "set", "#{interface}", "up"])
+        "ip"
+        |> System.cmd(["link", "set", "#{interface}", "up"])
         |> print_cmd
+
       :ok =
-        "ip" |> System.cmd(["addr", "add", "#{ip_addr}/24", "dev", "#{interface}"])
+        "ip"
+        |> System.cmd(["addr", "add", "#{ip_addr}/24", "dev", "#{interface}"])
         |> print_cmd
+
       :ok
     end
 
     defp hostapd_ip_settings_down(interface, ip_addr) do
       :ok =
-        "ip" |> System.cmd(["link", "set", "#{interface}", "down"])
+        "ip"
+        |> System.cmd(["link", "set", "#{interface}", "down"])
         |> print_cmd
+
       :ok =
-        "ip" |> System.cmd(["addr", "del", "#{ip_addr}/24", "dev", "#{interface}"])
+        "ip"
+        |> System.cmd(["addr", "del", "#{ip_addr}/24", "dev", "#{interface}"])
         |> print_cmd
+
       :ok =
-        "ip" |> System.cmd(["link", "set", "#{interface}", "up"])
+        "ip"
+        |> System.cmd(["link", "set", "#{interface}", "up"])
         |> print_cmd
+
       :ok
     end
 
@@ -91,28 +103,29 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
     end
 
     defp build_ssid do
-      node_str =
-        node() |> Atom.to_string
-      [name, "farmbot-" <> id] =
-        node_str |> String.split("@")
+      node_str = node() |> Atom.to_string()
+      [name, "farmbot-" <> id] = node_str |> String.split("@")
       name <> "-" <> id
     end
 
-    defp kill(os_pid),
-      do: :ok = "kill" |> System.cmd(["15", "#{os_pid}"]) |> print_cmd
+    defp kill(os_pid), do: :ok = "kill" |> System.cmd(["15", "#{os_pid}"]) |> print_cmd
 
     defp print_cmd({_, 0}), do: :ok
+
     defp print_cmd({res, num}) do
-      Logger.error ">> encountered an error (#{num}): #{res}"
+      Logger.error(">> encountered an error (#{num}): #{res}")
       :error
     end
 
     def handle_info({port, {:data, data}}, state) do
       {hostapd_port, _} = state.hostapd
+
       cond do
         port == hostapd_port ->
           handle_hostapd(data, state)
-        true -> {:noreply, state}
+
+        true ->
+          {:noreply, state}
       end
     end
 
@@ -126,13 +139,14 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
     defp handle_hostapd(_, state), do: {:noreply, state}
 
     def terminate(_, state) do
-      Logger.info ">> is stopping hostapd"
+      Logger.info(">> is stopping hostapd")
       {_hostapd_port, hostapd_pid} = state.hostapd
       :ok = kill(hostapd_pid)
       hostapd_ip_settings_down(state.interface, state.ip_addr)
-      File.rm_rf! "/tmp/hostapd"
+      File.rm_rf!("/tmp/hostapd")
     end
   end
+
   use GenServer
   require Logger
   @interface "wlan0"
@@ -142,14 +156,14 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
   end
 
   def init([]) do
-    Logger.debug "Starting captive portal."
+    Logger.debug("Starting captive portal.")
     {:ok, hostapd} = Hostapd.start_link(interface: @interface)
     {:ok, dhcp_server} = DHCPServer.start_link(interface: @interface)
     {:ok, %{hostapd: hostapd, dhcp_server: dhcp_server}}
   end
 
   def terminate(_, state) do
-    Logger.debug "Stopping captive portal."
+    Logger.debug("Stopping captive portal.")
     GenServer.stop(state.hostapd, :normal)
     GenServer.stop(state.dhcp_server, :normal)
   end

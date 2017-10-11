@@ -6,24 +6,25 @@ defmodule Farmbot.Jwt do
     :exp,
     :iss,
     :mqtt,
-    :os_update_server,
+    :os_update_server
   ]
 
   @typedoc "Type def for Farmbot Web Token."
   @type t :: %__MODULE__{
-    bot: binary,
-    exp: number,
-    iss: binary,
-    mqtt: binary,
-    os_update_server: binary,
-  }
+          bot: binary,
+          exp: number,
+          iss: binary,
+          mqtt: binary,
+          os_update_server: binary
+        }
 
   @doc "Decode a token."
   @spec decode(binary) :: {:ok, t} | {:error, term}
   def decode(tkn) do
     body = tkn |> String.split(".") |> Enum.at(1)
+
     with {:ok, json} <- Base.decode64(body, padding: false),
-         {:ok, jwt}  <- Poison.decode(json, as: %__MODULE__{}),
+         {:ok, jwt} <- Poison.decode(json, as: %__MODULE__{}),
          do: {:ok, jwt}
   end
 

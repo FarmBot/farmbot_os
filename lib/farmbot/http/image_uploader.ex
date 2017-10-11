@@ -15,8 +15,8 @@ defmodule Farmbot.HTTP.ImageUploader do
   end
 
   def init(http) do
-    File.rm_rf!   @images_path
-    File.mkdir_p! @images_path
+    File.rm_rf!(@images_path)
+    File.mkdir_p!(@images_path)
     :fs_app.start(:normal, [])
     :fs.subscribe()
     Process.flag(:trap_exit, true)
@@ -26,9 +26,9 @@ defmodule Farmbot.HTTP.ImageUploader do
   def handle_info({_pid, {:fs, :file_event}, {path, [:modified, :closed]}}, state) do
     if matches_any_pattern?(path, [~r{/tmp/images/.*(jpg|jpeg|png|gif)}]) do
       [x, y, z] = [-9000, -9000, -9000]
-      Logger.warn "FIX THIS"
+      Logger.warn("FIX THIS")
       meta = %{x: x, y: y, z: z}
-      pid = spawn __MODULE__, :upload, [state.http, path, meta]
+      pid = spawn(__MODULE__, :upload, [state.http, path, meta])
       {:noreply, %{state | uploads: Map.put(state.uploads, pid, {path, meta, 0})}}
     else
       {:noreply, state}
@@ -37,18 +37,24 @@ defmodule Farmbot.HTTP.ImageUploader do
 
   def handle_info({:EXIT, pid, reason}, state) do
     case state.uploads[pid] do
-      nil                   -> {:noreply, state}
+      nil ->
+        {:noreply, state}
+
       {path, _meta, 6 = ret} ->
-        Logger.error ">> failed to upload #{path} #{ret} times. Giving up."
-        File.rm path
+        Logger.error(">> failed to upload #{path} #{ret} times. Giving up.")
+        File.rm(path)
         {:noreply, %{state | uploads: Map.delete(state.uploads, pid)}}
-      {path, meta, retries}  ->
-        Logger.warn ">> faile to upload #{path} #{inspect reason}. Going to retry."
+
+      {path, meta, retries} ->
+        Logger.warn(">> faile to upload #{path} #{inspect(reason)}. Going to retry.")
         Process.sleep(1000 * retries)
-        new_pid = spawn __MODULE__, :upload, [state.http, path, meta]
-        new_uploads = state
+        new_pid = spawn(__MODULE__, :upload, [state.http, path, meta])
+
+        new_uploads =
+          state
           |> Map.delete(pid)
           |> Map.put(new_pid, {path, meta, retries + 1})
+
         {:noreply, %{state | uploads: new_uploads}}
     end
   end
@@ -61,15 +67,16 @@ defmodule Farmbot.HTTP.ImageUploader do
   #  /lib/phoenix_live_reload/channel.ex#L27
   defp matches_any_pattern?(path, patterns) do
     path = to_string(path)
+
     Enum.any?(patterns, fn pattern ->
       String.match?(path, pattern)
     end)
   end
 
   def upload(http, file_path, meta) do
-    Logger.info "Image Watcher trying to upload #{file_path}", type: :busy
+    Logger.info("Image Watcher trying to upload #{file_path}", type: :busy)
     Farmbot.HTTP.upload_file!(http, file_path, meta)
     File.rm!(file_path)
-    Logger.info "Image Watcher uploaded #{file_path}", type: :success
+    Logger.info("Image Watcher uploaded #{file_path}", type: :success)
   end
 end

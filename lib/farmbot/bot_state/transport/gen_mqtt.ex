@@ -10,13 +10,15 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
 
     @doc "Start a MQTT Client."
     def start_link(device, token, server) do
-      GenMQTT.start_link(__MODULE__, {device, server}, [
-        reconnect_timeout: 10_000,
-        username:          device,
-        password:          token,
-        timeout:           10_000,
-        host:              server
-      ])
+      GenMQTT.start_link(
+        __MODULE__,
+        {device, server},
+        reconnect_timeout: 10000,
+        username: device,
+        password: token,
+        timeout: 10000,
+        host: server
+      )
     end
 
     @doc "Push a bot state message."
@@ -38,24 +40,25 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
       Failed to authenticate with the message broker!
       This is likely a problem with your server/broker configuration.
       """
-      Logger.error ">> #{msg}"
+
+      Logger.error(">> #{msg}")
       Farmbot.System.factory_reset(msg)
       {:ok, state}
     end
 
     def on_connect_error(reason, state) do
-      Logger.error ">> Failed to connect to mqtt: #{inspect reason}"
+      Logger.error(">> Failed to connect to mqtt: #{inspect(reason)}")
       {:ok, state}
     end
 
     def on_connect(state) do
       GenMQTT.subscribe(self(), [{bot_topic(state.device), 0}])
-      Logger.info ">> Connected!"
+      Logger.info(">> Connected!")
       {:ok, %{state | connected: true}}
     end
 
     def on_publish(["bot", _bot, "from_clients"], msg, state) do
-      Logger.warn "not implemented yet: #{inspect msg}"
+      Logger.warn("not implemented yet: #{inspect(msg)}")
       {:ok, state}
     end
 
@@ -76,9 +79,9 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
     end
 
     defp frontend_topic(bot), do: "bot/#{bot}/from_device"
-    defp bot_topic(bot),      do: "bot/#{bot}/from_clients"
-    defp status_topic(bot),   do: "bot/#{bot}/status"
-    defp log_topic(bot),      do: "bot/#{bot}/logs"
+    defp bot_topic(bot), do: "bot/#{bot}/from_clients"
+    defp status_topic(bot), do: "bot/#{bot}/status"
+    defp log_topic(bot), do: "bot/#{bot}/logs"
   end
 
   @doc "Start the MQTT Transport."
@@ -104,14 +107,17 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
     for log <- logs do
       Client.push_bot_log(client, log)
     end
+
     {:noreply, [], {internal_state, old_bot_state}}
   end
 
   def handle_bot_state_events(events, {%{client: client} = internal_state, old_bot_state}) do
     new_bot_state = List.last(events)
+
     if new_bot_state != old_bot_state do
-      Client.push_bot_state client, new_bot_state
+      Client.push_bot_state(client, new_bot_state)
     end
+
     {:noreply, [], {internal_state, new_bot_state}}
   end
 end

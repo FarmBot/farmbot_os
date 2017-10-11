@@ -5,7 +5,8 @@ defmodule Farmbot.BotState.Lib.PartitionTest do
 
   alias Farmbot.BotState.Lib.Partition
 
-  defstruct [hello: 1, world: 1]
+  defstruct hello: 1, world: 1
+
   test "dispatches info properly." do
     public = %__MODULE__{}
     private = %Partition.PrivateState{bot_state_tracker: self(), public: public}
@@ -20,7 +21,7 @@ defmodule Farmbot.BotState.Lib.PartitionTest do
 
   defmodule TestPartA do
     @moduledoc false
-    defstruct [some_state_data: :default]
+    defstruct some_state_data: :default
     use Farmbot.BotState.Lib.Partition
 
     def force_push(ser), do: GenServer.call(ser, :force)
@@ -48,16 +49,15 @@ defmodule Farmbot.BotState.Lib.PartitionTest do
     def get_res(ser), do: GenServer.call(ser, :get_res)
 
     def handle_call({:put_test_fn, fun}, _, _), do: {:reply, :ok, fun}
-    def handle_call(:get_res, _, res),  do: {:reply, res, nil}
+    def handle_call(:get_res, _, res), do: {:reply, res, nil}
 
     def handle_cast(cast, fun) do
       {:noreply, fun.(cast)}
     end
-
   end
 
   test "ensures default behaviour." do
-    {:ok, bs} =  BotStateStub.start_link()
+    {:ok, bs} = BotStateStub.start_link()
     {:ok, pid} = TestPartA.start_link(bs, [])
 
     s = :sys.get_state(pid)
@@ -65,12 +65,11 @@ defmodule Farmbot.BotState.Lib.PartitionTest do
     assert match?(^pub, s.public)
     assert s.bot_state_tracker == bs
 
-    fun = fn(cast) -> cast end
+    fun = fn cast -> cast end
 
     :ok = BotStateStub.put_test_fn(bs, fun)
     TestPartA.force_push(pid)
     res = BotStateStub.get_res(bs)
-    assert match? {:update, TestPartA, ^pub}, res
-
+    assert match?({:update, TestPartA, ^pub}, res)
   end
 end

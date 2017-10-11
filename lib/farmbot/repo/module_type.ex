@@ -5,11 +5,14 @@ defmodule Farmbot.Repo.ModuleType do
 
   defmacro __using__(opts) do
     mods = Keyword.fetch!(opts, :valid_mods)
+
     quote do
       @valid_short_strs unquote(mods)
-      @valid_mods Enum.map(unquote(mods), fn(mod) -> Module.concat([Farmbot, Repo, mod]) end)
+      @valid_mods Enum.map(unquote(mods), fn mod -> Module.concat([Farmbot, Repo, mod]) end)
 
-      @moduledoc "Custom Ecto.Type for changing a string field to one of #{inspect @valid_short_strs}"
+      @moduledoc "Custom Ecto.Type for changing a string field to one of #{
+                   inspect(@valid_short_strs)
+                 }"
       @behaviour Ecto.Type
       require Logger
 
@@ -21,8 +24,8 @@ defmodule Farmbot.Repo.ModuleType do
         if match?(<<"Elixir.", _::binary>>, to_string(module)) do
           module
           |> Module.split()
-          |> List.last
-          |> fn(mod) -> {:ok, mod} end.()
+          |> List.last()
+          |> (fn mod -> {:ok, mod} end).()
         else
           :error
         end
@@ -47,10 +50,9 @@ defmodule Farmbot.Repo.ModuleType do
       end
 
       def dump(fail) do
-        Logger.error "failed to load #{inspect fail}"
+        Logger.error("failed to load #{inspect(fail)}")
         :error
       end
-
     end
   end
 end

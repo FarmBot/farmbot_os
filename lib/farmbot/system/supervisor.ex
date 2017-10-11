@@ -17,8 +17,10 @@ defmodule Farmbot.System.Supervisor do
       supervisor(Farmbot.System.ConfigStorage, [])
     ]
 
-    init_mods = Application.get_env(:farmbot, :init)
-      |> Enum.map(fn(child) -> fb_init(child, [args, [name: child]]) end)
-    supervise(children ++ init_mods, [strategy: :one_for_all])
+    init_mods =
+      Application.get_env(:farmbot, :init)
+      |> Enum.map(fn child -> fb_init(child, [args, [name: child]]) end)
+
+    supervise(children ++ init_mods, strategy: :one_for_all)
   end
 end

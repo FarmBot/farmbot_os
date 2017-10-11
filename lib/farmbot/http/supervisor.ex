@@ -12,8 +12,8 @@ defmodule Farmbot.HTTP.Supervisor do
     children = [
       worker(Farmbot.HTTP, [token, [name: Farmbot.HTTP]])
     ]
+
     opts = [strategy: :one_for_all]
     supervise(children, opts)
   end
-
 end

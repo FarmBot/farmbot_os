@@ -21,7 +21,9 @@ defmodule Farmbot.System.ConfigStorage.Migrations.SeedGroups do
 
   defp populate_config_values do
     for name <- @group_names do
-      [group_id] = (from g in Group, where: g.group_name == ^name, select: g.id) |> ConfigStorage.all()
+      [group_id] =
+        from(g in Group, where: g.group_name == ^name, select: g.id) |> ConfigStorage.all()
+
       populate_config_values(name, group_id)
     end
   end
@@ -39,25 +41,24 @@ defmodule Farmbot.System.ConfigStorage.Migrations.SeedGroups do
   end
 
   defp populate_config_values("hardware_params", group_id) do
-
   end
 
   defp populate_config_values("settings", group_id) do
     create_value(BoolValue, false) |> create_config(group_id, "os_auto_update")
-    create_value(BoolValue, true)  |> create_config(group_id, "first_boot")
-    create_value(BoolValue, true)  |> create_config(group_id, "first_party_farmware")
+    create_value(BoolValue, true) |> create_config(group_id, "first_boot")
+    create_value(BoolValue, true) |> create_config(group_id, "first_party_farmware")
     create_value(StringValue, nil) |> create_config(group_id, "timezone")
   end
 
   defp populate_config_values("user_env", group_id) do
-
   end
 
-
   defp create_config(value, group_id, key) do
-    %Config{group_id: group_id,
-            key: key}
-    |> Map.put(:"#{Module.split(value.__struct__) |> List.last() |> Macro.underscore()}_id", value.id)
+    %Config{group_id: group_id, key: key}
+    |> Map.put(
+         :"#{Module.split(value.__struct__) |> List.last() |> Macro.underscore()}_id",
+         value.id
+       )
     |> Config.changeset()
     |> ConfigStorage.insert!()
   end

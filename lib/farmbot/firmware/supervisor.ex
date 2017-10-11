@@ -11,10 +11,12 @@ defmodule Farmbot.Firmware.Supervisor do
 
   def init([]) do
     handler_mod = Application.get_env(:farmbot, :behaviour)[:firmware_handler] || raise @error_msg
+
     children = [
       worker(handler_mod, []),
       worker(Farmbot.Firmware, [])
     ]
+
     opts = [strategy: :one_for_one]
     supervise(children, opts)
   end

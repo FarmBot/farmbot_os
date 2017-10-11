@@ -8,7 +8,7 @@ defmodule Farmbot.HTTP.Helpers do
   """
   defmacro is_2xx(number) do
     quote do
-      (unquote(number) > 199) and (unquote(number) < 300)
+      unquote(number) > 199 and unquote(number) < 300
     end
   end
 end

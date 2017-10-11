@@ -5,7 +5,7 @@ defmodule Farmbot.System.ConfigStorage.BoolValue do
   import Ecto.Changeset
 
   schema "bool_values" do
-    field :value, :boolean
+    field(:value, :boolean)
   end
 
   @required_fields []

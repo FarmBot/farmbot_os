@@ -4,7 +4,7 @@ defmodule Farmbot.BotState.InformationalSettingsTest do
 
   use ExUnit.Case
 
-  @version Mix.Project.config[:version]
+  @version Mix.Project.config()[:version]
 
   setup do
     {:ok, bot_state_tracker} = Farmbot.BotState.start_link()
@@ -20,11 +20,12 @@ defmodule Farmbot.BotState.InformationalSettingsTest do
 
   test "checks sync_status enum" do
     import Settings.SyncStatus
+
     for sts <- [:locked, :maintenance, :sync_error, :sync_now, :synced, :syncing, :unknown] do
       assert status(sts)
     end
 
-    assert_raise RuntimeError, "unknown sync status: out_of_syc", fn() ->
+    assert_raise RuntimeError, "unknown sync status: out_of_syc", fn ->
       status(:out_of_syc)
     end
   end

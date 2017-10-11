@@ -5,7 +5,7 @@ defmodule Farmbot.Host.SystemTasks do
   require Logger
 
   def factory_reset(reason) do
-    Logger.error "Host factory reset: #{reason}"
+    Logger.error("Host factory reset: #{reason}")
     shutdown(reason)
   end
 

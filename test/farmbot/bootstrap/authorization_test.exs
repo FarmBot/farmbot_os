@@ -6,9 +6,18 @@ defmodule Farmbot.Bootstrap.AuthorizationTest do
   @moduletag :farmbot_api
 
   setup do
-    email  = Application.get_env(:farmbot, :authorization)[:email   ] || raise Auth.Error, "No email provided."
-    pass   = Application.get_env(:farmbot, :authorization)[:password] || raise Auth.Error, "No password provided."
-    server = Application.get_env(:farmbot, :authorization)[:server  ] || raise Auth.Error, "No server provided."
+    email =
+      Application.get_env(:farmbot, :authorization)[:email] ||
+        raise Auth.Error, "No email provided."
+
+    pass =
+      Application.get_env(:farmbot, :authorization)[:password] ||
+        raise Auth.Error, "No password provided."
+
+    server =
+      Application.get_env(:farmbot, :authorization)[:server] ||
+        raise Auth.Error, "No server provided."
+
     [email: email, password: pass, server: server]
   end
 
@@ -30,6 +39,9 @@ defmodule Farmbot.Bootstrap.AuthorizationTest do
     assert match?({:error, _}, res)
     {:error, message} = res
     # This shoud _probably_ be fixed on the API.
-    assert message == "Failed to authorize with the Farmbot web application at: #{ctx.server} with code: #{422}"
+    assert message ==
+             "Failed to authorize with the Farmbot web application at: #{ctx.server} with code: #{
+               422
+             }"
   end
 end

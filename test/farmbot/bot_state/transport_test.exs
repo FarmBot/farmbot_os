@@ -21,11 +21,10 @@ defmodule Farmbot.BotState.TransportTest do
     def log(_msg) do
       :ok
     end
-
   end
 
   setup_all do
-    {:ok, _tp} = StubTransport.start_link
+    {:ok, _tp} = StubTransport.start_link()
     old = Application.get_env(:farmbot, :transport)
     new = old ++ [StubTransport]
     Application.put_env(:farmbot, :transport, new)
@@ -34,7 +33,7 @@ defmodule Farmbot.BotState.TransportTest do
   test "emits an ast" do
     msg = %Ast{kind: "hello", args: %{}, body: []}
     resp = Transport.emit(msg)
-    Enum.map(resp, fn(res) -> assert res == :ok end)
+    Enum.map(resp, fn res -> assert res == :ok end)
   end
 
   test "logs a message" do
@@ -44,8 +43,8 @@ defmodule Farmbot.BotState.TransportTest do
       created_at: DateTime.utc_now(),
       channels: []
     }
-    resp = Transport.log(log)
-    Enum.map(resp, fn(res) -> assert res == :ok end)
-  end
 
+    resp = Transport.log(log)
+    Enum.map(resp, fn res -> assert res == :ok end)
+  end
 end

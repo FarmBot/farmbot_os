@@ -6,10 +6,7 @@ defmodule Farmbot.VirtualMachineTest do
 
   use ExUnit.Case
 
-  alias Farmbot.CeleryScript.{
-    Ast,
-    VirtualMachine
-  }
+  alias Farmbot.CeleryScript.{Ast, VirtualMachine}
 
   # alias VirtualMachine.RuntimeError, as: VmError
   # alias VirtualMachine.InstructionSet
@@ -23,13 +20,14 @@ defmodule Farmbot.VirtualMachineTest do
   test "raises on unknown instruction" do
     kind = "do_a_barrel_roll"
     ast = build_ast(kind)
-    assert_raise UndefinedInstructionError, "Undefined instruction: #{kind}", fn() ->
+
+    assert_raise UndefinedInstructionError, "Undefined instruction: #{kind}", fn ->
       VirtualMachine.step(%VirtualMachine{running: true, program: [ast]})
     end
   end
 
   test "doesn't step when `running: false`" do
-    vm  = %VirtualMachine{running: false, program: []}
+    vm = %VirtualMachine{running: false, program: []}
     new = VirtualMachine.step(vm)
     assert vm == new
   end

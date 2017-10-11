@@ -48,7 +48,7 @@ defmodule Farmbot.Firmware.Gcode.ParserTest do
 
   test "parses report position" do
     a = Farmbot.Firmware.Gcode.Parser.parse_code("R82 X1 Y2 Z3 Q10")
-    assert a == {"10", {:report_current_position, 1,2,3}}
+    assert a == {"10", {:report_current_position, 1, 2, 3}}
   end
 
   test "parses report calibration" do

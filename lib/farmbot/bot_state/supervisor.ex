@@ -12,6 +12,7 @@ defmodule Farmbot.BotState.Supervisor do
       worker(Farmbot.Logger, [[name: Farmbot.Logger]]),
       supervisor(Farmbot.BotState.Transport.Supervisor, [])
     ]
+
     supervise(children, strategy: :one_for_one)
   end
 end

@@ -8,10 +8,9 @@ defmodule Farmbot.CeleryScript.Ast do
 
   defimpl Inspect, for: __MODULE__ do
     def inspect(thing, _) do
-      "#CeleryScript<#{thing.kind}: #{inspect Map.keys(thing.args)}>"
+      "#CeleryScript<#{thing.kind}: #{inspect(Map.keys(thing.args))}>"
     end
   end
-
 
   @typedoc """
   CeleryScript args.
@@ -22,11 +21,11 @@ defmodule Farmbot.CeleryScript.Ast do
   Type for CeleryScript Ast's.
   """
   @type t :: %__MODULE__{
-    args:    args,
-    body:    [t, ...],
-    kind:    String.t,
-    comment: String.t | nil
-  }
+          args: args,
+          body: [t, ...],
+          kind: String.t(),
+          comment: String.t() | nil
+        }
 
   @enforce_keys [:args, :body, :kind]
   defstruct [:args, :body, :kind, :comment]
@@ -41,40 +40,35 @@ defmodule Farmbot.CeleryScript.Ast do
   def parse(%{"kind" => kind, "args" => args} = thing) do
     body = thing["body"] || []
     comment = thing["comment"]
-    %__MODULE__{kind: kind,
-      args: parse_args(args),
-      body: parse(body),
-      comment: comment}
+    %__MODULE__{kind: kind, args: parse_args(args), body: parse(body), comment: comment}
   end
 
   def parse(%{__struct__: _} = thing) do
-    thing |> Map.from_struct |> parse
+    thing |> Map.from_struct() |> parse
   end
 
   def parse(%{kind: kind, args: args} = thing) do
     body = thing[:body] || []
     comment = thing[:comment]
-    %__MODULE__{kind: kind,
-      body: parse(body),
-      args: parse_args(args),
-      comment: comment}
+    %__MODULE__{kind: kind, body: parse(body), args: parse_args(args), comment: comment}
   end
 
   # You can give a list of nodes.
   def parse(body) when is_list(body) do
-    Enum.reduce(body, [], fn(blah, acc) ->
+    Enum.reduce(body, [], fn blah, acc ->
       acc ++ [parse(blah)]
     end)
   end
 
-  def parse(other_thing), do: raise Error, message: "#{inspect other_thing} could not be parsed as CeleryScript."
+  def parse(other_thing),
+    do: raise(Error, message: "#{inspect(other_thing)} could not be parsed as CeleryScript.")
 
   # TODO: This is a pretty heavy memory leak, what should happen is
   # The corpus should create a bunch of atom, and then this should be
   # Strint.to_existing_atom
   @spec parse_args(map) :: map
   def parse_args(map) when is_map(map) do
-    Enum.reduce(map, %{}, fn ({key, val}, acc) ->
+    Enum.reduce(map, %{}, fn {key, val}, acc ->
       if is_map(val) do
         # if it is a map, it could be another node so parse it too.
         real_val = parse(val)

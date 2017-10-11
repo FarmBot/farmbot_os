@@ -7,7 +7,7 @@ defmodule Farmbot.Repo.Regimen do
   import Ecto.Changeset
 
   schema "regimens" do
-    field :name, :string
+    field(:name, :string)
   end
 
   use Farmbot.Repo.Syncable

@@ -5,7 +5,7 @@ defmodule Farmbot.Repo.Tool do
   import Ecto.Changeset
 
   schema "tools" do
-    field :name, :string
+    field(:name, :string)
   end
 
   use Farmbot.Repo.Syncable

@@ -5,15 +5,15 @@ defmodule Farmbot.System.ConfigStorage.NetworkInterface do
   import Ecto.Changeset
 
   schema "network_interfaces" do
-    field :name, :string, null: false
-    field :type, :string, null: false
+    field(:name, :string, null: false)
+    field(:type, :string, null: false)
 
     ## For wireless interfaces
-    field :ssid, :string
-    field :psk,  :string
-    field :security, :string
+    field(:ssid, :string)
+    field(:psk, :string)
+    field(:security, :string)
 
-    field :ipv4_method, :string
+    field(:ipv4_method, :string)
   end
 
   @required_fields [:name, :type]

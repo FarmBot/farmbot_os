@@ -13,11 +13,12 @@ defmodule Farmbot.Firmware.Gcode.Parser do
   def parse_code("R03 Q" <> tag), do: {tag, :error}
   def parse_code("R04 Q" <> tag), do: {tag, :busy}
 
-  def parse_code("R05" <> _r), do: {nil, :noop} # Dont care about this.
+  # Dont care about this.
+  def parse_code("R05" <> _r), do: {nil, :noop}
   def parse_code("R06 " <> r), do: parse_report_calibration(r)
   def parse_code("R07 " <> _), do: {nil, :noop}
 
-  def parse_code("R20 Q" <> tag),   do: {tag, :report_params_complete}
+  def parse_code("R20 Q" <> tag), do: {tag, :report_params_complete}
   def parse_code("R21 " <> params), do: parse_pvq(params, :report_parameter_value)
   def parse_code("R23 " <> params), do: parse_report_axis_calibration(params)
   def parse_code("R31 " <> params), do: parse_pvq(params, :report_status_value)
@@ -27,19 +28,26 @@ defmodule Farmbot.Firmware.Gcode.Parser do
   def parse_code("R82 " <> p), do: report_xyz(p, :report_current_position)
   def parse_code("R83 " <> v), do: parse_version(v)
 
-  def parse_code("R84 " <> p),  do: report_xyz(p, :report_encoder_position_scaled)
-  def parse_code("R85 " <> p),  do: report_xyz(p, :report_encoder_position_raw)
+  def parse_code("R84 " <> p), do: report_xyz(p, :report_encoder_position_scaled)
+  def parse_code("R85 " <> p), do: report_xyz(p, :report_encoder_position_raw)
   def parse_code("R87 Q" <> q), do: {q, :report_emergency_lock}
 
-  def parse_code("R99 " <> message) do {nil, {:debug_message, message}} end
-  def parse_code("Command" <> _), do: {nil, :noop} # I think this is a bug
-  def parse_code(code)  do {:unhandled_gcode, code} end
+  def parse_code("R99 " <> message) do
+    {nil, {:debug_message, message}}
+  end
 
-  @spec parse_report_calibration(binary)
-    :: {binary, {:report_calibration, binary, binary}}
+  # I think this is a bug
+  def parse_code("Command" <> _), do: {nil, :noop}
+
+  def parse_code(code) do
+    {:unhandled_gcode, code}
+  end
+
+  @spec parse_report_calibration(binary) :: {binary, {:report_calibration, binary, binary}}
   defp parse_report_calibration(r) do
     [axis_and_status | [q]] = String.split(r, " Q")
-    <<a :: size(8), b :: size(8)>> = axis_and_status
+    <<a::size(8), b::size(8)>> = axis_and_status
+
     case <<b>> do
       "0" -> {q, {:report_calibration, <<a>>, :idle}}
       "1" -> {q, {:report_calibration, <<a>>, :home}}
@@ -49,8 +57,9 @@ defmodule Farmbot.Firmware.Gcode.Parser do
 
   defp parse_report_axis_calibration(params) do
     ["P" <> parm, "V" <> val, "Q" <> tag] = String.split(params, " ")
+
     if parm in ["141", "142", "143"] do
-      uh  = :report_axis_calibration
+      uh = :report_axis_calibration
       msg = {uh, parse_param(parm), String.to_integer(val)}
       {tag, msg}
     else
@@ -64,20 +73,17 @@ defmodule Farmbot.Firmware.Gcode.Parser do
     {code, {:report_software_version, derp}}
   end
 
-  @type reporter :: :report_current_position
-    | :report_encoder_position_scaled
-    | :report_encoder_position_raw
+  @type reporter ::
+          :report_current_position
+          | :report_encoder_position_scaled
+          | :report_encoder_position_raw
 
-  @spec report_xyz(binary, reporter)
-  :: {binary, {reporter, binary, binary, binary}}
+  @spec report_xyz(binary, reporter) :: {binary, {reporter, binary, binary, binary}}
   defp report_xyz(position, reporter) when is_bitstring(position),
     do: position |> String.split(" ") |> do_parse_pos(reporter)
 
   defp do_parse_pos(["X" <> x, "Y" <> y, "Z" <> z, "Q" <> tag], reporter) do
-    {tag, {reporter,
-      String.to_integer(x),
-      String.to_integer(y),
-      String.to_integer(z)}}
+    {tag, {reporter, String.to_integer(x), String.to_integer(y), String.to_integer(z)}}
   end
 
   @doc ~S"""
@@ -86,33 +92,37 @@ defmodule Farmbot.Firmware.Gcode.Parser do
       iex> Gcode.parse_end_stops("XA1 XB1 YA0 YB1 ZA0 ZB1 Q123")
       {:report_end_stops, "1", "1", "0", "1", "0", "1", "123"}
   """
-  @spec parse_end_stops(binary)
-  :: {:report_end_stops,
-      binary,
-      binary,
-      binary,
-      binary,
-      binary,
-      binary,
-      binary}
-  def parse_end_stops(
-    <<
-      "XA", xa :: size(8), 32,
-      "XB", xb :: size(8), 32,
-      "YA", ya :: size(8), 32,
-      "YB", yb :: size(8), 32,
-      "ZA", za :: size(8), 32,
-      "ZB", zb :: size(8), 32,
-      "Q", tag :: binary
-    >>), do: {tag, {:report_end_stops,
-              xa |> pes,
-              xb |> pes,
-              ya |> pes,
-              yb |> pes,
-              za |> pes,
-              zb |> pes}}
+  @spec parse_end_stops(binary) ::
+          {:report_end_stops, binary, binary, binary, binary, binary, binary, binary}
+  def parse_end_stops(<<
+        "XA",
+        xa::size(8),
+        32,
+        "XB",
+        xb::size(8),
+        32,
+        "YA",
+        ya::size(8),
+        32,
+        "YB",
+        yb::size(8),
+        32,
+        "ZA",
+        za::size(8),
+        32,
+        "ZB",
+        zb::size(8),
+        32,
+        "Q",
+        tag::binary
+      >>),
+      do: {
+        tag,
+        {:report_end_stops, xa |> pes, xb |> pes, ya |> pes, yb |> pes, za |> pes, zb |> pes}
+      }
 
-  @spec pes(48 | 49) :: 0 | 1 # lol
+  # lol
+  @spec pes(48 | 49) :: 0 | 1
   defp pes(48), do: 0
   defp pes(49), do: 1
 
@@ -126,24 +136,21 @@ defmodule Farmbot.Firmware.Gcode.Parser do
       iex> Gcode.parse_pvq("P20 V100 Q12", :report_parameter_value)
       {:report_parameter_value, "20" ,"100", "12"}
   """
-  @spec parse_pvq(binary, :report_parameter_value)
-  :: {:report_parameter_value, atom, integer, String.t}
+  @spec parse_pvq(binary, :report_parameter_value) ::
+          {:report_parameter_value, atom, integer, String.t()}
   def parse_pvq(params, :report_parameter_value)
-  when is_bitstring(params),
-    do: params |> String.split(" ") |> do_parse_params
+      when is_bitstring(params),
+      do: params |> String.split(" ") |> do_parse_params
 
   def parse_pvq(params, human_readable_param_name)
-  when is_bitstring(params)
-   and is_atom(human_readable_param_name),
-   do: params |> String.split(" ") |> do_parse_pvq(human_readable_param_name)
+      when is_bitstring(params) and is_atom(human_readable_param_name),
+      do: params |> String.split(" ") |> do_parse_pvq(human_readable_param_name)
 
   defp do_parse_pvq([p, v, q], human_readable_param_name) do
     [_, rp] = String.split(p, "P")
     [_, rv] = String.split(v, "V")
     [_, rq] = String.split(q, "Q")
-    {rq, {human_readable_param_name,
-     String.to_integer(rp),
-     String.to_integer(rv)}}
+    {rq, {human_readable_param_name, String.to_integer(rp), String.to_integer(rv)}}
   end
 
   defp do_parse_params([p, v, q]) do
@@ -293,7 +300,6 @@ defmodule Farmbot.Firmware.Gcode.Parser do
   def parse_param(:param_e_stop_on_mov_err), do: 4
   def parse_param(:param_mov_nr_retry), do: 5
 
-
   def parse_param(:movement_timeout_x), do: 11
   def parse_param(:movement_timeout_y), do: 12
   def parse_param(:movement_timeout_z), do: 13
@@ -398,13 +404,16 @@ defmodule Farmbot.Firmware.Gcode.Parser do
   def parse_param(:pin_guard_5_active_state), do: 223
 
   def parse_param(param_string) when is_bitstring(param_string),
-    do: param_string |> String.to_atom |> parse_param
+    do: param_string |> String.to_atom() |> parse_param
 
   # derp.
-  if Mix.env == :dev do
+  if Mix.env() == :dev do
     def parse_param(uhh) do
-      Logger.error("Unrecognized param needs implementation " <>
-        "#{inspect uhh}", rollbar: false)
+      Logger.error(
+        "Unrecognized param needs implementation " <> "#{inspect(uhh)}",
+        rollbar: false
+      )
+
       nil
     end
   else

@@ -3,10 +3,9 @@ defmodule Farmbot.Repo.Migrations.AddGenericPointersTable do
 
   def change do
     create table("generic_pointers", primary_key: false) do
-      add :id, :integer
+      add(:id, :integer)
     end
 
-    create unique_index("generic_pointers", [:id])
-    
+    create(unique_index("generic_pointers", [:id]))
   end
 end

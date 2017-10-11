@@ -2,33 +2,28 @@ defmodule Farmbot.CeleryScript.VirtualMachine do
   @moduledoc "Virtual Machine."
 
   alias Farmbot.CeleryScript.Ast
-  alias Farmbot.CeleryScript.VirtualMachine.{
-    InstructionSet,
-    StackFrame
-  }
+  alias Farmbot.CeleryScript.VirtualMachine.{InstructionSet, StackFrame}
   require Logger
   alias Farmbot.CeleryScript.VirtualMachine.RuntimeError, as: VmError
 
-  @typep instruction_set :: InstructionSet.t
-  @typep ast :: Ast.t
-  @typep stack_frame :: StackFrame.t
+  @typep instruction_set :: InstructionSet.t()
+  @typep ast :: Ast.t()
+  @typep stack_frame :: StackFrame.t()
 
-  defstruct [
-    instruction_set: %InstructionSet{},
-    call_stack: [],
-    program: [],
-    pc: -1,
-    running: true
-  ]
+  defstruct instruction_set: %InstructionSet{},
+            call_stack: [],
+            program: [],
+            pc: -1,
+            running: true
 
   @typedoc "State of a virtual machine."
   @type t :: %__MODULE__{
-    instruction_set: instruction_set,
-    call_stack: [stack_frame],
-    program: [ast],
-    pc: integer,
-    running: boolean,
-  }
+          instruction_set: instruction_set,
+          call_stack: [stack_frame],
+          program: [ast],
+          pc: integer,
+          running: boolean
+        }
 
   # increment the program counter by one.
   defp inc_pc(%__MODULE__{pc: pc} = vm), do: %{vm | pc: pc + 1}
@@ -44,7 +39,7 @@ defmodule Farmbot.CeleryScript.VirtualMachine do
   defp do_step(%__MODULE__{} = vm) do
     case vm.program |> Enum.at(vm.pc) do
       %Ast{kind: kind, args: args, body: body} = ast ->
-        Logger.info "Doing #{inspect ast}"
+        Logger.info("Doing #{inspect(ast)}")
 
         # Turn kind into an instruction
         instruction = Module.concat([kind])
@@ -55,6 +50,7 @@ defmodule Farmbot.CeleryScript.VirtualMachine do
         # Build a new stack frame and put it on the stack.
         sf = %StackFrame{return_address: vm.pc, args: args, body: body}
         vm = %{vm | call_stack: [sf | vm.call_stack]}
+
         try do
           # Execute the implementation.
           impl.eval(vm)
@@ -62,7 +58,9 @@ defmodule Farmbot.CeleryScript.VirtualMachine do
           ex in VmError -> reraise(ex, System.stacktrace())
           ex -> raise VmError, machine: vm, exception: ex
         end
-      nil -> %{vm | running: false}
+
+      nil ->
+        %{vm | running: false}
     end
   end
 end

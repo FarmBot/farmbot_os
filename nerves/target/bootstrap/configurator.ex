@@ -1,4 +1,4 @@
-defmodule  Farmbot.Target.Bootstrap.Configurator do
+defmodule Farmbot.Target.Bootstrap.Configurator do
   @moduledoc """
   This init module is used to bring up initial configuration.
   If it can't find a configuration it will bring up a captive portal for a device to connect to.
@@ -20,12 +20,15 @@ defmodule  Farmbot.Target.Bootstrap.Configurator do
   reset and the user will need to configureate again.
   """
   def start_link(_, opts) do
-    Logger.info "Configuring Farmbot."
+    Logger.info("Configuring Farmbot.")
     supervisor = Supervisor.start_link(__MODULE__, [self()], opts)
+
     case supervisor do
       {:ok, pid} ->
         wait(pid)
-      :ignore -> :ignore
+
+      :ignore ->
+        :ignore
     end
   end
 
@@ -40,14 +43,22 @@ defmodule  Farmbot.Target.Bootstrap.Configurator do
 
   def init(_) do
     first_boot? = ConfigStorage.get_config_value(:bool, "settings", "first_boot")
+
     if first_boot? do
-      Logger.info "Building new configuration."
+      Logger.info("Building new configuration.")
       import Supervisor.Spec
       :ets.new(:session, [:named_table, :public, read_concurrency: true])
+
       children = [
-        Plug.Adapters.Cowboy.child_spec(:http, Farmbot.Target.Bootstrap.Configurator.Router, [], [port: 80]),
+        Plug.Adapters.Cowboy.child_spec(
+          :http,
+          Farmbot.Target.Bootstrap.Configurator.Router,
+          [],
+          port: 80
+        ),
         worker(Farmbot.Target.Bootstrap.Configurator.CaptivePortal, [])
       ]
+
       opts = [strategy: :one_for_one]
       supervise(children, opts)
     else

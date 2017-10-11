@@ -7,7 +7,7 @@ defmodule Farmbot.Firmware.StubHandler do
 
   def start_link do
     Logger.warn("Firmware is being stubbed.")
-    GenStage.start_link(__MODULE__, [], [name: __MODULE__])
+    GenStage.start_link(__MODULE__, [], name: __MODULE__)
   end
 
   def write(code) do

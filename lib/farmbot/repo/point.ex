@@ -5,12 +5,12 @@ defmodule Farmbot.Repo.Point do
   import Ecto.Changeset
 
   schema "points" do
-    field :name, :string
-    field :x, Farmbot.Repo.JSONFloatType
-    field :y, Farmbot.Repo.JSONFloatType
-    field :z, Farmbot.Repo.JSONFloatType
-    field :meta, Farmbot.Repo.JSONType
-    field :pointer_type, Farmbot.Repo.ModuleType.Point
+    field(:name, :string)
+    field(:x, Farmbot.Repo.JSONFloatType)
+    field(:y, Farmbot.Repo.JSONFloatType)
+    field(:z, Farmbot.Repo.JSONFloatType)
+    field(:meta, Farmbot.Repo.JSONType)
+    field(:pointer_type, Farmbot.Repo.ModuleType.Point)
   end
 
   use Farmbot.Repo.Syncable

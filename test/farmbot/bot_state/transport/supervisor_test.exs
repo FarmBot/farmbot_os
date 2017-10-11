@@ -20,8 +20,9 @@ defmodule Farmbot.BotState.Transport.SupervisorTest do
   defmodule TestTransport do
     @moduledoc false
     use GenServer
+
     def start_link(token, bot_state_tracker) do
-      GenServer.start_link(__MODULE__, [token, bot_state_tracker], [name: __MODULE__])
+      GenServer.start_link(__MODULE__, [token, bot_state_tracker], name: __MODULE__)
     end
 
     def log(_), do: :ok

@@ -11,17 +11,25 @@ defmodule Farmbot.Repo.FarmEvent do
   import Ecto.Changeset
 
   schema "farm_events" do
-    field :start_time,      :utc_datetime
-    field :end_time,        :utc_datetime
-    field :repeat,          :integer
-    field :time_unit,       :string
-    field :executable_type, Farmbot.Repo.ModuleType.FarmEvent
-    field :executable_id,   :integer
+    field(:start_time, :utc_datetime)
+    field(:end_time, :utc_datetime)
+    field(:repeat, :integer)
+    field(:time_unit, :string)
+    field(:executable_type, Farmbot.Repo.ModuleType.FarmEvent)
+    field(:executable_id, :integer)
   end
 
   use Farmbot.Repo.Syncable
-  @required_fields [:id, :start_time, :end_time, :repeat,
-                    :time_unit, :executable_type, :executable_id]
+
+  @required_fields [
+    :id,
+    :start_time,
+    :end_time,
+    :repeat,
+    :time_unit,
+    :executable_type,
+    :executable_id
+  ]
 
   def changeset(farm_event, params \\ %{}) do
     farm_event
@@ -30,5 +38,4 @@ defmodule Farmbot.Repo.FarmEvent do
     |> validate_required(@required_fields)
     |> unique_constraint(:id)
   end
-
 end

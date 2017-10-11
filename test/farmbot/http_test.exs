@@ -11,7 +11,7 @@ defmodule Farmbot.HTTPTest do
   end
 
   test "bang functions raise an error", %{http: http} do
-    assert_raise HTTP.Error, fn() ->
+    assert_raise HTTP.Error, fn ->
       HTTP.request!(http, :get, "https://some_not_real_url.blerp")
     end
   end
@@ -107,7 +107,7 @@ defmodule Farmbot.HTTPTest do
 
   @tag :httpbin
   test "raises if the response isnt 2xx", %{http: http} do
-    assert_raise HTTP.Error, fn() ->
+    assert_raise HTTP.Error, fn ->
       HTTP.request!(http, :get, "https://httpbin.org/status/404")
     end
   end
@@ -117,5 +117,4 @@ defmodule Farmbot.HTTPTest do
     refute match?({:ok, _}, r)
     assert r.status_code == 200
   end
-
 end

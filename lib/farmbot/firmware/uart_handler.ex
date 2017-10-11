@@ -16,7 +16,7 @@ defmodule Farmbot.Firmware.UartHandler do
 
   @doc "Starts a UART Firmware Handler."
   def start_link do
-    GenStage.start_link(__MODULE__, [], [name: __MODULE__])
+    GenStage.start_link(__MODULE__, [], name: __MODULE__)
   end
 
   ## Private
@@ -31,12 +31,15 @@ defmodule Farmbot.Firmware.UartHandler do
 
   def init([]) do
     # If in dev environment, it is expected that this be done at compile time.
-    # If ini target environment, this should be done by `Farmbot.Firmware.AutoDetector`. 
-    tty = Application.get_env(:farmbot, :uart_handler)[:tty] || raise "Please configure uart handler!"
+    # If ini target environment, this should be done by `Farmbot.Firmware.AutoDetector`.
+    tty =
+      Application.get_env(:farmbot, :uart_handler)[:tty] || raise "Please configure uart handler!"
+
     {:ok, nerves} = UART.start_link()
     Process.link(nerves)
+
     case open_tty(nerves, tty) do
-      :ok -> {:producer, %State{nerves: nerves, codes: []}}  
+      :ok -> {:producer, %State{nerves: nerves, codes: []}}
       err -> {:stop, err, :no_state}
     end
   end
@@ -48,15 +51,19 @@ defmodule Farmbot.Firmware.UartHandler do
         # Flush the buffers so we start fresh
         :ok = UART.flush(nerves)
         :ok
-      err -> err
+
+      err ->
+        err
     end
   end
 
   defp configure_uart(nerves, active) do
-    UART.configure(nerves,
+    UART.configure(
+      nerves,
       framing: {UART.Framing.Line, separator: "\r\n"},
       active: active,
-      rx_framing_timeout: 500)
+      rx_framing_timeout: 500
+    )
   end
 
   # if there is an error, we assume something bad has happened, and we probably
@@ -86,5 +93,4 @@ defmodule Farmbot.Firmware.UartHandler do
   defp do_dispatch(codes, state) do
     {:noreply, Enum.reverse(codes), %{state | codes: []}}
   end
-
 end

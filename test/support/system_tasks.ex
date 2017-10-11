@@ -32,10 +32,11 @@ defmodule Farmbot.Test.SystemTasks do
 
   defp fetch_pid do
     maybe_pid = Process.whereis(__MODULE__)
+
     if is_pid(maybe_pid) do
       maybe_pid
     else
-      {:ok, pid} = GenServer.start_link(__MODULE__, [], [name: __MODULE__])
+      {:ok, pid} = GenServer.start_link(__MODULE__, [], name: __MODULE__)
       pid
     end
   end
@@ -55,5 +56,4 @@ defmodule Farmbot.Test.SystemTasks do
   def handle_call(:fetch_last, _, [last | _rest] = state) do
     {:reply, last, state}
   end
-
 end

@@ -30,42 +30,57 @@ defmodule Farmbot.Repo do
   @doc false
   defmacro __using__(_) do
     quote do
-
-
       @moduledoc "Storage for Farmbot Resources."
       use Ecto.Repo, otp_app: :farmbot, adapter: Sqlite.Ecto2
 
       alias Farmbot.Repo.{
-        FarmEvent, GenericPointer, Peripheral,
-        Point, Regimen, Sequence, ToolSlot, Tool
-      }
+              FarmEvent,
+              GenericPointer,
+              Peripheral,
+              Point,
+              Regimen,
+              Sequence,
+              ToolSlot,
+              Tool
+            }
 
-      @default_syncables [FarmEvent, GenericPointer, Peripheral,
-                          Point, Regimen, Sequence, ToolSlot, Tool]
+      @default_syncables [
+        FarmEvent,
+        GenericPointer,
+        Peripheral,
+        Point,
+        Regimen,
+        Sequence,
+        ToolSlot,
+        Tool
+      ]
 
       @doc "A list of all the resources."
-      def syncables, do: Application.get_env(:farmbot, :repo)[:farmbot_syncables] || @default_syncables
+      def syncables,
+        do: Application.get_env(:farmbot, :repo)[:farmbot_syncables] || @default_syncables
 
       @doc "Sync all the modules that export a `sync/1` function."
       def sync!(http \\ Farmbot.HTTP) do
         for syncable <- syncables() do
           if Code.ensure_loaded?(syncable) and function_exported?(syncable, :sync!, 2) do
-            spawn fn() ->
+            spawn(fn ->
               syncable.sync!(__MODULE__, http)
-            end
+            end)
+
             :ok
           end
+
           :ok
         end
+
         :ok
       end
-
-
     end
   end
 end
 
 repos = [Farmbot.Repo.A, Farmbot.Repo.B]
+
 for repo <- repos do
   defmodule repo do
     use Farmbot.Repo

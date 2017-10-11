@@ -1,8 +1,8 @@
 use Mix.Config
 
 # Mix configs.
-target = Mix.Project.config[:target]
-env    = Mix.env()
+target = Mix.Project.config()[:target]
+env = Mix.env()
 
 config :logger, utc_log: true
 
@@ -34,12 +34,11 @@ config :farmbot, :init, []
 config :farmbot, :transport, []
 
 # Configure Farmbot Behaviours.
-config :farmbot, :behaviour, [
+config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
-  firmware_handler: Farmbot.Firmware.StubHandler,
-]
+  firmware_handler: Farmbot.Firmware.StubHandler
 
-repos = [Farmbot.Repo.A,  Farmbot.Repo.B, Farmbot.System.ConfigStorage]
+repos = [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage]
 config :farmbot, ecto_repos: repos
 
 for repo <- [Farmbot.Repo.A, Farmbot.Repo.B] do
@@ -53,7 +52,9 @@ config :farmbot, Farmbot.System.ConfigStorage,
   database: "config-#{env}.sqlite3"
 
 case target do
-  "host" -> import_config("host/#{env}.exs")
+  "host" ->
+    import_config("host/#{env}.exs")
+
   _ ->
     if File.exists?("config/#{target}/#{env}.exs") do
       import_config("#{target}/#{env}.exs")
@@ -61,9 +62,9 @@ case target do
       import_config("target/#{env}.exs")
     end
 
-    rootfs_overlay_dir = "config/target/rootfs_overlay_#{Mix.Project.config[:target]}"
+    rootfs_overlay_dir = "config/target/rootfs_overlay_#{Mix.Project.config()[:target]}"
+
     if File.exists?(rootfs_overlay_dir) do
-      config :nerves, :firmware,
-        rootfs_overlay: rootfs_overlay_dir
+      config :nerves, :firmware, rootfs_overlay: rootfs_overlay_dir
     end
 end

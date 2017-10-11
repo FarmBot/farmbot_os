@@ -5,7 +5,7 @@ defmodule Farmbot.System.ConfigStorage.FloatValue do
   import Ecto.Changeset
 
   schema "float_values" do
-    field :value, :string
+    field(:value, :string)
   end
 
   @required_fields []

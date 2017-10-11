@@ -3,11 +3,10 @@ defmodule Farmbot.Repo.Migrations.AddToolSlotsTable do
 
   def change do
     create table("tool_slots", primary_key: false) do
-      add :id, :integer
-      add :tool_id, :integer
+      add(:id, :integer)
+      add(:tool_id, :integer)
     end
 
-    create unique_index("tool_slots", [:id])
-
+    create(unique_index("tool_slots", [:id]))
   end
 end

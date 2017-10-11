@@ -3,11 +3,12 @@ defmodule Farmbot.Repo.Migrations.AddPeripheralsTable do
 
   def change do
     create table("peripherals", primary_key: false) do
-      add :id, :integer
-      add :pin, :integer
-      add :mode, :integer
-      add :label, :string
+      add(:id, :integer)
+      add(:pin, :integer)
+      add(:mode, :integer)
+      add(:label, :string)
     end
-    create unique_index("peripherals", [:id])
+
+    create(unique_index("peripherals", [:id]))
   end
 end

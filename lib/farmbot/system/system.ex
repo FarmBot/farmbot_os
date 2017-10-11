@@ -10,7 +10,7 @@ defmodule Farmbot.System do
   Please configure your `:system_tasks` behaviour!
   """
 
-  @system_tasks Application.get_env(:farmbot, :behaviour)[:system_tasks] || Mix.raise error_msg
+  @system_tasks Application.get_env(:farmbot, :behaviour)[:system_tasks] || Mix.raise(error_msg)
 
   @typedoc "Reason for a task to execute. Should be human readable."
   @type reason :: binary
@@ -62,9 +62,11 @@ defmodule Farmbot.System do
   end
 
   defp ensure_cs(count \\ 0)
+
   defp ensure_cs(100) do
     ConfigStorage.start_link()
   end
+
   defp ensure_cs(count) do
     Process.whereis(ConfigStorage) || ensure_cs(count + 1)
   end
@@ -76,32 +78,37 @@ defmodule Farmbot.System do
   @doc "Format an error for human consumption."
   def format_reason(reason) do
     raise "deleteme"
-    rescue
-      _ ->
-        [_ | [_ | stack]] = System.stacktrace()
-        stack = Enum.map(stack, fn(er) -> "\t#{inspect er}" end) |> Enum.join("\r\n")
-        do_format_reason(reason) <> """
+  rescue
+    _ ->
+      [_ | [_ | stack]] = System.stacktrace()
+      stack = Enum.map(stack, fn er -> "\t#{inspect(er)}" end) |> Enum.join("\r\n")
 
-        environment: #{@env}
-        source_ref:  #{@ref}
-        target:      #{@target}
-        Stacktrace:
-          [
-        #{stack}
-          ]
-        """
+      do_format_reason(reason) <> """
+
+      environment: #{@env}
+      source_ref:  #{@ref}
+      target:      #{@target}
+      Stacktrace:
+        [
+      #{stack}
+        ]
+      """
   end
 
   # This mess of pattern matches cleans up erlang startup errors. It's very
   # recursive, and kind of cryptic, but should always produce a human readable
   # message that can be read by an end user.
 
-  defp do_format_reason({:error, {:shutdown, {:failed_to_start_child, Farmbot.Bootstrap.Supervisor, rest}}}) do
+  defp do_format_reason({
+         :error,
+         {:shutdown, {:failed_to_start_child, Farmbot.Bootstrap.Supervisor, rest}}
+       }) do
     do_format_reason(rest)
   end
 
   defp do_format_reason({:error, {:shutdown, {:failed_to_start_child, child, rest}}}) do
     {failed_child, failed_reason} = enumerate_ftsc_error(child, rest)
+
     """
     Failed to start child: #{failed_child}
     reason: #{do_format_reason(failed_reason)}
@@ -124,7 +131,7 @@ defmodule Farmbot.System do
     reason |> to_string()
   end
 
-  defp do_format_reason({:error, reason}), do: inspect reason
+  defp do_format_reason({:error, reason}), do: inspect(reason)
 
   defp do_format_reason({:failed_connect, [{:to_address, {server, port}}, {_, _, reason}]}) do
     """

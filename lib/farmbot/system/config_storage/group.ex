@@ -5,7 +5,7 @@ defmodule Farmbot.System.ConfigStorage.Group do
   import Ecto.Changeset
 
   schema "groups" do
-    field :group_name, :string
+    field(:group_name, :string)
   end
 
   @required_fields []

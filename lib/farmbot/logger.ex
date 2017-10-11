@@ -10,7 +10,12 @@ defmodule Farmbot.Logger do
 
   def init([]) do
     Logger.add_backend(Logger.Backends.Farmbot, [])
-    {:producer_consumer, %{meta: %Log.Meta{x: -1, y: -1, z: -1}}, subscribe_to: [Farmbot.Firmware]}
+
+    {
+      :producer_consumer,
+      %{meta: %Log.Meta{x: -1, y: -1, z: -1}},
+      subscribe_to: [Farmbot.Firmware]
+    }
   end
 
   def handle_demand(_, state) do
@@ -18,12 +23,14 @@ defmodule Farmbot.Logger do
   end
 
   def handle_events(gcodes, _from, state) do
-    {x, y, z} = Enum.find_value(gcodes, fn(code) ->
-      case code do
-        {:report_current_position, x, y, z} -> {x, y, z}
-        _ -> false
-      end
-    end)
+    {x, y, z} =
+      Enum.find_value(gcodes, fn code ->
+        case code do
+          {:report_current_position, x, y, z} -> {x, y, z}
+          _ -> false
+        end
+      end)
+
     {:noreply, [], %{state | meta: %{state.meta | x: x, y: y, z: z}}}
   end
 

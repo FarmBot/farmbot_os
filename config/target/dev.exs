@@ -29,15 +29,14 @@ config :farmbot, :transport, [
 ]
 
 # Configure Farmbot Behaviours.
-config :farmbot, :behaviour, [
+config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
   system_tasks: Farmbot.Target.SystemTasks,
   firmware_handler: Farmbot.Firmware.UartHandler
-]
 
 config :nerves_firmware_ssh,
   authorized_keys: [
-    File.read!(Path.join(System.user_home!, ".ssh/id_rsa.pub"))
+    File.read!(Path.join(System.user_home!(), ".ssh/id_rsa.pub"))
   ]
 
 config :bootloader,

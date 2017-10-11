@@ -15,16 +15,16 @@ defmodule Farmbot.CeleryScript.Types do
   @type package :: binary
 
   @typedoc "X | Y | Z"
-  @type axis    :: coord_x_bin | coord_y_bin | coord_z_bin
+  @type axis :: coord_x_bin | coord_y_bin | coord_z_bin
 
   @typedoc "The literal string `X`"
-  @type coord_x_bin  :: binary
+  @type coord_x_bin :: binary
 
   @typedoc "The literal string `Y`"
-  @type coord_y_bin  :: binary
+  @type coord_y_bin :: binary
 
   @typedoc "The literal string `Z`"
-  @type coord_z_bin  :: binary
+  @type coord_z_bin :: binary
 
   @typedoc "Integer representing an X coord."
   @type coord_x :: integer
@@ -45,10 +45,10 @@ defmodule Farmbot.CeleryScript.Types do
   }
   ```
   """
-  @type pair_ast    :: ast
+  @type pair_ast :: ast
 
   @typedoc false
-  @type pairs_ast   :: [pair_ast]
+  @type pairs_ast :: [pair_ast]
 
   @typep coord_args :: %{x: coord_x, y: coord_y, z: coord_z}
   @typedoc """
@@ -86,15 +86,15 @@ defmodule Farmbot.CeleryScript.Types do
   ```
   """
 
-  @type expl_ast_args   :: %{message: binary}
+  @type expl_ast_args :: %{message: binary}
   @type explanation_ast :: %Ast{kind: binary, args: expl_ast_args, body: []}
 
   @typedoc "Integer representing a pin on the arduino."
-  @type pin_number  :: 0..69
+  @type pin_number :: 0..69
 
   @typedoc "Integer representing digital (0) or pwm (1)"
-  @type pin_mode    :: 0 | 1
+  @type pin_mode :: 0 | 1
 
   @typedoc false
-  @type ast     :: Ast.t
+  @type ast :: Ast.t()
 end

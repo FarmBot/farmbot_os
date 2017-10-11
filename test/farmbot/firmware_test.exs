@@ -15,7 +15,18 @@ defmodule Farmbot.FirmwareTest do
   setup do
     bss = Farmbot.BotStateSupport.start_bot_state_stack()
     mod = FirmwareHandler
-    {:ok, firmware} = Firmware.start_link(bss.bot_state, bss.informational_settings, bss.configuration, bss.location_data, bss.mcu_params, mod, [])
+
+    {:ok, firmware} =
+      Firmware.start_link(
+        bss.bot_state,
+        bss.informational_settings,
+        bss.configuration,
+        bss.location_data,
+        bss.mcu_params,
+        mod,
+        []
+      )
+
     {:ok, Map.put(bss, :firmware, firmware)}
   end
 
@@ -29,23 +40,35 @@ defmodule Farmbot.FirmwareTest do
     assert :sys.get_state(ctx.bot_state).bot_state.informational_settings.busy == false
   end
 
-   test "reports position", ctx do
-     Firmware.handle_gcode(ctx.firmware, {:report_current_position, 123, 1234, -123})
-     assert match?(%{x: 123, y: 1234, z: -123}, :sys.get_state(ctx.bot_state).bot_state.location_data.position)
-   end
+  test "reports position", ctx do
+    Firmware.handle_gcode(ctx.firmware, {:report_current_position, 123, 1234, -123})
 
-   test "reports scaled encoders", ctx do
-     Firmware.handle_gcode(ctx.firmware, {:report_encoder_position_scaled, 123, 1234, -123})
-     assert match?(%{x: 123, y: 1234, z: -123}, :sys.get_state(ctx.bot_state).bot_state.location_data.scaled_encoders)
-   end
+    assert match?(
+             %{x: 123, y: 1234, z: -123},
+             :sys.get_state(ctx.bot_state).bot_state.location_data.position
+           )
+  end
 
-   test "reports raw encoders", ctx do
-     Firmware.handle_gcode(ctx.firmware, {:report_encoder_position_raw, 123, 1234, -123})
-     assert match?(%{x: 123, y: 1234, z: -123}, :sys.get_state(ctx.bot_state).bot_state.location_data.raw_encoders)
-   end
+  test "reports scaled encoders", ctx do
+    Firmware.handle_gcode(ctx.firmware, {:report_encoder_position_scaled, 123, 1234, -123})
 
-   test "reports end stops", ctx do
-     Firmware.handle_gcode(ctx.firmware, {:report_end_stops, 1, 1, 0, 0, 1, 1})
-     assert :sys.get_state(ctx.bot_state).bot_state.location_data.end_stops == "110011"
-   end
+    assert match?(
+             %{x: 123, y: 1234, z: -123},
+             :sys.get_state(ctx.bot_state).bot_state.location_data.scaled_encoders
+           )
+  end
+
+  test "reports raw encoders", ctx do
+    Firmware.handle_gcode(ctx.firmware, {:report_encoder_position_raw, 123, 1234, -123})
+
+    assert match?(
+             %{x: 123, y: 1234, z: -123},
+             :sys.get_state(ctx.bot_state).bot_state.location_data.raw_encoders
+           )
+  end
+
+  test "reports end stops", ctx do
+    Firmware.handle_gcode(ctx.firmware, {:report_end_stops, 1, 1, 0, 0, 1, 1})
+    assert :sys.get_state(ctx.bot_state).bot_state.location_data.end_stops == "110011"
+  end
 end

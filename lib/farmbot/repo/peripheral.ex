@@ -7,9 +7,9 @@ defmodule Farmbot.Repo.Peripheral do
   import Ecto.Changeset
 
   schema "peripherals" do
-    field :pin, :integer
-    field :mode, :integer
-    field :label, :string
+    field(:pin, :integer)
+    field(:mode, :integer)
+    field(:label, :string)
   end
 
   use Farmbot.Repo.Syncable

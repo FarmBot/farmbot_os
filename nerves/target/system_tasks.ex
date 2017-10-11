@@ -4,14 +4,11 @@ defmodule Farmbot.Target.SystemTasks do
   @behaviour Farmbot.System
 
   def factory_reset(_reason) do
-
   end
 
   def reboot(_reason) do
-
   end
 
   def shutdown(_reason) do
-
   end
 end

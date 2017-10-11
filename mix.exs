@@ -1,62 +1,67 @@
 defmodule Farmbot.Mixfile do
   use Mix.Project
   @target System.get_env("MIX_TARGET") || "host"
-  @version Path.join(__DIR__, "VERSION") |> File.read! |> String.trim
+  @version Path.join(__DIR__, "VERSION") |> File.read!() |> String.trim()
 
   defp commit() do
-    {t,_} = System.cmd("git", ["log", "--pretty=format:%h", "-1"])
+    {t, _} = System.cmd("git", ["log", "--pretty=format:%h", "-1"])
     t
   end
 
-  Mix.shell.info([:green, """
-  Env
-    MIX_TARGET:   #{@target}
-    MIX_ENV:      #{Mix.env}
-  """, :reset])
+  Mix.shell().info([
+    :green,
+    """
+    Env
+      MIX_TARGET:   #{@target}
+      MIX_ENV:      #{Mix.env()}
+    """,
+    :reset
+  ])
 
   def project do
-    [app: :farmbot,
-     description: "The Brains of the Farmbot Project",
-     package: package(),
-     test_coverage: [tool: ExCoveralls],
-     version: @version,
-     target: @target,
-     commit: commit(),
-     archives: [nerves_bootstrap: "~> 0.6.0"],
-     build_embedded: Mix.env == :prod,
-     start_permanent: Mix.env == :prod,
-     deps_path: "deps/#{@target}",
-     build_path: "_build/#{@target}",
-     lockfile: "mix.lock.#{@target}",
-     config_path: "config/config.exs",
-     lockfile: "mix.lock",
-     elixirc_paths: elixirc_paths(Mix.env, @target),
-     aliases: aliases(@target),
-     deps: deps() ++ deps(@target),
-     dialyzer: [
-       plt_add_deps: :transitive,
-       flags:        []
-     ],
-     preferred_cli_env: [
-       "test":             :test,
-       "coveralls":        :test,
-       "coveralls.detail": :test,
-       "coveralls.post":   :test,
-       "coveralls.html":   :test,
-       "coveralls.travis": :test
-     ],
-     source_url: "https://github.com/Farmbot/farmbot_os",
-     homepage_url: "http://farmbot.io",
-     docs: [
-       main: "Farmbot",
-       logo: "priv/static/farmbot_logo.png",
-       extras: [
-         "docs/BUILDING.md",
-         "docs/FAQ.md",
-         "README.md"
-       ]
-     ]
-   ]
+    [
+      app: :farmbot,
+      description: "The Brains of the Farmbot Project",
+      package: package(),
+      test_coverage: [tool: ExCoveralls],
+      version: @version,
+      target: @target,
+      commit: commit(),
+      archives: [nerves_bootstrap: "~> 0.6.0"],
+      build_embedded: Mix.env() == :prod,
+      start_permanent: Mix.env() == :prod,
+      deps_path: "deps/#{@target}",
+      build_path: "_build/#{@target}",
+      lockfile: "mix.lock.#{@target}",
+      config_path: "config/config.exs",
+      lockfile: "mix.lock",
+      elixirc_paths: elixirc_paths(Mix.env(), @target),
+      aliases: aliases(@target),
+      deps: deps() ++ deps(@target),
+      dialyzer: [
+        plt_add_deps: :transitive,
+        flags: []
+      ],
+      preferred_cli_env: [
+        test: :test,
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        "coveralls.travis": :test
+      ],
+      source_url: "https://github.com/Farmbot/farmbot_os",
+      homepage_url: "http://farmbot.io",
+      docs: [
+        main: "Farmbot",
+        logo: "priv/static/farmbot_logo.png",
+        extras: [
+          "docs/BUILDING.md",
+          "docs/FAQ.md",
+          "README.md"
+        ]
+      ]
+    ]
   end
 
   def application do
@@ -66,24 +71,19 @@ defmodule Farmbot.Mixfile do
   defp deps do
     [
       {:nerves, "~> 0.7.5", runtime: false},
-
       {:gen_mqtt, "~> 0.3.1"},
       {:vmq_commons, github: "farmbot-labs/vmq_commons", override: true},
-
       {:gen_stage, "~> 0.12"},
-
       {:poison, "~> 3.0"},
       {:ex_json_schema, "~> 0.5.3"},
       {:rsa, "~> 0.0.1"},
       {:httpoison, "~> 0.13.0"},
-
       {:tzdata, "~> 0.1.201601", override: true},
       {:timex, "~> 3.1.13"},
 
       # {:fs, "~> 0.9.1"},
       {:nerves_uart, "0.1.2"},
-      {:uuid, "~> 1.1" },
-
+      {:uuid, "~> 1.1"},
       {:cowboy, "~> 1.0.0"},
       {:plug, "~> 1.0"},
       {:ecto, "~> 2.2.2"},
@@ -97,12 +97,12 @@ defmodule Farmbot.Mixfile do
       {:ex_doc, "~> 0.14", only: :dev},
       {:excoveralls, "~> 0.6", only: :test},
       {:mock, "~> 0.2.0", only: :test}
-
     ]
   end
 
   defp deps(target) do
-    [ system(target),
+    [
+      system(target),
       {:bootloader, "~> 0.1"},
       {:nerves_runtime, "~> 0.4"},
       {:nerves_network, "~> 0.3"},
@@ -138,8 +138,9 @@ defmodule Farmbot.Mixfile do
   defp aliases("host"), do: []
 
   defp aliases(_system) do
-    ["deps.precompile": ["nerves.precompile", "deps.precompile"],
-     "deps.loadpaths":  ["deps.loadpaths", "nerves.loadpaths"]
+    [
+      "deps.precompile": ["nerves.precompile", "deps.precompile"],
+      "deps.loadpaths": ["deps.loadpaths", "nerves.loadpaths"]
     ]
   end
 end

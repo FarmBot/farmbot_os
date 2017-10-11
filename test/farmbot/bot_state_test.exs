@@ -18,10 +18,11 @@ defmodule Farmbot.BotStateTest do
     assert match?(:ok, first)
     assert match?({:error, :already_subscribed}, second)
 
-    task = Task.async(fn() ->
-      third = BotState.subscribe(pid)
-      assert match?(:ok, third)
-    end)
+    task =
+      Task.async(fn ->
+        third = BotState.subscribe(pid)
+        assert match?(:ok, third)
+      end)
 
     Task.await(task)
   end
@@ -34,13 +35,10 @@ defmodule Farmbot.BotStateTest do
     assert unsub == true
   end
 
-
   test "updates parts" do
-    alias BotState.{
-      InformationalSettings, Configuration, LocationData, ProcessInfo
-    }
+    alias BotState.{InformationalSettings, Configuration, LocationData, ProcessInfo}
 
-    {:ok, pid} = BotState.start_link []
+    {:ok, pid} = BotState.start_link([])
     :ok = GenServer.cast(pid, {:update, InformationalSettings, :info_state})
     :ok = GenServer.cast(pid, {:update, Configuration, :config_state})
     :ok = GenServer.cast(pid, {:update, LocationData, :location_data_state})

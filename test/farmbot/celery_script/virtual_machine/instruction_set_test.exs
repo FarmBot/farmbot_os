@@ -27,8 +27,8 @@ defmodule Farmbot.CeleryScript.VirtualMachine.InstructionSetTest do
 
   use ExUnit.Case
   alias Farmbot.CeleryScript.VirtualMachine.InstructionSet
-  alias Farmbot.CeleryScript.VirtualMachine.UndefinedInstructionError 
-  
+  alias Farmbot.CeleryScript.VirtualMachine.UndefinedInstructionError
+
   test "implements squarebracket access" do
     is = %InstructionSet{instructions: %{SomeInstr => SomeImpl}}
     assert is[SomeInstr] == SomeImpl
@@ -36,16 +36,17 @@ defmodule Farmbot.CeleryScript.VirtualMachine.InstructionSetTest do
 
   test "squarebracket access raises if there is no implemetation" do
     is = %InstructionSet{}
-    assert_raise UndefinedInstructionError, 
-                 "Undefined instruction: some_cool_instr", fn() -> 
+
+    assert_raise UndefinedInstructionError, "Undefined instruction: some_cool_instr", fn ->
       is[SomeCoolInstr]
     end
   end
 
   test "builds new instruction sets" do
-    is = InstructionSet.new()
-         |> InstructionSet.impl(SomeInstr, SomeImpl)
-         |> InstructionSet.impl(SomeOtherInstr, SomeOtherImpl)
+    is =
+      InstructionSet.new()
+      |> InstructionSet.impl(SomeInstr, SomeImpl)
+      |> InstructionSet.impl(SomeOtherInstr, SomeOtherImpl)
 
     assert is[SomeInstr] == SomeImpl
     assert is[SomeOtherInstr] == SomeOtherImpl
@@ -53,9 +54,8 @@ defmodule Farmbot.CeleryScript.VirtualMachine.InstructionSetTest do
 
   test "raises when trying to implement a instruction with no code." do
     is = InstructionSet.new()
-    assert_raise CompileError, 
-                 " Failed to load implementation: some_cool_impl.", fn() -> 
-    
+
+    assert_raise CompileError, " Failed to load implementation: some_cool_impl.", fn ->
       is
       |> InstructionSet.impl(SomeCoolInstr, SomeCoolImpl)
     end
@@ -63,7 +63,8 @@ defmodule Farmbot.CeleryScript.VirtualMachine.InstructionSetTest do
 
   test "raises when the module exists but does not implement CeleryScript." do
     is = InstructionSet.new()
-    assert_raise CompileError, " half_impl does not implement CeleryScript.", fn() -> 
+
+    assert_raise CompileError, " half_impl does not implement CeleryScript.", fn ->
       is |> InstructionSet.impl(SomeCoolInstr, HalfImpl)
     end
   end
