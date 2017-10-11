@@ -60,7 +60,7 @@ defmodule Farmbot.Firmware.UartHandler do
   defp configure_uart(nerves, active) do
     UART.configure(
       nerves,
-      framing: {UART.Framing.Line, separator: "\r\n"},
+      framing: {Farmbot.Firmware.UartHandler.Framinig, separator: "\r\n"},
       active: active,
       rx_framing_timeout: 500
     )
@@ -79,6 +79,11 @@ defmodule Farmbot.Firmware.UartHandler do
 
   def handle_info({:nerves_uart, _, {_q, gcode}}, state) do
     do_dispatch([gcode | state.codes], state)
+  end
+
+  def handle_info({:nerves_uart, _, bin}, state) when is_binary(bin) do
+    Logger.warn("Unparsed Gcode: #{bin}")
+    {:noreply, [], state}
   end
 
   def handle_call({:write, stuff}, _from, state) do

@@ -30,13 +30,8 @@ defmodule Farmbot.Bootstrap.Authorization do
          {:ok, map} <- Map.fetch(body, "token") do
       Map.fetch(map, "encoded")
     else
-      :error ->
-        {:error, "unknown error."}
-
-      err ->
-        require IEx
-        IEx.pry()
-        err
+      :error -> {:error, "unknown error."}
+      err -> err
     end
   end
 

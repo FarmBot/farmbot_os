@@ -37,7 +37,7 @@ defmodule Logger.Backends.Farmbot do
             utc_offset: 0,
             zone_abbr: "UTC"
           }
-          |> DateTime.to_iso8601()
+          |> DateTime.to_unix()
 
         l = %Log{message: message, channels: [level], created_at: t}
         GenStage.async_info(Farmbot.Logger, {:log, l})

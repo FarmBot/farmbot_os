@@ -50,5 +50,7 @@ auth_secret_test.exs
 flash_fw.sh
 tmp
 *.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
 *.img
 run-qemu.sh
