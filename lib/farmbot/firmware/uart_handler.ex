@@ -31,12 +31,12 @@ defmodule Farmbot.Firmware.UartHandler do
 
   def init([]) do
     # If in dev environment, it is expected that this be done at compile time.
-    # If ini target environment, this should be done by `Farmbot.Firmware.AutoDetector`. 
+    # If ini target environment, this should be done by `Farmbot.Firmware.AutoDetector`.
     tty = Application.get_env(:farmbot, :uart_handler)[:tty] || raise "Please configure uart handler!"
     {:ok, nerves} = UART.start_link()
     Process.link(nerves)
     case open_tty(nerves, tty) do
-      :ok -> {:producer, %State{nerves: nerves, codes: []}}  
+      :ok -> {:producer, %State{nerves: nerves, codes: []}}
       err -> {:stop, err, :no_state}
     end
   end
@@ -54,7 +54,7 @@ defmodule Farmbot.Firmware.UartHandler do
 
   defp configure_uart(nerves, active) do
     UART.configure(nerves,
-      framing: {UART.Framing.Line, separator: "\r\n"},
+      framing: {Farmbot.Firmware.UartHandler.Framinig, separator: "\r\n"},
       active: active,
       rx_framing_timeout: 500)
   end
@@ -72,6 +72,11 @@ defmodule Farmbot.Firmware.UartHandler do
 
   def handle_info({:nerves_uart, _, {_q, gcode}}, state) do
     do_dispatch([gcode | state.codes], state)
+  end
+
+  def handle_info({:nerves_uart, _, bin}, state) when is_binary(bin) do
+    Logger.warn "Unparsed Gcode: #{bin}"
+    {:noreply, [], state}
   end
 
   def handle_call({:write, stuff}, _from, state) do

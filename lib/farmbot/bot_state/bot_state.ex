@@ -2,13 +2,23 @@ defmodule Farmbot.BotState do
   use GenStage
   require Logger
 
+  @version Mix.Project.config()[:version]
+  @commit Mix.Project.config()[:commit]
+  @target Mix.Project.config()[:target]
+  @env Mix.env()
+
   defstruct [
     mcu_params: %{},
     jobs: %{},
     location_data: %{},
     pins: %{},
     configuration: %{},
-    informational_settings: %{},
+    informational_settings: %{
+      controller_version: @version,
+      commit: @commit,
+      target: @target,
+      env: @env
+    },
     user_env: %{},
     process_info: %{}
   ]

@@ -18,13 +18,20 @@ defmodule Farmbot.Logger do
   end
 
   def handle_events(gcodes, _from, state) do
-    {x, y, z} = Enum.find_value(gcodes, fn(code) ->
+    case find_position_report(gcodes) do
+      {x, y, z} ->
+        {:noreply, [], %{state | meta: %{state.meta | x: x, y: y, z: z}}}
+      nil -> {:noreply, [], state}
+    end
+  end
+
+  defp find_position_report(gcodes) do
+    Enum.find_value(gcodes, fn(code) ->
       case code do
         {:report_current_position, x, y, z} -> {x, y, z}
         _ -> false
       end
     end)
-    {:noreply, [], %{state | meta: %{state.meta | x: x, y: y, z: z}}}
   end
 
   def handle_info({:log, log}, state) do

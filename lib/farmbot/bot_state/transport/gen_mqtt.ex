@@ -30,7 +30,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
     end
 
     def init({device, _server}) do
-      {:ok, %{connected: false, device: device}}
+      {:ok, %{connected: false, device: device, cache: nil}}
     end
 
     def on_connect_error(:invalid_credentials, state) do
@@ -51,18 +51,24 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
     def on_connect(state) do
       GenMQTT.subscribe(self(), [{bot_topic(state.device), 0}])
       Logger.info ">> Connected!"
+      if state.cache do
+        GenMQTT.publish(self(), status_topic(state.device), state.cache, 0, false)
+      end
       {:ok, %{state | connected: true}}
     end
 
     def on_publish(["bot", _bot, "from_clients"], msg, state) do
-      Logger.warn "not implemented yet: #{inspect msg}"
+      Logger.warn "not implemented yet: #{msg}"
+      if state.cache do
+        GenMQTT.publish(self(), status_topic(state.device), state.cache, 0, false)
+      end
       {:ok, state}
     end
 
     def handle_cast({:bot_state, bs}, state) do
       json = Poison.encode!(bs)
       GenMQTT.publish(self(), status_topic(state.device), json, 0, false)
-      {:noreply, state}
+      {:noreply, %{state | cache: json}}
     end
 
     def handle_cast(_, %{connected: false} = state) do
@@ -90,7 +96,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
     token = Farmbot.System.ConfigStorage.get_config_value(:string, "authorization", "token")
     {:ok, %{bot: device, mqtt: mqtt_server}} = Farmbot.Jwt.decode(token)
     {:ok, client} = Client.start_link(device, token, mqtt_server)
-    {:consumer, {%{client: client}, nil}, subscribe_to: [Farmbot.BotState, Farmbot.Logger]}
+    {:consumer, {%{client: client}, nil}, subscribe_to: [Farmbot.BotState]}
   end
 
   def handle_events(events, {pid, _}, state) do
@@ -109,9 +115,9 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
 
   def handle_bot_state_events(events, {%{client: client} = internal_state, old_bot_state}) do
     new_bot_state = List.last(events)
-    if new_bot_state != old_bot_state do
-      Client.push_bot_state client, new_bot_state
-    end
+    Client.push_bot_state client, new_bot_state
+    # if new_bot_state != old_bot_state do
+    # end
     {:noreply, [], {internal_state, new_bot_state}}
   end
 end

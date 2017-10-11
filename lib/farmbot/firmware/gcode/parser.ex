@@ -40,10 +40,10 @@ defmodule Farmbot.Firmware.Gcode.Parser do
   defp parse_report_calibration(r) do
     [axis_and_status | [q]] = String.split(r, " Q")
     <<a :: size(8), b :: size(8)>> = axis_and_status
-    case <<b>> do
-      "0" -> {q, {:report_calibration, <<a>>, :idle}}
-      "1" -> {q, {:report_calibration, <<a>>, :home}}
-      "2" -> {q, {:report_calibration, <<a>>, :end}}
+    case b do
+      48 -> {q, {:report_calibration, <<a>>, :idle}}
+      49 -> {q, {:report_calibration, <<a>>, :home}}
+      50 -> {q, {:report_calibration, <<a>>, :end}}
     end
   end
 
@@ -72,6 +72,13 @@ defmodule Farmbot.Firmware.Gcode.Parser do
   :: {binary, {reporter, binary, binary, binary}}
   defp report_xyz(position, reporter) when is_bitstring(position),
     do: position |> String.split(" ") |> do_parse_pos(reporter)
+
+  defp do_parse_pos(["X" <> x, "Y" <> y, "Z" <> z, "Q" <> tag], reporter) when reporter in [:report_current_position, :report_encoder_position_scaled] do
+    {tag, {reporter,
+      String.to_float(x),
+      String.to_float(y),
+      String.to_float(z)}}
+  end
 
   defp do_parse_pos(["X" <> x, "Y" <> y, "Z" <> z, "Q" <> tag], reporter) do
     {tag, {reporter,
@@ -220,9 +227,17 @@ defmodule Farmbot.Firmware.Gcode.Parser do
   def parse_param("52"), do: :movement_home_up_y
   def parse_param("53"), do: :movement_home_up_z
 
+  def parse_param("55"), do: :movement_step_per_mm_x
+  def parse_param("56"), do: :movement_step_per_mm_y
+  def parse_param("57"), do: :movement_step_per_mm_z
+
   def parse_param("61"), do: :movement_min_spd_x
   def parse_param("62"), do: :movement_min_spd_y
   def parse_param("63"), do: :movement_min_spd_z
+
+  def parse_param("65"), do: :movement_home_speed_x
+  def parse_param("66"), do: :movement_home_speed_y
+  def parse_param("67"), do: :movement_home_speed_z
 
   def parse_param("71"), do: :movement_max_spd_x
   def parse_param("72"), do: :movement_max_spd_y
@@ -333,9 +348,17 @@ defmodule Farmbot.Firmware.Gcode.Parser do
   def parse_param(:movement_home_up_y), do: 52
   def parse_param(:movement_home_up_z), do: 53
 
+  def parse_param(:movement_step_per_mm_x), do: 55
+  def parse_param(:movement_step_per_mm_y), do: 56
+  def parse_param(:movement_step_per_mm_z), do: 57
+
   def parse_param(:movement_min_spd_x), do: 61
   def parse_param(:movement_min_spd_y), do: 62
   def parse_param(:movement_min_spd_z), do: 63
+
+  def parse_param(:movement_home_speed_x), do: 65
+  def parse_param(:movement_home_speed_y), do: 66
+  def parse_param(:movement_home_speed_z), do: 67
 
   def parse_param(:movement_max_spd_x), do: 71
   def parse_param(:movement_max_spd_y), do: 72
