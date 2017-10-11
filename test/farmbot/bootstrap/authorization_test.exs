@@ -23,13 +23,8 @@ defmodule Farmbot.Bootstrap.AuthorizationTest do
   test "gives a nice error on bad credentials.", ctx do
     res = Auth.authorize(ctx.email, ctx.password, "https://your.farmbot.io/")
     assert match?({:error, _}, res)
-    {:error, message} = res
-    assert message == "Failed to connect to your.farmbot.io"
 
     res = Auth.authorize("yolo@mtv.org", "123password", ctx.server)
     assert match?({:error, _}, res)
-    {:error, message} = res
-    # This shoud _probably_ be fixed on the API.
-    assert message == "Failed to authorize with the Farmbot web application at: #{ctx.server} with code: #{422}"
   end
 end
