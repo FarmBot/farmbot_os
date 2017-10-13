@@ -7,6 +7,8 @@ addons:
       - llvm-toolchain-precise
       - ubuntu-toolchain-r-test
     packages:
+    - node
+    - squashfs-tools
     - libwxbase2.8-0
     - libwxgtk2.8-0
     - bc
