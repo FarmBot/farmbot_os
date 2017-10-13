@@ -1,4 +1,7 @@
-language: bash
+language: erlang
+otp_release:
+  - 19.2
+
 sudo: required
 dist: trusty
 addons:
@@ -24,8 +27,8 @@ env:
   global:
   - ELIXIR_VERSION=1.4.1 ERLANG_VERSION=19.2 MIX_TARGET=rpi3 NO_WEBPACK=true
 before_install:
-- wget https://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_$ERLANG_VERSION-1~ubuntu~trusty_amd64.deb;
-- sudo dpkg -i esl-erlang_$ERLANG_VERSION-1~ubuntu~trusty_amd64.deb
+# - wget https://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_$ERLANG_VERSION-1~ubuntu~trusty_amd64.deb;
+# - sudo dpkg -i esl-erlang_$ERLANG_VERSION-1~ubuntu~trusty_amd64.deb
 - wget https://github.com/elixir-lang/elixir/releases/download/v$ELIXIR_VERSION/Precompiled.zip
 - wget https://github.com/fhunleth/fwup/releases/download/v0.16.1/fwup_0.16.1_amd64.deb
 - sudo dpkg -i fwup_0.16.1_amd64.deb
