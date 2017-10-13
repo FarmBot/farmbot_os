@@ -26,12 +26,18 @@ defmodule Farmbot.ImageWatcher do
   end
 
   def handle_info({_pid, {:fs, :file_event}, {path, _}}, state) do
-    if matches_any_pattern?(path, [~r{/tmp/images/.*(jpg|jpeg|png|gif)}]) do
+    matches? = matches_any_pattern?(path, [~r{/tmp/images/.*(jpg|jpeg|png|gif)}])
+    already_uploading? = Enum.find(state.uploads, fn({_pid, {find_path, _meta, _count}}) ->
+      find_path == path
+    end) |> is_nil() |> Kernel.!()
+    if matches? and (not already_uploading?) do
+      Logger.info "Uploading: #{path}"
       [x, y, z] = Farmbot.BotState.get_current_pos(state.context)
       meta = %{x: x, y: y, z: z}
       pid = spawn __MODULE__, :upload, [state.context, path, meta]
       {:noreply, %{state | uploads: Map.put(state.uploads, pid, {path, meta, 0})}}
     else
+      Logger.info "Not uploading: match: #{matches?} already_uploading?: #{already_uploading?}"
       {:noreply, state}
     end
   end
