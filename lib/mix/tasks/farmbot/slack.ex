@@ -58,7 +58,7 @@ defmodule Mix.Tasks.Farmbot.Slack do
     -u normal -i #{:code.priv_dir(otp_app)}/static/farmbot_logo.png -a farmbot_build
     """
     message = if ok?, do: "Upload completed", else: "Upload failed!"
-    System.cmd("notify-send", [notify_opts | ["Farmbot Uploader", message]] |> List.flatten())
+    # System.cmd("notify-send", [notify_opts | ["Farmbot Uploader", message]] |> List.flatten())
   end
 
   defp format_date_time(%{mtime: {{yr,m,day}, {hr, min, sec}}}) do
