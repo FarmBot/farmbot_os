@@ -9,20 +9,16 @@ addons:
     packages:
     - node
     - squashfs-tools
-    - libwxbase2.8-0
-    - libwxgtk2.8-0
-    - bc
-    - clang-3.7
-    - g++-5
-    - gcc-5
-    - libssl-dev
-    - libsctp1
-    - libnl-dev
     - libmnl-dev
-    - libsdl2-dev
-    - libsdl-dev
-    - libglew-dev
-    - libglm-dev
+    - g++
+    - libssl-dev
+    - libncurses5-dev
+    - bc
+    - m4
+    - make
+    - unzip
+    - cmake
+    - python
 
 env:
   global:
@@ -31,6 +27,8 @@ before_install:
 - wget https://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_$ERLANG_VERSION-1~ubuntu~trusty_amd64.deb;
 - sudo dpkg -i esl-erlang_$ERLANG_VERSION-1~ubuntu~trusty_amd64.deb
 - wget https://github.com/elixir-lang/elixir/releases/download/v$ELIXIR_VERSION/Precompiled.zip
+- wget https://github.com/fhunleth/fwup/releases/download/v0.16.1/fwup_0.16.1_amd64.deb
+- sudo dpkg -i fwup_0.16.1_amd64.deb
 - unzip -d elixir Precompiled.zip
 before_script:
 - export PATH=`pwd`/elixir/bin:$PATH
