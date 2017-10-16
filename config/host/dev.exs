@@ -26,7 +26,7 @@ config :farmbot, :transport, [
 # SystemTasks for host mode.
 config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
-  system_tasks: Farmbot.Host.SystemTasks,
-  firmware_handler: Farmbot.Firmware.UartHandler
+  system_tasks: Farmbot.Host.SystemTasks
+  # firmware_handler: Farmbot.Firmware.UartHandler
 
 config :farmbot, :uart_handler, tty: "/dev/ttyACM0"

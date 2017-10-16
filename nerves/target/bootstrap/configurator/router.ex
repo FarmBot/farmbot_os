@@ -16,7 +16,10 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   require Logger
   alias Farmbot.System.ConfigStorage
 
-  get("/", do: render_page(conn, "index"))
+  get "/" do
+    last_reset_reason = ConfigStorage.get_config_value(:string, "authorization", "last_shutdown_reason") || ""
+    render_page(conn, "index", [last_reset_reason: last_reset_reason])
+  end
 
   get "/network" do
     interfaces = Nerves.NetworkInterface.interfaces()
@@ -72,13 +75,17 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
   get "/finish" do
     conn = render_page(conn, "finish")
-
-    Supervisor.terminate_child(
+    spawn fn() ->
+      Logger.info "Configuration finished."
+      Process.sleep(2500)
+      :ok = Supervisor.terminate_child(
       Farmbot.Target.Bootstrap.Configurator,
       Farmbot.Target.Bootstrap.Configurator.CaptivePortal
-    )
+      )
 
-    Supervisor.stop(Farmbot.Target.Bootstrap.Configurator, :normal)
+      :ok = Supervisor.stop(Farmbot.Target.Bootstrap.Configurator, :normal)
+    end
+
     conn
   end
 
@@ -143,6 +150,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
       %{"firmware_hardware" => hw} when hw in ["arduino", "farmduino"] ->
         ConfigStorage.update_config_value(:string, "hardware", "firmware_hardware", hw)
         # TODO Flash firmware here.
+        # If Application.get_env(:farmbot, :uart_handler, :tty) do...
         redir(conn, "/credentials")
 
       %{"firmware_hardware" => "custom"} ->

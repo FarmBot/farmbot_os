@@ -96,13 +96,16 @@ defmodule Farmbot.Mixfile do
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.14", only: :dev},
       {:excoveralls, "~> 0.6", only: :test},
-      {:mock, "~> 0.2.0", only: :test}
+      {:mock, "~> 0.2.0", only: :test},
+
+      {:nerves_network, "~> 0.3"},
+      
     ]
   end
 
   defp deps(target) do
+    system(target) ++
     [
-      system(target),
       {:bootloader, "~> 0.1"},
       {:nerves_runtime, "~> 0.4"},
       {:nerves_network, "~> 0.3"},
@@ -111,9 +114,11 @@ defmodule Farmbot.Mixfile do
     ]
   end
 
-  defp system("rpi3"), do: {:nerves_system_farmbot_rpi3, "0.16.2-farmbot", runtime: false}
-  defp system("rpi0"), do: {:nerves_system_rpi0, ">= 0.0.0", runtime: false}
-  defp system("qemu_arm"), do: {:nerves_system_qemu_arm, ">= 0.0.0", runtime: false}
+  defp system("rpi3"), do: [{:nerves_system_farmbot_rpi3, "0.16.2-farmbot", runtime: false}]
+  defp system("rpi0"), do: [
+    {:nerves_system_farmbot_rpi0, "0.17.2-farmbot", runtime: false},
+    {:nerves_init_gadget, "~> 0.2", only: :dev}
+  ]
 
   defp package do
     [

@@ -15,6 +15,14 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
     @hostapd_conf_file "hostapd.conf"
     @hostapd_pid_file "hostapd.pid"
 
+    defp ensure_interface(interface) do
+      unless interface in Nerves.NetworkInterface.interfaces() do
+        Logger.debug "Waiting for #{interface}"
+        Process.sleep(100)
+        ensure_interface(interface)
+      end
+    end
+
     @doc ~s"""
       Example:
         Iex> Hostapd.start_link ip_address: "192.168.24.1",
@@ -28,7 +36,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
       # We want to know if something does.
       Process.flag(:trap_exit, true)
       interface = Keyword.fetch!(opts, :interface)
-      Logger.info(">> is starting hostapd on #{interface}")
+      Logger.info("Starting hostapd on #{interface}")
+      ensure_interface(interface)
 
       {hostapd_port, hostapd_os_pid} = setup_hostapd(interface, "192.168.24.1")
 
@@ -108,12 +117,12 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
       name <> "-" <> id
     end
 
-    defp kill(os_pid), do: :ok = "kill" |> System.cmd(["15", "#{os_pid}"]) |> print_cmd
+    defp kill(os_pid), do: :ok = "kill" |> System.cmd(["9", "#{os_pid}"]) |> print_cmd
 
     defp print_cmd({_, 0}), do: :ok
 
     defp print_cmd({res, num}) do
-      Logger.error(">> encountered an error (#{num}): #{res}")
+      Logger.error("Encountered an error (#{num}): #{res}")
       :error
     end
 
@@ -136,14 +145,20 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
       {:noreply, state}
     end
 
-    defp handle_hostapd(_, state), do: {:noreply, state}
-
     def terminate(_, state) do
-      Logger.info(">> is stopping hostapd")
-      {_hostapd_port, hostapd_pid} = state.hostapd
+      Logger.info "Stopping hostapd"
+      {hostapd_port, hostapd_pid} = state.hostapd
+      Logger.info "Killing hostapd PID."
       :ok = kill(hostapd_pid)
+      Logger.info "Resetting ip settings."
       hostapd_ip_settings_down(state.interface, state.ip_addr)
+      Logger.info "removing PID."
       File.rm_rf!("/tmp/hostapd")
+      Logger.info "Done."
+      Port.close(hostapd_port)
+      :ok
+    rescue
+      _e in ArgumentError -> :ok
     end
   end
 
@@ -163,8 +178,10 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
   end
 
   def terminate(_, state) do
-    Logger.debug("Stopping captive portal.")
-    GenServer.stop(state.hostapd, :normal)
+    Logger.info "Stopping captive portal GenServer."
+    Logger.info "Stopping DHCP GenServer."
     GenServer.stop(state.dhcp_server, :normal)
+    Logger.info "Stopping Hostapd GenServer."
+    GenServer.stop(state.hostapd, :normal)
   end
 end

@@ -7,6 +7,9 @@
 
 <body>
   <h1>Configure your FarmBot</h1>
+  <%=
+    last_reset_reason
+  %>
   <div class="widget">
     <div class="widget-header">
       <h5>Start</h5>
