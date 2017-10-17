@@ -16,6 +16,8 @@ config :farmbot, data_path: "/root"
 
 # Configure your our init system.
 config :farmbot, :init, [
+  # Load consolidated protocols
+  Farmbot.Target.Protocols,
   # Autodetects if a Arduino is plugged in and configures accordingly.
   Farmbot.Firmware.UartHandler.AutoDetector,
 
@@ -24,6 +26,8 @@ config :farmbot, :init, [
 
   # Start up Network
   Farmbot.Target.Network,
+  # Wait for time time come up.
+  Farmbot.Target.Network.WaitForTime
 ]
 
 # Transports.

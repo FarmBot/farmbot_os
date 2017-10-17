@@ -65,7 +65,7 @@ defmodule Farmbot.Mixfile do
   end
 
   def application do
-    [mod: {Farmbot, []}, extra_applications: [:logger, :eex]]
+    [mod: {Farmbot, []}, extra_applications: [:logger, :eex, :ssl, :inets]]
   end
 
   defp deps do
@@ -97,28 +97,28 @@ defmodule Farmbot.Mixfile do
       {:ex_doc, "~> 0.14", only: :dev},
       {:excoveralls, "~> 0.6", only: :test},
       {:mock, "~> 0.2.0", only: :test},
-
-      {:nerves_network, "~> 0.3"},
-      
+      {:nerves_network, "~> 0.3"}
     ]
   end
 
   defp deps(target) do
     system(target) ++
-    [
-      {:bootloader, "~> 0.1"},
-      {:nerves_runtime, "~> 0.4"},
-      {:nerves_network, "~> 0.3"},
-      {:nerves_firmware_ssh, "~> 0.2"},
-      {:dhcp_server, "~> 0.1.3"}
-    ]
+      [
+        {:bootloader, "~> 0.1"},
+        {:nerves_runtime, "~> 0.4"},
+        {:nerves_network, github: "nerves-project/nerves_network", override: true},
+        {:nerves_firmware_ssh, "~> 0.2"},
+        {:dhcp_server, "~> 0.1.3"}
+      ]
   end
 
   defp system("rpi3"), do: [{:nerves_system_farmbot_rpi3, "0.16.2-farmbot", runtime: false}]
-  defp system("rpi0"), do: [
-    {:nerves_system_farmbot_rpi0, "0.17.2-farmbot", runtime: false},
-    {:nerves_init_gadget, "~> 0.2", only: :dev}
-  ]
+
+  defp system("rpi0"),
+    do: [
+      {:nerves_system_farmbot_rpi0, "0.17.2-farmbot", runtime: false},
+      {:nerves_init_gadget, "~> 0.2", only: :dev}
+    ]
 
   defp package do
     [
