@@ -81,7 +81,7 @@ fieldset {
 select {
   border-radius: 0 !important;
   font-size: 1.2rem !important;
-  background-color: #f4f4f4 !important;
+  background-color: white !important;
   color: #434343 !important;
   height: 30px !important;
   width: 100% !important;
@@ -98,14 +98,19 @@ label {
   margin-bottom: 5px;
 }
 
-input[type=email], input[type=password] {
+input[type=email],
+input[type=password],
+input[type=text] {
   border: none;
   box-shadow: 0px 0px 10px #cccccc !important;
   padding: 0.5rem;
   width: 100%;
+  font-size: 1rem;
 }
 
-input[type=email]:focus, input[type=password]:focus {
+input[type=email]:focus,
+input[type=password]:focus,
+input[type=text]:focus {
   outline: none;
 }
 
