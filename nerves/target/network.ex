@@ -38,16 +38,5 @@ defmodule Farmbot.Target.Network do
     children = config |> Enum.map(&to_network_config/1) |> Enum.map(&to_child_spec/1)
 
     supervise(children, strategy: :one_for_one)
-    # [
-    #   %Farmbot.System.ConfigStorage.NetworkInterface{
-    #     id: 1,
-    #     ipv4_method: "dhcp",
-    #     name: "wlan0",
-    #     psk: "Gizmos123",
-    #     security: "WPA-PSK",
-    #     ssid: "PrettyPeehole",
-    #     type: "wireless"
-    #   }
-    # ]
   end
 end
