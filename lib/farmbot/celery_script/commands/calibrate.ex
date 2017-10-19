@@ -5,6 +5,7 @@ defmodule Farmbot.CeleryScript.Command.Calibrate do
 
   alias Farmbot.CeleryScript.{Command, Types}
   alias Farmbot.Serial.Handler, as: UartHan
+  require Logger
   @behaviour Command
 
   @doc ~s"""
@@ -14,7 +15,7 @@ defmodule Farmbot.CeleryScript.Command.Calibrate do
   """
   @spec run(%{axis: Types.axis}, [], Context.t) :: Context.t
   def run(%{axis: "all"}, [], context) do
-    for axis in ["x", "y", "z"] do
+    for axis <- ["x", "y", "z"] do
       run(%{axis: axis}, [], context)
     end
     context
