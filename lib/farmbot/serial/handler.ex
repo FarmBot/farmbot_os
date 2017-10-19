@@ -248,7 +248,7 @@ defmodule Farmbot.Serial.Handler do
 
   def handle_call(:available?, _, state), do: {:reply, state.initialized, state}
 
-  def handle_call({:write, str, timeout}, from, %{status: :idle} = state)
+  def handle_call({:write, str, _timeout}, from, %{status: :idle} = state)
   when is_binary(str) do
     handshake = generate_handshake()
     writeme =  "#{str} #{handshake}"
@@ -257,27 +257,36 @@ defmodule Farmbot.Serial.Handler do
 
     debug_log "writing: #{writeme}"
     :ok = UART.write(state.nerves, writeme)
+    current = %{
+      status:   nil,
+      reply:    nil,
+      from:     from,
+      q:        handshake,
+      timer:    nil,
+      callback: nil
+    }
+    {:noreply, %{state | current: current}}
 
-    echo_ok = recieve_echo(state.nerves, writeme, "")
-
-    # :ok = configure_uart(state.nerves, true)
-    case echo_ok do
-      :ok ->
-        debug_log "timing this out in #{timeout} ms."
-        timer = Process.send_after(self(), :timeout, timeout)
-        current = %{
-          status:   nil,
-          reply:    nil,
-          from:     from,
-          q:        handshake,
-          timer:    timer,
-          callback: nil
-        }
-        {:noreply, %{state | current: current}}
-      {:error, reason} ->
-        Farmbot.BotState.set_busy(state.context, false)
-        {:reply, {:error, reason}, %{state | current: nil}}
-    end
+    # echo_ok = recieve_echo(state.nerves, writeme, "")
+    #
+    # # :ok = configure_uart(state.nerves, true)
+    # case echo_ok do
+    #   :ok ->
+    #     debug_log "timing this out in #{timeout} ms."
+    #     timer = Process.send_after(self(), :timeout, timeout)
+    #     current = %{
+    #       status:   nil,
+    #       reply:    nil,
+    #       from:     from,
+    #       q:        handshake,
+    #       timer:    timer,
+    #       callback: nil
+    #     }
+    #     {:noreply, %{state | current: current}}
+    #   {:error, reason} ->
+    #     Farmbot.BotState.set_busy(state.context, false)
+    #     {:reply, {:error, reason}, %{state | current: nil}}
+    # end
 
   end
 
