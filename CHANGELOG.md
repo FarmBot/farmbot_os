@@ -94,3 +94,8 @@
 * Fix an OS update bug.
 * Fix an image upload bug.
 * Fix a farmware download bug.
+
+# 5.0.4
+* Fix lag when communicating over MQTT
+* Don't retain last will log message.
+* Update node packages.

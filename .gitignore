@@ -44,3 +44,5 @@ fwup-key.priv
 auth_secret.exs
 auth_secret_test.exs
 *.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
