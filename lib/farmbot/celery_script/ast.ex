@@ -78,12 +78,14 @@ defmodule Farmbot.CeleryScript.Ast do
   @spec parse_args(map) :: map
   def parse_args(map) when is_map(map) do
     Enum.reduce(map, %{}, fn ({key, val}, acc) ->
-      if is_map(val) do
-        # if it is a map, it could be another node so parse it too.
-        real_val = parse(val)
-        Map.put(acc, String.to_atom(key), real_val)
-      else
-        Map.put(acc, String.to_atom(key), val)
+      cond do
+        is_map(val) ->
+          real_val = parse(val)
+          Map.put(acc, String.to_atom(key), real_val)
+        is_float(val) ->
+          Map.put(acc, String.to_atom(key), val)
+        true ->
+          Map.put(acc, String.to_atom(key), val)
       end
     end)
   end
