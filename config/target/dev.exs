@@ -16,11 +16,18 @@ config :farmbot, data_path: "/root"
 
 # Configure your our init system.
 config :farmbot, :init, [
+  # Load consolidated protocols
+  Farmbot.Target.Protocols,
+  # Autodetects if a Arduino is plugged in and configures accordingly.
+  Farmbot.Firmware.UartHandler.AutoDetector,
+
   # Allows for first boot configuration.
   Farmbot.Target.Bootstrap.Configurator,
 
   # Start up Network
-  Farmbot.Target.Network
+  Farmbot.Target.Network,
+  # Wait for time time come up.
+  Farmbot.Target.Network.WaitForTime
 ]
 
 # Transports.
@@ -32,7 +39,7 @@ config :farmbot, :transport, [
 config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
   system_tasks: Farmbot.Target.SystemTasks,
-  firmware_handler: Farmbot.Firmware.UartHandler
+  firmware_handler: Farmbot.Firmware.StubHandler
 
 config :nerves_firmware_ssh,
   authorized_keys: [

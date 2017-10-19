@@ -38,7 +38,7 @@ defmodule Farmbot.Firmware do
   end
 
   def init([]) do
-    {:producer_consumer, %State{}, subscribe_to: [@handler]}
+    {:producer_consumer, %State{}, subscribe_to: [@handler], dispatcher: GenStage.BroadcastDispatcher}
   end
 
   def handle_events(gcodes, _from, state) do

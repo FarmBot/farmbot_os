@@ -5,17 +5,12 @@ target = Mix.Project.config()[:target]
 env = Mix.env()
 
 config :logger, utc_log: true
+config :elixir, ansi_enabled: true
+config :iex, :colors, enabled: true
+
 
 config :ssl, protocol_version: :"tlsv1.2"
 
-# I force colors because they are important.
-config :logger, :console,
-  colors: [enabled: true, info: :cyan],
-  metadata: [],
-  format: "$time $metadata[$level] $levelpad$message\n"
-
-# Iex needs colors too.
-config :iex, :colors, enabled: true
 
 # This is usually in the `priv` dir of :tzdata, but our fs is read only.
 config :tzdata, :data_dir, "/tmp"

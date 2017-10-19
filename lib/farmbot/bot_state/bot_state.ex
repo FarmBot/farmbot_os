@@ -25,7 +25,8 @@ defmodule Farmbot.BotState do
   end
 
   def init([]) do
-    {:producer_consumer, struct(__MODULE__), subscribe_to: [Farmbot.Firmware]}
+    {:producer_consumer, struct(__MODULE__), subscribe_to: [Farmbot.Firmware],
+                                             dispatcher: GenStage.BroadcastDispatcher}
   end
 
   def handle_events(events, _from, state) do

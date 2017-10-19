@@ -13,7 +13,9 @@ config :farmbot, data_path: "tmp/"
 # Configure your our system.
 # Default implementation needs no special stuff.
 config :farmbot, :init, [
-  Farmbot.Host.Bootstrap.Configurator
+  Farmbot.Host.Bootstrap.Configurator,
+  Farmbot.Host.TargetConfiguratorTest.Supervisor
+  
 ]
 
 # Transports.
@@ -35,7 +37,7 @@ end
 # SystemTasks for host mode.
 config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
-  system_tasks: Farmbot.Host.SystemTasks,
-  firmware_handler: Farmbot.Firmware.UartHandler
+  system_tasks: Farmbot.Host.SystemTasks
+  # firmware_handler: Farmbot.Firmware.UartHandler
 
 config :farmbot, :uart_handler, tty: "/dev/ttyACM0"

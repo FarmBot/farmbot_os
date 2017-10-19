@@ -39,7 +39,7 @@ defmodule Farmbot.Firmware.UartHandler do
     Process.link(nerves)
 
     case open_tty(nerves, tty) do
-      :ok -> {:producer, %State{nerves: nerves, codes: []}}
+      :ok -> {:producer, %State{nerves: nerves, codes: []}, dispatcher: GenStage.BroadcastDispatcher}
       err -> {:stop, err, :no_state}
     end
   end

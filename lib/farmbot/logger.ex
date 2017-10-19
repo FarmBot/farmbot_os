@@ -14,7 +14,8 @@ defmodule Farmbot.Logger do
     {
       :producer_consumer,
       %{meta: %Log.Meta{x: -1, y: -1, z: -1}},
-      subscribe_to: [Farmbot.Firmware]
+      subscribe_to: [Farmbot.Firmware],
+      dispatcher: GenStage.BroadcastDispatcher
     }
   end
 
