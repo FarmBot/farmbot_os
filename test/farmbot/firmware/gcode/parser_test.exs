@@ -47,8 +47,8 @@ defmodule Farmbot.Firmware.Gcode.ParserTest do
   end
 
   test "parses report position" do
-    a = Farmbot.Firmware.Gcode.Parser.parse_code("R82 X1 Y2 Z3 Q10")
-    assert a == {"10", {:report_current_position, 1, 2, 3}}
+    a = Farmbot.Firmware.Gcode.Parser.parse_code("R82 X1.0 Y2.0 Z3.0 Q10")
+    assert a == {"10", {:report_current_position, 1.0, 2.0, 3.0}}
   end
 
   test "parses report calibration" do
@@ -75,8 +75,8 @@ defmodule Farmbot.Firmware.Gcode.ParserTest do
   end
 
   test "parses report encoder position scaled" do
-    a = Farmbot.Firmware.Gcode.Parser.parse_code("R84 X1 Y2 Z3 Q123")
-    assert a == {"123", {:report_encoder_position_scaled, 1, 2, 3}}
+    a = Farmbot.Firmware.Gcode.Parser.parse_code("R84 X1.0 Y2.0 Z3.0 Q123")
+    assert a == {"123", {:report_encoder_position_scaled, 1.0, 2.0, 3.0}}
   end
 
   test "parses report encoder position raw" do

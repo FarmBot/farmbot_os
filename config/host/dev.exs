@@ -21,6 +21,15 @@ config :farmbot, :transport, [
   Farmbot.BotState.Transport.GenMQTT
 ]
 
+repos = [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage]
+config :farmbot, ecto_repos: repos
+
+for repo <- [Farmbot.Repo.A, Farmbot.Repo.B] do
+  config :farmbot, repo,
+    adapter: Sqlite.Ecto2,
+    database: "#{repo}_dev.sqlite3"
+end
+
 # Configure Farmbot Behaviours.
 # Default Authorization behaviour.
 # SystemTasks for host mode.

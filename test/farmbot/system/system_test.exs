@@ -2,6 +2,10 @@ defmodule Farmbot.SystemTest do
   @moduledoc "Tests system functionaity."
   use ExUnit.Case
 
+  setup do
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Farmbot.System.ConfigStorage)
+  end
+
   test "does factory reset" do
     Farmbot.System.factory_reset("hey something bad happened!")
     last = Farmbot.Test.SystemTasks.fetch_last()

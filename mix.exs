@@ -87,7 +87,7 @@ defmodule Farmbot.Mixfile do
       {:cowboy, "~> 1.0.0"},
       {:plug, "~> 1.0"},
       {:ecto, "~> 2.2.2"},
-      {:sqlite_ecto2, "~> 2.2.1"}
+      {:sqlite_ecto2, "~> 2.2.1", only: [:dev, :prod]}
     ]
   end
 
@@ -96,7 +96,8 @@ defmodule Farmbot.Mixfile do
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.14", only: :dev},
       {:excoveralls, "~> 0.6", only: :test},
-      {:mock, "~> 0.2.0", only: :test}
+      {:mock, "~> 0.2.0", only: :test},
+      {:postgrex, "~> 0.13.3", only: :test}
     ]
   end
 
