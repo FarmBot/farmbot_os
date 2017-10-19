@@ -23,7 +23,7 @@ defmodule Farmbot.CeleryScript.Command.FindHome do
   def run(%{axis: "x"}, [], context) do
     ep_x = Farmbot.BotState.get_param(context, "movement_enable_endpoints_x")
     ec_x = Farmbot.BotState.get_param(context, "encoder_enabled_x")
-    unless {ep_x, ec_x} == {0, 0} do
+    if {ep_x, ec_x} == {0, 0} do
       raise Error, "Could not find home because endpoints and encoders are disabled on X axis."
     end
 
@@ -34,7 +34,7 @@ defmodule Farmbot.CeleryScript.Command.FindHome do
   def run(%{axis: "y"}, [], context) do
     ep_y = Farmbot.BotState.get_param(context, "movement_enable_endpoints_y")
     ec_y = Farmbot.BotState.get_param(context, "encoder_enabled_y")
-    unless {ep_y, ec_y} == {0, 0} do
+    if {ep_y, ec_y} == {0, 0} do
       raise Error, "Could not find home because endpoints and encoders are disabled on Y axis."
     end
 
@@ -45,7 +45,7 @@ defmodule Farmbot.CeleryScript.Command.FindHome do
   def run(%{axis: "z"}, [], context) do
     ep_z = Farmbot.BotState.get_param(context, "movement_enable_endpoints_z")
     ec_z = Farmbot.BotState.get_param(context, "encoder_enabled_z")
-    unless {ep_z, ec_z} == {0, 0} do
+    if {ep_z, ec_z} == {0, 0} do
       raise Error, "Could not find home because endpoints and encoders are disabled on Z axis."
     end
 
