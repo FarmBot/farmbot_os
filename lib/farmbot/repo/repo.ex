@@ -31,7 +31,7 @@ defmodule Farmbot.Repo do
   defmacro __using__(_) do
     quote do
       @moduledoc "Storage for Farmbot Resources."
-      use Ecto.Repo, otp_app: :farmbot, adapter: Sqlite.Ecto2
+      use Ecto.Repo, otp_app: :farmbot, adapter: Application.get_env(:farmbot, __MODULE__)[:adapter]
 
       alias Farmbot.Repo.{
               FarmEvent,

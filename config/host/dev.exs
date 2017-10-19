@@ -15,7 +15,7 @@ config :farmbot, data_path: "tmp/"
 config :farmbot, :init, [
   Farmbot.Host.Bootstrap.Configurator,
   Farmbot.Host.TargetConfiguratorTest.Supervisor
-  
+
 ]
 
 # Transports.
@@ -31,6 +31,10 @@ for repo <- [Farmbot.Repo.A, Farmbot.Repo.B] do
     adapter: Sqlite.Ecto2,
     database: "#{repo}_dev.sqlite3"
 end
+
+config :farmbot, Farmbot.System.ConfigStorage,
+  adapter: Sqlite.Ecto2,
+  database: "#{Farmbot.System.ConfigStorage}_dev.sqlite3"
 
 # Configure Farmbot Behaviours.
 # Default Authorization behaviour.
