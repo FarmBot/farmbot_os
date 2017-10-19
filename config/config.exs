@@ -10,11 +10,12 @@ config :ssl, protocol_version: :"tlsv1.2"
 
 # I force colors because they are important.
 config :logger, :console,
-  colors: [enabled: true, info: :cyan],
+  colors: [enabled: true],
   metadata: [:module],
   format: "$time $metadata[$level] $levelpad$message\n"
 
 # Iex needs colors too.
+config :elixir, ansi_enabled: true
 config :iex, :colors, enabled: true
 
 # bot <-> firmware transports.
