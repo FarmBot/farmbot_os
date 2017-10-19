@@ -248,45 +248,41 @@ defmodule Farmbot.Serial.Handler do
 
   def handle_call(:available?, _, state), do: {:reply, state.initialized, state}
 
-  def handle_call({:write, str, _timeout}, from, %{status: :idle} = state)
+  def handle_call({:write, str, timeout}, from, %{status: :idle} = state)
   when is_binary(str) do
     handshake = generate_handshake()
     writeme =  "#{str} #{handshake}"
 
-    # :ok = configure_uart(state.nerves, false)
-
     debug_log "writing: #{writeme}"
     :ok = UART.write(state.nerves, writeme)
-    current = %{
-      status:   nil,
-      reply:    nil,
-      from:     from,
-      q:        handshake,
-      timer:    nil,
-      callback: nil
-    }
-    {:noreply, %{state | current: current}}
 
-    # echo_ok = recieve_echo(state.nerves, writeme, "")
-    #
-    # # :ok = configure_uart(state.nerves, true)
-    # case echo_ok do
-    #   :ok ->
-    #     debug_log "timing this out in #{timeout} ms."
-    #     timer = Process.send_after(self(), :timeout, timeout)
-    #     current = %{
-    #       status:   nil,
-    #       reply:    nil,
-    #       from:     from,
-    #       q:        handshake,
-    #       timer:    timer,
-    #       callback: nil
-    #     }
-    #     {:noreply, %{state | current: current}}
-    #   {:error, reason} ->
-    #     Farmbot.BotState.set_busy(state.context, false)
-    #     {:reply, {:error, reason}, %{state | current: nil}}
-    # end
+    timer = Process.send_after(self(), :echo_timeout, 10_000)
+    echo_ok = recieve_echo(state.nerves, writeme, "")
+    if Process.read_timer(timer) do
+      Process.cancel_timer(timer)
+    end
+
+    # :ok = configure_uart(state.nerves, true)
+    case echo_ok do
+      {:ok, buffer} ->
+        unless buffer == [] do
+          debug_log "received unexpected messages while waiting for echo: #{inspect buffer}"
+        end
+        debug_log "timing this out in #{timeout} ms."
+        timer = Process.send_after(self(), :timeout, timeout)
+        current = %{
+          status:   nil,
+          reply:    nil,
+          from:     from,
+          q:        handshake,
+          timer:    timer,
+          callback: nil
+        }
+        {:noreply, %{state | current: current}}
+      {:error, reason} ->
+        Farmbot.BotState.set_busy(state.context, false)
+        {:reply, {:error, reason}, %{state | current: nil}}
+    end
 
   end
 
@@ -385,11 +381,17 @@ defmodule Farmbot.Serial.Handler do
   end
 
   # This function should be called after every write and makes a couple assumptions.
-  defp recieve_echo(_nerves, writeme, acc) do
+  defp recieve_echo(nerves, writeme, acc, buff \\ []) do
     debug_log "Waiting for echo: sent: #{writeme} have: #{acc}"
     # this could return {:error, reason}
     receive do
-      {:nerves_uart, _, bin} when is_binary(bin) -> parse_echo(acc <> bin, writeme)
+      :echo_timeout -> {:error, :echo_timeout}
+      {:nerves_uart, _, bin} when is_binary(bin) ->
+        case parse_echo(acc <> bin, writeme) do
+          {:other, other}  -> recieve_echo(nerves, writeme, acc, buff ++ [other])
+          {:error, reason} -> {:error, reason}
+          :ok -> {:ok, buff}
+        end
       {:nerves_uart, _, {:error, reason}} -> {:error, reason}
     end
   end
@@ -404,9 +406,7 @@ defmodule Farmbot.Serial.Handler do
       << "R09", _ :: binary >> -> {:error, :invalid}
       # R87 is E stop
       << "R87", _ :: binary >> -> {:error, :emergency_lock}
-      other                    ->
-        debug_log "Got an unhandled echo. Expecting: #{writeme} but got: #{echo}"
-        {:error, "unhandled echo: #{other}"}
+      other                    -> {:other, other}
     end
   end
 
