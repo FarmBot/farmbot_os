@@ -15,7 +15,7 @@
       <h5>Start</h5>
     </div>
     <div class="widget-content">
-      <p>Get ready to configure your farmbot!</p>
+      <p>Get ready to configure your FarmBot!</p>
       <ui>
         <li>Network</li>
         <li>Firmware</li>
