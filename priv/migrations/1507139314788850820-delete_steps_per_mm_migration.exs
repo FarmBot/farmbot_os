@@ -14,9 +14,9 @@ defmodule DeleteStepsPerMM do
     hardware = json["hardware"]
     new_params =
       hardware["params"]
-      |> Map.put("steps_per_mm_x", hardware["params"]["steps_per_mm_x"] || configuration["steps_per_mm_x"] || 5)
-      |> Map.put("steps_per_mm_y", hardware["params"]["steps_per_mm_y"] || configuration["steps_per_mm_y"] || 5)
-      |> Map.put("steps_per_mm_z", hardware["params"]["steps_per_mm_z"] || configuration["steps_per_mm_z"] || 25)
+      |> Map.put("movement_step_per_mm_x", hardware["params"]["movement_step_per_mm_x"] || configuration["steps_per_mm_x"] || 5)
+      |> Map.put("movement_step_per_mm_y", hardware["params"]["movement_step_per_mm_y"] || configuration["steps_per_mm_y"] || 5)
+      |> Map.put("movement_step_per_mm_z", hardware["params"]["movement_step_per_mm_z"] || configuration["steps_per_mm_z"] || 25)
     new_hardware = %{hardware | "params" => new_params}
 
     %{json | "configuration" => new_config, "hardware" => new_hardware}
