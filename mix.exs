@@ -97,7 +97,7 @@ defmodule Farmbot.Mixfile do
       {:ex_doc, "~> 0.14", only: :dev},
       {:excoveralls, "~> 0.6", only: :test},
       {:mock, "~> 0.2.0", only: :test},
-      {:postgrex, "~> 0.13.3", only: :test}
+      {:postgrex, "~> 0.13.3", only: :test},
     ]
   end
 
@@ -106,7 +106,7 @@ defmodule Farmbot.Mixfile do
       [
         {:bootloader, "~> 0.1"},
         {:nerves_runtime, "~> 0.4"},
-        {:nerves_network, github: "nerves-project/nerves_network", override: true},
+        {:nerves_network, path: "/home/connor/oss/elixir/nerves/nerves_network", override: true},
         {:nerves_firmware_ssh, "~> 0.2"},
         {:dhcp_server, "~> 0.1.3"}
       ]

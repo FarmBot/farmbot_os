@@ -9,11 +9,21 @@ defmodule Farmbot.Target.Network.Manager do
     GenServer.start_link(__MODULE__, {interface, opts}, [name: :"#{__MODULE__}-#{interface}"])
   end
 
-  def init({interface, opts}) do
-    Nerves.Network.Config.drop(interface)
+  def init({interface, opts} = args) do
+    unless interface in Nerves.NetworkInterface.interfaces() do
+      Logger.debug("Waiting for interface up.")
+      Process.sleep(1000)
+      init(args)
+    end
+    # Nerves.Network.teardown(interface)
+    # Nerves.NetworkInterface.ifdown(interface)
+
+    # Nerves.NetworkInterface.ifup(interface)
+    # Nerves.Network.Config.drop(interface)
     SystemRegistry.register()
     {:ok, _} = Registry.register(Nerves.NetworkInterface, interface, [])
     {:ok, _} = Registry.register(Nerves.Udhcpc, interface, [])
+    IO.puts "OPTS: #{inspect opts}"
     Network.setup(interface, opts)
     {:ok, %{interface: interface, ip_address: nil, connected: false}}
   end

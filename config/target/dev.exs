@@ -12,6 +12,8 @@ config :farmbot, Farmbot.System.ConfigStorage,
   adapter: Sqlite.Ecto2,
   database: "/root/config-#{Mix.env()}.sqlite3"
 
+config :farmbot, ecto_repos: [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage]
+
 config :farmbot, data_path: "/root"
 
 # Configure your our init system.
@@ -32,7 +34,7 @@ config :farmbot, :init, [
 
 # Transports.
 config :farmbot, :transport, [
-  Farmbot.BotState.Transport.GenMqtt
+  # Farmbot.BotState.Transport.GenMqtt
 ]
 
 # Configure Farmbot Behaviours.

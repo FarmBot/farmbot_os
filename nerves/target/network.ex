@@ -17,7 +17,7 @@ defmodule Farmbot.Target.Network do
 
   def to_network_config(%NetworkInterface{ssid: ssid, psk: psk, type: "wireless"} = config) do
     Logger.debug("wireless network config: ssid: #{config.ssid}, psk: #{config.psk}")
-    {config.name, [ssid: ssid, security: :"WPA-PSK", psk: psk]}
+    {config.name, [ssid: ssid, key_mgmt: :"WPA-PSK", psk: psk]}
   end
 
   def to_network_config(%NetworkInterface{type: "wired"} = config) do
@@ -36,7 +36,6 @@ defmodule Farmbot.Target.Network do
     config = ConfigStorage.all(NetworkInterface)
     Logger.info("Starting Networking")
     children = config |> Enum.map(&to_network_config/1) |> Enum.map(&to_child_spec/1)
-
     supervise(children, strategy: :one_for_one)
   end
 end
