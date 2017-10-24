@@ -8,8 +8,11 @@ defmodule Farmbot.Firmware.Handler do
   Gcodes as parsed by `Farmbot.Firmware.Gcode.Parser`.
   """
 
+  @doc "Pid of a firmware implementation."
+  @type handler :: pid
+
   @doc "Start a firmware handler."
-  @callback start_link :: GenServer.on_start()
+  @callback start_link :: {:ok, handler}
 
   @typedoc false
   @type fw_ret_val :: :ok | {:error, term}
@@ -30,28 +33,29 @@ defmodule Farmbot.Firmware.Handler do
   @type pin_mode :: :digital | :analog
 
   @doc "Move to a position."
-  @callback move_absolute(vec3) :: fw_ret_val
+  @callback move_absolute(handler, vec3) :: fw_ret_val
 
   @doc "Calibrate an axis."
-  @callback calibrate(axis) :: fw_ret_val
+  @callback calibrate(handler, axis) :: fw_ret_val
 
   @doc "Update a paramater."
-  @callback update_param(fw_param, number) :: fw_ret_val
+  @callback update_param(handler, fw_param, number) :: fw_ret_val
 
-  @callback read_param(fw_param) :: {:ok, number} | {:error, term}
+  @doc "Read a paramater."
+  @callback read_param(handler, fw_param) :: {:ok, number} | {:error, term}
 
   @doc "Lock the firmware."
-  @callback emergency_lock() :: fw_ret_val
+  @callback emergency_lock(handler) :: fw_ret_val
 
   @doc "Unlock the firmware."
-  @callback emergency_unlock() :: fw_ret_val
+  @callback emergency_unlock(handler) :: fw_ret_val
 
   @doc "Find home on an axis."
-  @callback find_home(axis) :: fw_ret_val
+  @callback find_home(handler, axis) :: fw_ret_val
 
   @doc "Read a pin."
-  @callback read_pin(pin, pin_mode) :: {:ok, number} | {:error, term}
+  @callback read_pin(handler, pin, pin_mode) :: {:ok, number} | {:error, term}
 
   @doc "Write a pin."
-  @callback write_pin(pin, pin_mode, number) :: fw_ret_val
+  @callback write_pin(handler, pin, pin_mode, number) :: fw_ret_val
 end

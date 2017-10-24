@@ -4,17 +4,15 @@ defmodule Farmbot.Firmware do
   use GenStage
   require Logger
 
-  @handler Application.get_env(:farmbot, :behaviour)[:firmware_handler] || raise("No fw handler.")
-
-  defdelegate move_absolute(vec3), to: @handler
-  defdelegate calibrate(axis), to: @handler
-  defdelegate update_param(param, val), to: @handler
-  defdelegate read_param(param), to: @handler
-  defdelegate emergency_lock(), to: @handler
-  defdelegate emergency_unlock(), to: @handler
-  defdelegate find_home(axis), to: @handler
-  defdelegate read_pin(pin, mode), to: @handler
-  defdelegate write_pin(pin, mode, value), to: @handler
+  def move_absolute(vec3)
+  def calibrate(axis)
+  def update_param(param, val)
+  def read_param(param)
+  def emergency_lock()
+  def emergency_unlock()
+  def find_home(axis)
+  def read_pin(pin, mode)
+  def write_pin(pin, mode, value)
 
   @doc "Start the firmware services."
   def start_link do
@@ -28,7 +26,10 @@ defmodule Farmbot.Firmware do
   end
 
   def init([]) do
-    {:producer_consumer, %State{}, subscribe_to: [@handler], dispatcher: GenStage.BroadcastDispatcher}
+    handler_mod = Application.get_env(:farmbot, :behaviour)[:firmware_handler] || raise("No fw handler.")
+    {:ok, handler} = handler_mod.start_link()
+    Process.link(handler)
+    {:producer_consumer, %State{}, subscribe_to: [handler], dispatcher: GenStage.BroadcastDispatcher}
   end
 
   def handle_events(gcodes, _from, state) do

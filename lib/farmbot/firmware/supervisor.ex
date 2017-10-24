@@ -10,10 +10,7 @@ defmodule Farmbot.Firmware.Supervisor do
   end
 
   def init([]) do
-    handler_mod = Application.get_env(:farmbot, :behaviour)[:firmware_handler] || raise @error_msg
-
     children = [
-      worker(handler_mod, []),
       worker(Farmbot.Firmware, [])
     ]
 
