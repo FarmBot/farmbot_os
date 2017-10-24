@@ -30,7 +30,8 @@ config :farmbot, :transport, []
 # Configure Farmbot Behaviours.
 config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
-  firmware_handler: Farmbot.Firmware.StubHandler
+  firmware_handler: Farmbot.Firmware.StubHandler,
+  http_adapter: Farmbot.HTTP.HTTPoisonAdapter
 
 case target do
   "host" ->
