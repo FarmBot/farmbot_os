@@ -1,87 +1,82 @@
 defmodule Farmbot.CeleryScript.AST.Compiler do
   require Logger
-  alias Farmbot.CeleryScript.AST
-  alias Farmbot.CeleryScript.AST.CompileError
+  alias Farmbot.CeleryScript.AST.Compiler.CompileError
   alias Farmbot.CeleryScript.VirtualMachine.InstructionSet
-  import Farmbot.CeleryScript.AST.Compiler.Utils
 
-  def compile(ast, instrs) do
-    compiler_debug_log(
-      "#{Farmbot.DebugLog.color(:YELLOW)}BEGIN COMPILE: #{inspect(ast)}#{
-        Farmbot.DebugLog.color(:NC)
-      }"
-    )
-    compiler_debug_log_begin_step(ast, "ensure_implementation")
-    ast = ensure_implementation!(ast, instrs)
-    compiler_debug_log_complete_step(ast, "ensure_implementation")
-    compiler_debug_log_begin_step(ast, "precompile")
-    {state, ast} = precompile!(ast, instrs)
-    compiler_debug_log(Map.keys(state) |> Enum.join("\n\n"))
-    compiler_debug_log_complete_step(ast, "precompile")
-    ast
+  def compile(ast, %InstructionSet{} = instruction_set) do
+    res = ast
+    |> tag(:precompile)
+    |> ensure_impl(instruction_set)
+    |> precompile(instruction_set, [])
+    require IEx; IEx.pry
   end
 
-  def ensure_implementation!(%AST{kind: kind, body: []} = ast, instrs) do
-    :ok = do_ensure(kind, instrs)
-    ast
+  def tag(ast, step) do
+    %{ast | compile_meta: Map.put(ast.compile_meta || %{}, :step, step), body: tag_body(ast.body, step)}
   end
 
-  def ensure_implementation!(%AST{kind: kind, body: body} = ast, instrs) do
-    :ok = do_ensure(kind, instrs)
-    ensure_implementation!(body, instrs)
-    ast
+  defp tag_body(body, step, acc \\ [])
+
+  defp tag_body([ast | rest], step, acc) do
+    tag_body(rest, step, [tag(ast, step) | acc])
   end
 
-  def ensure_implementation!([%AST{kind: kind, body: body} | next], instrs) do
-    :ok = do_ensure(kind, instrs)
-    ensure_implementation!(body, instrs)
-    ensure_implementation!(next, instrs)
-  end
+  defp tag_body([], _step, acc), do: Enum.reverse(acc)
 
-  def ensure_implementation!([], _), do: :ok
-
-  defp do_ensure(kind, instrs) do
-    compiler_debug_log(kind, "ensure implementation")
-    impl = instrs[kind] || raise CompileError, "No implementation for #{kind}"
-    if Code.ensure_loaded?(impl) do
-      :ok
-    else
-      raise CompileError, "Implementation module: #{impl} is not loaded."
+  def ensure_impl(ast, %InstructionSet{} = instruction_set) do
+    unless instruction_set[ast.kind] do
+      raise CompileError, "#{ast.kind} has no implementation."
     end
+
+    unless Code.ensure_loaded?(instruction_set[ast.kind]) do
+      raise CompileError, "#{ast.kind} implementation could not be loaded."
+    end
+
+    %{ast | body: ensure_impl_body(ast.body, instruction_set)}
   end
 
-  # sequence
-  # -> execute_sequence
-  #    -> move_abs
+  def ensure_impl_body(body, instruction_set, acc \\ [])
 
-  def precompile!(ast, instrs, state \\ %{}) do
-    impl = instrs[ast.kind]
-    if state[ast.__meta__.encoded] do
-      compiler_debug_log("#{inspect ast} compiled")
-      {state, ast}
+  def ensure_impl_body([ast | rest], %InstructionSet{} = instruction_set, acc) do
+    ensure_impl_body(rest, instruction_set, [ensure_impl(ast, instruction_set) | acc])
+  end
+
+  def ensure_impl_body([], %InstructionSet{} = _instruction_set, acc), do: Enum.reverse(acc)
+
+  def precompile(ast, %InstructionSet{} = instruction_set, cache) do
+    md5 = :crypto.hash(:md5, Poison.encode!(ast)) |> Base.encode16
+    IO.puts "precompiling: #{inspect ast}: #{inspect ast.compile_meta} => #{md5}"
+    IO.inspect cache
+    if md5 in cache do
+      ast
     else
-      case impl.precompile(ast) do
-        {:ok, res} ->
-          res = %{res | __meta__: %{res.__meta__ | precompiled: true}}
-          state = Map.put(state, res.__meta__.encoded, res)
-          {state, ast} = precompile!(res, instrs, state)
-          {state, body} = precompile_body(ast.body, instrs, state)
-          %{ast | body: body} |> precompile!(instrs, state)
+      cache = [md5 | cache]
+      case instruction_set[ast.kind].precompile(ast) do
         {:error, reason} -> raise CompileError, reason
+        {:ok, precompiled} ->
+          precompiled = %{precompiled | body: precompile_body(precompiled.body, instruction_set, cache)}
+          IO.inspect precompiled.compile_meta
+          case precompiled.compile_meta do
+            nil ->
+              precompiled
+              |> tag(:precompile)
+              |> ensure_impl(instruction_set)
+              |> precompile(instruction_set, cache)
+              |> tag(:compile)
+            %{step: :precompile} -> tag(precompiled, :compile)
+          end
       end
     end
+
   end
 
-  defp precompile_body(body, instrs, state, acc \\ [])
+  def precompile_body(body, instruction_set, cache, acc \\ [])
 
-  defp precompile_body([ast | rest], instrs, state, acc) do
-    {state, ast} = precompile!(ast, instrs, state)
-    acc = [ast | acc]
-    precompile_body(rest, instrs, state, acc)
+  def precompile_body([ast | rest], %InstructionSet{} = instruction_set, cache, acc) do
+    precompile_body(rest, instruction_set, cache, [precompile(ast, instruction_set, cache) | acc])
   end
 
-  defp precompile_body([], instrs, state, acc) do
-    {state, Enum.reverse(acc)}
-  end
+  def precompile_body([], %InstructionSet{} = _instruction_set, _cache, acc), do: Enum.reverse(acc)
 end
+
 # Farmbot.HTTP.get!("/api/sequences/2") |> Map.get(:body) |> Poison.decode! |> Farmbot.CeleryScript.AST.parse |> Farmbot.CeleryScript.VirtualMachine.execute

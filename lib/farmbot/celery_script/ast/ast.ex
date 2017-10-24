@@ -4,21 +4,6 @@ defmodule Farmbot.CeleryScript.AST do
   Ast nodes.
   """
 
-  defmodule Meta do
-    @moduledoc "Metadata about an AST node."
-    defstruct [precompiled: false, encoded: nil]
-    @type t :: %__MODULE__{
-      precompiled: boolean,
-      encoded: binary
-    }
-
-    def new(ast) do
-      bin = Map.from_struct(ast) |> Map.delete(:__meta__) |> Poison.encode! 
-      encoded = :crypto.hash(:md5, bin) |> Base.encode16()
-      struct(__MODULE__, encoded: encoded)
-    end
-  end
-
   alias Farmbot.CeleryScript.Error
 
   @typedoc """
@@ -30,8 +15,7 @@ defmodule Farmbot.CeleryScript.AST do
   Type for CeleryScript Ast's.
   """
   @type t :: %__MODULE__{
-          __meta__: Meta.t,
-          uid: binary,
+          compile_meta: map | nil,
           args: args,
           body: [t, ...],
           kind: String.t(),
@@ -39,14 +23,11 @@ defmodule Farmbot.CeleryScript.AST do
         }
 
   @enforce_keys [:args, :body, :kind]
-  defstruct [
-    kind: nil,
-    uid: nil,
-    args: %{},
-    body: [],
-    comment: nil,
-    __meta__: nil
-  ]
+  defstruct kind: nil,
+            compile_meta: nil,
+            args: %{},
+            body: [],
+            comment: nil
 
   @doc """
   Parses json and traverses the tree and turns everything can
@@ -58,10 +39,7 @@ defmodule Farmbot.CeleryScript.AST do
   def parse(%{"kind" => kind, "args" => args} = thing) do
     body = thing["body"] || []
     comment = thing["comment"]
-    uid = thing["uuid"] || generate_uid()
-    before_meta = %__MODULE__{kind: kind, args: parse_args(args), body: parse(body), comment: comment, uid: uid}
-    meta = thing["__meta__"] || Meta.new(before_meta)
-    %{before_meta | __meta__: meta}
+    %__MODULE__{kind: kind, args: parse_args(args), body: parse(body), comment: comment}
   end
 
   def parse(%{__struct__: _} = thing) do
@@ -71,10 +49,7 @@ defmodule Farmbot.CeleryScript.AST do
   def parse(%{kind: kind, args: args} = thing) do
     body = thing[:body] || []
     comment = thing[:comment]
-    uid = thing[:uid] || generate_uid()
-    before_meta = %__MODULE__{kind: kind, body: parse(body), args: parse_args(args), comment: comment, uid: uid}
-    meta = thing[:__meta__] || Meta.new(before_meta)
-    %{before_meta | __meta__: meta}
+    %__MODULE__{kind: kind, body: parse(body), args: parse_args(args), comment: comment}
   end
 
   # You can give a list of nodes.
@@ -101,17 +76,5 @@ defmodule Farmbot.CeleryScript.AST do
         Map.put(acc, String.to_atom(key), val)
       end
     end)
-  end
-
-  @doc """
-  Creates a new AST node. No validation is preformed on this other than making
-  sure its syntax is valid.
-  """
-  def create(kind, args, body) when is_map(args) and is_list(body) do
-    %__MODULE__{kind: kind, args: args, body: body}
-  end
-
-  defp generate_uid do
-    UUID.uuid1 |> String.split("-") |> List.first
   end
 end
