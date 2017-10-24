@@ -1,16 +1,25 @@
-defmodule Farmbot.CeleryScript.Ast do
+defmodule Farmbot.CeleryScript.AST do
   @moduledoc """
   Handy functions for turning various data types into Farbot Celery Script
   Ast nodes.
   """
 
-  alias Farmbot.CeleryScript.Error
+  defmodule Meta do
+    @moduledoc "Metadata about an AST node."
+    defstruct [precompiled: false, encoded: nil]
+    @type t :: %__MODULE__{
+      precompiled: boolean,
+      encoded: binary
+    }
 
-  defimpl Inspect, for: __MODULE__ do
-    def inspect(thing, _) do
-      "#CeleryScript<#{thing.kind}: #{inspect(Map.keys(thing.args))}>"
+    def new(ast) do
+      bin = Map.from_struct(ast) |> Map.delete(:__meta__) |> Poison.encode! 
+      encoded = :crypto.hash(:md5, bin) |> Base.encode16()
+      struct(__MODULE__, encoded: encoded)
     end
   end
+
+  alias Farmbot.CeleryScript.Error
 
   @typedoc """
   CeleryScript args.
@@ -21,6 +30,8 @@ defmodule Farmbot.CeleryScript.Ast do
   Type for CeleryScript Ast's.
   """
   @type t :: %__MODULE__{
+          __meta__: Meta.t,
+          uid: binary,
           args: args,
           body: [t, ...],
           kind: String.t(),
@@ -28,19 +39,29 @@ defmodule Farmbot.CeleryScript.Ast do
         }
 
   @enforce_keys [:args, :body, :kind]
-  defstruct [:args, :body, :kind, :comment]
+  defstruct [
+    kind: nil,
+    uid: nil,
+    args: %{},
+    body: [],
+    comment: nil,
+    __meta__: nil
+  ]
 
   @doc """
   Parses json and traverses the tree and turns everything can
   possibly be parsed.
   """
-  @spec parse({:ok, map} | map | [map, ...]) :: t
+  @spec parse(map | [map, ...]) :: t
   def parse(map_or_json_map)
 
   def parse(%{"kind" => kind, "args" => args} = thing) do
     body = thing["body"] || []
     comment = thing["comment"]
-    %__MODULE__{kind: kind, args: parse_args(args), body: parse(body), comment: comment}
+    uid = thing["uuid"] || generate_uid()
+    before_meta = %__MODULE__{kind: kind, args: parse_args(args), body: parse(body), comment: comment, uid: uid}
+    meta = thing["__meta__"] || Meta.new(before_meta)
+    %{before_meta | __meta__: meta}
   end
 
   def parse(%{__struct__: _} = thing) do
@@ -50,7 +71,10 @@ defmodule Farmbot.CeleryScript.Ast do
   def parse(%{kind: kind, args: args} = thing) do
     body = thing[:body] || []
     comment = thing[:comment]
-    %__MODULE__{kind: kind, body: parse(body), args: parse_args(args), comment: comment}
+    uid = thing[:uid] || generate_uid()
+    before_meta = %__MODULE__{kind: kind, body: parse(body), args: parse_args(args), comment: comment, uid: uid}
+    meta = thing[:__meta__] || Meta.new(before_meta)
+    %{before_meta | __meta__: meta}
   end
 
   # You can give a list of nodes.
@@ -85,5 +109,9 @@ defmodule Farmbot.CeleryScript.Ast do
   """
   def create(kind, args, body) when is_map(args) and is_list(body) do
     %__MODULE__{kind: kind, args: args, body: body}
+  end
+
+  defp generate_uid do
+    UUID.uuid1 |> String.split("-") |> List.first
   end
 end

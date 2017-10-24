@@ -59,11 +59,9 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
 
   def on_publish(["bot", _bot, "from_clients"], msg, state) do
     Logger.warn("not implemented yet: #{msg}")
-
-    if state.cache do
-      GenMQTT.publish(self(), status_topic(state.device), state.cache, 0, false)
-    end
-
+    msg
+    |> Farmbot.CeleryScript.AST.parse()
+    |> Farmbot.CeleryScript.VirtualMachine.execute()
     {:ok, state}
   end
 
