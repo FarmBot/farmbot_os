@@ -23,6 +23,11 @@ defmodule Farmbot.Lib.Helpers do
     end
   end
 
+  def format_float(float) when is_float(float) do
+    [str] = :io_lib.format("~f",[float])
+    to_string(str)
+  end
+
   def rollbar_occurrence_data do
     Application.get_env(:farmbot, :rollbar_occurrence_data, %{})
   end

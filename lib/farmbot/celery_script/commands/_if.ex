@@ -22,7 +22,7 @@ defmodule Farmbot.CeleryScript.Command.If do
   @spec run(%{}, [], Context.t) :: Context.t
   def run(%{_else: else_, _then: then_, lhs: lhs, op: op, rhs: rhs }, _, ctx) do
     left = lhs |> eval_lhs(ctx)
-    unless is_integer(left) or is_nil(left) do
+    unless is_number(left) or is_nil(left) do
       raise Error, context: ctx,
         message: "could not evaluate left hand side of if statment! #{inspect lhs}"
     end

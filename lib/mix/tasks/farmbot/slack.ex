@@ -25,6 +25,7 @@ defmodule Mix.Tasks.Farmbot.Slack do
     end
 
     token    = System.get_env("SLACK_TOKEN") || Mix.raise "Could not find SLACK_TOKEN"
+    # File.touch!(fw_file)
     time     = format_date_time(File.stat!(fw_file))
     filename = "#{otp_app}-#{Mix.env()}-#{commit}#{if signed?, do: "-signed-", else: "-"}#{time}.fw"
     comment  = Enum.join(uhh, " ")
@@ -61,7 +62,7 @@ defmodule Mix.Tasks.Farmbot.Slack do
     # System.cmd("notify-send", [notify_opts | ["Farmbot Uploader", message]] |> List.flatten())
   end
 
-  defp format_date_time(%{mtime: {{yr,m,day}, {hr, min, sec}}}) do
+  defp format_date_time(%{ctime: {{yr,m,day}, {hr, min, sec}}}) do
     dt = %DateTime{
       hour: hr,
       year: yr,

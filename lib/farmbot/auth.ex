@@ -3,7 +3,8 @@ defmodule Farmbot.Auth do
     Gets a token and device information
   """
 
-  @timeout_time (2 * 3_600_000)
+  @timeout_time 1.8e+6
+  # @timeout_time 15_000
 
   require Logger
   alias   Farmbot.{Token, Context, DebugLog, System, HTTP}
@@ -363,8 +364,9 @@ defmodule Farmbot.Auth do
   # This is pretty much a HACK to force MQTT to log in again every six hours
   # Because it goes limp after long amounts of time.
   def handle_info(:new_token, state) do
+    old = self()
     spawn fn() ->
-      try_log_in(self())
+      try_log_in(old)
     end
     new_timer = s_a(self())
     {:noreply, %{state | timer: new_timer}}
