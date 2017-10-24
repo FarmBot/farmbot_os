@@ -273,8 +273,9 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
   end
 
   defp do_api_request({method, url, body, headers, opts, from}, state) do
-    # TODO Get token and url out of config storage.
-    token = ""
+    alias Farmbot.System.ConfigStorage
+    token = ConfigStorage.get_config_value(:string, "authorization", "token")
+    url = ConfigStorage.get_config_value(:string, "authorization", "server") <> url
 
     headers =
       headers
