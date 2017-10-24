@@ -53,7 +53,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
 
     def on_connect(state) do
       GenMQTT.subscribe(self(), [{bot_topic(state.device), 0}])
-      Logger.info(">> Connected!")
+      Logger.info("Connected!")
 
       if state.cache do
         GenMQTT.publish(self(), status_topic(state.device), state.cache, 0, false)

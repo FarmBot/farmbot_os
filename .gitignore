@@ -54,3 +54,4 @@ tmp
 *.sqlite3-wal
 *.img
 run-qemu.sh
+auth_secret.exs

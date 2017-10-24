@@ -11,7 +11,6 @@ config :iex, :colors, enabled: true
 
 config :ssl, protocol_version: :"tlsv1.2"
 
-
 # This is usually in the `priv` dir of :tzdata, but our fs is read only.
 config :tzdata, :data_dir, "/tmp"
 config :tzdata, :autoupdate, :disabled

@@ -41,7 +41,7 @@ defmodule Farmbot do
   def start(type, start_opts)
 
   def start(_, start_opts) do
-    Logger.info(">> Booting Farmbot OS version: #{@version} - #{@commit}")
+    Logger.debug("Booting Farmbot OS version: #{@version} - #{@commit}")
     name = Keyword.get(start_opts, :name, __MODULE__)
 
     case Supervisor.start_link(__MODULE__, [], name: name) do
