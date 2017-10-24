@@ -6,17 +6,22 @@ defmodule Farmbot.Firmware do
 
   @doc "Move the bot to a position."
   def move_absolute(vec3) do
-    GenStage.call(__MODULE__, {:move_absolute, vec3})
+    GenStage.call(__MODULE__, {:move_absolute, [vec3]})
   end
 
   @doc "Calibrate an axis."
   def calibrate(axis) do
-    GenStage.call(__MODULE__, {:calibrate, axis})
+    GenStage.call(__MODULE__, {:calibrate, [axis]})
   end
 
   @doc "Find home on an axis."
   def find_home(axis) do
-    GenStage.call(__MODULE__, {:find_home, axis})
+    GenStage.call(__MODULE__, {:find_home, [axis]})
+  end
+
+  @doc "Manually set an axis's current position to zero."
+  def zero(axis) do
+    GenStage.call(__MODULE__, {:zero, [axis]})
   end
 
   @doc """
@@ -24,7 +29,7 @@ defmodule Farmbot.Firmware do
   For a list of paramaters see `Farmbot.Firmware.Gcode.Param`
   """
   def update_param(param, val) do
-    GenStage.call(__MODULE__, {:update_param, param, val})
+    GenStage.call(__MODULE__, {:update_param, [param, val]})
   end
 
   @doc """
@@ -32,27 +37,27 @@ defmodule Farmbot.Firmware do
   For a list of paramaters see `Farmbot.Firmware.Gcode.Param`
   """
   def read_param(param) do
-    GenStage.call(__MODULE__, {:read_param, param})
+    GenStage.call(__MODULE__, {:read_param, [param]})
   end
 
   @doc "Emergency lock Farmbot."
   def emergency_lock() do
-    GenStage.call(__MODULE__, :emergency_lock)
+    GenStage.call(__MODULE__, {:emergency_lock, []})
   end
 
   @doc "Unlock Farmbot from Emergency state."
   def emergency_unlock() do
-    GenStage.call(__MODULE__, :emergency_unlock)
+    GenStage.call(__MODULE__, {:emergency_unlock, []})
   end
 
   @doc "Read a pin."
   def read_pin(pin, mode) do
-    GenStage.call(__MODULE__, {:read_pin, pin, mode})
+    GenStage.call(__MODULE__, {:read_pin, [pin, mode]})
   end
 
   @doc "Write a pin."
   def write_pin(pin, mode, value) do
-    GenStage.call(__MODULE__, {:write_pin, pin, mode, value})
+    GenStage.call(__MODULE__, {:write_pin, [pin, mode, value]})
   end
 
   @doc "Start the firmware services."
@@ -63,14 +68,32 @@ defmodule Farmbot.Firmware do
   ## GenStage
 
   defmodule State do
-    defstruct handler: nil, idle: false
+    defstruct handler: nil, handler_mod: nil, idle: false
   end
 
   def init([]) do
-    handler_mod = Application.get_env(:farmbot, :behaviour)[:firmware_handler] || raise("No fw handler.")
+    handler_mod =
+      Application.get_env(:farmbot, :behaviour)[:firmware_handler] || raise("No fw handler.")
+
     {:ok, handler} = handler_mod.start_link()
     Process.link(handler)
-    {:producer_consumer, %State{handler: handler}, subscribe_to: [handler], dispatcher: GenStage.BroadcastDispatcher}
+
+    {
+      :producer_consumer,
+      %State{handler: handler, handler_mod: handler_mod},
+      subscribe_to: [handler], dispatcher: GenStage.BroadcastDispatcher
+    }
+  end
+
+  def handle_call({fun, args}, _from, %{handler: handler, handler_mod: handler_mod} = state) do
+    res =
+      case apply(handler_mod, fun, [handler | args]) do
+        {:ok, _} = res -> res
+        :ok = res -> res
+        {:error, _} = res -> res
+      end
+
+    {:reply, res, [], state}
   end
 
   def handle_events(gcodes, _from, state) do

@@ -1,7 +1,7 @@
 defmodule Farmbot.Firmware.Vec3 do
   @moduledoc "A three position vector."
 
-  defstruct [:x, :y, :z]
+  defstruct [x: -1, y: -1, z: -1]
 
   @typedoc "Axis label."
   @type axis :: :x | :y | :z

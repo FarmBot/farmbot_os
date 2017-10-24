@@ -7,16 +7,48 @@ defmodule Farmbot.Firmware.UartHandler do
   alias Nerves.UART
   require Logger
 
-  @doc """
-  Writes a string to the uart line
-  """
-  def write(code) do
-    GenStage.call(__MODULE__, {:write, code}, :infinity)
+  def start_link do
+    GenStage.start_link(__MODULE__, [])
   end
 
-  @doc "Starts a UART Firmware Handler."
-  def start_link do
-    GenStage.start_link(__MODULE__, [], name: __MODULE__)
+  def move_absolute(handler, pos) do
+    GenStage.call(handler, {:move_absolute, pos})
+  end
+
+  def calibrate(handler, axis) do
+    GenStage.call(handler, {:calibrate, axis})
+  end
+
+  def find_home(handler, axis) do
+    GenStage.call(handler, {:find_home, axis})
+  end
+
+  def zero(handler, axis) do
+    GenStage.call(handler, {:zero, axis})
+  end
+
+  def update_param(handler, param, val) do
+    GenStage.call(handler, {:update_param, param, val})
+  end
+
+  def read_param(handler, param) do
+    GenStage.call(handler, {:read_param, param})
+  end
+
+  def emergency_lock(handler) do
+    GenStage.call(handler, :emergency_lock)
+  end
+
+  def emergency_unlock(handler) do
+    GenStage.call(handler, :emergency_unlock)
+  end
+
+  def read_pin(handler, pin, pin_mode) do
+    GenStage.call(handler, {:read_pin, pin, pin_mode})
+  end
+
+  def write_pin(handler, pin, pin_mode, value) do
+    GenStage.call(handler, {:write_pin, pin, pin_mode, value})
   end
 
   ## Private
@@ -84,11 +116,6 @@ defmodule Farmbot.Firmware.UartHandler do
   def handle_info({:nerves_uart, _, bin}, state) when is_binary(bin) do
     Logger.warn("Unparsed Gcode: #{bin}")
     {:noreply, [], state}
-  end
-
-  def handle_call({:write, stuff}, _from, state) do
-    r = UART.write(state.nerves, stuff)
-    {:reply, r, [], state}
   end
 
   def handle_demand(_amnt, state) do

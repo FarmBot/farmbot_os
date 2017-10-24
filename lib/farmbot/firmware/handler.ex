@@ -38,6 +38,12 @@ defmodule Farmbot.Firmware.Handler do
   @doc "Calibrate an axis."
   @callback calibrate(handler, axis) :: fw_ret_val
 
+  @doc "Find home on an axis."
+  @callback find_home(handler, axis) :: fw_ret_val
+
+  @doc "Manually set an axis's current position to zero."
+  @callback zero(handler, axis) :: fw_ret_val
+
   @doc "Update a paramater."
   @callback update_param(handler, fw_param, number) :: fw_ret_val
 
@@ -49,9 +55,6 @@ defmodule Farmbot.Firmware.Handler do
 
   @doc "Unlock the firmware."
   @callback emergency_unlock(handler) :: fw_ret_val
-
-  @doc "Find home on an axis."
-  @callback find_home(handler, axis) :: fw_ret_val
 
   @doc "Read a pin."
   @callback read_pin(handler, pin, pin_mode) :: {:ok, number} | {:error, term}
