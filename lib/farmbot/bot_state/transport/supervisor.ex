@@ -1,5 +1,5 @@
 defmodule Farmbot.BotState.Transport.Supervisor do
-  @moduledoc ""
+  @moduledoc false
 
   use Supervisor
 

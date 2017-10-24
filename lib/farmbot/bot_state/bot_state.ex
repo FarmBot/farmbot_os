@@ -1,4 +1,6 @@
 defmodule Farmbot.BotState do
+  @moduledoc "JSON Serializable state tree that gets pushed over variour transports."
+
   use GenStage
   require Logger
   @version Mix.Project.config()[:version]
@@ -25,8 +27,11 @@ defmodule Farmbot.BotState do
   end
 
   def init([]) do
-    {:producer_consumer, struct(__MODULE__), subscribe_to: [Farmbot.Firmware],
-                                             dispatcher: GenStage.BroadcastDispatcher}
+    {
+      :producer_consumer,
+      struct(__MODULE__),
+      subscribe_to: [Farmbot.Firmware], dispatcher: GenStage.BroadcastDispatcher
+    }
   end
 
   def handle_events(events, _from, state) do
