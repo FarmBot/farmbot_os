@@ -12,7 +12,7 @@ defmodule Farmbot.Firmware.StubHandler do
   end
 
   def move_absolute(pos) do
-    GenStage.call(__MODULE__, {:move_absolute, pos}}
+    GenStage.call(__MODULE__, {:move_absolute, pos})
   end
 
   defmodule State do

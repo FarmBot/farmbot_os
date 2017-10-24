@@ -1,5 +1,5 @@
 defmodule Farmbot.System.ConfigStorage.BoolValue do
-  @moduledoc ""
+  @moduledoc false
 
   use Ecto.Schema
   import Ecto.Changeset

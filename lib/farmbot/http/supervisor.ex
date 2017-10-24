@@ -1,14 +1,14 @@
 defmodule Farmbot.HTTP.Supervisor do
-  @moduledoc "Supervises HTTP."
+  @moduledoc false
 
   use Supervisor
 
-  @doc "Start HTTP services."
+  @doc false
   def start_link(token, opts \\ []) do
     Supervisor.start_link(__MODULE__, token, opts)
   end
 
-  def init(token) do
+  def init(_token) do
     children = [
       worker(Farmbot.HTTP, [])
     ]

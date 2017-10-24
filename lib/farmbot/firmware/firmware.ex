@@ -4,15 +4,56 @@ defmodule Farmbot.Firmware do
   use GenStage
   require Logger
 
-  def move_absolute(vec3)
-  def calibrate(axis)
-  def update_param(param, val)
-  def read_param(param)
-  def emergency_lock()
-  def emergency_unlock()
-  def find_home(axis)
-  def read_pin(pin, mode)
-  def write_pin(pin, mode, value)
+  @doc "Move the bot to a position."
+  def move_absolute(vec3) do
+    GenStage.call(__MODULE__, {:move_absolute, vec3})
+  end
+
+  @doc "Calibrate an axis."
+  def calibrate(axis) do
+    GenStage.call(__MODULE__, {:calibrate, axis})
+  end
+
+  @doc "Find home on an axis."
+  def find_home(axis) do
+    GenStage.call(__MODULE__, {:find_home, axis})
+  end
+
+  @doc """
+  Update a paramater.
+  For a list of paramaters see `Farmbot.Firmware.Gcode.Param`
+  """
+  def update_param(param, val) do
+    GenStage.call(__MODULE__, {:update_param, param, val})
+  end
+
+  @doc """
+  Read a paramater.
+  For a list of paramaters see `Farmbot.Firmware.Gcode.Param`
+  """
+  def read_param(param) do
+    GenStage.call(__MODULE__, {:read_param, param})
+  end
+
+  @doc "Emergency lock Farmbot."
+  def emergency_lock() do
+    GenStage.call(__MODULE__, :emergency_lock)
+  end
+
+  @doc "Unlock Farmbot from Emergency state."
+  def emergency_unlock() do
+    GenStage.call(__MODULE__, :emergency_unlock)
+  end
+
+  @doc "Read a pin."
+  def read_pin(pin, mode) do
+    GenStage.call(__MODULE__, {:read_pin, pin, mode})
+  end
+
+  @doc "Write a pin."
+  def write_pin(pin, mode, value) do
+    GenStage.call(__MODULE__, {:write_pin, pin, mode, value})
+  end
 
   @doc "Start the firmware services."
   def start_link do
@@ -22,14 +63,14 @@ defmodule Farmbot.Firmware do
   ## GenStage
 
   defmodule State do
-    defstruct idle: false
+    defstruct handler: nil, idle: false
   end
 
   def init([]) do
     handler_mod = Application.get_env(:farmbot, :behaviour)[:firmware_handler] || raise("No fw handler.")
     {:ok, handler} = handler_mod.start_link()
     Process.link(handler)
-    {:producer_consumer, %State{}, subscribe_to: [handler], dispatcher: GenStage.BroadcastDispatcher}
+    {:producer_consumer, %State{handler: handler}, subscribe_to: [handler], dispatcher: GenStage.BroadcastDispatcher}
   end
 
   def handle_events(gcodes, _from, state) do

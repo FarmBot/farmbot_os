@@ -1,4 +1,4 @@
-defmodule Client do
+defmodule Farmbot.BotState.Transport.GenMQTT.Client do
   @moduledoc "Underlying client for interfacing MQTT."
   use GenMQTT
   require Logger
