@@ -14,8 +14,6 @@ config :farmbot, data_path: "tmp/"
 # Default implementation needs no special stuff.
 config :farmbot, :init, [
   Farmbot.Host.Bootstrap.Configurator,
-  Farmbot.Host.TargetConfiguratorTest.Supervisor
-
 ]
 
 # Transports.

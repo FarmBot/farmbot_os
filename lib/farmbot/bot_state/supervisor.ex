@@ -10,7 +10,7 @@ defmodule Farmbot.BotState.Supervisor do
     children = [
       supervisor(Farmbot.Firmware.Supervisor, [[name: Farmbot.Firmware.Supervisor]]),
       worker(Farmbot.BotState, [[name: Farmbot.BotState]]),
-      # worker(Farmbot.Logger, [[name: Farmbot.Logger]]),
+      worker(Farmbot.Logger, [[name: Farmbot.Logger]]),
       supervisor(Farmbot.BotState.Transport.Supervisor, [])
     ]
 
