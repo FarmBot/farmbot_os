@@ -15,7 +15,6 @@ defmodule Farmbot.CeleryScript.AST do
   Type for CeleryScript Ast's.
   """
   @type t :: %__MODULE__{
-          compile_meta: map | nil,
           args: args,
           body: [t, ...],
           kind: String.t(),
@@ -24,7 +23,6 @@ defmodule Farmbot.CeleryScript.AST do
 
   @enforce_keys [:args, :body, :kind]
   defstruct kind: nil,
-            compile_meta: nil,
             args: %{},
             body: [],
             comment: nil
