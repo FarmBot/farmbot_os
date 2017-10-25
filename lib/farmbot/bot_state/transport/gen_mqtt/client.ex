@@ -48,6 +48,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
 
   def on_connect(state) do
     GenMQTT.subscribe(self(), [{bot_topic(state.device), 0}])
+    GenMQTT.subscribe(self(), [{sync_topic(state.device), 0}])
     Logger.info("Connected!")
 
     if state.cache do
@@ -58,10 +59,17 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
   end
 
   def on_publish(["bot", _bot, "from_clients"], msg, state) do
-    Logger.warn("not implemented yet: #{msg}")
+    Logger.warn("not implemented yet: #{inspect Poison.decode!(msg)}")
     msg
+    |> Poison.decode!()
     |> Farmbot.CeleryScript.AST.parse()
     |> Farmbot.CeleryScript.VirtualMachine.execute()
+    {:ok, state}
+  end
+
+  def on_publish(["bot", _bot, "sync"], msg, state) do
+    sync_cmd = msg |> Poison.decode!()
+    Logger.warn("Not implemented yet: #{inspect sync_cmd}")
     {:ok, state}
   end
 
@@ -83,6 +91,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
 
   defp frontend_topic(bot), do: "bot/#{bot}/from_device"
   defp bot_topic(bot), do: "bot/#{bot}/from_clients"
+  defp sync_topic(bot), do: "bot/#{bot}/sync"
   defp status_topic(bot), do: "bot/#{bot}/status"
   defp log_topic(bot), do: "bot/#{bot}/logs"
 end
