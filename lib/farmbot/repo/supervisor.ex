@@ -14,7 +14,7 @@ defmodule Farmbot.Repo.Supervisor do
     |> Enum.map(fn repo ->
          supervisor(repo, [])
        end)
-    |> Kernel.++([worker(Farmbot.Repo, [@repos, [name: Farmbot.Repo]])])
+    |> Kernel.++([worker(Farmbot.Repo, [@repos])])
     |> supervise(strategy: :one_for_one)
   end
 end

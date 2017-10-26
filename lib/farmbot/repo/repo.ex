@@ -3,28 +3,48 @@ defmodule Farmbot.Repo do
 
   use GenServer
 
-  def repo(repo_worker) do
-    GenServer.call(repo_worker, :repo)
+  def current_repo do
+    GenServer.call(__MODULE__, :current_repo)
   end
 
-  def flip(repo_worker) do
-    GenServer.call(repo_worker, :flip)
+  def other_repo do
+    GenServer.call(__MODULE__, :other_repo)
   end
 
-  def start_link(repos, opts \\ []) do
-    GenServer.start_link(__MODULE__, repos, opts)
+  def flip() do
+    GenServer.call(__MODULE__, :flip)
+  end
+
+  def register_sync_cmd(sync_cmd) do
+    GenServer.call(__MODULE__, {:register_sync_cmd, sync_cmd})
+  end
+
+  def start_link(repos) do
+    GenServer.start_link(__MODULE__, repos, [name: __MODULE__])
   end
 
   def init([_repo_a, _repo_b] = repos) do
-    {:ok, repos}
+    {:ok, %{repos: repos, sync_cmds: []}}
   end
 
-  def handle_call(:repo, _, [repo, _] = repos) do
-    {:reply, repo, repos}
+  def handle_call(:current_repo, _, %{repos: [repo_a, _]} = state) do
+    {:reply, repo_a, state}
   end
 
-  def handle_call(:flip, _, [repo_a, repo_b]) do
-    {:reply, repo_b, [repo_b, repo_a]}
+  def handle_call(:other_repo, _, %{repos: [_, repo_b]} = state) do
+    {:reply, repo_b, state}
+  end
+
+  def handle_call(:flip, _, %{repos: [repo_a, repo_b]} = state) do
+    Enum.reverse(state.sync_cmds) |> Enum.map(fn(sync_cmd) ->
+      mod = Module.concat(["Farmbot", "Repo", sync_cmd["kind"]])
+      mod.changeset(struct(mod), sync_cmd["body"]) |> repo_a.insert_or_update!()
+    end)
+    {:reply, repo_b, %{state | repos: [repo_b, repo_a]}}
+  end
+
+  def handle_call({:register_sync_cmd, sync_cmd}, _from, state) do
+    {:reply, :ok, %{state | sync_cmds: [sync_cmd | state.sync_cmds]}}
   end
 
   @doc false
