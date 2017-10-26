@@ -21,7 +21,7 @@ defmodule Farmbot.Repo.Sequence do
 
       res =
         Enum.map(data, fn data ->
-          Farmbot.CeleryScript.Ast.parse(data)
+          Farmbot.CeleryScript.AST.parse(data)
         end)
 
       {:ok, res}
@@ -39,7 +39,7 @@ defmodule Farmbot.Repo.Sequence do
 
     def load(text) do
       {:ok, data} = text |> JSONType.load()
-      res = Farmbot.CeleryScript.Ast.parse_args(data)
+      res = Farmbot.CeleryScript.AST.parse_args(data)
       {:ok, res}
     end
   end

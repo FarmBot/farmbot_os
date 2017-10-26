@@ -67,28 +67,14 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
     {:ok, state}
   end
 
-  def on_publish(["bot", _bot, "sync"], msg, state) do
-    sync_cmd = msg |> Poison.decode!()
-    repo = Farmbot.Repo.other_repo()
-    mod = Module.concat(["Farmbot", "Repo", sync_cmd["kind"]])
+  def on_publish(["bot", _, "sync", kind, id], msg, state) do
+    mod = Module.concat(["Farmbot", "Repo", kind])
     if Code.ensure_loaded?(mod) do
-      Logger.warn "Updating #{sync_cmd["kind"]} => #{sync_cmd["body"]["id"]}"
-      obj = sync_cmd["body"] |> Poison.encode! |> Poison.decode!(as: struct(mod))
-
-      # require IEx; IEx.pry
-      # We need to check if this object exists in the database.
-      case repo.get(mod, obj.id) do
-        # If it does not, just return the newly created object.
-        nil -> obj
-
-        # if there is an existing record, copy the ecto  meta from the old
-        # record. This allows `insert_or_update` to work properly.
-        existing -> %{obj | __meta__: existing.__meta__}
-      end
-      |> mod.changeset()
-      |> repo.insert_or_update!()
+      body = struct(mod)
+      sync_cmd = msg |> Poison.decode!(as: struct(Farmbot.Repo.SyncCmd, kind: mod, body: body, id: id))
+      Farmbot.Repo.register_sync_cmd(sync_cmd)
     else
-      Logger.warn "Unknown module: #{mod} #{inspect sync_cmd["body"]}"
+      Logger.warn "Unknown syncable: #{mod}: #{inspect Poison.decode!(msg)}"
     end
     {:ok, state}
   end
@@ -111,7 +97,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
 
   defp frontend_topic(bot), do: "bot/#{bot}/from_device"
   defp bot_topic(bot), do: "bot/#{bot}/from_clients"
-  defp sync_topic(bot), do: "bot/#{bot}/sync"
+  defp sync_topic(bot), do: "bot/#{bot}/sync/#"
   defp status_topic(bot), do: "bot/#{bot}/status"
   defp log_topic(bot), do: "bot/#{bot}/logs"
 end
