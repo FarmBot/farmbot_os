@@ -59,7 +59,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
   end
 
   def on_publish(["bot", _bot, "from_clients"], msg, state) do
-    Logger.warn("not implemented yet: #{inspect Poison.decode!(msg)}")
+    Logger.warn("not implemented yet: #{inspect Poison.decode!(msg) |> Farmbot.CeleryScript.AST.parse()}")
     msg
     |> Poison.decode!()
     |> Farmbot.CeleryScript.AST.parse()
