@@ -35,7 +35,9 @@ defmodule Farmbot.HTTP do
 
   def request!(method, url, body, headers, opts) do
     case request(method, url, body, headers, opts) do
-      {:ok, %Response{} = resp} -> resp
+      {:ok, %Response{status_code: code} = resp} when code > 199 and code < 300 -> resp
+      {:ok, %Response{} = resp} -> raise Error, resp
+
       {:error, reason} -> raise Error, reason
     end
   end
