@@ -35,11 +35,11 @@ defmodule Farmbot.System do
   @spec factory_reset(unparsed_reason) :: no_return
   def factory_reset(reason) do
     formatted = format_reason(reason)
-    Ecto.drop()
-    Ecto.setup(ConfigStorage)
-    Ecto.migrate(ConfigStorage)
-    ensure_cs()
-    ConfigStorage.update_config_value(:string, "authorization", "last_shutdown_reason", formatted)
+    # Ecto.drop()
+    # Ecto.setup(ConfigStorage)
+    # Ecto.migrate(ConfigStorage)
+    # ensure_cs()
+    # ConfigStorage.update_config_value(:string, "authorization", "last_shutdown_reason", formatted)
     @system_tasks.factory_reset(formatted)
   end
 

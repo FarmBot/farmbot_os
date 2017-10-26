@@ -6,26 +6,6 @@ defmodule Farmbot.Firmware.Gcode.ParserTest do
     assert(bleep == {"5", {:report_parameter_value, :param_version, 0}})
   end
 
-  test "pareses a param numbered string" do
-    a = Farmbot.Firmware.Gcode.Parser.parse_param("13")
-    assert(a == :movement_timeout_z)
-  end
-
-  test "Pareses a param in integer form" do
-    a = Farmbot.Firmware.Gcode.Parser.parse_param(13)
-    assert(a == :movement_timeout_z)
-  end
-
-  test "Parses a param in atom form" do
-    a = Farmbot.Firmware.Gcode.Parser.parse_param(:movement_timeout_z)
-    assert(a == 13)
-  end
-
-  test "Parses a param in string form" do
-    a = Farmbot.Firmware.Gcode.Parser.parse_param("movement_timeout_z")
-    assert(a == 13)
-  end
-
   test "Parses  R31 and R41" do
     a = Farmbot.Firmware.Gcode.Parser.parse_code("R31 P0 V45 Q10")
     assert a == {"10", {:report_status_value, 0, 45}}

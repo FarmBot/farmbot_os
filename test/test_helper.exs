@@ -4,9 +4,8 @@ unless '--exclude' in :init.get_plain_arguments() do
 end
 
 # Start ExUnit.
+ExUnit.start()
 
 Ecto.Adapters.SQL.Sandbox.mode(Farmbot.Repo.A, :manual)
 Ecto.Adapters.SQL.Sandbox.mode(Farmbot.Repo.B, :manual)
 Ecto.Adapters.SQL.Sandbox.mode(Farmbot.System.ConfigStorage, :manual)
-require IEx; IEx.pry
-ExUnit.start()

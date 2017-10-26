@@ -36,7 +36,7 @@ defmodule Farmbot.Mixfile do
       config_path: "config/config.exs",
       lockfile: "mix.lock",
       elixirc_paths: elixirc_paths(Mix.env(), @target),
-      aliases: aliases(@target),
+      aliases: aliases(Mix.env(), @target),
       deps: deps() ++ deps(@target),
       dialyzer: [
         plt_add_deps: :transitive,
@@ -87,7 +87,7 @@ defmodule Farmbot.Mixfile do
       {:cowboy, "~> 1.0.0"},
       {:plug, "~> 1.0"},
       {:ecto, "~> 2.2.2"},
-      {:sqlite_ecto2, "~> 2.2.1", only: [:dev, :prod]}
+      {:sqlite_ecto2, "~> 2.2.1"}
     ]
   end
 
@@ -97,7 +97,6 @@ defmodule Farmbot.Mixfile do
       {:ex_doc, "~> 0.14", only: :dev},
       {:excoveralls, "~> 0.6", only: :test},
       {:mock, "~> 0.2.0", only: :test},
-      {:postgrex, "~> 0.13.3", only: :test},
     ]
   end
 
@@ -106,7 +105,6 @@ defmodule Farmbot.Mixfile do
       [
         {:bootloader, "~> 0.1"},
         {:nerves_runtime, "~> 0.4"},
-        # {:nerves_network, path: "/home/connor/oss/elixir/nerves/nerves_network", override: true},
         {:nerves_firmware_ssh, "~> 0.2"},
         {:dhcp_server, "~> 0.1.3"}
       ]
@@ -140,9 +138,13 @@ defmodule Farmbot.Mixfile do
     ["./lib", "./nerves/target"]
   end
 
-  defp aliases("host"), do: []
+  defp aliases(:test, "host") do
+    ["test": ["ecto.create --quiet", "ecto.migrate", "test"]]
+  end
 
-  defp aliases(_system) do
+  defp aliases(_env, "host"), do: []
+
+  defp aliases(_env, _system) do
     [
       "deps.precompile": ["nerves.precompile", "deps.precompile"],
       "deps.loadpaths": ["deps.loadpaths", "nerves.loadpaths"]
