@@ -47,19 +47,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
     check_file = Path.join(@data_path, "configured")
     File.write(check_file, "configured")
   end
-  defp block() do
-    block()
-  end
 
   def init(_) do
-    #working settings
-    # settings          = [ssid: "findme", psk: "password1234", key_mgmt: :"WPA-PSK"]
-    # current_settings =  [ssid: "findme", psk: "password1234", security: :"WPA-PSK"]
-    # Nerves.Network.setup("wlan0",)
-    # block()
-    # check_file = Path.join(@data_path, "configured")
-    # first_boot? = !(File.exists?(check_file))
-
     first_boot? = ConfigStorage.get_config_value(:bool, "settings", "first_boot")
     if first_boot? do
       Logger.info("Building new configuration.")
