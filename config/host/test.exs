@@ -38,7 +38,7 @@ config :farmbot, Farmbot.Repo.B,
 
 config :farmbot, Farmbot.System.ConfigStorage,
   adapter: Sqlite.Ecto2,
-  database: "farmbot_config_storage_test",
+  database: "test_tmp/farmbot_config_storage_test",
   pool: Ecto.Adapters.SQL.Sandbox
 
 config :farmbot, ecto_repos: [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage]
