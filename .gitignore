@@ -29,6 +29,8 @@ erl_crash.dump
 /cache
 *.js
 Makefile
+/release-*
+node_modules
 
 # Various env vars.
 .env
