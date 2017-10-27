@@ -39,12 +39,12 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
       Logger.info("Starting hostapd on #{interface}")
       ensure_interface(interface)
 
-      {hostapd_port, hostapd_os_pid} = setup_hostapd(interface, "192.168.24.1")
+      {hostapd_port, hostapd_os_pid} = setup_hostapd(interface, "192.168.25.1")
 
       state = %State{
         hostapd: {hostapd_port, hostapd_os_pid},
         interface: interface,
-        ip_addr: "192.168.24.1"
+        ip_addr: "192.168.25.1"
       }
 
       {:ok, state}
@@ -173,7 +173,13 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
   def init([]) do
     Logger.debug("Starting captive portal.")
     {:ok, hostapd} = Hostapd.start_link(interface: @interface)
-    {:ok, dhcp_server} = DHCPServer.start_link(interface: @interface)
+    dhcp_opts = [
+      gateway: "192.168.25.1",
+      netmask: "255.255.255.0",
+      range: {"192.168.25.2", "192.168.25.100"},
+      domain_servers: ["192.168.25.1"],
+    ]
+    {:ok, dhcp_server} = DHCPServer.start_link(@interface, dhcp_opts)
     {:ok, %{hostapd: hostapd, dhcp_server: dhcp_server}}
   end
 

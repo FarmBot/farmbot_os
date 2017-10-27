@@ -107,15 +107,23 @@ defmodule Farmbot.Mixfile do
         {:nerves_runtime, "~> 0.4"},
         {:nerves_firmware_ssh, "~> 0.2"},
         {:nerves_network, "~> 0.3"},
-        {:dhcp_server, "~> 0.1.3"}
+        {:dhcp_server, github: "nerves-project/dhcp_server", branch: "elixirize-go!", override: true}
       ]
   end
 
-  defp system("rpi3"), do: [{:nerves_system_farmbot_rpi3, "0.16.2-farmbot", runtime: false}]
+  defp system("rpi3"), do: [
+    {:nerves_system_farmbot_rpi3, "0.172-farmbot", runtime: false}
+  ]
 
   defp system("rpi0"),
     do: [
-      {:nerves_system_farmbot_rpi0, "0.17.2-farmbot", runtime: false},
+      {:nerves_system_farmbot_rpi0, "0.18.3-farmbot", runtime: false},
+      {:nerves_init_gadget, github: "nerves-project/nerves_init_gadget", branch: "dhcp", only: :dev}
+    ]
+
+  defp system("bbb"),
+    do: [
+      {:nerves_system_farmbot_bbb, "0.17.2-farmbot", runtime: false},
       {:nerves_init_gadget, "~> 0.2", only: :dev}
     ]
 
