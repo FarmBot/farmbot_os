@@ -99,3 +99,10 @@
 * Fix lag when communicating over MQTT
 * Don't retain last will log message.
 * Update node packages.
+
+# 5.0.5
+* Fix token refreshing.
+
+# 5.0.6
+* Fix images double uploading.
+* Allow reinstallation of first party farmware.
