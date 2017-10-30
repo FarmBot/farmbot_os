@@ -84,10 +84,11 @@ defmodule Farmbot.Mixfile do
       # {:fs, "~> 0.9.1"},
       {:nerves_uart, "0.1.2"},
       {:uuid, "~> 1.1"},
-      {:cowboy, "~> 1.0.0"},
-      {:plug, "~> 1.0"},
+      {:cowboy, "~> 1.1"},
+      {:plug, "~> 1.4"},
       {:ecto, "~> 2.2.2"},
-      {:sqlite_ecto2, "~> 2.2.1"}
+      {:sqlite_ecto2, "~> 2.2.1"},
+      {:wobserver, "~> 0.1.8"}
     ]
   end
 
@@ -106,26 +107,22 @@ defmodule Farmbot.Mixfile do
         {:bootloader, "~> 0.1"},
         {:nerves_runtime, "~> 0.4"},
         {:nerves_firmware_ssh, "~> 0.2"},
-        {:nerves_network, "~> 0.3"},
-        {:dhcp_server, github: "nerves-project/dhcp_server", branch: "elixirize-go!", override: true}
+        {:nerves_network, "~> 0.3", github: "nerves-project/nerves_network", override: true},
+        {:dhcp_server, path: "/home/connor/oss/elixir/nerves/dhcp_server", override: true},
+        # {:dhcp_server, github: "nerves-project/dhcp_server", branch: "elixirize-go!", override: true},
+        # {:nerves_init_gadget, github: "nerves-project/nerves_init_gadget", branch: "dhcp", only: :dev},
+        {:nerves_init_gadget, path: "/home/connor/oss/elixir/nerves/nerves_init_gadget", branch: "dhcp", only: :dev},
       ]
   end
 
-  defp system("rpi3"), do: [
-    {:nerves_system_farmbot_rpi3, "0.172-farmbot", runtime: false}
-  ]
+  defp system("rpi3"),
+    do: [{:nerves_system_farmbot_rpi3, "0.172-farmbot", runtime: false}]
 
   defp system("rpi0"),
-    do: [
-      {:nerves_system_farmbot_rpi0, "0.18.3-farmbot", runtime: false},
-      {:nerves_init_gadget, github: "nerves-project/nerves_init_gadget", branch: "dhcp", only: :dev}
-    ]
+    do: [{:nerves_system_farmbot_rpi0, "0.18.3-farmbot", runtime: false}]
 
   defp system("bbb"),
-    do: [
-      {:nerves_system_farmbot_bbb, "0.17.2-farmbot", runtime: false},
-      {:nerves_init_gadget, "~> 0.2", only: :dev}
-    ]
+    do: [{:nerves_system_farmbot_bbb, "0.17.2-farmbot", runtime: false}]
 
   defp package do
     [

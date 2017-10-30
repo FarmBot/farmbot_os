@@ -27,6 +27,11 @@ config :farmbot, :init, []
 # See Farmbot.BotState.Transport for details.
 config :farmbot, :transport, []
 
+config :wobserver,
+  discovery: :none,
+  mode: :plug,
+  remote_url_prefix: "/wobserver"
+
 # Configure Farmbot Behaviours.
 config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,

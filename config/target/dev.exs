@@ -23,6 +23,8 @@ config :farmbot, :init, [
   # Autodetects if a Arduino is plugged in and configures accordingly.
   Farmbot.Firmware.UartHandler.AutoDetector,
 
+  Farmbot.System.Debug,
+
   # Allows for first boot configuration.
   Farmbot.Target.Bootstrap.Configurator,
 
@@ -48,6 +50,9 @@ config :nerves_firmware_ssh,
     File.read!(Path.join(System.user_home!(), ".ssh/id_rsa.pub"))
   ]
 
+config :nerves_init_gadget,
+  address_method: :static
+
 config :bootloader,
-  init: [:nerves_runtime],
+  init: [:nerves_runtime, :nerves_init_gadget],
   app: :farmbot
