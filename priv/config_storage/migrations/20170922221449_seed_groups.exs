@@ -48,6 +48,8 @@ defmodule Farmbot.System.ConfigStorage.Migrations.SeedGroups do
     create_value(BoolValue, true) |> create_config(group_id, "first_boot")
     create_value(BoolValue, true) |> create_config(group_id, "first_party_farmware")
     create_value(StringValue, nil) |> create_config(group_id, "timezone")
+    fpf_url = Application.get_env(:farmbot, :farmware)[:first_part_farmware_manifest_url]
+    create_value(StringValue, fpf_url) |> create_config(group_id, "first_party_farmware_url")
   end
 
   defp populate_config_values("user_env", group_id) do
