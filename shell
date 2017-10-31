@@ -1,1 +1,1 @@
-iex --sname farmbot --cookie democookie --remsh farmbot@nerves-c0ac
+iex --sname farmbot --cookie democookie --remsh farmbot@nerves-7e4b
