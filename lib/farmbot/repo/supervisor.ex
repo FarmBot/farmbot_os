@@ -1,15 +1,16 @@
 defmodule Farmbot.Repo.Supervisor do
-  @moduledoc "Hey!"
+  @moduledoc false
 
   @repos [Farmbot.Repo.A, Farmbot.Repo.B]
 
   use Supervisor
 
-  def start_link(token, opts \\ []) do
-    Supervisor.start_link(__MODULE__, token, opts)
+  @doc false
+  def start_link() do
+    Supervisor.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
-  def init(_token) do
+  def init([]) do
     @repos
     |> Enum.map(fn repo ->
          supervisor(repo, [])

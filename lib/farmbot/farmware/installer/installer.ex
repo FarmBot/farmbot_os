@@ -1,5 +1,5 @@
 defmodule Farmbot.Farmware.Installer do
-  @moduledoc "Install Farmware from a URL."
+  @moduledoc "Handles installation of Farmwares and syncronization of Farmware Repos."
 
   alias Farmbot.Farmware
   alias Farmbot.Farmware.Installer.Repository
@@ -25,18 +25,36 @@ defmodule Farmbot.Farmware.Installer do
     install_path(name, version)
   end
 
-  @doc "Enable a repo from a url."
-  def enable_repo(url_or_repo_struct, acc \\ [])
+  @doc "Add a repository to the database."
+  def add_repo(url) do
+    with {:ok, %{status_code: code, body: body}} when code > 199 and code < 300 <- HTTP.get(url),
+         {:ok, json_map} <- Poison.decode(body),
+         {:ok, manifest} <- Repository.new(json_map)
+    do
+      Repository.changeset(manifest, %{url: url}) |> Farmbot.System.ConfigStorage.insert()
+    end
+    rescue
+      e in Sqlite.DbConnection.Error ->
+        st = System.stacktrace
+        if String.contains?(Exception.message(e), "UNIQUE constraint") do
+          {:error, :repo_already_exists}
+        else
+          reraise e, st
+        end
+  end
 
-  def enable_repo(url, _acc) when is_binary(url) do
-    Logger.info "Enabling repo from: #{url}"
+  @doc "Enable a repo from a url or struct."
+  def sync_repo(url_or_repo_struct, acc \\ [])
+
+  def sync_repo(url, _acc) when is_binary(url) do
+    Logger.info "Syncing repo from: #{url}"
     with {:ok, %{status_code: code, body: body}} when code > 199 and code < 300 <- HTTP.get(url),
          {:ok, json_map} <- Poison.decode(body),
          {:ok, repo}     <- Repository.new(json_map)
     do
-      case enable_repo(repo, []) do
+      case sync_repo(repo, []) do
         [] ->
-          Logger.info "Successfully enabled repo."
+          Logger.info "Successfully synced repo."
           :ok
         list_of_entries ->
           Logger.error "Failed to enable some entries: #{inspect list_of_entries}"
@@ -45,14 +63,14 @@ defmodule Farmbot.Farmware.Installer do
     end
   end
 
-  def enable_repo(repo = %Repository{manifests: [entry = %Repository.Entry{manifest_url: manifest_url} | entries]}, acc) do
+  def sync_repo(repo = %Repository{manifests: [entry = %Repository.Entry{manifest: manifest_url} | entries]}, acc) do
     case install(manifest_url) do
-      :ok -> enable_repo(%{repo | manifests: entries}, acc)
-      {:error, _err} -> enable_repo(%{repo | manifests: entries}, [entry | acc])
+      :ok -> sync_repo(%{repo | manifests: entries}, acc)
+      {:error, _err} -> sync_repo(%{repo | manifests: entries}, [entry | acc])
     end
   end
 
-  def enable_repo(%Repository{manifests: []}, acc), do: acc
+  def sync_repo(%Repository{manifests: []}, acc), do: acc
 
   @doc "Install a farmware from a URL."
   def install(url) do

@@ -38,6 +38,9 @@ config :farmbot, :behaviour,
   firmware_handler: Farmbot.Firmware.StubHandler,
   http_adapter: Farmbot.HTTP.HTTPoisonAdapter
 
+config :farmbot, :farmware,
+  first_part_farmware_manifest_url: "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/manifest.json"
+
 case target do
   "host" ->
     import_config("host/#{env}.exs")

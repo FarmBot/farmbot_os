@@ -2,15 +2,16 @@ defmodule Farmbot.BotState.Supervisor do
   @moduledoc false
   use Supervisor
 
-  def start_link(token, opts) do
-    Supervisor.start_link(__MODULE__, token, opts)
+  @doc false
+  def start_link() do
+    Supervisor.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
-  def init(_token) do
+  def init([]) do
     children = [
-      supervisor(Farmbot.Firmware.Supervisor, [[name: Farmbot.Firmware.Supervisor]]),
-      worker(Farmbot.BotState, [[name: Farmbot.BotState]]),
-      worker(Farmbot.Logger, [[name: Farmbot.Logger]]),
+      supervisor(Farmbot.Firmware.Supervisor, []),
+      worker(Farmbot.BotState, []),
+      worker(Farmbot.Logger,   []),
       supervisor(Farmbot.BotState.Transport.Supervisor, [])
     ]
 

@@ -3,9 +3,9 @@ defmodule Farmbot.Logger do
   use GenStage
   alias Farmbot.Log
 
-  @doc "Start Logging Services."
-  def start_link(opts \\ []) do
-    GenStage.start_link(__MODULE__, [], opts)
+  @doc false
+  def start_link() do
+    GenStage.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
   def init([]) do
