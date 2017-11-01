@@ -49,7 +49,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
   def on_connect(state) do
     GenMQTT.subscribe(self(), [{bot_topic(state.device), 0}])
     GenMQTT.subscribe(self(), [{sync_topic(state.device), 0}])
-    Logger.info("Connected!")
+    Logger.info("Connected to real time services.")
 
     if state.cache do
       GenMQTT.publish(self(), status_topic(state.device), state.cache, 0, false)
@@ -96,8 +96,8 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
   end
 
   defp frontend_topic(bot), do: "bot/#{bot}/from_device"
-  defp bot_topic(bot), do: "bot/#{bot}/from_clients"
-  defp sync_topic(bot), do: "bot/#{bot}/sync/#"
-  defp status_topic(bot), do: "bot/#{bot}/status"
-  defp log_topic(bot), do: "bot/#{bot}/logs"
+  defp bot_topic(bot),      do: "bot/#{bot}/from_clients"
+  defp sync_topic(bot),     do: "bot/#{bot}/sync/#"
+  defp status_topic(bot),   do: "bot/#{bot}/status"
+  defp log_topic(bot),      do: "bot/#{bot}/logs"
 end

@@ -121,6 +121,7 @@ defmodule Farmbot.Bootstrap.Supervisor do
         ConfigStorage.update_config_value(:string, "authorization", "last_shutdown_reason", nil)
 
         children = [
+          worker(Farmbot.Bootstrap.AuthTask, []),
           supervisor(Farmbot.BotState.Supervisor, []),
           supervisor(Farmbot.HTTP.Supervisor,     []),
           supervisor(Farmbot.Repo.Supervisor,     []),
