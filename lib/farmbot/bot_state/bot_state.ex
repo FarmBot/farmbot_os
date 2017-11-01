@@ -22,6 +22,11 @@ defmodule Farmbot.BotState do
             user_env: %{},
             process_info: %{}
 
+  @doc "Forces a state push over all transports."
+  def force_state_push do
+    GenStage.call(__MODULE__, :force_state_push)
+  end
+
   @doc false
   def start_link() do
     GenStage.start_link(__MODULE__, [], [name: __MODULE__])
@@ -38,6 +43,10 @@ defmodule Farmbot.BotState do
   def handle_events(events, _from, state) do
     state = do_handle(events, state)
     {:noreply, [state], state}
+  end
+
+  def handle_call(:force_state_push, _from, state) do
+    {:reply, state, [state], state}
   end
 
   defp do_handle([], state), do: state

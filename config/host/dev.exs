@@ -20,7 +20,8 @@ config :farmbot, :init, [
 
 # Transports.
 config :farmbot, :transport, [
-  Farmbot.BotState.Transport.GenMQTT
+  Farmbot.BotState.Transport.GenMQTT,
+  Farmbot.BotState.Transport.HTTP,
 ]
 
 repos = [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage]

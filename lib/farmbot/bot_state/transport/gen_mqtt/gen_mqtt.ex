@@ -13,7 +13,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
     token = Farmbot.System.ConfigStorage.get_config_value(:string, "authorization", "token")
     {:ok, %{bot: device, mqtt: mqtt_server}} = Farmbot.Jwt.decode(token)
     {:ok, client} = Client.start_link(device, token, mqtt_server)
-    {:consumer, {%{client: client}, nil}, subscribe_to: [Farmbot.BotState]}
+    {:consumer, {%{client: client}, nil}, subscribe_to: [Farmbot.BotState, Farmbot.Logger]}
   end
 
   def handle_events(events, {pid, _}, state) do

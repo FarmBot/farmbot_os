@@ -88,7 +88,8 @@ defmodule Farmbot.Mixfile do
       {:plug, "~> 1.4"},
       {:ecto, "~> 2.2.2"},
       {:sqlite_ecto2, "~> 2.2.1"},
-      {:wobserver, "~> 0.1.8"}
+      {:wobserver, "~> 0.1.8"},
+      {:joken, "~> 1.1"},
     ]
   end
 
