@@ -71,15 +71,14 @@ defmodule Farmbot.Mixfile do
   defp deps do
     [
       {:nerves, "~> 0.7.5", runtime: false},
-      {:gen_mqtt, "~> 0.3.1"},
-      {:vmq_commons, github: "farmbot-labs/vmq_commons", override: true},
+      {:vmq_commons_fb, "~> 1.0.2"},
       {:gen_stage, "~> 0.12"},
       {:poison, "~> 3.0"},
       {:ex_json_schema, "~> 0.5.3"},
       {:rsa, "~> 0.0.1"},
       {:httpoison, "~> 0.13.0"},
-      {:tzdata, "~> 0.1.201601", override: true},
-      {:timex, "~> 3.1.13"},
+      # {:tzdata, "~> 0.1.201601", override: true},
+      # {:timex, "~> 3.1.13"},
 
       # {:fs, "~> 0.9.1"},
       {:nerves_uart, "0.1.2"},
@@ -129,7 +128,8 @@ defmodule Farmbot.Mixfile do
     [
       name: "Farmbot OS",
       maintainers: "Farmbot.io",
-      licenses: "MIT"
+      licenses: "MIT",
+      links: %{"github" => "https://github.com/farmbot/farmbot_os"},
     ]
   end
 
