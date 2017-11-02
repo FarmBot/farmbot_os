@@ -5,6 +5,24 @@ defmodule Farmbot.Farmware do
     * A `manifest.json` hosted on the internet somewhere.
     * A zip package of your farmware.
 
+  # Prerequisites
+  While it is _technically_ possible to use any language to develop a Farmware,
+  We currently only actively support Python (with a small set of dependencies.)
+
+  If you want another language/framework, you have a couple options.
+  * Ask the Farmbot developers to enable a package.
+  * Package the language/framework yourself. (very advanced)
+
+  ## Should *I* develop a Farmware?
+  Farmware is not always the correct solution. If you plan on developing a plugin,
+  you should ask yourself a few questions.
+    * Does my plugin need to be running 24/7 to work?
+    * Does my plugin need a realtime interface?
+    * Does my plugin need keyboard input?
+
+  If you answered Yes to any of those questions, you should consider, using an
+  external plugin. See [a Python example](https://github.com/FarmBot-Labs/FarmBot-Python-Examples)
+
   # Farmware Manifest
   The `manifest.json` file should contain a number of required fields.
     * `package` - the name of your package. Should be CamelCase by convention.
@@ -51,7 +69,7 @@ defmodule Farmbot.Farmware do
     * Raw Websockets - [Docs](Farmbot.BotState.Transport.HTTP.SocketHandler.html)
       * More difficult to work with.
       * Not exactly call/response.
-      * No pollinig for state updates.
+      * No polling for state updates.
       * Logs come in real time.
 
   # Configuration
@@ -64,6 +82,8 @@ defmodule Farmbot.Farmware do
   There are two of default configuration's that can not be changed.
     * `$API_TOKEN` - An encoded binary that can be used to communicate with
       Farmbot and it's configured cloud server.
+    * `$FARMWARE_URL` - The url to connect your HTTP client too to access Farmbot's REST API.
+      *NOTE* This is *_NOT_* the same API as the cloud REST API.
     * `$IMAGES_DIR` - A local directory that will be scanned. Photos left in this
       directory will be uploaded and visable from the web app.
 
@@ -81,7 +101,10 @@ defmodule Farmbot.Farmware do
   Farmware executes, it will have a key by the name of `$hello_farmware_first_config`
   that will have the value `100`.
 
-  Config values can however be overwrote by the Farmbot App.
+  Config values can however be overwritten by the Farmbot App.
+
+  # More info
+  See [Here](https://software.farmbot.io/v1.0/docs/farmware-dev) for more info.
   """
 
   defmodule Meta do

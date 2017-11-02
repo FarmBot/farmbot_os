@@ -52,20 +52,26 @@ defmodule Farmbot.Mixfile do
       ],
       source_url: "https://github.com/Farmbot/farmbot_os",
       homepage_url: "http://farmbot.io",
-      docs: [
-        main: "Farmbot",
-        logo: "priv/static/farmbot_logo.png",
-        extras: [
-          "docs/BUILDING.md",
-          "docs/FAQ.md",
-          "README.md"
-        ]
-      ]
+      docs: docs()
     ]
   end
 
   def application do
     [mod: {Farmbot, []}, extra_applications: [:logger, :eex, :ssl, :inets]]
+  end
+
+  defp docs do
+    [
+      main: "Farmbot",
+      logo: "priv/static/farmbot_logo.png",
+      source_ref: commit(),
+      extras: [
+        "docs/BUILDING.md",
+        "docs/FAQ.md",
+        "README.md"
+      ],
+      # groups_for_modules: generate_doc_mods()
+    ]
   end
 
   defp deps do
@@ -95,7 +101,8 @@ defmodule Farmbot.Mixfile do
   defp deps("host") do
     [
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.14", only: :dev},
+      {:ex_doc, "~> 0.17", only: :dev},
+      {:inch_ex, ">= 0.0.0", only: :dev},
       {:excoveralls, "~> 0.6", only: :test},
       {:mock, "~> 0.2.0", only: :test},
     ]
@@ -126,9 +133,9 @@ defmodule Farmbot.Mixfile do
 
   defp package do
     [
-      name: "Farmbot OS",
-      maintainers: "Farmbot.io",
-      licenses: "MIT",
+      name: "farmbot",
+      maintainers: ["Farmbot.io"],
+      licenses: ["MIT"],
       links: %{"github" => "https://github.com/farmbot/farmbot_os"},
     ]
   end
