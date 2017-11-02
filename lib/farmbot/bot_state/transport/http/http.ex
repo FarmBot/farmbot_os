@@ -1,5 +1,20 @@
 defmodule Farmbot.BotState.Transport.HTTP do
-  @moduledoc "Transport for accepting CS and pushing state over HTTP."
+  @moduledoc """
+  RESTful API for accessing internal Farmbot state.
+
+  # Accessing the API
+  A developer should be able to access the REST API at
+  `http://<my_farmbot_id>:27347/api/v1/`. The calls will require an authentication token.
+  See the [API docs](https://github.com/farmbot/Farmbot-Web-App#q-how-can-i-generate-an-api-token)
+  for information about generating a token. Access to the local api should be
+  the same as accessing the cloud API. You will need to have an HTTP header:
+  `Authorization`:`Bearer <long encrypted token>`
+
+  Each of the routes will be described below.
+
+  * GET `/api/v1/bot/state` - returns the bot's current state.
+  """
+
   use GenStage
   require Logger
   alias Farmbot.BotState.Transport.HTTP.{Router, SocketHandler}

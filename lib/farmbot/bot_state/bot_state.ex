@@ -27,6 +27,11 @@ defmodule Farmbot.BotState do
     GenStage.call(__MODULE__, :force_state_push)
   end
 
+  def get_user_env do
+    # GenStage.call(__MODULE__, :get_user_env)
+    %{}
+  end
+
   @doc false
   def start_link() do
     GenStage.start_link(__MODULE__, [], [name: __MODULE__])
