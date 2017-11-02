@@ -12,13 +12,23 @@ defmodule Farmbot.BotState.Transport.HTTP.SocketHandler do
 
   @behaviour :cowboy_websocket_handler
 
-  def init(_, _req, _opts), do: {:upgrade, :protocol, :cowboy_websocket}
+  def init(blah, req, opts) do
+    conn = Plug.Adapters.Cowboy.Conn.conn(req, :tcp)
+    require IEx; IEx.pry
+    {:upgrade, :protocol, :cowboy_websocket}
+  end
 
   # Called on websocket connection initialization.
   def websocket_init(_type, req, _options) do
-    Logger.info "Opened websocket connection."
-    HTTP.subscribe()
-    {:ok, req, nil, @timeout}
+    conn = Plug.Adapters.Cowboy.Conn.conn(req, :tcp)
+    require IEx; IEx.pry
+    case Farmbot.BotState.Transport.HTTP.AuthPlug.handle_prod(conn) do
+      {_conn, _, _} -> {:shutdown, req}
+      _ ->
+        Logger.info "Websocket connect."
+        HTTP.subscribe()
+        {:ok, req, nil, @timeout}
+    end
   end
 
   # def websocket_handle({:text, @pong}, req, state), do: {:ok, req, state}
