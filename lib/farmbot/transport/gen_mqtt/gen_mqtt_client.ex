@@ -32,7 +32,8 @@ defmodule Farmbot.Transport.GenMqtt.Client do
       backend     = Logger.Backends.FarmbotLogger
       {:ok, _pid} = Logger.add_backend(backend)
       :ok         = GenEvent.call(Logger, backend, {:context, context})
-      Logger.info ">> is up and running!", type: :success
+      # Logger.info ">> is up and running!", type: :success
+      debug_log "Connected to real time messaging."
       Farmbot.Transport.force_state_push(context)
     end.()
 
