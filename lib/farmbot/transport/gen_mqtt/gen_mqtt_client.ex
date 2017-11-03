@@ -117,10 +117,6 @@ defmodule Farmbot.Transport.GenMqtt.Client do
      clean_session: true,
      reconnect_timeout: 10_000,
      timeout:           10_000,
-     last_will_topic:   [log_topic(token)],
-     last_will_msg:     build_last_will_message(token),
-     last_will_qos:     0,
-     last_will_retain:  false,
      username:          token.unencoded.bot,
      client:            token.unencoded.bot <> "-" <> UUID.uuid1,
      password:          token.encoded,
@@ -143,19 +139,6 @@ defmodule Farmbot.Transport.GenMqtt.Client do
   @spec log_topic(Token.t) :: String.t
   defp log_topic(%Token{} = token),
     do: "bot/#{token.unencoded.bot}/logs"
-
-  @spec build_last_will_message(Token.t) :: binary
-  defp build_last_will_message(%Token{} = token) do
-    %{message: token.unencoded.bot <> " is offline!",
-      created_at: :os.system_time(:seconds),
-      channels: [:toast],
-      meta: %{
-        type: :error,
-        x: -1,
-        y: -1,
-        z: -1}}
-    |> Poison.encode!
-  end
 
   @doc """
     Cast info to a client
