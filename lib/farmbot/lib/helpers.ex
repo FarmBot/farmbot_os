@@ -25,7 +25,7 @@ defmodule Farmbot.Lib.Helpers do
 
   def format_float(float) when is_float(float) do
     [str] = :io_lib.format("~f",[float])
-    to_string(str)
+    to_string(str) |> String.trim("0")
   end
 
   def rollbar_occurrence_data do

@@ -4,7 +4,6 @@ defmodule Farmbot.Auth do
   """
 
   @timeout_time 1.8e+6 |> round()
-  # @timeout_time 15_000
 
   require Logger
   alias   Farmbot.{Token, Context, DebugLog, System, HTTP}
@@ -30,6 +29,10 @@ defmodule Farmbot.Auth do
     case HTTP.get(ctx, "#{server}/api/public_key") do
       {:ok, %HTTP.Response{body: body, status_code: 200}} ->
         decode_key(body)
+      {:ok, %HTTP.Response{status_code: 503}} ->
+        Logger.warn "API is in maintenance mode."
+        Process.sleep(5000)
+        get_public_key(ctx, server)
       {:ok, %HTTP.Response{body: body, status_code: code}} ->
         {:error, "Unexpected response (#{code}): #{inspect body}"}
       {:error, reason} ->
@@ -128,6 +131,13 @@ defmodule Farmbot.Auth do
         maybe_broadcast(sbc, {:new_token, token})
         {:ok, token}
 
+      {:ok, %HTTP.Response{status_code: 503}} ->
+        Logger.info "Farmbot API seems to be in maintenance mode."
+        Process.sleep(5000)
+        get_token_from_server(ctx, secret, server, sbc)
+      {:ok, resp} ->
+        maybe_broadcast(sbc, {:error, resp})
+        {:error, resp}
       # HTTP errors
       {:error, _reason} = thing ->
         maybe_broadcast(sbc, thing)
@@ -290,6 +300,7 @@ defmodule Farmbot.Auth do
   end
 
   def handle_call(:purge_token, _, state) do
+    maybe_cancel_timer(state.timer)
     broadcast :purge_token
     {:reply, :ok, clear_state(state)}
   end
@@ -300,8 +311,10 @@ defmodule Farmbot.Auth do
   do
     Logger.info ">> already has a token. Fetching another.", type: :busy
     secret = secret || load_secret()
+    maybe_cancel_timer(s.timer)
     case get_token_from_server(s.context, secret, server, s.broadcast) do
       {:ok, %Token{} = token} ->
+        s_a(self())
         {:reply, {:ok, token}, %{s | token: token}}
       e ->
         {:reply, e, clear_state(s)}
@@ -311,10 +324,13 @@ defmodule Farmbot.Auth do
   # Next choice will be interim
   def handle_call(:try_log_in, _, %{interim: {email, pass, ser}} = state) do
     Logger.info ">> is trying to log in with credentials.", type: :busy
+    maybe_cancel_timer(state.timer)
     {:ok, pub_key} = get_public_key(state.context, ser)
     {:ok, secret } = encrypt(email, pass, pub_key)
+
     case get_token_from_server(state.context, secret, ser, state.broadcast) do
       {:ok, %Token{} = token} ->
+        s_a(self())
         next_state = %{state |
           interim: nil,
           token: token,
@@ -331,8 +347,10 @@ defmodule Farmbot.Auth do
   do
 
     Logger.info ">> is trying to log in with a secret.", type: :busy
+    maybe_cancel_timer(s.timer)
     case get_token_from_server(s.context, secret, server, s.broadcast) do
       {:ok, %Token{} = t} ->
+        s_a(self())
         {:reply, {:ok, t}, %{s | token: t}}
       e -> {:reply, e, clear_state(s)}
     end
@@ -340,10 +358,12 @@ defmodule Farmbot.Auth do
 
   def handle_call(:try_log_in, _, %{secret: nil, server: server} = s) do
     Logger.info ">> is trying to load old secret.", type: :busy
+    maybe_cancel_timer(s.timer)
     # Try to load the secret file
     secret = load_secret()
     case get_token_from_server(s.context, secret, server, s.broadcast) do
       {:ok, %Token{} = token} ->
+        s_a(self())
         {:reply, {:ok, token}, %{s | token: token}}
       e ->
         {:reply, e, s}
@@ -413,6 +433,15 @@ defmodule Farmbot.Auth do
       File.rm "#{FS.path()}/factory_reset_reason"
     end
   end
+
+  defp maybe_cancel_timer(timer) when is_reference(timer) do
+    case Process.read_timer(timer) do
+      false -> :ok
+      num when is_integer(num) -> Process.cancel_timer(timer)
+    end
+  end
+
+  defp maybe_cancel_timer(_), do: :ok
 
   # sends a message after 6 hours to get a new token.
   defp s_a(auth), do: Process.send_after(auth, :new_token, @timeout_time)
