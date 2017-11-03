@@ -19,7 +19,7 @@ config :elixir, ansi_enabled: true
 config :iex, :colors, enabled: true
 
 # bot <-> firmware transports.
-config :farmbot, expected_fw_version: ["5.0.3.F", "5.0.3.R"]
+config :farmbot, expected_fw_version: ["5.0.4.F", "5.0.4.R"]
 
 # Rollbar
 config :farmbot, rollbar_access_token: "dcd79b191ab84aa3b28259cbb80e2060"

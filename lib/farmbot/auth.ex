@@ -3,8 +3,7 @@ defmodule Farmbot.Auth do
     Gets a token and device information
   """
 
-  @timeout_time 1.8e+6
-  # @timeout_time 15_000
+  @timeout_time 1.8e+6 |> round()
 
   require Logger
   alias   Farmbot.{Token, Context, DebugLog, System, HTTP}
