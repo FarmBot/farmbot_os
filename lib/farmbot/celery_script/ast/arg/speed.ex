@@ -2,5 +2,5 @@ defmodule Farmbot.CeleryScript.AST.Arg.Speed do
   @moduledoc false
   @behaviour Farmbot.CeleryScript.AST.Arg
 
-  def verify(_), do: :ok
+  def verify(val), do: {:ok, val}
 end

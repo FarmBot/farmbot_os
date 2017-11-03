@@ -6,7 +6,7 @@ defmodule Farmbot.CeleryScript.AST.Arg.<%= arg %> do
   @moduledoc false
   @behaviour Farmbot.CeleryScript.AST.Arg
 
-  def verify(_), do: :ok
+  def verify(val), do: {:ok, val}
 end
 """
 
@@ -28,7 +28,6 @@ end
 for node <- nodes do
   camel_node = Macro.camelize(node["name"])
   allowed_args = Map.get(node, "allowed_args") |> Enum.map(fn(arg_str) -> ":#{arg_str}" end) |> Enum.join(", ")
-  IO.puts "#{node["name"]} => #{allowed_args}"
   str = EEx.eval_string(node_template, [allowed_args: allowed_args, node: camel_node])
   File.write!("lib/farmbot/celery_script/ast/node/#{node["name"]}.ex", str)
   # |> Code.eval_string()

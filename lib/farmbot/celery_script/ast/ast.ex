@@ -8,7 +8,7 @@ defmodule Farmbot.CeleryScript.AST do
     @moduledoc "CeleryScript Argument."
 
     @doc "Verify this arg."
-    @callback verify(any) :: :ok | {:error, term}
+    @callback verify(any) :: {:ok, any} | {:error, term}
   end
 
   defmodule Node do
@@ -43,7 +43,7 @@ defmodule Farmbot.CeleryScript.AST do
           if {arg_name, 0} in __MODULE__.module_info(:exports) do
             case apply(__MODULE__, arg_name, []).verify(val) do
               # if this argument is valid, continue enumeration.
-              :ok -> decode_args(rest, [arg | acc])
+              {:ok, decoded} -> decode_args(rest, [decoded | acc])
               {:error, _} = err -> err
             end
           else
