@@ -43,7 +43,7 @@ defmodule Farmbot.CeleryScript.AST do
           if {arg_name, 0} in __MODULE__.module_info(:exports) do
             case apply(__MODULE__, arg_name, []).verify(val) do
               # if this argument is valid, continue enumeration.
-              {:ok, decoded} -> decode_args(rest, [decoded | acc])
+              {:ok, decoded} -> decode_args(rest, [{arg_name, decoded} | acc])
               {:error, _} = err -> err
             end
           else
@@ -106,6 +106,7 @@ defmodule Farmbot.CeleryScript.AST do
       mod when is_atom(mod) ->
         case decode_body(map[:body] || []) do
           {:ok, body} ->
+            IO.puts mod
             case mod.decode_args(args) do
               {:ok, decoded} ->
                 opts = [kind: mod,
