@@ -106,7 +106,6 @@ defmodule Farmbot.CeleryScript.AST do
       mod when is_atom(mod) ->
         case decode_body(map[:body] || []) do
           {:ok, body} ->
-            IO.puts mod
             case mod.decode_args(args) do
               {:ok, decoded} ->
                 opts = [kind: mod,
