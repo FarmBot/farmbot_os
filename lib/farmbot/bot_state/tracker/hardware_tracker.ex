@@ -6,6 +6,7 @@ defmodule Farmbot.BotState.Hardware do
   require Logger
   alias Farmbot.BotState.StateTracker
   alias Farmbot.CeleryScript.Command
+  use Farmbot.DebugLog
 
   @behaviour StateTracker
   use StateTracker,
@@ -55,6 +56,7 @@ defmodule Farmbot.BotState.Hardware do
     # BUG(Connor): The first param is rather unstable for some reason.
     # Try to send a fake packet just to make sure we have a good
     # Connection to the Firmware
+    debug_log "Setting initial params: #{inspect state}"
 
     if !Farmbot.Serial.Handler.available?(context) do
       # UGHHHHHH
@@ -69,6 +71,8 @@ defmodule Farmbot.BotState.Hardware do
       {:ok, :no_params}
     else
       Logger.info ">> is setting previous mcu commands."
+      Command.read_all_params(%{}, [], context)
+      Process.sleep(100)
       config_pairs = Enum.map(state.mcu_params, fn({param, val}) ->
         %Farmbot.CeleryScript.Ast{kind: "pair",
             args: %{label: param, value: val}, body: []}
