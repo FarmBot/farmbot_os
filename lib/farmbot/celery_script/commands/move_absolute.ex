@@ -50,8 +50,8 @@ defmodule Farmbot.CeleryScript.Command.MoveAbsolute do
     new_context2             = ast_to_coord(new_context1, offset)
     {offset, new_context3}   = Farmbot.Context.pop_data(new_context2)
 
-    {xa, ya, za} = a = {location.args.x, location.args.y, location.args.z}
-    {xb, yb, zb} = b = {offset.args.x,   offset.args.y,    offset.args.z }
+    {xa, ya, za} = {location.args.x, location.args.y, location.args.z}
+    {xb, yb, zb} = {offset.args.x,   offset.args.y,    offset.args.z }
     { combined_x, combined_y, combined_z } = { xa + xb, ya + yb, za + zb }
     {x, y, z} = {combined_x, combined_y, combined_z}
     case UartHan.write(new_context3, "G00 X#{format_float(x)} Y#{format_float(y)} Z#{format_float(z)} A#{spd_perc_x} B#{spd_perc_y} C#{spd_perc_z}", 30_000) do
