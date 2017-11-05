@@ -1,14 +1,30 @@
 defmodule Farmbot.CeleryScript.AST.Node do
   @moduledoc "CeleryScript Node."
+  alias Farmbot.CeleryScript.AST
 
   @doc "Decode and validate arguments."
-  @callback decode_args(map) :: {:ok, map} | {:error, term}
+  @callback decode_args(map) :: {:ok, AST.args} | {:error, term}
+
+  @doc "Execute a node"
+  @callback execute(AST.args, AST.body, Macro.Env.t) :: {:ok, AST.t} | {:ok, Macro.Env.t} | {:error, Macro.Env.t, term}
+
+  @doc false
+  defmacro __after_compile__(env, _) do
+    # if we didn't define an execute function; throw a compile error.
+    unless function_exported?(env.module, :execute, 3) do
+      # err = "#{env.module} does not export a `execute(args, body)` function."
+      # raise CompileError, description: err, file: env.file
+      quote do end
+    end
+  end
 
   @doc false
   defmacro __using__(_) do
     quote do
-      import Farmbot.CeleryScript.AST.Node
-      @behaviour Farmbot.CeleryScript.AST.Node
+      import AST.Node, only: [allow_args: 1]
+      @behaviour AST.Node
+      @after_compile AST.Node
+      require Logger
 
       # Struct to allow for usage of Elixir Protocols.
       defstruct [:ast]
@@ -48,7 +64,7 @@ defmodule Farmbot.CeleryScript.AST.Node do
 
   @doc "Allow a list of args."
   defmacro allow_args(args) do
-    arg_mod_base = Farmbot.CeleryScript.AST.Arg
+    arg_mod_base = AST.Arg
     args_and_mods = for arg <- args do
       mod = Module.concat(arg_mod_base, Macro.camelize(arg |> to_string))
       {arg, mod}

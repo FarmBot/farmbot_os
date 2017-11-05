@@ -4,6 +4,23 @@ defmodule Farmbot.CeleryScript.AST do
   Ast nodes.
   """
 
+  @typedoc "Arguments to a Node."
+  @type args :: map
+
+  @typedoc "Body of a Node."
+  @type body :: [t]
+
+  @typedoc "Kind of a Node."
+  @type kind :: module
+
+  @typedoc "AST node."
+  @type t :: %__MODULE__{
+    kind: kind,
+    args: args,
+    body: body,
+    comment: binary
+  }
+
   # AST struct.
   defstruct [:kind, :args, :body, :comment]
 
@@ -12,12 +29,41 @@ defmodule Farmbot.CeleryScript.AST do
 
   def decode(binary) when is_binary(binary) do
     case Poison.decode(binary, keys: :atoms) do
-      {:ok, string_map} -> decode(string_map)
-      {:error, _}       -> {:error, :unknown_binary}
+      {:ok, map}  -> decode(map)
+      {:error, _} -> {:error, :unknown_binary}
     end
   end
 
   def decode(list) when is_list(list), do: decode_body(list)
+
+  def decode(%{__struct__: _} = herp) do
+    Map.from_struct(herp) |> decode()
+  end
+
+  defp str_to_atom({key, value}) do
+    k = if is_atom(key), do: key, else: String.to_atom(key)
+    cond do
+      is_map(value)  -> {k, Map.new(value, &str_to_atom(&1))}
+      is_list(value) -> {k, Enum.map(value, fn(sub_str_map) -> Map.new(sub_str_map, &str_to_atom(&1)) end)}
+      is_binary(value) -> {k, value}
+      is_atom(value) -> {k, value}
+      is_number(value) -> {k, value}
+    end
+  end
+
+  def decode(%{"kind" => kind, "args" => str_args} = str_map) do
+    args = Map.new(str_args, &str_to_atom(&1))
+    case decode(str_map["body"] || []) do
+      {:ok, body} ->
+        IO.puts ""
+        %{kind: kind,
+          args: args,
+          body: body,
+          comment: str_map["comment"]}
+        |> decode()
+      {:error, _} = err -> err
+    end
+  end
 
   def decode(%{kind: kind, args: args} = map) do
     case kind_to_mod(kind) do
@@ -33,7 +79,7 @@ defmodule Farmbot.CeleryScript.AST do
                         comment: map[:comment]]
                 val = struct(__MODULE__, opts)
                 {:ok, val}
-              {:error, _} = err -> err
+              {:error, reason} -> {:error, {kind, reason}}
             end
           {:error, _} = err -> err
         end
@@ -58,6 +104,10 @@ defmodule Farmbot.CeleryScript.AST do
       false -> nil
       true  -> mod
     end
+  end
+
+  def kind_to_mod(module) when is_atom(module) do
+    module
   end
 
 end

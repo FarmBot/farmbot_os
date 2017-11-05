@@ -16,7 +16,7 @@ config :tzdata, :data_dir, "/tmp"
 config :tzdata, :autoupdate, :disabled
 
 # Path for the `fs` module to watch.
-config :fs, path: "/tmp/images"
+# config :fs, path: "/tmp/images"
 
 # Configure your our system.
 # Default implementation needs no special stuff.

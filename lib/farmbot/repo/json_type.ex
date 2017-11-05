@@ -21,7 +21,7 @@ defmodule Farmbot.Repo.JSONType do
   def cast(_), do: :error
 
   def load(text) do
-    case Poison.decode(text) do
+    case Poison.decode(text, keys: :atoms) do
       {:ok, data} -> {:ok, data}
       _ -> :error
     end
