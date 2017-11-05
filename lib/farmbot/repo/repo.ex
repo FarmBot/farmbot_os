@@ -4,22 +4,27 @@ defmodule Farmbot.Repo do
   use GenServer
   require Logger
 
+  @doc "Fetch the current repo."
   def current_repo do
     GenServer.call(__MODULE__, :current_repo)
   end
 
+  @doc "Fetch the non current repo."
   def other_repo do
     GenServer.call(__MODULE__, :other_repo)
   end
 
+  @doc "Flip the repos."
   def flip() do
     GenServer.call(__MODULE__, :flip)
   end
 
+  @doc "Register a diff to be stored until a flip."
   def register_sync_cmd(sync_cmd) do
     GenServer.call(__MODULE__, {:register_sync_cmd, sync_cmd})
   end
 
+  @doc false
   def start_link(repos) do
     GenServer.start_link(__MODULE__, repos, [name: __MODULE__])
   end
@@ -102,7 +107,7 @@ defmodule Farmbot.Repo do
     end
   end
 
-  defp fix_repo(repo, %{body: nil}) do
+  defp fix_repo(_repo, %{body: nil}) do
     # The delete already failed. Nothing we can do. This object doesn't exist anymore.
     :ok
   end

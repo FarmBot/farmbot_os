@@ -4,7 +4,7 @@ defmodule Farmbot.System do
   """
 
   alias Farmbot.System.ConfigStorage
-  alias Farmbot.System.Init.Ecto
+  # alias Farmbot.System.Init.Ecto
 
   error_msg = """
   Please configure your `:system_tasks` behaviour!

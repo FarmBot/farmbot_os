@@ -86,7 +86,7 @@ defmodule Farmbot.Mixfile do
       # {:tzdata, "~> 0.1.201601", override: true},
       # {:timex, "~> 3.1.13"},
 
-      # {:fs, "~> 0.9.1"},
+      {:fs, "~> 3.4.0"},
       {:nerves_uart, "0.1.2"},
       {:uuid, "~> 1.1"},
       {:cowboy, "~> 1.1"},

@@ -6,7 +6,7 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
   use GenServer
   alias HTTPoison
   alias HTTPoison.{AsyncResponse, AsyncStatus, AsyncHeaders, AsyncChunk, AsyncEnd}
-  alias Farmbot.HTTP.{Response, Helpers, Error}
+  alias Farmbot.HTTP.{Response, Helpers}
   import Helpers
   require Logger
 
@@ -110,7 +110,7 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
     GenServer.start_link(__MODULE__, [], [])
   end
 
-  def init(token) do
+  def init([]) do
     state = %State{requests: %{}}
     {:ok, state}
   end

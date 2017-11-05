@@ -37,7 +37,7 @@ defmodule Farmbot.CeleryScript.AST.Pretty do
     offset = if(indent == 0, do: offset(opts) + 2, else: offset(opts) + indent)
     options = offset(opts, offset)
     # args = Enum.map(ast.args, fn({k, v}) -> "#{k}=#{format(v, %{pretty: true})}" end) |> Enum.join(", ")
-    args = Enum.map(ast.args, fn({k, v}) -> "#{k}" end) |> Enum.join(", ")
+    args = Enum.map(ast.args, fn({k, _v}) -> "#{k}" end) |> Enum.join(", ")
     body = if(ast.body == [], do: "[]", else: "\n#{Enum.map(ast.body, fn(sub_ast) -> format(sub_ast, options) end) |> Enum.join("#{spaces(offset)}\n")}\n")
     do_  = if(ast.body == [], do: nil,  else: "[")
     end_ = if(ast.body == [], do: nil,  else: "]")

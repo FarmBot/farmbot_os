@@ -20,7 +20,7 @@ defmodule Farmbot.Host.Bootstrap.Configurator do
     :ignore
   end
 
-  defp error(field) do
+  defp error(_field) do
     """
     Your environment is not properly configured! You will need to follow the
     directions in `config/host/auth_secret_template.exs` before continuing.

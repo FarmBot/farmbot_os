@@ -59,11 +59,11 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
   end
 
   def on_publish(["bot", _bot, "from_clients"], msg, state) do
-    Logger.warn("not implemented yet: #{inspect Poison.decode!(msg) |> Farmbot.CeleryScript.AST.parse()}")
+    Logger.warn("not implemented yet: #{inspect Poison.decode!(msg) |> Farmbot.CeleryScript.AST.decode()}")
     msg
     |> Poison.decode!()
-    |> Farmbot.CeleryScript.AST.parse()
-    |> Farmbot.CeleryScript.VirtualMachine.execute()
+    |> Farmbot.CeleryScript.AST.decode()
+    |> Farmbot.CeleryScript.execute()
     {:ok, state}
   end
 
@@ -95,7 +95,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
     {:noreply, state}
   end
 
-  defp frontend_topic(bot), do: "bot/#{bot}/from_device"
+  # defp frontend_topic(bot), do: "bot/#{bot}/from_device"
   defp bot_topic(bot),      do: "bot/#{bot}/from_clients"
   defp sync_topic(bot),     do: "bot/#{bot}/sync/#"
   defp status_topic(bot),   do: "bot/#{bot}/status"

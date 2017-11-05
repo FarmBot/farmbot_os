@@ -31,7 +31,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
     {:noreply, [], {internal_state, old_bot_state}}
   end
 
-  def handle_bot_state_events(events, {%{client: client} = internal_state, old_bot_state}) do
+  def handle_bot_state_events(events, {%{client: client} = internal_state, _old_bot_state}) do
     new_bot_state = List.last(events)
 
     Client.push_bot_state(client, new_bot_state)

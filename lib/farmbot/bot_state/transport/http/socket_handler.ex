@@ -10,7 +10,7 @@ defmodule Farmbot.BotState.Transport.HTTP.SocketHandler do
 
   @timeout 60_000
 
-  @behaviour :cowboy_websocket_handler
+  # @behaviour :cowboy_websocket_handler
 
   def init(blah, req, opts) do
     conn = Plug.Adapters.Cowboy.Conn.conn(req, :tcp)

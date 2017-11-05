@@ -8,7 +8,7 @@ defmodule Farmbot.Firmware.Handler do
   Gcodes as parsed by `Farmbot.Firmware.Gcode.Parser`.
   """
 
-  @doc "Pid of a firmware implementation."
+  @typedoc "Pid of a firmware implementation."
   @type handler :: pid
 
   @doc "Start a firmware handler."

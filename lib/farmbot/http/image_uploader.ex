@@ -10,17 +10,17 @@ defmodule Farmbot.HTTP.ImageUploader do
   @doc """
   Starts the Image Watcher
   """
-  def start_link(http, opts) do
-    GenServer.start_link(__MODULE__, http, opts)
+  def start_link() do
+    GenServer.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
-  def init(http) do
+  def init([]) do
     File.rm_rf!(@images_path)
     File.mkdir_p!(@images_path)
     :fs_app.start(:normal, [])
     :fs.subscribe()
     Process.flag(:trap_exit, true)
-    {:ok, %{http: http, uploads: %{}}}
+    {:ok, %{uploads: %{}}}
   end
 
   def handle_info({_pid, {:fs, :file_event}, {path, [:modified, :closed]}}, state) do
@@ -48,7 +48,7 @@ defmodule Farmbot.HTTP.ImageUploader do
       {path, meta, retries} ->
         Logger.warn(">> faile to upload #{path} #{inspect(reason)}. Going to retry.")
         Process.sleep(1000 * retries)
-        new_pid = spawn(__MODULE__, :upload, [state.http, path, meta])
+        new_pid = spawn(__MODULE__, :upload, [path, meta])
 
         new_uploads =
           state
@@ -73,9 +73,9 @@ defmodule Farmbot.HTTP.ImageUploader do
     end)
   end
 
-  def upload(http, file_path, meta) do
+  def upload(file_path, meta) do
     Logger.info("Image Watcher trying to upload #{file_path}", type: :busy)
-    Farmbot.HTTP.upload_file!(http, file_path, meta)
+    Farmbot.HTTP.upload_file(file_path, meta)
     File.rm!(file_path)
     Logger.info("Image Watcher uploaded #{file_path}", type: :success)
   end
