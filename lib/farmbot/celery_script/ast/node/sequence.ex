@@ -8,7 +8,7 @@ defmodule Farmbot.CeleryScript.AST.Node.Sequence do
   end
 
   defp do_reduce([ast | rest], env) do
-    case Farmbot.CeleryScript.execute(ast) do
+    case Farmbot.CeleryScript.execute(ast, env) do
       {:ok, new_env} -> do_reduce(rest, new_env)
       {:error, reason, env} -> {:error, reason, env}
     end

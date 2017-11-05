@@ -2,6 +2,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
   @moduledoc "Underlying client for interfacing MQTT."
   use GenMQTT
   require Logger
+  alias Farmbot.CeleryScript.AST
 
   @doc "Start a MQTT Client."
   def start_link(device, token, server) do
@@ -24,6 +25,11 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
   @doc "Push a log message."
   def push_bot_log(client, log) do
     GenMQTT.cast(client, {:bot_log, log})
+  end
+
+  @doc "Emit an AST to the frontend."
+  def emit(client, %AST{} = ast) do
+    GenMQTT.cast(client, {:emit, ast})
   end
 
   def init({device, _server}) do
@@ -59,10 +65,10 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
   end
 
   def on_publish(["bot", _bot, "from_clients"], msg, state) do
-    Logger.warn("not implemented yet: #{inspect Poison.decode!(msg) |> Farmbot.CeleryScript.AST.decode()}")
     msg
     |> Poison.decode!()
     |> Farmbot.CeleryScript.AST.decode()
+    |> elem(1)
     |> Farmbot.CeleryScript.execute()
     {:ok, state}
   end
@@ -79,14 +85,14 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
     {:ok, state}
   end
 
+  def handle_cast(_, %{connected: false} = state) do
+    {:noreply, state}
+  end
+
   def handle_cast({:bot_state, bs}, state) do
     json = Poison.encode!(bs)
     GenMQTT.publish(self(), status_topic(state.device), json, 0, false)
     {:noreply, %{state | cache: json}}
-  end
-
-  def handle_cast(_, %{connected: false} = state) do
-    {:noreply, state}
   end
 
   def handle_cast({:bot_log, log}, state) do
@@ -95,7 +101,14 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
     {:noreply, state}
   end
 
-  # defp frontend_topic(bot), do: "bot/#{bot}/from_device"
+  def handle_cast({:emit, msg}, state) do
+    {:ok, encoded_ast} = AST.encode(msg)
+    json = Poison.encode!(encoded_ast)
+    GenMQTT.publish(self(), frontend_topic(state.device), json, 0, false)
+    {:noreply, state}
+  end
+
+  defp frontend_topic(bot), do: "bot/#{bot}/from_device"
   defp bot_topic(bot),      do: "bot/#{bot}/from_clients"
   defp sync_topic(bot),     do: "bot/#{bot}/sync/#"
   defp status_topic(bot),   do: "bot/#{bot}/status"

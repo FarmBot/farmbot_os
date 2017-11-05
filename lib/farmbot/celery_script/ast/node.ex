@@ -21,7 +21,7 @@ defmodule Farmbot.CeleryScript.AST.Node do
   @doc false
   defmacro __using__(_) do
     quote do
-      import AST.Node, only: [allow_args: 1]
+      import AST.Node, only: [allow_args: 1, return_self: 0, rebuild_self: 2]
       @behaviour AST.Node
       @after_compile AST.Node
       require Logger
@@ -44,7 +44,7 @@ defmodule Farmbot.CeleryScript.AST.Node do
         # This requires that the Node module has
         # `allow_args [<arg_name>]`
         if {arg_name, 0} in __MODULE__.module_info(:exports) do
-          case apply(__MODULE__, arg_name, []).verify(val) do
+          case apply(__MODULE__, arg_name, []).decode(val) do
             # if this argument is valid, continue enumeration.
             {:ok, decoded} -> decode_args(rest, [{arg_name, decoded} | acc])
             {:error, _} = err -> err
@@ -59,6 +59,46 @@ defmodule Farmbot.CeleryScript.AST.Node do
       def decode_args([], acc) do
         {:ok, Map.new(acc)}
       end
+
+      @doc false
+      def encode_args(args, acc \\ [])
+
+      def encode_args(args, acc) when is_map(args) do
+        encode_args(Map.to_list(args), acc)
+      end
+
+      def encode_args([{arg_name, val} = arg | rest], acc) do
+        if {arg_name, 0} in __MODULE__.module_info(:exports) do
+          case apply(__MODULE__, arg_name, []).encode(val) do
+            # if this argument is valid, continue enumeration.
+            {:ok, encoded} -> encode_args(rest, [{arg_name, encoded} | acc])
+            {:error, _} = err -> err
+          end
+        else
+          {:error, {:unknown_arg, arg_name}}
+        end
+      end
+
+      def encode_args([], acc) do
+        {:ok, Map.new(acc)}
+      end
+
+    end
+  end
+
+  @doc "Used with data manipulation nodes."
+  defmacro return_self do
+    quote do
+      def execute(args, body, env) do
+        {:ok, rebuild_self(args, body), env}
+      end
+    end
+  end
+
+  @doc "Rebuild the args and body into an AST struct."
+  defmacro rebuild_self(args, body) do
+    quote bind_quoted: [args: args, body: body] do
+      struct(AST, kind: __MODULE__, args: args, body: body, comment: nil)
     end
   end
 

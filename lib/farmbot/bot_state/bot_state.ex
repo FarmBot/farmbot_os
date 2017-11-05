@@ -8,9 +8,13 @@ defmodule Farmbot.BotState do
   @target Mix.Project.config()[:target]
   @env Mix.env()
 
+  alias Farmbot.CeleryScript.AST
+
   defstruct mcu_params: %{},
             jobs: %{},
-            location_data: %{},
+            location_data: %{
+              position: %{x: -1, y: -1, z: -1}
+            },
             pins: %{},
             configuration: %{},
             informational_settings: %{
@@ -25,6 +29,11 @@ defmodule Farmbot.BotState do
   @doc "Forces a state push over all transports."
   def force_state_push do
     GenStage.call(__MODULE__, :force_state_push)
+  end
+
+  @doc "Emit an AST."
+  def emit(%AST{} = ast) do
+    GenStage.call(__MODULE__, {:emit, ast})
   end
 
   def get_user_env do
@@ -52,6 +61,10 @@ defmodule Farmbot.BotState do
 
   def handle_call(:force_state_push, _from, state) do
     {:reply, state, [state], state}
+  end
+
+  def handle_call({:emit, ast}, _from, state) do
+    {:reply, :ok, [{:emit, ast}], state}
   end
 
   defp do_handle([], state), do: state

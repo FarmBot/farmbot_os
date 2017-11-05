@@ -3,6 +3,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
   use GenStage
   require Logger
   alias Farmbot.BotState.Transport.GenMQTT.Client
+  alias Farmbot.CeleryScript.AST
 
   @doc false
   def start_link do
@@ -31,12 +32,18 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
     {:noreply, [], {internal_state, old_bot_state}}
   end
 
-  def handle_bot_state_events(events, {%{client: client} = internal_state, _old_bot_state}) do
-    new_bot_state = List.last(events)
+  def handle_bot_state_events([event | rest], {%{client: client} = internal_state, old_bot_state}) do
+    case event do
+      {:emit, %AST{} = ast} ->
+        Client.emit(client, ast)
+        handle_bot_state_events(rest, {internal_state, old_bot_state})
+      new_bot_state ->
+        Client.push_bot_state(client, new_bot_state)
+        handle_bot_state_events(rest, {internal_state, new_bot_state})
+    end
+  end
 
-    Client.push_bot_state(client, new_bot_state)
-    # if new_bot_state != old_bot_state do
-    # end
-    {:noreply, [], {internal_state, new_bot_state}}
+  def handle_bot_state_events([], {internal, bot_state}) do
+    {:noreply, [], {internal, bot_state}}
   end
 end

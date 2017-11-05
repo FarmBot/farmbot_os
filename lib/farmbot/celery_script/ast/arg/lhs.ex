@@ -2,11 +2,16 @@ defmodule Farmbot.CeleryScript.AST.Arg.Lhs do
   @moduledoc false
   @behaviour Farmbot.CeleryScript.AST.Arg
 
-  def verify("x"), do: {:ok, :x}
-  def verify("y"), do: {:ok, :y}
-  def verify("z"), do: {:ok, :z}
+  def decode("x"), do: {:ok, :x}
+  def decode("y"), do: {:ok, :y}
+  def decode("z"), do: {:ok, :z}
 
-  def verify("pin" <> num), do: {:pin, String.to_integer(num)}
+  def decode("pin" <> num), do: {:pin, String.to_integer(num)}
 
-  def verify(other), do: {:error, "unknown left hand side: #{inspect other}"}
+  def decode(other), do: {:error, "unknown left hand side: #{inspect other}"}
+
+  def encode(:x), do: {:ok, "x"}
+  def encode(:y), do: {:ok, "y"}
+  def encode(:z), do: {:ok, "z"}
+  def encode({:pin, num}), do: {:ok, "pin#{num}"}
 end

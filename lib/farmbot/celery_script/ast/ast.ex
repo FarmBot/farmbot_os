@@ -24,6 +24,31 @@ defmodule Farmbot.CeleryScript.AST do
   # AST struct.
   defstruct [:kind, :args, :body, :comment]
 
+  @doc "Encode a AST back to a map."
+  def encode(%__MODULE__{kind: mod, args: args, body: body, comment: comment}) do
+    case mod.encode_args(args) do
+      {:ok, encoded_args} ->
+        case encode_body(body) do
+          {:ok, encoded_body} ->
+            {:ok, %{kind: mod_to_kind(mod), args: encoded_args, body: encoded_body, comment: comment}}
+          {:error, _} = err -> err
+        end
+      {:error, _} = err -> err
+    end
+  end
+
+  @doc "Encode a list of asts."
+  def encode_body(body, acc \\ [])
+
+  def encode_body([ast | rest], acc) do
+    case encode(ast) do
+      {:ok, encoded} -> encode_body(rest, [encoded | acc])
+      {:error, _} = err -> err
+    end
+  end
+
+  def encode_body([], acc), do: {:ok, Enum.reverse(acc)}
+
   @doc "Try to decode anything into an AST struct."
   def decode(arg1)
 
@@ -108,6 +133,11 @@ defmodule Farmbot.CeleryScript.AST do
 
   def kind_to_mod(module) when is_atom(module) do
     module
+  end
+
+  @doc "Change a module back to a kind."
+  def mod_to_kind(module) when is_atom(module) do
+    Module.split(module) |> List.last() |> Macro.underscore()
   end
 
 end

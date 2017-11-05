@@ -100,6 +100,15 @@ defmodule Farmbot.Farmware.Installer do
          end
   end
 
+  def uninstall(%Farmware{} = fw) do
+    Logger.info "Uninstalling farmware: #{inspect fw}"
+    install_path = install_path(fw)
+    case File.rm_rf(install_path) do
+      {:ok, _} -> :ok
+      {:error, _} = err -> err
+    end
+  end
+
   defp preflight_checks(%Farmware{} = fw) do
     Logger.info "Starting preflight checks for #{inspect fw}"
     with :ok <- check_version(fw.min_os_version_major),

@@ -2,5 +2,7 @@ defmodule Farmbot.CeleryScript.AST.Arg.Offset do
   @moduledoc false
   @behaviour Farmbot.CeleryScript.AST.Arg
 
-  def verify(val), do: Farmbot.CeleryScript.AST.decode(val)
+  def decode(val), do: Farmbot.CeleryScript.AST.decode(val)
+
+  def encode(ast), do: Farmbot.CeleryScript.AST.encode(ast)
 end
