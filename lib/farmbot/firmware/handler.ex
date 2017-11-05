@@ -26,6 +26,9 @@ defmodule Farmbot.Firmware.Handler do
   @typedoc false
   @type fw_param :: Farmbot.Firmware.Gcode.Param.t
 
+  @typedoc "Speed of a command."
+  @type speed :: number
+
   @typedoc "Pin"
   @type pin :: number
 
@@ -33,16 +36,19 @@ defmodule Farmbot.Firmware.Handler do
   @type pin_mode :: :digital | :analog
 
   @doc "Move to a position."
-  @callback move_absolute(handler, vec3) :: fw_ret_val
+  @callback move_absolute(handler, vec3, speed) :: fw_ret_val
 
   @doc "Calibrate an axis."
-  @callback calibrate(handler, axis) :: fw_ret_val
+  @callback calibrate(handler, axis, speed) :: fw_ret_val
 
   @doc "Find home on an axis."
-  @callback find_home(handler, axis) :: fw_ret_val
+  @callback find_home(handler, axis, speed) :: fw_ret_val
 
   @doc "Manually set an axis's current position to zero."
-  @callback zero(handler, axis) :: fw_ret_val
+  @callback zero(handler, axis, speed) :: fw_ret_val
+
+  @doc "Home an axis."
+  @callback home(handler, axis, speed) :: fw_ret_val
 
   @doc "Update a paramater."
   @callback update_param(handler, fw_param, number) :: fw_ret_val

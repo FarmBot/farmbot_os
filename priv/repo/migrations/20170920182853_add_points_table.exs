@@ -9,6 +9,7 @@ defmodule Farmbot.Repo.Migrations.AddPointsTable do
       add(:y, :float)
       add(:z, :float)
       add(:meta, :text)
+      add(:tool_id, :integer)
       add(:pointer_type, :string)
     end
 

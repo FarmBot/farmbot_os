@@ -6,6 +6,7 @@ defmodule Farmbot.Repo.Point do
 
   schema "points" do
     field(:name, :string)
+    field(:tool_id, :integer)
     field(:x, Farmbot.Repo.JSONFloatType)
     field(:y, Farmbot.Repo.JSONFloatType)
     field(:z, Farmbot.Repo.JSONFloatType)
@@ -15,10 +16,11 @@ defmodule Farmbot.Repo.Point do
 
   use Farmbot.Repo.Syncable
   @required_fields [:id, :name, :x, :y, :z, :meta, :pointer_type]
+  @optional_fields [:tool_id]
 
-  def changeset(farm_event, params \\ %{}) do
-    farm_event
-    |> cast(params, @required_fields)
+  def changeset(point, params \\ %{}) do
+    point
+    |> cast(params, @required_fields ++ @optional_fields)
     |> validate_required(@required_fields)
   end
 end

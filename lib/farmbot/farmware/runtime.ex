@@ -5,10 +5,7 @@ defmodule Farmbot.Farmware.Runtime do
   alias Farmware.{RuntimeError, Installer}
   require Logger
 
-  defmodule State do
-    @moduledoc false
-    defstruct [:farmware, :env, :port, :exit_status, :working_dir, :return_dir]
-  end
+  defstruct [:farmware, :env, :port, :exit_status, :working_dir, :return_dir]
 
   @doc "Execute a Farmware struct."
   def execute(%Farmware{} = farmware) do
@@ -28,19 +25,19 @@ defmodule Farmbot.Farmware.Runtime do
               args: farmware.args,
               env: env ]
       port = Port.open({:spawn_executable, exec}, opts)
-      handle_port(struct(State, [port: port, env: env, farmware: farmware, working_dir: fw_path, return_dir: cwd]))
+      handle_port(struct(__MODULE__, [port: port, env: env, farmware: farmware, working_dir: fw_path, return_dir: cwd]))
     else
       {:error, err} -> raise RuntimeError, [state: nil, message: err]
     end
     |> do_cleanup()
   end
 
-  defp do_cleanup(%State{return_dir: return_dir} = state) do
+  defp do_cleanup(%__MODULE__{return_dir: return_dir} = state) do
     File.cd(return_dir)
     state
   end
 
-  defp handle_port(%State{port: port, farmware: farmware} = state) do
+  defp handle_port(%__MODULE__{port: port, farmware: farmware} = state) do
     receive do
       {^port, {:exit_status, 0}}      ->
         Logger.info "#{inspect farmware} completed without errors."

@@ -11,20 +11,24 @@ defmodule Farmbot.Firmware.UartHandler do
     GenStage.start_link(__MODULE__, [])
   end
 
-  def move_absolute(handler, pos) do
-    GenStage.call(handler, {:move_absolute, pos})
+  def move_absolute(handler, pos, axis, speed) do
+    GenStage.call(handler, {:move_absolute, pos, speed})
   end
 
-  def calibrate(handler, axis) do
-    GenStage.call(handler, {:calibrate, axis})
+  def calibrate(handler, axis, axis, speed) do
+    GenStage.call(handler, {:calibrate, axis, speed})
   end
 
-  def find_home(handler, axis) do
-    GenStage.call(handler, {:find_home, axis})
+  def find_home(handler, axis, axis, speed) do
+    GenStage.call(handler, {:find_home, axis, speed})
   end
 
-  def zero(handler, axis) do
-    GenStage.call(handler, {:zero, axis})
+  def home(handler, axis, speed) do
+    GenStage.call(handler, {:home, axis, speed})
+  end
+
+  def zero(handler, axis, axis, speed) do
+    GenStage.call(handler, {:zero, axis, speed})
   end
 
   def update_param(handler, param, val) do

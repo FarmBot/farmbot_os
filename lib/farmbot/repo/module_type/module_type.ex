@@ -18,9 +18,15 @@ defmodule Farmbot.Repo.ModuleType do
 
       def type, do: :string
 
-      def cast(string) when is_binary(string), do: {:ok, string}
+      def cast(exp) do
+        IO.puts "cast"
+        IO.inspect exp
+        do_cast(exp)
+      end
 
-      def cast(module) when is_atom(module) do
+      def do_cast(string) when is_binary(string), do: {:ok, string}
+
+      def do_cast(module) when is_atom(module) do
         if match?(<<"Elixir.", _::binary>>, to_string(module)) do
           module
           |> Module.split()
@@ -31,27 +37,16 @@ defmodule Farmbot.Repo.ModuleType do
         end
       end
 
-      def load(exp) when exp in @valid_short_strs do
-        {:ok, Module.concat([Farmbot, Repo, exp])}
-      end
-
-      def load(exp) when exp in @valid_mods do
+      def load(exp) do
+        IO.puts "load"
+        IO.inspect exp
         {:ok, exp}
       end
 
-      def load("Elixir." <> _ = mod), do: String.to_atom(mod) |> load()
-
-      def load(_fail) do
-        :error
-      end
-
-      def dump(exp) when exp in @valid_short_strs do
-        {:ok, Module.concat([Farmbot, Repo, exp])}
-      end
-
-      def dump(fail) do
-        Logger.error("failed to load #{inspect(fail)}")
-        :error
+      def dump(exp) do
+        IO.puts "dump"
+        IO.inspect exp
+        {:ok, Module.concat([Farmbot, Repo, exp]) |> to_string()}
       end
     end
   end

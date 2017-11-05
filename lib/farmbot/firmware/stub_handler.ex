@@ -14,20 +14,24 @@ defmodule Farmbot.Firmware.StubHandler do
     GenStage.start_link(__MODULE__, [])
   end
 
-  def move_absolute(handler, pos) do
-    GenStage.call(handler, {:move_absolute, pos})
+  def move_absolute(handler, pos, speed) do
+    GenStage.call(handler, {:move_absolute, pos, speed})
   end
 
-  def calibrate(handler, axis) do
-    GenStage.call(handler, {:calibrate, axis})
+  def calibrate(handler, axis, speed) do
+    GenStage.call(handler, {:calibrate, axis, speed})
   end
 
-  def find_home(handler, axis) do
-    GenStage.call(handler, {:find_home, axis})
+  def find_home(handler, axis, speed) do
+    GenStage.call(handler, {:find_home, axis, speed})
   end
 
-  def zero(handler, axis) do
-    GenStage.call(handler, {:zero, axis})
+  def home(handler, axis, speed) do
+    GenStage.call(handler, {:home, axis, speed})
+  end
+
+  def zero(handler, axis, speed) do
+    GenStage.call(handler, {:zero, axis, speed})
   end
 
   def update_param(handler, param, val) do
@@ -71,19 +75,19 @@ defmodule Farmbot.Firmware.StubHandler do
     {:noreply, [], state}
   end
 
-  def handle_call({:move_absolute, pos}, _from, state) do
+  def handle_call({:move_absolute, pos, _speed}, _from, state) do
     {:reply, :ok, [{:report_current_position, pos.x, pos.y, pos.z}], %{state | pos: pos}}
   end
 
-  def handle_call({:calibrate, _axis}, _from, state) do
+  def handle_call({:calibrate, _axis, _speed}, _from, state) do
     {:reply, :ok, [], state}
   end
 
-  def handle_call({:find_home, _axis}, _from, state) do
+  def handle_call({:find_home, _axis, _speed}, _from, state) do
     {:reply, :ok, [], state}
   end
 
-  def handle_call({:zero, axis}, _from, state) do
+  def handle_call({:zero, axis, _speed}, _from, state) do
     state = %{state | pos: %{state.pos | axis => 0}}
     case axis do
       :x -> {:reply, :ok, [{:report_current_position, 0, state.pos.y, state.pos.z}], state}

@@ -5,23 +5,28 @@ defmodule Farmbot.Firmware do
   require Logger
 
   @doc "Move the bot to a position."
-  def move_absolute(vec3) do
-    GenStage.call(__MODULE__, {:move_absolute, [vec3]})
+  def move_absolute(vec3, speed) do
+    GenStage.call(__MODULE__, {:move_absolute, [vec3, speed]})
   end
 
   @doc "Calibrate an axis."
-  def calibrate(axis) do
-    GenStage.call(__MODULE__, {:calibrate, [axis]})
+  def calibrate(axis, speed) do
+    GenStage.call(__MODULE__, {:calibrate, [axis, speed]})
   end
 
   @doc "Find home on an axis."
-  def find_home(axis) do
-    GenStage.call(__MODULE__, {:find_home, [axis]})
+  def find_home(axis, speed) do
+    GenStage.call(__MODULE__, {:find_home, [axis, speed]})
+  end
+
+  @doc "Home an axis."
+  def home(axis, speed) do
+    GenStage.call(__MODULE__, {:home, [axis, speed]})
   end
 
   @doc "Manually set an axis's current position to zero."
-  def zero(axis) do
-    GenStage.call(__MODULE__, {:zero, [axis]})
+  def zero(axis, speed) do
+    GenStage.call(__MODULE__, {:zero, [axis, speed]})
   end
 
   @doc """
