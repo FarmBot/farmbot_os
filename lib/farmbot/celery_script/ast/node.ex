@@ -21,7 +21,7 @@ defmodule Farmbot.CeleryScript.AST.Node do
   @doc false
   defmacro __using__(_) do
     quote do
-      import AST.Node, only: [allow_args: 1, return_self: 0, rebuild_self: 2]
+      import AST.Node, only: [allow_args: 1, return_self: 0, rebuild_self: 2, mutate_env: 1]
       @behaviour AST.Node
       @after_compile AST.Node
       require Logger
@@ -90,6 +90,7 @@ defmodule Farmbot.CeleryScript.AST.Node do
   defmacro return_self do
     quote do
       def execute(args, body, env) do
+        env = mutate_env(env)
         {:ok, rebuild_self(args, body), env}
       end
     end
@@ -99,6 +100,15 @@ defmodule Farmbot.CeleryScript.AST.Node do
   defmacro rebuild_self(args, body) do
     quote bind_quoted: [args: args, body: body] do
       struct(AST, kind: __MODULE__, args: args, body: body, comment: nil)
+    end
+  end
+
+  defmacro mutate_env(env) do
+    quote do
+      %{unquote(env) | file:     __ENV__.file,
+              line:     __ENV__.line,
+              function: __ENV__.function,
+              module:   __ENV__.module}
     end
   end
 

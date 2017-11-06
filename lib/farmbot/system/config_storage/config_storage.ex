@@ -52,6 +52,7 @@ defmodule Farmbot.System.ConfigStorage do
     |> apply(:"get_#{type}_value", [group_name, key_name])
     |> Ecto.Changeset.change(value: value)
     |> update!()
+    |> Farmbot.System.ConfigStorage.Dispatcher.dispatch(key_name)
   end
 
   def update_config_value(type, _, _, _) do

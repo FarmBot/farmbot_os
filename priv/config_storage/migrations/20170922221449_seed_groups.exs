@@ -4,7 +4,7 @@ defmodule Farmbot.System.ConfigStorage.Migrations.SeedGroups do
   alias ConfigStorage.{Config, Group, StringValue, BoolValue, FloatValue}
   import Ecto.Query, only: [from: 2]
 
-  @group_names ["authorization", "hardware", "hardware_params", "settings", "user_env"]
+  @group_names ["authorization", "hardware_params", "settings", "user_env"]
 
   def change do
     populate_config_groups()
@@ -36,19 +36,16 @@ defmodule Farmbot.System.ConfigStorage.Migrations.SeedGroups do
     create_value(StringValue, nil) |> create_config(group_id, "last_shutdown_reason")
   end
 
-  defp populate_config_values("hardware", group_id) do
-    create_value(StringValue, nil) |> create_config(group_id, "firmware_hardware")
-  end
-
   defp populate_config_values("hardware_params", group_id) do
   end
 
   defp populate_config_values("settings", group_id) do
-    create_value(BoolValue, false) |> create_config(group_id, "os_auto_update")
-    create_value(BoolValue, true)  |> create_config(group_id, "first_boot")
-    create_value(BoolValue, true)  |> create_config(group_id, "first_party_farmware")
+    create_value(BoolValue, false)  |> create_config(group_id, "os_auto_update")
+    create_value(BoolValue, true)   |> create_config(group_id, "first_boot")
+    create_value(BoolValue, true)   |> create_config(group_id, "first_party_farmware")
     create_value(BoolValue, false)  |> create_config(group_id, "auto_sync")
-    create_value(StringValue, nil) |> create_config(group_id, "timezone")
+    create_value(StringValue, nil)  |> create_config(group_id, "firmware_hardware")
+    create_value(StringValue, nil)  |> create_config(group_id, "timezone")
     fpf_url = Application.get_env(:farmbot, :farmware)[:first_part_farmware_manifest_url]
     create_value(StringValue, fpf_url) |> create_config(group_id, "first_party_farmware_url")
   end

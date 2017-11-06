@@ -106,7 +106,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
   end
 
   def handle_cast({:emit, ast}, state) do
-    Logger.debug "Emitting #{inspect ast} | #{inspect AST.encode(ast) |> elem(1)}"
+    # Logger.debug "Emitting #{inspect ast} | #{inspect AST.encode(ast) |> elem(1)}"
     {:ok, encoded_ast} = AST.encode(ast)
     json = Poison.encode!(encoded_ast)
     GenMQTT.publish(self(), frontend_topic(state.device), json, 0, false)

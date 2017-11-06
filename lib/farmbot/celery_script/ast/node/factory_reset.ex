@@ -4,6 +4,7 @@ defmodule Farmbot.CeleryScript.AST.Node.FactoryReset do
   allow_args [:package]
 
   def execute(_, _, env) do
+    env = mutate_env(env)
     Farmbot.System.factory_reset "CeleryScript request."
     {:ok, env}
   end

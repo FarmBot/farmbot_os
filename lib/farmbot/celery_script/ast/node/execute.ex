@@ -6,6 +6,7 @@ defmodule Farmbot.CeleryScript.AST.Node.Execute do
   import Ecto.Query
 
   def execute(%{sequence_id: id}, _, env) do
+    env = mutate_env(env)
     repo = Farmbot.Repo.current_repo()
     seq = repo.one(from s in Farmbot.Repo.Sequence, where: s.id == ^id)
     case seq do

@@ -4,6 +4,7 @@ defmodule Farmbot.CeleryScript.AST.Node.InstallFarmware do
   allow_args [:url]
 
   def execute(%{url: url}, _, env) do
+    env = mutate_env(env)
     case Farmbot.Farmware.Installer.install(url) do
       {:ok, _} -> {:ok, env}
       {:error, reason} -> {:error, reason, env}

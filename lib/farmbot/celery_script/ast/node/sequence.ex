@@ -4,6 +4,7 @@ defmodule Farmbot.CeleryScript.AST.Node.Sequence do
   allow_args [:version, :is_outdated]
 
   def execute(%{version: _, is_outdated: _}, body, env) do
+    env = mutate_env(env)
     do_reduce(body, env)
   end
 

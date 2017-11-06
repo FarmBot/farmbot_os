@@ -11,7 +11,7 @@ defmodule Farmbot.CeleryScript.AST.Node.RpcRequest do
   defp do_reduce([ast | rest], label, env) do
     case Farmbot.CeleryScript.execute(ast, env) do
       {:ok, new_env} -> do_reduce(rest, label, new_env)
-      {:error, reason, new_env} -> handle_error(ast, reason, new_env)
+      {:error, reason, new_env} -> handle_error(ast, label, reason, new_env)
     end
   end
 
@@ -19,9 +19,9 @@ defmodule Farmbot.CeleryScript.AST.Node.RpcRequest do
     Node.RpcOk.execute(%{label: label}, [], env)
   end
 
-  defp handle_error(ast, reason, env) do
+  defp handle_error(ast, label, reason, env) do
     case Node.Explanation.execute(%{message: "#{inspect ast} failed: #{inspect reason}"}, [], env) do
-      {:ok, expl, new_env} -> Node.RpcError.execute(%{label: ast.args.label}, [expl], new_env)
+      {:ok, expl, new_env} -> Node.RpcError.execute(%{label: label}, [expl], new_env)
       {:error, reason, env} -> {:error, reason, env}
     end
   end

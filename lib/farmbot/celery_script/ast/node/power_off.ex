@@ -4,6 +4,7 @@ defmodule Farmbot.CeleryScript.AST.Node.PowerOff do
   allow_args []
 
   def execute(_, _, env) do
+    env = mutate_env(env)
     Farmbot.System.shutdown("CeleryScript request")
     {:ok, env}
   end

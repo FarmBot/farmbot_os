@@ -14,7 +14,8 @@ defmodule Farmbot.System.Supervisor do
     children = [
       worker(Farmbot.System.Init.FSCheckup, [[], []]),
       supervisor(Farmbot.System.Init.Ecto, [[], []]),
-      supervisor(Farmbot.System.ConfigStorage, [])
+      supervisor(Farmbot.System.ConfigStorage, []),
+      worker(Farmbot.System.ConfigStorage.Dispatcher, [])
     ]
 
     init_mods =

@@ -4,6 +4,7 @@ defmodule Farmbot.CeleryScript.AST.Node.RpcOk do
   allow_args [:label]
 
   def execute(%{label: _label} = args, body, env) do
+    env = mutate_env(env)
     ast = rebuild_self(args, body)
     case Farmbot.BotState.emit(ast) do
       :ok -> {:ok, env}

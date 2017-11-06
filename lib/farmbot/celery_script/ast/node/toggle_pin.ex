@@ -5,6 +5,7 @@ defmodule Farmbot.CeleryScript.AST.Node.TogglePin do
   allow_args [:pin_number]
 
   def execute(%{pin_number: num}, _, env) do
+    env = mutate_env(env)
     case Farmbot.Firmware.read_pin(num, :digital) do
       {:ok, 0} -> Node.WritePin.execute(%{pin_mode: :digital, pin_number: num, pin_value: 1}, [], env)
       {:ok, 1} -> Node.WritePin.execute(%{pin_mode: :digital, pin_number: num, pin_value: 0}, [], env)

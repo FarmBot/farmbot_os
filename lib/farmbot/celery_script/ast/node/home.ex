@@ -4,10 +4,12 @@ defmodule Farmbot.CeleryScript.AST.Node.Home do
   allow_args [:speed, :axis]
 
   def execute(%{speed: speed, axis: :all}, _, env) do
+    env = mutate_env(env)
     do_reduce([:y, :z, :x], speed, env)
   end
 
   def execute(%{speed: speed, axis: axis}, _, env) do
+    env = mutate_env(env)
     case Farmbot.Firmware.home(axis, speed) do
       :ok -> {:ok, env}
       {:error, reason} -> {:error, reason, env}

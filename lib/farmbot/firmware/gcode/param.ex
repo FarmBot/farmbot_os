@@ -263,7 +263,7 @@ defmodule Farmbot.Firmware.Gcode.Param do
   def parse_param(:pin_guard_5_time_out), do: 222
   def parse_param(:pin_guard_5_active_state), do: 223
 
-  def parse_param(param_string) when is_bitstring(param_string),
+  def parse_param(param_string) when is_binary(param_string),
     do: param_string |> String.to_atom() |> parse_param
 
   def parse_param(_), do: nil

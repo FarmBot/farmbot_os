@@ -4,6 +4,7 @@ defmodule Farmbot.CeleryScript.AST.Node.If do
   allow_args [:lhs, :op, :rhs, :_then, :_else]
 
   def execute(%{_else: else_, _then: then_, lhs: lhs, op: op, rhs: rhs }, _body, env) do
+    env = mutate_env(env)
     left = eval_lhs(lhs)
 
     if is_number(left) or is_nil(left) do

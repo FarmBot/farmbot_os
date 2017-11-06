@@ -25,7 +25,9 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
   end
 
   def handle_log_events(logs, {%{client: client} = internal_state, old_bot_state}) do
-    for log <- logs do
+    location_data = Map.get(old_bot_state || %{}, :location_data, %{position: %{x: -1, y: -1, z: -1}})
+    for log_without_pos <- logs do
+      log = add_position_to_log(log_without_pos, location_data)
       Client.push_bot_log(client, log)
     end
 
@@ -45,5 +47,10 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
 
   def handle_bot_state_events([], {internal, bot_state}) do
     {:noreply, [], {internal, bot_state}}
+  end
+
+  defp add_position_to_log(%{meta: meta} = log, %{position: pos}) do
+    new_meta = Map.merge(meta, pos)
+    %{log | meta: new_meta}
   end
 end

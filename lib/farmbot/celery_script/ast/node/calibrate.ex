@@ -6,10 +6,12 @@ defmodule Farmbot.CeleryScript.AST.Node.Calibrate do
   @default_speed 100
 
   def execute(%{axis: :all}, _, env) do
+    env = mutate_env(env)
     do_reduce([:y, :z, :x], @default_speed, env)
   end
 
   def execute(%{speed: speed, axis: axis}, _, env) do
+    env = mutate_env(env)
     case Farmbot.Firmware.calibrate(axis, speed) do
       :ok -> {:ok, env}
       {:error, reason} -> {:error, reason, env}

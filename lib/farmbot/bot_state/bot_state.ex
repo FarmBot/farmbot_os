@@ -50,8 +50,8 @@ defmodule Farmbot.BotState do
   def init([]) do
     {
       :producer_consumer,
-      struct(__MODULE__),
-      subscribe_to: [Farmbot.Firmware], dispatcher: GenStage.BroadcastDispatcher
+      struct(__MODULE__, configuration: Farmbot.System.ConfigStorage.get_config_as_map()["settings"]),
+      subscribe_to: [Farmbot.Firmware, Farmbot.System.ConfigStorage.Dispatcher], dispatcher: GenStage.BroadcastDispatcher
     }
   end
 
@@ -70,9 +70,18 @@ defmodule Farmbot.BotState do
 
   defp do_handle([], state), do: state
 
+  defp do_handle([{:config, "settings", key, val} | rest], state) do
+    new_config = Map.put(state.configuration, key, val)
+    new_state = %{state | configuration: new_config}
+    do_handle(rest, new_state)
+  end
+
+  defp do_handle([{:config, _, _, _} | rest], state) do
+    do_handle(rest, state)
+  end
+
   defp do_handle([{key, diff} | rest], state) do
     state = %{state | key => Map.merge(Map.get(state, key), diff)}
-    Logger.debug "Got #{key} => #{inspect diff} #{inspect state}"
     do_handle(rest, state)
   end
 end

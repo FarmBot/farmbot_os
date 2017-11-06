@@ -140,7 +140,7 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode({:report_pin_mode, pin, mode_atom}, state) do
-    Logger.debug "Got pin mode report: #{pin}: #{mode_atom}"
+    # Logger.debug "Got pin mode report: #{pin}: #{mode_atom}"
     mode = if(mode_atom == :digital, do: 0, else: 1)
     case state.pins[pin] do
       %{mode: _, value: _} = pin_map ->
@@ -151,7 +151,7 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode({:report_pin_value, pin, value}, state) do
-    Logger.debug "Got pin value report: #{pin}: #{value} old: #{inspect state.pins[pin]}"
+    # Logger.debug "Got pin value report: #{pin}: #{value} old: #{inspect state.pins[pin]}"
     case state.pins[pin] do
       %{mode: _, value: _} = pin_map ->
         {:pins, %{pin => %{pin_map | value: value}}, %{state | pins: %{state.pins | pin => %{pin_map | value: value}}}}

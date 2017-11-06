@@ -4,6 +4,7 @@ defmodule Farmbot.CeleryScript.AST.Node.ExecuteScript do
   allow_args [:label]
 
   def execute(%{label: label}, _, env) do
+    env = mutate_env(env)
     case Farmbot.Farmware.lookup(label) do
       {:ok, fw} -> do_execute(fw, env)
       {:error, reason} -> {:error, reason, env}

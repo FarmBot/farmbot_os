@@ -15,8 +15,9 @@ defmodule Farmbot.CeleryScript do
     case kind.execute(args, body, env) do
       {:ok, %Macro.Env{} = _env} = res -> res
       {:ok, %AST{} = ast} -> execute(ast, env)
-      {:error, reason, _env} when is_binary(reason) -> raise reason
-      {:error, reason, _env} -> raise inspect(reason)
+      {:error, reason, env} ->
+        Logger.error "CS Failed: #{env.module} - #{inspect reason}"
+        {:error, reason, env}
     end
   end
 

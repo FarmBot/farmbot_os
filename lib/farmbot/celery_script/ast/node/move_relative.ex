@@ -5,6 +5,7 @@ defmodule Farmbot.CeleryScript.AST.Node.MoveRelative do
   allow_args [:x, :y, :z, :speed]
 
   def execute(%{x: x, y: y, z: z, speed: speed}, _, env) do
+    env = mutate_env(env)
     %{location_data: %{position: %{x: cur_x, y: cur_y, z: cur_z}}} = Farmbot.BotState.force_state_push
     location = new_vec3(cur_x, cur_y, cur_z)
     offset = new_vec3(x, y, z)
