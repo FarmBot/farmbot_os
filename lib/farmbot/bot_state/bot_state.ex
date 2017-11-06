@@ -21,7 +21,8 @@ defmodule Farmbot.BotState do
               controller_version: @version,
               commit: @commit,
               target: @target,
-              env: @env
+              env: @env,
+              sync_status: :sync_now,
             },
             user_env: %{},
             process_info: %{}
@@ -71,6 +72,7 @@ defmodule Farmbot.BotState do
 
   defp do_handle([{key, diff} | rest], state) do
     state = %{state | key => Map.merge(Map.get(state, key), diff)}
+    Logger.debug "Got #{key} => #{inspect diff} #{inspect state}"
     do_handle(rest, state)
   end
 end

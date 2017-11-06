@@ -10,9 +10,10 @@ defmodule Farmbot.CeleryScript do
   def execute(ast, env \\ struct(Macro.Env))
 
   def execute(%AST{kind: kind, body: body, args: args} = ast, env) do
+    Logger.debug "doing: #{inspect ast}"
     maybe_log_comment(ast)
     case kind.execute(args, body, env) do
-      {:ok, %Macro.Env{} = env} = res -> res
+      {:ok, %Macro.Env{} = _env} = res -> res
       {:ok, %AST{} = ast} -> execute(ast, env)
       {:error, reason, _env} when is_binary(reason) -> raise reason
       {:error, reason, _env} -> raise inspect(reason)
@@ -20,7 +21,7 @@ defmodule Farmbot.CeleryScript do
   end
 
   defp maybe_log_comment(%{comment: nil}), do: :ok
-  defp maybe_log_comment(%AST{comment: comment} = ast) do
+  defp maybe_log_comment(%AST{comment: comment} = _ast) do
     Logger.info "[#{comment.kind}] - #{comment}"
   end
 

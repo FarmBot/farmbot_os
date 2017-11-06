@@ -87,6 +87,23 @@ defmodule Farmbot.Firmware.StubHandler do
     {:reply, :ok, [], state}
   end
 
+  def handle_call({:home, axis, _speed}, _from, state) do
+    state = %{state | pos: %{state.pos | axis => 0}}
+    case axis do
+      :x -> {:reply, :ok, [{:report_current_position, 0, state.pos.y, state.pos.z}], state}
+      :y -> {:reply, :ok, [{:report_current_position, state.pos.x, 0, state.pos.z}], state}
+      :z -> {:reply, :ok, [{:report_current_position, state.pos.x, state.pos.y, 0}], state}
+    end
+  end
+
+  def handle_call({:read_pin, pin, mode}, _from, state) do
+    {:reply, {:ok, 1}, [{:report_pin_mode, pin, mode}, {:report_pin_value, pin, 1}], state}
+  end
+
+  def handle_call({:write_pin, pin, mode, value}, _from, state) do
+    {:reply, :ok, [{:report_pin_mode, pin, mode}, {:report_pin_value, pin, value}], state}
+  end
+
   def handle_call({:zero, axis, _speed}, _from, state) do
     state = %{state | pos: %{state.pos | axis => 0}}
     case axis do

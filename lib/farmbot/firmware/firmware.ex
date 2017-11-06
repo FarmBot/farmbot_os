@@ -73,7 +73,7 @@ defmodule Farmbot.Firmware do
   ## GenStage
 
   defmodule State do
-    defstruct handler: nil, handler_mod: nil, idle: false
+    defstruct handler: nil, handler_mod: nil, idle: false, pins: %{}
   end
 
   def init([]) do
@@ -112,8 +112,8 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcodes([code | rest], state, acc) do
     case handle_gcode(code, state) do
-      {nil, state} -> handle_gcodes(rest, state, acc)
-      {key, diff, state} -> handle_gcodes(rest, state, [{key, diff} | acc])
+      {nil, new_state} -> handle_gcodes(rest, new_state, acc)
+      {key, diff, new_state} -> handle_gcodes(rest, new_state, [{key, diff} | acc])
     end
   end
 
@@ -137,6 +137,27 @@ defmodule Farmbot.Firmware do
     diff = %{end_stops: %{xa: xa, xb: xb, ya: ya, yb: yb, za: za, zb: zb}}
     {:location_data, diff, state}
     {nil, state}
+  end
+
+  defp handle_gcode({:report_pin_mode, pin, mode_atom}, state) do
+    Logger.debug "Got pin mode report: #{pin}: #{mode_atom}"
+    mode = if(mode_atom == :digital, do: 0, else: 1)
+    case state.pins[pin] do
+      %{mode: _, value: _} = pin_map ->
+        {:pins, %{pin => %{pin_map | mode: mode}}, %{state | pins: %{state.pins | pin => %{pin_map | mode: mode}}}}
+      nil ->
+        {:pins, %{pin => %{mode: mode, value: -1}}, %{state | pins: Map.put(state.pins, pin, %{mode: mode, value: -1})}}
+    end
+  end
+
+  defp handle_gcode({:report_pin_value, pin, value}, state) do
+    Logger.debug "Got pin value report: #{pin}: #{value} old: #{inspect state.pins[pin]}"
+    case state.pins[pin] do
+      %{mode: _, value: _} = pin_map ->
+        {:pins, %{pin => %{pin_map | value: value}}, %{state | pins: %{state.pins | pin => %{pin_map | value: value}}}}
+      nil ->
+        {:pins, %{pin => %{mode: nil, value: value}}, %{state | pins: Map.put(state.pins, pin, %{mode: nil, value: value})}}
+    end
   end
 
   defp handle_gcode(:idle, state) do
