@@ -6,7 +6,7 @@ defmodule Farmbot.Target.Network do
   alias ConfigStorage.NetworkInterface
   alias Farmbot.Target.Network.Manager, as: NetworkManager
   use Supervisor
-  require Logger
+  use Farmbot.Logger
 
   def test_dns(hostname \\ 'nerves-project.org') do
     :inet_res.gethostbyname(hostname)
@@ -16,7 +16,7 @@ defmodule Farmbot.Target.Network do
   def to_network_config(config)
 
   def to_network_config(%NetworkInterface{ssid: ssid, psk: psk, type: "wireless"} = config) do
-    Logger.debug("wireless network config: ssid: #{config.ssid}, psk: #{config.psk}")
+    Logger.debug(3, "wireless network config: ssid: #{config.ssid}, psk: #{config.psk}")
     {config.name, [ssid: ssid, key_mgmt: :"WPA-PSK", psk: psk]}
   end
 
@@ -34,7 +34,7 @@ defmodule Farmbot.Target.Network do
 
   def init([]) do
     config = ConfigStorage.all(NetworkInterface)
-    Logger.info("Starting Networking")
+    Logger.info(3, "Starting Networking")
     children = config |> Enum.map(&to_network_config/1) |> Enum.map(&to_child_spec/1)
     supervise(children, strategy: :one_for_one)
   end

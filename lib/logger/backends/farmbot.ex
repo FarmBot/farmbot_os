@@ -1,8 +1,5 @@
 defmodule Logger.Backends.Farmbot do
   @moduledoc "Farmbot Loggerr Backend."
-  alias Farmbot.Log
-  @blacklist [__MODULE__,
-              Farmbot.BotState.Transport.GenMQTT.Client]
 
   def init(_opts) do
     {:ok, %{}}
@@ -12,27 +9,8 @@ defmodule Logger.Backends.Farmbot do
     {:ok, state}
   end
 
-  def handle_event({level, _gl, {Logger, _msg, _, metadata} = log}, state) do
-    module = (metadata[:module] || Logger)
-    if module in @blacklist do
-      :ok
-    else
-      do_log(Module.split(module), level, log)
-    end
-    {:ok, state}
-  end
-
-  def handle_event(:flush, state) do
-    {:ok, state}
-  end
-
-  def handle_info(_, state) do
-    {:ok, state}
-  end
-
-  defp do_log(["Farmbot" | _], level, {_, unformated_message, timestamp, meta}) do
-    {{year, month, day}, {hour, minute, second, _millisecond}} = timestamp
-    message = format_message(unformated_message)
+  def handle_event({level, _gl, {Logger, unformated_message, ts, metadata}}, state) do
+    {{year, month, day}, {hour, minute, second, _millisecond}} = ts
     t =
       %DateTime{
         year: year,
@@ -49,11 +27,34 @@ defmodule Logger.Backends.Farmbot do
         zone_abbr: "UTC"
       }
       |> DateTime.to_unix()
-    l = Log.new(message, t, meta[:channels] || [:ticker], meta[:message_type] || level)
-    GenStage.async_info(Farmbot.Logger, {:log, l})
+
+    module = metadata[:module]
+    function = metadata[:function] || "no_function"
+    verbosity = 3
+    file = metadata[:file]
+    line = metadata[:line]
+    log = struct(Farmbot.Log,
+      [
+        time: t,
+        level: level,
+        verbosity: verbosity,
+        message: format_message(unformated_message),
+        meta: [], function: function,
+        file: file, line: line,
+        module: module
+      ]
+    )
+    Farmbot.Logger.dispatch_log(log)
+    {:ok, state}
   end
 
-  defp do_log(_, _level, _msg), do: :ok
+  def handle_event(:flush, state) do
+    {:ok, state}
+  end
+
+  def handle_info(_, state) do
+    {:ok, state}
+  end
 
   defp format_message(msg) when is_binary(msg) or is_atom(msg) do
     msg

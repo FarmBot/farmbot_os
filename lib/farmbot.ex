@@ -29,6 +29,7 @@ defmodule Farmbot do
                   +---> `Firmware.Supervisor`    - Communicates with the `arduino-firmware`.
   """
 
+  require Farmbot.Logger
   require Logger
   use Supervisor
 
@@ -40,16 +41,11 @@ defmodule Farmbot do
   """
   def start(type, start_opts)
 
-  def start(_, start_opts) do
-    Logger.debug("Booting Farmbot OS version: #{@version} - #{@commit}")
-    name = Keyword.get(start_opts, :name, __MODULE__)
-
-    case Supervisor.start_link(__MODULE__, [], name: name) do
-      {:ok, pid} ->
-        {:ok, pid}
-
+  def start(_, _start_opts) do
+    case Supervisor.start_link(__MODULE__, [], [name: __MODULE__]) do
+      {:ok, pid} -> {:ok, pid}
       error ->
-        Logger.error("Uncaught startup error!")
+        IO.puts "Failed to boot Farmbot: #{inspect error}"
         Farmbot.System.factory_reset(error)
         exit(error)
     end
@@ -57,10 +53,12 @@ defmodule Farmbot do
 
   def init(args) do
     children = [
-      supervisor(Farmbot.System.Supervisor, [args, [name: Farmbot.System.Supervisor]]),
-      supervisor(Farmbot.Bootstrap.Supervisor, [args, [name: Farmbot.Bootstrap.Supervisor]])
+      supervisor(Farmbot.Logger.Supervisor, []),
+      supervisor(Farmbot.System.Supervisor, []),
+      supervisor(Farmbot.Bootstrap.Supervisor, [])
     ]
 
+    Farmbot.Logger.info(1, "Booting Farmbot OS version: #{@version} - #{@commit}")
     opts = [strategy: :one_for_one]
     supervise(children, opts)
   end

@@ -24,7 +24,6 @@ defmodule Farmbot.CeleryScript.AST.Node do
       import AST.Node, only: [allow_args: 1, return_self: 0, rebuild_self: 2, mutate_env: 1]
       @behaviour AST.Node
       @after_compile AST.Node
-      require Logger
 
       # Struct to allow for usage of Elixir Protocols.
       defstruct [:ast]

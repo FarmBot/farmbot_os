@@ -10,7 +10,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
     end
 
     use GenServer
-    require Logger
+    use Farmbot.Logger
 
     @hostapd_conf_file "hostapd.conf"
     @hostapd_pid_file "hostapd.pid"
@@ -36,7 +36,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
       # We want to know if something does.
       Process.flag(:trap_exit, true)
       interface = Keyword.fetch!(opts, :interface)
-      Logger.info("Starting hostapd on #{interface}")
+      Logger.busy(3, "Starting hostapd on #{interface}")
       ensure_interface(interface)
 
       {hostapd_port, hostapd_os_pid} = setup_hostapd(interface, "192.168.25.1")
@@ -122,7 +122,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
     defp print_cmd({_, 0}), do: :ok
 
     defp print_cmd({res, num}) do
-      Logger.error("Encountered an error (#{num}): #{res}")
+      Logger.error(2, "Encountered an error (#{num}): #{res}")
       :error
     end
 
@@ -146,15 +146,15 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
     end
 
     def terminate(_, state) do
-      Logger.info "Stopping hostapd"
+      Logger.busy 3, "Stopping hostapd"
       {hostapd_port, hostapd_pid} = state.hostapd
-      Logger.info "Killing hostapd PID."
+      Logger.busy 3, "Killing hostapd PID."
       :ok = kill(hostapd_pid)
-      Logger.info "Resetting ip settings."
+      Logger.busy 3 "Resetting ip settings."
       hostapd_ip_settings_down(state.interface, state.ip_addr)
-      Logger.info "removing PID."
+      Logger.busy 3, "removing PID."
       File.rm_rf!("/tmp/hostapd")
-      Logger.info "Done."
+      Logger.success 3, "Done."
       Port.close(hostapd_port)
       :ok
     rescue
@@ -163,7 +163,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
   end
 
   use GenServer
-  require Logger
+  use Farmbot.Logger
   @interface "wlan0"
 
   def start_link() do
@@ -171,7 +171,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
   end
 
   def init([]) do
-    Logger.debug("Starting captive portal.")
+    Logger.busy(3, "Starting captive portal.")
     {:ok, hostapd} = Hostapd.start_link(interface: @interface)
     dhcp_opts = [
       gateway: "192.168.25.1",
@@ -184,10 +184,10 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
   end
 
   def terminate(_, state) do
-    Logger.info "Stopping captive portal GenServer."
-    Logger.info "Stopping DHCP GenServer."
+    Logger.busy 3, "Stopping captive portal GenServer."
+    Logger.busy 3, "Stopping DHCP GenServer."
     GenServer.stop(state.dhcp_server, :normal)
-    Logger.info "Stopping Hostapd GenServer."
+    Logger.busy 3, "Stopping Hostapd GenServer."
     GenServer.stop(state.hostapd, :normal)
   end
 end

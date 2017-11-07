@@ -5,7 +5,7 @@ defmodule Farmbot.Farmware.Installer do
   alias Farmbot.Farmware.Installer.Repository
   alias Farmbot.HTTP
 
-  require Logger
+  use Farmbot.Logger
 
   @current_os_version Mix.Project.config[:version]
 
@@ -47,17 +47,17 @@ defmodule Farmbot.Farmware.Installer do
   def sync_repo(url_or_repo_struct, acc \\ [])
 
   def sync_repo(url, _acc) when is_binary(url) do
-    Logger.info "Syncing repo from: #{url}"
+    Logger.busy 1, "Syncing repo from: #{url}"
     with {:ok, %{status_code: code, body: body}} when code > 199 and code < 300 <- HTTP.get(url),
          {:ok, json_map} <- Poison.decode(body),
          {:ok, repo}     <- Repository.new(json_map)
     do
       case sync_repo(repo, []) do
         [] ->
-          Logger.info "Successfully synced repo."
+          Logger.success 1,  "Successfully synced repo."
           :ok
         list_of_entries ->
-          Logger.error "Failed to enable some entries: #{inspect list_of_entries}"
+          Logger.error 1, "Failed to enable some entries: #{inspect list_of_entries}"
           {:error, list_of_entries}
       end
     end
@@ -74,7 +74,7 @@ defmodule Farmbot.Farmware.Installer do
 
   @doc "Install a farmware from a URL."
   def install(url) do
-    Logger.info "Installing farmware from #{url}."
+    Logger.busy 1, "Installing farmware from #{url}."
     with {:ok, %{status_code: code, body: body}} when code > 199 and code < 300 <- HTTP.get(url),
          {:ok, json_map} <- Poison.decode(body),
          {:ok, farmware} <- Farmware.new(json_map),
@@ -82,26 +82,25 @@ defmodule Farmbot.Farmware.Installer do
            finish_install(farmware, json_map)
          else
            {:error, {name, version, :already_installed}} ->
-             Logger.info "Farmware #{name} - #{version} is already installed."
+             Logger.info 1, "Farmware #{name} - #{version} is already installed."
              :ok
            {:ok, %{status_code: code, body: body}} ->
-             Logger.error "Failed to fetch Farmware manifest: #{inspect code}: #{body}"
+             Logger.error 1, "Failed to fetch Farmware manifest: #{inspect code}: #{body}"
              {:error, :bad_http_response}
            {:error, {:invalid, _, _}} ->
-             Logger.error "Failed to parse json"
+             Logger.error 1, "Failed to parse json"
              {:error, :bad_json}
            {:error, reason} ->
-             Logger.error "Failed to install farmware from #{url}: #{inspect reason}"
+             Logger.error 1, "Failed to install farmware from #{url}: #{inspect reason}"
              {:error, reason}
-
            err ->
-             Logger.error "Unexpected error installing farmware. #{inspect err}"
+             Logger.error 1, "Unexpected error installing farmware. #{inspect err}"
              {:error, err}
          end
   end
 
   def uninstall(%Farmware{} = fw) do
-    Logger.info "Uninstalling farmware: #{inspect fw}"
+    Logger.warn 2, "Uninstalling farmware: #{inspect fw}"
     install_path = install_path(fw)
     case File.rm_rf(install_path) do
       {:ok, _} -> :ok
@@ -110,7 +109,7 @@ defmodule Farmbot.Farmware.Installer do
   end
 
   defp preflight_checks(%Farmware{} = fw) do
-    Logger.info "Starting preflight checks for #{inspect fw}"
+    Logger.info 3, "Starting preflight checks for #{inspect fw}"
     with :ok <- check_version(fw.min_os_version_major),
          :ok <- check_directory(fw.name, fw.version)
     do
@@ -127,7 +126,7 @@ defmodule Farmbot.Farmware.Installer do
 
   # sets up directories or returns already_installed.
   defp check_directory(fw_name, %Version{} = fw_version) do
-    Logger.info "Checking directories for #{fw_name} - #{fw_version}"
+    Logger.info 3, "Checking directories for #{fw_name} - #{fw_version}"
     install_path = install_path(fw_name, fw_version)
     manifest_path = Path.join(install_path, "manifest.json")
     if File.exists?(manifest_path) do
@@ -139,7 +138,7 @@ defmodule Farmbot.Farmware.Installer do
 
   # Fetches the package and unzips it.
   defp finish_install(%Farmware{} = fw, json_map) do
-    Logger.info "Finishing install for #{inspect fw}"
+    Logger.success 1, "Finishing install for #{inspect fw}"
     zip_path = "/tmp/#{fw.name}-#{fw.version}.zip"
     zip_url = fw.zip
     with {:ok, ^zip_path} <- HTTP.download_file(zip_url, zip_path),

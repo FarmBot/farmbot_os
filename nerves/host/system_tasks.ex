@@ -2,10 +2,8 @@ defmodule Farmbot.Host.SystemTasks do
   @moduledoc "Host implementation for Farmbot.System."
 
   @behaviour Farmbot.System
-  require Logger
 
   def factory_reset(reason) do
-    Logger.error("Host factory reset: #{reason}")
     shutdown(reason)
   end
 

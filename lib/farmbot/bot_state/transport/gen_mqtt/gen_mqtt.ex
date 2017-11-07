@@ -1,7 +1,7 @@
 defmodule Farmbot.BotState.Transport.GenMQTT do
   @moduledoc "MQTT BotState Transport."
   use GenStage
-  require Logger
+  use Farmbot.Logger
   alias Farmbot.BotState.Transport.GenMQTT.Client
   alias Farmbot.CeleryScript.AST
 
@@ -25,11 +25,12 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
   end
 
   def handle_log_events(logs, {%{client: client} = internal_state, old_bot_state}) do
-    location_data = Map.get(old_bot_state || %{}, :location_data, %{position: %{x: -1, y: -1, z: -1}})
-    for log_without_pos <- logs do
-      log = add_position_to_log(log_without_pos, location_data)
-      Client.push_bot_log(client, log)
-    end
+    # Logger.error 1, "FIX LOGGING!"
+    # location_data = Map.get(old_bot_state || %{}, :location_data, %{position: %{x: -1, y: -1, z: -1}})
+    # for log_without_pos <- logs do
+    #   log = add_position_to_log(log_without_pos, location_data)
+    #   Client.push_bot_log(client, log)
+    # end
 
     {:noreply, [], {internal_state, old_bot_state}}
   end

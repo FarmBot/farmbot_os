@@ -2,7 +2,7 @@ defmodule Farmbot.Repo do
   @moduledoc "Wrapper between two repos."
 
   use GenServer
-  require Logger
+  use Farmbot.Logger
 
   alias Farmbot.Repo.{
     Device,
@@ -102,7 +102,7 @@ defmodule Farmbot.Repo do
     rescue
       e in Ecto.InvalidChangesetError ->
         Farmbot.BotState.set_sync_status(:sync_error)
-        Logger.error "Failed to apply sync_cmd: (#{repo}) #{inspect sync_cmd} (#{e.action})"
+        Logger.error 1, "Failed to apply sync_cmd: (#{repo}) #{inspect sync_cmd} (#{e.action})"
         fix_repo(repo, sync_cmd)
     end
   end
@@ -110,7 +110,7 @@ defmodule Farmbot.Repo do
   defp do_apply_sync_cmd(repo, %{id: id, kind: mod, body: nil} = sync_cmd) do
     # an object was deleted.
     if Code.ensure_loaded?(mod) do
-      Logger.debug "Applying sync_cmd (#{mod}: delete) on #{repo}"
+      Logger.busy 3, "Applying sync_cmd (#{mod}: delete) on #{repo}"
       case repo.get(mod, id) do
         nil -> :ok
         existing ->
@@ -118,14 +118,14 @@ defmodule Farmbot.Repo do
           :ok
       end
     else
-      Logger.warn "Unknown module: #{mod} #{inspect sync_cmd}"
+      Logger.warn 3, "Unknown module: #{mod} #{inspect sync_cmd}"
       :ok
     end
   end
 
   defp do_apply_sync_cmd(repo, %{id: id, kind: mod, body: obj} = sync_cmd) do
     if Code.ensure_loaded?(mod) do
-      Logger.debug "Applying sync_cmd (#{mod}: insert_or_update on #{repo}"
+      Logger.busy 3, "Applying sync_cmd (#{mod}: insert_or_update on #{repo}"
 
       # We need to check if this object exists in the database.
       case repo.get(mod, id) do
@@ -141,7 +141,7 @@ defmodule Farmbot.Repo do
           |> repo.update!
       end
     else
-      Logger.warn "Unknown module: #{mod} #{inspect sync_cmd}"
+      Logger.warn 3, "Unknown module: #{mod} #{inspect sync_cmd}"
     end
   end
 

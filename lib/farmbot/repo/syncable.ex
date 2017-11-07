@@ -12,20 +12,9 @@ defmodule Farmbot.Repo.Syncable do
   end
 
   @doc false
-  defmacro __using__(opts) do
-    enable_sync = Keyword.get(opts, :sync, true)
-
+  defmacro __using__(_opts) do
     quote do
       import Farmbot.Repo.Syncable, only: [ensure_time: 2]
-      require Logger
-
-      def fetch(id) do
-        {_, plural} = struct(__MODULE__).__meta__ |> Map.get(:source)
-        Farmbot.HTTP.get!("/api/#{plural}/#{id}").body |> Poison.decode!(as: struct(__MODULE__))
-      end
-
-      if unquote(enable_sync) do
-      end
     end
   end
 end

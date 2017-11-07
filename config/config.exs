@@ -4,10 +4,12 @@ use Mix.Config
 target = Mix.Project.config()[:target]
 env = Mix.env()
 
-config :logger, utc_log: true
+config :logger,
+  utc_log: true,
+  backends: []
+  
 config :elixir, ansi_enabled: true
 config :iex, :colors, enabled: true
-
 
 config :ssl, protocol_version: :"tlsv1.2"
 

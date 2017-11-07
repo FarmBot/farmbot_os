@@ -5,7 +5,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
   """
 
   @behaviour Farmbot.System.Init
-  require Logger
+  use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
 
   @doc """
@@ -20,7 +20,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
   reset and the user will need to configureate again.
   """
   def start_link(_, opts) do
-    Logger.info("Configuring Farmbot.")
+    Logger.busy(3, "Configuring Farmbot.")
     supervisor = Supervisor.start_link(__MODULE__, [self()], opts)
 
     case supervisor do
@@ -51,7 +51,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
   def init(_) do
     first_boot? = ConfigStorage.get_config_value(:bool, "settings", "first_boot")
     if first_boot? do
-      Logger.info("Building new configuration.")
+      Logger.info(3, "Building new configuration.")
       import Supervisor.Spec
       :ets.new(:session, [:named_table, :public, read_concurrency: true])
 

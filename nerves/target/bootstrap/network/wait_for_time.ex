@@ -1,8 +1,8 @@
 defmodule Farmbot.Target.Network.WaitForTime do
-  require Logger
+  use Farmbot.Logger
   def start_link(_, _) do
     :ok = wait_for_time()
-    Logger.warn "Time seems to be set: #{:os.system_time(:seconds)} . Moving on."
+    Logger.success 3, "Time seems to be set: #{:os.system_time(:seconds)} . Moving on."
     :ignore
   end
 

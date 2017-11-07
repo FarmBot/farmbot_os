@@ -1,6 +1,7 @@
 defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdate do
   @moduledoc false
   use Farmbot.CeleryScript.AST.Node
+  use Farmbot.Logger
   allow_args [:package]
 
   def execute(%{package: :farmbot_os}, body, env) do
@@ -21,7 +22,7 @@ defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdate do
   end
 
   defp do_reduce_os([%{args: %{label: key, value: value}} | rest], env) do
-    Logger.info "Updating: #{inspect key}: #{value}"
+    Logger.busy 2, "Updating: #{inspect key}: #{value}"
     case lookup_os_config(key, value) do
       {:ok, {type, group, value}} ->
         Farmbot.System.ConfigStorage.update_config_value(type, group, key, value)

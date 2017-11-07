@@ -3,7 +3,7 @@ defmodule Farmbot.HTTP.ImageUploader do
   Watches a directory on the File System and uploads images
   """
   use GenServer
-  require Logger
+  use Farmbot.Logger
 
   @images_path "/tmp/images/"
 
@@ -26,7 +26,7 @@ defmodule Farmbot.HTTP.ImageUploader do
   def handle_info({_pid, {:fs, :file_event}, {path, [:modified, :closed]}}, state) do
     if matches_any_pattern?(path, [~r{/tmp/images/.*(jpg|jpeg|png|gif)}]) do
       [x, y, z] = [-9000, -9000, -9000]
-      Logger.warn("FIX THIS")
+      #FIXME
       meta = %{x: x, y: y, z: z}
       pid = spawn(__MODULE__, :upload, [state.http, path, meta])
       {:noreply, %{state | uploads: Map.put(state.uploads, pid, {path, meta, 0})}}
@@ -41,12 +41,12 @@ defmodule Farmbot.HTTP.ImageUploader do
         {:noreply, state}
 
       {path, _meta, 6 = ret} ->
-        Logger.error(">> failed to upload #{path} #{ret} times. Giving up.")
+        Logger.error(2, "Failed to upload #{path} #{ret} times. Giving up.")
         File.rm(path)
         {:noreply, %{state | uploads: Map.delete(state.uploads, pid)}}
 
       {path, meta, retries} ->
-        Logger.warn(">> faile to upload #{path} #{inspect(reason)}. Going to retry.")
+        Logger.warn(2, "Failed to upload #{path} #{inspect(reason)}. Going to retry.")
         Process.sleep(1000 * retries)
         new_pid = spawn(__MODULE__, :upload, [path, meta])
 
@@ -74,9 +74,9 @@ defmodule Farmbot.HTTP.ImageUploader do
   end
 
   def upload(file_path, meta) do
-    Logger.info("Image Watcher trying to upload #{file_path}", type: :busy)
+    Logger.busy(3, "Image Watcher trying to upload #{file_path}", type: :busy)
     Farmbot.HTTP.upload_file(file_path, meta)
     File.rm!(file_path)
-    Logger.info("Image Watcher uploaded #{file_path}", type: :success)
+    Logger.success(3, "Image Watcher uploaded #{file_path}", type: :success)
   end
 end

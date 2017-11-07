@@ -3,7 +3,6 @@ defmodule Farmbot.Firmware.Gcode.Parser do
   Parses farmbot_arduino_firmware G-Codes.
   """
 
-  require Logger
   import Farmbot.Firmware.Gcode.Param
 
   @spec parse_code(binary) :: {binary, tuple}

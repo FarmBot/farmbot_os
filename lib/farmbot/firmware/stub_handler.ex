@@ -2,7 +2,7 @@ defmodule Farmbot.Firmware.StubHandler do
   @moduledoc "Stubs out firmware functionality when you don't have an arduino."
 
   use GenStage
-  require Logger
+  use Farmbot.Logger
 
   @behaviour Farmbot.Firmware.Handler
   alias Farmbot.Firmware.Vec3
@@ -10,7 +10,7 @@ defmodule Farmbot.Firmware.StubHandler do
   ## Firmware Handler Behaviour.
 
   def start_link do
-    Logger.warn("Firmware is being stubbed.")
+    Logger.warn(3, "Firmware is being stubbed.")
     GenStage.start_link(__MODULE__, [])
   end
 

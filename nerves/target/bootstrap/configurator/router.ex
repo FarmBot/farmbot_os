@@ -13,7 +13,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   plug(:match)
   plug(:dispatch)
 
-  require Logger
+  use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
 
   get "/" do
@@ -76,7 +76,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   get "/finish" do
     conn = render_page(conn, "finish")
     spawn fn() ->
-      Logger.info "Configuration finished."
+      Logger.success 2, "Configuration finished."
       Process.sleep(2500)
       :ok = Supervisor.terminate_child(
       Farmbot.Target.Bootstrap.Configurator,
@@ -117,7 +117,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
   defp input_network_configs([{iface, settings} | rest]) do
     if settings["enable"] == "on" do
-      Logger.info("inputting #{iface} - #{inspect(settings)}")
+      Logger.info(3, "inputting #{iface} - #{inspect(settings)}")
 
       case settings["type"] do
         "wireless" ->

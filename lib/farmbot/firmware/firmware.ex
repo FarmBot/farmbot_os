@@ -2,7 +2,7 @@ defmodule Farmbot.Firmware do
   @moduledoc "Allows communication with the firmware."
 
   use GenStage
-  require Logger
+  use Farmbot.Logger
 
   @doc "Move the bot to a position."
   def move_absolute(vec3, speed) do
@@ -165,7 +165,7 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode(code, state) do
-    Logger.warn("unhandled code: #{inspect(code)}")
+    Logger.warn(3, "unhandled code: #{inspect(code)}")
     {nil, state}
   end
 end

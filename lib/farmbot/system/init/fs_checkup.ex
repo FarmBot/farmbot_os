@@ -3,7 +3,7 @@ defmodule Farmbot.System.Init.FSCheckup do
   use Supervisor
   @behaviour Farmbot.System.Init
   @data_path Application.get_env(:farmbot, :data_path) || Mix.raise("Unconfigured data path.")
-  require Logger
+  use Farmbot.Logger
 
   @ref Mix.Project.config[:commit]
   @version Mix.Project.config[:version]
@@ -26,7 +26,7 @@ defmodule Farmbot.System.Init.FSCheckup do
       File.mkdir(@data_path)
     end
 
-    Logger.info("Checking #{check_file}")
+    Logger.busy(3, "Checking #{check_file}")
     msg = """
     version = #{@version}
     commit  = #{@ref}
@@ -39,7 +39,7 @@ defmodule Farmbot.System.Init.FSCheckup do
         :ok
 
       err ->
-        Logger.info("Filesystem not up yet (#{inspect(err)})...")
+        Logger.busy(3, "Filesystem not up yet (#{inspect(err)})...")
         Process.sleep(1000)
         do_checkup()
     end

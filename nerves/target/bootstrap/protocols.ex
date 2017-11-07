@@ -1,10 +1,10 @@
 defmodule Farmbot.Target.Protocols do
   @moduledoc false
 
-  require Logger
+  use Farmbot.Logger
 
   def start_link(_, _) do
-    Logger.info("Loading consolidated protocols.")
+    Logger.busy(3, "Loading consolidated protocols.")
 
     for beamfile <- Path.wildcard("/srv/erlang/lib/farmbot-*/consolidated/*.beam") do
       beamfile

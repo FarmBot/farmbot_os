@@ -1,14 +1,15 @@
 defmodule Farmbot.CeleryScript.AST.Node.SendMessage do
   @moduledoc false
   use Farmbot.CeleryScript.AST.Node
+  use Farmbot.Logger
   allow_args [:message, :message_type]
 
   def execute(%{message: m, message_type: type}, _, env) do
     env = mutate_env(env)
-    String.replace(m, "{{", "<%=")
+    msg = String.replace(m, "{{", "<%=")
     |> String.replace("}}", "%>")
     |> EEx.eval_string(fetch_bindings())
-    |> Logger.info([message_type: type])
+    apply(Logger, type, [msg])
     {:ok, env}
   rescue
     e in CompileError ->

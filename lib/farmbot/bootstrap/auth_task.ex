@@ -1,7 +1,7 @@
 defmodule Farmbot.Bootstrap.AuthTask do
   @moduledoc "Background worker that refreshes a token every 30 minutes."
   use GenServer
-  require Logger
+  use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
 
   # 30 minutes.
@@ -20,17 +20,17 @@ defmodule Farmbot.Bootstrap.AuthTask do
   def handle_info(:refresh, old_timer) do
     auth_task = Application.get_env(:farmbot, :behaviour)[:authorization]
     {email, pass, server} = {fetch_email(), fetch_pass(), fetch_server()}
-    Logger.info("refreshing token: #{auth_task} - #{email} - #{server}")
+    Logger.busy(3, "refreshing token: #{auth_task} - #{email} - #{server}")
     case auth_task.authorize(email, pass, server) do
       {:ok, token} ->
-        Logger.info("Successful authorization: #{auth_task} - #{email} - #{server}")
+        Logger.success(3, "Successful authorization: #{auth_task} - #{email} - #{server}")
         ConfigStorage.update_config_value(:bool, "settings", "first_boot", false)
         ConfigStorage.update_config_value(:string, "authorization", "token", token)
         ConfigStorage.update_config_value(:string, "authorization", "last_shutdown_reason", nil)
         restart_transports()
         refresh_timer(self())
       {:error, reason} ->
-        Logger.error("Token failed to reauthorize: #{auth_task} - #{email} - #{server} #{inspect reason}")
+        Logger.error(1, "Token failed to reauthorize: #{auth_task} - #{email} - #{server} #{inspect reason}")
         {:stop, reason, old_timer}
     end
   end

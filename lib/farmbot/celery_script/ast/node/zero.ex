@@ -19,7 +19,7 @@ defmodule Farmbot.CeleryScript.AST.Node.Zero do
 
   defp do_reduce([axis | rest], env) do
     case execute(%{axis: axis}, [], env) do
-      {:ok, new_env} -> do_reduce(rest, env)
+      {:ok, new_env} -> do_reduce(rest, new_env)
       {:error, _, _} = err -> err
     end
   end

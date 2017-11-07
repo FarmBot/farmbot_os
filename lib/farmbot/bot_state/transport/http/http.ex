@@ -16,7 +16,6 @@ defmodule Farmbot.BotState.Transport.HTTP do
   """
 
   use GenStage
-  require Logger
   alias Farmbot.BotState.Transport.HTTP.{Router, SocketHandler}
 
   @port 27347

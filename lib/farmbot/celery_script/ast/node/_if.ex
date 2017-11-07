@@ -1,6 +1,8 @@
 defmodule Farmbot.CeleryScript.AST.Node.If do
   @moduledoc false
   use Farmbot.CeleryScript.AST.Node
+  use Farmbot.Logger
+
   allow_args [:lhs, :op, :rhs, :_then, :_else]
 
   def execute(%{_else: else_, _then: then_, lhs: lhs, op: op, rhs: rhs }, _body, env) do
@@ -10,7 +12,7 @@ defmodule Farmbot.CeleryScript.AST.Node.If do
     if is_number(left) or is_nil(left) do
       eval_if(left, op, rhs)
       |> fn(result) ->
-        Logger.debug "IF evaluated to #{result}."
+        Logger.debug 2, "IF evaluated to #{result}."
         result
       end.() # for debug purposes.
       |> do_jump(else_, then_, env)

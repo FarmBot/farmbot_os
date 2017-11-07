@@ -5,7 +5,7 @@ defmodule Farmbot.Firmware.UartHandler do
 
   use GenStage
   alias Nerves.UART
-  require Logger
+  use Farmbot.Logger
 
   def start_link do
     GenStage.start_link(__MODULE__, [])
@@ -109,7 +109,8 @@ defmodule Farmbot.Firmware.UartHandler do
   end
 
   # Unhandled gcodes just get ignored.
-  def handle_info({:nerves_uart, _, {:unhandled_gcode, _code_str}}, state) do
+  def handle_info({:nerves_uart, _, {:unhandled_gcode, code_str}}, state) do
+    Logger.debug 3, "Got unhandled gcode: #{code_str}"
     {:noreply, [], state}
   end
 
@@ -118,7 +119,7 @@ defmodule Farmbot.Firmware.UartHandler do
   end
 
   def handle_info({:nerves_uart, _, bin}, state) when is_binary(bin) do
-    Logger.warn("Unparsed Gcode: #{bin}")
+    Logger.warn(3, "Unparsed Gcode: #{bin}")
     {:noreply, [], state}
   end
 

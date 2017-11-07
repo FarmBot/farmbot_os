@@ -2,7 +2,6 @@ defmodule Farmbot.BotState do
   @moduledoc "JSON Serializable state tree that gets pushed over variour transports."
 
   use GenStage
-  require Logger
   @version Mix.Project.config()[:version]
   @commit Mix.Project.config()[:commit]
   @target Mix.Project.config()[:target]

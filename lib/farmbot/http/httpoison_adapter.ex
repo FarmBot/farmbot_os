@@ -8,7 +8,6 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
   alias HTTPoison.{AsyncResponse, AsyncStatus, AsyncHeaders, AsyncChunk, AsyncEnd}
   alias Farmbot.HTTP.{Response, Helpers}
   import Helpers
-  require Logger
 
   @behaviour Farmbot.HTTP.Adapter
 

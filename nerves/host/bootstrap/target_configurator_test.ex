@@ -13,7 +13,6 @@ defmodule Farmbot.Host.TargetConfiguratorTest do
   plug(:match)
   plug(:dispatch)
 
-  require Logger
   alias Farmbot.System.ConfigStorage
 
   get "/" do
@@ -44,7 +43,6 @@ defmodule Farmbot.Host.TargetConfiguratorTest do
   end
 
   get "/finish" do
-    Logger.info("Configuration finished.")
     render_page(conn, "finish")
   end
 

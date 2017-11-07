@@ -3,7 +3,7 @@ defmodule Farmbot.BotState.Transport.HTTP.SocketHandler do
   Handles the websocket connection from a browser.
   """
 
-  require Logger
+  use Farmbot.Logger
   alias Farmbot.BotState.Transport.HTTP
   alias Farmbot.BotState
 
@@ -25,7 +25,7 @@ defmodule Farmbot.BotState.Transport.HTTP.SocketHandler do
     case Farmbot.BotState.Transport.HTTP.AuthPlug.handle_prod(conn) do
       {_conn, _, _} -> {:shutdown, req}
       _ ->
-        Logger.info "Websocket connect."
+        Logger.debug 3, "Websocket connect."
         HTTP.subscribe()
         {:ok, req, nil, @timeout}
     end
@@ -44,7 +44,7 @@ defmodule Farmbot.BotState.Transport.HTTP.SocketHandler do
   end
 
   def websocket_terminate(_reason, _req, _state) do
-    Logger.debug "Closed websocket connection."
+    Logger.debug 3, "Closed websocket connection."
     HTTP.unsubscribe()
   end
 

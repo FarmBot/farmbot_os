@@ -1,6 +1,6 @@
 defmodule Farmbot.Target.Network.Manager do
   use GenServer
-  require Logger
+  use Farmbot.Logger
   alias Nerves.Network
   alias Farmbot.Target.Network.Ntp
   import Farmbot.Target.Network, only: [test_dns: 0]
@@ -11,19 +11,13 @@ defmodule Farmbot.Target.Network.Manager do
 
   def init({interface, opts} = args) do
     unless interface in Nerves.NetworkInterface.interfaces() do
-      Logger.debug("Waiting for interface up.")
+      Logger.busy(3, "Waiting for interface up.")
       Process.sleep(1000)
       init(args)
     end
-    # Nerves.Network.teardown(interface)
-    # Nerves.NetworkInterface.ifdown(interface)
-
-    # Nerves.NetworkInterface.ifup(interface)
-    # Nerves.Network.Config.drop(interface)
     SystemRegistry.register()
     {:ok, _} = Registry.register(Nerves.NetworkInterface, interface, [])
     {:ok, _} = Registry.register(Nerves.Udhcpc, interface, [])
-    IO.puts "OPTS: #{inspect opts}"
     Network.setup(interface, opts)
     {:ok, %{interface: interface, ip_address: nil, connected: false}}
   end
@@ -32,7 +26,7 @@ defmodule Farmbot.Target.Network.Manager do
     ip = get_in(registry, [:state, :network_interface, state.interface, :ipv4_address])
 
     if ip != state.ip_address do
-      Logger.info("ip address changed on interface: #{state.interface}: #{ip}")
+      Logger.warn(3, "ip address changed on interface: #{state.interface}: #{ip}")
       :ok = Ntp.set_time()
     end
 

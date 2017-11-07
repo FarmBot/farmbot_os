@@ -55,7 +55,7 @@ defmodule Farmbot.Bootstrap.Supervisor do
   use Supervisor
   alias Farmbot.Bootstrap.Authorization, as: Auth
   alias Farmbot.System.ConfigStorage
-  require Logger
+  use Farmbot.Logger
 
   error_msg = """
   Please configure an authorization module!
@@ -68,16 +68,16 @@ defmodule Farmbot.Bootstrap.Supervisor do
   @auth_task Application.get_env(:farmbot, :behaviour)[:authorization] || Mix.raise(error_msg)
 
   @doc "Start Bootstrap services."
-  def start_link(args, opts \\ []) do
-    Supervisor.start_link(__MODULE__, args, opts)
+  def start_link() do
+    Supervisor.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
-  def init(args) do
+  def init([]) do
     # try to find the creds.
     case get_creds() do
       # do the actual supervisor init if we have creds. This may still fail.
       {email, pass, server} ->
-        actual_init(args, email, pass, server)
+        actual_init(email, pass, server)
 
       # This will cause a factory reset.
       {:error, reason} ->
@@ -110,12 +110,12 @@ defmodule Farmbot.Bootstrap.Supervisor do
     end
   end
 
-  defp actual_init(args, email, pass, server) do
-    Logger.info("Beginning authorization: #{@auth_task} - #{email} - #{server}")
+  defp actual_init(email, pass, server) do
+    Logger.busy(2, "Beginning authorization: #{@auth_task} - #{email} - #{server}")
     # get a token
     case @auth_task.authorize(email, pass, server) do
       {:ok, token} ->
-        Logger.info("Successful authorization: #{@auth_task} - #{email} - #{server}")
+        Logger.info(2, "Successful authorization: #{@auth_task} - #{email} - #{server}")
         ConfigStorage.update_config_value(:bool, "settings", "first_boot", false)
         ConfigStorage.update_config_value(:string, "authorization", "token", token)
         ConfigStorage.update_config_value(:string, "authorization", "last_shutdown_reason", nil)
@@ -141,7 +141,7 @@ defmodule Farmbot.Bootstrap.Supervisor do
       # If we got invalid json, just try again.
       # FIXME(Connor) Why does this happen?
       {:error, :invalid, _} ->
-        actual_init(args, email, pass, server)
+        actual_init(email, pass, server)
     end
   end
 end

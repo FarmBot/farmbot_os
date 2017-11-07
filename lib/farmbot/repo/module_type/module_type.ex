@@ -14,7 +14,6 @@ defmodule Farmbot.Repo.ModuleType do
                    inspect(@valid_short_strs)
                  }"
       @behaviour Ecto.Type
-      require Logger
 
       def type, do: :string
 

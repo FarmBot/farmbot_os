@@ -13,7 +13,7 @@ defmodule Farmbot.Bootstrap.Authorization do
   @typedoc "Token that was fetched with the credentials."
   @type token :: binary
 
-  require Logger
+  use Farmbot.Logger
 
   @doc """
   Callback for an authorization implementation.
@@ -36,7 +36,7 @@ defmodule Farmbot.Bootstrap.Authorization do
       # If we got maintance mode, a 5xx error etc, just sleep for a few seconds
       # and try again.
       {:ok, {{_, code, _}, _, _}} ->
-        Logger.error "Failed to authorize due to server error: #{code}"
+        Logger.error 1, "Failed to authorize due to server error: #{code}"
         Process.sleep(5000)
         authorize(email, password, server)
       err -> err

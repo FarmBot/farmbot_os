@@ -13,7 +13,7 @@ defmodule Farmbot.Firmware.UartHandler.AutoDetector do
 
   alias Nerves.UART
   alias Farmbot.Firmware.{UartHandler, StubHandler}
-  require Logger
+  use Farmbot.Logger
 
   #TODO(Connor) - Maybe make this configurable?
   @ignore_devs ["ttyAMA0", "ttyS0"]
@@ -31,11 +31,11 @@ defmodule Farmbot.Firmware.UartHandler.AutoDetector do
   def init([]) do
     case auto_detect() do
       [dev] ->
-        Logger.debug "detected target UART: #{dev}"
+        Logger.success 3, "detected target UART: #{dev}"
         update_fw_handler UartHandler
         Application.put_env(:farmbot, :uart_handler, tty: "/dev/ttyACM0")
       _ ->
-        Logger.error "Could not detect a UART device."
+        Logger.error 1, "Could not detect a UART device."
         update_fw_handler StubHandler
     end
     :ignore

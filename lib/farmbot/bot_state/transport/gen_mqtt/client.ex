@@ -1,7 +1,7 @@
 defmodule Farmbot.BotState.Transport.GenMQTT.Client do
   @moduledoc "Underlying client for interfacing MQTT."
   use GenMQTT
-  require Logger
+  use Farmbot.Logger
   alias Farmbot.CeleryScript.AST
 
   @doc "Start a MQTT Client."
@@ -42,20 +42,20 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
     This is likely a problem with your server/broker configuration.
     """
 
-    Logger.error(msg)
+    Logger.error(1, msg)
     Farmbot.System.factory_reset(msg)
     {:ok, state}
   end
 
   def on_connect_error(reason, state) do
-    Logger.error(">> Failed to connect to mqtt: #{inspect(reason)}")
+    Logger.error(2, "Failed to connect to mqtt: #{inspect(reason)}")
     {:ok, state}
   end
 
   def on_connect(state) do
     GenMQTT.subscribe(self(), [{bot_topic(state.device), 0}])
     GenMQTT.subscribe(self(), [{sync_topic(state.device), 0}])
-    Logger.info("Connected to real time services.")
+    Logger.info(3, "Connected to real time services.")
 
     if state.cache do
       GenMQTT.publish(self(), status_topic(state.device), state.cache, 0, false)
@@ -70,7 +70,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
     |> Farmbot.CeleryScript.AST.decode()
     |> elem(1)
     |> fn(ast) ->
-      Logger.debug "received #{inspect Farmbot.CeleryScript.AST.encode(ast) |> elem(1)}"
+      Logger.debug 3, "received #{inspect Farmbot.CeleryScript.AST.encode(ast) |> elem(1)}"
       ast
     end.()
     |> Farmbot.CeleryScript.execute()
@@ -92,7 +92,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
         Farmbot.Repo.flip()
       end
     else
-      Logger.warn "Unknown syncable: #{mod}: #{inspect Poison.decode!(msg)}"
+      Logger.warn 2, "Unknown syncable: #{mod}: #{inspect Poison.decode!(msg)}"
     end
     {:ok, state}
   end

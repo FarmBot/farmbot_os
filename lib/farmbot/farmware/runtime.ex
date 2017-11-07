@@ -3,13 +3,13 @@ defmodule Farmbot.Farmware.Runtime do
 
   alias Farmbot.Farmware
   alias Farmware.{RuntimeError, Installer}
-  require Logger
+  use Farmbot.Logger
 
   defstruct [:farmware, :env, :port, :exit_status, :working_dir, :return_dir]
 
   @doc "Execute a Farmware struct."
   def execute(%Farmware{} = farmware) do
-    Logger.info "Beginning execution of #{inspect farmware}"
+    Logger.busy 2, "Beginning execution of #{inspect farmware}"
     fw_path = Installer.install_path(farmware) |> Path.absname("#{:code.priv_dir(:farmbot)}/..")
     with {:ok, cwd} <- File.cwd(),
          :ok        <- File.cd(fw_path),
@@ -40,13 +40,13 @@ defmodule Farmbot.Farmware.Runtime do
   defp handle_port(%__MODULE__{port: port, farmware: farmware} = state) do
     receive do
       {^port, {:exit_status, 0}}      ->
-        Logger.info "#{inspect farmware} completed without errors."
+        Logger.success 2, "#{inspect farmware} completed without errors."
         %{state | exit_status: 0}
       {^port, {:exit_status, status}} ->
-        Logger.warn "#{inspect farmware} completed with exit status: #{status}"
+        Logger.warn 2, "#{inspect farmware} completed with exit status: #{status}"
         %{state | exit_status: status}
       {^port, {:data, data}} ->
-        IO.puts "[#{inspect farmware}] sent data: \r\n===========\r\n\r\n#{data} \r\n==========="
+        Logger.info "[#{inspect farmware}] sent data: \r\n===========\r\n\r\n#{data} \r\n===========", color: :NC
         handle_port(state)
     end
   end

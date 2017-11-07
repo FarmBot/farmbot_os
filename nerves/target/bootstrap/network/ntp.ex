@@ -3,7 +3,7 @@ defmodule Farmbot.Target.Network.Ntp do
   Sets time.
   """
 
-  require Logger
+  use Farmbot.Logger
   import Farmbot.Target.Network, only: [test_dns: 1]
 
   @doc """
@@ -18,7 +18,7 @@ defmodule Farmbot.Target.Network.Ntp do
       {:ok, {:hostent, _url, _, _, _, _}} ->
         do_try_set_time(tries)
       {:error, err} ->
-        Logger.error "Failed to set time (#{tries}): DNS Lookup: #{inspect err}"
+        Logger.error 2, "Failed to set time (#{tries}): DNS Lookup: #{inspect err}"
         set_time(tries + 1)
     end
   end
@@ -27,7 +27,7 @@ defmodule Farmbot.Target.Network.Ntp do
 
   defp do_try_set_time(tries) when tries < 4 do
     # we try to set ntp time 3 times before giving up.
-    Logger.info "Trying to set time (try #{tries})"
+    Logger.busy 2, "Trying to set time (try #{tries})"
     :os.cmd('ntpd -p 0.pool.ntp.org -p 1.pool.ntp.org')
     wait_for_time(tries)
   end
@@ -42,8 +42,7 @@ defmodule Farmbot.Target.Network.Ntp do
   defp wait_for_time(tries, loops) do
     case :os.system_time(:seconds) do
       t when t > 1_474_929 ->
-        Logger.flush()
-        Logger.info "Time is set."
+        Logger.success 2, "Time is set."
         :ok
       _ ->
         Process.sleep(1_000 * loops)
