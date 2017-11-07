@@ -31,18 +31,20 @@ defmodule Farmbot.Bootstrap.Authorization do
       Map.fetch(map, "encoded")
     else
       :error -> {:error, "unknown error."}
+      # If we got maintance mode, a 5xx error etc, just sleep for a few seconds
+      # and try again.
+      {:ok, {{_, code, _}, _, _}} ->
+        Logger.error "Failed to authorize due to server error."
+        Process.sleep(5000)
+        authorize(email, password, server)
       err -> err
     end
   end
 
   defp fetch_rsa_key(server) do
-    case :httpc.request('#{server}/api/public_key') do
-      {:ok, {_, _, body}} ->
-        r = body |> to_string() |> RSA.decode_key()
-        {:ok, r}
-
-      {:error, error} ->
-        {:error, error}
+    with {:ok, {{_, 200, _}, _, body}} <- :httpc.request('#{server}/api/public_key') do
+      r = body |> to_string() |> RSA.decode_key()
+      {:ok, r}
     end
   end
 
@@ -68,14 +70,16 @@ defmodule Farmbot.Bootstrap.Authorization do
       {:ok, {{_, 200, _}, _, resp}} ->
         {:ok, resp}
 
-      {:ok, {{_, code, _}, _, _resp}} ->
+      # if the error is a 4xx code, it was a failed auth.
+      {:ok, {{_, code, _}, _, _resp}} when code > 399 and code < 500 ->
         {
           :error,
           "Failed to authorize with the Farmbot web application at: #{server} with code: #{code}"
         }
 
-      {:error, error} ->
-        {:error, error}
+      # if the error is not 2xx and not 4xx, probably maintance mode.
+      {:ok, _} = err -> err
+      {:error, error} -> {:error, error}
     end
   end
 end
