@@ -27,6 +27,11 @@ defmodule Farmbot.BotState do
             user_env: %{},
             process_info: %{}
 
+  @valid_sync_status [ :locked, :maintenance, :sync_error, :sync_now, :synced, :syncing, :unknown,]
+  def set_sync_status(cmd) when cmd in @valid_sync_status do
+    GenStage.call(__MODULE__, {:set_sync_status, cmd})
+  end
+
   @doc "Forces a state push over all transports."
   def force_state_push do
     GenStage.call(__MODULE__, :force_state_push)
@@ -66,6 +71,12 @@ defmodule Farmbot.BotState do
 
   def handle_call({:emit, ast}, _from, state) do
     {:reply, :ok, [{:emit, ast}], state}
+  end
+
+  def handle_call({:set_sync_status, status}, _, state) do
+    new_info_settings = %{state.informational_settings | sync_status: status}
+    new_state = %{state | informational_settings: new_info_settings}
+    {:reply, :ok, [new_state], new_state}
   end
 
   defp do_handle([], state), do: state

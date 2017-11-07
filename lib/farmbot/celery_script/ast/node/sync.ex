@@ -5,7 +5,9 @@ defmodule Farmbot.CeleryScript.AST.Node.Sync do
 
   def execute(_, _, env) do
     env = mutate_env(env)
-    Logger.warn "SYNC BROKE"
+    Farmbot.Repo.flip()
     {:ok, env}
   end
+
+
 end
