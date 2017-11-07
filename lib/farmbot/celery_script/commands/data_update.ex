@@ -30,6 +30,7 @@ defmodule Farmbot.CeleryScript.Command.DataUpdate do
   """
   @spec run(%{value: binary}, Types.pairs, Context.t) :: Context.t
   def run(%{value: verb}, pairs, context) do
+    debug_log "#{verb} -> #{inspect pairs}"
     verb = parse_verb_str(verb)
     Enum.each(pairs, fn(%{args: %{label: s, value: nowc}}) ->
       syncable = s |> parse_syncable_str()
