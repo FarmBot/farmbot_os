@@ -110,7 +110,7 @@ defmodule Farmbot.Repo do
   defp do_apply_sync_cmd(repo, %{id: id, kind: mod, body: nil} = sync_cmd) do
     # an object was deleted.
     if Code.ensure_loaded?(mod) do
-      Logger.warn "Applying sync_cmd (delete) : #{inspect sync_cmd} on #{repo}"
+      Logger.debug "Applying sync_cmd (#{mod}: delete) on #{repo}"
       case repo.get(mod, id) do
         nil -> :ok
         existing ->
@@ -125,7 +125,7 @@ defmodule Farmbot.Repo do
 
   defp do_apply_sync_cmd(repo, %{id: id, kind: mod, body: obj} = sync_cmd) do
     if Code.ensure_loaded?(mod) do
-      Logger.warn "Applying sync_cmd (insert_or_update): #{inspect sync_cmd} on #{repo}"
+      Logger.debug "Applying sync_cmd (#{mod}: insert_or_update on #{repo}"
 
       # We need to check if this object exists in the database.
       case repo.get(mod, id) do
