@@ -4,12 +4,13 @@ defmodule Farmbot.CeleryScript.AST.Node.SendMessage do
   use Farmbot.Logger
   allow_args [:message, :message_type]
 
-  def execute(%{message: m, message_type: type}, _, env) do
+  def execute(%{message: m, message_type: type}, channels, env) do
     env = mutate_env(env)
+    {:ok, env, channels} = do_reduce(channels, env, [])
     msg = String.replace(m, "{{", "<%=")
     |> String.replace("}}", "%>")
     |> EEx.eval_string(fetch_bindings())
-    apply(Logger, type, [msg])
+    apply(Logger, type, [msg, [channels: channels]])
     {:ok, env}
   rescue
     e in CompileError ->
@@ -23,4 +24,10 @@ defmodule Farmbot.CeleryScript.AST.Node.SendMessage do
     location = Enum.map(bot_state.location_data.position, fn({axis, val}) -> {axis, val} end)
     pins ++ location
   end
+
+  defp do_reduce([%{args: %{channel_name: channel}} | rest], env, acc) do
+    do_reduce(rest, env, [channel | acc])
+  end
+
+  defp do_reduce([], env, acc), do: {:ok, env, acc}
 end
