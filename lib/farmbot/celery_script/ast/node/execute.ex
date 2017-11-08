@@ -11,7 +11,12 @@ defmodule Farmbot.CeleryScript.AST.Node.Execute do
     seq = repo.one(from s in Farmbot.Repo.Sequence, where: s.id == ^id)
     case seq do
       nil -> {:error, "Could not find sequence by id: #{id}", env}
-      seq -> Farmbot.CeleryScript.AST.decode(seq) |> Farmbot.CeleryScript.execute(env)
+      seq ->
+        case Farmbot.CeleryScript.AST.decode(seq) do
+          {:ok, ast} ->
+            Farmbot.CeleryScript.execute(ast, env)
+          {:error, reason} -> {:error, reason, env}
+        end
     end
   end
 end

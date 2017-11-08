@@ -14,4 +14,6 @@ defmodule Farmbot.CeleryScript.AST.Node.Sequence do
       {:error, reason, env} -> {:error, reason, env}
     end
   end
+
+  defp do_reduce([], env), do: {:ok, env}
 end

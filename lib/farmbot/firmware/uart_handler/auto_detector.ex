@@ -16,7 +16,7 @@ defmodule Farmbot.Firmware.UartHandler.AutoDetector do
   use Farmbot.Logger
 
   #TODO(Connor) - Maybe make this configurable?
-  @ignore_devs ["ttyAMA0", "ttyS0"]
+  @ignore_devs ["ttyAMA0", "ttyS0", "ttyS3"]
 
   @doc "Autodetect relevent UART Devs."
   def auto_detect do

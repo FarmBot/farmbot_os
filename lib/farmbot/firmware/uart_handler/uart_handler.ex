@@ -12,7 +12,7 @@ defmodule Farmbot.Firmware.UartHandler do
   end
 
   def move_absolute(handler, pos, axis, speed) do
-    GenStage.call(handler, {:move_absolute, pos, speed})
+    GenStage.call(handler, {:move_absolute, pos, axis, speed})
   end
 
   def calibrate(handler, axis, axis, speed) do

@@ -51,7 +51,8 @@ defmodule Farmbot do
     end
   end
 
-  def init(args) do
+  def init([]) do
+    Logger.remove_backend Logger.Backends.Console
     children = [
       supervisor(Farmbot.Logger.Supervisor, []),
       supervisor(Farmbot.System.Supervisor, []),

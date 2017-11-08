@@ -17,7 +17,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
 
     defp ensure_interface(interface) do
       unless interface in Nerves.NetworkInterface.interfaces() do
-        Logger.debug "Waiting for #{interface}"
+        Logger.debug 2, "Waiting for #{interface}: #{inspect Nerves.NetworkInterface.interfaces()}"
         Process.sleep(100)
         ensure_interface(interface)
       end
@@ -113,8 +113,11 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
 
     defp build_ssid do
       node_str = node() |> Atom.to_string()
-      [name, "farmbot-" <> id] = node_str |> String.split("@")
-      name <> "-" <> id
+      case node_str |> String.split("@") do
+        [name, "farmbot-" <> id] ->
+          name <> "-" <> id
+        _ -> "Farmbot"
+      end
     end
 
     defp kill(os_pid), do: :ok = "kill" |> System.cmd(["9", "#{os_pid}"]) |> print_cmd
@@ -141,7 +144,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
     def handle_info(_, state), do: {:noreply, state}
 
     defp handle_hostapd(data, state) when is_bitstring(data) do
-      String.trim(data) |> Logger.debug()
+      Logger.debug(3, String.trim(data))
       {:noreply, state}
     end
 
@@ -150,7 +153,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
       {hostapd_port, hostapd_pid} = state.hostapd
       Logger.busy 3, "Killing hostapd PID."
       :ok = kill(hostapd_pid)
-      Logger.busy 3 "Resetting ip settings."
+      Logger.busy 3, "Resetting ip settings."
       hostapd_ip_settings_down(state.interface, state.ip_addr)
       Logger.busy 3, "removing PID."
       File.rm_rf!("/tmp/hostapd")

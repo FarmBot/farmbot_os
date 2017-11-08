@@ -41,6 +41,7 @@ defmodule Farmbot.System.ConfigStorage.Migrations.SeedGroups do
 
   defp populate_config_values("settings", group_id) do
     create_value(BoolValue, false)  |> create_config(group_id, "os_auto_update")
+    create_value(BoolValue, true)   |> create_config(group_id, "ignore_external_logs")
     create_value(BoolValue, true)   |> create_config(group_id, "first_boot")
     create_value(BoolValue, true)   |> create_config(group_id, "first_sync")
     create_value(StringValue, "A")  |> create_config(group_id, "current_repo")

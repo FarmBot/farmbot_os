@@ -10,5 +10,5 @@ defmodule Farmbot.CeleryScript.AST.Arg.Package do
 
   def encode(:farmbot_os),          do: {:ok, "farmbot_os"}
   def encode(:arduino_firmware),    do: {:ok, "arduino_firmware"}
-  def encode({:farmware, package}), do: {:ok, "package"}
+  def encode({:farmware, package}), do: {:ok, package}
 end

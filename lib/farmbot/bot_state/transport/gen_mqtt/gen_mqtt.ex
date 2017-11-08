@@ -26,11 +26,13 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
 
   def handle_log_events(logs, {%{client: client} = internal_state, old_bot_state}) do
     for log <- logs do
-      location_data = Map.get(old_bot_state || %{}, :location_data, %{position: %{x: -1, y: -1, z: -1}})
-      meta = %{type: log.level, x: nil, y: nil, z: nil}
-      log_without_pos = %{meta: meta, channels: log.meta[:channels] || [], message: log.message}
-      log = add_position_to_log(log_without_pos, location_data)
-      Client.push_bot_log(client, log)
+      if log.module == nil or Module.split(log.module || Elixir.Logger) |> List.first == "Farmbot" do
+        location_data = Map.get(old_bot_state || %{}, :location_data, %{position: %{x: -1, y: -1, z: -1}})
+        meta = %{type: log.level, x: nil, y: nil, z: nil}
+        log_without_pos = %{meta: meta, channels: log.meta[:channels] || [], message: log.message}
+        log = add_position_to_log(log_without_pos, location_data)
+        Client.push_bot_log(client, log)
+      end
     end
 
     {:noreply, [], {internal_state, old_bot_state}}

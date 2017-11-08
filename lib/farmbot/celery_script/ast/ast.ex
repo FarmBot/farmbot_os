@@ -65,17 +65,6 @@ defmodule Farmbot.CeleryScript.AST do
     Map.from_struct(herp) |> decode()
   end
 
-  defp str_to_atom({key, value}) do
-    k = if is_atom(key), do: key, else: String.to_atom(key)
-    cond do
-      is_map(value)  -> {k, Map.new(value, &str_to_atom(&1))}
-      is_list(value) -> {k, Enum.map(value, fn(sub_str_map) -> Map.new(sub_str_map, &str_to_atom(&1)) end)}
-      is_binary(value) -> {k, value}
-      is_atom(value) -> {k, value}
-      is_number(value) -> {k, value}
-    end
-  end
-
   def decode(%{"kind" => kind, "args" => str_args} = str_map) do
     args = Map.new(str_args, &str_to_atom(&1))
     case decode(str_map["body"] || []) do
@@ -138,6 +127,17 @@ defmodule Farmbot.CeleryScript.AST do
   @doc "Change a module back to a kind."
   def mod_to_kind(module) when is_atom(module) do
     Module.split(module) |> List.last() |> Macro.underscore()
+  end
+
+  defp str_to_atom({key, value}) do
+    k = if is_atom(key), do: key, else: String.to_atom(key)
+    cond do
+      is_map(value)  -> {k, Map.new(value, &str_to_atom(&1))}
+      is_list(value) -> {k, Enum.map(value, fn(sub_str_map) -> Map.new(sub_str_map, &str_to_atom(&1)) end)}
+      is_binary(value) -> {k, value}
+      is_atom(value) -> {k, value}
+      is_number(value) -> {k, value}
+    end
   end
 
 end

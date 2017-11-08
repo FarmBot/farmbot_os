@@ -1,5 +1,9 @@
 use Mix.Config
 
+config :logger,
+  utc_log: true,
+  backends: []
+
 config :farmbot, Farmbot.Repo.A,
   adapter: Sqlite.Ecto2,
   database: "/root/repo-#{Mix.env()}-A.sqlite3"
@@ -34,9 +38,9 @@ config :farmbot, :init, [
   Farmbot.Target.Network.WaitForTime
 ]
 
-# Transports.
 config :farmbot, :transport, [
-  # Farmbot.BotState.Transport.GenMqtt
+  Farmbot.BotState.Transport.GenMQTT,
+  Farmbot.BotState.Transport.HTTP,
 ]
 
 # Configure Farmbot Behaviours.
