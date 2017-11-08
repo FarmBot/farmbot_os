@@ -50,9 +50,16 @@ defmodule Farmbot.Serial.Gcode.Parser do
   defp parse_report_axis_calibration(params) do
     ["P" <> parm, "V" <> val, "Q" <> tag] = String.split(params, " ")
     if parm in ["141", "142", "143"] do
-      uh  = :report_axis_calibration
-      msg = {uh, parse_param(parm), String.to_integer(val)}
-      {tag, msg}
+      parm_name  = :report_axis_calibration
+      result = parse_param(parm)
+      case Float.parse(val) do
+        {float, _} ->
+          msg = {parm_name, result, float}
+          {tag, msg}
+        :error ->
+          msg = {parm_name, result, String.to_integer(val)}
+          {tag, msg}
+      end
     else
       {tag, :noop}
     end
@@ -356,9 +363,9 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(:movement_min_spd_y), do: 62
   def parse_param(:movement_min_spd_z), do: 63
 
-  def parse_param(:movement_home_speed_x), do: 65
-  def parse_param(:movement_home_speed_y), do: 66
-  def parse_param(:movement_home_speed_z), do: 67
+  def parse_param(:movement_home_spd_x), do: 65
+  def parse_param(:movement_home_spd_y), do: 66
+  def parse_param(:movement_home_spd_z), do: 67
 
   def parse_param(:movement_max_spd_x), do: 71
   def parse_param(:movement_max_spd_y), do: 72
