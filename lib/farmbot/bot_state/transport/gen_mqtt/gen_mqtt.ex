@@ -54,7 +54,9 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
         Client.emit(client, ast)
         handle_bot_state_events(rest, {internal_state, old_bot_state})
       new_bot_state ->
-        Client.push_bot_state(client, new_bot_state)
+        if new_bot_state != old_bot_state do
+          Client.push_bot_state(client, new_bot_state)
+        end
         handle_bot_state_events(rest, {internal_state, new_bot_state})
     end
   end

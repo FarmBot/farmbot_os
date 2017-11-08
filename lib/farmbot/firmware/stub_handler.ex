@@ -30,8 +30,8 @@ defmodule Farmbot.Firmware.StubHandler do
     GenStage.call(handler, {:home, axis, speed})
   end
 
-  def zero(handler, axis, speed) do
-    GenStage.call(handler, {:zero, axis, speed})
+  def zero(handler, axis) do
+    GenStage.call(handler, {:zero, axis})
   end
 
   def update_param(handler, param, val) do
@@ -104,7 +104,7 @@ defmodule Farmbot.Firmware.StubHandler do
     {:reply, :ok, [{:report_pin_mode, pin, mode}, {:report_pin_value, pin, value}], state}
   end
 
-  def handle_call({:zero, axis, _speed}, _from, state) do
+  def handle_call({:zero, axis}, _from, state) do
     state = %{state | pos: %{state.pos | axis => 0}}
     case axis do
       :x -> {:reply, :ok, [{:report_current_position, 0, state.pos.y, state.pos.z}], state}

@@ -118,6 +118,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
     {:ok, encoded_ast} = AST.encode(ast)
     json = Poison.encode!(encoded_ast)
     GenMQTT.publish(self(), frontend_topic(state.device), json, 0, false)
+    Logger.success 3, "bot state pushed"
     {:noreply, state}
   end
 

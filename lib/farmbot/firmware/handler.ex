@@ -45,7 +45,7 @@ defmodule Farmbot.Firmware.Handler do
   @callback find_home(handler, axis, speed) :: fw_ret_val
 
   @doc "Manually set an axis's current position to zero."
-  @callback zero(handler, axis, speed) :: fw_ret_val
+  @callback zero(handler, axis) :: fw_ret_val
 
   @doc "Home an axis."
   @callback home(handler, axis, speed) :: fw_ret_val

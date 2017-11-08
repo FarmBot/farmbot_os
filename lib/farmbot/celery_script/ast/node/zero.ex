@@ -2,7 +2,6 @@ defmodule Farmbot.CeleryScript.AST.Node.Zero do
   @moduledoc false
   use Farmbot.CeleryScript.AST.Node
   allow_args [:axis]
-  @default_speed 100
 
   def execute(%{axis: :all}, _, env) do
     env = mutate_env(env)
@@ -11,7 +10,7 @@ defmodule Farmbot.CeleryScript.AST.Node.Zero do
 
   def execute(%{axis: axis}, _, env) do
     env = mutate_env(env)
-    case Farmbot.Firmware.zero(axis, @default_speed) do
+    case Farmbot.Firmware.zero(axis) do
       :ok -> {:ok, env}
       {:error, reason} -> {:error, reason, env}
     end

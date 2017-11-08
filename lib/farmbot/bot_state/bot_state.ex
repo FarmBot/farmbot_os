@@ -8,6 +8,7 @@ defmodule Farmbot.BotState do
   @env Mix.env()
 
   alias Farmbot.CeleryScript.AST
+  use Farmbot.Logger
 
   defstruct mcu_params: %{},
             jobs: %{},
@@ -26,7 +27,13 @@ defmodule Farmbot.BotState do
             user_env: %{},
             process_info: %{}
 
-  @valid_sync_status [ :locked, :maintenance, :sync_error, :sync_now, :synced, :syncing, :unknown,]
+  @doc "Get a current pin value."
+  def get_pin_value(num) do
+    GenStage.call(__MODULE__, {:get_pin_value, num})
+  end
+
+  @valid_sync_status [ :locked, :maintenance, :sync_error, :sync_now, :synced, :syncing, :unknown]
+  @doc "Set the sync status above ticker to a message."
   def set_sync_status(cmd) when cmd in @valid_sync_status do
     GenStage.call(__MODULE__, {:set_sync_status, cmd})
   end
@@ -61,8 +68,19 @@ defmodule Farmbot.BotState do
   end
 
   def handle_events(events, _from, state) do
+    # Logger.busy 3, "begin handle bot state events"
     state = do_handle(events, state)
+    # Logger.success 3, "Finish handle bot state events"
     {:noreply, [state], state}
+  end
+
+  def handle_call({:get_pin_value, pin}, _from, state) do
+    case state.pins[pin] do
+      nil ->
+        {:reply, {:error, :unknown_pin}, [], state}
+      %{value: value} ->
+        {:reply, {:ok, value}, [], state}
+    end
   end
 
   def handle_call(:force_state_push, _from, state) do

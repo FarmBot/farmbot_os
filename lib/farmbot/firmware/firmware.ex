@@ -25,8 +25,8 @@ defmodule Farmbot.Firmware do
   end
 
   @doc "Manually set an axis's current position to zero."
-  def zero(axis, speed) do
-    GenStage.call(__MODULE__, {:zero, [axis, speed]})
+  def zero(axis) do
+    GenStage.call(__MODULE__, {:zero, [axis]})
   end
 
   @doc """
@@ -90,7 +90,15 @@ defmodule Farmbot.Firmware do
     }
   end
 
+  def handle_info({:EXIT, _, reason}, state) do
+    Logger.error 1, "Firmware handler: #{state.handler_mod} died: #{inspect reason}"
+    {:ok, handler} = state.handler_mod.start_link()
+    new_state = %{state | handler: handler}
+    {:noreply, [], new_state}
+  end
+
   def handle_call({fun, args}, _from, %{handler: handler, handler_mod: handler_mod} = state) do
+    Logger.debug 3, "Firmware command: #{fun}#{inspect(args)}"
     res =
       case apply(handler_mod, fun, [handler | args]) do
         {:ok, _} = res -> res
@@ -105,13 +113,6 @@ defmodule Farmbot.Firmware do
   def handle_events(gcodes, _from, state) do
     {diffs, state} = handle_gcodes(gcodes, state)
     {:noreply, diffs, state}
-  end
-
-  def handle_info({:EXIT, _, reason}, state) do
-    Logger.error 1, "Firmware handler: #{state.handler_mod} died: #{inspect reason}"
-    {:ok, handler} = state.handler_mod.start_link()
-    new_state = %{state | handler: handler}
-    {:noreply, [], new_state}
   end
 
   defp handle_gcodes(codes, state, acc \\ [])
@@ -148,7 +149,7 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode({:report_pin_mode, pin, mode_atom}, state) do
-    # Logger.debug "Got pin mode report: #{pin}: #{mode_atom}"
+    Logger.debug 3, "Got pin mode report: #{pin}: #{mode_atom}"
     mode = if(mode_atom == :digital, do: 0, else: 1)
     case state.pins[pin] do
       %{mode: _, value: _} = pin_map ->
@@ -159,7 +160,7 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode({:report_pin_value, pin, value}, state) do
-    # Logger.debug "Got pin value report: #{pin}: #{value} old: #{inspect state.pins[pin]}"
+    Logger.debug 3, "Got pin value report: #{pin}: #{value} old: #{inspect state.pins[pin]}"
     case state.pins[pin] do
       %{mode: _, value: _} = pin_map ->
         {:pins, %{pin => %{pin_map | value: value}}, %{state | pins: %{state.pins | pin => %{pin_map | value: value}}}}

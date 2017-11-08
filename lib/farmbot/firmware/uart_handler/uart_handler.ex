@@ -28,8 +28,8 @@ defmodule Farmbot.Firmware.UartHandler do
     GenStage.call(handler, {:home, axis, speed})
   end
 
-  def zero(handler, axis, speed) do
-    GenStage.call(handler, {:zero, axis, speed})
+  def zero(handler, axis) do
+    GenStage.call(handler, {:zero, axis})
   end
 
   def update_param(handler, param, val) do
@@ -61,8 +61,7 @@ defmodule Farmbot.Firmware.UartHandler do
   defmodule State do
     @moduledoc false
     defstruct [
-      :nerves,
-      :codes
+      :nerves
     ]
   end
 
@@ -76,7 +75,7 @@ defmodule Farmbot.Firmware.UartHandler do
     Process.link(nerves)
 
     case open_tty(nerves, tty) do
-      :ok -> {:producer, %State{nerves: nerves, codes: []}, dispatcher: GenStage.BroadcastDispatcher}
+      :ok -> {:producer, %State{nerves: nerves}, dispatcher: GenStage.BroadcastDispatcher}
       err -> {:stop, err, :no_state}
     end
   end
@@ -116,7 +115,7 @@ defmodule Farmbot.Firmware.UartHandler do
   end
 
   def handle_info({:nerves_uart, _, {_q, gcode}}, state) do
-    do_dispatch([gcode | state.codes], state)
+    {:noreply, [gcode], state}
   end
 
   def handle_info({:nerves_uart, _, bin}, state) when is_binary(bin) do
@@ -125,8 +124,82 @@ defmodule Farmbot.Firmware.UartHandler do
   end
 
   def handle_call({:move_absolute, pos, speed}, _from, state) do
-    UART.write(state.nerves, "G00 X#{pos.x} Y#{pos.y} Z#{pos.z} A#{speed} B#{speed} C#{speed}")
-    {:noreply, [], state}
+    r = UART.write(state.nerves, "G00 X#{pos.x} Y#{pos.y} Z#{pos.z} A#{speed} B#{speed} C#{speed}")
+    {:reply, r, [], state}
+  end
+
+  def handle_call({:calibrate, axis, _speed}, _from, state) do
+    num = case axis |> to_string() do
+      "x" -> 14
+      "y" -> 15
+      "z" -> 16
+    end
+    r = UART.write(state.nerves, "F#{num}")
+    {:reply, r, [], state}
+  end
+
+  def handle_call({:find_home, axis, speed}, _from, state) do
+    cmd = case axis |> to_string() do
+      "x" -> "11 A#{speed}"
+      "y" -> "12 B#{speed}"
+      "z" -> "13 C#{speed}"
+    end
+    r = UART.write(state.nerves, "F#{cmd}")
+    {:reply, r, [], state}
+  end
+
+  def handle_call({:home, axis, speed}, _from, state) do
+    cmd = case axis |> to_string() do
+      "x" -> "X0 A#{speed}"
+      "y" -> "Y0 B#{speed}"
+      "z" -> "Z0 C#{speed}"
+    end
+    r = UART.write(state.nerves, "G00 #{cmd}")
+    {:reply, r, [], state}
+  end
+
+  def handle_call({:zero, axis}, _from, state) do
+    axis_format = case axis |> to_string() do
+      "x" -> "X"
+      "y" -> "Y"
+      "z" -> "Z"
+    end
+    r = UART.write(state.nerves, "F84 #{axis_format}")
+    {:reply, r, [], state}
+  end
+
+  def handle_call(:emergency_lock, _from, state) do
+    r = UART.write(state.nerves, "E")
+    {:reply, r, [], state}
+  end
+
+  def handle_call(:emergency_unlock, _from, state) do
+    r = UART.write(state.nerves, "F09")
+    {:reply, r, [], state}
+  end
+
+  def handle_call({:read_pin, pin, mode}, _from, state) do
+    encoded_mode = if(mode == :digital, do: 0, else: 1)
+    case UART.write(state.nerves, "F43 P#{pin} M#{encoded_mode}") do
+      :ok ->
+        Process.sleep(100)
+        r = UART.write(state.nerves, "F42 P#{pin} M#{encoded_mode}")
+        {:reply, r, [{:report_pin_mode, pin, mode}], state}
+      err ->
+        {:reply, err, [], state}
+    end
+  end
+
+  def handle_call({:write_pin, pin, mode, value}, _from, state) do
+    encoded_mode = if(mode == :digital, do: 0, else: 1)
+    case UART.write(state.nerves, "F43 P#{pin} M#{encoded_mode}") do
+      :ok ->
+        Process.sleep(100)
+        r = UART.write(state.nerves, "F41 P#{pin} V#{value} M#{encoded_mode}")
+        {:reply, r, [{:report_pin_mode, pin, mode}, {:report_pin_value, pin, value}], state}
+      err ->
+        {:reply, err, [], state}
+    end
   end
 
   def handle_call(_call, _from, state) do
@@ -134,10 +207,6 @@ defmodule Farmbot.Firmware.UartHandler do
   end
 
   def handle_demand(_amnt, state) do
-    do_dispatch(state.codes, state)
-  end
-
-  defp do_dispatch(codes, state) do
-    {:noreply, Enum.reverse(codes), %{state | codes: []}}
+    {:noreply, [], state}
   end
 end
