@@ -35,6 +35,7 @@ end
 
 config :farmbot, Farmbot.System.ConfigStorage,
   adapter: Sqlite.Ecto2,
+  loggers: [],
   database: "tmp/#{Farmbot.System.ConfigStorage}_dev.sqlite3"
 
 # Configure Farmbot Behaviours.
@@ -42,7 +43,7 @@ config :farmbot, Farmbot.System.ConfigStorage,
 # SystemTasks for host mode.
 config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
-  system_tasks: Farmbot.Host.SystemTasks
-  # firmware_handler: Farmbot.Firmware.UartHandler
+  system_tasks: Farmbot.Host.SystemTasks,
+  firmware_handler: Farmbot.Firmware.UartHandler
 
 config :farmbot, :uart_handler, tty: "/dev/ttyACM0"

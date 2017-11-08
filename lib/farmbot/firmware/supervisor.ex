@@ -3,8 +3,8 @@ defmodule Farmbot.Firmware.Supervisor do
   use Supervisor
 
   @doc false
-  def start_link(opts \\ []) do
-    Supervisor.start_link(__MODULE__, [], opts)
+  def start_link() do
+    Supervisor.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
   def init([]) do

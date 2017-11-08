@@ -59,9 +59,16 @@ defmodule Farmbot.Firmware.Gcode.Parser do
     ["P" <> parm, "V" <> val, "Q" <> tag] = String.split(params, " ")
 
     if parm in ["141", "142", "143"] do
-      uh = :report_axis_calibration
-      msg = {uh, parse_param(parm), String.to_integer(val)}
-      {tag, msg}
+      parm_name  = :report_axis_calibration
+      result = parse_param(parm)
+      case Float.parse(val) do
+        {float, _} ->
+          msg = {parm_name, result, float}
+          {tag, msg}
+        :error ->
+          msg = {parm_name, result, String.to_integer(val)}
+          {tag, msg}
+      end
     else
       {tag, :noop}
     end

@@ -6,20 +6,21 @@ defmodule Farmbot.Firmware.UartHandler do
   use GenStage
   alias Nerves.UART
   use Farmbot.Logger
+  @behaviour Farmbot.Firmware.Handler
 
   def start_link do
     GenStage.start_link(__MODULE__, [])
   end
 
-  def move_absolute(handler, pos, axis, speed) do
-    GenStage.call(handler, {:move_absolute, pos, axis, speed})
+  def move_absolute(handler, pos, speed) do
+    GenStage.call(handler, {:move_absolute, pos, speed})
   end
 
-  def calibrate(handler, axis, axis, speed) do
+  def calibrate(handler, axis, speed) do
     GenStage.call(handler, {:calibrate, axis, speed})
   end
 
-  def find_home(handler, axis, axis, speed) do
+  def find_home(handler, axis, speed) do
     GenStage.call(handler, {:find_home, axis, speed})
   end
 
@@ -27,7 +28,7 @@ defmodule Farmbot.Firmware.UartHandler do
     GenStage.call(handler, {:home, axis, speed})
   end
 
-  def zero(handler, axis, axis, speed) do
+  def zero(handler, axis, speed) do
     GenStage.call(handler, {:zero, axis, speed})
   end
 
@@ -121,6 +122,15 @@ defmodule Farmbot.Firmware.UartHandler do
   def handle_info({:nerves_uart, _, bin}, state) when is_binary(bin) do
     Logger.warn(3, "Unparsed Gcode: #{bin}")
     {:noreply, [], state}
+  end
+
+  def handle_call({:move_absolute, pos, speed}, _from, state) do
+    UART.write(state.nerves, "G00 X#{pos.x} Y#{pos.y} Z#{pos.z} A#{speed} B#{speed} C#{speed}")
+    {:noreply, [], state}
+  end
+
+  def handle_call(_call, _from, state) do
+    {:reply, {:error, :bad_call}, [], state}
   end
 
   def handle_demand(_amnt, state) do

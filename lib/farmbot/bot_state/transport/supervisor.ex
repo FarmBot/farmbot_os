@@ -8,9 +8,9 @@ defmodule Farmbot.BotState.Transport.Supervisor do
   end
 
   def init([]) do
-    :farmbot
-    |> Application.get_env(:transport)
-    |> Enum.map(&worker(&1, []))
-    |> supervise(strategy: :one_for_one)
+    children = Application.get_env(:farmbot, :transport) |> Enum.map(&worker(&1, []))
+    supervise(children, strategy: :one_for_one)
   end
+
+
 end

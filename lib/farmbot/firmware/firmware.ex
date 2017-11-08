@@ -81,7 +81,7 @@ defmodule Farmbot.Firmware do
       Application.get_env(:farmbot, :behaviour)[:firmware_handler] || raise("No fw handler.")
 
     {:ok, handler} = handler_mod.start_link()
-    Process.link(handler)
+    Process.flag(:trap_exit, true)
 
     {
       :producer_consumer,
@@ -98,12 +98,20 @@ defmodule Farmbot.Firmware do
         {:error, _} = res -> res
       end
 
+
     {:reply, res, [], state}
   end
 
   def handle_events(gcodes, _from, state) do
     {diffs, state} = handle_gcodes(gcodes, state)
     {:noreply, diffs, state}
+  end
+
+  def handle_info({:EXIT, _, reason}, state) do
+    Logger.error 1, "Firmware handler: #{state.handler_mod} died: #{inspect reason}"
+    {:ok, handler} = state.handler_mod.start_link()
+    new_state = %{state | handler: handler}
+    {:noreply, [], new_state}
   end
 
   defp handle_gcodes(codes, state, acc \\ [])

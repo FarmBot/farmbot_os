@@ -9,9 +9,7 @@ defmodule Farmbot.BotState.Supervisor do
 
   def init([]) do
     children = [
-      supervisor(Farmbot.Firmware.Supervisor, []),
       worker(Farmbot.BotState, []),
-      supervisor(Farmbot.BotState.Transport.Supervisor, [])
     ]
 
     supervise(children, strategy: :one_for_one)

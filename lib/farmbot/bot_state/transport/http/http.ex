@@ -43,10 +43,18 @@ defmodule Farmbot.BotState.Transport.HTTP do
     s = Farmbot.System.ConfigStorage.get_config_value(:string, "authorization", "server")
     {:ok, {_, _, body}} = :httpc.request(:get, {'#{s}/api/public_key', []}, [], [body_format: :binary])
     public_key = body |> JOSE.JWK.from_pem
-    state = %{bot_state: nil, sockets: [], public_key: public_key}
-    {:ok, web} = Plug.Adapters.Cowboy.http Router, [], [port: @port, dispatch: [cowboy_dispatch()]]
-    Process.link(web)
-    {:consumer, state, [subscribe_to: [Farmbot.BotState, Farmbot.Logger]]}
+    # FIXME(Connor) The router should probably be put in an externally supervised module..
+    case Plug.Adapters.Cowboy.http Router, [], [port: @port, dispatch: [cowboy_dispatch()]] do
+      {:ok, web} ->
+        state = %{web: web, bot_state: nil, sockets: [], public_key: public_key}
+        Process.link(state.web)
+        {:consumer, state, [subscribe_to: [Farmbot.BotState, Farmbot.Logger]]}
+      {:error, {:already_started, web}} ->
+        state = %{web: web, bot_state: nil, sockets: [], public_key: public_key}
+        Process.link(state.web)
+        {:consumer, state, [subscribe_to: [Farmbot.BotState, Farmbot.Logger]]}
+      err -> err
+    end
   end
 
   def handle_events(events, {pid, _}, state) do

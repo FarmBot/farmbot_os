@@ -14,7 +14,17 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
     token = Farmbot.System.ConfigStorage.get_config_value(:string, "authorization", "token")
     {:ok, %{bot: device, mqtt: mqtt_server}} = Farmbot.Jwt.decode(token)
     {:ok, client} = Client.start_link(device, token, mqtt_server)
+    Process.flag(:trap_exit, true)
     {:consumer, {%{client: client}, nil}, subscribe_to: [Farmbot.BotState, Farmbot.Logger]}
+  end
+
+  def handle_info({:EXIT, _, error}, {state, bot_state}) do
+    Logger.error 1, "MQTT Client died: #{inspect error}"
+    token = Farmbot.System.ConfigStorage.get_config_value(:string, "authorization", "token")
+    {:ok, %{bot: device, mqtt: mqtt_server}} = Farmbot.Jwt.decode(token)
+    {:ok, client} = Client.start_link(device, token, mqtt_server)
+    new_state = %{state | client: client}
+    {:noreply, [], {new_state, bot_state}}
   end
 
   def handle_events(events, {pid, _}, state) do

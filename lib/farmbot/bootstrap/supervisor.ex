@@ -122,13 +122,15 @@ defmodule Farmbot.Bootstrap.Supervisor do
 
         children = [
           worker(Farmbot.Bootstrap.AuthTask, []),
+          supervisor(Farmbot.Firmware.Supervisor, []),
           supervisor(Farmbot.BotState.Supervisor, []),
+          supervisor(Farmbot.BotState.Transport.Supervisor, []),
           supervisor(Farmbot.HTTP.Supervisor,     []),
           supervisor(Farmbot.Repo.Supervisor,     []),
           supervisor(Farmbot.Farmware.Supervisor, [])
         ]
 
-        opts = [strategy: :one_for_all]
+        opts = [strategy: :one_for_one]
         supervise(children, opts)
 
       # I don't actually _have_ to factory reset here. It would get detected ad

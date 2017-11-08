@@ -55,7 +55,8 @@ defmodule Farmbot.BotState do
     {
       :producer_consumer,
       struct(__MODULE__, configuration: Farmbot.System.ConfigStorage.get_config_as_map()["settings"]),
-      subscribe_to: [Farmbot.Firmware, Farmbot.System.ConfigStorage.Dispatcher], dispatcher: GenStage.BroadcastDispatcher
+      subscribe_to: [Farmbot.Firmware, Farmbot.System.ConfigStorage.Dispatcher],
+      dispatcher: GenStage.BroadcastDispatcher
     }
   end
 
