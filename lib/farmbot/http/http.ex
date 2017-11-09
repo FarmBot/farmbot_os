@@ -90,7 +90,7 @@ defmodule Farmbot.HTTP do
   @doc "Upload a file to FB storage."
   def upload_file(path, meta \\ nil) do
     if File.exists?(path) do
-      GenServer.call(__MODULE__, {:upload_file, path, meta})
+      GenServer.call(__MODULE__, {:upload_file, {path, meta}})
     else
       {:error, "#{path} not found"}
     end

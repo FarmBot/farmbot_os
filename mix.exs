@@ -117,7 +117,7 @@ defmodule Farmbot.Mixfile do
         {:nerves_network, "~> 0.3", github: "nerves-project/nerves_network", override: true},
         # {:dhcp_server, path: "/home/connor/oss/elixir/nerves/dhcp_server", override: true},
         {:dhcp_server, github: "nerves-project/dhcp_server", branch: "elixirize-go!", override: true},
-        {:nerves_init_gadget, github: "nerves-project/nerves_init_gadget", branch: "dhcp", only: :dev},
+        # {:nerves_init_gadget, github: "nerves-project/nerves_init_gadget", branch: "dhcp", only: :dev},
         # {:nerves_init_gadget, path: "/home/connor/oss/elixir/nerves/nerves_init_gadget", branch: "dhcp", only: :dev},
       ]
   end

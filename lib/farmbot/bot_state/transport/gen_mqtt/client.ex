@@ -80,7 +80,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
     {:ok, state}
   end
 
-  def on_publish(["bot", _, "sync", "Log", _], _, state) do
+  def on_publish(["bot", _, "sync", ignore, _], _, state) when ignore in ["Log", "User", "Image"] do
     {:ok, state}
   end
 

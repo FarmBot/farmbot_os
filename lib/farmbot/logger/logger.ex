@@ -88,7 +88,7 @@ defmodule Farmbot.Logger do
   end
 
   def handle_cast({:dispatch_log, {env, level, verbosity, message, meta}}, state) do
-    time = :os.system_time()
+    time = :os.system_time(:seconds)
     fun = case env.function do
       {fun, ar} -> "#{fun}/#{ar}"
       nil -> "no_function"

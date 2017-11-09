@@ -68,9 +68,8 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
   defp finish_upload({:ok, %Response{status_code: code}}, http, atch_url, meta) when is_2xx(code) do
     with {:ok, body} <- Poison.encode(%{"attachment_url" => atch_url, "meta" => meta}) do
       case request(http, :post, "/api/images", body, [], []) do
-        {:ok, %Response{status_code: code}} when is_2xx(code) ->
-          # debug_log("#{atch_url} should exist shortly.")
-          :ok
+        {:ok, %Response{status_code: code} = resp} when is_2xx(code) ->
+          {:ok, resp}
 
         {:ok, %Response{} = response} ->
           {:error, response}

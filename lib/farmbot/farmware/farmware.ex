@@ -109,7 +109,7 @@ defmodule Farmbot.Farmware do
 
   defmodule Meta do
     @moduledoc "Metadata about a Farmware."
-    defstruct [:author, :language,:description]
+    defstruct [:author, :language, :description]
   end
 
   defstruct [

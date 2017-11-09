@@ -116,7 +116,9 @@ defmodule Farmbot.BotState do
               sync_status: :sync_now,
             },
             user_env: %{},
-            process_info: %{}
+            process_info: %{
+              farmwares: %{}
+            }
 
   @doc "Get a current pin value."
   def get_pin_value(num) do
@@ -141,6 +143,16 @@ defmodule Farmbot.BotState do
   @doc "Forces a state push over all transports."
   def force_state_push do
     GenStage.call(__MODULE__, :force_state_push)
+  end
+
+  @doc "Register a farmware in the bot's state."
+  def register_farmware(%Farmbot.Farmware{} = fw) do
+    GenStage.call(__MODULE__, {:register_farmware, fw})
+  end
+
+  @doc "Unregister a farmware form the bot's state."
+  def unregister_farmware(%Farmbot.Farmware{} = fw) do
+    GenStage.call(__MODULE__, {:unregister_farmware, fw})
   end
 
   @doc "Emit an AST."
@@ -220,6 +232,34 @@ defmodule Farmbot.BotState do
 
   def handle_call(:get_current_pos, _from, state) do
     {:reply, state.location_data.position, [], state}
+  end
+
+  def handle_call({:register_farmware, fw}, _, state) do
+    ser_fw_meta = %{
+      min_os_version_major: fw.min_os_version_major,
+      description: fw.meta.description,
+      language: fw.meta.language,
+      version: to_string(fw.version),
+      author: fw.meta.author,
+      zip: fw.zip
+    }
+    ser_fw = %{
+      args: fw.args,
+      executable: fw.executable,
+      meta: ser_fw_meta,
+      name: fw.name,
+      path: Farmbot.Farmware.Installer.install_path(fw),
+      url: fw.url
+    }
+    new_pi = Map.put(state.process_info.farmwares, fw.name, ser_fw)
+    new_state = %{state | process_info: %{farmwares: new_pi}}
+    {:reply, :ok, [new_state], new_state}
+  end
+
+  def handle_call({:unregister_farmware, fw}, _, state) do
+    new_pi = Map.delete(state.process_info.farmware, fw.name)
+    new_state = %{state | process_info: %{farmwares: new_pi}}
+    {:reply, :ok, [new_state], new_state}
   end
 
   defp do_handle([], state), do: state

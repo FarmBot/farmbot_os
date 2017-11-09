@@ -82,6 +82,9 @@ defmodule Farmbot.Farmware.Installer do
            finish_install(farmware, json_map)
          else
            {:error, {name, version, :already_installed}} ->
+            #  v = Version.parse!(version)
+             {:ok, fw} = Farmbot.Farmware.lookup(name, version |> to_string())
+             Farmbot.BotState.register_farmware(fw)
              Logger.info 1, "Farmware #{name} - #{version} is already installed."
              :ok
            {:ok, %{status_code: code, body: body}} ->
@@ -103,7 +106,8 @@ defmodule Farmbot.Farmware.Installer do
     Logger.warn 2, "Uninstalling farmware: #{inspect fw}"
     install_path = install_path(fw)
     case File.rm_rf(install_path) do
-      {:ok, _} -> :ok
+      {:ok, _} ->
+        Farmbot.BotState.unregister_farmware(fw)
       {:error, _} = err -> err
     end
   end
@@ -143,11 +147,12 @@ defmodule Farmbot.Farmware.Installer do
     zip_url = fw.zip
     with {:ok, ^zip_path} <- HTTP.download_file(zip_url, zip_path),
          :ok <- unzip(fw, zip_path),
-         {:ok, json} <- Poison.encode(json_map)
-         do
-           manifest_path = Path.join(install_path(fw), "manifest.json")
-           File.write(manifest_path,json)
-         end
+         {:ok, json} <- Poison.encode(json_map),
+         manifest_path <- Path.join(install_path(fw), "manifest.json"),
+         :ok <- File.write(manifest_path, json)
+    do
+      Farmbot.BotState.register_farmware(fw)
+    end
   end
 
   defp unzip(%Farmware{} = fw, zip_path) do
