@@ -33,6 +33,7 @@ defmodule Farmbot.Bootstrap.Authorization do
       Map.fetch(map, "encoded")
     else
       :error -> {:error, "unknown error."}
+      {:error, :invalid, _} -> authorize(email, password, server)
       # If we got maintance mode, a 5xx error etc, just sleep for a few seconds
       # and try again.
       {:ok, {{_, code, _}, _, _}} ->

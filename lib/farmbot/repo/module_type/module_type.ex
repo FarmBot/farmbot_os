@@ -18,8 +18,6 @@ defmodule Farmbot.Repo.ModuleType do
       def type, do: :string
 
       def cast(exp) do
-        IO.puts "cast"
-        IO.inspect exp
         do_cast(exp)
       end
 
@@ -37,14 +35,10 @@ defmodule Farmbot.Repo.ModuleType do
       end
 
       def load(exp) do
-        IO.puts "load"
-        IO.inspect exp
         {:ok, exp}
       end
 
       def dump(exp) do
-        IO.puts "dump"
-        IO.inspect exp
         {:ok, Module.concat([Farmbot, Repo, exp]) |> to_string()}
       end
     end

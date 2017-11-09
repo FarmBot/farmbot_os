@@ -46,7 +46,7 @@ defmodule Farmbot.Farmware.Runtime do
         Logger.warn 2, "#{inspect farmware} completed with exit status: #{status}"
         %{state | exit_status: status}
       {^port, {:data, data}} ->
-        Logger.info "[#{inspect farmware}] sent data: \r\n===========\r\n\r\n#{data} \r\n===========", color: :NC
+        Logger.info 3, "[#{inspect farmware}] sent data: \r\n===========\r\n\r\n#{data} \r\n===========", color: :NC
         handle_port(state)
     end
   end
@@ -59,7 +59,9 @@ defmodule Farmbot.Farmware.Runtime do
       |> Enum.filter(&match?(%{"label" => _, "name" => _, "value" => _}, &1))
       |> Map.new(&format_config(fw_name, &1))
       |> Map.put("API_TOKEN", token)
+      |> Map.put("FARMWARE_TOKEN", token)
       |> Map.put("IMAGES_DIR", images_dir)
+      |> Map.put("FARMWARE_URL", "http://localhost:27347/")
       |> Map.merge(Farmbot.BotState.get_user_env())
       |> Enum.map(fn({key, val}) -> {to_erl_safe(key), to_erl_safe(val)} end)
   end

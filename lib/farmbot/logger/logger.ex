@@ -16,7 +16,7 @@ defmodule Farmbot.Logger do
 
   defmacro busy(verbosity, message, meta \\ []) do
     quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-      Farmbot.Logger.dispatch_log(__ENV__, :budy, verbosity, message, meta)
+      Farmbot.Logger.dispatch_log(__ENV__, :busy, verbosity, message, meta)
     end
   end
 
@@ -93,12 +93,13 @@ defmodule Farmbot.Logger do
       {fun, ar} -> "#{fun}/#{ar}"
       nil -> "no_function"
     end
+    meta_map = Map.new(meta)
     log = struct(Farmbot.Log, [
       time: time,
       level: level,
       verbosity: verbosity,
       message: message,
-      meta: meta,
+      meta: meta_map,
       function: fun,
       file: env.file,
       line: env.line,

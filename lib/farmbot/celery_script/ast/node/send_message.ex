@@ -10,8 +10,29 @@ defmodule Farmbot.CeleryScript.AST.Node.SendMessage do
     msg = String.replace(m, "{{", "<%=")
     |> String.replace("}}", "%>")
     |> EEx.eval_string(fetch_bindings())
-    apply(Logger, type, [msg, [channels: channels]])
-    {:ok, env}
+
+    case type do
+      "debug" ->
+        Logger.debug 2, msg, channels: channels
+        {:ok, env}
+      "info" ->
+        Logger.info 2, msg, channels: channels
+        {:ok, env}
+      "busy" ->
+        Logger.budy 2, msg, channels: channels
+        {:ok, env}
+      "success" ->
+        Logger.success 2, msg, channels: channels
+        {:ok, env}
+      "warn" ->
+        Logger.warn 2, msg, channels: channels
+        {:ok, env}
+      "error" ->
+        Logger.error 2, msg, channels: channels
+        {:ok, env}
+      other ->
+        {:error, "unknown type: #{other}", env}
+    end
   rescue
     e in CompileError ->
       {:error, Exception.message(e), env}

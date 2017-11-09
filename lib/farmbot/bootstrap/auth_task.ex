@@ -36,7 +36,13 @@ defmodule Farmbot.Bootstrap.AuthTask do
   end
 
   defp restart_transports do
-    :ok = Supervisor.terminate_child(Farmbot.BotState.Supervisor, Farmbot.BotState.Transport.Supervisor)
+    :ok = Supervisor.terminate_child(Farmbot.Bootstrap.Supervisor, Farmbot.BotState.Transport.Supervisor)
+    case Supervisor.restart_child(Farmbot.Bootstrap.Supervisor, Farmbot.BotState.Transport.Supervisor) do
+      {:ok, _} -> :ok
+      {:error, :running} -> :ok
+      {:error, {:already_started, _}} -> :ok
+      err -> exit(err)
+    end
   end
 
   defp refresh_timer(pid) do

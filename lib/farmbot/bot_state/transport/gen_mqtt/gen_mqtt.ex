@@ -35,7 +35,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
   end
 
   def handle_log_events(logs, {%{client: client} = internal_state, old_bot_state}) do
-    for log <- logs do
+    for %Farmbot.Log{} = log <- logs do
       if log.module == nil or Module.split(log.module || Elixir.Logger) |> List.first == "Farmbot" do
         location_data = Map.get(old_bot_state || %{}, :location_data, %{position: %{x: -1, y: -1, z: -1}})
         meta = %{type: log.level, x: nil, y: nil, z: nil}
@@ -54,11 +54,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
         Client.emit(client, ast)
         handle_bot_state_events(rest, {internal_state, old_bot_state})
       new_bot_state ->
-        # json = Poison.encode!(new_bot_state)
-        # GenMQTT.publish(client, "bot/device_2/status", json, 0, false)
         Client.push_bot_state(client, new_bot_state)
-        # IO.puts "push state"
-          # Logger.success 3, "pushed state (#{new_bot_state.informational_settings.busy}): #{inspect new_bot_state.location_data.position}"
         handle_bot_state_events(rest, {internal_state, new_bot_state})
     end
   end
