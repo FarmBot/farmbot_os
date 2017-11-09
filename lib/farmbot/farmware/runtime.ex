@@ -46,7 +46,7 @@ defmodule Farmbot.Farmware.Runtime do
         Logger.warn 2, "#{inspect farmware} completed with exit status: #{status}"
         %{state | exit_status: status}
       {^port, {:data, data}} ->
-        Logger.info 3, "[#{inspect farmware}] sent data: \r\n===========\r\n\r\n#{data} \r\n===========", color: :NC
+        Logger.info 3, "[#{inspect farmware}] sent data: \r\n\=\=\=\=\=\=\=\=\=\=\=\r\n\r\n#{data} \r\n\=\=\=\=\=\=\=\=\=\=\=", color: :NC
         handle_port(state)
     end
   end

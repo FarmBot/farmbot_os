@@ -19,7 +19,7 @@ defmodule Farmbot.CeleryScript.AST.Node.SendMessage do
         Logger.info 2, msg, channels: channels
         {:ok, env}
       "busy" ->
-        Logger.budy 2, msg, channels: channels
+        Logger.busy 2, msg, channels: channels
         {:ok, env}
       "success" ->
         Logger.success 2, msg, channels: channels
