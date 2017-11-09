@@ -117,7 +117,7 @@ defmodule Farmbot.Firmware do
   end
 
   def handle_call({fun, _}, _from, state = %{initialized: false}) when fun not in  [:read_all_params, :update_param, :emergency_unlock, :emergency_lock] do
-    {:reply, {:error, :uninitialized}, state}
+    {:reply, {:error, :uninitialized}, [], state}
   end
 
   def handle_call({fun, args}, from, state) do

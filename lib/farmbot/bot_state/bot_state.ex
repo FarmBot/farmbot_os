@@ -123,6 +123,10 @@ defmodule Farmbot.BotState do
     GenStage.call(__MODULE__, {:get_pin_value, num})
   end
 
+  def get_current_pos do
+    GenStage.call(__MODULE__, :get_current_pos)
+  end
+
   @doc false
   def set_busy(bool) do
     GenStage.call(__MODULE__, {:set_busy, bool})
@@ -212,6 +216,10 @@ defmodule Farmbot.BotState do
 
   def handle_call(:get_user_env, _from, state) do
     {:reply, state.user_env, [], state}
+  end
+
+  def handle_call(:get_current_pos, _from, state) do
+    {:reply, state.location_data.position, [], state}
   end
 
   defp do_handle([], state), do: state

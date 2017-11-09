@@ -54,7 +54,10 @@ defmodule Farmbot.Firmware.Handler do
   @callback update_param(handler, fw_param, number) :: fw_ret_val
 
   @doc "Read a paramater."
-  @callback read_param(handler, fw_param) :: {:ok, number} | {:error, term}
+  @callback read_param(handler, fw_param) :: fw_ret_val
+
+  @doc "Read all params"
+  @callback read_all_params(handler) :: fw_ret_val
 
   @doc "Lock the firmware."
   @callback emergency_lock(handler) :: fw_ret_val
@@ -67,4 +70,5 @@ defmodule Farmbot.Firmware.Handler do
 
   @doc "Write a pin."
   @callback write_pin(handler, pin, pin_mode, number) :: fw_ret_val
+
 end

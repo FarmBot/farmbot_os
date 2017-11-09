@@ -5,6 +5,7 @@
 /*.ez
 /doc
 /cover
+ttb_last_config
 
 # Nerves artifacts
 /_images

@@ -42,6 +42,10 @@ defmodule Farmbot.Firmware.StubHandler do
     GenStage.call(handler, {:read_param, param})
   end
 
+  def read_all_params(handler) do
+    GenStage.call(handler, :read_all_params)
+  end
+
   def emergency_lock(handler) do
     GenStage.call(handler, :emergency_lock)
   end
@@ -66,13 +70,23 @@ defmodule Farmbot.Firmware.StubHandler do
               locked?: false
   end
 
+  defp do_idle(pid) do
+    Process.send_after(pid, :idle_timer, 1000)
+  end
+
   def init([]) do
     state = %State{pos: struct(Vec3)}
+    do_idle(self())
     {:producer, state, dispatcher: GenStage.BroadcastDispatcher}
   end
 
   def handle_demand(_amnt, state) do
     {:noreply, [], state}
+  end
+
+  def handle_info(:idle_timer, state) do
+    do_idle(self())
+    {:noreply, [:idle], state}
   end
 
   def handle_call({:move_absolute, pos, _speed}, _from, state) do
@@ -97,7 +111,7 @@ defmodule Farmbot.Firmware.StubHandler do
   end
 
   def handle_call({:read_pin, pin, mode}, _from, state) do
-    {:reply, {:ok, 1}, [{:report_pin_mode, pin, mode}, {:report_pin_value, pin, 1}], state}
+    {:reply, :ok, [{:report_pin_mode, pin, mode}, {:report_pin_value, pin, 1}], state}
   end
 
   def handle_call({:write_pin, pin, mode, value}, _from, state) do
@@ -118,7 +132,12 @@ defmodule Farmbot.Firmware.StubHandler do
   end
 
   def handle_call({:read_param, param}, _from, state) do
-    {:reply, state.fw_params[param], [], state}
+    res = state.fw_params[param]
+    {:reply, :ok, [{:report_paramater_value, param, res}], state}
+  end
+
+  def handle_call(:read_all_params, _from, state) do
+    {:reply, :ok, [:report_params_complete], state}
   end
 
   def handle_call(:emergency_lock, _from, state) do

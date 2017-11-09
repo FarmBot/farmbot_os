@@ -21,28 +21,34 @@ defmodule Farmbot.CeleryScript.AST.Node.If do
     end
   end
 
-  defp eval_lhs(:x), do: -1
-  defp eval_lhs(:y), do: -1
-  defp eval_lhs(:z), do: -1
-  defp eval_lhs({:pin, pin}), do: -1
+  defp eval_lhs(axis) when axis in [:x, :y, :z] do
+    Farmbot.BotState.get_current_pos |> Map.get(axis)
+  end
+
+  defp eval_lhs({:pin, pin}) do
+    case Farmbot.BotState.get_pin_value(pin) do
+      {:ok, val} -> val
+      {:error, reason} -> {:error, reason}
+    end
+  end
 
   defp eval_if(nil, :is_undefined, _), do: true
   defp eval_if(_,   :is_undefined, _), do: false
   defp eval_if(nil, _, _), do: {:error, "left hand side undefined."}
 
   defp eval_if(lhs, :>, rhs) when lhs > rhs, do: true
-  defp eval_if(lhs, :>, rhs), do: false
+  defp eval_if(_lhs, :>, _rhs), do: false
 
   defp eval_if(lhs, :<, rhs) when lhs < rhs, do: true
-  defp eval_if(lhs, :<, rhs), do: false
+  defp eval_if(_lhs, :<, _rhs), do: false
 
   defp eval_if(lhs, :==, rhs) when lhs == rhs, do: true
-  defp eval_if(lhs, :==, rhs), do: false
+  defp eval_if(_lhs, :==, _rhs), do: false
 
   defp eval_if(lhs, :!=, rhs) when lhs != rhs, do: true
-  defp eval_if(lhs, :!=, rhs), do: false
+  defp eval_if(_lhs, :!=, _rhs), do: false
 
-  defp do_jump({:error, reason} = err, _, _, env), do: {:error, reason, env}
+  defp do_jump({:error, reason}, _, _, env), do: {:error, reason, env}
 
   defp do_jump(true,  _else, then_, env), do: Farmbot.CeleryScript.execute(then_, env)
   defp do_jump(false, else_, _then, env), do: Farmbot.CeleryScript.execute(else_, env)
