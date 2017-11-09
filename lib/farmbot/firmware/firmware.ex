@@ -6,22 +6,22 @@ defmodule Farmbot.Firmware do
 
   @doc "Move the bot to a position."
   def move_absolute(vec3, speed) do
-    GenStage.call(__MODULE__, {:move_absolute, [vec3, speed]})
+    GenStage.call(__MODULE__, {:move_absolute, [vec3, speed]}, :infinity)
   end
 
   @doc "Calibrate an axis."
   def calibrate(axis, speed) do
-    GenStage.call(__MODULE__, {:calibrate, [axis, speed]})
+    GenStage.call(__MODULE__, {:calibrate, [axis, speed]}, :infinity)
   end
 
   @doc "Find home on an axis."
   def find_home(axis, speed) do
-    GenStage.call(__MODULE__, {:find_home, [axis, speed]})
+    GenStage.call(__MODULE__, {:find_home, [axis, speed]}, :infinity)
   end
 
   @doc "Home an axis."
   def home(axis, speed) do
-    GenStage.call(__MODULE__, {:home, [axis, speed]})
+    GenStage.call(__MODULE__, {:home, [axis, speed]}, :infinity)
   end
 
   @doc "Manually set an axis's current position to zero."
@@ -35,6 +35,11 @@ defmodule Farmbot.Firmware do
   """
   def update_param(param, val) do
     GenStage.call(__MODULE__, {:update_param, [param, val]})
+  end
+
+  @doc false
+  def read_all_params do
+    GenStage.call(__MODULE__, {:read_all_params, []})
   end
 
   @doc """
@@ -72,8 +77,22 @@ defmodule Farmbot.Firmware do
 
   ## GenStage
 
+  defmodule Current do
+    defstruct [
+      fun: nil,
+      args: nil,
+      from: nil,
+
+    ]
+  end
+
   defmodule State do
-    defstruct handler: nil, handler_mod: nil, idle: false, pins: %{}
+    defstruct handler: nil, handler_mod: nil,
+      idle: false, pins: %{},
+      initialized: false,
+      initializing: false,
+      current: nil,
+      queue: :queue.new()
   end
 
   def init([]) do
@@ -94,25 +113,51 @@ defmodule Farmbot.Firmware do
     Logger.error 1, "Firmware handler: #{state.handler_mod} died: #{inspect reason}"
     {:ok, handler} = state.handler_mod.start_link()
     new_state = %{state | handler: handler}
-    {:noreply, [], new_state}
+    {:noreply, [{:informational_settings, %{busy: false}}], %{new_state | initialized: false, idle: false}}
   end
 
-  def handle_call({fun, args}, _from, %{handler: handler, handler_mod: handler_mod} = state) do
+  def handle_call({fun, _}, _from, state = %{initialized: false}) when fun not in  [:read_all_params, :update_param, :emergency_unlock, :emergency_lock] do
+    {:reply, {:error, :uninitialized}, state}
+  end
+
+  def handle_call({fun, args}, from, state) do
+    current = struct(Current, from: from, fun: fun, args: args)
+    if :queue.is_empty(state.queue) do
+      do_begin_cmd(current, state, [])
+    else
+      do_queue_cmd(current, state)
+    end
+  end
+
+  defp do_begin_cmd(%Current{fun: fun, args: args, from: _from} = current, state, dispatch) do
     Logger.debug 3, "Firmware command: #{fun}#{inspect(args)}"
-    res =
-      case apply(handler_mod, fun, [handler | args]) do
-        {:ok, _} = res -> res
-        :ok = res -> res
-        {:error, _} = res -> res
-      end
+    if fun == :emergency_unlock, do: Farmbot.BotState.set_sync_status(:sync_now)
 
+    case apply(state.handler_mod, fun, [state.handler | args]) do
+      :ok ->
+        {:noreply, dispatch, %{state | current: current}}
+      {:error, _} = res ->
+        {:reply, res, dispatch, %{state | current: nil, queue: :queue.new()}}
+    end
+  end
 
-    {:reply, res, [], state}
+  defp do_queue_cmd(%Current{fun: _fun, args: _args, from: _from} = current, state) do
+    new_q = :queue.in(current, state.queue)
+    {:noreply, [], %{state | queue: new_q}}
   end
 
   def handle_events(gcodes, _from, state) do
     {diffs, state} = handle_gcodes(gcodes, state)
-    {:noreply, diffs, state}
+    if state.current == nil do
+      case :queue.out(state.queue) do
+        {{:value, current}, new_queue} ->
+          do_begin_cmd(current, %{state | queue: new_queue, current: current}, diffs)
+        {:empty, queue} ->
+          {:noreply, diffs, %{state | queue: queue}}
+      end
+    else
+      {:noreply, diffs, state}
+    end
   end
 
   defp handle_gcodes(codes, state, acc \\ [])
@@ -126,7 +171,8 @@ defmodule Farmbot.Firmware do
     end
   end
 
-  defp handle_gcode({:debug_message, _message}, state) do
+  defp handle_gcode({:debug_message, message}, state) do
+    Logger.debug 3, "Arduino debug message: #{message}"
     {nil, state}
   end
 
@@ -149,7 +195,7 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode({:report_pin_mode, pin, mode_atom}, state) do
-    Logger.debug 3, "Got pin mode report: #{pin}: #{mode_atom}"
+    # Logger.debug 3, "Got pin mode report: #{pin}: #{mode_atom}"
     mode = if(mode_atom == :digital, do: 0, else: 1)
     case state.pins[pin] do
       %{mode: _, value: _} = pin_map ->
@@ -160,7 +206,7 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode({:report_pin_value, pin, value}, state) do
-    Logger.debug 3, "Got pin value report: #{pin}: #{value} old: #{inspect state.pins[pin]}"
+    # Logger.debug 3, "Got pin value report: #{pin}: #{value} old: #{inspect state.pins[pin]}"
     case state.pins[pin] do
       %{mode: _, value: _} = pin_map ->
         {:pins, %{pin => %{pin_map | value: value}}, %{state | pins: %{state.pins | pin => %{pin_map | value: value}}}}
@@ -169,8 +215,90 @@ defmodule Farmbot.Firmware do
     end
   end
 
+  defp handle_gcode({:report_parameter_value, param, value}, state) do
+    Farmbot.System.ConfigStorage.update_config_value(:float, "hardware_params", to_string(param), value / 1)
+    {:mcu_params, %{param => value}, state}
+  end
+
+  defp handle_gcode(:idle, %{initialized: false, initializing: false} = state) do
+    Logger.busy 3, "Initializing Firmware."
+    old = Farmbot.System.ConfigStorage.get_config_as_map()["hardware_params"]
+    case old["param_version"] do
+      nil -> spawn __MODULE__, :read_all_params, []
+      _ -> spawn fn() ->
+        for {key, float_val} <- old do
+          if float_val do
+            val = round(float_val)
+            update_param(:"#{key}", val)
+            # state.handler_mod.update_param(state.handler, :"#{key}", val)
+            # Process.sleep(10)
+          end
+        end
+        # Process.sleep(10)
+        read_all_params()
+      end
+    end
+    {nil, %{state | initializing: true}}
+  end
+
+  defp handle_gcode(:idle, %{initialized: false, initializing: true} = state) do
+    {nil, state}
+  end
+
   defp handle_gcode(:idle, state) do
+    Farmbot.BotState.set_busy(false)
     {:informational_settings, %{busy: false}, %{state | idle: true}}
+  end
+
+
+    defp handle_gcode(:report_params_complete, state) do
+      Logger.success 3, "Firmware initialized."
+      {nil, %{state | initialized: true}}
+    end
+
+  defp handle_gcode(:busy, state) do
+    Farmbot.BotState.set_busy(true)
+    {:informational_settings, %{busy: true}, %{state | idle: false}}
+  end
+
+  defp handle_gcode(:done, state) do
+    if state.current do
+      GenStage.reply(state.current.from, :ok)
+      {nil, %{state | current: nil}}
+    else
+      {nil, state}
+    end
+  end
+
+  defp handle_gcode(:report_emergency_lock, state) do
+    if state.current do
+      GenStage.reply(state.current.from, {:error, :emergency_lock})
+      {:informational_settings, %{sync_status: :locked}, %{state | current: nil}}
+    else
+      {:informational_settings, %{sync_status: :locked}, state}
+    end
+  end
+
+  defp handle_gcode(:error, state) do
+    if state.current do
+      Logger.error 1, "Failed to execute #{state.current.fun}#{inspect state.current.args}"
+      GenStage.reply(state.current.from, {:error, :firmware_error})
+      {nil, %{state | current: nil}}
+    else
+      {nil, state}
+    end
+  end
+
+  defp handle_gcode(:noop, state) do
+    {nil, state}
+  end
+
+  defp handle_gcode(:received, state) do
+    {nil, state}
+  end
+
+  defp handle_gcode({:echo, _code}, state) do
+    {nil, state}
   end
 
   defp handle_gcode(code, state) do

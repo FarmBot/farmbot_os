@@ -40,6 +40,10 @@ defmodule Farmbot.Firmware.UartHandler do
     GenStage.call(handler, {:read_param, param})
   end
 
+  def read_all_params(handler) do
+    GenStage.call(handler, :read_all_params)
+  end
+
   def emergency_lock(handler) do
     GenStage.call(handler, :emergency_lock)
   end
@@ -61,7 +65,8 @@ defmodule Farmbot.Firmware.UartHandler do
   defmodule State do
     @moduledoc false
     defstruct [
-      :nerves
+      nerves: nil,
+      current_cmd: nil,
     ]
   end
 
@@ -114,6 +119,27 @@ defmodule Farmbot.Firmware.UartHandler do
     {:noreply, [], state}
   end
 
+  def handle_info({:nerves_uart, _, {:echo, _}}, %{current_cmd: nil} = state) do
+    {:noreply, [], state}
+  end
+  def handle_info({:nerves_uart, _, {:echo, {:echo, "*F43" <> _}}}, state) do
+    {:noreply, [], state}
+  end
+
+  def handle_info({:nerves_uart, _, {:echo, {:echo, code}}}, state) do
+    distance = String.jaro_distance(state.current_cmd, code)
+    if distance > 0.85 do
+      :ok
+    else
+      Logger.error 3, "Echo does not match: got: #{code} expected: #{state.current_cmd} (#{distance})"
+    end
+    {:noreply, [], %{state | current_cmd: nil}}
+  end
+
+  def handle_info({:nerves_uart, _, {_q, :done}}, state) do
+    {:noreply, [:done], %{state | current_cmd: nil}}
+  end
+
   def handle_info({:nerves_uart, _, {_q, gcode}}, state) do
     {:noreply, [gcode], state}
   end
@@ -123,9 +149,16 @@ defmodule Farmbot.Firmware.UartHandler do
     {:noreply, [], state}
   end
 
+  defp do_write(bin, state, dispatch \\ []) do
+    case UART.write(state.nerves, bin) do
+      :ok -> {:reply, :ok, dispatch, %{state | current_cmd: bin}}
+      err -> {:reply, err, [], %{state | current_cmd: nil}}
+    end
+  end
+
   def handle_call({:move_absolute, pos, speed}, _from, state) do
-    r = UART.write(state.nerves, "G00 X#{pos.x} Y#{pos.y} Z#{pos.z} A#{speed} B#{speed} C#{speed}")
-    {:reply, r, [], state}
+    wrote = "G00 X#{pos.x} Y#{pos.y} Z#{pos.z} A#{speed} B#{speed} C#{speed}"
+    do_write(wrote, state)
   end
 
   def handle_call({:calibrate, axis, _speed}, _from, state) do
@@ -134,8 +167,7 @@ defmodule Farmbot.Firmware.UartHandler do
       "y" -> 15
       "z" -> 16
     end
-    r = UART.write(state.nerves, "F#{num}")
-    {:reply, r, [], state}
+    do_write("F#{num}", state)
   end
 
   def handle_call({:find_home, axis, speed}, _from, state) do
@@ -144,8 +176,7 @@ defmodule Farmbot.Firmware.UartHandler do
       "y" -> "12 B#{speed}"
       "z" -> "13 C#{speed}"
     end
-    r = UART.write(state.nerves, "F#{cmd}")
-    {:reply, r, [], state}
+    do_write("F#{cmd}", state)
   end
 
   def handle_call({:home, axis, speed}, _from, state) do
@@ -154,8 +185,7 @@ defmodule Farmbot.Firmware.UartHandler do
       "y" -> "Y0 B#{speed}"
       "z" -> "Z0 C#{speed}"
     end
-    r = UART.write(state.nerves, "G00 #{cmd}")
-    {:reply, r, [], state}
+    do_write("G00 #{cmd}", state)
   end
 
   def handle_call({:zero, axis}, _from, state) do
@@ -164,8 +194,7 @@ defmodule Farmbot.Firmware.UartHandler do
       "y" -> "Y"
       "z" -> "Z"
     end
-    r = UART.write(state.nerves, "F84 #{axis_format}")
-    {:reply, r, [], state}
+    do_write("F84 #{axis_format}", state)
   end
 
   def handle_call(:emergency_lock, _from, state) do
@@ -174,19 +203,30 @@ defmodule Farmbot.Firmware.UartHandler do
   end
 
   def handle_call(:emergency_unlock, _from, state) do
-    r = UART.write(state.nerves, "F09")
-    {:reply, r, [], state}
+    do_write("F09", state)
+  end
+
+  def handle_call({:read_param, param}, _from, state) do
+    num = Farmbot.Firmware.Gcode.Param.parse_param(param)
+    do_write("F21 P#{num}", state)
+  end
+
+  def handle_call({:update_param, param, val}, _from, state) do
+    num = Farmbot.Firmware.Gcode.Param.parse_param(param)
+    do_write("F22 P#{num} V#{val}", state)
+  end
+
+  def handle_call(:read_all_params, _from, state) do
+    do_write("F20", state)
   end
 
   def handle_call({:read_pin, pin, mode}, _from, state) do
     encoded_mode = if(mode == :digital, do: 0, else: 1)
     case UART.write(state.nerves, "F43 P#{pin} M#{encoded_mode}") do
       :ok ->
-        Process.sleep(100)
-        r = UART.write(state.nerves, "F42 P#{pin} M#{encoded_mode}")
-        {:reply, r, [{:report_pin_mode, pin, mode}], state}
+        do_write("F42 P#{pin} M#{encoded_mode}", state, [{:report_pin_mode, pin, mode}])
       err ->
-        {:reply, err, [], state}
+        {:reply, err, [], %{state | current_cmd: nil}}
     end
   end
 
@@ -194,11 +234,9 @@ defmodule Farmbot.Firmware.UartHandler do
     encoded_mode = if(mode == :digital, do: 0, else: 1)
     case UART.write(state.nerves, "F43 P#{pin} M#{encoded_mode}") do
       :ok ->
-        Process.sleep(100)
-        r = UART.write(state.nerves, "F41 P#{pin} V#{value} M#{encoded_mode}")
-        {:reply, r, [{:report_pin_mode, pin, mode}, {:report_pin_value, pin, value}], state}
+        do_write("F41 P#{pin} V#{value} M#{encoded_mode}", state, [{:report_pin_mode, pin, mode}, {:report_pin_value, pin, value}])
       err ->
-        {:reply, err, [], state}
+        {:reply, err, [], %{state | current_cmd: nil}}
     end
   end
 

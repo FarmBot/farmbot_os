@@ -8,4 +8,10 @@ defmodule Farmbot.Firmware.Vec3 do
 
   @typedoc @moduledoc
   @type t :: %__MODULE__{x: number, y: number, z: number}
+
+  defimpl Inspect, for: __MODULE__ do
+    def inspect(vec3, _) do
+      "(#{vec3.x}, #{vec3.y}, #{vec3.z})"
+    end
+  end
 end

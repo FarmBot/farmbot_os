@@ -17,6 +17,7 @@ defmodule Farmbot.Firmware.Gcode.Parser do
   def parse_code("R05" <> _r), do: {nil, :noop}
   def parse_code("R06 " <> r), do: parse_report_calibration(r)
   def parse_code("R07 " <> _), do: {nil, :noop}
+  def parse_code("R08 " <> echo), do: {:echo, {:echo, String.replace(echo, "\r", "")}}
 
   def parse_code("R20 Q" <> tag), do: {tag, :report_params_complete}
   def parse_code("R21 " <> params), do: parse_pvq(params, :report_parameter_value)
@@ -60,7 +61,7 @@ defmodule Farmbot.Firmware.Gcode.Parser do
 
     if parm in ["141", "142", "143"] do
       parm_name  = :report_axis_calibration
-      result = parse_param(parm)
+      result = parse_param(String.to_integer(parm))
       case Float.parse(val) do
         {float, _} ->
           msg = {parm_name, result, float}
@@ -169,6 +170,6 @@ defmodule Farmbot.Firmware.Gcode.Parser do
     [_, rp] = String.split(p, "P")
     [_, rv] = String.split(v, "V")
     [_, rq] = String.split(q, "Q")
-    {rq, {:report_parameter_value, parse_param(rp), String.to_integer(rv)}}
+    {rq, {:report_parameter_value, parse_param(String.to_integer(rp)), String.to_integer(rv)}}
   end
 end

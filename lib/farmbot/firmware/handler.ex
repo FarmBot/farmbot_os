@@ -63,7 +63,7 @@ defmodule Farmbot.Firmware.Handler do
   @callback emergency_unlock(handler) :: fw_ret_val
 
   @doc "Read a pin."
-  @callback read_pin(handler, pin, pin_mode) :: {:ok, number} | {:error, term}
+  @callback read_pin(handler, pin, pin_mode) :: fw_ret_val
 
   @doc "Write a pin."
   @callback write_pin(handler, pin, pin_mode, number) :: fw_ret_val

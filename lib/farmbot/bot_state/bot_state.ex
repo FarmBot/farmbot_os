@@ -10,7 +10,97 @@ defmodule Farmbot.BotState do
   alias Farmbot.CeleryScript.AST
   use Farmbot.Logger
 
-  defstruct mcu_params: %{},
+  defstruct mcu_params: %{
+      param_version: nil,
+      param_test: nil,
+      param_config_ok: nil,
+      param_use_eeprom: nil,
+      param_e_stop_on_mov_err: nil,
+      param_mov_nr_retry: nil,
+      movement_timeout_x: nil,
+      movement_timeout_y: nil,
+      movement_timeout_z: nil,
+      movement_keep_active_x: nil,
+      movement_keep_active_y: nil,
+      movement_keep_active_z: nil,
+      movement_home_at_boot_x: nil,
+      movement_home_at_boot_y: nil,
+      movement_home_at_boot_z: nil,
+      movement_invert_endpoints_x: nil,
+      movement_invert_endpoints_y: nil,
+      movement_invert_endpoints_z: nil,
+      movement_enable_endpoints_x: nil,
+      movement_enable_endpoints_y: nil,
+      movement_enable_endpoints_z: nil,
+      movement_invert_motor_x: nil,
+      movement_invert_motor_y: nil,
+      movement_invert_motor_z: nil,
+      movement_secondary_motor_x: nil,
+      movement_secondary_motor_invert_x: nil,
+      movement_steps_acc_dec_x: nil,
+      movement_steps_acc_dec_y: nil,
+      movement_steps_acc_dec_z: nil,
+      movement_stop_at_home_x: nil,
+      movement_stop_at_home_y: nil,
+      movement_stop_at_home_z: nil,
+      movement_home_up_x: nil,
+      movement_home_up_y: nil,
+      movement_home_up_z: nil,
+      movement_step_per_mm_x: nil,
+      movement_step_per_mm_y: nil,
+      movement_step_per_mm_z: nil,
+      movement_min_spd_x: nil,
+      movement_min_spd_y: nil,
+      movement_min_spd_z: nil,
+      movement_home_spd_x: nil,
+      movement_home_spd_y: nil,
+      movement_home_spd_z: nil,
+      movement_max_spd_x: nil,
+      movement_max_spd_y: nil,
+      movement_max_spd_z: nil,
+      encoder_enabled_x: nil,
+      encoder_enabled_y: nil,
+      encoder_enabled_z: nil,
+      encoder_type_x: nil,
+      encoder_type_y: nil,
+      encoder_type_z: nil,
+      encoder_missed_steps_max_x: nil,
+      encoder_missed_steps_max_y: nil,
+      encoder_missed_steps_max_z: nil,
+      encoder_scaling_x: nil,
+      encoder_scaling_y: nil,
+      encoder_scaling_z: nil,
+      encoder_missed_steps_decay_x: nil,
+      encoder_missed_steps_decay_y: nil,
+      encoder_missed_steps_decay_z: nil,
+      encoder_use_for_pos_x: nil,
+      encoder_use_for_pos_y: nil,
+      encoder_use_for_pos_z: nil,
+      encoder_invert_x: nil,
+      encoder_invert_y: nil,
+      encoder_invert_z: nil,
+      movement_axis_nr_steps_x: nil,
+      movement_axis_nr_steps_y: nil,
+      movement_axis_nr_steps_z: nil,
+      movement_stop_at_max_x: nil,
+      movement_stop_at_max_y: nil,
+      movement_stop_at_max_z: nil,
+      pin_guard_1_pin_nr: nil,
+      pin_guard_1_time_out: nil,
+      pin_guard_1_active_state: nil,
+      pin_guard_2_pin_nr: nil,
+      pin_guard_2_time_out: nil,
+      pin_guard_2_active_state: nil,
+      pin_guard_3_pin_nr: nil,
+      pin_guard_3_time_out: nil,
+      pin_guard_3_active_state: nil,
+      pin_guard_4_pin_nr: nil,
+      pin_guard_4_time_out: nil,
+      pin_guard_4_active_state: nil,
+      pin_guard_5_pin_nr: nil,
+      pin_guard_5_time_out: nil,
+      pin_guard_5_active_state: nil,
+    },
             jobs: %{},
             location_data: %{
               position: %{x: -1, y: -1, z: -1}
@@ -22,6 +112,7 @@ defmodule Farmbot.BotState do
               commit: @commit,
               target: @target,
               env: @env,
+              busy: false,
               sync_status: :sync_now,
             },
             user_env: %{},
@@ -32,7 +123,12 @@ defmodule Farmbot.BotState do
     GenStage.call(__MODULE__, {:get_pin_value, num})
   end
 
-  @valid_sync_status [ :locked, :maintenance, :sync_error, :sync_now, :synced, :syncing, :unknown]
+  @doc false
+  def set_busy(bool) do
+    GenStage.call(__MODULE__, {:set_busy, bool})
+  end
+
+  @valid_sync_status [:locked, :maintenance, :sync_error, :sync_now, :synced, :syncing, :unknown]
   @doc "Set the sync status above ticker to a message."
   def set_sync_status(cmd) when cmd in @valid_sync_status do
     GenStage.call(__MODULE__, {:set_sync_status, cmd})
@@ -48,9 +144,14 @@ defmodule Farmbot.BotState do
     GenStage.call(__MODULE__, {:emit, ast})
   end
 
+  @doc "Get user env."
   def get_user_env do
-    # GenStage.call(__MODULE__, :get_user_env)
-    %{}
+    GenStage.call(__MODULE__, :get_user_env)
+  end
+
+  @doc "Set user env."
+  def set_user_env(key, val) do
+    GenStage.call(__MODULE__, {:set_user_env, key, val})
   end
 
   @doc false
@@ -87,6 +188,12 @@ defmodule Farmbot.BotState do
     {:reply, state, [state], state}
   end
 
+  def handle_call({:set_busy, bool}, _from, state) do
+    new_info_settings = %{state.informational_settings | busy: bool}
+    new_state = %{state | informational_settings: new_info_settings}
+    {:reply, :ok, [new_state], new_state}
+  end
+
   def handle_call({:emit, ast}, _from, state) do
     {:reply, :ok, [{:emit, ast}], state}
   end
@@ -95,6 +202,16 @@ defmodule Farmbot.BotState do
     new_info_settings = %{state.informational_settings | sync_status: status}
     new_state = %{state | informational_settings: new_info_settings}
     {:reply, :ok, [new_state], new_state}
+  end
+
+  def handle_call({:set_user_env, key, val}, _, state) do
+    new_user_env = Map.put(state.user_env, key, val)
+    new_state = %{state | user_env: new_user_env}
+    {:reply, :ok, [new_state], new_state}
+  end
+
+  def handle_call(:get_user_env, _from, state) do
+    {:reply, state.user_env, [], state}
   end
 
   defp do_handle([], state), do: state

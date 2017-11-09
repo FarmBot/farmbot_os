@@ -65,15 +65,18 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
   end
 
   def on_publish(["bot", _bot, "from_clients"], msg, state) do
-    msg
-    |> Poison.decode!()
-    |> Farmbot.CeleryScript.AST.decode()
-    |> elem(1)
-    |> fn(ast) ->
-      Logger.debug 3, "received #{inspect Farmbot.CeleryScript.AST.encode(ast) |> elem(1)}"
-      ast
-    end.()
-    |> Farmbot.CeleryScript.execute()
+    spawn fn() ->
+      msg
+      |> Poison.decode!()
+      |> Farmbot.CeleryScript.AST.decode()
+      |> elem(1)
+      |> fn(ast) ->
+        Logger.debug 3, "received #{inspect Farmbot.CeleryScript.AST.encode(ast) |> elem(1)}"
+        ast
+      end.()
+      |> Farmbot.CeleryScript.execute()
+    end
+
     {:ok, state}
   end
 
@@ -104,6 +107,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
   def handle_cast({:bot_state, bs}, state) do
     json = Poison.encode!(bs)
     GenMQTT.publish(self(), status_topic(state.device), json, 0, false)
+    # IO.puts "push state"
     {:noreply, %{state | cache: json}}
   end
 
@@ -118,7 +122,6 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
     {:ok, encoded_ast} = AST.encode(ast)
     json = Poison.encode!(encoded_ast)
     GenMQTT.publish(self(), frontend_topic(state.device), json, 0, false)
-    Logger.success 3, "bot state pushed"
     {:noreply, state}
   end
 

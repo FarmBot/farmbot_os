@@ -37,7 +37,7 @@ defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdate do
   end
 
   defp do_reduce_fw([%{args: %{label: key, value: value}} | rest], env) do
-    case Farmbot.Firmware.update_param(key, value) do
+    case Farmbot.Firmware.update_param(:"#{key}", value) do
       :ok -> do_reduce_fw(rest, env)
       {:error, reason} -> {:error, reason, env}
     end

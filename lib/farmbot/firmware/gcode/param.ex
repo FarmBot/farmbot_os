@@ -3,6 +3,8 @@ defmodule Farmbot.Firmware.Gcode.Param do
 
   @doc "Turn a number into a param, or a param into a number."
   @spec parse_param(integer | t) :: t | integer
+  def parse_param(0), do: :param_version
+  def parse_param(1), do: :param_test
   def parse_param(2), do: :param_config_ok
   def parse_param(3), do: :param_use_eeprom
   def parse_param(4), do: :param_e_stop_on_mov_err
@@ -91,6 +93,8 @@ defmodule Farmbot.Firmware.Gcode.Param do
   def parse_param(222), do: :pin_guard_5_time_out
   def parse_param(223), do: :pin_guard_5_active_state
 
+  def parse_param(:param_version), do: 0
+  def parse_param(:param_test), do: 1
   def parse_param(:param_config_ok), do: 2
   def parse_param(:param_use_eeprom), do: 3
   def parse_param(:param_e_stop_on_mov_err), do: 4

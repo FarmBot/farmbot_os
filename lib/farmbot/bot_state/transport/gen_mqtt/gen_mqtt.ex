@@ -54,9 +54,11 @@ defmodule Farmbot.BotState.Transport.GenMQTT do
         Client.emit(client, ast)
         handle_bot_state_events(rest, {internal_state, old_bot_state})
       new_bot_state ->
-        if new_bot_state != old_bot_state do
-          Client.push_bot_state(client, new_bot_state)
-        end
+        # json = Poison.encode!(new_bot_state)
+        # GenMQTT.publish(client, "bot/device_2/status", json, 0, false)
+        Client.push_bot_state(client, new_bot_state)
+        # IO.puts "push state"
+          # Logger.success 3, "pushed state (#{new_bot_state.informational_settings.busy}): #{inspect new_bot_state.location_data.position}"
         handle_bot_state_events(rest, {internal_state, new_bot_state})
     end
   end

@@ -4,9 +4,17 @@ defmodule Farmbot.CeleryScript.AST.Node.SetUserEnv do
   allow_args []
   use Farmbot.Logger
 
-  def execute(args, body, env) do
+  def execute(_args, body, env) do
     env = mutate_env(env)
-    Logger.warn 1, "FIXME"
-    {:ok, env}
+    do_reduce(body, env)
   end
+
+  defp do_reduce([%{args: %{label: key, value: val}} | rest], env) do
+    case Farmbot.BotState.set_user_env(key, val) do
+      :ok -> do_reduce(rest, env)
+      {:error, reason} -> {:error, reason, env}
+    end
+  end
+
+  defp do_reduce([], env), do: {:ok, env}
 end
