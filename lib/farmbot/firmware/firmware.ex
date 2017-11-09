@@ -230,11 +230,8 @@ defmodule Farmbot.Firmware do
           if float_val do
             val = round(float_val)
             update_param(:"#{key}", val)
-            # state.handler_mod.update_param(state.handler, :"#{key}", val)
-            # Process.sleep(10)
           end
         end
-        # Process.sleep(10)
         read_all_params()
       end
     end
@@ -247,14 +244,19 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode(:idle, state) do
     Farmbot.BotState.set_busy(false)
-    {:informational_settings, %{busy: false}, %{state | idle: true}}
+    if state.current do
+      GenServer.reply(state.current.from, {:error, :timeout})
+      {:informational_settings, %{busy: false}, %{state | current: nil, idle: true}}
+    else
+      {:informational_settings, %{busy: false}, %{state | idle: true}}
+    end
   end
 
 
-    defp handle_gcode(:report_params_complete, state) do
-      Logger.success 3, "Firmware initialized."
-      {nil, %{state | initialized: true}}
-    end
+  defp handle_gcode(:report_params_complete, state) do
+    Logger.success 3, "Firmware initialized."
+    {nil, %{state | initialized: true}}
+  end
 
   defp handle_gcode(:busy, state) do
     Farmbot.BotState.set_busy(true)

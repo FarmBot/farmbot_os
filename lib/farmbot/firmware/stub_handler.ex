@@ -71,7 +71,7 @@ defmodule Farmbot.Firmware.StubHandler do
   end
 
   defp do_idle(pid) do
-    Process.send_after(pid, :idle_timer, 1000)
+    Process.send_after(pid, :idle_timer, 3000)
   end
 
   def init([]) do
@@ -90,61 +90,61 @@ defmodule Farmbot.Firmware.StubHandler do
   end
 
   def handle_call({:move_absolute, pos, _speed}, _from, state) do
-    {:reply, :ok, [{:report_current_position, pos.x, pos.y, pos.z}], %{state | pos: pos}}
+    {:reply, :ok, [{:report_current_position, pos.x, pos.y, pos.z}, :done], %{state | pos: pos}}
   end
 
   def handle_call({:calibrate, _axis, _speed}, _from, state) do
-    {:reply, :ok, [], state}
+    {:reply, :ok, [:done], state}
   end
 
   def handle_call({:find_home, _axis, _speed}, _from, state) do
-    {:reply, :ok, [], state}
+    {:reply, :ok, [:done], state}
   end
 
   def handle_call({:home, axis, _speed}, _from, state) do
     state = %{state | pos: %{state.pos | axis => 0}}
     case axis do
-      :x -> {:reply, :ok, [{:report_current_position, 0, state.pos.y, state.pos.z}], state}
-      :y -> {:reply, :ok, [{:report_current_position, state.pos.x, 0, state.pos.z}], state}
-      :z -> {:reply, :ok, [{:report_current_position, state.pos.x, state.pos.y, 0}], state}
+      :x -> {:reply, :ok, [{:report_current_position, 0, state.pos.y, state.pos.z}, :done], state}
+      :y -> {:reply, :ok, [{:report_current_position, state.pos.x, 0, state.pos.z}, :done], state}
+      :z -> {:reply, :ok, [{:report_current_position, state.pos.x, state.pos.y, 0}, :done], state}
     end
   end
 
   def handle_call({:read_pin, pin, mode}, _from, state) do
-    {:reply, :ok, [{:report_pin_mode, pin, mode}, {:report_pin_value, pin, 1}], state}
+    {:reply, :ok, [{:report_pin_mode, pin, mode}, {:report_pin_value, pin, 1}, :done], state}
   end
 
   def handle_call({:write_pin, pin, mode, value}, _from, state) do
-    {:reply, :ok, [{:report_pin_mode, pin, mode}, {:report_pin_value, pin, value}], state}
+    {:reply, :ok, [{:report_pin_mode, pin, mode}, {:report_pin_value, pin, value}, :done], state}
   end
 
   def handle_call({:zero, axis}, _from, state) do
     state = %{state | pos: %{state.pos | axis => 0}}
     case axis do
-      :x -> {:reply, :ok, [{:report_current_position, 0, state.pos.y, state.pos.z}], state}
-      :y -> {:reply, :ok, [{:report_current_position, state.pos.x, 0, state.pos.z}], state}
-      :z -> {:reply, :ok, [{:report_current_position, state.pos.x, state.pos.y, 0}], state}
+      :x -> {:reply, :ok, [{:report_current_position, 0, state.pos.y, state.pos.z}, :done], state}
+      :y -> {:reply, :ok, [{:report_current_position, state.pos.x, 0, state.pos.z}, :done], state}
+      :z -> {:reply, :ok, [{:report_current_position, state.pos.x, state.pos.y, 0}, :done], state}
     end
   end
 
   def handle_call({:update_param, param, val}, _from, state) do
-    {:reply, :ok, [], %{state | fw_params: Map.put(state.fw_params, param, val)}}
+    {:reply, :ok, [:done], %{state | fw_params: Map.put(state.fw_params, param, val)}}
   end
 
   def handle_call({:read_param, param}, _from, state) do
     res = state.fw_params[param]
-    {:reply, :ok, [{:report_paramater_value, param, res}], state}
+    {:reply, :ok, [{:report_paramater_value, param, res}, :done], state}
   end
 
   def handle_call(:read_all_params, _from, state) do
-    {:reply, :ok, [:report_params_complete], state}
+    {:reply, :ok, [:report_params_complete, :done], state}
   end
 
   def handle_call(:emergency_lock, _from, state) do
-    {:reply, :ok, [], state}
+    {:reply, :ok, [:done], state}
   end
 
   def handle_call(:emergency_unlock, _from, state) do
-    {:reply, :ok, [], state}
+    {:reply, :ok, [:done], state}
   end
 end
