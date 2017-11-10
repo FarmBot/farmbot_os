@@ -13,10 +13,11 @@ defmodule Farmbot.BotState.Transport.HTTP do
   Each of the routes will be described below.
 
   * GET `/api/v1/bot/state` - returns the bot's current state.
+  * POST `/api/v1/celery_script` - execute celery script node.
   """
 
   use GenStage
-  alias Farmbot.BotState.Transport.HTTP.{Router, SocketHandler}
+  alias Farmbot.BotState.Transport.HTTP.Router
 
   @port 27347
 
@@ -91,7 +92,7 @@ defmodule Farmbot.BotState.Transport.HTTP do
   defp cowboy_dispatch do
     {:_,
       [
-        {"/ws", SocketHandler, []},
+        # {"/ws", SocketHandler, []},
         {:_, Plug.Adapters.Cowboy.Handler, {Router, []}},
       ]
     }

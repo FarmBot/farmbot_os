@@ -91,6 +91,7 @@ defmodule Farmbot.Mixfile do
       {:uuid, "~> 1.1"},
       {:cowboy, "~> 1.1"},
       {:plug, "~> 1.4"},
+      {:cors_plug, "~> 1.2"},
       {:ecto, "~> 2.2.2"},
       {:sqlite_ecto2, "~> 2.2.1"},
       {:wobserver, "~> 0.1.8"},
@@ -113,6 +114,7 @@ defmodule Farmbot.Mixfile do
       [
         {:bootloader, "~> 0.1"},
         {:nerves_runtime, "~> 0.4"},
+        {:nerves_firmware, "~> 0.4.0"},
         {:nerves_firmware_ssh, "~> 0.2"},
         {:nerves_network, "~> 0.3", github: "nerves-project/nerves_network", override: true},
         {:dhcp_server, github: "nerves-project/dhcp_server", branch: "elixirize-go!", override: true},

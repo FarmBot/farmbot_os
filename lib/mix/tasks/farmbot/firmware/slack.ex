@@ -27,6 +27,7 @@ defmodule Mix.Tasks.Farmbot.Firmware.Slack do
       *New Farmbot Firmware!*
       > *_Env_*:       `#{env()}`
       > *_Target_*:    `#{target()}`
+      > *_Version_*:   `#{mix_config(:version)}`
       > *_Commit_*:    `#{mix_config(:commit)}`
       > *_Time_*:      `#{time}`
       #{String.trim(comment)}

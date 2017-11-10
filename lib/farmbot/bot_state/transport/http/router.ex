@@ -7,10 +7,7 @@ defmodule Farmbot.BotState.Transport.HTTP.Router do
   alias HTTP.AuthPlug
 
 
-  # if Mix.env() == :dev do
-  # end
   use Plug.Debugger, otp_app: :farmbot
-
   plug Plug.Logger, log: :debug
   plug AuthPlug, env: :dev
   plug(Plug.Parsers, parsers: [:urlencoded, :multipart, :json], json_decoder: Poison)
@@ -22,7 +19,7 @@ defmodule Farmbot.BotState.Transport.HTTP.Router do
     send_resp conn, 200, data
   end
 
-  post "/celery_script" do
+  post "/api/v1/celery_script" do
     with {:ok, _, conn} <- conn |> read_body(),
          {:ok, ast} <- Farmbot.CeleryScript.AST.decode(conn.params)
     do
@@ -34,6 +31,13 @@ defmodule Farmbot.BotState.Transport.HTTP.Router do
     else
       err -> send_resp conn, 500, "#{inspect err}"
     end
+  end
+
+  # THIS IS A LEGACY ENDPOINT
+  post "/celery_script" do
+    loc = "/api/v1/celery_script"
+    conn = put_resp_header(conn, "location", loc)
+    send_resp(conn, 300, loc)
   end
 
   match _ do
