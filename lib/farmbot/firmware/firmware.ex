@@ -70,6 +70,11 @@ defmodule Farmbot.Firmware do
     GenStage.call(__MODULE__, {:write_pin, [pin, mode, value]}, :infinity)
   end
 
+  @doc "Request version."
+  def request_software_version do
+    GenStage.call(__MODULE__, {:request_software_version, []}, :infinity)
+  end
+
   @doc "Start the firmware services."
   def start_link do
     GenStage.start_link(__MODULE__, [], name: __MODULE__)
@@ -233,6 +238,7 @@ defmodule Farmbot.Firmware do
           end
         end
         read_all_params()
+        request_software_version()
       end
     end
     {nil, %{state | initializing: true}}
@@ -252,10 +258,13 @@ defmodule Farmbot.Firmware do
     end
   end
 
-
   defp handle_gcode(:report_params_complete, state) do
     Logger.success 3, "Firmware initialized."
     {nil, %{state | initialized: true}}
+  end
+
+  defp handle_gcode({:report_software_version, version}, state) do
+    {:informational_settings, %{firmware_version: version}, state}
   end
 
   defp handle_gcode(:busy, state) do

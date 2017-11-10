@@ -60,6 +60,10 @@ defmodule Farmbot.Firmware.UartHandler do
     GenStage.call(handler, {:write_pin, pin, pin_mode, value})
   end
 
+  def request_software_version(handler) do
+    GenStage.call(handler, :request_software_version)
+  end
+
   ## Private
 
   defmodule State do
@@ -238,6 +242,10 @@ defmodule Farmbot.Firmware.UartHandler do
       err ->
         {:reply, err, [], %{state | current_cmd: nil}}
     end
+  end
+
+  def handle_call(:request_software_version, _from, state) do
+    do_write("F83", state)
   end
 
   def handle_call(_call, _from, state) do

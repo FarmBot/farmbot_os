@@ -77,8 +77,8 @@ defmodule Farmbot.Firmware.Gcode.Parser do
 
   @spec parse_version(binary) :: {binary, {:report_software_version, binary}}
   defp parse_version(version) do
-    [derp | [code]] = String.split(version, " Q")
-    {code, {:report_software_version, derp}}
+    [v | [code]] = String.split(version, " Q")
+    {code, {:report_software_version, v}}
   end
 
   @type reporter ::
