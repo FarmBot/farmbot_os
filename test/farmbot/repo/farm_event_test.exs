@@ -17,7 +17,7 @@ defmodule Farmbot.Repo.FarmEventTest do
     "time_unit" => "never"
   }
 
-  test "inserts and transforms valid farm_event" do
+  test "inserts farm_event" do
     assert(
       @farm_event_seq
       |> Poison.encode!()
@@ -29,23 +29,6 @@ defmodule Farmbot.Repo.FarmEventTest do
     import Ecto.Query
     id = @farm_event_seq["id"]
     [fe] = from(fe in FarmEvent, where: fe.id == ^id, select: fe) |> Repo.A.all()
-    assert fe.executable_type == Repo.Sequence
     assert fe.start_time.__struct__ == DateTime
-  end
-
-  test "raises on unimplemented executable types" do
-    cs =
-      @farm_event_seq
-      |> Map.put("executable_type", "UnknownResource")
-      |> Poison.encode!()
-      |> Poison.decode!(as: %FarmEvent{})
-      |> FarmEvent.changeset()
-
-    msg =
-      ~S(value `"UnknownResource"` for `Farmbot.Repo.FarmEvent.executable_type` in `insert` does not match type Farmbot.Repo.ModuleType.FarmEvent)
-
-    assert_raise Ecto.ChangeError, msg, fn ->
-      Repo.A.insert!(cs)
-    end
   end
 end
