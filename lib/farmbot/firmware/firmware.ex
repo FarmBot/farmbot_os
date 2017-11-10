@@ -60,6 +60,11 @@ defmodule Farmbot.Firmware do
     GenStage.call(__MODULE__, {:emergency_unlock, []}, :infinity)
   end
 
+  @doc "Set a pin mode."
+  def set_pin_mode(pin, mode) do
+    GenStage.call(__MODULE__, {:set_pin_mode, [pin, mode]}, :infinity)
+  end
+
   @doc "Read a pin."
   def read_pin(pin, mode) do
     GenStage.call(__MODULE__, {:read_pin, [pin, mode]}, :infinity)

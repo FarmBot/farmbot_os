@@ -5,13 +5,13 @@ defmodule Farmbot.CeleryScript.AST.Node.WritePin do
 
   def execute(%{pin_mode: mode, pin_value: value, pin_number: num}, [], env) do
     env = mutate_env(env)
-    case Farmbot.Firmware.write_pin(num, mode, value) do
+    case Farmbot.Firmware.set_pin_mode(num, :analog) do
       :ok ->
-        {:ok, env}
-        # case Farmbot.Firmware.read_pin(num, mode) do
-        #   :ok -> {:ok, env}
-        #   {:error, reason} -> {:error, reason, env}
-        # end
+        case Farmbot.Firmware.write_pin(num, mode, value) do
+          :ok ->
+            {:ok, env}
+            {:error, reason} -> {:error, reason, env}
+          end
       {:error, reason} -> {:error, reason, env}
     end
   end

@@ -52,6 +52,10 @@ defmodule Farmbot.Firmware.UartHandler do
     GenStage.call(handler, :emergency_unlock)
   end
 
+  def set_pin_mode(handler, pin, mode) do
+    GenStage.call(handler, {:set_pin_mode, pin, mode})
+  end
+
   def read_pin(handler, pin, pin_mode) do
     GenStage.call(handler, {:read_pin, pin, pin_mode})
   end
@@ -154,6 +158,7 @@ defmodule Farmbot.Firmware.UartHandler do
   end
 
   defp do_write(bin, state, dispatch \\ []) do
+    Logger.debug 3, "writing: #{bin}"
     case UART.write(state.nerves, bin) do
       :ok -> {:reply, :ok, dispatch, %{state | current_cmd: bin}}
       err -> {:reply, err, [], %{state | current_cmd: nil}}
@@ -224,24 +229,19 @@ defmodule Farmbot.Firmware.UartHandler do
     do_write("F20", state)
   end
 
+  def handle_call({:set_pin_mode, pin, mode}, _from, state) do
+    encoded_mode = extract_pin_mode(mode)
+    do_write("F43 P#{pin} M#{encoded_mode}", state, [{:report_pin_mode, pin, mode}])
+  end
+
   def handle_call({:read_pin, pin, mode}, _from, state) do
-    encoded_mode = if(mode == :digital, do: 0, else: 1)
-    case UART.write(state.nerves, "F43 P#{pin} M#{encoded_mode}") do
-      :ok ->
-        do_write("F42 P#{pin} M#{encoded_mode}", state, [{:report_pin_mode, pin, mode}])
-      err ->
-        {:reply, err, [], %{state | current_cmd: nil}}
-    end
+    encoded_mode = extract_pin_mode(mode)
+    do_write("F42 P#{pin} M#{encoded_mode}", state, [{:report_pin_mode, pin, mode}])
   end
 
   def handle_call({:write_pin, pin, mode, value}, _from, state) do
-    encoded_mode = if(mode == :digital, do: 0, else: 1)
-    case UART.write(state.nerves, "F43 P#{pin} M#{encoded_mode}") do
-      :ok ->
-        do_write("F41 P#{pin} V#{value} M#{encoded_mode}", state, [{:report_pin_mode, pin, mode}, {:report_pin_value, pin, value}])
-      err ->
-        {:reply, err, [], %{state | current_cmd: nil}}
-    end
+    encoded_mode = extract_pin_mode(mode)
+    do_write("F41 P#{pin} V#{value} M#{encoded_mode}", state, [{:report_pin_mode, pin, mode}, {:report_pin_value, pin, value}])
   end
 
   def handle_call(:request_software_version, _from, state) do
@@ -254,5 +254,9 @@ defmodule Farmbot.Firmware.UartHandler do
 
   def handle_demand(_amnt, state) do
     {:noreply, [], state}
+  end
+
+  defp extract_pin_mode(mode) do
+    if(mode == :digital, do: 0, else: 1)
   end
 end
