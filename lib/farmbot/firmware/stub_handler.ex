@@ -54,6 +54,10 @@ defmodule Farmbot.Firmware.StubHandler do
     GenStage.call(handler, :emergency_unlock)
   end
 
+  def set_pin_mode(handler, pin, mode) do
+    GenStage.call(handler, {:set_pin_mode, pin, mode})
+  end
+
   def read_pin(handler, pin, pin_mode) do
     GenStage.call(handler, {:read_pin, pin, pin_mode})
   end
@@ -120,6 +124,10 @@ defmodule Farmbot.Firmware.StubHandler do
 
   def handle_call({:write_pin, pin, mode, value}, _from, state) do
     {:reply, :ok, [{:report_pin_mode, pin, mode}, {:report_pin_value, pin, value}, :done], state}
+  end
+
+  def handle_call({:set_pin_mode, pin, mode}, _from, state) do
+    {:reply, :ok, [{:report_pin_mode, pin, mode}], state}
   end
 
   def handle_call({:zero, axis}, _from, state) do
