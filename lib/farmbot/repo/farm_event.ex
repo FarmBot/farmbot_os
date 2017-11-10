@@ -7,16 +7,19 @@ defmodule Farmbot.Repo.FarmEvent do
       * A Sequence will execute.
   """
 
+  alias Farmbot.Repo.JSONType
+
   use Ecto.Schema
   import Ecto.Changeset
 
   schema "farm_events" do
-    field(:start_time, :utc_datetime)
-    field(:end_time, :utc_datetime)
+    field(:start_time, :string)
+    field(:end_time, :string)
     field(:repeat, :integer)
     field(:time_unit, :string)
     field(:executable_type, Farmbot.Repo.ModuleType.FarmEvent)
     field(:executable_id, :integer)
+    field(:calendar, JSONType)
   end
 
   use Farmbot.Repo.Syncable
@@ -33,7 +36,6 @@ defmodule Farmbot.Repo.FarmEvent do
 
   def changeset(farm_event, params \\ %{}) do
     farm_event
-    |> ensure_time([:start_time, :end_time])
     |> cast(params, @required_fields)
     |> validate_required(@required_fields)
     |> unique_constraint(:id)

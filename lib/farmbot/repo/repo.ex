@@ -33,7 +33,7 @@ defmodule Farmbot.Repo do
 
   @doc "Register a diff to be stored until a flip."
   def register_sync_cmd(sync_cmd) do
-    GenServer.call(__MODULE__, {:register_sync_cmd, sync_cmd})
+    GenServer.call(__MODULE__, {:register_sync_cmd, sync_cmd}, :infinity)
   end
 
   @doc false
@@ -52,7 +52,19 @@ defmodule Farmbot.Repo do
       "A" -> [repo_a, repo_b]
       "B" -> [repo_b, repo_a]
     end
+    # Copy configs
+    [current, _] = repos
+    copy_configs(current)
     {:ok, %{repos: repos, sync_cmds: []}}
+  end
+
+  defp copy_configs(repo) do
+    case repo.one(Farmbot.Repo.Device) do
+      nil -> :ok
+      %{timezone: tz} ->
+        Farmbot.System.ConfigStorage.update_config_value(:string, "settings", "timezone", tz)
+        :ok
+    end
   end
 
   def terminate(_,_) do
@@ -80,7 +92,7 @@ defmodule Farmbot.Repo do
         Farmbot.System.ConfigStorage.update_config_value(:string, "settings", "current_repo", "A")
     end
     Farmbot.BotState.set_sync_status(:synced)
-
+    copy_configs(repo_b)
     {:reply, repo_b, %{state | repos: [repo_b, repo_a]}}
   end
 
@@ -183,6 +195,7 @@ defmodule Farmbot.Repo do
   end
 
   defp sync_resource(repo, resource, slug) do
+    Logger.debug 3, "syncing: #{resource} (#{slug})"
     as = if resource in @singular_resources do
       struct(resource)
     else

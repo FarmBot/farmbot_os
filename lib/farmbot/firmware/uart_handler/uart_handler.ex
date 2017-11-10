@@ -158,7 +158,7 @@ defmodule Farmbot.Firmware.UartHandler do
   end
 
   defp do_write(bin, state, dispatch \\ []) do
-    Logger.debug 3, "writing: #{bin}"
+    # Logger.debug 3, "writing: #{bin}"
     case UART.write(state.nerves, bin) do
       :ok -> {:reply, :ok, dispatch, %{state | current_cmd: bin}}
       err -> {:reply, err, [], %{state | current_cmd: nil}}

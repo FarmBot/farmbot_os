@@ -5,6 +5,7 @@ defmodule Farmbot.Repo.A.Migrations.AddDevicesTable do
     create table("devices", primary_key: false) do
       add(:id, :integer)
       add(:name, :string)
+      add(:timezone, :string)
     end
 
     create(unique_index("devices", [:id]))
