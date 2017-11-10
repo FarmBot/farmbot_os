@@ -230,8 +230,8 @@ defmodule Farmbot.Firmware.UartHandler do
   end
 
   def handle_call({:set_pin_mode, pin, mode}, _from, state) do
-    encoded_mode = extract_pin_mode(mode)
-    do_write("F43 P#{pin} M#{encoded_mode}", state, [{:report_pin_mode, pin, mode}])
+    encoded_mode = if mode == :output, do: 1, else: 0
+    do_write("F43 P#{pin} M#{encoded_mode}", state, [])
   end
 
   def handle_call({:read_pin, pin, mode}, _from, state) do

@@ -71,8 +71,8 @@ defmodule Farmbot.Firmware.Handler do
   @doc "Write a pin."
   @callback write_pin(handler, pin, pin_mode, number) :: fw_ret_val
 
-  @doc "Set a pin mode."
-  @callback set_pin_mode(handler, pin, pin_mode) :: fw_ret_val
+  @doc "Set a pin mode (input/output)"
+  @callback set_pin_mode(handler, pin, :input | :output) :: fw_ret_val
 
   @doc "Request firmware version."
   @callback request_software_version(handler) :: fw_ret_val
