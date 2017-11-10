@@ -83,8 +83,8 @@ defmodule Farmbot.Mixfile do
       {:ex_json_schema, "~> 0.5.3"},
       {:rsa, "~> 0.0.1"},
       {:httpoison, "~> 0.13.0"},
-      # {:tzdata, "~> 0.1.201601", override: true},
-      # {:timex, "~> 3.1.13"},
+      {:tzdata, "~> 0.1.201601", override: true},
+      {:timex, "~> 3.1.13"},
 
       {:fs, "~> 3.4.0"},
       {:nerves_uart, "0.1.2"},
@@ -121,7 +121,7 @@ defmodule Farmbot.Mixfile do
   end
 
   defp system("rpi3"),
-    do: [{:nerves_system_farmbot_rpi3, "0.17.2-farmbot", runtime: false}]
+    do: [{:nerves_system_farmbot_rpi3, "0.17.2-farmbot.1", runtime: false}]
 
   defp system("rpi0"),
     do: [{:nerves_system_farmbot_rpi0, "0.18.3-farmbot", runtime: false}]
@@ -154,10 +154,15 @@ defmodule Farmbot.Mixfile do
     ["test": ["ecto.create --quiet", "ecto.migrate", "test"]]
   end
 
-  defp aliases(_env, "host"), do: []
+  defp aliases(_env, "host"), do: [
+    "firmware.slack": ["farmbot.firmware.slack"],
+    "firmware.sign":  ["farmbot.firmware.sign"]
+  ]
 
   defp aliases(_env, _system) do
     [
+      "firmware.slack": ["farmbot.firmware.slack"],
+      "firmware.sign":  ["farmbot.firmware.sign"],
       "deps.precompile": ["nerves.precompile", "deps.precompile"],
       "deps.loadpaths": ["deps.loadpaths", "nerves.loadpaths"]
     ]
