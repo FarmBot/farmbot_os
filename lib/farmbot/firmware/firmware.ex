@@ -26,7 +26,7 @@ defmodule Farmbot.Firmware do
 
   @doc "Manually set an axis's current position to zero."
   def zero(axis) do
-    GenStage.call(__MODULE__, {:zero, [axis]})
+    GenStage.call(__MODULE__, {:zero, [axis]}, :infinity)
   end
 
   @doc """
@@ -34,12 +34,12 @@ defmodule Farmbot.Firmware do
   For a list of paramaters see `Farmbot.Firmware.Gcode.Param`
   """
   def update_param(param, val) do
-    GenStage.call(__MODULE__, {:update_param, [param, val]})
+    GenStage.call(__MODULE__, {:update_param, [param, val]}, :infinity)
   end
 
   @doc false
   def read_all_params do
-    GenStage.call(__MODULE__, {:read_all_params, []})
+    GenStage.call(__MODULE__, {:read_all_params, []}, :infinity)
   end
 
   @doc """
@@ -47,27 +47,27 @@ defmodule Farmbot.Firmware do
   For a list of paramaters see `Farmbot.Firmware.Gcode.Param`
   """
   def read_param(param) do
-    GenStage.call(__MODULE__, {:read_param, [param]})
+    GenStage.call(__MODULE__, {:read_param, [param]}, :infinity)
   end
 
   @doc "Emergency lock Farmbot."
   def emergency_lock() do
-    GenStage.call(__MODULE__, {:emergency_lock, []})
+    GenStage.call(__MODULE__, {:emergency_lock, []}, :infinity)
   end
 
   @doc "Unlock Farmbot from Emergency state."
   def emergency_unlock() do
-    GenStage.call(__MODULE__, {:emergency_unlock, []})
+    GenStage.call(__MODULE__, {:emergency_unlock, []}, :infinity)
   end
 
   @doc "Read a pin."
   def read_pin(pin, mode) do
-    GenStage.call(__MODULE__, {:read_pin, [pin, mode]})
+    GenStage.call(__MODULE__, {:read_pin, [pin, mode]}, :infinity)
   end
 
   @doc "Write a pin."
   def write_pin(pin, mode, value) do
-    GenStage.call(__MODULE__, {:write_pin, [pin, mode, value]})
+    GenStage.call(__MODULE__, {:write_pin, [pin, mode, value]}, :infinity)
   end
 
   @doc "Start the firmware services."

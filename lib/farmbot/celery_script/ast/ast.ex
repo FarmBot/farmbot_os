@@ -55,6 +55,7 @@ defmodule Farmbot.CeleryScript.AST do
   def decode(binary) when is_binary(binary) do
     case Poison.decode(binary, keys: :atoms) do
       {:ok, map}  -> decode(map)
+      {:error, :invalid, _} -> {:error, :unknown_binary}
       {:error, _} -> {:error, :unknown_binary}
     end
   end

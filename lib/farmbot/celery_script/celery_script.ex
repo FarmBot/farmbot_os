@@ -10,7 +10,7 @@ defmodule Farmbot.CeleryScript do
   def execute(ast, env \\ struct(Macro.Env))
 
   def execute(%AST{kind: kind, body: body, args: args} = ast, env) do
-    Logger.busy 3, "doing: #{inspect ast}"
+    # Logger.busy 3, "doing: #{inspect ast}"
     maybe_log_comment(ast)
     case kind.execute(args, body, env) do
       {:ok, %Macro.Env{} = _env} = res -> res

@@ -66,21 +66,24 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
 
   def on_publish(["bot", _bot, "from_clients"], msg, state) do
     spawn fn() ->
-      msg
-      |> Poison.decode!()
-      |> Farmbot.CeleryScript.AST.decode()
-      |> elem(1)
-      |> fn(ast) ->
-        Logger.debug 3, "received #{inspect Farmbot.CeleryScript.AST.encode(ast) |> elem(1)}"
-        ast
-      end.()
-      |> Farmbot.CeleryScript.execute()
+      with {:ok, ast} <- Farmbot.CeleryScript.AST.decode(msg) do
+        case Farmbot.CeleryScript.execute(ast) do
+          {:ok, _} -> :ok
+          {:error, reason} ->
+            Logger.error 1, "Failed to execute CeleryScript: #{inspect reason}"
+        end
+      else
+        {:error, reason} ->
+          Logger.error 1, "Failed to decode #{msg} as CeleryScript!"
+          {:error, reason}
+      end
     end
-
     {:ok, state}
   end
 
-  def on_publish(["bot", _, "sync", ignore, _], _, state) when ignore in ["Log", "User", "Image"] do
+  def on_publish(["bot", _, "sync", ignore, _], _, state)
+    when ignore in ["Log", "User", "Image", "WebcamFeed"]
+  do
     {:ok, state}
   end
 
