@@ -17,6 +17,10 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_code("R06 " <> r), do: parse_report_calibration(r)
   def parse_code("R07 " <> _), do: {nil, :noop}
 
+  def parse_code("R11 " <> tag), do: {tag, :report_axis_home_complete_x}
+  def parse_code("R12 " <> tag), do: {tag, :report_axis_home_complete_y}
+  def parse_code("R13 " <> tag), do: {tag, :report_axis_home_complete_z}
+
   def parse_code("R20 Q" <> tag),   do: {tag, :report_params_complete}
   def parse_code("R21 " <> params), do: parse_pvq(params, :report_parameter_value)
   def parse_code("R23 " <> params), do: parse_report_axis_calibration(params)
@@ -356,9 +360,9 @@ defmodule Farmbot.Serial.Gcode.Parser do
   def parse_param(:movement_min_spd_y), do: 62
   def parse_param(:movement_min_spd_z), do: 63
 
-  def parse_param(:movement_home_speed_x), do: 65 
-  def parse_param(:movement_home_speed_y), do: 66 
-  def parse_param(:movement_home_speed_z), do: 67 
+  def parse_param(:movement_home_speed_x), do: 65
+  def parse_param(:movement_home_speed_y), do: 66
+  def parse_param(:movement_home_speed_z), do: 67
 
   def parse_param(:movement_max_spd_x), do: 71
   def parse_param(:movement_max_spd_y), do: 72
