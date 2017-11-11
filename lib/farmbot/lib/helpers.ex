@@ -24,8 +24,8 @@ defmodule Farmbot.Lib.Helpers do
   end
 
   def format_float(float) when is_float(float) do
-    [str] = :io_lib.format("~f",[float])
-    to_string(str) |> String.trim("0")
+    [str] = :io_lib.format("~.2f",[float])
+    str |> to_string
   end
 
   def format_float(integer) when is_integer(integer) do
