@@ -562,10 +562,26 @@ defmodule Farmbot.Serial.Handler do
     {:reply, reply}
   end
 
+  defp handle_gcode(:report_axis_home_complete_x, ctx) do
+    Logger.debug ">> X axis homing complete."
+    {:reply, :report_axis_home_complete_x}
+  end
+
+  defp handle_gcode(:report_axis_home_complete_y, ctx) do
+    Logger.debug ">> Y axis homing complete."
+    {:reply, :report_axis_home_complete_y}
+  end
+
+  defp handle_gcode(:report_axis_home_complete_z, ctx) do
+    Logger.debug ">> Z axis homing complete."
+    {:reply, :report_axis_home_complete_z}
+  end
+
   defp handle_gcode({:unhandled_gcode, code}, %Context{} = _ctx) do
     Logger.warn ">> got an misc gcode #{code}"
     {:reply, code}
   end
+
 
   defp handle_gcode(parsed, %Context{} = _ctx) do
     Logger.warn "Unhandled message: #{inspect parsed}"
