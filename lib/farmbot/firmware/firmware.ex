@@ -272,6 +272,21 @@ defmodule Farmbot.Firmware do
     {:informational_settings, %{firmware_version: version}, state}
   end
 
+  defp handle_gcode(:report_axis_home_complete_x, state) do
+    Logger.success 3, "X Axis homing complete."
+    {nil, state}
+  end
+
+  defp handle_gcode(:report_axis_home_complete_y, state) do
+    Logger.success 3, "Y Axis homing complete."
+    {nil, state}
+  end
+
+  defp handle_gcode(:report_axis_home_complete_z, state) do
+    Logger.success 3, "Z Axis homing complete."
+    {nil, state}
+  end
+
   defp handle_gcode(:busy, state) do
     Farmbot.BotState.set_busy(true)
     {:informational_settings, %{busy: true}, %{state | idle: false}}

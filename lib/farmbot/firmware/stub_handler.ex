@@ -112,9 +112,9 @@ defmodule Farmbot.Firmware.StubHandler do
   def handle_call({:home, axis, _speed}, _from, state) do
     state = %{state | pos: %{state.pos | axis => 0}}
     case axis do
-      :x -> {:reply, :ok, [{:report_current_position, 0, state.pos.y, state.pos.z}, :done], state}
-      :y -> {:reply, :ok, [{:report_current_position, state.pos.x, 0, state.pos.z}, :done], state}
-      :z -> {:reply, :ok, [{:report_current_position, state.pos.x, state.pos.y, 0}, :done], state}
+      :x -> {:reply, :ok, [:report_axis_home_complete_x, {:report_current_position, 0, state.pos.y, state.pos.z}, :done], state}
+      :y -> {:reply, :ok, [:report_axis_home_complete_y, {:report_current_position, state.pos.x, 0, state.pos.z}, :done], state}
+      :z -> {:reply, :ok, [:report_axis_home_complete_z, {:report_current_position, state.pos.x, state.pos.y, 0}, :done], state}
     end
   end
 
