@@ -7,28 +7,34 @@ defmodule Farmbot.Firmware.Gcode.Parser do
 
   @spec parse_code(binary) :: {binary, tuple}
 
+  # Status codes.
   def parse_code("R00 Q" <> tag), do: {tag, :idle}
   def parse_code("R01 Q" <> tag), do: {tag, :received}
   def parse_code("R02 Q" <> tag), do: {tag, :done}
   def parse_code("R03 Q" <> tag), do: {tag, :error}
   def parse_code("R04 Q" <> tag), do: {tag, :busy}
 
-  # Dont care about this.
   def parse_code("R05" <> _r), do: {nil, :noop}
   def parse_code("R06 " <> r), do: parse_report_calibration(r)
   def parse_code("R07 " <> _), do: {nil, :noop}
   def parse_code("R08 " <> echo), do: {:echo, {:echo, String.replace(echo, "\r", "")}}
 
+  # Report axis homing.
+  def parse_code("R11 " <> tag), do: {tag, :report_axis_home_complete_x}
+  def parse_code("R13 " <> tag), do: {tag, :report_axis_home_complete_y}
+  def parse_code("R14 " <> tag), do: {tag, :report_axis_home_complete_z}
+
+  # Param report.
   def parse_code("R20 Q" <> tag), do: {tag, :report_params_complete}
   def parse_code("R21 " <> params), do: parse_pvq(params, :report_parameter_value)
   def parse_code("R23 " <> params), do: parse_report_axis_calibration(params)
   def parse_code("R31 " <> params), do: parse_pvq(params, :report_status_value)
   def parse_code("R41 " <> params), do: parse_pvq(params, :report_pin_value)
-  def parse_code("R81 " <> params), do: parse_end_stops(params)
 
+  # Report Position.
+  def parse_code("R81 " <> params), do: parse_end_stops(params)
   def parse_code("R82 " <> p), do: report_xyz(p, :report_current_position)
   def parse_code("R83 " <> v), do: parse_version(v)
-
   def parse_code("R84 " <> p), do: report_xyz(p, :report_encoder_position_scaled)
   def parse_code("R85 " <> p), do: report_xyz(p, :report_encoder_position_raw)
   def parse_code("R87 Q" <> q), do: {q, :report_emergency_lock}
