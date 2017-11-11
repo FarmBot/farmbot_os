@@ -121,13 +121,15 @@ defmodule Farmbot.Bootstrap.Supervisor do
         ConfigStorage.update_config_value(:string, "authorization", "last_shutdown_reason", nil)
 
         children = [
-          worker(Farmbot.Bootstrap.AuthTask, []),
-          supervisor(Farmbot.Firmware.Supervisor, []),
-          supervisor(Farmbot.BotState.Supervisor, []),
+          worker(Farmbot.Bootstrap.AuthTask,                []),
+          supervisor(Farmbot.Firmware.Supervisor,           []),
+          supervisor(Farmbot.BotState.Supervisor,           []),
           supervisor(Farmbot.BotState.Transport.Supervisor, []),
-          supervisor(Farmbot.HTTP.Supervisor,     []),
-          supervisor(Farmbot.Repo.Supervisor,     []),
-          supervisor(Farmbot.Farmware.Supervisor, [])
+          supervisor(Farmbot.HTTP.Supervisor,               []),
+          supervisor(Farmbot.Repo.Supervisor,               []),
+          supervisor(Farmbot.Farmware.Supervisor,           []),
+          supervisor(Farmbot.Regimen.Supervisor,            []),
+          supervisor(Farmbot.FarmEvent.Supervisor,          [])
         ]
 
         opts = [strategy: :one_for_one]

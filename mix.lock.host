@@ -18,6 +18,7 @@
   "ex_json_schema": {:hex, :ex_json_schema, "0.5.5", "d8d4c3f47b86c9e634e124d518b290dda82a8b94dcc314e45af10042fc369361", [], [], "hexpm"},
   "excoveralls": {:hex, :excoveralls, "0.7.2", "f69ede8c122ccd3b60afc775348a53fc8c39fe4278aee2f538f0d81cc5e7ff3a", [], [{:exjsx, ">= 3.0.0", [hex: :exjsx, repo: "hexpm", optional: false]}, {:hackney, ">= 0.12.0", [hex: :hackney, repo: "hexpm", optional: false]}], "hexpm"},
   "exjsx": {:hex, :exjsx, "4.0.0", "60548841e0212df401e38e63c0078ec57b33e7ea49b032c796ccad8cde794b5c", [], [{:jsx, "~> 2.8.0", [hex: :jsx, repo: "hexpm", optional: false]}], "hexpm"},
+  "faker": {:hex, :faker, "0.9.0", "b22c55967fbd3413b9e5c121e59e75a553065587cf31e5aa2271b6fae2775cde", [], [], "hexpm"},
   "fs": {:hex, :fs, "3.4.0", "6d18575c250b415b3cad559e6f97a4c822516c7bc2c10bfbb2493a8f230f5132", [], [], "hexpm"},
   "gen_mqtt": {:hex, :gen_mqtt, "0.3.1", "6ce6af7c2bcb125d5b4125c67c5ab1f29bcec2638236509bcc6abf510a6661ed", [], [{:vmq_commons, "1.0.0", [hex: :vmq_commons, repo: "hexpm", optional: false]}], "hexpm"},
   "gen_stage": {:hex, :gen_stage, "0.12.2", "e0e347cbb1ceb5f4e68a526aec4d64b54ad721f0a8b30aa9d28e0ad749419cbb", [], [], "hexpm"},

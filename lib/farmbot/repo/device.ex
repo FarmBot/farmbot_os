@@ -7,6 +7,7 @@ defmodule Farmbot.Repo.Device do
 
   schema "devices" do
     field(:name, :string)
+    field(:timezone, :string)
   end
 
   use Farmbot.Repo.Syncable

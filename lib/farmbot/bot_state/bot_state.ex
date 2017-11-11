@@ -257,7 +257,7 @@ defmodule Farmbot.BotState do
   end
 
   def handle_call({:unregister_farmware, fw}, _, state) do
-    new_pi = Map.delete(state.process_info.farmware, fw.name)
+    new_pi = Map.delete(state.process_info.farmwares, fw.name)
     new_state = %{state | process_info: %{farmwares: new_pi}}
     {:reply, :ok, [new_state], new_state}
   end

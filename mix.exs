@@ -106,6 +106,7 @@ defmodule Farmbot.Mixfile do
       {:inch_ex, ">= 0.0.0", only: :dev},
       {:excoveralls, "~> 0.6", only: :test},
       {:mock, "~> 0.2.0", only: :test},
+      {:faker, "~> 0.9", only: :test }
     ]
   end
 

@@ -140,7 +140,7 @@ defmodule Farmbot.Firmware do
   end
 
   defp do_begin_cmd(%Current{fun: fun, args: args, from: _from} = current, state, dispatch) do
-    Logger.debug 3, "Firmware command: #{fun}#{inspect(args)}"
+    # Logger.debug 3, "Firmware command: #{fun}#{inspect(args)}"
     if fun == :emergency_unlock, do: Farmbot.BotState.set_sync_status(:sync_now)
 
     case apply(state.handler_mod, fun, [state.handler | args]) do

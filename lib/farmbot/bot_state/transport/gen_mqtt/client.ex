@@ -88,17 +88,19 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
   end
 
   def on_publish(["bot", _, "sync", kind, id], msg, state) do
-    mod = Module.concat(["Farmbot", "Repo", kind])
-    if Code.ensure_loaded?(mod) do
-      body = struct(mod)
-      sync_cmd = msg |> Poison.decode!(as: struct(Farmbot.Repo.SyncCmd, kind: mod, body: body, id: id))
-      Farmbot.Repo.register_sync_cmd(sync_cmd)
+    spawn fn() ->
+      mod = Module.concat(["Farmbot", "Repo", kind])
+      if Code.ensure_loaded?(mod) do
+        body = struct(mod)
+        sync_cmd = msg |> Poison.decode!(as: struct(Farmbot.Repo.SyncCmd, kind: mod, body: body, id: id))
+        Farmbot.Repo.register_sync_cmd(sync_cmd)
 
-      if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "auto_sync") do
-        Farmbot.Repo.flip()
+        if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "auto_sync") do
+          Farmbot.Repo.flip()
+        end
+      else
+        Logger.warn 2, "Unknown syncable: #{mod}: #{inspect Poison.decode!(msg)}"
       end
-    else
-      Logger.warn 2, "Unknown syncable: #{mod}: #{inspect Poison.decode!(msg)}"
     end
     {:ok, state}
   end

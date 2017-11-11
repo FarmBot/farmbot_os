@@ -30,6 +30,7 @@ config :farmbot, ecto_repos: repos
 for repo <- [Farmbot.Repo.A, Farmbot.Repo.B] do
   config :farmbot, repo,
     adapter: Sqlite.Ecto2,
+    loggers: [],
     database: "tmp/#{repo}_dev.sqlite3"
 end
 
