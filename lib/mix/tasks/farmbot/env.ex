@@ -13,6 +13,7 @@ defmodule Mix.Tasks.Farmbot.Env do
 
   @doc false
   def fw_file do
+    # Path.join([images_dir(), "test.fw"])
     Path.join([images_dir(), "#{mix_config(:app)}.fw"])
   end
 

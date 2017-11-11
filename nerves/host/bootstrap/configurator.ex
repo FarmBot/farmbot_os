@@ -6,7 +6,15 @@ defmodule Farmbot.Host.Bootstrap.Configurator do
     Supervisor.start_link(__MODULE__, [], opts)
   end
 
+  defp start_node() do
+    case Node.start(:"farmbot-host@127.0.0.1") do
+      {:ok, _} -> :ok
+      _ -> :ok
+    end
+  end
+
   def init(_) do
+    start_node()
     # Get out authorization data out of the environment.
     # for host environment this will be configured at compile time.
     # for target environment it will be configured by `configurator`.

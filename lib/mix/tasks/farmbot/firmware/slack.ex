@@ -13,14 +13,14 @@ defmodule Mix.Tasks.Farmbot.Firmware.Slack do
 
     fw_file_to_upload = if signed?, do: signed_fw_file(), else: fw_file()
     time     = format_date_time(File.stat!(fw_file_to_upload))
-    filename = "#{mix_config(:app)}-#{env()}-#{mix_config(:commit)}#{if signed?, do: "-signed-", else: "-"}#{time}.fw"
+    filename = "#{mix_config(:app)}-#{target()}-#{env()}-#{mix_config(:commit)}#{if signed?, do: "-signed-", else: "-"}#{time}.fw"
     comment  = Enum.join(comment, " ")
     Mix.shell.info [:green, "Uploading: #{filename} (#{fw_file_to_upload})"]
     url       = "https://slack.com/api/files.upload"
     form_data = %{
       :file             => fw_file_to_upload,
       "token"           => token,
-      "channels"        => "embedded-systems",
+      "channels"        => "embedded-systems,C58DCU4A3",
       "filename"        => filename,
       "title"           => filename,
       "initial_comment" => """
