@@ -21,8 +21,8 @@ defmodule Farmbot.Firmware.Gcode.Parser do
 
   # Report axis homing.
   def parse_code("R11 " <> tag), do: {tag, :report_axis_home_complete_x}
-  def parse_code("R13 " <> tag), do: {tag, :report_axis_home_complete_y}
-  def parse_code("R14 " <> tag), do: {tag, :report_axis_home_complete_z}
+  def parse_code("R12 " <> tag), do: {tag, :report_axis_home_complete_y}
+  def parse_code("R13 " <> tag), do: {tag, :report_axis_home_complete_z}
 
   # Param report.
   def parse_code("R20 Q" <> tag), do: {tag, :report_params_complete}
