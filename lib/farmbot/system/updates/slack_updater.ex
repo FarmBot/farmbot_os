@@ -4,8 +4,8 @@ defmodule Farmbot.System.Updates.SlackUpdater do
   """
 
   @token System.get_env("SLACK_TOKEN")
-  # @target Mix.Project.config()[:target]
-  @target "rpi3"
+  @target Mix.Project.config()[:target]
+  # @target "rpi3"
 
   use Farmbot.Logger
   use GenServer
@@ -114,10 +114,15 @@ defmodule Farmbot.System.Updates.SlackUpdater do
     if Path.extname(name) == ".fw" do
       if match?(<< <<"farmbot-">>, @target, <<"-">>, _rest :: binary>>, name) do
         Logger.warn(3, "Downloading and applying an image from slack!")
-        path = Farmbot.HTTP.download_file(dl_url, "/tmp/#{name}", [{'Authorization', 'Bearer #{state.token}'}], [])
-        Nerves.Firmware.upgrade_and_finalize(path)
-        Farmbot.System.reboot("Slack update.")
-        {:stop, :normal, state}
+        if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "os_auto_update") do
+          path = Farmbot.HTTP.download_file(dl_url, "/tmp/#{name}", [{'Authorization', 'Bearer #{state.token}'}], [])
+          Nerves.Firmware.upgrade_and_finalize(path)
+          Farmbot.System.reboot("Slack update.")
+          {:stop, :normal, state}
+        else
+          Logger.warn 3, "Not downloading debug update because auto updates are disabled."
+          {:noreply, state}
+        end
       else
         Logger.debug(3, "Not downloading #{name} (wrong target)")
         {:noreply, state}
