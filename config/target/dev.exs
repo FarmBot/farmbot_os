@@ -33,10 +33,10 @@ config :farmbot, :init, [
   # Start up Network
   Farmbot.Target.Network,
   # Wait for time time come up.
-  Farmbot.Target.Network.WaitForTime
+  Farmbot.Target.Network.WaitForTime,
 
   # Debug stuff
-  Farmbot.System.Debug,
+  Farmbot.System.Debug
 ]
 
 config :farmbot, :transport, [

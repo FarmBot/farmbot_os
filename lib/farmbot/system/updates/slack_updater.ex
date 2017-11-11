@@ -4,7 +4,8 @@ defmodule Farmbot.System.Updates.SlackUpdater do
   """
 
   @token System.get_env("SLACK_TOKEN")
-  @target Mix.Project.config()[:target]
+  # @target Mix.Project.config()[:target]
+  @target "rpi3"
 
   use Farmbot.Logger
   use GenServer
@@ -39,13 +40,13 @@ defmodule Farmbot.System.Updates.SlackUpdater do
       end
 
       receive do
-        {:stop, _reason} ->
+        {:stop, reason} ->
           term_msg =
             %{
               type: "message",
               id: 2,
               channel: "C58DCU4A3",
-              text: ":farmbot-genesis: #{node()} Disconnected!"
+              text: ":farmbot-genesis: #{node()} Disconnected (#{inspect reason})"
             }
             |> Poison.encode!()
 
@@ -79,11 +80,11 @@ defmodule Farmbot.System.Updates.SlackUpdater do
   end
 
   def start_link() do
-    GenServer.start_link(__MODULE__, @token, name: __MODULE__)
+    GenServer.start_link(__MODULE__, @token, [name: __MODULE__])
   end
 
   def init(nil) do
-    Logger.warn(3, "Not setting up slack.")
+    Logger.warn(3, "Not setting up slack (No token)")
     :ignore
   end
 
@@ -91,35 +92,29 @@ defmodule Farmbot.System.Updates.SlackUpdater do
     url = "https://slack.com/api/rtm.connect"
     payload = {:multipart, [{"token", token}]}
     headers = [{'User-Agent', 'Farmbot HTTP Adapter'}]
-
-    case HTTPoison.post(url, payload, headers) do
-      {:ok, %{status_code: 200, body: body}} ->
-        {:ok, rtm_socket} =
-          body
-          |> Poison.decode!()
-          |> ensure_good_login
-          |> Map.get("url")
-          |> RTMSocket.start_link(self())
-
-        {:ok, %{rtm_socket: rtm_socket, token: token}}
-
-      err ->
-        Logger.error(3, "Failed to get RTM Auth: #{inspect(err)}")
-        :ignore
-    end
-  end
-
-  defp ensure_good_login(%{"ok" => true} = msg), do: msg
-
-  defp ensure_good_login(msg) do
-    raise("failed to auth: #{inspect(msg)}")
+    with {:ok, %{status_code: 200, body: body}} <- HTTPoison.post(url, payload, headers),
+         {:ok, %{"ok" => true} = results} <- Poison.decode(body),
+         {:ok, url} <- Map.fetch(results, "url"),
+         {:ok, pid} <- RTMSocket.start_link(url, self())
+   do
+     Process.link(pid)
+     {:ok, %{rtm_socket: pid, token: token}}
+   else
+     {:error, :invalid, _} -> init(token)
+     {:ok, %{status_code: code}} ->
+       Logger.error 2, "Failed get RTM Auth: #{code}"
+       :ignore
+     {:error, reason} ->
+       Logger.error 2, "Failed to get RTM Auth: #{inspect reason}"
+       :ignore
+   end
   end
 
   def handle_info({:socket, %{"file" => %{ "url_private_download" => dl_url, "name" => name}}}, state) do
     if Path.extname(name) == ".fw" do
-      if match?(<<@target, <<"-">>, _rest :: binary>>, name) do
+      if match?(<< <<"farmbot-">>, @target, <<"-">>, _rest :: binary>>, name) do
         Logger.warn(3, "Downloading and applying an image from slack!")
-        path = Farmbot.HTTP.download_file(dl_url, "/tmp/#{name}", [], [{'Authorization', 'Bearer #{state.token}'}])
+        path = Farmbot.HTTP.download_file(dl_url, "/tmp/#{name}", [{'Authorization', 'Bearer #{state.token}'}], [])
         Nerves.Firmware.upgrade_and_finalize(path)
         Farmbot.System.reboot("Slack update.")
         {:stop, :normal, state}
@@ -132,12 +127,11 @@ defmodule Farmbot.System.Updates.SlackUpdater do
     end
   end
 
-  def handle_info({:socket, _msg}, state) do
-    # Logger.debug 2, "got message: #{inspect msg}"
-    {:noreply, state}
-  end
+  def handle_info({:socket, _msg}, state), do: {:noreply, state}
 
   def terminate(reason, state) do
-    send(state.rtm_socket, {:stop, reason})
+    if Process.alive?(state.rtm_socket) do
+      send(state.rtm_socket, {:stop, reason})
+    end
   end
 end
