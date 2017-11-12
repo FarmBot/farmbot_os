@@ -116,10 +116,15 @@ defmodule Farmbot.System.Updates.SlackUpdater do
       if match?(<< <<"farmbot-">>, @target, <<"-">>, _rest :: binary>>, name) do
         Logger.warn(3, "Downloading and applying an image from slack!")
         if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "os_auto_update") do
-          {:ok, path} = Farmbot.HTTP.download_file(dl_url, Path.join(@data_path, name), nil, "", [{'Authorization', 'Bearer #{state.token}'}])
-          Nerves.Firmware.upgrade_and_finalize(path)
-          Farmbot.System.reboot("Slack update.")
-          {:stop, :normal, %{state | updating: true}}
+          case Farmbot.HTTP.download_file(dl_url, Path.join(@data_path, name), nil, "", [{'Authorization', 'Bearer #{state.token}'}]) do
+            {:ok, path} ->
+              Nerves.Firmware.upgrade_and_finalize(path)
+              Farmbot.System.reboot("Slack update.")
+              {:stop, :normal, %{state | updating: true}}
+            {:error, reason} ->
+              Logger.error 3 "Failed to download update file: #{inspect reason}"
+              {:noreply, state}
+          end
         else
           Logger.warn 3, "Not downloading debug update because auto updates are disabled."
           {:noreply, state}
