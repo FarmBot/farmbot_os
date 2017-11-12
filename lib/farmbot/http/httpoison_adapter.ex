@@ -16,7 +16,7 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
   @redirect_status_codes [301, 302, 303, 307, 308]
 
   def request(http, method, url, body, headers, opts) do
-    GenServer.call(http, {:req, method, url, body, headers, opts})
+    GenServer.call(http, {:req, method, url, body, headers, opts}, :infinity)
   end
 
   def download_file(http, url, path, progress_callback, payload, headers) do

@@ -36,6 +36,10 @@ defmodule Farmbot.System.Init.FSCheckup do
     case File.write(check_file, msg) do
       :ok ->
         Process.sleep(500)
+        for fw <- Path.wildcard(Path.join(@data_path, "*.fw")) do
+          Logger.busy(3, "Deleting: #{fw}")
+          File.rm_rf(fw)
+        end
         :ok
 
       err ->

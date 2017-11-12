@@ -23,15 +23,7 @@ defmodule Mix.Tasks.Farmbot.Firmware.Slack do
       "channels"        => "embedded-systems,C58DCU4A3",
       "filename"        => filename,
       "title"           => filename,
-      "initial_comment" => """
-      *New Farmbot Firmware!*
-      > *_Env_*:       `#{env()}`
-      > *_Target_*:    `#{target()}`
-      > *_Version_*:   `#{mix_config(:version)}`
-      > *_Commit_*:    `#{mix_config(:commit)}`
-      > *_Time_*:      `#{time}`
-      #{String.trim(comment)}
-      """
+      "initial_comment" => build_comment(time, comment)
     }
     payload = Enum.map(form_data, fn({key, val}) -> {key, val} end)
     real_payload = {:multipart, payload}
@@ -46,6 +38,27 @@ defmodule Mix.Tasks.Farmbot.Firmware.Slack do
       other ->
         error("#{inspect other}")
     end
+  end
+
+  defp build_comment(time, comment) do
+    # %{
+    #   env: env(),
+    #   target: target(),
+    #   version: mix_config(:version),
+    #   commit: mix_config(:commit),
+    #   time: time,
+    #   comment: comment
+    # } |> Poison.encode!(pretty: true)
+    
+    """
+    *New Farmbot Firmware!*
+    > *_Env_*:       `#{env()}`
+    > *_Target_*:    `#{target()}`
+    > *_Version_*:   `#{mix_config(:version)}`
+    > *_Commit_*:    `#{mix_config(:commit)}`
+    > *_Time_*:      `#{time}`
+    #{String.trim(comment)}
+    """
   end
 
   defp error(msg) do

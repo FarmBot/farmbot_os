@@ -26,7 +26,7 @@ defmodule Farmbot.HTTP do
   def request(method, url, body \\ "", headers \\ [], opts \\ [])
 
   def request(method, url, body, headers, opts) do
-    GenServer.call(__MODULE__, {:request, method, url, body, headers, opts})
+    GenServer.call(__MODULE__, {:request, method, url, body, headers, opts}, :infinity)
   end
 
   @doc "Same as `request/5` but raises."
@@ -84,13 +84,13 @@ defmodule Farmbot.HTTP do
   def download_file(url, path, progress_callback \\ nil, payload \\ "", headers \\ [])
 
   def download_file(url, path, progress_callback, payload, headers) do
-    GenServer.call(__MODULE__, {:download_file, {url, path, progress_callback, payload, headers}})
+    GenServer.call(__MODULE__, {:download_file, {url, path, progress_callback, payload, headers}}, :infinity)
   end
 
   @doc "Upload a file to FB storage."
   def upload_file(path, meta \\ nil) do
     if File.exists?(path) do
-      GenServer.call(__MODULE__, {:upload_file, {path, meta}})
+      GenServer.call(__MODULE__, {:upload_file, {path, meta}}, :infinity)
     else
       {:error, "#{path} not found"}
     end
