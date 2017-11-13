@@ -1,6 +1,10 @@
 language: erlang
 otp_release:
 - 20.0
+cache:
+  directories:
+  - deps
+  - $HOME/.nerves
 sudo: required
 dist: trusty
 addons:
@@ -42,4 +46,4 @@ script:
 - mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez --force
 - mix deps.get
 - mix firmware
-- mix firmware.slack
+- mix firmware.slack --channels C58DCU4A3 $TRAVIS_COMMIT_MESSAGE; echo "done."

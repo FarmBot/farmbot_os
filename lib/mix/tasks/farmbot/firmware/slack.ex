@@ -7,7 +7,7 @@ defmodule Mix.Tasks.Farmbot.Firmware.Slack do
 
   def run(opts) do
     token = slack_token()
-    {keywords, comment, _} = opts |> OptionParser.parse(switches: [signed: :boolean])
+    {keywords, comment, _} = opts |> OptionParser.parse(switches: [signed: :boolean, channels: :string])
     signed?          = Keyword.get(keywords, :signed, false)
     Application.ensure_all_started(:httpoison)
 
@@ -17,10 +17,11 @@ defmodule Mix.Tasks.Farmbot.Firmware.Slack do
     comment  = Enum.join(comment, " ")
     Mix.shell.info [:green, "Uploading: #{filename} (#{fw_file_to_upload})"]
     url       = "https://slack.com/api/files.upload"
+    channels = Keyword.get(keywords, :channels, "embedded-systems,C58DCU4A3")
     form_data = %{
       :file             => fw_file_to_upload,
       "token"           => token,
-      "channels"        => "embedded-systems,C58DCU4A3",
+      "channels"        => channels,
       "filename"        => filename,
       "title"           => filename,
       "initial_comment" => build_comment(time, comment)
@@ -49,7 +50,7 @@ defmodule Mix.Tasks.Farmbot.Firmware.Slack do
     #   time: time,
     #   comment: comment
     # } |> Poison.encode!(pretty: true)
-    
+
     """
     *New Farmbot Firmware!*
     > *_Env_*:       `#{env()}`
