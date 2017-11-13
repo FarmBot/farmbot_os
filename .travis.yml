@@ -1,10 +1,6 @@
 language: erlang
 otp_release:
 - 20.0
-cache:
-  directories:
-  - deps
-  - $HOME/.nerves
 sudo: required
 dist: trusty
 addons:
