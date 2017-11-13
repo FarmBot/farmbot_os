@@ -141,7 +141,7 @@ defmodule Farmbot.BotState do
         true ->
           percent = ((bytes / total) * 100) |> round()
           # Logger.busy 3, "#{name} - #{bytes}/#{total} = #{percent}%"
-          {rem(percent, 10) == true, %JobProgress.Percent{percent: percent}}
+          {rem(percent, 10) == 0, %JobProgress.Percent{percent: percent}}
       end
       if do_send do
         Farmbot.BotState.set_job_progress(name, prog)
