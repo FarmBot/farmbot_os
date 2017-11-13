@@ -23,8 +23,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
   def init([]) do
     token = ConfigStorage.get_config_value(:string, "authorization", "token")
     with {:ok, %{bot: device, mqtt: mqtt_server}} <- Farmbot.Jwt.decode(token),
-         {:ok, conn} <- AMQP.Connection.open([host: mqtt_server]),
-        #  {:ok, conn} <- AMQP.Connection.open([host: mqtt_server, username: device, password: token]),
+         {:ok, conn} <- AMQP.Connection.open([host: mqtt_server, username: device, password: token]),
          {:ok, chan} <- AMQP.Channel.open(conn),
          queue_name  <- Enum.join([device, UUID.uuid1()], "-"),
          {:ok, _}    <- AMQP.Queue.declare(chan, queue_name, [auto_delete: true]),
@@ -98,7 +97,6 @@ defmodule Farmbot.BotState.Transport.AMQP do
   end
 
   def handle_info({:basic_deliver, payload, %{routing_key: key}}, state) do
-    IO.puts "#{key}"
     device = state.bot
     route = String.split(key, ".")
     case route do
