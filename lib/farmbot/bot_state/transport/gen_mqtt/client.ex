@@ -58,7 +58,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
     Logger.info(3, "Connected to real time services.")
 
     if state.cache do
-      GenMQTT.publish(self(), status_topic(state.device), state.cache, 0, false)
+      GenMQTT.publish(self(), status_topic(state.device), Poison.encode!(state.cache), 0, false)
     end
 
     {:ok, %{state | connected: true}}
@@ -110,10 +110,11 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
   end
 
   def handle_cast({:bot_state, bs}, state) do
-    json = Poison.encode!(bs)
-    GenMQTT.publish(self(), status_topic(state.device), json, 0, false)
-    # IO.puts "push state"
-    {:noreply, %{state | cache: json}}
+    if bs != state.cache do
+      json = Poison.encode!(bs)
+      GenMQTT.publish(self(), status_topic(state.device), json, 0, false)
+    end
+    {:noreply, %{state | cache: bs}}
   end
 
   def handle_cast({:bot_log, log}, state) do

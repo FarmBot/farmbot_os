@@ -36,7 +36,7 @@ defmodule Farmbot.System do
   def factory_reset(reason) do
     formatted = format_reason(reason)
     Ecto.drop()
-    write_file(reason)
+    write_file(formatted)
     @system_tasks.factory_reset(formatted)
   end
 
@@ -44,7 +44,7 @@ defmodule Farmbot.System do
   @spec reboot(unparsed_reason) :: no_return
   def reboot(reason) do
     formatted = format_reason(reason)
-    write_file(reason)
+    write_file(formatted)
     @system_tasks.reboot(formatted)
   end
 
@@ -52,7 +52,7 @@ defmodule Farmbot.System do
   @spec shutdown(unparsed_reason) :: no_return
   def shutdown(reason) do
     formatted = format_reason(reason)
-    write_file(reason)
+    write_file(formatted)
     @system_tasks.shutdown(formatted)
   end
 

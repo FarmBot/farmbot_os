@@ -42,20 +42,26 @@ defmodule Farmbot.Repo do
   end
 
   def init([repo_a, repo_b]) do
-    if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "first_sync") do
+    needs_hard_sync = if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "first_sync") || Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "auto_sync") do
       do_sync_all_resources(repo_a)
       do_sync_all_resources(repo_b)
       Farmbot.System.ConfigStorage.update_config_value(:bool, "settings", "first_sync", false)
+      Farmbot.BotState.set_sync_status(:synced)
+      false
+    else
+      Farmbot.BotState.set_sync_status(:sync_now)
+      true
     end
 
     repos = case Farmbot.System.ConfigStorage.get_config_value(:string, "settings", "current_repo") do
       "A" -> [repo_a, repo_b]
       "B" -> [repo_b, repo_a]
     end
+
     # Copy configs
     [current, _] = repos
     copy_configs(current)
-    {:ok, %{repos: repos, sync_cmds: []}}
+    {:ok, %{repos: repos, sync_cmds: [], needs_hard_sync: needs_hard_sync}}
   end
 
   defp copy_configs(repo) do
@@ -79,6 +85,22 @@ defmodule Farmbot.Repo do
     {:reply, repo_b, state}
   end
 
+  def handle_call(:flip, _, %{repos: [repo_a, repo_b], needs_hard_sync: true} = state) do
+    Farmbot.BotState.set_sync_status(:syncing)
+    do_sync_all_resources(repo_a)
+    do_sync_all_resources(repo_b)
+    Farmbot.BotState.set_sync_status(:synced)
+    copy_configs(repo_b)
+    case Farmbot.System.ConfigStorage.get_config_value(:string, "settings", "current_repo") do
+      "A" ->
+        Farmbot.System.ConfigStorage.update_config_value(:string, "settings", "current_repo", "B")
+      "B" ->
+        Farmbot.System.ConfigStorage.update_config_value(:string, "settings", "current_repo", "A")
+    end
+
+    {:reply, :ok, %{state | repos: [repo_b, repo_a], sync_cmds: [], needs_hard_sync: false}}
+  end
+
   def handle_call(:flip, _, %{repos: [repo_a, repo_b]} = state) do
     Farmbot.BotState.set_sync_status(:syncing)
     Enum.reverse(state.sync_cmds) |> Enum.map(fn(sync_cmd) ->
@@ -97,7 +119,10 @@ defmodule Farmbot.Repo do
   end
 
   def handle_call({:register_sync_cmd, sync_cmd}, _from, state) do
-    Farmbot.BotState.set_sync_status(:sync_now)
+    case Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "auto_sync") do
+      false -> Farmbot.BotState.set_sync_status(:sync_now)
+      true -> Farmbot.BotState.set_sync_status(:syncing)
+    end
     [_current_repo, other_repo] = state.repos
     apply_sync_cmd(other_repo, sync_cmd)
     sync_cmds = if sync_cmd in state.sync_cmds do
