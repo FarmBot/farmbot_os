@@ -96,7 +96,8 @@ defmodule Farmbot.Mixfile do
       {:sqlite_ecto2, "~> 2.2.1"},
       {:wobserver, "~> 0.1.8"},
       {:joken, "~> 1.1"},
-      {:socket, "~> 0.3"}
+      {:socket, "~> 0.3"},
+      {:amqp, "~> 1.0.0-pre.2"}
     ]
   end
 
