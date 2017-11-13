@@ -148,8 +148,11 @@ defmodule Farmbot.BotState.Transport.AMQP do
   end
 
   defp emit_cs(chan, bot, cs) do
-    json = Poison.encode!(cs)
-    :ok = AMQP.Basic.publish chan, @exchange, "bot.#{bot}.from_device", json
+    with {:ok, map} <- Farmbot.CeleryScript.AST.encode(cs),
+         {:ok, json} <- Poison.encode(map)
+    do
+      :ok = AMQP.Basic.publish chan, @exchange, "bot.#{bot}.from_device", json
+    end
   end
 
   defp push_bot_state(chan, bot, state) do

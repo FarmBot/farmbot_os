@@ -193,8 +193,8 @@ defmodule Farmbot.BotState do
 
   @doc "Emit an AST."
   def emit(%AST{} = ast) do
-    kind = Module.split(ast.kind) |> List.last |> Macro.underscore()
-    GenStage.call(__MODULE__, {:emit, %{ast | kind: kind}})
+    # kind = Module.split(ast.kind) |> List.last |> Macro.underscore()
+    GenStage.call(__MODULE__, {:emit, ast})
   end
 
   @doc "Get user env."
