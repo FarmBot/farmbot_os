@@ -41,8 +41,8 @@ defmodule Farmbot.Target.Network.Manager do
     {:stop, :normal, state}
   end
 
-  def handle_info(event, state) do
-    Logger.warn 3, "unhandled network event: #{inspect event}"
+  def handle_info(_event, state) do
+    # Logger.warn 3, "unhandled network event: #{inspect event}"
     {:noreply, state}
   end
 end
