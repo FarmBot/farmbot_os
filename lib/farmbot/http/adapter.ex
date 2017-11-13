@@ -26,6 +26,7 @@ defmodule Farmbot.HTTP.Adapter do
   Arg 2 should be the total number of bytes, nil, or the atom :complete
   """
   @type progress_callback :: (number, number | nil | :complete -> any)
+  @type stream_fun :: (number, binary -> any)
 
   @typedoc "A json serializable map of meta data about an upload."
   @type upload_meta :: map
@@ -35,7 +36,7 @@ defmodule Farmbot.HTTP.Adapter do
               {:ok, Response.t()} | {:error, term}
 
   @doc "Download a file to the Filesystem."
-  @callback download_file(adapter, url, Path.t(), progress_callback, body, headers) ::
+  @callback download_file(adapter, url, Path.t(), progress_callback, body, headers, stream_fun) ::
               {:ok, Path.t()} | {:error, term}
 
   @doc "Upload a file."

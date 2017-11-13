@@ -120,6 +120,42 @@ defmodule Farmbot.BotState do
               farmwares: %{}
             }
 
+    def download_progress_fun(name) do
+    alias Farmbot.BotState.JobProgress
+    fn(bytes, total) ->
+      {do_send, prog} = cond do
+        # if the total is complete spit out the bytes, and put a status of complete.
+        total == :complete ->
+          Logger.success 3, "#{name} complete."
+          {true, %JobProgress.Bytes{bytes: bytes, status: :complete}}
+
+        # if we don't know the total just spit out the bytes.
+        total == nil ->
+          # debug_log "#{name} - #{bytes} bytes."
+          {rem(bytes, 10) == 0, %JobProgress.Bytes{bytes: bytes}}
+        # if the number of bytes == the total bytes, percentage side is complete.
+        (div(bytes,total)) == 1 ->
+          Logger.success 3, "#{name} complete."
+          {true, %JobProgress.Percent{percent: 100, status: :complete}}
+        # anything else is a percent.
+        true ->
+          percent = ((bytes / total) * 100) |> round()
+          # Logger.busy 3, "#{name} - #{bytes}/#{total} = #{percent}%"
+          {rem(percent, 10) == true, %JobProgress.Percent{percent: percent}}
+      end
+      if do_send do
+        Farmbot.BotState.set_job_progress(name, prog)
+      else
+        :ok
+      end
+    end
+  end
+
+  @doc "Set job progress."
+  def set_job_progress(name, progress) do
+    GenServer.call(__MODULE__, {:set_job_progress, name, progress})
+  end
+
   @doc "Get a current pin value."
   def get_pin_value(num) do
     GenStage.call(__MODULE__, {:get_pin_value, num})
@@ -232,6 +268,12 @@ defmodule Farmbot.BotState do
 
   def handle_call(:get_current_pos, _from, state) do
     {:reply, state.location_data.position, [], state}
+  end
+
+  def handle_call({:set_job_progress, name, progress}, _from, state) do
+    jobs = Map.put(state.jobs, name, progress)
+    new_state = %{state | jobs: jobs}
+    {:reply, :ok, [new_state], new_state}
   end
 
   def handle_call({:register_farmware, fw}, _, state) do

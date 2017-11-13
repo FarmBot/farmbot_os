@@ -81,10 +81,10 @@ defmodule Farmbot.HTTP do
   end
 
   @doc "Download a file to the filesystem."
-  def download_file(url, path, progress_callback \\ nil, payload \\ "", headers \\ [])
+  def download_file(url, path, progress_callback \\ nil, payload \\ "", headers \\ [], stream_fun \\ nil)
 
-  def download_file(url, path, progress_callback, payload, headers) do
-    GenServer.call(__MODULE__, {:download_file, {url, path, progress_callback, payload, headers}}, :infinity)
+  def download_file(url, path, progress_callback, payload, headers, stream_fun) do
+    GenServer.call(__MODULE__, {:download_file, {url, path, progress_callback, payload, headers, stream_fun}}, :infinity)
   end
 
   @doc "Upload a file to FB storage."
@@ -115,8 +115,8 @@ defmodule Farmbot.HTTP do
     {:reply, res, state}
   end
 
-  def handle_call({:download_file, {url, path, progress_callback, payload, headers}}, _from, %{adapter: adapter} = state) do
-    res = case @adapter.download_file(adapter, url, path, progress_callback, payload, headers) do
+  def handle_call({:download_file, {url, path, progress_callback, payload, headers, stream_fun}}, _from, %{adapter: adapter} = state) do
+    res = case @adapter.download_file(adapter, url, path, progress_callback, payload, headers, stream_fun) do
       {:ok, _} = res -> res
       {:error, _} = res -> res
     end

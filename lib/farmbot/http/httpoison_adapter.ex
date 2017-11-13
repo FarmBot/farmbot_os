@@ -19,15 +19,16 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
     GenServer.call(http, {:req, method, url, body, headers, opts}, :infinity)
   end
 
-  def download_file(http, url, path, progress_callback, payload, headers) do
+  def download_file(http, url, path, progress_callback, payload, headers, stream_fun) do
     case request(
            http,
            :get,
            url,
            payload,
            headers,
-           file: path,
-           progress_callback: progress_callback
+           [file: path,
+            stream_fun: stream_fun,
+            progress_callback: progress_callback]
          ) do
       {:ok, %Response{status_code: code}} when is_2xx(code) -> {:ok, path}
       {:ok, %Response{} = resp} -> {:error, resp}
@@ -100,6 +101,7 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
       :file,
       :timeout,
       :progress_callback,
+      :stream_fun,
       :file_size
     ]
   end
@@ -185,7 +187,12 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
         if buffer.timeout, do: Process.cancel_timer(buffer.timeout)
         timeout = Process.send_after(self(), {:timeout, ref}, 30000)
         maybe_log_progress(buffer)
-        maybe_stream_to_file(buffer.file, buffer.status_code, chunk)
+        case buffer.stream_fun do
+          nil ->
+            maybe_stream_to_file(buffer.file, buffer.status_code, chunk)
+          fun when is_function(fun) ->
+            fun.(buffer.status_code, chunk)
+        end
         HTTPoison.stream_next(%AsyncResponse{id: ref})
 
         {
@@ -229,12 +236,19 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
 
     case file do
       filename when is_binary(filename) ->
-        # debug_log "Opening file: #{filename}"
-        File.rm(file)
-        :ok = File.touch(filename)
-        {:ok, fd} = :file.open(filename, [:write, :raw])
-        {fd, Keyword.merge(opts, stream_to: self(), async: :once)}
-
+        if Keyword.get(opts, :stream_fun) do
+          # If there is a stream function, don't open the file.
+          {nil, opts}
+        else
+          # If there is, delete the old file,
+          File.rm(file)
+          # Make sure it exists and is empty
+          :ok = File.touch(filename)
+          # Open the file
+          {:ok, fd} = :file.open(filename, [:write, :raw])
+          # Set opts.
+          {fd, Keyword.merge(opts, stream_to: self(), async: :once)}
+        end
       _ ->
         {nil, opts}
     end
@@ -252,7 +266,8 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
   defp maybe_close_file(fd), do: :file.close(fd)
 
   defp maybe_log_progress(%Buffer{file: file, progress_callback: pcb})
-       when is_nil(file) or is_nil(pcb) do
+    when is_nil(file) or is_nil(pcb)
+  do
     # debug_log "File (#{inspect file}) or progress callback: #{inspect pcb} are nil"
     :ok
   end
@@ -317,6 +332,7 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
           data: "",
           headers: nil,
           status_code: nil,
+          stream_fun: Keyword.get(opts, :stream_fun, nil),
           progress_callback: Keyword.fetch!(opts, :progress_callback),
           request: {method, url, body, headers, opts}
         }
