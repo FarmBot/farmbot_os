@@ -1,0 +1,49 @@
+language: erlang
+otp_release:
+  - 19.2
+
+sudo: required
+dist: trusty
+addons:
+  apt:
+    sources:
+      - llvm-toolchain-precise
+      - ubuntu-toolchain-r-test
+    packages:
+    - node
+    - squashfs-tools
+    - libmnl-dev
+    - g++
+    - libssl-dev
+    - libncurses5-dev
+    - bc
+    - m4
+    - make
+    - unzip
+    - cmake
+    - python
+
+env:
+  global:
+  - ELIXIR_VERSION=1.4.1 ERLANG_VERSION=19.2 MIX_TARGET=rpi3 NO_WEBPACK=true
+before_install:
+# - wget https://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_$ERLANG_VERSION-1~ubuntu~trusty_amd64.deb;
+# - sudo dpkg -i esl-erlang_$ERLANG_VERSION-1~ubuntu~trusty_amd64.deb
+- wget https://github.com/elixir-lang/elixir/releases/download/v$ELIXIR_VERSION/Precompiled.zip
+- wget https://github.com/fhunleth/fwup/releases/download/v0.16.1/fwup_0.16.1_amd64.deb
+- sudo dpkg -i fwup_0.16.1_amd64.deb
+- unzip -d elixir Precompiled.zip
+before_script:
+- export PATH=`pwd`/elixir/bin:$PATH
+script:
+- sudo apt-get install -qq linux-headers-`uname -r`
+- if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
+- if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.7" CC="clang-3.7"; fi
+- mix local.hex --force
+- mix local.rebar --force
+- mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez --force
+- mix deps.get
+- npm install
+- npm run build
+- mix firmware
+- mix firmware.slack
