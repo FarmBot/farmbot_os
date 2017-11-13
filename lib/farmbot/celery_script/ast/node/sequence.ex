@@ -1,6 +1,7 @@
 defmodule Farmbot.CeleryScript.AST.Node.Sequence do
   @moduledoc false
   use Farmbot.CeleryScript.AST.Node
+  use Farmbot.Logger
   allow_args [:version, :is_outdated]
 
   def execute(%{version: _, is_outdated: _}, body, env) do
@@ -15,5 +16,8 @@ defmodule Farmbot.CeleryScript.AST.Node.Sequence do
     end
   end
 
-  defp do_reduce([], env), do: {:ok, env}
+  defp do_reduce([], env) do
+    Logger.success(2, "Sequence complete!")
+    {:ok, env}
+  end
 end

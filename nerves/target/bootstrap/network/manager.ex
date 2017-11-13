@@ -18,6 +18,7 @@ defmodule Farmbot.Target.Network.Manager do
     SystemRegistry.register()
     {:ok, _} = Registry.register(Nerves.NetworkInterface, interface, [])
     {:ok, _} = Registry.register(Nerves.Udhcpc, interface, [])
+    {:ok, _} = Registry.register(Nerves.WpaSupplicant, interface, [])
     Network.setup(interface, opts)
     {:ok, %{interface: interface, ip_address: nil, connected: false}}
   end
@@ -34,8 +35,14 @@ defmodule Farmbot.Target.Network.Manager do
     {:noreply, %{state | ip_address: ip, connected: connected || false}}
   end
 
-  def handle_info(_event, state) do
-    # Logger.warn "unhandled network event: #{inspect event}"
+  def handle_info({Nerves.WpaSupplicant, {:INFO, "WPA: 4-Way Handshake failed - pre-shared key may be incorrect"}, _}, state) do
+    Logger.error 1, "Incorrect PSK."
+    Farmbot.System.factory_reset("WIFI Authentication failed. (incorrect psk)")
+    {:stop, :normal, state}
+  end
+
+  def handle_info(event, state) do
+    Logger.warn 3, "unhandled network event: #{inspect event}"
     {:noreply, state}
   end
 end

@@ -15,11 +15,15 @@ defmodule Farmbot.Host.TargetConfiguratorTest do
 
   alias Farmbot.System.ConfigStorage
 
-  get "/" do
-    last_reset_reason =
-      ConfigStorage.get_config_value(:string, "authorization", "last_shutdown_reason") || ""
+  @data_path Application.get_env(:farmbot, :data_path)
 
-    render_page(conn, "index", last_reset_reason: last_reset_reason)
+  get "/" do
+    last_reset_reason_file = Path.join(@data_path, "last_shutdown_reason")
+    if File.exists?(last_reset_reason_file) do
+      render_page(conn, "index", [last_reset_reason: File.read!(last_reset_reason_file)])
+    else
+      render_page(conn, "index", [last_reset_reason: nil])
+    end
   end
 
   get "/network" do

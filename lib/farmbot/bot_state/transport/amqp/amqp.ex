@@ -7,8 +7,10 @@ defmodule Farmbot.BotState.Transport.AMQP do
   alias Farmbot.System.ConfigStorage
   alias Farmbot.CeleryScript
   alias CeleryScript.AST
+
   @exchange "amq.topic"
 
+  @doc false
   def start_link do
     GenStage.start_link(__MODULE__, [], [name: __MODULE__])
   end
@@ -22,8 +24,8 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
   def init([]) do
     token = ConfigStorage.get_config_value(:string, "authorization", "token")
-    with {:ok, %{bot: device, mqtt: mqtt_server}} <- Farmbot.Jwt.decode(token),
-         {:ok, conn} <- AMQP.Connection.open([host: mqtt_server, username: device, password: token]),
+    with {:ok, %{bot: device, mqtt: mqtt_server, virtual_host: vhost}} <- Farmbot.Jwt.decode(token),
+         {:ok, conn} <- AMQP.Connection.open([host: mqtt_server, username: device, password: token, virtual_host: vhost || "/"]),
          {:ok, chan} <- AMQP.Channel.open(conn),
          queue_name  <- Enum.join([device, UUID.uuid1()], "-"),
          {:ok, _}    <- AMQP.Queue.declare(chan, queue_name, [auto_delete: true]),

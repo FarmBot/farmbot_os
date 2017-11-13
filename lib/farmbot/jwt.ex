@@ -6,6 +6,7 @@ defmodule Farmbot.Jwt do
     :exp,
     :iss,
     :mqtt,
+    :virtual_host,
     :os_update_server
   ]
 

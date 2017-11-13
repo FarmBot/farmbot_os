@@ -7,14 +7,17 @@
 
 <body>
   <h1>Configure your FarmBot</h1>
-  <%=
-    last_reset_reason
-  %>
+
   <div class="widget">
     <div class="widget-header">
       <h5>Start</h5>
     </div>
     <div class="widget-content">
+      <%= if last_reset_reason do %>
+        <h5> Farmbot unexpectedly shut down </h5> <p>
+        Last shutdown reason: <%= last_reset_reason %>
+      <% end %>
+
       <p>Get ready to configure your FarmBot!</p>
       <ui>
         <li>Network</li>

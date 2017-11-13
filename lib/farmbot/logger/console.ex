@@ -31,10 +31,22 @@ defmodule Farmbot.Logger.Console do
   def handle_events(events, _, %{verbosity: verbosity_filter, level_filters: filters} = state) do
     for log <- events do
       if log.verbosity <= verbosity_filter and log.level not in filters do
-        IO.inspect log
+        maybe_log(log)
       end
     end
     {:noreply, [], state}
+  end
+
+  defp maybe_log(%Farmbot.Log{module: nil}) do
+    :ok
+  end
+
+  defp maybe_log(%Farmbot.Log{module: module} = log) do
+    if List.first(Module.split(module)) == "Farmbot" do
+      IO.inspect log
+    else
+      :ok
+    end
   end
 
   def handle_call({:set_verbosity_level, num}, _from, state) do

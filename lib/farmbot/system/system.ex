@@ -3,14 +3,14 @@ defmodule Farmbot.System do
   Common functionality that should be implemented by a system
   """
 
-  alias Farmbot.System.ConfigStorage
-  # alias Farmbot.System.Init.Ecto
+  alias Farmbot.System.Init.Ecto
 
   error_msg = """
-  Please configure your `:system_tasks` behaviour!
+  Please configure `:system_tasks` and `:data_path`!
   """
 
   @system_tasks Application.get_env(:farmbot, :behaviour)[:system_tasks] || Mix.raise(error_msg)
+  @data_path Application.get_env(:farmbot, :data_path) || Mix.raise(error_msg)
 
   @typedoc "Reason for a task to execute. Should be human readable."
   @type reason :: binary
@@ -35,11 +35,8 @@ defmodule Farmbot.System do
   @spec factory_reset(unparsed_reason) :: no_return
   def factory_reset(reason) do
     formatted = format_reason(reason)
-    # Ecto.drop()
-    # Ecto.setup(ConfigStorage)
-    # Ecto.migrate(ConfigStorage)
-    # ensure_cs()
-    # ConfigStorage.update_config_value(:string, "authorization", "last_shutdown_reason", formatted)
+    Ecto.drop()
+    write_file(reason)
     @system_tasks.factory_reset(formatted)
   end
 
@@ -47,28 +44,21 @@ defmodule Farmbot.System do
   @spec reboot(unparsed_reason) :: no_return
   def reboot(reason) do
     formatted = format_reason(reason)
-    ensure_cs()
-    ConfigStorage.update_config_value(:string, "authorization", "last_shutdown_reason", formatted)
+    write_file(reason)
     @system_tasks.reboot(formatted)
   end
 
   @doc "Shutdown."
   @spec shutdown(unparsed_reason) :: no_return
   def shutdown(reason) do
-    ensure_cs()
     formatted = format_reason(reason)
-    ConfigStorage.update_config_value(:string, "authorization", "last_shutdown_reason", formatted)
+    write_file(reason)
     @system_tasks.shutdown(formatted)
   end
 
-  defp ensure_cs(count \\ 0)
-
-  defp ensure_cs(100) do
-    ConfigStorage.start_link()
-  end
-
-  defp ensure_cs(count) do
-    Process.whereis(ConfigStorage) || ensure_cs(count + 1)
+  defp write_file(reason) do
+    file = Path.join(@data_path, "last_shutdown_reason")
+    File.write!(file, reason)
   end
 
   @ref Mix.Project.config()[:commit]

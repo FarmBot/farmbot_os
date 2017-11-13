@@ -16,9 +16,15 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
 
+  @data_path Application.get_env(:farmbot, :data_path)
+
   get "/" do
-    last_reset_reason = ConfigStorage.get_config_value(:string, "authorization", "last_shutdown_reason") || ""
-    render_page(conn, "index", [last_reset_reason: last_reset_reason])
+    last_reset_reason_file = Path.join(@data_path, "last_shutdown_reason")
+    if File.exists?(last_reset_reason_file) do
+      render_page(conn, "index", [last_reset_reason: File.read!(last_reset_reason_file)])
+    else
+      render_page(conn, "index", [last_reset_reason: nil])
+    end
   end
 
   get "/network" do
@@ -74,19 +80,27 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   end
 
   get "/finish" do
-    conn = render_page(conn, "finish")
-    spawn fn() ->
-      Logger.success 2, "Configuration finished."
-      Process.sleep(2500)
-      :ok = Supervisor.terminate_child(
-      Farmbot.Target.Bootstrap.Configurator,
-      Farmbot.Target.Bootstrap.Configurator.CaptivePortal
-      )
+    email = ConfigStorage.get_config_value(:string, "authorization", "email")
+    pass = ConfigStorage.get_config_value(:string, "authorization", "password")
+    server = ConfigStorage.get_config_value(:string, "authorization", "server")
+    network = !(Enum.empty?(ConfigStorage.all(NetworkInterface)))
+    if email && pass && server && network do
+      conn = render_page(conn, "finish")
+      spawn fn() ->
+        Logger.success 2, "Configuration finished."
+        Process.sleep(2500)
+        :ok = Supervisor.terminate_child(
+        Farmbot.Target.Bootstrap.Configurator,
+        Farmbot.Target.Bootstrap.Configurator.CaptivePortal
+        )
 
-      :ok = Supervisor.stop(Farmbot.Target.Bootstrap.Configurator, :normal)
+        :ok = Supervisor.stop(Farmbot.Target.Bootstrap.Configurator, :normal)
+      end
+      conn
+    else
+      Logger.warn 3, "Not configured yet. Restarting configuration."
+      redir(conn, "/")
     end
-
-    conn
   end
 
   defp sort_network_configs(map, acc \\ %{})
@@ -117,7 +131,6 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
   defp input_network_configs([{iface, settings} | rest]) do
     if settings["enable"] == "on" do
-      Logger.info(3, "inputting #{iface} - #{inspect(settings)}")
 
       case settings["type"] do
         "wireless" ->
