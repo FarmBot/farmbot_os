@@ -50,12 +50,21 @@ config :farmbot, :behaviour,
   system_tasks: Farmbot.Target.SystemTasks,
   firmware_handler: Farmbot.Firmware.StubHandler
 
-file = Path.join(System.user_home!(), ".ssh/id_rsa.pub")
-authorized_keys = (System.get_env("TRAVIS_AUTHORIZED_KEYS") || "") |> String.split(",")
-
-if File.exists?(file) do
-  config :nerves_firmware_ssh, authorized_keys: [File.read!(file)] ++ authorized_keys
+local_file = Path.join(System.user_home!(), ".ssh/id_rsa.pub")
+local_key = if File.exists?(local_file) do
+  [File.read!(local_file)]
+else
+  []
 end
+
+travis_file = "travis_env"
+travis_keys = if File.exists?(travis_file) do
+  File.read!(travis_file) |> String.split(",")
+else
+  []
+end
+
+config :nerves_firmware_ssh, authorized_keys: local_key ++ travis_keys
 
 config :nerves_init_gadget,
   address_method: :static
