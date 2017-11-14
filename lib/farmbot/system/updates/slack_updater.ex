@@ -126,6 +126,8 @@ defmodule Farmbot.System.Updates.SlackUpdater do
           dl_fun = Farmbot.BotState.download_progress_fun("FBOS_OTA")
           case Farmbot.HTTP.download_file(dl_url, Path.join(@data_path, name), dl_fun, "", [{'Authorization', 'Bearer #{state.token}'}]) do
             {:ok, path} ->
+              Process.unlink(state.rtm_socket)
+              send(state.rtm_socket, {:stop, "going down for update."})
               Nerves.Firmware.upgrade_and_finalize(path)
               Farmbot.System.reboot("Slack update.")
               {:stop, :normal, %{state | updating: true}}
