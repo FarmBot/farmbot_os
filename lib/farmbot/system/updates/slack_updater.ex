@@ -77,6 +77,36 @@ defmodule Farmbot.System.Updates.SlackUpdater do
       Socket.Web.send!(socket, {:text, msg})
     end
 
+    defp handle_data(%{"channel" => "C58DCU4A3", "text" => message, "type" => "message"}, socket, _cb) do
+      if String.starts_with?(message, "#{node()}") do
+        rest = String.trim(message, "#{node()}") |> String.trim()
+        results = case Farmbot.CeleryScript.AST.decode(rest) do
+          {:ok, ast} ->
+            inspect(Farmbot.CeleryScript.execute(ast) |> elem(0))
+          _ ->
+            try do
+              {res, _} = Code.eval_string rest, [], __ENV__
+              inspect res
+            rescue
+              e -> inspect e
+            end
+        end
+        msg = %{
+          type: "message",
+          id: UUID.uuid1(),
+          channel: "C58DCU4A3",
+          text: """
+          ```
+          #{results}
+          ```
+          """
+        } |> Poison.encode!
+        Socket.Web.send!(socket, {:text, msg})
+      else
+        Logger.debug 3, "does not match"
+      end
+    end
+
     defp handle_data(msg, _socket, cb), do: send(cb, {:socket, msg})
   end
 
@@ -126,8 +156,6 @@ defmodule Farmbot.System.Updates.SlackUpdater do
           dl_fun = Farmbot.BotState.download_progress_fun("FBOS_OTA")
           case Farmbot.HTTP.download_file(dl_url, Path.join(@data_path, name), dl_fun, "", [{'Authorization', 'Bearer #{state.token}'}]) do
             {:ok, path} ->
-              Process.unlink(state.rtm_socket)
-              send(state.rtm_socket, {:stop, "going down for update."})
               Nerves.Firmware.upgrade_and_finalize(path)
               Farmbot.System.reboot("Slack update.")
               {:stop, :normal, %{state | updating: true}}
