@@ -91,11 +91,13 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
     spawn fn() ->
       mod = Module.concat(["Farmbot", "Repo", kind])
       if Code.ensure_loaded?(mod) do
-        %{"body" => body} = Poison.decode!(payload, as: %{"body" => struct(mod)})
+        %{"body" => body, "args" => %{"label" => uuid}} = Poison.decode!(payload, as: %{"body" => struct(mod)})
         Farmbot.Repo.register_sync_cmd(String.to_integer(remote_id), kind, body)
         if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "auto_sync") do
-          # Farmbot.Repo.flip()
+          Farmbot.Repo.flip()
         end
+
+        Farmbot.CeleryScript.AST.Node.RpcOk.execute(%{label: uuid}, [], struct(Macro.Env))
       else
         Logger.warn 2, "Unknown syncable: #{mod}: #{inspect Poison.decode!(payload)}"
       end
