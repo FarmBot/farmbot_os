@@ -12,7 +12,7 @@ defmodule Farmbot.System.ConfigStorage.SyncCmd do
     timestamps()
   end
 
-  @required_fields [:remote_id, :kind, :body]
+  @required_fields [:remote_id, :kind]
 
   def changeset(config, params \\ %{}) do
     config
