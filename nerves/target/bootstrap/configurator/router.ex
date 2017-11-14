@@ -83,7 +83,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     email = ConfigStorage.get_config_value(:string, "authorization", "email")
     pass = ConfigStorage.get_config_value(:string, "authorization", "password")
     server = ConfigStorage.get_config_value(:string, "authorization", "server")
-    network = !(Enum.empty?(ConfigStorage.all(ConfigStorage.NetworkInterface.NetworkInterface)))
+    network = !(Enum.empty?(ConfigStorage.all(ConfigStorage.NetworkInterface)))
     if email && pass && server && network do
       conn = render_page(conn, "finish")
       spawn fn() ->

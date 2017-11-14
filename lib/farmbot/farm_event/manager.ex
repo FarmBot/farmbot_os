@@ -19,11 +19,19 @@ defmodule Farmbot.FarmEvent.Manager do
 
   @checkup_time 20_000
 
+  def wait_for_sync do
+    GenServer.call(__MODULE__, :wait_for_sync)
+  end
+
+  def resume do
+    GenServer.call(__MODULE__, :resume)
+  end
+
   ## GenServer
 
   defmodule State do
     @moduledoc false
-    defstruct [timer: nil, last_time_index: %{}]
+    defstruct [timer: nil, last_time_index: %{}, wait_for_sync: true]
   end
 
   @doc false
@@ -32,11 +40,29 @@ defmodule Farmbot.FarmEvent.Manager do
   end
 
   def init([]) do
-    send self(), :checkup
     {:ok, struct(State)}
   end
 
-  def handle_info(:checkup, state) do
+  def handle_call(:wait_for_sync, _, state) do
+    if state.timer do
+      Process.cancel_timer(state.timer)
+    end
+    Logger.warn 3, "Pausing FarmEvent Execution until sync."
+    {:reply, :ok, %{state | wait_for_sync: true}}
+  end
+
+  def handle_call(:resume, _, state) do
+    send self(), :checkup
+    Logger.success 3, "Resuming FarmEvents."
+    {:reply, :ok, %{state | wait_for_sync: false}}
+  end
+
+  def handle_info(:checkup, %{wait_for_sync: true} = state) do
+    Logger.warn 3, "Waiting for sync before running FarmEvents."
+    {:noreply, state}
+  end
+
+  def handle_info(:checkup, %{wait_for_sync: false} = state) do
     now = get_now()
 
     all_events = Farmbot.Repo.current_repo().all(Farmbot.Repo.FarmEvent)
@@ -155,6 +181,15 @@ defmodule Farmbot.FarmEvent.Manager do
 
   # Checks  if we shoudl run a sequence or not. returns {event | nil, time | nil}
   defp should_run_sequence?(calendar, last_time, now)
+
+  defp should_run_sequence?(nil, last_time, now) do
+    Logger.debug 3, "Checking sequence with no calendar."
+    if is_nil(last_time) do
+      {true, now}
+    else
+      {false, last_time}
+    end
+  end
 
   # if there is no last time, check if time is passed now within 60 seconds.
   defp should_run_sequence?([first_time | _], nil, now) do;

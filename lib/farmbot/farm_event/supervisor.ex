@@ -8,7 +8,7 @@ defmodule Farmbot.FarmEvent.Supervisor do
 
   def init([]) do
     children = [
-      # worker(Farmbot.FarmEvent.Manager, [])
+      worker(Farmbot.FarmEvent.Manager, [])
     ]
 
     supervise(children, strategy: :one_for_one)

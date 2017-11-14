@@ -59,11 +59,17 @@ defmodule Farmbot.Repo do
   def init([repo_a, repo_b]) do
     # Delete any old sync cmds.
     destroy_all_sync_cmds()
+    if Process.whereis(Farmbot.FarmEvent.Manager) do
+      Farmbot.FarmEvent.Manager.wait_for_sync()
+    end
 
     needs_hard_sync = if ConfigStorage.get_config_value(:bool, "settings", "first_sync") || auto_sync?() do
       do_sync_both(repo_a, repo_b)
       ConfigStorage.update_config_value(:bool, "settings", "first_sync", false)
       BotState.set_sync_status(:synced)
+      if Process.whereis(Farmbot.FarmEvent.Manager) do
+        Farmbot.FarmEvent.Manager.resume()
+      end
       false
     else
       BotState.set_sync_status(:sync_now)
@@ -90,6 +96,7 @@ defmodule Farmbot.Repo do
   def handle_call(:force_hard_sync, _, state) do
     maybe_cancel_timer(state.timer)
     BotState.set_sync_status(:sync_now)
+    Farmbot.FarmEvent.Manager.wait_for_sync()
     {:reply, :ok, %{state | timer: nil, needs_hard_sync: true}}
   end
 
@@ -103,6 +110,7 @@ defmodule Farmbot.Repo do
 
   def handle_call(:flip, _, %{repos: [repo_a, repo_b], needs_hard_sync: true} = state) do
     maybe_cancel_timer(state.timer)
+    Farmbot.FarmEvent.Manager.wait_for_sync()
     destroy_all_sync_cmds()
     Logger.warn 3, "Forcing full sync."
     BotState.set_sync_status(:syncing)
@@ -110,12 +118,14 @@ defmodule Farmbot.Repo do
     BotState.set_sync_status(:synced)
     copy_configs(repo_b)
     flip_repos_in_cs()
+    Farmbot.FarmEvent.Manager.resume()
     {:reply, :ok, %{state | repos: [repo_b, repo_a], needs_hard_sync: false, timer: start_timer()}}
   end
 
   def handle_call(:flip, _, %{repos: [repo_a, repo_b]} = state) do
     maybe_cancel_timer(state.timer)
     Logger.busy 3, "Syncing"
+    Farmbot.FarmEvent.Manager.wait_for_sync()
     BotState.set_sync_status(:syncing)
 
     # Fetch all sync_cmds and apply them in order they were received.
@@ -128,6 +138,7 @@ defmodule Farmbot.Repo do
     copy_configs(repo_b)
     destroy_all_sync_cmds()
     Logger.success 3, "Sync complete."
+    Farmbot.FarmEvent.Manager.resume()
     {:reply, repo_b, %{state | repos: [repo_b, repo_a], timer: start_timer()}}
   end
 
@@ -247,7 +258,7 @@ defmodule Farmbot.Repo do
       case repo.get(mod, id) do
         # If it does not, just return the newly created object.
         nil ->
-          mod.changeset(obj, %{})
+          mod.changeset(struct(mod), not_struct)
           |> repo.insert!
 
         # if there is an existing record, copy the ecto  meta from the old
