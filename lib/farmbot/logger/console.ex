@@ -37,16 +37,14 @@ defmodule Farmbot.Logger.Console do
     {:noreply, [], state}
   end
 
-  defp maybe_log(%Farmbot.Log{module: nil}) do
+  defp maybe_log(%Farmbot.Log{module: nil} = log) do
+    IO.inspect log
     :ok
   end
 
   defp maybe_log(%Farmbot.Log{module: module} = log) do
-    if List.first(Module.split(module)) == "Farmbot" do
-      IO.inspect log
-    else
-      :ok
-    end
+    # should_log = List.first(Module.split(module)) == "Farmbot"
+    IO.inspect log
   end
 
   def handle_call({:set_verbosity_level, num}, _from, state) do

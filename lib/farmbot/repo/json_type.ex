@@ -10,11 +10,17 @@ defmodule Farmbot.Repo.JSONType do
     {:ok, to_string(basic)}
   end
 
+  def cast(%{__meta__: _, __struct__: _} = struct) do
+    Map.from_struct(struct)
+    |> Map.delete(:__meta__)
+    |> cast()
+  end
+
   # try to encode as json here.
   def cast(map_or_list) when is_list(map_or_list) or is_map(map_or_list) do
     case Poison.encode(map_or_list) do
       {:ok, bin} -> {:ok, bin}
-      _ -> :error
+      _reason -> :error
     end
   end
 
