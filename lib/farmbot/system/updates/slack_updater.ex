@@ -102,8 +102,6 @@ defmodule Farmbot.System.Updates.SlackUpdater do
           """
         } |> Poison.encode!
         Socket.Web.send!(socket, {:text, msg})
-      else
-        Logger.debug 3, "does not match"
       end
     end
 
