@@ -158,7 +158,7 @@ defmodule Farmbot.System.Updates.SlackUpdater do
     case HTTPoison.post(url, real_payload, headers, [follow_redirect: true]) do
       {:ok, %{status_code: code, body: body}} when code > 199 and code < 300 ->
         if Poison.decode!(body) |> Map.get("ok", false) do
-          Mix.shell.info [:green, "Upload complete!"]
+          :ok
         else
           Logger.error(3, "#{inspect Poison.decode!(body, pretty: true)}")
         end
