@@ -10,8 +10,8 @@ defmodule Farmbot.Target.Network.Manager do
   end
 
   def init({interface, opts} = args) do
+    Logger.busy(3, "Waiting for interface up.")
     unless interface in Nerves.NetworkInterface.interfaces() do
-      Logger.busy(3, "Waiting for interface up.")
       Process.sleep(1000)
       init(args)
     end

@@ -56,7 +56,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
   def handle_log_events(logs, state) do
     for %Farmbot.Log{} = log <- logs do
-      if log.module == nil or Module.split(log.module || Elixir.Logger) |> List.first == "Farmbot" do
+      if log.module == nil or (Module.split(log.module || Elixir.Logger) |> List.first == "Farmbot") do
         location_data = Map.get(state.state_cache || %{}, :location_data, %{position: %{x: -1, y: -1, z: -1}})
         meta = %{type: log.level, x: nil, y: nil, z: nil}
         log_without_pos = %{created_at: log.time, meta: meta, channels: log.meta[:channels] || [], message: log.message}

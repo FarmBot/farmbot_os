@@ -1,37 +1,45 @@
 defmodule Farmbot.Logger do
-  @moduledoc "Logger."
+  @moduledoc """
+  Log messages to Farmot endpoints.
+  """
   use GenStage
-
+  
+  @doc "Send a debug message to log endpoints"
   defmacro debug(verbosity, message, meta \\ []) do
     quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
       Farmbot.Logger.dispatch_log(__ENV__, :debug, verbosity, message, meta)
     end
   end
 
+  @doc "Send an info message to log endpoints"
   defmacro info(verbosity, message, meta \\ []) do
     quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
       Farmbot.Logger.dispatch_log(__ENV__, :info, verbosity, message, meta)
     end
   end
 
+  @doc "Send an busy message to log endpoints"
   defmacro busy(verbosity, message, meta \\ []) do
     quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
       Farmbot.Logger.dispatch_log(__ENV__, :busy, verbosity, message, meta)
     end
   end
 
+  @doc "Send an success message to log endpoints"
   defmacro success(verbosity, message, meta \\ []) do
     quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
       Farmbot.Logger.dispatch_log(__ENV__, :success, verbosity, message, meta)
     end
   end
 
+  @doc "Send an warn message to log endpoints"
   defmacro warn(verbosity, message, meta \\ []) do
     quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
       Farmbot.Logger.dispatch_log(__ENV__, :warn, verbosity, message, meta)
     end
   end
 
+  @doc "Send an error message to log endpoints"
   defmacro error(verbosity, message, meta \\ []) do
     quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
       Farmbot.Logger.dispatch_log(__ENV__, :error, verbosity, message, meta)
@@ -61,7 +69,12 @@ defmodule Farmbot.Logger do
   end
 
   @doc false
-  def dispatch_log(env, level, verbosity, message, meta) do
+  def dispatch_log(%Macro.Env{} = env, level, verbosity, message, meta) 
+  when level in [:info, :debug, :busy, :warn, :success, :error]
+  and  is_number(verbosity)
+  and  is_binary(message)
+  and  is_list(meta)
+  do
     GenStage.cast(__MODULE__, {:dispatch_log, {env, level, verbosity, message, meta}})
   end
 
