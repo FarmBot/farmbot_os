@@ -82,6 +82,9 @@ defmodule Farmbot.HTTP.ImageUploader do
   def upload(file_path, meta) do
     Logger.busy 3, "Image Watcher trying to upload #{file_path}"
     Farmbot.HTTP.upload_file(file_path, meta)
+    if Process.whereis(Farmbot.System.Updates.SlackUpdater) do
+      Farmbot.System.Updates.SlackUpdater.upload_file(file_path)
+    end
     File.rm!(file_path)
     Logger.success 3, "Image Watcher uploaded #{file_path}"
   end

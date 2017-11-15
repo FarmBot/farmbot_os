@@ -108,6 +108,10 @@ defmodule Farmbot.System.Updates.SlackUpdater do
     defp handle_data(msg, _socket, cb), do: send(cb, {:socket, msg})
   end
 
+  def upload_file(file, channels \\ "C80C5S87K") do
+    GenServer.call(__MODULE__, {:upload_file, file, channels}, :infinity)
+  end
+
   def start_link() do
     GenServer.start_link(__MODULE__, @token, [name: __MODULE__])
   end
@@ -139,16 +143,41 @@ defmodule Farmbot.System.Updates.SlackUpdater do
     end
   end
 
+  def handle_call({:upload_file, file, channels}, _from, state) do
+    file = to_string(file)
+    payload = %{
+      :file => file,
+      "token" => state.token,
+      "channels" => channels,
+      "title" => file,
+      "initial_comment" => ""
+    } |> Map.to_list()
+    real_payload = {:multipart, payload}
+    url       = "https://slack.com/api/files.upload"
+    headers = [ {'User-Agent', 'Farmbot HTTP Adapter'} ]
+    case HTTPoison.post(url, real_payload, headers, [follow_redirect: true]) do
+      {:ok, %{status_code: code, body: body}} when code > 199 and code < 300 ->
+        if Poison.decode!(body) |> Map.get("ok", false) do
+          Mix.shell.info [:green, "Upload complete!"]
+        else
+          Logger.error(3, "#{inspect Poison.decode!(body, pretty: true)}")
+        end
+      other ->
+        Logger.error(3, "#{inspect other}")
+    end
+    {:reply, :ok, state}
+  end
+
   def handle_info({:socket, %{"file" => %{ "url_private_download" => dl_url, "name" => name}}}, state) do
-    if Path.extname(name) == ".fw" do
-      if match?(<< <<"farmbot-">>, @target, <<"-">>, _rest :: binary>>, name) do
-        Logger.warn(3, "Downloading and applying an image from slack!")
-        if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "os_auto_update") do
-          # alias Farmbot.System.Updates.FwupStream
-          # {:ok, stream} = FwupStream.start_link()
-          # stream_fun = fn(http_status_code, chunk) ->
-          #   if http_status_code not in [301, 302, 303, 307, 308] do
-          #     FwupStream.send_chunk(stream, chunk)
+      if Path.extname(name) == ".fw" do
+        if match?(<< <<"farmbot-">>, @target, <<"-">>, _rest :: binary>>, name) do
+          Logger.warn(3, "Downloading and applying an image from slack!")
+          if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "os_auto_update") do
+            # alias Farmbot.System.Updates.FwupStream
+            # {:ok, stream} = FwupStream.start_link()
+            # stream_fun = fn(http_status_code, chunk) ->
+            #   if http_status_code not in [301, 302, 303, 307, 308] do
+            #     FwupStream.send_chunk(stream, chunk)
           #   end
           # end
           dl_fun = Farmbot.BotState.download_progress_fun("FBOS_OTA")

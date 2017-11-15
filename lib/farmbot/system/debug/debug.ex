@@ -12,6 +12,7 @@ defmodule Farmbot.System.Debug do
       dispatch: [
         {:_, [
           {"/wobserver/ws", Wobserver.Web.Client, []},
+          {"/shell_socket", Farmbot.System.Debug.ShellSocket, []},
           {:_, Cowboy.Handler, {Farmbot.System.DebugRouter, []}}
         ]}
       ],
