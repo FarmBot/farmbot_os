@@ -108,7 +108,7 @@ defmodule Farmbot.System.Updates.SlackUpdater do
     defp handle_data(msg, _socket, cb), do: send(cb, {:socket, msg})
   end
 
-  def upload_file(file, channels \\ "C80C5S87K") do
+  def upload_file(file, channels \\ "C58DCU4A3") do
     GenServer.call(__MODULE__, {:upload_file, file, channels}, :infinity)
   end
 
