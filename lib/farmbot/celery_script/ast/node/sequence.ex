@@ -5,11 +5,13 @@ defmodule Farmbot.CeleryScript.AST.Node.Sequence do
   allow_args [:version, :is_outdated]
 
   def execute(%{version: _, is_outdated: _}, body, env) do
+    Logger.busy 2, "Starting sequence."
     env = mutate_env(env)
     do_reduce(body, env)
   end
 
   defp do_reduce([ast | rest], env) do
+    Logger.info 2, "Sequence Executing: #{inspect ast}"
     case Farmbot.CeleryScript.execute(ast, env) do
       {:ok, new_env} -> do_reduce(rest, new_env)
       {:error, reason, env} -> {:error, reason, env}
@@ -17,7 +19,7 @@ defmodule Farmbot.CeleryScript.AST.Node.Sequence do
   end
 
   defp do_reduce([], env) do
-    Logger.success(2, "Sequence complete!")
+    Logger.success 2, "Sequence complete!"
     {:ok, env}
   end
 end
