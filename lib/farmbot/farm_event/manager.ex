@@ -182,15 +182,6 @@ defmodule Farmbot.FarmEvent.Manager do
   # Checks  if we shoudl run a sequence or not. returns {event | nil, time | nil}
   defp should_run_sequence?(calendar, last_time, now)
 
-  defp should_run_sequence?(nil, last_time, now) do
-    Logger.debug 3, "Checking sequence with no calendar."
-    if is_nil(last_time) do
-      {true, now}
-    else
-      {false, last_time}
-    end
-  end
-
   # if there is no last time, check if time is passed now within 60 seconds.
   defp should_run_sequence?([first_time | _], nil, now) do;
 
@@ -204,6 +195,15 @@ defmodule Farmbot.FarmEvent.Manager do
        # make sure to return nil as the last time because it stil hasnt executed yet.
        Logger.debug 3, "Sequence Event not ready yet."
       {false, nil}
+    end
+  end
+
+  defp should_run_sequence?(nil, last_time, now) do
+    Logger.debug 3, "Checking sequence with no calendar."
+    if is_nil(last_time) do
+      {true, now}
+    else
+      {false, last_time}
     end
   end
 
