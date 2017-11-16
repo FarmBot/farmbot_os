@@ -24,6 +24,22 @@ defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdate do
   defp do_reduce_os([%{args: %{label: key, value: value}} | rest], env) do
     Logger.busy 2, "Updating: #{inspect key}: #{value}"
     case lookup_os_config(key, value) do
+      {:ok, {:string, "settings", val}} when val in ["farmduino", "arduino"] ->
+        Farmbot.System.ConfigStorage.update_config_value(:string, "settings", key, val)
+
+        if Application.get_env(:farmbot, :behaviour)[:firmware_handler] == Farmbot.Firmware.UartHandler do
+          Logger.warn 1, "Updating #{val} firmware."
+          old_env = Application.get_env(:farmbot, :behaviour)
+          new_env = Keyword.put(old_env, :firmware_handler, Farmbot.Firmware.StubHandler)
+          Application.put_env(:farmbot, :behaviour, new_env)
+          GenServer.stop(Farmbot.Firmware, :shutdown)
+          Farmbot.Firmware.UartHandler.Update.maybe_update_firmware(val)
+          Application.put_env(:farmbot, :behaviour, old_env)
+          GenServer.stop(Farmbot.Firmware, :shutdown)
+        end
+
+        do_reduce_os(rest, env)
+
       {:ok, {type, group, value}} ->
         Farmbot.System.ConfigStorage.update_config_value(type, group, key, value)
         do_reduce_os(rest, env)

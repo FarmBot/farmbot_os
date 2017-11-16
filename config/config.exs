@@ -45,7 +45,7 @@ config :farmbot, :behaviour,
 config :farmbot, :farmware,
   first_part_farmware_manifest_url: "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/manifest.json"
 
-config :farmbot, expected_fw_version: ["5.0.3.F", "5.0.3.R"]
+config :farmbot, expected_fw_versions: ["5.0.7.F", "5.0.7.R"]
 
 case target do
   "host" ->

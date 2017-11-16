@@ -109,14 +109,17 @@ defmodule Farmbot.Firmware do
     handler_mod =
       Application.get_env(:farmbot, :behaviour)[:firmware_handler] || raise("No fw handler.")
 
-    {:ok, handler} = handler_mod.start_link()
-    Process.flag(:trap_exit, true)
+    case handler_mod.start_link() do
+      {:ok, handler} ->
+        Process.flag(:trap_exit, true)
+        {
+          :producer_consumer,
+          %State{handler: handler, handler_mod: handler_mod},
+          subscribe_to: [handler], dispatcher: GenStage.BroadcastDispatcher
+        }
+      {:stop, err, state} -> {:stop, err, state}
+    end
 
-    {
-      :producer_consumer,
-      %State{handler: handler, handler_mod: handler_mod},
-      subscribe_to: [handler], dispatcher: GenStage.BroadcastDispatcher
-    }
   end
 
   def handle_info({:EXIT, _, reason}, state) do
@@ -269,6 +272,13 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode({:report_software_version, version}, state) do
+    case String.last(version) do
+      "F" ->
+        Farmbot.System.ConfigStorage.update_config_value(:string, "settings", "firmware_hardware", "farmduino")
+      "R" ->
+        Farmbot.System.ConfigStorage.update_config_value(:string, "settings", "firmware_hardware", "arduino")
+      _ -> :ok
+    end
     {:informational_settings, %{firmware_version: version}, state}
   end
 

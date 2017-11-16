@@ -80,26 +80,25 @@ defmodule Farmbot.Firmware.UartHandler do
 
   def init([]) do
     # If in dev environment, it is expected that this be done at compile time.
-    # If ini target environment, this should be done by `Farmbot.Firmware.AutoDetector`.
+    # If in target environment, this should be done by `Farmbot.Firmware.AutoDetector`.
     tty =
       Application.get_env(:farmbot, :uart_handler)[:tty] || raise "Please configure uart handler!"
 
-    {:ok, nerves} = UART.start_link()
-    Process.link(nerves)
-
-    case open_tty(nerves, tty) do
-      :ok -> {:producer, %State{nerves: nerves}, dispatcher: GenStage.BroadcastDispatcher}
+    case open_tty(tty) do
+      {:ok, nerves} -> {:producer, %State{nerves: nerves}, dispatcher: GenStage.BroadcastDispatcher}
       err -> {:stop, err, :no_state}
     end
   end
 
-  defp open_tty(nerves, tty) do
-    case UART.open(nerves, tty, speed: 115_200, active: true) do
+  defp open_tty(tty) do
+    {:ok, nerves} = UART.start_link()
+    Process.link(nerves)
+    case UART.open(nerves, tty, [speed: 115_200, active: true]) do
       :ok ->
         :ok = configure_uart(nerves, true)
         # Flush the buffers so we start fresh
         :ok = UART.flush(nerves)
-        :ok
+        {:ok, nerves}
 
       err ->
         err
@@ -117,6 +116,13 @@ defmodule Farmbot.Firmware.UartHandler do
 
   # if there is an error, we assume something bad has happened, and we probably
   # Are better off crashing here, and being restarted.
+  def handle_info({:nerves_uart, _, {:error, :eio}}, state) do
+    old_env = Application.get_env(:farmbot, :behaviour)
+    new_env = Keyword.put(old_env, :firmware_handler, Farmbot.Firmware.StubHandler)
+    Application.put_env(:farmbot, :behaviour, new_env)
+    {:stop, {:error, :eio}, state}
+  end
+
   def handle_info({:nerves_uart, _, {:error, reason}}, state) do
     {:stop, {:error, reason}, state}
   end

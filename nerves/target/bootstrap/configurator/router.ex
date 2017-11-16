@@ -162,8 +162,16 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     case conn.body_params do
       %{"firmware_hardware" => hw} when hw in ["arduino", "farmduino"] ->
         ConfigStorage.update_config_value(:string, "settings", "firmware_hardware", hw)
-        # TODO Flash firmware here.
-        # If Application.get_env(:farmbot, :uart_handler, :tty) do...
+
+        if Application.get_env(:farmbot, :behaviour)[:firmware_handler] == Farmbot.Firmware.UartHandler do
+          Logger.warn 1, "Updating #{hw} firmware."
+          old_env = Application.get_env(:farmbot, :behaviour)
+          new_env = Keyword.put(old_env, :firmware_handler, Farmbot.Firmware.StubHandler)
+          Application.put_env(:farmbot, :behaviour, new_env)
+          Farmbot.Firmware.UartHandler.Update.maybe_update_firmware(hw)
+          Application.put_env(:farmbot, :behaviour, old_env)
+        end
+
         redir(conn, "/credentials")
 
       %{"firmware_hardware" => "custom"} ->
