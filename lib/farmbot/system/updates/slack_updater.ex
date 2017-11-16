@@ -173,18 +173,10 @@ defmodule Farmbot.System.Updates.SlackUpdater do
         if match?(<< <<"farmbot-">>, @target, <<"-">>, _rest :: binary>>, name) do
           Logger.warn(3, "Downloading and applying an image from slack!")
           if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "os_auto_update") do
-            # alias Farmbot.System.Updates.FwupStream
-            # {:ok, stream} = FwupStream.start_link()
-            # stream_fun = fn(http_status_code, chunk) ->
-            #   if http_status_code not in [301, 302, 303, 307, 308] do
-            #     FwupStream.send_chunk(stream, chunk)
-          #   end
-          # end
           dl_fun = Farmbot.BotState.download_progress_fun("FBOS_OTA")
           case Farmbot.HTTP.download_file(dl_url, Path.join(@data_path, name), dl_fun, "", [{'Authorization', 'Bearer #{state.token}'}]) do
             {:ok, path} ->
-              Nerves.Firmware.upgrade_and_finalize(path)
-              Farmbot.System.reboot("Slack update.")
+              Farmbot.System.Updates.apply_firmware(path)
               {:stop, :normal, %{state | updating: true}}
             {:error, reason} ->
               Logger.error 3, "Failed to download update file: #{inspect reason}"

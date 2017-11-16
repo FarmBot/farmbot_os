@@ -52,7 +52,8 @@ config :farmbot, :transport, [
 config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
   system_tasks: Farmbot.Target.SystemTasks,
-  firmware_handler: Farmbot.Firmware.StubHandler
+  firmware_handler: Farmbot.Firmware.StubHandler,
+  update_handler: Farmbot.Target.UpdateHandler
 
 local_file = Path.join(System.user_home!(), ".ssh/id_rsa.pub")
 local_key = if File.exists?(local_file) do
