@@ -161,8 +161,14 @@ defmodule Farmbot.BotState do
     GenStage.call(__MODULE__, {:get_pin_value, num})
   end
 
+  @doc "Get the bot's current position."
   def get_current_pos do
     GenStage.call(__MODULE__, :get_current_pos)
+  end
+
+  @doc "Get a arduino param."
+  def get_param(param) do
+    GenStage.call(__MODULE__, {:get_param, param})
   end
 
   @doc false
@@ -269,6 +275,10 @@ defmodule Farmbot.BotState do
 
   def handle_call(:get_current_pos, _from, state) do
     {:reply, state.location_data.position, [], state}
+  end
+
+  def handle_call({:get_param, param}, _from, state) do
+    {:reply, state.mcu_params[param], [], state}
   end
 
   def handle_call({:set_job_progress, name, progress}, _from, state) do

@@ -70,7 +70,6 @@ defmodule Farmbot.CeleryScript.AST do
     args = Map.new(str_args, &str_to_atom(&1))
     case decode(str_map["body"] || []) do
       {:ok, body} ->
-        IO.puts ""
         %{kind: kind,
           args: args,
           body: body,

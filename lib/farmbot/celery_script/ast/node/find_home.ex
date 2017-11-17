@@ -10,10 +10,9 @@ defmodule Farmbot.CeleryScript.AST.Node.FindHome do
 
   def execute(%{speed: speed, axis: axis}, _, env) do
     env = mutate_env(env)
-    case Farmbot.Firmware.find_home(axis, speed) do
-      :ok -> {:ok, env}
-      {:error, reason} -> {:error, reason, env}
-    end
+    ep = Farmbot.BotState.get_param(:"movement_enable_endpoints_#{axis}")
+    ec = Farmbot.BotState.get_param(:"encoder_enabled_#{axis}")
+    do_find_home(ep, ec, axis, speed, env)
   end
 
   defp do_reduce([axis | rest], speed, env) do
@@ -25,5 +24,16 @@ defmodule Farmbot.CeleryScript.AST.Node.FindHome do
 
   defp do_reduce([], _, env) do
     {:ok, env}
+  end
+
+  defp do_find_home(ep, ec, axis, speed, env)
+  defp do_find_home(ep, ec, axis, _, env) when (ep == 0) or (ep == nil) or (ec == 0) or (ec == nil) do
+    {:error, "Could not find home on #{axis} axis because endpoints and encoders are disabled.", env}
+  end
+  defp do_find_home(ep, ec, axis, speed, env) when ep == 1 or ec == 1 do
+    case Farmbot.Firmware.find_home(axis, speed) do
+      :ok -> {:ok, env}
+      {:error, reason} -> {:error, reason, env}
+    end
   end
 end

@@ -90,7 +90,7 @@ defmodule Farmbot.CeleryScript.AST.Node.SendMessage do
 
   defp fetch_bindings do
     bot_state = Farmbot.BotState.force_state_push()
-    pins = Enum.map(bot_state.pins, fn({pin, %{value: value}}) -> {:"pin_#{pin}", value} end)
+    pins = Enum.map(bot_state.pins, fn({pin, %{value: value}}) -> {:"pin#{pin}", value} end)
     location = Enum.map(bot_state.location_data.position, fn({axis, val}) -> {axis, val} end)
     pins ++ location
   end
