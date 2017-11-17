@@ -51,22 +51,8 @@ defmodule Farmbot.Host.TargetConfiguratorTest do
   end
 
   post "/configure_firmware" do
-    {:ok, _, conn} = read_body(conn)
-
-    case conn.body_params do
-      %{"firmware_hardware" => hw} when hw in ["arduino", "farmduino"] ->
-        ConfigStorage.update_config_value(:string, "hardware", "firmware_hardware", hw)
-        # TODO Flash firmware here.
-        # If Application.get_env(:farmbot, :uart_handler, :tty) do...
-        redir(conn, "/credentials")
-
-      %{"firmware_hardware" => "custom"} ->
-        ConfigStorage.update_config_value(:string, "hardware", "firmware_hardware", "custom")
-        redir(conn, "/credentials")
-
-      _ ->
-        send_resp(conn, 500, "Bad firmware_hardware!")
-    end
+    Process.sleep(15000)
+    redir(conn, "/credentials")
   end
 
   post "/configure_credentials" do
