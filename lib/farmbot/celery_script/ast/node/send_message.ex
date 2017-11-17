@@ -7,7 +7,7 @@ defmodule Farmbot.CeleryScript.AST.Node.SendMessage do
   def execute(%{message: m, message_type: type}, channels, env) do
     env = mutate_env(env)
     {:ok, env, channels} = do_reduce(channels, env, [])
-    bindings = fetch_bindings()
+    bindings = fetch_bindings(env)
     case sanatize(m) do
       {:ok, sanatized} ->
         msg = EEx.eval_string(sanatized, bindings)
@@ -88,11 +88,11 @@ defmodule Farmbot.CeleryScript.AST.Node.SendMessage do
     end
   end
 
-  defp fetch_bindings do
+  defp fetch_bindings(env) do
     bot_state = Farmbot.BotState.force_state_push()
     pins = Enum.map(bot_state.pins, fn({pin, %{value: value}}) -> {:"pin#{pin}", value} end)
     location = Enum.map(bot_state.location_data.position, fn({axis, val}) -> {axis, val} end)
-    pins ++ location
+    env.vars ++ pins ++ location
   end
 
   defp do_reduce([%{args: %{channel_name: channel}} | rest], env, acc) do

@@ -37,4 +37,29 @@ defmodule Farmbot.CeleryScript do
     Module.split(kind) |> List.last() |> Macro.underscore()
   end
 
+  def var(env, dirty_label, val) do
+    case sanitize_var_name(dirty_label) do
+      {:ok, label} ->
+        new_vars = Keyword.put(env.vars, String.to_atom(label), val)
+        new_env = %{env | vars: new_vars}
+        {:ok, new_env}
+      {:error, reason} ->
+        {:error, reason, env}
+    end
+  end
+
+  defp sanitize_var_name(name) do
+    cond do
+      String.contains?(name, " ") ->
+        {:error, "variables may not contain special characters."}
+      match?(<<"__", _ :: binary>>, name) ->
+        {:error, "variables may not replace internal names."}
+      match?(<<"pin", _ :: binary>>, name) ->
+        {:error, "variables may not contain pattern: pin<number>."}
+      name in ["x", "y", "z"] ->
+        {:error, "variables may not be axis names."}
+      true -> {:ok, name}
+    end
+  end
+
 end
