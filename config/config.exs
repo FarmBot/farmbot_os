@@ -6,8 +6,8 @@ env = Mix.env()
 
 config :logger,
   utc_log: true,
-  # handle_otp_reports: true,
-  # handle_sasl_reports: true,
+  handle_otp_reports: true,
+  handle_sasl_reports: true,
   backends: []
 
 config :elixir, ansi_enabled: true

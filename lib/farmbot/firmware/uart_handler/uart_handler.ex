@@ -86,7 +86,7 @@ defmodule Farmbot.Firmware.UartHandler do
 
     case open_tty(tty) do
       {:ok, nerves} -> {:producer, %State{nerves: nerves}, dispatcher: GenStage.BroadcastDispatcher}
-      err -> {:stop, err, :no_state}
+      err -> {:stop, err}
     end
   end
 
@@ -98,10 +98,22 @@ defmodule Farmbot.Firmware.UartHandler do
         :ok = configure_uart(nerves, true)
         # Flush the buffers so we start fresh
         :ok = UART.flush(nerves)
-        {:ok, nerves}
-
+        loop_until_idle(nerves)
       err ->
         err
+    end
+  end
+
+  defp loop_until_idle(nerves) do
+    receive do
+      {:nerves_uart, _, {:error, reason}} -> {:stop, reason}
+      {:nerves_uart, _, {:partial, _}} -> loop_until_idle(nerves)
+      # {:nerves_uart, _, {_, :idle}} -> {:ok, nerves}
+      {:nerves_uart, _, {_, {:debug_message, "ARDUINO STARTUP COMPLETE"}}} -> {:ok, nerves}
+      {:nerves_uart, _, _msg} ->
+        # Logger.info 3, "Got message: #{inspect msg}"
+        loop_until_idle(nerves)
+    after 30_000 -> {:stop, "Firmware didn't respond in 30 seconds."}
     end
   end
 

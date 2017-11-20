@@ -132,10 +132,10 @@ defmodule Farmbot.Firmware do
   end
 
   def handle_info(:timeout, state) do
-    Logger.warn 1, "Got Firmware timeout. Retrying."
     case state.current do
       nil -> {:noreply, [], %{state | timer: nil}}
       %Current{fun: fun, args: args, from: from} = current ->
+        Logger.warn 1, "Got Firmware timeout. Retrying #{fun}(#{inspect args}) "
         case apply(state.handler_mod, fun, [state.handler | args]) do
           :ok ->
             timer = Process.send_after(self(), :timeout, 6500)
@@ -274,7 +274,6 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode(:idle, %{initialized: false, initializing: true} = state) do
-    maybe_cancel_timer(state.timer)
     {nil, state}
   end
 
