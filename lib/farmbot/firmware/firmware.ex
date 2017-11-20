@@ -98,7 +98,9 @@ defmodule Farmbot.Firmware do
 
   defmodule State do
     defstruct handler: nil, handler_mod: nil,
-      idle: false, pins: %{},
+      idle: false,
+      timer: nil,
+      pins: %{},
       initialized: false,
       initializing: false,
       current: nil,
@@ -129,6 +131,24 @@ defmodule Farmbot.Firmware do
     {:noreply, [{:informational_settings, %{busy: false}}], %{new_state | initialized: false, idle: false}}
   end
 
+  def handle_info(:timeout, state) do
+    Logger.warn 1, "Got Firmware timeout. Retrying."
+    case state.current do
+      nil -> {:noreply, [], %{state | timer: nil}}
+      %Current{fun: fun, args: args, from: from} = current ->
+        case apply(state.handler_mod, fun, [state.handler | args]) do
+          :ok ->
+            timer = Process.send_after(self(), :timeout, 6500)
+            {:noreply, [], %{state | current: current, timer: timer}}
+          {:error, _} = res ->
+            GenStage.reply(from, res)
+            {:noreply, [], %{state | current: nil, queue: :queue.new()}}
+        end
+        {:noreply, [], %{state | timer: nil}}
+    end
+
+  end
+
   def handle_call({fun, _}, _from, state = %{initialized: false}) when fun not in  [:read_all_params, :update_param, :emergency_unlock, :emergency_lock] do
     {:reply, {:error, :uninitialized}, [], state}
   end
@@ -148,7 +168,8 @@ defmodule Farmbot.Firmware do
 
     case apply(state.handler_mod, fun, [state.handler | args]) do
       :ok ->
-        {:noreply, dispatch, %{state | current: current}}
+        timer = Process.send_after(self(), :timeout, 6500)
+        {:noreply, dispatch, %{state | current: current, timer: timer}}
       {:error, _} = res ->
         {:reply, res, dispatch, %{state | current: nil, queue: :queue.new()}}
     end
@@ -253,10 +274,12 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode(:idle, %{initialized: false, initializing: true} = state) do
+    maybe_cancel_timer(state.timer)
     {nil, state}
   end
 
   defp handle_gcode(:idle, state) do
+    maybe_cancel_timer(state.timer)
     Farmbot.BotState.set_busy(false)
     if state.current do
       GenServer.reply(state.current.from, {:error, :timeout})
@@ -299,10 +322,15 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode(:busy, state) do
     Farmbot.BotState.set_busy(true)
-    {:informational_settings, %{busy: true}, %{state | idle: false}}
+    if state.timer do
+      Process.cancel_timer(state.timer)
+    end
+    timer = Process.send_after(self(), :timeout, 6500)
+    {:informational_settings, %{busy: true}, %{state | idle: false, timer: timer}}
   end
 
   defp handle_gcode(:done, state) do
+    maybe_cancel_timer(state.timer)
     if state.current do
       GenStage.reply(state.current.from, :ok)
       {nil, %{state | current: nil}}
@@ -321,6 +349,7 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode(:error, state) do
+    maybe_cancel_timer(state.timer)
     if state.current do
       Logger.error 1, "Failed to execute #{state.current.fun}#{inspect state.current.args}"
       GenStage.reply(state.current.from, {:error, :firmware_error})
@@ -345,5 +374,12 @@ defmodule Farmbot.Firmware do
   defp handle_gcode(code, state) do
     Logger.warn(3, "unhandled code: #{inspect(code)}")
     {nil, state}
+  end
+
+  defp maybe_cancel_timer(nil), do: :ok
+  defp maybe_cancel_timer(timer) do
+    if Process.read_timer(timer) do
+      Process.cancel_timer(timer)
+    end
   end
 end
