@@ -97,7 +97,7 @@ defmodule Farmbot.Mixfile do
       {:wobserver, "~> 0.1.8"},
       {:joken, "~> 1.1"},
       {:socket, "~> 0.3"},
-      {:amqp, "~> 1.0.0-pre.2"}
+      {:amqp, "~> 1.0.0-pre.2"},
     ]
   end
 
@@ -108,7 +108,8 @@ defmodule Farmbot.Mixfile do
       {:inch_ex, ">= 0.0.0", only: :dev},
       {:excoveralls, "~> 0.6", only: :test},
       {:mock, "~> 0.2.0", only: :test},
-      {:faker, "~> 0.9", only: :test }
+      {:faker, "~> 0.9", only: :test },
+      {:udev, github: "electricshaman/udev"}
     ]
   end
 

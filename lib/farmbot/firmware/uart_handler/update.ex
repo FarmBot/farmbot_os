@@ -25,6 +25,7 @@ defmodule Farmbot.Firmware.UartHandler.Update do
         :ok = Nerves.UART.configure(uart, opts)
         Logger.busy 3, "Waiting for firmware idle report."
         do_fw_loop(uart, tty, :idle, hardware)
+        close(uart)
       {:error, reason} ->
         Logger.error 1, "Failed to connect to firmware for update: #{inspect reason}"
     end
@@ -34,7 +35,6 @@ defmodule Farmbot.Firmware.UartHandler.Update do
     receive do
       {:nerves_uart, _, {:error, reason}} ->
         Logger.error 1, "Failed to connect to firmware for update during idle step: #{inspect reason}"
-        close(uart, tty)
       {:nerves_uart, _, data} ->
         if String.contains?(data, "R00") do
           case flag do
@@ -62,7 +62,6 @@ defmodule Farmbot.Firmware.UartHandler.Update do
     receive do
       {:nerves_uart, _, {:error, reason}} ->
         Logger.error 1, "Failed to connect to firmware for update: #{inspect reason}"
-        close(uart, tty)
       {:nerves_uart, _, data} ->
         case String.split(data, "R83 ") do
           [_] ->
@@ -106,16 +105,17 @@ defmodule Farmbot.Firmware.UartHandler.Update do
     avrdude("#{:code.priv_dir(:farmbot)}/arduino-firmware.hex", uart, tty)
   end
 
-  defp close(uart, _tty) do
+  defp close(uart) do
     if Process.alive?(uart) do
-      Nerves.UART.close(uart)
-      Nerves.UART.stop(uart)
+      close = Nerves.UART.close(uart)
+      stop = Nerves.UART.stop(uart)
+      Logger.warn 3, "CLOSE: #{inspect close} STOP: #{stop}"
       Process.sleep(500) # to allow the FD to be closed.
     end
   end
 
   def avrdude(fw_file, uart, tty) do
-    close(uart, tty)
+    close(uart)
     case System.cmd("avrdude", ~w"-q -q -patmega2560 -cwiring -P#{tty} -b115200 -D -V -Uflash:w:#{fw_file}:i", [stderr_to_stdout: true, into: IO.stream(:stdio, :line)]) do
       {_, 0} -> Logger.success 1, "Firmware flashed!"
       {_, err_code} -> Logger.error 1, "Failed to flash Firmware! #{err_code}"

@@ -39,7 +39,8 @@ config :farmbot, :init, [
   Farmbot.Target.Network.WaitForTime,
 
   # Debug stuff
-  Farmbot.System.Debug
+  Farmbot.System.Debug,
+  Farmbot.Target.Uevent.Supervisor
 ]
 
 config :farmbot, :transport, [

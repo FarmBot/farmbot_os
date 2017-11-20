@@ -126,9 +126,17 @@ defmodule Farmbot.Firmware.UartHandler do
     )
   end
 
+  def terminate(reason, state) do
+    if state.nerves do
+      UART.close(state.nerves)
+      UART.stop(reason)
+    end
+  end
+
   # if there is an error, we assume something bad has happened, and we probably
   # Are better off crashing here, and being restarted.
   def handle_info({:nerves_uart, _, {:error, :eio}}, state) do
+    Logger.error 1, "UART device removed."
     old_env = Application.get_env(:farmbot, :behaviour)
     new_env = Keyword.put(old_env, :firmware_handler, Farmbot.Firmware.StubHandler)
     Application.put_env(:farmbot, :behaviour, new_env)
@@ -143,6 +151,19 @@ defmodule Farmbot.Firmware.UartHandler do
   def handle_info({:nerves_uart, _, {:unhandled_gcode, code_str}}, state) do
     Logger.debug 3, "Got unhandled gcode: #{code_str}"
     {:noreply, [], state}
+  end
+
+  def handle_info({:nerves_uart, _, {_, {:report_software_version, v}}}, state) do
+    expected = Application.get_env(:farmbot, :expected_fw_versions)
+    if v in expected do
+      {:noreply, [{:report_software_version, v}], state}
+    else
+      Logger.error 1, "Firmware version #{v} is not in expected versions: #{inspect expected}"
+      old_env = Application.get_env(:farmbot, :behaviour)
+      new_env = Keyword.put(old_env, :firmware_handler, Farmbot.Firmware.StubHandler)
+      Application.put_env(:farmbot, :behaviour, new_env)
+      {:stop, :normal, state}
+    end
   end
 
   def handle_info({:nerves_uart, _, {:echo, _}}, %{current_cmd: nil} = state) do

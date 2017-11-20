@@ -124,6 +124,10 @@ defmodule Farmbot.Firmware do
 
   end
 
+  def handle_info({:EXIT, _pid, :normal}, state) do
+    {:stop, :normal, state}
+  end
+
   def handle_info({:EXIT, _, reason}, state) do
     Logger.error 1, "Firmware handler: #{state.handler_mod} died: #{inspect reason}"
     {:ok, handler} = state.handler_mod.start_link()
