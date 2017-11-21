@@ -23,10 +23,13 @@ defmodule Farmbot.Regimen.Manager do
     def parse(%{time_offset: offset, sequence_id: sequence_id})
     do
       sequence = fetch_sequence(sequence_id)
+      {:ok, ast} = Farmbot.CeleryScript.AST.decode(sequence)
+      ast_with_label = %{ast | args: Map.put(ast.args, :label, sequence.name)}
+
       %__MODULE__{
         name:        sequence.name,
         time_offset: offset,
-        sequence:    Farmbot.CeleryScript.AST.decode(sequence) |> elem(1)}
+        sequence:    ast_with_label}
     end
 
     def fetch_sequence(id) do
