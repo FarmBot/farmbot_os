@@ -15,8 +15,8 @@ config :farmbot, data_path: "tmp/"
 config :farmbot, :init, [
   Farmbot.Host.Bootstrap.Configurator,
   Farmbot.Host.TargetConfiguratorTest.Supervisor,
-  Farmbot.System.Udev,
-  Farmbot.System.Debug.Supervisor
+  Farmbot.System.Udev.Supervisor,
+  Farmbot.System.Debug
 ]
 
 # Transports.

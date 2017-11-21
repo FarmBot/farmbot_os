@@ -1,8 +1,8 @@
-defmodule Farmbot.System.UdevSupervisor do
+defmodule Farmbot.System.Udev.Supervisor do
   @moduledoc false
   use Supervisor
 
-  def start_link do
+  def start_link(_,_) do
     Supervisor.start_link(__MODULE__, [], name: __MODULE__)
   end
 
