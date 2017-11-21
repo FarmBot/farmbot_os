@@ -351,6 +351,22 @@ defmodule Farmbot.Firmware do
     end
   end
 
+  defp handle_gcode({:report_calibration, axis, status}, state) do
+    maybe_cancel_timer(state.timer)
+    Logger.busy 1, "Axis #{axis} calibration: #{status}"
+    {nil, state}
+  end
+
+  defp handle_gcode({:report_axis_calibration, param, val}, state) do
+    spawn fn() ->
+      case Farmbot.Firmware.update_param(param, val) do
+        :ok -> Logger.success 1, "Calibrated #{param}: #{val}"
+        {:error, reason} -> Logger.error 1, "Failed to set #{param}: #{val} (#{inspect reason})"
+      end
+    end
+    {nil, state}
+  end
+
   defp handle_gcode(:error, state) do
     maybe_cancel_timer(state.timer)
     if state.current do

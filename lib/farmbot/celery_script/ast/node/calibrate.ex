@@ -10,12 +10,17 @@ defmodule Farmbot.CeleryScript.AST.Node.Calibrate do
     do_reduce([:y, :z, :x], @default_speed, env)
   end
 
+
   def execute(%{speed: speed, axis: axis}, _, env) do
     env = mutate_env(env)
     case Farmbot.Firmware.calibrate(axis, speed) do
       :ok -> {:ok, env}
       {:error, reason} -> {:error, reason, env}
     end
+  end
+
+  def execute(%{axis: _axis} = args, body, env) do
+    execute(Map.put(args, :speed, @default_speed), body, env)
   end
 
   defp do_reduce([axis | rest], speed, env) do
