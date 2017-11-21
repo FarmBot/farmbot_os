@@ -14,7 +14,9 @@ defmodule Farmbot.CeleryScript.AST.Node.Execute do
       seq ->
         case Farmbot.CeleryScript.AST.decode(seq) do
           {:ok, ast} ->
-            Farmbot.CeleryScript.execute(ast, env)
+            # remove this some day.
+            ast_with_label = %{ast | args: Map.put(ast.args, :label, seq.name)}
+            Farmbot.CeleryScript.execute(ast_with_label, env)
           {:error, reason} -> {:error, reason, env}
         end
     end
