@@ -242,7 +242,7 @@ defmodule Farmbot.Firmware.UartHandler do
       "y" -> "Y"
       "z" -> "Z"
     end
-    do_write("F84 #{axis_format}", state)
+    do_write("F84 #{axis_format}1", state)
   end
 
   def handle_call(:emergency_lock, _from, state) do
