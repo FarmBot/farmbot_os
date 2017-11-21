@@ -55,7 +55,7 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
   def on_connect(state) do
     GenMQTT.subscribe(self(), [{bot_topic(state.device), 0}])
     GenMQTT.subscribe(self(), [{sync_topic(state.device), 0}])
-    Logger.info(3, "Connected to real time services.")
+    Logger.success(3, "Connected to real time services.")
 
     if state.cache do
       GenMQTT.publish(self(), status_topic(state.device), Poison.encode!(state.cache), 0, false)

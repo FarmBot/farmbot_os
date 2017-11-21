@@ -151,6 +151,10 @@ defmodule Farmbot.BotState do
     end
   end
 
+  def locked? do
+    GenStage.call(__MODULE__, :locked?)
+  end
+
   @doc "Set job progress."
   def set_job_progress(name, progress) do
     GenServer.call(__MODULE__, {:set_job_progress, name, progress})
@@ -232,6 +236,10 @@ defmodule Farmbot.BotState do
     state = do_handle(events, state)
     # Logger.success 3, "Finish handle bot state events"
     {:noreply, [state], state}
+  end
+
+  def handle_call(:locked?, _from, state) do
+    {:reply, state.informational_settings.sync_status == :locked, [], state}
   end
 
   def handle_call({:get_pin_value, pin}, _from, state) do

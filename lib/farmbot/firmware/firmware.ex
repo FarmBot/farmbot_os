@@ -285,7 +285,7 @@ defmodule Farmbot.Firmware do
     maybe_cancel_timer(state.timer)
     Farmbot.BotState.set_busy(false)
     if state.current do
-      GenServer.reply(state.current.from, {:error, :timeout})
+      GenStage.reply(state.current.from, {:error, :timeout})
       {:informational_settings, %{busy: false}, %{state | current: nil, idle: true}}
     else
       {:informational_settings, %{busy: false}, %{state | idle: true}}
