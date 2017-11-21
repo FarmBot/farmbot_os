@@ -14,7 +14,13 @@ defmodule Farmbot.CeleryScript.AST.Node.Sequence do
     Logger.info 2, "[#{name}] - Sequence Executing: #{inspect ast}"
     case Farmbot.CeleryScript.execute(ast, env) do
       {:ok, new_env} -> do_reduce(rest, new_env, name)
-      {:error, reason, env} -> {:error, reason, env}
+      {:error, reason, env} ->
+        Logger.warn 3, "[#{name}] - Sequence failed. Locking bot!"
+        case Farmbot.Firmware.emergency_lock() do
+          :ok -> :ok
+          {:error, reason} -> Logger.error 1, "Failed to lock the firmware! #{inspect reason}"
+        end
+        {:error, reason, env}
     end
   end
 
