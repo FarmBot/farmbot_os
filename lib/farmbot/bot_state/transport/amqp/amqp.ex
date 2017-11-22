@@ -35,7 +35,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
          {:ok, _tag} <- Basic.consume(chan, queue_name),
          state       <- struct(State, [conn: conn, chan: chan, queue_name: queue_name, bot: device])
     do
-      Logger.success(3, "Connected to real time services.")
+      # Logger.success(3, "Connected to real time services.")
       {:consumer, state, subscribe_to: [Farmbot.BotState, Farmbot.Logger]}
     else
       {:error, {:auth_failure, msg}} = fail ->

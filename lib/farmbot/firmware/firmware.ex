@@ -214,6 +214,18 @@ defmodule Farmbot.Firmware do
     {nil, state}
   end
 
+  defp handle_gcode(:error, state) do
+    Logger.warn 1, "Got error gcode!"
+    maybe_cancel_timer(state.timer)
+    if state.current do
+      Logger.error 1, "Failed to execute #{state.current.fun}#{inspect state.current.args}"
+      GenStage.reply(state.current.from, {:error, :firmware_error})
+      {nil, %{state | current: nil}}
+    else
+      {nil, state}
+    end
+  end
+
   defp handle_gcode({:report_current_position, x, y, z}, state) do
     {:location_data, %{position: %{x: round(x), y: round(y), z: round(z)}}, state}
   end
@@ -358,6 +370,7 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode({:report_axis_calibration, param, val}, state) do
+    # have to spawn this fun otherwise we have to functions waiting on eachother.
     spawn fn() ->
       case Farmbot.Firmware.update_param(param, val) do
         :ok -> Logger.success 1, "Calibrated #{param}: #{val}"
@@ -365,17 +378,6 @@ defmodule Farmbot.Firmware do
       end
     end
     {nil, state}
-  end
-
-  defp handle_gcode(:error, state) do
-    maybe_cancel_timer(state.timer)
-    if state.current do
-      Logger.error 1, "Failed to execute #{state.current.fun}#{inspect state.current.args}"
-      GenStage.reply(state.current.from, {:error, :firmware_error})
-      {nil, %{state | current: nil}}
-    else
-      {nil, state}
-    end
   end
 
   defp handle_gcode(:noop, state) do
