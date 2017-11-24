@@ -76,7 +76,7 @@ defmodule Farmbot.Mixfile do
 
   defp deps do
     [
-      {:nerves, "~> 0.7.5", runtime: false},
+      {:nerves, "~> 0.8.3", runtime: false},
       {:vmq_commons_fb, "~> 1.0.2"},
       {:gen_stage, "~> 0.12"},
       {:poison, "~> 3.0"},
@@ -98,6 +98,8 @@ defmodule Farmbot.Mixfile do
       {:joken, "~> 1.1"},
       {:socket, "~> 0.3"},
       {:amqp, "~> 1.0.0-pre.2"},
+      {:nerves_ssdp_server, "~> 0.2.2", only: :dev},
+      {:nerves_ssdp_client, "~> 0.1.0", only: :dev}
     ]
   end
 

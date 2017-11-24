@@ -19,7 +19,8 @@ defmodule Farmbot.System.Debug do
     ]
     children = [
       Plug.Adapters.Cowboy.child_spec(:http, Farmbot.System.DebugRouter, [], options),
-      worker(Farmbot.System.Updates.SlackUpdater, [])
+      worker(Farmbot.System.Updates.SlackUpdater, []),
+      worker(Farmbot.System.Debug.SSDPServer, [])
     ]
 
     opts = [strategy: :one_for_one]

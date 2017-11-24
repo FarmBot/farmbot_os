@@ -1,0 +1,1 @@
+iex --sname farmbot --cookie democookie --remsh farmbot@farmbot-eb30
