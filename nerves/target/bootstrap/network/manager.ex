@@ -6,6 +6,10 @@ defmodule Farmbot.Target.Network.Manager do
   alias Farmbot.Target.Network.Ntp
   import Farmbot.Target.Network, only: [test_dns: 0]
 
+  def get_ip_addr(interface) do
+    GenServer.call(:"#{__MODULE__}-#{interface}", :ip)
+  end
+
   def start_link(interface, opts) do
     GenServer.start_link(__MODULE__, {interface, opts}, [name: :"#{__MODULE__}-#{interface}"])
   end
@@ -23,6 +27,10 @@ defmodule Farmbot.Target.Network.Manager do
     {:ok, _} = Registry.register(Nerves.WpaSupplicant, interface, [])
     Network.setup(interface, opts)
     {:ok, %{interface: interface, ip_address: nil, connected: false, not_found_timer: nil}}
+  end
+
+  def handle_call(:ip, _, state) do
+    {:reply, state.ip_address, state}
   end
 
   def handle_info({:system_registry, :global, registry}, state) do

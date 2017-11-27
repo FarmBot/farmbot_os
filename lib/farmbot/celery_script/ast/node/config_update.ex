@@ -39,7 +39,6 @@ defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdate do
         end
 
         do_reduce_os(rest, env)
-
       {:ok, {type, group, value}} ->
         Farmbot.System.ConfigStorage.update_config_value(type, group, key, value)
         do_reduce_os(rest, env)
@@ -67,6 +66,7 @@ defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdate do
   defp lookup_os_config("auto_sync",                 val), do: {:ok, {:bool,   "settings", format_bool_for_os(val)}}
   defp lookup_os_config("first_party_farmware_url",  val), do: {:ok, {:string, "settings", val}}
   defp lookup_os_config("timezone",                  val), do: {:ok, {:string, "settings", val}}
+  defp lookup_os_config("network_not_found_timer",   val), do: {:ok, {:float,  "settings", to_float(val)}}
   defp lookup_os_config("firmware_hardware", "farmduino"), do: {:ok, {:string, "settings", "farmduino"}}
   defp lookup_os_config("firmware_hardware",   "arduino"), do: {:ok, {:string, "settings", "arduino"  }}
   defp lookup_os_config("firmware_hardware",     unknown), do: {:error, "unknown hardware: #{unknown}" }
@@ -76,4 +76,12 @@ defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdate do
   defp format_bool_for_os(0), do: false
   defp format_bool_for_os(true), do: true
   defp format_bool_for_os(false), do: false
+
+  defp to_float(int) when is_integer(int) do
+    int / 1
+  end
+
+  defp to_float(float) when is_float(float) do
+    float
+  end
 end
