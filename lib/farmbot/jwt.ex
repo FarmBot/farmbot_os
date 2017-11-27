@@ -6,7 +6,7 @@ defmodule Farmbot.Jwt do
     :exp,
     :iss,
     :mqtt,
-    :virtual_host,
+    :vhost,
     :os_update_server
   ]
 
@@ -16,7 +16,8 @@ defmodule Farmbot.Jwt do
           exp: number,
           iss: binary,
           mqtt: binary,
-          os_update_server: binary
+          os_update_server: binary,
+          vhost: binary,
         }
 
   @doc "Decode a token."

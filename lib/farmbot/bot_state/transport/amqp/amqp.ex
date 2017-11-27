@@ -7,6 +7,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
   alias Farmbot.System.ConfigStorage
   alias Farmbot.CeleryScript
   alias CeleryScript.AST
+  import Farmbot.BotState.Utils
 
   @exchange "amq.topic"
 
@@ -24,7 +25,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
   def init([]) do
     token = ConfigStorage.get_config_value(:string, "authorization", "token")
-    with {:ok, %{bot: device, mqtt: mqtt_server, virtual_host: vhost}} <- Farmbot.Jwt.decode(token),
+    with {:ok, %{bot: device, mqtt: mqtt_server, vhost: vhost}} <- Farmbot.Jwt.decode(token),
          {:ok, conn} <- AMQP.Connection.open([host: mqtt_server, username: device, password: token, virtual_host: vhost || "/"]),
          {:ok, chan} <- AMQP.Channel.open(conn),
          queue_name  <- Enum.join([device, UUID.uuid1()], "-"),
@@ -56,7 +57,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
   def handle_log_events(logs, state) do
     for %Farmbot.Log{} = log <- logs do
-      if log.module == nil or (Module.split(log.module || Elixir.Logger) |> List.first == "Farmbot") do
+      if should_log?(log.module, log.verbosity) do
         location_data = Map.get(state.state_cache || %{}, :location_data, %{position: %{x: -1, y: -1, z: -1}})
         meta = %{type: log.level, x: nil, y: nil, z: nil}
         log_without_pos = %{created_at: log.time, meta: meta, channels: log.meta[:channels] || [], message: log.message}

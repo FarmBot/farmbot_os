@@ -115,7 +115,7 @@ defmodule Farmbot.Bootstrap.Supervisor do
     # get a token
     case @auth_task.authorize(email, pass, server) do
       {:ok, token} ->
-        Logger.info(2, "Successful authorization: #{@auth_task} - #{email} - #{server}")
+        Logger.success(2, "Successful authorization: #{@auth_task} - #{email} - #{server}")
         ConfigStorage.update_config_value(:bool, "settings", "first_boot", false)
         ConfigStorage.update_config_value(:string, "authorization", "token", token)
         ConfigStorage.update_config_value(:string, "authorization", "last_shutdown_reason", nil)
