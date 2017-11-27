@@ -12,6 +12,7 @@ defmodule Farmbot.Host.TargetConfiguratorTest.Supervisor do
         Farmbot.Host.TargetConfiguratorTest,
         [],
         port: 4000,
+        acceptors: 3,
         dispatch: [dispatch()]
       )]
       supervise(children, [strategy: :one_for_one])

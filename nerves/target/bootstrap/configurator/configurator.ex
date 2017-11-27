@@ -60,7 +60,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
           :http,
           Farmbot.Target.Bootstrap.Configurator.Router,
           [],
-          port: 80
+          port: 80,
+          acceptors: 3
         ),
         worker(Farmbot.Target.Bootstrap.Configurator.CaptivePortal, [])
       ]

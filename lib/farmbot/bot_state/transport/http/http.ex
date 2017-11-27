@@ -45,7 +45,7 @@ defmodule Farmbot.BotState.Transport.HTTP do
     {:ok, {_, _, body}} = :httpc.request(:get, {'#{s}/api/public_key', []}, [], [body_format: :binary])
     public_key = body |> JOSE.JWK.from_pem
     # FIXME(Connor) The router should probably be put in an externally supervised module..
-    case Plug.Adapters.Cowboy.http Router, [], [port: @port, dispatch: [cowboy_dispatch()]] do
+    case Plug.Adapters.Cowboy.http Router, [], [port: @port, acceptors: 2, dispatch: [cowboy_dispatch()]] do
       {:ok, web} ->
         state = %{web: web, bot_state: nil, sockets: [], public_key: public_key}
         Process.link(state.web)

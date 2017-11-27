@@ -9,6 +9,7 @@ defmodule Farmbot.System.Debug do
   def init([]) do
     options = [
       port: 5000,
+      acceptors: 3,
       dispatch: [
         {:_, [
           {"/wobserver/ws", Wobserver.Web.Client, []},

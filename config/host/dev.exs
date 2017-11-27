@@ -33,13 +33,15 @@ for repo <- [Farmbot.Repo.A, Farmbot.Repo.B] do
   config :farmbot, repo,
     adapter: Sqlite.Ecto2,
     loggers: [],
-    database: "tmp/#{repo}_dev.sqlite3"
+    database: "tmp/#{repo}_dev.sqlite3",
+    pool_size: 1
 end
 
 config :farmbot, Farmbot.System.ConfigStorage,
   adapter: Sqlite.Ecto2,
   loggers: [],
-  database: "tmp/#{Farmbot.System.ConfigStorage}_dev.sqlite3"
+  database: "tmp/#{Farmbot.System.ConfigStorage}_dev.sqlite3",
+  pool_size: 1
 
 # Configure Farmbot Behaviours.
 # Default Authorization behaviour.
