@@ -36,7 +36,7 @@ defmodule Farmbot.Firmware.Handler do
   @type pin_mode :: :digital | :analog
 
   @doc "Move to a position."
-  @callback move_absolute(handler, vec3, speed) :: fw_ret_val
+  @callback move_absolute(handler, vec3, speed, speed, speed) :: fw_ret_val
 
   @doc "Calibrate an axis."
   @callback calibrate(handler, axis, speed) :: fw_ret_val

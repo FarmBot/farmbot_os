@@ -5,8 +5,8 @@ defmodule Farmbot.Firmware do
   use Farmbot.Logger
 
   @doc "Move the bot to a position."
-  def move_absolute(vec3, speed) do
-    GenStage.call(__MODULE__, {:move_absolute, [vec3, speed]}, :infinity)
+  def move_absolute(vec3, x_speed, y_speed, z_speed) do
+    GenStage.call(__MODULE__, {:move_absolute, [vec3, x_speed, y_speed, z_speed]}, :infinity)
   end
 
   @doc "Calibrate an axis."

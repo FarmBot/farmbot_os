@@ -12,8 +12,8 @@ defmodule Farmbot.Firmware.UartHandler do
     GenStage.start_link(__MODULE__, [])
   end
 
-  def move_absolute(handler, pos, speed) do
-    GenStage.call(handler, {:move_absolute, pos, speed})
+  def move_absolute(handler, pos, x_speed, y_speed, z_speed) do
+    GenStage.call(handler, {:move_absolute, pos, x_speed, y_speed, z_speed})
   end
 
   def calibrate(handler, axis, speed) do
@@ -204,8 +204,8 @@ defmodule Farmbot.Firmware.UartHandler do
     end
   end
 
-  def handle_call({:move_absolute, pos, speed}, _from, state) do
-    wrote = "G00 X#{pos.x} Y#{pos.y} Z#{pos.z} A#{speed} B#{speed} C#{speed}"
+  def handle_call({:move_absolute, pos, x_speed, y_speed, z_speed}, _from, state) do
+    wrote = "G00 X#{pos.x} Y#{pos.y} Z#{pos.z} A#{x_speed} B#{y_speed} C#{z_speed}"
     do_write(wrote, state)
   end
 
