@@ -56,6 +56,11 @@ defmodule Farmbot.System do
     @system_tasks.shutdown(formatted)
   end
 
+  defp write_file(nil) do
+    file = Path.join(@data_path, "last_shutdown_reason")
+    File.rm_rf(file)
+  end
+
   defp write_file(reason) do
     file = Path.join(@data_path, "last_shutdown_reason")
     File.write!(file, reason)
@@ -71,18 +76,27 @@ defmodule Farmbot.System do
   rescue
     _ ->
       [_ | [_ | stack]] = System.stacktrace()
-      stack = Enum.map(stack, fn er -> "\t#{inspect(er)}" end) |> Enum.join("\r\n")
-
-      do_format_reason(reason) <> """
-
-      environment: #{@env}
-      source_ref:  #{@ref}
-      target:      #{@target}
+      stack = Enum.map(stack, fn er -> "\t#{inspect(er)}" end) |> Enum.join(",\r\n <p>")
+      formated = do_format_reason(reason)
+      footer = """
+      <hr>
+      <p>
+      <p>
+      <p> <strong> environment: </strong> #{@env}
+      <p> <strong> source_ref: </strong>  #{@ref}
+      <p> <strong> target: </strong>      #{@target}
+      <p>
+      <p>
       Stacktrace:
-        [
-      #{stack}
-        ]
+      <p> [#{stack}]
+      <hr>
       """
+      if formated do
+        formated <> footer
+      else
+        nil
+      end
+
   end
 
   # This mess of pattern matches cleans up erlang startup errors. It's very
@@ -98,14 +112,17 @@ defmodule Farmbot.System do
 
   defp do_format_reason({:error, {:shutdown, {:failed_to_start_child, child, rest}}}) do
     {failed_child, failed_reason} = enumerate_ftsc_error(child, rest)
+    if failed_reason do
+      """
+      Failed to start child: #{failed_child}
+      reason: #{do_format_reason(failed_reason)}
 
-    """
-    Failed to start child: #{failed_child}
-    reason: #{do_format_reason(failed_reason)}
-
-    This is likely a bug. Please copy or screenshot this error and send it to
-    the Farmbot developers.
-    """
+      This is likely a bug. Please copy or screenshot this error and send it to
+      the Farmbot developers.
+      """
+    else
+      nil
+    end
   end
 
   defp do_format_reason({:bad_return, {Farmbot.Bootstrap.Supervisor, :init, error}}) do
@@ -127,6 +144,13 @@ defmodule Farmbot.System do
     """
     Failed to connect to server: #{server}:#{port} reason: #{do_format_reason(reason)}
     This is likely the result of a misconfigured "server" field during configuration.
+    """
+  end
+
+  defp do_format_reason({:badarg, [{:ets, :lookup_element, _, _} | _]}) do
+    """
+    Bad Ecto call. This usually is a result of an over the air update and can
+    likely be ignored.
     """
   end
 

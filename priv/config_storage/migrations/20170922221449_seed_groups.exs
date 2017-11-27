@@ -138,6 +138,7 @@ defmodule Farmbot.System.ConfigStorage.Migrations.SeedGroups do
     create_value(BoolValue, false)  |> create_config(group_id, "auto_sync")
     create_value(StringValue, nil)  |> create_config(group_id, "firmware_hardware")
     create_value(StringValue, nil)  |> create_config(group_id, "timezone")
+    create_value(FloatValue, nil)   |> create_config(group_id, "network_not_found_timer") 
     fpf_url = Application.get_env(:farmbot, :farmware)[:first_part_farmware_manifest_url]
     create_value(StringValue, fpf_url) |> create_config(group_id, "first_party_farmware_url")
   end
