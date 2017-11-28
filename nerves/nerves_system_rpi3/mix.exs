@@ -37,7 +37,7 @@ defmodule NervesSystemRpi3.Mixfile do
     if File.exists?("../nerves_system_br") do
       {:nerves_system_br, path: "../nerves_system_br"}
     else
-      {:nerves_system_br, "~> 0.9.2"}
+      {:nerves_system_br, "~> v0.15.0"}
     end
   end
 
