@@ -34,7 +34,7 @@ defmodule Farmbot.HTTP.ImageUploader do
     if matches? and (not already_uploading?) do
       Logger.info 2, "Uploading: #{path}"
       %{x: x, y: y, z: z} = Farmbot.BotState.get_current_pos()
-      meta = %{x: x, y: y, z: z}
+      meta = %{x: x, y: y, z: z, name: Path.rootname(path)}
       pid = spawn __MODULE__, :upload, [path, meta]
       {:noreply, %{state | uploads: Map.put(state.uploads, pid, {path, meta, 0})}}
     else
