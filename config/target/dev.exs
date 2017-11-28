@@ -27,16 +27,22 @@ config :farmbot, data_path: "/root"
 config :farmbot, :init, [
   # Load consolidated protocols
   Farmbot.Target.Protocols,
+
   # Autodetects if a Arduino is plugged in and configures accordingly.
   Farmbot.Firmware.UartHandler.AutoDetector,
+
+  Farmbot.Target.ConfigMigration.BeforeNetwork,
 
   # Allows for first boot configuration.
   Farmbot.Target.Bootstrap.Configurator,
 
   # Start up Network
   Farmbot.Target.Network,
+
   # Wait for time time come up.
   Farmbot.Target.Network.WaitForTime,
+
+  Farmbot.Target.ConfigMigration.AfterNetwork,
 
   # Debug stuff
   Farmbot.System.Debug,

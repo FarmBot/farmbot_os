@@ -117,7 +117,7 @@ defmodule Farmbot.System.Updates.SlackUpdater do
   end
 
   def init(nil) do
-    Logger.warn(3, "Not setting up slack (No token)")
+    Logger.warn(3, "Not setting up slack (No slack token)")
     :ignore
   end
 
