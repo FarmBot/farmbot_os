@@ -29,7 +29,7 @@ defmodule NervesSystemRpi3.Mixfile do
     if File.exists?("../nerves") do
       {:nerves, path: "../nerves", override: true}
     else
-      {:nerves, "0.5.1"}
+      {:nerves, "0.8.3"}
     end
   end
 

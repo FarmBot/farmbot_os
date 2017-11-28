@@ -128,13 +128,13 @@ defmodule Farmbot.Mixfile do
 
   defp deps do
     [
-      {:nerves, "0.5.1"},
+      {:nerves, "~> 0.8.3"},
       {:nerves_runtime, github: "nerves-project/nerves_runtime", override: true},
       {:nerves_hal, github: "LeToteTeam/nerves_hal"},
 
       # Hardware stuff
       {:nerves_uart, "0.1.2"}, # uart handling
-      { :uuid, "~> 1.1" },
+      {:uuid, "~> 1.1" },
 
       # http stuff
       {:poison, "~> 3.0"},
