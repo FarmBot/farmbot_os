@@ -81,25 +81,23 @@ defmodule Farmbot.Target.ConfigMigration.BeforeNetwork do
     "timezone" => tz, "user_env" => user_env})
   do
     import ConfigStorage, only: [update_config_value: 4]
-    with {:first_party_farmware, :type_check, true} <- {:first_party_farmware, :type_check, is_boolean(fpf)},
+    with {:first_party_farmware, :type_check, true}    <- {:first_party_farmware, :type_check, is_boolean(fpf)},
     {:first_party_farmware, :update_config_value, :ok} <- {:first_party_farmware, :update_config_value, update_config_value(:bool, "settings", "first_party_farmware", fpf)},
-    {:firmware_hardware, :type_check, true} <- {:firmware_hardware, :type_check, hw in ["arduino", "arduino"]},
-    {:firmware_hardware, :update_config_value, :ok} <- {:firmware_hardware, :update_config_value, update_config_value(:string, "settings", "firmware_hardware", hw)},
-    {:os_auto_update, :type_check, true} <- {:os_auto_update, :type_check, is_boolean(os_auto_update)},
-    {:os_auto_update, :update_config_value, :ok} <- {:os_auto_update, :update_config_value, update_config_value(:bool, "settings", "os_auto_update", os_auto_update)},
-    {:timezone, :type_check, true} <- {:timezone, :type_check, (is_binary(tz) or is_nil(tz))},
-    {:timezone, :update_config_value, :ok} <- {:timezone, :update_config_value, update_config_value(:string, "settings", "timezone", tz)},
-    {:user_env, :type_check, true} <- {:user_env, :type_check, is_map(user_env)},
-    {:user_env, :type_cast, {:ok, user_env_enc}} <- {:user_env, :type_cast, Poison.encode(user_env)},
-    {:user_env, :update_config_value, :ok} <- {:user_env, :update_config_value, update_config_value(:string, "settings", "user_env", user_env_enc)},
-    {:first_boot, :update_config_value, :ok} <- {:first_boot, :update_config_value, update_config_value(:bool, "settings", "first_boot", false)} do
+    {:firmware_hardware, :type_check, true}            <- {:firmware_hardware, :type_check, hw in ["arduino", "arduino"]},
+    {:firmware_hardware, :update_config_value, :ok}    <- {:firmware_hardware, :update_config_value, update_config_value(:string, "settings", "firmware_hardware", hw)},
+    {:os_auto_update, :type_check, true}               <- {:os_auto_update, :type_check, is_boolean(os_auto_update)},
+    {:os_auto_update, :update_config_value, :ok}       <- {:os_auto_update, :update_config_value, update_config_value(:bool, "settings", "os_auto_update", os_auto_update)},
+    {:timezone, :type_check, true}                     <- {:timezone, :type_check, (is_binary(tz) or is_nil(tz))},
+    {:timezone, :update_config_value, :ok}             <- {:timezone, :update_config_value, update_config_value(:string, "settings", "timezone", tz)},
+    {:user_env, :type_check, true}                     <- {:user_env, :type_check, is_map(user_env)},
+    {:user_env, :type_cast, {:ok, user_env_enc}}       <- {:user_env, :type_cast, Poison.encode(user_env)},
+    {:user_env, :update_config_value, :ok}             <- {:user_env, :update_config_value, update_config_value(:string, "settings", "user_env", user_env_enc)},
+    {:first_boot, :update_config_value, :ok}           <- {:first_boot, :update_config_value, update_config_value(:bool, "settings", "first_boot", false)} do
       Logger.success 1, "Configuration data from jsono file was merged."
       :ok
     else
-      {step, :type_check, _} -> {:error, "#{step} failed type checking."}
       {step, sub_step, err} ->
-        {:error, reason} = err
-        {:error, "#{step} failed at #{sub_step} reason: #{inspect reason}"}
+        {:error, "#{step} failed at #{sub_step} reason: #{inspect err}"}
     end
   end
 

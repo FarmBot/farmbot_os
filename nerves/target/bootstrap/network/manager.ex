@@ -26,7 +26,7 @@ defmodule Farmbot.Target.Network.Manager do
     {:ok, _} = Registry.register(Nerves.Udhcpc, interface, [])
     {:ok, _} = Registry.register(Nerves.WpaSupplicant, interface, [])
     Network.setup(interface, opts)
-    {:ok, %{interface: interface, ip_address: nil, connected: false, not_found_timer: nil}}
+    {:ok, %{interface: interface, ip_address: nil, connected: false, not_found_timer: nil, ntp_timer: nil}}
   end
 
   def handle_call(:ip, _, state) do
@@ -35,20 +35,20 @@ defmodule Farmbot.Target.Network.Manager do
 
   def handle_info({:system_registry, :global, registry}, state) do
     ip = get_in(registry, [:state, :network_interface, state.interface, :ipv4_address])
-
-    if ip != state.ip_address do
+    ntp_timer = if ip != state.ip_address do
       Logger.warn(3, "ip address changed on interface: #{state.interface}: #{ip}")
-      :ok = Ntp.set_time()
+      maybe_cancel_and_reset_ntp_timer(state.ntp_timer)
+    else
+      nil
     end
+
 
     connected = match?({:ok, {:hostent, 'nerves-project.org', [], :inet, 4, _}}, test_dns())
     if connected do
-      if state.not_found_timer do
-        Process.cancel_timer(state.not_found_timer)
-      end
-      {:noreply, %{state | ip_address: ip, connected: true, not_found_timer: nil}}
+      not_found_timer = cancel_not_found_timer(state.not_found_timer)
+      {:noreply, %{state | ip_address: ip, connected: true, not_found_timer: not_found_timer, ntp_timer: ntp_timer}}
     else
-      {:noreply, %{state | connected: false}}
+      {:noreply, %{state | connected: false, ntp_timer: ntp_timer}}
     end
   end
 
@@ -92,8 +92,39 @@ defmodule Farmbot.Target.Network.Manager do
     end
   end
 
+  def handle_info(:ntp_timer, state) do
+    new_timer = maybe_cancel_and_reset_ntp_timer(state.ntp_timer)
+    {:ok, %{state | ntp_timer: new_timer}}
+  end
+
   def handle_info(_event, state) do
     # Logger.warn 3, "unhandled network event: #{inspect event}"
     {:noreply, state}
+  end
+
+  defp cancel_not_found_timer(timer) do
+    # If there was a timer, cancel it.
+    if timer do
+      Process.cancel_timer(timer)
+    end
+    nil
+  end
+
+  defp maybe_cancel_and_reset_ntp_timer(timer) do
+    if timer do
+      Process.cancel_timer(timer)
+    end
+    # introduce a bit of randomness to avoid dosing ntp servers.
+    # I don't think this would ever happen but the default ntpd implementation
+    # does this..
+    rand = :rand.uniform(5000)
+
+    case Ntp.set_time() do
+
+      # If we Successfully set time, sync again in around 1024 seconds
+      :ok -> Process.send_after(self(), :ntp_timer, 1024000 + rand)
+      # If time failed, try again in about 5 minutes.
+      _ -> Process.send_after(self(), :ntp_timer, 300000 + rand)
+    end
   end
 end

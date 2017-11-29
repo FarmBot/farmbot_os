@@ -28,7 +28,7 @@ defmodule Farmbot.Target.Network.Ntp do
   defp do_try_set_time(tries) when tries < 4 do
     # we try to set ntp time 3 times before giving up.
     Logger.busy 2, "Trying to set time (try #{tries})"
-    :os.cmd('ntpd -p 0.pool.ntp.org -p 1.pool.ntp.org')
+    :os.cmd('ntpd -q -p 0.pool.ntp.org -p 1.pool.ntp.org')
     wait_for_time(tries)
   end
 
@@ -43,10 +43,43 @@ defmodule Farmbot.Target.Network.Ntp do
     case :os.system_time(:seconds) do
       t when t > 1_474_929 ->
         Logger.success 2, "Time is set."
-        :ok
+        Logger.busy 2, "Updating tzdata."
+        update_tzdata()
       _ ->
         Process.sleep(1_000 * loops)
         wait_for_time(tries, loops + 1)
+    end
+  end
+
+  defp update_tzdata(retries \\ 0)
+
+  defp update_tzdata(retries) when retries > 5 do
+    {:error, :failed_to_update_tzdata}
+  end
+
+  defp update_tzdata(retries) do
+    maybe_hack_tzdata()
+    case Tzdata.DataLoader.download_new() do
+      {:ok, _, _, _, _} ->
+        Logger.success 2, "Successfully updated tzdata."
+        :ok
+      _ -> update_tzdata(retries + 1)
+    end
+  end
+
+  @fb_data_dir Application.get_env(:farmbot, :data_path)
+  @tzdata_dir Application.app_dir(:tzdata, "priv")
+  def maybe_hack_tzdata do
+    case Tzdata.Util.data_dir() do
+      @fb_data_dir -> :ok
+      _ ->
+        Logger.warn 1, "Hacking tzdata."
+        objs_to_cp = Path.wildcard(Path.join(@tzdata_dir, "*"))
+        for obj <- objs_to_cp do
+          File.cp_r obj, @fb_data_dir
+        end
+        Application.put_env(:tzdata, :data_dir, @fb_data_dir)
+        :ok
     end
   end
 

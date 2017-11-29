@@ -83,7 +83,7 @@ defmodule Farmbot.Mixfile do
       {:ex_json_schema, "~> 0.5.3"},
       {:rsa, "~> 0.0.1"},
       {:httpoison, "~> 0.13.0"},
-      {:tzdata, "~> 0.1.201601", override: true},
+      {:tzdata, "~> 0.5.14"},
       {:timex, "~> 3.1.13"},
 
       {:fs, "~> 3.4.0"},
@@ -99,7 +99,9 @@ defmodule Farmbot.Mixfile do
       {:socket, "~> 0.3"},
       {:amqp, "~> 1.0.0-pre.2"},
       {:nerves_ssdp_server, "~> 0.2.2", only: :dev},
-      {:nerves_ssdp_client, "~> 0.1.0", only: :dev}
+      {:nerves_ssdp_client, "~> 0.1.0", only: :dev},
+
+      {:ex_syslogger, "~> 1.4", only: :prod}
     ]
   end
 
