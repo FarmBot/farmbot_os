@@ -30,7 +30,6 @@ defmodule Farmbot.System.GPIO do
 
   def handle_events(pin_triggers, _from, state) do
     t = Enum.uniq(pin_triggers)
-    IO.puts "Got triggers: #{inspect t}"
     for {:pin_trigger, pin} <- t do
       sequence_id = state.registered[pin]
       if sequence_id do
