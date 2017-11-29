@@ -1,7 +1,7 @@
 #!/bin/bash
 SYSTEM=$1
 NERVES_SYSTEM_BR_GIT="https://github.com/nerves-project/nerves_system_br"
-NERVES_SYSTEM_BR_COMMIT="049d8e19b69b0f84084182d9bdd915e4eb431ed5"
+NERVES_SYSTEM_BR_COMMIT="64f3b9e58f54006d2bcc28c128b8bd88efbf4b7a"
 
 if [ -d "nerves/NERVES_SYSTEM_$SYSTEM" ]; then
   # Control will enter here if $DIRECTORY exists.

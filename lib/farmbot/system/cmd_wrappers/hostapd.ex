@@ -116,7 +116,7 @@ defmodule Farmbot.System.Network.Hostapd do
   defp build_ssid do
     node_str =
       node() |> Atom.to_string
-    [name, "nerves-" <> id] =
+    [name, "farmbot-" <> id] =
       node_str |> String.split("@")
     name <> "-" <> id
   end

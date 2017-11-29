@@ -34,4 +34,4 @@ config :fs, path: "/tmp/images"
 IO.puts "using #{target} - #{env} configuration."
 import_config "hardware/#{target}/#{env}.exs"
 config :nerves, :firmware,
-  rootfs_additions: "config/hardware/#{target}/rootfs-additions-#{env}"
+  rootfs_overlay: "config/hardware/#{target}/rootfs-additions-#{env}"
