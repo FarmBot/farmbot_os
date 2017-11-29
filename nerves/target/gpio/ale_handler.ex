@@ -45,7 +45,6 @@ defmodule Farmbot.Target.GPIO.AleHandler do
   end
 
   def handle_info({:gpio_interrupt, pin, :rising}, state) do
-    IO.puts "got rising signal. Dispatching: #{pin}"
     pin_state = state.pins[pin]
     if pin_state.timer do
       new_state = %{state | pins: %{state.pins | pin => %{pin_state | state: :rising}}}
@@ -73,6 +72,3 @@ defmodule Farmbot.Target.GPIO.AleHandler do
     end
   end
 end
-
-# Farmbot.System.GPIO.start_link()
-# Farmbot.System.GPIO.register_sequence(21, 6)
