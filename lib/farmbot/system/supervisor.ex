@@ -23,7 +23,8 @@ defmodule Farmbot.System.Supervisor do
       |> Enum.map(fn child -> fb_init(child, [[], [name: child]]) end)
 
     after_init_children = [
-      supervisor(Farmbot.System.Updates, [])
+      supervisor(Farmbot.System.Updates, []),
+      worker(Farmbot.System.GPIO, [])
     ]
 
     supervise(before_init_children ++ init_mods ++ after_init_children, strategy: :one_for_all)

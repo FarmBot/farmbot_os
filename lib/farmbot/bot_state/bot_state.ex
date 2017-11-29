@@ -228,7 +228,7 @@ defmodule Farmbot.BotState do
     {
       :producer_consumer,
       struct(__MODULE__, configuration: Map.delete(settings, "user_env"), user_env: user_env),
-      subscribe_to: [Farmbot.Firmware, Farmbot.System.ConfigStorage.Dispatcher],
+      subscribe_to: [Farmbot.Firmware, Farmbot.System.ConfigStorage.Dispatcher, Farmbot.System.GPIO],
       dispatcher: GenStage.BroadcastDispatcher
     }
   end
