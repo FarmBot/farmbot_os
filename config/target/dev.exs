@@ -4,6 +4,14 @@ config :logger,
   utc_log: true,
   backends: []
 
+config :farmbot, data_path: "/root"
+
+# This is usually in the `priv` dir of :tzdata, but our fs is read only.
+# config :tzdata, :data_dir, "/root"
+# Disable tzdata autoupdates because it tries to dl the update file
+# Before we have network or ntp.
+config :tzdata, :autoupdate, :disabled
+
 config :farmbot, Farmbot.Repo.A,
   adapter: Sqlite.Ecto2,
   loggers: [],
@@ -20,8 +28,6 @@ config :farmbot, Farmbot.System.ConfigStorage,
   database: "/root/config-#{Mix.env()}.sqlite3"
 
 config :farmbot, ecto_repos: [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage]
-
-config :farmbot, data_path: "/root"
 
 # Configure your our init system.
 config :farmbot, :init, [
