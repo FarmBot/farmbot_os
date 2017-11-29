@@ -22,7 +22,9 @@ defmodule Farmbot.Host.Bootstrap.Configurator do
     pass = Application.get_env(:farmbot, :authorization)[:password] || raise error("password")
     server = Application.get_env(:farmbot, :authorization)[:server] || raise error("server")
     ConfigStorage.update_config_value(:string, "authorization", "email", email)
-    ConfigStorage.update_config_value(:string, "authorization", "password", pass)
+    if ConfigStorage.get_config_value(:bool, "settings", "first_boot") do
+      ConfigStorage.update_config_value(:string, "authorization", "password", pass)
+    end
     ConfigStorage.update_config_value(:string, "authorization", "server", server)
     ConfigStorage.update_config_value(:string, "authorization", "token", nil)
     :ignore

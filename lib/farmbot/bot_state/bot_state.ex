@@ -223,9 +223,11 @@ defmodule Farmbot.BotState do
   end
 
   def init([]) do
+    settings = Farmbot.System.ConfigStorage.get_config_as_map()["settings"]
+    user_env = Poison.decode!(settings["user_env"])
     {
       :producer_consumer,
-      struct(__MODULE__, configuration: Farmbot.System.ConfigStorage.get_config_as_map()["settings"]),
+      struct(__MODULE__, configuration: Map.delete(settings, "user_env"), user_env: user_env),
       subscribe_to: [Farmbot.Firmware, Farmbot.System.ConfigStorage.Dispatcher],
       dispatcher: GenStage.BroadcastDispatcher
     }
@@ -272,9 +274,13 @@ defmodule Farmbot.BotState do
   end
 
   def handle_call({:set_user_env, key, val}, _, state) do
-    new_user_env = Map.put(state.user_env, key, val)
-    new_state = %{state | user_env: new_user_env}
-    {:reply, :ok, [new_state], new_state}
+    new_user_env = Map.merge(state.user_env, %{to_string(key) => val})
+    case Poison.encode(new_user_env) do
+      {:ok, encoded} ->
+        Farmbot.System.ConfigStorage.update_config_value(:string, "settings", "user_env", encoded)
+        {:reply, :ok, [], state}
+      _ -> {:reply, :error, [], state}
+    end
   end
 
   def handle_call(:get_user_env, _from, state) do
@@ -324,6 +330,12 @@ defmodule Farmbot.BotState do
   end
 
   defp do_handle([], state), do: state
+
+  defp do_handle([{:config, "settings", "user_env", val} | rest], state) do
+    new_env = Map.merge(state.user_env, Poison.decode!(val))
+    new_state = %{state | user_env: new_env}
+    do_handle(rest, new_state)
+  end
 
   defp do_handle([{:config, "settings", key, val} | rest], state) do
     new_config = Map.put(state.configuration, key, val)

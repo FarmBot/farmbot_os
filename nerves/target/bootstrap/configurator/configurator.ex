@@ -41,13 +41,6 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
     end
   end
 
-  @data_path Application.get_env(:farmbot, :data_path) || Mix.raise("Unconfigured data path.")
-
-  def flag_configured do
-    check_file = Path.join(@data_path, "configured")
-    File.write(check_file, "configured")
-  end
-
   def init(_) do
     first_boot? = ConfigStorage.get_config_value(:bool, "settings", "first_boot")
     if first_boot? do
