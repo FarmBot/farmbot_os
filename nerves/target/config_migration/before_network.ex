@@ -107,7 +107,13 @@ defmodule Farmbot.Target.ConfigMigration.BeforeNetwork do
     expected_keys = struct(Farmbot.BotState).mcu_params |> Enum.map(fn({key, _}) -> Atom.to_string(key) end)
     migrated = Map.take(params, expected_keys)
     if Enum.all?(migrated, fn({param, val}) ->
-      ConfigStorage.update_config_value(:float, "hardware_params", param, val)
+      cond do
+        is_integer(val) ->
+          ConfigStorage.update_config_value(:float, "hardware_params", param, (val / 1))
+        is_float(val) ->
+          ConfigStorage.update_config_value(:float, "hardware_params", param, val)
+        is_nil(val) -> :ok
+      end
     end) do
       :ok
     else

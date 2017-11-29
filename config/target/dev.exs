@@ -84,3 +84,7 @@ config :nerves_init_gadget,
 config :bootloader,
   init: [:nerves_runtime, :nerves_init_gadget],
   app: :farmbot
+
+if Mix.Project.config[:target] == "rpi3" do
+  config :nerves, :firmware, fwup_conf: "fwup_interim.conf"
+end
