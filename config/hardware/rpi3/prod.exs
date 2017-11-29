@@ -48,3 +48,5 @@ config :logger, :ex_syslogger_info,
   facility: :kern,
   formatter: Farmbot.SysFormatter,
   option: [:pid, :cons]
+
+config :nerves, :firmware, fwup_conf: "interim_fwup.conf"

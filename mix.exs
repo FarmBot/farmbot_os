@@ -94,7 +94,6 @@ defmodule Farmbot.Mixfile do
     [
       :logger,
       :nerves_uart,
-      :nerves_hal,
       :nerves_runtime,
       :nerves_ssdp_server,
       :poison,
@@ -128,13 +127,12 @@ defmodule Farmbot.Mixfile do
 
   defp deps do
     [
-      {:nerves, "0.5.1"},
-      {:nerves_runtime, github: "nerves-project/nerves_runtime", override: true},
-      {:nerves_hal, github: "LeToteTeam/nerves_hal"},
+      {:nerves, "~> 0.8.3"},
+      {:nerves_runtime, "~> 0.4"},
 
       # Hardware stuff
       {:nerves_uart, "0.1.2"}, # uart handling
-      { :uuid, "~> 1.1" },
+      {:uuid, "~> 1.1" },
 
       # http stuff
       {:poison, "~> 3.0"},
@@ -151,7 +149,7 @@ defmodule Farmbot.Mixfile do
       {:mustache, "~> 0.0.2"},
 
       # Time stuff
-      {:timex, "~> 3.0"}, # managing time. for the scheduler mostly.
+      {:timex, "~> 3.1.22"}, # managing time. for the scheduler mostly.
       {:quantum, ">= 1.8.1"}, # cron jobs
 
       # Database
@@ -230,7 +228,7 @@ defmodule Farmbot.Mixfile do
     # if the system is local (because we have changes to it) use that
     if File.exists?("nerves/nerves_system_#{sys}"),
       do: [
-        {:"nerves_system_#{sys}", warn_missing: false, path: "nerves/nerves_system_#{sys}"},
+        {:"nerves_system_farmbot_#{sys}", warn_missing: false, path: "nerves/nerves_system_#{sys}"},
         {:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi"},
         {:nerves_firmware, github: "nerves-project/nerves_firmware", override: true},
         ],
