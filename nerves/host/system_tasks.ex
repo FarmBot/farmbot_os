@@ -4,6 +4,7 @@ defmodule Farmbot.Host.SystemTasks do
   @behaviour Farmbot.System
 
   def factory_reset(reason) do
+    IO.inspect reason
     shutdown(reason)
   end
 

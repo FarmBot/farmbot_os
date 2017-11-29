@@ -24,23 +24,44 @@ defmodule Farmbot.Bootstrap.Authorization do
   # this is the default authorize implementation.
   # It gets overwrote in the Test Environment.
   @doc "Authorizes with the farmbot api."
-  def authorize(email, password, server) do
-    with {:ok, rsa_key} <- fetch_rsa_key(server),
-         {:ok, payload} <- build_payload(email, password, rsa_key),
-         {:ok, resp} <- request_token(server, payload),
-         {:ok, body} <- Poison.decode(resp),
-         {:ok, map} <- Map.fetch(body, "token") do
-      Map.fetch(map, "encoded")
-    else
-      :error -> {:error, "unknown error."}
-      {:error, :invalid, _} -> authorize(email, password, server)
-      # If we got maintance mode, a 5xx error etc, just sleep for a few seconds
-      # and try again.
-      {:ok, {{_, code, _}, _, _}} ->
-        Logger.error 1, "Failed to authorize due to server error: #{code}"
-        Process.sleep(5000)
-        authorize(email, password, server)
-      err -> err
+  def authorize(email, password_or_secret, server) do
+    case Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "first_boot") do
+      true ->
+        with {:ok, rsa_key} <- fetch_rsa_key(server),
+             {:ok, payload} <- build_payload(email, password_or_secret, rsa_key),
+             {:ok, resp}    <- request_token(server, payload),
+             {:ok, body}    <- Poison.decode(resp),
+             {:ok, map}     <- Map.fetch(body, "token") do
+          Farmbot.System.ConfigStorage.update_config_value(:bool, "settings", "first_boot", false)
+          Map.fetch(map, "encoded")
+        else
+          :error -> {:error, "unknown error."}
+          {:error, :invalid, _} -> authorize(email, password_or_secret, server)
+          # If we got maintance mode, a 5xx error etc, just sleep for a few seconds
+          # and try again.
+          {:ok, {{_, code, _}, _, _}} ->
+            Logger.error 1, "Failed to authorize due to server error: #{code}"
+            Process.sleep(5000)
+            authorize(email, password_or_secret, server)
+          err -> err
+        end
+      false ->
+        with {:ok, payload} <- build_payload(password_or_secret),
+             {:ok, resp}    <- request_token(server, payload),
+             {:ok, body}    <- Poison.decode(resp),
+             {:ok, map}     <- Map.fetch(body, "token") do
+          Map.fetch(map, "encoded")
+        else
+          :error -> {:error, "unknown error."}
+          {:error, :invalid, _} -> authorize(email, password_or_secret, server)
+          # If we got maintance mode, a 5xx error etc, just sleep for a few seconds
+          # and try again.
+          {:ok, {{_, code, _}, _, _}} ->
+            Logger.error 1, "Failed to authorize due to server error: #{code}"
+            Process.sleep(5000)
+            authorize(email, password_or_secret, server)
+          err -> err
+        end
     end
   end
 
@@ -56,9 +77,14 @@ defmodule Farmbot.Bootstrap.Authorization do
       %{email: email, password: password, id: UUID.uuid1(), version: 1}
       |> Poison.encode!()
       |> RSA.encrypt({:public, rsa_key})
-      |> Base.encode64()
+    Farmbot.System.ConfigStorage.update_config_value(:string, "authorization", "password", secret)
 
-    %{user: %{credentials: secret}} |> Poison.encode()
+    %{user: %{credentials: secret |> Base.encode64()}} |> Poison.encode()
+  end
+
+  defp build_payload(secret) do
+    user = %{credentials: secret |> :base64.encode_to_string |> to_string}
+    Poison.encode(%{user: user})
   end
 
   defp request_token(server, payload) do

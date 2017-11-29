@@ -1,6 +1,7 @@
 defmodule Farmbot.Firmware.UartHandler.Update do
   @moduledoc false
   use Farmbot.Logger
+
   def maybe_update_firmware(hardware \\ nil) do
     tty = Application.get_all_env(:farmbot)[:uart_handler][:tty]
     hardware = case hardware do
