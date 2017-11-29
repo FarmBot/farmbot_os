@@ -151,7 +151,7 @@ defmodule Farmbot.Mixfile do
       {:mustache, "~> 0.0.2"},
 
       # Time stuff
-      {:timex, "~> 3.0"}, # managing time. for the scheduler mostly.
+      {:timex, "~> 3.1.22"}, # managing time. for the scheduler mostly.
       {:quantum, ">= 1.8.1"}, # cron jobs
 
       # Database
