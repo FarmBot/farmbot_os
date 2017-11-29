@@ -40,7 +40,8 @@ config :wobserver,
 config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
   firmware_handler: Farmbot.Firmware.StubHandler,
-  http_adapter: Farmbot.HTTP.HTTPoisonAdapter
+  http_adapter: Farmbot.HTTP.HTTPoisonAdapter,
+  gpio_handler: Farmbot.System.GPIO.StubHandler
 
 config :farmbot, :farmware,
   first_part_farmware_manifest_url: "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/manifest.json"
@@ -52,9 +53,8 @@ case target do
     import_config("host/#{env}.exs")
 
   _ ->
+    import_config("#{target}/#{env}.exs")
     if File.exists?("config/#{target}/#{env}.exs") do
-      import_config("#{target}/#{env}.exs")
-    else
       import_config("target/#{env}.exs")
     end
 

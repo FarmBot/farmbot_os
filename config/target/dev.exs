@@ -44,7 +44,6 @@ config :farmbot, :init, [
 ]
 
 config :farmbot, :transport, [
-  # Farmbot.BotState.Transport.GenMQTT,
   Farmbot.BotState.Transport.AMQP,
   Farmbot.BotState.Transport.HTTP,
 ]
@@ -54,7 +53,8 @@ config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
   system_tasks: Farmbot.Target.SystemTasks,
   firmware_handler: Farmbot.Firmware.StubHandler,
-  update_handler: Farmbot.Target.UpdateHandler
+  update_handler: Farmbot.Target.UpdateHandler,
+  gpio_handler:   Farmbot.Target.GPIO.AleHandler
 
 local_file = Path.join(System.user_home!(), ".ssh/id_rsa.pub")
 local_key = if File.exists?(local_file) do
