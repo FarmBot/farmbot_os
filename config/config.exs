@@ -53,9 +53,9 @@ case target do
     import_config("host/#{env}.exs")
 
   _ ->
-    import_config("#{target}/#{env}.exs")
-    if File.exists?("config/#{target}/#{env}.exs") do
-      import_config("target/#{env}.exs")
+    import_config("target/#{env}.exs")
+    if File.exists?("config/target/#{target}.exs") do
+      import_config("config/target/#{target}.exs")
     end
 
     rootfs_overlay_dir = "config/target/rootfs_overlay_#{Mix.Project.config()[:target]}"
