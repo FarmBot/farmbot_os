@@ -40,7 +40,6 @@ script:
 - mix local.hex --force
 - mix local.rebar --force
 - mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez --force
-- mix archive.install hex credo --force
 - mix deps.get
 - mix credo --strict --ignore Credo.Check.Readability.MaxLineLength
 - mix firmware
