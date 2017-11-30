@@ -5,6 +5,8 @@ defmodule Farmbot.Farmware.Runtime do
   alias Farmware.{RuntimeError, Installer}
   use Farmbot.Logger
 
+  @fbos_version Mix.Project.config[:version]
+
   defstruct [:farmware, :env, :port, :exit_status, :working_dir, :return_dir]
 
   @doc "Execute a Farmware struct."
@@ -62,6 +64,7 @@ defmodule Farmbot.Farmware.Runtime do
       |> Map.put("FARMWARE_TOKEN", token)
       |> Map.put("IMAGES_DIR", images_dir)
       |> Map.put("FARMWARE_URL", "http://localhost:27347/")
+      |> Map.put("FARMBOT_OS_VERSION", @fbos_version)
       |> Map.merge(Farmbot.BotState.get_user_env())
       |> Enum.map(fn({key, val}) -> {to_erl_safe(key), to_erl_safe(val)} end)
   end
