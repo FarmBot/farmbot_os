@@ -5,7 +5,9 @@ defmodule Farmbot.CeleryScript.AST.Node.Sequence do
   allow_args [:version, :is_outdated, :label]
 
   def execute(%{version: _, is_outdated: _, label: name}, body, env) do
-    Logger.busy 2, "[#{name}] - Sequence init."
+    if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "sequence_init_log") do
+      Logger.busy 2, "[#{name}] - Sequence init."
+    end
     env = mutate_env(env)
     if Farmbot.BotState.locked? do
       Logger.error 1, "[#{name}] - Sequence failed. Bot is locked!"
@@ -16,7 +18,9 @@ defmodule Farmbot.CeleryScript.AST.Node.Sequence do
   end
 
   defp do_reduce([ast | rest], env, name) do
-    Logger.info 2, "[#{name}] - Sequence Executing: #{inspect ast}"
+    if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "sequence_body_log") do
+      Logger.info 2, "[#{name}] - Sequence Executing: #{inspect ast}"
+    end
     case Farmbot.CeleryScript.execute(ast, env) do
       {:ok, new_env} -> do_reduce(rest, new_env, name)
       {:error, reason, env} ->
@@ -31,7 +35,9 @@ defmodule Farmbot.CeleryScript.AST.Node.Sequence do
   end
 
   defp do_reduce([], env, name) do
-    Logger.success 2, "[#{name}] - Sequence complete."
+    if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "sequence_complete_log") do
+      Logger.success 2, "[#{name}] - Sequence complete."
+    end
     {:ok, env}
   end
 end
