@@ -118,7 +118,6 @@ defmodule Farmbot.Bootstrap.Supervisor do
         Logger.success(2, "Successful authorization: #{@auth_task} - #{email} - #{server}")
         ConfigStorage.update_config_value(:bool, "settings", "first_boot", false)
         ConfigStorage.update_config_value(:string, "authorization", "token", token)
-        ConfigStorage.update_config_value(:string, "authorization", "last_shutdown_reason", nil)
 
         children = [
           worker(Farmbot.Bootstrap.AuthTask,                []),
