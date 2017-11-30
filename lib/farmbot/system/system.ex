@@ -34,6 +34,16 @@ defmodule Farmbot.System do
   @doc "Remove all configuration data, and reboot."
   @spec factory_reset(unparsed_reason) :: no_return
   def factory_reset(reason) do
+    if Process.whereis Farmbot.System.ConfigStorage do
+      unless Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "disable_factory_reset") do
+        do_reset(reason)
+      end
+    else
+      do_reset(reason)
+    end
+  end
+
+  defp do_reset(reason) do
     formatted = format_reason(reason)
     Ecto.drop()
     write_file(formatted)
