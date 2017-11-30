@@ -88,7 +88,6 @@ defmodule Farmbot.Regimen.Manager do
     end
   end
 
-
   defp complete(regimen, state) do
     Logger.success 2, "[#{regimen.name}] is complete!"
     # spawn fn() ->
@@ -153,7 +152,7 @@ defmodule Farmbot.Regimen.Manager do
 
   @spec pop_item(Regimen.t) :: {Item.t | nil, Regimen.t}
   # when there is more than one item pop the top one
-  defp pop_item(%Regimen{regimen_items: [do_this_one | items ]} = r) do
+  defp pop_item(%Regimen{regimen_items: [do_this_one | items]} = r) do
     {do_this_one, %Regimen{r | regimen_items: items}}
   end
 

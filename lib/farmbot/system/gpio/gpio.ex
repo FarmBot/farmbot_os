@@ -87,11 +87,7 @@ defmodule Farmbot.System.GPIO do
       sequence_id ->
         case @handler.unregister_pin(pin_num) do
           :ok ->
-            import Ecto.Query
-            case ConfigStorage.one(from g in GpioRegistry, where: g.pin == ^pin_num and g.sequence_id == ^sequence_id) do
-              nil -> :ok
-              obj -> ConfigStorage.delete!(obj)
-            end
+            do_delete(pin_num, sequence_id)
             new_state = %{state | registered: Map.delete(state.registered, pin_num)}
             {:reply, :ok, [{:gpio_registry, new_state.registered}], new_state}
           err -> {:reply, err, [], state}
@@ -104,6 +100,14 @@ defmodule Farmbot.System.GPIO do
       if Process.alive?(state.handler) do
         GenStage.stop(state.handler, reason)
       end
+    end
+  end
+
+  defp do_delete(pin_num, sequence_id) do
+    import Ecto.Query
+    case ConfigStorage.one(from g in GpioRegistry, where: g.pin == ^pin_num and g.sequence_id == ^sequence_id) do
+      nil -> :ok
+      obj -> ConfigStorage.delete!(obj)
     end
   end
 

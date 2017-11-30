@@ -2,6 +2,8 @@ defmodule Farmbot.Firmware.UartHandler.Framinig do
   @behaviour Nerves.UART.Framing
   import Farmbot.Firmware.Gcode.Parser
 
+  # credo:disable-for-this-file Credo.Check.Refactor.FunctionArity
+
   @moduledoc """
   Each message is one line. This framer appends and removes newline sequences
   as part of the framing. Buffering is performed internally, so users can get

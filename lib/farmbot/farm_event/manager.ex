@@ -12,6 +12,9 @@ defmodule Farmbot.FarmEvent.Manager do
       * for each item in the calendar, check if it's event is more than 60 seconds in the past. if not, execute it.
     * if there is only one event in the calendar, ignore the `end_time`
   """
+
+  # credo:disable-for-this-file Credo.Check.Refactor.FunctionArity
+
   use GenServer
   use Farmbot.Logger
   alias Farmbot.FarmEvent.Execution
@@ -122,7 +125,7 @@ defmodule Farmbot.FarmEvent.Manager do
   end
 
   defp maybe_start_regimen(started?, start_time, last_time, event, now)
-  defp maybe_start_regimen(_started? = true, start_time, last_time, event, now) do
+  defp maybe_start_regimen(true = _started?, start_time, last_time, event, now) do
     case is_too_old?(now, start_time) do
       true  ->
         Logger.debug 3, "regimen #{event.name} (#{event.id}) is too old to start."
@@ -133,7 +136,7 @@ defmodule Farmbot.FarmEvent.Manager do
     end
   end
 
-  defp maybe_start_regimen(_started? = false, start_time, last_time, event, _) do
+  defp maybe_start_regimen(false = _started?, start_time, last_time, event, _) do
     Logger.debug 3, "regimen #{event.name} (#{event.id}) is not started yet. (#{inspect start_time}) (#{inspect Timex.now()})"
     {nil, last_time}
   end
@@ -149,7 +152,7 @@ defmodule Farmbot.FarmEvent.Manager do
   defp maybe_start_sequence(started?, finished?, farm_event, last_time, event, now)
 
   # We only want to check if the sequence is started, and not finished.
-  defp maybe_start_sequence(_started? = true, _finished? = false, farm_event, last_time, event, now) do
+  defp maybe_start_sequence(true = _started?, false = _finished?, farm_event, last_time, event, now) do
     {run?, next_time} = should_run_sequence?(farm_event.calendar, last_time, now)
     case run? do
       true  -> {event, next_time}
@@ -159,22 +162,22 @@ defmodule Farmbot.FarmEvent.Manager do
 
   # if `farm_event.time_unit` is "never" we can't use the `end_time`.
   # if we have no `last_time`, time to execute.
-  defp maybe_start_sequence(true, _, %{time_unit: "never"} = f, _last_time = nil, event, now) do
+  defp maybe_start_sequence(true = _started?, _, %{time_unit: "never"} = f, nil = _last_time, event, now) do
     Logger.debug 3, "Ignoring end_time."
     case should_run_sequence?(f.calendar, nil, now) do
       {true, next} -> {event, next}
-      {false,   _} -> {nil,   nil }
+      {false,   _} -> {nil,    nil}
     end
   end
 
   # if started is false, the event isn't ready to be executed.
-  defp maybe_start_sequence(_started? = false, _fin, _farm_event, last_time, event, _now) do
+  defp maybe_start_sequence(false = _started?, _fin, _farm_event, last_time, event, _now) do
     Logger.debug 3, "sequence #{event.name} (#{event.id}) is not started yet."
     {nil, last_time}
   end
 
   # if the event is finished (but not a "never" time_unit), we don't execute.
-  defp maybe_start_sequence(_started?, _finished? = true, _farm_event, last_time, event, _now) do
+  defp maybe_start_sequence(_started?, true = _finished?, _farm_event, last_time, event, _now) do
     Logger.success 3, "sequence #{event.name} (#{event.id}) is finished."
     {nil, last_time}
   end
@@ -183,7 +186,7 @@ defmodule Farmbot.FarmEvent.Manager do
   defp should_run_sequence?(calendar, last_time, now)
 
   # if there is no last time, check if time is passed now within 60 seconds.
-  defp should_run_sequence?([first_time | _], nil, now) do;
+  defp should_run_sequence?([first_time | _], nil, now) do
 
     Logger.debug 3, "Checking sequence event that hasn't run before #{first_time}"
     # convert the first_time to a DateTime

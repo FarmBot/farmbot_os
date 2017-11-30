@@ -19,7 +19,7 @@ defmodule Farmbot.BotState.Transport.HTTP do
   use GenStage
   alias Farmbot.BotState.Transport.HTTP.Router
 
-  @port 27347
+  @port 27_347
 
   @doc "Subscribe to events."
   def subscribe do
@@ -79,7 +79,7 @@ defmodule Farmbot.BotState.Transport.HTTP do
     for socket <- sockets do
       send socket, {dispatcher, bot_state}
     end
-    {:noreply, [], %{state | bot_state: bot_state }}
+    {:noreply, [], %{state | bot_state: bot_state}}
   end
 
   defp dispatch(Farmbot.Logger = dispatcher, logs, %{sockets: sockets} = state) do

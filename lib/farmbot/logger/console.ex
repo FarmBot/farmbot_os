@@ -21,11 +21,15 @@ defmodule Farmbot.Logger.Console do
 
   @doc false
   def start_link do
-    GenStage.start_link(__MODULE__, [], [name: __MODULE__])
+    GenStage.start_link(__MODULE__, [], name: __MODULE__)
   end
 
   def init([]) do
-    {:consumer, %{verbosity: @default_log_verbosity, level_filters: []}, subscribe_to: [Farmbot.Logger]}
+    {
+      :consumer,
+      %{verbosity: @default_log_verbosity, level_filters: []},
+      subscribe_to: [Farmbot.Logger]
+    }
   end
 
   def handle_events(events, _, %{verbosity: verbosity_filter, level_filters: filters} = state) do
@@ -34,20 +38,23 @@ defmodule Farmbot.Logger.Console do
         maybe_log(log)
       end
     end
+
     {:noreply, [], state}
   end
 
   defp maybe_log(%Farmbot.Log{module: nil} = log) do
-    IO.inspect log
+    # credo:disable-for-next-line
+    IO.inspect(log)
     :ok
   end
 
   defp maybe_log(%Farmbot.Log{module: module} = log) do
     # should_log = List.first(Module.split(module)) == "Farmbot"
     # if should_log do
-      IO.inspect log
+    # credo:disable-for-next-line
+    IO.inspect(log)
     # else
-      # :ok
+    # :ok
     # end
   end
 

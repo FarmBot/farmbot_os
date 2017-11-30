@@ -3,7 +3,7 @@ defmodule Farmbot.Logger do
   Log messages to Farmot endpoints.
   """
   use GenStage
-  
+
   @doc "Send a debug message to log endpoints"
   defmacro debug(verbosity, message, meta \\ []) do
     quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
@@ -69,7 +69,7 @@ defmodule Farmbot.Logger do
   end
 
   @doc false
-  def dispatch_log(%Macro.Env{} = env, level, verbosity, message, meta) 
+  def dispatch_log(%Macro.Env{} = env, level, verbosity, message, meta)
   when level in [:info, :debug, :busy, :warn, :success, :error]
   and  is_number(verbosity)
   and  is_binary(message)

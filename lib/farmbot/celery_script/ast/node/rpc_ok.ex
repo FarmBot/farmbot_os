@@ -1,5 +1,8 @@
 defmodule Farmbot.CeleryScript.AST.Node.RpcOk do
   @moduledoc false
+
+  # credo:disable-for-this-file
+
   use Farmbot.CeleryScript.AST.Node
   allow_args [:label]
 

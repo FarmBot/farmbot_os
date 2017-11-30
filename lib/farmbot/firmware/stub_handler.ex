@@ -73,6 +73,7 @@ defmodule Farmbot.Firmware.StubHandler do
   ## GenStage Behaviour
 
   defmodule State do
+    @moduledoc false
     defstruct pos: nil,
               fw_params: %{},
               locked?: false

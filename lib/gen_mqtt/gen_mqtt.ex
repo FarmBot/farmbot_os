@@ -1,6 +1,7 @@
 defmodule GenMQTT do
   @moduledoc false
-  
+  # credo:disable-for-this-file
+
   @callback init(state) ::
     {:ok, state} |
     {:ok, state, timeout | :hibernate} |

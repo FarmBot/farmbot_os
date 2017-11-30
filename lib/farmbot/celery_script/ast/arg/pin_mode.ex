@@ -4,7 +4,7 @@ defmodule Farmbot.CeleryScript.AST.Arg.PinMode do
 
   def decode(0), do: {:ok, :digital}
   def decode(1), do: {:ok, :analog}
-  
+
   def encode(:digital), do: {:ok, 0}
   def encode(:analog),  do: {:ok, 1}
 end

@@ -1,6 +1,9 @@
 defmodule Farmbot.Firmware.UartHandler.Update do
   @moduledoc false
+
   use Farmbot.Logger
+
+  @uart_speed 115_200
 
   def maybe_update_firmware(hardware \\ nil) do
     tty = Application.get_all_env(:farmbot)[:uart_handler][:tty]
@@ -20,9 +23,9 @@ defmodule Farmbot.Firmware.UartHandler.Update do
         opts = [
           active: true,
           framing: {Nerves.UART.Framing.Line, separator: "\r\n"},
-          speed: 115200
+          speed: @uart_speed
         ]
-        :ok = Nerves.UART.open(uart, tty, [speed: 115200])
+        :ok = Nerves.UART.open(uart, tty, [speed: @uart_speed])
         :ok = Nerves.UART.configure(uart, opts)
         Logger.busy 3, "Waiting for firmware idle report."
         do_fw_loop(uart, tty, :idle, hardware)
@@ -117,7 +120,7 @@ defmodule Farmbot.Firmware.UartHandler.Update do
 
   def avrdude(fw_file, uart, tty) do
     close(uart)
-    case System.cmd("avrdude", ~w"-q -q -patmega2560 -cwiring -P#{tty} -b115200 -D -V -Uflash:w:#{fw_file}:i", [stderr_to_stdout: true, into: IO.stream(:stdio, :line)]) do
+    case System.cmd("avrdude", ~w"-q -q -patmega2560 -cwiring -P#{tty} -b@uart_speed -D -V -Uflash:w:#{fw_file}:i", [stderr_to_stdout: true, into: IO.stream(:stdio, :line)]) do
       {_, 0} -> Logger.success 1, "Firmware flashed!"
       {_, err_code} -> Logger.error 1, "Failed to flash Firmware! #{err_code}"
     end

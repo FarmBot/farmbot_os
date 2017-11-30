@@ -79,24 +79,27 @@ defmodule Farmbot.CeleryScript.AST do
     end
   end
 
-  def decode(%{kind: kind, args: args} = map) do
+  def decode(%{kind: kind, args: %{}} = map) do
     case kind_to_mod(kind) do
       nil -> {:error, {:unknown_kind, kind}}
-      mod when is_atom(mod) ->
-        case decode_body(map[:body] || []) do
-          {:ok, body} ->
-            case mod.decode_args(args) do
-              {:ok, decoded} ->
-                opts = [kind: mod,
-                        args: decoded,
-                        body: body,
-                        comment: map[:comment]]
-                val = struct(__MODULE__, opts)
-                {:ok, val}
-              {:error, reason} -> {:error, {kind, reason}}
-            end
-          {:error, _} = err -> err
+      mod when is_atom(mod) -> do_decode(mod, map)
+    end
+  end
+
+  defp do_decode(mod, %{kind: kind, args: args} = map) do
+    case decode_body(map[:body] || []) do
+      {:ok, body} ->
+        case mod.decode_args(args) do
+          {:ok, decoded} ->
+            opts = [kind: mod,
+                    args: decoded,
+                    body: body,
+                    comment: map[:comment]]
+            val = struct(__MODULE__, opts)
+            {:ok, val}
+          {:error, reason} -> {:error, {kind, reason}}
         end
+      {:error, _} = err -> err
     end
   end
 

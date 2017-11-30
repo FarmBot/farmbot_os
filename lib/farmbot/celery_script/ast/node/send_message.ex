@@ -4,6 +4,8 @@ defmodule Farmbot.CeleryScript.AST.Node.SendMessage do
   use Farmbot.Logger
   allow_args [:message, :message_type]
 
+  # credo:disable-for-this-file
+
   def execute(%{message: m, message_type: type}, channels, env) do
     env = mutate_env(env)
     {:ok, env, channels} = do_reduce(channels, env, [])

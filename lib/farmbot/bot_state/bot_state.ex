@@ -114,6 +114,7 @@ defmodule Farmbot.BotState do
               commit: @commit,
               target: @target,
               env: @env,
+              node_name: nil,
               busy: false,
               sync_status: :sync_now,
               locked: false
@@ -137,7 +138,7 @@ defmodule Farmbot.BotState do
           # debug_log "#{name} - #{bytes} bytes."
           {rem(bytes, 10) == 0, %JobProgress.Bytes{bytes: bytes}}
         # if the number of bytes == the total bytes, percentage side is complete.
-        (div(bytes,total)) == 1 ->
+        (div(bytes, total)) == 1 ->
           Logger.success 3, "#{name} complete."
           {true, %JobProgress.Percent{percent: 100, status: :complete}}
         # anything else is a percent.
@@ -228,9 +229,11 @@ defmodule Farmbot.BotState do
   def init([]) do
     settings = Farmbot.System.ConfigStorage.get_config_as_map()["settings"]
     user_env = Poison.decode!(settings["user_env"])
+    initial_state = struct(__MODULE__, configuration: Map.delete(settings, "user_env"), user_env: user_env)
+    state = %{initial_state | informational_settings: %{initial_state.informational_settings | node_name: node()}}
     {
       :producer_consumer,
-      struct(__MODULE__, configuration: Map.delete(settings, "user_env"), user_env: user_env),
+      state,
       subscribe_to: [Farmbot.Firmware, Farmbot.System.ConfigStorage.Dispatcher, Farmbot.System.GPIO],
       dispatcher: GenStage.BroadcastDispatcher
     }
