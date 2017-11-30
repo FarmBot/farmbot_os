@@ -10,6 +10,4 @@ defmodule Farmbot.Farmware.RuntimeError do
 
   @doc false
   def message(%__MODULE__{message: m}), do: m |> to_string()
-
-
 end

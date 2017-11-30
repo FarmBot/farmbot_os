@@ -88,6 +88,7 @@ defmodule Farmbot.Firmware do
   ## GenStage
 
   defmodule Current do
+    @moduledoc false
     defstruct [
       fun: nil,
       args: nil,
@@ -97,6 +98,7 @@ defmodule Farmbot.Firmware do
   end
 
   defmodule State do
+    @moduledoc false
     defstruct handler: nil, handler_mod: nil,
       idle: false,
       timer: nil,
@@ -274,17 +276,8 @@ defmodule Farmbot.Firmware do
     Logger.busy 3, "Initializing Firmware."
     old = Farmbot.System.ConfigStorage.get_config_as_map()["hardware_params"]
     case old["param_version"] do
-      nil -> spawn __MODULE__, :read_all_params, []
-      _ -> spawn fn() ->
-        for {key, float_val} <- old do
-          if float_val do
-            val = round(float_val)
-            update_param(:"#{key}", val)
-          end
-        end
-        read_all_params()
-        request_software_version()
-      end
+      nil -> spawn __MODULE__, :do_read_params_and_report_position, [[]]
+      _   -> spawn __MODULE__, :do_read_params_and_report_position, [old]
     end
     {nil, %{state | initializing: true}}
   end
@@ -402,5 +395,17 @@ defmodule Farmbot.Firmware do
     if Process.read_timer(timer) do
       Process.cancel_timer(timer)
     end
+  end
+
+  @doc false
+  def do_read_params_and_report_position(old) when is_list(old) do
+    for {key, float_val} <- old do
+      if float_val do
+        val = round(float_val)
+        update_param(:"#{key}", val)
+      end
+    end
+    read_all_params()
+    request_software_version()
   end
 end

@@ -8,6 +8,4 @@ defmodule Farmbot.CeleryScript.AST.Node.Sync do
     Farmbot.Repo.flip()
     {:ok, env}
   end
-
-
 end

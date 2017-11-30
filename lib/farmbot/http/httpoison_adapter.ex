@@ -3,6 +3,8 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
   Farmbot HTTP adapter for accessing the world and farmbot web api easily.
   """
 
+  # credo:disable-for-this-file Credo.Check.Refactor.FunctionArity
+
   use GenServer
   alias HTTPoison
   alias HTTPoison.{AsyncResponse, AsyncStatus, AsyncHeaders, AsyncChunk, AsyncEnd}
@@ -26,9 +28,9 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
            url,
            payload,
            headers,
-           [file: path,
-            stream_fun: stream_fun,
-            progress_callback: progress_callback]
+           file: path,
+           stream_fun: stream_fun,
+           progress_callback: progress_callback
          ) do
       {:ok, %Response{status_code: code}} when is_2xx(code) -> {:ok, path}
       {:ok, %Response{} = resp} -> {:error, resp}
@@ -87,10 +89,12 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
   # GenServer
 
   defmodule State do
+    @moduledoc false
     defstruct [:requests]
   end
 
   defmodule Buffer do
+    @moduledoc false
     defstruct [
       :data,
       :headers,
@@ -119,7 +123,6 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
     {file, opts} = maybe_open_file(opts)
     opts = fb_opts(opts)
     headers = fb_headers(headers)
-    # debug_log "#{inspect Tuple.delete_at(from, 0)} Request start (#{url})"
     # Pattern match the url.
     case url do
       "/api" <> _ -> do_api_request({method, url, body, headers, opts, from}, state)
@@ -141,7 +144,6 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
   def handle_info(%AsyncStatus{code: code, id: ref}, state) do
     case state.requests[ref] do
       %Buffer{} = buffer ->
-        # debug_log "#{inspect Tuple.delete_at(buffer.from, 0)} Got Status."
         HTTPoison.stream_next(%AsyncResponse{id: ref})
         {:noreply, %{state | requests: %{state.requests | ref => %{buffer | status_code: code}}}}
 
@@ -153,9 +155,9 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
   def handle_info(%AsyncHeaders{headers: headers, id: ref}, state) do
     case state.requests[ref] do
       %Buffer{} = buffer ->
-        # debug_log("#{inspect Tuple.delete_at(buffer.from, 0)} Got headers")
         file_size =
           Enum.find_value(headers, fn {header, val} ->
+            # credo:disable-for-next-line
             case header do
               "Content-Length" -> val
               "content_length" -> val
@@ -164,18 +166,11 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
           end)
 
         HTTPoison.stream_next(%AsyncResponse{id: ref})
+        new_ref = %{buffer | headers: headers, file_size: file_size}
+        new_requests = %{state.requests | ref => new_ref}
+        new_state = %{state | requests: new_requests}
 
-        {
-          :noreply,
-          %{
-            state
-            | requests: %{
-                state.requests
-                | ref => %{buffer | headers: headers, file_size: file_size}
-              }
-          }
-        }
-
+        {:noreply, new_state}
       nil ->
         {:noreply, state}
     end
@@ -185,27 +180,23 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
     case state.requests[ref] do
       %Buffer{} = buffer ->
         if buffer.timeout, do: Process.cancel_timer(buffer.timeout)
-        timeout = Process.send_after(self(), {:timeout, ref}, 30000)
+        timeout = Process.send_after(self(), {:timeout, ref}, 30_000)
         maybe_log_progress(buffer)
+
         case buffer.stream_fun do
           nil ->
             maybe_stream_to_file(buffer.file, buffer.status_code, chunk)
+
           fun when is_function(fun) ->
             fun.(buffer.status_code, chunk)
         end
+
         HTTPoison.stream_next(%AsyncResponse{id: ref})
 
-        {
-          :noreply,
-          %{
-            state
-            | requests: %{
-                state.requests
-                | ref => %{buffer | data: buffer.data <> chunk, timeout: timeout}
-              }
-          }
-        }
-
+        new_ref = %{buffer | data: buffer.data <> chunk, timeout: timeout}
+        new_requests = %{state.requests | ref => new_ref}
+        new_state = %{state | requests: new_requests}
+        {:noreply, new_state}
       nil ->
         {:noreply, state}
     end
@@ -214,7 +205,6 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
   def handle_info(%AsyncEnd{id: ref}, state) do
     case state.requests[ref] do
       %Buffer{} = buffer ->
-        # debug_log "#{inspect Tuple.delete_at(buffer.from, 0)} Request finish."
         finish_request(buffer, state)
 
       nil ->
@@ -249,6 +239,7 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
           # Set opts.
           {fd, Keyword.merge(opts, stream_to: self(), async: :once)}
         end
+
       _ ->
         {nil, opts}
     end
@@ -258,7 +249,6 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
   defp maybe_stream_to_file(_, code, _data) when code in @redirect_status_codes, do: :ok
 
   defp maybe_stream_to_file(fd, _code, data) when is_binary(data) do
-    # debug_log "[#{inspect self()}] writing data to file."
     :ok = :file.write(fd, data)
   end
 
@@ -266,9 +256,7 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
   defp maybe_close_file(fd), do: :file.close(fd)
 
   defp maybe_log_progress(%Buffer{file: file, progress_callback: pcb})
-    when is_nil(file) or is_nil(pcb)
-  do
-    # debug_log "File (#{inspect file}) or progress callback: #{inspect pcb} are nil"
+       when is_nil(file) or is_nil(pcb) do
     :ok
   end
 
@@ -305,14 +293,13 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
       when code in @redirect_status_codes ->
         redir =
           Enum.find_value(resp_headers, fn {header, val} ->
+            # credo:disable-for-next-line
             if header == "Location", do: val, else: false
           end)
 
         if redir do
-          # debug_log "redirect"
           do_normal_request({method, redir, body, headers, opts, from}, file, state)
         else
-          # debug_log("Failed to redirect: #{inspect resp}")
           GenServer.reply(from, {:error, :no_server_for_redirect})
           {:noreply, state}
         end
@@ -322,7 +309,7 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
         {:noreply, state}
 
       {:ok, %AsyncResponse{id: ref}} ->
-        timeout = Process.send_after(self(), {:timeout, ref}, 30000)
+        timeout = Process.send_after(self(), {:timeout, ref}, 30_000)
 
         req = %Buffer{
           id: ref,
@@ -381,7 +368,6 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
 
   defp finish_request(%Buffer{status_code: status_code} = buffer, state)
        when status_code in @redirect_status_codes do
-    # debug_log "#{inspect Tuple.delete_at(buffer.from, 0)} Trying to redirect: (#{status_code})"
     redir =
       Enum.find_value(buffer.headers, fn {header, val} ->
         case header do
@@ -394,14 +380,12 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
     if redir do
       do_redirect_request(buffer, redir, state)
     else
-      # debug_log("Failed to redirect: #{inspect buffer}")
       GenServer.reply(buffer.from, {:error, :no_server_for_redirect})
       {:noreply, state}
     end
   end
 
   defp finish_request(%Buffer{} = buffer, state) do
-    # debug_log "Request finish."
     response = %Response{
       status_code: buffer.status_code,
       body: buffer.data,
@@ -434,9 +418,5 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
       recv_timeout: :infinity,
       timeout: :infinity
     )
-
-    # stream_to:       self(),
-    # follow_redirect: false,
-    # async:           :once
   end
 end

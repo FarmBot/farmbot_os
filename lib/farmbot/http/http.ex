@@ -1,5 +1,8 @@
 defmodule Farmbot.HTTP do
   @moduledoc "Wraps an HTTP Adapter."
+
+  # credo:disable-for-this-file Credo.Check.Refactor.FunctionArity
+
   use GenServer
   alias Farmbot.HTTP.{Adapter, Error, Response}
 

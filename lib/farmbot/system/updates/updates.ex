@@ -84,7 +84,7 @@ defmodule Farmbot.System.Updates do
   end
 
   defp should_apply_update(env, prerelease?, needs_update?)
-  defp should_apply_update(_,_, false), do: false
+  defp should_apply_update(_, _, false), do: false
   defp should_apply_update(:prod, true, _) do
     Logger.info 3, "Not applying prerelease firmware."
     false
@@ -157,6 +157,4 @@ defmodule Farmbot.System.Updates do
     opts = [strategy: :one_for_one]
     supervise(children, opts)
   end
-
-
 end

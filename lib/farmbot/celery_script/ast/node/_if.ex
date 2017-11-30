@@ -5,10 +5,9 @@ defmodule Farmbot.CeleryScript.AST.Node.If do
 
   allow_args [:lhs, :op, :rhs, :_then, :_else]
 
-  def execute(%{_else: else_, _then: then_, lhs: lhs, op: op, rhs: rhs }, _body, env) do
+  def execute(%{_else: else_, _then: then_, lhs: lhs, op: op, rhs: rhs}, _body, env) do
     env = mutate_env(env)
     left = eval_lhs(lhs)
-
     cond do
       is_number(left) or is_nil(left) -> eval_if(left, op, rhs) |> do_jump(else_, then_, env)
       match?({:error, _}, left) -> {:error, elem(left, 1), env}

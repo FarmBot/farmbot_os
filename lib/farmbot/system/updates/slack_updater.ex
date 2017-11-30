@@ -6,7 +6,6 @@ defmodule Farmbot.System.Updates.SlackUpdater do
   @token System.get_env("SLACK_TOKEN")
   @target Mix.Project.config()[:target]
   @data_path Application.get_env(:farmbot, :data_path)
-  # @target "rpi3"
 
   use Farmbot.Logger
   use GenServer
@@ -47,7 +46,7 @@ defmodule Farmbot.System.Updates.SlackUpdater do
               type: "message",
               id: 2,
               channel: "C58DCU4A3",
-              text: ":farmbot-genesis: #{node()} Disconnected (#{inspect reason})"
+              text: ":farmbot-genesis: #{node()} Disconnected (#{inspect(reason)})"
             }
             |> Poison.encode!()
 
@@ -77,34 +76,6 @@ defmodule Farmbot.System.Updates.SlackUpdater do
       Socket.Web.send!(socket, {:text, msg})
     end
 
-    defp handle_data(%{"channel" => "C58DCU4A3", "text" => message, "type" => "message"}, socket, _cb) do
-      if String.starts_with?(message, "#{node()}") do
-        rest = String.trim(message, "#{node()}") |> String.trim()
-        results = case Farmbot.CeleryScript.AST.decode(rest) do
-          {:ok, ast} ->
-            inspect(Farmbot.CeleryScript.execute(ast) |> elem(0))
-          _ ->
-            try do
-              {res, _} = Code.eval_string rest, [], __ENV__
-              inspect res
-            rescue
-              e -> inspect e
-            end
-        end
-        msg = %{
-          type: "message",
-          id: UUID.uuid1(),
-          channel: "C58DCU4A3",
-          text: """
-          ```
-          #{results}
-          ```
-          """
-        } |> Poison.encode!
-        Socket.Web.send!(socket, {:text, msg})
-      end
-    end
-
     defp handle_data(msg, _socket, cb), do: send(cb, {:socket, msg})
   end
 
@@ -113,7 +84,7 @@ defmodule Farmbot.System.Updates.SlackUpdater do
   end
 
   def start_link() do
-    GenServer.start_link(__MODULE__, @token, [name: __MODULE__])
+    GenServer.start_link(__MODULE__, @token, name: __MODULE__)
   end
 
   def init(nil) do
@@ -125,65 +96,83 @@ defmodule Farmbot.System.Updates.SlackUpdater do
     url = "https://slack.com/api/rtm.connect"
     payload = {:multipart, [{"token", token}]}
     headers = [{'User-Agent', 'Farmbot HTTP Adapter'}]
+
     with {:ok, %{status_code: 200, body: body}} <- HTTPoison.post(url, payload, headers),
          {:ok, %{"ok" => true} = results} <- Poison.decode(body),
          {:ok, url} <- Map.fetch(results, "url"),
-         {:ok, pid} <- RTMSocket.start_link(url, self())
-    do
+         {:ok, pid} <- RTMSocket.start_link(url, self()) do
       Process.link(pid)
       {:ok, %{rtm_socket: pid, token: token, updating: false}}
     else
-      {:error, :invalid, _} -> init(token)
+      {:error, :invalid, _} ->
+        init(token)
+
       {:ok, %{status_code: code}} ->
-        Logger.error 2, "Failed get RTM Auth: #{code}"
+        Logger.error(2, "Failed get RTM Auth: #{code}")
         :ignore
+
       {:error, reason} ->
-        Logger.error 2, "Failed to get RTM Auth: #{inspect reason}"
+        Logger.error(2, "Failed to get RTM Auth: #{inspect(reason)}")
         :ignore
     end
   end
 
   def handle_call({:upload_file, file, channels}, _from, state) do
     file = to_string(file)
-    payload = %{
-      :file => file,
-      "token" => state.token,
-      "channels" => channels,
-      "title" => file,
-      "initial_comment" => ""
-    } |> Map.to_list()
+
+    payload =
+      %{
+        :file => file,
+        "token" => state.token,
+        "channels" => channels,
+        "title" => file,
+        "initial_comment" => ""
+      }
+      |> Map.to_list()
+
     real_payload = {:multipart, payload}
-    url       = "https://slack.com/api/files.upload"
-    headers = [ {'User-Agent', 'Farmbot HTTP Adapter'} ]
-    case HTTPoison.post(url, real_payload, headers, [follow_redirect: true]) do
+    url = "https://slack.com/api/files.upload"
+    headers = [{'User-Agent', 'Farmbot HTTP Adapter'}]
+
+    case HTTPoison.post(url, real_payload, headers, follow_redirect: true) do
       {:ok, %{status_code: code, body: body}} when code > 199 and code < 300 ->
         if Poison.decode!(body) |> Map.get("ok", false) do
           :ok
         else
-          Logger.error(3, "#{inspect Poison.decode!(body, pretty: true)}")
+          Logger.error(3, "#{inspect(Poison.decode!(body, pretty: true))}")
         end
+
       other ->
-        Logger.error(3, "#{inspect other}")
+        Logger.error(3, "#{inspect(other)}")
     end
+
     {:reply, :ok, state}
   end
 
-  def handle_info({:socket, %{"file" => %{ "url_private_download" => dl_url, "name" => name}}}, state) do
-      if Path.extname(name) == ".fw" do
-        if match?(<< <<"farmbot-">>, @target, <<"-">>, _rest :: binary>>, name) do
-          Logger.warn(3, "Downloading and applying an image from slack!")
-          if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "os_auto_update") do
+  def handle_info(
+        {:socket, %{"file" => %{"url_private_download" => dl_url, "name" => name}}},
+        state
+      ) do
+    if Path.extname(name) == ".fw" do
+      if match?(<<(<<"farmbot-">>), @target, <<"-">>, _rest::binary>>, name) do
+        Logger.warn(3, "Downloading and applying an image from slack!")
+
+        if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "os_auto_update") do
           dl_fun = Farmbot.BotState.download_progress_fun("FBOS_OTA")
-          case Farmbot.HTTP.download_file(dl_url, Path.join(@data_path, name), dl_fun, "", [{'Authorization', 'Bearer #{state.token}'}]) do
+
+          case Farmbot.HTTP.download_file(dl_url, Path.join(@data_path, name), dl_fun, "", [
+                 {'Authorization', 'Bearer #{state.token}'}
+               ]) do
             {:ok, path} ->
               Farmbot.System.Updates.apply_firmware(path)
               {:stop, :normal, %{state | updating: true}}
+
             {:error, reason} ->
-              Logger.error 3, "Failed to download update file: #{inspect reason}"
+              Logger.error(3, "Failed to download update file: #{inspect(reason)}")
               {:noreply, state}
           end
         else
-          Logger.warn 3, "Not downloading debug update because auto updates are disabled."
+          Logger.warn(3, "Not downloading debug update because auto updates are disabled.")
           {:noreply, state}
         end
       else

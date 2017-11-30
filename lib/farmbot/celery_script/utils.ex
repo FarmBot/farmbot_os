@@ -6,7 +6,6 @@ defmodule Farmbot.CeleryScript.Utils do
   alias Farmbot.Repo.Point, as: DBPoint
   import Ecto.Query
 
-
   def ast_to_vec3(%AST{kind: Tool} = ast) do
     repo = Farmbot.Repo.current_repo()
     tool_id = ast.args.tool_id
@@ -35,7 +34,6 @@ defmodule Farmbot.CeleryScript.Utils do
   end
 
   def ast_to_vec3(%Vec3{} = vec3), do: {:ok, vec3}
-
 
   def ast_to_vec3(%AST{kind: kind}) do
     {:error, "can not convert: #{kind} to a coordinate."}

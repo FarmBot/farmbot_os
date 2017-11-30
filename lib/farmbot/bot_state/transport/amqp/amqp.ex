@@ -111,7 +111,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
         {:noreply, [], state}
       ["bot", ^device, "sync", resource, id] ->
         handle_sync_cmd(resource, id, payload, state)
-      ["bot", ^device, "logs"  ]      -> {:noreply, [], state}
+      ["bot", ^device, "logs"]        -> {:noreply, [], state}
       ["bot", ^device, "status"]      -> {:noreply, [], state}
       ["bot", ^device, "from_device"] -> {:noreply, [], state}
       _ ->

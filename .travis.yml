@@ -41,5 +41,6 @@ script:
 - mix local.rebar --force
 - mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez --force
 - mix deps.get
+- mix credo --strict --ignore Credo.Check.Readability.MaxLineLength
 - mix firmware
 - mix firmware.slack --channels C58DCU4A3 $TRAVIS_COMMIT_MESSAGE; echo "done."

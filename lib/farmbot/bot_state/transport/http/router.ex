@@ -6,7 +6,6 @@ defmodule Farmbot.BotState.Transport.HTTP.Router do
   alias Farmbot.BotState.Transport.HTTP
   alias HTTP.AuthPlug
 
-
   use Plug.Debugger, otp_app: :farmbot
   plug Plug.Logger, log: :debug
   plug AuthPlug, env: :dev

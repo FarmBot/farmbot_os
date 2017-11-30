@@ -1,4 +1,5 @@
 defmodule Farmbot.System.Debug do
+  @moduledoc "Supervisor for Various debugging modules."
   use Supervisor
   alias Plug.Adapters.Cowboy
 
@@ -13,7 +14,6 @@ defmodule Farmbot.System.Debug do
       dispatch: [
         {:_, [
           {"/wobserver/ws", Wobserver.Web.Client, []},
-          {"/shell_socket", Farmbot.System.Debug.ShellSocket, []},
           {:_, Cowboy.Handler, {Farmbot.System.DebugRouter, []}}
         ]}
       ],

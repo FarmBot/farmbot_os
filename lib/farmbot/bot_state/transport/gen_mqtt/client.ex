@@ -9,10 +9,10 @@ defmodule Farmbot.BotState.Transport.GenMQTT.Client do
     GenMQTT.start_link(
       __MODULE__,
       {device, server},
-      reconnect_timeout: 10000,
+      reconnect_timeout: 10_000,
       username: device,
       password: token,
-      timeout: 10000,
+      timeout: 10_000,
       host: server
     )
   end

@@ -68,8 +68,8 @@ defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdate do
   defp lookup_os_config("timezone",                  val), do: {:ok, {:string, "settings", val}}
   defp lookup_os_config("network_not_found_timer",   val), do: {:ok, {:float,  "settings", to_float(val)}}
   defp lookup_os_config("firmware_hardware", "farmduino"), do: {:ok, {:string, "settings", "farmduino"}}
-  defp lookup_os_config("firmware_hardware",   "arduino"), do: {:ok, {:string, "settings", "arduino"  }}
-  defp lookup_os_config("firmware_hardware",     unknown), do: {:error, "unknown hardware: #{unknown}" }
+  defp lookup_os_config("firmware_hardware",   "arduino"), do: {:ok, {:string, "settings", "arduino"}}
+  defp lookup_os_config("firmware_hardware",     unknown), do: {:error, "unknown hardware: #{unknown}"}
   defp lookup_os_config(unknown_config,                _), do: {:error, "unknown config: #{unknown_config}"}
 
   defp format_bool_for_os(1), do: true

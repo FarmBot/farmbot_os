@@ -54,8 +54,6 @@ defmodule Farmbot.CeleryScript.AST.Arg.ToolSlots do
   def encode(val), do: {:ok, val}
 end
 
-
-
 defmodule Farmbot.CeleryScript.AST.Node.DataUpdate do
   @moduledoc false
   use Farmbot.CeleryScript.AST.Node

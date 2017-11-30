@@ -4,5 +4,5 @@ defmodule Farmbot.CeleryScript.AST.Arg.Else do
 
   def decode(val), do: Farmbot.CeleryScript.AST.decode(val)
 
-  def encode(ast), do: Farmbot.CeleryScript.AST.encode(ast) 
+  def encode(ast), do: Farmbot.CeleryScript.AST.encode(ast)
 end

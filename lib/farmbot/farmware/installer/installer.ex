@@ -63,7 +63,7 @@ defmodule Farmbot.Farmware.Installer do
     end
   end
 
-  def sync_repo(repo = %Repository{manifests: [entry = %Repository.Entry{manifest: manifest_url} | entries]}, acc) do
+  def sync_repo(%Repository{manifests: [%Repository.Entry{manifest: manifest_url} = entry | entries]} = repo, acc) do
     case install(manifest_url) do
       :ok -> sync_repo(%{repo | manifests: entries}, acc)
       {:error, _err} -> sync_repo(%{repo | manifests: entries}, [entry | acc])

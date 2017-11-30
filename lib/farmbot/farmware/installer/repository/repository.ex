@@ -28,6 +28,4 @@ defmodule Farmbot.Farmware.Installer.Repository do
   end
 
   def new([], acc), do: {:ok, acc}
-
-
 end
