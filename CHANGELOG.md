@@ -83,4 +83,26 @@
 # 5.0.1
 * Fix not being able to move to a point in some cases.
 * Fix a sub sequence never returning.
-* add `busy` flag to the bot's state. 
+* add `busy` flag to the bot's state.
+
+# 5.0.2
+* Fix a bug causing `busy` to be set erroneously.
+* add note to configurator for osx users.
+
+# 5.0.3
+* Add selector for firmware hardware to Configurator.
+* Fix an OS update bug.
+* Fix an image upload bug.
+* Fix a farmware download bug.
+
+# 5.0.4
+* Fix lag when communicating over MQTT
+* Don't retain last will log message.
+* Update node packages.
+
+# 5.0.5
+* Fix token refreshing.
+
+# 5.0.6
+* Fix images double uploading.
+* Allow reinstallation of first party farmware.
