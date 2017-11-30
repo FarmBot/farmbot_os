@@ -67,8 +67,8 @@ defmodule Farmbot.BotStateTest do
   end
 
   test "sets user environment" do
+    key = "some_key"
     val = "hey! this should be in the bot's state!"
-    key = inspect self()
 
     :ok = BotState.set_user_env(key, val)
     res = BotState.get_user_env

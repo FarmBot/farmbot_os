@@ -40,9 +40,10 @@ defmodule FarmbotTestSupport do
     email = Application.get_env(:farmbot, :authorization)[:email]
     password = Application.get_env(:farmbot, :authorization)[:password]
     Logger.info("Preflight check: api: #{server}")
-
+    Farmbot.System.ConfigStorage.update_config_value(:bool, "settings", "first_boot", true)
     case Farmbot.Bootstrap.Authorization.authorize(email, password, server) do
       {:error, _reason} ->
+        Farmbot.System.ConfigStorage.update_config_value(:bool, "settings", "first_boot", false)        
         :api
 
       {:ok, tkn} ->

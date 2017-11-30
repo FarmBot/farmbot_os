@@ -21,7 +21,8 @@ config :farmbot, :transport, []
 
 config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
-  system_tasks: Farmbot.Test.SystemTasks
+  system_tasks: Farmbot.Test.SystemTasks,
+  update_handler: FarmbotTestSupport.TestUpdateHandler
 
 
 config :farmbot, Farmbot.Repo.A,

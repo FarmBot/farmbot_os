@@ -28,7 +28,6 @@ defmodule Farmbot.Repo.FarmEventTest do
 
     import Ecto.Query
     id = @farm_event_seq["id"]
-    [fe] = from(fe in FarmEvent, where: fe.id == ^id, select: fe) |> Repo.A.all()
-    assert fe.start_time.__struct__ == DateTime
+    assert match?([_], from(fe in FarmEvent, where: fe.id == ^id, select: fe) |> Repo.A.all())
   end
 end

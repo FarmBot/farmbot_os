@@ -9,6 +9,7 @@ defmodule Mix.Tasks.Farmbot.Firmware.Slack do
     token = slack_token()
     {keywords, comment, _} = opts |> OptionParser.parse(switches: [signed: :boolean, channels: :string])
     signed?          = Keyword.get(keywords, :signed, false)
+    Application.ensure_all_started(:timex)
     Application.ensure_all_started(:httpoison)
 
     fw_file_to_upload = if signed?, do: signed_fw_file(), else: fw_file()

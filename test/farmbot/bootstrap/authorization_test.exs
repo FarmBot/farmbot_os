@@ -22,11 +22,13 @@ defmodule Farmbot.Bootstrap.AuthorizationTest do
   end
 
   test "Authorizes with the farmbot web api.", ctx do
+    Farmbot.System.ConfigStorage.update_config_value(:bool, "settings", "first_boot", true)
     res = Auth.authorize(ctx.email, ctx.password, ctx.server)
     assert match?({:ok, _}, res)
     {:ok, bin_tkn} = res
     tkn = Farmbot.Jwt.decode!(bin_tkn)
     assert tkn.bot == "device_2"
+    Farmbot.System.ConfigStorage.update_config_value(:bool, "settings", "first_boot", false)
   end
 
   test "gives a nice error on bad credentials.", ctx do

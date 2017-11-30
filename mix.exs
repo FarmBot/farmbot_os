@@ -98,8 +98,8 @@ defmodule Farmbot.Mixfile do
       {:joken, "~> 1.1"},
       {:socket, "~> 0.3"},
       {:amqp, "~> 1.0.0-pre.2"},
-      {:nerves_ssdp_server, "~> 0.2.2", only: :dev},
-      {:nerves_ssdp_client, "~> 0.1.0", only: :dev},
+      {:nerves_ssdp_server, "~> 0.2.2", only: [:dev, :test]},
+      {:nerves_ssdp_client, "~> 0.1.0", only: [:dev, :test]},
 
       {:ex_syslogger, "~> 1.4", only: :prod}
     ]
