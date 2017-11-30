@@ -6,4 +6,7 @@ defmodule Farmbot.System.GPIO.Handler do
 
   @doc "Register a pin."
   @callback register_pin(integer) :: :ok | {:error, term}
+
+  @doc "Unregister a pin."
+  @callback unregister_pin(integer) :: :ok | {:error, term}
 end

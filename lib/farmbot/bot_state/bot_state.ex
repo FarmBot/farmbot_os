@@ -105,6 +105,7 @@ defmodule Farmbot.BotState do
             location_data: %{
               position: %{x: -1, y: -1, z: -1}
             },
+            gpio_registry: %{},
             pins: %{},
             configuration: %{},
             informational_settings: %{
@@ -345,6 +346,12 @@ defmodule Farmbot.BotState do
 
   defp do_handle([{:config, _, _, _} | rest], state) do
     do_handle(rest, state)
+  end
+
+  # This one is special because it sends the _entire_ sub tree, not just
+  # Parts of it.
+  defp do_handle([{:gpio_registry, gpio_registry} | rest], state) do
+    do_handle(rest, %{state | gpio_registry: gpio_registry})
   end
 
   defp do_handle([{key, diff} | rest], state) do

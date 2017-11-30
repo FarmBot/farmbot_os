@@ -14,6 +14,10 @@ defmodule Farmbot.Target.GPIO.AleHandler do
     GenStage.call(__MODULE__, {:register_pin, num})
   end
 
+  def unregister_pin(num) do
+    GenStage.call(__MODULE__, {:unregister_pin, num})
+  end
+
   # GenStage Callbacks
 
   defmodule State do
@@ -23,7 +27,7 @@ defmodule Farmbot.Target.GPIO.AleHandler do
 
   defmodule PinState do
     @moduledoc false
-    defstruct [:pin, :state, :signal, :timer]
+    defstruct [:pin, :state, :signal, :timer, :pid]
   end
 
   def init([]) do
@@ -35,12 +39,21 @@ defmodule Farmbot.Target.GPIO.AleHandler do
   end
 
   def handle_call({:register_pin, num}, _from, state) do
-    with {:ok, pin} <- GPIO.start_link(num, :input),
-    :ok <- GPIO.set_int(pin, :rising) do
-      {:reply, :ok, [], %{state | pins: Map.put(state.pins, num, struct(PinState, [pin: pin, state: nil, signal: :rising]))}}
+    with {:ok, pid} <- GPIO.start_link(num, :input),
+    :ok <- GPIO.set_int(pid, :rising) do
+      {:reply, :ok, [], %{state | pins: Map.put(state.pins, num, struct(PinState, [pin: num, pid: pid, state: nil, signal: :rising]))}}
     else
       {:error, _} = err-> {:reply, err, [], state}
       err -> {:reply, {:error, err}, [], state}
+    end
+  end
+
+  def handle_call({:unregister_pin, num}, _from, state) do
+    case state.pins[num] do
+      nil -> {:reply, :ok, [], state}
+      %PinState{pid: pid} ->
+        GPIO.release(pid)
+        {:reply, :ok, [], %{state | pins: Map.delete(state.pins, num)}}
     end
   end
 

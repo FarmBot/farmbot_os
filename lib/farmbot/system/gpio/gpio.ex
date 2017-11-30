@@ -2,12 +2,19 @@ defmodule Farmbot.System.GPIO do
   @moduledoc "Handles GPIO inputs."
   use GenStage
   use Farmbot.Logger
+  alias Farmbot.System.ConfigStorage
+  alias ConfigStorage.GpioRegistry
 
   @handler Application.get_env(:farmbot, :behaviour)[:gpio_handler]
 
   @doc "Register a pin number to execute sequence."
-  def register_sequence(pin_num, sequence_id) do
-    GenStage.call(__MODULE__, {:register_sequence, pin_num, sequence_id})
+  def register_pin(pin_num, sequence_id) do
+    GenStage.call(__MODULE__, {:register_pin, pin_num, sequence_id})
+  end
+
+  @doc "Unregister a sequence."
+  def unregister_pin(sequence_id) do
+    GenStage.call(__MODULE__, {:unregister_pin, sequence_id})
   end
 
   @doc false
@@ -23,8 +30,20 @@ defmodule Farmbot.System.GPIO do
   def init([]) do
     case @handler.start_link() do
       {:ok, handler} ->
-        {:producer_consumer, struct(State, [handler: handler]), subscribe_to: [handler], dispatcher: GenStage.BroadcastDispatcher}
+        all_gpios = ConfigStorage.all(GpioRegistry)
+        state = initial_state(all_gpios, struct(State, [handler: handler]))
+        Process.send_after(self(), :update_fb_state_tree, 10)
+        {:producer_consumer, state, subscribe_to: [handler], dispatcher: GenStage.BroadcastDispatcher}
       err -> err
+    end
+  end
+
+  defp initial_state([], state), do: state
+
+  defp initial_state([%GpioRegistry{pin: pin, sequence_id: sequence_id} | rest], state) do
+    case @handler.register_pin(pin) do
+      :ok -> initial_state(rest, %{state | registered: Map.put(state.registered, pin, sequence_id)})
+      _ -> initial_state(rest, state)
     end
   end
 
@@ -42,10 +61,41 @@ defmodule Farmbot.System.GPIO do
     {:noreply, [], state}
   end
 
-  def handle_call({:register_sequence, pin_num, sequence_id}, _from, state) do
-    case @handler.register_pin(pin_num) do
-      :ok -> {:reply, :ok, [], %{state | registered: Map.put(state.registered, pin_num, sequence_id)}}
-      {:error, _} = err -> {:reply, err, [], state}
+  def handle_info(:update_fb_state_tree, state) do
+    {:noreply, [{:gpio_registry, state.registered}], state}
+  end
+
+  def handle_call({:register_pin, pin_num, sequence_id}, _from, state) do
+    case state.registered[pin_num] do
+      nil ->
+        case @handler.register_pin(pin_num) do
+          :ok ->
+            reg = struct(GpioRegistry, [pin: pin_num, sequence_id: sequence_id])
+            ConfigStorage.insert!(reg)
+            new_state = %{state | registered: Map.put(state.registered, pin_num, sequence_id)}
+            {:reply, :ok, [{:gpio_registry, new_state.registered}], new_state}
+          {:error, _} = err -> {:reply, err, [], state}
+        end
+      _ -> {:reply, {:error, :already_registered}, [], state}
+    end
+
+  end
+
+  def handle_call({:unregister_pin, pin_num}, _from, state) do
+    case state.registered[pin_num] do
+      nil -> {:reply, {:error, :unregistered}, [], state}
+      sequence_id ->
+        case @handler.unregister_pin(pin_num) do
+          :ok ->
+            import Ecto.Query
+            case ConfigStorage.one(from g in GpioRegistry, where: g.pin == ^pin_num and g.sequence_id == ^sequence_id) do
+              nil -> :ok
+              obj -> ConfigStorage.delete!(obj)
+            end
+            new_state = %{state | registered: Map.delete(state.registered, pin_num)}
+            {:reply, :ok, [{:gpio_registry, new_state.registered}], new_state}
+          err -> {:reply, err, [], state}
+        end
     end
   end
 

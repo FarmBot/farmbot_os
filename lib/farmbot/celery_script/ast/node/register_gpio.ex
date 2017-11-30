@@ -13,8 +13,8 @@ defmodule Farmbot.CeleryScript.AST.Node.RegisterGpio do
     case seq do
       nil -> {:error, "Could not find sequence by id: #{id}", env}
       seq ->
-        Logger.busy 1, "Registering: #{pin_num} to sequence: #{seq.name}"
-        case Farmbot.System.GPIO.register_sequence(pin_num, id) do
+        Logger.busy 1, "Registering gpio: #{pin_num} to sequence: #{seq.name}"
+        case Farmbot.System.GPIO.register_pin(pin_num, id) do
           :ok -> {:ok, env}
           {:error, reason} -> {:error, reason, env}
         end

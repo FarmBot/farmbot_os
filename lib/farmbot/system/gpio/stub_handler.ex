@@ -11,6 +11,10 @@ defmodule Farmbot.System.GPIO.StubHandler do
     GenStage.call(__MODULE__, {:register_pin, num})
   end
 
+  def unregister_pin(num) do
+    GenStage.call(__MODULE__, {:unregister_pin, num})
+  end
+
   def start_link do
     GenStage.start_link(__MODULE__, [], [name: __MODULE__])
   end
@@ -25,6 +29,10 @@ defmodule Farmbot.System.GPIO.StubHandler do
 
   def handle_call({:register_pin, num}, _from, state) do
     {:reply, :ok, [], Map.put(state, num, :enabled)}
+  end
+
+  def handle_call({:unregister_pin, num}, _from, state) do
+    {:reply, :ok, [], Map.delete(state, num)}
   end
 
   def handle_call({:test_fire, pin}, _from, state) do
