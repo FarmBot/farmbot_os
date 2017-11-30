@@ -306,7 +306,7 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode(:report_params_complete, state) do
     Logger.success 3, "Firmware initialized."
-    {nil, %{state | initialized: true}}
+    {nil, %{state | initializing: false, initialized: true}}
   end
 
   defp handle_gcode({:report_software_version, version}, state) do

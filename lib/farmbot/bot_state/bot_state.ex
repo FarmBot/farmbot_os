@@ -110,11 +110,13 @@ defmodule Farmbot.BotState do
             configuration: %{},
             informational_settings: %{
               controller_version: @version,
+              firmware_version: "disconnected",
               commit: @commit,
               target: @target,
               env: @env,
               busy: false,
               sync_status: :sync_now,
+              locked: false
             },
             user_env: %{},
             process_info: %{

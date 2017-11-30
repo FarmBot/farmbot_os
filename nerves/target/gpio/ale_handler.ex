@@ -63,7 +63,7 @@ defmodule Farmbot.Target.GPIO.AleHandler do
       new_state = %{state | pins: %{state.pins | pin => %{pin_state | state: :rising}}}
       {:noreply, [], new_state}
     else
-      timer = Process.send_after(self(), {:gpio_timer, pin}, 1500)
+      timer = Process.send_after(self(), {:gpio_timer, pin}, 300)
       new_state = %{state | pins: %{state.pins | pin => %{pin_state | timer: timer, state: :rising}}}
       {:noreply, [{:pin_trigger, pin}], new_state}
     end
