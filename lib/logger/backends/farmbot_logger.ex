@@ -248,6 +248,6 @@ defmodule Logger.Backends.FarmbotLogger do
     %{message: message,
       created_at: created_at,
       channels: channels,
-      meta: %{type: type, x: 0, y: 0, z: 0}}
+      meta: %{type: type}}
   end
 end
