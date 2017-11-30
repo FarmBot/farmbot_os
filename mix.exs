@@ -101,13 +101,13 @@ defmodule Farmbot.Mixfile do
       {:nerves_ssdp_server, "~> 0.2.2", only: [:dev, :test]},
       {:nerves_ssdp_client, "~> 0.1.0", only: [:dev, :test]},
 
-      {:ex_syslogger, "~> 1.4", only: :prod}
+      {:ex_syslogger, "~> 1.4", only: :prod},
+      {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
     ]
   end
 
   defp deps("host") do
     [
-      {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.17", only: :dev},
       {:inch_ex, ">= 0.0.0", only: :dev},
       {:excoveralls, "~> 0.6", only: :test},
