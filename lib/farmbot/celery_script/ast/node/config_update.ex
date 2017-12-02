@@ -14,15 +14,7 @@ defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdate do
     do_reduce_fw(body, env)
   end
 
-  def execute(%{package: {:farmware, fw}}, _body, env) do
-    case Farmbot.Farmware.lookup(fw) do
-      {:ok, _fw} -> {:error, "Farmware config updates not working", env}
-      {:error, reason} -> {:error, reason, env}
-    end
-  end
-
   defp do_reduce_os([%{args: %{label: key, value: value}} | rest], env) do
-    Logger.busy 2, "Updating: #{inspect key}: #{value}"
     case lookup_os_config(key, value) do
       {:ok, {:string, "settings", val}} when val in ["farmduino", "arduino"] ->
         Farmbot.System.ConfigStorage.update_config_value(:string, "settings", key, val)
@@ -40,6 +32,7 @@ defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdate do
 
         do_reduce_os(rest, env)
       {:ok, {type, group, value}} ->
+        Logger.busy 2, "Updating: #{inspect key}: #{value}"
         Farmbot.System.ConfigStorage.update_config_value(type, group, key, value)
         do_reduce_os(rest, env)
       {:error, reason} ->
@@ -60,11 +53,8 @@ defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdate do
 
   defp do_reduce_fw([], env), do: {:ok, env}
 
-  defp lookup_os_config("first_boot",                val), do: {:ok, {:bool,   "settings", format_bool_for_os(val)}}
   defp lookup_os_config("os_auto_update",            val), do: {:ok, {:bool,   "settings", format_bool_for_os(val)}}
-  defp lookup_os_config("first_party_farmware",      val), do: {:ok, {:bool,   "settings", format_bool_for_os(val)}}
   defp lookup_os_config("auto_sync",                 val), do: {:ok, {:bool,   "settings", format_bool_for_os(val)}}
-  defp lookup_os_config("first_party_farmware_url",  val), do: {:ok, {:string, "settings", val}}
   defp lookup_os_config("timezone",                  val), do: {:ok, {:string, "settings", val}}
 
   defp lookup_os_config("disable_factory_reset",     val), do: {:ok, {:bool,   "settings", format_bool_for_os(val)}}
@@ -74,7 +64,7 @@ defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdate do
   defp lookup_os_config("sequence_complete_log",     val), do: {:ok, {:bool,   "settings", format_bool_for_os(val)}}
 
   defp lookup_os_config("network_not_found_timer",   val) when val > 0, do: {:ok, {:float,  "settings", to_float(val)}}
-  defp lookup_os_config("network_not_found_timer",   val) {:error, "network_not_found_timer must be greater than zero."}
+  defp lookup_os_config("network_not_found_timer",  _val), do: {:error, "network_not_found_timer must be greater than zero"}
 
   defp lookup_os_config("firmware_hardware", "farmduino"), do: {:ok, {:string, "settings", "farmduino"}}
   defp lookup_os_config("firmware_hardware",   "arduino"), do: {:ok, {:string, "settings", "arduino"}}
