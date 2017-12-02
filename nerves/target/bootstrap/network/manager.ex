@@ -70,7 +70,6 @@ defmodule Farmbot.Target.Network.Manager do
         Logger.warn 1, "Network not found. Starting timer."
         timer = Process.send_after(self(), :network_not_found_timer, round(delay_timer))
         {:noreply, %{state | not_found_timer: timer}}
-      delay_timer == -1 -> {:noreply, state}
       is_nil(delay_timer) ->
         Logger.error 1, "Network not found"
         Farmbot.System.factory_reset("WIFI Authentication failed. (network not found)")
