@@ -66,7 +66,15 @@ defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdate do
   defp lookup_os_config("auto_sync",                 val), do: {:ok, {:bool,   "settings", format_bool_for_os(val)}}
   defp lookup_os_config("first_party_farmware_url",  val), do: {:ok, {:string, "settings", val}}
   defp lookup_os_config("timezone",                  val), do: {:ok, {:string, "settings", val}}
+  
+  defp lookup_os_config("disable_factory_reset",     val), do: {:ok, {:float,  "settings", to_float(val)}}
+
+  defp lookup_os_config("sequence_init_log",         val), do: {:ok, {:float,  "settings", to_float(val)}}
+  defp lookup_os_config("sequence_body_log",         val), do: {:ok, {:float,  "settings", to_float(val)}}
+  defp lookup_os_config("sequence_complete_log",     val), do: {:ok, {:float,  "settings", to_float(val)}}
+
   defp lookup_os_config("network_not_found_timer",   val), do: {:ok, {:float,  "settings", to_float(val)}}
+
   defp lookup_os_config("firmware_hardware", "farmduino"), do: {:ok, {:string, "settings", "farmduino"}}
   defp lookup_os_config("firmware_hardware",   "arduino"), do: {:ok, {:string, "settings", "arduino"}}
   defp lookup_os_config("firmware_hardware",     unknown), do: {:error, "unknown hardware: #{unknown}"}
