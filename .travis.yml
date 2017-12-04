@@ -23,7 +23,7 @@ addons:
     - python
 env:
   global:
-  - ELIXIR_VERSION=1.5.0 ERLANG_VERSION=20.0 FWUP_VERSION=0.17.0 MIX_ENV=dev
+  - ELIXIR_VERSION=1.5.0 ERLANG_VERSION=20.0 FWUP_VERSION=0.17.0 MIX_ENV=test
 before_install:
 - openssl aes-256-cbc -K $encrypted_a344ae763d55_key -iv $encrypted_a344ae763d55_iv
   -in travis_env.enc -out travis_env -d
@@ -44,6 +44,7 @@ script:
 - mix credo --strict --ignore Credo.Check.Readability.MaxLineLength
 - mix coveralls.travis
 after_script:
+  - export MIX_ENV=dev
   - export MIX_TARGET=rpi3
   - mix deps.get
   - mix firmware
