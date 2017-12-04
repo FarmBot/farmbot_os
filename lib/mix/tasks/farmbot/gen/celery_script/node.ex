@@ -24,11 +24,10 @@ defmodule Mix.Tasks.Farmbot.Gen.CeleryScript.Node do
         namespace = Module.split(Farmbot.CeleryScript.AST.Node)
         full_mod = [namespace | [module]] |> List.flatten |> Module.concat()
         allow_args = check_args(opts)
-        code = EEx.eval_file(@code_template_path, [module: full_mod |> to_string(), allow_args: allow_args])
-        test = EEx.eval_file(@test_template_path, [module: full_mod |> to_string(), alias_module: module])
+        code = EEx.eval_file(@code_template_path, [module: full_mod |> to_string() |> String.trim_leading("Elixir."), allow_args: allow_args])
+        test = EEx.eval_file(@test_template_path, [module: full_mod |> to_string() |> String.trim_leading("Elixir."), alias_module: module])
         do_write_files(module, full_mod, code, test)
       _ ->
-        # Mix.shell.info [:red, @usage]
         Mix.raise @usage
     end
   end
@@ -65,6 +64,7 @@ defmodule Mix.Tasks.Farmbot.Gen.CeleryScript.Node do
           Mix.raise "#{test_file_path} already exists."
         end
         File.write!(test_file_path, test)
+        Mix.shell.info [:green, "New node; #{code_file_path}"]
 
       _ -> Mix.raise "Invalid module: #{module}"
     end
