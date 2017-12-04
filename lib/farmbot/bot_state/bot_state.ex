@@ -207,7 +207,6 @@ defmodule Farmbot.BotState do
 
   @doc "Emit an AST."
   def emit(%AST{} = ast) do
-    # kind = Module.split(ast.kind) |> List.last |> Macro.underscore()
     GenStage.call(__MODULE__, {:emit, ast})
   end
 
@@ -285,7 +284,7 @@ defmodule Farmbot.BotState do
       {:ok, encoded} ->
         Farmbot.System.ConfigStorage.update_config_value(:string, "settings", "user_env", encoded)
         {:reply, :ok, [], state}
-      _ -> {:reply, :error, [], state}
+      _ -> {:reply, {:error, "user_env must be json encodeable!"}, [], state}
     end
   end
 

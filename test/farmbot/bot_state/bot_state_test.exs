@@ -69,10 +69,8 @@ defmodule Farmbot.BotStateTest do
   # test "sets user environment" do
   #   key = "some_key"
   #   val = "hey! this should be in the bot's state!"
-  #
   #   :ok = BotState.set_user_env(key, val)
   #   res = BotState.get_user_env
-  #
   #   assert match?(%{^key => ^val}, res)
   # end
 

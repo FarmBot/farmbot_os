@@ -1,10 +1,14 @@
 use Mix.Config
 
-unless File.exists?("config/host/auth_secret_test.exs") do
-  Mix.raise("You need to configure your test environment.\r\n")
+cond do
+  System.get_env("TRAVIS_COMMIT_MESSAGE") ->
+    Mix.shell.info [:green, "Using travis config."]
+    import_config("auth_secret_travis.exs")
+  File.exists?("config/host/auth_secret_test.exs") ->
+    import_config("auth_secret_test.exs")
+  true ->
+    Mix.raise("You need to configure your test environment.\r\n")
 end
-
-import_config("auth_secret_test.exs")
 
 config :farmbot, data_path: "test_tmp/"
 

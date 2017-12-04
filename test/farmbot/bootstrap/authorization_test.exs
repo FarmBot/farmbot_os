@@ -26,8 +26,7 @@ defmodule Farmbot.Bootstrap.AuthorizationTest do
     res = Auth.authorize(ctx.email, ctx.password, ctx.server)
     assert match?({:ok, _}, res)
     {:ok, bin_tkn} = res
-    tkn = Farmbot.Jwt.decode!(bin_tkn)
-    assert tkn.bot == "device_2"
+    Farmbot.Jwt.decode!(bin_tkn)
     Farmbot.System.ConfigStorage.update_config_value(:bool, "settings", "first_boot", false)
   end
 
