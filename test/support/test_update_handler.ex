@@ -17,4 +17,8 @@ defmodule FarmbotTestSupport.TestUpdateHandler do
   def post_update do
     :ok
   end
+
+  def setup(_env) do
+    :ok
+  end
 end

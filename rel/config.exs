@@ -4,6 +4,8 @@ use Mix.Releases.Config,
   default_release: :default,
   default_environment: :prod
 
+plugin Bootloader.Plugin
+
 # For a full list of config options for both releases
 # and environments, visit https://hexdocs.pm/distillery/configuration.html
 
