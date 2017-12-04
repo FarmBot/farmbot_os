@@ -123,7 +123,7 @@ defmodule Farmbot.Mixfile do
         {:bootloader, "~> 0.1"},
         {:nerves_runtime, "~> 0.4"},
         {:nerves_firmware, "~> 0.4.0"},
-        {:nerves_firmware_ssh, "~> 0.2"},
+        {:nerves_firmware_ssh, "~> 0.2", only: :dev},
         {:nerves_network, "~> 0.3", github: "nerves-project/nerves_network", override: true},
         {:dhcp_server, github: "nerves-project/dhcp_server", branch: "elixirize-go!", override: true},
         {:elixir_ale, "~> 1.0"}

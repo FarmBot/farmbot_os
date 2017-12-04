@@ -150,11 +150,16 @@ defmodule Farmbot.System.Updates do
   end
 
   def init([]) do
-    maybe_post_update()
-    children = [
-      worker(Farmbot.System.UpdateTimer, [])
-    ]
-    opts = [strategy: :one_for_one]
-    supervise(children, opts)
+    case @handler.setup(@env) do
+      :ok ->
+        maybe_post_update()
+        children = [
+          worker(Farmbot.System.UpdateTimer, [])
+        ]
+        opts = [strategy: :one_for_one]
+        supervise(children, opts)
+      {:error, reason} ->
+        {:stop, reason}
+    end
   end
 end

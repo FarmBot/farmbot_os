@@ -6,8 +6,6 @@ config :logger,
 
 config :farmbot, data_path: "/root"
 
-# This is usually in the `priv` dir of :tzdata, but our fs is read only.
-config :tzdata, :data_dir, "/root"
 # Disable tzdata autoupdates because it tries to dl the update file
 # Before we have network or ntp.
 config :tzdata, :autoupdate, :disabled

@@ -18,4 +18,14 @@ defmodule Farmbot.Target.UpdateHandler do
     Farmbot.Firmware.UartHandler.Update.maybe_update_firmware()
     :ok
   end
+
+  def setup(:prod) do
+    file = "#{:code.priv_dir(:farmbot)}/fwup-key.pub"
+    Application.put_env(:nerves_firmware, :pub_key_path, file)
+    if File.exists?(file), do: :ok, else: {:error, :no_pub_file}
+  end
+
+  def setup(_) do
+    :ok
+  end
 end

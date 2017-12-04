@@ -9,4 +9,7 @@ defmodule Farmbot.System.UpdateHandler do
 
   @doc "Apply a fw update."
   @callback apply_firmware(Path.t) :: :ok | {:error, term}
+
+  @doc "Setup updates."
+  @callback setup(atom) :: :ok | {:error, term}
 end

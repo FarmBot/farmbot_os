@@ -11,10 +11,14 @@ defmodule Farmbot.Host.UpdateHandler do
   end
 
   def before_update do
-
+    :ok
   end
 
   def post_update do
+    :ok
+  end
 
+  def setup(_env) do
+    :ok
   end
 end

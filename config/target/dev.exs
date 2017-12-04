@@ -6,8 +6,6 @@ config :logger,
 
 config :farmbot, data_path: "/root"
 
-# This is usually in the `priv` dir of :tzdata, but our fs is read only.
-# config :tzdata, :data_dir, "/root"
 # Disable tzdata autoupdates because it tries to dl the update file
 # Before we have network or ntp.
 config :tzdata, :autoupdate, :disabled
@@ -68,27 +66,11 @@ config :farmbot, :behaviour,
   update_handler: Farmbot.Target.UpdateHandler,
   gpio_handler:   Farmbot.Target.GPIO.AleHandler
 
-local_file = Path.join(System.user_home!(), ".ssh/id_rsa.pub")
-local_key = if File.exists?(local_file) do
-  [File.read!(local_file)]
-else
-  []
-end
-
-travis_file = "travis_env"
-travis_keys = if File.exists?(travis_file) do
-  File.read!(travis_file) |> String.split(",")
-else
-  []
-end
-
-config :nerves_firmware_ssh, authorized_keys: local_key ++ travis_keys
-
 config :nerves_init_gadget,
   address_method: :static
 
 config :bootloader,
-  init: [:nerves_runtime, :nerves_init_gadget],
+  init: [:nerves_runtime],
   app: :farmbot
 
 if Mix.Project.config[:target] == "rpi3" do
