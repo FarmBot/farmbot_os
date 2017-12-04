@@ -34,7 +34,7 @@ defmodule Farmbot.Logger.Console do
 
   def handle_events(events, _, %{verbosity: verbosity_filter, level_filters: filters} = state) do
     for log <- events do
-      if log.verbosity <= verbosity_filter and log.level not in filters do
+      if (log.verbosity <= verbosity_filter) and (log.level not in filters) do
         maybe_log(log)
       end
     end

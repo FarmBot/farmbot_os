@@ -24,6 +24,15 @@ defmodule FarmbotTestSupport do
     """
   end
 
+  def wait_for_firmware do
+    if :sys.get_state(Farmbot.Firmware).state.initialized do
+      :ok
+    else
+      Process.sleep(100)
+      wait_for_firmware()
+    end
+  end
+
   def preflight_checks do
     Logger.info("Starting Preflight Checks.")
 
@@ -43,7 +52,7 @@ defmodule FarmbotTestSupport do
     Farmbot.System.ConfigStorage.update_config_value(:bool, "settings", "first_boot", true)
     case Farmbot.Bootstrap.Authorization.authorize(email, password, server) do
       {:error, _reason} ->
-        Farmbot.System.ConfigStorage.update_config_value(:bool, "settings", "first_boot", false)        
+        Farmbot.System.ConfigStorage.update_config_value(:bool, "settings", "first_boot", false)
         :api
 
       {:ok, tkn} ->

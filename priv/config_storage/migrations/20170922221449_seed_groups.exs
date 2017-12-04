@@ -1,7 +1,7 @@
 defmodule Farmbot.System.ConfigStorage.Migrations.SeedGroups do
   use Ecto.Migration
   alias Farmbot.System.ConfigStorage
-  alias ConfigStorage.{Config, Group, StringValue, BoolValue, FloatValue}
+  alias ConfigStorage.{Group, StringValue, BoolValue, FloatValue}
   import Farmbot.System.ConfigStorage.MigrationHelpers
   import Ecto.Query, only: [from: 2]
 
