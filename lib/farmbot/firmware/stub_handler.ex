@@ -103,7 +103,10 @@ defmodule Farmbot.Firmware.StubHandler do
   end
 
   def handle_call({:move_absolute, pos, _x_speed, _y_speed, _z_speed}, _from, state) do
-    {:reply, :ok, [{:report_current_position, pos.x, pos.y, pos.z}, :done], %{state | pos: pos}}
+    stub_responses =  [{:report_current_position, pos.x, pos.y, pos.z},
+                       {:report_encoder_position_scaled, pos.x, pos.y, pos.z},
+                       {:report_encoder_position_raw, pos.x, pos.y, pos.z}, :done]
+    {:reply, :ok, stub_responses, %{state | pos: pos}}
   end
 
   def handle_call({:calibrate, _axis, _speed}, _from, state) do
