@@ -5,7 +5,7 @@ defmodule <%= module %>Test do
 
   test "mutates env", %{env: env} do
     # This should fail until implemented.
-    {:ok, env} = ConfigUpdate.execute(%{}, [], env)
+    {:ok, env} = <%= alias_module %>.execute(%{}, [], env)
     assert_cs_env_mutation(<%= alias_module %>, env)
   end
 end
