@@ -80,6 +80,11 @@ defmodule Farmbot.Firmware do
     GenStage.call(__MODULE__, {:request_software_version, []}, :infinity)
   end
 
+  @doc "Set angle of a servo pin."
+  def set_servo_angle(pin, value) do
+    GenStage.call(__MODULE__, {:set_servo_angle, [pin, value]}, :infinity)
+  end
+
   @doc "Start the firmware services."
   def start_link do
     GenStage.start_link(__MODULE__, [], name: __MODULE__)
