@@ -124,7 +124,7 @@ defmodule Farmbot.Firmware.UartHandler do
   defp configure_uart(nerves, active) do
     UART.configure(
       nerves,
-      framing: {Farmbot.Firmware.UartHandler.Framinig, separator: "\r\n"},
+      framing: {Farmbot.Firmware.UartHandler.Framing, separator: "\r\n"},
       active: active,
       rx_framing_timeout: 500
     )

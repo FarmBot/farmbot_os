@@ -1,4 +1,4 @@
-defmodule Farmbot.Firmware.UartHandler.Framinig do
+defmodule Farmbot.Firmware.UartHandler.Framing do
   @behaviour Nerves.UART.Framing
   import Farmbot.Firmware.Gcode.Parser
 
