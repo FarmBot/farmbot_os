@@ -70,6 +70,10 @@ defmodule Farmbot.Firmware.StubHandler do
     GenStage.call(handler, :request_software_version)
   end
 
+  def set_servo_angle(handler, pin, number) do
+    GenStage.call(handler, {:set_servo_angle, pin, number})
+  end
+
   ## GenStage Behaviour
 
   defmodule State do
@@ -163,5 +167,9 @@ defmodule Farmbot.Firmware.StubHandler do
 
   def handle_call(:request_software_version, _, state) do
     {:reply, :ok, [{:report_software_version, "STUBFW"}, :done], state}
+  end
+
+  def handle_call({:set_servo_angle, pin, angle}, _, state) do
+    {:reply, :ok, [], state}
   end
 end
