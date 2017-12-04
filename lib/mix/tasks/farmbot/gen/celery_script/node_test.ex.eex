@@ -1,0 +1,11 @@
+defmodule <%= module %>Test do
+  alias <%= module %>
+
+  use FarmbotTestSupport.AST.NodeTestCase, async: false
+
+  test "mutates env", %{env: env} do
+    # This should fail until implemented.
+    {:ok, env} = ConfigUpdate.execute(%{}, [], env)
+    assert_cs_env_mutation(<%= alias_module %>, env)
+  end
+end
