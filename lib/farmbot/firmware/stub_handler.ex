@@ -170,6 +170,6 @@ defmodule Farmbot.Firmware.StubHandler do
   end
 
   def handle_call({:set_servo_angle, pin, angle}, _, state) do
-    {:reply, :ok, [], state}
+    {:reply, :ok, [:done], state}
   end
 end
