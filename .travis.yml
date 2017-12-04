@@ -21,6 +21,7 @@ addons:
     - unzip
     - cmake
     - python
+    - libudev
 env:
   global:
   - ELIXIR_VERSION=1.5.0 ERLANG_VERSION=20.0 FWUP_VERSION=0.17.0 MIX_ENV=test
