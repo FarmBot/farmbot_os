@@ -77,4 +77,7 @@ defmodule Farmbot.Firmware.Handler do
   @doc "Request firmware version."
   @callback request_software_version(handler) :: fw_ret_val
 
+  @doc "Set angle on a servo pin."
+  @callback set_servo_angle(handler, pin, number) :: fw_ret_val
+
 end

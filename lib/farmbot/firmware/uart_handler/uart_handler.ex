@@ -68,6 +68,10 @@ defmodule Farmbot.Firmware.UartHandler do
     GenStage.call(handler, :request_software_version)
   end
 
+  def set_servo_angle(handler, pin, number) do
+    GenStage.call(handler, {:set_servo_angle, pin, number})
+  end
+
   ## Private
 
   defmodule State do
@@ -285,6 +289,10 @@ defmodule Farmbot.Firmware.UartHandler do
 
   def handle_call(:request_software_version, _from, state) do
     do_write("F83", state)
+  end
+
+  def handle_call({:set_servo_angle, pin, angle}, _, state) do
+    do_write("F61 P#{pin} V#{angle}", state)
   end
 
   def handle_call(_call, _from, state) do
