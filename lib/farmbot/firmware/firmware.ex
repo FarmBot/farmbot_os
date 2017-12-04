@@ -281,7 +281,7 @@ defmodule Farmbot.Firmware do
     Logger.busy 3, "Initializing Firmware."
     old = Farmbot.System.ConfigStorage.get_config_as_map()["hardware_params"]
     case old["param_version"] do
-      nil -> spawn __MODULE__, :do_read_params_and_report_position, [[]]
+      nil -> spawn __MODULE__, :do_read_params_and_report_position, [%{}]
       _   -> spawn __MODULE__, :do_read_params_and_report_position, [old]
     end
     {nil, %{state | initializing: true}}
@@ -403,7 +403,7 @@ defmodule Farmbot.Firmware do
   end
 
   @doc false
-  def do_read_params_and_report_position(old) when is_list(old) do
+  def do_read_params_and_report_position(old) when is_map(old) do
     for {key, float_val} <- old do
       if float_val do
         val = round(float_val)
