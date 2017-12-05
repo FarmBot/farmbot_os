@@ -66,13 +66,13 @@ defmodule Farmbot.BotStateTest do
     assert match?(:unknown, get_state(:informational_settings).sync_status)
   end
 
-  # test "sets user environment" do
-  #   key = "some_key"
-  #   val = "hey! this should be in the bot's state!"
-  #   :ok = BotState.set_user_env(key, val)
-  #   res = BotState.get_user_env
-  #   assert match?(%{^key => ^val}, res)
-  # end
+  test "sets user environment" do
+    key = "some_key"
+    val = "hey! this should be in the bot's state!"
+    :ok = BotState.set_user_env(key, val)
+    res = BotState.get_user_env
+    assert match?(%{^key => ^val}, res)
+  end
 
   test "registers and unregisters farmware" do
     name = "Not real farmware"

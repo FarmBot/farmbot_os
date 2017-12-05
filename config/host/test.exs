@@ -17,7 +17,9 @@ config :farmbot, :init, [
 ]
 
 # Transports.
-config :farmbot, :transport, []
+config :farmbot, :transport, [
+  Farmbot.BotState.Transport.Test 
+]
 
 # Configure Farmbot Behaviours.
 # config :farmbot, :behaviour,

@@ -27,6 +27,11 @@ defmodule FarmbotTestSupport.AST.NodeTestCase do
         end
       end
 
+      def nothing(env \\ struct(Macro.Env, [])) do
+        {:ok, res, _} = Farmbot.CeleryScript.AST.Node.Nothing.execute(%{}, [], env)
+        res
+      end
+
     end
   end
 

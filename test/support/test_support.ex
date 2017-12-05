@@ -61,13 +61,15 @@ defmodule FarmbotTestSupport do
     end
   end
 
-  defp ping_mqtt(tkn) do
-    url = Farmbot.Jwt.decode!(tkn).mqtt
-    Logger.info("Preflight check: mqtt: #{url}")
+  # defp ping_mqtt(tkn) do
+  #   url = Farmbot.Jwt.decode!(tkn).mqtt
+  #   Logger.info("Preflight check: mqtt: #{url}")
+  #
+  #   case :gen_tcp.connect(to_charlist(url), 1883, [:binary]) do
+  #     {:error, _} -> :mqtt
+  #     {:ok, port} -> :gen_tcp.close(port)
+  #   end
+  # end
 
-    case :gen_tcp.connect(to_charlist(url), 1883, [:binary]) do
-      {:error, _} -> :mqtt
-      {:ok, port} -> :gen_tcp.close(port)
-    end
-  end
+  defp ping_mqtt(_), do: :ok
 end

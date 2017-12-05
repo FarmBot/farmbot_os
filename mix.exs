@@ -120,7 +120,7 @@ defmodule Farmbot.Mixfile do
   defp deps(target) do
     system(target) ++
       [
-        {:bootloader, "~> 0.1.3"},
+        {:bootloader, "~> 0.1.3", except: :test},
         {:nerves_runtime, "~> 0.4"},
         {:nerves_firmware, "~> 0.4.0"},
         {:nerves_firmware_ssh, "~> 0.2", only: :dev},

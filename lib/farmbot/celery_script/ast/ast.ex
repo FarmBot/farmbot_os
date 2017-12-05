@@ -37,6 +37,10 @@ defmodule Farmbot.CeleryScript.AST do
     end
   end
 
+  def encode(thing) do
+    {:error, "#{inspect thing} is not an AST node for encoding."}
+  end
+
   @doc "Encode a list of asts."
   def encode_body(body, acc \\ [])
 

@@ -239,7 +239,6 @@ defmodule Farmbot.BotState do
   end
 
   def handle_events(events, _from, state) do
-    # Logger.busy 3, "begin handle bot state events"
     state = do_handle(events, state)
     # Logger.success 3, "Finish handle bot state events"
     {:noreply, [state], state}

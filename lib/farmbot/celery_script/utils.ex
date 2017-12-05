@@ -2,7 +2,7 @@ defmodule Farmbot.CeleryScript.Utils do
   @moduledoc false
   alias Farmbot.Firmware.Vec3
   alias Farmbot.CeleryScript.AST
-  alias AST.Node.{Tool, Coordinate, Point}
+  alias AST.Node.{Tool, Coordinate, Point, Nothing}
   alias Farmbot.Repo.Point, as: DBPoint
   import Ecto.Query
 
@@ -31,6 +31,10 @@ defmodule Farmbot.CeleryScript.Utils do
         {:ok, new_vec3(x, y, z)}
       nil -> {:error, "Could not find point by id: #{point_id}"}
     end
+  end
+
+  def ast_to_vec3(%AST{kind: Nothing}) do
+    {:ok, %Vec3{x: 0, y: 0, z: 0}}
   end
 
   def ast_to_vec3(%Vec3{} = vec3), do: {:ok, vec3}
