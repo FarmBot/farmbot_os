@@ -30,5 +30,7 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
     for repo <- repos do
       Installer.sync_repo(repo)
     end
+
+    :ok
   end
 end
