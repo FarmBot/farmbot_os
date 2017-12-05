@@ -106,3 +106,7 @@
 # 5.0.6
 * Fix images double uploading.
 * Allow reinstallation of first party farmware.
+
+# 5.0.8
+* Update underlying Linux System deps.
+* Preparation for 6.x releases.
