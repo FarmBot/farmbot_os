@@ -34,6 +34,7 @@ defmodule Farmbot.BotStateTest do
   test "sets sync status :locked" do
     :ok = Farmbot.BotState.set_sync_status(:locked)
     assert match?(:locked, get_state(:informational_settings).sync_status)
+    assert Farmbot.BotState.locked?()
   end
 
   test "sets sync status :maintenance" do
