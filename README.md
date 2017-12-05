@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/FarmBot/farmbot_os.svg?branch=master)](https://travis-ci.org/FarmBot/farmbot_os.svg?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/FarmBot/farmbot_os/badge.svg)](https://coveralls.io/github/FarmBot/farmbot_os)
-[![Built with Nerves](http://nerves-project.org/images/badge/nerves-badge_75x39_white.png)](http://nerves-project.org/)
+[![Built with Nerves](http://nerves-project.org/images/badge/nerves-badge_75x39_black.png)](http://nerves-project.org/)
 ---
 
 <!-- DON'T CHANGE THE TEXT BELOW. It is used in documentation links. -->
@@ -14,14 +14,14 @@ if you spot a bug or fix, but for now we suggest obtaining a Raspberry Pi 3 for 
 
 |Raspbery Pi Version |
 |---|
-| :star: **[RPi 3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v5.0.3/farmbot-rpi3-5.0.3.img)**|
+| :star: **[RPi 3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v5.0.6/farmbot-rpi3-5.0.8.img)**|
 ---
 
 # Farmbot OS
-The "brains" of the Farmbot Project
+The "brains" of the FarmBot Project
 
 ## Installation
-Instalation should be fairly straight forward, you will need a computer for this step.
+Installation should be fairly straight forward, you will need a computer for this step.
 (everything after this can be set up on a mobile device.)
 
 ### Windows users
