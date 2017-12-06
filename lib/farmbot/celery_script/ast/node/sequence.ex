@@ -2,7 +2,7 @@ defmodule Farmbot.CeleryScript.AST.Node.Sequence do
   @moduledoc false
   use Farmbot.CeleryScript.AST.Node
   use Farmbot.Logger
-  allow_args [:version, :is_outdated, :label]
+  allow_args [:version, :is_outdated, :label, :locals]
 
   def execute(%{version: _, is_outdated: _, label: name}, body, env) do
     if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "sequence_init_log") do
