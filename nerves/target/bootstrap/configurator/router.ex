@@ -27,8 +27,23 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     end
   end
 
+  defp get_interfaces(tries \\ 5)
+  defp get_interfaces(0), do: []
+  defp get_interfaces(tries) do
+    case Nerves.NetworkInterface.interfaces() do
+      ["lo"] ->
+        Process.sleep(100)
+        get_interfaces(tries - 1)
+      interfaces when is_list(interfaces) ->
+        interfaces
+        |> List.delete("usb0")
+        |> List.delete("lo")
+        |> List.delete("sit0")
+    end
+  end
+
   get "/network" do
-    interfaces = Nerves.NetworkInterface.interfaces()
+    interfaces = get_interfaces()
 
     info = [
       interfaces: Map.new(interfaces, fn iface ->
