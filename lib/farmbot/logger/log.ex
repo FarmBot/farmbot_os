@@ -1,8 +1,19 @@
 defmodule Farmbot.Log do
   @moduledoc "Farmbot Log Object."
 
-  defstruct [:time, :level, :verbosity, :message,
-             :meta, :function, :file, :line, :module]
+  @version Mix.Project.config[:version] |> Version.parse!
+  defstruct [
+    time: nil,
+    level: nil,
+    verbosity: nil,
+    message: nil,
+    meta: nil,
+    function: nil,
+    file: nil,
+    line: nil,
+    module: nil,
+    version: @version
+  ]
 
   defimpl Inspect, for: __MODULE__ do
     def inspect(log, _) do

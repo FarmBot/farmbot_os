@@ -77,7 +77,6 @@ defmodule Farmbot.Mixfile do
   defp deps do
     [
       {:nerves, "~> 0.8.3", runtime: false},
-      {:vmq_commons_fb, "~> 1.0.2"},
       {:gen_stage, "~> 0.12"},
       {:poison, "~> 3.0"},
       {:ex_json_schema, "~> 0.5.3"},

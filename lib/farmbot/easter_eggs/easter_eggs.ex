@@ -8,7 +8,7 @@ defmodule Farmbot.EasterEggs do
 
   def init([]) do
     data = Path.join(:code.priv_dir(:farmbot), "easter_eggs.json")
-      |> File.read! 
+      |> File.read!
       |> Poison.decode!
   end
 end
