@@ -32,8 +32,8 @@ defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdate do
 
         do_reduce_os(rest, env)
       {:ok, {type, group, value}} ->
-        Logger.busy 2, "Updating: #{inspect key}: #{value}"
         Farmbot.System.ConfigStorage.update_config_value(type, group, key, value)
+        Logger.success 3, "Updating: #{inspect key}: #{value}"
         do_reduce_os(rest, env)
       {:error, reason} ->
         {:error, reason, env}
