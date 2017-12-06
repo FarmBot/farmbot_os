@@ -24,7 +24,8 @@ defmodule Farmbot.System.Supervisor do
 
     after_init_children = [
       supervisor(Farmbot.System.Updates, []),
-      worker(Farmbot.System.GPIO, [])
+      worker(Farmbot.System.GPIO, []),
+      worker(Farmbot.EasterEggs, [])
     ]
 
     supervise(before_init_children ++ init_mods ++ after_init_children, strategy: :one_for_all)

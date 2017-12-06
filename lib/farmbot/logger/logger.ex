@@ -47,6 +47,13 @@ defmodule Farmbot.Logger do
   end
 
   @doc false
+  defmacro fun(verbosity, message, meta \\ []) do
+    quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
+      Farmbot.Logger.dispatch_log(__ENV__, :fun, verbosity, message, meta)
+    end
+  end
+
+  @doc false
   defmacro __using__(_) do
     quote do
       alias Farmbot.Logger
@@ -63,6 +70,8 @@ defmodule Farmbot.Logger do
         warn: 2,
         error: 3,
         error: 2,
+        fun: 2,
+        fun: 3
       ]
 
     end
@@ -70,7 +79,7 @@ defmodule Farmbot.Logger do
 
   @doc false
   def dispatch_log(%Macro.Env{} = env, level, verbosity, message, meta)
-  when level in [:info, :debug, :busy, :warn, :success, :error]
+  when level in [:info, :debug, :busy, :warn, :success, :error, :fun]
   and  is_number(verbosity)
   and  is_binary(message)
   and  is_list(meta)
