@@ -103,7 +103,9 @@ defmodule Farmbot.BotState do
     },
             jobs: %{},
             location_data: %{
-              position: %{x: -1, y: -1, z: -1}
+              position: %{x: nil, y: nil, z: nil},
+              scaled_encoders: %{x: nil, y: nil, z: nil},
+              raw_encoders: %{x: nil, y: nil, z: nil},
             },
             gpio_registry: %{},
             pins: %{},
