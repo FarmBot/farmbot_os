@@ -69,6 +69,8 @@ config :farmbot, :behaviour,
 config :nerves_init_gadget,
   address_method: :static
 
+config :nerves_firmware_ssh, authorized_keys: File.exists?(Path.join(System.user_home!(), ".ssh/id_rsa.pub"))
+
 config :bootloader,
   init: [:nerves_runtime],
   app: :farmbot

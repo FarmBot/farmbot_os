@@ -96,9 +96,6 @@ defmodule Farmbot.Firmware.Gcode.Parser do
   defp report_xyz(position, reporter) when is_bitstring(position),
     do: position |> String.split(" ") |> do_parse_pos(reporter)
 
-  # This string came in from the arduin and i need to do something about it..
-  # defp do_parse_pos(["X0.00", "Y0.00", "ZX0.00", "Y0.00", "Z0.00", "Q0"], reporter)
-
   defp do_parse_pos(["X" <> x, "Y" <> y, "Z" <> z, "Q" <> tag], reporter)
        when reporter in [:report_current_position, :report_encoder_position_scaled] do
     {tag, {reporter, String.to_float(x), String.to_float(y), String.to_float(z)}}

@@ -244,6 +244,10 @@ defmodule Farmbot.Repo do
         BotState.set_sync_status(:sync_error)
         Logger.error(1, "Failed to apply sync_cmd: (#{repo}) #{inspect(sync_cmd)} (#{e.action})")
         fix_repo(repo, sync_cmd)
+      _ ->
+        BotState.set_sync_status(:sync_error)
+        Logger.error(1, "Failed to apply sync_cmd: (#{repo}) #{inspect(sync_cmd)}")
+        fix_repo(repo, sync_cmd)
     end
   end
 
