@@ -117,6 +117,19 @@ defmodule Farmbot.Mixfile do
     ]
   end
 
+  defp deps("rpi3") do
+    system("rpi3") ++
+      [
+        {:bootloader, "~> 0.1.3", except: :test},
+        {:nerves_runtime, "~> 0.4"},
+        {:nerves_firmware, "~> 0.4.0"},
+        {:nerves_firmware_ssh, "~> 0.2", only: :dev},
+        {:nerves_network, "~> 0.3", github: "nerves-project/nerves_network", override: true},
+        {:dhcp_server, github: "nerves-project/dhcp_server", branch: "elixirize-go!", override: true},
+        {:elixir_ale, "~> 1.0"}
+      ]
+  end
+
   defp deps(target) do
     system(target) ++
       [

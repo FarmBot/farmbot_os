@@ -123,7 +123,13 @@ defmodule Farmbot.Target.Network.Manager do
       # If we Successfully set time, sync again in around 1024 seconds
       :ok -> Process.send_after(self(), :ntp_timer, 1024000 + rand)
       # If time failed, try again in about 5 minutes.
-      _ -> Process.send_after(self(), :ntp_timer, 300000 + rand)
+      _ ->
+        if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "first_boot") do
+          Process.send_after(self(), :ntp_timer, 10_000 + rand)
+        else
+
+          Process.send_after(self(), :ntp_timer, 300000 + rand)
+        end
     end
   end
 end

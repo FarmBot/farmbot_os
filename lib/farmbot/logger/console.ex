@@ -21,7 +21,11 @@ defmodule Farmbot.Logger.Console do
 
   @doc false
   def start_link do
-    GenStage.start_link(__MODULE__, [], [name: __MODULE__])
+    if Process.whereis(__MODULE__) do
+      GenStage.start_link(__MODULE__, [])
+    else
+      GenStage.start_link(__MODULE__, [], [name: __MODULE__])
+    end
   end
 
   def init([]) do
