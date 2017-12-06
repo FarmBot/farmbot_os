@@ -44,9 +44,9 @@ defmodule Farmbot.CeleryScript.Utils do
   end
 
   def vec3_math(%Vec3{x: xa, y: ya, z: za}, fun, %Vec3{x: xb, y: yb, z: zb}) do
-    res_x = apply(Kernel, fun, [xa, xb])
-    res_y = apply(Kernel, fun, [ya, yb])
-    res_z = apply(Kernel, fun, [za, zb])
+    res_x = apply(Kernel, fun, [xa || 0, xb || 0])
+    res_y = apply(Kernel, fun, [ya || 0, yb || 0])
+    res_z = apply(Kernel, fun, [za || 0, zb || 0])
     new_vec3(res_x, res_y, res_z)
   end
 
