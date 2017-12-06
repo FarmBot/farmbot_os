@@ -64,7 +64,11 @@ config :farmbot, :behaviour,
   firmware_handler: Farmbot.Firmware.StubHandler,
   update_handler: Farmbot.Target.UpdateHandler
 
-config :nerves_firmware_ssh, authorized_keys: File.exists?(Path.join(System.user_home!(), ".ssh/id_rsa.pub"))
+
+config :nerves_firmware_ssh,
+  authorized_keys: [
+    File.read!(Path.join(System.user_home!, ".ssh/id_rsa.pub"))
+  ]
 
 config :nerves_init_gadget,
   address_method: :static

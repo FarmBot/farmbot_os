@@ -103,6 +103,7 @@ defmodule Farmbot.Mixfile do
 
       {:ex_syslogger, "~> 1.4", only: :prod},
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
+      {:recon, "~> 2.3"}
     ]
   end
 
@@ -113,7 +114,7 @@ defmodule Farmbot.Mixfile do
       {:excoveralls, "~> 0.6", only: :test},
       {:mock, "~> 0.2.0", only: :test},
       {:faker, "~> 0.9", only: :test },
-      {:udev, github: "electricshaman/udev"}
+      {:udev, github: "electricshaman/udev"},
     ]
   end
 
@@ -124,6 +125,7 @@ defmodule Farmbot.Mixfile do
         {:nerves_runtime, "~> 0.4"},
         {:nerves_firmware, "~> 0.4.0"},
         {:nerves_firmware_ssh, "~> 0.2", only: :dev},
+        {:nerves_init_gadget,  github: "nerves-project/nerves_init_gadget", branch: "dhcp", only: :dev},
         {:nerves_network, "~> 0.3", github: "nerves-project/nerves_network", override: true},
         {:dhcp_server, github: "nerves-project/dhcp_server", branch: "elixirize-go!", override: true},
         {:elixir_ale, "~> 1.0"}
@@ -138,6 +140,9 @@ defmodule Farmbot.Mixfile do
 
   defp system("bbb"),
     do: [{:nerves_system_farmbot_bbb, "0.17.2-farmbot", runtime: false}]
+
+  defp system("x86_64"),
+    do: [{:nerves_system_x86_64, "~> 0.3.1", github: "nerves-project/nerves_system_x86_64"}]
 
   defp package do
     [

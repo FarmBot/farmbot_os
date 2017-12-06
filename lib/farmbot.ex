@@ -25,7 +25,7 @@ defmodule Farmbot do
   end
 
   def init([]) do
-    Logger.remove_backend Logger.Backends.Console
+    Logger.remove_backend :console
     children = [
       supervisor(Farmbot.Logger.Supervisor, []),
       supervisor(Farmbot.System.Supervisor, []),
