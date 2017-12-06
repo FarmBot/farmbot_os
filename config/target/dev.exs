@@ -69,10 +69,21 @@ config :farmbot, :behaviour,
 config :nerves_init_gadget,
   address_method: :static
 
-config :nerves_firmware_ssh,
-  authorized_keys: [
-    File.read!(Path.join(System.user_home!, ".ssh/id_rsa.pub"))
-  ]
+local_file = Path.join(System.user_home!(), ".ssh/id_rsa.pub")
+local_key = if File.exists?(local_file) do
+  [File.read!(local_file)]
+else
+  []
+end
+
+travis_file = "travis_env"
+travis_keys = if File.exists?(travis_file) do
+  File.read!(travis_file) |> String.split(",")
+else
+  []
+end
+
+config :nerves_firmware_ssh, authorized_keys: local_key ++ travis_keys
 
 config :bootloader,
   init: [:nerves_runtime, :nerves_init_gadget],
