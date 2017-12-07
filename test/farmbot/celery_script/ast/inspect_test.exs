@@ -6,6 +6,6 @@ defmodule Farmbot.CeleryScript.AST.Inspect do
 
   test "Inspects ast node" do
     {:ok, %AST{} = ast} = AST.decode(@nothing_json)
-    assert inspect(ast, []) == "#Nothing<[]>"
+    assert inspect(ast, []) == "Nothing"
   end
 end
