@@ -50,7 +50,7 @@ defmodule Farmbot.FarmEvent.Manager do
     if state.timer do
       Process.cancel_timer(state.timer)
     end
-    Logger.warn 3, "Pausing FarmEvent Execution until sync."
+    Logger.busy 3, "Pausing FarmEvent Execution until sync."
     {:reply, :ok, %{state | wait_for_sync: true}}
   end
 
@@ -163,7 +163,7 @@ defmodule Farmbot.FarmEvent.Manager do
   # if `farm_event.time_unit` is "never" we can't use the `end_time`.
   # if we have no `last_time`, time to execute.
   defp maybe_start_sequence(true = _started?, _, %{time_unit: "never"} = f, nil = _last_time, event, now) do
-    Logger.debug 3, "Ignoring end_time."
+    # Logger.debug 3, "Ignoring end_time."
     case should_run_sequence?(f.calendar, nil, now) do
       {true, next} -> {event, next}
       {false,   _} -> {nil,    nil}
@@ -172,7 +172,7 @@ defmodule Farmbot.FarmEvent.Manager do
 
   # if started is false, the event isn't ready to be executed.
   defp maybe_start_sequence(false = _started?, _fin, _farm_event, last_time, event, _now) do
-    Logger.debug 3, "sequence #{event.name} (#{event.id}) is not started yet."
+    # Logger.debug 3, "sequence #{event.name} (#{event.id}) is not started yet."
     {nil, last_time}
   end
 
@@ -188,7 +188,7 @@ defmodule Farmbot.FarmEvent.Manager do
   # if there is no last time, check if time is passed now within 60 seconds.
   defp should_run_sequence?([first_time | _], nil, now) do
 
-    Logger.debug 3, "Checking sequence event that hasn't run before #{first_time}"
+    # Logger.debug 3, "Checking sequence event that hasn't run before #{first_time}"
     # convert the first_time to a DateTime
     dt = Timex.parse! first_time, "{ISO:Extended}"
     # if now is after the time, we are in fact late
@@ -196,13 +196,13 @@ defmodule Farmbot.FarmEvent.Manager do
         {true, now}
      else
        # make sure to return nil as the last time because it stil hasnt executed yet.
-       Logger.debug 3, "Sequence Event not ready yet."
+      #  Logger.debug 3, "Sequence Event not ready yet."
       {false, nil}
     end
   end
 
   defp should_run_sequence?(nil, last_time, now) do
-    Logger.debug 3, "Checking sequence with no calendar."
+    # Logger.debug 3, "Checking sequence with no calendar."
     if is_nil(last_time) do
       {true, now}
     else
@@ -228,11 +228,11 @@ defmodule Farmbot.FarmEvent.Manager do
           # too_old? = is_too_old?(now, dt)
           # if too_old?, do: {false, last_time}, else: {true, dt}
         else
-          Logger.debug 3, "Sequence Event not ready yet."
+          # Logger.debug 3, "Sequence Event not ready yet."
           {false, dt}
         end
       [] ->
-        Logger.debug 3, "No items in calendar."
+        # Logger.debug 3, "No items in calendar."
         {false, last_time}
     end
   end
@@ -253,7 +253,7 @@ defmodule Farmbot.FarmEvent.Manager do
     time_str_fun = fn(dt) -> "#{dt.hour}:#{dt.minute}:#{dt.second}" end
     seconds = DateTime.to_unix(now, :second) - DateTime.to_unix(then, :second)
     c = seconds > 60 # not in MS here
-    Logger.debug 3, "is checking #{time_str_fun.(now)} - #{time_str_fun.(then)} = #{seconds} seconds ago. is_too_old? => #{c}"
+    # Logger.debug 3, "is checking #{time_str_fun.(now)} - #{time_str_fun.(then)} = #{seconds} seconds ago. is_too_old? => #{c}"
     c
   end
 
