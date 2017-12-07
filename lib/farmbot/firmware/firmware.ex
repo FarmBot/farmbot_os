@@ -175,7 +175,10 @@ defmodule Farmbot.Firmware do
 
   defp do_begin_cmd(%Current{fun: fun, args: args, from: _from} = current, state, dispatch) do
     # Logger.debug 3, "Firmware command: #{fun}#{inspect(args)}"
-    if fun == :emergency_unlock, do: Farmbot.BotState.set_sync_status(:sync_now)
+    is_unlock_cmd = fun == :emergency_unlock
+    auto_sync = Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "auto_sync")
+    if is_unlock_cmd && auto_sync, do: Farmbot.BotState.set_sync_status(:sync_now)
+    if is_unlock_cmd && !auto_sync, do: Farmbot.BotState.set_sync_status(:synced)
 
     case apply(state.handler_mod, fun, [state.handler | args]) do
       :ok ->

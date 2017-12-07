@@ -35,7 +35,9 @@ defmodule Farmbot.System do
   @spec factory_reset(unparsed_reason) :: no_return
   def factory_reset(reason) do
     if Process.whereis Farmbot.System.ConfigStorage do
-      unless Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "disable_factory_reset") do
+      if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "disable_factory_reset") do
+        reboot(reason)
+      else
         do_reset(reason)
       end
     else
