@@ -28,17 +28,17 @@ defmodule Farmbot.Repo do
 
   @doc "Fetch the current repo."
   def current_repo do
-    GenServer.call(__MODULE__, :current_repo)
+    GenServer.call(__MODULE__, :current_repo, :infinity)
   end
 
   @doc "Fetch the non current repo."
   def other_repo do
-    GenServer.call(__MODULE__, :other_repo)
+    GenServer.call(__MODULE__, :other_repo, :infinity)
   end
 
   @doc "Flip the repos."
   def flip() do
-    GenServer.call(__MODULE__, :flip)
+    GenServer.call(__MODULE__, :flip, :infinity)
   end
 
   @doc "Register a diff to be stored until a flip."
