@@ -36,17 +36,17 @@
       <form action="configure_network" method="post">
         <%= for {interface, settings} <- interfaces do %>
           <%= case settings do %>
-            <% %{type: :wired} -> %>
+            <% %{type: :wired, enabled: default} -> %>
               <fieldset>
                 <label>Enable Ethernet (<%= interface %>)</label>
-                <input type=checkbox name="<%= interface %>_enable">
+                <input checked="<%= default %>" type=checkbox name="<%= interface %>_enable">
                 <input hidden=true name="<%= interface %>_type" value=wired>
               </fieldset>
 
-            <% %{type: :wireless, ssids: ssids} -> %>
+            <% %{type: :wireless, ssids: ssids, enabled: default} -> %>
               <fieldset>
                 <label>Enable Wireless (<%= interface %>) </label>
-                <input type=checkbox name="<%= interface %>_enable">
+                <input checked="<%= default %>" type=checkbox name="<%= interface %>_enable">
                 <label>Network Name/SSID</label>
                 <select name="<%= interface %>_ssid" id="<%= interface %>_ssid_select" onchange="ssidSelectOnChange('<%= interface %>');">
                   <%= Enum.reduce(ssids, "", fn(ssid, acc) ->

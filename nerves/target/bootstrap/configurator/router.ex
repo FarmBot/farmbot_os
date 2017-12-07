@@ -48,9 +48,9 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     info = [
       interfaces: Map.new(interfaces, fn iface ->
         if String.first(iface) == "w" do
-          {iface, %{type: :wireless, ssids: do_iw_scan(iface)}}
+          {iface, %{type: :wireless, ssids: do_iw_scan(iface), enabled: iface == "wlan0"}}
         else
-          {iface, %{type: :wired}}
+          {iface, %{type: :wired, enabled: false}}
         end
       end)
     ]
