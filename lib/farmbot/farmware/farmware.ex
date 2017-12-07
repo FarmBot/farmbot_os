@@ -130,23 +130,10 @@ defmodule Farmbot.Farmware do
   def lookup(name, version \\ nil) do
     dir = Farmbot.Farmware.Installer.install_root_path
     with {:ok, all_installed} <- File.ls(dir),
-         true <- name in all_installed,
-         {:ok, versions} <- File.ls(Path.join(dir, name))
+         true <- name in all_installed
     do
-      [newest | _] = Enum.sort(versions, fn(ver_a, ver_b) ->
-        case Version.compare(ver_a, ver_b) do
-          :eq -> true
-          :gt -> true
-          :lt -> false
-        end
-      end)
-      to_fetch = (version || newest) |> Version.parse!()
-      if "#{to_fetch}" in versions do
-        mani_path = Path.join(Farmbot.Farmware.Installer.install_path(name, to_fetch), "manifest.json")
-        File.read!(mani_path) |> Poison.decode! |> new()
-      else
-        {:error, :no_version}
-      end
+      mani_path = Path.join(Farmbot.Farmware.Installer.install_path(name), "manifest.json")
+      File.read!(mani_path) |> Poison.decode! |> new()
     else
       false -> {:error, :not_installed}
       {:error, _} = err -> err

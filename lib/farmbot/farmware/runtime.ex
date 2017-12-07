@@ -13,9 +13,8 @@ defmodule Farmbot.Farmware.Runtime do
   def execute(%Farmware{} = farmware) do
     Logger.busy(2, "Beginning execution of #{inspect(farmware)}")
     fw_path = Installer.install_path(farmware) |> Path.absname("#{:code.priv_dir(:farmbot)}/..")
-
-    with {:ok, cwd} <- File.cwd(),
-         :ok <- File.cd(fw_path),
+    cwd = File.cwd!()
+    with :ok <- File.cd(fw_path),
          env <- build_env(farmware) do
       exec = farmware.executable
 
@@ -43,7 +42,9 @@ defmodule Farmbot.Farmware.Runtime do
         )
       )
     else
-      {:error, err} -> raise RuntimeError, state: nil, message: err
+      {:error, err} ->
+        File.cd(cwd)
+        raise RuntimeError, state: nil, message: err
     end
     |> do_cleanup()
   end
