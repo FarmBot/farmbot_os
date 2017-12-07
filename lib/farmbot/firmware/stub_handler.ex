@@ -102,6 +102,10 @@ defmodule Farmbot.Firmware.StubHandler do
     {:noreply, [:idle], state}
   end
 
+  def handle_call(cmd, _from, %{locked?: true} = state) when cmd != :emergency_unlock do
+    {:reply, :ok, [:error], state}
+  end
+
   def handle_call({:move_absolute, pos, _x_speed, _y_speed, _z_speed}, _from, state) do
     stub_responses =  [{:report_current_position, pos.x, pos.y, pos.z},
                        {:report_encoder_position_scaled, pos.x, pos.y, pos.z},
@@ -153,7 +157,7 @@ defmodule Farmbot.Firmware.StubHandler do
   end
 
   def handle_call({:update_param, param, val}, _from, state) do
-    {:reply, :ok, [:done], %{state | fw_params: Map.put(state.fw_params, param, val)}}
+    {:reply, :ok, [{:report_parameter_value, param, val}, :done], %{state | fw_params: Map.put(state.fw_params, param, val)}}
   end
 
   def handle_call({:read_param, param}, _from, state) do
@@ -166,11 +170,11 @@ defmodule Farmbot.Firmware.StubHandler do
   end
 
   def handle_call(:emergency_lock, _from, state) do
-    {:reply, :ok, [:report_emergency_lock, :done], state}
+    {:reply, :ok, [:report_emergency_lock, :done], %{state | locked?: true}}
   end
 
   def handle_call(:emergency_unlock, _from, state) do
-    {:reply, :ok, [:done, :idle], state}
+    {:reply, :ok, [:done, :idle], %{state | locked?: false}}
   end
 
   def handle_call(:request_software_version, _, state) do
