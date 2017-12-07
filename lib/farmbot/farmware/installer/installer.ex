@@ -16,13 +16,12 @@ defmodule Farmbot.Farmware.Installer do
   def install_root_path, do: @farmware_install_path
 
   @doc "Where on the filesystem is this Farmware installed."
-  def install_path(name, %Version{} = fw_version) do
-    Path.join([@farmware_install_path, name, fw_version |> to_string])
+  def install_path(%Farmware{name: name, version: version}) do
+    install_path(name)
   end
 
-  @doc "Where on the filesystem is this Farmware installed."
-  def install_path(%Farmware{name: name, version: version}) do
-    install_path(name, version)
+  def install_path(name) when is_binary(name) do
+    Path.join([@farmware_install_path, name])
   end
 
   @doc "Add a repository to the database."
@@ -131,7 +130,7 @@ defmodule Farmbot.Farmware.Installer do
   # sets up directories or returns already_installed.
   defp check_directory(fw_name, %Version{} = fw_version) do
     Logger.info 3, "Checking directories for #{fw_name} - #{fw_version}"
-    install_path = install_path(fw_name, fw_version)
+    install_path = install_path(fw_name)
     manifest_path = Path.join(install_path, "manifest.json")
     if File.exists?(manifest_path) do
       {:error, {fw_name, fw_version, :already_installed}}
