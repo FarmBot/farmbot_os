@@ -5,7 +5,7 @@ defmodule Farmbot.CeleryScript.AST.Node.FindHome do
 
   def execute(%{speed: speed, axis: :all}, _, env) do
     env = mutate_env(env)
-    do_reduce([:y, :z, :x], speed, env)
+    do_reduce([:z, :y, :x], speed, env)
   end
 
   def execute(%{speed: speed, axis: axis}, _, env) do

@@ -33,6 +33,8 @@ defmodule Farmbot.Bootstrap.Authorization do
              {:ok, body}    <- Poison.decode(resp),
              {:ok, map}     <- Map.fetch(body, "token") do
           Farmbot.System.ConfigStorage.update_config_value(:bool, "settings", "first_boot", false)
+          Farmbot.System.GPIO.Leds.led_status_ok()
+
           Map.fetch(map, "encoded")
         else
           :error -> {:error, "unknown error."}
@@ -50,6 +52,7 @@ defmodule Farmbot.Bootstrap.Authorization do
              {:ok, resp}    <- request_token(server, payload),
              {:ok, body}    <- Poison.decode(resp),
              {:ok, map}     <- Map.fetch(body, "token") do
+          Farmbot.System.GPIO.Leds.led_status_ok()         
           Map.fetch(map, "encoded")
         else
           :error -> {:error, "unknown error."}

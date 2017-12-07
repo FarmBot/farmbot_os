@@ -102,7 +102,8 @@ defmodule Farmbot.Mixfile do
 
       {:ex_syslogger, "~> 1.4", only: :prod},
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
-      {:recon, "~> 2.3"}
+      {:recon, "~> 2.3"},
+      {:nerves_leds, "~> 0.8.0"}
     ]
   end
 
@@ -140,7 +141,7 @@ defmodule Farmbot.Mixfile do
         {:nerves_init_gadget,  github: "nerves-project/nerves_init_gadget", branch: "dhcp", only: :dev},
         {:nerves_network, "~> 0.3", github: "nerves-project/nerves_network", override: true},
         {:dhcp_server, github: "nerves-project/dhcp_server", branch: "elixirize-go!", override: true},
-        {:elixir_ale, "~> 1.0"}
+        {:elixir_ale, "~> 1.0"},
       ]
   end
 

@@ -47,7 +47,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
       Logger.info(3, "Building new configuration.")
       import Supervisor.Spec
       :ets.new(:session, [:named_table, :public, read_concurrency: true])
-
+      Farmbot.System.GPIO.Leds.led_status_err()
       children = [
         Plug.Adapters.Cowboy.child_spec(
           :http,

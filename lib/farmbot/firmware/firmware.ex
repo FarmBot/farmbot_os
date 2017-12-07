@@ -179,6 +179,7 @@ defmodule Farmbot.Firmware do
 
     case apply(state.handler_mod, fun, [state.handler | args]) do
       :ok ->
+        if fun == :emergency_unlock, do: Farmbot.System.GPIO.Leds.led_status_ok()
         timer = Process.send_after(self(), :timeout, 6500)
         {:noreply, dispatch, %{state | current: current, timer: timer}}
       {:error, _} = res ->
@@ -353,6 +354,7 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode(:report_emergency_lock, state) do
+    Farmbot.System.GPIO.Leds.led_status_err
     if state.current do
       GenStage.reply(state.current.from, {:error, :emergency_lock})
       {:informational_settings, %{sync_status: :locked}, %{state | current: nil}}

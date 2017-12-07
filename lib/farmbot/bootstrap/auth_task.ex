@@ -21,11 +21,13 @@ defmodule Farmbot.Bootstrap.AuthTask do
     auth_task = Application.get_env(:farmbot, :behaviour)[:authorization]
     {email, pass, server} = {fetch_email(), fetch_pass(), fetch_server()}
     Logger.busy(3, "refreshing token: #{auth_task} - #{email} - #{server}")
+    Farmbot.System.GPIO.Leds.led_status_err()
     case auth_task.authorize(email, pass, server) do
       {:ok, token} ->
         Logger.success(3, "Successful authorization: #{auth_task} - #{email} - #{server}")
         ConfigStorage.update_config_value(:bool, "settings", "first_boot", false)
         ConfigStorage.update_config_value(:string, "authorization", "token", token)
+        Farmbot.System.GPIO.Leds.led_status_ok()
         restart_transports()
         refresh_timer(self())
       {:error, reason} ->

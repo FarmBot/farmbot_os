@@ -119,11 +119,14 @@ defmodule Farmbot.Firmware.StubHandler do
 
   def handle_call({:home, axis, _speed}, _from, state) do
     state = %{state | pos: %{state.pos | axis => 0}}
-    case axis do
-      :x -> {:reply, :ok, [:report_axis_home_complete_x, {:report_current_position, 0, state.pos.y, state.pos.z}, :done], state}
-      :y -> {:reply, :ok, [:report_axis_home_complete_y, {:report_current_position, state.pos.x, 0, state.pos.z}, :done], state}
-      :z -> {:reply, :ok, [:report_axis_home_complete_z, {:report_current_position, state.pos.x, state.pos.y, 0}, :done], state}
-    end
+    response = [
+      :"report_axis_home_complete_#{axis}",
+      {:report_current_position,        state.pos.x, state.pos.y, state.pos.z},
+      {:report_encoder_position_scaled, state.pos.x, state.pos.y, state.pos.z},
+      {:report_encoder_position_raw,    state.pos.x, state.pos.y, state.pos.z},
+      :done
+    ]
+    {:reply, :ok, response, state}
   end
 
   def handle_call({:read_pin, pin, mode}, _from, state) do
@@ -140,11 +143,13 @@ defmodule Farmbot.Firmware.StubHandler do
 
   def handle_call({:zero, axis}, _from, state) do
     state = %{state | pos: %{state.pos | axis => 0}}
-    case axis do
-      :x -> {:reply, :ok, [{:report_current_position, 0, state.pos.y, state.pos.z}, :done], state}
-      :y -> {:reply, :ok, [{:report_current_position, state.pos.x, 0, state.pos.z}, :done], state}
-      :z -> {:reply, :ok, [{:report_current_position, state.pos.x, state.pos.y, 0}, :done], state}
-    end
+    response = [
+      {:report_current_position,        state.pos.x, state.pos.y, state.pos.z},
+      {:report_encoder_position_scaled, state.pos.x, state.pos.y, state.pos.z},
+      {:report_encoder_position_raw,    state.pos.x, state.pos.y, state.pos.z},
+      :done
+    ]
+    {:reply, :ok, response, state}
   end
 
   def handle_call({:update_param, param, val}, _from, state) do
@@ -161,11 +166,11 @@ defmodule Farmbot.Firmware.StubHandler do
   end
 
   def handle_call(:emergency_lock, _from, state) do
-    {:reply, :ok, [:done], state}
+    {:reply, :ok, [:report_emergency_lock, :done], state}
   end
 
   def handle_call(:emergency_unlock, _from, state) do
-    {:reply, :ok, [:done], state}
+    {:reply, :ok, [:done, :idle], state}
   end
 
   def handle_call(:request_software_version, _, state) do

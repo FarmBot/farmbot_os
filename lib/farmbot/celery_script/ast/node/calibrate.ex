@@ -1,13 +1,13 @@
 defmodule Farmbot.CeleryScript.AST.Node.Calibrate do
   @moduledoc false
   use Farmbot.CeleryScript.AST.Node
-  allow_args [:axis]
+  allow_args [:axis, :speed]
 
   @default_speed 100
 
   def execute(%{axis: :all}, _, env) do
     env = mutate_env(env)
-    do_reduce([:y, :z, :x], @default_speed, env)
+    do_reduce([:z, :y, :x], @default_speed, env)
   end
 
   def execute(%{speed: speed, axis: axis}, _, env) do
