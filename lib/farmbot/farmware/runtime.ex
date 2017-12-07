@@ -68,7 +68,8 @@ defmodule Farmbot.Farmware.Runtime do
                "\r\n\=\=\=\=\=\=\=\=\=\=\=\r\n\r\n",
                data,
                "\r\n\=\=\=\=\=\=\=\=\=\=\=\r\n\r\n"] |> Enum.join()
-        Logger.info(3, msg, color: :NC)
+        # Logger.info(3, msg, color: :NC)
+        IO.puts msg
         handle_port(state)
     end
   end
