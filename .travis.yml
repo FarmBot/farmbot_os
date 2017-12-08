@@ -40,13 +40,17 @@ script:
 - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.7" CC="clang-3.7"; fi
 - mix local.hex --force
 - mix local.rebar --force
-- mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez --force
+- mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez
+  --force
 - MIX_ENV=test mix deps.get
 - mix credo --strict --ignore Credo.Check.Readability.MaxLineLength
 - mix coveralls.travis --seed 0 --exclude farmbot_firmware
 after_script:
-  - export MIX_ENV=dev
-  - export MIX_TARGET=rpi3
-  - mix deps.get
-  - mix firmware
-  - mix firmware.slack --channels C58DCU4A3 $TRAVIS_COMMIT_MESSAGE; echo "done."
+- export MIX_ENV=dev
+- export MIX_TARGET=rpi3
+- mix deps.get
+- mix firmware
+- mix firmware.slack --channels C58DCU4A3 $TRAVIS_COMMIT_MESSAGE; echo "done."
+notifications:
+  slack:
+    secure: Y2jTU5Bs/TU0SQn4lMMdVohU57KfyBj2SEr9d+pNWXm1wcIecUrKrEo4fhNPrzsE7nWtrTQXroSWk1N7cioa9MO2WFbnuNEXJ3jm8uhFueCO9VGyGIxuTP7eISAduAVdjfWfVtYOf87vmiSe7yRn3XJtbGnCRB6EqyxKbnZzJJs=

@@ -27,13 +27,20 @@ defmodule Farmbot.CeleryScript.AST.Node.FindHome do
   end
 
   defp do_find_home(ep, ec, axis, speed, env)
+
   defp do_find_home(ep, ec, axis, _, env) when ((ep == 0) or (ep == nil)) and ((ec == 0) or (ec == nil)) do
     {:error, "Could not find home on #{axis} axis because endpoints and encoders are disabled.", env}
   end
+
   defp do_find_home(ep, ec, axis, speed, env) when ep == 1 or ec == 1 do
     case Farmbot.Firmware.find_home(axis, speed) do
       :ok -> {:ok, env}
       {:error, reason} -> {:error, reason, env}
     end
   end
+
+  defp do_find_home(ep, ec, _axis, _speed, env) do
+    {:error, "Unknown  state of endpoints: #{ep} or encoders: #{ec}", env}
+  end
+
 end

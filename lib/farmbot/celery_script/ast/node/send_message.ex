@@ -29,6 +29,9 @@ defmodule Farmbot.CeleryScript.AST.Node.SendMessage do
           "warn" ->
             Logger.warn 2, msg, channels: channels
             {:ok, env}
+          "warning" ->
+            Logger.warn 2, msg, channels: channels
+            {:ok, env}
           "error" ->
             Logger.error 2, msg, channels: channels
             {:ok, env}

@@ -36,7 +36,7 @@ defmodule Farmbot.Target.Network.Manager do
   def handle_info({:system_registry, :global, registry}, state) do
     ip = get_in(registry, [:state, :network_interface, state.interface, :ipv4_address])
     ntp_timer = if ip != state.ip_address do
-      Logger.warn(3, "ip address changed on interface: #{state.interface}: #{ip}")
+      # Logger.warn(3, "ip address changed on interface: #{state.interface}: #{ip}")
       maybe_cancel_and_reset_ntp_timer(state.ntp_timer)
     else
       nil
@@ -48,7 +48,7 @@ defmodule Farmbot.Target.Network.Manager do
       not_found_timer = cancel_not_found_timer(state.not_found_timer)
       {:noreply, %{state | ip_address: ip, connected: true, not_found_timer: not_found_timer, ntp_timer: ntp_timer}}
     else
-      {:noreply, %{state | connected: false, ntp_timer: ntp_timer}}
+      {:noreply, %{state | connected: false, ntp_timer: ntp_timer, ip_address: ip}}
     end
   end
 
@@ -93,7 +93,7 @@ defmodule Farmbot.Target.Network.Manager do
 
   def handle_info(:ntp_timer, state) do
     new_timer = maybe_cancel_and_reset_ntp_timer(state.ntp_timer)
-    {:ok, %{state | ntp_timer: new_timer}}
+    {:noreply, %{state | ntp_timer: new_timer}}
   end
 
   def handle_info(_event, state) do

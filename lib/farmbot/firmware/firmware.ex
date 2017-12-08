@@ -276,6 +276,11 @@ defmodule Farmbot.Firmware do
     end
   end
 
+  defp handle_gcode({:report_parameter_value, param, value}, state) when (value == -1) do
+    Farmbot.System.ConfigStorage.update_config_value(:float, "hardware_params", to_string(param), nil)
+    {:mcu_params, %{param => nil}, state}
+  end
+
   defp handle_gcode({:report_parameter_value, param, value}, state) do
     Farmbot.System.ConfigStorage.update_config_value(:float, "hardware_params", to_string(param), value / 1)
     {:mcu_params, %{param => value}, state}
@@ -410,9 +415,12 @@ defmodule Farmbot.Firmware do
   @doc false
   def do_read_params_and_report_position(old) when is_map(old) do
     for {key, float_val} <- old do
-      if float_val do
-        val = round(float_val)
-        update_param(:"#{key}", val)
+      cond do
+        (float_val == -1) -> :ok
+        is_nil(float_val) -> :ok
+        is_number(float_val) ->
+          val = round(float_val)
+          update_param(:"#{key}", val)
       end
     end
     read_all_params()
