@@ -27,7 +27,7 @@ defmodule Farmbot.Target.Network.Ntp do
 
   defp do_try_set_time(tries) when tries < 4 do
     # we try to set ntp time 3 times before giving up.
-    Logger.busy 3, "Trying to set time (try #{tries})"
+    # Logger.busy 3, "Trying to set time (try #{tries})"
     :os.cmd('ntpd -q -p 0.pool.ntp.org -p 1.pool.ntp.org')
     wait_for_time(tries)
   end
