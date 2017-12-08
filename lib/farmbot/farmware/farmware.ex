@@ -127,7 +127,7 @@ defmodule Farmbot.Farmware do
   defdelegate execute(fw), to: Farmbot.Farmware.Runtime
 
   @doc "Lookup a farmware by it's name."
-  def lookup(name, version \\ nil) do
+  def lookup(name) do
     dir = Farmbot.Farmware.Installer.install_root_path
     with {:ok, all_installed} <- File.ls(dir),
          true <- name in all_installed
