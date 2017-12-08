@@ -322,6 +322,7 @@ defmodule Farmbot.BotState do
       meta: ser_fw_meta,
       name: fw.name,
       path: Farmbot.Farmware.Installer.install_path(fw),
+      config: fw.config,
       url: fw.url
     }
     new_pi = Map.put(state.process_info.farmwares, fw.name, ser_fw)
