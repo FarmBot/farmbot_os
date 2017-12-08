@@ -5,6 +5,7 @@ defmodule Farmbot.CeleryScript.AST.Node.Reboot do
 
   def execute(_, _, env) do
     env = mutate_env(env)
+    Logger.warn 1, "Going down for a reboot!"
     Farmbot.System.reboot("CeleryScript request.")
     {:ok, env}
   end
