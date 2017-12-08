@@ -31,13 +31,17 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
       Installer.sync_repo(repo)
     end
 
-    all_fws = File.ls!(Installer.install_root_path)
-    for fw_name <- all_fws do
-      case Farmbot.Farmware.lookup(fw_name) do
-        {:ok, %Farmbot.Farmware{} = farmware} -> Farmbot.BotState.register_farmware(farmware)
-        _ -> :ok
+    fw_dir = Installer.install_root_path
+    if File.exists?(fw_dir) do
+      all_fws = File.ls!(fw_dir)
+      for fw_name <- all_fws do
+        case Farmbot.Farmware.lookup(fw_name) do
+          {:ok, %Farmbot.Farmware{} = farmware} -> Farmbot.BotState.register_farmware(farmware)
+          _ -> :ok
+        end
       end
     end
+
     :ok
   end
 end
