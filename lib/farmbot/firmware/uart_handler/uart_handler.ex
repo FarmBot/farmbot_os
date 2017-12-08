@@ -87,11 +87,35 @@ defmodule Farmbot.Firmware.UartHandler do
     # If in target environment, this should be done by `Farmbot.Firmware.AutoDetector`.
     tty =
       Application.get_env(:farmbot, :uart_handler)[:tty] || raise "Please configure uart handler!"
-
+    storage_dispatch = Farmbot.System.ConfigStorage.Dispatcher
     case open_tty(tty) do
-      {:ok, nerves} -> {:producer, %State{nerves: nerves}, dispatcher: GenStage.BroadcastDispatcher}
+      {:ok, nerves} ->
+        {:producer_consumer,
+          %State{nerves: nerves},
+          [dispatcher: GenStage.BroadcastDispatcher, subscribe_to: [storage_dispatch]]
+        }
       err -> {:stop, err}
     end
+  end
+
+  def handle_events(events, _, state) do
+    state = Enum.reduce(events, state, fn(event, state_acc) ->
+      handle_config(event, state_acc)
+    end)
+    {:noreply, [], state}
+  end
+
+  defp handle_config({:config, "settings", key, val}, state)
+    when key in ["firmware_input_log", "firmware_output_log"]
+  do
+    # Restart the framing to pick up new changes.
+    UART.configure state.nerves, [framing: Nerves.UART.Framing.None, active: false]
+    configure_uart(state.nerves, true)
+    state
+  end
+
+  defp handle_config(_, state) do
+    state
   end
 
   defp open_tty(tty) do
