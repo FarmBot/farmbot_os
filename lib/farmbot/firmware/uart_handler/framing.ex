@@ -1,6 +1,7 @@
 defmodule Farmbot.Firmware.UartHandler.Framing do
   @behaviour Nerves.UART.Framing
   import Farmbot.Firmware.Gcode.Parser
+  use Farmbot.Logger
 
   # credo:disable-for-this-file Credo.Check.Refactor.FunctionArity
 
@@ -31,18 +32,25 @@ defmodule Farmbot.Firmware.UartHandler.Framing do
     defstruct max_length: nil,
               separator: nil,
               processed: <<>>,
-              in_process: <<>>
+              in_process: <<>>,
+              log_input: false,
+              log_output: false
   end
 
   def init(args) do
     max_length = Keyword.get(args, :max_length, 4096)
     separator = Keyword.get(args, :separator, "\n")
-
-    state = %State{max_length: max_length, separator: separator}
+    log_input = Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "firmware_input_log")
+    log_output = Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "firmware_output_log")
+    state = %State{max_length: max_length, separator: separator, log_input: log_input, log_output: log_output}
     {:ok, state}
   end
 
   def add_framing(data, state) do
+    # maybe log output here
+    if state.log_output do
+      Logger.debug 3, data
+    end
     {:ok, data <> state.separator, state}
   end
 
@@ -54,7 +62,8 @@ defmodule Farmbot.Firmware.UartHandler.Framing do
         state.max_length,
         state.processed,
         state.in_process <> data,
-        []
+        [],
+        state.log_input
       )
 
     new_state = %{state | processed: new_processed, in_process: new_in_process}
@@ -81,31 +90,35 @@ defmodule Farmbot.Firmware.UartHandler.Framing do
   end
 
   # Handle not enough data case
-  defp process_data(_separator, sep_length, _max_length, processed, to_process, lines)
+  defp process_data(_separator, sep_length, _max_length, processed, to_process, lines, _log_input)
        when byte_size(to_process) < sep_length do
     {processed, to_process, lines}
   end
 
   # Process data until separator or next char
-  defp process_data(separator, sep_length, max_length, processed, to_process, lines) do
+  defp process_data(separator, sep_length, max_length, processed, to_process, lines, log_input) do
     case to_process do
       # Handle separater
       <<^separator::binary-size(sep_length), rest::binary>> ->
-        new_lines = lines ++ [do_parse_code(processed)]
-        process_data(separator, sep_length, max_length, <<>>, rest, new_lines)
+        new_lines = lines ++ [do_parse_code(processed, log_input)]
+        process_data(separator, sep_length, max_length, <<>>, rest, new_lines, log_input)
 
       # Handle line too long case
       to_process when byte_size(processed) == max_length and to_process != <<>> ->
         new_lines = lines ++ [{:partial, processed}]
-        process_data(separator, sep_length, max_length, <<>>, to_process, new_lines)
+        process_data(separator, sep_length, max_length, <<>>, to_process, new_lines, log_input)
 
       # Handle next char
       <<next_char::binary-size(1), rest::binary>> ->
-        process_data(separator, sep_length, max_length, processed <> next_char, rest, lines)
+        process_data(separator, sep_length, max_length, processed <> next_char, rest, lines, log_input)
     end
   end
 
-  defp do_parse_code(processed) do
+  defp do_parse_code(processed, log_input) do
+    # maybe log input here
+    if log_input do
+      Logger.debug 3, log_input
+    end
     parse_code(processed)
   rescue
     _ -> {nil, :noop}
