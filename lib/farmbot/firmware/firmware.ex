@@ -221,7 +221,9 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode({:debug_message, message}, state) do
-    Logger.debug 3, "Arduino debug message: #{message}"
+    if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "arduino_debug_messages") do
+      Logger.debug 3, "Arduino debug message: #{message}"
+    end
     {nil, state}
   end
 
