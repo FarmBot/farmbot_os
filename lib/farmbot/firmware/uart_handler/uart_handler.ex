@@ -105,7 +105,7 @@ defmodule Farmbot.Firmware.UartHandler do
     {:noreply, [], state}
   end
 
-  defp handle_config({:config, "settings", key, val}, state)
+  defp handle_config({:config, "settings", key, _val}, state)
     when key in ["firmware_input_log", "firmware_output_log"]
   do
     # Restart the framing to pick up new changes.

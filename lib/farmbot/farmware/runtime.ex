@@ -10,12 +10,12 @@ defmodule Farmbot.Farmware.Runtime do
   defstruct [:farmware, :env, :port, :exit_status, :working_dir, :return_dir]
 
   @doc "Execute a Farmware struct."
-  def execute(%Farmware{} = farmware) do
+  def execute(%Farmware{} = farmware, env) when is_list(env) do
     Logger.busy(2, "Beginning execution of #{inspect(farmware)}")
     fw_path = Installer.install_path(farmware) |> Path.absname("#{:code.priv_dir(:farmbot)}/..")
     cwd = File.cwd!()
     with :ok <- File.cd(fw_path),
-         env <- build_env(farmware) do
+         env <- build_env(farmware, env) do
       exec = farmware.executable
 
       opts = [
@@ -75,7 +75,7 @@ defmodule Farmbot.Farmware.Runtime do
     end
   end
 
-  defp build_env(%Farmware{config: config, name: fw_name} = _farmware) do
+  def build_env(%Farmware{config: config, name: fw_name} = _farmware, env) do
     token = Farmbot.System.ConfigStorage.get_config_value(:string, "authorization", "token")
     images_dir = "/tmp/images"
 
@@ -88,6 +88,7 @@ defmodule Farmbot.Farmware.Runtime do
     |> Map.put("FARMWARE_URL", "http://localhost:27347/")
     |> Map.put("FARMBOT_OS_VERSION", @fbos_version)
     |> Map.merge(Farmbot.BotState.get_user_env())
+    |> Map.merge(Map.new(env))
     |> Enum.map(fn {key, val} -> {to_erl_safe(key), to_erl_safe(val)} end)
   end
 

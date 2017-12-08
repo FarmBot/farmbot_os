@@ -124,7 +124,7 @@ defmodule Farmbot.Farmware do
     :meta,
   ]
 
-  defdelegate execute(fw), to: Farmbot.Farmware.Runtime
+  defdelegate execute(fw, env), to: Farmbot.Farmware.Runtime
 
   @doc "Lookup a farmware by it's name."
   def lookup(name) do
