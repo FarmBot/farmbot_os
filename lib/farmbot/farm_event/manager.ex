@@ -171,7 +171,7 @@ defmodule Farmbot.FarmEvent.Manager do
   end
 
   # if started is false, the event isn't ready to be executed.
-  defp maybe_start_sequence(false = _started?, _fin, _farm_event, last_time, event, _now) do
+  defp maybe_start_sequence(false = _started?, _fin, _farm_event, last_time, _event, _now) do
     # Logger.debug 3, "sequence #{event.name} (#{event.id}) is not started yet."
     {nil, last_time}
   end
@@ -250,7 +250,7 @@ defmodule Farmbot.FarmEvent.Manager do
 
   # is then more than 1 minute in the past?
   defp is_too_old?(now, then) do
-    time_str_fun = fn(dt) -> "#{dt.hour}:#{dt.minute}:#{dt.second}" end
+    # time_str_fun = fn(dt) -> "#{dt.hour}:#{dt.minute}:#{dt.second}" end
     seconds = DateTime.to_unix(now, :second) - DateTime.to_unix(then, :second)
     c = seconds > 60 # not in MS here
     # Logger.debug 3, "is checking #{time_str_fun.(now)} - #{time_str_fun.(then)} = #{seconds} seconds ago. is_too_old? => #{c}"
