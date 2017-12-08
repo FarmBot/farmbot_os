@@ -16,7 +16,7 @@ defmodule Farmbot.Farmware.Installer do
   def install_root_path, do: @farmware_install_path
 
   @doc "Where on the filesystem is this Farmware installed."
-  def install_path(%Farmware{name: name, version: version}) do
+  def install_path(%Farmware{name: name}) do
     install_path(name)
   end
 
@@ -82,7 +82,7 @@ defmodule Farmbot.Farmware.Installer do
          else
            {:error, {name, version, :already_installed}} ->
             #  v = Version.parse!(version)
-             {:ok, fw} = Farmbot.Farmware.lookup(name, version |> to_string())
+             {:ok, fw} = Farmbot.Farmware.lookup(name)
              Farmbot.BotState.register_farmware(fw)
              Logger.info 1, "Farmware #{name} - #{version} is already installed."
              :ok
