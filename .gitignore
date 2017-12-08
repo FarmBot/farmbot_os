@@ -36,6 +36,7 @@ node_modules
 # Various env vars.
 .env
 travis_env
+scripts/mqtt.py
 
 # Fwup keys aren't stored here, but just in case.
 *.priv

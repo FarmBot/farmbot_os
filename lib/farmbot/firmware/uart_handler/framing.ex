@@ -91,7 +91,7 @@ defmodule Farmbot.Firmware.UartHandler.Framing do
     case to_process do
       # Handle separater
       <<^separator::binary-size(sep_length), rest::binary>> ->
-        new_lines = lines ++ [parse_code(processed)]
+        new_lines = lines ++ [do_parse_code(processed)]
         process_data(separator, sep_length, max_length, <<>>, rest, new_lines)
 
       # Handle line too long case
@@ -103,5 +103,11 @@ defmodule Farmbot.Firmware.UartHandler.Framing do
       <<next_char::binary-size(1), rest::binary>> ->
         process_data(separator, sep_length, max_length, processed <> next_char, rest, lines)
     end
+  end
+
+  defp do_parse_code(processed) do
+    parse_code(processed)
+  rescue
+    _ -> {nil, :noop}
   end
 end
