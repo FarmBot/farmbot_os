@@ -93,7 +93,7 @@ defmodule Farmbot.Target.Network.Manager do
 
   def handle_info(:ntp_timer, state) do
     new_timer = maybe_cancel_and_reset_ntp_timer(state.ntp_timer)
-    {:ok, %{state | ntp_timer: new_timer}}
+    {:noreply, %{state | ntp_timer: new_timer}}
   end
 
   def handle_info(_event, state) do
