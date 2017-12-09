@@ -43,7 +43,7 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
     Enum.reduce(repos, [], fn(repo, acc) ->
       case Installer.sync_repo(repo) do
         {:ok, list_of_entries} ->
-          Enum.map(list_of_entries, fn(%{name: name}) -> name end) ++ acc
+          Enum.map(list_of_entries, &(Map.get(&1, :name))) ++ acc
         {:error, _} -> acc
       end
     end)
@@ -56,9 +56,6 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
       case Farmware.lookup(fw_name) do
         {:ok, %Farmware{} = farmware} ->
           Logger.busy 3, "Syncing: #{inspect farmware}"
-          if farmware.url == "" do
-            require IEx; IEx.pry
-          end
           Installer.install(farmware.url)
         _ -> :ok
       end
