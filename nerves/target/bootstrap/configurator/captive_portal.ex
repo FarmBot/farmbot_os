@@ -6,7 +6,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
 
     defmodule State do
       @moduledoc false
-      defstruct [:hostapd, :interface, :ip_addr]
+      defstruct [:hostapd, :dnsmasq, :interface, :ip_addr]
     end
 
     use GenServer
@@ -14,6 +14,9 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
 
     @hostapd_conf_file "hostapd.conf"
     @hostapd_pid_file "hostapd.pid"
+
+    @dnsmasq_conf_file "dnsmasq.conf"
+    @dnsmasq_pid_file "dnsmasq.pid"
 
     defp ensure_interface(interface) do
       unless interface in Nerves.NetworkInterface.interfaces() do
@@ -39,15 +42,52 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
       Logger.busy(3, "Starting hostapd on #{interface}")
       ensure_interface(interface)
 
+      dnsmasq_path = System.find_executable("dnsmasq")
+      dnsmasq_settings = if dnsmasq_path do
+        setup_dnsmasq("192.168.25.1", interface)
+      else
+        nil
+      end
+
       {hostapd_port, hostapd_os_pid} = setup_hostapd(interface, "192.168.25.1")
 
       state = %State{
         hostapd: {hostapd_port, hostapd_os_pid},
+        dnsmasq: dnsmasq_settings,
         interface: interface,
         ip_addr: "192.168.25.1"
       }
 
       {:ok, state}
+    end
+
+
+    defp setup_dnsmasq(ip_addr, interface) do
+      dnsmasq_conf = build_dnsmasq_conf(ip_addr, interface)
+      File.mkdir!("/tmp/dnsmasq")
+      :ok = File.write("/tmp/dnsmasq/#{@dnsmasq_conf_file}", dnsmasq_conf)
+      dnsmasq_cmd = "dnsmasq -k --dhcp-lease " <>
+                    "/tmp/dnsmasq/#{@dnsmasq_pid_file} " <>
+                    "--conf-dir=/tmp/dnsmasq"
+      dnsmasq_port = Port.open({:spawn, dnsmasq_cmd}, [:binary])
+      dnsmasq_os_pid = dnsmasq_port|> Port.info() |> Keyword.get(:os_pid)
+      {dnsmasq_port, dnsmasq_os_pid}
+    end
+
+    defp build_dnsmasq_conf(ip_addr, interface) do
+      [a, b, c, _] = ip_addr |> String.split(".")
+      first_part = "#{a}.#{b}.#{c}."
+      """
+      interface=#{interface}
+      dhcp-range=#{first_part}50,#{first_part}250,2h
+      dhcp-option=3,#{ip_addr}
+      dhcp-option=6,#{ip_addr}
+      dhcp-authoritative
+      address=/#/#{ip_addr}
+      server=/farmbot/#{ip_addr}
+      local=/farmbot/
+      domain=farmbot
+      """
     end
 
     defp setup_hostapd(interface, ip_addr) do
@@ -135,7 +175,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
       cond do
         port == hostapd_port ->
           handle_hostapd(data, state)
-
+        match?({^port, _}, state.dnsmasq) ->
+          handle_dnsmasq(data, state)
         true ->
           {:noreply, state}
       end
@@ -144,6 +185,11 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
     def handle_info(_, state), do: {:noreply, state}
 
     defp handle_hostapd(data, state) when is_bitstring(data) do
+      Logger.debug(3, String.trim(data))
+      {:noreply, state}
+    end
+
+    defp handle_dnsmasq(data, state) when is_bitstring(data) do
       Logger.debug(3, String.trim(data))
       {:noreply, state}
     end
@@ -157,6 +203,14 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
       hostapd_ip_settings_down(state.interface, state.ip_addr)
       Logger.busy 3, "removing PID."
       File.rm_rf!("/tmp/hostapd")
+
+      if state.dnsmasq do
+        Logger.busy 3, "Stopping dnsmasq"
+        {dnsmasq_port, dnsmasq_os_pid} = state.dnsmasq
+        Logger.busy 3, "Killing dnsmasq PID."
+        :ok = kill(dnsmasq_os_pid)
+        Port.close(dnsmasq_port)
+      end
       Logger.success 3, "Done."
       Port.close(hostapd_port)
       :ok
