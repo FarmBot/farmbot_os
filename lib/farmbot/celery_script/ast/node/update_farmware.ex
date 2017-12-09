@@ -3,8 +3,12 @@ defmodule Farmbot.CeleryScript.AST.Node.UpdateFarmware do
   use Farmbot.CeleryScript.AST.Node
   allow_args [:package]
 
-  def execute(%{package: args}, body, env) do
+  def execute(%{package: {:farmware, package}}, body, env) do
     env = mutate_env(env)
-    Farmbot.CeleryScript.AST.Node.InstallFarmware.execute(args, body, env)
+    case Farmbot.Farmware.lookup(package) do
+      {:ok, %Farmbot.Farmware{} = fw} ->
+        Farmbot.CeleryScript.AST.Node.InstallFarmware.execute(%{url: fw.url}, [], env)
+      {:error, reason} -> {:error, reason, env}
+    end
   end
 end
