@@ -45,6 +45,7 @@ defmodule Farmbot.Target.Network.Manager do
 
     connected = match?({:ok, {:hostent, 'nerves-project.org', [], :inet, 4, _}}, test_dns())
     if connected do
+      Logger.info 1, "Connected to network!"
       not_found_timer = cancel_not_found_timer(state.not_found_timer)
       {:noreply, %{state | ip_address: ip, connected: true, not_found_timer: not_found_timer, ntp_timer: ntp_timer}}
     else
@@ -60,7 +61,8 @@ defmodule Farmbot.Target.Network.Manager do
 
   def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-NETWORK-NOT-FOUND", _}, %{not_found_timer: nil} = state) do
     first_boot = ConfigStorage.get_config_value(:bool, "settings", "first_boot")
-    delay_timer = ConfigStorage.get_config_value(:float, "settings", "network_not_found_timer")
+    # stored in minutes
+    delay_timer = (ConfigStorage.get_config_value(:float, "settings", "network_not_found_timer") || 1) *  60_000
     cond do
       first_boot ->
         Logger.error 1, "Network not found"
@@ -69,7 +71,7 @@ defmodule Farmbot.Target.Network.Manager do
       delay_timer > 0 ->
         Logger.warn 1, "Network not found. Starting timer."
         timer = Process.send_after(self(), :network_not_found_timer, round(delay_timer))
-        {:noreply, %{state | not_found_timer: timer}}
+        {:noreply, %{state | not_found_timer: timer, connected: false}}
       is_nil(delay_timer) ->
         Logger.error 1, "Network not found"
         Farmbot.System.factory_reset("WIFI Authentication failed. (network not found)")
@@ -78,11 +80,12 @@ defmodule Farmbot.Target.Network.Manager do
   end
 
   def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-NETWORK-NOT-FOUND"}, state) do
-    {:noreply, state}
+    {:noreply, %{state | connected: false}}
   end
 
   def handle_info(:network_not_found_timer, state) do
     if state.connected do
+      Logger.warn 1, "Not resetting because network is connected."
       {:noreply, %{state | not_found_timer: nil}}
     else
       Logger.error 1, "Network not found"
@@ -104,6 +107,7 @@ defmodule Farmbot.Target.Network.Manager do
   defp cancel_not_found_timer(timer) do
     # If there was a timer, cancel it.
     if timer do
+      Logger.warn 3, "Cancelling Network timer"
       Process.cancel_timer(timer)
     end
     nil
