@@ -115,12 +115,14 @@ defmodule Farmbot.Firmware.UartHandler.Framing do
   end
 
   defp do_parse_code(processed, log_input) do
-    # maybe log input here
     if log_input do
-      Logger.debug 3, log_input
+      Logger.debug 3, processed
     end
+
     parse_code(processed)
   rescue
-    _ -> {nil, :noop}
+    er ->
+      Logger.error 1, "Firmware parser error: #{Exception.message(er)}"
+      {nil, :noop}
   end
 end

@@ -85,8 +85,7 @@ defmodule Farmbot.Firmware.UartHandler do
   def init([]) do
     # If in dev environment, it is expected that this be done at compile time.
     # If in target environment, this should be done by `Farmbot.Firmware.AutoDetector`.
-    tty =
-      Application.get_env(:farmbot, :uart_handler)[:tty] || raise "Please configure uart handler!"
+    tty = Application.get_env(:farmbot, :uart_handler)[:tty] || raise "Please configure uart handler!"
     storage_dispatch = Farmbot.System.ConfigStorage.Dispatcher
     case open_tty(tty) do
       {:ok, nerves} ->
