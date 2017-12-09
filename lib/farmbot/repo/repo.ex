@@ -117,7 +117,7 @@ defmodule Farmbot.Repo do
     maybe_cancel_timer(state.timer)
     Farmbot.FarmEvent.Manager.wait_for_sync()
     destroy_all_sync_cmds()
-    Logger.warn(3, "Forcing full sync.")
+    Logger.warn(1, "Forcing full sync.")
     BotState.set_sync_status(:syncing)
     do_sync_both(repo_a, repo_b)
     BotState.set_sync_status(:synced)
@@ -130,8 +130,8 @@ defmodule Farmbot.Repo do
 
   def handle_call(:flip, _, %{repos: [repo_a, repo_b]} = state) do
     maybe_cancel_timer(state.timer)
-    Logger.busy(3, "Syncing")
     Farmbot.FarmEvent.Manager.wait_for_sync()
+    Logger.busy(1, "Syncing")
     BotState.set_sync_status(:syncing)
 
     # Fetch all sync_cmds and apply them in order they were received.
@@ -143,8 +143,8 @@ defmodule Farmbot.Repo do
     BotState.set_sync_status(:synced)
     copy_configs(repo_b)
     destroy_all_sync_cmds()
-    Logger.success(3, "Sync complete.")
     Farmbot.FarmEvent.Manager.resume()
+    Logger.success(1, "Sync complete.")
     {:reply, repo_b, %{state | repos: [repo_b, repo_a], timer: start_timer()}}
   end
 
@@ -242,11 +242,11 @@ defmodule Farmbot.Repo do
     rescue
       e in Ecto.InvalidChangesetError ->
         BotState.set_sync_status(:sync_error)
-        Logger.error(1, "Failed to apply sync_cmd: (#{repo}) #{inspect(sync_cmd)} (#{e.action})")
+        Logger.error(1, "Failed to apply sync_cmd: #{inspect(sync_cmd)} (#{e.action})")
         fix_repo(repo, sync_cmd)
       _ ->
         BotState.set_sync_status(:sync_error)
-        Logger.error(1, "Failed to apply sync_cmd: (#{repo}) #{inspect(sync_cmd)}")
+        Logger.error(1, "Failed to apply sync_cmd: #{inspect(sync_cmd)}")
         fix_repo(repo, sync_cmd)
     end
   end
@@ -255,7 +255,7 @@ defmodule Farmbot.Repo do
     mod = Module.concat(["Farmbot", "Repo", kind])
     # an object was deleted.
     if Code.ensure_loaded?(mod) do
-      Logger.busy(3, "Applying sync_cmd (#{mod}: delete) on #{repo}")
+      Logger.busy(3, "Applying sync_cmd (#{mod}: delete)")
 
       case repo.get(mod, id) do
         nil ->
@@ -276,7 +276,7 @@ defmodule Farmbot.Repo do
     mod = Module.concat(["Farmbot", "Repo", kind])
 
     if Code.ensure_loaded?(mod) do
-      Logger.busy(3, "Applying sync_cmd (#{mod}: insert_or_update on #{repo}")
+      Logger.busy(3, "Applying sync_cmd (#{mod}): insert_or_update")
 
       # We need to check if this object exists in the database.
       case repo.get(mod, id) do
@@ -343,7 +343,7 @@ defmodule Farmbot.Repo do
       :ok
     else
       err ->
-        Logger.error(1, "sync on #{repo} failed: #{inspect(err)}")
+        Logger.error(1, "sync failed: #{inspect(err)}")
         err
     end
   end
