@@ -20,7 +20,7 @@ defmodule Farmbot.CeleryScript do
         # this stops messages from logging more than once in
         # sequences, rpc_request, etc.
         unless env.vars[:__errors__][env.module] do
-          Logger.error 2, "CS Failed: [#{fe_kind(env.module)}] - #{inspect reason}"
+          Logger.error 1, "CS Failed: [#{fe_kind(env.module)}] - #{inspect reason}"
         end
         new_env = %{env | vars: [{:__errors__, [{env.module, reason}| env.vars[:__errors__] || []]} | env.vars]}
         {:error, reason, new_env}
