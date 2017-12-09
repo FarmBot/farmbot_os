@@ -128,16 +128,16 @@ defmodule Farmbot.FarmEvent.Manager do
   defp maybe_start_regimen(true = _started?, start_time, last_time, event, now) do
     case is_too_old?(now, start_time) do
       true  ->
-        Logger.debug 3, "regimen #{event.name} (#{event.id}) is too old to start or already started."
+        # Logger.debug 3, "regimen #{event.name} (#{event.id}) is too old to start or already started."
         {nil, last_time}
       false ->
-        Logger.debug 3, "regimen #{event.name} (#{event.id}) not to old; starting."
+        # Logger.debug 3, "regimen #{event.name} (#{event.id}) starting."
         {event, now}
     end
   end
 
-  defp maybe_start_regimen(false = _started?, start_time, last_time, event, _) do
-    Logger.debug 3, "regimen #{event.name} (#{event.id}) is not started yet. (#{inspect start_time}) (#{inspect Timex.now()})"
+  defp maybe_start_regimen(false = _started?, _start_time, last_time, _event, _) do
+    # Logger.debug 3, "regimen #{event.name} (#{event.id}) is not started yet. (#{inspect start_time}) (#{inspect Timex.now()})"
     {nil, last_time}
   end
 
