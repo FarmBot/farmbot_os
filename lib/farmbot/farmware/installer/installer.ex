@@ -43,33 +43,27 @@ defmodule Farmbot.Farmware.Installer do
   end
 
   @doc "Enable a repo from a url or struct."
-  def sync_repo(url_or_repo_struct, acc \\ [])
+  def sync_repo(url_or_repo_struct, success \\ [], fail \\ [])
 
-  def sync_repo(url, _acc) when is_binary(url) do
+  def sync_repo(url, [], []) when is_binary(url) do
     Logger.busy 1, "Syncing repo from: #{url}"
     with {:ok, %{status_code: code, body: body}} when code > 199 and code < 300 <- HTTP.get(url),
          {:ok, json_map} <- Poison.decode(body),
          {:ok, repo}     <- Repository.new(json_map)
     do
-      case sync_repo(repo, []) do
-        [] ->
-          Logger.success 1,  "Successfully synced repo."
-          :ok
-        list_of_entries ->
-          Logger.error 1, "Failed to enable some entries: #{inspect list_of_entries}"
-          {:error, list_of_entries}
-      end
+      sync_repo(repo, [], [])
     end
   end
 
-  def sync_repo(%Repository{manifests: [%Repository.Entry{manifest: manifest_url} = entry | entries]} = repo, acc) do
+  def sync_repo(%Repository{manifests: [%Repository.Entry{manifest: manifest_url} = entry | entries]} = repo, success, fails) do
     case install(manifest_url) do
-      :ok -> sync_repo(%{repo | manifests: entries}, acc)
-      {:error, _err} -> sync_repo(%{repo | manifests: entries}, [entry | acc])
+      :ok -> sync_repo(%{repo | manifests: entries}, [entry | success], fails)
+      {:error, _err} -> sync_repo(%{repo | manifests: entries}, success, [entry | fails])
     end
   end
 
-  def sync_repo(%Repository{manifests: []}, acc), do: acc
+  def sync_repo(%Repository{manifests: []}, success, []), do: {:ok, success}
+  def sync_repo(%Repository{manifests: []}, _success, failed), do: {:error, failed}
 
   @doc "Install a farmware from a URL."
   def install(url) do
@@ -78,10 +72,9 @@ defmodule Farmbot.Farmware.Installer do
          {:ok, json_map} <- Poison.decode(body),
          {:ok, farmware} <- Farmware.new(json_map),
          :ok             <- preflight_checks(farmware) do
-           finish_install(farmware, json_map)
+           finish_install(farmware, Map.put(json_map, "url", url))
          else
            {:error, {name, version, :already_installed}} ->
-            #  v = Version.parse!(version)
              {:ok, fw} = Farmbot.Farmware.lookup(name)
              Farmbot.BotState.register_farmware(fw)
              Logger.info 1, "Farmware #{name} - #{version} is already installed."

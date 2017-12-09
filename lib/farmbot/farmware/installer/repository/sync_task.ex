@@ -3,8 +3,9 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
   use Task, restart: :transient
   use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
-  alias Farmbot.Farmware.Installer
-  alias Farmbot.Farmware.Installer.Repository
+  alias Farmbot.Farmware
+  alias Farmware.Installer
+  alias Installer.Repository
 
   @doc false
   def start_link(_) do
@@ -13,6 +14,16 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
 
   def sync_all do
     Logger.busy 2, "Syncing all repos. This may take a while."
+    setup_repos()
+
+    synced = fetch_and_sync()
+    fw_dir = Installer.install_root_path
+    if File.exists?(fw_dir) do
+      sync_not_in_repos(fw_dir, synced)
+    end
+  end
+
+  defp setup_repos do
     import Ecto.Query
 
     # first party farmware url could be nil. This would mean it is disabled.
@@ -25,23 +36,33 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
     else
       Logger.warn 2, "First party farmware is disabled."
     end
+  end
 
+  defp fetch_and_sync do
     repos = ConfigStorage.all(Repository)
-    for repo <- repos do
-      Installer.sync_repo(repo)
-    end
+    Enum.reduce(repos, [], fn(repo, acc) ->
+      case Installer.sync_repo(repo) do
+        {:ok, list_of_entries} ->
+          Enum.map(list_of_entries, fn(%{name: name}) -> name end) ++ acc
+        {:error, _} -> acc
+      end
+    end)
+  end
 
-    fw_dir = Installer.install_root_path
-    if File.exists?(fw_dir) do
-      all_fws = File.ls!(fw_dir)
-      for fw_name <- all_fws do
-        case Farmbot.Farmware.lookup(fw_name) do
-          {:ok, %Farmbot.Farmware{} = farmware} -> Farmbot.BotState.register_farmware(farmware)
-          _ -> :ok
-        end
+  defp sync_not_in_repos(fw_dir, synced) do
+    all_fws = File.ls!(fw_dir)
+    not_in_repos = all_fws -- synced
+    for fw_name <- not_in_repos do
+      case Farmware.lookup(fw_name) do
+        {:ok, %Farmware{} = farmware} ->
+          Logger.busy 3, "Syncing: #{inspect farmware}"
+          if farmware.url == "" do
+            require IEx; IEx.pry
+          end
+          Installer.install(farmware.url)
+        _ -> :ok
       end
     end
-
-    :ok
   end
+
 end

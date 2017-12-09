@@ -43,13 +43,16 @@ config :farmbot, Farmbot.System.ConfigStorage,
   database: "tmp/#{Farmbot.System.ConfigStorage}_dev.sqlite3",
   pool_size: 1
 
+# config :farmbot, :farmware, first_part_farmware_manifest_url: nil
+
+
 # Configure Farmbot Behaviours.
 # Default Authorization behaviour.
 # SystemTasks for host mode.
 config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
   system_tasks: Farmbot.Host.SystemTasks,
-  update_handler: Farmbot.Host.UpdateHandler,
-  firmware_handler: Farmbot.Firmware.UartHandler
+  update_handler: Farmbot.Host.UpdateHandler
+  # firmware_handler: Farmbot.Firmware.UartHandler
 
 config :farmbot, :uart_handler, tty: "/dev/ttyACM0"
