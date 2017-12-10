@@ -76,7 +76,6 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
 
     defp build_dnsmasq_conf(ip_addr, interface) do
       [a, b, c, _] = ip_addr |> String.split(".")
-      first_part = "#{a}.#{b}.#{c}."
       """
       interface=#{interface}
       address=/#/#{ip_addr}
