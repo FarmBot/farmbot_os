@@ -111,7 +111,7 @@ defmodule Farmbot.Firmware do
       initialized: false,
       initializing: false,
       current: nil,
-      timeout_ms: 150000,
+      timeout_ms: 150_000,
       queue: :queue.new()
   end
 
