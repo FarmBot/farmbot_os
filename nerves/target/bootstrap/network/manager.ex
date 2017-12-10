@@ -45,7 +45,6 @@ defmodule Farmbot.Target.Network.Manager do
 
     connected = match?({:ok, {:hostent, 'nerves-project.org', [], :inet, 4, _}}, test_dns())
     if connected do
-      Logger.info 1, "Connected to network!"
       not_found_timer = cancel_not_found_timer(state.not_found_timer)
       {:noreply, %{state | ip_address: ip, connected: true, not_found_timer: not_found_timer, ntp_timer: ntp_timer}}
     else
