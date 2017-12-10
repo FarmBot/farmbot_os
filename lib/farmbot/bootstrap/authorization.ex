@@ -15,6 +15,9 @@ defmodule Farmbot.Bootstrap.Authorization do
 
   use Farmbot.Logger
 
+  @version Mix.Project.config[:version]
+  @target Mix.Project.config[:target]
+
   @doc """
   Callback for an authorization implementation.
   Should return {:ok, token} | {:error, term}
@@ -93,7 +96,7 @@ defmodule Farmbot.Bootstrap.Authorization do
   defp request_token(server, payload) do
     request = {
       '#{server}/api/tokens',
-      ['UserAgent', 'FarmbotOSBootstrap'],
+      ['UserAgent', 'FarmbotOS/#{@version} (#{@target}) #{@target} ()'],
       'application/json',
       payload
     }
