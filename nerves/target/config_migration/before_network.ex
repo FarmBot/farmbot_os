@@ -83,7 +83,7 @@ defmodule Farmbot.Target.ConfigMigration.BeforeNetwork do
     import ConfigStorage, only: [update_config_value: 4]
     with {:first_party_farmware, :type_check, true}    <- {:first_party_farmware, :type_check, is_boolean(fpf)},
     {:first_party_farmware, :update_config_value, :ok} <- {:first_party_farmware, :update_config_value, update_config_value(:bool, "settings", "first_party_farmware", fpf)},
-    {:firmware_hardware, :type_check, true}            <- {:firmware_hardware, :type_check, hw in ["arduino", "arduino"]},
+    {:firmware_hardware, :type_check, true}            <- {:firmware_hardware, :type_check, hw in ["arduino", "farmduino"]},
     {:firmware_hardware, :update_config_value, :ok}    <- {:firmware_hardware, :update_config_value, update_config_value(:string, "settings", "firmware_hardware", hw)},
     {:os_auto_update, :type_check, true}               <- {:os_auto_update, :type_check, is_boolean(os_auto_update)},
     {:os_auto_update, :update_config_value, :ok}       <- {:os_auto_update, :update_config_value, update_config_value(:bool, "settings", "os_auto_update", os_auto_update)},

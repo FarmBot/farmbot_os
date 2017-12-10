@@ -1,12 +1,12 @@
 <html>
 
 <head>
-  <title> Configure your Farmbot </title>
+  <title> Configure your Farmbot Version <%= version %> </title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 
 <body>
-  <h1>Configure your FarmBot</h1>
+  <h1>Configure your FarmBot Version <%= version %></h1>
 
   <div class="widget">
     <div class="widget-header">

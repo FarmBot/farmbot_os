@@ -16,14 +16,16 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
 
+  @version Mix.Project.config[:version]
+
   @data_path Application.get_env(:farmbot, :data_path)
 
   get "/" do
     last_reset_reason_file = Path.join(@data_path, "last_shutdown_reason")
     if File.exists?(last_reset_reason_file) do
-      render_page(conn, "index", [last_reset_reason: File.read!(last_reset_reason_file)])
+      render_page(conn, "index", [version: @version, last_reset_reason: File.read!(last_reset_reason_file)])
     else
-      render_page(conn, "index", [last_reset_reason: nil])
+      render_page(conn, "index", [version: @version, last_reset_reason: nil])
     end
   end
 
