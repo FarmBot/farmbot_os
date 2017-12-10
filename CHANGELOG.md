@@ -109,4 +109,7 @@
 
 # 5.0.8
 * Update underlying Linux System deps.
-* Preperation for 6.x releases.
+* Preparation for 6.x releases.
+
+# 5.0.9
+* Add missing redis-py package for Farmware.

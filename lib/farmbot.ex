@@ -1,73 +1,39 @@
 defmodule Farmbot do
   @moduledoc """
-    Supervises the individual modules that make up the Farmbot Application.
+  Supervises the individual modules that make up the Farmbot Application.
+  This is the entry point of the application.
   """
+
+  require Farmbot.Logger
   require Logger
   use Supervisor
-  alias Farmbot.System.Supervisor, as: FBSYS
 
-  @version Mix.Project.config[:version]
-  @commit Mix.Project.config[:commit]
+  @version Mix.Project.config()[:version]
+  @commit Mix.Project.config()[:commit]
 
-  @doc """
-    Entry Point to Farmbot
-  """
-  def start(type, args)
-  def start(_, _args) do
-    Logger.info ">> Booting Farmbot OS version: #{@version} - #{@commit}"
-    :ok = setup_nerves_fw()
-    Supervisor.start_link(__MODULE__, [], name: Farmbot.Supervisor)
+  @doc false
+  def start(type, start_opts)
+
+  def start(_, _start_opts) do
+    case Supervisor.start_link(__MODULE__, [], [name: __MODULE__]) do
+      {:ok, pid} -> {:ok, pid}
+      error ->
+        IO.puts "Failed to boot Farmbot: #{inspect error}"
+        Farmbot.System.factory_reset(error)
+        exit(error)
+    end
   end
 
-  def init(_args) do
-    Logger.info ">> Loading consolidated protocols."
-    for beamfile <- Path.wildcard("/srv/erlang/lib/farmbot-*/consolidated/*.beam") do
-      beamfile
-      |> String.replace_suffix(".beam","")
-      |> to_charlist()
-      |> :code.load_abs()
-    end
-
-    context = Farmbot.Context.new()
-    # ctx_tracker = %Farmbot.Context.Tracker{pid: Farmbot.Context.Tracker}
+  def init([]) do
+    Logger.remove_backend :console
     children = [
-      worker(Farmbot.DebugLog, []),
-      supervisor(Registry, [:duplicate,  Farmbot.Registry]),
-      supervisor(FBSYS,                   [context, [name: FBSYS]]),
-      worker(Farmbot.Auth,                [context, [name: Farmbot.Auth]]),
-      worker(Farmbot.FactoryResetWatcher, [context, context.auth, []]),
-      :hackney_pool.child_spec(:farmbot_http_pool, [timeout: 30_000, max_connections: 1000]),
-      worker(Farmbot.HTTP,                [context, [name: Farmbot.HTTP]]),
-      worker(Farmbot.Database,            [context, [name: Farmbot.Database]]),
-      supervisor(Farmbot.BotState.Supervisor,  [context, [name: Farmbot.BotState.Supervisor  ]]),
-      supervisor(Farmbot.FarmEvent.Supervisor, [context, [name: Farmbot.FarmEvent.Supervisor ]]),
-      supervisor(Farmbot.Transport.Supervisor, [context, [name: Farmbot.Transport.Supervisor ]]),
-      worker(Farmbot.ImageWatcher,             [context, [name: Farmbot.ImageWatcher         ]]),
-      supervisor(Farmbot.Serial.Supervisor,    [context, [name: Farmbot.Serial.Supervisor    ]]),
-      supervisor(Farmbot.Configurator, []),
-      supervisor(Farmbot.Farmware.Supervisor,  [context, [name: Farmbot.Farmware.Supervisor]])
+      supervisor(Farmbot.Logger.Supervisor, []),
+      supervisor(Farmbot.System.Supervisor, []),
+      supervisor(Farmbot.Bootstrap.Supervisor, [])
     ]
+
+    Farmbot.Logger.info(1, "Booting Farmbot OS version: #{@version} - #{@commit}")
     opts = [strategy: :one_for_one]
     supervise(children, opts)
-  end
-
-  # This has to be at runtime because you cant access your own apps
-  # priv dir during Mix.Config.
-  if Mix.env == :prod do
-
-    defp setup_nerves_fw do
-      Logger.info ">> Setting up firmware signing!"
-      file = "#{:code.priv_dir(:farmbot)}/fwup-key.pub"
-      Application.put_env(:nerves_firmware, :pub_key_path, file)
-      if File.exists?(file), do: :ok, else: {:error, :no_pub_file}
-    end
-  else
-
-    defp setup_nerves_fw do
-      Logger.info ">> Disabling firmware signing!"
-      Application.put_env(:nerves_firmware, :pub_key_path, nil)
-      :ok
-    end
-
   end
 end

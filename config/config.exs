@@ -1,37 +1,62 @@
 use Mix.Config
 
 # Mix configs.
-target = Mix.Project.config[:target]
+target = Mix.Project.config()[:target]
 env = Mix.env()
 
-config :logger, utc_log: true
+config :logger,
+  utc_log: true,
+  # handle_otp_reports: true,
+  # handle_sasl_reports: true,
+  backends: []
+
+config :elixir, ansi_enabled: true
+config :iex, :colors, enabled: true
 
 config :ssl, protocol_version: :"tlsv1.2"
 
-# I force colors because they are important.
-config :logger, :console,
-  colors: [enabled: true, info: :cyan],
-  metadata: [:module],
-  format: "$time $metadata[$level] $levelpad$message\n"
-
-# Iex needs colors too.
-config :iex, :colors, enabled: true
-
-# bot <-> firmware transports.
-config :farmbot, expected_fw_version: ["5.0.3.F", "5.0.3.R"]
-
-# Rollbar
-config :farmbot, rollbar_access_token: "dcd79b191ab84aa3b28259cbb80e2060"
-
-# This is usually in the `priv` dir of :tzdata, but our fs is read only.
-config :tzdata, :data_dir, "/tmp"
-config :tzdata, :autoupdate, :disabled
-
 # Path for the `fs` module to watch.
-config :fs, path: "/tmp/images"
+# config :fs, path: "/tmp/images"
 
-# import config specific to our nerves_target
-IO.puts "using #{target} - #{env} configuration."
-import_config "hardware/#{target}/#{env}.exs"
-config :nerves, :firmware,
-  rootfs_overlay: "config/hardware/#{target}/rootfs-additions-#{env}"
+# Configure your our system.
+# Default implementation needs no special stuff.
+# See Farmbot.System.Supervisor and Farmbot.System.Init for details.
+config :farmbot, :init, []
+
+# Transports.
+# See Farmbot.BotState.Transport for details.
+config :farmbot, :transport, []
+
+config :wobserver,
+  discovery: :none,
+  mode: :plug,
+  remote_url_prefix: "/wobserver"
+
+# Configure Farmbot Behaviours.
+config :farmbot, :behaviour,
+  authorization: Farmbot.Bootstrap.Authorization,
+  firmware_handler: Farmbot.Firmware.StubHandler,
+  http_adapter: Farmbot.HTTP.HTTPoisonAdapter,
+  gpio_handler: Farmbot.System.GPIO.StubHandler
+
+config :farmbot, :farmware,
+  first_part_farmware_manifest_url: "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/manifest.json"
+
+config :farmbot, expected_fw_versions: ["6.0.0.F", "6.0.0.R"]
+
+case target do
+  "host" ->
+    import_config("host/#{env}.exs")
+
+  _ ->
+    import_config("target/#{env}.exs")
+    if File.exists?("config/target/#{target}.exs") do
+      import_config("target/#{target}.exs")
+    end
+
+    rootfs_overlay_dir = "config/target/rootfs_overlay_#{Mix.Project.config()[:target]}"
+
+    if File.exists?(rootfs_overlay_dir) do
+      config :nerves, :firmware, rootfs_overlay: rootfs_overlay_dir
+    end
+end

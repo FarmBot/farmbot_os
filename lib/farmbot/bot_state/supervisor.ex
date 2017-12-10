@@ -1,40 +1,17 @@
 defmodule Farmbot.BotState.Supervisor do
-  @moduledoc """
-    Supervises the state tracker modules and an event manager that other
-    things can subscribe too.
-  """
-
-  alias Farmbot.Context
-  use Farmbot.DebugLog, name: BotStateSupervisor
-
+  @moduledoc false
   use Supervisor
-  require Logger
-  alias Farmbot.EasterEggs
-  def init(ctx) do
-    children = [
-      worker(Farmbot.BotState.Monitor,
-        [ctx, [name: Farmbot.BotState.Monitor]]),
 
-      worker(Farmbot.BotState.Configuration,
-        [ctx, [name: Farmbot.BotState.Configuration]]),
-
-      worker(Farmbot.BotState.Hardware,
-        [ctx, [name: Farmbot.BotState.Hardware]]),
-
-      worker(EasterEggs,
-        [name: EasterEggs])
-    ]
-
-    opts = [strategy: :one_for_one]
-    supervise(children, opts)
+  @doc false
+  def start_link() do
+    Supervisor.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
-  def start_link(%Context{} = ctx, opts) do
-    # We have to start all the monitors and what not
-    # and then add the logger backent because the logger backend asks for stuff
-    # like position and some configuraion.
-    sup = Supervisor.start_link(__MODULE__, ctx, opts)
-    EasterEggs.start_cron_job
-    sup
+  def init([]) do
+    children = [
+      worker(Farmbot.BotState, []),
+    ]
+
+    supervise(children, strategy: :one_for_one)
   end
 end

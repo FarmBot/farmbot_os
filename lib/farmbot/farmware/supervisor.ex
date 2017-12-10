@@ -1,17 +1,13 @@
 defmodule Farmbot.Farmware.Supervisor do
-  @moduledoc """
-    Supervises Farmware.
-  """
-  use Farmbot.Context.Supervisor
-  alias Farmbot.Farmware
+  @moduledoc false
+  use Supervisor
 
-  def init(%Context{} = ctx) do
-    children = [
-      worker(Farmware.Manager,
-        [ctx, [name: Farmware.Manager]],
-          restart: :permanent)
-    ]
-    opts = [strategy: :one_for_one]
-    supervise(children, opts)
+  @doc false
+  def start_link do
+    Supervisor.start_link(__MODULE__, [], [name: __MODULE__])
+  end
+
+  def init([]) do
+    Supervisor.init([Farmbot.Farmware.Installer.Repository.SyncTask], strategy: :one_for_one)
   end
 end
