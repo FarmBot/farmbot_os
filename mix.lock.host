@@ -64,7 +64,7 @@
   "system_registry": {:hex, :system_registry, "0.6.0", "31642177e6002d3cff2ada3553ed4e9c0a6ca015797d62d7d17c0ab8696185fc", [], [], "hexpm"},
   "timex": {:hex, :timex, "3.1.24", "d198ae9783ac807721cca0c5535384ebdf99da4976be8cefb9665a9262a1e9e3", [], [{:combine, "~> 0.7", [hex: :combine, repo: "hexpm", optional: false]}, {:gettext, "~> 0.10", [hex: :gettext, repo: "hexpm", optional: false]}, {:tzdata, "~> 0.1.8 or ~> 0.5", [hex: :tzdata, repo: "hexpm", optional: false]}], "hexpm"},
   "tzdata": {:hex, :tzdata, "0.5.14", "56f05ea3dd87db946966ab3c7168c0b35025c7ee0e9b4fc130a04631f5611eb1", [], [{:hackney, "~> 1.0", [hex: :hackney, repo: "hexpm", optional: false]}], "hexpm"},
-  "udev": {:git, "https://github.com/electricshaman/udev.git", "ea741259f40dab45f16adcef6db49ce3bcb4dd05", []},
+  "udev": {:hex, :udev, "0.1.0", "6a78e80359a8e9553b6ab51905f63ae7bd458c1010d25e63dae4faed96908b56", [:make, :mix], [{:elixir_make, "~> 0.4", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm"},
   "unicode_util_compat": {:hex, :unicode_util_compat, "0.3.1", "a1f612a7b512638634a603c8f401892afbf99b8ce93a45041f8aaca99cadb85e", [], [], "hexpm"},
   "uuid": {:hex, :uuid, "1.1.7", "007afd58273bc0bc7f849c3bdc763e2f8124e83b957e515368c498b641f7ab69", [], [], "hexpm"},
   "vmq_commons": {:git, "https://github.com/farmbot-labs/vmq_commons.git", "e780a297d5807a3537723d590036d37abce07cc5", []},
