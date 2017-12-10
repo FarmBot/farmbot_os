@@ -94,19 +94,16 @@ defmodule Farmbot.Bootstrap.Authorization do
   end
 
   defp request_token(server, payload) do
-    request = {
-      '#{server}/api/tokens',
-      ['UserAgent', 'FarmbotOS/#{@version} (#{@target}) #{@target} ()'],
-      'application/json',
-      payload
-    }
+    headers = [
+      {"User-Agent", "FarmbotOS/#{@version} (#{@target}) #{@target} ()"},
+      {"Content-Type", "application/json"}
+    ]
 
-    case :httpc.request(:post, request, [], []) do
-      {:ok, {{_, 200, _}, _, resp}} ->
-        {:ok, resp}
+    case HTTPoison.post("#{server}/api/tokens", payload, headers) do
+      {:ok, %{status_code: 200, body: body}} -> {:ok, body}
 
       # if the error is a 4xx code, it was a failed auth.
-      {:ok, {{_, code, _}, _, _resp}} when code > 399 and code < 500 ->
+      {:ok, %{status_code: code}} when code > 399 and code < 500 ->
         {
           :error,
           "Failed to authorize with the Farmbot web application at: #{server} with code: #{code}"
