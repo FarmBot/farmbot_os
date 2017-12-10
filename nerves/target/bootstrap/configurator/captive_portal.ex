@@ -79,10 +79,6 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
       first_part = "#{a}.#{b}.#{c}."
       """
       interface=#{interface}
-      dhcp-range=#{first_part}50,#{first_part}250,2h
-      dhcp-option=3,#{ip_addr}
-      dhcp-option=6,#{ip_addr}
-      dhcp-authoritative
       address=/#/#{ip_addr}
       server=/farmbot/#{ip_addr}
       local=/farmbot/

@@ -111,6 +111,7 @@ defmodule Farmbot.Firmware do
       initialized: false,
       initializing: false,
       current: nil,
+      timeout_ms: 150000,
       queue: :queue.new()
   end
 
@@ -149,7 +150,7 @@ defmodule Farmbot.Firmware do
         Logger.warn 1, "Got Firmware timeout. Retrying #{fun}(#{inspect args}) "
         case apply(state.handler_mod, fun, [state.handler | args]) do
           :ok ->
-            timer = Process.send_after(self(), :timeout, 6500)
+            timer = Process.send_after(self(), :timeout, state.timeout_ms)
             {:noreply, [], %{state | current: current, timer: timer}}
           {:error, _} = res ->
             GenStage.reply(from, res)
@@ -183,7 +184,7 @@ defmodule Farmbot.Firmware do
     case apply(state.handler_mod, fun, [state.handler | args]) do
       :ok ->
         if fun == :emergency_unlock, do: Farmbot.System.GPIO.Leds.led_status_ok()
-        timer = Process.send_after(self(), :timeout, 6500)
+        timer = Process.send_after(self(), :timeout, state.timeout_ms)
         {:noreply, dispatch, %{state | current: current, timer: timer}}
       {:error, _} = res ->
         {:reply, res, dispatch, %{state | current: nil, queue: :queue.new()}}
@@ -285,6 +286,7 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode({:report_parameter_value, param, value}, state) do
     Farmbot.System.ConfigStorage.update_config_value(:float, "hardware_params", to_string(param), value / 1)
+
     {:mcu_params, %{param => value}, state}
   end
 
@@ -349,7 +351,7 @@ defmodule Farmbot.Firmware do
     if state.timer do
       Process.cancel_timer(state.timer)
     end
-    timer = Process.send_after(self(), :timeout, 6500)
+    timer = Process.send_after(self(), :timeout, state.timeout_ms)
     {:informational_settings, %{busy: true}, %{state | idle: false, timer: timer}}
   end
 

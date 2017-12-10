@@ -13,7 +13,7 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
   end
 
   def sync_all do
-    Logger.busy 2, "Syncing all repos. This may take a while."
+    Logger.busy 2, "Syncing all Farmware repos. This may take a while."
     setup_repos()
 
     synced = fetch_and_sync()
