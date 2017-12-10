@@ -70,7 +70,6 @@ defmodule Farmbot.Mixfile do
         "docs/FAQ.md",
         "README.md"
       ],
-      # groups_for_modules: generate_doc_mods()
     ]
   end
 
@@ -125,7 +124,7 @@ defmodule Farmbot.Mixfile do
         {:nerves_runtime, "~> 0.4"},
         {:nerves_firmware, "~> 0.4.0"},
         {:nerves_firmware_ssh, "~> 0.2", only: :dev},
-        {:nerves_network, "~> 0.3", github: "nerves-project/nerves_network", override: true},
+        {:nerves_network, "~> 0.3.5"},
         {:dhcp_server, github: "nerves-project/dhcp_server", branch: "elixirize-go!", override: true},
         {:elixir_ale, "~> 1.0"}
       ]
@@ -139,7 +138,7 @@ defmodule Farmbot.Mixfile do
         {:nerves_firmware, "~> 0.4.0"},
         {:nerves_firmware_ssh, "~> 0.2", only: :dev},
         {:nerves_init_gadget,  github: "nerves-project/nerves_init_gadget", branch: "dhcp", only: :dev},
-        {:nerves_network, "~> 0.3", github: "nerves-project/nerves_network", override: true},
+        {:nerves_network, "~> 0.3.5"},
         {:dhcp_server, github: "nerves-project/dhcp_server", branch: "elixirize-go!", override: true},
         {:elixir_ale, "~> 1.0"},
       ]
