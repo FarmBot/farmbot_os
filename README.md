@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/FarmBot/farmbot_os.svg?branch=master)](https://travis-ci.org/FarmBot/farmbot_os.svg?branch=master)
-[![Coverage Status](https://coveralls.io/repos/github/FarmBot/farmbot_os/badge.svg)](https://coveralls.io/github/FarmBot/farmbot_os)
+[![Build Status](https://travis-ci.org/FarmBot/farmbot_os.svg?branch=staging)](https://travis-ci.org/FarmBot/farmbot_os)
+[![Coverage Status](https://coveralls.io/repos/github/FarmBot/farmbot_os/badge.svg?branch=staging)](https://coveralls.io/github/FarmBot/farmbot_os?branch=staging)
 [![Built with Nerves](http://nerves-project.org/images/badge/nerves-badge_75x39_black.png)](http://nerves-project.org/)
 ---
 
@@ -43,7 +43,7 @@ Installation should be fairly straight forward, you will need a computer for thi
  0. Plug your Arduino into your Raspberry Pi
  0. Plug your power into your Raspberry Pi
  0. From a WiFi enabled device*, search for the SSID `farmbot-XXXX`
- 0. Connect to that and open a web browser to [http://192.168.24.1/](http://192.168.24.1)
+ 0. Connect to that and open a web browser to [http://192.168.25.1/](http://192.168.25.1)
  0. Follow the on screen instructions to configure your FarmBot. Once you save your configuration FarmBot will connect to your home WiFi network and to the FarmBot web application.
 
 \* If you are using a smartphone you may need to disable cellular data to allow your phone's browser to connect to the configurator.

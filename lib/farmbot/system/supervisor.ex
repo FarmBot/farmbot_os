@@ -1,44 +1,34 @@
 defmodule Farmbot.System.Supervisor do
   @moduledoc """
-    Supervises Platform specific stuff for Farmbot to operate
+  Supervises Platform specific stuff for Farmbot to operate
   """
   use Supervisor
-  @redis_config Application.get_all_env(:farmbot)[:redis]
-  @target Mix.Project.config()[:target]
-  alias Farmbot.Context
+  import Farmbot.System.Init
 
-  alias Farmbot.System.Network
-
-  def start_link(%Context{} = context, opts) do
-    Supervisor.start_link(__MODULE__, context, opts)
+  @doc false
+  def start_link() do
+    Supervisor.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
-  def init(context) do
-    children = [
-      worker(Farmbot.System.FS,
-        [context, @target, [name: Farmbot.System.FS]]),
-
-      worker(Farmbot.System.FS.Worker,
-        [context, @target, [name: Farmbot.System.FS.Worker]]),
-
-      worker(Farmbot.System.FS.ConfigStorage,
-        [context,          [name: Farmbot.System.FS.ConfigStorage]]),
-
-      worker(Network,
-        [context, @target, [name: Network]]),
-      worker(Farmbot.FactoryResetWatcher, [context, Network, []])
+  def init([]) do
+    before_init_children = [
+      worker(Farmbot.System.Init.FSCheckup, [[], []]),
+      supervisor(Farmbot.System.Init.Ecto, [[], []]),
+      supervisor(Farmbot.System.ConfigStorage, []),
+      worker(Farmbot.System.ConfigStorage.Dispatcher, []),
+      worker(Farmbot.System.GPIO.Leds, [])
     ]
-    ++ maybe_redis(context)
-    opts = [strategy: :one_for_one]
-    supervise(children, opts)
-  end
 
-  @spec maybe_redis(Context.t) :: [Supervisor.Spec.spec]
-  defp maybe_redis(context) do
-     if @redis_config[:server] do
-       [worker(Redis.Server, [context, [name: Redis.Server]])]
-     else
-       []
-     end
+    init_mods =
+      Application.get_env(:farmbot, :init)
+      |> Enum.map(fn child -> fb_init(child, [[], [name: child]]) end)
+
+    after_init_children = [
+      supervisor(Farmbot.System.Updates, []),
+      worker(Farmbot.System.GPIO, []),
+      worker(Farmbot.EasterEggs, [])
+    ]
+
+    supervise(before_init_children ++ init_mods ++ after_init_children, strategy: :one_for_all)
   end
 end

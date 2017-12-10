@@ -1,34 +1,36 @@
-language: bash
+language: erlang
+otp_release:
+- 20.0
 sudo: required
 dist: trusty
 addons:
   apt:
     sources:
-      - llvm-toolchain-precise
-      - ubuntu-toolchain-r-test
+    - llvm-toolchain-precise
+    - ubuntu-toolchain-r-test
     packages:
-    - libwxbase2.8-0
-    - libwxgtk2.8-0
-    - bc
-    - clang-3.7
-    - g++-5
-    - gcc-5
-    - libssl-dev
-    - libsctp1
-    - libnl-dev
+    - node
+    - squashfs-tools
     - libmnl-dev
-    - libsdl2-dev
-    - libsdl-dev
-    - libglew-dev
-    - libglm-dev
-
+    - g++
+    - libssl-dev
+    - libncurses5-dev
+    - bc
+    - m4
+    - make
+    - unzip
+    - cmake
+    - python
+    - libudev-dev
 env:
   global:
-  - ELIXIR_VERSION=1.4.1 ERLANG_VERSION=19.2
+  - ELIXIR_VERSION=1.5.0 ERLANG_VERSION=20.0 FWUP_VERSION=0.17.0 MIX_ENV=test
 before_install:
-- wget https://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_$ERLANG_VERSION-1~ubuntu~trusty_amd64.deb;
-- sudo dpkg -i esl-erlang_$ERLANG_VERSION-1~ubuntu~trusty_amd64.deb
+- openssl aes-256-cbc -K $encrypted_a344ae763d55_key -iv $encrypted_a344ae763d55_iv
+  -in travis_env.enc -out travis_env -d
 - wget https://github.com/elixir-lang/elixir/releases/download/v$ELIXIR_VERSION/Precompiled.zip
+- wget https://github.com/fhunleth/fwup/releases/download/v0.17.0/fwup_0.17.0_amd64.deb
+- sudo dpkg -i fwup_0.17.0_amd64.deb
 - unzip -d elixir Precompiled.zip
 before_script:
 - export PATH=`pwd`/elixir/bin:$PATH
@@ -36,9 +38,19 @@ script:
 - sudo apt-get install -qq linux-headers-`uname -r`
 - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
 - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.7" CC="clang-3.7"; fi
-- scripts/tty0tty.sh
 - mix local.hex --force
 - mix local.rebar --force
-- mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez --force
-- elixir scripts/generate_makefile.exs
-- make travis_test
+- mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez
+  --force
+- MIX_ENV=test mix deps.get
+- mix credo --strict --ignore Credo.Check.Readability.MaxLineLength
+- mix coveralls.travis --seed 0 --exclude farmbot_firmware
+after_script:
+- export MIX_ENV=dev
+- export MIX_TARGET=rpi3
+- mix deps.get
+- mix firmware
+- mix firmware.slack --channels C58DCU4A3 $TRAVIS_COMMIT_MESSAGE; echo "done."
+notifications:
+  slack:
+    secure: Y2jTU5Bs/TU0SQn4lMMdVohU57KfyBj2SEr9d+pNWXm1wcIecUrKrEo4fhNPrzsE7nWtrTQXroSWk1N7cioa9MO2WFbnuNEXJ3jm8uhFueCO9VGyGIxuTP7eISAduAVdjfWfVtYOf87vmiSe7yRn3XJtbGnCRB6EqyxKbnZzJJs=
