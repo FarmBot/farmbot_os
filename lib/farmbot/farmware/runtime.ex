@@ -94,16 +94,22 @@ defmodule Farmbot.Farmware.Runtime do
 
   defp format_config(fw_name, %{"label" => _, "name" => name, "value" => val}) do
     sep =
-      case String.contains?(fw_name, "-") do
-        true -> "-"
-        false -> " "
+      cond do
+        String.contains?(fw_name, "-") -> "-"
+        String.contains?(fw_name, "_") -> "_"
+        String.contains?(fw_name, " ") -> " "
+        true -> nil
       end
-
-    ns = String.split(fw_name, sep) |> Enum.join() |> Macro.underscore()
+    ns = if sep do
+      String.split(fw_name, sep) |> Enum.join() |> String.downcase() |> Macro.underscore()
+    else
+      fw_name |> String.downcase()
+    end
     {"#{ns}_#{name}", val}
   end
 
   defp to_erl_safe(binary) when is_binary(binary), do: to_charlist(binary)
   defp to_erl_safe(map) when is_map(map), do: map |> Poison.encode!() |> to_erl_safe()
+  defp to_erl_safe(0), do: '0' #???
   defp to_erl_safe(number) when is_number(number), do: number
 end
