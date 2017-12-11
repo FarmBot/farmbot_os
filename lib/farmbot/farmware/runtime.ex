@@ -110,6 +110,5 @@ defmodule Farmbot.Farmware.Runtime do
 
   defp to_erl_safe(binary) when is_binary(binary), do: to_charlist(binary)
   defp to_erl_safe(map) when is_map(map), do: map |> Poison.encode!() |> to_erl_safe()
-  defp to_erl_safe(0), do: '0' #???
-  defp to_erl_safe(number) when is_number(number), do: number
+  defp to_erl_safe(number) when is_number(number), do: "#{number}" |> to_charlist
 end
