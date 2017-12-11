@@ -15,25 +15,25 @@ defmodule Farmbot.CeleryScript.AST.Node.SendMessage do
         msg = EEx.eval_string(sanatized, bindings)
         case type do
           "debug" ->
-            Logger.debug 2, msg, channels: channels
+            Logger.debug 1, msg, channels: channels
             {:ok, env}
           "info" ->
-            Logger.info 2, msg, channels: channels
+            Logger.info 1, msg, channels: channels
             {:ok, env}
           "busy" ->
-            Logger.busy 2, msg, channels: channels
+            Logger.busy 1, msg, channels: channels
             {:ok, env}
           "success" ->
-            Logger.success 2, msg, channels: channels
+            Logger.success 1, msg, channels: channels
             {:ok, env}
           "warn" ->
-            Logger.warn 2, msg, channels: channels
+            Logger.warn 1, msg, channels: channels
             {:ok, env}
           "warning" ->
-            Logger.warn 2, msg, channels: channels
+            Logger.warn 1, msg, channels: channels
             {:ok, env}
           "error" ->
-            Logger.error 2, msg, channels: channels
+            Logger.error 1, msg, channels: channels
             {:ok, env}
           other ->
             {:error, "unknown type: #{other}", env}
