@@ -29,6 +29,15 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     end
   end
 
+  get "/setup" do
+    last_reset_reason_file = Path.join(@data_path, "last_shutdown_reason")
+    if File.exists?(last_reset_reason_file) do
+      render_page(conn, "index", [version: @version, last_reset_reason: File.read!(last_reset_reason_file)])
+    else
+      render_page(conn, "index", [version: @version, last_reset_reason: nil])
+    end
+  end
+
   defp get_interfaces(tries \\ 5)
   defp get_interfaces(0), do: []
   defp get_interfaces(tries) do
