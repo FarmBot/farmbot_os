@@ -32,7 +32,7 @@ defmodule Farmbot.Bootstrap.AuthTask do
         refresh_timer(self())
       {:error, reason} ->
         Logger.error(1, "Token failed to reauthorize: #{auth_task} - #{email} - #{server} #{inspect reason}")
-        {:stop, reason, old_timer}
+        refresh_timer(self())
     end
   end
 
