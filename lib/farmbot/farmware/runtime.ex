@@ -101,9 +101,9 @@ defmodule Farmbot.Farmware.Runtime do
         true -> nil
       end
     ns = if sep do
-      String.split(fw_name, sep) |> Enum.join() |> String.downcase() |> Macro.underscore()
+      String.split(fw_name |> Macro.underscore(), sep) |> Enum.join() |> String.downcase() |> Macro.underscore()
     else
-      fw_name |> String.downcase()
+      fw_name |> Macro.underscore() |> String.downcase()
     end
     {"#{ns}_#{name}", val}
   end
