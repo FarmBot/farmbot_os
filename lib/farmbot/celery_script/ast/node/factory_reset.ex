@@ -7,6 +7,8 @@ defmodule Farmbot.CeleryScript.AST.Node.FactoryReset do
   def execute(%{package: :farmbot_os}, _, env) do
     env = mutate_env(env)
     Logger.warn 1, "Going down for factory reset!"
+    Farmbot.BotState.set_sync_status(:maintenance)
+    Farmbot.BotState.force_state_push()
     Farmbot.System.factory_reset "CeleryScript request."
     {:ok, env}
   end
@@ -18,6 +20,9 @@ defmodule Farmbot.CeleryScript.AST.Node.FactoryReset do
       Farmbot.Firmware.update_param(:"#{param}", -1)
     end
 
+    Logger.warn 1, "Going down for factory reset!"
+    Farmbot.BotState.set_sync_status(:maintenance)
+    Farmbot.BotState.force_state_push()
     Farmbot.Firmware.read_all_params()
     Farmbot.System.reboot("Arduino factory reset.")
     {:ok, env}
