@@ -99,7 +99,12 @@ defmodule Farmbot.Firmware.StubHandler do
 
   def handle_info(:idle_timer, state) do
     do_idle(self())
-    {:noreply, [:idle], state}
+    dispatch = if state.locked? do
+      []
+    else
+      [:idle]
+    end
+    {:noreply, dispatch, state}
   end
 
   def handle_call(cmd, _from, %{locked?: true} = state) when cmd != :emergency_unlock do

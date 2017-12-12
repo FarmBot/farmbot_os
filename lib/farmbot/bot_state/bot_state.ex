@@ -119,6 +119,7 @@ defmodule Farmbot.BotState do
               node_name: nil,
               busy: false,
               sync_status: :sync_now,
+              sync_status_two: nil,
               locked: false
             },
             user_env: %{},
@@ -186,7 +187,7 @@ defmodule Farmbot.BotState do
     GenStage.call(__MODULE__, {:set_busy, bool})
   end
 
-  @valid_sync_status [:locked, :maintenance, :sync_error, :sync_now, :synced, :syncing, :unknown]
+  @valid_sync_status [:maintenance, :sync_error, :sync_now, :synced, :syncing, :unknown]
   @doc "Set the sync status above ticker to a message."
   def set_sync_status(cmd) when cmd in @valid_sync_status do
     GenStage.call(__MODULE__, {:set_sync_status, cmd})

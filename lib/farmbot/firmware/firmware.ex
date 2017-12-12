@@ -176,10 +176,6 @@ defmodule Farmbot.Firmware do
 
   defp do_begin_cmd(%Current{fun: fun, args: args, from: _from} = current, state, dispatch) do
     # Logger.debug 3, "Firmware command: #{fun}#{inspect(args)}"
-    is_unlock_cmd = fun == :emergency_unlock
-    auto_sync = Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "auto_sync")
-    if is_unlock_cmd && auto_sync, do: Farmbot.BotState.set_sync_status(:sync_now)
-    if is_unlock_cmd && !auto_sync, do: Farmbot.BotState.set_sync_status(:synced)
 
     case apply(state.handler_mod, fun, [state.handler | args]) do
       :ok ->
@@ -309,9 +305,9 @@ defmodule Farmbot.Firmware do
     Farmbot.BotState.set_busy(false)
     if state.current do
       GenStage.reply(state.current.from, {:error, :timeout})
-      {:informational_settings, %{busy: false}, %{state | current: nil, idle: true}}
+      {:informational_settings, %{busy: false, locked: false}, %{state | current: nil, idle: true}}
     else
-      {:informational_settings, %{busy: false}, %{state | idle: true}}
+      {:informational_settings, %{busy: false, locked: false}, %{state | idle: true}}
     end
   end
 
@@ -369,9 +365,9 @@ defmodule Farmbot.Firmware do
     Farmbot.System.GPIO.Leds.led_status_err
     if state.current do
       GenStage.reply(state.current.from, {:error, :emergency_lock})
-      {:informational_settings, %{sync_status: :locked}, %{state | current: nil}}
+      {:informational_settings, %{locked: true}, %{state | current: nil}}
     else
-      {:informational_settings, %{sync_status: :locked}, state}
+      {:informational_settings, %{locked: true}, state}
     end
   end
 
