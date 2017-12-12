@@ -379,13 +379,17 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode({:report_axis_calibration, param, val}, state) do
     # have to spawn this fun otherwise we have to functions waiting on eachother.
-    spawn fn() ->
-      case Farmbot.Firmware.update_param(param, val) do
-        :ok -> Logger.success 1, "Calibrated #{param}: #{val}"
-        {:error, reason} -> Logger.error 1, "Failed to set #{param}: #{val} (#{inspect reason})"
-      end
-    end
+    # FIXME(Connor) - The Firmware is currently reporting axis calibration values
+    #   in mm, not steps, so multiplying by 5 puts it back to steps. :/
+    # spawn __MODULE__, :report_calibration_callback, [5, param, val * 5]
+    spawn __MODULE__, :report_calibration_callback, [5, param, val]
     {nil, state}
+  end
+
+  def report_calibration_callback(tries, param, value)
+
+  def report_calibration_callback(0, _param, _value) do
+    :ok
   end
 
   defp handle_gcode(:noop, state) do
@@ -425,5 +429,21 @@ defmodule Farmbot.Firmware do
     end
     read_all_params()
     request_software_version()
+  end
+
+  @doc false
+  def report_calibration_callback(tries, param, val) do
+    case Farmbot.Firmware.update_param(param, val) do
+      :ok ->
+        case Farmbot.System.ConfigStorage.get_config_value(:float, "hardware_params", to_string(param)) do
+          ^val ->
+            Logger.success 1, "Calibrated #{param}: #{val}"
+            :ok
+          _ -> report_calibration_callback(tries - 1, param, val)
+        end
+      {:error, reason} ->
+        Logger.error 1, "Failed to set #{param}: #{val} (#{inspect reason})"
+        report_calibration_callback(tries - 1, param, val)
+    end
   end
 end
