@@ -386,12 +386,6 @@ defmodule Farmbot.Firmware do
     {nil, state}
   end
 
-  def report_calibration_callback(tries, param, value)
-
-  def report_calibration_callback(0, _param, _value) do
-    :ok
-  end
-
   defp handle_gcode(:noop, state) do
     {nil, state}
   end
@@ -432,6 +426,8 @@ defmodule Farmbot.Firmware do
   end
 
   @doc false
+  def report_calibration_callback(tries, param, value)
+
   def report_calibration_callback(tries, param, val) do
     case Farmbot.Firmware.update_param(param, val) do
       :ok ->
@@ -445,5 +441,9 @@ defmodule Farmbot.Firmware do
         Logger.error 1, "Failed to set #{param}: #{val} (#{inspect reason})"
         report_calibration_callback(tries - 1, param, val)
     end
+  end
+
+  def report_calibration_callback(0, _param, _value) do
+    :ok
   end
 end
