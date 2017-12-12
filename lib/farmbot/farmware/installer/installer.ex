@@ -46,7 +46,7 @@ defmodule Farmbot.Farmware.Installer do
   def sync_repo(url_or_repo_struct, success \\ [], fail \\ [])
 
   def sync_repo(url, [], []) when is_binary(url) do
-    Logger.busy 1, "Syncing repo from: #{url}"
+    Logger.busy 2, "Syncing repo from: #{url}"
     with {:ok, %{status_code: code, body: body}} when code > 199 and code < 300 <- HTTP.get(url),
          {:ok, json_map} <- Poison.decode(body),
          {:ok, repo}     <- Repository.new(json_map)
@@ -67,7 +67,7 @@ defmodule Farmbot.Farmware.Installer do
 
   @doc "Install a farmware from a URL."
   def install(url) do
-    Logger.busy 1, "Installing farmware from #{url}."
+    Logger.busy 2, "Installing farmware from #{url}."
     with {:ok, %{status_code: code, body: body}} when code > 199 and code < 300 <- HTTP.get(url),
          {:ok, json_map} <- Poison.decode(body),
          {:ok, farmware} <- Farmware.new(json_map),
@@ -77,19 +77,19 @@ defmodule Farmbot.Farmware.Installer do
            {:error, {name, version, :already_installed}} ->
              {:ok, fw} = Farmbot.Farmware.lookup(name)
              Farmbot.BotState.register_farmware(fw)
-             Logger.info 1, "Farmware #{name} - #{version} is already installed."
+             Logger.info 2, "Farmware #{name} - #{version} is already installed."
              :ok
            {:ok, %{status_code: code, body: body}} ->
-             Logger.error 1, "Failed to fetch Farmware manifest: #{inspect code}: #{body}"
+             Logger.error 2, "Failed to fetch Farmware manifest: #{inspect code}: #{body}"
              {:error, :bad_http_response}
            {:error, {:invalid, _, _}} ->
-             Logger.error 1, "Failed to parse json"
+             Logger.error 2, "Failed to parse json"
              {:error, :bad_json}
            {:error, reason} ->
-             Logger.error 1, "Failed to install farmware from #{url}: #{inspect reason}"
+             Logger.error 2, "Failed to install farmware from #{url}: #{inspect reason}"
              {:error, reason}
            err ->
-             Logger.error 1, "Unexpected error installing farmware. #{inspect err}"
+             Logger.error 2, "Unexpected error installing farmware. #{inspect err}"
              {:error, err}
          end
   end
@@ -105,7 +105,7 @@ defmodule Farmbot.Farmware.Installer do
   end
 
   defp preflight_checks(%Farmware{} = fw) do
-    Logger.info 3, "Starting preflight checks for #{inspect fw}"
+    Logger.info 2, "Starting preflight checks for #{inspect fw}"
     with :ok <- check_version(fw.min_os_version_major),
          :ok <- check_directory(fw.name, fw.version)
     do
@@ -122,7 +122,7 @@ defmodule Farmbot.Farmware.Installer do
 
   # sets up directories or returns already_installed.
   defp check_directory(fw_name, %Version{} = fw_version) do
-    Logger.info 3, "Checking directories for #{fw_name} - #{fw_version}"
+    Logger.info 2, "Checking directories for #{fw_name} - #{fw_version}"
     install_path = install_path(fw_name)
     manifest_path = Path.join(install_path, "manifest.json")
     if File.exists?(manifest_path) do
@@ -134,7 +134,7 @@ defmodule Farmbot.Farmware.Installer do
 
   # Fetches the package and unzips it.
   defp finish_install(%Farmware{} = fw, json_map) do
-    Logger.success 1, "Finishing install for #{inspect fw}"
+    Logger.success 2, "Finishing install for #{inspect fw}"
     zip_path = "/tmp/#{fw.name}-#{fw.version}.zip"
     zip_url = fw.zip
     with {:ok, ^zip_path} <- HTTP.download_file(zip_url, zip_path),

@@ -17,7 +17,7 @@ defmodule Farmbot.Bootstrap.AuthTask do
     {:ok, timer, :hibernate}
   end
 
-  def handle_info(:refresh, old_timer) do
+  def handle_info(:refresh, _old_timer) do
     auth_task = Application.get_env(:farmbot, :behaviour)[:authorization]
     {email, pass, server} = {fetch_email(), fetch_pass(), fetch_server()}
     # Logger.busy(3, "refreshing token: #{auth_task} - #{email} - #{server}")
