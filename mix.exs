@@ -113,7 +113,7 @@ defmodule Farmbot.Mixfile do
       {:excoveralls, "~> 0.6", only: :test},
       {:mock, "~> 0.2.0", only: :test},
       {:faker, "~> 0.9", only: :test },
-      {:udev, "~> 0.1.0"},
+      {:udev, "~> 0.1.0", only: :dev},
     ]
   end
 
