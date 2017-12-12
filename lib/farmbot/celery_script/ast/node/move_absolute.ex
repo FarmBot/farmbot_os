@@ -31,19 +31,19 @@ defmodule Farmbot.CeleryScript.AST.Node.MoveAbsolute do
 
   defp maybe_log_busy(pos) do
     unless Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "firmware_input_log") do
-      Logger.busy 2, "Moving to (#{pos.x}, #{pos.y}, #{pos.z})"
+      Logger.busy 1, "Moving to (#{pos.x}, #{pos.y}, #{pos.z})"
     end
   end
 
   defp maybe_log_complete(pos) do
     unless Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "firmware_input_log") do
-      Logger.success 2, "Movement to (#{pos.x}, #{pos.y}, #{pos.z}) complete."
+      Logger.success 1, "Movement to (#{pos.x}, #{pos.y}, #{pos.z}) complete."
     end
   end
 
   defp maybe_log_error(pos) do
     unless Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "firmware_input_log") do
-      Logger.error 2, "Movement to (#{pos.x}, #{pos.y}, #{pos.z}) failed."
+      Logger.error 1, "Movement to (#{pos.x}, #{pos.y}, #{pos.z}) failed."
     end
   end
 end
