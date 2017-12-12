@@ -3,7 +3,10 @@ use Mix.Config
 cond do
   System.get_env("TRAVIS_COMMIT_MESSAGE") ->
     Mix.shell.info [:green, "Using travis config."]
-    import_config("auth_secret_travis.exs")
+    import_config("auth_secret_ci.exs")
+  System.get_env("CIRCLECI") ->
+    Mix.shell.info [:green, "Using travis config."]
+    import_config("auth_secret_ci.exs")
   File.exists?("config/host/auth_secret_test.exs") ->
     import_config("auth_secret_test.exs")
   true ->
