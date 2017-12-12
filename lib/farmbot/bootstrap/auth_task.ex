@@ -32,6 +32,9 @@ defmodule Farmbot.Bootstrap.AuthTask do
         ConfigStorage.update_config_value(:bool, "settings", "first_boot", false)
         ConfigStorage.update_config_value(:string, "authorization", "token", token)
         Farmbot.System.GPIO.Leds.led_status_ok()
+        if ConfigStorage.get_config_value(:bool, "settings", "auto_sync") do
+          Farmbot.Repo.flip()
+        end
         restart_transports()
         refresh_timer(self())
       {:error, reason} ->
