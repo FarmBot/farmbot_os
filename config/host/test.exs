@@ -5,7 +5,7 @@ cond do
     Mix.shell.info [:green, "Using travis config."]
     import_config("auth_secret_ci.exs")
   System.get_env("CIRCLECI") ->
-    Mix.shell.info [:green, "Using travis config."]
+    Mix.shell.info [:green, "Using circle ci config."]
     import_config("auth_secret_ci.exs")
   File.exists?("config/host/auth_secret_test.exs") ->
     import_config("auth_secret_test.exs")

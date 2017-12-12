@@ -1,3 +1,4 @@
+if Mix.env() == :dev do
 defmodule Farmbot.System.Udev.Supervisor do
   @moduledoc false
   use Supervisor
@@ -23,7 +24,6 @@ defmodule Farmbot.System.Udev do
   end
 
   def init([]) do
-    # {:ok, udev} = Udev.Monitor.start_link self(), :"#{__MODULE__}-:udev"
     {:ok, udev} = Udev.Monitor.start_link self(), :udev
     {:ok, %{udev: udev}}
   end
@@ -50,4 +50,5 @@ defmodule Farmbot.System.Udev do
   def handle_info({:udev, _msg}, state) do
     {:noreply, state}
   end
+end
 end
