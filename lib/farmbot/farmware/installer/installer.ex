@@ -126,7 +126,13 @@ defmodule Farmbot.Farmware.Installer do
     install_path = install_path(fw_name)
     manifest_path = Path.join(install_path, "manifest.json")
     if File.exists?(manifest_path) do
-      {:error, {fw_name, fw_version, :already_installed}}
+      case File.read!(manifest_path) |> Poison.decode!() |> Map.get("version") |> Version.parse!() |> Version.compare(fw_version) do
+        :eq ->
+          {:error, {fw_name, fw_version, :already_installed}}
+        _ ->
+          File.rm_rf(install_path)
+          File.mkdir_p(install_path)
+      end
     else
       File.mkdir_p(install_path)
     end
