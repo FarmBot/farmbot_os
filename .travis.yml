@@ -39,11 +39,10 @@ script:
 - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.7" CC="clang-3.7"; fi
 - mix local.hex --force
 - mix local.rebar --force
-- mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez
-  --force
-- MIX_ENV=test mix deps.get
-- mix credo --strict --ignore Credo.Check.Readability.MaxLineLength
-- mix coveralls.travis --seed 0 --exclude farmbot_firmware
+- mix archive.install https://github.com/nerves-project/archives/raw/master/nerves_bootstrap.ez --force
+# - MIX_ENV=test mix deps.get
+# - mix credo --strict --ignore Credo.Check.Readability.MaxLineLength
+# - mix coveralls.travis --seed 0 --exclude farmbot_firmware
 after_script:
 - export MIX_ENV=dev
 - export MIX_TARGET=rpi3
