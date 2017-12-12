@@ -25,10 +25,8 @@ jobs:
     working_directory: ~/repo
     steps:
       - checkout
-      - <<: *install_elixir
       - <<: *install_hex_rebar
       - <<: *install_nerves_bootstrap
 
       # specify any bash command here prefixed with `run: `
       - run: mix deps.get
-      - run: mix test
