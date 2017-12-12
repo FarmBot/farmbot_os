@@ -2,16 +2,22 @@
 #
 # Check https://circleci.com/docs/2.0/language-elixir/ for more details
 version: 2
-dependencies:
-  pre:
-    - sudo apt-get update; sudo apt-get install -y libudev-dev squashfs-tool libssl-dev python
 jobs:
   build:
     docker:
-      # specify the version here
-      - image: circleci/elixir:1.5
+      - image: nervesproject/nerves:0.13.5
     environment:
+      ENV: CI
       MIX_ENV: test
+      ELIXIR_VERSION: 1.5.2
+
+    install_elixir: &install_elixir
+      run:
+        name: Install Elixir
+        command: |
+          wget https://github.com/elixir-lang/elixir/releases/download/v$ELIXIR_VERSION/Precompiled.zip
+          unzip -d /usr/local/elixir Precompiled.zip
+          echo 'export PATH=/usr/local/elixir/bin:$PATH' >> $BASH_ENV
 
     install_hex_rebar: &install_hex_rebar
       run:
@@ -28,6 +34,7 @@ jobs:
     working_directory: ~/repo
     steps:
       - checkout
+      - <<: *install_elixir
       - <<: *install_hex_rebar
       - <<: *install_nerves_bootstrap
 
