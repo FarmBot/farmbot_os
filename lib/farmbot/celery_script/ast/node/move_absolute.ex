@@ -20,7 +20,9 @@ defmodule Farmbot.CeleryScript.AST.Node.MoveAbsolute do
         :ok ->
           maybe_log_complete(pos)
           {:ok, env}
-        {:error, reason} -> {:error, reason, env}
+        {:error, reason} ->
+          maybe_log_error(pos)
+          {:error, reason, env}
       end
     else
       {:error, reason} -> {:error, reason, env}
@@ -36,6 +38,12 @@ defmodule Farmbot.CeleryScript.AST.Node.MoveAbsolute do
   defp maybe_log_complete(pos) do
     unless Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "firmware_input_log") do
       Logger.success 2, "Movement to (#{pos.x}, #{pos.y}, #{pos.z}) complete."
+    end
+  end
+
+  defp maybe_log_error(pos) do
+    unless Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "firmware_input_log") do
+      Logger.error 2, "Movement to (#{pos.x}, #{pos.y}, #{pos.z}) failed."
     end
   end
 end
