@@ -248,7 +248,7 @@ defmodule Farmbot.BotState do
   end
 
   def handle_call(:locked?, _from, state) do
-    {:reply, state.informational_settings.sync_status == :locked, [], state}
+    {:reply, state.informational_settings.locked, [], state}
   end
 
   def handle_call({:get_pin_value, pin}, _from, state) do

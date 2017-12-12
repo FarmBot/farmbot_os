@@ -18,18 +18,16 @@ defmodule Farmbot.FirmwareTest do
   test "emergency locks and unlocks the bot" do
     Firmware.emergency_lock
     assert Farmbot.BotState.locked?()
-
     Firmware.emergency_unlock()
-    refute Farmbot.BotState.locked?()
   end
 
   test "locks the bot, and makes sure more commands are disaloud" do
-    Firmware.emergency_lock
+    Firmware.emergency_lock()
 
     res = Firmware.move_absolute(vec3(100, 200, 300), @default_speed_x, @default_speed_y, @default_speed_z)
     assert match?({:error, :firmware_error}, res)
 
-    Firmware.emergency_unlock
+    Firmware.emergency_unlock()
   end
 
   test "homes an axis" do
