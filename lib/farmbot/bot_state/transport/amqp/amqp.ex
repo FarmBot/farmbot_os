@@ -48,6 +48,20 @@ defmodule Farmbot.BotState.Transport.AMQP do
     end
   end
 
+  def terminate(_reason, state) do
+    if state.chan do
+      AMQP.Channel.close(state.chan)
+    end
+
+    if state.conn do
+      AMQP.Connection.close(state.conn)
+    end
+
+    if Process.whereis(Farmbot.Bootstrap.AuthTask) do
+      Farmbot.Bootstrap.AuthTask.force_refresh()
+    end
+  end
+
   def handle_events(events, {pid, _}, state) do
     case Process.info(pid)[:registered_name] do
       Farmbot.Logger -> handle_log_events(events, state)

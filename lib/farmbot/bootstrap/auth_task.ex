@@ -12,6 +12,10 @@ defmodule Farmbot.Bootstrap.AuthTask do
     GenServer.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
+  def force_refresh do
+    GenServer.call(__MODULE__, :force_refresh)
+  end
+
   def init([]) do
     timer = Process.send_after(self(), :refresh, @refresh_time)
     {:ok, timer, :hibernate}
@@ -32,8 +36,17 @@ defmodule Farmbot.Bootstrap.AuthTask do
         refresh_timer(self())
       {:error, reason} ->
         Logger.error(1, "Token failed to reauthorize: #{auth_task} - #{email} - #{server} #{inspect reason}")
-        refresh_timer(self())
+        refresh_timer(self(), 30_000)
     end
+  end
+
+  def handle_call(:force_refresh, _, old_timer) do
+    Logger.info 1, "Forcing a token refresh."
+    if Process.read_timer(old_timer) do
+      Process.cancel_timer(old_timer)
+    end
+    send self(), :refresh
+    {:reply, :ok, nil}
   end
 
   defp restart_transports do
@@ -46,8 +59,8 @@ defmodule Farmbot.Bootstrap.AuthTask do
     end
   end
 
-  defp refresh_timer(pid) do
-    timer = Process.send_after(pid, :refresh, @refresh_time)
+  defp refresh_timer(pid, ms \\ @refresh_time) do
+    timer = Process.send_after(pid, :refresh, ms)
     {:noreply, timer, :hibernate}
   end
 
