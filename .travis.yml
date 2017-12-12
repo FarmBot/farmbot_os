@@ -9,7 +9,6 @@ addons:
     - llvm-toolchain-precise
     - ubuntu-toolchain-r-test
     packages:
-    - node
     - squashfs-tools
     - libmnl-dev
     - g++

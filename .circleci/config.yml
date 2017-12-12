@@ -2,6 +2,9 @@
 #
 # Check https://circleci.com/docs/2.0/language-elixir/ for more details
 version: 2
+dependencies:
+  pre:
+    - sudo apt-get update; sudo apt-get install -y libudev-dev squashfs-tool libssl-dev python
 jobs:
   build:
     docker:
