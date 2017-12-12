@@ -43,15 +43,15 @@ defmodule Farmbot.System.Updates do
     {:ok, fw_url} <- find_fw_url(data, new_version) do
       needs_update = case Version.compare(current_version, new_version) do
         s when s in [:gt, :eq] ->
-          Logger.success 3, "Farmbot is up to date."
+          Logger.success 2, "Farmbot is up to date."
           false
         :lt ->
-          Logger.busy 3, "New Farmbot firmware update: #{new_version}"
+          Logger.busy 1, "New Farmbot firmware update: #{new_version}"
           true
       end
       if should_apply_update(@env, prerelease, needs_update) do
-        Logger.info 3, "Downloading update. Here is the release notes"
-        Logger.info 3, cl
+        Logger.info 1, "Downloading update. Here is the release notes"
+        Logger.info 1, cl
         do_download_and_apply(fw_url, new_version)
       end
     else

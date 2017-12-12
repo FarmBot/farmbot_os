@@ -124,7 +124,7 @@ defmodule Farmbot.Repo do
     copy_configs(repo_b)
     flip_repos_in_cs()
     Farmbot.FarmEvent.Manager.resume()
-
+    Logger.success(1, "Sync complete.")
     {:reply, :ok, %{state | repos: [repo_b, repo_a], needs_hard_sync: false, timer: start_timer()}}
   end
 
