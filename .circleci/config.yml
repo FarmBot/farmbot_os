@@ -30,3 +30,4 @@ jobs:
 
       # specify any bash command here prefixed with `run: `
       - run: mix deps.get
+      - run: mix test
