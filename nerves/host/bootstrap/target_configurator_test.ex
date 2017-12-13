@@ -13,21 +13,36 @@ defmodule Farmbot.Host.TargetConfiguratorTest do
   plug(:match)
   plug(:dispatch)
 
+  use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
+
+  @version Mix.Project.config[:version]
 
   @data_path Application.get_env(:farmbot, :data_path)
 
   get "/" do
     last_reset_reason_file = Path.join(@data_path, "last_shutdown_reason")
     if File.exists?(last_reset_reason_file) do
-      render_page(conn, "index", [last_reset_reason: File.read!(last_reset_reason_file)])
+      render_page(conn, "index", [version: @version, last_reset_reason: File.read!(last_reset_reason_file)])
     else
-      render_page(conn, "index", [last_reset_reason: nil])
+      render_page(conn, "index", [version: @version, last_reset_reason: nil])
+    end
+  end
+
+  get "/setup" do
+    last_reset_reason_file = Path.join(@data_path, "last_shutdown_reason")
+    if File.exists?(last_reset_reason_file) do
+      render_page(conn, "index", [version: @version, last_reset_reason: File.read!(last_reset_reason_file)])
+    else
+      render_page(conn, "index", [version: @version, last_reset_reason: nil])
     end
   end
 
   get "/network" do
-    render_page(conn, "network", [interfaces: []])
+    render_page(conn, "network", interfaces: [
+      {"fake_wireless_iface0", %{type: :wireless, ssids: ["not", "a", "real", "ssid", "list"], checked: "checked"}},
+      {"fake_wired_iface1", %{type: :wired, checked: nil}}
+    ])
   end
 
   get "/firmware" do
@@ -42,17 +57,8 @@ defmodule Farmbot.Host.TargetConfiguratorTest do
     render_page(conn, "credentials", server: server, email: email, password: pass)
   end
 
-  post "/configure_network" do
-    redir(conn, "/firmware")
-  end
-
   get "/finish" do
-    render_page(conn, "finish")
-  end
-
-  post "/configure_firmware" do
-    Process.sleep(15000)
-    redir(conn, "/credentials")
+    send_resp(conn, 200, "bye")
   end
 
   post "/configure_credentials" do

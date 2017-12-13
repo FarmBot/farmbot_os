@@ -11,17 +11,11 @@ defmodule Farmbot.Host.TargetConfiguratorTest.Supervisor do
         :http,
         Farmbot.Host.TargetConfiguratorTest,
         [],
-        port: 4000,
-        acceptors: 3,
-        dispatch: [dispatch()]
-      )]
-      supervise(children, [strategy: :one_for_one])
-  end
+        port: 4040,
+        acceptors: 3
+      )
+    ]
 
-  defp dispatch do
-    {:_, [
-      {"/ws", SocketHandler, []},
-      {:_, Plug.Adapters.Cowboy.Handler, {Farmbot.Host.TargetConfiguratorTest, []}}
-      ]}
+    supervise(children, strategy: :one_for_one)
   end
 end

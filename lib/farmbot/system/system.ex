@@ -89,27 +89,30 @@ defmodule Farmbot.System do
 
   @doc "Format an error for human consumption."
   def format_reason(reason) do
-    [_ | [_ | stack]] = System.stacktrace()
-    stack = Enum.map(stack, fn er -> "\t#{inspect(er)}" end) |> Enum.join(",\r\n <p>")
-    formated = do_format_reason(reason)
-    footer = """
-    <hr>
-    <p>
-    <p>
-    <p> <strong> environment: </strong> #{@env}
-    <p> <strong> source_ref: </strong>  #{@ref}
-    <p> <strong> target: </strong>      #{@target}
-    <p>
-    <p>
-    Stacktrace:
-    <p> [#{stack}]
-    <hr>
-    """
-    case formated do
-      nil -> nil
-      {:ignore, reason}  -> {:ignore, reason}
-      formatted when is_binary(formatted) ->  formated <> footer
-    end
+    raise "deleteme"
+
+    rescue
+      _e -> [_ | [_ | stack]] = System.stacktrace()
+      stack = Enum.map(stack, fn er -> "\t#{inspect(er)}" end) |> Enum.join(",\r\n <p>")
+      formated = do_format_reason(reason)
+      footer = """
+      <hr>
+      <p>
+      <p>
+      <p> <strong> environment: </strong> #{@env}
+      <p> <strong> source_ref: </strong>  #{@ref}
+      <p> <strong> target: </strong>      #{@target}
+      <p>
+      <p>
+      Stacktrace:
+      <p> [#{stack}]
+      <hr>
+      """
+      case formated do
+        nil -> nil
+        {:ignore, reason}  -> {:ignore, reason}
+        formatted when is_binary(formatted) ->  formated <> footer
+      end
   end
 
   # This mess of pattern matches cleans up erlang startup errors. It's very

@@ -40,18 +40,6 @@ defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdateTest do
     refute ConfigStorage.get_config_value(:bool, "settings", "auto_sync")
   end
 
-  test "sets arduino hardware to a valid settings", %{env: env} do
-    ConfigUpdate.execute(%{package: :farmbot_os}, pair("firmware_hardware", "arduino"), env)
-    |> assert_cs_success()
-
-    assert ConfigStorage.get_config_value(:string, "settings", "firmware_hardware") == "arduino"
-
-    ConfigUpdate.execute(%{package: :farmbot_os}, pair("firmware_hardware", "farmduino"), env)
-    |> assert_cs_success()
-
-    assert ConfigStorage.get_config_value(:string, "settings", "firmware_hardware") == "farmduino"
-  end
-
   test "can not set arduino hardware to unknown setting", %{env: env} do
     ConfigUpdate.execute(%{package: :farmbot_os}, pair("firmware_hardware", "whoops"), env)
     |> assert_cs_fail("unknown hardware: whoops")
