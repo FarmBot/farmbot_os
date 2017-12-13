@@ -1,6 +1,6 @@
 defmodule Farmbot.Firmware.Gcode.Parser do
   @moduledoc """
-  Parses farmbot_arduino_firmware G-Codes.
+  Parses [farmbot-arduino-firmware](https://github.com/farmbot/farmbot-arduino-firmware) G-Codes.
   """
 
   import Farmbot.Firmware.Gcode.Param
@@ -8,6 +8,7 @@ defmodule Farmbot.Firmware.Gcode.Parser do
   @spec parse_code(binary) :: {binary, tuple}
 
   # Status codes.
+  @doc "Parse a code to an Elixir consumable message."
   def parse_code("R00 Q" <> tag), do: {tag, :idle}
   def parse_code("R01 Q" <> tag), do: {tag, :received}
   def parse_code("R02 Q" <> tag), do: {tag, :done}
@@ -109,12 +110,7 @@ defmodule Farmbot.Firmware.Gcode.Parser do
     {:unhandled_gcode, Enum.join(l, " ")}
   end
 
-  @doc ~S"""
-    Parses End Stops. I don't think we actually use these yet.
-    Example:
-      iex> Gcode.parse_end_stops("XA1 XB1 YA0 YB1 ZA0 ZB1 Q123")
-      {:report_end_stops, "1", "1", "0", "1", "0", "1", "123"}
-  """
+  @doc false
   @spec parse_end_stops(binary) ::
           {:report_end_stops, binary, binary, binary, binary, binary, binary, binary}
   def parse_end_stops(<<
@@ -149,16 +145,7 @@ defmodule Farmbot.Firmware.Gcode.Parser do
   defp pes(48), do: 0
   defp pes(49), do: 1
 
-  @doc ~S"""
-    common function for report_(something)_value from gcode.
-    Example:
-      iex> Gcode.parse_pvq("P20 V100", :report_parameter_value)
-      {:report_parameter_value, "20" ,"100", "0"}
-
-    Example:
-      iex> Gcode.parse_pvq("P20 V100 Q12", :report_parameter_value)
-      {:report_parameter_value, "20" ,"100", "12"}
-  """
+  @doc false
   @spec parse_pvq(binary, :report_parameter_value) ::
           {:report_parameter_value, atom, integer, String.t()}
   def parse_pvq(params, :report_parameter_value)

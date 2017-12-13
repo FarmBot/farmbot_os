@@ -1,5 +1,5 @@
 defmodule Logger.Backends.Farmbot do
-  @moduledoc "Farmbot Loggerr Backend."
+  @moduledoc false
 
   def init(_opts) do
     {:ok, %{}}

@@ -3,7 +3,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
   use Plug.Router
 
-  if Mix.env() == :dev do
+  if Farmbot.Project.env() == :dev do
     use Plug.Debugger, otp_app: :farmbot
   end
 

@@ -8,7 +8,7 @@ defmodule Farmbot.System.Init.FSCheckup do
   @ref Farmbot.Project.commit()
   @version Farmbot.Project.version()
   @target Farmbot.Project.target()
-  @env Mix.env()
+  @env Farmbot.Project.env()
 
   def start_link(_, opts \\ []) do
     Supervisor.start_link(__MODULE__, [], opts)

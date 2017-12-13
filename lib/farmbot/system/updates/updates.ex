@@ -5,7 +5,7 @@ defmodule Farmbot.System.Updates do
   @data_path Application.get_env(:farmbot, :data_path)
   @current_version Farmbot.Project.version()
   @target Farmbot.Project.target()
-  @env Mix.env()
+  @env Farmbot.Project.env()
   use Farmbot.Logger
 
   @handler Application.get_env(:farmbot, :behaviour)[:update_handler] || Mix.raise("Please configure `config :farmbot, :behaviour, [update_handler: <handler_mod>]`")

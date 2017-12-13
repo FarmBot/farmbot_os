@@ -4,6 +4,7 @@ defmodule Farmbot.Project do
   @version Mix.Project.config[:version]
   @target Mix.Project.config[:target]
   @commit Mix.Project.config[:commit]
+  @env Mix.env()
 
   @doc "*#{@version}*"
   @compile {:inline, version: 0}
@@ -16,4 +17,8 @@ defmodule Farmbot.Project do
   @doc "*#{@target}*"
   @compile {:inline, target: 0}
   def target, do: @target
+
+  @doc "*#{@env}*"
+  @compile {:inline, env: 0}
+  def env, do: @env
 end

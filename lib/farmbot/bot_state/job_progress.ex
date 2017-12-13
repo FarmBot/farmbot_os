@@ -23,7 +23,7 @@ defmodule Farmbot.BotState.JobProgress do
   end
 
   defmodule Bytes do
-    @moduledoc "Byes job."
+    @moduledoc "Bytes job."
     defstruct [status: :working, bytes: 0, unit: :bytes]
 
     defimpl Inspect, for: __MODULE__ do

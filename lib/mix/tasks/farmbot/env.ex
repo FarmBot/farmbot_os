@@ -34,7 +34,7 @@ defmodule Mix.Tasks.Farmbot.Env do
 
   @doc false
   def env do
-    to_string(Mix.env())
+    to_string(Farmbot.Project.env())
   end
 
   @doc false

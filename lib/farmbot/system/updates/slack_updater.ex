@@ -4,7 +4,7 @@ defmodule Farmbot.System.Updates.SlackUpdater do
   """
 
   @token System.get_env("SLACK_TOKEN")
-  @target Mix.Project.config()[:target]
+  @target Farmbot.Project.target()
   @data_path Application.get_env(:farmbot, :data_path)
 
   use Farmbot.Logger

@@ -5,7 +5,7 @@ defmodule Farmbot.Farmware.Runtime do
   alias Farmware.{RuntimeError, Installer}
   use Farmbot.Logger
 
-  @fbos_version Mix.Project.config()[:version]
+  @fbos_version Farmbot.Project.version()
 
   defstruct [:farmware, :env, :port, :exit_status, :working_dir, :return_dir]
 

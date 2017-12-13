@@ -83,9 +83,9 @@ defmodule Farmbot.System do
     File.write!(file, reason)
   end
 
-  @ref Mix.Project.config()[:commit]
-  @target Mix.Project.config()[:target]
-  @env Mix.env()
+  @ref Farmbot.Project.commit()
+  @target Farmbot.Project.target()
+  @env Farmbot.Project.env()
 
   @doc "Format an error for human consumption."
   def format_reason(reason) do

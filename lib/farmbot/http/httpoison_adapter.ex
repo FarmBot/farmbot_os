@@ -13,8 +13,8 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
 
   @behaviour Farmbot.HTTP.Adapter
 
-  @version Mix.Project.config()[:version]
-  @target Mix.Project.config()[:target]
+  @version Farmbot.Project.version()
+  @target Farmbot.Project.target()
   @redirect_status_codes [301, 302, 303, 307, 308]
 
   def request(http, method, url, body, headers, opts) do
