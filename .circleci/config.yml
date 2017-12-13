@@ -30,14 +30,52 @@ jobs:
       run:
         name: Install nerves_bootstrap
         command: mix archive.install hex nerves_bootstrap --force
-
-    working_directory: ~/repo
+    working_directory: ~/farmbot_os
     steps:
       - checkout
       - <<: *install_elixir
       - <<: *install_hex_rebar
       - <<: *install_nerves_bootstrap
-
-      # specify any bash command here prefixed with `run: `
       - run: mix deps.get
-      - run: mix test --exclude farmbot_firmware
+
+  test:
+    working_directory: ~/farmbot_os
+    environment:
+      ENV: CI
+      MIX_ENV: test
+    steps:
+      - run: mix credo --strict --ignore Credo.Check.Readability.MaxLineLength
+      - run: mix coveralls.travis --seed 0 --exclude farmbot_firmware
+
+  firmware:
+    working_directory: ~/farmbot_os
+    environment:
+      MIX_ENV: dev
+      MIX_TARGET: rpi3
+    steps:
+      - run: mix deps.get
+      - run: mix firmware
+
+  slack:
+    working_directory: ~/farmbot_os
+    environment:
+      MIX_ENV: dev
+      MIX_TARGET: rpi3
+    steps:
+      - run: echo "export COMMIT_MESSAGE=\"$(git log --format=oneline -n 1 $CIRCLE_SHA1)\"" >> ~/.bashrc
+      - run: mix firmware.slack --channels C58DCU4A3 $COMMIT_MESSAGE
+
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
+      - firmware:
+          requires:
+            - test
+      - slack:
+          requires:
+            - firmware
