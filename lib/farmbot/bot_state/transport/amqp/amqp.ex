@@ -96,7 +96,9 @@ defmodule Farmbot.BotState.Transport.AMQP do
         emit_cs(state.chan, state.bot, ast)
         handle_bot_state_events(rest, state)
       new_bot_state ->
-        push_bot_state(state.chan, state.bot, new_bot_state)
+        unless new_bot_state == state.state_cache do
+          push_bot_state(state.chan, state.bot, new_bot_state)
+        end
         handle_bot_state_events(rest, %{state | state_cache: new_bot_state})
     end
   end
