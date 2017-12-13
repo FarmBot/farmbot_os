@@ -19,6 +19,11 @@ defmodule FarmbotTestSupport.AST.NodeTestCase do
         res
       end
 
+      def assert_cs_success(res, module) do
+        assert match?({:ok, %Farmbot.CeleryScript.AST{kind: module}, %Macro.Env{}}, res)
+        res
+      end
+
       def assert_cs_fail(res, reason \\ nil) do
         if reason do
           assert match?({:error, ^reason, %Macro.Env{}}, res)

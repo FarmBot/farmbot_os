@@ -7,6 +7,5 @@ Farmbot.Logger.Console.set_verbosity_level(0)
 Ecto.Adapters.SQL.Sandbox.mode(Farmbot.Repo.A, :manual)
 Ecto.Adapters.SQL.Sandbox.mode(Farmbot.Repo.B, :manual)
 FarmbotTestSupport.wait_for_firmware()
-
 # Start ExUnit.
 ExUnit.start()

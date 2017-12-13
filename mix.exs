@@ -108,11 +108,11 @@ defmodule Farmbot.Mixfile do
 
   defp deps("host") do
     [
-      {:ex_doc, "~> 0.17", only: :dev},
+      {:ex_doc, "~> 0.18.1", only: :dev},
       {:inch_ex, ">= 0.0.0", only: :dev},
-      {:excoveralls, "~> 0.6", only: :test},
+      {:excoveralls, "~> 0.7", only: :test},
       {:mock, "~> 0.2.0", only: :test},
-      {:faker, "~> 0.9", only: :test },
+      {:faker, "~> 0.9", only: :test},
       {:udev, "~> 0.1.0", only: :dev},
     ]
   end

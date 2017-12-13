@@ -12,8 +12,8 @@ defmodule Farmbot.CeleryScript.AST.Node do
   defmacro __after_compile__(env, _) do
     # if we didn't define an execute function; throw a compile error.
     unless function_exported?(env.module, :execute, 3) do
-      # err = "#{env.module} does not export a `execute(args, body)` function."
-      # raise CompileError, description: err, file: env.file
+      err = "#{env.module} does not export a `execute(args, body)` function."
+      raise CompileError, description: err, file: env.file
       quote do end
     end
   end
@@ -104,7 +104,7 @@ defmodule Farmbot.CeleryScript.AST.Node do
 
   defmacro mutate_env(env) do
     quote do
-      %{unquote(env) | file:     __ENV__.file,
+      %{unquote(env) | file: __ENV__.file,
               line:     __ENV__.line,
               function: __ENV__.function,
               module:   __ENV__.module}
