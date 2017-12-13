@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/FarmBot/farmbot_os.svg?branch=staging)](https://travis-ci.org/FarmBot/farmbot_os)
+[![Build Status](https://circleci.com/gh/FarmBot/farmbot_os/tree/staging.svg?style=svg)](https://circleci.com/gh/FarmBot/farmbot_os/tree/staging)
 [![Coverage Status](https://coveralls.io/repos/github/FarmBot/farmbot_os/badge.svg?branch=staging)](https://coveralls.io/github/FarmBot/farmbot_os?branch=staging)
 [![Built with Nerves](http://nerves-project.org/images/badge/nerves-badge_75x39_black.png)](http://nerves-project.org/)
 ---

@@ -38,6 +38,9 @@ jobs:
           name: Install test dependencies
           command: mix deps.get
       - run:
+          name: Compile
+          command: mix compile
+      - run:
           name: Lint
           command: mix credo --strict --ignore Credo.Check.Readability.MaxLineLength
       - run:
@@ -49,6 +52,8 @@ jobs:
     environment:
       MIX_ENV: dev
       MIX_TARGET: rpi3
+      ELIXIR_VERSION: 1.5.2
+      ENV: CI
     steps:
       - checkout
       - <<: *install_elixir
