@@ -86,6 +86,7 @@ defmodule Farmbot.Firmware.UartHandler do
     # If in dev environment, it is expected that this be done at compile time.
     # If in target environment, this should be done by `Farmbot.Firmware.AutoDetector`.
     tty = Application.get_env(:farmbot, :uart_handler)[:tty] || raise "Please configure uart handler!"
+    maybe_flash_fw(tty)
     storage_dispatch = Farmbot.System.ConfigStorage.Dispatcher
     case open_tty(tty) do
       {:ok, nerves} ->
@@ -94,6 +95,17 @@ defmodule Farmbot.Firmware.UartHandler do
           [dispatcher: GenStage.BroadcastDispatcher, subscribe_to: [storage_dispatch]]
         }
       err -> {:stop, err}
+    end
+  end
+
+  defp maybe_flash_fw(_tty) do
+    hack_file = Path.join(Application.get_env(:farmbot, :data_path), "firmware_flash")
+    case File.read(hack_file) do
+      {:ok, value} when value in ["arduino", "farmduino"] ->
+        Farmbot.System.ConfigStorage.update_config_value(:string, "settings", "firmware_hardware", value)
+        Farmbot.Firmware.UartHandler.Update.maybe_update_firmware(value)
+        File.rm!(hack_file)
+      _ -> :ok
     end
   end
 

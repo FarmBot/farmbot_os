@@ -47,9 +47,14 @@ defmodule Farmbot.System do
 
   defp do_reset(reason) do
     formatted = format_reason(reason)
-    Ecto.drop()
-    write_file(formatted)
-    @system_tasks.factory_reset(formatted)
+    case formatted do
+      nil -> reboot("Escape factory reset: #{inspect reason}")
+      {:ignore, reason} -> reboot(reason)
+      _ ->
+        Ecto.drop()
+        write_file(formatted)
+        @system_tasks.factory_reset(formatted)
+    end
   end
 
   @doc "Reboot."
@@ -84,31 +89,27 @@ defmodule Farmbot.System do
 
   @doc "Format an error for human consumption."
   def format_reason(reason) do
-    raise "deleteme"
-  rescue
-    _ ->
-      [_ | [_ | stack]] = System.stacktrace()
-      stack = Enum.map(stack, fn er -> "\t#{inspect(er)}" end) |> Enum.join(",\r\n <p>")
-      formated = do_format_reason(reason)
-      footer = """
-      <hr>
-      <p>
-      <p>
-      <p> <strong> environment: </strong> #{@env}
-      <p> <strong> source_ref: </strong>  #{@ref}
-      <p> <strong> target: </strong>      #{@target}
-      <p>
-      <p>
-      Stacktrace:
-      <p> [#{stack}]
-      <hr>
-      """
-      if formated do
-        formated <> footer
-      else
-        nil
-      end
-
+    [_ | [_ | stack]] = System.stacktrace()
+    stack = Enum.map(stack, fn er -> "\t#{inspect(er)}" end) |> Enum.join(",\r\n <p>")
+    formated = do_format_reason(reason)
+    footer = """
+    <hr>
+    <p>
+    <p>
+    <p> <strong> environment: </strong> #{@env}
+    <p> <strong> source_ref: </strong>  #{@ref}
+    <p> <strong> target: </strong>      #{@target}
+    <p>
+    <p>
+    Stacktrace:
+    <p> [#{stack}]
+    <hr>
+    """
+    case formated do
+      nil -> nil
+      {:ignore, reason}  -> {:ignore, reason}
+      formatted when is_binary(formatted) ->  formated <> footer
+    end
   end
 
   # This mess of pattern matches cleans up erlang startup errors. It's very
@@ -160,10 +161,10 @@ defmodule Farmbot.System do
   end
 
   defp do_format_reason({:badarg, [{:ets, :lookup_element, _, _} | _]}) do
-    """
+    {:ignore, """
     Bad Ecto call. This usually is a result of an over the air update and can
     likely be ignored.
-    """
+    """}
   end
 
   defp do_format_reason(reason), do: do_format_reason({:error, reason})
