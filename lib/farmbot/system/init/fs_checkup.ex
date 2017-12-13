@@ -5,9 +5,9 @@ defmodule Farmbot.System.Init.FSCheckup do
   @data_path Application.get_env(:farmbot, :data_path) || Mix.raise("Unconfigured data path.")
   use Farmbot.Logger
 
-  @ref Mix.Project.config[:commit]
-  @version Mix.Project.config[:version]
-  @target Mix.Project.config[:target]
+  @ref Farmbot.Project.commit()
+  @version Farmbot.Project.version()
+  @target Farmbot.Project.target()
   @env Mix.env()
 
   def start_link(_, opts \\ []) do

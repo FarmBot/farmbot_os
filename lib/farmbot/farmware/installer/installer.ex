@@ -7,7 +7,7 @@ defmodule Farmbot.Farmware.Installer do
 
   use Farmbot.Logger
 
-  @current_os_version Mix.Project.config[:version]
+  @current_os_version Farmbot.Project.version()
 
   data_path = Application.get_env(:farmbot, :data_path) || raise "No configured data_path."
   @farmware_install_path Path.join(data_path, "farmware")

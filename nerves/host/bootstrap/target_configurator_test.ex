@@ -16,7 +16,7 @@ defmodule Farmbot.Host.TargetConfiguratorTest do
   use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
 
-  @version Mix.Project.config[:version]
+  @version Farmbot.Project.version()
 
   @data_path Application.get_env(:farmbot, :data_path)
 

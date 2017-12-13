@@ -8,8 +8,8 @@ defmodule Farmbot do
   require Logger
   use Supervisor
 
-  @version Mix.Project.config()[:version]
-  @commit Mix.Project.config()[:commit]
+  @version Farmbot.Project.version()
+  @commit Farmbot.Project.commit()
 
   @doc false
   def start(type, start_opts)

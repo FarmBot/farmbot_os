@@ -3,8 +3,8 @@ defmodule Farmbot.System.Updates do
   use Supervisor
 
   @data_path Application.get_env(:farmbot, :data_path)
-  @current_version Mix.Project.config[:version]
-  @target Mix.Project.config[:target]
+  @current_version Farmbot.Project.version()
+  @target Farmbot.Project.target()
   @env Mix.env()
   use Farmbot.Logger
 

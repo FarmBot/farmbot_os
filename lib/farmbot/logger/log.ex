@@ -1,7 +1,7 @@
 defmodule Farmbot.Log do
   @moduledoc "Farmbot Log Object."
 
-  @version Mix.Project.config[:version] |> Version.parse!
+  @version Farmbot.Project.version() |> Version.parse!
   defstruct [
     time: nil,
     level: nil,

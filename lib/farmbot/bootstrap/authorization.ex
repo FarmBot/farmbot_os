@@ -15,8 +15,8 @@ defmodule Farmbot.Bootstrap.Authorization do
 
   use Farmbot.Logger
 
-  @version Mix.Project.config[:version]
-  @target Mix.Project.config[:target]
+  @version Farmbot.Project.version()
+  @target Farmbot.Project.target()
 
   @doc """
   Callback for an authorization implementation.
