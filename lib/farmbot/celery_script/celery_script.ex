@@ -54,8 +54,6 @@ defmodule Farmbot.CeleryScript do
         {:error, "variables may not contain special characters."}
       match?(<<"__", _ :: binary>>, name) ->
         {:error, "variables may not replace internal names."}
-      match?(<<"pin", _ :: binary>>, name) ->
-        {:error, "variables may not contain pattern: pin<number>."}
       name in ["x", "y", "z"] ->
         {:error, "variables may not be axis names."}
       true -> {:ok, name}
