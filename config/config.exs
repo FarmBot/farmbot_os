@@ -54,7 +54,7 @@ case target do
       import_config("target/#{target}.exs")
     end
 
-    rootfs_overlay_dir = "config/target/rootfs_overlay_#{Farmbot.Project.target()}"
+    rootfs_overlay_dir = "config/target/rootfs_overlay_#{Mix.Project.config[:target]}"
 
     if File.exists?(rootfs_overlay_dir) do
       config :nerves, :firmware, rootfs_overlay: rootfs_overlay_dir

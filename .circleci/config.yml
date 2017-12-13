@@ -60,6 +60,9 @@ jobs:
       - <<: *install_hex_rebar
       - <<: *install_nerves_bootstrap
       - run:
+          name: Set COMMIT_MESSAGE var
+          command: echo "export COMMIT_MESSAGE=\"$(git log --format=oneline -n 1 $CIRCLE_SHA1)\"" >> ~/.bashrc
+      - run:
           name: Install dev dependencies
           command: mix deps.get
       - run:
@@ -77,5 +80,3 @@ workflows:
           context: org-global
       - firmware:
           context: org-global
-          requires:
-            - test
