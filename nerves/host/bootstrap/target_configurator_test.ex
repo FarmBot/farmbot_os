@@ -45,6 +45,10 @@ defmodule Farmbot.Host.TargetConfiguratorTest do
     ])
   end
 
+  post "/configure_network" do
+    redir(conn, "/credentials")
+  end
+
   get "/firmware" do
     render_page(conn, "firmware")
   end
