@@ -3,11 +3,13 @@
 }
 
 body {
-  background: linear-gradient(-135deg, #089460, #159acc);
-  background-size: 400% 400%;
+  background: linear-gradient(-135deg, #6db1ec, #35a274);
+  padding: 0.5rem;
+  padding-top: 1rem;
 }
 
 h1, h2 {
+  text-shadow: 0 0 25px rgba(0, 0, 0, 0.1), 0 0 25px rgba(0, 0, 0, 0.1);
   margin-bottom: 3rem;
   font-weight: 100;
   text-align: center;
@@ -42,6 +44,7 @@ a:hover, input[type=submit]:hover {
   position: relative;
   margin: auto;
   max-width: 500px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
 }
 
 .widget-header {
@@ -52,7 +55,7 @@ a:hover, input[type=submit]:hover {
 
 h5 {
   color: #cccccc;
-  font-size: 1.2rem;
+  font-size: 1rem;
   margin: .25rem;
   text-transform: uppercase;
   display: inline;
@@ -62,20 +65,22 @@ h5 {
 p {
   font-size: 1rem;
   font-style: italic;
+  margin-top: 0;
 }
 
 .widget-content {
   background: #f4f4f4;
   border-color: #ddd;
   color: #434343 !important;
-  padding: 1.25rem;
+  padding: 1rem;
 }
 .widget-content:label {
-    font-size: 1.3rem;
+  font-size: 1.3rem;
 }
 
 fieldset {
   border: none;
+  padding: 0;
 }
 
 select {
@@ -95,7 +100,8 @@ label {
   text-transform: uppercase;
   font-weight: bold;
   display: block;
-  margin-bottom: 5px;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 input[type=email],
