@@ -1,9 +1,6 @@
 use Mix.Config
 
 cond do
-  System.get_env("TRAVIS_COMMIT_MESSAGE") ->
-    Mix.shell.info [:green, "Using travis config."]
-    import_config("auth_secret_ci.exs")
   System.get_env("CIRCLECI") ->
     Mix.shell.info [:green, "Using circle ci config."]
     import_config("auth_secret_ci.exs")

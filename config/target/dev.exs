@@ -76,14 +76,7 @@ else
   []
 end
 
-travis_file = "travis_env"
-travis_keys = if File.exists?(travis_file) do
-  File.read!(travis_file) |> String.split(",")
-else
-  []
-end
-
-config :nerves_firmware_ssh, authorized_keys: local_key ++ travis_keys
+config :nerves_firmware_ssh, authorized_keys: local_key
 
 config :bootloader,
   init: [:nerves_runtime, :nerves_init_gadget],

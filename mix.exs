@@ -48,7 +48,7 @@ defmodule Farmbot.Mixfile do
         "coveralls.detail": :test,
         "coveralls.post": :test,
         "coveralls.html": :test,
-        "coveralls.travis": :test
+        "coveralls.circle": :test
       ],
       source_url: "https://github.com/Farmbot/farmbot_os",
       homepage_url: "http://farmbot.io",
