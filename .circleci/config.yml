@@ -39,6 +39,8 @@ jobs:
       - run: mix deps.get
 
   test:
+    docker:
+      - image: nervesproject/nerves:0.13.5
     working_directory: ~/farmbot_os
     environment:
       ENV: CI
@@ -48,6 +50,8 @@ jobs:
       - run: mix coveralls.travis --seed 0 --exclude farmbot_firmware
 
   firmware:
+    docker:
+      - image: nervesproject/nerves:0.13.5
     working_directory: ~/farmbot_os
     environment:
       MIX_ENV: dev
@@ -57,6 +61,8 @@ jobs:
       - run: mix firmware
 
   slack:
+    docker:
+      - image: nervesproject/nerves:0.13.5
     working_directory: ~/farmbot_os
     environment:
       MIX_ENV: dev
