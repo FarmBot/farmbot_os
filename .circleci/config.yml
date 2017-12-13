@@ -81,7 +81,9 @@ workflows:
             - build
       - firmware:
           requires:
+            - build
             - test
       - slack:
           requires:
+            - build
             - firmware
