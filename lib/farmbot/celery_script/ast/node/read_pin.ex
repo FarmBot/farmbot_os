@@ -2,6 +2,7 @@ defmodule Farmbot.CeleryScript.AST.Node.ReadPin do
   @moduledoc false
   use Farmbot.CeleryScript.AST.Node
   allow_args [:pin_number, :label, :pin_mode]
+  use Farmbot.Logger
 
   def execute(%{pin_number: pin_num, pin_mode: mode, label: label}, _, env) do
     env = mutate_env(env)
