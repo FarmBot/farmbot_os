@@ -193,6 +193,8 @@ defmodule Hostapd do
     hostapd_ip_settings_down(state.interface, state.ip_addr)
     Logger.busy 3, "removing PID."
     File.rm_rf!("/tmp/hostapd")
+    Nerves.NetworkInterface.ifdown(state.interface)
+    Nerves.NetworkInterface.ifup(state.interface)
 
     if state.dnsmasq do
       Logger.busy 3, "Stopping dnsmasq"

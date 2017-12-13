@@ -120,7 +120,7 @@ input[type=text]:focus {
   outline: none;
 }
 
-input[type="checkbox"] {
+input[type="radio"] {
   border-radius: 0;
   -webkit-appearance: none;
   border: 1px solid black;
@@ -131,7 +131,7 @@ input[type="checkbox"] {
   cursor: pointer;
 }
 
-input[type="checkbox"]:checked:after {
+input[type="radio"]:checked:after {
   content: '';
   position: absolute;
   width: 0.5rem;

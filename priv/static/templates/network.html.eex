@@ -40,14 +40,14 @@
             <% %{type: :wired, checked: checked} -> %>
               <fieldset>
                 <label>Enable Ethernet (<%= interface %>)</label>
-                <input <%= checked %> type=checkbox name="<%= interface %>_enable">
+                <input <%= checked %> type=radio name="interface" value="<%= interface %>">
                 <input hidden=true name="<%= interface %>_type" value=wired>
               </fieldset>
 
             <% %{type: :wireless, ssids: ssids, checked: checked} -> %>
               <fieldset>
                 <label>Enable Wireless (<%= interface %>) </label>
-                <input <%= checked %> type=checkbox name="<%= interface %>_enable">
+                <input <%= checked %> type=radio name="interface" value="<%= interface %>">
                 <label>Network Name/SSID</label>
                 <select name="<%= interface %>_ssid" id="<%= interface %>_ssid_select" onchange="ssidSelectOnChange('<%= interface %>');">
                   <%= Enum.reduce(ssids, "", fn(ssid, acc) ->

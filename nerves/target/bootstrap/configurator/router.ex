@@ -104,10 +104,22 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   end
 
   post "/configure_network" do
-    {:ok, _, conn} = read_body(conn)
-    :ok = conn.body_params |> sort_network_configs |> input_network_configs
+    try do
+      {:ok, _, conn} = read_body(conn)
+      interface = conn.body_params["interface"]
+      settings =
+        Enum.filter(conn.body_params, &String.starts_with?(elem(&1, 0), interface))
+        |> Enum.map(fn({key, val}) -> {String.trim(key, interface <> "_"), val} end)
+        |> Map.new()
+        |> Map.put("enable", "on")
 
-    redir(conn, "/firmware")
+      :ok = input_network_configs([{interface, settings}])
+      redir(conn, "/firmware")
+    rescue
+      err ->
+        Logger.error 1, "Failed too input network config: #{Exception.message(err)}: #{inspect System.stacktrace()}" 
+        redir(conn, "/network")
+    end
   end
 
   get "/finish" do
@@ -134,33 +146,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     end
   end
 
-  defp sort_network_configs(map, acc \\ %{})
-
-  defp sort_network_configs(map, acc) when is_map(map) do
-    sort_network_configs(Map.to_list(map), acc)
-  end
-
-  defp sort_network_configs([{key, val} | rest], acc) do
-    [iface, key] = String.split(key, "_")
-
-    acc =
-      case acc[iface] do
-        map when is_map(map) -> %{acc | iface => Map.merge(acc[iface], %{key => val})}
-        nil -> Map.put(acc, iface, %{key => val})
-      end
-
-    sort_network_configs(rest, acc)
-  end
-
-  defp sort_network_configs([], acc), do: acc
-
-  defp input_network_configs(conf_map)
-
-  defp input_network_configs(conf_map) when is_map(conf_map) do
-    conf_map |> Map.to_list() |> input_network_configs
-  end
-
-  defp input_network_configs([{iface, settings} | rest]) do
+  defp input_network_configs([{iface, settings} | rest]) when is_map(settings) and is_binary(iface) do
     if settings["enable"] == "on" do
 
       case settings["type"] do

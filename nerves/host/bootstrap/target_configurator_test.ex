@@ -46,6 +46,7 @@ defmodule Farmbot.Host.TargetConfiguratorTest do
   end
 
   post "/configure_network" do
+    require IEx; IEx.pry
     redir(conn, "/credentials")
   end
 
