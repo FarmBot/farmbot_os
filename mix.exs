@@ -124,7 +124,7 @@ defmodule Farmbot.Mixfile do
         {:nerves_runtime, "~> 0.4"},
         {:nerves_firmware, "~> 0.4.0"},
         {:nerves_firmware_ssh, "~> 0.2", only: :dev},
-        {:nerves_network, "~> 0.3.5"},
+        {:nerves_network, "~> 0.3.6"},
         {:dhcp_server, "~> 0.3.0"},
         {:elixir_ale, "~> 1.0"}
       ]
