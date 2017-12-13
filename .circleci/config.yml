@@ -42,7 +42,7 @@ jobs:
           command: mix credo --strict --ignore Credo.Check.Readability.MaxLineLength
       - run:
           name: Test
-          command: mix coveralls.travis --seed 0 --exclude farmbot_firmware
+          command: mix coveralls.circle --seed 0 --exclude farmbot_firmware
 
   firmware:
     <<: *defaults
