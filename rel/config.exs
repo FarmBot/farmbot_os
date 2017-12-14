@@ -2,7 +2,7 @@
 # This sets the default environment used by `mix release`
 use Mix.Releases.Config,
   default_release: :default,
-  default_environment: :prod
+  default_environment: Mix.env()
 
 # For a full list of config options for both releases
 # and environments, visit https://hexdocs.pm/distillery/configuration.html
@@ -14,10 +14,12 @@ use Mix.Releases.Config,
 
 environment :dev do
   set(cookie: :"gz`tgx[zM,ueL[g{Ji62{jiawNDZHH~PGkNQLa&R>R7c0SKziff4L,*&ZNG)(qu0")
+  set(vm_args: "rel/vm.args.dev")
 end
 
 environment :prod do
   set(cookie: :"gz`tgx[zM,ueL[g{Ji62{jiawNDZHH~PGkNQLa&R>R7c0SKziff4L,*&ZNG)(qu0")
+  set(vm_args: "rel/vm.args.prod")
 end
 
 # You may define one or more releases in this file.
@@ -33,6 +35,5 @@ release :farmbot do
     set(include_src: false)
     set(include_erts: System.get_env("ERL_LIB_DIR"))
     set(include_system_libs: System.get_env("ERL_SYSTEM_LIB_DIR"))
-    set(vm_args: "rel/vm.args")
   end
 end
