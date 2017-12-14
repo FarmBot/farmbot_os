@@ -22,10 +22,15 @@ defmodule Farmbot.Host.TargetConfiguratorTest do
 
   get "/" do
     last_reset_reason_file = Path.join(@data_path, "last_shutdown_reason")
-    if File.exists?(last_reset_reason_file) do
-      render_page(conn, "index", [version: @version, last_reset_reason: File.read!(last_reset_reason_file)])
-    else
-      render_page(conn, "index", [version: @version, last_reset_reason: nil])
+    case File.read(last_reset_reason_file) do
+      {:ok, reason} when is_binary(reason) ->
+        if String.contains?(reason, "CeleryScript request.") do
+          render_page(conn, "index", [version: @version, last_reset_reason: nil])
+        else
+          render_page(conn, "index", [version: @version, last_reset_reason: reason])
+        end
+      {:error, _} ->
+        render_page(conn, "index", [version: @version, last_reset_reason: nil])
     end
   end
 
@@ -46,7 +51,13 @@ defmodule Farmbot.Host.TargetConfiguratorTest do
   end
 
   post "/configure_network" do
-    require IEx; IEx.pry
+    interface = conn.body_params["interface"]
+    settings =
+      Enum.filter(conn.body_params, &String.starts_with?(elem(&1, 0), interface))
+      |> Enum.map(fn({key, val}) -> {String.trim(key, interface <> "_"), val} end)
+      |> Map.new()
+      |> Map.put("enable", "on")
+    Logger.info 1, "Got fake network config interface: `#{interface}` settings: #{inspect settings}"
     redir(conn, "/credentials")
   end
 

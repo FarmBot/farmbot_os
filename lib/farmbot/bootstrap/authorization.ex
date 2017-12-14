@@ -17,6 +17,7 @@ defmodule Farmbot.Bootstrap.Authorization do
 
   @version Farmbot.Project.version()
   @target Farmbot.Project.target()
+  @data_path Application.get_env(:farmbot, :data_path)
 
   @doc """
   Callback for an authorization implementation.
@@ -56,6 +57,8 @@ defmodule Farmbot.Bootstrap.Authorization do
              {:ok, body}    <- Poison.decode(resp),
              {:ok, map}     <- Map.fetch(body, "token") do
           Farmbot.System.GPIO.Leds.led_status_ok()
+          last_reset_reason_file = Path.join(@data_path, "last_shutdown_reason")
+          File.rm(last_reset_reason_file)
           Map.fetch(map, "encoded")
         else
           :error -> {:error, "unknown error."}
