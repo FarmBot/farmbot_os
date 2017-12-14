@@ -304,6 +304,7 @@ defmodule Farmbot.Firmware do
     maybe_cancel_timer(state.timer)
     Farmbot.BotState.set_busy(false)
     if state.current do
+      Logger.warn 1, "Got idle while executing a command."
       GenStage.reply(state.current.from, {:error, :timeout})
       {:informational_settings, %{busy: false, locked: false}, %{state | current: nil, idle: true}}
     else
