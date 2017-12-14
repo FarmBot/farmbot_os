@@ -69,8 +69,9 @@ defmodule Farmbot.Host.TargetConfiguratorTest do
     email = ConfigStorage.get_config_value(:string, "authorization", "email") || ""
     pass = ConfigStorage.get_config_value(:string, "authorization", "password") || ""
     server = ConfigStorage.get_config_value(:string, "authorization", "server") || ""
+    first_boot = ConfigStorage.get_config_value(:bool, "settings", "first_boot")
     ConfigStorage.update_config_value(:string, "authorization", "token", nil)
-    render_page(conn, "credentials", server: server, email: email, password: pass)
+    render_page(conn, "credentials", server: server, email: email, password: pass, first_boot: first_boot)
   end
 
   get "/finish" do
