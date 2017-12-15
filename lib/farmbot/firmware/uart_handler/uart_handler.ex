@@ -17,7 +17,7 @@ defmodule Farmbot.Firmware.UartHandler do
   end
 
   def calibrate(handler, axis) do
-    GenStage.call(handler, {:calibrate, axis,})
+    GenStage.call(handler, {:calibrate, axis})
   end
 
   def find_home(handler, axis) do

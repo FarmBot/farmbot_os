@@ -126,8 +126,16 @@ defmodule Farmbot.Firmware.StubHandler do
     {:reply, :ok, [:done], state}
   end
 
-  def handle_call({:find_home, _axis}, _from, state) do
-    {:reply, :ok, [:done], state}
+  def handle_call({:find_home, axis}, _from, state) do
+    state = %{state | pos: %{state.pos | axis => 0}}
+    response = [
+      :"report_axis_home_complete_#{axis}",
+      {:report_current_position,        state.pos.x, state.pos.y, state.pos.z},
+      {:report_encoder_position_scaled, state.pos.x, state.pos.y, state.pos.z},
+      {:report_encoder_position_raw,    state.pos.x, state.pos.y, state.pos.z},
+      :done
+    ]
+    {:reply, :ok, response, state}
   end
 
   def handle_call({:home, axis}, _from, state) do

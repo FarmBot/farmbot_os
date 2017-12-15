@@ -2,6 +2,7 @@ defmodule Farmbot.CeleryScript.AST.Node.FindHome do
   @moduledoc false
   use Farmbot.CeleryScript.AST.Node
   allow_args [:speed, :axis]
+  use Farmbot.Logger
 
   def execute(%{axis: :all}, _, env) do
     env = mutate_env(env)
@@ -33,6 +34,7 @@ defmodule Farmbot.CeleryScript.AST.Node.FindHome do
   end
 
   defp do_find_home(ep, ec, axis, env) when ep == 1 or ec == 1 do
+    Logger.busy 2, "Finding home on #{axis} axis."
     case Farmbot.Firmware.find_home(axis) do
       :ok -> {:ok, env}
       {:error, reason} -> {:error, reason, env}
