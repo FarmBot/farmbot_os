@@ -62,7 +62,8 @@ config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
   system_tasks: Farmbot.Target.SystemTasks,
   firmware_handler: Farmbot.Firmware.StubHandler,
-  update_handler: Farmbot.Target.UpdateHandler
+  update_handler: Farmbot.Target.UpdateHandler,
+  gpio_handler:   Farmbot.Target.GPIO.AleHandler
 
 
 config :nerves_firmware_ssh,
