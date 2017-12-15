@@ -3,33 +3,27 @@ defmodule Farmbot.CeleryScript.AST.Node.Calibrate do
   use Farmbot.CeleryScript.AST.Node
   allow_args [:axis, :speed]
 
-  @default_speed 100
-
   def execute(%{axis: :all}, _, env) do
     env = mutate_env(env)
-    do_reduce([:z, :y, :x], @default_speed, env)
+    do_reduce([:z, :y, :x], env)
   end
 
-  def execute(%{speed: speed, axis: axis}, _, env) do
+  def execute(%{axis: axis}, _, env) do
     env = mutate_env(env)
-    case Farmbot.Firmware.calibrate(axis, speed) do
+    case Farmbot.Firmware.calibrate(axis) do
       :ok -> {:ok, env}
       {:error, reason} -> {:error, reason, env}
     end
   end
 
-  def execute(%{axis: _axis} = args, body, env) do
-    execute(Map.put(args, :speed, @default_speed), body, env)
-  end
-
-  defp do_reduce([axis | rest], speed, env) do
-    case execute(%{axis: axis, speed: speed}, [], env) do
-      {:ok, new_env} -> do_reduce(rest, speed, new_env)
+  defp do_reduce([axis | rest], env) do
+    case execute(%{axis: axis}, [], env) do
+      {:ok, new_env} -> do_reduce(rest, new_env)
       {:error, reason, env} -> {:error, reason, env}
     end
   end
 
-  defp do_reduce([], _, env) do
+  defp do_reduce([], env) do
     {:ok, env}
   end
 end

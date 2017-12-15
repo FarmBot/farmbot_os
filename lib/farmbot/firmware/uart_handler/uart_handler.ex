@@ -16,16 +16,20 @@ defmodule Farmbot.Firmware.UartHandler do
     GenStage.call(handler, {:move_absolute, pos, x_speed, y_speed, z_speed})
   end
 
-  def calibrate(handler, axis, speed) do
-    GenStage.call(handler, {:calibrate, axis, speed})
+  def calibrate(handler, axis) do
+    GenStage.call(handler, {:calibrate, axis,})
   end
 
-  def find_home(handler, axis, speed) do
-    GenStage.call(handler, {:find_home, axis, speed})
+  def find_home(handler, axis) do
+    GenStage.call(handler, {:find_home, axis})
   end
 
-  def home(handler, axis, speed) do
-    GenStage.call(handler, {:home, axis, speed})
+  def home(handler, axis) do
+    GenStage.call(handler, {:home, axis})
+  end
+
+  def home_all(handler) do
+    GenStage.call(handler, :home_all)
   end
 
   def zero(handler, axis) do
@@ -248,7 +252,7 @@ defmodule Farmbot.Firmware.UartHandler do
     do_write(wrote, state)
   end
 
-  def handle_call({:calibrate, axis, _speed}, _from, state) do
+  def handle_call({:calibrate, axis}, _from, state) do
     num = case axis |> to_string() do
       "x" -> 14
       "y" -> 15
@@ -257,20 +261,24 @@ defmodule Farmbot.Firmware.UartHandler do
     do_write("F#{num}", state)
   end
 
-  def handle_call({:find_home, axis, speed}, _from, state) do
+  def handle_call({:find_home, axis}, _from, state) do
     cmd = case axis |> to_string() do
-      "x" -> "11 A#{speed}"
-      "y" -> "12 B#{speed}"
-      "z" -> "13 C#{speed}"
+      "x" -> "11"
+      "y" -> "12"
+      "z" -> "13"
     end
     do_write("F#{cmd}", state)
   end
 
-  def handle_call({:home, axis, speed}, _from, state) do
+  def handle_call(:home_all, _from, state) do
+    do_write("G28", state)
+  end
+
+  def handle_call({:home, axis}, _from, state) do
     cmd = case axis |> to_string() do
-      "x" -> "X0 A#{speed}"
-      "y" -> "Y0 B#{speed}"
-      "z" -> "Z0 C#{speed}"
+      "x" -> "X0"
+      "y" -> "Y0"
+      "z" -> "Z0"
     end
     do_write("G00 #{cmd}", state)
   end

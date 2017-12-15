@@ -10,18 +10,23 @@ defmodule Farmbot.Firmware do
   end
 
   @doc "Calibrate an axis."
-  def calibrate(axis, speed) do
-    GenStage.call(__MODULE__, {:calibrate, [axis, speed]}, :infinity)
+  def calibrate(axis) do
+    GenStage.call(__MODULE__, {:calibrate, [axis]}, :infinity)
   end
 
   @doc "Find home on an axis."
-  def find_home(axis, speed) do
-    GenStage.call(__MODULE__, {:find_home, [axis, speed]}, :infinity)
+  def find_home(axis) do
+    GenStage.call(__MODULE__, {:find_home, [axis]}, :infinity)
+  end
+
+  @doc "Home every axis."
+  def home_all() do
+    GenStage.call(__MODULE__, {:home_all, []}, :infinity)
   end
 
   @doc "Home an axis."
-  def home(axis, speed) do
-    GenStage.call(__MODULE__, {:home, [axis, speed]}, :infinity)
+  def home(axis) do
+    GenStage.call(__MODULE__, {:home, [axis]}, :infinity)
   end
 
   @doc "Manually set an axis's current position to zero."

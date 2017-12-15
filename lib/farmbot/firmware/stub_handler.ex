@@ -18,16 +18,20 @@ defmodule Farmbot.Firmware.StubHandler do
     GenStage.call(handler, {:move_absolute, pos, x_speed, y_speed, z_speed})
   end
 
-  def calibrate(handler, axis, speed) do
-    GenStage.call(handler, {:calibrate, axis, speed})
+  def calibrate(handler, axis) do
+    GenStage.call(handler, {:calibrate, axis})
   end
 
-  def find_home(handler, axis, speed) do
-    GenStage.call(handler, {:find_home, axis, speed})
+  def find_home(handler, axis) do
+    GenStage.call(handler, {:find_home, axis})
   end
 
-  def home(handler, axis, speed) do
-    GenStage.call(handler, {:home, axis, speed})
+  def home_all(handler) do
+    GenStage.call(handler, :home_all)
+  end
+
+  def home(handler, axis) do
+    GenStage.call(handler, {:home, axis})
   end
 
   def zero(handler, axis) do
@@ -118,18 +122,32 @@ defmodule Farmbot.Firmware.StubHandler do
     {:reply, :ok, stub_responses, %{state | pos: pos}}
   end
 
-  def handle_call({:calibrate, _axis, _speed}, _from, state) do
+  def handle_call({:calibrate, _axis}, _from, state) do
     {:reply, :ok, [:done], state}
   end
 
-  def handle_call({:find_home, _axis, _speed}, _from, state) do
+  def handle_call({:find_home, _axis}, _from, state) do
     {:reply, :ok, [:done], state}
   end
 
-  def handle_call({:home, axis, _speed}, _from, state) do
+  def handle_call({:home, axis}, _from, state) do
     state = %{state | pos: %{state.pos | axis => 0}}
     response = [
       :"report_axis_home_complete_#{axis}",
+      {:report_current_position,        state.pos.x, state.pos.y, state.pos.z},
+      {:report_encoder_position_scaled, state.pos.x, state.pos.y, state.pos.z},
+      {:report_encoder_position_raw,    state.pos.x, state.pos.y, state.pos.z},
+      :done
+    ]
+    {:reply, :ok, response, state}
+  end
+
+  def handle_call(:home_all, _from, state) do
+    state = %{state | pos: %{state.pos | x: 0, y: 0, z: 0}}
+    response = [
+      :report_axis_home_complete_x,
+      :report_axis_home_complete_y,
+      :report_axis_home_complete_z,
       {:report_current_position,        state.pos.x, state.pos.y, state.pos.z},
       {:report_encoder_position_scaled, state.pos.x, state.pos.y, state.pos.z},
       {:report_encoder_position_raw,    state.pos.x, state.pos.y, state.pos.z},
