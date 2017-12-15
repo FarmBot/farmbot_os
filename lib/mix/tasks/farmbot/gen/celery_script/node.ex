@@ -4,7 +4,7 @@ defmodule Mix.Tasks.Farmbot.Gen.CeleryScript.Node do
 
   @usage """
   usage:
-    mix farmbot.celery_script.gen.node SomeCamelModuleName --args comma,seperated,list,of,args
+    mix farmbot.gen.celery_script.node SomeCamelModuleName --args comma,seperated,list,of,args
   """
 
   @shortdoc @moduledoc
