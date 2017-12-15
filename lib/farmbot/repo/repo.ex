@@ -60,26 +60,35 @@ defmodule Farmbot.Repo do
     # Delete any old sync cmds.
     destroy_all_sync_cmds()
 
+    # if the farmevent runner is running, stop it.
     if Process.whereis(Farmbot.FarmEvent.Manager) do
       Farmbot.FarmEvent.Manager.wait_for_sync()
     end
 
+    # If it is the first sync,
+    # we set first sync to false, and require a hard sync.
     needs_hard_sync =
-      if ConfigStorage.get_config_value(:bool, "settings", "first_sync") || auto_sync?() do
-        do_sync_both(repo_a, repo_b)
+      if ConfigStorage.get_config_value(:bool, "settings", "first_sync") do
         ConfigStorage.update_config_value(:bool, "settings", "first_sync", false)
-        BotState.set_sync_status(:synced)
-
-        if Process.whereis(Farmbot.FarmEvent.Manager) do
-          Farmbot.FarmEvent.Manager.resume()
-        end
-
-        false
-      else
         BotState.set_sync_status(:sync_now)
         true
+      else
+        if auto_sync?() do
+          do_sync_both(repo_a, repo_b)
+          # ConfigStorage.update_config_value(:bool, "settings", "first_sync", false)
+          BotState.set_sync_status(:synced)
+          if Process.whereis(Farmbot.FarmEvent.Manager) do
+            Farmbot.FarmEvent.Manager.resume()
+          end
+
+          false
+        else
+          BotState.set_sync_status(:sync_now)
+          true
+        end
       end
 
+    # Fetch db order.
     repos =
       case ConfigStorage.get_config_value(:string, "settings", "current_repo") do
         "A" -> [repo_a, repo_b]
