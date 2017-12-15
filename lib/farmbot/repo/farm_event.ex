@@ -44,33 +44,26 @@ defmodule Farmbot.Repo.FarmEvent do
 
   def build_calendar(%__MODULE__{calendar: nil} = fe), do: fe
   def build_calendar(%__MODULE__{calendar: calendar} = fe)  when is_list(calendar) do
-    origin_time = Timex.now()
+    # Date Time objects.
+    current_time_dt = Timex.now()
+    {:ok, start_time_dt, _} = DateTime.from_iso8601(fe.start_time)
+    {:ok, end_time_dt,   _} = DateTime.from_iso8601(fe.end_time)
+
+    # Unix timestamps from those objects.
+    current_time_unix = DateTime.to_unix(current_time_dt)
+    start_time_unix = DateTime.to_unix(start_time_dt)
+    end_time_unix = DateTime.to_unix(end_time_dt)
+
     interval_seconds = time_unit_to_seconds(fe.repeat, fe.time_unit)
-    {:ok, lower_bound, _} = DateTime.from_iso8601(fe.start_time)
-    {:ok, upper_bound, _} = DateTime.from_iso8601(fe.end_time)
-    # Math.ceil((lowerBound.unix() - originTime.unix()) / intervalSeconds);
-    skip_intervals = :math.ceil((DateTime.to_unix(lower_bound) - DateTime.to_unix(origin_time)) / interval_seconds)
-    first_item = Timex.add(origin_time, Timex.Duration.from_seconds(interval_seconds * skip_intervals))
-    list = [first_item]
-    all_events = Enum.reduce(0..60, list, fn(_, acc) ->
-      x = List.last(acc)
-      if x do
-        # const item = x.clone().add(intervalSeconds, "seconds");
-        # if (item.isBefore(upperBound)) {
-        #   list.push(item);
-        # }
-        item = Timex.add(x, Timex.Duration.from_seconds(interval_seconds))
-        if Timex.before?(item, upper_bound) do
-          acc ++ [item]
-        else
-          acc
-        end
-      else
-        acc
-      end
-    end)
+    grace_period_cutoff_dt = Timex.subtract(current_time_dt, Timex.Duration.from_minutes(1))
+
+    new_calendar = Range.new(start_time_unix, end_time_unix)
+    |> Enum.take_every(fe.repeat * interval_seconds)
+    |> Enum.map(&DateTime.from_unix!(&1))
+    |> Enum.filter(&Timex.after?(&1, grace_period_cutoff_dt))
+    |> Enum.map(&(Timex.shift(&1, seconds: -(&1.second), microseconds: -(&1.microsecond |> elem(0)))))
     |> Enum.map(&DateTime.to_iso8601(&1))
-    %{fe | calendar: all_events}
+    %{fe | calendar: new_calendar}
   end
 
   defp time_unit_to_seconds(_, "never"), do: 0

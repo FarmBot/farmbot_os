@@ -20,7 +20,8 @@ defmodule Farmbot.FarmEvent.Manager do
   alias Farmbot.FarmEvent.Execution
   alias Farmbot.Repo.FarmEvent
 
-  @checkup_time 20_000
+  @checkup_time 5_000
+  # @checkup_time 20_000
 
   def wait_for_sync do
     GenServer.call(__MODULE__, :wait_for_sync, :infinity)
