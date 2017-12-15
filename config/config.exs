@@ -15,8 +15,7 @@ config :iex, :colors, enabled: true
 
 config :ssl, protocol_version: :"tlsv1.2"
 
-# Path for the `fs` module to watch.
-# config :fs, path: "/tmp/images"
+config :farmbot, farm_event_debug_log: false
 
 # Configure your our system.
 # Default implementation needs no special stuff.
