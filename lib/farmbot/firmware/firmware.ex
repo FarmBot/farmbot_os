@@ -233,7 +233,14 @@ defmodule Farmbot.Firmware do
     Logger.warn 1, "Got error gcode!"
     maybe_cancel_timer(state.timer)
     if state.current do
-      Logger.error 1, "Failed to execute #{state.current.fun}#{inspect state.current.args}"
+      formatted_args = Enum.map(state.current.args, fn(arg) ->
+        cond do
+          is_atom(arg) -> to_string(arg)
+          is_binary(arg) -> to_string(arg)
+          true -> inspect(arg)
+        end
+      end)
+      Logger.error 1, "Failed to execute #{state.current.fun} #{inspect formatted_args}"
       GenStage.reply(state.current.from, {:error, :firmware_error})
       {nil, %{state | current: nil}}
     else
