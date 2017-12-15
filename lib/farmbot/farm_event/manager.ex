@@ -68,8 +68,8 @@ defmodule Farmbot.FarmEvent.Manager do
 
   def handle_info(:checkup, %{wait_for_sync: false} = state) do
     now = get_now()
-
-    all_events = Farmbot.Repo.current_repo().all(Farmbot.Repo.FarmEvent)
+    alias Farmbot.Repo.FarmEvent
+    all_events = Farmbot.Repo.current_repo().all(FarmEvent) |> Enum.map(&FarmEvent.build_calendar(&1))
 
     # do checkup is the bulk of the work.
     {late_events, new} = do_checkup(all_events, now, state)

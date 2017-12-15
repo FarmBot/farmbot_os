@@ -37,7 +37,7 @@ defmodule Farmbot.Repo.FarmEvent do
   def changeset(farm_event, params \\ %{}) do
     farm_event
     |> build_calendar
-    |> cast(params, @required_fields)
+    |> cast(params, @required_fields ++ [:calendar])
     |> validate_required(@required_fields)
     |> unique_constraint(:id)
   end
@@ -63,6 +63,7 @@ defmodule Farmbot.Repo.FarmEvent do
     |> Enum.filter(&Timex.after?(&1, grace_period_cutoff_dt))
     |> Enum.map(&(Timex.shift(&1, seconds: -(&1.second), microseconds: -(&1.microsecond |> elem(0)))))
     |> Enum.map(&DateTime.to_iso8601(&1))
+    |> Enum.take(60)
     %{fe | calendar: new_calendar}
   end
 
