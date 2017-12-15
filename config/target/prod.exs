@@ -52,7 +52,6 @@ config :farmbot, :init, [
 ]
 
 config :farmbot, :transport, [
-  # Farmbot.BotState.Transport.GenMQTT,
   Farmbot.BotState.Transport.AMQP,
   Farmbot.BotState.Transport.HTTP,
 ]
