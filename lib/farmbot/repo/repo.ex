@@ -160,7 +160,7 @@ defmodule Farmbot.Repo do
   def handle_call({:register_sync_cmd, remote_id, kind, body}, _from, state) do
     maybe_cancel_timer(state.timer)
     [_current_repo, other_repo] = state.repos
-    
+
     case SyncCmd.changeset(struct(SyncCmd, %{remote_id: remote_id, kind: kind, body: body}))
          |> ConfigStorage.insert() do
       {:ok, sync_cmd} ->
