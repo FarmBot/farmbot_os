@@ -32,15 +32,15 @@ defmodule Farmbot.FirmwareTest do
 
   test "homes an axis" do
     Firmware.move_absolute(vec3(100, 200, 300), @default_speed_x, @default_speed_y, @default_speed_z)
-    res_x = Firmware.home(:x, @default_speed_x)
+    res_x = Firmware.home(:x)
     assert match?(:ok, res_x)
     assert match?(%{x: 0, y: 200, z: 300}, Farmbot.BotState.get_current_pos())
 
-    res_y = Firmware.home(:y, @default_speed_y)
+    res_y = Firmware.home(:y)
     assert match?(:ok, res_y)
     assert match?(%{x: 0, y: 0, z: 300}, Farmbot.BotState.get_current_pos())
 
-    res_z = Firmware.home(:z, @default_speed_y)
+    res_z = Firmware.home(:z)
     assert match?(:ok, res_z)
     assert match?(%{x: 0, y: 0, z: 0}, Farmbot.BotState.get_current_pos())
   end
