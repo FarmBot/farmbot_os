@@ -341,17 +341,17 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode(:report_axis_home_complete_x, state) do
-    Logger.success 3, "X Axis homing complete."
+    Logger.success 2, "X Axis homing complete."
     {nil, state}
   end
 
   defp handle_gcode(:report_axis_home_complete_y, state) do
-    Logger.success 3, "Y Axis homing complete."
+    Logger.success 2, "Y Axis homing complete."
     {nil, state}
   end
 
   defp handle_gcode(:report_axis_home_complete_z, state) do
-    Logger.success 3, "Z Axis homing complete."
+    Logger.success 2, "Z Axis homing complete."
     {nil, state}
   end
 
