@@ -23,7 +23,8 @@
 var num_dots = 0;
 function button_click() {
   document.getElementById("loading_thing").hidden = false;
-  document.getElementById("submit_button").disabled = true;
+  document.getElementById("submit_button").hidden = true;
+  document.getElementById("firmware_hardware").disabled = true;
   moveBar();
 }
 
@@ -58,7 +59,7 @@ function moveBar() {
     <div class="widget-content">
       <form action=configure_firmware method=post>
         <fieldset>
-          <select name=firmware_hardware>
+          <select id="firmware_hardware" name="firmware_hardware">
             <option value="arduino"> Arduino/RAMPS (Genesis v1.2) </option>
             <option value="farmduino"> Farmduino (Genesis v1.3) </option>
           </select>
