@@ -23,6 +23,7 @@
 var num_dots = 0;
 function button_click() {
   document.getElementById("loading_thing").hidden = false;
+  document.getElementById("submit_button").disabled = true;
   moveBar();
 }
 
@@ -64,7 +65,7 @@ function moveBar() {
         </fieldset>
     </div>
   </div>
-  <div class="button" onclick="button_click()">
+  <div id="submit_button" class="button" onclick="button_click()">
     <input type=submit value="next">
   </div>
   </form>
