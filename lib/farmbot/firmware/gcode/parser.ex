@@ -19,6 +19,7 @@ defmodule Farmbot.Firmware.Gcode.Parser do
   def parse_code("R06 " <> r), do: parse_report_calibration(r)
   def parse_code("R07 " <> _), do: {nil, :noop}
   def parse_code("R08 " <> echo), do: {:echo, {:echo, String.replace(echo, "\r", "")}}
+  def parse_code("R09 " <> tag),  do: {tag, :invalid_command}
 
   # Report axis homing.
   def parse_code("R11 " <> tag), do: {tag, :report_axis_home_complete_x}
