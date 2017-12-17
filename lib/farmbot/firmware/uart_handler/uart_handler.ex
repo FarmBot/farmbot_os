@@ -271,7 +271,7 @@ defmodule Farmbot.Firmware.UartHandler do
   end
 
   def handle_call(:home_all, _from, state) do
-    do_write("G00 X0 Y0 Z0", state)
+    do_write("G28", state)
   end
 
   def handle_call({:home, axis}, _from, state) do
