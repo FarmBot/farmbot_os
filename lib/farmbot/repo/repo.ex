@@ -126,7 +126,7 @@ defmodule Farmbot.Repo do
     maybe_cancel_timer(state.timer)
     Farmbot.FarmEvent.Manager.wait_for_sync()
     destroy_all_sync_cmds()
-    Logger.warn(1, "Forcing full sync.")
+    Logger.busy(1, "Syncing.")
     BotState.set_sync_status(:syncing)
     do_sync_both(repo_a, repo_b)
     BotState.set_sync_status(:synced)
@@ -140,7 +140,7 @@ defmodule Farmbot.Repo do
   def handle_call(:flip, _, %{repos: [repo_a, repo_b]} = state) do
     maybe_cancel_timer(state.timer)
     Farmbot.FarmEvent.Manager.wait_for_sync()
-    Logger.busy(1, "Syncing")
+    Logger.busy(1, "Syncing.")
     BotState.set_sync_status(:syncing)
 
     # Fetch all sync_cmds and apply them in order they were received.
@@ -181,7 +181,6 @@ defmodule Farmbot.Repo do
   end
 
   def handle_info(:timeout, state) do
-    Logger.warn(3, "Haven't received any auto sync messages in a while. Forcing hard sync.")
     BotState.set_sync_status(:sync_now)
     destroy_all_sync_cmds()
     {:noreply, %{state | timer: start_timer(), needs_hard_sync: true}}

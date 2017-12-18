@@ -97,7 +97,10 @@ defmodule Farmbot.Logger do
   end
 
   def init([]) do
-    Elixir.Logger.add_backend(Elixir.Logger.Backends.Farmbot, [])
+    backends = Application.get_env(:farmbot, :logger)[:backends] || []
+    for b <- backends do
+      Elixir.Logger.add_backend(b, [])
+    end
     {:producer, %{}, dispatcher: GenStage.BroadcastDispatcher}
   end
 
@@ -134,6 +137,9 @@ defmodule Farmbot.Logger do
   end
 
   def terminate(_, _state) do
-    Elixir.Logger.remove_backend(Elixir.Logger.Backends.Farmbot)
+    backends = Application.get_env(:farmbot, :logger)[:backends] || []
+    for b <- backends do
+      Elixir.Logger.remove_backend(b, [])
+    end
   end
 end

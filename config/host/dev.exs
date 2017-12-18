@@ -56,3 +56,7 @@ config :farmbot, :behaviour,
   # firmware_handler: Farmbot.Firmware.UartHandler
 
 config :farmbot, :uart_handler, tty: "/dev/ttyACM0"
+
+config :farmbot, :logger, [
+  backends: [Elixir.Logger.Backends.Farmbot]
+]
