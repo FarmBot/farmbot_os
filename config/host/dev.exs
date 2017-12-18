@@ -58,5 +58,5 @@ config :farmbot, :behaviour,
 config :farmbot, :uart_handler, tty: "/dev/ttyACM0"
 
 config :farmbot, :logger, [
-  backends: [Elixir.Logger.Backends.Farmbot]
+  # backends: [Elixir.Logger.Backends.Farmbot]
 ]
