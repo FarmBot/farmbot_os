@@ -65,6 +65,15 @@ defmodule Farmbot.Host.TargetConfiguratorTest do
     render_page(conn, "firmware")
   end
 
+  post "/configure_firmware" do
+    body_params = conn.body_params
+    if match?(%{"firmware_hardware" => hw} when hw in ["arduino", "farmduino"], body_params) do
+      redir(conn, "/credentials")
+    else
+      send_resp(conn, 500, "#{inspect body_params} is invalid configuration for `configure_firmware`")
+    end
+  end
+
   get "/credentials" do
     email = ConfigStorage.get_config_value(:string, "authorization", "email") || ""
     pass = ConfigStorage.get_config_value(:string, "authorization", "password") || ""
