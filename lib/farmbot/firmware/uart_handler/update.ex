@@ -114,7 +114,7 @@ defmodule Farmbot.Firmware.UartHandler.Update do
       close = Nerves.UART.close(uart)
       stop = Nerves.UART.stop(uart)
       Logger.warn 3, "CLOSE: #{inspect close} STOP: #{stop}"
-      Process.sleep(500) # to allow the FD to be closed.
+      Process.sleep(2000) # to allow the FD to be closed.
     end
   end
 
@@ -124,5 +124,6 @@ defmodule Farmbot.Firmware.UartHandler.Update do
       {_, 0} -> Logger.success 1, "Firmware flashed!"
       {_, err_code} -> Logger.error 1, "Failed to flash Firmware! #{err_code}"
     end
+    Process.sleep(1500) # to allow the FD to be closed.
   end
 end
