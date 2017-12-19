@@ -207,7 +207,6 @@ defmodule Farmbot.Firmware.StubHandler do
   end
 
   def handle_call(:read_all_params, _from, state) do
-    response = build_resp [:report_params_complete, :done]
     {:reply, :ok, [:report_params_complete, :done], state}
   end
 
