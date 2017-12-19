@@ -5,7 +5,11 @@ defmodule Farmbot.Farmware.RuntimeError do
 
   @doc false
   def exception(opts) do
-    struct(__MODULE__, [message: Keyword.fetch!(opts, :message), state: Keyword.fetch!(opts, :state)])
+    struct_opts = [
+      message: Keyword.fetch!(opts, :message),
+      state: Keyword.fetch!(opts, :state)
+    ]
+    struct(__MODULE__, struct_opts)
   end
 
   @doc false
