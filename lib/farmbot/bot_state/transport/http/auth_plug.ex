@@ -19,17 +19,19 @@ defmodule Farmbot.BotState.Transport.HTTP.AuthPlug do
   end
 
   def handle_prod(conn) do
-    with [<<_ :: size(8), <<"earer ">>, maybe_token :: binary>>] <- get_req_header(conn, "authorization"),
+    req_header = get_req_header(conn, "authorization")
+    with [<<_ :: size(8), <<"earer ">>, maybe_token :: binary>>] <- req_header,
          [token] <- String.split(maybe_token, ","),
          {:ok, key} <- HTTP.public_key(),
          {true, _, _} <- JOSE.JWT.verify(key, token)
     do
       conn
     else
+      # An error happened verifying.
+      {:error, reason} ->
+          {conn, 400, "token verification error: " <> format_error(reason)}
       # if the JWT failed to verify.
       {false, _, _}    -> {conn, 401, "unauthorized token."}
-      # An error happened verifying.
-      {:error, reason} -> {conn, 400, "token verification error: " <> format_error(reason)}
       # The header didn't match the pattern.
       [_auth_header]   -> {conn, 400, "bad auth header."}
       [_ | _]          -> {conn, 400, "too many auth headers."}
