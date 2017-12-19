@@ -3,6 +3,7 @@ defmodule Farmbot.Bootstrap.AuthTask do
   use GenServer
   use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
+  import ConfigStorage, only: [update_config_value: 4, get_config_value: 3]
 
   # 30 minutes.
   @refresh_time 1.8e+6 |> round()
@@ -24,21 +25,22 @@ defmodule Farmbot.Bootstrap.AuthTask do
   def handle_info(:refresh, _old_timer) do
     auth_task = Application.get_env(:farmbot, :behaviour)[:authorization]
     {email, pass, server} = {fetch_email(), fetch_pass(), fetch_server()}
-    # Logger.busy(3, "refreshing token: #{auth_task} - #{email} - #{server}")
+    # Logger.busy(3, "refreshing token: #{email} - #{server}")
     Farmbot.System.GPIO.Leds.led_status_err()
     case auth_task.authorize(email, pass, server) do
       {:ok, token} ->
-        # Logger.success(3, "Successful authorization: #{auth_task} - #{email} - #{server}")
-        ConfigStorage.update_config_value(:bool, "settings", "first_boot", false)
-        ConfigStorage.update_config_value(:string, "authorization", "token", token)
+        # Logger.success(3, "Successful authorization: #{email} - #{server}")
+        update_config_value(:bool, "settings", "first_boot", false)
+        update_config_value(:string, "authorization", "token", token)
         Farmbot.System.GPIO.Leds.led_status_ok()
-        if ConfigStorage.get_config_value(:bool, "settings", "auto_sync") do
+        if get_config_value(:bool, "settings", "auto_sync") do
           Farmbot.Repo.flip()
         end
         restart_transports()
         refresh_timer(self())
-      {:error, reason} ->
-        Logger.error(1, "Token failed to reauthorize: #{auth_task} - #{email} - #{server} #{inspect reason}")
+      {:error, err} ->
+        msg = "Token failed to reauthorize: #{email} - #{server} #{inspect err}"
+        Logger.error(1, msg)
         refresh_timer(self(), 30_000)
     end
   end
@@ -53,8 +55,12 @@ defmodule Farmbot.Bootstrap.AuthTask do
   end
 
   defp restart_transports do
-    :ok = Supervisor.terminate_child(Farmbot.Bootstrap.Supervisor, Farmbot.BotState.Transport.Supervisor)
-    case Supervisor.restart_child(Farmbot.Bootstrap.Supervisor, Farmbot.BotState.Transport.Supervisor) do
+    alias Farmbot.Bootstrap
+    alias Farmbot.BotState
+    bs_sup = Bootstrap.Supervisor
+    tp_sup = BotState.Transport.Supervisor
+    :ok = Supervisor.terminate_child(bs_sup, tp_sup)
+    case Supervisor.restart_child(bs_sup, tp_sup) do
       {:ok, _} -> :ok
       {:error, :running} -> :ok
       {:error, {:already_started, _}} -> :ok
@@ -68,17 +74,17 @@ defmodule Farmbot.Bootstrap.AuthTask do
   end
 
   defp fetch_email do
-    ConfigStorage.get_config_value(:string, "authorization", "email") ||
-      raise "No email provided."
+    email = get_config_value(:string, "authorization", "email")
+    email || raise "No email provided."
   end
 
   defp fetch_pass do
-    ConfigStorage.get_config_value(:string, "authorization", "password") ||
-      raise "No password provided."
+    pass = get_config_value(:string, "authorization", "password")
+    pass || raise "No password provided."
   end
 
   defp fetch_server do
-    ConfigStorage.get_config_value(:string, "authorization", "server") ||
-      raise "No server provided."
+    server = get_config_value(:string, "authorization", "server")
+    server || raise "No server provided."
   end
 end
