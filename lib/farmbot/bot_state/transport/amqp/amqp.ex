@@ -13,7 +13,6 @@ defmodule Farmbot.BotState.Transport.AMQP do
   alias Farmbot.System.ConfigStorage
   import ConfigStorage, only: [get_config_value: 3]
 
-
   @exchange "amq.topic"
 
   @doc false
@@ -32,8 +31,8 @@ defmodule Farmbot.BotState.Transport.AMQP do
     token = ConfigStorage.get_config_value(:string, "authorization", "token")
 
     import Farmbot.Jwt, only: [decode: 1]
-    with {:ok, %{bot: device, mqtt: mqtt_server, vhost: vhost}} <- decode(token),
-         {:ok, conn}  <- open_connection(token, device, mqtt_server, vhost),
+    with {:ok, %{bot: device, mqtt: mqtt_host, vhost: vhost}} <- decode(token),
+         {:ok, conn}  <- open_connection(token, device, mqtt_host, vhost),
          {:ok, chan}  <- AMQP.Channel.open(conn),
          q_name       <- Enum.join([device, UUID.uuid1()], "-"),
          :ok          <- Basic.qos(chan, []),
