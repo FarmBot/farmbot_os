@@ -107,7 +107,7 @@ defmodule Farmbot.Firmware.UartHandler do
     case File.read(hack_file) do
       {:ok, value} when value in ["arduino", "farmduino"] ->
         Farmbot.System.ConfigStorage.update_config_value(:string, "settings", "firmware_hardware", value)
-        Farmbot.Firmware.UartHandler.Update.maybe_update_firmware(value)
+        Farmbot.Firmware.UartHandler.Update.force_update_firmware(value)
         File.rm!(hack_file)
       _ -> :ok
     end

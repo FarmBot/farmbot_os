@@ -2,11 +2,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   @moduledoc "Routes web connections."
 
   use Plug.Router
-
-  if Farmbot.Project.env() == :dev do
-    use Plug.Debugger, otp_app: :farmbot
-  end
-
+  use Plug.Debugger, otp_app: :farmbot
   plug(Plug.Static, from: {:farmbot, "priv/static"}, at: "/")
   plug(Plug.Logger, log: :debug)
   plug(Plug.Parsers, parsers: [:urlencoded, :multipart])
@@ -34,29 +30,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     end
   end
 
-  get "/setup" do
-    last_reset_reason_file = Path.join(@data_path, "last_shutdown_reason")
-    if File.exists?(last_reset_reason_file) do
-      render_page(conn, "index", [version: @version, last_reset_reason: File.read!(last_reset_reason_file)])
-    else
-      render_page(conn, "index", [version: @version, last_reset_reason: nil])
-    end
-  end
-
-  defp get_interfaces(tries \\ 5)
-  defp get_interfaces(0), do: []
-  defp get_interfaces(tries) do
-    case Nerves.NetworkInterface.interfaces() do
-      ["lo"] ->
-        Process.sleep(100)
-        get_interfaces(tries - 1)
-      interfaces when is_list(interfaces) ->
-        interfaces
-        |> List.delete("usb0")
-        |> List.delete("lo")
-        |> List.delete("sit0")
-    end
-  end
+  get "/setup", do: redir(conn, "/")
 
   get "/network" do
     interfaces = get_interfaces()
@@ -79,6 +53,21 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     render_page(conn, "network", info)
   end
 
+  defp get_interfaces(tries \\ 5)
+  defp get_interfaces(0), do: []
+  defp get_interfaces(tries) do
+    case Nerves.NetworkInterface.interfaces() do
+      ["lo"] ->
+        Process.sleep(100)
+        get_interfaces(tries - 1)
+      interfaces when is_list(interfaces) ->
+        interfaces
+        |> List.delete("usb0") # Delete unusable entries if they exist.
+        |> List.delete("lo")
+        |> List.delete("sit0")
+    end
+  end
+
   defp do_iw_scan(iface) do
     case System.cmd("iw", [iface, "scan", "ap-force"]) do
       {res, 0} -> res |> clean_ssid
@@ -94,10 +83,6 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     |> Enum.filter(fn s -> String.contains?(s, "SSID: ") end)
     |> Enum.map(fn z -> String.replace(z, "SSID: ", "") end)
     |> Enum.filter(fn z -> String.length(z) != 0 end)
-  end
-
-  get "/firmware" do
-    render_page(conn, "firmware")
   end
 
   get "/credentials" do
@@ -128,30 +113,6 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     end
   end
 
-  get "/finish" do
-    email = ConfigStorage.get_config_value(:string, "authorization", "email")
-    pass = ConfigStorage.get_config_value(:string, "authorization", "password")
-    server = ConfigStorage.get_config_value(:string, "authorization", "server")
-    network = !(Enum.empty?(ConfigStorage.all(ConfigStorage.NetworkInterface)))
-    if email && pass && server && network do
-      conn = render_page(conn, "finish")
-      spawn fn() ->
-        Logger.success 2, "Configuration finished."
-        Process.sleep(2500)
-        :ok = Supervisor.terminate_child(
-        Farmbot.Target.Bootstrap.Configurator,
-        Farmbot.Target.Bootstrap.Configurator.CaptivePortal
-        )
-
-        :ok = Supervisor.stop(Farmbot.Target.Bootstrap.Configurator, :normal)
-      end
-      conn
-    else
-      Logger.warn 3, "Not configured yet. Restarting configuration."
-      redir(conn, "/")
-    end
-  end
-
   defp input_network_configs([{iface, settings} | rest]) when is_map(settings) and is_binary(iface) do
     if settings["enable"] == "on" do
 
@@ -179,6 +140,10 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     :ok
   end
 
+  get "/firmware" do
+    render_page(conn, "firmware")
+  end
+
   post "/configure_firmware" do
     {:ok, _, conn} = read_body(conn)
 
@@ -188,7 +153,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
         if Application.get_env(:farmbot, :behaviour)[:firmware_handler] == Farmbot.Firmware.UartHandler do
           Logger.warn 1, "Updating #{hw} firmware."
-          Farmbot.Firmware.UartHandler.Update.maybe_update_firmware(hw)
+          # /shrug?
+          Farmbot.Firmware.UartHandler.Update.force_update_firmware(hw)
         end
 
         redir(conn, "/credentials")
@@ -215,6 +181,34 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
       _ ->
         send_resp(conn, 500, "invalid request.")
+    end
+  end
+
+  get "/finish" do
+    email = ConfigStorage.get_config_value(:string, "authorization", "email")
+    pass = ConfigStorage.get_config_value(:string, "authorization", "password")
+    server = ConfigStorage.get_config_value(:string, "authorization", "server")
+    network = !(Enum.empty?(ConfigStorage.all(ConfigStorage.NetworkInterface)))
+    if email && pass && server && network do
+      conn = render_page(conn, "finish")
+      spawn fn() ->
+        try do
+          alias Farmbot.Target.Bootstrap.Configurator
+          Logger.success 2, "Configuration finished."
+          Process.sleep(2500) # Allow the page to render and send.
+          :ok = Supervisor.terminate_child(Configurator, Configurator.CaptivePortal)
+          :ok = Supervisor.stop(Configurator)
+          Process.sleep(2500) # Good luck.
+        rescue
+          e ->
+            Logger.warn 1, "Falied to close captive portal. Good luck. " <>
+              Exception.message(e)
+        end
+      end
+      conn
+    else
+      Logger.warn 3, "Not configured yet. Restarting configuration."
+      redir(conn, "/")
     end
   end
 

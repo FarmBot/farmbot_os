@@ -17,6 +17,16 @@ defmodule Farmbot.Firmware.UartHandler.Update do
     end
   end
 
+  def force_update_firmware(hardware \\ nil) do
+    tty = Application.get_all_env(:farmbot)[:uart_handler][:tty]
+    hardware = case hardware do
+      "farmduino" -> "F"
+      "arduino" -> "R"
+      nil -> "R"
+    end
+    do_flash(hardware, nil, tty)
+  end
+
   defp do_connect_and_maybe_update(tty, hardware) do
     case Nerves.UART.start_link() do
       {:ok, uart} ->
@@ -109,11 +119,16 @@ defmodule Farmbot.Firmware.UartHandler.Update do
     avrdude("#{:code.priv_dir(:farmbot)}/arduino-firmware.hex", uart, tty)
   end
 
+  defp close(nil) do
+    Logger.info 3, "No uart process."
+    :ok
+  end
+
   defp close(uart) do
     if Process.alive?(uart) do
       close = Nerves.UART.close(uart)
       stop = Nerves.UART.stop(uart)
-      Logger.warn 3, "CLOSE: #{inspect close} STOP: #{stop}"
+      Logger.info 3, "CLOSE: #{inspect close} STOP: #{stop}"
       Process.sleep(2000) # to allow the FD to be closed.
     end
   end

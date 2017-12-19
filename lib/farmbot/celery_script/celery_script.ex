@@ -9,7 +9,7 @@ defmodule Farmbot.CeleryScript do
   @doc "Execute an AST node."
   def execute(ast, env \\ struct(Macro.Env))
 
-  def execute(%AST{kind: kind, body: body, args: args} = ast, env) do
+  def execute(%AST{kind: kind, body: body, args: args} = ast, %Macro.Env{} = env) do
     # Logger.busy 3, "doing: #{inspect ast}"
     maybe_log_comment(ast)
     case kind.execute(args, body, env) do
