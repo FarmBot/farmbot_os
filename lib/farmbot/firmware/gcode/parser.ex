@@ -18,7 +18,8 @@ defmodule Farmbot.Firmware.Gcode.Parser do
   def parse_code("R05" <> _r), do: {nil, :noop}
   def parse_code("R06 " <> r), do: parse_report_calibration(r)
   def parse_code("R07 " <> _), do: {nil, :noop}
-  def parse_code("R08 " <> echo), do: {:echo, {:echo, String.replace(echo, "\r", "")}}
+  def parse_code("R08 " <> echo),
+    do: {:echo, {:echo, String.replace(echo, "\r", "")}}
   def parse_code("R09 " <> tag),  do: {tag, :invalid_command}
 
   # Report axis homing.
@@ -52,7 +53,8 @@ defmodule Farmbot.Firmware.Gcode.Parser do
     {:unhandled_gcode, code}
   end
 
-  @spec parse_report_calibration(binary) :: {binary, {:report_calibration, binary, binary}}
+  @spec parse_report_calibration(binary)
+    :: {binary, {:report_calibration, binary, binary}}
   defp parse_report_calibration(r) do
     [axis_and_status | [q]] = String.split(r, " Q")
     <<a::size(8), b::size(8)>> = axis_and_status
@@ -94,17 +96,27 @@ defmodule Farmbot.Firmware.Gcode.Parser do
           | :report_encoder_position_scaled
           | :report_encoder_position_raw
 
-  @spec report_xyz(binary, reporter) :: {binary, {reporter, binary, binary, binary}}
+  @spec report_xyz(binary, reporter)
+    :: {binary, {reporter, binary, binary, binary}}
   defp report_xyz(position, reporter) when is_bitstring(position),
     do: position |> String.split(" ") |> do_parse_pos(reporter)
 
+  @valid_position_reporters [
+    :report_current_position,
+    :report_encoder_position_scaled
+  ]
   defp do_parse_pos(["X" <> x, "Y" <> y, "Z" <> z, "Q" <> tag], reporter)
-       when reporter in [:report_current_position, :report_encoder_position_scaled] do
-    {tag, {reporter, String.to_float(x), String.to_float(y), String.to_float(z)}}
+     when reporter in @valid_position_reporters
+   do
+     import String, only: [to_float: 1]
+     msg = {reporter, to_float(x), to_float(y), to_float(z)}
+     {tag, msg}
   end
 
   defp do_parse_pos(["X" <> x, "Y" <> y, "Z" <> z, "Q" <> tag], reporter) do
-    {tag, {reporter, String.to_integer(x), String.to_integer(y), String.to_integer(z)}}
+    import String, only: [to_integer: 1]
+    msg = {reporter, to_integer(x), to_integer(y), to_integer(z)}
+    {tag, msg}
   end
 
   defp do_parse_pos(l, _) do
@@ -112,34 +124,22 @@ defmodule Farmbot.Firmware.Gcode.Parser do
   end
 
   @doc false
-  @spec parse_end_stops(binary) ::
-          {:report_end_stops, binary, binary, binary, binary, binary, binary, binary}
-  def parse_end_stops(<<
-        "XA",
-        xa::size(8),
-        32,
-        "XB",
-        xb::size(8),
-        32,
-        "YA",
-        ya::size(8),
-        32,
-        "YB",
-        yb::size(8),
-        32,
-        "ZA",
-        za::size(8),
-        32,
-        "ZB",
-        zb::size(8),
-        32,
-        "Q",
-        tag::binary
-      >>),
-      do: {
-        tag,
-        {:report_end_stops, xa |> pes, xb |> pes, ya |> pes, yb |> pes, za |> pes, zb |> pes}
-      }
+  @spec parse_end_stops(binary)
+    :: {:report_end_stops,
+        binary, binary, binary, binary, binary, binary, binary}
+  def parse_end_stops(
+    <<"XA", xa::size(8), 32,
+      "XB", xb::size(8), 32,
+      "YA", ya::size(8), 32,
+      "YB", yb::size(8), 32,
+      "ZA", za::size(8), 32,
+      "ZB", zb::size(8), 32,
+      "Q", tag::binary >>)
+  do
+    r = :report_end_stops
+    msg = {r, xa |> pes, xb |> pes, ya |> pes, yb |> pes, za |> pes, zb |> pes}
+    {tag, msg}
+  end
 
   # lol
   @spec pes(48 | 49) :: 0 | 1
@@ -158,16 +158,18 @@ defmodule Farmbot.Firmware.Gcode.Parser do
       do: params |> String.split(" ") |> do_parse_pvq(human_readable_param_name)
 
   defp do_parse_pvq([p, v, q], human_readable_param_name) do
-    [_, rp] = String.split(p, "P")
-    [_, rv] = String.split(v, "V")
-    [_, rq] = String.split(q, "Q")
-    {rq, {human_readable_param_name, String.to_integer(rp), String.to_integer(rv)}}
+    import String, only: [split: 2, to_integer: 1]
+    [_, rp] = split(p, "P")
+    [_, rv] = split(v, "V")
+    [_, rq] = split(q, "Q")
+    {rq, {human_readable_param_name, to_integer(rp), to_integer(rv)}}
   end
 
   defp do_parse_params([p, v, q]) do
-    [_, rp] = String.split(p, "P")
-    [_, rv] = String.split(v, "V")
-    [_, rq] = String.split(q, "Q")
-    {rq, {:report_parameter_value, parse_param(String.to_integer(rp)), String.to_integer(rv)}}
+    import String, only: [split: 2, to_integer: 1]
+    [_, rp] = split(p, "P")
+    [_, rv] = split(v, "V")
+    [_, rq] = split(q, "Q")
+    {rq, {:report_parameter_value, parse_param(to_integer(rp)), to_integer(rv)}}
   end
 end
