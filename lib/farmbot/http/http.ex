@@ -6,7 +6,8 @@ defmodule Farmbot.HTTP do
   use GenServer
   alias Farmbot.HTTP.{Adapter, Error, Response}
 
-  @adapter Application.get_env(:farmbot, :behaviour)[:http_adapter] || raise("No http adapter.")
+  @adapter Application.get_env(:farmbot, :behaviour)[:http_adapter]
+  @adapter || raise("No http adapter.")
 
   @typep method :: Adapter.method
   @typep url :: Adapter.url
@@ -25,11 +26,13 @@ defmodule Farmbot.HTTP do
   * opts     - Keyword opts to be passed to adapter (hackney/httpoison)
     * `file` - option to  be passed if the output should be saved to a file.
   """
-  @spec request(method, url, body, headers, opts) :: {:ok, Response.t} | {:error, term}
+  @spec request(method, url, body, headers, opts)
+    :: {:ok, Response.t} | {:error, term}
   def request(method, url, body \\ "", headers \\ [], opts \\ [])
 
   def request(method, url, body, headers, opts) do
-    GenServer.call(__MODULE__, {:request, method, url, body, headers, opts}, :infinity)
+    call = {:request, method, url, body, headers, opts}
+    GenServer.call(__MODULE__, call, :infinity)
   end
 
   @doc "Same as `request/5` but raises."
@@ -38,7 +41,9 @@ defmodule Farmbot.HTTP do
 
   def request!(method, url, body, headers, opts) do
     case request(method, url, body, headers, opts) do
-      {:ok, %Response{status_code: code} = resp} when code > 199 and code < 300 -> resp
+      {:ok, %Response{status_code: code} = resp}
+        when code > 199 and code < 300 -> resp
+
       {:ok, %Response{} = resp} -> raise Error, resp
 
       {:error, reason} -> raise Error, reason
@@ -84,10 +89,17 @@ defmodule Farmbot.HTTP do
   end
 
   @doc "Download a file to the filesystem."
-  def download_file(url, path, progress_callback \\ nil, payload \\ "", headers \\ [], stream_fun \\ nil)
+  def download_file(url,
+                    path,
+                    progress_callback \\ nil,
+                    payload \\ "",
+                    headers \\ [],
+                    stream_fun \\ nil)
 
-  def download_file(url, path, progress_callback, payload, headers, stream_fun) do
-    GenServer.call(__MODULE__, {:download_file, {url, path, progress_callback, payload, headers, stream_fun}}, :infinity)
+  def download_file(url, path, progress_callback, payload, hddrs, stream_fun) do
+    opts = {url, path, progress_callback, payload, hddrs, stream_fun}
+    call = {:download_file, opts}
+    GenServer.call(__MODULE__, call, :infinity)
   end
 
   @doc "Upload a file to FB storage."
@@ -110,24 +122,30 @@ defmodule Farmbot.HTTP do
     {:ok, %{adapter: adapter}}
   end
 
-  def handle_call({:request, method, url, body, headers, opts}, _from, %{adapter: adapter} = state) do
-    res = case @adapter.request(adapter, method, url, body, headers, opts) do
+  def handle_call({:request, _, _, _, _, _} = req, _from, state) do
+    {:request, method, url, body, headers, opts} = req
+    args = [state.adapter, method, url, body, headers, opts]
+    res = case apply(@adapter, :request, args) do
       {:ok, %Response{}} = res -> res
       {:error, _} = res -> res
     end
     {:reply, res, state}
   end
 
-  def handle_call({:download_file, {url, path, progress_callback, payload, headers, stream_fun}}, _from, %{adapter: adapter} = state) do
-    res = case @adapter.download_file(adapter, url, path, progress_callback, payload, headers, stream_fun) do
+  def handle_call({:download_file, call}, _from, %{adapter: adapter} = state) do
+    {url, path, progress_callback, payload, headers, stream_fun} = call
+    args = [adapter, url, path, progress_callback, payload, headers, stream_fun]
+    res = case apply(@adapter, :download_file, args) do
       {:ok, _} = res -> res
       {:error, _} = res -> res
     end
     {:reply, res, state}
   end
 
-  def handle_call({:upload_file, {path, meta}}, _from, %{adapter: adapter} = state) do
-    res = case @adapter.upload_file(adapter, path, meta || %{x: -1, y: -1, z: -1}) do
+  def handle_call({:upload_file, {path, meta}}, _from, state) do
+    meta_arg = meta || %{x: -1, y: -1, z: -1}
+    args = [state.adapter, path, meta_arg]
+    res = case apply(@adapter, :upload_file, args) do
       {:ok, _} = res -> res
       {:error, _} = res -> res
     end
