@@ -14,7 +14,9 @@ defmodule Farmbot.Regimen.Supervisor do
   end
 
   def add_child(regimen, time) do
-    spec = worker(Farmbot.Regimen.Manager, [regimen, time], [restart: :transient, id: regimen.id])
+    args = [regimen, time]
+    opts = [restart: :transient, id: regimen.id]
+    spec = worker(Farmbot.Regimen.Manager, args, opts)
     Supervisor.start_child(__MODULE__, spec)
   end
 
