@@ -8,11 +8,14 @@ defmodule Farmbot.Repo.ModuleType do
 
     quote do
       @valid_short_strs unquote(mods)
-      @valid_mods Enum.map(unquote(mods), fn mod -> Module.concat([Farmbot, Repo, mod]) end)
+      @valid_mods Enum.map(unquote(mods), fn(mod) ->
+        Module.concat([Farmbot, Repo, mod])
+      end)
 
-      @moduledoc "Custom Ecto.Type for changing a string field to one of #{
-                   inspect(@valid_short_strs)
-                 }"
+      @moduledoc """
+      Custom Ecto.Type for changing a string field to one of
+      #{inspect(@valid_short_strs)}
+      """
       @behaviour Ecto.Type
 
       def type, do: :string
