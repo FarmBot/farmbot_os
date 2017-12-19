@@ -4,10 +4,15 @@ defmodule Farmbot.BotState.Transport.AMQP do
   use GenStage
   use AMQP
   use Farmbot.Logger
-  alias Farmbot.System.ConfigStorage
+
   alias Farmbot.CeleryScript
   alias CeleryScript.AST
+
   import Farmbot.BotState.Utils
+
+  alias Farmbot.System.ConfigStorage
+  import ConfigStorage, only: [get_config_value: 3]
+
 
   @exchange "amq.topic"
 
@@ -25,16 +30,21 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
   def init([]) do
     token = ConfigStorage.get_config_value(:string, "authorization", "token")
-    with {:ok, %{bot: device, mqtt: mqtt_server, vhost: vhost}} <- Farmbot.Jwt.decode(token),
-         {:ok, conn} <- AMQP.Connection.open([host: mqtt_server, username: device, password: token, virtual_host: vhost || "/"]),
-         {:ok, chan} <- AMQP.Channel.open(conn),
-         queue_name  <- Enum.join([device, UUID.uuid1()], "-"),
-         :ok         <- Basic.qos(chan, []),
-         {:ok, _}    <- AMQP.Queue.declare(chan, queue_name, [auto_delete: true]),
-         :ok         <- AMQP.Queue.bind(chan, queue_name, @exchange, [routing_key: "bot.#{device}.from_clients"]),
-         :ok         <- AMQP.Queue.bind(chan, queue_name, @exchange, [routing_key: "bot.#{device}.sync.#"]),
-         {:ok, _tag} <- Basic.consume(chan, queue_name),
-         state       <- struct(State, [conn: conn, chan: chan, queue_name: queue_name, bot: device])
+
+    import Farmbot.Jwt, only: [decode: 1]
+    with {:ok, %{bot: device, mqtt: mqtt_server, vhost: vhost}} <- decode(token),
+         {:ok, conn}  <- open_connection(token, device, mqtt_server, vhost),
+         {:ok, chan}  <- AMQP.Channel.open(conn),
+         q_name       <- Enum.join([device, UUID.uuid1()], "-"),
+         :ok          <- Basic.qos(chan, []),
+         {:ok, _}     <- AMQP.Queue.declare(chan, q_name, [auto_delete: true]),
+         from_clients <- [routing_key: "bot.#{device}.from_clients"],
+         sync         <- [routing_key: "bot.#{device}.sync.#"],
+         :ok          <- AMQP.Queue.bind(chan, q_name, @exchange, from_clients),
+         :ok          <- AMQP.Queue.bind(chan, q_name, @exchange, sync),
+         {:ok, _tag}  <- Basic.consume(chan, q_name),
+         opts      <- [conn: conn, chan: chan, queue_name: q_name, bot: device],
+         state <- struct(State, opts)
     do
       # Logger.success(3, "Connected to real time services.")
       {:consumer, state, subscribe_to: [Farmbot.BotState, Farmbot.Logger]}
@@ -42,21 +52,35 @@ defmodule Farmbot.BotState.Transport.AMQP do
       {:error, {:auth_failure, msg}} = fail ->
         Farmbot.System.factory_reset(msg)
         {:stop, fail, :no_state}
-      {:error, reason} ->
-        Logger.error 1, "Got error authenticating with Real time services: #{inspect reason}"
+      {:error, err} ->
+        msg = "Got error authenticating with Real time services: #{inspect err}"
+        Logger.error 1, msg
+
+        # If the auth task is running, force it to reset.
+        if Process.whereis(Farmbot.Bootstrap.AuthTask) do
+          Farmbot.Bootstrap.AuthTask.force_refresh()
+        end
         :ignore
     end
   end
 
+  defp open_connection(token, device, mqtt_server, vhost) do
+    opts = [
+      host: mqtt_server,
+      username: device,
+      password: token,
+      virtual_host: vhost || "/"]
+    AMQP.Connection.open(opts)
+  end
+
   def terminate(_reason, state) do
-    if state.chan do
-      AMQP.Channel.close(state.chan)
-    end
+    # If a channel was still open, close it.
+    if state.chan, do: AMQP.Channel.close(state.chan)
 
-    if state.conn do
-      AMQP.Connection.close(state.conn)
-    end
+    # If the connection is still open, close it.
+    if state.conn, do: AMQP.Connection.close(state.conn)
 
+    # If the auth task is running, force it to reset.
     if Process.whereis(Farmbot.Bootstrap.AuthTask) do
       Farmbot.Bootstrap.AuthTask.force_refresh()
     end
@@ -72,7 +96,8 @@ defmodule Farmbot.BotState.Transport.AMQP do
   def handle_log_events(logs, state) do
     for %Farmbot.Log{} = log <- logs do
       if should_log?(log.module, log.verbosity) do
-        location_data = Map.get(state.state_cache || %{}, :location_data, %{position: %{x: -1, y: -1, z: -1}})
+        fb = %{position: %{x: -1, y: -1, z: -1}}
+        location_data = Map.get(state.state_cache || %{}, :location_data, fb)
         meta = %{
           type: log.level,
           x: nil, y: nil, z: nil,
@@ -81,7 +106,12 @@ defmodule Farmbot.BotState.Transport.AMQP do
           minor_version: log.version.minor,
           patch_version: log.version.patch,
         }
-        log_without_pos = %{created_at: log.time, meta: meta, channels: log.meta[:channels] || [], message: log.message}
+        log_without_pos = %{
+          created_at: log.time,
+          meta: meta,
+          channels: log.meta[:channels] || [],
+          message: log.message
+        }
         log = add_position_to_log(log_without_pos, location_data)
         push_bot_log(state.chan, state.bot, log)
       end
@@ -112,7 +142,8 @@ defmodule Farmbot.BotState.Transport.AMQP do
     {:noreply, [], state}
   end
 
-  # Sent by the broker when the consumer is unexpectedly cancelled (such as after a queue deletion)
+  # Sent by the broker when the consumer is
+  # unexpectedly cancelled (such as after a queue deletion)
   def handle_info({:basic_cancel, _}, state) do
     {:stop, :normal, state}
   end
@@ -153,16 +184,21 @@ defmodule Farmbot.BotState.Transport.AMQP do
   defp handle_sync_cmd(kind, id, payload, state) do
     mod = Module.concat(["Farmbot", "Repo", kind])
     if Code.ensure_loaded?(mod) do
-      %{"body" => body, "args" => %{"label" => uuid}} = Poison.decode!(payload, as: %{"body" => struct(mod)})
+      %{
+        "body" => body,
+        "args" => %{"label" => uuid}
+      } = Poison.decode!(payload, as: %{"body" => struct(mod)})
+
       Farmbot.Repo.register_sync_cmd(String.to_integer(id), kind, body)
 
-      if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "auto_sync") do
+      if get_config_value(:bool, "settings", "auto_sync") do
         Farmbot.Repo.flip()
       end
 
-      Farmbot.CeleryScript.AST.Node.RpcOk.execute(%{label: uuid}, [], struct(Macro.Env))
+      AST.Node.RpcOk.execute(%{label: uuid}, [], struct(Macro.Env))
     else
-      Logger.warn 2, "Unknown syncable: #{mod}: #{inspect Poison.decode!(payload)}"
+      msg = "Unknown syncable: #{mod}: #{inspect Poison.decode!(payload)}"
+      Logger.warn 2, msg
     end
     {:noreply, [], state}
   end
@@ -173,7 +209,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
   end
 
   defp emit_cs(chan, bot, cs) do
-    with {:ok, map} <- Farmbot.CeleryScript.AST.encode(cs),
+    with {:ok, map} <- AST.encode(cs),
          {:ok, json} <- Poison.encode(map)
     do
       :ok = AMQP.Basic.publish chan, @exchange, "bot.#{bot}.from_device", json
