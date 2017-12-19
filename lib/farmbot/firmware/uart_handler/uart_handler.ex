@@ -6,7 +6,11 @@ defmodule Farmbot.Firmware.UartHandler do
   use GenStage
   alias Nerves.UART
   use Farmbot.Logger
-  @behaviour Farmbot.Firmware.Handler
+  alias Farmbot.System.ConfigStorage
+  import ConfigStorage, only: [update_config_value: 4]
+  alias Farmbot.Firmware
+  alias Firmware.UartHandler
+  @behaviour Firmware.Handler
 
   def start_link do
     GenStage.start_link(__MODULE__, [])
@@ -87,27 +91,40 @@ defmodule Farmbot.Firmware.UartHandler do
   end
 
   def init([]) do
-    # If in dev environment, it is expected that this be done at compile time.
-    # If in target environment, this should be done by `Farmbot.Firmware.AutoDetector`.
-    tty = Application.get_env(:farmbot, :uart_handler)[:tty] || raise "Please configure uart handler!"
+    # If in dev environment,
+    #   it is expected that this be done at compile time.
+    # If in target environment,
+    #   this should be done by `Farmbot.Firmware.AutoDetector`.
+    error_msg = "Please configure uart handler!"
+    tty = Application.get_env(:farmbot, :uart_handler)[:tty] || raise error_msg
+
+    # Disable fw input logs after a reset of the
+    # Fw handler if they were enabled.
+    update_config_value(:bool, "settings", "firmware_input_log", false)
+
+    # This looks up a hack file, flashes fw, and removes hack file.
+    # Sorry about that.
     maybe_flash_fw(tty)
-    storage_dispatch = Farmbot.System.ConfigStorage.Dispatcher
+
+    gen_stage_opts = [
+      dispatcher: GenStage.BroadcastDispatcher,
+      subscribe_to: [ConfigStorage.Dispatcher]
+    ]
     case open_tty(tty) do
       {:ok, nerves} ->
-        {:producer_consumer,
-          %State{nerves: nerves},
-          [dispatcher: GenStage.BroadcastDispatcher, subscribe_to: [storage_dispatch]]
-        }
-      err -> {:stop, err}
+        {:producer_consumer, %State{nerves: nerves}, gen_stage_opts}
+      err ->
+        {:stop, err}
     end
   end
 
   defp maybe_flash_fw(_tty) do
-    hack_file = Path.join(Application.get_env(:farmbot, :data_path), "firmware_flash")
+    path_list = [Application.get_env(:farmbot, :data_path), "firmware_flash"]
+    hack_file = Path.join(path_list)
     case File.read(hack_file) do
       {:ok, value} when value in ["arduino", "farmduino"] ->
-        Farmbot.System.ConfigStorage.update_config_value(:string, "settings", "firmware_hardware", value)
-        Farmbot.Firmware.UartHandler.Update.force_update_firmware(value)
+        update_config_value(:string, "settings", "firmware_hardware", value)
+        UartHandler.Update.force_update_firmware(value)
         File.rm!(hack_file)
       _ -> :ok
     end
@@ -124,7 +141,7 @@ defmodule Farmbot.Firmware.UartHandler do
     when key in ["firmware_input_log", "firmware_output_log"]
   do
     # Restart the framing to pick up new changes.
-    UART.configure state.nerves, [framing: Nerves.UART.Framing.None, active: false]
+    UART.configure state.nerves, [framing: UART.Framing.None, active: false]
     configure_uart(state.nerves, true)
     state
   end
@@ -152,7 +169,8 @@ defmodule Farmbot.Firmware.UartHandler do
       {:nerves_uart, _, {:error, reason}} -> {:stop, reason}
       {:nerves_uart, _, {:partial, _}} -> loop_until_idle(nerves)
       # {:nerves_uart, _, {_, :idle}} -> {:ok, nerves}
-      {:nerves_uart, _, {_, {:debug_message, "ARDUINO STARTUP COMPLETE"}}} -> {:ok, nerves}
+      {:nerves_uart, _, {_, {:debug_message, "ARDUINO STARTUP COMPLETE"}}} ->
+          {:ok, nerves}
       {:nerves_uart, _, _msg} ->
         # Logger.info 3, "Got message: #{inspect msg}"
         loop_until_idle(nerves)
@@ -181,7 +199,7 @@ defmodule Farmbot.Firmware.UartHandler do
   def handle_info({:nerves_uart, _, {:error, :eio}}, state) do
     Logger.error 1, "UART device removed."
     old_env = Application.get_env(:farmbot, :behaviour)
-    new_env = Keyword.put(old_env, :firmware_handler, Farmbot.Firmware.StubHandler)
+    new_env = Keyword.put(old_env, :firmware_handler, Firmware.StubHandler)
     Application.put_env(:farmbot, :behaviour, new_env)
     {:stop, {:error, :eio}, state}
   end
@@ -201,9 +219,10 @@ defmodule Farmbot.Firmware.UartHandler do
     if v in expected do
       {:noreply, [{:report_software_version, v}], state}
     else
-      Logger.error 1, "Firmware version #{v} is not in expected versions: #{inspect expected}"
+      err = "Firmware version #{v} is not in expected versions: #{inspect expected}"
+      Logger.error 1, err
       old_env = Application.get_env(:farmbot, :behaviour)
-      new_env = Keyword.put(old_env, :firmware_handler, Farmbot.Firmware.StubHandler)
+      new_env = Keyword.put(old_env, :firmware_handler, Firmware.StubHandler)
       Application.put_env(:farmbot, :behaviour, new_env)
       {:stop, :normal, state}
     end
@@ -221,7 +240,8 @@ defmodule Farmbot.Firmware.UartHandler do
     if distance > 0.85 do
       :ok
     else
-      Logger.error 3, "Echo does not match: got: #{code} expected: #{state.current_cmd} (#{distance})"
+      err = "Echo #{code} does not match #{state.current_cmd} (#{distance})"
+      Logger.error 3, err
     end
     {:noreply, [], %{state | current_cmd: nil}}
   end
@@ -322,12 +342,14 @@ defmodule Farmbot.Firmware.UartHandler do
 
   def handle_call({:read_pin, pin, mode}, _from, state) do
     encoded_mode = extract_pin_mode(mode)
-    do_write("F42 P#{pin} M#{encoded_mode}", state, [{:report_pin_mode, pin, mode}])
+    dispatch = [{:report_pin_mode, pin, mode}]
+    do_write("F42 P#{pin} M#{encoded_mode}", state, dispatch)
   end
 
   def handle_call({:write_pin, pin, mode, value}, _from, state) do
     encoded_mode = extract_pin_mode(mode)
-    do_write("F41 P#{pin} V#{value} M#{encoded_mode}", state, [{:report_pin_mode, pin, mode}, {:report_pin_value, pin, value}])
+    dispatch = [{:report_pin_mode, pin, mode}, {:report_pin_value, pin, value}]
+    do_write("F41 P#{pin} V#{value} M#{encoded_mode}", state, dispatch)
   end
 
   def handle_call(:request_software_version, _from, state) do
