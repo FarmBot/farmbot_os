@@ -32,7 +32,8 @@ defmodule Farmbot.BotState do
         total == nil ->
           # debug_log "#{name} - #{bytes} bytes."
           {rem(bytes, 10) == 0, %JobProgress.Bytes{bytes: bytes}}
-        # if the number of bytes == the total bytes, percentage side is complete.
+        # if the number of bytes == the total bytes,
+        # percentage side is complete.
         (div(bytes, total)) == 1 ->
           Logger.success 3, "#{name} complete."
           {true, %JobProgress.Percent{percent: 100, status: :complete}}
