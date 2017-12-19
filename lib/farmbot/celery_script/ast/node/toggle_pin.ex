@@ -8,11 +8,16 @@ defmodule Farmbot.CeleryScript.AST.Node.TogglePin do
   def execute(%{pin_number: num}, _, env) do
     env = mutate_env(env)
     case Farmbot.BotState.get_pin_value(num) do
-      {:ok, 0}  -> Node.WritePin.execute(%{pin_mode: :digital, pin_number: num, pin_value: 1}, [], env)
-      {:ok, 1}  -> Node.WritePin.execute(%{pin_mode: :digital, pin_number: num, pin_value: 0}, [], env)
+      {:ok, 0}  ->
+        args = %{pin_mode: :digital, pin_number: num, pin_value: 1}
+        Node.WritePin.execute(args, [], env)
+      {:ok, 1}  ->
+        args = %{pin_mode: :digital, pin_number: num, pin_value: 0}
+        Node.WritePin.execute(args, [], env)
       res when res == {:ok, -1} or res == {:error, :unknown_pin} ->
         Logger.warn 2, "Unknown pin value. Setting to zero."
-        Node.WritePin.execute(%{pin_mode: :digital, pin_number: num, pin_value: 0}, [], env)
+        args = %{pin_mode: :digital, pin_number: num, pin_value: 0}
+        Node.WritePin.execute(args, [], env)
       {:error, reason} -> {:error, reason, env}
     end
   end
