@@ -29,6 +29,7 @@ defmodule Farmbot.System.Supervisor do
       worker(Farmbot.EasterEggs, [])
     ]
 
-    supervise(before_init_children ++ init_mods ++ after_init_children, strategy: :one_for_all)
+    all_children = before_init_children ++ init_mods ++ after_init_children
+    supervise(all_children, strategy: :one_for_all)
   end
 end
