@@ -1,4 +1,4 @@
-if Farmbot.Project.env() == :dev do
+if Farmbot.Project.env() != :test do
 defmodule Farmbot.System.Udev.Supervisor do
   @moduledoc false
   use Supervisor

@@ -96,8 +96,8 @@ defmodule Farmbot.Mixfile do
       {:joken, "~> 1.1"},
       {:socket, "~> 0.3"},
       {:amqp, "~> 1.0.0-pre.2"},
-      {:nerves_ssdp_server, "~> 0.2.2", only: [:dev, :test]},
-      {:nerves_ssdp_client, "~> 0.1.0", only: [:dev, :test]},
+      {:nerves_ssdp_server, "~> 0.2.2", only: [:prod, :dev, :test]},
+      {:nerves_ssdp_client, "~> 0.1.0", only: [:prod, :dev, :test]},
 
       {:ex_syslogger, "~> 1.4", only: :prod},
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
@@ -113,7 +113,7 @@ defmodule Farmbot.Mixfile do
       {:excoveralls, "~> 0.7", only: :test},
       {:mock, "~> 0.2.0", only: :test},
       {:faker, "~> 0.9", only: :test},
-      {:udev, "~> 0.1.0", only: :dev},
+      {:udev, "~> 0.1.0", except: :test},
     ]
   end
 
@@ -165,12 +165,12 @@ defmodule Farmbot.Mixfile do
     ]
   end
 
-  defp elixirc_paths(:dev, "host") do
-    ["./lib", "./nerves/host"]
-  end
-
   defp elixirc_paths(:test, "host") do
     ["./lib", "./nerves/host", "./test/support"]
+  end
+
+  defp elixirc_paths(_, "host") do
+    ["./lib", "./nerves/host"]
   end
 
   defp elixirc_paths(_env, _target) do

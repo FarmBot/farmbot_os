@@ -16,7 +16,7 @@ config :farmbot, :init, [
   Farmbot.Host.Bootstrap.Configurator,
   Farmbot.Host.TargetConfiguratorTest.Supervisor,
   Farmbot.System.Udev.Supervisor,
-  Farmbot.System.Debug
+  # Farmbot.System.Debug
 ]
 
 # Transports.

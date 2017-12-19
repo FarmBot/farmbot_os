@@ -116,10 +116,10 @@ defmodule Farmbot.Firmware.StubHandler do
   end
 
   def handle_call({:move_absolute, pos, _x_speed, _y_speed, _z_speed}, _from, state) do
-    stub_responses =  [{:report_current_position, pos.x, pos.y, pos.z},
+    response = build_resp [{:report_current_position, pos.x, pos.y, pos.z},
                        {:report_encoder_position_scaled, pos.x, pos.y, pos.z},
                        {:report_encoder_position_raw, pos.x, pos.y, pos.z}, :done]
-    {:reply, :ok, stub_responses, %{state | pos: pos}}
+    {:reply, build_reply(:ok), response, %{state | pos: pos}}
   end
 
   def handle_call({:calibrate, _axis}, _from, state) do
@@ -128,31 +128,31 @@ defmodule Farmbot.Firmware.StubHandler do
 
   def handle_call({:find_home, axis}, _from, state) do
     state = %{state | pos: %{state.pos | axis => 0}}
-    response = [
+    response = build_resp [
       :"report_axis_home_complete_#{axis}",
       {:report_current_position,        state.pos.x, state.pos.y, state.pos.z},
       {:report_encoder_position_scaled, state.pos.x, state.pos.y, state.pos.z},
       {:report_encoder_position_raw,    state.pos.x, state.pos.y, state.pos.z},
       :done
     ]
-    {:reply, :ok, response, state}
+    {:reply, build_reply(:ok), response, state}
   end
 
   def handle_call({:home, axis}, _from, state) do
     state = %{state | pos: %{state.pos | axis => 0}}
-    response = [
+    response = build_resp [
       :"report_axis_home_complete_#{axis}",
       {:report_current_position,        state.pos.x, state.pos.y, state.pos.z},
       {:report_encoder_position_scaled, state.pos.x, state.pos.y, state.pos.z},
       {:report_encoder_position_raw,    state.pos.x, state.pos.y, state.pos.z},
       :done
     ]
-    {:reply, :ok, response, state}
+    {:reply, build_reply(:ok), response, state}
   end
 
   def handle_call(:home_all, _from, state) do
     state = %{state | pos: %{state.pos | x: 0, y: 0, z: 0}}
-    response = [
+    response = build_resp [
       :report_axis_home_complete_x,
       :report_axis_home_complete_y,
       :report_axis_home_complete_z,
@@ -161,58 +161,94 @@ defmodule Farmbot.Firmware.StubHandler do
       {:report_encoder_position_raw,    state.pos.x, state.pos.y, state.pos.z},
       :done
     ]
-    {:reply, :ok, response, state}
+    {:reply, build_reply(:ok), response, state}
   end
 
   def handle_call({:read_pin, pin, mode}, _from, state) do
-    {:reply, :ok, [{:report_pin_mode, pin, mode}, {:report_pin_value, pin, 1}, :done], state}
+    response = build_resp [
+      {:report_pin_mode, pin, mode},
+      {:report_pin_value, pin, 1}, :done
+    ]
+    {:reply, build_reply(:ok), response, state}
   end
 
   def handle_call({:write_pin, pin, mode, value}, _from, state) do
-    {:reply, :ok, [{:report_pin_mode, pin, mode}, {:report_pin_value, pin, value}, :done], state}
+    response = build_resp [
+      {:report_pin_mode, pin, mode},
+      {:report_pin_value, pin, value}, :done]
+    {:reply, build_reply(:ok), response, state}
   end
 
   def handle_call({:set_pin_mode, pin, mode}, _from, state) do
-    {:reply, :ok, [{:report_pin_mode, pin, mode}, :done], state}
+    response = [{:report_pin_mode, pin, mode}, :done]
+    {:reply, build_reply(:ok), response, state}
   end
 
   def handle_call({:zero, axis}, _from, state) do
     state = %{state | pos: %{state.pos | axis => 0}}
-    response = [
+    response = build_resp [
       {:report_current_position,        state.pos.x, state.pos.y, state.pos.z},
       {:report_encoder_position_scaled, state.pos.x, state.pos.y, state.pos.z},
       {:report_encoder_position_raw,    state.pos.x, state.pos.y, state.pos.z},
       :done
     ]
-    {:reply, :ok, response, state}
+    {:reply, build_reply(:ok), response, state}
   end
 
   def handle_call({:update_param, param, val}, _from, state) do
-    {:reply, :ok, [{:report_parameter_value, param, val}, :done], %{state | fw_params: Map.put(state.fw_params, param, val)}}
+    response = build_resp [{:report_parameter_value, param, val}, :done]
+    {:reply, build_reply(:ok), response, %{state | fw_params: Map.put(state.fw_params, param, val)}}
   end
 
   def handle_call({:read_param, param}, _from, state) do
     res = state.fw_params[param]
-    {:reply, :ok, [{:report_paramater_value, param, res}, :done], state}
+    response = build_resp [{:report_paramater_value, param, res}, :done]
+    {:reply, build_reply(:ok), response, state}
   end
 
   def handle_call(:read_all_params, _from, state) do
+    response = build_resp [:report_params_complete, :done]
     {:reply, :ok, [:report_params_complete, :done], state}
   end
 
   def handle_call(:emergency_lock, _from, state) do
-    {:reply, :ok, [:report_emergency_lock, :done], %{state | locked?: true}}
+    response = build_resp [:report_emergency_lock, :done]
+    {:reply, build_reply(:ok), response, %{state | locked?: true}}
   end
 
   def handle_call(:emergency_unlock, _from, state) do
-    {:reply, :ok, [:done, :idle], %{state | locked?: false}}
+    response = build_resp [:done, :idle]
+    {:reply, build_reply(:ok), response, %{state | locked?: false}}
   end
 
   def handle_call(:request_software_version, _, state) do
-    {:reply, :ok, [{:report_software_version, "STUBFW"}, :done], state}
+    response = build_resp [{:report_software_version, "STUBFW"}, :done]
+    {:reply, build_reply(:ok), response, state}
   end
 
   def handle_call({:set_servo_angle, _pin, _angle}, _, state) do
-    {:reply, :ok, [:done], state}
+    response = build_resp [:done]
+    {:reply, build_reply(:ok), response, state}
   end
+
+  case Mix.env() do
+    :prod ->
+      defp build_resp(_) do
+        [:done]
+      end
+
+      defp build_reply(_) do
+        {:error, "Firmware Disconnected."}
+      end
+
+    _env ->
+      defp build_resp(list) do
+        list
+      end
+
+      defp build_reply(reply) do
+        reply
+      end
+  end
+
 end
