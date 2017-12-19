@@ -57,9 +57,17 @@ end
 defmodule Farmbot.CeleryScript.AST.Node.DataUpdate do
   @moduledoc false
   use Farmbot.CeleryScript.AST.Node
-  allow_args [:value, :device, :farm_events, :points, :peripherals, :regimens, :sequences, :tool_slots, :tools]
+  allow_args [
+    :value,
+    :device,
+    :farm_events,
+    :points,
+    :peripherals,
+    :regimens,
+    :sequences,
+    :tool_slots,
+    :tools
+  ]
 
-  def execute(_, _, env) do
-    {:ok, env}
-  end
+  def execute(_, _, env), do: {:ok, env}
 end
