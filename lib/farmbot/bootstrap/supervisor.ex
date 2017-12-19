@@ -55,6 +55,7 @@ defmodule Farmbot.Bootstrap.Supervisor do
   use Supervisor
   alias Farmbot.Bootstrap.Authorization, as: Auth
   alias Farmbot.System.ConfigStorage
+  import ConfigStorage, only: [update_config_value: 4, get_config_value: 3]
   use Farmbot.Logger
 
   error_msg = """
@@ -65,7 +66,8 @@ defmodule Farmbot.Bootstrap.Supervisor do
       ]
   """
 
-  @auth_task Application.get_env(:farmbot, :behaviour)[:authorization] || Mix.raise(error_msg)
+  @auth_task Application.get_env(:farmbot, :behaviour)[:authorization]
+  @auth_task || Mix.raise(error_msg)
 
   @doc "Start Bootstrap services."
   def start_link() do
@@ -91,18 +93,15 @@ defmodule Farmbot.Bootstrap.Supervisor do
   @spec get_creds() :: auth | {:error, term}
   defp get_creds do
     try do
-      email =
-        ConfigStorage.get_config_value(:string, "authorization", "email") ||
-          raise "No email provided."
+      # Fetch email, server, password from Storage.
+      email = get_config_value(:string, "authorization", "email")
+      pass = get_config_value(:string, "authorization", "password")
+      server = get_config_value(:string, "authorization", "server")
 
-      pass =
-        ConfigStorage.get_config_value(:string, "authorization", "password") ||
-          raise "No password provided."
-
-      server =
-        ConfigStorage.get_config_value(:string, "authorization", "server") ||
-          raise "No server provided."
-
+      # Make sure they aren't empty.
+      email || raise "No email provided."
+      pass || raise "No password provided."
+      server || raise "No server provided."
       {email, pass, server}
     rescue
       e in RuntimeError -> {:error, Exception.message(e)}
@@ -111,13 +110,15 @@ defmodule Farmbot.Bootstrap.Supervisor do
   end
 
   defp actual_init(email, pass, server) do
-    Logger.busy(2, "Beginning authorization: #{@auth_task} - #{email} - #{server}")
+    busy_msg = "Beginning authorization: #{email} - #{server}"
+    Logger.busy(2, busy_msg)
     # get a token
     case @auth_task.authorize(email, pass, server) do
       {:ok, token} ->
-        Logger.success(2, "Successful authorization: #{@auth_task} - #{email} - #{server}")
-        ConfigStorage.update_config_value(:bool, "settings", "first_boot", false)
-        ConfigStorage.update_config_value(:string, "authorization", "token", token)
+        success_msg = "Successful authorization: #{email} - #{server}"
+        Logger.success(2, success_msg)
+        update_config_value(:bool, "settings", "first_boot", false)
+        update_config_value(:string, "authorization", "token", token)
 
         children = [
           worker(Farmbot.Bootstrap.AuthTask,                []),
@@ -142,9 +143,9 @@ defmodule Farmbot.Bootstrap.Supervisor do
         :ignore
 
       # If we got invalid json, just try again.
-      # FIXME(Connor) Why does this happen?
-      {:error, :invalid, _} ->
-        actual_init(email, pass, server)
+      # HACK(Connor) Sometimes we don't get valid json
+      # Just try again if that happened.
+      {:error, :invalid, _} -> actual_init(email, pass, server)
     end
   end
 end
