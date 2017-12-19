@@ -2,6 +2,7 @@ defmodule Farmbot.System.Debug do
   @moduledoc "Supervisor for Various debugging modules."
   use Supervisor
   alias Plug.Adapters.Cowboy
+  alias Farmbot.System.DebugRouter
 
   def start_link(_, opts) do
     Supervisor.start_link(__MODULE__, [], opts)
@@ -14,12 +15,12 @@ defmodule Farmbot.System.Debug do
       dispatch: [
         {:_, [
           {"/wobserver/ws", Wobserver.Web.Client, []},
-          {:_, Cowboy.Handler, {Farmbot.System.DebugRouter, []}}
+          {:_, Cowboy.Handler, {DebugRouter, []}}
         ]}
       ],
     ]
     children = [
-      Plug.Adapters.Cowboy.child_spec(:http, Farmbot.System.DebugRouter, [], options),
+      Plug.Adapters.Cowboy.child_spec(:http, DebugRouter, [], options),
       worker(Farmbot.System.Updates.SlackUpdater, []),
       worker(Farmbot.System.Debug.SSDPServer, [])
     ]
