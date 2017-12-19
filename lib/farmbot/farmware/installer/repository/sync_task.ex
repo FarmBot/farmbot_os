@@ -1,8 +1,12 @@
 defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
-  @moduledoc "Init module for installing first party farmware repo. Requires internet."
+  @moduledoc """
+  Init module for installing first party farmware repo. Requires internet.
+  """
+
   use Task, restart: :transient
   use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
+  import ConfigStorage, only: [get_config_value: 3]
   alias Farmbot.Farmware
   alias Farmware.Installer
   alias Installer.Repository
@@ -27,10 +31,11 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
     import Ecto.Query
 
     # first party farmware url could be nil. This would mean it is disabled.
-    fpf_url = ConfigStorage.get_config_value(:string, "settings", "first_party_farmware_url")
+    fpf_url = get_config_value(:string, "settings", "first_party_farmware_url")
     # if fpf_url isn't nil, check if its been enabled, if not enable it.
     if fpf_url do
-      unless Farmbot.System.ConfigStorage.one(from r in Repository, where: r.url == ^fpf_url) do
+      query = from r in Repository, where: r.url == ^fpf_url
+      unless Farmbot.System.ConfigStorage.one(query) do
         Installer.add_repo(fpf_url)
       end
     else
