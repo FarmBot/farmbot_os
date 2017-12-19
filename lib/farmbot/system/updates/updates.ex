@@ -8,7 +8,8 @@ defmodule Farmbot.System.Updates do
   @env Farmbot.Project.env()
   use Farmbot.Logger
 
-  @handler Application.get_env(:farmbot, :behaviour)[:update_handler] || Mix.raise("Please configure `config :farmbot, :behaviour, [update_handler: <handler_mod>]`")
+  @handler Application.get_env(:farmbot, :behaviour)[:update_handler]
+  @handler || Mix.raise("Please configure update_handler")
 
   alias Farmbot.System.ConfigStorage
 
@@ -55,9 +56,16 @@ defmodule Farmbot.System.Updates do
         do_download_and_apply(fw_url, new_version)
       end
     else
-      :error -> Logger.error 2, "Unexpected release HTTP response or wrong formated `tag_name`."
-      {:error, :no_fw_url} -> Logger.error 2, "No firmware in update asssets."
-      {:error, reason} -> Logger.error 1, "Failed to fetch update data: #{inspect reason}"
+      :error ->
+        msg = "Unexpected release HTTP response or wrong formated `tag_name`"
+        Logger.error 2, msg
+
+      {:error, :no_fw_url} ->
+        Logger.error 2, "No firmware in update asssets."
+
+      {:error, reason} ->
+        Logger.error 1, "Failed to fetch update data: #{inspect reason}"
+
       {:ok, %{body: body, status_code: code}} ->
         reason = case Poison.decode(body) do
           {:ok, res} -> res
@@ -99,7 +107,8 @@ defmodule Farmbot.System.Updates do
 
   defp do_download_and_apply(dl_url, new_version) do
     dl_fun = Farmbot.BotState.download_progress_fun("FBOS_OTA")
-    case Farmbot.HTTP.download_file(dl_url, Path.join(@data_path, "#{new_version}.fw"), dl_fun, "", []) do
+    dl_path = Path.join(@data_path, "#{new_version}.fw")
+    case Farmbot.HTTP.download_file(dl_url, dl_path, dl_fun, "", []) do
       {:ok, path} ->
         apply_firmware(path)
       {:error, reason} ->
