@@ -36,8 +36,12 @@ defmodule Farmbot.HTTP.Adapter do
               {:ok, Response.t()} | {:error, term}
 
   @doc "Download a file to the Filesystem."
-  @callback download_file(adapter, url, Path.t(), progress_callback, body, headers, stream_fun) ::
-              {:ok, Path.t()} | {:error, term}
+  @callback download_file(adapter,
+                          url,
+                          Path.t(),
+                          progress_callback,
+                          body, headers,
+                          stream_fun) :: {:ok, Path.t()} | {:error, term}
 
   @doc "Upload a file."
   @callback upload_file(adapter, Path.t(), upload_meta) :: :ok | {:error, term}
