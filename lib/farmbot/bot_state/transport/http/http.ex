@@ -4,7 +4,8 @@ defmodule Farmbot.BotState.Transport.HTTP do
 
   # Accessing the API
   A developer should be able to access the REST API at
-  `http://<my_farmbot_id>:27347/api/v1/`. The calls will require an authentication token.
+  `http://<my_farmbot_id>:27347/api/v1/`.
+  The calls will require an authentication token.
   See the [API docs](https://github.com/farmbot/Farmbot-Web-App#q-how-can-i-generate-an-api-token)
   for information about generating a token. Access to the local api should be
   the same as accessing the cloud API. You will need to have an HTTP header:
@@ -18,6 +19,7 @@ defmodule Farmbot.BotState.Transport.HTTP do
 
   use GenStage
   alias Farmbot.BotState.Transport.HTTP.Router
+  alias Farmbot.System.ConfigStorage
 
   @port 27_347
 
@@ -41,11 +43,14 @@ defmodule Farmbot.BotState.Transport.HTTP do
   end
 
   def init([]) do
-    s = Farmbot.System.ConfigStorage.get_config_value(:string, "authorization", "server")
-    {:ok, {_, _, body}} = :httpc.request(:get, {'#{s}/api/public_key', []}, [], [body_format: :binary])
+    s = ConfigStorage.get_config_value(:string, "authorization", "server")
+    req = {'#{s}/api/public_key', []}
+    {:ok, {_, _, body}} = :httpc.request(:get, req, [], [body_format: :binary])
     public_key = body |> JOSE.JWK.from_pem
-    # FIXME(Connor) The router should probably be put in an externally supervised module..
-    case Plug.Adapters.Cowboy.http Router, [], [port: @port, acceptors: 2, dispatch: [cowboy_dispatch()]] do
+    # FIXME(Connor) The router should probably
+    # be put in an externally supervised module..
+    opts = [port: @port, acceptors: 2, dispatch: [cowboy_dispatch()]]
+    case Plug.Adapters.Cowboy.http Router, [], opts do
       {:ok, web} ->
         state = %{web: web, bot_state: nil, sockets: [], public_key: public_key}
         Process.link(state.web)
@@ -74,16 +79,16 @@ defmodule Farmbot.BotState.Transport.HTTP do
     {:reply, {:ok, state.public_key}, [], state}
   end
 
-  defp dispatch(Farmbot.BotState = dispatcher, events, %{sockets: sockets} = state) do
+  defp dispatch(Farmbot.BotState = dispatcher, events, state) do
     bot_state = List.last(events)
-    for socket <- sockets do
+    for socket <- state.sockets do
       send socket, {dispatcher, bot_state}
     end
     {:noreply, [], %{state | bot_state: bot_state}}
   end
 
-  defp dispatch(Farmbot.Logger = dispatcher, logs, %{sockets: sockets} = state) do
-    for socket <- sockets do
+  defp dispatch(Farmbot.Logger = dispatcher, logs, state) do
+    for socket <- state.sockets do
       send socket, {dispatcher, logs}
     end
     {:noreply, [], state}
