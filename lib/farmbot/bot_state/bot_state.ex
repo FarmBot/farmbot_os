@@ -1,5 +1,10 @@
 defmodule Farmbot.BotState do
-  @moduledoc "JSON Serializable state tree that gets pushed over variour transports."
+  @moduledoc """
+  Central bot state that gets pushed out over transports.
+    * JSON Serializable
+    * Global
+    * Scary
+  """
 
   use GenStage
   @version Farmbot.Project.version()
@@ -8,13 +13,17 @@ defmodule Farmbot.BotState do
   @env Farmbot.Project.env()
 
   alias Farmbot.CeleryScript.AST
+  alias Farmbot.System.ConfigStorage
+  import ConfigStorage, only: [update_config_value: 4]
+  alias Farmbot.Firmware
   use Farmbot.Logger
 
   def download_progress_fun(name) do
     alias Farmbot.BotState.JobProgress
     fn(bytes, total) ->
       {do_send, prog} = cond do
-        # if the total is complete spit out the bytes, and put a status of complete.
+        # if the total is complete spit out the bytes,
+        # and put a status of complete.
         total == :complete ->
           Logger.success 3, "#{name} complete."
           {true, %JobProgress.Bytes{bytes: bytes, status: :complete}}
@@ -70,7 +79,15 @@ defmodule Farmbot.BotState do
     GenStage.call(__MODULE__, {:set_busy, bool})
   end
 
-  @valid_sync_status [:maintenance, :sync_error, :sync_now, :synced, :syncing, :unknown]
+  @valid_sync_status [
+    :maintenance,
+    :sync_error,
+    :sync_now,
+    :synced,
+    :syncing,
+    :unknown
+  ]
+
   @doc "Set the sync status above ticker to a message."
   def set_sync_status(cmd) when cmd in @valid_sync_status do
     GenStage.call(__MODULE__, {:set_sync_status, cmd})
@@ -112,16 +129,20 @@ defmodule Farmbot.BotState do
   end
 
   def init([]) do
-    settings = Farmbot.System.ConfigStorage.get_config_as_map()["settings"]
+    settings = ConfigStorage.get_config_as_map()["settings"]
     user_env = Poison.decode!(settings["user_env"])
-    initial_state = struct(__MODULE__, configuration: Map.delete(settings, "user_env"), user_env: user_env)
-    state = %{initial_state | informational_settings: %{initial_state.informational_settings | node_name: node()}}
-    {
-      :producer_consumer,
-      state,
-      subscribe_to: [Farmbot.Firmware, Farmbot.System.ConfigStorage.Dispatcher, Farmbot.System.GPIO],
+    state_opts = [
+      configuration: Map.delete(settings, "user_env"),
+      user_env: user_env
+    ]
+    initial_state = struct(__MODULE__, state_opts)
+    info_settings = %{initial_state.informational_settings | node_name: node()}
+    state = %{initial_state | informational_settings: info_settings}
+    gen_stage_opts = [
+      subscribe_to: [Firmware, ConfigStorage.Dispatcher, Farmbot.System.GPIO],
       dispatcher: GenStage.BroadcastDispatcher
-    }
+    ]
+    {:producer_consumer, state, gen_stage_opts}
   end
 
   def handle_events(events, _from, state) do
@@ -167,7 +188,7 @@ defmodule Farmbot.BotState do
     new_user_env = Map.merge(state.user_env, %{to_string(key) => val})
     case Poison.encode(new_user_env) do
       {:ok, encoded} ->
-        Farmbot.System.ConfigStorage.update_config_value(:string, "settings", "user_env", encoded)
+        update_config_value(:string, "settings", "user_env", encoded)
         {:reply, :ok, [], state}
       _ -> {:reply, {:error, "user_env must be json encodeable!"}, [], state}
     end
@@ -228,9 +249,9 @@ defmodule Farmbot.BotState do
     do_handle(rest, new_state)
   end
 
-  defp do_handle([{:config, "settings", "auto_sync" = key, true = val} | rest], state) do
+  defp do_handle([{:config, "settings", "auto_sync", true} | rest], state) do
     spawn Farmbot.Repo, :flip, []
-    new_config = Map.put(state.configuration, key, val)
+    new_config = Map.put(state.configuration, "auto_sync", true)
     new_state = %{state | configuration: new_config}
     do_handle(rest, new_state)
   end
