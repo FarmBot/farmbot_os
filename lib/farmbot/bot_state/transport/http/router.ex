@@ -6,10 +6,12 @@ defmodule Farmbot.BotState.Transport.HTTP.Router do
   alias Farmbot.BotState.Transport.HTTP
   alias HTTP.AuthPlug
 
-  use Plug.Debugger, otp_app: :farmbot
-  plug Plug.Logger, log: :debug
-  plug AuthPlug, env: :dev
-  plug(Plug.Parsers, parsers: [:urlencoded, :multipart, :json], json_decoder: Poison)
+  use Plug.Debugger, [otp_app: :farmbot]
+  plug Plug.Logger, [log: :debug]
+  plug AuthPlug, [env: Farmbot.Project.env()]
+  plug Plug.Parsers, [
+    parsers: [:urlencoded, :multipart, :json],
+    json_decoder: Poison]
   plug :match
   plug :dispatch
 
@@ -24,7 +26,8 @@ defmodule Farmbot.BotState.Transport.HTTP.Router do
     do
       case Farmbot.CeleryScript.execute(ast) do
         {:ok, _} -> send_resp(conn, 200, "ok")
-        {:error, reason} when is_binary(reason) or is_atom(reason) -> send_resp conn, 500, reason
+        {:error, reason} when is_binary(reason) or is_atom(reason) ->
+          send_resp conn, 500, reason
         {:error, reason} -> send_resp conn, 500, "#{inspect reason}"
       end
     else
