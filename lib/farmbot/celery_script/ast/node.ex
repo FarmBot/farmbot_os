@@ -6,7 +6,9 @@ defmodule Farmbot.CeleryScript.AST.Node do
   @callback decode_args(map) :: {:ok, AST.args} | {:error, term}
 
   @doc "Execute a node"
-  @callback execute(AST.args, AST.body, Macro.Env.t) :: {:ok, AST.t} | {:ok, Macro.Env.t} | {:error, Macro.Env.t, term}
+  @callback execute(AST.args, AST.body, Macro.Env.t) :: {:ok, AST.t} |
+    {:ok, Macro.Env.t} |
+    {:error, Macro.Env.t, term}
 
   @doc false
   defmacro __after_compile__(env, _) do
@@ -21,7 +23,13 @@ defmodule Farmbot.CeleryScript.AST.Node do
   @doc false
   defmacro __using__(_) do
     quote do
-      import AST.Node, only: [allow_args: 1, return_self: 0, rebuild_self: 2, mutate_env: 1]
+      import AST.Node, only: [
+        allow_args: 1,
+        return_self: 0,
+        rebuild_self: 2,
+        mutate_env: 1
+      ]
+
       @behaviour AST.Node
       @after_compile AST.Node
 
@@ -126,8 +134,10 @@ defmodule Farmbot.CeleryScript.AST.Node do
           @doc false
           def unquote(arg)() do
             unless Code.ensure_loaded?(unquote(mod)) do
+              msg = "Unknown CeleryScript arg: #{unquote(arg)} (#{unquote(mod)})"
               raise CompileError,
-                description: "Unknown CeleryScript arg: #{unquote(arg)} (#{unquote(mod)})", file: __ENV__.file
+                description: msg,
+                file: __ENV__.file
             end
             unquote(mod)
           end
