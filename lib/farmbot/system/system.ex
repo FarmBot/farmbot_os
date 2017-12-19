@@ -9,13 +9,21 @@ defmodule Farmbot.System do
   Please configure `:system_tasks` and `:data_path`!
   """
 
-  @system_tasks Application.get_env(:farmbot, :behaviour)[:system_tasks] || Mix.raise(error_msg)
-  @data_path Application.get_env(:farmbot, :data_path) || Mix.raise(error_msg)
+  @system_tasks Application.get_env(:farmbot, :behaviour)[:system_tasks]
+  @system_tasks || Mix.raise(error_msg)
 
-  @typedoc "Reason for a task to execute. Should be human readable."
+  @data_path Application.get_env(:farmbot, :data_path)
+  @data_path || Mix.raise(error_msg)
+
+  @typedoc """
+  Reason for a task to execute. Should be human readable.
+  """
   @type reason :: binary
 
-  @typedoc "Any ole data that caused a factory reset. Will try to format it as a human readable binary."
+  @typedoc """
+  Any ole data that caused a factory reset.
+  Will try to format it as a human readable binary.
+  """
   @type unparsed_reason :: any
 
   @doc """
@@ -34,8 +42,10 @@ defmodule Farmbot.System do
   @doc "Remove all configuration data, and reboot."
   @spec factory_reset(unparsed_reason) :: no_return
   def factory_reset(reason) do
-    if Process.whereis Farmbot.System.ConfigStorage do
-      if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "disable_factory_reset") do
+    alias Farmbot.System.ConfigStorage
+    import ConfigStorage, only: [get_config_value: 3]
+    if Process.whereis ConfigStorage do
+      if get_config_value(:bool, "settings", "disable_factory_reset") do
         reboot(reason)
       else
         do_reset(reason)
@@ -93,7 +103,10 @@ defmodule Farmbot.System do
 
     rescue
       _e -> [_ | [_ | stack]] = System.stacktrace()
-      stack = Enum.map(stack, fn er -> "\t#{inspect(er)}" end) |> Enum.join(",\r\n <p>")
+      stack =
+        stack
+        |> Enum.map(fn er -> "\t#{inspect(er)}" end)
+        |> Enum.join(",\r\n <p>")
       formated = do_format_reason(reason)
       footer = """
       <hr>
@@ -118,15 +131,20 @@ defmodule Farmbot.System do
   # This mess of pattern matches cleans up erlang startup errors. It's very
   # recursive, and kind of cryptic, but should always produce a human readable
   # message that can be read by an end user.
-
-  defp do_format_reason({
-         :error,
-         {:shutdown, {:failed_to_start_child, Farmbot.Bootstrap.Supervisor, rest}}
-       }) do
+  alias Farmbot.Bootstrap
+  defp do_format_reason(
+    {:error,
+      {:shutdown,
+        {:failed_to_start_child, Bootstrap.Supervisor, rest}}})
+  do
     do_format_reason(rest)
   end
 
-  defp do_format_reason({:error, {:shutdown, {:failed_to_start_child, child, rest}}}) do
+  defp do_format_reason(
+    {:error,
+      {:shutdown,
+        {:failed_to_start_child, child, rest}}})
+  do
     {failed_child, failed_reason} = enumerate_ftsc_error(child, rest)
     if failed_reason do
       """
@@ -141,7 +159,7 @@ defmodule Farmbot.System do
     end
   end
 
-  defp do_format_reason({:bad_return, {Farmbot.Bootstrap.Supervisor, :init, error}}) do
+  defp do_format_reason({:bad_return, {Bootstrap.Supervisor, :init, error}}) do
     """
     Failed to Authorize with Farmbot Web Services.
     reason: #{do_format_reason(error)}
@@ -150,16 +168,23 @@ defmodule Farmbot.System do
     """
   end
 
-  defp do_format_reason({:error, reason}) when is_atom(reason) or is_binary(reason) do
+  defp do_format_reason({:error, reason})
+    when is_atom(reason) or is_binary(reason)
+  do
     reason |> to_string()
   end
 
   defp do_format_reason({:error, reason}), do: inspect(reason)
 
-  defp do_format_reason({:failed_connect, [{:to_address, {server, port}}, {_, _, reason}]}) do
+  defp do_format_reason(
+    {:failed_connect,
+      [{:to_address, {server, port}}, {_, _, reason}]})
+  do
     """
-    Failed to connect to server: #{server}:#{port} reason: #{do_format_reason(reason)}
-    This is likely the result of a misconfigured "server" field during configuration.
+    Failed to connect to server: #{server}:#{port}
+      reason: #{do_format_reason(reason)}
+    This is likely the result of a
+    misconfigured "server" field during configuration.
     """
   end
 
@@ -173,7 +198,10 @@ defmodule Farmbot.System do
   defp do_format_reason(reason), do: do_format_reason({:error, reason})
 
   # This cleans up nested supervisors/workers.
-  defp enumerate_ftsc_error(_child, {:shutdown, {:failed_to_start_child, child, rest}}) do
+  defp enumerate_ftsc_error(_child,
+    {:shutdown,
+      {:failed_to_start_child, child, rest}})
+  do
     enumerate_ftsc_error(child, rest)
   end
 
