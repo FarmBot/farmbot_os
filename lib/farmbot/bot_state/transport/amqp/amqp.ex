@@ -41,7 +41,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
          sync         <- [routing_key: "bot.#{device}.sync.#"],
          :ok          <- AMQP.Queue.bind(chan, q_name, @exchange, from_clients),
          :ok          <- AMQP.Queue.bind(chan, q_name, @exchange, sync),
-         {:ok, _tag}  <- Basic.consume(chan, q_name, [no_ack: true, consumer_tag: q_name ])
+         {:ok, _tag}  <- Basic.consume(chan, q_name, [no_ack: true, consumer_tag: q_name ]),
          opts         <- [conn: conn, chan: chan, queue_name: q_name, bot: device],
          state        <- struct(State, opts)
     do
