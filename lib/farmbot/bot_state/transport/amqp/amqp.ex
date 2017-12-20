@@ -35,22 +35,23 @@ defmodule Farmbot.BotState.Transport.AMQP do
          {:ok, conn}  <- open_connection(token, device, mqtt_host, vhost),
          {:ok, chan}  <- AMQP.Channel.open(conn),
          q_name       <- Enum.join([device, UUID.uuid1()], "-"),
-         :ok          <- Basic.qos(chan, []),
+         :ok          <- Basic.qos(chan, [global: true]),
          {:ok, _}     <- AMQP.Queue.declare(chan, q_name, [auto_delete: true]),
          from_clients <- [routing_key: "bot.#{device}.from_clients"],
          sync         <- [routing_key: "bot.#{device}.sync.#"],
          :ok          <- AMQP.Queue.bind(chan, q_name, @exchange, from_clients),
          :ok          <- AMQP.Queue.bind(chan, q_name, @exchange, sync),
-         {:ok, _tag}  <- Basic.consume(chan, q_name),
+         {:ok, _tag}  <- Basic.consume(chan, q_name, self(), [no_ack: true]),
          opts      <- [conn: conn, chan: chan, queue_name: q_name, bot: device],
          state <- struct(State, opts)
     do
       # Logger.success(3, "Connected to real time services.")
+      Process.monitor(conn.pid)
       {:consumer, state, subscribe_to: [Farmbot.BotState, Farmbot.Logger]}
     else
       {:error, {:auth_failure, msg}} = fail ->
         Farmbot.System.factory_reset(msg)
-        {:stop, fail, :no_state}
+        {:stop, fail}
       {:error, err} ->
         msg = "Got error authenticating with Real time services: #{inspect err}"
         Logger.error 1, msg
@@ -72,7 +73,8 @@ defmodule Farmbot.BotState.Transport.AMQP do
     AMQP.Connection.open(opts)
   end
 
-  def terminate(_reason, state) do
+  def terminate(reason, state) do
+    Logger.error 1, "AMQP Died: #{inspect reason}"
     # If a channel was still open, close it.
     if state.chan, do: AMQP.Channel.close(state.chan)
 
@@ -134,6 +136,10 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
   def handle_bot_state_events([], state) do
     {:noreply, [], state}
+  end
+
+  def handle_info({:DOWN, _, :process, _pid, reason}, state) do
+    {:stop, reason, state}
   end
 
   # Confirmation sent by the broker after registering this process as a consumer
