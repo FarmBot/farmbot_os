@@ -1,5 +1,5 @@
 *
-!vm.args
+!vm.args*
 !.gitignore
 !config.exs
 !hooks

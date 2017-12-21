@@ -1,0 +1,144 @@
+* {
+  font-family: "Arial";
+}
+
+body {
+  background: linear-gradient(-135deg, #6db1ec, #35a274);
+  padding: 0.5rem;
+  padding-top: 1rem;
+}
+
+h1, h2 {
+  text-shadow: 0 0 25px rgba(0, 0, 0, 0.1), 0 0 25px rgba(0, 0, 0, 0.1);
+  margin-bottom: 3rem;
+  font-weight: 100;
+  text-align: center;
+  color: #fff;
+}
+
+.button {
+  text-align: center;
+  margin-top: 3rem;
+}
+
+a, input[type=submit] {
+  padding: .5rem 1.6rem;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  text-decoration: none;
+  font-weight: 700!important;
+  border: none;
+  border-radius: 3px;
+  background-color: #6a4;
+  color: #f4f4f4;
+  border-bottom: solid #371;
+}
+
+a:hover, input[type=submit]:hover {
+  border-bottom-width: 1px !important;
+  background-color:#61a241;
+}
+
+.widget {
+  margin-bottom: 3rem;
+  position: relative;
+  margin: auto;
+  max-width: 500px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.widget-header {
+  background: #434343;
+  letter-spacing: .05rem;
+  padding: .75rem 1rem;
+}
+
+h5 {
+  color: #cccccc;
+  font-size: 1rem;
+  margin: .25rem;
+  text-transform: uppercase;
+  display: inline;
+  margin-right: 1rem;
+}
+
+p {
+  font-size: 1rem;
+  font-style: italic;
+  margin-top: 0;
+}
+
+.widget-content {
+  background: #f4f4f4;
+  border-color: #ddd;
+  color: #434343 !important;
+  padding: 1rem;
+}
+.widget-content:label {
+  font-size: 1.3rem;
+}
+
+fieldset {
+  border: none;
+  padding: 0;
+}
+
+select {
+  border-radius: 0 !important;
+  font-size: 1.2rem !important;
+  background-color: white !important;
+  color: #434343 !important;
+  height: 30px !important;
+  width: 100% !important;
+  border: 0 !important;
+  box-shadow: 0px 0px 10px #cccccc !important;
+  padding: 0 0.5rem;
+  outline: none;
+}
+
+label {
+  text-transform: uppercase;
+  font-weight: bold;
+  display: block;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+input[type=email],
+input[type=password],
+input[type=text] {
+  border: none;
+  box-shadow: 0px 0px 10px #cccccc !important;
+  padding: 0.5rem;
+  width: 100%;
+  font-size: 1rem;
+}
+
+input[type=email]:focus,
+input[type=password]:focus,
+input[type=text]:focus {
+  outline: none;
+}
+
+input[type="radio"] {
+  border-radius: 0;
+  -webkit-appearance: none;
+  border: 1px solid black;
+  padding: 1rem 1rem;
+  background: white;
+  outline: none !important;
+  position: relative;
+  cursor: pointer;
+}
+
+input[type="radio"]:checked:after {
+  content: '';
+  position: absolute;
+  width: 0.5rem;
+  height: 1.5rem;
+  border: solid #000;
+  border-width: 0 5px 5px 0;
+  transform: rotate(45deg);
+  top: 0;
+  left: 0.6rem;
+}

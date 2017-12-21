@@ -1,0 +1,76 @@
+<html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<head>
+  <title> Configure your firmware </title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+
+<style>
+  #myProgress {
+    width: 100%;
+    background-color: #ddd;
+  }
+
+  #myBar {
+    width: 1%;
+    height: 30px;
+    background-color: #4CAF50;
+  }
+</style>
+
+<script>
+var num_dots = 0;
+function button_click() {
+  document.getElementById("loading_thing").hidden = false;
+  document.getElementById("submit_button").hidden = true;
+  document.getElementById("firmware_hardware").hidden = true;
+  moveBar();
+}
+
+function moveBar() {
+  var elem = document.getElementById("myBar");
+  var width = 1;
+  var id = setInterval(frame, 300);
+  function frame() {
+    if (width >= 100) {
+      clearInterval(id);
+    } else {
+      width++;
+      elem.style.width = width + '%';
+    }
+  }
+}
+
+</script>
+
+<body>
+  <h1>Configure your FarmBot</h1>
+  <div class="widget">
+    <div class="widget-header">
+      <h5>Firmware</h5>
+    </div>
+    <div class="widget-content" hidden=true id="loading_thing">
+      Your firmware is flashing.
+      <div id="myProgress">
+        <div id="myBar"></div>
+      </div>
+    </div>
+    <div class="widget-content">
+      <form action=configure_firmware method=post>
+        <fieldset>
+          <select id="firmware_hardware" name=firmware_hardware>
+            <option value="arduino"> Arduino/RAMPS (Genesis v1.2) </option>
+            <option value="farmduino"> Farmduino (Genesis v1.3) </option>
+          </select>
+        </fieldset>
+    </div>
+  </div>
+
+  <div id="submit_button" class="button" onclick="button_click()">
+    <input type=submit value="next">
+  </div>
+
+  </form>
+</body>
+</html>

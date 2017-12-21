@@ -1,3 +1,0 @@
-[submodule "nerves/nerves_system_rpi3"]
-	path = nerves/nerves_system_rpi3
-	url = git@github.com:FarmBot-Labs/nerves_system_farmbot_rpi3.git

@@ -1,39 +1,27 @@
 defmodule Farmbot.Regimen.Supervisor do
-  @moduledoc """
-    Supervisor for Regimens
-  """
+  @moduledoc false
   use Supervisor
-  @behaviour Farmbot.EventSupervisor
-  alias Farmbot.Context
 
-  @type supervisor :: pid | atom
+  @doc false
+  def start_link do
+    Supervisor.start_link(__MODULE__, [], [name: __MODULE__])
+  end
 
-  @doc """
-    Start a Regimen Supervisor
-  """
-  def start_link(%Context{} = context, opts),
-    do: Supervisor.start_link(__MODULE__, context, opts)
-
-  def init(_) do
+  def init([]) do
     children = []
     opts = [strategy: :one_for_one]
     supervise(children, opts)
   end
 
-  @doc """
-    Add a child to this supervisor
-  """
-  def add_child(%Context{} = context, regimen, time) do
-    Supervisor.start_child(context.regimen_supervisor,
-      worker(Farmbot.Regimen.Runner, [context, regimen, time],
-        [restart: :transient, id: regimen.id]))
+  def add_child(regimen, time) do
+    args = [regimen, time]
+    opts = [restart: :transient, id: regimen.id]
+    spec = worker(Farmbot.Regimen.Manager, args, opts)
+    Supervisor.start_child(__MODULE__, spec)
   end
 
-  @doc """
-    Remove a child from this supervisor.
-  """
-  def remove_child(%Context{} = context, regimen) do
-    Supervisor.terminate_child(context.regimen_supervisor, regimen.id)
-    Supervisor.delete_child(context.regimen_supervisor, regimen.id)
+  def remove_child(regimen) do
+    Supervisor.terminate_child(__MODULE__, regimen.id)
+    Supervisor.delete_child(__MODULE__, regimen.id)
   end
 end

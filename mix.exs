@@ -1,237 +1,197 @@
 defmodule Farmbot.Mixfile do
   use Mix.Project
   @target System.get_env("MIX_TARGET") || "host"
-  @version Path.join(__DIR__, "VERSION") |> File.read! |> String.strip
+  @version Path.join(__DIR__, "VERSION") |> File.read!() |> String.trim()
 
   defp commit() do
-    {t,_} = System.cmd("git", ["log", "--pretty=format:%h", "-1"])
+    {t, _} = System.cmd("git", ["log", "--pretty=format:%h", "-1"])
     t
   end
 
-  Mix.shell.info([:green, """
-  Env
-    MIX_TARGET:   #{@target}
-    MIX_ENV:      #{Mix.env}
-  """, :reset])
+  Mix.shell().info([
+    :green,
+    """
+    Env
+      MIX_TARGET:   #{@target}
+      MIX_ENV:      #{Mix.env()}
+    """,
+    :reset
+  ])
 
   def project do
-    [app: :farmbot,
-     description: "The Brains of the Farmbot Project",
-     package: package(),
-     test_coverage: [tool: ExCoveralls],
-     version: @version,
-     target: @target,
-     commit: commit(),
-     archives: [nerves_bootstrap: "~> 0.6.0"],
-     build_embedded: Mix.env == :prod,
-     start_permanent: Mix.env == :prod,
-     build_path:  "_build/#{Mix.env()}/#{@target}",
-     deps_path:   "deps/#{Mix.env()}/#{@target}",
-     images_path: "images/#{Mix.env()}/#{@target}",
-     config_path: "config/config.exs",
-     lockfile: "mix.lock",
-     compilers: Mix.compilers ++ maybe_use_webpack(),
-     aliases: aliases(@target),
-     deps: deps() ++ system(@target),
-     dialyzer: [
-       plt_add_deps: :transitive,
-       plt_add_apps: [:mnesia, :hackney, :elixir],
-       flags:        []
-     ],
-     preferred_cli_env: [
-       "vcr":              :test,
-       "vcr.delete":       :test,
-       "vcr.check":        :test,
-       "vcr.show":         :test,
-       "all_test":         :test,
-       "test":             :test,
-       "coveralls":        :test,
-       "coveralls.detail": :test,
-       "coveralls.post":   :test,
-       "coveralls.html":   :test,
-       "coveralls.travis": :test
-     ],
-     webpack_watch: Mix.env == :dev,
-     webpack_cd: ".",
-     source_url: "https://github.com/Farmbot/farmbot_os",
-     homepage_url: "http://farmbot.io",
-     docs: [
-       main: "Farmbot",
-       logo: "./priv/static/farmbot_logo.png",
-       extras: [
-         "./docs/BUILDING.md",
-         "./docs/FAQ.md",
-         "./docs/ENVIRONMENT.md",
-         "./README.md"]]
-   ]
-  end
-
-  def package do
-    [name: "Farmbot OS",
-     maintainers: "Farmbot.io",
-     licenses: "MIT"]
-  end
-
-  def application do
-    [mod:          {Farmbot, []},
-     applications: applications() ++ target_applications(@target) ++ env_applications(Mix.env()),
-     included_applications: [
-       :nerves_ssdp_client,
-       :ex_json_schema,
-       :ex_rollbar,
-       :gen_mqtt,
-       :ssh,
-       :fs,
-       :uuid
-     ] ++ included_apps(Mix.env)]
-  end
-
-  defp included_apps(:prod), do: [:ex_syslogger]
-  defp included_apps(_),     do: []
-
-  # common for test, prod, and dev
-  defp applications do
     [
-      :logger,
-      :nerves_uart,
-      :nerves_runtime,
-      :nerves_ssdp_server,
-      :poison,
-      :rsa,
-      :runtime_tools,
-      :mustache,
-      :vmq_commons,
-      :gen_stage,
-      :plug,
-      :cors_plug,
-      :cowboy,
-      :quantum, # Quantum needs to start AFTER farmbot, so we can set up its dirs
-      :timex, # Timex needs to start AFTER farmbot, so we can set up its dirs,
-      :inets,
-      :ssl,
-      :redix,
-      :eex,
-      :httpoison
-   ]
-  end
-
-  defp target_applications("host"), do: []
-  defp target_applications(_system), do: [
-    :nerves_interim_wifi,
-    :nerves_firmware,
-  ]
-
-  defp env_applications(:prod), do: []
-  defp env_applications(:dev),  do: [:wobserver]
-  defp env_applications(_),     do: []
-
-  defp deps do
-    [
-      {:nerves, "~> 0.8.3"},
-      {:nerves_runtime, "~> 0.4"},
-
-      # Hardware stuff
-      {:nerves_uart, "0.1.2"}, # uart handling
-      {:uuid, "~> 1.1" },
-
-      # http stuff
-      {:poison, "~> 3.0"},
-      {:ex_json_schema, "~> 0.5.3"},
-      {:exjsx, "~> 3.2", override: true},
-      {:rsa, "~> 0.0.1"},
-      {:httpoison, "~> 0.12"},
-
-      # MQTT stuff
-      {:gen_mqtt, "~> 0.3.1"}, # for rpc transport
-      {:vmq_commons, github: "farmbot-labs/vmq_commons", override: true},
-
-      # string templating
-      {:mustache, "~> 0.0.2"},
-
-      # Time stuff
-      {:timex, "~> 3.1.22"}, # managing time. for the scheduler mostly.
-      {:quantum, ">= 1.8.1"}, # cron jobs
-
-      # Database
-      {:redix, ">= 0.0.0"},
-
-      # Log to syslog
-      # {:ex_syslogger, "~> 1.3.3", only: :prod},
-      {:ex_syslogger, github: "slashmili/ex_syslogger", only: :prod},
-      {:ex_rollbar, "0.1.3"},
-
-      # Other stuff
-      {:gen_stage,          "0.11.0"  },
-      {:nerves_ssdp_server, "~> 0.2.2"},
-      {:nerves_ssdp_client, "~> 0.1.0"},
-
-      # Test/Dev only
-      {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.14", only: :dev},
-      {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
-      {:faker, "~> 0.7", only: :test},
-      {:excoveralls, "~> 0.6", only: :test},
-      {:exvcr, "~> 0.8", only: :test},
-      {:mock, "~> 0.2.0", only: :test},
-      {:wobserver, "~> 0.1.7", only: :dev},
-
-      # Web stuff
-      {:plug, "~> 1.3"},
-      {:cors_plug, "~> 1.2"},
-      {:cowboy, "~> 1.1"},
-      {:ex_webpack, "~> 0.1.1", runtime: false, warn_missing: false},
-
-      {:farmbot_simulator, github: "farmbot-labs/farmbot_simulator", only: [:test, :dev]},
-
-      {:tzdata, "~> 0.1.201601", override: true},
-      {:fs, "~> 0.9.1"},
+      app: :farmbot,
+      description: "The Brains of the Farmbot Project",
+      package: package(),
+      test_coverage: [tool: ExCoveralls],
+      version: @version,
+      target: @target,
+      commit: commit(),
+      archives: [nerves_bootstrap: "~> 0.6.0"],
+      build_embedded: Mix.env() == :prod,
+      start_permanent: Mix.env() == :prod,
+      deps_path: "deps/#{@target}",
+      build_path: "_build/#{@target}",
+      lockfile: "mix.lock.#{@target}",
+      config_path: "config/config.exs",
+      lockfile: "mix.lock",
+      elixirc_paths: elixirc_paths(Mix.env(), @target),
+      aliases: aliases(Mix.env(), @target),
+      deps: deps() ++ deps(@target),
+      dialyzer: [
+        plt_add_deps: :transitive,
+        flags: []
+      ],
+      preferred_cli_env: [
+        test: :test,
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        "coveralls.circle": :test
+      ],
+      source_url: "https://github.com/Farmbot/farmbot_os",
+      homepage_url: "http://farmbot.io",
+      docs: docs()
     ]
   end
 
-
-  # TODO(connor): Build this into `:ex_webpack`
-  defp maybe_use_webpack() do
-    case System.get_env("NO_WEBPACK") do
-      "true" -> []
-      _ -> [:ex_webpack]
-    end
+  def application do
+    [mod: {Farmbot, []}, extra_applications: [:logger, :eex, :ssl, :inets, :runtime_tools]]
   end
 
+  defp docs do
+    [
+      main: "Farmbot",
+      logo: "priv/static/farmbot_logo.png",
+      source_ref: commit(),
+      extras: [
+        "docs/BUILDING.md",
+        "docs/FAQ.md",
+        "README.md"
+      ],
+    ]
+  end
 
-  # this is for cross compilation to work
-  # New version of nerves might not need this?
-  defp aliases("host"), do: [
-    "firmware": ["compile"],
-    "firmware.push": ["farmbot.warning"],
-    "credo": ["credo list --only readability,warning,todo,inspect,refactor --ignore-checks todo,spec,longquoteblock,preferimplicittry"],
-    "all_test": ["credo", "coveralls"],
-    "travis_test": ["credo", "coveralls.travis"]
+  defp deps do
+    [
+      {:nerves, "~> 0.8.3", runtime: false},
+      {:gen_stage, "~> 0.12"},
+      {:poison, "~> 3.0"},
+      {:ex_json_schema, "~> 0.5.3"},
+      {:rsa, "~> 0.0.1"},
+      {:httpoison, "~> 0.13.0"},
+      {:tzdata, "~> 0.5.14"},
+      {:timex, "~> 3.1.13"},
+
+      {:fs, "~> 3.4.0"},
+      {:nerves_uart, "~> 1.0"},
+      {:uuid, "~> 1.1"},
+      {:cowboy, "~> 1.1"},
+      {:plug, "~> 1.4"},
+      {:cors_plug, "~> 1.2"},
+      {:ecto, "~> 2.2.2"},
+      {:sqlite_ecto2, "~> 2.2.1"},
+      {:wobserver, "~> 0.1.8"},
+      {:joken, "~> 1.1"},
+      {:socket, "~> 0.3"},
+      {:amqp, "~> 1.0.0-pre.2"},
+      {:nerves_ssdp_server, "~> 0.2.2"},
+      {:nerves_ssdp_client, "~> 0.1.0"},
+
+      {:ex_syslogger, "~> 1.4", only: :prod},
+      {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
+      {:recon, "~> 2.3"},
+      {:nerves_leds, "~> 0.8.0"}
+    ]
+  end
+
+  defp deps("host") do
+    [
+      {:ex_doc, "~> 0.18.1", only: :dev},
+      {:inch_ex, ">= 0.0.0", only: :dev},
+      {:excoveralls, "~> 0.7", only: :test},
+      {:mock, "~> 0.2.0", only: :test},
+      {:faker, "~> 0.9", only: :test},
+      {:udev, "~> 0.1.0", only: [:dev, :prod]},
+    ]
+  end
+
+  defp deps("rpi3") do
+    system("rpi3") ++
+      [
+        {:bootloader, "~> 0.1.3", except: :test},
+        {:nerves_runtime, "~> 0.4"},
+        {:nerves_firmware, "~> 0.4.0"},
+        {:nerves_firmware_ssh, "~> 0.2", only: :dev},
+        {:nerves_network, "~> 0.3.6"},
+        {:dhcp_server, "~> 0.3.0"},
+        {:elixir_ale, "~> 1.0"}
+      ]
+  end
+
+  defp deps(target) do
+    system(target) ++
+      [
+        {:bootloader, "~> 0.1.3", except: :test},
+        {:nerves_runtime, "~> 0.4"},
+        {:nerves_firmware, "~> 0.4.0"},
+        {:nerves_firmware_ssh, "~> 0.2", only: :dev},
+        {:nerves_init_gadget,  github: "nerves-project/nerves_init_gadget", branch: "dhcp", only: :dev},
+        {:nerves_network, "~> 0.3.5"},
+        {:dhcp_server, "~> 0.3.0"},
+        {:elixir_ale, "~> 1.0"},
+      ]
+  end
+
+  defp system("rpi3"),
+    do: [{:nerves_system_farmbot_rpi3, "0.17.2-farmbot.2", runtime: false}]
+
+  defp system("rpi0"),
+    do: [{:nerves_system_farmbot_rpi0, "0.18.3-farmbot.1", runtime: false}]
+
+  defp system("bbb"),
+    do: [{:nerves_system_farmbot_bbb, "0.17.2-farmbot", runtime: false}]
+
+  defp system("x86_64"),
+    do: [{:nerves_system_x86_64, "~> 0.3.1", github: "nerves-project/nerves_system_x86_64"}]
+
+  defp package do
+    [
+      name: "farmbot",
+      maintainers: ["Farmbot.io"],
+      licenses: ["MIT"],
+      links: %{"github" => "https://github.com/farmbot/farmbot_os"},
+    ]
+  end
+
+  defp elixirc_paths(:test, "host") do
+    ["./lib", "./nerves/host", "./test/support"]
+  end
+
+  defp elixirc_paths(_, "host") do
+    ["./lib", "./nerves/host"]
+  end
+
+  defp elixirc_paths(_env, _target) do
+    ["./lib", "./nerves/target"]
+  end
+
+  defp aliases(:test, "host") do
+    ["test": ["ecto.create --quiet", "ecto.migrate", "test"]]
+  end
+
+  defp aliases(_env, "host"), do: [
+    "firmware.slack": ["farmbot.firmware.slack"],
+    "firmware.sign":  ["farmbot.firmware.sign"]
   ]
 
-  defp aliases(_system) do
-    ["deps.precompile": ["nerves.precompile", "deps.precompile"],
-     "deps.loadpaths":  ["deps.loadpaths", "nerves.loadpaths"],
-     "firmware.upload": ["farmbot.upload"],
-     "firmware.sign":   ["farmbot.sign"]
-   ]
-  end
-
-  # the nerves_system_* dir to use for this build.
-  defp system("host"), do: []
-  defp system(sys) do
-    if File.exists?("nerves/NERVES_SYSTEM_#{sys}") do
-      sys_path = Path.absname("nerves/NERVES_SYSTEM_#{sys}", File.cwd!)
-      System.put_env("NERVES_SYSTEM", sys_path)
-    else
-      Mix.shell.info([:yellow, "No Buildroot dir found!"])
-    end
-    # if the system is local (because we have changes to it) use that
-    if File.exists?("nerves/nerves_system_#{sys}"),
-      do: [
-        {:"nerves_system_farmbot_#{sys}", warn_missing: false, path: "nerves/nerves_system_#{sys}"},
-        {:nerves_interim_wifi, github: "nerves-project/nerves_interim_wifi"},
-        {:nerves_firmware, github: "nerves-project/nerves_firmware", override: true},
-        ],
-      else: Mix.raise("There is no existing system package for #{sys}")
+  defp aliases(_env, _system) do
+    [
+      "firmware.slack": ["farmbot.firmware.slack"],
+      "firmware.sign":  ["farmbot.firmware.sign"],
+      "deps.precompile": ["nerves.precompile", "deps.precompile"],
+      "deps.loadpaths": ["deps.loadpaths", "nerves.loadpaths"]
+    ]
   end
 end
