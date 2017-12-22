@@ -57,13 +57,14 @@ defmodule Farmbot.Repo.FarmEvent do
     interval_seconds = time_unit_to_seconds(fe.repeat, fe.time_unit)
     grace_period_cutoff_dt = Timex.subtract(current_time_dt, Timex.Duration.from_minutes(1))
 
-    new_calendar = Range.new(start_time_unix, end_time_unix)
+    new_calendar =
+    Range.new(start_time_unix, end_time_unix)
+    |> Enum.take(60)
     |> Enum.take_every(fe.repeat * interval_seconds)
     |> Enum.map(&DateTime.from_unix!(&1))
     |> Enum.filter(&Timex.after?(&1, grace_period_cutoff_dt))
     |> Enum.map(&(Timex.shift(&1, seconds: -(&1.second), microseconds: -(&1.microsecond |> elem(0)))))
     |> Enum.map(&DateTime.to_iso8601(&1))
-    |> Enum.take(60)
     %{fe | calendar: new_calendar}
   end
 
