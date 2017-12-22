@@ -268,7 +268,13 @@ defmodule Farmbot.Firmware.UartHandler do
   end
 
   def handle_call({:move_absolute, pos, x_speed, y_speed, z_speed}, _from, state) do
-    wrote = "G00 X#{pos.x} Y#{pos.y} Z#{pos.z} A#{x_speed} B#{y_speed} C#{z_speed}"
+    cmd = "X#{fmnt_float(pos.x)} "
+       <> "Y#{fmnt_float(pos.y)} "
+       <> "Z#{fmnt_float(pos.z)} "
+       <> "A#{fmnt_float(x_speed)} "
+       <> "B#{fmnt_float(y_speed)} "
+       <> "C#{fmnt_float(z_speed)}"
+    wrote = "G00 #{cmd}"
     do_write(wrote, state)
   end
 
@@ -368,7 +374,13 @@ defmodule Farmbot.Firmware.UartHandler do
     {:noreply, [], state}
   end
 
-  defp extract_pin_mode(mode) do
-    if(mode == :digital, do: 0, else: 1)
-  end
+  @compile {:inline, [extract_pin_mode: 1]}
+  defp extract_pin_mode(:digital), do: 0
+  defp extract_pin_mode(_), do: 1
+
+  @compile {:inline, [fmnt_float: 1]}
+  defp fmnt_float(num) when is_float(num),
+    do: :erlang.float_to_binary(num, [:compact, { :decimals, 2 }])
+
+  defp fmnt_float(num) when is_number(num), do: num
 end
