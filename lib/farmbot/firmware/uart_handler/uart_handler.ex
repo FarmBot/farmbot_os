@@ -13,7 +13,6 @@ defmodule Farmbot.Firmware.UartHandler do
   import Vec3, only: [fmnt_float: 1]
   @behaviour Firmware.Handler
 
-
   def start_link do
     GenStage.start_link(__MODULE__, [])
   end
