@@ -20,8 +20,8 @@ defmodule Farmbot.FarmEvent.Manager do
   alias Farmbot.FarmEvent.Execution
   alias Farmbot.Repo.FarmEvent
 
-  @checkup_time 5_000
-  # @checkup_time 30_000
+  # @checkup_time 100
+  @checkup_time 30_000
 
   def register_events(event_list) do
     GenServer.call(__MODULE__, {:register_events, event_list}, 10_000)
@@ -31,7 +31,7 @@ defmodule Farmbot.FarmEvent.Manager do
 
   defmodule State do
     @moduledoc false
-    defstruct [timer: nil, last_time_index: %{}, events: []]
+    defstruct [timer: nil, last_time_index: %{}, events: [], checkup: nil]
   end
 
   @doc false
@@ -50,10 +50,38 @@ defmodule Farmbot.FarmEvent.Manager do
 
   def handle_call({:register_events, events}, _, state) do
     Logger.info 3, "Reindexed FarmEvents"
-    {:reply, :ok, %{state | events: events}}
+    if match?({_, _}, state.checkup) do
+      Process.exit(state.checkup |> elem(0), {:success, %{state | events: events}})
+    end
+
+    if state.timer do
+      Process.cancel_timer(state.timer)
+      timer = Process.send_after(self(), :checkup, @checkup_time)
+      {:reply, :ok, %{state | events: events, timer: timer}}
+    else
+      {:reply, :ok, %{state | events: events}}
+    end
   end
 
   def handle_info(:checkup, state) do
+    Logger.info 1, "starting checkup"
+    checkup = spawn_monitor __MODULE__, :async_checkup, [self(), state]
+    {:noreply, %{state | timer: nil, checkup: checkup}}
+  end
+
+  def handle_info({:DOWN, _, :process, _, {:success, new_state}}, old_state) do
+    Logger.info 1, "Checkup process exit success"
+    timer = Process.send_after(self(), :checkup, @checkup_time)
+    {:noreply, %{new_state | timer: timer, checkup: nil}}
+  end
+
+  def handle_info({:DOWN, _, :process, _, error}, state) do
+    Logger.error 1, "Checkup process died: #{inspect error}"
+    timer = Process.send_after(self(), :checkup, @checkup_time)
+    {:noreply, %{state | timer: timer, checkup: nil}}
+  end
+
+  def async_checkup(manager, state) do
     now = get_now()
     alias Farmbot.Repo.FarmEvent
     maybe_farm_event_log "Rebuilding calendar."
@@ -68,10 +96,7 @@ defmodule Farmbot.FarmEvent.Manager do
       Logger.info 3, "Time for events: #{inspect late_events} to run at: #{now.hour}:#{now.minute}"
       start_events(late_events, now)
     end
-
-    # Start a new timer.
-    timer = Process.send_after self(), :checkup, @checkup_time
-    {:noreply, %{new | timer: timer}}
+    exit({:success, new})
   end
 
   defp do_checkup(list, time, late_events \\ [], state)
