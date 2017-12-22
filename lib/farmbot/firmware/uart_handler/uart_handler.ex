@@ -9,8 +9,10 @@ defmodule Farmbot.Firmware.UartHandler do
   alias Farmbot.System.ConfigStorage
   import ConfigStorage, only: [update_config_value: 4]
   alias Farmbot.Firmware
-  alias Firmware.UartHandler
+  alias Firmware.{UartHandler, Vec3}
+  import Vec3, only: [fmnt_float: 1]
   @behaviour Firmware.Handler
+
 
   def start_link do
     GenStage.start_link(__MODULE__, [])
@@ -377,10 +379,4 @@ defmodule Farmbot.Firmware.UartHandler do
   @compile {:inline, [extract_pin_mode: 1]}
   defp extract_pin_mode(:digital), do: 0
   defp extract_pin_mode(_), do: 1
-
-  @compile {:inline, [fmnt_float: 1]}
-  defp fmnt_float(num) when is_float(num),
-    do: :erlang.float_to_binary(num, [:compact, { :decimals, 2 }])
-
-  defp fmnt_float(num) when is_number(num), do: num
 end
