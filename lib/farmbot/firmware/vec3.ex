@@ -11,7 +11,7 @@ defmodule Farmbot.Firmware.Vec3 do
 
   @compile {:inline, [fmnt_float: 1]}
   def fmnt_float(num) when is_float(num),
-    do: :erlang.float_to_binary(num, [:compact, { :decimals, 2 }])
+    do: :erlang.float_to_binary(num, [:compact, {:decimals, 2}])
 
   def fmnt_float(num) when is_number(num), do: num
 end
