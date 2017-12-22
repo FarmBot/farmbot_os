@@ -20,7 +20,7 @@ defmodule Farmbot.FarmEvent.Manager do
   alias Farmbot.FarmEvent.Execution
   alias Farmbot.Repo.FarmEvent
 
-  # @checkup_time 100
+  # @checkup_time 5000
   @checkup_time 30_000
 
   def register_events(event_list) do
@@ -81,11 +81,20 @@ defmodule Farmbot.FarmEvent.Manager do
     {:noreply, %{state | timer: timer, checkup: nil}}
   end
 
+  defp pmap(collection, func) do
+    collection
+    |> Enum.map(&(Task.async(fn -> func.(&1) end)))
+    |> Enum.map(&Task.await/1)
+  end
+
   def async_checkup(manager, state) do
     now = get_now()
     alias Farmbot.Repo.FarmEvent
     maybe_farm_event_log "Rebuilding calendar."
-    all_events = state.events |> Enum.map(&FarmEvent.build_calendar(&1))
+    # all_events = state.events |> Enum.map(&FarmEvent.build_calendar(&1))
+    all_events = state.events |> pmap(&FarmEvent.build_calendar(&1))
+      # |> Enum.map(&(Task.async(FarmEvent.build_calendar(&1))))
+      # |> Enum.map(&Task.await/1)
     maybe_farm_event_log "Rebuilding calendar complete."
 
     # do checkup is the bulk of the work.
