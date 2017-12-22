@@ -3,9 +3,10 @@ defmodule Farmbot.Firmware do
 
   use GenStage
   use Farmbot.Logger
+  alias Farmbot.Firmware.Vec3
 
   @doc "Move the bot to a position."
-  def move_absolute(vec3, x_speed, y_speed, z_speed) do
+  def move_absolute(%Vec3{} = vec3, x_speed, y_speed, z_speed) do
     GenStage.call(__MODULE__, {:move_absolute, [vec3, x_speed, y_speed, z_speed]}, :infinity)
   end
 
