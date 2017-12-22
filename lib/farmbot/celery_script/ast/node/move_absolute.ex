@@ -2,6 +2,7 @@ defmodule Farmbot.CeleryScript.AST.Node.MoveAbsolute do
   @moduledoc false
   use Farmbot.CeleryScript.AST.Node
   import Farmbot.CeleryScript.Utils
+  alias Farmbot.Firmware.Vec3
   use Farmbot.Logger
 
   allow_args [:location, :speed, :offset]
@@ -29,21 +30,21 @@ defmodule Farmbot.CeleryScript.AST.Node.MoveAbsolute do
     end
   end
 
-  defp maybe_log_busy(pos) do
+  defp maybe_log_busy(%Vec3{} = pos) do
     unless Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "firmware_input_log") do
-      Logger.busy 1, "Moving to (#{pos.x}, #{pos.y}, #{pos.z})"
+      Logger.busy 1, "Moving to #{inspect pos}"
     end
   end
 
-  defp maybe_log_complete(pos) do
+  defp maybe_log_complete(%Vec3{} = pos) do
     unless Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "firmware_input_log") do
-      Logger.success 1, "Movement to (#{pos.x}, #{pos.y}, #{pos.z}) complete."
+      Logger.success 1, "Movement to #{inspect pos} complete."
     end
   end
 
-  defp maybe_log_error(pos) do
+  defp maybe_log_error(%Vec3{} = pos) do
     unless Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "firmware_input_log") do
-      Logger.error 1, "Movement to (#{pos.x}, #{pos.y}, #{pos.z}) failed."
+      Logger.error 1, "Movement to #{inspect pos} failed."
     end
   end
 end
