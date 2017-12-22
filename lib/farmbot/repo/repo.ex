@@ -60,11 +60,6 @@ defmodule Farmbot.Repo do
     # Delete any old sync cmds.
     destroy_all_sync_cmds()
 
-    # if the farmevent runner is running, stop it.
-    if Process.whereis(Farmbot.FarmEvent.Manager) do
-      Farmbot.FarmEvent.Manager.wait_for_sync()
-    end
-
     # If it is the first sync,
     # we set first sync to false, and require a hard sync.
     needs_hard_sync =
@@ -77,10 +72,6 @@ defmodule Farmbot.Repo do
           do_sync_both(repo_a, repo_b)
           # ConfigStorage.update_config_value(:bool, "settings", "first_sync", false)
           BotState.set_sync_status(:synced)
-          if Process.whereis(Farmbot.FarmEvent.Manager) do
-            Farmbot.FarmEvent.Manager.resume()
-          end
-
           false
         else
           BotState.set_sync_status(:sync_now)
@@ -105,12 +96,13 @@ defmodule Farmbot.Repo do
     if reason not in [:normal, :shutdown] do
       BotState.set_sync_status(:sync_error)
     end
+    Farmbot.FarmEvent.Manager.register_events([])
   end
 
   def handle_call(:force_hard_sync, _, state) do
     maybe_cancel_timer(state.timer)
     BotState.set_sync_status(:sync_now)
-    Farmbot.FarmEvent.Manager.wait_for_sync()
+    Farmbot.FarmEvent.Manager.register_events([])
     {:reply, :ok, %{state | timer: nil, needs_hard_sync: true}}
   end
 
@@ -124,7 +116,6 @@ defmodule Farmbot.Repo do
 
   def handle_call(:flip, _, %{repos: [repo_a, repo_b], needs_hard_sync: true} = state) do
     maybe_cancel_timer(state.timer)
-    Farmbot.FarmEvent.Manager.wait_for_sync()
     destroy_all_sync_cmds()
     Logger.busy(1, "Syncing.")
     BotState.set_sync_status(:syncing)
@@ -132,14 +123,12 @@ defmodule Farmbot.Repo do
     BotState.set_sync_status(:synced)
     copy_configs(repo_b)
     flip_repos_in_cs()
-    Farmbot.FarmEvent.Manager.resume()
     Logger.success(1, "Sync complete.")
     {:reply, :ok, %{state | repos: [repo_b, repo_a], needs_hard_sync: false, timer: start_timer()}}
   end
 
   def handle_call(:flip, _, %{repos: [repo_a, repo_b]} = state) do
     maybe_cancel_timer(state.timer)
-    Farmbot.FarmEvent.Manager.wait_for_sync()
     Logger.busy(1, "Syncing.")
     BotState.set_sync_status(:syncing)
 
@@ -152,7 +141,6 @@ defmodule Farmbot.Repo do
     BotState.set_sync_status(:synced)
     copy_configs(repo_b)
     destroy_all_sync_cmds()
-    Farmbot.FarmEvent.Manager.resume()
     Logger.success(1, "Sync complete.")
     {:reply, repo_b, %{state | repos: [repo_b, repo_a], timer: start_timer()}}
   end
@@ -202,6 +190,8 @@ defmodule Farmbot.Repo do
          # Logger.busy 3, "Reading peripheral (#{pin} - #{mode})"
          Farmbot.Firmware.read_pin(pin, mode)
        end)
+
+    Farmbot.FarmEvent.Manager.register_events repo.all(Farmbot.Repo.FarmEvent)
   end
 
   defp destroy_all_sync_cmds do
