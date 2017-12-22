@@ -42,30 +42,50 @@ defmodule Farmbot.Repo.FarmEvent do
     |> unique_constraint(:id)
   end
 
+  def bench do
+    begin = :os.system_time(:seconds)
+    res = Farmbot.HTTP.get!("/api/farm_events").body
+    |> fn(stuff) -> IO.puts("http: #{:os.system_time(:seconds) - begin}"); stuff end.()
+    |> Poison.decode!(as: [%__MODULE__{}])
+    |> fn(stuff) -> IO.puts("json decode: #{:os.system_time(:seconds) - begin}"); stuff end.()
+    |> Enum.map(&build_calendar(&1))
+    |> fn(stuff) -> IO.puts("build calendar: #{:os.system_time(:seconds) - begin}"); stuff end.()
+
+    IO.puts "total: #{:os.system_time(:seconds) - begin}"
+    res
+  end
+
   def build_calendar(%__MODULE__{calendar: nil} = fe), do: fe
   def build_calendar(%__MODULE__{calendar: calendar} = fe)  when is_list(calendar) do
-    # Date Time objects.
-    current_time_dt = Timex.now()
-    {:ok, start_time_dt, _} = DateTime.from_iso8601(fe.start_time)
-    {:ok, end_time_dt,   _} = DateTime.from_iso8601(fe.end_time)
+    current_time_seconds = :os.system_time(:second)
+    start_time_seconds = DateTime.from_iso8601(fe.start_time) |> elem(1) |> DateTime.to_unix(:second)
+    end_time_seconds = DateTime.from_iso8601(fe.end_time) |> elem(1) |> DateTime.to_unix(:second)
+    repeat = fe.repeat
+    repeat_frequency_seconds = time_unit_to_seconds(repeat, fe.time_unit)
 
-    # Unix timestamps from those objects.
-    current_time_unix = DateTime.to_unix(current_time_dt)
-    start_time_unix = DateTime.to_unix(start_time_dt)
-    end_time_unix = DateTime.to_unix(end_time_dt)
+    new_calendar = do_build_c(current_time_seconds, start_time_seconds, end_time_seconds, repeat, repeat_frequency_seconds)
+    %{fe | calendar: new_calendar}
+  end
 
-    interval_seconds = time_unit_to_seconds(fe.repeat, fe.time_unit)
-    grace_period_cutoff_dt = Timex.subtract(current_time_dt, Timex.Duration.from_minutes(1))
-
-    new_calendar =
-    Range.new(start_time_unix, end_time_unix)
+  def do_build_native(now_seconds, start_time_seconds, end_time_seconds, repeat, repeat_frequency_seconds) do
+    grace_period_cutoff_seconds = now_seconds - 1
+    Range.new(start_time_seconds, end_time_seconds)
+    |> Enum.take_every(repeat * repeat_frequency_seconds)
+    |> Enum.filter(&Kernel.>(&1, grace_period_cutoff_seconds))
     |> Enum.take(60)
-    |> Enum.take_every(fe.repeat * interval_seconds)
     |> Enum.map(&DateTime.from_unix!(&1))
-    |> Enum.filter(&Timex.after?(&1, grace_period_cutoff_dt))
     |> Enum.map(&(Timex.shift(&1, seconds: -(&1.second), microseconds: -(&1.microsecond |> elem(0)))))
     |> Enum.map(&DateTime.to_iso8601(&1))
-    %{fe | calendar: new_calendar}
+  end
+
+  def do_build_c(now_seconds, start_time_seconds, end_time_seconds, repeat, repeat_frequency_seconds) do
+    :os.cmd('./build_calendar #{now_seconds} #{start_time_seconds}, #{end_time_seconds} #{repeat} #{repeat_frequency_seconds}')
+    |> to_string
+    |> String.trim
+    |> String.split(" ")
+    |> Enum.map(&String.to_integer(&1))
+    |> Enum.map(&DateTime.from_unix!(&1))
+    |> Enum.map(&DateTime.to_iso8601(&1))
   end
 
   defp time_unit_to_seconds(_, "never"), do: 0
