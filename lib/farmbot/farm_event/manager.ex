@@ -49,7 +49,7 @@ defmodule Farmbot.FarmEvent.Manager do
   end
 
   def handle_call({:register_events, events}, _, state) do
-    Logger.info 3, "Reindexed FarmEvents"
+    maybe_farm_event_log "Reindexed FarmEvents"
     if match?({_, _}, state.checkup) do
       Process.exit(state.checkup |> elem(0), {:success, %{state | events: events}})
     end
@@ -64,19 +64,17 @@ defmodule Farmbot.FarmEvent.Manager do
   end
 
   def handle_info(:checkup, state) do
-    Logger.info 1, "starting checkup"
     checkup = spawn_monitor __MODULE__, :async_checkup, [self(), state]
     {:noreply, %{state | timer: nil, checkup: checkup}}
   end
 
   def handle_info({:DOWN, _, :process, _, {:success, new_state}}, old_state) do
-    Logger.info 1, "Checkup process exit success"
     timer = Process.send_after(self(), :checkup, @checkup_time)
     {:noreply, %{new_state | timer: timer, checkup: nil}}
   end
 
   def handle_info({:DOWN, _, :process, _, error}, state) do
-    Logger.error 1, "Checkup process died: #{inspect error}"
+    Logger.error 1, "Farmevent checkup process died: #{inspect error}"
     timer = Process.send_after(self(), :checkup, @checkup_time)
     {:noreply, %{state | timer: timer, checkup: nil}}
   end
@@ -84,9 +82,9 @@ defmodule Farmbot.FarmEvent.Manager do
   def async_checkup(manager, state) do
     now = get_now()
     alias Farmbot.Repo.FarmEvent
-    maybe_farm_event_log "Rebuilding calendar."
+    # maybe_farm_event_log "Rebuilding calendar."
     all_events = state.events |> Enum.map(&FarmEvent.build_calendar(&1))
-    maybe_farm_event_log "Rebuilding calendar complete."
+    # maybe_farm_event_log "Rebuilding calendar complete."
 
     # do checkup is the bulk of the work.
     {late_events, new} = do_checkup(all_events, now, state)
