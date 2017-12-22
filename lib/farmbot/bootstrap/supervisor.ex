@@ -125,11 +125,11 @@ defmodule Farmbot.Bootstrap.Supervisor do
           supervisor(Farmbot.Firmware.Supervisor,           []),
           supervisor(Farmbot.BotState.Supervisor,           []),
           supervisor(Farmbot.BotState.Transport.Supervisor, []),
+          supervisor(Farmbot.FarmEvent.Supervisor,          []),
           supervisor(Farmbot.HTTP.Supervisor,               []),
           supervisor(Farmbot.Repo.Supervisor,               []),
           supervisor(Farmbot.Farmware.Supervisor,           []),
           supervisor(Farmbot.Regimen.Supervisor,            []),
-          supervisor(Farmbot.FarmEvent.Supervisor,          [])
         ]
 
         opts = [strategy: :one_for_one]

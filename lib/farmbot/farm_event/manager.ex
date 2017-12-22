@@ -20,22 +20,18 @@ defmodule Farmbot.FarmEvent.Manager do
   alias Farmbot.FarmEvent.Execution
   alias Farmbot.Repo.FarmEvent
 
-  # @checkup_time 5_000
-  @checkup_time 20_000
+  @checkup_time 5_000
+  # @checkup_time 30_000
 
-  def wait_for_sync do
-    GenServer.call(__MODULE__, :wait_for_sync, :infinity)
-  end
-
-  def resume do
-    GenServer.call(__MODULE__, :resume)
+  def register_events(event_list) do
+    GenServer.call(__MODULE__, {:register_events, event_list}, 10_000)
   end
 
   ## GenServer
 
   defmodule State do
     @moduledoc false
-    defstruct [timer: nil, last_time_index: %{}, wait_for_sync: true]
+    defstruct [timer: nil, last_time_index: %{}, events: []]
   end
 
   @doc false
@@ -44,32 +40,25 @@ defmodule Farmbot.FarmEvent.Manager do
   end
 
   def init([]) do
+    send self(), :checkup
     {:ok, struct(State)}
   end
 
-  def handle_call(:wait_for_sync, _, state) do
-    if state.timer do
-      Process.cancel_timer(state.timer)
-    end
-    Logger.busy 3, "Pausing FarmEvent Execution until sync."
-    {:reply, :ok, %{state | wait_for_sync: true}}
+  def terminate(reason, _state) do
+    Logger.error 1, "FarmEvent Manager terminated: #{inspect reason}"
   end
 
-  def handle_call(:resume, _, state) do
-    send self(), :checkup
-    Logger.success 3, "Resuming FarmEvents."
-    {:reply, :ok, %{state | wait_for_sync: false}}
+  def handle_call({:register_events, events}, _, state) do
+    Logger.info 3, "Reindexed FarmEvents"
+    {:reply, :ok, %{state | events: events}}
   end
 
-  def handle_info(:checkup, %{wait_for_sync: true} = state) do
-    Logger.warn 3, "Waiting for sync before running FarmEvents."
-    {:noreply, state}
-  end
-
-  def handle_info(:checkup, %{wait_for_sync: false} = state) do
+  def handle_info(:checkup, state) do
     now = get_now()
     alias Farmbot.Repo.FarmEvent
-    all_events = Farmbot.Repo.current_repo().all(FarmEvent) |> Enum.map(&FarmEvent.build_calendar(&1))
+    maybe_farm_event_log "Rebuilding calendar."
+    all_events = state.events |> Enum.map(&FarmEvent.build_calendar(&1))
+    maybe_farm_event_log "Rebuilding calendar complete."
 
     # do checkup is the bulk of the work.
     {late_events, new} = do_checkup(all_events, now, state)
