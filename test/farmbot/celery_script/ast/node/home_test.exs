@@ -4,7 +4,7 @@ defmodule Farmbot.CeleryScript.AST.Node.HomeTest do
   use FarmbotTestSupport.AST.NodeTestCase, async: false
 
   setup env do
-    Farmbot.Firmware.move_absolute(%{x: 100, y: 100, z: 100}, 100, 100, 100)
+    Farmbot.Firmware.move_absolute(%Farmbot.Firmware.Vec3{x: 100, y: 100, z: 100}, 100, 100, 100)
     env
   end
 
