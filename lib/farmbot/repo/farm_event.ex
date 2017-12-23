@@ -7,10 +7,17 @@ defmodule Farmbot.Repo.FarmEvent do
       * A Sequence will execute.
   """
 
+  @on_load :load_nifs
+
+  def load_nifs do
+    :erlang.load_nif('./build_calendar', 0)
+  end
+
   alias Farmbot.Repo.JSONType
 
   use Ecto.Schema
   import Ecto.Changeset
+  use Farmbot.Logger
 
   schema "farm_events" do
     field(:start_time, :string)
@@ -63,11 +70,13 @@ defmodule Farmbot.Repo.FarmEvent do
     repeat = fe.repeat
     repeat_frequency_seconds = time_unit_to_seconds(repeat, fe.time_unit)
 
-    new_calendar = do_build_c(current_time_seconds, start_time_seconds, end_time_seconds, repeat, repeat_frequency_seconds)
+    new_calendar = do_build_calendar(current_time_seconds, start_time_seconds, end_time_seconds, repeat, repeat_frequency_seconds)
     %{fe | calendar: new_calendar}
   end
 
-  def do_build_native(now_seconds, start_time_seconds, end_time_seconds, repeat, repeat_frequency_seconds) do
+  # This should be replaced. YOU WILL KNOW if not.
+  def do_build_calendar(now_seconds, start_time_seconds, end_time_seconds, repeat, repeat_frequency_seconds) do
+    Logger.error 1, "Using (very) slow calendar builder!"
     grace_period_cutoff_seconds = now_seconds - 1
     Range.new(start_time_seconds, end_time_seconds)
     |> Enum.take_every(repeat * repeat_frequency_seconds)
@@ -75,16 +84,6 @@ defmodule Farmbot.Repo.FarmEvent do
     |> Enum.take(60)
     |> Enum.map(&DateTime.from_unix!(&1))
     |> Enum.map(&(Timex.shift(&1, seconds: -(&1.second), microseconds: -(&1.microsecond |> elem(0)))))
-    |> Enum.map(&DateTime.to_iso8601(&1))
-  end
-
-  def do_build_c(now_seconds, start_time_seconds, end_time_seconds, repeat, repeat_frequency_seconds) do
-    :os.cmd('./build_calendar #{now_seconds} #{start_time_seconds}, #{end_time_seconds} #{repeat} #{repeat_frequency_seconds}')
-    |> to_string
-    |> String.trim
-    |> String.split(" ")
-    |> Enum.map(&String.to_integer(&1))
-    |> Enum.map(&DateTime.from_unix!(&1))
     |> Enum.map(&DateTime.to_iso8601(&1))
   end
 
