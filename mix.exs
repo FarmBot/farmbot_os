@@ -23,6 +23,8 @@ defmodule Farmbot.Mixfile do
       app: :farmbot,
       description: "The Brains of the Farmbot Project",
       package: package(),
+      compilers: [:elixir_make] ++ Mix.compilers,
+      make_clean: ["clean"],
       test_coverage: [tool: ExCoveralls],
       version: @version,
       target: @target,
@@ -76,6 +78,7 @@ defmodule Farmbot.Mixfile do
   defp deps do
     [
       {:nerves, "~> 0.8.3", runtime: false},
+      {:elixir_make, "~> 0.4", runtime: false},
       {:gen_stage, "~> 0.12"},
       {:poison, "~> 3.0"},
       {:ex_json_schema, "~> 0.5.3"},

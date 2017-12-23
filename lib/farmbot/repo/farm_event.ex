@@ -7,10 +7,16 @@ defmodule Farmbot.Repo.FarmEvent do
       * A Sequence will execute.
   """
 
-  @on_load :load_nifs
+  @on_load :load_nif
 
-  def load_nifs do
-    :erlang.load_nif('./build_calendar', 0)
+  def load_nif do
+    require Logger
+    nif_file = '#{:code.priv_dir(:farmbot)}/build_calendar'
+    case :erlang.load_nif(nif_file, 0) do
+      :ok -> :ok
+      {:error, {:reload, _}} -> :ok
+      {:error, reason} -> Logger.warn "Failed to load nif: #{inspect reason}"
+    end
   end
 
   alias Farmbot.Repo.JSONType
