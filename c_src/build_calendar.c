@@ -5,7 +5,7 @@
 
 #include <erl_nif.h>
 
-#define MAX_GENERATED 1000
+#define MAX_GENERATED 60
 
 static ERL_NIF_TERM do_build_calendar(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
@@ -40,17 +40,17 @@ static ERL_NIF_TERM do_build_calendar(ErlNifEnv* env, int argc, const ERL_NIF_TE
     // if this event (i) is after the grace period, add it to the array.
     if(i > gracePeriodSeconds) {
       events[j] = i;
-      events[j] -= (events[j] % MAX_GENERATED);
+      events[j] -= (events[j] % 60);
       j++;
     }
   }
 
   // Count up our total generated events
-  for(i = 0, j=0; j<MAX_GENERATED; j++) { if(events[j] > 0) { i++; } }
+  for(i=0, j=0; j<MAX_GENERATED; j++) { if(events[j] > 0) { i++; } }
 
   // Build the array to be returned.
   ERL_NIF_TERM retArr [i];
-  for(j=0; j <i ; j++)
+  for(j=0; j<i ; j++)
     retArr[j] = enif_make_long(env, events[j]);
 
   // we survived.

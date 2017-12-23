@@ -22,6 +22,8 @@ auth_secret.exs
 # Farmbot argifacts
 tmp/
 test_tmp/
+priv/build_calendar.so
+*.o
 
 # Generated on crash by the VM
 erl_crash.dump
@@ -29,7 +31,6 @@ erl_crash.dump
 # From other branches
 /cache
 *.js
-Makefile
 /release-*
 node_modules
 
