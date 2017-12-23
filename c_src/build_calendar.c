@@ -22,7 +22,7 @@ static ERL_NIF_TERM do_build_calendar(ErlNifEnv* env, int argc, const ERL_NIF_TE
 
   // Data used to build the calendar.
   long int gracePeriodSeconds;
-  gracePeriodSeconds = nowSeconds - MAX_GENERATED;
+  gracePeriodSeconds = nowSeconds - 60;
   long int step = frequencySeconds * repeat;
 
   // printf("now: %li\r\ngrace: %li\r\nstart: %li\r\nend: %li\r\n\r\n", nowSeconds, gracePeriodSeconds, startTimeSeconds, endTimeSeconds);
