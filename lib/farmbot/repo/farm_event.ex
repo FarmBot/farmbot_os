@@ -88,7 +88,7 @@ defmodule Farmbot.Repo.FarmEvent do
   # This should be replaced. YOU WILL KNOW if not.
   def do_build_calendar(now_seconds, start_time_seconds, end_time_seconds, repeat, repeat_frequency_seconds) do
     Logger.error 1, "Using (very) slow calendar builder!"
-    grace_period_cutoff_seconds = now_seconds - 1
+    grace_period_cutoff_seconds = now_seconds - 60
       Range.new(start_time_seconds, end_time_seconds)
       |> Enum.take_every(repeat * repeat_frequency_seconds)
       |> Enum.filter(&Kernel.>(&1, grace_period_cutoff_seconds))

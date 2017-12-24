@@ -1,6 +1,4 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include <string.h>
 
 #include <erl_nif.h>
@@ -24,8 +22,6 @@ static ERL_NIF_TERM do_build_calendar(ErlNifEnv* env, int argc, const ERL_NIF_TE
   long int gracePeriodSeconds;
   gracePeriodSeconds = nowSeconds - 60;
   long int step = frequencySeconds * repeat;
-
-  // printf("now: %li\r\ngrace: %li\r\nstart: %li\r\nend: %li\r\n\r\n", nowSeconds, gracePeriodSeconds, startTimeSeconds, endTimeSeconds);
 
   // iterators for loops
   long int i, j;
