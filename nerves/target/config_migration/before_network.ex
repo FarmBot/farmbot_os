@@ -78,6 +78,9 @@ defmodule Farmbot.Target.ConfigMigration.BeforeNetwork do
   defp migrate_configuration(%{"firmware_hardware" => hw,
     "first_party_farmware" => fpf,
     "os_auto_update" => os_auto_update,
+    "steps_per_mm_x" => spmx,
+    "steps_per_mm_y" => spmy,
+    "steps_per_mm_z" => spmz,
     "timezone" => tz, "user_env" => user_env})
   do
     import ConfigStorage, only: [update_config_value: 4]
@@ -92,6 +95,9 @@ defmodule Farmbot.Target.ConfigMigration.BeforeNetwork do
     {:user_env, :type_check, true}                     <- {:user_env, :type_check, is_map(user_env)},
     {:user_env, :type_cast, {:ok, user_env_enc}}       <- {:user_env, :type_cast, Poison.encode(user_env)},
     {:user_env, :update_config_value, :ok}             <- {:user_env, :update_config_value, update_config_value(:string, "settings", "user_env", user_env_enc)},
+    {:smpx, :update_config_value, :ok}                 <- {:spmx, :update_config_value, update_config_value(:float, "hardware_params", spmx / 1)},
+    {:smpy, :update_config_value, :ok}                 <- {:spmy, :update_config_value, update_config_value(:float, "hardware_params", spmy / 1)},
+    {:smpz, :update_config_value, :ok}                 <- {:spmz, :update_config_value, update_config_value(:float, "hardware_params", spmz / 1)},
     {:first_boot, :update_config_value, :ok}           <- {:first_boot, :update_config_value, update_config_value(:bool, "settings", "first_boot", false)} do
       Logger.success 1, "Configuration data from jsono file was merged."
       :ok
