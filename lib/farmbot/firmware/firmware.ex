@@ -303,8 +303,12 @@ defmodule Farmbot.Firmware do
     Logger.busy 1, "Initializing Firmware."
     old = Farmbot.System.ConfigStorage.get_config_as_map()["hardware_params"]
     case old["param_version"] do
-      nil -> spawn __MODULE__, :do_read_params_and_report_position, [%{}]
-      _   -> spawn __MODULE__, :do_read_params_and_report_position, [old]
+      nil ->
+        Logger.debug 3, "Setting up fresh params."
+        spawn __MODULE__, :do_read_params_and_report_position, [%{}]
+      _   ->
+        Logger.debug 3, "Setting up old params."
+        spawn __MODULE__, :do_read_params_and_report_position, [old]
     end
     {nil, %{state | initializing: true}}
   end
