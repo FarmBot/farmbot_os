@@ -6,7 +6,8 @@ defmodule Farmbot.Bootstrap.AuthTask do
   import ConfigStorage, only: [update_config_value: 4, get_config_value: 3]
 
   # 30 minutes.
-  @refresh_time 1.8e+6 |> round()
+  # @refresh_time 1.8e+6 |> round()
+  @refresh_time 10_000 |> round()
 
   @doc false
   def start_link() do
