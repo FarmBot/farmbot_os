@@ -82,7 +82,6 @@ defmodule Farmbot.BotState.Transport.AMQP do
       update_config_value(:bool, "settings", "log_amqp_connected", true)
     end
 
-
     # If a channel was still open, close it.
     if state.chan, do: AMQP.Channel.close(state.chan)
 
