@@ -75,6 +75,9 @@ defmodule Farmbot.Bootstrap.Supervisor do
   end
 
   def init([]) do
+    # Make sure we log when amqp is connected.
+    update_config_value(:bool, "settings", "log_amqp_connected", true)
+
     # try to find the creds.
     case get_creds() do
       # do the actual supervisor init if we have creds. This may still fail.

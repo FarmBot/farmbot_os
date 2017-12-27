@@ -11,7 +11,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
   import Farmbot.BotState.Utils
 
   alias Farmbot.System.ConfigStorage
-  import ConfigStorage, only: [get_config_value: 3]
+  import ConfigStorage, only: [get_config_value: 3, update_config_value: 4]
 
   @exchange "amq.topic"
 
@@ -45,7 +45,10 @@ defmodule Farmbot.BotState.Transport.AMQP do
          opts      <- [conn: conn, chan: chan, queue_name: q_name, bot: device],
          state <- struct(State, opts)
     do
-      # Logger.success(3, "Connected to real time services.")
+      if get_config_value(:bool, "settings", "log_amqp_connected") do
+        Logger.success(1, "Farmbot is up and running!")
+        update_config_value(:bool, "settings", "log_amqp_connected", false)
+      end
       Process.monitor(conn.pid)
       {:consumer, state, subscribe_to: [Farmbot.BotState, Farmbot.Logger]}
     else
@@ -74,7 +77,12 @@ defmodule Farmbot.BotState.Transport.AMQP do
   end
 
   def terminate(reason, state) do
-    Logger.error 1, "AMQP Died: #{inspect reason}"
+    if reason not in [:normal, :shutdown] do
+      Logger.error 1, "AMQP Died: #{inspect reason}"
+      update_config_value(:bool, "settings", "log_amqp_connected", true)
+    end
+
+
     # If a channel was still open, close it.
     if state.chan, do: AMQP.Channel.close(state.chan)
 
