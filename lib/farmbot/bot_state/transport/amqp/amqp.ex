@@ -89,8 +89,9 @@ defmodule Farmbot.BotState.Transport.AMQP do
     if state.conn, do: AMQP.Connection.close(state.conn)
 
     # If the auth task is running, force it to reset.
-    if Process.whereis(Farmbot.Bootstrap.AuthTask) && reason != :token_refresh do
-      Farmbot.Bootstrap.AuthTask.force_refresh()
+    auth_task = Farmbot.Bootstrap.AuthTask
+    if Process.whereis(auth_task) && reason != :token_refresh do
+      auth_task.force_refresh()
     end
   end
 
