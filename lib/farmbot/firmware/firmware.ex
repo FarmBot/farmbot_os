@@ -308,7 +308,7 @@ defmodule Farmbot.Firmware do
         spawn __MODULE__, :do_read_params_and_report_position, [%{}]
       _   ->
         Logger.debug 3, "Setting up old params."
-        spawn __MODULE__, :do_read_params_and_report_position, [old]
+        spawn __MODULE__, :do_read_params_and_report_position, [Map.delete(old, "param_version")]
     end
     {nil, %{state | initializing: true}}
   end

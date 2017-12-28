@@ -75,7 +75,8 @@ defmodule Farmbot.Target.ConfigMigration.BeforeNetwork do
     ConfigStorage.update_config_value(:string, "authorization", "server", server)
   end
 
-  defp migrate_configuration(%{"firmware_hardware" => hw,
+  defp migrate_configuration(%{
+    "firmware_hardware" => hw,
     "first_party_farmware" => fpf,
     "os_auto_update" => os_auto_update,
     "steps_per_mm_x" => spmx,
@@ -95,9 +96,9 @@ defmodule Farmbot.Target.ConfigMigration.BeforeNetwork do
     {:user_env, :type_check, true}                     <- {:user_env, :type_check, is_map(user_env)},
     {:user_env, :type_cast, {:ok, user_env_enc}}       <- {:user_env, :type_cast, Poison.encode(user_env)},
     {:user_env, :update_config_value, :ok}             <- {:user_env, :update_config_value, update_config_value(:string, "settings", "user_env", user_env_enc)},
-    {:spmx, :update_config_value, :ok}                 <- {:spmx, :update_config_value, update_config_value(:float, "hardware_params", "movement_axis_nr_steps_x", spmx / 1)},
-    {:spmy, :update_config_value, :ok}                 <- {:spmy, :update_config_value, update_config_value(:float, "hardware_params", "movement_axis_nr_steps_y", spmy / 1)},
-    {:spmz, :update_config_value, :ok}                 <- {:spmz, :update_config_value, update_config_value(:float, "hardware_params", "movement_axis_nr_steps_z", spmz / 1)},
+    {:spmx, :update_config_value, :ok}                 <- {:spmx, :update_config_value, update_config_value(:float, "hardware_params", "movement_axis_nr_steps_x", (spmx || 5)  / 1)},
+    {:spmy, :update_config_value, :ok}                 <- {:spmy, :update_config_value, update_config_value(:float, "hardware_params", "movement_axis_nr_steps_y", (spmy || 5)  / 1)},
+    {:spmz, :update_config_value, :ok}                 <- {:spmz, :update_config_value, update_config_value(:float, "hardware_params", "movement_axis_nr_steps_z", (spmz || 25) / 1)},
     {:first_boot, :update_config_value, :ok}           <- {:first_boot, :update_config_value, update_config_value(:bool, "settings", "first_boot", false)} do
       Logger.success 1, "Configuration data from jsono file was merged."
       :ok
@@ -120,7 +121,7 @@ defmodule Farmbot.Target.ConfigMigration.BeforeNetwork do
       end
     end) do
       if Enum.count(migrated) > 0 do
-        ConfigStorage.update_config_value(:float, "hardware_params", "param_version", 1.0)
+        ConfigStorage.update_config_value(:float, "hardware_params", "param_version", -5.0)
         ConfigStorage.update_config_value(:float, "hardware_params", "movement_home_spd_x", 50.0)
         ConfigStorage.update_config_value(:float, "hardware_params", "movement_home_spd_y", 50.0)
         ConfigStorage.update_config_value(:float, "hardware_params", "movement_home_spd_z", 50.0)
