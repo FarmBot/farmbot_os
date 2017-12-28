@@ -32,7 +32,8 @@ defmodule Farmbot.CeleryScript.AST.Node.Zero do
   defp do_wait_for_pos(axis, env, tries \\ @default_num_tries)
 
   defp do_wait_for_pos(axis, env, 0) do
-    {:error, "Failed to set #{axis} location to 0", env}
+    # {:error, "Failed to set #{axis} location to 0", env}
+    {:ok, env}
   end
 
   defp do_wait_for_pos(axis, env, tries) do
