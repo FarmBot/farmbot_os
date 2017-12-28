@@ -3,7 +3,7 @@
 
 #include <erl_nif.h>
 
-#define MAX_GENERATED 60
+#define MAX_GENERATED 3
 
 static ERL_NIF_TERM do_build_calendar(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
@@ -21,6 +21,7 @@ static ERL_NIF_TERM do_build_calendar(ErlNifEnv* env, int argc, const ERL_NIF_TE
   // Data used to build the calendar.
   long int gracePeriodSeconds;
   gracePeriodSeconds = nowSeconds - 60;
+  gracePeriodSeconds -= (gracePeriodSeconds % 60);
   long int step = frequencySeconds * repeat;
 
   // iterators for loops
@@ -36,7 +37,6 @@ static ERL_NIF_TERM do_build_calendar(ErlNifEnv* env, int argc, const ERL_NIF_TE
     // if this event (i) is after the grace period, add it to the array.
     if(i > gracePeriodSeconds) {
       events[j] = i;
-      events[j] -= (events[j] % 60);
       j++;
     }
   }

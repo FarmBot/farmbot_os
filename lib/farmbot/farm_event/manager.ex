@@ -83,7 +83,7 @@ defmodule Farmbot.FarmEvent.Manager do
     now = get_now()
     alias Farmbot.Repo.FarmEvent
     # maybe_farm_event_log "Rebuilding calendar."
-    all_events = state.events |> Enum.map(&FarmEvent.build_calendar(&1))
+    all_events = Enum.map(state.events, &FarmEvent.build_calendar(&1))
     # maybe_farm_event_log "Rebuilding calendar complete."
 
     # do checkup is the bulk of the work.
