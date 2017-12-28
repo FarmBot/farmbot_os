@@ -14,6 +14,7 @@ defmodule Farmbot.Target.ConfigMigration.AfterNetwork do
 
   def init([]) do
     old_config_json_file = Path.join(@data_path, "config.json")
+    backup_config_json_file = Path.join(@data_path, "old_config.json")
     if File.exists?(old_config_json_file) do
       server = ConfigStorage.get_config_value(:string, "authorization", "server")
       secret = ConfigStorage.get_config_value(:string, "authorization", "password")
@@ -23,6 +24,7 @@ defmodule Farmbot.Target.ConfigMigration.AfterNetwork do
           ConfigStorage.update_config_value(:string, "authorization", "token", encoded)
           ConfigStorage.update_config_value(:string, "authorization", "email", email)
           Logger.success 1, "Successfully migrated secret."
+          File.cp(old_config_json_file, backup_config_json_file)
           File.rm(old_config_json_file)
           :ignore
         {:error, reason} ->
