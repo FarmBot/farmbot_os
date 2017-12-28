@@ -94,7 +94,7 @@ defmodule Farmbot.FarmEvent.Manager do
       Logger.info 3, "Time for events: #{inspect late_events} to run at: #{now.hour}:#{now.minute}"
       start_events(late_events, now)
     end
-    exit({:success, %{new | events: late_events}})
+    exit({:success, %{new | events: all_events}})
   end
 
   defp do_checkup(list, time, late_events \\ [], state)
