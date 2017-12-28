@@ -40,6 +40,9 @@ defmodule Farmbot.Firmware do
   For a list of paramaters see `Farmbot.Firmware.Gcode.Param`
   """
   def update_param(param, val) do
+    if val == 0 do
+      Logger.warn 1, "WRITING PARAM: #{param} ZERO!!!"
+    end
     GenStage.call(__MODULE__, {:update_param, [param, val]}, :infinity)
   end
 
@@ -294,6 +297,9 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode({:report_parameter_value, param, value}, state) do
+    if value == 0 do
+      Logger.warn 1, "Firmware reported zero for #{param}!!!!"
+    end
     Farmbot.System.ConfigStorage.update_config_value(:float, "hardware_params", to_string(param), value / 1)
 
     {:mcu_params, %{param => value}, state}
