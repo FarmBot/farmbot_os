@@ -7,7 +7,7 @@ defmodule Farmbot.Bootstrap.AuthTask do
 
   # 30 minutes.
   @refresh_time 1.8e+6 |> round()
-  # @refresh_time 10_000 |> round()
+  # @refresh_time 5_000
 
   @doc false
   def start_link() do
@@ -21,6 +21,10 @@ defmodule Farmbot.Bootstrap.AuthTask do
   def init([]) do
     timer = Process.send_after(self(), :refresh, @refresh_time)
     {:ok, timer, :hibernate}
+  end
+
+  def terminate(reason, _state) do
+    Logger.error 1, "Token Refresh failed: #{inspect reason}"
   end
 
   def handle_info(:refresh, _old_timer) do
@@ -56,17 +60,12 @@ defmodule Farmbot.Bootstrap.AuthTask do
   end
 
   defp restart_transports do
-    alias Farmbot.Bootstrap
-    alias Farmbot.BotState
-    bs_sup = Bootstrap.Supervisor
-    tp_sup = BotState.Transport.Supervisor
-    :ok = Supervisor.terminate_child(bs_sup, tp_sup)
-    case Supervisor.restart_child(bs_sup, tp_sup) do
-      {:ok, _} -> :ok
-      {:error, :running} -> :ok
-      {:error, {:already_started, _}} -> :ok
-      err -> exit(err)
+    transports = Application.get_env(:farmbot, :transport)
+    # Logger.info 1, "restarting children: #{inspect transports}"
+    for t <- transports do
+      t.stop(:token_refresh)
     end
+    :ok
   end
 
   defp refresh_timer(pid, ms \\ @refresh_time) do

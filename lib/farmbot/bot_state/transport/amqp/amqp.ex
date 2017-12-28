@@ -20,6 +20,10 @@ defmodule Farmbot.BotState.Transport.AMQP do
     GenStage.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
+  def stop(reason \\ :normal) do
+    GenStage.stop(__MODULE__, reason)
+  end
+
   # GenStage callbacks
 
   defmodule State do
@@ -73,7 +77,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
   end
 
   def terminate(reason, state) do
-    if reason not in [:normal, :shutdown] do
+    if reason not in [:normal, :shutdown, :token_refresh] do
       Logger.error 1, "AMQP Died: #{inspect reason}"
       update_config_value(:bool, "settings", "log_amqp_connected", true)
     end
@@ -85,7 +89,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
     if state.conn, do: AMQP.Connection.close(state.conn)
 
     # If the auth task is running, force it to reset.
-    if Process.whereis(Farmbot.Bootstrap.AuthTask) do
+    if Process.whereis(Farmbot.Bootstrap.AuthTask) && reason != :token_refresh do
       Farmbot.Bootstrap.AuthTask.force_refresh()
     end
   end

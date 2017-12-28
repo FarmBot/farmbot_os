@@ -42,6 +42,10 @@ defmodule Farmbot.BotState.Transport.HTTP do
     GenStage.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
+  def stop(reason) do
+    GenStage.stop(__MODULE__, reason)
+  end
+
   def init([]) do
     s = ConfigStorage.get_config_value(:string, "authorization", "server")
     req = {'#{s}/api/public_key', []}

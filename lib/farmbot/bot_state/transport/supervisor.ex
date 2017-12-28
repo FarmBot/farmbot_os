@@ -11,7 +11,7 @@ defmodule Farmbot.BotState.Transport.Supervisor do
     transports = Application.get_env(:farmbot, :transport)
     children = Enum.reduce(transports, [], fn(t, acc) ->
       if Code.ensure_loaded?(t) do
-        acc ++ [worker(t, [])]
+        acc ++ [worker(t, [], [id: t])]
       else
         acc
       end
