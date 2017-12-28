@@ -287,8 +287,7 @@ defmodule Farmbot.BotState do
       env: @env,
       node_name: nil,
       busy: false,
-      sync_status: :sync_now,
-      sync_status_two: nil,
+      sync_status: :booting,
       locked: false
     },
     location_data: %{
