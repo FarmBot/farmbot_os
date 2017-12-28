@@ -21,7 +21,6 @@ static ERL_NIF_TERM do_build_calendar(ErlNifEnv* env, int argc, const ERL_NIF_TE
   // Data used to build the calendar.
   long int gracePeriodSeconds;
   gracePeriodSeconds = nowSeconds - 60;
-  gracePeriodSeconds -= (gracePeriodSeconds % 60);
   long int step = frequencySeconds * repeat;
 
   // iterators for loops
