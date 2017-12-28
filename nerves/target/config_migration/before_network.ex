@@ -96,11 +96,11 @@ defmodule Farmbot.Target.ConfigMigration.BeforeNetwork do
     {:user_env, :type_check, true}                     <- {:user_env, :type_check, is_map(user_env)},
     {:user_env, :type_cast, {:ok, user_env_enc}}       <- {:user_env, :type_cast, Poison.encode(user_env)},
     {:user_env, :update_config_value, :ok}             <- {:user_env, :update_config_value, update_config_value(:string, "settings", "user_env", user_env_enc)},
-    {:spmx, :update_config_value, :ok}                 <- {:spmx, :update_config_value, update_config_value(:float, "hardware_params", "movement_axis_nr_steps_x", (spmx || 5)  / 1)},
-    {:spmy, :update_config_value, :ok}                 <- {:spmy, :update_config_value, update_config_value(:float, "hardware_params", "movement_axis_nr_steps_y", (spmy || 5)  / 1)},
-    {:spmz, :update_config_value, :ok}                 <- {:spmz, :update_config_value, update_config_value(:float, "hardware_params", "movement_axis_nr_steps_z", (spmz || 25) / 1)},
+    {:spmx, :update_config_value, :ok}                 <- {:spmx, :update_config_value, update_config_value(:float, "hardware_params", "movement_step_per_mm_x", (spmx || 5)  / 1)},
+    {:spmy, :update_config_value, :ok}                 <- {:spmy, :update_config_value, update_config_value(:float, "hardware_params", "movement_step_per_mm_y", (spmy || 5)  / 1)},
+    {:spmz, :update_config_value, :ok}                 <- {:spmz, :update_config_value, update_config_value(:float, "hardware_params", "movement_step_per_mm_z", (spmz || 25) / 1)},
     {:first_boot, :update_config_value, :ok}           <- {:first_boot, :update_config_value, update_config_value(:bool, "settings", "first_boot", false)} do
-      Logger.success 1, "Configuration data from jsono file was merged."
+      Logger.success 1, "Configuration data from json file was merged."
       :ok
     else
       {step, sub_step, err} ->
