@@ -279,4 +279,9 @@ defmodule Farmbot.FarmEvent.Manager do
       :ok
     end
   end
+
+  @doc "Enable or disbale debug logs for farmevents."
+  def debug_logs(bool \\ true) when is_boolean(bool) do
+    Application.put_env(:farmbot, :farm_event_debug_log, bool)
+  end
 end
