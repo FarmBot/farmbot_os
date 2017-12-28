@@ -72,7 +72,7 @@ defmodule Farmbot.Repo.FarmEvent do
     start_time_seconds = DateTime.from_iso8601(fe.start_time) |> elem(1) |> DateTime.to_unix(:second)
     end_time_seconds = DateTime.from_iso8601(fe.end_time) |> elem(1) |> DateTime.to_unix(:second)
     repeat = fe.repeat
-    repeat_frequency_seconds = time_unit_to_seconds(repeat, fe.time_unit)
+    repeat_frequency_seconds = time_unit_to_seconds(fe.time_unit)
 
     new_calendar =
       do_build_calendar(current_time_seconds,
@@ -92,16 +92,16 @@ defmodule Farmbot.Repo.FarmEvent do
       Range.new(start_time_seconds, end_time_seconds)
       |> Enum.take_every(repeat * repeat_frequency_seconds)
       |> Enum.filter(&Kernel.>(&1, grace_period_cutoff_seconds))
-      |> Enum.take(60)
+      |> Enum.take(3)
       |> Enum.map(&Kernel.-(&1, div(&1, 60)))
   end
 
-  @compile {:inline, [time_unit_to_seconds: 2]}
-  defp time_unit_to_seconds(_, "never"), do: 0
-  defp time_unit_to_seconds(repeat, "minutely"), do: 60 * repeat
-  defp time_unit_to_seconds(repeat, "hourly"), do: 60 * 60 * repeat
-  defp time_unit_to_seconds(repeat, "daily"), do: 60 * 60 * 24 * repeat
-  defp time_unit_to_seconds(repeat, "weekly"), do: 60 * 60 * 24 * 7 * repeat
-  defp time_unit_to_seconds(repeat, "monthly"), do: 60 * 60 * 24 * 30 * repeat
-  defp time_unit_to_seconds(repeat, "yearly"), do: 60 * 60 * 24 * 365 * repeat
+  @compile {:inline, [time_unit_to_seconds: 1]}
+  defp time_unit_to_seconds("never"), do: 0
+  defp time_unit_to_seconds("minutely"), do: 60
+  defp time_unit_to_seconds("hourly"), do: 60 * 60
+  defp time_unit_to_seconds("daily"), do: 60 * 60 * 24
+  defp time_unit_to_seconds("weekly"), do: 60 * 60 * 24 * 7
+  defp time_unit_to_seconds("monthly"), do: 60 * 60 * 24 * 30
+  defp time_unit_to_seconds("yearly"), do: 60 * 60 * 24 * 365
 end
