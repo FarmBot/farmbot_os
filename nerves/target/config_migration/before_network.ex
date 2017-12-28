@@ -120,12 +120,11 @@ defmodule Farmbot.Target.ConfigMigration.BeforeNetwork do
         is_nil(val) -> :ok
       end
     end) do
-      if Enum.count(migrated) > 0 do
-        ConfigStorage.update_config_value(:float, "hardware_params", "param_version", -5.0)
-        ConfigStorage.update_config_value(:float, "hardware_params", "movement_home_spd_x", 50.0)
-        ConfigStorage.update_config_value(:float, "hardware_params", "movement_home_spd_y", 50.0)
-        ConfigStorage.update_config_value(:float, "hardware_params", "movement_home_spd_z", 50.0)
-      end
+      Logger.info 1, "Migrated: #{Enum.count migrated} hardware params."
+      ConfigStorage.update_config_value(:float, "hardware_params", "param_version", -5.0)
+      ConfigStorage.update_config_value(:float, "hardware_params", "movement_home_spd_x", 50.0)
+      ConfigStorage.update_config_value(:float, "hardware_params", "movement_home_spd_y", 50.0)
+      ConfigStorage.update_config_value(:float, "hardware_params", "movement_home_spd_z", 50.0)
       :ok
     else
       {:error, "Failed to migrate params"}
