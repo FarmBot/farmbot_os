@@ -28,7 +28,7 @@ defmodule Farmbot.CeleryScript.AST.Node.Zero do
     {:ok, env}
   end
 
-  @default_num_tries 10
+  @default_num_tries 20
   defp do_wait_for_pos(axis, env, tries \\ @default_num_tries)
 
   defp do_wait_for_pos(axis, env, 0) do
