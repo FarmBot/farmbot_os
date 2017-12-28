@@ -45,10 +45,6 @@ defmodule Farmbot.BotState.Transport.AMQP do
          opts      <- [conn: conn, chan: chan, queue_name: q_name, bot: device],
          state <- struct(State, opts)
     do
-      if get_config_value(:bool, "settings", "log_amqp_connected") do
-        Logger.success(1, "Farmbot is up and running!")
-        update_config_value(:bool, "settings", "log_amqp_connected", false)
-      end
       Process.monitor(conn.pid)
       {:consumer, state, subscribe_to: [Farmbot.BotState, Farmbot.Logger]}
     else
@@ -151,6 +147,10 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
   # Confirmation sent by the broker after registering this process as a consumer
   def handle_info({:basic_consume_ok, _}, state) do
+    if get_config_value(:bool, "settings", "log_amqp_connected") do
+      Logger.success(1, "Farmbot is up and running!")
+      update_config_value(:bool, "settings", "log_amqp_connected", false)
+    end
     {:noreply, [], state}
   end
 
