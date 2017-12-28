@@ -40,7 +40,7 @@ defmodule Farmbot.FarmEvent.Manager do
   end
 
   def init([]) do
-    # send self(), :checkup
+    send self(), :checkup
     {:ok, struct(State)}
   end
 
