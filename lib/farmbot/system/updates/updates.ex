@@ -110,14 +110,14 @@ defmodule Farmbot.System.Updates do
     dl_path = Path.join(@data_path, "#{new_version}.fw")
     case Farmbot.HTTP.download_file(dl_url, dl_path, dl_fun, "", []) do
       {:ok, path} ->
-        apply_firmware(path)
+        apply_firmware(path, true)
       {:error, reason} ->
         Logger.error 1, "Failed to download update file: #{inspect reason}"
     end
   end
 
   @doc "Apply an OS (fwup) firmware."
-  def apply_firmware(file_path, reboot \\ false) do
+  def apply_firmware(file_path, reboot) do
     Logger.busy 1, "Applying #{@target} OS update"
     before_update()
     case @handler.apply_firmware(file_path) do
