@@ -52,7 +52,7 @@ defmodule Farmbot.Logger.Console do
     :ok
   end
 
-  defp maybe_log(%Farmbot.Log{module: module} = log) do
+  defp maybe_log(%Farmbot.Log{module: _module} = log) do
     # should_log = List.first(Module.split(module)) == "Farmbot"
     # if should_log do
     # credo:disable-for-next-line

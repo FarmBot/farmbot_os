@@ -68,7 +68,7 @@ defmodule Farmbot.FarmEvent.Manager do
     {:noreply, %{state | timer: nil, checkup: checkup}}
   end
 
-  def handle_info({:DOWN, _, :process, _, {:success, new_state}}, old_state) do
+  def handle_info({:DOWN, _, :process, _, {:success, new_state}}, _old_state) do
     timer = Process.send_after(self(), :checkup, @checkup_time)
     {:noreply, %{new_state | timer: timer, checkup: nil}}
   end
@@ -79,7 +79,7 @@ defmodule Farmbot.FarmEvent.Manager do
     {:noreply, %{state | timer: timer, checkup: nil}}
   end
 
-  def async_checkup(manager, state) do
+  def async_checkup(_manager, state) do
     now = get_now()
     alias Farmbot.Repo.FarmEvent
     # maybe_farm_event_log "Rebuilding calendar."
