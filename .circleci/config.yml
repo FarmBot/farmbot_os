@@ -59,7 +59,7 @@ jobs:
       - <<: *install_elixir
       - restore_cache:
           keys:
-            - v3-dependency-cache-{{ checksum "mix.lock.host" }}
+            - v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
             - v3-dependency-cache
       - run: mix local.hex --force
       - run: mix local.rebar --force
@@ -68,7 +68,7 @@ jobs:
       - run: mix deps.compile
       - run: mix compile
       - save_cache:
-          key: v3-dependency-cache-{{ checksum "mix.lock.host" }}
+          key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
           paths:
             - _build
             - deps
@@ -76,10 +76,10 @@ jobs:
             - ~/.nerves
       - restore_cache:
           keys:
-            - v3-plt-cache-{{ checksum "mix.lock.host" }}
+            - v3-plt-cache-{{ checksum "mix.lock.rpi3" }}
             - v3-plt-cache
       - save_cache:
-          key: v3-plt-cache-{{ checksum "mix.lock.host" }}
+          key: v3-plt-cache-{{ checksum "mix.lock.rpi3" }}
           paths:
             - _build
             - ~/.mix
@@ -87,11 +87,11 @@ jobs:
       - run:
           command: mix firmware
           environment:
-            MIX_TARGET: rpri3
+            MIX_TARGET: rpi3
       - run:
           command: mix firmware.slack -channels C58DCU4A3
           environment:
-            MIX_TARGET: rpri3
+            MIX_TARGET: rpi3
 
 workflows:
   version: 2
