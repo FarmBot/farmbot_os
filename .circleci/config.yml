@@ -2,15 +2,12 @@ version: 2.0
 defaults: &defaults
   docker:
     - image: nervesproject/nerves:0.13.5
-  environment:
-    ENV: CI
-    ELIXIR_VERSION: 1.5.2
 
 install_elixir: &install_elixir
   run:
     name: Install Elixir
     command: |
-      wget https://github.com/elixir-lang/elixir/releases/download/v$ELIXIR_VERSION/Precompiled.zip
+      wget https://github.com/elixir-lang/elixir/releases/download/v1.5.1/Precompiled.zip
       unzip -d /usr/local/elixir Precompiled.zip
       echo 'export PATH=/usr/local/elixir/bin:$PATH' >> $BASH_ENV
 
