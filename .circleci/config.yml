@@ -29,25 +29,11 @@ jobs:
       - run: mix deps.get
       - run: mix deps.compile
       - run: mix compile
-      - run:
-          command: mix compile
-          environment:
-            MIX_ENV: dev
       - save_cache:
           key: v3-dependency-cache-{{ checksum "mix.lock.host" }}
           paths:
             - _build
             - deps
-            - ~/.mix
-            - ~/.nerves
-      - restore_cache:
-          keys:
-            - v3-plt-cache-{{ checksum "mix.lock.host" }}
-            - v3-plt-cache
-      - save_cache:
-          key: v3-plt-cache-{{ checksum "mix.lock.host" }}
-          paths:
-            - _build
             - ~/.mix
             - ~/.nerves
       - run:
@@ -71,6 +57,10 @@ jobs:
       - run: mix deps.get
       - run: mix deps.compile
       - run: mix compile
+      - run:
+          command: mix firmware
+          environment:
+            MIX_TARGET: rpi3
       - save_cache:
           key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
           paths:
@@ -78,20 +68,6 @@ jobs:
             - deps
             - ~/.mix
             - ~/.nerves
-      - restore_cache:
-          keys:
-            - v3-plt-cache-{{ checksum "mix.lock.rpi3" }}
-            - v3-plt-cache
-      - save_cache:
-          key: v3-plt-cache-{{ checksum "mix.lock.rpi3" }}
-          paths:
-            - _build
-            - ~/.mix
-            - ~/.nerves
-      - run:
-          command: mix firmware
-          environment:
-            MIX_TARGET: rpi3
       - run:
           command: mix firmware.slack -channels C58DCU4A3
           environment:
