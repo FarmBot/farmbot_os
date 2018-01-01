@@ -30,9 +30,9 @@ jobs:
       - run: mix deps.compile
       - run: mix compile
       - run:
-        command: mix compile
-        environment:
-          MIX_ENV: dev
+          command: mix compile
+          environment:
+            MIX_ENV: dev
       - save_cache:
           key: v3-dependency-cache-{{ checksum "mix.lock.host" }}
           paths:
