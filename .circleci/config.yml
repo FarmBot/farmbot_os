@@ -2,6 +2,8 @@ version: 2.0
 defaults: &defaults
   docker:
     - image: nervesproject/nerves:0.13.5
+    - environment:
+      ELIXIR_VERSION: 1.5.2
 
 install_elixir: &install_elixir
   run:
