@@ -61,26 +61,27 @@ jobs:
       - <<: *install_elixir
       - restore_cache:
           keys:
-            - v3-dependency-cache-{{ checksum "mix.lock" }}
+            - v3-dependency-cache-{{ checksum "mix.lock.host" }}
             - v3-dependency-cache
       - run: mix local.hex --force
       - run: mix local.rebar --force
+      - run: mix archive.install hex nerves_bootstrap --force
       - run: mix deps.get
       - run: mix deps.compile
       - run: mix compile
       - save_cache:
-          key: v3-dependency-cache-{{ checksum "mix.lock" }}
+          key: v3-dependency-cache-{{ checksum "mix.lock.host" }}
           paths:
             - _build
             - deps
             - ~/.mix
       - restore_cache:
           keys:
-            - v3-plt-cache-{{ checksum "mix.lock" }}
+            - v3-plt-cache-{{ checksum "mix.lock.host" }}
             - v3-plt-cache
       - run: mix dialyzer --plt
       - save_cache:
-          key: v3-plt-cache-{{ checksum "mix.lock" }}
+          key: v3-plt-cache-{{ checksum "mix.lock.host" }}
           paths:
             - _build
             - ~/.mix
