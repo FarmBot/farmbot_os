@@ -187,7 +187,7 @@ defmodule Farmbot.Repo do
     repo.all(Peripheral)
     |> Enum.all?(fn %{mode: mode, pin: pin} ->
          mode = if mode == 0, do: :digital, else: :analog
-         Logger.busy 3, "Reading peripheral (#{pin} - #{mode})"
+        #  Logger.busy 3, "Reading peripheral (#{pin} - #{mode})"
          Farmbot.Firmware.read_pin(pin, mode)
        end)
 
