@@ -6,8 +6,8 @@ defmodule Farmbot.Bootstrap.AuthTask do
   import ConfigStorage, only: [update_config_value: 4, get_config_value: 3]
 
   # 30 minutes.
-  @refresh_time 1.8e+6 |> round()
-  # @refresh_time 5_000
+  # @refresh_time 1.8e+6 |> round()
+  @refresh_time 5_000
 
   @doc false
   def start_link() do
@@ -24,7 +24,9 @@ defmodule Farmbot.Bootstrap.AuthTask do
   end
 
   def terminate(reason, _state) do
-    Logger.error 1, "Token Refresh failed: #{inspect reason}"
+    unless reason == {:shutdown, :normal} do
+      Logger.error 1, "Token Refresh failed: #{inspect reason}"
+    end
   end
 
   def handle_info(:refresh, _old_timer) do

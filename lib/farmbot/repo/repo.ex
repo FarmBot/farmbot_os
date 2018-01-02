@@ -37,7 +37,7 @@ defmodule Farmbot.Repo do
   end
 
   @doc "Flip the repos."
-  def flip() do
+  def flip do
     GenServer.call(__MODULE__, :flip, 20_000)
   end
 
@@ -94,6 +94,7 @@ defmodule Farmbot.Repo do
 
   def terminate(reason, _) do
     if reason not in [:normal, :shutdown] do
+      Logger.error 1, "Repo died: #{inspect reason}"
       BotState.set_sync_status(:sync_error)
     end
     Farmbot.FarmEvent.Manager.register_events([])
@@ -152,13 +153,12 @@ defmodule Farmbot.Repo do
     case SyncCmd.changeset(struct(SyncCmd, %{remote_id: remote_id, kind: kind, body: body}))
          |> ConfigStorage.insert() do
       {:ok, sync_cmd} ->
-        apply_sync_cmd(other_repo, sync_cmd)
+        :ok = apply_sync_cmd(other_repo, sync_cmd)
 
         case auto_sync?() do
-          false -> BotState.set_sync_status(:sync_now)
-          true -> BotState.set_sync_status(:syncing)
+          false -> :ok = BotState.set_sync_status(:sync_now)
+          true -> :ok = BotState.set_sync_status(:syncing)
         end
-
         {:reply, :ok, %{state | timer: start_timer()}}
 
       {:error, reason} ->
@@ -282,12 +282,13 @@ defmodule Farmbot.Repo do
         nil ->
           mod.changeset(struct(mod), not_struct)
           |> repo.insert!
-
+          :ok
         # if there is an existing record, copy the ecto  meta from the old
         # record. This allows `insert_or_update` to work properly.
         existing ->
           mod.changeset(existing, not_struct)
           |> repo.update!
+          :ok
       end
     else
       Logger.warn(3, "Unknown module: #{mod} #{inspect(sync_cmd)}")
