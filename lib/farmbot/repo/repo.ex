@@ -88,7 +88,7 @@ defmodule Farmbot.Repo do
 
     # Copy configs
     [current, _] = repos
-    copy_configs(current)
+    :ok = copy_configs(current)
     {:ok, %{repos: repos, needs_hard_sync: needs_hard_sync, timer: start_timer()}}
   end
 
@@ -118,11 +118,11 @@ defmodule Farmbot.Repo do
   def handle_call(:flip, _, %{repos: [repo_a, repo_b], needs_hard_sync: true} = state) do
     maybe_cancel_timer(state.timer)
     destroy_all_sync_cmds()
-    Logger.busy(1, "Syncing.")
+    Logger.busy(1, "Syncing (hard sync)")
     BotState.set_sync_status(:syncing)
     do_sync_both(repo_a, repo_b)
     BotState.set_sync_status(:synced)
-    copy_configs(repo_b)
+    :ok = copy_configs(repo_b)
     flip_repos_in_cs()
     Logger.success(1, "Sync complete.")
     {:reply, :ok, %{state | repos: [repo_b, repo_a], needs_hard_sync: false, timer: start_timer()}}
@@ -140,7 +140,7 @@ defmodule Farmbot.Repo do
 
     flip_repos_in_cs()
     BotState.set_sync_status(:synced)
-    copy_configs(repo_b)
+    :ok = copy_configs(repo_b)
     destroy_all_sync_cmds()
     Logger.success(1, "Sync complete.")
     {:reply, repo_b, %{state | repos: [repo_b, repo_a], timer: start_timer()}}
@@ -187,11 +187,12 @@ defmodule Farmbot.Repo do
     repo.all(Peripheral)
     |> Enum.all?(fn %{mode: mode, pin: pin} ->
          mode = if mode == 0, do: :digital, else: :analog
-         # Logger.busy 3, "Reading peripheral (#{pin} - #{mode})"
+         Logger.busy 3, "Reading peripheral (#{pin} - #{mode})"
          Farmbot.Firmware.read_pin(pin, mode)
        end)
 
     Farmbot.FarmEvent.Manager.register_events repo.all(Farmbot.Repo.FarmEvent)
+    :ok
   end
 
   defp destroy_all_sync_cmds do

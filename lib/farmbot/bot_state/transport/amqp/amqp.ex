@@ -188,10 +188,18 @@ defmodule Farmbot.BotState.Transport.AMQP do
     end
   end
 
+  def handle_info({:DOWN, _, :process, pid, reason}, state) do
+    Logger.warn 3, "Sequence: #{inspect pid} died: #{inspect reason}"
+    {:noreply, [], state}
+  end
+
   @doc false
   def handle_celery_script(payload, _state) do
     case AST.decode(payload) do
-      {:ok, ast} -> spawn CeleryScript, :execute, [ast]
+      {:ok, ast} ->
+        pid = spawn(CeleryScript, :execute, [ast])
+        Logger.busy 3, "Sequence starting: #{inspect pid}"
+        Process.monitor(pid)
       _ -> :ok
     end
   end

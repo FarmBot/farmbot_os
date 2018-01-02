@@ -60,6 +60,7 @@ jobs:
       - run:
           command: mix firmware
           environment:
+            MIX_ENV: dev
             MIX_TARGET: rpi3
       - save_cache:
           key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
@@ -69,8 +70,9 @@ jobs:
             - ~/.mix
             - ~/.nerves
       - run:
-          command: mix firmware.slack -channels C58DCU4A3
+          command: mix firmware.slack --channels C58DCU4A3
           environment:
+            MIX_ENV: dev
             MIX_TARGET: rpi3
 
 workflows:

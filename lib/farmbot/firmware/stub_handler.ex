@@ -14,8 +14,8 @@ defmodule Farmbot.Firmware.StubHandler do
     GenStage.start_link(__MODULE__, [])
   end
 
-  def move_absolute(handler, pos, x_speed, y_speed, z_speed) do
-    GenStage.call(handler, {:move_absolute, pos, x_speed, y_speed, z_speed})
+  def move_absolute(handler, pos, x_spd, y_spd, z_spd) do
+    GenStage.call(handler, {:move_absolute, pos, x_spd, y_spd, z_spd}, 120_000)
   end
 
   def calibrate(handler, axis) do
@@ -116,6 +116,7 @@ defmodule Farmbot.Firmware.StubHandler do
   end
 
   def handle_call({:move_absolute, pos, _x_speed, _y_speed, _z_speed}, _from, state) do
+    Process.sleep(5000)
     response = build_resp [{:report_current_position, pos.x, pos.y, pos.z},
                        {:report_encoder_position_scaled, pos.x, pos.y, pos.z},
                        {:report_encoder_position_raw, pos.x, pos.y, pos.z}, :done]
