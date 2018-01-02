@@ -5,34 +5,38 @@ defmodule Farmbot.Firmware do
   use Farmbot.Logger
   alias Farmbot.Firmware.Vec3
 
+  # If any command takes longer than this, exit.
+  @call_timeout 500_000
+
   @doc "Move the bot to a position."
-  def move_absolute(%Vec3{} = vec3, x_speed, y_speed, z_speed) do
-    GenStage.call(__MODULE__, {:move_absolute, [vec3, x_speed, y_speed, z_speed]}, 120_000)
+  def move_absolute(%Vec3{} = vec3, x_spd, y_spd, z_spd) do
+    call = {:move_absolute, [vec3, x_spd, y_spd, z_spd]}
+    GenStage.call(__MODULE__, call, @call_timeout)
   end
 
   @doc "Calibrate an axis."
   def calibrate(axis) do
-    GenStage.call(__MODULE__, {:calibrate, [axis]}, 120_000)
+    GenStage.call(__MODULE__, {:calibrate, [axis]}, @call_timeout)
   end
 
   @doc "Find home on an axis."
   def find_home(axis) do
-    GenStage.call(__MODULE__, {:find_home, [axis]}, 120_000)
+    GenStage.call(__MODULE__, {:find_home, [axis]}, @call_timeout)
   end
 
   @doc "Home every axis."
   def home_all() do
-    GenStage.call(__MODULE__, {:home_all, []}, 120_000)
+    GenStage.call(__MODULE__, {:home_all, []}, @call_timeout)
   end
 
   @doc "Home an axis."
   def home(axis) do
-    GenStage.call(__MODULE__, {:home, [axis]}, 120_000)
+    GenStage.call(__MODULE__, {:home, [axis]}, @call_timeout)
   end
 
   @doc "Manually set an axis's current position to zero."
   def zero(axis) do
-    GenStage.call(__MODULE__, {:zero, [axis]}, 120_000)
+    GenStage.call(__MODULE__, {:zero, [axis]}, @call_timeout)
   end
 
   @doc """
@@ -40,12 +44,12 @@ defmodule Farmbot.Firmware do
   For a list of paramaters see `Farmbot.Firmware.Gcode.Param`
   """
   def update_param(param, val) do
-    GenStage.call(__MODULE__, {:update_param, [param, val]}, 120_000)
+    GenStage.call(__MODULE__, {:update_param, [param, val]}, @call_timeout)
   end
 
   @doc false
   def read_all_params do
-    GenStage.call(__MODULE__, {:read_all_params, []}, 120_000)
+    GenStage.call(__MODULE__, {:read_all_params, []}, @call_timeout)
   end
 
   @doc """
@@ -53,42 +57,42 @@ defmodule Farmbot.Firmware do
   For a list of paramaters see `Farmbot.Firmware.Gcode.Param`
   """
   def read_param(param) do
-    GenStage.call(__MODULE__, {:read_param, [param]}, 120_000)
+    GenStage.call(__MODULE__, {:read_param, [param]}, @call_timeout)
   end
 
   @doc "Emergency lock Farmbot."
   def emergency_lock() do
-    GenStage.call(__MODULE__, {:emergency_lock, []}, 120_000)
+    GenStage.call(__MODULE__, {:emergency_lock, []}, @call_timeout)
   end
 
   @doc "Unlock Farmbot from Emergency state."
   def emergency_unlock() do
-    GenStage.call(__MODULE__, {:emergency_unlock, []}, 120_000)
+    GenStage.call(__MODULE__, {:emergency_unlock, []}, @call_timeout)
   end
 
   @doc "Set a pin mode (:input | :output)"
   def set_pin_mode(pin, mode) do
-    GenStage.call(__MODULE__, {:set_pin_mode, [pin, mode]}, 120_000)
+    GenStage.call(__MODULE__, {:set_pin_mode, [pin, mode]}, @call_timeout)
   end
 
   @doc "Read a pin."
   def read_pin(pin, mode) do
-    GenStage.call(__MODULE__, {:read_pin, [pin, mode]}, 120_000)
+    GenStage.call(__MODULE__, {:read_pin, [pin, mode]}, @call_timeout)
   end
 
   @doc "Write a pin."
   def write_pin(pin, mode, value) do
-    GenStage.call(__MODULE__, {:write_pin, [pin, mode, value]}, 120_000)
+    GenStage.call(__MODULE__, {:write_pin, [pin, mode, value]}, @call_timeout)
   end
 
   @doc "Request version."
   def request_software_version do
-    GenStage.call(__MODULE__, {:request_software_version, []}, 120_000)
+    GenStage.call(__MODULE__, {:request_software_version, []}, @call_timeout)
   end
 
   @doc "Set angle of a servo pin."
   def set_servo_angle(pin, value) do
-    GenStage.call(__MODULE__, {:set_servo_angle, [pin, value]}, 120_000)
+    GenStage.call(__MODULE__, {:set_servo_angle, [pin, value]}, @call_timeout)
   end
 
   @doc "Start the firmware services."
@@ -103,8 +107,7 @@ defmodule Farmbot.Firmware do
     defstruct [
       fun: nil,
       args: nil,
-      from: nil,
-
+      from: nil
     ]
   end
 
@@ -136,6 +139,15 @@ defmodule Farmbot.Firmware do
       {:stop, err, state} -> {:stop, err, state}
     end
 
+  end
+
+  def terminate(reason, state) do
+    unless :queue.is_empty(state.queue) do
+      list = :queue.to_list(state.queue)
+      for cmd <- list do
+        :ok = do_reply(%{state | current: cmd}, {:error, reason})
+      end
+    end
   end
 
   def handle_info({:EXIT, _pid, :normal}, state) do
@@ -181,8 +193,7 @@ defmodule Farmbot.Firmware do
   end
 
   defp do_begin_cmd(%Current{fun: fun, args: args, from: from} = current, state, dispatch) do
-    Logger.busy 3, "FW Starting: #{fun}: #{inspect from}"
-
+    # Logger.busy 3, "FW Starting: #{fun}: #{inspect from}"
     case apply(state.handler_mod, fun, [state.handler | args]) do
       :ok ->
         if fun == :emergency_unlock, do: Farmbot.System.GPIO.Leds.led_status_ok()
@@ -195,7 +206,7 @@ defmodule Farmbot.Firmware do
   end
 
   defp do_queue_cmd(%Current{fun: fun, args: _args, from: from} = current, state) do
-    Logger.busy 3, "FW Queuing: #{fun}: #{inspect from}"
+    # Logger.busy 3, "FW Queuing: #{fun}: #{inspect from}"
     new_q = :queue.in(current, state.queue)
     {:noreply, [], %{state | queue: new_q}}
   end
@@ -479,7 +490,7 @@ defmodule Farmbot.Firmware do
   defp do_reply(state, reply) do
     case state.current do
       %Current{fun: fun, from: from} ->
-        Logger.success 3, "FW Replying: #{fun}: #{inspect from}"
+        # Logger.success 3, "FW Replying: #{fun}: #{inspect from}"
         :ok = GenServer.reply from, reply
       nil ->
         Logger.error 1, "FW Nothing to send reply: #{inspect reply} to!."

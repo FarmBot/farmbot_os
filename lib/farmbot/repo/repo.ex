@@ -118,7 +118,7 @@ defmodule Farmbot.Repo do
   def handle_call(:flip, _, %{repos: [repo_a, repo_b], needs_hard_sync: true} = state) do
     maybe_cancel_timer(state.timer)
     destroy_all_sync_cmds()
-    Logger.busy(1, "Syncing (hard sync)")
+    Logger.busy(1, "Syncing.")
     BotState.set_sync_status(:syncing)
     do_sync_both(repo_a, repo_b)
     BotState.set_sync_status(:synced)
