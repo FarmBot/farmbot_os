@@ -8,7 +8,6 @@ defmodule Farmbot.Repo.FarmEvent do
   """
 
   @on_load :load_nif
-
   def load_nif do
     require Logger
     nif_file = '#{:code.priv_dir(:farmbot)}/build_calendar'
