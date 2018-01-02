@@ -192,7 +192,7 @@ defmodule Farmbot.Firmware do
     end
   end
 
-  defp do_begin_cmd(%Current{fun: fun, args: args, from: from} = current, state, dispatch) do
+  defp do_begin_cmd(%Current{fun: fun, args: args, from: _from} = current, state, dispatch) do
     # Logger.busy 3, "FW Starting: #{fun}: #{inspect from}"
     case apply(state.handler_mod, fun, [state.handler | args]) do
       :ok ->
@@ -205,7 +205,7 @@ defmodule Farmbot.Firmware do
     end
   end
 
-  defp do_queue_cmd(%Current{fun: fun, args: _args, from: from} = current, state) do
+  defp do_queue_cmd(%Current{fun: _fun, args: _args, from: _from} = current, state) do
     # Logger.busy 3, "FW Queuing: #{fun}: #{inspect from}"
     new_q = :queue.in(current, state.queue)
     {:noreply, [], %{state | queue: new_q}}
@@ -489,7 +489,7 @@ defmodule Farmbot.Firmware do
 
   defp do_reply(state, reply) do
     case state.current do
-      %Current{fun: fun, from: from} ->
+      %Current{fun: _fun, from: from} ->
         # Logger.success 3, "FW Replying: #{fun}: #{inspect from}"
         :ok = GenServer.reply from, reply
       nil ->
