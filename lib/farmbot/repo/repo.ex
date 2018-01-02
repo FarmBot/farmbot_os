@@ -26,24 +26,27 @@ defmodule Farmbot.Repo do
   # fifteen seconds.
   # @timeout 15000
 
+  # 1.5 minutes.
+  @call_timeout 90000
+
   @doc "Fetch the current repo."
   def current_repo do
-    GenServer.call(__MODULE__, :current_repo, 20_000)
+    GenServer.call(__MODULE__, :current_repo)
   end
 
   @doc "Fetch the non current repo."
   def other_repo do
-    GenServer.call(__MODULE__, :other_repo, 20_000)
+    GenServer.call(__MODULE__, :other_repo)
   end
 
   @doc "Flip the repos."
   def flip do
-    GenServer.call(__MODULE__, :flip, 20_000)
+    GenServer.call(__MODULE__, :flip, @call_timeout)
   end
 
   @doc "Register a diff to be stored until a flip."
   def register_sync_cmd(remote_id, kind, body) do
-    GenServer.call(__MODULE__, {:register_sync_cmd, remote_id, kind, body}, 20_000)
+    GenServer.call(__MODULE__, {:register_sync_cmd, remote_id, kind, body})
   end
 
   @doc false
