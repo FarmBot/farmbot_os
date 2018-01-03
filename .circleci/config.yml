@@ -86,7 +86,7 @@ jobs:
             wget https://github.com/tcnksm/ghr/releases/download/v0.5.4/ghr_v0.5.4_linux_amd64.zip
             unzip ghr_v0.5.4_linux_amd64.zip
       - run:
-          command: grep -Pazo "(?s)(?<=## ${CIRCLE_TAG})[^#]+" CHANGELOG.md > RELEASE_NOTES
+          command: grep -Pazo "(?s)(?<=# $(cat VERSION))[^#]+" CHANGELOG.md > RELEASE_NOTES
       - restore_cache:
           key: v3-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
