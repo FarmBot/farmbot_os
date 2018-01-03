@@ -3,27 +3,6 @@ defaults: &defaults
   docker:
     - image: nervesproject/nerves:0.13.5
 
-firmware_defaults: &firmware_defaults
-  - checkout
-  - <<: *install_elixir
-  - restore_cache:
-      keys:
-        - v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
-        - v3-dependency-cache
-  - run: mix local.hex --force
-  - run: mix local.rebar --force
-  - run: mix archive.install hex nerves_bootstrap --force
-  - run: mix deps.get
-  - run: mix deps.compile
-  - run: mix compile
-  - run: mix firmware
-  - save_cache:
-      key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
-      paths:
-        - _build
-        - ~/.mix
-        - ~/.nerves
-
 install_elixir: &install_elixir
   run:
     name: Install Elixir
@@ -67,7 +46,25 @@ jobs:
       MIX_ENV: dev
       ENV: CI
     steps:
-      - <<: *firmware_defaults
+      - checkout
+      - <<: *install_elixir
+      - restore_cache:
+          keys:
+            - v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+            - v3-dependency-cache
+      - run: mix local.hex --force
+      - run: mix local.rebar --force
+      - run: mix archive.install hex nerves_bootstrap --force
+      - run: mix deps.get
+      - run: mix deps.compile
+      - run: mix compile
+      - run: mix firmware
+      - save_cache:
+          key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+          paths:
+            - _build
+            - ~/.mix
+            - ~/.nerves
       - run: mix firmware.slack --channels C58DCU4A3
       - run: mkdir -p artifacts
       - run:
@@ -88,7 +85,25 @@ jobs:
       MIX_ENV: prod
       ENV: CI
     steps:
-      - <<: *firmware_defaults
+      - checkout
+      - <<: *install_elixir
+      - restore_cache:
+          keys:
+            - v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+            - v3-dependency-cache
+      - run: mix local.hex --force
+      - run: mix local.rebar --force
+      - run: mix archive.install hex nerves_bootstrap --force
+      - run: mix deps.get
+      - run: mix deps.compile
+      - run: mix compile
+      - run: mix firmware
+      - save_cache:
+          key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+          paths:
+            - _build
+            - ~/.mix
+            - ~/.nerves
       - run: mkdir -p artifacts
       - run:
           name: Decode fwup priv key
