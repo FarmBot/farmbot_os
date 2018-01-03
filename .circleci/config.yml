@@ -111,16 +111,17 @@ workflows:
               ignore: nightly
 
   deploy_nightly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - nightly
     jobs:
       - firmware:
           context: org-global
-          filters:
-            branches:
-              only: nightly
       - deploy_firmware:
           context: org-global
           requires:
             - firmware
-          filters:
-            branches:
-              only: nightly
