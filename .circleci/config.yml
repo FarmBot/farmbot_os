@@ -66,10 +66,8 @@ jobs:
             - deps
             - ~/.mix
             - ~/.nerves
-      - run:
-          command: mix firmware.slack --channels C58DCU4A3
-      - run:
-          command: fwup --sign --private-key $NERVES_FW_PRIV_KEY -i _build/{{ .Environment.MIX_TARGET }}/{{ .Environment.MIX_ENV }}/nerves/images/farmbot.fw -o farmbot-v{{ .Environment.Revision }}.fw
+      - run: mix firmware.slack --channels C58DCU4A3
+      - run: fwup --sign --private-key $NERVES_FW_PRIV_KEY -i _build/{{ .Environment.MIX_TARGET }}/{{ .Environment.MIX_ENV }}/nerves/images/farmbot.fw -o farmbot-v{{ .Environment.Revision }}.fw
       - save_cache:
           key: v3-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
           paths:
@@ -79,16 +77,16 @@ jobs:
     <<: *defaults
     steps:
       - run:
-        name: Install dependencies
-        command: |
-          wget https://github.com/tcnksm/ghr/releases/download/v0.5.4/ghr_v0.5.4_linux_amd64.zip
-          unzip ghr_v0.5.4_linux_amd64.zip
+          name: Install dependencies
+          command: |
+            wget https://github.com/tcnksm/ghr/releases/download/v0.5.4/ghr_v0.5.4_linux_amd64.zip
+            unzip ghr_v0.5.4_linux_amd64.zip
       - run:
-        command: grep -Pazo "(?s)(?<=## ${CIRCLE_TAG})[^#]+" CHANGELOG.md > RELEASE_NOTES
+          command: grep -Pazo "(?s)(?<=## ${CIRCLE_TAG})[^#]+" CHANGELOG.md > RELEASE_NOTES
       - restore_cache:
-        key: v3-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          key: v3-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
-        command: ./ghr -draft -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -b "$(cat RELEASE_NOTES)" -replace $CIRCLE_TAG farmbot-v{{ .Environment.Revision }}.fw
+          command: ./ghr -draft -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -b "$(cat RELEASE_NOTES)" -replace $CIRCLE_TAG farmbot-v{{ .Environment.Revision }}.fw
 
 workflows:
   version: 2
