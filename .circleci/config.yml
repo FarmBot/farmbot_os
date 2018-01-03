@@ -93,7 +93,7 @@ jobs:
       - restore_cache:
           key: v3-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
-          command: ./ghr -draft -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -b "$(cat RELEASE_NOTES)" -replace $CIRCLE_TAG ./artifacts/
+          command: ./ghr -prerelease -draft -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -b "$(cat RELEASE_NOTES)" -replace $CIRCLE_TAG-nightly $PWD/artifacts/
 
 workflows:
   version: 2
