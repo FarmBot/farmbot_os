@@ -64,12 +64,6 @@ config :farmbot, :behaviour,
   update_handler: Farmbot.Target.UpdateHandler,
   gpio_handler:   Farmbot.Target.GPIO.AleHandler
 
-
-config :nerves_firmware_ssh,
-  authorized_keys: [
-    File.read!(Path.join(System.user_home!, ".ssh/id_rsa.pub"))
-  ]
-
 config :nerves_init_gadget,
   address_method: :static
 
