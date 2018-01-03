@@ -79,7 +79,7 @@ workflows:
           context: org-global
   deploy_nightly:
     jobs:
-      - nightly:
+      - firmware:
           context: org-global
           environment:
             MIX_ENV: prod
