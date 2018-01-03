@@ -3,6 +3,27 @@ defaults: &defaults
   docker:
     - image: nervesproject/nerves:0.13.5
 
+firmware_defaults: &firmware_defaults
+  - checkout
+  - <<: *install_elixir
+  - restore_cache:
+      keys:
+        - v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+        - v3-dependency-cache
+  - run: mix local.hex --force
+  - run: mix local.rebar --force
+  - run: mix archive.install hex nerves_bootstrap --force
+  - run: mix deps.get
+  - run: mix deps.compile
+  - run: mix compile
+  - run: mix firmware
+  - save_cache:
+      key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+      paths:
+        - _build
+        - ~/.mix
+        - ~/.nerves
+
 install_elixir: &install_elixir
   run:
     name: Install Elixir
@@ -16,6 +37,7 @@ jobs:
     <<: *defaults
     environment:
       MIX_ENV: test
+      MIX_TARGET: host
     steps:
       - checkout
       - <<: *install_elixir
@@ -38,42 +60,42 @@ jobs:
       - run:
           command: mix coveralls.circle
 
-  firmware:
+  firmware_dev:
     <<: *defaults
     environment:
       MIX_TARGET: rpi3
+      MIX_ENV: dev
       ENV: CI
     steps:
-      - checkout
-      - <<: *install_elixir
-      - restore_cache:
-          keys:
-            - v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
-            - v3-dependency-cache
-      - run: mix local.hex --force
-      - run: mix local.rebar --force
-      - run: mix archive.install hex nerves_bootstrap --force
-      - run: mix deps.get
-      - run: mix deps.compile
-      - run: mix compile
-      - run:
-          command: mix firmware
-      - save_cache:
-          key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
-          paths:
-            - _build
-            - ~/.mix
-            - ~/.nerves
+      <<: *firmware_defaults
       - run: mix firmware.slack --channels C58DCU4A3
-      - run:
-          name: Make artifacts dir
-          command: mkdir -p artifacts
+      - run: mkdir -p artifacts
       - run:
           name: Decode fwup priv key
           command: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
       - run:
           name: Sign firmware
-          command: fwup -S -s $NERVES_FW_PRIV_KEY -i _build/$MIX_TARGET/$MIX_ENV/nerves/images/farmbot.fw -o artifacts/farmbot-${MIX_TARGET}-$(cat VERSION)-beta.fw
+          command: fwup -S -s $NERVES_FW_PRIV_KEY -i _build/${MIX_TARGET}/${MIX_ENV}/nerves/images/farmbot.fw -o artifacts/farmbot-${MIX_TARGET}-$(cat VERSION)-beta.fw
+      - save_cache:
+          key: v3-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - ./artifacts
+
+  firmware_prod:
+    <<: *defaults
+    environment:
+      MIX_TARGET: rpi3
+      MIX_ENV: prod
+      ENV: CI
+    steps:
+      <<: *firmware_defaults
+      - run: mkdir -p artifacts
+      - run:
+          name: Decode fwup priv key
+          command: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
+      - run:
+          name: Sign firmware
+          command: fwup -S -s $NERVES_FW_PRIV_KEY -i _build/${MIX_TARGET}/${MIX_ENV}/nerves/images/farmbot.fw -o artifacts/farmbot-${MIX_TARGET}-$(cat VERSION)-beta.fw
       - save_cache:
           key: v3-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
           paths:
@@ -104,15 +126,17 @@ workflows:
           filters:
             branches:
               ignore: beta
-      - firmware:
+      - firmware_dev:
           context: org-global
+          requires:
+            - test
           filters:
             branches:
               ignore: beta
 
   deploy_beta:
     jobs:
-      - firmware:
+      - firmware_prod:
           context: org-global
           filters:
             branches:
@@ -125,4 +149,4 @@ workflows:
               only:
                 - beta
           requires:
-            - firmware
+            - firmware_prod
