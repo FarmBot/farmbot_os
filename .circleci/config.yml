@@ -73,7 +73,7 @@ jobs:
           command: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
       - run:
           name: Sign firmware
-          command: fwup -S -s $NERVES_FW_PRIV_KEY -i _build/$MIX_TARGET/$MIX_ENV/nerves/images/farmbot.fw -o artifacts/farmbot-${MIX_TARGET}-v$(cat VERSION)-beta.fw
+          command: fwup -S -s $NERVES_FW_PRIV_KEY -i _build/$MIX_TARGET/$MIX_ENV/nerves/images/farmbot.fw -o artifacts/farmbot-${MIX_TARGET}-$(cat VERSION)-beta.fw
       - save_cache:
           key: v3-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
           paths:

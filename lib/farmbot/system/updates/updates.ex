@@ -13,13 +13,19 @@ defmodule Farmbot.System.Updates do
 
   alias Farmbot.System.ConfigStorage
 
+  @doc "Overwrite os update server field"
+  def override_update_server(url) do
+    ConfigStorage.update_config_value(:string, "settings", "os_update_server_overwrite", url)
+  end
+
   @doc "Force check updates."
   def check_updates do
     token = ConfigStorage.get_config_value(:string, "authorization", "token")
     if token do
       case Farmbot.Jwt.decode(token) do
-        {:ok, %{os_update_server: update_server}} ->
-          do_check_updates_http(update_server)
+        {:ok, %Farmbot.Jwt{os_update_server: update_server}} ->
+          override = ConfigStorage.get_config_value(:string, "settings", "os_update_server_overwrite")
+          do_check_updates_http(override || update_server)
         _ -> no_token()
       end
     else
@@ -33,6 +39,7 @@ defmodule Farmbot.System.Updates do
   end
 
   defp do_check_updates_http(url) do
+    Logger.info 3, "Checking: #{url} for updates."
     with {:ok, %{body: body, status_code: 200}} <- Farmbot.HTTP.get(url),
     {:ok, data} <- Poison.decode(body),
     {:ok, prerelease} <- Map.fetch(data, "prerelease"),
@@ -42,7 +49,7 @@ defmodule Farmbot.System.Updates do
     {:ok, new_version} <- Version.parse(new_version_str),
     {:ok, current_version} <- Version.parse(@current_version),
     {:ok, fw_url} <- find_fw_url(data, new_version) do
-      needs_update = case Version.compare(current_version, new_version) do
+      needs_update = prerelease || case Version.compare(current_version, new_version) do
         s when s in [:gt, :eq] ->
           Logger.success 2, "Farmbot is up to date."
           false
@@ -51,8 +58,10 @@ defmodule Farmbot.System.Updates do
           true
       end
       if should_apply_update(@env, prerelease, needs_update) do
-        Logger.info 1, "Downloading update. Here is the release notes"
-        Logger.info 1, cl
+        Logger.busy 1, "Downloading FarmbotOS over the air update"
+        IO.puts cl
+        # Logger.info 1, "Downloading update. Here is the release notes"
+        # Logger.info 1, cl
         do_download_and_apply(fw_url, new_version)
       end
     else
@@ -78,6 +87,7 @@ defmodule Farmbot.System.Updates do
   defp find_fw_url(%{"assets" => assets}, version) do
     expected_name = "farmbot-#{@target}-#{version}.fw"
     res = Enum.find_value(assets, fn(asset) ->
+      IO.puts "checking: #{inspect asset["name"]} == #{inspect expected_name}"
       case asset do
         %{"browser_download_url" => fw_url, "name" => ^expected_name} -> fw_url
         _ -> nil
@@ -94,9 +104,15 @@ defmodule Farmbot.System.Updates do
   defp should_apply_update(env, prerelease?, needs_update?)
   defp should_apply_update(_, _, false), do: false
   defp should_apply_update(:prod, true, _) do
-    Logger.info 3, "Not applying prerelease firmware."
-    false
+    if ConfigStorage.get_config_value(:bool, "settings", "beta_opt_in") do
+      Logger.info 3, "Applying beta update for production firmware"
+      true
+    else
+      Logger.info 3, "Not applying prerelease update for production firmware"
+      false
+    end
   end
+
   defp should_apply_update(_env, true, _) do
     Logger.info 3, "Applying prerelease firmware."
     true
