@@ -167,7 +167,7 @@ defmodule Farmbot.Repo do
     Logger.busy(1, "Syncing.")
     pid = spawn(fun)
     Process.monitor(pid)
-    {:noreply, %State{sync_pid: pid, from: from}}
+    {:noreply, %State{state | sync_pid: pid, from: from}}
   end
 
   def handle_call(:flip, from, %State{repos: [repo_a, repo_b]} = state) do
@@ -189,7 +189,7 @@ defmodule Farmbot.Repo do
     Logger.busy(1, "Syncing.")
     pid = spawn(fun)
     Process.monitor(pid)
-    {:noreply, %State{sync_pid: pid, from: from}}
+    {:noreply, %State{state | sync_pid: pid, from: from}}
   end
 
   def handle_call({:register_sync_cmd, remote_id, kind, body}, _from, state) do
