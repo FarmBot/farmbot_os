@@ -78,9 +78,6 @@ workflows:
       - firmware:
           context: org-global
   deploy_nightly:
-    environment:
-      MIX_ENV: prod
-      MIX_TARGET: rpi3
     jobs:
       - firmware:
           context: org-global
