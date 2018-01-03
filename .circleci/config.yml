@@ -77,6 +77,8 @@ workflows:
           context: org-global
       - firmware:
           context: org-global
+  deploy_nightly:
+    jobs:
       - nightly:
           context: org-global
           environment:
