@@ -125,7 +125,7 @@ defmodule Farmbot.Repo do
   end
 
   def handle_info({:DOWN, _, :process, _, reason}, state) do
-    Logger.error 1 "Sync error: #{inspect reason}"
+    Logger.error 1, "Sync error: #{inspect reason}"
     GenServer.reply(state.from, reason)
     BotState.set_sync_status(:sync_now)
     destroy_all_sync_cmds()
