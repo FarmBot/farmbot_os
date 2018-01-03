@@ -67,7 +67,7 @@ jobs:
       MIX_ENV: dev
       ENV: CI
     steps:
-      <<: *firmware_defaults
+      - <<: *firmware_defaults
       - run: mix firmware.slack --channels C58DCU4A3
       - run: mkdir -p artifacts
       - run:
@@ -88,7 +88,7 @@ jobs:
       MIX_ENV: prod
       ENV: CI
     steps:
-      <<: *firmware_defaults
+      - <<: *firmware_defaults
       - run: mkdir -p artifacts
       - run:
           name: Decode fwup priv key
