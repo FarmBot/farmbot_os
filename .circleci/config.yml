@@ -75,8 +75,13 @@ workflows:
     jobs:
       - test:
           context: org-global
+          filters:
+            branches:
+              ignore: nightly
       - firmware:
           context: org-global
+          filters:
+            branchs: ignore nightly
   deploy_nightly:
     jobs:
       - firmware:
