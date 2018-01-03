@@ -81,8 +81,9 @@ workflows:
       - firmware:
           context: org-global
           filters:
-            branchs:
+            branches:
               ignore: nightly
+
   deploy_nightly:
     jobs:
       - firmware:
