@@ -73,7 +73,7 @@ jobs:
           command: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
       - run:
           name: Sign firmware
-          command: fwup -S -s $NERVES_FW_PRIV_KEY -i _build/$MIX_TARGET/$MIX_ENV/nerves/images/farmbot.fw -o artifacts/farmbot-${MIX_TARGET}-v$(cat VERSION)-nightly.fw
+          command: fwup -S -s $NERVES_FW_PRIV_KEY -i _build/$MIX_TARGET/$MIX_ENV/nerves/images/farmbot.fw -o artifacts/farmbot-${MIX_TARGET}-v$(cat VERSION)-beta.fw
       - save_cache:
           key: v3-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
           paths:
@@ -93,7 +93,7 @@ jobs:
       - restore_cache:
           key: v3-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
-          command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -b "$(cat RELEASE_NOTES)" -c nightly "v$(cat VERSION)-nightly" $PWD/artifacts
+          command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -b "$(cat RELEASE_NOTES)" -c beta "v$(cat VERSION)-beta" $PWD/artifacts
 
 workflows:
   version: 2
@@ -103,21 +103,21 @@ workflows:
           context: org-global
           filters:
             branches:
-              ignore: nightly
+              ignore: beta
       - firmware:
           context: org-global
           filters:
             branches:
-              ignore: nightly
+              ignore: beta
 
-  deploy_nightly:
+  deploy_beta:
     triggers:
       - schedule:
           cron: "0 0 * * *"
           filters:
             branches:
               only:
-                - nightly
+                - beta
     jobs:
       - firmware:
           context: org-global
