@@ -109,6 +109,11 @@ workflows:
 
   deploy_nightly:
     jobs:
+      - firmware:
+          context: org-global
+          filters:
+            branches:
+              only: nightly
       - deploy_firmware:
           context: org-global
           requires:
