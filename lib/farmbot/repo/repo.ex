@@ -119,13 +119,13 @@ defmodule Farmbot.Repo do
   end
 
   def handle_info({:DOWN, _, :process, _, %State{} = new_state}, %State{} = state) do
-    IO.puts "Sync done"
+    Logger.success(1, "Sync complete.")
     GenServer.reply(state.from, :ok)
     {:noreply, new_state}
   end
 
   def handle_info({:DOWN, _, :process, _, reason}, state) do
-    IO.puts "sync error: #{inspect reason}"
+    Logger.error 1 "Sync error: #{inspect reason}"
     GenServer.reply(state.from, reason)
     BotState.set_sync_status(:sync_now)
     destroy_all_sync_cmds()
@@ -157,15 +157,14 @@ defmodule Farmbot.Repo do
     fun = fn() ->
       maybe_cancel_timer(state.timer)
       destroy_all_sync_cmds()
-      Logger.busy(1, "Syncing.")
       BotState.set_sync_status(:syncing)
       do_sync_both(repo_a, repo_b)
       BotState.set_sync_status(:synced)
       :ok = copy_configs(repo_b)
       flip_repos_in_cs()
-      Logger.success(1, "Sync complete.")
       exit(%State{state | repos: [repo_b, repo_a], needs_hard_sync: false, timer: start_timer(), sync_pid: nil})
     end
+    Logger.busy(1, "Syncing.")
     pid = spawn(fun)
     Process.monitor(pid)
     {:noreply, %State{sync_pid: pid, from: from}}
@@ -174,7 +173,6 @@ defmodule Farmbot.Repo do
   def handle_call(:flip, from, %State{repos: [repo_a, repo_b]} = state) do
     fun = fn() ->
       maybe_cancel_timer(state.timer)
-      Logger.busy(1, "Syncing.")
       BotState.set_sync_status(:syncing)
 
       # Fetch all sync_cmds and apply them in order they were received.
@@ -186,9 +184,9 @@ defmodule Farmbot.Repo do
       BotState.set_sync_status(:synced)
       :ok = copy_configs(repo_b)
       destroy_all_sync_cmds()
-      Logger.success(1, "Sync complete.")
       exit(%State{state | repos: [repo_b, repo_a], timer: start_timer(), sync_pid: nil})
     end
+    Logger.busy(1, "Syncing.")
     pid = spawn(fun)
     Process.monitor(pid)
     {:noreply, %State{sync_pid: pid, from: from}}
