@@ -111,17 +111,18 @@ workflows:
               ignore: beta
 
   deploy_beta:
-    triggers:
-      - schedule:
-          cron: "0 0 * * *"
+    jobs:
+      - firmware:
+          context: org-global
           filters:
             branches:
               only:
                 - beta
-    jobs:
-      - firmware:
-          context: org-global
       - deploy_firmware:
           context: org-global
+          filters:
+            branches:
+              only:
+                - beta
           requires:
             - firmware
