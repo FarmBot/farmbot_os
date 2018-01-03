@@ -73,6 +73,8 @@ defmodule Farmbot.System.Updates do
         # Logger.info 1, "Downloading update. Here is the release notes"
         # Logger.info 1, cl
         do_download_and_apply(fw_url, new_version)
+      else
+        :no_update
       end
     else
       :error ->

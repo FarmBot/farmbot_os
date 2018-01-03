@@ -4,8 +4,7 @@ defmodule Farmbot.Mixfile do
   @version Path.join(__DIR__, "VERSION") |> File.read!() |> String.trim()
 
   defp commit() do
-    {t, _} = System.cmd("git", ["log", "--pretty=format:%h", "-1"])
-    t
+    System.cmd("git", ~w"rev-parse --verify HEAD") |> elem(0) |> String.trim()
   end
 
   Mix.shell().info([
