@@ -19,6 +19,10 @@ defmodule Farmbot.System.UpdateTimer do
     GenServer.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
+  def terminate(reason, _) do
+    Logger.error 1, "Failed to check updates: #{inspect reason}"
+  end
+
   def init([]) do
     spawn __MODULE__, :wait_for_http, [self()]
     {:ok, [], :hibernate}

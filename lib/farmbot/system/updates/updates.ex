@@ -5,6 +5,7 @@ defmodule Farmbot.System.Updates do
   @data_path Application.get_env(:farmbot, :data_path)
   @current_version Farmbot.Project.version()
   @target Farmbot.Project.target()
+  @current_commit Farmbot.Project.commit()
   @env Farmbot.Project.env()
   use Farmbot.Logger
 
@@ -15,6 +16,7 @@ defmodule Farmbot.System.Updates do
 
   @doc "Overwrite os update server field"
   def override_update_server(url) do
+    ConfigStorage.update_config_value(:bool, "settings", "beta_opt_in", true)
     ConfigStorage.update_config_value(:string, "settings", "os_update_server_overwrite", url)
   end
 
@@ -43,20 +45,28 @@ defmodule Farmbot.System.Updates do
     with {:ok, %{body: body, status_code: 200}} <- Farmbot.HTTP.get(url),
     {:ok, data} <- Poison.decode(body),
     {:ok, prerelease} <- Map.fetch(data, "prerelease"),
+    {:ok, new_commit} <- Map.fetch(data, "target_commitish"),
     {:ok, cl} <- Map.fetch(data, "body"),
     {:ok, false} <- Map.fetch(data, "draft"),
     {:ok, "v" <> new_version_str} <- Map.fetch(data, "tag_name"),
     {:ok, new_version} <- Version.parse(new_version_str),
     {:ok, current_version} <- Version.parse(@current_version),
     {:ok, fw_url} <- find_fw_url(data, new_version) do
-      needs_update = prerelease || case Version.compare(current_version, new_version) do
-        s when s in [:gt, :eq] ->
-          Logger.success 2, "Farmbot is up to date."
-          false
-        :lt ->
-          Logger.busy 1, "New Farmbot firmware update: #{new_version}"
-          true
+      needs_update = if prerelease do
+        new_commit == @current_commit
+      else
+        case Version.compare(current_version, new_version) do
+          s when s in [:gt, :eq] ->
+            Logger.success 2, "Farmbot is up to date."
+            false
+          :lt ->
+            Logger.busy 1, "New Farmbot firmware update: #{new_version}"
+            true
+        end
+
       end
+
+
       if should_apply_update(@env, prerelease, needs_update) do
         Logger.busy 1, "Downloading FarmbotOS over the air update"
         IO.puts cl
@@ -80,7 +90,7 @@ defmodule Farmbot.System.Updates do
           {:ok, res} -> res
           _ -> body
         end
-        Logger.error 1, "HTTP error: #{code}: #{reason}"
+        Logger.error 1, "HTTP error: #{code}: #{inspect reason}"
     end
   end
 
@@ -126,9 +136,11 @@ defmodule Farmbot.System.Updates do
     dl_path = Path.join(@data_path, "#{new_version}.fw")
     case Farmbot.HTTP.download_file(dl_url, dl_path, dl_fun, "", []) do
       {:ok, path} ->
-        apply_firmware(path, true)
+        reboot = ConfigStorage.get_config_value(:bool, "settings", "os_auto_update")
+        apply_firmware(path, reboot)
       {:error, reason} ->
         Logger.error 1, "Failed to download update file: #{inspect reason}"
+        {:error, reason}
     end
   end
 
@@ -145,6 +157,7 @@ defmodule Farmbot.System.Updates do
         end
       {:error, reason} ->
         Logger.error 1, "Failed to apply update: #{inspect reason}"
+        {:error, reason}
     end
   end
 
