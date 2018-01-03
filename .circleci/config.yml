@@ -33,7 +33,6 @@ jobs:
           key: v3-dependency-cache-{{ checksum "mix.lock.host" }}
           paths:
             - _build
-            - deps
             - ~/.mix
             - ~/.nerves
       - run:
@@ -63,11 +62,15 @@ jobs:
           key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
           paths:
             - _build
-            - deps
             - ~/.mix
             - ~/.nerves
       - run: mix firmware.slack --channels C58DCU4A3
-      - run: fwup --sign --private-key $NERVES_FW_PRIV_KEY -i _build/{{ .Environment.MIX_TARGET }}/{{ .Environment.MIX_ENV }}/nerves/images/farmbot.fw -o farmbot-v{{ .Environment.Revision }}.fw
+      - run:
+          name: Decode fwup priv key
+          command: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
+      - run:
+          name: Sign firmware
+          command: fwup --sign --private-key $NERVES_FW_PRIV_KEY -i _build/{{ .Environment.MIX_TARGET }}/{{ .Environment.MIX_ENV }}/nerves/images/farmbot.fw -o farmbot-v{{ .Environment.Revision }}.fw
       - save_cache:
           key: v3-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
           paths:
@@ -106,11 +109,6 @@ workflows:
 
   deploy_nightly:
     jobs:
-      - firmware:
-          context: org-global
-          filters:
-            branches:
-              only: nightly
       - deploy_firmware:
           context: org-global
           requires:
