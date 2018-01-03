@@ -7,7 +7,7 @@ defmodule Farmbot.CeleryScript.AST.Node.CheckUpdates do
     env = mutate_env(env)
     case Farmbot.System.Updates.check_updates() do
       :ok -> {:ok, env}
-      {:error, reason} -> {:error, reason, env}
+      _ -> {:error, "Failed to check updates", env}
     end
   end
 
