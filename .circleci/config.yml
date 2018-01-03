@@ -76,6 +76,7 @@ jobs:
   deploy_firmware:
     <<: *defaults
     steps:
+      - checkout
       - run:
           name: Install dependencies
           command: |
@@ -112,6 +113,8 @@ workflows:
               only: nightly
       - deploy_firmware:
           context: org-global
+          requires:
+            - firmware
           filters:
             branches:
               only: nightly
