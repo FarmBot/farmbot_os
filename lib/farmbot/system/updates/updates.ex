@@ -131,6 +131,7 @@ defmodule Farmbot.System.Updates do
     Logger.info 3, "Applying prerelease firmware."
     true
   end
+  
   defp should_apply_update(_, _, true) do
     true
   end
