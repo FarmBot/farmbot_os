@@ -73,7 +73,7 @@ jobs:
           command: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
       - run:
           name: Sign firmware
-          command: fwup -S -s $NERVES_FW_PRIV_KEY -i _build/$MIX_TARGET/$MIX_ENV/nerves/images/farmbot.fw -o artifacts/farmbot-${MIX_TARGET}-v${CIRCLE_TAG}.fw
+          command: fwup -S -s $NERVES_FW_PRIV_KEY -i _build/$MIX_TARGET/$MIX_ENV/nerves/images/farmbot.fw -o artifacts/farmbot-${MIX_TARGET}-v$(cat VERSION)-nightly.fw
       - save_cache:
           key: v3-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
           paths:
@@ -93,7 +93,7 @@ jobs:
       - restore_cache:
           key: v3-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
-          command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -b "$(cat RELEASE_NOTES)" -c "$(git log --pretty=format:%h -1)" v$(cat VERSION)-nightly $PWD/artifacts
+          command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -b "$(cat RELEASE_NOTES)" -c nightly "v$(cat VERSION)-nightly" $PWD/artifacts
 
 workflows:
   version: 2
