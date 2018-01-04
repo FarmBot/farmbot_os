@@ -49,7 +49,7 @@ jobs:
             - ~/.mix
             - ~/.nerves
       - run:
-          command: mix coveralls.circle
+          command: mix coveralls.circle --exclude farmbot_firmware
 
   firmware_dev:
     <<: *defaults
