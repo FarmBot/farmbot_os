@@ -94,14 +94,13 @@ defmodule Farmbot.System.Updates do
           {:ok, res} -> res
           _ -> body
         end
-        Logger.error 1, "HTTP error: #{code}: #{inspect reason}"
+        Logger.error 1, "OS Update HTTP error: #{code}: #{inspect reason}"
     end
   end
 
   defp find_fw_url(%{"assets" => assets}, version) do
     expected_name = "farmbot-#{@target}-#{version}.fw"
     res = Enum.find_value(assets, fn(asset) ->
-      IO.puts "checking: #{inspect asset["name"]} == #{inspect expected_name}"
       case asset do
         %{"browser_download_url" => fw_url, "name" => ^expected_name} -> fw_url
         _ -> nil
@@ -131,7 +130,7 @@ defmodule Farmbot.System.Updates do
     Logger.info 3, "Applying prerelease firmware."
     true
   end
-  
+
   defp should_apply_update(_, _, true) do
     true
   end
