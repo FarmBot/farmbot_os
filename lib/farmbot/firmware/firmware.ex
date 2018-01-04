@@ -463,26 +463,27 @@ defmodule Farmbot.Firmware do
   @doc false
   def do_read_params_and_report_position(old) when is_map(old) do
     if get_config_value(:bool, "settings", "fw_upgrade_migration") do
-      Logger.warn(1, "Migrating old configuration data from firmware!")
+      Logger.busy(1, "Migrating old configuration data from firmware.")
       migration_hack = fn(param_atom) ->
-        Logger.info 2, "Read param"
         read_param(param_atom)
-        Logger.info 2, "Fetch param"
-        val = GenServer.call(__MODULE__, {:fetch_param_hack_delete_me, param_atom}) || 56
-        modified = if val == 56 do
-          5556
-        else
-          val * 100
+        val = GenServer.call(__MODULE__, {:fetch_param_hack_delete_me, param_atom})
+        modified = cond do
+          is_nil(val) -> 56
+          val == 56 -> 5556
+          5556 -> 5556
+          is_number(val) -> val * 100
+          true -> 5556
         end
         Logger.info 2, "Update param: #{param_atom}: #{val} => #{inspect modified}"
         update_param(param_atom, modified)
       end
       for param <- [:encoder_scaling_x, :encoder_scaling_y, :encoder_scaling_z] do
-        Logger.warn 2, "Hacking: #{inspect param}"
+        Logger.busy 3, "Migrating: #{inspect param}"
         migration_hack.(param)
-        Logger.warn 2, "Done hacking: #{inspect param}"
+        Logger.success 3, "Done Migrating: #{inspect param}"
       end
       update_config_value(:bool, "settings", "fw_upgrade_migration", false)
+      Logger.success(1, "Finished migrating old configuration data.")
     end
 
     for {key, float_val} <- Map.drop(old, ["encoder_scaling_x", "encoder_scaling_y", "encoder_scaling_z"]) do
