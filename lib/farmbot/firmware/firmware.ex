@@ -118,6 +118,7 @@ defmodule Farmbot.Firmware do
       idle: false,
       timer: nil,
       pins: %{},
+      params: %{},
       initialized: false,
       initializing: false,
       current: nil,
@@ -177,6 +178,10 @@ defmodule Farmbot.Firmware do
         end
         {:noreply, [], %{state | timer: nil}}
     end
+  end
+
+  def handle_call({:fetch_param_hack_delete_me, param}, _, state) do
+    {:reply, Map.get(state.params, param), [], state}
   end
 
   def handle_call({fun, _}, _from, state = %{initialized: false}) when fun not in  [:read_param, :read_all_params, :update_param, :emergency_unlock, :emergency_lock] do
@@ -306,13 +311,17 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode({:report_parameter_value, param, value}, state) when (value == -1) do
     Farmbot.System.ConfigStorage.update_config_value(:float, "hardware_params", to_string(param), nil)
-    {:mcu_params, %{param => nil}, state}
+    {:mcu_params, %{param => nil}, %{state | params: Map.put(state.params, param, value)}}
   end
 
-  defp handle_gcode({:report_parameter_value, param, value}, state) do
+  defp handle_gcode({:report_parameter_value, param, value}, state) when is_number(value) do
     Farmbot.System.ConfigStorage.update_config_value(:float, "hardware_params", to_string(param), value / 1)
+    {:mcu_params, %{param => value}, %{state | params: Map.put(state.params, param, value)}}
+  end
 
-    {:mcu_params, %{param => value}, state}
+  defp handle_gcode({:report_parameter_value, param, nil}, state) do
+    Farmbot.System.ConfigStorage.update_config_value(:float, "hardware_params", to_string(param), nil)
+    {:mcu_params, %{param => nil}, %{state | params: Map.put(state.params, param, nil)}}
   end
 
   defp handle_gcode(:idle, %{initialized: false, initializing: false} = state) do
@@ -456,13 +465,22 @@ defmodule Farmbot.Firmware do
     if get_config_value(:bool, "settings", "fw_upgrade_migration") do
       Logger.warn(1, "Migrating old configuration data from firmware!")
       migration_hack = fn(param_atom) ->
+        Logger.info 2, "Read param"
         read_param(param_atom)
-        val = Farmbot.BotState.get_param(param_atom)
-        modified = if val == 56, do: 5556, else: val * 100
+        Logger.info 2, "Fetch param"
+        val = GenServer.call(__MODULE__, {:fetch_param_hack_delete_me, param_atom}) || 56
+        modified = if val == 56 do
+          5556
+        else
+          val * 100
+        end
+        Logger.info 2, "Update param: #{param_atom}: #{val} => #{inspect modified}"
         update_param(param_atom, modified)
       end
       for param <- [:encoder_scaling_x, :encoder_scaling_y, :encoder_scaling_z] do
+        Logger.warn 2, "Hacking: #{inspect param}"
         migration_hack.(param)
+        Logger.warn 2, "Done hacking: #{inspect param}"
       end
       update_config_value(:bool, "settings", "fw_upgrade_migration", false)
     end
