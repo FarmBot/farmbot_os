@@ -149,8 +149,8 @@ jobs:
           name: Update heroku env
           command: |
             export OTA_URL=$(wget https://api.github.com/repos/farmbot/farmbot_os/releases -qO- | ./jq-linux64 '.[0].url')
-            heroku env:set BETA_OTA_URL=$OTA_URL --app=farmbot-production
-            heroku env:set BETA_OTA_URL=$OTA_URL --app=farmbot-staging
+            heroku config:set BETA_OTA_URL=$OTA_URL --app=farmbot-production
+            heroku config:set BETA_OTA_URL=$OTA_URL --app=farmbot-staging
 
 workflows:
   version: 2
