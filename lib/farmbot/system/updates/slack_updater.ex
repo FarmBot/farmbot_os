@@ -164,7 +164,7 @@ defmodule Farmbot.System.Updates.SlackUpdater do
                  {'Authorization', 'Bearer #{state.token}'}
                ]) do
             {:ok, path} ->
-              Farmbot.System.Updates.apply_firmware(path)
+              Farmbot.System.Updates.apply_firmware(path, true)
               {:stop, :normal, %{state | updating: true}}
 
             {:error, reason} ->

@@ -4,8 +4,7 @@ defmodule Farmbot.Mixfile do
   @version Path.join(__DIR__, "VERSION") |> File.read!() |> String.trim()
 
   defp commit() do
-    {t, _} = System.cmd("git", ["log", "--pretty=format:%h", "-1"])
-    t
+    System.cmd("git", ~w"rev-parse --verify HEAD") |> elem(0) |> String.trim()
   end
 
   Mix.shell().info([
@@ -23,7 +22,7 @@ defmodule Farmbot.Mixfile do
       app: :farmbot,
       description: "The Brains of the Farmbot Project",
       package: package(),
-      compilers: [:elixir_make] ++ Mix.compilers,
+      compilers: compilers(),
       make_clean: ["clean"],
       test_coverage: [tool: ExCoveralls],
       version: @version,
@@ -73,6 +72,14 @@ defmodule Farmbot.Mixfile do
         "README.md"
       ],
     ]
+  end
+
+  defp compilers do
+    case :init.get_plain_arguments() |> List.last() do
+      a when a in ['mix', 'compile', 'firmware'] ->
+        [:elixir_make] ++ Mix.compilers
+      _ -> Mix.compilers
+    end
   end
 
   defp deps do

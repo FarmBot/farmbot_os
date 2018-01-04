@@ -4,35 +4,40 @@ defmodule Farmbot.Firmware do
   use GenStage
   use Farmbot.Logger
   alias Farmbot.Firmware.Vec3
+  import Farmbot.System.ConfigStorage, only: [update_config_value: 4, get_config_value: 3]
+
+  # If any command takes longer than this, exit.
+  @call_timeout 500_000
 
   @doc "Move the bot to a position."
-  def move_absolute(%Vec3{} = vec3, x_speed, y_speed, z_speed) do
-    GenStage.call(__MODULE__, {:move_absolute, [vec3, x_speed, y_speed, z_speed]}, :infinity)
+  def move_absolute(%Vec3{} = vec3, x_spd, y_spd, z_spd) do
+    call = {:move_absolute, [vec3, x_spd, y_spd, z_spd]}
+    GenStage.call(__MODULE__, call, @call_timeout)
   end
 
   @doc "Calibrate an axis."
   def calibrate(axis) do
-    GenStage.call(__MODULE__, {:calibrate, [axis]}, :infinity)
+    GenStage.call(__MODULE__, {:calibrate, [axis]}, @call_timeout)
   end
 
   @doc "Find home on an axis."
   def find_home(axis) do
-    GenStage.call(__MODULE__, {:find_home, [axis]}, :infinity)
+    GenStage.call(__MODULE__, {:find_home, [axis]}, @call_timeout)
   end
 
   @doc "Home every axis."
   def home_all() do
-    GenStage.call(__MODULE__, {:home_all, []}, :infinity)
+    GenStage.call(__MODULE__, {:home_all, []}, @call_timeout)
   end
 
   @doc "Home an axis."
   def home(axis) do
-    GenStage.call(__MODULE__, {:home, [axis]}, :infinity)
+    GenStage.call(__MODULE__, {:home, [axis]}, @call_timeout)
   end
 
   @doc "Manually set an axis's current position to zero."
   def zero(axis) do
-    GenStage.call(__MODULE__, {:zero, [axis]}, :infinity)
+    GenStage.call(__MODULE__, {:zero, [axis]}, @call_timeout)
   end
 
   @doc """
@@ -40,12 +45,12 @@ defmodule Farmbot.Firmware do
   For a list of paramaters see `Farmbot.Firmware.Gcode.Param`
   """
   def update_param(param, val) do
-    GenStage.call(__MODULE__, {:update_param, [param, val]}, :infinity)
+    GenStage.call(__MODULE__, {:update_param, [param, val]}, @call_timeout)
   end
 
   @doc false
   def read_all_params do
-    GenStage.call(__MODULE__, {:read_all_params, []}, :infinity)
+    GenStage.call(__MODULE__, {:read_all_params, []}, @call_timeout)
   end
 
   @doc """
@@ -53,42 +58,42 @@ defmodule Farmbot.Firmware do
   For a list of paramaters see `Farmbot.Firmware.Gcode.Param`
   """
   def read_param(param) do
-    GenStage.call(__MODULE__, {:read_param, [param]}, :infinity)
+    GenStage.call(__MODULE__, {:read_param, [param]}, @call_timeout)
   end
 
   @doc "Emergency lock Farmbot."
   def emergency_lock() do
-    GenStage.call(__MODULE__, {:emergency_lock, []}, :infinity)
+    GenStage.call(__MODULE__, {:emergency_lock, []}, @call_timeout)
   end
 
   @doc "Unlock Farmbot from Emergency state."
   def emergency_unlock() do
-    GenStage.call(__MODULE__, {:emergency_unlock, []}, :infinity)
+    GenStage.call(__MODULE__, {:emergency_unlock, []}, @call_timeout)
   end
 
   @doc "Set a pin mode (:input | :output)"
   def set_pin_mode(pin, mode) do
-    GenStage.call(__MODULE__, {:set_pin_mode, [pin, mode]}, :infinity)
+    GenStage.call(__MODULE__, {:set_pin_mode, [pin, mode]}, @call_timeout)
   end
 
   @doc "Read a pin."
   def read_pin(pin, mode) do
-    GenStage.call(__MODULE__, {:read_pin, [pin, mode]}, :infinity)
+    GenStage.call(__MODULE__, {:read_pin, [pin, mode]}, @call_timeout)
   end
 
   @doc "Write a pin."
   def write_pin(pin, mode, value) do
-    GenStage.call(__MODULE__, {:write_pin, [pin, mode, value]}, :infinity)
+    GenStage.call(__MODULE__, {:write_pin, [pin, mode, value]}, @call_timeout)
   end
 
   @doc "Request version."
   def request_software_version do
-    GenStage.call(__MODULE__, {:request_software_version, []}, :infinity)
+    GenStage.call(__MODULE__, {:request_software_version, []}, @call_timeout)
   end
 
   @doc "Set angle of a servo pin."
   def set_servo_angle(pin, value) do
-    GenStage.call(__MODULE__, {:set_servo_angle, [pin, value]}, :infinity)
+    GenStage.call(__MODULE__, {:set_servo_angle, [pin, value]}, @call_timeout)
   end
 
   @doc "Start the firmware services."
@@ -103,8 +108,7 @@ defmodule Farmbot.Firmware do
     defstruct [
       fun: nil,
       args: nil,
-      from: nil,
-
+      from: nil
     ]
   end
 
@@ -114,6 +118,7 @@ defmodule Farmbot.Firmware do
       idle: false,
       timer: nil,
       pins: %{},
+      params: %{},
       initialized: false,
       initializing: false,
       current: nil,
@@ -138,6 +143,15 @@ defmodule Farmbot.Firmware do
 
   end
 
+  def terminate(reason, state) do
+    unless :queue.is_empty(state.queue) do
+      list = :queue.to_list(state.queue)
+      for cmd <- list do
+        :ok = do_reply(%{state | current: cmd}, {:error, reason})
+      end
+    end
+  end
+
   def handle_info({:EXIT, _pid, :normal}, state) do
     {:stop, :normal, state}
   end
@@ -152,59 +166,66 @@ defmodule Farmbot.Firmware do
   def handle_info(:timeout, state) do
     case state.current do
       nil -> {:noreply, [], %{state | timer: nil}}
-      %Current{fun: fun, args: args, from: from} = current ->
+      %Current{fun: fun, args: args, from: _from} = current ->
         Logger.warn 1, "Got Firmware timeout. Retrying #{fun}(#{inspect args}) "
         case apply(state.handler_mod, fun, [state.handler | args]) do
           :ok ->
             timer = Process.send_after(self(), :timeout, state.timeout_ms)
             {:noreply, [], %{state | current: current, timer: timer}}
           {:error, _} = res ->
-            GenStage.reply(from, res)
+            do_reply(state, res)
             {:noreply, [], %{state | current: nil, queue: :queue.new()}}
         end
         {:noreply, [], %{state | timer: nil}}
     end
-
   end
 
-  def handle_call({fun, _}, _from, state = %{initialized: false}) when fun not in  [:read_all_params, :update_param, :emergency_unlock, :emergency_lock] do
+  def handle_call({:fetch_param_hack_delete_me, param}, _, state) do
+    {:reply, Map.get(state.params, param), [], state}
+  end
+
+  def handle_call({fun, _}, _from, state = %{initialized: false}) when fun not in  [:read_param, :read_all_params, :update_param, :emergency_unlock, :emergency_lock] do
     {:reply, {:error, :uninitialized}, [], state}
   end
 
   def handle_call({fun, args}, from, state) do
-    current = struct(Current, from: from, fun: fun, args: args)
-    if :queue.is_empty(state.queue) do
-      do_begin_cmd(current, state, [])
+    next_current = struct(Current, from: from, fun: fun, args: args)
+    current_current = state.current
+    if current_current do
+      do_queue_cmd(next_current, state)
     else
-      do_queue_cmd(current, state)
+      do_begin_cmd(next_current, state, [])
     end
   end
 
   defp do_begin_cmd(%Current{fun: fun, args: args, from: _from} = current, state, dispatch) do
-    # Logger.debug 3, "Firmware command: #{fun}#{inspect(args)}"
-
+    # Logger.busy 3, "FW Starting: #{fun}: #{inspect from}"
     case apply(state.handler_mod, fun, [state.handler | args]) do
       :ok ->
         if fun == :emergency_unlock, do: Farmbot.System.GPIO.Leds.led_status_ok()
         timer = Process.send_after(self(), :timeout, state.timeout_ms)
         {:noreply, dispatch, %{state | current: current, timer: timer}}
       {:error, _} = res ->
-        {:reply, res, dispatch, %{state | current: nil, queue: :queue.new()}}
+        do_reply(%{state | current: current}, res)
+        {:noreply, dispatch, %{state | current: nil}}
     end
   end
 
   defp do_queue_cmd(%Current{fun: _fun, args: _args, from: _from} = current, state) do
+    # Logger.busy 3, "FW Queuing: #{fun}: #{inspect from}"
     new_q = :queue.in(current, state.queue)
     {:noreply, [], %{state | queue: new_q}}
   end
 
   def handle_events(gcodes, _from, state) do
     {diffs, state} = handle_gcodes(gcodes, state)
-    if state.current == nil do
+    # if after handling the current buffer of gcodes,
+    # Try to start the next command in the queue if it exists.
+    if List.last(gcodes) == :idle && state.current == nil do
       case :queue.out(state.queue) do
-        {{:value, current}, new_queue} ->
-          do_begin_cmd(current, %{state | queue: new_queue, current: current}, diffs)
-        {:empty, queue} ->
+        {{:value, next_current}, new_queue} ->
+          do_begin_cmd(next_current, %{state | queue: new_queue, current: next_current}, diffs)
+        {:empty, queue} -> # nothing to do if the queue is empty.
           {:noreply, diffs, %{state | queue: queue}}
       end
     else
@@ -242,7 +263,7 @@ defmodule Farmbot.Firmware do
         end
       end)
       Logger.error 1, "Failed to execute #{state.current.fun} #{inspect formatted_args}"
-      GenStage.reply(state.current.from, {:error, :firmware_error})
+      do_reply(state, {:error, :firmware_error})
       {nil, %{state | current: nil}}
     else
       {nil, state}
@@ -290,13 +311,17 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode({:report_parameter_value, param, value}, state) when (value == -1) do
     Farmbot.System.ConfigStorage.update_config_value(:float, "hardware_params", to_string(param), nil)
-    {:mcu_params, %{param => nil}, state}
+    {:mcu_params, %{param => nil}, %{state | params: Map.put(state.params, param, value)}}
   end
 
-  defp handle_gcode({:report_parameter_value, param, value}, state) do
+  defp handle_gcode({:report_parameter_value, param, value}, state) when is_number(value) do
     Farmbot.System.ConfigStorage.update_config_value(:float, "hardware_params", to_string(param), value / 1)
+    {:mcu_params, %{param => value}, %{state | params: Map.put(state.params, param, value)}}
+  end
 
-    {:mcu_params, %{param => value}, state}
+  defp handle_gcode({:report_parameter_value, param, nil}, state) do
+    Farmbot.System.ConfigStorage.update_config_value(:float, "hardware_params", to_string(param), nil)
+    {:mcu_params, %{param => nil}, %{state | params: Map.put(state.params, param, nil)}}
   end
 
   defp handle_gcode(:idle, %{initialized: false, initializing: false} = state) do
@@ -322,13 +347,13 @@ defmodule Farmbot.Firmware do
     Farmbot.BotState.set_busy(false)
     if state.current do
       # This might be a bug in the FW
-      if state.current.command in [:home, :home_all] do
+      if state.current.fun in [:home, :home_all] do
         Logger.warn 1, "Got idle during home. Ignoring. This might be bad."
         timer = Process.send_after(self(), :timeout, state.timeout_ms)
         {nil, %{state | timer: timer}}
       else
         Logger.warn 1, "Got idle while executing a command."
-        GenStage.reply(state.current.from, {:error, :timeout})
+        do_reply(state, {:error, :timeout})
         {:informational_settings, %{busy: false, locked: false}, %{state | current: nil, idle: true}}
       end
     else
@@ -379,7 +404,7 @@ defmodule Farmbot.Firmware do
   defp handle_gcode(:done, state) do
     maybe_cancel_timer(state.timer)
     if state.current do
-      GenStage.reply(state.current.from, :ok)
+      do_reply(state, :ok)
       {nil, %{state | current: nil}}
     else
       {nil, state}
@@ -389,7 +414,7 @@ defmodule Farmbot.Firmware do
   defp handle_gcode(:report_emergency_lock, state) do
     Farmbot.System.GPIO.Leds.led_status_err
     if state.current do
-      GenStage.reply(state.current.from, {:error, :emergency_lock})
+      do_reply(state, {:error, :emergency_lock})
       {:informational_settings, %{locked: true}, %{state | current: nil}}
     else
       {:informational_settings, %{locked: true}, state}
@@ -437,7 +462,31 @@ defmodule Farmbot.Firmware do
 
   @doc false
   def do_read_params_and_report_position(old) when is_map(old) do
-    for {key, float_val} <- old do
+    if get_config_value(:bool, "settings", "fw_upgrade_migration") do
+      Logger.busy(1, "Migrating old configuration data from firmware.")
+      migration_hack = fn(param_atom) ->
+        read_param(param_atom)
+        val = GenServer.call(__MODULE__, {:fetch_param_hack_delete_me, param_atom})
+        modified = cond do
+          is_nil(val) -> 5556
+          val == 56 -> 5556
+          5556 -> 5556
+          is_number(val) -> val * 100
+          true -> 5556
+        end
+        Logger.info 2, "Update param: #{param_atom}: #{val} => #{inspect modified}"
+        update_param(param_atom, modified)
+      end
+      for param <- [:encoder_scaling_x, :encoder_scaling_y, :encoder_scaling_z] do
+        Logger.busy 3, "Migrating: #{inspect param}"
+        migration_hack.(param)
+        Logger.success 3, "Done Migrating: #{inspect param}"
+      end
+      update_config_value(:bool, "settings", "fw_upgrade_migration", false)
+      Logger.success(1, "Finished migrating old configuration data.")
+    end
+
+    for {key, float_val} <- Map.drop(old, ["encoder_scaling_x", "encoder_scaling_y", "encoder_scaling_z"]) do
       cond do
         (float_val == -1) -> :ok
         is_nil(float_val) -> :ok
@@ -469,6 +518,17 @@ defmodule Farmbot.Firmware do
       {:error, reason} ->
         Logger.error 1, "Failed to set #{param}: #{val} (#{inspect reason})"
         report_calibration_callback(tries - 1, param, val)
+    end
+  end
+
+  defp do_reply(state, reply) do
+    case state.current do
+      %Current{fun: _fun, from: from} ->
+        # Logger.success 3, "FW Replying: #{fun}: #{inspect from}"
+        :ok = GenServer.reply from, reply
+      nil ->
+        Logger.error 1, "FW Nothing to send reply: #{inspect reply} to!."
+        :error
     end
   end
 end

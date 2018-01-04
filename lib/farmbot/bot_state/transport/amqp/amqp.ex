@@ -49,7 +49,8 @@ defmodule Farmbot.BotState.Transport.AMQP do
          opts      <- [conn: conn, chan: chan, queue_name: q_name, bot: device],
          state <- struct(State, opts)
     do
-      Process.monitor(conn.pid)
+      true = Process.link(conn.pid)
+      true = Process.link(chan.pid)
       {:consumer, state, subscribe_to: [Farmbot.BotState, Farmbot.Logger]}
     else
       {:error, {:auth_failure, msg}} = fail ->
@@ -146,10 +147,6 @@ defmodule Farmbot.BotState.Transport.AMQP do
     {:noreply, [], state}
   end
 
-  def handle_info({:DOWN, _, :process, _pid, reason}, state) do
-    {:stop, reason, state}
-  end
-
   # Confirmation sent by the broker after registering this process as a consumer
   def handle_info({:basic_consume_ok, _}, state) do
     if get_config_value(:bool, "settings", "log_amqp_connected") do
@@ -191,14 +188,27 @@ defmodule Farmbot.BotState.Transport.AMQP do
     end
   end
 
-  defp handle_celery_script(payload, _state) do
+  def handle_info({:DOWN, _, :process, pid, reason}, state) do
+    unless reason == :normal do
+      Logger.warn 3, "CeleryScript: #{inspect pid} died: #{inspect reason}"
+    end
+    {:noreply, [], state}
+  end
+
+  @doc false
+  def handle_celery_script(payload, _state) do
     case AST.decode(payload) do
-      {:ok, ast} -> spawn CeleryScript, :execute, [ast]
+      {:ok, ast} ->
+        pid = spawn(CeleryScript, :execute, [ast])
+        # Logger.busy 3, "CeleryScript starting: #{inspect pid}"
+        Process.monitor(pid)
+        :ok
       _ -> :ok
     end
   end
 
-  defp handle_sync_cmd(kind, id, payload, state) do
+  @doc false
+  def handle_sync_cmd(kind, id, payload, state) do
     mod = Module.concat(["Farmbot", "Repo", kind])
     if Code.ensure_loaded?(mod) do
       %{
@@ -206,13 +216,13 @@ defmodule Farmbot.BotState.Transport.AMQP do
         "args" => %{"label" => uuid}
       } = Poison.decode!(payload, as: %{"body" => struct(mod)})
 
-      Farmbot.Repo.register_sync_cmd(String.to_integer(id), kind, body)
+      :ok = Farmbot.Repo.register_sync_cmd(String.to_integer(id), kind, body)
 
       if get_config_value(:bool, "settings", "auto_sync") do
         Farmbot.Repo.flip()
       end
 
-      AST.Node.RpcOk.execute(%{label: uuid}, [], struct(Macro.Env))
+      {:ok, %Macro.Env{}} = AST.Node.RpcOk.execute(%{label: uuid}, [], struct(Macro.Env))
     else
       msg = "Unknown syncable: #{mod}: #{inspect Poison.decode!(payload)}"
       Logger.warn 2, msg

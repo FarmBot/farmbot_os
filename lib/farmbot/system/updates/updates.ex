@@ -5,6 +5,7 @@ defmodule Farmbot.System.Updates do
   @data_path Application.get_env(:farmbot, :data_path)
   @current_version Farmbot.Project.version()
   @target Farmbot.Project.target()
+  @current_commit Farmbot.Project.commit()
   @env Farmbot.Project.env()
   use Farmbot.Logger
 
@@ -13,13 +14,20 @@ defmodule Farmbot.System.Updates do
 
   alias Farmbot.System.ConfigStorage
 
+  @doc "Overwrite os update server field"
+  def override_update_server(url) do
+    ConfigStorage.update_config_value(:bool, "settings", "beta_opt_in", true)
+    ConfigStorage.update_config_value(:string, "settings", "os_update_server_overwrite", url)
+  end
+
   @doc "Force check updates."
-  def check_updates do
+  def check_updates(reboot) do
     token = ConfigStorage.get_config_value(:string, "authorization", "token")
     if token do
       case Farmbot.Jwt.decode(token) do
-        {:ok, %{os_update_server: update_server}} ->
-          do_check_updates_http(update_server)
+        {:ok, %Farmbot.Jwt{os_update_server: update_server}} ->
+          override = ConfigStorage.get_config_value(:string, "settings", "os_update_server_overwrite")
+          do_check_updates_http(override || update_server, reboot)
         _ -> no_token()
       end
     else
@@ -32,28 +40,43 @@ defmodule Farmbot.System.Updates do
     :ok
   end
 
-  defp do_check_updates_http(url) do
+  defp do_check_updates_http(url, reboot) do
+    Logger.info 3, "Checking: #{url} for updates."
     with {:ok, %{body: body, status_code: 200}} <- Farmbot.HTTP.get(url),
     {:ok, data} <- Poison.decode(body),
     {:ok, prerelease} <- Map.fetch(data, "prerelease"),
+    {:ok, new_commit} <- Map.fetch(data, "target_commitish"),
     {:ok, cl} <- Map.fetch(data, "body"),
     {:ok, false} <- Map.fetch(data, "draft"),
     {:ok, "v" <> new_version_str} <- Map.fetch(data, "tag_name"),
     {:ok, new_version} <- Version.parse(new_version_str),
     {:ok, current_version} <- Version.parse(@current_version),
     {:ok, fw_url} <- find_fw_url(data, new_version) do
-      needs_update = case Version.compare(current_version, new_version) do
-        s when s in [:gt, :eq] ->
-          Logger.success 2, "Farmbot is up to date."
-          false
-        :lt ->
-          Logger.busy 1, "New Farmbot firmware update: #{new_version}"
-          true
+      needs_update = if prerelease do
+        val = new_commit == @current_commit
+        Logger.info 1, "Checking prerelease commits: current_commit: #{@current_commit} new_commit: #{new_commit} #{val}"
+        !val
+      else
+        case Version.compare(current_version, new_version) do
+          s when s in [:gt, :eq] ->
+            Logger.success 2, "Farmbot is up to date."
+            false
+          :lt ->
+            Logger.busy 1, "New Farmbot firmware update: #{new_version}"
+            true
+        end
+
       end
+
+
       if should_apply_update(@env, prerelease, needs_update) do
-        Logger.info 1, "Downloading update. Here is the release notes"
-        Logger.info 1, cl
-        do_download_and_apply(fw_url, new_version)
+        Logger.busy 1, "Downloading FarmbotOS over the air update"
+        IO.puts cl
+        # Logger.info 1, "Downloading update. Here is the release notes"
+        # Logger.info 1, cl
+        do_download_and_apply(fw_url, new_version, reboot)
+      else
+        :no_update
       end
     else
       :error ->
@@ -71,7 +94,7 @@ defmodule Farmbot.System.Updates do
           {:ok, res} -> res
           _ -> body
         end
-        Logger.error 1, "HTTP error: #{code}: #{reason}"
+        Logger.error 1, "OS Update HTTP error: #{code}: #{inspect reason}"
     end
   end
 
@@ -94,30 +117,38 @@ defmodule Farmbot.System.Updates do
   defp should_apply_update(env, prerelease?, needs_update?)
   defp should_apply_update(_, _, false), do: false
   defp should_apply_update(:prod, true, _) do
-    Logger.info 3, "Not applying prerelease firmware."
-    false
+    if ConfigStorage.get_config_value(:bool, "settings", "beta_opt_in") do
+      Logger.info 3, "Applying beta update for production firmware"
+      true
+    else
+      Logger.info 3, "Not applying prerelease update for production firmware"
+      false
+    end
   end
+
   defp should_apply_update(_env, true, _) do
     Logger.info 3, "Applying prerelease firmware."
     true
   end
+
   defp should_apply_update(_, _, true) do
     true
   end
 
-  defp do_download_and_apply(dl_url, new_version) do
+  defp do_download_and_apply(dl_url, new_version, reboot) do
     dl_fun = Farmbot.BotState.download_progress_fun("FBOS_OTA")
     dl_path = Path.join(@data_path, "#{new_version}.fw")
     case Farmbot.HTTP.download_file(dl_url, dl_path, dl_fun, "", []) do
       {:ok, path} ->
-        apply_firmware(path)
+        apply_firmware(path, reboot)
       {:error, reason} ->
         Logger.error 1, "Failed to download update file: #{inspect reason}"
+        {:error, reason}
     end
   end
 
   @doc "Apply an OS (fwup) firmware."
-  def apply_firmware(file_path, reboot \\ false) do
+  def apply_firmware(file_path, reboot) do
     Logger.busy 1, "Applying #{@target} OS update"
     before_update()
     case @handler.apply_firmware(file_path) do
@@ -129,6 +160,7 @@ defmodule Farmbot.System.Updates do
         end
       {:error, reason} ->
         Logger.error 1, "Failed to apply update: #{inspect reason}"
+        {:error, reason}
     end
   end
 

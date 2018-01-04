@@ -1,76 +1,156 @@
 version: 2.0
 defaults: &defaults
-  working_directory: ~/farmbot_os
   docker:
     - image: nervesproject/nerves:0.13.5
-  environment:
-    ENV: CI
-    MIX_ENV: test
-    ELIXIR_VERSION: 1.5.2
 
 install_elixir: &install_elixir
   run:
     name: Install Elixir
     command: |
-      wget https://github.com/elixir-lang/elixir/releases/download/v$ELIXIR_VERSION/Precompiled.zip
+      wget https://github.com/elixir-lang/elixir/releases/download/v1.5.2/Precompiled.zip
       unzip -d /usr/local/elixir Precompiled.zip
       echo 'export PATH=/usr/local/elixir/bin:$PATH' >> $BASH_ENV
-install_hex_rebar: &install_hex_rebar
+
+install_hex_archives: &install_hex_archives
   run:
-    name: Install hex and rebar
+    name: Install archives
     command: |
       mix local.hex --force
       mix local.rebar --force
-install_nerves_bootstrap: &install_nerves_bootstrap
+      mix archive.install hex nerves_bootstrap --force
+
+fetch_and_compile_deps: &fetch_and_compile_deps
   run:
-    name: Install nerves_bootstrap
-    command: mix archive.install hex nerves_bootstrap --force
+    name: Fetch and compile Elixir dependencies
+    command: |
+      mix deps.get
+      mix deps.compile
+      mix compile
 
 jobs:
   test:
     <<: *defaults
+    environment:
+      MIX_ENV: test
+      MIX_TARGET: host
     steps:
       - checkout
       - <<: *install_elixir
-      - <<: *install_hex_rebar
-      - <<: *install_nerves_bootstrap
+      - restore_cache:
+          keys:
+            - v3-dependency-cache-{{ checksum "mix.lock.host" }}
+            - v3-dependency-cache
+      - <<: *install_hex_archives
+      - <<: *fetch_and_compile_deps
+      - save_cache:
+          key: v3-dependency-cache-{{ checksum "mix.lock.host" }}
+          paths:
+            - _build
+            - ~/.mix
+            - ~/.nerves
       - run:
-          name: Install test dependencies
-          command: mix deps.get
-      - run:
-          name: Compile
-          command: mix compile
-      - run:
-          name: Lint
-          command: mix credo --strict --ignore Credo.Check.Readability.MaxLineLength
-      - run:
-          name: Test
-          command: mix coveralls.circle --seed 0 --exclude farmbot_firmware
+          command: mix coveralls.circle --exclude farmbot_firmware
 
-  firmware:
+  firmware_dev:
     <<: *defaults
     environment:
-      MIX_ENV: dev
       MIX_TARGET: rpi3
-      ELIXIR_VERSION: 1.5.2
+      MIX_ENV: dev
       ENV: CI
     steps:
       - checkout
       - <<: *install_elixir
-      - <<: *install_hex_rebar
-      - <<: *install_nerves_bootstrap
+      - restore_cache:
+          keys:
+            - v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+            - v3-dependency-cache
+      - <<: *install_hex_archives
+      - <<: *fetch_and_compile_deps
+      - run: mix firmware
+      - save_cache:
+          key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+          paths:
+            - _build
+            - ~/.mix
+            - ~/.nerves
+      - run: mix firmware.slack --channels C58DCU4A3
+      - run: mkdir -p artifacts
       - run:
-          name: Set COMMIT_MESSAGE var
-          command: echo "export COMMIT_MESSAGE=\"$(git log --format=oneline -n 1 $CIRCLE_SHA1)\"" >> ~/.bashrc
+          name: Decode fwup priv key
+          command: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
       - run:
-          name: Install dev dependencies
-          command: mix deps.get
+          name: Sign firmware
+          command: fwup -S -s $NERVES_FW_PRIV_KEY -i _build/${MIX_TARGET}/${MIX_ENV}/nerves/images/farmbot.fw -o artifacts/farmbot-${MIX_TARGET}-$(cat VERSION)-beta.fw
+      - save_cache:
+          key: v3-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - ./artifacts
+
+  firmware_prod:
+    <<: *defaults
+    environment:
+      MIX_TARGET: rpi3
+      MIX_ENV: prod
+      ENV: CI
+    steps:
+      - checkout
+      - <<: *install_elixir
+      - restore_cache:
+          keys:
+            - v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+            - v3-dependency-cache
+      - <<: *install_hex_archives
+      - run: mix deps.get
+      - run: mix deps.compile
+      - run: mix compile
+      - run: mix firmware
+      - save_cache:
+          key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+          paths:
+            - _build
+            - ~/.mix
+            - ~/.nerves
+      - run: mkdir -p artifacts
       - run:
-          name: Build dev firmware
-          command: mix firmware
+          name: Decode fwup priv key
+          command: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
       - run:
-          name: Upload dev firmware to slack
-          command: mix firmware.slack --channels C58DCU4A3 $COMMIT_MESSAGE
+          name: Sign firmware
+          command: fwup -S -s $NERVES_FW_PRIV_KEY -i _build/${MIX_TARGET}/${MIX_ENV}/nerves/images/farmbot.fw -o artifacts/farmbot-${MIX_TARGET}-$(cat VERSION)-beta.fw
+      - save_cache:
+          key: v3-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - ./artifacts
+
+  deploy_firmware:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: Run setup script
+          command: bash .circleci/setup-heroku.sh
+      - add_ssh_keys:
+          fingerprints:
+            - "97:92:32:5d:d7:96:e1:fa:f3:6b:f3:bd:d6:aa:84:c6"
+      - run:
+          name: Install dependencies
+          command: |
+            wget https://github.com/tcnksm/ghr/releases/download/v0.5.4/ghr_v0.5.4_linux_amd64.zip
+            unzip ghr_v0.5.4_linux_amd64.zip
+            wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
+            chmod +x ./jq-linux64
+      - run:
+          command: grep -Pazo "(?s)(?<=# $(cat VERSION))[^#]+" CHANGELOG.md > RELEASE_NOTES
+      - restore_cache:
+          key: v3-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+      - run:
+          command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)-beta" $PWD/artifacts
+      - run:
+          name: Update heroku env
+          command: |
+            export OTA_URL=$(wget https://api.github.com/repos/farmbot/farmbot_os/releases -qO- | ./jq-linux64 '.[0].url')
+            heroku config:set BETA_OTA_URL=$OTA_URL --app=farmbot-production
+            heroku config:set BETA_OTA_URL=$OTA_URL --app=farmbot-staging
 
 workflows:
   version: 2
@@ -78,5 +158,30 @@ workflows:
     jobs:
       - test:
           context: org-global
-      - firmware:
+          filters:
+            branches:
+              ignore: beta
+      - firmware_dev:
           context: org-global
+          requires:
+            - test
+          filters:
+            branches:
+              ignore: beta
+
+  deploy_beta:
+    jobs:
+      - firmware_prod:
+          context: org-global
+          filters:
+            branches:
+              only:
+                - beta
+      - deploy_firmware:
+          context: org-global
+          filters:
+            branches:
+              only:
+                - beta
+          requires:
+            - firmware_prod

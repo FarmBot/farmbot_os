@@ -24,7 +24,9 @@ defmodule Farmbot.Bootstrap.AuthTask do
   end
 
   def terminate(reason, _state) do
-    Logger.error 1, "Token Refresh failed: #{inspect reason}"
+    unless reason == {:shutdown, :normal} do
+      Logger.error 1, "Token Refresh failed: #{inspect reason}"
+    end
   end
 
   def handle_info(:refresh, _old_timer) do

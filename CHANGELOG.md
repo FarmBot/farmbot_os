@@ -113,3 +113,21 @@
 
 # 5.0.9
 * Add missing redis-py package for Farmware.
+
+# 6.0.1
+* Add feature auto sync.
+* Add feature RPI GPIO.
+* Refactor Configurator to not need Javascript/Webpack
+* Add timer before network not found factory resets bot.
+* Remove steps/mm conversion.
+* Bundle new arduino-firmware.
+* Replace MQTT with AMQP.
+* Get rid of Log batching.
+* Add verbosity level to _every_ log message.
+* Show position for log messages.
+* Add many helpful log messages.
+* Add feature to disable many log message.
+* Add feature to log all arduino-firmware I/O.
+* Migrated CI to CircleCI from TravisCI.
+* Refactored FarmEvent Calendar generator.
+* Fix a ton of little bugs.
