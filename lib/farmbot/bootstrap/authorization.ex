@@ -34,7 +34,7 @@ defmodule Farmbot.Bootstrap.Authorization do
   def authorize(email, pw_or_secret, server) do
     case get_config_value(:bool, "settings", "first_boot") do
       true ->
-        with {:ok, rsa_key} <- fetch_rsa_key(server),
+        with {:ok, {:RSAPublicKey, _, _} = rsa_key} <- fetch_rsa_key(server),
              {:ok, payload} <- build_payload(email, pw_or_secret, rsa_key),
              {:ok, resp}    <- request_token(server, payload),
              {:ok, body}    <- Poison.decode(resp),
@@ -78,7 +78,7 @@ defmodule Farmbot.Bootstrap.Authorization do
     end
   end
 
-  defp fetch_rsa_key(server) do
+  def fetch_rsa_key(server) do
     url_char_list = '#{server}/api/public_key'
     with {:ok, {{_, 200, _}, _, body}} <- :httpc.request(url_char_list) do
       r = body |> to_string() |> RSA.decode_key()
