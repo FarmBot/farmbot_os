@@ -178,7 +178,7 @@ defmodule Farmbot.Firmware do
     end
   end
 
-  def handle_call({fun, _}, _from, state = %{initialized: false}) when fun not in  [:read_all_params, :update_param, :emergency_unlock, :emergency_lock] do
+  def handle_call({fun, _}, _from, state = %{initialized: false}) when fun not in  [:read_param, :read_all_params, :update_param, :emergency_unlock, :emergency_lock] do
     {:reply, {:error, :uninitialized}, [], state}
   end
 
@@ -452,7 +452,21 @@ defmodule Farmbot.Firmware do
 
   @doc false
   def do_read_params_and_report_position(old) when is_map(old) do
-    for {key, float_val} <- old do
+    if get_config_value(:bool, "settings", "fw_upgrade_migration") do
+      Logger.warn(1, "Migrating old configuration data from firmware!")
+      migration_hack = fn(parm_atom) ->
+        read_param(param_atom)
+        val = Farmbot.BotState.get_param(param_atom)
+        modified = if val == 56, do: 5556, else: val * 100
+        update_param(param_atom, modified)
+      end
+      for param <- [:encoder_scaling_x, :encoder_scaling_y, :encoder_scaling_z] do
+        migration_hack.(param)
+      end
+      update_config_value(:bool, "settings", "fw_upgrade_migration", false)
+    end
+
+    for {key, float_val} <- Map.drop(old, ["encoder_scaling_x", "encoder_scaling_y", "encoder_scaling_z"]) do
       cond do
         (float_val == -1) -> :ok
         is_nil(float_val) -> :ok
