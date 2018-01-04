@@ -70,8 +70,13 @@ defmodule Mix.Tasks.Farmbot.Env do
     > *_Version_*:   `#{mix_config(:version)}`
     > *_Commit_*:    `#{mix_config(:commit)}`
     > *_Time_*:      `#{time}`
+    #{commit_message()}
     #{String.trim(comment)}
     """
+  end
+
+  defp commit_message do
+    System.cmd("git", ~w(log -1 --pretty=%B)) |> elem(0) |> String.trim()
   end
 
   @doc false
