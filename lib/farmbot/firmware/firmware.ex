@@ -468,7 +468,7 @@ defmodule Farmbot.Firmware do
         read_param(param_atom)
         val = GenServer.call(__MODULE__, {:fetch_param_hack_delete_me, param_atom})
         modified = cond do
-          is_nil(val) -> 56
+          is_nil(val) -> 5556
           val == 56 -> 5556
           5556 -> 5556
           is_number(val) -> val * 100
