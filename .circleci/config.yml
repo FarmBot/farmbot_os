@@ -14,18 +14,18 @@ install_elixir: &install_elixir
 install_hex_archives: &install_hex_archives
   run:
     name: Install archives
-  command: |
-    mix local.hex --force
-    mix local.rebar --force
-    mix archive.install hex nerves_bootstrap --force
+    command: |
+      mix local.hex --force
+      mix local.rebar --force
+      mix archive.install hex nerves_bootstrap --force
 
 fetch_and_compile_deps: &fetch_and_compile_deps
   run:
     name: Fetch and compile Elixir dependencies
-  command: |
-    mix deps.get
-    mix deps.compile
-    mix compile
+    command: |
+      mix deps.get
+      mix deps.compile
+      mix compile
 
 jobs:
   test:
