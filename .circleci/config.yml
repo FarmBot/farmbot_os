@@ -137,7 +137,9 @@ jobs:
           command: |
             wget https://github.com/tcnksm/ghr/releases/download/v0.5.4/ghr_v0.5.4_linux_amd64.zip
             unzip ghr_v0.5.4_linux_amd64.zip
-            apt-get install jq -y
+            wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
+            chmod +x
+            chmod +x ./jq-linux64
       - run:
           command: grep -Pazo "(?s)(?<=# $(cat VERSION))[^#]+" CHANGELOG.md > RELEASE_NOTES
       - restore_cache:
@@ -147,7 +149,7 @@ jobs:
       - run:
           name: Update heroku env
           command: |
-            export OTA_URL=$(curl -sS https://api.github.com/repos/farmbot/farmbot_os/releases | jq '.[0].url')
+            export OTA_URL=$(wget https://api.github.com/repos/farmbot/farmbot_os/releases -qO- | ./jq-linux64 '.[0].url')
             heroku env:set BETA_OTA_URL=$OTA_URL --app=farmbot-production
             heroku env:set BETA_OTA_URL=$OTA_URL --app=farmbot-staging
 
