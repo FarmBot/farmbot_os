@@ -4,6 +4,7 @@ defmodule Farmbot.Firmware do
   use GenStage
   use Farmbot.Logger
   alias Farmbot.Firmware.Vec3
+  import Farmbot.System.ConfigStorage, only: [update_config_value: 4, get_config_value: 3]
 
   # If any command takes longer than this, exit.
   @call_timeout 500_000
@@ -454,7 +455,7 @@ defmodule Farmbot.Firmware do
   def do_read_params_and_report_position(old) when is_map(old) do
     if get_config_value(:bool, "settings", "fw_upgrade_migration") do
       Logger.warn(1, "Migrating old configuration data from firmware!")
-      migration_hack = fn(parm_atom) ->
+      migration_hack = fn(param_atom) ->
         read_param(param_atom)
         val = Farmbot.BotState.get_param(param_atom)
         modified = if val == 56, do: 5556, else: val * 100
