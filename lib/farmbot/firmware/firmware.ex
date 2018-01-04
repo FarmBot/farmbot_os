@@ -191,10 +191,13 @@ defmodule Farmbot.Firmware do
   def handle_call({fun, args}, from, state) do
     next_current = struct(Current, from: from, fun: fun, args: args)
     current_current = state.current
-    if current_current do
-      do_queue_cmd(next_current, state)
-    else
-      do_begin_cmd(next_current, state, [])
+    cond do
+      fun == :emergency_lock ->
+        do_begin_cmd(next_current, state, [])
+      match?(%Current{}, current_current) ->
+        do_queue_cmd(next_current, state)
+      is_nil(current_current) ->
+        do_begin_cmd(next_current, state, [])
     end
   end
 
@@ -523,6 +526,8 @@ defmodule Farmbot.Firmware do
 
   defp do_reply(state, reply) do
     case state.current do
+      %Current{fun: :emergency_lock, from: from} ->
+        :ok = GenServer.reply from, {:error, :emergency_lock}
       %Current{fun: _fun, from: from} ->
         # Logger.success 3, "FW Replying: #{fun}: #{inspect from}"
         :ok = GenServer.reply from, reply
