@@ -39,7 +39,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
     steps:
-      - checkout:
+      - checkout
       - run: git submodule update --init --recursive
       - <<: *install_elixir
       - restore_cache:
@@ -62,7 +62,7 @@ jobs:
       MIX_ENV: dev
       ENV: CI
     steps:
-      - checkout:
+      - checkout
       - run: git submodule update --init --recursive
       - <<: *install_elixir
       - restore_cache:
@@ -99,7 +99,7 @@ jobs:
       MIX_ENV: prod
       ENV: CI
     steps:
-      - checkout:
+      - checkout
       - run: git submodule update --init --recursive
       - <<: *install_elixir
       - restore_cache:
