@@ -28,9 +28,9 @@ fetch_and_compile_deps: &fetch_and_compile_deps
       mix compile
 
 install_arduino: &install_arduino
-  - run:
-      name: Run setup script
-      command: bash .circleci/setup-arduino.sh
+  run:
+    name: Run setup script
+    command: bash .circleci/setup-arduino.sh
 
 jobs:
   test:
