@@ -40,25 +40,14 @@ jobs:
       MIX_TARGET: host
     steps:
       - checkout:
-          post:
-            - git submodule update --init --recursive
+      - run: git submodule update --init --recursive
       - <<: *install_elixir
       - restore_cache:
           keys:
-            - v3-dependency-cache-{{ checksum "mix.lock.host" }}
-            - v3-dependency-cache
-      - <<: *install_arduino
-      - restore_cache:
-          keys:
             - v3-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
+      - <<: *install_arduino
       - <<: *install_hex_archives
       - <<: *fetch_and_compile_deps
-      - save_cache:
-          key: v3-dependency-cache-{{ checksum "mix.lock.host" }}
-          paths:
-            - _build
-            - ~/.mix
-            - ~/.nerves
       - save_cache:
           key: v3-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
           paths:
@@ -74,26 +63,21 @@ jobs:
       ENV: CI
     steps:
       - checkout:
-          post:
-            - git submodule update --init --recursive
+      - run: git submodule update --init --recursive
       - <<: *install_elixir
       - restore_cache:
           keys:
-            - v3-dependency-cache-{{ checksum "mix.lock.host" }}
-            - v3-dependency-cache
+            - v3-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
       - <<: *install_arduino
       - restore_cache:
           keys:
             - v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
-            - v3-dependency-cache
       - <<: *install_hex_archives
       - <<: *fetch_and_compile_deps
       - run: mix firmware
       - save_cache:
           key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
           paths:
-            - _build
-            - ~/.mix
             - ~/.nerves
       - run: mix firmware.slack --channels C58DCU4A3
       - run: mkdir -p artifacts
@@ -116,19 +100,16 @@ jobs:
       ENV: CI
     steps:
       - checkout:
-          post:
-            - git submodule update --init --recursive
+      - run: git submodule update --init --recursive
       - <<: *install_elixir
       - restore_cache:
           keys:
-            - v3-dependency-cache-{{ checksum "mix.lock.host" }}
-            - v3-dependency-cache
+            - v3-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
       - <<: *install_arduino
+      - <<: *install_hex_archives
       - restore_cache:
           keys:
             - v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
-            - v3-dependency-cache
-      - <<: *install_hex_archives
       - run: mix deps.get
       - run: mix deps.compile
       - run: mix compile
@@ -136,8 +117,6 @@ jobs:
       - save_cache:
           key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
           paths:
-            - _build
-            - ~/.mix
             - ~/.nerves
       - run: mkdir -p artifacts
       - run:
