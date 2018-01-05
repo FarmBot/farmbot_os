@@ -9,6 +9,11 @@ defmodule Farmbot.Firmware do
   # If any command takes longer than this, exit.
   @call_timeout 500_000
 
+  @new_params [
+    :movement_step_per_mm_x, :movement_step_per_mm_y, :movement_step_per_mm_z,
+    :movement_home_spd_x, :movement_home_spd_y, :movement_home_spd_z
+  ]
+
   @doc "Move the bot to a position."
   def move_absolute(%Vec3{} = vec3, x_spd, y_spd, z_spd) do
     call = {:move_absolute, [vec3, x_spd, y_spd, z_spd]}
@@ -188,6 +193,13 @@ defmodule Farmbot.Firmware do
     {:reply, {:error, :uninitialized}, [], state}
   end
 
+  def handle_call({{:update_param, [param, 0] = args}}, from, state)
+  when param in @new_params do
+    Logger.warn 1, "#{param} reported zero when it shouldn't have!"
+    next_current = struct(Current, from: from, fun: :update_param, args: args)
+    do_reply(%{state | current: next_current}, {:error, :unexpected_zero})
+  end
+
   def handle_call({fun, args}, from, state) do
     next_current = struct(Current, from: from, fun: fun, args: args)
     current_current = state.current
@@ -310,6 +322,12 @@ defmodule Farmbot.Firmware do
       nil ->
         {:pins, %{pin => %{mode: nil, value: value}}, %{state | pins: Map.put(state.pins, pin, %{mode: nil, value: value})}}
     end
+  end
+
+  defp handle_gcode({:report_parameter_value, param, 0}, state)
+  when param in @new_params do
+    Logger.warn 1, "one of #{inspect @new_params} (#{param}) was reported as zero. Not saving."
+    {nil, state}
   end
 
   defp handle_gcode({:report_parameter_value, param, value}, state) when (value == -1) do
