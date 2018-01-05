@@ -473,7 +473,7 @@ defmodule Farmbot.Firmware do
         modified = cond do
           is_nil(val) -> 5556
           val == 56 -> 5556
-          5556 -> 5556
+          val == 5556 -> 5556
           is_number(val) -> val * 100
           true -> 5556
         end
