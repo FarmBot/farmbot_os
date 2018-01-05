@@ -56,11 +56,7 @@ ARDUINO_BUILD = $(ARDUINO_BUILDER) \
 	$(ARDUINO_BUILD_DIR_FLAGS) \
 	$(ARDUINO_SRC_INO)
 
-ifdef CIRCLECI
-  all: priv $(NIF)
-else
-  all: priv $(NIF) farmbot_arduino_firmware
-endif
+all: priv $(NIF) farmbot_arduino_firmware
 
 farmbot_arduino_firmware_build_dirs: $(ARDUINO_BUILD_DIR) $(ARDUINO_CACHE_DIR)
 

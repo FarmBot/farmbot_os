@@ -27,6 +27,11 @@ fetch_and_compile_deps: &fetch_and_compile_deps
       mix deps.compile
       mix compile
 
+install_arduino: &install_arduino
+  - run:
+      name: Run setup script
+      command: bash .circleci/setup-arduino.sh
+
 jobs:
   test:
     <<: *defaults
@@ -60,6 +65,7 @@ jobs:
     steps:
       - checkout
       - <<: *install_elixir
+      - <<: *install_arduino
       - restore_cache:
           keys:
             - v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
@@ -95,6 +101,7 @@ jobs:
     steps:
       - checkout
       - <<: *install_elixir
+      - <<: *install_arduino
       - restore_cache:
           keys:
             - v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
