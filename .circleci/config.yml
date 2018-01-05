@@ -41,6 +41,7 @@ jobs:
     steps:
       - checkout
       - <<: *install_elixir
+      - <<: *install_arduino
       - restore_cache:
           keys:
             - v3-dependency-cache-{{ checksum "mix.lock.host" }}
