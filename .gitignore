@@ -44,3 +44,4 @@ run-qemu.sh
 *.img
 artifacts
 RELEASE_NOTES
+*.hex
