@@ -189,15 +189,24 @@ defmodule Farmbot.Firmware do
     {:reply, Map.get(state.params, param), [], state}
   end
 
-  def handle_call({fun, _}, _from, state = %{initialized: false}) when fun not in  [:read_param, :read_all_params, :update_param, :emergency_unlock, :emergency_lock] do
+  def handle_call({fun, _}, _from, state = %{initialized: false})
+  when fun not in  [:read_param, :read_all_params, :update_param, :emergency_unlock, :emergency_lock] do
     {:reply, {:error, :uninitialized}, [], state}
   end
 
-  def handle_call({{:update_param, [param, 0] = args}}, from, state)
+  def handle_call({{:update_param, [param, 0]}}, from, state)
   when param in @new_params do
     Logger.warn 1, "#{param} reported zero when it shouldn't have!"
-    next_current = struct(Current, from: from, fun: :update_param, args: args)
-    do_reply(%{state | current: next_current}, {:error, :unexpected_zero})
+    defaults = %{
+      movement_step_per_mm_x: 5,
+      movement_step_per_mm_y: 5,
+      movement_step_per_mm_z: 25,
+      movement_home_spd_x: 50,
+      movement_home_spd_y: 50,
+      movement_home_spd_z: 50
+    }
+    hopefully_still_default_value = get_config_value(:float, "hardware_params", :"#{param}") || defaults[param]
+    handle_call({{:update_param, [param, hopefully_still_default_value]}}, from, state)
   end
 
   def handle_call({fun, args}, from, state) do
