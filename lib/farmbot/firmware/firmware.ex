@@ -214,6 +214,9 @@ defmodule Farmbot.Firmware do
     current_current = state.current
     cond do
       fun == :emergency_lock ->
+        if current_current do
+          do_reply(state, {:error, :emergency_lock})
+        end
         do_begin_cmd(next_current, state, [])
       match?(%Current{}, current_current) ->
         do_queue_cmd(next_current, state)
