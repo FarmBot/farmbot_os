@@ -3,8 +3,13 @@ defmodule Farmbot.Mixfile do
   @target System.get_env("MIX_TARGET") || "host"
   @version Path.join(__DIR__, "VERSION") |> File.read!() |> String.trim()
 
-  defp commit() do
+  defp commit do
     System.cmd("git", ~w"rev-parse --verify HEAD") |> elem(0) |> String.trim()
+  end
+
+  defp arduino_commit do
+    opts = [cd: "c_src/farmbot-arduino-firmware"]
+    System.cmd("git", ~w"rev-parse --verify HEAD", opts) |> elem(0) |> String.trim()
   end
 
   Mix.shell().info([
@@ -28,6 +33,7 @@ defmodule Farmbot.Mixfile do
       version: @version,
       target: @target,
       commit: commit(),
+      arduino_commit: arduino_commit(),
       archives: [nerves_bootstrap: "~> 0.6.0"],
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
