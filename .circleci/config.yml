@@ -40,8 +40,8 @@ jobs:
       MIX_TARGET: host
     steps:
       - checkout:
-        post:
-          - git submodule update --init --recursive
+          post:
+            - git submodule update --init --recursive
       - <<: *install_elixir
       - restore_cache:
           keys:
@@ -74,8 +74,8 @@ jobs:
       ENV: CI
     steps:
       - checkout:
-        post:
-          - git submodule update --init --recursive
+          post:
+            - git submodule update --init --recursive
       - <<: *install_elixir
       - restore_cache:
           keys:
@@ -116,8 +116,8 @@ jobs:
       ENV: CI
     steps:
       - checkout:
-        post:
-          - git submodule update --init --recursive
+          post:
+            - git submodule update --init --recursive
       - <<: *install_elixir
       - restore_cache:
           keys:
