@@ -39,13 +39,18 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
     steps:
-      - checkout
+      - checkout:
+        post:
+          - git submodule update --init --recursive
       - <<: *install_elixir
-      - <<: *install_arduino
       - restore_cache:
           keys:
             - v3-dependency-cache-{{ checksum "mix.lock.host" }}
             - v3-dependency-cache
+      - <<: *install_arduino
+      - restore_cache:
+          keys:
+            - v3-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
       - <<: *install_hex_archives
       - <<: *fetch_and_compile_deps
       - save_cache:
@@ -54,6 +59,10 @@ jobs:
             - _build
             - ~/.mix
             - ~/.nerves
+      - save_cache:
+          key: v3-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
+          paths:
+            - ~/arduino-1.8.5
       - run:
           command: mix coveralls.circle --exclude farmbot_firmware
 
@@ -64,8 +73,14 @@ jobs:
       MIX_ENV: dev
       ENV: CI
     steps:
-      - checkout
+      - checkout:
+        post:
+          - git submodule update --init --recursive
       - <<: *install_elixir
+      - restore_cache:
+          keys:
+            - v3-dependency-cache-{{ checksum "mix.lock.host" }}
+            - v3-dependency-cache
       - <<: *install_arduino
       - restore_cache:
           keys:
@@ -100,8 +115,14 @@ jobs:
       MIX_ENV: prod
       ENV: CI
     steps:
-      - checkout
+      - checkout:
+        post:
+          - git submodule update --init --recursive
       - <<: *install_elixir
+      - restore_cache:
+          keys:
+            - v3-dependency-cache-{{ checksum "mix.lock.host" }}
+            - v3-dependency-cache
       - <<: *install_arduino
       - restore_cache:
           keys:
