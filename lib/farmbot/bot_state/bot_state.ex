@@ -9,6 +9,7 @@ defmodule Farmbot.BotState do
   use GenStage
   @version Farmbot.Project.version()
   @commit Farmbot.Project.commit()
+  @arduino_commit Farmbot.Project.arduino_commit()
   @target Farmbot.Project.target()
   @env Farmbot.Project.env()
 
@@ -282,6 +283,7 @@ defmodule Farmbot.BotState do
     informational_settings: %{
       controller_version: @version,
       firmware_version: "disconnected",
+      firmware_commit: @arduino_commit,
       commit: @commit,
       target: @target,
       env: @env,
