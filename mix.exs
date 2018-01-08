@@ -47,6 +47,7 @@ defmodule Farmbot.Mixfile do
       deps: deps() ++ deps(@target),
       dialyzer: [
         plt_add_deps: :transitive,
+        plt_add_apps: [:mix],
         flags: []
       ],
       preferred_cli_env: [
@@ -103,6 +104,7 @@ defmodule Farmbot.Mixfile do
 
       {:fs, "~> 3.4.0"},
       {:nerves_uart, "~> 1.0"},
+      {:nerves_leds, "~> 0.8.0"},
 
       {:cowboy, "~> 1.1"},
       {:plug, "~> 1.4"},
@@ -129,7 +131,7 @@ defmodule Farmbot.Mixfile do
     [
       {:ex_doc, "~> 0.18.1", only: :dev},
       {:excoveralls, "~> 0.7", only: :test},
-      {:dialyxir, "~> 0.5.1", runtime: false},
+      {:dialyxir, "~> 0.5.1", only: :dev, runtime: false},
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
       {:inch_ex, ">= 0.0.0", only: :dev},
       {:mock, "~> 0.2.0", only: :test},
@@ -162,7 +164,6 @@ defmodule Farmbot.Mixfile do
         {:nerves_network, "~> 0.3.5"},
         {:dhcp_server, "~> 0.3.0"},
         {:elixir_ale, "~> 1.0"},
-        {:nerves_leds, "~> 0.8.0"}
       ]
   end
 
