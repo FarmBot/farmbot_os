@@ -555,6 +555,7 @@ defmodule Farmbot.Firmware do
   end
 
   defp do_reply(state, reply) do
+    maybe_cancel_timer(state.timer)
     case state.current do
       %Current{fun: :emergency_lock, from: from} ->
         :ok = GenServer.reply from, {:error, :emergency_lock}
