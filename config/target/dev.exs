@@ -77,7 +77,3 @@ config :nerves_firmware_ssh, authorized_keys: local_key
 config :bootloader,
   init: [:nerves_runtime, :nerves_init_gadget],
   app: :farmbot
-
-if Mix.Project.config[:target] == "rpi3" do
-  config :nerves, :firmware, fwup_conf: "fwup_interim.conf"
-end
