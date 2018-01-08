@@ -35,8 +35,6 @@ config :farmbot, :init, [
   # Autodetects if a Arduino is plugged in and configures accordingly.
   Farmbot.Firmware.UartHandler.AutoDetector,
 
-  Farmbot.Target.ConfigMigration.BeforeNetwork,
-
   # Allows for first boot configuration.
   Farmbot.Target.Bootstrap.Configurator,
 
@@ -45,8 +43,6 @@ config :farmbot, :init, [
 
   # Wait for time time come up.
   Farmbot.Target.Network.WaitForTime,
-
-  Farmbot.Target.ConfigMigration.AfterNetwork,
 
   # Debug stuff
   Farmbot.System.Debug,

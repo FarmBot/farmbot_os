@@ -4,8 +4,8 @@ defmodule Farmbot.HTTP.Response do
 
   @typedoc "HTTP Response"
   @type t :: %__MODULE__{
-          body: Farmbot.Behaviour.HTTP.body(),
-          headers: Farmbot.Behaviour.HTTP.headers(),
-          status_code: Farmbot.Behaviour.HTTP.status_code()
-        }
+    body: Farmbot.HTTP.Adapter.body(),
+    headers: Farmbot.HTTP.Adapter.headers(),
+    status_code: Farmbot.HTTP.Adapter.status_code()
+  }
 end
