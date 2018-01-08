@@ -193,6 +193,9 @@ jobs:
       - run:
           name: Sign firmware
           command: fwup -S -s $NERVES_FW_PRIV_KEY -i _build/${MIX_TARGET}/${MIX_ENV}/nerves/images/farmbot.fw -o artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+      - run:
+          name: Create img
+          command: mix firmware.image artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).img
       - save_cache:
           key: v3-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
           paths:
