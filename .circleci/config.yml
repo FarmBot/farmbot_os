@@ -92,7 +92,7 @@ jobs:
           paths:
             - ./artifacts
 
-  firmware_prod:
+  firmware_beta:
     <<: *defaults
     environment:
       MIX_TARGET: rpi3
@@ -130,7 +130,7 @@ jobs:
           paths:
             - ./artifacts
 
-  deploy_firmware:
+  deploy_beta_firmware:
     <<: *defaults
     steps:
       - checkout
@@ -160,6 +160,65 @@ jobs:
             heroku config:set BETA_OTA_URL=$OTA_URL --app=farmbot-production
             heroku config:set BETA_OTA_URL=$OTA_URL --app=farmbot-staging
 
+  firmware_prod:
+    <<: *defaults
+    environment:
+      MIX_TARGET: rpi3
+      MIX_ENV: prod
+      ENV: CI
+    steps:
+      - checkout
+      - run: git submodule update --init --recursive
+      - <<: *install_elixir
+      - restore_cache:
+          keys:
+            - v3-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
+      - <<: *install_arduino
+      - <<: *install_hex_archives
+      - restore_cache:
+          keys:
+            - v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+      - run: mix deps.get
+      - run: mix deps.compile
+      - run: mix compile
+      - run: mix firmware
+      - save_cache:
+          key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+          paths:
+            - ~/.nerves
+      - run: mkdir -p artifacts
+      - run:
+          name: Decode fwup priv key
+          command: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
+      - run:
+          name: Sign firmware
+          command: fwup -S -s $NERVES_FW_PRIV_KEY -i _build/${MIX_TARGET}/${MIX_ENV}/nerves/images/farmbot.fw -o artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+      - run:
+          name: Create img
+          command: mix firmware.image artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).img
+      - save_cache:
+          key: v3-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - ./artifacts
+
+  deploy_prod_firmware:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            wget https://github.com/tcnksm/ghr/releases/download/v0.5.4/ghr_v0.5.4_linux_amd64.zip
+            unzip ghr_v0.5.4_linux_amd64.zip
+            wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
+            chmod +x ./jq-linux64
+      - run:
+          command: grep -Pazo "(?s)(?<=# $(cat VERSION))[^#]+" CHANGELOG.md > RELEASE_NOTES
+      - restore_cache:
+          key: v3-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+      - run:
+          command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)" $PWD/artifacts
+
 workflows:
   version: 2
   test_firmware_upload:
@@ -168,28 +227,49 @@ workflows:
           context: org-global
           filters:
             branches:
-              ignore: beta
+              ignore:
+                - beta
+                - master
       - firmware_dev:
           context: org-global
           requires:
             - test
           filters:
             branches:
-              ignore: beta
+              ignore:
+                - beta
+                - master
 
   deploy_beta:
+    jobs:
+      - firmware_beta:
+          context: org-global
+          filters:
+            branches:
+              only:
+                - beta
+      - deploy_beta_firmware:
+          context: org-global
+          filters:
+            branches:
+              only:
+                - beta
+          requires:
+            - firmware_beta
+
+  deploy_prod:
     jobs:
       - firmware_prod:
           context: org-global
           filters:
             branches:
               only:
-                - beta
-      - deploy_firmware:
+                - master
+      - deploy_prod_firmware:
           context: org-global
           filters:
             branches:
               only:
-                - beta
+                - master
           requires:
             - firmware_prod
