@@ -102,9 +102,9 @@ defmodule Farmbot.Bootstrap.Supervisor do
       server = get_config_value(:string, "authorization", "server")
 
       # Make sure they aren't empty.
-      email || raise "No email provided."
-      pass || raise "No password provided."
-      server || raise "No server provided."
+      email || Logger.warn 1, "Could not find email in configuration. "
+      pass || raise "No password provided in config storage."
+      server || raise "No server provided in config storage"
       {email, pass, server}
     rescue
       e in RuntimeError -> {:error, Exception.message(e)}
