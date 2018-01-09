@@ -172,7 +172,7 @@ defmodule Farmbot.Firmware do
     case state.current do
       nil -> {:noreply, [], %{state | timer: nil}}
       %Current{fun: fun, args: args, from: _from} = current ->
-        Logger.warn 1, "Got Firmware timeout. Retrying #{fun}(#{inspect args}) "
+        Logger.warn 1, "Timed out waiting for Firmware response. Retrying #{fun}(#{inspect args}) "
         case apply(state.handler_mod, fun, [state.handler | args]) do
           :ok ->
             timer = Process.send_after(self(), :timeout, state.timeout_ms)
