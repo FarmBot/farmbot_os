@@ -109,7 +109,7 @@ defmodule Farmbot.Mixfile do
       {:cowboy, "~> 1.1"},
       {:plug, "~> 1.4"},
       {:cors_plug, "~> 1.2"},
-      {:wobserver, "~> 0.1.8", only: [:dev, :test]},
+      {:wobserver, "~> 0.1.8"},
       {:rsa, "~> 0.0.1"},
       {:joken, "~> 1.1"},
 

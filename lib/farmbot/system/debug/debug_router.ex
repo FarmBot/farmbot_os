@@ -58,6 +58,22 @@ defmodule Farmbot.System.DebugRouter do
     end
   end
 
+  get "/api/release_mock.json" do
+    file = "#{:code.priv_dir(:farmbot)}/debug/templates/release_mock.json.eex"
+
+    url = "http://#{conn.host}:#{conn.port}/api/release_mock.json"
+    tag_name = conn.params["tag_name"] || "v#{Farmbot.Project.version()}"
+    target_commitish = conn.params["target_commitish"] || Farmbot.Project.commit
+    body = conn.params["body"] || "This is a fake release"
+
+    File.cp "_build/rpi3/prod/nerves/images/farmbot-signed.fw", "#{:code.priv_dir(:farmbot)}/debug/static/farmbot-rpi3-#{tag_name}.fw"
+    fw_asset_url = conn.params["fw_asset_url"] || "http://#{conn.host}:#{conn.port}/farmbot-rpi3-#{tag_name}.fw"
+    resp = EEx.eval_file(file, [url: url, fw_asset_url: fw_asset_url, tag_name: tag_name, target_commitish: target_commitish, body: body])
+    conn
+    |> put_resp_header("content-type", "Application/JSON")
+    |> send_resp(200, resp)
+  end
+
   match(_, do: send_resp(conn, 404, "Page not found"))
 
   defp make_html(file) do
