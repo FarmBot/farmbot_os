@@ -172,24 +172,33 @@ defmodule Farmbot.Firmware.UartHandler do
     end
   end
 
-  defp loop_until_idle(nerves) do
+  defp loop_until_idle(nerves, idle_count \\ 0)
+
+  defp loop_until_idle(nerves, 2) do
+    Logger.success 3, "Got two idles. UART is up."
+    Process.sleep(1500)
+    {:ok, nerves}
+  end
+
+  defp loop_until_idle(nerves, idle_count)
+    when is_pid(nerves) and is_number(idle_count)
+  do
     Logger.debug 3, "Waiting for firmware idle."
     receive do
       {:nerves_uart, _, {:error, reason}} -> {:stop, reason}
-      {:nerves_uart, _, {:partial, _}} -> loop_until_idle(nerves)
-      # {:nerves_uart, _, {_, :idle}} -> {:ok, nerves}
+      {:nerves_uart, _, {:partial, _}} -> loop_until_idle(nerves, idle_count)
+      {:nerves_uart, _, {_, :idle}} -> loop_until_idle(nerves, idle_count + 1)
       {:nerves_uart, _, {_, {:debug_message, msg}}} ->
         if String.contains?(msg, "STARTUP") do
+          Logger.success 3, "Got #{msg}. UART is up."
           {:ok, nerves}
         else
-          Logger.debug 1, "Got arduino debug while booting up: #{msg}"
-          loop_until_idle(nerves)
+          Logger.debug 3, "Got arduino debug while booting up: #{msg}"
+          loop_until_idle(nerves, idle_count)
         end
-      # {:nerves_uart, _, {_, :idle}} -> {:ok, nerves}
-      {:nerves_uart, _, _msg} ->
-        # Logger.info 3, "Got message: #{inspect msg}"
-        loop_until_idle(nerves)
-    after 30_000 -> {:stop, "Firmware didn't respond in 30 seconds."}
+      {:nerves_uart, _, _msg} -> loop_until_idle(nerves, idle_count)
+    after
+      10_000 -> {:stop, "Firmware didn't send any info for 10 seconds."}
     end
   end
 
