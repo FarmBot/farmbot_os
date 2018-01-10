@@ -143,12 +143,19 @@ defmodule Farmbot.Firmware do
           %State{handler: handler, handler_mod: handler_mod},
           subscribe_to: [handler], dispatcher: GenStage.BroadcastDispatcher
         }
-      {:stop, err, state} -> {:stop, err, state}
+      {:error, reason} ->
+        old = Application.get_all_env(:farmbot)[:behaviour]
+        new = Keyword.put(old, :firmware_handler, Farmbot.Firmware.StubHandler)
+        Application.put_env(:farmbot, :behaviour, new)
+        {:stop, {:handler_init, reason}}
     end
 
   end
 
   def terminate(reason, state) do
+    old = Application.get_all_env(:farmbot)[:behaviour]
+    new = Keyword.put(old, :firmware_handler, Farmbot.Firmware.StubHandler)
+    Application.put_env(:farmbot, :behaviour, new)
     unless :queue.is_empty(state.queue) do
       list = :queue.to_list(state.queue)
       for cmd <- list do

@@ -113,12 +113,12 @@ defmodule Farmbot.Bootstrap.Supervisor do
   end
 
   defp actual_init(email, pass, server) do
-    busy_msg = "Beginning authorization: #{email} - #{server}"
+    busy_msg = "Beginning Bootstrap authorization: #{email} - #{server}"
     Logger.busy(2, busy_msg)
     # get a token
     case @auth_task.authorize(email, pass, server) do
       {:ok, token} ->
-        success_msg = "Successful authorization: #{email} - #{server}"
+        success_msg = "Successful Bootstrap authorization: #{email} - #{server}"
         Logger.success(2, success_msg)
         update_config_value(:bool, "settings", "first_boot", false)
         update_config_value(:string, "authorization", "token", token)
