@@ -16,15 +16,6 @@ defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdate do
 
   defp do_reduce_os([%{args: %{label: key, value: value}} | rest], env) do
     case lookup_os_config(key, value) do
-      {:ok, {:string, "settings", val}} when val in ["farmduino", "arduino"] ->
-        Farmbot.System.ConfigStorage.update_config_value(:string, "settings", key, val)
-        hack_file = Path.join(Application.get_env(:farmbot, :data_path), "firmware_flash")
-        File.write!(hack_file, val)
-        Farmbot.BotState.set_sync_status(:maintenance)
-        Logger.warn 1, "Rebooting to flash firmware."
-        Farmbot.System.reboot("Flash arduino fw.")
-        # Stop enumeration here.
-        {:ok, env}
       {:ok, {type, group, value}} ->
         Farmbot.System.ConfigStorage.update_config_value(type, group, key, value)
         Logger.success 3, "Updating: #{inspect key}: #{value}"

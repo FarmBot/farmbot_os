@@ -80,11 +80,15 @@ $(NIF): c_src/build_calendar.c
 
 $(ARDUINO_FW):
 	$(shell echo \#define RAMPS_V14 > c_src/farmbot-arduino-firmware/src/Board.h)
+	rm -rf $(ARDUINO_BUILD_DIR)/*
+	rm -rf $(ARDUINO_CACHE_DIR)/*
 	$(ARDUINO_BUILD)
 	cp $(ARDUINO_BUILD_DIR)/src.ino.hex $@
 
 $(FARMDUINO_FW):
 	$(shell echo \#define FARMDUINO_V10 > c_src/farmbot-arduino-firmware/src/Board.h)
+	rm -rf $(ARDUINO_BUILD_DIR)/*
+	rm -rf $(ARDUINO_CACHE_DIR)/*
 	$(ARDUINO_BUILD)
 	cp $(ARDUINO_BUILD_DIR)/src.ino.hex $@
 
