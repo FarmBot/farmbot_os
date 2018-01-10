@@ -153,9 +153,12 @@ defmodule Farmbot.Firmware do
   end
 
   def terminate(reason, state) do
-    old = Application.get_all_env(:farmbot)[:behaviour]
-    new = Keyword.put(old, :firmware_handler, Farmbot.Firmware.StubHandler)
-    Application.put_env(:farmbot, :behaviour, new)
+    unless reason in [:normal, :shutdown] do
+      old = Application.get_all_env(:farmbot)[:behaviour]
+      new = Keyword.put(old, :firmware_handler, Farmbot.Firmware.StubHandler)
+      Application.put_env(:farmbot, :behaviour, new)
+    end
+
     unless :queue.is_empty(state.queue) do
       list = :queue.to_list(state.queue)
       for cmd <- list do
@@ -170,9 +173,12 @@ defmodule Farmbot.Firmware do
 
   def handle_info({:EXIT, _, reason}, state) do
     Logger.error 1, "Firmware handler: #{state.handler_mod} died: #{inspect reason}"
-    {:ok, handler} = state.handler_mod.start_link()
-    new_state = %{state | handler: handler}
-    {:noreply, [{:informational_settings, %{busy: false}}], %{new_state | initialized: false, idle: false}}
+    case state.handler_mod.start_link() do
+      {:ok, handler} ->
+        new_state = %{state | handler: handler}
+        {:noreply, [{:informational_settings, %{busy: false}}], %{new_state | initialized: false, idle: false}}
+      err -> {:stop, err, %{state | handler: false}}
+    end
   end
 
   def handle_info(:timeout, state) do
