@@ -191,7 +191,7 @@ defmodule Farmbot.FarmEvent.Manager do
 
   # if the event is finished (but not a "never" time_unit), we don't execute.
   defp maybe_start_sequence(_started?, true = _finished?, _farm_event, last_time, event, _now) do
-    Logger.success 3, "sequence #{event.name} (#{event.id}) is finished."
+    maybe_farm_event_log "sequence #{event.name} (#{event.id}) is finished."
     {nil, last_time}
   end
 
