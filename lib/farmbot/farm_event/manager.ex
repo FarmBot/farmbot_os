@@ -91,7 +91,7 @@ defmodule Farmbot.FarmEvent.Manager do
 
     #TODO(Connor) Conditionally start events based on some state info.
     unless Enum.empty?(late_events) do
-      Logger.info 3, "Time for events: #{inspect late_events} to run at: #{now.hour}:#{now.minute}"
+      Logger.debug 3, "Time for events: #{inspect late_events} to run at: #{now.hour}:#{now.minute}"
       start_events(late_events, now)
     end
     exit({:success, %{new | events: all_events}})

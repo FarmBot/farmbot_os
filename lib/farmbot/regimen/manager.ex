@@ -139,7 +139,7 @@ defmodule Farmbot.Regimen.Manager do
     timestr = "#{next_dt.month}/#{next_dt.day}/#{next_dt.year} " <>
       "at: #{next_dt.hour}:#{next_dt.minute} (#{offset_from_now} milliseconds)"
 
-    Logger.info 3, "[#{regimen.name}] next item will execute on #{timestr}"
+    Logger.debug 3, "[#{regimen.name}] next item will execute on #{timestr}"
 
     %{state | timer: timer,
       regimen: regimen,
