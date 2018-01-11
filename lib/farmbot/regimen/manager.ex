@@ -15,7 +15,7 @@ defmodule Farmbot.Regimen.Manager do
     @type t :: %__MODULE__{
       name:        binary,
       time_offset: integer,
-      sequence:    Farmbot.CeleryScript.Ast.t
+      sequence:    Farmbot.CeleryScript.AST.t
     }
 
     defstruct [:time_offset, :sequence, :name]

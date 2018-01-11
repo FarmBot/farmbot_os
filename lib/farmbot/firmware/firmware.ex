@@ -4,15 +4,9 @@ defmodule Farmbot.Firmware do
   use GenStage
   use Farmbot.Logger
   alias Farmbot.Firmware.Vec3
-  import Farmbot.System.ConfigStorage, only: [update_config_value: 4, get_config_value: 3]
 
   # If any command takes longer than this, exit.
   @call_timeout 500_000
-
-  @new_params [
-    :movement_step_per_mm_x, :movement_step_per_mm_y, :movement_step_per_mm_z,
-    :movement_home_spd_x, :movement_home_spd_y, :movement_home_spd_z
-  ]
 
   @doc "Move the bot to a position."
   def move_absolute(%Vec3{} = vec3, x_spd, y_spd, z_spd) do
@@ -198,28 +192,9 @@ defmodule Farmbot.Firmware do
     end
   end
 
-  def handle_call({:fetch_param_hack_delete_me, param}, _, state) do
-    {:reply, Map.get(state.params, param), [], state}
-  end
-
   def handle_call({fun, _}, _from, state = %{initialized: false})
-  when fun not in  [:read_param, :read_all_params, :update_param, :emergency_unlock, :emergency_lock] do
+  when fun not in  [:read_all_params, :update_param, :emergency_unlock, :emergency_lock] do
     {:reply, {:error, :uninitialized}, [], state}
-  end
-
-  def handle_call({{:update_param, [param, 0]}}, from, state)
-  when param in @new_params do
-    Logger.warn 1, "#{param} reported zero when it shouldn't have!"
-    defaults = %{
-      movement_step_per_mm_x: 5,
-      movement_step_per_mm_y: 5,
-      movement_step_per_mm_z: 25,
-      movement_home_spd_x: 50,
-      movement_home_spd_y: 50,
-      movement_home_spd_z: 50
-    }
-    hopefully_still_default_value = get_config_value(:float, "hardware_params", :"#{param}") || defaults[param]
-    handle_call({{:update_param, [param, hopefully_still_default_value]}}, from, state)
   end
 
   def handle_call({fun, args}, from, state) do
@@ -349,12 +324,6 @@ defmodule Farmbot.Firmware do
     end
   end
 
-  defp handle_gcode({:report_parameter_value, param, 0}, state)
-  when param in @new_params do
-    Logger.warn 1, "one of #{inspect @new_params} (#{param}) was reported as zero. Not saving."
-    {nil, state}
-  end
-
   defp handle_gcode({:report_parameter_value, param, value}, state) when (value == -1) do
     Farmbot.System.ConfigStorage.update_config_value(:float, "hardware_params", to_string(param), nil)
     {:mcu_params, %{param => nil}, %{state | params: Map.put(state.params, param, value)}}
@@ -363,11 +332,6 @@ defmodule Farmbot.Firmware do
   defp handle_gcode({:report_parameter_value, param, value}, state) when is_number(value) do
     Farmbot.System.ConfigStorage.update_config_value(:float, "hardware_params", to_string(param), value / 1)
     {:mcu_params, %{param => value}, %{state | params: Map.put(state.params, param, value)}}
-  end
-
-  defp handle_gcode({:report_parameter_value, param, nil}, state) do
-    Farmbot.System.ConfigStorage.update_config_value(:float, "hardware_params", to_string(param), nil)
-    {:mcu_params, %{param => nil}, %{state | params: Map.put(state.params, param, nil)}}
   end
 
   defp handle_gcode(:idle, %{initialized: false, initializing: false} = state) do
@@ -474,10 +438,6 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode({:report_axis_calibration, param, val}, state) do
-    # have to spawn this fun otherwise we have to functions waiting on eachother.
-    # FIXME(Connor) - The Firmware is currently reporting axis calibration values
-    #   in mm, not steps, so multiplying by 5 puts it back to steps. :/
-    # spawn __MODULE__, :report_calibration_callback, [5, param, val * 5]
     spawn __MODULE__, :report_calibration_callback, [5, param, val]
     {nil, state}
   end
@@ -508,31 +468,7 @@ defmodule Farmbot.Firmware do
 
   @doc false
   def do_read_params_and_report_position(old) when is_map(old) do
-    if get_config_value(:bool, "settings", "fw_upgrade_migration") do
-      Logger.busy(1, "Migrating old configuration data from firmware.")
-      migration_hack = fn(param_atom) ->
-        read_param(param_atom)
-        val = GenServer.call(__MODULE__, {:fetch_param_hack_delete_me, param_atom})
-        modified = cond do
-          is_nil(val) -> 5556
-          val == 56 -> 5556
-          val == 5556 -> 5556
-          is_number(val) -> val * 100
-          true -> 5556
-        end
-        Logger.info 2, "Update param: #{param_atom}: #{val} => #{inspect modified}"
-        update_param(param_atom, modified)
-      end
-      for param <- [:encoder_scaling_x, :encoder_scaling_y, :encoder_scaling_z] do
-        Logger.busy 3, "Migrating: #{inspect param}"
-        migration_hack.(param)
-        Logger.success 3, "Done Migrating: #{inspect param}"
-      end
-      update_config_value(:bool, "settings", "fw_upgrade_migration", false)
-      Logger.success(1, "Finished migrating old configuration data.")
-    end
-
-    for {key, float_val} <- Map.drop(old, ["encoder_scaling_x", "encoder_scaling_y", "encoder_scaling_z"]) do
+    for {key, float_val} <- old do
       cond do
         (float_val == -1) -> :ok
         is_nil(float_val) -> :ok

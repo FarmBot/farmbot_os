@@ -35,8 +35,6 @@ config :farmbot, :init, [
   # Autodetects if a Arduino is plugged in and configures accordingly.
   Farmbot.Firmware.UartHandler.AutoDetector,
 
-  Farmbot.Target.ConfigMigration.BeforeNetwork,
-
   # Allows for first boot configuration.
   Farmbot.Target.Bootstrap.Configurator,
 
@@ -45,8 +43,6 @@ config :farmbot, :init, [
 
   # Wait for time time come up.
   Farmbot.Target.Network.WaitForTime,
-
-  Farmbot.Target.ConfigMigration.AfterNetwork,
 
   # Debug stuff
   Farmbot.System.Debug,
@@ -81,7 +77,3 @@ config :nerves_firmware_ssh, authorized_keys: local_key
 config :bootloader,
   init: [:nerves_runtime, :nerves_init_gadget],
   app: :farmbot
-
-if Mix.Project.config[:target] == "rpi3" do
-  config :nerves, :firmware, fwup_conf: "fwup_interim.conf"
-end

@@ -47,6 +47,7 @@ defmodule Farmbot.Mixfile do
       deps: deps() ++ deps(@target),
       dialyzer: [
         plt_add_deps: :transitive,
+        plt_add_apps: [:mix],
         flags: []
       ],
       preferred_cli_env: [
@@ -93,40 +94,46 @@ defmodule Farmbot.Mixfile do
       {:nerves, "~> 0.8.3", runtime: false},
       {:elixir_make, "~> 0.4", runtime: false},
       {:gen_stage, "~> 0.12"},
+
       {:poison, "~> 3.0"},
-      {:ex_json_schema, "~> 0.5.3"},
-      {:rsa, "~> 0.0.1"},
       {:httpoison, "~> 0.13.0"},
+      {:jsx, "~> 2.8.0"},
+
       {:tzdata, "~> 0.5.14"},
       {:timex, "~> 3.1.13"},
 
       {:fs, "~> 3.4.0"},
       {:nerves_uart, "~> 1.0"},
-      {:uuid, "~> 1.1"},
+      {:nerves_leds, "~> 0.8.0"},
+
       {:cowboy, "~> 1.1"},
       {:plug, "~> 1.4"},
       {:cors_plug, "~> 1.2"},
+      {:wobserver, "~> 0.1.8"},
+      {:rsa, "~> 0.0.1"},
+      {:joken, "~> 1.1"},
+
       {:ecto, "~> 2.2.2"},
       {:sqlite_ecto2, "~> 2.2.1"},
-      {:wobserver, "~> 0.1.8"},
-      {:joken, "~> 1.1"},
+      {:uuid, "~> 1.1"},
+
       {:socket, "~> 0.3"},
       {:amqp, "~> 1.0.0-pre.2"},
+
       {:nerves_ssdp_server, "~> 0.2.2"},
       {:nerves_ssdp_client, "~> 0.1.0"},
 
-      {:ex_syslogger, "~> 1.4", only: :prod},
-      {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
       {:recon, "~> 2.3"},
-      {:nerves_leds, "~> 0.8.0"}
     ]
   end
 
   defp deps("host") do
     [
       {:ex_doc, "~> 0.18.1", only: :dev},
-      {:inch_ex, ">= 0.0.0", only: :dev},
       {:excoveralls, "~> 0.7", only: :test},
+      {:dialyxir, "~> 0.5.1", only: :dev, runtime: false},
+      {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
+      {:inch_ex, ">= 0.0.0", only: :dev},
       {:mock, "~> 0.2.0", only: :test},
       {:faker, "~> 0.9", only: :test},
     ]
