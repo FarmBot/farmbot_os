@@ -95,6 +95,11 @@ defmodule Farmbot.BotState do
     GenStage.call(__MODULE__, {:set_sync_status, cmd})
   end
 
+  @doc "Set the sync status to the previous status."
+  def reset_sync_status do
+    GenStage.call(__MODULE__, :reset_sync_status)
+  end
+
   @doc "Forces a state push over all transports."
   def force_state_push do
     GenStage.call(__MODULE__, :force_state_push)
@@ -181,7 +186,16 @@ defmodule Farmbot.BotState do
   end
 
   def handle_call({:set_sync_status, status}, _, state) do
-    new_info_settings = %{state.informational_settings | sync_status: status}
+    last = state.informational_settings.sync_status
+    new_info_settings = %{state.informational_settings | sync_status: status, last_status: last}
+    new_state = %{state | informational_settings: new_info_settings}
+    {:reply, :ok, [new_state], new_state}
+  end
+
+  def handle_call(:reset_sync_status, _, state) do
+    current = state.informational_settings.sync_status
+    last = state.informational_settings.last_status
+    new_info_settings = %{state.informational_settings | sync_status: last, last_status: current}
     new_state = %{state | informational_settings: new_info_settings}
     {:reply, :ok, [new_state], new_state}
   end
@@ -290,6 +304,7 @@ defmodule Farmbot.BotState do
       node_name: nil,
       busy: false,
       sync_status: :booting,
+      last_status: nil,
       locked: false
     },
     location_data: %{

@@ -135,10 +135,18 @@ defmodule Farmbot.Firmware.UartHandler.Update do
 
   def avrdude(fw_file, uart, tty) do
     close(uart)
-    case System.cmd("avrdude", ~w"-q -q -patmega2560 -cwiring -P#{tty} -b#{@uart_speed} -D -V -Uflash:w:#{fw_file}:i", [stderr_to_stdout: true, into: IO.stream(:stdio, :line)]) do
-      {_, 0} -> Logger.success 1, "Firmware flashed!"
-      {_, err_code} -> Logger.error 1, "Failed to flash Firmware! #{err_code}"
+    Logger.busy 3, "Starting avrdude."
+    args = ~w"-q -q -patmega2560 -cwiring -P#{tty} -b#{@uart_speed} -D -V -Uflash:w:#{fw_file}:i"
+    opts = [stderr_to_stdout: true, into: IO.stream(:stdio, :line)]
+    res = System.cmd("avrdude", args, opts)
+    Process.sleep(1500) # wait to allow file descriptors to be closed.
+    case res do
+      {_, 0} ->
+        Logger.success 1, "Firmware flashed!"
+        :ok
+      {_, err_code} ->
+        Logger.error 1, "Failed to flash Firmware! #{err_code}"
+        :error
     end
-    Process.sleep(1500) # to allow the FD to be closed.
   end
 end

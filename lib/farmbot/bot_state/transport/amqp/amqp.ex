@@ -78,7 +78,8 @@ defmodule Farmbot.BotState.Transport.AMQP do
   end
 
   def terminate(reason, state) do
-    if reason not in [:normal, :shutdown, :token_refresh] do
+    ok_reasons = [:normal, :shutdown, :token_refresh]
+    if reason not in ok_reasons do
       Logger.error 1, "AMQP Died: #{inspect reason}"
       update_config_value(:bool, "settings", "log_amqp_connected", true)
     end
@@ -91,7 +92,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
     # If the auth task is running, force it to reset.
     auth_task = Farmbot.Bootstrap.AuthTask
-    if Process.whereis(auth_task) && reason != :token_refresh do
+    if Process.whereis(auth_task) && reason not in ok_reasons do
       auth_task.force_refresh()
     end
   end
