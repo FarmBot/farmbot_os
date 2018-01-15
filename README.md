@@ -54,6 +54,10 @@ Installation should be fairly straight forward, you will need a computer for thi
 See the [FAQ](docs/FAQ.md)
 If your problem isn't solved there please file an issue on [Github](https://github.com/FarmBot/farmbot_os/issues/new)
 
+# Security Concerns?
+
+We take security seriously and value the input of independent researchers. Please see our [responsible disclosure guidelines](https://farm.bot/responsible-disclosure-of-security-vulnerabilities/).
+
 # Want to Help?
 
 [Low Hanging Fruit](https://github.com/FarmBot/farmbot_os/search?utf8=%E2%9C%93&q=TODO)
