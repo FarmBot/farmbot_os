@@ -56,7 +56,7 @@ If your problem isn't solved there please file an issue on [Github](https://gith
 
 # Security Concerns?
 
-We take security seriously and value the input of independent researchers. Please see our [responsible disclosure guidelines](https://farmbot.io/responsible-disclosure-of-security-vulnerabilities/).
+We take security seriously and value the input of independent researchers. Please see our [responsible disclosure guidelines](https://farm.bot/responsible-disclosure-of-security-vulnerabilities/).
 
 # Want to Help?
 
