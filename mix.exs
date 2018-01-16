@@ -95,7 +95,7 @@ defmodule Farmbot.Mixfile do
       {:elixir_make, "~> 0.4", runtime: false},
       {:gen_stage, "~> 0.12"},
 
-      {:poison, "~> 3.0"},
+      {:poison, "~> 3.1.0"},
       {:httpoison, "~> 0.13.0"},
       {:jsx, "~> 2.8.0"},
 
@@ -167,16 +167,13 @@ defmodule Farmbot.Mixfile do
   end
 
   defp system("rpi3"),
-    do: [{:nerves_system_farmbot_rpi3, "0.18.1-farmbot", runtime: false}]
+    do: [{:nerves_system_farmbot_rpi3, "0.19.0-farmbot", runtime: false}]
 
   defp system("rpi0"),
-    do: [{:nerves_system_farmbot_rpi0, "0.18.3-farmbot.1", runtime: false}]
+    do: [{:nerves_system_farmbot_rpi0, "0.20.0-farmbot", runtime: false}]
 
   defp system("bbb"),
-    do: [{:nerves_system_farmbot_bbb, "0.17.2-farmbot", runtime: false}]
-
-  defp system("x86_64"),
-    do: [{:nerves_system_x86_64, "~> 0.3.1", github: "nerves-project/nerves_system_x86_64"}]
+    do: [{:nerves_system_farmbot_bbb, "0.19.0-farmbot", runtime: false}]
 
   defp package do
     [
