@@ -22,8 +22,11 @@ defmodule Farmbot.HTTP.ImageUploader do
     File.mkdir_p! @images_path
     :fs_app.start(:normal, [])
     :fs.subscribe()
-    Process.flag(:trap_exit, true)
     {:ok, %{uploads: %{}}}
+  end
+
+  def terminate(reason, _state) do
+    Logger.debug 3, "Image uploader terminated: #{inspect reason}"
   end
 
   def handle_info({_pid, {:fs, :file_event}, {path, _}}, state) do
@@ -36,6 +39,7 @@ defmodule Farmbot.HTTP.ImageUploader do
       %{x: x, y: y, z: z} = Farmbot.BotState.get_current_pos()
       meta = %{x: x, y: y, z: z, name: Path.rootname(path)}
       pid = spawn __MODULE__, :upload, [path, meta]
+      Process.monitor(pid)
       {:noreply, %{state | uploads: Map.put(state.uploads, pid, {path, meta, 0})}}
     else
       # Logger.warn 3, "Not uploading: match: #{matches?} already_uploading?: #{already_uploading?}"
@@ -43,25 +47,40 @@ defmodule Farmbot.HTTP.ImageUploader do
     end
   end
 
-  def handle_info({:EXIT, pid, reason}, state) do
+  def handle_info({:DOWN, _, :process, pid, :normal}, state) do
+    case state.uploads[pid] do
+      nil -> {:noreply, state}
+      {path, _meta, _} ->
+        Logger.success 1, "Image Watcher successfully uploaded: #{path}"
+        File.rm path
+        {:noreply, %{state | uploads: Map.delete(state.uploads, pid)}}
+    end
+  end
+
+  def handle_info({:DOWN, _, :process, pid, reason}, state) do
     case state.uploads[pid] do
       nil                   -> {:noreply, state}
-      {path, _meta, 6 = ret} ->
+      {path, _meta, 3 = ret} ->
         Logger.error 1, "Failed to upload #{path} #{ret} times. Giving up."
         File.rm path
         {:noreply, %{state | uploads: Map.delete(state.uploads, pid)}}
       {path, meta, retries}  ->
-        Logger.warn 2, "Failed to upload #{path} #{inspect reason}. Going to retry."
-        Process.sleep(1000 * retries)
-        new_pid = spawn __MODULE__, :upload, [path, meta]
-        new_uploads = state
-          |> Map.delete(pid)
-          |> Map.put(new_pid, {path, meta, retries + 1})
-        {:noreply, %{state | uploads: new_uploads}}
+        if File.exists?(path) do
+          Logger.warn 2, "Failed to upload #{path} #{inspect reason}. Going to retry."
+          Process.sleep(1000 * retries)
+          new_pid = spawn __MODULE__, :upload, [path, meta]
+          new_uploads = state.uploads
+            |> Map.delete(pid)
+            |> Map.put(new_pid, {path, meta, retries + 1})
+          Process.monitor(new_pid)
+          {:noreply, %{state | uploads: new_uploads}}
+        else
+          {:noreply, %{state | uploads: Map.delete(state.uploads, pid)}}
+        end
     end
   end
 
-  def handle_info(_, state), do: {:noreply, state}
+  def handle_info(_info, state), do: {:noreply, state}
 
   # Stolen from
   # https://github.com/phoenixframework/
@@ -78,14 +97,12 @@ defmodule Farmbot.HTTP.ImageUploader do
     end
   end
 
-  @spec upload(Path.t, map) :: {:ok, any} | {:error, any}
   def upload(file_path, meta) do
     Logger.busy 3, "Image Watcher trying to upload #{file_path}"
-    Farmbot.HTTP.upload_file(file_path, meta)
-    if Process.whereis(Farmbot.System.Updates.SlackUpdater) do
-      Farmbot.System.Updates.SlackUpdater.upload_file(file_path)
+    case Farmbot.HTTP.upload_file(file_path, meta) do
+      {:ok, %{status_code: 200}} -> exit(:normal)
+      {:ok, %{body: body}} -> exit({:http_error, body})
+      {:error, reason} -> exit(reason)
     end
-    File.rm!(file_path)
-    Logger.success 3, "Image Watcher uploaded #{file_path}"
   end
 end
