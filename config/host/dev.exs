@@ -15,12 +15,11 @@ config :farmbot, data_path: "tmp/"
 config :farmbot, :init, [
   Farmbot.Host.Bootstrap.Configurator,
   Farmbot.Host.TargetConfiguratorTest.Supervisor,
-  # Farmbot.System.Debug
+  Farmbot.System.Debug
 ]
 
 # Transports.
 config :farmbot, :transport, [
-  # Farmbot.BotState.Transport.GenMQTT,
   Farmbot.BotState.Transport.AMQP,
   Farmbot.BotState.Transport.HTTP,
 ]
@@ -51,8 +50,8 @@ config :farmbot, Farmbot.System.ConfigStorage,
 config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
   system_tasks: Farmbot.Host.SystemTasks,
-  update_handler: Farmbot.Host.UpdateHandler,
-  firmware_handler: Farmbot.Firmware.UartHandler
+  update_handler: Farmbot.Host.UpdateHandler
+  # firmware_handler: Farmbot.Firmware.UartHandler
 
 config :farmbot, :uart_handler, tty: "/dev/ttyACM1"
 

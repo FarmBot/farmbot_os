@@ -120,9 +120,6 @@ defmodule Farmbot.Mixfile do
       {:socket, "~> 0.3"},
       {:amqp, "~> 1.0.0-pre.2"},
 
-      {:nerves_ssdp_server, "~> 0.2.2"},
-      {:nerves_ssdp_client, "~> 0.1.0"},
-
       {:recon, "~> 2.3"},
     ]
   end
