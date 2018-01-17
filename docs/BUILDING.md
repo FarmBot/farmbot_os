@@ -82,7 +82,7 @@ iex -S mix # This will start an interactive shell.
 Sometimes features will need to be developed and tested on the device itself.
 This is accomplished with the `dev` and `rpi3` combo.
 It is *highly* recommended that you have an FTDI cable for this such as
-[this](https://www.digikey.com/product-detail/en/ftdi/TTL-232R-RPI/768-1204-ND/4382044?WT.srch=1&gclid=CjwKCAiAhfzSBRBTEiwAN-ysWGhYH3gnmetjTHPkmUtZIm3JvfgIyZuGJV6pauhemNtKZ_FIvxxFFhoCqWsQAvD_BwE) one
+[this](https://www.digikey.com/product-detail/en/ftdi/TTL-232R-RPI/768-1204-ND) one
 
 
 ```bash
