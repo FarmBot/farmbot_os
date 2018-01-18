@@ -1,4 +1,10 @@
 # Frequently Asked Questions
+
+# What ports oputbound does Farmbot OS use?
+* AMQP: 5673
+* HTTP(S): 80 + 443 (this is configurable)
+* NTP: UDP 123
+
 # My bot doesn't boot on a fresh SD card!
 This could be one of a few things. These things are in order of probability.
 
