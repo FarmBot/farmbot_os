@@ -132,6 +132,8 @@
 * Refactored FarmEvent Calendar generator.
 * Fix a ton of little bugs.
 
-# 6.1.0-dev
-* Remove all the migration code to safely get to 6.0.1
-* Clean up deps
+# 6.1.0
+* Remove all the migration code to safely get from 5.0.x to 6.0.1.
+* Clean up and upgrade dependencies.
+* Fix bug that could cause Image uploads to silently fail.
+* Fix bug in `tzdata` that could cause the sdcard to fill up.
