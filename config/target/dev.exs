@@ -44,6 +44,10 @@ config :farmbot, :init, [
   # Wait for time time come up.
   Farmbot.Target.Network.WaitForTime,
 
+
+  # Stops the disk from getting full.
+  Farmbot.Target.Network.TzdataTask,
+
   # Debug stuff
   Farmbot.System.Debug,
   Farmbot.Target.Uevent.Supervisor

@@ -140,7 +140,7 @@ defmodule Farmbot.Mixfile do
     system("rpi3") ++
       [
         {:bootloader, "~> 0.1.3", except: :test},
-        {:nerves_runtime, "~> 0.4"},
+        {:nerves_runtime, "0.5.3"},
         {:nerves_firmware, "~> 0.4.0"},
         {:nerves_firmware_ssh, "~> 0.2", only: :dev},
         {:nerves_network, "~> 0.3.6"},
@@ -153,7 +153,7 @@ defmodule Farmbot.Mixfile do
     system(target) ++
       [
         {:bootloader, "~> 0.1.3", except: :test},
-        {:nerves_runtime, "~> 0.4"},
+        {:nerves_runtime, "0.5.3"},
         {:nerves_firmware, "~> 0.4.0"},
         {:nerves_firmware_ssh, "~> 0.2", only: :dev},
         {:nerves_init_gadget,  github: "nerves-project/nerves_init_gadget", branch: "dhcp", only: :dev},
