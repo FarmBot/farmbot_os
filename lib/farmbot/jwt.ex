@@ -8,7 +8,8 @@ defmodule Farmbot.Jwt do
     :mqtt,
     :vhost,
     :os_update_server,
-    :interim_email
+    :beta_os_update_server,
+    :interim_email,
   ]
 
   @typedoc "Type def for Farmbot Web Token."
