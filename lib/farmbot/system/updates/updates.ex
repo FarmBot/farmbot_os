@@ -25,9 +25,13 @@ defmodule Farmbot.System.Updates do
     token = ConfigStorage.get_config_value(:string, "authorization", "token")
     if token do
       case Farmbot.Jwt.decode(token) do
-        {:ok, %Farmbot.Jwt{os_update_server: update_server}} ->
+        {:ok, %Farmbot.Jwt{os_update_server: normal_update_server, beta_os_update_server: beta_update_server}} ->
           override = ConfigStorage.get_config_value(:string, "settings", "os_update_server_overwrite")
-          do_check_updates_http(override || update_server, reboot)
+          if ConfigStorage.get_config_value(:bool, "settings", "beta_opt_in") do
+            do_check_updates_http(override || beta_update_server, reboot)
+          else
+            do_check_updates_http(override || normal_update_server, reboot)
+          end
         _ -> no_token()
       end
     else
