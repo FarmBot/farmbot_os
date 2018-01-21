@@ -7,7 +7,7 @@ defmodule Farmbot.Firmware.UartHandler do
   alias Nerves.UART
   use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
-  import ConfigStorage, only: [update_config_value: 4]
+  import ConfigStorage, only: [update_config_value: 4, get_config_value: 3]
   alias Farmbot.Firmware
   alias Firmware.{UartHandler, Vec3}
   import Vec3, only: [fmnt_float: 1]
@@ -88,10 +88,13 @@ defmodule Farmbot.Firmware.UartHandler do
     defstruct [
       nerves: nil,
       current_cmd: nil,
+      tty: nil,
+      hw: nil
     ]
   end
 
   def init([]) do
+    Logger.debug 3, "Uart handler init."
     # If in dev environment,
     #   it is expected that this be done at compile time.
     # If in target environment,
@@ -102,32 +105,16 @@ defmodule Farmbot.Firmware.UartHandler do
     # Disable fw input logs after a reset of the
     # Fw handler if they were enabled.
     update_config_value(:bool, "settings", "firmware_input_log", false)
-
-    # This looks up a hack file, flashes fw, and removes hack file.
-    # Sorry about that.
-    maybe_flash_fw(tty)
-
+    hw = get_config_value(:string, "settings", "firmware_hardware")
     gen_stage_opts = [
       dispatcher: GenStage.BroadcastDispatcher,
       subscribe_to: [ConfigStorage.Dispatcher]
     ]
     case open_tty(tty) do
       {:ok, nerves} ->
-        {:producer_consumer, %State{nerves: nerves}, gen_stage_opts}
+        {:producer_consumer, %State{nerves: nerves, tty: tty, hw: hw}, gen_stage_opts}
       err ->
         {:stop, err}
-    end
-  end
-
-  defp maybe_flash_fw(_tty) do
-    path_list = [Application.get_env(:farmbot, :data_path), "firmware_flash"]
-    hack_file = Path.join(path_list)
-    case File.read(hack_file) do
-      {:ok, value} when value in ["arduino", "farmduino"] ->
-        update_config_value(:string, "settings", "firmware_hardware", value)
-        UartHandler.Update.force_update_firmware(value)
-        File.rm!(hack_file)
-      _ -> :ok
     end
   end
 
@@ -135,7 +122,12 @@ defmodule Farmbot.Firmware.UartHandler do
     state = Enum.reduce(events, state, fn(event, state_acc) ->
       handle_config(event, state_acc)
     end)
-    {:noreply, [], state}
+
+    case state do
+      %State{} = state ->
+        {:noreply, [], state}
+      _ -> state
+    end
   end
 
   defp handle_config({:config, "settings", key, _val}, state)
@@ -147,12 +139,38 @@ defmodule Farmbot.Firmware.UartHandler do
     state
   end
 
+  defp handle_config({:config, "settings", "firmware_hardware", val}, state) do
+    if val != state.hw do
+      Logger.info 3, "firmware_hardware updated from #{state.hw} to #{val}"
+      Farmbot.BotState.set_sync_status(:maintenance)
+      UART.close(state.nerves)
+      UartHandler.Update.force_update_firmware(val)
+      open_tty(state.tty, state.nerves)
+      Farmbot.BotState.reset_sync_status()
+      Logger.busy 1, "Reinitializing Firmware."
+      old = Farmbot.System.ConfigStorage.get_config_as_map()["hardware_params"]
+      pid = case old["param_version"] do
+        nil ->
+          Logger.debug 3, "Setting up fresh params."
+          spawn Farmbot.Firmware, :do_read_params_and_report_position, [%{}]
+        _   ->
+          Logger.debug 3, "Setting up old params."
+          spawn Farmbot.Firmware, :do_read_params_and_report_position, [Map.delete(old, "param_version")]
+      end
+      Process.link(pid)
+      %{state | hw: val}
+    else
+      state
+    end
+  end
+
   defp handle_config(_, state) do
     state
   end
 
-  defp open_tty(tty) do
-    {:ok, nerves} = UART.start_link()
+  defp open_tty(tty, nerves \\ nil) do
+    Logger.debug 3, "Opening uart device: #{tty}"
+    nerves = nerves || UART.start_link |> elem(1)
     Process.link(nerves)
     case UART.open(nerves, tty, [speed: 115_200, active: true]) do
       :ok ->
@@ -165,17 +183,33 @@ defmodule Farmbot.Firmware.UartHandler do
     end
   end
 
-  defp loop_until_idle(nerves) do
+  defp loop_until_idle(nerves, idle_count \\ 0)
+
+  defp loop_until_idle(nerves, 2) do
+    Logger.success 3, "Got two idles. UART is up."
+    Process.sleep(1500)
+    {:ok, nerves}
+  end
+
+  defp loop_until_idle(nerves, idle_count)
+    when is_pid(nerves) and is_number(idle_count)
+  do
+    Logger.debug 3, "Waiting for firmware idle."
     receive do
       {:nerves_uart, _, {:error, reason}} -> {:stop, reason}
-      {:nerves_uart, _, {:partial, _}} -> loop_until_idle(nerves)
-      # {:nerves_uart, _, {_, :idle}} -> {:ok, nerves}
-      {:nerves_uart, _, {_, {:debug_message, "ARDUINO STARTUP COMPLETE"}}} ->
+      {:nerves_uart, _, {:partial, _}} -> loop_until_idle(nerves, idle_count)
+      {:nerves_uart, _, {_, :idle}} -> loop_until_idle(nerves, idle_count + 1)
+      {:nerves_uart, _, {_, {:debug_message, msg}}} ->
+        if String.contains?(msg, "STARTUP") do
+          Logger.success 3, "Got #{msg}. UART is up."
           {:ok, nerves}
-      {:nerves_uart, _, _msg} ->
-        # Logger.info 3, "Got message: #{inspect msg}"
-        loop_until_idle(nerves)
-    after 30_000 -> {:stop, "Firmware didn't respond in 30 seconds."}
+        else
+          Logger.debug 3, "Got arduino debug while booting up: #{msg}"
+          loop_until_idle(nerves, idle_count)
+        end
+      {:nerves_uart, _, _msg} -> loop_until_idle(nerves, idle_count)
+    after
+      10_000 -> {:stop, "Firmware didn't send any info for 10 seconds."}
     end
   end
 
@@ -189,9 +223,10 @@ defmodule Farmbot.Firmware.UartHandler do
   end
 
   def terminate(reason, state) do
+    Logger.warn 1, "UART handler died: #{inspect reason}"
     if state.nerves do
       UART.close(state.nerves)
-      UART.stop(reason)
+      UART.stop(:normal)
     end
   end
 

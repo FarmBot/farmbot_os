@@ -9,6 +9,7 @@ defmodule Farmbot.BotState do
   use GenStage
   @version Farmbot.Project.version()
   @commit Farmbot.Project.commit()
+  @arduino_commit Farmbot.Project.arduino_commit()
   @target Farmbot.Project.target()
   @env Farmbot.Project.env()
 
@@ -94,6 +95,11 @@ defmodule Farmbot.BotState do
     GenStage.call(__MODULE__, {:set_sync_status, cmd})
   end
 
+  @doc "Set the sync status to the previous status."
+  def reset_sync_status do
+    GenStage.call(__MODULE__, :reset_sync_status)
+  end
+
   @doc "Forces a state push over all transports."
   def force_state_push do
     GenStage.call(__MODULE__, :force_state_push)
@@ -166,7 +172,10 @@ defmodule Farmbot.BotState do
   end
 
   def handle_call(:force_state_push, _from, state) do
-    {:reply, state, [state], state}
+    new_state = update_in(state, [:informational_settings, :cache_bust], fn(old) ->
+      old + 1
+    end)
+    {:reply, new_state, [new_state], new_state}
   end
 
   def handle_call({:set_busy, bool}, _from, state) do
@@ -180,7 +189,16 @@ defmodule Farmbot.BotState do
   end
 
   def handle_call({:set_sync_status, status}, _, state) do
-    new_info_settings = %{state.informational_settings | sync_status: status}
+    last = state.informational_settings.sync_status
+    new_info_settings = %{state.informational_settings | sync_status: status, last_status: last}
+    new_state = %{state | informational_settings: new_info_settings}
+    {:reply, :ok, [new_state], new_state}
+  end
+
+  def handle_call(:reset_sync_status, _, state) do
+    current = state.informational_settings.sync_status
+    last = state.informational_settings.last_status
+    new_info_settings = %{state.informational_settings | sync_status: last, last_status: current}
     new_state = %{state | informational_settings: new_info_settings}
     {:reply, :ok, [new_state], new_state}
   end
@@ -282,13 +300,16 @@ defmodule Farmbot.BotState do
     informational_settings: %{
       controller_version: @version,
       firmware_version: "disconnected",
+      firmware_commit: @arduino_commit,
       commit: @commit,
       target: @target,
       env: @env,
       node_name: nil,
       busy: false,
       sync_status: :booting,
-      locked: false
+      last_status: nil,
+      locked: false,
+      cache_bust: 0
     },
     location_data: %{
       position: %{x: nil, y: nil, z: nil},
@@ -395,4 +416,10 @@ defmodule Farmbot.BotState do
     configuration: %{},
     user_env: %{}
   ]
+
+  @behaviour Access
+  def fetch(state, key), do: Map.fetch(state, key)
+  def get(state, key, default), do: Map.get(state, key, default)
+  def get_and_update(state, key, fun), do: Map.get_and_update(state, key, fun)
+  def pop(state, key), do: Map.pop(state, key)
 end

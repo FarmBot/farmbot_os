@@ -14,7 +14,7 @@ if you spot a bug or fix, but for now we suggest obtaining a Raspberry Pi 3 for 
 
 |Raspbery Pi Version |
 |---|
-| :star: **[RPi 3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v5.0.9/farmbot-rpi3-5.0.9.img)**|
+| :star: **[RPi 3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v6.0.1/farmbot-rpi3-6.0.1.img)**|
 ---
 
 # Farmbot OS
@@ -53,6 +53,10 @@ Installation should be fairly straight forward, you will need a computer for thi
 
 See the [FAQ](docs/FAQ.md)
 If your problem isn't solved there please file an issue on [Github](https://github.com/FarmBot/farmbot_os/issues/new)
+
+# Security Concerns?
+
+We take security seriously and value the input of independent researchers. Please see our [responsible disclosure guidelines](https://farm.bot/responsible-disclosure-of-security-vulnerabilities/).
 
 # Want to Help?
 

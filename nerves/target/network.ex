@@ -16,7 +16,7 @@ defmodule Farmbot.Target.Network do
   def to_network_config(config)
 
   def to_network_config(%NetworkInterface{ssid: ssid, psk: psk, type: "wireless"} = config) do
-    Logger.debug(3, "wireless network config: ssid: #{config.ssid}, psk: #{config.psk}")
+    Logger.debug(3, "wireless network config: ssid: #{config.ssid}")
     {config.name, [ssid: ssid, key_mgmt: :"WPA-PSK", psk: psk]}
   end
 

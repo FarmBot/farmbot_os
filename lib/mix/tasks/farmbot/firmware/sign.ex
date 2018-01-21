@@ -15,6 +15,7 @@ defmodule Mix.Tasks.Farmbot.Firmware.Sign do
     end
   end
 
+  @dialyzer {[:no_return], [error: 0]}
   defp error do
     Mix.raise "Usage: mix farmbot.firmware.sign /path/to/private/key [input.fw] [output.fw]"
   end

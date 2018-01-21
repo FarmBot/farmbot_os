@@ -15,13 +15,11 @@ config :farmbot, data_path: "tmp/"
 config :farmbot, :init, [
   Farmbot.Host.Bootstrap.Configurator,
   Farmbot.Host.TargetConfiguratorTest.Supervisor,
-  Farmbot.System.Udev.Supervisor,
-  # Farmbot.System.Debug
+  Farmbot.System.Debug
 ]
 
 # Transports.
 config :farmbot, :transport, [
-  # Farmbot.BotState.Transport.GenMQTT,
   Farmbot.BotState.Transport.AMQP,
   Farmbot.BotState.Transport.HTTP,
 ]
@@ -55,7 +53,7 @@ config :farmbot, :behaviour,
   update_handler: Farmbot.Host.UpdateHandler
   # firmware_handler: Farmbot.Firmware.UartHandler
 
-config :farmbot, :uart_handler, tty: "/dev/ttyACM0"
+config :farmbot, :uart_handler, tty: "/dev/ttyACM1"
 
 config :farmbot, :logger, [
   # backends: [Elixir.Logger.Backends.Farmbot]

@@ -5,6 +5,7 @@ defmodule Mix.Tasks.Farmbot.Firmware.Slack do
   use Mix.Task
   import Mix.Tasks.Farmbot.Env
 
+  @dialyzer {[:no_return], [run: 1]}
   def run(opts) do
     token = slack_token()
 
@@ -54,51 +55,7 @@ defmodule Mix.Tasks.Farmbot.Firmware.Slack do
     end
   end
 
-  defp build_comment(time, comment) do
-    # %{
-    #   env: env(),
-    #   target: target(),
-    #   version: mix_config(:version),
-    #   commit: mix_config(:commit),
-    #   time: time,
-    #   comment: comment
-    # } |> Poison.encode!(pretty: true)
-
-    """
-    *New Farmbot Firmware!*
-    > *_Env_*:       `#{env()}`
-    > *_Target_*:    `#{target()}`
-    > *_Version_*:   `#{mix_config(:version)}`
-    > *_Commit_*:    `#{mix_config(:commit)}`
-    > *_Time_*:      `#{time}`
-    #{String.trim(comment)}
-    """
-  end
-
   defp error(msg) do
     Mix.raise("Upload failed! " <> msg)
-  end
-
-  defp format_date_time(%{ctime: {{yr, m, day}, {hr, min, sec}}}) do
-    dt =
-      %DateTime{
-        hour: hr,
-        year: yr,
-        month: m,
-        day: day,
-        minute: min,
-        second: sec,
-        time_zone: "Etc/UTC",
-        zone_abbr: "UTC",
-        std_offset: 0,
-        utc_offset: 0
-      }
-      |> Timex.local()
-
-    "#{dt.year}-#{pad(dt.month)}-#{pad(dt.day)}_#{pad(dt.hour)}#{pad(dt.minute)}"
-  end
-
-  defp pad(int) do
-    if int < 10, do: "0#{int}", else: "#{int}"
   end
 end

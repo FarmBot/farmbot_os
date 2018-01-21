@@ -120,13 +120,17 @@ defmodule Farmbot.Repo do
 
   def handle_info({:DOWN, _, :process, _, %State{} = new_state}, %State{} = state) do
     Logger.success(1, "Sync complete.")
-    GenServer.reply(state.from, :ok)
+    if state.from do
+      GenServer.reply(state.from, :ok)
+    end
     {:noreply, new_state}
   end
 
   def handle_info({:DOWN, _, :process, _, reason}, state) do
     Logger.error 1, "Sync error: #{inspect reason}"
-    GenServer.reply(state.from, reason)
+    if state.from do
+      GenServer.reply(state.from, reason)
+    end
     BotState.set_sync_status(:sync_now)
     destroy_all_sync_cmds()
     {:noreply, %State{state | sync_pid: nil, from: nil}}

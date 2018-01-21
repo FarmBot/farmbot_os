@@ -15,7 +15,7 @@ defmodule Farmbot.Regimen.Manager do
     @type t :: %__MODULE__{
       name:        binary,
       time_offset: integer,
-      sequence:    Farmbot.CeleryScript.Ast.t
+      sequence:    Farmbot.CeleryScript.AST.t
     }
 
     defstruct [:time_offset, :sequence, :name]
@@ -139,7 +139,7 @@ defmodule Farmbot.Regimen.Manager do
     timestr = "#{next_dt.month}/#{next_dt.day}/#{next_dt.year} " <>
       "at: #{next_dt.hour}:#{next_dt.minute} (#{offset_from_now} milliseconds)"
 
-    Logger.info 3, "[#{regimen.name}] next item will execute on #{timestr}"
+    Logger.debug 3, "[#{regimen.name}] next item will execute on #{timestr}"
 
     %{state | timer: timer,
       regimen: regimen,
