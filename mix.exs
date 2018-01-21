@@ -47,6 +47,7 @@ defmodule Farmbot.Mixfile do
       deps: deps() ++ deps(@target),
       dialyzer: [
         plt_add_deps: :transitive,
+        plt_add_apps: [:mix],
         flags: []
       ],
       preferred_cli_env: [
@@ -93,40 +94,43 @@ defmodule Farmbot.Mixfile do
       {:nerves, "~> 0.8.3", runtime: false},
       {:elixir_make, "~> 0.4", runtime: false},
       {:gen_stage, "~> 0.12"},
-      {:poison, "~> 3.0"},
-      {:ex_json_schema, "~> 0.5.3"},
-      {:rsa, "~> 0.0.1"},
+
+      {:poison, "~> 3.1.0"},
       {:httpoison, "~> 0.13.0"},
+      {:jsx, "~> 2.8.0"},
+
       {:tzdata, "~> 0.5.14"},
       {:timex, "~> 3.1.13"},
 
       {:fs, "~> 3.4.0"},
       {:nerves_uart, "~> 1.0"},
-      {:uuid, "~> 1.1"},
+      {:nerves_leds, "~> 0.8.0"},
+
       {:cowboy, "~> 1.1"},
       {:plug, "~> 1.4"},
       {:cors_plug, "~> 1.2"},
+      {:wobserver, "~> 0.1.8"},
+      {:rsa, "~> 0.0.1"},
+      {:joken, "~> 1.1"},
+
       {:ecto, "~> 2.2.2"},
       {:sqlite_ecto2, "~> 2.2.1"},
-      {:wobserver, "~> 0.1.8"},
-      {:joken, "~> 1.1"},
+      {:uuid, "~> 1.1"},
+
       {:socket, "~> 0.3"},
       {:amqp, "~> 1.0.0-pre.2"},
-      {:nerves_ssdp_server, "~> 0.2.2"},
-      {:nerves_ssdp_client, "~> 0.1.0"},
 
-      {:ex_syslogger, "~> 1.4", only: :prod},
-      {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
       {:recon, "~> 2.3"},
-      {:nerves_leds, "~> 0.8.0"}
     ]
   end
 
   defp deps("host") do
     [
       {:ex_doc, "~> 0.18.1", only: :dev},
-      {:inch_ex, ">= 0.0.0", only: :dev},
       {:excoveralls, "~> 0.7", only: :test},
+      {:dialyxir, "~> 0.5.1", only: :dev, runtime: false},
+      {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
+      {:inch_ex, ">= 0.0.0", only: :dev},
       {:mock, "~> 0.2.0", only: :test},
       {:faker, "~> 0.9", only: :test},
     ]
@@ -136,7 +140,7 @@ defmodule Farmbot.Mixfile do
     system("rpi3") ++
       [
         {:bootloader, "~> 0.1.3", except: :test},
-        {:nerves_runtime, "~> 0.4"},
+        {:nerves_runtime, "0.5.3"},
         {:nerves_firmware, "~> 0.4.0"},
         {:nerves_firmware_ssh, "~> 0.2", only: :dev},
         {:nerves_network, "~> 0.3.6"},
@@ -149,7 +153,7 @@ defmodule Farmbot.Mixfile do
     system(target) ++
       [
         {:bootloader, "~> 0.1.3", except: :test},
-        {:nerves_runtime, "~> 0.4"},
+        {:nerves_runtime, "0.5.3"},
         {:nerves_firmware, "~> 0.4.0"},
         {:nerves_firmware_ssh, "~> 0.2", only: :dev},
         {:nerves_init_gadget,  github: "nerves-project/nerves_init_gadget", branch: "dhcp", only: :dev},
@@ -160,16 +164,13 @@ defmodule Farmbot.Mixfile do
   end
 
   defp system("rpi3"),
-    do: [{:nerves_system_farmbot_rpi3, "0.17.2-farmbot.2", runtime: false}]
+    do: [{:nerves_system_farmbot_rpi3, "0.19.0-farmbot", runtime: false}]
 
   defp system("rpi0"),
-    do: [{:nerves_system_farmbot_rpi0, "0.18.3-farmbot.1", runtime: false}]
+    do: [{:nerves_system_farmbot_rpi0, "0.20.0-farmbot", runtime: false}]
 
   defp system("bbb"),
-    do: [{:nerves_system_farmbot_bbb, "0.17.2-farmbot", runtime: false}]
-
-  defp system("x86_64"),
-    do: [{:nerves_system_x86_64, "~> 0.3.1", github: "nerves-project/nerves_system_x86_64"}]
+    do: [{:nerves_system_farmbot_bbb, "0.19.0-farmbot", runtime: false}]
 
   defp package do
     [

@@ -20,6 +20,9 @@ defmodule Farmbot.HTTP.Adapter do
   @typedoc "Options to the underlying http adapter."
   @type opts :: Keyword.t()
 
+  @typedoc "HTTP Status code."
+  @type status_code :: integer
+
   @typedoc """
   Callback for progress of a downloaded file.
   Arg 1 should be the the downloaded bytes.

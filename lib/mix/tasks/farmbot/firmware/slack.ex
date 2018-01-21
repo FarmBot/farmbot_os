@@ -5,6 +5,7 @@ defmodule Mix.Tasks.Farmbot.Firmware.Slack do
   use Mix.Task
   import Mix.Tasks.Farmbot.Env
 
+  @dialyzer {[:no_return], [run: 1]}
   def run(opts) do
     token = slack_token()
 

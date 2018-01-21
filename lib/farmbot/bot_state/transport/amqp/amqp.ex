@@ -73,7 +73,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
       host: mqtt_server,
       username: device,
       password: token,
-      virtual_host: vhost || "/"]
+      virtual_host: vhost]
     AMQP.Connection.open(opts)
   end
 

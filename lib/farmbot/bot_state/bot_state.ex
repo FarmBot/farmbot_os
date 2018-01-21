@@ -172,7 +172,10 @@ defmodule Farmbot.BotState do
   end
 
   def handle_call(:force_state_push, _from, state) do
-    {:reply, state, [state], state}
+    new_state = update_in(state, [:informational_settings, :cache_bust], fn(old) ->
+      old + 1
+    end)
+    {:reply, new_state, [new_state], new_state}
   end
 
   def handle_call({:set_busy, bool}, _from, state) do
@@ -305,7 +308,8 @@ defmodule Farmbot.BotState do
       busy: false,
       sync_status: :booting,
       last_status: nil,
-      locked: false
+      locked: false,
+      cache_bust: 0
     },
     location_data: %{
       position: %{x: nil, y: nil, z: nil},
@@ -412,4 +416,10 @@ defmodule Farmbot.BotState do
     configuration: %{},
     user_env: %{}
   ]
+
+  @behaviour Access
+  def fetch(state, key), do: Map.fetch(state, key)
+  def get(state, key, default), do: Map.get(state, key, default)
+  def get_and_update(state, key, fun), do: Map.get_and_update(state, key, fun)
+  def pop(state, key), do: Map.pop(state, key)
 end
