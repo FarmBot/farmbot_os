@@ -5,11 +5,13 @@ defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdate do
   allow_args [:package]
 
   def execute(%{package: :farmbot_os}, body, env) do
+    Logger.warn 2, "`config_update` is a depricated RPC."
     env = mutate_env(env)
     do_reduce_os(body, env)
   end
 
   def execute(%{package: :arduino_firmware}, body, env) do
+    Logger.warn 2, "`config_update` is a depricated RPC."
     env = mutate_env(env)
     do_reduce_fw(body, env)
   end
@@ -51,6 +53,7 @@ defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdate do
   defp lookup_os_config("firmware_input_log",        val), do: {:ok, {:bool,   "settings", format_bool_for_os(val)}}
   defp lookup_os_config("firmware_output_log",       val), do: {:ok, {:bool,   "settings", format_bool_for_os(val)}}
   defp lookup_os_config("beta_opt_in",               val), do: {:ok, {:bool,   "settings", format_bool_for_os(val)}}
+  defp lookup_os_config("api_migrated",              val), do: {:ok, {:bool,   "settings", format_bool_for_os(val)}}
 
   defp lookup_os_config("network_not_found_timer",   val) when val > 0, do: {:ok, {:float,  "settings", to_float(val)}}
   defp lookup_os_config("network_not_found_timer",  _val), do: {:error, "network_not_found_timer must be greater than zero"}
