@@ -178,6 +178,8 @@ defmodule Farmbot.BotState.Transport.AMQP do
       ["bot", ^device, "sync", resource, _]
       when resource in ["Log", "User", "Image", "WebcamFeed"] ->
         {:noreply, [], state}
+      ["bot", ^device, "sync", "FbosConfig", id] ->
+        handle_fbos_config(id, payload, state)
       ["bot", ^device, "sync", resource, id] ->
         handle_sync_cmd(resource, id, payload, state)
       ["bot", ^device, "logs"]        -> {:noreply, [], state}
@@ -229,6 +231,17 @@ defmodule Farmbot.BotState.Transport.AMQP do
       Logger.warn 2, msg
     end
     {:noreply, [], state}
+  end
+
+  def handle_fbos_config(_id, payload, state) do
+    case Poison.decode(payload) do
+      # TODO(Connor) What do I do with deletes?
+      {:ok, %{"body" => nil}} -> {:noreply, [], state}
+      {:ok, %{"body" => config}} ->
+        config = Map.drop(config, ["created_at", "updated_at", "id"])
+        Farmbot.Bootstrap.SettingsSync.apply_map(state.state_cache.configuration, config)
+        {:noreply, [], state}
+    end
   end
 
   defp push_bot_log(chan, bot, log) do

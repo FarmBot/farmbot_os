@@ -370,7 +370,7 @@ defmodule Farmbot.Repo do
     case do_sync_all_resources(repo_a) do
       :ok ->
         do_sync_all_resources(repo_b)
-
+        Farmbot.Bootstrap.SettingsSync.run()
       err ->
         err
     end
