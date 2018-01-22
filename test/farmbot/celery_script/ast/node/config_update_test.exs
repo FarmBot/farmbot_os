@@ -1,8 +1,5 @@
 defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdateTest do
-  alias Farmbot.CeleryScript.AST.Node.{ConfigUpdate, Pair}
-
   use FarmbotTestSupport.AST.NodeTestCase, async: false
-  alias Farmbot.System.ConfigStorage
 
   test "mutates env", %{env: env} do
     {:ok, env} = ConfigUpdate.execute(%{package: :farmbot_os}, [], env)
