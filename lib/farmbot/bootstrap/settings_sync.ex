@@ -1,4 +1,5 @@
 defmodule Farmbot.Bootstrap.SettingsSync do
+  @moduledoc "Handles uploading and downloading of FBOS configs."
   use Task, restart: :transient
   use Farmbot.Logger
   import Farmbot.System.ConfigStorage, only: [get_config_value: 3, update_config_value: 4, get_config_as_map: 0]
@@ -31,13 +32,13 @@ defmodule Farmbot.Bootstrap.SettingsSync do
         case new_value do
           val when is_boolean(val) -> update_config_value(:bool, "settings", key, new_value)
           val when is_binary(val) -> update_config_value(:string, "settings", key, new_value)
-          val when is_number(val) -> update_config_value(:float, "settings", key, new_value)
+          val when is_number(val) -> update_config_value(:float, "settings", key, new_value / 1)
         end
       end
     end)
   end
 
-  def do_sync_settings(api_data) do
+  def do_sync_settings(%{"api_migrated" => true} = api_data) do
     Logger.info 3, "API is the source of truth; Downloading data."
     old_config = get_config_as_map()["settings"]
     apply_map(old_config, api_data)
@@ -58,7 +59,7 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     firmware_hardware = get_config_value(:string, "settings", "firmware_hardware")
     network_not_found_timer = get_config_value(:float, "settings", "network_not_found_timer")
     payload = %{
-      # api_migrated: true,
+      api_migrated: true,
       auto_sync: auto_sync,
       beta_opt_in: beta_opt_in,
       disable_factory_reset: disable_factory_reset,
