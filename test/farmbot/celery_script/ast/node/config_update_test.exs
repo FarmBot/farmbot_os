@@ -1,4 +1,5 @@
 defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdateTest do
+  alias Farmbot.CeleryScript.AST.Node.ConfigUpdate
   use FarmbotTestSupport.AST.NodeTestCase, async: false
 
   test "mutates env", %{env: env} do
