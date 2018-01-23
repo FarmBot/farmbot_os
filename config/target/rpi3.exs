@@ -9,3 +9,5 @@ config :farmbot, :captive_portal_address, "192.168.24.1"
 config :bootloader,
   init: [:nerves_runtime, :nerves_firmware_ssh],
   app: :farmbot
+
+  config :farmbot, kernel_modules: ["snd-bcm2835"]

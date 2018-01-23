@@ -20,6 +20,14 @@ defmodule Farmbot.BotState.Transport.HTTP.Router do
     send_resp conn, 200, data
   end
 
+  get "/api/v1/bot/speak" do
+    case conn.params do
+      %{"text" => text} when is_binary(text) ->
+        System.cmd("espeak", [text])
+    end
+    send_resp conn, 200, ""
+  end
+
   post "/api/v1/celery_script" do
     with {:ok, _, conn} <- conn |> read_body(),
          {:ok, ast} <- Farmbot.CeleryScript.AST.decode(conn.params)

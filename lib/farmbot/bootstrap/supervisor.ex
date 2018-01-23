@@ -125,6 +125,7 @@ defmodule Farmbot.Bootstrap.Supervisor do
 
         children = [
           worker(Farmbot.Bootstrap.AuthTask,                []),
+          worker(Farmbot.CeleryScript.EstopTimer,           []),
           supervisor(Farmbot.HTTP.Supervisor,               []),
           worker(Farmbot.Bootstrap.SettingsSync, [], [restart: :transient]),
           supervisor(Farmbot.Firmware.Supervisor,           []),
