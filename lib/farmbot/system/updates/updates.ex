@@ -22,16 +22,30 @@ defmodule Farmbot.System.Updates do
 
   @doc "Force check updates."
   def check_updates(reboot) do
-    token = ConfigStorage.get_config_value(:string, "authorization", "token")
-    if token do
-      case Farmbot.Jwt.decode(token) do
-        {:ok, %Farmbot.Jwt{os_update_server: update_server}} ->
-          override = ConfigStorage.get_config_value(:string, "settings", "os_update_server_overwrite")
-          do_check_updates_http(override || update_server, reboot)
-        _ -> no_token()
+    if @handler.requires_reboot? do
+      if reboot do
+        Logger.info 1, "Farmbot applied an update. Rebooting."
+        Farmbot.System.reboot("Update reboot required")
+      else
+        Logger.info 1, "Farmbot already applied an update. Please reboot."
+        :ok
       end
     else
-      no_token()
+      token = ConfigStorage.get_config_value(:string, "authorization", "token")
+      if token do
+        case Farmbot.Jwt.decode(token) do
+          {:ok, %Farmbot.Jwt{os_update_server: normal_update_server, beta_os_update_server: beta_update_server}} ->
+            override = ConfigStorage.get_config_value(:string, "settings", "os_update_server_overwrite")
+            if ConfigStorage.get_config_value(:bool, "settings", "beta_opt_in") do
+              do_check_updates_http(override || beta_update_server, reboot)
+            else
+              do_check_updates_http(override || normal_update_server, reboot)
+            end
+          _ -> no_token()
+        end
+      else
+        no_token()
+      end
     end
   end
 

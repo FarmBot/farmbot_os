@@ -77,16 +77,16 @@ defmodule Farmbot.Bootstrap.AuthTask do
 
   defp fetch_email do
     email = get_config_value(:string, "authorization", "email")
-    email || raise "No email provided."
+    email || raise "No email provided for token refresh."
   end
 
   defp fetch_pass do
     pass = get_config_value(:string, "authorization", "password")
-    pass || raise "No password provided."
+    pass || raise "No password provided for token refresh."
   end
 
   defp fetch_server do
     server = get_config_value(:string, "authorization", "server")
-    server || raise "No server provided."
+    server || raise "No server provided for token refresh."
   end
 end

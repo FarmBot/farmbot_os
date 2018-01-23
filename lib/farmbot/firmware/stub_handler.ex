@@ -116,7 +116,6 @@ defmodule Farmbot.Firmware.StubHandler do
   end
 
   def handle_call({:move_absolute, pos, _x_speed, _y_speed, _z_speed}, _from, state) do
-    Process.sleep(5000)
     response = build_resp [{:report_current_position, pos.x, pos.y, pos.z},
                        {:report_encoder_position_scaled, pos.x, pos.y, pos.z},
                        {:report_encoder_position_raw, pos.x, pos.y, pos.z}, :done]

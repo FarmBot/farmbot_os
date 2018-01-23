@@ -102,9 +102,9 @@ defmodule Farmbot.Bootstrap.Supervisor do
       server = get_config_value(:string, "authorization", "server")
 
       # Make sure they aren't empty.
-      email || raise "No email provided."
-      pass || raise "No password provided."
-      server || raise "No server provided."
+      email || Logger.warn 1, "Could not find email in configuration. "
+      pass || raise "No password provided in config storage."
+      server || raise "No server provided in config storage"
       {email, pass, server}
     rescue
       e in RuntimeError -> {:error, Exception.message(e)}
@@ -113,12 +113,12 @@ defmodule Farmbot.Bootstrap.Supervisor do
   end
 
   defp actual_init(email, pass, server) do
-    busy_msg = "Beginning authorization: #{email} - #{server}"
+    busy_msg = "Beginning Bootstrap authorization: #{email} - #{server}"
     Logger.busy(2, busy_msg)
     # get a token
     case @auth_task.authorize(email, pass, server) do
       {:ok, token} ->
-        success_msg = "Successful authorization: #{email} - #{server}"
+        success_msg = "Successful Bootstrap authorization: #{email} - #{server}"
         Logger.success(2, success_msg)
         update_config_value(:bool, "settings", "first_boot", false)
         update_config_value(:string, "authorization", "token", token)

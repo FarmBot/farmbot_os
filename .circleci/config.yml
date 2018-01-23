@@ -7,7 +7,7 @@ install_elixir: &install_elixir
   run:
     name: Install Elixir
     command: |
-      wget https://github.com/elixir-lang/elixir/releases/download/v1.5.2/Precompiled.zip
+      wget https://github.com/elixir-lang/elixir/releases/download/v1.6.0/Precompiled.zip
       unzip -d /usr/local/elixir Precompiled.zip
       echo 'export PATH=/usr/local/elixir/bin:$PATH' >> $BASH_ENV
 
@@ -156,7 +156,7 @@ jobs:
       - run:
           name: Update heroku env
           command: |
-            export OTA_URL=$(wget https://api.github.com/repos/farmbot/farmbot_os/releases -qO- | ./jq-linux64 '.[0].url')
+            export OTA_URL=$(wget https://api.github.com/repos/farmbot/farmbot_os/releases -qO- | ./jq-linux64 '.[0].url' | sed -e 's/^"//' -e 's/"$//')
             heroku config:set BETA_OTA_URL=$OTA_URL --app=farmbot-production
             heroku config:set BETA_OTA_URL=$OTA_URL --app=farmbot-staging
 
@@ -217,7 +217,7 @@ jobs:
       - restore_cache:
           key: v3-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
-          command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)" $PWD/artifacts
+          command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -draft -delete -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)" $PWD/artifacts
 
 workflows:
   version: 2

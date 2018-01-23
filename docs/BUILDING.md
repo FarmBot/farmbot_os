@@ -2,6 +2,17 @@
 This project is written in the programming language Elixir and built using the
 Nerves Project framework.
 
+# Cloning
+Farmbot OS now bundles and builds the [Arduino Firmware](https://github.com/farmbot/farmbot-arduino-firmware).
+This is bundled as a `git` submodule. You can choose to do one of:
+`git clone https://github.com/FarmBot/farmbot_os.git --recursive`
+or
+```bash
+git clone https://github.com/FarmBot/farmbot_os.git
+git submodule update --init --recursive
+```
+To initialize the repository.
+
 # Before you begin
 You will need a number of things before we start:
 * A x64 bit non windows machine
@@ -14,7 +25,11 @@ If you have the above set up you will need some software dependencies:
   * Nerves Bootstrapper found [here](https://hexdocs.pm/nerves/installation.html#Linux)
 * GNU Make + GCC
 * git
-Following [this](http://embedded-elixir.com/post/2017-05-23-using-asdf-vm/) guid
+* Arduino. You can do one of:
+  * Set the `ARDUINO_INSTALL_DIR` environment variable
+  * execute `.circleci/setup_arduino.sh`
+
+Following [this](http://embedded-elixir.com/post/2017-05-23-using-asdf-vm/) guide
 will get you mostly setup.
 
 # Development
@@ -39,10 +54,6 @@ to configure (at least) two different environment/target combos. where:
 * `target` - the target this `environment` will run on. Usually one of:
   * `host` - For development.
   * `rpi3` - Run on Farmbot's intended hardware.
-  * `qemu_arm` - an arm emulator on your PC.
-    * Requires extra deps
-  * `qemu_x86_64` - a PC emulator for your PC.
-    * Requires extra deps
 
 ## Note about setup
 You will need to configure your Farmbot API, Frontend, and MQTT services for the
@@ -69,10 +80,10 @@ iex -S mix # This will start an interactive shell.
 
 # Development on device
 Sometimes features will need to be developed and tested on the device itself.
-This is accomplished with the `dev` and `rpi3` combo. (you can also use the
-`qemu_*` emulators in some cases)
-It is *highly* recomended that you have an FTDI cable for this. If you don't
-knowing if something went wrong is almost impossible.
+This is accomplished with the `dev` and `rpi3` combo.
+It is *highly* recommended that you have an FTDI cable for this such as
+[this](https://www.digikey.com/product-detail/en/ftdi/TTL-232R-RPI/768-1204-ND) one
+
 
 ```bash
 MIX_TARGET=rpi3 mix deps.get # Get deps for the rpi3 target. You should only need to do this once.
@@ -93,20 +104,3 @@ MIX_TARGET=rpi3 mix firmware.push <your device ip address> # Push the new fw to 
 Your device should now reboot into that new code. As long as you don't cause
 a factory reset somehow, (bad init code, typo, etc) you should be able
 continuously push updates to your device.
-
-# Drafting a release
-Currently a release is similar to a regular `prod`/`rpi3` build, but the release
-must be signed by Farmbot, Inc's digital encryption keys, then uploaded to
-Github release services.
-
-```bash
-# Setup environment and target.
-export MIX_TARGET=rpi3
-export MIX_ENV=prod
-
-mix deps.get # Get dependencies.
-mix firmware # Build Firmware.
-mix firmware.sign # Sign firmware.
-mix firmware.image # Produce an image to be used with `dd` and similar.
-```
-Then upload signed firmware and the unsigned image file to github releases.
