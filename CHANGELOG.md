@@ -137,3 +137,9 @@
 * Clean up and upgrade dependencies.
 * Fix bug that could cause Image uploads to silently fail.
 * Fix bug in `tzdata` that could cause the sdcard to fill up.
+
+# 6.1.1
+* Fix bug that caused the "update" button on the frontend to give an error log.
+* Fix flashing `beta` channel updates.
+* Add feature to send user an email if the bot has been e-stopped for 10 minutes.
+* Add feature to `espeak` logs.
