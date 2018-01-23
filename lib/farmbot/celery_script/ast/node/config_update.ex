@@ -51,6 +51,7 @@ defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdate do
   defp lookup_os_config("firmware_input_log",        val), do: {:ok, {:bool,   "settings", format_bool_for_os(val)}}
   defp lookup_os_config("firmware_output_log",       val), do: {:ok, {:bool,   "settings", format_bool_for_os(val)}}
   defp lookup_os_config("beta_opt_in",               val), do: {:ok, {:bool,   "settings", format_bool_for_os(val)}}
+  defp lookup_os_config("email_on_estop",            val), do: {:ok, {:bool,   "settings", format_bool_for_os(val)}}
 
   defp lookup_os_config("network_not_found_timer",   val) when val > 0, do: {:ok, {:float,  "settings", to_float(val)}}
   defp lookup_os_config("network_not_found_timer",  _val), do: {:error, "network_not_found_timer must be greater than zero"}

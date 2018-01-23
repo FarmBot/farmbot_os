@@ -506,6 +506,10 @@ defmodule Farmbot.Firmware do
   defp do_reply(state, reply) do
     maybe_cancel_timer(state.timer)
     case state.current do
+      %Current{fun: :emergency_unlock, from: from} ->
+        # i really don't want this to be here..
+        Farmbot.CeleryScript.EstopTimer.cancel_timer()
+        :ok = GenServer.reply from, reply
       %Current{fun: :emergency_lock, from: from} ->
         :ok = GenServer.reply from, {:error, :emergency_lock}
       %Current{fun: _fun, from: from} ->

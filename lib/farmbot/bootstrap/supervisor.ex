@@ -125,6 +125,7 @@ defmodule Farmbot.Bootstrap.Supervisor do
 
         children = [
           worker(Farmbot.Bootstrap.AuthTask,                []),
+          worker(Farmbot.CeleryScript.EstopTimer,           []),
           supervisor(Farmbot.Firmware.Supervisor,           []),
           supervisor(Farmbot.BotState.Supervisor,           []),
           supervisor(Farmbot.BotState.Transport.Supervisor, []),

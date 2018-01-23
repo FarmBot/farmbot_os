@@ -12,4 +12,7 @@ defmodule Farmbot.System.UpdateHandler do
 
   @doc "Setup updates."
   @callback setup(atom) :: :ok | {:error, term}
+
+  @doc "If a fw has already been applied."
+  @callback requires_reboot? :: boolean
 end

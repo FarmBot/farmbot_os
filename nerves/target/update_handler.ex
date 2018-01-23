@@ -28,4 +28,8 @@ defmodule Farmbot.Target.UpdateHandler do
   def setup(_) do
     :ok
   end
+
+  def requires_reboot? do
+    !Nerves.Firmware.allow_upgrade?
+  end
 end
