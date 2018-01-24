@@ -413,6 +413,7 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode(:done, state) do
     maybe_cancel_timer(state.timer)
+    Farmbot.BotState.set_busy(false)
     if state.current do
       do_reply(state, :ok)
       {nil, %{state | current: nil}}
