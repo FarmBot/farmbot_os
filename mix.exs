@@ -91,7 +91,7 @@ defmodule Farmbot.Mixfile do
 
   defp deps do
     [
-      {:nerves, "~> 0.8.3", runtime: false},
+      {:nerves, "~> 0.9.0", runtime: false},
       {:elixir_make, "~> 0.4", runtime: false},
       {:gen_stage, "~> 0.12"},
 
@@ -208,6 +208,6 @@ defmodule Farmbot.Mixfile do
       "firmware.sign":  ["farmbot.firmware.sign"],
       "deps.precompile": ["nerves.precompile", "deps.precompile"],
       "deps.loadpaths": ["deps.loadpaths", "nerves.loadpaths"]
-    ]
+    ] |> Nerves.Bootstrap.add_aliases()
   end
 end
