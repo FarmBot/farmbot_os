@@ -1,4 +1,4 @@
-defmodule Farmbot.CeleryScript.EstopTimer do
+defmodule Farmbot.Firmware.EstopTimer do
   @moduledoc """
   Module responsible for timing emails about E stops.
   """
@@ -17,8 +17,8 @@ defmodule Farmbot.CeleryScript.EstopTimer do
   end
 
   @doc "Starts a new timer if one isn't started."
-  def start_timer(msg) do
-    GenServer.call(__MODULE__, {:start_timer, msg})
+  def start_timer do
+    GenServer.call(__MODULE__, :start_timer)
   end
 
   @doc "Cancels a timer if it exists."
@@ -40,7 +40,7 @@ defmodule Farmbot.CeleryScript.EstopTimer do
     {:reply, is_timer_active?(state.timer), state}
   end
 
-  def handle_call({:start_timer, _msg}, _from, state) do
+  def handle_call(:start_timer, _from, state) do
     if !is_timer_active?(state.timer) do
       {:reply, :ok, %{state | timer: do_start_timer(self())}}
     else

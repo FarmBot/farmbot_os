@@ -147,7 +147,7 @@ defmodule Farmbot.Logger do
 
   defp maybe_espeak(_message, _channels, nil), do: :ok
   defp maybe_espeak(message, channels, exe) do
-    if :espeak in channels do
+    if Enum.find(channels, fn(ch) -> (ch == :espeak) || (ch == "espeak") end) do
       spawn System, :cmd, [exe, [message]]
     end
     :ok
