@@ -3,6 +3,8 @@
 * Fix flashing `beta` channel updates.
 * Add feature to send user an email if the bot has been e-stopped for 10 minutes.
 * Add feature to `espeak` logs.
+* Set `busy` a little earlier making the bot seem snappier.
+* Fix `tzdata` bug for real this time.
 
 # 6.1.0
 * Remove all the migration code to safely get from 5.0.x to 6.0.1.

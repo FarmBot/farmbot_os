@@ -17,7 +17,7 @@ defmodule Farmbot.Target.Network.TzdataTask do
     dir = @fb_data_dir
     if File.exists?(dir) do
       for obj <- File.ls!(dir) do
-        File.rm_rf!(obj)
+        File.rm_rf!(Path.join(dir, obj))
       end
     end
     {:noreply, restart_timer(self()), :hibernate}
