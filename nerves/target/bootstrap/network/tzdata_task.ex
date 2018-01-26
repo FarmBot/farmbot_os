@@ -17,7 +17,6 @@ defmodule Farmbot.Target.Network.TzdataTask do
     dir = @fb_data_dir
     if File.exists?(dir) do
       for obj <- File.ls!(dir) do
-        # Nerves.Runtime.Helpers.cmd("rm -rf #{obj}")
         File.rm_rf!(Path.join(dir, obj))
       end
     end
