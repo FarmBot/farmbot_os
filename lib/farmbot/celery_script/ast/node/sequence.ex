@@ -3,7 +3,6 @@ defmodule Farmbot.CeleryScript.AST.Node.Sequence do
   use Farmbot.CeleryScript.AST.Node
   use Farmbot.Logger
   import Farmbot.System.ConfigStorage, only: [get_config_value: 3]
-  alias Farmbot.CeleryScript.EstopTimer
   allow_args [:version, :label, :locals, :is_outdated]
 
   def execute(%{label: name}, body, env) do
@@ -12,7 +11,6 @@ defmodule Farmbot.CeleryScript.AST.Node.Sequence do
     end
     env = mutate_env(env)
     if Farmbot.BotState.locked? do
-      maybe_send_email("[#{name}] - Sequence failed. Bot is locked!")
       {:error, :locked, env}
     else
       do_reduce(body, env, name)
@@ -27,9 +25,7 @@ defmodule Farmbot.CeleryScript.AST.Node.Sequence do
       {:ok, new_env} -> do_reduce(rest, new_env, name)
       {:error, reason, env} ->
         case Farmbot.Firmware.emergency_lock() do
-          :ok ->
-            maybe_send_email("[#{name}] - Sequence failed. Locking bot!")
-            :ok
+          :ok -> :ok
           {:error, :emergency_lock} -> :ok
           {:error, reason} ->
             Logger.error 1, "Failed to lock the firmware! #{inspect reason}"
@@ -44,14 +40,4 @@ defmodule Farmbot.CeleryScript.AST.Node.Sequence do
     end
     {:ok, env}
   end
-
-  defp maybe_send_email(msg) do
-    Logger.error(1, msg)
-    if get_config_value(:bool, "settings", "email_on_estop") do
-      if !EstopTimer.timer_active? do
-        EstopTimer.start_timer(msg)
-      end
-    end
-  end
-
 end
