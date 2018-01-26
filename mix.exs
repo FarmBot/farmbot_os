@@ -139,7 +139,7 @@ defmodule Farmbot.Mixfile do
   defp deps("rpi3") do
     system("rpi3") ++
       [
-        {:bootloader, "~> 0.1.3", except: :test},
+        {:shoehorn, "~> 0.2.0", except: :test},
         {:nerves_runtime, "0.5.3"},
         {:nerves_firmware, "~> 0.4.0"},
         {:nerves_firmware_ssh, "~> 0.2", only: :dev},
@@ -152,7 +152,7 @@ defmodule Farmbot.Mixfile do
   defp deps(target) do
     system(target) ++
       [
-        {:bootloader, "~> 0.1.3", except: :test},
+        {:shoehorn, "~> 0.2.0", except: :test},
         {:nerves_runtime, "0.5.3"},
         {:nerves_firmware, "~> 0.4.0"},
         {:nerves_firmware_ssh, "~> 0.2", only: :dev},

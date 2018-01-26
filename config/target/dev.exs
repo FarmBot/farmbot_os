@@ -78,6 +78,6 @@ end
 
 config :nerves_firmware_ssh, authorized_keys: local_key
 
-config :bootloader,
+config :shoehorn,
   init: [:nerves_runtime, :nerves_init_gadget],
   app: :farmbot
