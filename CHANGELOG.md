@@ -5,6 +5,7 @@
 * Add feature to `espeak` logs.
 * Set `busy` a little earlier making the bot seem snappier.
 * Fix `tzdata` bug for real this time.
+* Update Arduino Firmware.
 
 # 6.1.0
 * Remove all the migration code to safely get from 5.0.x to 6.0.1.
