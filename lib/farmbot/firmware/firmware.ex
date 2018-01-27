@@ -3,7 +3,7 @@ defmodule Farmbot.Firmware do
 
   use GenStage
   use Farmbot.Logger
-  alias Farmbot.Firmware.Vec3
+  alias Farmbot.Firmware.{Vec3, EstopTimer}
 
   # If any command takes longer than this, exit.
   @call_timeout 500_000
@@ -413,6 +413,7 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode(:done, state) do
     maybe_cancel_timer(state.timer)
+    Farmbot.BotState.set_busy(false)
     if state.current do
       do_reply(state, :ok)
       {nil, %{state | current: nil}}
@@ -423,6 +424,7 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode(:report_emergency_lock, state) do
     Farmbot.System.GPIO.Leds.led_status_err
+    maybe_send_email()
     if state.current do
       do_reply(state, {:error, :emergency_lock})
       {:informational_settings, %{locked: true}, %{state | current: nil}}
@@ -506,6 +508,10 @@ defmodule Farmbot.Firmware do
   defp do_reply(state, reply) do
     maybe_cancel_timer(state.timer)
     case state.current do
+      %Current{fun: :emergency_unlock, from: from} ->
+        # i really don't want this to be here..
+        EstopTimer.cancel_timer()
+        :ok = GenServer.reply from, reply
       %Current{fun: :emergency_lock, from: from} ->
         :ok = GenServer.reply from, {:error, :emergency_lock}
       %Current{fun: _fun, from: from} ->
@@ -514,6 +520,15 @@ defmodule Farmbot.Firmware do
       nil ->
         Logger.error 1, "FW Nothing to send reply: #{inspect reply} to!."
         :error
+    end
+  end
+
+  defp maybe_send_email do
+    import Farmbot.System.ConfigStorage, only: [get_config_value: 3]
+    if get_config_value(:bool, "settings", "email_on_estop") do
+      if !EstopTimer.timer_active? do
+        EstopTimer.start_timer()
+      end
     end
   end
 end

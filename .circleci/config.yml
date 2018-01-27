@@ -15,6 +15,7 @@ install_hex_archives: &install_hex_archives
   run:
     name: Install archives
     command: |
+      cd /tmp
       mix local.hex --force
       mix local.rebar --force
       mix archive.install hex nerves_bootstrap --force
@@ -79,7 +80,7 @@ jobs:
           key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
           paths:
             - ~/.nerves
-      - run: mix firmware.slack --channels C58DCU4A3
+      - run: mix firmware.slack --channels C58DCU4A3; echo "Hack."
       - run: mkdir -p artifacts
       - run:
           name: Decode fwup priv key

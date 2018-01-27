@@ -34,7 +34,7 @@ defmodule Farmbot.Mixfile do
       target: @target,
       commit: commit(),
       arduino_commit: arduino_commit(),
-      archives: [nerves_bootstrap: "~> 0.6.0"],
+      archives: [nerves_bootstrap: "~> 0.7.0"],
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps_path: "deps/#{@target}",
@@ -91,7 +91,7 @@ defmodule Farmbot.Mixfile do
 
   defp deps do
     [
-      {:nerves, "~> 0.8.3", runtime: false},
+      {:nerves, "~> 0.9.0", runtime: false},
       {:elixir_make, "~> 0.4", runtime: false},
       {:gen_stage, "~> 0.12"},
 
@@ -139,7 +139,7 @@ defmodule Farmbot.Mixfile do
   defp deps("rpi3") do
     system("rpi3") ++
       [
-        {:bootloader, "~> 0.1.3", except: :test},
+        {:shoehorn, "~> 0.2.0", except: :test},
         {:nerves_runtime, "0.5.3"},
         {:nerves_firmware, "~> 0.4.0"},
         {:nerves_firmware_ssh, "~> 0.2", only: :dev},
@@ -152,7 +152,7 @@ defmodule Farmbot.Mixfile do
   defp deps(target) do
     system(target) ++
       [
-        {:bootloader, "~> 0.1.3", except: :test},
+        {:shoehorn, "~> 0.2.0", except: :test},
         {:nerves_runtime, "0.5.3"},
         {:nerves_firmware, "~> 0.4.0"},
         {:nerves_firmware_ssh, "~> 0.2", only: :dev},
@@ -164,7 +164,7 @@ defmodule Farmbot.Mixfile do
   end
 
   defp system("rpi3"),
-    do: [{:nerves_system_farmbot_rpi3, "0.19.0-farmbot", runtime: false}]
+    do: [{:nerves_system_farmbot_rpi3, "0.20.0-farmbot", runtime: false}]
 
   defp system("rpi0"),
     do: [{:nerves_system_farmbot_rpi0, "0.20.0-farmbot", runtime: false}]
@@ -208,6 +208,6 @@ defmodule Farmbot.Mixfile do
       "firmware.sign":  ["farmbot.firmware.sign"],
       "deps.precompile": ["nerves.precompile", "deps.precompile"],
       "deps.loadpaths": ["deps.loadpaths", "nerves.loadpaths"]
-    ]
+    ] |> Nerves.Bootstrap.add_aliases()
   end
 end
