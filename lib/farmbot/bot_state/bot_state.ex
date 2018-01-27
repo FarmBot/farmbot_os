@@ -276,6 +276,7 @@ defmodule Farmbot.BotState do
   end
 
   defp do_handle([{:config, "settings", key, val} | rest], state) do
+    # Logger.debug 1, "Got config update: #{inspect key} => #{inspect val}"
     new_config = Map.put(state.configuration, key, val)
     new_state = %{state | configuration: new_config}
     do_handle(rest, new_state)

@@ -23,18 +23,26 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     end
   rescue
     err ->
-      Logger.error 1, "Error syncing settings: #{Exception.message(err)}"
+      Logger.error 1, "Error syncing settings: #{Exception.message(err)} #{inspect System.stacktrace()}"
   end
 
   def apply_map(old_map, new_map) do
-    Enum.all?(new_map, fn({key, new_value}) ->
+    old_map = take_valid(old_map)
+    new_map = take_valid(new_map)
+    Map.new(new_map, fn({key, new_value}) ->
+      # Logger.debug 1, "Applying #{key} #{inspect old_map[key]} over #{inspect new_value}"
       if old_map[key] != new_value do
+        # Logger.debug 1, "Updating: #{key} => #{new_value}"
         case new_value do
-          val when is_boolean(val) -> update_config_value(:bool, "settings", key, new_value)
-          val when is_binary(val) -> update_config_value(:string, "settings", key, new_value)
-          val when is_number(val) -> update_config_value(:float, "settings", key, new_value / 1)
+          val when is_boolean(val) ->
+            update_config_value(:bool, "settings", key, new_value)
+          val when is_binary(val) ->
+            update_config_value(:string, "settings", key, new_value)
+          val when is_number(val) ->
+            update_config_value(:float, "settings", key, new_value / 1)
         end
       end
+      {key, new_value}
     end)
   end
 
@@ -75,5 +83,22 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     Farmbot.HTTP.delete!("/api/fbos_config")
     Farmbot.HTTP.put!("/api/fbos_config", payload)
     :ok
+  end
+
+  @keys [
+    "auto_sync",
+    "beta_opt_in",
+    "disable_factory_reset",
+    "firmware_output_log",
+    "sequence_body_log",
+    "sequence_complete_log",
+    "sequence_init_log",
+    "arduino_debug_messages",
+    "os_auto_update",
+    "firmware_hardware",
+    "network_not_found_timer"
+  ]
+  def take_valid(map) do
+    Map.take(map, @keys ++ Enum.map(@keys, &String.to_atom(&1)))
   end
 end
