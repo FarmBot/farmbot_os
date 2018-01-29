@@ -125,11 +125,12 @@ defmodule Farmbot.Bootstrap.Supervisor do
 
         children = [
           worker(Farmbot.Bootstrap.AuthTask,                []),
+          supervisor(Farmbot.HTTP.Supervisor,               []),
+          worker(Farmbot.Bootstrap.SettingsSync, [], [restart: :transient]),
           supervisor(Farmbot.Firmware.Supervisor,           []),
           supervisor(Farmbot.BotState.Supervisor,           []),
           supervisor(Farmbot.BotState.Transport.Supervisor, []),
           supervisor(Farmbot.FarmEvent.Supervisor,          []),
-          supervisor(Farmbot.HTTP.Supervisor,               []),
           supervisor(Farmbot.Repo.Supervisor,               []),
           supervisor(Farmbot.Farmware.Supervisor,           []),
           supervisor(Farmbot.Regimen.Supervisor,            []),
