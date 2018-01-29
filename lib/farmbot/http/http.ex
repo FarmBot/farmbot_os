@@ -88,6 +88,24 @@ defmodule Farmbot.HTTP do
     request(:put, url, body, headers, opts)
   end
 
+  def put!(url, body, headers \\ [], opts \\ [])
+
+  def put!(url, body, headers, opts) do
+    request!(:put, url, body, headers, opts)
+  end
+
+  def delete(url, headers \\ [], opts \\ [])
+
+  def delete(url, headers, opts) do
+    request!(:delete, url, "", headers, opts)
+  end
+
+  def delete!(url, headers \\ [], opts \\ [])
+
+  def delete!(url, headers, opts) do
+    request!(:delete, url, "", headers, opts)
+  end
+
   @doc "Download a file to the filesystem."
   def download_file(url,
                     path,
