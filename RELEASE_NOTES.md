@@ -8,3 +8,5 @@ _This file is parsed by the FarmBot Web App._
 * The change also increases accuracy for FarmBots with `use encoders for positioning` enabled while using the default `encoder scaling factor` value. If you have previously enabled `use encoders for positioning`  please check movements to tool positions or other high-accuracy requirement movements.
 
 * Sequence errors will now send an emergency stop command, locking FarmBot.
+
+* If you are using `Farmduino (Genesis v1.3)`, check that `FIRMWARE` is correct after upgrading. If it isn't, choose the correct value from the drop-down.
