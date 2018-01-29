@@ -1,3 +1,6 @@
+# 6.1.3
+* Refactor Syncing to not make unnecessary HTTP requests.
+
 # 6.1.2
 * Fix fw hardware being reset on os upgrade.
 * Bump arduino-firmware version to 6.0.1
