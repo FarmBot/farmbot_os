@@ -371,7 +371,7 @@ defmodule Farmbot.Repo do
        with {:ok, cache} <- do_http_requests(),
       :ok <- do_sync_all_resources(repo_a, cache),
       :ok <- do_sync_all_resources(repo_b, cache) do
-        :ok
+        Farmbot.Bootstrap.SettingsSync.run()
       end
     end)
     Logger.debug 3, "Entire sync took: #{time}µs."
