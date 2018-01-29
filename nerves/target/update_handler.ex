@@ -17,7 +17,7 @@ defmodule Farmbot.Target.UpdateHandler do
   def post_update do
     alias Farmbot.Firmware.UartHandler.Update
     hw = Farmbot.System.ConfigStorage.get_config_value(:string, "settings", "firmware_hardware")
-    Update.maybe_update_firmware()
+    Update.maybe_update_firmware(hw)
     :ok
   end
 
