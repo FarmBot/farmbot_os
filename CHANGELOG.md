@@ -1,3 +1,6 @@
+# 6.1.2
+* Fix fw hardware being reset on os upgrade.
+
 # 6.1.1
 * Fix bug that caused the "update" button on the frontend to give an error log.
 * Fix flashing `beta` channel updates.
