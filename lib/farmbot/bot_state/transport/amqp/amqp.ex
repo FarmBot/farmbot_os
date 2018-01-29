@@ -238,8 +238,10 @@ defmodule Farmbot.BotState.Transport.AMQP do
       # TODO(Connor) What do I do with deletes?
       {:ok, %{"body" => nil}} -> {:noreply, [], state}
       {:ok, %{"body" => config}} ->
-        config = Map.drop(config, ["created_at", "updated_at", "id"])
-        Farmbot.Bootstrap.SettingsSync.apply_map(state.state_cache.configuration, config)
+        # Logger.info 1, "Got fbos config from amqp: #{inspect config}"
+        old = state.state_cache.configuration
+        updated = Farmbot.Bootstrap.SettingsSync.apply_map(old, config)
+        push_bot_state(state.chan, state.bot, %{state.state_cache | configuration: updated})
         {:noreply, [], state}
     end
   end
