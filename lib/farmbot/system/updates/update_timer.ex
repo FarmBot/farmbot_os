@@ -36,14 +36,13 @@ defmodule Farmbot.System.UpdateTimer do
     {:noreply, state}
   end
 
-  def handle_info({:config_storage, {"settings", "beta_opt_in", true}}, state) do
+  def handle_info({Farmbot.System.Registry, {:config_storage, {"settings", "beta_opt_in", true}}}, state) do
     Logger.debug 3, "Opted into beta updates. Refreshing token."
     Farmbot.Bootstrap.AuthTask.force_refresh()
     {:noreply, state}
   end
 
-  def handle_info({Farmbot.System.Registry, info}, state) do
-    Logger.debug 3, "Got Registry info: #{inspect info}"
+  def handle_info({Farmbot.System.Registry, _info}, state) do
     {:noreply, state}
   end
 end

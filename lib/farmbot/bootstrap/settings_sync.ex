@@ -40,7 +40,7 @@ defmodule Farmbot.Bootstrap.SettingsSync do
           val when is_number(val) ->
             update_config_value(:float, "settings", key, new_value / 1)
         end
-        Logger.success 1, "Updating: #{key} => #{new_value}"
+        Logger.success 2, "Updating: #{key} => #{new_value}"
       end
       {key, new_value}
     end)
