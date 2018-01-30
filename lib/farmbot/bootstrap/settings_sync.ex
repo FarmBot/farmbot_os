@@ -59,6 +59,7 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     beta_opt_in = get_config_value(:bool, "settings", "beta_opt_in")
     disable_factory_reset = get_config_value(:bool, "settings", "disable_factory_reset")
     firmware_output_log = get_config_value(:bool, "settings", "firmware_output_log")
+    firmware_input_log = get_config_value(:bool, "settings", "firmware_input_log")
     sequence_body_log = get_config_value(:bool, "settings", "sequence_body_log")
     sequence_complete_log = get_config_value(:bool, "settings", "sequence_complete_log")
     sequence_init_log = get_config_value(:bool, "settings", "sequence_init_log")
@@ -72,6 +73,7 @@ defmodule Farmbot.Bootstrap.SettingsSync do
       beta_opt_in: beta_opt_in,
       disable_factory_reset: disable_factory_reset,
       firmware_output_log: firmware_output_log,
+      firmware_input_log: firmware_input_log,
       sequence_body_log: sequence_body_log,
       sequence_complete_log: sequence_complete_log,
       sequence_init_log: sequence_init_log,
@@ -90,6 +92,7 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     "beta_opt_in",
     "disable_factory_reset",
     "firmware_output_log",
+    "firmware_input_log",
     "sequence_body_log",
     "sequence_complete_log",
     "sequence_init_log",
