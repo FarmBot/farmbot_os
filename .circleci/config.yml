@@ -80,12 +80,12 @@ jobs:
       - <<: *install_arduino
       - restore_cache:
           keys:
-            - v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+            - v4-dependency-cache-{{ checksum "mix.lock.rpi3" }}
       - <<: *install_hex_archives
       - <<: *fetch_and_compile_deps
       - run: mix firmware
       - save_cache:
-          key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+          key: v4-dependency-cache-{{ checksum "mix.lock.rpi3" }}
           paths:
             - _build/rpi3
             - _build/host
@@ -130,13 +130,12 @@ jobs:
       - <<: *install_hex_archives
       - restore_cache:
           keys:
-            - v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+            - v4-dependency-cache-{{ checksum "mix.lock.rpi3" }}
       - run: mix deps.get
-      - run: mix deps.compile
       - run: mix compile
       - run: mix firmware
       - save_cache:
-          key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+          key: v4-dependency-cache-{{ checksum "mix.lock.rpi3" }}
           paths:
             - _build/rpi3
             - _build/host
@@ -205,11 +204,10 @@ jobs:
           keys:
             - v4-dependency-cache-{{ checksum "mix.lock.rpi3" }}
       - run: mix deps.get
-      - run: mix deps.compile
       - run: mix compile
       - run: mix firmware
       - save_cache:
-          key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+          key: v4-dependency-cache-{{ checksum "mix.lock.rpi3" }}
           paths:
             - _build/rpi3
             - _build/host

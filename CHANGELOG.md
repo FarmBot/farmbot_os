@@ -3,6 +3,7 @@
 * Refactor Syncing to not make unnecessary HTTP requests.
 * Estop status is now much faster.
 * Add dns checkup for users with factory resetting disabled to make tokens refresh faster.
+* Opting into beta updates will refresh farmbot's token.
 
 # 6.1.2
 * Fix fw hardware being reset on os upgrade.
