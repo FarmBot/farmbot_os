@@ -91,13 +91,13 @@ jobs:
             - deps/rpi3
             - ~/.nerves
       - run:
-        name: Send firmware asset to slack.
-        command: |
-          if [ $(mix firmware.slack --channels C58DCU4A3) -eq 0 ]; then
-          echo "Firmware upload success."
-          else
-          echo "Firmware upload fail."
-          fi
+          name: Send firmware asset to slack.
+          command: |
+            if [ $(mix firmware.slack --channels C58DCU4A3) -eq 0 ]; then
+            echo "Firmware upload success."
+            else
+            echo "Firmware upload fail."
+            fi
       - run: mkdir -p artifacts
       - run:
           name: Decode fwup priv key
