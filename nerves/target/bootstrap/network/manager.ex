@@ -4,7 +4,7 @@ defmodule Farmbot.Target.Network.Manager do
   alias Farmbot.System.ConfigStorage
   alias Nerves.Network
   alias Farmbot.Target.Network.Ntp
-  import Farmbot.Target.Network, only: [test_dns: 0]
+  import Farmbot.Target.Network, only: [test_dns: 0, test_dns: 1]
 
   def get_ip_addr(interface) do
     GenServer.call(:"#{__MODULE__}-#{interface}", :ip)
@@ -26,7 +26,7 @@ defmodule Farmbot.Target.Network.Manager do
     {:ok, _} = Registry.register(Nerves.Udhcpc, interface, [])
     {:ok, _} = Registry.register(Nerves.WpaSupplicant, interface, [])
     Network.setup(interface, opts)
-    {:ok, %{interface: interface, ip_address: nil, connected: false, not_found_timer: nil, ntp_timer: nil}}
+    {:ok, %{interface: interface, ip_address: nil, connected: false, not_found_timer: nil, ntp_timer: nil, dns_timer: nil}}
   end
 
   def handle_call(:ip, _, state) do
@@ -45,8 +45,9 @@ defmodule Farmbot.Target.Network.Manager do
 
     connected = match?({:ok, {:hostent, 'nerves-project.org', [], :inet, 4, _}}, test_dns())
     if connected do
-      not_found_timer = cancel_not_found_timer(state.not_found_timer)
-      {:noreply, %{state | ip_address: ip, connected: true, not_found_timer: not_found_timer, ntp_timer: ntp_timer}}
+      not_found_timer = cancel_timer(state.not_found_timer)
+      dns_timer = restart_dns_timer(state.dns_timer, 45_000)
+      {:noreply, %{state | dns_timer: dns_timer, ip_address: ip, connected: true, not_found_timer: not_found_timer, ntp_timer: ntp_timer}}
     else
       {:noreply, %{state | connected: false, ntp_timer: ntp_timer, ip_address: ip}}
     end
@@ -98,24 +99,44 @@ defmodule Farmbot.Target.Network.Manager do
     {:noreply, %{state | ntp_timer: new_timer}}
   end
 
+  def handle_info(:dns_timer, state) do
+    case test_dns('my.farmbot.io') do
+      {:ok, {:hostent, _host_name, aliases, :inet, 4, _}} ->
+        # If we weren't previously connected, send a log.
+        unless state.connected do
+          Logger.success 3, "Farmbot was reconnected to the internet: #{inspect aliases}"
+        end
+        {:noreply, %{state | connected: true, dns_timer: restart_dns_timer(nil, 45_000)}}
+      {:error, err} ->
+        Logger.warn 3, "Farmbot was disconnected from the internet: #{inspect err}"
+        {:noreply, %{state | connected: false, dns_timer: restart_dns_timer(nil, 10_000)}}
+    end
+  end
+
   def handle_info(_event, state) do
     # Logger.warn 3, "unhandled network event: #{inspect event}"
     {:noreply, state}
   end
 
-  defp cancel_not_found_timer(timer) do
+  defp cancel_timer(timer) do
     # If there was a timer, cancel it.
     if timer do
-      Logger.warn 3, "Cancelling Network timer"
+      # Logger.warn 3, "Cancelling Network timer"
       Process.cancel_timer(timer)
     end
     nil
+  end
+
+  defp restart_dns_timer(timer, time) when is_number(time) do
+    cancel_timer(timer)
+    Process.send_after(self(), :dns_timer, time)
   end
 
   defp maybe_cancel_and_reset_ntp_timer(timer) do
     if timer do
       Process.cancel_timer(timer)
     end
+
     # introduce a bit of randomness to avoid dosing ntp servers.
     # I don't think this would ever happen but the default ntpd implementation
     # does this..
