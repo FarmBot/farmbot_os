@@ -55,6 +55,7 @@ jobs:
           key: v3-dep-cache-{{ checksum "mix.lock.host" }}
           paths:
             - _build/host
+            - _build/arduino
             - deps/host
       - save_cache:
           key: v3-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
@@ -93,9 +94,9 @@ jobs:
         name: Send firmware asset to slack.
         command: |
           if [ $(mix firmware.slack --channels C58DCU4A3) -eq 0 ]; then
-            echo "Firmware upload success."
+          echo "Firmware upload success."
           else
-            echo "Firmware upload fail."
+          echo "Firmware upload fail."
           fi
       - run: mkdir -p artifacts
       - run:
