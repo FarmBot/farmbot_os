@@ -44,6 +44,7 @@ defmodule Farmbot.Bootstrap.AuthTask do
         if get_config_value(:bool, "settings", "auto_sync") do
           Farmbot.Repo.flip()
         end
+        Farmbot.System.Registry.dispatch :authorization, :new_token
         restart_transports()
         refresh_timer(self())
       {:error, err} ->

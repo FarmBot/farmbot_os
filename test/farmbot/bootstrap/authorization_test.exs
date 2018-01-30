@@ -40,9 +40,12 @@ defmodule Farmbot.Bootstrap.AuthorizationTest do
   end
 
   test "internet off and back on refreshes token" do
+    Farmbot.System.Registry.subscribe(self())
     old = Farmbot.System.ConfigStorage.get_config_value(:string, "authorization", "token")
     send AuthTask, {Farmbot.System.Registry, {:network, :dns_up}}
-    Process.sleep(100)
+
+    assert_receive {Farmbot.System.Registry, {:authorization, :new_token}}
+
     new = Farmbot.System.ConfigStorage.get_config_value(:string, "authorization", "token")
     assert old != new
   end
