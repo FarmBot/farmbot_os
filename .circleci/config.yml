@@ -25,7 +25,6 @@ fetch_and_compile_deps: &fetch_and_compile_deps
     name: Fetch and compile Elixir dependencies
     command: |
       mix deps.get
-      mix deps.compile
       mix compile
 
 install_arduino: &install_arduino
