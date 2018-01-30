@@ -48,7 +48,15 @@ jobs:
             - v3-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
       - <<: *install_arduino
       - <<: *install_hex_archives
+      - restore_cache:
+          keys:
+            - v3-dep-cache-{{ checksum "mix.lock.host" }}
       - <<: *fetch_and_compile_deps
+      - save_cache:
+          key: v3-dep-cache-{{ checksum "mix.lock.host" }}
+          paths:
+            - _build/host
+            - deps/host
       - save_cache:
           key: v3-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
           paths:
