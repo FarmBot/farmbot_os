@@ -26,22 +26,24 @@ defmodule Farmbot.System.UpdateTimer do
   def init([]) do
     spawn __MODULE__, :wait_for_http, [self()]
     Farmbot.System.Registry.subscribe(self())
-    {:ok, [], :hibernate}
+    {:ok, []}
   end
 
   def handle_info(:checkup, state) do
     osau = Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "os_auto_update")
     Farmbot.System.Updates.check_updates(osau)
     Process.send_after(self(), :checkup, @twelve_hours)
-    {:noreply, state, :hibernate}
+    {:noreply, state}
   end
 
-  def handle_info({Farmbot.System.Registry, {:config_storage, {"settings", "os_auto_update", true}}}, state) do
+  def handle_info({:config_storage, {"settings", "beta_opt_in", true}}, state) do
+    Logger.debug 3, "Opted into beta updates. Refreshing token."
     Farmbot.Bootstrap.AuthTask.force_refresh()
-    {:noreply, state, :hibernate}
+    {:noreply, state}
   end
 
-  def handle_info({Farmbot.System.Registry, _}, state) do
-    {:noreply, state, :hibernate}
+  def handle_info({Farmbot.System.Registry, info}, state) do
+    Logger.debug 3, "Got Registry info: #{inspect info}"
+    {:noreply, state}
   end
 end
