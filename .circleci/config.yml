@@ -88,7 +88,10 @@ jobs:
           key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
           paths:
             - _build/rpi3
+            - _build/host
+            - _build/arduino
             - deps/rpi3
+            - deps/host
             - ~/.nerves
       - run:
           name: Send firmware asset to slack.
@@ -135,6 +138,11 @@ jobs:
       - save_cache:
           key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
           paths:
+            - _build/rpi3
+            - _build/host
+            - _build/arduino
+            - deps/rpi3
+            - deps/host
             - ~/.nerves
       - run: mkdir -p artifacts
       - run:
@@ -203,6 +211,11 @@ jobs:
       - save_cache:
           key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
           paths:
+            - _build/rpi3
+            - _build/host
+            - _build/arduino
+            - deps/rpi3
+            - deps/host
             - ~/.nerves
       - run: mkdir -p artifacts
       - run:
