@@ -44,7 +44,7 @@ defmodule Farmbot.Bootstrap.AuthorizationTest do
     old = Farmbot.System.ConfigStorage.get_config_value(:string, "authorization", "token")
     send AuthTask, {Farmbot.System.Registry, {:network, :dns_up}}
 
-    assert_receive {Farmbot.System.Registry, {:authorization, :new_token}}
+    assert_receive {Farmbot.System.Registry, {:authorization, :new_token}}, 1000
 
     new = Farmbot.System.ConfigStorage.get_config_value(:string, "authorization", "token")
     assert old != new
