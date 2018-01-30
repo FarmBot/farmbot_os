@@ -217,9 +217,14 @@ defmodule Farmbot.Firmware do
     # Logger.busy 3, "FW Starting: #{fun}: #{inspect from}"
     case apply(state.handler_mod, fun, [state.handler | args]) do
       :ok ->
-        if fun == :emergency_unlock, do: Farmbot.System.GPIO.Leds.led_status_ok()
         timer = Process.send_after(self(), :timeout, state.timeout_ms)
-        {:noreply, dispatch, %{state | current: current, timer: timer}}
+        if fun == :emergency_unlock do
+          Farmbot.System.GPIO.Leds.led_status_ok()
+          new_dispatch = [{:informational_settings,  %{busy: false, locked: false}} | dispatch]
+          {:noreply, new_dispatch, %{state | current: current, timer: timer}}
+        else
+          {:noreply, dispatch, %{state | current: current, timer: timer}}
+        end
       {:error, _} = res ->
         do_reply(%{state | current: current}, res)
         {:noreply, dispatch, %{state | current: nil}}

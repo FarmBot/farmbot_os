@@ -25,7 +25,6 @@ fetch_and_compile_deps: &fetch_and_compile_deps
     name: Fetch and compile Elixir dependencies
     command: |
       mix deps.get
-      mix deps.compile
       mix compile
 
 install_arduino: &install_arduino
@@ -48,7 +47,16 @@ jobs:
             - v3-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
       - <<: *install_arduino
       - <<: *install_hex_archives
+      - restore_cache:
+          keys:
+            - v3-dep-cache-{{ checksum "mix.lock.host" }}
       - <<: *fetch_and_compile_deps
+      - save_cache:
+          key: v3-dep-cache-{{ checksum "mix.lock.host" }}
+          paths:
+            - _build/host
+            - _build/arduino
+            - deps/host
       - save_cache:
           key: v3-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
           paths:
@@ -79,8 +87,20 @@ jobs:
       - save_cache:
           key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
           paths:
+            - _build/rpi3
+            - _build/host
+            - _build/arduino
+            - deps/rpi3
+            - deps/host
             - ~/.nerves
-      - run: mix firmware.slack --channels C58DCU4A3; echo "Hack."
+      - run:
+          name: Send firmware asset to slack.
+          command: |
+            if [ $(mix firmware.slack --channels C58DCU4A3) -eq 0 ]; then
+            echo "Firmware upload success."
+            else
+            echo "Firmware upload fail."
+            fi
       - run: mkdir -p artifacts
       - run:
           name: Decode fwup priv key
@@ -118,6 +138,11 @@ jobs:
       - save_cache:
           key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
           paths:
+            - _build/rpi3
+            - _build/host
+            - _build/arduino
+            - deps/rpi3
+            - deps/host
             - ~/.nerves
       - run: mkdir -p artifacts
       - run:
@@ -178,7 +203,7 @@ jobs:
       - <<: *install_hex_archives
       - restore_cache:
           keys:
-            - v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+            - v4-dependency-cache-{{ checksum "mix.lock.rpi3" }}
       - run: mix deps.get
       - run: mix deps.compile
       - run: mix compile
@@ -186,6 +211,11 @@ jobs:
       - save_cache:
           key: v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
           paths:
+            - _build/rpi3
+            - _build/host
+            - _build/arduino
+            - deps/rpi3
+            - deps/host
             - ~/.nerves
       - run: mkdir -p artifacts
       - run:
