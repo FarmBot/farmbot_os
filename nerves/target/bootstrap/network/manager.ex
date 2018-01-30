@@ -22,9 +22,9 @@ defmodule Farmbot.Target.Network.Manager do
       init(args)
     end
     SystemRegistry.register()
-    {:ok, _} = Registry.register(Nerves.NetworkInterface, interface, [])
-    {:ok, _} = Registry.register(Nerves.Udhcpc, interface, [])
-    {:ok, _} = Registry.register(Nerves.WpaSupplicant, interface, [])
+    {:ok, _} = Elixir.Registry.register(Nerves.NetworkInterface, interface, [])
+    {:ok, _} = Elixir.Registry.register(Nerves.Udhcpc, interface, [])
+    {:ok, _} = Elixir.Registry.register(Nerves.WpaSupplicant, interface, [])
     Network.setup(interface, opts)
     {:ok, %{interface: interface, ip_address: nil, connected: false, not_found_timer: nil, ntp_timer: nil, dns_timer: nil}}
   end
@@ -105,9 +105,11 @@ defmodule Farmbot.Target.Network.Manager do
         # If we weren't previously connected, send a log.
         unless state.connected do
           Logger.success 3, "Farmbot was reconnected to the internet: #{inspect aliases}"
+          Farmbot.System.Registry.dispatch(:network, :dns_up)
         end
         {:noreply, %{state | connected: true, dns_timer: restart_dns_timer(nil, 45_000)}}
       {:error, err} ->
+        Farmbot.System.Registry.dispatch(:network, :dns_down)
         Logger.warn 3, "Farmbot was disconnected from the internet: #{inspect err}"
         {:noreply, %{state | connected: false, dns_timer: restart_dns_timer(nil, 10_000)}}
     end
@@ -151,7 +153,6 @@ defmodule Farmbot.Target.Network.Manager do
         if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "first_boot") do
           Process.send_after(self(), :ntp_timer, 10_000 + rand)
         else
-
           Process.send_after(self(), :ntp_timer, 300000 + rand)
         end
     end
