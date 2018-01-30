@@ -25,6 +25,7 @@ defmodule Farmbot.System.UpdateTimer do
 
   def init([]) do
     spawn __MODULE__, :wait_for_http, [self()]
+    Farmbot.System.Registry.subscribe(self())
     {:ok, [], :hibernate}
   end
 
@@ -32,6 +33,15 @@ defmodule Farmbot.System.UpdateTimer do
     osau = Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "os_auto_update")
     Farmbot.System.Updates.check_updates(osau)
     Process.send_after(self(), :checkup, @twelve_hours)
+    {:noreply, state, :hibernate}
+  end
+
+  def handle_info({Farmbot.System.Registry, {:config_storage, {"settings", "os_auto_update", true}}}, state) do
+    Farmbot.Bootstrap.AuthTask.force_refresh()
+    {:noreply, state, :hibernate}
+  end
+
+  def handle_info({Farmbot.System.Registry, _}, state) do
     {:noreply, state, :hibernate}
   end
 end
