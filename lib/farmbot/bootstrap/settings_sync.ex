@@ -32,7 +32,6 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     Map.new(new_map, fn({key, new_value}) ->
       # Logger.debug 1, "Applying #{key} #{inspect old_map[key]} over #{inspect new_value}"
       if old_map[key] != new_value do
-        # Logger.debug 1, "Updating: #{key} => #{new_value}"
         case new_value do
           val when is_boolean(val) ->
             update_config_value(:bool, "settings", key, new_value)
@@ -41,6 +40,7 @@ defmodule Farmbot.Bootstrap.SettingsSync do
           val when is_number(val) ->
             update_config_value(:float, "settings", key, new_value / 1)
         end
+        Logger.success 1, "Updating: #{key} => #{new_value}"
       end
       {key, new_value}
     end)
