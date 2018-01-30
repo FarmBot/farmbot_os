@@ -203,7 +203,7 @@ jobs:
       - <<: *install_hex_archives
       - restore_cache:
           keys:
-            - v3-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+            - v4-dependency-cache-{{ checksum "mix.lock.rpi3" }}
       - run: mix deps.get
       - run: mix deps.compile
       - run: mix compile
