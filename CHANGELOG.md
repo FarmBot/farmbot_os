@@ -1,6 +1,8 @@
 # 6.2.0
 * Farmbot Settings are now synced with Farmbot API.
 * Refactor Syncing to not make unnecessary HTTP requests.
+* Estop status is now much faster.
+* Add dns checkup for users with factory resetting disabled to make tokens refresh faster.
 
 # 6.1.2
 * Fix fw hardware being reset on os upgrade.
