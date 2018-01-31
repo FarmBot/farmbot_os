@@ -31,7 +31,7 @@ defmodule Farmbot.System.UpdateTimer do
 
   def handle_info(:checkup, state) do
     osau = Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "os_auto_update")
-    Farmbot.System.Updates.check_updates(osau)
+    # Farmbot.System.Updates.check_updates(osau)
     Process.send_after(self(), :checkup, @twelve_hours)
     {:noreply, state}
   end
