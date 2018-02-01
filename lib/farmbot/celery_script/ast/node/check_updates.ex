@@ -5,7 +5,7 @@ defmodule Farmbot.CeleryScript.AST.Node.CheckUpdates do
 
   def execute(%{package: :farmbot_os}, _, env) do
     env = mutate_env(env)
-    case Farmbot.System.Updates.check_updates(true) do
+    case Farmbot.System.Updates.check_updates() do
       {:error, reason} -> {:error, reason, env}
       nil -> {:ok, env}
       url ->
