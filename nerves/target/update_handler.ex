@@ -7,6 +7,7 @@ defmodule Farmbot.Target.UpdateHandler do
   # Update Handler callbacks
 
   def apply_firmware(fw_file_path) do
+    {meta_bin, 0} = System.cmd("fwup", ~w"-i #{fw_file_path} -m")
     meta_bin
     |> String.trim()
     |> String.split("\n")
@@ -14,7 +15,8 @@ defmodule Farmbot.Target.UpdateHandler do
     |> Map.new(fn([key, val]) ->
       {key, val |> String.trim_leading("\"") |> String.trim_trailing("\"")}
     end)
-    |> log_meta
+    |> log_meta()
+
     Nerves.Firmware.upgrade_and_finalize(fw_file_path)
   end
 
