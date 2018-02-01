@@ -1,14 +1,18 @@
 defmodule Farmbot.System.Updates do
   @moduledoc "Handles over the air updates."
+
   use Supervisor
+  use Farmbot.Logger
+  alias Farmbot.System.ConfigStorage
 
   @data_path Application.get_env(:farmbot, :data_path)
-  use Farmbot.Logger
+  @target Farmbot.Project.target()
+  @current_version Farmbot.Project.version()
+  @env Farmbot.Project.env()
 
-  @handler Application.get_env(:farmbot, :behaviour)[:update_handler]
-  @handler || Mix.raise("Please configure update_handler")
+  @update_handler Application.get_env(:farmbot, :behaviour)[:update_handler]
+  @update_handler || Mix.raise("Please configure update_handler")
 
-  alias Farmbot.System.ConfigStorage
 
   @doc "Overwrite os update server field"
   def override_update_server(url) do
@@ -16,11 +20,10 @@ defmodule Farmbot.System.Updates do
   end
 
   defmodule Release do
+    @moduledoc false
     defmodule Asset do
-      defstruct [
-        :name,
-        :browser_download_url
-      ]
+      @moduledoc false
+      defstruct [:name, :browser_download_url]
     end
 
     defstruct [
@@ -34,8 +37,8 @@ defmodule Farmbot.System.Updates do
     ]
   end
 
-
   defmodule CurrentStuff do
+    @moduledoc false
     import Farmbot.Project
     defstruct [
       :token,
@@ -47,6 +50,7 @@ defmodule Farmbot.System.Updates do
       :version
     ]
 
+    @doc "Get the current stuff. Fields can be replaced for testing."
     def get(replace \\ %{}) do
       os_update_server_overwrite = ConfigStorage.get_config_value(:string, "settings", "os_update_server_overwrite")
       beta_opt_in? = is_binary(os_update_server_overwrite) || ConfigStorage.get_config_value(:bool, "settings", "beta_opt_in")
@@ -65,31 +69,55 @@ defmodule Farmbot.System.Updates do
     end
   end
 
+  @doc "Downloads and applies an update file."
+  def download_and_apply_update(dl_url) do
+    if @update_handler.requires_reboot?() do
+      Logger.warn 1, "Can't apply update. An update is already staged. Please reboot and try again."
+      {:error, :reboot_required}
+    else
+      fe_constant = "FBOS_OTA"
+      dl_fun = Farmbot.BotState.download_progress_fun(fe_constant)
+      # TODO(Connor): I'd like this to have a version number..
+      dl_path = Path.join(@data_path, "ota.fw")
+      case http_adapter().download_file(dl_url, dl_path, dl_fun, "", []) do
+        {:ok, path} -> apply_firmware(path, true)
+        {:error, reason} -> {:error, reason}
+      end
+    end
+  end
+
   @doc """
   Force check for updates.
   Does _NOT_ download or apply update.
   """
-  # @spec check_updates(Release.t | nil) ::
   def check_updates(release \\ nil, current_stuff \\ nil)
 
+  # All the HTTP Requests happen here.
   def check_updates(nil, current_stuff) do
+    # Get current values.
     current_stuff_mut = %{
       token: token,
       beta_opt_in: beta_opt_in,
       os_update_server_overwrite: server_override,
       env: env,
     } = current_stuff || CurrentStuff.get()
+
     cond do
+      # Don't allow non producion envs to check production env updates.
       env != :prod -> {:error, :wrong_env}
+      # Don't check if the token is nil.
       is_nil(token) -> {:error, :no_token}
+      # Allows the server to be overwrote.
       is_binary(server_override) ->
         Logger.debug 3, "Update server override: #{server_override}"
         get_release_from_url(server_override)
+      # Beta updates should check twice.
       beta_opt_in ->
         Logger.debug 3, "Checking for beta updates."
         token
         |> Map.get(:beta_os_update_server)
         |> get_release_from_url()
+      # Conditions exhausted. We _must_ be on a production release.
       true ->
         Logger.debug 3, "Checking for production updates."
         token
@@ -97,6 +125,9 @@ defmodule Farmbot.System.Updates do
         |> get_release_from_url()
     end
     |> case do
+      # Beta needs to make two requests:
+      # check for a later beta update, if no later beta update,
+      # Check for a later production release.
       %Release{} = release when beta_opt_in ->
         do_check_production_release = fn() ->
           token
@@ -108,11 +139,13 @@ defmodule Farmbot.System.Updates do
           end
         end
         check_updates(release, current_stuff_mut) || do_check_production_release.()
+      # Production release; no beta. Check the release for an asset.
       %Release{} = release -> check_updates(release, current_stuff_mut)
       err -> err
     end
   end
 
+  # Check against the release struct. Not HTTP requests from here out.
   def check_updates(%Release{} = rel, %CurrentStuff{} = current_stuff) do
     %{
       beta_opt_in: beta_opt_in,
@@ -144,6 +177,7 @@ defmodule Farmbot.System.Updates do
         case Version.compare(current_version, %{release_version | pre: nil}) do
           c when c in [:lt, :eq] ->
             Logger.debug 3, "Current version (#{current_version}) is less than or equal to beta release (#{release_version})"
+            # TODO Check times here i guess?
             try_find_dl_url_in_asset(rel.assets, release_version, current_stuff)
           :gt ->
             Logger.debug 3, "Current version (#{current_version}) is greater than latest beta release (#{release_version})"
@@ -161,6 +195,7 @@ defmodule Farmbot.System.Updates do
         Logger.debug 3, "Current version is equal to release, but commits are not equal."
         try_find_dl_url_in_asset(rel.assets, release_version, current_stuff)
 
+      # Conditions exhausted. No updates available.
       true ->
         comparison_str = "version check: current version: #{current_version} #{version_comp} latest release version: #{release_version} \n"<>
           "commit check: current commit: #{current_commit} latest release commit: #{release_commit}: (equal: #{commits_equal?})"
@@ -170,6 +205,7 @@ defmodule Farmbot.System.Updates do
     end
   end
 
+  @doc "Finds a asset url if it exists, nil if not."
   def try_find_dl_url_in_asset(assets, version, current_stuff)
 
   def try_find_dl_url_in_asset([%Release.Asset{name: name, browser_download_url: bdurl} | rest], release_version, current_stuff) do
@@ -189,36 +225,36 @@ defmodule Farmbot.System.Updates do
     nil
   end
 
+  @doc "HTTP request to fetch a Release."
   def get_release_from_url(url) when is_binary(url) do
     Logger.debug 3, "Checking for updates: #{url}"
     case http_adapter().get(url) do
+      # This can happen on beta updates, if on an old token
+      # and a new beta release was published.
       {:ok, %{status_code: 404}} ->
         Logger.warn 1, "Got a 404 checking for updates: #{url}. Fetching a new token. Try that again"
         Farmbot.Bootstrap.AuthTask.force_refresh()
         {:error, :token_refresh}
+
+      # Decode the HTTP body as a release.
       {:ok, %{status_code: 200, body: body}} ->
         pattern = struct(Release, [assets: [struct(Release.Asset)]])
         case Poison.decode(body, as: pattern) do
           {:ok, %Release{} = rel} -> rel
           _err -> {:error, :bad_release_body}
         end
-      {:ok, %{status_code: _code, body: body}} ->
-        {:error, body}
+
+      # Error situations
+      {:ok, %{status_code: _code, body: body}} -> {:error, body}
       err -> err
     end
-  end
-
-  def http_adapter do
-    # adapter = Application.get_env(:farmbot, :behaviour)[:http_adapter]
-    # adapter || raise "No http adapter!"
-    Farmbot.HTTP
   end
 
   @doc "Apply an OS (fwup) firmware."
   def apply_firmware(file_path, reboot) do
     Logger.busy 1, "Applying #{@target} OS update"
     before_update()
-    case @handler.apply_firmware(file_path) do
+    case @update_handler.apply_firmware(file_path) do
       :ok ->
         Logger.success 1, "OS Firmware updated!"
         if reboot do
@@ -231,16 +267,14 @@ defmodule Farmbot.System.Updates do
     end
   end
 
-  defp before_update do
-    File.write!(update_file(), @current_version)
-  end
+  # Private
 
   defp maybe_post_update do
     case File.read(update_file()) do
       {:ok, @current_version} -> :ok
       {:ok, old_version} ->
         Logger.info 1, "Updating from #{old_version} to #{@current_version}"
-        @handler.post_update()
+        @update_handler.post_update()
       {:error, :enoent} ->
         Logger.info 1, "Updating to #{@current_version}"
       {:error, err} -> raise err
@@ -248,18 +282,20 @@ defmodule Farmbot.System.Updates do
     before_update()
   end
 
-  defp update_file do
-    Path.join(@data_path, "update")
-  end
+  defp before_update, do: File.write!(update_file(), @current_version)
+
+  defp update_file, do: Path.join(@data_path, "update")
+
+  defp http_adapter, do: Farmbot.HTTP
 
   @doc false
   def start_link do
-    :ignore
-    # Supervisor.start_link(__MODULE__, [], [name: __MODULE__])
+    Supervisor.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
+  @doc false
   def init([]) do
-    case @handler.setup(@env) do
+    case @update_handler.setup(@env) do
       :ok ->
         maybe_post_update()
         children = [
@@ -267,8 +303,7 @@ defmodule Farmbot.System.Updates do
         ]
         opts = [strategy: :one_for_one]
         supervise(children, opts)
-      {:error, reason} ->
-        {:stop, reason}
+      {:error, reason} -> {:stop, reason}
     end
   end
 end
