@@ -2,8 +2,8 @@ defmodule Farmbot.System.ConfigStorage.Migrations.AddNetworkInterfaceDeprication
   use Ecto.Migration
 
   def change do
-    change table(:network_interface) do
-      add(:migrated, :bool)
+    alter table(:network_interface) do
+      add(:migrated, :boolean)
     end
   end
 end
