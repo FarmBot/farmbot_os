@@ -7,7 +7,8 @@ defmodule Farmbot.CeleryScript.AST.Node.ChangeOwnership do
 
   def execute(_, pairs, env) do
     env = mutate_env(env)
-    pair_map = Map.new(pairs, fn(%{args: %{label: label, value: value}}) -> {label, value} end)
+    pair_map = Map.new(pairs,
+      fn(%{args: %{label: label, value: value}}) -> {label, value} end)
     email = pair_map["email"]
     secret = pair_map["secret"]
     server = pair_map["server"]
@@ -39,7 +40,7 @@ defmodule Farmbot.CeleryScript.AST.Node.ChangeOwnership do
       Farmbot.BotState.unregister_farmware(fw)
       Farmbot.Farmware.Installer.uninstall(fw)
     end
-    Farmbot.System.reboot()
+    Farmbot.System.reboot("Change ownership")
     {:ok, env}
   end
 
