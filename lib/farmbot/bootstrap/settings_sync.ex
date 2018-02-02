@@ -32,18 +32,58 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     Map.new(new_map, fn({key, new_value}) ->
       # Logger.debug 1, "Applying #{key} #{inspect old_map[key]} over #{inspect new_value}"
       if old_map[key] != new_value do
-        case new_value do
-          val when is_boolean(val) ->
-            update_config_value(:bool, "settings", key, new_value)
-          val when is_binary(val) ->
-            update_config_value(:string, "settings", key, new_value)
-          val when is_number(val) ->
-            update_config_value(:float, "settings", key, new_value / 1)
-        end
-        Logger.success 2, "Updating: #{key} => #{new_value}"
+        apply_to_config_storage key, new_value
       end
       {key, new_value}
     end)
+  end
+
+  # TODO: This should be moved to ConfigStorage module maybe?
+  @bool_keys [
+    "auto_sync",
+    "beta_opt_in",
+    "disable_factory_reset",
+    "firmware_output_log",
+    "firmware_input_log",
+    "sequence_body_log",
+    "sequence_complete_log",
+    "sequence_init_log",
+    "arduino_debug_messages",
+    "os_auto_update"
+  ]
+
+  @string_keys [
+    "firmware_hardware"
+  ]
+
+  @float_keys [
+    "network_not_found_timer"
+  ]
+
+  defp apply_to_config_storage(key, val)
+  when key in @bool_keys and (is_nil(val) or is_boolean(val)) do
+    Logger.success 2, "Updating: #{key} => #{inspect val}"
+    update_config_value(:bool, "settings", key, val)
+  end
+
+  defp apply_to_config_storage(key, val)
+  when key in @string_keys and (is_nil(val) or is_binary(val)) do
+    Logger.success 2, "Updating: #{key} => #{inspect val}"
+    update_config_value(:string, "settings", key, val)
+  end
+
+  defp apply_to_config_storage(key, val)
+  when key in @float_keys and (is_nil(val) or is_number(val)) do
+    Logger.success 2, "Updating: #{key} => #{inspect val}"
+    if val do
+      update_config_value(:float, "settings", key, val / 1)
+    else
+      update_config_value(:float, "settings", key, val)
+    end
+  end
+
+  defp apply_to_config_storage(key, val) do
+    Logger.error 1, "Unknown pair: #{key} => #{inspect val}"
   end
 
   def do_sync_settings(%{"api_migrated" => true} = api_data) do
