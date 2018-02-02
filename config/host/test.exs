@@ -62,4 +62,4 @@ config :farmbot, Farmbot.System.GlobalConfig,
   pool_size: 10,
   loggers: []
 
-config :farmbot, ecto_repos: [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage]
+config :farmbot, ecto_repos: [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage, Farmbot.System.GlobalConfig]
