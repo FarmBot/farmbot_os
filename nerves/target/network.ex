@@ -2,7 +2,7 @@ defmodule Farmbot.Target.Network do
   @moduledoc "Bring up network."
 
   @behaviour Farmbot.System.Init
-  alias Farmbot.System.ConfigStorage
+  alias Farmbot.System.GlobalConfig
   alias GlobalConfig.NetworkInterface
   alias Farmbot.Target.Network.Manager, as: NetworkManager
   use Supervisor
