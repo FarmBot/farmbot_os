@@ -1,19 +1,23 @@
 defmodule Farmbot.System.Init.FSCheckup do
   @moduledoc false
   use Supervisor
-  @behaviour Farmbot.System.Init
-  @data_path Application.get_env(:farmbot, :data_path) || Mix.raise("Unconfigured data path.")
   use Farmbot.Logger
+  
+  @behaviour Farmbot.System.Init
+  @data_path Application.get_env(:farmbot, :data_path)
+  @data_path || Mix.raise("Unconfigured data path.")
 
   @ref Farmbot.Project.commit()
   @version Farmbot.Project.version()
   @target Farmbot.Project.target()
   @env Farmbot.Project.env()
 
+  @doc false
   def start_link(_, opts \\ []) do
     Supervisor.start_link(__MODULE__, [], opts)
   end
 
+  @doc false
   def init([]) do
     do_checkup()
     :ignore
@@ -25,6 +29,8 @@ defmodule Farmbot.System.Init.FSCheckup do
     unless File.exists?(@data_path) do
       File.mkdir(@data_path)
     end
+
+    setup_multi_user()
 
     Logger.busy(3, "Checking #{check_file}")
     msg = """
@@ -46,6 +52,13 @@ defmodule Farmbot.System.Init.FSCheckup do
         Logger.busy(3, "Filesystem not up yet (#{inspect(err)})...")
         Process.sleep(1000)
         do_checkup()
+    end
+  end
+
+  defp setup_multi_user do
+    multiuser_dir = Path.join([@data_path, "users", "default"])
+    unless File.exists?(multiuser_dir) do
+      File.mkdir_p(multiuser_dir)
     end
   end
 end
