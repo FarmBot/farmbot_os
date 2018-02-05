@@ -131,6 +131,7 @@ defmodule Farmbot.Firmware do
 
     case handler_mod.start_link() do
       {:ok, handler} ->
+        # Farmbot.System.Registry.subscribe(self())
         Process.flag(:trap_exit, true)
         {
           :producer_consumer,
@@ -160,6 +161,25 @@ defmodule Farmbot.Firmware do
       end
     end
   end
+
+  # def handle_info({Farmbot.System.Registry, {:config_storage, {"hardware_params", key, val}}}, state) do
+  #   Logger.debug 3, "Applying firmware config: #{key} => #{val} from registry."
+  #   cond do
+  #     state.params[key] == val ->
+  #       Logger.debug 3, "Values the same not applying."
+  #       {:noreply, [], state}
+  #     is_number(val) ->
+  #       spawn __MODULE__, :update_param, [key, val]
+  #       {:noreply, [], state}
+  #     is_nil(val) ->
+  #       Logger.warn 3, "Not applying firmware config: #{key} because the value is nil."
+  #       {:noreply, [], state}
+  #   end
+  # end
+  #
+  # def handle_info({Farmbot.System.Registry, _}, state) do
+  #   {:noreply, [], state}
+  # end
 
   def handle_info({:EXIT, _pid, :normal}, state) do
     {:stop, :normal, state}
