@@ -95,6 +95,11 @@ defmodule Farmbot.Firmware do
     GenStage.call(__MODULE__, {:set_servo_angle, [pin, value]}, @call_timeout)
   end
 
+  @doc "Flag for all params reported."
+  def params_reported do
+    GenStage.call(__MODULE__, :params_reported)
+  end
+
   @doc "Start the firmware services."
   def start_link do
     GenStage.start_link(__MODULE__, [], name: __MODULE__)
@@ -113,11 +118,14 @@ defmodule Farmbot.Firmware do
 
   defmodule State do
     @moduledoc false
-    defstruct handler: nil, handler_mod: nil,
+    defstruct
+      handler: nil,
+      handler_mod: nil,
       idle: false,
       timer: nil,
       pins: %{},
       params: %{},
+      params_reported: false,
       initialized: false,
       initializing: false,
       current: nil,
@@ -131,7 +139,6 @@ defmodule Farmbot.Firmware do
 
     case handler_mod.start_link() do
       {:ok, handler} ->
-        # Farmbot.System.Registry.subscribe(self())
         Process.flag(:trap_exit, true)
         {
           :producer_consumer,
@@ -161,25 +168,6 @@ defmodule Farmbot.Firmware do
       end
     end
   end
-
-  # def handle_info({Farmbot.System.Registry, {:config_storage, {"hardware_params", key, val}}}, state) do
-  #   Logger.debug 3, "Applying firmware config: #{key} => #{val} from registry."
-  #   cond do
-  #     state.params[key] == val ->
-  #       Logger.debug 3, "Values the same not applying."
-  #       {:noreply, [], state}
-  #     is_number(val) ->
-  #       spawn __MODULE__, :update_param, [key, val]
-  #       {:noreply, [], state}
-  #     is_nil(val) ->
-  #       Logger.warn 3, "Not applying firmware config: #{key} because the value is nil."
-  #       {:noreply, [], state}
-  #   end
-  # end
-  #
-  # def handle_info({Farmbot.System.Registry, _}, state) do
-  #   {:noreply, [], state}
-  # end
 
   def handle_info({:EXIT, _pid, :normal}, state) do
     {:stop, :normal, state}
@@ -212,6 +200,10 @@ defmodule Farmbot.Firmware do
     end
   end
 
+  def handle_call(:params_reported, _, state) do
+    {:reply, state.params_reported, [], state}
+  end
+
   def handle_call({fun, _}, _from, state = %{initialized: false})
   when fun not in  [:read_all_params, :update_param, :emergency_unlock, :emergency_lock] do
     {:reply, {:error, :uninitialized}, [], state}
@@ -233,8 +225,8 @@ defmodule Farmbot.Firmware do
     end
   end
 
-  defp do_begin_cmd(%Current{fun: fun, args: args, from: _from} = current, state, dispatch) do
-    # Logger.busy 3, "FW Starting: #{fun}: #{inspect from}"
+  defp do_begin_cmd(%Current{fun: fun, args: args, from: from} = current, state, dispatch) do
+    Logger.busy 3, "FW Starting: #{fun}: #{inspect from}"
     case apply(state.handler_mod, fun, [state.handler | args]) do
       :ok ->
         timer = Process.send_after(self(), :timeout, state.timeout_ms)
@@ -398,7 +390,7 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode(:report_params_complete, state) do
     Logger.success 1, "Firmware initialized."
-    {nil, %{state | initializing: false, initialized: true}}
+    {nil, %{state | initializing: false, initialized: true, params_reported: true}}
   end
 
   defp handle_gcode({:report_software_version, version}, state) do
