@@ -185,12 +185,12 @@ defmodule Farmbot.Bootstrap.SettingsSync do
   end
 
   defp apply_to_config_storage(key, val)
-  when key in @firmware_keys and is_number(val) do
-    Logger.success 2, "Updating: #{key} => #{inspect val}"
+  when key in @firmware_keys do
+    Logger.success 2, "Updating Firmware: #{key} => #{inspect val}"
     if val do
-      update_config_value(:float, "hardware_params", key, val / 1)
+      Farmbot.Firmware.update_param(String.to_atom(key), val)
     else
-      update_config_value(:float, "hardware_params", key, val)
+      Logger.warn 3, "Won't apply #{key} => nil"
     end
   end
 
@@ -209,9 +209,25 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     {:error, {:unknown_pair, {key, val}}}
   end
 
+  defp wait_for_params_reported(tries \\ 0) do
+    require IEx; IEx.pry
+    if tries > 10 do
+      {:error, "Params took too long to report."}
+    else
+      if Farmbot.Firmware.params_reported do
+        :ok
+      else
+        Logger.debug 3, "Waiting for params to be reported."
+        Process.sleep(1000)
+        wait_for_params_reported(tries + 1)
+      end
+    end
+  end
+
   @doc "Sync the settings related to the Firmware."
   def do_sync_fw_configs do
-    with {:ok, %{body: body, status_code: 200}} <- Farmbot.HTTP.get("/api/firmware_config"),
+    with :ok <- wait_for_params_reported(),
+    {:ok, %{body: body, status_code: 200}} <- Farmbot.HTTP.get("/api/firmware_config"),
     {:ok, data} <- Poison.decode(body)
     do
       do_sync_fw_configs(data)
