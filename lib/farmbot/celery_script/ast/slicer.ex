@@ -9,51 +9,66 @@ defmodule Farmbot.CeleryScript.AST.Slicer do
   alias AST.Heap
   alias AST.Heap.Address
 
+  @doc "Run the Slicer on the canonical AST format."
+  def run(canonical)
   def run(%AST{} = canonical) do
     Heap.new()
-    |> allocate(canonical, Heap.null())
-    |> Map.update(Heap.body(), Heap.null(), fn(x) -> Map.get(x, Heap.body()) end)
-    |> Map.update(Heap.next(), Heap.null(), fn(x) -> Map.get(x, Heap.next()) end)
-    |> Heap.values()
+    |> allocate(canonical, Heap.null)
+    |> elem(1)
+    |> Map.update(:entries, :error, fn(entries) ->
+      Map.new(entries, fn({key, entry}) ->
+        entry = Map.put(entry, Heap.body, Map.get(entry, Heap.body, Heap.null))
+        entry = Map.put(entry, Heap.next, Map.get(entry, Heap.next, Heap.null))
+        {key, entry}
+      end)
+    end)
   end
 
-  def allocate(%Heap{} = heap, %AST{} = node, %Address{} = parent_addr) do
-    heap
-    |> Heap.alot(node.kind)
-    |> Heap.put(Heap.parent(), parent_addr) # puts "here"
-    |> iterate_over_body(node)
-    |> iterate_over_args(node)
+  @doc false
+  def allocate(%Heap{} = heap, %AST{} = ast, %Address{} = parent_addr) do
+    %Heap{here: addr} = heap = Heap.alot(heap, ast.kind)
+    new_heap = Heap.put(heap, Heap.parent(), parent_addr)
+      |> iterate_over_body(ast, addr)
+      |> iterate_over_args(ast, addr)
+    {addr, new_heap}
   end
 
-  def iterate_over_args(%Heap{here: %Address{} = parent_addr} = heap, %AST{} = canonical_node) do
+  @doc false
+  def iterate_over_args(%Heap{} = heap, %AST{} = canonical_node, parent_addr) do
     keys = Map.keys(canonical_node.args)
     Enum.reduce(keys, heap, fn(key, %Heap{} = heap) ->
       case canonical_node.args[key] do
         %AST{} = another_node ->
           k = Heap.link <> to_string(key)
-          new_heap = heap |> allocate(another_node, parent_addr)
-          Heap.put(new_heap, parent_addr, k, new_heap.here)
-        val ->
-          Heap.put(heap, parent_addr, key, val)
+          {addr, new_heap} = allocate(heap, another_node, parent_addr)
+          Heap.put(new_heap, parent_addr, k, addr)
+        val -> Heap.put(heap, parent_addr, key, val)
       end
     end)
   end
 
-  def iterate_over_body(%Heap{} = heap, %AST{} = canonical_node) do
-    recurse_into_body(heap, canonical_node.body)
+  @doc false
+  def iterate_over_body(%Heap{} = heap, %AST{} = canonical_node, parent_addr) do
+    recurse_into_body(heap, canonical_node.body, parent_addr)
   end
 
-  def recurse_into_body(heap, body, index \\ 0)
-  def recurse_into_body(%Heap{here: %Address{} = previous_address} = heap, [body_item | rest], index) do
-    %Heap{here: my_heap_address} = heap = allocate(heap, body_item, previous_address)
-    is_head? = index == 0
-    prev_next_key = if is_head?, do: Heap.null(), else: my_heap_address
-    prev_body_key = if is_head?, do: my_heap_address, else: Heap.null()
-    heap
-    |> Heap.put(previous_address, Heap.next(), prev_next_key)
-    |> Heap.put(previous_address, Heap.body(), prev_body_key)
-    |> recurse_into_body(rest, index + 1)
+  @doc false
+  def recurse_into_body(heap, body, parent_addr, index \\ 0)
+  def recurse_into_body(%Heap{} = heap, [body_item | rest], prev_addr, 0) do
+    {my_heap_address, %Heap{} = new_heap} =
+      heap
+        |> Heap.put(prev_addr, Heap.body, Address.inc(prev_addr))
+        |> allocate(body_item, prev_addr)
+    new_heap
+      |> Heap.put(prev_addr, Heap.next, Heap.null)
+      |> recurse_into_body(rest, my_heap_address, 1)
   end
 
-  def recurse_into_body(heap, [], _), do: heap
+  def recurse_into_body(%Heap{} = heap, [body_item | rest], prev_addr, index) do
+    {my_heap_address, %Heap{} = heap} = allocate(heap, body_item, prev_addr)
+    new_heap = Heap.put(heap, prev_addr, Heap.next, my_heap_address)
+    recurse_into_body(new_heap, rest, my_heap_address, index + 1)
+  end
+
+  def recurse_into_body(heap, [], _, _), do: heap
 end
