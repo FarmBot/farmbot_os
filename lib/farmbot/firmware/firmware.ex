@@ -497,6 +497,7 @@ defmodule Farmbot.Firmware do
           update_param(:"#{key}", val)
       end
     end
+    update_param(:param_config_ok, 1)
     read_all_params()
     request_software_version()
   end
