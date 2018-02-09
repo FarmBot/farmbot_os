@@ -142,6 +142,8 @@ defmodule Farmbot.Bootstrap.SettingsSync do
   def run() do
     do_sync_fbos_configs()
     do_sync_fw_configs()
+    Logger.debug 1, "Synced fbos and fw settings with API"
+    :ok
   rescue
     err ->
       message = Exception.message(err)
@@ -186,11 +188,11 @@ defmodule Farmbot.Bootstrap.SettingsSync do
 
   defp apply_to_config_storage(key, val)
   when key in @firmware_keys do
-    Logger.success 2, "Updating Firmware: #{key} => #{inspect val}"
+    Logger.success 2, "Updating FW param: #{key} => #{inspect val}"
     if val do
-      Farmbot.Firmware.update_param(String.to_atom(key), val)
+      update_config_value(:float, "hardware_params", key, val / 1)
     else
-      Logger.warn 3, "Won't apply #{key} => nil"
+      Logger.warn 2, "Not allowing #{key} to be set to null"
     end
   end
 
@@ -209,25 +211,9 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     {:error, {:unknown_pair, {key, val}}}
   end
 
-  defp wait_for_params_reported(tries \\ 0) do
-    require IEx; IEx.pry
-    if tries > 10 do
-      {:error, "Params took too long to report."}
-    else
-      if Farmbot.Firmware.params_reported do
-        :ok
-      else
-        Logger.debug 3, "Waiting for params to be reported."
-        Process.sleep(1000)
-        wait_for_params_reported(tries + 1)
-      end
-    end
-  end
-
   @doc "Sync the settings related to the Firmware."
   def do_sync_fw_configs do
-    with :ok <- wait_for_params_reported(),
-    {:ok, %{body: body, status_code: 200}} <- Farmbot.HTTP.get("/api/firmware_config"),
+    with {:ok, %{body: body, status_code: 200}} <- Farmbot.HTTP.get("/api/firmware_config"),
     {:ok, data} <- Poison.decode(body)
     do
       do_sync_fw_configs(data)
@@ -248,8 +234,7 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     :ok
   end
 
-  # %{"api_migrated" => false}
-  def do_sync_fw_configs(_) do
+  def do_sync_fw_configs(%{"api_migrated" => false}) do
     Logger.info 3, "FBOS is the source of truth for Firmware configs. Uploading data."
     current = get_config_as_map()["hardware_params"]
     payload = Map.put(current, "api_migrated", true) |> Poison.encode!()
@@ -319,7 +304,12 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     Map.take(map, @fbos_keys ++ Enum.map(@fbos_keys, &String.to_atom(&1)))
   end
 
+  def take_valid_fw(%{param_config_ok: _} = atom_map) do
+    Map.new(atom_map, fn({key, val}) -> {to_string(key), val} end)
+  end
+
   def take_valid_fw(map) do
     Map.take(map, @firmware_keys ++ Enum.map(@firmware_keys, &String.to_atom(&1)))
+    |> Map.drop(["param_version", "param_test", "param_config_ok", "param_use_eeprom"])
   end
 end
