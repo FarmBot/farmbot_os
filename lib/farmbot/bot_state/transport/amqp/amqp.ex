@@ -251,7 +251,13 @@ defmodule Farmbot.BotState.Transport.AMQP do
       {:ok, %{"body" => nil}} -> {:noreply, [], state}
       {:ok, %{"body" => config}} ->
         old = state.state_cache.mcu_params
-        Farmbot.Bootstrap.SettingsSync.apply_fw_map(old, config)
+        new = Farmbot.Bootstrap.SettingsSync.apply_fw_map(old, config)
+        for {key, new_value} <- new do
+          if old[:"#{key}"] != new_value do
+            Logger.info 1, "Updating key: #{key} => #{new_value}"
+            Farmbot.Firmware.update_param(:"#{key}", new_value / 1)
+          end
+        end
         {:noreply, [], state}
     end
   end

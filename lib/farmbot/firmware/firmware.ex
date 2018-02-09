@@ -227,7 +227,7 @@ defmodule Farmbot.Firmware do
   end
 
   defp do_begin_cmd(%Current{fun: fun, args: args, from: from} = current, state, dispatch) do
-    Logger.busy 3, "FW Starting: #{fun}: #{inspect from}"
+    # Logger.busy 3, "FW Starting: #{fun}: #{inspect from}"
     case apply(state.handler_mod, fun, [state.handler | args]) do
       :ok ->
         timer = Process.send_after(self(), :timeout, state.timeout_ms)
@@ -498,6 +498,7 @@ defmodule Farmbot.Firmware do
       end
     end
     update_param(:param_config_ok, 1)
+    update_param(:param_use_eeprom, 0)
     read_all_params()
     request_software_version()
   end
