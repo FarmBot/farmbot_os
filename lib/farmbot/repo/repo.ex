@@ -411,9 +411,10 @@ defmodule Farmbot.Repo do
 
   def do_get_resource(resource, slug) do
     resource = Module.split(resource) |> List.last()
-    Logger.debug(3, "[#{resource}] Downloading: (#{slug})")
+    Logger.debug 3, "Fetching #{resource}"
+    maybe_debug_log("[#{resource}] Downloading: (#{slug})")
     {time, res} = :timer.tc(fn -> Farmbot.HTTP.get(slug) end)
-    Logger.debug(3, "[#{resource}] HTTP Request took: #{time}µs")
+    maybe_debug_log("[#{resource}] HTTP Request took: #{time}µs")
     res
   end
 
@@ -435,14 +436,14 @@ defmodule Farmbot.Repo do
 
   defp sync_resource(repo, resource, cache) do
     human_readable_resource_name = Module.split(resource) |> List.last()
-    Logger.debug(3, "[#{human_readable_resource_name}] Entering into DB.")
+    maybe_debug_log("[#{human_readable_resource_name}] Entering into DB.")
     as = if resource in @singular_resources, do: struct(resource), else: [struct(resource)]
 
     with {:ok, %{status_code: 200, body: body}} <- cache[resource],
          {json_time, {:ok, obj_or_list}} <- :timer.tc(fn -> Poison.decode(body, as: as) end) do
-      Logger.debug(3, "[#{human_readable_resource_name}] JSON Decode took: #{json_time}µs")
+      maybe_debug_log("[#{human_readable_resource_name}] JSON Decode took: #{json_time}µs")
       {insert_time, res} = :timer.tc(fn -> do_insert_or_update(repo, obj_or_list) end)
-      Logger.debug(3, "[#{human_readable_resource_name}] DB Operations took: #{insert_time}µs")
+      maybe_debug_log("[#{human_readable_resource_name}] DB Operations took: #{insert_time}µs")
       case res do
         {:ok, _} when resource in @singular_resources -> :ok
         :ok -> :ok
@@ -492,6 +493,22 @@ defmodule Farmbot.Repo do
       {:error, reason} ->
         Logger.error(2, "failed to sync #{obj.__struct__}: #{inspect(reason)}")
         {:error, obj.__struct__, reason}
+    end
+  end
+
+  def enable_debug_logs do
+    Application.put_env(:farmbot, :repo_debug_logs, true)
+  end
+
+  def disable_debug_logs do
+    Application.put_env(:farmbot, :repo_debug_logs, false)
+  end
+
+  defp maybe_debug_log(msg) do
+    if Application.get_env(:farmbot, :repo_debug_logs, false) do
+      Logger.debug 3, msg
+    else
+      :ok
     end
   end
 
