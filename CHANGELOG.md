@@ -1,3 +1,5 @@
+# 6.3.0
+
 # 6.2.0
 * Farmbot Settings are now synced with Farmbot API.
 * Refactor Syncing to not make unnecessary HTTP requests.
