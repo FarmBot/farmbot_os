@@ -118,7 +118,7 @@ defmodule Farmbot.Firmware do
 
   defmodule State do
     @moduledoc false
-    defstruct
+    defstruct [
       handler: nil,
       handler_mod: nil,
       idle: false,
@@ -131,6 +131,7 @@ defmodule Farmbot.Firmware do
       current: nil,
       timeout_ms: 150_000,
       queue: :queue.new()
+    ]
   end
 
   def init([]) do
