@@ -1,4 +1,6 @@
 # 6.3.0
+* Refactor system update system
+* Write tests for new system :boom:
 
 # 6.2.0
 * Farmbot Settings are now synced with Farmbot API.
