@@ -16,7 +16,7 @@ defmodule Farmbot.CeleryScript.AST.Node.InstallFirstPartyFarmware do
 
   defp do_sync_repo(env) do
     case Farmbot.Farmware.Installer.sync_repo(@fpf_url) do
-      :ok -> {:ok, env}
+      {:ok, _} -> {:ok, env}
       {:error, reason} -> {:error, reason, env}
     end
   end

@@ -298,7 +298,7 @@ defmodule Farmbot.Repo do
     mod = Module.concat(["Farmbot", "Repo", kind])
     # an object was deleted.
     if Code.ensure_loaded?(mod) do
-      Logger.busy(3, "Applying sync_cmd (#{mod}: delete)")
+      Logger.debug(3, "Applying sync_cmd (#{mod}: delete)")
 
       case repo.get(mod, id) do
         nil ->
@@ -319,7 +319,7 @@ defmodule Farmbot.Repo do
     mod = Module.concat(["Farmbot", "Repo", kind])
 
     if Code.ensure_loaded?(mod) do
-      Logger.busy(3, "Applying sync_cmd (#{mod}): insert_or_update")
+      Logger.debug(3, "Applying sync_cmd (#{mod}): insert_or_update")
 
       # We need to check if this object exists in the database.
       case repo.get(mod, id) do
