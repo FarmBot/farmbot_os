@@ -14,6 +14,8 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     {:ok, data} <- Poison.decode(body)
     do
       do_sync_settings(data)
+      update_config_value(:bool, "settings", "ignore_fbos_config", false)
+      :ok
     else
       {:ok, status_code: code} ->
         Logger.error 1, "HTTP error syncing settings: #{code}"
@@ -24,6 +26,7 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     end
   rescue
     err ->
+      update_config_value(:bool, "settings", "ignore_fbos_config", false)
       Logger.error 1, "Error syncing settings: #{Exception.message(err)} #{inspect System.stacktrace()}"
   end
 
