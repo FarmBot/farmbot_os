@@ -27,21 +27,21 @@ defmodule Farmbot.Mixfile do
       app: :farmbot,
       description: "The Brains of the Farmbot Project",
       package: package(),
-      compilers: compilers(),
       make_clean: ["clean"],
+      make_env: make_env(),
+      compilers: [:elixir_make] ++ Mix.compilers,
       test_coverage: [tool: ExCoveralls],
       version: @version,
       target: @target,
       commit: commit(),
       arduino_commit: arduino_commit(),
-      archives: [nerves_bootstrap: "~> 0.7.0"],
+      archives: [nerves_bootstrap: "~> 0.8.0"],
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps_path: "deps/#{@target}",
       build_path: "_build/#{@target}",
       lockfile: "mix.lock.#{@target}",
       config_path: "config/config.exs",
-      lockfile: "mix.lock",
       elixirc_paths: elixirc_paths(Mix.env(), @target),
       aliases: aliases(Mix.env(), @target),
       deps: deps() ++ deps(@target),
@@ -81,11 +81,14 @@ defmodule Farmbot.Mixfile do
     ]
   end
 
-  defp compilers do
-    case :init.get_plain_arguments() |> List.last() do
-      a when a in ['mix', 'compile', 'firmware'] ->
-        [:elixir_make] ++ Mix.compilers
-      _ -> Mix.compilers
+  defp make_env do
+    case System.get_env("ERL_EI_INCLUDE_DIR") do
+      nil ->
+        %{
+          "ERL_EI_INCLUDE_DIR" => "#{:code.root_dir()}/usr/include",
+          "ERL_EI_LIBDIR" => "#{:code.root_dir()}/usr/lib"
+        }
+      _ -> %{}
     end
   end
 
