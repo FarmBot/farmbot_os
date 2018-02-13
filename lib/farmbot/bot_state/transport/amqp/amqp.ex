@@ -233,7 +233,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
     {:noreply, [], state}
   end
 
-  def handle_fbos_config(_, _, %{state_cache: nil}) do
+  def handle_fbos_config(_, _, %{state_cache: nil} = state) do
     # Don't update fbos config, if we don't have a state cache for whatever reason.
     {:noreply, [], state}
   end
