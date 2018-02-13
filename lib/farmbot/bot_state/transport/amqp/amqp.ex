@@ -233,16 +233,25 @@ defmodule Farmbot.BotState.Transport.AMQP do
     {:noreply, [], state}
   end
 
+  def handle_fbos_config(_, _, %{state_cache: nil} = state) do
+    # Don't update fbos config, if we don't have a state cache for whatever reason.
+    {:noreply, [], state}
+  end
+
   def handle_fbos_config(_id, payload, state) do
-    case Poison.decode(payload) do
-      # TODO(Connor) What do I do with deletes?
-      {:ok, %{"body" => nil}} -> {:noreply, [], state}
-      {:ok, %{"body" => config}} ->
-        # Logger.info 1, "Got fbos config from amqp: #{inspect config}"
-        old = state.state_cache.configuration
-        updated = Farmbot.Bootstrap.SettingsSync.apply_map(old, config)
-        push_bot_state(state.chan, state.bot, %{state.state_cache | configuration: updated})
-        {:noreply, [], state}
+    if get_config_value(:bool, "settings", "ignore_fbos_config") do
+      {:noreply, [], state}
+    else
+      case Poison.decode(payload) do
+        # TODO(Connor) What do I do with deletes?
+        {:ok, %{"body" => nil}} -> {:noreply, [], state}
+        {:ok, %{"body" => config}} ->
+          # Logger.info 1, "Got fbos config from amqp: #{inspect config}"
+          old = state.state_cache.configuration
+          updated = Farmbot.Bootstrap.SettingsSync.apply_map(old, config)
+          push_bot_state(state.chan, state.bot, %{state.state_cache | configuration: updated})
+          {:noreply, [], state}
+      end
     end
   end
 
