@@ -82,7 +82,6 @@ defmodule Farmbot.System.Updates do
 
       end
 
-
       if should_apply_update(@env, prerelease, needs_update) do
         Logger.busy 1, "Downloading FarmbotOS over the air update"
         IO.puts cl
@@ -102,6 +101,10 @@ defmodule Farmbot.System.Updates do
 
       {:error, reason} ->
         Logger.error 1, "Failed to fetch update data: #{inspect reason}"
+
+      {:ok, %{status_code: 400}} ->
+        Logger.info 2, "Had out of date token. Try that again."
+        Farmbot.Bootstrap.AuthTask.force_refresh()
 
       {:ok, %{body: body, status_code: code}} ->
         reason = case Poison.decode(body) do

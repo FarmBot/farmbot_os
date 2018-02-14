@@ -26,6 +26,7 @@ defmodule Farmbot.System.ConfigStorage.Dispatcher do
   end
 
   def handle_call({:dispatch, group, key, val}, _, state) do
+    Farmbot.System.Registry.dispatch(:config_storage, {group, key, val})
     {:reply, :ok, [{:config, group, key, val}], state}
   end
 end

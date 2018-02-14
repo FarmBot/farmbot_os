@@ -1,3 +1,10 @@
+# 6.2.0
+* Farmbot Settings are now synced with Farmbot API.
+* Refactor Syncing to not make unnecessary HTTP requests.
+* Estop status is now much faster.
+* Add dns checkup for users with factory resetting disabled to make tokens refresh faster.
+* Opting into beta updates will refresh farmbot's token.
+
 # 6.1.2
 * Fix fw hardware being reset on os upgrade.
 * Bump arduino-firmware version to 6.0.1
