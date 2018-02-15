@@ -374,8 +374,14 @@ defmodule Farmbot.Repo do
         Farmbot.Bootstrap.SettingsSync.run()
       end
     end)
-    Logger.debug 3, "Entire sync took: #{time}µs."
-    res
+    case res do
+      :ok ->
+        Logger.debug 3, "Entire sync took: #{time}µs."
+        :ok
+      err ->
+        BotState.set_sync_status(:sync_error)
+        exit(err)
+    end
   end
 
   defp do_http_requests do

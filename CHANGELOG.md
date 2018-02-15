@@ -5,6 +5,7 @@
 * Add ability to log into a new account without rebooting into Configurator.
 * Firmware settings are now synced with Farmbot API.
 * Add third Firmware board.
+* Fix bug causing false positives on sync failure.
 
 # 6.2.0
 * Farmbot Settings are now synced with Farmbot API.
