@@ -35,7 +35,7 @@ defmodule Farmbot.CeleryScript.AST.Node.ChangeOwnership do
     end
 
     farmwares = Farmbot.BotState.force_state_push.process_info.farmwares
-    for {name, farmware} <- farmwares do
+    for {name, _farmware} <- farmwares do
       {:ok, fw} = Farmbot.Farmware.lookup(name)
       Farmbot.BotState.unregister_farmware(fw)
       Farmbot.Farmware.Installer.uninstall(fw)
