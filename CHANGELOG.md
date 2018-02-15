@@ -4,6 +4,7 @@
 * Implement the new "Flat" CeleryScript representation.
 * Add ability to log into a new account without rebooting into Configurator.
 * Firmware settings are now synced with Farmbot API.
+* Add third Firmware board.
 
 # 6.2.0
 * Farmbot Settings are now synced with Farmbot API.
