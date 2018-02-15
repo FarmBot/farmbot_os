@@ -149,7 +149,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     {:ok, _, conn} = read_body(conn)
 
     case conn.body_params do
-      %{"firmware_hardware" => hw} when hw in ["arduino", "farmduino"] ->
+      %{"firmware_hardware" => hw} when hw in ["arduino", "farmduino", "farmduino_v14"] ->
         ConfigStorage.update_config_value(:string, "settings", "firmware_hardware", hw)
 
         if Application.get_env(:farmbot, :behaviour)[:firmware_handler] == Farmbot.Firmware.UartHandler do

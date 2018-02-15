@@ -18,6 +18,7 @@ endif
 NIF=priv/build_calendar.so
 ARDUINO_FW=priv/arduino-firmware.hex
 FARMDUINO_FW=priv/farmduino-firmware.hex
+FARMDUINO_V14_FW=priv/farmduino_v14-firmware.hex
 BLINK_FW=priv/blink.hex
 CLEAR_EEPROM_FW=priv/clear_eeprom.hex
 
@@ -45,32 +46,17 @@ ARDUINO_BUILD_DIR = $(PWD)/_build/arduino
 ARDUINO_CACHE_DIR = $(PWD)/_build/arduino-cache
 ARDUINO_BUILD_DIR_FLAGS =	-build-path $(ARDUINO_BUILD_DIR) -build-cache	$(ARDUINO_CACHE_DIR)
 
-ARDUINO_BUILD = $(ARDUINO_BUILDER) \
+ARDUINO_BUILD_COMMON = $(ARDUINO_BUILDER) \
 	$(ARDUINO_HARDWARE_FLAGS) \
 	$(ARDUINO_TOOLS_FLAGS) \
 	$(ARDUINO_LIBS_FLAGS) \
 	$(ARDUINO_ARCH_FLAGS) \
 	$(ARDUINO_PREFS_FLAGS) \
-	$(ARDUINO_BUILD_DIR_FLAGS) \
-	$(ARDUINO_SRC_INO)
+	$(ARDUINO_BUILD_DIR_FLAGS)
 
-BLINK_BUILD = $(ARDUINO_BUILDER) \
-	$(ARDUINO_HARDWARE_FLAGS) \
-	$(ARDUINO_TOOLS_FLAGS) \
-	$(ARDUINO_LIBS_FLAGS) \
-	$(ARDUINO_ARCH_FLAGS) \
-	$(ARDUINO_PREFS_FLAGS) \
-	$(ARDUINO_BUILD_DIR_FLAGS) \
-	$(ARDUINO_SRC_BLINK_INO)
-
-CLEAR_EEPROM_BUILD = $(ARDUINO_BUILDER) \
-	$(ARDUINO_HARDWARE_FLAGS) \
-	$(ARDUINO_TOOLS_FLAGS) \
-	$(ARDUINO_LIBS_FLAGS) \
-	$(ARDUINO_ARCH_FLAGS) \
-	$(ARDUINO_PREFS_FLAGS) \
-	$(ARDUINO_BUILD_DIR_FLAGS) \
-	$(ARDUINO_SRC_CLEAR_EEPROM_INO)
+ARDUINO_BUILD = $(ARDUINO_BUILD_COMMON) $(ARDUINO_SRC_INO)
+BLINK_BUILD = $(ARDUINO_BUILD_COMMON) $(ARDUINO_SRC_BLINK_INO)
+CLEAR_EEPROM_BUILD = $(ARDUINO_BUILD_COMMON) $(ARDUINO_SRC_CLEAR_EEPROM_INO)
 
 all: priv $(NIF) farmbot_arduino_firmware
 
@@ -82,11 +68,13 @@ $(ARDUINO_BUILD_DIR):
 $(ARDUINO_CACHE_DIR):
 	mkdir -p $(ARDUINO_CACHE_DIR)
 
-farmbot_arduino_firmware: arduino farmduino blink clear_eeprom
+farmbot_arduino_firmware: arduino farmduino farmduino_v14 blink clear_eeprom
 
 arduino: farmbot_arduino_firmware_build_dirs $(ARDUINO_FW)
 
 farmduino: farmbot_arduino_firmware_build_dirs $(FARMDUINO_FW)
+
+farmduino_v14: farmbot_arduino_firmware_build_dirs $(FARMDUINO_V14_FW)
 
 blink: farmbot_arduino_firmware_build_dirs $(BLINK_FW)
 
@@ -112,15 +100,18 @@ $(FARMDUINO_FW):
 	$(ARDUINO_BUILD)
 	cp $(ARDUINO_BUILD_DIR)/src.ino.hex $@
 
-$(BLINK_FW):
+$(FARMDUINO_V14_FW):
+	$(shell echo \#define FARMDUINO_V14 > c_src/farmbot-arduino-firmware/src/Board.h)
 	rm -rf $(ARDUINO_BUILD_DIR)/*
 	rm -rf $(ARDUINO_CACHE_DIR)/*
+	$(ARDUINO_BUILD)
+	cp $(ARDUINO_BUILD_DIR)/src.ino.hex $@
+
+$(BLINK_FW):
 	$(BLINK_BUILD)
 	cp $(ARDUINO_BUILD_DIR)/Blink.ino.hex $@
 
 $(CLEAR_EEPROM_FW):
-	rm -rf $(ARDUINO_BUILD_DIR)/*
-	rm -rf $(ARDUINO_CACHE_DIR)/*
 	$(CLEAR_EEPROM_BUILD)
 	cp $(ARDUINO_BUILD_DIR)/eeprom_clear.ino.hex $@
 
