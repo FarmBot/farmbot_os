@@ -30,7 +30,7 @@ config :farmbot, Farmbot.System.ConfigStorage,
 config :farmbot, Farmbot.System.GlobalConfig,
   adapter: Sqlite.Ecto2,
   loggers: [],
-  database: "tmp/global-config.sqlite3",
+  database: "/root/users/default/global_config.sqlite3",
   pool_size: 1
 
 config :farmbot, ecto_repos: [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage, Farmbot.System.GlobalConfig]
