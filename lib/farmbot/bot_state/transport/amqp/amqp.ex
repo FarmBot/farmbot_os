@@ -248,7 +248,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
         {:ok, %{"body" => config}} ->
           # Logger.info 1, "Got fbos config from amqp: #{inspect config}"
           old = state.state_cache.configuration
-          updated = Farmbot.Bootstrap.SettingsSync.apply_os_map(old, config)
+          updated = Farmbot.Bootstrap.SettingsSync.apply_fbos_map(old, config)
           push_bot_state(state.chan, state.bot, %{state.state_cache | configuration: updated})
           {:noreply, [], state}
       end
