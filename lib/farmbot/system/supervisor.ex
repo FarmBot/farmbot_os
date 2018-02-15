@@ -16,7 +16,6 @@ defmodule Farmbot.System.Supervisor do
       worker(Farmbot.System.Init.KernelMods, [[], []]),
       worker(Farmbot.System.Init.FSCheckup, [[], []]),
       supervisor(Farmbot.System.Init.Ecto, [[], []]),
-      supervisor(Farmbot.System.GlobalConfig, []),
       supervisor(Farmbot.System.ConfigStorage, []),
       worker(Farmbot.System.ConfigStorage.Dispatcher, []),
       worker(Farmbot.System.GPIO.Leds, []),

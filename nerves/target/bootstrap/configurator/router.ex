@@ -11,7 +11,6 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
   use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
-  alias Farmbot.System.GlobalConfig
 
   @version Farmbot.Project.version()
 
@@ -119,7 +118,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
       case settings["type"] do
         "wireless" ->
-          %GlobalConfig.NetworkInterface{
+          %ConfigStorage.NetworkInterface{
             name: iface,
             type: "wireless",
             ssid: Map.fetch!(settings, "ssid"),
@@ -129,7 +128,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
           }
 
         "wired" ->
-          %GlobalConfig.NetworkInterface{name: iface, type: "wired", ipv4_method: "dhcp"}
+          %ConfigStorage.NetworkInterface{name: iface, type: "wired", ipv4_method: "dhcp"}
       end
       |> ConfigStorage.insert!()
     end
@@ -189,7 +188,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     email = ConfigStorage.get_config_value(:string, "authorization", "email")
     pass = ConfigStorage.get_config_value(:string, "authorization", "password")
     server = ConfigStorage.get_config_value(:string, "authorization", "server")
-    network = !(Enum.empty?(ConfigStorage.all(GlobalConfig.NetworkInterface)))
+    network = !(Enum.empty?(ConfigStorage.all(ConfigStorage.NetworkInterface)))
     if email && pass && server && network do
       conn = render_page(conn, "finish")
       spawn fn() ->

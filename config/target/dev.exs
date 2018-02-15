@@ -6,8 +6,6 @@ config :logger,
 
 config :farmbot, data_path: "/root"
 
-config :farmbot, profile: System.get_env("FBOS_PROFILE")
-
 # Disable tzdata autoupdates because it tries to dl the update file
 # Before we have network or ntp.
 config :tzdata, :autoupdate, :disabled
@@ -15,25 +13,19 @@ config :tzdata, :autoupdate, :disabled
 config :farmbot, Farmbot.Repo.A,
   adapter: Sqlite.Ecto2,
   loggers: [],
-  database: "/root/users/default/repo-A.sqlite3"
+  database: "/root/repo-#{Mix.env()}-A.sqlite3"
 
 config :farmbot, Farmbot.Repo.B,
   adapter: Sqlite.Ecto2,
   loggers: [],
-  database: "/root/users/default/repo-B.sqlite3"
+  database: "/root/repo-#{Mix.env()}-B.sqlite3"
 
 config :farmbot, Farmbot.System.ConfigStorage,
   adapter: Sqlite.Ecto2,
   loggers: [],
-  database: "/root/users/default/config.sqlite3"
+  database: "/root/config-#{Mix.env()}.sqlite3"
 
-config :farmbot, Farmbot.System.GlobalConfig,
-  adapter: Sqlite.Ecto2,
-  loggers: [],
-  database: "/root/users/default/global_config.sqlite3",
-  pool_size: 1
-
-config :farmbot, ecto_repos: [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage, Farmbot.System.GlobalConfig]
+config :farmbot, ecto_repos: [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage]
 
 # Configure your our init system.
 config :farmbot, :init, [

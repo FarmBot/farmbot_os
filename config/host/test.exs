@@ -54,12 +54,5 @@ config :farmbot, Farmbot.System.ConfigStorage,
   database: "test_tmp/farmbot_config_storage_test",
   pool_size: 10,
   loggers: []
-  # pool: Ecto.Adapters.SQL.Sandbox
 
-config :farmbot, Farmbot.System.GlobalConfig,
-  adapter: Sqlite.Ecto2,
-  database: "test_tmp/farmbot_global_config_test",
-  pool_size: 10,
-  loggers: []
-
-config :farmbot, ecto_repos: [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage, Farmbot.System.GlobalConfig]
+config :farmbot, ecto_repos: [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage]

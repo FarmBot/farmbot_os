@@ -9,7 +9,6 @@ defmodule Farmbot.System.Init.Ecto do
   end
 
   def init([]) do
-    ensure_multiuser_support()
     migrate()
     :ignore
   end
@@ -84,38 +83,5 @@ defmodule Farmbot.System.Init.Ecto do
     pid && repo.stop(pid)
     Mix.Ecto.restart_apps_if_migrated(apps, migrated)
     Process.sleep(500)
-  end
-
-  # TODO(Connor) Delete this after 6.3.0 is out.
-  # We moved the location of sqlite files, so if we don't move them,
-  # New ones will be started and be empty.
-  @data_path Application.get_env(:farmbot, :data_path)
-  @files_that_need_migration [
-    # Host dev
-    {"Elixir.Farmbot.Repo.A_dev.sqlite3", "repo-A.sqlite3"},
-    {"Elixir.Farmbot.Repo.B_dev.sqlite3", "repo-B.sqlite3"},
-    {"Elixir.Farmbot.System.ConfigStorage_dev.sqlite3", "config.sqlite3"},
-
-    # Target dev
-    {"config-dev.sqlite3", "config.sqlite3"},
-    {"repo-dev-A.sqlite3", "repo-A.sqlite3"},
-    {"repo-dev-B.sqlite3", "repo-B.sqlite3"},
-
-    # Target prod
-    # This one should be last so it overrites dev
-    {"config-prod.sqlite3", "config.sqlite3"},
-    {"repo-prod-A.sqlite3", "repo-A.sqlite3"},
-    {"repo-prod-B.sqlite3", "repo-B.sqlite3"},
-  ]
-  use Farmbot.Logger
-  defp ensure_multiuser_support do
-    for {old, new} <- @files_that_need_migration do
-      old_full_path = Path.join(@data_path, old)
-      new_full_path = Path.join([@data_path, "users", "default", new])
-      case File.rename(old_full_path, new_full_path) do
-        :ok -> Logger.info 1, "Migrated: #{old_full_path} -> #{new_full_path}"
-        _ -> :ok
-      end
-    end
   end
 end

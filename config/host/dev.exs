@@ -24,31 +24,25 @@ config :farmbot, :transport, [
   Farmbot.BotState.Transport.HTTP,
 ]
 
-repos = [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage, Farmbot.System.GlobalConfig]
+repos = [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage]
 config :farmbot, ecto_repos: repos
 
 config :farmbot, Farmbot.Repo.A,
   adapter: Sqlite.Ecto2,
   loggers: [],
-  database: "tmp/users/default/repo-A.sqlite3",
+  database: "tmp/#{Farmbot.Repo.A}_dev.sqlite3",
   pool_size: 1
 
 config :farmbot, Farmbot.Repo.B,
   adapter: Sqlite.Ecto2,
   loggers: [],
-  database: "tmp/users/default/repo-B.sqlite3",
+  database: "tmp/#{Farmbot.Repo.A}_dev.sqlite3",
   pool_size: 1
 
 config :farmbot, Farmbot.System.ConfigStorage,
   adapter: Sqlite.Ecto2,
   loggers: [],
-  database: "tmp/users/default/config.sqlite3",
-  pool_size: 1
-
-config :farmbot, Farmbot.System.GlobalConfig,
-  adapter: Sqlite.Ecto2,
-  loggers: [],
-  database: "tmp/global-config.sqlite3",
+  database: "tmp/#{Farmbot.System.ConfigStorage}_dev.sqlite3",
   pool_size: 1
 
 # config :farmbot, :farmware, first_part_farmware_manifest_url: nil

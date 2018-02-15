@@ -13,23 +13,17 @@ config :tzdata, :autoupdate, :disabled
 config :farmbot, Farmbot.Repo.A,
   adapter: Sqlite.Ecto2,
   loggers: [],
-  database: "/root/users/default/repo-A.sqlite3"
+  database: "/root/repo-#{Mix.env()}-A.sqlite3"
 
 config :farmbot, Farmbot.Repo.B,
   adapter: Sqlite.Ecto2,
   loggers: [],
-  database: "/root/users/default/repo-B.sqlite3"
+  database: "/root/repo-#{Mix.env()}-B.sqlite3"
 
 config :farmbot, Farmbot.System.ConfigStorage,
   adapter: Sqlite.Ecto2,
   loggers: [],
-  database: "/root/users/default/config.sqlite3"
-
-config :farmbot, Farmbot.System.GlobalConfig,
-  adapter: Sqlite.Ecto2,
-  loggers: [],
-  database: "/root/users/default/global_config.sqlite3",
-  pool_size: 1
+  database: "/root/config-#{Mix.env()}.sqlite3"
 
 config :farmbot, ecto_repos: [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage]
 
