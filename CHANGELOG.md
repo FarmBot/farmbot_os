@@ -1,3 +1,9 @@
+# 6.3.0
+* Refactor system update system
+* Write tests for new system :boom:
+* Implement the new "Flat" CeleryScript representation.
+* Add ability to log into a new account without rebooting into configurator.
+
 # 6.2.0
 * Farmbot Settings are now synced with Farmbot API.
 * Refactor Syncing to not make unnecessary HTTP requests.

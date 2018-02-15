@@ -95,6 +95,11 @@ defmodule Farmbot.Firmware do
     GenStage.call(__MODULE__, {:set_servo_angle, [pin, value]}, @call_timeout)
   end
 
+  @doc "Flag for all params reported."
+  def params_reported do
+    GenStage.call(__MODULE__, :params_reported)
+  end
+
   @doc "Start the firmware services."
   def start_link do
     GenStage.start_link(__MODULE__, [], name: __MODULE__)
@@ -113,16 +118,20 @@ defmodule Farmbot.Firmware do
 
   defmodule State do
     @moduledoc false
-    defstruct handler: nil, handler_mod: nil,
+    defstruct [
+      handler: nil,
+      handler_mod: nil,
       idle: false,
       timer: nil,
       pins: %{},
       params: %{},
+      params_reported: false,
       initialized: false,
       initializing: false,
       current: nil,
       timeout_ms: 150_000,
       queue: :queue.new()
+    ]
   end
 
   def init([]) do
@@ -192,6 +201,10 @@ defmodule Farmbot.Firmware do
     end
   end
 
+  def handle_call(:params_reported, _, state) do
+    {:reply, state.params_reported, [], state}
+  end
+
   def handle_call({fun, _}, _from, state = %{initialized: false})
   when fun not in  [:read_all_params, :update_param, :emergency_unlock, :emergency_lock] do
     {:reply, {:error, :uninitialized}, [], state}
@@ -213,7 +226,7 @@ defmodule Farmbot.Firmware do
     end
   end
 
-  defp do_begin_cmd(%Current{fun: fun, args: args, from: _from} = current, state, dispatch) do
+  defp do_begin_cmd(%Current{fun: fun, args: args, from: from} = current, state, dispatch) do
     # Logger.busy 3, "FW Starting: #{fun}: #{inspect from}"
     case apply(state.handler_mod, fun, [state.handler | args]) do
       :ok ->
@@ -378,7 +391,7 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode(:report_params_complete, state) do
     Logger.success 1, "Firmware initialized."
-    {nil, %{state | initializing: false, initialized: true}}
+    {nil, %{state | initializing: false, initialized: true, params_reported: true}}
   end
 
   defp handle_gcode({:report_software_version, version}, state) do
@@ -484,6 +497,8 @@ defmodule Farmbot.Firmware do
           update_param(:"#{key}", val)
       end
     end
+    update_param(:param_config_ok, 1)
+    update_param(:param_use_eeprom, 0)
     read_all_params()
     request_software_version()
   end

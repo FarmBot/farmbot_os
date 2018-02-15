@@ -2,8 +2,8 @@ defmodule Farmbot.Target.Network do
   @moduledoc "Bring up network."
 
   @behaviour Farmbot.System.Init
-  alias Farmbot.System.ConfigStorage
-  alias ConfigStorage.NetworkInterface
+  alias Farmbot.System.GlobalConfig
+  alias GlobalConfig.NetworkInterface
   alias Farmbot.Target.Network.Manager, as: NetworkManager
   use Supervisor
   use Farmbot.Logger
@@ -33,12 +33,30 @@ defmodule Farmbot.Target.Network do
   end
 
   def init([]) do
-    config = ConfigStorage.all(NetworkInterface)
+    maybe_migrate_from_old_config_into_global()
+    config = GlobalConfig.all(NetworkInterface)
     Logger.info(3, "Starting Networking")
     children = config
       |> Enum.map(&to_network_config/1)
       |> Enum.map(&to_child_spec/1)
       |> Enum.uniq() # Don't know why/if we need this?
     supervise(children, strategy: :one_for_one)
+  end
+
+  defp maybe_migrate_from_old_config_into_global do
+    alias Farmbot.System.ConfigStorage
+    alias ConfigStorage.NetworkInterface, as: OldNetworkInterface
+
+    alias Farmbot.System.GlobalConfig
+    alias Farmbot.System.GlobalConfig.NetworkInterface, as: NewNetworkInterface
+
+    old_network_configs = ConfigStorage.all(OldNetworkInterface)
+    for %OldNetworkInterface{} = old <- old_network_configs do
+      if !old.migrated do
+        new = struct(NewNetworkInterface)
+        NewNetworkInterface.changeset(new, Map.from_struct(old))
+        |> GlobalConfig.insert()
+      end
+    end
   end
 end

@@ -178,8 +178,8 @@ defmodule Farmbot.BotState.Transport.AMQP do
       ["bot", ^device, "sync", resource, _]
       when resource in ["Log", "User", "Image", "WebcamFeed"] ->
         {:noreply, [], state}
-      ["bot", ^device, "sync", "FbosConfig", id] ->
-        handle_fbos_config(id, payload, state)
+      ["bot", ^device, "sync", "FbosConfig", id] -> handle_fbos_config(id, payload, state)
+      ["bot", ^device, "sync", "FirmwareConfig", id] -> handle_fw_config(id, payload, state)
       ["bot", ^device, "sync", resource, id] ->
         handle_sync_cmd(resource, id, payload, state)
       ["bot", ^device, "logs"]        -> {:noreply, [], state}
@@ -248,10 +248,26 @@ defmodule Farmbot.BotState.Transport.AMQP do
         {:ok, %{"body" => config}} ->
           # Logger.info 1, "Got fbos config from amqp: #{inspect config}"
           old = state.state_cache.configuration
-          updated = Farmbot.Bootstrap.SettingsSync.apply_map(old, config)
+          updated = Farmbot.Bootstrap.SettingsSync.apply_fbos_map(old, config)
           push_bot_state(state.chan, state.bot, %{state.state_cache | configuration: updated})
           {:noreply, [], state}
       end
+    end
+  end
+
+  def handle_fw_config(_id, payload, state) do
+    case Poison.decode(payload) do
+      {:ok, %{"body" => nil}} -> {:noreply, [], state}
+      {:ok, %{"body" => config}} ->
+        old = state.state_cache.mcu_params
+        new = Farmbot.Bootstrap.SettingsSync.apply_fw_map(old, config)
+        for {key, new_value} <- new do
+          if old[:"#{key}"] != new_value do
+            Logger.info 1, "Updating key: #{key} => #{new_value}"
+            Farmbot.Firmware.update_param(:"#{key}", new_value / 1)
+          end
+        end
+        {:noreply, [], state}
     end
   end
 

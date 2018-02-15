@@ -6,13 +6,36 @@ defmodule Farmbot.Target.UpdateHandler do
 
   # Update Handler callbacks
 
-  def apply_firmware(file_path) do
-    Nerves.Firmware.upgrade_and_finalize(file_path)
+  def apply_firmware(fw_file_path) do
+    {meta_bin, 0} = System.cmd("fwup", ~w"-i #{fw_file_path} -m")
+    meta_bin
+    |> String.trim()
+    |> String.split("\n")
+    |> Enum.map(&String.split(&1, "="))
+    |> Map.new(fn([key, val]) ->
+      {key, val |> String.trim_leading("\"") |> String.trim_trailing("\"")}
+    end)
+    |> log_meta()
+
+    Nerves.Firmware.upgrade_and_finalize(fw_file_path)
   end
 
-  def before_update do
-    :ok
+  defp log_meta(meta_map) do
+    target = "target: #{meta_map["meta-platform"]}"
+    product = "product: #{meta_map["meta-product"]}"
+    version = "version: #{meta_map["meta-version"]}"
+    create_time = "created: #{meta_map["meta-creation-date"]}"
+    msg = """
+    Applying Firmware:
+    #{create_time}
+    #{target}
+    #{product}
+    #{version}
+    """
+    Logger.debug 1, msg
   end
+
+  def before_update, do: :ok
 
   def post_update do
     alias Farmbot.Firmware.UartHandler.Update

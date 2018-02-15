@@ -33,48 +33,56 @@ defmodule Farmbot.Bootstrap.Authorization do
   @doc "Authorizes with the farmbot api."
   def authorize(email, pw_or_secret, server) do
     case get_config_value(:bool, "settings", "first_boot") do
-      true ->
-        with {:ok, {:RSAPublicKey, _, _} = rsa_key} <- fetch_rsa_key(server),
-             {:ok, payload} <- build_payload(email, pw_or_secret, rsa_key),
-             {:ok, resp}    <- request_token(server, payload),
-             {:ok, body}    <- Poison.decode(resp),
-             {:ok, map}     <- Map.fetch(body, "token") do
-          update_config_value(:bool, "settings", "first_boot", false)
-          Leds.led_status_ok()
-          Map.fetch(map, "encoded")
-        else
-          :error -> {:error, "unknown error."}
-          {:error, :invalid, _} -> authorize(email, pw_or_secret, server)
-          # If we got maintance mode, a 5xx error etc,
-          # just sleep for a few seconds
-          # and try again.
-          {:ok, {{_, code, _}, _, _}} ->
-            Logger.error 1, "Failed to authorize due to server error: #{code}"
-            Process.sleep(5000)
-            authorize(email, pw_or_secret, server)
-          err -> err
-        end
-      false ->
-        with {:ok, payload} <- build_payload(pw_or_secret),
-             {:ok, resp}    <- request_token(server, payload),
-             {:ok, body}    <- Poison.decode(resp),
-             {:ok, map}     <- Map.fetch(body, "token") do
-          Leds.led_status_ok()
-          last_reset_reason_file = Path.join(@data_path, "last_shutdown_reason")
-          File.rm(last_reset_reason_file)
-          Map.fetch(map, "encoded")
-        else
-          :error -> {:error, "unknown error."}
-          {:error, :invalid, _} -> authorize(email, pw_or_secret, server)
-          # If we got maintance mode, a 5xx error etc,
-          # just sleep for a few seconds
-          # and try again.
-          {:ok, {{_, code, _}, _, _}} ->
-            Logger.error 1, "Failed to authorize due to server error: #{code}"
-            Process.sleep(5000)
-            authorize(email, pw_or_secret, server)
-          err -> err
-        end
+      false -> authorize_with_secret(email, pw_or_secret, server)
+      true -> authorize_with_password(email, pw_or_secret, server)
+    end
+  end
+
+  def authorize_with_secret(email, secret, server) do
+    with {:ok, payload} <- build_payload(secret),
+         {:ok, resp}    <- request_token(server, payload),
+         {:ok, body}    <- Poison.decode(resp),
+         {:ok, map}     <- Map.fetch(body, "token") do
+      Leds.led_status_ok()
+      last_reset_reason_file = Path.join(@data_path, "last_shutdown_reason")
+      File.rm(last_reset_reason_file)
+      Map.fetch(map, "encoded")
+    else
+      :error -> {:error, "unknown error."}
+      {:error, :invalid, _} -> authorize(email, secret, server)
+      # If we got maintance mode, a 5xx error etc,
+      # just sleep for a few seconds
+      # and try again.
+      {:ok, {{_, code, _}, _, _}} ->
+        Logger.error 1, "Failed to authorize due to server error: #{code}"
+        Process.sleep(5000)
+        authorize(email, secret, server)
+      err -> err
+    end
+  end
+
+  def authorize_with_password(email, password, server) do
+    with {:ok, {:RSAPublicKey, _, _} = rsa_key} <- fetch_rsa_key(server),
+         {:ok, payload} <- build_payload(email, password, rsa_key),
+         {:ok, resp}    <- request_token(server, payload),
+         {:ok, body}    <- Poison.decode(resp),
+         {:ok, map}     <- Map.fetch(body, "token") do
+      update_config_value(:bool, "settings", "first_boot", false)
+      last_reset_reason_file = Path.join(@data_path, "last_shutdown_reason")
+      File.rm(last_reset_reason_file)
+      Leds.led_status_ok()
+      Map.fetch(map, "encoded")
+    else
+      :error -> {:error, "unknown error."}
+      {:error, :invalid, _} -> authorize(email, password, server)
+      # If we got maintance mode, a 5xx error etc,
+      # just sleep for a few seconds
+      # and try again.
+      {:ok, {{_, code, _}, _, _}} ->
+        Logger.error 1, "Failed to authorize due to server error: #{code}"
+        Process.sleep(5000)
+        authorize(email, password, server)
+      err -> err
     end
   end
 
@@ -86,7 +94,7 @@ defmodule Farmbot.Bootstrap.Authorization do
     end
   end
 
-  defp build_payload(email, password, rsa_key) do
+  def build_payload(email, password, rsa_key) do
     secret =
       %{email: email, password: password, id: UUID.uuid1(), version: 1}
       |> Poison.encode!()
