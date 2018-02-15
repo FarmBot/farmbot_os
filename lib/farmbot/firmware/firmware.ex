@@ -226,7 +226,7 @@ defmodule Farmbot.Firmware do
     end
   end
 
-  defp do_begin_cmd(%Current{fun: fun, args: args, from: from} = current, state, dispatch) do
+  defp do_begin_cmd(%Current{fun: fun, args: args, from: _from} = current, state, dispatch) do
     # Logger.busy 3, "FW Starting: #{fun}: #{inspect from}"
     case apply(state.handler_mod, fun, [state.handler | args]) do
       :ok ->
