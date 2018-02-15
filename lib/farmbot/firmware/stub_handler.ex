@@ -207,7 +207,8 @@ defmodule Farmbot.Firmware.StubHandler do
   end
 
   def handle_call(:read_all_params, _from, state) do
-    {:reply, :ok, [:report_params_complete, :done], state}
+    response = build_resp [:report_params_complete, :done]
+    {:reply, build_reply(:ok), response, state}
   end
 
   def handle_call(:emergency_lock, _from, state) do

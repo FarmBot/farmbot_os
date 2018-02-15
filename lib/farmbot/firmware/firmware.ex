@@ -4,6 +4,8 @@ defmodule Farmbot.Firmware do
   use GenStage
   use Farmbot.Logger
   alias Farmbot.Firmware.{Vec3, EstopTimer}
+  import Farmbot.System.ConfigStorage,
+    only: [get_config_value: 3, update_config_value: 4, get_config_as_map: 0]
 
   # If any command takes longer than this, exit.
   @call_timeout 500_000
@@ -95,6 +97,11 @@ defmodule Farmbot.Firmware do
     GenStage.call(__MODULE__, {:set_servo_angle, [pin, value]}, @call_timeout)
   end
 
+  @doc "Flag for all params reported."
+  def params_reported do
+    GenStage.call(__MODULE__, :params_reported)
+  end
+
   @doc "Start the firmware services."
   def start_link do
     GenStage.start_link(__MODULE__, [], name: __MODULE__)
@@ -113,16 +120,20 @@ defmodule Farmbot.Firmware do
 
   defmodule State do
     @moduledoc false
-    defstruct handler: nil, handler_mod: nil,
+    defstruct [
+      handler: nil,
+      handler_mod: nil,
       idle: false,
       timer: nil,
       pins: %{},
       params: %{},
+      params_reported: false,
       initialized: false,
       initializing: false,
       current: nil,
       timeout_ms: 150_000,
       queue: :queue.new()
+    ]
   end
 
   def init([]) do
@@ -190,6 +201,10 @@ defmodule Farmbot.Firmware do
         end
         {:noreply, [], %{state | timer: nil}}
     end
+  end
+
+  def handle_call(:params_reported, _, state) do
+    {:reply, state.params_reported, [], state}
   end
 
   def handle_call({fun, _}, _from, state = %{initialized: false})
@@ -265,7 +280,7 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode({:debug_message, message}, state) do
-    if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "arduino_debug_messages") do
+    if get_config_value(:bool, "settings", "arduino_debug_messages") do
       Logger.debug 3, "Arduino debug message: #{message}"
     end
     {nil, state}
@@ -330,18 +345,18 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode({:report_parameter_value, param, value}, state) when (value == -1) do
-    Farmbot.System.ConfigStorage.update_config_value(:float, "hardware_params", to_string(param), nil)
+    update_config_value(:float, "hardware_params", to_string(param), nil)
     {:mcu_params, %{param => nil}, %{state | params: Map.put(state.params, param, value)}}
   end
 
   defp handle_gcode({:report_parameter_value, param, value}, state) when is_number(value) do
-    Farmbot.System.ConfigStorage.update_config_value(:float, "hardware_params", to_string(param), value / 1)
+    update_config_value(:float, "hardware_params", to_string(param), value / 1)
     {:mcu_params, %{param => value}, %{state | params: Map.put(state.params, param, value)}}
   end
 
   defp handle_gcode(:idle, %{initialized: false, initializing: false} = state) do
     Logger.busy 1, "Initializing Firmware."
-    old = Farmbot.System.ConfigStorage.get_config_as_map()["hardware_params"]
+    old = get_config_as_map()["hardware_params"]
     case old["param_version"] do
       nil ->
         Logger.debug 3, "Setting up fresh params."
@@ -378,15 +393,17 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode(:report_params_complete, state) do
     Logger.success 1, "Firmware initialized."
-    {nil, %{state | initializing: false, initialized: true}}
+    {nil, %{state | initializing: false, initialized: true, params_reported: true}}
   end
 
   defp handle_gcode({:report_software_version, version}, state) do
     case String.last(version) do
       "F" ->
-        Farmbot.System.ConfigStorage.update_config_value(:string, "settings", "firmware_hardware", "farmduino")
+        update_config_value(:string, "settings", "firmware_hardware", "farmduino")
       "R" ->
-        Farmbot.System.ConfigStorage.update_config_value(:string, "settings", "firmware_hardware", "arduino")
+        update_config_value(:string, "settings", "firmware_hardware", "arduino")
+      "G" ->
+        update_config_value(:string, "settings", "firmware_hardware", "farmduino_v14")
       _ -> :ok
     end
     {:informational_settings, %{firmware_version: version}, state}
@@ -484,6 +501,8 @@ defmodule Farmbot.Firmware do
           update_param(:"#{key}", val)
       end
     end
+    update_param(:param_config_ok, 1)
+    update_param(:param_use_eeprom, 0)
     read_all_params()
     request_software_version()
   end
@@ -498,7 +517,7 @@ defmodule Farmbot.Firmware do
   def report_calibration_callback(tries, param, val) do
     case Farmbot.Firmware.update_param(param, val) do
       :ok ->
-        case Farmbot.System.ConfigStorage.get_config_value(:float, "hardware_params", to_string(param)) do
+        case get_config_value(:float, "hardware_params", to_string(param)) do
           ^val ->
             Logger.success 1, "Calibrated #{param}: #{val}"
             :ok

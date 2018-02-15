@@ -11,6 +11,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
   use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
+  alias Farmbot.System.GlobalConfig
 
   @version Farmbot.Project.version()
 
@@ -118,7 +119,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
       case settings["type"] do
         "wireless" ->
-          %ConfigStorage.NetworkInterface{
+          %GlobalConfig.NetworkInterface{
             name: iface,
             type: "wireless",
             ssid: Map.fetch!(settings, "ssid"),
@@ -128,7 +129,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
           }
 
         "wired" ->
-          %ConfigStorage.NetworkInterface{name: iface, type: "wired", ipv4_method: "dhcp"}
+          %GlobalConfig.NetworkInterface{name: iface, type: "wired", ipv4_method: "dhcp"}
       end
       |> ConfigStorage.insert!()
     end
@@ -148,7 +149,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     {:ok, _, conn} = read_body(conn)
 
     case conn.body_params do
-      %{"firmware_hardware" => hw} when hw in ["arduino", "farmduino"] ->
+      %{"firmware_hardware" => hw} when hw in ["arduino", "farmduino", "farmduino_v14"] ->
         ConfigStorage.update_config_value(:string, "settings", "firmware_hardware", hw)
 
         if Application.get_env(:farmbot, :behaviour)[:firmware_handler] == Farmbot.Firmware.UartHandler do
@@ -188,7 +189,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     email = ConfigStorage.get_config_value(:string, "authorization", "email")
     pass = ConfigStorage.get_config_value(:string, "authorization", "password")
     server = ConfigStorage.get_config_value(:string, "authorization", "server")
-    network = !(Enum.empty?(ConfigStorage.all(ConfigStorage.NetworkInterface)))
+    network = !(Enum.empty?(ConfigStorage.all(GlobalConfig.NetworkInterface)))
     if email && pass && server && network do
       conn = render_page(conn, "finish")
       spawn fn() ->
