@@ -146,10 +146,10 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     :ok
   rescue
     err ->
-      update_config_value(:bool, "settings", "ignore_fbos_config", false)
       message = Exception.message(err)
       err_msg = "#{message} #{inspect System.stacktrace()}"
       Logger.error 1, "Error syncing settings: #{err_msg}"
+      update_config_value(:bool, "settings", "ignore_fbos_config", false)
       {:error, message}
   end
 
