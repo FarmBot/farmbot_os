@@ -25,6 +25,12 @@ config :farmbot, Farmbot.System.ConfigStorage,
   loggers: [],
   database: "/root/users/default/config.sqlite3"
 
+config :farmbot, Farmbot.System.GlobalConfig,
+  adapter: Sqlite.Ecto2,
+  loggers: [],
+  database: "/root/users/default/global_config.sqlite3",
+  pool_size: 1
+
 config :farmbot, ecto_repos: [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage]
 
 # Configure your our init system.
