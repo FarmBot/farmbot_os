@@ -5,7 +5,8 @@ defmodule Farmbot.Bootstrap.SettingsSync do
   import Farmbot.System.ConfigStorage, only: [get_config_value: 3, update_config_value: 4, get_config_as_map: 0]
 
   def start_link() do
-    Task.start_link(__MODULE__, :run, [])
+    run()
+    :ignore
   end
 
   def run() do
@@ -13,6 +14,8 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     {:ok, data} <- Poison.decode(body)
     do
       do_sync_settings(data)
+      update_config_value(:bool, "settings", "ignore_fbos_config", false)
+      :ok
     else
       {:ok, status_code: code} ->
         Logger.error 1, "HTTP error syncing settings: #{code}"
@@ -23,6 +26,7 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     end
   rescue
     err ->
+      update_config_value(:bool, "settings", "ignore_fbos_config", false)
       Logger.error 1, "Error syncing settings: #{Exception.message(err)} #{inspect System.stacktrace()}"
   end
 
@@ -95,6 +99,7 @@ defmodule Farmbot.Bootstrap.SettingsSync do
 
   def do_sync_settings(_unimportant_data) do
     Logger.info 3, "FBOS is the source of truth; Uploading data."
+    update_config_value(:bool, "settings", "ignore_fbos_config", true)
     auto_sync = get_config_value(:bool, "settings", "auto_sync")
     beta_opt_in = get_config_value(:bool, "settings", "beta_opt_in")
     disable_factory_reset = get_config_value(:bool, "settings", "disable_factory_reset")
@@ -124,6 +129,7 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     } |> Poison.encode!()
     Farmbot.HTTP.delete!("/api/fbos_config")
     Farmbot.HTTP.put!("/api/fbos_config", payload)
+    update_config_value(:bool, "settings", "ignore_fbos_config", false)
     :ok
   end
 
