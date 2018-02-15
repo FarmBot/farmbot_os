@@ -18,6 +18,8 @@ endif
 NIF=priv/build_calendar.so
 ARDUINO_FW=priv/arduino-firmware.hex
 FARMDUINO_FW=priv/farmduino-firmware.hex
+BLINK_FW=priv/blink.hex
+CLEAR_EEPROM_FW=priv/clear_eeprom.hex
 
 ARDUINO_INSTALL_DIR ?= $(HOME)/arduino-1.8.5
 ARDUINO_BUILDER=$(ARDUINO_INSTALL_DIR)/arduino-builder
@@ -36,6 +38,8 @@ ARDUINO_PREFS_FLAGS = -prefs=build.warn_data_percentage=75 \
 
 ARDUINO_ARCH_FLAGS = -fqbn=arduino:avr:mega:cpu=atmega2560
 ARDUINO_SRC_INO = c_src/farmbot-arduino-firmware/src/src.ino
+ARDUINO_SRC_BLINK_INO = $(ARDUINO_INSTALL_DIR)/examples/01.Basics/Blink/Blink.ino
+ARDUINO_SRC_CLEAR_EEPROM_INO = $(ARDUINO_HARDWARE_DIR)/arduino/avr/libraries/EEPROM/examples/eeprom_clear/eeprom_clear.ino
 
 ARDUINO_BUILD_DIR = $(PWD)/_build/arduino
 ARDUINO_CACHE_DIR = $(PWD)/_build/arduino-cache
@@ -50,6 +54,24 @@ ARDUINO_BUILD = $(ARDUINO_BUILDER) \
 	$(ARDUINO_BUILD_DIR_FLAGS) \
 	$(ARDUINO_SRC_INO)
 
+BLINK_BUILD = $(ARDUINO_BUILDER) \
+	$(ARDUINO_HARDWARE_FLAGS) \
+	$(ARDUINO_TOOLS_FLAGS) \
+	$(ARDUINO_LIBS_FLAGS) \
+	$(ARDUINO_ARCH_FLAGS) \
+	$(ARDUINO_PREFS_FLAGS) \
+	$(ARDUINO_BUILD_DIR_FLAGS) \
+	$(ARDUINO_SRC_BLINK_INO)
+
+CLEAR_EEPROM_BUILD = $(ARDUINO_BUILDER) \
+	$(ARDUINO_HARDWARE_FLAGS) \
+	$(ARDUINO_TOOLS_FLAGS) \
+	$(ARDUINO_LIBS_FLAGS) \
+	$(ARDUINO_ARCH_FLAGS) \
+	$(ARDUINO_PREFS_FLAGS) \
+	$(ARDUINO_BUILD_DIR_FLAGS) \
+	$(ARDUINO_SRC_CLEAR_EEPROM_INO)
+
 all: priv $(NIF) farmbot_arduino_firmware
 
 farmbot_arduino_firmware_build_dirs: $(ARDUINO_BUILD_DIR) $(ARDUINO_CACHE_DIR)
@@ -60,11 +82,15 @@ $(ARDUINO_BUILD_DIR):
 $(ARDUINO_CACHE_DIR):
 	mkdir -p $(ARDUINO_CACHE_DIR)
 
-farmbot_arduino_firmware: arduino farmduino
+farmbot_arduino_firmware: arduino farmduino blink clear_eeprom
 
 arduino: farmbot_arduino_firmware_build_dirs $(ARDUINO_FW)
 
 farmduino: farmbot_arduino_firmware_build_dirs $(FARMDUINO_FW)
+
+blink: farmbot_arduino_firmware_build_dirs $(BLINK_FW)
+
+clear_eeprom: farmbot_arduino_firmware_build_dirs $(CLEAR_EEPROM_FW)
 
 priv:
 	mkdir -p priv
@@ -85,6 +111,18 @@ $(FARMDUINO_FW):
 	rm -rf $(ARDUINO_CACHE_DIR)/*
 	$(ARDUINO_BUILD)
 	cp $(ARDUINO_BUILD_DIR)/src.ino.hex $@
+
+$(BLINK_FW):
+	rm -rf $(ARDUINO_BUILD_DIR)/*
+	rm -rf $(ARDUINO_CACHE_DIR)/*
+	$(BLINK_BUILD)
+	cp $(ARDUINO_BUILD_DIR)/Blink.ino.hex $@
+
+$(CLEAR_EEPROM_FW):
+	rm -rf $(ARDUINO_BUILD_DIR)/*
+	rm -rf $(ARDUINO_CACHE_DIR)/*
+	$(CLEAR_EEPROM_BUILD)
+	cp $(ARDUINO_BUILD_DIR)/eeprom_clear.ino.hex $@
 
 clean:
 	$(RM) $(NIF)

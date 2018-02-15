@@ -59,10 +59,10 @@ config :farmbot, Farmbot.System.GlobalConfig,
 config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
   system_tasks: Farmbot.Host.SystemTasks,
-  update_handler: Farmbot.Host.UpdateHandler
-  # firmware_handler: Farmbot.Firmware.UartHandler
+  update_handler: Farmbot.Host.UpdateHandler,
+  firmware_handler: Farmbot.Firmware.UartHandler
 
-config :farmbot, :uart_handler, tty: "/dev/ttyACM1"
+config :farmbot, :uart_handler, tty: "/dev/ttyACM0"
 
 config :farmbot, :logger, [
   # backends: [Elixir.Logger.Backends.Farmbot]
