@@ -4,7 +4,8 @@ defmodule Farmbot.Firmware do
   use GenStage
   use Farmbot.Logger
   alias Farmbot.Firmware.{Vec3, EstopTimer}
-  import Farmbot.System.ConfigStorage, only: [get_config_value: 3, update_config_value: 4]
+  import Farmbot.System.ConfigStorage,
+    only: [get_config_value: 3, update_config_value: 4, get_config_as_map: 0]
 
   # If any command takes longer than this, exit.
   @call_timeout 500_000
