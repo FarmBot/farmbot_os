@@ -100,7 +100,6 @@ defmodule Farmbot.Bootstrap.Authorization do
       |> Poison.encode!()
       |> RSA.encrypt({:public, rsa_key})
     update_config_value(:string, "authorization", "password", secret)
-
     %{user: %{credentials: secret |> Base.encode64()}} |> Poison.encode()
   end
 
@@ -114,7 +113,6 @@ defmodule Farmbot.Bootstrap.Authorization do
       {"User-Agent", "FarmbotOS/#{@version} (#{@target}) #{@target} ()"},
       {"Content-Type", "application/json"}
     ]
-
     case HTTPoison.post("#{server}/api/tokens", payload, headers) do
       {:ok, %{status_code: 200, body: body}} -> {:ok, body}
 

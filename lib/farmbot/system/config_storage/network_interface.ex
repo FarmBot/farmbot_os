@@ -21,9 +21,9 @@ defmodule Farmbot.System.ConfigStorage.NetworkInterface do
   @required_fields [:name, :type]
 
   def changeset(config, params \\ %{}) do
-    Logger.warn 1, "This NetworkInterface module is depricated."
     config
     |> cast(params, @required_fields)
     |> validate_required(@required_fields)
+    |> unique_constraint(:name)
   end
 end

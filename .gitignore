@@ -45,3 +45,5 @@ run-qemu.sh
 artifacts
 RELEASE_NOTES
 *.hex
+# lagger can't be disabled.
+/log

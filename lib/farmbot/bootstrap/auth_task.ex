@@ -76,7 +76,6 @@ defmodule Farmbot.Bootstrap.AuthTask do
 
   defp restart_transports do
     transports = Application.get_env(:farmbot, :transport)
-    # Logger.info 1, "restarting children: #{inspect transports}"
     for t <- transports do
       t.stop(:token_refresh)
     end

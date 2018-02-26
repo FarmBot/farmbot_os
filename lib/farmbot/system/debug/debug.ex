@@ -14,7 +14,6 @@ defmodule Farmbot.System.Debug do
       acceptors: 3,
       dispatch: [
         {:_, [
-          {"/wobserver/ws", Wobserver.Web.Client, []},
           {:_, Cowboy.Handler, {DebugRouter, []}}
         ]}
       ],

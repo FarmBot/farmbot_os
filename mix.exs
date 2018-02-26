@@ -12,20 +12,11 @@ defmodule Farmbot.Mixfile do
     System.cmd("git", ~w"rev-parse --verify HEAD", opts) |> elem(0) |> String.trim()
   end
 
-  Mix.shell().info([
-    :green,
-    """
-    Env
-      MIX_TARGET:   #{@target}
-      MIX_ENV:      #{Mix.env()}
-    """,
-    :reset
-  ])
-
   def project do
     [
       app: :farmbot,
       description: "The Brains of the Farmbot Project",
+      elixir: "~> 1.6",
       package: package(),
       make_clean: ["clean"],
       make_env: make_env(),
@@ -94,7 +85,7 @@ defmodule Farmbot.Mixfile do
 
   defp deps do
     [
-      {:nerves, "~> 0.9.0", runtime: false},
+      {:nerves, "~> 1.0.0-rc.0", runtime: false},
       {:elixir_make, "~> 0.4", runtime: false},
       {:gen_stage, "~> 0.12"},
 
@@ -102,17 +93,19 @@ defmodule Farmbot.Mixfile do
       {:httpoison, "~> 0.13.0"},
       {:jsx, "~> 2.8.0"},
 
-      {:tzdata, "~> 0.5.14"},
-      {:timex, "~> 3.1.13"},
+      # https://github.com/benoitc/hackney/issues/475
+      # :hackney needs to be pinned until that issue is resolved.
+      {:hackney, "1.10.1"},
+
+      {:timex, "~> 3.2"},
 
       {:fs, "~> 3.4.0"},
       {:nerves_uart, "~> 1.0"},
       {:nerves_leds, "~> 0.8.0"},
 
-      {:cowboy, "~> 1.1"},
-      {:plug, "~> 1.4"},
-      {:cors_plug, "~> 1.2"},
-      {:wobserver, "~> 0.1.8"},
+      {:cowboy, "~> 1.0.0"},
+      {:plug, "~> 1.0"},
+      {:cors_plug, "~> 1.5"},
       {:rsa, "~> 0.0.1"},
       {:joken, "~> 1.1"},
 
@@ -120,10 +113,10 @@ defmodule Farmbot.Mixfile do
       {:sqlite_ecto2, "~> 2.2.1"},
       {:uuid, "~> 1.1"},
 
-      {:socket, "~> 0.3"},
-      {:amqp, "~> 1.0.0-pre.2"},
+      {:socket, "~> 0.3.13"},
+      {:amqp, "~> 1.0"},
 
-      {:recon, "~> 2.3"},
+      {:recon, "~> 2.3.2"}
     ]
   end
 
@@ -167,7 +160,7 @@ defmodule Farmbot.Mixfile do
   end
 
   defp system("rpi3"),
-    do: [{:nerves_system_farmbot_rpi3, "0.20.0-farmbot", runtime: false}]
+    do: [{:nerves_system_farmbot_rpi3, "1.0.0-rc.0-farmbot", runtime: false}]
 
   defp system("rpi0"),
     do: [{:nerves_system_farmbot_rpi0, "0.20.0-farmbot", runtime: false}]
@@ -209,8 +202,12 @@ defmodule Farmbot.Mixfile do
     [
       "firmware.slack": ["farmbot.firmware.slack"],
       "firmware.sign":  ["farmbot.firmware.sign"],
-      "deps.precompile": ["nerves.precompile", "deps.precompile"],
-      "deps.loadpaths": ["deps.loadpaths", "nerves.loadpaths"]
-    ] |> Nerves.Bootstrap.add_aliases()
+      "loadconfig": [&bootstrap/1]
+    ]
+  end
+
+  defp bootstrap(args) do
+    Application.start(:nerves_bootstrap)
+    Mix.Task.run("loadconfig", args)
   end
 end

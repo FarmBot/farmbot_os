@@ -5,7 +5,7 @@ target = Mix.Project.config()[:target]
 env = Mix.env()
 
 config :logger, [
-  utc_log: true,
+  # utc_log: true,
   # handle_otp_reports: true,
   # handle_sasl_reports: true,
   # backends: []

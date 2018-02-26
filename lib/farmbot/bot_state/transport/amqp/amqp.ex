@@ -21,7 +21,11 @@ defmodule Farmbot.BotState.Transport.AMQP do
   end
 
   def stop(reason \\ :normal) do
-    GenStage.stop(__MODULE__, reason)
+    if Process.whereis(__MODULE__) do
+      GenStage.stop(__MODULE__, reason)
+    else
+      :ok
+    end
   end
 
   # GenStage callbacks

@@ -48,19 +48,14 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
       import Supervisor.Spec
       :ets.new(:session, [:named_table, :public, read_concurrency: true])
       Farmbot.System.GPIO.Leds.led_status_err()
+      alias Farmbot.Target.Bootstrap.Configurator
       children = [
-        Plug.Adapters.Cowboy.child_spec(
-          :http,
-          Farmbot.Target.Bootstrap.Configurator.Router,
-          [],
-          port: 80,
-          acceptors: 3
-        ),
-        worker(Farmbot.Target.Bootstrap.Configurator.CaptivePortal, [])
+        {Plug.Adapters.Cowboy, scheme: :http, plug: Configurator.Router, options: [port: 80, acceptors: 1]},
+        worker(Configurator.CaptivePortal, [])
       ]
 
       opts = [strategy: :one_for_one]
-      supervise(children, opts)
+      Supervisor.init(children, opts)
     else
       :ignore
     end
