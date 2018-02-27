@@ -66,6 +66,7 @@ defmodule Farmbot.Repo.FarmEvent do
 
   @compile {:inline, [build_calendar: 1]}
   def build_calendar(%__MODULE__{calendar: nil} = fe), do: fe
+  def build_calendar(%__MODULE__{time_unit: "never"} = fe), do: fe
   def build_calendar(%__MODULE__{calendar: calendar} = fe)  when is_list(calendar) do
     current_time_seconds = :os.system_time(:second)
     start_time_seconds = DateTime.from_iso8601(fe.start_time) |> elem(1) |> DateTime.to_unix(:second)
@@ -96,7 +97,6 @@ defmodule Farmbot.Repo.FarmEvent do
   end
 
   @compile {:inline, [time_unit_to_seconds: 1]}
-  defp time_unit_to_seconds("never"), do: 0
   defp time_unit_to_seconds("minutely"), do: 60
   defp time_unit_to_seconds("hourly"), do: 60 * 60
   defp time_unit_to_seconds("daily"), do: 60 * 60 * 24

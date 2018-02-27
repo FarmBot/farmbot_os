@@ -1,6 +1,7 @@
 defmodule Farmbot.Host.Bootstrap.Configurator do
   @behaviour Farmbot.System.Init
-  alias Farmbot.System.ConfigStorage
+  import Farmbot.System.ConfigStorage,
+    only: [update_config_value: 4, get_config_value: 3]
 
   def start_link(_, opts) do
     Supervisor.start_link(__MODULE__, [], opts)
@@ -21,12 +22,18 @@ defmodule Farmbot.Host.Bootstrap.Configurator do
     email = Application.get_env(:farmbot, :authorization)[:email] || raise error("email")
     pass = Application.get_env(:farmbot, :authorization)[:password] || raise error("password")
     server = Application.get_env(:farmbot, :authorization)[:server] || raise error("server")
-    ConfigStorage.update_config_value(:string, "authorization", "email", email)
-    if ConfigStorage.get_config_value(:bool, "settings", "first_boot") do
-      ConfigStorage.update_config_value(:string, "authorization", "password", pass)
+    update_config_value(:string, "authorization", "email", email)
+
+    # if there is no firmware hardware, default ot farmduino
+    unless get_config_value(:string, "settings", "firmware_hardware") do
+      update_config_value(:string, "settings", "firmware_hardware", "farmduino")
     end
-    ConfigStorage.update_config_value(:string, "authorization", "server", server)
-    ConfigStorage.update_config_value(:string, "authorization", "token", nil)
+
+    if get_config_value(:bool, "settings", "first_boot") do
+      update_config_value(:string, "authorization", "password", pass)
+    end
+    update_config_value(:string, "authorization", "server", server)
+    update_config_value(:string, "authorization", "token", nil)
     :ignore
   end
 

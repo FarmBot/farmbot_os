@@ -35,8 +35,6 @@ config :farmbot, :init, [
   # Autodetects if a Arduino is plugged in and configures accordingly.
   Farmbot.Firmware.UartHandler.AutoDetector,
 
-  Farmbot.Target.ConfigMigration.BeforeNetwork,
-
   # Allows for first boot configuration.
   Farmbot.Target.Bootstrap.Configurator,
 
@@ -46,8 +44,10 @@ config :farmbot, :init, [
   # Wait for time time come up.
   Farmbot.Target.Network.WaitForTime,
 
-  Farmbot.Target.ConfigMigration.AfterNetwork,
+  # Stops the disk from getting full.
+  Farmbot.Target.Network.TzdataTask,
 
+  # Helps with hot plugging of serial devices.
   Farmbot.Target.Uevent.Supervisor
 ]
 
@@ -67,10 +67,6 @@ config :farmbot, :behaviour,
 config :nerves_init_gadget,
   address_method: :static
 
-config :bootloader,
+config :shoehorn,
   init: [:nerves_runtime, :nerves_init_gadget],
   app: :farmbot
-
-if Mix.Project.config[:target] == "rpi3" do
-  config :nerves, :firmware, fwup_conf: "fwup_interim.conf"
-end

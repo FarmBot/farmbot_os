@@ -15,7 +15,9 @@ defmodule Farmbot.Target.UpdateHandler do
   end
 
   def post_update do
-    Farmbot.Firmware.UartHandler.Update.maybe_update_firmware()
+    alias Farmbot.Firmware.UartHandler.Update
+    hw = Farmbot.System.ConfigStorage.get_config_value(:string, "settings", "firmware_hardware")
+    Update.maybe_update_firmware(hw)
     :ok
   end
 
@@ -27,5 +29,9 @@ defmodule Farmbot.Target.UpdateHandler do
 
   def setup(_) do
     :ok
+  end
+
+  def requires_reboot? do
+    !Nerves.Firmware.allow_upgrade?
   end
 end

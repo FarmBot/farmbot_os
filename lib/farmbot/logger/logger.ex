@@ -101,7 +101,8 @@ defmodule Farmbot.Logger do
     for b <- backends do
       Elixir.Logger.add_backend(b, [])
     end
-    {:producer, %{}, dispatcher: GenStage.BroadcastDispatcher}
+    espeak = System.find_executable("espeak")
+    {:producer, %{espeak: espeak}, dispatcher: GenStage.BroadcastDispatcher}
   end
 
   def handle_demand(_, state) do
@@ -119,6 +120,7 @@ defmodule Farmbot.Logger do
       nil -> "no_function"
     end
     meta_map = Map.new(meta)
+    maybe_espeak(message, Map.get(meta_map, :channels, []), state.espeak)
     log = struct(Farmbot.Log, [
       time: time,
       level: level,
@@ -141,5 +143,13 @@ defmodule Farmbot.Logger do
     for b <- backends do
       Elixir.Logger.remove_backend(b, [])
     end
+  end
+
+  defp maybe_espeak(_message, _channels, nil), do: :ok
+  defp maybe_espeak(message, channels, exe) do
+    if Enum.find(channels, fn(ch) -> (ch == :espeak) || (ch == "espeak") end) do
+      spawn System, :cmd, [exe, [message]]
+    end
+    :ok
   end
 end

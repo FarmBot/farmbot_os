@@ -3,8 +3,13 @@ defmodule Farmbot.Mixfile do
   @target System.get_env("MIX_TARGET") || "host"
   @version Path.join(__DIR__, "VERSION") |> File.read!() |> String.trim()
 
-  defp commit() do
+  defp commit do
     System.cmd("git", ~w"rev-parse --verify HEAD") |> elem(0) |> String.trim()
+  end
+
+  defp arduino_commit do
+    opts = [cd: "c_src/farmbot-arduino-firmware"]
+    System.cmd("git", ~w"rev-parse --verify HEAD", opts) |> elem(0) |> String.trim()
   end
 
   Mix.shell().info([
@@ -22,25 +27,27 @@ defmodule Farmbot.Mixfile do
       app: :farmbot,
       description: "The Brains of the Farmbot Project",
       package: package(),
-      compilers: compilers(),
       make_clean: ["clean"],
+      make_env: make_env(),
+      compilers: [:elixir_make] ++ Mix.compilers,
       test_coverage: [tool: ExCoveralls],
       version: @version,
       target: @target,
       commit: commit(),
-      archives: [nerves_bootstrap: "~> 0.6.0"],
+      arduino_commit: arduino_commit(),
+      archives: [nerves_bootstrap: "~> 0.8.2"],
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps_path: "deps/#{@target}",
       build_path: "_build/#{@target}",
       lockfile: "mix.lock.#{@target}",
       config_path: "config/config.exs",
-      lockfile: "mix.lock",
       elixirc_paths: elixirc_paths(Mix.env(), @target),
       aliases: aliases(Mix.env(), @target),
       deps: deps() ++ deps(@target),
       dialyzer: [
         plt_add_deps: :transitive,
+        plt_add_apps: [:mix],
         flags: []
       ],
       preferred_cli_env: [
@@ -74,64 +81,69 @@ defmodule Farmbot.Mixfile do
     ]
   end
 
-  defp compilers do
-    case :init.get_plain_arguments() |> List.last() do
-      a when a in ['mix', 'compile', 'firmware'] ->
-        [:elixir_make] ++ Mix.compilers
-      _ -> Mix.compilers
+  defp make_env do
+    case System.get_env("ERL_EI_INCLUDE_DIR") do
+      nil ->
+        %{
+          "ERL_EI_INCLUDE_DIR" => "#{:code.root_dir()}/usr/include",
+          "ERL_EI_LIBDIR" => "#{:code.root_dir()}/usr/lib"
+        }
+      _ -> %{}
     end
   end
 
   defp deps do
     [
-      {:nerves, "~> 0.8.3", runtime: false},
+      {:nerves, "~> 0.9.0", runtime: false},
       {:elixir_make, "~> 0.4", runtime: false},
       {:gen_stage, "~> 0.12"},
-      {:poison, "~> 3.0"},
-      {:ex_json_schema, "~> 0.5.3"},
-      {:rsa, "~> 0.0.1"},
+
+      {:poison, "~> 3.1.0"},
       {:httpoison, "~> 0.13.0"},
+      {:jsx, "~> 2.8.0"},
+
       {:tzdata, "~> 0.5.14"},
       {:timex, "~> 3.1.13"},
 
       {:fs, "~> 3.4.0"},
       {:nerves_uart, "~> 1.0"},
-      {:uuid, "~> 1.1"},
+      {:nerves_leds, "~> 0.8.0"},
+
       {:cowboy, "~> 1.1"},
       {:plug, "~> 1.4"},
       {:cors_plug, "~> 1.2"},
+      {:wobserver, "~> 0.1.8"},
+      {:rsa, "~> 0.0.1"},
+      {:joken, "~> 1.1"},
+
       {:ecto, "~> 2.2.2"},
       {:sqlite_ecto2, "~> 2.2.1"},
-      {:wobserver, "~> 0.1.8"},
-      {:joken, "~> 1.1"},
+      {:uuid, "~> 1.1"},
+
       {:socket, "~> 0.3"},
       {:amqp, "~> 1.0.0-pre.2"},
-      {:nerves_ssdp_server, "~> 0.2.2"},
-      {:nerves_ssdp_client, "~> 0.1.0"},
 
-      {:ex_syslogger, "~> 1.4", only: :prod},
-      {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
       {:recon, "~> 2.3"},
-      {:nerves_leds, "~> 0.8.0"}
     ]
   end
 
   defp deps("host") do
     [
       {:ex_doc, "~> 0.18.1", only: :dev},
-      {:inch_ex, ">= 0.0.0", only: :dev},
       {:excoveralls, "~> 0.7", only: :test},
+      {:dialyxir, "~> 0.5.1", only: :dev, runtime: false},
+      {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
+      {:inch_ex, ">= 0.0.0", only: :dev},
       {:mock, "~> 0.2.0", only: :test},
       {:faker, "~> 0.9", only: :test},
-      {:udev, "~> 0.1.0", only: [:dev, :prod]},
     ]
   end
 
   defp deps("rpi3") do
     system("rpi3") ++
       [
-        {:bootloader, "~> 0.1.3", except: :test},
-        {:nerves_runtime, "~> 0.4"},
+        {:shoehorn, "~> 0.2.0", except: :test},
+        {:nerves_runtime, "0.5.3"},
         {:nerves_firmware, "~> 0.4.0"},
         {:nerves_firmware_ssh, "~> 0.2", only: :dev},
         {:nerves_network, "~> 0.3.6"},
@@ -143,8 +155,8 @@ defmodule Farmbot.Mixfile do
   defp deps(target) do
     system(target) ++
       [
-        {:bootloader, "~> 0.1.3", except: :test},
-        {:nerves_runtime, "~> 0.4"},
+        {:shoehorn, "~> 0.2.0", except: :test},
+        {:nerves_runtime, "0.5.3"},
         {:nerves_firmware, "~> 0.4.0"},
         {:nerves_firmware_ssh, "~> 0.2", only: :dev},
         {:nerves_init_gadget,  github: "nerves-project/nerves_init_gadget", branch: "dhcp", only: :dev},
@@ -155,16 +167,13 @@ defmodule Farmbot.Mixfile do
   end
 
   defp system("rpi3"),
-    do: [{:nerves_system_farmbot_rpi3, "0.17.2-farmbot.2", runtime: false}]
+    do: [{:nerves_system_farmbot_rpi3, "0.20.0-farmbot", runtime: false}]
 
   defp system("rpi0"),
-    do: [{:nerves_system_farmbot_rpi0, "0.18.3-farmbot.1", runtime: false}]
+    do: [{:nerves_system_farmbot_rpi0, "0.20.0-farmbot", runtime: false}]
 
   defp system("bbb"),
-    do: [{:nerves_system_farmbot_bbb, "0.17.2-farmbot", runtime: false}]
-
-  defp system("x86_64"),
-    do: [{:nerves_system_x86_64, "~> 0.3.1", github: "nerves-project/nerves_system_x86_64"}]
+    do: [{:nerves_system_farmbot_bbb, "0.19.0-farmbot", runtime: false}]
 
   defp package do
     [
@@ -202,6 +211,6 @@ defmodule Farmbot.Mixfile do
       "firmware.sign":  ["farmbot.firmware.sign"],
       "deps.precompile": ["nerves.precompile", "deps.precompile"],
       "deps.loadpaths": ["deps.loadpaths", "nerves.loadpaths"]
-    ]
+    ] |> Nerves.Bootstrap.add_aliases()
   end
 end

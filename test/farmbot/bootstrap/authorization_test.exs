@@ -1,6 +1,7 @@
 defmodule Farmbot.Bootstrap.AuthorizationTest do
   @moduledoc "Tests the default authorization implementation"
   alias Farmbot.Bootstrap.Authorization, as: Auth
+  alias Farmbot.Bootstrap.AuthTask
   use ExUnit.Case
 
   @moduletag :farmbot_api
@@ -36,5 +37,16 @@ defmodule Farmbot.Bootstrap.AuthorizationTest do
 
     res = Auth.authorize("yolo@mtv.org", "123password", ctx.server)
     assert match?({:error, _}, res)
+  end
+
+  test "internet off and back on refreshes token" do
+    Farmbot.System.Registry.subscribe(self())
+    old = Farmbot.System.ConfigStorage.get_config_value(:string, "authorization", "token")
+    send AuthTask, {Farmbot.System.Registry, {:network, :dns_up}}
+
+    assert_receive {Farmbot.System.Registry, {:authorization, :new_token}}, 1000
+
+    new = Farmbot.System.ConfigStorage.get_config_value(:string, "authorization", "token")
+    assert old != new
   end
 end

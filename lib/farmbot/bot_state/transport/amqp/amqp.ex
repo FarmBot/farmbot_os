@@ -73,12 +73,13 @@ defmodule Farmbot.BotState.Transport.AMQP do
       host: mqtt_server,
       username: device,
       password: token,
-      virtual_host: vhost || "/"]
+      virtual_host: vhost]
     AMQP.Connection.open(opts)
   end
 
   def terminate(reason, state) do
-    if reason not in [:normal, :shutdown, :token_refresh] do
+    ok_reasons = [:normal, :shutdown, :token_refresh]
+    if reason not in ok_reasons do
       Logger.error 1, "AMQP Died: #{inspect reason}"
       update_config_value(:bool, "settings", "log_amqp_connected", true)
     end
@@ -91,7 +92,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
     # If the auth task is running, force it to reset.
     auth_task = Farmbot.Bootstrap.AuthTask
-    if Process.whereis(auth_task) && reason != :token_refresh do
+    if Process.whereis(auth_task) && reason not in ok_reasons do
       auth_task.force_refresh()
     end
   end
@@ -177,6 +178,8 @@ defmodule Farmbot.BotState.Transport.AMQP do
       ["bot", ^device, "sync", resource, _]
       when resource in ["Log", "User", "Image", "WebcamFeed"] ->
         {:noreply, [], state}
+      ["bot", ^device, "sync", "FbosConfig", id] ->
+        handle_fbos_config(id, payload, state)
       ["bot", ^device, "sync", resource, id] ->
         handle_sync_cmd(resource, id, payload, state)
       ["bot", ^device, "logs"]        -> {:noreply, [], state}
@@ -228,6 +231,28 @@ defmodule Farmbot.BotState.Transport.AMQP do
       Logger.warn 2, msg
     end
     {:noreply, [], state}
+  end
+
+  def handle_fbos_config(_, _, %{state_cache: nil} = state) do
+    # Don't update fbos config, if we don't have a state cache for whatever reason.
+    {:noreply, [], state}
+  end
+
+  def handle_fbos_config(_id, payload, state) do
+    if get_config_value(:bool, "settings", "ignore_fbos_config") do
+      {:noreply, [], state}
+    else
+      case Poison.decode(payload) do
+        # TODO(Connor) What do I do with deletes?
+        {:ok, %{"body" => nil}} -> {:noreply, [], state}
+        {:ok, %{"body" => config}} ->
+          # Logger.info 1, "Got fbos config from amqp: #{inspect config}"
+          old = state.state_cache.configuration
+          updated = Farmbot.Bootstrap.SettingsSync.apply_map(old, config)
+          push_bot_state(state.chan, state.bot, %{state.state_cache | configuration: updated})
+          {:noreply, [], state}
+      end
+    end
   end
 
   defp push_bot_log(chan, bot, log) do

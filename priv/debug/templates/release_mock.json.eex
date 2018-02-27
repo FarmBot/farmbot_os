@@ -1,0 +1,26 @@
+{
+   "url":"<%= url %>",
+   "tag_name":"<%= tag_name %>",
+   "target_commitish":"<%= target_commitish %>",
+   "name":null,
+   "draft":false,
+   "prerelease":true,
+   "created_at":"2018-01-09T02:04:01Z",
+   "published_at":"2018-01-09T02:10:23Z",
+   "assets":[
+      {
+         "url":"<%= fw_asset_url %>",
+         "id":5815530,
+         "name":"farmbot-rpi3-<%= String.trim_leading(tag_name, "v") %>.fw",
+         "label":"",
+         "content_type":"application/octet-stream",
+         "state":"uploaded",
+         "size":57024016,
+         "download_count":0,
+         "created_at":"2018-01-09T02:10:23Z",
+         "updated_at":"2018-01-09T02:10:25Z",
+         "browser_download_url":"<%= fw_asset_url %>"
+      }
+   ],
+   "body": "<%= body %>"
+}

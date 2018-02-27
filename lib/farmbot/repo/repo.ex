@@ -120,13 +120,17 @@ defmodule Farmbot.Repo do
 
   def handle_info({:DOWN, _, :process, _, %State{} = new_state}, %State{} = state) do
     Logger.success(1, "Sync complete.")
-    GenServer.reply(state.from, :ok)
+    if state.from do
+      GenServer.reply(state.from, :ok)
+    end
     {:noreply, new_state}
   end
 
   def handle_info({:DOWN, _, :process, _, reason}, state) do
     Logger.error 1, "Sync error: #{inspect reason}"
-    GenServer.reply(state.from, reason)
+    if state.from do
+      GenServer.reply(state.from, reason)
+    end
     BotState.set_sync_status(:sync_now)
     destroy_all_sync_cmds()
     {:noreply, %State{state | sync_pid: nil, from: nil}}
@@ -294,7 +298,7 @@ defmodule Farmbot.Repo do
     mod = Module.concat(["Farmbot", "Repo", kind])
     # an object was deleted.
     if Code.ensure_loaded?(mod) do
-      Logger.busy(3, "Applying sync_cmd (#{mod}: delete)")
+      Logger.debug(3, "Applying sync_cmd (#{mod}: delete)")
 
       case repo.get(mod, id) do
         nil ->
@@ -315,7 +319,7 @@ defmodule Farmbot.Repo do
     mod = Module.concat(["Farmbot", "Repo", kind])
 
     if Code.ensure_loaded?(mod) do
-      Logger.busy(3, "Applying sync_cmd (#{mod}): insert_or_update")
+      Logger.debug(3, "Applying sync_cmd (#{mod}): insert_or_update")
 
       # We need to check if this object exists in the database.
       case repo.get(mod, id) do
@@ -363,23 +367,65 @@ defmodule Farmbot.Repo do
   end
 
   defp do_sync_both(repo_a, repo_b) do
-    case do_sync_all_resources(repo_a) do
-      :ok ->
-        do_sync_all_resources(repo_b)
-
-      err ->
-        err
-    end
+    {time, res} = :timer.tc(fn() ->
+       with {:ok, cache} <- do_http_requests(),
+      :ok <- do_sync_all_resources(repo_a, cache),
+      :ok <- do_sync_all_resources(repo_b, cache) do
+        Farmbot.Bootstrap.SettingsSync.run()
+      end
+    end)
+    Logger.debug 3, "Entire sync took: #{time}µs."
+    res
   end
 
-  defp do_sync_all_resources(repo) do
-    with :ok <- sync_resource(repo, Device, "/api/device"),
-         :ok <- sync_resource(repo, FarmEvent, "/api/farm_events"),
-         :ok <- sync_resource(repo, Peripheral, "/api/peripherals"),
-         :ok <- sync_resource(repo, Point, "/api/points"),
-         :ok <- sync_resource(repo, Regimen, "/api/regimens"),
-         :ok <- sync_resource(repo, Sequence, "/api/sequences"),
-         :ok <- sync_resource(repo, Tool, "/api/tools") do
+  defp do_http_requests do
+    initial_err = {:error, :request_not_started}
+    acc = %{
+      Device => initial_err,
+      FarmEvent => initial_err,
+      Peripheral => initial_err,
+      Point => initial_err,
+      Regimen => initial_err,
+      Sequence => initial_err,
+      Tool => initial_err
+    }
+
+    device_task      = Task.async(__MODULE__, :do_get_resource, [Device, "/api/device"])
+    farm_events_task = Task.async(__MODULE__, :do_get_resource, [FarmEvent, "/api/farm_events"])
+    peripherals_task = Task.async(__MODULE__, :do_get_resource, [Peripheral, "/api/peripherals"])
+    points_task      = Task.async(__MODULE__, :do_get_resource, [Point, "/api/points"])
+    regimens_task    = Task.async(__MODULE__, :do_get_resource, [Regimen, "/api/regimens"])
+    sequences_task   = Task.async(__MODULE__, :do_get_resource, [Sequence, "/api/sequences"])
+    tools_task       = Task.async(__MODULE__, :do_get_resource, [Tool, "/api/tools"])
+    res = %{acc |
+      Device => Task.await(device_task, 30_000),
+      FarmEvent => Task.await(farm_events_task, 30_000),
+      Peripheral => Task.await(peripherals_task, 30_000),
+      Point => Task.await(points_task, 30_000),
+      Regimen => Task.await(regimens_task, 30_000),
+      Sequence => Task.await(sequences_task, 30_000),
+      Tool => Task.await(tools_task, 30_000),
+    }
+    {:ok, res}
+  end
+
+  def do_get_resource(resource, slug) do
+    resource = Module.split(resource) |> List.last()
+    Logger.debug 3, "Fetching #{resource}"
+    maybe_debug_log("[#{resource}] Downloading: (#{slug})")
+    {time, res} = :timer.tc(fn -> Farmbot.HTTP.get(slug) end)
+    maybe_debug_log("[#{resource}] HTTP Request took: #{time}µs")
+    res
+  end
+
+  defp do_sync_all_resources(repo, cache) do
+    with :ok <- sync_resource(repo, Device, cache),
+         :ok <- sync_resource(repo, FarmEvent, cache),
+         :ok <- sync_resource(repo, Peripheral, cache),
+         :ok <- sync_resource(repo, Point, cache),
+         :ok <- sync_resource(repo, Regimen, cache),
+         :ok <- sync_resource(repo, Sequence, cache),
+         :ok <- sync_resource(repo, Tool, cache) do
       :ok
     else
       err ->
@@ -388,13 +434,17 @@ defmodule Farmbot.Repo do
     end
   end
 
-  defp sync_resource(repo, resource, slug) do
-    Logger.debug(3, "syncing: #{resource} (#{slug})")
+  defp sync_resource(repo, resource, cache) do
+    human_readable_resource_name = Module.split(resource) |> List.last()
+    maybe_debug_log("[#{human_readable_resource_name}] Entering into DB.")
     as = if resource in @singular_resources, do: struct(resource), else: [struct(resource)]
 
-    with {:ok, %{status_code: 200, body: body}} <- Farmbot.HTTP.get(slug),
-         {:ok, obj_or_list} <- Poison.decode(body, as: as) do
-      case do_insert_or_update(repo, obj_or_list) do
+    with {:ok, %{status_code: 200, body: body}} <- cache[resource],
+         {json_time, {:ok, obj_or_list}} <- :timer.tc(fn -> Poison.decode(body, as: as) end) do
+      maybe_debug_log("[#{human_readable_resource_name}] JSON Decode took: #{json_time}µs")
+      {insert_time, res} = :timer.tc(fn -> do_insert_or_update(repo, obj_or_list) end)
+      maybe_debug_log("[#{human_readable_resource_name}] DB Operations took: #{insert_time}µs")
+      case res do
         {:ok, _} when resource in @singular_resources -> :ok
         :ok -> :ok
         err -> err
@@ -443,6 +493,22 @@ defmodule Farmbot.Repo do
       {:error, reason} ->
         Logger.error(2, "failed to sync #{obj.__struct__}: #{inspect(reason)}")
         {:error, obj.__struct__, reason}
+    end
+  end
+
+  def enable_debug_logs do
+    Application.put_env(:farmbot, :repo_debug_logs, true)
+  end
+
+  def disable_debug_logs do
+    Application.put_env(:farmbot, :repo_debug_logs, false)
+  end
+
+  defp maybe_debug_log(msg) do
+    if Application.get_env(:farmbot, :repo_debug_logs, false) do
+      Logger.debug 3, msg
+    else
+      :ok
     end
   end
 

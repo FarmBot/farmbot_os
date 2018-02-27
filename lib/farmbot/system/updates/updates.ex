@@ -22,16 +22,30 @@ defmodule Farmbot.System.Updates do
 
   @doc "Force check updates."
   def check_updates(reboot) do
-    token = ConfigStorage.get_config_value(:string, "authorization", "token")
-    if token do
-      case Farmbot.Jwt.decode(token) do
-        {:ok, %Farmbot.Jwt{os_update_server: update_server}} ->
-          override = ConfigStorage.get_config_value(:string, "settings", "os_update_server_overwrite")
-          do_check_updates_http(override || update_server, reboot)
-        _ -> no_token()
+    if @handler.requires_reboot? do
+      if reboot do
+        Logger.info 1, "Farmbot applied an update. Rebooting."
+        Farmbot.System.reboot("Update reboot required")
+      else
+        Logger.info 1, "Farmbot already applied an update. Please reboot."
+        :ok
       end
     else
-      no_token()
+      token = ConfigStorage.get_config_value(:string, "authorization", "token")
+      if token do
+        case Farmbot.Jwt.decode(token) do
+          {:ok, %Farmbot.Jwt{os_update_server: normal_update_server, beta_os_update_server: beta_update_server}} ->
+            override = ConfigStorage.get_config_value(:string, "settings", "os_update_server_overwrite")
+            if ConfigStorage.get_config_value(:bool, "settings", "beta_opt_in") do
+              do_check_updates_http(override || beta_update_server, reboot)
+            else
+              do_check_updates_http(override || normal_update_server, reboot)
+            end
+          _ -> no_token()
+        end
+      else
+        no_token()
+      end
     end
   end
 
@@ -68,7 +82,6 @@ defmodule Farmbot.System.Updates do
 
       end
 
-
       if should_apply_update(@env, prerelease, needs_update) do
         Logger.busy 1, "Downloading FarmbotOS over the air update"
         IO.puts cl
@@ -89,19 +102,22 @@ defmodule Farmbot.System.Updates do
       {:error, reason} ->
         Logger.error 1, "Failed to fetch update data: #{inspect reason}"
 
+      {:ok, %{status_code: 400}} ->
+        Logger.info 2, "Had out of date token. Try that again."
+        Farmbot.Bootstrap.AuthTask.force_refresh()
+
       {:ok, %{body: body, status_code: code}} ->
         reason = case Poison.decode(body) do
           {:ok, res} -> res
           _ -> body
         end
-        Logger.error 1, "HTTP error: #{code}: #{inspect reason}"
+        Logger.error 1, "OS Update HTTP error: #{code}: #{inspect reason}"
     end
   end
 
   defp find_fw_url(%{"assets" => assets}, version) do
     expected_name = "farmbot-#{@target}-#{version}.fw"
     res = Enum.find_value(assets, fn(asset) ->
-      IO.puts "checking: #{inspect asset["name"]} == #{inspect expected_name}"
       case asset do
         %{"browser_download_url" => fw_url, "name" => ^expected_name} -> fw_url
         _ -> nil
@@ -131,7 +147,7 @@ defmodule Farmbot.System.Updates do
     Logger.info 3, "Applying prerelease firmware."
     true
   end
-  
+
   defp should_apply_update(_, _, true) do
     true
   end

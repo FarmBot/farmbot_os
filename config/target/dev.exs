@@ -6,6 +6,8 @@ config :logger,
 
 config :farmbot, data_path: "/root"
 
+config :farmbot, profile: System.get_env("FBOS_PROFILE")
+
 # Disable tzdata autoupdates because it tries to dl the update file
 # Before we have network or ntp.
 config :tzdata, :autoupdate, :disabled
@@ -35,8 +37,6 @@ config :farmbot, :init, [
   # Autodetects if a Arduino is plugged in and configures accordingly.
   Farmbot.Firmware.UartHandler.AutoDetector,
 
-  Farmbot.Target.ConfigMigration.BeforeNetwork,
-
   # Allows for first boot configuration.
   Farmbot.Target.Bootstrap.Configurator,
 
@@ -46,7 +46,9 @@ config :farmbot, :init, [
   # Wait for time time come up.
   Farmbot.Target.Network.WaitForTime,
 
-  Farmbot.Target.ConfigMigration.AfterNetwork,
+
+  # Stops the disk from getting full.
+  Farmbot.Target.Network.TzdataTask,
 
   # Debug stuff
   Farmbot.System.Debug,
@@ -78,10 +80,9 @@ end
 
 config :nerves_firmware_ssh, authorized_keys: local_key
 
-config :bootloader,
+config :shoehorn,
   init: [:nerves_runtime, :nerves_init_gadget],
   app: :farmbot
 
-if Mix.Project.config[:target] == "rpi3" do
-  config :nerves, :firmware, fwup_conf: "fwup_interim.conf"
-end
+config :nerves, :firmware,
+  rootfs_overlay: "overlay/"

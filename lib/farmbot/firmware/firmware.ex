@@ -3,7 +3,7 @@ defmodule Farmbot.Firmware do
 
   use GenStage
   use Farmbot.Logger
-  alias Farmbot.Firmware.Vec3
+  alias Farmbot.Firmware.{Vec3, EstopTimer}
 
   # If any command takes longer than this, exit.
   @call_timeout 500_000
@@ -117,6 +117,7 @@ defmodule Farmbot.Firmware do
       idle: false,
       timer: nil,
       pins: %{},
+      params: %{},
       initialized: false,
       initializing: false,
       current: nil,
@@ -136,12 +137,22 @@ defmodule Farmbot.Firmware do
           %State{handler: handler, handler_mod: handler_mod},
           subscribe_to: [handler], dispatcher: GenStage.BroadcastDispatcher
         }
-      {:stop, err, state} -> {:stop, err, state}
+      {:error, reason} ->
+        old = Application.get_all_env(:farmbot)[:behaviour]
+        new = Keyword.put(old, :firmware_handler, Farmbot.Firmware.StubHandler)
+        Application.put_env(:farmbot, :behaviour, new)
+        {:stop, {:handler_init, reason}}
     end
 
   end
 
   def terminate(reason, state) do
+    unless reason in [:normal, :shutdown] do
+      old = Application.get_all_env(:farmbot)[:behaviour]
+      new = Keyword.put(old, :firmware_handler, Farmbot.Firmware.StubHandler)
+      Application.put_env(:farmbot, :behaviour, new)
+    end
+
     unless :queue.is_empty(state.queue) do
       list = :queue.to_list(state.queue)
       for cmd <- list do
@@ -156,16 +167,19 @@ defmodule Farmbot.Firmware do
 
   def handle_info({:EXIT, _, reason}, state) do
     Logger.error 1, "Firmware handler: #{state.handler_mod} died: #{inspect reason}"
-    {:ok, handler} = state.handler_mod.start_link()
-    new_state = %{state | handler: handler}
-    {:noreply, [{:informational_settings, %{busy: false}}], %{new_state | initialized: false, idle: false}}
+    case state.handler_mod.start_link() do
+      {:ok, handler} ->
+        new_state = %{state | handler: handler}
+        {:noreply, [{:informational_settings, %{busy: false}}], %{new_state | initialized: false, idle: false}}
+      err -> {:stop, err, %{state | handler: false}}
+    end
   end
 
   def handle_info(:timeout, state) do
     case state.current do
       nil -> {:noreply, [], %{state | timer: nil}}
       %Current{fun: fun, args: args, from: _from} = current ->
-        Logger.warn 1, "Got Firmware timeout. Retrying #{fun}(#{inspect args}) "
+        Logger.warn 1, "Timed out waiting for Firmware response. Retrying #{fun}(#{inspect args}) "
         case apply(state.handler_mod, fun, [state.handler | args]) do
           :ok ->
             timer = Process.send_after(self(), :timeout, state.timeout_ms)
@@ -178,17 +192,24 @@ defmodule Farmbot.Firmware do
     end
   end
 
-  def handle_call({fun, _}, _from, state = %{initialized: false}) when fun not in  [:read_all_params, :update_param, :emergency_unlock, :emergency_lock] do
+  def handle_call({fun, _}, _from, state = %{initialized: false})
+  when fun not in  [:read_all_params, :update_param, :emergency_unlock, :emergency_lock] do
     {:reply, {:error, :uninitialized}, [], state}
   end
 
   def handle_call({fun, args}, from, state) do
     next_current = struct(Current, from: from, fun: fun, args: args)
     current_current = state.current
-    if current_current do
-      do_queue_cmd(next_current, state)
-    else
-      do_begin_cmd(next_current, state, [])
+    cond do
+      fun == :emergency_lock ->
+        if current_current do
+          do_reply(state, {:error, :emergency_lock})
+        end
+        do_begin_cmd(next_current, state, [])
+      match?(%Current{}, current_current) ->
+        do_queue_cmd(next_current, state)
+      is_nil(current_current) ->
+        do_begin_cmd(next_current, state, [])
     end
   end
 
@@ -196,9 +217,14 @@ defmodule Farmbot.Firmware do
     # Logger.busy 3, "FW Starting: #{fun}: #{inspect from}"
     case apply(state.handler_mod, fun, [state.handler | args]) do
       :ok ->
-        if fun == :emergency_unlock, do: Farmbot.System.GPIO.Leds.led_status_ok()
         timer = Process.send_after(self(), :timeout, state.timeout_ms)
-        {:noreply, dispatch, %{state | current: current, timer: timer}}
+        if fun == :emergency_unlock do
+          Farmbot.System.GPIO.Leds.led_status_ok()
+          new_dispatch = [{:informational_settings,  %{busy: false, locked: false}} | dispatch]
+          {:noreply, new_dispatch, %{state | current: current, timer: timer}}
+        else
+          {:noreply, dispatch, %{state | current: current, timer: timer}}
+        end
       {:error, _} = res ->
         do_reply(%{state | current: current}, res)
         {:noreply, dispatch, %{state | current: nil}}
@@ -305,13 +331,12 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode({:report_parameter_value, param, value}, state) when (value == -1) do
     Farmbot.System.ConfigStorage.update_config_value(:float, "hardware_params", to_string(param), nil)
-    {:mcu_params, %{param => nil}, state}
+    {:mcu_params, %{param => nil}, %{state | params: Map.put(state.params, param, value)}}
   end
 
-  defp handle_gcode({:report_parameter_value, param, value}, state) do
+  defp handle_gcode({:report_parameter_value, param, value}, state) when is_number(value) do
     Farmbot.System.ConfigStorage.update_config_value(:float, "hardware_params", to_string(param), value / 1)
-
-    {:mcu_params, %{param => value}, state}
+    {:mcu_params, %{param => value}, %{state | params: Map.put(state.params, param, value)}}
   end
 
   defp handle_gcode(:idle, %{initialized: false, initializing: false} = state) do
@@ -393,6 +418,7 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode(:done, state) do
     maybe_cancel_timer(state.timer)
+    Farmbot.BotState.set_busy(false)
     if state.current do
       do_reply(state, :ok)
       {nil, %{state | current: nil}}
@@ -403,6 +429,7 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode(:report_emergency_lock, state) do
     Farmbot.System.GPIO.Leds.led_status_err
+    maybe_send_email()
     if state.current do
       do_reply(state, {:error, :emergency_lock})
       {:informational_settings, %{locked: true}, %{state | current: nil}}
@@ -418,10 +445,6 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode({:report_axis_calibration, param, val}, state) do
-    # have to spawn this fun otherwise we have to functions waiting on eachother.
-    # FIXME(Connor) - The Firmware is currently reporting axis calibration values
-    #   in mm, not steps, so multiplying by 5 puts it back to steps. :/
-    # spawn __MODULE__, :report_calibration_callback, [5, param, val * 5]
     spawn __MODULE__, :report_calibration_callback, [5, param, val]
     {nil, state}
   end
@@ -488,13 +511,29 @@ defmodule Farmbot.Firmware do
   end
 
   defp do_reply(state, reply) do
+    maybe_cancel_timer(state.timer)
     case state.current do
+      %Current{fun: :emergency_unlock, from: from} ->
+        # i really don't want this to be here..
+        EstopTimer.cancel_timer()
+        :ok = GenServer.reply from, reply
+      %Current{fun: :emergency_lock, from: from} ->
+        :ok = GenServer.reply from, {:error, :emergency_lock}
       %Current{fun: _fun, from: from} ->
         # Logger.success 3, "FW Replying: #{fun}: #{inspect from}"
         :ok = GenServer.reply from, reply
       nil ->
         Logger.error 1, "FW Nothing to send reply: #{inspect reply} to!."
         :error
+    end
+  end
+
+  defp maybe_send_email do
+    import Farmbot.System.ConfigStorage, only: [get_config_value: 3]
+    if get_config_value(:bool, "settings", "email_on_estop") do
+      if !EstopTimer.timer_active? do
+        EstopTimer.start_timer()
+      end
     end
   end
 end

@@ -1,0 +1,4 @@
+[submodule "c_src/farmbot-arduino-firmware"]
+	path = c_src/farmbot-arduino-firmware
+	url = https://github.com/FarmBot/farmbot-arduino-firmware.git
+	ignore = dirty
