@@ -29,16 +29,23 @@ defmodule Farmbot.Firmware.UartHandler.AutoDetector do
   end
 
   def init([]) do
+    update_env()
+    :ignore
+  end
+
+  def update_env do
     case auto_detect() do
       [dev] ->
+        dev = "/dev/#{dev}"
         Logger.success 3, "detected target UART: #{dev}"
         update_fw_handler UartHandler
         Application.put_env(:farmbot, :uart_handler, tty: dev)
+        dev
       _ ->
         Logger.error 1, "Could not detect a UART device."
         update_fw_handler StubHandler
+        :error
     end
-    :ignore
   end
 
   def update_fw_handler(fw_handler) do

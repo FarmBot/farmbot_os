@@ -7,6 +7,9 @@
 * Add third Firmware board.
 * Fix bug causing false positives on sync failure.
 
+# 6.2.1
+* Fix Bug breaking diy builders with Arduinos showing up other than `/dev/ttyACM0`.
+
 # 6.2.0
 * Farmbot Settings are now synced with Farmbot API.
 * Refactor Syncing to not make unnecessary HTTP requests.
