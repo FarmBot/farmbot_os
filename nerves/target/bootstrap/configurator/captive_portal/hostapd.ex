@@ -90,7 +90,8 @@ defmodule Hostapd do
     File.write!("/tmp/hostapd/#{@hostapd_conf_file}", hostapd_conf)
 
     hostapd_cmd =
-      "hostapd -P /tmp/hostapd/#{@hostapd_pid_file} " <> "/tmp/hostapd/#{@hostapd_conf_file}"
+      "hostapd -P /tmp/hostapd/#{@hostapd_pid_file} "
+      <> "/tmp/hostapd/#{@hostapd_conf_file}"
 
     hostapd_port = Port.open({:spawn, hostapd_cmd}, [:binary])
     hostapd_os_pid = hostapd_port |> Port.info() |> Keyword.get(:os_pid)
@@ -98,35 +99,15 @@ defmodule Hostapd do
   end
 
   defp hostapd_ip_settings_up(interface, ip_addr) do
-    :ok =
-      "ip"
-      |> System.cmd(["link", "set", "#{interface}", "up"])
-      |> print_cmd
-
-    :ok =
-      "ip"
-      |> System.cmd(["addr", "add", "#{ip_addr}/24", "dev", "#{interface}"])
-      |> print_cmd
-
+    :ok = cmd("ip link set #{interface} up")
+    :ok = cmd("ip addr add #{ip_addr}/24 dev #{interface}")
     :ok
   end
 
   defp hostapd_ip_settings_down(interface, ip_addr) do
-    :ok =
-      "ip"
-      |> System.cmd(["link", "set", "#{interface}", "down"])
-      |> print_cmd
-
-    :ok =
-      "ip"
-      |> System.cmd(["addr", "del", "#{ip_addr}/24", "dev", "#{interface}"])
-      |> print_cmd
-
-    :ok =
-      "ip"
-      |> System.cmd(["link", "set", "#{interface}", "up"])
-      |> print_cmd
-
+    :ok = cmd("ip link set #{interface} down")
+    :ok = cmd("ip addr del #{ip_addr}/24 dev #{interface}")
+    :ok = cmd("ip link set #{interface} up")
     :ok
   end
 
@@ -144,31 +125,18 @@ defmodule Hostapd do
   defp build_ssid do
     node_str = node() |> Atom.to_string()
     case node_str |> String.split("@") do
-      [name, "farmbot-" <> id] ->
-        name <> "-" <> id
+      [name, "farmbot-" <> id] -> name <> "-" <> id
       _ -> "Farmbot"
     end
-  end
-
-  defp kill(os_pid), do: :ok = "kill" |> System.cmd(["9", "#{os_pid}"]) |> print_cmd
-
-  defp print_cmd({_, 0}), do: :ok
-
-  defp print_cmd({res, num}) do
-    Logger.error(2, "Encountered an error (#{num}): #{res}")
-    :error
   end
 
   def handle_info({port, {:data, data}}, state) do
     {hostapd_port, _} = state.hostapd
 
     cond do
-      port == hostapd_port ->
-        handle_hostapd(data, state)
-      match?({^port, _}, state.dnsmasq) ->
-        handle_dnsmasq(data, state)
-      true ->
-        {:noreply, state}
+      port == hostapd_port -> handle_hostapd(data, state)
+      match?({^port, _}, state.dnsmasq) -> handle_dnsmasq(data, state)
+      true -> {:noreply, state}
     end
   end
 
@@ -184,29 +152,67 @@ defmodule Hostapd do
     {:noreply, state}
   end
 
+  defp stop_hostapd(state) do
+    case state.hostapd do
+      {hostapd_port, hostapd_pid} ->
+        Logger.busy 3, "Stopping hostapd"
+        Logger.busy 3, "Killing hostapd PID."
+        :ok = kill(hostapd_pid)
+        Port.close(hostapd_port)
+        Logger.busy 3, "Resetting ip settings."
+        hostapd_ip_settings_down(state.interface, state.ip_addr)
+        Logger.busy 3, "removing PID."
+        File.rm_rf!("/tmp/hostapd")
+        Logger.success 3, "Stopped hostapd."
+        :ok
+      _ ->
+        Logger.debug 3, "Hostapd not running."
+        :ok
+    end
+  rescue
+    e ->
+      Logger.error 3, "Error stopping hostapd: #{Exception.message(e)}"
+      :ok
+  end
+
+  defp stop_dnsmasq(state) do
+    case state.dnsmasq do
+      {dnsmasq_port, dnsmasq_os_pid} ->
+        Logger.busy 3, "Stopping dnsmasq"
+        Logger.busy 3, "Killing dnsmasq PID."
+        :ok = kill(dnsmasq_os_pid)
+        Port.close(dnsmasq_port)
+        Logger.success 3, "Stopped dnsmasq."
+        :ok
+      _ ->
+        Logger.debug 3, "Dnsmasq not running."
+        :ok
+    end
+  rescue
+    e ->
+      Logger.error 3, "Error stopping dnsmasq: #{Exception.message(e)}"
+      :ok
+  end
+
   def terminate(_, state) do
-    Logger.busy 3, "Stopping hostapd"
-    {hostapd_port, hostapd_pid} = state.hostapd
-    Logger.busy 3, "Killing hostapd PID."
-    :ok = kill(hostapd_pid)
-    Logger.busy 3, "Resetting ip settings."
-    hostapd_ip_settings_down(state.interface, state.ip_addr)
-    Logger.busy 3, "removing PID."
-    File.rm_rf!("/tmp/hostapd")
+    stop_hostapd(state)
+    stop_dnsmasq(state)
     Nerves.NetworkInterface.ifdown(state.interface)
     Nerves.NetworkInterface.ifup(state.interface)
+  end
 
-    if state.dnsmasq do
-      Logger.busy 3, "Stopping dnsmasq"
-      {dnsmasq_port, dnsmasq_os_pid} = state.dnsmasq
-      Logger.busy 3, "Killing dnsmasq PID."
-      :ok = kill(dnsmasq_os_pid)
-      Port.close(dnsmasq_port)
-    end
-    Logger.success 3, "Done."
-    Port.close(hostapd_port)
-    :ok
-  rescue
-    _e in ArgumentError -> :ok
+  defp kill(os_pid), do: :ok = cmd("kill -9 #{os_pid}")
+
+  defp cmd(cmd_str) do
+    [command | args] = String.split(cmd_str, " ")
+    System.cmd(command, args, into: IO.stream(:stdio, :line))
+    |> print_cmd()
+  end
+
+  defp print_cmd({_, 0}), do: :ok
+
+  defp print_cmd({_, num}) do
+    Logger.error(2, "Encountered an error (#{num})")
+    :error
   end
 end
