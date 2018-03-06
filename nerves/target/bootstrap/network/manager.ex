@@ -4,7 +4,7 @@ defmodule Farmbot.Target.Network.Manager do
   alias Farmbot.System.ConfigStorage
   alias Nerves.Network
   alias Farmbot.Target.Network.Ntp
-  import Farmbot.Target.Network, only: [test_dns: 0, test_dns: 1]
+  import Farmbot.Target.Network, only: [test_dns: 0]
 
   def get_ip_addr(interface) do
     GenServer.call(:"#{__MODULE__}-#{interface}", :ip)
@@ -43,7 +43,7 @@ defmodule Farmbot.Target.Network.Manager do
     end
 
 
-    connected = match?({:ok, {:hostent, 'nerves-project.org', [], :inet, 4, _}}, test_dns())
+    connected = match?({:ok, {:hostent, _, _, :inet, 4, _}}, test_dns())
     if connected do
       not_found_timer = cancel_timer(state.not_found_timer)
       dns_timer = restart_dns_timer(state.dns_timer, 45_000)
@@ -100,7 +100,7 @@ defmodule Farmbot.Target.Network.Manager do
   end
 
   def handle_info(:dns_timer, state) do
-    case test_dns('my.farmbot.io') do
+    case test_dns() do
       {:ok, {:hostent, _host_name, aliases, :inet, 4, _}} ->
         # If we weren't previously connected, send a log.
         unless state.connected do

@@ -3,12 +3,23 @@ defmodule Farmbot.Target.Network do
 
   @behaviour Farmbot.System.Init
   alias Farmbot.System.ConfigStorage
+  import ConfigStorage, only: [get_config_value: 3]
   alias ConfigStorage.NetworkInterface
   alias Farmbot.Target.Network.Manager, as: NetworkManager
   use Supervisor
   use Farmbot.Logger
 
-  def test_dns(hostname \\ 'nerves-project.org') do
+  def test_dns(hostname \\ nil)
+
+  def test_dns(nil) do
+    case get_config_value(:string, "authorization", "server") do
+      nil -> 'nerves-project.org'
+      <<"https://" <> host :: binary>> -> test_dns(to_charlist(host))
+      <<"http://"  <> host :: binary>> -> test_dns(to_charlist(host))
+    end
+  end
+
+  def test_dns(hostname) do
     :inet_res.gethostbyname(hostname)
   end
 
