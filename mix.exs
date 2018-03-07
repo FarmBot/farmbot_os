@@ -139,8 +139,7 @@ defmodule Farmbot.Mixfile do
         {:nerves_runtime, "0.5.3"},
         {:nerves_firmware, "~> 0.4.0"},
         {:nerves_firmware_ssh, "~> 0.2", only: :dev},
-        # {:nerves_network, "~> 0.3.6"},
-        {:nerves_network, path: "/home/connor/oss/elixir/nerves/nerves_network", override: true},
+        {:nerves_network, "~> 0.3.7-rc0", override: true},
         {:dhcp_server, "~> 0.3.0"},
         {:elixir_ale, "~> 1.0"},
       ]
