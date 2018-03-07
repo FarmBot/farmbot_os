@@ -243,6 +243,8 @@ defmodule Farmbot.BotState.Transport.AMQP do
   end
 
   def handle_fbos_config(_id, payload, state) do
+    Logger.debug 3, "HELLO????"
+    
     if get_config_value(:bool, "settings", "ignore_fbos_config") do
       {:noreply, [], state}
     else
@@ -264,13 +266,13 @@ defmodule Farmbot.BotState.Transport.AMQP do
       {:ok, %{"body" => nil}} -> {:noreply, [], state}
       {:ok, %{"body" => config}} ->
         old = state.state_cache.mcu_params
-        new = Farmbot.Bootstrap.SettingsSync.apply_fw_map(old, config)
-        for {key, new_value} <- new do
-          if old[:"#{key}"] != new_value do
-            Logger.info 1, "Updating key: #{key} => #{new_value}"
-            Farmbot.Firmware.update_param(:"#{key}", new_value / 1)
-          end
-        end
+        _new = Farmbot.Bootstrap.SettingsSync.apply_fw_map(old, config)
+        # for {key, new_value} <- new do
+        #   if old[:"#{key}"] != new_value do
+        #     Logger.info 1, "Updating key: #{key} => #{new_value}"
+        #     Farmbot.Firmware.update_param(:"#{key}", new_value / 1)
+        #   end
+        # end
         {:noreply, [], state}
     end
   end
