@@ -243,8 +243,6 @@ defmodule Farmbot.BotState.Transport.AMQP do
   end
 
   def handle_fbos_config(_id, payload, state) do
-    Logger.debug 3, "HELLO????"
-    
     if get_config_value(:bool, "settings", "ignore_fbos_config") do
       {:noreply, [], state}
     else
