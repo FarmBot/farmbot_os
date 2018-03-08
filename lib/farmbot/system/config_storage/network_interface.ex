@@ -16,6 +16,7 @@ defmodule Farmbot.System.ConfigStorage.NetworkInterface do
 
     field(:ipv4_method, :string)
     field(:migrated, :boolean)
+    field(:maybe_hidden, :boolean)
   end
 
   @required_fields [:name, :type]
