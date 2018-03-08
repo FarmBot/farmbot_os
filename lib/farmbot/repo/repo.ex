@@ -417,10 +417,10 @@ defmodule Farmbot.Repo do
 
   def do_get_resource(resource, slug) do
     resource = Module.split(resource) |> List.last()
-    Logger.debug 3, "Fetching #{resource}"
     maybe_debug_log("[#{resource}] Downloading: (#{slug})")
     {time, res} = :timer.tc(fn -> Farmbot.HTTP.get(slug) end)
     maybe_debug_log("[#{resource}] HTTP Request took: #{time}µs")
+    Logger.debug 3, "Fetched #{resource}s"
     res
   end
 
