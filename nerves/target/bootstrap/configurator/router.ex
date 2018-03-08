@@ -118,17 +118,29 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
       case settings["type"] do
         "wireless" ->
+          # lol
+          maybe_hidden? = if Map.get(settings, "maybe_hidden", false) do
+            true
+          else
+            false
+          end
+
           %ConfigStorage.NetworkInterface{
             name: iface,
             type: "wireless",
             ssid: Map.fetch!(settings, "ssid"),
             psk: Map.fetch!(settings, "psk"),
             security: "WPA-PSK",
-            ipv4_method: "dhcp"
+            ipv4_method: "dhcp",
+            maybe_hidden: maybe_hidden?
           }
 
         "wired" ->
-          %ConfigStorage.NetworkInterface{name: iface, type: "wired", ipv4_method: "dhcp"}
+          %ConfigStorage.NetworkInterface{
+            name: iface,
+            type: "wired",
+            ipv4_method: "dhcp"
+          }
       end
       |> ConfigStorage.insert!()
     end

@@ -5,6 +5,7 @@
   <title> Configure Farmbot's Network </title>
   <link rel="stylesheet" href="/styles.css">
   <script type="text/javascript">
+
     function ssidSelectOnChange(iface) {
       var elem = document.getElementById(iface + "_ssid_select");
       var selected = elem.options[elem.selectedIndex];
@@ -13,15 +14,19 @@
         replaceSelect(iface);
       }
     }
+
     function replaceSelect(iface) {
-      console.log("Replaceing select element with input element")
-      var elem = document.getElementById(iface + "_ssid_select");
+      console.log("Replaceing select element with input element");
+      var selectElem = document.getElementById(iface + "_ssid_select");
       var inputNode = document.createElement("input");
       inputNode.setAttribute("name", iface + "_ssid");
       inputNode.setAttribute("type", "text");
-      elem.parentNode.insertBefore(inputNode, elem.nextSibling);
-      elem.outerHTML = "";
-      delete elem;
+      selectElem.parentNode.insertBefore(inputNode, selectElem.nextSibling);
+      selectElem.outerHTML = "";
+      delete selectElem;
+
+      var maybeHiddenToggle = document.getElementById(iface + "_maybe_hidden");
+      maybeHiddenToggle.setAttribute("value", "true");
     }
 
     function selectInterface(iface, type) {
@@ -33,6 +38,7 @@
         for(i=0; i<elems.length; i++){ elems[i].setAttribute("hidden", true) }
       }
     }
+
   </script>
 </head>
 
@@ -68,15 +74,23 @@
                 <label>Password</label>
                 <input type=password name="<%= interface %>_psk" />
                 <input hidden=true name="<%= interface %>_type" value="wireless" />
+                <input hidden=true name="<%= interface %>_maybe_hidden" id="<%= interface %>_maybe_hidden" value="false" />
               </fieldset>
           <% end %>
-      <% end %>
+        <% end %>
+
+        <div class="button">
+          <input type=submit value="next">
+        </div>
+
+      </form>
+
+
+
     </div>
   </div>
-  <div class="button">
-    <input type=submit value="next">
-  </div>
-  </form>
+
+
 
 </body>
 

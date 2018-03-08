@@ -17,16 +17,18 @@ defmodule Farmbot.Target.Network.Manager do
   def init({interface, opts} = args) do
     Elixir.Logger.remove_backend Elixir.Logger.Backends.Console
     Logger.busy(3, "Waiting for interface up.")
+
     unless interface in Nerves.NetworkInterface.interfaces() do
       Process.sleep(1000)
       init(args)
     end
+
     SystemRegistry.register()
     {:ok, _} = Elixir.Registry.register(Nerves.NetworkInterface, interface, [])
     {:ok, _} = Elixir.Registry.register(Nerves.Udhcpc, interface, [])
     {:ok, _} = Elixir.Registry.register(Nerves.WpaSupplicant, interface, [])
     Network.setup(interface, opts)
-    {:ok, %{interface: interface, ip_address: nil, connected: false, not_found_timer: nil, ntp_timer: nil, dns_timer: nil}}
+    {:ok, %{interface: interface, opts: opts, ip_address: nil, connected: false, not_found_timer: nil, ntp_timer: nil, dns_timer: nil}}
   end
 
   def handle_call(:ip, _, state) do
@@ -63,15 +65,27 @@ defmodule Farmbot.Target.Network.Manager do
     first_boot = ConfigStorage.get_config_value(:bool, "settings", "first_boot")
     # stored in minutes
     delay_timer = (ConfigStorage.get_config_value(:float, "settings", "network_not_found_timer") || 1) *  60_000
+    maybe_hidden? = Keyword.get(state.opts, :maybe_hidden, false)
     cond do
+      # Check if the network might be hidden first.
+      maybe_hidden? ->
+        Logger.warn 1, "Possibly hidden network not found. Starting timer (hidden=#{maybe_hidden?})"
+        timer = Process.send_after(self(), :network_not_found_timer, round(delay_timer))
+        {:noreply, %{state | not_found_timer: timer, connected: false}}
+
+      # If its not hidden, just reset. Probably a typo.
       first_boot ->
         Logger.error 1, "Network not found"
         Farmbot.System.factory_reset("WIFI Authentication failed. (network not found)")
         {:stop, :normal, state}
+
+      # If not first boot, and we have a valid number for the delay timer.
       delay_timer > 0 ->
-        Logger.warn 1, "Network not found. Starting timer."
+        Logger.warn 1, "Network not found. Starting timer (hidden=#{maybe_hidden?})"
         timer = Process.send_after(self(), :network_not_found_timer, round(delay_timer))
         {:noreply, %{state | not_found_timer: timer, connected: false}}
+
+      # I don't think this can even happen.
       is_nil(delay_timer) ->
         Logger.error 1, "Network not found"
         Farmbot.System.factory_reset("WIFI Authentication failed. (network not found)")
