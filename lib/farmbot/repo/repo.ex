@@ -10,9 +10,9 @@ defmodule Farmbot.Repo do
     Peripheral,
     Point,
     Regimen,
+    Sensor,
     Sequence,
     Tool,
-    Sensor
   }
 
   alias Farmbot.BotState

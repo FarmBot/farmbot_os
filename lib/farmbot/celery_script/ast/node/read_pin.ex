@@ -6,15 +6,16 @@ defmodule Farmbot.CeleryScript.AST.Node.ReadPin do
   allow_args [:pin_number, :label, :pin_mode]
   use Farmbot.Logger
   alias Farmbot.Repo.Context
-  alias Farmbot.Repo.Peripheral
+  alias Farmbot.Repo.{Peripheral, Sensor}
 
   def execute(%{pin_number: %AST{kind: NamedPin} = named_pin, pin_mode: mode, label: label}, body, env) do
     env = mutate_env(env)
     id = named_pin.args.pin_id
-    case Context.get_peripheral(id) do
-      %Peripheral{pin: number} ->
+    type = named_pin.args.pin_type
+    case fetch_resource(type, id) do
+      {:ok, number} ->
         execute(%{pin_number: number, pin_mode: mode, label: label}, body, env)
-      nil -> {:error, "Could not find pin by id: #{id}", env}
+      {:error, reason} -> {:error, reason, env}
     end
   end
 
@@ -31,4 +32,19 @@ defmodule Farmbot.CeleryScript.AST.Node.ReadPin do
       {:error, reason} -> {:error, reason, env}
     end
   end
+
+  defp fetch_resource(Peripheral, id) do
+    case Context.get_peripheral(id) do
+      %Peripheral{pin: number} -> {:ok, number}
+      nil -> {:error, "Could not find pin by id: #{id}"}
+    end
+  end
+
+  defp fetch_resource(Sensor, id) do
+    case Context.get_sensor(id) do
+      %Sensor{pin: number} -> {:ok, number}
+      nil -> {:error, "Could not find pin by id: #{id}"}
+    end
+  end
+
 end
