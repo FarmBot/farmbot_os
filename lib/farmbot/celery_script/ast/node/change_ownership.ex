@@ -24,6 +24,7 @@ defmodule Farmbot.CeleryScript.AST.Node.ChangeOwnership do
       Farmbot.Repo.Peripheral,
       Farmbot.Repo.Point,
       Farmbot.Repo.Regimen,
+      Farmbot.Repo.Sensor,
       Farmbot.Repo.Sequence,
       Farmbot.Repo.ToolSlot,
       Farmbot.Repo.Tool
