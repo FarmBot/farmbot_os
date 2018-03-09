@@ -7,6 +7,6 @@ defmodule Farmbot.AssetTest do
   end
 
   test "Returns nil if no sensor" do
-    refute Asset.get_sensor_by_id(10000)
+    refute Asset.get_sensor_by_id(999)
   end
 end
