@@ -38,7 +38,7 @@ config :farmbot, Farmbot.Repo.A,
   database: "test_tmp/farmbot_repo_a_test",
   priv: "priv/repo",
   pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: 10,
+  pool_size: 2,
   loggers: []
 
 config :farmbot, Farmbot.Repo.B,
@@ -46,7 +46,7 @@ config :farmbot, Farmbot.Repo.B,
   database: "test_tmp/farmbot_repo_b_test",
   priv: "priv/repo",
   pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: 10,
+  pool_size: 2,
   loggers: []
 
 config :farmbot, Farmbot.System.ConfigStorage,
