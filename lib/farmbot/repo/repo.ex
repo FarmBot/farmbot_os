@@ -11,7 +11,8 @@ defmodule Farmbot.Repo do
     Point,
     Regimen,
     Sequence,
-    Tool
+    Tool,
+    Sensor
   }
 
   alias Farmbot.BotState
@@ -392,8 +393,9 @@ defmodule Farmbot.Repo do
       Peripheral => initial_err,
       Point => initial_err,
       Regimen => initial_err,
+      Sensor => initial_err,
       Sequence => initial_err,
-      Tool => initial_err
+      Tool => initial_err,
     }
 
     device_task      = Task.async(__MODULE__, :do_get_resource, [Device, "/api/device"])
@@ -401,6 +403,7 @@ defmodule Farmbot.Repo do
     peripherals_task = Task.async(__MODULE__, :do_get_resource, [Peripheral, "/api/peripherals"])
     points_task      = Task.async(__MODULE__, :do_get_resource, [Point, "/api/points"])
     regimens_task    = Task.async(__MODULE__, :do_get_resource, [Regimen, "/api/regimens"])
+    sensors_task     = Task.async(__MODULE__, :do_get_resource, [Sensor, "/api/sensors"])
     sequences_task   = Task.async(__MODULE__, :do_get_resource, [Sequence, "/api/sequences"])
     tools_task       = Task.async(__MODULE__, :do_get_resource, [Tool, "/api/tools"])
     res = %{acc |
@@ -409,6 +412,7 @@ defmodule Farmbot.Repo do
       Peripheral => Task.await(peripherals_task, 30_000),
       Point => Task.await(points_task, 30_000),
       Regimen => Task.await(regimens_task, 30_000),
+      Sensor => Task.await(sensors_task, 30_000),
       Sequence => Task.await(sequences_task, 30_000),
       Tool => Task.await(tools_task, 30_000),
     }
@@ -430,6 +434,7 @@ defmodule Farmbot.Repo do
          :ok <- sync_resource(repo, Peripheral, cache),
          :ok <- sync_resource(repo, Point, cache),
          :ok <- sync_resource(repo, Regimen, cache),
+         :ok <- sync_resource(repo, Sensor, cache),
          :ok <- sync_resource(repo, Sequence, cache),
          :ok <- sync_resource(repo, Tool, cache) do
       :ok
