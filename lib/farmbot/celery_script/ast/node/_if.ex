@@ -1,6 +1,8 @@
 defmodule Farmbot.CeleryScript.AST.Node.If do
   @moduledoc false
   use Farmbot.CeleryScript.AST.Node
+  alias Farmbot.CeleryScript.AST
+  alias AST.{NamedPin}
   use Farmbot.Logger
 
   allow_args [:lhs, :op, :rhs, :_then, :_else]
@@ -16,6 +18,18 @@ defmodule Farmbot.CeleryScript.AST.Node.If do
 
   defp eval_lhs(axis) when axis in [:x, :y, :z] do
     Farmbot.BotState.get_current_pos |> Map.get(axis)
+  end
+
+  # handles looking up a pin from a peripheral.
+  defp eval_lhs(%AST{kind: NamedPin} = named_pin) do
+    alias Farmbot.Repo.Context
+    alias Farmbot.Repo.Peripheral
+    id = named_pin.args.pin_id
+    case Context.get_peripheral(id) do
+      %Peripheral{pin: number} ->
+        eval_lhs({:pin, number})
+      nil -> {:error, "Could not find pin by id: #{id}"}
+    end
   end
 
   defp eval_lhs({:pin, pin}) do
