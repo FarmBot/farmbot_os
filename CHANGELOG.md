@@ -7,6 +7,7 @@
 * Add third Firmware board.
 * Fix bug causing false positives on sync failure.
 * Fix bug causing a captive portal staying up if the user chooses a wired network connection.
+* Add new syncable `Sensor`
 
 # 6.2.1
 * Fix Bug breaking diy builders with Arduinos showing up other than `/dev/ttyACM0`.
