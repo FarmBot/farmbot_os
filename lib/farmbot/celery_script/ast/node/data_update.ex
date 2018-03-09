@@ -38,6 +38,14 @@ defmodule Farmbot.CeleryScript.AST.Arg.Regimens do
   def encode(val), do: {:ok, val}
 end
 
+defmodule Farmbot.CeleryScript.AST.Arg.Sensors do
+  @moduledoc false
+  @behaviour Farmbot.CeleryScript.AST.Arg
+
+  def decode(val), do: {:ok, val}
+  def encode(val), do: {:ok, val}
+end
+
 defmodule Farmbot.CeleryScript.AST.Arg.Tools do
   @moduledoc false
   @behaviour Farmbot.CeleryScript.AST.Arg

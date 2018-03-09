@@ -18,21 +18,6 @@ defmodule Farmbot.CeleryScript.AST.Node.If do
     end
   end
 
-
-  defp fetch_resource(Peripheral, id) do
-    case Context.get_peripheral(id) do
-      %Peripheral{pin: number} -> {:ok, number}
-      nil -> {:error, "Could not find pin by id: #{id}"}
-    end
-  end
-
-  defp fetch_resource(Sensor, id) do
-    case Context.get_sensor(id) do
-      %Sensor{pin: number} -> {:ok, number}
-      nil -> {:error, "Could not find pin by id: #{id}"}
-    end
-  end
-
   defp eval_lhs(axis) when axis in [:x, :y, :z] do
     Farmbot.BotState.get_current_pos |> Map.get(axis)
   end
@@ -77,5 +62,19 @@ defmodule Farmbot.CeleryScript.AST.Node.If do
 
   defp do_jump(true,  _else, then_, env), do: Farmbot.CeleryScript.execute(then_, env)
   defp do_jump(false, else_, _then, env), do: Farmbot.CeleryScript.execute(else_, env)
+
+  defp fetch_resource(Peripheral, id) do
+    case Context.get_peripheral(id) do
+      %Peripheral{pin: number} -> {:ok, number}
+      nil -> {:error, "Could not find pin by id: #{id}"}
+    end
+  end
+
+  defp fetch_resource(Sensor, id) do
+    case Context.get_sensor(id) do
+      %Sensor{pin: number} -> {:ok, number}
+      nil -> {:error, "Could not find pin by id: #{id}"}
+    end
+  end
 
 end
