@@ -43,14 +43,14 @@ defmodule Farmbot.CeleryScript.AST.Node.WritePin do
   end
 
   defp fetch_resource(Peripheral, id) do
-    case Asset.get_peripheral(id) do
+    case Asset.get_peripheral_by_id(id) do
       %Peripheral{pin: number} -> {:ok, number}
       nil -> {:error, "Could not find pin by id: #{id}"}
     end
   end
 
   defp fetch_resource(Sensor, id) do
-    case Asset.get_sensor(id) do
+    case Asset.get_sensor_by_id(id) do
       %Sensor{pin: number} -> {:ok, number}
       nil -> {:error, "Could not find pin by id: #{id}"}
     end

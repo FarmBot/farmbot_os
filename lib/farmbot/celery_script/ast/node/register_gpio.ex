@@ -3,14 +3,11 @@ defmodule Farmbot.CeleryScript.AST.Node.RegisterGpio do
   use Farmbot.CeleryScript.AST.Node
   allow_args [:sequence_id, :pin_number]
   use Farmbot.Logger
-
-  import Ecto.Query
+  alias Farmbot.Asset
 
   def execute(%{sequence_id: id, pin_number: pin_num}, _, env) do
     env = mutate_env(env)
-    repo = Farmbot.Repo.current_repo()
-    seq = repo.one(from s in Farmbot.Asset.Sequence, where: s.id == ^id)
-    case seq do
+    case Asset.get_sequence_by_id(id) do
       nil -> {:error, "Could not find sequence by id: #{id}", env}
       seq ->
         Logger.busy 1, "Registering gpio: #{pin_num} to sequence: #{seq.name}"
