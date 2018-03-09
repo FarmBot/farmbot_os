@@ -1,4 +1,4 @@
-defmodule Farmbot.Repo.Regimen do
+defmodule Farmbot.Asset.Regimen do
   @moduledoc """
   A Regimen is a schedule to run sequences on.
   """

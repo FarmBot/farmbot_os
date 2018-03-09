@@ -1,20 +1,18 @@
-defmodule Farmbot.Repo.Device do
-  @moduledoc """
-  """
+defmodule Farmbot.Asset.Tool do
+  @moduledoc "A Tool is an item that lives in a ToolSlot"
 
   use Ecto.Schema
   import Ecto.Changeset
 
-  schema "devices" do
+  schema "tools" do
     field(:name, :string)
-    field(:timezone, :string)
   end
 
   use Farmbot.Repo.Syncable
   @required_fields [:id, :name]
 
-  def changeset(device, params \\ %{}) do
-    device
+  def changeset(farm_event, params \\ %{}) do
+    farm_event
     |> cast(params, @required_fields)
     |> validate_required(@required_fields)
     |> unique_constraint(:id)

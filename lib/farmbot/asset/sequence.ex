@@ -1,4 +1,4 @@
-defmodule Farmbot.Repo.Sequence do
+defmodule Farmbot.Asset.Sequence do
   @moduledoc """
   A Sequence is a list of CeleryScript nodes.
   """

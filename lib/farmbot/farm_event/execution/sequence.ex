@@ -1,4 +1,4 @@
-defimpl Farmbot.FarmEvent.Execution, for: Farmbot.Repo.Sequence do
+defimpl Farmbot.FarmEvent.Execution, for: Farmbot.Asset.Sequence do
 
   def execute_event(sequence, _now) do
     with {:ok, ast} <- Farmbot.CeleryScript.AST.decode(sequence) do

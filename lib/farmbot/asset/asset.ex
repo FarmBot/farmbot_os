@@ -1,10 +1,10 @@
-defmodule Farmbot.Repo.Context do
+defmodule Farmbot.Asset do
   @moduledoc """
   Hello Phoenix.
   """
 
-  alias Farmbot.Repo
-  alias Repo.{
+  alias Farmbot.Asset
+  alias Asset.{
     Peripheral,
     Sensor
   }
@@ -21,5 +21,5 @@ defmodule Farmbot.Repo.Context do
     repo().one(from s in Sensor, where: s.id == ^id)
   end
 
-  defp repo, do: Repo.current_repo()
+  defp repo, do: Farmbot.Repo.current_repo()
 end

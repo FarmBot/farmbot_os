@@ -1,4 +1,4 @@
-defmodule Farmbot.Repo.ToolSlot do
+defmodule Farmbot.Asset.ToolSlot do
   @moduledoc "A ToolSlot is the Point to a Tool."
 
   use Ecto.Schema

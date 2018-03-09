@@ -1,4 +1,4 @@
-defmodule Farmbot.Repo.Peripheral do
+defmodule Farmbot.Asset.Peripheral do
   @moduledoc """
   Peripherals are descriptors for pins/modes.
   """

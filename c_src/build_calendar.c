@@ -57,4 +57,4 @@ static ErlNifFunc nif_funcs[] =
     {"do_build_calendar", 5, do_build_calendar}
 };
 
-ERL_NIF_INIT(Elixir.Farmbot.Repo.FarmEvent, nif_funcs, NULL,NULL,NULL,NULL)
+ERL_NIF_INIT(Elixir.Farmbot.Asset.FarmEvent, nif_funcs, NULL,NULL,NULL,NULL)

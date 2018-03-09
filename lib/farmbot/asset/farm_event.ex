@@ -1,4 +1,4 @@
-defmodule Farmbot.Repo.FarmEvent do
+defmodule Farmbot.Asset.FarmEvent do
   @moduledoc """
   FarmEvent's are events that happen on a schedule.
   When it is time for the event to execute one of several things may happen:

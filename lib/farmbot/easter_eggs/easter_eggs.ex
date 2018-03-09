@@ -25,7 +25,7 @@ defmodule Farmbot.EasterEggs do
       [{:"#{key}", val} | acc]
     end)
     message = EEx.eval_string(verb, nouns)
-    bot_name = Farmbot.Repo.current_repo().one(Farmbot.Repo.Device).name
+    bot_name = Farmbot.Repo.current_repo().one(Farmbot.Asset.Device).name
     Logger.fun 3, Enum.join([bot_name, message], " ")
     {:noreply, %{state | timer: timer}}
   end

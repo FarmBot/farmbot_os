@@ -19,15 +19,15 @@ defmodule Farmbot.CeleryScript.AST.Node.ChangeOwnership do
     ConfigStorage.update_config_value(:string, "authorization", "token", nil)
     repos = [Farmbot.Repo.A, Farmbot.Repo.B]
     resources = [
-      Farmbot.Repo.Device,
-      Farmbot.Repo.FarmEvent,
-      Farmbot.Repo.Peripheral,
-      Farmbot.Repo.Point,
-      Farmbot.Repo.Regimen,
-      Farmbot.Repo.Sensor,
-      Farmbot.Repo.Sequence,
-      Farmbot.Repo.ToolSlot,
-      Farmbot.Repo.Tool
+      Farmbot.Asset.Device,
+      Farmbot.Asset.FarmEvent,
+      Farmbot.Asset.Peripheral,
+      Farmbot.Asset.Point,
+      Farmbot.Asset.Regimen,
+      Farmbot.Asset.Sensor,
+      Farmbot.Asset.Sequence,
+      Farmbot.Asset.ToolSlot,
+      Farmbot.Asset.Tool
     ]
     for repo <- repos do
       for resource <- resources do
