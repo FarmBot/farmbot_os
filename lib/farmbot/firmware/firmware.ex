@@ -139,9 +139,32 @@ defmodule Farmbot.Firmware do
       initializing: false,
       current: nil,
       timeout_ms: 150_000,
-      queue: :queue.new()
+      queue: :queue.new(),
+      x_needs_home_on_boot: false,
+      y_needs_home_on_boot: false,
+      z_needs_home_on_boot: false,
     ]
   end
+
+  defp needs_home_on_boot do
+    x = get_config_value(:float, "hardware_params", "movement_home_at_boot_x")
+    |> fmt_home_on_boot_to_bool()
+
+    y = get_config_value(:float, "hardware_params", "movement_home_at_boot_y")
+    |> fmt_home_on_boot_to_bool()
+
+    z = get_config_value(:float, "hardware_params", "movement_home_at_boot_z")
+    |> fmt_home_on_boot_to_bool()
+
+    %{
+      x_needs_home_on_boot: x,
+      y_needs_home_on_boot: y,
+      z_needs_home_on_boot: z,
+    }
+  end
+
+  defp fmt_home_on_boot_to_bool(1.0), do: true
+  defp fmt_home_on_boot_to_bool(_), do: false
 
   def init([]) do
     handler_mod =
@@ -149,10 +172,11 @@ defmodule Farmbot.Firmware do
 
     case handler_mod.start_link() do
       {:ok, handler} ->
+        initial = Map.merge(needs_home_on_boot(), %{handler: handler, handler_mod: handler_mod})
         Process.flag(:trap_exit, true)
         {
           :producer_consumer,
-          %State{handler: handler, handler_mod: handler_mod},
+          struct(State, initial),
           subscribe_to: [handler], dispatcher: GenStage.BroadcastDispatcher
         }
       {:error, reason} ->
@@ -391,6 +415,24 @@ defmodule Farmbot.Firmware do
     {nil, state}
   end
 
+  defp handle_gcode(:idle, %{initialized: true, initializing: false, current: nil, z_needs_home_on_boot: true} = state) do
+    Logger.info 2, "Bootup homing Z axis"
+    spawn __MODULE__, :home, [:z]
+    {nil, %{state | z_needs_home_on_boot: false}}
+  end
+
+  defp handle_gcode(:idle, %{initialized: true, initializing: false, current: nil, y_needs_home_on_boot: true} = state) do
+    Logger.info 2, "Bootup homing Y axis"
+    spawn __MODULE__, :home, [:y]
+    {nil, %{state | y_needs_home_on_boot: false}}
+  end
+
+  defp handle_gcode(:idle, %{initialized: true, initializing: false, current: nil, x_needs_home_on_boot: true} = state) do
+    Logger.info 2, "Bootup homing X axis"
+    spawn __MODULE__, :home, [:x]
+    {nil, %{state | x_needs_home_on_boot: false}}
+  end
+
   defp handle_gcode(:idle, state) do
     maybe_cancel_timer(state.timer, state.current)
     Farmbot.BotState.set_busy(false)
@@ -502,17 +544,17 @@ defmodule Farmbot.Firmware do
 
   defp maybe_cancel_timer(nil, current_command) do
     if current_command do
-      Logger.debug 3, "[WEIRD] - No timer to cancel for command: #{inspect current_command}"
+      # Logger.debug 3, "[WEIRD] - No timer to cancel for command: #{inspect current_command}"
       :ok
     else
-      Logger.debug 3, "[PROBABLY OK] - No timer to cancel, and no command here."
+      # Logger.debug 3, "[PROBABLY OK] - No timer to cancel, and no command here."
       :ok
     end
   end
 
-  defp maybe_cancel_timer(timer, current_command) do
+  defp maybe_cancel_timer(timer, _current_command) do
     if Process.read_timer(timer) do
-      Logger.debug 3, "[NORMAL] - Canceled timer: #{inspect timer} for command: #{inspect current_command}"
+      # Logger.debug 3, "[NORMAL] - Canceled timer: #{inspect timer} for command: #{inspect current_command}"
       Process.cancel_timer(timer)
       :ok
     else
@@ -522,7 +564,7 @@ defmodule Farmbot.Firmware do
 
   defp maybe_update_param_from_report(param, val) when is_binary(param) do
     real_val = if val, do: (val / 1), else: nil
-    Logger.debug 3, "Firmware reported #{param} => #{val || -1}"
+    # Logger.debug 3, "Firmware reported #{param} => #{val || -1}"
     update_config_value(:float, "hardware_params", to_string(param), real_val)
   end
 
