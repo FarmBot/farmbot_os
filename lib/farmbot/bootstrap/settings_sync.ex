@@ -274,6 +274,15 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     :ok
   end
 
+  @doc "Uploads a single key value pair to the firmware config endpoint."
+  def upload_fw_kv(key, val) when is_binary(key) and key in @firmware_keys and is_number(val)
+  do
+    Logger.debug 3, "Uploading #{key} => #{val} to api."
+    payload = Poison.encode!(%{key => val})
+    %{status_code: 200} = Farmbot.HTTP.put!("/api/firmware_config", payload)
+    :ok
+  end
+
   @doc "Sync the settings related to FBOS"
   def do_sync_fbos_configs do
     with {:ok, %{body: body, status_code: 200}} <- Farmbot.HTTP.get("/api/fbos_config"),

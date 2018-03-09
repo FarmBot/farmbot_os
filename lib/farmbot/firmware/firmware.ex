@@ -3,6 +3,7 @@ defmodule Farmbot.Firmware do
 
   use GenStage
   use Farmbot.Logger
+  alias Farmbot.Bootstrap.SettingsSync
   alias Farmbot.Firmware.{Vec3, EstopTimer}
   import Farmbot.System.ConfigStorage,
     only: [get_config_value: 3, update_config_value: 4, get_config_as_map: 0]
@@ -552,9 +553,11 @@ defmodule Farmbot.Firmware do
   def report_calibration_callback(tries, param, val) do
     case Farmbot.Firmware.update_param(param, val) do
       :ok ->
-        case get_config_value(:float, "hardware_params", to_string(param)) do
+        str_param = to_string(param)
+        case get_config_value(:float, "hardware_params", str_param) do
           ^val ->
             Logger.success 1, "Calibrated #{param}: #{val}"
+            SettingsSync.upload_fw_kv(str_param, val)
             :ok
           _ -> report_calibration_callback(tries - 1, param, val)
         end
