@@ -9,7 +9,7 @@ defmodule Farmbot.CeleryScript.AST.Node.RegisterGpio do
   def execute(%{sequence_id: id, pin_number: pin_num}, _, env) do
     env = mutate_env(env)
     repo = Farmbot.Repo.current_repo()
-    seq = repo.one(from s in Farmbot.Repo.Sequence, where: s.id == ^id)
+    seq = repo.one(from s in Farmbot.Asset.Sequence, where: s.id == ^id)
     case seq do
       nil -> {:error, "Could not find sequence by id: #{id}", env}
       seq ->

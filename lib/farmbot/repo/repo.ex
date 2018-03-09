@@ -4,7 +4,7 @@ defmodule Farmbot.Repo do
   use GenServer
   use Farmbot.Logger
 
-  alias Farmbot.Repo.{
+  alias Farmbot.Asset.{
     Device,
     FarmEvent,
     Peripheral,
@@ -236,7 +236,7 @@ defmodule Farmbot.Repo do
          Farmbot.Firmware.read_pin(pin, mode)
        end)
 
-    Farmbot.FarmEvent.Manager.register_events repo.all(Farmbot.Repo.FarmEvent)
+    Farmbot.FarmEvent.Manager.register_events repo.all(Farmbot.Asset.FarmEvent)
     :ok
   end
 
@@ -526,7 +526,7 @@ defmodule Farmbot.Repo do
   @doc false
   defmacro __using__(_) do
     quote do
-      @moduledoc "Storage for Farmbot Resources."
+      @moduledoc "Storage for Farmbot Assets."
       use Ecto.Repo,
         otp_app: :farmbot,
         adapter: Application.get_env(:farmbot, __MODULE__)[:adapter]

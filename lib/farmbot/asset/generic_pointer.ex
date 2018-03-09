@@ -1,4 +1,4 @@
-defmodule Farmbot.Repo.GenericPointer do
+defmodule Farmbot.Asset.GenericPointer do
   @moduledoc "A GenericPointer is just a normal pointer with no special stuff."
 
   use Ecto.Schema

@@ -1,4 +1,4 @@
-defmodule Farmbot.Repo.Point do
+defmodule Farmbot.Asset.Point do
   @moduledoc "A Point is a location in the planting bed as denoted by X Y and Z."
 
   use Ecto.Schema

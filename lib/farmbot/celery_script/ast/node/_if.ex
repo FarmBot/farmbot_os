@@ -3,8 +3,8 @@ defmodule Farmbot.CeleryScript.AST.Node.If do
   use Farmbot.CeleryScript.AST.Node
   alias Farmbot.CeleryScript.AST
   alias AST.{NamedPin}
-  alias Farmbot.Repo.Context
-  alias Farmbot.Repo.{Peripheral, Sensor}
+  alias Farmbot.Asset
+  alias Asset.{Peripheral, Sensor}
   use Farmbot.Logger
 
   allow_args [:lhs, :op, :rhs, :_then, :_else]
@@ -64,14 +64,14 @@ defmodule Farmbot.CeleryScript.AST.Node.If do
   defp do_jump(false, else_, _then, env), do: Farmbot.CeleryScript.execute(else_, env)
 
   defp fetch_resource(Peripheral, id) do
-    case Context.get_peripheral(id) do
+    case Asset.get_peripheral(id) do
       %Peripheral{pin: number} -> {:ok, number}
       nil -> {:error, "Could not find pin by id: #{id}"}
     end
   end
 
   defp fetch_resource(Sensor, id) do
-    case Context.get_sensor(id) do
+    case Asset.get_sensor(id) do
       %Sensor{pin: number} -> {:ok, number}
       nil -> {:error, "Could not find pin by id: #{id}"}
     end

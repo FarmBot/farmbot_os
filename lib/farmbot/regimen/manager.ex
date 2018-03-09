@@ -3,7 +3,7 @@ defmodule Farmbot.Regimen.Manager do
 
   use Farmbot.Logger
   use GenServer
-  alias Farmbot.Repo.Regimen
+  alias Farmbot.Asset.Regimen
 
   defmodule Error do
     @moduledoc false
@@ -33,7 +33,7 @@ defmodule Farmbot.Regimen.Manager do
     end
 
     def fetch_sequence(id) do
-      case Farmbot.Repo.current_repo().get(Farmbot.Repo.Sequence, id) do
+      case Farmbot.Repo.current_repo().get(Farmbot.Asset.Sequence, id) do
         nil -> raise "Could not find sequence by id: #{inspect id}"
         obj -> obj
       end

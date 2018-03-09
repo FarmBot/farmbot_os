@@ -1,4 +1,4 @@
-defmodule Farmbot.Repo.Sensor do
+defmodule Farmbot.Asset.Sensor do
   @moduledoc """
   Sensors are descriptors for pins/modes.
   """

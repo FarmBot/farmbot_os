@@ -18,7 +18,7 @@ defmodule Farmbot.FarmEvent.Manager do
   use GenServer
   use Farmbot.Logger
   alias Farmbot.FarmEvent.Execution
-  alias Farmbot.Repo.FarmEvent
+  alias Farmbot.Asset.FarmEvent
 
   # @checkup_time 100
   @checkup_time 30_000
@@ -81,7 +81,7 @@ defmodule Farmbot.FarmEvent.Manager do
 
   def async_checkup(_manager, state) do
     now = get_now()
-    alias Farmbot.Repo.FarmEvent
+    alias Farmbot.Asset.FarmEvent
     # maybe_farm_event_log "Rebuilding calendar."
     all_events = Enum.map(state.events, &FarmEvent.build_calendar(&1))
     # maybe_farm_event_log "Rebuilding calendar complete."
@@ -117,7 +117,7 @@ defmodule Farmbot.FarmEvent.Manager do
 
   defp check_event(%FarmEvent{} = f, now, last_time) do
     # Get the executable out of the database this may fail.
-    # mod_list = ["Farmbot", "Repo", f.executable_type]
+    # mod_list = ["Farmbot", "Asset", f.executable_type]
     mod      = Module.safe_concat([f.executable_type])
 
     event    = lookup(mod, f.executable_id)
@@ -132,8 +132,8 @@ defmodule Farmbot.FarmEvent.Manager do
     finished? = Timex.after? now, end_time
 
     case f.executable_type do
-      "Elixir.Farmbot.Repo.Regimen"  -> maybe_start_regimen(started?, start_time, last_time, event, now)
-      "Elixir.Farmbot.Repo.Sequence" -> maybe_start_sequence(started?, finished?, f, last_time, event, now)
+      "Elixir.Farmbot.Asset.Regimen"  -> maybe_start_regimen(started?, start_time, last_time, event, now)
+      "Elixir.Farmbot.Asset.Sequence" -> maybe_start_sequence(started?, finished?, f, last_time, event, now)
     end
   end
 

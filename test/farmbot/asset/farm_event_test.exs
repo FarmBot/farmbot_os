@@ -1,6 +1,6 @@
-defmodule Farmbot.Repo.FarmEventTest do
+defmodule Farmbot.Asset.FarmEventTest do
   alias Farmbot.Repo
-  alias Farmbot.Repo.FarmEvent
+  alias Farmbot.Asset.FarmEvent
   use ExUnit.Case, async: true
 
   setup do

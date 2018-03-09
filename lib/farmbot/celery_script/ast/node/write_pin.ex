@@ -4,8 +4,8 @@ defmodule Farmbot.CeleryScript.AST.Node.WritePin do
   use Farmbot.Logger
   alias Farmbot.CeleryScript.AST
   alias AST.Node.NamedPin
-  alias Farmbot.Repo.Context
-  alias Farmbot.Repo.{Peripheral, Sensor}
+  alias Farmbot.Asset
+  alias Asset.{Peripheral, Sensor}
 
   allow_args [:pin_number, :pin_value, :pin_mode]
 
@@ -43,14 +43,14 @@ defmodule Farmbot.CeleryScript.AST.Node.WritePin do
   end
 
   defp fetch_resource(Peripheral, id) do
-    case Context.get_peripheral(id) do
+    case Asset.get_peripheral(id) do
       %Peripheral{pin: number} -> {:ok, number}
       nil -> {:error, "Could not find pin by id: #{id}"}
     end
   end
 
   defp fetch_resource(Sensor, id) do
-    case Context.get_sensor(id) do
+    case Asset.get_sensor(id) do
       %Sensor{pin: number} -> {:ok, number}
       nil -> {:error, "Could not find pin by id: #{id}"}
     end
