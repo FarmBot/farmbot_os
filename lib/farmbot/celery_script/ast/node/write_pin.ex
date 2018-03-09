@@ -5,17 +5,18 @@ defmodule Farmbot.CeleryScript.AST.Node.WritePin do
   alias Farmbot.CeleryScript.AST
   alias AST.Node.NamedPin
   alias Farmbot.Repo.Context
-  alias Farmbot.Repo.Peripheral
+  alias Farmbot.Repo.{Peripheral, Sensor}
 
   allow_args [:pin_number, :pin_value, :pin_mode]
 
   def execute(%{pin_number: %AST{kind: NamedPin} = named_pin, pin_mode: mode, pin_value: val}, body, env) do
     env = mutate_env(env)
     id = named_pin.args.pin_id
-    case Context.get_peripheral(id) do
-      %Peripheral{pin: number} ->
+    type = named_pin.args.pin_type
+    case fetch_resource(type, id) do
+      {:ok, number} ->
         execute(%{pin_number: number, pin_mode: mode, pin_value: val}, body, env)
-      nil -> {:error, "Could not find pin by id: #{id}", env}
+      {:error, reason} -> {:error, reason, env}
     end
   end
 
@@ -39,5 +40,19 @@ defmodule Farmbot.CeleryScript.AST.Node.WritePin do
 
   defp log_success(num, _, val) do
     Logger.success 1, "Pin #{num}: #{val}"
+  end
+
+  defp fetch_resource(Peripheral, id) do
+    case Context.get_peripheral(id) do
+      %Peripheral{pin: number} -> {:ok, number}
+      nil -> {:error, "Could not find pin by id: #{id}"}
+    end
+  end
+
+  defp fetch_resource(Sensor, id) do
+    case Context.get_sensor(id) do
+      %Sensor{pin: number} -> {:ok, number}
+      nil -> {:error, "Could not find pin by id: #{id}"}
+    end
   end
 end

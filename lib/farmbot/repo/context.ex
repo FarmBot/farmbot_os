@@ -5,7 +5,8 @@ defmodule Farmbot.Repo.Context do
 
   alias Farmbot.Repo
   alias Repo.{
-    Peripheral
+    Peripheral,
+    Sensor
   }
 
   import Ecto.Query
@@ -13,6 +14,11 @@ defmodule Farmbot.Repo.Context do
   @doc "Fetch a Peripheral by its id."
   def get_peripheral(id) do
     repo().one(from p in Peripheral, where: p.id == ^id)
+  end
+
+  @doc "Fetch a Sensor by its id."
+  def get_sensor(id) do
+    repo().one(from s in Sensor, where: s.id == ^id)
   end
 
   defp repo, do: Repo.current_repo()
