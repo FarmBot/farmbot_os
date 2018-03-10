@@ -216,7 +216,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
   @doc false
   def handle_sync_cmd(kind, id, payload, state) do
-    mod = Module.concat(["Farmbot", "Repo", kind])
+    mod = Module.concat(["Farmbot", "Asset", kind])
     if Code.ensure_loaded?(mod) do
       %{
         "body" => body,

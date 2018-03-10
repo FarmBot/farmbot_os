@@ -220,7 +220,7 @@ defmodule Farmbot.Firmware do
   # TODO(Connor): Put some sort of exit strategy here.
   # If a firmware command keeps timingout/failing, Farmbot OS just keeps trying
   # it. This can lead to infinate failures.
-  def handle_info({:command_timeout, timeout_command}, state) do
+  def handle_info({:command_timeout, %Command{} = timeout_command}, state) do
     case state.current do
       # Check if this timeout is actually talking about the current command.
       ^timeout_command = current ->

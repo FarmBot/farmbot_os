@@ -296,7 +296,7 @@ defmodule Farmbot.Repo do
   end
 
   defp do_apply_sync_cmd(repo, %SyncCmd{remote_id: id, kind: kind, body: nil} = sync_cmd) do
-    mod = Module.concat(["Farmbot", "Repo", kind])
+    mod = Module.concat(["Farmbot", "Asset", kind])
     # an object was deleted.
     if Code.ensure_loaded?(mod) do
       Logger.debug(3, "Applying sync_cmd (#{mod}: delete)")
@@ -317,7 +317,7 @@ defmodule Farmbot.Repo do
 
   defp do_apply_sync_cmd(repo, %SyncCmd{remote_id: id, kind: kind, body: obj} = sync_cmd) do
     not_struct = strip_struct(obj)
-    mod = Module.concat(["Farmbot", "Repo", kind])
+    mod = Module.concat(["Farmbot", "Asset", kind])
 
     if Code.ensure_loaded?(mod) do
       Logger.debug(3, "Applying sync_cmd (#{mod}): insert_or_update")
