@@ -53,6 +53,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
          opts      <- [conn: conn, chan: chan, queue_name: q_name, bot: device],
          state <- struct(State, opts)
     do
+      update_config_value(:bool, "settings", "ignore_fbos_config", false)
       true = Process.link(conn.pid)
       true = Process.link(chan.pid)
       {:consumer, state, subscribe_to: [Farmbot.BotState, Farmbot.Logger]}
@@ -83,6 +84,8 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
   def terminate(reason, state) do
     ok_reasons = [:normal, :shutdown, :token_refresh]
+    update_config_value(:bool, "settings", "ignore_fbos_config", false)
+
     if reason not in ok_reasons do
       Logger.error 1, "AMQP Died: #{inspect reason}"
       update_config_value(:bool, "settings", "log_amqp_connected", true)
@@ -243,6 +246,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
   end
 
   def handle_fbos_config(_id, payload, state) do
+
     if get_config_value(:bool, "settings", "ignore_fbos_config") do
       {:noreply, [], state}
     else
