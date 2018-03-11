@@ -86,5 +86,6 @@ config :shoehorn,
   init: [:nerves_runtime, :nerves_init_gadget],
   app: :farmbot
 
+File.mkdir_p!(Path.join(["overlay", "profiles"]))
 config :nerves, :firmware,
   rootfs_overlay: "overlay/"

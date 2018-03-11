@@ -23,10 +23,6 @@ config :farmbot, :transport, [
 
 config :farmbot, :farmware, first_part_farmware_manifest_url: nil
 
-# Configure Farmbot Behaviours.
-# config :farmbot, :behaviour,
-  # authorization: Farmbot.Test.Authorization,
-
 config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
   system_tasks: Farmbot.Test.SystemTasks,
