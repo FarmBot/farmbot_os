@@ -34,6 +34,10 @@ defmodule Farmbot.Firmware.Gcode.Parser do
   def parse_code("R31 " <> params), do: parse_pvq(params, :report_status_value)
   def parse_code("R41 " <> params), do: parse_pvq(params, :report_pin_value)
 
+  def parse_code("R71 " <>  tag), do: {tag, :report_axis_timeout_x}
+  def parse_code("R72 " <>  tag), do: {tag, :report_axis_timeout_y}
+  def parse_code("R73 " <>  tag), do: {tag, :report_axis_timeout_z}
+
   # Report Position.
   def parse_code("R81 " <> params), do: parse_end_stops(params)
   def parse_code("R82 " <> p),  do: report_xyz(p, :report_current_position)

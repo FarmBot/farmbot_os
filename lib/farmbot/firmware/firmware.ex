@@ -227,7 +227,7 @@ defmodule Farmbot.Firmware do
         Logger.warn 1, "Timed out waiting for Firmware response. Retrying #{inspect current}) "
         case apply(state.handler_mod, current.fun, [state.handler | current.args]) do
           :ok ->
-            timer = Process.send_after(self(), {:command_timeout, current}, state.timeout_ms)
+            timer = start_timer(current, state.timeout_ms)
             {:noreply, [], %{state | current: current, timer: timer}}
           {:error, _} = res ->
             do_reply(state, res)
@@ -275,7 +275,7 @@ defmodule Farmbot.Firmware do
     # Logger.busy 3, "FW Starting: #{fun}: #{inspect from}"
     case apply(state.handler_mod, fun, [state.handler | args]) do
       :ok ->
-        timer = Process.send_after(self(), {:command_timeout, current}, state.timeout_ms)
+        timer = start_timer(current, state.timeout_ms)
         if fun == :emergency_unlock do
           Farmbot.System.GPIO.Leds.led_status_ok()
           new_dispatch = [{:informational_settings,  %{busy: false, locked: false}} | dispatch]
@@ -440,7 +440,7 @@ defmodule Farmbot.Firmware do
       # This might be a bug in the FW
       if state.current.fun in [:home, :home_all] do
         Logger.warn 1, "Got idle during home. Ignoring. This might be bad."
-        timer = Process.send_after(self(), {:command_timeout, state.current}, state.timeout_ms)
+        timer = start_timer(state.current, state.timeout_ms)
         {nil, %{state | timer: timer}}
       else
         Logger.warn 1, "Got idle while executing a command."
@@ -482,13 +482,35 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode(:report_axis_home_complete_z, state) do
     Logger.success 2, "Z Axis homing complete."
-    {nil, state}
+    {nil, %{state | timer: nil}}
+  end
+
+  defp handle_gcode(:report_axis_timeout_x, state) do
+    Logger.error 2, "X Axis timeout."
+    do_reply(state, {:error, :axis_timeout_x})
+    {nil, %{state | timer: nil}}
+  end
+
+  defp handle_gcode(:report_axis_timeout_y, state) do
+    Logger.error 2, "Y Axis timeout."
+    do_reply(state, {:error, :axis_timeout_y})
+    {nil, %{state | timer: nil}}
+  end
+
+  defp handle_gcode(:report_axis_timeout_z, state) do
+    Logger.error 2, "Z Axis timeout."
+    do_reply(state, {:error, :axis_timeout_z})
+    {nil, %{state | timer: nil}}
   end
 
   defp handle_gcode(:busy, state) do
     Farmbot.BotState.set_busy(true)
     maybe_cancel_timer(state.timer, state.current)
-    timer = Process.send_after(self(), {:command_timeout, state.current}, state.timeout_ms)
+    timer = if state.current do
+      start_timer(state.current, state.timeout_ms)
+    else
+      nil
+    end
     {:informational_settings, %{busy: true}, %{state | idle: false, timer: timer}}
   end
 
@@ -634,5 +656,9 @@ defmodule Farmbot.Firmware do
         EstopTimer.start_timer()
       end
     end
+  end
+
+  defp start_timer(%Command{} = command, timeout) do
+    Process.send_after(self(), {:command_timeout, command}, timeout)
   end
 end
