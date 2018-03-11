@@ -178,11 +178,11 @@ defmodule Farmbot.Mixfile do
   end
 
   defp elixirc_paths(:test, "host") do
-    ["./lib", "./nerves/host", "./test/support"]
+    ["./lib", "./platform/host", "./test/support"]
   end
 
   defp elixirc_paths(_, "host") do
-    ["./lib", "./nerves/host"]
+    ["./lib", "./platform/host"]
   end
 
   defp elixirc_paths(_env, _target) do

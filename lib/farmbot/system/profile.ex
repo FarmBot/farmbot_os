@@ -23,7 +23,10 @@ defmodule Farmbot.System.Profile do
 
   def profile_dir do
     case Farmbot.Project.target() do
-      "host" -> Path.join(["overlay", "profiles"])
+      "host" ->
+        path = Path.join(["overlay", "profiles"])
+        Path.mkdir_p!path)
+        path
       _ -> "/profiles"
     end
   end
