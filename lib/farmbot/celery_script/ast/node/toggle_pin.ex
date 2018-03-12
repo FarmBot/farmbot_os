@@ -18,7 +18,7 @@ defmodule Farmbot.CeleryScript.AST.Node.TogglePin do
         Logger.warn 2, "Unknown pin value. Setting to zero."
         args = %{pin_mode: :digital, pin_number: num, pin_value: 0}
         Node.WritePin.execute(args, [], env)
-      {:ok, val} ->
+      {:ok, _val} ->
         {:error, "Can't toggle analog pin", env}
       {:error, reason} -> {:error, reason, env}
     end
