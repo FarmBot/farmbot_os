@@ -35,7 +35,7 @@ defmodule Farmbot.Asset do
   end
 
   @doc "Get a Tool from a Point by `tool_id`."
-  def get_tool_from_point_by_tool_id(tool_id) do
+  def get_point_from_tool(tool_id) do
     repo().one(from p in Point, where: p.tool_id == ^tool_id)
   end
 

@@ -7,7 +7,7 @@ defmodule Farmbot.CeleryScript.Utils do
 
   def ast_to_vec3(%AST{kind: Tool} = ast) do
     tool_id = ast.args.tool_id
-    case Asset.get_tool_from_point_by_tool_id(tool_id) do
+    case Asset.get_point_from_tool(tool_id) do
       %{x: x, y: y, z: z} -> {:ok, new_vec3(x, y, z)}
       nil ->
         case Asset.get_tool_by_id(tool_id) do

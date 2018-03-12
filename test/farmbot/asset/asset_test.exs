@@ -1,7 +1,7 @@
 defmodule Farmbot.AssetTest do
   use ExUnit.Case, async: false
   alias Farmbot.Asset
-  alias Asset.{Sensor, Peripheral, Sequence, Tool}
+  alias Asset.{Sensor, Peripheral, Sequence, Tool, Point}
 
   setup do
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(Farmbot.Repo.current_repo())
@@ -60,7 +60,23 @@ defmodule Farmbot.AssetTest do
     assert Asset.get_tool_by_id(t.id) == t
   end
 
+  test "Returns nil when there is no point for a tool" do
+    refute Asset.get_point_from_tool(123)  
+  end
+
+  test "Gets a tool from a point", %{repo: repo} do
+    t = tool(120, "Laser beam") |> repo.insert!()
+    p = point(111, "Laser holder", t.id, 0, 1, 0, %{}, Tool) |> repo.insert!()
+    res = Asset.get_point_from_tool(t.id)
+    assert res.id == p.id
+    assert res.name == "Laser holder"
+  end
+
   defp tool(id, name) do
     %Tool{id: id, name: name}
+  end
+
+  defp point(id, name, tool_id, x, y, z, meta, pointer_type) do
+    %Point{id: id, name: name, tool_id: tool_id, x: x, y: y, z: z, meta: meta, pointer_type: pointer_type}
   end
 end
