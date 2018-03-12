@@ -109,6 +109,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     rescue
       err ->
         Logger.error 1, "Failed too input network config: #{Exception.message(err)}: #{inspect System.stacktrace()}"
+        destroy_all_network_configs()
         redir(conn, "/network")
     end
   end
@@ -150,6 +151,10 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
   defp input_network_configs([]) do
     :ok
+  end
+
+  defp destroy_all_network_configs do
+    ConfigStorage.delete_all(ConfigStorage.NetworkInterface)
   end
 
   get "/firmware" do
