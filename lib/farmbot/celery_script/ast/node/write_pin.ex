@@ -39,7 +39,7 @@ defmodule Farmbot.CeleryScript.AST.Node.WritePin do
   end
 
   defp log_success(num, _, val) do
-    Logger.success 1, "Pin #{num}: #{val}"
+    Logger.success 1, "Pin #{num}: #{val} (analog)"
   end
 
   defp fetch_resource(Peripheral, id) do

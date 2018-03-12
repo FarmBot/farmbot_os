@@ -3,7 +3,7 @@ defmodule Farmbot.CeleryScript.AST.Node.ChangeOwnership do
 
   use Farmbot.CeleryScript.AST.Node
   alias Farmbot.System.ConfigStorage
-  import ConfigStorage, only: [update_config_value: 4]
+  import ConfigStorage, only: [update_config_value: 4, get_config_value: 3]
   use Farmbot.Logger
 
   allow_args []
@@ -13,7 +13,7 @@ defmodule Farmbot.CeleryScript.AST.Node.ChangeOwnership do
     pair_map = pair_to_map(pairs)
     email    = pair_map["email"]
     secret   = pair_map["secret"] |> Base.decode64!(padding: false, ignore: :whitespace)
-    server   = pair_map["server"]
+    server   = pair_map["server"] || get_config_value(:string, "authorization", "server")
     case test_credentials(email, secret, server) do
       {:ok, _token} ->
         Logger.warn(1, "Farmbot is changing ownership to #{email} - #{server}.")

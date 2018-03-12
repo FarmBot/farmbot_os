@@ -14,12 +14,10 @@ defmodule Farmbot.CeleryScript.AST.Node.TogglePin do
       {:ok, 1}  ->
         args = %{pin_mode: :digital, pin_number: num, pin_value: 0}
         Node.WritePin.execute(args, [], env)
-      res when res == {:ok, -1} or res == {:error, :unknown_pin} ->
+      res when res == {:ok, _} or res == {:error, :unknown_pin} ->
         Logger.warn 2, "Unknown pin value. Setting to zero."
         args = %{pin_mode: :digital, pin_number: num, pin_value: 0}
         Node.WritePin.execute(args, [], env)
-      {:ok, _val} ->
-        {:error, "Can't toggle analog pin", env}
       {:error, reason} -> {:error, reason, env}
     end
   end

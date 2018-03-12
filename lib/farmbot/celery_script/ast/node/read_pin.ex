@@ -25,7 +25,7 @@ defmodule Farmbot.CeleryScript.AST.Node.ReadPin do
       :ok ->
         case Farmbot.BotState.get_pin_value(pin_num) do
           {:ok, val} ->
-            Logger.info 2, "Read pin: #{pin_num} value: #{val}"
+            Logger.info 2, "Read pin: #{pin_num} value: #{val} (#{mode})"
             Farmbot.CeleryScript.var(env, label, val)
           {:error, reason} -> {:error, reason, env}
         end
