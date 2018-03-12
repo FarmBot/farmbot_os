@@ -36,9 +36,16 @@ defmodule Farmbot.Bootstrap.Authorization do
       false -> authorize_with_secret(email, pw_or_secret, server)
       true -> authorize_with_password(email, pw_or_secret, server)
     end
+    |> case do
+      {:ok, token} -> {:ok, token}
+      err ->
+        Logger.error 1, "Authorization failed: #{inspect err}"
+        err
+    end
   end
 
   def authorize_with_secret(email, secret, server) do
+    Logger.debug 3, "Using secret to authorize #{email}"
     with {:ok, payload} <- build_payload(secret),
          {:ok, resp}    <- request_token(server, payload),
          {:ok, body}    <- Poison.decode(resp),
@@ -53,15 +60,17 @@ defmodule Farmbot.Bootstrap.Authorization do
       # If we got maintance mode, a 5xx error etc,
       # just sleep for a few seconds
       # and try again.
-      {:ok, {{_, code, _}, _, _}} ->
+      {:error, {:http_error, code}} ->
         Logger.error 1, "Failed to authorize due to server error: #{code}"
         Process.sleep(5000)
         authorize(email, secret, server)
+      {:error, %HTTPoison.Error{reason: reason}} -> {:error, reason}
       err -> err
     end
   end
 
   def authorize_with_password(email, password, server) do
+    Logger.debug 3, "Using password to authorize #{email}"
     with {:ok, {:RSAPublicKey, _, _} = rsa_key} <- fetch_rsa_key(server),
          {:ok, payload} <- build_payload(email, password, rsa_key),
          {:ok, resp}    <- request_token(server, payload),
@@ -78,19 +87,29 @@ defmodule Farmbot.Bootstrap.Authorization do
       # If we got maintance mode, a 5xx error etc,
       # just sleep for a few seconds
       # and try again.
-      {:ok, {{_, code, _}, _, _}} ->
+      {:error, {:http_error, code}} ->
         Logger.error 1, "Failed to authorize due to server error: #{code}"
         Process.sleep(5000)
         authorize(email, password, server)
+      {:error, %HTTPoison.Error{reason: reason}} -> {:error, reason}
       err -> err
     end
   end
 
   def fetch_rsa_key(server) do
-    url_char_list = '#{server}/api/public_key'
-    with {:ok, {{_, 200, _}, _, body}} <- :httpc.request(url_char_list) do
-      r = body |> to_string() |> RSA.decode_key()
-      {:ok, r}
+    url = "#{server}/api/public_key"
+    case HTTPoison.get(url) do
+      {:ok, %{status_code: 200, body: body}} ->
+        r = body |> to_string() |> RSA.decode_key()
+        {:ok, r}
+      {:ok, %{status_code: code, body: body}} ->
+        msg = """
+        Failed to fetch public key.
+        status_code: #{code}
+        body: #{inspect body}
+        """
+        {:error, msg}
+      {:error, reason} -> {:error, reason}
     end
   end
 
@@ -108,7 +127,7 @@ defmodule Farmbot.Bootstrap.Authorization do
     Poison.encode(%{user: user})
   end
 
-  defp request_token(server, payload) do
+  def request_token(server, payload) do
     headers = [
       {"User-Agent", "FarmbotOS/#{@version} (#{@target}) #{@target} ()"},
       {"Content-Type", "application/json"}
@@ -117,16 +136,26 @@ defmodule Farmbot.Bootstrap.Authorization do
       {:ok, %{status_code: 200, body: body}} -> {:ok, body}
 
       # if the error is a 4xx code, it was a failed auth.
-      {:ok, %{status_code: code}} when code > 399 and code < 500 ->
+      {:ok, %{status_code: code, body: body}} when code > 399 and code < 500 ->
+        reason = get_body(body)
         msg = """
         Failed to authorize with the Farmbot web application at: #{server}
         with code: #{code}
+        body: #{reason}
         """
         {:error, msg}
 
       # if the error is not 2xx and not 4xx, probably maintance mode.
-      {:ok, _} = err -> err
+      {:ok, %{status_code: code}} -> {:error, {:http_error, code}}
       {:error, error} -> {:error, error}
+    end
+  end
+
+  defp get_body(body) do
+    case Poison.decode(body) do
+      {:ok, %{"auth" => reason}} -> reason
+      {:ok, reason} -> inspect reason
+      _ -> inspect body
     end
   end
 end

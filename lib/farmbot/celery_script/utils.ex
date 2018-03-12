@@ -5,6 +5,13 @@ defmodule Farmbot.CeleryScript.Utils do
   alias AST.Node.{Tool, Coordinate, Point, Nothing}
   alias Farmbot.Asset
 
+  @doc "Convert a list of CeleryScript Pairs to a Elixir Map"
+  def pair_to_map(pairs) do
+    Map.new(pairs,
+      fn(%{args: %{label: label, value: value}}) -> {label, value}
+    end)
+  end
+
   def ast_to_vec3(%AST{kind: Tool} = ast) do
     tool_id = ast.args.tool_id
     case Asset.get_point_from_tool(tool_id) do
