@@ -3,7 +3,10 @@ defmodule Farmbot.Regimen.Manager do
 
   use Farmbot.Logger
   use GenServer
-  alias Farmbot.Asset.Regimen
+  alias Farmbot.CeleryScript
+  alias Farmbot.Asset
+  alias Asset.Regimen
+  import Farmbot.System.ConfigStorage, only: [get_config_value: 3]
 
   defmodule Error do
     @moduledoc false
@@ -15,7 +18,7 @@ defmodule Farmbot.Regimen.Manager do
     @type t :: %__MODULE__{
       name:        binary,
       time_offset: integer,
-      sequence:    Farmbot.CeleryScript.AST.t
+      sequence:    CeleryScript.AST.t
     }
 
     defstruct [:time_offset, :sequence, :name]
@@ -23,7 +26,7 @@ defmodule Farmbot.Regimen.Manager do
     def parse(%{time_offset: offset, sequence_id: sequence_id})
     do
       sequence = fetch_sequence(sequence_id)
-      {:ok, ast} = Farmbot.CeleryScript.AST.decode(sequence)
+      {:ok, ast} = CeleryScript.AST.decode(sequence)
       ast_with_label = %{ast | args: Map.put(ast.args, :label, sequence.name)}
 
       %__MODULE__{
@@ -32,12 +35,7 @@ defmodule Farmbot.Regimen.Manager do
         sequence:    ast_with_label}
     end
 
-    def fetch_sequence(id) do
-      case Farmbot.Repo.current_repo().get(Farmbot.Asset.Sequence, id) do
-        nil -> raise "Could not find sequence by id: #{inspect id}"
-        obj -> obj
-      end
-    end
+    def fetch_sequence(id), do: Asset.get_sequence_by_id!(id)
   end
 
   @doc false
@@ -106,7 +104,7 @@ defmodule Farmbot.Regimen.Manager do
   defp do_item(item, regimen, state) do
     if item do
       Logger.busy 2, "[#{regimen.name}] is going to execute: #{item.name}"
-      Farmbot.CeleryScript.execute(item.sequence)
+      CeleryScript.execute(item.sequence)
     end
     next_item = List.first(regimen.regimen_items)
     if next_item do
@@ -123,7 +121,7 @@ defmodule Farmbot.Regimen.Manager do
     pid, state)
   do
     next_dt         = Timex.shift(state.epoch, milliseconds: nx_itm.time_offset)
-    timezone        = Farmbot.System.ConfigStorage.get_config_value(:string, "settings", "timezone")
+    timezone        = get_config_value(:string, "settings", "timezone")
     now             = Timex.now(timezone)
     offset_from_now = Timex.diff(next_dt, now, :milliseconds)
 
@@ -159,7 +157,7 @@ defmodule Farmbot.Regimen.Manager do
   # returns midnight of today
   @spec build_epoch(DateTime.t) :: DateTime.t
   def build_epoch(time) do
-    tz = Farmbot.System.ConfigStorage.get_config_value(:string, "settings", "timezone")
+    tz = get_config_value(:string, "settings", "timezone")
     n  = Timex.Timezone.convert(time, tz)
     Timex.shift(n, hours: -n.hour, seconds: -n.second, minutes: -n.minute)
   end

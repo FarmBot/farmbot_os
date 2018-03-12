@@ -9,6 +9,7 @@ defmodule Farmbot.Asset do
     Point,
     Sensor,
     Sequence,
+    Regimen,
     Tool
   }
 
@@ -29,6 +30,15 @@ defmodule Farmbot.Asset do
     repo().one(from s in Sequence, where: s.id == ^sequence_id)
   end
 
+  @doc "Same as `get_sequence_by_id/1` but raises if no Sequence is found."
+  def get_sequence_by_id!(sequence_id) do
+    case get_sequence_by_id(sequence_id) do
+      nil -> raise "Could not find sequence by id #{sequence_id}"
+      %Sequence{} = seq -> seq
+    end
+  end
+
+
   @doc "Get a Point by it's id."
   def get_point_by_id(point_id) do
     repo().one(from p in Point, where: p.id == ^point_id)
@@ -39,9 +49,22 @@ defmodule Farmbot.Asset do
     repo().one(from p in Point, where: p.tool_id == ^tool_id)
   end
 
-  @doc "Get a tool by it's id."
+  @doc "Get a Tool by it's id."
   def get_tool_by_id(tool_id) do
     repo().one(from t in Tool, where: t.id == ^tool_id)
+  end
+
+  @doc "Get a Regimen by it's id."
+  def get_regimen_by_id(regimen_id) do
+    repo().one(from r in Regimen, where: r.id == ^regimen_id)
+  end
+
+  @doc "Same as `get_regimen_by_id/1` but raises if no Regimen is found."
+  def get_regimen_by_id!(regimen_id) do
+    case get_regimen_by_id(regimen_id) do
+      nil -> raise "Could not find regimen by id #{regimen_id}"
+      %Regimen{} = reg -> reg
+    end
   end
 
   defp repo, do: Farmbot.Repo.current_repo()

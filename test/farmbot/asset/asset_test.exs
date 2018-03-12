@@ -41,6 +41,13 @@ defmodule Farmbot.AssetTest do
   test "Gets a sequence", %{repo: repo} do
     s = sequence(120, "Acuate LEDS", "sequence", %{}, []) |> repo.insert!()
     assert Asset.get_sequence_by_id(s.id) == s
+    assert Asset.get_sequence_by_id!(s.id) == s
+  end
+
+  test "Raises if no sequence", %{repo: repo} do
+    assert_raise fn() ->
+      Asset.get_sequence_by_id!(1000)
+    end
   end
 
   defp sequence(id, name, kind, args, body) do
@@ -61,7 +68,7 @@ defmodule Farmbot.AssetTest do
   end
 
   test "Returns nil when there is no point for a tool" do
-    refute Asset.get_point_from_tool(123)  
+    refute Asset.get_point_from_tool(123)
   end
 
   test "Gets a tool from a point", %{repo: repo} do

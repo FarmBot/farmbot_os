@@ -18,7 +18,8 @@ defmodule Farmbot.FarmEvent.Manager do
   use GenServer
   use Farmbot.Logger
   alias Farmbot.FarmEvent.Execution
-  alias Farmbot.Asset.FarmEvent
+  alias Farmbot.Asset
+  alias Farmbot.Asset.{FarmEvent, Sequence, Regimen}
 
   # @checkup_time 100
   @checkup_time 30_000
@@ -81,7 +82,7 @@ defmodule Farmbot.FarmEvent.Manager do
 
   def async_checkup(_manager, state) do
     now = get_now()
-    alias Farmbot.Asset.FarmEvent
+
     # maybe_farm_event_log "Rebuilding calendar."
     all_events = Enum.map(state.events, &FarmEvent.build_calendar(&1))
     # maybe_farm_event_log "Rebuilding calendar complete."
@@ -117,10 +118,8 @@ defmodule Farmbot.FarmEvent.Manager do
 
   defp check_event(%FarmEvent{} = f, now, last_time) do
     # Get the executable out of the database this may fail.
-    # mod_list = ["Farmbot", "Asset", f.executable_type]
     mod      = Module.safe_concat([f.executable_type])
-
-    event    = lookup(mod, f.executable_id)
+    event    = lookup!(mod, f.executable_id)
 
     # build a local start time and end time
     start_time = Timex.parse! f.start_time, "{ISO:Extended}"
@@ -131,9 +130,9 @@ defmodule Farmbot.FarmEvent.Manager do
     started?  = Timex.after? now, start_time
     finished? = Timex.after? now, end_time
 
-    case f.executable_type do
-      "Elixir.Farmbot.Asset.Regimen"  -> maybe_start_regimen(started?, start_time, last_time, event, now)
-      "Elixir.Farmbot.Asset.Sequence" -> maybe_start_sequence(started?, finished?, f, last_time, event, now)
+    case mod do
+      Regimen  -> maybe_start_regimen(started?, start_time, last_time, event, now)
+      Sequence -> maybe_start_sequence(started?, finished?, f, last_time, event, now)
     end
   end
 
@@ -154,10 +153,11 @@ defmodule Farmbot.FarmEvent.Manager do
     {nil, last_time}
   end
 
-  defp lookup(module, sr_id) do
-    case Farmbot.Repo.current_repo().get(module, sr_id) do
-      nil -> raise "Could not find #{module} by id: #{sr_id}"
-      item -> item
+  defp lookup!(module, sr_id) when is_atom(module) and is_number(sr_id) do
+    case module do
+      Sequence -> Asset.get_sequence_by_id!(sr_id)
+      Regimen ->  Asset.get_regimen_by_id!(sr_id)
+      _ -> raise "unknown executable type: #{module}"
     end
   end
 
