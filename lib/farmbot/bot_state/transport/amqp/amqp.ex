@@ -246,13 +246,17 @@ defmodule Farmbot.BotState.Transport.AMQP do
   end
 
   def handle_fbos_config(_id, payload, state) do
-
     if get_config_value(:bool, "settings", "ignore_fbos_config") do
       {:noreply, [], state}
     else
       case Poison.decode(payload) do
-        # TODO(Connor) What do I do with deletes?
-        {:ok, %{"body" => nil}} -> {:noreply, [], state}
+        {:ok, %{"body" => nil}} ->
+          # If the settings were reset remotely, just set migrated to true,
+          # which will cause FBOS to download the defaults and apply them.
+          pl = %{"api_migrated" => true} |> Poison.encode!()
+          Farmbot.HTTP.put!("/api/fbos_config", pl)
+          Farmbot.Bootstrap.SettingsSync.run()
+          {:noreply, [], state}
         {:ok, %{"body" => config}} ->
           # Logger.info 1, "Got fbos config from amqp: #{inspect config}"
           old = state.state_cache.configuration

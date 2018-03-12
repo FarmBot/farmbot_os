@@ -9,7 +9,6 @@ defmodule Farmbot.CeleryScript.AST.Node.FactoryReset do
     Farmbot.BotState.set_sync_status(:maintenance)
     Farmbot.BotState.force_state_push()
     Farmbot.System.ConfigStorage.update_config_value(:bool, "settings", "disable_factory_reset", false)
-    Farmbot.HTTP.delete("/api/fbos_config")
     Logger.warn 1, "Farmbot OS going down for factory reset!"
     Farmbot.System.factory_reset "CeleryScript request."
     {:ok, env}
