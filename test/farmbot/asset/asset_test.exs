@@ -45,7 +45,7 @@ defmodule Farmbot.AssetTest do
   end
 
   test "Raises if no sequence", %{repo: repo} do
-    assert_raise fn() ->
+    assert_raise RuntimeError, fn() ->
       Asset.get_sequence_by_id!(1000)
     end
   end
