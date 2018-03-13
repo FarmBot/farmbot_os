@@ -251,7 +251,7 @@ defmodule Farmbot.Firmware do
   end
 
   def handle_call({fun, _}, _from, state = %{initialized: false})
-  when fun not in  [:read_all_params, :update_param, :emergency_unlock, :emergency_lock] do
+  when fun not in  [:read_all_params, :update_param, :emergency_unlock, :emergency_lock, :request_software_version] do
     {:reply, {:error, :uninitialized}, [], state}
   end
 
@@ -348,6 +348,59 @@ defmodule Farmbot.Firmware do
     end
   end
 
+  defp handle_gcode(:report_no_config, %{initialized: false, initializing: false} = state) do
+    Logger.busy 1, "Initializing Firmware."
+    old = get_config_as_map()["hardware_params"]
+    spawn __MODULE__, :do_read_params, [Map.delete(old, "param_version")]
+    {nil, %{state | initializing: true}}
+  end
+
+  defp handle_gcode(:idle, %{initialized: false, initializing: false} = state) do
+    Logger.busy 1, "Firmware not initialized yet. Waiting for R88 message."
+    {nil, state}
+  end
+
+  defp handle_gcode(:idle, %{initialized: false, initializing: true} = state) do
+    {nil, state}
+  end
+
+  defp handle_gcode(:idle, %{initialized: true, initializing: false, current: nil, z_needs_home_on_boot: true} = state) do
+    Logger.info 2, "Bootup homing Z axis"
+    spawn __MODULE__, :home, [:z]
+    {nil, %{state | z_needs_home_on_boot: false}}
+  end
+
+  defp handle_gcode(:idle, %{initialized: true, initializing: false, current: nil, y_needs_home_on_boot: true} = state) do
+    Logger.info 2, "Bootup homing Y axis"
+    spawn __MODULE__, :home, [:y]
+    {nil, %{state | y_needs_home_on_boot: false}}
+  end
+
+  defp handle_gcode(:idle, %{initialized: true, initializing: false, current: nil, x_needs_home_on_boot: true} = state) do
+    Logger.info 2, "Bootup homing X axis"
+    spawn __MODULE__, :home, [:x]
+    {nil, %{state | x_needs_home_on_boot: false}}
+  end
+
+  defp handle_gcode(:idle, state) do
+    maybe_cancel_timer(state.timer, state.current)
+    Farmbot.BotState.set_busy(false)
+    if state.current do
+      # This might be a bug in the FW
+      if state.current.fun in [:home, :home_all] do
+        Logger.warn 1, "Got idle during home. Ignoring. This might be bad."
+        timer = start_timer(state.current, state.timeout_ms)
+        {nil, %{state | timer: timer}}
+      else
+        Logger.warn 1, "Got idle while executing a command."
+        do_reply(state, {:error, :timeout})
+        {:informational_settings, %{busy: false, locked: false}, %{state | current: nil, idle: true}}
+      end
+    else
+      {:informational_settings, %{busy: false, locked: false}, %{state | idle: true}}
+    end
+  end
+
   defp handle_gcode({:report_current_position, x, y, z}, state) do
     {:location_data, %{position: %{x: round(x), y: round(y), z: round(z)}}, state}
   end
@@ -395,61 +448,6 @@ defmodule Farmbot.Firmware do
   defp handle_gcode({:report_parameter_value, param, value}, state) when is_number(value) do
     maybe_update_param_from_report(to_string(param), value)
     {:mcu_params, %{param => value}, %{state | params: Map.put(state.params, param, value)}}
-  end
-
-  defp handle_gcode(:idle, %{initialized: false, initializing: false} = state) do
-    Logger.busy 1, "Initializing Firmware."
-    old = get_config_as_map()["hardware_params"]
-    case old["param_version"] do
-      nil ->
-        Logger.debug 3, "Setting up fresh params."
-        spawn __MODULE__, :do_read_params_and_report_position, [%{}]
-      _   ->
-        Logger.debug 3, "Setting up old params."
-        spawn __MODULE__, :do_read_params_and_report_position, [Map.delete(old, "param_version")]
-    end
-    {nil, %{state | initializing: true}}
-  end
-
-  defp handle_gcode(:idle, %{initialized: false, initializing: true} = state) do
-    {nil, state}
-  end
-
-  defp handle_gcode(:idle, %{initialized: true, initializing: false, current: nil, z_needs_home_on_boot: true} = state) do
-    Logger.info 2, "Bootup homing Z axis"
-    spawn __MODULE__, :home, [:z]
-    {nil, %{state | z_needs_home_on_boot: false}}
-  end
-
-  defp handle_gcode(:idle, %{initialized: true, initializing: false, current: nil, y_needs_home_on_boot: true} = state) do
-    Logger.info 2, "Bootup homing Y axis"
-    spawn __MODULE__, :home, [:y]
-    {nil, %{state | y_needs_home_on_boot: false}}
-  end
-
-  defp handle_gcode(:idle, %{initialized: true, initializing: false, current: nil, x_needs_home_on_boot: true} = state) do
-    Logger.info 2, "Bootup homing X axis"
-    spawn __MODULE__, :home, [:x]
-    {nil, %{state | x_needs_home_on_boot: false}}
-  end
-
-  defp handle_gcode(:idle, state) do
-    maybe_cancel_timer(state.timer, state.current)
-    Farmbot.BotState.set_busy(false)
-    if state.current do
-      # This might be a bug in the FW
-      if state.current.fun in [:home, :home_all] do
-        Logger.warn 1, "Got idle during home. Ignoring. This might be bad."
-        timer = start_timer(state.current, state.timeout_ms)
-        {nil, %{state | timer: timer}}
-      else
-        Logger.warn 1, "Got idle while executing a command."
-        do_reply(state, {:error, :timeout})
-        {:informational_settings, %{busy: false, locked: false}, %{state | current: nil, idle: true}}
-      end
-    else
-      {:informational_settings, %{busy: false, locked: false}, %{state | idle: true}}
-    end
   end
 
   defp handle_gcode(:report_params_complete, state) do
@@ -591,20 +589,20 @@ defmodule Farmbot.Firmware do
   end
 
   @doc false
-  def do_read_params_and_report_position(old) when is_map(old) do
+  def do_read_params(old) when is_map(old) do
     for {key, float_val} <- old do
       cond do
         (float_val == -1) -> :ok
         is_nil(float_val) -> :ok
         is_number(float_val) ->
           val = round(float_val)
-          update_param(:"#{key}", val)
+          :ok = update_param(:"#{key}", val)
       end
     end
-    update_param(:param_config_ok, 1)
-    update_param(:param_use_eeprom, 0)
+    :ok = update_param(:param_use_eeprom, 0)
+    :ok = update_param(:param_config_ok, 1)
     read_all_params()
-    request_software_version()
+    :ok = request_software_version()
   end
 
   @doc false

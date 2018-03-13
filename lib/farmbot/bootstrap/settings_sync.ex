@@ -1,5 +1,5 @@
 defmodule Farmbot.Bootstrap.SettingsSync do
-  @moduledoc "Handles uploading and downloading of FBOS configs."
+  @moduledoc "Handles uploading and downloading of Farmbot OS and Firmware configs."
   use Farmbot.Logger
   import Farmbot.System.ConfigStorage,
     only: [get_config_value: 3, update_config_value: 4, get_config_as_map: 0]
@@ -143,7 +143,7 @@ defmodule Farmbot.Bootstrap.SettingsSync do
   def run() do
     do_sync_fbos_configs()
     do_sync_fw_configs()
-    Logger.debug 1, "Synced fbos and fw settings with API"
+    Logger.debug 1, "Synced Farmbot OS and Firmware settings with API"
     :ok
   rescue
     err ->
@@ -248,24 +248,19 @@ defmodule Farmbot.Bootstrap.SettingsSync do
   end
 
   def do_sync_fw_configs(%{"api_migrated" => false} = api_data) do
-    if get_config_value(:bool, "settings", "firmware_needs_first_sync") do
-      Logger.info 3, "Firmware Settings have never been synced before, and settings have never been uploaded to the API."
-      old_config = get_config_as_map()["hardware_params"] |> Map.new(fn({key, _}) ->
-        {key, :hack}
-      end)
-
-      new = apply_fw_map(old_config, api_data)
-      payload = Map.put(new, "api_migrated", true) |> Poison.encode!()
-      Farmbot.HTTP.put!("/api/firmware_config", payload)
-      update_config_value(:bool, "settings", "firmware_needs_first_sync", false)
-    else
-      Logger.info 3, "FBOS is the source of truth for Firmware configs. Uploading data."
-      current = get_config_as_map()["hardware_params"]
+    current = get_config_as_map()["hardware_params"]
+    if current["param_version"] do
+      Logger.info 3, "Farmbot is the source of truth for Firmware configs. Uploading data."
       payload = Map.put(current, "api_migrated", true) |> Poison.encode!()
       Farmbot.HTTP.delete!("/api/firmware_config")
       Farmbot.HTTP.put!("/api/firmware_config", payload)
+    else
+      Logger.info 3, "API has never migrated Firmware configs " <>
+      "But Farmbot has no valid paramaters. Using defaults."
+      payload = Map.put(api_data, "api_migrated", true) |> Poison.encode!()
+      Farmbot.HTTP.put!("/api/firmware_config", payload)
+      apply_fw_map(current, api_data)
     end
-
     :ok
   end
 
@@ -283,7 +278,7 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     :ok
   end
 
-  @doc "Sync the settings related to FBOS"
+  @doc "Sync the settings related to Farmbot OS and Firmware"
   def do_sync_fbos_configs do
     with {:ok, %{body: body, status_code: 200}} <- Farmbot.HTTP.get("/api/fbos_config"),
     {:ok, data} <- Poison.decode(body)
@@ -300,14 +295,14 @@ defmodule Farmbot.Bootstrap.SettingsSync do
   end
 
   def do_sync_fbos_configs(%{"api_migrated" => true} = api_data) do
-    Logger.info 3, "API is the source of truth for FBOS configs. Downloading data."
+    Logger.info 3, "API is the source of truth for Farmbot OS configs. Downloading data."
     old_config = get_config_as_map()["settings"]
     apply_fbos_map(old_config, api_data)
     :ok
   end
 
   def do_sync_fbos_configs(_unimportant_data) do
-    Logger.info 3, "FBOS is the source of truth for FBOS configs. Uploading data."
+    Logger.info 3, "Farmbot is the source of truth for Farmbot OS and Firmware configs. Uploading data."
     update_config_value(:bool, "settings", "ignore_fbos_config", true)
     auto_sync = get_config_value(:bool, "settings", "auto_sync")
     beta_opt_in = get_config_value(:bool, "settings", "beta_opt_in")
