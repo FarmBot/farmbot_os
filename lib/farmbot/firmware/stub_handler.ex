@@ -91,9 +91,13 @@ defmodule Farmbot.Firmware.StubHandler do
     Process.send_after(pid, :idle_timer, 3000)
   end
 
+  defp do_wait_for_config_ok(pid) do
+    Process.send_after(pid, :config_ok_timer, 100)
+  end
+
   def init([]) do
     state = %State{pos: struct(Vec3)}
-    do_idle(self())
+    do_wait_for_config_ok(self())
     {:producer, state, dispatcher: GenStage.BroadcastDispatcher}
   end
 
@@ -109,6 +113,10 @@ defmodule Farmbot.Firmware.StubHandler do
       [:idle]
     end
     {:noreply, dispatch, state}
+  end
+
+  def handle_info(:config_ok_timer, state) do
+    {:noreply, [:idle, :report_no_config], state}
   end
 
   def handle_call(cmd, _from, %{locked?: true} = state) when cmd != :emergency_unlock do
