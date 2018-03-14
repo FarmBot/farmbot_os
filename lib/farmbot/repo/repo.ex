@@ -41,8 +41,8 @@ defmodule Farmbot.Repo do
   end
 
   @doc "Flip the repos."
-  def flip do
-    GenServer.call(__MODULE__, :flip, @call_timeout_ms)
+  def flip(log_verbosity \\ 1) do
+    GenServer.call(__MODULE__, {:flip, log_verbosity}, @call_timeout_ms)
   end
 
   @doc "Register a diff to be stored until a flip."
@@ -158,7 +158,7 @@ defmodule Farmbot.Repo do
     {:reply, repo_b, state}
   end
 
-  def handle_call(:flip, from, %State{repos: [repo_a, repo_b], needs_hard_sync: true} = state) do
+  def handle_call({:flip, log_verbosity}, from, %State{repos: [repo_a, repo_b], needs_hard_sync: true} = state) do
     fun = fn() ->
       maybe_cancel_timer(state.timer)
       destroy_all_sync_cmds()
@@ -169,13 +169,13 @@ defmodule Farmbot.Repo do
       flip_repos_in_cs()
       exit(%State{state | repos: [repo_b, repo_a], needs_hard_sync: false, timer: start_timer(), sync_pid: nil})
     end
-    Logger.busy(1, "Syncing.")
+    Logger.busy(log_verbosity, "Syncing.")
     pid = spawn(fun)
     Process.monitor(pid)
     {:noreply, %State{state | sync_pid: pid, from: from}}
   end
 
-  def handle_call(:flip, from, %State{repos: [repo_a, repo_b]} = state) do
+  def handle_call({:flip, log_verbosity}, from, %State{repos: [repo_a, repo_b]} = state) do
     fun = fn() ->
       maybe_cancel_timer(state.timer)
       BotState.set_sync_status(:syncing)
@@ -191,7 +191,7 @@ defmodule Farmbot.Repo do
       destroy_all_sync_cmds()
       exit(%State{state | repos: [repo_b, repo_a], timer: start_timer(), sync_pid: nil})
     end
-    Logger.busy(1, "Syncing.")
+    Logger.busy(log_verbosity, "Syncing.")
     pid = spawn(fun)
     Process.monitor(pid)
     {:noreply, %State{state | sync_pid: pid, from: from}}
