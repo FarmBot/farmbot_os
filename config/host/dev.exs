@@ -54,7 +54,7 @@ config :farmbot, :behaviour, [
   authorization: Farmbot.Bootstrap.Authorization,
   system_tasks: Farmbot.Host.SystemTasks,
   update_handler: Farmbot.Host.UpdateHandler,
-  firmware_handler: Farmbot.Firmware.UartHandler
+  # firmware_handler: Farmbot.Firmware.UartHandler
 ]
 
 config :farmbot, :uart_handler, tty: "/dev/ttyACM0"

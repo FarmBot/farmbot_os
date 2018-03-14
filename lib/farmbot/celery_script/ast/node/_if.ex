@@ -2,7 +2,7 @@ defmodule Farmbot.CeleryScript.AST.Node.If do
   @moduledoc false
   use Farmbot.CeleryScript.AST.Node
   alias Farmbot.CeleryScript.AST
-  alias AST.{NamedPin}
+  alias AST.Node.NamedPin
   alias Farmbot.Asset
   alias Asset.{Peripheral, Sensor}
   use Farmbot.Logger
