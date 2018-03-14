@@ -45,7 +45,6 @@ defmodule Farmbot.Bootstrap.Authorization do
   end
 
   def authorize_with_secret(email, secret, server) do
-    Logger.debug 3, "Using secret to authorize #{email}"
     with {:ok, payload} <- build_payload(secret),
          {:ok, resp}    <- request_token(server, payload),
          {:ok, body}    <- Poison.decode(resp),
@@ -70,7 +69,6 @@ defmodule Farmbot.Bootstrap.Authorization do
   end
 
   def authorize_with_password(email, password, server) do
-    Logger.debug 3, "Using password to authorize #{email}"
     with {:ok, {:RSAPublicKey, _, _} = rsa_key} <- fetch_rsa_key(server),
          {:ok, payload} <- build_payload(email, password, rsa_key),
          {:ok, resp}    <- request_token(server, payload),
