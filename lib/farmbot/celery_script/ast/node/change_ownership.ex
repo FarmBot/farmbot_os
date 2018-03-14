@@ -16,14 +16,14 @@ defmodule Farmbot.CeleryScript.AST.Node.ChangeOwnership do
     server   = pair_map["server"] || get_config_value(:string, "authorization", "server")
     case test_credentials(email, secret, server) do
       {:ok, _token} ->
-        Logger.warn(1, "Farmbot is changing ownership to #{email} - #{server}.")
+        Logger.warn 1, "Farmbot is changing ownership to #{email} - #{server}."
         Farmbot.BotState.set_sync_status(:maintenance)
 
         replace_credentials(email, secret, server)
         clean_assets()
         clean_farmwares()
 
-        Logger.debug 3, "Going down for reboot."
+        Logger.debug 1, "Going down for reboot."
         Farmbot.System.reboot("Change ownership")
         {:ok, env}
       {:error, reason} -> {:error, reason, env}
