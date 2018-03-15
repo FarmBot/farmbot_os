@@ -1,6 +1,6 @@
 # 6.3.0
-* Refactor system update system.
-* Rename and refactor external resources so they are more readable.
+* Update system update system.
+* Rename and refactor external resources internally so they are more readable in the codebase.
 * Write tests for new system.
 * Implement the new "Flat" CeleryScript representation.
 * Add ability to log into a new account without rebooting into Configurator.
