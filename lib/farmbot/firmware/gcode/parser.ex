@@ -51,9 +51,6 @@ defmodule Farmbot.Firmware.Gcode.Parser do
     {nil, {:debug_message, message}}
   end
 
-  # I think this is a bug
-  def parse_code("Command" <> _), do: {nil, :noop}
-
   def parse_code(code) do
     {:unhandled_gcode, code}
   end

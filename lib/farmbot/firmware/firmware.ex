@@ -330,7 +330,7 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode(code, state) when code in [:error, :invalid_command] do
-    Logger.warn 1, "Got error gcode (#{code})!"
+    Logger.warn 2, "Got error gcode (#{code})!"
     maybe_cancel_timer(state.timer, state.current)
     if state.current do
       formatted_args = Enum.map(state.current.args, fn(arg) ->
