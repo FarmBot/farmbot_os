@@ -152,10 +152,10 @@ defmodule Farmbot.Firmware.UartHandler do
       pid = case old["param_version"] do
         nil ->
           Logger.debug 3, "Setting up fresh params."
-          spawn Farmbot.Firmware, :do_read_params_and_report_position, [%{}]
+          spawn Farmbot.Firmware, :do_read_params, [%{}]
         _   ->
           Logger.debug 3, "Setting up old params."
-          spawn Farmbot.Firmware, :do_read_params_and_report_position, [Map.delete(old, "param_version")]
+          spawn Farmbot.Firmware, :do_read_params, [Map.delete(old, "param_version")]
       end
       Process.link(pid)
       %{state | hw: val}
