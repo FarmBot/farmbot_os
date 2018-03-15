@@ -146,18 +146,7 @@ defmodule Farmbot.Firmware.UartHandler do
       UART.close(state.nerves)
       UartHandler.Update.force_update_firmware(val)
       open_tty(state.tty, state.nerves)
-      Farmbot.BotState.reset_sync_status()
-      Logger.busy 1, "Reinitializing Firmware."
-      old = Farmbot.System.ConfigStorage.get_config_as_map()["hardware_params"]
-      pid = case old["param_version"] do
-        nil ->
-          Logger.debug 3, "Setting up fresh params."
-          spawn Farmbot.Firmware, :do_read_params, [%{}]
-        _   ->
-          Logger.debug 3, "Setting up old params."
-          spawn Farmbot.Firmware, :do_read_params, [Map.delete(old, "param_version")]
-      end
-      Process.link(pid)
+      Farmbot.BotState.reset_sync_status
       %{state | hw: val}
     else
       state

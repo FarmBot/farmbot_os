@@ -348,11 +348,11 @@ defmodule Farmbot.Firmware do
     end
   end
 
-  defp handle_gcode(:report_no_config, %{initialized: false, initializing: false} = state) do
+  defp handle_gcode(:report_no_config, state) do
     Logger.busy 1, "Initializing Firmware."
     old = get_config_as_map()["hardware_params"]
     spawn __MODULE__, :do_read_params, [Map.delete(old, "param_version")]
-    {nil, %{state | initializing: true}}
+    {nil, %{state | initialized: false, initializing: true}}
   end
 
   defp handle_gcode(:idle, %{initialized: false, initializing: false} = state) do
