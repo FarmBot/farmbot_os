@@ -174,7 +174,7 @@ defmodule Farmbot.System.Updates do
       prerelease and is_beta_release? and beta_opt_in and !commits_equal? ->
         # beta release get marked as greater than non beta release, so we need
         # to manually check the versions by removing the pre part.
-        case Version.compare(current_version, %{release_version | pre: nil}) do
+        case Version.compare(current_version, %{release_version | pre: []}) do
           c when c in [:lt, :eq] ->
             Logger.debug 3, "Current version (#{current_version}) is less than or equal to beta release (#{release_version})"
             # TODO Check times here i guess?
