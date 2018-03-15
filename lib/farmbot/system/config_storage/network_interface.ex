@@ -3,6 +3,7 @@ defmodule Farmbot.System.ConfigStorage.NetworkInterface do
 
   use Ecto.Schema
   import Ecto.Changeset
+  use Farmbot.Logger
 
   schema "network_interfaces" do
     field(:name, :string, null: false)
@@ -14,6 +15,8 @@ defmodule Farmbot.System.ConfigStorage.NetworkInterface do
     field(:security, :string)
 
     field(:ipv4_method, :string)
+    field(:migrated, :boolean)
+    field(:maybe_hidden, :boolean)
   end
 
   @required_fields [:name, :type]
@@ -22,5 +25,6 @@ defmodule Farmbot.System.ConfigStorage.NetworkInterface do
     config
     |> cast(params, @required_fields)
     |> validate_required(@required_fields)
+    |> unique_constraint(:name)
   end
 end

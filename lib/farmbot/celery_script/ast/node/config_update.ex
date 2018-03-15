@@ -5,22 +5,14 @@ defmodule Farmbot.CeleryScript.AST.Node.ConfigUpdate do
   allow_args [:package]
 
   def execute(%{package: :farmbot_os}, _body, env) do
-    Logger.warn 2, "`config_update` for FBOS is depricated."
+    msg = "`config_update` for FBOS is depricated."
     env = mutate_env(env)
-    {:ok, env}
+    {:error, msg, env}
   end
 
-  def execute(%{package: :arduino_firmware}, body, env) do
+  def execute(%{package: :arduino_firmware}, _body, env) do
+    msg = "`config_update` for Arduino Firmware is depricated."
     env = mutate_env(env)
-    do_reduce_fw(body, env)
+    {:error, msg, env}
   end
-
-  defp do_reduce_fw([%{args: %{label: key, value: value}} | rest], env) do
-    case Farmbot.Firmware.update_param(:"#{key}", value) do
-      :ok -> do_reduce_fw(rest, env)
-      {:error, reason} -> {:error, reason, env}
-    end
-  end
-
-  defp do_reduce_fw([], env), do: {:ok, env}
 end

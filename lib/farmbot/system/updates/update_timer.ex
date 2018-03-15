@@ -31,7 +31,11 @@ defmodule Farmbot.System.UpdateTimer do
 
   def handle_info(:checkup, state) do
     osau = Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "os_auto_update")
-    Farmbot.System.Updates.check_updates(osau)
+    case Farmbot.System.Updates.check_updates() do
+      {:error, err} -> Logger.error 1, "Error checking for updates: #{inspect err}"
+      nil -> Logger.debug 3, "No updates available as of #{inspect Timex.now()}"
+      url -> if osau, do: Farmbot.System.Updates.download_and_apply_update(url)
+    end
     Process.send_after(self(), :checkup, @twelve_hours)
     {:noreply, state}
   end

@@ -21,7 +21,11 @@ defmodule Farmbot.BotState.Transport.AMQP do
   end
 
   def stop(reason \\ :normal) do
-    GenStage.stop(__MODULE__, reason)
+    if Process.whereis(__MODULE__) do
+      GenStage.stop(__MODULE__, reason)
+    else
+      :ok
+    end
   end
 
   # GenStage callbacks
@@ -49,6 +53,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
          opts      <- [conn: conn, chan: chan, queue_name: q_name, bot: device],
          state <- struct(State, opts)
     do
+      update_config_value(:bool, "settings", "ignore_fbos_config", false)
       true = Process.link(conn.pid)
       true = Process.link(chan.pid)
       {:consumer, state, subscribe_to: [Farmbot.BotState, Farmbot.Logger]}
@@ -79,6 +84,8 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
   def terminate(reason, state) do
     ok_reasons = [:normal, :shutdown, :token_refresh]
+    update_config_value(:bool, "settings", "ignore_fbos_config", false)
+
     if reason not in ok_reasons do
       Logger.error 1, "AMQP Died: #{inspect reason}"
       update_config_value(:bool, "settings", "log_amqp_connected", true)
@@ -178,8 +185,8 @@ defmodule Farmbot.BotState.Transport.AMQP do
       ["bot", ^device, "sync", resource, _]
       when resource in ["Log", "User", "Image", "WebcamFeed"] ->
         {:noreply, [], state}
-      ["bot", ^device, "sync", "FbosConfig", id] ->
-        handle_fbos_config(id, payload, state)
+      ["bot", ^device, "sync", "FbosConfig", id] -> handle_fbos_config(id, payload, state)
+      ["bot", ^device, "sync", "FirmwareConfig", id] -> handle_fw_config(id, payload, state)
       ["bot", ^device, "sync", resource, id] ->
         handle_sync_cmd(resource, id, payload, state)
       ["bot", ^device, "logs"]        -> {:noreply, [], state}
@@ -212,7 +219,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
   @doc false
   def handle_sync_cmd(kind, id, payload, state) do
-    mod = Module.concat(["Farmbot", "Repo", kind])
+    mod = Module.concat(["Farmbot", "Asset", kind])
     if Code.ensure_loaded?(mod) do
       %{
         "body" => body,
@@ -243,15 +250,36 @@ defmodule Farmbot.BotState.Transport.AMQP do
       {:noreply, [], state}
     else
       case Poison.decode(payload) do
-        # TODO(Connor) What do I do with deletes?
-        {:ok, %{"body" => nil}} -> {:noreply, [], state}
+        {:ok, %{"body" => nil}} ->
+          # If the settings were reset remotely, just set migrated to true,
+          # which will cause FBOS to download the defaults and apply them.
+          pl = %{"api_migrated" => true} |> Poison.encode!()
+          Farmbot.HTTP.put!("/api/fbos_config", pl)
+          Farmbot.Bootstrap.SettingsSync.run()
+          {:noreply, [], state}
         {:ok, %{"body" => config}} ->
           # Logger.info 1, "Got fbos config from amqp: #{inspect config}"
           old = state.state_cache.configuration
-          updated = Farmbot.Bootstrap.SettingsSync.apply_map(old, config)
+          updated = Farmbot.Bootstrap.SettingsSync.apply_fbos_map(old, config)
           push_bot_state(state.chan, state.bot, %{state.state_cache | configuration: updated})
           {:noreply, [], state}
       end
+    end
+  end
+
+  def handle_fw_config(_id, payload, state) do
+    case Poison.decode(payload) do
+      {:ok, %{"body" => nil}} -> {:noreply, [], state}
+      {:ok, %{"body" => config}} ->
+        old = state.state_cache.mcu_params
+        _new = Farmbot.Bootstrap.SettingsSync.apply_fw_map(old, config)
+        # for {key, new_value} <- new do
+        #   if old[:"#{key}"] != new_value do
+        #     Logger.info 1, "Updating key: #{key} => #{new_value}"
+        #     Farmbot.Firmware.update_param(:"#{key}", new_value / 1)
+        #   end
+        # end
+        {:noreply, [], state}
     end
   end
 

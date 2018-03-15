@@ -1,3 +1,25 @@
+# 6.3.0
+* Refactor system update system.
+* Rename and refactor external resources so they are more readable.
+* Write tests for new system.
+* Implement the new "Flat" CeleryScript representation.
+* Add ability to log into a new account without rebooting into Configurator.
+* Firmware settings are now synced with Farmbot API.
+* Add third Firmware board.
+* Fix bug causing false positives on sync failure.
+* Fix bug causing a captive portal staying up if the user chooses a wired network connection.
+* Fix bug that prevented a user from configuring network credentials.
+* Add new syncable `Sensor`.
+* Add new celeryscript node `NamedPin`.
+* Add new args:
+   * `pin_id`
+   * `pin_type`
+* allow `pin_number` to be new `NamedPin` node.
+* allow to use `NamedPin` in:
+   * `ReadPin`
+   * `WritePin`
+   * `If`
+
 # 6.2.1
 * Fix Bug breaking diy builders with Arduinos showing up other than `/dev/ttyACM0`.
 

@@ -14,14 +14,12 @@ defmodule Farmbot.System.Debug do
       acceptors: 3,
       dispatch: [
         {:_, [
-          {"/wobserver/ws", Wobserver.Web.Client, []},
           {:_, Cowboy.Handler, {DebugRouter, []}}
         ]}
       ],
     ]
     children = [
       Plug.Adapters.Cowboy.child_spec(:http, DebugRouter, [], options),
-      worker(Farmbot.System.Updates.SlackUpdater, []),
     ]
 
     opts = [strategy: :one_for_one]

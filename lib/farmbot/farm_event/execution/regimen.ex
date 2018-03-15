@@ -1,4 +1,4 @@
-defimpl Farmbot.FarmEvent.Execution, for: Farmbot.Repo.Regimen do
+defimpl Farmbot.FarmEvent.Execution, for: Farmbot.Asset.Regimen do
 
   def execute_event(regimen, now) do
     case Process.whereis(:"regimen-#{regimen.id}") do

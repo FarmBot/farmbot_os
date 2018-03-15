@@ -5,10 +5,11 @@ defmodule Farmbot.CeleryScript.AST.Node.CheckUpdates do
 
   def execute(%{package: :farmbot_os}, _, env) do
     env = mutate_env(env)
-    case Farmbot.System.Updates.check_updates(true) do
-      :ok -> {:ok, env}
-      :no_update -> {:ok, env}
-      _ -> {:error, "Failed to check updates", env}
+    case Farmbot.System.Updates.check_updates() do
+      {:error, reason} -> {:error, reason, env}
+      nil -> {:ok, env}
+      url ->
+        Farmbot.System.Updates.download_and_apply_update(url)
     end
   end
 

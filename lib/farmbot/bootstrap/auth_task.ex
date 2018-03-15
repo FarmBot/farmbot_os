@@ -42,7 +42,7 @@ defmodule Farmbot.Bootstrap.AuthTask do
         update_config_value(:string, "authorization", "token", token)
         Farmbot.System.GPIO.Leds.led_status_ok()
         if get_config_value(:bool, "settings", "auto_sync") do
-          Farmbot.Repo.flip()
+          Farmbot.Repo.flip(2)
         end
         Farmbot.System.Registry.dispatch :authorization, :new_token
         restart_transports()
@@ -76,7 +76,6 @@ defmodule Farmbot.Bootstrap.AuthTask do
 
   defp restart_transports do
     transports = Application.get_env(:farmbot, :transport)
-    # Logger.info 1, "restarting children: #{inspect transports}"
     for t <- transports do
       t.stop(:token_refresh)
     end

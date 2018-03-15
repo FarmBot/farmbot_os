@@ -27,8 +27,9 @@ defmodule Farmbot.CeleryScript.AST.Node do
         allow_args: 1,
         return_self: 0,
         rebuild_self: 2,
-        mutate_env: 1
+        mutate_env: 1,
       ]
+      import Farmbot.CeleryScript.Utils
 
       @behaviour AST.Node
       @after_compile AST.Node

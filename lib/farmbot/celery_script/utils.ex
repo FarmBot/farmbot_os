@@ -3,16 +3,21 @@ defmodule Farmbot.CeleryScript.Utils do
   alias Farmbot.Firmware.Vec3
   alias Farmbot.CeleryScript.AST
   alias AST.Node.{Tool, Coordinate, Point, Nothing}
-  alias Farmbot.Repo.Point, as: DBPoint
-  import Ecto.Query
+  alias Farmbot.Asset
+
+  @doc "Convert a list of CeleryScript Pairs to a Elixir Map"
+  def pair_to_map(pairs) do
+    Map.new(pairs,
+      fn(%{args: %{label: label, value: value}}) -> {label, value}
+    end)
+  end
 
   def ast_to_vec3(%AST{kind: Tool} = ast) do
-    repo = Farmbot.Repo.current_repo()
     tool_id = ast.args.tool_id
-    case repo.one(from p in DBPoint, where: p.tool_id == ^tool_id) do
+    case Asset.get_point_from_tool(tool_id) do
       %{x: x, y: y, z: z} -> {:ok, new_vec3(x, y, z)}
       nil ->
-        case repo.one(from t in Farmbot.Repo.Tool, where: t.id == ^tool_id) do
+        case Asset.get_tool_by_id(tool_id) do
           %{name: name} ->
             {:error, "#{name} is not currently in a tool slot."}
           nil -> {:error, "Could not find tool by id: #{tool_id}"}
@@ -26,9 +31,8 @@ defmodule Farmbot.CeleryScript.Utils do
 
   def ast_to_vec3(%AST{kind: Point} = ast) do
     point_id = ast.args.pointer_id
-    case Farmbot.Repo.current_repo().one(from p in DBPoint, where: p.id == ^point_id) do
-      %{x: x, y: y, z: z} ->
-        {:ok, new_vec3(x, y, z)}
+    case Asset.get_point_by_id(point_id) do
+      %{x: x, y: y, z: z} -> {:ok, new_vec3(x, y, z)}
       nil -> {:error, "Could not find point by id: #{point_id}"}
     end
   end

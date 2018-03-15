@@ -19,7 +19,8 @@ ttb_last_config
 auth_secret_test.exs
 auth_secret.exs
 
-# Farmbot argifacts
+# Farmbot artifacts
+overlay
 tmp/
 test_tmp/
 priv/build_calendar.so
@@ -45,3 +46,5 @@ run-qemu.sh
 artifacts
 RELEASE_NOTES
 *.hex
+# lagger can't be disabled.
+/log
