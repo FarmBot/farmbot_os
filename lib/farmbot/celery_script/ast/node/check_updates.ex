@@ -9,7 +9,10 @@ defmodule Farmbot.CeleryScript.AST.Node.CheckUpdates do
       {:error, reason} -> {:error, reason, env}
       nil -> {:ok, env}
       url ->
-        Farmbot.System.Updates.download_and_apply_update(url)
+        case Farmbot.System.Updates.download_and_apply_update(url) do
+          :ok -> {:ok, env}
+          {:error, reason} -> {:error, reason, env}
+        end
     end
   end
 
