@@ -9,6 +9,7 @@
 * Fix bug causing false positives on sync failure.
 * Fix bug causing a captive portal staying up if the user chooses a wired network connection.
 * Fix bug that prevented a user from configuring network credentials.
+* Fix bug that would halt bootup if a PinBinding is high during boot.
 * Add new syncable `Sensor`.
 * Add new celeryscript node `NamedPin`.
 * Add new args:
