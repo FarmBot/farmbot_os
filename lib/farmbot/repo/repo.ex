@@ -237,6 +237,7 @@ defmodule Farmbot.Repo do
        end)
 
     Farmbot.FarmEvent.Manager.register_events repo.all(Farmbot.Asset.FarmEvent)
+    Farmbot.System.GPIO.confirm_asset_storage_up()
     :ok
   end
 
