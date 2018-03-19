@@ -10,7 +10,7 @@ defmodule Farmbot.Firmware.UartHandler.Update do
     hardware = case hardware do
       "farmduino" -> "F"
       "arduino" -> "R"
-      "farmduino_v14" -> "G"
+      "farmduino_k14" -> "G"
       nil -> "R"
     end
     if tty do
@@ -23,7 +23,7 @@ defmodule Farmbot.Firmware.UartHandler.Update do
     hardware = case hardware do
       "farmduino" -> "F"
       "arduino" -> "R"
-      "farmduino_v14" -> "G"
+      "farmduino_k14" -> "G"
       nil -> "R"
     end
     do_flash(hardware, nil, tty)
@@ -117,7 +117,7 @@ defmodule Farmbot.Firmware.UartHandler.Update do
   end
 
   defp do_flash("G", uart, tty) do
-    avrdude("#{:code.priv_dir(:farmbot)}/farmduino_v14-firmware.hex", uart, tty)
+    avrdude("#{:code.priv_dir(:farmbot)}/farmduino_k14-firmware.hex", uart, tty)
   end
 
   # Anything else. (should always be "R")

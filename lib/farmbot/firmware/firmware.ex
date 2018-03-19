@@ -462,7 +462,7 @@ defmodule Farmbot.Firmware do
       "R" ->
         update_config_value(:string, "settings", "firmware_hardware", "arduino")
       "G" ->
-        update_config_value(:string, "settings", "firmware_hardware", "farmduino_v14")
+        update_config_value(:string, "settings", "firmware_hardware", "farmduino_k14")
       _ -> :ok
     end
     {:informational_settings, %{firmware_version: version}, state}

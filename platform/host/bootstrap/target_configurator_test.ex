@@ -68,7 +68,7 @@ defmodule Farmbot.Host.TargetConfiguratorTest do
   post "/configure_firmware" do
     body_params = conn.body_params
     if match?(%{"firmware_hardware" => hw}
-    when hw in ["arduino", "farmduino", "farmduino_v14"], body_params) do
+    when hw in ["arduino", "farmduino", "farmduino_k14"], body_params) do
       redir(conn, "/credentials")
     else
       send_resp(conn, 500, "#{inspect body_params} is invalid configuration for `configure_firmware`")
