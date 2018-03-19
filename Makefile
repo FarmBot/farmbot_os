@@ -18,7 +18,7 @@ endif
 NIF=priv/build_calendar.so
 ARDUINO_FW=priv/arduino-firmware.hex
 FARMDUINO_FW=priv/farmduino-firmware.hex
-FARMDUINO_V14_FW=priv/farmduino_v14-firmware.hex
+FARMDUINO_V14_FW=priv/farmduino_k14-firmware.hex
 BLINK_FW=priv/blink.hex
 CLEAR_EEPROM_FW=priv/clear_eeprom.hex
 
@@ -68,13 +68,13 @@ $(ARDUINO_BUILD_DIR):
 $(ARDUINO_CACHE_DIR):
 	mkdir -p $(ARDUINO_CACHE_DIR)
 
-farmbot_arduino_firmware: arduino farmduino farmduino_v14 blink clear_eeprom
+farmbot_arduino_firmware: arduino farmduino farmduino_k14 blink clear_eeprom
 
 arduino: farmbot_arduino_firmware_build_dirs $(ARDUINO_FW)
 
 farmduino: farmbot_arduino_firmware_build_dirs $(FARMDUINO_FW)
 
-farmduino_v14: farmbot_arduino_firmware_build_dirs $(FARMDUINO_V14_FW)
+farmduino_k14: farmbot_arduino_firmware_build_dirs $(FARMDUINO_V14_FW)
 
 blink: farmbot_arduino_firmware_build_dirs $(BLINK_FW)
 
