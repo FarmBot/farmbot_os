@@ -1,6 +1,6 @@
 -setcookie democookie
 -sname farmbot
--smp enable
 -noshell
 -user Elixir.IEx.CLI
+-heart
 -extra --no-halt

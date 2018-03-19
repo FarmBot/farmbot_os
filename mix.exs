@@ -26,7 +26,7 @@ defmodule Farmbot.Mixfile do
       target: @target,
       commit: commit(),
       arduino_commit: arduino_commit(),
-      archives: [nerves_bootstrap: "~> 0.8.2"],
+      archives: [nerves_bootstrap: "~> 1.0.0-rc.2"],
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps_path: "deps/#{@target}",
@@ -160,7 +160,7 @@ defmodule Farmbot.Mixfile do
   end
 
   defp system("rpi3"),
-    do: [{:nerves_system_farmbot_rpi3, "1.0.0-rc.0-farmbot", runtime: false}]
+    do: [{:nerves_system_farmbot_rpi3, "1.0.0-rc.1-farmbot", runtime: false}]
 
   defp system("rpi0"),
     do: [{:nerves_system_farmbot_rpi0, "0.20.0-farmbot", runtime: false}]
