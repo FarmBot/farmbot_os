@@ -75,11 +75,10 @@ defmodule Farmbot.Bootstrap.AuthTask do
   end
 
   defp restart_transports do
-    transports = Application.get_env(:farmbot, :transport)
-    for t <- transports do
-      t.stop(:token_refresh)
-    end
-    :ok
+    bootstrap_sup = Farmbot.Bootstrap.Supervisor
+    transport_sup = Farmbot.BotState.Transport.Supervisor
+    :ok = Supervisor.terminate_child(bootstrap_sup, transport_sup)
+    {:ok, _} = Supervisor.restart_child(bootstrap_sup, transport_sup)
   end
 
   defp refresh_timer(pid, ms \\ @refresh_time) do
