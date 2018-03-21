@@ -42,8 +42,12 @@ defmodule Farmbot.BotState.Transport.HTTP do
     GenStage.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
-  def stop(reason) do
-    GenStage.stop(__MODULE__, reason)
+  def stop(reason \\ :normal) do
+    if Process.whereis(__MODULE__) do
+      GenStage.stop(__MODULE__, reason)
+    else
+      :ok
+    end
   end
 
   def init([]) do

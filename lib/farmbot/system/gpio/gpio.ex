@@ -17,6 +17,10 @@ defmodule Farmbot.System.GPIO do
     GenStage.call(__MODULE__, {:unregister_pin, sequence_id})
   end
 
+  def confirm_asset_storage_up do
+    GenStage.call(__MODULE__, :confirm_asset_storage_up)
+  end
+
   @doc false
   def start_link do
     GenStage.start_link(__MODULE__, [], [name: __MODULE__])
@@ -24,7 +28,7 @@ defmodule Farmbot.System.GPIO do
 
   defmodule State do
     @moduledoc false
-    defstruct [registered: %{}, handler: nil]
+    defstruct [repo_up: false, registered: %{}, handler: nil, env: struct(Macro.Env, [])]
   end
 
   def init([]) do
@@ -47,18 +51,24 @@ defmodule Farmbot.System.GPIO do
     end
   end
 
+  def handle_events(_, _, %{repo_up: false} = state) do
+    Logger.warn 3, "Not handling gpio events until Asset storage is up."
+    {:noreply, [], state}
+  end
+
   def handle_events(pin_triggers, _from, state) do
     t = Enum.uniq(pin_triggers)
-    for {:pin_trigger, pin} <- t do
+    new_env = Enum.reduce(t, state.env, fn({:pin_trigger, pin}, env) ->
       sequence_id = state.registered[pin]
       if sequence_id do
         Logger.busy 1, "Starting Sequence: #{sequence_id} from pin: #{pin}"
-        Farmbot.CeleryScript.AST.Node.Execute.execute(%{sequence_id: sequence_id}, [], struct(Macro.Env, []))
+        do_execute(sequence_id, env)
       else
         Logger.warn 3, "No sequence assosiated with: #{pin}"
+        env
       end
-    end
-    {:noreply, [], state}
+    end)
+    {:noreply, [], %{state | env: new_env}}
   end
 
   def handle_info(:update_fb_state_tree, state) do
@@ -95,6 +105,10 @@ defmodule Farmbot.System.GPIO do
     end
   end
 
+  def handle_call(:confirm_asset_storage_up, _, state) do
+    {:reply, :ok, [], %{state | repo_up: true}}
+  end
+
   def terminate(reason, state) do
     if state.handler do
       if Process.alive?(state.handler) do
@@ -108,6 +122,21 @@ defmodule Farmbot.System.GPIO do
     case ConfigStorage.one(from g in GpioRegistry, where: g.pin == ^pin_num and g.sequence_id == ^sequence_id) do
       nil -> :ok
       obj -> ConfigStorage.delete!(obj)
+    end
+  end
+
+  defp do_execute(sequence_id, env) do
+    import Farmbot.CeleryScript.AST.Node.Execute, only: [execute: 3]
+    try do
+      case execute(%{sequence_id: sequence_id}, [], env) do
+        {:ok, env} -> env
+        {:error, _, env} -> env
+      end
+    rescue
+      err ->
+        message = Exception.message(err)
+        Logger.warn 2, "Failed to execute sequence #{sequence_id} " <> message
+        env
     end
   end
 

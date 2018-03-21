@@ -39,15 +39,16 @@ Installation should be fairly straight forward, you will need a computer for thi
  0. ```dd if=</path/to/file> of=/dev/<sddevice> bs=4``` or use [Etcher](https://etcher.io/).
 
 ## Running
+_Refer to the [software documentation Configurator page](https://software.farm.bot/docs/configurator) for more detailed instructions._
+
  1. Plug your SD Card into your Raspberry Pi
  0. Plug your Arduino into your Raspberry Pi
  0. Plug your power into your Raspberry Pi
  0. From a WiFi enabled device*, search for the SSID `farmbot-XXXX`
- 0. Connect to that and open a web browser to [http://192.168.25.1/](http://192.168.25.1)
+ 0. Connect to that and open a web browser to [http://192.168.24.1/](http://192.168.24.1)
  0. Follow the on screen instructions to configure your FarmBot. Once you save your configuration FarmBot will connect to your home WiFi network and to the FarmBot web application.
 
 \* If you are using a smartphone you may need to disable cellular data to allow your phone's browser to connect to the configurator.
-
 
 # Problems?
 

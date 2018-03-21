@@ -4,14 +4,15 @@ defmodule Farmbot.Repo do
   use GenServer
   use Farmbot.Logger
 
-  alias Farmbot.Repo.{
+  alias Farmbot.Asset.{
     Device,
     FarmEvent,
     Peripheral,
     Point,
     Regimen,
+    Sensor,
     Sequence,
-    Tool
+    Tool,
   }
 
   alias Farmbot.BotState
@@ -40,8 +41,8 @@ defmodule Farmbot.Repo do
   end
 
   @doc "Flip the repos."
-  def flip do
-    GenServer.call(__MODULE__, :flip, @call_timeout_ms)
+  def flip(log_verbosity \\ 1) do
+    GenServer.call(__MODULE__, {:flip, log_verbosity}, @call_timeout_ms)
   end
 
   @doc "Register a diff to be stored until a flip."
@@ -157,7 +158,7 @@ defmodule Farmbot.Repo do
     {:reply, repo_b, state}
   end
 
-  def handle_call(:flip, from, %State{repos: [repo_a, repo_b], needs_hard_sync: true} = state) do
+  def handle_call({:flip, log_verbosity}, from, %State{repos: [repo_a, repo_b], needs_hard_sync: true} = state) do
     fun = fn() ->
       maybe_cancel_timer(state.timer)
       destroy_all_sync_cmds()
@@ -168,13 +169,13 @@ defmodule Farmbot.Repo do
       flip_repos_in_cs()
       exit(%State{state | repos: [repo_b, repo_a], needs_hard_sync: false, timer: start_timer(), sync_pid: nil})
     end
-    Logger.busy(1, "Syncing.")
+    Logger.busy(log_verbosity, "Syncing.")
     pid = spawn(fun)
     Process.monitor(pid)
     {:noreply, %State{state | sync_pid: pid, from: from}}
   end
 
-  def handle_call(:flip, from, %State{repos: [repo_a, repo_b]} = state) do
+  def handle_call({:flip, log_verbosity}, from, %State{repos: [repo_a, repo_b]} = state) do
     fun = fn() ->
       maybe_cancel_timer(state.timer)
       BotState.set_sync_status(:syncing)
@@ -190,7 +191,7 @@ defmodule Farmbot.Repo do
       destroy_all_sync_cmds()
       exit(%State{state | repos: [repo_b, repo_a], timer: start_timer(), sync_pid: nil})
     end
-    Logger.busy(1, "Syncing.")
+    Logger.busy(log_verbosity, "Syncing.")
     pid = spawn(fun)
     Process.monitor(pid)
     {:noreply, %State{state | sync_pid: pid, from: from}}
@@ -235,7 +236,8 @@ defmodule Farmbot.Repo do
          Farmbot.Firmware.read_pin(pin, mode)
        end)
 
-    Farmbot.FarmEvent.Manager.register_events repo.all(Farmbot.Repo.FarmEvent)
+    Farmbot.FarmEvent.Manager.register_events repo.all(Farmbot.Asset.FarmEvent)
+    Farmbot.System.GPIO.confirm_asset_storage_up()
     :ok
   end
 
@@ -295,7 +297,7 @@ defmodule Farmbot.Repo do
   end
 
   defp do_apply_sync_cmd(repo, %SyncCmd{remote_id: id, kind: kind, body: nil} = sync_cmd) do
-    mod = Module.concat(["Farmbot", "Repo", kind])
+    mod = Module.concat(["Farmbot", "Asset", kind])
     # an object was deleted.
     if Code.ensure_loaded?(mod) do
       Logger.debug(3, "Applying sync_cmd (#{mod}: delete)")
@@ -316,7 +318,7 @@ defmodule Farmbot.Repo do
 
   defp do_apply_sync_cmd(repo, %SyncCmd{remote_id: id, kind: kind, body: obj} = sync_cmd) do
     not_struct = strip_struct(obj)
-    mod = Module.concat(["Farmbot", "Repo", kind])
+    mod = Module.concat(["Farmbot", "Asset", kind])
 
     if Code.ensure_loaded?(mod) do
       Logger.debug(3, "Applying sync_cmd (#{mod}): insert_or_update")
@@ -374,8 +376,14 @@ defmodule Farmbot.Repo do
         Farmbot.Bootstrap.SettingsSync.run()
       end
     end)
-    Logger.debug 3, "Entire sync took: #{time}µs."
-    res
+    case res do
+      :ok ->
+        Logger.debug 3, "Entire sync took: #{time}µs."
+        :ok
+      err ->
+        BotState.set_sync_status(:sync_error)
+        exit(err)
+    end
   end
 
   defp do_http_requests do
@@ -386,8 +394,9 @@ defmodule Farmbot.Repo do
       Peripheral => initial_err,
       Point => initial_err,
       Regimen => initial_err,
+      Sensor => initial_err,
       Sequence => initial_err,
-      Tool => initial_err
+      Tool => initial_err,
     }
 
     device_task      = Task.async(__MODULE__, :do_get_resource, [Device, "/api/device"])
@@ -395,6 +404,7 @@ defmodule Farmbot.Repo do
     peripherals_task = Task.async(__MODULE__, :do_get_resource, [Peripheral, "/api/peripherals"])
     points_task      = Task.async(__MODULE__, :do_get_resource, [Point, "/api/points"])
     regimens_task    = Task.async(__MODULE__, :do_get_resource, [Regimen, "/api/regimens"])
+    sensors_task     = Task.async(__MODULE__, :do_get_resource, [Sensor, "/api/sensors"])
     sequences_task   = Task.async(__MODULE__, :do_get_resource, [Sequence, "/api/sequences"])
     tools_task       = Task.async(__MODULE__, :do_get_resource, [Tool, "/api/tools"])
     res = %{acc |
@@ -403,6 +413,7 @@ defmodule Farmbot.Repo do
       Peripheral => Task.await(peripherals_task, 30_000),
       Point => Task.await(points_task, 30_000),
       Regimen => Task.await(regimens_task, 30_000),
+      Sensor => Task.await(sensors_task, 30_000),
       Sequence => Task.await(sequences_task, 30_000),
       Tool => Task.await(tools_task, 30_000),
     }
@@ -411,10 +422,10 @@ defmodule Farmbot.Repo do
 
   def do_get_resource(resource, slug) do
     resource = Module.split(resource) |> List.last()
-    Logger.debug 3, "Fetching #{resource}"
     maybe_debug_log("[#{resource}] Downloading: (#{slug})")
     {time, res} = :timer.tc(fn -> Farmbot.HTTP.get(slug) end)
     maybe_debug_log("[#{resource}] HTTP Request took: #{time}µs")
+    Logger.debug 3, "Fetched #{resource}s"
     res
   end
 
@@ -424,6 +435,7 @@ defmodule Farmbot.Repo do
          :ok <- sync_resource(repo, Peripheral, cache),
          :ok <- sync_resource(repo, Point, cache),
          :ok <- sync_resource(repo, Regimen, cache),
+         :ok <- sync_resource(repo, Sensor, cache),
          :ok <- sync_resource(repo, Sequence, cache),
          :ok <- sync_resource(repo, Tool, cache) do
       :ok
@@ -515,7 +527,7 @@ defmodule Farmbot.Repo do
   @doc false
   defmacro __using__(_) do
     quote do
-      @moduledoc "Storage for Farmbot Resources."
+      @moduledoc "Storage for Farmbot Assets."
       use Ecto.Repo,
         otp_app: :farmbot,
         adapter: Application.get_env(:farmbot, __MODULE__)[:adapter]

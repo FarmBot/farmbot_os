@@ -6,7 +6,9 @@ config :logger,
 
 config :farmbot, data_path: "/root"
 
-config :farmbot, profile: System.get_env("FBOS_PROFILE")
+config :lager, [
+  log_root: '/root',
+]
 
 # Disable tzdata autoupdates because it tries to dl the update file
 # Before we have network or ntp.
@@ -84,5 +86,6 @@ config :shoehorn,
   init: [:nerves_runtime, :nerves_init_gadget],
   app: :farmbot
 
+File.mkdir_p!(Path.join(["overlay", "profiles"]))
 config :nerves, :firmware,
   rootfs_overlay: "overlay/"

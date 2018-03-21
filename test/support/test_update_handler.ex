@@ -21,4 +21,6 @@ defmodule FarmbotTestSupport.TestUpdateHandler do
   def setup(_env) do
     :ok
   end
+
+  def requires_reboot?, do: false
 end

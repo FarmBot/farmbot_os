@@ -9,7 +9,7 @@ defmodule Farmbot.Repo.ModuleType do
     quote do
       @valid_short_strs unquote(mods)
       @valid_mods Enum.map(unquote(mods), fn(mod) ->
-        Module.concat([Farmbot, Repo, mod])
+        Module.concat([Farmbot, Asset, mod])
       end)
 
       @moduledoc """
@@ -42,7 +42,7 @@ defmodule Farmbot.Repo.ModuleType do
       end
 
       def dump(exp) do
-        {:ok, Module.concat([Farmbot, Repo, exp]) |> to_string()}
+        {:ok, Module.concat([Farmbot, Asset, exp]) |> to_string()}
       end
     end
   end

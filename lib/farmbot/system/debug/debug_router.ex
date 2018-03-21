@@ -22,8 +22,6 @@ defmodule Farmbot.System.DebugRouter do
   plug(:match)
   plug(:dispatch)
 
-  forward("/wobserver", to: Wobserver.Web.Router)
-
   get "/" do
     conn |> send_resp(200, make_html("index"))
   end

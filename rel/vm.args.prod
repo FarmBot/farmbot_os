@@ -1,5 +1,5 @@
 -setcookie democookie
 -sname farmbot
--smp enable
 -noshell
+-heart
 -extra --no-halt

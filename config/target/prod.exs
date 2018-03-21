@@ -6,6 +6,10 @@ config :logger,
 
 config :farmbot, data_path: "/root"
 
+config :lager, [
+  log_root: '/root',
+]
+
 # Disable tzdata autoupdates because it tries to dl the update file
 # Before we have network or ntp.
 config :tzdata, :autoupdate, :disabled

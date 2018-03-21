@@ -7,6 +7,9 @@ defmodule Farmbot.CeleryScript.AST.Arg.Lhs do
   def decode("z"), do: {:ok, :z}
 
   def decode("pin" <> num), do: {:ok, {:pin, String.to_integer(num)}}
+  def decode(map) when is_map(map) do
+    Farmbot.CeleryScript.AST.decode(map)
+  end
 
   def decode(other), do: {:error, "unknown left hand side: #{inspect other}"}
 

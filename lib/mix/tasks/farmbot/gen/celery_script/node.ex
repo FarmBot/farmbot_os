@@ -33,19 +33,21 @@ defmodule Mix.Tasks.Farmbot.Gen.CeleryScript.Node do
   end
 
   defp check_args(opts) do
-    cs_args = Keyword.get(opts, :args, [])
-    arg_list = String.split(cs_args, ",")
-    allow_args = Enum.map(arg_list, fn(arg) ->
-      a = Macro.camelize(arg)
-      namespace = Module.split(Farmbot.CeleryScript.AST.Arg)
-      full_mod = [namespace | [a]] |> List.flatten |> Module.concat()
-      unless Code.ensure_loaded?(full_mod) do
-        Mix.raise "Unknown arg: #{arg} (#{full_mod})"
-      end
-      String.to_atom(arg)
-    end)
-
-    allow_args
+    cs_args = Keyword.get(opts, :args)
+    if cs_args do
+      arg_list = String.split(cs_args, ",")
+      Enum.map(arg_list, fn(arg) ->
+        a = Macro.camelize(arg)
+        namespace = Module.split(Farmbot.CeleryScript.AST.Arg)
+        full_mod = [namespace | [a]] |> List.flatten |> Module.concat()
+        unless Code.ensure_loaded?(full_mod) do
+          Mix.raise "Unknown arg: #{arg} (#{full_mod})"
+        end
+        String.to_atom(arg)
+      end)
+    else
+      []
+    end
   end
 
   defp do_write_files(module, full_mod, code, test) do

@@ -23,10 +23,6 @@ config :farmbot, :transport, [
 
 config :farmbot, :farmware, first_part_farmware_manifest_url: nil
 
-# Configure Farmbot Behaviours.
-# config :farmbot, :behaviour,
-  # authorization: Farmbot.Test.Authorization,
-
 config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
   system_tasks: Farmbot.Test.SystemTasks,
@@ -38,7 +34,7 @@ config :farmbot, Farmbot.Repo.A,
   database: "test_tmp/farmbot_repo_a_test",
   priv: "priv/repo",
   pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: 10,
+  pool_size: 2,
   loggers: []
 
 config :farmbot, Farmbot.Repo.B,
@@ -46,7 +42,7 @@ config :farmbot, Farmbot.Repo.B,
   database: "test_tmp/farmbot_repo_b_test",
   priv: "priv/repo",
   pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: 10,
+  pool_size: 2,
   loggers: []
 
 config :farmbot, Farmbot.System.ConfigStorage,
@@ -54,6 +50,5 @@ config :farmbot, Farmbot.System.ConfigStorage,
   database: "test_tmp/farmbot_config_storage_test",
   pool_size: 10,
   loggers: []
-  # pool: Ecto.Adapters.SQL.Sandbox
 
 config :farmbot, ecto_repos: [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage]
