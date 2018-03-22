@@ -18,6 +18,7 @@ defmodule Farmbot.System.Init.Ecto do
     repos = Application.get_env(:farmbot, :ecto_repos)
 
     for repo <- repos do
+      Application.put_env(:farmbot, :repo_hack, repo)
       setup(repo)
     end
   end

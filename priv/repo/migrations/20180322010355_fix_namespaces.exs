@@ -4,9 +4,13 @@ defmodule Farmbot.Repo.Migrations.FixNamespaces do
 
   def change do
     repo = Application.get_env(:farmbot, :repo_hack)
-    IO.puts "STARTING MIGRATION: #{repo}\n\n\n\n\n\n"
-    do_update(repo)
-    IO.puts "MIGRATION COMPLETE: #{repo}\n\n\n\n\n"
+    if repo do
+      IO.puts "STARTING MIGRATION: #{repo}\n\n\n\n\n\n"
+      do_update(repo)
+      IO.puts "MIGRATION COMPLETE: #{repo}\n\n\n\n\n"
+    else
+      IO.puts "Not migrating."
+    end
   end
 
   defp do_update(repo) do
