@@ -36,7 +36,7 @@ config :farmbot, Farmbot.Repo.A,
 config :farmbot, Farmbot.Repo.B,
   adapter: Sqlite.Ecto2,
   loggers: [],
-  database: "tmp/#{Farmbot.Repo.A}_dev.sqlite3",
+  database: "tmp/#{Farmbot.Repo.B}_dev.sqlite3",
   pool_size: 1
 
 config :farmbot, Farmbot.System.ConfigStorage,

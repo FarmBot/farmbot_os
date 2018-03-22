@@ -1,4 +1,4 @@
-defmodule Farmbot.Repo.A.Migrations.AddDevicesTable do
+defmodule Farmbot.Repo.Migrations.AddDevicesTable do
   use Ecto.Migration
 
   def change do
