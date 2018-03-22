@@ -5,16 +5,13 @@ defmodule Farmbot.Repo.Migrations.FixNamespaces do
   def change do
     repo = Application.get_env(:farmbot, :repo_hack)
     if repo do
-      IO.puts "STARTING MIGRATION: #{repo}\n\n\n\n\n\n"
       do_update(repo)
-      IO.puts "MIGRATION COMPLETE: #{repo}\n\n\n\n\n"
     else
       IO.puts "Not migrating."
     end
   end
 
   defp do_update(repo) do
-    IO.puts "UPDATING #{repo}\n\n\n"
     fe_needs_change = repo.all(from e in Farmbot.Asset.FarmEvent)
     |> Enum.filter(fn(asset) ->
       String.contains?(asset.executable_type, "Repo")
@@ -38,7 +35,7 @@ defmodule Farmbot.Repo.Migrations.FixNamespaces do
       Ecto.Changeset.change(a, pointer_type: String.split(a.pointer_type, ".") |> List.last)
     end) |> Enum.map(fn(cs) -> repo.update!(cs) end)
     |> fn(updated) ->
-      IO.puts "Points updated: #{Enum.count(updated)}\n\n\n"
+      IO.puts "Points updated: #{Enum.count(updated)}"
     end.()
   end
 end
