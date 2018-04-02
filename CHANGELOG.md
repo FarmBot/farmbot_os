@@ -1,4 +1,4 @@
-# 6.4.0-dev
+# 6.4.0
 
 # 6.3.1
 * Fix bug causing FarmEvents not to work.
