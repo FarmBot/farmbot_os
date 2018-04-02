@@ -59,7 +59,7 @@ defmodule Farmbot.Firmware.EstopTimer do
     if state.already_sent do
       {:noreply, %{state | timer: nil}}
     else
-      Logger.warn 1, @msg, [channels: [:email]]
+      Logger.warn 1, @msg, [channels: [:fatal_email]]
       {:noreply, %{state | timer: nil, already_sent: true}}
     end
   end
