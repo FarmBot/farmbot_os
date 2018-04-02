@@ -116,17 +116,14 @@ defmodule Farmbot.BotState.Transport.AMQP do
       if should_log?(log.module, log.verbosity) do
         fb = %{position: %{x: -1, y: -1, z: -1}}
         location_data = Map.get(state.state_cache || %{}, :location_data, fb)
-        meta = %{
+        log_without_pos = %{
           type: log.level,
           x: nil, y: nil, z: nil,
           verbosity: log.verbosity,
           major_version: log.version.major,
           minor_version: log.version.minor,
           patch_version: log.version.patch,
-        }
-        log_without_pos = %{
           created_at: log.time,
-          meta: meta,
           channels: log.meta[:channels] || [],
           message: log.message
         }
@@ -301,8 +298,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
     :ok = AMQP.Basic.publish chan, @exchange, "bot.#{bot}.status", json
   end
 
-  defp add_position_to_log(%{meta: meta} = log, %{position: pos}) do
-    new_meta = Map.merge(meta, pos)
-    %{log | meta: new_meta}
+  defp add_position_to_log(%{} = log, %{position: pos}) do
+    Map.merge(log, pos)
   end
 end
