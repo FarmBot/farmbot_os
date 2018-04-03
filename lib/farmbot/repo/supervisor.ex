@@ -1,8 +1,6 @@
 defmodule Farmbot.Repo.Supervisor do
   @moduledoc false
 
-  @repos [Farmbot.Repo.A, Farmbot.Repo.B]
-
   use Supervisor
 
   @doc false
@@ -10,12 +8,13 @@ defmodule Farmbot.Repo.Supervisor do
     Supervisor.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
+  @doc false
   def init([]) do
-    @repos
-    |> Enum.map(fn repo ->
-         supervisor(repo, [])
-       end)
-    |> Kernel.++([worker(Farmbot.Repo, [@repos])])
-    |> supervise(strategy: :one_for_one)
+    children = [
+      supervisor(Farmbot.Repo, []),
+      worker(Farmbot.Repo.Worker, []),
+      worker(Farmbot.Asset.Registry, [])
+    ]
+    supervise(children, [strategy: :one_for_all])
   end
 end

@@ -14,7 +14,6 @@ defmodule Farmbot.Asset.Point do
     field(:pointer_type, Farmbot.Repo.ModuleType.Point)
   end
 
-  use Farmbot.Repo.Syncable
   @required_fields [:id, :name, :x, :y, :z, :meta, :pointer_type]
   @optional_fields [:tool_id]
 

@@ -19,4 +19,14 @@ defmodule Farmbot.System.ConfigStorage.SyncCmd do
     |> cast(params, @required_fields)
     |> validate_required(@required_fields)
   end
+
+  @doc """
+  Register a sync message from an external source.
+  This is like a snippit of the changes that have happened.
+  `sync_cmd`s should only be applied on `sync`ing.
+  `sync_cmd`s are _not_ a source of truth for transactions that have been applied.
+  Use the `Farmbot.Asset.Registry` for these types of events.
+  """
+  def register_sync_cmd(_id, _kind, _body) do
+  end
 end

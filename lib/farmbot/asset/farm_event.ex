@@ -34,8 +34,6 @@ defmodule Farmbot.Asset.FarmEvent do
     field(:calendar, JSONType)
   end
 
-  use Farmbot.Repo.Syncable
-
   @required_fields [
     :id,
     :start_time,

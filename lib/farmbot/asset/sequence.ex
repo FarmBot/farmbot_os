@@ -14,7 +14,6 @@ defmodule Farmbot.Asset.Sequence do
     field(:body, JSONType)
   end
 
-  use Farmbot.Repo.Syncable
   @required_fields [:id, :name, :kind, :args, :body]
 
   def changeset(sequence, params \\ %{}) do

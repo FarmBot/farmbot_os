@@ -226,7 +226,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
       :ok = Farmbot.Repo.register_sync_cmd(String.to_integer(id), kind, body)
 
       if get_config_value(:bool, "settings", "auto_sync") do
-        Farmbot.Repo.flip()
+        Farmbot.Repo.sync()
       end
 
       {:ok, %Macro.Env{}} = AST.Node.RpcOk.execute(%{label: uuid}, [], struct(Macro.Env))
