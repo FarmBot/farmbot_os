@@ -42,8 +42,10 @@ defmodule Farmbot.Repo.Registry do
   end
 
   def handle_cast({action, object}, state) do
+    msg = {__MODULE__, action, object.__struct__, object}
+    # IO.puts "Dispatching: #{inspect msg}"
     Enum.each(state.subscribers, fn(pid) ->
-      send(pid, {__MODULE__, action, object.__struct__, object})
+      send(pid, msg)
     end)
     {:noreply, state}
   end

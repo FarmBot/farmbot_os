@@ -30,7 +30,7 @@ defmodule Farmbot.Repo do
   and then redownload all data.
   """
   def full_sync do
-    Logger.debug 3, "Starting full sync."
+    Logger.busy 2, "Syncing"
     set_sync_status(:syncing)
     old = snapshot()
     {:ok, results} = http_requests()
@@ -43,6 +43,7 @@ defmodule Farmbot.Repo do
     Farmbot.Repo.Registry.dispatch(diff)
     destroy_all_sync_cmds()
     set_sync_status(:synced)
+    Logger.success 2, "Synced"
     :ok
   end
 
@@ -76,7 +77,6 @@ defmodule Farmbot.Repo do
     Farmbot.Repo.delete_all(Sequence)
     # Farmbot.Repo.delete_all(ToolSlot)
     Farmbot.Repo.delete_all(Tool)
-    set_sync_status(:sync_now)
     :ok
   end
 
@@ -121,9 +121,14 @@ defmodule Farmbot.Repo do
   def apply_sync_cmd(cmd) do
     mod = Module.concat(["Farmbot", "Asset", cmd.kind])
     if Code.ensure_loaded?(mod) do
+      set_sync_status(:syncing)
+      old = snapshot()
       Logger.debug(3, "Applying sync_cmd (#{mod}): insert_or_update")
       do_apply_sync_cmd(cmd)
-      set_sync_status(:sync_now)
+      new = snapshot()
+      diff = Snapshot.diff(old, new)
+      Farmbot.Repo.Registry.dispatch(diff)
+      set_sync_status(:synced)
     else
       Logger.warn(3, "Unknown module: #{mod} #{inspect(cmd)}")
     end

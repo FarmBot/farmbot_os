@@ -14,37 +14,84 @@ defmodule Farmbot.Repo.Snapshot do
   defstruct [data: [], hash: nil]
 
   def diff(%Snapshot{} = old, %Snapshot{} = new) do
-    struct(Diff, [
-      additions: calculate_additions(old.data, new.data),
-      deletions: calculate_deletions(old.data, new.data),
-      updates:   calculate_updates(old.data, new.data)
+    IO.puts "Diffing: #{inspect old} with #{inspect new}"
+
+    data = struct(Diff, [
+      additions:       calculate_additions(old.data, new.data),
+      deletions:       calculate_deletions(old.data, new.data),
+      updates:         calculate_updates(old.data, new.data)
     ])
+
+    Enum.each(data.additions, fn(%{__struct__: mod, id: id}) ->
+      IO.puts "Added #{mod} => #{id}"
+    end)
+
+    Enum.each(data.deletions, fn(%{__struct__: mod, id: id}) ->
+      IO.puts "deleted #{mod} => #{id}"
+    end)
+
+    Enum.each(data.updates, fn(%{__struct__: mod, id: id}) ->
+      IO.puts "updated #{mod} => #{id}"
+    end)
+
+    data
   end
 
   def diff(%Snapshot{} = data) do
     struct(Diff, [
       additions: calculate_additions([], data.data),
       deletions: calculate_deletions([], data.data),
-      updates:   calculate_updates([], data.data)
+      updates:   []
     ])
   end
 
   defp calculate_additions(old, new) do
-    Enum.reject(new, fn(data) ->
-      Enum.find(old, fn(%{id: id, __struct__: mod}) -> (mod == data.__struct__ && id == data.id) end)
+    Enum.reduce(new, [], fn(new_object, acc) ->
+      maybe_old_object = Enum.find(old, fn(old_object) ->
+        is_correct_mod? = old_object.__struct__ == new_object.__struct__
+        is_correct_id? = old_object.id == new_object.id
+        is_correct_mod? && is_correct_id?
+      end)
+      if maybe_old_object do
+        acc
+      else
+        [new_object | acc]
+      end
     end)
   end
 
+  # We need all the items that are not in `new`, but were in `old`
   defp calculate_deletions(old, new) do
-    Enum.reject(old, fn(data) ->
-      data in new
+    Enum.reduce(old, [], fn(old_object, acc) ->
+      maybe_new_object = Enum.find(new, fn(new_object) ->
+        is_correct_mod? = old_object.__struct__ == new_object.__struct__
+        is_correct_id? = old_object.id == new_object.id
+        is_correct_mod? && is_correct_id?
+      end)
+
+      if maybe_new_object do
+        acc
+      else
+        [old_object | acc]
+      end
     end)
   end
 
+  # We need all items that weren't added, or deleted.
   defp calculate_updates(old, new) do
-    Enum.reject(old, fn(data) ->
-      object = Enum.find(new, fn(%{id: id, __struct__: mod}) -> (mod == data.__struct__ && id == data.id) end)
-      object && object == data
+    index = fn(%{__struct__: mod, id: id} = data) ->
+      {{mod, id}, data}
+    end
+
+    old_index = Map.new(old, index)
+    new_index = Map.new(new, index)
+    a = Map.take(new_index, Map.keys(old_index))
+    Enum.reduce(a, [], fn({key, val}, acc) ->
+      if old_index[key] != val do
+        [val | acc]
+      else
+        acc
+      end
     end)
   end
 
@@ -60,6 +107,10 @@ defmodule Farmbot.Repo.Snapshot do
   end
 
   defimpl Inspect, for: Snapshot do
+    def inspect(%Snapshot{data: []}, _) do
+      "#Snapshot<[NULL]>"
+    end
+
     def inspect(%Snapshot{hash: hash}, _) when is_binary(hash) do
       "#Snapshot<#{hash}>"
     end

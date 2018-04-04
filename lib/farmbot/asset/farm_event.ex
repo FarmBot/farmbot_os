@@ -7,7 +7,7 @@ defmodule Farmbot.Asset.FarmEvent do
       * A Sequence will execute.
   """
 
-  # @on_load :load_nif
+  @on_load :load_nif
   def load_nif do
     require Logger
     nif_file = '#{:code.priv_dir(:farmbot)}/build_calendar'
@@ -53,7 +53,7 @@ defmodule Farmbot.Asset.FarmEvent do
   end
 
   @compile {:inline, [build_calendar: 1]}
-  def build_calendar(%__MODULE__{calendar: nil} = fe), do: fe
+  def build_calendar(%__MODULE__{calendar: nil} = fe), do: build_calendar(%{fe | calendar: []})
   def build_calendar(%__MODULE__{time_unit: "never"} = fe), do: fe
   def build_calendar(%__MODULE__{calendar: calendar} = fe)  when is_list(calendar) do
     current_time_seconds = :os.system_time(:second)

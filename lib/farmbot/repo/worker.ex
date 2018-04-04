@@ -40,7 +40,15 @@ defmodule Farmbot.Repo.Worker do
 
   def init([]) do
     set_sync_status(:sync_now)
-    {:ok, struct(State)}
+    if get_config_value(:bool, "settings", "auto_sync") do
+      pid = spawn(Farmbot.Repo, :full_sync, [])
+      ref = Process.monitor(pid)
+      timer = refresh_or_start_timeout(nil, sync_timeout(), ref, self())
+      set_sync_status(:syncing)
+      {:ok, struct(State, %{sync_pid: pid, sync_ref: ref, sync_timer: timer, waiting: [], syncing: true})}
+    else
+      {:ok, struct(State)}
+    end
   end
 
   def terminate(_, _) do
