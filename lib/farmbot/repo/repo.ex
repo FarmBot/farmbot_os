@@ -123,7 +123,7 @@ defmodule Farmbot.Repo do
     if Code.ensure_loaded?(mod) do
       set_sync_status(:syncing)
       old = snapshot()
-      Logger.debug(3, "Applying sync_cmd (#{mod}): insert_or_update")
+      Logger.debug(3, "Applying sync_cmd (#{mod})")
       do_apply_sync_cmd(cmd)
       new = snapshot()
       diff = Snapshot.diff(old, new)
@@ -154,12 +154,13 @@ defmodule Farmbot.Repo do
     case Farmbot.Repo.get(mod, id) do
       # If it does not, just return the newly created object.
       nil ->
-        mod.changeset(struct(mod), not_struct)
-        |> Farmbot.Repo.insert!
+        change = mod.changeset(struct(mod, not_struct), not_struct)
+        Farmbot.Repo.insert!(change)
         :ok
       # if there is an existing record, copy the ecto  meta from the old
       # record. This allows `insert_or_update` to work properly.
       existing ->
+        IO.puts "update"
         mod.changeset(existing, not_struct)
         |> Farmbot.Repo.update!
         :ok

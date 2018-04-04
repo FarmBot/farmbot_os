@@ -6,9 +6,11 @@ defmodule Farmbot.System.ConfigStorage do
 
   use Ecto.Repo, otp_app: :farmbot, adapter: Application.get_env(:farmbot, __MODULE__)[:adapter]
   import Ecto.Query, only: [from: 2]
-  alias Farmbot.System.ConfigStorage.{
+  alias Farmbot.System.ConfigStorage
+  alias ConfigStorage.{
     Group, Config, BoolValue, FloatValue, StringValue,
-    SyncCmd
+    SyncCmd,
+    PersistentRegimen
   }
 
 
@@ -27,6 +29,30 @@ defmodule Farmbot.System.ConfigStorage do
   @doc "Destroy all sync cmds locally."
   def destroy_all_sync_cmds do
     delete_all(SyncCmd)
+  end
+
+  @doc "Get all Persistent Regimens"
+  def all_persistent_regimens do
+    ConfigStorage.all(PersistentRegimen)
+  end
+
+  @doc "Add a new Persistent Regimen."
+  def add_persistent_regimen(%{id: id} = _regimen, time) do
+    PersistentRegimen.changeset(struct(PersistentRegimen, %{regimen_id: id, time: time}))
+    |> ConfigStorage.insert()
+    |> case do
+      {:ok, _} -> :ok
+      err -> err
+    end
+  end
+
+  @doc "Destroy a Persistent Regimen."
+  def destroy_persistent_regimen(%{id: id} = _regimen) do
+    q = from p in PersistentRegimen, where: p.regimen_id == ^id
+    case ConfigStorage.delete(q) do
+      {:ok, _} -> :ok
+      err -> err
+    end
   end
 
   @doc "Please be careful with this. It uses a lot of queries."

@@ -65,6 +65,16 @@ defmodule Farmbot.FarmEvent.Manager do
     |> reindex(state)
   end
 
+  def handle_info({Registry, :deletion, Regimen, data}, state) do
+    Farmbot.Regimen.Supervisor.remove_child(data)
+    {:noreply, state}
+  end
+
+  def handle_info({Registry, :update, Regimen, data}, state) do
+    Farmbot.Regimen.Supervisor.restart_child(data)
+    {:noreply, state}
+  end
+
   def handle_info({Registry, _, _, _}, state) do
     {:noreply, state}
   end
