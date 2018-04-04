@@ -22,14 +22,14 @@ defmodule Farmbot.FarmEvent.Manager do
   alias Farmbot.Asset.{FarmEvent, Sequence, Regimen}
   alias Farmbot.Repo.Registry
 
-  # @checkup_time 100
-  @checkup_time 30_000
+  @checkup_time 100
+  # @checkup_time 30_000
 
   ## GenServer
 
   defmodule State do
     @moduledoc false
-    defstruct [timer: nil, last_time_index: %{}, events: %{}, checkup: nil]
+    defstruct [timer: nil, last_time_index: %{}, events: [], checkup: nil]
   end
 
   @doc false
@@ -48,37 +48,23 @@ defmodule Farmbot.FarmEvent.Manager do
   end
 
   def handle_info({Registry, :addition, FarmEvent, data}, state) do
-    Map.put(state.events, data.id, data)
+    require IEx; IEx.pry
+    [data | state.events]
     |> reindex(state)
   end
 
   def handle_info({Registry, :deletion, FarmEvent, data}, state) do
-    Map.delete(state.events, data.id)
+    List.delete(state.events, data)
     |> reindex(state)
   end
 
   def handle_info({Registry, :update, FarmEvent, data}, state) do
-    Map.put(state.events, data.id, data)
+    state.events
     |> reindex(state)
   end
 
   def handle_info({Registry, _, _, _}, state) do
     {:noreply, state}
-  end
-
-  defp reindex(events, state) do
-    maybe_farm_event_log "Reindexed FarmEvents"
-    if match?({_, _}, state.checkup) do
-      Process.exit(state.checkup |> elem(0), {:success, %{state | events: events}})
-    end
-
-    if state.timer do
-      Process.cancel_timer(state.timer)
-      timer = Process.send_after(self(), :checkup, @checkup_time)
-      {:noreply, %{state | events: events, timer: timer}}
-    else
-      {:noreply, %{state | events: events}}
-    end
   end
 
   def handle_info(:checkup, state) do
@@ -97,11 +83,27 @@ defmodule Farmbot.FarmEvent.Manager do
     {:noreply, %{state | timer: timer, checkup: nil}}
   end
 
+  defp reindex(events, state) do
+    events = Enum.map(events, &FarmEvent.build_calendar(&1))
+    maybe_farm_event_log "Reindexed FarmEvents"
+    if match?({_, _}, state.checkup) do
+      Process.exit(state.checkup |> elem(0), {:success, %{state | events: events}})
+    end
+
+    if state.timer do
+      Process.cancel_timer(state.timer)
+      timer = Process.send_after(self(), :checkup, @checkup_time)
+      {:noreply, %{state | events: events, timer: timer}}
+    else
+      {:noreply, %{state | events: events}}
+    end
+  end
+
   def async_checkup(_manager, state) do
     now = get_now()
 
     # maybe_farm_event_log "Rebuilding calendar."
-    all_events = Enum.map(state.events, &FarmEvent.build_calendar(elem(&1, 1)))
+    all_events = Enum.map(state.events, &FarmEvent.build_calendar(&1))
     # maybe_farm_event_log "Rebuilding calendar complete."
 
     # do checkup is the bulk of the work.
@@ -112,7 +114,7 @@ defmodule Farmbot.FarmEvent.Manager do
       Logger.debug 3, "Time for events: #{inspect late_events} to run at: #{now.hour}:#{now.minute}"
       start_events(late_events, now)
     end
-    exit({:success, %{new | events: Map.new(all_events, fn(event) -> {event.id, event} end)}})
+    exit({:success, %{new | events: all_events}})
   end
 
   defp do_checkup(list, time, late_events \\ [], state)

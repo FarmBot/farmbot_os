@@ -7,7 +7,7 @@ defmodule Farmbot.Asset.FarmEvent do
       * A Sequence will execute.
   """
 
-  @on_load :load_nif
+  # @on_load :load_nif
   def load_nif do
     require Logger
     nif_file = '#{:code.priv_dir(:farmbot)}/build_calendar'

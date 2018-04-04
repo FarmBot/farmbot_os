@@ -84,16 +84,16 @@ defmodule Farmbot.Repo do
     Logger.debug 3, "Starting HTTP requests."
     {time, results} = :timer.tc(fn() ->
       [
-        Task.async(fn() -> {Device, HTTP.get!("/api/device.json") |> Map.fetch!(:body) |> Poison.decode!() } end),
-        Task.async(fn() -> {FarmEvent, HTTP.get!("/api/farm_events.json") |> Map.fetch!(:body) |> Poison.decode!() } end),
-        # Task.async(fn() -> {GenericPointer, HTTP.get!("/api/generic_pointers.json") |> Map.fetch!(:body) |> Poison.decode!() } end),
-        Task.async(fn() -> {Peripheral, HTTP.get!("/api/peripherals.json") |> Map.fetch!(:body) |> Poison.decode!() } end),
-        Task.async(fn() -> {Point, HTTP.get!("/api/points.json") |> Map.fetch!(:body) |> Poison.decode!() } end),
-        Task.async(fn() -> {Regimen, HTTP.get!("/api/regimens.json") |> Map.fetch!(:body) |> Poison.decode!() } end),
-        Task.async(fn() -> {Sensor, HTTP.get!("/api/sensors.json") |> Map.fetch!(:body) |> Poison.decode!() } end),
-        Task.async(fn() -> {Sequence, HTTP.get!("/api/sequences.json") |> Map.fetch!(:body) |> Poison.decode!() } end),
-        # Task.async(fn() -> {ToolSlot, HTTP.get!("/api/tool_slots.json") |> Map.fetch!(:body) |> Poison.decode!() } end),
-        Task.async(fn() -> {Tool, HTTP.get!("/api/tools.json") |> Map.fetch!(:body) |> Poison.decode!() } end),
+        Task.async(fn() -> {Device, HTTP.get!("/api/device.json") |> Map.fetch!(:body) |> Poison.decode!(as: struct(Device)) } end),
+        Task.async(fn() -> {FarmEvent, HTTP.get!("/api/farm_events.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(FarmEvent)]) } end),
+        # Task.async(fn() -> {GenericPointer, HTTP.get!("/api/generic_pointers.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(GenericPointer)]) } end),
+        Task.async(fn() -> {Peripheral, HTTP.get!("/api/peripherals.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Peripheral)]) } end),
+        Task.async(fn() -> {Point, HTTP.get!("/api/points.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Point)]) } end),
+        Task.async(fn() -> {Regimen, HTTP.get!("/api/regimens.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Regimen)]) } end),
+        Task.async(fn() -> {Sensor, HTTP.get!("/api/sensors.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Sensor)]) } end),
+        Task.async(fn() -> {Sequence, HTTP.get!("/api/sequences.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Sequence)]) } end),
+        # Task.async(fn() -> {ToolSlot, HTTP.get!("/api/tool_slots.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(ToolSlot)]) } end),
+        Task.async(fn() -> {Tool, HTTP.get!("/api/tools.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Tool)]) } end),
       ]
       |> Enum.map(&Task.await(&1))
     end)
@@ -106,14 +106,14 @@ defmodule Farmbot.Repo do
     :ok
   end
 
-  defp do_enter_into_repo({Device, results}) do
-    Device.changeset(struct(Device), results)
+  defp do_enter_into_repo({Device, device}) do
+    Device.changeset(device, %{})
     |> Farmbot.Repo.insert!()
   end
 
   defp do_enter_into_repo({mod, results}) do
     Enum.map(results, fn(data) ->
-      mod.changeset(struct(mod), data)
+      mod.changeset(data, %{})
     end)
     |> Enum.map(&Farmbot.Repo.insert!(&1))
   end
