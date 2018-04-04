@@ -21,6 +21,14 @@ defmodule Farmbot.Repo.Snapshot do
     ])
   end
 
+  def diff(%Snapshot{} = data) do
+    struct(Diff, [
+      additions: calculate_additions([], data.data),
+      deletions: calculate_deletions([], data.data),
+      updates:   calculate_updates([], data.data)
+    ])
+  end
+
   defp calculate_additions(old, new) do
     Enum.reject(new, fn(data) ->
       Enum.find(old, fn(%{id: id, __struct__: mod}) -> (mod == data.__struct__ && id == data.id) end)

@@ -6,7 +6,28 @@ defmodule Farmbot.System.ConfigStorage do
 
   use Ecto.Repo, otp_app: :farmbot, adapter: Application.get_env(:farmbot, __MODULE__)[:adapter]
   import Ecto.Query, only: [from: 2]
-  alias Farmbot.System.ConfigStorage.{Group, Config, BoolValue, FloatValue, StringValue}
+  alias Farmbot.System.ConfigStorage.{
+    Group, Config, BoolValue, FloatValue, StringValue,
+    SyncCmd
+  }
+
+
+  @doc """
+  Register a sync message from an external source.
+  This is like a snippit of the changes that have happened.
+  `sync_cmd`s should only be applied on `sync`ing.
+  `sync_cmd`s are _not_ a source of truth for transactions that have been applied.
+  Use the `Farmbot.Asset.Registry` for these types of events.
+  """
+  def register_sync_cmd(remote_id, kind, body) do
+    SyncCmd.changeset(struct(SyncCmd, %{remote_id: remote_id, kind: kind, body: body}))
+    |> insert!()
+  end
+
+  @doc "Destroy all sync cmds locally."
+  def destroy_all_sync_cmds do
+    delete_all(SyncCmd)
+  end
 
   @doc "Please be careful with this. It uses a lot of queries."
   def get_config_as_map do

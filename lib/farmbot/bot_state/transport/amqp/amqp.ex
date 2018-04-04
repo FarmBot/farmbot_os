@@ -223,10 +223,9 @@ defmodule Farmbot.BotState.Transport.AMQP do
         "args" => %{"label" => uuid}
       } = Poison.decode!(payload, as: %{"body" => struct(mod)})
 
-      :ok = Farmbot.Repo.register_sync_cmd(String.to_integer(id), kind, body)
-
+      cmd = ConfigStorage.register_sync_cmd(String.to_integer(id), kind, body)
       if get_config_value(:bool, "settings", "auto_sync") do
-        Farmbot.Repo.sync()
+        Farmbot.Repo.apply_sync_cmd(cmd)
       end
 
       {:ok, %Macro.Env{}} = AST.Node.RpcOk.execute(%{label: uuid}, [], struct(Macro.Env))

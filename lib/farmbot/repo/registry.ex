@@ -16,11 +16,15 @@ defmodule Farmbot.Repo.Registry do
     Enum.each(diff.updates, fn(update) ->
       GenServer.cast(__MODULE__, {:update, update})
     end)
+    :ok
   end
 
   @doc "Subscribe for events."
   def subscribe do
-    GenServer.call(__MODULE__, :subscribe)
+    :ok = GenServer.call(__MODULE__, :subscribe)
+    Farmbot.Repo.snapshot()
+    |> Farmbot.Repo.Snapshot.diff()
+    |> dispatch()
   end
 
   @doc false

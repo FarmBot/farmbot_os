@@ -5,9 +5,11 @@ defmodule Farmbot.Repo do
     otp_app: :farmbot,
     adapter: Application.get_env(:farmbot, __MODULE__)[:adapter]
 
-  defdelegate sync(full \\ false), to: Farmbot.Repo.Worker
+  defdelegate sync, to: Farmbot.Repo.Worker
   defdelegate await_sync, to: Farmbot.Repo.Worker
-  defdelegate register_sync_cmd(id, kind, body), to: Farmbot.System.ConfigStorage.SyncCmd
+
+  import Farmbot.System.ConfigStorage, only: [destroy_all_sync_cmds: 0]
+  import Farmbot.BotState, only: [set_sync_status: 1]
 
   alias Farmbot.HTTP
   alias Farmbot.Asset.{
@@ -23,35 +25,24 @@ defmodule Farmbot.Repo do
     Tool
   }
 
-  # A partial sync pulls all the sync commands from storage,
-  # And applies them one by one.
-  def partial_sync do
-    Logger.debug 3, "Starting partial sync."
-    old = snapshot()
-    Farmbot.Repo.transaction fn() ->
-      :ok
-    end
-    new = snapshot()
-    diff = Snapshot.diff(old, new)
-    Farmbot.Repo.Registry.dispatch(diff)
-  end
-
   @doc """
   A full sync will clear the entire local data base
   and then redownload all data.
   """
   def full_sync do
     Logger.debug 3, "Starting full sync."
+    set_sync_status(:syncing)
     old = snapshot()
     {:ok, results} = http_requests()
     Farmbot.Repo.transaction fn() ->
       :ok = clear_all_data()
       :ok = enter_into_repo(results)
-      :ok
     end
     new = snapshot()
     diff = Snapshot.diff(old, new)
     Farmbot.Repo.Registry.dispatch(diff)
+    destroy_all_sync_cmds()
+    set_sync_status(:synced)
     :ok
   end
 
@@ -85,6 +76,7 @@ defmodule Farmbot.Repo do
     Farmbot.Repo.delete_all(Sequence)
     # Farmbot.Repo.delete_all(ToolSlot)
     Farmbot.Repo.delete_all(Tool)
+    set_sync_status(:sync_now)
     :ok
   end
 
@@ -125,4 +117,53 @@ defmodule Farmbot.Repo do
     end)
     |> Enum.map(&Farmbot.Repo.insert!(&1))
   end
+
+  def apply_sync_cmd(cmd) do
+    mod = Module.concat(["Farmbot", "Asset", cmd.kind])
+    if Code.ensure_loaded?(mod) do
+      Logger.debug(3, "Applying sync_cmd (#{mod}): insert_or_update")
+      do_apply_sync_cmd(cmd)
+      set_sync_status(:sync_now)
+    else
+      Logger.warn(3, "Unknown module: #{mod} #{inspect(cmd)}")
+    end
+  end
+
+  # When `body` is nil, it means an object was deleted.
+  def do_apply_sync_cmd(%{body: nil, remote_id: id, kind: kind}) do
+    mod = Module.concat(["Farmbot", "Asset", kind])
+    case Farmbot.Repo.get(mod, id) do
+      nil ->
+        :ok
+
+      existing ->
+        Farmbot.Repo.delete!(existing)
+        :ok
+    end
+  end
+
+  def do_apply_sync_cmd(%{body: obj, remote_id: id, kind: kind}) do
+    not_struct = strip_struct(obj)
+    mod = Module.concat(["Farmbot", "Asset", kind])
+    # We need to check if this object exists in the database.
+    case Farmbot.Repo.get(mod, id) do
+      # If it does not, just return the newly created object.
+      nil ->
+        mod.changeset(struct(mod), not_struct)
+        |> Farmbot.Repo.insert!
+        :ok
+      # if there is an existing record, copy the ecto  meta from the old
+      # record. This allows `insert_or_update` to work properly.
+      existing ->
+        mod.changeset(existing, not_struct)
+        |> Farmbot.Repo.update!
+        :ok
+    end
+  end
+
+  defp strip_struct(%{__struct__: _, __meta__: _} = struct) do
+    Map.from_struct(struct) |> Map.delete(:__meta__)
+  end
+
+  defp strip_struct(already_map), do: already_map
 end

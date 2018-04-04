@@ -12,9 +12,9 @@ defmodule Farmbot.Repo.Worker do
   @gen_server_timeout_grace 1500
 
   @doc "Sync Farmbot with the Web APP."
-  def sync(full \\ false) do
+  def sync do
     timeout = sync_timeout()
-    GenServer.call(__MODULE__, {:sync, [full, timeout]}, timeout + @gen_server_timeout_grace)
+    GenServer.call(__MODULE__, {:sync, [timeout]}, timeout + @gen_server_timeout_grace)
   end
 
   @doc "Waits for a sync to complete if one is happening."
@@ -30,7 +30,6 @@ defmodule Farmbot.Repo.Worker do
   defmodule State do
     @moduledoc false
     defstruct [
-      needs_full_sync?: true,
       waiting: [],
       syncing: false,
       sync_ref: nil,
@@ -61,27 +60,8 @@ defmodule Farmbot.Repo.Worker do
     {:noreply, %{state | waiting: [from | state.waiting]}}
   end
 
-  # full sync forced from function call.
-  def handle_call({:sync, [true, timeout_ms]}, from, state) do
+  def handle_call({:sync, [timeout_ms]}, from, state) do
     pid = spawn(Farmbot.Repo, :full_sync, [])
-    ref = Process.monitor(pid)
-    timer = refresh_or_start_timeout(state.sync_timer, timeout_ms, ref, self())
-    set_sync_status(:syncing)
-    {:noreply, %{state | sync_pid: pid, sync_ref: ref, sync_timer: timer, waiting: [from | state.waiting], syncing: true}}
-  end
-
-  # full sync forced from internal state.
-  def handle_call({:sync, [_, timeout_ms]}, from, %{needs_full_sync?: true} = state) do
-    pid = spawn(Farmbot.Repo, :full_sync, [])
-    ref = Process.monitor(pid)
-    timer = refresh_or_start_timeout(state.sync_timer, timeout_ms, ref, self())
-    set_sync_status(:syncing)
-    {:noreply, %{state | sync_pid: pid, sync_ref: ref, sync_timer: timer, waiting: [from | state.waiting], syncing: true}}
-  end
-
-  # not a full sync.
-  def handle_call({:sync, [false, timeout_ms]}, from, state) do
-    pid = spawn(Farmbot.Repo, :partial_sync, [])
     ref = Process.monitor(pid)
     timer = refresh_or_start_timeout(state.sync_timer, timeout_ms, ref, self())
     set_sync_status(:syncing)

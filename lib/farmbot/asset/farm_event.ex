@@ -52,16 +52,6 @@ defmodule Farmbot.Asset.FarmEvent do
     |> unique_constraint(:id)
   end
 
-  def bench do
-    begin = :os.system_time(:seconds)
-    res = Farmbot.HTTP.get!("/api/farm_events").body
-    |> Poison.decode!(as: [%__MODULE__{}])
-    |> Enum.map(&build_calendar(&1))
-
-    IO.puts "total: #{:os.system_time(:seconds) - begin}"
-    res
-  end
-
   @compile {:inline, [build_calendar: 1]}
   def build_calendar(%__MODULE__{calendar: nil} = fe), do: fe
   def build_calendar(%__MODULE__{time_unit: "never"} = fe), do: fe
