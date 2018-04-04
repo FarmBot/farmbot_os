@@ -63,15 +63,15 @@ defmodule Farmbot.Repo.Worker do
   def handle_call({:sync, [true, timeout_ms]}, from, state) do
     pid = spawn(Farmbot.Repo, :full_sync, [])
     ref = Process.monitor(pid)
-    timer = refresh_or_start_timeout(state.timer, timeout_ms, ref, self())
+    timer = refresh_or_start_timeout(state.sync_timer, timeout_ms, ref, self())
     {:noreply, %{state | sync_pid: pid, sync_ref: ref, sync_timer: timer, waiting: [from | state.waiting], syncing: true}}
   end
 
   # full sync forced from internal state.
-  def handle_call({:sync, [_, timeout_ms]}, from, %{needs_full_sync: true} = state) do
+  def handle_call({:sync, [_, timeout_ms]}, from, %{needs_full_sync?: true} = state) do
     pid = spawn(Farmbot.Repo, :full_sync, [])
     ref = Process.monitor(pid)
-    timer = refresh_or_start_timeout(state.timer, timeout_ms, ref, self())
+    timer = refresh_or_start_timeout(state.sync_timer, timeout_ms, ref, self())
     {:noreply, %{state | sync_pid: pid, sync_ref: ref, sync_timer: timer, waiting: [from | state.waiting], syncing: true}}
   end
 
@@ -79,7 +79,7 @@ defmodule Farmbot.Repo.Worker do
   def handle_call({:sync, [false, timeout_ms]}, from, state) do
     pid = spawn(Farmbot.Repo, :partial_sync, [])
     ref = Process.monitor(pid)
-    timer = refresh_or_start_timeout(state.timer, timeout_ms, ref, self())
+    timer = refresh_or_start_timeout(state.sync_timer, timeout_ms, ref, self())
     {:noreply, %{state | sync_pid: pid, sync_ref: ref, sync_timer: timer, waiting: [from | state.waiting], syncing: true}}
   end
 
@@ -99,7 +99,7 @@ defmodule Farmbot.Repo.Worker do
   # The sync process exited before the timeout.
   def handle_info({:DOWN, ref, :process, pid, reason}, %{sync_ref: ref, sync_pid: pid} = state) do
     reply_waiting(state.waiting, reason)
-    maybe_cancel_timer(state.timer)
+    maybe_cancel_timer(state.sync_timer)
     {:noreply, %{state | waiting: [], sync_ref: nil, sync_pid: nil, syncing: false, sync_timer: nil}}
   end
 
