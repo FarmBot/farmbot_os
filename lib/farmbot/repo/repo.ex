@@ -1,5 +1,6 @@
 defmodule Farmbot.Repo do
   use Farmbot.Logger
+  alias Farmbot.Repo.Snapshot
   use Ecto.Repo,
     otp_app: :farmbot,
     adapter: Application.get_env(:farmbot, __MODULE__)[:adapter]
@@ -22,34 +23,17 @@ defmodule Farmbot.Repo do
     Tool
   }
 
-  defmodule Snapshot do
-    @moduledoc false
-    alias Farmbot.Repo.Snapshot
-    defstruct [:data]
-
-    def diff(%Snapshot{} = old, %Snapshot{} = new) do
-      old.data -- new.data
-    end
-
-    def md5(%Snapshot{data: data}) do
-      data
-      |> Enum.map(&:crypto.hash(:md5, inspect(&1)))
-      |> fn(data) ->
-        :crypto.hash(:md5, data) |> Base.encode16()
-      end.()
-    end
-
-    defimpl Inspect, for: Snapshot do
-      def inspect(%Snapshot{} = snapshot, _) do
-        "#Snapshot<#{Snapshot.md5(snapshot)}>"
-      end
-    end
-  end
-
   # A partial sync pulls all the sync commands from storage,
   # And applies them one by one.
   def partial_sync do
-    :ok
+    Logger.debug 3, "Starting partial sync."
+    old = snapshot()
+    Farmbot.Repo.transaction fn() ->
+      :ok
+    end
+    new = snapshot()
+    diff = Snapshot.diff(old, new)
+    Farmbot.Repo.Registry.dispatch(diff)
   end
 
   @doc """
@@ -59,16 +43,16 @@ defmodule Farmbot.Repo do
   def full_sync do
     Logger.debug 3, "Starting full sync."
     old = snapshot()
+    {:ok, results} = http_requests()
     Farmbot.Repo.transaction fn() ->
-      with :ok <- clear_all_data(),
-          {:ok, results} <- http_requests(),
-          :ok <- enter_into_repo(results)
-      do
-        new = snapshot()
-        diff = Snapshot.diff(old, new)
-        :ok
-      end
+      :ok = clear_all_data()
+      :ok = enter_into_repo(results)
+      :ok
     end
+    new = snapshot()
+    diff = Snapshot.diff(old, new)
+    Farmbot.Repo.Registry.dispatch(diff)
+    :ok
   end
 
   def snapshot do
@@ -138,8 +122,6 @@ defmodule Farmbot.Repo do
     Enum.map(results, fn(data) ->
       mod.changeset(struct(mod), data)
     end)
-    |> Enum.map(fn(data) ->
-      Farmbot.Repo.insert!(data)
-    end)
+    |> Enum.map(&Farmbot.Repo.insert!(&1))
   end
 end

@@ -4,6 +4,7 @@ defmodule Farmbot.Repo.Worker do
   use GenServer
   alias Farmbot.System.ConfigStorage
   import ConfigStorage, only: [get_config_value: 3]
+  import Farmbot.BotState, only: [set_sync_status: 1]
   use Farmbot.Logger
 
   # This allows for the sync to gracefully timeout
@@ -39,6 +40,7 @@ defmodule Farmbot.Repo.Worker do
   end
 
   def init([]) do
+    set_sync_status(:sync_now)
     {:ok, struct(State)}
   end
 
@@ -64,6 +66,7 @@ defmodule Farmbot.Repo.Worker do
     pid = spawn(Farmbot.Repo, :full_sync, [])
     ref = Process.monitor(pid)
     timer = refresh_or_start_timeout(state.sync_timer, timeout_ms, ref, self())
+    set_sync_status(:syncing)
     {:noreply, %{state | sync_pid: pid, sync_ref: ref, sync_timer: timer, waiting: [from | state.waiting], syncing: true}}
   end
 
@@ -72,6 +75,7 @@ defmodule Farmbot.Repo.Worker do
     pid = spawn(Farmbot.Repo, :full_sync, [])
     ref = Process.monitor(pid)
     timer = refresh_or_start_timeout(state.sync_timer, timeout_ms, ref, self())
+    set_sync_status(:syncing)
     {:noreply, %{state | sync_pid: pid, sync_ref: ref, sync_timer: timer, waiting: [from | state.waiting], syncing: true}}
   end
 
@@ -80,6 +84,7 @@ defmodule Farmbot.Repo.Worker do
     pid = spawn(Farmbot.Repo, :partial_sync, [])
     ref = Process.monitor(pid)
     timer = refresh_or_start_timeout(state.sync_timer, timeout_ms, ref, self())
+    set_sync_status(:syncing)
     {:noreply, %{state | sync_pid: pid, sync_ref: ref, sync_timer: timer, waiting: [from | state.waiting], syncing: true}}
   end
 
@@ -87,6 +92,7 @@ defmodule Farmbot.Repo.Worker do
   def handle_info({:sync_timeout, sync_ref}, %{sync_ref: sync_ref} = state) do
     Logger.error 1, "Sync timed out!"
     reply_waiting(state.waiting, {:error, :sync_timeout})
+    set_sync_status(:sync_error)
     {:noreply, %{state | waiting: [], sync_ref: nil, sync_pid: nil, syncing: false, sync_timer: nil}}
   end
 
@@ -96,10 +102,19 @@ defmodule Farmbot.Repo.Worker do
     {:noreply, state}
   end
 
-  # The sync process exited before the timeout.
+  # The sync process exited before the timeout normally.
+  def handle_info({:DOWN, ref, :process, pid, :normal}, %{sync_ref: ref, sync_pid: pid} = state) do
+    reply_waiting(state.waiting, :ok)
+    maybe_cancel_timer(state.sync_timer)
+    set_sync_status(:synced)
+    {:noreply, %{state | waiting: [], sync_ref: nil, sync_pid: nil, syncing: false, sync_timer: nil}}
+  end
+
+  # The sync process exited after the timeout erronously.
   def handle_info({:DOWN, ref, :process, pid, reason}, %{sync_ref: ref, sync_pid: pid} = state) do
     reply_waiting(state.waiting, reason)
     maybe_cancel_timer(state.sync_timer)
+    set_sync_status(:sync_error)
     {:noreply, %{state | waiting: [], sync_ref: nil, sync_pid: nil, syncing: false, sync_timer: nil}}
   end
 

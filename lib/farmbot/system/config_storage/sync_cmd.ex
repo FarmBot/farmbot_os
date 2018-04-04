@@ -4,6 +4,7 @@ defmodule Farmbot.System.ConfigStorage.SyncCmd do
   use Ecto.Schema
   import Ecto.Changeset
   alias Farmbot.Repo.JSONType
+  alias Farmbot.System.ConfigStorage
 
   schema "sync_cmds" do
     field(:remote_id, :integer)
@@ -28,5 +29,6 @@ defmodule Farmbot.System.ConfigStorage.SyncCmd do
   Use the `Farmbot.Asset.Registry` for these types of events.
   """
   def register_sync_cmd(_id, _kind, _body) do
+    
   end
 end

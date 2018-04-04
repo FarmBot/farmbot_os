@@ -13,7 +13,7 @@ defmodule Farmbot.Repo.Supervisor do
     children = [
       supervisor(Farmbot.Repo, []),
       worker(Farmbot.Repo.Worker, []),
-      worker(Farmbot.Asset.Registry, [])
+      worker(Farmbot.Repo.Registry, [])
     ]
     supervise(children, [strategy: :one_for_all])
   end
