@@ -7,11 +7,11 @@ defmodule Farmbot.Repo.Snapshot do
     defstruct [
       additions: [],
       deletions: [],
-      updates: []
+      updates: [],
     ]
   end
 
-  defstruct [data: []]
+  defstruct [data: [], hash: nil]
 
   def diff(%Snapshot{} = old, %Snapshot{} = new) do
     struct(Diff, [
@@ -29,28 +29,31 @@ defmodule Farmbot.Repo.Snapshot do
 
   defp calculate_deletions(old, new) do
     Enum.reject(old, fn(data) ->
-      data in old
+      data in new
     end)
   end
 
   defp calculate_updates(old, new) do
     Enum.reject(old, fn(data) ->
       object = Enum.find(new, fn(%{id: id, __struct__: mod}) -> (mod == data.__struct__ && id == data.id) end)
-      object == data
+      object && object == data
     end)
   end
 
-  def md5(%Snapshot{data: data}) do
+  def md5(%Snapshot{data: data} = snapshot) do
     data
     |> Enum.map(&:crypto.hash(:md5, inspect(&1)))
     |> fn(data) ->
       :crypto.hash(:md5, data) |> Base.encode16()
     end.()
+    |> fn(hash) ->
+      %{snapshot | hash: hash}
+    end.()
   end
 
   defimpl Inspect, for: Snapshot do
-    def inspect(%Snapshot{} = snapshot, _) do
-      "#Snapshot<#{Snapshot.md5(snapshot)}>"
+    def inspect(%Snapshot{hash: hash}, _) when is_binary(hash) do
+      "#Snapshot<#{hash}>"
     end
   end
 end

@@ -71,6 +71,7 @@ defmodule Farmbot.Repo do
     end)
     Logger.debug 3, "Snapshot took: #{time}us."
     struct(Snapshot, [data: results])
+    |> Snapshot.md5()
   end
 
   def clear_all_data do
