@@ -5,7 +5,7 @@ defmodule Farmbot.Firmware.Gcode.Parser do
 
   import Farmbot.Firmware.Gcode.Param
 
-  @spec parse_code(binary) :: {binary, tuple}
+  @spec parse_code(binary) :: {binary | nil, tuple | atom}
 
   # Status codes.
   @doc "Parse a code to an Elixir consumable message."
@@ -27,6 +27,21 @@ defmodule Farmbot.Firmware.Gcode.Parser do
   def parse_code("R12 " <> tag), do: {tag, :report_axis_home_complete_y}
   def parse_code("R13 " <> tag), do: {tag, :report_axis_home_complete_z}
 
+  def parse_code("R15 " <> data) do
+    ["X" <> num_str, "Q" <> tag] = String.split(data, " ")
+    {tag, {:report_axis_changed_x, String.to_integer(num_str)}}
+  end
+
+  def parse_code("R16 " <> data) do
+    ["Y" <> num_str, "Q" <> tag] = String.split(data, " ")
+    {tag, {:report_axis_changed_y, String.to_integer(num_str)}}
+  end
+
+  def parse_code("R17 " <> data) do
+    ["Z" <> num_str, "Q" <> tag] = String.split(data, " ")
+    {tag, {:report_axis_changed_z, String.to_integer(num_str)}}
+  end
+
   # Param report.
   def parse_code("R20 Q" <> tag), do: {tag, :report_params_complete}
   def parse_code("R21 " <> params), do: parse_pvq(params, :report_parameter_value)
@@ -34,9 +49,9 @@ defmodule Farmbot.Firmware.Gcode.Parser do
   def parse_code("R31 " <> params), do: parse_pvq(params, :report_status_value)
   def parse_code("R41 " <> params), do: parse_pvq(params, :report_pin_value)
 
-  def parse_code("R71 " <>  tag), do: {tag, :report_axis_timeout_x}
-  def parse_code("R72 " <>  tag), do: {tag, :report_axis_timeout_y}
-  def parse_code("R73 " <>  tag), do: {tag, :report_axis_timeout_z}
+  def parse_code("R71 Q" <>  tag), do: {tag, :report_axis_timeout_x}
+  def parse_code("R72 Q" <>  tag), do: {tag, :report_axis_timeout_y}
+  def parse_code("R73 Q" <>  tag), do: {tag, :report_axis_timeout_z}
 
   # Report Position.
   def parse_code("R81 " <> params), do: parse_end_stops(params)

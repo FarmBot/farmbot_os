@@ -115,7 +115,8 @@ defmodule Farmbot.Firmware do
     defstruct [
       fun: nil,
       args: nil,
-      from: nil
+      from: nil,
+      status: nil
     ]
 
     defimpl Inspect, for: __MODULE__ do
@@ -469,36 +470,45 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode(:report_axis_home_complete_x, state) do
-    Logger.success 2, "X Axis homing complete."
     {nil, state}
   end
 
   defp handle_gcode(:report_axis_home_complete_y, state) do
-    Logger.success 2, "Y Axis homing complete."
     {nil, state}
   end
 
   defp handle_gcode(:report_axis_home_complete_z, state) do
-    Logger.success 2, "Z Axis homing complete."
     {nil, %{state | timer: nil}}
   end
 
   defp handle_gcode(:report_axis_timeout_x, state) do
-    Logger.error 2, "X Axis timeout."
     do_reply(state, {:error, :axis_timeout_x})
     {nil, %{state | timer: nil}}
   end
 
   defp handle_gcode(:report_axis_timeout_y, state) do
-    Logger.error 2, "Y Axis timeout."
     do_reply(state, {:error, :axis_timeout_y})
     {nil, %{state | timer: nil}}
   end
 
   defp handle_gcode(:report_axis_timeout_z, state) do
-    Logger.error 2, "Z Axis timeout."
     do_reply(state, {:error, :axis_timeout_z})
     {nil, %{state | timer: nil}}
+  end
+
+  defp handle_gcode({:report_axis_changed_x, _new_x} = msg, state) do
+    new_current = add_status(state.current, msg)
+    {nil, %{state | current: new_current}}
+  end
+
+  defp handle_gcode({:report_axis_changed_y, _new_y} = msg, state) do
+    new_current = add_status(state.current, msg)
+    {nil, %{state | current: new_current}}
+  end
+
+  defp handle_gcode({:report_axis_changed_z, _new_z} = msg, state) do
+    new_current = add_status(state.current, msg)
+    {nil, %{state | current: new_current}}
   end
 
   defp handle_gcode(:busy, state) do
@@ -631,6 +641,7 @@ defmodule Farmbot.Firmware do
 
   defp do_reply(state, reply) do
     maybe_cancel_timer(state.timer, state.current)
+    maybe_log_complete(state, reply)
     case state.current do
       %Command{fun: :emergency_unlock, from: from} ->
         # i really don't want this to be here..
@@ -647,8 +658,13 @@ defmodule Farmbot.Firmware do
     end
   end
 
+  defp add_status(%Command{} = command, status) do
+    %{command | status: (command.status || []) ++ [status]}
+  end
+
+  defp add_status(not_command, _), do: not_command
+
   defp maybe_send_email do
-    import Farmbot.System.ConfigStorage, only: [get_config_value: 3]
     if get_config_value(:bool, "settings", "email_on_estop") do
       if !EstopTimer.timer_active? do
         EstopTimer.start_timer()
@@ -659,4 +675,66 @@ defmodule Farmbot.Firmware do
   defp start_timer(%Command{} = command, timeout) do
     Process.send_after(self(), {:command_timeout, command}, timeout)
   end
+
+  defp maybe_log_complete(%{current: %{fun: :move_absolute, args: [pos | _]}}, {:error, _reason}) do
+    unless get_config_value(:bool, "settings", "firmware_input_log") do
+      Logger.error 1, "Movement to #{inspect pos} failed."
+    end
+  end
+
+  defp maybe_log_complete(%{current: current = %{fun: :move_absolute, args: [pos | _]}}, _reply) do
+    unless get_config_value(:bool, "settings", "firmware_input_log") do
+      if current.status do
+        pos = Enum.reduce(current.status, pos, fn(status, pos) ->
+          case status do
+            {:report_axis_changed_x, new_pos} -> %{pos | x: new_pos}
+            {:report_axis_changed_y, new_pos} -> %{pos | y: new_pos}
+            {:report_axis_changed_z, new_pos} -> %{pos | z: new_pos}
+            _ -> pos
+          end
+        end)
+        Logger.success 1, "Movement to #{inspect pos} complete. (Stopped at end)"
+      else
+        Logger.success 1, "Movement to #{inspect pos} complete."
+      end
+    end
+  end
+
+  defp maybe_log_complete(%{current: %{fun: :home}}, {:error, _reason}) do
+    unless get_config_value(:bool, "settings", "firmware_input_log") do
+      Logger.error 1, "Movement to (0, 0, 0) failed."
+    end
+  end
+
+  defp maybe_log_complete(%{current: %{fun: :home}}, _reply) do
+    unless get_config_value(:bool, "settings", "firmware_input_log") do
+      Logger.success 1, "Movement to (0, 0, 0) complete."
+    end
+  end
+
+  defp maybe_log_complete(_state, {:error, :report_axis_home_complete_x}) do
+    Logger.success 2, "X Axis homing complete."
+  end
+
+  defp maybe_log_complete(_state, {:error, :report_axis_home_complete_y}) do
+    Logger.success 2, "Y Axis homing complete."
+  end
+
+  defp maybe_log_complete(_state, {:error, :report_axis_home_complete_z}) do
+    Logger.success 2, "Z Axis homing complete."
+  end
+
+  defp maybe_log_complete(_state, {:error, :report_axis_timeout_x}) do
+    Logger.error 2, "X Axis timeout."
+  end
+
+  defp maybe_log_complete(_state, {:error, :report_axis_timeout_y}) do
+    Logger.error 2, "Y Axis timeout."
+  end
+
+  defp maybe_log_complete(_state, {:error, :report_axis_timeout_z}) do
+    Logger.error 2, "Z Axis timeout."
+  end
+
+  defp maybe_log_complete(_, _), do: :ok
 end
