@@ -77,7 +77,8 @@ defmodule Farmbot.Mixfile do
       nil ->
         %{
           "ERL_EI_INCLUDE_DIR" => "#{:code.root_dir()}/usr/include",
-          "ERL_EI_LIBDIR" => "#{:code.root_dir()}/usr/lib"
+          "ERL_EI_LIBDIR" => "#{:code.root_dir()}/usr/lib",
+          "MIX_TARGET" => @target
         }
       _ -> %{}
     end

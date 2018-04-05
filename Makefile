@@ -58,6 +58,19 @@ ARDUINO_BUILD = $(ARDUINO_BUILD_COMMON) $(ARDUINO_SRC_INO)
 BLINK_BUILD = $(ARDUINO_BUILD_COMMON) $(ARDUINO_SRC_BLINK_INO)
 CLEAR_EEPROM_BUILD = $(ARDUINO_BUILD_COMMON) $(ARDUINO_SRC_CLEAR_EEPROM_INO)
 
+ENV_STATE_FILE=.make_state
+LAST_STATE = $(shell cat $(ENV_STATE_FILE))
+
+ifeq ($(LAST_STATE),)
+$(shell echo $(MIX_TARGET) > .make_state)
+LAST_STATE=""
+endif
+
+ifneq ($(LAST_STATE), $(MIX_TARGET))
+$(shell echo $(MIX_TARGET) > .make_state)
+$(shell rm -f $(NIF))
+endif
+
 all: priv $(NIF) farmbot_arduino_firmware
 
 farmbot_arduino_firmware_build_dirs: $(ARDUINO_BUILD_DIR) $(ARDUINO_CACHE_DIR)
@@ -116,6 +129,7 @@ $(CLEAR_EEPROM_FW):
 	cp $(ARDUINO_BUILD_DIR)/eeprom_clear.ino.hex $@
 
 clean:
+	$(RM) $(ENV_STATE_FILE)
 	$(RM) $(NIF)
 	rm -rf $(ARDUINO_BUILD_DIR) $(ARDUINO_CACHE_DIR)
 	rm -rf priv/*.hex
