@@ -40,7 +40,7 @@ config :farmbot, Farmbot.Repo, [
 config :farmbot, Farmbot.System.ConfigStorage, [
   adapter: Sqlite.Ecto2,
   database: "test_tmp/farmbot_config_storage_test",
-  pool_size: 10,
+  pool_size: 2,
   # loggers: []
 ]
 
