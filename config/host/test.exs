@@ -33,8 +33,7 @@ config :farmbot, Farmbot.Repo, [
   adapter: Sqlite.Ecto2,
   database: "test_tmp/farmbot_repo_test",
   priv: "priv/repo",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: 10,
+  pool_size: 2,
   # loggers: []
 ]
 

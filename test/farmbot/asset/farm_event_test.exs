@@ -1,10 +1,10 @@
 defmodule Farmbot.Asset.FarmEventTest do
   alias Farmbot.Repo
   alias Farmbot.Asset.FarmEvent
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   setup do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Repo)
+    :ok
   end
 
   @farm_event_seq %{
