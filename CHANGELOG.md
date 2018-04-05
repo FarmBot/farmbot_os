@@ -1,4 +1,5 @@
 # 6.4.0
+* Added support for Raspberry Pi 3 B+
 * Update logs to no longer use the `meta` field.
 * Update Timed Estop messages to use the `fatal_email` channel.
 * Regimens will now persist reboots.
