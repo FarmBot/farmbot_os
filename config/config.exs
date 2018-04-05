@@ -5,7 +5,7 @@ target = Mix.Project.config()[:target]
 env = Mix.env()
 
 config :logger, [
-  # utc_log: true,
+  utc_log: true,
   # handle_otp_reports: true,
   # handle_sasl_reports: true,
   # backends: []
@@ -14,6 +14,18 @@ config :logger, [
 config :farmbot, :logger, [
   # backends: [Elixir.Logger.Backends.Farmbot]
 ]
+
+# Stop lager redirecting :error_logger messages
+config :lager, :error_logger_redirect, false
+
+# Stop lager removing Logger's :error_logger handler
+config :lager, :error_logger_whitelist, [Logger.ErrorHandler]
+
+# Stop lager writing a crash log
+config :lager, :crash_log, false
+
+# Use LagerLogger as lager's only handler.
+config :lager, :handlers, [{LagerLogger, [level: :debug]}]
 
 config :elixir, ansi_enabled: true
 config :iex, :colors, enabled: true

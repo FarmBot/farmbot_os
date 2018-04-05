@@ -4,8 +4,7 @@ defmodule Farmbot.AssetTest do
   alias Asset.{Sensor, Peripheral, Sequence, Tool, Point}
 
   setup do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Farmbot.Repo.current_repo())
-    {:ok, repo: Farmbot.Repo.current_repo()}
+    {:ok, repo: Farmbot.Repo}
   end
 
   test "Returns nil if no Sensor" do
@@ -44,7 +43,7 @@ defmodule Farmbot.AssetTest do
     assert Asset.get_sequence_by_id!(s.id) == s
   end
 
-  test "Raises if no sequence", %{repo: repo} do
+  test "Raises if no sequence", %{repo: _repo} do
     assert_raise RuntimeError, fn() ->
       Asset.get_sequence_by_id!(1000)
     end
@@ -71,9 +70,9 @@ defmodule Farmbot.AssetTest do
     refute Asset.get_point_from_tool(123)
   end
 
-  test "Gets a tool from a point", %{repo: repo} do
-    t = tool(120, "Laser beam") |> repo.insert!()
-    p = point(111, "Laser holder", t.id, 0, 1, 0, %{}, Tool) |> repo.insert!()
+  test "Gets a tool from a point" do
+    t = tool(120, "Laser beam") |> Farmbot.Repo.insert!()
+    p = point(111, "Laser holder", t.id, 0, 1, 0, %{}, Tool) |> Farmbot.Repo.insert!()
     res = Asset.get_point_from_tool(t.id)
     assert res.id == p.id
     assert res.name == "Laser holder"

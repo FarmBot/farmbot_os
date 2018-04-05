@@ -5,7 +5,7 @@ defmodule Farmbot.CeleryScript.AST.Node.Sync do
 
   def execute(_, _, env) do
     env = mutate_env(env)
-    Farmbot.Repo.flip()
+    Farmbot.Repo.sync()
     {:ok, env}
   end
 end

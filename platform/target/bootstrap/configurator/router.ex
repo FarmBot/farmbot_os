@@ -11,9 +11,12 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
   use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
+  import ConfigStorage, only: [
+    get_config_value: 3,
+    update_config_value: 4
+  ]
 
   @version Farmbot.Project.version()
-
   @data_path Application.get_env(:farmbot, :data_path)
 
   get "/" do
@@ -33,7 +36,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   get "/setup", do: redir(conn, "/")
 
   get "/network" do
-    interfaces = get_interfaces()
+    interfaces = Farmbot.Target.Network.get_interfaces()
 
     info = [
       interfaces: Map.new(interfaces, fn iface ->
@@ -43,7 +46,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
           ""
         end
         if String.first(iface) == "w" do
-          {iface, %{type: :wireless, ssids: do_iw_scan(iface), checked: checked}}
+          {iface, %{type: :wireless, ssids: Farmbot.Target.Network.do_iw_scan(iface), checked: checked}}
         else
           {iface, %{type: :wired, checked: checked}}
         end
@@ -53,44 +56,12 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     render_page(conn, "network", info)
   end
 
-  defp get_interfaces(tries \\ 5)
-  defp get_interfaces(0), do: []
-  defp get_interfaces(tries) do
-    case Nerves.NetworkInterface.interfaces() do
-      ["lo"] ->
-        Process.sleep(100)
-        get_interfaces(tries - 1)
-      interfaces when is_list(interfaces) ->
-        interfaces
-        |> List.delete("usb0") # Delete unusable entries if they exist.
-        |> List.delete("lo")
-        |> List.delete("sit0")
-    end
-  end
-
-  defp do_iw_scan(iface) do
-    case System.cmd("iw", [iface, "scan", "ap-force"]) do
-      {res, 0} -> res |> clean_ssid
-      e -> raise "Could not scan for wifi: #{inspect(e)}"
-    end
-  end
-
-  defp clean_ssid(hc) do
-    hc
-    |> String.replace("\t", "")
-    |> String.replace("\\x00", "")
-    |> String.split("\n")
-    |> Enum.filter(fn s -> String.contains?(s, "SSID: ") end)
-    |> Enum.map(fn z -> String.replace(z, "SSID: ", "") end)
-    |> Enum.filter(fn z -> String.length(z) != 0 end)
-  end
-
   get "/credentials" do
-    email = ConfigStorage.get_config_value(:string, "authorization", "email") || ""
-    pass = ConfigStorage.get_config_value(:string, "authorization", "password") || ""
-    server = ConfigStorage.get_config_value(:string, "authorization", "server") || ""
-    first_boot = ConfigStorage.get_config_value(:bool, "settings", "first_boot")
-    ConfigStorage.update_config_value(:string, "authorization", "token", nil)
+    email = get_config_value(:string, "authorization", "email") || ""
+    pass = get_config_value(:string, "authorization", "password") || ""
+    server = get_config_value(:string, "authorization", "server") || ""
+    first_boot = get_config_value(:bool, "settings", "first_boot")
+    update_config_value(:string, "authorization", "token", nil)
     render_page(conn, "credentials", server: server, email: email, password: pass, first_boot: first_boot)
   end
 
@@ -104,57 +75,14 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
         |> Map.new()
         |> Map.put("enable", "on")
 
-      :ok = input_network_configs([{interface, settings}])
+      :ok = ConfigStorage.input_network_configs([{interface, settings}])
       redir(conn, "/firmware")
     rescue
       err ->
         Logger.error 1, "Failed too input network config: #{Exception.message(err)}: #{inspect System.stacktrace()}"
-        destroy_all_network_configs()
+        ConfigStorage.destroy_all_network_configs()
         redir(conn, "/network")
     end
-  end
-
-  defp input_network_configs([{iface, settings} | rest]) when is_map(settings) and is_binary(iface) do
-    if settings["enable"] == "on" do
-
-      case settings["type"] do
-        "wireless" ->
-          # lol
-          maybe_hidden? = if Map.get(settings, "maybe_hidden", false) do
-            true
-          else
-            false
-          end
-
-          %ConfigStorage.NetworkInterface{
-            name: iface,
-            type: "wireless",
-            ssid: Map.fetch!(settings, "ssid"),
-            psk: Map.fetch!(settings, "psk"),
-            security: "WPA-PSK",
-            ipv4_method: "dhcp",
-            maybe_hidden: maybe_hidden?
-          }
-
-        "wired" ->
-          %ConfigStorage.NetworkInterface{
-            name: iface,
-            type: "wired",
-            ipv4_method: "dhcp"
-          }
-      end
-      |> ConfigStorage.insert!()
-    end
-
-    input_network_configs(rest)
-  end
-
-  defp input_network_configs([]) do
-    :ok
-  end
-
-  defp destroy_all_network_configs do
-    ConfigStorage.delete_all(ConfigStorage.NetworkInterface)
   end
 
   get "/firmware" do
@@ -166,7 +94,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
     case conn.body_params do
       %{"firmware_hardware" => hw} when hw in ["arduino", "farmduino", "farmduino_k14"] ->
-        ConfigStorage.update_config_value(:string, "settings", "firmware_hardware", hw)
+        update_config_value(:string, "settings", "firmware_hardware", hw)
 
         if Application.get_env(:farmbot, :behaviour)[:firmware_handler] == Farmbot.Firmware.UartHandler do
           Logger.warn 1, "Updating #{hw} firmware."
@@ -177,7 +105,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
         redir(conn, "/credentials")
 
       %{"firmware_hardware" => "custom"} ->
-        ConfigStorage.update_config_value(:string, "settings", "firmware_hardware", "custom")
+        update_config_value(:string, "settings", "firmware_hardware", "custom")
         redir(conn, "/credentials")
 
       _ ->
@@ -190,10 +118,10 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
     case conn.body_params do
       %{"email" => email, "password" => pass, "server" => server} ->
-        ConfigStorage.update_config_value(:string, "authorization", "email", email)
-        ConfigStorage.update_config_value(:string, "authorization", "password", pass)
-        ConfigStorage.update_config_value(:string, "authorization", "server", server)
-        ConfigStorage.update_config_value(:string, "authorization", "token", nil)
+        update_config_value(:string, "authorization", "email", email)
+        update_config_value(:string, "authorization", "password", pass)
+        update_config_value(:string, "authorization", "server", server)
+        update_config_value(:string, "authorization", "token", nil)
         redir(conn, "/finish")
 
       _ ->
@@ -202,10 +130,10 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   end
 
   get "/finish" do
-    email = ConfigStorage.get_config_value(:string, "authorization", "email")
-    pass = ConfigStorage.get_config_value(:string, "authorization", "password")
-    server = ConfigStorage.get_config_value(:string, "authorization", "server")
-    network = !(Enum.empty?(ConfigStorage.all(ConfigStorage.NetworkInterface)))
+    email = get_config_value(:string, "authorization", "email")
+    pass = get_config_value(:string, "authorization", "password")
+    server = get_config_value(:string, "authorization", "server")
+    network = !(Enum.empty?(ConfigStorage.all_network_interfaces()))
     if email && pass && server && network do
       conn = render_page(conn, "finish")
       spawn fn() ->

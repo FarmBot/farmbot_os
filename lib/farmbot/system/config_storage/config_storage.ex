@@ -6,7 +6,138 @@ defmodule Farmbot.System.ConfigStorage do
 
   use Ecto.Repo, otp_app: :farmbot, adapter: Application.get_env(:farmbot, __MODULE__)[:adapter]
   import Ecto.Query, only: [from: 2]
-  alias Farmbot.System.ConfigStorage.{Group, Config, BoolValue, FloatValue, StringValue}
+  alias Farmbot.System.ConfigStorage
+  alias ConfigStorage.{
+    Group, Config, BoolValue, FloatValue, StringValue,
+    SyncCmd,
+    PersistentRegimen,
+    NetworkInterface,
+    GpioRegistry,
+  }
+  alias Farmbot.Farmware.Installer.Repository
+
+  def add_farmware_repo(manifest, url) do
+    Repository.changeset(manifest, %{url: url})
+    |> ConfigStorage.insert!()
+  end
+
+  def get_farmware_repo_by_url(url) do
+    query = from r in Repository, where: r.url == ^url
+    ConfigStorage.one(query)
+  end
+
+  def all_farmware_repos do
+    ConfigStorage.all(Repository)
+  end
+
+  def delete_gpio_registry(pin_num, sequence_id) do
+    case ConfigStorage.one(from g in GpioRegistry, where: g.pin == ^pin_num and g.sequence_id == ^sequence_id) do
+      nil -> :ok
+      obj -> ConfigStorage.delete!(obj)
+    end
+  end
+
+  def all_gpios do
+    ConfigStorage.all(GpioRegistry)
+  end
+
+  def add_gpio_registry(pin_num, sequence_id) do
+    reg = struct(GpioRegistry, [pin: pin_num, sequence_id: sequence_id])
+    ConfigStorage.insert!(reg)
+  end
+
+  def input_network_configs([{iface, settings} | rest]) when is_map(settings) and is_binary(iface) do
+    if settings["enable"] == "on" do
+
+      case settings["type"] do
+        "wireless" ->
+          # lol
+          maybe_hidden? = if Map.get(settings, "maybe_hidden", false) do
+            true
+          else
+            false
+          end
+
+          %ConfigStorage.NetworkInterface{
+            name: iface,
+            type: "wireless",
+            ssid: Map.fetch!(settings, "ssid"),
+            psk: Map.fetch!(settings, "psk"),
+            security: "WPA-PSK",
+            ipv4_method: "dhcp",
+            maybe_hidden: maybe_hidden?
+          }
+
+        "wired" ->
+          %ConfigStorage.NetworkInterface{
+            name: iface,
+            type: "wired",
+            ipv4_method: "dhcp"
+          }
+      end
+      |> ConfigStorage.insert!()
+    end
+
+    input_network_configs(rest)
+  end
+
+  def input_network_configs([]) do
+    :ok
+  end
+
+  def all_network_interfaces do
+    ConfigStorage.all(NetworkInterface)
+  end
+
+  def destroy_all_network_configs do
+    ConfigStorage.delete_all(ConfigStorage.NetworkInterface)
+  end
+
+  @doc """
+  Register a sync message from an external source.
+  This is like a snippit of the changes that have happened.
+  `sync_cmd`s should only be applied on `sync`ing.
+  `sync_cmd`s are _not_ a source of truth for transactions that have been applied.
+  Use the `Farmbot.Asset.Registry` for these types of events.
+  """
+  def register_sync_cmd(remote_id, kind, body) do
+    SyncCmd.changeset(struct(SyncCmd, %{remote_id: remote_id, kind: kind, body: body}))
+    |> insert!()
+  end
+
+  @doc "Destroy all sync cmds locally."
+  def destroy_all_sync_cmds do
+    delete_all(SyncCmd)
+  end
+
+  @doc "Get all Persistent Regimens"
+  def all_persistent_regimens do
+    ConfigStorage.all(PersistentRegimen)
+  end
+
+  @doc "Add a new Persistent Regimen."
+  def add_persistent_regimen(%{id: id} = _regimen, time) do
+    PersistentRegimen.changeset(struct(PersistentRegimen, %{regimen_id: id, time: time}))
+    |> ConfigStorage.insert()
+    |> case do
+      {:ok, _} -> :ok
+      err -> err
+    end
+  end
+
+  @doc "Destroy a Persistent Regimen."
+  def destroy_persistent_regimen(%{id: id} = _regimen) do
+    q = from p in PersistentRegimen, where: p.regimen_id == ^id
+    pr = ConfigStorage.one(q)
+    if pr do
+      case ConfigStorage.delete(pr) do
+        {:ok, _} -> :ok
+        err -> err
+      end
+    else
+      :ok
+    end
+  end
 
   @doc "Please be careful with this. It uses a lot of queries."
   def get_config_as_map do
