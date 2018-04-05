@@ -116,7 +116,8 @@ defmodule Farmbot.Mixfile do
       {:socket, "~> 0.3.13"},
       {:amqp, "~> 1.0"},
 
-      {:recon, "~> 2.3.2"}
+      {:recon, "~> 2.3.2"},
+      {:lager_logger, "~> 1.0"}
     ]
   end
 

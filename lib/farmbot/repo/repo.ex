@@ -5,7 +5,7 @@ defmodule Farmbot.Repo do
     otp_app: :farmbot,
     adapter: Application.get_env(:farmbot, __MODULE__)[:adapter]
 
-  defdelegate sync, to: Farmbot.Repo.Worker
+  defdelegate sync(verbosity \\ 1), to: Farmbot.Repo.Worker
   defdelegate await_sync, to: Farmbot.Repo.Worker
 
   import Farmbot.System.ConfigStorage, only: [destroy_all_sync_cmds: 0]
@@ -27,8 +27,8 @@ defmodule Farmbot.Repo do
   A full sync will clear the entire local data base
   and then redownload all data.
   """
-  def full_sync do
-    Logger.busy 2, "Syncing"
+  def full_sync(verbosity \\ 1) do
+    Logger.busy verbosity, "Syncing"
     set_sync_status(:syncing)
     old = snapshot()
     {:ok, results} = http_requests()
@@ -41,7 +41,7 @@ defmodule Farmbot.Repo do
     Farmbot.Repo.Registry.dispatch(diff)
     destroy_all_sync_cmds()
     set_sync_status(:synced)
-    Logger.success 2, "Synced"
+    Logger.success verbosity, "Synced"
     :ok
   end
 
@@ -112,7 +112,7 @@ defmodule Farmbot.Repo do
     if Code.ensure_loaded?(mod) do
       set_sync_status(:syncing)
       old = snapshot()
-      Logger.debug(3, "Applying sync_cmd (#{mod})")
+      Logger.info(1, "Syncing: (#{cmd.kind})")
       do_apply_sync_cmd(cmd)
       new = snapshot()
       diff = Snapshot.diff(old, new)

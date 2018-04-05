@@ -12,9 +12,9 @@ defmodule Farmbot.Repo.Worker do
   @gen_server_timeout_grace 1500
 
   @doc "Sync Farmbot with the Web APP."
-  def sync do
+  def sync(verbosity \\ 1) do
     timeout = sync_timeout()
-    GenServer.call(__MODULE__, {:sync, [timeout]}, timeout + @gen_server_timeout_grace)
+    GenServer.call(__MODULE__, {:sync, [verbosity, timeout]}, timeout + @gen_server_timeout_grace)
   end
 
   @doc "Waits for a sync to complete if one is happening."
@@ -41,7 +41,7 @@ defmodule Farmbot.Repo.Worker do
   def init([]) do
     set_sync_status(:sync_now)
     if get_config_value(:bool, "settings", "auto_sync") do
-      pid = spawn(Farmbot.Repo, :full_sync, [])
+      pid = spawn(Farmbot.Repo, :full_sync, [1])
       ref = Process.monitor(pid)
       timer = refresh_or_start_timeout(nil, sync_timeout(), ref, self())
       set_sync_status(:syncing)
@@ -68,8 +68,8 @@ defmodule Farmbot.Repo.Worker do
     {:noreply, %{state | waiting: [from | state.waiting]}}
   end
 
-  def handle_call({:sync, [timeout_ms]}, from, state) do
-    pid = spawn(Farmbot.Repo, :full_sync, [])
+  def handle_call({:sync, [verbosity, timeout_ms]}, from, state) do
+    pid = spawn(Farmbot.Repo, :full_sync, [verbosity])
     ref = Process.monitor(pid)
     timer = refresh_or_start_timeout(state.sync_timer, timeout_ms, ref, self())
     set_sync_status(:syncing)

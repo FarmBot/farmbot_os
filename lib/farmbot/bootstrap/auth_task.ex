@@ -43,7 +43,7 @@ defmodule Farmbot.Bootstrap.AuthTask do
         Farmbot.System.GPIO.Leds.led_status_ok()
         if get_config_value(:bool, "settings", "auto_sync") do
           # Force an auto sync
-          Farmbot.Repo.sync()
+          Farmbot.Repo.sync(2)
         end
         Farmbot.System.Registry.dispatch :authorization, :new_token
         restart_transports()

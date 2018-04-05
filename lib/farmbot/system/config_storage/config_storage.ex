@@ -128,9 +128,14 @@ defmodule Farmbot.System.ConfigStorage do
   @doc "Destroy a Persistent Regimen."
   def destroy_persistent_regimen(%{id: id} = _regimen) do
     q = from p in PersistentRegimen, where: p.regimen_id == ^id
-    case ConfigStorage.delete(q) do
-      {:ok, _} -> :ok
-      err -> err
+    pr = ConfigStorage.one(q)
+    if pr do
+      case ConfigStorage.delete(pr) do
+        {:ok, _} -> :ok
+        err -> err
+      end
+    else
+      :ok
     end
   end
 
