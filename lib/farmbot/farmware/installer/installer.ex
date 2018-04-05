@@ -4,6 +4,7 @@ defmodule Farmbot.Farmware.Installer do
   alias Farmbot.Farmware
   alias Farmbot.Farmware.Installer.Repository
   alias Farmbot.HTTP
+  alias Farmbot.System.ConfigStorage
 
   use Farmbot.Logger
 
@@ -30,7 +31,7 @@ defmodule Farmbot.Farmware.Installer do
          {:ok, json_map} <- Poison.decode(body),
          {:ok, manifest} <- Repository.new(json_map)
     do
-      Repository.changeset(manifest, %{url: url}) |> Farmbot.System.ConfigStorage.insert()
+      ConfigStorage.add_farmware_repo(manifest, url)
     end
     rescue
       e in Sqlite.DbConnection.Error ->

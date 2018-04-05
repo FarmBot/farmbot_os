@@ -9,6 +9,38 @@ defmodule Farmbot.Target.Network do
   use Supervisor
   use Farmbot.Logger
 
+  def get_interfaces(tries \\ 5)
+  def get_interfaces(0), do: []
+  def get_interfaces(tries) do
+    case Nerves.NetworkInterface.interfaces() do
+      ["lo"] ->
+        Process.sleep(100)
+        get_interfaces(tries - 1)
+      interfaces when is_list(interfaces) ->
+        interfaces
+        |> List.delete("usb0") # Delete unusable entries if they exist.
+        |> List.delete("lo")
+        |> List.delete("sit0")
+    end
+  end
+
+  def do_iw_scan(iface) do
+    case System.cmd("iw", [iface, "scan", "ap-force"]) do
+      {res, 0} -> res |> clean_ssid
+      e -> raise "Could not scan for wifi: #{inspect(e)}"
+    end
+  end
+
+  defp clean_ssid(hc) do
+    hc
+    |> String.replace("\t", "")
+    |> String.replace("\\x00", "")
+    |> String.split("\n")
+    |> Enum.filter(fn s -> String.contains?(s, "SSID: ") end)
+    |> Enum.map(fn z -> String.replace(z, "SSID: ", "") end)
+    |> Enum.filter(fn z -> String.length(z) != 0 end)
+  end
+
   def test_dns(hostname \\ nil)
 
   def test_dns(nil) do
@@ -44,7 +76,7 @@ defmodule Farmbot.Target.Network do
   end
 
   def init([]) do
-    config = ConfigStorage.all(NetworkInterface)
+    config = ConfigStorage.all_network_interfaces()
     Logger.info(3, "Starting Networking")
     children = config
       |> Enum.map(&to_network_config/1)

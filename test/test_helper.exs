@@ -4,8 +4,7 @@ unless '--exclude farmbot_api' in :init.get_plain_arguments() do
 end
 # Farmbot.Logger.Console.set_verbosity_level(0)
 
-Ecto.Adapters.SQL.Sandbox.mode(Farmbot.Repo.A, :manual)
-Ecto.Adapters.SQL.Sandbox.mode(Farmbot.Repo.B, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Farmbot.Repo, :manual)
 FarmbotTestSupport.wait_for_firmware()
 # Start ExUnit.
 ExUnit.start()

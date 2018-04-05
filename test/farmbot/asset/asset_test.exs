@@ -4,8 +4,8 @@ defmodule Farmbot.AssetTest do
   alias Asset.{Sensor, Peripheral, Sequence, Tool, Point}
 
   setup do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Farmbot.Repo.current_repo())
-    {:ok, repo: Farmbot.Repo.current_repo()}
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Farmbot.Repo)
+    {:ok, repo: Farmbot.Repo}
   end
 
   test "Returns nil if no Sensor" do
@@ -44,7 +44,7 @@ defmodule Farmbot.AssetTest do
     assert Asset.get_sequence_by_id!(s.id) == s
   end
 
-  test "Raises if no sequence", %{repo: repo} do
+  test "Raises if no sequence", %{repo: _repo} do
     assert_raise RuntimeError, fn() ->
       Asset.get_sequence_by_id!(1000)
     end
