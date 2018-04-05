@@ -15,13 +15,11 @@ defmodule Farmbot.Repo do
   alias Farmbot.Asset.{
     Device,
     FarmEvent,
-    # GenericPointer,
     Peripheral,
     Point,
     Regimen,
     Sensor,
     Sequence,
-    # ToolSlot,
     Tool
   }
 
@@ -48,20 +46,15 @@ defmodule Farmbot.Repo do
   end
 
   def snapshot do
-    Logger.debug 3, "Starting snapshot."
-    {time, results} = :timer.tc(fn() ->
-      Farmbot.Repo.all(Device) ++
-      Farmbot.Repo.all(FarmEvent) ++
-      # Farmbot.Repo.all(GenericPointer) ++
-      Farmbot.Repo.all(Peripheral) ++
-      Farmbot.Repo.all(Point) ++
-      Farmbot.Repo.all(Regimen) ++
-      Farmbot.Repo.all(Sensor) ++
-      Farmbot.Repo.all(Sequence) ++
-      # Farmbot.Repo.all(ToolSlot) ++
-      Farmbot.Repo.all(Tool)
-    end)
-    Logger.debug 3, "Snapshot took: #{time}us."
+    results = Farmbot.Repo.all(Device) ++
+    Farmbot.Repo.all(FarmEvent) ++
+    Farmbot.Repo.all(Peripheral) ++
+    Farmbot.Repo.all(Point) ++
+    Farmbot.Repo.all(Regimen) ++
+    Farmbot.Repo.all(Sensor) ++
+    Farmbot.Repo.all(Sequence) ++
+    Farmbot.Repo.all(Tool)
+
     struct(Snapshot, [data: results])
     |> Snapshot.md5()
   end
@@ -69,13 +62,11 @@ defmodule Farmbot.Repo do
   def clear_all_data do
     Farmbot.Repo.delete_all(Device)
     Farmbot.Repo.delete_all(FarmEvent)
-    # Farmbot.Repo.delete_all(GenericPointer)
     Farmbot.Repo.delete_all(Peripheral)
     Farmbot.Repo.delete_all(Point)
     Farmbot.Repo.delete_all(Regimen)
     Farmbot.Repo.delete_all(Sensor)
     Farmbot.Repo.delete_all(Sequence)
-    # Farmbot.Repo.delete_all(ToolSlot)
     Farmbot.Repo.delete_all(Tool)
     :ok
   end
@@ -86,13 +77,11 @@ defmodule Farmbot.Repo do
       [
         Task.async(fn() -> {Device, HTTP.get!("/api/device.json") |> Map.fetch!(:body) |> Poison.decode!(as: struct(Device)) } end),
         Task.async(fn() -> {FarmEvent, HTTP.get!("/api/farm_events.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(FarmEvent)]) } end),
-        # Task.async(fn() -> {GenericPointer, HTTP.get!("/api/generic_pointers.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(GenericPointer)]) } end),
         Task.async(fn() -> {Peripheral, HTTP.get!("/api/peripherals.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Peripheral)]) } end),
         Task.async(fn() -> {Point, HTTP.get!("/api/points.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Point)]) } end),
         Task.async(fn() -> {Regimen, HTTP.get!("/api/regimens.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Regimen)]) } end),
         Task.async(fn() -> {Sensor, HTTP.get!("/api/sensors.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Sensor)]) } end),
         Task.async(fn() -> {Sequence, HTTP.get!("/api/sequences.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Sequence)]) } end),
-        # Task.async(fn() -> {ToolSlot, HTTP.get!("/api/tool_slots.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(ToolSlot)]) } end),
         Task.async(fn() -> {Tool, HTTP.get!("/api/tools.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Tool)]) } end),
       ]
       |> Enum.map(&Task.await(&1))
@@ -160,7 +149,6 @@ defmodule Farmbot.Repo do
       # if there is an existing record, copy the ecto  meta from the old
       # record. This allows `insert_or_update` to work properly.
       existing ->
-        IO.puts "update"
         mod.changeset(existing, not_struct)
         |> Farmbot.Repo.update!
         :ok

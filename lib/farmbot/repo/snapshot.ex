@@ -14,27 +14,11 @@ defmodule Farmbot.Repo.Snapshot do
   defstruct [data: [], hash: nil]
 
   def diff(%Snapshot{} = old, %Snapshot{} = new) do
-    IO.puts "Diffing: #{inspect old} with #{inspect new}"
-
-    data = struct(Diff, [
+    struct(Diff, [
       additions:       calculate_additions(old.data, new.data),
       deletions:       calculate_deletions(old.data, new.data),
       updates:         calculate_updates(old.data, new.data)
     ])
-
-    Enum.each(data.additions, fn(%{__struct__: mod, id: id}) ->
-      IO.puts "Added #{mod} => #{id}"
-    end)
-
-    Enum.each(data.deletions, fn(%{__struct__: mod, id: id}) ->
-      IO.puts "deleted #{mod} => #{id}"
-    end)
-
-    Enum.each(data.updates, fn(%{__struct__: mod, id: id}) ->
-      IO.puts "updated #{mod} => #{id}"
-    end)
-
-    data
   end
 
   def diff(%Snapshot{} = data) do
