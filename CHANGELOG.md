@@ -1,6 +1,7 @@
 # 6.4.0
 * Update logs to no longer use the `meta` field.
 * Update Timed Estop messages to use the `fatal_email` channel.
+* Regimens will now persist reboots.
 
 # 6.3.1
 * Fix bug causing FarmEvents not to work.
