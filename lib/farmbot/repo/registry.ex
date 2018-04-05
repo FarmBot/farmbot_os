@@ -19,7 +19,14 @@ defmodule Farmbot.Repo.Registry do
     :ok
   end
 
-  @doc "Subscribe for events."
+  @doc """
+  Subscribing for events will come in the shape of:
+  `{Farmbot.Repo.Registry, action, module, data}`
+  where:
+  * `action` - will be one of `:addition`, `:deletion`, `:update`.
+  * `module` - will be one of the `syncable` modules with the API.
+  * `data`   - will be the actual object that was applied.
+  """
   def subscribe do
     :ok = GenServer.call(__MODULE__, :subscribe)
     Farmbot.Repo.snapshot()
