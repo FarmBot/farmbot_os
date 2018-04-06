@@ -80,7 +80,3 @@ config :nerves_firmware_ssh, authorized_keys: local_key
 config :shoehorn,
   init: [:nerves_runtime, :nerves_init_gadget],
   app: :farmbot
-
-File.mkdir_p!(Path.join(["overlay", "profiles"]))
-config :nerves, :firmware,
-  rootfs_overlay: "overlay/"

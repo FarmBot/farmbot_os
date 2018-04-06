@@ -23,8 +23,7 @@ config :farmbot, :transport, [
   Farmbot.BotState.Transport.HTTP,
 ]
 
-repos = [Farmbot.Repo, Farmbot.System.ConfigStorage]
-config :farmbot, ecto_repos: repos
+config :farmbot, ecto_repos: [Farmbot.Repo, Farmbot.System.ConfigStorage]
 
 config :farmbot, Farmbot.Repo,
   adapter: Sqlite.Ecto2,
@@ -47,7 +46,7 @@ config :farmbot, :behaviour, [
   authorization: Farmbot.Bootstrap.Authorization,
   system_tasks: Farmbot.Host.SystemTasks,
   update_handler: Farmbot.Host.UpdateHandler,
-  firmware_handler: Farmbot.Firmware.UartHandler
+  # firmware_handler: Farmbot.Firmware.UartHandler
 ]
 
 config :farmbot, :uart_handler, tty: "/dev/ttyACM0"

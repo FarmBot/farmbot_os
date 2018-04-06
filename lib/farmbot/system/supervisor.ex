@@ -19,7 +19,6 @@ defmodule Farmbot.System.Supervisor do
       supervisor(Farmbot.System.ConfigStorage, []),
       worker(Farmbot.System.ConfigStorage.Dispatcher, []),
       worker(Farmbot.System.GPIO.Leds, []),
-      worker(Farmbot.System.Profile, [])
     ]
 
     init_mods =
