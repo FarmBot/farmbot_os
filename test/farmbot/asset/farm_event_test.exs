@@ -1,10 +1,10 @@
 defmodule Farmbot.Asset.FarmEventTest do
   alias Farmbot.Repo
   alias Farmbot.Asset.FarmEvent
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   setup do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Repo.A)
+    :ok
   end
 
   @farm_event_seq %{
@@ -23,11 +23,11 @@ defmodule Farmbot.Asset.FarmEventTest do
       |> Poison.encode!()
       |> Poison.decode!(as: %FarmEvent{})
       |> FarmEvent.changeset()
-      |> Repo.A.insert()
+      |> Repo.insert()
     )
 
     import Ecto.Query
     id = @farm_event_seq["id"]
-    assert match?([_], from(fe in FarmEvent, where: fe.id == ^id, select: fe) |> Repo.A.all())
+    assert match?([_], from(fe in FarmEvent, where: fe.id == ^id, select: fe) |> Repo.all())
   end
 end

@@ -9,11 +9,11 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
   import ConfigStorage, only: [get_config_value: 3]
   alias Farmbot.Farmware
   alias Farmware.Installer
-  alias Installer.Repository
 
   @doc false
   def start_link(_) do
-    Task.start_link(__MODULE__, :sync_all, [])
+    sync_all()
+    :ignore
   end
 
   def sync_all do
@@ -28,14 +28,11 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
   end
 
   defp setup_repos do
-    import Ecto.Query
-
     # first party farmware url could be nil. This would mean it is disabled.
     fpf_url = get_config_value(:string, "settings", "first_party_farmware_url")
     # if fpf_url isn't nil, check if its been enabled, if not enable it.
     if fpf_url do
-      query = from r in Repository, where: r.url == ^fpf_url
-      unless Farmbot.System.ConfigStorage.one(query) do
+      unless ConfigStorage.get_farmware_repo_by_url(fpf_url) do
         Installer.add_repo(fpf_url)
       end
     else
@@ -44,7 +41,7 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
   end
 
   defp fetch_and_sync do
-    repos = ConfigStorage.all(Repository)
+    repos = ConfigStorage.all_farmware_repos()
     Enum.reduce(repos, [], fn(repo, acc) ->
       case Installer.sync_repo(repo) do
         {:ok, list_of_entries} ->

@@ -8,7 +8,6 @@ defmodule Farmbot.Asset.Tool do
     field(:name, :string)
   end
 
-  use Farmbot.Repo.Syncable
   @required_fields [:id, :name]
 
   def changeset(farm_event, params \\ %{}) do

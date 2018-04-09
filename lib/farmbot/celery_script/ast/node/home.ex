@@ -8,12 +8,8 @@ defmodule Farmbot.CeleryScript.AST.Node.Home do
     env = mutate_env(env)
     maybe_log_busy()
     case Farmbot.Firmware.home_all() do
-      :ok ->
-        maybe_log_complete()
-        {:ok, env}
-      {:error, reason} ->
-        maybe_log_error()
-        {:error, reason, env}
+      :ok -> {:ok, env}
+      {:error, reason} -> {:error, reason, env}
     end
   end
 
@@ -28,18 +24,6 @@ defmodule Farmbot.CeleryScript.AST.Node.Home do
   defp maybe_log_busy do
     unless Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "firmware_input_log") do
       Logger.busy 1, "Moving to (0, 0, 0)"
-    end
-  end
-
-  defp maybe_log_complete do
-    unless Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "firmware_input_log") do
-      Logger.success 1, "Movement to (0, 0, 0) complete."
-    end
-  end
-
-  defp maybe_log_error do
-    unless Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "firmware_input_log") do
-      Logger.error 1, "Movement to (0, 0, 0) failed."
     end
   end
 end

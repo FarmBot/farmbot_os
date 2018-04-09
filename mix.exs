@@ -77,7 +77,8 @@ defmodule Farmbot.Mixfile do
       nil ->
         %{
           "ERL_EI_INCLUDE_DIR" => "#{:code.root_dir()}/usr/include",
-          "ERL_EI_LIBDIR" => "#{:code.root_dir()}/usr/lib"
+          "ERL_EI_LIBDIR" => "#{:code.root_dir()}/usr/lib",
+          "MIX_TARGET" => @target
         }
       _ -> %{}
     end
@@ -85,7 +86,7 @@ defmodule Farmbot.Mixfile do
 
   defp deps do
     [
-      {:nerves, "~> 1.0.0-rc.0", runtime: false},
+      {:nerves, "~> 1.0.0-rc.1", runtime: false},
       {:elixir_make, "~> 0.4", runtime: false},
       {:gen_stage, "~> 0.12"},
 
@@ -116,7 +117,8 @@ defmodule Farmbot.Mixfile do
       {:socket, "~> 0.3.13"},
       {:amqp, "~> 1.0"},
 
-      {:recon, "~> 2.3.2"}
+      {:recon, "~> 2.3.2"},
+      {:lager_logger, "~> 1.0"}
     ]
   end
 
@@ -160,7 +162,7 @@ defmodule Farmbot.Mixfile do
   end
 
   defp system("rpi3"),
-    do: [{:nerves_system_farmbot_rpi3, "1.0.0-rc.1-farmbot", runtime: false}]
+    do: [{:nerves_system_farmbot_rpi3, "1.0.0-rc.2-farmbot", runtime: false}]
 
   defp system("rpi0"),
     do: [{:nerves_system_farmbot_rpi0, "0.20.0-farmbot", runtime: false}]

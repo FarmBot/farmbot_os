@@ -14,7 +14,6 @@ config :farmbot, data_path: "tmp/"
 # Default implementation needs no special stuff.
 config :farmbot, :init, [
   Farmbot.Host.Bootstrap.Configurator,
-  Farmbot.Host.TargetConfiguratorTest.Supervisor,
   Farmbot.System.Debug
 ]
 
@@ -24,19 +23,12 @@ config :farmbot, :transport, [
   Farmbot.BotState.Transport.HTTP,
 ]
 
-repos = [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage]
-config :farmbot, ecto_repos: repos
+config :farmbot, ecto_repos: [Farmbot.Repo, Farmbot.System.ConfigStorage]
 
-config :farmbot, Farmbot.Repo.A,
+config :farmbot, Farmbot.Repo,
   adapter: Sqlite.Ecto2,
   loggers: [],
-  database: "tmp/#{Farmbot.Repo.A}_dev.sqlite3",
-  pool_size: 1
-
-config :farmbot, Farmbot.Repo.B,
-  adapter: Sqlite.Ecto2,
-  loggers: [],
-  database: "tmp/#{Farmbot.Repo.A}_dev.sqlite3",
+  database: "tmp/#{Farmbot.Repo}_dev.sqlite3",
   pool_size: 1
 
 config :farmbot, Farmbot.System.ConfigStorage,
