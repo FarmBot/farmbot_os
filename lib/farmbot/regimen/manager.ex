@@ -64,8 +64,38 @@ defmodule Farmbot.Regimen.Manager do
       {:ok, state}
     else
       Logger.warn 2, "[#{regimen.name}] has no items on regimen."
-      :ignore
+      {:ok, initial_state}
     end
+  end
+
+  def handle_call({:reindex, regimen}, _from, state) do
+    # parse and sort the regimen items
+    items         = filter_items(regimen)
+    first_item    = List.first(items)
+    regimen       = %{regimen | regimen_items: items}
+
+    initial_state = %{
+      next_execution: nil,
+      regimen:        regimen,
+      epoch:          state.epoch,
+      timer:          state.timer
+    }
+
+    if first_item do
+      state = build_next_state(regimen, first_item, self(), initial_state)
+      {:reply, :ok, state}
+    else
+      Logger.warn 2, "[#{regimen.name}] has no items on regimen."
+      {:stop, :ok, :normal, state}
+    end
+  end
+
+  def terminate(:normal, state) do
+    Farmbot.Regimen.Supervisor.remove_child(state.regimen)
+  end
+
+  def terminate(_, _) do
+    :ok
   end
 
   def handle_info(:execute, state) do
@@ -120,6 +150,9 @@ defmodule Farmbot.Regimen.Manager do
     %Item{} = nx_itm,
     pid, state)
   do
+    if state.timer do
+      Process.cancel_timer(state.timer)
+    end
     next_dt         = Timex.shift(state.epoch, milliseconds: nx_itm.time_offset)
     timezone        = get_config_value(:string, "settings", "timezone")
     now             = Timex.now(timezone)

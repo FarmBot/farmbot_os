@@ -43,23 +43,7 @@ defmodule Farmbot.CeleryScript.AST.Node.ChangeOwnership do
 
   defp clean_assets do
     Logger.debug 3, "Cleaning assets."
-    repos = [Farmbot.Repo.A, Farmbot.Repo.B]
-    resources = [
-      Farmbot.Asset.Device,
-      Farmbot.Asset.FarmEvent,
-      Farmbot.Asset.Peripheral,
-      Farmbot.Asset.Point,
-      Farmbot.Asset.Regimen,
-      Farmbot.Asset.Sensor,
-      Farmbot.Asset.Sequence,
-      Farmbot.Asset.ToolSlot,
-      Farmbot.Asset.Tool
-    ]
-    for repo <- repos do
-      for resource <- resources do
-        repo.delete_all(resource)
-      end
-    end
+    Farmbot.Asset.clear_all_data()
   end
 
   defp clean_farmwares do

@@ -24,7 +24,6 @@ defmodule Farmbot.Asset.Regimen do
     regimen_items: [item]
   }
 
-  use Farmbot.Repo.Syncable
   @required_fields [:id, :name, :regimen_items]
 
   def changeset(farm_event, params \\ %{}) do

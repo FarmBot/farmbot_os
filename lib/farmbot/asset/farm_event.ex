@@ -34,8 +34,6 @@ defmodule Farmbot.Asset.FarmEvent do
     field(:calendar, JSONType)
   end
 
-  use Farmbot.Repo.Syncable
-
   @required_fields [
     :id,
     :start_time,
@@ -54,18 +52,9 @@ defmodule Farmbot.Asset.FarmEvent do
     |> unique_constraint(:id)
   end
 
-  def bench do
-    begin = :os.system_time(:seconds)
-    res = Farmbot.HTTP.get!("/api/farm_events").body
-    |> Poison.decode!(as: [%__MODULE__{}])
-    |> Enum.map(&build_calendar(&1))
-
-    IO.puts "total: #{:os.system_time(:seconds) - begin}"
-    res
-  end
-
   @compile {:inline, [build_calendar: 1]}
-  def build_calendar(%__MODULE__{calendar: nil} = fe), do: fe
+  def build_calendar(%__MODULE__{executable_type: Farmbot.Asset.Regimen} = fe), do: fe
+  def build_calendar(%__MODULE__{calendar: nil} = fe), do: build_calendar(%{fe | calendar: []})
   def build_calendar(%__MODULE__{time_unit: "never"} = fe), do: fe
   def build_calendar(%__MODULE__{calendar: calendar} = fe)  when is_list(calendar) do
     current_time_seconds = :os.system_time(:second)

@@ -10,7 +10,6 @@ defmodule Farmbot.Asset.Device do
     field(:timezone, :string)
   end
 
-  use Farmbot.Repo.Syncable
   @required_fields [:id, :name]
 
   def changeset(device, params \\ %{}) do

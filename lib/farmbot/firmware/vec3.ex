@@ -22,3 +22,10 @@ defimpl Inspect, for: Farmbot.Firmware.Vec3 do
     "(#{fmnt_float(vec3.x)}, #{fmnt_float(vec3.y)}, #{fmnt_float(vec3.z)})"
   end
 end
+
+defimpl String.Chars, for: Farmbot.Firmware.Vec3 do
+  import Farmbot.Firmware.Vec3, only: [fmnt_float: 1]
+  def to_string(vec3) do
+    "(#{fmnt_float(vec3.x)}, #{fmnt_float(vec3.y)}, #{fmnt_float(vec3.z)})"
+  end
+end

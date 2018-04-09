@@ -12,7 +12,6 @@ defmodule Farmbot.Asset.Peripheral do
     field(:label, :string)
   end
 
-  use Farmbot.Repo.Syncable
   @required_fields [:id, :pin, :mode, :label]
 
   def changeset(peripheral, params \\ %{}) do
