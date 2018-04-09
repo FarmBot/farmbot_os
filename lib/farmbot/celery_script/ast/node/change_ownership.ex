@@ -43,7 +43,7 @@ defmodule Farmbot.CeleryScript.AST.Node.ChangeOwnership do
 
   defp clean_assets do
     Logger.debug 3, "Cleaning assets."
-    Farmbot.Repo.clean_assets()
+    Farmbot.Asset.clear_all_data()
   end
 
   defp clean_farmwares do

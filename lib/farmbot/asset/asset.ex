@@ -16,6 +16,18 @@ defmodule Farmbot.Asset do
 
   import Ecto.Query
 
+  def clear_all_data do
+    Farmbot.Repo.delete_all(Device)
+    Farmbot.Repo.delete_all(FarmEvent)
+    Farmbot.Repo.delete_all(Peripheral)
+    Farmbot.Repo.delete_all(Point)
+    Farmbot.Repo.delete_all(Regimen)
+    Farmbot.Repo.delete_all(Sensor)
+    Farmbot.Repo.delete_all(Sequence)
+    Farmbot.Repo.delete_all(Tool)
+    :ok
+  end
+
   @doc "Information about _this_ device."
   def device do
     Farmbot.Repo.one(Device)

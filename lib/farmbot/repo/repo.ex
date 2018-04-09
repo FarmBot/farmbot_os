@@ -33,7 +33,7 @@ defmodule Farmbot.Repo do
     old = snapshot()
     {:ok, results} = http_requests()
     Farmbot.Repo.transaction fn() ->
-      :ok = clear_all_data()
+      :ok = Farmbot.Asset.clear_all_data()
       :ok = enter_into_repo(results)
     end
     new = snapshot()
@@ -57,18 +57,6 @@ defmodule Farmbot.Repo do
 
     struct(Snapshot, [data: results])
     |> Snapshot.md5()
-  end
-
-  def clear_all_data do
-    Farmbot.Repo.delete_all(Device)
-    Farmbot.Repo.delete_all(FarmEvent)
-    Farmbot.Repo.delete_all(Peripheral)
-    Farmbot.Repo.delete_all(Point)
-    Farmbot.Repo.delete_all(Regimen)
-    Farmbot.Repo.delete_all(Sensor)
-    Farmbot.Repo.delete_all(Sequence)
-    Farmbot.Repo.delete_all(Tool)
-    :ok
   end
 
   def http_requests do
