@@ -6,11 +6,12 @@ defmodule Farmbot.Asset do
   alias Farmbot.Asset
   alias Asset.{
     Device,
+    FarmEvent,
     Peripheral,
     Point,
+    Regimen,
     Sensor,
     Sequence,
-    Regimen,
     Tool
   }
 
