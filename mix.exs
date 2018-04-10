@@ -162,7 +162,7 @@ defmodule Farmbot.Mixfile do
   end
 
   defp system("rpi3"),
-    do: [{:nerves_system_farmbot_rpi3, "1.0.0-rc.2-farmbot", runtime: false}]
+    do: [{:nerves_system_farmbot_rpi3, "1.0.0-rc.2-farmbot.1", runtime: false}]
 
   defp system("rpi0"),
     do: [{:nerves_system_farmbot_rpi0, "0.20.0-farmbot", runtime: false}]
