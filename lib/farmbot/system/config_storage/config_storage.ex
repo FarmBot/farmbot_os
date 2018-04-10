@@ -11,10 +11,32 @@ defmodule Farmbot.System.ConfigStorage do
     Group, Config, BoolValue, FloatValue, StringValue,
     SyncCmd,
     PersistentRegimen,
+    RegimenExecution,
     NetworkInterface,
     GpioRegistry,
   }
   alias Farmbot.Farmware.Installer.Repository
+
+  alias Farmbot.Asset.{
+    Regimen,
+  }
+
+  def mark_regimen_item_as_executed(%Regimen{} = regimen, sequence_id, ref, %DateTime{} = epoch) do
+    data = struct(RegimenExecution)
+    RegimenExecution.changeset(data, %{regimen_id: regimen.id, executable_id: sequence_id, epoch: epoch, hash: inspect(ref)})
+    |> ConfigStorage.insert!()
+  end
+
+  def regimen_item_hasnt_executed?(%Regimen{id: rid} = _regimen, sequence_id, ref, %DateTime{} = epoch) do
+    ref_str = inspect(ref)
+    query = from re in RegimenExecution,
+      where: re.regimen_id == ^rid and re.executable_id == ^sequence_id and re.epoch == ^epoch and re.hash == ^ref_str
+    ConfigStorage.one(query)
+    |> case do
+      nil -> true
+      _thing -> false
+    end
+  end
 
   def add_farmware_repo(manifest, url) do
     Repository.changeset(manifest, %{url: url})

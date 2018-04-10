@@ -171,15 +171,20 @@ defmodule Farmbot.FarmEvent.Manager do
   end
 
   defp maybe_start_regimen(started?, start_time, last_time, event, now)
-  defp maybe_start_regimen(true = _started?, start_time, last_time, event, now) do
-    case is_too_old?(now, start_time) do
-      true  ->
-        maybe_farm_event_log "regimen #{event.name} (#{event.id}) is too old to start or already started."
-        {nil, last_time}
-      false ->
-        maybe_farm_event_log "regimen #{event.name} (#{event.id}) starting."
-        {event, now}
+  defp maybe_start_regimen(true = _started?, _start_time, nil, regimen, now) do
+    maybe_farm_event_log "regimen #{regimen.name} (#{regimen.id}) starting."
+    if Process.whereis(:"regimen-#{regimen.id}") do
+      # It's already started probably from a Persistent Regimen or something.
+      # Don't bother starting it again to avoid an annoying log.
+      {nil, now}
+    else
+      {regimen, now}
     end
+  end
+
+  defp maybe_start_regimen(true = _started?, _start_time, last_time, event, _now) do
+    maybe_farm_event_log "regimen #{event.name} (#{event.id}) should already be started."
+    {nil, last_time}
   end
 
   defp maybe_start_regimen(false = _started?, start_time, last_time, event, _) do
@@ -272,8 +277,6 @@ defmodule Farmbot.FarmEvent.Manager do
         dt = Timex.parse! iso_time, "{ISO:Extended}"
         if Timex.after?(now, dt) do
           {true, dt}
-          # too_old? = is_too_old?(now, dt)
-          # if too_old?, do: {false, last_time}, else: {true, dt}
         else
           maybe_farm_event_log "Sequence Event not ready yet."
           {false, dt}
@@ -295,14 +298,6 @@ defmodule Farmbot.FarmEvent.Manager do
     start_events(rest, now)
   end
 
-  # is then more than 1 minute in the past?
-  defp is_too_old?(now, then) do
-    time_str_fun = fn(dt) -> "#{dt.hour}:#{dt.minute}:#{dt.second}" end
-    seconds = DateTime.to_unix(now, :second) - DateTime.to_unix(then, :second)
-    c = seconds > 60 # not in MS here
-    maybe_farm_event_log "is checking #{time_str_fun.(now)} - #{time_str_fun.(then)} = #{seconds} seconds ago. is_too_old? => #{c}"
-    c
-  end
 
   defp get_now(), do: Timex.now()
 
