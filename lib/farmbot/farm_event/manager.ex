@@ -22,8 +22,8 @@ defmodule Farmbot.FarmEvent.Manager do
   alias Farmbot.Asset.{FarmEvent, Sequence, Regimen}
   alias Farmbot.Repo.Registry
 
-  @checkup_time 100
-  # @checkup_time 30_000
+  # @checkup_time 100
+  @checkup_time 30_000
 
   ## GenServer
 
