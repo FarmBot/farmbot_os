@@ -137,14 +137,27 @@ defmodule Farmbot.System.ConfigStorage do
     ConfigStorage.all(PersistentRegimen)
   end
 
+  def persistent_regimens(%{id: id} = _regimen) do
+    ConfigStorage.all(from pr in PersistentRegimen, where: pr.regimen_id == ^id)
+  end
+
+  def persistent_regimen(%{id: id} = _regimen, %DateTime{} = time) do
+    ConfigStorage.one(from pr in PersistentRegimen, where: pr.regimen_id == ^id and pr.time == ^time)
+  end
+
   @doc "Add a new Persistent Regimen."
   def add_persistent_regimen(%{id: id} = _regimen, time) do
     PersistentRegimen.changeset(struct(PersistentRegimen, %{regimen_id: id, time: time}))
     |> ConfigStorage.insert()
     |> case do
-      {:ok, _} -> :ok
+      {:ok, _} = ok -> ok
       err -> err
     end
+  end
+
+  def delete_persistent_regimen(%{id: id} = _regimen, time) do
+    ConfigStorage.one(from pr in PersistentRegimen, where: pr.regimen_id == ^id and pr.time == ^time)
+    |> ConfigStorage.delete()
   end
 
   @doc "Destroy a Persistent Regimen."

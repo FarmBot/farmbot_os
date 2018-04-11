@@ -6,6 +6,7 @@ defmodule Farmbot.Regimen.Manager do
   alias Farmbot.CeleryScript
   alias Farmbot.Asset
   alias Asset.Regimen
+  import Farmbot.Regimen.NameProvider
   import Farmbot.System.ConfigStorage, only: [
     get_config_value: 3,
     mark_regimen_item_as_executed: 4,
@@ -48,7 +49,7 @@ defmodule Farmbot.Regimen.Manager do
 
   @doc false
   def start_link(regimen, time) do
-    GenServer.start_link(__MODULE__, [regimen, time], name: :"regimen-#{regimen.id}")
+    GenServer.start_link(__MODULE__, [regimen, time], name: via(regimen, time))
   end
 
   def init([regimen, time]) do
@@ -97,14 +98,6 @@ defmodule Farmbot.Regimen.Manager do
       Logger.warn 2, "[#{regimen.name}] has no items on regimen."
       {:reply, :ok, initial_state}
     end
-  end
-
-  def terminate(:normal, state) do
-    Farmbot.Regimen.Supervisor.remove_child(state.regimen)
-  end
-
-  def terminate(_, _) do
-    :ok
   end
 
   def handle_info(:execute, state) do

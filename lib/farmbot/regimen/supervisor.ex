@@ -4,6 +4,27 @@ defmodule Farmbot.Regimen.Supervisor do
   alias Farmbot.Asset
   alias Farmbot.System.ConfigStorage
   use Farmbot.Logger
+  import Farmbot.Regimen.NameProvider, only: [via: 2]
+
+  def stop_all_managers(regimen) do
+    ConfigStorage.persistent_regimens(regimen)
+    |> Enum.map(fn(%{time: time}) ->
+      server_name = via(regimen, time)
+      require IEx; IEx.pry
+    end)
+  end
+
+  def reindex_all_managers(regimen) do
+    ConfigStorage.persistent_regimens(regimen)
+    |> Enum.map(fn(%{time: time}) ->
+      server_name = via(regimen, time)
+      if GenServer.whereis(server_name) do
+        GenServer.call(server_name, {:reindex, regimen})
+      else
+        Logger.warn 2, "#{regimen.name} does not seem to be started."
+      end
+    end)
+  end
 
   @doc false
   def start_link do
@@ -15,38 +36,18 @@ defmodule Farmbot.Regimen.Supervisor do
     children = Enum.map(prs, fn(%{regimen_id: id, time: time}) ->
       regimen = Asset.get_regimen_by_id!(id)
       args = [regimen, time]
-      opts = [restart: :transient, id: regimen.id]
+      opts = [restart: :transient]
       worker(Farmbot.Regimen.Manager, args, opts)
     end)
     opts = [strategy: :one_for_one]
-    supervise(children, opts)
+    supervise([worker(Farmbot.Regimen.NameProvider, []) | children], opts)
   end
 
   def add_child(regimen, time) do
     Logger.debug 3, "Starting regimen: #{regimen.name}"
     args = [regimen, time]
-    opts = [restart: :transient, id: regimen.id]
+    opts = [restart: :transient]
     spec = worker(Farmbot.Regimen.Manager, args, opts)
-    case Supervisor.start_child(__MODULE__, spec) do
-      {:ok, _} = ok ->
-        :ok = ConfigStorage.add_persistent_regimen(regimen, time)
-        ok
-      er -> er
-    end
-  end
-
-  def remove_child(regimen) do
-    Logger.debug 3, "Stopping regimen: #{regimen.name}"
-    Supervisor.terminate_child(__MODULE__, regimen.id)
-    Supervisor.delete_child(__MODULE__, regimen.id)
-    ConfigStorage.destroy_persistent_regimen(regimen)
-  end
-
-  def restart_child(regimen) do
-    if pid = Process.whereis(:"regimen-#{regimen.id}") do
-      GenServer.call(pid, {:reindex, regimen})
-    else
-      Logger.error 3, "Regimen: #{regimen.name} doesn't seem to be running."
-    end
+    Supervisor.start_child(__MODULE__, spec)
   end
 end
