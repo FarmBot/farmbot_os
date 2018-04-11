@@ -166,7 +166,6 @@ defmodule AST.SlicerTest do
     # TODO Actually check this?
   end
 
-  @tag timeout: :infinity
   test "Slices an unrealistic_but_valid_sequence" do
     heap = Slicer.run(@unrealistic_but_valid_sequence)
     assert Enum.count(heap.entries) == 14

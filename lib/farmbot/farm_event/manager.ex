@@ -115,18 +115,15 @@ defmodule Farmbot.FarmEvent.Manager do
 
   def async_checkup(_manager, state) do
     now = get_now()
-
-    # maybe_farm_event_log "Rebuilding calendar."
     all_events = Enum.map(state.events, &FarmEvent.build_calendar(elem(&1, 1)))
-    # maybe_farm_event_log "Rebuilding calendar complete."
 
     # do checkup is the bulk of the work.
     {late_events, new} = do_checkup(all_events, now, state)
 
-    #TODO(Connor) Conditionally start events based on some state info.
     unless Enum.empty?(late_events) do
       # Map over the events for logging. Both Sequences and Regimens have a `name` field.
-      Logger.debug 3, "Time for events: #{inspect Enum.map(late_events, fn(e) -> e.name end)} to run at: #{now.hour}:#{now.minute}"
+      names = Enum.map(late_events, &Map.get(&1, :name))
+      Logger.debug 3, "Time for events: #{inspect names} to be started at: #{now.hour}:#{now.minute}"
       start_events(late_events, now)
     end
     exit({:success, %{new | events: Map.new(all_events, fn(event) -> {event.id, event} end)}})
@@ -158,8 +155,7 @@ defmodule Farmbot.FarmEvent.Manager do
     # build a local start time and end time
     start_time = Timex.parse! f.start_time, "{ISO:Extended}"
     end_time   = Timex.parse! f.end_time,   "{ISO:Extended}"
-    # start_time = f.start_time
-    # end_time = f.end_time
+
     # get local bool of if the event is started and finished.
     started?  = Timex.after? now, start_time
     finished? = Timex.after? now, end_time
@@ -172,7 +168,6 @@ defmodule Farmbot.FarmEvent.Manager do
 
   defp maybe_start_regimen(started?, start_time, last_time, event, now)
   defp maybe_start_regimen(true = _started?, _start_time, nil, regimen, now) do
-    #
     maybe_farm_event_log "regimen #{regimen.name} (#{regimen.id}) starting."
     {regimen, now}
   end
@@ -190,8 +185,11 @@ defmodule Farmbot.FarmEvent.Manager do
   defp lookup!(module, %FarmEvent{executable_id: exe_id, id: id}) when is_atom(module) do
     case module do
       Sequence -> Asset.get_sequence_by_id!(exe_id)
-      Regimen ->  Asset.get_regimen_by_id!(exe_id, id)
-      _ -> raise "unknown executable type: #{module}"
+      Regimen ->
+        # We tag the looked up Regimen with the FarmEvent id here.
+        # This makes it easier to track the pid of it later when it
+        # needs to be started or stopped.
+        Asset.get_regimen_by_id!(exe_id, id)
     end
   end
 
@@ -234,7 +232,6 @@ defmodule Farmbot.FarmEvent.Manager do
 
   # if there is no last time, check if time is passed now within 60 seconds.
   defp should_run_sequence?([first_time | _], nil, now) do
-
     maybe_farm_event_log "Checking sequence event that hasn't run before #{first_time}"
     # convert the first_time to a DateTime
     dt = Timex.parse! first_time, "{ISO:Extended}"
