@@ -11,32 +11,10 @@ defmodule Farmbot.System.ConfigStorage do
     Group, Config, BoolValue, FloatValue, StringValue,
     SyncCmd,
     PersistentRegimen,
-    RegimenExecution,
     NetworkInterface,
     GpioRegistry,
   }
   alias Farmbot.Farmware.Installer.Repository
-
-  alias Farmbot.Asset.{
-    Regimen,
-  }
-
-  def mark_regimen_item_as_executed(%Regimen{} = regimen, sequence_id, ref, %DateTime{} = epoch) do
-    data = struct(RegimenExecution)
-    RegimenExecution.changeset(data, %{regimen_id: regimen.id, executable_id: sequence_id, epoch: epoch, hash: inspect(ref)})
-    |> ConfigStorage.insert!()
-  end
-
-  def regimen_item_hasnt_executed?(%Regimen{id: rid} = _regimen, sequence_id, ref, %DateTime{} = epoch) do
-    ref_str = inspect(ref)
-    query = from re in RegimenExecution,
-      where: re.regimen_id == ^rid and re.executable_id == ^sequence_id and re.epoch == ^epoch and re.hash == ^ref_str
-    ConfigStorage.one(query)
-    |> case do
-      nil -> true
-      _thing -> false
-    end
-  end
 
   def add_farmware_repo(manifest, url) do
     Repository.changeset(manifest, %{url: url})
@@ -141,13 +119,14 @@ defmodule Farmbot.System.ConfigStorage do
     ConfigStorage.all(from pr in PersistentRegimen, where: pr.regimen_id == ^id)
   end
 
-  def persistent_regimen(%{id: id} = _regimen, %DateTime{} = time) do
-    ConfigStorage.one(from pr in PersistentRegimen, where: pr.regimen_id == ^id and pr.time == ^time)
+  def persistent_regimen(%{id: id, farm_event_id: fid} = _regimen) do
+    fid || raise "adasdf"
+    ConfigStorage.one(from pr in PersistentRegimen, where: pr.regimen_id == ^id and pr.farm_event_id == ^fid)
   end
 
   @doc "Add a new Persistent Regimen."
-  def add_persistent_regimen(%{id: id} = _regimen, time) do
-    PersistentRegimen.changeset(struct(PersistentRegimen, %{regimen_id: id, time: time}))
+  def add_persistent_regimen(%{id: id, farm_event_id: fid} = _regimen, time) do
+    PersistentRegimen.changeset(struct(PersistentRegimen, %{regimen_id: id, time: time, farm_event_id: fid}))
     |> ConfigStorage.insert()
     |> case do
       {:ok, _} = ok -> ok
@@ -155,23 +134,10 @@ defmodule Farmbot.System.ConfigStorage do
     end
   end
 
-  def delete_persistent_regimen(%{id: id} = _regimen, time) do
-    ConfigStorage.one(from pr in PersistentRegimen, where: pr.regimen_id == ^id and pr.time == ^time)
+  def delete_persistent_regimen(%{id: id, farm_event_id: fid} = _regimen) do
+    fid || raise "cannot delete persistent_regimen without farm_event_id"
+    ConfigStorage.one(from pr in PersistentRegimen, where: pr.regimen_id == ^id and pr.farm_event_id == ^fid)
     |> ConfigStorage.delete()
-  end
-
-  @doc "Destroy a Persistent Regimen."
-  def destroy_persistent_regimen(%{id: id} = _regimen) do
-    q = from p in PersistentRegimen, where: p.regimen_id == ^id
-    pr = ConfigStorage.one(q)
-    if pr do
-      case ConfigStorage.delete(pr) do
-        {:ok, _} -> :ok
-        err -> err
-      end
-    else
-      :ok
-    end
   end
 
   @doc "Please be careful with this. It uses a lot of queries."
