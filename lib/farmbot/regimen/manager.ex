@@ -6,10 +6,9 @@ defmodule Farmbot.Regimen.Manager do
   alias Farmbot.CeleryScript
   alias Farmbot.Asset
   alias Asset.Regimen
+  import Farmbot.Regimen.NameProvider
   import Farmbot.System.ConfigStorage, only: [
     get_config_value: 3,
-    mark_regimen_item_as_executed: 4,
-    regimen_item_hasnt_executed?: 4
   ]
 
   defmodule Error do
@@ -48,7 +47,8 @@ defmodule Farmbot.Regimen.Manager do
 
   @doc false
   def start_link(regimen, time) do
-    GenServer.start_link(__MODULE__, [regimen, time], name: :"regimen-#{regimen.id}")
+    regimen.farm_event_id || raise "Starting a regimen requires a farm_event id"
+    GenServer.start_link(__MODULE__, [regimen, time], name: via(regimen))
   end
 
   def init([regimen, time]) do
@@ -71,13 +71,14 @@ defmodule Farmbot.Regimen.Manager do
       state = build_next_state(regimen, first_item, self(), initial_state)
       {:ok, state}
     else
-      Logger.warn 2, "[#{regimen.name}] has no items on regimen."
+      Logger.warn 2, "[#{regimen.name} #{regimen.farm_event_id}] has no items on regimen."
       {:ok, initial_state}
     end
   end
 
   def handle_call({:reindex, regimen}, _from, state) do
     Logger.busy 3, "Reindexing regimen by id: #{regimen.id}"
+    regimen.farm_event_id || raise "Can't reindex without farm_event_id"
     # parse and sort the regimen items
     items         = filter_items(regimen)
     first_item    = List.first(items)
@@ -94,17 +95,9 @@ defmodule Farmbot.Regimen.Manager do
       state = build_next_state(regimen, first_item, self(), initial_state)
       {:reply, :ok, state}
     else
-      Logger.warn 2, "[#{regimen.name}] has no items on regimen."
+      Logger.warn 2, "[#{regimen.name} #{regimen.farm_event_id}] has no items on regimen."
       {:reply, :ok, initial_state}
     end
-  end
-
-  def terminate(:normal, state) do
-    Farmbot.Regimen.Supervisor.remove_child(state.regimen)
-  end
-
-  def terminate(_, _) do
-    :ok
   end
 
   def handle_info(:execute, state) do
@@ -126,7 +119,7 @@ defmodule Farmbot.Regimen.Manager do
   end
 
   defp complete(regimen, state) do
-    Logger.success 2, "[#{regimen.name}] has executed all current items!"
+    Logger.success 2, "[#{regimen.name} #{regimen.farm_event_id}] has executed all current items!"
     items         = filter_items(state.regimen)
     regimen       = %{state.regimen | regimen_items: items}
     {:noreply, %{state | regimen: regimen}}
@@ -139,9 +132,8 @@ defmodule Farmbot.Regimen.Manager do
   end
 
   defp do_item(item, regimen, state) do
-    if item && regimen_item_hasnt_executed?(regimen, item.sequence_id, item.ref, state.epoch) do
-      Logger.busy 2, "[#{regimen.name}] is going to execute: #{item.name}"
-      mark_regimen_item_as_executed(regimen, item.sequence_id, item.ref, state.epoch)
+    if item do
+      Logger.busy 2, "[#{regimen.name} #{regimen.farm_event_id}] is going to execute: #{item.name}"
       CeleryScript.execute(item.sequence)
     end
     next_item = List.first(regimen.regimen_items)
@@ -167,7 +159,7 @@ defmodule Farmbot.Regimen.Manager do
     offset_from_now = Timex.diff(next_dt, now, :milliseconds)
 
     timer = if (offset_from_now < 0) and (offset_from_now < -60_000) do
-      # Logger.info 3, "[#{regimen.name}] #{[nx_itm.name]} has been scheduled to happen more than one minute ago: #{offset_from_now} Skipping it."
+      # Logger.info 3, "[#{regimen.name} #{regimen.farm_event_id}] #{[nx_itm.name]} has been scheduled to happen more than one minute ago: #{offset_from_now} Skipping it."
       Process.send_after(pid, :skip, 1000)
     else
       {msg, real_offset} = ensure_not_negative(offset_from_now)
@@ -178,7 +170,7 @@ defmodule Farmbot.Regimen.Manager do
       timestr = "#{next_dt.month}/#{next_dt.day}/#{next_dt.year} " <>
         "at: #{next_dt.hour}:#{next_dt.minute} (#{offset_from_now} milliseconds)"
 
-      Logger.debug 3, "[#{regimen.name}] next item will execute on #{timestr}"
+      Logger.debug 3, "[#{regimen.name} #{regimen.farm_event_id}] next item will execute on #{timestr}"
     end
 
     %{state | timer: timer,

@@ -10,6 +10,7 @@ defmodule Farmbot.Asset.Regimen do
 
   schema "regimens" do
     field(:name, :string)
+    field(:farm_event_id, :integer, virtual: true)
     field(:regimen_items, JSONType)
   end
 

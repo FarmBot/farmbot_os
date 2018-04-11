@@ -66,12 +66,12 @@ defmodule Farmbot.FarmEvent.Manager do
   end
 
   def handle_info({Registry, :deletion, Regimen, data}, state) do
-    Farmbot.Regimen.Supervisor.remove_child(data)
+    Farmbot.Regimen.Supervisor.stop_all_managers(data)
     {:noreply, state}
   end
 
   def handle_info({Registry, :update, Regimen, data}, state) do
-    Farmbot.Regimen.Supervisor.restart_child(data)
+    Farmbot.Regimen.Supervisor.reindex_all_managers(data)
     {:noreply, state}
   end
 
@@ -153,7 +153,7 @@ defmodule Farmbot.FarmEvent.Manager do
   defp check_event(%FarmEvent{} = f, now, last_time) do
     # Get the executable out of the database this may fail.
     mod      = Module.safe_concat([f.executable_type])
-    event    = lookup!(mod, f.executable_id)
+    event    = lookup!(mod, f)
 
     # build a local start time and end time
     start_time = Timex.parse! f.start_time, "{ISO:Extended}"
@@ -172,14 +172,9 @@ defmodule Farmbot.FarmEvent.Manager do
 
   defp maybe_start_regimen(started?, start_time, last_time, event, now)
   defp maybe_start_regimen(true = _started?, _start_time, nil, regimen, now) do
+    #
     maybe_farm_event_log "regimen #{regimen.name} (#{regimen.id}) starting."
-    if Process.whereis(:"regimen-#{regimen.id}") do
-      # It's already started probably from a Persistent Regimen or something.
-      # Don't bother starting it again to avoid an annoying log.
-      {nil, now}
-    else
-      {regimen, now}
-    end
+    {regimen, now}
   end
 
   defp maybe_start_regimen(true = _started?, _start_time, last_time, event, _now) do
@@ -192,10 +187,10 @@ defmodule Farmbot.FarmEvent.Manager do
     {nil, last_time}
   end
 
-  defp lookup!(module, sr_id) when is_atom(module) and is_number(sr_id) do
+  defp lookup!(module, %FarmEvent{executable_id: exe_id, id: id}) when is_atom(module) do
     case module do
-      Sequence -> Asset.get_sequence_by_id!(sr_id)
-      Regimen ->  Asset.get_regimen_by_id!(sr_id)
+      Sequence -> Asset.get_sequence_by_id!(exe_id)
+      Regimen ->  Asset.get_regimen_by_id!(exe_id, id)
       _ -> raise "unknown executable type: #{module}"
     end
   end

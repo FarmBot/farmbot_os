@@ -73,13 +73,18 @@ defmodule Farmbot.Asset do
   end
 
   @doc "Get a Regimen by it's id."
-  def get_regimen_by_id(regimen_id) do
-    Farmbot.Repo.one(from r in Regimen, where: r.id == ^regimen_id)
+  def get_regimen_by_id(regimen_id, farm_event_id) do
+    reg = Farmbot.Repo.one(from r in Regimen, where: r.id == ^regimen_id)
+    if reg do
+      %{reg | farm_event_id: farm_event_id}
+    else
+      nil
+    end
   end
 
   @doc "Same as `get_regimen_by_id/1` but raises if no Regimen is found."
-  def get_regimen_by_id!(regimen_id) do
-    case get_regimen_by_id(regimen_id) do
+  def get_regimen_by_id!(regimen_id, farm_event_id) do
+    case get_regimen_by_id(regimen_id, farm_event_id) do
       nil -> raise "Could not find regimen by id #{regimen_id}"
       %Regimen{} = reg -> reg
     end
