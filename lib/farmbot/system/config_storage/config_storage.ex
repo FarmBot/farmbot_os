@@ -133,7 +133,7 @@ defmodule Farmbot.System.ConfigStorage do
     |> ConfigStorage.insert()
   end
 
-  def delete_persistent_regimen(%Regimen{id: regimen_id, farm_event_id: fid} = regimen) do
+  def delete_persistent_regimen(%Regimen{id: regimen_id, farm_event_id: fid} = _regimen) do
     fid || raise "cannot delete persistent_regimen without farm_event_id"
     itm = ConfigStorage.one!(from pr in PersistentRegimen, where: pr.regimen_id == ^regimen_id and pr.farm_event_id == ^fid)
     ConfigStorage.delete(itm)
