@@ -6,6 +6,16 @@ defmodule Farmbot.Regimen.Supervisor do
   alias Farmbot.Regimen.NameProvider
   use Farmbot.Logger
 
+  def whats_going_on do
+    prs = ConfigStorage.all_persistent_regimens()
+    Enum.map(prs, fn(%{regimen_id: rid, farm_event_id: fid, time: start_time}) ->
+      r = Farmbot.Asset.get_regimen_by_id!(rid, fid)
+      server_name = NameProvider.via(r)
+      alive = if GenServer.whereis(server_name), do: "is alive", else: "is not alive"
+      "Regimen [#{r.name}] started by FarmEvent: [#{fid}] #{Timex.from_now(start_time)} #{alive}"
+    end)
+  end
+
   def stop_all_managers(regimen) do
     Logger.info 3, "Stopping all running regimens by id: #{inspect regimen.id}"
     prs = ConfigStorage.persistent_regimens(regimen)

@@ -33,7 +33,7 @@ defmodule Farmbot.Regimen.NameProvider do
   end
 
   def handle_call({:whereis_name, regimen}, _, state) do
-    Logger.info 3, "whereis_name: #{regimen.name} #{regimen.farm_event_id}"
+    # Logger.info 3, "whereis_name: #{regimen.name} #{regimen.farm_event_id}"
     case persistent_regimen(regimen) do
       nil ->
         {:reply, :undefined, state}
@@ -43,7 +43,7 @@ defmodule Farmbot.Regimen.NameProvider do
   end
 
   def handle_call({:register_name, regimen, pid}, _, state) do
-    Logger.info 3, "register_name: #{regimen.name} #{regimen.farm_event_id}"
+    # Logger.info 3, "register_name: #{regimen.name} #{regimen.farm_event_id}"
     case persistent_regimen(regimen) do
       nil ->
         Logger.error 1, "No persistent regimen for #{regimen.name} #{regimen.farm_event_id}"
@@ -54,7 +54,7 @@ defmodule Farmbot.Regimen.NameProvider do
   end
 
   def handle_call({:unregister_name, regimen}, _, state) do
-    Logger.info 3, "unregister_name: #{regimen.name}"
+    # Logger.info 3, "unregister_name: #{regimen.name}"
     case delete_persistent_regimen(regimen) do
       {:ok, id} -> {:reply, :yes, Map.delete(state, id)}
       {:error, reason} ->

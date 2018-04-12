@@ -16,6 +16,8 @@ defmodule Farmbot.System.ConfigStorage do
   }
   alias Farmbot.Farmware.Installer.Repository
 
+  alias Farmbot.Asset.Regimen
+
   def add_farmware_repo(manifest, url) do
     Repository.changeset(manifest, %{url: url})
     |> ConfigStorage.insert!()
@@ -115,29 +117,26 @@ defmodule Farmbot.System.ConfigStorage do
     ConfigStorage.all(PersistentRegimen)
   end
 
-  def persistent_regimens(%{id: id} = _regimen) do
+  def persistent_regimens(%Regimen{id: id} = _regimen) do
     ConfigStorage.all(from pr in PersistentRegimen, where: pr.regimen_id == ^id)
   end
 
-  def persistent_regimen(%{id: id, farm_event_id: fid} = _regimen) do
-    fid || raise "adasdf"
+  def persistent_regimen(%Regimen{id: id, farm_event_id: fid} = _regimen) do
+    fid || raise "Can't look up persistent regimens without a farm_event id."
     ConfigStorage.one(from pr in PersistentRegimen, where: pr.regimen_id == ^id and pr.farm_event_id == ^fid)
   end
 
   @doc "Add a new Persistent Regimen."
-  def add_persistent_regimen(%{id: id, farm_event_id: fid} = _regimen, time) do
+  def add_persistent_regimen(%Regimen{id: id, farm_event_id: fid} = _regimen, time) do
+    fid || raise "Can't save persistent regimens without a farm_event id."
     PersistentRegimen.changeset(struct(PersistentRegimen, %{regimen_id: id, time: time, farm_event_id: fid}))
     |> ConfigStorage.insert()
-    |> case do
-      {:ok, _} = ok -> ok
-      err -> err
-    end
   end
 
-  def delete_persistent_regimen(%{id: id, farm_event_id: fid} = _regimen) do
+  def delete_persistent_regimen(%Regimen{id: regimen_id, farm_event_id: fid} = _regimen) do
     fid || raise "cannot delete persistent_regimen without farm_event_id"
-    ConfigStorage.one(from pr in PersistentRegimen, where: pr.regimen_id == ^id and pr.farm_event_id == ^fid)
-    |> ConfigStorage.delete()
+    itm = ConfigStorage.one!(from pr in PersistentRegimen, where: pr.regimen_id == ^regimen_id and pr.farm_event_id == ^fid)
+    ConfigStorage.delete(itm)
   end
 
   @doc "Please be careful with this. It uses a lot of queries."

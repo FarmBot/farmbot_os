@@ -45,6 +45,12 @@ defmodule Farmbot.Regimen.Manager do
     def fetch_sequence(id), do: Asset.get_sequence_by_id!(id)
   end
 
+  def filter_items(regimen) do
+    regimen.regimen_items
+      |> Enum.map(&Item.parse(&1))
+      |> Enum.sort(&(&1.time_offset <= &2.time_offset))
+  end
+
   @doc false
   def start_link(regimen, time) do
     regimen.farm_event_id || raise "Starting a regimen requires a farm_event id"
@@ -123,12 +129,6 @@ defmodule Farmbot.Regimen.Manager do
     items         = filter_items(state.regimen)
     regimen       = %{state.regimen | regimen_items: items}
     {:noreply, %{state | regimen: regimen}}
-  end
-
-  defp filter_items(regimen) do
-    regimen.regimen_items
-      |> Enum.map(&Item.parse(&1))
-      |> Enum.sort(&(&1.time_offset <= &2.time_offset))
   end
 
   defp do_item(item, regimen, state) do

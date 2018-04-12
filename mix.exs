@@ -192,7 +192,7 @@ defmodule Farmbot.Mixfile do
   end
 
   defp aliases(:test, "host") do
-    ["test": ["ecto.create --quiet", "ecto.migrate", "test"]]
+    ["test": ["ecto.drop", "ecto.create --quiet", "ecto.migrate", "test"]]
   end
 
   defp aliases(_env, "host"), do: [
