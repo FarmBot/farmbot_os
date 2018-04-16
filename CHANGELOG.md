@@ -4,7 +4,6 @@
 * Regimens will now persist reboots.
 
 # 6.3.2
-* Added support for Raspberry Pi 3 B+
 * Add support for Raspberry Pi 3 B+.
 * Add new package `pyserial`.
 
