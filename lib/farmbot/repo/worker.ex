@@ -11,8 +11,8 @@ defmodule Farmbot.Repo.Worker do
   # before terminating the GenServer.
   @gen_server_timeout_grace 1500
   # 30 minutes.
-  # @default_stability_timeout 1.7e+6 |> round()
-  @default_stability_timeout 1500
+  @default_stability_timeout 1.7e+6 |> round()
+  # @default_stability_timeout 1500
 
   @doc "Sync Farmbot with the Web APP."
   def sync(verbosity \\ 1) do
