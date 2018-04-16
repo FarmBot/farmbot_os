@@ -85,6 +85,10 @@ defmodule Farmbot.Bootstrap.Authorization do
       # If we got maintance mode, a 5xx error etc,
       # just sleep for a few seconds
       # and try again.
+      {:error, {:http_error, code}} when code >= 500 or code < 600 ->
+        Logger.error 2, "Failed to authorize due to server error: #{code}"
+        Process.sleep(5000)
+        authorize(email, password, server)
       {:error, {:http_error, code}} ->
         Logger.error 1, "Failed to authorize due to server error: #{code}"
         Process.sleep(5000)

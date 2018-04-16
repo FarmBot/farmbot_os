@@ -13,7 +13,7 @@ defmodule Farmbot.Firmware.Vec3 do
   def fmnt_float(num) when is_float(num),
     do: :erlang.float_to_binary(num, [:compact, {:decimals, 2}])
 
-  def fmnt_float(num) when is_number(num), do: num
+  def fmnt_float(num) when is_integer(num), do: fmnt_float(num / 1)
 end
 
 defimpl Inspect, for: Farmbot.Firmware.Vec3 do

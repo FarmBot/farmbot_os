@@ -319,17 +319,9 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode(code, state) when code in [:error, :invalid_command] do
-    Logger.warn 2, "Got error gcode (#{code})!"
     maybe_cancel_timer(state.timer, state.current)
     if state.current do
-      formatted_args = Enum.map(state.current.args, fn(arg) ->
-        cond do
-          is_atom(arg) -> to_string(arg)
-          is_binary(arg) -> to_string(arg)
-          true -> inspect(arg)
-        end
-      end)
-      Logger.error 1, "Failed to execute #{state.current.fun} #{inspect formatted_args}"
+      Logger.error 1, "Got #{code} while executing `#{inspect state.current}`."
       do_reply(state, {:error, :firmware_error})
       {nil, %{state | current: nil}}
     else
