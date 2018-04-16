@@ -12,7 +12,7 @@ defmodule Farmbot.Regimen.Supervisor do
       r = Farmbot.Asset.get_regimen_by_id!(rid, fid)
       server_name = NameProvider.via(r)
       alive = if GenServer.whereis(server_name), do: "is alive", else: "is not alive"
-      "Regimen [#{r.name}] started by FarmEvent: [#{fid}] #{Timex.from_now(start_time)} #{alive}"
+      "Regimen [#{r.name} #{r.id}] started by FarmEvent: [#{fid}] #{Timex.from_now(start_time)} #{alive}"
     end)
   end
 
@@ -73,5 +73,20 @@ defmodule Farmbot.Regimen.Supervisor do
     opts = [restart: :transient, id: regimen.farm_event_id]
     spec = worker(Farmbot.Regimen.Manager, args, opts)
     Supervisor.start_child(__MODULE__, spec)
+  end
+
+  def stop_child(regimen) do
+    regimen.farm_event_id || raise "Stopping a regimen process requires a farm event id tag."
+    name = NameProvider.via(regimen)
+    case GenServer.whereis(name) do
+      nil ->
+        Logger.info 3, "Could not find regimen by id: #{regimen.id} and tag: #{regimen.farm_event_id}"
+
+      _regimen_server ->
+        Logger.debug 3, "Stopping regimen: #{regimen.name} (#{regimen.farm_event_id})"
+        Supervisor.terminate_child(Farmbot.Regimen.Supervisor, regimen.farm_event_id)
+        Supervisor.delete_child(Farmbot.Regimen.Supervisor, regimen.farm_event_id)
+    end
+    ConfigStorage.delete_persistent_regimen(regimen)
   end
 end
