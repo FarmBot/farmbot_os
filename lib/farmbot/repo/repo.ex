@@ -8,7 +8,7 @@ defmodule Farmbot.Repo do
   defdelegate sync(verbosity \\ 1), to: Farmbot.Repo.Worker
   defdelegate await_sync, to: Farmbot.Repo.Worker
 
-  import Farmbot.System.ConfigStorage, only: [destroy_all_sync_cmds: 0]
+  import Farmbot.System.ConfigStorage, only: [destroy_all_sync_cmds: 0, all_sync_cmds: 0]
   import Farmbot.BotState, only: [set_sync_status: 1]
 
   alias Farmbot.HTTP
@@ -43,6 +43,26 @@ defmodule Farmbot.Repo do
     set_sync_status(:synced)
     Logger.success verbosity, "Synced"
     :ok
+  end
+
+  def fragment_sync(verbosity \\ 1) do
+    Logger.busy verbosity, "Syncing"
+    set_sync_status(:syncing)
+    old = snapshot()
+    all_sync_cmds = all_sync_cmds()
+
+    Farmbot.Repo.transaction fn() ->
+      for cmd <- all_sync_cmds do
+        apply_sync_cmd(cmd)
+      end
+    end
+
+    new = snapshot()
+    diff = Snapshot.diff(old, new)
+    Farmbot.Repo.Registry.dispatch(diff)
+    destroy_all_sync_cmds()
+    set_sync_status(:synced)
+    Logger.success verbosity, "Synced"
   end
 
   def snapshot do
