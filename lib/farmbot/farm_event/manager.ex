@@ -55,6 +55,12 @@ defmodule Farmbot.FarmEvent.Manager do
 
   def handle_info({Registry, :deletion, FarmEvent, data}, state) do
     maybe_farm_event_log "Destroying monitor on FarmEvent: #{data.id}."
+    if String.contains?(data.executable_type, "Regimen") do
+      reg = Farmbot.Asset.get_regimen_by_id(data.executable_id, data.id)
+      if reg do
+        Farmbot.Regimen.Supervisor.stop_child(reg)
+      end
+    end
     Map.delete(state.events, data.id)
     |> reindex(state)
   end

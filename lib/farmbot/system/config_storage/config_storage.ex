@@ -139,8 +139,8 @@ defmodule Farmbot.System.ConfigStorage do
 
   def delete_persistent_regimen(%Regimen{id: regimen_id, farm_event_id: fid} = _regimen) do
     fid || raise "cannot delete persistent_regimen without farm_event_id"
-    itm = ConfigStorage.one!(from pr in PersistentRegimen, where: pr.regimen_id == ^regimen_id and pr.farm_event_id == ^fid)
-    ConfigStorage.delete(itm)
+    itm = ConfigStorage.one(from pr in PersistentRegimen, where: pr.regimen_id == ^regimen_id and pr.farm_event_id == ^fid)
+    if itm, do: ConfigStorage.delete(itm), else: nil
   end
 
   @doc "Please be careful with this. It uses a lot of queries."
