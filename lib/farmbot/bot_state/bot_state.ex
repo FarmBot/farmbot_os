@@ -262,6 +262,9 @@ defmodule Farmbot.BotState do
 
   defp do_handle([], state), do: state
 
+  defp do_handle(data, %{informational_settings: %{sync_status: :booting}} = state) do
+    do_handle(data, %{state | informational_settings: %{state.informational_settings | sync_status: :sync_now}})
+  end
   # User env is json and kind of a mess.
   defp do_handle([{:config, "settings", "user_env", val} | rest], state) do
     new_env = Map.merge(state.user_env, Poison.decode!(val))

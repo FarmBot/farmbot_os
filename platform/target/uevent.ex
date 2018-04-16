@@ -54,16 +54,21 @@ defmodule Farmbot.Target.Uevent do
   end
 
   defp handle_uevent(%{"action" => "add", "subsystem" => "tty", "devname" => tty}) do
-    Logger.busy 3, "Detected new UART Device: #{tty}"
-    Application.put_env(:farmbot, :uart_handler, tty: "/dev/" <> tty)
-    old_env = Application.get_env(:farmbot, :behaviour)
+    if String.contains?(tty, "USB") || String.contains?(tty, "ACM") do
+      Logger.busy 3, "Detected new UART Device: #{tty}"
+      Application.put_env(:farmbot, :uart_handler, tty: "/dev/" <> tty)
+      old_env = Application.get_env(:farmbot, :behaviour)
 
-    if old_env[:firmware_handler] == Farmbot.Firmware.StubHandler do
-      new_env = Keyword.put(old_env, :firmware_handler, Farmbot.Firmware.UartHandler)
-      Application.put_env(:farmbot, :behaviour, new_env)
-      if Process.whereis(Farmbot.Firmware) do
-        GenServer.stop(Farmbot.Firmware, :shutdown)
+      if old_env[:firmware_handler] == Farmbot.Firmware.StubHandler do
+        new_env = Keyword.put(old_env, :firmware_handler, Farmbot.Firmware.UartHandler)
+        Application.put_env(:farmbot, :behaviour, new_env)
+        if Process.whereis(Farmbot.Firmware) do
+          GenServer.stop(Farmbot.Firmware, :shutdown)
+        end
       end
+    else
+      Logger.debug 3, "Ignoring system tty: #{tty}"
+      :ok
     end
   end
 
