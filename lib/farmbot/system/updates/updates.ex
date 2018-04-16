@@ -210,12 +210,12 @@ defmodule Farmbot.System.Updates do
   @spec try_find_dl_url_in_asset([%Release.Asset{}], Version.t, %CurrentStuff{}) :: {Version.t, String.t}
   def try_find_dl_url_in_asset(assets, version, current_stuff)
 
-  def try_find_dl_url_in_asset([%Release.Asset{name: name, browser_download_url: bdurl} | rest], %Version{} = release_version, current_stuff) do
-    release_version = to_string(release_version)
+  def try_find_dl_url_in_asset([%Release.Asset{name: name, browser_download_url: bdurl} | rest], %Version{} = release_version_obj, current_stuff) do
+    release_version = to_string(release_version_obj)
     current_target = to_string(current_stuff.target)
     expected_name = "farmbot-#{current_target}-#{release_version}.fw"
     if match?(^expected_name, name) do
-      {release_version, bdurl}
+      {release_version_obj, bdurl}
     else
       Logger.debug 3, "Incorrect asset name for target: #{current_target}: #{name}"
       try_find_dl_url_in_asset(rest, release_version, current_stuff)
