@@ -58,7 +58,9 @@ config :farmbot, :behaviour,
 config :farmbot, :farmware,
   first_part_farmware_manifest_url: "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/manifest.json"
 
-config :farmbot, expected_fw_versions: ["6.3.0.F", "6.3.0.R", "6.3.0.G"]
+config :farmbot,
+  expected_fw_versions: ["6.3.0.F", "6.3.0.R", "6.3.0.G"],
+  default_server: "https://my.farm.bot"
 
 case target do
   "host" ->
