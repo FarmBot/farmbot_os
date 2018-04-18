@@ -89,4 +89,8 @@ defmodule Farmbot.Asset do
       %Regimen{} = reg -> reg
     end
   end
+
+  def get_farm_event_by_id(feid) do
+    Farmbot.Repo.one(from fe in FarmEvent, where: fe.id == ^feid)
+  end
 end

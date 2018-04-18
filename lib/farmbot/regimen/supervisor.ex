@@ -55,12 +55,7 @@ defmodule Farmbot.Regimen.Supervisor do
 
   def init([]) do
     prs = ConfigStorage.all_persistent_regimens()
-    children = Enum.map(prs, fn(%{regimen_id: id, time: time, farm_event_id: feid}) ->
-      regimen = Asset.get_regimen_by_id!(id, feid)
-      args = [regimen, time]
-      opts = [restart: :transient, id: feid]
-      worker(Farmbot.Regimen.Manager, args, opts)
-    end)
+    children = build_children(prs)
     opts = [strategy: :one_for_one]
     supervise([worker(Farmbot.Regimen.NameProvider, []) | children], opts)
   end
@@ -88,5 +83,33 @@ defmodule Farmbot.Regimen.Supervisor do
         Supervisor.delete_child(Farmbot.Regimen.Supervisor, regimen.farm_event_id)
     end
     ConfigStorage.delete_persistent_regimen(regimen)
+  end
+
+  @doc "Builds a list of supervisor children. Will also delete and not build a child from stale data."
+  @spec build_children([%PersistentRegimen{}]) :: Supervisor.child_spec()
+  def build_children(prs) do
+    Enum.reject(prs, fn(%{regimen_id: rid, farm_event_id: feid}) ->
+      reg = Asset.get_regimen_by_id(rid, feid)
+      if Asset.get_farm_event_by_id(feid) && reg do
+        _rejected = false
+      else
+        Logger.debug 3, "Deleting stale persistent regimen: regimen_id: #{rid} farm_event_id: #{feid}"
+        # Build a fake regimen to allow the deletion of the persistent regimen
+        # if reg above is nil.
+        backup = %Farmbot.Asset.Regimen{
+          farm_event_id: feid,
+          id: rid,
+          name: "Not Real", regimen_items: []
+        }
+        ConfigStorage.delete_persistent_regimen(reg || backup)
+        _rejected = true
+      end
+    end)
+    |> Enum.map(fn(%{regimen_id: id, time: time, farm_event_id: feid}) ->
+      regimen = Asset.get_regimen_by_id!(id, feid)
+      args = [regimen, time]
+      opts = [restart: :transient, id: feid]
+      worker(Farmbot.Regimen.Manager, args, opts)
+    end)
   end
 end
