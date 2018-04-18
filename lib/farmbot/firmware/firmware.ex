@@ -132,6 +132,7 @@ defmodule Farmbot.Firmware do
       x_needs_home_on_boot: false,
       y_needs_home_on_boot: false,
       z_needs_home_on_boot: false,
+      initialization_dispatched: false
     ]
   end
 
@@ -261,7 +262,6 @@ defmodule Farmbot.Firmware do
   end
 
   defp do_begin_cmd(%Command{fun: fun, args: args, from: _from} = current, state, dispatch) do
-    # Logger.busy 3, "FW Starting: #{fun}: #{inspect from}"
     case apply(state.handler_mod, fun, [state.handler | args]) do
       :ok ->
         timer = start_timer(current, state.timeout_ms)
@@ -349,7 +349,17 @@ defmodule Farmbot.Firmware do
     {nil, state}
   end
 
-  defp handle_gcode(:idle, %{initialized: false, initializing: true} = state) do
+  defp handle_gcode(:idle, %{
+    initialized: true, initializing: false, initialization_dispatched: false,
+    x_needs_home_on_boot: false, y_needs_home_on_boot: false, z_needs_home_on_boot: false
+  } = state) do
+    Logger.debug 3, "Firmware is really ready."
+    Farmbot.System.Registry.dispatch(__MODULE__, :firmware_initialized)
+    {nil, %{state | initialization_dispatched: true}}
+  end
+
+  defp handle_gcode(:idle, %{initialized: false, initializing: true, initialization_dispatched: true} = state) do
+    Farmbot.System.Registry.dispatch(__MODULE__, :firmware_idle)
     {nil, state}
   end
 
