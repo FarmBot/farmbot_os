@@ -108,7 +108,11 @@ defmodule Farmbot.Repo.Worker do
     if !state.requires_full do
       Logger.debug 3, "Next sync will be a full sync."
     end
-    {:noreply, %{state | requires_full: true, stability_timer: refresh_or_start_stability_timeout(nil, self())}}
+    {:noreply, %{state |
+      requires_full: true,
+      stability_timer: refresh_or_start_stability_timeout(state.stability_timer, self())
+      }
+    }
   end
 
   # The sync process exited before the timeout normally.
