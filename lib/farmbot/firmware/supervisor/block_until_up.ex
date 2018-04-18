@@ -1,9 +1,16 @@
 defmodule Farmbot.Firmware.Supervisor.BlockUntilUp do
+  @moduledoc """
+  Quick and dirty task that waits for the :firmware_initialized or :firmware_idle
+  global events.
+  """
+
   @timeout_ms 60_000
+  @grace_ms 1000
   use Farmbot.Logger
 
   def start_link do
-    block_until_up()
+    task = Task.async(__MODULE__, :block_until_up, [])
+    Task.await(task, @timeout_ms + @grace_ms)
     :ignore
   end
 

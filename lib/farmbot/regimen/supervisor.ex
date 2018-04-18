@@ -8,12 +8,37 @@ defmodule Farmbot.Regimen.Supervisor do
   use Farmbot.Logger
 
   def whats_going_on do
+    IO.warn "THIS SHOULD NOT BE USED IN PRODUCTION"
     prs = ConfigStorage.all_persistent_regimens()
-    Enum.map(prs, fn(%PersistentRegimen{regimen_id: rid, farm_event_id: fid, time: start_time}) ->
+    Enum.map(prs, fn(%PersistentRegimen{regimen_id: rid, farm_event_id: fid, time: start_time} = pr) ->
       r = Farmbot.Asset.get_regimen_by_id!(rid, fid)
       server_name = NameProvider.via(r)
-      alive = if GenServer.whereis(server_name), do: "is alive", else: "is not alive"
-      "Regimen [#{r.name} #{r.id}] started by FarmEvent: [#{fid}] #{Timex.from_now(start_time)} #{alive}"
+      pid = GenServer.whereis(server_name)
+      alive = if pid, do: "is alive", else: "is not alive"
+      state = if pid, do: :sys.get_state(pid)
+      info =  %{
+        _status: "[#{r.id}] started by FarmEvent: [#{fid}] #{Timex.from_now(start_time)}, #{alive}",
+        _id: r.id,
+        _farm_event_id: r.farm_event_id,
+        pid: pid,
+        persistent_regimen: pr,
+      }
+      if state do
+        timezone = Farmbot.Asset.device.timezone
+
+        next = state.next_execution
+        timer_ms = state.timer |> Process.read_timer() || 0
+        from_now = Timex.from_now(next, timezone)
+        next_tick = Timex.from_now(Timex.shift(Timex.now(), milliseconds: timer_ms), timezone)
+
+        state = %{state | regimen: %{state.regimen | regimen_items: "#{Enum.count(state.regimen.regimen_items)} items."}}
+
+        Map.put(info, :state, state)
+        |> Map.put(:_next_execution, from_now)
+        |> Map.put(:_next_tick, next_tick)
+      else
+        info
+      end
     end)
   end
 
@@ -58,7 +83,7 @@ defmodule Farmbot.Regimen.Supervisor do
     prs = ConfigStorage.all_persistent_regimens()
     children = build_children(prs)
     opts = [strategy: :one_for_one]
-    supervise([worker(Farmbot.Regimen.NameProvider, []) | children], opts)
+    supervise(children, opts)
   end
 
   def add_child(regimen, time) do

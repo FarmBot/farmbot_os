@@ -168,9 +168,10 @@ defmodule Farmbot.Regimen.Manager do
 
     if offset_from_now > 0 do
       timestr = "#{next_dt.month}/#{next_dt.day}/#{next_dt.year} " <>
-        "at: #{next_dt.hour}:#{next_dt.minute} (#{offset_from_now} milliseconds)"
+        "at: #{next_dt.hour}:#{next_dt.minute}"
 
-      Logger.debug 3, "[#{regimen.name} #{regimen.farm_event_id}] next item will execute on #{timestr}"
+      from_now = Timex.from_now(next_dt, Farmbot.Asset.device.timezone)
+      Logger.debug 3, "[#{regimen.name}] started by FarmEvent (#{regimen.farm_event_id}) will execute next item: #{from_now} (#{timestr})"
     end
 
     %{state | timer: timer,

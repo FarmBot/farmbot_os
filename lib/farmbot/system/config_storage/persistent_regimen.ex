@@ -1,4 +1,9 @@
 defmodule Farmbot.System.ConfigStorage.PersistentRegimen do
+  @moduledoc """
+  A persistent regimen is a join between a started farm event and the regimen
+  it is set to operate on. These are stored in the database to persist reboots,
+  crashes etc.
+  """
   use Ecto.Schema
   import Ecto.Changeset
   alias Farmbot.System.ConfigStorage.PersistentRegimen

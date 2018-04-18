@@ -1,4 +1,6 @@
 defmodule Farmbot.System.Init.KernelMods do
+  @moduledoc "Loads kernel modules at boot."
+  
   use Supervisor
   use Farmbot.Logger
   @mods Application.get_env(:farmbot, :kernel_modules, [])
