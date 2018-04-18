@@ -18,6 +18,8 @@ defmodule Farmbot.Regimen.Supervisor do
       state = if pid, do: :sys.get_state(pid)
       info =  %{
         _status: "[#{r.id}] started by FarmEvent: [#{fid}] #{Timex.from_now(start_time)}, #{alive}",
+        _id: r.id,
+        _farm_event_id: r.farm_event_id
         pid: pid,
         persistent_regimen: pr,
       }
