@@ -88,7 +88,7 @@ defmodule Farmbot.Firmware.StubHandler do
   end
 
   defp do_idle(pid) do
-    Process.send_after(pid, :idle_timer, 6000)
+    Process.send_after(pid, :idle_timer, 100)
   end
 
   defp do_wait_for_config_ok(pid) do
