@@ -1,4 +1,9 @@
 defmodule Farmbot.Firmware.Supervisor.BlockUntilUp do
+  @moduledoc """
+  Quick and dirty task that waits for the :firmware_initialized or :firmware_idle
+  global events.
+  """
+
   @timeout_ms 60_000
   use Farmbot.Logger
 

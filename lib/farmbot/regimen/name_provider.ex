@@ -1,4 +1,16 @@
 defmodule Farmbot.Regimen.NameProvider do
+  @moduledoc """
+  Provides global names for running regimens as started by the
+  RegimenSupervisor.
+
+  # Example
+  ```
+    %Regimen{} = reg = Farmbot.Asset.get_regimen_by_id(123, 100)
+    via = Farmbot.Regimen.NameProvider.via(reg)
+    pid = GenServer.whereis(via)
+  ```
+  """
+
   alias Farmbot.Asset.Regimen
   import Farmbot.System.ConfigStorage, only: [persistent_regimen: 1, delete_persistent_regimen: 1]
   use GenServer
