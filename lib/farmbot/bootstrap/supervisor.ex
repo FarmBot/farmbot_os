@@ -129,6 +129,7 @@ defmodule Farmbot.Bootstrap.Supervisor do
           worker(Farmbot.Bootstrap.SettingsSync,            []),
           supervisor(Farmbot.Firmware.Supervisor,           []),
           supervisor(Farmbot.BotState.Supervisor,           []),
+          worker(Farmbot.Firmware.Supervisor.BlockUntilUp,  []),
           supervisor(Farmbot.BotState.Transport.Supervisor, []),
           supervisor(Farmbot.Repo.Supervisor,               []),
           supervisor(Farmbot.FarmEvent.Supervisor,          []),
