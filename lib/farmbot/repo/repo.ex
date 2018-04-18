@@ -120,7 +120,7 @@ defmodule Farmbot.Repo do
     if Code.ensure_loaded?(mod) do
       set_sync_status(:syncing)
       old = snapshot()
-      Logger.info(1, "Syncing #{cmd.kind}")
+      Logger.debug(3, "Syncing #{cmd.kind}")
       do_apply_sync_cmd(cmd)
       new = snapshot()
       diff = Snapshot.diff(old, new)
