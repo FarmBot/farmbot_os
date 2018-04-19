@@ -138,13 +138,13 @@ defmodule Farmbot.Firmware do
   end
 
   defp needs_home_on_boot do
-    x = get_config_value(:float, "hardware_params", "movement_home_at_boot_x")
+    x = get_config_value(:float, "hardware_params", "movement_home_at_boot_x") || 0
     |> num_to_bool()
 
-    y = get_config_value(:float, "hardware_params", "movement_home_at_boot_y")
+    y = get_config_value(:float, "hardware_params", "movement_home_at_boot_y") || 0
     |> num_to_bool()
 
-    z = get_config_value(:float, "hardware_params", "movement_home_at_boot_z")
+    z = get_config_value(:float, "hardware_params", "movement_home_at_boot_z") || 0
     |> num_to_bool()
 
     %{
