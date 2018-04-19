@@ -367,13 +367,8 @@ defmodule Farmbot.Firmware.UartHandler do
     do_write("F20", state)
   end
 
-  def handle_call({:set_pin_mode, pin, mode}, _from, state) do
-    # https://github.com/arduino/Arduino/blob/2bfe164b9a5835e8cb6e194b928538a9093be333/hardware/arduino/avr/cores/arduino/Arduino.h#L43-L45
-    encoded_mode = case mode do
-      :input -> 0x0
-      :input_pullup -> 0x2
-      :output -> 0x1
-    end
+  def handle_call({:set_pin_mode, pin, mode_atom}, _from, state) do
+    encoded_mode = extract_set_pin_mode(mode_atom)
     do_write("F43 P#{pin} M#{encoded_mode}", state, [])
   end
 
