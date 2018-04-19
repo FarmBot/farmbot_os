@@ -4,7 +4,8 @@ defmodule Farmbot.Firmware do
   use GenStage
   use Farmbot.Logger
   alias Farmbot.Bootstrap.SettingsSync
-  alias Farmbot.Firmware.{Command, CompletionLogs, Vec3, EstopTimer}
+  alias Farmbot.Firmware.{Command, CompletionLogs, Vec3, EstopTimer, Utils}
+  import Utils
 
   import Farmbot.System.ConfigStorage,
     only: [get_config_value: 3, update_config_value: 4, get_config_as_map: 0]
@@ -77,7 +78,7 @@ defmodule Farmbot.Firmware do
     GenStage.call(__MODULE__, {:emergency_unlock, []}, @call_timeout)
   end
 
-  @doc "Set a pin mode (:input | :output)"
+  @doc "Set a pin mode (`:input` | `:output` | `:input_pullup`)"
   def set_pin_mode(pin, mode) do
     GenStage.call(__MODULE__, {:set_pin_mode, [pin, mode]}, @call_timeout)
   end
@@ -138,13 +139,13 @@ defmodule Farmbot.Firmware do
 
   defp needs_home_on_boot do
     x = get_config_value(:float, "hardware_params", "movement_home_at_boot_x")
-    |> fmt_home_on_boot_to_bool()
+    |> num_to_bool()
 
     y = get_config_value(:float, "hardware_params", "movement_home_at_boot_y")
-    |> fmt_home_on_boot_to_bool()
+    |> num_to_bool()
 
     z = get_config_value(:float, "hardware_params", "movement_home_at_boot_z")
-    |> fmt_home_on_boot_to_bool()
+    |> num_to_bool()
 
     %{
       x_needs_home_on_boot: x,
@@ -152,9 +153,6 @@ defmodule Farmbot.Firmware do
       z_needs_home_on_boot: z,
     }
   end
-
-  defp fmt_home_on_boot_to_bool(1.0), do: true
-  defp fmt_home_on_boot_to_bool(_), do: false
 
   def init([]) do
     handler_mod =
@@ -170,19 +168,16 @@ defmodule Farmbot.Firmware do
           subscribe_to: [handler], dispatcher: GenStage.BroadcastDispatcher
         }
       {:error, reason} ->
-        old = Application.get_all_env(:farmbot)[:behaviour]
-        new = Keyword.put(old, :firmware_handler, Farmbot.Firmware.StubHandler)
-        Application.put_env(:farmbot, :behaviour, new)
-        {:stop, {:handler_init, reason}}
+        replace_firmware_handler(Farmbot.Firmware.StubHandler)
+        Logger.error 1, "Failed to initialize firmware: #{inspect reason} Falling back to stub implementation."
+        init([])
     end
 
   end
 
   def terminate(reason, state) do
     unless reason in [:normal, :shutdown] do
-      old = Application.get_all_env(:farmbot)[:behaviour]
-      new = Keyword.put(old, :firmware_handler, Farmbot.Firmware.StubHandler)
-      Application.put_env(:farmbot, :behaviour, new)
+      replace_firmware_handler(Farmbot.Firmware.StubHandler)
     end
 
     unless :queue.is_empty(state.queue) do
@@ -412,7 +407,7 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode({:report_pin_mode, pin, mode_atom}, state) do
     # Logger.debug 3, "Got pin mode report: #{pin}: #{mode_atom}"
-    mode = if(mode_atom == :digital, do: 0, else: 1)
+    mode = extract_pin_mode(mode_atom)
     case state.pins[pin] do
       %{mode: _, value: _} = pin_map ->
         {:pins, %{pin => %{pin_map | mode: mode}}, %{state | pins: %{state.pins | pin => %{pin_map | mode: mode}}}}

@@ -2,7 +2,8 @@ defmodule Farmbot.Firmware.Command do
   @moduledoc """
   Structured data to be sent to the Firmware.
   """
-  alias Farmbot.Firmware.Command
+  alias Farmbot.Firmware.{Command, Utils}
+  import Utils
 
   defstruct [:fun, :args, :from, :status]
 
@@ -14,7 +15,7 @@ defmodule Farmbot.Firmware.Command do
   def add_status(not_command, _), do: not_command
 
   def format_args(%Farmbot.Firmware.Vec3{x: x, y: y, z: z}) do
-    "#{Farmbot.Firmware.Vec3.fmnt_float(x)}, #{Farmbot.Firmware.Vec3.fmnt_float(y)}, #{Farmbot.Firmware.Vec3.fmnt_float(z)}"
+    "#{fmnt_float(x)}, #{fmnt_float(y)}, #{fmnt_float(z)}"
   end
 
   def format_args(arg) when is_atom(arg), do: to_string(arg)
