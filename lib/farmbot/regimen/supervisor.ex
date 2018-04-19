@@ -83,7 +83,7 @@ defmodule Farmbot.Regimen.Supervisor do
     prs = ConfigStorage.all_persistent_regimens()
     children = build_children(prs)
     opts = [strategy: :one_for_one]
-    supervise([worker(Farmbot.Regimen.NameProvider, []) | children], opts)
+    supervise(children, opts)
   end
 
   def add_child(regimen, time) do

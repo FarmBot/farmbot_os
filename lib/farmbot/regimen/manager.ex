@@ -159,7 +159,6 @@ defmodule Farmbot.Regimen.Manager do
     offset_from_now = Timex.diff(next_dt, now, :milliseconds)
 
     timer = if (offset_from_now < 0) and (offset_from_now < -60_000) do
-      # Logger.info 3, "[#{regimen.name} #{regimen.farm_event_id}] #{[nx_itm.name]} has been scheduled to happen more than one minute ago: #{offset_from_now} Skipping it."
       Process.send_after(pid, :skip, 1000)
     else
       {msg, real_offset} = ensure_not_negative(offset_from_now)
@@ -167,16 +166,22 @@ defmodule Farmbot.Regimen.Manager do
     end
 
     if offset_from_now > 0 do
-      timestr = "#{next_dt.month}/#{next_dt.day}/#{next_dt.year} " <>
-        "at: #{next_dt.hour}:#{next_dt.minute} (#{offset_from_now} milliseconds)"
+      timestr = "#{format_num(next_dt.month)}/#{format_num(next_dt.day)}/#{next_dt.year} " <>
+        "at #{format_num(next_dt.hour)}:#{format_num(next_dt.minute)}"
 
-      Logger.debug 3, "[#{regimen.name} #{regimen.farm_event_id}] next item will execute on #{timestr}"
+      from_now = Timex.from_now(next_dt, Farmbot.Asset.device.timezone)
+      msg = "[#{regimen.name}] started by FarmEvent (#{regimen.farm_event_id}) " <>
+        "will execute next item #{from_now} (#{timestr})"
+
+      Logger.info 3, msg
     end
 
     %{state | timer: timer,
       regimen: regimen,
       next_execution: next_dt}
   end
+
+  defp format_num(num), do: :io_lib.format('~2..0B', [num]) |> to_string
 
   defp ensure_not_negative(offset) when offset < -60_000, do: {:skip, 1000}
   defp ensure_not_negative(offset) when offset < 0,       do: {:execute, 1000}
