@@ -135,9 +135,8 @@ defmodule Farmbot.Regimen.Supervisor do
       regimen = Asset.get_regimen_by_id!(id, feid)
       farm_event = Asset.get_farm_event_by_id(feid)
       fe_time = Timex.parse!(farm_event.start_time, "{ISO:Extended}")
-      if fe_time != time do
-        IO.inspect(fe_time, label: "FarmEvent start time.")
-        IO.inspect(time, label: "PR Start time")
+      if Timex.compare(fe_time, time) != 0 do
+        Logger.debug 1, "FarmEvent start time and stored regimen start time are different."
       end
       args = [regimen, fe_time]
       opts = [restart: :transient, id: feid]

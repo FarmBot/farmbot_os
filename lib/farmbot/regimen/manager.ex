@@ -62,7 +62,7 @@ defmodule Farmbot.Regimen.Manager do
     items         = filter_items(regimen)
     first_item    = List.first(items)
     regimen       = %{regimen | regimen_items: items}
-    epoch         = build_epoch(time) || raise Error,
+    epoch         = Farmbot.TimeUtils.build_epoch(time) || raise Error,
       message: "Could not determine EPOCH because no timezone was supplied.",
       epoch: :error, regimen: regimen
 
@@ -168,7 +168,7 @@ defmodule Farmbot.Regimen.Manager do
     if offset_from_now > 0 do
       timestr = Farmbot.TimeUtils.format_time(next_dt)
       from_now = Timex.from_now(next_dt, Farmbot.Asset.device.timezone)
-      msg = "[#{regimen.name}] started by FarmEvent (#{regimen.farm_event_id}) " <>
+      msg = "[#{regimen.name}] scheduled by FarmEvent (#{regimen.farm_event_id}) " <>
         "will execute next item #{from_now} (#{timestr})"
 
       Logger.info 3, msg
@@ -187,13 +187,5 @@ defmodule Farmbot.Regimen.Manager do
   # when there is more than one item pop the top one
   defp pop_item(%Regimen{regimen_items: [do_this_one | items]} = r) do
     {do_this_one, %Regimen{r | regimen_items: items}}
-  end
-
-  # returns midnight of today
-  @spec build_epoch(DateTime.t) :: DateTime.t
-  def build_epoch(time) do
-    tz = get_config_value(:string, "settings", "timezone")
-    n  = Timex.Timezone.convert(time, tz)
-    Timex.shift(n, hours: -n.hour, seconds: -n.second, minutes: -n.minute)
   end
 end
