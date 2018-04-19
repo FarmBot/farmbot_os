@@ -166,8 +166,8 @@ defmodule Farmbot.Regimen.Manager do
     end
 
     if offset_from_now > 0 do
-      timestr = "#{next_dt.month}/#{next_dt.day}/#{next_dt.year} " <>
-        "at #{next_dt.hour}:#{next_dt.minute}"
+      timestr = "#{format_num(next_dt.month)}/#{format_num(next_dt.day)}/#{next_dt.year} " <>
+        "at #{format_num(next_dt.hour)}:#{format_num(next_dt.minute)}"
 
       from_now = Timex.from_now(next_dt, Farmbot.Asset.device.timezone)
       msg = "[#{regimen.name}] started by FarmEvent (#{regimen.farm_event_id}) " <>
@@ -180,6 +180,8 @@ defmodule Farmbot.Regimen.Manager do
       regimen: regimen,
       next_execution: next_dt}
   end
+
+  defp format_num(num), do: :io_lib.format('~2..0B', [num]) |> to_string
 
   defp ensure_not_negative(offset) when offset < -60_000, do: {:skip, 1000}
   defp ensure_not_negative(offset) when offset < 0,       do: {:execute, 1000}
