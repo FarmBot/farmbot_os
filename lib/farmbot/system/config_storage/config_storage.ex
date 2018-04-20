@@ -143,6 +143,16 @@ defmodule Farmbot.System.ConfigStorage do
     if itm, do: ConfigStorage.delete(itm), else: nil
   end
 
+  def update_persistent_regimen_time(%Regimen{id: _regimen_id, farm_event_id: _fid} = regimen, %DateTime{} = time) do
+    pr = persistent_regimen(regimen)
+    if pr do
+      pr = Ecto.Changeset.change pr, time: time
+      ConfigStorage.update!(pr)
+    else
+      nil
+    end
+  end
+
   @doc "Please be careful with this. It uses a lot of queries."
   def get_config_as_map do
     groups = from(g in Group, select: g) |> all()
