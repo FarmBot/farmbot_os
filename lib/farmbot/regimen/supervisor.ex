@@ -17,7 +17,7 @@ defmodule Farmbot.Regimen.Supervisor do
       alive = if pid, do: "is alive", else: "is not alive"
       state = if pid, do: :sys.get_state(pid)
       info =  %{
-        _status: "[#{r.id}] started by FarmEvent: [#{fid}] #{Timex.from_now(start_time)}, #{alive}",
+        _status: "[#{r.id}] scheduled by FarmEvent: [#{fid}] #{Timex.from_now(start_time)}, #{alive}",
         _id: r.id,
         _farm_event_id: r.farm_event_id,
         pid: pid,
@@ -59,8 +59,8 @@ defmodule Farmbot.Regimen.Supervisor do
     end
   end
 
-  def reindex_all_managers(regimen) do
-    Logger.info 3, "Reindexing all running regimens by id: #{regimen.id}"
+  def reindex_all_managers(regimen, time \\ nil) do
+    Logger.debug 3, "Reindexing all running regimens by id: #{regimen.id}"
     prs = ConfigStorage.persistent_regimens(regimen)
     for %{farm_event_id: feid} <- prs do
       reg_with_fe_id = %{regimen | farm_event_id: feid}
@@ -69,7 +69,10 @@ defmodule Farmbot.Regimen.Supervisor do
         nil ->
           Logger.info 3, "Could not find regimen by id: #{reg_with_fe_id.id} and tag: #{feid}"
         regimen_server ->
-          GenServer.call(regimen_server, {:reindex, reg_with_fe_id})
+          if time do
+            ConfigStorage.update_persistent_regimen_time(regimen, time)
+          end
+          GenServer.call(regimen_server, {:reindex, reg_with_fe_id, time})
       end
     end
   end
@@ -88,7 +91,7 @@ defmodule Farmbot.Regimen.Supervisor do
 
   def add_child(regimen, time) do
     regimen.farm_event_id || raise "Starting a regimen process requires a farm event id tag."
-    Logger.debug 3, "Starting regimen: #{regimen.name} #{regimen.farm_event_id} at #{inspect time}"
+    # Logger.debug 3, "Starting regimen: #{regimen.name} #{regimen.farm_event_id} at #{inspect time}"
     ConfigStorage.add_persistent_regimen(regimen, time)
     args = [regimen, time]
     opts = [restart: :transient, id: regimen.farm_event_id]
@@ -133,7 +136,13 @@ defmodule Farmbot.Regimen.Supervisor do
     end)
     |> Enum.map(fn(%PersistentRegimen{regimen_id: id, time: time, farm_event_id: feid}) ->
       regimen = Asset.get_regimen_by_id!(id, feid)
-      args = [regimen, time]
+      farm_event = Asset.get_farm_event_by_id(feid)
+      fe_time = Timex.parse!(farm_event.start_time, "{ISO:Extended}")
+      if Timex.compare(fe_time, time) != 0 do
+        ConfigStorage.update_persistent_regimen_time(regimen, fe_time)
+        Logger.debug 1, "FarmEvent start time and stored regimen start time are different."
+      end
+      args = [regimen, fe_time]
       opts = [restart: :transient, id: feid]
       worker(Farmbot.Regimen.Manager, args, opts)
     end)

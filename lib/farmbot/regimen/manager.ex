@@ -62,9 +62,12 @@ defmodule Farmbot.Regimen.Manager do
     items         = filter_items(regimen)
     first_item    = List.first(items)
     regimen       = %{regimen | regimen_items: items}
-    epoch         = build_epoch(time) || raise Error,
+    epoch         = Farmbot.TimeUtils.build_epoch(time) || raise Error,
       message: "Could not determine EPOCH because no timezone was supplied.",
       epoch: :error, regimen: regimen
+
+    # IO.inspect(epoch, label: "EPOCH")
+    # IO.inspect(time, label: "TIME")
 
     initial_state = %{
       next_execution: nil,
@@ -82,18 +85,20 @@ defmodule Farmbot.Regimen.Manager do
     end
   end
 
-  def handle_call({:reindex, regimen}, _from, state) do
-    Logger.busy 3, "Reindexing regimen by id: #{regimen.id}"
+  def handle_call({:reindex, regimen, time}, _from, state) do
+    Logger.debug 3, "Reindexing regimen by id: #{regimen.id}"
     regimen.farm_event_id || raise "Can't reindex without farm_event_id"
     # parse and sort the regimen items
     items         = filter_items(regimen)
     first_item    = List.first(items)
     regimen       = %{regimen | regimen_items: items}
+    epoch         = if time, do: Farmbot.TimeUtils.build_epoch(time), else: state.epoch
 
     initial_state = %{
-      next_execution: state.next_execution,
       regimen:        regimen,
-      epoch:          state.epoch,
+      epoch:          epoch,
+      # Leave these so they get cleaned up
+      next_execution: state.next_execution,
       timer:          state.timer
     }
 
@@ -166,11 +171,9 @@ defmodule Farmbot.Regimen.Manager do
     end
 
     if offset_from_now > 0 do
-      timestr = "#{format_num(next_dt.month)}/#{format_num(next_dt.day)}/#{next_dt.year} " <>
-        "at #{format_num(next_dt.hour)}:#{format_num(next_dt.minute)}"
-
+      timestr = Farmbot.TimeUtils.format_time(next_dt)
       from_now = Timex.from_now(next_dt, Farmbot.Asset.device.timezone)
-      msg = "[#{regimen.name}] started by FarmEvent (#{regimen.farm_event_id}) " <>
+      msg = "[#{regimen.name}] scheduled by FarmEvent (#{regimen.farm_event_id}) " <>
         "will execute next item #{from_now} (#{timestr})"
 
       Logger.info 3, msg
@@ -181,8 +184,6 @@ defmodule Farmbot.Regimen.Manager do
       next_execution: next_dt}
   end
 
-  defp format_num(num), do: :io_lib.format('~2..0B', [num]) |> to_string
-
   defp ensure_not_negative(offset) when offset < -60_000, do: {:skip, 1000}
   defp ensure_not_negative(offset) when offset < 0,       do: {:execute, 1000}
   defp ensure_not_negative(offset),                       do: {:execute, offset}
@@ -191,13 +192,5 @@ defmodule Farmbot.Regimen.Manager do
   # when there is more than one item pop the top one
   defp pop_item(%Regimen{regimen_items: [do_this_one | items]} = r) do
     {do_this_one, %Regimen{r | regimen_items: items}}
-  end
-
-  # returns midnight of today
-  @spec build_epoch(DateTime.t) :: DateTime.t
-  def build_epoch(time) do
-    tz = get_config_value(:string, "settings", "timezone")
-    n  = Timex.Timezone.convert(time, tz)
-    Timex.shift(n, hours: -n.hour, seconds: -n.second, minutes: -n.minute)
   end
 end
