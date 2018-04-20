@@ -22,8 +22,8 @@ defmodule Farmbot.FarmEvent.Manager do
   alias Farmbot.Asset.{FarmEvent, Sequence, Regimen}
   alias Farmbot.Repo.Registry
 
-  # @checkup_time 100
-  @checkup_time 15_000
+  @checkup_time 1000
+  # @checkup_time 15_000
 
   ## GenServer
 
@@ -70,7 +70,7 @@ defmodule Farmbot.FarmEvent.Manager do
     if String.contains?(data.executable_type, "Regimen") do
       reg = Farmbot.Asset.get_regimen_by_id(data.executable_id, data.id)
       if reg do
-        Farmbot.Regimen.Supervisor.reindex_all_managers(reg)
+        Farmbot.Regimen.Supervisor.reindex_all_managers(reg, Timex.parse!(data.start_time, "{ISO:Extended}"))
       end
     end
     Map.put(state.events, data.id, data)
@@ -187,7 +187,7 @@ defmodule Farmbot.FarmEvent.Manager do
   end
 
   defp maybe_schedule_regimen(true = _scheduled?, _schedule_time, last_time, event, _now) do
-    # maybe_farm_event_log "regimen #{event.name} (#{event.id}) should already be scheduled."
+    maybe_farm_event_log "regimen #{event.name} (#{event.id}) should already be scheduled."
     {nil, last_time}
   end
 

@@ -85,18 +85,20 @@ defmodule Farmbot.Regimen.Manager do
     end
   end
 
-  def handle_call({:reindex, regimen}, _from, state) do
+  def handle_call({:reindex, regimen, time}, _from, state) do
     Logger.busy 3, "Reindexing regimen by id: #{regimen.id}"
     regimen.farm_event_id || raise "Can't reindex without farm_event_id"
     # parse and sort the regimen items
     items         = filter_items(regimen)
     first_item    = List.first(items)
     regimen       = %{regimen | regimen_items: items}
+    epoch         = if time, do: Farmbot.TimeUtils.build_epoch(time), else: state.epoch
 
     initial_state = %{
-      next_execution: state.next_execution,
       regimen:        regimen,
-      epoch:          state.epoch,
+      epoch:          epoch,
+      # Leave these so they get cleaned up
+      next_execution: state.next_execution,
       timer:          state.timer
     }
 
