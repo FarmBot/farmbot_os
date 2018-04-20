@@ -22,8 +22,8 @@ defmodule Farmbot.FarmEvent.Manager do
   alias Farmbot.Asset.{FarmEvent, Sequence, Regimen}
   alias Farmbot.Repo.Registry
 
-  # @checkup_time 100
-  @checkup_time 30_000
+  @checkup_time 100
+  # @checkup_time 30_000
 
   ## GenServer
 
@@ -129,7 +129,7 @@ defmodule Farmbot.FarmEvent.Manager do
     unless Enum.empty?(late_executables) do
       # Map over the events for logging. Both Sequences and Regimens have a `name` field.
       names = Enum.map(late_executables, &Map.get(elem(&1, 0), :name))
-      Logger.debug 3, "Time for events: #{inspect names} to be scheduled #{Farmbot.TimeUtils.format_time(now)}"
+      Logger.debug 3, "Time for events: #{inspect names} to be scheduled."
       schedule_events(late_executables, now)
     end
     exit({:success, %{new | events: Map.new(all_events, fn(event) -> {event.id, event} end)}})
@@ -293,9 +293,12 @@ defmodule Farmbot.FarmEvent.Manager do
   # Enumerate the events to be scheduled.
   defp schedule_events([{executable, farm_event} | rest], now) do
     # Spawn to be non blocking here. Maybe link to this process?
+    time = Timex.parse!(farm_event.start_time, "{ISO:Extended}")
     cond do
       match?(%Regimen{}, executable) ->
-        spawn fn() -> Execution.execute_event(executable, Timex.parse!(farm_event.schedule_time, "{ISO:Extended}")) end
+        spawn fn() ->
+          Execution.execute_event(executable, time)
+        end
       match?(%Sequence{}, executable) ->
         spawn fn() -> Execution.execute_event(executable, now) end
     end
