@@ -336,6 +336,11 @@ defmodule Farmbot.Firmware do
     {nil, state}
   end
 
+  defp handle_gcode(:report_params_complete, state) do
+    Logger.success 1, "Firmware initialized."
+    {nil, %{state | initializing: false, initialized: true, params_reported: true}}
+  end
+
   defp handle_gcode(:idle, %{
     initialized: true, initializing: false, initialization_dispatched: false,
     x_needs_home_on_boot: false, y_needs_home_on_boot: false, z_needs_home_on_boot: false
@@ -374,7 +379,7 @@ defmodule Farmbot.Firmware do
     if state.current do
       # This might be a bug in the FW
       if state.current.fun in [:home, :home_all] do
-        Logger.warn 1, "Got idle during home. Ignoring. This might be bad."
+        Logger.warn 1, "Got idle during home."
         timer = start_timer(state.current, state.timeout_ms)
         {nil, %{state | timer: timer}}
       else
@@ -434,11 +439,6 @@ defmodule Farmbot.Firmware do
   defp handle_gcode({:report_parameter_value, param, value}, state) when is_number(value) do
     maybe_update_param_from_report(to_string(param), value)
     {:mcu_params, %{param => value}, %{state | params: Map.put(state.params, param, value)}}
-  end
-
-  defp handle_gcode(:report_params_complete, state) do
-    Logger.success 1, "Firmware initialized."
-    {nil, %{state | initializing: false, initialized: true, params_reported: true}}
   end
 
   defp handle_gcode({:report_software_version, version}, state) do
