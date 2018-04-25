@@ -28,7 +28,9 @@ defmodule Farmbot.Target.Network.Manager do
     {:ok, _} = Elixir.Registry.register(Nerves.Udhcpc, interface, [])
     {:ok, _} = Elixir.Registry.register(Nerves.WpaSupplicant, interface, [])
     Network.setup(interface, opts)
-    {:ok, %{interface: interface, opts: opts, ip_address: nil, connected: false, not_found_timer: nil, ntp_timer: nil, dns_timer: nil}}
+    domain = node() |> to_string() |> String.split("@") |> List.last() |> Kernel.<>(".local")
+    init_mdns(domain)
+    {:ok, %{mdns_domain: domain, interface: interface, opts: opts, ip_address: nil, connected: false, not_found_timer: nil, ntp_timer: nil, dns_timer: nil}}
   end
 
   def handle_call(:ip, _, state) do
@@ -37,21 +39,19 @@ defmodule Farmbot.Target.Network.Manager do
 
   def handle_info({:system_registry, :global, registry}, state) do
     ip = get_in(registry, [:state, :network_interface, state.interface, :ipv4_address])
-    ntp_timer = if ip != state.ip_address do
-      # Logger.warn(3, "ip address changed on interface: #{state.interface}: #{ip}")
-      maybe_cancel_and_reset_ntp_timer(state.ntp_timer)
+    if ip != state.ip_address do
+      ntp_timer = maybe_cancel_and_reset_ntp_timer(state.ntp_timer)
+      connected = match?({:ok, {:hostent, _, _, :inet, 4, _}}, test_dns())
+      if connected do
+        not_found_timer = cancel_timer(state.not_found_timer)
+        dns_timer = restart_dns_timer(state.dns_timer, 45_000)
+        update_mdns(ip, state.mdns_domain)
+        {:noreply, %{state | dns_timer: dns_timer, ip_address: ip, connected: true, not_found_timer: not_found_timer, ntp_timer: ntp_timer}}
+      else
+        {:noreply, %{state | connected: false, ntp_timer: nil, ip_address: ip}}
+      end
     else
-      nil
-    end
-
-
-    connected = match?({:ok, {:hostent, _, _, :inet, 4, _}}, test_dns())
-    if connected do
-      not_found_timer = cancel_timer(state.not_found_timer)
-      dns_timer = restart_dns_timer(state.dns_timer, 45_000)
-      {:noreply, %{state | dns_timer: dns_timer, ip_address: ip, connected: true, not_found_timer: not_found_timer, ntp_timer: ntp_timer}}
-    else
-      {:noreply, %{state | connected: false, ntp_timer: ntp_timer, ip_address: ip}}
+      {:noreply, state}
     end
   end
 
@@ -170,5 +170,34 @@ defmodule Farmbot.Target.Network.Manager do
           Process.send_after(self(), :ntp_timer, 300000 + rand)
         end
     end
+  end
+
+  defp init_mdns(mdns_domain) do
+    Mdns.Server.add_service(%Mdns.Server.Service{
+      domain: mdns_domain,
+      data: :ip,
+      ttl: 120,
+      type: :a
+    })
+  end
+
+  defp update_mdns(ip, _mdns_domain) do
+    ip_tuple = to_ip_tuple(ip)
+    Mdns.Server.stop()
+
+    # Give the interface time to settle to fix an issue where mDNS's multicast
+    # membership is not registered. This occurs on wireless interfaces and
+    # needs to be revisited.
+    :timer.sleep(100)
+
+    Mdns.Server.start(interface: ip_tuple)
+    Mdns.Server.set_ip(ip_tuple)
+  end
+
+  defp to_ip_tuple(str) do
+    str
+    |> String.split(".")
+    |> Enum.map(&String.to_integer/1)
+    |> List.to_tuple()
   end
 end

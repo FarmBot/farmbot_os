@@ -145,6 +145,7 @@ defmodule Farmbot.Mixfile do
         {:nerves_network, "~> 0.3.7-rc0", override: true},
         {:dhcp_server, "~> 0.3.0"},
         {:elixir_ale, "~> 1.0"},
+        {:mdns, "~> 1.0"}
       ]
   end
 
