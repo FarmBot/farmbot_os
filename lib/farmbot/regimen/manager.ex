@@ -86,7 +86,7 @@ defmodule Farmbot.Regimen.Manager do
   end
 
   def handle_call({:reindex, regimen, time}, _from, state) do
-    Logger.busy 3, "Reindexing regimen by id: #{regimen.id}"
+    Logger.debug 3, "Reindexing regimen by id: #{regimen.id}"
     regimen.farm_event_id || raise "Can't reindex without farm_event_id"
     # parse and sort the regimen items
     items         = filter_items(regimen)

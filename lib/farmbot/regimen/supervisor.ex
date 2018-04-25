@@ -60,7 +60,7 @@ defmodule Farmbot.Regimen.Supervisor do
   end
 
   def reindex_all_managers(regimen, time \\ nil) do
-    Logger.info 3, "Reindexing all running regimens by id: #{regimen.id}"
+    Logger.debug 3, "Reindexing all running regimens by id: #{regimen.id}"
     prs = ConfigStorage.persistent_regimens(regimen)
     for %{farm_event_id: feid} <- prs do
       reg_with_fe_id = %{regimen | farm_event_id: feid}
