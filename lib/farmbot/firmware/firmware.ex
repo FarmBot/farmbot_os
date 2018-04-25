@@ -131,8 +131,7 @@ defmodule Farmbot.Firmware do
       queue: :queue.new(),
       x_needs_home_on_boot: false,
       y_needs_home_on_boot: false,
-      z_needs_home_on_boot: false,
-      initialization_dispatched: false
+      z_needs_home_on_boot: false
     ]
   end
 
@@ -346,20 +345,6 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode(:idle, %{initialized: false, initializing: false} = state) do
     Logger.busy 1, "Firmware not initialized yet. Waiting for R88 message."
-    {nil, state}
-  end
-
-  defp handle_gcode(:idle, %{
-    initialized: true, initializing: false, initialization_dispatched: false,
-    x_needs_home_on_boot: false, y_needs_home_on_boot: false, z_needs_home_on_boot: false
-  } = state) do
-    Logger.debug 3, "Firmware is really ready."
-    Farmbot.System.Registry.dispatch(__MODULE__, :firmware_initialized)
-    {nil, %{state | initialization_dispatched: true}}
-  end
-
-  defp handle_gcode(:idle, %{initialized: false, initializing: true, initialization_dispatched: true} = state) do
-    Farmbot.System.Registry.dispatch(__MODULE__, :firmware_idle)
     {nil, state}
   end
 

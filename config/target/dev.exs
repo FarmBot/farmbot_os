@@ -65,15 +65,8 @@ config :farmbot, :behaviour,
   update_handler: Farmbot.Target.UpdateHandler,
   gpio_handler:   Farmbot.Target.GPIO.AleHandler
 
-config :nerves_init_gadget,
-  address_method: :static
-
 local_file = Path.join(System.user_home!(), ".ssh/id_rsa.pub")
-local_key = if File.exists?(local_file) do
-  [File.read!(local_file)]
-else
-  []
-end
+local_key = if File.exists?(local_file), do: [File.read!(local_file)], else: []
 
 config :nerves_firmware_ssh, authorized_keys: local_key
 
