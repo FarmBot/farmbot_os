@@ -31,7 +31,7 @@
   "metrics": {:hex, :metrics, "1.0.1", "25f094dea2cda98213cecc3aeff09e940299d950904393b2a29d191c346a8486", [:rebar3], [], "hexpm"},
   "mime": {:hex, :mime, "1.2.0", "78adaa84832b3680de06f88f0997e3ead3b451a440d183d688085be2d709b534", [:mix], [], "hexpm"},
   "mimerl": {:hex, :mimerl, "1.0.2", "993f9b0e084083405ed8252b99460c4f0563e41729ab42d9074fd5e52439be88", [:rebar3], [], "hexpm"},
-  "nerves": {:hex, :nerves, "1.0.0-rc.1", "7574d0c598074311e86128bea4c4a69ae751b4762a0c5ef817c9f61371091992", [:mix], [{:distillery, "~> 1.4", [hex: :distillery, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: true]}], "hexpm"},
+  "nerves": {:git, "https://github.com/nerves-project/nerves.git", "364a07e8f7e27898b0dfef9cd7d6fd07b841f6a1", []},
   "nerves_firmware": {:hex, :nerves_firmware, "0.4.0", "ac2fed915a7ca4bb69f567d9b742d77cffc3a6a56420ce65e870c8c34119b935", [:mix], [], "hexpm"},
   "nerves_firmware_ssh": {:hex, :nerves_firmware_ssh, "0.3.1", "e8b1967fa0aff255230be539c68ec868d33884193a385caff957ebad7d6aa8af", [:mix], [{:nerves_runtime, "~> 0.4", [hex: :nerves_runtime, repo: "hexpm", optional: false]}], "hexpm"},
   "nerves_leds": {:hex, :nerves_leds, "0.8.0", "193692767dca1a201b09113d242648493b9be0087bab83ebee99c3b0a254f5e1", [:mix], [], "hexpm"},
