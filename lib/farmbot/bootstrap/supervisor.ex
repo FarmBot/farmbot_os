@@ -124,7 +124,6 @@ defmodule Farmbot.Bootstrap.Supervisor do
         update_config_value(:string, "authorization", "token", token)
 
         children = [
-          worker(Farmbot.Bootstrap.AuthTask,                []),
           supervisor(Farmbot.HTTP.Supervisor,               []),
           worker(Farmbot.Bootstrap.SettingsSync,            []),
           supervisor(Farmbot.Firmware.Supervisor,           []),
@@ -136,6 +135,7 @@ defmodule Farmbot.Bootstrap.Supervisor do
           supervisor(Farmbot.FarmEvent.Supervisor,          []),
           supervisor(Farmbot.Farmware.Supervisor,           []),
           supervisor(Farmbot.Regimen.Supervisor,            []),
+          worker(Farmbot.Bootstrap.AuthTask,                []),
         ]
 
         opts = [strategy: :one_for_one]
