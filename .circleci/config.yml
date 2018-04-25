@@ -39,6 +39,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       DEBUG: 1
+      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -73,6 +74,8 @@ jobs:
       MIX_TARGET: rpi3
       MIX_ENV: dev
       ENV: CI
+      DEBUG: 1
+      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -122,6 +125,8 @@ jobs:
       MIX_TARGET: rpi3
       MIX_ENV: prod
       ENV: CI
+      DEBUG: 1
+      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -194,6 +199,8 @@ jobs:
       MIX_TARGET: rpi3
       MIX_ENV: prod
       ENV: CI
+      DEBUG: 1
+      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
     steps:
       - checkout
       - run: git submodule update --init --recursive
