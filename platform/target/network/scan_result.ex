@@ -56,11 +56,11 @@ defmodule Farmbot.Target.Network.ScanResult do
   def decode_security_acc(list, security \\ :NONE)
 
   def decode_security_acc([<<"WPA2-EAP", _ :: binary>> | rest], _) do
-    decode_security_acc(rest, :"WPA2-EAP")
+    decode_security_acc(rest, :"WPA-EAP")
   end
 
   def decode_security_acc([<<"WPA2-PSK", _ :: binary>> | rest], _) do
-    decode_security_acc(rest, :"WPA2-PSK")
+    decode_security_acc(rest, :"WPA-PSK")
   end
 
   def decode_security_acc([<<"WPA-PSK", _ :: binary>> | rest], _) do

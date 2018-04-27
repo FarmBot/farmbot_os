@@ -50,9 +50,30 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   get "/config_wireless" do
     try do
       ifname = conn.params["ifname"] || raise(MissingField, field: "ifname", message: "ifname not provided", redir: "/network")
-      render_page(conn, "/config_wiresless_step_1", [ifname: ifname, ssids: @ssids])
+      render_page(conn, "/config_wiresless_step_1", [ifname: ifname, ssids: @ssids, post_action: "config_wiresless_step_1"])
     rescue
       e in MissingField -> redir(conn, e.redir)
+    end
+  end
+
+  post "config_wiresless_step_1" do
+    try do
+      ifname = conn.params["ifname"]     || raise(MissingField, field: "ifname",   message: "ifname not provided",   redir: "/network")
+      ssid   = conn.params["ssid"]       || raise(MissingField, field: "ssid",     message: "ssid not provided",     redir: "/config_wireless?ifname=#{ifname}")
+      security = conn.params["security"] || raise(MissingField, field: "security", message: "security not provided", redir: "/config_wireless?ifname=#{ifname}")
+      manualssid = conn.params["manualssid"]
+      opts = [ssid: ssid, ifname: ifname, security: security, advanced_network: advanced_network(), post_action: "config_network"]
+      cond do
+        manualssid != ""       -> render_page(conn, "/config_wiresless_step_2_custom", opts)
+        security == "WPA-PSK"  -> render_page(conn, "/config_wiresless_step_2_PSK",    opts)
+        security == "WPA2-PSK" -> render_page(conn, "/config_wiresless_step_2_PSK",    opts)
+        security == "NONE"     -> render_page(conn, "/config_wiresless_step_2_NONE",   opts)
+        true                   -> render_page(conn, "/config_wiresless_step_2_other",  opts)
+      end
+    rescue
+      e in MissingField ->
+        Logger.error 1, Exception.message(e)
+        redir(conn, e.redir)
     end
   end
 
@@ -63,7 +84,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
       security         = conn.params["security"]
       psk              = conn.params["psk"]
       domain           = conn.params["domain"] |> remove_empty_string()
-      nameservers      = conn.params["nameservers"] |> remove_empty_string() |> decode_nameservers
+      name_servers      = conn.params["name_servers"] |> remove_empty_string()
       ipv4_method      = conn.params["ipv4_method"]
       ipv4_address     = conn.params["ipv4_address"]
       ipv4_gateway     = conn.params["ipv4_gateway"]
@@ -73,7 +94,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
         ssid: ssid, security: security, psk: psk,
         type: if(ssid, do: "wireless", else: "wired"),
         domain: domain,
-        nameservers: nameservers,
+        name_servers: name_servers,
         ipv4_method: ipv4_method,
         ipv4_address: ipv4_address,
         ipv4_gateway: ipv4_gateway,
@@ -87,23 +108,6 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     end
   end
 
-  post "select_ssid" do
-    try do
-      ifname = conn.params["ifname"]     || raise(MissingField, field: "ifname",   message: "ifname not provided",   redir: "/network")
-      ssid   = conn.params["ssid"]       || raise(MissingField, field: "ssid",     message: "ssid not provided",     redir: "/config_wireless?ifname=#{ifname}")
-      security = conn.params["security"] || raise(MissingField, field: "security", message: "security not provided", redir: "/config_wireless?ifname=#{ifname}")
-      case security do
-        "WPA-PSK" ->  render_page(conn, "/config_wiresless_step_2_PSK",   [ssid: ssid, ifname: ifname, security: security, advanced_network: advanced_network()])
-        "WPA2-PSK" -> render_page(conn, "/config_wiresless_step_2_PSK",   [ssid: ssid, ifname: ifname, security: security, advanced_network: advanced_network()])
-        "NONE" ->     render_page(conn, "/config_wiresless_step_2_NONE",  [ssid: ssid, ifname: ifname, security: security, advanced_network: advanced_network()])
-        _other ->     render_page(conn, "/config_wiresless_step_2_other", [ssid: ssid, ifname: ifname, security: security, advanced_network: advanced_network()])
-      end
-    rescue
-      e in MissingField ->
-        Logger.error 1, Exception.message(e)
-        redir(conn, e.redir)
-    end
-  end
 
   match(_, do: send_resp(conn, 404, "Page not found"))
 
@@ -126,8 +130,6 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
   defp remove_empty_string(""), do: nil
   defp remove_empty_string(str), do: str
-  defp decode_nameservers(nil), do: nil
-  defp decode_nameservers(str), do: String.split(str, " ")
 
   defp advanced_network do
     template_file("advanced_network") |> EEx.eval_file([])

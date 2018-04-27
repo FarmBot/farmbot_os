@@ -20,6 +20,7 @@ defmodule Farmbot.System.ConfigStorage.NetworkInterface do
     field(:ipv4_gateway, :string)
     field(:ipv4_subnet_mask, :string)
     field(:domain, :string)
+    field(:name_servers, :string)
   end
 
   @required_fields [:name, :type]

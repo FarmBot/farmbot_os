@@ -16,7 +16,7 @@
     }
 
     function enableSsidInput() {
-      var elem = document.getElementById("hiddenssidinput");
+      var elem = document.getElementById("manualssid");
       elem.hidden=false;
       elem.focus();
     }
@@ -30,11 +30,12 @@
     <div class="widget">
       <div class="widget-header"> <h5>Configure Wireless</h5> </div>
       <div class="widget-content">
-        <form action="select_ssid" method="post" id="ssid_select_form">
+        <form action=<%= post_action %> method="post" id="ssid_select_form">
           <fieldset>
             <input name="security" id="hiddensecurityinput" hidden=true />
             <input name="ifname", hidden=true value="<%= ifname %>" />
             <input name="ssid" id="hiddenssidinput" hidden/>
+            <input name="manualssid" id="manualssid" hidden/>
 
             <ul>
               <li class="customSsidInput" onclick="enableSsidInput()">

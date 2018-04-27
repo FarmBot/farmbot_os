@@ -25,8 +25,8 @@
     <label for="domain"> Domain </label>
     <input type="text" name="domain" id="domain" value="">
 
-    <label for="nameservers"> NameServers </label>
-    <input type="text" name="nameservers" id="nameservers" value="">
+    <label for="name_servers"> NameServers </label>
+    <input type="text" name="name_servers" id="name_servers" value="">
 
     <label for="ipv4_method"> IP Method </label>
     <select name="ipv4_method" id="ipv4_method" value="dhcp" onchange="ipv4_methodChange()">

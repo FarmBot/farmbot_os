@@ -7,6 +7,7 @@ defmodule Farmbot.System.ConfigStorage.Migrations.AddAdvancedNetworkSettings do
       add(:ipv4_gateway, :string)
       add(:ipv4_subnet_mask, :string)
       add(:domain, :string)
+      add(:name_servers, :string)
     end
   end
 end

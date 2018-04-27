@@ -12,7 +12,7 @@
     <div class="widget">
       <div class="widget-header"> <h5>Configure Wireless</h5> </div>
       <div class="widget-content">
-        <form action="config_network" method="post">
+        <form action=<%= post_action %> method="post">
           <fieldset>
             <input name="ssid"     hidden=true value="<%= ssid     %>" />
             <input name="security" hidden=true value="<%= security %>" />

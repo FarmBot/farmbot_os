@@ -51,7 +51,7 @@ defmodule Farmbot.System.ConfigStorage do
   @doc "Input a network config. Takes many settings as a map."
   def input_network_config!(%{} = config) do
     data = struct(NetworkInterface, config)
-    require IEx; IEx.pry
+    ConfigStorage.insert!(data)
   end
 
   def get_all_network_configs do

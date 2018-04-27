@@ -52,18 +52,49 @@ defmodule Farmbot.Target.Network do
 
   # TODO Expand this to allow for more settings.
   def to_network_config(config)
-  def to_network_config(config) do
-    {config.name, []}
+
+  def to_network_config(%NetworkInterface{type: "wireless"} = config) do
+    Logger.debug(3, "wireless network config: ssid: #{config.ssid}")
+    opts = [ssid: config.ssid, key_mgmt: config.security]
+    case config.security do
+      "WPA-PSK" ->
+        {config.name, Keyword.merge(opts, [psk: config.psk])} |> maybe_use_advanced(config)
+      "NONE" ->
+        {config.name, opts} |> maybe_use_advanced(config)
+      other -> raise "Unsupported wireless security type: #{other}"
+    end
   end
 
-  # def to_network_config(%NetworkInterface{ssid: ssid, psk: psk, type: "wireless", maybe_hidden: hidden?} = config) do
-  #   Logger.debug(3, "wireless network config: ssid: #{config.ssid}")
-  #   {config.name, [ssid: ssid, key_mgmt: :"WPA-PSK", psk: psk, maybe_hidden: hidden?]}
-  # end
-  #
-  # def to_network_config(%NetworkInterface{type: "wired"} = config) do
-  #   {config.name, []}
-  # end
+  def to_network_config(%NetworkInterface{type: "wired"} = config) do
+    {config.name, []} |> maybe_use_advanced(config)
+  end
+
+  defp maybe_use_advanced({name, opts}, config) do
+    case config.ipv4_method do
+      "static" ->
+        settings = [ipv4_method: "static", ipv4_address: config.ipv4_address, ipv4_gateway: config.ipv4_gateway, ipv4_subnet_mask: config.ipv4_subnet_mask]
+        {name, Keyword.merge(opts, settings)}
+      "dhcp" -> {name, opts}
+    end
+    |> maybe_use_name_servers(config)
+    |> maybe_use_domain(config)
+  end
+
+  defp maybe_use_name_servers({name, opts}, config) do
+    if config.name_servers do
+      {name, Keyword.put(opts, :name_servers, String.split(config.name_servers, " "))}
+    else
+      {name, opts}
+    end
+  end
+
+  defp maybe_use_domain({name, opts}, config) do
+    if config.domain do
+      {name, Keyword.put(opts, :domain, config.domain)}
+    else
+      {name, opts}
+    end
+  end
 
   def to_child_spec({interface, opts}) do
     worker(NetworkManager, [interface, opts])
@@ -74,7 +105,7 @@ defmodule Farmbot.Target.Network do
   end
 
   def init([]) do
-    config = ConfigStorage.all_network_interfaces()
+    config = ConfigStorage.get_all_network_configs()
     Logger.info(3, "Starting Networking")
     children = config
       |> Enum.map(&to_network_config/1)
