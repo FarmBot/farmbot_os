@@ -6,9 +6,12 @@ defmodule Farmbot.Target.Network do
   import ConfigStorage, only: [get_config_value: 3]
   alias ConfigStorage.NetworkInterface
   alias Farmbot.Target.Network.Manager, as: NetworkManager
+  alias Farmbot.Target.Network.ScanResult
+
   use Supervisor
   use Farmbot.Logger
 
+  @doc "List available interfaces. Removes unusable entries."
   def get_interfaces(tries \\ 5)
   def get_interfaces(0), do: []
   def get_interfaces(tries) do
@@ -24,10 +27,15 @@ defmodule Farmbot.Target.Network do
     end
   end
 
+  @doc "Scan on an interface. "
   def do_scan(iface) do
     Nerves.Network.scan(iface)
+    |> ScanResult.decode()
+    |> ScanResult.sort_results()
+    |> ScanResult.decode_security()
   end
 
+  @doc "Tests if we can make dns queries."
   def test_dns(hostname \\ nil)
 
   def test_dns(nil) do
@@ -44,15 +52,18 @@ defmodule Farmbot.Target.Network do
 
   # TODO Expand this to allow for more settings.
   def to_network_config(config)
-
-  def to_network_config(%NetworkInterface{ssid: ssid, psk: psk, type: "wireless", maybe_hidden: hidden?} = config) do
-    Logger.debug(3, "wireless network config: ssid: #{config.ssid}")
-    {config.name, [ssid: ssid, key_mgmt: :"WPA-PSK", psk: psk, maybe_hidden: hidden?]}
-  end
-
-  def to_network_config(%NetworkInterface{type: "wired"} = config) do
+  def to_network_config(config) do
     {config.name, []}
   end
+
+  # def to_network_config(%NetworkInterface{ssid: ssid, psk: psk, type: "wireless", maybe_hidden: hidden?} = config) do
+  #   Logger.debug(3, "wireless network config: ssid: #{config.ssid}")
+  #   {config.name, [ssid: ssid, key_mgmt: :"WPA-PSK", psk: psk, maybe_hidden: hidden?]}
+  # end
+  #
+  # def to_network_config(%NetworkInterface{type: "wired"} = config) do
+  #   {config.name, []}
+  # end
 
   def to_child_spec({interface, opts}) do
     worker(NetworkManager, [interface, opts])

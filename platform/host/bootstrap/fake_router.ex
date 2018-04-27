@@ -16,7 +16,10 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     defexception [:message, :field, :redir]
   end
 
-  @ssids File.read!("data.txt") |> Base.decode64!() |> :erlang.binary_to_term
+  File.read!("platform/target/network/network.ex") |> Code.compile_string("platform/target/network/network.ex")
+  File.read!("platform/target/network/scan_result.ex") |> Code.compile_string("platform/target/network/scan_result.ex")
+  alias Farmbot.Target.Network.ScanResult
+  @ssids File.read!("data.txt") |> Base.decode64!() |> :erlang.binary_to_term |> ScanResult.decode() |> ScanResult.sort_results() |> ScanResult.decode_security()
 
   get "/network" do
     interfaces = [:eth0, :wlan0]
@@ -47,8 +50,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   get "/config_wireless" do
     try do
       ifname = conn.params["ifname"] || raise(MissingField, field: "ifname", message: "ifname not provided", redir: "/network")
-      ssids = @ssids |> sort_ssids() |> decode_security()
-      render_page(conn, "/config_wiresless_step_1", [ifname: ifname, ssids: ssids])
+      render_page(conn, "/config_wiresless_step_1", [ifname: ifname, ssids: @ssids])
     rescue
       e in MissingField -> redir(conn, e.redir)
     end
@@ -67,8 +69,9 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
       ipv4_gateway     = conn.params["ipv4_gateway"]
       ipv4_subnet_mask = conn.params["ipv4_subnet_mask"]
       ConfigStorage.input_network_config!(%{
-        ifname: ifname,
+        name: ifname,
         ssid: ssid, security: security, psk: psk,
+        type: if(ssid, do: "wireless", else: "wired"),
         domain: domain,
         nameservers: nameservers,
         ipv4_method: ipv4_method,
@@ -129,52 +132,4 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   defp advanced_network do
     template_file("advanced_network") |> EEx.eval_file([])
   end
-
-  # TODO Move this into Network namespace.
-  def sort_ssids(ssids) do
-    Enum.sort(ssids, &Kernel.>=(Map.get(&1, :level), Map.get(&2, :level)))
-  end
-
-  def decode_security(ssids) when is_list(ssids) do
-    Enum.map(ssids, &decode_security(&1))
-  end
-
-  def decode_security(%{flags: flags} = scan_result) do
-    Map.put(scan_result, :security, decode_security_flags(flags))
-  end
-
-  def decode_security_flags(str, state \\ %{in_flag: false, buffer: <<>>, acc: []})
-  def decode_security_flags(<<>>, %{acc: acc}), do: Enum.reverse(acc) |> decode_security_acc()
-
-  def decode_security_flags(<<"[", rest :: binary>>, %{in_flag: false} = state) do
-    decode_security_flags(rest, %{state | in_flag: true, buffer: <<>>})
-  end
-
-  def decode_security_flags(<<"]", rest :: binary>>, %{in_flag: true, buffer: buffer, acc: acc} = state) do
-    decode_security_flags(rest, %{state | in_flag: false, buffer: <<>>, acc: [buffer | acc]})
-  end
-
-  def decode_security_flags(<<char :: binary-size(1), rest :: binary>>, %{in_flag: true} = state) do
-    decode_security_flags(rest, %{state | buffer: state.buffer <> char})
-  end
-
-  def decode_security_acc(list, security \\ :NONE)
-
-  def decode_security_acc([<<"WPA2-EAP", _ :: binary>> | rest], _) do
-    decode_security_acc(rest, :"WPA2-EAP")
-  end
-
-  def decode_security_acc([<<"WPA2-PSK", _ :: binary>> | rest], _) do
-    decode_security_acc(rest, :"WPA2-PSK")
-  end
-
-  def decode_security_acc([<<"WPA-PSK", _ :: binary>> | rest], _) do
-    decode_security_acc(rest, :"WPA-PSK")
-  end
-
-  def decode_security_acc([_unknown_flag | rest], security) do
-    decode_security_acc(rest, security)
-  end
-
-  def decode_security_acc([], security), do: security || :NONE
 end
