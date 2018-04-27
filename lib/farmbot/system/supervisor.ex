@@ -28,10 +28,11 @@ defmodule Farmbot.System.Supervisor do
     after_init_children = [
       supervisor(Farmbot.System.Updates, []),
       worker(Farmbot.System.GPIO, []),
-      worker(Farmbot.EasterEggs, [])
+      worker(Farmbot.EasterEggs, []),
+      Plug.Adapters.Cowboy.child_spec(scheme: :http, plug: Farmbot.Target.Bootstrap.Configurator.Router, options: [port: 4001])
     ]
 
     all_children = before_init_children ++ init_mods ++ after_init_children
-    supervise(all_children, strategy: :one_for_all)
+    Supervisor.init(all_children, strategy: :one_for_all)
   end
 end

@@ -37,21 +37,15 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
   get "/network" do
     interfaces = Farmbot.Target.Network.get_interfaces()
-
-    info = [
-      interfaces: Map.new(interfaces, fn iface ->
-        checked = if iface == "wlan0" do
-          "checked"
-        else
-          ""
-        end
-        if String.first(iface) == "w" do
-          {iface, %{type: :wireless, ssids: Farmbot.Target.Network.do_iw_scan(iface), checked: checked}}
-        else
-          {iface, %{type: :wired, checked: checked}}
-        end
-      end)
-    ]
+    Map.new(interfaces, fn(ifname) ->
+      # This is probably a not so good idea, but
+      # Not really a problem for rpiX.
+      if String.contains?(ifname, "w") do
+        {iface, %{type: :wireless, ssids: Farmbot.Target.Network.do_scan(iface), enabled: true}}
+      else
+        {iface, %{type: :wired, ssids: [], enabled: false}}
+      end
+    end)
 
     render_page(conn, "network", info)
   end
@@ -133,7 +127,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     email = get_config_value(:string, "authorization", "email")
     pass = get_config_value(:string, "authorization", "password")
     server = get_config_value(:string, "authorization", "server")
-    network = !(Enum.empty?(ConfigStorage.all_network_interfaces()))
+    network = !(Enum.empty?(ConfigStorage.get_all_network_configs()))
     if email && pass && server && network do
       conn = render_page(conn, "finish")
       spawn fn() ->

@@ -24,21 +24,8 @@ defmodule Farmbot.Target.Network do
     end
   end
 
-  def do_iw_scan(iface) do
-    case System.cmd("iw", [iface, "scan", "ap-force"]) do
-      {res, 0} -> res |> clean_ssid
-      e -> raise "Could not scan for wifi: #{inspect(e)}"
-    end
-  end
-
-  defp clean_ssid(hc) do
-    hc
-    |> String.replace("\t", "")
-    |> String.replace("\\x00", "")
-    |> String.split("\n")
-    |> Enum.filter(fn s -> String.contains?(s, "SSID: ") end)
-    |> Enum.map(fn z -> String.replace(z, "SSID: ", "") end)
-    |> Enum.filter(fn z -> String.length(z) != 0 end)
+  def do_scan(iface) do
+    Nerves.Network.scan(iface)
   end
 
   def test_dns(hostname \\ nil)
