@@ -77,7 +77,8 @@ defmodule Farmbot.Mixfile do
       nil ->
         %{
           "ERL_EI_INCLUDE_DIR" => "#{:code.root_dir()}/usr/include",
-          "ERL_EI_LIBDIR" => "#{:code.root_dir()}/usr/lib"
+          "ERL_EI_LIBDIR" => "#{:code.root_dir()}/usr/lib",
+          "MIX_TARGET" => @target
         }
       _ -> %{}
     end
@@ -85,7 +86,7 @@ defmodule Farmbot.Mixfile do
 
   defp deps do
     [
-      {:nerves, "~> 1.0.0-rc.0", runtime: false},
+      {:nerves, "~> 1.0.0-rc.1", runtime: false},
       {:elixir_make, "~> 0.4", runtime: false},
       {:gen_stage, "~> 0.12"},
 
@@ -116,7 +117,8 @@ defmodule Farmbot.Mixfile do
       {:socket, "~> 0.3.13"},
       {:amqp, "~> 1.0"},
 
-      {:recon, "~> 2.3.2"}
+      {:recon, "~> 2.3.2"},
+      {:lager_logger, "~> 1.0"}
     ]
   end
 
@@ -125,24 +127,11 @@ defmodule Farmbot.Mixfile do
       {:ex_doc, "~> 0.18.1", only: :dev},
       {:excoveralls, "~> 0.7", only: :test},
       {:dialyxir, "~> 0.5.1", only: :dev, runtime: false},
-      {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
+      {:credo, "~> 0.9.1", only: [:dev, :test], runtime: false},
       {:inch_ex, ">= 0.0.0", only: :dev},
       {:mock, "~> 0.2.0", only: :test},
       {:faker, "~> 0.9", only: :test},
     ]
-  end
-
-  defp deps("rpi3") do
-    system("rpi3") ++
-      [
-        {:shoehorn, "~> 0.2.0", except: :test},
-        {:nerves_runtime, "0.5.3"},
-        {:nerves_firmware, "~> 0.4.0"},
-        {:nerves_firmware_ssh, "~> 0.2", only: :dev},
-        {:nerves_network, "~> 0.3.7-rc0", override: true},
-        {:dhcp_server, "~> 0.3.0"},
-        {:elixir_ale, "~> 1.0"},
-      ]
   end
 
   defp deps(target) do
@@ -151,9 +140,8 @@ defmodule Farmbot.Mixfile do
         {:shoehorn, "~> 0.2.0", except: :test},
         {:nerves_runtime, "0.5.3"},
         {:nerves_firmware, "~> 0.4.0"},
-        {:nerves_firmware_ssh, "~> 0.2", only: :dev},
-        {:nerves_init_gadget,  github: "nerves-project/nerves_init_gadget", branch: "dhcp", only: :dev},
-        {:nerves_network, "~> 0.3.5"},
+        {:nerves_init_gadget, "~> 0.3.0", only: :dev},
+        {:nerves_network, "~> 0.3.7-rc0", override: true},
         {:dhcp_server, "~> 0.3.0"},
         {:elixir_ale, "~> 1.0"},
       ]
@@ -163,10 +151,10 @@ defmodule Farmbot.Mixfile do
     do: [{:nerves_system_farmbot_rpi3, "1.0.0-rc.2-farmbot.1", runtime: false}]
 
   defp system("rpi0"),
-    do: [{:nerves_system_farmbot_rpi0, "0.20.0-farmbot", runtime: false}]
+    do: [{:nerves_system_farmbot_rpi0, "1.0.0-rc.1-farmbot.0", runtime: false}]
 
   defp system("bbb"),
-    do: [{:nerves_system_farmbot_bbb, "0.19.0-farmbot", runtime: false}]
+    do: [{:nerves_system_farmbot_bbb, "1.0.0-rc.1-farmbot.0", runtime: false}]
 
   defp package do
     [
@@ -190,7 +178,7 @@ defmodule Farmbot.Mixfile do
   end
 
   defp aliases(:test, "host") do
-    ["test": ["ecto.create --quiet", "ecto.migrate", "test"]]
+    ["test": ["ecto.drop", "ecto.create --quiet", "ecto.migrate", "test"]]
   end
 
   defp aliases(_env, "host"), do: [

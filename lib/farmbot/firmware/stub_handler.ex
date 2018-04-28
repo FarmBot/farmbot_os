@@ -88,7 +88,7 @@ defmodule Farmbot.Firmware.StubHandler do
   end
 
   defp do_idle(pid) do
-    Process.send_after(pid, :idle_timer, 3000)
+    Process.send_after(pid, :idle_timer, 100)
   end
 
   defp do_wait_for_config_ok(pid) do
@@ -108,7 +108,7 @@ defmodule Farmbot.Firmware.StubHandler do
   def handle_info(:idle_timer, state) do
     do_idle(self())
     dispatch = if state.locked? do
-      []
+      [:report_emergency_lock]
     else
       [:idle]
     end
@@ -116,7 +116,8 @@ defmodule Farmbot.Firmware.StubHandler do
   end
 
   def handle_info(:config_ok_timer, state) do
-    {:noreply, [:idle, :report_no_config], state}
+    send(self(), :idle_timer)
+    {:noreply, [:idle, :report_no_config, :idle], state}
   end
 
   def handle_call(cmd, _from, %{locked?: true} = state) when cmd != :emergency_unlock do

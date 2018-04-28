@@ -6,9 +6,9 @@ defmodule Farmbot.FarmEvent.Manager do
   * Regimen
     * ignore `end_time`.
     * ignore calendar.
-    * if start_time is more than 60 seconds passed due, assume it already started, and don't start it again.
+    * if schedule_time is more than 60 seconds passed due, assume it already scheduled, and don't schedule it again.
   * Sequence
-    * if `start_time` is late, check the calendar.
+    * if `schedule_time` is late, check the calendar.
       * for each item in the calendar, check if it's event is more than 60 seconds in the past. if not, execute it.
     * if there is only one event in the calendar, ignore the `end_time`
   """
@@ -20,19 +20,16 @@ defmodule Farmbot.FarmEvent.Manager do
   alias Farmbot.FarmEvent.Execution
   alias Farmbot.Asset
   alias Farmbot.Asset.{FarmEvent, Sequence, Regimen}
+  alias Farmbot.Repo.Registry
 
-  # @checkup_time 100
-  @checkup_time 30_000
-
-  def register_events(event_list) do
-    GenServer.call(__MODULE__, {:register_events, event_list}, 10_000)
-  end
+  @checkup_time 1000
+  # @checkup_time 15_000
 
   ## GenServer
 
   defmodule State do
     @moduledoc false
-    defstruct [timer: nil, last_time_index: %{}, events: [], checkup: nil]
+    defstruct [timer: nil, last_time_index: %{}, events: %{}, checkup: nil]
   end
 
   @doc false
@@ -41,6 +38,7 @@ defmodule Farmbot.FarmEvent.Manager do
   end
 
   def init([]) do
+    Registry.subscribe()
     send self(), :checkup
     {:ok, struct(State)}
   end
@@ -49,19 +47,48 @@ defmodule Farmbot.FarmEvent.Manager do
     Logger.error 1, "FarmEvent Manager terminated: #{inspect reason}"
   end
 
-  def handle_call({:register_events, events}, _, state) do
-    maybe_farm_event_log "Reindexed FarmEvents"
-    if match?({_, _}, state.checkup) do
-      Process.exit(state.checkup |> elem(0), {:success, %{state | events: events}})
-    end
+  def handle_info({Registry, :addition, FarmEvent, data}, state) do
+    maybe_farm_event_log "Starting monitor on FarmEvent: #{data.id}."
+    Map.put(state.events, data.id, data)
+    |> reindex(state)
+  end
 
-    if state.timer do
-      Process.cancel_timer(state.timer)
-      timer = Process.send_after(self(), :checkup, @checkup_time)
-      {:reply, :ok, %{state | events: events, timer: timer}}
-    else
-      {:reply, :ok, %{state | events: events}}
+  def handle_info({Registry, :deletion, FarmEvent, data}, state) do
+    maybe_farm_event_log "Destroying monitor on FarmEvent: #{data.id}."
+    if String.contains?(data.executable_type, "Regimen") do
+      reg = Farmbot.Asset.get_regimen_by_id(data.executable_id, data.id)
+      if reg do
+        Farmbot.Regimen.Supervisor.stop_child(reg)
+      end
     end
+    Map.delete(state.events, data.id)
+    |> reindex(state)
+  end
+
+  def handle_info({Registry, :update, FarmEvent, data}, state) do
+    maybe_farm_event_log "Reindexing monitor on FarmEvent: #{data.id}."
+    if String.contains?(data.executable_type, "Regimen") do
+      reg = Farmbot.Asset.get_regimen_by_id(data.executable_id, data.id)
+      if reg do
+        Farmbot.Regimen.Supervisor.reindex_all_managers(reg, Timex.parse!(data.start_time, "{ISO:Extended}"))
+      end
+    end
+    Map.put(state.events, data.id, data)
+    |> reindex(state)
+  end
+
+  def handle_info({Registry, :deletion, Regimen, data}, state) do
+    Farmbot.Regimen.Supervisor.stop_all_managers(data)
+    {:noreply, state}
+  end
+
+  def handle_info({Registry, :update, Regimen, data}, state) do
+    Farmbot.Regimen.Supervisor.reindex_all_managers(data)
+    {:noreply, state}
+  end
+
+  def handle_info({Registry, _, _, _}, state) do
+    {:noreply, state}
   end
 
   def handle_info(:checkup, state) do
@@ -80,92 +107,111 @@ defmodule Farmbot.FarmEvent.Manager do
     {:noreply, %{state | timer: timer, checkup: nil}}
   end
 
+  defp reindex(events, state) do
+    events = Map.new(events, fn({id, event}) ->
+      {id, FarmEvent.build_calendar(event)}
+    end)
+    maybe_farm_event_log "Reindexed FarmEvents"
+    if match?({_, _}, state.checkup) do
+      Process.exit(state.checkup |> elem(0), {:success, %{state | events: events}})
+    end
+
+    if state.timer do
+      Process.cancel_timer(state.timer)
+      timer = Process.send_after(self(), :checkup, @checkup_time)
+      {:noreply, %{state | events: events, timer: timer}}
+    else
+      {:noreply, %{state | events: events}}
+    end
+  end
+
   def async_checkup(_manager, state) do
     now = get_now()
-
-    # maybe_farm_event_log "Rebuilding calendar."
-    all_events = Enum.map(state.events, &FarmEvent.build_calendar(&1))
-    # maybe_farm_event_log "Rebuilding calendar complete."
+    all_events = Enum.map(state.events, &FarmEvent.build_calendar(elem(&1, 1)))
 
     # do checkup is the bulk of the work.
-    {late_events, new} = do_checkup(all_events, now, state)
+    {late_executables, new} = do_checkup(all_events, now, state)
 
-    #TODO(Connor) Conditionally start events based on some state info.
-    unless Enum.empty?(late_events) do
-      Logger.debug 3, "Time for events: #{inspect late_events} to run at: #{now.hour}:#{now.minute}"
-      start_events(late_events, now)
+    unless Enum.empty?(late_executables) do
+      # Map over the events for logging. Both Sequences and Regimens have a `name` field.
+      names = Enum.map(late_executables, &Map.get(elem(&1, 0), :name))
+      Logger.debug 3, "Time for events: #{inspect names} to be scheduled."
+      schedule_events(late_executables, now)
     end
-    exit({:success, %{new | events: all_events}})
+    exit({:success, %{new | events: Map.new(all_events, fn(event) -> {event.id, event} end)}})
   end
 
   defp do_checkup(list, time, late_events \\ [], state)
 
   defp do_checkup([], _now, late_events, state), do: {late_events, state}
 
-  defp do_checkup([farm_event | rest], now, late_events, state) do
+  defp do_checkup([farm_event | rest], now, late_exes, state) do
     # new_late will be a executable event (Regimen or Sequence.)
-    {new_late_event, last_time} = check_event(farm_event, now, state.last_time_index[farm_event.id])
+    {new_late_executable, last_time} = check_event(farm_event, now, state.last_time_index[farm_event.id])
 
     # update state.
     new_state = %{state | last_time_index: Map.put(state.last_time_index, farm_event.id, last_time)}
-    case new_late_event do
-      # if `new_late_event` is nil, don't accumulate it.
-      nil   -> do_checkup(rest, now, late_events, new_state)
+    case new_late_executable do
+      # if `new_late_executable` is nil, don't accumulate it.
+      nil   -> do_checkup(rest, now, late_exes, new_state)
       # if there is a new event, accumulate it.
-      event -> do_checkup(rest, now, [event | late_events], new_state)
+      late_executable -> do_checkup(rest, now, [{late_executable, farm_event} | late_exes], new_state)
     end
   end
 
   defp check_event(%FarmEvent{} = f, now, last_time) do
     # Get the executable out of the database this may fail.
     mod      = Module.safe_concat([f.executable_type])
-    event    = lookup!(mod, f.executable_id)
+    executable    = lookup!(mod, f)
 
-    # build a local start time and end time
-    start_time = Timex.parse! f.start_time, "{ISO:Extended}"
+    # build a local schedule time and end time
+    schedule_time = Timex.parse! f.start_time, "{ISO:Extended}"
     end_time   = Timex.parse! f.end_time,   "{ISO:Extended}"
-    # start_time = f.start_time
-    # end_time = f.end_time
-    # get local bool of if the event is started and finished.
-    started?  = Timex.after? now, start_time
+
+    # get local bool of if the event is scheduled and finished.
+    scheduled?  = Timex.after? now, schedule_time
     finished? = Timex.after? now, end_time
 
     case mod do
-      Regimen  -> maybe_start_regimen(started?, start_time, last_time, event, now)
-      Sequence -> maybe_start_sequence(started?, finished?, f, last_time, event, now)
+      Regimen  -> maybe_schedule_regimen(scheduled?, schedule_time, last_time, executable, now)
+      Sequence -> maybe_schedule_sequence(scheduled?, finished?, f, last_time, executable, now)
     end
   end
 
-  defp maybe_start_regimen(started?, start_time, last_time, event, now)
-  defp maybe_start_regimen(true = _started?, start_time, last_time, event, now) do
-    case is_too_old?(now, start_time) do
-      true  ->
-        maybe_farm_event_log "regimen #{event.name} (#{event.id}) is too old to start or already started."
-        {nil, last_time}
-      false ->
-        maybe_farm_event_log "regimen #{event.name} (#{event.id}) starting."
-        {event, now}
-    end
+  defp maybe_schedule_regimen(scheduled?, schedule_time, last_time, executable, now)
+  defp maybe_schedule_regimen(true = _scheduled?, schedule_time, nil, regimen, _now) do
+    maybe_farm_event_log "regimen #{regimen.name} (#{regimen.id}) scheduling."
+    process_via = Farmbot.Regimen.NameProvider.via(regimen)
+    pid = GenServer.whereis(process_via)
+    if pid, do: {nil, schedule_time}, else: {regimen, schedule_time}
   end
 
-  defp maybe_start_regimen(false = _started?, start_time, last_time, event, _) do
-    maybe_farm_event_log "regimen #{event.name} (#{event.id}) is not started yet. (#{inspect start_time}) (#{inspect Timex.now()})"
+  defp maybe_schedule_regimen(true = _scheduled?, _schedule_time, last_time, event, _now) do
+    maybe_farm_event_log "regimen #{event.name} (#{event.id}) should already be scheduled."
     {nil, last_time}
   end
 
-  defp lookup!(module, sr_id) when is_atom(module) and is_number(sr_id) do
+  defp maybe_schedule_regimen(false = _scheduled?, schedule_time, last_time, event, _) do
+    maybe_farm_event_log "regimen #{event.name} (#{event.id}) is not scheduled yet. (#{inspect schedule_time}) (#{inspect Timex.now()})"
+    {nil, last_time}
+  end
+
+  defp lookup!(module, %FarmEvent{executable_id: exe_id, id: id}) when is_atom(module) do
     case module do
-      Sequence -> Asset.get_sequence_by_id!(sr_id)
-      Regimen ->  Asset.get_regimen_by_id!(sr_id)
-      _ -> raise "unknown executable type: #{module}"
+      Sequence -> Asset.get_sequence_by_id!(exe_id)
+      Regimen ->
+        # We tag the looked up Regimen with the FarmEvent id here.
+        # This makes it easier to track the pid of it later when it
+        # needs to be scheduled or stopped.
+        Asset.get_regimen_by_id!(exe_id, id)
     end
   end
 
   # signals the start of a sequence based on the described logic.
-  defp maybe_start_sequence(started?, finished?, farm_event, last_time, event, now)
+  defp maybe_schedule_sequence(scheduled?, finished?, farm_event, last_time, event, now)
 
-  # We only want to check if the sequence is started, and not finished.
-  defp maybe_start_sequence(true = _started?, false = _finished?, farm_event, last_time, event, now) do
+  # We only want to check if the sequence is scheduled, and not finished.
+  defp maybe_schedule_sequence(true = _scheduled?, false = _finished?, farm_event, last_time, event, now) do
     {run?, next_time} = should_run_sequence?(farm_event.calendar, last_time, now)
     case run? do
       true  -> {event, next_time}
@@ -175,7 +221,7 @@ defmodule Farmbot.FarmEvent.Manager do
 
   # if `farm_event.time_unit` is "never" we can't use the `end_time`.
   # if we have no `last_time`, time to execute.
-  defp maybe_start_sequence(true = _started?, _, %{time_unit: "never"} = f, nil = _last_time, event, now) do
+  defp maybe_schedule_sequence(true = _scheduled?, _, %{time_unit: "never"} = f, nil = _last_time, event, now) do
     maybe_farm_event_log "Ignoring end_time."
     case should_run_sequence?(f.calendar, nil, now) do
       {true, next} -> {event, next}
@@ -183,14 +229,14 @@ defmodule Farmbot.FarmEvent.Manager do
     end
   end
 
-  # if started is false, the event isn't ready to be executed.
-  defp maybe_start_sequence(false = _started?, _fin, _farm_event, last_time, event, _now) do
-    maybe_farm_event_log "sequence #{event.name} (#{event.id}) is not started yet."
+  # if scheduled is false, the event isn't ready to be executed.
+  defp maybe_schedule_sequence(false = _scheduled?, _fin, _farm_event, last_time, event, _now) do
+    maybe_farm_event_log "sequence #{event.name} (#{event.id}) is not scheduled yet."
     {nil, last_time}
   end
 
   # if the event is finished (but not a "never" time_unit), we don't execute.
-  defp maybe_start_sequence(_started?, true = _finished?, _farm_event, last_time, event, _now) do
+  defp maybe_schedule_sequence(_scheduled?, true = _finished?, _farm_event, last_time, event, _now) do
     maybe_farm_event_log "sequence #{event.name} (#{event.id}) is finished."
     {nil, last_time}
   end
@@ -200,7 +246,6 @@ defmodule Farmbot.FarmEvent.Manager do
 
   # if there is no last time, check if time is passed now within 60 seconds.
   defp should_run_sequence?([first_time | _], nil, now) do
-
     maybe_farm_event_log "Checking sequence event that hasn't run before #{first_time}"
     # convert the first_time to a DateTime
     dt = Timex.parse! first_time, "{ISO:Extended}"
@@ -238,8 +283,6 @@ defmodule Farmbot.FarmEvent.Manager do
         dt = Timex.parse! iso_time, "{ISO:Extended}"
         if Timex.after?(now, dt) do
           {true, dt}
-          # too_old? = is_too_old?(now, dt)
-          # if too_old?, do: {false, last_time}, else: {true, dt}
         else
           maybe_farm_event_log "Sequence Event not ready yet."
           {false, dt}
@@ -251,23 +294,22 @@ defmodule Farmbot.FarmEvent.Manager do
   end
 
   # Enumeration is complete.
-  defp start_events([], _now), do: :ok
+  defp schedule_events([], _now), do: :ok
 
-  # Enumerate the events to be started.
-  defp start_events([event | rest], now) do
+  # Enumerate the events to be scheduled.
+  defp schedule_events([{executable, farm_event} | rest], now) do
     # Spawn to be non blocking here. Maybe link to this process?
-    spawn fn() -> Execution.execute_event(event, now) end
+    time = Timex.parse!(farm_event.start_time, "{ISO:Extended}")
+    cond do
+      match?(%Regimen{}, executable) ->
+        spawn fn() ->
+          Execution.execute_event(executable, time)
+        end
+      match?(%Sequence{}, executable) ->
+        spawn fn() -> Execution.execute_event(executable, now) end
+    end
     # Continue enumeration.
-    start_events(rest, now)
-  end
-
-  # is then more than 1 minute in the past?
-  defp is_too_old?(now, then) do
-    time_str_fun = fn(dt) -> "#{dt.hour}:#{dt.minute}:#{dt.second}" end
-    seconds = DateTime.to_unix(now, :second) - DateTime.to_unix(then, :second)
-    c = seconds > 60 # not in MS here
-    maybe_farm_event_log "is checking #{time_str_fun.(now)} - #{time_str_fun.(then)} = #{seconds} seconds ago. is_too_old? => #{c}"
-    c
+    schedule_events(rest, now)
   end
 
   defp get_now(), do: Timex.now()

@@ -262,14 +262,17 @@ defmodule Farmbot.BotState do
 
   defp do_handle([], state), do: state
 
+  # User env is json and kind of a mess.
   defp do_handle([{:config, "settings", "user_env", val} | rest], state) do
     new_env = Map.merge(state.user_env, Poison.decode!(val))
     new_state = %{state | user_env: new_env}
     do_handle(rest, new_state)
   end
 
+  # TODO(Connor) - this should probably be moved to the system config registry.
   defp do_handle([{:config, "settings", "auto_sync", true} | rest], state) do
-    spawn Farmbot.Repo, :flip, []
+    # Toggling autosync should force a sync.
+    spawn Farmbot.Repo, :sync, []
     new_config = Map.put(state.configuration, "auto_sync", true)
     new_state = %{state | configuration: new_config}
     do_handle(rest, new_state)
@@ -368,6 +371,9 @@ defmodule Farmbot.BotState do
       movement_max_spd_x: nil,
       movement_max_spd_y: nil,
       movement_max_spd_z: nil,
+      movement_invert_2_endpoints_x: nil,
+      movement_invert_2_endpoints_y: nil,
+      movement_invert_2_endpoints_z: nil,
       encoder_enabled_x: nil,
       encoder_enabled_y: nil,
       encoder_enabled_z: nil,

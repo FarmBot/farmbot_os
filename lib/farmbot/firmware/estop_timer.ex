@@ -7,7 +7,7 @@ defmodule Farmbot.Firmware.EstopTimer do
 
   @msg "Farmbot has been E-Stopped for more than 10 minutes."
   # Ten minutes.
-  @timer_ms 600000
+  @timer_ms 600_000
   # fifteen seconds.
   # @timer_ms 15000
 
@@ -41,10 +41,10 @@ defmodule Farmbot.Firmware.EstopTimer do
   end
 
   def handle_call(:start_timer, _from, state) do
-    if !is_timer_active?(state.timer) do
-      {:reply, :ok, %{state | timer: do_start_timer(self())}}
-    else
+    if is_timer_active?(state.timer) do
       {:reply, :ok, state}
+    else
+      {:reply, :ok, %{state | timer: do_start_timer(self())}}
     end
   end
 
@@ -59,7 +59,7 @@ defmodule Farmbot.Firmware.EstopTimer do
     if state.already_sent do
       {:noreply, %{state | timer: nil}}
     else
-      Logger.warn 1, @msg, [channels: [:email]]
+      Logger.warn 1, @msg, [channels: [:fatal_email]]
       {:noreply, %{state | timer: nil, already_sent: true}}
     end
   end

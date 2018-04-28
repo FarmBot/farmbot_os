@@ -14,22 +14,17 @@ config :lager, [
 # Before we have network or ntp.
 config :tzdata, :autoupdate, :disabled
 
-config :farmbot, Farmbot.Repo.A,
+config :farmbot, Farmbot.Repo,
   adapter: Sqlite.Ecto2,
   loggers: [],
-  database: "/root/repo-#{Mix.env()}-A.sqlite3"
-
-config :farmbot, Farmbot.Repo.B,
-  adapter: Sqlite.Ecto2,
-  loggers: [],
-  database: "/root/repo-#{Mix.env()}-B.sqlite3"
+  database: "/root/repo-#{Mix.env()}.sqlite3"
 
 config :farmbot, Farmbot.System.ConfigStorage,
   adapter: Sqlite.Ecto2,
   loggers: [],
   database: "/root/config-#{Mix.env()}.sqlite3"
 
-config :farmbot, ecto_repos: [Farmbot.Repo.A, Farmbot.Repo.B, Farmbot.System.ConfigStorage]
+config :farmbot, ecto_repos: [Farmbot.Repo, Farmbot.System.ConfigStorage]
 
 # Configure your our init system.
 config :farmbot, :init, [
@@ -70,22 +65,11 @@ config :farmbot, :behaviour,
   update_handler: Farmbot.Target.UpdateHandler,
   gpio_handler:   Farmbot.Target.GPIO.AleHandler
 
-config :nerves_init_gadget,
-  address_method: :static
-
 local_file = Path.join(System.user_home!(), ".ssh/id_rsa.pub")
-local_key = if File.exists?(local_file) do
-  [File.read!(local_file)]
-else
-  []
-end
+local_key = if File.exists?(local_file), do: [File.read!(local_file)], else: []
 
 config :nerves_firmware_ssh, authorized_keys: local_key
 
 config :shoehorn,
   init: [:nerves_runtime, :nerves_init_gadget],
   app: :farmbot
-
-File.mkdir_p!(Path.join(["overlay", "profiles"]))
-config :nerves, :firmware,
-  rootfs_overlay: "overlay/"

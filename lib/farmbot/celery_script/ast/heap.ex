@@ -38,10 +38,10 @@ defmodule Farmbot.CeleryScript.AST.Heap do
   # Constants and key names.
 
   @link   "🔗"
-  @body   String.to_atom(@link <> "body"  )
-  @next   String.to_atom(@link <> "next"  )
+  @body   String.to_atom(@link <> "body")
+  @next   String.to_atom(@link <> "next")
   @parent String.to_atom(@link <> "parent")
-  @kind   String.to_atom(@link <> "kind"  )
+  @kind   String.to_atom(@link <> "kind")
 
   @primary_fields [@parent, @body, @kind, @next]
 

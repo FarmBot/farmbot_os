@@ -4,9 +4,13 @@ defmodule Farmbot.Firmware do
   use GenStage
   use Farmbot.Logger
   alias Farmbot.Bootstrap.SettingsSync
-  alias Farmbot.Firmware.{Vec3, EstopTimer}
+  alias Farmbot.Firmware.{Command, CompletionLogs, Vec3, EstopTimer}
+
   import Farmbot.System.ConfigStorage,
     only: [get_config_value: 3, update_config_value: 4, get_config_as_map: 0]
+
+  import CompletionLogs,
+    only: [maybe_log_complete: 2]
 
   # If any command takes longer than this, exit.
   @call_timeout 500_000
@@ -110,21 +114,6 @@ defmodule Farmbot.Firmware do
 
   ## GenStage
 
-  defmodule Command do
-    @moduledoc false
-    defstruct [
-      fun: nil,
-      args: nil,
-      from: nil
-    ]
-
-    defimpl Inspect, for: __MODULE__ do
-      def inspect(obj, _) do
-        "#{obj.fun}(#{Enum.join(obj.args, ", ")})"
-      end
-    end
-  end
-
   defmodule State do
     @moduledoc false
     defstruct [
@@ -142,7 +131,7 @@ defmodule Farmbot.Firmware do
       queue: :queue.new(),
       x_needs_home_on_boot: false,
       y_needs_home_on_boot: false,
-      z_needs_home_on_boot: false,
+      z_needs_home_on_boot: false
     ]
   end
 
@@ -272,7 +261,6 @@ defmodule Farmbot.Firmware do
   end
 
   defp do_begin_cmd(%Command{fun: fun, args: args, from: _from} = current, state, dispatch) do
-    # Logger.busy 3, "FW Starting: #{fun}: #{inspect from}"
     case apply(state.handler_mod, fun, [state.handler | args]) do
       :ok ->
         timer = start_timer(current, state.timeout_ms)
@@ -357,10 +345,6 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode(:idle, %{initialized: false, initializing: false} = state) do
     Logger.busy 1, "Firmware not initialized yet. Waiting for R88 message."
-    {nil, state}
-  end
-
-  defp handle_gcode(:idle, %{initialized: false, initializing: true} = state) do
     {nil, state}
   end
 
@@ -469,36 +453,45 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode(:report_axis_home_complete_x, state) do
-    Logger.success 2, "X Axis homing complete."
     {nil, state}
   end
 
   defp handle_gcode(:report_axis_home_complete_y, state) do
-    Logger.success 2, "Y Axis homing complete."
     {nil, state}
   end
 
   defp handle_gcode(:report_axis_home_complete_z, state) do
-    Logger.success 2, "Z Axis homing complete."
     {nil, %{state | timer: nil}}
   end
 
   defp handle_gcode(:report_axis_timeout_x, state) do
-    Logger.error 2, "X Axis timeout."
     do_reply(state, {:error, :axis_timeout_x})
     {nil, %{state | timer: nil}}
   end
 
   defp handle_gcode(:report_axis_timeout_y, state) do
-    Logger.error 2, "Y Axis timeout."
     do_reply(state, {:error, :axis_timeout_y})
     {nil, %{state | timer: nil}}
   end
 
   defp handle_gcode(:report_axis_timeout_z, state) do
-    Logger.error 2, "Z Axis timeout."
     do_reply(state, {:error, :axis_timeout_z})
     {nil, %{state | timer: nil}}
+  end
+
+  defp handle_gcode({:report_axis_changed_x, _new_x} = msg, state) do
+    new_current = Command.add_status(state.current, msg)
+    {nil, %{state | current: new_current}}
+  end
+
+  defp handle_gcode({:report_axis_changed_y, _new_y} = msg, state) do
+    new_current = Command.add_status(state.current, msg)
+    {nil, %{state | current: new_current}}
+  end
+
+  defp handle_gcode({:report_axis_changed_z, _new_z} = msg, state) do
+    new_current = Command.add_status(state.current, msg)
+    {nil, %{state | current: new_current}}
   end
 
   defp handle_gcode(:busy, state) do
@@ -631,6 +624,7 @@ defmodule Farmbot.Firmware do
 
   defp do_reply(state, reply) do
     maybe_cancel_timer(state.timer, state.current)
+    maybe_log_complete(state.current, reply)
     case state.current do
       %Command{fun: :emergency_unlock, from: from} ->
         # i really don't want this to be here..
@@ -648,7 +642,6 @@ defmodule Farmbot.Firmware do
   end
 
   defp maybe_send_email do
-    import Farmbot.System.ConfigStorage, only: [get_config_value: 3]
     if get_config_value(:bool, "settings", "email_on_estop") do
       if !EstopTimer.timer_active? do
         EstopTimer.start_timer()

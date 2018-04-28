@@ -18,7 +18,7 @@ install_hex_archives: &install_hex_archives
       cd /tmp
       mix local.hex --force
       mix local.rebar --force
-      mix archive.install hex nerves_bootstrap 1.0.0-rc.2 --force
+      mix archive.install hex nerves_bootstrap 1.0.0-rc.3 --force
 
 fetch_and_compile_deps: &fetch_and_compile_deps
   run:
@@ -38,6 +38,7 @@ jobs:
     environment:
       MIX_ENV: test
       MIX_TARGET: host
+      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -62,6 +63,8 @@ jobs:
           paths:
             - ~/arduino-1.8.5
       - run:
+          command: mix credo
+      - run:
           command: mix coveralls.circle --exclude farmbot_firmware
 
   firmware_dev:
@@ -70,6 +73,7 @@ jobs:
       MIX_TARGET: rpi3
       MIX_ENV: dev
       ENV: CI
+      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -119,6 +123,7 @@ jobs:
       MIX_TARGET: rpi3
       MIX_ENV: prod
       ENV: CI
+      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -191,6 +196,7 @@ jobs:
       MIX_TARGET: rpi3
       MIX_ENV: prod
       ENV: CI
+      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
     steps:
       - checkout
       - run: git submodule update --init --recursive

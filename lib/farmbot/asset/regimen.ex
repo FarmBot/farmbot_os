@@ -10,6 +10,7 @@ defmodule Farmbot.Asset.Regimen do
 
   schema "regimens" do
     field(:name, :string)
+    field(:farm_event_id, :integer, virtual: true)
     field(:regimen_items, JSONType)
   end
 
@@ -24,7 +25,6 @@ defmodule Farmbot.Asset.Regimen do
     regimen_items: [item]
   }
 
-  use Farmbot.Repo.Syncable
   @required_fields [:id, :name, :regimen_items]
 
   def changeset(farm_event, params \\ %{}) do
