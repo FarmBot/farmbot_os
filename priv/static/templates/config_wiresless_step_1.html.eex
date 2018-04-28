@@ -32,27 +32,29 @@
       <div class="widget-content">
         <form action=<%= post_action %> method="post" id="ssid_select_form">
           <fieldset>
+            <table class="table">
+              <tr class="table-header">
+                <th><label>WiFi Network Name</label></th>
+                <th class="centered"><label>Strength</label></th>
+                <th class="centered"><label>Security</label></th>
+              </tr>
+              <%= for ssid_result <- ssids do %>
+                <tr class="ssid_result" onclick="selectSsid('<%= ssid_result.ssid %>', '<%= ssid_result.security %>')">
+                  <td class="ssid_name"> <%= ssid_result.ssid || "hidden network" %> </td>
+                  <td class="ssid_quality"> <script> document.write(signal_table[<%= ssid_result.level %>]) </script> </td>
+                  <td class="ssid_security"> <%= ssid_result.security %> </td>
+                </tr>
+              <% end %>
+            </table>
+
+            <label class="customSsidInput" onclick="enableSsidInput()">Manual Input</label>
             <input name="security" id="hiddensecurityinput" hidden=true />
             <input name="ifname", hidden=true value="<%= ifname %>" />
             <input name="ssid" id="hiddenssidinput" hidden/>
-            <input name="manualssid" id="manualssid" hidden/>
-
-            <ul>
-              <li class="customSsidInput" onclick="enableSsidInput()">
-                <span> Manual Input </span>
-              </li>
-
-              <%= for ssid_result <- ssids do %>
-                <li class="ssid_result" onclick="selectSsid('<%= ssid_result.ssid %>', '<%= ssid_result.security %>')">
-                  <span class="ssid_name"> <%= ssid_result.ssid || "hidden network" %> </span>
-                  <span class="ssid_quality"> <script> document.write(signal_table[<%= ssid_result.level %>]) </script> </span>
-                  <span class="ssid_security"> <%= ssid_result.security %> </span>
-                </li>
-              <% end %>
-            </ul>
+            <input type="text" name="manualssid" id="manualssid"/>
           </fieldset>
 
-          <div class="button"> <input hidden=true type=submit value="next"> </div>
+          <div class="button"> <input type=submit value="next"> </div>
         </form>
       </div>
     </div>

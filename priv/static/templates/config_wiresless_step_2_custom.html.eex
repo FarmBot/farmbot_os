@@ -23,7 +23,8 @@
       <div class="widget-content">
         <form action=<%= post_action %> method="post">
           <fieldset>
-            <input name="ssid"    hidden value="<%= ssid     %>">
+            <label>Network Name</label>
+            <input name="ssid" type="text" disabled value="<%= ssid     %>">
             <input name="ifname"  hidden value="<%= ifname   %>">
 
             <label for="security"> Security Type </label>
@@ -34,7 +35,7 @@
             </select>
 
             <div id="pskdiv">
-              <label for=psk> PSK </label>
+              <label for=psk> PASSWORD </label>
               <input type=text name="psk" id="psk"/>
             </div>
 

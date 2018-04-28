@@ -20,7 +20,7 @@
 </script>
 
 <div>
-  <label onclick="toggleAdvancedSettings()" for="hiddenToggle">Tap for Advanced settings</label>
+  <label class="expandable" onclick="toggleAdvancedSettings()" for="hiddenToggle">Advanced settings</label>
   <fieldset id="hiddenToggle" hidden>
     <label for="domain"> Domain </label>
     <input type="text" name="domain" id="domain" value="">

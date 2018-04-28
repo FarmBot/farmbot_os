@@ -14,7 +14,8 @@
       <div class="widget-content">
         <form action=<%= post_action %> method="post">
           <fieldset>
-            <input name="ssid"     hidden=true value="<%= ssid     %>" />
+            <label>Network Name</label>
+            <input name="ssid" type="text" disabled value="<%= ssid     %>">
             <input name="security" hidden=true value="<%= security %>" />
             <input name="ifname",  hidden=true value="<%= ifname   %>" />
 
