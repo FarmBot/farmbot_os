@@ -538,7 +538,6 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode(code, state) do
     Logger.warn(3, "unhandled code: #{inspect(code)}")
-    IO.inspect state
     {nil, state}
   end
 
