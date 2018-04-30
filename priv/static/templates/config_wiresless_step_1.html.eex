@@ -1,0 +1,62 @@
+<html>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <head>
+
+    <title> Configure Farmbot's Network </title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="signal_table.js"></script>
+    <script type="text/javascript">
+
+    function selectSsid(ssid, security) {
+      console.log("you selected "+ ssid);
+      document.getElementById("hiddenssidinput").value = ssid;
+      document.getElementById("hiddensecurityinput").value = security;
+      document.getElementById("ssid_select_form").submit();
+    }
+
+    function enableSsidInput() {
+      var elem = document.getElementById("manualssid");
+      elem.hidden=false;
+      elem.focus();
+    }
+
+    </script>
+
+  </head>
+
+  <body>
+    <h1>Configure your FarmBot</h1>
+    <div class="widget">
+      <div class="widget-header"> <h5>Configure Wireless</h5> </div>
+      <div class="widget-content">
+        <form action=<%= post_action %> method="post" id="ssid_select_form">
+          <fieldset>
+            <table class="table">
+              <tr class="table-header">
+                <th><label>WiFi Network Name</label></th>
+                <th class="centered"><label>Strength</label></th>
+                <th class="centered"><label>Security</label></th>
+              </tr>
+              <%= for ssid_result <- ssids do %>
+                <tr class="ssid_result" onclick="selectSsid('<%= ssid_result.ssid %>', '<%= ssid_result.security %>')">
+                  <td class="ssid_name"> <%= ssid_result.ssid || "hidden network" %> </td>
+                  <td class="ssid_quality"> <script> document.write(signal_table[<%= ssid_result.level %>]) </script> </td>
+                  <td class="ssid_security"> <%= ssid_result.security %> </td>
+                </tr>
+              <% end %>
+            </table>
+
+            <label class="customSsidInput" onclick="enableSsidInput()">Manual Input</label>
+            <input name="security" id="hiddensecurityinput" hidden=true />
+            <input name="ifname", hidden=true value="<%= ifname %>" />
+            <input name="ssid" id="hiddenssidinput" hidden/>
+            <input type="text" name="manualssid" id="manualssid"/>
+          </fieldset>
+
+          <div class="button"> <input type=submit value="next"> </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

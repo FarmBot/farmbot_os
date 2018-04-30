@@ -16,21 +16,28 @@ defmodule Farmbot.Target.Network.Manager do
 
   def init({interface, opts} = args) do
     Elixir.Logger.remove_backend Elixir.Logger.Backends.Console
-    Logger.busy(3, "Waiting for interface up.")
+    Logger.busy(3, "Waiting for interface #{interface} up.")
 
     unless interface in Nerves.NetworkInterface.interfaces() do
       Process.sleep(1000)
       init(args)
     end
+    Logger.success(3, "Interface #{interface} is up.")
 
     SystemRegistry.register()
     {:ok, _} = Elixir.Registry.register(Nerves.NetworkInterface, interface, [])
     {:ok, _} = Elixir.Registry.register(Nerves.Udhcpc, interface, [])
     {:ok, _} = Elixir.Registry.register(Nerves.WpaSupplicant, interface, [])
-    Network.setup(interface, opts)
+    settings = Enum.map(opts, fn({key, value}) ->
+      case key do
+        :key_mgmt -> {key, String.to_atom(value)}
+        _ -> {key, value}
+      end
+    end)
+    Network.setup(interface, settings)
     domain = node() |> to_string() |> String.split("@") |> List.last() |> Kernel.<>(".local")
     init_mdns(domain)
-    {:ok, %{mdns_domain: domain, interface: interface, opts: opts, ip_address: nil, connected: false, not_found_timer: nil, ntp_timer: nil, dns_timer: nil}}
+    {:ok, %{mdns_domain: domain, interface: interface, opts: settings, ip_address: nil, connected: false, not_found_timer: nil, ntp_timer: nil, dns_timer: nil}}
   end
 
   def handle_call(:ip, _, state) do

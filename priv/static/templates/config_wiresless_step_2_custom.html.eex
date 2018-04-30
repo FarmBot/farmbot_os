@@ -1,0 +1,51 @@
+<html>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <head>
+
+    <title> Configure Farmbot's Network </title>
+    <link rel="stylesheet" href="/styles.css">
+    <script>
+      function securityChange() {
+        if(document.getElementById("security").value != "NONE") {
+          document.getElementById("pskdiv").hidden = false;
+        } else {
+          document.getElementById("pskdiv").hidden = true;
+        }
+      }
+    </script>
+  </head>
+
+  <body>
+    <h1>Configure your FarmBot</h1>
+    <div class="widget">
+      <div class="widget-header"> <h5>Configure Wireless</h5> </div>
+      <div class="widget-content">
+        <form action=<%= post_action %> method="post">
+          <fieldset>
+            <label>Network Name</label>
+            <input name="ssid" type="text" disabled value="<%= ssid     %>">
+            <input name="ifname"  hidden value="<%= ifname   %>">
+
+            <label for="security"> Security Type </label>
+            <select name="security" id="security" onchange="securityChange()">
+              <option> WPA2-PSK </option>
+              <option> WPA-PSK </option>
+              <option> NONE </option>
+            </select>
+
+            <div id="pskdiv">
+              <label for=psk> PASSWORD </label>
+              <input type=text name="psk" id="psk"/>
+            </div>
+
+            <%= advanced_network %>
+
+          </fieldset>
+
+          <div class="button"> <input type=submit value="next"> </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
