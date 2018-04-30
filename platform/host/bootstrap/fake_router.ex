@@ -23,12 +23,12 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
   get "/network" do
     interfaces = [:eth0, :wlan0]
-    render_page(conn, "network", [interfaces: interfaces])
+    render_page(conn, "network", [interfaces: interfaces, post_action: "select_interface"])
   end
 
   post "select_interface" do
     {:ok, _, conn} = read_body(conn)
-    interface = conn.body_params["interface"]
+    interface = conn.body_params["interface"] |> remove_empty_string()
     case interface do
       nil                             -> redir(conn, "/network")
       <<"w", _ ::binary >> = wireless -> redir(conn, "/config_wireless?ifname=#{wireless}")
@@ -58,15 +58,16 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
   post "config_wiresless_step_1" do
     try do
-      ifname = conn.params["ifname"]     || raise(MissingField, field: "ifname",   message: "ifname not provided",   redir: "/network")
-      ssid   = conn.params["ssid"]       || raise(MissingField, field: "ssid",     message: "ssid not provided",     redir: "/config_wireless?ifname=#{ifname}")
-      security = conn.params["security"] || raise(MissingField, field: "security", message: "security not provided", redir: "/config_wireless?ifname=#{ifname}")
-      manualssid = conn.params["manualssid"]
+      ifname = conn.params["ifname"]   |> remove_empty_string()   || raise(MissingField, field: "ifname",   message: "ifname not provided",   redir: "/network")
+      ssid   = conn.params["ssid"] |> remove_empty_string()
+      security = conn.params["security"] |> remove_empty_string()
+      manualssid = conn.params["manualssid"] |> remove_empty_string()
       opts = [ssid: ssid, ifname: ifname, security: security, advanced_network: advanced_network(), post_action: "config_network"]
       cond do
-        manualssid != ""       -> render_page(conn, "/config_wiresless_step_2_custom", opts)
+        manualssid != nil      -> render_page(conn, "/config_wiresless_step_2_custom", Keyword.put(opts, :ssid, manualssid))
+        ssid == nil -> raise(MissingField, field: "ssid",     message: "ssid not provided",     redir: "/config_wireless?ifname=#{ifname}")
+        security == nil ->  raise(MissingField, field: "security", message: "security not provided", redir: "/config_wireless?ifname=#{ifname}")
         security == "WPA-PSK"  -> render_page(conn, "/config_wiresless_step_2_PSK",    opts)
-        security == "WPA2-PSK" -> render_page(conn, "/config_wiresless_step_2_PSK",    opts)
         security == "NONE"     -> render_page(conn, "/config_wiresless_step_2_NONE",   opts)
         true                   -> render_page(conn, "/config_wiresless_step_2_other",  opts)
       end
@@ -80,15 +81,15 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   post "/config_network" do
     try do
       ifname           = conn.params["ifname"] || raise(MissingField, field: "ifname", message: "ifname not provided", redir: "/network")
-      ssid             = conn.params["ssid"]
-      security         = conn.params["security"]
-      psk              = conn.params["psk"]
+      ssid             = conn.params["ssid"] |> remove_empty_string()
+      security         = conn.params["security"] |> remove_empty_string()
+      psk              = conn.params["psk"] |> remove_empty_string()
       domain           = conn.params["domain"] |> remove_empty_string()
       name_servers      = conn.params["name_servers"] |> remove_empty_string()
-      ipv4_method      = conn.params["ipv4_method"]
-      ipv4_address     = conn.params["ipv4_address"]
-      ipv4_gateway     = conn.params["ipv4_gateway"]
-      ipv4_subnet_mask = conn.params["ipv4_subnet_mask"]
+      ipv4_method      = conn.params["ipv4_method"] |> remove_empty_string()
+      ipv4_address     = conn.params["ipv4_address"] |> remove_empty_string()
+      ipv4_gateway     = conn.params["ipv4_gateway"] |> remove_empty_string()
+      ipv4_subnet_mask = conn.params["ipv4_subnet_mask"] |> remove_empty_string()
       ConfigStorage.input_network_config!(%{
         name: ifname,
         ssid: ssid, security: security, psk: psk,

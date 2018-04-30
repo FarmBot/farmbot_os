@@ -15,7 +15,7 @@
         <form action=<%= post_action %> method="post">
           <fieldset>
             <label>Network Name</label>
-            <input name="ssid" type="text" disabled value="<%= ssid     %>">
+            <input name="ssid" type="text" value="<%= ssid %>" disabled >
             <input name="security" hidden=true value="<%= security %>" />
             <input name="ifname",  hidden=true value="<%= ifname   %>" />
 

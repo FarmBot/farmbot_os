@@ -30,6 +30,7 @@ defmodule Farmbot.Target.Network do
   @doc "Scan on an interface. "
   def do_scan(iface) do
     Nerves.Network.scan(iface)
+    |> Enum.reject(&String.contains?(&1.ssid, "\\x00"))
     |> ScanResult.decode()
     |> ScanResult.sort_results()
     |> ScanResult.decode_security()

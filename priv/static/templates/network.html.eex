@@ -5,8 +5,16 @@
 
     <title> Configure Farmbot's Network </title>
     <link rel="stylesheet" href="/styles.css">
-    <script src="signal_table.js"></script>
     <script type="text/javascript">
+    function select_interface() {
+      var selected = document.getElementsByName("interfaceRadio");
+      for(var i = 0; i < selected.length; i++) {
+        if(selected[i].checked) {
+          document.getElementById("interface").value = selected[i].id;
+          document.getElementById("interfaceSelectForm").submit();
+        }
+      }
+    }
     </script>
 
   </head>
@@ -16,20 +24,16 @@
     <div class="widget">
       <div class="widget-header"> <h5>Network</h5> </div>
       <div class="widget-content">
-        <form action="select_interface" method="post">
+        <form action="<%= post_action %>" id="interfaceSelectForm" method="post">
+          <input id="interface" name="interface" value="" hidden/>
           <% # Main form stuff %>
-
-          <fieldset>
-            <label>Select your interface</label>
-            <select id="interface", name="interface">
-              <%= for ifname <- interfaces do %>
-                <option> <%= ifname %> </option>
-              <% end %>
-            </select>
-          </fieldset>
+          <%= for ifname <- interfaces do %>
+            <label for='<%= ifname %>'> <%= ifname %> </label>
+            <input type="radio" id='<%= ifname %>' name="interfaceRadio" value=""/>
+          <% end %>
 
           <% #/Main form stuff %>
-          <div class="button"> <input type=submit value="next"> </div>
+          <div class="button"> <input type=submit value="next" onclick="select_interface()"> </div>
         </form>
       </div>
     </div>

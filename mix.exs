@@ -26,7 +26,7 @@ defmodule Farmbot.Mixfile do
       target: @target,
       commit: commit(),
       arduino_commit: arduino_commit(),
-      archives: [nerves_bootstrap: "~> 1.0.0-rc.2"],
+      archives: [nerves_bootstrap: "~> 1.0.0-rc.4"],
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps_path: "deps/#{@target}",
@@ -86,8 +86,7 @@ defmodule Farmbot.Mixfile do
 
   defp deps do
     [
-      # {:nerves, "~> 1.0.0-rc.1", runtime: false},
-      {:nerves, github: "nerves-project/nerves", runtime: false, override: true},
+      {:nerves, "~> 1.0.0-rc.2", runtime: false},
       {:elixir_make, "~> 0.4", runtime: false},
       {:gen_stage, "~> 0.12"},
 

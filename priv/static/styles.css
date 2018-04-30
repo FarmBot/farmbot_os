@@ -184,6 +184,10 @@ th {
   color: black;
 }
 
+.highlight {
+  background-color: yellow;
+}
+
 .ssid_quality,
 .ssid_security {
   color: #434343;
