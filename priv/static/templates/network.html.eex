@@ -28,7 +28,7 @@
           <input id="interface" name="interface" value="" hidden/>
           <% # Main form stuff %>
           <%= for ifname <- interfaces do %>
-            <label for='<%= ifname %>'> <%= ifname %> </label>
+            <label for='<%= ifname %>'> <%= if String.contains?(to_string(ifname), "w"), do: "WiFi", else: "Ethernet"%> (<%= ifname %>) </label>
             <input type="radio" id='<%= ifname %>' name="interfaceRadio" value=""/>
           <% end %>
 
