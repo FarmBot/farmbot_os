@@ -50,13 +50,13 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   get "/config_wireless" do
     try do
       ifname = conn.params["ifname"] || raise(MissingField, field: "ifname", message: "ifname not provided", redir: "/network")
-      render_page(conn, "/config_wiresless_step_1", [ifname: ifname, ssids: @ssids, post_action: "config_wiresless_step_1"])
+      render_page(conn, "/config_wireless_step_1", [ifname: ifname, ssids: @ssids, post_action: "config_wireless_step_1"])
     rescue
       e in MissingField -> redir(conn, e.redir)
     end
   end
 
-  post "config_wiresless_step_1" do
+  post "config_wireless_step_1" do
     try do
       ifname = conn.params["ifname"]   |> remove_empty_string()   || raise(MissingField, field: "ifname",   message: "ifname not provided",   redir: "/network")
       ssid   = conn.params["ssid"] |> remove_empty_string()
@@ -64,12 +64,12 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
       manualssid = conn.params["manualssid"] |> remove_empty_string()
       opts = [ssid: ssid, ifname: ifname, security: security, advanced_network: advanced_network(), post_action: "config_network"]
       cond do
-        manualssid != nil      -> render_page(conn, "/config_wiresless_step_2_custom", Keyword.put(opts, :ssid, manualssid))
+        manualssid != nil      -> render_page(conn, "/config_wireless_step_2_custom", Keyword.put(opts, :ssid, manualssid))
         ssid == nil -> raise(MissingField, field: "ssid",     message: "ssid not provided",     redir: "/config_wireless?ifname=#{ifname}")
         security == nil ->  raise(MissingField, field: "security", message: "security not provided", redir: "/config_wireless?ifname=#{ifname}")
-        security == "WPA-PSK"  -> render_page(conn, "/config_wiresless_step_2_PSK",    opts)
-        security == "NONE"     -> render_page(conn, "/config_wiresless_step_2_NONE",   opts)
-        true                   -> render_page(conn, "/config_wiresless_step_2_other",  opts)
+        security == "WPA-PSK"  -> render_page(conn, "/config_wireless_step_2_PSK",    opts)
+        security == "NONE"     -> render_page(conn, "/config_wireless_step_2_NONE",   opts)
+        true                   -> render_page(conn, "/config_wireless_step_2_other",  opts)
       end
     rescue
       e in MissingField ->
