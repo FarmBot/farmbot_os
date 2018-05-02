@@ -143,9 +143,9 @@ defmodule Farmbot.Firmware.Gcode.Param do
   def parse_param(:movement_max_spd_x), do: 71
   def parse_param(:movement_max_spd_y), do: 72
   def parse_param(:movement_max_spd_z), do: 73
-  def parse_param(:movement_invert_2_endpoints_x), do: 75 
-  def parse_param(:movement_invert_2_endpoints_y), do: 76 
-  def parse_param(:movement_invert_2_endpoints_z), do: 77 
+  def parse_param(:movement_invert_2_endpoints_x), do: 75
+  def parse_param(:movement_invert_2_endpoints_y), do: 76
+  def parse_param(:movement_invert_2_endpoints_z), do: 77
   def parse_param(:encoder_enabled_x), do: 101
   def parse_param(:encoder_enabled_y), do: 102
   def parse_param(:encoder_enabled_z), do: 103
@@ -235,6 +235,9 @@ defmodule Farmbot.Firmware.Gcode.Param do
   :movement_max_spd_x |
   :movement_max_spd_y |
   :movement_max_spd_z |
+  :movement_invert_2_endpoints_x |
+  :movement_invert_2_endpoints_y |
+  :movement_invert_2_endpoints_z |
   :encoder_enabled_x |
   :encoder_enabled_y |
   :encoder_enabled_z |

@@ -6,6 +6,8 @@ defmodule Farmbot.System.ConfigStorage.Migrations.SeedGroups do
   import Ecto.Query, only: [from: 2]
 
   @group_names ["authorization", "hardware_params", "settings"]
+  @default_server Application.get_env(:farmbot, :default_server)
+  @default_server || raise("Missing application env config: `:default_server`")
 
   def change do
     populate_config_groups()
@@ -30,7 +32,7 @@ defmodule Farmbot.System.ConfigStorage.Migrations.SeedGroups do
   end
 
   defp populate_config_values("authorization", group_id) do
-    create_value(StringValue, "https://my.farmbot.io") |> create_config(group_id, "server")
+    create_value(StringValue, @default_server) |> create_config(group_id, "server")
     create_value(StringValue, nil) |> create_config(group_id, "email")
     create_value(StringValue, nil) |> create_config(group_id, "password")
     create_value(StringValue, nil) |> create_config(group_id, "token")

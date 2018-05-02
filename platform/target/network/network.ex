@@ -6,9 +6,12 @@ defmodule Farmbot.Target.Network do
   import ConfigStorage, only: [get_config_value: 3]
   alias ConfigStorage.NetworkInterface
   alias Farmbot.Target.Network.Manager, as: NetworkManager
+  alias Farmbot.Target.Network.ScanResult
+
   use Supervisor
   use Farmbot.Logger
 
+  @doc "List available interfaces. Removes unusable entries."
   def get_interfaces(tries \\ 5)
   def get_interfaces(0), do: []
   def get_interfaces(tries) do
@@ -24,23 +27,18 @@ defmodule Farmbot.Target.Network do
     end
   end
 
-  def do_iw_scan(iface) do
-    case System.cmd("iw", [iface, "scan", "ap-force"]) do
-      {res, 0} -> res |> clean_ssid
-      e -> raise "Could not scan for wifi: #{inspect(e)}"
-    end
+  @doc "Scan on an interface. "
+  def do_scan(iface) do
+    Nerves.Network.scan(iface)
+    |> ScanResult.decode()
+    |> ScanResult.sort_results()
+    |> ScanResult.decode_security()
+    |> Enum.filter(&Map.get(&1, :ssid))
+    |> Enum.reject(&String.contains?(&1.ssid, "\\x00"))
+    |> Enum.uniq_by(fn(%{ssid: ssid}) -> ssid end)
   end
 
-  defp clean_ssid(hc) do
-    hc
-    |> String.replace("\t", "")
-    |> String.replace("\\x00", "")
-    |> String.split("\n")
-    |> Enum.filter(fn s -> String.contains?(s, "SSID: ") end)
-    |> Enum.map(fn z -> String.replace(z, "SSID: ", "") end)
-    |> Enum.filter(fn z -> String.length(z) != 0 end)
-  end
-
+  @doc "Tests if we can make dns queries."
   def test_dns(hostname \\ nil)
 
   def test_dns(nil) do
@@ -58,13 +56,47 @@ defmodule Farmbot.Target.Network do
   # TODO Expand this to allow for more settings.
   def to_network_config(config)
 
-  def to_network_config(%NetworkInterface{ssid: ssid, psk: psk, type: "wireless", maybe_hidden: hidden?} = config) do
+  def to_network_config(%NetworkInterface{type: "wireless"} = config) do
     Logger.debug(3, "wireless network config: ssid: #{config.ssid}")
-    {config.name, [ssid: ssid, key_mgmt: :"WPA-PSK", psk: psk, maybe_hidden: hidden?]}
+    opts = [ssid: config.ssid, key_mgmt: config.security]
+    case config.security do
+      "WPA-PSK" ->
+        {config.name, Keyword.merge(opts, [psk: config.psk])} |> maybe_use_advanced(config)
+      "NONE" ->
+        {config.name, opts} |> maybe_use_advanced(config)
+      other -> raise "Unsupported wireless security type: #{other}"
+    end
   end
 
   def to_network_config(%NetworkInterface{type: "wired"} = config) do
-    {config.name, []}
+    {config.name, []} |> maybe_use_advanced(config)
+  end
+
+  defp maybe_use_advanced({name, opts}, config) do
+    case config.ipv4_method do
+      "static" ->
+        settings = [ipv4_method: "static", ipv4_address: config.ipv4_address, ipv4_gateway: config.ipv4_gateway, ipv4_subnet_mask: config.ipv4_subnet_mask]
+        {name, Keyword.merge(opts, settings)}
+      "dhcp" -> {name, opts}
+    end
+    |> maybe_use_name_servers(config)
+    |> maybe_use_domain(config)
+  end
+
+  defp maybe_use_name_servers({name, opts}, config) do
+    if config.name_servers do
+      {name, Keyword.put(opts, :name_servers, String.split(config.name_servers, " "))}
+    else
+      {name, opts}
+    end
+  end
+
+  defp maybe_use_domain({name, opts}, config) do
+    if config.domain do
+      {name, Keyword.put(opts, :domain, config.domain)}
+    else
+      {name, opts}
+    end
   end
 
   def to_child_spec({interface, opts}) do
@@ -76,7 +108,7 @@ defmodule Farmbot.Target.Network do
   end
 
   def init([]) do
-    config = ConfigStorage.all_network_interfaces()
+    config = ConfigStorage.get_all_network_configs()
     Logger.info(3, "Starting Networking")
     children = config
       |> Enum.map(&to_network_config/1)

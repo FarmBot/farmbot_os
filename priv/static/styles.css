@@ -21,6 +21,18 @@ h1, h2 {
   margin-top: 3rem;
 }
 
+.gray {
+  display: inline-block;
+  cursor: pointer;
+  background-color: #666;
+  color: #f4f4f4;
+  border-bottom: solid #000;
+}
+
+.gray:hover {
+  background-color: #434343;
+}
+
 a, input[type=submit] {
   padding: .5rem 1.6rem;
   font-size: 1.2rem;
@@ -141,4 +153,90 @@ input[type="radio"]:checked:after {
   transform: rotate(45deg);
   top: 0;
   left: 0.6rem;
+}
+
+table {
+  background: #f4f4f4;
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 1.1rem;
+}
+
+th {
+  text-align: start;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+
+.table-header {
+  background: #f4f4f4;
+  color: #434343;
+  font-size: 0.75rem;
+}
+
+.ssid_result {
+  line-height: 1.5rem;
+  cursor: pointer;
+}
+
+.ssid_result:hover {
+  background: #ccc;
+  color: black;
+}
+
+.ssid_name {
+  word-break: break-word;
+}
+
+.selected {
+  background-color: #ccc;
+  font-weight: bold;
+}
+
+.ssid_security img {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.customSsidInput {
+  display: inline-block;
+  cursor: pointer;
+  margin-top: 2rem;
+}
+
+.centered {
+  text-align: center;
+}
+
+.expandable {
+  cursor: pointer;
+}
+
+.expandable:after {
+  content: "";
+  margin-left: 0.5rem;
+  display: inline-block;
+  border: 7px solid transparent;
+  border-top: 7px solid #434343;
+  transform: translateY(30%);
+}
+
+.eye-icon {
+  cursor: pointer;
+  width: 2rem;
+  height: 2rem;
+  position: absolute;
+  right: 0.5rem;
+  top: 0;
+}
+
+.psk-input-group {
+  position: relative;
+}
+
+.percent-bar {
+  width: 1%;
+  height: 1.5rem;
+  background-color: #4CAF50;
 }

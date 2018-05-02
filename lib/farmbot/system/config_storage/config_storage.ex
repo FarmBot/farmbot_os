@@ -48,51 +48,18 @@ defmodule Farmbot.System.ConfigStorage do
     ConfigStorage.insert!(reg)
   end
 
-  def input_network_configs([{iface, settings} | rest]) when is_map(settings) and is_binary(iface) do
-    if settings["enable"] == "on" do
-
-      case settings["type"] do
-        "wireless" ->
-          # lol
-          maybe_hidden? = if Map.get(settings, "maybe_hidden", false) do
-            true
-          else
-            false
-          end
-
-          %ConfigStorage.NetworkInterface{
-            name: iface,
-            type: "wireless",
-            ssid: Map.fetch!(settings, "ssid"),
-            psk: Map.fetch!(settings, "psk"),
-            security: "WPA-PSK",
-            ipv4_method: "dhcp",
-            maybe_hidden: maybe_hidden?
-          }
-
-        "wired" ->
-          %ConfigStorage.NetworkInterface{
-            name: iface,
-            type: "wired",
-            ipv4_method: "dhcp"
-          }
-      end
-      |> ConfigStorage.insert!()
-    end
-
-    input_network_configs(rest)
+  @doc "Input a network config. Takes many settings as a map."
+  def input_network_config!(%{} = config) do
+    data = struct(NetworkInterface, config)
+    ConfigStorage.insert!(data)
   end
 
-  def input_network_configs([]) do
-    :ok
-  end
-
-  def all_network_interfaces do
+  def get_all_network_configs do
     ConfigStorage.all(NetworkInterface)
   end
 
   def destroy_all_network_configs do
-    ConfigStorage.delete_all(ConfigStorage.NetworkInterface)
+    ConfigStorage.delete_all(NetworkInterface)
   end
 
   @doc """

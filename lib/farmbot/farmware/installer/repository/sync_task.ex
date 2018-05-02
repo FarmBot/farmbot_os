@@ -16,6 +16,27 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
     :ignore
   end
 
+  def bloop do
+    File.mkdir_p("/root/farmware_tools")
+    url = "https://github.com/FarmBot-Labs/farmware-tools/archive/master.zip"
+    zip_file = "/root/farmware-tools.zip"
+    {:ok, ^zip_file} = Farmbot.HTTP.download_file(url, zip_file)
+
+    fun = fn({:zip_file, dir, _info, _, _, _}) ->
+      [_ | rest] = Path.split(to_string(dir))
+      List.first(rest) == "farmware_tools"
+    end
+
+    case :zip.extract('/root/farmware-tools.zip', [:memory, file_filter: fun]) do
+      {:ok, list} when is_list(list) ->
+        Enum.each(list, fn({filename, data}) ->
+          out_file = Path.join(["/root", "farmware_tools", Path.basename(to_string(filename))])
+          File.write!(out_file, data)
+        end)
+      {:error, reason} -> raise("Failed do download farmware tools: #{inspect reason}")
+    end
+  end
+
   def sync_all do
     Logger.busy 2, "Syncing all Farmware repos. This may take a while."
     setup_repos()

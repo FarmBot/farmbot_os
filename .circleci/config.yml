@@ -18,7 +18,7 @@ install_hex_archives: &install_hex_archives
       cd /tmp
       mix local.hex --force
       mix local.rebar --force
-      mix archive.install hex nerves_bootstrap 1.0.0-rc.3 --force
+      mix archive.install hex nerves_bootstrap 1.0.0-rc.4 --force
 
 fetch_and_compile_deps: &fetch_and_compile_deps
   run:
