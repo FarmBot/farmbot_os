@@ -6,6 +6,7 @@
     <title> Configure Farmbot's Network </title>
     <link rel="stylesheet" href="/styles.css">
     <script src="signal_table.js"></script>
+    <script src="security_icon_lookup.js"></script>
     <script type="text/javascript">
 
     function selectSsid(ssid, bssid, security) {
@@ -14,9 +15,9 @@
       document.getElementById("hiddensecurityinput").value = security;
       var derp = document.getElementsByName("ssisSelector");
       document.getElementById("manualssid").value = "";
-      for(var i = 0; i < derp.length; i++) derp[i].classList.remove("highlight");
+      for(var i = 0; i < derp.length; i++) derp[i].classList.remove("selected");
 
-      document.getElementById(ssid + "." + bssid).classList.add("highlight");
+      document.getElementById(ssid + "." + bssid).classList.add("selected");
     }
 
     function enableSsidInput() {
@@ -46,8 +47,19 @@
                 <%= if ssid_result.ssid && String.printable?(ssid_result.ssid) do %>
                   <tr id="<%= ssid_result.ssid %>.<%= ssid_result.bssid %>" name="ssisSelector" class="ssid_result" onclick="selectSsid('<%= ssid_result.ssid %>', '<%= ssid_result.bssid %>', '<%= ssid_result.security %>')">
                     <td class="ssid_name"> <%= ssid_result.ssid || "hidden network" %> </td>
-                    <td class="ssid_quality"> <script> document.write(signal_table[<%= ssid_result.level %>]) </script> </td>
-                    <td class="ssid_security"> <%= ssid_result.security %> </td>
+                    <td class="ssid_quality">
+                      <script>
+                        var percent = signal_table[<%= ssid_result.level %>];
+                        document.write(`<div class="percent-bar" style="width: ${percent}%" title="${percent}" />`)
+                      </script>
+                    </td>
+                    <td class="ssid_security centered">
+                      <script>
+                        var icon = security_icon_lookup["<%= ssid_result.security %>"];
+                        if (!icon) { icon = "icon_unknown.svg"; }
+                        document.write(`<img src="${icon}" title="<%= ssid_result.security %>" />`)
+                      </script>
+                    </td>
                   </tr>
                 <% end %>
               <% end %>

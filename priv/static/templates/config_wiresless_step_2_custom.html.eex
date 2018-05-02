@@ -13,6 +13,14 @@
           document.getElementById("pskdiv").hidden = true;
         }
       }
+      function showPassword() {
+        var x = document.getElementById("psk");
+        if (x.type === "password") {
+            x.type = "text";
+        } else {
+            x.type = "password";
+        }
+      }
     </script>
   </head>
 
@@ -37,7 +45,11 @@
 
             <div id="pskdiv">
               <label for=psk> PASSWORD </label>
-              <input type=text name="psk" id="psk"/>
+              <div class="psk-input-group">
+                <input type="password" name="psk" id="psk">
+                <img class="eye-icon" src="icon_eye.svg"
+                  onclick="showPassword()" title="Show password">
+              </div>
             </div>
 
             <%= advanced_network %>

@@ -172,6 +172,7 @@ th {
 .table-header {
   background: #f4f4f4;
   color: #434343;
+  font-size: 0.75rem;
 }
 
 .ssid_result {
@@ -184,15 +185,18 @@ th {
   color: black;
 }
 
-.highlight {
-  background-color: yellow;
+.ssid_name {
+  word-break: break-word;
 }
 
-.ssid_quality,
-.ssid_security {
-  color: #434343;
-  text-align: center;
-  font-size: 1.0rem;
+.selected {
+  background-color: #ccc;
+  font-weight: bold;
+}
+
+.ssid_security img {
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .customSsidInput {
@@ -216,4 +220,23 @@ th {
   border: 7px solid transparent;
   border-top: 7px solid #434343;
   transform: translateY(30%);
+}
+
+.eye-icon {
+  cursor: pointer;
+  width: 2rem;
+  height: 2rem;
+  position: absolute;
+  right: 0.5rem;
+  top: 0;
+}
+
+.psk-input-group {
+  position: relative;
+}
+
+.percent-bar {
+  width: 1%;
+  height: 1.5rem;
+  background-color: #4CAF50;
 }

@@ -4,6 +4,16 @@
   <head>
     <title> Configure Farmbot's Network </title>
     <link rel="stylesheet" href="/styles.css">
+    <script>
+      function showPassword() {
+          var x = document.getElementById("psk");
+          if (x.type === "password") {
+              x.type = "text";
+          } else {
+              x.type = "password";
+          }
+      }
+    </script>
   </head>
 
   <body>
@@ -20,20 +30,11 @@
             <input name="ifname",  hidden=true value="<%= ifname %>">
 
             <label for="psk"> PASSWORD </label>
-            <input type="password" name="psk" id="psk">
-            <input type="checkbox" onclick="showPassword()">Show Password
-
-            <script>
-            function showPassword() {
-                var x = document.getElementById("psk");
-                if (x.type === "password") {
-                    x.type = "text";
-                } else {
-                    x.type = "password";
-                }
-            }
-            </script>
-
+            <div class="psk-input-group">
+              <input type="password" name="psk" id="psk">
+              <img class="eye-icon" src="icon_eye.svg"
+                onclick="showPassword()" title="Show password">
+            </div>
           </fieldset>
 
           <%= advanced_network %>
