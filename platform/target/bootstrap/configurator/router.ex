@@ -16,6 +16,10 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     update_config_value: 4
   ]
 
+  defmodule MissingField do
+    defexception [:message, :field, :redir]
+  end
+
   @version Farmbot.Project.version()
   @data_path Application.get_env(:farmbot, :data_path)
 
@@ -35,26 +39,96 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
   get "/setup", do: redir(conn, "/")
 
+#NETWORKCONFIG
   get "/network" do
     interfaces = Farmbot.Target.Network.get_interfaces()
-
-    info = [
-      interfaces: Map.new(interfaces, fn iface ->
-        checked = if iface == "wlan0" do
-          "checked"
-        else
-          ""
-        end
-        if String.first(iface) == "w" do
-          {iface, %{type: :wireless, ssids: Farmbot.Target.Network.do_iw_scan(iface), checked: checked}}
-        else
-          {iface, %{type: :wired, checked: checked}}
-        end
-      end)
-    ]
-
-    render_page(conn, "network", info)
+    render_page(conn, "network", [interfaces: interfaces, post_action: "select_interface"])
   end
+
+  post "select_interface" do
+    {:ok, _, conn} = read_body(conn)
+    interface = conn.body_params["interface"] |> remove_empty_string()
+    case interface do
+      nil                             -> redir(conn, "/network")
+      <<"w", _ ::binary >> = wireless -> redir(conn, "/config_wireless?ifname=#{wireless}")
+      wired                           -> redir(conn, "/config_wired?ifname=#{wired}")
+    end
+  end
+
+  get "/config_wired" do
+    try do
+      ifname = conn.params["ifname"] || raise(MissingField, field: "ifname", message: "ifname not provided", redir: "/network")
+      render_page(conn, "config_wired", [ifname: ifname, advanced_network: advanced_network()])
+    rescue
+      e in MissingField ->
+        Logger.error 1, Exception.message(e)
+        redir(conn, e.redir)
+    end
+  end
+
+  get "/config_wireless" do
+    try do
+      ifname = conn.params["ifname"] || raise(MissingField, field: "ifname", message: "ifname not provided", redir: "/network")
+      opts = [ifname: ifname, ssids: Farmbot.Target.Network.do_scan(ifname), post_action: "config_wireless_step_1"]
+      render_page(conn, "/config_wireless_step_1", opts)
+    rescue
+      e in MissingField -> redir(conn, e.redir)
+    end
+  end
+
+  post "config_wireless_step_1" do
+    try do
+      ifname = conn.params["ifname"]   |> remove_empty_string()   || raise(MissingField, field: "ifname",   message: "ifname not provided",   redir: "/network")
+      ssid   = conn.params["ssid"] |> remove_empty_string()
+      security = conn.params["security"] |> remove_empty_string()
+      manualssid = conn.params["manualssid"] |> remove_empty_string()
+      opts = [ssid: ssid, ifname: ifname, security: security, advanced_network: advanced_network(), post_action: "config_network"]
+      cond do
+        manualssid != nil      -> render_page(conn, "/config_wireless_step_2_custom", Keyword.put(opts, :ssid, manualssid))
+        ssid == nil -> raise(MissingField, field: "ssid",     message: "ssid not provided",     redir: "/config_wireless?ifname=#{ifname}")
+        security == nil ->  raise(MissingField, field: "security", message: "security not provided", redir: "/config_wireless?ifname=#{ifname}")
+        security == "WPA-PSK"  -> render_page(conn, "/config_wireless_step_2_PSK",    opts)
+        security == "NONE"     -> render_page(conn, "/config_wireless_step_2_NONE",   opts)
+        true                   -> render_page(conn, "/config_wireless_step_2_other",  opts)
+      end
+    rescue
+      e in MissingField ->
+        Logger.error 1, Exception.message(e)
+        redir(conn, e.redir)
+    end
+  end
+
+  post "/config_network" do
+    try do
+      ifname           = conn.params["ifname"] || raise(MissingField, field: "ifname", message: "ifname not provided", redir: "/network")
+      ssid             = conn.params["ssid"] |> remove_empty_string()
+      security         = conn.params["security"] |> remove_empty_string()
+      psk              = conn.params["psk"] |> remove_empty_string()
+      domain           = conn.params["domain"] |> remove_empty_string()
+      name_servers      = conn.params["name_servers"] |> remove_empty_string()
+      ipv4_method      = conn.params["ipv4_method"] |> remove_empty_string()
+      ipv4_address     = conn.params["ipv4_address"] |> remove_empty_string()
+      ipv4_gateway     = conn.params["ipv4_gateway"] |> remove_empty_string()
+      ipv4_subnet_mask = conn.params["ipv4_subnet_mask"] |> remove_empty_string()
+      ConfigStorage.input_network_config!(%{
+        name: ifname,
+        ssid: ssid, security: security, psk: psk,
+        type: if(ssid, do: "wireless", else: "wired"),
+        domain: domain,
+        name_servers: name_servers,
+        ipv4_method: ipv4_method,
+        ipv4_address: ipv4_address,
+        ipv4_gateway: ipv4_gateway,
+        ipv4_subnet_mask: ipv4_subnet_mask
+      })
+      redir(conn, "/firmware")
+    rescue
+      e in MissingField ->
+        Logger.error 1, Exception.message(e)
+        redir(conn, e.redir)
+    end
+  end
+#/NETWORKCONFIG
 
   get "/credentials" do
     email = get_config_value(:string, "authorization", "email") || ""
@@ -63,26 +137,6 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     first_boot = get_config_value(:bool, "settings", "first_boot")
     update_config_value(:string, "authorization", "token", nil)
     render_page(conn, "credentials", server: server, email: email, password: pass, first_boot: first_boot)
-  end
-
-  post "/configure_network" do
-    try do
-      {:ok, _, conn} = read_body(conn)
-      interface = conn.body_params["interface"]
-      settings =
-        Enum.filter(conn.body_params, &String.starts_with?(elem(&1, 0), interface))
-        |> Enum.map(fn({key, val}) -> {String.trim(key, interface <> "_"), val} end)
-        |> Map.new()
-        |> Map.put("enable", "on")
-
-      :ok = ConfigStorage.input_network_configs([{interface, settings}])
-      redir(conn, "/firmware")
-    rescue
-      err ->
-        Logger.error 1, "Failed too input network config: #{Exception.message(err)}: #{inspect System.stacktrace()}"
-        ConfigStorage.destroy_all_network_configs()
-        redir(conn, "/network")
-    end
   end
 
   get "/firmware" do
@@ -133,7 +187,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     email = get_config_value(:string, "authorization", "email")
     pass = get_config_value(:string, "authorization", "password")
     server = get_config_value(:string, "authorization", "server")
-    network = !(Enum.empty?(ConfigStorage.all_network_interfaces()))
+    network = !(Enum.empty?(ConfigStorage.get_all_network_configs()))
     if email && pass && server && network do
       conn = render_page(conn, "finish")
       spawn fn() ->
@@ -177,4 +231,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   defp template_file(file) do
     "#{:code.priv_dir(:farmbot)}/static/templates/#{file}.html.eex"
   end
+
+  defp remove_empty_string(""), do: nil
+  defp remove_empty_string(str), do: str
+  defp advanced_network, do: template_file("advanced_network") |> EEx.eval_file([])
 end

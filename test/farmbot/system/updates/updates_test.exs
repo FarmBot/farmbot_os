@@ -68,13 +68,13 @@ defmodule Farmbot.System.UpdatesTest do
   test "Normal upgrade path: current is less than latest" do
     current = CurrentStuff.get(%{current_stub() | version: @old_version})
     release = release_stub()
-    assert Updates.check_updates(release, current) == @fake_asset_url
+    assert match?({%Version{}, @fake_asset_url}, Updates.check_updates(release, current))
   end
 
   test "versions equal, but commits not equal" do
     current = CurrentStuff.get(%{current_stub() | commit: String.reverse(@commit)})
     release = release_stub()
-    assert Updates.check_updates(release, current) == @fake_asset_url
+    assert match?({%Version{}, @fake_asset_url}, Updates.check_updates(release, current))
   end
 
   defp current_stub do

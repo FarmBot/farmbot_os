@@ -1,3 +1,14 @@
+# 6.4.1
+* Beta updates should _always_ try to flash firmware.
+* Bump Nerves and friends to 1.0.0.
+* Add new firmware params: `report_axis_timeout_x`, `report_axis_timeout_y`, `report_axis_timeout_z`.
+* Add new firmwar feature and rpc: `set_pin_mode`.
+* Clean up positions in logs.
+* Update Configurator to support more control over network setup.
+* Add mdns to development setups.
+* Remove use of `iw`.
+* Add checks for uart auto detector.
+
 # 6.4.0
 * Update logs to no longer use the `meta` field.
 * Update Timed Estop messages to use the `fatal_email` channel.

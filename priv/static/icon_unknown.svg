@@ -1,0 +1,10 @@
+<svg
+  viewBox="0 0 20 20"
+  xmlns="http://www.w3.org/2000/svg"
+  stroke="gray"
+  stroke-width="3px"
+  stroke-linecap="round"
+  fill="transparent">
+  <path d="M6 6 C 5 -1, 20 0, 10 12" />
+  <circle cx="10" cy="17.5" r="2" fill="gray" stroke="none" />
+</svg>

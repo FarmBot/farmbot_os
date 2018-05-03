@@ -58,21 +58,24 @@ config :farmbot, :behaviour,
 config :farmbot, :farmware,
   first_part_farmware_manifest_url: "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/manifest.json"
 
-config :farmbot, expected_fw_versions: ["6.3.0.F", "6.3.0.R", "6.3.0.G"]
+config :farmbot,
+  expected_fw_versions: ["6.4.0.F", "6.4.0.R", "6.4.0.G"],
+  default_server: "https://my.farm.bot"
+
+global_overlay_dir = "rootfs_overlay"
+
+config :nerves, :firmware, rootfs_overlay: [global_overlay_dir]
 
 case target do
   "host" ->
     import_config("host/#{env}.exs")
 
   _ ->
+    custom_rootfs_overlay_dir = "config/target/rootfs_overlay_#{Mix.Project.config[:target]}"
     import_config("target/#{env}.exs")
-    if File.exists?("config/target/#{target}.exs") do
-      import_config("target/#{target}.exs")
-    end
+    if File.exists?("config/target/#{target}.exs"),
+      do: import_config("target/#{target}.exs")
 
-    rootfs_overlay_dir = "config/target/rootfs_overlay_#{Mix.Project.config[:target]}"
-
-    if File.exists?(rootfs_overlay_dir) do
-      config :nerves, :firmware, rootfs_overlay: rootfs_overlay_dir
-    end
+    if File.exists?(custom_rootfs_overlay_dir),
+      do: config :nerves, :firmware, rootfs_overlay: [global_overlay_dir, custom_rootfs_overlay_dir]
 end

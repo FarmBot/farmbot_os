@@ -9,8 +9,9 @@ defmodule Farmbot.Firmware.UartHandler do
   alias Farmbot.System.ConfigStorage
   import ConfigStorage, only: [update_config_value: 4, get_config_value: 3]
   alias Farmbot.Firmware
-  alias Firmware.{UartHandler, Vec3}
-  import Vec3, only: [fmnt_float: 1]
+  alias Firmware.{UartHandler, Utils}
+  import Utils
+
   @behaviour Firmware.Handler
 
   def start_link do
@@ -366,8 +367,8 @@ defmodule Farmbot.Firmware.UartHandler do
     do_write("F20", state)
   end
 
-  def handle_call({:set_pin_mode, pin, mode}, _from, state) do
-    encoded_mode = if mode == :output, do: 1, else: 0
+  def handle_call({:set_pin_mode, pin, mode_atom}, _from, state) do
+    encoded_mode = extract_set_pin_mode(mode_atom)
     do_write("F43 P#{pin} M#{encoded_mode}", state, [])
   end
 
@@ -398,8 +399,4 @@ defmodule Farmbot.Firmware.UartHandler do
   def handle_demand(_amnt, state) do
     {:noreply, [], state}
   end
-
-  @compile {:inline, [extract_pin_mode: 1]}
-  defp extract_pin_mode(:digital), do: 0
-  defp extract_pin_mode(_), do: 1
 end

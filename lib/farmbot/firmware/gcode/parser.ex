@@ -49,9 +49,13 @@ defmodule Farmbot.Firmware.Gcode.Parser do
   def parse_code("R31 " <> params), do: parse_pvq(params, :report_status_value)
   def parse_code("R41 " <> params), do: parse_pvq(params, :report_pin_value)
 
+  #TODO(connor) - remove one of these variants. (With or without Q) at some point.
   def parse_code("R71 Q" <>  tag), do: {tag, :report_axis_timeout_x}
   def parse_code("R72 Q" <>  tag), do: {tag, :report_axis_timeout_y}
   def parse_code("R73 Q" <>  tag), do: {tag, :report_axis_timeout_z}
+  def parse_code("R71"), do: {nil, :report_axis_timeout_x}
+  def parse_code("R72"), do: {nil, :report_axis_timeout_y}
+  def parse_code("R73"), do: {nil, :report_axis_timeout_z}
 
   # Report Position.
   def parse_code("R81 " <> params), do: parse_end_stops(params)
