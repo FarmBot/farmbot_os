@@ -40,7 +40,7 @@ defmodule Farmbot.Target.UpdateHandler do
   def post_update do
     alias Farmbot.Firmware.UartHandler.Update
     hw = Farmbot.System.ConfigStorage.get_config_value(:string, "settings", "firmware_hardware")
-    is_beta? = Farmbot.System.ConfigStorage.get_config_value(:string, "settings", "currently_on_beta")
+    is_beta? = Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "currently_on_beta")
     if is_beta? do
       Logger.debug 1, "Forcing beta image arduino firmware flash."
       Update.force_update_firmware(hw)
