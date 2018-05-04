@@ -7,6 +7,7 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
 
   use GenServer
   alias HTTPoison
+
   alias HTTPoison.{
     AsyncResponse,
     AsyncStatus,
@@ -52,19 +53,18 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
     |> do_multipart_request(http, meta, path)
   end
 
-  defp do_multipart_request(
-    {:ok, %Response{status_code: code, body: bin_body}},
-    http,
-    meta, path) when is_2xx(code)
-  do
+  defp do_multipart_request({:ok, %Response{status_code: code, body: bin_body}}, http, meta, path)
+       when is_2xx(code) do
     with {:ok, body} <- Poison.decode(bin_body),
          {:ok, file} <- File.read(path) do
       server = get_config_value(:string, "authorization", "server")
 
-      url = case server do
-        "https:" <> _ -> "https:" <> body["url"]
-        "http:" <> _ -> "http:" <> body["url"]
-      end
+      url =
+        case server do
+          "https:" <> _ -> "https:" <> body["url"]
+          "http:" <> _ -> "http:" <> body["url"]
+        end
+
       form_data = body["form_data"]
       attachment_url = url <> form_data["key"]
 
@@ -83,12 +83,8 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
 
   defp do_multipart_request({:error, reason}, _, _, _), do: {:error, reason}
 
-  defp finish_upload(
-    {:ok, %Response{status_code: code}},
-    http,
-    atch_url,
-    meta) when is_2xx(code)
-  do
+  defp finish_upload({:ok, %Response{status_code: code}}, http, atch_url, meta)
+       when is_2xx(code) do
     case Poison.encode(%{"attachment_url" => atch_url, "meta" => meta}) do
       {:ok, body} ->
         case request(http, :post, "/api/images", body, [], []) do
@@ -101,7 +97,9 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
           {:error, reason} ->
             {:error, reason}
         end
-      err -> err
+
+      err ->
+        err
     end
   end
 
@@ -149,6 +147,7 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
     case url do
       "/api" <> _ ->
         do_api_request({method, url, body, headers, opts, from}, state)
+
       _ ->
         do_normal_request({method, url, body, headers, opts, from}, file, state)
     end
@@ -171,6 +170,7 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
         HTTPoison.stream_next(%AsyncResponse{id: ref})
         new_requests = %{state.requests | ref => %{buffer | status_code: code}}
         {:noreply, %{state | requests: new_requests}}
+
       nil ->
         {:noreply, state}
     end
@@ -195,6 +195,7 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
         new_state = %{state | requests: new_requests}
 
         {:noreply, new_state}
+
       nil ->
         {:noreply, state}
     end
@@ -221,6 +222,7 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
         new_requests = %{state.requests | ref => new_ref}
         new_state = %{state | requests: new_requests}
         {:noreply, new_state}
+
       nil ->
         {:noreply, state}
     end
@@ -272,7 +274,8 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
   defp maybe_stream_to_file(nil, _, _data), do: :ok
 
   defp maybe_stream_to_file(_, code, _data)
-    when code in @redirect_status_codes, do: :ok
+       when code in @redirect_status_codes,
+       do: :ok
 
   defp maybe_stream_to_file(fd, _code, data) when is_binary(data) do
     :ok = :file.write(fd, data)
@@ -316,6 +319,7 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
 
   defp do_normal_request({_, _, _, _, _, _} = call, file, state) do
     {method, url, body, headers, opts, from} = call
+
     case HTTPoison.request(method, url, body, headers, opts) do
       {:ok, %HTTPoison.Response{status_code: code, headers: resp_headers}}
       when code in @redirect_status_codes ->
@@ -338,6 +342,7 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
           headers: htr.headers,
           status_code: htr.status_code
         ]
+
         response = struct(Response, opts)
         GenServer.reply(from, {:ok, response})
         {:noreply, state}
