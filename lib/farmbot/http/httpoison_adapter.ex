@@ -23,6 +23,7 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
   @version Farmbot.Project.version()
   @target Farmbot.Project.target()
   @redirect_status_codes [301, 302, 303, 307, 308]
+  import Farmbot.System.ConfigStorage, only: [get_config_value: 3]
 
   def request(http, method, url, body, headers, opts) do
     GenServer.call(http, {:req, method, url, body, headers, opts}, :infinity)
@@ -58,7 +59,12 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
   do
     with {:ok, body} <- Poison.decode(bin_body),
          {:ok, file} <- File.read(path) do
-      url = "https:" <> body["url"]
+      server = get_config_value(:string, "authorization", "server")
+
+      url = case server do
+        "https:" <> _ -> "https:" <> body["url"]
+        "http:" <> _ -> "http:" <> body["url"]
+      end
       form_data = body["form_data"]
       attachment_url = url <> form_data["key"]
 
