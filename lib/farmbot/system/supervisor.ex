@@ -29,7 +29,6 @@ defmodule Farmbot.System.Supervisor do
       supervisor(Farmbot.System.Updates, []),
       worker(Farmbot.System.GPIO, []),
       worker(Farmbot.EasterEggs, []),
-      Plug.Adapters.Cowboy.child_spec(scheme: :http, plug: Farmbot.Target.Bootstrap.Configurator.Router, options: [port: 4001])
     ]
 
     all_children = before_init_children ++ init_mods ++ after_init_children

@@ -9,7 +9,6 @@ defmodule Farmbot.Logger.Supervisor do
   def init([]) do
     children = [
       worker(Farmbot.Logger, []),
-      worker(Farmbot.Logger.Console, [])
     ]
     opts = [strategy: :one_for_one]
     supervise(children, opts)

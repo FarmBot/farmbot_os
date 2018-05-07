@@ -26,6 +26,7 @@ defmodule Farmbot do
 
   def init([]) do
     Logger.remove_backend :console
+    RingLogger.attach()
     children = [
       supervisor(Farmbot.Logger.Supervisor, []),
       supervisor(Farmbot.System.Supervisor, []),
