@@ -8,7 +8,7 @@ config :logger, [
   utc_log: true,
   # handle_otp_reports: true,
   # handle_sasl_reports: true,
-  backends: []
+  # backends: []
 ]
 
 config :farmbot, :logger, [

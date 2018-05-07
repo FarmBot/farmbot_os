@@ -8,6 +8,7 @@
 * Add mdns to development setups.
 * Remove use of `iw`.
 * Add checks for uart auto detector.
+* Syncing a sequence reindexes running regimens that require it.
 
 # 6.4.0
 * Update logs to no longer use the `meta` field.
