@@ -1,3 +1,5 @@
+# 6.4.2
+
 # 6.4.1
 * Beta updates should _always_ try to flash firmware.
 * Bump Nerves and friends to 1.0.0.
