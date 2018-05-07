@@ -6,13 +6,13 @@ env = Mix.env()
 
 config :logger, [
   utc_log: true,
-  # handle_otp_reports: true,
-  # handle_sasl_reports: true,
+  handle_otp_reports: true,
+  handle_sasl_reports: true,
   backends: []
 ]
 
 config :farmbot, :logger, [
-  # backends: [Elixir.Logger.Backends.Farmbot]
+  backends: [Elixir.Logger.Backends.Farmbot]
 ]
 
 # Stop lager redirecting :error_logger messages

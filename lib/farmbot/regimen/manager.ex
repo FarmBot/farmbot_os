@@ -66,9 +66,6 @@ defmodule Farmbot.Regimen.Manager do
       message: "Could not determine EPOCH because no timezone was supplied.",
       epoch: :error, regimen: regimen
 
-    # IO.inspect(epoch, label: "EPOCH")
-    # IO.inspect(time, label: "TIME")
-
     initial_state = %{
       next_execution: nil,
       regimen:        regimen,

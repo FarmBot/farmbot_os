@@ -87,6 +87,13 @@ defmodule Farmbot.FarmEvent.Manager do
     {:noreply, state}
   end
 
+  def handle_info({Registry, :update, Sequence, sequence}, state) do
+    for reg <- Farmbot.Asset.get_regimens_using_sequence(sequence.id) do
+      Farmbot.Regimen.Supervisor.reindex_all_managers(reg)
+    end
+    {:noreply, state}
+  end
+
   def handle_info({Registry, _, _, _}, state) do
     {:noreply, state}
   end

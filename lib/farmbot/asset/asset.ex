@@ -90,6 +90,13 @@ defmodule Farmbot.Asset do
     end
   end
 
+  @doc "Fetches all regimens that use a particular sequence."
+  def get_regimens_using_sequence(sequence_id) do
+    uses_seq = &match?(^sequence_id, Map.fetch!(&1, :sequence_id))
+    Farmbot.Repo.all(Regimen)
+    |> Enum.filter(&Enum.find(Map.fetch!(&1, :regimen_items), uses_seq))
+  end
+
   def get_farm_event_by_id(feid) do
     Farmbot.Repo.one(from fe in FarmEvent, where: fe.id == ^feid)
   end

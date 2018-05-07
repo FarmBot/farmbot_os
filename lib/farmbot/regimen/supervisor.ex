@@ -7,6 +7,7 @@ defmodule Farmbot.Regimen.Supervisor do
   alias Farmbot.Regimen.NameProvider
   use Farmbot.Logger
 
+  @doc "Debug function to see what regimens are running."
   def whats_going_on do
     IO.warn "THIS SHOULD NOT BE USED IN PRODUCTION"
     prs = ConfigStorage.all_persistent_regimens()
@@ -42,6 +43,7 @@ defmodule Farmbot.Regimen.Supervisor do
     end)
   end
 
+  @doc "Stops all running instances of a regimen."
   def stop_all_managers(regimen) do
     Logger.info 3, "Stopping all running regimens by id: #{inspect regimen.id}"
     prs = ConfigStorage.persistent_regimens(regimen)
@@ -59,9 +61,10 @@ defmodule Farmbot.Regimen.Supervisor do
     end
   end
 
+  @doc "Looks up all regimen instances that are running, and reindexes them."
   def reindex_all_managers(regimen, time \\ nil) do
-    Logger.debug 3, "Reindexing all running regimens by id: #{regimen.id}"
     prs = ConfigStorage.persistent_regimens(regimen)
+    Logger.debug 3, "Reindexing #{Enum.count(prs)} running regimens by id: #{regimen.id}"
     for %{farm_event_id: feid} <- prs do
       reg_with_fe_id = %{regimen | farm_event_id: feid}
       name = NameProvider.via(reg_with_fe_id)
