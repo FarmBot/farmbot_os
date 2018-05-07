@@ -11,10 +11,6 @@ config :logger, [
   # backends: []
 ]
 
-config :farmbot, :logger, [
-  # backends: [Elixir.Logger.Backends.Farmbot]
-]
-
 # Stop lager redirecting :error_logger messages
 config :lager, :error_logger_redirect, false
 
@@ -42,11 +38,6 @@ config :farmbot, :init, []
 # Transports.
 # See Farmbot.BotState.Transport for details.
 config :farmbot, :transport, []
-
-config :wobserver,
-  discovery: :none,
-  mode: :plug,
-  remote_url_prefix: "/wobserver"
 
 # Configure Farmbot Behaviours.
 config :farmbot, :behaviour,

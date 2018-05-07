@@ -1,14 +1,6 @@
 use Mix.Config
 
-config :logger,
-  utc_log: true,
-  backends: []
-
 config :farmbot, data_path: "/root"
-
-config :lager, [
-  log_root: '/root',
-]
 
 # Disable tzdata autoupdates because it tries to dl the update file
 # Before we have network or ntp.
@@ -28,9 +20,6 @@ config :farmbot, ecto_repos: [Farmbot.Repo, Farmbot.System.ConfigStorage]
 
 # Configure your our init system.
 config :farmbot, :init, [
-  # Load consolidated protocols
-  Farmbot.Target.Protocols,
-
   # Autodetects if a Arduino is plugged in and configures accordingly.
   Farmbot.Firmware.UartHandler.AutoDetector,
 
