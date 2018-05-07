@@ -1,26 +1,25 @@
 defmodule FarmbotTestSupport do
   @moduledoc "Test Helpers."
-  import Farmbot.DebugLog, only: [color: 1]
   require Logger
 
   defp error(err) do
     """
-    #{color(:RED)}
+    #{IO.ANSI.red()}
     Could not connect to Farmbot #{err} server. Tried using creds:
-      #{color(:CYAN)}email: #{color(:NC)}#{
+      #{IO.ANSI.cyan()}email: #{IO.ANSI.normal()}#{
       inspect(Application.get_env(:farmbot, :authorization)[:email] || "No email configured")
     }
-      #{color(:CYAN)}pass:  #{color(:NC)}#{
+      #{IO.ANSI.cyan()}pass:  #{IO.ANSI.normal()}#{
       inspect(
         Application.get_env(:farmbot, :authorization)[:password] || "No password configured"
       )
     }
-    #{color(:RED)}
+    #{IO.ANSI.red()}
     Please ensure the #{err} server is up and running, and configured. If you want to skip tests that require #{
       err
     } server, Please run:
 
-      #{color(:NC)}mix test --exclude farmbot_#{err}
+      #{IO.ANSI.normal()}mix test --exclude farmbot_#{err}
     """
   end
 
