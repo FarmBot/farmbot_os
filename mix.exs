@@ -119,7 +119,7 @@ defmodule Farmbot.Mixfile do
       {:amqp, "~> 1.0"},
 
       {:recon, "~> 2.3.2"},
-      {:lager_logger, "~> 1.0"}
+      {:ring_logger, "~> 0.4.1"}
     ]
   end
 
@@ -145,7 +145,7 @@ defmodule Farmbot.Mixfile do
         {:nerves_network, "~> 0.3.7-rc0", override: true},
         {:dhcp_server, "~> 0.3.0"},
         {:elixir_ale, "~> 1.0"},
-        {:mdns, "~> 1.0"}
+        {:mdns, "~> 1.0"},
       ]
   end
 
