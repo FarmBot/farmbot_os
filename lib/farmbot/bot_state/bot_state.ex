@@ -92,6 +92,9 @@ defmodule Farmbot.BotState do
 
   @doc "Set the sync status above ticker to a message."
   def set_sync_status(cmd) when cmd in @valid_sync_status do
+    # {:current_stacktrace, stacktrace} = Process.info(self(), :current_stacktrace)
+    # caller = Enum.at(stacktrace, 2)
+    # Logger.debug 3, "Sync status changing to `#{cmd}`: #{inspect caller}"
     GenStage.call(__MODULE__, {:set_sync_status, cmd})
   end
 
