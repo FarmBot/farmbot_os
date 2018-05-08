@@ -21,9 +21,7 @@ defmodule Farmbot.Regimen.Manager do
   defmodule Item do
     @moduledoc false
     @type t :: %__MODULE__{
-            name: binary,
             time_offset: integer,
-            sequence: CeleryScript.AST.t(),
             sequence_id: integer,
             ref: reference
           }
@@ -31,20 +29,12 @@ defmodule Farmbot.Regimen.Manager do
     defstruct [:time_offset, :sequence, :sequence_id, :name, :ref]
 
     def parse(%{time_offset: offset, sequence_id: sequence_id}) do
-      sequence = fetch_sequence(sequence_id)
-      {:ok, ast} = CeleryScript.AST.decode(sequence)
-      ast_with_label = %{ast | args: Map.put(ast.args, :label, sequence.name)}
-
-      %__MODULE__{
-        name: sequence.name,
+      %Item{
         time_offset: offset,
-        sequence: ast_with_label,
         sequence_id: sequence_id,
         ref: make_ref()
       }
     end
-
-    def fetch_sequence(id), do: Asset.get_sequence_by_id!(id)
   end
 
   def filter_items(regimen) do
@@ -147,12 +137,16 @@ defmodule Farmbot.Regimen.Manager do
 
   defp do_item(item, regimen, state) do
     if item do
+      sequence = Farmbot.Asset.get_sequence_by_id!(item.sequence_id)
+      {:ok, ast} = CeleryScript.AST.decode(sequence)
+      ast_with_label = %{ast | args: Map.put(ast.args, :label, sequence.name)}
+
       Logger.busy(
         2,
-        "[#{regimen.name} #{regimen.farm_event_id}] is going to execute: #{item.name}"
+        "[#{regimen.name} #{regimen.farm_event_id}] is going to execute: #{sequence.name}"
       )
 
-      CeleryScript.execute(item.sequence)
+      CeleryScript.execute(ast_with_label)
     end
 
     next_item = List.first(regimen.regimen_items)
