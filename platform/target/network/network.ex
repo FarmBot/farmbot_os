@@ -34,7 +34,7 @@ defmodule Farmbot.Target.Network do
     |> ScanResult.sort_results()
     |> ScanResult.decode_security()
     |> Enum.filter(&Map.get(&1, :ssid))
-    |> Enum.reject(&String.contains?(&1.ssid, "\\x00"))
+    |> Enum.reject(&String.contains?(to_string(&1.ssid), "\\x00"))
     |> Enum.uniq_by(fn(%{ssid: ssid}) -> ssid end)
   end
 
