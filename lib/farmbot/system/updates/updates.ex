@@ -253,7 +253,7 @@ defmodule Farmbot.System.Updates do
   end
 
   @doc "Apply an OS (fwup) firmware."
-  def apply_firmware(is_beta?, file_path, reboot) when is_binary(is_beta?) do
+  def apply_firmware(is_beta?, file_path, reboot) when is_boolean(is_beta?) do
     Logger.busy 1, "Applying #{@target} OS update"
     before_update()
     case @update_handler.apply_firmware(file_path) do
