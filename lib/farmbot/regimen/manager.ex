@@ -171,7 +171,7 @@ defmodule Farmbot.Regimen.Manager do
 
     timer =
       if offset_from_now < 0 and offset_from_now < -60_000 do
-        Process.send_after(pid, :skip, 1000)
+        Process.send_after(pid, :skip, 1)
       else
         {msg, real_offset} = ensure_not_negative(offset_from_now)
         Process.send_after(pid, msg, real_offset)
@@ -191,7 +191,7 @@ defmodule Farmbot.Regimen.Manager do
     %{state | timer: timer, regimen: regimen, next_execution: next_dt}
   end
 
-  defp ensure_not_negative(offset) when offset < -60_000, do: {:skip, 1000}
+  defp ensure_not_negative(offset) when offset < -60_000, do: {:skip, 1}
   defp ensure_not_negative(offset) when offset < 0, do: {:execute, 1000}
   defp ensure_not_negative(offset), do: {:execute, offset}
 
