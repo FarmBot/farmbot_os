@@ -83,6 +83,10 @@ defmodule Farmbot.System.ConfigStorage do
     ConfigStorage.all(SyncCmd)
   end
 
+  def destroy_sync_cmd(%SyncCmd{} = cmd) do
+    ConfigStorage.delete(cmd)
+  end
+
   @doc "Get all Persistent Regimens"
   def all_persistent_regimens do
     ConfigStorage.all(PersistentRegimen)

@@ -45,21 +45,21 @@ jobs:
       - <<: *install_elixir
       - restore_cache:
           keys:
-            - v5-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
+            - v6-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
       - <<: *install_arduino
       - <<: *install_hex_archives
       - restore_cache:
           keys:
-            - v5-dep-cache-{{ checksum "mix.lock.host" }}
+            - v6-dep-cache-{{ checksum "mix.lock.host" }}
       - <<: *fetch_and_compile_deps
       - save_cache:
-          key: v5-dep-cache-{{ checksum "mix.lock.host" }}
+          key: v6-dep-cache-{{ checksum "mix.lock.host" }}
           paths:
             - _build/host
             - _build/arduino
             - deps/host
       - save_cache:
-          key: v5-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
+          key: v6-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
           paths:
             - ~/arduino-1.8.5
       - run:
@@ -80,16 +80,16 @@ jobs:
       - <<: *install_elixir
       - restore_cache:
           keys:
-            - v5-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
+            - v6-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
       - <<: *install_arduino
       - restore_cache:
           keys:
-            - v5-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+            - v6-dependency-cache-{{ checksum "mix.lock.rpi3" }}
       - <<: *install_hex_archives
       - <<: *fetch_and_compile_deps
       - run: mix firmware
       - save_cache:
-          key: v5-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+          key: v6-dependency-cache-{{ checksum "mix.lock.rpi3" }}
           paths:
             - _build/rpi3
             - _build/host
@@ -113,7 +113,7 @@ jobs:
           name: Sign firmware
           command: fwup -S -s $NERVES_FW_PRIV_KEY -i _build/${MIX_TARGET}/${MIX_ENV}/nerves/images/farmbot.fw -o artifacts/farmbot-${MIX_TARGET}-$(cat VERSION)-beta.fw
       - save_cache:
-          key: v5-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          key: v6-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
           paths:
             - ./artifacts
 
@@ -130,17 +130,17 @@ jobs:
       - <<: *install_elixir
       - restore_cache:
           keys:
-            - v5-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
+            - v6-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
       - <<: *install_arduino
       - <<: *install_hex_archives
       - restore_cache:
           keys:
-            - v5-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+            - v6-dependency-cache-{{ checksum "mix.lock.rpi3" }}
       - run: MIX_ENV=prod MIX_TARGET=rpi3 mix deps.get
       - run: MIX_ENV=prod MIX_TARGET=rpi3 mix compile
       - run: MIX_ENV=prod MIX_TARGET=rpi3 mix firmware
       - save_cache:
-          key: v5-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+          key: v6-dependency-cache-{{ checksum "mix.lock.rpi3" }}
           paths:
             - _build/rpi3
             - _build/host
@@ -156,7 +156,7 @@ jobs:
           name: Sign firmware
           command: MIX_ENV=prod MIX_TARGET=rpi3 fwup -S -s $NERVES_FW_PRIV_KEY -i _build/${MIX_TARGET}/${MIX_ENV}/nerves/images/farmbot.fw -o artifacts/farmbot-${MIX_TARGET}-$(cat VERSION)-beta.fw
       - save_cache:
-          key: v5-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          key: v6-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
           paths:
             - ./artifacts
 
@@ -180,7 +180,7 @@ jobs:
       - run:
           command: grep -Pazo "(?s)(?<=# $(cat VERSION))[^#]+" CHANGELOG.md > RELEASE_NOTES
       - restore_cache:
-          key: v5-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          key: v6-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
           command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)-beta" $PWD/artifacts
       - run:
@@ -203,17 +203,17 @@ jobs:
       - <<: *install_elixir
       - restore_cache:
           keys:
-            - v5-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
+            - v6-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
       - <<: *install_arduino
       - <<: *install_hex_archives
       - restore_cache:
           keys:
-            - v5-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+            - v6-dependency-cache-{{ checksum "mix.lock.rpi3" }}
       - run: mix deps.get
       - run: mix compile
       - run: mix firmware
       - save_cache:
-          key: v5-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+          key: v6-dependency-cache-{{ checksum "mix.lock.rpi3" }}
           paths:
             - _build/rpi3
             - _build/host
@@ -232,7 +232,7 @@ jobs:
           name: Create img
           command: mix firmware.image artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).img
       - save_cache:
-          key: v5-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          key: v6-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
           paths:
             - ./artifacts
 
@@ -250,7 +250,7 @@ jobs:
       - run:
           command: grep -Pazo "(?s)(?<=# $(cat VERSION))[^#]+" CHANGELOG.md > RELEASE_NOTES
       - restore_cache:
-          key: v5-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          key: v6-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
           command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -draft -delete -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)" $PWD/artifacts
 

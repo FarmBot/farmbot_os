@@ -8,7 +8,7 @@ defmodule Farmbot.Repo do
   defdelegate sync(verbosity \\ 1), to: Farmbot.Repo.Worker
   defdelegate await_sync, to: Farmbot.Repo.Worker
 
-  import Farmbot.System.ConfigStorage, only: [destroy_all_sync_cmds: 0, all_sync_cmds: 0]
+  import Farmbot.System.ConfigStorage, only: [destroy_all_sync_cmds: 0, destroy_sync_cmd: 1, all_sync_cmds: 0]
   import Farmbot.BotState, only: [set_sync_status: 1]
 
   alias Farmbot.HTTP
@@ -129,6 +129,7 @@ defmodule Farmbot.Repo do
     else
       Logger.warn(3, "Unknown module: #{mod} #{inspect(cmd)}")
     end
+    destroy_sync_cmd(cmd)
   end
 
   # When `body` is nil, it means an object was deleted.
