@@ -41,7 +41,7 @@ install_slack_helpers:
       SLACK_TKN=$SLACK_TOKEN make
       echo 'export PATH=$PWD/bin:$PATH' >> $BASH_ENV
       cd ..
-    
+
 jobs:
   test:
     <<: *defaults
@@ -53,6 +53,7 @@ jobs:
       - checkout
       - run: git submodule update --init --recursive
       - <<: *install_elixir
+      - <<: *install_slack_helpers
       - restore_cache:
           keys:
             - v6-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
