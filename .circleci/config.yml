@@ -195,7 +195,7 @@ jobs:
           name: Update heroku env
           command: |
             export OTA_URL=$(wget https://api.github.com/repos/farmbot/farmbot_os/releases -qO- | ./jq-linux64 '.[0].url' | sed -e 's/^"//' -e 's/"$//')
-            export SLACK_MESSAGE="New Farmbot Beta \r\n\r\n $OTA_URL"
+            export SLACK_MESSAGE="New Farmbot Beta: $OTA_URL"
             heroku config:set BETA_OTA_URL=$OTA_URL --app=farmbot-production
             heroku config:set BETA_OTA_URL=$OTA_URL --app=farmbot-staging
             elixir slack_message.ex $SLACK_MESSAGE
