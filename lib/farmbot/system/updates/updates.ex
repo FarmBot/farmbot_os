@@ -80,7 +80,9 @@ defmodule Farmbot.System.Updates do
       dl_fun = Farmbot.BotState.download_progress_fun(fe_constant)
       # TODO(Connor): I'd like this to have a version number..
       dl_path = Path.join(@data_path, "ota.fw")
-      case http_adapter().download_file(dl_url, dl_path, dl_fun, "", []) do
+      results = http_adapter().download_file(dl_url, dl_path, dl_fun, "", [])
+      Farmbot.BotState.clear_progress_fun(fe_constant)
+      case results do
         {:ok, path} -> apply_firmware("beta" in (version.pre || []), path, true)
         {:error, reason} -> {:error, reason}
       end
