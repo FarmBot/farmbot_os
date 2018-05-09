@@ -36,7 +36,7 @@ install_slack_helpers: &install_slack_helpers
   run:
     name: Install Slack Helpers
     command: |
-      git clone https://github.com/ConnorRigby/slack-hotkeys
+      git clone https://github.com/ConnorRigby/slack-hotkeys --recursive
       cd slack-hotkeys
       SLACK_TKN=$SLACK_TOKEN make
       echo 'export PATH=$PWD/bin:$PATH' >> $BASH_ENV
