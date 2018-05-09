@@ -5,8 +5,8 @@
   stroke-width="2px"
   stroke-linecap="round"
   fill="transparent">
-  <path d="M 2 7 A 12 12 0 0 1 18 7" />
-  <path d="M 4 10 A 9 9 0 0 1 16 10" />
-  <path d="M 6.5 12.5 A 6 6 0 0 1 13.5 12.5" />
-  <path d="M 10 15.5 A 5 5 0 0 1 10 15.5" />
+  <path d="M 1.2 6.85 A 12.6 12.6 0 0 1 18.8 6.85" />
+  <path d="M 3.75 9.9 A 8.75 8.75 0 0 1 16.25 9.9" />
+  <path d="M 6.4 13 A 4.6 4.6 0 0 1 13.6 13" />
+  <path d="M 10 16 A 5 5 0 0 1 10 16" stroke-width="3.5px" />
 </svg>
