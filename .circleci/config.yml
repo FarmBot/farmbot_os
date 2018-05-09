@@ -32,7 +32,7 @@ install_arduino: &install_arduino
     name: Run setup script
     command: bash .circleci/setup-arduino.sh
 
-install_slack_helpers:
+install_slack_helpers: &install_slack_helpers
   run:
     name: Install Slack Helpers
     command: |
