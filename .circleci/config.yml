@@ -32,6 +32,16 @@ install_arduino: &install_arduino
     name: Run setup script
     command: bash .circleci/setup-arduino.sh
 
+install_slack_helpers:
+  run:
+    name: Install Slack Helpers
+    command: |
+      git clone https://github.com/ConnorRigby/slack-hotkeys
+      cd slack-hotkeys
+      SLACK_TKN=$SLACK_TOKEN make
+      echo 'export PATH=$PWD/bin:$PATH' >> $BASH_ENV
+      cd ..
+    
 jobs:
   test:
     <<: *defaults
