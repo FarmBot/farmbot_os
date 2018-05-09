@@ -36,11 +36,7 @@ install_slack_helpers: &install_slack_helpers
   run:
     name: Install Slack Helpers
     command: |
-      git clone https://github.com/ConnorRigby/slack-hotkeys --recursive
-      cd slack-hotkeys
-      SLACK_TKN=$SLACK_TOKEN make
-      echo 'export PATH=$PWD/bin:$PATH' >> $BASH_ENV
-      cd ..
+    wget https://gist.githubusercontent.com/ConnorRigby/03e722be4be70f8588f5ed74420e4eaa/raw/28a51d8f52ec7d569e8f7f20b83349816ddf63cf/slack_message.ex
 
 jobs:
   test:
@@ -54,6 +50,7 @@ jobs:
       - run: git submodule update --init --recursive
       - <<: *install_elixir
       - <<: *install_slack_helpers
+      - run: elixir slack_message.ex "Running tests!"
       - restore_cache:
           keys:
             - v6-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
