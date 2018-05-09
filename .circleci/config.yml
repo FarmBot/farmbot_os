@@ -49,8 +49,6 @@ jobs:
       - checkout
       - run: git submodule update --init --recursive
       - <<: *install_elixir
-      - <<: *install_slack_helpers
-      - run: elixir slack_message.ex "Running tests!"
       - restore_cache:
           keys:
             - v6-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
@@ -172,6 +170,7 @@ jobs:
     <<: *defaults
     steps:
       - checkout
+      - <<: *install_slack_helpers
       - run:
           name: Run setup script
           command: bash .circleci/setup-heroku.sh
@@ -195,8 +194,10 @@ jobs:
           name: Update heroku env
           command: |
             export OTA_URL=$(wget https://api.github.com/repos/farmbot/farmbot_os/releases -qO- | ./jq-linux64 '.[0].url' | sed -e 's/^"//' -e 's/"$//')
+            export SLACK_MESSAGE="New Farmbot Beta \r\n $(cat RELEASE_NOTES) \r\n\r\n $OTA_URL"
             heroku config:set BETA_OTA_URL=$OTA_URL --app=farmbot-production
             heroku config:set BETA_OTA_URL=$OTA_URL --app=farmbot-staging
+            elixir slack_message.ex $SLACK_MESSAGE
 
   firmware_prod:
     <<: *defaults
