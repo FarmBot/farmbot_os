@@ -32,6 +32,12 @@ install_arduino: &install_arduino
     name: Run setup script
     command: bash .circleci/setup-arduino.sh
 
+install_slack_helpers: &install_slack_helpers
+  run:
+    name: Install Slack Helpers
+    command: |
+      wget https://gist.githubusercontent.com/ConnorRigby/03e722be4be70f8588f5ed74420e4eaa/raw/28a51d8f52ec7d569e8f7f20b83349816ddf63cf/slack_message.ex
+
 jobs:
   test:
     <<: *defaults
@@ -164,6 +170,7 @@ jobs:
     <<: *defaults
     steps:
       - checkout
+      - <<: *install_slack_helpers
       - run:
           name: Run setup script
           command: bash .circleci/setup-heroku.sh
@@ -187,8 +194,10 @@ jobs:
           name: Update heroku env
           command: |
             export OTA_URL=$(wget https://api.github.com/repos/farmbot/farmbot_os/releases -qO- | ./jq-linux64 '.[0].url' | sed -e 's/^"//' -e 's/"$//')
+            export SLACK_MESSAGE="New Farmbot Beta \r\n $(cat RELEASE_NOTES) \r\n\r\n $OTA_URL"
             heroku config:set BETA_OTA_URL=$OTA_URL --app=farmbot-production
             heroku config:set BETA_OTA_URL=$OTA_URL --app=farmbot-staging
+            elixir slack_message.ex $SLACK_MESSAGE
 
   firmware_prod:
     <<: *defaults
