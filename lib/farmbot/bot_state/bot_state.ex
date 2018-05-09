@@ -61,6 +61,10 @@ defmodule Farmbot.BotState do
     GenServer.call(__MODULE__, {:set_job_progress, name, progress})
   end
 
+  def clear_progress_fun(name) do
+    GenServer.call(__MODULE__, {:clear_progress_fun, name})
+  end
+
   @doc "Get a current pin value."
   def get_pin_value(num) do
     GenStage.call(__MODULE__, {:get_pin_value, num})
@@ -230,6 +234,12 @@ defmodule Farmbot.BotState do
 
   def handle_call({:set_job_progress, name, progress}, _from, state) do
     jobs = Map.put(state.jobs, name, progress)
+    new_state = %{state | jobs: jobs}
+    {:reply, :ok, [new_state], new_state}
+  end
+
+  def handle_call({:clear_progress_fun, name}, _from, state) do
+    jobs = Map.delete(state.jobs, name)
     new_state = %{state | jobs: jobs}
     {:reply, :ok, [new_state], new_state}
   end
