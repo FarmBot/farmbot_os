@@ -44,6 +44,7 @@ a, input[type=submit] {
   background-color: #6a4;
   color: #f4f4f4;
   border-bottom: solid #371;
+  cursor: pointer;
 }
 
 a:hover, input[type=submit]:hover {
@@ -133,6 +134,7 @@ input[type=text]:focus {
 }
 
 input[type="radio"] {
+  display: none;
   border-radius: 0;
   -webkit-appearance: none;
   border: 1px solid black;
@@ -153,6 +155,52 @@ input[type="radio"]:checked:after {
   transform: rotate(45deg);
   top: 0;
   left: 0.6rem;
+}
+
+.connection-type-form {
+  text-align: center;
+}
+
+.connection-type {
+  display: inline-block;
+  padding: 1rem;
+  cursor: pointer;
+}
+
+.connection-type-box {
+  background: white;
+  border: 2px solid #434343;
+  border-radius: 0.5rem;
+  width: 10rem;
+  height: 10rem;
+  text-align: center;
+}
+
+.connection-type-box > img {
+  width: 8rem;
+  height: 8rem;
+}
+
+.connection-type-box > span {
+  display: inline-block;
+  padding-top: 0.5rem;
+}
+
+.connection-type-box:hover {
+  background: #ccc;
+}
+
+input:checked + .connection-type-box {
+  background: #ccc;
+  border-width: 3px;
+}
+
+input:checked + .connection-type-box > span {
+  color: black;
+}
+
+input:checked + .connection-type-box > img {
+  filter: brightness(0.25);
 }
 
 table {

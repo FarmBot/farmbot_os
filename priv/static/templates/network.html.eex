@@ -24,12 +24,18 @@
     <div class="widget">
       <div class="widget-header"> <h5>Network</h5> </div>
       <div class="widget-content">
-        <form action="<%= post_action %>" id="interfaceSelectForm" method="post">
+        <form class="connection-type-form" action="<%= post_action %>" id="interfaceSelectForm" method="post">
+          <p>How will you connect FarmBot to the Internet?</p>
           <input id="interface" name="interface" value="" hidden/>
           <% # Main form stuff %>
           <%= for ifname <- interfaces do %>
-            <label for='<%= ifname %>'> <%= if String.contains?(to_string(ifname), "w"), do: "WiFi", else: "Ethernet"%> (<%= ifname %>) </label>
-            <input type="radio" id='<%= ifname %>' name="interfaceRadio" value=""/>
+            <label class="connection-type" for='<%= ifname %>'>
+              <input type="radio" id='<%= ifname %>' name="interfaceRadio" value=""/>
+              <div class="connection-type-box">
+                <img src='<%= if String.contains?(to_string(ifname), "w"), do: "icon_wifi.svg", else: "icon_ethernet.svg"%>'/>
+                <span><%= if String.contains?(to_string(ifname), "w"), do: "WiFi", else: "Ethernet"%> (<%= ifname %>)</span>
+              </div>
+            </label>
           <% end %>
 
           <% #/Main form stuff %>
