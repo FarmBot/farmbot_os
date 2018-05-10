@@ -61,6 +61,10 @@ defmodule Farmbot.BotState do
     GenServer.call(__MODULE__, {:set_job_progress, name, progress})
   end
 
+  def clear_progress_fun(name) do
+    GenServer.call(__MODULE__, {:clear_progress_fun, name})
+  end
+
   @doc "Get a current pin value."
   def get_pin_value(num) do
     GenStage.call(__MODULE__, {:get_pin_value, num})
@@ -92,6 +96,9 @@ defmodule Farmbot.BotState do
 
   @doc "Set the sync status above ticker to a message."
   def set_sync_status(cmd) when cmd in @valid_sync_status do
+    # {:current_stacktrace, stacktrace} = Process.info(self(), :current_stacktrace)
+    # caller = Enum.at(stacktrace, 2)
+    # Logger.debug 3, "Sync status changing to `#{cmd}`: #{inspect caller}"
     GenStage.call(__MODULE__, {:set_sync_status, cmd})
   end
 
@@ -231,6 +238,12 @@ defmodule Farmbot.BotState do
     {:reply, :ok, [new_state], new_state}
   end
 
+  def handle_call({:clear_progress_fun, name}, _from, state) do
+    jobs = Map.delete(state.jobs, name)
+    new_state = %{state | jobs: jobs}
+    {:reply, :ok, [new_state], new_state}
+  end
+
   def handle_call({:register_farmware, fw}, _, state) do
     ser_fw_meta = %{
       min_os_version_major: fw.min_os_version_major,
@@ -262,6 +275,9 @@ defmodule Farmbot.BotState do
 
   defp do_handle([], state), do: state
 
+  defp do_handle(data, %{informational_settings: %{sync_status: :booting}} = state) do
+    do_handle(data, %{state | informational_settings: %{state.informational_settings | sync_status: :sync_now}})
+  end
   # User env is json and kind of a mess.
   defp do_handle([{:config, "settings", "user_env", val} | rest], state) do
     new_env = Map.merge(state.user_env, Poison.decode!(val))

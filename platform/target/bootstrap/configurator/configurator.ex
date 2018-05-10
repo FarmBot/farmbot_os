@@ -49,6 +49,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
       :ets.new(:session, [:named_table, :public, read_concurrency: true])
       Farmbot.System.GPIO.Leds.led_status_err()
       alias Farmbot.Target.Bootstrap.Configurator
+      ConfigStorage.destroy_all_network_configs()
       children = [
         {Plug.Adapters.Cowboy, scheme: :http, plug: Configurator.Router, options: [port: 80, acceptors: 1]},
         worker(Configurator.CaptivePortal, [])

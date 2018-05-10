@@ -38,6 +38,7 @@ config :farmbot, Farmbot.System.ConfigStorage,
   pool_size: 1
 
 config :farmbot, :farmware, first_part_farmware_manifest_url: nil
+config :farmbot, default_server: "https://staging.farm.bot"
 
 # Configure Farmbot Behaviours.
 # Default Authorization behaviour.

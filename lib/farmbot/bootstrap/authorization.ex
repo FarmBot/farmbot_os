@@ -44,7 +44,9 @@ defmodule Farmbot.Bootstrap.Authorization do
     end
   end
 
-  def authorize_with_secret(email, secret, server) do
+  def authorize_with_secret(email, secret, server, state \\ %{backoff: 5000, logged_once: false})
+
+  def authorize_with_secret(email, secret, server, state) do
     with {:ok, payload} <- build_payload(secret),
          {:ok, resp}    <- request_token(server, payload),
          {:ok, body}    <- Poison.decode(resp),
@@ -55,14 +57,21 @@ defmodule Farmbot.Bootstrap.Authorization do
       Map.fetch(map, "encoded")
     else
       :error -> {:error, "unknown error."}
-      {:error, :invalid, _} -> authorize(email, secret, server)
+      {:error, :invalid, _} -> authorize_with_secret(email, secret, server, state)
       # If we got maintance mode, a 5xx error etc,
       # just sleep for a few seconds
       # and try again.
+      # There is some state data here to allow for a backoff timer.
+      # This means in cases of the api serving 5xx's because it is overloaded,
+      # We are not going to be adding way more to the load.
+      # We also only log this as an error once, to ensure the database doesn't
+      # get full of logs.
       {:error, {:http_error, code}} ->
-        Logger.error 1, "Failed to authorize due to server error: #{code}"
-        Process.sleep(5000)
-        authorize(email, secret, server)
+        msg = "Failed to authorize due to server error: #{code}. Trying again in #{state.backoff / 1000} seconds."
+        if state.logged_once, do: Logger.debug(3, msg), else: Logger.error(1, msg)
+        Process.sleep(state.backoff)
+        new_state = %{state | backoff: state.backoff + 1000, logged_once: true}
+        authorize_with_secret(email, secret, server, new_state)
       {:error, %HTTPoison.Error{reason: reason}} -> {:error, reason}
       err -> err
     end

@@ -9,3 +9,5 @@
 !styles.css
 !favicon.ico
 *.fw
+!signal_table.js
+!*.svg

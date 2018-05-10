@@ -4,6 +4,7 @@ defmodule Farmbot.System.Updates do
   use Supervisor
   use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
+  import ConfigStorage, only: [get_config_value: 3, update_config_value: 4]
 
   @data_path Application.get_env(:farmbot, :data_path)
   @target Farmbot.Project.target()
@@ -16,7 +17,7 @@ defmodule Farmbot.System.Updates do
 
   @doc "Overwrite os update server field"
   def override_update_server(url) do
-    ConfigStorage.update_config_value(:string, "settings", "os_update_server_overwrite", url)
+    update_config_value(:string, "settings", "os_update_server_overwrite", url)
   end
 
   defmodule Release do
@@ -52,9 +53,9 @@ defmodule Farmbot.System.Updates do
 
     @doc "Get the current stuff. Fields can be replaced for testing."
     def get(replace \\ %{}) do
-      os_update_server_overwrite = ConfigStorage.get_config_value(:string, "settings", "os_update_server_overwrite")
-      beta_opt_in? = is_binary(os_update_server_overwrite) || ConfigStorage.get_config_value(:bool, "settings", "beta_opt_in")
-      token_bin = ConfigStorage.get_config_value(:string, "authorization", "token")
+      os_update_server_overwrite = get_config_value(:string, "settings", "os_update_server_overwrite")
+      beta_opt_in? = is_binary(os_update_server_overwrite) || get_config_value(:bool, "settings", "beta_opt_in")
+      token_bin = get_config_value(:string, "authorization", "token")
       token = if token_bin, do: Farmbot.Jwt.decode!(token_bin), else: nil
       opts = %{
         token: token,
@@ -70,7 +71,7 @@ defmodule Farmbot.System.Updates do
   end
 
   @doc "Downloads and applies an update file."
-  def download_and_apply_update(dl_url) do
+  def download_and_apply_update({%Version{} = version, dl_url}) do
     if @update_handler.requires_reboot?() do
       Logger.warn 1, "Can't apply update. An update is already staged. Please reboot and try again."
       {:error, :reboot_required}
@@ -79,8 +80,10 @@ defmodule Farmbot.System.Updates do
       dl_fun = Farmbot.BotState.download_progress_fun(fe_constant)
       # TODO(Connor): I'd like this to have a version number..
       dl_path = Path.join(@data_path, "ota.fw")
-      case http_adapter().download_file(dl_url, dl_path, dl_fun, "", []) do
-        {:ok, path} -> apply_firmware(path, true)
+      results = http_adapter().download_file(dl_url, dl_path, dl_fun, "", [])
+      Farmbot.BotState.clear_progress_fun(fe_constant)
+      case results do
+        {:ok, path} -> apply_firmware("beta" in (version.pre || []), path, true)
         {:error, reason} -> {:error, reason}
       end
     end
@@ -206,14 +209,15 @@ defmodule Farmbot.System.Updates do
   end
 
   @doc "Finds a asset url if it exists, nil if not."
+  @spec try_find_dl_url_in_asset([%Release.Asset{}], Version.t, %CurrentStuff{}) :: {Version.t, String.t}
   def try_find_dl_url_in_asset(assets, version, current_stuff)
 
-  def try_find_dl_url_in_asset([%Release.Asset{name: name, browser_download_url: bdurl} | rest], release_version, current_stuff) do
-    release_version = to_string(release_version)
+  def try_find_dl_url_in_asset([%Release.Asset{name: name, browser_download_url: bdurl} | rest], %Version{} = release_version_obj, current_stuff) do
+    release_version = to_string(release_version_obj)
     current_target = to_string(current_stuff.target)
     expected_name = "farmbot-#{current_target}-#{release_version}.fw"
     if match?(^expected_name, name) do
-      bdurl
+      {release_version_obj, bdurl}
     else
       Logger.debug 3, "Incorrect asset name for target: #{current_target}: #{name}"
       try_find_dl_url_in_asset(rest, release_version, current_stuff)
@@ -251,11 +255,12 @@ defmodule Farmbot.System.Updates do
   end
 
   @doc "Apply an OS (fwup) firmware."
-  def apply_firmware(file_path, reboot) do
+  def apply_firmware(is_beta?, file_path, reboot) when is_boolean(is_beta?) do
     Logger.busy 1, "Applying #{@target} OS update"
     before_update()
     case @update_handler.apply_firmware(file_path) do
       :ok ->
+        update_config_value(:bool, "settings", "currently_on_beta", is_beta?)
         Logger.success 1, "OS Firmware updated!"
         if reboot do
           Logger.warn 1, "Farmbot going down for OS update."

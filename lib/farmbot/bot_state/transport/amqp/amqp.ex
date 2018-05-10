@@ -224,8 +224,11 @@ defmodule Farmbot.BotState.Transport.AMQP do
       } = Poison.decode!(payload, as: %{"body" => struct(mod)})
 
       cmd = ConfigStorage.register_sync_cmd(String.to_integer(id), kind, body)
+      # This if statment should really not live here..
       if get_config_value(:bool, "settings", "auto_sync") do
         Farmbot.Repo.apply_sync_cmd(cmd)
+      else
+        Farmbot.BotState.set_sync_status(:sync_now)
       end
       {:ok, %Macro.Env{}} = AST.Node.RpcOk.execute(%{label: uuid}, [], struct(Macro.Env))
     else

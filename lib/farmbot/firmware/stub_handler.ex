@@ -240,24 +240,16 @@ defmodule Farmbot.Firmware.StubHandler do
     {:reply, build_reply(:ok), response, state}
   end
 
+  # Define functions based on production or not.
+  # This will make every command error with the message "Firmware Disconnected"
+  # on production, but work fine on development.
   case Mix.env() do
     :prod ->
-      defp build_resp(_) do
-        [:done]
-      end
-
-      defp build_reply(_) do
-        {:error, "Firmware Disconnected."}
-      end
+      defp build_resp(_), do: [:done]
+      defp build_reply(_), do: {:error, "Firmware Disconnected."}
 
     _env ->
-      defp build_resp(list) do
-        list
-      end
-
-      defp build_reply(reply) do
-        reply
-      end
+      defp build_resp(list), do: list
+      defp build_reply(reply), do: reply
   end
-
 end
