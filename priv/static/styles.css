@@ -21,6 +21,11 @@ h1, h2 {
   margin-top: 3rem;
 }
 
+.no-pad {
+  margin: 0;
+  padding: 0;
+}
+
 .gray {
   display: inline-block;
   cursor: pointer;
@@ -163,22 +168,23 @@ input[type="radio"]:checked:after {
 
 .connection-type {
   display: inline-block;
-  padding: 1rem;
+  padding: 0.5rem;
   cursor: pointer;
+  width: 9rem;
 }
 
 .connection-type-box {
   background: white;
   border: 2px solid #434343;
   border-radius: 0.5rem;
-  width: 10rem;
-  height: 10rem;
+  width: 9rem;
+  height: 9rem;
   text-align: center;
 }
 
 .connection-type-box > img {
-  width: 8rem;
-  height: 8rem;
+  width: 7rem;
+  height: 7rem;
 }
 
 .connection-type-box > span {
@@ -188,6 +194,50 @@ input[type="radio"]:checked:after {
 
 .connection-type-box:hover {
   background: #ccc;
+}
+
+.connection-type-info {
+  margin-top: 0.25rem;
+  float: left;
+  border: 1px solid #ccc;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  text-transform: none;
+  font-weight: bold;
+  font-style: italic;
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.connection-type-info-content {
+  padding-top: 0.25rem;
+  opacity: 0;
+  overflow: hidden;
+  text-transform: none;
+  font-weight: normal;
+  margin: 0;
+  font-size: 0.6rem;
+  transition: all 0.5s ease;
+}
+
+.connection-type-info-content p {
+  font-size: 0.75rem;
+}
+
+.connection-type-info-content h4 {
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.connection-type-info:hover {
+  border-color: #434343;
+  color: #434343;
+}
+
+.connection-type-info:hover + .connection-type-info-content {
+  transition: all 0.5s ease 0.2s;
+  opacity: 1;
 }
 
 input:checked + .connection-type-box {

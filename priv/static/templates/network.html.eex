@@ -29,26 +29,22 @@
           <input id="interface" name="interface" value="" hidden/>
           <% # Main form stuff %>
           <%= for {ifname, settings} <- interfaces do %>
-            <label class="connection-type" for='<%= ifname %>'>
+            <label class="connection-type no-pad" for='<%= ifname %>'>
               <input type="radio" id='<%= ifname %>' name="interfaceRadio" value=""/>
               <div class="connection-type-box">
                 <img src='<%= if String.contains?(to_string(ifname), "w"), do: "icon_wifi.svg", else: "icon_ethernet.svg"%>'/>
                 <span><%= if String.contains?(to_string(ifname), "w"), do: "WiFi", else: "Ethernet"%></span>
               </div>
 
+              <div class="connection-type-info">i</div>
+              <div class="connection-type-info-content">
+                <h4> <%= ifname %> mac address: </h4> <p><%= settings.mac_address %></p>
+              </div>
             </label>
-
-            <div class="advanced">
-              <h4> Interface name </h4>
-              <span> <%= ifname %> </span>
-
-              <h4> Interface mac address </h4>
-              <span> <%= settings.mac_address %> </span>
-            </div>
           <% end %>
 
           <% #/Main form stuff %>
-          <div class="button"> <input type=submit value="next" onclick="select_interface()"> </div>
+          <div class="button no-pad"> <input type=submit value="next" onclick="select_interface()"> </div>
         </form>
       </div>
     </div>
