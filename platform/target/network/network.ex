@@ -24,6 +24,10 @@ defmodule Farmbot.Target.Network do
         |> List.delete("usb0") # Delete unusable entries if they exist.
         |> List.delete("lo")
         |> List.delete("sit0")
+        |> Map.new(fn(interface) ->
+          {:ok, settings} = Nerves.NetworkInterface.status(interface)
+          {interface, settings}
+        end)
     end
   end
 

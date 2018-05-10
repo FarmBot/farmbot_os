@@ -28,14 +28,23 @@
           <p>How will you connect FarmBot to the Internet?</p>
           <input id="interface" name="interface" value="" hidden/>
           <% # Main form stuff %>
-          <%= for ifname <- interfaces do %>
+          <%= for {ifname, settings} <- interfaces do %>
             <label class="connection-type" for='<%= ifname %>'>
               <input type="radio" id='<%= ifname %>' name="interfaceRadio" value=""/>
               <div class="connection-type-box">
                 <img src='<%= if String.contains?(to_string(ifname), "w"), do: "icon_wifi.svg", else: "icon_ethernet.svg"%>'/>
-                <span><%= if String.contains?(to_string(ifname), "w"), do: "WiFi", else: "Ethernet"%> (<%= ifname %>)</span>
+                <span><%= if String.contains?(to_string(ifname), "w"), do: "WiFi", else: "Ethernet"%></span>
               </div>
+
             </label>
+
+            <div class="advanced">
+              <h4> Interface name </h4>
+              <span> <%= ifname %> </span>
+
+              <h4> Interface mac address </h4>
+              <span> <%= settings.mac_address %> </span>
+            </div>
           <% end %>
 
           <% #/Main form stuff %>
