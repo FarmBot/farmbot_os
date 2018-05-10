@@ -45,6 +45,7 @@ defmodule Farmbot.System.Updates do
       :token,
       :beta_opt_in,
       :os_update_server_overwrite,
+      :currently_on_beta
       :env,
       :commit,
       :target,
@@ -56,10 +57,12 @@ defmodule Farmbot.System.Updates do
       os_update_server_overwrite = get_config_value(:string, "settings", "os_update_server_overwrite")
       beta_opt_in? = is_binary(os_update_server_overwrite) || get_config_value(:bool, "settings", "beta_opt_in")
       token_bin = get_config_value(:string, "authorization", "token")
+      currently_on_beta? get_config_value(:bool, "settings", "currently_on_beta")
       token = if token_bin, do: Farmbot.Jwt.decode!(token_bin), else: nil
       opts = %{
         token: token,
         beta_opt_in: beta_opt_in?,
+        currently_on_beta: currently_on_beta?,
         os_update_server_overwrite: os_update_server_overwrite,
         env: env(),
         commit: commit(),
@@ -152,8 +155,9 @@ defmodule Farmbot.System.Updates do
   def check_updates(%Release{} = rel, %CurrentStuff{} = current_stuff) do
     %{
       beta_opt_in: beta_opt_in,
+      currently_on_beta: currently_on_beta,
       commit: current_commit,
-      version: current_version
+      version: current_version,
     } = current_stuff
 
     release_version = String.trim(rel.tag_name, "v") |> Version.parse!()
@@ -178,10 +182,18 @@ defmodule Farmbot.System.Updates do
         # beta release get marked as greater than non beta release, so we need
         # to manually check the versions by removing the pre part.
         case Version.compare(current_version, %{release_version | pre: []}) do
-          c when c in [:lt, :eq] ->
-            Logger.debug 3, "Current version (#{current_version}) is less than or equal to beta release (#{release_version})"
-            # TODO Check times here i guess?
+          :lt ->
+            Logger.debug 3, "Current version (#{current_version}) is less than beta release (#{release_version})"
             try_find_dl_url_in_asset(rel.assets, release_version, current_stuff)
+          :eq ->
+            if currently_on_beta do
+              Logger.debug 3, "Current version (#{current_version}) is equal to beta release (#{release_version})"
+              try_find_dl_url_in_asset(rel.assets, release_version, current_stuff)
+            else
+              Logger.debug 3, "Current version (#{current_version}) is equal to latest beta (#{release_version})"
+              nil
+            end
+
           :gt ->
             Logger.debug 3, "Current version (#{current_version}) is greater than latest beta release (#{release_version})"
             nil
