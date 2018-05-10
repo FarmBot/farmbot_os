@@ -22,7 +22,61 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   @ssids File.read!("data.txt") |> Base.decode64!() |> :erlang.binary_to_term |> ScanResult.decode() |> ScanResult.sort_results() |> ScanResult.decode_security()
 
   get "/network" do
-    interfaces = [:eth0, :wlan0]
+    interfaces = %{
+      "eth0" => %{
+        ifname: "eth0",
+        index: 3,
+        is_broadcast: true,
+        is_lower_up: true,
+        is_multicast: true,
+        is_running: true,
+        is_up: true,
+        mac_address: "b8:27:eb:08:36:cc",
+        mac_broadcast: "ff:ff:ff:ff:ff:ff",
+        mtu: 1500,
+        operstate: :up,
+        stats: %{
+          collisions: 0,
+          multicast: 0,
+          rx_bytes: 1612969,
+          rx_dropped: 0,
+          rx_errors: 0,
+          rx_packets: 3997,
+          tx_bytes: 955853,
+          tx_dropped: 0,
+          tx_errors: 0,
+          tx_packets: 3006
+        },
+        type: :ethernet
+      },
+      "wlan0" => %{
+        ifname: "wlan0",
+        index: 2,
+        is_broadcast: true,
+        is_lower_up: false,
+        is_multicast: true,
+        is_running: false,
+        is_up: false,
+        mac_address: "b8:27:eb:5d:63:99",
+        mac_broadcast: "ff:ff:ff:ff:ff:ff",
+        mtu: 1500,
+        operstate: :down,
+        stats: %{
+          collisions: 0,
+          multicast: 0,
+          rx_bytes: 0,
+          rx_dropped: 0,
+          rx_errors: 0,
+          rx_packets: 0,
+          tx_bytes: 0,
+          tx_dropped: 0,
+          tx_errors: 0,
+          tx_packets: 0
+        },
+        type: :ethernet
+      }
+    }
+
     render_page(conn, "network", [interfaces: interfaces, post_action: "select_interface"])
   end
 
