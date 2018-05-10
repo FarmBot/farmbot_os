@@ -45,7 +45,7 @@ defmodule Farmbot.System.Updates do
       :token,
       :beta_opt_in,
       :os_update_server_overwrite,
-      :currently_on_beta
+      :currently_on_beta,
       :env,
       :commit,
       :target,
@@ -57,7 +57,7 @@ defmodule Farmbot.System.Updates do
       os_update_server_overwrite = get_config_value(:string, "settings", "os_update_server_overwrite")
       beta_opt_in? = is_binary(os_update_server_overwrite) || get_config_value(:bool, "settings", "beta_opt_in")
       token_bin = get_config_value(:string, "authorization", "token")
-      currently_on_beta? get_config_value(:bool, "settings", "currently_on_beta")
+      currently_on_beta? = get_config_value(:bool, "settings", "currently_on_beta")
       token = if token_bin, do: Farmbot.Jwt.decode!(token_bin), else: nil
       opts = %{
         token: token,
