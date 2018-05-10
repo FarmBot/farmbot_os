@@ -84,6 +84,7 @@ defmodule Farmbot.System.UpdatesTest do
         beta_os_update_server: @beta_os_update_server,
       },
       beta_opt_in: false,
+      currently_on_beta: false,
       os_update_server_overwrite: nil,
       env: :prod,
       commit: @commit,
