@@ -52,8 +52,8 @@ config :farmbot, :farmware,
 config :farmbot,
   expected_fw_versions: ["6.4.0.F", "6.4.0.R", "6.4.0.G"],
   default_server: "https://my.farm.bot",
-  default_currently_on_beta: String.contains?(to_string(:os.cmd('git rev-parse --abbrev-ref HEAD')), "beta")
-  firmware_io_logs: false,
+  default_currently_on_beta: String.contains?(to_string(:os.cmd('git rev-parse --abbrev-ref HEAD')), "beta"),
+  firmware_io_logs: false
 
 global_overlay_dir = "rootfs_overlay"
 
