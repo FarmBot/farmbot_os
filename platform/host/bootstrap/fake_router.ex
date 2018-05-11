@@ -11,6 +11,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
   use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
+  import Phoenix.HTML
 
   defmodule MissingField do
     defexception [:message, :field, :redir]
@@ -175,8 +176,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   defp render_page(conn, page, info \\ []) do
     page
     |> template_file()
-    |> EEx.eval_file(info)
-    |> (fn contents -> send_resp(conn, 200, contents) end).()
+    |> EEx.eval_file(info, engine: Phoenix.HTML.Engine)
+    |> (fn {:safe, contents} -> send_resp(conn, 200, contents) end).()
   end
 
   defp template_file(file) do
@@ -187,6 +188,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   defp remove_empty_string(str), do: str
 
   defp advanced_network do
-    template_file("advanced_network") |> EEx.eval_file([])
+    template_file("advanced_network")
+    |> EEx.eval_file([])
+    |> raw()
   end
 end

@@ -89,6 +89,7 @@ defmodule Farmbot.Mixfile do
       {:nerves, "~> 1.0.0", runtime: false},
       {:elixir_make, "~> 0.4", runtime: false},
       {:gen_stage, "~> 0.12"},
+      {:phoenix_html, "~> 2.10.5"},
 
       {:poison, "~> 3.1.0"},
       {:httpoison, "~> 0.13.0"},
