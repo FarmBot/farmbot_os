@@ -14,4 +14,8 @@ defmodule Farmbot.Target.SystemTasks do
   def shutdown(_reason) do
     Nerves.Runtime.poweroff()
   end
+
+  def stop(_data) do
+    :ok
+  end
 end
