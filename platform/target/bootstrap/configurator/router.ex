@@ -10,6 +10,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   plug(:dispatch)
 
   use Farmbot.Logger
+  import Phoenix.HTML
   alias Farmbot.System.ConfigStorage
   import ConfigStorage, only: [
     get_config_value: 3,
@@ -222,8 +223,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   defp render_page(conn, page, info \\ []) do
     page
     |> template_file()
-    |> EEx.eval_file(info)
-    |> (fn contents -> send_resp(conn, 200, contents) end).()
+    |> EEx.eval_file(info, [engine: Phoenix.HTML.Engine])
+    |> (fn {:safe, contents} -> send_resp(conn, 200, contents) end).()
   rescue
     e -> send_resp(conn, 500, "Failed to render page: #{page} inspect: #{Exception.message(e)}")
   end
@@ -234,5 +235,10 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
   defp remove_empty_string(""), do: nil
   defp remove_empty_string(str), do: str
-  defp advanced_network, do: template_file("advanced_network") |> EEx.eval_file([])
+
+  defp advanced_network do
+    template_file("advanced_network")
+    |> EEx.eval_file([])
+    |> raw()
+  end
 end
