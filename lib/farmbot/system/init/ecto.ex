@@ -75,6 +75,7 @@ defmodule Farmbot.System.Init.Ecto do
     migrated = migrator.(repo, migrations_path, :up, opts)
     pid && repo.stop(pid)
     Mix.Ecto.restart_apps_if_migrated(apps, migrated)
+    Logger.remove_backend Logger.Backends.Console
     Process.sleep(500)
   end
 end

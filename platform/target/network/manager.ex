@@ -15,7 +15,6 @@ defmodule Farmbot.Target.Network.Manager do
   end
 
   def init({interface, opts} = args) do
-    Elixir.Logger.remove_backend Elixir.Logger.Backends.Console
     Logger.busy(3, "Waiting for interface #{interface} up.")
 
     unless interface in Nerves.NetworkInterface.interfaces() do
@@ -23,6 +22,8 @@ defmodule Farmbot.Target.Network.Manager do
       init(args)
     end
     Logger.success(3, "Interface #{interface} is up.")
+
+    Nerves.Network.teardown("wlan0")
 
     SystemRegistry.register()
     {:ok, _} = Elixir.Registry.register(Nerves.NetworkInterface, interface, [])
