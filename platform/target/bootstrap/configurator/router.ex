@@ -224,7 +224,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     page
     |> template_file()
     |> EEx.eval_file(info, [engine: Phoenix.HTML.Engine])
-    |> (fn contents -> send_resp(conn, 200, contents) end).()
+    |> (fn {:safe, contents} -> send_resp(conn, 200, contents) end).()
   rescue
     e -> send_resp(conn, 500, "Failed to render page: #{page} inspect: #{Exception.message(e)}")
   end
