@@ -10,16 +10,30 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
   alias Farmbot.Farmware
   alias Farmware.Installer
 
+  @data_path Application.get_env(:farmbot, :data_path) || raise "No configured data_path."
+
   @doc false
   def start_link(_) do
     sync_all()
     :ignore
   end
 
-  def bloop do
-    File.mkdir_p("/root/farmware_tools")
+  def install_farmware_tools do
+    try do
+      Logger.busy 3, "Downloading Farmware tools."
+      do_install_farmware_tools()
+      Logger.success 3, "Downloaded Farmware tools."
+    rescue
+      reason -> Logger.error 1, "Failed to install Farmware Tools: #{Exception.message(reason)}"
+    end
+  end
+
+  def do_install_farmware_tools do
     url = "https://github.com/FarmBot-Labs/farmware-tools/archive/master.zip"
-    zip_file = "/root/farmware-tools.zip"
+    farmware_tools_root_path = Path.join(@data_path, "farmware_tools")
+    zip_file = "/tmp/farmware-tools.zip"
+
+    File.mkdir_p!(farmware_tools_root_path)
     {:ok, ^zip_file} = Farmbot.HTTP.download_file(url, zip_file)
 
     fun = fn({:zip_file, dir, _info, _, _, _}) ->
@@ -27,13 +41,13 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
       List.first(rest) == "farmware_tools"
     end
 
-    case :zip.extract('/root/farmware-tools.zip', [:memory, file_filter: fun]) do
+    case :zip.extract('#{zip_file}', [:memory, file_filter: fun]) do
       {:ok, list} when is_list(list) ->
         Enum.each(list, fn({filename, data}) ->
-          out_file = Path.join(["/root", "farmware_tools", Path.basename(to_string(filename))])
+          out_file = Path.join([farmware_tools_root_path, Path.basename(to_string(filename))])
           File.write!(out_file, data)
         end)
-      {:error, reason} -> raise("Failed do download farmware tools: #{inspect reason}")
+      {:error, reason} -> raise(reason)
     end
   end
 
