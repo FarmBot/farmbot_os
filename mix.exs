@@ -142,7 +142,8 @@ defmodule Farmbot.Mixfile do
         {:nerves_runtime, "0.5.3"},
         {:nerves_firmware, "~> 0.4.0"},
         {:nerves_init_gadget, "~> 0.3.0", only: :dev},
-        {:nerves_network, "~> 0.3.7-rc0", override: true},
+        {:nerves_network, "~> 0.3"},
+        {:nerves_wpa_supplicant, github: "nerves-project/nerves_wpa_supplicant", override: true},
         {:dhcp_server, "~> 0.3.0"},
         {:elixir_ale, "~> 1.0"},
         {:mdns, "~> 1.0"},
@@ -150,7 +151,7 @@ defmodule Farmbot.Mixfile do
   end
 
   defp system("rpi3"),
-    do: [{:nerves_system_farmbot_rpi3, "1.0.0-rc.2-farmbot.1", runtime: false}]
+    do: [{:nerves_system_farmbot_rpi3, "1.0.1-farmbot.0", runtime: false}]
 
   defp system("rpi0"),
     do: [{:nerves_system_farmbot_rpi0, "1.0.0-rc.1-farmbot.0", runtime: false}]
