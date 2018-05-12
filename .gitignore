@@ -14,6 +14,7 @@ ttb_last_config
 /nerves/*
 !/nerves/host
 !/nerves/target
+_nerves_tmp
 
 # Secret config
 auth_secret_test.exs

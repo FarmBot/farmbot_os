@@ -8,24 +8,20 @@ config :logger, [
   utc_log: true,
   # handle_otp_reports: true,
   # handle_sasl_reports: true,
-  # backends: []
-]
-
-config :farmbot, :logger, [
-  # backends: [Elixir.Logger.Backends.Farmbot]
+  backends: [RingLogger]
 ]
 
 # Stop lager redirecting :error_logger messages
 config :lager, :error_logger_redirect, false
 
 # Stop lager removing Logger's :error_logger handler
-config :lager, :error_logger_whitelist, [Logger.ErrorHandler]
+config :lager, :error_logger_whitelist, []
 
 # Stop lager writing a crash log
 config :lager, :crash_log, false
 
 # Use LagerLogger as lager's only handler.
-config :lager, :handlers, [{LagerLogger, [level: :debug]}]
+config :lager, :handlers, []
 
 config :elixir, ansi_enabled: true
 config :iex, :colors, enabled: true
@@ -43,11 +39,6 @@ config :farmbot, :init, []
 # See Farmbot.BotState.Transport for details.
 config :farmbot, :transport, []
 
-config :wobserver,
-  discovery: :none,
-  mode: :plug,
-  remote_url_prefix: "/wobserver"
-
 # Configure Farmbot Behaviours.
 config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
@@ -61,7 +52,8 @@ config :farmbot, :farmware,
 config :farmbot,
   expected_fw_versions: ["6.4.0.F", "6.4.0.R", "6.4.0.G"],
   default_server: "https://my.farm.bot",
-  default_currently_on_beta: String.contains?(to_string(:os.cmd('git rev-parse --abbrev-ref HEAD')), "beta")
+  default_currently_on_beta: String.contains?(to_string(:os.cmd('git rev-parse --abbrev-ref HEAD')), "beta"),
+  firmware_io_logs: false
 
 global_overlay_dir = "rootfs_overlay"
 

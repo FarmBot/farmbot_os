@@ -32,8 +32,8 @@ defmodule Farmbot.Target.Network do
   end
 
   @doc "Scan on an interface. "
-  def do_scan(iface) do
-    Nerves.Network.scan(iface)
+  def scan(iface) do
+    do_scan(iface)
     |> ScanResult.decode()
     |> ScanResult.sort_results()
     |> ScanResult.decode_security()
@@ -41,6 +41,38 @@ defmodule Farmbot.Target.Network do
     |> Enum.map(&Map.update(&1, :ssid, nil, fn(ssid) -> to_string(ssid) end))
     |> Enum.reject(&String.contains?(&1.ssid, "\\x00"))
     |> Enum.uniq_by(fn(%{ssid: ssid}) -> ssid end)
+
+  end
+
+  # While scanning in AP mode, The CTRL-EVENT-SCAN-COMPLETE event never happens.
+  defp wait_for_scan_results(pid, timer, count, loops_without_change, acc)
+  defp wait_for_scan_results(_pid, _timer, _count, 10, acc), do: acc
+  defp wait_for_scan_results(pid, timer, count, loops_without_change, acc) do
+    res = Nerves.WpaSupplicant.request(pid, {:BSS, count})
+    new_acc = if res, do: [res | acc], else: acc
+    new_count = if res, do: count + 1, else: count
+    new_loops_without_change = if res, do: 0, else: loops_without_change + 1
+
+    receive do
+      :complete -> acc
+      {Nerves.WpaSupplicant, {:"CTRL-EVENT-BSS-REMOVED", _, _}, _} ->
+        Process.cancel_timer(timer)
+        wait_for_scan_results(pid, Process.send_after(self(), :complete, 5000), 0, 0, [])
+      _ -> wait_for_scan_results(pid, timer, new_count, new_loops_without_change, new_acc)
+    after 10 -> wait_for_scan_results(pid, timer, new_count, new_loops_without_change, new_acc)
+    end
+  end
+
+  def do_scan(iface) do
+    pid = :"Nerves.WpaSupplicant.#{iface}"
+    Elixir.Registry.register(Nerves.WpaSupplicant, iface, [])
+    case Nerves.WpaSupplicant.request(pid, :SCAN) do
+      r when r in ["FAIL-BUSY", :ok] ->
+        results = wait_for_scan_results(pid, Process.send_after(self(), :complete, 5000), 0, 0, [])
+        Elixir.Registry.unregister(Nerves.WpaSupplicant, iface)
+        results
+      resp -> raise("Unexpected scan result: #{inspect resp}")
+    end
   end
 
   @doc "Tests if we can make dns queries."

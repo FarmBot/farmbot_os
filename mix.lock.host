@@ -51,6 +51,7 @@
   "ranch": {:hex, :ranch, "1.4.0", "10272f95da79340fa7e8774ba7930b901713d272905d0012b06ca6d994f8826b", [:rebar3], [], "hexpm"},
   "ranch_proxy_protocol": {:hex, :ranch_proxy_protocol, "1.4.4", "8853b11757a9798e86c7d6d0ff783a8e2e87f77052aad7f1c91108f254ba4a9c", [:rebar3], [{:ranch, "1.4.0", [hex: :ranch, repo: "hexpm", optional: false]}], "hexpm"},
   "recon": {:hex, :recon, "2.3.2", "4444c879be323b1b133eec5241cb84bd3821ea194c740d75617e106be4744318", [:rebar3], [], "hexpm"},
+  "ring_logger": {:hex, :ring_logger, "0.4.1", "db972365bfda705288d7629e80af5704a1aafdbe9da842712c3cdd587639c72e", [:mix], [], "hexpm"},
   "rsa": {:hex, :rsa, "0.0.1", "a63069f88ce342ffdf8448b7cdef4b39ba7dee3c1510644a39385c7e63ba246f", [:mix], [], "hexpm"},
   "sbroker": {:hex, :sbroker, "1.0.0", "28ff1b5e58887c5098539f236307b36fe1d3edaa2acff9d6a3d17c2dcafebbd0", [:rebar3], [], "hexpm"},
   "socket": {:hex, :socket, "0.3.13", "98a2ab20ce17f95fb512c5cadddba32b57273e0d2dba2d2e5f976c5969d0c632", [:mix], [], "hexpm"},

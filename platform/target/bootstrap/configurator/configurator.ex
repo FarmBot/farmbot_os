@@ -7,6 +7,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
   @behaviour Farmbot.System.Init
   use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
+  alias Farmbot.Target.Bootstrap.Configurator
 
   @doc """
   This particular init module should block until all settings have been validated.
@@ -48,11 +49,10 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
       import Supervisor.Spec
       :ets.new(:session, [:named_table, :public, read_concurrency: true])
       Farmbot.System.GPIO.Leds.led_status_err()
-      alias Farmbot.Target.Bootstrap.Configurator
       ConfigStorage.destroy_all_network_configs()
       children = [
-        {Plug.Adapters.Cowboy, scheme: :http, plug: Configurator.Router, options: [port: 80, acceptors: 1]},
-        worker(Configurator.CaptivePortal, [])
+        worker(Configurator.CaptivePortal, []),
+        {Plug.Adapters.Cowboy, scheme: :http, plug: Configurator.Router, options: [port: 80, acceptors: 1]}
       ]
 
       opts = [strategy: :one_for_one]

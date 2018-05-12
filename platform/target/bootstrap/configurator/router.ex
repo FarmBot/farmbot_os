@@ -70,7 +70,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   get "/config_wireless" do
     try do
       ifname = conn.params["ifname"] || raise(MissingField, field: "ifname", message: "ifname not provided", redir: "/network")
-      opts = [ifname: ifname, ssids: Farmbot.Target.Network.do_scan(ifname), post_action: "config_wireless_step_1"]
+      opts = [ifname: ifname, ssids: Farmbot.Target.Network.scan(ifname), post_action: "config_wireless_step_1"]
       render_page(conn, "/config_wireless_step_1", opts)
     rescue
       e in MissingField -> redir(conn, e.redir)

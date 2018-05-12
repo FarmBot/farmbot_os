@@ -97,10 +97,6 @@ defmodule Farmbot.Logger do
   end
 
   def init([]) do
-    backends = Application.get_env(:farmbot, :logger)[:backends] || []
-    for b <- backends do
-      Elixir.Logger.add_backend(b, [])
-    end
     espeak = System.find_executable("espeak")
     {:producer, %{espeak: espeak}, dispatcher: GenStage.BroadcastDispatcher}
   end
@@ -131,18 +127,14 @@ defmodule Farmbot.Logger do
       file: env.file,
       line: env.line,
       module: env.module])
+    logger_meta = [function: fun, file: env.file, line: env.line, module: env.module, time: time]
+    logger_level = if level in [:info, :debug, :warn, :error], do: level, else: :info
+    Elixir.Logger.bare_log(logger_level, log, logger_meta)
     {:noreply, [log], state}
   end
 
   def handle_cast({:dispatch_log, %Farmbot.Log{} = log}, state) do
     {:noreply, [log], state}
-  end
-
-  def terminate(_, _state) do
-    backends = Application.get_env(:farmbot, :logger)[:backends] || []
-    for b <- backends do
-      Elixir.Logger.remove_backend(b, [])
-    end
   end
 
   defp maybe_espeak(_message, _channels, nil), do: :ok

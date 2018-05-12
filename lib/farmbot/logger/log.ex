@@ -15,23 +15,23 @@ defmodule Farmbot.Log do
     version: @version
   ]
 
-  defimpl Inspect, for: __MODULE__ do
-    def inspect(log, _) do
-      color = if log.meta[:color] do
-        Farmbot.DebugLog.color(log.meta[:color])
+  defimpl String.Chars, for: Farmbot.Log do
+    def to_string(log) do
+      if log.meta[:color] && function_exported?(IO.ANSI, log.meta[:color], 0) do
+        "#{apply(IO.ANSI, log.meta[:color], [])}#{log.message}#{color(:normal)}\n"
       else
-        color(log.level)
+        "#{color(log.level)}#{log.message}#{color(:normal)}\n"
       end
-      "#{color}#{log.message}#{Farmbot.DebugLog.color(:NC)}\n"
     end
 
-    defp color(:debug),   do: Farmbot.DebugLog.color(:LIGHT_BLUE)
-    defp color(:info),    do: Farmbot.DebugLog.color(:CYAN)
-    defp color(:busy),    do: Farmbot.DebugLog.color(:BLUE)
-    defp color(:success), do: Farmbot.DebugLog.color(:GREEN)
-    defp color(:warn),    do: Farmbot.DebugLog.color(:YELLOW)
-    defp color(:error),   do: Farmbot.DebugLog.color(:RED)
-    defp color(_),        do: Farmbot.DebugLog.color(:NC)
+    defp color(:debug),   do: IO.ANSI.light_blue()
+    defp color(:info),    do: IO.ANSI.cyan()
+    defp color(:busy),    do: IO.ANSI.blue()
+    defp color(:success), do: IO.ANSI.green()
+    defp color(:warn),    do: IO.ANSI.yellow()
+    defp color(:error),   do: IO.ANSI.red()
+    defp color(:normal),  do: IO.ANSI.normal()
+    defp color(_),        do: IO.ANSI.normal()
   end
 
 end
