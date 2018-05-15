@@ -119,7 +119,8 @@ defmodule Farmbot.Mixfile do
       {:amqp, "~> 1.0"},
 
       {:recon, "~> 2.3.2"},
-      {:ring_logger, "~> 0.4.1"}
+      {:ring_logger, "~> 0.4.1"},
+      {:bbmustache, "~> 1.5"}
     ]
   end
 
