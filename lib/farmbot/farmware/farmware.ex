@@ -121,6 +121,7 @@ defmodule Farmbot.Farmware do
     :executable,
     :args,
     :config,
+    :farmware_tools_version,
     :meta,
   ]
 
@@ -150,6 +151,7 @@ defmodule Farmbot.Farmware do
          {:ok, exe}     <- extract_exe(map),
          {:ok, args}    <- extract_args(map),
          {:ok, config}  <- extract_config(map),
+         {:ok, farmware_tools_version} <- extrace_farmware_tools_version(map),
          {:ok, meta}    <- extract_meta(map)
     do
       res = struct(__MODULE__, [name: name,
@@ -160,6 +162,7 @@ defmodule Farmbot.Farmware do
                                 executable: exe,
                                 args: args,
                                 config: config,
+                                farmware_tools_version: farmware_tools_version,
                                 meta: meta])
       {:ok, res}
     else
@@ -212,6 +215,14 @@ defmodule Farmbot.Farmware do
 
   defp extract_config(map) do
     {:ok, Map.get(map, "config", [])}
+  end
+
+  defp extrace_farmware_tools_version(%{"farmware_tools_version" => version}) do
+    {:ok, version}
+  end
+
+  defp extrace_farmware_tools_version(_) do
+    {:ok, "11015343"}
   end
 
   defp extract_meta(map) do
