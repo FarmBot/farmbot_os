@@ -53,7 +53,8 @@ config :farmbot,
   expected_fw_versions: ["6.4.0.F", "6.4.0.R", "6.4.0.G"],
   default_server: "https://my.farm.bot",
   default_currently_on_beta: String.contains?(to_string(:os.cmd('git rev-parse --abbrev-ref HEAD')), "beta"),
-  firmware_io_logs: false
+  firmware_io_logs: false,
+  default_farmware_tools_release_url: "https://api.github.com/repos/FarmBot-Labs/farmware-tools/releases/11015343"
 
 global_overlay_dir = "rootfs_overlay"
 
