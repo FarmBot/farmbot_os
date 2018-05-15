@@ -37,7 +37,7 @@ config :farmbot, Farmbot.System.ConfigStorage,
   database: "tmp/#{Farmbot.System.ConfigStorage}_dev.sqlite3",
   pool_size: 1
 
-# config :farmbot, :farmware, first_part_farmware_manifest_url: nil
+config :farmbot, :farmware, first_part_farmware_manifest_url: nil
 config :farmbot, default_server: "https://staging.farm.bot"
 
 # Configure Farmbot Behaviours.
