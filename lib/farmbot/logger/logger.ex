@@ -6,7 +6,7 @@ defmodule Farmbot.Logger do
 
   def format_logs do
     RingLogger.get()
-    Enum.map(fn({level, {_logger, message, timestamp_tup, _meta}}) ->
+    |> Enum.map(fn({level, {_logger, message, timestamp_tup, _meta}}) ->
       # {{year, month, day}, {hour, minute, second, _}} = timestamp_tup
       timestamp  = Timex.to_datetime(timestamp_tup) |> DateTime.to_iso8601()
       reg = ~r/\x1B\[[0-?]*[ -\/]*[@-~]/
