@@ -6,7 +6,7 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
   use Task, restart: :transient
   use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
-  import ConfigStorage, only: [get_config_value: 3]
+  import ConfigStorage, only: [get_config_value: 3, update_config_value: 4]
   alias Farmbot.Farmware
   alias Farmware.Installer
 
@@ -74,6 +74,9 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
         end)
       {:error, reason} -> raise(reason)
     end
+
+    update_config_value(:string, "settings", "farmware_tools_install_commit", commit)
+    :ok
   end
 
   def sync_all do
