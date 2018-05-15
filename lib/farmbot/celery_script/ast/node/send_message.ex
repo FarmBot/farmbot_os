@@ -58,7 +58,6 @@ defmodule Farmbot.CeleryScript.AST.Node.SendMessage do
     |> Map.merge(vars)
     |> Map.merge(pins)
     |> Map.merge(location)
-    |> IO.inspect(label: "ENV")
   end
 
   defp do_reduce_channels([%{args: %{channel_name: channel}} | rest], env, acc) do
