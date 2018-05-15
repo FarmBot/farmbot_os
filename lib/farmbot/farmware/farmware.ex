@@ -222,7 +222,7 @@ defmodule Farmbot.Farmware do
   end
 
   defp extrace_farmware_tools_version(_) do
-    {:ok, "11015343"}
+    {:ok, "v0.1.0"}
   end
 
   defp extract_meta(map) do
