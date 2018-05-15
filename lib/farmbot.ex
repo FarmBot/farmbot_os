@@ -38,14 +38,12 @@ defmodule Farmbot do
   end
 
   def prep_stop(_state) do
-    logs = RingLogger.get()
-    formatted = Enum.map(logs, fn(level, {_logger, message, timestamp_tup, _meta}) ->
-      # {{year, month, day}, {hour, minute, second, _}} = timestamp_tup
-      timestamp  = Timex.to_datetime(timestamp_tup) |> DateTime.to_iso8601()
-      "[#{level} #{timestamp}] - #{message}"
-    end)
+    formatted = Farmbot.Logger.format_logs()
+
+    formatted
     |> Enum.join("\n")
     |> Farmbot.System.stop()
+
     formatted
   end
 
