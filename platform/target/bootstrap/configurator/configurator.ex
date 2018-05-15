@@ -44,19 +44,11 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
 
   def init(_) do
     first_boot? = ConfigStorage.get_config_value(:bool, "settings", "first_boot")
-    if first_boot? do
-      Logger.info(3, "Building new configuration.")
-      import Supervisor.Spec
-      :ets.new(:session, [:named_table, :public, read_concurrency: true])
-      Farmbot.System.GPIO.Leds.led_status_err()
-      ConfigStorage.destroy_all_network_configs()
-      children = [
-        worker(Configurator.CaptivePortal, []),
-        {Plug.Adapters.Cowboy, scheme: :http, plug: Configurator.Router, options: [port: 80, acceptors: 1]}
-      ]
+    autoconfigure? = Nerves.Runtime.KV.get("farmbot_auto_configure")
 
-      opts = [strategy: :one_for_one]
-      Supervisor.init(children, opts)
+
+    if first_boot? do
+      maybe_configurate(autoconfigure?)
     else
       :ignore
     end
@@ -65,5 +57,47 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
   def stop(supervisor, status) do
     Supervisor.stop(supervisor, :normal)
     status
+  end
+
+  defp maybe_configurate(nil) do
+    Logger.info(3, "Building new configuration.")
+    import Supervisor.Spec
+    :ets.new(:session, [:named_table, :public, read_concurrency: true])
+    Farmbot.System.GPIO.Leds.led_status_err()
+    ConfigStorage.destroy_all_network_configs()
+    children = [
+      worker(Configurator.CaptivePortal, []),
+      {Plug.Adapters.Cowboy, scheme: :http, plug: Configurator.Router, options: [port: 80, acceptors: 1]}
+    ]
+
+    opts = [strategy: :one_for_one]
+    Supervisor.init(children, opts)
+  end
+
+  defp maybe_configurate(_) do
+    ifname   = Nerves.Runtime.KV.get("farmbot_network_iface")
+    ssid     = Nerves.Runtime.KV.get("farmbot_network_ssid")
+    psk      = Nerves.Runtime.KV.get("farmbot_network_psk")
+    email    = Nerves.Runtime.KV.get("farmbot_email")
+    server   = Nerves.Runtime.KV.get("farmbot_server")
+    password = Nerves.Runtime.KV.get("farmbot_password")
+    ConfigStorage.input_network_config!(%{
+      name: ifname,
+      ssid: ssid,
+      security: "WPA-PSK", psk: psk,
+      type: if(ssid, do: "wireless", else: "wired"),
+      domain: nil,
+      name_servers: nil,
+      ipv4_method: "dhcp",
+      ipv4_address: nil,
+      ipv4_gateway: nil,
+      ipv4_subnet_mask: nil
+    })
+
+    ConfigStorage.update_config_value(:string, "authorization", "email", email)
+    ConfigStorage.update_config_value(:string, "authorization", "password", password)
+    ConfigStorage.update_config_value(:string, "authorization", "server", server)
+    ConfigStorage.update_config_value(:string, "authorization", "token", nil)
+    :ignore
   end
 end

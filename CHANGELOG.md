@@ -2,6 +2,7 @@
 * Remove `hostapd`
 * Remove a lot of custom Logger code.
 * Try to write the last 100 logs to a flash drive if one exists.
+* Fix bugs in `send_message` block templating.
 
 # 6.4.1
 * Beta updates should _always_ try to flash firmware.
