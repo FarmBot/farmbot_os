@@ -29,6 +29,9 @@ defmodule Farmbot.Farmware.Runtime do
         env: env
       ]
 
+      # IO.puts "executing: #{exec} #{to_string(farmware.args)}"
+      # IO.puts "env: #{inspect env}"
+
       port = Port.open({:spawn_executable, exec}, opts)
 
       handle_port(
@@ -75,9 +78,10 @@ defmodule Farmbot.Farmware.Runtime do
     end
   end
 
-  def build_env(%Farmware{config: config, name: fw_name} = _farmware, env) do
+  def build_env(%Farmware{config: config, name: fw_name} = farmware, env) do
     token = Farmbot.System.ConfigStorage.get_config_value(:string, "authorization", "token")
     images_dir = "/tmp/images"
+    python_path = Farmbot.Farmware.Installer.install_path(farmware) <> ":"
 
     config
     |> Enum.filter(&match?(%{"label" => _, "name" => _, "value" => _}, &1))
@@ -87,6 +91,7 @@ defmodule Farmbot.Farmware.Runtime do
     |> Map.put("IMAGES_DIR", images_dir)
     |> Map.put("FARMWARE_URL", "http://localhost:27347/")
     |> Map.put("FARMBOT_OS_VERSION", @fbos_version)
+    |> Map.put("PYTHONPATH", python_path)
     |> Map.merge(Farmbot.BotState.get_user_env())
     |> Map.merge(Map.new(env))
     |> Enum.map(fn {key, val} -> {to_erl_safe(key), to_erl_safe(val)} end)
