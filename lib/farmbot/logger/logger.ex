@@ -4,6 +4,17 @@ defmodule Farmbot.Logger do
   """
   use GenStage
 
+  def format_logs do
+    RingLogger.get()
+    Enum.map(fn({level, {_logger, message, timestamp_tup, _meta}}) ->
+      # {{year, month, day}, {hour, minute, second, _}} = timestamp_tup
+      timestamp  = Timex.to_datetime(timestamp_tup) |> DateTime.to_iso8601()
+      reg = ~r/\x1B\[[0-?]*[ -\/]*[@-~]/
+
+      "[#{level} #{timestamp}] - #{Regex.replace(reg, to_string(message), "")}"
+    end)
+  end
+
   @doc "Send a debug message to log endpoints"
   defmacro debug(verbosity, message, meta \\ []) do
     quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do

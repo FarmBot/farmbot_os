@@ -24,7 +24,10 @@ defmodule Farmbot.Target.SystemTasks do
       File.mkdir_p!(@mount_point)
       case System.cmd("mount", [@block_device, @mount_point]) do
         {_, 0} ->
-          File.write(Path.join([@mount_point, "logs", DateTime.utc_now() |> to_string(), "logs.txt"]), data, [:sync])
+          dir = Path.join([@mount_point, "logs", DateTime.utc_now() |> DateTime.to_unix() |> to_string])
+          path = Path.join([dir, "logs.txt"])
+          File.mkdir_p!(dir)
+          File.write!(path, data, [:sync]) |> IO.inspect(label: "WRITE #{path}")
           System.cmd("umount", [@mount_point])
           :ok
         {reason, code} ->
