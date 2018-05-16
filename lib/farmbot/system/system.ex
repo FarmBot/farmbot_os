@@ -220,49 +220,49 @@ defmodule Farmbot.System do
   end
 
   def format_stacktrace([{module, function, args, info} | rest], acc) when is_list(args) do
-    entry = {module, function, sanatize_args(args), info}
+    entry = {module, function, sanitize_args(args), info}
     format_stacktrace(rest, [entry | acc])
   end
 
   def format_stacktrace([], acc), do: Enum.reverse(acc)
 
-  def sanatize_args(args, acc \\ [])
+  def sanitize_args(args, acc \\ [])
 
-  def sanatize_args([arg | rest], acc) do
-    sanatize_args(rest, [sanatize_arg(arg) | acc])
+  def sanitize_args([arg | rest], acc) do
+    sanitize_args(rest, [sanitize_arg(arg) | acc])
   end
 
-  def sanatize_args([], acc), do: Enum.reverse(acc)
+  def sanitize_args([], acc), do: Enum.reverse(acc)
 
   # Rudementary check for a token.
-  def sanatize_arg(arg) when byte_size(arg) > 80 do
+  def sanitize_arg(arg) when byte_size(arg) > 80 do
     case Farmbot.Jwt.decode(arg) do
       {:ok, _} -> "[TOKEN REDACTED BY SANITIZER]"
       _ -> arg
     end
   end
 
-  def sanatize_arg("device_" <> _) do
+  def sanitize_arg("device_" <> _) do
     "[DEVICE_ID REDACTED BY SANITIZER]"
   end
 
-  def sanatize_arg(%{} = map_arg) do
+  def sanitize_arg(%{} = map_arg) do
     Map.new(map_arg, fn({key, val}) ->
-      {key, sanatize_arg(val)}
+      {key, sanitize_arg(val)}
     end)
   end
 
-  def sanatize_arg(arg) when is_list(arg) do
+  def sanitize_arg(arg) when is_list(arg) do
     Enum.map(arg, fn(itm) ->
-      sanatize_arg(itm)
+      sanitize_arg(itm)
     end)
   end
 
-  def sanatize_arg(tuple) when is_tuple(tuple) do
-    Tuple.to_list(tuple) |> sanatize_arg() |> List.to_tuple()
+  def sanitize_arg(tuple) when is_tuple(tuple) do
+    Tuple.to_list(tuple) |> sanitize_arg() |> List.to_tuple()
   end
 
-  def sanatize_arg(arg), do: arg
+  def sanitize_arg(arg), do: arg
 
   # This cleans up nested supervisors/workers.
   defp enumerate_ftsc_error(_child,
