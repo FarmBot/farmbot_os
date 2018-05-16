@@ -102,23 +102,58 @@ defmodule Farmbot.Firmware.UartHandler.Framing do
   end
 
   # Handle not enough data case
-  defp process_data(_separator, sep_length, _max_length, processed, to_process, lines, _log_input)
+  defp process_data(
+         _separator,
+         sep_length,
+         _max_length,
+         processed,
+         to_process,
+         lines,
+         _log_input
+       )
        when byte_size(to_process) < sep_length do
     {processed, to_process, lines}
   end
 
   # Process data until separator or next char
-  defp process_data(separator, sep_length, max_length, processed, to_process, lines, log_input) do
+  defp process_data(
+         separator,
+         sep_length,
+         max_length,
+         processed,
+         to_process,
+         lines,
+         log_input
+       ) do
     case to_process do
       # Handle separater
       <<^separator::binary-size(sep_length), rest::binary>> ->
         new_lines = lines ++ [do_parse_code(processed, log_input)]
-        process_data(separator, sep_length, max_length, <<>>, rest, new_lines, log_input)
+
+        process_data(
+          separator,
+          sep_length,
+          max_length,
+          <<>>,
+          rest,
+          new_lines,
+          log_input
+        )
 
       # Handle line too long case
-      to_process when byte_size(processed) == max_length and to_process != <<>> ->
+      to_process
+      when byte_size(processed) == max_length && to_process != <<>> ->
         new_lines = lines ++ [{:partial, processed}]
-        process_data(separator, sep_length, max_length, <<>>, to_process, new_lines, log_input)
+
+        process_data(
+          separator,
+          sep_length,
+          max_length,
+          <<>>,
+          to_process,
+          new_lines,
+          log_input
+        )
 
       # Handle next char
       <<next_char::binary-size(1), rest::binary>> ->
