@@ -12,8 +12,13 @@ defmodule Farmbot.Farmware.Runtime do
   @doc "Execute a Farmware struct."
   def execute(%Farmware{} = farmware, env) when is_list(env) do
     Logger.busy(2, "Beginning execution of #{inspect(farmware)}")
-    fw_path = Installer.install_path(farmware) |> Path.absname("#{:code.priv_dir(:farmbot)}/..")
+
+    fw_path =
+      Installer.install_path(farmware)
+      |> Path.absname("#{:code.priv_dir(:farmbot)}/..")
+
     cwd = File.cwd!()
+
     with :ok <- File.cd(fw_path),
          env <- build_env(farmware, env) do
       exec = farmware.executable
@@ -64,22 +69,37 @@ defmodule Farmbot.Farmware.Runtime do
         %{state | exit_status: 0}
 
       {^port, {:exit_status, status}} ->
-        Logger.warn(2, "#{inspect(farmware)} completed with exit status: #{status}")
+        Logger.warn(
+          2,
+          "#{inspect(farmware)} completed with exit status: #{status}"
+        )
+
         %{state | exit_status: status}
 
       {^port, {:data, data}} ->
-        msg = ["[#{inspect(farmware)}] sent data:",
-               "\r\n\=\=\=\=\=\=\=\=\=\=\=\r\n\r\n",
-               data,
-               "\r\n\=\=\=\=\=\=\=\=\=\=\=\r\n\r\n"] |> Enum.join()
+        msg =
+          [
+            "[#{inspect(farmware)}] sent data:",
+            "\r\n\=\=\=\=\=\=\=\=\=\=\=\r\n\r\n",
+            data,
+            "\r\n\=\=\=\=\=\=\=\=\=\=\=\r\n\r\n"
+          ]
+          |> Enum.join()
+
         # Logger.info(3, msg, color: :NC)
-        IO.puts msg
+        IO.puts(msg)
         handle_port(state)
     end
   end
 
   def build_env(%Farmware{config: config, name: fw_name} = farmware, env) do
-    token = Farmbot.System.ConfigStorage.get_config_value(:string, "authorization", "token")
+    token =
+      Farmbot.System.ConfigStorage.get_config_value(
+        :string,
+        "authorization",
+        "token"
+      )
+
     images_dir = "/tmp/images"
     python_path = Farmbot.Farmware.Installer.install_path(farmware) <> ":"
 
@@ -105,15 +125,25 @@ defmodule Farmbot.Farmware.Runtime do
         String.contains?(fw_name, " ") -> " "
         true -> nil
       end
-    ns = if sep do
-      String.split(fw_name |> Macro.underscore(), sep) |> Enum.join() |> String.downcase() |> Macro.underscore()
-    else
-      fw_name |> Macro.underscore() |> String.downcase()
-    end
+
+    ns =
+      if sep do
+        String.split(fw_name |> Macro.underscore(), sep)
+        |> Enum.join()
+        |> String.downcase()
+        |> Macro.underscore()
+      else
+        fw_name |> Macro.underscore() |> String.downcase()
+      end
+
     {"#{ns}_#{name}", val}
   end
 
   defp to_erl_safe(binary) when is_binary(binary), do: to_charlist(binary)
-  defp to_erl_safe(map) when is_map(map), do: map |> Poison.encode!() |> to_erl_safe()
-  defp to_erl_safe(number) when is_number(number), do: "#{number}" |> to_charlist
+
+  defp to_erl_safe(map) when is_map(map),
+    do: map |> Poison.encode!() |> to_erl_safe()
+
+  defp to_erl_safe(number) when is_number(number),
+    do: "#{number}" |> to_charlist
 end
