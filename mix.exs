@@ -61,13 +61,15 @@ defmodule Farmbot.Mixfile do
 
   defp docs do
     [
-      main: "Farmbot",
+      main: "building",
       logo: "priv/static/farmbot_logo.png",
       source_ref: commit(),
       extras: [
         "docs/BUILDING.md",
         "docs/FAQ.md",
-        "README.md"
+        "README.md",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md"
       ],
     ]
   end
