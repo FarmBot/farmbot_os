@@ -9,6 +9,7 @@ defmodule Farmbot.Farmware.RuntimeError do
       message: Keyword.fetch!(opts, :message),
       state: Keyword.fetch!(opts, :state)
     ]
+
     struct(__MODULE__, struct_opts)
   end
 
