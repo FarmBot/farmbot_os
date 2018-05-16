@@ -1,5 +1,7 @@
 defimpl Inspect, for: Farmbot.Farmware do
-  def inspect(%{name: name, version: version}, _), do: "#Farmware<#{name}(#{version})>"
+  def inspect(%{name: name, version: version}, _),
+    do: "#Farmware<#{name}(#{version})>"
+
   def inspect(_thing, _), do: "#Farmware<:invalid>"
 end
 
