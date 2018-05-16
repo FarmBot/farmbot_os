@@ -208,7 +208,10 @@ defmodule Farmbot.System do
   and is_atom(module_)
   and is_atom(function_)
   and is_list(args_) do
-    {{exception, format_stacktrace(stacktrace)}, {module_, function_, args_}}
+    """
+    Caught exception: #{exception}
+    #{inspect format_stacktrace(stacktrace)}
+    """
   end
 
   def do_format_reason(reason), do: do_format_reason({:error, reason})

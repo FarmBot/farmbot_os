@@ -34,14 +34,14 @@ config :farmbot, Farmbot.Repo, [
   database: "test_tmp/farmbot_repo_test",
   priv: "priv/repo",
   pool_size: 2,
-  # loggers: []
+  loggers: []
 ]
 
 config :farmbot, Farmbot.System.ConfigStorage, [
   adapter: Sqlite.Ecto2,
   database: "test_tmp/farmbot_config_storage_test",
   pool_size: 2,
-  # loggers: []
+  loggers: []
 ]
 
 config :farmbot, ecto_repos: [Farmbot.Repo, Farmbot.System.ConfigStorage]
