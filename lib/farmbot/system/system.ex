@@ -106,40 +106,30 @@ defmodule Farmbot.System do
 
   @doc "Format an error for human consumption."
   def format_reason(reason) do
-    raise "deleteme"
+    formated = do_format_reason(reason)
+    footer = """
+    <hr>
+    <p>
+    <p>
+    <p> <strong> environment: </strong> #{@env}
+    <p> <strong> source_ref: </strong>  #{@ref}
+    <p> <strong> target: </strong>      #{@target}
+    <p>
+    <p>
+    """
 
-    rescue
-      _e -> [_ | [_ | stack]] = System.stacktrace()
-      stack =
-        stack
-        |> Enum.map(fn er -> "\t#{inspect(er)}" end)
-        |> Enum.join(",\r\n <p>")
-      formated = do_format_reason(reason)
-      footer = """
-      <hr>
-      <p>
-      <p>
-      <p> <strong> environment: </strong> #{@env}
-      <p> <strong> source_ref: </strong>  #{@ref}
-      <p> <strong> target: </strong>      #{@target}
-      <p>
-      <p>
-      Stacktrace:
-      <p> [#{stack}]
-      <hr>
-      """
-      case formated do
-        nil -> nil
-        {:ignore, reason}  -> {:ignore, reason}
-        formatted when is_binary(formatted) ->  formated <> footer
-      end
+    case formated do
+      nil -> nil
+      {:ignore, reason}  -> {:ignore, reason}
+      formatted when is_binary(formatted) ->  formated <> footer
+    end
   end
 
   # This mess of pattern matches cleans up erlang startup errors. It's very
   # recursive, and kind of cryptic, but should always produce a human readable
   # message that can be read by an end user.
   alias Farmbot.Bootstrap
-  defp do_format_reason(
+  def do_format_reason(
     {:error,
       {:shutdown,
         {:failed_to_start_child, Bootstrap.Supervisor, rest}}})
@@ -147,7 +137,7 @@ defmodule Farmbot.System do
     do_format_reason(rest)
   end
 
-  defp do_format_reason(
+  def do_format_reason(
     {:error,
       {:shutdown,
         {:failed_to_start_child, child, rest}}})
@@ -166,7 +156,7 @@ defmodule Farmbot.System do
     end
   end
 
-  defp do_format_reason({:bad_return, {Bootstrap.Supervisor, :init, error}}) do
+  def do_format_reason({:bad_return, {Bootstrap.Supervisor, :init, error}}) do
     """
     Failed to Authorize with Farmbot Web Services.
     reason: #{do_format_reason(error)}
@@ -175,15 +165,15 @@ defmodule Farmbot.System do
     """
   end
 
-  defp do_format_reason({:error, reason})
+  def do_format_reason({:error, reason})
     when is_atom(reason) or is_binary(reason)
   do
     reason |> to_string()
   end
 
-  defp do_format_reason({:error, reason}), do: inspect(reason)
+  def do_format_reason({:error, reason}), do: inspect(reason)
 
-  defp do_format_reason(
+  def do_format_reason(
     {:failed_connect,
       [{:to_address, {server, port}}, {_, _, reason}]})
   do
@@ -196,20 +186,83 @@ defmodule Farmbot.System do
   end
 
   # TODO(Connor) Remove this some day.
-  defp do_format_reason({{:case_clause, {:raise, %Sqlite.DbConnection.Error{}}}, _}) do
+  def do_format_reason({{:case_clause, {:raise, %Sqlite.DbConnection.Error{}}}, _}) do
     {:ignore, """
     https://github.com/scouten/sqlite_ecto2/issues/204
     """}
   end
 
-  defp do_format_reason({:badarg, [{:ets, :lookup_element, _, _} | _]}) do
+  def do_format_reason({:badarg, [{:ets, :lookup_element, _, _} | _]}) do
     {:ignore, """
     Bad Ecto call. This usually is a result of an over the air update and can
     likely be ignored.
     """}
   end
 
-  defp do_format_reason(reason), do: do_format_reason({:error, reason})
+  def do_format_reason({{exception, [{module, function, args, info} | _] = stacktrace}, {module_, function_, args_}})
+  when is_atom(exception)
+  and is_atom(module)
+  and is_atom(function)
+  and is_list(args)
+  and is_list(info)
+  and is_atom(module_)
+  and is_atom(function_)
+  and is_list(args_) do
+    {{exception, format_stacktrace(stacktrace)}, {module_, function_, args_}}
+  end
+
+  def do_format_reason(reason), do: do_format_reason({:error, reason})
+
+  def format_stacktrace(stacktrace, acc \\ [])
+
+  def format_stacktrace([{_module, _function, arity, _info} = entry | rest], acc) when is_integer(arity) do
+    format_stacktrace(rest, [entry | acc])
+  end
+
+  def format_stacktrace([{module, function, args, info} | rest], acc) when is_list(args) do
+    entry = {module, function, sanatize_args(args), info}
+    format_stacktrace(rest, [entry | acc])
+  end
+
+  def format_stacktrace([], acc), do: Enum.reverse(acc)
+
+  def sanatize_args(args, acc \\ [])
+
+  def sanatize_args([arg | rest], acc) do
+    sanatize_args(rest, [sanatize_arg(arg) | acc])
+  end
+
+  def sanatize_args([], acc), do: Enum.reverse(acc)
+
+  # Rudementary check for a token.
+  def sanatize_arg(arg) when byte_size(arg) > 80 do
+    case Farmbot.Jwt.decode(arg) do
+      {:ok, _} -> "[TOKEN REDACTED BY SANITIZER]"
+      _ -> arg
+    end
+  end
+
+  def sanatize_arg("device_" <> _) do
+    "[DEVICE_ID REDACTED BY SANITIZER]"
+  end
+
+  def sanatize_arg(%{} = map_arg) do
+    Map.new(map_arg, fn({key, val}) ->
+      {key, sanatize_arg(val)}
+    end)
+  end
+
+  def sanatize_arg(arg) when is_list(arg) do
+    Enum.map(arg, fn(itm) ->
+      sanatize_arg(itm)
+    end)
+  end
+
+  def sanatize_arg(tuple) when is_tuple(tuple) do
+    Tuple.to_list(tuple) |> sanatize_arg() |> List.to_tuple()
+  end
+
+  def sanatize_arg(arg), do: arg
 
   # This cleans up nested supervisors/workers.
   defp enumerate_ftsc_error(_child,
@@ -222,4 +275,5 @@ defmodule Farmbot.System do
   defp enumerate_ftsc_error(child, err) do
     {child, err}
   end
+
 end
