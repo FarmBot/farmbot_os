@@ -40,17 +40,29 @@ defmodule Farmbot.Firmware.UartHandler.Framing do
   def init(args) do
     max_length = Keyword.get(args, :max_length, 4096)
     separator = Keyword.get(args, :separator, "\n")
-    log_input = Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "firmware_input_log")
-    log_output = Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "firmware_output_log")
-    state = %State{max_length: max_length, separator: separator, log_input: log_input, log_output: log_output}
+
+    log_input =
+      Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "firmware_input_log")
+
+    log_output =
+      Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "firmware_output_log")
+
+    state = %State{
+      max_length: max_length,
+      separator: separator,
+      log_input: log_input,
+      log_output: log_output
+    }
+
     {:ok, state}
   end
 
   def add_framing(data, state) do
     # maybe log output here
     if state.log_output do
-      Logger.debug 3, data
+      Logger.debug(3, data)
     end
+
     {:ok, data <> state.separator, state}
   end
 
@@ -110,19 +122,27 @@ defmodule Farmbot.Firmware.UartHandler.Framing do
 
       # Handle next char
       <<next_char::binary-size(1), rest::binary>> ->
-        process_data(separator, sep_length, max_length, processed <> next_char, rest, lines, log_input)
+        process_data(
+          separator,
+          sep_length,
+          max_length,
+          processed <> next_char,
+          rest,
+          lines,
+          log_input
+        )
     end
   end
 
   defp do_parse_code(processed, log_input) do
     if log_input do
-      Logger.debug 3, processed
+      Logger.debug(3, processed)
     end
 
     parse_code(processed)
   rescue
     er ->
-      Logger.error 1, "Firmware parser error: #{Exception.message(er)}"
+      Logger.error(1, "Firmware parser error: #{Exception.message(er)}")
       {nil, :noop}
   end
 end
