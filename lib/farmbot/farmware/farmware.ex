@@ -104,7 +104,7 @@ defmodule Farmbot.Farmware do
   Config values can however be overwritten by the Farmbot App.
 
   # More info
-  See [Here](https://software.farmbot.io/v1.0/docs/farmware-dev) for more info.
+  See [Here](https://developer.farm.bot/docs/farmware) for more info.
   """
 
   defmodule Meta do
