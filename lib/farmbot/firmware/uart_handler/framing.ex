@@ -42,10 +42,18 @@ defmodule Farmbot.Firmware.UartHandler.Framing do
     separator = Keyword.get(args, :separator, "\n")
 
     log_input =
-      Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "firmware_input_log")
+      Farmbot.System.ConfigStorage.get_config_value(
+        :bool,
+        "settings",
+        "firmware_input_log"
+      )
 
     log_output =
-      Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "firmware_output_log")
+      Farmbot.System.ConfigStorage.get_config_value(
+        :bool,
+        "settings",
+        "firmware_output_log"
+      )
 
     state = %State{
       max_length: max_length,
@@ -89,7 +97,8 @@ defmodule Farmbot.Firmware.UartHandler.Framing do
     {:ok, [partial_line], new_state}
   end
 
-  def flush(direction, state) when direction == :receive or direction == :both do
+  def flush(direction, state)
+      when direction == :receive or direction == :both do
     %{state | processed: <<>>, in_process: <<>>}
   end
 
@@ -141,8 +150,7 @@ defmodule Farmbot.Firmware.UartHandler.Framing do
         )
 
       # Handle line too long case
-      to_process
-      when byte_size(processed) == max_length && to_process != <<>> ->
+      to_process when byte_size(processed) == max_length and to_process != <<>> ->
         new_lines = lines ++ [{:partial, processed}]
 
         process_data(
