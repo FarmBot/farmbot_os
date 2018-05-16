@@ -180,6 +180,18 @@ defmodule Farmbot.Target.Network.Manager do
     end
   end
 
+  # Did not want to compile without this. `MIX_ENV=test mix compile`
+  # The call in `init_mdns` does not know where this comes from. Unless
+  # I'm missing something (very likely) this would break in prod.
+  defmodule Mdns.Server.Service do
+    defstruct(
+      domain: nil,
+      data: nil,
+      ttl: nil,
+      type: nil
+    )
+  end
+
   defp init_mdns(mdns_domain) do
     Mdns.Server.add_service(%Mdns.Server.Service{
       domain: mdns_domain,
