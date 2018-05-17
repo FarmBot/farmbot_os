@@ -69,7 +69,11 @@ jobs:
           paths:
             - ~/arduino-1.8.5
       - run:
+          name: "Credo code static code analysis"
           command: mix credo
+      - run:
+          name: "Elixir Code formatter"
+          command: mix format --check-formatted
       - run:
           command: mix coveralls.circle --exclude farmbot_firmware
 
