@@ -1,7 +1,7 @@
 # Frequently Asked Questions
 
 ## What ports oputbound does Farmbot OS use?
-* AMQP: 5673
+* AMQP: 5672
 * HTTP(S): 80 + 443 (this is configurable)
 * NTP: UDP 123
 
