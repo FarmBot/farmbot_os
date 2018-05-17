@@ -9,7 +9,10 @@ defmodule Farmbot.Mixfile do
 
   defp arduino_commit do
     opts = [cd: "c_src/farmbot-arduino-firmware"]
-    System.cmd("git", ~w"rev-parse --verify HEAD", opts) |> elem(0) |> String.trim()
+
+    System.cmd("git", ~w"rev-parse --verify HEAD", opts)
+    |> elem(0)
+    |> String.trim()
   end
 
   def project do
@@ -20,7 +23,7 @@ defmodule Farmbot.Mixfile do
       package: package(),
       make_clean: ["clean"],
       make_env: make_env(),
-      compilers: [:elixir_make] ++ Mix.compilers,
+      compilers: [:elixir_make] ++ Mix.compilers(),
       test_coverage: [tool: ExCoveralls],
       version: @version,
       target: @target,
@@ -56,7 +59,10 @@ defmodule Farmbot.Mixfile do
   end
 
   def application do
-    [mod: {Farmbot, []}, extra_applications: [:logger, :eex, :ssl, :inets, :runtime_tools]]
+    [
+      mod: {Farmbot, []},
+      extra_applications: [:logger, :eex, :ssl, :inets, :runtime_tools]
+    ]
   end
 
   defp docs do
@@ -70,7 +76,7 @@ defmodule Farmbot.Mixfile do
         "README.md",
         "CHANGELOG.md",
         "CONTRIBUTING.md"
-      ],
+      ]
     ]
   end
 
@@ -82,7 +88,9 @@ defmodule Farmbot.Mixfile do
           "ERL_EI_LIBDIR" => "#{:code.root_dir()}/usr/lib",
           "MIX_TARGET" => @target
         }
-      _ -> %{}
+
+      _ ->
+        %{}
     end
   end
 
@@ -92,7 +100,6 @@ defmodule Farmbot.Mixfile do
       {:elixir_make, "~> 0.4", runtime: false},
       {:gen_stage, "~> 0.12"},
       {:phoenix_html, "~> 2.10.5"},
-
       {:poison, "~> 3.1.0"},
       {:httpoison, "~> 0.13.0"},
       {:jsx, "~> 2.8.0"},
@@ -100,26 +107,20 @@ defmodule Farmbot.Mixfile do
       # https://github.com/benoitc/hackney/issues/475
       # :hackney needs to be pinned until that issue is resolved.
       {:hackney, "1.10.1"},
-
       {:timex, "~> 3.2"},
-
       {:fs, "~> 3.4.0"},
       {:nerves_uart, "~> 1.0"},
       {:nerves_leds, "~> 0.8.0"},
-
       {:cowboy, "~> 1.0.0"},
       {:plug, "~> 1.0"},
       {:cors_plug, "~> 1.5"},
       {:rsa, "~> 0.0.1"},
       {:joken, "~> 1.1"},
-
       {:ecto, "~> 2.2.2"},
       {:sqlite_ecto2, "~> 2.2.1"},
       {:uuid, "~> 1.1"},
-
       {:socket, "~> 0.3.13"},
       {:amqp, "~> 1.0"},
-
       {:recon, "~> 2.3.2"},
       {:ring_logger, "~> 0.4.1"},
       {:bbmustache, "~> 1.5"},
@@ -135,7 +136,7 @@ defmodule Farmbot.Mixfile do
       {:credo, "~> 0.9.1", only: [:dev, :test], runtime: false},
       {:inch_ex, ">= 0.0.0", only: :dev},
       {:mock, "~> 0.2.0", only: :test},
-      {:faker, "~> 0.9", only: :test},
+      {:faker, "~> 0.9", only: :test}
     ]
   end
 
@@ -147,10 +148,11 @@ defmodule Farmbot.Mixfile do
         {:nerves_firmware, "~> 0.4.0"},
         {:nerves_init_gadget, "~> 0.3.0", only: :dev},
         {:nerves_network, "~> 0.3"},
-        {:nerves_wpa_supplicant, github: "nerves-project/nerves_wpa_supplicant", override: true},
+        {:nerves_wpa_supplicant,
+         github: "nerves-project/nerves_wpa_supplicant", override: true},
         {:dhcp_server, "~> 0.3.0"},
         {:elixir_ale, "~> 1.0"},
-        {:mdns, "~> 1.0"},
+        {:mdns, "~> 1.0"}
       ]
   end
 
@@ -168,7 +170,7 @@ defmodule Farmbot.Mixfile do
       name: "farmbot",
       maintainers: ["Farmbot.io"],
       licenses: ["MIT"],
-      links: %{"github" => "https://github.com/farmbot/farmbot_os"},
+      links: %{"github" => "https://github.com/farmbot/farmbot_os"}
     ]
   end
 
@@ -185,19 +187,20 @@ defmodule Farmbot.Mixfile do
   end
 
   defp aliases(:test, "host") do
-    ["test": ["ecto.drop", "ecto.create --quiet", "ecto.migrate", "test"]]
+    [test: ["ecto.drop", "ecto.create --quiet", "ecto.migrate", "test"]]
   end
 
-  defp aliases(_env, "host"), do: [
-    "firmware.slack": ["farmbot.firmware.slack"],
-    "firmware.sign":  ["farmbot.firmware.sign"]
-  ]
+  defp aliases(_env, "host"),
+    do: [
+      "firmware.slack": ["farmbot.firmware.slack"],
+      "firmware.sign": ["farmbot.firmware.sign"]
+    ]
 
   defp aliases(_env, _system) do
     [
       "firmware.slack": ["farmbot.firmware.slack"],
-      "firmware.sign":  ["farmbot.firmware.sign"],
-      "loadconfig": [&bootstrap/1]
+      "firmware.sign": ["farmbot.firmware.sign"],
+      loadconfig: [&bootstrap/1]
     ]
   end
 
