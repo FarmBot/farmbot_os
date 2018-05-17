@@ -101,12 +101,8 @@ defmodule Farmbot.Mixfile do
       {:gen_stage, "~> 0.12"},
       {:phoenix_html, "~> 2.10.5"},
       {:poison, "~> 3.1.0"},
-      {:httpoison, "~> 0.13.0"},
+      {:httpoison, "~> 1.0"},
       {:jsx, "~> 2.8.0"},
-
-      # https://github.com/benoitc/hackney/issues/475
-      # :hackney needs to be pinned until that issue is resolved.
-      {:hackney, "1.10.1"},
       {:timex, "~> 3.2"},
       {:fs, "~> 3.4.0"},
       {:nerves_uart, "~> 1.0"},
