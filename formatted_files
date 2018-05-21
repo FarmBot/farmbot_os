@@ -6,3 +6,5 @@ lib/farmbot/farmware/runtime_error.ex
 lib/farmbot/farmware/supervisor.ex
 lib/farmbot/repo/worker.ex
 lib/farmbot/system/gpio/gpio.ex
+lib/farmbot/asset/farm_event.ex
+lib/farmbot/asset/regimen.ex
