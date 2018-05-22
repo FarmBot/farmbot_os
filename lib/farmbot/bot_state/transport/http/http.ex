@@ -39,7 +39,7 @@ defmodule Farmbot.BotState.Transport.HTTP do
 
   @doc false
   def start_link do
-    GenStage.start_link(__MODULE__, [], [name: __MODULE__])
+    GenStage.start_link(__MODULE__, [], name: __MODULE__)
   end
 
   def stop(reason \\ :normal) do
@@ -53,26 +53,30 @@ defmodule Farmbot.BotState.Transport.HTTP do
   def init([]) do
     s = ConfigStorage.get_config_value(:string, "authorization", "server")
     req = {'#{s}/api/public_key', []}
-    {:ok, {_, _, body}} = :httpc.request(:get, req, [], [body_format: :binary])
-    public_key = body |> JOSE.JWK.from_pem
+    {:ok, {_, _, body}} = :httpc.request(:get, req, [], body_format: :binary)
+    public_key = body |> JOSE.JWK.from_pem()
     # FIXME(Connor) The router should probably
     # be put in an externally supervised module..
     opts = [port: @port, acceptors: 2, dispatch: [cowboy_dispatch()]]
-    case Plug.Adapters.Cowboy.http Router, [], opts do
+
+    case Plug.Adapters.Cowboy.http(Router, [], opts) do
       {:ok, web} ->
         state = %{web: web, bot_state: nil, sockets: [], public_key: public_key}
         Process.link(state.web)
         {:consumer, state, [subscribe_to: [Farmbot.BotState, Farmbot.Logger]]}
+
       {:error, {:already_started, web}} ->
         state = %{web: web, bot_state: nil, sockets: [], public_key: public_key}
         Process.link(state.web)
         {:consumer, state, [subscribe_to: [Farmbot.BotState, Farmbot.Logger]]}
-      err -> err
+
+      err ->
+        err
     end
   end
 
   def handle_events(events, {pid, _}, state) do
-    dispatch Process.info(pid)[:registered_name], events, state
+    dispatch(Process.info(pid)[:registered_name], events, state)
   end
 
   def handle_call(:subscribe, {pid, _ref}, state) do
@@ -89,25 +93,27 @@ defmodule Farmbot.BotState.Transport.HTTP do
 
   defp dispatch(Farmbot.BotState = dispatcher, events, state) do
     bot_state = List.last(events)
+
     for socket <- state.sockets do
-      send socket, {dispatcher, bot_state}
+      send(socket, {dispatcher, bot_state})
     end
+
     {:noreply, [], %{state | bot_state: bot_state}}
   end
 
   defp dispatch(Farmbot.Logger = dispatcher, logs, state) do
     for socket <- state.sockets do
-      send socket, {dispatcher, logs}
+      send(socket, {dispatcher, logs})
     end
+
     {:noreply, [], state}
   end
 
   defp cowboy_dispatch do
     {:_,
-      [
-        # {"/ws", SocketHandler, []},
-        {:_, Plug.Adapters.Cowboy.Handler, {Router, []}},
-      ]
-    }
+     [
+       # {"/ws", SocketHandler, []},
+       {:_, Plug.Adapters.Cowboy.Handler, {Router, []}}
+     ]}
   end
 end

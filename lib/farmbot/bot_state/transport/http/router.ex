@@ -6,18 +6,22 @@ defmodule Farmbot.BotState.Transport.HTTP.Router do
   alias Farmbot.BotState.Transport.HTTP
   alias HTTP.AuthPlug
 
-  use Plug.Debugger, [otp_app: :farmbot]
-  plug Plug.Logger, [log: :debug]
-  plug AuthPlug, [env: Farmbot.Project.env()]
-  plug Plug.Parsers, [
+  use Plug.Debugger, otp_app: :farmbot
+  plug(Plug.Logger, log: :debug)
+  plug(AuthPlug, env: Farmbot.Project.env())
+
+  plug(
+    Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
-    json_decoder: Poison]
-  plug :match
-  plug :dispatch
+    json_decoder: Poison
+  )
+
+  plug(:match)
+  plug(:dispatch)
 
   get "/api/v1/bot/state" do
     data = Farmbot.BotState.force_state_push() |> Poison.encode!()
-    send_resp conn, 200, data
+    send_resp(conn, 200, data)
   end
 
   get "/api/v1/bot/speak" do
@@ -25,21 +29,25 @@ defmodule Farmbot.BotState.Transport.HTTP.Router do
       %{"text" => text} when is_binary(text) ->
         System.cmd("espeak", [text])
     end
-    send_resp conn, 200, ""
+
+    send_resp(conn, 200, "")
   end
 
   post "/api/v1/celery_script" do
     with {:ok, _, conn} <- conn |> read_body(),
-         {:ok, ast} <- Farmbot.CeleryScript.AST.decode(conn.params)
-    do
+         {:ok, ast} <- Farmbot.CeleryScript.AST.decode(conn.params) do
       case Farmbot.CeleryScript.execute(ast) do
-        {:ok, _} -> send_resp(conn, 200, "ok")
+        {:ok, _} ->
+          send_resp(conn, 200, "ok")
+
         {:error, reason} when is_binary(reason) or is_atom(reason) ->
-          send_resp conn, 500, reason
-        {:error, reason} -> send_resp conn, 500, "#{inspect reason}"
+          send_resp(conn, 500, reason)
+
+        {:error, reason} ->
+          send_resp(conn, 500, "#{inspect(reason)}")
       end
     else
-      err -> send_resp conn, 500, "#{inspect err}"
+      err -> send_resp(conn, 500, "#{inspect(err)}")
     end
   end
 
