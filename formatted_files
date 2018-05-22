@@ -8,3 +8,11 @@ lib/farmbot/repo/worker.ex
 lib/farmbot/system/gpio/gpio.ex
 lib/farmbot/asset/farm_event.ex
 lib/farmbot/asset/regimen.ex
+lib/farmbot/bot_state/bot_state.ex
+lib/farmbot/bot_state/job_progress.ex
+lib/farmbot/bot_state/supervisor.ex
+lib/farmbot/bot_state/transport/http/auth_plug.ex
+lib/farmbot/bot_state/transport/http/http.ex
+lib/farmbot/bot_state/transport/http/router.ex
+lib/farmbot/bot_state/transport/supervisor.ex
+lib/farmbot/bot_state/transport/utils.ex

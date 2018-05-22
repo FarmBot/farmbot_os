@@ -6,7 +6,7 @@ defmodule Farmbot.BotState.Utils do
   def should_log?(nil, _), do: false
 
   def should_log?(module, verbosity) when verbosity <= 3 do
-    List.first(Module.split(module))  == "Farmbot"
+    List.first(Module.split(module)) == "Farmbot"
   end
 
   def should_log?(_, _), do: false
