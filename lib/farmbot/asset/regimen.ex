@@ -15,15 +15,15 @@ defmodule Farmbot.Asset.Regimen do
   end
 
   @type item :: %{
-    name: String.t,
-    time_offset: integer,
-    sequence_id: integer
-  }
+          name: String.t(),
+          time_offset: integer,
+          sequence_id: integer
+        }
 
   @type t :: %__MODULE__{
-    name: String.t,
-    regimen_items: [item]
-  }
+          name: String.t(),
+          regimen_items: [item]
+        }
 
   @required_fields [:id, :name, :regimen_items]
 
