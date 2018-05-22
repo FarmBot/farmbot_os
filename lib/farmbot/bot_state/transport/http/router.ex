@@ -34,9 +34,9 @@ defmodule Farmbot.BotState.Transport.HTTP.Router do
     do
       case Farmbot.CeleryScript.execute(ast) do
         {:ok, _} -> send_resp(conn, 200, "ok")
-        {:error, reason} when is_binary(reason) or is_atom(reason) ->
+        {:error, reason, _} when is_binary(reason) or is_atom(reason) ->
           send_resp conn, 500, reason
-        {:error, reason} -> send_resp conn, 500, "#{inspect reason}"
+        {:error, reason, _} -> send_resp conn, 500, "#{inspect reason}"
       end
     else
       err -> send_resp conn, 500, "#{inspect err}"
