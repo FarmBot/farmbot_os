@@ -67,7 +67,8 @@ defmodule Farmbot.Asset.FarmEvent do
     current_time_seconds = :os.system_time(:second)
 
     start_time_seconds =
-      DateTime.from_iso8601(fe.start_time) |> elem(1)
+      DateTime.from_iso8601(fe.start_time)
+      |> elem(1)
       |> DateTime.to_unix(:second)
 
     end_time_seconds =
