@@ -14,7 +14,11 @@ defmodule Farmbot.Farmware.Installer do
   @farmware_install_path Path.join(data_path, "farmware")
 
   def install_farmware_tools(%Farmware{} = fw) do
-    release_url = "https://api.github.com/repos/FarmBot-Labs/farmware-tools/releases/tags/#{fw.farmware_tools_version}"
+    release_url = if fw.farmware_tools_version == :latest do
+      "https://api.github.com/repos/FarmBot-Labs/farmware-tools/releases/latest"
+    else
+      "https://api.github.com/repos/FarmBot-Labs/farmware-tools/releases/tags/#{fw.farmware_tools_version}"
+    end
     installed_commit = nil
     path = install_path(fw)
     maybe_install_farmware_tools(release_url, installed_commit, path)
