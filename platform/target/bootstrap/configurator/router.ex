@@ -31,7 +31,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
         if String.contains?(reason, "CeleryScript request.") do
           render_page(conn, "index", [version: @version, last_reset_reason: nil])
         else
-          render_page(conn, "index", [version: @version, last_reset_reason: reason])
+          render_page(conn, "index", [version: @version, last_reset_reason: Phoenix.HTML.raw(reason)])
         end
       {:error, _} ->
         render_page(conn, "index", [version: @version, last_reset_reason: nil])
