@@ -46,7 +46,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
     first_boot? = ConfigStorage.get_config_value(:bool, "settings", "first_boot")
     autoconfigure? = Nerves.Runtime.KV.get("farmbot_auto_configure") |> case do
       "" -> false
-      _ -> true
+      other when is_binary(other) -> true
+      _ -> false
     end
 
 
