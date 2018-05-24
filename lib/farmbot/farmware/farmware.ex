@@ -232,7 +232,7 @@ defmodule Farmbot.Farmware do
   end
 
   defp extrace_farmware_tools_version(_) do
-    {:ok, "v0.1.0"}
+    {:ok, :latest}
   end
 
   defp extract_meta(map) do
