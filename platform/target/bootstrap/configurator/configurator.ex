@@ -44,7 +44,10 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
 
   def init(_) do
     first_boot? = ConfigStorage.get_config_value(:bool, "settings", "first_boot")
-    autoconfigure? = Nerves.Runtime.KV.get("farmbot_auto_configure")
+    autoconfigure? = Nerves.Runtime.KV.get("farmbot_auto_configure") |> case do
+      "" -> false
+      _ -> true
+    end
 
 
     if first_boot? do
@@ -59,7 +62,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
     status
   end
 
-  defp maybe_configurate(nil) do
+  defp maybe_configurate(false) do
     Logger.info(3, "Building new configuration.")
     import Supervisor.Spec
     :ets.new(:session, [:named_table, :public, read_concurrency: true])
