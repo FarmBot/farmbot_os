@@ -5,6 +5,7 @@ defmodule Farmbot.BotState.Transport.HTTP.Router do
 
   alias Farmbot.BotState.Transport.HTTP
   alias HTTP.AuthPlug
+  alias Farmbot.CeleryScript.AST
 
   use Plug.Debugger, [otp_app: :farmbot]
   plug Plug.Logger, [log: :debug]
@@ -25,19 +26,14 @@ defmodule Farmbot.BotState.Transport.HTTP.Router do
       %{"text" => text} when is_binary(text) ->
         System.cmd("espeak", [text])
     end
-    send_resp conn, 200, ""
+    send_resp conn, 200, "text"
   end
 
   post "/api/v1/celery_script" do
     with {:ok, _, conn} <- conn |> read_body(),
-         {:ok, ast} <- Farmbot.CeleryScript.AST.decode(conn.params)
+         {:ok, ast} <- AST.decode(conn.params)
     do
-      case Farmbot.CeleryScript.execute(ast) do
-        {:ok, _} -> send_resp(conn, 200, "ok")
-        {:error, reason, _} when is_binary(reason) or is_atom(reason) ->
-          send_resp conn, 500, reason
-        {:error, reason, _} -> send_resp conn, 500, "#{inspect reason}"
-      end
+      handle_celery_script(conn, ast)
     else
       err -> send_resp conn, 500, "#{inspect err}"
     end
@@ -52,5 +48,35 @@ defmodule Farmbot.BotState.Transport.HTTP.Router do
 
   match _ do
     send_resp(conn, 404, "oops")
+  end
+
+  def handle_celery_script(conn, %AST{kind: AST.Node.RpcRequest, body: body} = ast) do
+    case do_reduce(body, struct(Macro.Env, [])) do
+      {:ok, _} ->
+        resp = %AST{kind: AST.Node.RpcOk, args: ast.args, body: []}
+        {:ok, encoded} = AST.encode(resp)
+        send_resp conn, 200, Poison.encode!(encoded)
+      {:error, reason, _} ->
+        expl = %AST{kind: AST.Node.Explanation, args: %{message: "#{inspect ast} failed: #{inspect reason}"}, body: []}
+        resp = %AST{kind: AST.RpcError, args: ast.args, body: [expl]}
+        {:ok, encoded} = AST.encode(resp)
+        send_resp conn, 200, Poison.encode!(encoded)
+    end
+  end
+
+  def handle_celery_script(conn, ast) do
+    case Farmbot.CeleryScript.execute(ast) do
+      {:ok, _} -> send_resp(conn, 200, "ok")
+      {:error, reason, _} when is_binary(reason) or is_atom(reason) ->
+        send_resp conn, 500, reason
+      {:error, reason, _} -> send_resp conn, 500, "#{inspect reason}"
+    end
+  end
+
+  defp do_reduce([%AST{} = ast | rest], env) do
+    case Farmbot.CeleryScript.execute(ast, env) do
+      {:ok, env} -> do_reduce(rest, env)
+      {:error, reason, env} -> {:error, reason, env}
+    end
   end
 end
