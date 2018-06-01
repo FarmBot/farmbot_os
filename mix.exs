@@ -84,7 +84,8 @@ defmodule Farmbot.Mixfile do
     case System.get_env("ERL_EI_INCLUDE_DIR") do
       nil ->
         %{
-          "ERL_EI_INCLUDE_DIR" => Path.join([:code.root_dir(), "usr", "include"]),
+          "ERL_EI_INCLUDE_DIR" =>
+            Path.join([:code.root_dir(), "usr", "include"]),
           "ERL_EI_LIBDIR" => Path.join([:code.root_dir(), "usr", "lib"]),
           "MIX_TARGET" => @target
         }
