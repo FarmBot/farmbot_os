@@ -69,7 +69,7 @@ defmodule Farmbot.System do
       {:ignore, reason} -> reboot(reason)
       _ ->
         path = Farmbot.Farmware.Installer.install_root_path()
-        File.rm_rf(path) |> IO.inspect(label: "remove farmware")
+        File.rm_rf(path)
         Ecto.drop()
         write_file(formatted)
         @system_tasks.factory_reset(formatted)
