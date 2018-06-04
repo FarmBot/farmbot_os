@@ -68,6 +68,8 @@ defmodule Farmbot.System do
       nil -> reboot("Escape factory reset: #{inspect reason}")
       {:ignore, reason} -> reboot(reason)
       _ ->
+        path = Farmbot.Farmware.Installer.install_root_path()
+        File.rm_rf(path) |> IO.inspect(label: "remove farmware")
         Ecto.drop()
         write_file(formatted)
         @system_tasks.factory_reset(formatted)
