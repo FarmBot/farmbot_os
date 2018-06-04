@@ -70,7 +70,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
     Farmbot.System.GPIO.Leds.led_status_err()
     ConfigStorage.destroy_all_network_configs()
     children = [
-      worker(Configurator.CaptivePortal, []),
+      worker(Configurator.CaptivePortal, [], restart: :transient),
       {Plug.Adapters.Cowboy, scheme: :http, plug: Configurator.Router, options: [port: 80, acceptors: 1]}
     ]
 

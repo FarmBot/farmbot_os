@@ -64,6 +64,19 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
     stop_dnsmasq(state)
 
     Nerves.Network.teardown(@interface)
+    Nerves.NetworkInterface.ifdown(@interface)
+    do_teardown(@interface)
+  end
+
+  defp do_teardown(interface) do
+    case Nerves.NetworkInterface.status(interface) do
+      {:ok, %{operstate: :down}} -> :ok
+      {:ok, %{operstate: :up}} ->
+        Logger.busy 3, "Trying to stop #{interface}."
+        Process.sleep(1000)
+        Nerves.NetworkInterface.ifdown(interface)
+        do_teardown(interface)
+    end
   end
 
   def handle_info({_port, {:data, _data}}, state) do
