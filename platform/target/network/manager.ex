@@ -23,8 +23,6 @@ defmodule Farmbot.Target.Network.Manager do
     end
     Logger.success(3, "Interface #{interface} is up.")
 
-    Nerves.Network.teardown("wlan0")
-
     SystemRegistry.register()
     {:ok, _} = Elixir.Registry.register(Nerves.NetworkInterface, interface, [])
     {:ok, _} = Elixir.Registry.register(Nerves.Udhcpc, interface, [])
