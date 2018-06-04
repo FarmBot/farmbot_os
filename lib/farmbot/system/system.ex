@@ -194,6 +194,12 @@ defmodule Farmbot.System do
     """}
   end
 
+  def do_format_reason({:EXIT, {{:case_clause, {:raise, %Sqlite.DbConnection.Error{}}}, _}}) do
+    {:ignore, """
+    https://github.com/scouten/sqlite_ecto2/issues/204
+    """}
+  end
+
   def do_format_reason({:badarg, [{:ets, :lookup_element, _, _} | _]}) do
     {:ignore, """
     Bad Ecto call. This usually is a result of an over the air update and can
