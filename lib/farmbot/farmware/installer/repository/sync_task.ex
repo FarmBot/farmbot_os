@@ -3,7 +3,7 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
   Init module for installing first party farmware repo. Requires internet.
   """
 
-  use Task, restart: :transient
+  use GenServer
   use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
   import ConfigStorage, only: [get_config_value: 3]
@@ -11,8 +11,16 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
   alias Farmware.Installer
 
   @doc false
-  def start_link(_) do
-    sync_all()
+  def start_link() do
+    GenServer.start_link(__MODULE__, [], [name: __MODULE__])
+  end
+
+  def init(_) do
+    try do
+      sync_all()
+    rescue
+      e -> Logger.error 2, "Syncing Farmware failed: #{Exception.message(e)}"
+    end
     :ignore
   end
 

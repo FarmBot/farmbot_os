@@ -7,7 +7,6 @@ $(warning ERL_EI_INCLUDE_DIR not set. Invoke via mix)
 
 else
 
-$(info Building NIF.)
 ALL += fbos_build_calendar_nif
 CLEAN += fbos_clean_build_calendar_nif
 endif
@@ -17,7 +16,6 @@ ifeq ($(SKIP_ARDUINO_BUILD),)
 FBARDUINO_FIRMWARE_OUT_DIR := $(PWD)/_build
 FBARDUINO_FIRMWARE_SRC_DIR := $(PWD)/c_src/farmbot-arduino-firmware/src
 FBARDUINO_FIRMWARE_BIN_DIR := $(PWD)/priv
-$(info Building Arduino Firmware.)
 ALL += fbos_arduino_firmware
 CLEAN += fbos_clean_arduino_firmware
 

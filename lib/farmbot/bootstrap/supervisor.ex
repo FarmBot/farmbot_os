@@ -130,9 +130,9 @@ defmodule Farmbot.Bootstrap.Supervisor do
           supervisor(Farmbot.BotState.Supervisor,           []),
           supervisor(Farmbot.BotState.Transport.Supervisor, []),
           supervisor(Farmbot.Repo.Supervisor,               []),
+          supervisor(Farmbot.Farmware.Supervisor,           []),
           worker(Farmbot.Regimen.NameProvider,              []),
           supervisor(Farmbot.FarmEvent.Supervisor,          []),
-          supervisor(Farmbot.Farmware.Supervisor,           []),
           supervisor(Farmbot.Regimen.Supervisor,            []),
           worker(Farmbot.Bootstrap.AuthTask,                []),
         ]

@@ -196,7 +196,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
           alias Farmbot.Target.Bootstrap.Configurator
           Logger.success 2, "Configuration finished."
           Process.sleep(2500) # Allow the page to render and send.
-          :ok = Supervisor.terminate_child(Configurator, Configurator.CaptivePortal)
+          :ok = GenServer.stop(Configurator.CaptivePortal, :normal)
+          # :ok = Supervisor.terminate_child(Configurator, Configurator.CaptivePortal)
           :ok = Supervisor.stop(Configurator)
           Process.sleep(2500) # Good luck.
         rescue
