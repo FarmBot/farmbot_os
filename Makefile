@@ -13,9 +13,6 @@ endif
 
 ifeq ($(SKIP_ARDUINO_BUILD),)
 
-FBARDUINO_FIRMWARE_OUT_DIR := $(PWD)/_build
-FBARDUINO_FIRMWARE_SRC_DIR := $(PWD)/c_src/farmbot-arduino-firmware/src
-FBARDUINO_FIRMWARE_BIN_DIR := $(PWD)/priv
 ALL += fbos_arduino_firmware
 CLEAN += fbos_clean_arduino_firmware
 
@@ -30,10 +27,10 @@ all: $(ALL)
 clean: $(CLEAN)
 
 fbos_arduino_firmware:
-	cd c_src/farmbot-arduino-firmware && make all FBARDUINO_FIRMWARE_OUT_DIR=$(PWD)/_build FBARDUINO_FIRMWARE_SRC_DIR=$(PWD)/c_src/farmbot-arduino-firmware/src FBARDUINO_FIRMWARE_BIN_DIR=$(PWD)/priv
+	cd c_src/farmbot-arduino-firmware && make all BUILD_DIR=$(PWD)/_build FBARDUINO_FIRMWARE_SRC_DIR=$(PWD)/c_src/farmbot-arduino-firmware/src BIN_DIR=$(PWD)/priv
 
 fbos_clean_arduino_firmware:
-	cd c_src/farmbot-arduino-firmware && make clean FBARDUINO_FIRMWARE_OUT_DIR=$(PWD)/_build FBARDUINO_FIRMWARE_SRC_DIR=$(PWD)/c_src/farmbot-arduino-firmware/src FBARDUINO_FIRMWARE_BIN_DIR=$(PWD)/priv
+	cd c_src/farmbot-arduino-firmware && make clean BUILD_DIR=$(PWD)/_build FBARDUINO_FIRMWARE_SRC_DIR=$(PWD)/c_src/farmbot-arduino-firmware/src BIN_DIR=$(PWD)/priv
 
 fbos_build_calendar_nif:
 	make -f c_src/build_calendar/Makefile all ERL_EI_INCLUDE_DIR=$(ERL_EI_INCLUDE_DIR) ERL_EI_LIBDIR=$(ERL_EI_LIBDIR)
