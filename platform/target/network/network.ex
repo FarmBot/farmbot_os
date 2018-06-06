@@ -32,14 +32,7 @@ defmodule Farmbot.Target.Network do
   end
 
   @doc "Scan on an interface."
-  def scan(iface, tries \\ 5)
-
-  def scan(iface, 0) do
-    Logger.warn(1, "Tried scanning on #{iface} 5 times, with no results each time.")
-    []
-  end
-
-  def scan(iface, tries) do
+  def scan(iface) do
     do_scan(iface)
     |> ScanResult.decode()
     |> ScanResult.sort_results()
@@ -48,41 +41,45 @@ defmodule Farmbot.Target.Network do
     |> Enum.map(&Map.update(&1, :ssid, nil, fn(ssid) -> to_string(ssid) end))
     |> Enum.reject(&String.contains?(&1.ssid, "\\x00"))
     |> Enum.uniq_by(fn(%{ssid: ssid}) -> ssid end)
-    |> case do
-      [] -> scan(iface, tries - 1)
-      data -> data
-    end
   end
 
-  # While scanning in AP mode, The CTRL-EVENT-SCAN-COMPLETE event never happens.
-  defp wait_for_scan_results(pid, timer, count, loops_without_change, acc)
-  defp wait_for_scan_results(_pid, _timer, _count, 10, acc), do: acc
-  defp wait_for_scan_results(pid, timer, count, loops_without_change, acc) do
-    res = Nerves.WpaSupplicant.request(pid, {:BSS, count})
-    new_acc = if res, do: [res | acc], else: acc
-    new_count = if res, do: count + 1, else: count
-    new_loops_without_change = if res, do: 0, else: loops_without_change + 1
+  defp wait_for_results(pid) do
+    Nerves.WpaSupplicant.request(pid, :SCAN_RESULTS)
+    |> String.trim()
+    |> String.split("\n")
+    |> tl()
+    |> Enum.map(&String.split(&1, "\t"))
+    |> Enum.map(fn(res) ->
+      case res do
+        [bssid, freq, signal, flags, ssid] ->
+          %{bssid: bssid,
+            frequency: String.to_integer(freq),
+            flags: flags,
+            level: String.to_integer(signal),
+            ssid: ssid
+          }
 
-    receive do
-      :complete -> acc
-      {Nerves.WpaSupplicant, {:"CTRL-EVENT-BSS-REMOVED", _, _}, _} ->
-        Process.cancel_timer(timer)
-        wait_for_scan_results(pid, Process.send_after(self(), :complete, 5000), 0, 0, [])
-      _ -> wait_for_scan_results(pid, timer, new_count, new_loops_without_change, new_acc)
-    after 10 -> wait_for_scan_results(pid, timer, new_count, new_loops_without_change, new_acc)
+        [bssid, freq, signal, flags] ->
+          %{bssid: bssid,
+            frequency: String.to_integer(freq),
+            flags: flags,
+            level: String.to_integer(signal),
+            ssid: nil
+          }
+      end
+    end)
+    |> case do
+      [] ->
+        Process.sleep(500)
+        wait_for_results(pid)
+      res -> res
     end
   end
 
   def do_scan(iface) do
     pid = :"Nerves.WpaSupplicant.#{iface}"
-    Elixir.Registry.register(Nerves.WpaSupplicant, iface, [])
-    case Nerves.WpaSupplicant.request(pid, :SCAN) do
-      r when r in ["FAIL-BUSY", :ok] ->
-        results = wait_for_scan_results(pid, Process.send_after(self(), :complete, 5000), 0, 0, [])
-        Elixir.Registry.unregister(Nerves.WpaSupplicant, iface)
-        results
-      resp -> raise("Unexpected scan result: #{inspect resp}")
-    end
+    Nerves.WpaSupplicant.request(pid, :SCAN)
+    wait_for_results(pid)
   end
 
   @doc "Tests if we can make dns queries."

@@ -6,9 +6,7 @@ defmodule Farmbot.Target.Network.ScanResult do
   defstruct [
     :ssid, # ssid name
     :bssid, # usually macaddress.
-    :noise, # signal noise in dBm.
     :level,  # Signal level in dBm.
-    :capabilities, # Don't actually need this.
     :flags, # Used to decide security.
     :security # This feild is guessed.
   ]
