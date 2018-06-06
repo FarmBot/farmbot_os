@@ -31,8 +31,15 @@ defmodule Farmbot.Target.Network do
     end
   end
 
-  @doc "Scan on an interface. "
-  def scan(iface) do
+  @doc "Scan on an interface."
+  def scan(iface, tries \\ 5)
+
+  def scan(iface, 0) do
+    Logger.warn(1, "Tried scanning on #{iface} 5 times, with no results each time.")
+    []
+  end
+
+  def scan(iface, tries) do
     do_scan(iface)
     |> ScanResult.decode()
     |> ScanResult.sort_results()
@@ -41,7 +48,10 @@ defmodule Farmbot.Target.Network do
     |> Enum.map(&Map.update(&1, :ssid, nil, fn(ssid) -> to_string(ssid) end))
     |> Enum.reject(&String.contains?(&1.ssid, "\\x00"))
     |> Enum.uniq_by(fn(%{ssid: ssid}) -> ssid end)
-
+    |> case do
+      [] -> scan(iface, tries - 1)
+      data -> data
+    end
   end
 
   # While scanning in AP mode, The CTRL-EVENT-SCAN-COMPLETE event never happens.
