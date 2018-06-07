@@ -1,4 +1,6 @@
 # Changelog
+# 6.4.3
+* Fix Ramps firmware build.
 
 # 6.4.2
 * Remove `hostapd`
