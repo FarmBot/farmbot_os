@@ -15,7 +15,6 @@ defmodule Farmbot.Target.Network.Manager do
   end
 
   def init({interface, opts} = args) do
-    Elixir.Logger.remove_backend Elixir.Logger.Backends.Console
     Logger.busy(3, "Waiting for interface #{interface} up.")
 
     unless interface in Nerves.NetworkInterface.interfaces() do

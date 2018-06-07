@@ -38,9 +38,9 @@
 
             <label for="security"> Security Type </label>
             <select name="security" id="security" onchange="securityChange()">
-              <option> WPA2-PSK </option>
-              <option> WPA-PSK </option>
-              <option> NONE </option>
+              <option value="WPA-PSK"> WPA2-PSK </option>
+              <option value="WPA-PSK"> WPA-PSK </option>
+              <option value="NONE"> NONE </option>
             </select>
 
             <div id="pskdiv">

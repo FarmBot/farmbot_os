@@ -13,6 +13,75 @@ defmodule Farmbot.Farmware.Installer do
   data_path = Application.get_env(:farmbot, :data_path) || raise "No configured data_path."
   @farmware_install_path Path.join(data_path, "farmware")
 
+  def install_farmware_tools(%Farmware{} = fw) do
+    release_url = if fw.farmware_tools_version == :latest do
+      "https://api.github.com/repos/FarmBot-Labs/farmware-tools/releases/latest"
+    else
+      "https://api.github.com/repos/FarmBot-Labs/farmware-tools/releases/tags/#{fw.farmware_tools_version}"
+    end
+    installed_commit = nil
+    path = install_path(fw)
+    maybe_install_farmware_tools(release_url, installed_commit, path)
+    :ok
+  end
+
+  def maybe_install_farmware_tools(release_url, installed_commit, farmware_tools_root_path) do
+    try do
+      commit_and_url_or_nil = get_install_url(release_url, installed_commit)
+      if commit_and_url_or_nil do
+          Logger.busy 3, "Downloading Farmware tools: #{release_url}"
+          do_install_farmware_tools(commit_and_url_or_nil, farmware_tools_root_path)
+          Logger.success 3, "Downloaded Farmware tools: #{release_url}"
+      else
+        Logger.debug 3, "Farmware tools up to date: #{release_url}"
+      end
+
+    rescue
+      reason -> Logger.error 1, "Failed to install Farmware Tools: #{Exception.message(reason)}"
+    end
+  end
+
+  def get_install_url(release_url, installed_commit) do
+    case :httpc.request(:get, {~c(#{release_url}), [{~c(user-agent), ~c(farmbot-os)}, {~c(content-type), ~c(application/json)}]}, [], [{:body_format, :binary}]) do
+      {:ok, {{_, 200, _}, _, msg}} ->
+        release = Poison.decode!(msg)
+        release_commit = release["target_commitish"]
+        if release_commit != installed_commit do
+          {release_commit, release["zipball_url"]}
+        else
+          nil
+        end
+      {:ok, {{_, _, _}, _, msg}} ->
+        message = Poison.decode!(msg) |> Map.get("message") || msg
+        Logger.error 1, "Could not check for farmware_tools updates #{release_url}: [#{to_string(message)}]"
+        nil
+    end
+  end
+
+  def do_install_farmware_tools({commit, zipball_url}, farmware_tools_root_path) when is_binary(commit) and is_binary(zipball_url) do
+    zip_file = "/tmp/farmware-tools.zip"
+    File.rm_rf(zip_file)
+
+    File.mkdir_p!(Path.join([farmware_tools_root_path, "farmware_tools"]))
+    {:ok, ^zip_file} = Farmbot.HTTP.download_file(zipball_url, zip_file)
+
+    fun = fn({:zip_file, dir, _info, _, _, _}) ->
+      [_ | rest] = Path.split(to_string(dir))
+      List.first(rest) == "farmware_tools"
+    end
+
+    case :zip.extract(~c(#{zip_file}), [:memory, file_filter: fun]) do
+      {:ok, list} when is_list(list) ->
+        Enum.each(list, fn({filename, data}) ->
+          out_file = Path.join([farmware_tools_root_path, "farmware_tools", Path.basename(to_string(filename))])
+          File.write!(out_file, data)
+        end)
+      {:error, reason} -> raise(reason)
+    end
+
+    :ok
+  end
+
   @doc "The root dir of farmware installs."
   def install_root_path, do: @farmware_install_path
 
@@ -72,7 +141,8 @@ defmodule Farmbot.Farmware.Installer do
     with {:ok, %{status_code: code, body: body}} when code > 199 and code < 300 <- HTTP.get(url),
          {:ok, json_map} <- Poison.decode(body),
          {:ok, farmware} <- Farmware.new(json_map),
-         :ok             <- preflight_checks(farmware) do
+         :ok             <- preflight_checks(farmware)
+         do
            finish_install(farmware, Map.put(json_map, "url", url))
          else
            {:error, {name, version, :already_installed}} ->
@@ -146,6 +216,7 @@ defmodule Farmbot.Farmware.Installer do
     zip_url = fw.zip
     with {:ok, ^zip_path} <- HTTP.download_file(zip_url, zip_path),
          :ok <- unzip(fw, zip_path),
+         :ok <- install_farmware_tools(fw),
          {:ok, json} <- Poison.encode(json_map),
          manifest_path <- Path.join(install_path(fw), "manifest.json"),
          :ok <- File.write(manifest_path, json)

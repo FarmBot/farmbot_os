@@ -3,22 +3,22 @@
 [![Built with Nerves](http://nerves-project.org/images/badge/nerves-badge_75x39_black.png)](http://nerves-project.org/)
 ---
 
+# FarmBot OS
+The "brains" of the FarmBot Project
+
 <!-- DON'T CHANGE THE TEXT BELOW. It is used in documentation links. -->
 # :floppy_disk: LATEST OS IMAGE DOWNLOADS
 <!-- DON'T CHANGE THE TEXT ABOVE. It is used in documentation links. -->
 
-## _*Important*_
+# _*Important*_
 For now we are only building and supporting Raspberry Pi 3. Pull Requests are very welcome
 if you spot a bug or fix, but for now we suggest obtaining a Raspberry Pi 3 for the best support.
 
 
 |Raspbery Pi Version |
 |---|
-| :star: **[RPi 3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v6.4.0/farmbot-rpi3-6.4.0.img)**|
+| :star: **[RPi 3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v6.4.1/farmbot-rpi3-6.4.1.img)**|
 ---
-
-# Farmbot OS
-The "brains" of the FarmBot Project
 
 ## Installation
 Installation should be fairly straight forward, you will need a computer for this step.
@@ -50,16 +50,16 @@ _Refer to the [software documentation Configurator page](https://software.farm.b
 
 \* If you are using a smartphone you may need to disable cellular data to allow your phone's browser to connect to the configurator.
 
-# Problems?
+## Problems?
 
 See the [FAQ](docs/FAQ.md)
 If your problem isn't solved there please file an issue on [Github](https://github.com/FarmBot/farmbot_os/issues/new)
 
-# Security Concerns?
+## Security Concerns?
 
 We take security seriously and value the input of independent researchers. Please see our [responsible disclosure guidelines](https://farm.bot/responsible-disclosure-of-security-vulnerabilities/).
 
-# Want to Help?
+## Want to Help?
 
 [Low Hanging Fruit](https://github.com/FarmBot/farmbot_os/search?utf8=%E2%9C%93&q=TODO)
 [Development](CONTRIBUTING.md)

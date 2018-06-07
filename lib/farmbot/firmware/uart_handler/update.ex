@@ -113,16 +113,16 @@ defmodule Farmbot.Firmware.UartHandler.Update do
 
   # Farmduino
   defp do_flash("F", uart, tty) do
-    avrdude("#{:code.priv_dir(:farmbot)}/farmduino-firmware.hex", uart, tty)
+    avrdude("#{:code.priv_dir(:farmbot)}/farmduino.hex", uart, tty)
   end
 
   defp do_flash("G", uart, tty) do
-    avrdude("#{:code.priv_dir(:farmbot)}/farmduino_k14-firmware.hex", uart, tty)
+    avrdude("#{:code.priv_dir(:farmbot)}/farmduino_k14.hex", uart, tty)
   end
 
   # Anything else. (should always be "R")
   defp do_flash(_, uart, tty) do
-    avrdude("#{:code.priv_dir(:farmbot)}/arduino-firmware.hex", uart, tty)
+    avrdude("#{:code.priv_dir(:farmbot)}/arduino_firmware.hex", uart, tty)
   end
 
   defp close(nil) do

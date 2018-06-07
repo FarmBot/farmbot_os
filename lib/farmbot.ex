@@ -6,7 +6,7 @@ defmodule Farmbot do
 
   require Farmbot.Logger
   require Logger
-  use Supervisor
+  use Application
 
   @version Farmbot.Project.version()
   @commit Farmbot.Project.commit()
@@ -16,7 +16,7 @@ defmodule Farmbot do
 
   def start(_, _start_opts) do
     case Supervisor.start_link(__MODULE__, [], [name: __MODULE__]) do
-      {:ok, pid} -> {:ok, pid}
+      {:ok, pid} -> {:ok, pid, []}
       error ->
         IO.puts "Failed to boot Farmbot: #{inspect error}"
         Farmbot.System.factory_reset(error)
@@ -25,15 +25,30 @@ defmodule Farmbot do
   end
 
   def init([]) do
-    Logger.remove_backend :console
+    RingLogger.attach()
     children = [
-      supervisor(Farmbot.Logger.Supervisor, []),
-      supervisor(Farmbot.System.Supervisor, []),
-      supervisor(Farmbot.Bootstrap.Supervisor, [])
+      {Farmbot.Logger.Supervisor, []},
+      {Farmbot.System.Supervisor, []},
+      {Farmbot.Bootstrap.Supervisor, []}
     ]
 
     Farmbot.Logger.info(1, "Booting Farmbot OS version: #{@version} - #{@commit}")
     opts = [strategy: :one_for_one]
-    supervise(children, opts)
+    Supervisor.init(children, opts)
   end
+
+  def prep_stop(_state) do
+    formatted = Farmbot.Logger.format_logs()
+
+    formatted
+    |> Enum.join("\n")
+    |> Farmbot.System.stop()
+
+    formatted
+  end
+
+  def stop(_data) do
+    :ok
+  end
+
 end

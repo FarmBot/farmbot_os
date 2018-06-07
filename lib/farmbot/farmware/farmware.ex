@@ -104,7 +104,7 @@ defmodule Farmbot.Farmware do
   Config values can however be overwritten by the Farmbot App.
 
   # More info
-  See [Here](https://software.farmbot.io/v1.0/docs/farmware-dev) for more info.
+  See [Here](https://developer.farm.bot/docs/farmware) for more info.
   """
 
   defmodule Meta do
@@ -121,19 +121,25 @@ defmodule Farmbot.Farmware do
     :executable,
     :args,
     :config,
-    :meta,
+    :farmware_tools_version,
+    :meta
   ]
 
   defdelegate execute(fw, env), to: Farmbot.Farmware.Runtime
 
   @doc "Lookup a farmware by it's name."
   def lookup(name) do
-    dir = Farmbot.Farmware.Installer.install_root_path
+    dir = Farmbot.Farmware.Installer.install_root_path()
+
     with {:ok, all_installed} <- File.ls(dir),
-         true <- name in all_installed
-    do
-      mani_path = Path.join(Farmbot.Farmware.Installer.install_path(name), "manifest.json")
-      File.read!(mani_path) |> Poison.decode! |> new()
+         true <- name in all_installed do
+      mani_path =
+        Path.join(
+          Farmbot.Farmware.Installer.install_path(name),
+          "manifest.json"
+        )
+
+      File.read!(mani_path) |> Poison.decode!() |> new()
     else
       false -> {:error, :not_installed}
       {:error, _} = err -> err
@@ -142,25 +148,31 @@ defmodule Farmbot.Farmware do
 
   @doc "Creates a new Farmware Struct"
   def new(map) do
-    with {:ok, name}    <- extract_name(map),
+    with {:ok, name} <- extract_name(map),
          {:ok, version} <- extract_version(map),
-         {:ok, os_req}  <- extract_os_requirement(map),
-         {:ok, url}     <- extract_url(map),
-         {:ok, zip}     <- extract_zip(map),
-         {:ok, exe}     <- extract_exe(map),
-         {:ok, args}    <- extract_args(map),
-         {:ok, config}  <- extract_config(map),
-         {:ok, meta}    <- extract_meta(map)
-    do
-      res = struct(__MODULE__, [name: name,
-                                version: version,
-                                min_os_version_major: os_req,
-                                url: url,
-                                zip: zip,
-                                executable: exe,
-                                args: args,
-                                config: config,
-                                meta: meta])
+         {:ok, os_req} <- extract_os_requirement(map),
+         {:ok, url} <- extract_url(map),
+         {:ok, zip} <- extract_zip(map),
+         {:ok, exe} <- extract_exe(map),
+         {:ok, args} <- extract_args(map),
+         {:ok, config} <- extract_config(map),
+         {:ok, farmware_tools_version} <- extrace_farmware_tools_version(map),
+         {:ok, meta} <- extract_meta(map) do
+      res =
+        struct(
+          __MODULE__,
+          name: name,
+          version: version,
+          min_os_version_major: os_req,
+          url: url,
+          zip: zip,
+          executable: exe,
+          args: args,
+          config: config,
+          farmware_tools_version: farmware_tools_version,
+          meta: meta
+        )
+
       {:ok, res}
     else
       err -> err
@@ -179,7 +191,8 @@ defmodule Farmbot.Farmware do
 
   defp extract_version(_), do: {:error, "bad or missing farmware version"}
 
-  defp extract_os_requirement(%{"min_os_version_major" => num}) when is_number(num) do
+  defp extract_os_requirement(%{"min_os_version_major" => num})
+       when is_number(num) do
     {:ok, num}
   end
 
@@ -214,11 +227,18 @@ defmodule Farmbot.Farmware do
     {:ok, Map.get(map, "config", [])}
   end
 
-  defp extract_meta(map) do
-    desc = Map.get(map, "description", "no description provided.")
-    lan  = Map.get(map, "language", "no language provided.")
-    auth = Map.get(map, "author", "no author provided")
-    {:ok, struct(Meta, [description: desc, language: lan, author: auth])}
+  defp extrace_farmware_tools_version(%{"farmware_tools_version" => version}) do
+    {:ok, version}
   end
 
+  defp extrace_farmware_tools_version(_) do
+    {:ok, :latest}
+  end
+
+  defp extract_meta(map) do
+    desc = Map.get(map, "description", "no description provided.")
+    lan = Map.get(map, "language", "no language provided.")
+    auth = Map.get(map, "author", "no author provided")
+    {:ok, struct(Meta, description: desc, language: lan, author: auth)}
+  end
 end

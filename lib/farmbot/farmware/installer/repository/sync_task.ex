@@ -3,7 +3,7 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
   Init module for installing first party farmware repo. Requires internet.
   """
 
-  use Task, restart: :transient
+  use GenServer
   use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
   import ConfigStorage, only: [get_config_value: 3]
@@ -11,30 +11,17 @@ defmodule Farmbot.Farmware.Installer.Repository.SyncTask do
   alias Farmware.Installer
 
   @doc false
-  def start_link(_) do
-    sync_all()
-    :ignore
+  def start_link() do
+    GenServer.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
-  def bloop do
-    File.mkdir_p("/root/farmware_tools")
-    url = "https://github.com/FarmBot-Labs/farmware-tools/archive/master.zip"
-    zip_file = "/root/farmware-tools.zip"
-    {:ok, ^zip_file} = Farmbot.HTTP.download_file(url, zip_file)
-
-    fun = fn({:zip_file, dir, _info, _, _, _}) ->
-      [_ | rest] = Path.split(to_string(dir))
-      List.first(rest) == "farmware_tools"
+  def init(_) do
+    try do
+      sync_all()
+    rescue
+      e -> Logger.error 2, "Syncing Farmware failed: #{Exception.message(e)}"
     end
-
-    case :zip.extract('/root/farmware-tools.zip', [:memory, file_filter: fun]) do
-      {:ok, list} when is_list(list) ->
-        Enum.each(list, fn({filename, data}) ->
-          out_file = Path.join(["/root", "farmware_tools", Path.basename(to_string(filename))])
-          File.write!(out_file, data)
-        end)
-      {:error, reason} -> raise("Failed do download farmware tools: #{inspect reason}")
-    end
+    :ignore
   end
 
   def sync_all do

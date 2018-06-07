@@ -70,8 +70,8 @@ defmodule Farmbot.Bootstrap.Supervisor do
   @auth_task || Mix.raise(error_msg)
 
   @doc "Start Bootstrap services."
-  def start_link() do
-    Supervisor.start_link(__MODULE__, [], [name: __MODULE__])
+  def start_link(args) do
+    Supervisor.start_link(__MODULE__, args, [name: __MODULE__])
   end
 
   def init([]) do
@@ -130,9 +130,9 @@ defmodule Farmbot.Bootstrap.Supervisor do
           supervisor(Farmbot.BotState.Supervisor,           []),
           supervisor(Farmbot.BotState.Transport.Supervisor, []),
           supervisor(Farmbot.Repo.Supervisor,               []),
+          supervisor(Farmbot.Farmware.Supervisor,           []),
           worker(Farmbot.Regimen.NameProvider,              []),
           supervisor(Farmbot.FarmEvent.Supervisor,          []),
-          supervisor(Farmbot.Farmware.Supervisor,           []),
           supervisor(Farmbot.Regimen.Supervisor,            []),
           worker(Farmbot.Bootstrap.AuthTask,                []),
         ]

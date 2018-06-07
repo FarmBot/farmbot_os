@@ -1,3 +1,12 @@
+# Changelog
+
+# 6.4.2
+* Remove `hostapd`
+* Remove a lot of custom Logger code.
+* Try to write the last 100 logs to a flash drive if one exists.
+* Fix bugs in `send_message` block templating.
+* Add new farmware_tools package for plugins.
+
 # 6.4.1
 * Beta updates should _always_ try to flash firmware.
 * Bump Nerves and friends to 1.0.0.

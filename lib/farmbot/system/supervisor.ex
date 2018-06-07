@@ -6,8 +6,8 @@ defmodule Farmbot.System.Supervisor do
   import Farmbot.System.Init
 
   @doc false
-  def start_link() do
-    Supervisor.start_link(__MODULE__, [], [name: __MODULE__])
+  def start_link(args) do
+    Supervisor.start_link(__MODULE__, args, [name: __MODULE__])
   end
 
   def init([]) do
@@ -29,7 +29,6 @@ defmodule Farmbot.System.Supervisor do
       supervisor(Farmbot.System.Updates, []),
       worker(Farmbot.System.GPIO, []),
       worker(Farmbot.EasterEggs, []),
-      Plug.Adapters.Cowboy.child_spec(scheme: :http, plug: Farmbot.Target.Bootstrap.Configurator.Router, options: [port: 4001])
     ]
 
     all_children = before_init_children ++ init_mods ++ after_init_children
