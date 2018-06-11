@@ -232,7 +232,7 @@ defmodule Farmbot.System.Updates do
       {release_version_obj, bdurl}
     else
       Logger.debug 3, "Incorrect asset name for target: #{current_target}: #{name}"
-      try_find_dl_url_in_asset(rest, release_version, current_stuff)
+      try_find_dl_url_in_asset(rest, release_version_obj, current_stuff)
     end
   end
 

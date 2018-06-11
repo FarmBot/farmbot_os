@@ -368,10 +368,6 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
       {:error, %HTTPoison.Error{reason: reason}} ->
         GenServer.reply(from, {:error, reason})
         {:noreply, state}
-
-      {:error, reason} ->
-        GenServer.reply(from, {:error, reason})
-        {:noreply, state}
     end
   end
 
@@ -396,10 +392,6 @@ defmodule Farmbot.HTTP.HTTPoisonAdapter do
         {:noreply, state}
 
       {:error, %HTTPoison.Error{reason: reason}} ->
-        GenServer.reply(buffer.from, {:error, reason})
-        {:noreply, state}
-
-      {:error, reason} ->
         GenServer.reply(buffer.from, {:error, reason})
         {:noreply, state}
     end

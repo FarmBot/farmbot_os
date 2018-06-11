@@ -9,7 +9,7 @@ defmodule Farmbot.Jwt do
     :vhost,
     :os_update_server,
     :beta_os_update_server,
-    :interim_email,
+    :interim_email
   ]
 
   @typedoc "Type def for Farmbot Web Token."
@@ -29,8 +29,12 @@ defmodule Farmbot.Jwt do
     body = tkn |> String.split(".") |> Enum.at(1)
 
     with {:ok, json} <- Base.decode64(body, padding: false),
-         {:ok, jwt} <- Poison.decode(json, as: %__MODULE__{}),
-         do: {:ok, jwt}
+         {:ok, jwt} <- Poison.decode(json, as: %__MODULE__{}) do
+      {:ok, jwt}
+    else
+      :error -> {:error, :base64_decode_fail}
+      {:error, :invalid, _} -> {:error, :json_decode_error}
+    end
   end
 
   @doc "Decodes a token, raises if it fails."
@@ -38,8 +42,7 @@ defmodule Farmbot.Jwt do
   def decode!(tkn) do
     case decode(tkn) do
       {:ok, tkn} -> tkn
-      :error -> raise "Failed to base64 decode."
-      {:error, {:invalid, _char, _pos}} -> raise "Failed to json decode."
+      {:error, reason} -> raise(reason)
     end
   end
 end

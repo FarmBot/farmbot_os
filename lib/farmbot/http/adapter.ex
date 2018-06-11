@@ -6,7 +6,7 @@ defmodule Farmbot.HTTP.Adapter do
   @type adapter :: pid
 
   @typedoc "HTTP method."
-  @type method :: :get | :put | :post | :update
+  @type method :: :get | :put | :post | :delete
 
   @typedoc "HTTP url. Must be fully formatted."
   @type url :: binary

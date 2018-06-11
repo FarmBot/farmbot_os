@@ -8,3 +8,4 @@ lib/farmbot/repo/worker.ex
 lib/farmbot/system/gpio/gpio.ex
 lib/farmbot/asset/farm_event.ex
 lib/farmbot/asset/regimen.ex
+lib/farmbot/jwt.ex
