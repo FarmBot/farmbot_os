@@ -29,11 +29,12 @@ defmodule Farmbot.Jwt do
     body = tkn |> String.split(".") |> Enum.at(1)
 
     with {:ok, json} <- Base.decode64(body, padding: false),
-         {:ok, jwt} <- Poison.decode(json, as: %__MODULE__{}) do
+         {:ok, data} <- Farmbot.JSON.decode(json),
+         {:ok, jwt} <- decode_map(data) do
       {:ok, jwt}
     else
-      :error -> {:error, :base64_decode_fail}
-      {:error, :invalid, _} -> {:error, :json_decode_error}
+      :error -> {:error, "base64_decode_fail"}
+      {:error, _resson} -> {:error, "json_decode_error"}
     end
   end
 
@@ -44,5 +45,19 @@ defmodule Farmbot.Jwt do
       {:ok, tkn} -> tkn
       {:error, reason} -> raise(reason)
     end
+  end
+
+  defp decode_map(%{} = map) do
+    {:ok,
+     struct(
+       Farmbot.Jwt,
+       bot: map["bot"],
+       exp: map["exp"],
+       iss: map["iss"],
+       mqtt: map["mqtt"],
+       os_update_server: map["os_update_server"],
+       vhost: map["vhost"],
+       interim_email: map["interim_email"]
+     )}
   end
 end

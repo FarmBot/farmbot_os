@@ -30,7 +30,7 @@ defmodule Farmbot.JwtTest do
     tkn = [head, "not_a_valid_token", foot] |> Enum.join(".")
     r = Jwt.decode(tkn)
     refute match?({:ok, _}, r)
-    assert r == :error
+    assert r == {:error, "base64_decode_fail"}
   end
 
   test "Gives Poison Error when it can't be decoded as json", %{token: tkn} do
@@ -39,14 +39,14 @@ defmodule Farmbot.JwtTest do
     tkn = [head, not_token, foot] |> Enum.join(".")
     r = Jwt.decode(tkn)
     refute match?({:ok, _}, r)
-    assert r == {:error, {:invalid, "h", 0}}
+    assert r == {:error, "json_decode_error"}
   end
 
   test "raises on bad token because base64", %{token: tkn} do
     [head, _body, foot] = String.split(tkn, ".")
     tkn = [head, "not_a_valid_token", foot] |> Enum.join(".")
 
-    assert_raise RuntimeError, "Failed to base64 decode.", fn ->
+    assert_raise RuntimeError, "base64_decode_fail", fn ->
       Jwt.decode!(tkn)
     end
   end
@@ -56,7 +56,7 @@ defmodule Farmbot.JwtTest do
     not_token = Base.encode64("hello world", padding: false)
     tkn = [head, not_token, foot] |> Enum.join(".")
 
-    assert_raise RuntimeError, "Failed to json decode.", fn ->
+    assert_raise RuntimeError, "json_decode_error", fn ->
       Jwt.decode!(tkn)
     end
   end

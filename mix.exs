@@ -102,6 +102,7 @@ defmodule Farmbot.Mixfile do
       {:gen_stage, "~> 0.12"},
       {:phoenix_html, "~> 2.10.5"},
       {:poison, "~> 3.1.0"},
+      {:jason, "~> 1.0"},
       {:httpoison, "~> 1.1"},
       {:jsx, "~> 2.8.0"},
       {:timex, "~> 3.3"},

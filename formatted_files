@@ -9,3 +9,5 @@ lib/farmbot/system/gpio/gpio.ex
 lib/farmbot/asset/farm_event.ex
 lib/farmbot/asset/regimen.ex
 lib/farmbot/jwt.ex
+lib/farmbot/json/jason_parser.ex
+lib/farmbot/json/parser.ex
