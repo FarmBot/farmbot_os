@@ -50,14 +50,15 @@ defmodule Farmbot.Jwt do
   defp decode_map(%{} = map) do
     {:ok,
      struct(
-       Farmbot.Jwt,
+       Farmbot.Jwt, [
        bot: map["bot"],
        exp: map["exp"],
        iss: map["iss"],
        mqtt: map["mqtt"],
-       os_update_server: map["os_update_server"],
        vhost: map["vhost"],
+       os_update_server: map["os_update_server"],
+       beta_os_update_server: map["beta_os_update_server"],
        interim_email: map["interim_email"]
-     )}
+     ])}
   end
 end
