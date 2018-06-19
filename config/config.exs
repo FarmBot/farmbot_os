@@ -44,7 +44,8 @@ config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
   firmware_handler: Farmbot.Firmware.StubHandler,
   http_adapter: Farmbot.HTTP.HTTPoisonAdapter,
-  gpio_handler: Farmbot.System.GPIO.StubHandler
+  gpio_handler: Farmbot.System.GPIO.StubHandler,
+  json_parser: Farmbot.JSON.JasonParser
 
 config :farmbot, :farmware,
   first_part_farmware_manifest_url: "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/manifest.json"

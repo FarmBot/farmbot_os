@@ -97,16 +97,17 @@ defmodule Farmbot.Mixfile do
 
   defp deps do
     [
-      {:nerves, "~> 1.0.0", runtime: false},
-      {:elixir_make, "~> 0.4", runtime: false},
+      {:nerves, "~> 1.0.1", runtime: false},
+      {:elixir_make, "~> 0.4.1", runtime: false},
       {:gen_stage, "~> 0.12"},
       {:phoenix_html, "~> 2.10.5"},
       {:poison, "~> 3.1.0"},
-      {:httpoison, "~> 1.0"},
+      {:jason, "~> 1.0"},
+      {:httpoison, "~> 1.1"},
       {:jsx, "~> 2.8.0"},
-      {:timex, "~> 3.2"},
+      {:timex, "~> 3.3"},
       {:fs, "~> 3.4.0"},
-      {:nerves_uart, "~> 1.0"},
+      {:nerves_uart, "~> 1.2"},
       {:nerves_leds, "~> 0.8.0"},
       {:cowboy, "~> 1.0.0"},
       {:plug, "~> 1.0"},
@@ -129,7 +130,7 @@ defmodule Farmbot.Mixfile do
     [
       {:ex_doc, "~> 0.18.1", only: :dev},
       {:excoveralls, "~> 0.7", only: :test},
-      {:dialyxir, "~> 0.5.1", only: :dev, runtime: false},
+      {:dialyxir, github: "jeremyjh/dialyxir", only: :dev, runtime: false},
       {:credo, "~> 0.9.1", only: [:dev, :test], runtime: false},
       {:inch_ex, ">= 0.0.0", only: :dev},
       {:mock, "~> 0.2.0", only: :test},
@@ -154,7 +155,7 @@ defmodule Farmbot.Mixfile do
   end
 
   defp system("rpi3"),
-    do: [{:nerves_system_farmbot_rpi3, "1.0.1-farmbot.0", runtime: false}]
+    do: [{:nerves_system_farmbot_rpi3, "1.1.1-farmbot.0", runtime: false}]
 
   defp system("rpi0"),
     do: [{:nerves_system_farmbot_rpi0, "1.0.0-rc.1-farmbot.0", runtime: false}]

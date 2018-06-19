@@ -146,12 +146,6 @@ defmodule Farmbot.Bootstrap.Supervisor do
       {:error, reason} ->
         Farmbot.System.factory_reset(reason)
         :ignore
-
-      # If we got invalid json, just try again.
-      # HACK(Connor) Sometimes we don't get valid json
-      # Just try again if that happened.
-      {:error, :invalid, _} ->
-        actual_init(email, pass, server)
     end
   end
 end

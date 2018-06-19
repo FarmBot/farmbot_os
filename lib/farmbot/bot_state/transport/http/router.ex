@@ -79,4 +79,6 @@ defmodule Farmbot.BotState.Transport.HTTP.Router do
       {:error, reason, env} -> {:error, reason, env}
     end
   end
+
+  defp do_reduce([], env), do: {:ok, env}
 end

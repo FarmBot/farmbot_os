@@ -3,6 +3,7 @@ defprotocol Farmbot.FarmEvent.Execution do
   Protocol to be implemented by any struct that can be executed by
   Farmbot.FarmEvent.Manager.
   """
+  @dialyzer {:nowarn_function, __protocol__: 1}
 
   @typedoc "Data to be executed."
   @type data :: map

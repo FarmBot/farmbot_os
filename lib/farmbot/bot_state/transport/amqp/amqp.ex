@@ -32,7 +32,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
   defmodule State do
     @moduledoc false
-    defstruct [:conn, :chan, :queue_name, :bot, :state_cache]
+    defstruct [:conn, :chan, :bot, :state_cache]
   end
 
   def init([]) do
@@ -42,15 +42,21 @@ defmodule Farmbot.BotState.Transport.AMQP do
     with {:ok, %{bot: device, mqtt: mqtt_host, vhost: vhost}} <- decode(token),
          {:ok, conn}  <- open_connection(token, device, mqtt_host, vhost),
          {:ok, chan}  <- AMQP.Channel.open(conn),
-         q_name       <- Enum.join([device, UUID.uuid1()], "-"),
+         q_base       <- device,
+
          :ok          <- Basic.qos(chan, [global: true]),
-         {:ok, _}     <- AMQP.Queue.declare(chan, q_name, [auto_delete: true]),
+         {:ok, _}     <- AMQP.Queue.declare(chan, q_base <> "_from_clients", [auto_delete: true]),
          from_clients <- [routing_key: "bot.#{device}.from_clients"],
+         res          <- AMQP.Queue.purge(chan, q_base <> "_from_clients"),
+         :ok          <- AMQP.Queue.bind(chan, q_base <> "_from_clients", @exchange, from_clients),
+
+         {:ok, _}     <- AMQP.Queue.declare(chan, q_base <> "_auto_sync", [auto_delete: false]),
          sync         <- [routing_key: "bot.#{device}.sync.#"],
-         :ok          <- AMQP.Queue.bind(chan, q_name, @exchange, from_clients),
-         :ok          <- AMQP.Queue.bind(chan, q_name, @exchange, sync),
-         {:ok, _tag}  <- Basic.consume(chan, q_name, self(), [no_ack: true]),
-         opts      <- [conn: conn, chan: chan, queue_name: q_name, bot: device],
+         :ok          <- AMQP.Queue.bind(chan, q_base <> "_auto_sync", @exchange, sync),
+
+         {:ok, _tag}  <- Basic.consume(chan, q_base <> "_from_clients", self(), [no_ack: true]),
+         {:ok, _tag}  <- Basic.consume(chan, q_base <> "_from_clients", self(), [no_ack: true]),
+         opts      <- [conn: conn, chan: chan, bot: device],
          state <- struct(State, opts)
     do
       update_config_value(:bool, "settings", "ignore_fbos_config", false)
