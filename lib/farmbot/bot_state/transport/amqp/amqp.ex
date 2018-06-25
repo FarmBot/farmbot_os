@@ -47,7 +47,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
          :ok          <- Basic.qos(chan, [global: true]),
          {:ok, _}     <- AMQP.Queue.declare(chan, q_base <> "_from_clients", [auto_delete: true]),
          from_clients <- [routing_key: "bot.#{device}.from_clients"],
-         res          <- AMQP.Queue.purge(chan, q_base <> "_from_clients"),
+         {:ok, _}     <- AMQP.Queue.purge(chan, q_base <> "_from_clients"),
          :ok          <- AMQP.Queue.bind(chan, q_base <> "_from_clients", @exchange, from_clients),
 
          {:ok, _}     <- AMQP.Queue.declare(chan, q_base <> "_auto_sync", [auto_delete: false]),
@@ -55,7 +55,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
          :ok          <- AMQP.Queue.bind(chan, q_base <> "_auto_sync", @exchange, sync),
 
          {:ok, _tag}  <- Basic.consume(chan, q_base <> "_from_clients", self(), [no_ack: true]),
-         {:ok, _tag}  <- Basic.consume(chan, q_base <> "_from_clients", self(), [no_ack: true]),
+         {:ok, _tag}  <- Basic.consume(chan, q_base <> "_auto_sync", self(), [no_ack: true]),
          opts      <- [conn: conn, chan: chan, bot: device],
          state <- struct(State, opts)
     do

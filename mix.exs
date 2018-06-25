@@ -142,7 +142,7 @@ defmodule Farmbot.Mixfile do
     system(target) ++
       [
         {:shoehorn, "~> 0.2.0", except: :test},
-        {:nerves_runtime, "0.5.3"},
+        {:nerves_runtime, "~> 0.6.1"},
         {:nerves_firmware, "~> 0.4.0"},
         {:nerves_init_gadget, "~> 0.3.0", only: :dev},
         {:nerves_network, "~> 0.3"},
