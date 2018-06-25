@@ -171,7 +171,8 @@ defmodule Farmbot.BotState do
 
   def handle_call({:report_soc_temp, temp}, _from, state) do
     new_info_settings = %{state.informational_settings | soc_temp: temp}
-    {:reply, :ok, %{state | informational_settings: new_info_settings}}
+    state = %{state | informational_settings: new_info_settings}
+    {:reply, :ok, [state], state}
   end
 
   def handle_call(:locked?, _from, state) do
