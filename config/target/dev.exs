@@ -36,9 +36,12 @@ config :farmbot, :init, [
   # Stops the disk from getting full.
   Farmbot.Target.Network.TzdataTask,
 
+  # Reports SOC temperature to BotState
+  Farmbot.Target.SocTempWorker,
+
   # Debug stuff
   Farmbot.System.Debug,
-  Farmbot.Target.Uevent.Supervisor
+  Farmbot.Target.Uevent.Supervisor,
 ]
 
 config :farmbot, :transport, [

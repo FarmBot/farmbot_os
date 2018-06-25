@@ -52,6 +52,10 @@ defmodule Farmbot.BotState do
     end
   end
 
+  def report_soc_temp(temp_celcius) when is_number(temp_celcius) do
+    GenStage.call(__MODULE__, {:report_soc_temp, temp_celcius})
+  end
+
   def locked? do
     GenStage.call(__MODULE__, :locked?)
   end
@@ -163,6 +167,11 @@ defmodule Farmbot.BotState do
     state = do_handle(events, state)
     # Logger.success 3, "Finish handle bot state events"
     {:noreply, [state], state}
+  end
+
+  def handle_call({:report_soc_temp, temp}, _from, state) do
+    new_info_settings = %{state.informational_settings | soc_temp: temp}
+    {:reply, :ok, %{state | informational_settings: new_info_settings}}
   end
 
   def handle_call(:locked?, _from, state) do
@@ -329,7 +338,8 @@ defmodule Farmbot.BotState do
       sync_status: :booting,
       last_status: nil,
       locked: false,
-      cache_bust: 0
+      cache_bust: 0,
+      soc_temp: 0,
     },
     location_data: %{
       position: %{x: nil, y: nil, z: nil},
