@@ -1,4 +1,8 @@
 # Changelog
+# 6.4.4
+* Optimize AMQP connection
+* Add new field on `informational_settings`: `soc_temp`
+
 # 6.4.3
 * Fix Ramps firmware build.
 
