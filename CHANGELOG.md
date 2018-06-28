@@ -1,7 +1,9 @@
 # Changelog
 # 6.4.4
-* Optimize AMQP connection
-* Add new field on `informational_settings`: `soc_temp`
+* Optimize AMQP connection.
+* Add new field on `informational_settings`: `soc_temp`.
+* Declare language and charset in Configurator to avoid localization issues.
+* Update Linux system layer.
 
 # 6.4.3
 * Fix Ramps firmware build.
