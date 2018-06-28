@@ -3,6 +3,7 @@
 * Optimize AMQP connection.
 * Add new field on `informational_settings`: `soc_temp`.
 * Declare language and charset in Configurator to avoid localization issues.
+* Another attempt at catching broken sqlite3 lib.
 * Update Linux system layer.
 
 # 6.4.3

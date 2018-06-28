@@ -26,7 +26,7 @@ config :lager, :handlers, []
 config :elixir, ansi_enabled: true
 config :iex, :colors, enabled: true
 
-config :ssl, protocol_version: :"tlsv1.2"
+# config :ssl, protocol_version: :"tlsv1.2"
 
 config :farmbot, farm_event_debug_log: false
 
