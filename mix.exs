@@ -103,14 +103,16 @@ defmodule Farmbot.Mixfile do
       {:phoenix_html, "~> 2.10.5"},
       {:poison, "~> 3.1.0"},
       {:jason, "~> 1.0"},
-      {:httpoison, "~> 1.1"},
+      {:httpoison, "~> 1.2"},
       {:jsx, "~> 2.8.0"},
       {:timex, "~> 3.3"},
       {:fs, "~> 3.4.0"},
       {:nerves_uart, "~> 1.2"},
       {:nerves_leds, "~> 0.8.0"},
-      {:cowboy, "~> 1.0.0"},
-      {:plug, "~> 1.0"},
+      {:cowboy, "~> 2.0"},
+      {:plug, "~> 1.6"},
+      {:ranch_proxy_protocol,
+       github: "heroku/ranch_proxy_protocol", override: true},
       {:cors_plug, "~> 1.5"},
       {:rsa, "~> 0.0.1"},
       {:joken, "~> 1.1"},
@@ -155,7 +157,7 @@ defmodule Farmbot.Mixfile do
   end
 
   defp system("rpi3"),
-    do: [{:nerves_system_farmbot_rpi3, "1.1.1-farmbot.0", runtime: false}]
+    do: [{:nerves_system_farmbot_rpi3, "1.2.1-farmbot.0", runtime: false}]
 
   defp system("rpi0"),
     do: [{:nerves_system_farmbot_rpi0, "1.0.0-rc.1-farmbot.0", runtime: false}]
