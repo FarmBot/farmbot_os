@@ -82,6 +82,13 @@ defmodule Farmbot.Target.Network do
     wait_for_results(pid)
   end
 
+  def get_level(ifname, ssid) do
+    r = Farmbot.Target.Network.scan(ifname)
+    if res = Enum.find(r, &Map.get(&1, :ssid) == ssid) do
+      res.level
+    end
+  end
+
   @doc "Tests if we can make dns queries."
   def test_dns(hostname \\ nil)
 
