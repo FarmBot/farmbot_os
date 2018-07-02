@@ -5,6 +5,7 @@
 * Declare language and charset in Configurator to avoid localization issues.
 * Another attempt at catching broken sqlite3 lib.
 * Update Linux system layer.
+* Add new configurator fields for dns and ntp.
 
 # 6.4.3
 * Fix Ramps firmware build.

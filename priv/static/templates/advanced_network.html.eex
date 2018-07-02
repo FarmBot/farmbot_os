@@ -22,6 +22,16 @@
 <div>
   <label class="expandable" onclick="toggleAdvancedSettings()" for="hiddenToggle">Advanced settings</label>
   <fieldset id="hiddenToggle" hidden>
+
+    <label for="dns_name"> DNS test name </label>
+    <input type="text" id="dns_name" name="dns_name" value="">
+
+    <label for="ntp_server_1"> NTP Pool Server 1 </label>
+    <input type="text" id="ntp_server_1" name=ntp_server_1 value="">
+
+    <label for="ntp_server_2"> NTP Pool Server 2 </label>
+    <input type="text" id="ntp_server_2" name=ntp_server_2 value="">
+
     <label for="domain"> Domain </label>
     <input type="text" name="domain" id="domain" value="">
 
@@ -43,7 +53,6 @@
 
       <label for="ipv4_gateway"> IP Gateway </label>
       <input type="text" id="ipv4_gateway" name="ipv4_gateway" value="0.0.0.0">
-
     </fieldset>
 
   </fieldset>

@@ -55,7 +55,10 @@ config :farmbot,
   default_server: "https://my.farm.bot",
   default_currently_on_beta: String.contains?(to_string(:os.cmd('git rev-parse --abbrev-ref HEAD')), "beta"),
   firmware_io_logs: false,
-  default_farmware_tools_release_url: "https://api.github.com/repos/FarmBot-Labs/farmware-tools/releases/11015343"
+  default_farmware_tools_release_url: "https://api.github.com/repos/FarmBot-Labs/farmware-tools/releases/11015343",
+  default_ntp_server_1: "0.pool.ntp.org",
+  default_ntp_server_2: "1.pool.ntp.org",
+  default_dns_name: "nerves-project.org"
 
 global_overlay_dir = "rootfs_overlay"
 
