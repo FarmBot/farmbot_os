@@ -70,7 +70,7 @@ defmodule Farmbot.Target.Network.Manager do
   def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-NETWORK-NOT-FOUND", _}, %{not_found_timer: nil} = state) do
     first_boot = ConfigStorage.get_config_value(:bool, "settings", "first_boot")
     # stored in minutes
-    delay_timer = (ConfigStorage.get_config_value(:float, "settings", "network_not_found_timer") || 1) *  60_000
+    delay_timer = (ConfigStorage.get_config_value(:float, "settings", "network_not_found_timer") || 1) * 60_000
     maybe_hidden? = Keyword.get(state.opts, :maybe_hidden, false)
     cond do
       # Check if the network might be hidden first.

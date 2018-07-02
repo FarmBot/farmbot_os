@@ -36,8 +36,10 @@ config :farmbot, :init, [
   # Stops the disk from getting full.
   Farmbot.Target.Network.TzdataTask,
 
-  # Reports SOC temperature to BotState
+  # Reports SOC temperature to BotState.
   Farmbot.Target.SocTempWorker,
+  # Reports Wifi info to BotState.
+  Farmbot.Target.Network.InfoSupervisor,
 
   # Debug stuff
   Farmbot.System.Debug,
