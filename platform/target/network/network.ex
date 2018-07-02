@@ -87,7 +87,7 @@ defmodule Farmbot.Target.Network do
 
   def test_dns(nil) do
     case get_config_value(:string, "authorization", "server") do
-      nil -> 'nerves-project.org'
+      nil -> test_dns(to_charlist(get_config_value(:string, "settings", "default_dns_name")))
       <<"https://" <> host :: binary>> -> test_dns(to_charlist(host))
       <<"http://"  <> host :: binary>> -> test_dns(to_charlist(host))
     end

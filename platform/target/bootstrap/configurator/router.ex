@@ -111,6 +111,24 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
       ipv4_address     = conn.params["ipv4_address"] |> remove_empty_string()
       ipv4_gateway     = conn.params["ipv4_gateway"] |> remove_empty_string()
       ipv4_subnet_mask = conn.params["ipv4_subnet_mask"] |> remove_empty_string()
+
+      dns_name         = conn.params["dns_name"] |> remove_empty_string()
+      ntp_server_1     = conn.params["ntp_server_1"] |> remove_empty_string()
+      ntp_server_2     = conn.params["ntp_server_2"] |> remove_empty_string()
+
+      if dns_name do
+        update_config_value(:string, "settings", "default_dns_name", dns_name)
+      end
+
+      if ntp_server_1 do
+        update_config_value(:string, "settings", "default_ntp_server_1", ntp_server_1)
+      end
+
+
+      if ntp_server_2 do
+        update_config_value(:string, "settings", "default_ntp_server_2", ntp_server_2)
+      end
+
       ConfigStorage.input_network_config!(%{
         name: ifname,
         ssid: ssid, security: security, psk: psk,
