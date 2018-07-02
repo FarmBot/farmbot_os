@@ -2,10 +2,11 @@
 # 6.4.4
 * Optimize AMQP connection.
 * Add new field on `informational_settings`: `soc_temp`.
+* Add new field on `informational_settings`: `wifi_level`.
 * Declare language and charset in Configurator to avoid localization issues.
+* Add new Configurator fields for dns and ntp.
 * Another attempt at catching broken sqlite3 lib.
 * Update Linux system layer.
-* Add new configurator fields for dns and ntp.
 
 # 6.4.3
 * Fix Ramps firmware build.
