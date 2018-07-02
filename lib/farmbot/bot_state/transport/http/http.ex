@@ -58,7 +58,7 @@ defmodule Farmbot.BotState.Transport.HTTP do
     # FIXME(Connor) The router should probably
     # be put in an externally supervised module..
     opts = [port: @port, acceptors: 2, dispatch: [cowboy_dispatch()]]
-    case Plug.Adapters.Cowboy.http Router, [], opts do
+    case Plug.Adapters.Cowboy2.http Router, [], opts do
       {:ok, web} ->
         state = %{web: web, bot_state: nil, sockets: [], public_key: public_key}
         Process.link(state.web)
@@ -106,7 +106,7 @@ defmodule Farmbot.BotState.Transport.HTTP do
     {:_,
       [
         # {"/ws", SocketHandler, []},
-        {:_, Plug.Adapters.Cowboy.Handler, {Router, []}},
+        {:_, Plug.Adapters.Cowboy2.Handler, {Router, []}},
       ]
     }
   end
