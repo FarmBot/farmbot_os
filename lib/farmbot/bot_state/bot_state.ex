@@ -56,6 +56,10 @@ defmodule Farmbot.BotState do
     GenStage.call(__MODULE__, {:report_soc_temp, temp_celcius})
   end
 
+  def report_wifi_level(level) when is_number(level) do
+    GenStage.call(__MODULE__, {:report_wifi_level, level})
+  end
+
   def locked? do
     GenStage.call(__MODULE__, :locked?)
   end
@@ -171,6 +175,12 @@ defmodule Farmbot.BotState do
 
   def handle_call({:report_soc_temp, temp}, _from, state) do
     new_info_settings = %{state.informational_settings | soc_temp: temp}
+    state = %{state | informational_settings: new_info_settings}
+    {:reply, :ok, [state], state}
+  end
+
+  def handle_call({:report_wifi_level, level}, _from, state) do
+    new_info_settings = %{state.informational_settings | wifi_level: level}
     state = %{state | informational_settings: new_info_settings}
     {:reply, :ok, [state], state}
   end
@@ -341,6 +351,7 @@ defmodule Farmbot.BotState do
       locked: false,
       cache_bust: 0,
       soc_temp: 0,
+      wifi_level: nil,
     },
     location_data: %{
       position: %{x: nil, y: nil, z: nil},
