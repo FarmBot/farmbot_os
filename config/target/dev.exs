@@ -44,11 +44,14 @@ config :farmbot, :init, [
   # Debug stuff
   Farmbot.System.Debug,
   Farmbot.Target.Uevent.Supervisor,
+
+  Farmbot.Target.Leds.AleHandler
 ]
 
 config :farmbot, :transport, [
   Farmbot.BotState.Transport.AMQP,
   Farmbot.BotState.Transport.HTTP,
+  Farmbot.BotState.Transport.Registry,
 ]
 
 # Configure Farmbot Behaviours.
@@ -57,7 +60,8 @@ config :farmbot, :behaviour,
   system_tasks: Farmbot.Target.SystemTasks,
   firmware_handler: Farmbot.Firmware.StubHandler,
   update_handler: Farmbot.Target.UpdateHandler,
-  pin_binding_handler: Farmbot.Target.PinBinding.AleHandler
+  pin_binding_handler: Farmbot.Target.PinBinding.AleHandler,
+  leds_handler: Farmbot.Target.Leds.AleHandler
 
 local_file = Path.join(System.user_home!(), ".ssh/id_rsa.pub")
 local_key = if File.exists?(local_file), do: [File.read!(local_file)], else: []

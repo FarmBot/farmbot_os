@@ -9,6 +9,7 @@ defmodule Farmbot.BotState.Supervisor do
 
   def init([]) do
     children = [
+      worker(Farmbot.BotState.LedWorker, []),
       worker(Farmbot.BotState, []),
     ]
 

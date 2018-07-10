@@ -18,7 +18,8 @@ config :farmbot, :init, [
 
 # Transports.
 config :farmbot, :transport, [
-  Farmbot.BotState.Transport.Test
+  Farmbot.BotState.Transport.Test,
+  Farmbot.BotState.Transport.Registry,
 ]
 
 config :farmbot, :farmware, first_part_farmware_manifest_url: nil

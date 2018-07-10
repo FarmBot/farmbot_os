@@ -16,6 +16,7 @@ defmodule Farmbot.Firmware.Supervisor do
   def init([]) do
     children = [
       worker(Farmbot.Firmware.EstopTimer, []),
+      worker(Farmbot.Firmware.LedWorker, []),
       worker(Farmbot.Firmware, []),
     ]
 
