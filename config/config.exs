@@ -44,7 +44,7 @@ config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
   firmware_handler: Farmbot.Firmware.StubHandler,
   http_adapter: Farmbot.HTTP.HTTPoisonAdapter,
-  gpio_handler: Farmbot.System.GPIO.StubHandler,
+  pin_binding_handler: Farmbot.PinBinding.StubHandler,
   json_parser: Farmbot.JSON.JasonParser
 
 config :farmbot, :farmware,

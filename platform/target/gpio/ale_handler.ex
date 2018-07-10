@@ -1,11 +1,11 @@
-defmodule Farmbot.Target.GPIO.AleHandler do
-  @moduledoc "GPIO handler that uses Elixir.Ale"
+defmodule Farmbot.Target.PinBinding.AleHandler do
+  @moduledoc "PinBinding handler that uses Elixir.Ale"
 
   use GenStage
   alias ElixirALE.GPIO
-  @behaviour Farmbot.System.GPIO.Handler
+  @behaviour Farmbot.PinBinding.Handler
 
-  # GPIO Handler Callbacks
+  # PinBinding.Handler Callbacks
   def start_link do
     GenStage.start_link(__MODULE__, [], [name: __MODULE__])
   end
