@@ -4,39 +4,25 @@ defmodule Farmbot.Leds.StubHandler do
 
   @behaviour Farmbot.Leds.Handler
 
-  def red(status) do
-    do_debug(:red, status)
-  end
-
-  def blue(status) do
-    do_debug(:blue, status)
-  end
-
-  def green(status) do
-    do_debug(:green, status)
-  end
-
-  def yellow(status) do
-    do_debug(:yellow, status)
-  end
-
-  def white1(status) do
-    do_debug(:white, status)
-  end
-
-  def white2(status) do
-    do_debug(:white, status)
-  end
+  def red(status), do: do_debug(:red, status)
+  def blue(status), do: do_debug(:blue, status)
+  def green(status), do: do_debug(:green, status)
+  def yellow(status), do: do_debug(:yellow, status)
+  def white1(status), do: do_debug(:white, status)
+  def white2(status), do: do_debug(:white, status)
+  def white3(status), do: do_debug(:white, status)
+  def white4(status), do: do_debug(:white, status)
+  def white5(status), do: do_debug(:white, status)
 
   defp do_debug(color, status) do
-    msg = ["LED STATUS: ",
+    msg = [IO.ANSI.reset(), "LED STATUS: ",
            apply(IO.ANSI, color, []),
            status_in(status),
            to_string(color),
            " ",
            to_string(status),
            status_out(status),
-           IO.ANSI.normal()
+           IO.ANSI.reset()
          ]
     IO.puts(msg)
   end

@@ -31,8 +31,7 @@ defmodule Farmbot.Target.PinBinding.AleHandler do
   end
 
   def init([]) do
-    {:producer, struct(State, pins: %{}),
-     [dispatcher: GenStage.BroadcastDispatcher]}
+    {:producer, struct(State, pins: %{}), [dispatcher: GenStage.BroadcastDispatcher]}
   end
 
   def handle_demand(_amnt, state) do
