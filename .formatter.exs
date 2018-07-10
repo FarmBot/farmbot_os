@@ -5,7 +5,4 @@ known_formatted_files =
   |> Enum.map(&String.trim(&1))
   |> List.delete("")
 
-[
-  inputs: ["mix.exs", ".formatter.exs"] ++ known_formatted_files,
-  line_length: 80
-]
+[inputs: ["mix.exs", ".formatter.exs"] ++ known_formatted_files]

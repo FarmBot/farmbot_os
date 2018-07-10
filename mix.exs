@@ -84,8 +84,7 @@ defmodule Farmbot.Mixfile do
     case System.get_env("ERL_EI_INCLUDE_DIR") do
       nil ->
         %{
-          "ERL_EI_INCLUDE_DIR" =>
-            Path.join([:code.root_dir(), "usr", "include"]),
+          "ERL_EI_INCLUDE_DIR" => Path.join([:code.root_dir(), "usr", "include"]),
           "ERL_EI_LIBDIR" => Path.join([:code.root_dir(), "usr", "lib"]),
           "MIX_TARGET" => @target
         }
@@ -111,8 +110,7 @@ defmodule Farmbot.Mixfile do
       {:nerves_leds, "~> 0.8"},
       {:cowboy, "~> 2.0"},
       {:plug, "~> 1.6"},
-      {:ranch_proxy_protocol,
-       github: "heroku/ranch_proxy_protocol", override: true},
+      {:ranch_proxy_protocol, github: "heroku/ranch_proxy_protocol", override: true},
       {:cors_plug, "~> 1.5"},
       {:rsa, "~> 0.0.1"},
       {:joken, "~> 1.5"},
@@ -148,8 +146,7 @@ defmodule Farmbot.Mixfile do
         {:nerves_firmware, "~> 0.4"},
         {:nerves_init_gadget, "~> 0.4.0", only: :dev},
         {:nerves_network, "~> 0.3"},
-        {:nerves_wpa_supplicant,
-         github: "nerves-project/nerves_wpa_supplicant", override: true},
+        {:nerves_wpa_supplicant, github: "nerves-project/nerves_wpa_supplicant", override: true},
         {:dhcp_server, "~> 0.4.0"},
         {:elixir_ale, "~> 1.0"},
         {:mdns, "~> 1.0"}

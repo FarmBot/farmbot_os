@@ -20,6 +20,8 @@ config :farmbot, ecto_repos: [Farmbot.Repo, Farmbot.System.ConfigStorage]
 
 # Configure your our init system.
 config :farmbot, :init, [
+  Farmbot.Target.Leds.AleHandler,
+
   # Autodetects if a Arduino is plugged in and configures accordingly.
   Farmbot.Firmware.UartHandler.AutoDetector,
 
@@ -42,8 +44,6 @@ config :farmbot, :init, [
 
   # Helps with hot plugging of serial devices.
   Farmbot.Target.Uevent.Supervisor,
-
-  Farmbot.Target.Leds.AleHandler
 ]
 
 config :farmbot, :transport, [

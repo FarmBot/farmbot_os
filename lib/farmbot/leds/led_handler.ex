@@ -10,4 +10,7 @@ defmodule Farmbot.Leds.Handler do
   @callback yellow(status) :: any
   @callback white1(status) :: any
   @callback white2(status) :: any
+  @callback white3(status) :: any
+  @callback white4(status) :: any
+  @callback white5(status) :: any
 end
