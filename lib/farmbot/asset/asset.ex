@@ -9,6 +9,7 @@ defmodule Farmbot.Asset do
     Device,
     FarmEvent,
     Peripheral,
+    PinBinding,
     Point,
     Regimen,
     Sensor,
@@ -28,6 +29,10 @@ defmodule Farmbot.Asset do
     Farmbot.Repo.delete_all(Sequence)
     Farmbot.Repo.delete_all(Tool)
     :ok
+  end
+
+  def all_pin_bindings do
+    Farmbot.Repo.all(PinBinding)
   end
 
   @doc "Information about _this_ device."

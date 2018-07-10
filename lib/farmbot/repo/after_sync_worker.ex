@@ -10,7 +10,7 @@ defmodule Farmbot.Repo.AfterSyncWorker do
 
   def init([]) do
     Farmbot.Repo.Registry.subscribe()
-    Farmbot.System.GPIO.confirm_asset_storage_up()
+    Farmbot.PinBinding.Manager.confirm_asset_storage_up()
     {:ok, %{}}
   end
 
@@ -23,6 +23,22 @@ defmodule Farmbot.Repo.AfterSyncWorker do
     mode = if mode == 0, do: :digital, else: :analog
     Logger.busy 3, "Read peripheral (#{pin} - #{mode})"
     Farmbot.Firmware.read_pin(pin, mode)
+    {:noreply, state}
+  end
+
+  def handle_info({Farmbot.Repo.Registry, :addition, Farmbot.Asset.PinBinding, %{pin_num: pin, sequence_id: sequence_id}}, state) do
+    Farmbot.PinBinding.Manager.register_pin(pin, sequence_id)
+    {:noreply, state}
+  end
+
+  def handle_info({Farmbot.Repo.Registry, :updated, Farmbot.Asset.PinBinding, %{pin_num: pin, sequence_id: sequence_id}}, state) do
+    Farmbot.PinBinding.Manager.unregister_pin(pin)
+    Farmbot.PinBinding.Manager.register_pin(pin, sequence_id)
+    {:noreply, state}
+  end
+
+  def handle_info({Farmbot.Repo.Registry, :deletion, Farmbot.Asset.PinBinding, %{pin_num: pin, sequence_id: _sequence_id}}, state) do
+    Farmbot.PinBinding.Manager.unregister_pin(pin)
     {:noreply, state}
   end
 

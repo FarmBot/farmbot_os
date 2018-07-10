@@ -18,7 +18,6 @@ defmodule Farmbot.System.Supervisor do
       supervisor(Farmbot.System.Init.Ecto, [[], []]),
       supervisor(Farmbot.System.ConfigStorage, []),
       worker(Farmbot.System.ConfigStorage.Dispatcher, []),
-      worker(Farmbot.System.GPIO.Leds, []),
     ]
 
     init_mods =
@@ -27,7 +26,6 @@ defmodule Farmbot.System.Supervisor do
 
     after_init_children = [
       supervisor(Farmbot.System.Updates, []),
-      worker(Farmbot.System.GPIO, []),
       worker(Farmbot.EasterEggs, []),
     ]
 

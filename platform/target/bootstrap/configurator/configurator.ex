@@ -67,7 +67,6 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
     Logger.info(3, "Building new configuration.")
     import Supervisor.Spec
     :ets.new(:session, [:named_table, :public, read_concurrency: true])
-    Farmbot.System.GPIO.Leds.led_status_err()
     ConfigStorage.destroy_all_network_configs()
     children = [
       worker(Configurator.CaptivePortal, [], restart: :transient),

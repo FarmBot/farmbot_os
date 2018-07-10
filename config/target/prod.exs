@@ -55,7 +55,7 @@ config :farmbot, :behaviour,
   system_tasks: Farmbot.Target.SystemTasks,
   firmware_handler: Farmbot.Firmware.StubHandler,
   update_handler: Farmbot.Target.UpdateHandler,
-  gpio_handler:   Farmbot.Target.GPIO.AleHandler
+  pin_binding_handler: Farmbot.Target.PinBinding.AleHandler
 
 config :shoehorn,
   init: [:nerves_runtime],

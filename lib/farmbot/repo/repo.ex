@@ -16,6 +16,7 @@ defmodule Farmbot.Repo do
     Device,
     FarmEvent,
     Peripheral,
+    PinBinding,
     Point,
     Regimen,
     Sensor,
@@ -69,6 +70,7 @@ defmodule Farmbot.Repo do
     results = Farmbot.Repo.all(Device) ++
     Farmbot.Repo.all(FarmEvent) ++
     Farmbot.Repo.all(Peripheral) ++
+    Farmbot.Repo.all(PinBinding) ++
     Farmbot.Repo.all(Point) ++
     Farmbot.Repo.all(Regimen) ++
     Farmbot.Repo.all(Sensor) ++
@@ -86,6 +88,7 @@ defmodule Farmbot.Repo do
         Task.async(fn() -> {Device, HTTP.get!("/api/device.json") |> Map.fetch!(:body) |> Poison.decode!(as: struct(Device))} end),
         Task.async(fn() -> {FarmEvent, HTTP.get!("/api/farm_events.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(FarmEvent)])} end),
         Task.async(fn() -> {Peripheral, HTTP.get!("/api/peripherals.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Peripheral)])} end),
+        Task.async(fn() -> {PinBinding, HTTP.get!("/api/pin_bindings.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(PinBinding)])} end),
         Task.async(fn() -> {Point, HTTP.get!("/api/points.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Point)])} end),
         Task.async(fn() -> {Regimen, HTTP.get!("/api/regimens.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Regimen)])} end),
         Task.async(fn() -> {Sensor, HTTP.get!("/api/sensors.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Sensor)])} end),

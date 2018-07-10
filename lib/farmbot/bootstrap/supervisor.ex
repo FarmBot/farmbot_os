@@ -127,6 +127,7 @@ defmodule Farmbot.Bootstrap.Supervisor do
           supervisor(Farmbot.HTTP.Supervisor,               []),
           worker(Farmbot.Bootstrap.SettingsSync,            []),
           supervisor(Farmbot.Firmware.Supervisor,           []),
+          supervisor(Farmbot.PinBinding.Supervisor,         []),
           supervisor(Farmbot.BotState.Supervisor,           []),
           supervisor(Farmbot.BotState.Transport.Supervisor, []),
           supervisor(Farmbot.Repo.Supervisor,               []),
