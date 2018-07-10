@@ -21,6 +21,7 @@ config :farmbot, :init, [
 config :farmbot, :transport, [
   Farmbot.BotState.Transport.AMQP,
   Farmbot.BotState.Transport.HTTP,
+  Farmbot.BotState.Transport.Registry,
 ]
 
 config :farmbot, ecto_repos: [Farmbot.Repo, Farmbot.System.ConfigStorage]

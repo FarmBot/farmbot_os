@@ -45,7 +45,8 @@ config :farmbot, :behaviour,
   firmware_handler: Farmbot.Firmware.StubHandler,
   http_adapter: Farmbot.HTTP.HTTPoisonAdapter,
   pin_binding_handler: Farmbot.PinBinding.StubHandler,
-  json_parser: Farmbot.JSON.JasonParser
+  json_parser: Farmbot.JSON.JasonParser,
+  leds_handler: Farmbot.Leds.StubHandler
 
 config :farmbot, :farmware,
   first_part_farmware_manifest_url: "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/manifest.json"

@@ -12,9 +12,10 @@ defmodule Farmbot.Repo.Supervisor do
   def init([]) do
     children = [
       supervisor(Farmbot.Repo, []),
+      worker(Farmbot.Repo.LedWorker, []),
       worker(Farmbot.Repo.Worker, []),
       worker(Farmbot.Repo.Registry, []),
-      worker(Farmbot.Repo.AfterSyncWorker, [])
+      worker(Farmbot.Repo.AfterSyncWorker, []),
     ]
     supervise(children, [strategy: :one_for_all])
   end
