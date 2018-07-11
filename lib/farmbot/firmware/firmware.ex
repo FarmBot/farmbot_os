@@ -360,16 +360,9 @@ defmodule Farmbot.Firmware do
     maybe_cancel_timer(state.timer, state.current)
     Farmbot.BotState.set_busy(false)
     if state.current do
-      # This might be a bug in the FW
-      if state.current.fun in [:home, :home_all] do
-        Logger.warn 1, "Got idle during home."
-        timer = start_timer(state.current, state.timeout_ms)
-        {nil, %{state | timer: timer}}
-      else
-        Logger.warn 1, "Got idle while executing a command."
-        do_reply(state, {:error, :timeout})
-        {:informational_settings, %{busy: false, locked: false}, %{state | current: nil, idle: true}}
-      end
+      Logger.warn 1, "Got idle while executing a command."
+      timer = start_timer(state.current, state.timeout_ms)
+      {nil, %{state | timer: timer}}
     else
       {:informational_settings, %{busy: false, locked: false}, %{state | idle: true}}
     end
