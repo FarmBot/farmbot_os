@@ -20,6 +20,8 @@ config :farmbot, ecto_repos: [Farmbot.Repo, Farmbot.System.ConfigStorage]
 
 # Configure your our init system.
 config :farmbot, :init, [
+  Farmbot.Target.Leds.AleHandler,
+
   # Autodetects if a Arduino is plugged in and configures accordingly.
   Farmbot.Firmware.UartHandler.AutoDetector,
 
@@ -41,12 +43,13 @@ config :farmbot, :init, [
   Farmbot.Target.Network.InfoSupervisor,
 
   # Helps with hot plugging of serial devices.
-  Farmbot.Target.Uevent.Supervisor
+  Farmbot.Target.Uevent.Supervisor,
 ]
 
 config :farmbot, :transport, [
   Farmbot.BotState.Transport.AMQP,
   Farmbot.BotState.Transport.HTTP,
+  Farmbot.BotState.Transport.Registry,
 ]
 
 # Configure Farmbot Behaviours.
@@ -55,7 +58,8 @@ config :farmbot, :behaviour,
   system_tasks: Farmbot.Target.SystemTasks,
   firmware_handler: Farmbot.Firmware.StubHandler,
   update_handler: Farmbot.Target.UpdateHandler,
-  gpio_handler:   Farmbot.Target.GPIO.AleHandler
+  pin_binding_handler: Farmbot.Target.PinBinding.AleHandler,
+  leds_handler: Farmbot.Target.Leds.AleHandler
 
 config :shoehorn,
   init: [:nerves_runtime],

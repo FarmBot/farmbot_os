@@ -14,7 +14,6 @@ defmodule Farmbot.Bootstrap.Authorization do
   @type token :: binary
 
   use Farmbot.Logger
-  alias Farmbot.System.GPIO.Leds
   alias Farmbot.System.ConfigStorage
   import ConfigStorage, only: [update_config_value: 4, get_config_value: 3]
 
@@ -51,7 +50,6 @@ defmodule Farmbot.Bootstrap.Authorization do
          {:ok, resp}    <- request_token(server, payload),
          {:ok, body}    <- Poison.decode(resp),
          {:ok, map}     <- Map.fetch(body, "token") do
-      Leds.led_status_ok()
       last_reset_reason_file = Path.join(@data_path, "last_shutdown_reason")
       File.rm(last_reset_reason_file)
       Map.fetch(map, "encoded")
@@ -86,7 +84,6 @@ defmodule Farmbot.Bootstrap.Authorization do
       update_config_value(:bool, "settings", "first_boot", false)
       last_reset_reason_file = Path.join(@data_path, "last_shutdown_reason")
       File.rm(last_reset_reason_file)
-      Leds.led_status_ok()
       Map.fetch(map, "encoded")
     else
       :error -> {:error, "unknown error."}

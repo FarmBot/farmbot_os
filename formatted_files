@@ -5,9 +5,16 @@ lib/farmbot/farmware/runtime.ex
 lib/farmbot/farmware/runtime_error.ex
 lib/farmbot/farmware/supervisor.ex
 lib/farmbot/repo/worker.ex
-lib/farmbot/system/gpio/gpio.ex
+lib/farmbot/pin_binding/handler.ex
+lib/farmbot/pin_binding/pin_binding.ex
+lib/farmbot/pin_binding/stub_handler.ex
 lib/farmbot/asset/farm_event.ex
 lib/farmbot/asset/regimen.ex
 lib/farmbot/jwt.ex
 lib/farmbot/json/jason_parser.ex
 lib/farmbot/json/parser.ex
+lib/farmbot/bot_state/led_worker.ex
+lib/farmbot/firmware/led_worker.ex
+lib/farmbot/repo/led_worker.ex
+platform/target/gpio/leds_ale_handler.ex
+platform/target/gpio/pin_binding_ale_handler.ex

@@ -107,6 +107,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
     auth_task = Farmbot.Bootstrap.AuthTask
     if Process.whereis(auth_task) && reason not in ok_reasons do
       auth_task.force_refresh()
+      Farmbot.BotState.set_connected(false)
     end
   end
 
@@ -164,6 +165,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
       Logger.success(1, "Farmbot is up and running!")
       update_config_value(:bool, "settings", "log_amqp_connected", false)
     end
+    Farmbot.BotState.set_connected(true)
     {:noreply, [], state}
   end
 

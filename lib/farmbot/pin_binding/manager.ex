@@ -1,11 +1,11 @@
-defmodule Farmbot.System.GPIO do
-  @moduledoc "Handles GPIO inputs."
+defmodule Farmbot.PinBinding.Manager do
+  @moduledoc "Handles PinBinding inputs and outputs"
   use GenStage
   use Farmbot.Logger
-  alias Farmbot.System.ConfigStorage
-  alias ConfigStorage.GpioRegistry
-
-  @handler Application.get_env(:farmbot, :behaviour)[:gpio_handler]
+  alias Farmbot.Asset
+  alias Asset.PinBinding
+  @handler Application.get_env(:farmbot, :behaviour)[:pin_binding_handler]
+  @handler || Mix.raise("No pin binding handler.")
 
   @doc "Register a pin number to execute sequence."
   def register_pin(pin_num, sequence_id) do
@@ -13,8 +13,8 @@ defmodule Farmbot.System.GPIO do
   end
 
   @doc "Unregister a sequence."
-  def unregister_pin(sequence_id) do
-    GenStage.call(__MODULE__, {:unregister_pin, sequence_id})
+  def unregister_pin(pin_num) do
+    GenStage.call(__MODULE__, {:unregister_pin, pin_num})
   end
 
   def confirm_asset_storage_up do
@@ -22,8 +22,8 @@ defmodule Farmbot.System.GPIO do
   end
 
   @doc false
-  def start_link do
-    GenStage.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link(args) do
+    GenStage.start_link(__MODULE__, args, name: __MODULE__)
   end
 
   defmodule State do
@@ -37,8 +37,7 @@ defmodule Farmbot.System.GPIO do
   def init([]) do
     case @handler.start_link() do
       {:ok, handler} ->
-        all_gpios = ConfigStorage.all_gpios()
-        state = initial_state(all_gpios, struct(State, handler: handler))
+        state = initial_state([], struct(State, handler: handler))
         Process.send_after(self(), :update_fb_state_tree, 10)
 
         {:producer_consumer, state,
@@ -52,7 +51,7 @@ defmodule Farmbot.System.GPIO do
   defp initial_state([], state), do: state
 
   defp initial_state(
-         [%GpioRegistry{pin: pin, sequence_id: sequence_id} | rest],
+         [%PinBinding{pin_num: pin, sequence_id: sequence_id} | rest],
          state
        ) do
     case @handler.register_pin(pin) do
@@ -96,12 +95,11 @@ defmodule Farmbot.System.GPIO do
   end
 
   def handle_call({:register_pin, pin_num, sequence_id}, _from, state) do
+    Logger.info 1, "Registering #{pin_num} to sequence by id: #{sequence_id}"
     case state.registered[pin_num] do
       nil ->
         case @handler.register_pin(pin_num) do
           :ok ->
-            ConfigStorage.add_gpio_registry(pin_num, sequence_id)
-
             new_state = %{
               state
               | registered: Map.put(state.registered, pin_num, sequence_id)
@@ -119,14 +117,15 @@ defmodule Farmbot.System.GPIO do
   end
 
   def handle_call({:unregister_pin, pin_num}, _from, state) do
+
     case state.registered[pin_num] do
       nil ->
         {:reply, {:error, :unregistered}, [], state}
 
       sequence_id ->
+      Logger.info 1, "Unregistering #{pin_num} from sequence by id: #{sequence_id}"
         case @handler.unregister_pin(pin_num) do
           :ok ->
-            ConfigStorage.delete_gpio_registry(pin_num, sequence_id)
 
             new_state = %{
               state
@@ -142,6 +141,8 @@ defmodule Farmbot.System.GPIO do
   end
 
   def handle_call(:confirm_asset_storage_up, _, state) do
+    all_bindings = Asset.all_pin_bindings()
+    state = initial_state(all_bindings, state)
     {:reply, :ok, [], %{state | repo_up: true}}
   end
 
