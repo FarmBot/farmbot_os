@@ -363,7 +363,6 @@ defmodule Farmbot.Firmware do
       Logger.warn 1, "Got idle while executing a command."
       timer = start_timer(state.current, state.timeout_ms)
       {nil, %{state | timer: timer}}
-      end
     else
       {:informational_settings, %{busy: false, locked: false}, %{state | idle: true}}
     end
