@@ -47,6 +47,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
 
     wpa_pid = wait_for_wpa()
     Nerves.WpaSupplicant.request(wpa_pid, {:AP_SCAN, 2})
+    Farmbot.Leds.blue(:slow_blink)
     {:ok, %{dhcp_server: dhcp_server, dnsmasq: dnsmasq}}
   end
 

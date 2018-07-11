@@ -70,8 +70,7 @@ defmodule Farmbot.Repo.Worker do
          syncing: true
        })}
     else
-      {:ok,
-       struct(State, %{stability_timer: stability_timer, requires_full: true})}
+      {:ok, struct(State, %{stability_timer: stability_timer, requires_full: true})}
     end
   end
 
@@ -100,8 +99,7 @@ defmodule Farmbot.Repo.Worker do
     pid = spawn(Farmbot.Repo, :fragment_sync, [verbosity])
     ref = Process.monitor(pid)
 
-    timer =
-      refresh_or_start_sync_timeout(state.sync_timer, timeout_ms, ref, self())
+    timer = refresh_or_start_sync_timeout(state.sync_timer, timeout_ms, ref, self())
 
     set_sync_status(:syncing)
 
@@ -124,8 +122,7 @@ defmodule Farmbot.Repo.Worker do
     pid = spawn(Farmbot.Repo, :full_sync, [verbosity])
     ref = Process.monitor(pid)
 
-    timer =
-      refresh_or_start_sync_timeout(state.sync_timer, timeout_ms, ref, self())
+    timer = refresh_or_start_sync_timeout(state.sync_timer, timeout_ms, ref, self())
 
     set_sync_status(:syncing)
 
@@ -173,8 +170,7 @@ defmodule Farmbot.Repo.Worker do
      %{
        state
        | requires_full: true,
-         stability_timer:
-           refresh_or_start_stability_timeout(state.stability_timer, self())
+         stability_timer: refresh_or_start_stability_timeout(state.stability_timer, self())
      }}
   end
 

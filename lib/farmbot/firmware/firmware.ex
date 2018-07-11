@@ -260,7 +260,6 @@ defmodule Farmbot.Firmware do
       :ok ->
         timer = start_timer(current, state.timeout_ms)
         if fun == :emergency_unlock do
-          Farmbot.System.GPIO.Leds.led_status_ok()
           new_dispatch = [{:informational_settings,  %{busy: false, locked: false}} | dispatch]
           {:noreply, new_dispatch, %{state | current: current, timer: timer}}
         else
@@ -497,7 +496,6 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode(:report_emergency_lock, state) do
-    Farmbot.System.GPIO.Leds.led_status_err
     maybe_send_email()
     if state.current do
       do_reply(state, {:error, :emergency_lock})

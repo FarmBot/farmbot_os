@@ -64,6 +64,10 @@ defmodule Farmbot.BotState do
     GenStage.call(__MODULE__, :locked?)
   end
 
+  def set_connected(bool) when is_boolean(bool) do
+    GenStage.call(__MODULE__, {:set_connected, bool})
+  end
+
   @doc "Set job progress."
   def set_job_progress(name, progress) do
     GenServer.call(__MODULE__, {:set_job_progress, name, progress})
@@ -161,7 +165,7 @@ defmodule Farmbot.BotState do
     info_settings = %{initial_state.informational_settings | node_name: node()}
     state = %{initial_state | informational_settings: info_settings}
     gen_stage_opts = [
-      subscribe_to: [Firmware, ConfigStorage.Dispatcher, Farmbot.System.GPIO],
+      subscribe_to: [Firmware, ConfigStorage.Dispatcher, Farmbot.PinBinding.Manager],
       dispatcher: GenStage.BroadcastDispatcher
     ]
     {:producer_consumer, state, gen_stage_opts}
@@ -203,6 +207,12 @@ defmodule Farmbot.BotState do
       old + 1
     end)
     {:reply, new_state, [new_state], new_state}
+  end
+
+  def handle_call({:set_connected, bool}, _from, state) do
+    new_info_settings = %{state.informational_settings | connected: bool}
+    new_state = %{state | informational_settings: new_info_settings}
+    {:reply, :ok, [new_state], new_state}
   end
 
   def handle_call({:set_busy, bool}, _from, state) do
@@ -344,6 +354,7 @@ defmodule Farmbot.BotState do
       commit: @commit,
       target: @target,
       env: @env,
+      connected: false,
       node_name: nil,
       busy: false,
       sync_status: :booting,

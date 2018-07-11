@@ -72,8 +72,7 @@ defmodule Farmbot.Asset.FarmEvent do
       |> elem(1)
       |> DateTime.to_unix(:second)
 
-    end_time_seconds =
-      DateTime.from_iso8601(fe.end_time) |> elem(1) |> DateTime.to_unix(:second)
+    end_time_seconds = DateTime.from_iso8601(fe.end_time) |> elem(1) |> DateTime.to_unix(:second)
 
     repeat = fe.repeat
     repeat_frequency_seconds = time_unit_to_seconds(fe.time_unit)

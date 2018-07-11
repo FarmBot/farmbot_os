@@ -1,6 +1,6 @@
-defmodule Farmbot.System.GPIO.StubHandler do
-  @moduledoc "Stub for handling GPIO."
-  @behaviour Farmbot.System.GPIO.Handler
+defmodule Farmbot.PinBinding.StubHandler do
+  @moduledoc "Stub for handling PinBinding."
+  @behaviour Farmbot.PinBinding.Handler
   use GenStage
 
   def test_fire(pin) do
@@ -16,7 +16,7 @@ defmodule Farmbot.System.GPIO.StubHandler do
   end
 
   def start_link do
-    GenStage.start_link(__MODULE__, [], [name: __MODULE__])
+    GenStage.start_link(__MODULE__, [], name: __MODULE__)
   end
 
   def init([]) do
@@ -37,9 +37,11 @@ defmodule Farmbot.System.GPIO.StubHandler do
 
   def handle_call({:test_fire, pin}, _from, state) do
     case state[pin] do
-      nil -> {:reply, :error, [], state}
+      nil ->
+        {:reply, :error, [], state}
+
       :enabled ->
-        send self(), {:do_test_fire, pin}
+        send(self(), {:do_test_fire, pin})
         {:reply, :ok, [], state}
     end
   end
