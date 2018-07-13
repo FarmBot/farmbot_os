@@ -122,7 +122,8 @@ defmodule Farmbot.Mixfile do
       {:recon, "~> 2.3.2"},
       {:ring_logger, "~> 0.4.1"},
       {:bbmustache, "~> 1.5"},
-      {:apex, "~>1.2"}
+      {:apex, "~> 1.2"},
+      {:net_logger, "~> 0.1"}
     ]
   end
 
