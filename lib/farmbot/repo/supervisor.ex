@@ -12,6 +12,7 @@ defmodule Farmbot.Repo.Supervisor do
   def init([]) do
     children = [
       supervisor(Farmbot.Repo, []),
+      worker(Farmbot.Repo.SeedDB, []),
       worker(Farmbot.Repo.LedWorker, []),
       worker(Farmbot.Repo.Worker, []),
       worker(Farmbot.Repo.Registry, []),
