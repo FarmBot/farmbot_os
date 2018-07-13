@@ -369,7 +369,7 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode({:report_current_position, x, y, z}, state) do
-    {:location_data, %{position: %{x: round(x), y: round(y), z: round(z)}}, state}
+    {:location_data, %{position: %{x: x, y: y, z: z}}, state}
   end
 
   defp handle_gcode({:report_encoder_position_scaled, x, y, z}, state) do

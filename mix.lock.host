@@ -46,6 +46,7 @@
   "nerves": {:hex, :nerves, "1.1.0", "acc8af6d508793aa68be3aeefda7be4e01c2bc4cfcb729e335d60212d2cfcf12", [:mix], [{:distillery, "~> 1.4", [hex: :distillery, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: true]}], "hexpm"},
   "nerves_leds": {:hex, :nerves_leds, "0.8.0", "193692767dca1a201b09113d242648493b9be0087bab83ebee99c3b0a254f5e1", [:mix], [], "hexpm"},
   "nerves_uart": {:hex, :nerves_uart, "1.2.0", "195424116b925cd3bf9d666be036c2a80655e6ca0f8d447e277667a60005c50e", [:mix], [{:elixir_make, "~> 0.4", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm"},
+  "net_logger": {:hex, :net_logger, "0.1.0", "59be302c09cf70dab164810c923ccb9a976eda7270e5a32b93ba8aeb850de1d6", [:mix], [{:jason, "~> 1.1", [hex: :jason, repo: "hexpm", optional: false]}, {:uuid, "~> 1.1", [hex: :uuid, repo: "hexpm", optional: false]}], "hexpm"},
   "parse_trans": {:hex, :parse_trans, "3.2.0", "2adfa4daf80c14dc36f522cf190eb5c4ee3e28008fc6394397c16f62a26258c2", [:rebar3], [], "hexpm"},
   "phoenix_html": {:hex, :phoenix_html, "2.11.2", "86ebd768258ba60a27f5578bec83095bdb93485d646fc4111db8844c316602d6", [:mix], [{:plug, "~> 1.5", [hex: :plug, repo: "hexpm", optional: false]}], "hexpm"},
   "plug": {:hex, :plug, "1.6.1", "c62fe7623d035020cf989820b38490460e6903ab7eee29e234b7586e9b6c91d6", [:mix], [{:cowboy, "~> 1.0.1 or ~> 1.1 or ~> 2.4", [hex: :cowboy, repo: "hexpm", optional: true]}, {:mime, "~> 1.0", [hex: :mime, repo: "hexpm", optional: false]}], "hexpm"},

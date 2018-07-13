@@ -26,19 +26,19 @@ defmodule Farmbot.Repo.AfterSyncWorker do
     {:noreply, state}
   end
 
-  def handle_info({Farmbot.Repo.Registry, :addition, Farmbot.Asset.PinBinding, %{pin_num: pin, sequence_id: sequence_id}}, state) do
-    Farmbot.PinBinding.Manager.register_pin(pin, sequence_id)
+  def handle_info({Farmbot.Repo.Registry, :addition, Farmbot.Asset.PinBinding, binding}, state) do
+    Farmbot.PinBinding.Manager.register_pin(binding)
     {:noreply, state}
   end
 
-  def handle_info({Farmbot.Repo.Registry, :updated, Farmbot.Asset.PinBinding, %{pin_num: pin, sequence_id: sequence_id}}, state) do
-    Farmbot.PinBinding.Manager.unregister_pin(pin)
-    Farmbot.PinBinding.Manager.register_pin(pin, sequence_id)
+  def handle_info({Farmbot.Repo.Registry, :updated, Farmbot.Asset.PinBinding, binding}, state) do
+    Farmbot.PinBinding.Manager.unregister_pin(binding)
+    Farmbot.PinBinding.Manager.register_pin(binding)
     {:noreply, state}
   end
 
-  def handle_info({Farmbot.Repo.Registry, :deletion, Farmbot.Asset.PinBinding, %{pin_num: pin, sequence_id: _sequence_id}}, state) do
-    Farmbot.PinBinding.Manager.unregister_pin(pin)
+  def handle_info({Farmbot.Repo.Registry, :deletion, Farmbot.Asset.PinBinding, binding}, state) do
+    Farmbot.PinBinding.Manager.unregister_pin(binding)
     {:noreply, state}
   end
 

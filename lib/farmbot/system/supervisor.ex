@@ -27,6 +27,7 @@ defmodule Farmbot.System.Supervisor do
     after_init_children = [
       supervisor(Farmbot.System.Updates, []),
       worker(Farmbot.EasterEggs, []),
+      worker(Farmbot.Logger.NetLogger, [])
     ]
 
     all_children = before_init_children ++ init_mods ++ after_init_children

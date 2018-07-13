@@ -38,18 +38,18 @@ defmodule Farmbot.Target.Leds.AleHandler do
   end
 
   def handle_call({color, :off}, _from, state) do
-    :ok = GPIO.write(state[color].pid, 0)
+    r = GPIO.write(state[color].pid, 0)
     :ok = cancel_timer(state[color].blink_timer)
 
-    {:reply, :ok,
+    {:reply, r,
      update_color(state, color, %{state[color] | state: 0, blink_timer: nil, status: :off})}
   end
 
   def handle_call({color, :solid}, _from, state) do
-    :ok = GPIO.write(state[color].pid, 1)
+    r = GPIO.write(state[color].pid, 1)
     :ok = cancel_timer(state[color].blink_timer)
 
-    {:reply, :ok,
+    {:reply, r,
      update_color(state, color, %{state[color] | state: 1, blink_timer: nil, status: :off})}
   end
 
@@ -87,13 +87,13 @@ defmodule Farmbot.Target.Leds.AleHandler do
     {:noreply, new_state}
   end
 
-  defp color_to_pin(:red), do: 17
-  defp color_to_pin(:yellow), do: 23
+  defp color_to_pin(:red), do: 16
+  defp color_to_pin(:yellow), do: 22
+  defp color_to_pin(:white1), do: 26
+  defp color_to_pin(:white2), do: 05
+  defp color_to_pin(:white3), do: 20
   defp color_to_pin(:green), do: 24
   defp color_to_pin(:blue), do: 25
-  defp color_to_pin(:white1), do: 27
-  defp color_to_pin(:white2), do: 6
-  defp color_to_pin(:white3), do: 21
   defp color_to_pin(:white4), do: 12
   defp color_to_pin(:white5), do: 13
 
