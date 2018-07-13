@@ -52,13 +52,6 @@ config :farmbot, :farmware,
   first_part_farmware_manifest_url: "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/manifest.json"
 
 config :farmbot, :builtins,
-  sequence: [
-    emergency_lock: -1,
-    emergency_unlock: -2,
-    sync: -3,
-    reboot: -4,
-    power_off: -5
-  ],
   pin_binding: [
     emergency_lock: -1,
     emergency_unlock: -2,

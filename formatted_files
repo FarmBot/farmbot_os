@@ -5,7 +5,6 @@ lib/farmbot/farmware/runtime.ex
 lib/farmbot/farmware/runtime_error.ex
 lib/farmbot/farmware/supervisor.ex
 lib/farmbot/repo/worker.ex
-lib/farmbot/pin_binding/handler.ex
 lib/farmbot/pin_binding/pin_binding.ex
 lib/farmbot/pin_binding/stub_handler.ex
 lib/farmbot/asset/farm_event.ex
