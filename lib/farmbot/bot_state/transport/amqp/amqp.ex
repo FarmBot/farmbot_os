@@ -181,25 +181,32 @@ defmodule Farmbot.BotState.Transport.AMQP do
   end
 
   def handle_info({:basic_deliver, payload, %{routing_key: key}}, state) do
-    device = state.bot
-    route = String.split(key, ".")
-    case route do
-      ["bot", ^device, "from_clients"] ->
-        handle_celery_script(payload, state)
-        {:noreply, [], state}
-      ["bot", ^device, "sync", resource, _]
-      when resource in ["Log", "User", "Image", "WebcamFeed"] ->
-        {:noreply, [], state}
-      ["bot", ^device, "sync", "FbosConfig", id] -> handle_fbos_config(id, payload, state)
-      ["bot", ^device, "sync", "FirmwareConfig", id] -> handle_fw_config(id, payload, state)
-      ["bot", ^device, "sync", resource, id] ->
-        handle_sync_cmd(resource, id, payload, state)
-      ["bot", ^device, "logs"]        -> {:noreply, [], state}
-      ["bot", ^device, "status"]      -> {:noreply, [], state}
-      ["bot", ^device, "from_device"] -> {:noreply, [], state}
-      _ ->
-        Logger.warn 3, "got unknown routing key: #{key}"
-        {:noreply, [], state}
+    if GenServer.whereis(Farmbot.Repo) do
+      device = state.bot
+      route = String.split(key, ".")
+      case route do
+        ["bot", ^device, "from_clients"] ->
+          handle_celery_script(payload, state)
+          {:noreply, [], state}
+        ["bot", ^device, "sync", resource, _]
+        when resource in ["Log", "User", "Image", "WebcamFeed"] ->
+          {:noreply, [], state}
+        ["bot", ^device, "sync", "FbosConfig", id] ->
+          handle_fbos_config(id, payload, state)
+        ["bot", ^device, "sync", "FirmwareConfig", id] ->
+          handle_fw_config(id, payload, state)
+        ["bot", ^device, "sync", resource, id] ->
+          handle_sync_cmd(resource, id, payload, state)
+        ["bot", ^device, "logs"]        -> {:noreply, [], state}
+        ["bot", ^device, "status"]      -> {:noreply, [], state}
+        ["bot", ^device, "from_device"] -> {:noreply, [], state}
+        _ ->
+          Logger.warn 3, "got unknown routing key: #{key}"
+          {:noreply, [], state}
+      end
+    else
+      Logger.debug 3, "Repo not up yet."
+      {:noreply, [], state}
     end
   end
 

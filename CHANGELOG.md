@@ -3,6 +3,8 @@
 * Optimize AMQP connection.
 * Add new field on `informational_settings`: `soc_temp`.
 * Add new field on `informational_settings`: `wifi_level`.
+* Add new RPC `dump_info` that collects some info helpful for bug reports.
+* Implement new LED subsystem.
 * Declare language and charset in Configurator to avoid localization issues.
 * Add new Configurator fields for dns and ntp.
 * Another attempt at catching broken sqlite3 lib.
