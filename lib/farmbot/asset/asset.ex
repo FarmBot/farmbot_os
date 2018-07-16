@@ -23,6 +23,7 @@ defmodule Farmbot.Asset do
     Farmbot.Repo.delete_all(Device)
     Farmbot.Repo.delete_all(FarmEvent)
     Farmbot.Repo.delete_all(Peripheral)
+    Farmbot.Repo.delete_all(PinBinding)
     Farmbot.Repo.delete_all(Point)
     Farmbot.Repo.delete_all(Regimen)
     Farmbot.Repo.delete_all(Sensor)

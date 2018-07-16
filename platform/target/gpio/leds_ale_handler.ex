@@ -68,20 +68,24 @@ defmodule Farmbot.Target.Leds.AleHandler do
   end
 
   def handle_info({:blink_timer, color}, state) do
-    new_led_state = invert(state[color].state)
-    :ok = GPIO.write(state[color].pid, new_led_state)
-
     new_state =
       case state[color] do
         %{status: :slow_blink} ->
+          new_led_state = invert(state[color].state)
+          :ok = GPIO.write(state[color].pid, new_led_state)
           timer = restart_timer(state[color].blink_timer, color, @slow_blink_speed)
           n = %{state[color] | state: new_led_state, blink_timer: timer, status: :slow_blink}
           update_color(state, color, n)
 
         %{status: :fast_blink} ->
+          new_led_state = invert(state[color].state)
+          :ok = GPIO.write(state[color].pid, new_led_state)
           timer = restart_timer(state[color].blink_timer, color, @fast_blink_speed)
           n = %{state[color] | state: new_led_state, blink_timer: timer, status: :fast_blink}
           update_color(state, color, n)
+
+        _ ->
+          state
       end
 
     {:noreply, new_state}
