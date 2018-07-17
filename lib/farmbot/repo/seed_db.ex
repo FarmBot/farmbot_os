@@ -9,10 +9,13 @@ defmodule Farmbot.Repo.SeedDB do
   end
 
   def init([]) do
+    run()
+    :ignore
+  end
+
+  def run do
     pin_binding(builtin(:pin_binding, :emergency_lock), "emergency_lock", 17)
     pin_binding(builtin(:pin_binding, :emergency_unlock), "emergency_unlock", 23)
-
-    :ignore
   end
 
   def pin_binding(id, special_action, pin_num) do
