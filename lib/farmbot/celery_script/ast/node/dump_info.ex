@@ -4,6 +4,7 @@ defmodule Farmbot.CeleryScript.AST.Node.DumpInfo do
   allow_args []
   def execute(%{}, [], env) do
     data = %{
+      fbos_commit: Farmbot.Project.commit(),
       fbos_version: Farmbot.Project.version(),
       firmware_commit: Farmbot.Project.arduino_commit(),
       network_interface: Farmbot.System.ConfigStorage.get_all_network_configs |> Enum.at(0) |> Map.get(:name),
