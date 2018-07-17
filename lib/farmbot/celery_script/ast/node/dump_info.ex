@@ -7,15 +7,15 @@ defmodule Farmbot.CeleryScript.AST.Node.DumpInfo do
   def execute(%{}, [], env) do
     fw_data = if pid = Process.whereis(Farmbot.Firmware) do
       fw_state = :sys.get_state(pid).state
-      serial_port = (Application.get_env(:farmbot, :behaviour)[:firmware_handler] ==
-                    Farmbot.Firmware.UartHandler) &&
-                    (Application.get_env(:farmbot, :uart_handler)[:tty]) || nil
+      correct_handler? = (Application.get_env(:farmbot, :behaviour)[:firmware_handler] == Farmbot.Firmware.UartHandler)
+      serial_port = correct_handler? && (Application.get_env(:farmbot, :uart_handler)[:tty])
+      firmware_hardware = correct_handler? && get_config_value(:string, "settings", "firmware_hardware")
       %{
-        firmware_hardware: get_config_value(:string, "settings", "firmware_hardware"),
+        firmware_hardware: firmware_hardware || nil,
         firmware_version: Application.get_env(:farmbot, :expected_fw_versions) |> Enum.at(0) |> String.trim_trailing(".F"),
-        locked: Farmbot.BotState.locked?(),
         busy: !fw_state.idle,
-        serial_port: serial_port,
+        serial_port: serial_port || nil,
+        locked: Farmbot.BotState.locked?(),
         current_command: inspect(fw_state.current)
       }
     else
