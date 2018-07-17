@@ -19,7 +19,12 @@ defmodule Farmbot.Logger.NetLogger do
   def handle_events(events, _from, %{client: client} = state) do
     for e <- events do
       log = %NetLogger.Log{message: e.message, time: e.time, level: e.level, verbosity: e.verbosity}
-      NetLogger.UDP.Client.log(client, log)
+      try do
+        NetLogger.UDP.Client.log(client, log)
+        :ok
+      rescue
+        _ -> :ok
+      end
     end
     {:noreply, [], state}
   end
