@@ -27,17 +27,20 @@ defmodule Farmbot.Repo.AfterSyncWorker do
   end
 
   def handle_info({Farmbot.Repo.Registry, :addition, Farmbot.Asset.PinBinding, binding}, state) do
+    IO.puts "pin binding: #{binding.pin_num} added"
     Farmbot.PinBinding.Manager.register_pin(binding)
     {:noreply, state}
   end
 
-  def handle_info({Farmbot.Repo.Registry, :updated, Farmbot.Asset.PinBinding, binding}, state) do
+  def handle_info({Farmbot.Repo.Registry, :update, Farmbot.Asset.PinBinding, binding}, state) do
+    IO.puts "pin binding: #{binding.pin_num} updated"
     Farmbot.PinBinding.Manager.unregister_pin(binding)
     Farmbot.PinBinding.Manager.register_pin(binding)
     {:noreply, state}
   end
 
   def handle_info({Farmbot.Repo.Registry, :deletion, Farmbot.Asset.PinBinding, binding}, state) do
+    IO.puts "pin binding: #{binding.pin_num} deleted"
     Farmbot.PinBinding.Manager.unregister_pin(binding)
     {:noreply, state}
   end

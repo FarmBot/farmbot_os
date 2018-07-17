@@ -123,12 +123,8 @@ defmodule Farmbot.Repo do
     mod = Module.concat(["Farmbot", "Asset", cmd.kind])
     if Code.ensure_loaded?(mod) do
       set_sync_status(:syncing)
-      old = snapshot()
       Logger.debug(3, "Syncing #{cmd.kind}")
       do_apply_sync_cmd(cmd)
-      new = snapshot()
-      diff = Snapshot.diff(old, new)
-      Farmbot.Repo.Registry.dispatch(diff)
       set_sync_status(:synced)
     else
       Logger.warn(3, "Unknown module: #{mod} #{inspect(cmd)}")
@@ -162,7 +158,7 @@ defmodule Farmbot.Repo do
       # if there is an existing record, copy the ecto  meta from the old
       # record. This allows `insert_or_update` to work properly.
       existing ->
-        mod.changeset(existing, not_struct)
+        Ecto.Changeset.change(existing, not_struct)
         |> Farmbot.Repo.update!
         :ok
     end
