@@ -10,7 +10,7 @@ defmodule Farmbot.CeleryScript.AST.Node.DumpInfo do
       fbos_dmesg_dump: System.cmd("dmesg", []) |> elem(0),
       firmware_state: Application.get_env(:farmbot, :behaviour)[:firmware_handler] |> to_string()
     }
-    json = Farmbot.JSON.encode(data)
+    json = Farmbot.JSON.encode!(data)
     case Farmbot.HTTP.post("/api/diagnostic_dumps", json) do
       {:ok, _} -> {:ok, env}
       {:error, _} -> {:error, "post failed", env}
