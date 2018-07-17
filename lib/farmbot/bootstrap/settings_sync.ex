@@ -143,18 +143,27 @@ defmodule Farmbot.Bootstrap.SettingsSync do
   end
 
   @doc false
-  def run() do
-    do_sync_fbos_configs()
-    do_sync_fw_configs()
-    Logger.debug 1, "Synced Farmbot OS and Firmware settings with API"
-    :ok
-  rescue
-    err ->
-      message = Exception.message(err)
-      err_msg = "#{message} #{inspect System.stacktrace()}"
-      Logger.error 1, "Error syncing settings: #{err_msg}"
-      update_config_value(:bool, "settings", "ignore_fbos_config", false)
-      {:error, message}
+  def run(tries_left \\ 6) do
+    # HACK: Connor - Don't even look at this.
+    if is_nil(Process.whereis(Farmbot.System.ConfigStorage)) do
+      Logger.error 1, "ConfigStorage not running? trying #{tries_left - 1} more times"
+      Process.sleep(5000)
+      run(tries_left - 1)
+    else
+      try do
+        do_sync_fbos_configs()
+        do_sync_fw_configs()
+        Logger.debug 1, "Synced Farmbot OS and Firmware settings with API"
+        :ok
+      rescue
+        err ->
+          message = Exception.message(err)
+          err_msg = "#{message} #{inspect System.stacktrace()}"
+          Logger.error 1, "Error syncing settings: #{err_msg}"
+          update_config_value(:bool, "settings", "ignore_fbos_config", false)
+          {:error, message}
+      end
+    end
   end
 
   def apply_fbos_map(old_map, new_map) do
