@@ -22,15 +22,16 @@ defmodule Farmbot.CeleryScript.AST.Node.DumpInfo do
       %{error: "Firmware process is not running. Could not collect info."}
     end
     |> Farmbot.JSON.encode!()
+    bot_state = Farmbot.BotState.force_state_push()
     data = %{
+      network_interface: Farmbot.System.ConfigStorage.get_all_network_configs |> Enum.at(0) |> Map.get(:name),
+      firmware_hardware: firmware_hardware || nil,
       fbos_commit: Farmbot.Project.commit(),
       fbos_version: Farmbot.Project.version(),
-      firmware_commit: Farmbot.Project.arduino_commit(),
-      network_interface: Farmbot.System.ConfigStorage.get_all_network_configs |> Enum.at(0) |> Map.get(:name),
       fbos_dmesg_dump: System.cmd("dmesg", []) |> elem(0),
       firmware_state: fw_data
     }
-    json = Farmbot.JSON.encode!(data)
+    json = Farmbot.JSON.encode!(Map.merge(bot_state.informational_settings, data))
     case Farmbot.HTTP.post("/api/diagnostic_dumps", json) do
       {:ok, _} ->
         Logger.success 3, "Diagnostic report uploaded."
