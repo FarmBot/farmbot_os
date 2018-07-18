@@ -3,5 +3,7 @@
   "sensors": "6.3.0",
   "change_ownership": "6.3.0",
   "backscheduled_regimens": "6.4.0",
-  "endstop_invert": "6.4.1"
+  "endstop_invert": "6.4.1",
+  "api_pin_bindings": "6.4.4",
+  "diagnostic_dumps": "6.4.4"
 }

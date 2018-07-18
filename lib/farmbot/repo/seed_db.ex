@@ -14,8 +14,8 @@ defmodule Farmbot.Repo.SeedDB do
   end
 
   def run do
-    pin_binding(builtin(:pin_binding, :emergency_lock), "emergency_lock", 17)
-    pin_binding(builtin(:pin_binding, :emergency_unlock), "emergency_unlock", 23)
+    pin_binding(builtin(:pin_binding, :emergency_lock), "emergency_lock", 16)
+    pin_binding(builtin(:pin_binding, :emergency_unlock), "emergency_unlock", 22)
   end
 
   def pin_binding(id, special_action, pin_num) do

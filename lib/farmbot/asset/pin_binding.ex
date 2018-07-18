@@ -23,7 +23,7 @@ defmodule Farmbot.Asset.PinBinding do
   end
 
   def validate_pin_num(changeset) do
-    if get_field(changeset, :pin_num, -1) in [16, 22, 16, 05, 20, 24, 25, 12, 13] do
+    if get_field(changeset, :pin_num, -1) in [17, 23, 27, 06, 21, 24, 25, 12, 13] do
       add_error(changeset, :pin_num, "in use")
     else
       changeset
