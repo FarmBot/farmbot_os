@@ -91,11 +91,11 @@ defmodule Farmbot.Target.Leds.AleHandler do
     {:noreply, new_state}
   end
 
-  defp color_to_pin(:red), do: 16
-  defp color_to_pin(:yellow), do: 22
-  defp color_to_pin(:white1), do: 26
-  defp color_to_pin(:white2), do: 05
-  defp color_to_pin(:white3), do: 20
+  defp color_to_pin(:red), do: 17
+  defp color_to_pin(:yellow), do: 23
+  defp color_to_pin(:white1), do: 27
+  defp color_to_pin(:white2), do: 06
+  defp color_to_pin(:white3), do: 21
   defp color_to_pin(:green), do: 24
   defp color_to_pin(:blue), do: 25
   defp color_to_pin(:white4), do: 12
