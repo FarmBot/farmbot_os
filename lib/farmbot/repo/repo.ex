@@ -29,6 +29,7 @@ defmodule Farmbot.Repo do
   and then redownload all data.
   """
   def full_sync(verbosity \\ 1) do
+    IO.puts "full"
     Logger.busy verbosity, "Syncing"
     set_sync_status(:syncing)
     old = snapshot()
@@ -48,6 +49,7 @@ defmodule Farmbot.Repo do
   end
 
   def fragment_sync(verbosity \\ 1) do
+    IO.puts "fragment"
     Logger.busy verbosity, "Syncing"
     set_sync_status(:syncing)
     old = snapshot()
