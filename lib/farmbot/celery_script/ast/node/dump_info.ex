@@ -5,11 +5,11 @@ defmodule Farmbot.CeleryScript.AST.Node.DumpInfo do
   import Farmbot.System.ConfigStorage, [only: [get_config_value: 3]]
   allow_args []
   def execute(%{}, [], env) do
+    correct_handler? = (Application.get_env(:farmbot, :behaviour)[:firmware_handler] == Farmbot.Firmware.UartHandler)
+    firmware_hardware = correct_handler? && get_config_value(:string, "settings", "firmware_hardware")
     fw_data = if pid = Process.whereis(Farmbot.Firmware) do
       fw_state = :sys.get_state(pid).state
-      correct_handler? = (Application.get_env(:farmbot, :behaviour)[:firmware_handler] == Farmbot.Firmware.UartHandler)
       serial_port = correct_handler? && (Application.get_env(:farmbot, :uart_handler)[:tty])
-      firmware_hardware = correct_handler? && get_config_value(:string, "settings", "firmware_hardware")
       %{
         firmware_hardware: firmware_hardware || nil,
         firmware_version: Application.get_env(:farmbot, :expected_fw_versions) |> Enum.at(0) |> String.trim_trailing(".F"),
