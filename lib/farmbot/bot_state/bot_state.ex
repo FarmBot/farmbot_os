@@ -284,6 +284,7 @@ defmodule Farmbot.BotState do
       zip: fw.zip
     }
     ser_fw = %{
+      farmware_tools_version: fw.farmware_tools_version,
       args: fw.args,
       executable: fw.executable,
       meta: ser_fw_meta,
