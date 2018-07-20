@@ -187,10 +187,10 @@ defmodule Farmbot.System.Updates do
             try_find_dl_url_in_asset(rel.assets, release_version, current_stuff)
           :eq ->
             if currently_on_beta do
-              Logger.debug 3, "Current version (#{current_version}) is equal to beta release (#{release_version})"
+              Logger.debug 3, "Current version (#{current_version}) (beta updates enabled) is equal to beta release (#{release_version})"
               try_find_dl_url_in_asset(rel.assets, release_version, current_stuff)
             else
-              Logger.debug 3, "Current version (#{current_version}) is equal to latest beta (#{release_version})"
+              Logger.debug 3, "Current version (#{current_version}) (beta updates disabled) is equal to latest beta (#{release_version})"
               nil
             end
 
