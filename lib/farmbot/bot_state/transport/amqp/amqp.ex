@@ -238,10 +238,10 @@ defmodule Farmbot.BotState.Transport.AMQP do
         "args" => %{"label" => uuid}
       } = Poison.decode!(payload, as: %{"body" => struct(mod)})
 
-      cmd = ConfigStorage.register_sync_cmd(String.to_integer(id), kind, body)
+      _cmd = ConfigStorage.register_sync_cmd(String.to_integer(id), kind, body)
       # This if statment should really not live here..
       if get_config_value(:bool, "settings", "auto_sync") do
-        Farmbot.Repo.apply_sync_cmd(cmd)
+        Farmbot.Repo.fragment_sync()
       else
         Farmbot.BotState.set_sync_status(:sync_now)
       end
