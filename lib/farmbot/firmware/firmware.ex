@@ -408,12 +408,12 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode({:report_parameter_value, param, value}, state) when (value == -1) do
-    maybe_update_param_from_report(to_string(param), nil)
+    value = maybe_update_param_from_report(to_string(param), nil)
     {:mcu_params, %{param => nil}, %{state | params: Map.put(state.params, param, value)}}
   end
 
   defp handle_gcode({:report_parameter_value, param, value}, state) when is_number(value) do
-    maybe_update_param_from_report(to_string(param), value)
+    value = maybe_update_param_from_report(to_string(param), value)
     {:mcu_params, %{param => value}, %{state | params: Map.put(state.params, param, value)}}
   end
 
@@ -554,8 +554,9 @@ defmodule Farmbot.Firmware do
 
   defp maybe_update_param_from_report(param, val) when is_binary(param) do
     real_val = if val, do: (val / 1), else: nil
-    # Logger.debug 3, "Firmware reported #{param} => #{val || -1}"
+    # Logger.debug 3, "Firmware reported #{param} => #{real_val || "nil"}"
     update_config_value(:float, "hardware_params", to_string(param), real_val)
+    real_val
   end
 
   @doc false
@@ -565,8 +566,7 @@ defmodule Farmbot.Firmware do
         (float_val == -1) -> :ok
         is_nil(float_val) -> :ok
         is_number(float_val) ->
-          val = round(float_val)
-          :ok = update_param(:"#{key}", val)
+          :ok = update_param(:"#{key}", float_val / 1)
       end
     end
     :ok = update_param(:param_use_eeprom, 0)
