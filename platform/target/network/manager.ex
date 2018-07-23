@@ -111,7 +111,7 @@ defmodule Farmbot.Target.Network.Manager do
         """
         Logger.error 1, msg
         Farmbot.System.factory_reset(msg)
-        {:stop, %{state | not_found_timer: nil}}
+        {:stop, :network_not_found, %{state | not_found_timer: nil}}
       true ->
         Logger.error 1, "Network not found after timer. Farmbot is disconnected."
         msg = """
@@ -125,7 +125,7 @@ defmodule Farmbot.Target.Network.Manager do
         Farmbot.System.factory_reset(msg)
         # Network.teardown(state.interface)
         # Network.setup(state.interface, state.opts)
-        {:stop, %{state | not_found_timer: nil}}
+        {:stop, :network_not_found, %{state | not_found_timer: nil}}
     end
   end
 
