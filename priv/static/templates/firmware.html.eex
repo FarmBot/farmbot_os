@@ -62,6 +62,7 @@
             <select id="firmware_hardware" name=firmware_hardware>
               <option value="arduino"> Arduino/RAMPS (Genesis v1.2) </option>
               <option value="farmduino"> Farmduino (Genesis v1.3) </option>
+              <option value="farmduino_k14"> Farmduino (Genesis v1.4) </option>
             </select>
           </fieldset>
       </div>

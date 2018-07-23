@@ -70,4 +70,5 @@ config :farmbot, :behaviour,
 
 config :shoehorn,
   init: [:nerves_runtime],
+  handler: Farmbot.ShoehornHandler,
   app: :farmbot
