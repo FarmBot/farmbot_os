@@ -9,6 +9,20 @@ defmodule Farmbot.CeleryScript.AST.Node.WritePin do
 
   allow_args [:pin_number, :pin_value, :pin_mode]
 
+  def execute(%{pin_number: %AST{kind: NamedPin, args: %{pin_type: "BoxLed3"}}, pin_mode: :digital, pin_value: value}, _body, env) do
+    env = mutate_env(env)
+    log_success("BoxLed3", "BoxLed3", :digital, value)
+    Farmbot.Leds.white4(value_to_led(value))
+    {:ok, env}
+  end
+
+  def execute(%{pin_number: %AST{kind: NamedPin, args: %{pin_type: "BoxLed4"}}, pin_mode: :digital, pin_value: value}, _body, env) do
+    env = mutate_env(env)
+    log_success("BoxLed4", "BoxLed4", :digital, value)
+    Farmbot.Leds.white5(value_to_led(value))
+    {:ok, env}
+  end
+
   def execute(%{pin_number: %AST{kind: NamedPin} = named_pin, pin_mode: mode, pin_value: val}, _body, env) do
     env = mutate_env(env)
     id = named_pin.args.pin_id
@@ -65,4 +79,7 @@ defmodule Farmbot.CeleryScript.AST.Node.WritePin do
   defp try_lookup_peripheral(number) do
     Asset.get_peripheral_by_number(number)
   end
+
+  defp value_to_led(1), do: :solid
+  defp value_to_led(_), do: :off
 end
