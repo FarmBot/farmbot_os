@@ -38,7 +38,6 @@ defmodule Farmbot.Repo do
       :ok = Farmbot.Asset.clear_all_data()
       :ok = enter_into_repo(results)
     end
-    Farmbot.Repo.SeedDB.run()
     new = snapshot()
     diff = Snapshot.diff(old, new)
     Farmbot.Repo.Registry.dispatch(diff)
