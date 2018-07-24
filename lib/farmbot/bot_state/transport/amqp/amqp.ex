@@ -211,7 +211,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
   end
 
   def handle_info({:DOWN, _, :process, pid, reason}, state) do
-    unless reason == :normal do
+    unless reason in [:normal, :noproc] do
       Logger.warn 3, "CeleryScript: #{inspect pid} died: #{inspect reason}"
     end
     {:noreply, [], state}
