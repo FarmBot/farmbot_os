@@ -172,6 +172,6 @@ defmodule Farmbot.Target.Network do
       |> Enum.map(&to_network_config/1)
       |> Enum.map(&to_child_spec/1)
       |> Enum.uniq() # Don't know why/if we need this?
-    supervise(children, strategy: :one_for_one)
+    Supervisor.init(children, strategy: :one_for_one, max_restarts: 20, max_seconds: 1)
   end
 end
