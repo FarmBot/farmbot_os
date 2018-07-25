@@ -110,7 +110,7 @@ defmodule Farmbot.Mixfile do
       {:nerves_leds, "~> 0.8"},
       {:cowboy, "~> 2.0"},
       {:plug, "~> 1.6"},
-      {:ranch_proxy_protocol, github: "heroku/ranch_proxy_protocol", override: true},
+      {:ranch_proxy_protocol, "~> 2.0", override: true},
       {:cors_plug, "~> 1.5"},
       {:rsa, "~> 0.0.1"},
       {:joken, "~> 1.5"},
