@@ -1,5 +1,8 @@
 # Changelog
 
+# 6.5.0
+* Reorganize project structure
+
 # 6.4.13
 * Add SensorReadings when `read_pin` is executed.
 
