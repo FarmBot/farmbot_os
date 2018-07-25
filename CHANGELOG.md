@@ -1,4 +1,8 @@
 # Changelog
+
+# 8.0.0
+* Reorganize project structure
+
 # 7.0.3
 * Update to AMQP to disable `heartbeat` timeouts
 
