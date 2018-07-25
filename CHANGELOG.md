@@ -1,8 +1,11 @@
 # Changelog
+# 6.5.0
+* Reorganize project structure
+
 # 6.4.12
 * Fix race condition after getting time which broke self hosting users.
-* Add retry mechanism for fetching a token. 
-    * Farmbot will now try 5 times to fetch a token. 
+* Add retry mechanism for fetching a token.
+    * Farmbot will now try 5 times to fetch a token.
 
 # 6.4.11
 * Add SSH back.
