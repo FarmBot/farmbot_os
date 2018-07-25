@@ -1,8 +1,0 @@
--setcookie democookie
--mode embedded
--sname farmbot
--noshell
--user Elixir.IEx.CLI
--heart
-+C multi_time_warp
--extra --no-halt

@@ -1,39 +1,65 @@
-ALL :=
-CLEAN :=
+.PHONY: all clean
+.DEFAULT_GOAL: all
 
-ifeq ($(ERL_EI_INCLUDE_DIR),)
+MIX_ENV := $(MIX_ENV)
+MIX_TARGET := $(MIX_TARGET)
+SLACK_CHANNEL := $(SLACK_CHANNEL)
 
-$(warning ERL_EI_INCLUDE_DIR not set. Invoke via mix)
-
-else
-
-ALL += fbos_build_calendar_nif
-CLEAN += fbos_clean_build_calendar_nif
+ifeq ($(MIX_ENV),)
+MIX_ENV := dev
 endif
 
-ifeq ($(SKIP_ARDUINO_BUILD),)
-
-ALL += fbos_arduino_firmware
-CLEAN += fbos_clean_arduino_firmware
-
-else
-$(warning SKIP_ARDUINO_BUILD is set. No arduino assets will be built.)
+ifeq ($(MIX_TARGET),)
+MIX_TARGET := host
 endif
 
-.PHONY: $(ALL) $(CLEAN) all clean
+all: help
 
-all: $(ALL)
+help:
+	@echo "no"
 
-clean: $(CLEAN)
+farmbot_core_clean:
+	cd farmbot_core && \
+	make clean && \
+	rm -rf priv/*.hex &&\
+	rm -rf priv/*.so &&\
+	rm -rf ./.*.sqlite3 &&\
+	rm -rf _build deps
 
-fbos_arduino_firmware:
-	cd c_src/farmbot-arduino-firmware && make all BUILD_DIR=$(PWD)/_build FBARDUINO_FIRMWARE_SRC_DIR=$(PWD)/c_src/farmbot-arduino-firmware/src BIN_DIR=$(PWD)/priv
+farmbot_ext_clean:
+	cd farmbot_ext && \
+	rm -rf ./.*.sqlite3 &&\
+	rm -rf _build deps
 
-fbos_clean_arduino_firmware:
-	cd c_src/farmbot-arduino-firmware && make clean BUILD_DIR=$(PWD)/_build FBARDUINO_FIRMWARE_SRC_DIR=$(PWD)/c_src/farmbot-arduino-firmware/src BIN_DIR=$(PWD)/priv
+farmbot_os_clean:
+	cd farmbot_os && \
+	rm -rf _build deps
 
-fbos_build_calendar_nif:
-	make -f c_src/build_calendar/Makefile all ERL_EI_INCLUDE_DIR=$(ERL_EI_INCLUDE_DIR) ERL_EI_LIBDIR=$(ERL_EI_LIBDIR)
+clean: farmbot_core_clean farmbot_ext_clean farmbot_os_clean
 
-fbos_clean_build_calendar_nif:
-	make -f c_src/build_calendar/Makefile clean ERL_EI_INCLUDE_DIR=$(ERL_EI_INCLUDE_DIR) ERL_EI_LIBDIR=$(ERL_EI_LIBDIR)
+farmbot_core_test:
+	cd farmbot_core && \
+	MIX_ENV=test mix deps.get && \
+	MIX_ENV=test mix ecto.migrate && \
+	MIX_ENV=test mix compile
+
+farmbot_ext_test:
+	cd farmbot_ext && \
+	MIX_ENV=test SKIP_ARDUINO_BUILD=1 mix deps.get && \
+	MIX_ENV=test SKIP_ARDUINO_BUILD=1 mix ecto.migrate && \
+	MIX_ENV=test SKIP_ARDUINO_BUILD=1 mix compile
+
+farmbot_os_test:
+	cd farmbot_os && \
+	MIX_ENV=test SKIP_ARDUINO_BUILD=1 mix deps.get && \
+	MIX_ENV=test SKIP_ARDUINO_BUILD=1 mix compile
+
+test: farmbot_core_test farmbot_ext_test farmbot_os_test
+
+farmbot_os_firmware:
+	cd farmbot_os && \
+	MIX_ENV=$(MIX_ENV) MIX_TARGET=$(MIX_TARGET) mix do deps.get, firmware
+
+farmbot_os_firmware_slack: farmbot_os_firmware
+	cd farmbot_os && \
+	MIX_ENV=$(MIX_ENV) MIX_TARGET=$(MIX_TARGET) mix farmbot.firmware.slack --channels $(SLACK_CHANNEL)

@@ -35,9 +35,6 @@ erl_crash.dump
 *.js
 /release-*
 /node_modules
-/farmbot_ext
-/farmbot_core
-/farmbot_os
 
 # Various env vars.
 .env
@@ -50,7 +47,6 @@ run-qemu.sh
 artifacts
 RELEASE_NOTES
 *.hex
-!/priv/eeprom_clear.ino.hex
 # lagger can't be disabled.
 /log
 .make_state

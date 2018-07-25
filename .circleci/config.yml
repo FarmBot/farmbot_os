@@ -1,5 +1,5 @@
-version: 2.0
 defaults: &defaults
+  working_directory: /nerves/build
   docker:
     - image: nervesproject/nerves_system_br:1.4.2
 
@@ -7,30 +7,37 @@ install_elixir: &install_elixir
   run:
     name: Install Elixir
     command: |
-      wget https://github.com/elixir-lang/elixir/releases/download/v1.7.3/Precompiled.zip
+      wget https://github.com/elixir-lang/elixir/releases/download/v$ELIXIR_VERSION/Precompiled.zip
       unzip -d /usr/local/elixir Precompiled.zip
       echo 'export PATH=/usr/local/elixir/bin:$PATH' >> $BASH_ENV
 
-install_hex_archives: &install_hex_archives
+install_hex_rebar: &install_hex_rebar
   run:
-    name: Install archives
+    name: Install hex and rebar
     command: |
-      cd /tmp
       mix local.hex --force
       mix local.rebar --force
-      mix archive.install hex nerves_bootstrap "~> 1.2" --force
 
-fetch_and_compile_deps: &fetch_and_compile_deps
+install_nerves_bootstrap: &install_nerves_bootstrap
   run:
-    name: Fetch and compile Elixir dependencies
+    name: Install nerves_bootstrap
     command: |
-      mix deps.get
-      mix compile
+      mix archive.install hex nerves_bootstrap "~> 1.0" --force
 
-install_arduino: &install_arduino
+install_ghr: &install_ghr
   run:
-    name: Run setup script
-    command: bash .circleci/setup-arduino.sh
+    name: Install ghr (Github Releases)
+    command: |
+      wget https://github.com/tcnksm/ghr/releases/download/v0.9.0/ghr_v0.9.0_linux_amd64.tar.gz
+      tar xf ghr_v0.9.0_linux_amd64.tar.gz
+      ln -sf ghr_v0.9.0_linux_amd64/ghr .
+
+install_jq: &install_jq
+  run:
+    name: Install jq (json)
+    command: |
+      wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
+      chmod +x ./jq-linux64
 
 install_slack_helpers: &install_slack_helpers
   run:
@@ -38,279 +45,268 @@ install_slack_helpers: &install_slack_helpers
     command: |
       wget https://gist.githubusercontent.com/ConnorRigby/03e722be4be70f8588f5ed74420e4eaa/raw/28a51d8f52ec7d569e8f7f20b83349816ddf63cf/slack_message.ex
 
+install_arduino: &install_arduino
+  run:
+    name: Run setup script
+    command: bash .circleci/setup-arduino.sh
+
+version: 2.0
+
 jobs:
-  test:
+  test_farmbot_core:
     <<: *defaults
     environment:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
+      ELIXIR_VERSION: 1.6.6
     steps:
       - checkout
       - run: git submodule update --init --recursive
+      - restore_cache:
+          keys:
+            - v4-fbcore-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
+      - restore_cache:
+          keys:
+            - v4-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
       - <<: *install_elixir
-      - restore_cache:
-          keys:
-            - v6-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
+      - <<: *install_hex_rebar
+      - <<: *install_nerves_bootstrap
       - <<: *install_arduino
-      - <<: *install_hex_archives
-      - restore_cache:
-          keys:
-            - v6-dep-cache-{{ checksum "mix.lock.host" }}
-      - <<: *fetch_and_compile_deps
+      - run:
+          name: Test Farmbot Core
+          command: make farmbot_core_test
       - save_cache:
-          key: v6-dep-cache-{{ checksum "mix.lock.host" }}
+          key: v4-fbcore-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
           paths:
-            - _build/host
-            - _build/arduino
-            - deps/host
+            - farmbot_core/_build/test
+            - farmbot_core/deps
+            - farmbot_core/arduino
       - save_cache:
-          key: v6-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
+          key: v4-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
           paths:
             - ~/arduino-1.8.5
-      - run:
-          name: "Credo code static code analysis"
-          command: mix credo
-      - run:
-          name: "Elixir Code formatter"
-          command: mix format --check-formatted
-      - run:
-          command: mix coveralls.circle --exclude farmbot_firmware
 
-  firmware_dev:
+  test_farmbot_ext:
     <<: *defaults
     environment:
-      MIX_TARGET: rpi3
+      MIX_ENV: test
+      MIX_TARGET: host
+      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
+      ELIXIR_VERSION: 1.6.6
+    steps:
+      - checkout
+      - run: git submodule update --init --recursive
+      - restore_cache:
+          keys:
+            - v4-fbext-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
+      - <<: *install_elixir
+      - <<: *install_hex_rebar
+      - <<: *install_nerves_bootstrap
+      - run:
+          name: Test Farmbot Ext
+          command: make farmbot_ext_test
+      - save_cache:
+          key: v4-fbext-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
+          paths:
+            - farmbot_ext/_build/test
+            - farmbot_ext/deps
+
+  test_farmbot_os:
+    <<: *defaults
+    environment:
+      MIX_ENV: test
+      MIX_TARGET: host
+      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
+      ELIXIR_VERSION: 1.6.6
+    steps:
+      - checkout
+      - run: git submodule update --init --recursive
+      - restore_cache:
+          keys:
+            - v4-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock.host" }}
+      - restore_cache:
+          keys:
+            - v4-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
+      - <<: *install_elixir
+      - <<: *install_hex_rebar
+      - <<: *install_nerves_bootstrap
+      - run:
+          name: Test Farmbot OS
+          command: make farmbot_os_test
+      - save_cache:
+          key: v4-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock.host" }}
+          paths:
+            - farmbot_os/_build/host
+            - farmbot_os/deps/host
+
+  rpi3_dev_firmware:
+    <<: *defaults
+    environment:
       MIX_ENV: dev
-      ENV: CI
+      MIX_TARGET: rpi3
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
+      ELIXIR_VERSION: 1.6.6
     steps:
       - checkout
       - run: git submodule update --init --recursive
+      - restore_cache:
+          keys:
+            - v4-fbos-rpi3-dev-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
+      - restore_cache:
+          keys:
+            - v4-fbos-rpi3-dev-nerves-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
+      - restore_cache:
+          keys:
+            - v4-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
       - <<: *install_elixir
-      - restore_cache:
-          keys:
-            - v6-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
-      - <<: *install_arduino
-      - restore_cache:
-          keys:
-            - v6-dependency-cache-{{ checksum "mix.lock.rpi3" }}
-      - <<: *install_hex_archives
-      - <<: *fetch_and_compile_deps
-      - run: mix firmware
-      - save_cache:
-          key: v6-dependency-cache-{{ checksum "mix.lock.rpi3" }}
-          paths:
-            - _build/rpi3
-            - _build/host
-            - _build/arduino
-            - deps/rpi3
-            - deps/host
-            - ~/.nerves
-      - run: mkdir -p artifacts
+      - <<: *install_hex_rebar
+      - <<: *install_nerves_bootstrap
       - run:
-          name: Decode fwup priv key
-          command: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
-      - run:
-          name: Sign firmware
-          command: fwup -S -s $NERVES_FW_PRIV_KEY -i _build/${MIX_TARGET}/${MIX_ENV}/nerves/images/farmbot.fw -o artifacts/farmbot-${MIX_TARGET}-$(cat VERSION)-beta.fw
-      - save_cache:
-          key: v6-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_SHA1 }}
-          paths:
-            - ./artifacts
+          name: Send firmware asset to slack.
+          command: make farmbot_os_firmware_slack
 
-  firmware_beta:
+      - save_cache:
+          key: v4-fbos-rpi3-dev-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
+          paths:
+            - farmbot_os/_build/rpi3/dev
+            - farmbot_os/deps/rpi3/
+
+      - save_cache:
+          key: v4-fbos-rpi3-dev-nerves-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
+          paths:
+            - ~/.nerves
+
+  rpi3_beta_firmware:
     <<: *defaults
     environment:
-      MIX_TARGET: rpi3
       MIX_ENV: prod
-      ENV: CI
+      MIX_TARGET: rpi3
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
+      ELIXIR_VERSION: 1.6.6
     steps:
       - checkout
       - run: git submodule update --init --recursive
-      - <<: *install_elixir
       - restore_cache:
           keys:
-            - v6-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
-      - <<: *install_arduino
-      - <<: *install_hex_archives
+            - v4-fbos-rpi3-prod-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
       - restore_cache:
           keys:
-            - v6-dependency-cache-{{ checksum "mix.lock.rpi3" }}
-      - run: MIX_ENV=prod MIX_TARGET=rpi3 mix deps.get
-      - run: MIX_ENV=prod MIX_TARGET=rpi3 mix compile
-      - run: MIX_ENV=prod MIX_TARGET=rpi3 mix firmware
-      - save_cache:
-          key: v6-dependency-cache-{{ checksum "mix.lock.rpi3" }}
-          paths:
-            - _build/rpi3
-            - _build/host
-            - _build/arduino
-            - deps/rpi3
-            - deps/host
-            - ~/.nerves
-      - run: mkdir -p artifacts
-      - run:
-          name: Decode fwup priv key
-          command: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
-      - run:
-          name: Sign firmware
-          command: MIX_ENV=prod MIX_TARGET=rpi3 fwup -S -s $NERVES_FW_PRIV_KEY -i _build/${MIX_TARGET}/${MIX_ENV}/nerves/images/farmbot.fw -o artifacts/farmbot-${MIX_TARGET}-$(cat VERSION)-beta.fw
-      - save_cache:
-          key: v6-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_SHA1 }}
-          paths:
-            - ./artifacts
-
-  deploy_beta_firmware:
-    <<: *defaults
-    steps:
-      - checkout
+            - v4-fbos-rpi3-prod-nerves-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
+      - restore_cache:
+          keys:
+            - v4-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
       - <<: *install_elixir
+      - <<: *install_hex_rebar
+      - <<: *install_nerves_bootstrap
       - <<: *install_slack_helpers
+      - <<: *install_ghr
+      - <<: *install_jq
+      - run: grep -Pazo "(?s)(?<=# $(cat VERSION))[^#]+" CHANGELOG.md > RELEASE_NOTES
       - run:
-          name: Run setup script
-          command: bash .circleci/setup-heroku.sh
-      - add_ssh_keys:
-          fingerprints:
-            - "97:92:32:5d:d7:96:e1:fa:f3:6b:f3:bd:d6:aa:84:c6"
+          name: Build production firmware
+          command: make farmbot_os_firmware
+      - run: mkdir -p artifacts
+      - run: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
+      - run: fwup -S -s $NERVES_FW_PRIV_KEY -i farmbot_os/_build/$MIX_TARGET/$MIX_ENV/nerves/images/farmbot_os.fw -o artifacts/farmbot-$MIX_TARGET-$(cat VERSION)-beta.fw
+      - save_cache:
+          key: v4-fbos-rpi3-prod-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
+          paths:
+            - farmbot_os/_build/rpi3/prod
+            - farmbot_os/deps/rpi3/
+      - save_cache:
+          key: v4-fbos-rpi3-prod-nerves-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
+          paths:
+            - ~/.nerves
+      - run: ./ghr -t $GITHUB_TOKEN -u Farmbot-Labs -r farmbot_ng -recreate -prerelease -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)-beta" $PWD/artifacts
       - run:
-          name: Install dependencies
+          name: Send notifications
           command: |
-            wget https://github.com/tcnksm/ghr/releases/download/v0.5.4/ghr_v0.5.4_linux_amd64.zip
-            unzip ghr_v0.5.4_linux_amd64.zip
-            wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
-            chmod +x ./jq-linux64
-      - run:
-          command: grep -Pazo "(?s)(?<=# $(cat VERSION))[^#]+" CHANGELOG.md > RELEASE_NOTES
-      - restore_cache:
-          key: v6-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_SHA1 }}
-      - run:
-          command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)-beta" $PWD/artifacts
-      - run:
-          name: Update heroku env
-          command: |
-            export OTA_URL=$(wget https://api.github.com/repos/farmbot/farmbot_os/releases -qO- | ./jq-linux64 '.[0].url' | sed -e 's/^"//' -e 's/"$//')
-            export SLACK_MESSAGE="New Farmbot Beta: $OTA_URL"
-            heroku config:set BETA_OTA_URL=$OTA_URL --app=farmbot-production
-            heroku config:set BETA_OTA_URL=$OTA_URL --app=farmbot-staging
+            export OTA_URL=$(wget https://api.github.com/repos/farmbot-labs/farmbot_ng/releases -qO- | ./jq-linux64 '.[0].url' | sed -e 's/^"//' -e 's/"$//')
+            export SLACK_MESSAGE="New FarmbotNG Beta release: $(wget $OTA_URL -qO- | ./jq-linux64 '.html_url' | tr -d \")"
             elixir slack_message.ex $SLACK_MESSAGE
 
-  firmware_prod:
+  rpi3_prod_firmware:
     <<: *defaults
     environment:
-      MIX_TARGET: rpi3
       MIX_ENV: prod
-      ENV: CI
+      MIX_TARGET: rpi3
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
+      ELIXIR_VERSION: 1.6.6
     steps:
       - checkout
       - run: git submodule update --init --recursive
+      - restore_cache:
+          keys:
+            - v4-fbos-rpi3-prod-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
+      - restore_cache:
+          keys:
+            - v4-fbos-rpi3-prod-nerves-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
+      - restore_cache:
+          keys:
+            - v4-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
       - <<: *install_elixir
-      - restore_cache:
-          keys:
-            - v6-arduino-cache-{{ checksum ".circleci/setup-arduino.sh" }}
-      - <<: *install_arduino
-      - <<: *install_hex_archives
-      - restore_cache:
-          keys:
-            - v6-dependency-cache-{{ checksum "mix.lock.rpi3" }}
-      - run: mix deps.get
-      - run: mix compile
-      - run: mix firmware
-      - save_cache:
-          key: v6-dependency-cache-{{ checksum "mix.lock.rpi3" }}
-          paths:
-            - _build/rpi3
-            - _build/host
-            - _build/arduino
-            - deps/rpi3
-            - deps/host
-            - ~/.nerves
+      - <<: *install_hex_rebar
+      - <<: *install_nerves_bootstrap
+      - <<: *install_slack_helpers
+      - <<: *install_ghr
+      - <<: *install_jq
+      - run: grep -Pazo "(?s)(?<=# $(cat VERSION))[^#]+" CHANGELOG.md > RELEASE_NOTES
+      - run:
+          name: Build production firmware
+          command: make farmbot_os_firmware
       - run: mkdir -p artifacts
-      - run:
-          name: Decode fwup priv key
-          command: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
-      - run:
-          name: Sign firmware
-          command: fwup -S -s $NERVES_FW_PRIV_KEY -i _build/${MIX_TARGET}/${MIX_ENV}/nerves/images/farmbot.fw -o artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
-      - run:
-          name: Create img
-          command: mix firmware.image artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).img
+      - run: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
+      - run: fwup -S -s $NERVES_FW_PRIV_KEY -i farmbot_os/_build/$MIX_TARGET/$MIX_ENV/nerves/images/farmbot_os.fw -o artifacts/farmbot-$MIX_TARGET-$(cat VERSION).fw
+      - run: fwup -a -d artifacts/farmbot-$MIX_TARGET-$(cat VERSION).img -i farmbot_os/_build/$MIX_TARGET/$MIX_ENV/nerves/images/farmbot_os.fw -t complete
       - save_cache:
-          key: v6-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_SHA1 }}
+          key: v4-fbos-rpi3-prod-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
           paths:
-            - ./artifacts
-
-  deploy_prod_firmware:
-    <<: *defaults
-    steps:
-      - checkout
+            - farmbot_os/_build/rpi3/prod
+            - farmbot_os/deps/rpi3/
+      - save_cache:
+          key: v4-fbos-rpi3-prod-nerves-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
+          paths:
+            - ~/.nerves
+      - run: ./ghr -t $GITHUB_TOKEN -u Farmbot-Labs -r farmbot_ng -recreate -prerelease -draft -delete -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)" $PWD/artifacts
       - run:
-          name: Install dependencies
+          name: Send notifications
           command: |
-            wget https://github.com/tcnksm/ghr/releases/download/v0.5.4/ghr_v0.5.4_linux_amd64.zip
-            unzip ghr_v0.5.4_linux_amd64.zip
-            wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
-            chmod +x ./jq-linux64
-      - run:
-          command: grep -Pazo "(?s)(?<=# $(cat VERSION))[^#]+" CHANGELOG.md > RELEASE_NOTES
-      - restore_cache:
-          key: v6-firmware-{{ .Revision }}-{{ .Environment.CIRCLE_SHA1 }}
-      - run:
-          command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -draft -delete -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)" $PWD/artifacts
-
+            export OTA_URL=$(wget https://api.github.com/repos/farmbot-labs/farmbot_ng/releases --header="Authorization: token $GITHUB_TOKEN" -qO- | wget https://api.github.com/repos/farmbot-labs/farmbot_ng/releases --header="Authorization: token $GITHUB_TOKEN" -qO- | ./jq-linux64 'map(select(.draft))' | ./jq-linux64 '.[0].url' | sed -e 's/^"//' -e 's/"$//')
+            export SLACK_MESSAGE="New FarmbotNG Production release: $(wget $OTA_URL --header="Authorization: token $GITHUB_TOKEN" -qO- | ./jq-linux64 '.html_url' | tr -d \")"
+            elixir slack_message.ex $SLACK_MESSAGE
 workflows:
   version: 2
-  test_firmware_upload:
+  test:
     jobs:
-      - test:
+      - test_farmbot_core:
+          context: org-global
+      - test_farmbot_ext:
+          context: org-global
+      - test_farmbot_os:
+          context: org-global
+  rpi3_dev_firmware:
+    jobs:
+      - rpi3_dev_firmware:
           context: org-global
           filters:
             branches:
               ignore:
                 - beta
                 - master
-      - firmware_dev:
-          context: org-global
-          requires:
-            - test
-          filters:
-            branches:
-              ignore:
-                - beta
-                - master
-
-  deploy_beta:
+  rpi3_beta_firmware:
     jobs:
-      - firmware_beta:
+      - rpi3_beta_firmware:
           context: org-global
           filters:
             branches:
               only:
                 - beta
-      - deploy_beta_firmware:
-          context: org-global
-          filters:
-            branches:
-              only:
-                - beta
-          requires:
-            - firmware_beta
-
-  deploy_prod:
+  rpi3_prod_firmware:
     jobs:
-      - firmware_prod:
+      - rpi3_prod_firmware:
           context: org-global
           filters:
             branches:
               only:
                 - master
-      - deploy_prod_firmware:
-          context: org-global
-          filters:
-            branches:
-              only:
-                - master
-          requires:
-            - firmware_prod
