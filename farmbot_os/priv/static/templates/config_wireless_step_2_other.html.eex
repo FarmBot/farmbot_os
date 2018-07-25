@@ -1,0 +1,22 @@
+<html>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <head>
+
+    <title> Configure Farmbot's Network </title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+
+  <body>
+    <h1>Configure your FarmBot</h1>
+    <div class="widget">
+      <div class="widget-header"> <h5>Configure Wireless</h5> </div>
+      <div class="widget-content">
+        security mode <%= inspect security %> unknown or unsupported.
+        <form action="network" method="get">
+          <div class="button"> <input type="submit" value="Try something else"> </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

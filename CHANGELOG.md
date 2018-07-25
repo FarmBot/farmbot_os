@@ -1,5 +1,8 @@
 # Changelog
 
+# 8.0.0
+* Reorganize project structure
+
 # 7.0.1
 * Fix typo causing custom dns servers to be ignored.
 * Update Configurator UI

@@ -1,7 +1,0 @@
-{
- "skip_files": [
-  "test/support",
-  "nerves/",
-  "lib/mix/"
- ]
-}

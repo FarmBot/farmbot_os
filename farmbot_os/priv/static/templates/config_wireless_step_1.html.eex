@@ -1,0 +1,89 @@
+<% import Phoenix.HTML %>
+<html>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <head>
+
+    <title> Configure Farmbot's Network </title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="signal_table.js"></script>
+    <script src="security_icon_lookup.js"></script>
+    <script type="text/javascript">
+
+    function selectSsid(ssid, bssid, security) {
+      console.log("you selected "+ ssid);
+      document.getElementById("hiddenssidinput").value = ssid;
+      document.getElementById("hiddensecurityinput").value = security;
+      var derp = document.getElementsByName("ssidSelector");
+      document.getElementById("manualssid").value = "";
+      for(var i = 0; i < derp.length; i++) derp[i].classList.remove("selected");
+
+      document.getElementById(bssid).classList.add("selected");
+    }
+
+    function enableSsidInput() {
+      var elem = document.getElementById("manualssid");
+      elem.hidden=false;
+      elem.focus();
+    }
+
+    function rescan() {
+      window.location.reload(true);
+    }
+
+    </script>
+
+  </head>
+
+  <body>
+    <h1>Configure your FarmBot</h1>
+    <div class="widget">
+      <div class="widget-header">
+        <h5>Configure Wireless</h5>
+        <button class="rescan" onclick='rescan()'>SCAN</button>
+      </div>
+      <div class="widget-content">
+        <form action=<%= post_action %> method="post" id="ssid_select_form">
+          <fieldset>
+            <table class="table">
+              <tr class="table-header">
+                <th><label>WiFi Network Name</label></th>
+                <th class="centered"><label>Strength</label></th>
+                <th class="centered"><label>Security</label></th>
+              </tr>
+              <%= for ssid_result <- ssids do %>
+                <%= if ssid_result.ssid && String.printable?(ssid_result.ssid) do %>
+                  <tr id="<%= ssid_result.bssid %>" name="ssidSelector" class="ssid_result"
+                    onclick='selectSsid("<%= escape_javascript(ssid_result.ssid) %>", "<%= escape_javascript(ssid_result.bssid) %>", "<%= escape_javascript(to_string(ssid_result.security)) %>")' >
+                    <td class="ssid_name"> <%= ssid_result.ssid || "hidden network" %> </td>
+                    <td class="ssid_quality">
+                      <script>
+                        var percent = signal_table[<%= ssid_result.level %>];
+                        document.write(`<div class="percent-bar" style="width: ${percent}%" title="${percent}" />`)
+                      </script>
+                    </td>
+                    <td class="ssid_security centered">
+                      <script>
+                        var icon = security_icon_lookup["<%= ssid_result.security %>"];
+                        if (!icon) { icon = "icon_unknown.svg"; }
+                        document.write(`<img src="${icon}" title="<%= ssid_result.security %>" />`)
+                      </script>
+                    </td>
+                  </tr>
+                <% end %>
+              <% end %>
+            </table>
+
+            <label for="manualssid" class="customSsidInput" onclick="enableSsidInput()">Manual Input</label>
+            <input type="text" name="manualssid" id="manualssid"/>
+            <input name="security" id="hiddensecurityinput" hidden/>
+            <input name="ssid" id="hiddenssidinput" hidden/>
+            <input name="ifname" id="ifname" value="<%= ifname %>" hidden/>
+          </fieldset>
+
+          <div class="button"> <input type="submit" value="next"> </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

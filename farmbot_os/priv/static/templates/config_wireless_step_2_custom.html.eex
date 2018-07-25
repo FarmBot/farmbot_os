@@ -1,0 +1,92 @@
+<html>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <head>
+
+    <title> Configure Farmbot's Network </title>
+    <link rel="stylesheet" href="/styles.css">
+    <script>
+      function securityInputs(action, securityType) {
+        var hidden = action == "hide";
+        var required = !hidden;
+
+        if (securityType == "EAP" || securityType == "ALL") {
+          document.getElementById("eapidentitydiv").hidden = hidden;
+          document.getElementById("eappassworddiv").hidden = hidden;
+          document.getElementById("identity").required = required;
+          document.getElementById("password").required = false;
+        }
+        if (securityType == "PSK" || securityType == "ALL") {
+          document.getElementById("pskdiv").hidden = hidden;
+          document.getElementById("psk").required = false;
+        }
+      }
+
+      function securityChange() {
+        var v = document.getElementById("security").value;
+        securityInputs(v == "WPA-PSK" ? "show" : "hide", "PSK");
+        securityInputs(v == "WPA-EAP" ? "show" : "hide", "EAP");
+
+        if(v == "NONE") { securityInputs("hide", "ALL"); }
+      }
+
+      function showPassword(elementId) {
+        var x = document.getElementById(elementId);
+        x.type = (x.type === "password") ? "text" : "password";
+      }
+    </script>
+  </head>
+
+  <body>
+    <h1>Configure your FarmBot</h1>
+    <div class="widget">
+      <div class="widget-header"> <h5>Configure Wireless</h5> </div>
+      <div class="widget-content">
+        <form action=<%= post_action %> method="post">
+          <fieldset>
+            <label>Network Name</label>
+            <input name="ssid_fake" type="text" value="<%= ssid %>" disabled>
+            <input name="ssid" type="text" value="<%= ssid %>" hidden>
+            <input name="ifname"  hidden value="<%= ifname   %>">
+
+            <label for="security"> Security Type </label>
+            <select name="security" id="security" onchange="securityChange()">
+              <option value="WPA-PSK"> WPA2-PSK </option>
+              <option value="WPA-PSK"> WPA-PSK </option>
+              <option value="WPA-EAP"> WPA-EAP </option>
+              <option value="NONE"> NONE </option>
+            </select>
+
+            <div id="pskdiv">
+              <label for=psk> Password </label>
+              <div class="psk-input-group">
+                <input type="password" name="psk" id="psk">
+                <img class="eye-icon" src="icon_eye.svg"
+                  onclick="showPassword('psk')" title="Show password">
+              </div>
+            </div>
+
+            <div id="eapidentitydiv" hidden>
+              <label for=identity> EAP Identity </label>
+              <input type="text" name="identity" id="identity">
+            </div>
+
+            <div id="eappassworddiv" hidden>
+              <label for=password> EAP Password </label>
+              <div class="psk-input-group">
+                <input type="password" name="password" id="password">
+                <img class="eye-icon" src="icon_eye.svg"
+                  onclick="showPassword('password')" title="Show password">
+              </div>
+            </div>
+
+            <%= advanced_network %>
+
+          </fieldset>
+
+          <div class="button"> <input type=submit value="next"> </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
