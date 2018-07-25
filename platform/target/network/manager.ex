@@ -74,8 +74,15 @@ defmodule Farmbot.Target.Network.Manager do
     {:noreply, %{state | not_found_timer: timer, connected: false}}
   end
 
+  def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-CONNECTED", _}, state) do
+    # Don't update connected. This is not a real test of connectivity.
+    Logger.success 1, "Connected to access point."
+    {:noreply, state}
+  end
+
+
   def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-DISCONNECTED", _}, state) do
-    Logger.error 1, "Disconnected from WiFi!"
+    Logger.error 1, "Disconnected from access point."
     {:noreply, %{state | connected: false}}
   end
 
