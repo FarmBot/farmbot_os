@@ -2,6 +2,9 @@
 # 7.0.3
 * Update to AMQP to disable `heartbeat` timeouts
 
+# 8.0.0
+* Reorganize project structure
+
 # 7.0.2
 * AMQP now reconnects immediately after an unexpected disconnect
 * Misc Configurator UI updates
