@@ -1,82 +1,65 @@
-ALL :=
-CLEAN :=
+.PHONY: all clean
+.DEFAULT_GOAL: all
 
-PREFIX = $(MIX_COMPILE_PATH)/../priv
-BUILD = $(MIX_COMPILE_PATH)/../obj
+MIX_ENV := $(MIX_ENV)
+MIX_TARGET := $(MIX_TARGET)
+SLACK_CHANNEL := $(SLACK_CHANNEL)
 
-# Set Erlang-specific compile and linker flags
-ERL_CFLAGS ?= -I$(ERL_EI_INCLUDE_DIR)
-ERL_LDFLAGS ?= -L$(ERL_EI_LIBDIR) -lei
-
-CFLAGS += -fPIC --std=c11
-LDFLAGS += -fPIC -shared
-
-ifeq ($(ERL_EI_INCLUDE_DIR),)
-$(warning ERL_EI_INCLUDE_DIR not set. Invoke via mix)
+ifeq ($(MIX_ENV),)
+MIX_ENV := dev
 endif
 
-ESQLITE_SRC = $(MIX_DEPS_PATH)/esqlite/c_src
-ESQLITE_BUILD = $(MIX_BUILD_PATH)/lib/esqlite/obj
-ESQLITE_PREFIX = $(MIX_BUILD_PATH)/lib/esqlite/priv
+ifeq ($(MIX_TARGET),)
+MIX_TARGET := host
+endif
 
-.PHONY: fbos_arduino_firmware fbos_clean_arduino_firmware all clean
+all: help
 
-SQLITE_CFLAGS := -DSQLITE_THREADSAFE=1 \
--DSQLITE_USE_URI \
--DSQLITE_ENABLE_FTS3 \
--DSQLITE_ENABLE_FTS3_PARENTHESIS
+help:
+	@echo "no"
 
-all: $(PREFIX) \
-		$(BUILD) \
-		$(PREFIX)/build_calendar.so \
-		$(ESQLITE_BUILD) \
-		$(ESQLITE_PREFIX) \
-		$(ESQLITE_PREFIX)/esqlite3_nif.so
+farmbot_core_clean:
+	cd farmbot_core && \
+	make clean && \
+	rm -rf priv/*.hex &&\
+	rm -rf priv/*.so &&\
+	rm -rf ./.*.sqlite3 &&\
+	rm -rf _build deps
 
-clean: 
-	$(RM) $(PREFIX)/*.so
-	$(RM) $(ESQLITE_PREFIX)/*.so
+farmbot_ext_clean:
+	cd farmbot_ext && \
+	rm -rf ./.*.sqlite3 &&\
+	rm -rf _build deps
 
-## ARDUINO FIRMWARE
+farmbot_os_clean:
+	cd farmbot_os && \
+	rm -rf _build deps
 
-fbos_arduino_firmware:
-	cd c_src/farmbot-arduino-firmware && make all BUILD_DIR=$(PWD)/_build FBARDUINO_FIRMWARE_SRC_DIR=$(PWD)/c_src/farmbot-arduino-firmware/src BIN_DIR=$(PWD)/priv
+clean: farmbot_core_clean farmbot_ext_clean farmbot_os_clean
 
-fbos_clean_arduino_firmware:
-	cd c_src/farmbot-arduino-firmware && make clean BUILD_DIR=$(PWD)/_build FBARDUINO_FIRMWARE_SRC_DIR=$(PWD)/c_src/farmbot-arduino-firmware/src BIN_DIR=$(PWD)/priv
+farmbot_core_test:
+	cd farmbot_core && \
+	MIX_ENV=test mix deps.get && \
+	MIX_ENV=test mix ecto.migrate && \
+	MIX_ENV=test mix compile
 
-## ESQLITE NIF HACK
+farmbot_ext_test:
+	cd farmbot_ext && \
+	MIX_ENV=test SKIP_ARDUINO_BUILD=1 mix deps.get && \
+	MIX_ENV=test SKIP_ARDUINO_BUILD=1 mix ecto.migrate && \
+	MIX_ENV=test SKIP_ARDUINO_BUILD=1 mix compile
 
-$(ESQLITE_PREFIX)/esqlite3_nif.so: $(ESQLITE_BUILD)/sqlite3.o $(ESQLITE_BUILD)/queue.o $(ESQLITE_BUILD)/esqlite3_nif.o
-	$(CC) -o $@ $(ERL_LDFLAGS) $(LDFLAGS) $^
+farmbot_os_test:
+	cd farmbot_os && \
+	MIX_ENV=test SKIP_ARDUINO_BUILD=1 mix deps.get && \
+	MIX_ENV=test SKIP_ARDUINO_BUILD=1 mix compile
 
-$(ESQLITE_BUILD)/esqlite3_nif.o: $(ESQLITE_SRC)/esqlite3_nif.c
-	$(CC) -c $(ERL_CFLAGS) $(CFLAGS) $(SQLITE_CFLAGS) -o $@ $<
+test: farmbot_core_test farmbot_ext_test farmbot_os_test
 
-$(ESQLITE_BUILD)/queue.o: $(ESQLITE_SRC)/queue.c
-	$(CC) -c $(ERL_CFLAGS) $(CFLAGS) $(SQLITE_CFLAGS) -o $@ $<
+farmbot_os_firmware:
+	cd farmbot_os && \
+	MIX_ENV=$(MIX_ENV) MIX_TARGET=$(MIX_TARGET) mix do deps.get, firmware
 
-$(ESQLITE_BUILD)/sqlite3.o: $(ESQLITE_SRC)/sqlite3.c
-	$(CC) -c $(CFLAGS) $(SQLITE_CFLAGS) -o $@ $<
-
-## BUILD CALENDAR NIF
-
-$(PREFIX)/build_calendar.so: $(BUILD)/build_calendar.o
-	$(CC) -o $@ $(ERL_LDFLAGS) $(LDFLAGS) $^
-
-$(BUILD)/build_calendar.o: c_src/build_calendar/build_calendar.c
-	$(CC) -c $(ERL_CFLAGS) $(CFLAGS) -o $@ $<
-
-## DIRECTORIES
-
-$(PREFIX):
-	mkdir -p $(PREFIX)
-
-$(BUILD):
-	mkdir -p $(BUILD)
-
-$(ESQLITE_BUILD):
-	mkdir -p $(ESQLITE_BUILD)
-
-$(ESQLITE_PREFIX):
-	mkdir -p $(ESQLITE_PREFIX)
+farmbot_os_firmware_slack: farmbot_os_firmware
+	cd farmbot_os && \
+	MIX_ENV=$(MIX_ENV) MIX_TARGET=$(MIX_TARGET) mix farmbot.firmware.slack --channels $(SLACK_CHANNEL)

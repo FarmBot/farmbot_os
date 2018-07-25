@@ -35,11 +35,6 @@ erl_crash.dump
 *.js
 /release-*
 /node_modules
-/farmbot_ext
-/farmbot_core
-/farmbot_os
-/farmbot_celery_script
-/farmbot_firmware
 
 # Various env vars.
 .env
@@ -53,7 +48,6 @@ upload.sh
 artifacts
 RELEASE_NOTES
 *.hex
-!/priv/eeprom_clear.ino.hex
 # lagger can't be disabled.
 /log
 .make_state
