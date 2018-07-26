@@ -1,4 +1,7 @@
 # Changelog
+# 6.4.5
+* Fix Firmware syncing applying _every_ setting.
+
 # 6.4.4
 * Optimize AMQP connection.
 * Sync PinBindings with the API.

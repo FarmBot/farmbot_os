@@ -182,8 +182,8 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     old_map = take_valid_fw(old_map)
     new_map = take_valid_fw(new_map)
     new_stuff = Map.new(new_map, fn({key, new_value}) ->
-      if old_map[key] !== new_value do
-        IO.puts "1 #{key} #{old_map[key]} !== #{new_value}"
+      if old_map[key] != new_value do
+        IO.puts "1 #{key} #{old_map[key]} != #{new_value}"
         apply_to_config_storage key, new_value
         {key, new_value}
       else
@@ -193,8 +193,8 @@ defmodule Farmbot.Bootstrap.SettingsSync do
 
     if Process.whereis(Farmbot.Firmware) do
       Map.new(new_map, fn({param, new_value}) ->
-        if old_map[param] !== new_value do
-          IO.puts "2 #{param} #{old_map[param]} !== #{new_value}"
+        if old_map[param] != new_value do
+          IO.puts "2 #{param} #{old_map[param]} != #{new_value}"
           Farmbot.Firmware.update_param(String.to_atom(param), new_value)
         end
         {param, get_config_value(:float, "hardware_params", param)}
@@ -219,7 +219,7 @@ defmodule Farmbot.Bootstrap.SettingsSync do
   defp apply_to_config_storage(key, val)
   when key in @firmware_keys do
     if val do
-      Logger.success 2, "Updating FW param: #{key}: #{get_config_value(:float, "hardware_params", key)} => #{val / 1 || "null"}"
+      Logger.success 2, "Updating FW param: #{key}: #{get_config_value(:float, "hardware_params", key)} => #{val}"
       update_config_value(:float, "hardware_params", key, val / 1)
     else
       Logger.warn 2, "Not allowing #{key} to be set to null"
