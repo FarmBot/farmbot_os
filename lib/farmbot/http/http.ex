@@ -75,31 +75,39 @@ defmodule Farmbot.HTTP do
   end
 
   @doc "Same as `post/4` but raises."
-  @spec post!(url, headers, opts) :: Response.t | no_return
+  @spec post!(url, body, headers, opts) :: Response.t | no_return
   def post!(url, body, headers \\ [], opts \\ [])
 
   def post!(url, body, headers, opts) do
     request!(:post, url, body, headers, opts)
   end
 
+  @doc "HTTP PUT request."
+  @spec put(url, body, headers, opts) :: {:ok, Response.t} | {:error, term}
   def put(url, body, headers \\ [], opts \\ [])
 
   def put(url, body, headers, opts) do
     request(:put, url, body, headers, opts)
   end
 
+  @doc "Same as `put/4` but raises."
+  @spec put!(url, body, headers, opts) :: Response.t | no_return
   def put!(url, body, headers \\ [], opts \\ [])
 
   def put!(url, body, headers, opts) do
     request!(:put, url, body, headers, opts)
   end
 
+  @doc "HTTP DELETE request."
+  @spec delete(url, headers, opts) :: {:ok, Response.t} | {:error, term}
   def delete(url, headers \\ [], opts \\ [])
 
   def delete(url, headers, opts) do
     request!(:delete, url, "", headers, opts)
   end
 
+  @doc "Same as `delete/3` but raises."
+  @spec delete!(url, headers, opts) :: Response.t | no_return
   def delete!(url, headers \\ [], opts \\ [])
 
   def delete!(url, headers, opts) do

@@ -360,7 +360,7 @@ defmodule Farmbot.Firmware.UartHandler do
 
   def handle_call({:update_param, param, val}, _from, state) do
     num = Farmbot.Firmware.Gcode.Param.parse_param(param)
-    do_write("F22 P#{num} V#{val}", state)
+    do_write("F22 P#{num} V#{fmnt_float(val)}", state)
   end
 
   def handle_call(:read_all_params, _from, state) do
@@ -378,7 +378,7 @@ defmodule Farmbot.Firmware.UartHandler do
     do_write("F42 P#{pin} M#{encoded_mode}", state, dispatch)
   end
 
-  def handle_call({:write_pin, pin, mode, value}, _from, state) do
+  def handle_call({:write_pin, pin, mode, value}, _from, state) when is_integer(value) do
     encoded_mode = extract_pin_mode(mode)
     dispatch = [{:report_pin_mode, pin, mode}, {:report_pin_value, pin, value}]
     do_write("F41 P#{pin} V#{value} M#{encoded_mode}", state, dispatch)
@@ -388,7 +388,7 @@ defmodule Farmbot.Firmware.UartHandler do
     do_write("F83", state)
   end
 
-  def handle_call({:set_servo_angle, pin, angle}, _, state) do
+  def handle_call({:set_servo_angle, pin, angle}, _, state) when is_integer(angle) do
     do_write("F61 P#{pin} V#{angle}", state)
   end
 

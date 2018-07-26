@@ -20,9 +20,8 @@ defmodule Farmbot.CeleryScript.AST.Node.RpcRequest do
   end
 
   defp handle_error(ast, label, reason, env) do
-    case Node.Explanation.execute(%{message: "#{inspect ast} failed: #{inspect reason}"}, [], env) do
-      {:ok, expl, new_env} -> Node.RpcError.execute(%{label: label}, [expl], new_env)
-      {:error, reason, env} -> {:error, reason, env}
-    end
+    args = %{message: "#{inspect ast} failed: #{inspect reason}"}
+    {:ok, expl, new_env} = Node.Explanation.execute(args, [], env)
+    Node.RpcError.execute(%{label: label}, [expl], new_env)
   end
 end

@@ -5,16 +5,16 @@ defmodule Farmbot.Repo.Registry do
 
   @doc false
   def dispatch(%Snapshot.Diff{} = diff) do
-    Enum.each(diff.additions, fn(addition) ->
-      GenServer.cast(__MODULE__, {:addition, addition})
-    end)
-
     Enum.each(diff.deletions, fn(deletion) ->
       GenServer.cast(__MODULE__, {:deletion, deletion})
     end)
 
     Enum.each(diff.updates, fn(update) ->
       GenServer.cast(__MODULE__, {:update, update})
+    end)
+
+    Enum.each(diff.additions, fn(addition) ->
+      GenServer.cast(__MODULE__, {:addition, addition})
     end)
     :ok
   end

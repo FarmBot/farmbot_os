@@ -52,8 +52,20 @@ defmodule Farmbot.BotState do
     end
   end
 
+  def report_soc_temp(temp_celcius) when is_number(temp_celcius) do
+    GenStage.call(__MODULE__, {:report_soc_temp, temp_celcius})
+  end
+
+  def report_wifi_level(level) when is_number(level) do
+    GenStage.call(__MODULE__, {:report_wifi_level, level})
+  end
+
   def locked? do
     GenStage.call(__MODULE__, :locked?)
+  end
+
+  def set_connected(bool) when is_boolean(bool) do
+    GenStage.call(__MODULE__, {:set_connected, bool})
   end
 
   @doc "Set job progress."
@@ -153,7 +165,7 @@ defmodule Farmbot.BotState do
     info_settings = %{initial_state.informational_settings | node_name: node()}
     state = %{initial_state | informational_settings: info_settings}
     gen_stage_opts = [
-      subscribe_to: [Firmware, ConfigStorage.Dispatcher, Farmbot.System.GPIO],
+      subscribe_to: [Firmware, ConfigStorage.Dispatcher, Farmbot.PinBinding.Manager],
       dispatcher: GenStage.BroadcastDispatcher
     ]
     {:producer_consumer, state, gen_stage_opts}
@@ -163,6 +175,18 @@ defmodule Farmbot.BotState do
     state = do_handle(events, state)
     # Logger.success 3, "Finish handle bot state events"
     {:noreply, [state], state}
+  end
+
+  def handle_call({:report_soc_temp, temp}, _from, state) do
+    new_info_settings = %{state.informational_settings | soc_temp: temp}
+    state = %{state | informational_settings: new_info_settings}
+    {:reply, :ok, [state], state}
+  end
+
+  def handle_call({:report_wifi_level, level}, _from, state) do
+    new_info_settings = %{state.informational_settings | wifi_level: level}
+    state = %{state | informational_settings: new_info_settings}
+    {:reply, :ok, [state], state}
   end
 
   def handle_call(:locked?, _from, state) do
@@ -183,6 +207,12 @@ defmodule Farmbot.BotState do
       old + 1
     end)
     {:reply, new_state, [new_state], new_state}
+  end
+
+  def handle_call({:set_connected, bool}, _from, state) do
+    new_info_settings = %{state.informational_settings | connected: bool}
+    new_state = %{state | informational_settings: new_info_settings}
+    {:reply, :ok, [new_state], new_state}
   end
 
   def handle_call({:set_busy, bool}, _from, state) do
@@ -254,6 +284,7 @@ defmodule Farmbot.BotState do
       zip: fw.zip
     }
     ser_fw = %{
+      farmware_tools_version: fw.farmware_tools_version,
       args: fw.args,
       executable: fw.executable,
       meta: ser_fw_meta,
@@ -324,12 +355,15 @@ defmodule Farmbot.BotState do
       commit: @commit,
       target: @target,
       env: @env,
+      connected: false,
       node_name: nil,
       busy: false,
       sync_status: :booting,
       last_status: nil,
       locked: false,
-      cache_bust: 0
+      cache_bust: 0,
+      soc_temp: 0,
+      wifi_level: nil,
     },
     location_data: %{
       position: %{x: nil, y: nil, z: nil},

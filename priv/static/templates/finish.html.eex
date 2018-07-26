@@ -1,24 +1,24 @@
-<html>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="en">
+    <head>
+      <meta charset="utf-8"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title> Configuration Complete </title>
+      <link rel="stylesheet" href="/styles.css">
+    </head>
 
-  <head>
-    <title> Configuration Complete </title>
-    <link rel="stylesheet" href="/styles.css">
-  </head>
-
-  <body>
-    <h1>Configuration Complete</h1>
-    <div class="widget">
-    <div class="widget-header">
-      <h5>You're all set!</h5>
+    <body>
+      <h1>Configuration Complete</h1>
+      <div class="widget">
+      <div class="widget-header">
+        <h5>You're all set!</h5>
+      </div>
+      <div class="widget-content">
+        FarmBot will now reboot to apply the configuration.
+        <p>
+          If any configuration settings are incorrect, FarmBot will reset
+          allowing you to enter the settings again.
+        </p>
+      </div>
     </div>
-    <div class="widget-content">
-      FarmBot will now reboot to apply the configuration.
-      <p>
-        If any configuration settings are incorrect, FarmBot will reset
-        allowing you to enter the settings again.
-      </p>
-    </div>
-  </div>
-  </body>
+    </body>
 </html>

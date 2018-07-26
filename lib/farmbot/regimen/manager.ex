@@ -56,11 +56,7 @@ defmodule Farmbot.Regimen.Manager do
     regimen = %{regimen | regimen_items: items}
 
     epoch =
-      Farmbot.TimeUtils.build_epoch(time) ||
-        raise Error,
-          message: "Could not determine EPOCH because no timezone was supplied.",
-          epoch: :error,
-          regimen: regimen
+      Farmbot.TimeUtils.build_epoch(time)
 
     initial_state = %{
       next_execution: nil,

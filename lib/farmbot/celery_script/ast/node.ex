@@ -5,10 +5,12 @@ defmodule Farmbot.CeleryScript.AST.Node do
   @doc "Decode and validate arguments."
   @callback decode_args(map) :: {:ok, AST.args} | {:error, term}
 
+  @type env :: %Macro.Env{}
+
   @doc "Execute a node"
-  @callback execute(AST.args, AST.body, Macro.Env.t) :: {:ok, AST.t} |
-    {:ok, Macro.Env.t} |
-    {:error, Macro.Env.t, term}
+  @callback execute(AST.args, AST.body, env) :: {:ok, AST.t, env} |
+    {:ok, env} |
+    {:error, term, env}
 
   @doc false
   defmacro __after_compile__(env, _) do

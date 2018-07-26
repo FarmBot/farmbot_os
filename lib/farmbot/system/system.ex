@@ -123,7 +123,14 @@ defmodule Farmbot.System do
     case formated do
       nil -> nil
       {:ignore, reason}  -> {:ignore, reason}
-      formatted when is_binary(formatted) ->  formated <> footer
+      formatted when is_binary(formatted) ->
+        if String.contains?(formatted, "DbConnection") do
+          {:ignore, """
+          https://github.com/scouten/sqlite_ecto2/issues/204
+          """}
+        else
+          formated <> footer
+        end
     end
   end
 

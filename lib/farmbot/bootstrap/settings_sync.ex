@@ -143,25 +143,34 @@ defmodule Farmbot.Bootstrap.SettingsSync do
   end
 
   @doc false
-  def run() do
-    do_sync_fbos_configs()
-    do_sync_fw_configs()
-    Logger.debug 1, "Synced Farmbot OS and Firmware settings with API"
-    :ok
-  rescue
-    err ->
-      message = Exception.message(err)
-      err_msg = "#{message} #{inspect System.stacktrace()}"
-      Logger.error 1, "Error syncing settings: #{err_msg}"
-      update_config_value(:bool, "settings", "ignore_fbos_config", false)
-      {:error, message}
+  def run(tries_left \\ 6) do
+    # HACK: Connor - Don't even look at this.
+    if is_nil(Process.whereis(Farmbot.System.ConfigStorage)) do
+      Logger.error 1, "ConfigStorage not running? trying #{tries_left - 1} more times"
+      Process.sleep(5000)
+      run(tries_left - 1)
+    else
+      try do
+        do_sync_fbos_configs()
+        do_sync_fw_configs()
+        Logger.debug 1, "Synced Farmbot OS and Firmware settings with API"
+        :ok
+      rescue
+        err ->
+          message = Exception.message(err)
+          err_msg = "#{message} #{inspect System.stacktrace()}"
+          Logger.error 1, "Error syncing settings: #{err_msg}"
+          update_config_value(:bool, "settings", "ignore_fbos_config", false)
+          {:error, message}
+      end
+    end
   end
 
   def apply_fbos_map(old_map, new_map) do
     old_map = take_valid_fbos(old_map)
     new_map = take_valid_fbos(new_map)
     Map.new(new_map, fn({key, new_value}) ->
-      if old_map[key] != new_value do
+      if old_map[key] !== new_value do
         Logger.debug 3, "Got new config update: #{key} => #{new_value}"
         apply_to_config_storage key, new_value
       end
@@ -173,21 +182,26 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     old_map = take_valid_fw(old_map)
     new_map = take_valid_fw(new_map)
     new_stuff = Map.new(new_map, fn({key, new_value}) ->
-      if old_map[key] != new_value do
+      if old_map[key] !== new_value do
+        IO.puts "1 #{key} #{old_map[key]} !== #{new_value}"
         apply_to_config_storage key, new_value
+        {key, new_value}
+      else
+        {key, old_map[key]}
       end
-      {key, new_value}
     end)
 
     if Process.whereis(Farmbot.Firmware) do
-      for {param, new_value} <- new_stuff do
-        if old_map[param] != new_value do
+      Map.new(new_map, fn({param, new_value}) ->
+        if old_map[param] !== new_value do
+          IO.puts "2 #{param} #{old_map[param]} !== #{new_value}"
           Farmbot.Firmware.update_param(String.to_atom(param), new_value)
         end
-      end
+        {param, get_config_value(:float, "hardware_params", param)}
+      end)
+    else
+      new_stuff
     end
-
-    new_stuff
   end
 
   defp apply_to_config_storage(key, val)
@@ -204,8 +218,8 @@ defmodule Farmbot.Bootstrap.SettingsSync do
 
   defp apply_to_config_storage(key, val)
   when key in @firmware_keys do
-    Logger.success 2, "Updating FW param: #{key} => #{inspect val}"
     if val do
+      Logger.success 2, "Updating FW param: #{key}: #{get_config_value(:float, "hardware_params", key)} => #{val / 1 || "null"}"
       update_config_value(:float, "hardware_params", key, val / 1)
     else
       Logger.warn 2, "Not allowing #{key} to be set to null"

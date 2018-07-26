@@ -32,7 +32,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
   defmodule State do
     @moduledoc false
-    defstruct [:conn, :chan, :queue_name, :bot, :state_cache]
+    defstruct [:conn, :chan, :bot, :state_cache]
   end
 
   def init([]) do
@@ -42,15 +42,21 @@ defmodule Farmbot.BotState.Transport.AMQP do
     with {:ok, %{bot: device, mqtt: mqtt_host, vhost: vhost}} <- decode(token),
          {:ok, conn}  <- open_connection(token, device, mqtt_host, vhost),
          {:ok, chan}  <- AMQP.Channel.open(conn),
-         q_name       <- Enum.join([device, UUID.uuid1()], "-"),
+         q_base       <- device,
+
          :ok          <- Basic.qos(chan, [global: true]),
-         {:ok, _}     <- AMQP.Queue.declare(chan, q_name, [auto_delete: true]),
+         {:ok, _}     <- AMQP.Queue.declare(chan, q_base <> "_from_clients", [auto_delete: true]),
          from_clients <- [routing_key: "bot.#{device}.from_clients"],
+         {:ok, _}     <- AMQP.Queue.purge(chan, q_base <> "_from_clients"),
+         :ok          <- AMQP.Queue.bind(chan, q_base <> "_from_clients", @exchange, from_clients),
+
+         {:ok, _}     <- AMQP.Queue.declare(chan, q_base <> "_auto_sync", [auto_delete: false]),
          sync         <- [routing_key: "bot.#{device}.sync.#"],
-         :ok          <- AMQP.Queue.bind(chan, q_name, @exchange, from_clients),
-         :ok          <- AMQP.Queue.bind(chan, q_name, @exchange, sync),
-         {:ok, _tag}  <- Basic.consume(chan, q_name, self(), [no_ack: true]),
-         opts      <- [conn: conn, chan: chan, queue_name: q_name, bot: device],
+         :ok          <- AMQP.Queue.bind(chan, q_base <> "_auto_sync", @exchange, sync),
+
+         {:ok, _tag}  <- Basic.consume(chan, q_base <> "_from_clients", self(), [no_ack: true]),
+         {:ok, _tag}  <- Basic.consume(chan, q_base <> "_auto_sync", self(), [no_ack: true]),
+         opts      <- [conn: conn, chan: chan, bot: device],
          state <- struct(State, opts)
     do
       update_config_value(:bool, "settings", "ignore_fbos_config", false)
@@ -101,6 +107,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
     auth_task = Farmbot.Bootstrap.AuthTask
     if Process.whereis(auth_task) && reason not in ok_reasons do
       auth_task.force_refresh()
+      Farmbot.BotState.set_connected(false)
     end
   end
 
@@ -158,6 +165,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
       Logger.success(1, "Farmbot is up and running!")
       update_config_value(:bool, "settings", "log_amqp_connected", false)
     end
+    Farmbot.BotState.set_connected(true)
     {:noreply, [], state}
   end
 
@@ -173,30 +181,37 @@ defmodule Farmbot.BotState.Transport.AMQP do
   end
 
   def handle_info({:basic_deliver, payload, %{routing_key: key}}, state) do
-    device = state.bot
-    route = String.split(key, ".")
-    case route do
-      ["bot", ^device, "from_clients"] ->
-        handle_celery_script(payload, state)
-        {:noreply, [], state}
-      ["bot", ^device, "sync", resource, _]
-      when resource in ["Log", "User", "Image", "WebcamFeed"] ->
-        {:noreply, [], state}
-      ["bot", ^device, "sync", "FbosConfig", id] -> handle_fbos_config(id, payload, state)
-      ["bot", ^device, "sync", "FirmwareConfig", id] -> handle_fw_config(id, payload, state)
-      ["bot", ^device, "sync", resource, id] ->
-        handle_sync_cmd(resource, id, payload, state)
-      ["bot", ^device, "logs"]        -> {:noreply, [], state}
-      ["bot", ^device, "status"]      -> {:noreply, [], state}
-      ["bot", ^device, "from_device"] -> {:noreply, [], state}
-      _ ->
-        Logger.warn 3, "got unknown routing key: #{key}"
-        {:noreply, [], state}
+    if GenServer.whereis(Farmbot.Repo) do
+      device = state.bot
+      route = String.split(key, ".")
+      case route do
+        ["bot", ^device, "from_clients"] ->
+          handle_celery_script(payload, state)
+          {:noreply, [], state}
+        ["bot", ^device, "sync", resource, _]
+        when resource in ["Log", "User", "Image", "WebcamFeed"] ->
+          {:noreply, [], state}
+        ["bot", ^device, "sync", "FbosConfig", id] ->
+          handle_fbos_config(id, payload, state)
+        ["bot", ^device, "sync", "FirmwareConfig", id] ->
+          handle_fw_config(id, payload, state)
+        ["bot", ^device, "sync", resource, id] ->
+          handle_sync_cmd(resource, id, payload, state)
+        ["bot", ^device, "logs"]        -> {:noreply, [], state}
+        ["bot", ^device, "status"]      -> {:noreply, [], state}
+        ["bot", ^device, "from_device"] -> {:noreply, [], state}
+        _ ->
+          Logger.warn 3, "got unknown routing key: #{key}"
+          {:noreply, [], state}
+      end
+    else
+      Logger.debug 3, "Repo not up yet."
+      {:noreply, [], state}
     end
   end
 
   def handle_info({:DOWN, _, :process, pid, reason}, state) do
-    unless reason == :normal do
+    unless reason in [:normal, :noproc] do
       Logger.warn 3, "CeleryScript: #{inspect pid} died: #{inspect reason}"
     end
     {:noreply, [], state}
@@ -223,10 +238,10 @@ defmodule Farmbot.BotState.Transport.AMQP do
         "args" => %{"label" => uuid}
       } = Poison.decode!(payload, as: %{"body" => struct(mod)})
 
-      cmd = ConfigStorage.register_sync_cmd(String.to_integer(id), kind, body)
+      _cmd = ConfigStorage.register_sync_cmd(String.to_integer(id), kind, body)
       # This if statment should really not live here..
       if get_config_value(:bool, "settings", "auto_sync") do
-        Farmbot.Repo.apply_sync_cmd(cmd)
+        Farmbot.Repo.fragment_sync()
       else
         Farmbot.BotState.set_sync_status(:sync_now)
       end

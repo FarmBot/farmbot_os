@@ -5,6 +5,7 @@ defmodule Farmbot.Target.Network.Ntp do
 
   use Farmbot.Logger
   import Farmbot.Target.Network, only: [test_dns: 1]
+  import Farmbot.System.ConfigStorage, only: [get_config_value: 3]
 
   @doc """
   Tries to set the time from ntp.
@@ -14,7 +15,7 @@ defmodule Farmbot.Target.Network.Ntp do
   def set_time(tries \\ 0)
   def set_time(tries) when tries < 4 do
     Process.sleep(1000 * tries)
-    case test_dns('0.pool.ntp.org') do
+    case test_dns(to_charlist(ntp_server_1())) do
       {:ok, {:hostent, _url, _, _, _, _}} ->
         do_try_set_time(tries)
       {:error, err} ->
@@ -28,7 +29,7 @@ defmodule Farmbot.Target.Network.Ntp do
   defp do_try_set_time(tries) when tries < 4 do
     # we try to set ntp time 3 times before giving up.
     # Logger.busy 3, "Trying to set time (try #{tries})"
-    :os.cmd('ntpd -q -p 0.pool.ntp.org -p 1.pool.ntp.org')
+    :os.cmd('ntpd -q -p #{ntp_server_1()} -p #{ntp_server_2()}')
     wait_for_time(tries)
   end
 
@@ -84,4 +85,11 @@ defmodule Farmbot.Target.Network.Ntp do
     end
   end
 
+  defp ntp_server_1 do
+    get_config_value(:string, "settings", "default_ntp_server_1")
+  end
+
+  defp ntp_server_2 do
+    get_config_value(:string, "settings", "default_ntp_server_2")
+  end
 end

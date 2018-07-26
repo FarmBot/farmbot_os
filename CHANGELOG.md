@@ -1,4 +1,17 @@
 # Changelog
+# 6.4.4
+* Optimize AMQP connection.
+* Sync PinBindings with the API.
+* Add new field on `informational_settings`: `soc_temp`.
+* Add new field on `informational_settings`: `wifi_level`.
+* Add new RPC `dump_info` that collects some info helpful for bug reports.
+* Add `BoxLed3` and `BoxLed4` to `write_pin`.
+* Implement new LED subsystem.
+* Declare language and charset in Configurator to avoid localization issues.
+* Add new Configurator fields for dns and ntp.
+* Another attempt at catching broken sqlite3 lib.
+* Update Linux system layer.
+
 # 6.4.3
 * Fix Ramps firmware build.
 

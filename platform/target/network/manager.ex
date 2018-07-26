@@ -10,6 +10,10 @@ defmodule Farmbot.Target.Network.Manager do
     GenServer.call(:"#{__MODULE__}-#{interface}", :ip)
   end
 
+  def get_state(interface) do
+    :sys.get_state(:"#{__MODULE__}-#{interface}")
+  end
+
   def start_link(interface, opts) do
     GenServer.start_link(__MODULE__, {interface, opts}, [name: :"#{__MODULE__}-#{interface}"])
   end
@@ -23,7 +27,6 @@ defmodule Farmbot.Target.Network.Manager do
     end
     Logger.success(3, "Interface #{interface} is up.")
 
-    SystemRegistry.register()
     {:ok, _} = Elixir.Registry.register(Nerves.NetworkInterface, interface, [])
     {:ok, _} = Elixir.Registry.register(Nerves.Udhcpc, interface, [])
     {:ok, _} = Elixir.Registry.register(Nerves.WpaSupplicant, interface, [])
@@ -43,21 +46,18 @@ defmodule Farmbot.Target.Network.Manager do
     {:reply, state.ip_address, state}
   end
 
-  def handle_info({:system_registry, :global, registry}, state) do
-    ip = get_in(registry, [:state, :network_interface, state.interface, :ipv4_address])
-    if ip != state.ip_address do
-      ntp_timer = maybe_cancel_and_reset_ntp_timer(state.ntp_timer)
-      connected = match?({:ok, {:hostent, _, _, :inet, 4, _}}, test_dns())
-      if connected do
-        not_found_timer = cancel_timer(state.not_found_timer)
-        dns_timer = restart_dns_timer(state.dns_timer, 45_000)
-        update_mdns(ip, state.mdns_domain)
-        {:noreply, %{state | dns_timer: dns_timer, ip_address: ip, connected: true, not_found_timer: not_found_timer, ntp_timer: ntp_timer}}
-      else
-        {:noreply, %{state | connected: false, ntp_timer: nil, ip_address: ip}}
-      end
+  def handle_info({Nerves.Udhcpc, :bound, %{ipv4_address: ip}}, state) do
+    Logger.debug 3, "Ip address: #{ip}"
+    connected = match?({:ok, {:hostent, _, _, :inet, 4, _}}, test_dns())
+    if connected do
+      init_mdns(state.mdns_domain)
+      ntp_timer = restart_ntp_timer(state.ntp_timer)
+      not_found_timer = cancel_timer(state.not_found_timer)
+      dns_timer = restart_dns_timer(state.dns_timer, 45_000)
+      update_mdns(ip, state.mdns_domain)
+      {:noreply, %{state | dns_timer: dns_timer, ip_address: ip, connected: true, not_found_timer: not_found_timer, ntp_timer: ntp_timer}}
     else
-      {:noreply, state}
+      {:noreply, %{state | connected: false, ntp_timer: nil, ip_address: ip}}
     end
   end
 
@@ -68,54 +68,76 @@ defmodule Farmbot.Target.Network.Manager do
   end
 
   def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-NETWORK-NOT-FOUND", _}, %{not_found_timer: nil} = state) do
-    first_boot = ConfigStorage.get_config_value(:bool, "settings", "first_boot")
     # stored in minutes
-    delay_timer = (ConfigStorage.get_config_value(:float, "settings", "network_not_found_timer") || 1) *  60_000
-    maybe_hidden? = Keyword.get(state.opts, :maybe_hidden, false)
-    cond do
-      # Check if the network might be hidden first.
-      maybe_hidden? ->
-        Logger.warn 1, "Possibly hidden network not found. Starting timer (hidden=#{maybe_hidden?})"
-        timer = Process.send_after(self(), :network_not_found_timer, round(delay_timer))
-        {:noreply, %{state | not_found_timer: timer, connected: false}}
-
-      # If its not hidden, just reset. Probably a typo.
-      first_boot ->
-        Logger.error 1, "Network not found"
-        Farmbot.System.factory_reset("WIFI Authentication failed. (network not found)")
-        {:stop, :normal, state}
-
-      # If not first boot, and we have a valid number for the delay timer.
-      delay_timer > 0 ->
-        Logger.warn 1, "Network not found. Starting timer (hidden=#{maybe_hidden?})"
-        timer = Process.send_after(self(), :network_not_found_timer, round(delay_timer))
-        {:noreply, %{state | not_found_timer: timer, connected: false}}
-
-      # I don't think this can even happen.
-      is_nil(delay_timer) ->
-        Logger.error 1, "Network not found"
-        Farmbot.System.factory_reset("WIFI Authentication failed. (network not found)")
-        {:stop, :normal, state}
-    end
+    delay_timer = (ConfigStorage.get_config_value(:float, "settings", "network_not_found_timer") || 1) * 60_000
+    timer = Process.send_after(self(), :network_not_found_timer, round(delay_timer))
+    {:noreply, %{state | not_found_timer: timer, connected: false}}
   end
 
-  def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-NETWORK-NOT-FOUND"}, state) do
+  def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-CONNECTED", _}, state) do
+    # Don't update connected. This is not a real test of connectivity.
+    Logger.success 1, "Connected to access point."
+    {:noreply, state}
+  end
+
+
+  def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-DISCONNECTED", _}, state) do
+    Logger.error 1, "Disconnected from access point."
     {:noreply, %{state | connected: false}}
   end
 
+  def handle_info({Nerves.WpaSupplicant, _, _}, state) do
+    # Logger.error 1 "unhandled wpa event: {#{inspect info}, #{inspect infoa}}"
+    {:noreply, state}
+  end
+
   def handle_info(:network_not_found_timer, state) do
-    if state.connected do
-      Logger.warn 1, "Not resetting because network is connected."
-      {:noreply, %{state | not_found_timer: nil}}
-    else
-      Logger.error 1, "Network not found"
-      Farmbot.System.factory_reset("WIFI Authentication failed. (network not found after timer)")
-      {:stop, :normal, state}
+    delay_minutes = (ConfigStorage.get_config_value(:float, "settings", "network_not_found_timer") || 1)
+    disable_factory_reset? = ConfigStorage.get_config_value(:bool, "settings", "disable_factory_reset")
+    first_boot? = ConfigStorage.get_config_value(:bool, "settings", "first_boot")
+    connected? = state.connected
+    cond do
+      connected? ->
+        Logger.warn 1, "Not resetting because network is connected."
+        {:noreply, %{state | not_found_timer: nil}}
+      disable_factory_reset? ->
+        Logger.warn 1, "Factory reset is disabled. Not resettings."
+        {:noreply, %{state | not_found_timer: nil}}
+      first_boot? ->
+        msg = """
+        Network not found after #{delay_minutes} minute(s).
+        possible causes of this include:
+
+        1) A typo if you manually inputted the SSID.
+
+        2) The access point is out of range
+
+        3) There is too much radio interference around Farmbot.
+
+        5) There is a hardware issue.
+        """
+        Logger.error 1, msg
+        Farmbot.System.factory_reset(msg)
+        {:stop, :network_not_found, %{state | not_found_timer: nil}}
+      true ->
+        Logger.error 1, "Network not found after timer. Farmbot is disconnected."
+        msg = """
+        Network not found after #{delay_minutes} minute(s).
+        This can happen if your wireless access point is no longer available,
+        out of range, or there is too much radio interference around Farmbot.
+        If you see this message intermittently you should disable \"automatic
+        factory reset\" or tune the \"network not found
+        timer\" value in the Farmbot Web Application.
+        """
+        Farmbot.System.factory_reset(msg)
+        # Network.teardown(state.interface)
+        # Network.setup(state.interface, state.opts)
+        {:stop, :network_not_found, %{state | not_found_timer: nil}}
     end
   end
 
   def handle_info(:ntp_timer, state) do
-    new_timer = maybe_cancel_and_reset_ntp_timer(state.ntp_timer)
+    new_timer = restart_ntp_timer(state.ntp_timer)
     {:noreply, %{state | ntp_timer: new_timer}}
   end
 
@@ -123,15 +145,27 @@ defmodule Farmbot.Target.Network.Manager do
     case test_dns() do
       {:ok, {:hostent, _host_name, aliases, :inet, 4, _}} ->
         # If we weren't previously connected, send a log.
-        unless state.connected do
+        if state.connected do
+          # Farmbot is still connected. NBD
+          {:noreply, state}
+        else
           Logger.success 3, "Farmbot was reconnected to the internet: #{inspect aliases}"
+          new_state = %{state |
+            connected: true,
+            not_found_timer: cancel_timer(state.not_found_timer),
+            dns_timer: restart_dns_timer(nil, 45_000),
+            ntp_timer: restart_ntp_timer(state.ntp_timer, 1000)
+          }
           Farmbot.System.Registry.dispatch(:network, :dns_up)
+          {:noreply, new_state}
         end
-        {:noreply, %{state | connected: true, dns_timer: restart_dns_timer(nil, 45_000)}}
+
       {:error, err} ->
         Farmbot.System.Registry.dispatch(:network, :dns_down)
         Logger.warn 3, "Farmbot was disconnected from the internet: #{inspect err}"
-        {:noreply, %{state | connected: false, dns_timer: restart_dns_timer(nil, 10_000)}}
+        Network.teardown(state.interface)
+        Network.setup(state.interface, state.opts)
+        {:noreply, %{state | connected: false, dns_timer: restart_dns_timer(nil, 20_000)}}
     end
   end
 
@@ -149,16 +183,13 @@ defmodule Farmbot.Target.Network.Manager do
     nil
   end
 
-  defp restart_dns_timer(timer, time) when is_number(time) do
+  defp restart_dns_timer(timer, time) when is_integer(time) do
     cancel_timer(timer)
     Process.send_after(self(), :dns_timer, time)
   end
 
-  defp maybe_cancel_and_reset_ntp_timer(timer) do
-    if timer do
-      Process.cancel_timer(timer)
-    end
-
+  defp restart_ntp_timer(timer, time \\ nil) do
+    cancel_timer(timer)
     # introduce a bit of randomness to avoid dosing ntp servers.
     # I don't think this would ever happen but the default ntpd implementation
     # does this..
@@ -167,13 +198,13 @@ defmodule Farmbot.Target.Network.Manager do
     case Ntp.set_time() do
 
       # If we Successfully set time, sync again in around 1024 seconds
-      :ok -> Process.send_after(self(), :ntp_timer, 1024000 + rand)
+      :ok -> Process.send_after(self(), :ntp_timer, (time || 1024000) + rand)
       # If time failed, try again in about 5 minutes.
       _ ->
         if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "first_boot") do
-          Process.send_after(self(), :ntp_timer, 10_000 + rand)
+          Process.send_after(self(), :ntp_timer, (time || 10_000) + rand)
         else
-          Process.send_after(self(), :ntp_timer, 300000 + rand)
+          Process.send_after(self(), :ntp_timer, (time || 300000) + rand)
         end
     end
   end

@@ -26,7 +26,7 @@ config :lager, :handlers, []
 config :elixir, ansi_enabled: true
 config :iex, :colors, enabled: true
 
-config :ssl, protocol_version: :"tlsv1.2"
+# config :ssl, protocol_version: :"tlsv1.2"
 
 config :farmbot, farm_event_debug_log: false
 
@@ -44,17 +44,28 @@ config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
   firmware_handler: Farmbot.Firmware.StubHandler,
   http_adapter: Farmbot.HTTP.HTTPoisonAdapter,
-  gpio_handler: Farmbot.System.GPIO.StubHandler
+  pin_binding_handler: Farmbot.PinBinding.StubHandler,
+  json_parser: Farmbot.JSON.JasonParser,
+  leds_handler: Farmbot.Leds.StubHandler
 
 config :farmbot, :farmware,
   first_part_farmware_manifest_url: "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/manifest.json"
+
+config :farmbot, :builtins,
+  pin_binding: [
+    emergency_lock: -1,
+    emergency_unlock: -2,
+  ]
 
 config :farmbot,
   expected_fw_versions: ["6.4.0.F", "6.4.0.R", "6.4.0.G"],
   default_server: "https://my.farm.bot",
   default_currently_on_beta: String.contains?(to_string(:os.cmd('git rev-parse --abbrev-ref HEAD')), "beta"),
   firmware_io_logs: false,
-  default_farmware_tools_release_url: "https://api.github.com/repos/FarmBot-Labs/farmware-tools/releases/11015343"
+  default_farmware_tools_release_url: "https://api.github.com/repos/FarmBot-Labs/farmware-tools/releases/11015343",
+  default_ntp_server_1: "0.pool.ntp.org",
+  default_ntp_server_2: "1.pool.ntp.org",
+  default_dns_name: "nerves-project.org"
 
 global_overlay_dir = "rootfs_overlay"
 

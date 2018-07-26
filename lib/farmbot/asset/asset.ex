@@ -9,6 +9,7 @@ defmodule Farmbot.Asset do
     Device,
     FarmEvent,
     Peripheral,
+    PinBinding,
     Point,
     Regimen,
     Sensor,
@@ -22,12 +23,17 @@ defmodule Farmbot.Asset do
     Farmbot.Repo.delete_all(Device)
     Farmbot.Repo.delete_all(FarmEvent)
     Farmbot.Repo.delete_all(Peripheral)
+    Farmbot.Repo.delete_all(PinBinding)
     Farmbot.Repo.delete_all(Point)
     Farmbot.Repo.delete_all(Regimen)
     Farmbot.Repo.delete_all(Sensor)
     Farmbot.Repo.delete_all(Sequence)
     Farmbot.Repo.delete_all(Tool)
     :ok
+  end
+
+  def all_pin_bindings do
+    Farmbot.Repo.all(PinBinding)
   end
 
   @doc "Information about _this_ device."
@@ -40,9 +46,19 @@ defmodule Farmbot.Asset do
     Farmbot.Repo.one(from(p in Peripheral, where: p.id == ^peripheral_id))
   end
 
+  @doc "Get a peripheral by it's pin."
+  def get_peripheral_by_number(number) do
+    Farmbot.Repo.one(from(p in Peripheral, where: p.pin == ^number))
+  end
+
   @doc "Get a Sensor by it's id."
   def get_sensor_by_id(sensor_id) do
     Farmbot.Repo.one(from(s in Sensor, where: s.id == ^sensor_id))
+  end
+
+  @doc "Get a sensor by it's pin."
+  def get_sensor_by_number(number) do
+    Farmbot.Repo.one(from(s in Sensor, where: s.pin == ^number))
   end
 
   @doc "Get a Sequence by it's id."

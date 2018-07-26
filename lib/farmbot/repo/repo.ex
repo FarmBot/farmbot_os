@@ -16,6 +16,7 @@ defmodule Farmbot.Repo do
     Device,
     FarmEvent,
     Peripheral,
+    PinBinding,
     Point,
     Regimen,
     Sensor,
@@ -28,6 +29,7 @@ defmodule Farmbot.Repo do
   and then redownload all data.
   """
   def full_sync(verbosity \\ 1) do
+    IO.puts "full"
     Logger.busy verbosity, "Syncing"
     set_sync_status(:syncing)
     old = snapshot()
@@ -46,6 +48,7 @@ defmodule Farmbot.Repo do
   end
 
   def fragment_sync(verbosity \\ 1) do
+    IO.puts "fragment"
     Logger.busy verbosity, "Syncing"
     set_sync_status(:syncing)
     old = snapshot()
@@ -69,6 +72,7 @@ defmodule Farmbot.Repo do
     results = Farmbot.Repo.all(Device) ++
     Farmbot.Repo.all(FarmEvent) ++
     Farmbot.Repo.all(Peripheral) ++
+    Farmbot.Repo.all(PinBinding) ++
     Farmbot.Repo.all(Point) ++
     Farmbot.Repo.all(Regimen) ++
     Farmbot.Repo.all(Sensor) ++
@@ -86,6 +90,7 @@ defmodule Farmbot.Repo do
         Task.async(fn() -> {Device, HTTP.get!("/api/device.json") |> Map.fetch!(:body) |> Poison.decode!(as: struct(Device))} end),
         Task.async(fn() -> {FarmEvent, HTTP.get!("/api/farm_events.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(FarmEvent)])} end),
         Task.async(fn() -> {Peripheral, HTTP.get!("/api/peripherals.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Peripheral)])} end),
+        Task.async(fn() -> {PinBinding, HTTP.get!("/api/pin_bindings.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(PinBinding)])} end),
         Task.async(fn() -> {Point, HTTP.get!("/api/points.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Point)])} end),
         Task.async(fn() -> {Regimen, HTTP.get!("/api/regimens.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Regimen)])} end),
         Task.async(fn() -> {Sensor, HTTP.get!("/api/sensors.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Sensor)])} end),
@@ -119,12 +124,8 @@ defmodule Farmbot.Repo do
     mod = Module.concat(["Farmbot", "Asset", cmd.kind])
     if Code.ensure_loaded?(mod) do
       set_sync_status(:syncing)
-      old = snapshot()
       Logger.debug(3, "Syncing #{cmd.kind}")
       do_apply_sync_cmd(cmd)
-      new = snapshot()
-      diff = Snapshot.diff(old, new)
-      Farmbot.Repo.Registry.dispatch(diff)
       set_sync_status(:synced)
     else
       Logger.warn(3, "Unknown module: #{mod} #{inspect(cmd)}")
@@ -158,7 +159,7 @@ defmodule Farmbot.Repo do
       # if there is an existing record, copy the ecto  meta from the old
       # record. This allows `insert_or_update` to work properly.
       existing ->
-        mod.changeset(existing, not_struct)
+        Ecto.Changeset.change(existing, not_struct)
         |> Farmbot.Repo.update!
         :ok
     end

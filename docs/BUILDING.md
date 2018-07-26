@@ -30,6 +30,10 @@ If you have the above set up you will need some software dependencies:
   * Set the `ARDUINO_INSTALL_DIR` environment variable
   * execute `.circleci/setup_arduino.sh`
 
+## Optional dependencies
+* python
+* opencv-python
+
 Following [this](http://embedded-elixir.com/post/2017-05-23-using-asdf-vm/) guide
 will get you mostly setup.
 

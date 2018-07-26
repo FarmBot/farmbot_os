@@ -142,7 +142,7 @@ defmodule Farmbot.Regimen.Supervisor do
   end
 
   @doc "Builds a list of supervisor children. Will also delete and not build a child from stale data."
-  @spec build_children([%PersistentRegimen{}]) :: Supervisor.child_spec()
+  @spec build_children([%PersistentRegimen{}]) :: [Supervisor.child_spec()]
   def build_children(prs) do
     Enum.reject(prs, fn %PersistentRegimen{regimen_id: rid, farm_event_id: feid} ->
       reg = Asset.get_regimen_by_id(rid, feid)

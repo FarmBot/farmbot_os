@@ -67,11 +67,10 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
     Logger.info(3, "Building new configuration.")
     import Supervisor.Spec
     :ets.new(:session, [:named_table, :public, read_concurrency: true])
-    Farmbot.System.GPIO.Leds.led_status_err()
     ConfigStorage.destroy_all_network_configs()
     children = [
       worker(Configurator.CaptivePortal, [], restart: :transient),
-      {Plug.Adapters.Cowboy, scheme: :http, plug: Configurator.Router, options: [port: 80, acceptors: 1]}
+      {Plug.Adapters.Cowboy2, scheme: :http, plug: Configurator.Router, options: [port: 80, acceptors: 1]}
     ]
 
     opts = [strategy: :one_for_one]

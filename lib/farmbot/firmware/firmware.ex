@@ -260,7 +260,6 @@ defmodule Farmbot.Firmware do
       :ok ->
         timer = start_timer(current, state.timeout_ms)
         if fun == :emergency_unlock do
-          Farmbot.System.GPIO.Leds.led_status_ok()
           new_dispatch = [{:informational_settings,  %{busy: false, locked: false}} | dispatch]
           {:noreply, new_dispatch, %{state | current: current, timer: timer}}
         else
@@ -361,23 +360,16 @@ defmodule Farmbot.Firmware do
     maybe_cancel_timer(state.timer, state.current)
     Farmbot.BotState.set_busy(false)
     if state.current do
-      # This might be a bug in the FW
-      if state.current.fun in [:home, :home_all] do
-        Logger.warn 1, "Got idle during home."
-        timer = start_timer(state.current, state.timeout_ms)
-        {nil, %{state | timer: timer}}
-      else
-        Logger.warn 1, "Got idle while executing a command."
-        do_reply(state, {:error, :timeout})
-        {:informational_settings, %{busy: false, locked: false}, %{state | current: nil, idle: true}}
-      end
+      Logger.warn 1, "Got idle while executing a command."
+      timer = start_timer(state.current, state.timeout_ms)
+      {nil, %{state | timer: timer}}
     else
       {:informational_settings, %{busy: false, locked: false}, %{state | idle: true}}
     end
   end
 
   defp handle_gcode({:report_current_position, x, y, z}, state) do
-    {:location_data, %{position: %{x: round(x), y: round(y), z: round(z)}}, state}
+    {:location_data, %{position: %{x: x, y: y, z: z}}, state}
   end
 
   defp handle_gcode({:report_encoder_position_scaled, x, y, z}, state) do
@@ -416,12 +408,12 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode({:report_parameter_value, param, value}, state) when (value == -1) do
-    maybe_update_param_from_report(to_string(param), nil)
+    value = maybe_update_param_from_report(to_string(param), nil)
     {:mcu_params, %{param => nil}, %{state | params: Map.put(state.params, param, value)}}
   end
 
   defp handle_gcode({:report_parameter_value, param, value}, state) when is_number(value) do
-    maybe_update_param_from_report(to_string(param), value)
+    value = maybe_update_param_from_report(to_string(param), value)
     {:mcu_params, %{param => value}, %{state | params: Map.put(state.params, param, value)}}
   end
 
@@ -503,7 +495,6 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode(:report_emergency_lock, state) do
-    Farmbot.System.GPIO.Leds.led_status_err
     maybe_send_email()
     if state.current do
       do_reply(state, {:error, :emergency_lock})
@@ -563,8 +554,9 @@ defmodule Farmbot.Firmware do
 
   defp maybe_update_param_from_report(param, val) when is_binary(param) do
     real_val = if val, do: (val / 1), else: nil
-    # Logger.debug 3, "Firmware reported #{param} => #{val || -1}"
+    # Logger.debug 3, "Firmware reported #{param} => #{real_val || "nil"}"
     update_config_value(:float, "hardware_params", to_string(param), real_val)
+    real_val
   end
 
   @doc false
@@ -574,8 +566,7 @@ defmodule Farmbot.Firmware do
         (float_val == -1) -> :ok
         is_nil(float_val) -> :ok
         is_number(float_val) ->
-          val = round(float_val)
-          :ok = update_param(:"#{key}", val)
+          :ok = update_param(:"#{key}", float_val / 1)
       end
     end
     :ok = update_param(:param_use_eeprom, 0)

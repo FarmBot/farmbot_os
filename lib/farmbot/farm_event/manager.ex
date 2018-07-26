@@ -166,10 +166,7 @@ defmodule Farmbot.FarmEvent.Manager do
       schedule_events(late_executables, now)
     end
 
-    exit(
-      {:success,
-       %{new | events: Map.new(all_events, fn event -> {event.id, event} end)}}
-    )
+    exit({:success, %{new | events: Map.new(all_events, fn event -> {event.id, event} end)}})
   end
 
   defp do_checkup(list, time, late_events \\ [], state)
@@ -184,8 +181,7 @@ defmodule Farmbot.FarmEvent.Manager do
     # update state.
     new_state = %{
       state
-      | last_time_index:
-          Map.put(state.last_time_index, farm_event.id, last_time)
+      | last_time_index: Map.put(state.last_time_index, farm_event.id, last_time)
     }
 
     case new_late_executable do
@@ -267,9 +263,7 @@ defmodule Farmbot.FarmEvent.Manager do
          event,
          _now
        ) do
-    maybe_farm_event_log(
-      "regimen #{event.name} (#{event.id}) should already be scheduled."
-    )
+    maybe_farm_event_log("regimen #{event.name} (#{event.id}) should already be scheduled.")
 
     {nil, last_time}
   end
@@ -282,9 +276,9 @@ defmodule Farmbot.FarmEvent.Manager do
          _
        ) do
     maybe_farm_event_log(
-      "regimen #{event.name} (#{event.id}) is not scheduled yet. (#{
-        inspect(schedule_time)
-      }) (#{inspect(Timex.now())})"
+      "regimen #{event.name} (#{event.id}) is not scheduled yet. (#{inspect(schedule_time)}) (#{
+        inspect(Timex.now())
+      })"
     )
 
     {nil, last_time}
@@ -323,8 +317,7 @@ defmodule Farmbot.FarmEvent.Manager do
          event,
          now
        ) do
-    {run?, next_time} =
-      should_run_sequence?(farm_event.calendar, last_time, now)
+    {run?, next_time} = should_run_sequence?(farm_event.calendar, last_time, now)
 
     case run? do
       true -> {event, next_time}
@@ -359,9 +352,7 @@ defmodule Farmbot.FarmEvent.Manager do
          event,
          _now
        ) do
-    maybe_farm_event_log(
-      "sequence #{event.name} (#{event.id}) is not scheduled yet."
-    )
+    maybe_farm_event_log("sequence #{event.name} (#{event.id}) is not scheduled yet.")
 
     {nil, last_time}
   end
@@ -384,9 +375,7 @@ defmodule Farmbot.FarmEvent.Manager do
 
   # if there is no last time, check if time is passed now within 60 seconds.
   defp should_run_sequence?([first_time | _], nil, now) do
-    maybe_farm_event_log(
-      "Checking sequence event that hasn't run before #{first_time}"
-    )
+    maybe_farm_event_log("Checking sequence event that hasn't run before #{first_time}")
 
     # convert the first_time to a DateTime
     dt = Timex.parse!(first_time, "{ISO:Extended}")

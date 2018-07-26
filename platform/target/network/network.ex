@@ -82,19 +82,33 @@ defmodule Farmbot.Target.Network do
     wait_for_results(pid)
   end
 
+  def get_level(ifname, ssid) do
+    r = Farmbot.Target.Network.scan(ifname)
+    if res = Enum.find(r, &Map.get(&1, :ssid) == ssid) do
+      res.level
+    end
+  end
+
   @doc "Tests if we can make dns queries."
   def test_dns(hostname \\ nil)
 
   def test_dns(nil) do
     case get_config_value(:string, "authorization", "server") do
-      nil -> 'nerves-project.org'
-      <<"https://" <> host :: binary>> -> test_dns(to_charlist(host))
-      <<"http://"  <> host :: binary>> -> test_dns(to_charlist(host))
+      nil -> test_dns(get_config_value(:string, "settings", "default_dns_name"))
+      <<"https://" <> host :: binary>> -> test_dns(host)
+      <<"http://"  <> host :: binary>> -> test_dns(host)
     end
   end
 
+  def test_dns(hostname) when is_binary(hostname) do
+    test_dns(to_charlist(hostname))
+  end
+
   def test_dns(hostname) do
-    :inet_res.gethostbyname(hostname)
+    case :inet.parse_ipv4_address(hostname) do
+      {:ok, addr} -> {:ok, {:hostent, hostname, [], :inet, 4, [addr]}}
+      _ -> :inet_res.gethostbyname(hostname)
+    end
   end
 
   # TODO Expand this to allow for more settings.
@@ -158,6 +172,6 @@ defmodule Farmbot.Target.Network do
       |> Enum.map(&to_network_config/1)
       |> Enum.map(&to_child_spec/1)
       |> Enum.uniq() # Don't know why/if we need this?
-    supervise(children, strategy: :one_for_one)
+    Supervisor.init(children, strategy: :one_for_one, max_restarts: 20, max_seconds: 1)
   end
 end
