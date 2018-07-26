@@ -87,6 +87,7 @@ defmodule Farmbot.Firmware.UartHandler do
   defmodule State do
     @moduledoc false
     defstruct [
+      config_busy: false,
       nerves: nil,
       current_cmd: nil,
       tty: nil,
@@ -125,6 +126,8 @@ defmodule Farmbot.Firmware.UartHandler do
     end)
 
     case state do
+      %State{config_busy: true} = state ->
+        {:noreply, [:busy], state}
       %State{} = state ->
         {:noreply, [], state}
       _ -> state
@@ -137,7 +140,7 @@ defmodule Farmbot.Firmware.UartHandler do
     # Restart the framing to pick up new changes.
     UART.configure state.nerves, [framing: UART.Framing.None, active: false]
     configure_uart(state.nerves, true)
-    state
+    %{state | config_busy: true}
   end
 
   defp handle_config({:config, "settings", "firmware_hardware", val}, state) do
@@ -147,8 +150,8 @@ defmodule Farmbot.Firmware.UartHandler do
       UART.close(state.nerves)
       UartHandler.Update.force_update_firmware(val)
       open_tty(state.tty, state.nerves)
-      Farmbot.BotState.reset_sync_status
-      %{state | hw: val}
+      Farmbot.BotState.reset_sync_status()
+      %{state | hw: val, config_busy: true}
     else
       state
     end
@@ -273,7 +276,7 @@ defmodule Farmbot.Firmware.UartHandler do
   end
 
   def handle_info({:nerves_uart, _, {_q, :done}}, state) do
-    {:noreply, [:done], %{state | current_cmd: nil}}
+    {:noreply, [:done], %{state | current_cmd: nil, config_busy: false}}
   end
 
   def handle_info({:nerves_uart, _, {_q, gcode}}, state) do
