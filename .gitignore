@@ -34,7 +34,10 @@ erl_crash.dump
 /cache
 *.js
 /release-*
-node_modules
+/node_modules
+/farmbot_ext
+/farmbot_core
+/farmbot_os
 
 # Various env vars.
 .env
