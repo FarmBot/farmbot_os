@@ -65,7 +65,7 @@ defmodule Farmbot.PinBinding.Manager do
   end
 
   defp do_register(state, %PinBinding{pin_num: pin} = binding) do
-    %{state | registered: Map.put(state.registered, pin, binding), signal: Map.put(state.signal, pin, nil)}
+    %{state | registered: Map.put(state.registered, pin, binding), signal: Map.put(state.signal, pin, debounce_timer(binding, 1000))}
   end
 
   defp do_unregister(state, %PinBinding{pin_num: pin_num}) do
@@ -207,8 +207,8 @@ defmodule Farmbot.PinBinding.Manager do
     end
   end
 
-  defp debounce_timer(%PinBinding{} = binding) do
-    Process.send_after(self(), {:debounce, binding}, 200)
+  defp debounce_timer(%PinBinding{} = binding, timeout_ms \\ 200) do
+    Process.send_after(self(), {:debounce, binding}, timeout_ms)
   end
 
   defp do_usr_led(%PinBinding{pin_num: 26}, signal), do: do_write(:white1, signal)
