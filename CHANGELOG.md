@@ -1,4 +1,8 @@
 # Changelog
+# 6.4.6
+* Add new RPC to reinitialize Firmware
+* Tweak PinBinding debounce timeout.
+
 # 6.4.5
 * Fix Firmware syncing applying _every_ setting.
 
