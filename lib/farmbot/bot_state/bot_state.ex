@@ -162,7 +162,14 @@ defmodule Farmbot.BotState do
       user_env: user_env
     ]
     initial_state = struct(__MODULE__, state_opts)
-    info_settings = %{initial_state.informational_settings | node_name: node()}
+    info_settings = %{
+      initial_state.informational_settings |
+      node_name: node(),
+      currently_on_beta: settings["currently_on_beta"]
+    }
+    if Process.whereis(Farmbot.Farmware.Supervisor) do
+      send(self(), :reindex_farmware)
+    end
     state = %{initial_state | informational_settings: info_settings}
     gen_stage_opts = [
       subscribe_to: [Firmware, ConfigStorage.Dispatcher, Farmbot.PinBinding.Manager],
@@ -175,6 +182,11 @@ defmodule Farmbot.BotState do
     state = do_handle(events, state)
     # Logger.success 3, "Finish handle bot state events"
     {:noreply, [state], state}
+  end
+
+  def handle_info(:reindex_farmware, state) do
+    spawn Farmbot.Farmware.Supervisor, :reindex, []
+    {:noreply, [], state}
   end
 
   def handle_call({:report_soc_temp, temp}, _from, state) do
@@ -364,6 +376,7 @@ defmodule Farmbot.BotState do
       cache_bust: 0,
       soc_temp: 0,
       wifi_level: nil,
+      currently_on_beta: nil,
     },
     location_data: %{
       position: %{x: nil, y: nil, z: nil},
