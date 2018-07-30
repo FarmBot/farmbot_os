@@ -191,6 +191,11 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
     case conn.body_params do
       %{"email" => email, "password" => pass, "server" => server} ->
+        if server = test_uri(server) do
+          IO.puts "server valid: #{server}"
+        else
+          send_resp(conn, 500, "server field invalid")
+        end
         update_config_value(:string, "authorization", "email", email)
         update_config_value(:string, "authorization", "password", pass)
         update_config_value(:string, "authorization", "server", server)
@@ -259,5 +264,19 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     template_file("advanced_network")
     |> EEx.eval_file([])
     |> raw()
+  end
+
+  defp test_uri(nil), do: nil
+
+  defp test_uri(uri) do
+    case URI.parse(uri) do
+      %URI{host: host, port: port, scheme: scheme}
+        when scheme in ["https", "http"]
+        and is_binary(host)
+        and is_integer(port) -> uri
+      _ ->
+        IO.puts "#{inspect uri} is not valid"
+        nil
+    end
   end
 end
