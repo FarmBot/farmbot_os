@@ -1,11 +1,13 @@
 # Changelog
 # 6.4.7
-* Fix DNS server config for self hosters. 
+* Fix DNS server config for self hosters.
+* Add new field to `informational_settings`: `currently_on_beta`.
+* Reindex farmware on bot_state crash.
 
 # 6.4.6
 * Add new RPC to reinitialize Firmware
 * Tweak PinBinding debounce timeout.
-* Update Linux system layer to fix sound
+* Update Linux system layer to fix sound.
 
 # 6.4.5
 * Fix Firmware syncing applying _every_ setting.

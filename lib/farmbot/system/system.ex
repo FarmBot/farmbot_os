@@ -98,6 +98,7 @@ defmodule Farmbot.System do
   end
 
   defp write_file(reason) do
+    IO.puts "Farmbot powering down: #{reason}"
     file = Path.join(@data_path, "last_shutdown_reason")
     File.write!(file, reason)
   end
