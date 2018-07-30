@@ -65,7 +65,7 @@ defmodule Farmbot.PinBinding.Manager do
   end
 
   defp do_register(state, %PinBinding{pin_num: pin} = binding) do
-    %{state | registered: Map.put(state.registered, pin, binding), signal: Map.put(state.signal, pin, nil)}
+    %{state | registered: Map.put(state.registered, pin, binding), signal: Map.put(state.signal, pin, debounce_timer(binding, 1000))}
   end
 
   defp do_unregister(state, %PinBinding{pin_num: pin_num}) do
@@ -95,12 +95,13 @@ defmodule Farmbot.PinBinding.Manager do
     if binding do
       do_usr_led(binding, :off)
       if state.signal[pin] do
+        IO.puts "[#{pin}] #{binding} is in debounced state"
         Process.cancel_timer(state.signal[pin])
-        {:noreply, [], %{state | signal: Map.put(state.signal, pin, debounce_timer(pin))}}
+        {:noreply, [], %{state | signal: Map.put(state.signal, pin, debounce_timer(binding))}}
       else
         Logger.busy(1, "Pin Binding #{binding} triggered #{binding.special_action || "execute_sequence"}")
         env = %Macro.Env{} = do_execute(binding, state.env)
-        {:noreply, [], %{state | env: env, signal: Map.put(state.signal, pin, debounce_timer(pin))}}
+        {:noreply, [], %{state | env: env, signal: Map.put(state.signal, pin, debounce_timer(binding))}}
       end
     else
       Logger.warn(3, "No Pin Binding assosiated with: #{pin}")
@@ -123,8 +124,9 @@ defmodule Farmbot.PinBinding.Manager do
     {:noreply, [], %{state | repo_up: true}}
   end
 
-  def handle_info({pin, :ok}, state) do
-    {:noreply, [], %{state | signal: Map.put(state.signal, pin, nil)}}
+  def handle_info({:debounce, %PinBinding{pin_num: pin_num} = binding}, state) do
+    IO.puts "[#{pin_num}] #{binding} debounce state clear."
+    {:noreply, [], %{state | signal: Map.put(state.signal, pin_num, nil)}}
   end
 
   def handle_call({:register_pin, %PinBinding{pin_num: pin_num} = binding}, _from, state) do
@@ -205,8 +207,8 @@ defmodule Farmbot.PinBinding.Manager do
     end
   end
 
-  defp debounce_timer(pin) do
-    Process.send_after(self(), {pin, :ok}, 350)
+  defp debounce_timer(%PinBinding{} = binding, timeout_ms \\ 200) do
+    Process.send_after(self(), {:debounce, binding}, timeout_ms)
   end
 
   defp do_usr_led(%PinBinding{pin_num: 26}, signal), do: do_write(:white1, signal)

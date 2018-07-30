@@ -21,7 +21,16 @@ defmodule Farmbot.Farmware.Runtime do
 
     with :ok <- File.cd(fw_path),
          env <- build_env(farmware, env) do
-      exec = farmware.executable
+      exec =
+        case farmware.executable do
+          "./" <> exe ->
+            file = Path.join(fw_path, exe)
+            File.chmod(file, 0o777)
+            file
+
+          "/" <> _ ->
+            farmware.executable
+        end
 
       opts = [
         :stream,

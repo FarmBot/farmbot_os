@@ -35,7 +35,10 @@ defmodule Farmbot.Target.PinBinding.AleHandler do
   end
 
   def handle_call({:register_pin, num}, _from, state) do
-    with {:ok, pid} <- GPIO.start_link(num, :input),
+    with {:ok, out_pid} <- GPIO.start_link(num, :output),
+         :ok <- GPIO.write(out_pid, 0),
+         :ok <- GPIO.release(out_pid),
+         {:ok, pid} <- GPIO.start_link(num, :input),
          :ok <- GPIO.set_int(pid, :both),
          new_pins <-
            Map.put(state.pins, num, %PinState{pin: num, pid: pid, state: nil, signal: :rising}) do

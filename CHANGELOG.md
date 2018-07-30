@@ -1,4 +1,9 @@
 # Changelog
+# 6.4.6
+* Add new RPC to reinitialize Firmware
+* Tweak PinBinding debounce timeout.
+* Update Linux system layer to fix sound
+
 # 6.4.5
 * Fix Firmware syncing applying _every_ setting.
 

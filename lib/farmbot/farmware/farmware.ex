@@ -204,6 +204,10 @@ defmodule Farmbot.Farmware do
   defp extract_url(%{"url" => url}) when is_binary(url), do: {:ok, url}
   defp extract_url(_), do: {:error, "bad or missing farmware url"}
 
+  defp extract_exe(%{"executable" => "./" <> _ = path}) do
+    {:ok, path}
+  end
+
   defp extract_exe(%{"executable" => exe}) when is_binary(exe) do
     case System.find_executable(exe) do
       nil -> {:error, "#{exe} is not installed"}
