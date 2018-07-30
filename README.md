@@ -1,6 +1,7 @@
-[![Build Status](https://circleci.com/gh/FarmBot/farmbot_os/tree/staging.svg?style=svg)](https://circleci.com/gh/FarmBot/farmbot_os/tree/staging)
-[![Coverage Status](https://coveralls.io/repos/github/FarmBot/farmbot_os/badge.svg?branch=staging)](https://coveralls.io/github/FarmBot/farmbot_os?branch=staging)
-[![Built with Nerves](http://nerves-project.org/images/badge/nerves-badge_75x39_black.png)](http://nerves-project.org/)
+# Build status
+| Master Build Status  | Staging Build Status | Beta Build Status |
+| :---: | :---: | :---: |
+| [![Master Build Status](https://circleci.com/gh/FarmBot/farmbot_os/tree/master.svg?style=svg)](https://circleci.com/gh/FarmBot/farmbot_os/tree/master) | [![Staging Build Status](https://circleci.com/gh/FarmBot/farmbot_os/tree/staging.svg?style=svg)](https://circleci.com/gh/FarmBot/farmbot_os/tree/staging) | [![Beta Build Status](https://circleci.com/gh/FarmBot/farmbot_os/tree/beta.svg?style=svg)](https://circleci.com/gh/FarmBot/farmbot_os/tree/beta)|
 ---
 
 # FarmBot OS
@@ -10,14 +11,7 @@ The "brains" of the FarmBot Project
 # :floppy_disk: LATEST OS IMAGE DOWNLOADS
 <!-- DON'T CHANGE THE TEXT ABOVE. It is used in documentation links. -->
 
-# _*Important*_
-For now we are only building and supporting Raspberry Pi 3. Pull Requests are very welcome
-if you spot a bug or fix, but for now we suggest obtaining a Raspberry Pi 3 for the best support.
-
-
-|Raspbery Pi Version |
-|---|
-| :star: **[RPi 3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v6.4.3/farmbot-rpi3-6.4.3.img)**|
+:star: **[RPi 3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v6.4.5/farmbot-rpi3-6.4.5.img)**
 ---
 
 ## Installation
