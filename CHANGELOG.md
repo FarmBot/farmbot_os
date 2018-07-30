@@ -1,4 +1,7 @@
 # Changelog
+# 6.4.7
+* Fix DNS server config for self hosters. 
+
 # 6.4.6
 * Add new RPC to reinitialize Firmware
 * Tweak PinBinding debounce timeout.

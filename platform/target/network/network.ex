@@ -95,8 +95,9 @@ defmodule Farmbot.Target.Network do
   def test_dns(nil) do
     case get_config_value(:string, "authorization", "server") do
       nil -> test_dns(get_config_value(:string, "settings", "default_dns_name"))
-      <<"https://" <> host :: binary>> -> test_dns(host)
-      <<"http://"  <> host :: binary>> -> test_dns(host)
+      url when is_binary(url) ->
+        %URI{host: hostname} = URI.parse(url)
+        test_dns(hostname)
     end
   end
 
@@ -105,6 +106,7 @@ defmodule Farmbot.Target.Network do
   end
 
   def test_dns(hostname) do
+    IO.puts "testing dns: #{hostname}"
     case :inet.parse_ipv4_address(hostname) do
       {:ok, addr} -> {:ok, {:hostent, hostname, [], :inet, 4, [addr]}}
       _ -> :inet_res.gethostbyname(hostname)
