@@ -1,7 +1,7 @@
 # Build status
 | Master Build Status  | Staging Build Status | Beta Build Status |
 | :---: | :---: | :---: |
-| [![Master Build Status](https://circleci.com/gh/FarmBot/farmbot_os/tree/master.svg?style=svg)](https://circleci.com/gh/FarmBot/farmbot_os/tree/master) | [![Staging Build Status](https://circleci.com/gh/FarmBot/farmbot_os/tree/staging.svg?style=svg)](https://circleci.com/gh/FarmBot/farmbot_os/tree/staging) | [![Beta Build Status](https://circleci.com/gh/FarmBot/farmbot_os/tree/beta.svg?style=svg)](https://circleci.com/gh/FarmBot/farmbot_os/tree/beta)|
+| [![Master Build Status](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/master.svg?style=svg)](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/master) | [![Staging Build Status](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/staging.svg?style=svg)](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/staging) | [![Beta Build Status](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/beta.svg?style=svg)](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/beta)|
 ---
 
 # FarmBot OS
@@ -47,7 +47,7 @@ _Refer to the [software documentation Configurator page](https://software.farm.b
 ## Problems?
 
 See the [FAQ](docs/FAQ.md)
-If your problem isn't solved there please file an issue on [Github](https://github.com/FarmBot/farmbot_os/issues/new)
+If your problem isn't solved there please file an issue on [Github](https://github.com/FarmBot-Labs/farmbot_os/issues/new)
 
 ## Security Concerns?
 
@@ -55,5 +55,5 @@ We take security seriously and value the input of independent researchers. Pleas
 
 ## Want to Help?
 
-[Low Hanging Fruit](https://github.com/FarmBot/farmbot_os/search?utf8=%E2%9C%93&q=TODO)
+[Low Hanging Fruit](https://github.com/FarmBot-Labs/farmbot_os/search?utf8=%E2%9C%93&q=TODO)
 [Development](CONTRIBUTING.md)
