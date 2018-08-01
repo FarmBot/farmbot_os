@@ -5,6 +5,7 @@ defmodule Farmbot.HTTP do
 
   use GenServer
   alias Farmbot.HTTP.{Adapter, Error, Response}
+  alias Farmbot.JSON
 
   @adapter Application.get_env(:farmbot_ext, :behaviour)[:http_adapter]
   @adapter || raise("No http adapter.")
@@ -14,6 +15,36 @@ defmodule Farmbot.HTTP do
   @typep body :: Adapter.body
   @typep headers :: Adapter.headers
   @typep opts :: Adapter.opts
+
+  alias Farmbot.Asset.{
+    Device,
+    FarmEvent,
+    Peripheral,
+    PinBinding,
+    Point,
+    Regimen,
+    Sensor,
+    Sequence,
+    Tool,
+  }
+
+  def device, do: fetch_and_decode("/api/device.json", Device)
+  def farm_events, do: fetch_and_decode("/api/farm_events.json", FarmEvent)
+  def peripherals, do: fetch_and_decode("/api/peripherals.json", Peripheral)
+  def pin_bindings, do: fetch_and_decode("/api/pin_bindings.json", PinBinding)
+  def points, do: fetch_and_decode("/api/points.json", Point)
+  def regimens, do: fetch_and_decode("/api/regimens.json", Regimen)
+  def sensors, do: fetch_and_decode("/api/sensors.json", Sensor)
+  def sequences, do: fetch_and_decode("/api/sequences.json", Sequence)
+  def tools, do: fetch_and_decode("/api/tools.json", Tool)
+
+  def fetch_and_decode(url, kind) do
+    url
+    |> get!()
+    |> Map.fetch!(:body)
+    |> JSON.decode!()
+    |> Farmbot.Asset.to_asset(kind)
+  end
 
   @doc """
   Make an http request. Will not raise.

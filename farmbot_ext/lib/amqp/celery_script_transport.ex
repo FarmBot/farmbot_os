@@ -2,6 +2,7 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
   use GenServer
   use AMQP
   require Farmbot.Logger
+  require Logger
   import Farmbot.Config, only: [get_config_value: 3, update_config_value: 4]
 
   @exchange "amq.topic"
@@ -48,28 +49,25 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
   def handle_info({:basic_deliver, payload, %{routing_key: key}}, state) do
     device = state.bot
     ["bot", ^device, "from_clients"] = String.split(key, ".")
-    reply = handle_celery_script(payload, state)
-    :ok = AMQP.Basic.publish state.chan, @exchange, "bot.#{device}.from_device", reply
+    spawn_link fn() ->
+      {_us, _results} = :timer.tc __MODULE__, :handle_celery_script, [payload, state]
+      # IO.puts "#{results.args.label} took: #{us}µs"
+    end
     {:noreply, state}
   end
 
   @doc false
-  def handle_celery_script(payload, _state) do
+  def handle_celery_script(payload, state) do
     json = Farmbot.JSON.decode!(payload)
-    %Farmbot.Asset.Sequence{
-      name: json["args"]["label"],
-      args: json["args"],
-      body: json["body"],
-      kind: "sequence",
-      id: -1}
-    |> Farmbot.CeleryScript.execute_sequence()
-    |> case do
-      %{status: :crashed} = proc ->
-        expl = %{args: %{message: Csvm.FarmProc.get_crash_reason(proc)}}
-        %{args: %{label: json["args"]["label"]}, kind: "rpc_error", body: [expl]}
-      _ ->
-        %{args: %{label: json["args"]["label"]}, kind: "rpc_ok"}
-    end
-    |> Farmbot.JSON.encode!()
+    # IO.inspect(json, label: "RPC_REQUEST")
+    Farmbot.Core.CeleryScript.rpc_request(json, fn(results_ast) ->
+      reply = Farmbot.JSON.encode!(results_ast)
+      if results_ast.kind == :rpc_error do
+        [%{args: %{message: message}}] = results_ast.body
+        Logger.error(message)
+      end
+      AMQP.Basic.publish state.chan, @exchange, "bot.#{state.bot}.from_device", reply
+      results_ast
+    end)
   end
 end
