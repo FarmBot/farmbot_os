@@ -1,13 +1,13 @@
 defmodule Farmbot.OS.MixProject do
   use Mix.Project
-
   @target System.get_env("MIX_TARGET") || "host"
   @version Path.join([__DIR__, "..", "VERSION"]) |> File.read!() |> String.trim()
+  @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"]) |> File.read!() |> String.trim()
 
   def project do
     [
       app: :farmbot_os,
-      elixir: "~> 1.6",
+      elixir: @elixir_version,
       target: @target,
       version: @version,
       archives: [nerves_bootstrap: "~> 1.0"],
