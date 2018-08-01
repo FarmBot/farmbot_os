@@ -7,7 +7,7 @@ defmodule Farmbot.OS.MixProject do
   def project do
     [
       app: :farmbot_os,
-      elixir: "~> 1.6",
+      elixir: "~> 1.7",
       target: @target,
       version: @version,
       archives: [nerves_bootstrap: "~> 1.0"],

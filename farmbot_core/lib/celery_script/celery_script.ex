@@ -4,15 +4,14 @@ defmodule Farmbot.CeleryScript do
   end
 
   def execute_sequence(%Farmbot.Asset.Sequence{} = seq) do
-    schedule_sequence(seq)
-    |> await_sequence()
+    :ok
   end
 
   def schedule_sequence(%Farmbot.Asset.Sequence{} = seq) do
-    Csvm.queue(seq, seq.id)
+    :ok
   end
 
   def await_sequence(ref) do
-    Csvm.await(ref)
+    :ok
   end
 end
