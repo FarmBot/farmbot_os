@@ -25,19 +25,16 @@ config :farmbot_core, Farmbot.Config.Repo,
   adapter: Sqlite.Ecto2,
   loggers: [],
   database: ".#{Mix.env}_configs.sqlite3",
-  priv: "priv/config",
-  pool_size: 1
+  priv: "priv/config"
 
 config :farmbot_core, Farmbot.Logger.Repo,
   adapter: Sqlite.Ecto2,
   loggers: [],
   database: ".#{Mix.env}_logs.sqlite3",
-  priv: "priv/logger",
-  pool_size: 1
+  priv: "priv/logger"
 
 config :farmbot_core, Farmbot.Asset.Repo,
   adapter: Sqlite.Ecto2,
   loggers: [],
   database: ".#{Mix.env}_assets.sqlite3",
-  priv: "priv/asset",
-  pool_size: 1
+  priv: "priv/asset"
