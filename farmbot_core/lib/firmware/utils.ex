@@ -19,6 +19,8 @@ defmodule Farmbot.Firmware.Utils do
   @doc "Changes `:digital` => 0, and `:analog` => 1"
   def extract_pin_mode(:digital), do: 0
   def extract_pin_mode(:analog), do: 1
+  def extract_pin_mode(0), do: 0
+  def extract_pin_mode(1), do: 1
 
 
   # https://github.com/arduino/Arduino/blob/2bfe164b9a5835e8cb6e194b928538a9093be333/hardware/arduino/avr/cores/arduino/Arduino.h#L43-L45

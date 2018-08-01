@@ -1,4 +1,4 @@
-defmodule Farmbot.CeleryScript.Supervisor do
+defmodule Farmbot.Core.CeleryScript.Supervisor do
   @moduledoc false
   use Supervisor
 
@@ -8,7 +8,7 @@ defmodule Farmbot.CeleryScript.Supervisor do
 
   def init([]) do
     children = [
-      {Farmbot.CeleryScript.CsvmWrapper, []}
+      {Farmbot.Core.CeleryScript.RunTimeWrapper, []}
     ]
     Supervisor.init(children, [strategy: :one_for_one])
   end

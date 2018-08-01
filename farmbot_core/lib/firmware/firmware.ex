@@ -22,12 +22,14 @@ defmodule Farmbot.Firmware do
   end
 
   @doc "Calibrate an axis."
-  def calibrate(axis) do
+  def calibrate(axis) when is_binary(axis) do
+    axis = String.to_atom(axis)
     GenStage.call(__MODULE__, {:calibrate, [axis]}, @call_timeout)
   end
 
   @doc "Find home on an axis."
-  def find_home(axis) do
+  def find_home(axis) when is_binary(axis) do
+    axis = String.to_atom(axis)
     GenStage.call(__MODULE__, {:find_home, [axis]}, @call_timeout)
   end
 
@@ -37,12 +39,14 @@ defmodule Farmbot.Firmware do
   end
 
   @doc "Home an axis."
-  def home(axis) do
+  def home(axis) when is_binary(axis) do
+    axis = String.to_atom(axis)
     GenStage.call(__MODULE__, {:home, [axis]}, @call_timeout)
   end
 
   @doc "Manually set an axis's current position to zero."
-  def zero(axis) do
+  def zero(axis) when is_binary(axis) do
+    axis = String.to_atom(axis)
     GenStage.call(__MODULE__, {:zero, [axis]}, @call_timeout)
   end
 
@@ -107,6 +111,14 @@ defmodule Farmbot.Firmware do
     GenStage.call(__MODULE__, :params_reported)
   end
 
+  def get_pin_value(pin_num) do
+    GenStage.call(__MODULE__, {:call, {:get_pin_value, pin_num}})
+  end
+
+  def get_current_position do
+    GenStage.call(__MODULE__, {:call, :get_current_position})
+  end
+
   @doc "Start the firmware services."
   def start_link(args) do
     GenStage.start_link(__MODULE__, args, name: __MODULE__)
@@ -121,6 +133,11 @@ defmodule Farmbot.Firmware do
       handler_mod: nil,
       idle: false,
       timer: nil,
+      location_data: %{
+        position: %{x: -1, y: -1, z: -1},
+        scaled_encoders: %{x: -1, y: -1, z: -1},
+        raw_encoders: %{x: -1, y: -1, z: -1},
+      },
       pins: %{},
       params: %{},
       params_reported: false,
@@ -155,6 +172,7 @@ defmodule Farmbot.Firmware do
   def init([]) do
     handler_mod =
       Application.get_env(:farmbot_core, :behaviour)[:firmware_handler] || raise("No fw handler.")
+      |> IO.inspect(label: "FW Handler")
 
     case handler_mod.start_link() do
       {:ok, handler} ->
@@ -165,9 +183,9 @@ defmodule Farmbot.Firmware do
           struct(State, initial),
           subscribe_to: [handler], dispatcher: GenStage.BroadcastDispatcher
         }
-      {:error, reason} ->
+      :ignore ->
+        Farmbot.Logger.error 1, "Failed to initialize firmware. Falling back to stub implementation."
         replace_firmware_handler(Farmbot.Firmware.StubHandler)
-        Farmbot.Logger.error 1, "Failed to initialize firmware: #{inspect reason} Falling back to stub implementation."
         init([])
     end
 
@@ -181,7 +199,7 @@ defmodule Farmbot.Firmware do
     unless :queue.is_empty(state.queue) do
       list = :queue.to_list(state.queue)
       for cmd <- list do
-        :ok = do_reply(%{state | current: cmd}, {:error, reason})
+        :ok = do_reply(%{state | current: cmd}, {:error, "Firmware handler crash"})
       end
     end
   end
@@ -212,7 +230,7 @@ defmodule Farmbot.Firmware do
           :ok ->
             timer = start_timer(current, state.timeout_ms)
             {:noreply, [], %{state | current: current, timer: timer}}
-          {:error, _} = res ->
+          {:error, reason} = res when is_binary(reason) ->
             do_reply(state, res)
             {:noreply, [], %{state | current: nil, queue: :queue.new()}}
         end
@@ -229,13 +247,23 @@ defmodule Farmbot.Firmware do
     end
   end
 
+  def handle_call({:call, {:get_pin_value, pin_num}}, _from, state) do
+    {:reply, state.pins[pin_num], [], state}
+  end
+
+  def handle_call({:call, :get_current_position}, _from, state) do
+    {:reply, state.location_data.position, [], state}
+  end
+
   def handle_call(:params_reported, _, state) do
     {:reply, state.params_reported, [], state}
   end
 
-  def handle_call({fun, _}, _from, state = %{initialized: false})
+  def handle_call({fun, args}, from, state = %{initialized: false})
   when fun not in  [:read_all_params, :update_param, :emergency_unlock, :emergency_lock, :request_software_version] do
-    {:reply, {:error, :uninitialized}, [], state}
+    next_current = struct(Command, from: from, fun: fun, args: args)
+    do_queue_cmd(next_current, state)
+    # {:reply, {:error, "uninitialized"}, [], state}
   end
 
   def handle_call({fun, args}, from, state) do
@@ -244,7 +272,7 @@ defmodule Farmbot.Firmware do
     cond do
       fun == :emergency_lock ->
         if current_current do
-          do_reply(state, {:error, :emergency_lock})
+          do_reply(state, {:error, "emergency_lock"})
         end
         do_begin_cmd(next_current, state, [])
       match?(%Command{}, current_current) ->
@@ -264,7 +292,7 @@ defmodule Farmbot.Firmware do
         else
           {:noreply, dispatch, %{state | current: current, timer: timer}}
         end
-      {:error, _} = res ->
+      {:error, reason} = res when is_binary(reason) ->
         do_reply(%{state | current: current}, res)
         {:noreply, dispatch, %{state | current: nil}}
     end
@@ -281,11 +309,16 @@ defmodule Farmbot.Firmware do
     # if after handling the current buffer of gcodes,
     # Try to start the next command in the queue if it exists.
     if List.last(gcodes) == :idle && state.current == nil do
-      case :queue.out(state.queue) do
-        {{:value, next_current}, new_queue} ->
-          do_begin_cmd(next_current, %{state | queue: new_queue, current: next_current}, diffs)
-        {:empty, queue} -> # nothing to do if the queue is empty.
-          {:noreply, diffs, %{state | queue: queue}}
+      if state.initialized do
+        case :queue.out(state.queue) do
+          {{:value, next_current}, new_queue} ->
+            do_begin_cmd(next_current, %{state | queue: new_queue, current: next_current}, diffs)
+            {:empty, queue} -> # nothing to do if the queue is empty.
+            {:noreply, diffs, %{state | queue: queue}}
+          end
+      else
+        Farmbot.Logger.warn 1, "Fw not initialized yet"
+        {:noreply, diffs, state}  
       end
     else
       {:noreply, diffs, state}
@@ -314,7 +347,7 @@ defmodule Farmbot.Firmware do
     maybe_cancel_timer(state.timer, state.current)
     if state.current do
       Farmbot.Logger.error 1, "Got #{code} while executing `#{inspect state.current}`."
-      do_reply(state, {:error, :firmware_error})
+      do_reply(state, {:error, "Firmware error. See log."})
       {nil, %{state | current: nil}}
     else
       {nil, state}
@@ -368,15 +401,21 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode({:report_current_position, x, y, z}, state) do
-    {:location_data, %{position: %{x: x, y: y, z: z}}, state}
+    position = %{position: %{x: x, y: y, z: z}}
+    new_state = %{state | location_data: Map.merge(state.location_data, position)}
+    {:location_data, position, new_state}
   end
 
   defp handle_gcode({:report_encoder_position_scaled, x, y, z}, state) do
-    {:location_data, %{scaled_encoders: %{x: x, y: y, z: z}}, state}
+    scaled_encoders = %{scaled_encoders: %{x: x, y: y, z: z}}
+    new_state = %{state | location_data: Map.merge(state.location_data, scaled_encoders)}
+    {:location_data, scaled_encoders, new_state}
   end
 
   defp handle_gcode({:report_encoder_position_raw, x, y, z}, state) do
-    {:location_data, %{raw_encoders: %{x: x, y: y, z: z}}, state}
+    raw_encoders = %{raw_encoders: %{x: x, y: y, z: z}}
+    new_state = %{state | location_data: Map.merge(state.location_data, raw_encoders)}
+    {:location_data, raw_encoders, new_state}
   end
 
   defp handle_gcode({:report_end_stops, xa, xb, ya, yb, za, zb}, state) do
@@ -444,17 +483,17 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode(:report_axis_timeout_x, state) do
-    do_reply(state, {:error, :axis_timeout_x})
+    do_reply(state, {:error, "Axis X timeout"})
     {nil, %{state | timer: nil}}
   end
 
   defp handle_gcode(:report_axis_timeout_y, state) do
-    do_reply(state, {:error, :axis_timeout_y})
+    do_reply(state, {:error, "Axis Y timeout"})
     {nil, %{state | timer: nil}}
   end
 
   defp handle_gcode(:report_axis_timeout_z, state) do
-    do_reply(state, {:error, :axis_timeout_z})
+    do_reply(state, {:error, "Axis Z timeout"})
     {nil, %{state | timer: nil}}
   end
 
@@ -487,9 +526,9 @@ defmodule Farmbot.Firmware do
     maybe_cancel_timer(state.timer, state.current)
     if state.current do
       do_reply(state, :ok)
-      {:informational_settings, %{busy: true},  %{state | current: nil}}
+      {:informational_settings, %{busy: false},  %{state | current: nil}}
     else
-      {:informational_settings, %{busy: true},  state}
+      {:informational_settings, %{busy: false},  state}
     end
   end
 
@@ -582,7 +621,7 @@ defmodule Farmbot.Firmware do
             :ok
           _ -> report_calibration_callback(tries - 1, param, val)
         end
-      {:error, reason} ->
+      {:error, reason} when is_binary(reason) ->
         Farmbot.Logger.error 1, "Failed to set #{param}: #{val} (#{inspect reason})"
         report_calibration_callback(tries - 1, param, val)
     end
@@ -597,7 +636,7 @@ defmodule Farmbot.Firmware do
         EstopTimer.cancel_timer()
         :ok = GenServer.reply from, reply
       %Command{fun: :emergency_lock, from: from} ->
-        :ok = GenServer.reply from, {:error, :emergency_lock}
+        :ok = GenServer.reply from, {:error, "Emergency Lock"}
       %Command{fun: _fun, from: from} ->
         # Farmbot.Logger.success 3, "FW Replying: #{fun}: #{inspect from}"
         :ok = GenServer.reply from, reply
