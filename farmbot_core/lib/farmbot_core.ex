@@ -5,30 +5,18 @@ defmodule Farmbot.Core do
   """
   use Application
 
-  def child_spec(opts) do
-    %{
-      id: __MODULE__,
-      start: {__MODULE__, :start_link, [opts]},
-      type: :worker,
-      restart: :permanent,
-      shutdown: 500
-    }
-  end
-
   @doc false
   def start(_, args), do: Supervisor.start_link(__MODULE__, args, name: __MODULE__)
 
-  def start_link(args), do: Supervisor.start_link(__MODULE__, args, name: __MODULE__)
-
   def init([]) do
     children = [
-      {Farmbot.Registry,                [] },
-      {Farmbot.Logger.Supervisor,       [] },
-      {Farmbot.Config.Supervisor,       [] },
-      {Farmbot.Asset.Supervisor,        [] },
-      {Farmbot.Firmware.Supervisor,     [] },
-      {Farmbot.BotState,                [] },
-      {Farmbot.CeleryScript.Supervisor, [] },
+      {Farmbot.Registry,                []},
+      {Farmbot.Logger.Supervisor,       []},
+      {Farmbot.Config.Supervisor,       []},
+      {Farmbot.Firmware.Supervisor,     []},
+      {Farmbot.Asset.Supervisor,        []},
+      {Farmbot.BotState,                []},
+      {Farmbot.Core.CeleryScript.Supervisor, []},
     ]
     Supervisor.init(children, [strategy: :one_for_one])
   end
