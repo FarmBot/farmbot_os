@@ -1,11 +1,5 @@
-<<<<<<< HEAD:priv/static/templates/config_wireless_step_2_PSK.html.eex
 <!DOCTYPE html>
 <html lang="en">
-=======
-<html>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
->>>>>>> b83ad3ee... Start splitting Farmbot Application Poncho Style:farmbot_os/priv/static/templates/config_wireless_step_2_PSK.html.eex
   <head>
     <title> Configure Farmbot's Network </title>
     <link rel="stylesheet" href="/styles.css">

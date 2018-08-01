@@ -101,16 +101,30 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
 
   defp setup_dnsmasq(ip_addr, interface) do
     dnsmasq_conf = build_dnsmasq_conf(ip_addr, interface)
-    File.mkdir!("/tmp/dnsmasq")
+    File.mkdir_p!("/tmp/dnsmasq")
     :ok = File.write("/tmp/dnsmasq/#{@dnsmasq_conf_file}", dnsmasq_conf)
     dnsmasq_cmd = "dnsmasq -k --dhcp-lease " <>
                   "/tmp/dnsmasq/#{@dnsmasq_pid_file} " <>
                   "--conf-dir=/tmp/dnsmasq"
     dnsmasq_port = Port.open({:spawn, dnsmasq_cmd}, [:binary])
-    dnsmasq_os_pid = dnsmasq_port|> Port.info() |> Keyword.get(:os_pid)
-    {:ok, {dnsmasq_port, dnsmasq_os_pid}}
-  rescue
-    ex -> {:error, ex}
+    get_dnsmasq_info(dnsmasq_port, ip_addr, interface)
+  end
+
+  defp get_dnsmasq_info(nil, ip_addr, interface) do
+    Farmbot.Logger.warn 1, "dnsmasq failed to start."
+    Process.sleep(1000)
+    setup_dnsmasq(ip_addr, interface)
+  end
+
+  defp get_dnsmasq_info(dnsmasq_port, ip_addr, interface) when is_port(dnsmasq_port) do
+    case Port.info(dnsmasq_port, :os_pid) do
+      {:os_pid, dnsmasq_os_pid} ->
+        {dnsmasq_port, dnsmasq_os_pid}
+      nil ->
+        Farmbot.Logger.warn 1, "dnsmasq not ready yet."
+        Process.sleep(1000)
+        setup_dnsmasq(ip_addr, interface)
+    end
   end
 
   defp build_dnsmasq_conf(ip_addr, interface) do

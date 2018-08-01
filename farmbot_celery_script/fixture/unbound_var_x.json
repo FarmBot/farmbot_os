@@ -1,0 +1,90 @@
+{
+  "outter": {
+    "id": 456,
+    "kind": "sequence",
+    "args": {
+      "version": 20180209,
+      "locals": {
+        "kind": "scope_declaration",
+        "args": {},
+        "body": [
+          {
+            "kind": "variable_declaration",
+            "args": {
+              "label": "x",
+              "data_value": {
+                "kind": "point",
+                "args": {
+                  "pointer_type": "Plant",
+                  "pointer_id": 456
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "body": [
+      {
+        "kind": "move_absolute",
+        "args": {
+          "speed": 100,
+          "location": {
+            "kind": "identifier",
+            "args": {
+              "label": "x"
+            }
+          },
+          "offset": {
+            "kind": "coordinate",
+            "args": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          }
+        }
+      },
+      {
+        "kind": "execute",
+        "args": {
+          "sequence_id": 123
+        }
+      }
+    ]
+  },
+  "inner": {
+    "id": 123,
+    "kind": "sequence",
+    "args": {
+      "version": 20180209,
+      "locals": {
+        "kind": "scope_declaration",
+        "args": {},
+        "body": []
+      }
+    },
+    "body": [
+      {
+        "kind": "move_absolute",
+        "args": {
+          "speed": 100,
+          "location": {
+            "kind": "identifier",
+            "args": {
+              "label": "x"
+            }
+          },
+          "offset": {
+            "kind": "coordinate",
+            "args": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          }
+        }
+      }
+    ]
+  }
+}
