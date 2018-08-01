@@ -13,7 +13,7 @@ defmodule Farmbot.Asset.SyncCmd do
     timestamps()
   end
 
-  @required_fields [:remote_id, :kind]
+  @required_fields [:kind, :remote_id]
 
   def changeset(%SyncCmd{} = cmd, params \\ %{}) do
     cmd
