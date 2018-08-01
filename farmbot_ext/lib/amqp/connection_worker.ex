@@ -1,6 +1,7 @@
 defmodule Farmbot.AMQP.ConnectionWorker do
   use GenServer
   require Farmbot.Logger
+  require Logger
   import Farmbot.Config, only: [update_config_value: 4]
 
   def start_link(args) do
@@ -38,6 +39,12 @@ defmodule Farmbot.AMQP.ConnectionWorker do
       username: bot,
       password: token,
       virtual_host: vhost]
-    AMQP.Connection.open(opts)
+    case AMQP.Connection.open(opts) do
+      {:ok, conn} -> {:ok, conn}
+      {:error, reason} ->
+        Logger.error "Error connecting to AMPQ: #{inspect reason}"
+        Process.sleep(5000)
+        open_connection(token, bot, mqtt_server, vhost)
+    end
   end
 end

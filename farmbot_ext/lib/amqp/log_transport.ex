@@ -79,7 +79,7 @@ defmodule Farmbot.AMQP.LogTransport do
     :ok = AMQP.Basic.publish chan, @exchange, "bot.#{bot}.logs", json
   end
 
-  defp add_position_to_log(%{} = log, %{position: pos}) do
+  defp add_position_to_log(%{} = log, %{position: %{} = pos}) do
     Map.merge(log, pos)
   end
 end

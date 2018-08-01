@@ -99,13 +99,15 @@ defmodule Farmbot.Bootstrap.Supervisor do
         success_msg = "Successful Bootstrap authorization: #{email} - #{server}"
         Farmbot.Logger.success(2, success_msg)
         update_config_value(:bool, "settings", "first_boot", false)
+        update_config_value(:bool, "settings", "needs_http_sync", true)
         update_config_value(:string, "authorization", "token", token)
 
         children = [
           {Farmbot.HTTP.Supervisor,    []},
           {Farmbot.SettingsSync,       []},
           {Farmbot.AMQP.Supervisor ,   []},
-          {Farmbot.Bootstrap.AuthTask, []}
+          {Farmbot.Bootstrap.AuthTask, []},
+          {Farmbot.AutoSyncTask, []},
         ]
 
         opts = [strategy: :one_for_one]
