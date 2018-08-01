@@ -1,17 +1,17 @@
 defmodule Farmbot.OS.MixProject do
   use Mix.Project
-
   @target System.get_env("MIX_TARGET") || "host"
   @version Path.join([__DIR__, "..", "VERSION"]) |> File.read!() |> String.trim()
   @branch System.cmd("git", ~w"rev-parse --abbrev-ref HEAD") |> elem(0) |> String.trim()
   @commit System.cmd("git", ~w"rev-parse --verify HEAD") |> elem(0) |> String.trim()
   System.put_env("NERVES_FW_VCS_IDENTIFIER", @commit)
   System.put_env("NERVES_FW_MISC", @branch)
+  @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"]) |> File.read!() |> String.trim()
 
   def project do
     [
       app: :farmbot_os,
-      elixir: "~> 1.6",
+      elixir: @elixir_version,
       target: @target,
       version: @version,
       branch: @branch,
