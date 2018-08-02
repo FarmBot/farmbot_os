@@ -22,12 +22,14 @@ defmodule Farmbot.Firmware do
   end
 
   @doc "Calibrate an axis."
-  def calibrate(axis) do
+  def calibrate(axis) when is_binary(axis) do
+    axis = String.to_atom(axis)
     GenStage.call(__MODULE__, {:calibrate, [axis]}, @call_timeout)
   end
 
   @doc "Find home on an axis."
-  def find_home(axis) do
+  def find_home(axis) when is_binary(axis) do
+    axis = String.to_atom(axis)
     GenStage.call(__MODULE__, {:find_home, [axis]}, @call_timeout)
   end
 
@@ -37,12 +39,14 @@ defmodule Farmbot.Firmware do
   end
 
   @doc "Home an axis."
-  def home(axis) do
+  def home(axis) when is_binary(axis) do
+    axis = String.to_atom(axis)
     GenStage.call(__MODULE__, {:home, [axis]}, @call_timeout)
   end
 
   @doc "Manually set an axis's current position to zero."
-  def zero(axis) do
+  def zero(axis) when is_binary(axis) do
+    axis = String.to_atom(axis)
     GenStage.call(__MODULE__, {:zero, [axis]}, @call_timeout)
   end
 
@@ -111,6 +115,10 @@ defmodule Farmbot.Firmware do
     GenStage.call(__MODULE__, {:call, {:get_pin_value, pin_num}})
   end
 
+  def get_current_position do
+    GenStage.call(__MODULE__, {:call, :get_current_position})
+  end
+
   @doc "Start the firmware services."
   def start_link(args) do
     GenStage.start_link(__MODULE__, args, name: __MODULE__)
@@ -125,6 +133,11 @@ defmodule Farmbot.Firmware do
       handler_mod: nil,
       idle: false,
       timer: nil,
+      location_data: %{
+        position: %{x: -1, y: -1, z: -1},
+        scaled_encoders: %{x: -1, y: -1, z: -1},
+        raw_encoders: %{x: -1, y: -1, z: -1},
+      },
       pins: %{},
       params: %{},
       params_reported: false,
@@ -235,6 +248,10 @@ defmodule Farmbot.Firmware do
 
   def handle_call({:call, {:get_pin_value, pin_num}}, _from, state) do
     {:reply, state.pins[pin_num], [], state}
+  end
+
+  def handle_call({:call, {:call, :get_current_position}}, _from, state) do
+    {:reply, state.location_data.position, [], state}
   end
 
   def handle_call(:params_reported, _, state) do
@@ -376,15 +393,21 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode({:report_current_position, x, y, z}, state) do
-    {:location_data, %{position: %{x: x, y: y, z: z}}, state}
+    position = %{position: %{x: x, y: y, z: z}}
+    new_state = %{state | location_data: Map.merge(state.location_data, position)}
+    {:location_data, position, new_state}
   end
 
   defp handle_gcode({:report_encoder_position_scaled, x, y, z}, state) do
-    {:location_data, %{scaled_encoders: %{x: x, y: y, z: z}}, state}
+    scaled_encoders = %{scaled_encoders: %{x: x, y: y, z: z}}
+    new_state = %{state | location_data: Map.merge(state.location_data, scaled_encoders)}
+    {:location_data, scaled_encoders, new_state}
   end
 
   defp handle_gcode({:report_encoder_position_raw, x, y, z}, state) do
-    {:location_data, %{raw_encoders: %{x: x, y: y, z: z}}, state}
+    raw_encoders = %{raw_encoders: %{x: x, y: y, z: z}}
+    new_state = %{state | location_data: Map.merge(state.location_data, raw_encoders)}
+    {:location_data, raw_encoders, new_state}
   end
 
   defp handle_gcode({:report_end_stops, xa, xb, ya, yb, za, zb}, state) do
