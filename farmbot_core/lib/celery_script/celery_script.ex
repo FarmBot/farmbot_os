@@ -1,17 +1,9 @@
 defmodule Farmbot.CeleryScript do
-  def to_ast(data) do
-    Csvm.AST.decode(data)
+  def rpc_request(data, fun) do
+    Csvm.rpc_request(Csvm, data, fun)
   end
 
-  def execute_sequence(%Farmbot.Asset.Sequence{} = seq) do
-    :ok
-  end
-
-  def schedule_sequence(%Farmbot.Asset.Sequence{} = seq) do
-    :ok
-  end
-
-  def await_sequence(ref) do
-    :ok
+  def sequence(%Farmbot.Asset.Sequence{} = seq, fun) do
+    Csvm.sequence(Csvm, seq, seq.id, fun)
   end
 end

@@ -26,9 +26,8 @@ defmodule Farmbot.Asset.Sequence do
 
   @behaviour Farmbot.Asset.FarmEvent
   def schedule_event(%Sequence{} = sequence, _now) do
-    case Farmbot.CeleryScript.schedule_sequence(sequence) do
-      %{status: :crashed} = proc -> {:error, Csvm.FarmProc.get_crash_reason(proc)}
-      _ -> :ok
-    end
+    Farmbot.CeleryScript.sequence(sequence, fn(_farm_proc) ->
+      :ok
+    end)
   end
 end
