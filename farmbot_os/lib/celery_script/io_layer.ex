@@ -1,8 +1,10 @@
 defmodule Farmbot.OS.IOLayer do
   @behaviour Farmbot.CeleryScript.IOLayer
   alias Farmbot.OS.IOLayer.{
+    FindHome,
     ReadPin,
     Sync,
+    TogglePin,
     WritePin,
   }
 
@@ -25,24 +27,39 @@ defmodule Farmbot.OS.IOLayer do
     {:error, "not implemented: send_message"}
   end
 
-  def move_relative(_args, _body) do
-    {:error, "not implemented: move_relative"}
+  def move_relative(%{x: x, y: y, z: z, speed: speed}, []) do
+    import Farmbot.CeleryScript.Utils
+    %{x: cur_x, y: cur_y, z: cur_z} = Farmbot.Firmware.get_current_position()
+    location = new_vec3(cur_x, cur_y, cur_z)
+    offset = new_vec3(x, y, z)
+    move_absolute(%{location: location, offset: offset, speed: speed}, [])
   end
 
-  def home(_args, _body) do
-    {:error, "not implemented: home"}
+  def home(%{axis: "all"}, []) do
+    case Farmbot.Firmware.home_all() do
+      :ok -> :ok
+      {:error, reason} when is_binary(reason) -> {:error, reason}
+    end
   end
 
-  def find_home(_args, _body) do
-    {:error, "not implemented: find_home"}
+  def home(%{axis: axis}, []) do
+    case Farmbot.Firmware.home(axis) do
+      :ok -> :ok
+      {:error, reason} when is_binary(reason) -> {:error, reason}
+    end
   end
 
-  def wait(_args, _body) do
-    {:error, "not implemented: wait"}
+  def find_home(args, body) do
+    FindHome.execute(args, body)
   end
 
-  def toggle_pin(_args, _body) do
-    {:error, "not implemented: toggle_pin"}
+  def wait(%{milliseconds: millis}, []) do
+    Process.sleep(millis)
+    :ok
+  end
+
+  def toggle_pin(args, body) do
+    TogglePin.execute(args, body)
   end
 
   def execute_script(_args, _body) do
