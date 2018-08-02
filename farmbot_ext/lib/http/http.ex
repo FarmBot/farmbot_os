@@ -5,6 +5,7 @@ defmodule Farmbot.HTTP do
 
   use GenServer
   alias Farmbot.HTTP.{Adapter, Error, Response}
+  alias Farmbot.JSON
 
   @adapter Application.get_env(:farmbot_ext, :behaviour)[:http_adapter]
   @adapter || raise("No http adapter.")
@@ -14,6 +15,66 @@ defmodule Farmbot.HTTP do
   @typep body :: Adapter.body
   @typep headers :: Adapter.headers
   @typep opts :: Adapter.opts
+
+  alias Farmbot.Asset.{
+    Device,
+    FarmEvent,
+    Peripheral,
+    PinBinding,
+    Point,
+    Regimen,
+    Sensor,
+    Sequence,
+    Tool,
+  }
+
+  @device_fields ~W(id name timezone)
+  def device, do: fetch_and_decode("/api/device.json", @device_fields, Device)
+
+  @farm_events_fields ~W(calendar end_time executable_id executable_type id repeat start_time time_unit)
+  def farm_events, do: fetch_and_decode("/api/farm_events.json", @farm_events_fields, FarmEvent)
+
+  @peripherals_fields ~W(id label mode pin)
+  def peripherals, do: fetch_and_decode("/api/peripherals.json", @peripherals_fields, Peripheral)
+
+  @pin_bindings_fields ~W(id pin_num sequence_id special_action)
+  def pin_bindings, do: fetch_and_decode("/api/pin_bindings.json", @pin_bindings_fields, PinBinding)
+
+  @points_fields ~W(id meta name pointer_type tool_id x y z)
+  def points, do: fetch_and_decode("/api/points.json", @points_fields, Point)
+
+  @regimens_fields ~W(farm_event_id id name regimen_items)
+  def regimens, do: fetch_and_decode("/api/regimens.json", @regimens_fields, Regimen)
+
+  @sensors_fields ~W(id label mode pin)
+  def sensors, do: fetch_and_decode("/api/sensors.json", @sensors_fields, Sensor)
+
+  @sequences_fields ~W(args body id kind name)
+  def sequences, do: fetch_and_decode("/api/sequences.json", @sequences_fields, Sequence)
+
+  @tools_fields ~W(id name)
+  def tools, do: fetch_and_decode("/api/tools.json", @tools_fields, Tool)
+
+  def fetch_and_decode(url, fields, kind) do
+    url
+    |> get!()
+    |> Map.fetch!(:body)
+    |> JSON.decode!()
+    |> resource_decode(fields, kind)
+  end
+
+  def resource_decode(data, fields, kind) when is_list(data),
+    do: Enum.map(data, &resource_decode(&1, fields, kind))
+
+  def resource_decode(data, fields, kind) do
+    data
+    |> Map.take(fields)
+    |> Enum.map(&string_to_atom/1)
+    |> into_struct(kind)
+  end
+
+  def string_to_atom({k, v}), do: {String.to_atom(k), v}
+  def into_struct(data, kind), do: struct(kind, data)
 
   @doc """
   Make an http request. Will not raise.

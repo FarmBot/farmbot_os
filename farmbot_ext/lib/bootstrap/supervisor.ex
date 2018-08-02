@@ -99,6 +99,7 @@ defmodule Farmbot.Bootstrap.Supervisor do
         success_msg = "Successful Bootstrap authorization: #{email} - #{server}"
         Farmbot.Logger.success(2, success_msg)
         update_config_value(:bool, "settings", "first_boot", false)
+        update_config_value(:bool, "settings", "needs_http_sync", true)
         update_config_value(:string, "authorization", "token", token)
 
         children = [

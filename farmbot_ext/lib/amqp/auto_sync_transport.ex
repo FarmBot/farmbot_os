@@ -57,9 +57,13 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
       "FirmwareConfig" ->
         Farmbot.SettingsSync.apply_fw_map(Farmbot.Config.get_config_as_map()["hardware_params"], body)
       _ ->
-        _cmd = Farmbot.Asset.register_sync_cmd(body["id"], asset_kind, body)
-        if get_config_value(:bool, "settings", "auto_sync") do
-          Farmbot.Asset.fragment_sync()
+        if !get_config_value(:bool, "settings", "needs_http_sync") do
+          _cmd = Farmbot.Asset.register_sync_cmd(body["id"], asset_kind, body)
+          if get_config_value(:bool, "settings", "auto_sync") do
+            Farmbot.Asset.fragment_sync()
+          end
+        else
+          IO.puts "not accepting sync_cmd from amqp because bot needs http sync first."
         end
     end
 

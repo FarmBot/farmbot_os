@@ -25,6 +25,7 @@ defmodule Farmbot.Asset do
   alias Repo.Snapshot
   require Farmbot.Logger
   import Ecto.Query
+  require Logger
 
   def fragment_sync(verbosity \\ 1) do
     Farmbot.Logger.busy verbosity, "Syncing"
@@ -43,7 +44,43 @@ defmodule Farmbot.Asset do
     :ok
   end
 
-  def apply_sync_cmd(cmd) do
+  def full_sync(verbosity \\ 1, fetch_fun) do
+    Farmbot.Logger.busy verbosity, "Syncing"
+    Farmbot.Registry.dispatch(__MODULE__, {:sync_status, :syncing})
+    results = try do
+      fetch_fun.()
+    rescue
+      ex ->
+        Farmbot.Registry.dispatch(__MODULE__, {:sync_status, :sync_error})
+        message = Exception.message(ex)
+        Logger.error "Fetching resources failed: #{message}"
+        {:error, message}
+    end
+
+    case results do
+      {:ok, all_sync_cmds} when is_list(all_sync_cmds) ->
+        old = Repo.snapshot()
+        Repo.transaction fn() ->
+          :ok = Farmbot.Asset.clear_all_data()
+          for cmd <- all_sync_cmds do
+            apply_sync_cmd(cmd, false)
+          end
+        end
+        new = Repo.snapshot()
+        diff = Snapshot.diff(old, new)
+        dispatch_sync(diff)
+        destroy_all_sync_cmds()
+        Farmbot.Registry.dispatch(__MODULE__, {:sync_status, :synced})
+        Farmbot.Logger.success verbosity, "Synced"
+      {:error, reason} when is_binary(reason) ->
+        destroy_all_sync_cmds()
+        Farmbot.Registry.dispatch(__MODULE__, {:sync_status, :sync_error})
+        Farmbot.Logger.error verbosity, "Sync error: #{reason}"
+    end
+
+  end
+
+  def apply_sync_cmd(cmd, dispatch_sync \\ true) do
     mod = Module.concat(["Farmbot", "Asset", cmd.kind])
     if Code.ensure_loaded?(mod) do
       Farmbot.Registry.dispatch(__MODULE__, {:sync_status, :syncing})
@@ -57,7 +94,7 @@ defmodule Farmbot.Asset do
       end
       new = Repo.snapshot()
       diff = Snapshot.diff(old, new)
-      dispatch_sync(diff)
+      if dispatch_sync, do: dispatch_sync(diff)
     else
       Farmbot.Logger.warn(3, "Unknown module: #{mod} #{inspect(cmd)}")
     end
@@ -127,8 +164,15 @@ defmodule Farmbot.Asset do
   Use the `Farmbot.Asset.Registry` for these types of events.
   """
   def register_sync_cmd(remote_id, kind, body) when is_binary(kind) do
-    SyncCmd.changeset(struct(SyncCmd, %{remote_id: remote_id, kind: kind, body: body}))
+    new_sync_cmd(remote_id, kind, body)
+    |> SyncCmd.changeset()
     |> Repo.insert!()
+  end
+
+  def new_sync_cmd(remote_id, kind, body)
+    when is_integer(remote_id) when is_binary(kind) when is_list(body)
+  do
+    struct(SyncCmd, %{remote_id: remote_id, kind: kind, body: body})
   end
 
   @doc "Destroy all sync cmds locally."
@@ -140,6 +184,7 @@ defmodule Farmbot.Asset do
     Repo.all(SyncCmd)
   end
 
+  def destroy_sync_cmd(%SyncCmd{id: nil} = cmd), do: {:ok, cmd}
   def destroy_sync_cmd(%SyncCmd{} = cmd) do
     Repo.delete(cmd)
   end
@@ -215,6 +260,11 @@ defmodule Farmbot.Asset do
   @doc "Get a Peripheral by it's id."
   def get_peripheral_by_id(peripheral_id) do
     Repo.one(from(p in Peripheral, where: p.id == ^peripheral_id))
+  end
+
+  @doc "Get a peripheral by it's pin."
+  def get_peripheral_by_number(number) do
+    Repo.one(from(p in Peripheral, where: p.pin == ^number))
   end
 
   @doc "Get a Sensor by it's id."
