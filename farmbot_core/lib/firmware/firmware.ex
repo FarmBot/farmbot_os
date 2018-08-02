@@ -107,6 +107,10 @@ defmodule Farmbot.Firmware do
     GenStage.call(__MODULE__, :params_reported)
   end
 
+  def get_pin_value(pin_num) do
+    GenStage.call(__MODULE__, {:call, {:get_pin_value, pin_num}})
+  end
+
   @doc "Start the firmware services."
   def start_link(args) do
     GenStage.start_link(__MODULE__, args, name: __MODULE__)
@@ -227,6 +231,10 @@ defmodule Farmbot.Firmware do
       nil -> {:noreply, [], %{state | timer: nil}}
 
     end
+  end
+
+  def handle_call({:call, {:get_pin_value, pin_num}}, _from, state) do
+    {:reply, state.pins[pin_num], [], state}
   end
 
   def handle_call(:params_reported, _, state) do

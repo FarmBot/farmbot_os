@@ -272,6 +272,11 @@ defmodule Farmbot.Asset do
     Repo.one(from(s in Sensor, where: s.id == ^sensor_id))
   end
 
+  @doc "Get a peripheral by it's pin."
+  def get_sensor_by_number(number) do
+    Repo.one(from(s in Sensor, where: s.pin == ^number))
+  end
+
   @doc "Get a Sequence by it's id."
   def get_sequence_by_id(sequence_id) do
     Repo.one(from(s in Sequence, where: s.id == ^sequence_id))

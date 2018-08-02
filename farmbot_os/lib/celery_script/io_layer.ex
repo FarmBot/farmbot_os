@@ -1,6 +1,7 @@
 defmodule Farmbot.OS.IOLayer do
   @behaviour Farmbot.CeleryScript.IOLayer
   alias Farmbot.OS.IOLayer.{
+    ReadPin,
     Sync,
     WritePin,
   }
@@ -9,8 +10,8 @@ defmodule Farmbot.OS.IOLayer do
     WritePin.execute(args, body)
   end
 
-  def read_pin(_args, _body) do
-    {:error, "not implemented: read_pin"}
+  def read_pin(args, body) do
+    ReadPin.execute(args, body)
   end
 
   def set_servo_angle(_args, _body) do
