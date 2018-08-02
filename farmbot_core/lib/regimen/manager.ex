@@ -134,7 +134,7 @@ defmodule Farmbot.Regimen.Manager do
   defp do_item(item, regimen, state) do
     if item do
       sequence = Farmbot.Asset.get_sequence_by_id!(item.sequence_id)
-      CeleryScript.schedule_sequence(sequence)
+      CeleryScript.sequence(sequence, fn(_) -> :ok end)
     end
 
     next_item = List.first(regimen.regimen_items)

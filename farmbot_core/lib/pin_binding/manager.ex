@@ -157,7 +157,7 @@ defmodule Farmbot.PinBinding.Manager do
   defp do_execute(%PinBinding{sequence_id: sequence_id}) when is_number(sequence_id) do
     sequence_id
     |> Farmbot.Asset.get_sequence_by_id!()
-    |> Farmbot.CeleryScript.schedule_sequence()
+    |> Farmbot.CeleryScript.sequence(fn(_) -> :ok end)
   end
 
   defp do_execute(%PinBinding{special_action: action}) when is_binary(action) do
@@ -167,7 +167,7 @@ defmodule Farmbot.PinBinding.Manager do
       kind: action,
       args: %{},
       body: [] }
-    |> Farmbot.CeleryScript.schedule_sequence()
+    |> Farmbot.CeleryScript.sequence(fn(_) -> :ok end)
   end
 
   defp debounce_timer(pin) do
