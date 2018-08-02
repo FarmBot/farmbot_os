@@ -32,4 +32,11 @@ config :farmbot_os, :behaviour,
   update_handler: Farmbot.Host.UpdateHandler,
   system_tasks: Farmbot.Host.SystemTasks
 
+config :farmbot_core, :behaviour,
+  leds_handler: Farmbot.Leds.StubHandler,
+  pin_binding_handler: Farmbot.PinBinding.StubHandler,
+  celery_script_io_layer: Farmbot.OS.IOLayer,
+  firmware_handler: Farmbot.Firmware.UartHandler
+
+config :farmbot_core, :uart_handler, tty: "/dev/ttyACM0"
 import_config("auth_secret.exs")

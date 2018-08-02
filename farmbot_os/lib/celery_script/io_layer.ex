@@ -8,6 +8,30 @@ defmodule Farmbot.OS.IOLayer do
     WritePin,
   }
 
+  def emergency_lock(_args, _body) do
+    Farmbot.Firmware.emergency_lock()
+  end
+
+  def emergency_unlock(_args, _body) do
+    Farmbot.Firmware.emergency_unlock()
+  end
+
+  def move_relative(%{x: x, y: y, z: z, speed: speed}, []) do
+    import Farmbot.CeleryScript.Utils
+    %{x: cur_x, y: cur_y, z: cur_z} = Farmbot.Firmware.get_current_position()
+    location = new_vec3(cur_x, cur_y, cur_z)
+    offset = new_vec3(x, y, z)
+    move_absolute(%{location: location, offset: offset, speed: speed}, [])
+  end
+
+  def move_absolute(_args, _body) do
+    {:error, "not implemented: move_absolute"}
+  end
+
+  def toggle_pin(args, body) do
+    TogglePin.execute(args, body)
+  end
+
   def write_pin(args, body) do
     WritePin.execute(args, body)
   end
@@ -21,18 +45,6 @@ defmodule Farmbot.OS.IOLayer do
       :ok -> :ok
       {:error, reason} when is_binary(reason) -> {:error, reason}
     end
-  end
-
-  def send_message(_args, _body) do
-    {:error, "not implemented: send_message"}
-  end
-
-  def move_relative(%{x: x, y: y, z: z, speed: speed}, []) do
-    import Farmbot.CeleryScript.Utils
-    %{x: cur_x, y: cur_y, z: cur_z} = Farmbot.Firmware.get_current_position()
-    location = new_vec3(cur_x, cur_y, cur_z)
-    offset = new_vec3(x, y, z)
-    move_absolute(%{location: location, offset: offset, speed: speed}, [])
   end
 
   def home(%{axis: "all"}, []) do
@@ -58,14 +70,6 @@ defmodule Farmbot.OS.IOLayer do
     :ok
   end
 
-  def toggle_pin(args, body) do
-    TogglePin.execute(args, body)
-  end
-
-  def execute_script(_args, _body) do
-    {:error, "not implemented: execute_script"}
-  end
-
   def zero(_args, _body) do
     {:error, "not implemented: zero"}
   end
@@ -74,16 +78,13 @@ defmodule Farmbot.OS.IOLayer do
     {:error, "not implemented: calibrate"}
   end
 
-  def take_photo(_args, _body) do
-    {:error, "not implemented: take_photo"}
-  end
-
   def config_update(_args, _body) do
     {:error, "not implemented: config_update"}
   end
 
   def set_user_env(_args, _body) do
-    {:error, "not implemented: set_user_env"}
+    IO.inspect {:error, "not implemented: set_user_env"}
+    :ok
   end
 
   def install_first_party_farmware(_args, _body) do
@@ -102,25 +103,33 @@ defmodule Farmbot.OS.IOLayer do
     {:error, "not implemented: update_farmware"}
   end
 
+  def take_photo(_args, body) do
+    execute_script(%{package: "take-photo"}, body)
+  end
+
+  def execute_script(_args, _body) do
+    {:error, "not implemented: execute_script"}
+  end
+
   def read_status(_args, _body) do
     Farmbot.BotState.fetch()
     :ok
+  end
+
+  def send_message(_args, _body) do
+    {:error, "not implemented: send_message"}
   end
 
   def sync(args, body) do
     Sync.execute(args, body)
   end
 
-  def power_off(_args, _body) do
-    {:error, "not implemented: power_off"}
-  end
+  def power_off(_,_), do: Farmbot.System.shutdown("CeleryScript")
+  def reboot(_,_), do: Farmbot.System.reboot("CeleryScript")
+  def factory_reset(_,_), do: Farmbot.System.factory_reset("CeleryScript")
 
-  def reboot(_args, _body) do
-    {:error, "not implemented: reboot"}
-  end
-
-  def factory_reset(_args, _body) do
-    {:error, "not implemented: factory_reset"}
+  def dump_info(_args, _body) do
+    {:error, "not implemented: dump_info"}
   end
 
   def change_ownership(_args, _body) do
@@ -129,14 +138,6 @@ defmodule Farmbot.OS.IOLayer do
 
   def check_updates(_args, _body) do
     {:error, "not implemented: check_updates"}
-  end
-
-  def dump_info(_args, _body) do
-    {:error, "not implemented: dump_info"}
-  end
-
-  def move_absolute(_args, _body) do
-    {:error, "not implemented: move_absolute"}
   end
 
   def _if(_args, _body) do
@@ -151,13 +152,4 @@ defmodule Farmbot.OS.IOLayer do
         {:ok, Csvm.AST.decode(seq)}
     end
   end
-
-  def emergency_lock(_args, _body) do
-    {:error, "not implemented: emergency_lock"}
-  end
-
-  def emergency_unlock(_args, _body) do
-    {:error, "not implemented: emergency_unlock"}
-  end
-
 end
