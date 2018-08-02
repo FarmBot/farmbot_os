@@ -14,8 +14,11 @@ defmodule Farmbot.OS.IOLayer do
     ReadPin.execute(args, body)
   end
 
-  def set_servo_angle(_args, _body) do
-    {:error, "not implemented: set_servo_angle"}
+  def set_servo_angle(%{pin_number: pin_number, pin_value: value}, []) do
+    case Farmbot.Firmware.set_servo_angle(pin_number, value) do
+      :ok -> :ok
+      {:error, reason} when is_binary(reason) -> {:error, reason}
+    end
   end
 
   def send_message(_args, _body) do
