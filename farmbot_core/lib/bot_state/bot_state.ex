@@ -181,7 +181,7 @@ defmodule Farmbot.BotState do
     {:noreply, [], new_state}
   end
 
-  def handle_info({Farmbot.Registry, {Farmbot.Asset.Repo, {:sync_status, status}}}, state) do
+  def handle_info({Farmbot.Registry, {_, {:sync_status, status}}}, state) do
     event = {:informational_settings, %{sync_status: status}}
     new_state = handle_event(event, state)
     Farmbot.Registry.dispatch(__MODULE__, new_state)

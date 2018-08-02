@@ -2,6 +2,7 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
   use GenServer
   use AMQP
   require Farmbot.Logger
+  require Logger
   import Farmbot.Config, only: [get_config_value: 3, update_config_value: 4]
 
   @exchange "amq.topic"
@@ -55,8 +56,12 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
   @doc false
   def handle_celery_script(payload, state) do
     json = Farmbot.JSON.decode!(payload)
-    Farmbot.CeleryScript.rpc_request(json, -1, fn(results_ast) ->
+    Farmbot.CeleryScript.rpc_request(json, fn(results_ast) ->
       reply = Farmbot.JSON.encode!(results_ast)
+      if results_ast.kind == :rpc_error do
+        [%{args: %{message: message}}] = results_ast.body
+        Logger.error(message)
+      end
       AMQP.Basic.publish state.chan, @exchange, "bot.#{state.bot}.from_device", reply
     end)
   end
