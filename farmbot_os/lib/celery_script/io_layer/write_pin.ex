@@ -54,7 +54,7 @@ defmodule Farmbot.OS.IOLayer.WritePin do
     Farmbot.Logger.success 1, "#{msg} turned OFF"
   end
 
-  defp log_success(msg, _num, _, val) do
+  defp log_success(msg, _num, @analog, val) do
     Farmbot.Logger.success 1, "#{msg} set to #{val} (analog)"
   end
 
