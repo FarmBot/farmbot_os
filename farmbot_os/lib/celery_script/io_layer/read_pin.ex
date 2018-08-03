@@ -1,5 +1,5 @@
 defmodule Farmbot.OS.IOLayer.ReadPin do
-  alias Csvm.AST
+  alias Farmbot.CeleryScript.AST
   require Farmbot.Logger
   alias Farmbot.Asset
   alias Asset.{Peripheral, Sensor}
@@ -54,14 +54,14 @@ defmodule Farmbot.OS.IOLayer.ReadPin do
     Farmbot.Logger.success 1, "#{msg} value is #{val} (analog)"
   end
 
-  defp fetch_resource(Peripheral, id) do
+  defp fetch_resource("Peripheral", id) do
     case Asset.get_peripheral_by_id(id) do
       %Peripheral{} = per -> per
       nil -> {:error, "Could not find pin by id: #{id}"}
     end
   end
 
-  defp fetch_resource(Sensor, id) do
+  defp fetch_resource("Sensor", id) do
     case Asset.get_sensor_by_id(id) do
       %Sensor{} = sen -> sen
       nil -> {:error, "Could not find pin by id: #{id}"}

@@ -154,20 +154,29 @@ defmodule Farmbot.PinBinding.Manager do
     %{state | registered: Map.delete(state.registered, pin_num), signal: Map.delete(state.signal, pin_num)}
   end
 
-  defp do_execute(%PinBinding{sequence_id: sequence_id}) when is_number(sequence_id) do
+  defp do_execute(%PinBinding{sequence_id: sequence_id} = binding) when is_number(sequence_id) do
     sequence_id
     |> Farmbot.Asset.get_sequence_by_id!()
-    |> Farmbot.CeleryScript.sequence(fn(_) -> :ok end)
+    |> Farmbot.Core.CeleryScript.sequence(&execute_results(&1, binding))
   end
 
-  defp do_execute(%PinBinding{special_action: action}) when is_binary(action) do
+  defp do_execute(%PinBinding{special_action: action} = binding) when is_binary(action) do
     %Sequence{
       id: 0,
       name: action,
       kind: action,
       args: %{},
       body: [] }
-    |> Farmbot.CeleryScript.sequence(fn(_) -> :ok end)
+    |> Farmbot.Core.CeleryScript.sequence(&execute_results(&1, binding))
+  end
+
+  @doc false
+  def execute_results(:ok, binding) do
+    Farmbot.Logger.success(1, "Pin Binding #{binding} execution complete.")
+  end
+
+  def execute_results({:error, _}, binding) do
+    Farmbot.Logger.error(1, "Pin Binding #{binding} execution failed.")
   end
 
   defp debounce_timer(pin) do

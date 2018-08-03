@@ -23,7 +23,7 @@ defmodule Farmbot.AutoSyncTask do
 
   def maybe_auto_sync() do
     if Farmbot.Config.get_config_value(:bool, "settings", "auto_sync") do
-      Farmbot.CeleryScript.rpc_request(@rpc, &handle_rpc/1)
+      Farmbot.Core.CeleryScript.rpc_request(@rpc, &handle_rpc/1)
     end
     :ignore
   end

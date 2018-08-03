@@ -1,12 +1,13 @@
 defmodule Farmbot.Ext.MixProject do
   use Mix.Project
   @version Path.join([__DIR__, "..", "VERSION"]) |> File.read!() |> String.trim()
+  @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"]) |> File.read!() |> String.trim()
 
   def project do
     [
       app: :farmbot_ext,
       version: @version,
-      elixir: "~> 1.7",
+      elixir: @elixir_version,
       start_permanent: Mix.env() == :prod,
       elixirc_paths: ["lib", "vendor"],
       deps: deps()

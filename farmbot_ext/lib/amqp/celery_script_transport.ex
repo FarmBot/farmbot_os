@@ -60,7 +60,7 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
   def handle_celery_script(payload, state) do
     json = Farmbot.JSON.decode!(payload)
     # IO.inspect(json, label: "RPC_REQUEST")
-    Farmbot.CeleryScript.rpc_request(json, fn(results_ast) ->
+    Farmbot.Core.CeleryScript.rpc_request(json, fn(results_ast) ->
       reply = Farmbot.JSON.encode!(results_ast)
       if results_ast.kind == :rpc_error do
         [%{args: %{message: message}}] = results_ast.body

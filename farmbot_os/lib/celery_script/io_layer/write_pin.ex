@@ -1,5 +1,5 @@
 defmodule Farmbot.OS.IOLayer.WritePin do
-  alias Csvm.AST
+  alias Farmbot.CeleryScript.AST
   alias Farmbot.Asset
   alias Asset.Peripheral
   require Farmbot.Logger
@@ -58,7 +58,7 @@ defmodule Farmbot.OS.IOLayer.WritePin do
     Farmbot.Logger.success 1, "#{msg} set to #{val} (analog)"
   end
 
-  defp fetch_resource(Peripheral, id) do
+  defp fetch_resource("Peripheral", id) do
     case Asset.get_peripheral_by_id(id) do
       %Peripheral{} = per -> per
       nil -> {:error, "Could not find pin by id: #{id}"}

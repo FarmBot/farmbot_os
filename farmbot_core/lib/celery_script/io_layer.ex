@@ -1,5 +1,9 @@
-defmodule Farmbot.CeleryScript.IOLayer do
-  alias Csvm.AST
+defmodule Farmbot.Core.CeleryScript.IOLayer do
+  @moduledoc """
+  Behaviour for all functions a CeleryScript Runtime IO layer needs to
+  implement.
+  """
+  alias Farmbot.CeleryScript.AST
   @type args :: AST.args()
   @type body :: AST.body()
 

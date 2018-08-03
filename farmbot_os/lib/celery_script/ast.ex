@@ -1,2 +1,2 @@
 require Protocol
-Protocol.derive(Jason.Encoder, Csvm.AST)
+Protocol.derive(Jason.Encoder, Farmbot.CeleryScript.AST)

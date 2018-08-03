@@ -1,8 +1,8 @@
 defmodule FarmbotCore.MixProject do
   use Mix.Project
-
   @target System.get_env("MIX_TARGET") || "host"
   @version Path.join([__DIR__, "..", "VERSION"]) |> File.read!() |> String.trim()
+  @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"]) |> File.read!() |> String.trim()
 
   defp commit do
     System.cmd("git", ~w"rev-parse --verify HEAD") |> elem(0) |> String.trim()
@@ -19,7 +19,7 @@ defmodule FarmbotCore.MixProject do
     [
       app: :farmbot_core,
       description: "The Brains of the Farmbot Project",
-      elixir: "~> 1.7",
+      elixir: @elixir_version,
       make_clean: ["clean"],
       make_env: make_env(),
       make_cwd: __DIR__,
@@ -54,7 +54,7 @@ defmodule FarmbotCore.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:csvm, path: "../csvm"},
+      {:farmbot_celery_script, path: "../farmbot_celery_script"},
       # Arduino Firmware stuff.
       {:elixir_make, "~> 0.4", runtime: false},
       {:nerves_uart, "~> 1.2"},

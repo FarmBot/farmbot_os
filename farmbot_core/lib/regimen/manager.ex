@@ -3,7 +3,7 @@ defmodule Farmbot.Regimen.Manager do
 
   require Farmbot.Logger
   use GenServer
-  alias Farmbot.CeleryScript
+  alias Farmbot.Core.CeleryScript
   alias Farmbot.Asset
   alias Asset.Regimen
   import Farmbot.Regimen.NameProvider
@@ -134,7 +134,14 @@ defmodule Farmbot.Regimen.Manager do
   defp do_item(item, regimen, state) do
     if item do
       sequence = Farmbot.Asset.get_sequence_by_id!(item.sequence_id)
-      CeleryScript.sequence(sequence, fn(_) -> :ok end)
+      CeleryScript.sequence(sequence, fn(results) ->
+        case results do
+          :ok ->
+            Farmbot.Logger.success(1, "[#{sequence.name}] executed by [#{regimen.name}] complete.")
+          {:error, _} ->
+            Farmbot.Logger.error(1, "[#{sequence.name}] executed by [#{regimen.name}] failed.")
+        end
+      end)
     end
 
     next_item = List.first(regimen.regimen_items)

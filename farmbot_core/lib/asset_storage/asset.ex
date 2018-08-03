@@ -99,16 +99,12 @@ defmodule Farmbot.Asset do
 
     case results do
       {:ok, all_sync_cmds} when is_list(all_sync_cmds) ->
-        old = Repo.snapshot()
         Repo.transaction fn() ->
           :ok = Farmbot.Asset.clear_all_data()
           for cmd <- all_sync_cmds do
-            apply_sync_cmd(cmd, false)
+            apply_sync_cmd(cmd)
           end
         end
-        new = Repo.snapshot()
-        diff = Snapshot.diff(old, new)
-        dispatch_sync(diff)
         destroy_all_sync_cmds()
         Farmbot.Registry.dispatch(__MODULE__, {:sync_status, :synced})
         Farmbot.Logger.success verbosity, "Synced"
@@ -124,7 +120,7 @@ defmodule Farmbot.Asset do
 
   end
 
-  def apply_sync_cmd(cmd, dispatch_sync \\ true) do
+  def apply_sync_cmd(cmd) do
     mod = Module.concat(["Farmbot", "Asset", cmd.kind])
     if Code.ensure_loaded?(mod) do
       Farmbot.Registry.dispatch(__MODULE__, {:sync_status, :syncing})
@@ -140,7 +136,7 @@ defmodule Farmbot.Asset do
       end
       new = Repo.snapshot()
       diff = Snapshot.diff(old, new)
-      if dispatch_sync, do: dispatch_sync(diff)
+      dispatch_sync(diff)
     else
       Farmbot.Logger.warn(3, "Unknown module: #{mod} #{inspect(cmd)}")
     end

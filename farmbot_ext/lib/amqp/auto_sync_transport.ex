@@ -2,7 +2,7 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
   use GenServer
   use AMQP
   require Farmbot.Logger
-  import Farmbot.Config, only: [get_config_value: 3]
+  import Farmbot.Config, only: [get_config_value: 3, update_config_value: 4]
 
   @exchange "amq.topic"
 
@@ -23,6 +23,10 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
     {:ok, _tag}  = Basic.consume(chan, jwt.bot <> "_auto_sync", self(), [no_ack: true])
     Farmbot.Registry.subscribe()
     {:ok, struct(State, [conn: conn, chan: chan, bot: jwt.bot])}
+  end
+
+  def terminate(_reason, _state) do
+    update_config_value(:bool, "settings", "needs_http_sync", true)
   end
 
   # Confirmation sent by the broker after registering this process as a consumer

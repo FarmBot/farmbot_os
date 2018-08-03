@@ -259,9 +259,11 @@ defmodule Farmbot.Firmware do
     {:reply, state.params_reported, [], state}
   end
 
-  def handle_call({fun, _}, _from, state = %{initialized: false})
+  def handle_call({fun, args}, from, state = %{initialized: false})
   when fun not in  [:read_all_params, :update_param, :emergency_unlock, :emergency_lock, :request_software_version] do
-    {:reply, {:error, "uninitialized"}, [], state}
+    next_current = struct(Command, from: from, fun: fun, args: args)
+    do_queue_cmd(next_current, state)
+    # {:reply, {:error, "uninitialized"}, [], state}
   end
 
   def handle_call({fun, args}, from, state) do
@@ -307,11 +309,16 @@ defmodule Farmbot.Firmware do
     # if after handling the current buffer of gcodes,
     # Try to start the next command in the queue if it exists.
     if List.last(gcodes) == :idle && state.current == nil do
-      case :queue.out(state.queue) do
-        {{:value, next_current}, new_queue} ->
-          do_begin_cmd(next_current, %{state | queue: new_queue, current: next_current}, diffs)
-        {:empty, queue} -> # nothing to do if the queue is empty.
-          {:noreply, diffs, %{state | queue: queue}}
+      if state.initialized do
+        case :queue.out(state.queue) do
+          {{:value, next_current}, new_queue} ->
+            do_begin_cmd(next_current, %{state | queue: new_queue, current: next_current}, diffs)
+            {:empty, queue} -> # nothing to do if the queue is empty.
+            {:noreply, diffs, %{state | queue: queue}}
+          end
+      else
+        Farmbot.Logger.warn 1, "Fw not initialized yet"
+        {:noreply, diffs, state}  
       end
     else
       {:noreply, diffs, state}

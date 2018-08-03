@@ -7,6 +7,7 @@ defmodule Farmbot.Asset.Sequence do
   alias Farmbot.EctoTypes.TermType
   use Ecto.Schema
   import Ecto.Changeset
+  require Farmbot.Logger
 
   schema "sequences" do
     field(:name, :string)
@@ -26,8 +27,14 @@ defmodule Farmbot.Asset.Sequence do
 
   @behaviour Farmbot.Asset.FarmEvent
   def schedule_event(%Sequence{} = sequence, _now) do
-    Farmbot.CeleryScript.sequence(sequence, fn(_farm_proc) ->
-      :ok
+    Farmbot.Logger.busy 1, "[#{sequence.name}] Sequence init."
+    Farmbot.Core.CeleryScript.sequence(sequence, fn(result) ->
+      case result do
+        :ok ->
+          Farmbot.Logger.success 1, "[#{sequence.name}] Sequence complete."
+        {:error, _} ->
+          Farmbot.Logger.error 1, "[#{sequence.nam}] Sequece failed!"
+      end
     end)
   end
 end
