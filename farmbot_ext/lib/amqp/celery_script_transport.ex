@@ -50,7 +50,7 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
     device = state.bot
     ["bot", ^device, "from_clients"] = String.split(key, ".")
     spawn_link fn() ->
-      {us, results} = :timer.tc __MODULE__, :handle_celery_script, [payload, state]
+      {_us, _results} = :timer.tc __MODULE__, :handle_celery_script, [payload, state]
       # IO.puts "#{results.args.label} took: #{us}µs"
     end
     {:noreply, state}
