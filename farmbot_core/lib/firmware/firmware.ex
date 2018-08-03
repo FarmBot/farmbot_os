@@ -518,9 +518,9 @@ defmodule Farmbot.Firmware do
     maybe_cancel_timer(state.timer, state.current)
     if state.current do
       do_reply(state, :ok)
-      {:informational_settings, %{busy: true},  %{state | current: nil}}
+      {:informational_settings, %{busy: false},  %{state | current: nil}}
     else
-      {:informational_settings, %{busy: true},  state}
+      {:informational_settings, %{busy: false},  state}
     end
   end
 

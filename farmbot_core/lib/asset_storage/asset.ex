@@ -147,7 +147,8 @@ defmodule Farmbot.Asset do
     destroy_sync_cmd(cmd)
   end
 
-  defp dispatch_sync(diff) do
+  @doc false
+  def dispatch_sync(diff) do
     for deletion <- diff.deletions do
       Farmbot.Registry.dispatch(__MODULE__, {:deletion, deletion})
     end

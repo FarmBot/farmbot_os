@@ -25,8 +25,8 @@ defmodule Farmbot.Core do
       {Farmbot.Registry,                [] },
       {Farmbot.Logger.Supervisor,       [] },
       {Farmbot.Config.Supervisor,       [] },
-      {Farmbot.Asset.Supervisor,        [] },
       {Farmbot.Firmware.Supervisor,     [] },
+      {Farmbot.Asset.Supervisor,        [] },
       {Farmbot.BotState,                [] },
       {Farmbot.CeleryScript.Supervisor, [] },
     ]
