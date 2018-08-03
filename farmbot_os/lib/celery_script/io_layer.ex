@@ -2,6 +2,7 @@ defmodule Farmbot.OS.IOLayer do
   @behaviour Farmbot.CeleryScript.IOLayer
   alias Farmbot.OS.IOLayer.{
     FindHome,
+    MoveAbsolute,
     ReadPin,
     Sync,
     TogglePin,
@@ -24,8 +25,8 @@ defmodule Farmbot.OS.IOLayer do
     move_absolute(%{location: location, offset: offset, speed: speed}, [])
   end
 
-  def move_absolute(_args, _body) do
-    {:error, "not implemented: move_absolute"}
+  def move_absolute(args, body) do
+    MoveAbsolute.execute(args, body)
   end
 
   def toggle_pin(args, body) do

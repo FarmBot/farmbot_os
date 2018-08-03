@@ -111,8 +111,9 @@ defmodule Farmbot.BotState do
 
   @doc false
   def handle_call(:fetch, _from, state) do
-    Farmbot.Registry.dispatch(__MODULE__, state)
-    {:reply, state, [], state}
+    new_state = handle_event({:informational_settings, %{cache_bust: :rand.uniform(1000)}}, state)
+    Farmbot.Registry.dispatch(__MODULE__, new_state)
+    {:reply, state, [], new_state}
   end
 
   # TODO(Connor) - Fix this to use event system.

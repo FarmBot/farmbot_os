@@ -198,7 +198,7 @@ defmodule Farmbot.Firmware do
     unless :queue.is_empty(state.queue) do
       list = :queue.to_list(state.queue)
       for cmd <- list do
-        :ok = do_reply(%{state | current: cmd}, {:error, reason})
+        :ok = do_reply(%{state | current: cmd}, {:error, "Firmware handler crash"})
       end
     end
   end
@@ -229,7 +229,7 @@ defmodule Farmbot.Firmware do
           :ok ->
             timer = start_timer(current, state.timeout_ms)
             {:noreply, [], %{state | current: current, timer: timer}}
-          {:error, _} = res ->
+          {:error, reason} = res when is_binary(reason) ->
             do_reply(state, res)
             {:noreply, [], %{state | current: nil, queue: :queue.new()}}
         end
@@ -250,7 +250,7 @@ defmodule Farmbot.Firmware do
     {:reply, state.pins[pin_num], [], state}
   end
 
-  def handle_call({:call, {:call, :get_current_position}}, _from, state) do
+  def handle_call({:call, :get_current_position}, _from, state) do
     {:reply, state.location_data.position, [], state}
   end
 
@@ -260,7 +260,7 @@ defmodule Farmbot.Firmware do
 
   def handle_call({fun, _}, _from, state = %{initialized: false})
   when fun not in  [:read_all_params, :update_param, :emergency_unlock, :emergency_lock, :request_software_version] do
-    {:reply, {:error, :uninitialized}, [], state}
+    {:reply, {:error, "uninitialized"}, [], state}
   end
 
   def handle_call({fun, args}, from, state) do
@@ -269,7 +269,7 @@ defmodule Farmbot.Firmware do
     cond do
       fun == :emergency_lock ->
         if current_current do
-          do_reply(state, {:error, :emergency_lock})
+          do_reply(state, {:error, "emergency_lock"})
         end
         do_begin_cmd(next_current, state, [])
       match?(%Command{}, current_current) ->
@@ -289,7 +289,7 @@ defmodule Farmbot.Firmware do
         else
           {:noreply, dispatch, %{state | current: current, timer: timer}}
         end
-      {:error, _} = res ->
+      {:error, reason} = res when is_binary(reason) ->
         do_reply(%{state | current: current}, res)
         {:noreply, dispatch, %{state | current: nil}}
     end
@@ -339,7 +339,7 @@ defmodule Farmbot.Firmware do
     maybe_cancel_timer(state.timer, state.current)
     if state.current do
       Farmbot.Logger.error 1, "Got #{code} while executing `#{inspect state.current}`."
-      do_reply(state, {:error, :firmware_error})
+      do_reply(state, {:error, "Firmware error. See log."})
       {nil, %{state | current: nil}}
     else
       {nil, state}
@@ -475,17 +475,17 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode(:report_axis_timeout_x, state) do
-    do_reply(state, {:error, :axis_timeout_x})
+    do_reply(state, {:error, "Axis X timeout"})
     {nil, %{state | timer: nil}}
   end
 
   defp handle_gcode(:report_axis_timeout_y, state) do
-    do_reply(state, {:error, :axis_timeout_y})
+    do_reply(state, {:error, "Axis Y timeout"})
     {nil, %{state | timer: nil}}
   end
 
   defp handle_gcode(:report_axis_timeout_z, state) do
-    do_reply(state, {:error, :axis_timeout_z})
+    do_reply(state, {:error, "Axis Z timeout"})
     {nil, %{state | timer: nil}}
   end
 
@@ -613,7 +613,7 @@ defmodule Farmbot.Firmware do
             :ok
           _ -> report_calibration_callback(tries - 1, param, val)
         end
-      {:error, reason} ->
+      {:error, reason} when is_binary(reason) ->
         Farmbot.Logger.error 1, "Failed to set #{param}: #{val} (#{inspect reason})"
         report_calibration_callback(tries - 1, param, val)
     end
@@ -628,7 +628,7 @@ defmodule Farmbot.Firmware do
         EstopTimer.cancel_timer()
         :ok = GenServer.reply from, reply
       %Command{fun: :emergency_lock, from: from} ->
-        :ok = GenServer.reply from, {:error, :emergency_lock}
+        :ok = GenServer.reply from, {:error, "Emergency Lock"}
       %Command{fun: _fun, from: from} ->
         # Farmbot.Logger.success 3, "FW Replying: #{fun}: #{inspect from}"
         :ok = GenServer.reply from, reply

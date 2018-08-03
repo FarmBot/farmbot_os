@@ -106,7 +106,8 @@ defmodule Farmbot.Bootstrap.Supervisor do
           {Farmbot.HTTP.Supervisor,    []},
           {Farmbot.SettingsSync,       []},
           {Farmbot.AMQP.Supervisor ,   []},
-          {Farmbot.Bootstrap.AuthTask, []}
+          {Farmbot.Bootstrap.AuthTask, []},
+          {Farmbot.AutoSyncTask, []},
         ]
 
         opts = [strategy: :one_for_one]

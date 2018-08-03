@@ -21,7 +21,7 @@ defmodule Farmbot.Asset.Point do
   @optional_fields [:tool_id]
 
   def changeset(%Point{} = point, params \\ %{}) do
-    %Point{} = point
+    point
     |> cast(params, @required_fields ++ @optional_fields)
     |> validate_required(@required_fields)
   end

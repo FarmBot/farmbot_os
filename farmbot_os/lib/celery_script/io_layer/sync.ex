@@ -55,10 +55,6 @@ defmodule Farmbot.OS.IOLayer.Sync do
     kind = Module.split(kind)
     |> List.last()
 
-    body = Map.from_struct(data)
-    |> Map.delete(:__meta__)
-    |> Map.delete(:__struct__)
-
-    Farmbot.Asset.new_sync_cmd(data.id, kind, body)
+    Farmbot.Asset.new_sync_cmd(data.id, kind, data)
   end
 end

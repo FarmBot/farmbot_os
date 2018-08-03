@@ -25,7 +25,46 @@ defmodule Farmbot.Asset do
   alias Repo.Snapshot
   require Farmbot.Logger
   import Ecto.Query
+  import Farmbot.Config, only: [update_config_value: 4]
   require Logger
+
+  @device_fields ~W(id name timezone)
+  @farm_events_fields ~W(calendar end_time executable_id executable_type id repeat start_time time_unit)
+  @peripherals_fields ~W(id label mode pin)
+  @pin_bindings_fields ~W(id pin_num sequence_id special_action)
+  @points_fields ~W(id meta name pointer_type tool_id x y z)
+  @regimens_fields ~W(farm_event_id id name regimen_items)
+  @sensors_fields ~W(id label mode pin)
+  @sequences_fields ~W(args body id kind name)
+  @tools_fields ~W(id name)
+
+  def to_asset(body, kind) when is_binary(kind) do
+    camel_kind = Module.concat(["Farmbot", "Asset",  Macro.camelize(kind)])
+    to_asset(body, camel_kind)
+  end
+
+  def to_asset(body, Device), do: resource_decode(body, @device_fields, Device)
+  def to_asset(body, FarmEvent), do: resource_decode(body, @farm_events_fields, FarmEvent)
+  def to_asset(body, Peripheral), do: resource_decode(body, @peripherals_fields, Peripheral)
+  def to_asset(body, PinBinding), do: resource_decode(body, @pin_bindings_fields, PinBinding)
+  def to_asset(body, Point), do: resource_decode(body, @points_fields, Point)
+  def to_asset(body, Regimen), do: resource_decode(body, @regimens_fields, Regimen)
+  def to_asset(body, Sensor), do: resource_decode(body, @sensors_fields, Sensor)
+  def to_asset(body, Sequence), do: resource_decode(body, @sequences_fields, Sequence)
+  def to_asset(body, Tool), do: resource_decode(body, @tools_fields, Tool)
+
+  def resource_decode(data, fields, kind) when is_list(data),
+    do: Enum.map(data, &resource_decode(&1, fields, kind))
+
+  def resource_decode(data, fields, kind) do
+    data
+    |> Map.take(fields)
+    |> Enum.map(&string_to_atom/1)
+    |> into_struct(kind)
+  end
+
+  def string_to_atom({k, v}), do: {String.to_atom(k), v}
+  def into_struct(data, kind), do: struct(kind, data)
 
   def fragment_sync(verbosity \\ 1) do
     Farmbot.Logger.busy verbosity, "Syncing"
@@ -54,6 +93,7 @@ defmodule Farmbot.Asset do
         Farmbot.Registry.dispatch(__MODULE__, {:sync_status, :sync_error})
         message = Exception.message(ex)
         Logger.error "Fetching resources failed: #{message}"
+        update_config_value(:bool, "settings", "needs_http_sync", true)
         {:error, message}
     end
 
@@ -72,10 +112,14 @@ defmodule Farmbot.Asset do
         destroy_all_sync_cmds()
         Farmbot.Registry.dispatch(__MODULE__, {:sync_status, :synced})
         Farmbot.Logger.success verbosity, "Synced"
+        update_config_value(:bool, "settings", "needs_http_sync", false)
+        :ok
       {:error, reason} when is_binary(reason) ->
         destroy_all_sync_cmds()
         Farmbot.Registry.dispatch(__MODULE__, {:sync_status, :sync_error})
         Farmbot.Logger.error verbosity, "Sync error: #{reason}"
+        update_config_value(:bool, "settings", "needs_http_sync", true)
+        :ok
     end
 
   end
@@ -90,6 +134,8 @@ defmodule Farmbot.Asset do
         do_apply_sync_cmd(cmd)
       rescue
         e ->
+          IO.inspect __STACKTRACE__
+          IO.inspect cmd
           Farmbot.Logger.error(1, "Error syncing: #{mod}: #{Exception.message(e)}")
       end
       new = Repo.snapshot()
@@ -170,7 +216,7 @@ defmodule Farmbot.Asset do
   end
 
   def new_sync_cmd(remote_id, kind, body)
-    when is_integer(remote_id) when is_binary(kind) when is_list(body)
+    when is_integer(remote_id) when is_binary(kind)
   do
     struct(SyncCmd, %{remote_id: remote_id, kind: kind, body: body})
   end
@@ -326,7 +372,7 @@ defmodule Farmbot.Asset do
 
   @doc "Fetches all regimens that use a particular sequence."
   def get_regimens_using_sequence(sequence_id) do
-    uses_seq = &match?(^sequence_id, Map.fetch!(&1, :sequence_id))
+    uses_seq = &match?(^sequence_id, Map.fetch!(&1, "sequence_id"))
 
     Repo.all(Regimen)
     |> Enum.filter(&Enum.find(Map.fetch!(&1, :regimen_items), uses_seq))

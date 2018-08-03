@@ -21,7 +21,7 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
     {:ok, _}     = AMQP.Queue.declare(chan, jwt.bot <> "_auto_sync", [auto_delete: false])
     :ok          = AMQP.Queue.bind(chan, jwt.bot <> "_auto_sync", @exchange, [routing_key: "bot.#{jwt.bot}.sync.#"])
     {:ok, _tag}  = Basic.consume(chan, jwt.bot <> "_auto_sync", self(), [no_ack: true])
-
+    Farmbot.Registry.subscribe()
     {:ok, struct(State, [conn: conn, chan: chan, bot: jwt.bot])}
   end
 
@@ -43,7 +43,7 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
 
   def handle_info({:basic_deliver, payload, %{routing_key: key}}, state) do
     device = state.bot
-    ["bot", ^device, "sync", asset_kind, _id_str] = String.split(key, ".")
+    ["bot", ^device, "sync", asset_kind, id_str] = String.split(key, ".")
     data = Farmbot.JSON.decode!(payload)
     body = data["body"]
     case asset_kind do
@@ -58,7 +58,9 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
         Farmbot.SettingsSync.apply_fw_map(Farmbot.Config.get_config_as_map()["hardware_params"], body)
       _ ->
         if !get_config_value(:bool, "settings", "needs_http_sync") do
-          _cmd = Farmbot.Asset.register_sync_cmd(body["id"], asset_kind, body)
+          id = String.to_integer(id_str)
+          body = if body, do: Farmbot.Asset.to_asset(body, asset_kind), else: nil
+          _cmd = Farmbot.Asset.register_sync_cmd(id, asset_kind, body)
           if get_config_value(:bool, "settings", "auto_sync") do
             Farmbot.Asset.fragment_sync()
           end
@@ -72,4 +74,10 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
     {:noreply, state}
   end
 
+  def handle_info({Farmbot.Registry, {Farmbot.Config, {"settings", "auto_sync", true}}}, state) do
+    Farmbot.AutoSyncTask.maybe_auto_sync()
+    {:noreply, state}
+  end
+
+  def handle_info({Farmbot.Registry, _}, state), do: {:noreply, state}
 end
