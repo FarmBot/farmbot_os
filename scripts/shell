@@ -1,2 +1,6 @@
 #!/bin/bash
+<<<<<<< HEAD
 iex --sname console --cookie democookie --remsh farmbot@farmbot-$1
+=======
+iex --sname farmbot --cookie H9k5aeZ1mNWTIjKXRqG7/NGRWmaFooAjVJwIV7smmcXI43QwbMI38HB0Hn2E9Dnx --remsh farmbot@farmbot-$1
+>>>>>>> 5229413c... Fix a bunch of small bugs

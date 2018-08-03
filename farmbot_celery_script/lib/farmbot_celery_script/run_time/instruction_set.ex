@@ -124,12 +124,26 @@ defmodule Farmbot.CeleryScript.RunTime.InstructionSet do
     heap = get_heap_by_page_index(farm_proc, pc.page_address)
     data = AST.unslice(heap, pc.heap_address)
 
-    data =
-      if data.args.location.kind == :identifier,
-        do: Resolver.resolve(farm_proc, pc, data.args.location.args.label),
-        else: data
+    data = case data.args.location do
+      %AST{kind: :identifier} ->
+        location = Resolver.resolve(farm_proc, pc, data.args.location.args.label)
+        %{data | args: %{data.args | location: location}}
+      _ -> data
+    end
+
+    data = case data.args.offset do
+      %AST{kind: :identifier} ->
+        offset = Resolver.resolve(farm_proc, pc, data.args.offset.args.label)
+        %{data | args: %{data.args | offset: offset}}
+      _ -> data
+    end
 
     case farm_proc.io_result do
+      # If we need to lookup a coordinate, do that.
+      # We will come back to {:ok, ast} or {:error, reason}
+      # next iteration.
+      # Or if we didn't need to lookup a coordinate, just execute `move_absolute`
+      # and come back to `:ok` or `{:error, reason}`
       nil ->
         latch = apply_sys_call_fun(farm_proc.sys_call_fun, data)
 
@@ -137,22 +151,25 @@ defmodule Farmbot.CeleryScript.RunTime.InstructionSet do
         |> set_status(:waiting)
         |> set_io_latch(latch)
 
-      :ok ->
-        next_or_return(farm_proc)
-
+      # Result of coordinate lookup.
+      # This starts the actual movement.
       {:ok, %AST{} = result} ->
-        args = AST.new(:move_absolute, %{location: result}, [])
+        args = AST.new(:move_absolute, %{location: result, offset: data.args.offset}, [])
         latch = apply_sys_call_fun(farm_proc.sys_call_fun, args)
 
         farm_proc
         |> set_status(:waiting)
         |> set_io_latch(latch)
 
+      # Result of _actual_ movement.
+      :ok ->
+        next_or_return(farm_proc)
+
       {:error, reason} ->
         crash(farm_proc, reason)
 
       other ->
-        exception(farm_proc, "Bad return value: #{inspect(other)}")
+        exception(farm_proc, "Bad return value handling move_absolute IO: #{inspect(other)}")
     end
   end
 

@@ -2,6 +2,7 @@ defmodule Farmbot.OS.IOLayer do
   @behaviour Farmbot.Core.CeleryScript.IOLayer
   alias Farmbot.OS.IOLayer.{
     FindHome,
+    If,
     MoveAbsolute,
     ReadPin,
     Sync,
@@ -141,8 +142,8 @@ defmodule Farmbot.OS.IOLayer do
     {:error, "not implemented: check_updates"}
   end
 
-  def _if(_args, _body) do
-    {:error, "not implemented: _if"}
+  def _if(args, body) do
+    If.execute(args, body)
   end
 
   def execute(%{sequence_id: sid}, _body) do
