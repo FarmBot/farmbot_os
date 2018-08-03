@@ -54,6 +54,7 @@ defmodule FarmbotCore.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:csvm, path: "../csvm"},
       # Arduino Firmware stuff.
       {:elixir_make, "~> 0.4", runtime: false},
       {:nerves_uart, "~> 1.2"},

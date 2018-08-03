@@ -1,0 +1,51 @@
+{
+ "id": 123,
+ "kind": "sequence",
+ "args": {
+  "version": 20180209,
+  "locals": {
+   "kind": "scope_declaration",
+   "args": {},
+   "body": [{
+    "kind": "variable_declaration",
+    "args": {
+     "label": "var1",
+     "data_value": {
+      "kind": "point",
+      "args": {
+       "pointer_type": "GenericPointer",
+       "pointer_id": 123
+      }
+     }
+    }
+   }]
+  }
+ },
+ "body": [{
+   "kind": "wait",
+   "args": {
+    "milliseconds": 1050
+   }
+  },
+  {
+   "kind": "move_absolute",
+   "args": {
+    "speed": 100,
+    "location": {
+     "kind": "identifier",
+     "args": {
+      "label": "var1"
+     }
+    },
+    "offset": {
+     "kind": "coordinate",
+     "args": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+     }
+    }
+   }
+  }
+ ]
+}
