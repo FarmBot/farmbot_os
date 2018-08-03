@@ -113,6 +113,10 @@ defmodule Farmbot.Target.Network do
     end
   end
 
+  def test_dns(hostname) when is_binary(hostname) do
+    test_dns(to_charlist(hostname))
+  end
+
   def test_dns(hostname) do
     :ok = :inet_db.clear_cache()
     # IO.puts "testing dns: #{hostname}"

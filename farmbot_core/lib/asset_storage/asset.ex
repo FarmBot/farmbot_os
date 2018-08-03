@@ -130,8 +130,6 @@ defmodule Farmbot.Asset do
         do_apply_sync_cmd(cmd)
       rescue
         e ->
-          IO.inspect __STACKTRACE__
-          IO.inspect cmd
           Farmbot.Logger.error(1, "Error syncing: #{mod}: #{Exception.message(e)}")
       end
       new = Repo.snapshot()

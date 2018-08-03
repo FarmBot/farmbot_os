@@ -4,8 +4,8 @@ local_key = if File.exists?(local_file), do: [File.read!(local_file)], else: []
 
 config :logger, [
   utc_log: true,
-  # handle_otp_reports: true,
-  # handle_sasl_reports: true,
+  handle_otp_reports: true,
+  handle_sasl_reports: true,
   backends: [RingLogger]
 ]
 
@@ -17,7 +17,7 @@ config :farmbot_core, :behaviour,
   firmware_handler: Farmbot.Firmware.StubHandler,
   leds_handler: Farmbot.Target.Leds.AleHandler,
   pin_binding_handler: Farmbot.Target.PinBinding.AleHandler,
-  celery_script_io_layer: Farmbot.CeleryScript.StubIOLayer
+  celery_script_io_layer: Farmbot.OS.IOLayer
 
 data_path = Path.join("/", "root")
 config :farmbot_ext,
@@ -44,10 +44,10 @@ config :farmbot_core, Farmbot.Asset.Repo,
 config :farmbot_os,
   ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo],
   init_children: [
-    {Farmbot.Target.Leds.AleHandler, []}
+    {Farmbot.Target.Leds.AleHandler, []},
+    {Farmbot.Firmware.UartHandler.AutoDetector, []},
   ],
   platform_children: [
-    {Farmbot.Firmware.UartHandler.AutoDetector, []},
     {Farmbot.Target.Bootstrap.Configurator, []},
     {Farmbot.Target.Network, []},
     {Farmbot.Target.SSHConsole, []},
