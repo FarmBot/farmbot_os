@@ -49,14 +49,17 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
   def handle_info({:basic_deliver, payload, %{routing_key: key}}, state) do
     device = state.bot
     ["bot", ^device, "from_clients"] = String.split(key, ".")
-    handle_celery_script(payload, state)
+    spawn_link fn() ->
+      {us, results} = :timer.tc __MODULE__, :handle_celery_script, [payload, state]
+      # IO.puts "#{results.args.label} took: #{us}µs"
+    end
     {:noreply, state}
   end
 
   @doc false
   def handle_celery_script(payload, state) do
     json = Farmbot.JSON.decode!(payload)
-    IO.inspect(json, label: "RPC_REQUEST")
+    # IO.inspect(json, label: "RPC_REQUEST")
     Farmbot.CeleryScript.rpc_request(json, fn(results_ast) ->
       reply = Farmbot.JSON.encode!(results_ast)
       if results_ast.kind == :rpc_error do
@@ -64,6 +67,7 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
         Logger.error(message)
       end
       AMQP.Basic.publish state.chan, @exchange, "bot.#{state.bot}.from_device", reply
+      results_ast
     end)
   end
 end

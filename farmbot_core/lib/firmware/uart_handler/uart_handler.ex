@@ -109,13 +109,11 @@ defmodule Farmbot.Firmware.UartHandler do
     hw = get_config_value(:string, "settings", "firmware_hardware")
     gen_stage_opts = [
       dispatcher: GenStage.BroadcastDispatcher,
-      subscribe_to: [ConfigStorage.Dispatcher]
     ]
     case open_tty(tty) do
       {:ok, nerves} ->
-        {:producer_consumer, %State{nerves: nerves, tty: tty, hw: hw}, gen_stage_opts}
-      err ->
-        {:stop, err}
+        {:producer, %State{nerves: nerves, tty: tty, hw: hw}, gen_stage_opts}
+      err -> err
     end
   end
 
