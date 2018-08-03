@@ -172,6 +172,7 @@ defmodule Farmbot.Firmware do
   def init([]) do
     handler_mod =
       Application.get_env(:farmbot_core, :behaviour)[:firmware_handler] || raise("No fw handler.")
+      |> IO.inspect(label: "FW Handler")
 
     case handler_mod.start_link() do
       {:ok, handler} ->
@@ -182,9 +183,9 @@ defmodule Farmbot.Firmware do
           struct(State, initial),
           subscribe_to: [handler], dispatcher: GenStage.BroadcastDispatcher
         }
-      {:error, reason} ->
+      :ignore ->
+        Farmbot.Logger.error 1, "Failed to initialize firmware. Falling back to stub implementation."
         replace_firmware_handler(Farmbot.Firmware.StubHandler)
-        Farmbot.Logger.error 1, "Failed to initialize firmware: #{inspect reason} Falling back to stub implementation."
         init([])
     end
 

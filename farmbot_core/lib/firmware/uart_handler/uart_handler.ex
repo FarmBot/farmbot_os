@@ -113,7 +113,9 @@ defmodule Farmbot.Firmware.UartHandler do
     case open_tty(tty) do
       {:ok, nerves} ->
         {:producer, %State{nerves: nerves, tty: tty, hw: hw}, gen_stage_opts}
-      err -> err
+      {:error, reason} ->
+        Farmbot.Logger.error 1, "Uart handler failed to initialize: #{inspect reason}"
+        :ignore
     end
   end
 
