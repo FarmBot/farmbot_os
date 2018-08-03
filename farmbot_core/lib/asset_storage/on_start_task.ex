@@ -19,8 +19,6 @@ require Logger
     old = %Snapshot{}
     new = Repo.snapshot()
     diff = Snapshot.diff(old, new)
-    IO.inspect diff, label: "Initial asset dispatch"
-    Logger.error "here!!"
     Farmbot.Asset.dispatch_sync(diff)
     :ignore
   end

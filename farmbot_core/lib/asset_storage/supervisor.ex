@@ -8,13 +8,14 @@ defmodule Farmbot.Asset.Supervisor do
 
   def init([]) do
     children = [
+      {Farmbot.Asset.Logger,          []},
       {Farmbot.Asset.Repo,            []},
       {Farmbot.Regimen.NameProvider,  []},
       {Farmbot.FarmEvent.Supervisor,  []},
       {Farmbot.Regimen.Supervisor,    []},
       {Farmbot.PinBinding.Supervisor, []},
       {Farmbot.Peripheral.Supervisor, []},
-      {Farmbot.Asset.OnStartTask, []},
+      {Farmbot.Asset.OnStartTask,     []},
     ]
     Supervisor.init(children, [strategy: :one_for_one])
   end

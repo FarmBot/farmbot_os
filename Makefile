@@ -18,8 +18,8 @@ all: help
 help:
 	@echo "no"
 
-csvm_clean:
-	cd csvm && \
+farmbot_celery_script_clean:
+	cd farmbot_celery_script && \
 	rm -rf _build deps
 
 farmbot_core_clean:
@@ -39,7 +39,7 @@ farmbot_os_clean:
 	cd farmbot_os && \
 	rm -rf _build deps
 
-clean: csvm_clean farmbot_core_clean farmbot_ext_clean farmbot_os_clean
+clean: farmbot_celery_script_clean farmbot_core_clean farmbot_ext_clean farmbot_os_clean
 
 farmbot_core_test:
 	cd farmbot_core && \

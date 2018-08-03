@@ -1,5 +1,5 @@
 defmodule Farmbot.OS.IOLayer do
-  @behaviour Farmbot.CeleryScript.IOLayer
+  @behaviour Farmbot.Core.CeleryScript.IOLayer
   alias Farmbot.OS.IOLayer.{
     FindHome,
     MoveAbsolute,
@@ -18,7 +18,7 @@ defmodule Farmbot.OS.IOLayer do
   end
 
   def move_relative(%{x: x, y: y, z: z, speed: speed}, []) do
-    import Farmbot.CeleryScript.Utils
+    import Farmbot.Core.CeleryScript.Utils
     %{x: cur_x, y: cur_y, z: cur_z} = Farmbot.Firmware.get_current_position()
     location = new_vec3(cur_x, cur_y, cur_z)
     offset = new_vec3(x, y, z)
@@ -150,7 +150,7 @@ defmodule Farmbot.OS.IOLayer do
       nil -> {:error, "no sequence by id: #{sid}"}
       %Farmbot.Asset.Sequence{} = seq ->
         IO.warn "FIXME"
-        {:ok, Csvm.AST.decode(seq)}
+        {:ok, Farmbot.CeleryScript.AST.decode(seq)}
     end
   end
 end
