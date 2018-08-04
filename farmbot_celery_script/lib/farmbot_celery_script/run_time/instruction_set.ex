@@ -297,7 +297,9 @@ defmodule Farmbot.CeleryScript.RunTime.InstructionSet do
   @spec return(FarmProc.t()) :: FarmProc.t()
   defp return(%FarmProc{} = farm_proc) do
     {value, farm_proc} = pop_rs(farm_proc)
-    set_pc_ptr(farm_proc, value)
+    farm_proc
+    |> set_pc_ptr(value)
+    |> set_status(:ok)
   end
 
   @spec next(FarmProc.t()) :: FarmProc.t()
