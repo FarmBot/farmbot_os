@@ -103,6 +103,10 @@ defmodule Farmbot.CeleryScript.RunTime.FarmProc do
   def step(%FarmProc{status: :crashed} = farm_proc),
     do: exception(farm_proc, "Tried to step with crashed process!")
 
+    # THIS IS BROKE BECAUSE OF nothing()
+    # FIXME!!!!!!!!!
+    # def step(%FarmProc{status: :done} = farm_proc), do: farm_proc
+
   def step(%FarmProc{reduction_count: c} = proc) when c >= @max_reduction_count,
     do: exception(proc, "Too many reductions!")
 

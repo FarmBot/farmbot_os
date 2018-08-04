@@ -161,7 +161,7 @@ defmodule Farmbot.CeleryScript.RunTime.InstructionSetTest do
 
     proc = FarmProc.new(fun, Address.new(0), heap)
 
-    assert_raise(Error, "Bad return value: :blah", fn ->
+    assert_raise(Error, "Bad return value handling move_absolute IO: :blah", fn ->
       Enum.reduce(0..100, proc, fn _num, acc ->
         FarmProc.step(acc)
       end)

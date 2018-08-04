@@ -9,24 +9,8 @@ defmodule Farmbot.CeleryScript.RunTime.ResolverTest do
   end
 
   defp io_fun(pid) do
-    {:ok, agent} = Agent.start_link(fn -> 0 end)
-
     fn ast ->
       case ast.kind do
-        :point ->
-          :ok = Agent.update(agent, fn old -> old + 1 end)
-
-          {:ok,
-           AST.new(
-             :coordinate,
-             %{
-               x: Agent.get(agent, fn data -> data end),
-               y: 100,
-               z: 100
-             },
-             []
-           )}
-
         :wait ->
           send(pid, ast)
           :ok
@@ -54,42 +38,32 @@ defmodule Farmbot.CeleryScript.RunTime.ResolverTest do
 
     assert FarmProc.get_status(farm_proc1) == :done
 
-    assert_received %Farmbot.CeleryScript.AST{
+    assert_received %AST{
+      kind: :move_absolute,
       args: %{
-        location: %Farmbot.CeleryScript.AST{
-          args: %{x: 1, y: 100, z: 100},
-          body: [],
-          comment: nil,
-          kind: :coordinate
-        }
-      },
-      kind: :move_absolute
+        location: %AST{kind: :point, args: %{pointer_id: 456, pointer_type: "Plant"} },
+        offset: %AST{kind: :coordinate, args: %{x: 0, y: 0, z: 0}},
+        speed: 100
+      }
     }
 
-    assert_received %Farmbot.CeleryScript.AST{
+    assert_received %AST{
+      kind: :move_absolute,
       args: %{
-        location: %Farmbot.CeleryScript.AST{
-          args: %{x: 2, y: 100, z: 100},
-          body: [],
-          comment: nil,
-          kind: :coordinate
-        }
+        location: %AST{kind: :point, args: %{pointer_id: 123, pointer_type: "GenericPointer"}},
+        offset: %AST{kind: :coordinate, args: %{x: 0, y: 0, z: 0}},
+        speed: 100
       },
-      kind: :move_absolute
     }
 
-    assert_received %Farmbot.CeleryScript.AST{
+    assert_received %AST{
+      kind: :wait,
       args: %{milliseconds: 1000},
-      body: [],
-      comment: nil,
-      kind: :wait
     }
 
-    assert_received %Farmbot.CeleryScript.AST{
+    assert_received %AST{
+      kind: :wait,
       args: %{milliseconds: 1050},
-      body: [],
-      comment: nil,
-      kind: :wait
     }
   end
 
