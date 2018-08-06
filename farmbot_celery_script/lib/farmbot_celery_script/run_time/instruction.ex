@@ -29,7 +29,9 @@ defmodule Farmbot.CeleryScript.RunTime.Instruction do
             |> set_io_latch(latch)
 
           :ok ->
-            next_or_return(farm_proc)
+            farm_proc
+            |> clear_io_result()
+            |> next_or_return()
 
           {:error, reason} ->
             crash(farm_proc, reason)

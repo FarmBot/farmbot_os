@@ -62,9 +62,6 @@ defmodule Farmbot.CeleryScript.RunTime.InstructionSet do
   @doc "Toggle a pin atomicly."
   simple_io_instruction(:toggle_pin)
 
-  @doc "Execute a Farmware."
-  simple_io_instruction(:execute_script)
-
   @doc "Force axis position to become zero."
   simple_io_instruction(:zero)
 
@@ -89,7 +86,7 @@ defmodule Farmbot.CeleryScript.RunTime.InstructionSet do
   simple_io_instruction(:install_farmware)
 
   @doc "Remove a Farmware."
-  simple_io_instruction(:uninstall_farmware)
+  simple_io_instruction(:remove_farmware)
 
   @doc "Update a Farmware."
   simple_io_instruction(:update_farmware)
@@ -277,6 +274,50 @@ defmodule Farmbot.CeleryScript.RunTime.InstructionSet do
 
       _ ->
         exception(farm_proc, "Bad execute implementation.")
+    end
+  end
+
+  def execute_script(%FarmProc{io_result: nil} = farm_proc) do
+    pc = get_pc_ptr(farm_proc)
+    heap = get_heap_by_page_index(farm_proc, pc.page_address)
+
+    # Step 0: Unslice current address.
+    data = AST.unslice(heap, pc.heap_address)
+    latch = apply_sys_call_fun(farm_proc.sys_call_fun, data)
+
+    farm_proc
+    |> set_status(:waiting)
+    |> set_io_latch(latch)
+  end
+
+  def execute_script(%FarmProc{io_result: result} = farm_proc) do
+    pc = get_pc_ptr(farm_proc)
+    package = FarmProc.get_cell_attr(farm_proc, pc, :package) |> :erlang.crc32()
+    next_ptr = get_next_address(farm_proc, pc)
+    # Step 1: Get a copy of the sequence.
+    case result do
+      {:ok, %AST{} = sequence} ->
+        # Step 2: Push PC -> RS
+        # Step 3: Slice it
+        new_heap = AST.slice(sequence)
+        seq_addr = addr(package)
+        seq_ptr = ptr(package, 1)
+
+        push_rs(farm_proc, pc)
+        # Step 4: Add the new page.
+        |> new_page(seq_addr, new_heap)
+        # Step 5: Set PC to Ptr(1, 1)
+        |> set_pc_ptr(seq_ptr)
+        |> clear_io_result()
+
+      {:error, reason} ->
+        crash(farm_proc, reason)
+      :ok ->
+        farm_proc
+        |> clear_io_result()
+        |> set_pc_ptr(next_ptr)
+      _data ->
+        exception(farm_proc, "Bad execute_script implementation.")
     end
   end
 
