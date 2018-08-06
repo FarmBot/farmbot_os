@@ -22,9 +22,7 @@ defmodule Farmbot.CeleryScript.RunTime.InstructionTest do
         step1 = FarmProc.step(step0)
         assert FarmProc.get_status(step1) == :waiting
         step2 = FarmProc.step(step1)
-        assert FarmProc.get_status(step2) == :ok
-        step3 = FarmProc.step(step2)
-        assert FarmProc.get_status(step3) == :done
+        assert FarmProc.get_status(step2) == :done
         assert_received %AST{kind: unquote(kind_atom), args: %{}}
       end
     end
