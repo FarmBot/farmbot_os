@@ -318,7 +318,7 @@ defmodule Farmbot.Firmware do
           end
       else
         Farmbot.Logger.warn 1, "Fw not initialized yet"
-        {:noreply, diffs, state}  
+        {:noreply, diffs, state}
       end
     else
       {:noreply, diffs, state}
@@ -373,19 +373,19 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode(:idle, %{initialized: true, initializing: false, current: nil, z_needs_home_on_boot: true} = state) do
     Farmbot.Logger.info 2, "Bootup homing Z axis"
-    spawn __MODULE__, :find_home, [:z]
+    spawn __MODULE__, :find_home, ["z"]
     {nil, %{state | z_needs_home_on_boot: false}}
   end
 
   defp handle_gcode(:idle, %{initialized: true, initializing: false, current: nil, y_needs_home_on_boot: true} = state) do
     Farmbot.Logger.info 2, "Bootup homing Y axis"
-    spawn __MODULE__, :find_home, [:y]
+    spawn __MODULE__, :find_home, ["y"]
     {nil, %{state | y_needs_home_on_boot: false}}
   end
 
   defp handle_gcode(:idle, %{initialized: true, initializing: false, current: nil, x_needs_home_on_boot: true} = state) do
     Farmbot.Logger.info 2, "Bootup homing X axis"
-    spawn __MODULE__, :find_home, [:x]
+    spawn __MODULE__, :find_home, ["x"]
     {nil, %{state | x_needs_home_on_boot: false}}
   end
 
