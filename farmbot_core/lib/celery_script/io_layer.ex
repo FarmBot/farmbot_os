@@ -25,7 +25,7 @@ defmodule Farmbot.Core.CeleryScript.IOLayer do
   @callback set_user_env(args, body) :: :ok | {:error, String.t}
   @callback install_first_party_farmware(args, body) :: :ok | {:error, String.t}
   @callback install_farmware(args, body) :: :ok | {:error, String.t}
-  @callback uninstall_farmware(args, body) :: :ok | {:error, String.t}
+  @callback remove_farmware(args, body) :: :ok | {:error, String.t}
   @callback update_farmware(args, body) :: :ok | {:error, String.t}
   @callback read_status(args, body) :: :ok | {:error, String.t}
   @callback sync(args, body) :: :ok | {:error, String.t}

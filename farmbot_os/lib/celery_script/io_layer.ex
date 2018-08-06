@@ -1,6 +1,7 @@
 defmodule Farmbot.OS.IOLayer do
   @behaviour Farmbot.Core.CeleryScript.IOLayer
   alias Farmbot.OS.IOLayer.{
+    Farmware,
     FindHome,
     If,
     MoveAbsolute,
@@ -10,13 +11,9 @@ defmodule Farmbot.OS.IOLayer do
     WritePin,
   }
 
-  def emergency_lock(_args, _body) do
-    Farmbot.Firmware.emergency_lock()
-  end
+  def emergency_lock(_args, _body), do: Farmbot.Firmware.emergency_lock()
 
-  def emergency_unlock(_args, _body) do
-    Farmbot.Firmware.emergency_unlock()
-  end
+  def emergency_unlock(_args, _body), do: Farmbot.Firmware.emergency_unlock()
 
   def move_relative(%{x: x, y: y, z: z, speed: speed}, []) do
     import Farmbot.Core.CeleryScript.Utils
@@ -26,21 +23,13 @@ defmodule Farmbot.OS.IOLayer do
     move_absolute(%{location: location, offset: offset, speed: speed}, [])
   end
 
-  def move_absolute(args, body) do
-    MoveAbsolute.execute(args, body)
-  end
+  def move_absolute(args, body), do: MoveAbsolute.execute(args, body)
 
-  def toggle_pin(args, body) do
-    TogglePin.execute(args, body)
-  end
+  def toggle_pin(args, body), do: TogglePin.execute(args, body)
 
-  def write_pin(args, body) do
-    WritePin.execute(args, body)
-  end
+  def write_pin(args, body), do: WritePin.execute(args, body)
 
-  def read_pin(args, body) do
-    ReadPin.execute(args, body)
-  end
+  def read_pin(args, body), do: ReadPin.execute(args, body)
 
   def set_servo_angle(%{pin_number: pin_number, pin_value: value}, []) do
     case Farmbot.Firmware.set_servo_angle(pin_number, value) do
@@ -63,14 +52,9 @@ defmodule Farmbot.OS.IOLayer do
     end
   end
 
-  def find_home(args, body) do
-    FindHome.execute(args, body)
-  end
+  def find_home(args, body), do: FindHome.execute(args, body)
 
-  def wait(%{milliseconds: millis}, []) do
-    Process.sleep(millis)
-    :ok
-  end
+  def wait(%{milliseconds: millis}, []), do: Process.sleep(millis)
 
   def zero(_args, _body) do
     {:error, "not implemented: zero"}
@@ -81,7 +65,7 @@ defmodule Farmbot.OS.IOLayer do
   end
 
   def config_update(_args, _body) do
-    {:error, "not implemented: config_update"}
+    {:error, "config_update depreciated since 6.1.0"}
   end
 
   def set_user_env(_args, _body) do
@@ -89,28 +73,18 @@ defmodule Farmbot.OS.IOLayer do
     :ok
   end
 
-  def install_first_party_farmware(_args, _body) do
-    {:error, "not implemented: install_first_party_farmware"}
-  end
+  def install_first_party_farmware(args, body), do: Farmware.first_party(args, body)
 
-  def install_farmware(_args, _body) do
-    {:error, "not implemented: install_farmware"}
-  end
+  def install_farmware(args, body), do: Farmware.install(args, body)
 
-  def uninstall_farmware(_args, _body) do
-    {:error, "not implemented: uninstall_farmware"}
-  end
+  def remove_farmware(args, body), do: Farmware.remove(args, body)
 
-  def update_farmware(_args, _body) do
-    {:error, "not implemented: update_farmware"}
-  end
+  def update_farmware(args, body), do: Farmware.update(args, body)
+
+  def execute_script(args, body), do: Farmware.execute(args, body)
 
   def take_photo(_args, body) do
     execute_script(%{package: "take-photo"}, body)
-  end
-
-  def execute_script(_args, _body) do
-    {:error, "not implemented: execute_script"}
   end
 
   def read_status(_args, _body) do
@@ -122,12 +96,12 @@ defmodule Farmbot.OS.IOLayer do
     {:error, "not implemented: send_message"}
   end
 
-  def sync(args, body) do
-    Sync.execute(args, body)
-  end
+  def sync(args, body), do: Sync.execute(args, body)
 
   def power_off(_,_), do: Farmbot.System.shutdown("CeleryScript")
+
   def reboot(_,_), do: Farmbot.System.reboot("CeleryScript")
+
   def factory_reset(_,_), do: Farmbot.System.factory_reset("CeleryScript")
 
   def dump_info(_args, _body) do
@@ -142,16 +116,13 @@ defmodule Farmbot.OS.IOLayer do
     {:error, "not implemented: check_updates"}
   end
 
-  def _if(args, body) do
-    If.execute(args, body)
-  end
+  def _if(args, body), do: If.execute(args, body)
 
   def execute(%{sequence_id: sid}, _body) do
-    case Farmbot.Asset.get_sequence_by_id(sid) do
+    alias Farmbot.Asset
+    case Asset.get_sequence_by_id(sid) do
       nil -> {:error, "no sequence by id: #{sid}"}
-      %Farmbot.Asset.Sequence{} = seq ->
-        IO.warn "FIXME"
-        {:ok, Farmbot.CeleryScript.AST.decode(seq)}
+      %Asset.Sequence{} = seq -> {:ok, Farmbot.CeleryScript.AST.decode(seq)}
     end
   end
 end
