@@ -126,7 +126,6 @@ defmodule Farmbot.CeleryScript.RunTime.FarmProc do
   def step(%FarmProc{} = farm_proc) do
     pc_ptr = get_pc_ptr(farm_proc)
     kind = get_kind(farm_proc, pc_ptr)
-
     # TODO Connor 07-31-2018: why do i have to load the module here?
     available? =
       Code.ensure_loaded?(InstructionSet) and
@@ -141,7 +140,7 @@ defmodule Farmbot.CeleryScript.RunTime.FarmProc do
       | reduction_count: farm_proc.reduction_count + 1
     }
 
-    # IO.puts "executing: [#{pc_ptr.page_address}, #{inspect pc_ptr.heap_address}] #{kind}"
+    # IO.puts "executing: [#{inspect pc_ptr.page_address}, #{inspect pc_ptr.heap_address}] #{kind}"
     apply(InstructionSet, kind, [farm_proc])
   end
 

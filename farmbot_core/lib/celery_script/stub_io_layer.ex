@@ -26,7 +26,7 @@ defmodule Farmbot.Core.CeleryScript.StubIOLayer do
   def sync(_args, _body), do: {:error, "Stubbed"}
   def take_photo(_args, _body), do: {:error, "Stubbed"}
   def toggle_pin(_args, _body), do: {:error, "Stubbed"}
-  def uninstall_farmware(_args, _body), do: {:error, "Stubbed"}
+  def remove_farmware(_args, _body), do: {:error, "Stubbed"}
   def update_farmware(_args, _body), do: {:error, "Stubbed"}
   def wait(_args, _body), do: {:error, "Stubbed"}
   def write_pin(_args, _body), do: {:error, "Stubbed"}

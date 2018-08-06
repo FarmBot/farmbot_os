@@ -19,6 +19,9 @@ defmodule Farmbot.Peripheral.Worker do
   end
 
   def handle_info({Registry, {Asset, {_action, %Peripheral{label: label, id: id, mode: mode}}}}, state) do
+    # TODO Connor - this is a race condition on first sync since there is
+    #               a transaction being appied. 
+    # This needs to be queued up until `sync_status: :synced` or something..
     named_pin = ast(:named_pin, %{pin_type: "Peripheral", pin_id: id})
     read_pin = ast(:read_pin, %{pin_number: named_pin, label: label, pin_mode: mode})
     request = ast(:rpc_request, %{label: label}, [read_pin])
