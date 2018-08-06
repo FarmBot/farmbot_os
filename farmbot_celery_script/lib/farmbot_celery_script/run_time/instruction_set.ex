@@ -226,9 +226,7 @@ defmodule Farmbot.CeleryScript.RunTime.InstructionSet do
   @doc "Do nothing. Triggers `status` to be set to `done`."
   @spec nothing(FarmProc.t()) :: FarmProc.t()
   def nothing(%FarmProc{} = farm_proc) do
-    farm_proc
-    |> next_or_return()
-    |> set_status(:done)
+    next_or_return(farm_proc)
   end
 
   @doc "Lookup and execute another sequence."
@@ -306,7 +304,9 @@ defmodule Farmbot.CeleryScript.RunTime.InstructionSet do
   defp next(%FarmProc{} = farm_proc) do
     current_pc = get_pc_ptr(farm_proc)
     next_ptr = get_next_address(farm_proc, current_pc)
-    set_pc_ptr(farm_proc, next_ptr)
+    farm_proc
+    |> set_pc_ptr(next_ptr)
+    |> set_status(:ok)
   end
 
   @spec next_or_return(FarmProc.t()) :: FarmProc.t()
@@ -315,9 +315,13 @@ defmodule Farmbot.CeleryScript.RunTime.InstructionSet do
     addr = get_next_address(farm_proc, pc_ptr)
     farm_proc = clear_io_result(farm_proc)
 
-    if is_null_address?(addr),
-      do: return(farm_proc),
-      else: next(farm_proc)
+    is_null_address? = is_null_address?(addr)
+    return_stack_is_empty? = farm_proc.rs == []
+    cond do
+      is_null_address? && return_stack_is_empty? -> set_status(farm_proc, :done)
+      is_null_address? -> return(farm_proc)
+      !is_null_address? -> next(farm_proc)
+    end
   end
 
   @spec crash(FarmProc.t(), String.t()) :: FarmProc.t()

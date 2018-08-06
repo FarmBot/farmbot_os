@@ -47,7 +47,7 @@ defmodule Farmbot.CeleryScript.RunTime.FarmProcTest do
     # step2: IO is _probably_ completed by now. Complete the step.
     # This is _technically_ a race condition, but it shouldn't fail in this case
     step2 = FarmProc.step(step1)
-    assert FarmProc.get_status(step2) == :ok
+    assert FarmProc.get_status(step2) == :done
   end
 
   test "io functions crash the vm" do
@@ -572,7 +572,7 @@ defmodule Farmbot.CeleryScript.RunTime.FarmProcTest do
     assert FarmProc.get_status(step2) == :waiting
     Process.sleep(sleep_time)
     final = FarmProc.step(step2)
-    assert FarmProc.get_status(final) == :ok
+    assert FarmProc.get_status(final) == :done
   end
 
   test "get_cell_attr missing attr raises" do
