@@ -49,6 +49,7 @@ defmodule Farmbot.Bootstrap.AuthTask do
         Farmbot.Logger.success(3, "Successful authorization: #{email} - #{server}")
         update_config_value(:bool, "settings", "first_boot", false)
         update_config_value(:string, "authorization", "token", token)
+        update_config_value(:bool, "settings", "needs_http_sync", true)
         restart_transports()
         refresh_timer(self())
       {:error, err} ->
