@@ -5,54 +5,23 @@ defmodule Farmbot.OS.IOLayer.Farmware do
   @fpf_url "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/manifest.json"
 
   def first_party(_args, []) do
-    case Farmbot.Farmware.Installer.add_repo(@fpf_url) do
-      {:ok, _} -> do_sync_repo()
-      {:error, :repo_already_exists} -> do_sync_repo()
-      {:error, reason} when is_binary(reason) -> {:error, reason}
-    end
+    {:error, "not implemented"}
   end
 
-  defp do_sync_repo do
-    case Farmbot.Farmware.Installer.sync_repo(@fpf_url) do
-      {:ok, _} -> :ok
-      {:error, reason} when is_binary(reason) -> {:error, reason}
-    end
+  def install(%{url: u_rl}, []) do
+    {:error, "not implemented"}
   end
 
-  def install(%{url: url}, []) do
-    case Farmbot.Farmware.Installer.install(url) do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> {:error, reason}
-    end
+  def update(%{package: _name}, []) do
+    {:error, "not implemented"}
   end
 
-  def update(%{package: name}, []) do
-    case Farmbot.Farmware.lookup(name) do
-      {:ok, fw} -> install(%{url: fw.url}, [])
-      {:error, reason} when is_binary(reason) -> {:error, reason}
-    end
+  def remove(%{package: _name}, []) do
+    {:error, "not implemented"}
   end
 
-  def remove(%{package: name}, []) do
-    case Farmbot.Farmware.lookup(name) do
-      {:ok, fw} -> do_uninstall(fw)
-      {:error, reason} when is_binary(reason) -> {:error, reason}
-    end
-  end
-
-  def do_uninstall(%Farmbot.Farmware{} = fw) do
-    case Farmbot.Farmware.Installer.uninstall(fw) do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> {:error, reason}
-    end
-  end
-
-  def execute(%{package: name}, []) do
-    case Farmbot.Farmware.lookup(name) do
-      {:ok, fw} ->
-        do_execute(fw)
-      {:error, reason} when is_binary(reason) -> {:error, reason}
-    end
+  def execute(%{package: _name}, []) do
+    {:error, "not implemented"}
   end
 
   # 1)  Check if Farmware is already running
@@ -64,18 +33,18 @@ defmodule Farmbot.OS.IOLayer.Farmware do
   # 3)  check if server is still alive
   # 3a) The server is still alive - continue
   # 3b) the server is not still alive - exit
-  def do_execute(fw) do
-    case Server.lookup(fw) do
-      {:ok, pid} -> pid
-      {:error, {:already_started, pid}} -> pid
-    end
-    |> Server.is_alive?()
-    |> case do
-      true ->
-        case Server.get_request(pid) do
-          {:ok, request} -> {:ok, request}
-          nil -> {:ok, %Farmbot.CelerScript.AST.new(:rpc_request, %{args: "noop"}, [])}
-        end
-    end
-  end
+  # def do_execute(fw) do
+  #   case Server.lookup(fw) do
+  #     {:ok, pid} -> pid
+  #     {:error, {:already_started, pid}} -> pid
+  #   end
+  #   |> Server.is_alive?()
+  #   |> case do
+  #     true ->
+  #       case Server.get_request(pid) do
+  #         {:ok, request} -> {:ok, request}
+  #         nil -> {:ok, %Farmbot.CelerScript.AST.new(:rpc_request, %{args: "noop"}, [])}
+  #       end
+  #   end
+  # end
 end
