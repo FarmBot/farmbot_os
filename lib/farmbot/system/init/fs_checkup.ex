@@ -2,7 +2,7 @@ defmodule Farmbot.System.Init.FSCheckup do
   @moduledoc false
   use Supervisor
   use Farmbot.Logger
-  
+
   @behaviour Farmbot.System.Init
   @data_path Application.get_env(:farmbot, :data_path)
   @data_path || Mix.raise("Unconfigured data path.")
@@ -46,6 +46,7 @@ defmodule Farmbot.System.Init.FSCheckup do
           Logger.busy(3, "Deleting: #{fw}")
           File.rm_rf(fw)
         end
+        Elixir.Logger.add_backend(LoggerBackendEcto)
         :ok
 
       err ->

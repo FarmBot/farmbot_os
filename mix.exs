@@ -114,14 +114,15 @@ defmodule Farmbot.Mixfile do
       {:cors_plug, "~> 1.5"},
       {:rsa, "~> 0.0.1"},
       {:joken, "~> 1.5"},
-      {:sqlite_ecto2, "~> 2.2.4-rc.0"},
+      {:sqlite_ecto2, "~> 2.2.4"},
       {:uuid, "~> 1.1"},
       {:socket, "~> 0.3.13"},
       {:amqp, "~> 1.0"},
       {:recon, "~> 2.3.2"},
       {:ring_logger, "~> 0.4.1"},
       {:bbmustache, "~> 1.5"},
-      {:apex, "~> 1.2"}
+      {:apex, "~> 1.2"},
+      {:logger_backend_ecto, "~> 1.0.1"}
     ]
   end
 
