@@ -38,6 +38,19 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     end
   end
 
+  get "/logs" do
+    file = Path.join(@data_path, "debug_logs.sqlite3")
+    case File.read(file) do
+      {:ok, data} ->
+        conn
+        |> put_resp_content_type("application/octet-stream")
+        |> put_resp_header("Content-Disposition", "inline; filename=\"#{@version}-logs.sqlite3\"")
+        |> send_resp(200, data)
+      {:error, posix} ->
+        send_resp(conn, 404, "Error downloading file: #{posix}")
+    end
+  end
+
   get "/setup", do: redir(conn, "/")
 
 #NETWORKCONFIG

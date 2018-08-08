@@ -15,6 +15,7 @@
       </div>
       <div class="widget-content">
         <%= if last_reset_reason do %>
+          <a href="/logs">Download all logs</a>
           <h5> Farmbot unexpectedly shut down </h5> <p>
           Last shutdown reason: <%= last_reset_reason %>
         <% end %>

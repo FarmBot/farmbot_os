@@ -29,14 +29,16 @@ config :farmbot, ecto_repos: [Farmbot.Repo, Farmbot.System.ConfigStorage]
 config :farmbot, Farmbot.Repo,
   adapter: Sqlite.Ecto2,
   loggers: [],
-  database: "tmp/#{Farmbot.Repo}_dev.sqlite3",
-  pool_size: 1
+  database: "tmp/#{Farmbot.Repo}_dev.sqlite3"
 
 config :farmbot, Farmbot.System.ConfigStorage,
   adapter: Sqlite.Ecto2,
   loggers: [],
-  database: "tmp/#{Farmbot.System.ConfigStorage}_dev.sqlite3",
-  pool_size: 1
+  database: "tmp/#{Farmbot.System.ConfigStorage}_dev.sqlite3"
+
+config :logger_backend_ecto, LoggerBackendEcto.Repo,
+  adapter: Sqlite.Ecto2,
+  database: "tmp/logs.sqlite3"
 
 config :farmbot, :farmware, first_part_farmware_manifest_url: nil
 config :farmbot, default_server: "https://staging.farm.bot"

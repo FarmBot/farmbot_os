@@ -25,7 +25,7 @@ defmodule Farmbot do
   end
 
   def init([]) do
-    RingLogger.attach()
+    # RingLogger.attach()
     children = [
       {Farmbot.Logger.Supervisor, []},
       {Farmbot.System.Supervisor, []},
