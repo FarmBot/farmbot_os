@@ -29,20 +29,21 @@ config :farmbot, :behaviour,
   system_tasks: Farmbot.Test.SystemTasks,
   update_handler: FarmbotTestSupport.TestUpdateHandler
 
-
 config :farmbot, Farmbot.Repo, [
   adapter: Sqlite.Ecto2,
   database: "test_tmp/farmbot_repo_test",
   priv: "priv/repo",
-  pool_size: 2,
   loggers: []
 ]
 
 config :farmbot, Farmbot.System.ConfigStorage, [
   adapter: Sqlite.Ecto2,
   database: "test_tmp/farmbot_config_storage_test",
-  pool_size: 2,
   loggers: []
 ]
+
+config :logger_backend_ecto, LoggerBackendEcto.Repo,
+  adapter: Sqlite.Ecto2,
+  database: "test_tmp/debug_logs.sqlite3"
 
 config :farmbot, ecto_repos: [Farmbot.Repo, Farmbot.System.ConfigStorage]
