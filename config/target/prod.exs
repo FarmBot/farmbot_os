@@ -1,12 +1,5 @@
 use Mix.Config
 
-config :logger, [
-  utc_log: true,
-  handle_otp_reports: true,
-  handle_sasl_reports: true,
-  backends: [RingLogger]
-]
-
 config :farmbot, data_path: "/root"
 
 # Disable tzdata autoupdates because it tries to dl the update file
