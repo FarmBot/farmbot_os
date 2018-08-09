@@ -85,7 +85,7 @@ defmodule Farmbot.Bootstrap.Supervisor do
       is_nil(email) -> exit("No email")
       is_nil(server) -> exit("No server")
       is_nil(secret) && is_nil(password) -> exit("No password or secret.")
-      secret -> actual_init(&auth_with_secret/3, email, password, server)
+      secret -> actual_init(&auth_with_secret/3, email, secret, server)
       password -> actual_init(&auth_with_password/3, email, password, server)
     end
   end
