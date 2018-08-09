@@ -1,4 +1,7 @@
 # Changelog
+# 6.4.9
+* Add feature to save logs to sdcard for debugging.
+
 # 6.4.8
 * Make sure not to crash if a wifi network is malformed.
 
