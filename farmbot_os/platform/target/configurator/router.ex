@@ -23,6 +23,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
   @version Farmbot.Project.version()
   @data_path Application.get_env(:farmbot_ext, :data_path)
+  @log_db Application.get_env(:logger_backend_ecto, LoggerBackendEcto.Repo)[:database]
+  @log_db || Mix.raise("LoggerBackendEcto probably not configured properly.")
 
   get "/generate_204" do
     send_resp(conn, 204, "")
@@ -51,8 +53,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   end
 
   get "/logs" do
-    file = Path.join(@data_path, "debug_logs.sqlite3")
-    case File.read(file) do
+    case File.read(@log_db) do
       {:ok, data} ->
         md5 = data |> :erlang.md5() |> Base.encode16()
         conn
