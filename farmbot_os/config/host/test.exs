@@ -1,5 +1,9 @@
 use Mix.Config
 
+config :logger_backend_ecto, LoggerBackendEcto.Repo,
+  adapter: Sqlite.Ecto2,
+  database: "/tmp/logs.sqlite3"
+
 cond do
   System.get_env("CIRCLECI") ->
     Mix.shell.info [:green, "Using circle ci config."]

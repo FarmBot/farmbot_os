@@ -6,7 +6,6 @@ config :farmbot_core, :behaviour,
   pin_binding_handler: Farmbot.Target.PinBinding.AleHandler,
   celery_script_io_layer: Farmbot.OS.IOLayer
 
-
 data_path = Path.join("/", "root")
 config :farmbot_ext,
   data_path: data_path
