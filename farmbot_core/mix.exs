@@ -54,7 +54,7 @@ defmodule FarmbotCore.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:farmbot_celery_script, path: "../farmbot_celery_script"},
+      {:farmbot_celery_script, path: "../farmbot_celery_script", env: Mix.env()},
       # Arduino Firmware stuff.
       {:elixir_make, "~> 0.4", runtime: false},
       {:nerves_uart, "~> 1.2"},
