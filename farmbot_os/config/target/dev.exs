@@ -2,13 +2,6 @@ use Mix.Config
 local_file = Path.join(System.user_home!(), ".ssh/id_rsa.pub")
 local_key = if File.exists?(local_file), do: [File.read!(local_file)], else: []
 
-config :logger, [
-  utc_log: true,
-  handle_otp_reports: true,
-  handle_sasl_reports: true,
-  backends: [RingLogger]
-]
-
 config :nerves_firmware_ssh,
   authorized_keys: local_key,
   ssh_console_port: 22
