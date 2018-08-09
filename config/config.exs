@@ -11,6 +11,10 @@ config :logger, [
   backends: [:console]
 ]
 
+# 6429 == ~1MB in sqlite3
+# 1928700 = ~300MB
+config :logger_backend_ecto, max_logs: 1928700
+
 # Stop lager redirecting :error_logger messages
 config :lager, :error_logger_redirect, false
 
