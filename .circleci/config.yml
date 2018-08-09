@@ -218,11 +218,11 @@ jobs:
           key: v5-fbos-rpi3-prod-nerves-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
           paths:
             - ~/.nerves
-      - run: ./ghr -t $GITHUB_TOKEN -u Farmbot-Labs -r farmbot_ng -recreate -prerelease -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)-beta" $PWD/artifacts
+      - run: ./ghr -t $GITHUB_TOKEN -u Farmbot-Labs -r farmbot_os -recreate -prerelease -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)-beta" $PWD/artifacts
       - run:
           name: Send notifications
           command: |
-            export OTA_URL=$(wget https://api.github.com/repos/farmbot-labs/farmbot_ng/releases -qO- | ./jq-linux64 '.[0].url' | sed -e 's/^"//' -e 's/"$//')
+            export OTA_URL=$(wget https://api.github.com/repos/farmbot-labs/farmbot_os/releases -qO- | ./jq-linux64 '.[0].url' | sed -e 's/^"//' -e 's/"$//')
             export SLACK_MESSAGE="New FarmbotNG Beta release: $(wget $OTA_URL -qO- | ./jq-linux64 '.html_url' | tr -d \")"
             elixir slack_message.ex $SLACK_MESSAGE
 
@@ -268,11 +268,11 @@ jobs:
           key: v5-fbos-rpi3-prod-nerves-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
           paths:
             - ~/.nerves
-      - run: ./ghr -t $GITHUB_TOKEN -u Farmbot-Labs -r farmbot_ng -recreate -prerelease -draft -delete -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)" $PWD/artifacts
+      - run: ./ghr -t $GITHUB_TOKEN -u Farmbot-Labs -r farmbot_os -recreate -prerelease -draft -delete -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)" $PWD/artifacts
       - run:
           name: Send notifications
           command: |
-            export OTA_URL=$(wget https://api.github.com/repos/farmbot-labs/farmbot_ng/releases --header="Authorization: token $GITHUB_TOKEN" -qO- | wget https://api.github.com/repos/farmbot-labs/farmbot_ng/releases --header="Authorization: token $GITHUB_TOKEN" -qO- | ./jq-linux64 'map(select(.draft))' | ./jq-linux64 '.[0].url' | sed -e 's/^"//' -e 's/"$//')
+            export OTA_URL=$(wget https://api.github.com/repos/farmbot-labs/farmbot_os/releases --header="Authorization: token $GITHUB_TOKEN" -qO- | wget https://api.github.com/repos/farmbot-labs/farmbot_os/releases --header="Authorization: token $GITHUB_TOKEN" -qO- | ./jq-linux64 'map(select(.draft))' | ./jq-linux64 '.[0].url' | sed -e 's/^"//' -e 's/"$//')
             export SLACK_MESSAGE="New FarmbotNG Production release: $(wget $OTA_URL --header="Authorization: token $GITHUB_TOKEN" -qO- | ./jq-linux64 '.html_url' | tr -d \")"
             elixir slack_message.ex $SLACK_MESSAGE
 workflows:
