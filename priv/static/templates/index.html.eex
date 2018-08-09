@@ -4,18 +4,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> Configure your Farmbot Version <%= version %> </title>
     <link rel="stylesheet" href="/styles.css">
+
+    <script>
+    let count = 0;
+    function secret(event) {
+      count++;
+      if(count >= 10) {
+        document.getElementById("hidden-logs").hidden = false;
+      }
+    }
+    </script>
   </head>
 
   <body>
-    <h1>Configure your FarmBot Version <%= version %></h1>
+    <h1 onclick="secret()"> Configure your FarmBot Version <%= version %></h1>
 
     <div class="widget">
       <div class="widget-header">
         <h5>Start</h5>
       </div>
+
       <div class="widget-content">
+
+        <p> <a hidden=true id='hidden-logs' href="/view_logs">Download all logs</a> </p>
+
         <%= if last_reset_reason do %>
-          <a href="/logs">Download all logs</a>
           <h5> Farmbot unexpectedly shut down </h5> <p>
           Last shutdown reason: <%= last_reset_reason %>
         <% end %>

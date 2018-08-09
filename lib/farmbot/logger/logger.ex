@@ -138,7 +138,14 @@ defmodule Farmbot.Logger do
       file: env.file,
       line: env.line,
       module: env.module])
-    logger_meta = [function: fun, file: env.file, line: env.line, module: env.module, time: time]
+    logger_meta = [
+      application: :farmbot,
+      function: fun,
+      file: env.file,
+      line: env.line,
+      module: env.module,
+      time: time
+    ]
     logger_level = if level in [:info, :debug, :warn, :error], do: level, else: :info
     Elixir.Logger.bare_log(logger_level, log, logger_meta)
     {:noreply, [log], state}

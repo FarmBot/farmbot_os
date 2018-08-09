@@ -17,6 +17,4 @@ defmodule Farmbot.Host.SystemTasks do
   def shutdown(_reason) do
     :init.stop()
   end
-
-  def stop(_), do: :ok
 end
