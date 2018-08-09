@@ -1,4 +1,7 @@
 # Changelog
+# 6.4.8
+* Make sure not to crash if a wifi network is malformed.
+
 # 6.4.7
 * Fix DNS server config for self hosters.
 * Add new field to `informational_settings`: `currently_on_beta`.
