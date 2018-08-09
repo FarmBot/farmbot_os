@@ -38,7 +38,7 @@ defmodule Farmbot.System.Updates do
     ]
 
     @doc "takes a map with string or atom keys and returns a struct."
-    def decode_map(map) do
+    def decode_map(%{} = map) do
       Map.take(map, keys())
       |> Map.new(fn({key, val}) ->
         {String.to_atom(key), val}
@@ -281,7 +281,7 @@ defmodule Farmbot.System.Updates do
 
       # Decode the HTTP body as a release.
       {:ok, %{status_code: 200, body: body}} ->
-        case Farmbot.JSON.decode(body) |> Release.decode_map() do
+        case Farmbot.JSON.decode!(body) |> Release.decode_map() do
           {:ok, %Release{} = rel} -> rel
           _err -> {:error, :bad_release_body}
         end
