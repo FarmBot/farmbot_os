@@ -23,6 +23,10 @@ data_path = Path.join("/", "root")
 config :farmbot_ext,
   data_path: data_path
 
+config :logger_backend_ecto, LoggerBackendEcto.Repo,
+  adapter: Sqlite.Ecto2,
+  database: Path.join(data_path, "debug_logs.sqlite3")
+
 config :farmbot_core, Farmbot.Config.Repo,
   adapter: Sqlite.Ecto2,
   loggers: [],
