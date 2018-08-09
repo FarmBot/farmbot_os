@@ -44,7 +44,7 @@ defmodule Farmbot.CeleryScript.RunTime.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:excoveralls, "~> 0.9", only: [:test]},
+      {:excoveralls, "~> 0.10", only: [:test]},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.19", only: [:dev], runtime: false},
       {:jason, "~> 1.1", only: [:test, :dev]}
