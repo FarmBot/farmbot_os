@@ -49,31 +49,40 @@ defmodule Farmbot.Target.Network do
     |> String.split("\n")
     |> tl()
     |> Enum.map(&String.split(&1, "\t"))
-    |> Enum.map(fn(res) ->
-      case res do
-        [bssid, freq, signal, flags, ssid] ->
-          %{bssid: bssid,
-            frequency: String.to_integer(freq),
-            flags: flags,
-            level: String.to_integer(signal),
-            ssid: ssid
-          }
-
-        [bssid, freq, signal, flags] ->
-          %{bssid: bssid,
-            frequency: String.to_integer(freq),
-            flags: flags,
-            level: String.to_integer(signal),
-            ssid: nil
-          }
-      end
-    end)
+    |> reduce_decode()
     |> case do
       [] ->
         Process.sleep(500)
         wait_for_results(pid)
       res -> res
     end
+  end
+
+  defp reduce_decode(results, acc \\ [])
+  defp reduce_decode([], acc), do: Enum.reverse(acc)
+  defp reduce_decode([ [bssid, freq, signal, flags, ssid] | rest], acc) do
+    decoded = %{
+      bssid: bssid,
+      frequency: String.to_integer(freq),
+      flags: flags,
+      level: String.to_integer(signal),
+      ssid: ssid
+    }
+    reduce_decode(rest, [decoded | acc])
+  end
+
+  defp reduce_decode([ [bssid, freq, signal, flags] | rest], acc) do
+    decoded = %{bssid: bssid,
+      frequency: String.to_integer(freq),
+      flags: flags,
+      level: String.to_integer(signal),
+      ssid: nil
+    }
+    reduce_decode(rest, [decoded | acc])
+  end
+
+  defp reduce_decode([_ | rest], acc) do
+    reduce_decode(rest, acc)
   end
 
   def do_scan(iface) do
