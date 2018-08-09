@@ -57,7 +57,10 @@ defmodule Farmbot.OS.MixProject do
   end
 
   # Specify target specific dependencies
-  defp deps("host"), do: []
+  defp deps("host"), do: [
+    {:excoveralls, "~> 0.9", only: [:test]},
+    {:ex_doc, "~> 0.19", only: [:dev], runtime: false},
+  ]
 
   defp deps(target) do
     [
