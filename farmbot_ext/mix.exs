@@ -32,6 +32,10 @@ defmodule Farmbot.Ext.MixProject do
       {:uuid, "~> 1.1"},
       {:amqp, "~> 1.0"},
       {:fs, "~> 3.4"},
+
+      {:excoveralls, "~> 0.10", only: [:test]},
+      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
+      {:ex_doc, "~> 0.19", only: [:dev], runtime: false},
     ]
   end
 end

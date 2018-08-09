@@ -4,10 +4,13 @@ data_path = Path.join(["/", "tmp", "farmbot"])
 config :farmbot_ext,
   data_path: data_path
 
+config :logger_backend_ecto, LoggerBackendEcto.Repo,
+  adapter: Sqlite.Ecto2,
+  database: Path.join(data_path, "logs.sqlite3")
+
 config :farmbot_core, Farmbot.Config.Repo,
   adapter: Sqlite.Ecto2,
   loggers: [],
-  pool_size: 1,
   database: Path.join(data_path, "config-#{Mix.env()}.sqlite3")
 
 config :farmbot_core, Farmbot.Logger.Repo,
