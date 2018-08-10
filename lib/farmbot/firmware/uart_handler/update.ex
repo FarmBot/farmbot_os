@@ -113,15 +113,21 @@ defmodule Farmbot.Firmware.UartHandler.Update do
 
   # Farmduino
   defp do_flash("F", uart, tty) do
+    avrdude("#{:code.priv_dir(:farmbot)}/eeprom_clear.ino.hex", uart, tty)
+    Process.sleep(1000)
     avrdude("#{:code.priv_dir(:farmbot)}/farmduino.hex", uart, tty)
   end
 
   defp do_flash("G", uart, tty) do
+    avrdude("#{:code.priv_dir(:farmbot)}/eeprom_clear.ino.hex", uart, tty)
+    Process.sleep(1000)
     avrdude("#{:code.priv_dir(:farmbot)}/farmduino_k14.hex", uart, tty)
   end
 
   # Anything else. (should always be "R")
   defp do_flash(_, uart, tty) do
+    avrdude("#{:code.priv_dir(:farmbot)}/eeprom_clear.ino.hex", uart, tty)
+    Process.sleep(1000)
     avrdude("#{:code.priv_dir(:farmbot)}/arduino_firmware.hex", uart, tty)
   end
 
@@ -141,17 +147,18 @@ defmodule Farmbot.Firmware.UartHandler.Update do
 
   def avrdude(fw_file, uart, tty) do
     close(uart)
-    Logger.busy 3, "Starting avrdude."
+    Logger.busy 3, "Starting avrdude: #{fw_file}"
     args = ~w"-q -q -patmega2560 -cwiring -P#{tty} -b#{@uart_speed} -D -V -Uflash:w:#{fw_file}:i"
     opts = [stderr_to_stdout: true, into: IO.stream(:stdio, :line)]
     res = System.cmd("avrdude", args, opts)
     Process.sleep(1500) # wait to allow file descriptors to be closed.
     case res do
       {_, 0} ->
-        Logger.success 1, "Firmware flashed!"
+        Logger.success 1, "Firmware flashed! #{fw_file}"
         :ok
       {_, err_code} ->
-        Logger.error 1, "Failed to flash Firmware! #{err_code}"
+        Logger.error 1, "Failed to flash Firmware! #{fw_file} #{err_code}"
+        Farmbot.Firmware.Utils.replace_firmware_handler(Farmbot.Firmware.StubHandler)
         :error
     end
   end

@@ -12,13 +12,8 @@ fi
 FW_TYPE=$1
 TTY=$2
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-if $DIR/flash_fw.sh clear_eeprom $TTY; then
-  if $DIR/flash_fw.sh blink $TTY; then
+if $DIR/flash_fw.sh eeprom_clear.ino $TTY; then
     $DIR/flash_fw.sh $FW_TYPE $TTY
-  else
-    echo "Failed to flash blink!"
-    exit 1
-  fi
 else
   echo "Failed to clear eeprom!"
   exit 1
