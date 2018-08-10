@@ -57,8 +57,20 @@ defmodule Farmbot.BotState.Transport.HTTP do
     public_key = body |> JOSE.JWK.from_pem
     # FIXME(Connor) The router should probably
     # be put in an externally supervised module..
-    opts = [port: @port, acceptors: 2, dispatch: [cowboy_dispatch()]]
-    case Plug.Adapters.Cowboy2.http Router, [], opts do
+    protocol_options = [
+      idle_timeout: :infinity,
+      shutdown_timeout: :infinity,
+      inactivity_timeout: :infinity,
+      shutdown_timeout: :infinity,
+      request_timeout: :infinity
+    ]
+    opts = [
+      port: @port,
+      acceptors: 2,
+      dispatch: [cowboy_dispatch()],
+      protocol_options: protocol_options
+    ]
+    case Plug.Adapters.Cowboy2.http(Router, [], opts) do
       {:ok, web} ->
         state = %{web: web, bot_state: nil, sockets: [], public_key: public_key}
         Process.link(state.web)
