@@ -1,6 +1,7 @@
 # Changelog
 # 6.4.9
 * Add feature to save logs to sdcard for debugging.
+* Fix bug causing long running Farmwares to fail.
 * Update Linux system layer.
 
 # 6.4.8
