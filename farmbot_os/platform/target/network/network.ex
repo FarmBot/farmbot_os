@@ -183,11 +183,32 @@ defmodule Farmbot.Target.Network do
   def init([]) do
     config = get_all_network_configs()
     Farmbot.Logger.info(3, "Starting Networking")
+    s1 = Farmbot.Config.get_config_value(:string, "settings", "default_ntp_server_1")
+    s2 = Farmbot.Config.get_config_value(:string, "settings", "default_ntp_server_2")
+    # Nerves.Time.configure_servers([s1, s2])
+    Application.put_env(:nerves_time, :servers, [s1, s2])
+    maybe_hack_tzdata()
     children = config
       |> Enum.map(&to_network_config/1)
       |> Enum.map(&to_child_spec/1)
       |> Enum.uniq() # Don't know why/if we need this?
     children = [{NotFoundTimer, []}] ++ children
     Supervisor.init(children, strategy: :one_for_one, max_restarts: 20, max_seconds: 1)
+  end
+
+  @fb_data_dir Application.get_env(:farmbot_ext, :data_path)
+  @tzdata_dir Application.app_dir(:tzdata, "priv")
+  def maybe_hack_tzdata do
+    case Tzdata.Util.data_dir() do
+      @fb_data_dir -> :ok
+      _ ->
+        Farmbot.Logger.debug 3, "Hacking tzdata."
+        objs_to_cp = Path.wildcard(Path.join(@tzdata_dir, "*"))
+        for obj <- objs_to_cp do
+          File.cp_r obj, @fb_data_dir
+        end
+        Application.put_env(:tzdata, :data_dir, @fb_data_dir)
+        :ok
+    end
   end
 end
