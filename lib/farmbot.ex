@@ -25,7 +25,7 @@ defmodule Farmbot do
   end
 
   def init([]) do
-    RingLogger.attach()
+    # RingLogger.attach()
     children = [
       {Farmbot.Logger.Supervisor, []},
       {Farmbot.System.Supervisor, []},
@@ -38,13 +38,8 @@ defmodule Farmbot do
   end
 
   def prep_stop(_state) do
-    formatted = Farmbot.Logger.format_logs()
-
-    formatted
-    |> Enum.join("\n")
-    |> Farmbot.System.stop()
-
-    formatted
+    # logs = LoggerBackendEcto.all_logs()
+    Logger.remove_backend(LoggerBackendEcto)
   end
 
   def stop(_data) do

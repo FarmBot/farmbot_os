@@ -114,8 +114,7 @@ defmodule Farmbot.Mixfile do
       {:cors_plug, "~> 1.5"},
       {:rsa, "~> 0.0.1"},
       {:joken, "~> 1.5"},
-      {:ecto, "~> 2.2.2"},
-      {:sqlite_ecto2, "~> 2.2.1"},
+      {:sqlite_ecto2, "~> 2.2.4"},
       {:uuid, "~> 1.1"},
       {:socket, "~> 0.3.13"},
       {:amqp, "~> 1.0"},
@@ -123,7 +122,7 @@ defmodule Farmbot.Mixfile do
       {:ring_logger, "~> 0.4.1"},
       {:bbmustache, "~> 1.5"},
       {:apex, "~> 1.2"},
-      {:net_logger, "~> 0.1"}
+      {:logger_backend_ecto, "~> 1.1"}
     ]
   end
 
@@ -155,7 +154,7 @@ defmodule Farmbot.Mixfile do
   end
 
   defp system("rpi3"),
-    do: [{:nerves_system_farmbot_rpi3, "1.2.1-farmbot.2", runtime: false}]
+    do: [{:nerves_system_farmbot_rpi3, "1.3.0-farmbot.2", runtime: false}]
 
   defp package do
     [

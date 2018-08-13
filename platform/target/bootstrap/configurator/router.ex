@@ -38,6 +38,25 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     end
   end
 
+  get "/view_logs" do
+    all_logs = LoggerBackendEcto.all_logs()
+    render_page(conn, "view_logs", [logs: all_logs])
+  end
+
+  get "/logs" do
+    file = Path.join(@data_path, "debug_logs.sqlite3")
+    case File.read(file) do
+      {:ok, data} ->
+        md5 = data |> :erlang.md5() |> Base.encode16()
+        conn
+        |> put_resp_content_type("application/octet-stream")
+        |> put_resp_header("Content-Disposition", "inline; filename=\"#{@version}-#{md5}-logs.sqlite3\"")
+        |> send_resp(200, data)
+      {:error, posix} ->
+        send_resp(conn, 404, "Error downloading file: #{posix}")
+    end
+  end
+
   get "/setup", do: redir(conn, "/")
 
 #NETWORKCONFIG

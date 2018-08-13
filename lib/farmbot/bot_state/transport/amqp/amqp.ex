@@ -268,19 +268,13 @@ defmodule Farmbot.BotState.Transport.AMQP do
       {:noreply, [], state}
     else
       case Poison.decode(payload) do
-        {:ok, %{"body" => nil}} ->
-          # If the settings were reset remotely, just set migrated to true,
-          # which will cause FBOS to download the defaults and apply them.
-          pl = %{"api_migrated" => true} |> Poison.encode!()
-          Farmbot.HTTP.put!("/api/fbos_config", pl)
-          Farmbot.Bootstrap.SettingsSync.run()
-          {:noreply, [], state}
-        {:ok, %{"body" => config}} ->
+        {:ok, %{"body" => %{"api_migrated" => true} = config}} ->
           # Logger.info 1, "Got fbos config from amqp: #{inspect config}"
           old = state.state_cache.configuration
           updated = Farmbot.Bootstrap.SettingsSync.apply_fbos_map(old, config)
           push_bot_state(state.chan, state.bot, %{state.state_cache | configuration: updated})
           {:noreply, [], state}
+        _ -> {:noreply, [], state}
       end
     end
   end

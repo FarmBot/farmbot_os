@@ -9,4 +9,4 @@ if [ -z $2 ]; then
   exit 1
 fi
 
-avrdude -v -patmega2560 -cwiring -P$2 -b115200 -D -V -Uflash:w:./priv/$1.hex:i
+avrdude -v -p atmega2560 -c wiring -P$2 -b 115200 -D -V -Uflash:w:./priv/$1.hex:i

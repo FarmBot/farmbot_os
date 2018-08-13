@@ -1,12 +1,5 @@
 use Mix.Config
 
-config :logger, [
-  utc_log: true,
-  handle_otp_reports: true,
-  handle_sasl_reports: true,
-  backends: [RingLogger]
-]
-
 config :farmbot, data_path: "/root"
 
 # Disable tzdata autoupdates because it tries to dl the update file
@@ -22,6 +15,10 @@ config :farmbot, Farmbot.System.ConfigStorage,
   adapter: Sqlite.Ecto2,
   loggers: [],
   database: "/root/config-#{Mix.env()}.sqlite3"
+
+config :logger_backend_ecto, LoggerBackendEcto.Repo,
+  adapter: Sqlite.Ecto2,
+  database: "/root/debug_logs.sqlite3"
 
 config :farmbot, ecto_repos: [Farmbot.Repo, Farmbot.System.ConfigStorage]
 

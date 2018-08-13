@@ -26,9 +26,6 @@ defmodule Farmbot.System do
   """
   @type unparsed_reason :: any
 
-  @doc "Called when the Application stops."
-  @callback stop(String.t) :: any
-
   @doc """
   Should remove all persistant data. this includes:
   * network config
@@ -41,10 +38,6 @@ defmodule Farmbot.System do
 
   @doc "Shuts down the machine."
   @callback shutdown(reason) :: no_return
-
-  def stop(data) do
-    @system_tasks.stop(data)
-  end
 
   @doc "Remove all configuration data, and reboot."
   @spec factory_reset(unparsed_reason) :: no_return
