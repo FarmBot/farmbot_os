@@ -122,7 +122,7 @@ defmodule Farmbot.Mixfile do
       {:ring_logger, "~> 0.4.1"},
       {:bbmustache, "~> 1.5"},
       {:apex, "~> 1.2"},
-      {:logger_backend_ecto, "~> 1.1"}
+      {:logger_backend_ecto, "~> 1.2"}
     ]
   end
 
@@ -144,6 +144,7 @@ defmodule Farmbot.Mixfile do
         {:shoehorn, "~> 0.3", except: :test},
         {:nerves_runtime, "~> 0.6.1"},
         {:nerves_firmware, "~> 0.4"},
+        {:nerves_firmware_ssh, "~> 0.3.3"},
         {:nerves_init_gadget, "~> 0.4.0", only: :dev},
         {:nerves_network, "~> 0.3"},
         {:nerves_wpa_supplicant, github: "nerves-project/nerves_wpa_supplicant", override: true},

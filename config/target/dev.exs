@@ -35,6 +35,9 @@ config :farmbot, :init, [
   # Start up Network
   Farmbot.Target.Network,
 
+  # SSH Console.
+  Farmbot.Target.SSHConsole,
+
   # Wait for time time come up.
   Farmbot.Target.Network.WaitForTime,
 
@@ -73,6 +76,6 @@ local_key = if File.exists?(local_file), do: [File.read!(local_file)], else: []
 config :nerves_firmware_ssh, authorized_keys: local_key
 
 config :shoehorn,
-  init: [:nerves_runtime, :nerves_init_gadget],
+  init: [:nerves_runtime, :nerves_init_gadget, :nerves_firmware_ssh],
   handler: Farmbot.ShoehornHandler,
   app: :farmbot
