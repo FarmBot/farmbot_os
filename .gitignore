@@ -50,6 +50,7 @@ run-qemu.sh
 artifacts
 RELEASE_NOTES
 *.hex
+!/priv/eeprom_clear.ino.hex
 # lagger can't be disabled.
 /log
 .make_state
