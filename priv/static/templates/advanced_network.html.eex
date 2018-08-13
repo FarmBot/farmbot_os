@@ -23,6 +23,9 @@
   <label class="expandable" onclick="toggleAdvancedSettings()" for="hiddenToggle">Advanced settings</label>
   <fieldset id="hiddenToggle" hidden>
 
+    <label for="ssh_key"> id_rsa.pub </label>
+    <input type="text" id="ssh_key" name="ssh_key" value="">
+
     <label for="dns_name"> DNS test name </label>
     <input type="text" id="dns_name" name="dns_name" value="">
 
