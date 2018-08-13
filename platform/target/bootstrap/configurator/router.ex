@@ -135,6 +135,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
       ntp_server_1     = conn.params["ntp_server_1"] |> remove_empty_string()
       ntp_server_2     = conn.params["ntp_server_2"] |> remove_empty_string()
 
+      ssh_key = conn.params["ssh_key"] |> remove_empty_string()
+
       if dns_name do
         update_config_value(:string, "settings", "default_dns_name", dns_name)
       end
@@ -143,9 +145,12 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
         update_config_value(:string, "settings", "default_ntp_server_1", ntp_server_1)
       end
 
-
       if ntp_server_2 do
         update_config_value(:string, "settings", "default_ntp_server_2", ntp_server_2)
+      end
+
+      if ssh_key do
+        update_config_value(:string, "settings", "authorized_ssh_key", ssh_key)
       end
 
       ConfigStorage.input_network_config!(%{

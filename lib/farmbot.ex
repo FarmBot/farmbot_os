@@ -36,14 +36,4 @@ defmodule Farmbot do
     opts = [strategy: :one_for_one]
     Supervisor.init(children, opts)
   end
-
-  def prep_stop(_state) do
-    # logs = LoggerBackendEcto.all_logs()
-    Logger.remove_backend(LoggerBackendEcto)
-  end
-
-  def stop(_data) do
-    :ok
-  end
-
 end
