@@ -4,7 +4,7 @@ defmodule Farmbot.Asset.Point do
   alias Farmbot.Asset.Point
   use Ecto.Schema
   import Ecto.Changeset
-  alias Farmbot.Asset.Repo.ModuleType
+  alias Farmbot.EctoTypes.ModuleType
   alias Farmbot.EctoTypes.TermType
 
   schema "points" do

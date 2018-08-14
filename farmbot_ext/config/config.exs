@@ -20,7 +20,8 @@ config :farmbot_core, :behaviour,
   firmware_handler: Farmbot.Firmware.StubHandler,
   leds_handler: Farmbot.Leds.StubHandler,
   pin_binding_handler: Farmbot.PinBinding.StubHandler,
-  celery_script_io_layer: Farmbot.CeleryScript.StubIOLayer
+  celery_script_io_layer: Farmbot.CeleryScript.StubIOLayer,
+  json_parser: Farmbot.JSON.JasonParser
 
 config :farmbot_core,
   ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo],
@@ -50,8 +51,7 @@ config :farmbot_core, Farmbot.Asset.Repo,
 
 config :farmbot_ext, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
-  http_adapter:  Farmbot.HTTP.HTTPoisonAdapter,
-  json_parser:   Farmbot.JSON.JasonParser
+  http_adapter:  Farmbot.HTTP.HTTPoisonAdapter
 
 config :farmbot_ext,
   ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo],
