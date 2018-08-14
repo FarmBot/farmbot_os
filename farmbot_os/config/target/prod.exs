@@ -4,7 +4,8 @@ config :farmbot_core, :behaviour,
   firmware_handler: Farmbot.Firmware.StubHandler,
   leds_handler: Farmbot.Target.Leds.AleHandler,
   pin_binding_handler: Farmbot.Target.PinBinding.AleHandler,
-  celery_script_io_layer: Farmbot.OS.IOLayer
+  celery_script_io_layer: Farmbot.OS.IOLayer,
+  json_parser:   Farmbot.JSON.JasonParser
 
 data_path = Path.join("/", "root")
 config :farmbot_ext,
