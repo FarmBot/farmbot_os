@@ -10,7 +10,7 @@ defmodule Farmbot.Target.SSHConsole do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def init(_) do
+  def init([]) do
     port = get_config_value(:float, "settings", "ssh_port") |> round()
     authorized_key = get_config_value(:string, "settings", "authorized_ssh_key")
     decoded_authorized_key = do_decode(authorized_key)
