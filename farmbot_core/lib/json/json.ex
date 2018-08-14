@@ -1,7 +1,7 @@
 defmodule Farmbot.JSON do
   @moduledoc "Wraps a dependency for easy upgrade and no vendor lock."
 
-  @parser Application.get_env(:farmbot_ext, :behaviour)[:json_parser]
+  @parser Application.get_env(:farmbot_core, :behaviour)[:json_parser]
   @parser || Mix.raise("Unconfigured JSON Parser.")
   @spec decode(iodata) :: {:ok, term} | {:error, term}
   def decode(iodata), do: @parser.decode(iodata)

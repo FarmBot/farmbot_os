@@ -1,4 +1,4 @@
-defmodule Farmbot.Asset.Repo.ModuleType do
+defmodule Farmbot.EctoTypes.ModuleType do
   @moduledoc """
   Custom Ecto.Type for changing a string to a module.
   """

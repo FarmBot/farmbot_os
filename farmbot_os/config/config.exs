@@ -60,7 +60,8 @@ config :farmbot_core, :behaviour,
   firmware_handler: Farmbot.Firmware.StubHandler,
   leds_handler: Farmbot.Leds.StubHandler,
   pin_binding_handler: Farmbot.PinBinding.StubHandler,
-  celery_script_io_layer: Farmbot.OS.IOLayer
+  celery_script_io_layer: Farmbot.OS.IOLayer,
+  json_parser: Farmbot.JSON.JasonParser
 
 config :farmbot_core,
   expected_fw_versions: ["6.4.0.F", "6.4.0.R", "6.4.0.G"],
@@ -71,8 +72,7 @@ config :farmbot_core,
 
 config :farmbot_ext, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
-  http_adapter:  Farmbot.HTTP.HTTPoisonAdapter,
-  json_parser:   Farmbot.JSON.JasonParser
+  http_adapter:  Farmbot.HTTP.HTTPoisonAdapter
 
 config :farmbot_os,
   ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo]
