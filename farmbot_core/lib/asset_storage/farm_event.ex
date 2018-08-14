@@ -22,7 +22,7 @@ defmodule Farmbot.Asset.FarmEvent do
   @callback schedule_event(map, DateTime.t) :: any
 
   alias Farmbot.Asset.FarmEvent
-  alias Farmbot.Asset.Repo.ModuleType
+  alias Farmbot.EctoTypes.ModuleType
   alias Farmbot.EctoTypes.TermType
 
   use Ecto.Schema
