@@ -185,7 +185,7 @@ defmodule Farmbot.Target.Network do
     Farmbot.Logger.info(3, "Starting Networking")
     s1 = Farmbot.Config.get_config_value(:string, "settings", "default_ntp_server_1")
     s2 = Farmbot.Config.get_config_value(:string, "settings", "default_ntp_server_2")
-    Nerves.Time.set_servers([s1, s2])
+    Nerves.Time.set_ntp_servers([s1, s2])
     maybe_hack_tzdata()
     children = config
       |> Enum.map(&to_network_config/1)

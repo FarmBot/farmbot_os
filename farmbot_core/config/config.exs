@@ -11,7 +11,8 @@ config :farmbot_core, :behaviour,
   firmware_handler: Farmbot.Firmware.StubHandler,
   leds_handler: Farmbot.Leds.StubHandler,
   pin_binding_handler: Farmbot.PinBinding.StubHandler,
-  celery_script_io_layer: Farmbot.CeleryScript.StubIOLayer
+  celery_script_io_layer: Farmbot.CeleryScript.StubIOLayer,
+  json_parser: Farmbot.JSON.JasonParser
 
 config :farmbot_core,
   ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo],
