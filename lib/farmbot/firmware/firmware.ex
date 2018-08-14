@@ -418,6 +418,8 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode({:report_software_version, version}, state) do
+    hw = get_config_value(:string, "settings", "firmware_hardware")
+    Logger.debug 3, "Firmware reported software version: #{version} current firmware_hardware is: #{hw}"
     case String.last(version) do
       "F" ->
         update_config_value(:string, "settings", "firmware_hardware", "farmduino")

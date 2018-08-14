@@ -65,6 +65,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
 
   defp maybe_configurate(false) do
     Logger.info(3, "Building new configuration.")
+    ConfigStorage.update_config_value(:bool, "settings", "ignore_fbos_config", true)
+    ConfigStorage.update_config_value(:bool, "settings", "ignore_fw_config", true)
     import Supervisor.Spec
     :ets.new(:session, [:named_table, :public, read_concurrency: true])
     ConfigStorage.destroy_all_network_configs()

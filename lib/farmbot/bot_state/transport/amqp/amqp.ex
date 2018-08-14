@@ -59,7 +59,6 @@ defmodule Farmbot.BotState.Transport.AMQP do
          opts      <- [conn: conn, chan: chan, bot: device],
          state <- struct(State, opts)
     do
-      update_config_value(:bool, "settings", "ignore_fbos_config", false)
       true = Process.link(conn.pid)
       true = Process.link(chan.pid)
       {:consumer, state, subscribe_to: [Farmbot.BotState, Farmbot.Logger]}
@@ -91,6 +90,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
   def terminate(reason, state) do
     ok_reasons = [:normal, :shutdown, :token_refresh]
     update_config_value(:bool, "settings", "ignore_fbos_config", false)
+    update_config_value(:bool, "settings", "ignore_fw_config", false)
 
     if reason not in ok_reasons do
       Logger.error 1, "AMQP Died: #{inspect reason}"
@@ -265,6 +265,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
   def handle_fbos_config(_id, payload, state) do
     if get_config_value(:bool, "settings", "ignore_fbos_config") do
+      IO.puts "Ignoring OS config from AMQP."
       {:noreply, [], state}
     else
       case Poison.decode(payload) do
@@ -280,18 +281,17 @@ defmodule Farmbot.BotState.Transport.AMQP do
   end
 
   def handle_fw_config(_id, payload, state) do
-    case Poison.decode(payload) do
-      {:ok, %{"body" => nil}} -> {:noreply, [], state}
-      {:ok, %{"body" => config}} ->
-        old = state.state_cache.mcu_params
-        _new = Farmbot.Bootstrap.SettingsSync.apply_fw_map(old, config)
-        # for {key, new_value} <- new do
-        #   if old[:"#{key}"] != new_value do
-        #     Logger.info 1, "Updating key: #{key} => #{new_value}"
-        #     Farmbot.Firmware.update_param(:"#{key}", new_value / 1)
-        #   end
-        # end
-        {:noreply, [], state}
+    if get_config_value(:bool, "settings", "ignore_fw_config") do
+      IO.puts "Ignoring FW config from AMQP."
+      {:noreply, [], state}
+    else
+      case Poison.decode(payload) do
+        {:ok, %{"body" => %{} = config}} ->
+          old = state.state_cache.mcu_params
+          _new = Farmbot.Bootstrap.SettingsSync.apply_fw_map(old, config)
+          {:noreply, [], state}
+        _ -> {:noreply, [], state}
+        end
     end
   end
 

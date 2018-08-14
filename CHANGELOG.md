@@ -1,6 +1,7 @@
 # Changelog
 # 6.4.10
 * Add SSH back.
+* Fix bug during configuration causing bots to maybe not connect.
 
 # 6.4.9
 * Add feature to save logs to sdcard for debugging.

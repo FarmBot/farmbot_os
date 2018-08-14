@@ -143,7 +143,12 @@ defmodule Farmbot.Bootstrap.SettingsSync do
   end
 
   @doc false
-  def run(tries_left \\ 6) do
+  def run(tries_left \\ 6)
+  def run(0) do
+    Logger.error 1, "failed to sync settings"
+  end
+
+  def run(tries_left) do
     # HACK: Connor - Don't even look at this.
     if is_nil(Process.whereis(Farmbot.System.ConfigStorage)) do
       Logger.error 1, "ConfigStorage not running? trying #{tries_left - 1} more times"
@@ -161,6 +166,7 @@ defmodule Farmbot.Bootstrap.SettingsSync do
           err_msg = "#{message} #{inspect System.stacktrace()}"
           Logger.error 1, "Error syncing settings: #{err_msg}"
           update_config_value(:bool, "settings", "ignore_fbos_config", false)
+          update_config_value(:bool, "settings", "ignore_fw_config", false)
           {:error, message}
       end
     end
@@ -196,6 +202,7 @@ defmodule Farmbot.Bootstrap.SettingsSync do
         if old_map[param] != new_value do
           IO.puts "2 #{param} #{old_map[param]} != #{new_value}"
           Farmbot.Firmware.update_param(String.to_atom(param), new_value)
+          Farmbot.Firmware.read_param(String.to_atom(param))
         end
         {param, get_config_value(:float, "hardware_params", param)}
       end)
@@ -257,32 +264,12 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     end
   end
 
-  def do_sync_fw_configs(%{"api_migrated" => true} = api_data) do
-    Logger.info 3, "API is the source of truth for Firmware configs. Downloading data."
-    old_config = get_config_as_map()["hardware_params"]
-    apply_fw_map(old_config, api_data)
-    :ok
-  end
-
-  def do_sync_fw_configs(%{"api_migrated" => false} = api_data) do
-    current = get_config_as_map()["hardware_params"]
-    if current["param_version"] do
-      Logger.info 3, "Farmbot is the source of truth for Firmware configs. Uploading data."
-      payload = Map.put(current, "api_migrated", true) |> Poison.encode!()
-      Farmbot.HTTP.delete!("/api/firmware_config")
-      Farmbot.HTTP.put!("/api/firmware_config", payload)
-    else
-      Logger.info 3, "API has never migrated Firmware configs " <>
-      "But Farmbot has no valid paramaters. Using defaults."
-      payload = Map.put(api_data, "api_migrated", true) |> Poison.encode!()
-      Farmbot.HTTP.put!("/api/firmware_config", payload)
+  def do_sync_fw_configs(api_data) do
+    update_config_value(:bool, "settings", "ignore_fw_config", true)
+      Logger.info 3, "API is source of truth for fw configs."
+      current = get_config_as_map()["hardware_params"]
       apply_fw_map(current, api_data)
-    end
-    :ok
-  end
-
-  def do_sync_fw_configs(_) do
-    Logger.error 1, "API is out of date. Not syncing firmware settings!"
+    update_config_value(:bool, "settings", "ignore_fw_config", false)
     :ok
   end
 
@@ -312,44 +299,21 @@ defmodule Farmbot.Bootstrap.SettingsSync do
   end
 
   def do_sync_fbos_configs(%{"api_migrated" => true} = api_data) do
-    Logger.info 3, "API is the source of truth for Farmbot OS configs. Downloading data."
-    old_config = get_config_as_map()["settings"]
-    apply_fbos_map(old_config, api_data)
+    update_config_value(:bool, "settings", "ignore_fbos_config", true)
+      Logger.info 3, "API is the source of truth for Farmbot OS configs. Downloading data."
+      old_config = get_config_as_map()["settings"]
+      apply_fbos_map(old_config, api_data)
+    update_config_value(:bool, "settings", "ignore_fbos_config", false)
+
     :ok
   end
 
   def do_sync_fbos_configs(_unimportant_data) do
-    Logger.info 3, "Farmbot is the source of truth for Farmbot OS and Firmware configs. Uploading data."
     update_config_value(:bool, "settings", "ignore_fbos_config", true)
-    auto_sync = get_config_value(:bool, "settings", "auto_sync")
-    beta_opt_in = get_config_value(:bool, "settings", "beta_opt_in")
-    disable_factory_reset = get_config_value(:bool, "settings", "disable_factory_reset")
-    firmware_output_log = get_config_value(:bool, "settings", "firmware_output_log")
-    firmware_input_log = get_config_value(:bool, "settings", "firmware_input_log")
-    sequence_body_log = get_config_value(:bool, "settings", "sequence_body_log")
-    sequence_complete_log = get_config_value(:bool, "settings", "sequence_complete_log")
-    sequence_init_log = get_config_value(:bool, "settings", "sequence_init_log")
-    arduino_debug_messages = get_config_value(:bool, "settings", "arduino_debug_messages")
-    os_auto_update = get_config_value(:bool, "settings", "os_auto_update")
-    firmware_hardware = get_config_value(:string, "settings", "firmware_hardware")
-    network_not_found_timer = get_config_value(:float, "settings", "network_not_found_timer")
-    payload = %{
-      api_migrated: true,
-      auto_sync: auto_sync,
-      beta_opt_in: beta_opt_in,
-      disable_factory_reset: disable_factory_reset,
-      firmware_output_log: firmware_output_log,
-      firmware_input_log: firmware_input_log,
-      sequence_body_log: sequence_body_log,
-      sequence_complete_log: sequence_complete_log,
-      sequence_init_log: sequence_init_log,
-      arduino_debug_messages: arduino_debug_messages,
-      os_auto_update: os_auto_update,
-      firmware_hardware: firmware_hardware,
-      network_not_found_timer: network_not_found_timer,
-    } |> Poison.encode!()
-    Farmbot.HTTP.delete!("/api/fbos_config")
-    Farmbot.HTTP.put!("/api/fbos_config", payload)
+      Logger.info 3, "Farmbot is the source of truth for Farmbot OS Configs Uploading data."
+      settings = get_config_as_map()["settings"] |> Map.put("api_migrated", true)
+      Farmbot.HTTP.delete!("/api/fbos_config")
+      Farmbot.HTTP.put!("/api/fbos_config", Farmbot.JSON.encode!(settings))
     update_config_value(:bool, "settings", "ignore_fbos_config", false)
     :ok
   end
