@@ -12,6 +12,9 @@ defmodule Farmbot.Jwt do
     :interim_email
   ]
 
+  require Protocol
+  Protocol.derive Jason.Encoder, Farmbot.Jwt
+
   @typedoc "Type def for Farmbot Web Token."
   @type t :: %__MODULE__{
           bot: binary,
