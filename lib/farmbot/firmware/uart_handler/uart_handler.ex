@@ -144,15 +144,25 @@ defmodule Farmbot.Firmware.UartHandler do
   end
 
   defp handle_config({:config, "settings", "firmware_hardware", val}, state) do
-    if val != state.hw do
-      Logger.info 3, "firmware_hardware updated from #{state.hw} to #{val}"
-      Farmbot.BotState.set_sync_status(:maintenance)
-      UART.close(state.nerves)
-      UartHandler.Update.force_update_firmware(val)
-      open_tty(state.tty, state.nerves)
-      Farmbot.BotState.reset_sync_status()
-      %{state | hw: val, config_busy: true}
+    if Process.whereis(Farmbot.BotState) do
+      if val != state.hw do
+        Logger.info 3, "firmware_hardware updated from #{state.hw} to #{val}"
+        Farmbot.BotState.set_sync_status(:maintenance)
+
+        UART.close(state.nerves)
+        UartHandler.Update.force_update_firmware(val)
+        open_tty(state.tty, state.nerves)
+
+        Farmbot.BotState.reset_sync_status()
+        %{state | hw: val, config_busy: true}
+      else
+        state
+      end
     else
+      # This happens when you select a fw, then go back and select a different one
+      # in configurator.
+      Logger.warn 3, "got invalid firmware hardware update: current: #{state.hw} update: #{val}"
+      update_config_value(:string, "settings", "firmware_hardware", state.hw)
       state
     end
   end
@@ -219,7 +229,7 @@ defmodule Farmbot.Firmware.UartHandler do
     Logger.warn 1, "UART handler died: #{inspect reason}"
     if state.nerves do
       UART.close(state.nerves)
-      UART.stop(:normal)
+      UART.stop(state.nerves)
     end
   end
 

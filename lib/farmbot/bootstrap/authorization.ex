@@ -82,6 +82,9 @@ defmodule Farmbot.Bootstrap.Authorization do
          {:ok, body}    <- Poison.decode(resp),
          {:ok, map}     <- Map.fetch(body, "token") do
       update_config_value(:bool, "settings", "first_boot", false)
+      hw = get_config_value(:string, "settings", "firmware_hardware")
+      # Hack to prevent flashing fw multiple times?
+      HTTPoison.put!("#{server}/api/fbos_config", Poison.encode!(%{firmware_hardware: hw}))
       last_reset_reason_file = Path.join(@data_path, "last_shutdown_reason")
       File.rm(last_reset_reason_file)
       Map.fetch(map, "encoded")
