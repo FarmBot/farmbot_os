@@ -1,6 +1,5 @@
 defmodule Farmbot.Asset.Repo.Migrations.AddLocalIdAndDirtyFields do
   use Ecto.Migration
-  import Ecto.Query
 
   def change do
     alter table("devices") do
