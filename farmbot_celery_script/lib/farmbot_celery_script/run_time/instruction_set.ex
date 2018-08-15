@@ -79,18 +79,6 @@ defmodule Farmbot.CeleryScript.RunTime.InstructionSet do
   @doc "Set environment variables for a Farmware."
   simple_io_instruction(:set_user_env)
 
-  @doc "(Re)Install Farmware written and developed by Farmbot, Inc."
-  simple_io_instruction(:install_first_party_farmware)
-
-  @doc "Install a Farmware from the web."
-  simple_io_instruction(:install_farmware)
-
-  @doc "Remove a Farmware."
-  simple_io_instruction(:remove_farmware)
-
-  @doc "Update a Farmware."
-  simple_io_instruction(:update_farmware)
-
   @doc "Force the bot's state to be dispatched."
   simple_io_instruction(:read_status)
 

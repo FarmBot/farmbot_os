@@ -29,7 +29,9 @@ defmodule Farmbot.Asset.FarmEvent do
   import Ecto.Changeset
   require Farmbot.Logger
 
+  @primary_key {:local_id, :binary_id, autogenerate: true}
   schema "farm_events" do
+    field(:id, :integer)
     field(:start_time, :string)
     field(:end_time, :string)
     field(:repeat, :integer)
