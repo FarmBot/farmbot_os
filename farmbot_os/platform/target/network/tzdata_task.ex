@@ -4,8 +4,8 @@ defmodule Farmbot.Target.Network.TzdataTask do
   @fb_data_dir Path.join(Application.get_env(:farmbot_ext, :data_path), "tmp_downloads")
   @timer_ms round(1.2e+6) # 20 minutes
 
-  def start_link(_, _) do
-    GenServer.start_link(__MODULE__, [], [name: __MODULE__])
+  def start_link(args) do
+    GenServer.start_link(__MODULE__, args, [name: __MODULE__])
   end
 
   def init([]) do

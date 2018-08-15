@@ -7,7 +7,9 @@ defmodule Farmbot.Asset.Peripheral do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @primary_key {:local_id, :binary_id, autogenerate: true}
   schema "peripherals" do
+    field(:id, :integer)
     field(:pin, :integer)
     field(:mode, :integer)
     field(:label, :string)
