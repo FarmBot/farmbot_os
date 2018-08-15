@@ -119,7 +119,7 @@ defmodule Farmbot.Target.Network do
   end
 
   def test_dns(hostname) do
-    IO.puts "testing dns: #{hostname}"
+    # IO.puts "testing dns: #{hostname}"
     case :inet.parse_ipv4_address(hostname) do
       {:ok, addr} -> {:ok, {:hostent, hostname, [], :inet, 4, [addr]}}
       _ -> :inet_res.gethostbyname(hostname)
