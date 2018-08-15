@@ -10,6 +10,8 @@ defmodule Farmbot.Asset do
 
     Device,
     FarmEvent,
+    FarmwareEnv,
+    FarmwareInstallation,
     Peripheral,
     PinBinding,
     Point,
@@ -30,6 +32,8 @@ defmodule Farmbot.Asset do
 
   @device_fields ~W(id name timezone)
   @farm_events_fields ~W(calendar end_time executable_id executable_type id repeat start_time time_unit)
+  @farmware_envs_fields ~W(id key value)
+  @farmware_installations_fields ~W(id url first_party)
   @peripherals_fields ~W(id label mode pin)
   @pin_bindings_fields ~W(id pin_num sequence_id special_action)
   @points_fields ~W(id meta name pointer_type tool_id x y z)
@@ -45,6 +49,8 @@ defmodule Farmbot.Asset do
 
   def to_asset(body, Device), do: resource_decode(body, @device_fields, Device)
   def to_asset(body, FarmEvent), do: resource_decode(body, @farm_events_fields, FarmEvent)
+  def to_asset(body, FarmwareEnv), do: resource_decode(body, @farmware_envs_fields, FarmwareEnv)
+  def to_asset(body, FarmwareInstallation), do: resource_decode(body, @farmware_installations_fields, FarmwareInstallation)
   def to_asset(body, Peripheral), do: resource_decode(body, @peripherals_fields, Peripheral)
   def to_asset(body, PinBinding), do: resource_decode(body, @pin_bindings_fields, PinBinding)
   def to_asset(body, Point), do: resource_decode(body, @points_fields, Point)
@@ -66,6 +72,8 @@ defmodule Farmbot.Asset do
   def string_to_atom({k, v}), do: {String.to_atom(k), v}
   def into_struct(data, kind), do: struct(kind, data)
 
+  # TODO(Connor) - 2018-08-05 *_sync should upload dirty artifacts
+  # before applying sync commands?
   def fragment_sync(verbosity \\ 1) do
     Farmbot.Logger.busy verbosity, "Syncing"
     Farmbot.Registry.dispatch(__MODULE__, {:sync_status, :syncing})
@@ -161,7 +169,7 @@ defmodule Farmbot.Asset do
   # When `body` is nil, it means an object was deleted.
   def do_apply_sync_cmd(%{body: nil, remote_id: id, kind: kind}) do
     mod = Module.concat(["Farmbot", "Asset", kind])
-    case Repo.get(mod, id) do
+    case Repo.one(from m in mod, where: m.id == ^id) do
       nil ->
         :ok
 
@@ -175,7 +183,7 @@ defmodule Farmbot.Asset do
     not_struct = strip_struct(obj)
     mod = Module.concat(["Farmbot", "Asset", kind])
     # We need to check if this object exists in the database.
-    case Repo.get(mod, id) do
+    case Repo.one(from m in mod, where: m.id == ^id) do
       # If it does not, just return the newly created object.
       nil ->
         change = mod.changeset(struct(mod, not_struct), not_struct)
@@ -273,8 +281,11 @@ defmodule Farmbot.Asset do
   end
 
   def clear_all_data do
+    # remote assets.
     Repo.delete_all(Device)
     Repo.delete_all(FarmEvent)
+    Repo.delete_all(FarmwareEnv)
+    Repo.delete_all(FarmwareInstallation)
     Repo.delete_all(Peripheral)
     Repo.delete_all(PinBinding)
     Repo.delete_all(Point)
@@ -282,6 +293,8 @@ defmodule Farmbot.Asset do
     Repo.delete_all(Sensor)
     Repo.delete_all(Sequence)
     Repo.delete_all(Tool)
+
+    # Interanal assets.
     Repo.delete_all(PersistentRegimen)
     Repo.delete_all(SyncCmd)
     :ok
