@@ -5,9 +5,9 @@ defmodule Farmbot.Asset.Repo.Migrations.CreateFarmwareInstallationsTable do
     create table("farmware_installations", primary_key: false) do
       add(:id, :integer)
       add(:url, :string)
+      add(:first_party, :boolean)
     end
 
-    create(unique_index("farmware_installations", [:id]))
-  end
+    create(unique_index("farmware_installations", [:id, :url]))
   end
 end
