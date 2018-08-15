@@ -144,8 +144,8 @@ defmodule Farmbot.Firmware.UartHandler do
   end
 
   defp handle_config({:config, "settings", "firmware_hardware", val}, state) do
-    if Process.whereis(Farmbot.BotState) do
-      if val != state.hw do
+    if val != state.hw do
+      if Process.whereis(Farmbot.BotState) do
         Logger.info 3, "firmware_hardware updated from #{state.hw} to #{val}"
         Farmbot.BotState.set_sync_status(:maintenance)
 
@@ -155,14 +155,14 @@ defmodule Farmbot.Firmware.UartHandler do
 
         Farmbot.BotState.reset_sync_status()
         %{state | hw: val, config_busy: true}
-      else
+      else # if BotState not alive
+        # This happens when you select a fw, then go back and select a different one
+        # in configurator.
+        Logger.warn 3, "got invalid firmware hardware update: current: #{state.hw} update: #{val}"
+        update_config_value(:string, "settings", "firmware_hardware", state.hw)
         state
       end
-    else
-      # This happens when you select a fw, then go back and select a different one
-      # in configurator.
-      Logger.warn 3, "got invalid firmware hardware update: current: #{state.hw} update: #{val}"
-      update_config_value(:string, "settings", "firmware_hardware", state.hw)
+    else # if thae value didn't change
       state
     end
   end
