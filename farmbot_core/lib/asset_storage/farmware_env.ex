@@ -8,7 +8,9 @@ defmodule Farmbot.Asset.FarmwareEnv do
   use Ecto.Schema
   import Ecto.Changeset
 
-  schema "farmware_env" do
+  @primary_key {:local_id, :binary_id, autogenerate: true}
+  schema "farmware_envs" do
+    field(:id, :integer)
     field(:key, :string)
     field(:value, JSONType)
   end
