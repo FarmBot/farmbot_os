@@ -87,8 +87,12 @@ defmodule Farmbot.Target.Network do
 
   def do_scan(iface) do
     pid = :"Nerves.WpaSupplicant.#{iface}"
-    Nerves.WpaSupplicant.request(pid, :SCAN)
-    wait_for_results(pid)
+    if Process.whereis(pid) do
+      Nerves.WpaSupplicant.request(pid, :SCAN)
+      wait_for_results(pid)
+    else
+      []
+    end
   end
 
   def get_level(ifname, ssid) do
@@ -115,7 +119,7 @@ defmodule Farmbot.Target.Network do
   end
 
   def test_dns(hostname) do
-    IO.puts "testing dns: #{hostname}"
+    # IO.puts "testing dns: #{hostname}"
     case :inet.parse_ipv4_address(hostname) do
       {:ok, addr} -> {:ok, {:hostent, hostname, [], :inet, 4, [addr]}}
       _ -> :inet_res.gethostbyname(hostname)
