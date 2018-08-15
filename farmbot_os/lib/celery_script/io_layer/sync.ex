@@ -6,6 +6,8 @@ defmodule Farmbot.OS.IOLayer.Sync do
   alias Farmbot.Asset.{
     Device,
     FarmEvent,
+    # FarmwareEnv,
+    # FarmwareInstallation,
     Peripheral,
     PinBinding,
     Point,
@@ -29,6 +31,11 @@ defmodule Farmbot.OS.IOLayer.Sync do
       [
         Task.Supervisor.async_nolink(pid, fn -> {Device, HTTP.device() |> List.wrap() |> list_to_sync_cmds()} end),
         Task.Supervisor.async_nolink(pid, fn -> {FarmEvent, HTTP.farm_events() |> list_to_sync_cmds()} end),
+
+        # These aren't a thing yet.
+        # Task.Supervisor.async_nolink(pid, fn -> {FarmwareEnv, HTTP.farmware_envs() |> list_to_sync_cmds()} end),
+        # Task.Supervisor.async_nolink(pid, fn -> {FarmwareInstallation, HTTP.farmware_installations() |> list_to_sync_cmds()} end),
+
         Task.Supervisor.async_nolink(pid, fn -> {Peripheral, HTTP.peripherals() |> list_to_sync_cmds()} end),
         Task.Supervisor.async_nolink(pid, fn -> {PinBinding, HTTP.pin_bindings() |> list_to_sync_cmds()} end),
         Task.Supervisor.async_nolink(pid, fn -> {Point, HTTP.points() |> list_to_sync_cmds()} end),
@@ -52,9 +59,7 @@ defmodule Farmbot.OS.IOLayer.Sync do
   end
 
   def to_sync_cmd(%kind{} = data) do
-    kind = Module.split(kind)
-    |> List.last()
-
+    kind = Module.split(kind) |> List.last()
     Farmbot.Asset.new_sync_cmd(data.id, kind, data)
   end
 end

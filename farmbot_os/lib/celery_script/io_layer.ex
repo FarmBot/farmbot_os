@@ -68,18 +68,10 @@ defmodule Farmbot.OS.IOLayer do
     {:error, "config_update depreciated since 6.1.0"}
   end
 
-  def set_user_env(_args, _body) do
-    IO.inspect {:error, "not implemented: set_user_env"}
+  def set_user_env(_args, pairs) do
+    IO.puts "not implemented: set_user_env(#{inspect pairs})"
     :ok
   end
-
-  def install_first_party_farmware(args, body), do: Farmware.first_party(args, body)
-
-  def install_farmware(args, body), do: Farmware.install(args, body)
-
-  def remove_farmware(args, body), do: Farmware.remove(args, body)
-
-  def update_farmware(args, body), do: Farmware.update(args, body)
 
   def execute_script(args, body), do: Farmware.execute(args, body)
 

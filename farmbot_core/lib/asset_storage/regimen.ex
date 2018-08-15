@@ -11,7 +11,9 @@ defmodule Farmbot.Asset.Regimen do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @primary_key {:local_id, :binary_id, autogenerate: true}
   schema "regimens" do
+    field(:id, :integer)
     field(:name, :string)
     field(:farm_event_id, :integer, virtual: true)
     field(:regimen_items, TermType)
