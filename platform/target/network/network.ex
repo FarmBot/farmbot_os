@@ -87,8 +87,12 @@ defmodule Farmbot.Target.Network do
 
   def do_scan(iface) do
     pid = :"Nerves.WpaSupplicant.#{iface}"
-    Nerves.WpaSupplicant.request(pid, :SCAN)
-    wait_for_results(pid)
+    if Process.whereis(pid) do
+      Nerves.WpaSupplicant.request(pid, :SCAN)
+      wait_for_results(pid)
+    else
+      []
+    end
   end
 
   def get_level(ifname, ssid) do

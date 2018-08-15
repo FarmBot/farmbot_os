@@ -3,6 +3,7 @@
 * Add SSH back.
 * Fix bug during configuration causing bots to maybe not connect.
 * FarmBot will now try to emergency lock the firmware on powerdown and reset.
+* Fix bug causing FarmBot not to reconnect to WiFi.
 
 # 6.4.9
 * Add feature to save logs to sdcard for debugging.
