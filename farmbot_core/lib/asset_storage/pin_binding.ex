@@ -5,7 +5,9 @@ defmodule Farmbot.Asset.PinBinding do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @primary_key {:local_id, :binary_id, autogenerate: true}
   schema "pin_bindings" do
+    field(:id, :integer)
     field(:pin_num, :integer)
     field(:sequence_id, :integer)
     field(:special_action, :string)

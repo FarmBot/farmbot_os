@@ -1,14 +1,11 @@
 defmodule Farmbot.OS.IOLayer.Farmware do
   require Farmbot.Logger
-  alias Farmbot.OS.IOLayer.Farmware.Server
-
-  @fpf_url "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/master/manifest.json"
 
   def first_party(_args, []) do
     {:error, "not implemented"}
   end
 
-  def install(%{url: u_rl}, []) do
+  def install(%{url: _url}, []) do
     {:error, "not implemented"}
   end
 

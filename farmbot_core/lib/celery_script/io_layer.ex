@@ -23,10 +23,6 @@ defmodule Farmbot.Core.CeleryScript.IOLayer do
   @callback take_photo(args, body) :: :ok | {:error, String.t}
   @callback config_update(args, body) :: :ok | {:error, String.t}
   @callback set_user_env(args, body) :: :ok | {:error, String.t}
-  @callback install_first_party_farmware(args, body) :: :ok | {:error, String.t}
-  @callback install_farmware(args, body) :: :ok | {:error, String.t}
-  @callback remove_farmware(args, body) :: :ok | {:error, String.t}
-  @callback update_farmware(args, body) :: :ok | {:error, String.t}
   @callback read_status(args, body) :: :ok | {:error, String.t}
   @callback sync(args, body) :: :ok | {:error, String.t}
   @callback power_off(args, body) :: :ok | {:error, String.t}

@@ -22,7 +22,6 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   end
 
   @version Farmbot.Project.version()
-  @data_path Application.get_env(:farmbot_ext, :data_path)
   @log_db Application.get_env(:logger_backend_ecto, LoggerBackendEcto.Repo)[:database]
   @log_db || Mix.raise("LoggerBackendEcto probably not configured properly.")
 
