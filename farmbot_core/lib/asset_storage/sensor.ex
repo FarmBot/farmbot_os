@@ -7,7 +7,9 @@ defmodule Farmbot.Asset.Sensor do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @primary_key {:local_id, :binary_id, autogenerate: true}
   schema "sensors" do
+    field(:id, :integer)
     field(:pin, :integer)
     field(:mode, :integer)
     field(:label, :string)

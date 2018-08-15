@@ -7,7 +7,10 @@ defmodule Farmbot.Asset.FarmwareInstallation do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @primary_key {:local_id, :binary_id, autogenerate: true}
   schema "farmware_installations" do
+    field(:id, :integer)
+    field(:first_party, :boolean)
     field(:url, :string)
   end
 

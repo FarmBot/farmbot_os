@@ -9,7 +9,9 @@ defmodule Farmbot.Asset.Sequence do
   import Ecto.Changeset
   require Farmbot.Logger
 
+  @primary_key {:local_id, :binary_id, autogenerate: true}
   schema "sequences" do
+    field(:id, :integer)
     field(:name, :string)
     field(:kind, :string)
     field(:args, TermType)
