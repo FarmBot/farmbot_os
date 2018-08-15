@@ -5,6 +5,7 @@ defmodule Farmbot.HTTP do
 
   use GenServer
   alias Farmbot.HTTP.{Adapter, Error, Response}
+  import Farmbot.HTTP.Helpers
   alias Farmbot.JSON
 
   @adapter Application.get_env(:farmbot_ext, :behaviour)[:http_adapter]
@@ -19,6 +20,8 @@ defmodule Farmbot.HTTP do
   alias Farmbot.Asset.{
     Device,
     FarmEvent,
+    FarmwareEnv,
+    FarmwareInstallation,
     Peripheral,
     PinBinding,
     Point,
@@ -28,21 +31,63 @@ defmodule Farmbot.HTTP do
     Tool,
   }
 
-  def device, do: fetch_and_decode("/api/device.json", Device)
-  def farm_events, do: fetch_and_decode("/api/farm_events.json", FarmEvent)
-  def peripherals, do: fetch_and_decode("/api/peripherals.json", Peripheral)
-  def pin_bindings, do: fetch_and_decode("/api/pin_bindings.json", PinBinding)
-  def points, do: fetch_and_decode("/api/points.json", Point)
-  def regimens, do: fetch_and_decode("/api/regimens.json", Regimen)
-  def sensors, do: fetch_and_decode("/api/sensors.json", Sensor)
-  def sequences, do: fetch_and_decode("/api/sequences.json", Sequence)
-  def tools, do: fetch_and_decode("/api/tools.json", Tool)
+  fadr :device, Device
+  fadr :farm_events, FarmEvent
+  fadr :farmware_installations, FarmwareInstallation
 
+  # TODO(Connor) - 2018-08-15 Make this a macro if/when it starts
+  #                           happening more often.
+  def new_farmware_installation(%FarmwareInstallation{} = data) do
+    json = JSON.encode!(data)
+    case post("/api/farmware_installations", json) do
+      {:error, reason} -> {:error, reason}
+      {:ok, %{body: body, status_code: code}} when is_2xx(code) ->
+        r = body |> JSON.decode!() |> Farmbot.Asset.to_asset(FarmwareInstallation)
+        {:ok, r}
+    end
+  end
+
+  fadr :farmware_envs, FarmwareEnv
+
+  # TODO(Connor) - 2018-08-15 Make this a macro if/when it starts
+  #                           happening more often.
+  def new_farmware_env(%FarmwareEnv{} = data) do
+    json = JSON.encode!(data)
+    case post("/api/farmware_env", json) do
+      {:error, reason} -> {:error, reason}
+      {:ok, %{body: body, status_code: code}} when is_2xx(code) ->
+        r = body |> JSON.decode!() |> Farmbot.Asset.to_asset(FarmwareEnv)
+        {:ok, r}
+    end
+  end
+
+  fadr :peripherals, Peripheral
+  fadr :pin_bindings, PinBinding
+  fadr :points, Point
+  fadr :regimens, Regimen
+  fadr :sensors, Sensor
+  fadr :sequences, Sequence
+  fadr :tools, Tool
+
+  # These aren't synced.
+  def fbos_config, do: fetch("/api/fbos_config")
+  def firmware_config, do: fetch("/api/firmware_config")
+
+  @doc "Fetches data and decodes as JSON."
+  def fetch(url) do
+    url
+    |> get!([{"content-type", "Application/JSON"}])
+    |> case do
+      %{body: body, status_code: code} when is_2xx(code) -> body
+      _ -> raise "[#{url}] HTTP Error"
+    end
+    |> JSON.decode!()
+  end
+
+  @doc "Fetches a url and decodes as a Farmbot struct."
   def fetch_and_decode(url, kind) do
     url
-    |> get!()
-    |> Map.fetch!(:body)
-    |> JSON.decode!()
+    |> fetch()
     |> Farmbot.Asset.to_asset(kind)
   end
 

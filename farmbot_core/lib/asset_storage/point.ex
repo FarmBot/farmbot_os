@@ -7,7 +7,9 @@ defmodule Farmbot.Asset.Point do
   alias Farmbot.EctoTypes.ModuleType
   alias Farmbot.EctoTypes.TermType
 
+  @primary_key {:local_id, :binary_id, autogenerate: true}
   schema "points" do
+    field(:id, :integer)
     field(:name, :string)
     field(:tool_id, :integer)
     field(:x, :float)

@@ -2,6 +2,7 @@ defmodule Farmbot.System do
   @moduledoc """
   Common functionality that should be implemented by a system
   """
+  require Farmbot.Logger
 
   require Farmbot.Logger
 

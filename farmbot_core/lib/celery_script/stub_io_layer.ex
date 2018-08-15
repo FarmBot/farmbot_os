@@ -12,8 +12,6 @@ defmodule Farmbot.Core.CeleryScript.StubIOLayer do
   def factory_reset(_args, _body), do: {:error, "Stubbed"}
   def find_home(_args, _body), do: {:error, "Stubbed"}
   def home(_args, _body), do: {:error, "Stubbed"}
-  def install_farmware(_args, _body), do: {:error, "Stubbed"}
-  def install_first_party_farmware(_args, _body), do: {:error, "Stubbed"}
   def move_absolute(_args, _body), do: {:error, "Stubbed"}
   def move_relative(_args, _body), do: {:error, "Stubbed"}
   def power_off(_args, _body), do: {:error, "Stubbed"}
@@ -26,8 +24,6 @@ defmodule Farmbot.Core.CeleryScript.StubIOLayer do
   def sync(_args, _body), do: {:error, "Stubbed"}
   def take_photo(_args, _body), do: {:error, "Stubbed"}
   def toggle_pin(_args, _body), do: {:error, "Stubbed"}
-  def remove_farmware(_args, _body), do: {:error, "Stubbed"}
-  def update_farmware(_args, _body), do: {:error, "Stubbed"}
   def wait(_args, _body), do: {:error, "Stubbed"}
   def write_pin(_args, _body), do: {:error, "Stubbed"}
   def zero(_args, _body), do: {:error, "Stubbed"}
