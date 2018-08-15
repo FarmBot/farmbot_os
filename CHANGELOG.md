@@ -2,6 +2,7 @@
 # 6.4.10
 * Add SSH back.
 * Fix bug during configuration causing bots to maybe not connect.
+* FarmBot will now try to emergency lock the firmware on powerdown and reset.
 
 # 6.4.9
 * Add feature to save logs to sdcard for debugging.

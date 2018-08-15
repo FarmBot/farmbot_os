@@ -4,6 +4,7 @@ defmodule Farmbot.System do
   """
 
   alias Farmbot.System.Init.Ecto
+  use Farmbot.Logger
 
   error_msg = """
   Please configure `:system_tasks` and `:data_path`!
@@ -55,6 +56,15 @@ defmodule Farmbot.System do
     end
   end
 
+  defp try_lock_fw do
+    if Process.whereis(Farmbot.Firmware) do
+      Logger.warn 1, "Trying to emergency lock firmware before powerdown"
+      Farmbot.Firmware.emergency_lock()
+    else
+      Logger.error 1, "Firmware unavailable. Can't emergency_lock"
+    end
+  end
+
   defp do_reset(reason) do
     formatted = format_reason(reason)
     case formatted do
@@ -65,6 +75,7 @@ defmodule Farmbot.System do
         File.rm_rf(path)
         Ecto.drop()
         write_file(formatted)
+        try_lock_fw()
         @system_tasks.factory_reset(formatted)
     end
   end
@@ -74,6 +85,7 @@ defmodule Farmbot.System do
   def reboot(reason) do
     formatted = format_reason(reason)
     write_file(formatted)
+    try_lock_fw()
     @system_tasks.reboot(formatted)
   end
 
@@ -82,6 +94,7 @@ defmodule Farmbot.System do
   def shutdown(reason) do
     formatted = format_reason(reason)
     write_file(formatted)
+    try_lock_fw()
     @system_tasks.shutdown(formatted)
   end
 
