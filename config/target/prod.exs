@@ -41,6 +41,9 @@ config :farmbot, :init, [
   # Wait for time time come up.
   Farmbot.Target.Network.WaitForTime,
 
+  # Wait for DNS resolution
+  Farmbot.Target.Network.DnsTask,
+
   # Stops the disk from getting full.
   Farmbot.Target.Network.TzdataTask,
 

@@ -41,12 +41,15 @@ config :farmbot, :init, [
   # Wait for time time come up.
   Farmbot.Target.Network.WaitForTime,
 
+  # Wait for DNS resolution
+  Farmbot.Target.Network.DnsTask,
 
   # Stops the disk from getting full.
   Farmbot.Target.Network.TzdataTask,
 
   # Reports SOC temperature to BotState.
   Farmbot.Target.SocTempWorker,
+  
   # Reports Wifi info to BotState.
   Farmbot.Target.Network.InfoSupervisor,
 

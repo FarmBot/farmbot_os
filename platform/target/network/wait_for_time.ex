@@ -8,7 +8,7 @@ defmodule Farmbot.Target.Network.WaitForTime do
 
   defp wait_for_time do
     case :os.system_time(:seconds) do
-      t when t > 1_474_929 ->
+      t when t > 1534459652 ->
         :ok
 
       _ ->

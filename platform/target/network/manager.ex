@@ -150,20 +150,11 @@ defmodule Farmbot.Target.Network.Manager do
       reconnect_timer: reconnect_timer
     }
     {:noreply, new_state}
-    # if state.connected do
-    #   NotFoundTimer.start()
-    #   Nerves.Network.IFSupervisor.teardown(state.interface)
-    #   Process.sleep(5000)
-    #   {:stop, :reconnect_timer, state}
-    # else
-    #   # This event can come in for a brief moment while connecting.
-    #   {:noreply, state}
-    # end
   end
 
   def handle_info({Nerves.WpaSupplicant, info, infoa}, state) do
     # :"CTRL-EVENT-SSID-TEMP-DISABLED id=0 ssid=\"Rory's Phone\" auth_failures=2 duration=20 reason=CONN_FAILED"
-    case to_string(info) do
+    case is_atom(info) && to_string(info) do
       <<"CTRL-EVENT-SSID-TEMP-DISABLED" <> _>> = msg ->
         if String.contains?(msg, "duration=20") do
           reconnect_timer = if state.connected, do: restart_connection_timer(state)
@@ -189,8 +180,6 @@ defmodule Farmbot.Target.Network.Manager do
 
   def handle_info(:reconnect_timer, %{ap_connected: false} = state) do
     Logger.warn 1, "Wireless network not found still. Trying again."
-    # new_state = %{state | reconnect_timer: restart_connection_timer(state)}
-    # {:noreply, new_state}
     {:stop, :reconnect_timer, state}
   end
 
