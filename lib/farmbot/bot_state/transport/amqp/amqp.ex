@@ -80,6 +80,9 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
   defp open_connection(token, device, mqtt_server, vhost) do
     opts = [
+      client_properties: [
+        version: Farmbot.Project.version()
+      ],
       host: mqtt_server,
       username: device,
       password: token,

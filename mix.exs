@@ -146,6 +146,7 @@ defmodule Farmbot.Mixfile do
         {:nerves_firmware, "~> 0.4"},
         {:nerves_firmware_ssh, "~> 0.3.3"},
         {:nerves_init_gadget, "~> 0.4.0", only: :dev},
+        {:nerves_time, "~> 0.2.0"},
         {:nerves_network, "~> 0.3"},
         {:nerves_wpa_supplicant, github: "nerves-project/nerves_wpa_supplicant", override: true},
         {:dhcp_server, "~> 0.4.0"},
