@@ -82,6 +82,16 @@ defmodule Farmbot.Target.Network.Manager do
     {:ok, state}
   end
 
+  def terminate(_, state) do
+    # This hopefully makes the NetworkInterface ready when this
+    # GenServer is restarted.
+    Nerves.Network.IFSupervisor.teardown(state.interface)
+    Nerves.NetworkInterface.ifdown(state.interface)
+    Process.sleep(5000)
+    Nerves.NetworkInterface.ifup(state.interface)
+    Process.sleep(5000)
+  end
+
   def handle_call(:ip, _, state) do
     {:reply, state.ip_address, state}
   end
@@ -108,8 +118,17 @@ defmodule Farmbot.Target.Network.Manager do
   end
 
   def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-NETWORK-NOT-FOUND", _}, state) do
+    # stored in minutes
+    reconnect_timer = if state.connected, do: restart_connection_timer(state)
+    maybe_refresh_token()
     NotFoundTimer.start()
-    {:noreply, %{state | ap_connected: false, ip_address: nil, connected: false}}
+    new_state = %{state |
+      ap_connected: false,
+      connected: false,
+      ip_address: nil,
+      reconnect_timer: reconnect_timer
+    }
+    {:noreply, new_state}
   end
 
   def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-CONNECTED", _}, state) do
@@ -143,10 +162,29 @@ defmodule Farmbot.Target.Network.Manager do
   end
 
   def handle_info({Nerves.WpaSupplicant, info, infoa}, state) do
-    if debug_logs?() do
-      IO.inspect {info, infoa}, label: "unhandled wpa event"
+    # :"CTRL-EVENT-SSID-TEMP-DISABLED id=0 ssid=\"Rory's Phone\" auth_failures=2 duration=20 reason=CONN_FAILED"
+    case to_string(info) do
+      <<"CTRL-EVENT-SSID-TEMP-DISABLED" <> _>> = msg ->
+        if String.contains?(msg, "duration=20") do
+          reconnect_timer = if state.connected, do: restart_connection_timer(state)
+          maybe_refresh_token()
+          NotFoundTimer.start()
+          new_state = %{state |
+            ap_connected: false,
+            connected: false,
+            ip_address: nil,
+            reconnect_timer: reconnect_timer
+          }
+          {:noreply, new_state}
+        else
+          {:noreply, state}
+        end
+      _ ->
+        if debug_logs?() do
+          IO.inspect {info, infoa}, label: "unhandled wpa event"
+        end
+        {:noreply, state}
     end
-    {:noreply, state}
   end
 
   def handle_info(:reconnect_timer, %{ap_connected: false} = state) do
