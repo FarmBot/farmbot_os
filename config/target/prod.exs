@@ -41,6 +41,9 @@ config :farmbot, :init, [
   # Wait for time time come up.
   Farmbot.Target.Network.WaitForTime,
 
+  # Wait for DNS resolution
+  Farmbot.Target.Network.DnsTask,
+
   # Stops the disk from getting full.
   Farmbot.Target.Network.TzdataTask,
 
@@ -68,6 +71,7 @@ config :farmbot, :behaviour,
   pin_binding_handler: Farmbot.Target.PinBinding.AleHandler,
   leds_handler: Farmbot.Target.Leds.AleHandler
 
+config :nerves_network, regulatory_domain: "US"
 config :shoehorn,
   init: [:nerves_runtime, :nerves_firmware_ssh],
   handler: Farmbot.ShoehornHandler,

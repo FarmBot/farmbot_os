@@ -41,12 +41,15 @@ config :farmbot, :init, [
   # Wait for time time come up.
   Farmbot.Target.Network.WaitForTime,
 
+  # Wait for DNS resolution
+  Farmbot.Target.Network.DnsTask,
 
   # Stops the disk from getting full.
   Farmbot.Target.Network.TzdataTask,
 
   # Reports SOC temperature to BotState.
   Farmbot.Target.SocTempWorker,
+  
   # Reports Wifi info to BotState.
   Farmbot.Target.Network.InfoSupervisor,
 
@@ -73,6 +76,7 @@ config :farmbot, :behaviour,
 local_file = Path.join(System.user_home!(), ".ssh/id_rsa.pub")
 local_key = if File.exists?(local_file), do: [File.read!(local_file)], else: []
 
+config :nerves_network, regulatory_domain: "US"
 config :nerves_firmware_ssh, authorized_keys: local_key
 
 config :shoehorn,

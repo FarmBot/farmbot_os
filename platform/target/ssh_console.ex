@@ -14,8 +14,13 @@ defmodule Farmbot.Target.SSHConsole do
     port = get_config_value(:float, "settings", "ssh_port") |> round()
     authorized_key = get_config_value(:string, "settings", "authorized_ssh_key")
     decoded_authorized_key = do_decode(authorized_key)
-    ssh = start_ssh(port, decoded_authorized_key)
-    {:ok, %{ssh: ssh}}
+    case start_ssh(port, decoded_authorized_key) do
+      {:ok, ssh} ->
+        {:ok, %{ssh: ssh}}
+      _ ->
+        Logger.warn 1, "Could not start SSH."
+        :ignore
+    end
 
   end
 
@@ -33,15 +38,12 @@ defmodule Farmbot.Target.SSHConsole do
 
     # Reuse the system_dir as well to allow for auth to work with the shared
     # keys.
-    {:ok, ssh} =
-      :ssh.daemon(port, [
-        {:id_string, :random},
-        {:key_cb, {Nerves.Firmware.SSH.Keys, cb_opts}},
-        {:system_dir, Nerves.Firmware.SSH.Application.system_dir()},
-        {:shell, {Elixir.IEx, :start, []}}
-      ])
-
-    ssh
+    :ssh.daemon(port, [
+      {:id_string, :random},
+      {:key_cb, {Nerves.Firmware.SSH.Keys, cb_opts}},
+      {:system_dir, Nerves.Firmware.SSH.Application.system_dir()},
+      {:shell, {Elixir.IEx, :start, []}}
+    ])
   end
 
   defp do_decode(nil), do: []
