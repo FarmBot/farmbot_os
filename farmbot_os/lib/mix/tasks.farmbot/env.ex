@@ -60,7 +60,6 @@ defmodule Mix.Tasks.Farmbot.Env do
         std_offset: 0,
         utc_offset: 0
       }
-      |> Timex.local()
 
     "#{dt.year}-#{pad(dt.month)}-#{pad(dt.day)}_#{pad(dt.hour)}#{pad(dt.minute)}"
   end
