@@ -25,7 +25,7 @@ defmodule Farmbot.AMQP.ConnectionWorker do
   end
 
   def terminate(_, conn) do
-    if Process.alive(conn.pid) do
+    if Process.alive?(conn.pid) do
       try do
         Logger.info "Closing AMQP connection."
         :ok = AMQP.Connection.close(conn)
