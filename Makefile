@@ -63,7 +63,3 @@ test: farmbot_core_test farmbot_ext_test farmbot_os_test
 farmbot_os_firmware:
 	cd farmbot_os && \
 	MIX_ENV=$(MIX_ENV) MIX_TARGET=$(MIX_TARGET) mix do deps.get, firmware
-
-farmbot_os_firmware_slack: farmbot_os_firmware
-	cd farmbot_os && \
-	MIX_ENV=$(MIX_ENV) MIX_TARGET=$(MIX_TARGET) mix farmbot.firmware.slack --channels $(SLACK_CHANNEL)

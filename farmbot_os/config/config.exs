@@ -55,6 +55,9 @@ config :ssl, protocol_version: :"tlsv1.2"
 # Disable tzdata autoupdates because it tries to dl the update file
 # Before we have network or ntp.
 config :tzdata, :autoupdate, :disabled
+config :tesla, Tesla.Middleware.Logger,
+  format: "$method $url ====> $status / time=$time",
+  debug: false 
 
 config :farmbot_core, :behaviour,
   firmware_handler: Farmbot.Firmware.StubHandler,
@@ -71,8 +74,7 @@ config :farmbot_core,
   farm_event_debug_log: false
 
 config :farmbot_ext, :behaviour,
-  authorization: Farmbot.Bootstrap.Authorization,
-  http_adapter:  Farmbot.HTTP.HTTPoisonAdapter
+  authorization: Farmbot.Bootstrap.Authorization
 
 config :farmbot_os,
   ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo]

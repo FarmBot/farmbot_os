@@ -10,7 +10,6 @@ defmodule Farmbot.HTTP.Supervisor do
 
   def init([]) do
     children = [
-      {Farmbot.HTTP, []},
       {Farmbot.HTTP.ImageUploader, []}
     ]
 
