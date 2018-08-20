@@ -50,8 +50,7 @@ config :farmbot_core, Farmbot.Asset.Repo,
   priv: "../farmbot_core/priv/asset"
 
 config :farmbot_ext, :behaviour,
-  authorization: Farmbot.Bootstrap.Authorization,
-  http_adapter:  Farmbot.HTTP.HTTPoisonAdapter
+  authorization: Farmbot.Bootstrap.Authorization
 
 config :farmbot_ext,
   ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo],
