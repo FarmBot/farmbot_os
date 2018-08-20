@@ -165,8 +165,8 @@ jobs:
       - <<: *install_hex_rebar
       - <<: *install_nerves_bootstrap
       - run:
-          name: Send firmware asset to slack.
-          command: make farmbot_os_firmware_slack
+          name: Build firmware.
+          command: make farmbot_os_firmware
 
       - save_cache:
           key: v5-fbos-rpi3-dev-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
