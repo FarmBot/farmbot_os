@@ -249,18 +249,8 @@ defmodule Farmbot.SettingsSync do
 
   @doc "Sync the settings related to the Firmware."
   def do_sync_fw_configs do
-    with {:ok, %{body: body, status_code: 200}} <- Farmbot.HTTP.get("/api/firmware_config"),
-    {:ok, data} <- Farmbot.JSON.decode(body)
-    do
-      do_sync_fw_configs(data)
-    else
-      {:ok, status_code: code} ->
-        Farmbot.Logger.error 1, "HTTP error syncing settings: #{code}"
-        :ok
-      err ->
-        Farmbot.Logger.error 1, "Error syncing settings: #{inspect err}"
-        :ok
-    end
+    Farmbot.HTTP.firmware_config()
+    |> do_sync_fw_configs()
   end
 
   def do_sync_fw_configs(api_data) do
@@ -276,26 +266,15 @@ defmodule Farmbot.SettingsSync do
   def upload_fw_kv(key, val) when is_binary(key) and key in @firmware_keys and is_number(val)
   do
     Farmbot.Logger.debug 3, "Uploading #{key} => #{val} to api."
-    payload = Farmbot.JSON.encode!(%{key => val})
-    %{status_code: 200} = Farmbot.HTTP.put!("/api/firmware_config", payload)
+    Farmbot.HTTP.update_firmware_config(%{key => val})
     :ok
   end
 
   @doc "Sync the settings related to Farmbot OS and Firmware"
   def do_sync_fbos_configs do
-    with {:ok, %{body: body, status_code: 200}} <- Farmbot.HTTP.get("/api/fbos_config"),
-    {:ok, data} <- Farmbot.JSON.decode(body)
-    do
-      hacked_data = %{data | "firmware_hardware" => get_config_value(:string, "settings", "firmware_hardware")}
-      do_sync_fbos_configs(hacked_data)
-    else
-      {:ok, status_code: code} ->
-        Farmbot.Logger.error 1, "HTTP error syncing settings: #{code}"
-        :ok
-      err ->
-        Farmbot.Logger.error 1, "Error syncing settings: #{inspect err}"
-        :ok
-    end
+    Farmbot.HTTP.fbos_config()
+    |> Map.put("firmware_hardware", get_config_value(:string, "settings", "firmware_hardware"))
+    |>  do_sync_fbos_configs()
   end
 
   def do_sync_fbos_configs(api_data) do
