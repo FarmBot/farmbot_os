@@ -96,21 +96,24 @@ defmodule Farmbot.Bootstrap.Authorization do
   def do_request(request, state \\ %{backoff: 5000, log_dispatch_flag: false})
 
   def do_request({method, url, payload, headers}, state) do
-    case HTTPoison.request(method, url, payload, headers) do
-      {:ok, %{status_code: c, body: body}} when (c >= 200) and (c <= 299) ->
+    headers = Enum.map(headers, fn({k, v}) -> {to_charlist(k), to_charlist(v)} end)
+    opts = [{:body_format, :binary}]
+    request = if method == :get, do: {to_charlist(url), headers}, else: {to_charlist(url), headers, 'Application/JSON', payload}
+    resp = :httpc.request(method, request, [], opts)
+    case resp do
+      {:ok, {{_, c, _}, _headers, body}} when (c >= 200) and (c <= 299) ->
         {:ok, body}
-      {:ok, %{status_code: c, body: body}} when (c >= 400) and (c <= 499) ->
+      {:ok, {{_, c, _}, _headers, body}} when (c >= 400) and (c <= 499) ->
         err = get_error_message(body)
         Farmbot.Logger.error 1, "Authorization error for url: #{url} #{err}"
         {:error, {:authorization, err}}
-      {:ok, %{status_code: c, body: body}} when (c >= 500) and (c <= 599) ->
+      {:ok, {{_, c, _}, _headers, body}} when (c >= 500) and (c <= 599) ->
         Process.sleep(state.backoff)
         unless state.log_dispatch_flag do
           err = get_error_message(body)
           Farmbot.Logger.warn 1, "Farmbot web app failed complete request for url: #{url} #{err}"
         end
         do_request({method, url, payload, headers}, %{state | backoff: state.backoff + 1000, log_dispatch_flag: true})
-      {:error, %{reason: reason}} -> {:error, reason}
       {:error, reason} -> {:error, reason}
     end
   end
