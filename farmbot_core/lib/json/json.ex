@@ -3,21 +3,21 @@ defmodule Farmbot.JSON do
 
   @parser Application.get_env(:farmbot_core, :behaviour)[:json_parser]
   @parser || Mix.raise("Unconfigured JSON Parser.")
-  @spec decode(iodata) :: {:ok, term} | {:error, term}
-  def decode(iodata), do: @parser.decode(iodata)
+  @spec decode(iodata, term) :: {:ok, term} | {:error, term}
+  def decode(iodata, opts \\ []), do: @parser.decode(iodata, opts)
 
-  @spec encode(term) :: {:ok, term} | {:error, term}
-  def encode(data), do: @parser.encode(data)
+  @spec encode(term, term) :: {:ok, term} | {:error, term}
+  def encode(data, opts \\ []), do: @parser.encode(data, opts)
 
-  def decode!(iodata) do
-    case decode(iodata) do
+  def decode!(iodata, opts \\ []) do
+    case decode(iodata, opts) do
       {:ok, results}  -> results
       {:error, reason} -> raise(reason)
     end
   end
 
-  def encode!(data) do
-    case encode(data) do
+  def encode!(data, opts \\ []) do
+    case encode(data, opts) do
       {:ok, results}  -> results
       {:error, reason} -> raise(reason)
     end
