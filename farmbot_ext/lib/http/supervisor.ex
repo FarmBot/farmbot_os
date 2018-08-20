@@ -10,7 +10,8 @@ defmodule Farmbot.HTTP.Supervisor do
 
   def init([]) do
     children = [
-      {Farmbot.HTTP.ImageUploader, []}
+      {Farmbot.HTTP.ImageUploader, []},
+      {Farmbot.HTTP.SettingsWorker, []}
     ]
 
     opts = [strategy: :one_for_all]
