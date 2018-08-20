@@ -58,7 +58,6 @@ defmodule FarmbotCore.MixProject do
       # Arduino Firmware stuff.
       {:elixir_make, "~> 0.4", runtime: false},
       {:nerves_uart, "~> 1.2"},
-<<<<<<< HEAD
 
       {:gen_stage, "~> 0.14"},
 
@@ -67,11 +66,6 @@ defmodule FarmbotCore.MixProject do
       {:sqlite_ecto2, "~> 2.2"},
 
       {:timex, "~> 3.4"},
-=======
-      {:gen_stage, "~> 0.12"},
-      {:sqlite_ecto2, "~> 2.2.4"},
-      {:timex, "~> 3.3"},
->>>>>>> 6615e792... Lots of work on Farmware
 
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
