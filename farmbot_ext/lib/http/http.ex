@@ -52,6 +52,12 @@ defmodule Farmbot.HTTP do
     |> Map.fetch!(:body)
   end
 
+  def update_fbos_config(%{} = data) do
+    client()
+    |> patch!("/api/fbos_config", data)
+    |> Map.fetch!(:body)
+  end
+
   @doc "Upload a file to Farmbot GCS."
   def upload_file(filename, meta) do
     client()
