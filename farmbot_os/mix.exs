@@ -15,6 +15,7 @@ defmodule Farmbot.OS.MixProject do
       build_path: "_build/#{@target}",
       lockfile: "mix.lock.#{@target}",
       start_permanent: Mix.env() == :prod,
+      start_embedded: @target == "host",
       aliases: [loadconfig: [&bootstrap/1]],
       elixirc_paths: elixirc_paths(Mix.env(), @target),
       deps: deps()
@@ -40,19 +41,19 @@ defmodule Farmbot.OS.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      # Nerves stuff.
       {:nerves, "~> 1.3", runtime: false},
       {:shoehorn, "~> 0.4"},
-
+      {:logger_backend_sqlite, "~> 2.2"},
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
       {:farmbot_ext, path: "../farmbot_ext", env: Mix.env()},
-      {:logger_backend_sqlite, "~> 2.1"},
-      {:dialyxir, "~> 1.0.0-rc.3", runtime: false, override: true},
     ] ++ deps(@target)
   end
 
   # Specify target specific dependencies
   defp deps("host"), do: [
-    {:excoveralls, "~> 0.9", only: [:test]},
+    {:excoveralls, "~> 0.10", only: [:test]},
+    {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
     {:ex_doc, "~> 0.19", only: [:dev], runtime: false},
   ]
 
@@ -72,6 +73,7 @@ defmodule Farmbot.OS.MixProject do
 
       {:nerves_runtime, "~> 0.8"},
       {:nerves_network, "~> 0.3"},
+      {:nerves_wpa_supplicant, "~> 0.3"},
       {:nerves_firmware, "~> 0.4"},
       {:nerves_time, "~> 0.2"},
       {:dhcp_server, "~> 0.6"},

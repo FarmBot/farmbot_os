@@ -1,9 +1,9 @@
 defaults: &defaults
   working_directory: /nerves/build
   docker:
-    - image: nervesproject/nerves_system_br:1.4.2
+    - image: nervesproject/nerves_system_br:1.4.5
   environment:
-    ELIXIR_VERSION: 1.6.6
+    ELIXIR_VERSION: 1.7.3
 
 install_elixir: &install_elixir
   run:
@@ -55,13 +55,41 @@ install_arduino: &install_arduino
 version: 2.0
 
 jobs:
+  test_farmbot_celery_script:
+    <<: *defaults
+    environment:
+      MIX_ENV: test
+      MIX_TARGET: host
+      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
+      ELIXIR_VERSION: 1.7.3
+      SKIP_ARDUINO_BUILD: 1
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v5-fbcs-test-dependency-cache-{{ checksum "farmbot_celery_script/mix.lock" }}
+      - <<: *install_elixir
+      - <<: *install_hex_rebar
+      - run:
+          name: Test Farmbot CeleryScript
+          working_directory: /nerves/build/farmbot_celery_script
+          command: |
+            mix deps.get
+            mix compile
+            mix test
+      - save_cache:
+          key: v5-fbcs-test-dependency-cache-{{ checksum "farmbot_celery_script/mix.lock" }}
+          paths:
+            - farmbot_celery_script/_build/test
+            - farmbot_celery_script/deps
+
   test_farmbot_core:
     <<: *defaults
     environment:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.6.6
+      ELIXIR_VERSION: 1.7.3
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -73,11 +101,16 @@ jobs:
             - v5-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
       - <<: *install_elixir
       - <<: *install_hex_rebar
-      - <<: *install_nerves_bootstrap
       - <<: *install_arduino
       - run:
           name: Test Farmbot Core
-          command: make farmbot_core_test
+          working_directory: /nerves/build/farmbot_core
+          command: |
+            mix deps.get
+            mix compile
+            mix ecto.create
+            mix ecto.migrate
+            mix test
       - save_cache:
           key: v5-fbcore-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
           paths:
@@ -95,7 +128,8 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.6.6
+      ELIXIR_VERSION: 1.7.3
+      SKIP_ARDUINO_BUILD: 1
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -104,10 +138,15 @@ jobs:
             - v5-fbext-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
       - <<: *install_elixir
       - <<: *install_hex_rebar
-      - <<: *install_nerves_bootstrap
       - run:
           name: Test Farmbot Ext
-          command: make farmbot_ext_test
+          working_directory: /nerves/build/farmbot_ext
+          command: |
+            mix deps.get
+            mix compile
+            mix ecto.create
+            mix ecto.migrate
+            mix test
       - save_cache:
           key: v5-fbext-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
           paths:
@@ -120,7 +159,8 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.6.6
+      ELIXIR_VERSION: 1.7.3
+      SKIP_ARDUINO_BUILD: 1
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -135,7 +175,11 @@ jobs:
       - <<: *install_nerves_bootstrap
       - run:
           name: Test Farmbot OS
-          command: make farmbot_os_test
+          working_directory: /nerves/build/farmbot_os
+          command: |
+            mix deps.get
+            mix compile
+            mix test
       - save_cache:
           key: v5-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock.host" }}
           paths:
@@ -148,7 +192,7 @@ jobs:
       MIX_ENV: dev
       MIX_TARGET: rpi3
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.6.6
+      ELIXIR_VERSION: 1.7.3
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -165,8 +209,11 @@ jobs:
       - <<: *install_hex_rebar
       - <<: *install_nerves_bootstrap
       - run:
-          name: Build firmware.
-          command: make farmbot_os_firmware
+          name: Build OS Firmware
+          working_directory: /nerves/build/farmbot_os
+          command: |
+            mix deps.get
+            mix firmware
 
       - save_cache:
           key: v5-fbos-rpi3-dev-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
@@ -185,7 +232,7 @@ jobs:
       MIX_ENV: prod
       MIX_TARGET: rpi3
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.6.6
+      ELIXIR_VERSION: 1.7.3
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -206,8 +253,11 @@ jobs:
       - <<: *install_jq
       - run: grep -Pazo "(?s)(?<=# $(cat VERSION))[^#]+" CHANGELOG.md > RELEASE_NOTES
       - run:
-          name: Build production firmware
-          command: make farmbot_os_firmware
+          name: Build OS Firmware
+          working_directory: /nerves/build/farmbot_os
+          command: |
+            mix deps.get
+            mix firmware
       - run: mkdir -p artifacts
       - run: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
       - run: fwup -S -s $NERVES_FW_PRIV_KEY -i farmbot_os/_build/$MIX_TARGET/$MIX_ENV/nerves/images/farmbot_os.fw -o artifacts/farmbot-$MIX_TARGET-$(cat VERSION)-beta.fw
@@ -234,7 +284,7 @@ jobs:
       MIX_ENV: prod
       MIX_TARGET: rpi3
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.6.6
+      ELIXIR_VERSION: 1.7.3
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -255,8 +305,11 @@ jobs:
       - <<: *install_jq
       - run: grep -Pazo "(?s)(?<=# $(cat VERSION))[^#]+" CHANGELOG.md > RELEASE_NOTES
       - run:
-          name: Build production firmware
-          command: make farmbot_os_firmware
+          name: Build OS Firmware
+          working_directory: /nerves/build/farmbot_os
+          command: |
+            mix deps.get
+            mix firmware
       - run: mkdir -p artifacts
       - run: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
       - run: fwup -S -s $NERVES_FW_PRIV_KEY -i farmbot_os/_build/$MIX_TARGET/$MIX_ENV/nerves/images/farmbot_os.fw -o artifacts/farmbot-$MIX_TARGET-$(cat VERSION).fw
@@ -281,6 +334,8 @@ workflows:
   version: 2
   test:
     jobs:
+      - test_farmbot_celery_script:
+          context: org-global
       - test_farmbot_core:
           context: org-global
       - test_farmbot_ext:
