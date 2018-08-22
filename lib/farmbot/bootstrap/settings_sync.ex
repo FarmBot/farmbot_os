@@ -156,8 +156,15 @@ defmodule Farmbot.Bootstrap.SettingsSync do
       run(tries_left - 1)
     else
       try do
-        do_sync_fw_configs()
-        do_sync_fbos_configs()
+        update_config_value(:bool, "settings", "ignore_fbos_config", true)
+        update_config_value(:bool, "settings", "ignore_fw_config", true)
+
+          do_sync_fw_configs()
+          do_sync_fbos_configs()
+
+        update_config_value(:bool, "settings", "ignore_fbos_config", false)
+        update_config_value(:bool, "settings", "ignore_fw_config", false)
+
         Logger.debug 1, "Synced Farmbot OS and Firmware settings with API"
         :ok
       rescue
@@ -287,7 +294,8 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     with {:ok, %{body: body, status_code: 200}} <- Farmbot.HTTP.get("/api/fbos_config"),
     {:ok, data} <- Poison.decode(body)
     do
-      do_sync_fbos_configs(data)
+      hacked_data = %{data | "firmware_hardware" => get_config_value(:string, "settings", "firmware_hardware")}
+      do_sync_fbos_configs(hacked_data)
     else
       {:ok, status_code: code} ->
         Logger.error 1, "HTTP error syncing settings: #{code}"
@@ -298,23 +306,13 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     end
   end
 
-  def do_sync_fbos_configs(%{"api_migrated" => true} = api_data) do
+  def do_sync_fbos_configs(api_data) do
     update_config_value(:bool, "settings", "ignore_fbos_config", true)
       Logger.info 3, "API is the source of truth for Farmbot OS configs. Downloading data."
       old_config = get_config_as_map()["settings"]
       apply_fbos_map(old_config, api_data)
     update_config_value(:bool, "settings", "ignore_fbos_config", false)
 
-    :ok
-  end
-
-  def do_sync_fbos_configs(_unimportant_data) do
-    update_config_value(:bool, "settings", "ignore_fbos_config", true)
-      Logger.info 3, "Farmbot is the source of truth for Farmbot OS Configs Uploading data."
-      settings = get_config_as_map()["settings"] |> Map.put("api_migrated", true)
-      Farmbot.HTTP.delete!("/api/fbos_config")
-      Farmbot.HTTP.put!("/api/fbos_config", Farmbot.JSON.encode!(settings))
-    update_config_value(:bool, "settings", "ignore_fbos_config", false)
     :ok
   end
 
