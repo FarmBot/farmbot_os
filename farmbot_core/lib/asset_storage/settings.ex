@@ -8,6 +8,8 @@ defmodule Farmbot.Asset.Settings do
     FirmwareConfig
   }
 
+  import Farmbot.Config, only: [get_config_as_map: 0]
+
   def download_firmware(%{} = remote_fw_config) do
     local_fw_config = get_config_as_map()["hardware_params"]
     :ok = FirmwareConfig.download(remote_fw_config, local_fw_config)
