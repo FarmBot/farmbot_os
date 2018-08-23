@@ -72,8 +72,8 @@ jobs:
       - <<: *install_hex_rebar
       - run:
           name: Test Farmbot CeleryScript
+          working_directory: /nerves/build/farmbot_celery_script
           command: |
-            cd farmbot_celery_script
             mix deps.get
             mix compile
             mix test
@@ -101,18 +101,15 @@ jobs:
             - v5-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
       - <<: *install_elixir
       - <<: *install_hex_rebar
-      - <<: *install_nerves_bootstrap
       - <<: *install_arduino
-      - run: cd farmbot_core
-      - run: mix deps.get
-      - run: mix compile
-      - run: mix test
       - run:
           name: Test Farmbot Core
+          working_directory: /nerves/build/farmbot_core
           command: |
-            cd farmbot_core
             mix deps.get
             mix compile
+            mix ecto.create
+            mix ecto.migrate
             mix test
       - save_cache:
           key: v5-fbcore-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
@@ -143,10 +140,12 @@ jobs:
       - <<: *install_hex_rebar
       - run:
           name: Test Farmbot Ext
+          working_directory: /nerves/build/farmbot_ext
           command: |
-            cd farmbot_ext
             mix deps.get
             mix compile
+            mix ecto.create
+            mix ecto.migrate
             mix test
       - save_cache:
           key: v5-fbext-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
@@ -175,8 +174,9 @@ jobs:
       - <<: *install_hex_rebar
       - <<: *install_nerves_bootstrap
       - run:
+          name: Test Farmbot OS
+          working_directory: /nerves/build/farmbot_os
           command: |
-            cd farmbot_os
             mix deps.get
             mix compile
             mix test
@@ -209,8 +209,11 @@ jobs:
       - <<: *install_hex_rebar
       - <<: *install_nerves_bootstrap
       - run:
-          name: Build firmware.
-          command: make farmbot_os_firmware
+          name: Build OS Firmware
+          working_directory: /nerves/build/farmbot_os
+          command: |
+            mix deps.get
+            mix firmware
 
       - save_cache:
           key: v5-fbos-rpi3-dev-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
@@ -250,8 +253,11 @@ jobs:
       - <<: *install_jq
       - run: grep -Pazo "(?s)(?<=# $(cat VERSION))[^#]+" CHANGELOG.md > RELEASE_NOTES
       - run:
-          name: Build production firmware
-          command: make farmbot_os_firmware
+          name: Build OS Firmware
+          working_directory: /nerves/build/farmbot_os
+          command: |
+            mix deps.get
+            mix firmware
       - run: mkdir -p artifacts
       - run: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
       - run: fwup -S -s $NERVES_FW_PRIV_KEY -i farmbot_os/_build/$MIX_TARGET/$MIX_ENV/nerves/images/farmbot_os.fw -o artifacts/farmbot-$MIX_TARGET-$(cat VERSION)-beta.fw
@@ -299,8 +305,11 @@ jobs:
       - <<: *install_jq
       - run: grep -Pazo "(?s)(?<=# $(cat VERSION))[^#]+" CHANGELOG.md > RELEASE_NOTES
       - run:
-          name: Build production firmware
-          command: make farmbot_os_firmware
+          name: Build OS Firmware
+          working_directory: /nerves/build/farmbot_os
+          command: |
+            mix deps.get
+            mix firmware
       - run: mkdir -p artifacts
       - run: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
       - run: fwup -S -s $NERVES_FW_PRIV_KEY -i farmbot_os/_build/$MIX_TARGET/$MIX_ENV/nerves/images/farmbot_os.fw -o artifacts/farmbot-$MIX_TARGET-$(cat VERSION).fw
