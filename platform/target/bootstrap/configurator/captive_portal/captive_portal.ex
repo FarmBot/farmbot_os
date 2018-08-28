@@ -4,6 +4,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
 
   @interface Application.get_env(:farmbot, :captive_portal_interface, "wlan0")
   @address Application.get_env(:farmbot, :captive_portal_address, "192.168.25.1")
+  @mdns_domain "farmbot-setup.local"
 
   @dnsmasq_conf_file "dnsmasq.conf"
   @dnsmasq_pid_file "dnsmasq.pid"
@@ -48,6 +49,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
     wpa_pid = wait_for_wpa()
     Nerves.WpaSupplicant.request(wpa_pid, {:AP_SCAN, 2})
     Farmbot.Leds.blue(:slow_blink)
+    init_mdns(@mdns_domain)
+    update_mdns(@address)
     {:ok, %{dhcp_server: dhcp_server, dnsmasq: dnsmasq}}
   end
 
@@ -58,6 +61,9 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
 
   def terminate(_, state) do
     Logger.busy 3, "Stopping captive portal GenServer."
+
+    Logger.busy 3, "Stopping mDNS."
+    Mdns.Server.stop()
 
     Logger.busy 3, "Stopping DHCP GenServer."
     GenServer.stop(state.dhcp_server, :normal)
@@ -164,6 +170,35 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
   defp print_cmd({_, num}) do
     Logger.error(2, "Encountered an error (#{num})")
     :error
+  end
+
+  defp init_mdns(mdns_domain) do
+    Mdns.Server.add_service(%Mdns.Server.Service{
+      domain: mdns_domain,
+      data: :ip,
+      ttl: 120,
+      type: :a
+    })
+  end
+
+  defp update_mdns(ip) do
+    ip_tuple = to_ip_tuple(ip)
+    Mdns.Server.stop()
+
+    # Give the interface time to settle to fix an issue where mDNS's multicast
+    # membership is not registered. This occurs on wireless interfaces and
+    # needs to be revisited.
+    :timer.sleep(100)
+
+    Mdns.Server.start(interface: ip_tuple)
+    Mdns.Server.set_ip(ip_tuple)
+  end
+
+  defp to_ip_tuple(str) do
+    str
+    |> String.split(".")
+    |> Enum.map(&String.to_integer/1)
+    |> List.to_tuple()
   end
 
 end

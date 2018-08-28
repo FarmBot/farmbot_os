@@ -1,7 +1,7 @@
 version: 2.0
 defaults: &defaults
   docker:
-    - image: nervesproject/nerves:1.3.0
+    - image: nervesproject/nerves_system_br:1.4.2
 
 install_elixir: &install_elixir
   run:
@@ -107,14 +107,6 @@ jobs:
             - deps/rpi3
             - deps/host
             - ~/.nerves
-      - run:
-          name: Send firmware asset to slack.
-          command: |
-            if [ $(mix firmware.slack --channels C58DCU4A3) -eq 0 ]; then
-            echo "Firmware upload success."
-            else
-            echo "Firmware upload fail."
-            fi
       - run: mkdir -p artifacts
       - run:
           name: Decode fwup priv key

@@ -37,10 +37,11 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
   def init([]) do
     token = ConfigStorage.get_config_value(:string, "authorization", "token")
+    email = ConfigStorage.get_config_value(:string, "authorization", "email")
 
     import Farmbot.Jwt, only: [decode: 1]
     with {:ok, %{bot: device, mqtt: mqtt_host, vhost: vhost}} <- decode(token),
-         {:ok, conn}  <- open_connection(token, device, mqtt_host, vhost),
+         {:ok, conn}  <- open_connection(token, email, device, mqtt_host, vhost),
          {:ok, chan}  <- AMQP.Channel.open(conn),
          q_base       <- device,
 
@@ -56,12 +57,12 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
          {:ok, _tag}  <- Basic.consume(chan, q_base <> "_from_clients", self(), [no_ack: true]),
          {:ok, _tag}  <- Basic.consume(chan, q_base <> "_auto_sync", self(), [no_ack: true]),
-         opts      <- [conn: conn, chan: chan, bot: device],
-         state <- struct(State, opts)
+         state <- %State{conn: conn, chan: chan, bot: device}
     do
-      update_config_value(:bool, "settings", "ignore_fbos_config", false)
-      true = Process.link(conn.pid)
-      true = Process.link(chan.pid)
+      _ = Process.monitor(conn.pid)
+      _ = Process.monitor(chan.pid)
+      _ = Process.flag(:sensitive, true)
+      _ = Process.flag(:trap_exit, true)
       {:consumer, state, subscribe_to: [Farmbot.BotState, Farmbot.Logger]}
     else
       {:error, {:auth_failure, msg}} = fail ->
@@ -79,18 +80,36 @@ defmodule Farmbot.BotState.Transport.AMQP do
     end
   end
 
-  defp open_connection(token, device, mqtt_server, vhost) do
+  defp open_connection(token, email, bot, mqtt_server, vhost) do
     opts = [
-      host: mqtt_server,
-      username: device,
-      password: token,
-      virtual_host: vhost]
-    AMQP.Connection.open(opts)
+    client_properties: [
+      {"version", :longstr, Farmbot.Project.version()},
+      {"commit", :longstr, Farmbot.Project.commit()},
+      {"target", :longstr, Farmbot.Project.target()},
+      {"opened", :longstr, to_string(DateTime.utc_now())},
+      {"product", :longstr, "farmbot_os"},
+      {"bot", :longstr, bot},
+      {"email", :longstr, email},
+      {"node", :longstr, to_string(node())},
+    ],
+    host: mqtt_server,
+    username: bot,
+    password: token,
+    virtual_host: vhost]
+
+    case AMQP.Connection.open(opts) do
+      {:ok, conn} -> {:ok, conn}
+      {:error, reason} ->
+        Logger.error 1, "Error connecting to AMPQ: #{inspect reason}"
+        Process.sleep(5000)
+        open_connection(token, email, bot, mqtt_server, vhost)
+    end
   end
 
   def terminate(reason, state) do
     ok_reasons = [:normal, :shutdown, :token_refresh]
     update_config_value(:bool, "settings", "ignore_fbos_config", false)
+    update_config_value(:bool, "settings", "ignore_fw_config", false)
 
     if reason not in ok_reasons do
       Logger.error 1, "AMQP Died: #{inspect reason}"
@@ -210,6 +229,14 @@ defmodule Farmbot.BotState.Transport.AMQP do
     end
   end
 
+  def handle_info({:DOWN, _, :process, pid, reason}, %{conn: %{pid: pid}} = state) do
+    {:stop, reason, state}
+  end
+
+  def handle_info({:DOWN, _, :process, pid, reason}, %{chan: %{pid: pid}} = state) do
+    {:stop, reason, state}
+  end
+
   def handle_info({:DOWN, _, :process, pid, reason}, state) do
     unless reason in [:normal, :noproc] do
       Logger.warn 3, "CeleryScript: #{inspect pid} died: #{inspect reason}"
@@ -265,6 +292,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
   def handle_fbos_config(_id, payload, state) do
     if get_config_value(:bool, "settings", "ignore_fbos_config") do
+      IO.puts "Ignoring OS config from AMQP."
       {:noreply, [], state}
     else
       case Poison.decode(payload) do
@@ -280,18 +308,17 @@ defmodule Farmbot.BotState.Transport.AMQP do
   end
 
   def handle_fw_config(_id, payload, state) do
-    case Poison.decode(payload) do
-      {:ok, %{"body" => nil}} -> {:noreply, [], state}
-      {:ok, %{"body" => config}} ->
-        old = state.state_cache.mcu_params
-        _new = Farmbot.Bootstrap.SettingsSync.apply_fw_map(old, config)
-        # for {key, new_value} <- new do
-        #   if old[:"#{key}"] != new_value do
-        #     Logger.info 1, "Updating key: #{key} => #{new_value}"
-        #     Farmbot.Firmware.update_param(:"#{key}", new_value / 1)
-        #   end
-        # end
-        {:noreply, [], state}
+    if get_config_value(:bool, "settings", "ignore_fw_config") do
+      IO.puts "Ignoring FW config from AMQP."
+      {:noreply, [], state}
+    else
+      case Poison.decode(payload) do
+        {:ok, %{"body" => %{} = config}} ->
+          old = state.state_cache.mcu_params
+          _new = Farmbot.Bootstrap.SettingsSync.apply_fw_map(old, config)
+          {:noreply, [], state}
+        _ -> {:noreply, [], state}
+        end
     end
   end
 

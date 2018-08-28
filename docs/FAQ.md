@@ -30,10 +30,6 @@ peoples bot's unusable because of broken firmwares.
 ## Can the shell run on HDMI
 No. Farmbot is designed to operate without the use of a monitor.
 
-## Can I SSH into the Farmbot?
-No. Farmbot does not run `raspbain` as many users are used too. There are no
-normal `linux` utilities (such as `apt`, `sudo`, `bash` etc).
-
 ## Why aren't [X] or [Y] packages included?
 See the above answer. [Raise an issue](https://github.com/FarmBot/farmbot_os/issues/new)
 to request a package. Future versions of FarmBotOS may provide a plugin system.

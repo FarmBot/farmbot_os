@@ -6,6 +6,7 @@ defmodule Farmbot.Target.Network do
   import ConfigStorage, only: [get_config_value: 3]
   alias ConfigStorage.NetworkInterface
   alias Farmbot.Target.Network.Manager, as: NetworkManager
+  alias Farmbot.Target.Network.NotFoundTimer
   alias Farmbot.Target.Network.ScanResult
 
   use Supervisor
@@ -87,8 +88,12 @@ defmodule Farmbot.Target.Network do
 
   def do_scan(iface) do
     pid = :"Nerves.WpaSupplicant.#{iface}"
-    Nerves.WpaSupplicant.request(pid, :SCAN)
-    wait_for_results(pid)
+    if Process.whereis(pid) do
+      Nerves.WpaSupplicant.request(pid, :SCAN)
+      wait_for_results(pid)
+    else
+      []
+    end
   end
 
   def get_level(ifname, ssid) do
@@ -115,7 +120,8 @@ defmodule Farmbot.Target.Network do
   end
 
   def test_dns(hostname) do
-    IO.puts "testing dns: #{hostname}"
+    :ok = :inet_db.clear_cache()
+    # IO.puts "testing dns: #{hostname}"
     case :inet.parse_ipv4_address(hostname) do
       {:ok, addr} -> {:ok, {:hostent, hostname, [], :inet, 4, [addr]}}
       _ -> :inet_res.gethostbyname(hostname)
@@ -169,7 +175,7 @@ defmodule Farmbot.Target.Network do
   end
 
   def to_child_spec({interface, opts}) do
-    worker(NetworkManager, [interface, opts])
+    worker(NetworkManager, [interface, opts], [restart: :transient])
   end
 
   def start_link(_, opts) do
@@ -183,6 +189,7 @@ defmodule Farmbot.Target.Network do
       |> Enum.map(&to_network_config/1)
       |> Enum.map(&to_child_spec/1)
       |> Enum.uniq() # Don't know why/if we need this?
+    children = [{NotFoundTimer, []}] ++ children
     Supervisor.init(children, strategy: :one_for_one, max_restarts: 20, max_seconds: 1)
   end
 end

@@ -1,10 +1,25 @@
+### WARNING(Connor) 2018-08-16
+### Do not touch anything in this file unless you understand _exactly_
+### what you are doing. If you look at it wrong, you will cause the
+### Raspberry pi to kernel panic for some reason. I have
+### no idea why. Just move along.
+### If you are in this file, please at least be kind enough as to not touch any
+### of the timing sensitive things. It _will_ break.
+
 defmodule Farmbot.Target.Network.Manager do
   use GenServer
   use Farmbot.Logger
-  alias Farmbot.System.ConfigStorage
-  alias Nerves.Network
-  alias Farmbot.Target.Network.Ntp
+  import Farmbot.System.ConfigStorage, only: [get_config_value: 3]
+  alias Farmbot.Target.Network.NotFoundTimer
   import Farmbot.Target.Network, only: [test_dns: 0]
+
+  def debug_logs? do
+    Application.get_env(:farmbot, :network_debug_logs, false)
+  end
+
+  def debug_logs(bool) do
+    Application.put_env(:farmbot, :network_debug_logs, bool)
+  end
 
   def get_ip_addr(interface) do
     GenServer.call(:"#{__MODULE__}-#{interface}", :ip)
@@ -25,39 +40,74 @@ defmodule Farmbot.Target.Network.Manager do
       Process.sleep(1000)
       init(args)
     end
-    Logger.success(3, "Interface #{interface} is up.")
 
-    {:ok, _} = Elixir.Registry.register(Nerves.NetworkInterface, interface, [])
-    {:ok, _} = Elixir.Registry.register(Nerves.Udhcpc, interface, [])
-    {:ok, _} = Elixir.Registry.register(Nerves.WpaSupplicant, interface, [])
+    Logger.success(3, "Interface #{interface} is up.")
+    s1 = get_config_value(:string, "settings", "default_ntp_server_1")
+    s2 = get_config_value(:string, "settings", "default_ntp_server_2")
+    Nerves.Time.set_ntp_servers([s1, s2])
+    maybe_hack_tzdata()
+
     settings = Enum.map(opts, fn({key, value}) ->
       case key do
         :key_mgmt -> {key, String.to_atom(value)}
         _ -> {key, value}
       end
     end)
-    Network.setup(interface, settings)
+    Nerves.Network.IFSupervisor.setup(interface, settings)
+
+    {:ok, _} = Elixir.Registry.register(Nerves.NetworkInterface, interface, [])
+    {:ok, _} = Elixir.Registry.register(Nerves.Udhcpc, interface, [])
+    {:ok, _} = Elixir.Registry.register(Nerves.WpaSupplicant, interface, [])
+
     domain = node() |> to_string() |> String.split("@") |> List.last() |> Kernel.<>(".local")
     init_mdns(domain)
-    {:ok, %{mdns_domain: domain, interface: interface, opts: settings, ip_address: nil, connected: false, not_found_timer: nil, ntp_timer: nil, dns_timer: nil}}
+    state = %{
+      # These won't change
+      mdns_domain: domain,
+      interface: interface,
+      opts: settings,
+
+      # These change based on
+      # Events from timers and other processes.
+      ip_address: nil,
+      connected: false,
+      ap_connected: false,
+
+      # Tries to reconnect after "network not found" event.
+      reconnect_timer: nil,
+
+      # Tests internet connectivity.
+      dns_timer: nil,
+    }
+    {:ok, state}
+  end
+
+  def terminate(_, state) do
+    # This hopefully makes the NetworkInterface ready when this
+    # GenServer is restarted.
+    Nerves.Network.IFSupervisor.teardown(state.interface)
+    Nerves.NetworkInterface.ifdown(state.interface)
+    Process.sleep(5000)
+    Nerves.NetworkInterface.ifup(state.interface)
+    Process.sleep(5000)
   end
 
   def handle_call(:ip, _, state) do
     {:reply, state.ip_address, state}
   end
 
+  # When assigned an IP address.
   def handle_info({Nerves.Udhcpc, :bound, %{ipv4_address: ip}}, state) do
     Logger.debug 3, "Ip address: #{ip}"
+    NotFoundTimer.stop()
     connected = match?({:ok, {:hostent, _, _, :inet, 4, _}}, test_dns())
     if connected do
       init_mdns(state.mdns_domain)
-      ntp_timer = restart_ntp_timer(state.ntp_timer)
-      not_found_timer = cancel_timer(state.not_found_timer)
       dns_timer = restart_dns_timer(state.dns_timer, 45_000)
       update_mdns(ip, state.mdns_domain)
-      {:noreply, %{state | dns_timer: dns_timer, ip_address: ip, connected: true, not_found_timer: not_found_timer, ntp_timer: ntp_timer}}
+      {:noreply, %{state | dns_timer: dns_timer, ip_address: ip, connected: true}}
     else
-      {:noreply, %{state | connected: false, ntp_timer: nil, ip_address: ip}}
+      {:noreply, %{state | connected: false, ip_address: ip}}
     end
   end
 
@@ -67,104 +117,110 @@ defmodule Farmbot.Target.Network.Manager do
     {:stop, :normal, state}
   end
 
-  def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-NETWORK-NOT-FOUND", _}, %{not_found_timer: nil} = state) do
+  def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-NETWORK-NOT-FOUND", _}, state) do
     # stored in minutes
-    delay_timer = (ConfigStorage.get_config_value(:float, "settings", "network_not_found_timer") || 1) * 60_000
-    timer = Process.send_after(self(), :network_not_found_timer, round(delay_timer))
-    {:noreply, %{state | not_found_timer: timer, connected: false}}
+    reconnect_timer = if state.connected, do: restart_connection_timer(state)
+    maybe_refresh_token()
+    NotFoundTimer.start()
+    new_state = %{state |
+      ap_connected: false,
+      connected: false,
+      ip_address: nil,
+      reconnect_timer: reconnect_timer
+    }
+    {:noreply, new_state}
   end
 
   def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-CONNECTED", _}, state) do
-    # Don't update connected. This is not a real test of connectivity.
+    # Don't update `connected`. This is not a real test of connectivity.
     Logger.success 1, "Connected to access point."
-    {:noreply, state}
+    NotFoundTimer.stop()
+    {:noreply, %{state | ap_connected: true}}
   end
-
 
   def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-DISCONNECTED", _}, state) do
-    Logger.error 1, "Disconnected from access point."
-    {:noreply, %{state | connected: false}}
+    # stored in minutes
+    reconnect_timer = if state.connected, do: restart_connection_timer(state)
+    maybe_refresh_token()
+    NotFoundTimer.start()
+    new_state = %{state |
+      ap_connected: false,
+      connected: false,
+      ip_address: nil,
+      reconnect_timer: reconnect_timer
+    }
+    {:noreply, new_state}
   end
 
-  def handle_info({Nerves.WpaSupplicant, _, _}, state) do
-    # Logger.error 1 "unhandled wpa event: {#{inspect info}, #{inspect infoa}}"
-    {:noreply, state}
-  end
-
-  def handle_info(:network_not_found_timer, state) do
-    delay_minutes = (ConfigStorage.get_config_value(:float, "settings", "network_not_found_timer") || 1)
-    disable_factory_reset? = ConfigStorage.get_config_value(:bool, "settings", "disable_factory_reset")
-    first_boot? = ConfigStorage.get_config_value(:bool, "settings", "first_boot")
-    connected? = state.connected
-    cond do
-      connected? ->
-        Logger.warn 1, "Not resetting because network is connected."
-        {:noreply, %{state | not_found_timer: nil}}
-      disable_factory_reset? ->
-        Logger.warn 1, "Factory reset is disabled. Not resettings."
-        {:noreply, %{state | not_found_timer: nil}}
-      first_boot? ->
-        msg = """
-        Network not found after #{delay_minutes} minute(s).
-        possible causes of this include:
-
-        1) A typo if you manually inputted the SSID.
-
-        2) The access point is out of range
-
-        3) There is too much radio interference around Farmbot.
-
-        5) There is a hardware issue.
-        """
-        Logger.error 1, msg
-        Farmbot.System.factory_reset(msg)
-        {:stop, :network_not_found, %{state | not_found_timer: nil}}
-      true ->
-        Logger.error 1, "Network not found after timer. Farmbot is disconnected."
-        msg = """
-        Network not found after #{delay_minutes} minute(s).
-        This can happen if your wireless access point is no longer available,
-        out of range, or there is too much radio interference around Farmbot.
-        If you see this message intermittently you should disable \"automatic
-        factory reset\" or tune the \"network not found
-        timer\" value in the Farmbot Web Application.
-        """
-        Farmbot.System.factory_reset(msg)
-        # Network.teardown(state.interface)
-        # Network.setup(state.interface, state.opts)
-        {:stop, :network_not_found, %{state | not_found_timer: nil}}
+  def handle_info({Nerves.WpaSupplicant, info, infoa}, state) do
+    # :"CTRL-EVENT-SSID-TEMP-DISABLED id=0 ssid=\"Rory's Phone\" auth_failures=2 duration=20 reason=CONN_FAILED"
+    case is_atom(info) && to_string(info) do
+      <<"CTRL-EVENT-SSID-TEMP-DISABLED" <> _>> = msg ->
+        if String.contains?(msg, "duration=20") do
+          reconnect_timer = if state.connected, do: restart_connection_timer(state)
+          maybe_refresh_token()
+          NotFoundTimer.start()
+          new_state = %{state |
+            ap_connected: false,
+            connected: false,
+            ip_address: nil,
+            reconnect_timer: reconnect_timer
+          }
+          {:noreply, new_state}
+        else
+          {:noreply, state}
+        end
+      _ ->
+        if debug_logs?() do
+          IO.inspect {info, infoa}, label: "unhandled wpa event"
+        end
+        {:noreply, state}
     end
   end
 
-  def handle_info(:ntp_timer, state) do
-    new_timer = restart_ntp_timer(state.ntp_timer)
-    {:noreply, %{state | ntp_timer: new_timer}}
+  def handle_info(:reconnect_timer, %{ap_connected: false} = state) do
+    Logger.warn 1, "Wireless network not found still. Trying again."
+    {:stop, :reconnect_timer, state}
+  end
+
+  def handle_info(:reconnect_timer, %{ap_connected: true} = state) do
+    Logger.success 1, "Wireless network reconnected."
+    {:noreply, state}
+  end
+
+  def handle_info(:dns_timer, %{connected: true} = state) do
+    case test_dns() do
+      {:ok, {:hostent, _host_name, _aliases, :inet, 4, _}} ->
+        # Farmbot is still connected. NBD
+        {:noreply, %{state | dns_timer: restart_dns_timer(nil, 45_000)}}
+
+      {:error, err} ->
+        maybe_refresh_token()
+        Logger.warn 3, "Farmbot was disconnected from the internet: #{inspect err}"
+        {:noreply, %{state | connected: false, dns_timer: restart_dns_timer(nil, 20_000)}}
+    end
+  end
+
+  def handle_info(:dns_timer, %{ip_address: nil} = state) do
+    Logger.warn 3, "Farmbot still disconnected from the internet"
+    {:noreply, %{state | connected: false, dns_timer: restart_dns_timer(nil, 20_000)}}
   end
 
   def handle_info(:dns_timer, state) do
     case test_dns() do
       {:ok, {:hostent, _host_name, aliases, :inet, 4, _}} ->
         # If we weren't previously connected, send a log.
-        if state.connected do
-          # Farmbot is still connected. NBD
-          {:noreply, state}
-        else
-          Logger.success 3, "Farmbot was reconnected to the internet: #{inspect aliases}"
-          new_state = %{state |
-            connected: true,
-            not_found_timer: cancel_timer(state.not_found_timer),
-            dns_timer: restart_dns_timer(nil, 45_000),
-            ntp_timer: restart_ntp_timer(state.ntp_timer, 1000)
-          }
-          Farmbot.System.Registry.dispatch(:network, :dns_up)
-          {:noreply, new_state}
-        end
+        Logger.success 3, "Farmbot was reconnected to the internet: #{inspect aliases}"
+        maybe_refresh_token()
+        new_state = %{state |
+          connected: true,
+          dns_timer: restart_dns_timer(nil, 45_000),
+        }
+        {:noreply, new_state}
 
       {:error, err} ->
-        Farmbot.System.Registry.dispatch(:network, :dns_down)
         Logger.warn 3, "Farmbot was disconnected from the internet: #{inspect err}"
-        Network.teardown(state.interface)
-        Network.setup(state.interface, state.opts)
+        maybe_refresh_token()
         {:noreply, %{state | connected: false, dns_timer: restart_dns_timer(nil, 20_000)}}
     end
   end
@@ -188,24 +244,24 @@ defmodule Farmbot.Target.Network.Manager do
     Process.send_after(self(), :dns_timer, time)
   end
 
-  defp restart_ntp_timer(timer, time \\ nil) do
-    cancel_timer(timer)
-    # introduce a bit of randomness to avoid dosing ntp servers.
-    # I don't think this would ever happen but the default ntpd implementation
-    # does this..
-    rand = :rand.uniform(5000)
+  defp restart_connection_timer(state) do
+    # TODO(Connor) - 2018-08-15 There is a bug in Nerves.Network
+    # Where `Nerves.Network.teardown(ifname)` doesn't actually do anything.
+    cancel_timer(state.reconnect_timer)
+    Nerves.Network.IFSupervisor.teardown(state.interface)
+    Nerves.NetworkInterface.ifdown(state.interface)
+    Process.sleep(5000)
+    Nerves.NetworkInterface.ifup(state.interface)
+    Process.sleep(5000)
+    Nerves.Network.setup(state.interface, state.opts)
+    Process.send_after(self(), :reconnect_timer, 30_000)
+  end
 
-    case Ntp.set_time() do
-
-      # If we Successfully set time, sync again in around 1024 seconds
-      :ok -> Process.send_after(self(), :ntp_timer, (time || 1024000) + rand)
-      # If time failed, try again in about 5 minutes.
-      _ ->
-        if Farmbot.System.ConfigStorage.get_config_value(:bool, "settings", "first_boot") do
-          Process.send_after(self(), :ntp_timer, (time || 10_000) + rand)
-        else
-          Process.send_after(self(), :ntp_timer, (time || 300000) + rand)
-        end
+  defp maybe_refresh_token do
+    if Process.whereis(Farmbot.Bootstrap.AuthTask) do
+      Farmbot.Bootstrap.AuthTask.force_refresh()
+    else
+      Logger.warn 1, "AuthTask not running yet"
     end
   end
 
@@ -236,5 +292,21 @@ defmodule Farmbot.Target.Network.Manager do
     |> String.split(".")
     |> Enum.map(&String.to_integer/1)
     |> List.to_tuple()
+  end
+
+  @fb_data_dir Application.get_env(:farmbot, :data_path)
+  @tzdata_dir Application.app_dir(:tzdata, "priv")
+  def maybe_hack_tzdata do
+    case Tzdata.Util.data_dir() do
+      @fb_data_dir -> :ok
+      _ ->
+        Logger.debug 3, "Hacking tzdata."
+        objs_to_cp = Path.wildcard(Path.join(@tzdata_dir, "*"))
+        for obj <- objs_to_cp do
+          File.cp_r obj, @fb_data_dir
+        end
+        Application.put_env(:tzdata, :data_dir, @fb_data_dir)
+        :ok
+    end
   end
 end
