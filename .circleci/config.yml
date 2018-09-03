@@ -1,9 +1,9 @@
 defaults: &defaults
   working_directory: /nerves/build
   docker:
-    - image: nervesproject/nerves_system_br:1.4.2
+    - image: nervesproject/nerves_system_br:1.4.5
   environment:
-    ELIXIR_VERSION: 1.6.6
+    ELIXIR_VERSION: 1.7.3
 
 install_elixir: &install_elixir
   run:
@@ -61,7 +61,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.6.6
+      ELIXIR_VERSION: 1.7.3
       SKIP_ARDUINO_BUILD: 1
     steps:
       - checkout
@@ -89,7 +89,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.6.6
+      ELIXIR_VERSION: 1.7.3
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -128,7 +128,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.6.6
+      ELIXIR_VERSION: 1.7.3
       SKIP_ARDUINO_BUILD: 1
     steps:
       - checkout
@@ -159,7 +159,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.6.6
+      ELIXIR_VERSION: 1.7.3
       SKIP_ARDUINO_BUILD: 1
     steps:
       - checkout
@@ -192,7 +192,7 @@ jobs:
       MIX_ENV: dev
       MIX_TARGET: rpi3
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.6.6
+      ELIXIR_VERSION: 1.7.3
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -232,7 +232,7 @@ jobs:
       MIX_ENV: prod
       MIX_TARGET: rpi3
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.6.6
+      ELIXIR_VERSION: 1.7.3
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -284,7 +284,7 @@ jobs:
       MIX_ENV: prod
       MIX_TARGET: rpi3
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.6.6
+      ELIXIR_VERSION: 1.7.3
     steps:
       - checkout
       - run: git submodule update --init --recursive
