@@ -44,7 +44,6 @@ defmodule Farmbot.OS.MixProject do
       {:nerves, "~> 1.3", runtime: false},
       {:shoehorn, "~> 0.4"},
       {:logger_backend_sqlite, "~> 2.1"},
-
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
       {:farmbot_ext, path: "../farmbot_ext", env: Mix.env()},
     ] ++ deps(@target)
@@ -73,6 +72,7 @@ defmodule Farmbot.OS.MixProject do
 
       {:nerves_runtime, "~> 0.8"},
       {:nerves_network, "~> 0.3"},
+      {:nerves_wpa_supplicant, "~> 0.3"},
       {:nerves_firmware, "~> 0.4"},
       {:nerves_time, "~> 0.2"},
       {:dhcp_server, "~> 0.6"},
