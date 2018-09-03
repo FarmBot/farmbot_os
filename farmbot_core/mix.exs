@@ -55,18 +55,12 @@ defmodule FarmbotCore.MixProject do
   defp deps do
     [
       {:farmbot_celery_script, path: "../farmbot_celery_script", env: Mix.env()},
-      # Arduino Firmware stuff.
       {:elixir_make, "~> 0.4", runtime: false},
       {:nerves_uart, "~> 1.2"},
-
       {:gen_stage, "~> 0.14"},
-
-      # Storage of data.
       {:ecto, "~> 2.2"},
       {:sqlite_ecto2, "~> 2.2"},
-
       {:timex, "~> 3.4"},
-
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
       {:excoveralls, "~> 0.10", only: :test}
