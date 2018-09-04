@@ -41,9 +41,10 @@ defmodule Farmbot.OS.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      # Nerves stuff.
       {:nerves, "~> 1.3", runtime: false},
       {:shoehorn, "~> 0.4"},
-      {:logger_backend_sqlite, "~> 2.1"},
+      {:logger_backend_sqlite, "~> 2.2"},
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
       {:farmbot_ext, path: "../farmbot_ext", env: Mix.env()},
     ] ++ deps(@target)
