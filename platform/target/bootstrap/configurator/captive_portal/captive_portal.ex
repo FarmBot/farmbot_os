@@ -44,7 +44,13 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
     ]
     {:ok, dhcp_server} = DHCPServer.start_link(@interface, dhcp_opts)
 
-    dnsmasq = setup_dnsmasq(@address, @interface)
+    dnsmasq = 
+    case setup_dnsmasq(@address, @interface) do
+      {:ok, dnsmasq} -> dnsmasq
+      {:error, _} -> 
+        Logger.error 1, "Failed to start DnsMasq"
+        nil
+    end
 
     wpa_pid = wait_for_wpa()
     Nerves.WpaSupplicant.request(wpa_pid, {:AP_SCAN, 2})
@@ -125,7 +131,9 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
                   "--conf-dir=/tmp/dnsmasq"
     dnsmasq_port = Port.open({:spawn, dnsmasq_cmd}, [:binary])
     dnsmasq_os_pid = dnsmasq_port|> Port.info() |> Keyword.get(:os_pid)
-    {dnsmasq_port, dnsmasq_os_pid}
+    {:ok, {dnsmasq_port, dnsmasq_os_pid}}
+  rescue
+    ex -> {:error, ex}
   end
 
   defp build_dnsmasq_conf(ip_addr, interface) do

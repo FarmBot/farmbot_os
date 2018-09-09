@@ -46,7 +46,7 @@ defmodule Farmbot.System.Init.FSCheckup do
           Logger.busy(3, "Deleting: #{fw}")
           File.rm_rf(fw)
         end
-        Elixir.Logger.add_backend(LoggerBackendEcto)
+        init_logger_backend_ecto()
         :ok
 
       err ->
@@ -61,5 +61,11 @@ defmodule Farmbot.System.Init.FSCheckup do
     unless File.exists?(multiuser_dir) do
       File.mkdir_p(multiuser_dir)
     end
+  end
+
+  defp init_logger_backend_ecto do
+    Elixir.Logger.add_backend(LoggerBackendEcto)
+  catch
+    _ -> Logger.error 1, "Could not start disk."
   end
 end
