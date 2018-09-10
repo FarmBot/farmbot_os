@@ -6,6 +6,3 @@ config :farmbot, :gpio, status_led_off: true
 
 config :farmbot, :captive_portal_address, "192.168.24.1"
 config :farmbot, kernel_modules: ["snd-bcm2835"]
-
-config :nerves, :firmware,
-  fwup_conf: "config/target/fwup.rpi3.conf"
