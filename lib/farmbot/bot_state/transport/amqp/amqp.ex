@@ -275,7 +275,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
       {:ok, %Macro.Env{}} = AST.Node.RpcOk.execute(%{label: uuid}, [], struct(Macro.Env))
     else
       %{
-        "body" => body,
+        "body" => _body,
         "args" => %{"label" => uuid}
       } = Poison.decode!(payload)
       msg = "Unknown syncable: #{mod}"
