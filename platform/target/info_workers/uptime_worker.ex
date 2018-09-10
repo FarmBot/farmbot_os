@@ -22,7 +22,7 @@ defmodule Farmbot.Target.UptimeWorker do
   end
 
   def collect_report do
-    {_cpu_time_ms, wall_clock_ms} = :erlang.statistics(:runtime)
+    {wall_clock_ms, _last_call} = :erlang.statistics(:wall_clock)
     round(wall_clock_ms * 0.001)
   end
 end
