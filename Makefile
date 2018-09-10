@@ -25,7 +25,10 @@ help:
 	@echo "TARGETS: "
 	@echo "	clean - clean all."
 
-clean:
+clean_other_branch:
+	rm -rf _build deps c_src config tmp
+
+clean: clean_other_branch
 	@for project in $(PROJECTS) ; do \
 		echo cleaning $$project ; \
 		rm -rf $$project/_build ; \
