@@ -52,8 +52,20 @@ defmodule Farmbot.BotState do
     end
   end
 
+  def report_disk_usage(percent) when is_number(percent) do
+    GenStage.call(__MODULE__, {:report_disk_usage, percent})
+  end
+
+  def report_memory_usage(megabytes) when is_number(megabytes) do
+    GenStage.call(__MODULE__, {:report_memory_usage, megabytes})
+  end
+
   def report_soc_temp(temp_celcius) when is_number(temp_celcius) do
     GenStage.call(__MODULE__, {:report_soc_temp, temp_celcius})
+  end
+
+  def report_uptime(seconds) when is_number(seconds) do
+    GenStage.call(__MODULE__, {:report_uptime, seconds})
   end
 
   def report_wifi_level(level) when is_number(level) do
@@ -189,8 +201,26 @@ defmodule Farmbot.BotState do
     {:noreply, [], state}
   end
 
+  def handle_call({:report_disk_usage, percent}, _from, state) do
+    new_info_settings = %{state.informational_settings | disk_usage: percent}
+    state = %{state | informational_settings: new_info_settings}
+    {:reply, :ok, [state], state}
+  end
+
+  def handle_call({:report_memory_usage, megabytes}, _from, state) do
+    new_info_settings = %{state.informational_settings | memory_usage: megabytes}
+    state = %{state | informational_settings: new_info_settings}
+    {:reply, :ok, [state], state}
+  end
+
   def handle_call({:report_soc_temp, temp}, _from, state) do
     new_info_settings = %{state.informational_settings | soc_temp: temp}
+    state = %{state | informational_settings: new_info_settings}
+    {:reply, :ok, [state], state}
+  end
+
+  def handle_call({:report_uptime, seconds}, _from, state) do
+    new_info_settings = %{state.informational_settings | uptime: seconds}
     state = %{state | informational_settings: new_info_settings}
     {:reply, :ok, [state], state}
   end
@@ -374,8 +404,11 @@ defmodule Farmbot.BotState do
       last_status: nil,
       locked: false,
       cache_bust: 0,
-      soc_temp: 0,
-      wifi_level: nil,
+      soc_temp: 0, # degrees celcius
+      wifi_level: nil, # decibels 
+      uptime: 0, # seconds
+      memory_usage: 0, # megabytes
+      disk_usage: 0, # percent
       currently_on_beta: nil,
     },
     location_data: %{
