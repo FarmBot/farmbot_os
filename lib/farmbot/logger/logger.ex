@@ -4,6 +4,31 @@ defmodule Farmbot.Logger do
   """
   use GenStage
 
+  def how_many_logs do
+    alias IO.ANSI
+    alias LoggerBackendEcto.{Repo, Log}
+    import Ecto.Query
+
+    count = Repo.one(from f in Log, select: count(f.id))
+    total = Application.get_env(:logger_backend_ecto, :max_logs)
+    size_mb = File.stat!(Repo.config[:database]).size * 1.0e-6
+
+    IO.puts [
+      ANSI.clear(), ANSI.home(), ANSI.blue(), 
+      "logs: ", ANSI.green(), to_string(count), " / ", to_string(total), 
+      
+      "\r\n", ANSI.blue(), 
+      "size: ", ANSI.green(), to_string(size_mb),
+      
+      "\r\n", ANSI.blue(), "\r\n",
+      "prediction: ", ANSI.green(), to_string(total / count), 
+      "\r\n", ANSI.blue(),
+      
+      "size: ", ANSI.green(), to_string((total / count) * size_mb),
+      "\r\n", ANSI.normal()
+    ]
+  end
+
   def format_logs do
     RingLogger.get()
     |> Enum.map(fn({level, {_logger, message, timestamp_tup, _meta}}) ->
