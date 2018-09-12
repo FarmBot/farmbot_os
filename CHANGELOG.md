@@ -1,4 +1,7 @@
 # Changelog
+# 6.4.12
+* Fix race condition after getting time which broke self hosting users.
+
 # 6.4.11
 * Add SSH back.
 * Fix bug during configuration causing bots to maybe not connect.
