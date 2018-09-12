@@ -20,9 +20,10 @@ defmodule Farmbot.Target.Network.WaitForTime do
   # • 1  -- the first date comes after the second one
 
   defp wait_for_time do
-    case Timex.compare(NaiveDateTime.utc_now(), get_file_time()) do
+    case Nerves.Time.synchronized?() && Timex.compare(NaiveDateTime.utc_now(), get_file_time()) do
       1 -> :ok
       _ ->
+        Nerves.Time.restart_ntpd()
         Process.sleep(1000)
         # Logger.warn "Waiting for time."
         wait_for_time()
