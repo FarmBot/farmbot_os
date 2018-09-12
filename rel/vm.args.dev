@@ -1,4 +1,5 @@
 -setcookie democookie
+-mode embedded
 -sname farmbot
 -noshell
 -user Elixir.IEx.CLI
