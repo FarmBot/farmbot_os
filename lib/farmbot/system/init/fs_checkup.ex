@@ -67,7 +67,10 @@ defmodule Farmbot.System.Init.FSCheckup do
     try do
       Elixir.Logger.add_backend(LoggerBackendSqlite)
     catch
-      :exit, _ -> Logger.error 1, "Could not start disk logging."
+      :exit, r -> 
+        Logger.error 1, "Could not start disk logging: #{inspect r}"
+        Elixir.Logger.remove_backend(LoggerBackendSqlite)
+        File.rm(Path.join([@data_path, "root", "debug_logs.sqlite3"]))
     end
   end
 end
