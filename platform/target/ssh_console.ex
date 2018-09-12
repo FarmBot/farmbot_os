@@ -48,12 +48,14 @@ defmodule Farmbot.Target.SSHConsole do
 
   defp do_decode(nil), do: []
 
+  defp do_decode(<<>>), do: []
+
   defp do_decode(authorized_key) do
     try do
       :public_key.ssh_decode(authorized_key, :auth_keys)
     rescue
       _err ->
-        Logger.warn 3, "Could not decoded ssh keys."
+        Logger.warn 3, "Could not decode ssh keys."
         []
     end
   end
