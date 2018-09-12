@@ -46,7 +46,7 @@ defmodule Farmbot.System.Init.FSCheckup do
           Logger.busy(3, "Deleting: #{fw}")
           File.rm_rf(fw)
         end
-        Elixir.Logger.add_backend(LoggerBackendEcto)
+        init_logger_backend_ecto()
         :ok
 
       err ->
@@ -60,6 +60,17 @@ defmodule Farmbot.System.Init.FSCheckup do
     multiuser_dir = Path.join([@data_path, "users", "default"])
     unless File.exists?(multiuser_dir) do
       File.mkdir_p(multiuser_dir)
+    end
+  end
+
+  defp init_logger_backend_ecto do
+    try do
+      Elixir.Logger.add_backend(LoggerBackendSqlite)
+    catch
+      :exit, r -> 
+        Logger.error 1, "Could not start disk logging: #{inspect r}"
+        Elixir.Logger.remove_backend(LoggerBackendSqlite)
+        File.rm(Path.join([@data_path, "root", "debug_logs.sqlite3"]))
     end
   end
 end

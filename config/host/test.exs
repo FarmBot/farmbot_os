@@ -42,8 +42,4 @@ config :farmbot, Farmbot.System.ConfigStorage, [
   loggers: []
 ]
 
-config :logger_backend_ecto, LoggerBackendEcto.Repo,
-  adapter: Sqlite.Ecto2,
-  database: "test_tmp/debug_logs.sqlite3"
-
 config :farmbot, ecto_repos: [Farmbot.Repo, Farmbot.System.ConfigStorage]

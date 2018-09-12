@@ -1,5 +1,6 @@
 -setcookie democookie
 -sname farmbot
+-mode embedded
 -noshell
 -heart
 -extra --no-halt

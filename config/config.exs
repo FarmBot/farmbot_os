@@ -11,14 +11,6 @@ config :logger, [
   backends: [:console]
 ]
 
-# Randomly picked 300 megabytes.
-# 3964928 bytes == ~4 megabytes in sqlite3
-# 9266 logs = ~4 megabytes
-# 4 logs * 75 = 300 megabytes
-# 9266 logs * 75 = 694950 logs
-# This will trim 175000 logs (25%) every time it gets to the max logs.
-config :logger_backend_ecto, max_logs: 700000
-
 # Stop lager redirecting :error_logger messages
 config :lager, :error_logger_redirect, false
 

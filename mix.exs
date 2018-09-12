@@ -123,7 +123,7 @@ defmodule Farmbot.Mixfile do
       {:ring_logger, "~> 0.4.1"},
       {:bbmustache, "~> 1.5"},
       {:apex, "~> 1.2"},
-      {:logger_backend_ecto, "~> 1.2"}
+      {:logger_backend_sqlite, "~> 2.0"}
     ]
   end
 
@@ -148,15 +148,18 @@ defmodule Farmbot.Mixfile do
         {:nerves_init_gadget, "~> 0.4.0", only: :dev},
         {:nerves_time, "~> 0.2.0"},
         {:nerves_network, "~> 0.3"},
-        {:nerves_wpa_supplicant, github: "nerves-project/nerves_wpa_supplicant", override: true},
-        {:dhcp_server, "~> 0.4.0"},
+        {:nerves_wpa_supplicant, "~> 0.3"},
+        {:dhcp_server, "~> 0.6"},
         {:elixir_ale, "~> 1.0"},
         {:mdns, "~> 1.0"}
       ]
   end
 
   defp system("rpi3"),
-    do: [{:nerves_system_farmbot_rpi3, "1.3.0-farmbot.2", runtime: false}]
+    do: [{:nerves_system_farmbot_rpi3, "1.4.1-farmbot.0", runtime: false}]
+
+  defp system("rpi0"),
+    do: [{:nerves_system_farmbot_rpi0, "1.4.0-farmbot.0", runtime: false}]
 
   defp package do
     [

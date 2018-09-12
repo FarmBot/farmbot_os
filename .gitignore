@@ -54,3 +54,5 @@ RELEASE_NOTES
 # lagger can't be disabled.
 /log
 .make_state
+
+.elixir_ls

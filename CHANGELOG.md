@@ -1,9 +1,16 @@
 # Changelog
-# 6.4.10
+# 6.4.11
 * Add SSH back.
 * Fix bug during configuration causing bots to maybe not connect.
 * FarmBot will now try to emergency lock the firmware on powerdown and reset.
 * Fix bug causing FarmBot not to reconnect to WiFi.
+* Add fields to `informational_settings`:
+    * `uptime` seconds
+    * `memory_usage` megabytes
+    * `disk_usage` percent
+
+# 6.4.10
+* Skipped due to release failure.
 
 # 6.4.9
 * Add feature to save logs to sdcard for debugging.
