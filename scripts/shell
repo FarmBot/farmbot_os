@@ -1,2 +1,2 @@
 #!/bin/bash
-iex --sname farmbot --cookie democookie --remsh farmbot@farmbot-$1
+iex --sname console --cookie democookie --remsh farmbot@farmbot-$1

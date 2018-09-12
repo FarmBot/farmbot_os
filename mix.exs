@@ -123,7 +123,7 @@ defmodule Farmbot.Mixfile do
       {:ring_logger, "~> 0.4.1"},
       {:bbmustache, "~> 1.5"},
       {:apex, "~> 1.2"},
-      {:logger_backend_ecto, "~> 1.2"}
+      {:logger_backend_sqlite, "~> 2.0"}
     ]
   end
 

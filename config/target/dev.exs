@@ -16,11 +16,12 @@ config :farmbot, Farmbot.System.ConfigStorage,
   loggers: [],
   database: "/root/config-#{Mix.env()}.sqlite3"
 
-config :logger_backend_ecto, LoggerBackendEcto.Repo,
-  adapter: Sqlite.Ecto2,
-  database: "/root/debug_logs.sqlite3"
-
 config :farmbot, ecto_repos: [Farmbot.Repo, Farmbot.System.ConfigStorage]
+
+config :logger, LoggerBackendSqlite, [
+  database: "/root/debug_logs.sqlite3",
+  max_logs: 10000
+]
 
 # Configure your our init system.
 config :farmbot, :init, [

@@ -6,12 +6,10 @@ defmodule Farmbot.Logger do
 
   def how_many_logs do
     alias IO.ANSI
-    alias LoggerBackendEcto.{Repo, Log}
-    import Ecto.Query
 
-    count = Repo.one(from f in Log, select: count(f.id))
-    total = Application.get_env(:logger_backend_ecto, :max_logs)
-    size_mb = File.stat!(Repo.config[:database]).size * 1.0e-6
+    count = LoggerBackendSqlite.count_logs()
+    size_mb = LoggerBackendSqlite.stat().size * 1.0e-6
+    total = Application.get_env(:logger, LoggerBackendSqlite)[:max_logs]
 
     IO.puts [
       ANSI.clear(), ANSI.home(), ANSI.blue(), 

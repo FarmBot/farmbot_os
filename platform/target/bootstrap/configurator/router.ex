@@ -39,7 +39,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   end
 
   get "/view_logs" do
-    all_logs = LoggerBackendEcto.all_logs()
+    all_logs = LoggerBackendSqlite.all_logs()
     render_page(conn, "view_logs", [logs: all_logs])
   end
 

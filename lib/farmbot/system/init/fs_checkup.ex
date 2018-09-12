@@ -64,8 +64,10 @@ defmodule Farmbot.System.Init.FSCheckup do
   end
 
   defp init_logger_backend_ecto do
-    Elixir.Logger.add_backend(LoggerBackendEcto)
-  catch
-    _ -> Logger.error 1, "Could not start disk."
+    try do
+      Elixir.Logger.add_backend(LoggerBackendSqlite)
+    catch
+      :exit, _ -> Logger.error 1, "Could not start disk logging."
+    end
   end
 end

@@ -11,10 +11,6 @@ config :logger, [
   backends: [:console]
 ]
 
-# 700 bytes / log
-# 100,000 logs * 700 bytes ~= 70 megabytes 
-config :logger_backend_ecto, max_logs: 100000
-
 # Stop lager redirecting :error_logger messages
 config :lager, :error_logger_redirect, false
 
