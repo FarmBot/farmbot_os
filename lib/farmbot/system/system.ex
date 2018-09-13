@@ -44,6 +44,7 @@ defmodule Farmbot.System do
   @spec factory_reset(unparsed_reason) :: no_return
   def factory_reset(reason) do
     if Farmbot.Project.env == :dev do
+      # credo:disable-for-next-line
       require IEx; IEx.pry()
     end
     alias Farmbot.System.ConfigStorage
