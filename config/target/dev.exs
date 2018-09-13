@@ -39,9 +39,6 @@ config :farmbot, :init, [
   # SSH Console.
   Farmbot.Target.SSHConsole,
 
-  # Wait for time time come up.
-  Farmbot.Target.Network.WaitForTime,
-
   # Wait for DNS resolution
   Farmbot.Target.Network.DnsTask,
 
