@@ -36,74 +36,10 @@ defmodule Farmbot.BotState.Transport.AMQP do
   end
 
   def init([]) do
-    token = ConfigStorage.get_config_value(:string, "authorization", "token")
-    email = ConfigStorage.get_config_value(:string, "authorization", "email")
-
-    import Farmbot.Jwt, only: [decode: 1]
-    with {:ok, %{bot: device, mqtt: mqtt_host, vhost: vhost}} <- decode(token),
-         {:ok, conn}  <- open_connection(token, email, device, mqtt_host, vhost),
-         {:ok, chan}  <- AMQP.Channel.open(conn),
-         q_base       <- device,
-
-         :ok          <- Basic.qos(chan, [global: true]),
-         {:ok, _}     <- AMQP.Queue.declare(chan, q_base <> "_from_clients", [auto_delete: true]),
-         from_clients <- [routing_key: "bot.#{device}.from_clients"],
-         {:ok, _}     <- AMQP.Queue.purge(chan, q_base <> "_from_clients"),
-         :ok          <- AMQP.Queue.bind(chan, q_base <> "_from_clients", @exchange, from_clients),
-
-         {:ok, _}     <- AMQP.Queue.declare(chan, q_base <> "_auto_sync", [auto_delete: false]),
-         sync         <- [routing_key: "bot.#{device}.sync.#"],
-         :ok          <- AMQP.Queue.bind(chan, q_base <> "_auto_sync", @exchange, sync),
-
-         {:ok, _tag}  <- Basic.consume(chan, q_base <> "_from_clients", self(), [no_ack: true]),
-         {:ok, _tag}  <- Basic.consume(chan, q_base <> "_auto_sync", self(), [no_ack: true]),
-         state <- %State{conn: conn, chan: chan, bot: device}
-    do
-      _ = Process.monitor(conn.pid)
-      _ = Process.monitor(chan.pid)
-      _ = Process.flag(:sensitive, true)
-      _ = Process.flag(:trap_exit, true)
-      {:consumer, state, subscribe_to: [Farmbot.BotState, Farmbot.Logger]}
-    else
-      {:error, {:auth_failure, msg}} = fail ->
-        Farmbot.System.factory_reset(msg)
-        {:stop, fail}
-      {:error, err} ->
-        msg = "Got error authenticating with Real time services: #{inspect err}"
-        Logger.error 1, msg
-
-        # If the auth task is running, force it to reset.
-        if Process.whereis(Farmbot.Bootstrap.AuthTask) do
-          Farmbot.Bootstrap.AuthTask.force_refresh()
-        end
-        :ignore
-    end
-  end
-
-  defp open_connection(token, email, bot, mqtt_server, vhost) do
-    opts = [
-    client_properties: [
-      {"version", :longstr, Farmbot.Project.version()},
-      {"commit", :longstr, Farmbot.Project.commit()},
-      {"target", :longstr, Farmbot.Project.target()},
-      {"opened", :longstr, to_string(DateTime.utc_now())},
-      {"product", :longstr, "farmbot_os"},
-      {"bot", :longstr, bot},
-      {"email", :longstr, email},
-      {"node", :longstr, to_string(node())},
-    ],
-    host: mqtt_server,
-    username: bot,
-    password: token,
-    virtual_host: vhost]
-
-    case AMQP.Connection.open(opts) do
-      {:ok, conn} -> {:ok, conn}
-      {:error, reason} ->
-        Logger.error 1, "Error connecting to AMPQ: #{inspect reason}"
-        Process.sleep(5000)
-        open_connection(token, email, bot, mqtt_server, vhost)
-    end
+    _ = Process.flag(:sensitive, true)
+    _ = Process.flag(:trap_exit, true)
+    send self(), :connect
+    {:consumer, %State{}, subscribe_to: [Farmbot.BotState, Farmbot.Logger]}
   end
 
   def terminate(reason, state) do
@@ -128,6 +64,11 @@ defmodule Farmbot.BotState.Transport.AMQP do
       auth_task.force_refresh()
       Farmbot.BotState.set_connected(false)
     end
+  end
+
+  # Don't handle data if there is no connection.
+  def handle_events(_, _, %{conn: nil} = state) do
+    {:noreply, [], state}
   end
 
   def handle_events(events, {pid, _}, state) do
@@ -175,6 +116,11 @@ defmodule Farmbot.BotState.Transport.AMQP do
   end
 
   def handle_bot_state_events([], state) do
+    {:noreply, [], state}
+  end
+
+  def handle_info(:connect, state) do
+    %State{} = state = do_connect(state)
     {:noreply, [], state}
   end
 
@@ -342,5 +288,62 @@ defmodule Farmbot.BotState.Transport.AMQP do
 
   defp add_position_to_log(%{} = log, %{position: pos}) do
     Map.merge(log, pos)
+  end
+
+  defp do_connect(%State{} = state) do
+    # If a channel was still open, close it.
+    if state.chan, do: AMQP.Channel.close(state.chan)
+
+    # If the connection is still open, close it.
+    if state.conn, do: AMQP.Connection.close(state.conn)
+    token = ConfigStorage.get_config_value(:string, "authorization", "token")
+    email = ConfigStorage.get_config_value(:string, "authorization", "email")
+
+    import Farmbot.Jwt, only: [decode: 1]
+    with {:ok, %{bot: device, mqtt: mqtt_host, vhost: vhost}} <- decode(token),
+         {:ok, conn}  <- open_connection(token, email, device, mqtt_host, vhost),
+         {:ok, chan}  <- AMQP.Channel.open(conn),
+         q_base       <- device,
+
+         :ok          <- Basic.qos(chan, [global: true]),
+         {:ok, _}     <- AMQP.Queue.declare(chan, q_base <> "_from_clients", [auto_delete: true]),
+         from_clients <- [routing_key: "bot.#{device}.from_clients"],
+         {:ok, _}     <- AMQP.Queue.purge(chan, q_base <> "_from_clients"),
+         :ok          <- AMQP.Queue.bind(chan, q_base <> "_from_clients", @exchange, from_clients),
+
+         {:ok, _}     <- AMQP.Queue.declare(chan, q_base <> "_auto_sync", [auto_delete: false]),
+         sync         <- [routing_key: "bot.#{device}.sync.#"],
+         :ok          <- AMQP.Queue.bind(chan, q_base <> "_auto_sync", @exchange, sync),
+
+         {:ok, _tag}  <- Basic.consume(chan, q_base <> "_from_clients", self(), [no_ack: true]),
+         {:ok, _tag}  <- Basic.consume(chan, q_base <> "_auto_sync", self(), [no_ack: true]) do
+          %State{conn: conn, chan: chan, bot: device}
+    end
+  end
+
+  defp open_connection(token, email, bot, mqtt_server, vhost) do
+    opts = [
+    client_properties: [
+      {"version", :longstr, Farmbot.Project.version()},
+      {"commit", :longstr, Farmbot.Project.commit()},
+      {"target", :longstr, Farmbot.Project.target()},
+      {"opened", :longstr, to_string(DateTime.utc_now())},
+      {"product", :longstr, "farmbot_os"},
+      {"bot", :longstr, bot},
+      {"email", :longstr, email},
+      {"node", :longstr, to_string(node())},
+    ],
+    host: mqtt_server,
+    username: bot,
+    password: token,
+    virtual_host: vhost]
+
+    case AMQP.Connection.open(opts) do
+      {:ok, conn} -> {:ok, conn}
+      {:error, reason} ->
+        Logger.error 1, "Error connecting to AMPQ: #{inspect reason}"
+        Process.sleep(5000)
+        open_connection(token, email, bot, mqtt_server, vhost)
+    end
   end
 end

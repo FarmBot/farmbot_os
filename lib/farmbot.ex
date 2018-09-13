@@ -15,17 +15,10 @@ defmodule Farmbot do
   def start(type, start_opts)
 
   def start(_, _start_opts) do
-    case Supervisor.start_link(__MODULE__, [], [name: __MODULE__]) do
-      {:ok, pid} -> {:ok, pid, []}
-      error ->
-        IO.puts "Failed to boot Farmbot: #{inspect error}"
-        Farmbot.System.factory_reset(error)
-        exit(error)
-    end
+    Supervisor.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
   def init([]) do
-    # RingLogger.attach()
     children = [
       {Farmbot.Logger.Supervisor, []},
       {Farmbot.System.Supervisor, []},

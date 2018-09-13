@@ -14,12 +14,12 @@ use Mix.Releases.Config,
 
 environment :dev do
   set(cookie: :"gz`tgx[zM,ueL[g{Ji62{jiawNDZHH~PGkNQLa&R>R7c0SKziff4L,*&ZNG)(qu0")
-  set(vm_args: "rel/vm.args.dev")
+  set(vm_args: "rel/vm.args")
 end
 
 environment :prod do
   set(cookie: :"gz`tgx[zM,ueL[g{Ji62{jiawNDZHH~PGkNQLa&R>R7c0SKziff4L,*&ZNG)(qu0")
-  set(vm_args: "rel/vm.args.prod")
+  set(vm_args: "rel/vm.args")
 end
 
 # You may define one or more releases in this file.

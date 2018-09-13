@@ -43,6 +43,9 @@ defmodule Farmbot.System do
   @doc "Remove all configuration data, and reboot."
   @spec factory_reset(unparsed_reason) :: no_return
   def factory_reset(reason) do
+    if Farmbot.Project.env == :dev do
+      require IEx; IEx.pry()
+    end
     alias Farmbot.System.ConfigStorage
     import ConfigStorage, only: [get_config_value: 3]
     if Process.whereis ConfigStorage do
