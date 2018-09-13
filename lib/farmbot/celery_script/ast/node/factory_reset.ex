@@ -9,6 +9,7 @@ defmodule Farmbot.CeleryScript.AST.Node.FactoryReset do
     Farmbot.BotState.set_sync_status(:maintenance)
     Farmbot.BotState.force_state_push()
     Farmbot.System.ConfigStorage.update_config_value(:bool, "settings", "disable_factory_reset", false)
+    clean_log_file()
     Logger.warn 1, "Farmbot OS going down for factory reset!"
     Farmbot.System.factory_reset "CeleryScript request."
     {:ok, env}
@@ -24,5 +25,17 @@ defmodule Farmbot.CeleryScript.AST.Node.FactoryReset do
     Farmbot.Bootstrap.SettingsSync.do_sync_fw_configs()
     Farmbot.BotState.reset_sync_status()
     {:ok, env}
+  end
+
+  def clean_log_file do
+    try do
+      Elixir.Logger.remove_backend(LoggerBackendSqlite)
+      db = Application.get_env(:logger, LoggerBackendSqlite)[:database]
+      db && File.rm!(db)
+    catch
+      er, reason -> 
+        Logger.error 1, "Failed to remove log file: #{inspect(er)} #{inspect(reason)}" <> 
+                        "\r\n \r\n" <> Exception.format_stacktrace()
+    end
   end
 end
