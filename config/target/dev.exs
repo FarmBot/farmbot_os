@@ -88,5 +88,4 @@ config :nerves_firmware_ssh, authorized_keys: local_key
 
 config :shoehorn,
   init: [:nerves_runtime, :nerves_init_gadget, :nerves_firmware_ssh],
-  handler: Farmbot.ShoehornHandler,
   app: :farmbot

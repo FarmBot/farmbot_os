@@ -30,16 +30,20 @@ defmodule Farmbot.Bootstrap.Authorization do
   # this is the default authorize implementation.
   # It gets overwrote in the Test Environment.
   @doc "Authorizes with the farmbot api."
-  def authorize(email, pw_or_secret, server) do
+  def authorize(email, pw_or_secret, server, tries \\ 5) do
     case get_config_value(:bool, "settings", "first_boot") do
       false -> authorize_with_secret(email, pw_or_secret, server)
       true -> authorize_with_password(email, pw_or_secret, server)
     end
     |> case do
       {:ok, token} -> {:ok, token}
-      err ->
+      err when tries == 0 ->
         Logger.error 1, "Authorization failed: #{inspect err}"
         err
+      err -> 
+        Logger.error 1, "Authorization failed: #{inspect err}. Trying again #{tries - 1} more times."
+        Process.sleep(2500)
+        authorize(email, pw_or_secret, server, tries - 1)
     end
   end
 
