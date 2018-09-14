@@ -330,11 +330,12 @@ defmodule Farmbot.Firmware do
   end
 
   defp handle_gcode(:report_params_complete, state) do
+    Logger.success 1, "Firmware Initialized."
     {nil, %{state | initialized: true, initializing: false}}
   end
 
   defp handle_gcode(:idle, %{initialized: false, initializing: false} = state) do
-    Logger.busy 1, "Firmware not initialized yet. Waiting for R88 message."
+    Logger.busy 3, "Firmware not initialized yet. Waiting for R88 message."
     {nil, state}
   end
 
