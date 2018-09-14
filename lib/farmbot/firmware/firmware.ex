@@ -498,12 +498,8 @@ defmodule Farmbot.Firmware do
 
   defp handle_gcode(:report_emergency_lock, state) do
     maybe_send_email()
-    if state.current do
-      do_reply(state, {:error, :emergency_lock})
-      {:informational_settings, %{locked: true}, %{state | current: nil}}
-    else
-      {:informational_settings, %{locked: true}, state}
-    end
+    state.current && do_reply(state, {:error, :emergency_lock})
+    {:informational_settings, %{locked: true}, %{state | current: nil}}
   end
 
   defp handle_gcode({:report_calibration, axis, status}, state) do
@@ -534,24 +530,13 @@ defmodule Farmbot.Firmware do
     {nil, state}
   end
 
-  defp maybe_cancel_timer(nil, current_command) do
-    if current_command do
-      # Logger.debug 3, "[WEIRD] - No timer to cancel for command: #{inspect current_command}"
-      :ok
-    else
-      # Logger.debug 3, "[PROBABLY OK] - No timer to cancel, and no command here."
-      :ok
-    end
+  defp maybe_cancel_timer(nil, _maybe_current_command) do
+    :ok
   end
 
-  defp maybe_cancel_timer(timer, _current_command) do
-    if Process.read_timer(timer) do
-      # Logger.debug 3, "[NORMAL] - Canceled timer: #{inspect timer} for command: #{inspect current_command}"
-      Process.cancel_timer(timer)
-      :ok
-    else
-      :ok
-    end
+  defp maybe_cancel_timer(timer, _maybe_current_command) do
+    Process.read_timer(timer) && Process.cancel_timer(timer)
+    :ok
   end
 
   defp maybe_update_param_from_report(param, val) when is_binary(param) do
