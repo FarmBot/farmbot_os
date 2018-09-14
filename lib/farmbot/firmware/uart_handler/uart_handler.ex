@@ -205,6 +205,7 @@ defmodule Farmbot.Firmware.UartHandler do
       {:nerves_uart, _, {_, {:debug_message, msg}}} ->
         if String.contains?(msg, "STARTUP") do
           Logger.success 3, "Got #{msg}. UART is up."
+          UART.write(nerves, "F22 P2 V0")
           {:ok, nerves}
         else
           Logger.debug 3, "Got arduino debug while booting up: #{msg}"
