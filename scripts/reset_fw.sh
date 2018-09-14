@@ -1,11 +1,12 @@
 #!/bin/bash
+AVAILABLE=$(ls priv/*.hex | grep -v "eeprom_clear" | tr '\n' ' ')
 if [ -z $1 ]; then
-  echo "usage: scripts/reset_fw.sh [arduino-firmware|farmduino-firmware|farmduino_k14-firmware] /dev/ttyACM0"
+  echo "usage: scripts/reset_fw.sh [$AVAILABLE] /dev/ttyACM0"
   exit 1
 fi
 
 if [ -z $2 ]; then
-  echo "usage: scripts/reset_fw.sh [arduino-firmware|farmduino-firmware|farmduino_k14-firmware] /dev/ttyACM0"
+  echo "usage: scripts/reset_fw.sh [$AVAILABLE] /dev/ttyACM0"
   exit 1
 fi
 
