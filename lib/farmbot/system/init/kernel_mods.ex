@@ -16,7 +16,7 @@ defmodule Farmbot.System.Init.KernelMods do
 
   defp do_checkup do
     for mod <- @mods do
-      Logger.info 1, "Loading kernel module: #{mod}"
+      Logger.debug 3, "Loading kernel module: #{mod}"
       System.cmd "modprobe", [mod], into: IO.stream(:stdio, :line)
     end
   end
