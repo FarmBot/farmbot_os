@@ -64,6 +64,7 @@ defmodule Farmbot.System.Init.FSCheckup do
   end
 
   defp init_logger_backend_ecto do
+    Logger.flush()
     try do
       Elixir.Logger.add_backend(LoggerBackendSqlite)
     catch
