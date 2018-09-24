@@ -52,6 +52,10 @@ defmodule Farmbot.BotState do
     end
   end
 
+  def set_update_available(bool) when is_boolean(bool) do
+    GenStage.call(__MODULE__, {:set_update_available, bool})
+  end
+
   def report_disk_usage(percent) when is_number(percent) do
     GenStage.call(__MODULE__, {:report_disk_usage, percent})
   end
@@ -199,6 +203,12 @@ defmodule Farmbot.BotState do
   def handle_info(:reindex_farmware, state) do
     spawn Farmbot.Farmware.Supervisor, :reindex, []
     {:noreply, [], state}
+  end
+
+  def handle_call({:set_update_available, bool}, _from, state) do
+    new_info_settings = %{state.informational_settings | update_available: bool}
+    state = %{state | informational_settings: new_info_settings}
+    {:reply, :ok, [state], state}
   end
 
   def handle_call({:report_disk_usage, percent}, _from, state) do
@@ -391,6 +401,7 @@ defmodule Farmbot.BotState do
 
   defstruct [
     informational_settings: %{
+      update_available: false,
       controller_version: @version,
       firmware_version: "disconnected",
       firmware_commit: @arduino_commit,
@@ -405,7 +416,7 @@ defmodule Farmbot.BotState do
       locked: false,
       cache_bust: 0,
       soc_temp: 0, # degrees celcius
-      wifi_level: nil, # decibels 
+      wifi_level: nil, # decibels
       uptime: 0, # seconds
       memory_usage: 0, # megabytes
       disk_usage: 0, # percent

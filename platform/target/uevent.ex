@@ -28,7 +28,6 @@ defmodule Farmbot.Target.Uevent do
   end
 
   def handle_info({:system_registry, :global, new_reg}, %{} = old_reg) do
-    require IEx; IEx.pry
     new_ttys = get_in(new_reg, [:state, "subsystems", "tty"]) || []
     old_ttys = get_in(old_reg, [:state, "subsystems", "tty"]) || []
     case new_ttys -- old_ttys do

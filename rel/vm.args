@@ -1,4 +1,6 @@
 -setcookie democookie
++Bc
+-kernel shell_history enabled
 -mode embedded
 -sname farmbot
 -noshell

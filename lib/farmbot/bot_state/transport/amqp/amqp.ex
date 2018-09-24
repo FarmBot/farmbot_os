@@ -145,7 +145,9 @@ defmodule Farmbot.BotState.Transport.AMQP do
     {:noreply, [], state}
   end
 
-  def handle_info({:basic_deliver, payload, %{routing_key: key}}, state) do
+  def handle_info({:basic_deliver, payload, %{routing_key: key} = options}, state) do
+    # TODO(Connor) - investigate acking
+    # :ok = Basic.ack(state.chan, options[:delivery_tag])
     if GenServer.whereis(Farmbot.Repo) do
       device = state.bot
       route = String.split(key, ".")
@@ -165,6 +167,8 @@ defmodule Farmbot.BotState.Transport.AMQP do
         ["bot", ^device, "logs"]        -> {:noreply, [], state}
         ["bot", ^device, "status"]      -> {:noreply, [], state}
         ["bot", ^device, "from_device"] -> {:noreply, [], state}
+        ["bot", ^device, "nerves_hub"]  ->
+          handle_nerves_hub(payload, options, state)
         _ ->
           Logger.warn 3, "got unknown routing key: #{key}"
           {:noreply, [], state}
@@ -268,6 +272,19 @@ defmodule Farmbot.BotState.Transport.AMQP do
     end
   end
 
+  def handle_nerves_hub(payload, options, state) do
+    :ok = Basic.ack(state.chan, options[:delivery_tag])
+    case Poison.decode(payload) do
+      {:ok, data} ->
+        cert = data["cert"] |> Base.decode64!()
+        key = data["key"] |> Base.decode64!()
+        :ok = Farmbot.System.NervesHub.configure_certs(cert, key)
+        :ok = Farmbot.System.NervesHub.connect()
+        {:noreply, [], state}
+      _ -> {:noreply, [], state}
+    end
+  end
+
   defp push_bot_log(chan, bot, log) do
     json = Poison.encode!(log)
     :ok = AMQP.Basic.publish chan, @exchange, "bot.#{bot}.logs", json
@@ -306,6 +323,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
          q_base       <- device,
 
          :ok          <- Basic.qos(chan, [global: true]),
+
          {:ok, _}     <- AMQP.Queue.declare(chan, q_base <> "_from_clients", [auto_delete: true]),
          from_clients <- [routing_key: "bot.#{device}.from_clients"],
          {:ok, _}     <- AMQP.Queue.purge(chan, q_base <> "_from_clients"),
@@ -315,8 +333,14 @@ defmodule Farmbot.BotState.Transport.AMQP do
          sync         <- [routing_key: "bot.#{device}.sync.#"],
          :ok          <- AMQP.Queue.bind(chan, q_base <> "_auto_sync", @exchange, sync),
 
+        {:ok, _}      <- AMQP.Queue.declare(chan, q_base <> "_nerves_hub", [auto_delete: false, durable: true]),
+        nerves_hub    <- [routing_key: "bot.#{device}.nerves_hub"],
+        :ok           <- AMQP.Queue.bind(chan, q_base <> "_nerves_hub", @exchange, nerves_hub),
+
          {:ok, _tag}  <- Basic.consume(chan, q_base <> "_from_clients", self(), [no_ack: true]),
-         {:ok, _tag}  <- Basic.consume(chan, q_base <> "_auto_sync", self(), [no_ack: true]) do
+         {:ok, _tag}  <- Basic.consume(chan, q_base <> "_auto_sync", self(), [no_ack: true]),
+         {:ok, _tag}  <- Basic.consume(chan, q_base <> "_nerves_hub", self(), [])
+         do
           %State{conn: conn, chan: chan, bot: device}
     end
   end
