@@ -24,6 +24,14 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   @version Farmbot.Project.version()
   @data_path Application.get_env(:farmbot, :data_path)
 
+  get "/generate_204" do
+    send_resp(conn, 204, "")
+  end
+
+  get "/gen_204" do
+    send_resp(conn, 204, "")
+  end
+
   get "/" do
     last_reset_reason_file = Path.join(@data_path, "last_shutdown_reason")
     case File.read(last_reset_reason_file) do
