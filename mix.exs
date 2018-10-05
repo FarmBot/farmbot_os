@@ -98,68 +98,66 @@ defmodule Farmbot.Mixfile do
     [
       {:nerves, "~> 1.3", runtime: false},
       {:shoehorn, "~> 0.4"},
-      {:elixir_make, "~> 0.4.2", runtime: false},
-      {:gen_stage, "~> 0.14.0"},
-      {:phoenix_html, "~> 2.11"},
+      {:elixir_make, "~> 0.4", runtime: false},
+      {:gen_stage, "~> 0.14"},
+      {:phoenix_html, "~> 2.12"},
+      {:httpoison, "~> 1.3"},
       {:poison, "~> 3.1.0"},
       {:jason, "~> 1.1"},
-      {:httpoison, "~> 1.2"},
-      {:jsx, "~> 2.8"},
-      {:timex, "~> 3.3"},
+      {:timex, "~> 3.4"},
       {:fs, "~> 3.4"},
       {:nerves_uart, "~> 1.2"},
-      {:nerves_leds, "~> 0.8"},
-      {:cowboy, "~> 2.0"},
+      {:cowboy, "~> 2.5"},
       {:plug, "~> 1.6"},
-      {:ranch_proxy_protocol, "~> 2.0", override: true},
       {:cors_plug, "~> 1.5"},
+      {:amqp, "~> 1.0"},
+      # AMQP hacks
+      {:jsx, "~> 2.9", override: true},
+      {:ranch, "~> 1.6", override: true},
+      {:ranch_proxy_protocol, "~> 2.1", override: true},
+      # End hacks
       {:rsa, "~> 0.0.1"},
       {:joken, "~> 1.5"},
-      {:sqlite_ecto2, "~> 2.2.4"},
       {:uuid, "~> 1.1"},
-      {:socket, "~> 0.3.13"},
-      {:amqp, "~> 1.0"},
-      {:recon, "~> 2.3.2"},
-      {:ring_logger, "~> 0.4.1"},
-      {:bbmustache, "~> 1.5"},
-      {:apex, "~> 1.2"},
-      {:logger_backend_sqlite, "~> 2.0"}
+      {:ring_logger, "~> 0.5"},
+      {:bbmustache, "~> 1.6"},
+      {:sqlite_ecto2, "~> 2.2"},
+      {:logger_backend_sqlite, "~> 2.1"}
     ]
   end
 
   defp deps("host") do
     [
-      {:ex_doc, "~> 0.18", only: :dev},
-      {:excoveralls, "~> 0.9", only: :test},
+      {:ex_doc, "~> 0.19", only: :dev},
+      {:excoveralls, "~> 0.10", only: :test},
       {:dialyxir, "~> 1.0.0-rc.3", only: :dev, runtime: false},
-      {:credo, "~> 0.9.3", only: [:dev, :test], runtime: false},
-      {:inch_ex, "~> 0.5", only: :dev},
-      {:mock, "~> 0.3.1", only: :test},
-      {:faker, "~> 0.10", only: :test}
+      {:credo, "~> 0.10", only: [:dev, :test], runtime: false},
+      {:mock, "~> 0.3", only: :test},
+      {:faker, "~> 0.11", only: :test}
     ]
   end
 
   defp deps(target) do
     system(target) ++
       [
-        {:nerves_runtime, "~> 0.6.1"},
+        {:nerves_runtime, "~> 0.8"},
         {:nerves_firmware, "~> 0.4"},
-        {:nerves_firmware_ssh, "~> 0.3.3"},
-        {:nerves_init_gadget, "~> 0.4.0", only: :dev},
-        {:nerves_time, "~> 0.2.0"},
+        {:nerves_firmware_ssh, "~> 0.3"},
+        {:nerves_init_gadget, "~> 0.5", only: :dev},
+        {:nerves_time, "~> 0.2"},
         {:nerves_network, "~> 0.3"},
         {:nerves_wpa_supplicant, "~> 0.3"},
         {:dhcp_server, "~> 0.6"},
-        {:elixir_ale, "~> 1.0"},
+        {:elixir_ale, "~> 1.1"},
         {:mdns, "~> 1.0"}
       ]
   end
 
   defp system("rpi3"),
-    do: [{:nerves_system_farmbot_rpi3, "1.4.1-farmbot.0", runtime: false}]
+    do: [{:nerves_system_farmbot_rpi3, "1.5.0-farmbot.0", runtime: false}]
 
   defp system("rpi0"),
-    do: [{:nerves_system_farmbot_rpi0, "1.4.0-farmbot.0", runtime: false}]
+    do: [{:nerves_system_farmbot_rpi0, "1.5.0-farmbot.0", runtime: false}]
 
   defp package do
     [
