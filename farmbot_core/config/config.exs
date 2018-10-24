@@ -1,10 +1,6 @@
 use Mix.Config
 
-# config :logger, [
-#   utc_log: true,
-#   handle_otp_reports: true,
-#   handle_sasl_reports: true,
-# ]
+config :ecto, json_library: Farmbot.JSON
 
 # Configure Farmbot Behaviours.
 config :farmbot_core, :behaviour,

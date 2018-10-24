@@ -28,7 +28,7 @@ defmodule Farmbot.Asset do
 
   @doc "Returns a FarmEvent by its API id."
   def get_farm_event(id) do
-    Repo.one(from fe in FarmEvent, where: fe.id == ^id)
+    Repo.get_by(FarmEvent, id: id)
   end
 
   ## End FarmEvent
@@ -60,7 +60,8 @@ defmodule Farmbot.Asset do
   ## Begin PersistentRegimen
 
   def list_persistent_regimens() do
-    raise("FIXME")
+    []
+    # raise("FIXME")
   end
 
   def list_persistent_regimens(_regimen) do
@@ -112,7 +113,7 @@ defmodule Farmbot.Asset do
 
   @doc "Get a sequence by it's API id"
   def get_sequence!(id) do
-    Repo.one!(from s in Sequence, where: s.id == ^id)
+    Repo.get_by!(Sequence, id: id)
   end
 
   ## End Sequence
