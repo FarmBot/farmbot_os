@@ -59,7 +59,7 @@ defmodule Farmbot.FarmEvent.Manager do
     maybe_farm_event_log("Destroying monitor on FarmEvent: #{data.id}.")
 
     if String.contains?(data.executable_type, "Regimen") do
-      reg = Farmbot.Asset.get_regimen_by_id(data.executable_id, data.id)
+      reg = Farmbot.Asset.get_regimen!(data.executable_id, data.id)
 
       if reg do
         Farmbot.Regimen.Supervisor.stop_child(reg)
@@ -74,7 +74,7 @@ defmodule Farmbot.FarmEvent.Manager do
     maybe_farm_event_log("Reindexing monitor on FarmEvent: #{data.id}.")
 
     if String.contains?(data.executable_type, "Regimen") do
-      reg = Farmbot.Asset.get_regimen_by_id(data.executable_id, data.id)
+      reg = Farmbot.Asset.get_regimen!(data.executable_id, data.id)
 
       if reg do
         Farmbot.Regimen.Supervisor.reindex_all_managers(
@@ -293,13 +293,13 @@ defmodule Farmbot.FarmEvent.Manager do
        when is_atom(module) do
     case module do
       Sequence ->
-        Asset.get_sequence_by_id!(exe_id)
+        Asset.get_sequence!(exe_id)
 
       Regimen ->
         # We tag the looked up Regimen with the FarmEvent id here.
         # This makes it easier to track the pid of it later when it
         # needs to be scheduled or stopped.
-        Asset.get_regimen_by_id!(exe_id, id)
+        Asset.get_regimen!(exe_id, id)
     end
   end
 

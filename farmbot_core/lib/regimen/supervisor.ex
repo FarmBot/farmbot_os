@@ -6,57 +6,10 @@ defmodule Farmbot.Regimen.Supervisor do
   alias Farmbot.Regimen.NameProvider
   require Farmbot.Logger
 
-  @doc "Debug function to see what regimens are running."
-  def whats_going_on do
-    IO.warn("THIS SHOULD NOT BE USED IN PRODUCTION")
-    prs = Asset.all_persistent_regimens()
-
-    Enum.map(prs, fn %PersistentRegimen{regimen_id: rid, farm_event_id: fid, time: start_time} =
-                       pr ->
-      r = Farmbot.Asset.get_regimen_by_id!(rid, fid)
-      server_name = NameProvider.via(r)
-      pid = GenServer.whereis(server_name)
-      alive = if pid, do: "is alive", else: "is not alive"
-      state = if pid, do: :sys.get_state(pid)
-
-      info = %{
-        _status:
-          "[#{r.id}] scheduled by FarmEvent: [#{fid}] #{Timex.from_now(start_time)}, #{alive}",
-        _id: r.id,
-        _farm_event_id: r.farm_event_id,
-        pid: pid,
-        persistent_regimen: pr
-      }
-
-      if state do
-        timezone = Farmbot.Asset.device().timezone
-
-        next = state.next_execution
-        timer_ms = state.timer |> Process.read_timer() || 0
-        from_now = Timex.from_now(next, timezone)
-        next_tick = Timex.from_now(Timex.shift(Timex.now(), milliseconds: timer_ms), timezone)
-
-        state = %{
-          state
-          | regimen: %{
-              state.regimen
-              | regimen_items: "#{Enum.count(state.regimen.regimen_items)} items."
-            }
-        }
-
-        Map.put(info, :state, state)
-        |> Map.put(:_next_execution, from_now)
-        |> Map.put(:_next_tick, next_tick)
-      else
-        info
-      end
-    end)
-  end
-
   @doc "Stops all running instances of a regimen."
   def stop_all_managers(regimen) do
     Farmbot.Logger.info(3, "Stopping all running regimens by id: #{inspect(regimen.id)}")
-    prs = Asset.persistent_regimens(regimen)
+    prs = Asset.list_persistent_regimens(regimen)
 
     for %PersistentRegimen{farm_event_id: feid} <- prs do
       reg_with_fe_id = %{regimen | farm_event_id: feid}
@@ -76,7 +29,7 @@ defmodule Farmbot.Regimen.Supervisor do
 
   @doc "Looks up all regimen instances that are running, and reindexes them."
   def reindex_all_managers(regimen, time \\ nil) do
-    prs = Asset.persistent_regimens(regimen)
+    prs = Asset.list_persistent_regimens(regimen)
     Farmbot.Logger.debug(3, "Reindexing #{Enum.count(prs)} running regimens by id: #{regimen.id}")
 
     for %{farm_event_id: feid} <- prs do
@@ -89,7 +42,7 @@ defmodule Farmbot.Regimen.Supervisor do
 
         regimen_server ->
           if time do
-            Asset.update_persistent_regimen_time(regimen, time)
+            Asset.update_persistent_regimen(regimen, %{time: time})
           end
 
           GenServer.call(regimen_server, {:reindex, reg_with_fe_id, time})
@@ -103,7 +56,7 @@ defmodule Farmbot.Regimen.Supervisor do
   end
 
   def init([]) do
-    prs = Asset.all_persistent_regimens()
+    prs = Asset.list_persistent_regimens()
     children = build_children(prs)
     opts = [strategy: :one_for_one]
     supervise(children, opts)
@@ -113,7 +66,7 @@ defmodule Farmbot.Regimen.Supervisor do
     regimen.farm_event_id || raise "Starting a regimen process requires a farm event id tag."
 
     # Farmbot.Logger.debug 3, "Starting regimen: #{regimen.name} #{regimen.farm_event_id} at #{inspect time}"
-    Asset.add_persistent_regimen(regimen, time)
+    Asset.new_persistent_regimen(regimen, time)
     args = [regimen, time]
     opts = [restart: :transient, id: regimen.farm_event_id]
     spec = worker(Farmbot.Regimen.Manager, args, opts)
@@ -144,9 +97,10 @@ defmodule Farmbot.Regimen.Supervisor do
   @spec build_children([%PersistentRegimen{}]) :: [Supervisor.child_spec()]
   def build_children(prs) do
     Enum.reject(prs, fn %PersistentRegimen{regimen_id: rid, farm_event_id: feid} ->
-      reg = Asset.get_regimen_by_id(rid, feid)
+      raise("FIXME why can this be nil?")
+      reg = Asset.get_regimen!(rid, feid)
 
-      if Asset.get_farm_event_by_id(feid) && reg do
+      if Asset.get_farm_event(feid) && reg do
         _rejected = false
       else
         Farmbot.Logger.debug(
@@ -168,12 +122,12 @@ defmodule Farmbot.Regimen.Supervisor do
       end
     end)
     |> Enum.map(fn %PersistentRegimen{regimen_id: id, time: time, farm_event_id: feid} ->
-      regimen = Asset.get_regimen_by_id!(id, feid)
-      farm_event = Asset.get_farm_event_by_id(feid)
+      regimen = Asset.get_regimen!(id, feid)
+      farm_event = Asset.get_farm_event(feid)
       fe_time = Timex.parse!(farm_event.start_time, "{ISO:Extended}")
 
       if Timex.compare(fe_time, time) != 0 do
-        Asset.update_persistent_regimen_time(regimen, fe_time)
+        Asset.update_persistent_regimen(regimen, %{time: fe_time})
         Farmbot.Logger.debug(1, "FarmEvent start time and stored regimen start time are different.")
       end
 

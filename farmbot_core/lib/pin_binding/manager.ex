@@ -27,7 +27,7 @@ defmodule Farmbot.PinBinding.Manager do
     case @handler.start_link() do
       {:ok, handler} ->
         Farmbot.Registry.subscribe(self())
-        all = Asset.all_pin_bindings()
+        all = Asset.list_pin_bindings()
         {:ok, initial_state(all, %State{handler: handler})}
       err ->
         err
@@ -156,7 +156,7 @@ defmodule Farmbot.PinBinding.Manager do
 
   defp do_execute(%PinBinding{sequence_id: sequence_id} = binding) when is_number(sequence_id) do
     sequence_id
-    |> Farmbot.Asset.get_sequence_by_id!()
+    |> Farmbot.Asset.get_sequence!()
     |> Farmbot.Core.CeleryScript.sequence(&execute_results(&1, binding))
   end
 

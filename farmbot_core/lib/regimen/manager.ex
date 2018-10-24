@@ -133,7 +133,7 @@ defmodule Farmbot.Regimen.Manager do
 
   defp do_item(item, regimen, state) do
     if item do
-      sequence = Farmbot.Asset.get_sequence_by_id!(item.sequence_id)
+      sequence = Farmbot.Asset.get_sequence!(item.sequence_id)
       CeleryScript.sequence(sequence, fn(results) ->
         case results do
           :ok ->

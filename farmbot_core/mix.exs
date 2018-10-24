@@ -23,7 +23,7 @@ defmodule FarmbotCore.MixProject do
       make_clean: ["clean"],
       make_env: make_env(),
       make_cwd: __DIR__,
-      compilers: [:elixir_make] ++ Mix.compilers(),
+      # compilers: [:elixir_make] ++ Mix.compilers(),
       version: @version,
       target: @target,
       commit: commit(),

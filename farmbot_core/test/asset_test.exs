@@ -87,12 +87,12 @@ defmodule Farmbot.AssetTest do
       cmd_insert = Asset.register_sync_cmd(seq.id, "Sequence", seq)
       Asset.apply_sync_cmd(cmd_insert)
       assert data = Asset.get_sequence_by_id(seq.id)
-      assert data == Asset.get_sequence_by_id!(seq.id)
+      assert data == Asset.get_sequence!(seq.id)
     end
 
     test "raises when no sequence is to be found" do
       assert_raise RuntimeError, ~r"Could not find sequence by id", fn() ->
-        Asset.get_sequence_by_id!(id())
+        Asset.get_sequence!(id())
       end
     end
   end

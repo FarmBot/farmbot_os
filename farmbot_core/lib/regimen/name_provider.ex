@@ -12,7 +12,7 @@ defmodule Farmbot.Regimen.NameProvider do
   """
 
   alias Farmbot.Asset.Regimen
-  import Farmbot.Asset, only: [persistent_regimen: 1, delete_persistent_regimen: 1]
+  import Farmbot.Asset, only: [get_persistent_regimen: 1, delete_persistent_regimen: 1]
   use GenServer
   require Farmbot.Logger
 
@@ -46,7 +46,7 @@ defmodule Farmbot.Regimen.NameProvider do
 
   def handle_call({:whereis_name, regimen}, _, state) do
     # Farmbot.Logger.info 3, "whereis_name: #{regimen.name} #{regimen.farm_event_id}"
-    case persistent_regimen(regimen) do
+    case get_persistent_regimen(regimen) do
       nil ->
         {:reply, :undefined, state}
       %{id: id} ->
@@ -56,7 +56,7 @@ defmodule Farmbot.Regimen.NameProvider do
 
   def handle_call({:register_name, regimen, pid}, _, state) do
     # Farmbot.Logger.info 3, "register_name: #{regimen.name} #{regimen.farm_event_id}"
-    case persistent_regimen(regimen) do
+    case get_persistent_regimen(regimen) do
       nil ->
         Farmbot.Logger.error 1, "No persistent regimen for #{regimen.name} #{regimen.farm_event_id}"
         {:reply, :no, state}
