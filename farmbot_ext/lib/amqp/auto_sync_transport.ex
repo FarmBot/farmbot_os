@@ -64,6 +64,7 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
   end
 
   def handle_info({:basic_deliver, payload, %{routing_key: key}}, state) do
+    auto_sync? = get_config_value(:bool, "settings", "auto_sync")
     device = state.bot
     ["bot", ^device, "sync", asset_kind, id_str] = String.split(key, ".")
     asset_kind = Module.concat([Farmbot, Asset, asset_kind])
@@ -73,7 +74,7 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
 
     cond do
       #TODO(Connor) no way to cache a deletion yet
-      is_nil(params) -> :ok
+      is_nil(params) && !auto_sync? -> :ok
 
       asset_kind == Device ->
         Repo.get_by!(Device, id: id)
@@ -92,7 +93,12 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
       asset_kind == FirmwareConfig ->
         raise("FIXME")
 
-      get_config_value(:bool, "settings", "auto_sync") ->
+      is_nil(params) && auto_sync? ->
+        old = Repo.get_by(asset_kind, id: id)
+        old && Repo.delete!(old)
+        :ok
+
+      auto_sync? ->
         case Repo.get_by(asset_kind, id: id) do
           nil ->
             struct(asset_kind)
