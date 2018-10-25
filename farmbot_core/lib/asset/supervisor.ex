@@ -9,10 +9,10 @@ defmodule Farmbot.Asset.Supervisor do
   def init([]) do
     children = [
       Farmbot.Asset.Repo,
-      {Farmbot.AssetSupervisor, Farmbot.Asset.PersistentRegimen},
-      {Farmbot.AssetSupervisor, Farmbot.Asset.FarmEvent},
-      {Farmbot.AssetSupervisor, Farmbot.Asset.PinBinding},
-      {Farmbot.AssetSupervisor, Farmbot.Asset.Peripheral},
+      {Farmbot.AssetSupervisor, module: Farmbot.Asset.PersistentRegimen, preload: [:farm_event, :regimen]},
+      {Farmbot.AssetSupervisor, module: Farmbot.Asset.FarmEvent},
+      {Farmbot.AssetSupervisor, module: Farmbot.Asset.PinBinding},
+      {Farmbot.AssetSupervisor, module: Farmbot.Asset.Peripheral},
     ]
     Supervisor.init(children, [strategy: :one_for_one])
   end

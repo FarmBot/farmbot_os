@@ -1,6 +1,8 @@
 defmodule Farmbot.AssetSupervisor do
   use Supervisor
+  alias Farmbot.{Asset.Repo, AssetWorker}
 
+  @doc "List all children for an asset"
   def list_children(kind) do
     name = Module.concat(__MODULE__, kind)
     Supervisor.which_children(name)
@@ -8,7 +10,7 @@ defmodule Farmbot.AssetSupervisor do
 
   @doc "looks up a pid for an asset"
   def whereis_child(%kind{local_id: id}) do
-    :ok = Protocol.assert_impl!(Farmbot.AssetWorker, kind)
+    :ok = Protocol.assert_impl!(AssetWorker, kind)
     name = Module.concat(__MODULE__, kind)
     Supervisor.which_children(name)
     |> Enum.find_value(fn({sup_id, pid, :worker, _}) ->
@@ -18,18 +20,15 @@ defmodule Farmbot.AssetSupervisor do
 
   @doc "Start a process that manages an asset"
   def start_child(%kind{local_id: id} = asset) when is_binary(id) do
-    :ok = Protocol.assert_impl!(Farmbot.AssetWorker, kind)
+    :ok = Protocol.assert_impl!(AssetWorker, kind)
     name = Module.concat(__MODULE__, kind)
-    spec = %{
-      id: id,
-      start: {Farmbot.AssetWorker, :start_link, [asset]},
-    }
+    spec = worker_spec(asset)
     Supervisor.start_child(name, spec)
   end
 
   @doc "Removes a child if it exists"
   def delete_child(%kind{local_id: id}) do
-    :ok = Protocol.assert_impl!(Farmbot.AssetWorker, kind)
+    :ok = Protocol.assert_impl!(AssetWorker, kind)
     name = Module.concat(__MODULE__, kind)
     case Supervisor.terminate_child(name, id) do
       :ok -> Supervisor.delete_child(name, id)
@@ -39,7 +38,7 @@ defmodule Farmbot.AssetSupervisor do
 
   @doc "Updates a child if it exists"
   def update_child(%kind{} = asset) do
-    :ok = Protocol.assert_impl!(Farmbot.AssetWorker, kind)
+    :ok = Protocol.assert_impl!(AssetWorker, kind)
     _ = delete_child(asset)
     start_child(asset)
   end
@@ -47,21 +46,38 @@ defmodule Farmbot.AssetSupervisor do
   # Non public supervisor stuff
 
   @doc false
-  def child_spec(module) when is_atom(module) do
+  def child_spec(args) do
+    module = Keyword.fetch!(args, :module)
     id_and_name =  Module.concat(__MODULE__, module)
     %{
       id: id_and_name,
-      start: {__MODULE__, :start_link, [module]},
+      start: {__MODULE__, :start_link, [args]},
     }
   end
 
   @doc false
-  def start_link(module) when is_atom(module) do
-    Supervisor.start_link(__MODULE__, [], name: Module.concat(__MODULE__, module))
+  def worker_spec(%{local_id: id} = asset) do
+    %{
+      id: id,
+      start: {AssetWorker, :start_link, [asset]},
+    }
   end
 
   @doc false
-  def init([]) do
-    Supervisor.init([], strategy: :one_for_one)
+  def start_link(args) when is_list(args) do
+    module = Keyword.fetch!(args, :module)
+    Supervisor.start_link(__MODULE__, args, name: Module.concat(__MODULE__, module))
+  end
+
+  @doc false
+  def init(args) do
+    module = Keyword.fetch!(args, :module)
+    preload = Keyword.get(args, :preload, [])
+
+    module
+    |> Repo.all()
+    |> Enum.map(&Repo.preload(&1, preload))
+    |> Enum.map(&worker_spec/1)
+    |> Supervisor.init(strategy: :one_for_one)
   end
 end

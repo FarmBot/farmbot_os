@@ -113,8 +113,9 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmEvent do
 
   defp ensure_executed!(%FarmEvent{} = event, %Sequence{} = exe, next_dt) do
     # positive if the first date/time comes after the second.
-    case Timex.compare(event.last_executed, next_dt, :minutes) do
-      a >  ->
+    comp = Timex.compare(event.last_executed, :minutes)
+    cond do
+      comp > 2 ->
         Logger.warn("Sequence: #{inspect exe} needs executing")
         Asset.update_farm_event!(event, %{last_executed: next_dt})
       0 ->
