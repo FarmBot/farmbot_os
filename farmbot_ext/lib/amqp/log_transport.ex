@@ -11,18 +11,20 @@ defmodule Farmbot.AMQP.LogTransport do
 
   @doc false
   def start_link(args) do
-    GenServer.start_link(__MODULE__, args, [name: __MODULE__])
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
   def init([conn, jwt]) do
     Process.flag(:sensitive, true)
     Farmbot.Registry.subscribe()
-    {:ok, chan}  = AMQP.Channel.open(conn)
-    :ok          = Basic.qos(chan, [global: true])
-    state = struct(State, [conn: conn, chan: chan, bot: jwt.bot])
+    {:ok, chan} = AMQP.Channel.open(conn)
+    :ok = Basic.qos(chan, global: true)
+    state = struct(State, conn: conn, chan: chan, bot: jwt.bot)
+
     for l <- Farmbot.Logger.handle_all_logs() do
       do_handle_log(l, state)
     end
+
     {:ok, state}
   end
 
@@ -31,7 +33,7 @@ defmodule Farmbot.AMQP.LogTransport do
     update_config_value(:bool, "settings", "ignore_fbos_config", false)
 
     if reason not in ok_reasons do
-      Farmbot.Logger.error 1, "Logger amqp client Died: #{inspect reason}"
+      Farmbot.Logger.error(1, "Logger amqp client Died: #{inspect(reason)}")
       update_config_value(:bool, "settings", "log_amqp_connected", true)
     end
 
@@ -43,6 +45,7 @@ defmodule Farmbot.AMQP.LogTransport do
     if log = Farmbot.Logger.handle_log(id) do
       do_handle_log(log, state)
     end
+
     {:noreply, state}
   end
 
@@ -58,9 +61,12 @@ defmodule Farmbot.AMQP.LogTransport do
     if Farmbot.Logger.should_log?(log.module, log.verbosity) do
       fb = %{position: %{x: -1, y: -1, z: -1}}
       location_data = Map.get(state.state_cache || %{}, :location_data, fb)
+
       log_without_pos = %{
         type: log.level,
-        x: nil, y: nil, z: nil,
+        x: nil,
+        y: nil,
+        z: nil,
         verbosity: log.verbosity,
         major_version: log.version.major,
         minor_version: log.version.minor,
@@ -69,6 +75,7 @@ defmodule Farmbot.AMQP.LogTransport do
         channels: log.meta[:channels] || [],
         message: log.message
       }
+
       log = add_position_to_log(log_without_pos, location_data)
       push_bot_log(state.chan, state.bot, log)
     end
@@ -76,7 +83,7 @@ defmodule Farmbot.AMQP.LogTransport do
 
   defp push_bot_log(chan, bot, log) do
     json = Farmbot.JSON.encode!(log)
-    :ok = AMQP.Basic.publish chan, @exchange, "bot.#{bot}.logs", json
+    :ok = AMQP.Basic.publish(chan, @exchange, "bot.#{bot}.logs", json)
   end
 
   defp add_position_to_log(%{} = log, %{position: %{} = pos}) do

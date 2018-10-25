@@ -1,6 +1,15 @@
 defmodule Farmbot.AMQP.ChannelSupervisor do
   @moduledoc false
   use Supervisor
+  alias Farmbot.JWT
+
+  alias Farmbot.AMQP.{
+    ConnectionWorker,
+    LogTransport,
+    BotStateTransport,
+    AutoSyncTransport,
+    CeleryScriptTransport
+  }
 
   def start_link(args) do
     Supervisor.start_link(__MODULE__, args, name: __MODULE__)
@@ -8,14 +17,16 @@ defmodule Farmbot.AMQP.ChannelSupervisor do
 
   def init([token]) do
     Process.flag(:sensitive, true)
-    conn = Farmbot.AMQP.ConnectionWorker.connection()
-    jwt = Farmbot.Jwt.decode!(token)
+    conn = ConnectionWorker.connection()
+    jwt = JWT.decode!(token)
+
     children = [
-      {Farmbot.AMQP.LogTransport,          [conn, jwt]},
-      {Farmbot.AMQP.BotStateTransport,     [conn, jwt]},
-      {Farmbot.AMQP.AutoSyncTransport,     [conn, jwt]},
-      {Farmbot.AMQP.CeleryScriptTransport, [conn, jwt]}
+      {LogTransport, [conn, jwt]},
+      {BotStateTransport, [conn, jwt]},
+      {AutoSyncTransport, [conn, jwt]},
+      {CeleryScriptTransport, [conn, jwt]}
     ]
-    Supervisor.init(children, [strategy: :one_for_one])
+
+    Supervisor.init(children, strategy: :one_for_one)
   end
 end

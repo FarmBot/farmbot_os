@@ -1,9 +1,21 @@
 defmodule Farmbot.AMQP.AutoSyncTransport do
   use GenServer
   use AMQP
+
+  alias AMQP.{
+    Channel,
+    Queue
+  }
+
   require Farmbot.Logger
   require Logger
   import Farmbot.Config, only: [get_config_value: 3, update_config_value: 4]
+
+  alias Farmbot.{
+    API.EagerLoader,
+    Asset.Repo,
+    JSON
+  }
 
   @exchange "amq.topic"
 
@@ -12,17 +24,20 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
 
   @doc false
   def start_link(args) do
-    GenServer.start_link(__MODULE__, args, [name: __MODULE__])
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
   def init([conn, jwt]) do
     Process.flag(:sensitive, true)
-    {:ok, chan}  = AMQP.Channel.open(conn)
-    :ok          = Basic.qos(chan, [global: true])
-    {:ok, _}     = AMQP.Queue.declare(chan, jwt.bot <> "_auto_sync", [auto_delete: false])
-    :ok          = AMQP.Queue.bind(chan, jwt.bot <> "_auto_sync", @exchange, [routing_key: "bot.#{jwt.bot}.sync.#"])
-    {:ok, _tag}  = Basic.consume(chan, jwt.bot <> "_auto_sync", self(), [no_ack: true])
-    {:ok, struct(State, [conn: conn, chan: chan, bot: jwt.bot])}
+    {:ok, chan} = Channel.open(conn)
+    :ok = Basic.qos(chan, global: true)
+    {:ok, _} = Queue.declare(chan, jwt.bot <> "_auto_sync", auto_delete: false)
+
+    :ok =
+      Queue.bind(chan, jwt.bot <> "_auto_sync", @exchange, routing_key: "bot.#{jwt.bot}.sync.#")
+
+    {:ok, _tag} = Basic.consume(chan, jwt.bot <> "_auto_sync", self(), no_ack: true)
+    {:ok, struct(State, conn: conn, chan: chan, bot: jwt.bot)}
   end
 
   def terminate(_reason, _state) do
@@ -48,30 +63,17 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
   def handle_info({:basic_deliver, payload, %{routing_key: key}}, state) do
     device = state.bot
     ["bot", ^device, "sync", asset_kind, id_str] = String.split(key, ".")
-    data = Farmbot.JSON.decode!(payload)
-    body = data["body"]
-    case asset_kind do
-      "FbosConfig" when is_nil(body) ->
-        Farmbot.Logger.error 1, "FbosConfig deleted via API?"
-      "FbosConfig" ->
-        Farmbot.HTTP.SettingsWorker.download_os(data)
-      "FirmwareConfig" when is_nil(body) ->
-        Farmbot.Logger.error 1, "FirmwareConfig deleted via API?"
-      "FirmwareConfig" ->
-        Farmbot.HTTP.SettingsWorker.download_firmware(data)
-      _ ->
-        if !get_config_value(:bool, "settings", "needs_http_sync") do
-          id = data["id"] || String.to_integer(id_str)
-          # Body might be nil if a resource was deleted.
-          body = if body, do: Farmbot.Asset.to_asset(body, asset_kind)
-          _cmd = Farmbot.Asset.register_sync_cmd(id, asset_kind, body)
-        else
-          Logger.warn "not accepting sync_cmd from amqp because bot needs http sync first."
-        end
-    end
+    asset_kind = Module.concat([Farmbot, Asset, asset_kind])
+    data = JSON.decode!(payload)
+    params = data["body"] || raise("FIXME delete machine bork")
+    id = data["id"] || String.to_integer(id_str)
 
-    json = Farmbot.JSON.encode!(%{args: %{label: data["args"]["label"]}, kind: "rpc_ok"})
-    :ok = AMQP.Basic.publish state.chan, @exchange, "bot.#{device}.from_device", json
+    asset = Repo.get_by(asset_kind, id: id) || struct(asset_kind)
+    changeset = asset_kind.changeset(asset, params)
+    :ok = EagerLoader.cache(changeset)
+
+    json = JSON.encode!(%{args: %{label: data["args"]["label"]}, kind: "rpc_ok"})
+    :ok = Basic.publish(state.chan, @exchange, "bot.#{device}.from_device", json)
     {:noreply, state}
   end
 end
