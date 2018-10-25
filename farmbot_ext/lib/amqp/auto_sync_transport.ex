@@ -14,6 +14,9 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
   alias Farmbot.{
     API.EagerLoader,
     Asset.Repo,
+    Asset.Device,
+    Asset.FbosConfig,
+    Asset.FirmwareConfig,
     JSON
   }
 
@@ -65,12 +68,46 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
     ["bot", ^device, "sync", asset_kind, id_str] = String.split(key, ".")
     asset_kind = Module.concat([Farmbot, Asset, asset_kind])
     data = JSON.decode!(payload)
-    params = data["body"] || raise("FIXME delete machine bork")
     id = data["id"] || String.to_integer(id_str)
+    params = data["body"]
 
-    asset = Repo.get_by(asset_kind, id: id) || struct(asset_kind)
-    changeset = asset_kind.changeset(asset, params)
-    :ok = EagerLoader.cache(changeset)
+    cond do
+      #TODO(Connor) no way to cache a deletion yet
+      is_nil(params) -> :ok
+
+      asset_kind == Device ->
+        Repo.get_by!(Device, id: id)
+        |> Device.changeset(params)
+        |> Repo.update!()
+        |> Farmbot.Bootstrap.APITask.device_to_config_storage()
+        :ok
+
+      asset_kind == FbosConfig ->
+        Repo.get_by!(FbosConfig, id: id)
+        |> FbosConfig.changeset(params)
+        |> Repo.update!()
+        |> Farmbot.Bootstrap.APITask.fbos_config_to_config_storage()
+        :ok
+
+      asset_kind == FirmwareConfig ->
+        raise("FIXME")
+
+      get_config_value(:bool, "settings", "auto_sync") ->
+        case Repo.get_by(asset_kind, id: id) do
+          nil ->
+            struct(asset_kind)
+            |> asset_kind.changeset(params)
+            |> Repo.insert!()
+          asset ->
+            asset_kind.changeset(asset, params)
+            |> Repo.update!()
+        end
+
+      true ->
+        asset = Repo.get_by(asset_kind, id: id) || struct(asset_kind)
+        changeset = asset_kind.changeset(asset, params)
+        :ok = EagerLoader.cache(changeset)
+    end
 
     json = JSON.encode!(%{args: %{label: data["args"]["label"]}, kind: "rpc_ok"})
     :ok = Basic.publish(state.chan, @exchange, "bot.#{device}.from_device", json)

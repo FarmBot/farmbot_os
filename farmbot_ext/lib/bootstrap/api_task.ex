@@ -5,7 +5,8 @@ defmodule Farmbot.Bootstrap.APITask do
     * Farmbot.Asset.FbosConfig
     * Farmbot.Asset.FirmwareConfig
   """
-  import Farmbot.Config, only: [update_config_value: 4]
+  require Farmbot.Logger
+  import Farmbot.Config, only: [get_config_value: 3, update_config_value: 4]
   alias Farmbot.API
   alias Farmbot.Asset.{Repo, Device, FbosConfig, FirmwareConfig}
 
@@ -24,6 +25,13 @@ defmodule Farmbot.Bootstrap.APITask do
     _ = sync_device()
     _ = sync_fbos_config()
     _ = sync_firmware_config()
+    if get_config_value(:bool, "settings", "auto_sync") do
+      try do
+        API.Reconciler.sync()
+      catch _,_ ->
+        Farmbot.Logger.error 1, "Faild to bootup sync."
+      end
+    end
     :ignore
   end
 
