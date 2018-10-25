@@ -64,19 +64,19 @@ defmodule Farmbot.API.Reconciler do
     table = module.__schema__(:source) |> String.to_atom()
     items = Map.fetch!(sync, table)
 
-    ids_i_know_about = Repo.all(from(d in module, where: not is_nil(d.id), select: d.id))
+    ids_fbos_knows_about =
+      Repo.all(from(d in module, where: not is_nil(d.id), select: d.id))
+      |> Enum.sort()
+    ids_the_api_knows_about =
+      Enum.map(items, &Map.fetch!(&1, :id))
+      |> Enum.sort()
 
-    multi =
-      Enum.reduce(items, multi, fn %{id: id}, multi ->
-        if id not in ids_i_know_about do
-          local_item = Repo.one(from(d in module, where: d.id == ^id))
-
-          if local_item do
-            Logger.info("delete: #{inspect(local_item)}")
-            Multi.delete(multi, {table, id}, local_item)
-          end
-        end || multi
-      end)
+    ids_that_were_deleted = ids_fbos_knows_about -- ids_the_api_knows_about
+    multi = Enum.reduce(ids_that_were_deleted, multi, fn(id, multi) ->
+      Logger.info("delete: #{module} #{inspect(id)}")
+      local_item = Repo.one!(from(d in module, where: d.id == ^id))
+      Multi.delete(multi, {table, id}, local_item)
+    end)
 
     # TODO(Connor) make this reduce async with Task/Agent
     Enum.reduce(items, multi, &multi_reduce(module, table, &1, &2))
