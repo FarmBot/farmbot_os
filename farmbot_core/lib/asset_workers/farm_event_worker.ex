@@ -14,26 +14,6 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmEvent do
 
   @default_checkup_ms 10000
 
-  def delete_me do
-    %Sequence{
-      id: 1,
-      kind: "sequence",
-      args: %{},
-      body: []
-    } |> Farmbot.Asset.Repo.insert()
-
-    now = DateTime.utc_now()
-    %FarmEvent{
-      id: 100,
-      executable_type: "Sequence",
-      executable_id: 1,
-      repeat: 1,
-      start_time: now,
-      end_time: now |> Timex.shift(years: 20),
-      time_unit: "minutely"
-    } |> Asset.Repo.insert!()
-  end
-
   def start_link(farm_event) do
     GenServer.start_link(__MODULE__, [farm_event])
   end

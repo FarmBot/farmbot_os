@@ -27,19 +27,18 @@ defmodule Farmbot.AssetSupervisor do
   end
 
   @doc "Removes a child if it exists"
-  def delete_child(%kind{local_id: id}) do
+  def terminate_child(kind, id) when is_binary(id) do
     :ok = Protocol.assert_impl!(AssetWorker, kind)
     name = Module.concat(__MODULE__, kind)
-    case Supervisor.terminate_child(name, id) do
-      :ok -> Supervisor.delete_child(name, id)
-      er -> er
-    end
+    Supervisor.terminate_child(name, id)
   end
 
   @doc "Updates a child if it exists"
-  def update_child(%kind{} = asset) do
+  def update_child(%kind{local_id: id} = asset) do
     :ok = Protocol.assert_impl!(AssetWorker, kind)
-    _ = delete_child(asset)
+    name = Module.concat(__MODULE__, kind)
+    _ = terminate_child(kind, id)
+    _ = Supervisor.delete_child(name, id)
     start_child(asset)
   end
 
