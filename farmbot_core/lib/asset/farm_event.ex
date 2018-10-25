@@ -20,6 +20,9 @@ defmodule Elixir.Farmbot.Asset.FarmEvent do
     field(:start_time, :utc_datetime)
     field(:time_unit, :string)
 
+    # Private
+    field(:last_executed, :utc_datetime)
+
     timestamps()
   end
 
@@ -31,7 +34,7 @@ defmodule Elixir.Farmbot.Asset.FarmEvent do
       executable_id: farm_event.executable_id,
       repeat: farm_event.repeat,
       start_time: farm_event.start_time,
-      time_unit: farm_event.time_unit
+      time_unit: farm_event.time_unit,
     }
   end
 
@@ -45,22 +48,21 @@ defmodule Elixir.Farmbot.Asset.FarmEvent do
       :repeat,
       :start_time,
       :time_unit,
+      :last_executed,
       :created_at,
       :updated_at
     ])
     |> validate_required([])
   end
 
-  @compile {:inline, [build_calendar: 1]}
-  def build_calendar(%__MODULE__{executable_type: "Regimen"} = fe), do: fe
+  @compile {:inline, [build_calendar: 2]}
+  def build_calendar(%__MODULE__{executable_type: "Regimen"} = fe, _), do: fe.start_time
 
-  def build_calendar(%__MODULE__{time_unit: "never"} = fe), do: [fe.start_time]
+  def build_calendar(%__MODULE__{time_unit: "never"} = fe, _), do: fe.start_time
 
-  def build_calendar(%__MODULE__{} = fe) do
-    current_time_seconds = :os.system_time(:second)
-
+  def build_calendar(%__MODULE__{} = fe, current_date_time) do
+    current_time_seconds = DateTime.to_unix(current_date_time)
     start_time_seconds = DateTime.to_unix(fe.start_time, :second)
-
     end_time_seconds = DateTime.to_unix(fe.end_time, :second)
 
     repeat = fe.repeat
@@ -72,27 +74,21 @@ defmodule Elixir.Farmbot.Asset.FarmEvent do
       end_time_seconds,
       repeat,
       repeat_frequency_seconds
-    )
-    |> Enum.map(&DateTime.from_unix!(&1))
+    ) |> DateTime.from_unix!()
   end
 
-  # This should be replaced. YOU WILL KNOW if not.
-  def do_build_calendar(
-        now_seconds,
-        start_time_seconds,
-        end_time_seconds,
-        repeat,
-        repeat_frequency_seconds
-      ) do
-    require Logger
-    Logger.error("Using (very) slow calendar builder!")
-    grace_period_cutoff_seconds = now_seconds - 60
+  def do_build_calendar(_,_,_,_,_), do: :erlang.nif_error("NIF Not loaded")
 
-    Range.new(start_time_seconds, end_time_seconds)
-    |> Enum.take_every(repeat * repeat_frequency_seconds)
-    |> Enum.filter(&Kernel.>(&1, grace_period_cutoff_seconds))
-    |> Enum.take(3)
-    |> Enum.map(&Kernel.-(&1, div(&1, 60)))
+  @on_load :load_nif
+  def load_nif do
+    require Logger
+    nif_file = '#{:code.priv_dir(:farmbot_core)}/build_calendar'
+
+    case :erlang.load_nif(nif_file, 0) do
+      :ok -> :ok
+      {:error, {:reload, _}} -> :ok
+      {:error, reason} -> Logger.warn("Failed to load nif: #{inspect(reason)}")
+    end
   end
 
   @compile {:inline, [time_unit_to_seconds: 1]}

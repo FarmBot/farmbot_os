@@ -11,6 +11,7 @@ defmodule Farmbot.Asset.Repo.Migrations.CreateFarmEventsTable do
       add(:repeat, :integer)
       add(:start_time, :utc_datetime)
       add(:time_unit, :string)
+      add(:last_executed, :utc_datetime)
       timestamps(inserted_at: :created_at, type: :utc_datetime)
     end
   end

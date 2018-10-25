@@ -31,6 +31,11 @@ defmodule Farmbot.Asset do
     Repo.get_by(FarmEvent, id: id)
   end
 
+  def update_farm_event!(farm_event, params) do
+    FarmEvent.changeset(farm_event, params)
+    |> Repo.update!()
+  end
+
   ## End FarmEvent
 
   ## Begin FbosConfig
