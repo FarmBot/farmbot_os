@@ -31,6 +31,7 @@ defmodule FarmbotCore.MixProject do
       arduino_commit: arduino_commit(),
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
+      aliases: aliases(),
       deps: deps(),
       dialyzer: [
         plt_add_deps: :transitive,
@@ -90,4 +91,8 @@ defmodule FarmbotCore.MixProject do
   end
 
   defp elixirc_paths(_), do: ["lib"]
+
+  defp aliases, do: [
+    test: ["ecto.drop", "ecto.migrate", "test"]
+  ]
 end

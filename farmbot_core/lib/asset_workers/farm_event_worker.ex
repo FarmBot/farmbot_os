@@ -9,7 +9,7 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmEvent do
   require Logger
   use GenServer
 
-  defstruct [:farm_event, :date_time]
+  defstruct [:farm_event, :datetime]
   alias __MODULE__, as: State
 
   @checkup_time_ms Application.get_env(:farmbot_core, __MODULE__)[:checkup_time_ms]
@@ -22,11 +22,12 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmEvent do
   end
 
   def init([farm_event]) do
+    Logger.disable(self())
     ensure_executable!(farm_event)
     now = DateTime.utc_now()
     state = %State{
       farm_event: farm_event,
-      date_time: farm_event.last_executed || DateTime.utc_now()
+      datetime: farm_event.last_executed || DateTime.utc_now()
     }
     # check if now is _before_ start_time
     case DateTime.compare(now, farm_event.start_time) do
@@ -40,11 +41,6 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmEvent do
     end
   end
 
-  defp init_event_not_started(%State{} = state, now) do
-    wakeup_ms = Timex.compare(state.farm_event.start_time, now, :milliseconds)
-    {:ok, state, wakeup_ms}
-  end
-
   defp init_event_completed(_, _) do
     Logger.warn "No future events"
     :ignore
@@ -56,7 +52,7 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmEvent do
 
   def handle_info(:timeout, %State{} = state) do
     Logger.info "build_calendar"
-    next = FarmEvent.build_calendar(state.farm_event, state.date_time)
+    next = FarmEvent.build_calendar(state.farm_event, state.datetime)
 
     if next do
       # positive if the first date/time comes after the second.
@@ -70,7 +66,7 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmEvent do
           Logger.info "Event should be executed:  #{Timex.from_now(next)}"
           executable = ensure_executable!(state.farm_event)
           event = ensure_executed!(state.farm_event, executable, next)
-          {:noreply, %{state | farm_event: event, date_time: DateTime.utc_now()}, @checkup_time_ms}
+          {:noreply, %{state | farm_event: event, datetime: DateTime.utc_now()}, @checkup_time_ms}
       end
 
     else
@@ -81,11 +77,11 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmEvent do
 
   defp ensure_executed!(%FarmEvent{last_executed: nil} = event, %Sequence{} = exe, next_dt) do
     # positive if the first date/time comes after the second.
-    comp = Timex.compare(DateTime.utc_now(), next_dt, :minutes)
+    comp = Timex.diff(DateTime.utc_now(), next_dt, :minutes)
     cond do
       # now is more than 2 minutes past expected execution time
       comp > 2 ->
-        Logger.warn "Sequence: #{inspect exe} too late."
+        Logger.warn "Sequence: #{inspect exe} too late: #{comp} minutes difference."
         event
       true ->
         Logger.warn "Sequence: #{inspect exe} has not run before: #{comp} minutes difference."

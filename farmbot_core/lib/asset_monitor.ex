@@ -1,6 +1,5 @@
 defmodule Farmbot.AssetMonitor do
   use GenServer
-  import Ecto.Query
   import Farmbot.TimeUtils, only: [compare_datetimes: 2]
   alias Farmbot.Asset.{
     Repo,
@@ -16,18 +15,31 @@ defmodule Farmbot.AssetMonitor do
   config :farmbot_core, #{__MODULE__}, checkup_time_ms: 30_000
   """)
 
+  @doc false
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
+  end
+
+  # This is helpful for tests, but should probably be avoided
+  @doc false
+  def force_checkup do
+    GenServer.call(__MODULE__, :force_checkup)
   end
 
   def init(_args) do
     state = Map.new(order(), fn(module) -> {module, %{}} end)
     state = Map.put(state, :order, order())
+    state = Map.put(state, :force_caller, nil)
     {:ok, state, 0}
   end
 
+  def handle_call(:force_checkup, caller, state) do
+    {:noreply, %{state | force_caller: caller}, 0}
+  end
+
   def handle_info(:timeout, %{order: []} = state) do
-    {:noreply, %{state | order: order()}, @checkup_time_ms}
+    if state.force_caller, do: GenServer.reply(state.force_caller, :ok)
+    {:noreply, %{state | order: order(), force_caller: nil}, @checkup_time_ms}
   end
 
   def handle_info(:timeout, state) do
