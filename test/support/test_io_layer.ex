@@ -53,6 +53,7 @@ defmodule Farmbot.TestSupport.CeleryScript.TestIOLayer do
       for pid <- subs do
         Process.alive?(pid) && send(pid, msg)
       end
+
       {:noreply, subs}
     end
 
@@ -83,5 +84,4 @@ defmodule Farmbot.TestSupport.CeleryScript.TestIOLayer do
   def debug_fun(_), do: :ok
 
   def uuid, do: Ecto.UUID.generate()
-
 end

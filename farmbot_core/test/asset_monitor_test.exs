@@ -32,12 +32,14 @@ defmodule Farmbot.AssetMonitorTest do
       now = DateTime.utc_now()
       start_time = Timex.shift(now, seconds: 2)
       end_time = Timex.shift(now, minutes: 10)
+
       params = %{
         start_time: start_time,
         end_time: end_time,
         repeat: 1,
         time_unit: "minutely"
       }
+
       event = sequence_event(seq, params)
 
       Farmbot.AssetMonitor.force_checkup()

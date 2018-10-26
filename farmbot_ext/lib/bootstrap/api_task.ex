@@ -25,13 +25,16 @@ defmodule Farmbot.Bootstrap.APITask do
     _ = sync_device()
     _ = sync_fbos_config()
     _ = sync_firmware_config()
+
     if get_config_value(:bool, "settings", "auto_sync") do
       try do
         API.Reconciler.sync()
-      catch _,_ ->
-        Farmbot.Logger.error 1, "Faild to bootup sync."
+      catch
+        _, _ ->
+          Farmbot.Logger.error(1, "Faild to bootup sync.")
       end
     end
+
     :ignore
   end
 

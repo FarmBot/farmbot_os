@@ -73,14 +73,16 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
     params = data["body"]
 
     cond do
-      #TODO(Connor) no way to cache a deletion yet
-      is_nil(params) && !auto_sync? -> :ok
+      # TODO(Connor) no way to cache a deletion yet
+      is_nil(params) && !auto_sync? ->
+        :ok
 
       asset_kind == Device ->
         Repo.get_by!(Device, id: id)
         |> Device.changeset(params)
         |> Repo.update!()
         |> Farmbot.Bootstrap.APITask.device_to_config_storage()
+
         :ok
 
       asset_kind == FbosConfig ->
@@ -88,6 +90,7 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
         |> FbosConfig.changeset(params)
         |> Repo.update!()
         |> Farmbot.Bootstrap.APITask.fbos_config_to_config_storage()
+
         :ok
 
       asset_kind == FirmwareConfig ->
@@ -104,6 +107,7 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
             struct(asset_kind)
             |> asset_kind.changeset(params)
             |> Repo.insert!()
+
           asset ->
             asset_kind.changeset(asset, params)
             |> Repo.update!()

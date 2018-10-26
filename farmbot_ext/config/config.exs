@@ -18,6 +18,10 @@ config :ssl, protocol_version: :"tlsv1.2"
 
 config :ecto, json_library: Farmbot.JSON
 
+config :farmbot_core, Farmbot.AssetWorker.Farmbot.Asset.FarmEvent, checkup_time_ms: 10_000
+
+config :farmbot_core, Farmbot.AssetMonitor, checkup_time_ms: 30_000
+
 config :farmbot_core, :behaviour,
   firmware_handler: Farmbot.Firmware.StubHandler,
   leds_handler: Farmbot.Leds.StubHandler,

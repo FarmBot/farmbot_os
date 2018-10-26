@@ -10,6 +10,7 @@ defmodule FarmbotCore.MixProject do
 
   defp arduino_commit do
     opts = [cd: Path.join("c_src", "farmbot-arduino-firmware")]
+
     System.cmd("git", ~w"rev-parse --verify HEAD", opts)
     |> elem(0)
     |> String.trim()
@@ -39,9 +40,14 @@ defmodule FarmbotCore.MixProject do
         flags: []
       ],
       test_coverage: [tool: ExCoveralls],
-      preferred_cli_env: [coveralls: :test, "coveralls.detail": :test, "coveralls.post": :test, "coveralls.html": :test],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test
+      ],
       source_url: "https://github.com/Farmbot/farmbot_os",
-      homepage_url: "http://farmbot.io",
+      homepage_url: "http://farmbot.io"
     ]
   end
 
@@ -74,10 +80,8 @@ defmodule FarmbotCore.MixProject do
       nil ->
         %{
           "MAKE_CWD" => __DIR__,
-          "ERL_EI_INCLUDE_DIR" =>
-            Path.join([:code.root_dir(), "usr", "include"]),
-          "ERL_EI_LIBDIR" =>
-            Path.join([:code.root_dir(), "usr", "lib"]),
+          "ERL_EI_INCLUDE_DIR" => Path.join([:code.root_dir(), "usr", "include"]),
+          "ERL_EI_LIBDIR" => Path.join([:code.root_dir(), "usr", "lib"]),
           "MIX_TARGET" => @target
         }
 
@@ -92,7 +96,8 @@ defmodule FarmbotCore.MixProject do
 
   defp elixirc_paths(_), do: ["lib"]
 
-  defp aliases, do: [
-    test: ["ecto.drop", "ecto.migrate", "test"]
-  ]
+  defp aliases,
+    do: [
+      test: ["ecto.drop", "ecto.migrate", "test"]
+    ]
 end

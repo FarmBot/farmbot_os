@@ -19,9 +19,9 @@ defmodule Farmbot.AMQP.ConnectionWorker do
     Process.flag(:sensitive, true)
     Process.flag(:trap_exit, true)
     jwt = JWT.decode!(token)
-    IO.puts "OPEN"
+    IO.puts("OPEN")
     {:ok, conn} = open_connection(token, email, jwt.bot, jwt.mqtt, jwt.vhost)
-    IO.puts "OPENED"
+    IO.puts("OPENED")
     Process.link(conn.pid)
     Process.monitor(conn.pid)
     {:ok, conn}
@@ -56,6 +56,7 @@ defmodule Farmbot.AMQP.ConnectionWorker do
 
   defp open_connection(token, email, bot, mqtt_server, vhost) do
     Logger.info("Opening new AMQP connection.")
+
     opts = [
       client_properties: [
         {"version", :longstr, Farmbot.Project.version()},

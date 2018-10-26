@@ -1,7 +1,8 @@
 defmodule Farmbot.TestSupport do
-
   def farm_event_timeout do
-    Application.get_env(:farmbot_core, Farmbot.AssetWorker.Farmbot.Asset.FarmEvent)[:checkup_time_ms] + asset_monitor_timeout()
+    Application.get_env(:farmbot_core, Farmbot.AssetWorker.Farmbot.Asset.FarmEvent)[
+      :checkup_time_ms
+    ] + asset_monitor_timeout()
   end
 
   def asset_monitor_timeout do
