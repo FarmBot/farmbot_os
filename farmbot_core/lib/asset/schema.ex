@@ -9,7 +9,7 @@ defmodule Farmbot.Asset.Schema do
       use Ecto.Schema
       import Ecto.Changeset
 
-      @behaviour Farmbot.Asset
+      @behaviour Farmbot.Asset.Schema
       @behaviour Farmbot.Asset.View
 
       import Farmbot.Asset.View, only: [view: 2]
@@ -20,4 +20,10 @@ defmodule Farmbot.Asset.Schema do
       @timestamps_opts inserted_at: :created_at, type: :utc_datetime
     end
   end
+
+    @doc "API path for HTTP requests."
+  @callback path() :: Path.t()
+
+  @doc "Apply params to a changeset or object."
+  @callback changeset(map, map) :: Ecto.Changeset.t()
 end

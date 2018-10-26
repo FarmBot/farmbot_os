@@ -11,7 +11,10 @@ defmodule Farmbot.AssetMonitor do
   }
   require Logger
 
-  @checkup_ms 5_000
+  @checkup_time_ms Application.get_env(:farmbot_core, __MODULE__)[:checkup_time_ms]
+  @checkup_time_ms || Mix.raise("""
+  config :farmbot_core, #{__MODULE__}, checkup_time_ms: 30_000
+  """)
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
@@ -24,7 +27,7 @@ defmodule Farmbot.AssetMonitor do
   end
 
   def handle_info(:timeout, %{order: []} = state) do
-    {:noreply, %{state | order: order()}, @checkup_ms}
+    {:noreply, %{state | order: order()}, @checkup_time_ms}
   end
 
   def handle_info(:timeout, state) do

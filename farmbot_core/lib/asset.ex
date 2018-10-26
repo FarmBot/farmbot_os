@@ -1,16 +1,12 @@
 defmodule Farmbot.Asset do
-  @doc "API path for HTTP requests."
-  @callback path() :: Path.t()
-
-  @doc "Apply params to a changeset or object."
-  @callback changeset(map, map) :: Ecto.Changeset.t()
-
   alias Farmbot.Asset.{Repo,
     Device,
     FarmEvent,
     FbosConfig,
     FirmwareConfig,
     PinBinding,
+    Regimen,
+    PersistentRegimen,
     Sequence
   }
 
@@ -64,29 +60,15 @@ defmodule Farmbot.Asset do
 
   ## Begin PersistentRegimen
 
-  def list_persistent_regimens() do
-    []
-    # raise("FIXME")
-  end
-
-  def list_persistent_regimens(_regimen) do
-    raise("FIXME")
-  end
-
-  def new_persistent_regimen(_regimen, _farm_event) do
-    raise("FIXME")
-  end
-
-  def get_persistent_regimen(_regimen) do
-    raise("FIXME")
-  end
-
-  def update_persistent_regimen(_regimen, _params) do
-    raise("FIXME")
-  end
-
-  def delete_persistent_regimen(_regimen) do
-    raise("FIXME")
+  def upsert_persistent_regimen(%Regimen{} = regimen, %FarmEvent{} = farm_event, params \\ %{}) do
+    q = from pr in PersistentRegimen, where: pr.regimen_id == ^regimen.local_id and pr.farm_event_id == ^farm_event.local_id
+    pr = Repo.one(q) || %PersistentRegimen{}
+    pr
+    |> Repo.preload([:regimen, :farm_event])
+    |> PersistentRegimen.changeset(params)
+    |> Ecto.Changeset.put_assoc(:regimen, regimen)
+    |> Ecto.Changeset.put_assoc(:farm_event, farm_event)
+    |> Repo.insert_or_update()
   end
 
   ## End PersistentRegimen
@@ -103,13 +85,8 @@ defmodule Farmbot.Asset do
   ## Begin Regimen
 
   @doc "Get a regimen by it's API id and FarmEvent API id"
-  def get_regimen!(_id, _farm_event_id) do
-    raise("FIXME")
-  end
-
-  @doc "Get all regimens using a particular sequence by it's API id"
-  def get_regimens_using_sequence(_sequence_id) do
-    raise("FIXME")
+  def get_regimen!(params) do
+    Repo.get_by!(Regimen, params)
   end
 
   ## End Regimen
@@ -117,8 +94,8 @@ defmodule Farmbot.Asset do
   ## Begin Sequence
 
   @doc "Get a sequence by it's API id"
-  def get_sequence!(id) do
-    Repo.get_by!(Sequence, id: id)
+  def get_sequence!(params) do
+    Repo.get_by!(Sequence, params)
   end
 
   ## End Sequence

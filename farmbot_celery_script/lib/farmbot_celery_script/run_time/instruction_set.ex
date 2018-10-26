@@ -103,6 +103,9 @@ defmodule Farmbot.CeleryScript.RunTime.InstructionSet do
   @doc "Create a diagnostic dump of information."
   simple_io_instruction(:dump_info)
 
+  @doc false
+  simple_io_instruction(:debug)
+
   @doc "Move to a location offset by another location."
   def move_absolute(%FarmProc{} = farm_proc) do
     pc = get_pc_ptr(farm_proc)

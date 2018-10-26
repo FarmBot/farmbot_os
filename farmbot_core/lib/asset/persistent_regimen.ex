@@ -7,7 +7,7 @@ defmodule Farmbot.Asset.PersistentRegimen do
   schema "persistent_regimens" do
     belongs_to(:regimen, Farmbot.Asset.Regimen, references: :local_id, type: :binary_id)
     belongs_to(:farm_event, Farmbot.Asset.FarmEvent, references: :local_id, type: :binary_id)
-    field :started_at, :utc_datetime #FIXME?
+    field :started_at, :utc_datetime
     timestamps()
   end
 

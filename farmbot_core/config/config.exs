@@ -14,6 +14,27 @@ config :farmbot_core, :behaviour,
   celery_script_io_layer: Farmbot.Core.CeleryScript.StubIOLayer,
   json_parser: Farmbot.JSON.JasonParser
 
+config :farmbot_core, Farmbot.AssetWorker.Farmbot.Asset.FarmEvent,
+  checkup_time_ms: 10_000
+
+config :farmbot_core, Farmbot.AssetMonitor,
+  checkup_time_ms: 30_000
+
+
+if Mix.env() == :test do
+
+config :farmbot_core, :behaviour,
+  celery_script_io_layer: Farmbot.TestSupport.CeleryScript.TestIOLayer
+
+config :farmbot_core, Farmbot.AssetWorker.Farmbot.Asset.FarmEvent,
+  checkup_time_ms: 1000
+
+# must be lower than other timers
+# To ensure other timers have time to timeout
+config :farmbot_core, Farmbot.AssetMonitor,
+  checkup_time_ms: 500
+end
+
 config :farmbot_core,
   ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo],
   expected_fw_versions: ["6.4.0.F", "6.4.0.R", "6.4.0.G"],

@@ -13,6 +13,7 @@ defmodule Farmbot.Asset.Supervisor do
       {Farmbot.AssetSupervisor, module: Farmbot.Asset.FarmEvent},
       {Farmbot.AssetSupervisor, module: Farmbot.Asset.PinBinding},
       {Farmbot.AssetSupervisor, module: Farmbot.Asset.Peripheral},
+      Farmbot.AssetMonitor
     ]
     Supervisor.init(children, [strategy: :one_for_one])
   end

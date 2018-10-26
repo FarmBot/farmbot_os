@@ -24,6 +24,7 @@ defmodule FarmbotCore.MixProject do
       make_env: make_env(),
       make_cwd: __DIR__,
       compilers: [:elixir_make] ++ Mix.compilers(),
+      elixirc_paths: elixirc_paths(Mix.env()),
       version: @version,
       target: @target,
       commit: commit(),
@@ -83,4 +84,10 @@ defmodule FarmbotCore.MixProject do
         %{"MAKE_CWD" => __DIR__}
     end
   end
+
+  defp elixirc_paths(:test) do
+    ["lib", "../test/support"]
+  end
+
+  defp elixirc_paths(_), do: ["lib"]
 end
