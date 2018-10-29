@@ -1,5 +1,6 @@
 defmodule Farmbot.Asset do
-  alias Farmbot.Asset.{Repo,
+  alias Farmbot.Asset.{
+    Repo,
     Device,
     FarmEvent,
     FbosConfig,
@@ -61,8 +62,13 @@ defmodule Farmbot.Asset do
   ## Begin PersistentRegimen
 
   def upsert_persistent_regimen(%Regimen{} = regimen, %FarmEvent{} = farm_event, params \\ %{}) do
-    q = from pr in PersistentRegimen, where: pr.regimen_id == ^regimen.local_id and pr.farm_event_id == ^farm_event.local_id
+    q =
+      from(pr in PersistentRegimen,
+        where: pr.regimen_id == ^regimen.local_id and pr.farm_event_id == ^farm_event.local_id
+      )
+
     pr = Repo.one(q) || %PersistentRegimen{}
+
     pr
     |> Repo.preload([:regimen, :farm_event])
     |> PersistentRegimen.changeset(params)
