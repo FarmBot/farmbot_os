@@ -36,11 +36,15 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.Peripheral do
 
   def peripheral_to_rpc(peripheral) do
     ast(:rpc_request, %{label: peripheral.local_id}, [
-      ast(:read_pin, %{
-        pin_num: peripheral.pin,
-        label: peripheral.label,
-        pin_mode: peripheral.mode
-      }, [])
+      ast(
+        :read_pin,
+        %{
+          pin_num: peripheral.pin,
+          label: peripheral.label,
+          pin_mode: peripheral.mode
+        },
+        []
+      )
     ])
   end
 end
