@@ -14,7 +14,7 @@ defmodule Farmbot.Logger.Repo.Migrations.AddLogBuffer do
       add(:version, :string)
       add(:commit, :string)
       add(:target, :string)
-      add(:env,    :string)
+      add(:env, :string)
       timestamps()
     end
   end
