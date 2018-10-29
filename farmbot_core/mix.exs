@@ -71,6 +71,9 @@ defmodule FarmbotCore.MixProject do
       {:ecto, "~> 2.2"},
       {:sqlite_ecto2, "~> 2.2"},
       {:timex, "~> 3.4"},
+      {:plug, "~> 1.6"},
+      {:plug_cowboy, "~> 2.0"},
+      # {:cowboy, "~> 2.0"},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
       {:excoveralls, "~> 0.10", only: :test}
