@@ -16,6 +16,10 @@ config :farmbot_core, :behaviour,
 
 config :farmbot_core, Farmbot.AssetWorker.Farmbot.Asset.FarmEvent, checkup_time_ms: 10_000
 
+config :farmbot_core, Farmbot.AssetWorker.Farmbot.Asset.FarmwareInstallation,
+  error_retry_time_ms: 30_000,
+  install_dir: "/tmp/farmware"
+
 config :farmbot_core, Farmbot.AssetMonitor, checkup_time_ms: 30_000
 
 if Mix.env() == :test do

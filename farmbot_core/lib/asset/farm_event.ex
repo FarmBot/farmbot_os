@@ -34,7 +34,7 @@ defmodule Elixir.Farmbot.Asset.FarmEvent do
       executable_id: farm_event.executable_id,
       repeat: farm_event.repeat,
       start_time: farm_event.start_time,
-      time_unit: farm_event.time_unit,
+      time_unit: farm_event.time_unit
     }
   end
 
@@ -74,10 +74,11 @@ defmodule Elixir.Farmbot.Asset.FarmEvent do
       end_time_seconds,
       repeat,
       repeat_frequency_seconds
-    ) |> DateTime.from_unix!()
+    )
+    |> DateTime.from_unix!()
   end
 
-  def do_build_calendar(_,_,_,_,_), do: :erlang.nif_error("NIF Not loaded")
+  def do_build_calendar(_, _, _, _, _), do: :erlang.nif_error("NIF Not loaded")
 
   @on_load :load_nif
   def load_nif do

@@ -1,6 +1,8 @@
-defmodule Elixir.Farmbot.Asset.FarmwareInstallation do
+defmodule Farmbot.Asset.FarmwareInstallation do
   @moduledoc """
   """
+
+  alias Farmbot.Asset.FarmwareInstallation.Manifest
 
   use Farmbot.Asset.Schema, path: "/api/farmware_installations"
 
@@ -14,6 +16,8 @@ defmodule Elixir.Farmbot.Asset.FarmwareInstallation do
     )
 
     field(:url, :string)
+
+    embeds_one(:manifest, Manifest, on_replace: :update)
     timestamps()
   end
 
@@ -27,6 +31,7 @@ defmodule Elixir.Farmbot.Asset.FarmwareInstallation do
   def changeset(farmware_installation, params \\ %{}) do
     farmware_installation
     |> cast(params, [:id, :url, :created_at, :updated_at])
+    |> cast_embed(:manifest)
     |> validate_required([])
   end
 end
