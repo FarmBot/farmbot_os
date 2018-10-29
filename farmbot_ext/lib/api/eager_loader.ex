@@ -9,9 +9,7 @@ defmodule Farmbot.API.EagerLoader do
   use GenServer
 
   @doc "Does a ton of HTTP requests to preload the cache"
-  def preload do
-    sync = API.get_changeset(Sync) |> Changeset.apply_changes()
-
+  def preload(%Sync{} = sync) do
     SyncGroup.all_groups()
     |> Enum.map(fn asset_module ->
       table = asset_module.__schema__(:source) |> String.to_existing_atom()

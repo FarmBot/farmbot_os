@@ -1,8 +1,8 @@
 use Mix.Config
 
-config :logger,
-  handle_otp_reports: true,
-  handle_sasl_reports: true
+# config :logger,
+#   handle_otp_reports: true,
+#   handle_sasl_reports: true
 
 config :ecto, json_library: Farmbot.JSON
 
@@ -15,6 +15,10 @@ config :farmbot_core, :behaviour,
   json_parser: Farmbot.JSON.JasonParser
 
 config :farmbot_core, Farmbot.AssetWorker.Farmbot.Asset.FarmEvent, checkup_time_ms: 10_000
+
+config :farmbot_core, Farmbot.AssetWorker.Farmbot.Asset.FarmwareInstallation,
+  error_retry_time_ms: 30_000,
+  install_dir: "/tmp/farmware"
 
 config :farmbot_core, Farmbot.AssetMonitor, checkup_time_ms: 30_000
 
