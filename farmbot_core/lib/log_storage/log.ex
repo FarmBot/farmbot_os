@@ -49,7 +49,7 @@ defmodule Farmbot.Log do
     field(:level, LogLevelType)
     field(:verbosity, :integer)
     field(:message, :string)
-    field(:meta, Farmbot.EctoTypes.TermType)
+    field(:meta, :map)
     field(:function, :string)
     field(:file, :string)
     field(:line, :integer)
