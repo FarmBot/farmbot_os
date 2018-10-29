@@ -1,5 +1,5 @@
 defmodule Farmbot.TestSupport.AssetFixtures do
-  alias Farmbot.Asset.{Repo, Sequence, Regimen, FarmEvent, PersistentRegimen}
+  alias Farmbot.Asset.{Repo, Sequence, Regimen, FarmEvent}
 
   def sequence(params \\ %{}) do
     Sequence
