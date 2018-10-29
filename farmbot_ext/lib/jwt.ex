@@ -1,4 +1,4 @@
-defmodule Farmbot.Jwt do
+defmodule Farmbot.JWT do
   @moduledoc "Functions for dealing with the Farmbot JSON Web Token"
 
   defstruct [
@@ -53,7 +53,7 @@ defmodule Farmbot.Jwt do
   defp decode_map(%{} = map) do
     {:ok,
      struct(
-       Farmbot.Jwt,
+       Farmbot.JWT,
        bot: map["bot"],
        exp: map["exp"],
        iss: map["iss"],

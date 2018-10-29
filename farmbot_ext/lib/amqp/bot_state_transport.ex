@@ -14,15 +14,15 @@ defmodule Farmbot.AMQP.BotStateTransport do
 
   @doc false
   def start_link(args) do
-    GenServer.start_link(__MODULE__, args, [name: __MODULE__])
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
   def init([conn, jwt]) do
     Process.flag(:sensitive, true)
     Farmbot.Registry.subscribe()
-    {:ok, chan}  = AMQP.Channel.open(conn)
-    :ok          = Basic.qos(chan, [global: true])
-    {:ok, struct(State, [conn: conn, chan: chan, bot: jwt.bot])}
+    {:ok, chan} = AMQP.Channel.open(conn)
+    :ok = Basic.qos(chan, global: true)
+    {:ok, struct(State, conn: conn, chan: chan, bot: jwt.bot)}
   end
 
   def handle_cast(:force, %{state_cache: bot_state} = state) do
@@ -30,7 +30,10 @@ defmodule Farmbot.AMQP.BotStateTransport do
     {:noreply, state}
   end
 
-  def handle_info({Farmbot.Registry, {Farmbot.BotState, bot_state}}, %{state_cache: bot_state} = state) do
+  def handle_info(
+        {Farmbot.Registry, {Farmbot.BotState, bot_state}},
+        %{state_cache: bot_state} = state
+      ) do
     # IO.puts "no state change"
     {:noreply, state}
   end
@@ -46,7 +49,7 @@ defmodule Farmbot.AMQP.BotStateTransport do
 
   defp push_bot_state(chan, bot, state) do
     json = Farmbot.JSON.encode!(state)
-    :ok = AMQP.Basic.publish chan, @exchange, "bot.#{bot}.status", json
+    :ok = AMQP.Basic.publish(chan, @exchange, "bot.#{bot}.status", json)
     state
   end
 end

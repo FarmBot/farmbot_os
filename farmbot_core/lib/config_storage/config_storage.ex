@@ -56,6 +56,17 @@ defmodule Farmbot.Config do
     end)
   end
 
+  def get_config_value(:string, "authorization", key_name) do
+    env = System.get_env("FARMBOT_#{String.upcase(key_name)}")
+    if env && env != "" do
+      env
+    else
+      __MODULE__
+      |> apply(:get_string_value, ["authorization", key_name])
+      |> Map.fetch!(:value)
+    end
+  end
+
   def get_config_value(type, group_name, key_name) when type in [:bool, :float, :string] do
     __MODULE__
     |> apply(:"get_#{type}_value", [group_name, key_name])
@@ -113,7 +124,6 @@ defmodule Farmbot.Config do
 
   def get_string_value(group_name, key_name) do
     group_id = get_group_id(group_name)
-
     [type_id] =
       from(
         c in Config,
