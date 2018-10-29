@@ -8,6 +8,5 @@ defmodule Farmbot.BotStateTest do
 
     Config.update_config_value(:bool, "settings", "log_amqp_connected", false)
     refute BotState.fetch().configuration.log_amqp_connected
-
   end
 end

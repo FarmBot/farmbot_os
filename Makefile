@@ -26,11 +26,14 @@ help:
 	@echo "	clean - clean all."
 
 clean_other_branch:
-	rm -rf _build deps c_src config tmp
+	rm -rf _build deps c_src config tmp priv
 
 clean: clean_other_branch
 	@for project in $(PROJECTS) ; do \
 		echo cleaning $$project ; \
+		rm -rf $$project/erl_crash.dump ; \
+		rm -rf $$project/.*.sqlite3* ; \
+		rm -rf $$project/*.sqlite3* ; \
 		rm -rf $$project/_build ; \
 		rm -rf $$project/deps ; \
 		rm -rf $$project/priv/*.so ; \
