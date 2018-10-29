@@ -23,8 +23,7 @@ defmodule Farmbot.Config.Repo.Migrations.SeedGroups do
 
   defp populate_config_values do
     for name <- @group_names do
-      [group_id] =
-        from(g in Group, where: g.group_name == ^name, select: g.id) |> Repo.all()
+      [group_id] = from(g in Group, where: g.group_name == ^name, select: g.id) |> Repo.all()
 
       populate_config_values(name, group_id)
     end
@@ -38,15 +37,15 @@ defmodule Farmbot.Config.Repo.Migrations.SeedGroups do
   end
 
   defp populate_config_values("settings", group_id) do
-    create_value(BoolValue, true)   |> create_config(group_id, "os_auto_update")
-    create_value(BoolValue, true)   |> create_config(group_id, "ignore_external_logs")
-    create_value(BoolValue, true)   |> create_config(group_id, "first_boot")
-    create_value(BoolValue, true)   |> create_config(group_id, "first_sync")
-    create_value(StringValue, "A")  |> create_config(group_id, "current_repo")
-    create_value(BoolValue, true)   |> create_config(group_id, "first_party_farmware")
-    create_value(BoolValue, false)  |> create_config(group_id, "auto_sync")
-    create_value(StringValue, nil)  |> create_config(group_id, "firmware_hardware")
-    create_value(StringValue, nil)  |> create_config(group_id, "timezone")
+    create_value(BoolValue, true) |> create_config(group_id, "os_auto_update")
+    create_value(BoolValue, true) |> create_config(group_id, "ignore_external_logs")
+    create_value(BoolValue, true) |> create_config(group_id, "first_boot")
+    create_value(BoolValue, true) |> create_config(group_id, "first_sync")
+    create_value(StringValue, "A") |> create_config(group_id, "current_repo")
+    create_value(BoolValue, true) |> create_config(group_id, "first_party_farmware")
+    create_value(BoolValue, false) |> create_config(group_id, "auto_sync")
+    create_value(StringValue, nil) |> create_config(group_id, "firmware_hardware")
+    create_value(StringValue, nil) |> create_config(group_id, "timezone")
     create_value(StringValue, "{}") |> create_config(group_id, "user_env")
     fpf_url = Application.get_env(:farmbot_core, :farmware)[:first_part_farmware_manifest_url]
     create_value(StringValue, fpf_url) |> create_config(group_id, "first_party_farmware_url")
