@@ -106,6 +106,7 @@ defmodule Farmbot.BotState do
     Farmbot.Registry.subscribe()
     send(self(), :get_initial_configuration)
     send(self(), :get_initial_mcu_params)
+    # send(self(), :get_initial_user_env)
     {:consumer, struct(BotState), [subscribe_to: [Farmbot.Firmware]]}
   end
 
