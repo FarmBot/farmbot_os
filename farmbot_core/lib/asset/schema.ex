@@ -21,7 +21,7 @@ defmodule Farmbot.Asset.Schema do
     end
   end
 
-    @doc "API path for HTTP requests."
+  @doc "API path for HTTP requests."
   @callback path() :: Path.t()
 
   @doc "Apply params to a changeset or object."
