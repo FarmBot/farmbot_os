@@ -20,12 +20,17 @@ defmodule Farmbot.Core.CeleryScript.RunTimeWrapper do
   def start_link do
     opts = [
       process_io_layer: &handle_io/1,
-      hyper_io_layer: &handle_hyper/1,
+      hyper_io_layer: &handle_hyper/1
     ]
+
     RunTime.start_link(opts)
   end
 
   @doc false
+  def handle_io(%AST{kind: :execute_script, args: args}) do
+    Farmbot.FarmwareRuntime.execute_script(args)
+  end
+
   def handle_io(%AST{kind: kind, args: args, body: body}) do
     apply(@io_layer, kind, [args, body])
   end
@@ -38,5 +43,4 @@ defmodule Farmbot.Core.CeleryScript.RunTimeWrapper do
   def handle_hyper(:emergency_unlock) do
     apply(@io_layer, :emergency_unlock, [%{}, []])
   end
-
 end

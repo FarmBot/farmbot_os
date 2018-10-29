@@ -25,14 +25,14 @@ defmodule Farmbot.API.SyncGroup do
     do: [
       Device,
       FbosConfig,
-      FirmwareConfig
+      FirmwareConfig,
+      FarmwareEnv,
+      FarmwareInstallation
     ]
 
   @doc "Group 1 should have no external requirements"
   def group_1,
     do: [
-      FarmwareInstallation,
-      FarmwareEnv,
       Peripheral,
       Point,
       SensorReading,
