@@ -1,9 +1,24 @@
 defmodule Farmbot.AMQP.AutoSyncTransport do
   use GenServer
   use AMQP
+
+  alias AMQP.{
+    Channel,
+    Queue
+  }
+
   require Farmbot.Logger
   require Logger
   import Farmbot.Config, only: [get_config_value: 3, update_config_value: 4]
+
+  alias Farmbot.{
+    API.EagerLoader,
+    Asset.Repo,
+    Asset.Device,
+    Asset.FbosConfig,
+    Asset.FirmwareConfig,
+    JSON
+  }
 
   @exchange "amq.topic"
 
@@ -12,17 +27,20 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
 
   @doc false
   def start_link(args) do
-    GenServer.start_link(__MODULE__, args, [name: __MODULE__])
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
   def init([conn, jwt]) do
     Process.flag(:sensitive, true)
-    {:ok, chan}  = AMQP.Channel.open(conn)
-    :ok          = Basic.qos(chan, [global: true])
-    {:ok, _}     = AMQP.Queue.declare(chan, jwt.bot <> "_auto_sync", [auto_delete: false])
-    :ok          = AMQP.Queue.bind(chan, jwt.bot <> "_auto_sync", @exchange, [routing_key: "bot.#{jwt.bot}.sync.#"])
-    {:ok, _tag}  = Basic.consume(chan, jwt.bot <> "_auto_sync", self(), [no_ack: true])
-    {:ok, struct(State, [conn: conn, chan: chan, bot: jwt.bot])}
+    {:ok, chan} = Channel.open(conn)
+    :ok = Basic.qos(chan, global: true)
+    {:ok, _} = Queue.declare(chan, jwt.bot <> "_auto_sync", auto_delete: false)
+
+    :ok =
+      Queue.bind(chan, jwt.bot <> "_auto_sync", @exchange, routing_key: "bot.#{jwt.bot}.sync.#")
+
+    {:ok, _tag} = Basic.consume(chan, jwt.bot <> "_auto_sync", self(), no_ack: true)
+    {:ok, struct(State, conn: conn, chan: chan, bot: jwt.bot)}
   end
 
   def terminate(_reason, _state) do
@@ -46,32 +64,63 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
   end
 
   def handle_info({:basic_deliver, payload, %{routing_key: key}}, state) do
+    auto_sync? = get_config_value(:bool, "settings", "auto_sync")
     device = state.bot
     ["bot", ^device, "sync", asset_kind, id_str] = String.split(key, ".")
-    data = Farmbot.JSON.decode!(payload)
-    body = data["body"]
-    case asset_kind do
-      "FbosConfig" when is_nil(body) ->
-        Farmbot.Logger.error 1, "FbosConfig deleted via API?"
-      "FbosConfig" ->
-        Farmbot.HTTP.SettingsWorker.download_os(data)
-      "FirmwareConfig" when is_nil(body) ->
-        Farmbot.Logger.error 1, "FirmwareConfig deleted via API?"
-      "FirmwareConfig" ->
-        Farmbot.HTTP.SettingsWorker.download_firmware(data)
-      _ ->
-        if !get_config_value(:bool, "settings", "needs_http_sync") do
-          id = data["id"] || String.to_integer(id_str)
-          # Body might be nil if a resource was deleted.
-          body = if body, do: Farmbot.Asset.to_asset(body, asset_kind)
-          _cmd = Farmbot.Asset.register_sync_cmd(id, asset_kind, body)
-        else
-          Logger.warn "not accepting sync_cmd from amqp because bot needs http sync first."
+    asset_kind = Module.concat([Farmbot, Asset, asset_kind])
+    data = JSON.decode!(payload)
+    id = data["id"] || String.to_integer(id_str)
+    params = data["body"]
+
+    cond do
+      # TODO(Connor) no way to cache a deletion yet
+      is_nil(params) && !auto_sync? ->
+        :ok
+
+      asset_kind == Device ->
+        Repo.get_by!(Device, id: id)
+        |> Device.changeset(params)
+        |> Repo.update!()
+        |> Farmbot.Bootstrap.APITask.device_to_config_storage()
+
+        :ok
+
+      asset_kind == FbosConfig ->
+        Repo.get_by!(FbosConfig, id: id)
+        |> FbosConfig.changeset(params)
+        |> Repo.update!()
+        |> Farmbot.Bootstrap.APITask.fbos_config_to_config_storage()
+
+        :ok
+
+      asset_kind == FirmwareConfig ->
+        raise("FIXME")
+
+      is_nil(params) && auto_sync? ->
+        old = Repo.get_by(asset_kind, id: id)
+        old && Repo.delete!(old)
+        :ok
+
+      auto_sync? ->
+        case Repo.get_by(asset_kind, id: id) do
+          nil ->
+            struct(asset_kind)
+            |> asset_kind.changeset(params)
+            |> Repo.insert!()
+
+          asset ->
+            asset_kind.changeset(asset, params)
+            |> Repo.update!()
         end
+
+      true ->
+        asset = Repo.get_by(asset_kind, id: id) || struct(asset_kind)
+        changeset = asset_kind.changeset(asset, params)
+        :ok = EagerLoader.cache(changeset)
     end
 
-    json = Farmbot.JSON.encode!(%{args: %{label: data["args"]["label"]}, kind: "rpc_ok"})
-    :ok = AMQP.Basic.publish state.chan, @exchange, "bot.#{device}.from_device", json
+    json = JSON.encode!(%{args: %{label: data["args"]["label"]}, kind: "rpc_ok"})
+    :ok = Basic.publish(state.chan, @exchange, "bot.#{device}.from_device", json)
     {:noreply, state}
   end
 end

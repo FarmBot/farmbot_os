@@ -11,6 +11,7 @@ defmodule FarmbotCore.MixProject do
 
   defp arduino_commit do
     opts = [cd: Path.join("c_src", "farmbot-arduino-firmware")]
+
     System.cmd("git", ~w"rev-parse --verify HEAD", opts)
     |> elem(0)
     |> String.trim()
@@ -25,6 +26,7 @@ defmodule FarmbotCore.MixProject do
       make_env: make_env(),
       make_cwd: __DIR__,
       compilers: [:elixir_make] ++ Mix.compilers(),
+      elixirc_paths: elixirc_paths(Mix.env()),
       version: @version,
       target: @target,
       branch: @branch,
@@ -32,6 +34,7 @@ defmodule FarmbotCore.MixProject do
       arduino_commit: arduino_commit(),
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
+      aliases: aliases(),
       deps: deps(),
       dialyzer: [
         plt_add_deps: :transitive,
@@ -39,9 +42,14 @@ defmodule FarmbotCore.MixProject do
         flags: []
       ],
       test_coverage: [tool: ExCoveralls],
-      preferred_cli_env: [coveralls: :test, "coveralls.detail": :test, "coveralls.post": :test, "coveralls.html": :test],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test
+      ],
       source_url: "https://github.com/Farmbot/farmbot_os",
-      homepage_url: "http://farmbot.io",
+      homepage_url: "http://farmbot.io"
     ]
   end
 
@@ -74,10 +82,8 @@ defmodule FarmbotCore.MixProject do
       nil ->
         %{
           "MAKE_CWD" => __DIR__,
-          "ERL_EI_INCLUDE_DIR" =>
-            Path.join([:code.root_dir(), "usr", "include"]),
-          "ERL_EI_LIBDIR" =>
-            Path.join([:code.root_dir(), "usr", "lib"]),
+          "ERL_EI_INCLUDE_DIR" => Path.join([:code.root_dir(), "usr", "include"]),
+          "ERL_EI_LIBDIR" => Path.join([:code.root_dir(), "usr", "lib"]),
           "MIX_TARGET" => @target
         }
 
@@ -85,4 +91,15 @@ defmodule FarmbotCore.MixProject do
         %{"MAKE_CWD" => __DIR__}
     end
   end
+
+  defp elixirc_paths(:test) do
+    ["lib", "../test/support"]
+  end
+
+  defp elixirc_paths(_), do: ["lib"]
+
+  defp aliases,
+    do: [
+      test: ["ecto.drop", "ecto.migrate", "test"]
+    ]
 end
