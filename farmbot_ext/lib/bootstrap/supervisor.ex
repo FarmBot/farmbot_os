@@ -70,17 +70,17 @@ defmodule Farmbot.Bootstrap.Supervisor do
 
   @doc "Start Bootstrap services."
   def start_link(args) do
-    Supervisor.start_link(__MODULE__, args, [name: __MODULE__])
+    Supervisor.start_link(__MODULE__, args, name: __MODULE__)
   end
 
   def init([]) do
     # Make sure we log when amqp is connected.
     update_config_value(:bool, "settings", "log_amqp_connected", true)
-
-    email    = get_config_value(:string, "authorization", "email")
-    server   = get_config_value(:string, "authorization", "server")
+    email = get_config_value(:string, "authorization", "email")
+    server = get_config_value(:string, "authorization", "server")
     password = get_config_value(:string, "authorization", "password")
-    secret   = get_config_value(:string, "authorization", "secret")
+    secret = get_config_value(:string, "authorization", "secret")
+
     cond do
       is_nil(email) -> exit("No email")
       is_nil(server) -> exit("No server")
@@ -103,16 +103,17 @@ defmodule Farmbot.Bootstrap.Supervisor do
         update_config_value(:string, "authorization", "token", token)
 
         children = [
-          {Farmbot.HTTP.Supervisor,    []},
-          {Farmbot.AMQP.Supervisor ,   []},
-          {Farmbot.Bootstrap.AuthTask, []},
-          {Farmbot.AutoSyncTask, []},
+          Farmbot.API.EagerLoader.Supervisor,
+          Farmbot.API.DirtyWorker.Supervisor,
+          Farmbot.Bootstrap.APITask,
+          Farmbot.AMQP.Supervisor
         ]
 
         opts = [strategy: :one_for_one]
         Supervisor.init(children, opts)
 
-      {:error, reason} -> exit(reason)
+      {:error, reason} ->
+        exit(reason)
     end
   end
 
@@ -125,12 +126,12 @@ defmodule Farmbot.Bootstrap.Supervisor do
   end
 
   defp auth_with_secret(e, sec, s) do
-    Farmbot.Logger.debug 3, "Using secret to authorize."
+    Farmbot.Logger.debug(3, "Using secret to authorize.")
     @auth_task.authorize_with_secret(e, sec, s)
   end
 
   defp auth_with_password(e, pass, s) do
-    Farmbot.Logger.debug 3, "Using password to authorize."
+    Farmbot.Logger.debug(3, "Using password to authorize.")
     @auth_task.authorize_with_password(e, pass, s)
   end
 end
