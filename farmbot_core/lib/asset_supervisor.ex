@@ -12,9 +12,10 @@ defmodule Farmbot.AssetSupervisor do
   def whereis_child(%kind{local_id: id}) do
     :ok = Protocol.assert_impl!(AssetWorker, kind)
     name = Module.concat(__MODULE__, kind)
+
     Supervisor.which_children(name)
-    |> Enum.find_value(fn({sup_id, pid, :worker, _}) ->
-      (sup_id == id) && pid
+    |> Enum.find_value(fn {sup_id, pid, :worker, _} ->
+      sup_id == id && pid
     end)
   end
 
@@ -47,10 +48,11 @@ defmodule Farmbot.AssetSupervisor do
   @doc false
   def child_spec(args) do
     module = Keyword.fetch!(args, :module)
-    id_and_name =  Module.concat(__MODULE__, module)
+    id_and_name = Module.concat(__MODULE__, module)
+
     %{
       id: id_and_name,
-      start: {__MODULE__, :start_link, [args]},
+      start: {__MODULE__, :start_link, [args]}
     }
   end
 
@@ -58,7 +60,7 @@ defmodule Farmbot.AssetSupervisor do
   def worker_spec(%{local_id: id} = asset) do
     %{
       id: id,
-      start: {AssetWorker, :start_link, [asset]},
+      start: {AssetWorker, :start_link, [asset]}
     }
   end
 

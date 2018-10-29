@@ -1,6 +1,9 @@
 defmodule Farmbot.Asset do
-  alias Farmbot.Asset.{Repo,
+  alias Farmbot.Asset.{
+    Repo,
     Device,
+    FarmwareEnv,
+    FarmwareInstallation,
     FarmEvent,
     FbosConfig,
     FirmwareConfig,
@@ -61,8 +64,13 @@ defmodule Farmbot.Asset do
   ## Begin PersistentRegimen
 
   def upsert_persistent_regimen(%Regimen{} = regimen, %FarmEvent{} = farm_event, params \\ %{}) do
-    q = from pr in PersistentRegimen, where: pr.regimen_id == ^regimen.local_id and pr.farm_event_id == ^farm_event.local_id
+    q =
+      from(pr in PersistentRegimen,
+        where: pr.regimen_id == ^regimen.local_id and pr.farm_event_id == ^farm_event.local_id
+      )
+
     pr = Repo.one(q) || %PersistentRegimen{}
+
     pr
     |> Repo.preload([:regimen, :farm_event])
     |> PersistentRegimen.changeset(params)
@@ -99,4 +107,18 @@ defmodule Farmbot.Asset do
   end
 
   ## End Sequence
+
+  ## Begin FarmwareInstallation
+
+  @doc "Get a FarmwareManifest by it's name."
+  def get_farmware_manifest(package) do
+    Repo.all(from(fwi in FarmwareInstallation, select: fwi.manifest))
+    |> Enum.find(fn %{package: pkg} -> pkg == package end)
+  end
+
+  def list_farmware_env() do
+    Repo.all(FarmwareEnv)
+  end
+
+  ## End FarmwareInstallation
 end
