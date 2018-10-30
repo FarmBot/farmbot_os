@@ -1,4 +1,6 @@
 defmodule Farmbot.FarmwareRuntime do
+  import Farmbot.AssetWorker.Farmbot.Asset.FarmwareInstallation, only: [install_dir: 1]
+
   alias Farmbot.Asset
   alias Asset.FarmwareInstallation.Manifest
   alias Farmbot.FarmwareRuntime.PlugWrapper
@@ -6,6 +8,7 @@ defmodule Farmbot.FarmwareRuntime do
 
   def execute_script(%{package: package} = args) do
     IO.inspect(args, label: "execute_script")
+
     case start_link(package) do
       {:ok, pid} -> await(pid)
       {:error, {:already_started, pid}} -> await(pid)
@@ -29,7 +32,8 @@ defmodule Farmbot.FarmwareRuntime do
     manifest = Asset.get_farmware_manifest(package)
     env = build_env(manifest)
     exec = System.find_executable(manifest.executable)
-    installation_path = "/tmp/farmware/take-photo"
+    installation_path = install_dir(manifest)
+
     opts = [
       :stream,
       :binary,
@@ -39,19 +43,26 @@ defmodule Farmbot.FarmwareRuntime do
       :stderr_to_stdout,
       args: manifest.args,
       env: env,
-      cd: installation_path,
+      cd: installation_path
     ]
-    {:ok, http} = Plug.Cowboy.http PlugWrapper, [
-      manifest: manifest,
-      runtime_pid: self(),
-      # token: to_string(Keyword.fetch!(env, 'FARMWARE_TOKEN'))
-    ], port: 27347
+
+    {:ok, http} =
+      Plug.Cowboy.http(
+        PlugWrapper,
+        [
+          manifest: manifest,
+          runtime_pid: self()
+          # token: to_string(Keyword.fetch!(env, 'FARMWARE_TOKEN'))
+        ],
+        port: 27347
+      )
+
     port = Port.open({:spawn_executable, exec}, opts)
     {:ok, %{port: port, http: http, await: nil, schedule: nil}}
   end
 
   def terminate(_, _state) do
-    IO.puts "farmware terminate"
+    IO.puts("farmware terminate")
     _ = Plug.Cowboy.shutdown(PlugWrapper.HTTP)
   end
 
@@ -72,19 +83,21 @@ defmodule Farmbot.FarmwareRuntime do
     if state.schedule do
       GenServer.reply(state.schedule, :ok)
     end
+
     {:noreply, %{state | await: from}}
   end
 
   def handle_call(:error, reason, state) do
     if state.schedule do
-      IO.puts "Error"
+      IO.puts("Error")
       GenServer.reply(state.schedule, reason)
     end
+
     {:stop, :normal, %{state | schedule: nil}}
   end
 
   def handle_call({:schedule, ast}, from, state) do
-    state = try_reply(%{state | schedule: from}, {:ok, ast, &GenServer.call(self(), {:error, &1})})
+    state = try_reply(%{state | schedule: from}, {:ok, ast})
     {:noreply, state}
   end
 
@@ -93,25 +106,30 @@ defmodule Farmbot.FarmwareRuntime do
   end
 
   defp try_reply(%{await: nil} = state, _reply), do: state
+
   defp try_reply(%{await: caller} = state, reply) do
     GenServer.reply(caller, reply)
     %{state | await: nil}
   end
 
-  defp build_env(_manifest) do
+  defp build_env(manifest) do
     token = get_config_value(:string, "authorization", "token")
     images_dir = "/tmp/images"
-    base = Map.new()
-    |> Map.put("API_TOKEN", token)
-    |> Map.put("FARMWARE_TOKEN", token)
-    |> Map.put("IMAGES_DIR", images_dir)
-    |> Map.put("FARMWARE_URL", "http://localhost:27347/")
-    |> Map.put("FARMBOT_OS_VERSION", Farmbot.Project.version())
+    installation_path = install_dir(manifest)
+
+    base =
+      Map.new()
+      |> Map.put("API_TOKEN", token)
+      |> Map.put("FARMWARE_TOKEN", token)
+      |> Map.put("IMAGES_DIR", images_dir)
+      |> Map.put("FARMWARE_URL", "http://localhost:27347/")
+      |> Map.put("PYTHONPATH", installation_path)
+      |> Map.put("FARMBOT_OS_VERSION", Farmbot.Project.version())
 
     Asset.list_farmware_env()
-    |> Map.new(fn(%{key: key, value: val}) -> {key, val} end)
+    |> Map.new(fn %{key: key, value: val} -> {key, val} end)
     |> Map.merge(base)
-    |> Enum.map(fn({key, val}) ->
+    |> Enum.map(fn {key, val} ->
       {to_charlist(key), to_charlist(val)}
     end)
   end

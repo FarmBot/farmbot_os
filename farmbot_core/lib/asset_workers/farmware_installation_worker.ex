@@ -17,12 +17,14 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmwareInstallation do
   end
 
   def handle_info(:timeout, %FWI{manifest: nil} = fwi) do
-    Farmbot.Logger.busy 3, "Installing Farmware from url: #{fwi.url}"
+    Farmbot.Logger.busy(3, "Installing Farmware from url: #{fwi.url}")
+
     with {:ok, %{} = manifest} <- get_manifest_json(fwi),
          %{valid?: true} = changeset <- FWI.changeset(fwi, %{manifest: manifest}),
          {:ok, %FWI{} = updated} <- Repo.update(changeset),
          {:ok, zip_binary} <- get_zip(updated),
          :ok <- install_zip(updated, zip_binary),
+         :ok <- install_farmware_tools(updated),
          :ok <- write_manifest(updated) do
       # TODO(Connor) -> No reason to keep this process alive?
       {:noreply, fwi}
@@ -47,7 +49,9 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmwareInstallation do
         updated =
           FWI.changeset(fwi, %{manifest: nil})
           |> Repo.update!()
+
         {:noreply, updated, 0}
+
       error ->
         error_log(fwi, "failed to check for updates: #{inspect(error)}")
 
@@ -73,6 +77,7 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmwareInstallation do
 
         with {:ok, zip_binary} <- get_zip(updated),
              :ok <- install_zip(updated, zip_binary),
+             :ok <- install_farmware_tools(updated),
              :ok <- write_manifest(updated) do
           {:noreply, updated}
         else
@@ -95,7 +100,9 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmwareInstallation do
     end
   end
 
-  def get_zip(%FWI{manifest: %{zip: url}}) do
+  def get_zip(%FWI{manifest: %{zip: url}}), do: get_zip(url)
+
+  def get_zip(url) when is_binary(url) do
     with {:ok, {{_, 200, _}, _headers, zip_binary}} <- get(url),
          {:ok, zip} <- :zip.zip_open(zip_binary, [:memory]),
          :ok <- :zip.zip_close(zip) do
@@ -104,7 +111,11 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmwareInstallation do
   end
 
   def install_zip(%FWI{} = fwi, binary) when is_binary(binary) do
-    with {:ok, _} <- :zip.extract(binary, [{:cwd, install_dir(fwi)}]) do
+    install_zip(install_dir(fwi), binary)
+  end
+
+  def install_zip(dir, binary) do
+    with {:ok, _} <- :zip.extract(binary, [{:cwd, dir}]) do
       :ok
     end
   end
@@ -118,13 +129,72 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmwareInstallation do
     |> File.write(json)
   end
 
-  def get(url) do
-    :httpc.request(:get, {to_charlist(url), []}, [], httpc_options())
+  def install_farmware_tools(%FWI{manifest: %{farmware_tools_version: version}} = fwi) do
+    install_dir = install_dir(fwi)
+    File.mkdir_p(Path.join(install_dir, "farmware_tools"))
+
+    release_url =
+      if version == "latest" do
+        "https://api.github.com/repos/FarmBot-Labs/farmware-tools/releases/latest"
+      else
+        "https://api.github.com/repos/FarmBot-Labs/farmware-tools/releases/tags/#{version}"
+      end
+
+    with {:ok, {_commit, zip_url}} <- get_tools_zip_url(release_url),
+         {:ok, zip_binary} <- get_zip(zip_url),
+         :ok <- install_zip(install_dir, zip_binary) do
+      fun = fn {:zip_file, dir, _info, _, _, _} ->
+        [_ | rest] = Path.split(to_string(dir))
+        List.first(rest) == "farmware_tools"
+      end
+
+      case :zip.extract(zip_binary, [:memory, file_filter: fun]) do
+        {:ok, list} when is_list(list) ->
+          Enum.each(list, fn {filename, data} ->
+            out_file =
+              Path.join([install_dir, "farmware_tools", Path.basename(to_string(filename))])
+
+            File.write!(out_file, data)
+          end)
+
+        {:error, reason} ->
+          raise(reason)
+      end
+
+      :ok
+    end
+  end
+
+  def get_tools_zip_url(release_url) do
+    case get(release_url) do
+      {:ok, {{_, 200, _}, _, msg}} ->
+        release = Farmbot.JSON.decode!(msg)
+        release_commit = release["target_commitish"]
+        {:ok, {release_commit, release["zipball_url"]}}
+
+      {:ok, {{_, _, _}, _, msg}} ->
+        case Farmbot.JSON.decode(msg) do
+          {:ok, %{"message" => message}} -> {:error, message}
+          _ -> {:error, msg}
+        end
+
+      error ->
+        error
+    end
+  end
+
+  defp get(url) do
+    :httpc.request(:get, {to_charlist(url), httpc_headers()}, [], httpc_options())
   end
 
   defp httpc_options, do: [body_format: :binary]
+  defp httpc_headers, do: [{'user-agent', 'farmbot-os'}]
 
-  def install_dir(%FWI{manifest: %{package: package}}) do
+  def install_dir(%FWI{} = fwi) do
+    install_dir(fwi.manifest)
+  end
+
+  def install_dir(%FWI.Manifest{package: package}) do
     dir = Path.join(@install_dir, package)
     File.mkdir_p!(dir)
     dir

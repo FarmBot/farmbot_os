@@ -2,16 +2,20 @@ defmodule Farmbot.FarmwareRuntime.Router do
   use Plug.Router
   alias Farmbot.{CeleryScript.AST, FarmwareRuntime, BotState, JSON}
 
-  plug :match
-  plug Plug.Parsers, parsers: [:json],
-                     pass:  ["application/json"],
-                     json_decoder: JSON
-  plug :auth
-  plug :json_content_type
-  plug :dispatch
+  plug(:match)
+
+  plug(Plug.Parsers,
+    parsers: [:json],
+    pass: ["application/json"],
+    json_decoder: JSON
+  )
+
+  plug(:auth)
+  plug(:json_content_type)
+  plug(:dispatch)
 
   def auth(conn, _opts) do
-    #TODO(Connor) fixme
+    # TODO(Connor) fixme
     conn
   end
 
@@ -21,7 +25,6 @@ defmodule Farmbot.FarmwareRuntime.Router do
   end
 
   post "/api/v1/celery_script" do
-    # Farmbot.FarmwareRuntime
     decoded = AST.decode(conn.body_params)
     ast = AST.new(:rpc_request, %{label: "farmware"}, [decoded])
     result = FarmwareRuntime.schedule(conn.private.runtime_info.runtime_pid, ast)

@@ -3,13 +3,14 @@ defmodule Farmbot.Core.CeleryScript.Supervisor do
   use Supervisor
 
   def start_link(args) do
-    Supervisor.start_link(__MODULE__, args, [name: __MODULE__])
+    Supervisor.start_link(__MODULE__, args, name: __MODULE__)
   end
 
   def init([]) do
     children = [
       {Farmbot.Core.CeleryScript.RunTimeWrapper, []}
     ]
-    Supervisor.init(children, [strategy: :one_for_one])
+
+    Supervisor.init(children, strategy: :one_for_one)
   end
 end
