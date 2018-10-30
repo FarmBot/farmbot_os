@@ -4,7 +4,8 @@ defmodule Farmbot.FarmwareRuntime do
   alias Farmbot.FarmwareRuntime.PlugWrapper
   import Farmbot.Config, only: [get_config_value: 3]
 
-  def execute_script(%{package: package}) do
+  def execute_script(%{package: package} = args) do
+    IO.inspect(args, label: "execute_script")
     case start_link(package) do
       {:ok, pid} -> await(pid)
       {:error, {:already_started, pid}} -> await(pid)
@@ -40,12 +41,17 @@ defmodule Farmbot.FarmwareRuntime do
       env: env,
       cd: installation_path,
     ]
-    {:ok, http} = Plug.Cowboy.http PlugWrapper, [manifest: manifest, runtime_pid: self()], port: 27347
+    {:ok, http} = Plug.Cowboy.http PlugWrapper, [
+      manifest: manifest,
+      runtime_pid: self(),
+      # token: to_string(Keyword.fetch!(env, 'FARMWARE_TOKEN'))
+    ], port: 27347
     port = Port.open({:spawn_executable, exec}, opts)
     {:ok, %{port: port, http: http, await: nil, schedule: nil}}
   end
 
   def terminate(_, _state) do
+    IO.puts "farmware terminate"
     _ = Plug.Cowboy.shutdown(PlugWrapper.HTTP)
   end
 
@@ -69,8 +75,16 @@ defmodule Farmbot.FarmwareRuntime do
     {:noreply, %{state | await: from}}
   end
 
+  def handle_call(:error, reason, state) do
+    if state.schedule do
+      IO.puts "Error"
+      GenServer.reply(state.schedule, reason)
+    end
+    {:stop, :normal, %{state | schedule: nil}}
+  end
+
   def handle_call({:schedule, ast}, from, state) do
-    state = try_reply(%{state | schedule: from}, {:ok, ast})
+    state = try_reply(%{state | schedule: from}, {:ok, ast, &GenServer.call(self(), {:error, &1})})
     {:noreply, state}
   end
 
