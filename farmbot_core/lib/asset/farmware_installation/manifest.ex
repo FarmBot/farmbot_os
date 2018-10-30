@@ -13,6 +13,7 @@ defmodule Farmbot.Asset.FarmwareInstallation.Manifest do
     field(:zip, :string)
     field(:executable, :string)
     field(:args, {:array, :string})
+    field(:farmware_tools_version, :string, default: "latest")
     # new field
     field(:os_version_requirement, :string, default: "~> 6.5")
   end
@@ -28,6 +29,7 @@ defmodule Farmbot.Asset.FarmwareInstallation.Manifest do
       zip: manifest.zip,
       executable: manifest.executable,
       args: manifest.args,
+      farmware_tools_version: manifest.farmware_tools_version,
       # new field
       os_version_requirement: manifest.os_version_requirement
     }
@@ -46,6 +48,7 @@ defmodule Farmbot.Asset.FarmwareInstallation.Manifest do
       :executable,
       :args,
       :os_version_requirement,
+      :farmware_tools_version
     ])
     |> validate_required([:package, :executable, :args, :zip, :version])
     |> validate_required_os_version()
@@ -54,14 +57,18 @@ defmodule Farmbot.Asset.FarmwareInstallation.Manifest do
   defp validate_required_os_version(changeset) do
     req = get_field(changeset, :os_version_requirement)
     cur = Farmbot.Project.version()
-    match = try do
-      Version.match?(cur, req)
-    rescue
-      Version.InvalidRequirementError -> :invalid_version
-    end
+
+    match =
+      try do
+        Version.match?(cur, req)
+      rescue
+        Version.InvalidRequirementError -> :invalid_version
+      end
 
     case match do
-      true -> changeset
+      true ->
+        changeset
+
       _ ->
         add_error(changeset, :os_version_requirement, "Version requirement not met")
     end
