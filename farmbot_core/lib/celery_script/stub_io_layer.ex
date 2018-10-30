@@ -18,7 +18,7 @@ defmodule Farmbot.Core.CeleryScript.StubIOLayer do
   def read_pin(_args, _body), do: {:error, "Stubbed"}
   def read_status(_args, _body), do: {:error, "Stubbed"}
   def reboot(_args, _body), do: {:error, "Stubbed"}
-  def send_message(_args, _body), do: :ok
+  def send_message(_args, _body), do: {:error, "Stubbed"}
   def set_servo_angle(_args, _body), do: {:error, "Stubbed"}
   def set_user_env(_args, _body), do: {:error, "Stubbed"}
   def sync(_args, _body), do: {:error, "Stubbed"}
