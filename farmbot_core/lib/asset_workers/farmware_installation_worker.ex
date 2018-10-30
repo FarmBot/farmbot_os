@@ -42,6 +42,12 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmwareInstallation do
          {:ok, %FWI{} = updated} <- Repo.update(n_changeset) do
       maybe_update(dirty, updated)
     else
+      # Farmware wasn't found. Reinstall
+      {:error, :enoent} ->
+        updated =
+          FWI.changeset(fwi, %{manifest: nil})
+          |> Repo.update!()
+        {:noreply, updated, 0}
       error ->
         error_log(fwi, "failed to check for updates: #{inspect(error)}")
 

@@ -26,6 +26,10 @@ defmodule Farmbot.Core.CeleryScript.RunTimeWrapper do
   end
 
   @doc false
+  def handle_io(%AST{kind: :execute_script, args: args}) do
+    Farmbot.FarmwareRuntime.execute_script(args)
+  end
+
   def handle_io(%AST{kind: kind, args: args, body: body}) do
     apply(@io_layer, kind, [args, body])
   end
