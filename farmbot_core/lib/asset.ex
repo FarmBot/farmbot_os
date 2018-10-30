@@ -2,6 +2,8 @@ defmodule Farmbot.Asset do
   alias Farmbot.Asset.{
     Repo,
     Device,
+    FarmwareEnv,
+    FarmwareInstallation,
     FarmEvent,
     FbosConfig,
     FirmwareConfig,
@@ -105,4 +107,18 @@ defmodule Farmbot.Asset do
   end
 
   ## End Sequence
+
+  ## Begin FarmwareInstallation
+
+  @doc "Get a FarmwareManifest by it's name."
+  def get_farmware_manifest(package) do
+    Repo.all(from fwi in FarmwareInstallation, select: fwi.manifest)
+    |> Enum.find(fn(%{package: pkg}) -> pkg == package end)
+  end
+
+  def list_farmware_env() do
+    Repo.all(FarmwareEnv)
+  end
+
+  ## End FarmwareInstallation
 end
