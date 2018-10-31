@@ -106,7 +106,8 @@ defmodule Farmbot.Bootstrap.Supervisor do
           Farmbot.API.EagerLoader.Supervisor,
           Farmbot.API.DirtyWorker.Supervisor,
           Farmbot.Bootstrap.APITask,
-          Farmbot.AMQP.Supervisor
+          Farmbot.AMQP.Supervisor,
+          Farmbot.API.ImageUploader
         ]
 
         opts = [strategy: :one_for_one]
