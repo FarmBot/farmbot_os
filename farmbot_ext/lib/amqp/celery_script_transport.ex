@@ -7,10 +7,6 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
 
   @exchange "amq.topic"
 
-  # FIXME
-  require Protocol
-  Protocol.derive(Jason.Encoder, Farmbot.CeleryScript.AST)
-
   defstruct [:conn, :chan, :bot]
   alias __MODULE__, as: State
 
