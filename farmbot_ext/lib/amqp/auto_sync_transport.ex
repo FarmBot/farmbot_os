@@ -102,21 +102,27 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
         :ok
 
       auto_sync? ->
-        case Repo.get_by(asset_kind, id: id) do
-          nil ->
-            struct(asset_kind)
-            |> asset_kind.changeset(params)
-            |> Repo.insert!()
+        if Code.ensure_loaded?(asset_kind) do
+          case Repo.get_by(asset_kind, id: id) do
+            nil ->
+              struct(asset_kind)
+              |> asset_kind.changeset(params)
+              |> Repo.insert!()
 
-          asset ->
-            asset_kind.changeset(asset, params)
-            |> Repo.update!()
+            asset ->
+              asset_kind.changeset(asset, params)
+              |> Repo.update!()
+          end
         end
 
       true ->
-        asset = Repo.get_by(asset_kind, id: id) || struct(asset_kind)
-        changeset = asset_kind.changeset(asset, params)
-        :ok = EagerLoader.cache(changeset)
+        if Code.ensure_loaded?(asset_kind) do
+          asset = Repo.get_by(asset_kind, id: id) || struct(asset_kind)
+          changeset = asset_kind.changeset(asset, params)
+          :ok = EagerLoader.cache(changeset)
+        else
+          :ok
+        end
     end
 
     json = JSON.encode!(%{args: %{label: data["args"]["label"]}, kind: "rpc_ok"})
