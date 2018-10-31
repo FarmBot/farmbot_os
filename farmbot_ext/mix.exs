@@ -26,15 +26,15 @@ defmodule Farmbot.Ext.MixProject do
   defp deps do
     [
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
+      {:ranch, "~> 1.5", override: true},
       {:ranch_proxy_protocol, "~> 2.0", override: true},
-      {:tesla, "~> 1.1"},
-      {:jason, "~> 1.1"},
+      {:tesla, "1.1.0"},
+      {:hackney, "~> 1.14"},
       {:uuid, "~> 1.1"},
       {:amqp, "~> 1.0"},
-      {:fs, "~> 3.4"},
       {:excoveralls, "~> 0.10", only: [:test]},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
-      {:ex_doc, "~> 0.19", only: [:dev], runtime: false}
+      {:ex_doc, "~> 0.19", only: [:docs], runtime: false}
     ]
   end
 end

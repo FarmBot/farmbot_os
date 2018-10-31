@@ -66,14 +66,12 @@ defmodule FarmbotCore.MixProject do
       {:elixir_make, "~> 0.4", runtime: false},
       {:nerves_uart, "~> 1.2"},
       {:gen_stage, "~> 0.14"},
-      {:ecto, "~> 2.2"},
-      {:sqlite_ecto2, "~> 2.2"},
+      {:sqlite_ecto2, "~> 2.3"},
       {:timex, "~> 3.4"},
-      {:plug, "~> 1.6"},
       {:plug_cowboy, "~> 2.0"},
-      # {:cowboy, "~> 2.0"},
+      {:jason, "~> 1.1"},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
-      {:ex_doc, "~> 0.19", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.19", only: [:docs], runtime: false},
       {:excoveralls, "~> 0.10", only: :test}
     ]
   end
