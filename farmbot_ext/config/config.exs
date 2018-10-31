@@ -22,6 +22,10 @@ config :farmbot_core, Farmbot.AssetWorker.Farmbot.Asset.FarmEvent, checkup_time_
 
 config :farmbot_core, Farmbot.AssetMonitor, checkup_time_ms: 30_000
 
+config :farmbot_core, Farmbot.AssetWorker.Farmbot.Asset.FarmwareInstallation,
+  error_retry_time_ms: 30_000,
+  install_dir: "/tmp/farmware"
+
 config :farmbot_core, :behaviour,
   firmware_handler: Farmbot.Firmware.StubHandler,
   leds_handler: Farmbot.Leds.StubHandler,
@@ -59,5 +63,4 @@ config :farmbot_core, Farmbot.Asset.Repo,
 config :farmbot_ext, :behaviour, authorization: Farmbot.Bootstrap.Authorization
 
 config :farmbot_ext,
-  ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo],
-  data_path: "/tmp"
+  ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo]
