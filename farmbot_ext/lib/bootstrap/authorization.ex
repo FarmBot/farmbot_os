@@ -20,8 +20,6 @@ defmodule Farmbot.Bootstrap.Authorization do
 
   @version Farmbot.Project.version()
   @target Farmbot.Project.target()
-  @data_path Application.get_env(:farmbot_ext, :data_path)
-  @data_path || raise("No appdata path configured.")
 
   @spec authorize_with_secret(email, secret, server) ::
           {:ok, binary} | {:error, String.t() | atom}
