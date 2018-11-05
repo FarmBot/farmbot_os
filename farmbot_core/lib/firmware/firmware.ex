@@ -1,7 +1,7 @@
 defmodule Farmbot.Firmware do
   @moduledoc "Allows communication with the firmware."
 
-  use GenStage
+  use GenServer
   require Farmbot.Logger
   alias Farmbot.Firmware.{Command, CompletionLogs, Vec3, EstopTimer, Utils}
   import Utils
@@ -18,36 +18,36 @@ defmodule Farmbot.Firmware do
   @doc "Move the bot to a position."
   def move_absolute(%Vec3{} = vec3, x_spd, y_spd, z_spd) do
     call = {:move_absolute, [vec3, x_spd, y_spd, z_spd]}
-    GenStage.call(__MODULE__, call, @call_timeout)
+    GenServer.call(__MODULE__, call, @call_timeout)
   end
 
   @doc "Calibrate an axis."
   def calibrate(axis) when is_binary(axis) do
     axis = String.to_atom(axis)
-    GenStage.call(__MODULE__, {:calibrate, [axis]}, @call_timeout)
+    GenServer.call(__MODULE__, {:calibrate, [axis]}, @call_timeout)
   end
 
   @doc "Find home on an axis."
   def find_home(axis) when is_binary(axis) do
     axis = String.to_atom(axis)
-    GenStage.call(__MODULE__, {:find_home, [axis]}, @call_timeout)
+    GenServer.call(__MODULE__, {:find_home, [axis]}, @call_timeout)
   end
 
   @doc "Home every axis."
   def home_all() do
-    GenStage.call(__MODULE__, {:home_all, []}, @call_timeout)
+    GenServer.call(__MODULE__, {:home_all, []}, @call_timeout)
   end
 
   @doc "Home an axis."
   def home(axis) when is_binary(axis) do
     axis = String.to_atom(axis)
-    GenStage.call(__MODULE__, {:home, [axis]}, @call_timeout)
+    GenServer.call(__MODULE__, {:home, [axis]}, @call_timeout)
   end
 
   @doc "Manually set an axis's current position to zero."
   def zero(axis) when is_binary(axis) do
     axis = String.to_atom(axis)
-    GenStage.call(__MODULE__, {:zero, [axis]}, @call_timeout)
+    GenServer.call(__MODULE__, {:zero, [axis]}, @call_timeout)
   end
 
   @doc """
@@ -55,12 +55,12 @@ defmodule Farmbot.Firmware do
   For a list of paramaters see `Farmbot.Firmware.Gcode.Param`
   """
   def update_param(param, val) do
-    GenStage.call(__MODULE__, {:update_param, [param, val]}, @call_timeout)
+    GenServer.call(__MODULE__, {:update_param, [param, val]}, @call_timeout)
   end
 
   @doc false
   def read_all_params do
-    GenStage.call(__MODULE__, {:read_all_params, []}, @call_timeout)
+    GenServer.call(__MODULE__, {:read_all_params, []}, @call_timeout)
   end
 
   @doc """
@@ -68,63 +68,63 @@ defmodule Farmbot.Firmware do
   For a list of paramaters see `Farmbot.Firmware.Gcode.Param`
   """
   def read_param(param) do
-    GenStage.call(__MODULE__, {:read_param, [param]}, @call_timeout)
+    GenServer.call(__MODULE__, {:read_param, [param]}, @call_timeout)
   end
 
   @doc "Emergency lock Farmbot."
   def emergency_lock() do
-    GenStage.call(__MODULE__, {:emergency_lock, []}, @call_timeout)
+    GenServer.call(__MODULE__, {:emergency_lock, []}, @call_timeout)
   end
 
   @doc "Unlock Farmbot from Emergency state."
   def emergency_unlock() do
-    GenStage.call(__MODULE__, {:emergency_unlock, []}, @call_timeout)
+    GenServer.call(__MODULE__, {:emergency_unlock, []}, @call_timeout)
   end
 
   @doc "Set a pin mode (`:input` | `:output` | `:input_pullup`)"
   def set_pin_mode(pin, mode) do
-    GenStage.call(__MODULE__, {:set_pin_mode, [pin, mode]}, @call_timeout)
+    GenServer.call(__MODULE__, {:set_pin_mode, [pin, mode]}, @call_timeout)
   end
 
   @doc "Read a pin."
   def read_pin(pin, mode) do
-    GenStage.call(__MODULE__, {:read_pin, [pin, mode]}, @call_timeout)
+    GenServer.call(__MODULE__, {:read_pin, [pin, mode]}, @call_timeout)
   end
 
   @doc "Write a pin."
   def write_pin(pin, mode, value) do
-    GenStage.call(__MODULE__, {:write_pin, [pin, mode, value]}, @call_timeout)
+    GenServer.call(__MODULE__, {:write_pin, [pin, mode, value]}, @call_timeout)
   end
 
   @doc "Request version."
   def request_software_version do
-    GenStage.call(__MODULE__, {:request_software_version, []}, @call_timeout)
+    GenServer.call(__MODULE__, {:request_software_version, []}, @call_timeout)
   end
 
   @doc "Set angle of a servo pin."
   def set_servo_angle(pin, value) do
-    GenStage.call(__MODULE__, {:set_servo_angle, [pin, value]}, @call_timeout)
+    GenServer.call(__MODULE__, {:set_servo_angle, [pin, value]}, @call_timeout)
   end
 
   @doc "Flag for all params reported."
   def params_reported do
-    GenStage.call(__MODULE__, :params_reported)
+    GenServer.call(__MODULE__, :params_reported)
   end
 
   def get_pin_value(pin_num) do
-    GenStage.call(__MODULE__, {:call, {:get_pin_value, pin_num}})
+    GenServer.call(__MODULE__, {:call, {:get_pin_value, pin_num}})
   end
 
   def get_current_position do
-    GenStage.call(__MODULE__, {:call, :get_current_position})
+    GenServer.call(__MODULE__, {:call, :get_current_position})
   end
 
   @doc "Start the firmware services."
   def start_link(args) do
-    GenStage.start_link(__MODULE__, args, name: __MODULE__)
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  ## GenStage
+  ## GenServer
 
   defmodule State do
     @moduledoc false
@@ -181,7 +181,7 @@ defmodule Farmbot.Firmware do
         {
           :producer_consumer,
           struct(State, initial),
-          subscribe_to: [handler], dispatcher: GenStage.BroadcastDispatcher
+          subscribe_to: [handler], dispatcher: GenServer.BroadcastDispatcher
         }
       :ignore ->
         Farmbot.Logger.error 1, "Failed to initialize firmware. Falling back to stub implementation."

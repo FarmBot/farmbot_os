@@ -103,11 +103,11 @@ defmodule Farmbot.Bootstrap.Supervisor do
         update_config_value(:string, "authorization", "token", token)
 
         children = [
-          Farmbot.API.EagerLoader.Supervisor,
-          Farmbot.API.DirtyWorker.Supervisor,
-          Farmbot.Bootstrap.APITask,
-          Farmbot.AMQP.Supervisor,
-          Farmbot.API.ImageUploader
+          # Farmbot.API.EagerLoader.Supervisor,
+          # Farmbot.API.DirtyWorker.Supervisor,
+          # Farmbot.Bootstrap.APITask,
+          # Farmbot.AMQP.Supervisor,
+          # Farmbot.API.ImageUploader
         ]
 
         opts = [strategy: :one_for_one]

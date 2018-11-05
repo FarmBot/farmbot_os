@@ -102,9 +102,9 @@ defmodule Farmbot.Logger do
     log
     |> insert_log!()
     |> elixir_log()
-    |> fn(log) ->
-      Farmbot.Registry.dispatch(__MODULE__, {:log_ready, log.id})
-    end.()
+    # |> fn(log) ->
+    #   Farmbot.Registry.dispatch(__MODULE__, {:log_ready, log.id})
+    # end.()
   end
 
   defp elixir_log(%Farmbot.Log{} = log) do

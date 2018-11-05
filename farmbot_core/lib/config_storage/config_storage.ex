@@ -82,7 +82,6 @@ defmodule Farmbot.Config do
     |> apply(:"get_#{type}_value", [group_name, key_name])
     |> Ecto.Changeset.change(value: value)
     |> Repo.update!()
-    |> dispatch(group_name, key_name)
   end
 
   def update_config_value(type, _, _, _) do
@@ -139,10 +138,5 @@ defmodule Farmbot.Config do
   defp get_group_id(group_name) do
     [group_id] = from(g in Group, where: g.group_name == ^group_name, select: g.id) |> Repo.all()
     group_id
-  end
-
-  defp dispatch(%{value: value} = val, group, key) do
-    Farmbot.Registry.dispatch(__MODULE__, {group, key, value})
-    val
   end
 end

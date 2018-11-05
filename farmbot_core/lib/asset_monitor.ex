@@ -4,8 +4,11 @@ defmodule Farmbot.AssetMonitor do
 
   alias Farmbot.Asset.{
     Repo,
+    Device,
+    FbosConfig,
     FarmEvent,
     FarmwareInstallation,
+    FarmwareEnv,
     Peripheral,
     PersistentRegimen,
     PinBinding
@@ -83,5 +86,14 @@ defmodule Farmbot.AssetMonitor do
     end)
   end
 
-  def order, do: [FarmEvent, Peripheral, PersistentRegimen, PinBinding, FarmwareInstallation]
+  def order, do: [
+    Device,
+    FbosConfig,
+    FarmEvent,
+    Peripheral,
+    PersistentRegimen,
+    PinBinding,
+    FarmwareInstallation,
+    FarmwareEnv
+  ]
 end

@@ -3,6 +3,8 @@
   inputs: [
     "*.{ex,exs}",
     "{config,priv,test}/**/*.{ex,exs}",
+    "lib/bot_state/**/*.{ex,exs}",
+    "lib/bot_state_ng/**/*.{ex,exs}",
     "lib/asset/**/*.{ex,exs}",
     "lib/asset_workers/**/*.{ex,exs}",
     "lib/farmware_runtime/**/*.{ex,exs}",
