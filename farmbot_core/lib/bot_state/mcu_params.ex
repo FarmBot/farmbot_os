@@ -93,6 +93,5 @@ defmodule Farmbot.BotState.McuParams do
     :encoder_invert_x,
     :encoder_missed_steps_max_x,
     :movement_invert_motor_y,
-
   ]
 end
