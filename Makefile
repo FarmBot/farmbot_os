@@ -34,6 +34,7 @@ clean: clean_other_branch
 		rm -rf $$project/erl_crash.dump ; \
 		rm -rf $$project/.*.sqlite3* ; \
 		rm -rf $$project/*.sqlite3* ; \
+		rm -rf $$project/*.db ; \
 		rm -rf $$project/_build ; \
 		rm -rf $$project/deps ; \
 		rm -rf $$project/priv/*.so ; \
