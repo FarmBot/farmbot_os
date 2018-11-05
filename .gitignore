@@ -54,3 +54,4 @@ RELEASE_NOTES
 .elixir_ls
 nerves-hub
 *.pem
+*.db
