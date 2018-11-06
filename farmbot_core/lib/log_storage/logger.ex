@@ -4,6 +4,7 @@ defmodule Farmbot.Logger do
   """
 
   alias Farmbot.Logger.Repo
+  import Ecto.Query
 
   @doc "Send a debug message to log endpoints"
   defmacro debug(verbosity, message, meta \\ []) do
@@ -69,23 +70,21 @@ defmodule Farmbot.Logger do
 
   @doc "Gets all available logs and deletes them."
   def handle_all_logs do
-    Repo.all(Farmbot.Log)
-    |> Enum.map(&Repo.delete!(&1))
+    Repo.all(from(l in Farmbot.Log, order_by: l.inserted_at))
+    |> Enum.map(&Repo.delete!/1)
   end
 
   @doc false
   def dispatch_log(%Macro.Env{} = env, level, verbosity, message, meta)
-  when level in [:info, :debug, :busy, :warn, :success, :error, :fun]
-  and  is_number(verbosity)
-  and  is_binary(message)
-  and  is_list(meta)
-  do
-    fun = case env.function do
-      {fun, ar} -> "#{fun}/#{ar}"
-      nil -> "no_function"
-    end
+      when level in [:info, :debug, :busy, :warn, :success, :error, :fun] and is_number(verbosity) and
+             is_binary(message) and is_list(meta) do
+    fun =
+      case env.function do
+        {fun, ar} -> "#{fun}/#{ar}"
+        nil -> "no_function"
+      end
 
-    struct(Farmbot.Log, [
+    struct(Farmbot.Log,
       level: level,
       verbosity: verbosity,
       message: message,
@@ -93,7 +92,8 @@ defmodule Farmbot.Logger do
       function: fun,
       file: env.file,
       line: env.line,
-      module: env.module])
+      module: env.module
+    )
     |> dispatch_log()
   end
 
@@ -102,9 +102,6 @@ defmodule Farmbot.Logger do
     log
     |> insert_log!()
     |> elixir_log()
-    # |> fn(log) ->
-    #   Farmbot.Registry.dispatch(__MODULE__, {:log_ready, log.id})
-    # end.()
   end
 
   defp elixir_log(%Farmbot.Log{} = log) do
@@ -114,9 +111,10 @@ defmodule Farmbot.Logger do
       function: log.function,
       file: log.file,
       line: log.line,
-      module: log.module,
+      module: log.module
       # time: time
     ]
+
     level = log.level
     logger_level = if level in [:info, :debug, :warn, :error], do: level, else: :info
     Elixir.Logger.bare_log(logger_level, log, logger_meta)
@@ -129,7 +127,7 @@ defmodule Farmbot.Logger do
   def should_log?(nil, _), do: false
 
   def should_log?(module, verbosity) when verbosity <= 3 do
-    List.first(Module.split(module))  == "Farmbot"
+    List.first(Module.split(module)) == "Farmbot"
   end
 
   def should_log?(_, _), do: false

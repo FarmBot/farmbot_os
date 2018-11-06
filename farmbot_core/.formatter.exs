@@ -10,7 +10,8 @@
     "lib/farmware_runtime/**/*.{ex,exs}",
     "lib/celery_script/**/*.{ex,exs}",
     "lib/farmware_runtime.ex",
-    "lib/asset*.ex"
+    "lib/asset*.ex",
+    "lib/log_storage/**/*.{ex,exs}"
   ],
   subdirectories: ["priv/*/migrations"]
 ]

@@ -14,11 +14,10 @@ config :farmbot_core, Farmbot.AssetMonitor, checkup_time_ms: 30_000
 
 config :farmbot_core,
   expected_fw_versions: ["6.4.0.F", "6.4.0.R", "6.4.0.G"],
+  default_firmware_io_logs: false,
   default_server: "https://my.farm.bot",
   default_currently_on_beta:
-    String.contains?(to_string(:os.cmd('git rev-parse --abbrev-ref HEAD')), "beta"),
-  firmware_io_logs: false,
-  farm_event_debug_log: false
+    String.contains?(to_string(:os.cmd('git rev-parse --abbrev-ref HEAD')), "beta")
 
 # Configure Farmbot Behaviours.
 config :farmbot_core, :behaviour,
