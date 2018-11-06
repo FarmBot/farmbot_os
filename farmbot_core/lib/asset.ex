@@ -106,6 +106,10 @@ defmodule Farmbot.Asset do
     Repo.get_by!(Sequence, params)
   end
 
+  def get_sequence(params) do
+    Repo.get_by(Sequence, params)
+  end
+
   ## End Sequence
 
   ## Begin FarmwareInstallation

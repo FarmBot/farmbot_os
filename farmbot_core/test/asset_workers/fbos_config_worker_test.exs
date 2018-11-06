@@ -3,21 +3,23 @@ defmodule Farmbot.FbosConfigWorkerTest do
   alias Farmbot.Asset.FbosConfig
 
   test "adds configs to bot state and config_storage" do
-    conf = FbosConfig.changeset(%FbosConfig{}, %{
-      arduino_debug_messages: true,
-      auto_sync: false,
-      beta_opt_in: true,
-      disable_factory_reset: false,
-      firmware_hardware: "farmduino_k14",
-      firmware_input_log: false,
-      firmware_output_log: false,
-      id: 145,
-      network_not_found_timer: nil,
-      os_auto_update: false,
-      sequence_body_log: true,
-      sequence_complete_log: true,
-      sequence_init_log: true,
-    }) |> Farmbot.Asset.Repo.insert!()
+    conf =
+      FbosConfig.changeset(%FbosConfig{}, %{
+        arduino_debug_messages: true,
+        auto_sync: false,
+        beta_opt_in: true,
+        disable_factory_reset: false,
+        firmware_hardware: "farmduino_k14",
+        firmware_input_log: false,
+        firmware_output_log: false,
+        id: 145,
+        network_not_found_timer: nil,
+        os_auto_update: false,
+        sequence_body_log: true,
+        sequence_complete_log: true,
+        sequence_init_log: true
+      })
+      |> Farmbot.Asset.Repo.insert!()
 
     :ok = Farmbot.AssetMonitor.force_checkup()
 

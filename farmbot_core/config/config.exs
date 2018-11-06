@@ -6,6 +6,10 @@ config :farmbot_core, Farmbot.AssetWorker.Farmbot.Asset.FarmwareInstallation,
   error_retry_time_ms: 30_000,
   install_dir: "/tmp/farmware"
 
+config :farmbot_core, Elixir.Farmbot.AssetWorker.Farmbot.Asset.PinBinding,
+  gpio_handler: Farmbot.PinBindingWorker.StubGPIOHandler,
+  error_retry_time_ms: 30_000
+
 config :farmbot_core, Farmbot.AssetMonitor, checkup_time_ms: 30_000
 
 config :farmbot_core,
@@ -20,7 +24,6 @@ config :farmbot_core,
 config :farmbot_core, :behaviour,
   firmware_handler: Farmbot.Firmware.StubHandler,
   leds_handler: Farmbot.Leds.StubHandler,
-  pin_binding_handler: Farmbot.PinBinding.StubHandler,
   celery_script_io_layer: Farmbot.Core.CeleryScript.StubIOLayer,
   json_parser: Farmbot.JSON.JasonParser
 

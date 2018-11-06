@@ -86,14 +86,15 @@ defmodule Farmbot.AssetMonitor do
     end)
   end
 
-  def order, do: [
-    Device,
-    FbosConfig,
-    FarmEvent,
-    Peripheral,
-    PersistentRegimen,
-    PinBinding,
-    FarmwareInstallation,
-    FarmwareEnv
-  ]
+  def order,
+    do: [
+      Device,
+      FbosConfig,
+      FarmEvent,
+      Peripheral,
+      PersistentRegimen,
+      PinBinding,
+      FarmwareInstallation,
+      FarmwareEnv
+    ]
 end

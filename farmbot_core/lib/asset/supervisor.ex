@@ -12,7 +12,7 @@ defmodule Farmbot.Asset.Supervisor do
     FbosConfig,
     PinBinding,
     Peripheral,
-    PersistentRegimen,
+    PersistentRegimen
   }
 
   def start_link(args) do

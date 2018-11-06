@@ -58,7 +58,7 @@ defmodule Farmbot.BotState do
 
   @doc false
   def init([]) do
-    IO.puts "bot state init"
+    IO.puts("bot state init")
     {:ok, %{tree: BotStateNG.new(), subscribers: []}}
   end
 
@@ -90,7 +90,7 @@ defmodule Farmbot.BotState do
     {:reply, reply, state}
   end
 
-    def handle_call({:set_user_env, key, value}, _from, state) do
+  def handle_call({:set_user_env, key, value}, _from, state) do
     {reply, state} =
       BotStateNG.set_user_env(state.tree, key, value)
       |> dispatch_and_apply(state)
