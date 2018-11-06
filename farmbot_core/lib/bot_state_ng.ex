@@ -45,6 +45,19 @@ defmodule Farmbot.BotStateNG do
     |> cast_embed(:configuration, [])
   end
 
+  def view(bot_state) do
+    %{
+      mcu_params: McuParams.view(bot_state.mcu_params),
+      location_data: LocationData.view(bot_state.location_data),
+      informational_settings: InformationalSettings.view(bot_state.informational_settings),
+      process_info: ProcessInfo.view(bot_state.process_info),
+      configuration: Configuration.view(bot_state.configuration),
+      user_env: bot_state.user_env,
+      pins: bot_state.pins,
+      jobs: bot_state.jobs
+    }
+  end
+
   @doc "Add or update a pin to state.pins."
   def add_or_update_pin(state, number, mode, value) do
     cs = changeset(state, %{})

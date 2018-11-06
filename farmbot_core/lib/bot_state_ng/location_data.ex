@@ -25,6 +25,14 @@ defmodule Farmbot.BotStateNG.LocationData do
       |> apply_changes()
     end
 
+    def view(vec3) do
+      %{
+        x: vec3.x,
+        y: vec3.y,
+        z: vec3.z
+      }
+    end
+
     def changeset(vec3, params \\ %{}) do
       vec3
       |> cast(params, [:x, :y, :z])
@@ -44,6 +52,14 @@ defmodule Farmbot.BotStateNG.LocationData do
     |> put_embed(:raw_encoders, Vec3.new(), [])
     |> put_embed(:position, Vec3.new(), [])
     |> apply_changes()
+  end
+
+  def view(location_data) do
+    %{
+      scaled_encoders: Vec3.view(location_data.scaled_encoders),
+      raw_encoders: Vec3.view(location_data.raw_encoders),
+      position: Vec3.view(location_data.position)
+    }
   end
 
   def changeset(location_data, params \\ %{}) do

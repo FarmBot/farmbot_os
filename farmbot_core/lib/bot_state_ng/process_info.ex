@@ -16,6 +16,10 @@ defmodule Farmbot.BotStateNG.ProcessInfo do
     |> apply_changes()
   end
 
+  def view(process_info) do
+    %{farmwares: process_info.farmwares}
+  end
+
   def changeset(process_info, params \\ %{}) do
     process_info
     |> cast(params, [:farmwares])

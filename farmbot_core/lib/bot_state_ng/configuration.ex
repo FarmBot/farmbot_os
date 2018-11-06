@@ -27,6 +27,23 @@ defmodule Farmbot.BotStateNG.Configuration do
     |> apply_changes()
   end
 
+  def view(configuration) do
+    %{
+      arduino_debug_messages: configuration.arduino_debug_messages,
+      auto_sync: configuration.auto_sync,
+      beta_opt_in: configuration.beta_opt_in,
+      disable_factory_reset: configuration.disable_factory_reset,
+      firmware_hardware: configuration.firmware_hardware,
+      firmware_input_log: configuration.firmware_input_log,
+      firmware_output_log: configuration.firmware_output_log,
+      network_not_found_timer: configuration.network_not_found_timer,
+      os_auto_update: configuration.os_auto_update,
+      sequence_body_log: configuration.sequence_body_log,
+      sequence_complete_log: configuration.sequence_complete_log,
+      sequence_init_log: configuration.sequence_init_log,
+    }
+  end
+
   def changeset(configuration, params \\ %{}) do
     configuration
     |> cast(params, [
