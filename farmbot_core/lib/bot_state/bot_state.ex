@@ -58,7 +58,6 @@ defmodule Farmbot.BotState do
 
   @doc false
   def init([]) do
-    IO.puts("bot state init")
     {:ok, %{tree: BotStateNG.new(), subscribers: []}}
   end
 
