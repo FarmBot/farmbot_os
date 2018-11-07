@@ -64,7 +64,6 @@ defmodule FarmbotCore.MixProject do
     [
       {:farmbot_celery_script, path: "../farmbot_celery_script", env: Mix.env()},
       {:elixir_make, "~> 0.4", runtime: false},
-      {:nerves_uart, "~> 1.2"},
       {:gen_stage, "~> 0.14"},
       {:sqlite_ecto2, "~> 2.3"},
       {:timex, "~> 3.4"},
