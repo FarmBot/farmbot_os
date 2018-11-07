@@ -78,7 +78,8 @@ defmodule Farmbot.AMQP.LogTransport do
         major_version: log.version.major,
         minor_version: log.version.minor,
         patch_version: log.version.patch,
-        #TODO(Connor) - Why does this need `.to_unix()`?
+        #QUESTION(Connor) - Why does this need `.to_unix()`?
+        #ANSWER(Connor) - because the FE needed it.
         created_at: DateTime.from_naive!(log.inserted_at, "Etc/UTC") |> DateTime.to_unix(),
         channels: log.meta[:channels] || [],
         message: log.message
