@@ -81,23 +81,6 @@ defmodule Farmbot.Log do
     |> Map.put(:env, to_string(Farmbot.Project.env()))
   end
 
-  # def view(log) do
-  #   %{
-  #     level: log.level,
-  #     verbosity: log.verbosity,
-  #     message: log.message,
-  #     meta: log.meta,
-  #     function: log.function,
-  #     file: log.file,
-  #     line: log.line,
-  #     module: log.module,
-  #     version: log.version,
-  #     commit: log.commit,
-  #     target: log.target,
-  #     env: log.env,
-  #   }
-  # end
-
   defimpl String.Chars, for: Farmbot.Log do
     def to_string(log) do
       if log.meta[:color] && function_exported?(IO.ANSI, log.meta[:color], 0) do
