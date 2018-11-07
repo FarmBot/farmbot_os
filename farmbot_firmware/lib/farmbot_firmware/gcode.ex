@@ -1,9 +1,10 @@
 defmodule Farmbot.Firmware.GCODE do
-  @type tag() :: binary()
+  alias Farmbot.Firmware.Param
+  @type tag() :: nil | binary()
   @type kind() :: atom()
+  @type args() :: [arg]
   # TODO(Connor) - narrow this
   @type arg() :: any()
-  @type args() :: [arg]
 
   @spec decode(binary) :: {tag, {kind, args}}
   def decode(binary_with_q) when is_binary(binary_with_q) do
@@ -12,6 +13,27 @@ defmodule Farmbot.Firmware.GCODE do
     {tag, do_decode(kind, args)}
   end
 
+  @spec encode({tag, {kind, args}}) :: binary()
+  def encode({nil, {kind, args}}) do
+    do_encode(kind, args)
+  end
+
+  def encode({tag, {kind, args}}) do
+    str = do_encode(kind, args)
+    str <> " Q" <> tag
+  end
+
+  def do_encode(:write_paramater, [{param, value}]) do
+    param_id = Param.encode(param)
+    binary_float = :erlang.float_to_binary(value, decimals: 2)
+    "F22 P#{param_id} V#{binary_float}"
+  end
+
+  def do_encode(:read_all_paramaters, []) do
+    "F20"
+  end
+
+  @doc false
   @spec do_decode(binary(), [binary()]) :: {kind(), args()}
   def do_decode("R00", []), do: {:report_idle, []}
   def do_decode("R01", []), do: {:report_begin, []}
@@ -36,6 +58,11 @@ defmodule Farmbot.Firmware.GCODE do
 
   def do_decode("R20", []), do: {:report_paramaters_complete, []}
 
+  def do_decode("R21", pv), do: {:report_paramater, decode_pv(pv)}
+  def do_decode("R23", pv), do: {:report_calibration_paramater, decode_pv(pv)}
+  def do_decode("R33", pv), do: {:report_status_value, decode_status_value(pv)}
+  def do_decode("R41", pv), do: {:report_pin_value, decode_pin_value(pv)}
+
   def do_decode("R71", []), do: {:report_axis_timeout, [:x]}
   def do_decode("R72", []), do: {:report_axis_timeout, [:y]}
   def do_decode("R73", []), do: {:report_axis_timeout, [:z]}
@@ -52,7 +79,9 @@ defmodule Farmbot.Firmware.GCODE do
   def do_decode("R88", []), do: {:report_no_config, []}
   def do_decode("R99", debug), do: {:report_debug_message, Enum.join(debug, " ")}
 
-  def do_decode(_kind, args), do: {:unknown, args}
+  def do_decode(kind, args) do
+    {:unknown, [kind | args]}
+  end
 
   @spec extract_tag([binary()]) :: {tag(), [binary()]}
   def extract_tag(list) when is_list(list) do
@@ -120,7 +149,7 @@ defmodule Farmbot.Firmware.GCODE do
   defp decode_end_stops(list, acc \\ [])
 
   defp decode_end_stops(
-         [<<arg::binary-1, val0::binary>>, <<arg::binary-1, val1::binary>> | rest],
+         [<<arg::binary-1, "A", val0::binary>>, <<arg::binary-1, "B", val1::binary>> | rest],
          acc
        ) do
     dc = String.downcase(arg)
@@ -128,8 +157,8 @@ defmodule Farmbot.Firmware.GCODE do
     acc =
       acc ++
         [
-          {:"#{dc}0", String.to_integer(val0)},
-          {:"#{dc}1", String.to_integer(val1)}
+          {:"#{dc}a", String.to_integer(val0)},
+          {:"#{dc}b", String.to_integer(val1)}
         ]
 
     decode_end_stops(rest, acc)
@@ -137,9 +166,23 @@ defmodule Farmbot.Firmware.GCODE do
 
   defp decode_end_stops([], acc), do: acc
 
+  defp decode_pv(["P" <> param_id, "V" <> value]) do
+    param = Param.decode(String.to_integer(param_id))
+    {value, ""} = Float.parse(value)
+    [{param, value}]
+  end
+
+  defp decode_pin_value(["P" <> pin_number, "V" <> value]) do
+    [{String.to_integer(pin_number), String.to_integer(value)}]
+  end
+
+  defp decode_status_value(["P" <> status_id, "V" <> value]) do
+    [{String.to_integer(status_id), String.to_integer(value)}]
+  end
+
   @spec decode_echo(binary()) :: [binary()]
   defp decode_echo(str) when is_binary(str) do
-    [_, echo, _] = String.split(str, "*", parts: 3)
+    [_, echo | _] = String.split(str, "*", parts: 3)
     [String.trim(echo)]
   end
 end
