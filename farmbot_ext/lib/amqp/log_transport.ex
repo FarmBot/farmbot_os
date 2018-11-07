@@ -40,7 +40,7 @@ defmodule Farmbot.AMQP.LogTransport do
 
   def handle_info({Farmbot.BotState, change}, state) do
     new_state_cache = Ecto.Changeset.apply_changes(change)
-    {:noreply, %{state | state_cache: new_state_cache}}
+    {:noreply, %{state | state_cache: new_state_cache}, @checkup_ms}
   end
 
   def handle_info(:timeout, state) do
@@ -50,6 +50,7 @@ defmodule Farmbot.AMQP.LogTransport do
   def handle_continue([log | rest], state) do
     case do_handle_log(log, state) do
       :ok ->
+        IO.puts "handled log: #{log.id}"
         {:noreply, state, {:continue, rest}}
       error ->
         Logger.error("Logger amqp client failed to upload log: #{inspect error}")
@@ -77,7 +78,8 @@ defmodule Farmbot.AMQP.LogTransport do
         major_version: log.version.major,
         minor_version: log.version.minor,
         patch_version: log.version.patch,
-        #TODO(Connor) - Why does this need `.to_unix()`?
+        #QUESTION(Connor) - Why does this need `.to_unix()`?
+        #ANSWER(Connor) - because the FE needed it.
         created_at: DateTime.from_naive!(log.inserted_at, "Etc/UTC") |> DateTime.to_unix(),
         channels: log.meta[:channels] || [],
         message: log.message

@@ -13,12 +13,19 @@ defmodule Farmbot.BotState do
     GenServer.call(bot_state_server, {:set_job_progress, name, progress})
   end
 
+  @doc "Set a configuration value"
   def set_config_value(bot_state_server \\ __MODULE__, key, value) do
     GenServer.call(bot_state_server, {:set_config_value, key, value})
   end
 
+  @doc "Sets user_env value"
   def set_user_env(bot_state_server \\ __MODULE__, key, value) do
     GenServer.call(bot_state_server, {:set_user_env, key, value})
+  end
+
+  @doc "Sets the location_data.position"
+  def set_position(bot_state_server \\ __MODULE__, x, y, z) do
+    GenServer.call(bot_state_server, {:set_position, x, y, z})
   end
 
   @doc "Fetch the current state."
@@ -92,6 +99,15 @@ defmodule Farmbot.BotState do
   def handle_call({:set_user_env, key, value}, _from, state) do
     {reply, state} =
       BotStateNG.set_user_env(state.tree, key, value)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_position, x, y, z}, _from, state) do
+    change = %{location_data: %{position: %{x: x, y: y, z: z}}}
+    {reply, state} = 
+      BotStateNG.changeset(state.tree, change)
       |> dispatch_and_apply(state)
 
     {:reply, reply, state}
