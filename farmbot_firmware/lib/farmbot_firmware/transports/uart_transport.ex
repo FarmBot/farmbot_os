@@ -1,4 +1,9 @@
 defmodule Farmbot.Firmware.UARTTransport do
+  @moduledoc """
+  Handles sending/receiving GCODEs over UART.
+  This is the mechanism that official Farmbot's communicate with
+  official Farmbot-Arduino-Firmware's over.
+  """
   alias Farmbot.Firmware.GCODE
   use GenServer
 

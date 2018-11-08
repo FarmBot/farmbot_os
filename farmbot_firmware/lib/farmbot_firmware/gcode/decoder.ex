@@ -22,40 +22,69 @@ defmodule Farmbot.Firmware.GCODE.Decoder do
   def do_decode("R12", []), do: {:report_home_complete, [:y]}
   def do_decode("R13", []), do: {:report_home_complete, [:z]}
 
-  def do_decode("R15", x), do: {:report_position, decode_xyzs(x)}
-  def do_decode("R16", y), do: {:report_position, decode_xyzs(y)}
-  def do_decode("R17", z), do: {:report_position, decode_xyzs(z)}
+  def do_decode("R15", x), do: {:report_position, decode_floats(x)}
+  def do_decode("R16", y), do: {:report_position, decode_floats(y)}
+  def do_decode("R17", z), do: {:report_position, decode_floats(z)}
 
   def do_decode("R20", []), do: {:report_paramaters_complete, []}
 
   def do_decode("R21", pv), do: {:report_paramater, decode_pv(pv)}
   def do_decode("R23", pv), do: {:report_calibration_paramater, decode_pv(pv)}
-  def do_decode("R33", pv), do: {:report_status_value, decode_status_value(pv)}
-  def do_decode("R41", pv), do: {:report_pin_value, decode_pin_value(pv)}
+  def do_decode("R33", pv), do: {:report_status_value, decode_ints(pv)}
+  def do_decode("R41", pv), do: {:report_pin_value, decode_ints(pv)}
 
   def do_decode("R71", []), do: {:report_axis_timeout, [:x]}
   def do_decode("R72", []), do: {:report_axis_timeout, [:y]}
   def do_decode("R73", []), do: {:report_axis_timeout, [:z]}
 
   def do_decode("R81", xxyyzz), do: {:report_end_stops, decode_end_stops(xxyyzz)}
-  def do_decode("R82", xyzs), do: {:report_position, decode_xyzs(xyzs)}
+  def do_decode("R82", xyzs), do: {:report_position, decode_floats(xyzs)}
 
   def do_decode("R83", [version]), do: {:report_version, [version]}
 
-  def do_decode("R84", xyz), do: {:report_encoders_scaled, decode_xyzs(xyz)}
-  def do_decode("R85", xyz), do: {:report_encoders_raw, decode_xyzs(xyz)}
+  def do_decode("R84", xyz), do: {:report_encoders_scaled, decode_floats(xyz)}
+  def do_decode("R85", xyz), do: {:report_encoders_raw, decode_floats(xyz)}
 
   def do_decode("R87", []), do: {:report_emergency_lock, []}
   def do_decode("R88", []), do: {:report_no_config, []}
   def do_decode("R99", debug), do: {:report_debug_message, [Enum.join(debug, " ")]}
 
+  def do_decode("G00", xyzs), do: {:command_movement, decode_floats(xyzs)}
+  def do_decode("G38", []), do: {:comand_movement_home, [:x, :y, :z]}
+
+  def do_decode("F11", []), do: {:command_movement_find_home, [:x]}
+  def do_decode("F12", []), do: {:command_movement_find_home, [:y]}
+  def do_decode("F13", []), do: {:command_movement_find_home, [:z]}
+
+  def do_decode("F14", []), do: {:command_movement_calibrate, [:x]}
+  def do_decode("F15", []), do: {:command_movement_calibrate, [:y]}
+  def do_decode("F16", []), do: {:command_movement_calibrate, [:z]}
+
+  def do_decode("F20", []), do: {:paramater_read_all, []}
+  def do_decode("F21", [param_id]), do: {:paramater_read, [Param.decode(param_id)]}
+  def do_decode("F22", pv), do: {:paramater_write, decode_pv(pv)}
+  def do_decode("F23", pv), do: {:calibration_paramater_write, decode_pv(pv)}
+  def do_decode("F31", [status_id]), do: {:status_read, String.to_integer(status_id)}
+  def do_decode("F32", pv), do: {:status_write, decode_ints(pv)}
+  def do_decode("F41", pvm), do: {:pin_write, decode_ints(pvm)}
+  def do_decode("F42", pv), do: {:pin_read, decode_ints(pv)}
+  def do_decode("F43", pm), do: {:pin_mode_write, decode_ints(pm)}
+  def do_decode("F61", pv), do: {:servo_write, decode_ints(pv)}
+  def do_decode("F81", []), do: {:end_stops_read, []}
+  def do_decode("F82", []), do: {:position_read, []}
+  def do_decode("F83", []), do: {:software_version_read, []}
+  def do_decode("F84", xyzs), do: {:position_write_zero, decode_ints(xyzs)}
+
+  def do_decode("F09", _), do: {:command_emergency_unlock, []}
+  def do_decode("E", _), do: {:command_emergency_lock, []}
+
   def do_decode(kind, args) do
     {:unknown, [kind | args]}
   end
 
-  defp decode_xyzs(list, acc \\ [])
+  defp decode_floats(list, acc \\ [])
 
-  defp decode_xyzs([<<arg::binary-1, val::binary>> | rest], acc) do
+  defp decode_floats([<<arg::binary-1, val::binary>> | rest], acc) do
     arg =
       arg
       |> String.downcase()
@@ -63,22 +92,22 @@ defmodule Farmbot.Firmware.GCODE.Decoder do
 
     case Float.parse(val) do
       {num, ""} ->
-        decode_xyzs(rest, Keyword.put(acc, arg, num))
+        decode_floats(rest, Keyword.put(acc, arg, num))
 
       _ ->
         case Integer.parse(val) do
-          {num, ""} -> decode_xyzs(rest, Keyword.put(acc, arg, num / 1))
-          _ -> decode_xyzs(rest, acc)
+          {num, ""} -> decode_floats(rest, Keyword.put(acc, arg, num / 1))
+          _ -> decode_floats(rest, acc)
         end
     end
   end
 
   # This is sort of order dependent and not exactly correct.
   # It should ensure the order is [x: _, y: _, z: _]
-  defp decode_xyzs([], acc), do: Enum.reverse(acc)
+  defp decode_floats([], acc), do: Enum.reverse(acc)
 
   defp decode_axis_state(list) do
-    args = decode_xyzs(list)
+    args = decode_floats(list)
 
     Enum.map(args, fn {axis, value} ->
       case value do
@@ -94,7 +123,7 @@ defmodule Farmbot.Firmware.GCODE.Decoder do
   end
 
   defp decode_calibration_state(list) do
-    args = decode_xyzs(list)
+    args = decode_floats(list)
 
     Enum.map(args, fn {axis, value} ->
       case value do
@@ -132,12 +161,18 @@ defmodule Farmbot.Firmware.GCODE.Decoder do
     [{param, value}]
   end
 
-  defp decode_pin_value(["P" <> pin_number, "V" <> value]) do
-    [{String.to_integer(pin_number), String.to_integer(value)}]
-  end
+  defp decode_ints(pvm, acc \\ [])
 
-  defp decode_status_value(["P" <> status_id, "V" <> value]) do
-    [{String.to_integer(status_id), String.to_integer(value)}]
+  defp decode_ints([<<arg::binary-1, val::binary>> | rest], acc) do
+    arg =
+      arg
+      |> String.downcase()
+      |> String.to_existing_atom()
+
+    case Integer.parse(val) do
+      {num, ""} -> decode_ints(rest, Keyword.put(acc, arg, num))
+      _ -> decode_ints(rest, acc)
+    end
   end
 
   @spec decode_echo(binary()) :: [binary()]

@@ -44,7 +44,7 @@ defmodule Farmbot.Firmware do
      is accepted while the firmware is locked.)
   * all reports outside of control flow reports (:begin, :error, :invalid,
     :success) will be discarded while in `:boot` state. This means while
-    booting, position updates, end stop updates etc are ignored.
+    boot, position updates, end stop updates etc are ignored.
 
   # Transports
   GCODES should be exchanged in the following format:
@@ -80,11 +80,15 @@ defmodule Farmbot.Firmware do
   require Logger
 
   alias Farmbot.Firmware, as: State
+  alias Farmbot.Firmware.GCODE
   @error_timeout_ms 2_000
+
+  @type status :: :boot | :no_config | :configuration | :idle | :emergency_lock
 
   defstruct [
     :transport,
     :transport_pid,
+    :side_effects,
     :status,
     :tag,
     :configuration_queue,
@@ -92,6 +96,18 @@ defmodule Farmbot.Firmware do
     :caller_pid,
     :current
   ]
+
+  @type state :: %State{
+          transport: module(),
+          transport_pid: pid(),
+          side_effects: nil | module(),
+          status: status(),
+          tag: GCODE.tag(),
+          configuration_queue: [{GCODE.kind(), GCODE.args()}],
+          command_queue: [{pid(), GCODE.t()}],
+          caller_pid: nil | pid,
+          current: nil | GCODE.t()
+        }
 
   @doc """
   Command the firmware to do something. Takes a `{tag, {command, args}}`
@@ -107,11 +123,13 @@ defmodule Farmbot.Firmware do
     * `{:report_emergency_lock, []}` -> {:error, :emergency_lock}`
 
   If the firmware is in any of the following states:
-    * `:booting`
+    * `:boot`
     * `:no_config`
     * `:configuration`
   `command` will fail with `{:error, state}`
   """
+  @spec command(GenServer.server(), GCODE.t() | {GCODE.kind(), GCODE.args()}) ::
+          :ok | {:error, :invalid_command | :firmware_error | :emergency_lock | status()}
   def command(firmware_server \\ __MODULE__, code)
 
   def command(firmware_server, {_tag, {_, _}} = code) do
@@ -145,9 +163,7 @@ defmodule Farmbot.Firmware do
       {_, {:report_emergency_lock, []}} ->
         {:error, :emergency_lock}
 
-      # {^tag, unhandled_code} -> {:error, {:unknown_response, unhandled_code}}
       {tag, _report} = code ->
-        IO.inspect(code, label: "wait_for_result")
         wait_for_result(tag, code)
     end
   end
@@ -166,6 +182,7 @@ defmodule Farmbot.Firmware do
 
   def init(args) do
     transport = Keyword.fetch!(args, :transport)
+    side_effects = Keyword.get(args, :side_effects)
     fw = self()
     fun = fn {_, _} = code -> GenServer.cast(fw, code) end
     args = Keyword.put(args, :handle_gcode, fun)
@@ -176,7 +193,8 @@ defmodule Farmbot.Firmware do
       state = %State{
         transport_pid: pid,
         transport: transport,
-        status: :booting,
+        side_effects: side_effects,
+        status: :boot,
         command_queue: [],
         configuration_queue: []
       }
@@ -185,6 +203,7 @@ defmodule Farmbot.Firmware do
     end
   end
 
+  # @spec handle_info(:timeout, state) :: {:noreply, state}
   def handle_info(:timeout, %{configuration_queue: [code | rest]} = state) do
     Logger.debug("Starting next configuration code: #{inspect(code)}")
 
@@ -205,19 +224,25 @@ defmodule Farmbot.Firmware do
     {:noreply, state}
   end
 
-  def handle_call(_, _, %{status: s} = state) when s in [:booting, :no_config, :configuration] do
+  def handle_call({_tag, _code} = gcode, from, state) do
+    handle_command(gcode, from, state)
+  end
+
+  @doc false
+  @spec handle_command(GCODE.t(), GenServer.from(), state()) :: {:reply, term(), state()}
+  def handle_command(_, _, %{status: s} = state) when s in [:boot, :no_config, :configuration] do
     {:reply, {:error, s.status}, state}
   end
 
-  def handle_call({tag, {:emergency_lock, []}} = code, {pid, _ref}, state) do
+  def handle_command({tag, {:command_emergency_lock, []}} = code, {pid, _ref}, state) do
     {:reply, {:ok, tag}, %{state | command_queue: [{pid, code} | state.command_queue]}, 0}
   end
 
-  def handle_call({tag, {:emergency_unlock, []}} = code, {pid, _ref}, state) do
+  def handle_command({tag, {:command_emergency_unlock, []}} = code, {pid, _ref}, state) do
     {:reply, {:ok, tag}, %{state | command_queue: [{pid, code} | state.command_queue]}, 0}
   end
 
-  def handle_call({tag, {_, _}} = code, {pid, _ref}, state) do
+  def handle_command({tag, {_, _}} = code, {pid, _ref}, state) do
     new_state = %{state | command_queue: state.command_queue ++ [{pid, code}]}
 
     case new_state.status do
@@ -231,223 +256,145 @@ defmodule Farmbot.Firmware do
 
   # Extracts tag
   def handle_cast({tag, {_, _} = code}, state) do
-    handle_cast(code, %{state | tag: tag})
+    handle_report(code, %{state | tag: tag})
   end
 
-  def handle_cast({:report_emergency_lock, []} = code, state) do
+  @doc false
+  @spec handle_report({GCODE.report_kind(), GCODE.args()}, state) ::
+          {:noreply, state(), 0} | {:noreply, state()}
+  def handle_report({:report_emergency_lock, []} = code, state) do
     Logger.info("Emergency lock")
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     {:noreply, %{state | current: nil, caller_pid: nil}, 0}
   end
 
-  # "ARDUINO STARTUP COMPLETE" => goto(:booting, :no_config)
-  def handle_cast({:report_debug_message, "ARDUINO STARTUP COMPLETE"}, state) do
+  # "ARDUINO STARTUP COMPLETE" => goto(:boot, :no_config)
+  def handle_report({:report_debug_message, ["ARDUINO STARTUP COMPLETE"]}, state) do
+    Logger.info("ARDUINO STARTUP COMPLETE")
     {:noreply, goto(state, :no_config)}
   end
 
-  def handle_cast(_, %{status: :booting} = state) do
-    Logger.debug("Still booting")
+  def handle_report(report, %{status: :boot} = state) do
+    Logger.debug(["still in state: :boot ", inspect(report)])
     {:noreply, state}
   end
 
   # report_idle => goto(_, :idle)
-  def handle_cast({:report_idle, []}, state) do
+  def handle_report({:report_idle, []}, %{status: _} = state) do
     {:noreply, goto(%{state | caller_pid: nil, current: nil}, :idle), 0}
   end
 
-  def handle_cast({:report_begin, []} = code, state) do
+  def handle_report({:report_begin, []} = code, state) do
     Logger.debug("#{inspect(state.current)} begin")
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     {:noreply, state}
   end
 
-  def handle_cast({:report_success, []} = code, state) do
+  def handle_report({:report_success, []} = code, state) do
     Logger.debug("#{inspect(state.current)} success")
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     {:noreply, %{state | current: nil, caller_pid: nil}, 0}
   end
 
-  def handle_cast({:report_busy, []} = code, state) do
+  def handle_report({:report_busy, []} = code, state) do
     Logger.debug("#{inspect(state.current)} busy")
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     {:noreply, state}
   end
 
-  def handle_cast({:report_error, []} = code, %{status: :configuration} = state) do
+  def handle_report({:report_error, []} = code, %{status: :configuration} = state) do
     Logger.error("#{inspect(state.current)} configuration command error")
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     {:stop, {:error, state.current}, state}
   end
 
-  def handle_cast({:report_error, []} = code, state) do
+  def handle_report({:report_error, []} = code, state) do
     Logger.debug("#{inspect(state.current)} error")
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     {:noreply, %{state | caller_pid: nil, current: nil}, 0}
   end
 
-  def handle_cast({:report_invalid, []} = code, %{status: :configuration} = state) do
+  def handle_report({:report_invalid, []} = code, %{status: :configuration} = state) do
     Logger.debug("#{inspect(state.current)} configuration error (invalid)")
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     {:stop, {:error, state.current}, state}
   end
 
-  def handle_cast({:report_invalid, []} = code, state) do
+  def handle_report({:report_invalid, []} = code, state) do
     Logger.debug("#{inspect(state.current)} error (invalid)")
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     {:noreply, %{state | caller_pid: nil, current: nil}, 0}
   end
 
   # report_no_config => goto(_, :no_config)
-  def handle_cast({:report_no_config, []}, state) do
+  def handle_report({:report_no_config, []}, %{status: _} = state) do
     Logger.warn("Configuring paramaters.")
     tag = state.tag || "0"
+    loaded_params = side_effects(state, :load_params, []) || []
 
     param_commands =
-      Enum.reduce(load_params(), [], fn {param, val}, acc ->
-        if val, do: acc ++ [{:write_paramater, [param, val]}], else: acc
+      Enum.reduce(loaded_params, [], fn {param, val}, acc ->
+        if val, do: acc ++ [{:paramater_write, [param, val]}], else: acc
       end)
 
     to_process =
       param_commands ++
         [
-          {:write_paramater, [{:param_config_ok, 1.0}]},
-          {:read_all_paramaters, []}
+          {:paramater_write, [{:param_config_ok, 1.0}]},
+          {:paramater_read_all, []}
         ]
 
-    {:noreply, goto(%{state | tag: tag, configuration_queue: to_process}, :configuring), 0}
+    {:noreply, goto(%{state | tag: tag, configuration_queue: to_process}, :configuration), 0}
   end
 
-  # report_paramaters_complete => goto(:configuring, :idle)
-  def handle_cast({:report_paramaters_complete, []}, %{status: :configuring} = state) do
+  # report_paramaters_complete => goto(:configuration, :idle)
+  def handle_report({:report_paramaters_complete, []}, %{status: :configuration} = state) do
     {:noreply, goto(state, :idle)}
   end
 
-  def handle_cast(_, %{status: :no_config} = state) do
-    Logger.debug("Still configuring")
+  def handle_report(_, %{status: :no_config} = state) do
+    Logger.debug("Still in state: :no_config")
     {:noreply, state}
   end
 
-  def handle_cast({:report_position, _} = _code, state) do
+  def handle_report({:report_position, position} = _code, state) do
+    side_effects(state, :handle_position, position)
     {:noreply, state}
   end
 
-  def handle_cast({:report_encoders_scaled, _} = _code, state) do
+  def handle_report({:report_encoders_scaled, encoders} = _code, state) do
+    side_effects(state, :handle_encoders_scaled, encoders)
     {:noreply, state}
   end
 
-  def handle_cast({:report_encoders_raw, _} = _code, state) do
+  def handle_report({:report_encoders_raw, encoders} = _code, state) do
+    side_effects(state, :handle_encoders_raw, encoders)
     {:noreply, state}
   end
 
-  def handle_cast({:report_end_stops, _} = _code, state) do
+  def handle_report({:report_end_stops, end_stops} = _code, state) do
+    side_effects(state, :handle_end_stops, end_stops)
     {:noreply, state}
   end
 
-  def handle_cast({:report_paramater, [{param, value}]}, state) do
+  def handle_report({:report_paramater, param}, state) do
+    side_effects(state, :handle_paramater, param)
     {:noreply, state}
   end
 
   # NOOP
-  def handle_cast({:report_echo, _}, state), do: {:noreply, state}
+  def handle_report({:report_echo, _}, state), do: {:noreply, state}
 
-  def handle_cast({_kind, _args} = code, state) do
+  def handle_report({_kind, _args} = code, state) do
     IO.inspect(code, label: "unknown code for #{state.status}")
     # {:stop, {:unhandled_code, code}, state}
     {:noreply, state}
   end
 
+  @spec goto(state(), status()) :: state()
   defp goto(%{status: _old} = state, new), do: %{state | status: new}
 
-  # Side effect functions TODO(Connor) refactor these
-  def load_params do
-    Farmbot.Asset.firmware_config()
-    |> Map.take([
-      :param_e_stop_on_mov_err,
-      :param_mov_nr_retry,
-      :movement_timeout_x,
-      :movement_timeout_y,
-      :movement_timeout_z,
-      :movement_keep_active_x,
-      :movement_keep_active_y,
-      :movement_keep_active_z,
-      :movement_home_at_boot_x,
-      :movement_home_at_boot_y,
-      :movement_home_at_boot_z,
-      :movement_invert_endpoints_x,
-      :movement_invert_endpoints_y,
-      :movement_invert_endpoints_z,
-      :movement_enable_endpoints_x,
-      :movement_enable_endpoints_y,
-      :movement_enable_endpoints_z,
-      :movement_invert_motor_x,
-      :movement_invert_motor_y,
-      :movement_invert_motor_z,
-      :movement_secondary_motor_x,
-      :movement_secondary_motor_invert_x,
-      :movement_steps_acc_dec_x,
-      :movement_steps_acc_dec_y,
-      :movement_steps_acc_dec_z,
-      :movement_stop_at_home_x,
-      :movement_stop_at_home_y,
-      :movement_stop_at_home_z,
-      :movement_home_up_x,
-      :movement_home_up_y,
-      :movement_home_up_z,
-      :movement_step_per_mm_x,
-      :movement_step_per_mm_y,
-      :movement_step_per_mm_z,
-      :movement_min_spd_x,
-      :movement_min_spd_y,
-      :movement_min_spd_z,
-      :movement_home_spd_x,
-      :movement_home_spd_y,
-      :movement_home_spd_z,
-      :movement_max_spd_x,
-      :movement_max_spd_y,
-      :movement_max_spd_z,
-      :encoder_enabled_x,
-      :encoder_enabled_y,
-      :encoder_enabled_z,
-      :encoder_type_x,
-      :encoder_type_y,
-      :encoder_type_z,
-      :encoder_missed_steps_max_x,
-      :encoder_missed_steps_max_y,
-      :encoder_missed_steps_max_z,
-      :encoder_scaling_x,
-      :encoder_scaling_y,
-      :encoder_scaling_z,
-      :encoder_missed_steps_decay_x,
-      :encoder_missed_steps_decay_y,
-      :encoder_missed_steps_decay_z,
-      :encoder_use_for_pos_x,
-      :encoder_use_for_pos_y,
-      :encoder_use_for_pos_z,
-      :encoder_invert_x,
-      :encoder_invert_y,
-      :encoder_invert_z,
-      :movement_axis_nr_steps_x,
-      :movement_axis_nr_steps_y,
-      :movement_axis_nr_steps_z,
-      :movement_stop_at_max_x,
-      :movement_stop_at_max_y,
-      :movement_stop_at_max_z,
-      :pin_guard_1_pin_nr,
-      :pin_guard_1_time_out,
-      :pin_guard_1_active_state,
-      :pin_guard_2_pin_nr,
-      :pin_guard_2_time_out,
-      :pin_guard_2_active_state,
-      :pin_guard_3_pin_nr,
-      :pin_guard_3_time_out,
-      :pin_guard_3_active_state,
-      :pin_guard_4_pin_nr,
-      :pin_guard_4_time_out,
-      :pin_guard_4_active_state,
-      :pin_guard_5_pin_nr,
-      :pin_guard_5_time_out,
-      :pin_guard_5_active_state
-    ])
-    |> Map.to_list()
-  end
+  @spec side_effects(state, atom, GCODE.args()) :: any()
+  defp side_effects(%{side_effects: nil}, _function, _args), do: nil
+  defp side_effects(%{side_effects: m}, function, args), do: apply(m, function, args)
 end

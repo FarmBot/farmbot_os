@@ -24,7 +24,6 @@ defmodule Farmbot.Firmware.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
       {:nerves_uart, "~> 1.2"},
       {:excoveralls, "~> 0.10", only: [:test]},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
