@@ -1,5 +1,9 @@
 defmodule Farmbot.Firmware.Param do
+  @moduledoc "decodes/encodes integer id to name and vice versa"
+
   @type t() :: atom()
+
+  @doc "Decodes an integer paramater id to a atom paramater name"
   def decode(paramater_id)
   def decode(2), do: :param_config_ok
   def decode(3), do: :param_use_eeprom
@@ -90,6 +94,7 @@ defmodule Farmbot.Firmware.Param do
   def decode(223), do: :pin_guard_5_active_state
   def decode(_), do: :unknown_paramater
 
+  @doc "Encodes an atom paramater name to an integer paramater id."
   def encode(paramater)
   def encode(:param_config_ok), do: 2
   def encode(:param_use_eeprom), do: 3
