@@ -9,6 +9,15 @@ defmodule Farmbot.Firmware.MixProject do
       version: @version,
       elixir: @elixir_version,
       start_permanent: Mix.env() == :prod,
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        test: :test,
+        coveralls: :test,
+        "coveralls.circle": :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test
+      ],
       deps: deps()
     ]
   end

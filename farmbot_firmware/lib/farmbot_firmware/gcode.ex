@@ -74,6 +74,15 @@ defmodule Farmbot.Firmware.GCODE do
   @typedoc "Constructed GCODE."
   @type t :: {tag(), {kind(), args}}
 
+  @doc """
+  Shortcut for constructing a new GCODE
+  ## Examples
+      iex(1)> Farmbot.Firmware.GCODE.new(:report_idle, [], "100")
+      {"100", {:report_idle, []}}
+      iex(2)> Farmbot.Firmware.GCODE.new(:report_idle, [])
+      {nil, {:report_idle, []}}
+  """
+  @spec new(kind(), args(), tag()) :: t()
   def new(kind, args, tag \\ nil) do
     {tag, {kind, args}}
   end
