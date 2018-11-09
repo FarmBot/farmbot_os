@@ -10,6 +10,7 @@ defmodule Elixir.Farmbot.Asset.Repo.Migrations.CreateFbosConfigsTable do
       add(:beta_opt_in, :boolean)
       add(:disable_factory_reset, :boolean)
       add(:firmware_hardware, :string)
+      add(:firmware_path, :string)
       add(:firmware_input_log, :boolean)
       add(:firmware_output_log, :boolean)
       add(:network_not_found_timer, :integer)

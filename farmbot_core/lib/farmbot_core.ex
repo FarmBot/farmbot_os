@@ -14,7 +14,7 @@ defmodule Farmbot.Core do
       {Farmbot.Logger.Supervisor,       []},
       {Farmbot.Config.Supervisor,       []},
       {Farmbot.Asset.Supervisor,        []},
-      # {Farmbot.Firmware.Supervisor,     []},
+      {Farmbot.Core.FirmwareSupervisor,     []},
       {Farmbot.Core.CeleryScript.Supervisor, []},
     ]
     Supervisor.init(children, [strategy: :one_for_all])

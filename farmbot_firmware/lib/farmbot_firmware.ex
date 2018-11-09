@@ -189,6 +189,7 @@ defmodule Farmbot.Firmware do
 
     with {:ok, pid} <- GenServer.start_link(transport, args) do
       Process.link(pid)
+      Logger.debug("Starting Firmware: #{inspect(args)}")
 
       state = %State{
         transport_pid: pid,
@@ -208,15 +209,25 @@ defmodule Farmbot.Firmware do
     Logger.debug("Starting next configuration code: #{inspect(code)}")
 
     case GenServer.call(state.transport_pid, {state.tag, code}) do
-      :ok -> {:noreply, %{state | current: code, configuration_queue: rest}}
-      {:error, _} -> {:noreply, state, @error_timeout_ms}
+      :ok ->
+        new_state = %{state | current: code, configuration_queue: rest}
+        side_effects(new_state, :handle_output_gcode, [{state.tag, code}])
+        {:noreply, new_state}
+
+      {:error, _} ->
+        {:noreply, state, @error_timeout_ms}
     end
   end
 
   def handle_info(:timeout, %{command_queue: [{pid, {tag, code}} | rest]} = state) do
     case GenServer.call(state.transport_pid, {tag, code}) do
-      :ok -> {:noreply, %{state | tag: tag, current: code, command_queue: rest, caller_pid: pid}}
-      {:error, _} -> {:noreply, state, @error_timeout_ms}
+      :ok ->
+        new_state = %{state | tag: tag, current: code, command_queue: rest, caller_pid: pid}
+        side_effects(new_state, :handle_output_gcode, [{state.tag, code}])
+        {:noreply, new_state}
+
+      {:error, _} ->
+        {:noreply, state, @error_timeout_ms}
     end
   end
 
@@ -256,6 +267,7 @@ defmodule Farmbot.Firmware do
 
   # Extracts tag
   def handle_cast({tag, {_, _} = code}, state) do
+    side_effects(state, :handle_input_gcode, [{tag, code}])
     handle_report(code, %{state | tag: tag})
   end
 
@@ -265,7 +277,7 @@ defmodule Farmbot.Firmware do
   def handle_report({:report_emergency_lock, []} = code, state) do
     Logger.info("Emergency lock")
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    {:noreply, %{state | current: nil, caller_pid: nil}, 0}
+    {:noreply, goto(%{state | current: nil, caller_pid: nil}, :emergency_lock), 0}
   end
 
   # "ARDUINO STARTUP COMPLETE" => goto(:boot, :no_config)
@@ -293,7 +305,13 @@ defmodule Farmbot.Firmware do
   def handle_report({:report_success, []} = code, state) do
     Logger.debug("#{inspect(state.current)} success")
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    {:noreply, %{state | current: nil, caller_pid: nil}, 0}
+    new_state = %{state | current: nil, caller_pid: nil}
+
+    if new_state.status == :emergency_lock do
+      {:noreply, goto(new_state, :idle), 0}
+    else
+      {:noreply, new_state, 0}
+    end
   end
 
   def handle_report({:report_busy, []} = code, state) do
@@ -358,27 +376,27 @@ defmodule Farmbot.Firmware do
   end
 
   def handle_report({:report_position, position} = _code, state) do
-    side_effects(state, :handle_position, position)
+    side_effects(state, :handle_position, [position])
     {:noreply, state}
   end
 
   def handle_report({:report_encoders_scaled, encoders} = _code, state) do
-    side_effects(state, :handle_encoders_scaled, encoders)
+    side_effects(state, :handle_encoders_scaled, [encoders])
     {:noreply, state}
   end
 
   def handle_report({:report_encoders_raw, encoders} = _code, state) do
-    side_effects(state, :handle_encoders_raw, encoders)
+    side_effects(state, :handle_encoders_raw, [encoders])
     {:noreply, state}
   end
 
   def handle_report({:report_end_stops, end_stops} = _code, state) do
-    side_effects(state, :handle_end_stops, end_stops)
+    side_effects(state, :handle_end_stops, [end_stops])
     {:noreply, state}
   end
 
   def handle_report({:report_paramater, param}, state) do
-    side_effects(state, :handle_paramater, param)
+    side_effects(state, :handle_paramater, [param])
     {:noreply, state}
   end
 
@@ -392,7 +410,25 @@ defmodule Farmbot.Firmware do
   end
 
   @spec goto(state(), status()) :: state()
-  defp goto(%{status: _old} = state, new), do: %{state | status: new}
+  defp goto(%{status: old} = state, new) do
+    new_state = %{state | status: new}
+
+    cond do
+      old != new && new == :emergency_lock ->
+        side_effects(new_state, :handle_emergency_lock, [])
+
+      old != new && old == :emergency_lock ->
+        side_effects(new_state, :handle_emergency_unlock, [])
+
+      old == new ->
+        :ok
+
+      true ->
+        Logger.debug("unhandled state change: #{old} => #{new}")
+    end
+
+    new_state
+  end
 
   @spec side_effects(state, atom, GCODE.args()) :: any()
   defp side_effects(%{side_effects: nil}, _function, _args), do: nil

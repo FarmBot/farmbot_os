@@ -192,7 +192,7 @@ defmodule Farmbot.BotStateNG.McuParams do
       movement_axis_nr_steps_z: mcu_params.movement_axis_nr_steps_z,
       encoder_invert_x: mcu_params.encoder_invert_x,
       encoder_missed_steps_max_x: mcu_params.encoder_missed_steps_max_x,
-      movement_invert_motor_y: mcu_params.movement_invert_motor_y,
+      movement_invert_motor_y: mcu_params.movement_invert_motor_y
     }
   end
 

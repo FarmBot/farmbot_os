@@ -40,7 +40,7 @@ defmodule Farmbot.BotStateNG.Configuration do
       os_auto_update: configuration.os_auto_update,
       sequence_body_log: configuration.sequence_body_log,
       sequence_complete_log: configuration.sequence_complete_log,
-      sequence_init_log: configuration.sequence_init_log,
+      sequence_init_log: configuration.sequence_init_log
     }
   end
 

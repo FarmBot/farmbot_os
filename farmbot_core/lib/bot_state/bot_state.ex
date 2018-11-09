@@ -28,6 +28,31 @@ defmodule Farmbot.BotState do
     GenServer.call(bot_state_server, {:set_position, x, y, z})
   end
 
+  @doc "Sets the location_data.encoders_scaled"
+  def set_encoders_scaled(bot_state_server \\ __MODULE__, x, y, z) do
+    GenServer.call(bot_state_server, {:set_encoders_scaled, x, y, z})
+  end
+
+  @doc "Sets the location_data.encoders_raw"
+  def set_encoders_raw(bot_state_server \\ __MODULE__, x, y, z) do
+    GenServer.call(bot_state_server, {:set_encoders_raw, x, y, z})
+  end
+
+  @doc "Sets mcu_params[param] = value"
+  def set_firmware_config(bot_state_server \\ __MODULE__, param, value) do
+    GenServer.call(bot_state_server, {:set_firmware_config, param, value})
+  end
+
+  @doc "Sets informational_settings.locked = true"
+  def set_firmware_locked(bot_state_server \\ __MODULE__) do
+    GenServer.call(bot_state_server, {:set_firmware_locked, true})
+  end
+
+  @doc "Sets informational_settings.locked = false"
+  def set_firmware_unlocked(bot_state_server \\ __MODULE__) do
+    GenServer.call(bot_state_server, {:set_firmware_locked, false})
+  end
+
   @doc "Fetch the current state."
   def fetch(bot_state_server \\ __MODULE__) do
     GenServer.call(bot_state_server, :fetch)
@@ -106,7 +131,48 @@ defmodule Farmbot.BotState do
 
   def handle_call({:set_position, x, y, z}, _from, state) do
     change = %{location_data: %{position: %{x: x, y: y, z: z}}}
-    {reply, state} = 
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_encoders_scaled, x, y, z}, _from, state) do
+    change = %{location_data: %{scaled_encoders: %{x: x, y: y, z: z}}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_encoders_raw, x, y, z}, _from, state) do
+    change = %{location_data: %{raw_encoders: %{x: x, y: y, z: z}}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_firmware_config, param, value}, _from, state) do
+    change = %{mcu_params: %{param => value}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_firmware_locked, bool}, _from, state) do
+    change = %{informational_settings: %{locked: bool}}
+
+    {reply, state} =
       BotStateNG.changeset(state.tree, change)
       |> dispatch_and_apply(state)
 
@@ -171,6 +237,10 @@ defmodule Farmbot.BotState do
       |> dispatch_and_apply(state)
 
     {:reply, reply, state}
+  end
+
+  defp dispatch_and_apply(%Ecto.Changeset{changes: changes}, state) when map_size(changes) == 0 do
+    {:ok, state}
   end
 
   defp dispatch_and_apply(%Ecto.Changeset{valid?: true} = change, state) do

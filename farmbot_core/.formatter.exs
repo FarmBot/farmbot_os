@@ -10,6 +10,7 @@
     "lib/farmware_runtime/**/*.{ex,exs}",
     "lib/celery_script/**/*.{ex,exs}",
     "lib/farmware_runtime.ex",
+    "lib/firmware/**/*.{ex,exs}",
     "lib/asset*.ex",
     "lib/log_storage/**/*.{ex,exs}"
   ],

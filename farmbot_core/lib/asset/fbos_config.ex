@@ -18,6 +18,7 @@ defmodule Elixir.Farmbot.Asset.FbosConfig do
     field(:beta_opt_in, :boolean)
     field(:disable_factory_reset, :boolean)
     field(:firmware_hardware, :string)
+    field(:firmware_path, :string)
     field(:firmware_input_log, :boolean)
     field(:firmware_output_log, :boolean)
     field(:network_not_found_timer, :integer)
@@ -36,6 +37,7 @@ defmodule Elixir.Farmbot.Asset.FbosConfig do
       beta_opt_in: fbos_config.beta_opt_in,
       disable_factory_reset: fbos_config.disable_factory_reset,
       firmware_hardware: fbos_config.firmware_hardware,
+      firmware_path: fbos_config.firmware_path,
       firmware_input_log: fbos_config.firmware_input_log,
       firmware_output_log: fbos_config.firmware_output_log,
       network_not_found_timer: fbos_config.network_not_found_timer,
@@ -55,6 +57,7 @@ defmodule Elixir.Farmbot.Asset.FbosConfig do
       :beta_opt_in,
       :disable_factory_reset,
       :firmware_hardware,
+      :firmware_path,
       :firmware_input_log,
       :firmware_output_log,
       :network_not_found_timer,

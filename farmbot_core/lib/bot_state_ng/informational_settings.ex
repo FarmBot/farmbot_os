@@ -52,7 +52,7 @@ defmodule Farmbot.BotStateNG.InformationalSettings do
       locked: informational_settings.locked,
       last_status: informational_settings.last_status,
       cache_bust: informational_settings.cache_bust,
-      busy: informational_settings.busy,
+      busy: informational_settings.busy
     }
   end
 
