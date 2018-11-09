@@ -21,6 +21,7 @@ defmodule Elixir.Farmbot.Asset.FbosConfig do
     field(:firmware_path, :string)
     field(:firmware_input_log, :boolean)
     field(:firmware_output_log, :boolean)
+    field(:firmware_debug_log, :boolean)
     field(:network_not_found_timer, :integer)
     field(:os_auto_update, :boolean)
     field(:sequence_body_log, :boolean)
@@ -40,6 +41,7 @@ defmodule Elixir.Farmbot.Asset.FbosConfig do
       firmware_path: fbos_config.firmware_path,
       firmware_input_log: fbos_config.firmware_input_log,
       firmware_output_log: fbos_config.firmware_output_log,
+      firmware_debug_log: fbos_config.firmware_debug_log,
       network_not_found_timer: fbos_config.network_not_found_timer,
       os_auto_update: fbos_config.os_auto_update,
       sequence_body_log: fbos_config.sequence_body_log,
@@ -60,6 +62,7 @@ defmodule Elixir.Farmbot.Asset.FbosConfig do
       :firmware_path,
       :firmware_input_log,
       :firmware_output_log,
+      :firmware_debug_log,
       :network_not_found_timer,
       :os_auto_update,
       :sequence_body_log,

@@ -13,6 +13,7 @@ defmodule Elixir.Farmbot.Asset.Repo.Migrations.CreateFbosConfigsTable do
       add(:firmware_path, :string)
       add(:firmware_input_log, :boolean)
       add(:firmware_output_log, :boolean)
+      add(:firmware_debug_log, :boolean)
       add(:network_not_found_timer, :integer)
       add(:os_auto_update, :boolean)
       add(:sequence_body_log, :boolean)
