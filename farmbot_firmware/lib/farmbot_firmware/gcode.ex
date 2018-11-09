@@ -24,13 +24,13 @@ defmodule Farmbot.Firmware.GCODE do
           | :report_home_complete
           | :report_position
           | :report_paramaters_complete
-          | :report_paramater
-          | :report_calibration_paramater
+          | :report_paramater_value
+          | :report_calibration_paramater_value
           | :report_status_value
           | :report_pin_value
           | :report_axis_timeout
           | :report_end_stops
-          | :report_version
+          | :report_software_version
           | :report_encoders_scaled
           | :report_encoders_raw
           | :report_emergency_lock

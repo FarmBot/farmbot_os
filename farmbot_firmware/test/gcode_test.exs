@@ -278,11 +278,11 @@ defmodule Farmbot.Firmware.GCODETest do
     end
 
     test "version" do
-      assert {nil, {:report_version, ["6.5.0.G"]}} = GCODE.decode("R83 6.5.0.G")
-      assert {"900", {:report_version, ["6.5.0.G"]}} = GCODE.decode("R83 6.5.0.G Q900")
+      assert {nil, {:report_software_version, ["6.5.0.G"]}} = GCODE.decode("R83 6.5.0.G")
+      assert {"900", {:report_software_version, ["6.5.0.G"]}} = GCODE.decode("R83 6.5.0.G Q900")
 
-      assert "R83 6.5.0.G" = GCODE.encode({nil, {:report_version, ["6.5.0.G"]}})
-      assert "R83 6.5.0.G Q900" = GCODE.encode({"900", {:report_version, ["6.5.0.G"]}})
+      assert "R83 6.5.0.G" = GCODE.encode({nil, {:report_software_version, ["6.5.0.G"]}})
+      assert "R83 6.5.0.G Q900" = GCODE.encode({"900", {:report_software_version, ["6.5.0.G"]}})
     end
 
     test "encoders" do

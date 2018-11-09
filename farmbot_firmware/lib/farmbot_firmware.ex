@@ -40,7 +40,7 @@ defmodule Farmbot.Firmware do
     of the command queue and are started immediately.
   * if a `report_emergency_lock` message is received at any point during a
     commands execution, that command is considered an error.
-    (this does not apply to `:boot` state, since `:write_paramater`
+    (this does not apply to `:boot` state, since `:paramater_write`
      is accepted while the firmware is locked.)
   * all reports outside of control flow reports (:begin, :error, :invalid,
     :success) will be discarded while in `:boot` state. This means while
@@ -72,7 +72,7 @@ defmodule Farmbot.Firmware do
 
   a transport should also implement a `handle_call` clause like:
 
-      def handle_call({"166", {:write_paramater, [some_param: 100.00]}}, _from, state)
+      def handle_call({"166", {:paramater_write, [some_param: 100.00]}}, _from, state)
 
   and reply with `:ok | {:error, term()}`
   """
@@ -80,7 +80,7 @@ defmodule Farmbot.Firmware do
   require Logger
 
   alias Farmbot.Firmware, as: State
-  alias Farmbot.Firmware.GCODE
+  alias Farmbot.{Firmware.GCODE, Firmware.Command, Firmware.Request}
   @error_timeout_ms 2_000
 
   @type status :: :boot | :no_config | :configuration | :idle | :emergency_lock
@@ -128,45 +128,23 @@ defmodule Farmbot.Firmware do
     * `:configuration`
   `command` will fail with `{:error, state}`
   """
-  @spec command(GenServer.server(), GCODE.t() | {GCODE.kind(), GCODE.args()}) ::
-          :ok | {:error, :invalid_command | :firmware_error | :emergency_lock | status()}
-  def command(firmware_server \\ __MODULE__, code)
+  defdelegate command(server \\ __MODULE__, code), to: Command
 
-  def command(firmware_server, {_tag, {_, _}} = code) do
-    case GenServer.call(firmware_server, code, :infinity) do
-      {:ok, tag} -> wait_for_result(tag, code)
-      {:error, status} -> {:error, status}
-    end
-  end
+  @doc """
+  Request data from the firmware.
+  Valid requests are of kind:
 
-  def command(firmware_server, {_, _} = code) do
-    command(firmware_server, {to_string(:rand.uniform(100)), code})
-  end
+      :paramater_read
+      :status_read
+      :pin_read
+      :end_stops_read
+      :position_read
+      :software_version_read
 
-  defp wait_for_result(tag, code) do
-    receive do
-      {^tag, {:report_begin, []}} ->
-        wait_for_result(tag, code)
-
-      {^tag, {:report_busy, []}} ->
-        wait_for_result(tag, code)
-
-      {^tag, {:report_success, []}} ->
-        :ok
-
-      {^tag, {:report_error, []}} ->
-        {:error, :firmware_error}
-
-      {^tag, {:report_invalid, []}} ->
-        {:error, :invalid_command}
-
-      {_, {:report_emergency_lock, []}} ->
-        {:error, :emergency_lock}
-
-      {tag, _report} = code ->
-        wait_for_result(tag, code)
-    end
-  end
+  Will return `{:ok, {tag, {:report_*, args}}}` on success
+  or `{:error, term()}` on error.
+  """
+  defdelegate request(server \\ __MODULE__, code), to: Request
 
   @doc """
   Starting the Firmware server requires at least:
@@ -242,7 +220,7 @@ defmodule Farmbot.Firmware do
   @doc false
   @spec handle_command(GCODE.t(), GenServer.from(), state()) :: {:reply, term(), state()}
   def handle_command(_, _, %{status: s} = state) when s in [:boot, :no_config, :configuration] do
-    {:reply, {:error, s.status}, state}
+    {:reply, {:error, s}, state}
   end
 
   def handle_command({tag, {:command_emergency_lock, []}} = code, {pid, _ref}, state) do
@@ -286,6 +264,11 @@ defmodule Farmbot.Firmware do
     {:noreply, goto(state, :no_config)}
   end
 
+  def handle_report({:report_debug_message, msg}, state) do
+    side_effects(state, :handle_debug_message, [msg])
+    {:noreply, state}
+  end
+
   def handle_report(report, %{status: :boot} = state) do
     Logger.debug(["still in state: :boot ", inspect(report)])
     {:noreply, state}
@@ -297,13 +280,11 @@ defmodule Farmbot.Firmware do
   end
 
   def handle_report({:report_begin, []} = code, state) do
-    Logger.debug("#{inspect(state.current)} begin")
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     {:noreply, state}
   end
 
   def handle_report({:report_success, []} = code, state) do
-    Logger.debug("#{inspect(state.current)} success")
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     new_state = %{state | current: nil, caller_pid: nil}
 
@@ -315,44 +296,38 @@ defmodule Farmbot.Firmware do
   end
 
   def handle_report({:report_busy, []} = code, state) do
-    Logger.debug("#{inspect(state.current)} busy")
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     {:noreply, state}
   end
 
   def handle_report({:report_error, []} = code, %{status: :configuration} = state) do
-    Logger.error("#{inspect(state.current)} configuration command error")
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     {:stop, {:error, state.current}, state}
   end
 
   def handle_report({:report_error, []} = code, state) do
-    Logger.debug("#{inspect(state.current)} error")
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     {:noreply, %{state | caller_pid: nil, current: nil}, 0}
   end
 
   def handle_report({:report_invalid, []} = code, %{status: :configuration} = state) do
-    Logger.debug("#{inspect(state.current)} configuration error (invalid)")
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     {:stop, {:error, state.current}, state}
   end
 
   def handle_report({:report_invalid, []} = code, state) do
-    Logger.debug("#{inspect(state.current)} error (invalid)")
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     {:noreply, %{state | caller_pid: nil, current: nil}, 0}
   end
 
   # report_no_config => goto(_, :no_config)
   def handle_report({:report_no_config, []}, %{status: _} = state) do
-    Logger.warn("Configuring paramaters.")
     tag = state.tag || "0"
     loaded_params = side_effects(state, :load_params, []) || []
 
     param_commands =
       Enum.reduce(loaded_params, [], fn {param, val}, acc ->
-        if val, do: acc ++ [{:paramater_write, [param, val]}], else: acc
+        if val, do: acc ++ [{:paramater_write, [{param, val}]}], else: acc
       end)
 
     to_process =
@@ -361,6 +336,18 @@ defmodule Farmbot.Firmware do
           {:paramater_write, [{:param_config_ok, 1.0}]},
           {:paramater_read_all, []}
         ]
+
+    to_process =
+      if loaded_params[:movement_home_at_boot_x] == 1,
+        do: to_process ++ [{:command_movement_find_home, [:x]}]
+
+    to_process =
+      if loaded_params[:movement_home_at_boot_y] == 1,
+        do: to_process ++ [{:command_movement_find_home, [:y]}]
+
+    to_process =
+      if loaded_params[:movement_home_at_boot_z] == 1,
+        do: to_process ++ [{:command_movement_find_home, [:z]}]
 
     {:noreply, goto(%{state | tag: tag, configuration_queue: to_process}, :configuration), 0}
   end
@@ -371,32 +358,61 @@ defmodule Farmbot.Firmware do
   end
 
   def handle_report(_, %{status: :no_config} = state) do
-    Logger.debug("Still in state: :no_config")
     {:noreply, state}
   end
 
-  def handle_report({:report_position, position} = _code, state) do
+  def handle_report({:report_position, position} = code, state) do
+    if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     side_effects(state, :handle_position, [position])
     {:noreply, state}
   end
 
-  def handle_report({:report_encoders_scaled, encoders} = _code, state) do
+  def handle_report({:report_encoders_scaled, encoders} = code, state) do
+    if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     side_effects(state, :handle_encoders_scaled, [encoders])
     {:noreply, state}
   end
 
-  def handle_report({:report_encoders_raw, encoders} = _code, state) do
+  def handle_report({:report_encoders_raw, encoders} = code, state) do
+    if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     side_effects(state, :handle_encoders_raw, [encoders])
     {:noreply, state}
   end
 
-  def handle_report({:report_end_stops, end_stops} = _code, state) do
+  def handle_report({:report_end_stops, end_stops} = code, state) do
+    if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     side_effects(state, :handle_end_stops, [end_stops])
     {:noreply, state}
   end
 
-  def handle_report({:report_paramater, param}, state) do
-    side_effects(state, :handle_paramater, [param])
+  def handle_report({:report_paramater_value, param} = code, state) do
+    if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    side_effects(state, :handle_paramater_value, [param])
+    {:noreply, state}
+  end
+
+  def handle_report({:report_calibration_paramater_value, args} = _code, state) do
+    to_process = [{:paramater_write, args}]
+
+    {:noreply, goto(%{state | tag: state.tag, configuration_queue: to_process}, :configuration),
+     0}
+  end
+
+  def handle_report({:report_pin_value, value} = code, state) do
+    if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    side_effects(state, :handle_pin_value, [value])
+    {:noreply, state}
+  end
+
+  def handle_report({:report_status_value, status} = code, state) do
+    if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    side_effects(state, :handle_status_value, [status])
+    {:noreply, state}
+  end
+
+  def handle_report({:report_software_version, version} = code, state) do
+    if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    side_effects(state, :handle_software_version, [version])
     {:noreply, state}
   end
 
@@ -405,7 +421,6 @@ defmodule Farmbot.Firmware do
 
   def handle_report({_kind, _args} = code, state) do
     IO.inspect(code, label: "unknown code for #{state.status}")
-    # {:stop, {:unhandled_code, code}, state}
     {:noreply, state}
   end
 

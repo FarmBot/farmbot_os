@@ -28,8 +28,8 @@ defmodule Farmbot.Firmware.GCODE.Decoder do
 
   def do_decode("R20", []), do: {:report_paramaters_complete, []}
 
-  def do_decode("R21", pv), do: {:report_paramater, decode_pv(pv)}
-  def do_decode("R23", pv), do: {:report_calibration_paramater, decode_pv(pv)}
+  def do_decode("R21", pv), do: {:report_paramater_value, decode_pv(pv)}
+  def do_decode("R23", pv), do: {:report_calibration_paramater_value, decode_pv(pv)}
   def do_decode("R33", pv), do: {:report_status_value, decode_ints(pv)}
   def do_decode("R41", pv), do: {:report_pin_value, decode_ints(pv)}
 
@@ -40,7 +40,7 @@ defmodule Farmbot.Firmware.GCODE.Decoder do
   def do_decode("R81", xxyyzz), do: {:report_end_stops, decode_end_stops(xxyyzz)}
   def do_decode("R82", xyzs), do: {:report_position, decode_floats(xyzs)}
 
-  def do_decode("R83", [version]), do: {:report_version, [version]}
+  def do_decode("R83", [version]), do: {:report_software_version, [version]}
 
   def do_decode("R84", xyz), do: {:report_encoders_scaled, decode_floats(xyz)}
   def do_decode("R85", xyz), do: {:report_encoders_raw, decode_floats(xyz)}
@@ -174,6 +174,8 @@ defmodule Farmbot.Firmware.GCODE.Decoder do
       _ -> decode_ints(rest, acc)
     end
   end
+
+  defp decode_ints([], acc), do: Enum.reverse(acc)
 
   @spec decode_echo(binary()) :: [binary()]
   defp decode_echo(str) when is_binary(str) do

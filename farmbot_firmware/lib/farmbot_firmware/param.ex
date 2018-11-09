@@ -1,5 +1,6 @@
 defmodule Farmbot.Firmware.Param do
   @moduledoc "decodes/encodes integer id to name and vice versa"
+  require Logger
 
   @type t() :: atom()
 
@@ -50,6 +51,9 @@ defmodule Farmbot.Firmware.Param do
   def decode(71), do: :movement_max_spd_x
   def decode(72), do: :movement_max_spd_y
   def decode(73), do: :movement_max_spd_z
+  def decode(75), do: :movement_invert_2_endpoints_x
+  def decode(76), do: :movement_invert_2_endpoints_y
+  def decode(77), do: :movement_invert_2_endpoints_z
   def decode(101), do: :encoder_enabled_x
   def decode(102), do: :encoder_enabled_y
   def decode(103), do: :encoder_enabled_z
@@ -92,7 +96,11 @@ defmodule Farmbot.Firmware.Param do
   def decode(221), do: :pin_guard_5_pin_nr
   def decode(222), do: :pin_guard_5_time_out
   def decode(223), do: :pin_guard_5_active_state
-  def decode(_), do: :unknown_paramater
+
+  def decode(unknown) when is_integer(unknown) do
+    Logger.error("unknown firmware paramater: #{unknown}")
+    :unknown_paramater
+  end
 
   @doc "Encodes an atom paramater name to an integer paramater id."
   def encode(paramater)
@@ -141,6 +149,9 @@ defmodule Farmbot.Firmware.Param do
   def encode(:movement_max_spd_x), do: 71
   def encode(:movement_max_spd_y), do: 72
   def encode(:movement_max_spd_z), do: 73
+  def encode(:movement_invert_2_endpoints_x), do: 75
+  def encode(:movement_invert_2_endpoints_y), do: 76
+  def encode(:movement_invert_2_endpoints_z), do: 77
   def encode(:encoder_enabled_x), do: 101
   def encode(:encoder_enabled_y), do: 102
   def encode(:encoder_enabled_z), do: 103
