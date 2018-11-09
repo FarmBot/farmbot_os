@@ -1,10 +1,13 @@
 defmodule Farmbot.Firmware.SideEffects do
   alias Farmbot.Firmware.{GCODE, Param}
 
+  @type axis :: :x | :y | :z
+
   @doc "While in state `:boot`, the firmware needs to load its params."
   @callback load_params :: [{Param.t(), float() | nil}]
 
   @callback handle_position(x: float(), y: float(), z: float()) :: any()
+  @callback handle_position_change([{axis(), float()}]) :: any()
   @callback handle_encoders_scaled(x: float(), y: float(), z: float()) :: any()
   @callback handle_encoders_raw(x: float(), y: float(), z: float()) :: any()
   @callback handle_paramater_value([{Param.t(), float()}]) :: any()
@@ -13,8 +16,13 @@ defmodule Farmbot.Firmware.SideEffects do
   @callback handle_emergency_lock() :: any()
   @callback handle_emergency_unlock() :: any()
   @callback handle_pin_value(p: integer(), v: integer()) :: any()
-  @callback handle_status_value(p: integer(), v: integer()) :: any()
   @callback handle_software_version([String.t()]) :: any()
+
+  @type axis_state :: :stop | :idle | :begin | :crawl | :decelerate | :accelerate
+  @callback handle_axis_state([{axis(), axis_state}]) :: any()
+
+  @type calibration_state :: :idle | :home | :end
+  @callback handle_calibration_state([{axis(), calibration_state()}]) :: any()
 
   @callback handle_input_gcode(GCODE.t()) :: any()
   @callback handle_output_gcode(GCODE.t()) :: any()

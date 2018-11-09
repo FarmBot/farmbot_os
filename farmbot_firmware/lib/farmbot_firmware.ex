@@ -320,6 +320,16 @@ defmodule Farmbot.Firmware do
     {:noreply, %{state | caller_pid: nil, current: nil}, 0}
   end
 
+  def handle_report({:report_retry, []} = code, %{status: :configuration} = state) do
+    Logger.warn("Retrying configuration command: #{inspect(code)}")
+    {:noreply, state}
+  end
+
+  def handle_report({:report_retry, []} = code, state) do
+    if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    {:noreply, state}
+  end
+
   # report_no_config => goto(_, :no_config)
   def handle_report({:report_no_config, []}, %{status: _} = state) do
     tag = state.tag || "0"
@@ -367,6 +377,24 @@ defmodule Farmbot.Firmware do
     {:noreply, state}
   end
 
+  def handle_report({:report_axis_state, axis_state} = code, state) do
+    if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    side_effects(state, :handle_axis_state, [axis_state])
+    {:noreply, state}
+  end
+
+  def handle_report({:report_calibration_state, calibration_state} = code, state) do
+    if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    side_effects(state, :handle_calibration_state, [calibration_state])
+    {:noreply, state}
+  end
+
+  def handle_report({:report_position_change, position} = code, state) do
+    if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    side_effects(state, :handle_position_change, [position])
+    {:noreply, state}
+  end
+
   def handle_report({:report_encoders_scaled, encoders} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     side_effects(state, :handle_encoders_scaled, [encoders])
@@ -401,12 +429,6 @@ defmodule Farmbot.Firmware do
   def handle_report({:report_pin_value, value} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     side_effects(state, :handle_pin_value, [value])
-    {:noreply, state}
-  end
-
-  def handle_report({:report_status_value, status} = code, state) do
-    if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    side_effects(state, :handle_status_value, [status])
     {:noreply, state}
   end
 

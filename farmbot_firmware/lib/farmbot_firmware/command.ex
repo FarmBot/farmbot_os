@@ -17,19 +17,25 @@ defmodule Farmbot.Firmware.Command do
     command(firmware_server, {to_string(:rand.uniform(100)), code})
   end
 
-  defp wait_for_command_result(tag, code) do
+  defp wait_for_command_result(tag, code, retries \\ 0, err \\ nil) do
     receive do
       {^tag, {:report_begin, []}} ->
-        wait_for_command_result(tag, code)
+        wait_for_command_result(tag, code, retries, err)
 
       {^tag, {:report_busy, []}} ->
-        wait_for_command_result(tag, code)
+        wait_for_command_result(tag, code, retries, err)
 
       {^tag, {:report_success, []}} ->
         :ok
 
+      {^tag, {:report_retry, []}} ->
+        wait_for_command_result(tag, code, retries + 1, err)
+
+      {^tag, {:report_position_change, _} = error} ->
+        wait_for_command_result(tag, code, retries, error)
+
       {^tag, {:report_error, []}} ->
-        {:error, :firmware_error}
+        if err, do: {:error, err}, else: {:error, :firmware_error}
 
       {^tag, {:report_invalid, []}} ->
         {:error, :invalid_command}
@@ -38,7 +44,7 @@ defmodule Farmbot.Firmware.Command do
         {:error, :emergency_lock}
 
       {_tag, _report} ->
-        wait_for_command_result(tag, code)
+        wait_for_command_result(tag, code, retries, err)
     end
   end
 end

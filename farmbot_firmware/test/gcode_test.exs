@@ -234,15 +234,15 @@ defmodule Farmbot.Firmware.GCODETest do
       assert {"22", {:report_home_complete, [:z]}} = GCODE.decode("R13 Q22")
     end
 
-    test "position changed" do
-      assert {nil, {:report_position, [{:x, 200.0}]}} = GCODE.decode("R15 X200")
-      assert {"33", {:report_position, [{:x, 200.0}]}} = GCODE.decode("R15 X200 Q33")
+    test "position change" do
+      assert {nil, {:report_position_change, [{:x, 200.0}]}} = GCODE.decode("R15 X200")
+      assert {"33", {:report_position_change, [{:x, 200.0}]}} = GCODE.decode("R15 X200 Q33")
 
-      assert {nil, {:report_position, [{:y, 200.0}]}} = GCODE.decode("R16 Y200")
-      assert {"33", {:report_position, [{:y, 200.0}]}} = GCODE.decode("R17 Y200 Q33")
+      assert {nil, {:report_position_change, [{:y, 200.0}]}} = GCODE.decode("R16 Y200")
+      assert {"33", {:report_position_change, [{:y, 200.0}]}} = GCODE.decode("R17 Y200 Q33")
 
-      assert {nil, {:report_position, [{:z, 200.0}]}} = GCODE.decode("R15 Z200")
-      assert {"33", {:report_position, [{:z, 200.0}]}} = GCODE.decode("R15 Z200 Q33")
+      assert {nil, {:report_position_change, [{:z, 200.0}]}} = GCODE.decode("R15 Z200")
+      assert {"33", {:report_position_change, [{:z, 200.0}]}} = GCODE.decode("R15 Z200 Q33")
     end
 
     test "paramater report complete" do

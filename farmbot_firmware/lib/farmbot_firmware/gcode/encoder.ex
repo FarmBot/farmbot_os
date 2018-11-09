@@ -22,15 +22,14 @@ defmodule Farmbot.Firmware.GCODE.Encoder do
   def do_encode(:report_home_complete, [:y]), do: "R12"
   def do_encode(:report_home_complete, [:z]), do: "R13"
 
-  def do_encode(:report_position, [x: _] = arg), do: "R15 " <> encode_floats(arg)
-  def do_encode(:report_position, [y: _] = arg), do: "R16 " <> encode_floats(arg)
-  def do_encode(:report_position, [z: _] = arg), do: "R16 " <> encode_floats(arg)
+  def do_encode(:report_position_change, [x: _] = arg), do: "R15 " <> encode_floats(arg)
+  def do_encode(:report_position_change, [y: _] = arg), do: "R16 " <> encode_floats(arg)
+  def do_encode(:report_position_change, [z: _] = arg), do: "R16 " <> encode_floats(arg)
 
   def do_encode(:report_paramaters_complete, []), do: "R20"
 
   def do_encode(:report_parmater_value, pv), do: "R21 " <> encode_pv(pv)
   def do_encode(:report_calibration_paramater_value, pv), do: "R23 " <> encode_pv(pv)
-  def do_encode(:report_status_value, pv), do: "R33 " <> encode_ints(pv)
   def do_encode(:report_pin_value, pv), do: "R41 " <> encode_ints(pv)
 
   def do_encode(:report_axis_timeout, [:x]), do: "R71"
@@ -63,13 +62,13 @@ defmodule Farmbot.Firmware.GCODE.Encoder do
   def do_encode(:paramater_read_all, []), do: "F20"
   def do_encode(:paramater_read, [paramater]), do: "F21 P#{Param.encode(paramater)}"
 
-  def do_encode(:paramater_write, [{p, v}]), do: "F22 " <> encode_pv([{p, v}])
-  def do_encode(:calibration_paramater_write, [{p, v}]), do: "F23 " <> encode_pv([{p, v}])
-  def do_encode(:status_read, [status_id]), do: "F31 " <> encode_ints(p: status_id)
-  def do_encode(:status_write, [{p, v}]), do: "F32 " <> encode_ints(p: p, v: v)
-  def do_encode(:pin_write, [{p, v}]), do: "F41 " <> encode_ints(p: p, v: v)
-  def do_encode(:pin_read, [pin]), do: "F42 " <> encode_ints(p: pin)
+  def do_encode(:paramater_write, pv), do: "F22 " <> encode_pv(pv)
+  def do_encode(:calibration_paramater_write, pv), do: "F23 " <> encode_pv(pv)
+
+  def do_encode(:pin_write, pv), do: "F41 " <> encode_ints(pv)
+  def do_encode(:pin_read, p), do: "F42 " <> encode_ints(p)
   def do_encode(:pin_mode_write, pm), do: "F43 " <> encode_ints(pm)
+
   def do_encode(:servo_write, pv), do: "F61 " <> encode_ints(pv)
   def do_encode(:end_stops_read, []), do: "F81"
   def do_encode(:position_read, []), do: "F82"

@@ -94,42 +94,33 @@ defmodule Farmbot.Firmware.StubSideEffects do
     ]
   end
 
-  def handle_position(_) do
-  end
+  def handle_position(_), do: :noop
 
-  def handle_encoders_scaled(_) do
-  end
+  def handle_position_change(_), do: :noop
 
-  def handle_encoders_raw(_) do
-  end
+  def handle_axis_state(_), do: :noop
 
-  def handle_paramater_value(_) do
-  end
+  def handle_calibration_state(_), do: :noop
 
-  def handle_end_stops(_) do
-  end
+  def handle_encoders_scaled(_), do: :noop
 
-  def handle_emergency_lock() do
-  end
+  def handle_encoders_raw(_), do: :noop
 
-  def handle_emergency_unlock() do
-  end
+  def handle_paramater_value(_), do: :noop
 
-  def handle_pin_value(_) do
-  end
+  def handle_end_stops(_), do: :noop
 
-  def handle_status_value(_) do
-  end
+  def handle_emergency_lock(), do: :noop
 
-  def handle_software_version(_) do
-  end
+  def handle_emergency_unlock(), do: :noop
 
-  def handle_input_gcode(_) do
-  end
+  def handle_pin_value(_), do: :noop
 
-  def handle_output_gcode(_) do
-  end
+  def handle_software_version(_), do: :noop
 
-  def handle_debug_message(_) do
-  end
+  def handle_input_gcode(_), do: :noop
+
+  def handle_output_gcode(_), do: :noop
+
+  def handle_debug_message(_), do: :noop
 end
