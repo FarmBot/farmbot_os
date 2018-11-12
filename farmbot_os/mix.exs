@@ -65,22 +65,15 @@ defmodule Farmbot.OS.MixProject do
       {:cors_plug, "~> 1.5"},
       {:phoenix_html, "~> 2.12"},
 
-      # AMQP hacks
-      {:jsx, "~> 2.9", override: true},
-      {:ranch, "~> 1.6", override: true},
-      {:ranch_proxy_protocol, "~> 2.1", override: true},
-      # End hacks
-
       {:nerves_runtime, "~> 0.8"},
       {:nerves_network, "~> 0.3"},
       {:nerves_wpa_supplicant, "~> 0.3"},
-      {:nerves_firmware, "~> 0.4"},
       {:nerves_time, "~> 0.2"},
       {:dhcp_server, "~> 0.6"},
       {:mdns, "~> 1.0"},
       {:nerves_firmware_ssh, "~> 0.3"},
       {:nerves_init_gadget, "~> 0.5", only: :dev},
-      {:elixir_ale, "~> 1.1"},
+      {:elixir_ale, "~> 1.2"},
     ] ++ system(target)
   end
 
@@ -96,7 +89,8 @@ defmodule Farmbot.OS.MixProject do
     ["./lib", "./platform/target"]
   end
 
-  defp system("rpi3"), do: [{:nerves_system_farmbot_rpi3, "1.5.0-farmbot.0", runtime: false}]
-  defp system("rpi0"), do: [{:nerves_system_farmbot_rpi0, "1.5.0-farmbot.0", runtime: false}]
+  defp system("rpi"), do: [{:farmbot_system_rpi, "1.5.1-farmbot.0", runtime: false}]
+  defp system("rpi0"), do: [{:farmbot_system_rpi0, "1.5.1-farmbot.0", runtime: false}]
+  defp system("rpi3"), do: [{:farmbot_system_rpi3, "1.5.1-farmbot.1", runtime: false}]
   defp system(target), do: Mix.raise("Unknown MIX_TARGET: #{target}")
 end

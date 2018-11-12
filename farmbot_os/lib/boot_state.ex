@@ -1,11 +1,10 @@
 defmodule Farmbot.BootState do
-  @data_path Application.get_env(:farmbot_ext, :data_path)
-  @data_path || Mix.raise("Unconfigured data path.")
+  @data_path Farmbot.OS.FileSystem.data_path()
   @state_file Path.join(@data_path, "boot_state")
 
   def read do
     case File.read(@state_file) do
-      {:error, :enoend} -> write(:NEEDS_CONFIGURATION)
+      {:error, :enoent} -> write(:NEEDS_CONFIGURATION)
       {:error, _} = er -> er
       {:ok, data} -> data |> String.trim() |> String.to_atom()
     end

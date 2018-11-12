@@ -21,7 +21,6 @@ config :farmbot_core,
 
 # Configure Farmbot Behaviours.
 config :farmbot_core, :behaviour,
-  firmware_handler: Farmbot.Firmware.StubHandler,
   leds_handler: Farmbot.Leds.StubHandler,
   celery_script_io_layer: Farmbot.Core.CeleryScript.StubIOLayer,
   json_parser: Farmbot.JSON.JasonParser

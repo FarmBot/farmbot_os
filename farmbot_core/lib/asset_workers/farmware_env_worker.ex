@@ -6,7 +6,7 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmwareEnv do
     GenServer.start_link(__MODULE__, env)
   end
 
-  def init([%FarmwareEnv{} = env]) do
+  def init(%FarmwareEnv{} = env) do
     {:ok, env, 0}
   end
 

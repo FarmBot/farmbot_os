@@ -4,17 +4,14 @@ defmodule Farmbot.System do
   """
   require Farmbot.Logger
 
-  require Farmbot.Logger
-
   error_msg = """
-  Please configure `:system_tasks` and `:data_path`!
+  Please configure `:system_tasks`!
   """
 
-  @system_tasks Application.get_env(:farmbot_os, :behaviour)[:system_tasks]
+  @system_tasks Application.get_env(:farmbot_os, __MODULE__)[:system_tasks]
   @system_tasks || Mix.raise(error_msg)
 
-  @data_path Application.get_env(:farmbot_ext, :data_path)
-  @data_path || Mix.raise(error_msg)
+  @data_path Farmbot.OS.FileSystem.data_path()
 
   @doc "Restarts the machine."
   @callback reboot() :: any

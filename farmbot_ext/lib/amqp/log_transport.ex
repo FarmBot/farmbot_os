@@ -50,7 +50,6 @@ defmodule Farmbot.AMQP.LogTransport do
   def handle_continue([log | rest], state) do
     case do_handle_log(log, state) do
       :ok ->
-        IO.puts "handled log: #{log.id}"
         {:noreply, state, {:continue, rest}}
       error ->
         Logger.error("Logger amqp client failed to upload log: #{inspect error}")

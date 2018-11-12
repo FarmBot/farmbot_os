@@ -3,8 +3,7 @@ defmodule Farmbot.System.Init.FSCheckup do
   use Supervisor
   require Logger
 
-  @data_path Application.get_env(:farmbot_ext, :data_path)
-  @data_path || Mix.raise("Unconfigured data path.")
+  @data_path Farmbot.OS.FileSystem.data_path()
 
   @ref Farmbot.Project.commit()
   @version Farmbot.Project.version()

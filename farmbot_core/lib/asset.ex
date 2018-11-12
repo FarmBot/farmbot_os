@@ -120,9 +120,24 @@ defmodule Farmbot.Asset do
     |> Enum.find(fn %{package: pkg} -> pkg == package end)
   end
 
+  ## End FarmwareInstallation
+
+  ## Begin FarmwareEnv
+
   def list_farmware_env() do
     Repo.all(FarmwareEnv)
   end
 
-  ## End FarmwareInstallation
+  def new_farmware_env(params) do
+    fwe = if params["key"] || params[:key] do
+      Repo.get_by(FarmwareEnv, key: params["key"] || params[:key])
+    else
+      %FarmwareEnv{}
+    end
+    FarmwareEnv.changeset(fwe, params)
+    |> Repo.insert_or_update()
+  end
+
+  ## End FarmwareEnv
+
 end

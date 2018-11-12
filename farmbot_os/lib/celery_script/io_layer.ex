@@ -1,120 +1,46 @@
 defmodule Farmbot.OS.IOLayer do
   @behaviour Farmbot.Core.CeleryScript.IOLayer
-  alias Farmbot.OS.IOLayer.{
-    Farmware,
-    FindHome,
-    If,
-    MoveAbsolute,
-    ReadPin,
-    Sync,
-    TogglePin,
-    WritePin,
-  }
+  def calibrate(_args, _body), do: {:error, "Stubbed"}
+  def change_ownership(_args, _body), do: {:error, "Stubbed"}
+  def check_updates(_args, _body), do: {:error, "Stubbed"}
+  def config_update(_args, _body), do: {:error, "Stubbed"}
+  def dump_info(_args, _body), do: {:error, "Stubbed"}
+  def emergency_lock(_args, _body), do: {:error, "Stubbed"}
+  def emergency_unlock(_args, _body), do: {:error, "Stubbed"}
+  def execute(_args, _body), do: {:error, "Stubbed"}
+  def execute_script(_args, _body), do: {:error, "Stubbed"}
+  def factory_reset(_args, _body), do: {:error, "Stubbed"}
+  def find_home(_args, _body), do: {:error, "Stubbed"}
+  def home(_args, _body), do: {:error, "Stubbed"}
+  def move_absolute(_args, _body), do: {:error, "Stubbed"}
+  def move_relative(_args, _body), do: {:error, "Stubbed"}
 
-  def emergency_lock(_args, _body), do: Farmbot.Firmware.emergency_lock()
+  def power_off(_args, _body), Farmbot.System.power_off("CeleryScript")
 
-  def emergency_unlock(_args, _body), do: Farmbot.Firmware.emergency_unlock()
-
-  def move_relative(%{x: x, y: y, z: z, speed: speed}, []) do
-    import Farmbot.Core.CeleryScript.Utils
-    %{x: cur_x, y: cur_y, z: cur_z} = Farmbot.Firmware.get_current_position()
-    location = new_vec3(cur_x, cur_y, cur_z)
-    offset = new_vec3(x, y, z)
-    move_absolute(%{location: location, offset: offset, speed: speed}, [])
-  end
-
-  def move_absolute(args, body), do: MoveAbsolute.execute(args, body)
-
-  def toggle_pin(args, body), do: TogglePin.execute(args, body)
-
-  def write_pin(args, body), do: WritePin.execute(args, body)
-
-  def read_pin(args, body), do: ReadPin.execute(args, body)
-
-  def set_servo_angle(%{pin_number: pin_number, pin_value: value}, []) do
-    case Farmbot.Firmware.set_servo_angle(pin_number, value) do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> {:error, reason}
-    end
-  end
-
-  def home(%{axis: "all"}, []) do
-    case Farmbot.Firmware.home_all() do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> {:error, reason}
-    end
-  end
-
-  def home(%{axis: axis}, []) do
-    case Farmbot.Firmware.home(axis) do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> {:error, reason}
-    end
-  end
-
-  def find_home(args, body), do: FindHome.execute(args, body)
-
-  def wait(%{milliseconds: millis}, []), do: Process.sleep(millis)
-
-  def zero(_args, _body) do
-    {:error, "not implemented: zero"}
-  end
-
-  def calibrate(_args, _body) do
-    {:error, "not implemented: calibrate"}
-  end
-
-  def config_update(_args, _body) do
-    {:error, "config_update depreciated since 6.1.0"}
-  end
-
-  def set_user_env(_args, pairs) do
-    IO.puts "not implemented: set_user_env(#{inspect pairs})"
-    :ok
-  end
-
-  def execute_script(args, body), do: Farmware.execute(args, body)
-
-  def take_photo(_args, body) do
-    execute_script(%{package: "take-photo"}, body)
-  end
+  def read_pin(_args, _body), do: {:error, "Stubbed"}
 
   def read_status(_args, _body) do
     Farmbot.BotState.fetch()
     :ok
   end
-
-  def send_message(_args, _body) do
-    {:error, "not implemented: send_message"}
-  end
-
-  def sync(args, body), do: Sync.execute(args, body)
-
-  def power_off(_,_), do: Farmbot.System.shutdown("CeleryScript")
-
-  def reboot(_,_), do: Farmbot.System.reboot("CeleryScript")
-
-  def factory_reset(_,_), do: Farmbot.System.factory_reset("CeleryScript")
-
-  def dump_info(_args, _body) do
-    {:error, "not implemented: dump_info"}
-  end
-
-  def change_ownership(_args, _body) do
-    {:error, "not implemented: change_ownership"}
-  end
-
-  def check_updates(_args, _body) do
-    {:error, "not implemented: check_updates"}
-  end
-
-  def _if(args, body), do: If.execute(args, body)
-
-  def execute(%{sequence_id: sid}, _body) do
-    alias Farmbot.Asset
-    case Asset.get_sequence_by_id(sid) do
-      nil -> {:error, "no sequence by id: #{sid}"}
-      %Asset.Sequence{} = seq -> {:ok, Farmbot.CeleryScript.AST.decode(seq)}
+  
+  def reboot(_args, _body), Farmbot.System.reboot("CeleryScript")
+  
+  def send_message(_args, _body), do: {:error, "Stubbed"}
+  def set_servo_angle(_args, _body), do: {:error, "Stubbed"}
+  
+  def set_user_env(_args, body) do
+    for %{args: %{label: key, value: value}} <- body do
+      Farmbot.Asset.new_farmware_env(%{key: key, value: value})
     end
+    :ok
   end
+  
+  def sync(_args, _body), do: {:error, "Stubbed"}
+  def take_photo(_args, _body), do: {:error, "Stubbed"}
+  def toggle_pin(_args, _body), do: {:error, "Stubbed"}
+  def wait(_args, _body), do: {:error, "Stubbed"}
+  def write_pin(_args, _body), do: {:error, "Stubbed"}
+  def zero(_args, _body), do: {:error, "Stubbed"}
+  def _if(_args, _body), do: {:error, "Stubbed"}
 end

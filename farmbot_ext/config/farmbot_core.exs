@@ -14,7 +14,6 @@ config :farmbot_core, Farmbot.AssetMonitor,
   checkup_time_ms: 30_000
 
 config :farmbot_core, :behaviour,
-  firmware_handler: Farmbot.Firmware.StubHandler,
   leds_handler: Farmbot.Leds.StubHandler,
   celery_script_io_layer: Farmbot.Core.CeleryScript.StubIOLayer,
   json_parser: Farmbot.JSON.JasonParser
