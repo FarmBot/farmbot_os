@@ -51,7 +51,10 @@ config :farmbot_core, Farmbot.Asset.Repo,
 
 config :farmbot_os, Farmbot.OS.FileSystem, data_path: "/tmp/farmbot"
 config :farmbot_os, Farmbot.System, system_tasks: Farmbot.Host.SystemTasks
-config :farmbot_os, Farmbot.Platform.Supervisor, platform_children: [
-  Farmbot.Host.Configurator
-]
+
+config :farmbot_os, Farmbot.Platform.Supervisor,
+  platform_children: [
+    Farmbot.Host.Configurator
+  ]
+
 import_config("lagger.exs")

@@ -53,6 +53,10 @@ defmodule Farmbot.BotState do
     GenServer.call(bot_state_server, {:set_firmware_locked, false})
   end
 
+  def set_sync_status(bot_state_server \\ __MODULE__, s) when s in ["syncing", "synced", "error"] do
+    GenServer.call(bot_state_server, {:set_sync_status, s})
+  end
+
   @doc "Fetch the current state."
   def fetch(bot_state_server \\ __MODULE__) do
     GenServer.call(bot_state_server, :fetch)
@@ -171,6 +175,16 @@ defmodule Farmbot.BotState do
 
   def handle_call({:set_firmware_locked, bool}, _from, state) do
     change = %{informational_settings: %{locked: bool}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_sync_status, status}, _from, state) do
+    change = %{informational_settings: %{sync_status: status}}
 
     {reply, state} =
       BotStateNG.changeset(state.tree, change)

@@ -46,16 +46,17 @@ defmodule Farmbot.OS.MixProject do
       {:shoehorn, "~> 0.4"},
       {:logger_backend_sqlite, "~> 2.2"},
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
-      {:farmbot_ext, path: "../farmbot_ext", env: Mix.env()},
+      {:farmbot_ext, path: "../farmbot_ext", env: Mix.env()}
     ] ++ deps(@target)
   end
 
   # Specify target specific dependencies
-  defp deps("host"), do: [
-    {:excoveralls, "~> 0.10", only: [:test]},
-    {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
-    {:ex_doc, "~> 0.19", only: [:dev], runtime: false},
-  ]
+  defp deps("host"),
+    do: [
+      {:excoveralls, "~> 0.10", only: [:test]},
+      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
+      {:ex_doc, "~> 0.19", only: [:dev], runtime: false}
+    ]
 
   defp deps(target) do
     [
@@ -64,7 +65,6 @@ defmodule Farmbot.OS.MixProject do
       {:plug, "~> 1.6"},
       {:cors_plug, "~> 1.5"},
       {:phoenix_html, "~> 2.12"},
-
       {:nerves_runtime, "~> 0.8"},
       {:nerves_network, "~> 0.3"},
       {:nerves_wpa_supplicant, "~> 0.3"},
@@ -73,7 +73,7 @@ defmodule Farmbot.OS.MixProject do
       {:mdns, "~> 1.0"},
       {:nerves_firmware_ssh, "~> 0.3"},
       {:nerves_init_gadget, "~> 0.5", only: :dev},
-      {:elixir_ale, "~> 1.2"},
+      {:elixir_ale, "~> 1.2"}
     ] ++ system(target)
   end
 
