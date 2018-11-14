@@ -203,7 +203,10 @@ defmodule Farmbot.Firmware.StubTransport do
     {:reply, :ok, state, {:continue, resp_codes}}
   end
 
-  def handle_call({tag, {:pin_read, [p: p, m: m]}} = code, _from, state) do
+  def handle_call({tag, {:pin_read, args}} = code, _from, state) do
+    p = Keyword.fetch!(args, :p)
+    m = Keyword.get(args, :m, state.pins[p][:m] || 0)
+
     state =
       case Map.get(state.pins, p) do
         nil -> %{state | pins: Map.put(state.pins, p, m: m, v: 0)}

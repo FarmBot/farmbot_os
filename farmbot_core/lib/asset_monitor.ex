@@ -91,7 +91,7 @@ defmodule Farmbot.AssetMonitor do
       Device,
       FbosConfig,
       FarmEvent,
-      Peripheral,
+      # Peripheral,
       PersistentRegimen,
       PinBinding,
       FarmwareInstallation,

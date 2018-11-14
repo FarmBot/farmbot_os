@@ -11,6 +11,12 @@ defmodule Farmbot.Core.FirmwareSupervisor do
     Supervisor.restart_child(Farmbot.Core, __MODULE__)
   end
 
+  def stub do
+    Asset.fbos_config()
+    |> Asset.FbosConfig.changeset(%{firmware_path: "stub"})
+    |> Asset.Repo.insert_or_update()
+  end
+
   def init([]) do
     fbos_config = Asset.fbos_config()
 

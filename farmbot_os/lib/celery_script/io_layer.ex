@@ -8,6 +8,7 @@ defmodule Farmbot.OS.IOLayer do
     MoveAbsolute,
     MoveRelative,
     ReadPin,
+    SendMessage,
     SetServoAngle,
     Sync,
     TogglePin,
@@ -21,7 +22,7 @@ defmodule Farmbot.OS.IOLayer do
     :ok
   end
 
-  def send_message(_args, _body), do: {:error, "send_message Stubbed"}
+  def send_message(args, body), do: SendMessage.execute(args, body)
 
   def dump_info(_args, _body), do: {:error, "dump_info Stubbed"}
 
@@ -30,7 +31,7 @@ defmodule Farmbot.OS.IOLayer do
 
   def execute(%{sequence_id: id}, _body) do
     case Farmbot.Asset.get_sequence(id: id) do
-      nil -> {:error, "Sequence not found. Try syncing first."}
+      nil -> {:error, "Sequence #{id} not found. Try syncing first."}
       %{} = seq -> {:ok, Farmbot.CeleryScript.AST.decode(seq)}
     end
   end

@@ -14,7 +14,7 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.Peripheral do
   end
 
   def handle_info(:timeout, peripheral) do
-    Farmbot.Logger.busy 2, "Read peripheral: #{peripheral.label}"
+    Farmbot.Logger.busy(2, "Read peripheral: #{peripheral.label}")
     CeleryScript.rpc_request(peripheral_to_rpc(peripheral), &handle_ast(&1, self()))
     {:noreply, peripheral}
   end
