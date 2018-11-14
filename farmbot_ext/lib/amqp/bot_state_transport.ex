@@ -36,8 +36,9 @@ defmodule Farmbot.AMQP.BotStateTransport do
     case push_bot_state(state.chan, state.bot, bot_state) do
       :ok ->
         {:noreply, state, @default_force_time_ms}
+
       error ->
-        Farmbot.Logger.error 1, "Failed to dispatch BotState: #{inspect error}"
+        Farmbot.Logger.error(1, "Failed to dispatch BotState: #{inspect(error)}")
         {:noreply, state, @default_error_retry_ms}
     end
   end
@@ -52,6 +53,7 @@ defmodule Farmbot.AMQP.BotStateTransport do
       bot_state
       |> Farmbot.BotStateNG.view()
       |> Farmbot.JSON.encode!()
+
     AMQP.Basic.publish(chan, @exchange, "bot.#{bot}.status", json)
   end
 end

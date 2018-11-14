@@ -2,7 +2,7 @@ defmodule Farmbot.CeleryScript.RunTime.ProcStorage do
   @moduledoc """
   Process wrapper around CircularList
   """
-  
+
   alias Farmbot.CeleryScript.RunTime.FarmProc
 
   @opaque proc_storage :: pid

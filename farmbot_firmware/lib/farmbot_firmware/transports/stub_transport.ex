@@ -8,9 +8,9 @@ defmodule Farmbot.Firmware.StubTransport do
 
   defstruct status: :boot,
             handle_gcode: nil,
-            position: [x: 0, y: 0, z: 0],
-            encoders_scaled: [x: 0, y: 0, z: 0],
-            encoders_raw: [x: 0, y: 0, z: 0],
+            position: [x: 0.0, y: 0.0, z: 0.0],
+            encoders_scaled: [x: 0.0, y: 0.0, z: 0.0],
+            encoders_raw: [x: 0.0, y: 0.0, z: 0.0],
             pins: %{},
             params: []
 
@@ -39,6 +39,14 @@ defmodule Farmbot.Firmware.StubTransport do
     {:noreply, state}
   end
 
+  def handle_info(:timeout, %{status: :emergency_lock} = state) do
+    resp_codes = [
+      GCODE.new(:report_emergency_lock, [])
+    ]
+
+    {:noreply, state, {:continue, resp_codes}}
+  end
+
   def handle_info(:timeout, %{status: :idle} = state) do
     resp_codes = [
       GCODE.new(:report_position, state.position),
@@ -48,6 +56,26 @@ defmodule Farmbot.Firmware.StubTransport do
     ]
 
     {:noreply, state, {:continue, resp_codes}}
+  end
+
+  def handle_call({tag, {:command_emergency_lock, _}} = code, _from, state) do
+    resp_codes = [
+      GCODE.new(:report_echo, [GCODE.encode(code)]),
+      GCODE.new(:report_begin, [], tag),
+      GCODE.new(:report_emergency_lock, [], tag)
+    ]
+
+    {:reply, :ok, %{state | status: :emergency_lock}, {:continue, resp_codes}}
+  end
+
+  def handle_call({tag, {:command_emergency_unlock, _}} = code, _from, state) do
+    resp_codes = [
+      GCODE.new(:report_echo, [GCODE.encode(code)]),
+      GCODE.new(:report_begin, [], tag),
+      GCODE.new(:report_success, [], tag)
+    ]
+
+    {:reply, :ok, %{state | status: :idle}, {:continue, resp_codes}}
   end
 
   def handle_call(
@@ -84,7 +112,7 @@ defmodule Farmbot.Firmware.StubTransport do
         GCODE.new(:report_echo, [GCODE.encode(code)]),
         GCODE.new(:report_begin, [], tag),
         Enum.map(state.params, fn {p, v} ->
-          GCODE.new(:report_paramater, [{p, v}])
+          GCODE.new(:report_paramater_value, [{p, v}])
         end),
         GCODE.new(:report_success, [], tag)
       ]
@@ -93,30 +121,103 @@ defmodule Farmbot.Firmware.StubTransport do
     {:reply, :ok, state, {:continue, resp_codes}}
   end
 
-  def handle_call({tag, {:command_movement_find_home, _}} = code, _from, state) do
-    resp_codes =
-      [
-        GCODE.new(:report_echo, [GCODE.encode(code)]),
-        GCODE.new(:report_begin, [], tag),
-        GCODE.new(:report_success, [], tag)
-      ]
+  def handle_call({tag, {:paramater_read, [param]}} = code, _from, state) do
+    resp_codes = [
+      GCODE.new(:report_echo, [GCODE.encode(code)]),
+      GCODE.new(:report_begin, [], tag),
+      GCODE.new(:report_paramater_value, [{param, state.params[param] || -1.0}]),
+      GCODE.new(:report_success, [], tag)
+    ]
+
+    {:reply, :ok, state, {:continue, resp_codes}}
+  end
+
+  def handle_call({tag, {:position_write_zero, [:x, :y, :z]}} = code, _from, state) do
+    position = [
+      x: 0.0,
+      y: 0.0,
+      z: 0.0
+    ]
+
+    state = %{state | position: position}
+
+    resp_codes = [
+      GCODE.new(:report_echo, [GCODE.encode(code)]),
+      GCODE.new(:report_begin, [], tag),
+      GCODE.new(:report_busy, [], tag),
+      GCODE.new(:report_position, state.position),
+      GCODE.new(:report_success, [], tag)
+    ]
+
+    {:reply, :ok, state, {:continue, resp_codes}}
+  end
+
+  def handle_call({tag, {:position_write_zero, [axis]}} = code, _from, state) do
+    position = Keyword.put(state.position, axis, 0.0) |> ensure_order()
+    state = %{state | position: position}
+
+    resp_codes = [
+      GCODE.new(:report_echo, [GCODE.encode(code)]),
+      GCODE.new(:report_begin, [], tag),
+      GCODE.new(:report_position, state.position),
+      GCODE.new(:report_success, [], tag)
+    ]
+
+    {:reply, :ok, state, {:continue, resp_codes}}
+  end
+
+  def handle_call({tag, {:command_movement_calibrate, [axis]}} = code, _from, state) do
+    position = [x: 0.0, y: 0.0, z: 0.0]
+    state = %{state | position: position}
+    param_nr_steps = :"movement_axis_nr_steps_#{axis}"
+    param_nr_steps_val = Keyword.get(state.params, :param_nr_steps, 10_0000.00)
+
+    param_endpoints = :"movement_invert_endpoints_#{axis}"
+    param_endpoints_val = Keyword.get(state.params, :param_endpoints, 1.0)
+
+    resp_codes = [
+      GCODE.new(:report_echo, [GCODE.encode(code)]),
+      GCODE.new(:report_begin, [], tag),
+      GCODE.new(:report_busy, [], tag),
+      GCODE.new(:report_calibration_state, [:idle]),
+      GCODE.new(:report_calibration_state, [:home]),
+      GCODE.new(:report_calibration_state, [:end]),
+      GCODE.new(:report_calibration_paramater_value, [{param_nr_steps, param_nr_steps_val}]),
+      GCODE.new(:report_calibration_paramater_value, [{param_endpoints, param_endpoints_val}]),
+      GCODE.new(:report_position, state.position),
+      GCODE.new(:report_success, [], tag)
+    ]
+
+    {:reply, :ok, state, {:continue, resp_codes}}
+  end
+
+  # Everything under this clause should be blocked if emergency_locked
+  def handle_call({_tag, {_, _}} = code, _from, %{status: :emergency_lock} = state) do
+    Logger.error("Stub Transport emergency lock")
+
+    resp_codes = [
+      GCODE.new(:report_echo, [GCODE.encode(code)]),
+      GCODE.new(:report_emergency_lock, [])
+    ]
 
     {:reply, :ok, state, {:continue, resp_codes}}
   end
 
   def handle_call({tag, {:pin_read, [p: p, m: m]}} = code, _from, state) do
-    state = case Map.get(state.pins, p) do
-      nil -> %{state | pins: Map.put(state.pins, p, [m: m, v: 0])}
-      [m: ^m, v: v] -> %{state | pins: Map.put(state.pins, p, [m: m, v: v])}
-      _ -> state
-    end
-    resp_codes =
-      [
-        GCODE.new(:report_echo, [GCODE.encode(code)]),
-        GCODE.new(:report_begin, [], tag),
-        GCODE.new(:report_pin_value, [p: p, v: Map.get(state.pins, p)[:v]]),
-        GCODE.new(:report_success, [], tag)
-      ]
+    state =
+      case Map.get(state.pins, p) do
+        nil -> %{state | pins: Map.put(state.pins, p, m: m, v: 0)}
+        [m: ^m, v: v] -> %{state | pins: Map.put(state.pins, p, m: m, v: v)}
+        _ -> state
+      end
+
+    resp_codes = [
+      GCODE.new(:report_echo, [GCODE.encode(code)]),
+      GCODE.new(:report_begin, [], tag),
+      GCODE.new(:report_pin_value, p: p, v: Map.get(state.pins, p)[:v]),
+      GCODE.new(:report_success, [], tag)
+    ]
+
     {:reply, :ok, state, {:continue, resp_codes}}
   end
 
@@ -124,35 +225,25 @@ defmodule Farmbot.Firmware.StubTransport do
     p = Keyword.fetch!(args, :p)
     m = Keyword.get(args, :m, state.pins[p][:m] || 0)
     v = Keyword.fetch!(args, :v)
-    state =  %{state | pins: Map.put(state.pins, p, [m: m, v: v])}
-    resp_codes =
-      [
-        GCODE.new(:report_echo, [GCODE.encode(code)]),
-        GCODE.new(:report_begin, [], tag),
-        GCODE.new(:report_success, [], tag)
-      ]
+    state = %{state | pins: Map.put(state.pins, p, m: m, v: v)}
+
+    resp_codes = [
+      GCODE.new(:report_echo, [GCODE.encode(code)]),
+      GCODE.new(:report_begin, [], tag),
+      GCODE.new(:report_success, [], tag)
+    ]
+
     {:reply, :ok, state, {:continue, resp_codes}}
   end
 
   def handle_call({tag, {:position_read, _}} = code, _from, state) do
-    resp_codes =
-      [
-        GCODE.new(:report_echo, [GCODE.encode(code)]),
-        GCODE.new(:report_begin, [], tag),
-        GCODE.new(:report_position, state.position),
-        GCODE.new(:report_success, [], tag)
-      ]
-    {:reply, :ok, state, {:continue, resp_codes}}
-  end
+    resp_codes = [
+      GCODE.new(:report_echo, [GCODE.encode(code)]),
+      GCODE.new(:report_begin, [], tag),
+      GCODE.new(:report_position, state.position),
+      GCODE.new(:report_success, [], tag)
+    ]
 
-  def handle_call({tag, {:paramater_read, [param]}} = code, _from, state) do
-    resp_codes =
-      [
-        GCODE.new(:report_echo, [GCODE.encode(code)]),
-        GCODE.new(:report_begin, [], tag),
-        GCODE.new(:report_paramater_value, [{param, state.params[param] || -1.0}]),
-        GCODE.new(:report_success, [], tag)
-      ]
     {:reply, :ok, state, {:continue, resp_codes}}
   end
 
@@ -162,25 +253,78 @@ defmodule Farmbot.Firmware.StubTransport do
       y: args[:y] || state.position[:y],
       z: args[:z] || state.position[:z]
     ]
+
     state = %{state | position: position}
-    resp_codes =
-      [
-        GCODE.new(:report_echo, [GCODE.encode(code)]),
-        GCODE.new(:report_begin, [], tag),
-        GCODE.new(:report_busy, [], tag),
-        GCODE.new(:report_position, state.position),
-        GCODE.new(:report_success, [], tag)
-      ]
+
+    resp_codes = [
+      GCODE.new(:report_echo, [GCODE.encode(code)]),
+      GCODE.new(:report_begin, [], tag),
+      GCODE.new(:report_busy, [], tag),
+      GCODE.new(:report_position, state.position),
+      GCODE.new(:report_success, [], tag)
+    ]
+
+    {:reply, :ok, state, {:continue, resp_codes}}
+  end
+
+  def handle_call({tag, {:command_movement_home, [:x, :y, :z]}} = code, _from, state) do
+    position = [
+      x: 0.0,
+      y: 0.0,
+      z: 0.0
+    ]
+
+    state = %{state | position: position}
+
+    resp_codes = [
+      GCODE.new(:report_echo, [GCODE.encode(code)]),
+      GCODE.new(:report_begin, [], tag),
+      GCODE.new(:report_busy, [], tag),
+      GCODE.new(:report_position, state.position),
+      GCODE.new(:report_success, [], tag)
+    ]
+
+    {:reply, :ok, state, {:continue, resp_codes}}
+  end
+
+  def handle_call({tag, {:command_movement_home, [axis]}} = code, _from, state) do
+    position = Keyword.put(state.position, axis, 0.0) |> ensure_order()
+    state = %{state | position: position}
+
+    resp_codes = [
+      GCODE.new(:report_echo, [GCODE.encode(code)]),
+      GCODE.new(:report_begin, [], tag),
+      GCODE.new(:report_busy, [], tag),
+      GCODE.new(:report_position, state.position),
+      GCODE.new(:report_success, [], tag)
+    ]
+
+    {:reply, :ok, state, {:continue, resp_codes}}
+  end
+
+  def handle_call({tag, {:command_movement_find_home, [axis]}} = code, _from, state) do
+    position = Keyword.put(state.position, axis, 0.0) |> ensure_order()
+    state = %{state | position: position}
+
+    resp_codes = [
+      GCODE.new(:report_echo, [GCODE.encode(code)]),
+      GCODE.new(:report_begin, [], tag),
+      GCODE.new(:report_busy, [], tag),
+      GCODE.new(:report_position, state.position),
+      GCODE.new(:report_success, [], tag)
+    ]
+
     {:reply, :ok, state, {:continue, resp_codes}}
   end
 
   def handle_call({tag, {_, _}} = code, _from, state) do
     Logger.error("STUB HANDLER: unknown code: #{inspect(code)} for state: #{state.status}")
-    resp_codes =
-      [
-        GCODE.new(:report_echo, [GCODE.encode(code)]),
-        GCODE.new(:report_invalid, [], tag),
-      ]
+
+    resp_codes = [
+      GCODE.new(:report_echo, [GCODE.encode(code)]),
+      GCODE.new(:report_invalid, [], tag)
+    ]
+
     {:reply, :ok, state, {:continue, resp_codes}}
   end
 
@@ -198,4 +342,12 @@ defmodule Farmbot.Firmware.StubTransport do
   end
 
   defp goto(%{status: _old} = state, status), do: %{state | status: status}
+
+  defp ensure_order(pos) do
+    [
+      x: Keyword.fetch!(pos, :x),
+      y: Keyword.fetch!(pos, :y),
+      z: Keyword.fetch!(pos, :z)
+    ]
+  end
 end

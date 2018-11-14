@@ -19,8 +19,9 @@ defmodule Farmbot.CeleryScript.RunTime.FarmwareTest do
 
   test "farmware" do
     pid = self()
-    {:ok, agent} = Agent.start_link fn() -> 0 end
-    fun = fn(ast) ->
+    {:ok, agent} = Agent.start_link(fn -> 0 end)
+
+    fun = fn ast ->
       case ast.kind do
         :execute_script ->
           case Agent.get_and_update(agent, fn state -> {state, state + 1} end) do
@@ -28,20 +29,24 @@ defmodule Farmbot.CeleryScript.RunTime.FarmwareTest do
             1 -> {:ok, ast(:wait, %{milliseconds: 456})}
             2 -> :ok
           end
+
         :wait ->
           send(pid, ast)
           :ok
       end
     end
 
-    heap = @rpc_request
-    |> AST.decode()
-    |> AST.slice()
+    heap =
+      @rpc_request
+      |> AST.decode()
+      |> AST.slice()
 
     %FarmProc{} = step0 = FarmProc.new(fun, addr(-1), heap)
-    complete = Enum.reduce(0..200, step0, fn(_, proc) ->
-      %FarmProc{} = wait_for_io(proc)
-    end)
+
+    complete =
+      Enum.reduce(0..200, step0, fn _, proc ->
+        %FarmProc{} = wait_for_io(proc)
+      end)
 
     assert complete.status == :done
 

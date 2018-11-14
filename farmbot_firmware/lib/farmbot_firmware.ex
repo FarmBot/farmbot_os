@@ -238,6 +238,12 @@ defmodule Farmbot.Firmware do
       :idle ->
         {:reply, {:ok, tag}, new_state, 0}
 
+      # Don't do any flow control if state is emergency_lock.
+      # This allows a transport to decide
+      # if a command should be blocked or not.
+      :emergency_lock ->
+        {:reply, {:ok, tag}, new_state, 0}
+
       _ ->
         {:reply, {:ok, tag}, new_state}
     end
@@ -330,6 +336,19 @@ defmodule Farmbot.Firmware do
     {:noreply, state}
   end
 
+  def handle_report({:report_paramater_value, param} = code, state) do
+    if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    side_effects(state, :handle_paramater_value, [param])
+    {:noreply, state}
+  end
+
+  def handle_report({:report_calibration_paramater_value, args} = _code, state) do
+    to_process = [{:paramater_write, args}]
+
+    {:noreply, goto(%{state | tag: state.tag, configuration_queue: to_process}, :configuration),
+     0}
+  end
+
   # report_no_config => goto(_, :no_config)
   def handle_report({:report_no_config, []}, %{status: _} = state) do
     tag = state.tag || "0"
@@ -411,19 +430,6 @@ defmodule Farmbot.Firmware do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     side_effects(state, :handle_end_stops, [end_stops])
     {:noreply, state}
-  end
-
-  def handle_report({:report_paramater_value, param} = code, state) do
-    if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    side_effects(state, :handle_paramater_value, [param])
-    {:noreply, state}
-  end
-
-  def handle_report({:report_calibration_paramater_value, args} = _code, state) do
-    to_process = [{:paramater_write, args}]
-
-    {:noreply, goto(%{state | tag: state.tag, configuration_queue: to_process}, :configuration),
-     0}
   end
 
   def handle_report({:report_pin_value, value} = code, state) do

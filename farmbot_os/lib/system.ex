@@ -31,7 +31,7 @@ defmodule Farmbot.System do
   defp try_lock_fw do
     if Process.whereis(Farmbot.Firmware) do
       Farmbot.Logger.warn 1, "Trying to emergency lock firmware before powerdown"
-      Farmbot.Firmware.emergency_lock()
+      Farmbot.Firmware.command({:command_emergency_lock, []})
     else
       Farmbot.Logger.error 1, "Firmware unavailable. Can't emergency_lock"
     end

@@ -49,7 +49,10 @@ defmodule Farmbot.Firmware.GCODE.Encoder do
   def do_encode(:report_debug_message, [message]), do: "R99 " <> message
 
   def do_encode(:command_movement, xyzs), do: "G00 " <> encode_floats(xyzs)
-  def do_encode(:command_movement_home, []), do: "G38"
+  def do_encode(:command_movement_home, [:x, :y, :z]), do: "G28"
+  def do_encode(:command_movement_home, [:x]), do: "G00 " <> encode_floats(x: 0.0)
+  def do_encode(:command_movement_home, [:y]), do: "G00 " <> encode_floats(y: 0.0)
+  def do_encode(:command_movement_home, [:z]), do: "G00 " <> encode_floats(z: 0.0)
 
   def do_encode(:command_movement_find_home, [:x]), do: "F11"
   def do_encode(:command_movement_find_home, [:y]), do: "F12"
@@ -73,7 +76,10 @@ defmodule Farmbot.Firmware.GCODE.Encoder do
   def do_encode(:end_stops_read, []), do: "F81"
   def do_encode(:position_read, []), do: "F82"
   def do_encode(:software_version_read, []), do: "F83"
-  def do_encode(:position_write_zero, xyzs), do: "F84" <> encode_ints(xyzs)
+  def do_encode(:position_write_zero, [:x, :y, :z]), do: "F84 X1 Y1 Z1"
+  def do_encode(:position_write_zero, [:x]), do: "F84 X1"
+  def do_encode(:position_write_zero, [:y]), do: "F84 Y1"
+  def do_encode(:position_write_zero, [:z]), do: "F84 Z1"
 
   def do_encode(:command_emergency_unlock, _), do: "F09"
   def do_encode(:command_emergency_lock, _), do: "E"

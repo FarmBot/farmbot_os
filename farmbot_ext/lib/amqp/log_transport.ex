@@ -51,11 +51,12 @@ defmodule Farmbot.AMQP.LogTransport do
     case do_handle_log(log, state) do
       :ok ->
         {:noreply, state, {:continue, rest}}
+
       error ->
-        Logger.error("Logger amqp client failed to upload log: #{inspect error}")
+        Logger.error("Logger amqp client failed to upload log: #{inspect(error)}")
         # Reschedule log to be uploaded again
         Farmbot.Logger.insert_log!(log)
-        {:noreply,  state, @checkup_ms}
+        {:noreply, state, @checkup_ms}
     end
   end
 
@@ -77,8 +78,8 @@ defmodule Farmbot.AMQP.LogTransport do
         major_version: log.version.major,
         minor_version: log.version.minor,
         patch_version: log.version.patch,
-        #QUESTION(Connor) - Why does this need `.to_unix()`?
-        #ANSWER(Connor) - because the FE needed it.
+        # QUESTION(Connor) - Why does this need `.to_unix()`?
+        # ANSWER(Connor) - because the FE needed it.
         created_at: DateTime.from_naive!(log.inserted_at, "Etc/UTC") |> DateTime.to_unix(),
         channels: log.meta[:channels] || [],
         message: log.message
