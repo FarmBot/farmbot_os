@@ -33,6 +33,11 @@ defmodule Farmbot.BotState do
     GenServer.call(bot_state_server, {:set_encoders_scaled, x, y, z})
   end
 
+  @doc "Sets pins.pin.value"
+  def set_pin_value(bot_state_server \\ __MODULE__, pin, value) do
+    GenServer.call(bot_state_server, {:set_pin_value, pin, value})
+  end
+
   @doc "Sets the location_data.encoders_raw"
   def set_encoders_raw(bot_state_server \\ __MODULE__, x, y, z) do
     GenServer.call(bot_state_server, {:set_encoders_raw, x, y, z})
@@ -53,7 +58,8 @@ defmodule Farmbot.BotState do
     GenServer.call(bot_state_server, {:set_firmware_locked, false})
   end
 
-  def set_sync_status(bot_state_server \\ __MODULE__, s) when s in ["syncing", "synced", "error"] do
+  def set_sync_status(bot_state_server \\ __MODULE__, s)
+      when s in ["syncing", "synced", "error"] do
     GenServer.call(bot_state_server, {:set_sync_status, s})
   end
 
@@ -155,6 +161,16 @@ defmodule Farmbot.BotState do
 
   def handle_call({:set_encoders_raw, x, y, z}, _from, state) do
     change = %{location_data: %{raw_encoders: %{x: x, y: y, z: z}}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_pin_value, pin, value}, _from, state) do
+    change = %{pins: %{pin => %{mode: -1, value: value}}}
 
     {reply, state} =
       BotStateNG.changeset(state.tree, change)

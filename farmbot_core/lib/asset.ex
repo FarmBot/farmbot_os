@@ -129,15 +129,16 @@ defmodule Farmbot.Asset do
   end
 
   def new_farmware_env(params) do
-    fwe = if params["key"] || params[:key] do
-      Repo.get_by(FarmwareEnv, key: params["key"] || params[:key])
-    else
-      %FarmwareEnv{}
-    end
+    fwe =
+      if params["key"] || params[:key] do
+        Repo.get_by(FarmwareEnv, key: params["key"] || params[:key])
+      else
+        %FarmwareEnv{}
+      end
+
     FarmwareEnv.changeset(fwe, params)
     |> Repo.insert_or_update()
   end
 
   ## End FarmwareEnv
-
 end

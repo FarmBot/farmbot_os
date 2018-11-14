@@ -34,7 +34,7 @@ defmodule Farmbot.Core.FirmwareSideEffects do
   end
 
   def handle_pin_value(p: pin, v: value) do
-    raise("fixme")
+    :ok = Farmbot.BotState.set_pin_value(pin, value)
   end
 
   def handle_software_version([version]) do
