@@ -4,11 +4,16 @@ defmodule Farmbot.Target.Network.ScanResult do
   alias Farmbot.Target.Network.ScanResult
 
   defstruct [
-    :ssid, # ssid name
-    :bssid, # usually macaddress.
-    :level,  # Signal level in dBm.
-    :flags, # Used to decide security.
-    :security # This feild is guessed.
+    # ssid name
+    :ssid,
+    # usually macaddress.
+    :bssid,
+    # Signal level in dBm.
+    :level,
+    # Used to decide security.
+    :flags,
+    # This feild is guessed.
+    :security
   ]
 
   @doc "Decodes a map into a ScanResult, or a list of maps into a list of ScanResult."
@@ -19,7 +24,6 @@ defmodule Farmbot.Target.Network.ScanResult do
   def decode(%{} = map) do
     struct(ScanResult, map)
   end
-
 
   @doc "Sorts a list of ssids by their level. This does not take noise into account."
   def sort_results(results) do
@@ -39,29 +43,32 @@ defmodule Farmbot.Target.Network.ScanResult do
   def decode_security_flags(str, state \\ %{in_flag: false, buffer: <<>>, acc: []})
   def decode_security_flags(<<>>, %{acc: acc}), do: Enum.reverse(acc) |> decode_security_acc()
 
-  def decode_security_flags(<<"[", rest :: binary>>, %{in_flag: false} = state) do
+  def decode_security_flags(<<"[", rest::binary>>, %{in_flag: false} = state) do
     decode_security_flags(rest, %{state | in_flag: true, buffer: <<>>})
   end
 
-  def decode_security_flags(<<"]", rest :: binary>>, %{in_flag: true, buffer: buffer, acc: acc} = state) do
+  def decode_security_flags(
+        <<"]", rest::binary>>,
+        %{in_flag: true, buffer: buffer, acc: acc} = state
+      ) do
     decode_security_flags(rest, %{state | in_flag: false, buffer: <<>>, acc: [buffer | acc]})
   end
 
-  def decode_security_flags(<<char :: binary-size(1), rest :: binary>>, %{in_flag: true} = state) do
+  def decode_security_flags(<<char::binary-size(1), rest::binary>>, %{in_flag: true} = state) do
     decode_security_flags(rest, %{state | buffer: state.buffer <> char})
   end
 
   def decode_security_acc(list, security \\ :NONE)
 
-  def decode_security_acc([<<"WPA2-EAP", _ :: binary>> | rest], _) do
+  def decode_security_acc([<<"WPA2-EAP", _::binary>> | rest], _) do
     decode_security_acc(rest, :"WPA-EAP")
   end
 
-  def decode_security_acc([<<"WPA2-PSK", _ :: binary>> | rest], _) do
+  def decode_security_acc([<<"WPA2-PSK", _::binary>> | rest], _) do
     decode_security_acc(rest, :"WPA-PSK")
   end
 
-  def decode_security_acc([<<"WPA-PSK", _ :: binary>> | rest], _) do
+  def decode_security_acc([<<"WPA-PSK", _::binary>> | rest], _) do
     decode_security_acc(rest, :"WPA-PSK")
   end
 

@@ -10,14 +10,13 @@ defmodule Farmbot.Core do
 
   def init([]) do
     children = [
-      {Farmbot.Registry,                []},
+      {Farmbot.BotState,                []},
       {Farmbot.Logger.Supervisor,       []},
       {Farmbot.Config.Supervisor,       []},
-      {Farmbot.Firmware.Supervisor,     []},
       {Farmbot.Asset.Supervisor,        []},
-      {Farmbot.BotState,                []},
+      {Farmbot.Core.FirmwareSupervisor,     []},
       {Farmbot.Core.CeleryScript.Supervisor, []},
     ]
-    Supervisor.init(children, [strategy: :one_for_one])
+    Supervisor.init(children, [strategy: :one_for_all])
   end
 end

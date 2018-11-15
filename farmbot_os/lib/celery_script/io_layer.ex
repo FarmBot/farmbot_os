@@ -1,120 +1,107 @@
 defmodule Farmbot.OS.IOLayer do
+  @moduledoc false
   @behaviour Farmbot.Core.CeleryScript.IOLayer
   alias Farmbot.OS.IOLayer.{
-    Farmware,
+    Calibrate,
+    DumpInfo,
     FindHome,
+    Home,
     If,
     MoveAbsolute,
+    MoveRelative,
     ReadPin,
+    SendMessage,
+    SetServoAngle,
     Sync,
     TogglePin,
     WritePin,
+    Zero
   }
 
-  def emergency_lock(_args, _body), do: Farmbot.Firmware.emergency_lock()
-
-  def emergency_unlock(_args, _body), do: Farmbot.Firmware.emergency_unlock()
-
-  def move_relative(%{x: x, y: y, z: z, speed: speed}, []) do
-    import Farmbot.Core.CeleryScript.Utils
-    %{x: cur_x, y: cur_y, z: cur_z} = Farmbot.Firmware.get_current_position()
-    location = new_vec3(cur_x, cur_y, cur_z)
-    offset = new_vec3(x, y, z)
-    move_absolute(%{location: location, offset: offset, speed: speed}, [])
-  end
-
-  def move_absolute(args, body), do: MoveAbsolute.execute(args, body)
-
-  def toggle_pin(args, body), do: TogglePin.execute(args, body)
-
-  def write_pin(args, body), do: WritePin.execute(args, body)
-
-  def read_pin(args, body), do: ReadPin.execute(args, body)
-
-  def set_servo_angle(%{pin_number: pin_number, pin_value: value}, []) do
-    case Farmbot.Firmware.set_servo_angle(pin_number, value) do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> {:error, reason}
-    end
-  end
-
-  def home(%{axis: "all"}, []) do
-    case Farmbot.Firmware.home_all() do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> {:error, reason}
-    end
-  end
-
-  def home(%{axis: axis}, []) do
-    case Farmbot.Firmware.home(axis) do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> {:error, reason}
-    end
-  end
-
-  def find_home(args, body), do: FindHome.execute(args, body)
-
-  def wait(%{milliseconds: millis}, []), do: Process.sleep(millis)
-
-  def zero(_args, _body) do
-    {:error, "not implemented: zero"}
-  end
-
-  def calibrate(_args, _body) do
-    {:error, "not implemented: calibrate"}
-  end
-
-  def config_update(_args, _body) do
-    {:error, "config_update depreciated since 6.1.0"}
-  end
-
-  def set_user_env(_args, pairs) do
-    IO.puts "not implemented: set_user_env(#{inspect pairs})"
-    :ok
-  end
-
-  def execute_script(args, body), do: Farmware.execute(args, body)
-
-  def take_photo(_args, body) do
-    execute_script(%{package: "take-photo"}, body)
-  end
-
+  # Reporting commands
   def read_status(_args, _body) do
     Farmbot.BotState.fetch()
     :ok
   end
 
-  def send_message(_args, _body) do
-    {:error, "not implemented: send_message"}
+  # send_message needs the firmware to serialize
+  # position and pins
+  def send_message(args, body), do: require_firmware(SendMessage, args, body)
+
+  def dump_info(args, body), do: DumpInfo.execute(args, body)
+
+  # Flow Control
+  def _if(args, body), do: require_firmware(If, args, body)
+
+  def execute(%{sequence_id: id}, _body) do
+    case Farmbot.Asset.get_sequence(id: id) do
+      nil -> {:error, "Sequence #{id} not found. Try syncing first."}
+      %{} = seq -> {:ok, Farmbot.CeleryScript.AST.decode(seq)}
+    end
   end
 
+  def wait(%{milliseconds: ms}, _body), do: Process.sleep(ms)
+
+  # Emergency control
+  def emergency_lock(_args, _body) do
+    if Process.whereis(Farmbot.Firmware) do
+      _ = Farmbot.Firmware.command({:command_emergency_lock, []})
+    end
+
+    :ok
+  end
+
+  def emergency_unlock(_args, _body) do
+    if Process.whereis(Farmbot.Firmware) do
+      _ = Farmbot.Firmware.command({:command_emergency_unlock, []})
+    end
+
+    :ok
+  end
+
+  # Firmware commands
+  def calibrate(args, body), do: require_firmware(Calibrate, args, body)
+  def find_home(args, body), do: require_firmware(FindHome, args, body)
+  def home(args, body), do: require_firmware(Home, args, body)
+  def move_absolute(args, body), do: require_firmware(MoveAbsolute, args, body)
+  def move_relative(args, body), do: require_firmware(MoveRelative, args, body)
+  def read_pin(args, body), do: require_firmware(ReadPin, args, body)
+  def set_servo_angle(args, body), do: require_firmware(SetServoAngle, args, body)
+  def toggle_pin(args, body), do: require_firmware(TogglePin, args, body)
+  def write_pin(args, body), do: require_firmware(WritePin, args, body)
+  def zero(args, body), do: require_firmware(Zero, args, body)
+
+  # Farmware
+  def set_user_env(_args, body) do
+    for %{args: %{label: key, value: value}} <- body do
+      Farmbot.Asset.new_farmware_env(%{key: key, value: value})
+    end
+
+    :ok
+  end
+
+  def take_photo(_args, _body), do: {:error, "take_photo Stubbed"}
+
+  def execute_script(_args, _body), do: {:error, "execute_script Stubbed"}
+
+  # Sync/Data
+  def check_updates(_args, _body), do: {:error, "check_updates Stubbed"}
   def sync(args, body), do: Sync.execute(args, body)
 
-  def power_off(_,_), do: Farmbot.System.shutdown("CeleryScript")
+  # Power/System
+  def change_ownership(_args, _body), do: {:error, "change_ownership Stubbed"}
+  def factory_reset(_args, _body), do: Farmbot.System.factory_reset("CeleryScript")
+  def power_off(_args, _body), do: Farmbot.System.shutdown("CeleryScript")
+  def reboot(_args, _body), do: Farmbot.System.reboot("CeleryScript")
 
-  def reboot(_,_), do: Farmbot.System.reboot("CeleryScript")
+  # deprecated commands
+  def config_update(_args, _body), do: {:error, "config_update deprecated"}
 
-  def factory_reset(_,_), do: Farmbot.System.factory_reset("CeleryScript")
-
-  def dump_info(_args, _body) do
-    {:error, "not implemented: dump_info"}
-  end
-
-  def change_ownership(_args, _body) do
-    {:error, "not implemented: change_ownership"}
-  end
-
-  def check_updates(_args, _body) do
-    {:error, "not implemented: check_updates"}
-  end
-
-  def _if(args, body), do: If.execute(args, body)
-
-  def execute(%{sequence_id: sid}, _body) do
-    alias Farmbot.Asset
-    case Asset.get_sequence_by_id(sid) do
-      nil -> {:error, "no sequence by id: #{sid}"}
-      %Asset.Sequence{} = seq -> {:ok, Farmbot.CeleryScript.AST.decode(seq)}
+  defp require_firmware(module, args, body) do
+    if Process.whereis(Farmbot.Firmware) do
+      module.execute(args, body)
+    else
+      {:error, "Firmware not initialized"}
     end
   end
 end

@@ -2,11 +2,13 @@ defmodule Farmbot.Asset do
   alias Farmbot.Asset.{
     Repo,
     Device,
+    DiagnosticDump,
     FarmwareEnv,
     FarmwareInstallation,
     FarmEvent,
     FbosConfig,
     FirmwareConfig,
+    Peripheral,
     PinBinding,
     Regimen,
     PersistentRegimen,
@@ -106,6 +108,10 @@ defmodule Farmbot.Asset do
     Repo.get_by!(Sequence, params)
   end
 
+  def get_sequence(params) do
+    Repo.get_by(Sequence, params)
+  end
+
   ## End Sequence
 
   ## Begin FarmwareInstallation
@@ -116,9 +122,42 @@ defmodule Farmbot.Asset do
     |> Enum.find(fn %{package: pkg} -> pkg == package end)
   end
 
+  ## End FarmwareInstallation
+
+  ## Begin FarmwareEnv
+
   def list_farmware_env() do
     Repo.all(FarmwareEnv)
   end
 
-  ## End FarmwareInstallation
+  def new_farmware_env(params) do
+    fwe =
+      if params["key"] || params[:key] do
+        Repo.get_by(FarmwareEnv, key: params["key"] || params[:key])
+      else
+        %FarmwareEnv{}
+      end
+
+    FarmwareEnv.changeset(fwe, params)
+    |> Repo.insert_or_update()
+  end
+
+  ## End FarmwareEnv
+
+  ## Begin Peripheral
+
+  def get_peripheral(args) do
+    Repo.get_by(Peripheral, args)
+  end
+
+  ## End Peripheral
+
+  ## Begin DiagnosticDump
+
+  def new_diagnostic_dump(params) do
+    DiagnosticDump.changeset(%DiagnosticDump{}, params)
+    |> Repo.insert()
+  end
+
+  ## End DiagnosticDump
 end
