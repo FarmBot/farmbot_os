@@ -2,11 +2,13 @@ defmodule Farmbot.Asset do
   alias Farmbot.Asset.{
     Repo,
     Device,
+    DiagnosticDump,
     FarmwareEnv,
     FarmwareInstallation,
     FarmEvent,
     FbosConfig,
     FirmwareConfig,
+    Peripheral,
     PinBinding,
     Regimen,
     PersistentRegimen,
@@ -141,4 +143,21 @@ defmodule Farmbot.Asset do
   end
 
   ## End FarmwareEnv
+
+  ## Begin Peripheral
+
+  def get_peripheral(args) do
+    Repo.get_by(Peripheral, args)
+  end
+
+  ## End Peripheral
+
+  ## Begin DiagnosticDump
+
+  def new_diagnostic_dump(params) do
+    DiagnosticDump.changeset(%DiagnosticDump{}, params)
+    |> Repo.insert()
+  end
+
+  ## End DiagnosticDump
 end

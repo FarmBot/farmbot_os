@@ -3,8 +3,10 @@ defmodule Farmbot.OS.IOLayer do
   @behaviour Farmbot.Core.CeleryScript.IOLayer
   alias Farmbot.OS.IOLayer.{
     Calibrate,
+    DumpInfo,
     FindHome,
     Home,
+    If,
     MoveAbsolute,
     MoveRelative,
     ReadPin,
@@ -22,12 +24,14 @@ defmodule Farmbot.OS.IOLayer do
     :ok
   end
 
-  def send_message(args, body), do: SendMessage.execute(args, body)
+  # send_message needs the firmware to serialize
+  # position and pins
+  def send_message(args, body), do: require_firmware(SendMessage, args, body)
 
-  def dump_info(_args, _body), do: {:error, "dump_info Stubbed"}
+  def dump_info(args, body), do: DumpInfo.execute(args, body)
 
   # Flow Control
-  def _if(_args, _body), do: {:error, "_if Stubbed"}
+  def _if(args, body), do: require_firmware(If, args, body)
 
   def execute(%{sequence_id: id}, _body) do
     case Farmbot.Asset.get_sequence(id: id) do
