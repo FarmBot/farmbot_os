@@ -21,6 +21,7 @@ defmodule Farmbot.BotState.JobProgress do
             percent: integer,
             unit: :percent,
             type: :image | :ota,
+            file_type: binary(),
             time: DateTime.t()
           }
   end
@@ -40,6 +41,7 @@ defmodule Farmbot.BotState.JobProgress do
             bytes: integer,
             unit: :bytes,
             type: :image | :ota,
+            file_type: binary(),
             time: DateTime.t()
           }
   end
