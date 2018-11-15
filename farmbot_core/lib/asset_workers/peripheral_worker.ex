@@ -14,19 +14,19 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.Peripheral do
   end
 
   def handle_info(:timeout, peripheral) do
-    # Farmbot.Logger.info 2, "Read peripheral: #{peripheral.label}"
+    Farmbot.Logger.busy(2, "Read peripheral: #{peripheral.label}")
     CeleryScript.rpc_request(peripheral_to_rpc(peripheral), &handle_ast(&1, self()))
     {:noreply, peripheral}
   end
 
   def handle_cast(%{kind: :rpc_ok}, peripheral) do
-    # Farmbot.Logger.success 2, "Read peripheral: #{peripheral.label} ok"
+    Farmbot.Logger.success(2, "Read peripheral: #{peripheral.label} ok")
     {:stop, :normal, peripheral}
   end
 
   def handle_cast(%{kind: :rpc_error} = rpc, peripheral) do
-    # Farmbot.Logger.error 1, "Read peripheral: #{peripheral.label} error"
-    # IO.inspect(rpc, label: "error")
+    [%{args: %{message: reason}}] = rpc.body
+    Farmbot.Logger.error(1, "Read peripheral: #{peripheral.label} error: #{reason}")
     {:noreply, peripheral, @retry_ms}
   end
 

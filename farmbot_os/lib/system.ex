@@ -4,17 +4,14 @@ defmodule Farmbot.System do
   """
   require Farmbot.Logger
 
-  require Farmbot.Logger
-
   error_msg = """
-  Please configure `:system_tasks` and `:data_path`!
+  Please configure `:system_tasks`!
   """
 
-  @system_tasks Application.get_env(:farmbot_os, :behaviour)[:system_tasks]
+  @system_tasks Application.get_env(:farmbot_os, __MODULE__)[:system_tasks]
   @system_tasks || Mix.raise(error_msg)
 
-  @data_path Application.get_env(:farmbot_ext, :data_path)
-  @data_path || Mix.raise(error_msg)
+  @data_path Farmbot.OS.FileSystem.data_path()
 
   @doc "Restarts the machine."
   @callback reboot() :: any
@@ -34,7 +31,7 @@ defmodule Farmbot.System do
   defp try_lock_fw do
     if Process.whereis(Farmbot.Firmware) do
       Farmbot.Logger.warn 1, "Trying to emergency lock firmware before powerdown"
-      Farmbot.Firmware.emergency_lock()
+      Farmbot.Firmware.command({:command_emergency_lock, []})
     else
       Farmbot.Logger.error 1, "Firmware unavailable. Can't emergency_lock"
     end

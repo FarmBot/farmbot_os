@@ -2,7 +2,6 @@ defmodule Farmbot.FarmwareRuntime do
   import Farmbot.AssetWorker.Farmbot.Asset.FarmwareInstallation, only: [install_dir: 1]
 
   alias Farmbot.Asset
-  alias Asset.FarmwareInstallation.Manifest
   alias Farmbot.FarmwareRuntime.PlugWrapper
   import Farmbot.Config, only: [get_config_value: 3]
 

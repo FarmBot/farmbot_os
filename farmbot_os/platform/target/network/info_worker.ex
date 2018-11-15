@@ -1,26 +1,26 @@
 defmodule Farmbot.Target.Network.InfoWorker do
+  @moduledoc false
   use GenServer
+  @default_timeout_ms 60_000
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args)
   end
 
   def init([config]) do
-    send(self(), :report_info)
-    {:ok, config}
+    {:ok, config, 0}
   end
 
-  def handle_info(:report_info, %{type: "wireless"} = config) do
+  def handle_info(:timeout, %{type: "wireless"} = config) do
     if level = Farmbot.Target.Network.get_level(config.name, config.ssid) do
       report_wifi_level(level)
     end
-    Process.send_after(self(), :report_info, 60_000)
-    {:noreply, config}
+
+    {:noreply, config, @default_timeout_ms}
   end
 
-  def handle_info(:report_info, config) do
-    Process.send_after(self(), :report_info, 60_000)
-    {:noreply, config}
+  def handle_info(:timeout, config) do
+    {:noreply, config, :hibernate}
   end
 
   def report_wifi_level(level) do

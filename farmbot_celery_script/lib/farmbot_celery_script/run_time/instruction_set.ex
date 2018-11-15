@@ -112,19 +112,25 @@ defmodule Farmbot.CeleryScript.RunTime.InstructionSet do
     heap = get_heap_by_page_index(farm_proc, pc.page_address)
     data = AST.unslice(heap, pc.heap_address)
 
-    data = case data.args.location do
-      %AST{kind: :identifier} ->
-        location = Resolver.resolve(farm_proc, pc, data.args.location.args.label)
-        %{data | args: %{data.args | location: location}}
-      _ -> data
-    end
+    data =
+      case data.args.location do
+        %AST{kind: :identifier} ->
+          location = Resolver.resolve(farm_proc, pc, data.args.location.args.label)
+          %{data | args: %{data.args | location: location}}
 
-    data = case data.args.offset do
-      %AST{kind: :identifier} ->
-        offset = Resolver.resolve(farm_proc, pc, data.args.offset.args.label)
-        %{data | args: %{data.args | offset: offset}}
-      _ -> data
-    end
+        _ ->
+          data
+      end
+
+    data =
+      case data.args.offset do
+        %AST{kind: :identifier} ->
+          offset = Resolver.resolve(farm_proc, pc, data.args.offset.args.label)
+          %{data | args: %{data.args | offset: offset}}
+
+        _ ->
+          data
+      end
 
     case farm_proc.io_result do
       # If we need to lookup a coordinate, do that.
@@ -303,10 +309,12 @@ defmodule Farmbot.CeleryScript.RunTime.InstructionSet do
 
       {:error, reason} ->
         crash(farm_proc, reason)
+
       :ok ->
         farm_proc
         |> clear_io_result()
         |> set_pc_ptr(next_ptr)
+
       _data ->
         exception(farm_proc, "Bad execute_script implementation.")
     end
@@ -327,6 +335,7 @@ defmodule Farmbot.CeleryScript.RunTime.InstructionSet do
   @spec return(FarmProc.t()) :: FarmProc.t()
   defp return(%FarmProc{} = farm_proc) do
     {value, farm_proc} = pop_rs(farm_proc)
+
     farm_proc
     |> set_pc_ptr(value)
     |> set_status(:ok)
@@ -336,6 +345,7 @@ defmodule Farmbot.CeleryScript.RunTime.InstructionSet do
   defp next(%FarmProc{} = farm_proc) do
     current_pc = get_pc_ptr(farm_proc)
     next_ptr = get_next_address(farm_proc, current_pc)
+
     farm_proc
     |> set_pc_ptr(next_ptr)
     |> set_status(:ok)
@@ -349,6 +359,7 @@ defmodule Farmbot.CeleryScript.RunTime.InstructionSet do
 
     is_null_address? = is_null_address?(addr)
     return_stack_is_empty? = farm_proc.rs == []
+
     cond do
       is_null_address? && return_stack_is_empty? -> set_status(farm_proc, :done)
       is_null_address? -> return(farm_proc)

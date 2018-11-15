@@ -64,8 +64,7 @@ defmodule Farmbot.CeleryScript.RunTime.FarmProcTest do
     step2 = FarmProc.step(step1)
     assert FarmProc.get_status(step2) == :crashed
 
-    assert FarmProc.get_pc_ptr(step2) ==
-             Pointer.null(FarmProc.get_zero_page(step1))
+    assert FarmProc.get_pc_ptr(step2) == Pointer.null(FarmProc.get_zero_page(step1))
   end
 
   test "io functions bad return values raise Farmbot.CeleryScript.RunTime.Error exception" do
@@ -113,9 +112,7 @@ defmodule Farmbot.CeleryScript.RunTime.FarmProcTest do
         Farmbot.CeleryScript.RunTime.TestSupport.Fixtures.heap()
       )
 
-    assert FarmProc.is_null_address?(
-             Pointer.null(FarmProc.get_zero_page(farm_proc))
-           )
+    assert FarmProc.is_null_address?(Pointer.null(FarmProc.get_zero_page(farm_proc)))
 
     assert FarmProc.is_null_address?(Address.null())
     assert FarmProc.is_null_address?(Pointer.new(addr(0), addr(0)))
@@ -396,8 +393,7 @@ defmodule Farmbot.CeleryScript.RunTime.FarmProcTest do
     step7 = FarmProc.step(step6)
     assert FarmProc.get_return_stack(step7) == []
 
-    assert FarmProc.get_pc_ptr(step7) ==
-             Pointer.null(FarmProc.get_zero_page(step7))
+    assert FarmProc.get_pc_ptr(step7) == Pointer.null(FarmProc.get_zero_page(step7))
   end
 
   test "raises when trying to step thru a crashed proc" do
@@ -479,30 +475,26 @@ defmodule Farmbot.CeleryScript.RunTime.FarmProcTest do
     # step into the sequence.
     next = FarmProc.step(farm_proc)
 
-    assert FarmProc.get_pc_ptr(next) ==
-             Pointer.null(FarmProc.get_zero_page(next))
+    assert FarmProc.get_pc_ptr(next) == Pointer.null(FarmProc.get_zero_page(next))
 
     assert FarmProc.get_return_stack(next) == []
 
     # Each following step should still be stopped/paused.
     next1 = FarmProc.step(next)
 
-    assert FarmProc.get_pc_ptr(next1) ==
-             Pointer.null(FarmProc.get_zero_page(next1))
+    assert FarmProc.get_pc_ptr(next1) == Pointer.null(FarmProc.get_zero_page(next1))
 
     assert FarmProc.get_return_stack(next1) == []
 
     next2 = FarmProc.step(next1)
 
-    assert FarmProc.get_pc_ptr(next2) ==
-             Pointer.null(FarmProc.get_zero_page(next2))
+    assert FarmProc.get_pc_ptr(next2) == Pointer.null(FarmProc.get_zero_page(next2))
 
     assert FarmProc.get_return_stack(next2) == []
 
     next3 = FarmProc.step(next2)
 
-    assert FarmProc.get_pc_ptr(next3) ==
-             Pointer.null(FarmProc.get_zero_page(next3))
+    assert FarmProc.get_pc_ptr(next3) == Pointer.null(FarmProc.get_zero_page(next3))
 
     assert FarmProc.get_return_stack(next3) == []
   end
