@@ -10,6 +10,7 @@ defmodule Farmbot.Logger.Supervisor do
     children = [
       supervisor(Farmbot.Logger.Repo, [])
     ]
+
     opts = [strategy: :one_for_all]
     supervise(children, opts)
   end

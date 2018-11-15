@@ -1,24 +1,27 @@
 defmodule Farmbot.Target.MemoryUsageWorker do
+  @moduledoc false
+
   use GenServer
-  def start_link(_, opts) do
-    GenServer.start_link(__MODULE__, [], opts)
+  @default_timeout_ms 60_000
+  @error_timeout_ms 5_000
+
+  def start_link(args) do
+    GenServer.start_link(__MODULE__, args)
   end
 
   def init([]) do
-    send(self(), :report_memory_usage)
-    {:ok, %{}}
+    {:ok, nil, 0}
   end
 
-  def handle_info(:report_memory_usage, state) do
+  def handle_info(:timeout, state) do
     usage = collect_report()
 
     if GenServer.whereis(Farmbot.BotState) do
       Farmbot.BotState.report_memory_usage(usage)
-      Process.send_after(self(), :report_memory_usage, 60_000)
+      {:noreply, state, @default_timeout_ms}
     else
-      Process.send_after(self(), :report_memory_usage, 5000)
+      {:noreply, state, @error_timeout_ms}
     end
-    {:noreply, state}
   end
 
   def collect_report do

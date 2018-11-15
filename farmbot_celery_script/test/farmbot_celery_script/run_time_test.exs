@@ -88,8 +88,7 @@ defmodule Farmbot.CeleryScript.RunTimeTest do
     RunTime.rpc_request(farmbot_celery_script, lock_ast, io_fun)
     assert_receive :emergency_lock
 
-    unlock_ast =
-      ast(:rpc_request, %{label: name}, [ast(:emergency_unlock, %{})])
+    unlock_ast = ast(:rpc_request, %{label: name}, [ast(:emergency_unlock, %{})])
 
     RunTime.rpc_request(farmbot_celery_script, unlock_ast, io_fun)
     assert_receive :emergency_unlock
@@ -117,11 +116,9 @@ defmodule Farmbot.CeleryScript.RunTimeTest do
     label1 = "one"
     label2 = "two"
 
-    ast1 =
-      ast(:rpc_request, %{label: label1}, [ast(:wait, %{milliseconds: to})])
+    ast1 = ast(:rpc_request, %{label: label1}, [ast(:wait, %{milliseconds: to})])
 
-    ast2 =
-      ast(:rpc_request, %{label: label2}, [ast(:wait, %{milliseconds: to})])
+    ast2 = ast(:rpc_request, %{label: label2}, [ast(:wait, %{milliseconds: to})])
 
     cb = fn %{kind: :rpc_ok} = rpc_ok -> send(pid, rpc_ok) end
     spawn_link(RunTime, :rpc_request, [farmbot_celery_script, ast1, cb])
@@ -211,8 +208,7 @@ defmodule Farmbot.CeleryScript.RunTimeTest do
     {:ok, farmbot_celery_script} = RunTime.start_link(opts, name)
     ok_ast = ast(:sequence, %{id: 100}, [ast(:wait, %{milliseconds: 100})])
 
-    err_ast =
-      ast(:sequence, %{id: 101}, [ast(:send_message, %{message: "???"})])
+    err_ast = ast(:sequence, %{id: 101}, [ast(:send_message, %{message: "???"})])
 
     cb = fn results -> send(pid, results) end
     vm_pid = RunTime.sequence(farmbot_celery_script, ok_ast, 100, cb)

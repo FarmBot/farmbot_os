@@ -5,11 +5,14 @@ defmodule Farmbot.Asset.Supervisor do
 
   alias Farmbot.Asset.{
     Repo,
-    PersistentRegimen,
+    Device,
     FarmEvent,
+    FarmwareEnv,
+    FarmwareInstallation,
+    FbosConfig,
     PinBinding,
     Peripheral,
-    FarmwareInstallation
+    PersistentRegimen
   }
 
   def start_link(args) do
@@ -19,11 +22,14 @@ defmodule Farmbot.Asset.Supervisor do
   def init([]) do
     children = [
       Repo,
+      {AssetSupervisor, module: FbosConfig},
+      {AssetSupervisor, module: Device},
       {AssetSupervisor, module: PersistentRegimen, preload: [:farm_event, :regimen]},
       {AssetSupervisor, module: FarmEvent},
       {AssetSupervisor, module: PinBinding},
       {AssetSupervisor, module: Peripheral},
       {AssetSupervisor, module: FarmwareInstallation},
+      {AssetSupervisor, module: FarmwareEnv},
       AssetMonitor
     ]
 

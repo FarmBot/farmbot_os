@@ -1,29 +1,27 @@
 defmodule Farmbot.Target.Network.TzdataTask do
   use GenServer
 
-  @fb_data_dir Path.join(Application.get_env(:farmbot_ext, :data_path), "tmp_downloads")
-  @timer_ms round(1.2e+6) # 20 minutes
+  @data_path Farmbot.OS.FileSystem.data_path()
+  # 20 minutes
+  @default_timeout_ms round(1.2e+6)
 
   def start_link(args) do
-    GenServer.start_link(__MODULE__, args, [name: __MODULE__])
+    GenServer.start_link(__MODULE__, args)
   end
 
   def init([]) do
-    send self(), :do_checkup
-    {:ok, nil, :hibernate}
+    {:ok, nil, 0}
   end
 
-  def handle_info(:do_checkup, _) do
-    dir = @fb_data_dir
+  def handle_info(:do_checkup, state) do
+    dir = Path.join(@data_path, "tmp_downloads")
+
     if File.exists?(dir) do
       for obj <- File.ls!(dir) do
         File.rm_rf!(Path.join(dir, obj))
       end
     end
-    {:noreply, restart_timer(self()), :hibernate}
-  end
 
-  defp restart_timer(pid) do
-    Process.send_after pid, :do_checkup, @timer_ms
+    {:noreply, state, @default_timeout_ms}
   end
 end
