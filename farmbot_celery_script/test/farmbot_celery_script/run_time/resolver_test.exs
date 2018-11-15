@@ -26,8 +26,7 @@ defmodule Farmbot.CeleryScript.RunTime.ResolverTest do
   end
 
   test "variable resolution" do
-    outer_json =
-      fetch_fixture("fixture/outer_sequence.json") |> AST.Slicer.run()
+    outer_json = fetch_fixture("fixture/outer_sequence.json") |> AST.Slicer.run()
 
     farm_proc0 = FarmProc.new(io_fun(self()), addr(0), outer_json)
 
@@ -41,7 +40,7 @@ defmodule Farmbot.CeleryScript.RunTime.ResolverTest do
     assert_received %AST{
       kind: :move_absolute,
       args: %{
-        location: %AST{kind: :point, args: %{pointer_id: 456, pointer_type: "Plant"} },
+        location: %AST{kind: :point, args: %{pointer_id: 456, pointer_type: "Plant"}},
         offset: %AST{kind: :coordinate, args: %{x: 0, y: 0, z: 0}},
         speed: 100
       }
@@ -53,17 +52,17 @@ defmodule Farmbot.CeleryScript.RunTime.ResolverTest do
         location: %AST{kind: :point, args: %{pointer_id: 123, pointer_type: "GenericPointer"}},
         offset: %AST{kind: :coordinate, args: %{x: 0, y: 0, z: 0}},
         speed: 100
-      },
+      }
     }
 
     assert_received %AST{
       kind: :wait,
-      args: %{milliseconds: 1000},
+      args: %{milliseconds: 1000}
     }
 
     assert_received %AST{
       kind: :wait,
-      args: %{milliseconds: 1050},
+      args: %{milliseconds: 1050}
     }
   end
 

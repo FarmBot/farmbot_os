@@ -2,7 +2,8 @@ defmodule Farmbot.Logger.Repo.Migrations.AddLogBuffer do
   use Ecto.Migration
 
   def change do
-    create table("logs") do
+    create table("logs", primary_key: false) do
+      add(:id, :binary_id, primary_key: true)
       add(:message, :text)
       add(:level, :string)
       add(:verbosity, :integer)

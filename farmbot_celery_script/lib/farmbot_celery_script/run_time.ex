@@ -26,8 +26,7 @@ defmodule Farmbot.CeleryScript.RunTime do
     :find_home,
     :toggle_pin,
     :zero,
-    :calibrate,
-
+    :calibrate
   ]
 
   @kinds_aloud_while_locked [
@@ -72,6 +71,7 @@ defmodule Farmbot.CeleryScript.RunTime do
 
   defmodule Monitor do
     defstruct [:pid, :ref, :index]
+
     def new(pid, index) do
       ref = Process.monitor(pid)
       %Monitor{ref: ref, pid: pid, index: index}
@@ -235,16 +235,20 @@ defmodule Farmbot.CeleryScript.RunTime do
     cleanup = fn proc, state ->
       ProcStorage.delete(state.proc_storage, id)
 
-      state = case Enum.find(state.monitors, fn({_, %{index: index}}) -> index == id end) do
-        {pid, mon} ->
-          Process.demonitor(mon.ref)
-          %{state | monitors: Map.delete(state.monitors, pid)}
-        _ -> state
-      end
+      state =
+        case Enum.find(state.monitors, fn {_, %{index: index}} -> index == id end) do
+          {pid, mon} ->
+            Process.demonitor(mon.ref)
+            %{state | monitors: Map.delete(state.monitors, pid)}
 
-      state = if proc.ref == state.fw_proc,
-        do: %{state | fw_proc: nil},
-        else: state
+          _ ->
+            state
+        end
+
+      state =
+        if proc.ref == state.fw_proc,
+          do: %{state | fw_proc: nil},
+          else: state
 
       {:reply, proc, state}
     end
@@ -275,15 +279,17 @@ defmodule Farmbot.CeleryScript.RunTime do
     end
 
     mon = state.monitors[pid]
-    state = if mon do
-      case ProcStorage.lookup(state.proc_storage, mon.index) do
-        %FarmProc{status: :crashed} = proc -> cleanup.(proc, mon.index, state)
-        %FarmProc{status: :done} = proc -> cleanup.(proc, mon.index, state)
-        _ -> state
+
+    state =
+      if mon do
+        case ProcStorage.lookup(state.proc_storage, mon.index) do
+          %FarmProc{status: :crashed} = proc -> cleanup.(proc, mon.index, state)
+          %FarmProc{status: :done} = proc -> cleanup.(proc, mon.index, state)
+          _ -> state
+        end
+      else
+        state
       end
-    else
-      state
-    end
 
     {:noreply, %{state | monitors: Map.delete(state.monitors, pid)}}
   end
