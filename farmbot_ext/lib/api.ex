@@ -63,8 +63,9 @@ defmodule Farmbot.API do
     prog = %Percent{
       status: :working,
       percent: 0,
-      time: DateTime.utc_now(),
-      type: :image
+      file_type: Path.extname(image_filename),
+      type: :image,
+      time: DateTime.utc_now()
     }
 
     stream =
