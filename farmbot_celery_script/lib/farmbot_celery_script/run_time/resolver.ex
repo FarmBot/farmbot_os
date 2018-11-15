@@ -41,8 +41,7 @@ defmodule Farmbot.CeleryScript.RunTime.Resolver do
       result = do_resolve(kind, farm_proc, pointer, label)
       %Address{} = page = pointer.page_address
 
-      %Pointer{} =
-        new_pointer = Pointer.new(page, FarmProc.get_parent(farm_proc, pointer))
+      %Pointer{} = new_pointer = Pointer.new(page, FarmProc.get_parent(farm_proc, pointer))
 
       if is_nil(result) do
         search_tree(farm_proc, new_pointer, label)
@@ -52,16 +51,14 @@ defmodule Farmbot.CeleryScript.RunTime.Resolver do
     else
       %Address{} = page = pointer.page_address
 
-      %Pointer{} =
-        new_pointer = Pointer.new(page, FarmProc.get_parent(farm_proc, pointer))
+      %Pointer{} = new_pointer = Pointer.new(page, FarmProc.get_parent(farm_proc, pointer))
 
       search_tree(farm_proc, new_pointer, label)
     end
   end
 
   def do_resolve(:sequence, farm_proc, pointer, label) do
-    locals_ptr =
-      FarmProc.get_cell_attr_as_pointer(farm_proc, pointer, :__locals)
+    locals_ptr = FarmProc.get_cell_attr_as_pointer(farm_proc, pointer, :__locals)
 
     ast =
       AST.unslice(

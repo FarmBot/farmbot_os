@@ -1,74 +1,58 @@
-defmodule Farmbot.Firmware.EstopTimer do
+defmodule Farmbot.Core.FirmwareEstopTimer do
   @moduledoc """
-  Module responsible for timing emails about E stops.
+  Process that wraps a `Process.send_after/3` call.
+  When `:timeout` is received, a `fatal_email` log message will be
+  dispatched.
   """
+
   use GenServer
   require Farmbot.Logger
 
   @msg "Farmbot has been E-Stopped for more than 10 minutes."
-  # Ten minutes.
-  @timer_ms 600_000
-  # fifteen seconds.
-  # @timer_ms 15000
 
-  @doc "Checks if the timer is active."
-  def timer_active? do
-    GenServer.call(__MODULE__, :timer_active?)
+  @ten_minutes_ms 60_0000
+
+  def start_timer(timer_server \\ __MODULE__) do
+    GenServer.call(timer_server, :start_timer)
   end
 
-  @doc "Starts a new timer if one isn't started."
-  def start_timer do
-    GenServer.call(__MODULE__, :start_timer)
+  def cancel_timer(timer_server \\ __MODULE__) do
+    GenServer.call(timer_server, :cancel_timer)
   end
 
-  @doc "Cancels a timer if it exists."
-  def cancel_timer do
-    GenServer.call(__MODULE__, :cancel_timer)
+  @doc """
+  optional args:
+    * `timeout_ms` - amount of milliseconds to run timer for
+    * `timeout_function` - function to call instead of logging
+  opts - GenServer.options()
+  """
+  @spec start_link(Keyword.t(), GenServer.options()) :: GenServer.on_start()
+  def start_link(args, opts \\ [name: __MODULE__]) do
+    GenServer.start_link(__MODULE__, args, opts)
   end
 
-  @doc false
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args, [name: __MODULE__])
-  end
-
-  @doc false
-  def init([]) do
-    {:ok, %{timer: nil, already_sent: false}}
-  end
-
-  def handle_call(:timer_active?, _, state) do
-    {:reply, is_timer_active?(state.timer), state}
+  def init(args) do
+    timeout_ms = Keyword.get(args, :timeout_ms, @ten_minutes_ms)
+    timeout_fun = Keyword.get(args, :timeout_function, &do_log/0)
+    state = %{timer: nil, timeout_ms: timeout_ms, timeout_function: timeout_fun}
+    {:ok, state, :hibernate}
   end
 
   def handle_call(:start_timer, _from, state) do
-    if is_timer_active?(state.timer) do
-      {:reply, :ok, state}
-    else
-      {:reply, :ok, %{state | timer: do_start_timer(self())}}
-    end
+    timer = Process.send_after(self(), :timeout, state.timeout_ms)
+    {:reply, timer, %{state | timer: timer}}
   end
 
   def handle_call(:cancel_timer, _from, state) do
-    if is_timer_active?(state.timer) do
-      Process.cancel_timer(state.timer)
-    end
-    {:reply, :ok, %{state | timer: nil, already_sent: false}}
+    state.timer && Process.cancel_timer(state.timer)
+    {:reply, state.timer, %{state | timer: nil}, :hibernate}
   end
 
-  def handle_info(:timer, state) do
-    if state.already_sent do
-      {:noreply, %{state | timer: nil}}
-    else
-      Farmbot.Logger.warn 1, @msg, [channels: [:fatal_email]]
-      {:noreply, %{state | timer: nil, already_sent: true}}
-    end
+  def handle_info(:timeout, state) do
+    _ = apply(state.timeout_function, [])
+    {:noreply, %{state | timer: nil}, :hibernate}
   end
 
-  defp is_timer_active?(timer) do
-    if timer, do: is_number(Process.read_timer(timer)), else: false
-  end
-
-  defp do_start_timer(pid) do
-    Process.send_after(pid, :timer, @timer_ms)
-  end
+  @doc false
+  def do_log, do: Farmbot.Logger.warn(1, @msg, channels: [:fatal_email])
 end

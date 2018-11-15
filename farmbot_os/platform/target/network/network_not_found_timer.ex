@@ -16,7 +16,7 @@ defmodule Farmbot.Target.Network.NotFoundTimer do
   end
 
   def start_link(args) do
-    GenServer.start_link(__MODULE__, args, [name: __MODULE__])
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
   def init([]) do
@@ -36,7 +36,7 @@ defmodule Farmbot.Target.Network.NotFoundTimer do
     minutes = get_config_value(:float, "settings", "network_not_found_timer") || 1
     ms = (minutes * 60_000) |> round()
     timer = Process.send_after(self(), :timer, ms)
-    Farmbot.Logger.debug 1, "Starting network not found timer: #{minutes} minute(s)"
+    Farmbot.Logger.debug(1, "Starting network not found timer: #{minutes} minute(s)")
     {:reply, :ok, %{state | timer: timer}}
   end
 
@@ -49,17 +49,20 @@ defmodule Farmbot.Target.Network.NotFoundTimer do
     if state.timer do
       Process.cancel_timer(state.timer)
     end
+
     {:reply, :ok, %{state | timer: nil}}
   end
 
   def handle_info(:timer, state) do
-    delay_minutes = (get_config_value(:float, "settings", "network_not_found_timer") || 1)
+    delay_minutes = get_config_value(:float, "settings", "network_not_found_timer") || 1
     disable_factory_reset? = get_config_value(:bool, "settings", "disable_factory_reset")
     first_boot? = get_config_value(:bool, "settings", "first_boot")
+
     cond do
       disable_factory_reset? ->
-        Farmbot.Logger.warn 1, "Factory reset is disabled. Not resetting."
+        Farmbot.Logger.warn(1, "Factory reset is disabled. Not resetting.")
         {:noreply, %{state | timer: nil}}
+
       first_boot? ->
         msg = """
         Network not found after #{delay_minutes} minute(s).
@@ -73,11 +76,14 @@ defmodule Farmbot.Target.Network.NotFoundTimer do
 
         5) There is a hardware issue.
         """
-        Farmbot.Logger.error 1, msg
+
+        Farmbot.Logger.error(1, msg)
         Farmbot.System.factory_reset(msg)
         {:stop, :normal, %{state | timer: nil}}
+
       true ->
-        Farmbot.Logger.error 1, "Network not found after timer. Farmbot is disconnected."
+        Farmbot.Logger.error(1, "Network not found after timer. Farmbot is disconnected.")
+
         msg = """
         Network not found after #{delay_minutes} minute(s).
         This can happen if your wireless access point is no longer available,
@@ -86,6 +92,7 @@ defmodule Farmbot.Target.Network.NotFoundTimer do
         factory reset\" or tune the \"network not found
         timer\" value in the Farmbot Web Application.
         """
+
         Farmbot.System.factory_reset(msg)
         {:stop, :normal, %{state | timer: nil}}
     end

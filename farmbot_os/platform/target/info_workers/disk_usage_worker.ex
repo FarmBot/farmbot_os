@@ -1,37 +1,41 @@
 defmodule Farmbot.Target.DiskUsageWorker do
-  use GenServer
-  @data_path Application.get_env(:farmbot_ext, :data_path)
-  @data_path || Mix.raise("No data path.")
+  @moduledoc false
 
-  def start_link(_, opts) do
-    GenServer.start_link(__MODULE__, [], opts)
+  use GenServer
+  @data_path Farmbot.OS.FileSystem.data_path()
+  @default_timeout_ms 60_000
+  @error_timeout_ms 5_000
+
+  def start_link(args) do
+    GenServer.start_link(__MODULE__, args)
   end
 
   def init([]) do
-    send(self(), :report_disk_usage)
-    {:ok, %{}}
+    {:ok, nil, 0}
   end
 
-  def handle_info(:report_disk_usage, state) do
+  def handle_info(:timeout, state) do
     usage = collect_report()
 
     if GenServer.whereis(Farmbot.BotState) do
       Farmbot.BotState.report_disk_usage(usage)
-      Process.send_after(self(), :report_disk_usage, 60_000)
+      {:noreply, state, @default_timeout_ms}
     else
-      Process.send_after(self(), :report_disk_usage, 5000)
+      {:noreply, state, @error_timeout_ms}
     end
-    {:noreply, state}
   end
 
   def collect_report do
     {usage_str, 0} = Nerves.Runtime.cmd("df", ["-h", @data_path], :return)
-    {usage, "%"} = usage_str
+
+    {usage, "%"} =
+      usage_str
       |> String.split("\n")
       |> Enum.at(1)
       |> String.split(" ")
       |> Enum.at(-2)
       |> Integer.parse()
+
     usage
   end
 end

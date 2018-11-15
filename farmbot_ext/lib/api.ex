@@ -60,13 +60,20 @@ defmodule Farmbot.API do
     content_length = :filelib.file_size(image_filename)
     {:ok, pid} = Agent.start_link(fn -> 0 end)
 
+    prog = %Percent{
+      status: :working,
+      percent: 0,
+      time: DateTime.utc_now(),
+      type: :image
+    }
+
     stream =
       image_filename
       |> File.stream!([], @file_chunk)
       |> Stream.each(fn chunk ->
         Agent.update(pid, fn sent ->
           size = sent + byte_size(chunk)
-          prog = put_progress(size, content_length)
+          prog = put_progress(prog, size, content_length)
           BotState.set_job_progress(image_filename, prog)
           size
         end)
@@ -95,17 +102,17 @@ defmodule Farmbot.API do
          client <- API.client(),
          body <- %{attachment_url: attachment_url, meta: meta},
          {:ok, %{status: s}} = r when s > 199 and s < 300 <- API.post(client, "/api/images", body) do
-      Farmbot.BotState.set_job_progress(image_filename, %Percent{percent: 100, status: :complete})
+      Farmbot.BotState.set_job_progress(image_filename, %{prog | status: :complete, percent: 100})
       r
     else
       er ->
         Farmbot.Logger.error(1, "Failed to upload image")
-        Farmbot.BotState.set_job_progress(image_filename, %Percent{percent: -1, status: :error})
+        Farmbot.BotState.set_job_progress(image_filename, %{prog | percent: -1, status: :error})
         er
     end
   end
 
-  def put_progress(size, max) do
+  def put_progress(prog, size, max) do
     fraction = size / max
     completed = trunc(fraction * @progress_steps)
     percent = trunc(fraction * 100)
@@ -121,8 +128,9 @@ defmodule Farmbot.API do
     status = if percent == 100, do: :complete, else: :working
 
     %Percent{
-      status: status,
-      percent: percent
+      prog
+      | status: status,
+        percent: percent
     }
   end
 
