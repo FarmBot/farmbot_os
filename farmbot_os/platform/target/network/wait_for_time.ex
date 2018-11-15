@@ -1,16 +1,20 @@
 defmodule Farmbot.Target.Network.WaitForTime do
+  @moduledoc "Blocks until time is synced."
   require Farmbot.Logger
-  nerves_time = case Nerves.Time.FileTime.time() do
-    {:error, _} -> NaiveDateTime.utc_now()
-    ndt -> ndt
-  end
+
+  nerves_time =
+    case Nerves.Time.FileTime.time() do
+      {:error, _} -> NaiveDateTime.utc_now()
+      ndt -> ndt
+    end
+
   @nerves_time nerves_time
 
-  def start_link(_, _) do
+  def start_link(_args) do
     :ok = wait_for_time()
-    Farmbot.Logger.success 3, "Time seems to be set. Moving on."
-    IO.puts "Check: #{inspect(@nerves_time)}"
-    IO.puts "Current: #{inspect(NaiveDateTime.utc_now())}"
+    Farmbot.Logger.success(3, "Time seems to be set. Moving on.")
+    IO.puts("Check: #{inspect(@nerves_time)}")
+    IO.puts("Current: #{inspect(NaiveDateTime.utc_now())}")
     :ignore
   end
 
@@ -21,10 +25,11 @@ defmodule Farmbot.Target.Network.WaitForTime do
 
   defp wait_for_time do
     case Timex.compare(NaiveDateTime.utc_now(), get_file_time()) do
-      1 -> :ok
+      1 ->
+        :ok
+
       _ ->
         Process.sleep(1000)
-        # Logger.warn "Waiting for time."
         wait_for_time()
     end
   end

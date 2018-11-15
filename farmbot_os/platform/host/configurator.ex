@@ -1,13 +1,13 @@
 defmodule Farmbot.Host.Configurator do
   @moduledoc false
   use Supervisor
-  
+
   import Farmbot.Config,
     only: [update_config_value: 4, get_config_value: 3]
 
   @doc false
   def start_link(args) do
-    Supervisor.start_link(__MODULE__, args, [name: __MODULE__])
+    Supervisor.start_link(__MODULE__, args, name: __MODULE__)
   end
 
   defp start_node() do
@@ -35,6 +35,7 @@ defmodule Farmbot.Host.Configurator do
     if get_config_value(:bool, "settings", "first_boot") do
       update_config_value(:string, "authorization", "password", pass)
     end
+
     update_config_value(:string, "authorization", "server", server)
     update_config_value(:string, "authorization", "token", nil)
     :ignore

@@ -30,7 +30,7 @@ defmodule Farmbot.Target.Network.Manager do
   end
 
   def start_link(interface, opts) do
-    GenServer.start_link(__MODULE__, {interface, opts}, [name: :"#{__MODULE__}-#{interface}"])
+    GenServer.start_link(__MODULE__, {interface, opts}, name: :"#{__MODULE__}-#{interface}")
   end
 
   def init({interface, opts} = args) do
@@ -48,12 +48,14 @@ defmodule Farmbot.Target.Network.Manager do
     Nerves.Time.set_ntp_servers([s1, s2])
     maybe_hack_tzdata()
 
-    settings = Enum.map(opts, fn({key, value}) ->
-      case key do
-        :key_mgmt -> {key, String.to_atom(value)}
-        _ -> {key, value}
-      end
-    end)
+    settings =
+      Enum.map(opts, fn {key, value} ->
+        case key do
+          :key_mgmt -> {key, String.to_atom(value)}
+          _ -> {key, value}
+        end
+      end)
+
     Nerves.Network.IFSupervisor.setup(interface, settings)
 
     {:ok, _} = Elixir.Registry.register(Nerves.NetworkInterface, interface, [])
@@ -62,6 +64,7 @@ defmodule Farmbot.Target.Network.Manager do
 
     domain = node() |> to_string() |> String.split("@") |> List.last() |> Kernel.<>(".local")
     init_mdns(domain)
+
     state = %{
       # These won't change
       mdns_domain: domain,
@@ -78,8 +81,9 @@ defmodule Farmbot.Target.Network.Manager do
       reconnect_timer: nil,
 
       # Tests internet connectivity.
-      dns_timer: nil,
+      dns_timer: nil
     }
+
     {:ok, state}
   end
 
@@ -99,9 +103,10 @@ defmodule Farmbot.Target.Network.Manager do
 
   # When assigned an IP address.
   def handle_info({Nerves.Udhcpc, :bound, %{ipv4_address: ip}}, state) do
-    Farmbot.Logger.debug 3, "Ip address: #{ip}"
+    Farmbot.Logger.debug(3, "Ip address: #{ip}")
     NotFoundTimer.stop()
     connected = match?({:ok, {:hostent, _, _, :inet, 4, _}}, test_dns())
+
     if connected do
       init_mdns(state.mdns_domain)
       dns_timer = restart_dns_timer(state.dns_timer, 45_000)
@@ -112,8 +117,12 @@ defmodule Farmbot.Target.Network.Manager do
     end
   end
 
-  def handle_info({Nerves.WpaSupplicant, {:INFO, "WPA: 4-Way Handshake failed - pre-shared key may be incorrect"}, _}, state) do
-    Farmbot.Logger.error 1, "Incorrect PSK."
+  def handle_info(
+        {Nerves.WpaSupplicant,
+         {:INFO, "WPA: 4-Way Handshake failed - pre-shared key may be incorrect"}, _},
+        state
+      ) do
+    Farmbot.Logger.error(1, "Incorrect PSK.")
     Farmbot.System.factory_reset("WIFI Authentication failed. (incorrect psk)")
     {:stop, :normal, state}
   end
@@ -123,18 +132,21 @@ defmodule Farmbot.Target.Network.Manager do
     reconnect_timer = if state.connected, do: restart_connection_timer(state)
     maybe_refresh_token()
     NotFoundTimer.start()
-    new_state = %{state |
-      ap_connected: false,
-      connected: false,
-      ip_address: nil,
-      reconnect_timer: reconnect_timer
+
+    new_state = %{
+      state
+      | ap_connected: false,
+        connected: false,
+        ip_address: nil,
+        reconnect_timer: reconnect_timer
     }
+
     {:noreply, new_state}
   end
 
   def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-CONNECTED", _}, state) do
     # Don't update `connected`. This is not a real test of connectivity.
-    Farmbot.Logger.success 1, "Connected to access point."
+    Farmbot.Logger.success(1, "Connected to access point.")
     NotFoundTimer.stop()
     {:noreply, %{state | ap_connected: true}}
   end
@@ -144,12 +156,15 @@ defmodule Farmbot.Target.Network.Manager do
     reconnect_timer = if state.connected, do: restart_connection_timer(state)
     maybe_refresh_token()
     NotFoundTimer.start()
-    new_state = %{state |
-      ap_connected: false,
-      connected: false,
-      ip_address: nil,
-      reconnect_timer: reconnect_timer
+
+    new_state = %{
+      state
+      | ap_connected: false,
+        connected: false,
+        ip_address: nil,
+        reconnect_timer: reconnect_timer
     }
+
     {:noreply, new_state}
   end
 
@@ -161,31 +176,36 @@ defmodule Farmbot.Target.Network.Manager do
           reconnect_timer = if state.connected, do: restart_connection_timer(state)
           maybe_refresh_token()
           NotFoundTimer.start()
-          new_state = %{state |
-            ap_connected: false,
-            connected: false,
-            ip_address: nil,
-            reconnect_timer: reconnect_timer
+
+          new_state = %{
+            state
+            | ap_connected: false,
+              connected: false,
+              ip_address: nil,
+              reconnect_timer: reconnect_timer
           }
+
           {:noreply, new_state}
         else
           {:noreply, state}
         end
+
       _ ->
         if debug_logs?() do
-          IO.inspect {info, infoa}, label: "unhandled wpa event"
+          IO.inspect({info, infoa}, label: "unhandled wpa event")
         end
+
         {:noreply, state}
     end
   end
 
   def handle_info(:reconnect_timer, %{ap_connected: false} = state) do
-    Farmbot.Logger.warn 1, "Wireless network not found still. Trying again."
+    Farmbot.Logger.warn(1, "Wireless network not found still. Trying again.")
     {:stop, :reconnect_timer, state}
   end
 
   def handle_info(:reconnect_timer, %{ap_connected: true} = state) do
-    Farmbot.Logger.success 1, "Wireless network reconnected."
+    Farmbot.Logger.success(1, "Wireless network reconnected.")
     {:noreply, state}
   end
 
@@ -197,13 +217,13 @@ defmodule Farmbot.Target.Network.Manager do
 
       {:error, err} ->
         maybe_refresh_token()
-        Farmbot.Logger.warn 3, "Farmbot was disconnected from the internet: #{inspect err}"
+        Farmbot.Logger.warn(3, "Farmbot was disconnected from the internet: #{inspect(err)}")
         {:noreply, %{state | connected: false, dns_timer: restart_dns_timer(nil, 20_000)}}
     end
   end
 
   def handle_info(:dns_timer, %{ip_address: nil} = state) do
-    Farmbot.Logger.warn 3, "Farmbot still disconnected from the internet"
+    Farmbot.Logger.warn(3, "Farmbot still disconnected from the internet")
     {:noreply, %{state | connected: false, dns_timer: restart_dns_timer(nil, 20_000)}}
   end
 
@@ -211,16 +231,13 @@ defmodule Farmbot.Target.Network.Manager do
     case test_dns() do
       {:ok, {:hostent, _host_name, aliases, :inet, 4, _}} ->
         # If we weren't previously connected, send a log.
-        Farmbot.Logger.success 3, "Farmbot was reconnected to the internet: #{inspect aliases}"
+        Farmbot.Logger.success(3, "Farmbot was reconnected to the internet: #{inspect(aliases)}")
         maybe_refresh_token()
-        new_state = %{state |
-          connected: true,
-          dns_timer: restart_dns_timer(nil, 45_000),
-        }
+        new_state = %{state | connected: true, dns_timer: restart_dns_timer(nil, 45_000)}
         {:noreply, new_state}
 
       {:error, err} ->
-        Farmbot.Logger.warn 3, "Farmbot was disconnected from the internet: #{inspect err}"
+        Farmbot.Logger.warn(3, "Farmbot was disconnected from the internet: #{inspect(err)}")
         maybe_refresh_token()
         {:noreply, %{state | connected: false, dns_timer: restart_dns_timer(nil, 20_000)}}
     end
@@ -237,6 +254,7 @@ defmodule Farmbot.Target.Network.Manager do
       # Farmbot.Logger.warn 3, "Cancelling Network timer"
       Process.cancel_timer(timer)
     end
+
     nil
   end
 
@@ -262,7 +280,7 @@ defmodule Farmbot.Target.Network.Manager do
     if Process.whereis(Farmbot.Bootstrap.AuthTask) do
       Farmbot.Bootstrap.AuthTask.force_refresh()
     else
-      Farmbot.Logger.warn 1, "AuthTask not running yet"
+      Farmbot.Logger.warn(1, "AuthTask not running yet")
     end
   end
 
@@ -299,13 +317,17 @@ defmodule Farmbot.Target.Network.Manager do
   @tzdata_dir Application.app_dir(:tzdata, "priv")
   def maybe_hack_tzdata do
     case Tzdata.Util.data_dir() do
-      @fb_data_dir -> :ok
+      @fb_data_dir ->
+        :ok
+
       _ ->
-        Farmbot.Logger.debug 3, "Hacking tzdata."
+        Farmbot.Logger.debug(3, "Hacking tzdata.")
         objs_to_cp = Path.wildcard(Path.join(@tzdata_dir, "*"))
+
         for obj <- objs_to_cp do
-          File.cp_r obj, @fb_data_dir
+          File.cp_r(obj, @fb_data_dir)
         end
+
         Application.put_env(:tzdata, :data_dir, @fb_data_dir)
         :ok
     end

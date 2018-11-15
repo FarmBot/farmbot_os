@@ -63,6 +63,8 @@ defmodule Farmbot.OS.MixProject do
       # Configurator
       {:cowboy, "~> 2.5"},
       {:plug, "~> 1.6"},
+      # override: true because AMQP
+      {:ranch, "~> 1.5", override: true},
       {:cors_plug, "~> 1.5"},
       {:phoenix_html, "~> 2.12"},
       {:nerves_runtime, "~> 0.8"},
