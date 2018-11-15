@@ -1,260 +1,296 @@
 defmodule Farmbot.BotState do
   @moduledoc "Central State accumulator."
-  alias Farmbot.BotState
-  alias BotState.{
-    McuParams,
-    LocationData,
-    Configuration,
-    InformationalSettings,
-    Pin
-  }
+  alias Farmbot.BotStateNG
+  use GenServer
 
-  defstruct [
-    mcu_params: struct(McuParams),
-    location_data: struct(LocationData),
-    configuration: struct(Configuration),
-    informational_settings: struct(InformationalSettings),
-    pins: %{},
-    process_info: %{farmwares: %{}},
-    gpio_registry: %{},
-    user_env: %{},
-    jobs: %{}
-  ]
-
-  use GenStage
-
-  def download_progress_fun(name) do
-    alias Farmbot.BotState.JobProgress
-    require Farmbot.Logger
-    fn(bytes, total) ->
-      {do_send, prog} = cond do
-        # if the total is complete spit out the bytes,
-        # and put a status of complete.
-        total == :complete ->
-          Farmbot.Logger.success 3, "#{name} complete."
-          {true, %JobProgress.Bytes{bytes: bytes, status: :complete}}
-
-        # if we don't know the total just spit out the bytes.
-        total == nil ->
-          # debug_log "#{name} - #{bytes} bytes."
-          {rem(bytes, 10) == 0, %JobProgress.Bytes{bytes: bytes}}
-        # if the number of bytes == the total bytes,
-        # percentage side is complete.
-        (div(bytes, total)) == 1 ->
-          Farmbot.Logger.success 3, "#{name} complete."
-          {true, %JobProgress.Percent{percent: 100, status: :complete}}
-        # anything else is a percent.
-        true ->
-          percent = ((bytes / total) * 100) |> round()
-          # Logger.busy 3, "#{name} - #{bytes}/#{total} = #{percent}%"
-          {rem(percent, 10) == 0, %JobProgress.Percent{percent: percent}}
-      end
-      if do_send do
-        Farmbot.BotState.set_job_progress(name, prog)
-      else
-        :ok
-      end
-    end
+  @doc "Subscribe to BotState changes"
+  def subscribe(bot_state_server \\ __MODULE__) do
+    GenServer.call(bot_state_server, :subscribe)
   end
 
   @doc "Set job progress."
-  def set_job_progress(name, progress) do
-    GenServer.call(__MODULE__, {:set_job_progress, name, progress})
+  def set_job_progress(bot_state_server \\ __MODULE__, name, progress) do
+    GenServer.call(bot_state_server, {:set_job_progress, name, progress})
   end
 
-  def clear_progress_fun(name) do
-    GenServer.call(__MODULE__, {:clear_progress_fun, name})
+  @doc "Set a configuration value"
+  def set_config_value(bot_state_server \\ __MODULE__, key, value) do
+    GenServer.call(bot_state_server, {:set_config_value, key, value})
+  end
+
+  @doc "Sets user_env value"
+  def set_user_env(bot_state_server \\ __MODULE__, key, value) do
+    GenServer.call(bot_state_server, {:set_user_env, key, value})
+  end
+
+  @doc "Sets the location_data.position"
+  def set_position(bot_state_server \\ __MODULE__, x, y, z) do
+    GenServer.call(bot_state_server, {:set_position, x, y, z})
+  end
+
+  @doc "Sets the location_data.encoders_scaled"
+  def set_encoders_scaled(bot_state_server \\ __MODULE__, x, y, z) do
+    GenServer.call(bot_state_server, {:set_encoders_scaled, x, y, z})
+  end
+
+  @doc "Sets pins.pin.value"
+  def set_pin_value(bot_state_server \\ __MODULE__, pin, value) do
+    GenServer.call(bot_state_server, {:set_pin_value, pin, value})
+  end
+
+  @doc "Sets the location_data.encoders_raw"
+  def set_encoders_raw(bot_state_server \\ __MODULE__, x, y, z) do
+    GenServer.call(bot_state_server, {:set_encoders_raw, x, y, z})
+  end
+
+  @doc "Sets mcu_params[param] = value"
+  def set_firmware_config(bot_state_server \\ __MODULE__, param, value) do
+    GenServer.call(bot_state_server, {:set_firmware_config, param, value})
+  end
+
+  @doc "Sets informational_settings.locked = true"
+  def set_firmware_locked(bot_state_server \\ __MODULE__) do
+    GenServer.call(bot_state_server, {:set_firmware_locked, true})
+  end
+
+  @doc "Sets informational_settings.locked = false"
+  def set_firmware_unlocked(bot_state_server \\ __MODULE__) do
+    GenServer.call(bot_state_server, {:set_firmware_locked, false})
+  end
+
+  def set_sync_status(bot_state_server \\ __MODULE__, s)
+      when s in ["syncing", "synced", "error"] do
+    GenServer.call(bot_state_server, {:set_sync_status, s})
   end
 
   @doc "Fetch the current state."
-  def fetch do
-    GenStage.call(__MODULE__, :fetch)
+  def fetch(bot_state_server \\ __MODULE__) do
+    GenServer.call(bot_state_server, :fetch)
   end
 
-  def report_disk_usage(percent) when is_number(percent) do
-    GenStage.call(__MODULE__, {:report_disk_usage, percent})
+  def report_disk_usage(bot_state_server \\ __MODULE__, percent) do
+    GenServer.call(bot_state_server, {:report_disk_usage, percent})
   end
 
-  def report_memory_usage(megabytes) when is_number(megabytes) do
-    GenStage.call(__MODULE__, {:report_memory_usage, megabytes})
+  def report_memory_usage(bot_state_server \\ __MODULE__, megabytes) do
+    GenServer.call(bot_state_server, {:report_memory_usage, megabytes})
   end
 
-  def report_soc_temp(temp_celcius) when is_number(temp_celcius) do
-    GenStage.call(__MODULE__, {:report_soc_temp, temp_celcius})
+  def report_soc_temp(bot_state_server \\ __MODULE__, temp_celcius) do
+    GenServer.call(bot_state_server, {:report_soc_temp, temp_celcius})
   end
 
-  def report_uptime(seconds) when is_number(seconds) do
-    GenStage.call(__MODULE__, {:report_uptime, seconds})
+  def report_uptime(bot_state_server \\ __MODULE__, seconds) do
+    GenServer.call(bot_state_server, {:report_uptime, seconds})
   end
 
-  def report_wifi_level(level) when is_number(level) do
-    GenStage.call(__MODULE__, {:report_wifi_level, level})
+  def report_wifi_level(bot_state_server \\ __MODULE__, level) do
+    GenServer.call(bot_state_server, {:report_wifi_level, level})
   end
 
   @doc "Put FBOS into maintenance mode."
-  def enter_maintenance_mode do
-    GenStage.call(__MODULE__, :enter_maintenance_mode)
+  def enter_maintenance_mode(bot_state_server \\ __MODULE__) do
+    GenServer.call(bot_state_server, :enter_maintenance_mode)
   end
 
   @doc false
-  def start_link(args) do
-    GenStage.start_link(__MODULE__, args, [name: __MODULE__])
+  def start_link(args, opts \\ [name: __MODULE__]) do
+    GenServer.start_link(__MODULE__, args, opts)
   end
 
   @doc false
   def init([]) do
-    Farmbot.Registry.subscribe()
-    send(self(), :get_initial_configuration)
-    send(self(), :get_initial_mcu_params)
-    # send(self(), :get_initial_user_env)
-    {:consumer, struct(BotState), [subscribe_to: [Farmbot.Firmware]]}
+    {:ok, %{tree: BotStateNG.new(), subscribers: []}}
   end
 
   @doc false
+  def handle_call(:subscribe, {pid, _} = _from, state) do
+    Process.link(pid)
+    {:reply, state.tree, %{state | subscribers: Enum.uniq([pid | state.subscribers])}}
+  end
+
   def handle_call(:fetch, _from, state) do
-    new_state = handle_event({:informational_settings, %{cache_bust: :rand.uniform(1000)}}, state)
-    Farmbot.Registry.dispatch(__MODULE__, new_state)
-    {:reply, state, [], new_state}
+    {:reply, state.tree, state}
   end
 
-  # TODO(Connor) - Fix this to use event system.
   def handle_call({:set_job_progress, name, progress}, _from, state) do
-    jobs = Map.put(state.jobs, name, progress)
-    new_state = %{state | jobs: jobs}
-    Farmbot.Registry.dispatch(__MODULE__, new_state)
-    {:reply, :ok, [], new_state}
+    {reply, state} =
+      BotStateNG.set_job_progress(state.tree, name, Map.from_struct(progress))
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
   end
 
-  # TODO(Connor) - Fix this to use event system.
-  def handle_call({:clear_progress_fun, name}, _from, state) do
-    jobs = Map.delete(state.jobs, name)
-    new_state = %{state | jobs: jobs}
-    Farmbot.Registry.dispatch(__MODULE__, new_state)
-    {:reply, :ok, [], new_state}
+  def handle_call({:set_config_value, key, value}, _from, state) do
+    change = %{configuration: %{key => value}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_user_env, key, value}, _from, state) do
+    {reply, state} =
+      BotStateNG.set_user_env(state.tree, key, value)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_position, x, y, z}, _from, state) do
+    change = %{location_data: %{position: %{x: x, y: y, z: z}}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_encoders_scaled, x, y, z}, _from, state) do
+    change = %{location_data: %{scaled_encoders: %{x: x, y: y, z: z}}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_encoders_raw, x, y, z}, _from, state) do
+    change = %{location_data: %{raw_encoders: %{x: x, y: y, z: z}}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_pin_value, pin, value}, _from, state) do
+    change = %{pins: %{pin => %{mode: -1, value: value}}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_firmware_config, param, value}, _from, state) do
+    change = %{mcu_params: %{param => value}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_firmware_locked, bool}, _from, state) do
+    change = %{informational_settings: %{locked: bool}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_sync_status, status}, _from, state) do
+    change = %{informational_settings: %{sync_status: status}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
   end
 
   def handle_call({:report_disk_usage, percent}, _form, state) do
-    event = {:informational_settings, %{disk_usage: percent}}
-    new_state = handle_event(event, state)
-    Farmbot.Registry.dispatch(__MODULE__, new_state)
-    {:reply, :ok, [], new_state}
+    change = %{informational_settings: %{disk_usage: percent}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
   end
 
   def handle_call({:memory_usage, megabytes}, _form, state) do
-    event = {:informational_settings, %{memory_usage: megabytes}}
-    new_state = handle_event(event, state)
-    Farmbot.Registry.dispatch(__MODULE__, new_state)
-    {:reply, :ok, [], new_state}
+    change = %{informational_settings: %{memory_usage: megabytes}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
   end
 
   def handle_call({:report_soc_temp, temp}, _form, state) do
-    event = {:informational_settings, %{soc_temp: temp}}
-    new_state = handle_event(event, state)
-    Farmbot.Registry.dispatch(__MODULE__, new_state)
-    {:reply, :ok, [], new_state}
+    change = %{informational_settings: %{soc_temp: temp}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
   end
 
   def handle_call({:uptime, seconds}, _form, state) do
-    event = {:informational_settings, %{uptime: seconds}}
-    new_state = handle_event(event, state)
-    Farmbot.Registry.dispatch(__MODULE__, new_state)
-    {:reply, :ok, [], new_state}
+    change = %{informational_settings: %{uptime: seconds}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
   end
 
   def handle_call({:report_wifi_level, level}, _form, state) do
-    event = {:informational_settings, %{wifi_level: level}}
-    new_state = handle_event(event, state)
-    Farmbot.Registry.dispatch(__MODULE__, new_state)
-    {:reply, :ok, [], new_state}
+    change = %{informational_settings: %{wifi_level: level}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
   end
 
   def handle_call(:enter_maintenance_mode, _form, state) do
-    event = {:informational_settings, %{sync_status: :maintenance}}
-    new_state = handle_event(event, state)
-    Farmbot.Registry.dispatch(__MODULE__, new_state)
-    {:reply, :ok, [], new_state}
+    change = %{informational_settings: %{sync_status: "maintenance"}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
   end
 
-  @doc false
-  def handle_info({Farmbot.Registry, {Farmbot.Config, {"settings", key, val}}}, state) do
-    event = {:settings, %{String.to_atom(key) => val}}
-    new_state = handle_event(event, state)
-    Farmbot.Registry.dispatch(__MODULE__, new_state)
-    {:noreply, [], new_state}
+  defp dispatch_and_apply(%Ecto.Changeset{changes: changes}, state) when map_size(changes) == 0 do
+    {:ok, state}
   end
 
-  def handle_info({Farmbot.Registry, {_, {:sync_status, status}}}, state) do
-    event = {:informational_settings, %{sync_status: status}}
-    new_state = handle_event(event, state)
-    Farmbot.Registry.dispatch(__MODULE__, new_state)
-    {:noreply, [], new_state}
+  defp dispatch_and_apply(%Ecto.Changeset{valid?: true} = change, state) do
+    state = %{state | tree: Ecto.Changeset.apply_changes(change)}
+
+    state =
+      Enum.reduce(state.subscribers, state, fn pid, state ->
+        if Process.alive?(pid) do
+          send(pid, {__MODULE__, change})
+          state
+        else
+          Process.unlink(pid)
+          %{state | subscribers: List.delete(state.subscribers, pid)}
+        end
+      end)
+
+    {:ok, state}
   end
 
-  def handle_info({Farmbot.Registry, _}, state), do: {:noreply, [], state}
-
-  def handle_info(:get_initial_configuration, state) do
-    full_config = Farmbot.Config.get_config_as_map()
-    settings = full_config["settings"]
-    new_state = Enum.reduce(settings, state, fn({key, val}, state) ->
-      event = {:settings, %{String.to_atom(key) => val}}
-      handle_event(event, state)
-    end)
-    Farmbot.Registry.dispatch(__MODULE__, new_state)
-    {:noreply, [], new_state}
-  end
-
-  def handle_info(:get_initial_mcu_params, state) do
-    full_config = Farmbot.Config.get_config_as_map()
-    settings = full_config["hardware_params"]
-    new_state = Enum.reduce(settings, state, fn({key, val}, state) ->
-      event = {:mcu_params, %{String.to_atom(key) => val}}
-      handle_event(event, state)
-    end)
-    Farmbot.Registry.dispatch(__MODULE__, new_state)
-    {:noreply, [], new_state}
-  end
-
-  @doc false
-  def handle_events(events, _from, state) do
-    state = Enum.reduce(events, state, &handle_event(&1, &2))
-    Farmbot.Registry.dispatch(__MODULE__, state)
-    {:noreply, [], state}
-  end
-
-  @doc false
-  def handle_event({:informational_settings, data}, state) do
-    new_data = Map.merge(state.informational_settings, data) |> Map.from_struct()
-    new_informational_settings = struct(InformationalSettings, new_data)
-    %{state | informational_settings: new_informational_settings}
-  end
-
-  def handle_event({:mcu_params, data}, state) do
-    new_data = Map.merge(state.mcu_params, data) |> Map.from_struct()
-    new_mcu_params = struct(McuParams, new_data)
-    %{state | mcu_params: new_mcu_params}
-  end
-
-  def handle_event({:location_data, data}, state) do
-    new_data = Map.merge(state.location_data, data) |> Map.from_struct()
-    new_location_data = struct(LocationData, new_data)
-    %{state | location_data: new_location_data}
-  end
-
-  def handle_event({:pins, data}, state) do
-    new_data = Enum.reduce(data, state.pins, fn({number, pin_state}, pins) ->
-      Map.put(pins, number, struct(Pin, pin_state))
-    end)
-    %{state | pins: new_data}
-  end
-
-  def handle_event({:settings, data}, state) do
-    new_data = Map.merge(state.configuration, data) |> Map.from_struct()
-    new_configuration = struct(Configuration, new_data)
-    %{state | configuration: new_configuration}
-  end
-
-  def handle_event(event, state) do
-    IO.inspect event, label: "unhandled event"
-    state
+  defp dispatch_and_apply(%Ecto.Changeset{valid?: false} = change, state) do
+    {{:error, change}, state}
   end
 end

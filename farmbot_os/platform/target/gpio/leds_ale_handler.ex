@@ -21,7 +21,7 @@ defmodule Farmbot.Target.Leds.AleHandler do
   use GenServer
 
   def start_link(args) do
-    GenServer.start_link(__MODULE__, args, [name: __MODULE__])
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
   def init([]) do
@@ -83,7 +83,9 @@ defmodule Farmbot.Target.Leds.AleHandler do
           timer = restart_timer(state[color].blink_timer, color, @fast_blink_speed)
           n = %{state[color] | state: new_led_state, blink_timer: timer, status: :fast_blink}
           update_color(state, color, n)
-        _ -> state
+
+        _ ->
+          state
       end
 
     {:noreply, new_state}

@@ -1,4 +1,4 @@
-.PHONY: all clean
+.PHONY: all clean format
 .DEFAULT_GOAL: all
 
 MIX_ENV := $(MIX_ENV)
@@ -15,6 +15,7 @@ endif
 PROJECTS := farmbot_celery_script \
 						farmbot_core \
 						farmbot_ext \
+						farmbot_firmware \
 						farmbot_os
 
 all: help
@@ -38,4 +39,10 @@ clean: clean_other_branch
 		rm -rf $$project/_build ; \
 		rm -rf $$project/deps ; \
 		rm -rf $$project/priv/*.so ; \
+	done
+
+format:
+	@for project in $(PROJECTS) ; do \
+		echo formatting $$project ; \
+		cd $$project && mix format && cd .. ; \
 	done

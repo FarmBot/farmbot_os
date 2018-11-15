@@ -34,7 +34,7 @@ defmodule Farmbot.Core.CeleryScript.IOLayer do
   @callback move_absolute(args, body) :: :ok | {:error, String.t()}
 
   # Complex IO.
-  # @callbcak _if(args, body) :: {:ok, AST.t} | {:error, String.t}
+  # @callbcak _if(args, body) :: {:ok, AST.t()} | {:error, String.t()}
   @callback execute(args, body) :: {:ok, AST.t()} | {:error, String.t()}
 
   # Special IO.

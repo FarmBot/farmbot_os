@@ -35,15 +35,18 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
       gateway: @address,
       netmask: "255.255.255.0",
       range: {dhcp_range_begin(@address), dhcp_range_end(@address)},
-      domain_servers: [@address],
+      domain_servers: [@address]
     ]
+
     {:ok, dhcp_server} = DHCPServer.start_link(@interface, dhcp_opts)
 
     dnsmasq =
       case setup_dnsmasq(@address, @interface) do
-        {:ok, dnsmasq} -> dnsmasq
+        {:ok, dnsmasq} ->
+          dnsmasq
+
         {:error, _} ->
-          Farmbot.Logger.error 1, "Failed to start DnsMasq"
+          Farmbot.Logger.error(1, "Failed to start DnsMasq")
           nil
       end
 
@@ -54,12 +57,12 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
   end
 
   def terminate(_, state) do
-    Farmbot.Logger.busy 3, "Stopping captive portal GenServer."
+    Farmbot.Logger.busy(3, "Stopping captive portal GenServer.")
 
-    Farmbot.Logger.busy 3, "Stopping mDNS."
+    Farmbot.Logger.busy(3, "Stopping mDNS.")
     Mdns.Server.stop()
 
-    Farmbot.Logger.busy 3, "Stopping DHCP GenServer."
+    Farmbot.Logger.busy(3, "Stopping DHCP GenServer.")
     GenServer.stop(state.dhcp_server, :normal)
 
     stop_dnsmasq(state)
@@ -83,7 +86,11 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
 
   defp ensure_interface(interface) do
     unless interface in Nerves.NetworkInterface.interfaces() do
-      Farmbot.Logger.debug 2, "Waiting for #{interface}: #{inspect Nerves.NetworkInterface.interfaces()}"
+      Farmbot.Logger.debug(
+        2,
+        "Waiting for #{interface}: #{inspect(Nerves.NetworkInterface.interfaces())}"
+      )
+
       Process.sleep(100)
       ensure_interface(interface)
     end
@@ -103,15 +110,17 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
     dnsmasq_conf = build_dnsmasq_conf(ip_addr, interface)
     File.mkdir_p!("/tmp/dnsmasq")
     :ok = File.write("/tmp/dnsmasq/#{@dnsmasq_conf_file}", dnsmasq_conf)
-    dnsmasq_cmd = "dnsmasq -k --dhcp-lease " <>
-                  "/tmp/dnsmasq/#{@dnsmasq_pid_file} " <>
-                  "--conf-dir=/tmp/dnsmasq"
+
+    dnsmasq_cmd =
+      "dnsmasq -k --dhcp-lease " <>
+        "/tmp/dnsmasq/#{@dnsmasq_pid_file} " <> "--conf-dir=/tmp/dnsmasq"
+
     dnsmasq_port = Port.open({:spawn, dnsmasq_cmd}, [:binary])
     get_dnsmasq_info(dnsmasq_port, ip_addr, interface)
   end
 
   defp get_dnsmasq_info(nil, ip_addr, interface) do
-    Farmbot.Logger.warn 1, "dnsmasq failed to start."
+    Farmbot.Logger.warn(1, "dnsmasq failed to start.")
     Process.sleep(1000)
     setup_dnsmasq(ip_addr, interface)
   end
@@ -120,8 +129,9 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
     case Port.info(dnsmasq_port, :os_pid) do
       {:os_pid, dnsmasq_os_pid} ->
         {dnsmasq_port, dnsmasq_os_pid}
+
       nil ->
-        Farmbot.Logger.warn 1, "dnsmasq not ready yet."
+        Farmbot.Logger.warn(1, "dnsmasq not ready yet.")
         Process.sleep(1000)
         setup_dnsmasq(ip_addr, interface)
     end
@@ -140,19 +150,20 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
   defp stop_dnsmasq(state) do
     case state.dnsmasq do
       {dnsmasq_port, dnsmasq_os_pid} ->
-        Farmbot.Logger.busy 3, "Stopping dnsmasq"
-        Farmbot.Logger.busy 3, "Killing dnsmasq PID."
+        Farmbot.Logger.busy(3, "Stopping dnsmasq")
+        Farmbot.Logger.busy(3, "Killing dnsmasq PID.")
         :ok = kill(dnsmasq_os_pid)
         Port.close(dnsmasq_port)
-        Farmbot.Logger.success 3, "Stopped dnsmasq."
+        Farmbot.Logger.success(3, "Stopped dnsmasq.")
         :ok
+
       _ ->
-        Farmbot.Logger.debug 3, "Dnsmasq not running."
+        Farmbot.Logger.debug(3, "Dnsmasq not running.")
         :ok
     end
   rescue
     e ->
-      Farmbot.Logger.error 3, "Error stopping dnsmasq: #{Exception.message(e)}"
+      Farmbot.Logger.error(3, "Error stopping dnsmasq: #{Exception.message(e)}")
       :ok
   end
 
@@ -160,6 +171,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
 
   defp cmd(cmd_str) do
     [command | args] = String.split(cmd_str, " ")
+
     System.cmd(command, args, into: IO.stream(:stdio, :line))
     |> print_cmd()
   end
@@ -199,5 +211,4 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
     |> Enum.map(&String.to_integer/1)
     |> List.to_tuple()
   end
-
 end

@@ -53,42 +53,37 @@ defmodule Farmbot.OS.MixProject do
       {:shoehorn, "~> 0.4"},
       {:logger_backend_sqlite, "~> 2.2"},
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
-      {:farmbot_ext, path: "../farmbot_ext", env: Mix.env()},
+      {:farmbot_ext, path: "../farmbot_ext", env: Mix.env()}
     ] ++ deps(@target)
   end
 
   # Specify target specific dependencies
-  defp deps("host"), do: [
-    {:excoveralls, "~> 0.10", only: [:test]},
-    {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
-    {:ex_doc, "~> 0.19", only: [:dev], runtime: false},
-  ]
+  defp deps("host"),
+    do: [
+      {:excoveralls, "~> 0.10", only: [:test]},
+      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
+      {:ex_doc, "~> 0.19", only: [:dev], runtime: false}
+    ]
 
   defp deps(target) do
     [
       # Configurator
       {:cowboy, "~> 2.5"},
       {:plug, "~> 1.6"},
-      {:cors_plug, "~> 1.5"},
+      # override: true because AMQP
+      {:ranch, "~> 1.5", override: true},
+      {:cors_plug, "~> 2.0"},
       {:phoenix_html, "~> 2.12"},
-
-      # AMQP hacks
-      {:jsx, "~> 2.9", override: true},
-      {:ranch, "~> 1.6", override: true},
-      {:ranch_proxy_protocol, "~> 2.1", override: true},
-      # End hacks
-
       {:nerves_runtime, "~> 0.8"},
       {:nerves_network, "~> 0.3"},
       {:nerves_wpa_supplicant, "~> 0.3"},
-      {:nerves_firmware, "~> 0.4"},
       {:nerves_time, "~> 0.2"},
       {:nerves_hub, "~> 0.2"},
       {:dhcp_server, "~> 0.6"},
       {:mdns, "~> 1.0"},
       {:nerves_firmware_ssh, "~> 0.3"},
       {:nerves_init_gadget, "~> 0.5", only: :dev},
-      {:elixir_ale, "~> 1.1"},
+      {:elixir_ale, "~> 1.2"}
     ] ++ system(target)
   end
 
