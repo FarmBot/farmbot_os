@@ -2,7 +2,6 @@ defmodule Farmbot.Asset.StorageAuth do
   use Ecto.Schema
   use Farmbot.Asset.Schema, path: "/api/storage_auth"
 
-
   defmodule FormData do
     use Ecto.Schema
     import Ecto.Changeset
@@ -21,7 +20,15 @@ defmodule Farmbot.Asset.StorageAuth do
     def changeset(form_data, params \\ %{}) do
       form_data
       |> cast(params, [:key, :acl, :policy, :signature, :file, :"Content-Type", :GoogleAccessId])
-      |> validate_required([:key, :acl, :policy, :signature, :file, :"Content-Type", :GoogleAccessId])
+      |> validate_required([
+        :key,
+        :acl,
+        :policy,
+        :signature,
+        :file,
+        :"Content-Type",
+        :GoogleAccessId
+      ])
     end
   end
 
@@ -41,7 +48,7 @@ defmodule Farmbot.Asset.StorageAuth do
         signature: storage_auth.form_data.signature,
         file: storage_auth.form_data.file,
         "Content-Type": storage_auth.form_data."Content-Type",
-        GoogleAccessId: storage_auth.form_data."GoogleAccessId",
+        GoogleAccessId: storage_auth.form_data."GoogleAccessId"
       },
       verb: storage_auth.verb,
       url: storage_auth.url

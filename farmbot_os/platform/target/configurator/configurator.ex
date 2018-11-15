@@ -23,7 +23,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
   """
   def start_link(_) do
     Farmbot.Logger.busy(3, "Configuring Farmbot.")
-    supervisor = Supervisor.start_link(__MODULE__, [self()], [name: __MODULE__])
+    supervisor = Supervisor.start_link(__MODULE__, [self()], name: __MODULE__)
 
     case supervisor do
       {:ok, pid} ->
@@ -36,7 +36,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
 
   defp wait(pid) do
     if Process.alive?(pid) do
-      Process.sleep(10)
+      Process.sleep(1000)
       wait(pid)
     else
       :ignore
@@ -45,12 +45,14 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
 
   def init(_) do
     first_boot? = get_config_value(:bool, "settings", "first_boot")
-    autoconfigure? = Nerves.Runtime.KV.get("farmbot_auto_configure") |> case do
-      "" -> false
-      other when is_binary(other) -> true
-      _ -> false
-    end
 
+    autoconfigure? =
+      Nerves.Runtime.KV.get("farmbot_auto_configure")
+      |> case do
+        "" -> false
+        other when is_binary(other) -> true
+        _ -> false
+      end
 
     if first_boot? do
       maybe_configurate(autoconfigure?)
@@ -71,9 +73,11 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
     import Supervisor.Spec
     :ets.new(:session, [:named_table, :public, read_concurrency: true])
     Config.destroy_all_network_configs()
+
     children = [
       worker(Configurator.CaptivePortal, [], restart: :transient),
-      {Plug.Adapters.Cowboy, scheme: :http, plug: Configurator.Router, options: [port: 80, acceptors: 1]}
+      {Plug.Adapters.Cowboy,
+       scheme: :http, plug: Configurator.Router, options: [port: 80, acceptors: 1]}
     ]
 
     opts = [strategy: :one_for_one]
@@ -81,16 +85,18 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
   end
 
   defp maybe_configurate(_) do
-    ifname   = Nerves.Runtime.KV.get("farmbot_network_iface")
-    ssid     = Nerves.Runtime.KV.get("farmbot_network_ssid")
-    psk      = Nerves.Runtime.KV.get("farmbot_network_psk")
-    email    = Nerves.Runtime.KV.get("farmbot_email")
-    server   = Nerves.Runtime.KV.get("farmbot_server")
+    ifname = Nerves.Runtime.KV.get("farmbot_network_iface")
+    ssid = Nerves.Runtime.KV.get("farmbot_network_ssid")
+    psk = Nerves.Runtime.KV.get("farmbot_network_psk")
+    email = Nerves.Runtime.KV.get("farmbot_email")
+    server = Nerves.Runtime.KV.get("farmbot_server")
     password = Nerves.Runtime.KV.get("farmbot_password")
+
     Config.input_network_config!(%{
       name: ifname,
       ssid: ssid,
-      security: "WPA-PSK", psk: psk,
+      security: "WPA-PSK",
+      psk: psk,
       type: if(ssid, do: "wireless", else: "wired"),
       domain: nil,
       name_servers: nil,

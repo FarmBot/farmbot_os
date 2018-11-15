@@ -2,9 +2,11 @@ defmodule Farmbot.AMQP.LogTransport do
   use GenServer
   use AMQP
   require Farmbot.Logger
+  require Logger
   import Farmbot.Config, only: [update_config_value: 4]
 
   @exchange "amq.topic"
+  @checkup_ms 100
 
   defstruct [:conn, :chan, :bot, :state_cache]
   alias __MODULE__, as: State
@@ -16,16 +18,11 @@ defmodule Farmbot.AMQP.LogTransport do
 
   def init([conn, jwt]) do
     Process.flag(:sensitive, true)
-    Farmbot.Registry.subscribe()
+    initial_bot_state = Farmbot.BotState.subscribe()
     {:ok, chan} = AMQP.Channel.open(conn)
     :ok = Basic.qos(chan, global: true)
-    state = struct(State, conn: conn, chan: chan, bot: jwt.bot)
-
-    for l <- Farmbot.Logger.handle_all_logs() do
-      do_handle_log(l, state)
-    end
-
-    {:ok, state}
+    state = struct(State, conn: conn, chan: chan, bot: jwt.bot, state_cache: initial_bot_state)
+    {:ok, state, 0}
   end
 
   def terminate(reason, state) do
@@ -41,20 +38,30 @@ defmodule Farmbot.AMQP.LogTransport do
     if state.chan, do: AMQP.Channel.close(state.chan)
   end
 
-  def handle_info({Farmbot.Registry, {Farmbot.Logger, {:log_ready, id}}}, state) do
-    if log = Farmbot.Logger.handle_log(id) do
-      do_handle_log(log, state)
+  def handle_info({Farmbot.BotState, change}, state) do
+    new_state_cache = Ecto.Changeset.apply_changes(change)
+    {:noreply, %{state | state_cache: new_state_cache}, @checkup_ms}
+  end
+
+  def handle_info(:timeout, state) do
+    {:noreply, state, {:continue, Farmbot.Logger.handle_all_logs()}}
+  end
+
+  def handle_continue([log | rest], state) do
+    case do_handle_log(log, state) do
+      :ok ->
+        {:noreply, state, {:continue, rest}}
+
+      error ->
+        Logger.error("Logger amqp client failed to upload log: #{inspect(error)}")
+        # Reschedule log to be uploaded again
+        Farmbot.Logger.insert_log!(log)
+        {:noreply, state, @checkup_ms}
     end
-
-    {:noreply, state}
   end
 
-  def handle_info({Farmbot.Registry, {Farmbot.BotState, bot_state}}, state) do
-    {:noreply, %{state | state_cache: bot_state}}
-  end
-
-  def handle_info({Farmbot.Registry, _}, state) do
-    {:noreply, state}
+  def handle_continue([], state) do
+    {:noreply, state, @checkup_ms}
   end
 
   defp do_handle_log(log, state) do
@@ -71,13 +78,15 @@ defmodule Farmbot.AMQP.LogTransport do
         major_version: log.version.major,
         minor_version: log.version.minor,
         patch_version: log.version.patch,
+        # QUESTION(Connor) - Why does this need `.to_unix()`?
+        # ANSWER(Connor) - because the FE needed it.
         created_at: DateTime.from_naive!(log.inserted_at, "Etc/UTC") |> DateTime.to_unix(),
         channels: log.meta[:channels] || [],
         message: log.message
       }
 
-      log = add_position_to_log(log_without_pos, location_data)
-      push_bot_log(state.chan, state.bot, log)
+      json_log = add_position_to_log(log_without_pos, location_data)
+      push_bot_log(state.chan, state.bot, json_log)
     end
   end
 
@@ -86,7 +95,7 @@ defmodule Farmbot.AMQP.LogTransport do
     :ok = AMQP.Basic.publish(chan, @exchange, "bot.#{bot}.logs", json)
   end
 
-  defp add_position_to_log(%{} = log, %{position: %{} = pos}) do
-    Map.merge(log, pos)
+  defp add_position_to_log(%{} = log, %{position: %{x: x, y: y, z: z}}) do
+    Map.merge(log, %{x: x, y: y, z: z})
   end
 end

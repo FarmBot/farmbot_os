@@ -45,6 +45,8 @@ defmodule Farmbot.Log do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @primary_key {:id, :binary_id, autogenerate: true}
+
   schema "logs" do
     field(:level, LogLevelType)
     field(:verbosity, :integer)
@@ -62,7 +64,7 @@ defmodule Farmbot.Log do
   end
 
   @required_fields [:level, :verbosity, :message]
-  @optional_fields [:meta, :function, :file, :line, :module]
+  @optional_fields [:meta, :function, :file, :line, :module, :id, :inserted_at, :updated_at]
 
   def changeset(log, params \\ %{}) do
     log
@@ -88,13 +90,13 @@ defmodule Farmbot.Log do
       end
     end
 
-    defp color(:debug),   do: IO.ANSI.light_blue()
-    defp color(:info),    do: IO.ANSI.cyan()
-    defp color(:busy),    do: IO.ANSI.blue()
+    defp color(:debug), do: IO.ANSI.light_blue()
+    defp color(:info), do: IO.ANSI.cyan()
+    defp color(:busy), do: IO.ANSI.blue()
     defp color(:success), do: IO.ANSI.green()
-    defp color(:warn),    do: IO.ANSI.yellow()
-    defp color(:error),   do: IO.ANSI.red()
-    defp color(:normal),  do: IO.ANSI.normal()
-    defp color(_),        do: IO.ANSI.normal()
+    defp color(:warn), do: IO.ANSI.yellow()
+    defp color(:error), do: IO.ANSI.red()
+    defp color(:normal), do: IO.ANSI.normal()
+    defp color(_), do: IO.ANSI.normal()
   end
 end

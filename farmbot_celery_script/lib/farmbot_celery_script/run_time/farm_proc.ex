@@ -128,8 +128,7 @@ defmodule Farmbot.CeleryScript.RunTime.FarmProc do
     kind = get_kind(farm_proc, pc_ptr)
     # TODO Connor 07-31-2018: why do i have to load the module here?
     available? =
-      Code.ensure_loaded?(InstructionSet) and
-        function_exported?(InstructionSet, kind, 1)
+      Code.ensure_loaded?(InstructionSet) and function_exported?(InstructionSet, kind, 1)
 
     unless available? do
       exception(farm_proc, "No implementation for: #{kind}")
@@ -216,8 +215,7 @@ defmodule Farmbot.CeleryScript.RunTime.FarmProc do
       ) do
     cell = get_cell_by_address(farm_proc, location)
 
-    cell[field] ||
-      exception(farm_proc, "no field called: #{field} at #{inspect(location)}")
+    cell[field] || exception(farm_proc, "no field called: #{field} at #{inspect(location)}")
   end
 
   @spec get_cell_attr_as_pointer(FarmProc.t(), Pointer.t(), atom) :: Pointer.t()
@@ -271,7 +269,6 @@ defmodule Farmbot.CeleryScript.RunTime.FarmProc do
         %FarmProc{} = farm_proc,
         %Pointer{page_address: page, heap_address: %Address{} = ha}
       ) do
-    get_heap_by_page_index(farm_proc, page)[ha] ||
-      exception(farm_proc, "bad address")
+    get_heap_by_page_index(farm_proc, page)[ha] || exception(farm_proc, "bad address")
   end
 end

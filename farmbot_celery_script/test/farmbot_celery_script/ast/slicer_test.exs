@@ -179,8 +179,7 @@ defmodule Farmbot.CeleryScript.AST.SlicerTest do
 
     assert heap[addr(2)][@kind] == :"Elixir.Farmbot.CeleryScript.AST.Node.ROOT[0]"
 
-    assert heap[heap[addr(2)][@body]][@kind] ==
-             :"Elixir.Farmbot.CeleryScript.AST.Node.ROOT[0][0]"
+    assert heap[heap[addr(2)][@body]][@kind] == :"Elixir.Farmbot.CeleryScript.AST.Node.ROOT[0][0]"
 
     assert heap[heap[addr(2)][@next]][@kind] == :"Elixir.Farmbot.CeleryScript.AST.Node.ROOT[1]"
 
