@@ -115,7 +115,7 @@ defmodule Farmbot.BotState do
 
   def handle_call({:set_job_progress, name, progress}, _from, state) do
     {reply, state} =
-      BotStateNG.set_job_progress(state.tree, name, progress)
+      BotStateNG.set_job_progress(state.tree, name, Map.from_struct(progress))
       |> dispatch_and_apply(state)
 
     {:reply, reply, state}

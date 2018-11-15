@@ -80,4 +80,15 @@ defmodule Farmbot.BotStateNG do
 
     put_change(cs, :user_env, new_user_env)
   end
+
+  def set_job_progress(state, name, progress) do
+    cs = changeset(state, %{})
+
+    new_jobs =
+      cs
+      |> get_field(:jobs)
+      |> Map.put(name, progress)
+
+    put_change(cs, :jobs, new_jobs)
+  end
 end

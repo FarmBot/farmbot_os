@@ -48,11 +48,19 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FbosConfig do
     :ok = Farmbot.BotState.set_config_value(key, val)
   end
 
-  defp maybe_reinit_firmware(%FbosConfig{} = conf) do
+  defp maybe_reinit_firmware(%FbosConfig{firmware_hardware: nil}) do
+    :ok
+  end
+
+  defp maybe_reinit_firmware(%FbosConfig{firmware_path: nil}) do
+    :ok
+  end
+
+  defp maybe_reinit_firmware(%FbosConfig{}) do
     alias Farmbot.Firmware
     alias Farmbot.Core.FirmwareSupervisor
 
-    if is_nil(Farmbot.Firmware) do
+    if is_nil(Process.whereis(Firmware)) do
       Logger.warn("Starting Farmbot firmware")
       FirmwareSupervisor.reinitialize()
     end
