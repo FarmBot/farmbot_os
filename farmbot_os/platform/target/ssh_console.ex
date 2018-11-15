@@ -14,14 +14,15 @@ defmodule Farmbot.Target.SSHConsole do
     port = get_config_value(:float, "settings", "ssh_port") |> round()
     authorized_key = get_config_value(:string, "settings", "authorized_ssh_key")
     decoded_authorized_key = do_decode(authorized_key)
+
     case start_ssh(port, decoded_authorized_key) do
       {:ok, ssh} ->
         {:ok, %{ssh: ssh}}
+
       _ ->
-        Farmbot.Logger.warn 1, "Could not start SSH."
+        Farmbot.Logger.warn(1, "Could not start SSH.")
         :ignore
     end
-
   end
 
   def terminate(_, %{ssh: ssh}) do
@@ -31,7 +32,9 @@ defmodule Farmbot.Target.SSHConsole do
   defp start_ssh(port, decoded_authorized_keys) when is_list(decoded_authorized_keys) do
     # Reuse keys from `nerves_firmware_ssh` so that the user only needs one
     # config.exs entry.
-    nerves_keys = Application.get_env(:nerves_firmware_ssh, :authorized_keys, []) |> Enum.join("\n")
+    nerves_keys =
+      Application.get_env(:nerves_firmware_ssh, :authorized_keys, []) |> Enum.join("\n")
+
     decoded_nerves_keys = do_decode(nerves_keys)
 
     cb_opts = [authorized_keys: decoded_nerves_keys ++ decoded_authorized_keys]
@@ -55,7 +58,7 @@ defmodule Farmbot.Target.SSHConsole do
       :public_key.ssh_decode(authorized_key, :auth_keys)
     rescue
       _err ->
-        Farmbot.Logger.warn 3, "Could not decode ssh keys."
+        Farmbot.Logger.warn(3, "Could not decode ssh keys.")
         []
     end
   end
