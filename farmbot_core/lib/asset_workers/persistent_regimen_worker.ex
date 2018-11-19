@@ -15,11 +15,14 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.PersistentRegimen do
 
   def preload(%PersistentRegimen{}), do: [:farm_event, :regimen]
 
-  def start_link(persistent_regimen) do
-    GenServer.start_link(__MODULE__, [persistent_regimen])
+  def start_link(persistent_regimen, args) do
+    GenServer.start_link(__MODULE__, [persistent_regimen, args])
   end
 
-  def init([persistent_regimen]) do
+  def init([persistent_regimen, args]) do
+    apply_sequence = Keyword.get(args, :apply_sequence, &CeleryScript.sequence/2)
+    Process.put(:apply_sequence, apply_sequence)
+
     with %Regimen{} <- persistent_regimen.regimen,
          %FarmEvent{} <- persistent_regimen.farm_event do
       {:ok, filter_items(persistent_regimen), 0}
@@ -53,7 +56,8 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.PersistentRegimen do
         )
 
         exe = Asset.get_sequence!(id: pr.next_sequence_id)
-        CeleryScript.sequence(exe, fn _ -> :ok end)
+        fun = Process.get(:apply_sequence)
+        apply(fun, [exe, fn _ -> :ok end])
         calculate_next(pr)
     end
   end

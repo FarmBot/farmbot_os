@@ -7,11 +7,11 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FbosConfig do
 
   def preload(%FbosConfig{}), do: []
 
-  def start_link(%FbosConfig{} = fbos_config) do
-    GenServer.start_link(__MODULE__, [%FbosConfig{} = fbos_config])
+  def start_link(%FbosConfig{} = fbos_config, _args) do
+    GenServer.start_link(__MODULE__, %FbosConfig{} = fbos_config)
   end
 
-  def init([%FbosConfig{} = fbos_config]) do
+  def init(%FbosConfig{} = fbos_config) do
     {:ok, %FbosConfig{} = fbos_config, 0}
   end
 
