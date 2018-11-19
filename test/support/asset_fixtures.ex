@@ -1,19 +1,39 @@
 defmodule Farmbot.TestSupport.AssetFixtures do
-  alias Farmbot.Asset.{Repo, Sequence, Regimen, FarmEvent}
+  alias Farmbot.Asset.{Repo, FarmEvent, FbosConfig, Regimen, Sequence}
+
+  def fbos_config(params \\ %{}) do
+    default = %{
+      id: :rand.uniform(10000),
+      monitor: false
+    }
+
+    FbosConfig
+    |> struct()
+    |> FbosConfig.changeset(Map.merge(default, params))
+    |> Repo.insert!()
+  end
 
   def sequence(params \\ %{}) do
+    default = %{
+      id: :rand.uniform(10000),
+      monitor: false,
+      kind: "sequence",
+      args: %{},
+      body: []
+    }
+
     Sequence
     |> struct()
-    |> Sequence.changeset(
-      Map.merge(%{id: :rand.uniform(10000), kind: "sequence", args: %{}, body: []}, params)
-    )
+    |> Sequence.changeset(Map.merge(default, params))
     |> Repo.insert!()
   end
 
   def regimen(params \\ %{}) do
+    default = %{id: :rand.uniform(10000), monitor: false, regimen_items: []}
+
     Regimen
     |> struct()
-    |> Regimen.changeset(Map.merge(%{id: :rand.uniform(10000), regimen_items: []}, params))
+    |> Regimen.changeset(Map.merge(default, params))
     |> Repo.insert!()
   end
 
@@ -24,6 +44,7 @@ defmodule Farmbot.TestSupport.AssetFixtures do
       Map.merge(
         %{
           id: :rand.uniform(1_000_000),
+          monitor: false,
           executable_type: "Regimen",
           executable_id: regimen.id,
           start_time: now,
@@ -47,6 +68,7 @@ defmodule Farmbot.TestSupport.AssetFixtures do
       Map.merge(
         %{
           id: :rand.uniform(1_000_000),
+          monitor: false,
           executable_type: "Sequence",
           executable_id: sequence.id,
           start_time: now,

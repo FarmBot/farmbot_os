@@ -43,6 +43,7 @@ defmodule Farmbot.Asset.Regimen do
 
     field(:name, :string)
     embeds_many(:regimen_items, Item, on_replace: :delete)
+    field(:monitor, :boolean, default: true)
     timestamps()
   end
 
@@ -56,7 +57,7 @@ defmodule Farmbot.Asset.Regimen do
 
   def changeset(regimen, params \\ %{}) do
     regimen
-    |> cast(params, [:id, :name, :created_at, :updated_at])
+    |> cast(params, [:id, :name, :monitor, :created_at, :updated_at])
     |> cast_embed(:regimen_items)
     |> validate_required([])
   end

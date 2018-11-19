@@ -16,6 +16,7 @@ defmodule Farmbot.Asset.PinBinding do
     field(:pin_num, :integer)
     field(:sequence_id, :integer)
     field(:special_action, :string)
+    field(:monitor, :boolean, default: true)
     timestamps()
   end
 
@@ -30,7 +31,15 @@ defmodule Farmbot.Asset.PinBinding do
 
   def changeset(pin_binding, params \\ %{}) do
     pin_binding
-    |> cast(params, [:id, :pin_num, :sequence_id, :special_action, :created_at, :updated_at])
+    |> cast(params, [
+      :id,
+      :pin_num,
+      :sequence_id,
+      :special_action,
+      :monitor,
+      :created_at,
+      :updated_at
+    ])
     |> validate_required([])
     |> validate_pin_num()
     |> unique_constraint(:pin_num)

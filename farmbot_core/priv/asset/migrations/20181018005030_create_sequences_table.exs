@@ -9,6 +9,7 @@ defmodule Farmbot.Asset.Repo.Migrations.CreateSequencesTable do
       add(:kind, :string)
       add(:args, :map)
       add(:body, {:array, :map})
+      add(:monitor, :boolean, default: true)
       timestamps(inserted_at: :created_at, type: :utc_datetime)
     end
   end
