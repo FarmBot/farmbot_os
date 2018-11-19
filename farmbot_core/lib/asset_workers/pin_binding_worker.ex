@@ -40,8 +40,8 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.PinBinding do
 
   def preload(%PinBinding{}), do: []
 
-  def start_link(%PinBinding{} = pin_binding) do
-    GenServer.start_link(__MODULE__, [%PinBinding{} = pin_binding])
+  def start_link(%PinBinding{} = pin_binding, _args) do
+    GenServer.start_link(__MODULE__, %PinBinding{} = pin_binding)
   end
 
   # This function is opaque and should be considered private.
@@ -50,7 +50,7 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.PinBinding do
     GenServer.cast(pid, :trigger)
   end
 
-  def init([%PinBinding{} = pin_binding]) do
+  def init(%PinBinding{} = pin_binding) do
     {:ok, pin_binding, 0}
   end
 

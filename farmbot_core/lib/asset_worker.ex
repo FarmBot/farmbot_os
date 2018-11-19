@@ -3,5 +3,5 @@ defprotocol Farmbot.AssetWorker do
   def preload(asset)
 
   @doc "GenServer childspec callback."
-  def start_link(asset)
+  def start_link(asset, args \\ [])
 end

@@ -12,11 +12,11 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmwareInstallation do
 
   def preload(%FWI{}), do: []
 
-  def start_link(fwi) do
-    GenServer.start_link(__MODULE__, [fwi])
+  def start_link(fwi, _args) do
+    GenServer.start_link(__MODULE__, fwi)
   end
 
-  def init([fwi]) do
+  def init(fwi) do
     {:ok, fwi, 0}
   end
 

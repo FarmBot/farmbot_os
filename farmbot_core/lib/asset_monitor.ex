@@ -41,7 +41,8 @@ defmodule Farmbot.AssetMonitor do
   end
 
   def handle_call(:force_checkup, caller, state) do
-    {:noreply, %{state | force_callers: state.force_callers ++ [caller]}, 0}
+    state = %{state | force_callers: state.force_callers ++ [caller], order: order()}
+    {:noreply, state, 0}
   end
 
   def handle_info(:timeout, %{order: []} = state) do
@@ -85,13 +86,13 @@ defmodule Farmbot.AssetMonitor do
         is_nil(sub_state[id]) ->
           Logger.debug("#{inspect(kind)} #{id} needs to be started")
           asset = Repo.preload(asset, Farmbot.AssetWorker.preload(asset))
-          Farmbot.AssetSupervisor.start_child(asset)
+          :ok = Farmbot.AssetSupervisor.start_child(asset) |> assert_result!(asset)
           Map.put(sub_state, id, updated_at)
 
         compare_datetimes(updated_at, sub_state[id]) == :gt ->
           Logger.warn("#{inspect(kind)} #{id} needs to be updated")
           asset = Repo.preload(asset, Farmbot.AssetWorker.preload(asset))
-          Farmbot.AssetSupervisor.update_child(asset)
+          :ok = Farmbot.AssetSupervisor.update_child(asset) |> assert_result!(asset)
           Map.put(sub_state, id, updated_at)
 
         true ->
@@ -99,6 +100,10 @@ defmodule Farmbot.AssetMonitor do
       end
     end)
   end
+
+  defp assert_result!(:ignore, _), do: :ok
+  defp assert_result!({:ok, _}, _), do: :ok
+  defp assert_result!(_, asset), do: exit("Failed to start or update child: #{inspect(asset)}")
 
   def order,
     do: [

@@ -1,9 +1,9 @@
 defmodule Farmbot.PersistentRegimenWorkerTest do
   use ExUnit.Case, async: true
-  alias Farmbot.{Asset.FarmEvent, Asset.PersistentRegimen}
+
+  alias Farmbot.Asset.PersistentRegimen
+
   import Farmbot.TestSupport.AssetFixtures
-  alias Farmbot.TestSupport.CeleryScript.TestIOLayer
-  import Farmbot.TestSupport
 
   test "regimen executes a sequence" do
     now = DateTime.utc_now()
@@ -12,23 +12,27 @@ defmodule Farmbot.PersistentRegimenWorkerTest do
     {:ok, epoch} = PersistentRegimen.build_epoch(now)
     offset = Timex.diff(now, epoch, :milliseconds) + 500
 
-    TestIOLayer.subscribe()
-    ast = TestIOLayer.debug_ast()
-    seq = sequence(%{body: [ast]})
+    seq = sequence()
+    regimen_params = %{regimen_items: [%{sequence_id: seq.id, time_offset: offset}]}
 
-    reg = regimen(%{regimen_items: [%{time_offset: offset, sequence_id: seq.id}]})
-
-    params = %{
+    farm_event_params = %{
       start_time: start_time,
       end_time: end_time,
       repeat: 1,
       time_unit: "never"
     }
 
-    assert %FarmEvent{} = fe = regimen_event(reg, params)
+    pr = persistent_regimen(regimen_params, farm_event_params)
 
-    {:ok, pid} = Farmbot.AssetWorker.start_link(fe)
-    Farmbot.AssetWorker.Farmbot.Asset.FarmEvent.force_checkup(pid)
-    assert_receive ^ast, farm_event_timeout() + persistent_regimen_timeout() + 5000
+    test_pid = self()
+
+    args = [
+      apply_sequence: fn _seq, _fun ->
+        send(test_pid, :executed)
+      end
+    ]
+
+    {:ok, _} = Farmbot.AssetWorker.Farmbot.Asset.PersistentRegimen.start_link(pr, args)
+    assert_receive :executed
   end
 end
