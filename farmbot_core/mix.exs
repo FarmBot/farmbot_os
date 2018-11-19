@@ -96,6 +96,10 @@ defmodule FarmbotCore.MixProject do
     ["lib", "../test/support"]
   end
 
+  defp elixirc_paths(:dev) do
+    ["lib", "../test/support"]
+  end
+
   defp elixirc_paths(_), do: ["lib"]
 
   defp aliases,

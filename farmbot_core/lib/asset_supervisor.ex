@@ -57,7 +57,7 @@ defmodule Farmbot.AssetSupervisor do
   end
 
   @doc false
-  def worker_spec(%{local_id: id} = asset) do
+  def worker_spec(%{local_id: id, monitor: true} = asset) do
     %{
       id: id,
       start: {AssetWorker, :start_link, [asset]}
@@ -73,11 +73,11 @@ defmodule Farmbot.AssetSupervisor do
   @doc false
   def init(args) do
     module = Keyword.fetch!(args, :module)
-    preload = Keyword.get(args, :preload, [])
 
     module
     |> Repo.all()
-    |> Enum.map(&Repo.preload(&1, preload))
+    |> Enum.filter(fn %{monitor: mon} -> mon == false end)
+    |> Enum.map(&Repo.preload(&1, AssetWorker.preload(&1)))
     |> Enum.map(&worker_spec/1)
     |> Supervisor.init(strategy: :one_for_one)
   end

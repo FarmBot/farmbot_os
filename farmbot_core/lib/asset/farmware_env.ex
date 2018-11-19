@@ -15,6 +15,7 @@ defmodule Elixir.Farmbot.Asset.FarmwareEnv do
 
     field(:key, :string)
     field(:value, :string)
+    field(:monitor, :boolean, default: true)
     timestamps()
   end
 
@@ -28,7 +29,7 @@ defmodule Elixir.Farmbot.Asset.FarmwareEnv do
 
   def changeset(farmware_env, params \\ %{}) do
     farmware_env
-    |> cast(params, [:id, :key, :value, :created_at, :updated_at])
+    |> cast(params, [:id, :key, :value, :monitor, :created_at, :updated_at])
     |> validate_required([])
   end
 end

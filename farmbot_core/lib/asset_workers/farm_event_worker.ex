@@ -1,13 +1,13 @@
 defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmEvent do
+  use GenServer
+  require Logger
+
   alias Farmbot.{
     Asset,
     Asset.FarmEvent,
     Asset.Regimen,
     Asset.Sequence
   }
-
-  require Logger
-  use GenServer
 
   defstruct [:farm_event, :datetime]
   alias __MODULE__, as: State
@@ -18,12 +18,19 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmEvent do
     config :farmbot_core, #{__MODULE__}, checkup_time_ms: 10_000
     """)
 
+  def preload(%FarmEvent{}), do: []
+
   def start_link(farm_event) do
     GenServer.start_link(__MODULE__, [farm_event])
   end
 
+  def force_checkup(pid) when is_pid(pid) do
+    Logger.warn("Forcing timeout on #{inspect(pid)}")
+    send(pid, :timeout)
+  end
+
   def init([farm_event]) do
-    Logger.disable(self())
+    # Logger.disable(self())
     ensure_executable!(farm_event)
     now = DateTime.utc_now()
 
@@ -115,12 +122,12 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmEvent do
 
   defp ensure_executed!(%FarmEvent{last_executed: nil} = event, %Regimen{} = exe, next_dt) do
     Logger.warn("Regimen: #{inspect(exe)} has not run before. Executing it.")
-    Asset.upsert_persistent_regimen(exe, event, %{started_at: next_dt})
+    Asset.upsert_persistent_regimen!(exe, event, %{started_at: next_dt})
     Asset.update_farm_event!(event, %{last_executed: next_dt})
   end
 
   defp ensure_executed!(%FarmEvent{} = event, %Regimen{} = exe, _next_dt) do
-    Asset.upsert_persistent_regimen(exe, event)
+    Asset.upsert_persistent_regimen!(exe, event)
     event
   end
 

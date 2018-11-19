@@ -8,6 +8,7 @@ defmodule Farmbot.Asset.Repo.Migrations.CreateSensorsTable do
       add(:pin, :integer)
       add(:mode, :integer)
       add(:label, :string)
+      add(:monitor, :boolean, default: true)
       timestamps(inserted_at: :created_at, type: :utc_datetime)
     end
   end
