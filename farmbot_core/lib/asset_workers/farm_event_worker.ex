@@ -9,7 +9,9 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmEvent do
     Asset.Sequence
   }
 
-  defstruct [:farm_event, :datetime]
+  alias Farmbot.Core.CeleryScript
+
+  defstruct [:farm_event, :datetime, :handle_sequence, :handle_regimen]
   alias __MODULE__, as: State
 
   @checkup_time_ms Application.get_env(:farmbot_core, __MODULE__)[:checkup_time_ms]
@@ -20,22 +22,21 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmEvent do
 
   def preload(%FarmEvent{}), do: []
 
-  def start_link(farm_event) do
-    GenServer.start_link(__MODULE__, [farm_event])
+  def start_link(farm_event, args) do
+    GenServer.start_link(__MODULE__, [farm_event, args])
   end
 
-  def force_checkup(pid) when is_pid(pid) do
-    Logger.warn("Forcing timeout on #{inspect(pid)}")
-    send(pid, :timeout)
-  end
-
-  def init([farm_event]) do
+  def init([farm_event, args]) do
     # Logger.disable(self())
     ensure_executable!(farm_event)
     now = DateTime.utc_now()
+    handle_sequence = Keyword.get(args, :handle_sequence, &CeleryScript.sequence/2)
+    handle_regimen = Keyword.get(args, :handle_regimen, &handle_regimen/3)
 
     state = %State{
       farm_event: farm_event,
+      handle_regimen: handle_regimen,
+      handle_sequence: handle_sequence,
       datetime: farm_event.last_executed || DateTime.utc_now()
     }
 
@@ -78,7 +79,16 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmEvent do
         diff when diff in [:lt, :eq] ->
           Logger.info("Event should be executed:  #{Timex.from_now(next)}")
           executable = ensure_executable!(state.farm_event)
-          event = ensure_executed!(state.farm_event, executable, next)
+
+          event =
+            ensure_executed!(
+              state.farm_event,
+              executable,
+              next,
+              state.handle_sequence,
+              state.handle_regimen
+            )
+
           {:noreply, %{state | farm_event: event, datetime: DateTime.utc_now()}, @checkup_time_ms}
       end
     else
@@ -87,7 +97,13 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmEvent do
     end
   end
 
-  defp ensure_executed!(%FarmEvent{last_executed: nil} = event, %Sequence{} = exe, next_dt) do
+  defp ensure_executed!(
+         %FarmEvent{last_executed: nil} = event,
+         %Sequence{} = exe,
+         next_dt,
+         handle_sequence,
+         _
+       ) do
     # positive if the first date/time comes after the second.
     comp = Timex.diff(DateTime.utc_now(), next_dt, :minutes)
 
@@ -99,19 +115,19 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmEvent do
 
       true ->
         Logger.warn("Sequence: #{inspect(exe)} has not run before: #{comp} minutes difference.")
-        Farmbot.Core.CeleryScript.sequence(exe, fn _ -> :ok end)
+        apply(handle_sequence, [exe, fn _ -> :ok end])
         Asset.update_farm_event!(event, %{last_executed: next_dt})
     end
   end
 
-  defp ensure_executed!(%FarmEvent{} = event, %Sequence{} = exe, next_dt) do
+  defp ensure_executed!(%FarmEvent{} = event, %Sequence{} = exe, next_dt, handle_sequence, _) do
     # positive if the first date/time comes after the second.
     comp = Timex.compare(event.last_executed, :minutes)
 
     cond do
       comp > 2 ->
         Logger.warn("Sequence: #{inspect(exe)} needs executing")
-        Farmbot.Core.CeleryScript.sequence(exe, fn _ -> :ok end)
+        apply(handle_sequence, [exe, fn _ -> :ok end])
         Asset.update_farm_event!(event, %{last_executed: next_dt})
 
       0 ->
@@ -120,14 +136,20 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmEvent do
     end
   end
 
-  defp ensure_executed!(%FarmEvent{last_executed: nil} = event, %Regimen{} = exe, next_dt) do
+  defp ensure_executed!(
+         %FarmEvent{last_executed: nil} = event,
+         %Regimen{} = exe,
+         next_dt,
+         _,
+         handle_regimen
+       ) do
     Logger.warn("Regimen: #{inspect(exe)} has not run before. Executing it.")
-    Asset.upsert_persistent_regimen!(exe, event, %{started_at: next_dt})
+    apply(handle_regimen, [exe, event, %{started_at: next_dt}])
     Asset.update_farm_event!(event, %{last_executed: next_dt})
   end
 
-  defp ensure_executed!(%FarmEvent{} = event, %Regimen{} = exe, _next_dt) do
-    Asset.upsert_persistent_regimen!(exe, event)
+  defp ensure_executed!(%FarmEvent{} = event, %Regimen{} = exe, _next_dt, _, handle_regimen) do
+    apply(handle_regimen, [exe, event, %{}])
     event
   end
 
@@ -137,5 +159,10 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmEvent do
 
   defp ensure_executable!(%FarmEvent{executable_type: "Regimen", executable_id: id}) do
     Asset.get_regimen!(id: id)
+  end
+
+  @doc false
+  def handle_regimen(exe, event, params) do
+    Asset.upsert_persistent_regimen!(exe, event, params)
   end
 end
