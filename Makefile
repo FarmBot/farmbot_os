@@ -42,6 +42,7 @@ clean: clean_other_branch
 	done
 
 format:
+	mix format
 	@for project in $(PROJECTS) ; do \
 		echo formatting $$project ; \
 		cd $$project && mix format && cd .. ; \
