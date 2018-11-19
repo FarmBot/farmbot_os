@@ -22,6 +22,7 @@ defmodule Elixir.Farmbot.Asset.FarmEvent do
 
     # Private
     field(:last_executed, :utc_datetime)
+    field(:monitor, :boolean, default: true)
 
     timestamps()
   end
@@ -49,6 +50,7 @@ defmodule Elixir.Farmbot.Asset.FarmEvent do
       :start_time,
       :time_unit,
       :last_executed,
+      :monitor,
       :created_at,
       :updated_at
     ])

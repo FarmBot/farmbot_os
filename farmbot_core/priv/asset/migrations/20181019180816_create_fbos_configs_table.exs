@@ -19,6 +19,7 @@ defmodule Elixir.Farmbot.Asset.Repo.Migrations.CreateFbosConfigsTable do
       add(:sequence_body_log, :boolean)
       add(:sequence_complete_log, :boolean)
       add(:sequence_init_log, :boolean)
+      add(:monitor, :boolean, default: true)
       timestamps(inserted_at: :created_at, type: :utc_datetime)
     end
   end

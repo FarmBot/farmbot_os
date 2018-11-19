@@ -24,7 +24,7 @@ defmodule Farmbot.Asset.Supervisor do
       Repo,
       {AssetSupervisor, module: FbosConfig},
       {AssetSupervisor, module: Device},
-      {AssetSupervisor, module: PersistentRegimen, preload: [:farm_event, :regimen]},
+      {AssetSupervisor, module: PersistentRegimen},
       {AssetSupervisor, module: FarmEvent},
       {AssetSupervisor, module: PinBinding},
       {AssetSupervisor, module: Peripheral},

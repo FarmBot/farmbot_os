@@ -20,6 +20,7 @@ defmodule Elixir.Farmbot.Asset.Repo.Migrations.CreateSyncsTable do
       add(:sequences, {:array, :map})
       add(:tools, {:array, :map})
       add(:now, :utc_datetime)
+      add(:monitor, :boolean, default: true)
       timestamps(inserted_at: :created_at, type: :utc_datetime)
     end
   end

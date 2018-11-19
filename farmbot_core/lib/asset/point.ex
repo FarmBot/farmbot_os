@@ -22,6 +22,7 @@ defmodule Farmbot.Asset.Point do
     field(:x, :float)
     field(:y, :float)
     field(:z, :float)
+    field(:monitor, :boolean, default: true)
     timestamps()
   end
 
@@ -53,6 +54,7 @@ defmodule Farmbot.Asset.Point do
       :x,
       :y,
       :z,
+      :monitor,
       :created_at,
       :updated_at
     ])
