@@ -1,6 +1,9 @@
 defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmwareEnv do
-  alias Farmbot.Asset.FarmwareEnv
   use GenServer
+
+  alias Farmbot.Asset.FarmwareEnv
+
+  def preload(%FarmwareEnv{}), do: []
 
   def start_link(%FarmwareEnv{} = env) do
     GenServer.start_link(__MODULE__, env)

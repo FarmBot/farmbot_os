@@ -1,9 +1,13 @@
 defimpl Farmbot.AssetWorker, for: Farmbot.Asset.Peripheral do
   use GenServer
+  require Farmbot.Logger
+
+  alias Farmbot.Asset.Peripheral
   alias Farmbot.Core.CeleryScript
   import Farmbot.CeleryScript.Utils
-  require Farmbot.Logger
   @retry_ms 5_000
+
+  def preload(%Peripheral{}), do: []
 
   def start_link(peripheral) do
     GenServer.start_link(__MODULE__, [peripheral])

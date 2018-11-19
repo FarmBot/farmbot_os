@@ -1,10 +1,14 @@
 defmodule Farmbot.FbosConfigWorkerTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   alias Farmbot.Asset.FbosConfig
 
+  import Farmbot.TestSupport.AssetFixtures
+
   test "adds configs to bot state and config_storage" do
-    conf =
-      FbosConfig.changeset(%FbosConfig{}, %{
+    %FbosConfig{} =
+      conf =
+      fbos_config(%{
+        monitor: true,
         arduino_debug_messages: true,
         auto_sync: false,
         beta_opt_in: true,
@@ -12,19 +16,18 @@ defmodule Farmbot.FbosConfigWorkerTest do
         firmware_hardware: "farmduino_k14",
         firmware_input_log: false,
         firmware_output_log: false,
-        id: 145,
         network_not_found_timer: nil,
         os_auto_update: false,
         sequence_body_log: true,
         sequence_complete_log: true,
         sequence_init_log: true
       })
-      |> Farmbot.Asset.Repo.insert!()
 
-    :ok = Farmbot.AssetMonitor.force_checkup()
+    {:ok, pid} = Farmbot.AssetWorker.start_link(conf)
+    send(pid, :timeout)
 
     # Wait for the timeout to be dispatched
-    Process.sleep(100)
+    Process.sleep(200)
 
     state_conf = Farmbot.BotState.fetch().configuration
     assert state_conf.arduino_debug_messages == conf.arduino_debug_messages

@@ -13,6 +13,7 @@ defmodule Farmbot.Asset.Tool do
     )
 
     field(:name, :string)
+    field(:monitor, :boolean, default: true)
     timestamps()
   end
 
@@ -25,7 +26,7 @@ defmodule Farmbot.Asset.Tool do
 
   def changeset(tool, params \\ %{}) do
     tool
-    |> cast(params, [:id, :name, :created_at, :updated_at])
+    |> cast(params, [:id, :name, :monitor, :created_at, :updated_at])
     |> validate_required([])
   end
 end

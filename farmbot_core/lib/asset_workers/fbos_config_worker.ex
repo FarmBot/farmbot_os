@@ -1,8 +1,11 @@
 defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FbosConfig do
   use GenServer
   require Logger
+
   alias Farmbot.Asset.FbosConfig
   import Farmbot.Config, only: [update_config_value: 4]
+
+  def preload(%FbosConfig{}), do: []
 
   def start_link(%FbosConfig{} = fbos_config) do
     GenServer.start_link(__MODULE__, [%FbosConfig{} = fbos_config])
