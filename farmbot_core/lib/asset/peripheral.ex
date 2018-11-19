@@ -17,6 +17,7 @@ defmodule Farmbot.Asset.Peripheral do
     field(:pin, :integer)
     field(:mode, :integer)
     field(:label, :string)
+    field(:monitor, :boolean, default: true)
     timestamps()
   end
 
@@ -31,7 +32,7 @@ defmodule Farmbot.Asset.Peripheral do
 
   def changeset(peripheral, params \\ %{}) do
     peripheral
-    |> cast(params, [:id, :pin, :mode, :label, :created_at, :updated_at])
+    |> cast(params, [:id, :pin, :mode, :label, :monitor, :created_at, :updated_at])
     |> validate_required([])
   end
 end

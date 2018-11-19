@@ -1,5 +1,5 @@
 defmodule Farmbot.AssetMonitorTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
   alias Farmbot.Asset
   alias Farmbot.AssetSupervisor
   import Farmbot.TestSupport.AssetFixtures
@@ -10,7 +10,8 @@ defmodule Farmbot.AssetMonitorTest do
       seq = sequence()
       reg = regimen(%{regimen_items: [%{time_offset: 100, sequence_id: seq.id}]})
       event = regimen_event(reg)
-      {:ok, pr} = Asset.upsert_persistent_regimen(reg, event)
+      pr = Asset.upsert_persistent_regimen!(reg, event)
+      pr = Asset.update_persistent_regimen!(pr, %{monitor: true})
 
       Farmbot.AssetMonitor.force_checkup()
 
@@ -34,6 +35,7 @@ defmodule Farmbot.AssetMonitorTest do
       end_time = Timex.shift(now, minutes: 10)
 
       params = %{
+        monitor: true,
         start_time: start_time,
         end_time: end_time,
         repeat: 1,

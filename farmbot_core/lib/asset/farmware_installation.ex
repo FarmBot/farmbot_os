@@ -18,6 +18,7 @@ defmodule Farmbot.Asset.FarmwareInstallation do
     field(:url, :string)
 
     embeds_one(:manifest, Manifest, on_replace: :update)
+    field(:monitor, :boolean, default: true)
     timestamps()
   end
 
@@ -30,7 +31,7 @@ defmodule Farmbot.Asset.FarmwareInstallation do
 
   def changeset(farmware_installation, params \\ %{}) do
     farmware_installation
-    |> cast(params, [:id, :url, :created_at, :updated_at])
+    |> cast(params, [:id, :url, :monitor, :created_at, :updated_at])
     |> cast_embed(:manifest)
     |> validate_required([])
   end

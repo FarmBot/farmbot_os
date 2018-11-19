@@ -28,6 +28,7 @@ defmodule Farmbot.Asset.Private.LocalMeta do
     field(:status, :string)
     field(:table, :string)
     field(:asset_local_id, :binary_id)
+    field(:monitor, :boolean, default: true)
 
     belongs_to(:device, Device,
       foreign_key: :asset_local_id,

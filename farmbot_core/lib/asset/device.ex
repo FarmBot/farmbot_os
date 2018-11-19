@@ -17,6 +17,7 @@ defmodule Farmbot.Asset.Device do
 
     field(:name, :string)
     field(:timezone, :string)
+    field(:monitor, :boolean, default: true)
     timestamps()
   end
 
@@ -30,7 +31,7 @@ defmodule Farmbot.Asset.Device do
 
   def changeset(device, params \\ %{}) do
     device
-    |> cast(params, [:id, :name, :timezone, :created_at, :updated_at])
+    |> cast(params, [:id, :name, :timezone, :monitor, :created_at, :updated_at])
     |> validate_required([])
   end
 end
