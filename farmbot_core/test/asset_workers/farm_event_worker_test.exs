@@ -3,18 +3,12 @@ defmodule Farmbot.FarmEventWorkerTest do
   alias Farmbot.Asset.FarmEvent
 
   import Farmbot.TestSupport.AssetFixtures
-  alias Farmbot.TestSupport.CeleryScript.TestIOLayer
-  import Farmbot.TestSupport
 
   # Regimen tests are in the PersistentRegimeWorker test
 
   describe "sequences" do
-    # TODO(Connor) - this test isn't really that good
-    # Because it is timeout based..
     test "doesn't execute a sequence more than 2 mintues late" do
-      TestIOLayer.subscribe()
-      ast = TestIOLayer.debug_ast()
-      seq = sequence(%{body: [ast]})
+      seq = sequence()
       now = DateTime.utc_now()
       start_time = Timex.shift(now, minutes: -20)
       end_time = Timex.shift(now, minutes: 10)
@@ -27,19 +21,25 @@ defmodule Farmbot.FarmEventWorkerTest do
       }
 
       assert %FarmEvent{} = fe = sequence_event(seq, params)
-      {:ok, pid} = Farmbot.AssetWorker.start_link(fe)
-      Farmbot.AssetWorker.Farmbot.Asset.FarmEvent.force_checkup(pid)
+      test_pid = self()
+
+      args = [
+        handle_sequence: fn _sequence, _function ->
+          send(test_pid, {:executed, test_pid})
+        end
+      ]
+
+      {:ok, pid} = Farmbot.AssetWorker.start_link(fe, args)
+      send(pid, :timeout)
 
       # This is not really that useful.
-      refute_receive ^ast, farm_event_timeout() + 5000
+      refute_receive {:executed, ^test_pid}
     end
   end
 
   describe "common" do
     test "schedules an event in the future" do
-      TestIOLayer.subscribe()
-      ast = TestIOLayer.debug_ast()
-      seq = sequence(%{body: [ast]})
+      seq = sequence()
       now = DateTime.utc_now()
       start_time = Timex.shift(now, seconds: 2)
       end_time = Timex.shift(now, minutes: 10)
@@ -52,18 +52,25 @@ defmodule Farmbot.FarmEventWorkerTest do
       }
 
       assert %FarmEvent{} = fe = sequence_event(seq, params)
-      {:ok, pid} = Farmbot.AssetWorker.start_link(fe)
-      Farmbot.AssetWorker.Farmbot.Asset.FarmEvent.force_checkup(pid)
-      assert_receive ^ast, farm_event_timeout() + 5000
+      test_pid = self()
+
+      args = [
+        handle_sequence: fn _sequence, _fun ->
+          send(test_pid, {:executed, test_pid})
+        end
+      ]
+
+      {:ok, pid} = Farmbot.AssetWorker.start_link(fe, args)
+      send(pid, :timeout)
+      assert_receive {:executed, ^test_pid}, 5_000
     end
 
     test "wont start an event after end_time" do
-      TestIOLayer.subscribe()
-      ast = TestIOLayer.debug_ast()
-      seq = sequence(%{body: [ast]})
+      seq = sequence()
       now = DateTime.utc_now()
-      start_time = Timex.shift(now, seconds: 2)
+      start_time = Timex.shift(now, minutes: -12)
       end_time = Timex.shift(now, minutes: -10)
+      assert Timex.from_now(end_time) == "10 minutes ago"
 
       params = %{
         start_time: start_time,
@@ -73,10 +80,19 @@ defmodule Farmbot.FarmEventWorkerTest do
       }
 
       assert %FarmEvent{} = fe = sequence_event(seq, params)
-      {:ok, pid} = Farmbot.AssetWorker.start_link(fe)
-      Farmbot.AssetWorker.Farmbot.Asset.FarmEvent.force_checkup(pid)
+      # refute FarmEvent.build_calendar(fe, now)
+      assert fe.end_time == end_time
+      test_pid = self()
+
+      args = [
+        handle_sequence: fn _sequence, _fun ->
+          send(test_pid, {:executed, test_pid})
+        end
+      ]
+
+      assert :ignore = Farmbot.AssetWorker.start_link(fe, args)
       # This is not really that useful.
-      refute_receive ^ast
+      refute_receive {:executed, ^test_pid}, 5_000
     end
   end
 end
