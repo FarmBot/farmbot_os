@@ -3,6 +3,7 @@ defaults: &defaults
   docker:
     - image: nervesproject/nerves_system_br:1.5.2
   environment:
+    TZ: "America/Los_Angeles"
     ELIXIR_VERSION: 1.7.3
 
 install_elixir: &install_elixir
