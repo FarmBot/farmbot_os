@@ -14,8 +14,8 @@ defmodule Farmbot.AssetSupervisor do
     name = Module.concat(__MODULE__, kind)
 
     Supervisor.which_children(name)
-    |> Enum.find_value(fn {sup_id, pid, :worker, _} ->
-      sup_id == id && pid
+    |> Enum.find(fn {sup_id, _pid, _type, _} ->
+      sup_id == id
     end)
   end
 
