@@ -5,11 +5,11 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.Device do
 
   def preload(%Device{}), do: []
 
-  def start_link(%Device{} = device) do
-    GenServer.start_link(__MODULE__, [%Device{} = device])
+  def start_link(%Device{} = device, _args) do
+    GenServer.start_link(__MODULE__, %Device{} = device)
   end
 
-  def init([%Device{} = device]) do
+  def init(%Device{} = device) do
     {:ok, %Device{} = device, 0}
   end
 
