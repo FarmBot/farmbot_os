@@ -1,31 +1,12 @@
 defmodule Farmbot.FarmEventWorkerTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   alias Farmbot.Asset.FarmEvent
 
   import Farmbot.TestSupport.AssetFixtures
   alias Farmbot.TestSupport.CeleryScript.TestIOLayer
   import Farmbot.TestSupport
 
-  describe "regimens" do
-    test "always ensure a regimen is started" do
-      seq = sequence()
-      reg = regimen(%{regimen_items: [%{time_offset: 100, sequence_id: seq.id}]})
-
-      now = DateTime.utc_now()
-      start_time = Timex.shift(now, minutes: -20)
-      end_time = Timex.shift(now, minutes: 10)
-
-      params = %{
-        start_time: start_time,
-        end_time: end_time,
-        repeat: 1,
-        time_unit: "never"
-      }
-
-      _event = regimen_event(reg, params)
-      refute :lookup_persistent_regimen_after_sleep?
-    end
-  end
+  # Regimen tests are in the PersistentRegimeWorker test
 
   describe "sequences" do
     # TODO(Connor) - this test isn't really that good
@@ -45,9 +26,12 @@ defmodule Farmbot.FarmEventWorkerTest do
         time_unit: "never"
       }
 
-      assert %FarmEvent{} = sequence_event(seq, params)
+      assert %FarmEvent{} = fe = sequence_event(seq, params)
+      {:ok, pid} = Farmbot.AssetWorker.start_link(fe)
+      Farmbot.AssetWorker.Farmbot.Asset.FarmEvent.force_checkup(pid)
+
       # This is not really that useful.
-      refute_receive ^ast, farm_event_timeout()
+      refute_receive ^ast, farm_event_timeout() + 5000
     end
   end
 
@@ -67,8 +51,10 @@ defmodule Farmbot.FarmEventWorkerTest do
         time_unit: "minutely"
       }
 
-      assert %FarmEvent{} = sequence_event(seq, params)
-      assert_receive ^ast, farm_event_timeout()
+      assert %FarmEvent{} = fe = sequence_event(seq, params)
+      {:ok, pid} = Farmbot.AssetWorker.start_link(fe)
+      Farmbot.AssetWorker.Farmbot.Asset.FarmEvent.force_checkup(pid)
+      assert_receive ^ast, farm_event_timeout() + 5000
     end
 
     test "wont start an event after end_time" do
@@ -86,7 +72,9 @@ defmodule Farmbot.FarmEventWorkerTest do
         time_unit: "minutely"
       }
 
-      assert %FarmEvent{} = sequence_event(seq, params)
+      assert %FarmEvent{} = fe = sequence_event(seq, params)
+      {:ok, pid} = Farmbot.AssetWorker.start_link(fe)
+      Farmbot.AssetWorker.Farmbot.Asset.FarmEvent.force_checkup(pid)
       # This is not really that useful.
       refute_receive ^ast
     end

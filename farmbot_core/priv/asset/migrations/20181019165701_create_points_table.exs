@@ -14,6 +14,7 @@ defmodule Farmbot.Asset.Repo.Migrations.CreatePointsTable do
       add(:x, :float)
       add(:y, :float)
       add(:z, :float)
+      add(:monitor, :boolean, default: true)
       timestamps(inserted_at: :created_at, type: :utc_datetime)
     end
   end

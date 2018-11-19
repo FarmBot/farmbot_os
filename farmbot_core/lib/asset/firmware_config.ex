@@ -101,6 +101,7 @@ defmodule Elixir.Farmbot.Asset.FirmwareConfig do
     field(:encoder_invert_x, :float)
     field(:encoder_missed_steps_max_x, :float)
     field(:movement_invert_motor_y, :float)
+    field(:monitor, :boolean, default: true)
     timestamps()
   end
 
@@ -290,6 +291,7 @@ defmodule Elixir.Farmbot.Asset.FirmwareConfig do
       :encoder_invert_x,
       :encoder_missed_steps_max_x,
       :movement_invert_motor_y,
+      :monitor,
       :created_at,
       :updated_at
     ])

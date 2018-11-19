@@ -30,23 +30,31 @@ defmodule Farmbot.AssetMonitor do
   # This is helpful for tests, but should probably be avoided
   @doc false
   def force_checkup do
-    GenServer.call(__MODULE__, :force_checkup)
+    GenServer.call(__MODULE__, :force_checkup, :infinity)
   end
 
   def init(_args) do
     state = Map.new(order(), fn module -> {module, %{}} end)
     state = Map.put(state, :order, order())
-    state = Map.put(state, :force_caller, nil)
+    state = Map.put(state, :force_callers, [])
     {:ok, state, 0}
   end
 
   def handle_call(:force_checkup, caller, state) do
-    {:noreply, %{state | force_caller: caller}, 0}
+    {:noreply, %{state | force_callers: state.force_callers ++ [caller]}, 0}
   end
 
   def handle_info(:timeout, %{order: []} = state) do
-    if state.force_caller, do: GenServer.reply(state.force_caller, :ok)
-    {:noreply, %{state | order: order(), force_caller: nil}, @checkup_time_ms}
+    state = %{state | order: order()}
+
+    case state.force_callers do
+      [caller | rest] ->
+        GenServer.reply(caller, :ok)
+        {:noreply, %{state | force_callers: rest}, 0}
+
+      [] ->
+        {:noreply, state, @checkup_time_ms}
+    end
   end
 
   def handle_info(:timeout, state) do
@@ -70,13 +78,19 @@ defmodule Farmbot.AssetMonitor do
     Enum.reduce(expected, sub_state, fn %{local_id: id, updated_at: updated_at} = asset,
                                         sub_state ->
       cond do
+        asset.monitor == false ->
+          # Logger.debug("#{inspect(kind)} #{id} should not be monitored")
+          Map.put(sub_state, id, updated_at)
+
         is_nil(sub_state[id]) ->
           Logger.debug("#{inspect(kind)} #{id} needs to be started")
+          asset = Repo.preload(asset, Farmbot.AssetWorker.preload(asset))
           Farmbot.AssetSupervisor.start_child(asset)
           Map.put(sub_state, id, updated_at)
 
         compare_datetimes(updated_at, sub_state[id]) == :gt ->
           Logger.warn("#{inspect(kind)} #{id} needs to be updated")
+          asset = Repo.preload(asset, Farmbot.AssetWorker.preload(asset))
           Farmbot.AssetSupervisor.update_child(asset)
           Map.put(sub_state, id, updated_at)
 
@@ -91,7 +105,7 @@ defmodule Farmbot.AssetMonitor do
       Device,
       FbosConfig,
       FarmEvent,
-      # Peripheral,
+      Peripheral,
       PersistentRegimen,
       PinBinding,
       FarmwareInstallation,
