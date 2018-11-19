@@ -1,12 +1,16 @@
 defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmwareInstallation do
   use GenServer
+  require Farmbot.Logger
+
   alias Farmbot.Asset.Repo
   alias Farmbot.Asset.FarmwareInstallation, as: FWI
-  require Farmbot.Logger
+
   config = Application.get_env(:farmbot_core, __MODULE__)
   @install_dir config[:install_dir] || Mix.raise("Missing Install Dir")
   @error_retry_time_ms config[:error_retry_time_ms] || 30_000
   @manifest_name "manifest.json"
+
+  def preload(%FWI{}), do: []
 
   def start_link(fwi) do
     GenServer.start_link(__MODULE__, [fwi])

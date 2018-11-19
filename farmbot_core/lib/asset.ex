@@ -65,7 +65,7 @@ defmodule Farmbot.Asset do
 
   ## Begin PersistentRegimen
 
-  def upsert_persistent_regimen(%Regimen{} = regimen, %FarmEvent{} = farm_event, params \\ %{}) do
+  def upsert_persistent_regimen!(%Regimen{} = regimen, %FarmEvent{} = farm_event, params \\ %{}) do
     q =
       from(pr in PersistentRegimen,
         where: pr.regimen_id == ^regimen.local_id and pr.farm_event_id == ^farm_event.local_id
@@ -78,7 +78,13 @@ defmodule Farmbot.Asset do
     |> PersistentRegimen.changeset(params)
     |> Ecto.Changeset.put_assoc(:regimen, regimen)
     |> Ecto.Changeset.put_assoc(:farm_event, farm_event)
-    |> Repo.insert_or_update()
+    |> Repo.insert_or_update!()
+  end
+
+  def update_persistent_regimen!(%PersistentRegimen{} = pr, params \\ %{}) do
+    pr
+    |> PersistentRegimen.changeset(params)
+    |> Repo.update!()
   end
 
   ## End PersistentRegimen

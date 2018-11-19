@@ -1,9 +1,8 @@
 defimpl Farmbot.AssetWorker, for: Farmbot.Asset.PinBinding do
-  @gpio_handler Application.get_env(:farmbot_core, __MODULE__)[:gpio_handler]
-  @error_retry_time_ms Application.get_env(:farmbot_core, __MODULE__)[:error_retry_time_ms]
-
+  use GenServer
   require Logger
   require Farmbot.Logger
+
   import Farmbot.CeleryScript.Utils
 
   alias Farmbot.{
@@ -12,6 +11,9 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.PinBinding do
     Asset.Sequence,
     Asset
   }
+
+  @gpio_handler Application.get_env(:farmbot_core, __MODULE__)[:gpio_handler]
+  @error_retry_time_ms Application.get_env(:farmbot_core, __MODULE__)[:error_retry_time_ms]
 
   @gpio_handler ||
     Mix.raise("""
@@ -36,7 +38,7 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.PinBinding do
   """
   @callback start_link(pin_number, trigger_fun) :: GenServer.on_start()
 
-  use GenServer
+  def preload(%PinBinding{}), do: []
 
   def start_link(%PinBinding{} = pin_binding) do
     GenServer.start_link(__MODULE__, [%PinBinding{} = pin_binding])

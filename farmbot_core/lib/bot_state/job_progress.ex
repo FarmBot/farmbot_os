@@ -8,7 +8,7 @@ defmodule Farmbot.BotState.JobProgress do
 
   defmodule Percent do
     @moduledoc "Percent job."
-    defstruct status: :working, percent: 0, unit: :percent, type: :ota, time: nil
+    defstruct status: :working, percent: 0, unit: :percent, type: :ota, time: nil, file_type: nil
 
     defimpl Inspect, for: __MODULE__ do
       def inspect(%{percent: percent}, _) do
@@ -28,7 +28,7 @@ defmodule Farmbot.BotState.JobProgress do
 
   defmodule Bytes do
     @moduledoc "Bytes job."
-    defstruct status: :working, bytes: 0, unit: :bytes, type: :ota, time: nil
+    defstruct status: :working, bytes: 0, unit: :bytes, type: :ota, time: nil, file_type: nil
 
     defimpl Inspect, for: __MODULE__ do
       def inspect(%{bytes: bytes}, _) do

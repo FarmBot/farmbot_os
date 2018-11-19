@@ -93,6 +93,7 @@ defmodule Elixir.Farmbot.Asset.Repo.Migrations.CreateFirmwareConfigsTable do
       add(:encoder_invert_x, :float)
       add(:encoder_missed_steps_max_x, :float)
       add(:movement_invert_motor_y, :float)
+      add(:monitor, :boolean, default: true)
       timestamps(inserted_at: :created_at, type: :utc_datetime)
     end
   end

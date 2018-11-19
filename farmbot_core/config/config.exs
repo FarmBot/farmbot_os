@@ -1,6 +1,7 @@
 use Mix.Config
 
 config :farmbot_core, Farmbot.AssetWorker.Farmbot.Asset.FarmEvent, checkup_time_ms: 10_000
+config :farmbot_core, Farmbot.AssetWorker.Farmbot.Asset.PersistentRegimen, checkup_time_ms: 10_000
 
 config :farmbot_core, Farmbot.AssetWorker.Farmbot.Asset.FarmwareInstallation,
   error_retry_time_ms: 30_000,

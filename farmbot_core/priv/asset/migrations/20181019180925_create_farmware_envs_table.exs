@@ -7,6 +7,7 @@ defmodule Elixir.Farmbot.Asset.Repo.Migrations.CreateFarmwareEnvsTable do
       add(:id, :id)
       add(:key, :string)
       add(:value, :string)
+      add(:monitor, :boolean, default: true)
       timestamps(inserted_at: :created_at, type: :utc_datetime)
     end
   end

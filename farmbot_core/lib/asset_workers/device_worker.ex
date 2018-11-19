@@ -3,6 +3,8 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.Device do
   use GenServer
   import Farmbot.Config, only: [update_config_value: 4]
 
+  def preload(%Device{}), do: []
+
   def start_link(%Device{} = device) do
     GenServer.start_link(__MODULE__, [%Device{} = device])
   end
