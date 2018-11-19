@@ -12,3 +12,5 @@ alias Farmbot.Asset.{
   PersistentRegimen,
   Sequence
 }
+
+alias Farmbot.TestSupport.AssetFixtures

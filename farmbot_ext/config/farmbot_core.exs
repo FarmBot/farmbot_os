@@ -1,5 +1,6 @@
 use Mix.Config
 config :farmbot_core, Farmbot.AssetWorker.Farmbot.Asset.FarmEvent, checkup_time_ms: 10_000
+config :farmbot_core, Farmbot.AssetWorker.Farmbot.Asset.PersistentRegimen, checkup_time_ms: 10_000
 
 config :farmbot_core, Elixir.Farmbot.AssetWorker.Farmbot.Asset.PinBinding,
   gpio_handler: Farmbot.PinBindingWorker.StubGPIOHandler,

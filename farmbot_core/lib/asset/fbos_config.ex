@@ -27,6 +27,7 @@ defmodule Elixir.Farmbot.Asset.FbosConfig do
     field(:sequence_body_log, :boolean)
     field(:sequence_complete_log, :boolean)
     field(:sequence_init_log, :boolean)
+    field(:monitor, :boolean, default: true)
     timestamps()
   end
 
@@ -68,6 +69,7 @@ defmodule Elixir.Farmbot.Asset.FbosConfig do
       :sequence_body_log,
       :sequence_complete_log,
       :sequence_init_log,
+      :monitor,
       :created_at,
       :updated_at
     ])

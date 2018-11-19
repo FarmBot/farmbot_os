@@ -18,6 +18,7 @@ defmodule Farmbot.Asset.Sequence do
     field(:kind, :string)
     field(:args, :map)
     field(:body, {:array, :map})
+    field(:monitor, :boolean, default: true)
     timestamps()
   end
 
@@ -33,7 +34,7 @@ defmodule Farmbot.Asset.Sequence do
 
   def changeset(device, params \\ %{}) do
     device
-    |> cast(params, [:id, :args, :name, :kind, :body, :created_at, :updated_at])
+    |> cast(params, [:id, :args, :name, :kind, :body, :monitor, :created_at, :updated_at])
     |> validate_required([])
   end
 end

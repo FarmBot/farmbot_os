@@ -20,6 +20,7 @@ defmodule Elixir.Farmbot.Asset.DiagnosticDump do
     field(:firmware_state, :string)
     field(:network_interface, :string)
     field(:fbos_dmesg_dump, :string)
+    field(:monitor, :boolean, default: true)
     timestamps()
   end
 
@@ -47,6 +48,7 @@ defmodule Elixir.Farmbot.Asset.DiagnosticDump do
       :firmware_state,
       :network_interface,
       :fbos_dmesg_dump,
+      :monitor,
       :created_at,
       :updated_at
     ])

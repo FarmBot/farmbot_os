@@ -20,6 +20,7 @@ defmodule Farmbot.Asset.SensorReading do
     field(:x, :float)
     field(:y, :float)
     field(:z, :float)
+    field(:monitor, :boolean, default: true)
     timestamps()
   end
 
@@ -38,7 +39,7 @@ defmodule Farmbot.Asset.SensorReading do
 
   def changeset(sensor, params \\ %{}) do
     sensor
-    |> cast(params, [:id, :mode, :pin, :value, :x, :y, :z, :created_at, :updated_at])
+    |> cast(params, [:id, :mode, :pin, :value, :x, :y, :z, :monitor, :created_at, :updated_at])
     |> validate_required([])
   end
 end
