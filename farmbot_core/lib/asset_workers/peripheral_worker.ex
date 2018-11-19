@@ -9,11 +9,11 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.Peripheral do
 
   def preload(%Peripheral{}), do: []
 
-  def start_link(peripheral) do
-    GenServer.start_link(__MODULE__, [peripheral])
+  def start_link(peripheral, _args) do
+    GenServer.start_link(__MODULE__, peripheral)
   end
 
-  def init([peripheral]) do
+  def init(peripheral) do
     {:ok, peripheral, 0}
   end
 
