@@ -28,8 +28,8 @@ defmodule Farmbot.System.NervesHubClient do
     _ = GenServer.stop(Nerves.Runtime.KV)
     {:ok, _} = Application.ensure_all_started(:nerves_hub)
     Process.sleep(1000)
-    _ = NervesHub.connect()
-    Logger.info "NervesHub started."
+    r = NervesHub.connect()
+    Logger.info "NervesHub started: #{inspect(r)}"
     :ok
   end
 
