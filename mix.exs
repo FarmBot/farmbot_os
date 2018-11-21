@@ -133,8 +133,7 @@ defmodule Farmbot.Mixfile do
       {:bbmustache, "~> 1.6"},
       {:sqlite_ecto2, "~> 2.2"},
       {:logger_backend_sqlite, "~> 2.1"},
-      {:nerves_hub_cli, path: "/home/connor/oss/elixir/nerves_hub/nerves_hub_cli", runtime: false, override: true}
-      # {:nerves_hub_cli, github: "nerves-hub/nerves_hub_cli", runtime: false, override: true}
+      {:nerves_hub_cli, "~> 0.4"}
     ]
   end
 
@@ -153,9 +152,8 @@ defmodule Farmbot.Mixfile do
     system(target) ++
       [
         {:nerves_runtime, "~> 0.8"},
-        {:nerves_hub, path: "/home/connor/oss/elixir/nerves_hub/nerves_hub", override: true},
-        # {:nerves_hub,
-        #  github: "nerves-hub/nerves_hub", branch: "client-additions", override: true},
+        {:nerves_hub,
+         github: "nerves-hub/nerves_hub", override: true},
         {:nerves_firmware, "~> 0.4"},
         {:nerves_firmware_ssh, "~> 0.3"},
         {:nerves_init_gadget, "~> 0.5", only: :dev},
