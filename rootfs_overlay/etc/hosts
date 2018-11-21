@@ -1,8 +1,0 @@
-127.0.0.1       localhost
-
-## Uncomment this address if you are running NervesHubWeb locally
-## Change IP address to the IP of your local NervesHubWeb server.
-
-192.168.1.68 nerves-hub.org          nerves-hub.org
-192.168.1.68 api.nerves-hub.org      nerves-hub.org
-192.168.1.68 device.nerves-hub.org   nerves-hub.org
