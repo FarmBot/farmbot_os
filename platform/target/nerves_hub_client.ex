@@ -29,7 +29,7 @@ defmodule Farmbot.System.NervesHubClient do
     {:ok, _} = Application.ensure_all_started(:nerves_hub)
     Process.sleep(1000)
     r = NervesHub.connect()
-    Logger.info "NervesHub started: #{inspect(r)}"
+    Logger.info "NervesHub started: #{inspect(r, limit: :infinity)}"
     :ok
   end
 
