@@ -4,6 +4,7 @@ defmodule Farmbot.Project do
   @version Mix.Project.config[:version]
   @target Mix.Project.config[:target]
   @commit Mix.Project.config[:commit]
+  @branch Mix.Project.config[:branch]
   @arduino_commit Mix.Project.config[:arduino_commit]
   @env Mix.env()
 
@@ -14,6 +15,10 @@ defmodule Farmbot.Project do
   @doc "*#{@commit}*"
   @compile {:inline, commit: 0}
   def commit, do: @commit
+
+  @doc "*#{@branch}*"
+  @compile {:inline, branch: 0}
+  def branch, do: @branch
 
   @doc "*#{@arduino_commit}*"
   @compile {:inline, arduino_commit: 0}
