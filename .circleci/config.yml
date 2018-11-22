@@ -70,7 +70,7 @@ jobs:
           paths:
             - _build/host
             - deps/host
-  rpi3_firmware:
+  build_rpi3_prod_firmware:
     <<: *defaults
     environment:
       MIX_ENV: prod
@@ -111,7 +111,7 @@ jobs:
           key: nerves/deploy/system-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
           paths:
             - "/nerves/deploy/system"
-  deploy_stable_image:
+  deploy_rpi3_prod_firmware_master:
     <<: *defaults
     environment:
       MIX_ENV: prod
@@ -139,9 +139,12 @@ jobs:
           name: Publish Github Release
           command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -draft -delete -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)" /nerves/deploy/system/
       - run:
+          name: Sign Image
+          command: mix nerves_hub.firmware sign --key prod
+      - run:
           name: Publish to NervesHub
           command: mix nerves_hub.firmware publish --deploy prod-stable
-  deploy_beta_image:
+  deploy_rpi3_prod_firmware_beta:
     <<: *defaults
     environment:
       MIX_ENV: prod
@@ -169,9 +172,12 @@ jobs:
           name: Publish Github Release
           command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -prerelease -recreate -prerelease -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)" /nerves/deploy/system/
       - run:
+          name: Sign Image
+          command: mix nerves_hub.firmware sign --key prod
+      - run:
           name: Publish to NervesHub
           command: mix nerves_hub.firmware publish --deploy prod-beta
-  deploy_staging_image:
+  deploy_rpi3_prod_firmware_staging:
     <<: *defaults
     environment:
       MIX_ENV: prod
@@ -194,7 +200,7 @@ jobs:
           command: mix nerves_hub.firmware sign --key staging
       - run:
           name: Publish to NervesHub
-          command: mix nerves_hub.firmware publish --deploy prod-stable --ttl 3600
+          command: mix nerves_hub.firmware publish --deploy prod-staging --ttl 3600
 
 workflows:
   version: 2
@@ -209,51 +215,99 @@ workflows:
                 - beta
                 - master
                 - staging
-  deploy_stable_master:
+  deploy_stable_production:
     jobs:
-      - rpi3_firmware:
+      - build_rpi3_prod_firmware:
           context: farmbot-production
           filters:
             branches:
               only:
                 - master
-      - deploy_stable_image:
+      - deploy_rpi3_prod_firmware_master:
           context: farmbot-production
           filters:
             branches:
               only:
                 - master
           requires:
-            - rpi3_firmware
-  deploy_stable_beta:
-    jobs:
-      - rpi3_firmware:
-          context: farmbot-production
-          filters:
-            branches:
-              only:
-                - beta
-      - deploy_stable_image:
-          context: farmbot-production
-          filters:
-            branches:
-              only:
-                - beta
-          requires:
-            - rpi3_firmware
+            - build_rpi3_prod_firmware
   deploy_stable_staging:
     jobs:
-      - rpi3_firmware:
+      - build_rpi3_prod_firmware:
+          context: farmbot-staging
+          filters:
+            branches:
+              only:
+                - master
+      - deploy_rpi3_prod_firmware_master:
+          context: farmbot-staging
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - build_rpi3_prod_firmware
+  deploy_beta_production:
+    jobs:
+      - build_rpi3_prod_firmware:
+          context: farmbot-production
+          filters:
+            branches:
+              only:
+                - beta
+      - deploy_rpi3_prod_firmware_beta:
+          context: farmbot-production
+          filters:
+            branches:
+              only:
+                - beta
+          requires:
+            - build_rpi3_prod_firmware
+  deploy_beta_staging:
+    jobs:
+      - build_rpi3_prod_firmware:
+          context: farmbot-staging
+          filters:
+            branches:
+              only:
+                - beta
+      - deploy_rpi3_prod_firmware_beta:
+          context: farmbot-staging
+          filters:
+            branches:
+              only:
+                - beta
+          requires:
+            - build_rpi3_prod_firmware
+  deploy_staging_production:
+    jobs:
+      - build_rpi3_prod_firmware:
+          context: farmbot-production
+          filters:
+            branches:
+              only:
+                - staging
+      - deploy_rpi3_prod_firmware_staging:
+          context: farmbot-production
+          filters:
+            branches:
+              only:
+                - staging
+          requires:
+            - build_rpi3_prod_firmware
+  deploy_staging_staging:
+    jobs:
+      - build_rpi3_prod_firmware:
           context: farmbot-staging
           filters:
             branches:
               only:
                 - staging
-      - deploy_staging_image:
+      - deploy_rpi3_prod_firmware_staging:
           context: farmbot-staging
           filters:
             branches:
               only:
                 - staging
           requires:
-            - rpi3_firmware
+            - build_rpi3_prod_firmware
