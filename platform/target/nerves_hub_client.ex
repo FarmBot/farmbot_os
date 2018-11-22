@@ -22,11 +22,14 @@ defmodule Farmbot.System.NervesHubClient do
 
   def connect do
     Logger.info "Starting NervesHub app."
+    # NervesHub replaces it's own env on startup. Reset it.
+    Application.put_env(:nerves_hub, NervesHub.Socket, [reconnect_interval: 5000])
     # Stop Nerves Hub if it is running.
     _ = Application.stop(:nerves_hub)
     # Cause NervesRuntime.KV to restart.
     _ = GenServer.stop(Nerves.Runtime.KV)
     {:ok, _} = Application.ensure_all_started(:nerves_hub)
+    # Wait for a few seconds for good luck.
     Process.sleep(1000)
     r = NervesHub.connect()
     Logger.info "NervesHub started: #{inspect(r, limit: :infinity)}"

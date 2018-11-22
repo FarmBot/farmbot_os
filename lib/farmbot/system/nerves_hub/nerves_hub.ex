@@ -43,7 +43,7 @@ defmodule Farmbot.System.NervesHub do
   @callback check_update() :: String.t() | nil
 
   use GenServer
-  require Logger
+  use Farmbot.Logger
 
   def start_link(args \\ []) do
     GenServer.start_link(__MODULE__, args, [name: __MODULE__])
@@ -52,6 +52,10 @@ defmodule Farmbot.System.NervesHub do
   def init([]) do
     send self(), :configure
     {:ok, :not_configured}
+  end
+
+  def terminate(reason, state) do
+    Logger.warn 1, "Nerves Hub crash: #{inspect reason} when in state: #{inspect state}"
   end
 
   def handle_info(:configure, :not_configured) do
@@ -68,7 +72,8 @@ defmodule Farmbot.System.NervesHub do
       "application:" <> _ = app_env = app_config[:app_env] || "application:#{Farmbot.Project.env()}"
       extra_tags = app_config[:extra_tags] || []
 
-      if "" in get_config() do
+      if nil in get_config() do
+        Logger.info 1, "doing initial nerves hub configuration."
         :ok = deconfigure()
         :ok = provision()
         :ok = configure([app_env, channel] ++ extra_tags)
@@ -78,7 +83,7 @@ defmodule Farmbot.System.NervesHub do
 
       {:noreply, :configured}
     else
-      Logger.warn "Server not configured yet. Waiting 10_000 ms to try again."
+      Logger.debug 3, "Server not configured yet. Waiting 10_000 ms to try again."
       Process.send_after(self(), :configure, 10_000)
       {:noreply, :not_configured}
     end
@@ -89,7 +94,7 @@ defmodule Farmbot.System.NervesHub do
   end
 
   def connect do
-    Logger.info "Connecting to NervesHub"
+    Logger.debug 1, "Connecting to NervesHub"
     @handler.connect()
   end
 
@@ -100,14 +105,14 @@ defmodule Farmbot.System.NervesHub do
 
   # Sets Serial number in environment.
   def provision do
-    Logger.info "Provisioning NervesHub"
+    Logger.debug 1, "Provisioning NervesHub"
     :ok = @handler.provision(serial())
   end
 
   # Creates a device in NervesHub
   # or updates it if one exists.
   def configure(tags) when is_list(tags) do
-    Logger.info "Configuring NervesHub: #{inspect tags}"
+    Logger.debug 1, "Configuring NervesHub: #{inspect tags}"
     payload = %{
       serial_number: serial(),
       tags: tags
@@ -119,19 +124,19 @@ defmodule Farmbot.System.NervesHub do
   # Message comes over AMQP.
   def configure_certs("-----BEGIN CERTIFICATE-----" <> _ = cert,
                       "-----BEGIN EC PRIVATE KEY-----" <> _ = key) do
-    Logger.info "Configuring certs for NervesHub."
+    Logger.debug 1, "Configuring certs for NervesHub."
     :ok = @handler.configure_certs(cert, key)
     :ok
   end
 
   def deconfigure do
-    Logger.info "Deconfiguring NervesHub"
+    Logger.debug 1, "Deconfiguring NervesHub"
     :ok = @handler.deconfigure()
     :ok
   end
 
   def check_update do
-    Logger.info "Check update NervesHub"
+    Logger.debug 1, "Check update NervesHub"
     @handler.check_update()
   end
 end
