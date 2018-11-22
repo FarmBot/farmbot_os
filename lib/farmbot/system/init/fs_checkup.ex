@@ -11,6 +11,7 @@ defmodule Farmbot.System.Init.FSCheckup do
   @version Farmbot.Project.version()
   @target Farmbot.Project.target()
   @env Farmbot.Project.env()
+  System.put_env("NERVES_FW_VCS_IDENTIFIER", @ref)
 
   @doc false
   def start_link(_, opts \\ []) do
@@ -68,7 +69,7 @@ defmodule Farmbot.System.Init.FSCheckup do
     try do
       Elixir.Logger.add_backend(LoggerBackendSqlite)
     catch
-      :exit, r -> 
+      :exit, r ->
         Logger.error 1, "Could not start disk logging: #{inspect r}"
         Elixir.Logger.remove_backend(LoggerBackendSqlite)
         File.rm(Path.join([@data_path, "root", "debug_logs.sqlite3"]))

@@ -3,7 +3,6 @@ defmodule Farmbot do
   Supervises the individual modules that make up the Farmbot Application.
   This is the entry point of the application.
   """
-
   require Farmbot.Logger
   require Logger
   use Application
@@ -20,6 +19,7 @@ defmodule Farmbot do
 
   def init([]) do
     children = [
+      {Farmbot.System.Registry, []},
       {Farmbot.Logger.Supervisor, []},
       {Farmbot.System.Supervisor, []},
       {Farmbot.Bootstrap.Supervisor, []}
