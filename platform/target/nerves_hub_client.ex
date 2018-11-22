@@ -57,7 +57,6 @@ defmodule Farmbot.System.NervesHubClient do
 
   def config() do
     [
-      Nerves.Runtime.KV.get("nerves_hub_serial_number"),
       Nerves.Runtime.KV.get("nerves_fw_serial_number"),
       Nerves.Runtime.KV.get("nerves_hub_cert"),
       Nerves.Runtime.KV.get("nerves_hub_key"),
