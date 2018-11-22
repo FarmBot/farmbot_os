@@ -66,7 +66,6 @@ jobs:
           command: |
             mix deps.get
             mix compile
-            mix test
       - save_cache:
           key: v5-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
           paths:
