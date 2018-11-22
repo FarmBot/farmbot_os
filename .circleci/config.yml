@@ -57,8 +57,7 @@ jobs:
       - checkout
       - run: git submodule update --init --recursive
       - restore_cache:
-          keys:
-            - v5-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+          key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
@@ -67,7 +66,7 @@ jobs:
             mix deps.get
             mix compile
       - save_cache:
-          key: v5-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+          key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
           paths:
             - _build/host
             - deps/host
@@ -77,20 +76,21 @@ jobs:
       MIX_ENV: prod
       MIX_TARGET: rpi3
       ELIXIR_VERSION: 1.7.3
+      SKIP_ARDUINO_BUILD: 1
     steps:
       - checkout
-      - run git submodule update --init --recursive
+      - run: git submodule update --init --recursive
       - restore_cache:
-        keys:
-          - v5-fbos-rpi3-prod-dependency-cache-{{ checksum "mix.lock.rpi3" }}
-          - v5-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+          key: v7-fbos-rpi3-prod-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+      - restore_cache:
+          key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
-        name: Build Farmbot OS Firmware
-        command: |
-          mix deps.get
-          mix firmware
+          name: Build Farmbot OS Firmware
+          command: |
+            mix deps.get
+            mix firmware
       - run:
           name: Create artifact dir
           command: mkdir -p /nerves/deploy/system/artifacts
@@ -99,10 +99,11 @@ jobs:
           command: |
             cp _build/rpi3/prod/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
       - save_cache:
-          key: v5-fbos-rpi3-prod-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+          key: v7-fbos-rpi3-prod-dependency-cache-{{ checksum "mix.lock.rpi3" }}
           paths:
             - _build/rpi3/
             - deps/rpi3
+            - ~/.nerves/
       - store_artifacts:
           path: /nerves/deploy/system/artifacts
           destination: images
@@ -116,14 +117,18 @@ jobs:
       MIX_ENV: prod
       MIX_TARGET: rpi3
       ELIXIR_VERSION: 1.7.3
+      SKIP_ARDUINO_BUILD: 1
     steps:
       - checkout
-      - run git submodule update --init --recursive
+      - run: git submodule update --init --recursive
       - restore_cache:
-          keys:
-            - v5-fbos-rpi3-prod-dependency-cache-{{ checksum "mix.lock.rpi3" }}
-            - v5-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
-            - nerves/deploy/system-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          key: v7-fbos-rpi3-prod-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+      - restore_cache:
+          key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+      - restore_cache:
+          key: nerves/deploy/system-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+      - <<: *install_elixir
+      - <<: *install_hex_archives
       - run:
           name: Create Image file
           command: mix firmware.image /nerves/deploy/system/farmbot-${MIX_TARGET}-$(cat VERSION).img
@@ -142,14 +147,18 @@ jobs:
       MIX_ENV: prod
       MIX_TARGET: rpi3
       ELIXIR_VERSION: 1.7.3
+      SKIP_ARDUINO_BUILD: 1
     steps:
       - checkout
-      - run git submodule update --init --recursive
+      - run: git submodule update --init --recursive
       - restore_cache:
-          keys:
-            - v5-fbos-rpi3-prod-dependency-cache-{{ checksum "mix.lock.rpi3" }}
-            - v5-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
-            - nerves/deploy/system-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          key: v7-fbos-rpi3-prod-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+      - restore_cache:
+          key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+      - restore_cache:
+          key: nerves/deploy/system-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+      - <<: *install_elixir
+      - <<: *install_hex_archives
       - run:
           name: Create Image file
           command: mix firmware.image /nerves/deploy/system/farmbot-${MIX_TARGET}-$(cat VERSION).img
@@ -168,17 +177,24 @@ jobs:
       MIX_ENV: prod
       MIX_TARGET: rpi3
       ELIXIR_VERSION: 1.7.3
+      SKIP_ARDUINO_BUILD: 1
     steps:
       - checkout
-      - run git submodule update --init --recursive
+      - run: git submodule update --init --recursive
       - restore_cache:
-          keys:
-            - v5-fbos-rpi3-prod-dependency-cache-{{ checksum "mix.lock.rpi3" }}
-            - v5-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
-            - nerves/deploy/system-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          key: v7-fbos-rpi3-prod-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+      - restore_cache:
+          key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+      - restore_cache:
+          key: nerves/deploy/system-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+      - <<: *install_elixir
+      - <<: *install_hex_archives
+      - run:
+          name: Sign Image
+          command: mix nerves_hub.firmware sign --key staging
       - run:
           name: Publish to NervesHub
-          command: mix nerves_hub.firmware publish --deploy prod-stable
+          command: mix nerves_hub.firmware publish --deploy prod-stable --ttl 3600
 
 workflows:
   version: 2
@@ -189,8 +205,10 @@ workflows:
           filters:
             branches:
               ignore:
+                # Merging is blocked on these branches until tests pass.
                 - beta
                 - master
+                - staging
   deploy_stable_master:
     jobs:
       - rpi3_firmware:
@@ -231,7 +249,7 @@ workflows:
             branches:
               only:
                 - staging
-      - deploy_stable_image:
+      - deploy_staging_image:
           context: farmbot-staging
           filters:
             branches:
