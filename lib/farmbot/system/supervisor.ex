@@ -13,7 +13,6 @@ defmodule Farmbot.System.Supervisor do
     children = [
       supervisor(Farmbot.System.Init.Suprevisor, []),
       worker(Farmbot.System.NervesHub, []),
-      supervisor(Farmbot.System.Updates, []),
       worker(Farmbot.EasterEggs, []),
     ]
     Supervisor.init(children, strategy: :one_for_one)

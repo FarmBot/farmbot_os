@@ -79,7 +79,6 @@ config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
   system_tasks: Farmbot.Target.SystemTasks,
   firmware_handler: Farmbot.Firmware.StubHandler,
-  update_handler: Farmbot.Target.UpdateHandler,
   pin_binding_handler: Farmbot.Target.PinBinding.AleHandler,
   leds_handler: Farmbot.Target.Leds.AleHandler,
   nerves_hub_handler: Farmbot.System.NervesHubClient
