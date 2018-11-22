@@ -14,6 +14,8 @@ defmodule Farmbot.CeleryScript.AST.Node.ChangeOwnership do
     email    = pair_map["email"]
     secret   = pair_map["secret"] |> Base.decode64!(padding: false, ignore: :whitespace)
     server   = pair_map["server"] || get_config_value(:string, "authorization", "server")
+    :ok = Farmbot.System.NervesHub.deconfigure()
+
     case test_credentials(email, secret, server) do
       {:ok, _token} ->
         Logger.warn 1, "Farmbot is changing ownership to #{email} - #{server}."
