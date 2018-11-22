@@ -46,7 +46,7 @@ install_ghr: &install_ghr
       tar xf ghr_v0.9.0_linux_amd64.tar.gz
       ln -sf ghr_v0.9.0_linux_amd64/ghr .
 jobs:
-  test_farmbot_os:
+  test:
     <<: *defaults
     environment:
       MIX_ENV: test
@@ -60,8 +60,7 @@ jobs:
           keys:
             - v5-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
       - <<: *install_elixir
-      - <<: *install_hex_rebar
-      - <<: *install_nerves_bootstrap
+      - <<: *install_hex_archives
       - run:
           name: Test Farmbot OS
           command: |
@@ -87,14 +86,12 @@ jobs:
           - v5-fbos-rpi3-prod-dependency-cache-{{ checksum "mix.lock.rpi3" }}
           - v5-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
       - <<: *install_elixir
-      - <<: *install_hex_rebar
-      - <<: *install_nerves_bootstrap
+      - <<: *install_hex_archives
       - run:
         name: Build Farmbot OS Firmware
         command: |
           mix deps.get
           mix firmware
-          mix nerves_hub.firmware sign --key ${NERVES_HUB_ORG}
       - run:
           name: Create artifact dir
           command: mkdir -p /nerves/deploy/system/artifacts
@@ -139,7 +136,7 @@ jobs:
           command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -draft -delete -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)" /nerves/deploy/system/
       - run:
           name: Publish to NervesHub
-          command: mix nerves_hub.firmware publish --key ${NERVES_HUB_ORG}
+          command: mix nerves_hub.firmware publish --deploy prod-stable
   deploy_beta_image:
     <<: *defaults
     environment:
@@ -165,20 +162,37 @@ jobs:
           command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -prerelease -recreate -prerelease -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)" /nerves/deploy/system/
       - run:
           name: Publish to NervesHub
-          command: mix nerves_hub.firmware publish --key ${NERVES_HUB_ORG} --deploy prod-beta
+          command: mix nerves_hub.firmware publish --deploy prod-beta
+  deploy_staging_image:
+    <<: *defaults
+    environment:
+      MIX_ENV: prod
+      MIX_TARGET: rpi3
+      ELIXIR_VERSION: 1.7.3
+    steps:
+      - checkout
+      - run git submodule update --init --recursive
+      - restore_cache:
+          keys:
+            - v5-fbos-rpi3-prod-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+            - v5-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+            - nerves/deploy/system-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+      - run:
+          name: Publish to NervesHub
+          command: mix nerves_hub.firmware publish --deploy prod-stable
 
 workflows:
   version: 2
   test:
     jobs:
-      - test_farmbot_os:
+      - test:
           context: org-global
           filters:
             branches:
               ignore:
                 - beta
                 - master
-  test_deploy_stable_prod:
+  deploy_stable_master:
     jobs:
       - rpi3_firmware:
           context: farmbot-production
@@ -194,7 +208,7 @@ workflows:
                 - master
           requires:
             - rpi3_firmware
-  test_deploy_beta_prod:
+  deploy_stable_beta:
     jobs:
       - rpi3_firmware:
           context: farmbot-production
@@ -210,35 +224,19 @@ workflows:
                 - beta
           requires:
             - rpi3_firmware
-  test_deploy_stable_staging:
+  deploy_stable_staging:
     jobs:
       - rpi3_firmware:
           context: farmbot-staging
           filters:
             branches:
               only:
-                - master
+                - staging
       - deploy_stable_image:
           context: farmbot-staging
           filters:
             branches:
               only:
-                - master
-          requires:
-            - rpi3_firmware
-  test_deploy_beta_staging:
-    jobs:
-      - rpi3_firmware:
-          context: farmbot-staging
-          filters:
-            branches:
-              only:
-                - beta
-      - deploy_stable_image:
-          context: farmbot-staging
-          filters:
-            branches:
-              only:
-                - beta
+                - staging
           requires:
             - rpi3_firmware
