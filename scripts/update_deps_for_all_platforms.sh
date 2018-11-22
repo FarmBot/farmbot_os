@@ -1,7 +1,6 @@
 #!/bin/bash
 TARGETS="rpi0 \
 rpi3 \
-bbb \
 host
 "
 for target in $TARGETS; do

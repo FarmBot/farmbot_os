@@ -45,8 +45,15 @@ config :farmbot, default_server: "https://staging.farm.bot"
 config :farmbot, :behaviour, [
   authorization: Farmbot.Bootstrap.Authorization,
   system_tasks: Farmbot.Host.SystemTasks,
-  update_handler: Farmbot.Host.UpdateHandler,
+  nerves_hub_handler: Farmbot.Host.NervesHubHandler,
   # firmware_handler: Farmbot.Firmware.UartHandler
 ]
+
+config :nerves_runtime,
+  enable_syslog: false,
+  target: "host",
+  kernel: [
+    autoload_modules: false
+  ]
 
 config :farmbot, :uart_handler, tty: "/dev/ttyACM0"

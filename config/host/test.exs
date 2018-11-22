@@ -27,7 +27,8 @@ config :farmbot, :farmware, first_part_farmware_manifest_url: nil
 config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
   system_tasks: Farmbot.Test.SystemTasks,
-  update_handler: FarmbotTestSupport.TestUpdateHandler
+  update_handler: FarmbotTestSupport.TestUpdateHandler,
+  nerves_hub_handler: Farmbot.Host.NervesHubHandler
 
 config :farmbot, Farmbot.Repo, [
   adapter: Sqlite.Ecto2,

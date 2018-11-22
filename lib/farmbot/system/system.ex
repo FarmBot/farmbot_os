@@ -68,7 +68,7 @@ defmodule Farmbot.System do
       _, _ ->
         Logger.error 1, "Firmware unavailable. Can't emergency_lock"
     end
-    
+
   end
 
   defp do_reset(reason) do
@@ -77,6 +77,7 @@ defmodule Farmbot.System do
       nil -> reboot("Escape factory reset: #{inspect reason}")
       {:ignore, reason} -> reboot(reason)
       _ ->
+        Farmbot.System.NervesHub.deconfigure()
         path = Farmbot.Farmware.Installer.install_root_path()
         File.rm_rf(path)
         Ecto.drop()

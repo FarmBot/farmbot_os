@@ -17,7 +17,7 @@ config :farmbot, Farmbot.System.ConfigStorage,
   database: "/root/config-#{Mix.env()}.sqlite3"
 
 config :farmbot, ecto_repos: [Farmbot.Repo, Farmbot.System.ConfigStorage]
-  
+
 config :logger, LoggerBackendSqlite, [
   database: "/root/debug_logs.sqlite3",
   max_logs: 10000
@@ -32,6 +32,9 @@ config :farmbot, :init, [
 
   # Allows for first boot configuration.
   Farmbot.Target.Bootstrap.Configurator,
+
+  # Handles OTA updates from NervesHub
+  Farmbot.System.NervesHubClient,
 
   # Start up Network
   Farmbot.Target.Network,
@@ -75,9 +78,9 @@ config :farmbot, :behaviour,
   authorization: Farmbot.Bootstrap.Authorization,
   system_tasks: Farmbot.Target.SystemTasks,
   firmware_handler: Farmbot.Firmware.StubHandler,
-  update_handler: Farmbot.Target.UpdateHandler,
   pin_binding_handler: Farmbot.Target.PinBinding.AleHandler,
-  leds_handler: Farmbot.Target.Leds.AleHandler
+  leds_handler: Farmbot.Target.Leds.AleHandler,
+  nerves_hub_handler: Farmbot.System.NervesHubClient
 
 config :nerves_network, regulatory_domain: "US"
 config :shoehorn,
