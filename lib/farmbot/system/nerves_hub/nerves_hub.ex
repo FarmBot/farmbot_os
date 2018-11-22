@@ -44,7 +44,6 @@ defmodule Farmbot.System.NervesHub do
 
   use GenServer
   require Logger
-  import Farmbot.System.ConfigStorage, only: [get_config_value: 3]
 
   def start_link(args \\ []) do
     GenServer.start_link(__MODULE__, args, [name: __MODULE__])
@@ -56,10 +55,11 @@ defmodule Farmbot.System.NervesHub do
   end
 
   def handle_info(:configure, :not_configured) do
-    channel = if get_config_value(:bool, "settings", "beta_opt_in") do
-      "channel:beta"
-    else
-      "channel:stable"
+    channel = case Farmbot.Project.branch() do
+      "master" -> "channel:stable"
+      "beta" -> "channel:beta"
+      "staging" -> "channel:staging"
+      branch -> "channel:#{branch}"
     end
 
     if Process.whereis(Farmbot.HTTP) do

@@ -3,9 +3,12 @@ defmodule Farmbot.Mixfile do
   @target System.get_env("MIX_TARGET") || "host"
   @version Path.join(__DIR__, "VERSION") |> File.read!() |> String.trim()
   @commit System.cmd("git", ~w"rev-parse --verify HEAD") |> elem(0) |> String.trim()
+  @branch System.cmd("git", ~w"rev-parse --verify HEAD") |> elem(0) |> String.trim()
   System.put_env("NERVES_FW_VCS_IDENTIFIER", @commit)
 
   defp commit, do: @commit
+
+  defp branch, do: @branch
 
   defp arduino_commit do
     opts = [cd: "c_src/farmbot-arduino-firmware"]
@@ -28,6 +31,7 @@ defmodule Farmbot.Mixfile do
       version: @version,
       target: @target,
       commit: commit(),
+      branch: branch(),
       arduino_commit: arduino_commit(),
       archives: [nerves_bootstrap: "~> 1.2"],
       build_embedded: Mix.env() == :prod,
@@ -152,8 +156,7 @@ defmodule Farmbot.Mixfile do
     system(target) ++
       [
         {:nerves_runtime, "~> 0.8"},
-        {:nerves_hub,
-         github: "nerves-hub/nerves_hub", override: true},
+        {:nerves_hub, github: "nerves-hub/nerves_hub", override: true},
         {:nerves_firmware, "~> 0.4"},
         {:nerves_firmware_ssh, "~> 0.3"},
         {:nerves_init_gadget, "~> 0.5", only: :dev},
