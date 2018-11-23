@@ -54,6 +54,11 @@ install_jq: &install_jq
       chmod +x ./jq-linux64
 
 jobs:
+
+################################################################################
+#                                    TEST                                      #
+################################################################################
+
   test:
     <<: *defaults
     environment:
@@ -78,6 +83,11 @@ jobs:
           paths:
             - _build/host
             - deps/host
+
+################################################################################
+#                           TARGET FIRMWARE BUILD                              #
+################################################################################
+
   build_rpi3_prod_firmware:
     <<: *defaults
     environment:
@@ -117,9 +127,57 @@ jobs:
           path: /nerves/deploy/system/artifacts
           destination: images
       - save_cache:
-          key: nerves/deploy/system-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          key: nerves/deploy/system-rpi3-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
           paths:
             - "/nerves/deploy/system"
+
+  build_rpi_prod_firmware:
+    <<: *defaults
+    environment:
+      MIX_ENV: prod
+      MIX_TARGET: rpi
+      ELIXIR_VERSION: 1.7.3
+      SKIP_ARDUINO_BUILD: 1
+    steps:
+      - checkout
+      - run: git submodule update --init --recursive
+      - restore_cache:
+          key: v7-fbos-rpi-prod-dependency-cache-{{ checksum "mix.lock.rpi" }}
+      - restore_cache:
+          key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+      - <<: *install_elixir
+      - <<: *install_hex_archives
+      - run:
+          name: Build Farmbot OS Firmware
+          command: |
+            mix deps.get
+            mix compile --force
+            mix firmware
+      - run:
+          name: Create artifact dir
+          command: mkdir -p /nerves/deploy/system/artifacts
+      - run:
+          name: Create artifacts
+          command: |
+            cp _build/rpi/prod/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+      - save_cache:
+          key: v7-fbos-rpi-prod-dependency-cache-{{ checksum "mix.lock.rpi" }}
+          paths:
+            - _build/rpi/
+            - deps/rpi
+            - ~/.nerves/
+      - store_artifacts:
+          path: /nerves/deploy/system/artifacts
+          destination: images
+      - save_cache:
+          key: nerves/deploy/system-rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/nerves/deploy/system"
+
+################################################################################
+#                   TARGET FIRMWARE NERVES HUB DEPLOY MASTER                   #
+################################################################################
+
   deploy_rpi3_prod_firmware_master:
     <<: *defaults
     environment:
@@ -135,7 +193,7 @@ jobs:
       - restore_cache:
           key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
       - restore_cache:
-          key: nerves/deploy/system-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          key: nerves/deploy/system-rpi3-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - <<: *install_ghr
@@ -144,7 +202,38 @@ jobs:
           command: mix nerves_hub.firmware sign --key prod /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
       - run:
           name: Publish to NervesHub
-          command: mix nerves_hub.firmware publish --deploy prod-stable /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+          command: mix nerves_hub.firmware publish --deploy rpi3-prod-stable /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+
+  deploy_rpi_prod_firmware_master:
+    <<: *defaults
+    environment:
+      MIX_ENV: prod
+      MIX_TARGET: rpi
+      ELIXIR_VERSION: 1.7.3
+      SKIP_ARDUINO_BUILD: 1
+    steps:
+      - checkout
+      - run: git submodule update --init --recursive
+      - restore_cache:
+          key: v7-fbos-rpi-prod-dependency-cache-{{ checksum "mix.lock.rpi" }}
+      - restore_cache:
+          key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+      - restore_cache:
+          key: nerves/deploy/system-rpi3-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+      - <<: *install_elixir
+      - <<: *install_hex_archives
+      - <<: *install_ghr
+      - run:
+          name: Sign Image
+          command: mix nerves_hub.firmware sign --key prod /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+      - run:
+          name: Publish to NervesHub
+          command: mix nerves_hub.firmware publish --deploy rpi-prod-stable /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+
+################################################################################
+#                   TARGET FIRMWARE NERVES HUB DEPLOY BETA                    #
+################################################################################
+
   deploy_rpi3_prod_firmware_beta:
     <<: *defaults
     environment:
@@ -160,7 +249,7 @@ jobs:
       - restore_cache:
           key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
       - restore_cache:
-          key: nerves/deploy/system-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          key: nerves/deploy/system-rpi3-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
@@ -168,7 +257,37 @@ jobs:
           command: mix nerves_hub.firmware sign --key prod /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
       - run:
           name: Publish to NervesHub
-          command: mix nerves_hub.firmware publish --deploy prod-beta /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+          command: mix nerves_hub.firmware publish --deploy rpi3-prod-beta /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+
+  deploy_rpi_prod_firmware_beta:
+    <<: *defaults
+    environment:
+      MIX_ENV: prod
+      MIX_TARGET: rpi
+      ELIXIR_VERSION: 1.7.3
+      SKIP_ARDUINO_BUILD: 1
+    steps:
+      - checkout
+      - run: git submodule update --init --recursive
+      - restore_cache:
+          key: v7-fbos-rpi-prod-dependency-cache-{{ checksum "mix.lock.rpi" }}
+      - restore_cache:
+          key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+      - restore_cache:
+          key: nerves/deploy/system-rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+      - <<: *install_elixir
+      - <<: *install_hex_archives
+      - run:
+          name: Sign Image
+          command: mix nerves_hub.firmware sign --key prod /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+      - run:
+          name: Publish to NervesHub
+          command: mix nerves_hub.firmware publish --deploy rpi-prod-beta /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+
+################################################################################
+#                 TARGET FIRMWARE NERVES HUB DEPLOY STAGING                    #
+################################################################################
+
   deploy_rpi3_prod_firmware_staging:
     <<: *defaults
     environment:
@@ -184,7 +303,7 @@ jobs:
       - restore_cache:
           key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
       - restore_cache:
-          key: nerves/deploy/system-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          key: nerves/deploy/system-rpi3-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
@@ -192,23 +311,50 @@ jobs:
           command: mix nerves_hub.firmware sign --key staging /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
       - run:
           name: Publish to NervesHub
-          command: mix nerves_hub.firmware publish --deploy prod-staging --ttl 3600 /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
-  publish_rpi3_prod_firmware_beta_release:
+          command: mix nerves_hub.firmware publish --deploy rpi3-prod-staging --ttl 3600 /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+
+  deploy_rpi_prod_firmware_staging:
     <<: *defaults
     environment:
       MIX_ENV: prod
-      MIX_TARGET: rpi3
+      MIX_TARGET: rpi
       ELIXIR_VERSION: 1.7.3
       SKIP_ARDUINO_BUILD: 1
     steps:
       - checkout
       - run: git submodule update --init --recursive
       - restore_cache:
-          key: v7-fbos-rpi3-prod-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+          key: v7-fbos-rpi-prod-dependency-cache-{{ checksum "mix.lock.rpi" }}
       - restore_cache:
           key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
       - restore_cache:
-          key: nerves/deploy/system-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          key: nerves/deploy/system-rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+      - <<: *install_elixir
+      - <<: *install_hex_archives
+      - run:
+          name: Sign Image
+          command: mix nerves_hub.firmware sign --key staging /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+      - run:
+          name: Publish to NervesHub
+          command: mix nerves_hub.firmware publish --deploy rpi-prod-staging --ttl 3600 /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+
+
+################################################################################
+#                TARGET FIRMWARE NERVES GITHUB RELEASE BETA                    #
+################################################################################
+
+  publish_prod_firmware_beta_release:
+    <<: *defaults
+    environment:
+      MIX_ENV: prod
+      ELIXIR_VERSION: 1.7.3
+      SKIP_ARDUINO_BUILD: 1
+    steps:
+      - checkout
+      - restore_cache:
+          key: nerves/deploy/system-rpi3-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+      - restore_cache:
+          key: nerves/deploy/system-rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - <<: *install_ghr
@@ -220,14 +366,18 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "97:92:32:5d:d7:96:e1:fa:f3:6b:f3:bd:d6:aa:84:c6"
+      - run: grep -Pazo "(?s)(?<=# $(cat VERSION))[^#]+" CHANGELOG.md > RELEASE_NOTES
+      - run: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
       - run:
-          name: Sign Firmware
+          name: Sign rpi3 Firmware
           command: |
-            echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
-            mv /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw /tmp/farmbot-${MIX_TARGET}-$(cat VERSION).fw
-            fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-${MIX_TARGET}-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION)-beta.fw
+            mv /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw /tmp/farmbot-rpi3-$(cat VERSION).fw
+            fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-rpi3-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION)-beta.fw
       - run:
-          command: grep -Pazo "(?s)(?<=# $(cat VERSION))[^#]+" CHANGELOG.md > RELEASE_NOTES
+          name: Sign rpi Firmware
+          command: |
+            mv /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).fw /tmp/farmbot-rpi-$(cat VERSION).fw
+            fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-rpi-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION)-beta.fw
       - run:
           name: Publish Github Release
           command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -prerelease -recreate -prerelease -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)-beta" /nerves/deploy/system/artifacts/
@@ -239,22 +389,23 @@ jobs:
             heroku config:set BETA_OTA_URL=$OTA_URL --app=farmbot-production
             heroku config:set BETA_OTA_URL=$OTA_URL --app=farmbot-staging
             elixir slack_message.ex $SLACK_MESSAGE
-  publish_rpi3_prod_firmware_master_release:
+
+################################################################################
+#               TARGET FIRMWARE NERVES GITHUB RELEASE MASTER                   #
+################################################################################
+
+  publish_prod_firmware_master_release:
     <<: *defaults
     environment:
       MIX_ENV: prod
-      MIX_TARGET: rpi3
       ELIXIR_VERSION: 1.7.3
       SKIP_ARDUINO_BUILD: 1
     steps:
       - checkout
-      - run: git submodule update --init --recursive
       - restore_cache:
-          key: v7-fbos-rpi3-prod-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+          key: nerves/deploy/system-rpi3-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - restore_cache:
-          key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
-      - restore_cache:
-          key: nerves/deploy/system-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          key: nerves/deploy/system-rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - <<: *install_ghr
@@ -265,23 +416,27 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "97:92:32:5d:d7:96:e1:fa:f3:6b:f3:bd:d6:aa:84:c6"
+      - run: grep -Pazo "(?s)(?<=# $(cat VERSION))[^#]+" CHANGELOG.md > RELEASE_NOTES
+      - run: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
       - run:
-          name: Sign Firmware
+          name: Sign rpi3 Firmware and create image
           command: |
-            echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
-            mv /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw /tmp/farmbot-${MIX_TARGET}-$(cat VERSION).fw
-            fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-${MIX_TARGET}-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+            mv /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw /tmp/farmbot-rpi3-$(cat VERSION).fw
+            fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-rpi3-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw
+            fwup -a -t complete -i /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw -d /nerves/deploy/system/farmbot-rpi3-$(cat VERSION).img
       - run:
-          name: Create Image file
-          command: fwup -a -t complete -i /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw -d /nerves/deploy/system/farmbot-${MIX_TARGET}-$(cat VERSION).img
-      - run:
-          command: grep -Pazo "(?s)(?<=# $(cat VERSION))[^#]+" CHANGELOG.md > RELEASE_NOTES
+          name: Sign rpi Firmware and create image
+          command: |
+            mv /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw /tmp/farmbot-rpi3-$(cat VERSION).fw
+            fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-rpi3-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw
+            fwup -a -t complete -i /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).fw -d /nerves/deploy/system/farmbot-rpi-$(cat VERSION).img
       - run:
           name: Publish Github Release
           command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -draft -delete -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)" /nerves/deploy/system/
       - run:
           name: Send Slack Message
           command: elixir slack_message.ex "New Farmbot Prod release $(cat VERSION)"
+
 workflows:
   version: 2
   test:
@@ -295,6 +450,8 @@ workflows:
                 - beta
                 - master
                 - staging
+
+  # This deploys the master branch to my.farm.bot
   deploy_stable_production:
     jobs:
       - build_rpi3_prod_firmware:
@@ -303,6 +460,13 @@ workflows:
             branches:
               only:
                 - master
+      - build_rpi_prod_firmware:
+          context: farmbot-production
+          filters:
+            branches:
+              only:
+                - master
+
       - deploy_rpi3_prod_firmware_master:
           context: farmbot-production
           filters:
@@ -311,7 +475,17 @@ workflows:
                 - master
           requires:
             - build_rpi3_prod_firmware
-      - publish_rpi3_prod_firmware_master_release:
+
+      - deploy_rpi_prod_firmware_master:
+          context: farmbot-production
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - build_rpi_prod_firmware
+
+      - publish_prod_firmware_master_release:
           context: org-global
           filters:
             branches:
@@ -319,6 +493,9 @@ workflows:
                 - master
           requires:
             - build_rpi3_prod_firmware
+            - build_rpi_prod_firmware
+
+  # This deploys the master branch to staging.farm.bot
   deploy_stable_staging:
     jobs:
       - build_rpi3_prod_firmware:
@@ -327,6 +504,14 @@ workflows:
             branches:
               only:
                 - master
+
+      - build_rpi_prod_firmware:
+          context: farmbot-staging
+          filters:
+            branches:
+              only:
+                - master
+
       - deploy_rpi3_prod_firmware_master:
           context: farmbot-staging
           filters:
@@ -335,6 +520,17 @@ workflows:
                 - master
           requires:
             - build_rpi3_prod_firmware
+
+      - deploy_rpi_prod_firmware_master:
+          context: farmbot-staging
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - build_rpi_prod_firmware
+
+  # This deploys the beta branch to my.farm.bot
   deploy_beta_production:
     jobs:
       - build_rpi3_prod_firmware:
@@ -343,6 +539,14 @@ workflows:
             branches:
               only:
                 - beta
+
+      - build_rpi_prod_firmware:
+          context: farmbot-production
+          filters:
+            branches:
+              only:
+                - beta
+
       - deploy_rpi3_prod_firmware_beta:
           context: farmbot-production
           filters:
@@ -351,7 +555,17 @@ workflows:
                 - beta
           requires:
             - build_rpi3_prod_firmware
-      - publish_rpi3_prod_firmware_beta_release:
+
+      - deploy_rpi_prod_firmware_beta:
+          context: farmbot-production
+          filters:
+            branches:
+              only:
+                - beta
+          requires:
+            - build_rpi_prod_firmware
+
+      - publish_prod_firmware_beta_release:
           context: org-global
           filters:
             branches:
@@ -359,6 +573,9 @@ workflows:
                 - beta
           requires:
             - build_rpi3_prod_firmware
+            - build_rpi_prod_firmware
+
+  # This deploys the beta branch to staging.farm.bot
   deploy_beta_staging:
     jobs:
       - build_rpi3_prod_firmware:
@@ -367,6 +584,14 @@ workflows:
             branches:
               only:
                 - beta
+
+      - build_rpi_prod_firmware:
+          context: farmbot-staging
+          filters:
+            branches:
+              only:
+                - beta
+
       - deploy_rpi3_prod_firmware_beta:
           context: farmbot-staging
           filters:
@@ -375,6 +600,17 @@ workflows:
                 - beta
           requires:
             - build_rpi3_prod_firmware
+
+      - deploy_rpi_prod_firmware_beta:
+          context: farmbot-staging
+          filters:
+            branches:
+              only:
+                - beta
+          requires:
+            - build_rpi_prod_firmware
+
+  # This deploys the staging branch to my.farm.bot
   deploy_staging_production:
     jobs:
       - build_rpi3_prod_firmware:
@@ -383,6 +619,14 @@ workflows:
             branches:
               only:
                 - staging
+
+      - build_rpi_prod_firmware:
+          context: farmbot-production
+          filters:
+            branches:
+              only:
+                - staging
+
       - deploy_rpi3_prod_firmware_staging:
           context: farmbot-production
           filters:
@@ -391,6 +635,17 @@ workflows:
                 - staging
           requires:
             - build_rpi3_prod_firmware
+
+      - deploy_rpi_prod_firmware_staging:
+          context: farmbot-production
+          filters:
+            branches:
+              only:
+                - staging
+          requires:
+            - build_rpi_prod_firmware
+
+  # This deploys the staging branch to staging.farm.bot
   deploy_staging_staging:
     jobs:
       - build_rpi3_prod_firmware:
@@ -399,6 +654,14 @@ workflows:
             branches:
               only:
                 - staging
+
+      - build_rpi_prod_firmware:
+          context: farmbot-staging
+          filters:
+            branches:
+              only:
+                - staging
+
       - deploy_rpi3_prod_firmware_staging:
           context: farmbot-staging
           filters:
@@ -407,3 +670,12 @@ workflows:
                 - staging
           requires:
             - build_rpi3_prod_firmware
+
+      - deploy_rpi_prod_firmware_staging:
+          context: farmbot-staging
+          filters:
+            branches:
+              only:
+                - staging
+          requires:
+            - build_rpi_prod_firmware

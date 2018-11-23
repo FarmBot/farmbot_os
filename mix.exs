@@ -111,8 +111,9 @@ defmodule Farmbot.Mixfile do
   defp deps do
     [
       {:nerves, "~> 1.3", runtime: false},
-      {:shoehorn, "~> 0.4"},
+      {:nerves_hub_cli, "~> 0.4", runtime: false},
       {:elixir_make, "~> 0.4", runtime: false},
+      {:shoehorn, "~> 0.4"},
       {:gen_stage, "~> 0.14"},
       {:phoenix_html, "~> 2.12"},
       {:httpoison, "~> 1.3"},
@@ -136,8 +137,7 @@ defmodule Farmbot.Mixfile do
       {:ring_logger, "~> 0.5"},
       {:bbmustache, "~> 1.6"},
       {:sqlite_ecto2, "~> 2.2"},
-      {:logger_backend_sqlite, "~> 2.1"},
-      {:nerves_hub_cli, "~> 0.4"}
+      {:logger_backend_sqlite, "~> 2.1"}
     ]
   end
 
@@ -170,10 +170,13 @@ defmodule Farmbot.Mixfile do
   end
 
   defp system("rpi3"),
-    do: [{:farmbot_system_rpi3, "1.5.1-farmbot.0", runtime: false}]
+    do: [{:farmbot_system_rpi3, "1.5.1-farmbot.1", runtime: false}]
 
   defp system("rpi0"),
     do: [{:farmbot_system_rpi0, "1.5.1-farmbot.0", runtime: false}]
+
+  defp system("rpi"),
+    do: [{:farmbot_system_rpi, "1.5.1-farmbot.0", runtime: false}]
 
   defp package do
     [
