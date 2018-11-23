@@ -8,7 +8,7 @@ defmodule Farmbot.System do
   Please configure `:system_tasks`!
   """
 
-  @system_tasks Application.get_env(:farmbot_os, __MODULE__)[:system_tasks]
+  @system_tasks Application.get_env(:farmbot, __MODULE__)[:system_tasks]
   @system_tasks || Mix.raise(error_msg)
 
   @data_path Farmbot.OS.FileSystem.data_path()

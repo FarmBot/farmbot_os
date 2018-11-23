@@ -6,7 +6,7 @@ defmodule Farmbot.System.Init.Supervisor do
   end
 
   def init([]) do
-    children = Application.get_env(:farmbot_os, :init_children, []) ++ [
+    children = Application.get_env(:farmbot, :init_children, []) ++ [
       {Farmbot.System.Init.FSCheckup, []},
       {Farmbot.System.Init.Ecto, []},
     ]

@@ -55,3 +55,4 @@ RELEASE_NOTES
 nerves-hub
 *.pem
 *.db
+*.db-journal

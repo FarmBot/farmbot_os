@@ -13,7 +13,11 @@ defmodule Farmbot.System.NervesHubClient do
   def serial_number("rpi3"), do: serial_number("rpi")
 
   def serial_number(plat) do
-    :os.cmd('/usr/bin/boardid -b uboot_env -u nerves_serial_number -b uboot_env -u serial_number -b #{plat}')
+    :os.cmd(
+      '/usr/bin/boardid -b uboot_env -u nerves_serial_number -b uboot_env -u serial_number -b #{
+        plat
+      }'
+    )
     |> to_string()
     |> String.trim()
   end
@@ -21,9 +25,9 @@ defmodule Farmbot.System.NervesHubClient do
   def serial_number, do: serial_number(Farmbot.Project.target())
 
   def connect do
-    Logger.info "Starting NervesHub app."
+    Logger.info("Starting NervesHub app.")
     # NervesHub replaces it's own env on startup. Reset it.
-    Application.put_env(:nerves_hub, NervesHub.Socket, [reconnect_interval: 5000])
+    Application.put_env(:nerves_hub, NervesHub.Socket, reconnect_interval: 5000)
     # Stop Nerves Hub if it is running.
     _ = Application.stop(:nerves_hub)
     # Cause NervesRuntime.KV to restart.
@@ -32,7 +36,7 @@ defmodule Farmbot.System.NervesHubClient do
     # Wait for a few seconds for good luck.
     Process.sleep(1000)
     r = NervesHub.connect()
-    Logger.info "NervesHub started: #{inspect(r, limit: :infinity)}"
+    Logger.info("NervesHub started: #{inspect(r, limit: :infinity)}")
     :ok
   end
 
@@ -59,15 +63,15 @@ defmodule Farmbot.System.NervesHubClient do
     [
       Nerves.Runtime.KV.get("nerves_fw_serial_number"),
       Nerves.Runtime.KV.get("nerves_hub_cert"),
-      Nerves.Runtime.KV.get("nerves_hub_key"),
+      Nerves.Runtime.KV.get("nerves_hub_key")
     ]
   end
 
   def check_update do
     case GenServer.call(__MODULE__, :check_update) do
       # If updates were disabled, and an update is queued
-    {:ignore, _url} -> NervesHub.update()
-    _ -> nil
+      {:ignore, _url} -> NervesHub.update()
+      _ -> nil
     end
   end
 
@@ -80,14 +84,16 @@ defmodule Farmbot.System.NervesHubClient do
     Logger.info("FWUP Stream Progress: #{percent}%")
     alias Farmbot.BotState.JobProgress
     prog = %JobProgress.Percent{percent: percent}
+
     if Process.whereis(Farmbot.BotState) do
       Farmbot.BotState.set_job_progress("FBOS_OTA", prog)
     end
+
     :ok
   end
 
   def handle_fwup_message({:error, _, reason}) do
-    Logger.error "FWUP Error: #{reason}"
+    Logger.error("FWUP Error: #{reason}")
     :ok
   end
 
@@ -96,7 +102,7 @@ defmodule Farmbot.System.NervesHubClient do
   end
 
   def start_link(_, _) do
-    GenServer.start_link(__MODULE__, [], [name: __MODULE__])
+    GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
   def init([]) do
@@ -107,6 +113,7 @@ defmodule Farmbot.System.NervesHubClient do
     if Process.whereis(Farmbot.BotState) do
       Farmbot.BotState.set_update_available(true)
     end
+
     case get_config_value(:bool, "settings", "os_auto_update") do
       true -> {:reply, :apply, {:apply, url}}
       false -> {:reply, :ignore, {:ignore, url}}

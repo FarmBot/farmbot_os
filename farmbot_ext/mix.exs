@@ -28,7 +28,7 @@ defmodule Farmbot.Ext.MixProject do
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
       {:ranch, "~> 1.5", override: true},
       {:ranch_proxy_protocol, "~> 2.0", override: true},
-      {:tesla, "1.1.0"},
+      {:tesla, "~> 1.2"},
       {:hackney, "~> 1.14"},
       {:uuid, "~> 1.1"},
       {:amqp, "~> 1.0"},

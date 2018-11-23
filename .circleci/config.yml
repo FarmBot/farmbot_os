@@ -1,9 +1,8 @@
 version: 2.0
 defaults: &defaults
+  working_directory: /nerves/build
   docker:
     - image: nervesproject/nerves_system_br:1.5.2
-  environment:
-    ELIXIR_VERSION: 1.7.3
 
 install_elixir: &install_elixir
   run:
@@ -21,13 +20,6 @@ install_hex_archives: &install_hex_archives
       mix local.hex --force
       mix local.rebar --force
       mix archive.install hex nerves_bootstrap "~> 1.2" --force
-
-fetch_and_compile_deps: &fetch_and_compile_deps
-  run:
-    name: Fetch and compile Elixir dependencies
-    command: |
-      mix deps.get
-      mix compile
 
 install_arduino: &install_arduino
   run:
@@ -61,30 +53,171 @@ jobs:
 #                                    TEST                                      #
 ################################################################################
 
-  test:
+  test_farmbot_celery_script:
     <<: *defaults
     environment:
       MIX_ENV: test
       MIX_TARGET: host
+      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
+      ELIXIR_VERSION: 1.7.3
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v8-fbcs-test-dependency-cache-{{ checksum "farmbot_celery_script/mix.lock" }}
+      - <<: *install_elixir
+      - <<: *install_hex_archives
+      - run:
+          name: Test Farmbot CeleryScript
+          working_directory: /nerves/build/farmbot_celery_script
+          command: |
+            mix deps.get
+            mix compile
+            mix format --check-formatted
+            mix test
+      - save_cache:
+          key: v8-fbcs-test-dependency-cache-{{ checksum "farmbot_celery_script/mix.lock" }}
+          paths:
+            - farmbot_celery_script/_build/test
+            - farmbot_celery_script/deps
+
+  test_farmbot_firmware:
+    <<: *defaults
+    environment:
+      MIX_ENV: test
+      MIX_TARGET: host
+      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
+      ELIXIR_VERSION: 1.7.3
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v8-fbfw-test-dependency-cache-{{ checksum "farmbot_firmware/mix.lock" }}
+      - <<: *install_elixir
+      - <<: *install_hex_archives
+      - run:
+          name: Test Farmbot Firmware
+          working_directory: /nerves/build/farmbot_firmware
+          command: |
+            mix deps.get
+            mix compile
+            mix format --check-formatted
+            mix test
+      - save_cache:
+          key: v8-fbfw-test-dependency-cache-{{ checksum "farmbot_firmware/mix.lock" }}
+          paths:
+            - farmbot_firmware/_build/test
+            - farmbot_firmware/deps
+
+  test_farmbot_core:
+    <<: *defaults
+    environment:
+      MIX_ENV: test
+      MIX_TARGET: host
+      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
+      ELIXIR_VERSION: 1.7.3
+      TZ: "America/Los_Angeles"
+    steps:
+      - checkout
+      - run: git submodule update --init --recursive
+      - restore_cache:
+          keys:
+            - v8-fbcore-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
+      - restore_cache:
+          keys:
+            - v8-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
+      - <<: *install_elixir
+      - <<: *install_hex_archives
+      - <<: *install_arduino
+      - run:
+          name: Ensure format
+          command: |
+            mix format --check-formatted
+      - run:
+          name: Test Farmbot Core
+          working_directory: /nerves/build/farmbot_core
+          command: |
+            mix deps.get
+            mix compile
+            mix format --check-formatted
+            mix test --trace
+      - save_cache:
+          key: v8-fbcore-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
+          paths:
+            - farmbot_core/_build/test
+            - farmbot_core/deps
+            - farmbot_core/arduino
+      - save_cache:
+          key: v8-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
+          paths:
+            - ~/arduino-1.8.5
+            - farmbot_core/_build/core
+            - farmbot_core/_build/libraries
+            - farmbot_core/_build/farmduino_k14
+            - farmbot_core/_build/farmduino_v10
+            - farmbot_core/_build/ramps_v14
+
+  test_farmbot_ext:
+    <<: *defaults
+    environment:
+      MIX_ENV: test
+      MIX_TARGET: host
+      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
       ELIXIR_VERSION: 1.7.3
       SKIP_ARDUINO_BUILD: 1
     steps:
       - checkout
       - run: git submodule update --init --recursive
       - restore_cache:
-          key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+          keys:
+            - v8-fbext-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
+      - <<: *install_elixir
+      - <<: *install_hex_archives
+      - run:
+          name: Test Farmbot Ext
+          working_directory: /nerves/build/farmbot_ext
+          command: |
+            mix deps.get
+            mix compile
+            mix format --check-formatted
+            mix ecto.create
+            mix ecto.migrate
+            mix test
+      - save_cache:
+          key: v8-fbext-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
+          paths:
+            - farmbot_ext/_build/test
+            - farmbot_ext/deps
+
+  test_farmbot_os:
+    <<: *defaults
+    environment:
+      MIX_ENV: test
+      MIX_TARGET: host
+      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
+      ELIXIR_VERSION: 1.7.3
+      SKIP_ARDUINO_BUILD: 1
+    steps:
+      - checkout
+      - run: git submodule update --init --recursive
+      - restore_cache:
+          keys:
+            - v8-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock.host" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
           name: Test Farmbot OS
+          working_directory: /nerves/build/farmbot_os
           command: |
             mix deps.get
             mix compile
+            mix format --check-formatted
+            mix test
       - save_cache:
-          key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+          key: v8-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock.host" }}
           paths:
-            - _build/host
-            - deps/host
+            - farmbot_os/_build/host
+            - farmbot_os/deps/host
 
 ################################################################################
 #                           TARGET FIRMWARE BUILD                              #
@@ -101,13 +234,14 @@ jobs:
       - checkout
       - run: git submodule update --init --recursive
       - restore_cache:
-          key: v7-fbos-rpi3-prod-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+          key: v8-fbos-rpi3-prod-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
       - restore_cache:
-          key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+          key: v8-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock.host" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
           name: Build Farmbot OS Firmware
+          working_directory: /nerves/build/farmbot_os
           command: |
             mix deps.get
             mix compile --force
@@ -118,12 +252,12 @@ jobs:
       - run:
           name: Create artifacts
           command: |
-            cp _build/rpi3/prod/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+            cp farmbot_os/_build/${MIX_TARGET}/prod/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
       - save_cache:
-          key: v7-fbos-rpi3-prod-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+          key: v8-fbos-rpi3-prod-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
           paths:
-            - _build/rpi3/
-            - deps/rpi3
+            - farmbot_os_build/rpi3/
+            - farmbot_osdeps/rpi3
             - ~/.nerves/
       - store_artifacts:
           path: /nerves/deploy/system/artifacts
@@ -144,13 +278,14 @@ jobs:
       - checkout
       - run: git submodule update --init --recursive
       - restore_cache:
-          key: v7-fbos-rpi-prod-dependency-cache-{{ checksum "mix.lock.rpi" }}
+          key: v8-fbos-rpi-prod-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi" }}
       - restore_cache:
-          key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+          key: v8-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock.host" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
           name: Build Farmbot OS Firmware
+          working_directory: /nerves/build/farmbot_os
           command: |
             mix deps.get
             mix compile --force
@@ -161,12 +296,12 @@ jobs:
       - run:
           name: Create artifacts
           command: |
-            cp _build/rpi/prod/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+            cp farmbot_os/_build/${MIX_TARGET}/prod/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
       - save_cache:
-          key: v7-fbos-rpi-prod-dependency-cache-{{ checksum "mix.lock.rpi" }}
+          key: v8-fbos-rpi-prod-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi" }}
           paths:
-            - _build/rpi/
-            - deps/rpi
+            - farmbot_os/_build/rpi/
+            - farmbot_os/deps/rpi
             - ~/.nerves/
       - store_artifacts:
           path: /nerves/deploy/system/artifacts
@@ -191,9 +326,9 @@ jobs:
       - checkout
       - run: git submodule update --init --recursive
       - restore_cache:
-          key: v7-fbos-rpi3-prod-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+          key: v8-fbos-rpi3-prod-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
       - restore_cache:
-          key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+          key: v8-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock.host" }}
       - restore_cache:
           key: nerves/deploy/system-rpi3-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - <<: *install_elixir
@@ -201,10 +336,12 @@ jobs:
       - <<: *install_ghr
       - run:
           name: Sign Image
-          command: mix nerves_hub.firmware sign --key prod /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+          working_directory: /nerves/build/farmbot_os
+          command: mix nerves_hub.firmware sign --key prod /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
       - run:
           name: Publish to NervesHub
-          command: mix nerves_hub.firmware publish --deploy rpi3-prod-stable /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+          working_directory: /nerves/build/farmbot_os
+          command: mix nerves_hub.firmware publish --deploy rpi3-prod-stable /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
 
   deploy_rpi_prod_firmware_master:
     <<: *defaults
@@ -217,9 +354,9 @@ jobs:
       - checkout
       - run: git submodule update --init --recursive
       - restore_cache:
-          key: v7-fbos-rpi-prod-dependency-cache-{{ checksum "mix.lock.rpi" }}
+          key: v8-fbos-rpi-prod-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi" }}
       - restore_cache:
-          key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+          key: v8-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock.host" }}
       - restore_cache:
           key: nerves/deploy/system-rpi3-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - <<: *install_elixir
@@ -227,10 +364,12 @@ jobs:
       - <<: *install_ghr
       - run:
           name: Sign Image
-          command: mix nerves_hub.firmware sign --key prod /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+          working_directory: /nerves/build/farmbot_os
+          command: mix nerves_hub.firmware sign --key prod /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
       - run:
           name: Publish to NervesHub
-          command: mix nerves_hub.firmware publish --deploy rpi-prod-stable /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+          working_directory: /nerves/build/farmbot_os
+          command: mix nerves_hub.firmware publish --deploy rpi-prod-stable /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
 
 ################################################################################
 #                   TARGET FIRMWARE NERVES HUB DEPLOY BETA                    #
@@ -247,19 +386,21 @@ jobs:
       - checkout
       - run: git submodule update --init --recursive
       - restore_cache:
-          key: v7-fbos-rpi3-prod-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+          key: v8-fbos-rpi3-prod-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
       - restore_cache:
-          key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+          key: v8-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock.host" }}
       - restore_cache:
           key: nerves/deploy/system-rpi3-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
           name: Sign Image
-          command: mix nerves_hub.firmware sign --key prod /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+          working_directory: /nerves/build/farmbot_os
+          command: mix nerves_hub.firmware sign --key prod /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
       - run:
           name: Publish to NervesHub
-          command: mix nerves_hub.firmware publish --deploy rpi3-prod-beta /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+          working_directory: /nerves/build/farmbot_os
+          command: mix nerves_hub.firmware publish --deploy rpi3-prod-beta /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
 
   deploy_rpi_prod_firmware_beta:
     <<: *defaults
@@ -272,19 +413,21 @@ jobs:
       - checkout
       - run: git submodule update --init --recursive
       - restore_cache:
-          key: v7-fbos-rpi-prod-dependency-cache-{{ checksum "mix.lock.rpi" }}
+          key: v8-fbos-rpi-prod-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi" }}
       - restore_cache:
-          key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+          key: v8-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock.host" }}
       - restore_cache:
           key: nerves/deploy/system-rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
           name: Sign Image
-          command: mix nerves_hub.firmware sign --key prod /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+          working_directory: /nerves/build/farmbot_os
+          command: mix nerves_hub.firmware sign --key prod /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
       - run:
           name: Publish to NervesHub
-          command: mix nerves_hub.firmware publish --deploy rpi-prod-beta /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+          working_directory: /nerves/build/farmbot_os
+          command: mix nerves_hub.firmware publish --deploy rpi-prod-beta /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
 
 ################################################################################
 #                 TARGET FIRMWARE NERVES HUB DEPLOY STAGING                    #
@@ -301,19 +444,21 @@ jobs:
       - checkout
       - run: git submodule update --init --recursive
       - restore_cache:
-          key: v7-fbos-rpi3-prod-dependency-cache-{{ checksum "mix.lock.rpi3" }}
+          key: v8-fbos-rpi3-prod-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
       - restore_cache:
-          key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+          key: v8-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock.host" }}
       - restore_cache:
           key: nerves/deploy/system-rpi3-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
           name: Sign Image
-          command: mix nerves_hub.firmware sign --key staging /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+          working_directory: /nerves/build/farmbot_os
+          command: mix nerves_hub.firmware sign --key staging /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
       - run:
           name: Publish to NervesHub
-          command: mix nerves_hub.firmware publish --deploy rpi3-prod-staging --ttl 3600 /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+          working_directory: /nerves/build/farmbot_os
+          command: mix nerves_hub.firmware publish --deploy rpi3-prod-staging --ttl 3600 /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
 
   deploy_rpi_prod_firmware_staging:
     <<: *defaults
@@ -326,19 +471,79 @@ jobs:
       - checkout
       - run: git submodule update --init --recursive
       - restore_cache:
-          key: v7-fbos-rpi-prod-dependency-cache-{{ checksum "mix.lock.rpi" }}
+          key: v8-fbos-rpi-prod-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi" }}
       - restore_cache:
-          key: v7-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+          key: v8-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock.host" }}
       - restore_cache:
           key: nerves/deploy/system-rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
           name: Sign Image
-          command: mix nerves_hub.firmware sign --key staging /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+          working_directory: /nerves/build/farmbot_os
+          command: mix nerves_hub.firmware sign --key staging /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
       - run:
           name: Publish to NervesHub
-          command: mix nerves_hub.firmware publish --deploy rpi-prod-staging --ttl 3600 /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+          working_directory: /nerves/build/farmbot_os
+          command: mix nerves_hub.firmware publish --deploy rpi-prod-staging --ttl 3600 /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
+
+################################################################################
+#                  TARGET FIRMWARE NERVES HUB DEPLOY NEXT                      #
+################################################################################
+
+  deploy_rpi3_prod_firmware_next:
+    <<: *defaults
+    environment:
+      MIX_ENV: prod
+      MIX_TARGET: rpi3
+      ELIXIR_VERSION: 1.7.3
+      SKIP_ARDUINO_BUILD: 1
+    steps:
+      - checkout
+      - run: git submodule update --init --recursive
+      - restore_cache:
+          key: v8-fbos-rpi3-prod-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi3" }}
+      - restore_cache:
+          key: v8-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock.host" }}
+      - restore_cache:
+          key: nerves/deploy/system-rpi3-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+      - <<: *install_elixir
+      - <<: *install_hex_archives
+      - run:
+          name: Sign Image
+          working_directory: /nerves/build/farmbot_os
+          command: mix nerves_hub.firmware sign --key staging /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
+      - run:
+          name: Publish to NervesHub
+          working_directory: /nerves/build/farmbot_os
+          command: mix nerves_hub.firmware publish --deploy rpi3-prod-next --ttl 3600 /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
+
+  deploy_rpi_prod_firmware_next:
+    <<: *defaults
+    environment:
+      MIX_ENV: prod
+      MIX_TARGET: rpi
+      ELIXIR_VERSION: 1.7.3
+      SKIP_ARDUINO_BUILD: 1
+    steps:
+      - checkout
+      - run: git submodule update --init --recursive
+      - restore_cache:
+          key: v8-fbos-rpi-prod-dependency-cache-{{ checksum "farmbot_os/mix.lock.rpi" }}
+      - restore_cache:
+          key: v8-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock.host" }}
+      - restore_cache:
+          key: nerves/deploy/system-rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+      - <<: *install_elixir
+      - <<: *install_hex_archives
+      - run:
+          name: Sign Image
+          working_directory: /nerves/build/farmbot_os
+          command: mix nerves_hub.firmware sign --key staging /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
+      - run:
+          name: Publish to NervesHub
+          working_directory: /nerves/build/farmbot_os
+          command: mix nerves_hub.firmware publish --deploy rpi-prod-next --ttl 3600 /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
 
 
 ################################################################################
@@ -443,15 +648,51 @@ workflows:
   version: 2
   test:
     jobs:
-      - test:
+      - test_farmbot_celery_script:
           context: org-global
           filters:
             branches:
               ignore:
-                # Merging is blocked on these branches until tests pass.
-                - beta
                 - master
                 - staging
+                - beta
+                - next
+      - test_farmbot_firmware:
+          context: org-global
+          filters:
+            branches:
+              ignore:
+                - master
+                - staging
+                - beta
+                - next
+      - test_farmbot_core:
+          context: org-global
+          filters:
+            branches:
+              ignore:
+                - master
+                - staging
+                - beta
+                - next
+      - test_farmbot_ext:
+          context: org-global
+          filters:
+            branches:
+              ignore:
+                - master
+                - staging
+                - beta
+                - next
+      - test_farmbot_os:
+          context: org-global
+          filters:
+            branches:
+              ignore:
+                - master
+                - staging
+                - beta
+                - next
 
   # This deploys the master branch to my.farm.bot
   deploy_stable_production:
@@ -679,5 +920,82 @@ workflows:
             branches:
               only:
                 - staging
+          requires:
+            - build_rpi_prod_firmware
+
+  # This deploys the next branch to staging.farm.bot
+  deploy_staging_next:
+    jobs:
+      - test_farmbot_celery_script:
+          context: org-global
+          filters:
+            branches:
+              only:
+                - next
+      - test_farmbot_firmware:
+          context: org-global
+          filters:
+            branches:
+              only:
+                - next
+      - test_farmbot_core:
+          context: org-global
+          filters:
+            branches:
+              only:
+                - next
+      - test_farmbot_ext:
+          context: org-global
+          filters:
+            branches:
+              only:
+                - next
+      - test_farmbot_os:
+          context: org-global
+          filters:
+            branches:
+              only:
+                - next
+      - build_rpi3_prod_firmware:
+          context: farmbot-staging
+          filters:
+            branches:
+              only:
+                - next
+          requires:
+            - test_farmbot_celery_script
+            - test_farmbot_firmware
+            - test_farmbot_core
+            - test_farmbot_ext
+            - test_farmbot_os
+
+      - build_rpi_prod_firmware:
+          context: farmbot-staging
+          filters:
+            branches:
+              only:
+                - next
+          requires:
+            - test_farmbot_celery_script
+            - test_farmbot_firmware
+            - test_farmbot_core
+            - test_farmbot_ext
+            - test_farmbot_os
+
+      - deploy_rpi3_prod_firmware_next:
+          context: farmbot-staging
+          filters:
+            branches:
+              only:
+                - next
+          requires:
+            - build_rpi3_prod_firmware
+
+      - deploy_rpi_prod_firmware_next:
+          context: farmbot-staging
+          filters:
+            branches:
+              only:
+                - next
           requires:
             - build_rpi_prod_firmware
