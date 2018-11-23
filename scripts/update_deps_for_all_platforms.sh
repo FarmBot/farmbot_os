@@ -1,5 +1,6 @@
 #!/bin/bash
 PROJECTS="farmbot_celery_script \
+farmbot_firmware \
 farmbot_core \
 farmbot_ext \
 farmbot_os

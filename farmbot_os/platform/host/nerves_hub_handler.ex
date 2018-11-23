@@ -3,6 +3,7 @@ defmodule Farmbot.Host.NervesHubHandler do
 
   def serial_number do
     {:ok, [_ | [{_ifname, info} | _]]} = :inet.getifaddrs()
+
     :io_lib.format('~2.16.0B~2.16.0B~2.16.0B~2.16.0B~2.16.0B~2.16.0B', info[:hwaddr])
     |> to_string()
     |> String.trim()
@@ -16,11 +17,12 @@ defmodule Farmbot.Host.NervesHubHandler do
 
   def deconfigure, do: :ok
 
-  def config, do: [
-    serial_number(),
-    "Not a real cert",
-    "Not a real key"
-  ]
+  def config,
+    do: [
+      serial_number(),
+      "Not a real cert",
+      "Not a real key"
+    ]
 
   def check_update, do: nil
 
