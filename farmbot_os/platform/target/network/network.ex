@@ -186,8 +186,11 @@ defmodule Farmbot.Target.Network do
           ipv4_gateway: config.ipv4_gateway,
           ipv4_subnet_mask: config.ipv4_subnet_mask
         ]
-      "dhcp" -> 
-        [ipv4_address_method: :dhcp]
+
+        {name, Keyword.merge(opts, settings)}
+
+      "dhcp" ->
+        {name, opts}
     end
     |> maybe_use_name_servers(config)
     |> maybe_use_domain(config)
