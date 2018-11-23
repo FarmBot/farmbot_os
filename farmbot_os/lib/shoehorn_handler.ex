@@ -8,14 +8,14 @@ defmodule Farmbot.OS.ShoehornHandler do
 
   def application_exited(:farmbot_core, reason, state) do
     Logger.error "FarmbotCore exited: #{inspect reason}"
-    Application.stop(:farmbot_os)
-    Application.ensure_all_started(:farmbot_os)
+    Application.stop(:farmbot)
+    Application.ensure_all_started(:farmbot)
     {:continue, state}
   end
 
-  def application_exited(:farmbot_os, reason, state) do
+  def application_exited(:farmbot, reason, state) do
     Logger.error "FarmbotOS exited: #{inspect reason}"
-    Application.ensure_all_started(:farmbot_os)
+    Application.ensure_all_started(:farmbot)
     {:continue, state}
   end
 

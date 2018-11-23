@@ -170,7 +170,9 @@ defmodule Farmbot.Target.Network do
           ipv4_address_method: :static,
           ipv4_address: config.ipv4_address,
           ipv4_gateway: config.ipv4_gateway,
-          ipv4_subnet_mask: config.ipv4_subnet_mask]
+          ipv4_subnet_mask: config.ipv4_subnet_mask
+        ]
+
         {name, Keyword.merge(opts, settings)}
 
       "dhcp" ->

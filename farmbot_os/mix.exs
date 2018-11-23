@@ -8,9 +8,11 @@ defmodule Farmbot.OS.MixProject do
   System.put_env("NERVES_FW_MISC", @branch)
   @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"]) |> File.read!() |> String.trim()
 
+  System.put_env("NERVES_FW_VCS_IDENTIFIER", @commit)
+
   def project do
     [
-      app: :farmbot_os,
+      app: :farmbot,
       elixir: @elixir_version,
       target: @target,
       version: @version,

@@ -19,7 +19,7 @@ defmodule Farmbot.System.NervesHub do
   Just return :ok to everything.
   """
 
-  @handler Application.get_env(:farmbot_os, __MODULE__)[:farmbot_nerves_hub_handler]
+  @handler Application.get_env(:farmbot, __MODULE__)[:farmbot_nerves_hub_handler]
   || Mix.raise("missing :farmbot_nerves_hub_handler module")
 
   @doc "Function to return a String serial number. "
