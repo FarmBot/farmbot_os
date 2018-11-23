@@ -2,8 +2,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
   use GenServer
   require Farmbot.Logger
 
-  @interface Application.get_env(:farmbot_os, :captive_portal_interface, "wlan0")
-  @address Application.get_env(:farmbot_os, :captive_portal_address, "192.168.25.1")
+  @interface Application.get_env(:farmbot, :captive_portal_interface, "wlan0")
+  @address Application.get_env(:farmbot, :captive_portal_address, "192.168.25.1")
   @mdns_domain "farmbot-setup.local"
 
   @dnsmasq_conf_file "dnsmasq.conf"

@@ -42,4 +42,3 @@ config :farmbot_core, :behaviour,
   firmware_handler: Farmbot.Firmware.UartHandler
 
 config :farmbot_core, :uart_handler, tty: "/dev/ttyACM0"
-import_config("auth_secret.exs")

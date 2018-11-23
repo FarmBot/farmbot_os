@@ -5,9 +5,10 @@ config :farmbot_core, :behaviour,
   leds_handler: Farmbot.Target.Leds.AleHandler,
   pin_binding_handler: Farmbot.Target.PinBinding.AleHandler,
   celery_script_io_layer: Farmbot.OS.IOLayer,
-  json_parser:   Farmbot.JSON.JasonParser
+  json_parser: Farmbot.JSON.JasonParser
 
 data_path = Path.join("/", "root")
+
 config :farmbot_ext,
   data_path: data_path
 
@@ -30,11 +31,11 @@ config :farmbot_core, Farmbot.Asset.Repo,
   loggers: [],
   database: Path.join(data_path, "repo-#{Mix.env()}.sqlite3")
 
-config :farmbot_os,
+config :farmbot,
   ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo],
   init_children: [
     {Farmbot.Target.Leds.AleHandler, []},
-    {Farmbot.Firmware.UartHandler.AutoDetector, []},
+    {Farmbot.Firmware.UartHandler.AutoDetector, []}
   ],
   platform_children: [
     {Farmbot.Target.Bootstrap.Configurator, []},
@@ -52,20 +53,16 @@ config :farmbot_os,
     # Reports Uptime every 60 seconds.
     {Farmbot.Target.UptimeWorker, []},
     {Farmbot.Target.Network.InfoSupervisor, []},
-    {Farmbot.Target.Uevent.Supervisor, []},
+    {Farmbot.Target.Uevent.Supervisor, []}
   ]
 
-config :farmbot_os, :behaviour,
-  system_tasks: Farmbot.Target.SystemTasks
+config :farmbot, :behaviour, system_tasks: Farmbot.Target.SystemTasks
 
-
-config :farmbot_os, Farmbot.System.NervesHub,
+config :farmbot, Farmbot.System.NervesHub,
   farmbot_nerves_hub_handler: Farmbot.System.NervesHubClient
 
 config :nerves_hub,
   client: Farmbot.System.NervesHubClient,
   public_keys: [File.read!("priv/staging.pub"), File.read!("priv/prod.pub")]
 
-config :nerves_hub, NervesHub.Socket, [
-  reconnect_interval: 5_000,
-]
+config :nerves_hub, NervesHub.Socket, reconnect_interval: 5_000
