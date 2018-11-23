@@ -14,16 +14,16 @@ defmodule Farmbot.System.Init.Ecto do
 
   @doc "Replacement for Mix.Tasks.Ecto.Create"
   def setup do
-    repos = Application.get_env(:farmbot_os, :ecto_repos)
+    repos = Application.get_env(:farmbot, :ecto_repos)
 
     for repo <- repos do
-      Application.put_env(:farmbot_os, :repo_hack, repo)
+      Application.put_env(:farmbot, :repo_hack, repo)
       setup(repo)
     end
   end
 
   def setup(repo) do
-    db_file = Application.get_env(:farmbot_os, repo)[:database]
+    db_file = Application.get_env(:farmbot, repo)[:database]
 
     unless File.exists?(db_file) do
       :ok = repo.__adapter__.storage_up(repo.config)
@@ -32,7 +32,7 @@ defmodule Farmbot.System.Init.Ecto do
 
   @doc "Replacement for Mix.Tasks.Ecto.Drop"
   def drop do
-    repos = Application.get_env(:farmbot_os, :ecto_repos)
+    repos = Application.get_env(:farmbot, :ecto_repos)
 
     for repo <- repos do
       case drop(repo) do
@@ -49,11 +49,11 @@ defmodule Farmbot.System.Init.Ecto do
 
   @doc "Replacement for Mix.Tasks.Ecto.Migrate"
   def migrate do
-    repos = Application.get_env(:farmbot_os, :ecto_repos)
-    Application.put_env(:farmbot_os, :repo_hack, nil)
+    repos = Application.get_env(:farmbot, :ecto_repos)
+    Application.put_env(:farmbot, :repo_hack, nil)
 
     for repo <- repos do
-      Application.put_env(:farmbot_os, :repo_hack, repo)
+      Application.put_env(:farmbot, :repo_hack, repo)
       # setup(repo)
       migrate(repo)
     end
