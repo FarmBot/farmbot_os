@@ -115,11 +115,11 @@ defmodule Farmbot.System.NervesHub do
   # or updates it if one exists.
   def configure(tags) when is_list(tags) do
     Farmbot.Logger.debug 1, "Configuring NervesHub: #{inspect tags}"
-    payload = %{
+    params = %{
       serial_number: serial(),
       tags: tags
-    } |> Farmbot.JSON.encode!()
-    Farmbot.HTTP.post("/api/device_cert", payload)
+    }
+    Farmbot.Asset.new_device_cert(params)
   end
 
   # Message comes over AMQP.

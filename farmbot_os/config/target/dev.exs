@@ -62,7 +62,7 @@ config :farmbot,
     {Farmbot.Target.Uevent.Supervisor, []}
   ]
 
-config :farmbot, :behaviour, system_tasks: Farmbot.Target.SystemTasks
+config :farmbot, Farmbot.System, system_tasks: Farmbot.Target.SystemTasks
 
 config :farmbot, Farmbot.System.NervesHub,
   farmbot_nerves_hub_handler: Farmbot.System.NervesHubClient

@@ -41,6 +41,24 @@ defmodule Farmbot.BotStateNGTest do
   end
 
   describe "informational_settings" do
+    test "sets update_available" do
+      orig = BotStateNG.new()
+
+      assert orig.update_available == false
+
+      mut1 =
+        BotStateNG.changeset(orig, %{informational_settings: %{update_available: true}})
+        |> Ecto.Changeset.apply_changes()
+
+      assert mut1.informational_settings.update_available == true
+
+      mut2 =
+        BotStateNG.changeset(orig, %{informational_settings: %{update_available: false}})
+        |> Ecto.Changeset.apply_changes()
+
+      assert mut2.informational_settings.update_available == false
+    end
+
     test "reports soc_temp" do
       orig = BotStateNG.new()
 
