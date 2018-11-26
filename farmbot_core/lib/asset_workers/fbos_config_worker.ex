@@ -16,7 +16,6 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FbosConfig do
   end
 
   def handle_info(:timeout, %FbosConfig{} = fbos_config) do
-    maybe_reinit_firmware(fbos_config)
     bool("arduino_debug_messages", fbos_config.arduino_debug_messages)
     bool("auto_sync", fbos_config.auto_sync)
     bool("beta_opt_in", fbos_config.beta_opt_in)
@@ -49,23 +48,5 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FbosConfig do
   defp float(key, val) do
     update_config_value(:float, "settings", key, val / 1)
     :ok = Farmbot.BotState.set_config_value(key, val)
-  end
-
-  defp maybe_reinit_firmware(%FbosConfig{firmware_hardware: nil}) do
-    :ok
-  end
-
-  defp maybe_reinit_firmware(%FbosConfig{firmware_path: nil}) do
-    :ok
-  end
-
-  defp maybe_reinit_firmware(%FbosConfig{}) do
-    alias Farmbot.Firmware
-    alias Farmbot.Core.FirmwareSupervisor
-
-    if is_nil(Process.whereis(Firmware)) do
-      Logger.warn("Starting Farmbot firmware")
-      FirmwareSupervisor.reinitialize()
-    end
   end
 end

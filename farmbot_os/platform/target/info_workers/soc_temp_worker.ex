@@ -13,7 +13,7 @@ defmodule Farmbot.Target.SocTempWorker do
     {:ok, nil, 0}
   end
 
-  def handle_info(:report_temp, state) do
+  def handle_info(:timeout, state) do
     {temp_str, 0} = Nerves.Runtime.cmd("vcgencmd", ["measure_temp"], :return)
 
     temp =

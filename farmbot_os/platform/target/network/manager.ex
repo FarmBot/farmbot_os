@@ -62,7 +62,8 @@ defmodule Farmbot.Target.Network.Manager do
     {:ok, _} = Elixir.Registry.register(Nerves.Udhcpc, interface, [])
     {:ok, _} = Elixir.Registry.register(Nerves.WpaSupplicant, interface, [])
 
-    domain = node() |> to_string() |> String.split("@") |> List.last() |> Kernel.<>(".local")
+    {:ok, hostname} = :inet.gethostname()
+    domain = hostname <> ".local"
     init_mdns(domain)
 
     state = %{
@@ -130,7 +131,6 @@ defmodule Farmbot.Target.Network.Manager do
   def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-NETWORK-NOT-FOUND", _}, state) do
     # stored in minutes
     reconnect_timer = if state.connected, do: restart_connection_timer(state)
-    maybe_refresh_token()
     NotFoundTimer.start()
 
     new_state = %{
@@ -154,7 +154,6 @@ defmodule Farmbot.Target.Network.Manager do
   def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-DISCONNECTED", _}, state) do
     # stored in minutes
     reconnect_timer = if state.connected, do: restart_connection_timer(state)
-    maybe_refresh_token()
     NotFoundTimer.start()
 
     new_state = %{
@@ -174,7 +173,6 @@ defmodule Farmbot.Target.Network.Manager do
       <<"CTRL-EVENT-SSID-TEMP-DISABLED" <> _>> = msg ->
         if String.contains?(msg, "duration=20") do
           reconnect_timer = if state.connected, do: restart_connection_timer(state)
-          maybe_refresh_token()
           NotFoundTimer.start()
 
           new_state = %{
@@ -216,7 +214,6 @@ defmodule Farmbot.Target.Network.Manager do
         {:noreply, %{state | dns_timer: restart_dns_timer(nil, 45_000)}}
 
       {:error, err} ->
-        maybe_refresh_token()
         Farmbot.Logger.warn(3, "Farmbot was disconnected from the internet: #{inspect(err)}")
         {:noreply, %{state | connected: false, dns_timer: restart_dns_timer(nil, 20_000)}}
     end
@@ -232,13 +229,11 @@ defmodule Farmbot.Target.Network.Manager do
       {:ok, {:hostent, _host_name, aliases, :inet, 4, _}} ->
         # If we weren't previously connected, send a log.
         Farmbot.Logger.success(3, "Farmbot was reconnected to the internet: #{inspect(aliases)}")
-        maybe_refresh_token()
         new_state = %{state | connected: true, dns_timer: restart_dns_timer(nil, 45_000)}
         {:noreply, new_state}
 
       {:error, err} ->
         Farmbot.Logger.warn(3, "Farmbot was disconnected from the internet: #{inspect(err)}")
-        maybe_refresh_token()
         {:noreply, %{state | connected: false, dns_timer: restart_dns_timer(nil, 20_000)}}
     end
   end
@@ -274,14 +269,6 @@ defmodule Farmbot.Target.Network.Manager do
     Process.sleep(5000)
     Nerves.Network.setup(state.interface, state.opts)
     Process.send_after(self(), :reconnect_timer, 30_000)
-  end
-
-  defp maybe_refresh_token do
-    if Process.whereis(Farmbot.Bootstrap.AuthTask) do
-      Farmbot.Bootstrap.AuthTask.force_refresh()
-    else
-      Farmbot.Logger.warn(1, "AuthTask not running yet")
-    end
   end
 
   defp init_mdns(mdns_domain) do

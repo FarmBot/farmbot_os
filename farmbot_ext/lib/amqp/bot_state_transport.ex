@@ -1,14 +1,17 @@
 defmodule Farmbot.AMQP.BotStateTransport do
   use GenServer
   use AMQP
+  alias AMQP.Channel
+
   require Farmbot.Logger
+  alias Farmbot.AMQP.ConnectionWorker
 
   # Pushes a state tree every 5 seconds for good luck.
   @default_force_time_ms 5_000
   @default_error_retry_ms 100
   @exchange "amq.topic"
 
-  defstruct [:conn, :chan, :bot, :state_cache]
+  defstruct [:conn, :chan, :jwt, :state_cache]
   alias __MODULE__, as: State
 
   def force do
@@ -20,20 +23,40 @@ defmodule Farmbot.AMQP.BotStateTransport do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def init([conn, jwt]) do
+  def init(args) do
+    jwt = Keyword.fetch!(args, :jwt)
     Process.flag(:sensitive, true)
-    initial_bot_state = Farmbot.BotState.subscribe()
-    {:ok, chan} = AMQP.Channel.open(conn)
-    :ok = Basic.qos(chan, global: true)
-    {:ok, struct(State, conn: conn, chan: chan, bot: jwt.bot, state_cache: initial_bot_state), 0}
+    {:ok, %State{conn: nil, chan: nil, jwt: jwt, state_cache: nil}, 0}
+  end
+
+  def terminate(reason, state) do
+    Farmbot.Logger.error(1, "Disconnected from BotState channel: #{inspect(reason)}")
+    # If a channel was still open, close it.
+    if state.chan, do: Channel.close(state.chan)
   end
 
   def handle_cast(:force, state) do
     {:noreply, state, 0}
   end
 
-  def handle_info(:timeout, %{state_cache: bot_state} = state) do
-    case push_bot_state(state.chan, state.bot, bot_state) do
+  def handle_info(:timeout, %{state_cache: nil} = state) do
+    with %{} = conn <- ConnectionWorker.connection(),
+         {:ok, chan} <- Channel.open(conn),
+         :ok <- Basic.qos(chan, global: true) do
+      initial_bot_state = Farmbot.BotState.subscribe()
+      {:noreply, %{state | conn: conn, chan: chan, state_cache: initial_bot_state}, 0}
+    else
+      nil ->
+        {:noreply, %{state | conn: nil, chan: nil, state_cache: nil}, 5000}
+
+      err ->
+        Farmbot.Logger.error(1, "Failed to connect to BotState channel: #{inspect(err)}")
+        {:noreply, %{state | conn: nil, chan: nil, state_cache: nil}, 1000}
+    end
+  end
+
+  def handle_info(:timeout, %{state_cache: %{} = bot_state, chan: %{}} = state) do
+    case push_bot_state(state.chan, state.jwt.bot, bot_state) do
       :ok ->
         {:noreply, state, @default_force_time_ms}
 
@@ -54,6 +77,6 @@ defmodule Farmbot.AMQP.BotStateTransport do
       |> Farmbot.BotStateNG.view()
       |> Farmbot.JSON.encode!()
 
-    AMQP.Basic.publish(chan, @exchange, "bot.#{bot}.status", json)
+    Basic.publish(chan, @exchange, "bot.#{bot}.status", json)
   end
 end

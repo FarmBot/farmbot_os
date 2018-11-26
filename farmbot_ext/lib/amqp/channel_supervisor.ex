@@ -4,7 +4,6 @@ defmodule Farmbot.AMQP.ChannelSupervisor do
   alias Farmbot.JWT
 
   alias Farmbot.AMQP.{
-    ConnectionWorker,
     LogTransport,
     BotStateTransport,
     AutoSyncTransport,
@@ -17,14 +16,13 @@ defmodule Farmbot.AMQP.ChannelSupervisor do
 
   def init([token]) do
     Process.flag(:sensitive, true)
-    conn = ConnectionWorker.connection()
     jwt = JWT.decode!(token)
 
     children = [
-      {LogTransport, [conn, jwt]},
-      {BotStateTransport, [conn, jwt]},
-      {AutoSyncTransport, [conn, jwt]},
-      {CeleryScriptTransport, [conn, jwt]}
+      {LogTransport, [jwt: jwt]},
+      {BotStateTransport, [jwt: jwt]},
+      {AutoSyncTransport, [jwt: jwt]},
+      {CeleryScriptTransport, [jwt: jwt]}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

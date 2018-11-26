@@ -275,9 +275,9 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
         if Application.get_env(:farmbot, :behaviour)[:firmware_handler] ==
              Farmbot.Firmware.UartHandler do
-          Farmbot.Logger.warn(1, "Updating #{hw} firmware.")
+          Farmbot.Logger.warn(1, "Updating #{hw} firmware is broke!!!!!!")
           # /shrug?
-          Farmbot.Firmware.UartHandler.Update.force_update_firmware(hw)
+          # Farmbot.Firmware.UartHandler.Update.force_update_firmware(hw)
         end
 
         redir(conn, "/credentials")

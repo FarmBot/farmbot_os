@@ -74,10 +74,15 @@ defmodule Farmbot.Target.Bootstrap.Configurator do
     :ets.new(:session, [:named_table, :public, read_concurrency: true])
     Config.destroy_all_network_configs()
 
+    transport_opts = [
+      num_acceptors: 1
+    ]
+
+    opts = [port: 80, transport_options: transport_opts]
+
     children = [
       worker(Configurator.CaptivePortal, [], restart: :transient),
-      {Plug.Adapters.Cowboy,
-       scheme: :http, plug: Configurator.Router, options: [port: 80, acceptors: 1]}
+      {Plug.Adapters.Cowboy, scheme: :http, plug: Configurator.Router, options: opts}
     ]
 
     opts = [strategy: :one_for_one]

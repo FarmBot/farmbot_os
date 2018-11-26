@@ -235,7 +235,7 @@ defmodule Farmbot.BotState do
     {:reply, reply, state}
   end
 
-  def handle_call({:memory_usage, megabytes}, _form, state) do
+  def handle_call({:report_memory_usage, megabytes}, _form, state) do
     change = %{informational_settings: %{memory_usage: megabytes}}
 
     {reply, state} =

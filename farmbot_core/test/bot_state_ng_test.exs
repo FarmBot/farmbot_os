@@ -44,7 +44,7 @@ defmodule Farmbot.BotStateNGTest do
     test "sets update_available" do
       orig = BotStateNG.new()
 
-      assert orig.update_available == false
+      assert orig.informational_settings.update_available == false
 
       mut1 =
         BotStateNG.changeset(orig, %{informational_settings: %{update_available: true}})

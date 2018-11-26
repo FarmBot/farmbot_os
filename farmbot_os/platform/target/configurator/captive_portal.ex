@@ -126,11 +126,12 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
   end
 
   defp build_ssid do
-    node_str = node() |> Atom.to_string()
+    {:ok, hostname} = :inet.gethostname()
 
-    case node_str |> String.split("@") do
-      [name, "farmbot-" <> id] -> name <> "-" <> id
-      _ -> "Farmbot"
+    if String.starts_with?(to_string(hostname), "farmbot-") do
+      to_string('farmbot-' ++ Enum.take(hostname, -4))
+    else
+      to_string(hostname)
     end
   end
 
@@ -156,7 +157,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
   defp get_dnsmasq_info(dnsmasq_port, ip_addr, interface) when is_port(dnsmasq_port) do
     case Port.info(dnsmasq_port, :os_pid) do
       {:os_pid, dnsmasq_os_pid} ->
-        {dnsmasq_port, dnsmasq_os_pid}
+        {:ok, {dnsmasq_port, dnsmasq_os_pid}}
 
       nil ->
         Farmbot.Logger.warn(1, "dnsmasq not ready yet.")

@@ -67,9 +67,6 @@ defmodule Farmbot.OS.MixProject do
 
   defp deps(target) do
     [
-      # Configurator
-      {:cowboy, "~> 2.5"},
-      {:plug, "~> 1.6"},
       # override: true because AMQP
       {:ranch, "~> 1.5", override: true},
       {:cors_plug, "~> 1.5"},
@@ -83,7 +80,8 @@ defmodule Farmbot.OS.MixProject do
       {:mdns, "~> 1.0"},
       {:nerves_firmware_ssh, "~> 0.3"},
       {:nerves_init_gadget, "~> 0.5", only: :dev},
-      {:elixir_ale, "~> 1.2"}
+      {:elixir_ale, "~> 1.2"},
+      {:toolshed, "~> 0.2"}
     ] ++ system(target)
   end
 

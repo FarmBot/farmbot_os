@@ -70,4 +70,8 @@ if Mix.Project.config()[:target] == "host" do
   import_config("host/#{Mix.env()}.exs")
 else
   import_config("target/#{Mix.env()}.exs")
+
+  if File.exists?("config/target/#{Mix.Project.config()[:target]}.exs") do
+    import_config("target/#{Mix.Project.config()[:target]}.exs")
+  end
 end

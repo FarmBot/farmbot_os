@@ -7,6 +7,8 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
     Queue
   }
 
+  alias Farmbot.AMQP.ConnectionWorker
+
   require Logger
   require Farmbot.Logger
   import Farmbot.Config, only: [get_config_value: 3]
@@ -22,7 +24,7 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
 
   @exchange "amq.topic"
 
-  defstruct [:conn, :chan, :bot]
+  defstruct [:conn, :chan, :jwt]
   alias __MODULE__, as: State
 
   @doc false
@@ -30,21 +32,39 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def init([conn, jwt]) do
+  def init(args) do
     Process.flag(:sensitive, true)
-    {:ok, chan} = Channel.open(conn)
-    :ok = Basic.qos(chan, global: true)
-    {:ok, _} = Queue.declare(chan, jwt.bot <> "_auto_sync", auto_delete: false)
-
-    :ok =
-      Queue.bind(chan, jwt.bot <> "_auto_sync", @exchange, routing_key: "bot.#{jwt.bot}.sync.#")
-
-    {:ok, _tag} = Basic.consume(chan, jwt.bot <> "_auto_sync", self(), no_ack: true)
-    {:ok, struct(State, conn: conn, chan: chan, bot: jwt.bot)}
+    jwt = Keyword.fetch!(args, :jwt)
+    {:ok, %State{conn: nil, chan: nil, jwt: jwt}, 1000}
   end
 
-  def terminate(reason, _state) do
-    Logger.error("AutoSync channel crash: #{inspect(reason)}")
+  def terminate(reason, state) do
+    Farmbot.Logger.error(1, "Disconnected from AutoSync channel: #{inspect(reason)}")
+    # If a channel was still open, close it.
+    if state.chan, do: AMQP.Channel.close(state.chan)
+  end
+
+  def handle_info(:timeout, state) do
+    jwt = state.jwt
+    bot = jwt.bot
+    auto_sync = bot <> "_auto_sync"
+    route = "bot.#{bot}.sync.#"
+
+    with %{} = conn <- ConnectionWorker.connection(),
+         {:ok, chan} <- Channel.open(conn),
+         :ok <- Basic.qos(chan, global: true),
+         {:ok, _} <- Queue.declare(chan, auto_sync, auto_delete: false),
+         :ok <- Queue.bind(chan, auto_sync, @exchange, routing_key: route),
+         {:ok, _} <- Basic.consume(chan, auto_sync, self(), no_ack: true) do
+      {:noreply, %{state | conn: conn, chan: chan}}
+    else
+      nil ->
+        {:noreply, %{state | conn: nil, chan: nil}, 5000}
+
+      error ->
+        Farmbot.Logger.error(1, "Failed to connect to AutoSync channel: #{inspect(error)}")
+        {:noreply, %{state | conn: nil, chan: nil}, 1000}
+    end
   end
 
   # Confirmation sent by the broker after registering this process as a consumer
