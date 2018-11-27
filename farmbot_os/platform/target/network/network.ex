@@ -1,246 +1,179 @@
 defmodule Farmbot.Target.Network do
-  @moduledoc "Bring up network."
+  @moduledoc "Manages Network Connections"
+  use GenServer
+  require Logger
 
-  import Farmbot.Config, only: [get_config_value: 3, get_all_network_configs: 0]
-  alias Farmbot.Config.NetworkInterface
-  alias Farmbot.Target.Network.Manager, as: NetworkManager
-  alias Farmbot.Target.Network.NotFoundTimer
-  alias Farmbot.Target.Network.ScanResult
+  alias Nerves.NetworkInterface
+  import Farmbot.Target.Network.Utils
 
-  use Supervisor
-  require Farmbot.Logger
+  @validation_ms 30_000
 
-  @doc "List available interfaces. Removes unusable entries."
-  def get_interfaces(tries \\ 5)
-  def get_interfaces(0), do: []
-
-  def get_interfaces(tries) do
-    case Nerves.NetworkInterface.interfaces() do
-      ["lo"] ->
-        Process.sleep(100)
-        get_interfaces(tries - 1)
-
-      interfaces when is_list(interfaces) ->
-        interfaces
-        # Delete unusable entries if they exist.
-        |> List.delete("usb0")
-        |> List.delete("lo")
-        |> List.delete("sit0")
-        |> Map.new(fn interface ->
-          {:ok, settings} = Nerves.NetworkInterface.status(interface)
-          {interface, settings}
-        end)
-    end
+  defmodule State do
+    @moduledoc false
+    defstruct ifnames: [],
+              config: %{},
+              hostap: :down,
+              hostap_dhcp_server_pid: nil,
+              hostap_wpa_supplicant_pid: nil
   end
 
-  @doc "Scan on an interface."
-  def scan(iface) do
-    do_scan(iface)
-    |> ScanResult.decode()
-    |> ScanResult.sort_results()
-    |> ScanResult.decode_security()
-    |> Enum.filter(&Map.get(&1, :ssid))
-    |> Enum.map(&Map.update(&1, :ssid, nil, fn ssid -> to_string(ssid) end))
-    |> Enum.reject(&String.contains?(&1.ssid, "\\x00"))
-    |> Enum.uniq_by(fn %{ssid: ssid} -> ssid end)
+  @doc "List all ifnames the Network Manager knows about."
+  def ifnames do
+    GenServer.call(__MODULE__, :ifnames)
   end
 
-  defp wait_for_results(pid) do
-    Nerves.WpaSupplicant.request(pid, :SCAN_RESULTS)
-    |> String.trim()
-    |> String.split("\n")
-    |> tl()
-    |> Enum.map(&String.split(&1, "\t"))
-    |> reduce_decode()
-    |> case do
-      [] ->
-        Process.sleep(500)
-        wait_for_results(pid)
-
-      res ->
-        res
-    end
+  @doc "Bring down hostap, bring up networking. Will reset if not `validate/0`d in time."
+  def setup(ifname, opts) do
+    GenServer.cast(__MODULE__, {:setup, ifname, opts})
   end
 
-  defp reduce_decode(results, acc \\ [])
-  defp reduce_decode([], acc), do: Enum.reverse(acc)
-
-  defp reduce_decode([[bssid, freq, signal, flags, ssid] | rest], acc) do
-    decoded = %{
-      bssid: bssid,
-      frequency: String.to_integer(freq),
-      flags: flags,
-      level: String.to_integer(signal),
-      ssid: ssid
-    }
-
-    reduce_decode(rest, [decoded | acc])
+  @doc "Validate the config given to the Network manager"
+  def validate do
+    GenServer.cast(__MODULE__, :validate)
   end
 
-  defp reduce_decode([[bssid, freq, signal, flags] | rest], acc) do
-    decoded = %{
-      bssid: bssid,
-      frequency: String.to_integer(freq),
-      flags: flags,
-      level: String.to_integer(signal),
-      ssid: nil
-    }
-
-    reduce_decode(rest, [decoded | acc])
+  @doc "Bring down networking, bring up hostap"
+  def hostap_up do
+    GenServer.cast(__MODULE__, :hostap_up)
   end
 
-  defp reduce_decode([_ | rest], acc) do
-    reduce_decode(rest, acc)
+  @doc "Bring down hostap, Bring up networking"
+  def hostap_down do
+    GenServer.cast(__MODULE__, :hostap_down)
   end
 
-  def do_scan(iface) do
-    pid = :"Nerves.WpaSupplicant.#{iface}"
-
-    if Process.whereis(pid) do
-      Nerves.WpaSupplicant.request(pid, :SCAN)
-      wait_for_results(pid)
-    else
-      []
-    end
-  end
-
-  def get_level(ifname, ssid) do
-    r = Farmbot.Target.Network.scan(ifname)
-
-    if res = Enum.find(r, &(Map.get(&1, :ssid) == ssid)) do
-      res.level
-    end
-  end
-
-  @doc "Tests if we can make dns queries."
-  def test_dns(hostname \\ nil)
-
-  def test_dns(nil) do
-    case get_config_value(:string, "authorization", "server") do
-      nil ->
-        test_dns(get_config_value(:string, "settings", "default_dns_name"))
-
-      url when is_binary(url) ->
-        %URI{host: hostname} = URI.parse(url)
-        test_dns(hostname)
-    end
-  end
-
-  def test_dns(hostname) when is_binary(hostname) do
-    test_dns(to_charlist(hostname))
-  end
-
-  def test_dns(hostname) do
-    :ok = :inet_db.clear_cache()
-    # IO.puts "testing dns: #{hostname}"
-    case :inet.parse_ipv4_address(hostname) do
-      {:ok, addr} -> {:ok, {:hostent, hostname, [], :inet, 4, [addr]}}
-      _ -> :inet_res.gethostbyname(hostname)
-    end
-  end
-
-  # TODO Expand this to allow for more settings.
-  def to_network_config(config)
-
-  def to_network_config(%NetworkInterface{type: "wireless"} = config) do
-    Farmbot.Logger.debug(3, "wireless network config: ssid: #{config.ssid}")
-    opts = [ssid: config.ssid, key_mgmt: config.security]
-
-    case config.security do
-      "WPA-PSK" ->
-        {config.name, Keyword.merge(opts, psk: config.psk)} |> maybe_use_advanced(config)
-
-      "NONE" ->
-        {config.name, opts} |> maybe_use_advanced(config)
-
-      other ->
-        raise "Unsupported wireless security type: #{other}"
-    end
-  end
-
-  def to_network_config(%NetworkInterface{type: "wired"} = config) do
-    {config.name, []} |> maybe_use_advanced(config)
-  end
-
-  defp maybe_use_advanced({name, opts}, config) do
-    case config.ipv4_method do
-      "static" ->
-        settings = [
-          ipv4_method: "static",
-          ipv4_address: config.ipv4_address,
-          ipv4_gateway: config.ipv4_gateway,
-          ipv4_subnet_mask: config.ipv4_subnet_mask
-        ]
-
-        {name, Keyword.merge(opts, settings)}
-
-      "dhcp" ->
-        {name, opts}
-    end
-    |> maybe_use_name_servers(config)
-    |> maybe_use_domain(config)
-  end
-
-  defp maybe_use_name_servers({name, opts}, config) do
-    if config.name_servers do
-      {name, Keyword.put(opts, :name_servers, String.split(config.name_servers, " "))}
-    else
-      {name, opts}
-    end
-  end
-
-  defp maybe_use_domain({name, opts}, config) do
-    if config.domain do
-      {name, Keyword.put(opts, :domain, config.domain)}
-    else
-      {name, opts}
-    end
-  end
-
-  def to_child_spec({interface, opts}) do
-    worker(NetworkManager, [interface, opts], restart: :transient)
-  end
-
+  @doc "Start the Network manager."
   def start_link(args) do
-    Supervisor.start_link(__MODULE__, args, name: __MODULE__)
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def init([]) do
-    config = get_all_network_configs()
-    Farmbot.Logger.info(3, "Starting Networking")
-    s1 = Farmbot.Config.get_config_value(:string, "settings", "default_ntp_server_1")
-    s2 = Farmbot.Config.get_config_value(:string, "settings", "default_ntp_server_2")
-    Nerves.Time.set_ntp_servers([s1, s2])
-    maybe_hack_tzdata()
-
-    children =
-      config
-      |> Enum.map(&to_network_config/1)
-      |> Enum.map(&to_child_spec/1)
-      # Don't know why/if we need this?
-      |> Enum.uniq()
-
-    children = [{NotFoundTimer, []}] ++ children
-    Supervisor.init(children, strategy: :one_for_one, max_restarts: 20, max_seconds: 1)
+  def init(args) do
+    config = Keyword.get(args, :config, %{})
+    {:ok, %State{config: config}, 0}
   end
 
-  @fb_data_dir Application.get_env(:farmbot_ext, :data_path)
-  @tzdata_dir Application.app_dir(:tzdata, "priv")
-  def maybe_hack_tzdata do
-    case Tzdata.Util.data_dir() do
-      @fb_data_dir ->
-        :ok
+  def terminate(_, state) do
+    state = try_stop_dhcp(state)
 
-      _ ->
-        Farmbot.Logger.debug(3, "Hacking tzdata.")
-        objs_to_cp = Path.wildcard(Path.join(@tzdata_dir, "*"))
-
-        for obj <- objs_to_cp do
-          File.cp_r(obj, @fb_data_dir)
-        end
-
-        Application.put_env(:tzdata, :data_dir, @fb_data_dir)
-        :ok
+    for ifname <- state.ifnames do
+      Nerves.Network.teardown(ifname)
+      Nerves.NetworkInterface.ifdown(ifname)
     end
+  end
+
+  def handle_call(:ifnames, _from, state) do
+    {:reply, state.ifnames, state}
+  end
+
+  def handle_cast({:setup, ifname, opts}, state) do
+    {:noreply, %{state | config: Map.put(state.config, ifname, opts)}, 0}
+  end
+
+  def handle_cast(:hostap_up, state) do
+    setup_hostap(state)
+  end
+
+  def handle_cast(:hostap_down, state) do
+    {:noreply, stop_hostap(state), 0}
+  end
+
+  def handle_cast(:validate, state) do
+    Logger.info("Config validated")
+    {:noreply, %{state | hostap: :validated}}
+  end
+
+  def handle_info(:timeout, %{ifnames: []} = state) do
+    Logger.info("Detecting ifnames")
+    ifnames = NetworkInterface.interfaces()
+    {:noreply, %{state | ifnames: ifnames}, 0}
+  end
+
+  def handle_info(:timeout, %{config: c} = state) when map_size(c) == 0 do
+    setup_hostap(state)
+  end
+
+  def handle_info(:timeout, %{hostap: :pending_validation} = state) do
+    Logger.warn("Config not validated in time.")
+    setup_hostap(%{state | config: %{}})
+  end
+
+  def handle_info(:timeout, state) do
+    Logger.info("Waiting #{@validation_ms} ms for config to be validated.")
+    state = stop_hostap(state)
+
+    for {ifname, conf} <- state.config do
+      Nerves.Network.setup(ifname, conf)
+    end
+
+    {:noreply, %{state | hostap: :pending_validation}, @validation_ms}
+  end
+
+  def stop_hostap(%{hostap: :up} = state) do
+    state = try_stop_dhcp(state)
+    Nerves.Network.teardown("wlan0")
+    Nerves.Network.setup("wlan0", [])
+    Nerves.NetworkInterface.setup("wlan0", [])
+    %{state | hostap: :down, hostap_wpa_supplicant_pid: nil}
+  end
+
+  # hostap down or not available.
+  def stop_hostap(state), do: state
+
+  def setup_hostap(%{hostap: :up} = state), do: {:noreply, state}
+
+  def setup_hostap(state) do
+    hostap_opts = [
+      ssid: build_hostap_ssid(),
+      key_mgmt: :NONE,
+      mode: 2
+    ]
+
+    ip_opts = [
+      ipv4_address_method: :static,
+      ipv4_address: "192.168.24.1",
+      ipv4_gateway: "192.168.24.1",
+      ipv4_subnet_mask: "255.255.0.0",
+      nameservers: ["192.168.24.1"]
+    ]
+
+    dhcp_opts = [
+      gateway: "192.168.24.1",
+      netmask: "255.255.255.0",
+      range: {"192.168.24.2", "192.168.24.10"},
+      domain_servers: ["192.168.24.1"]
+    ]
+
+    Nerves.Network.teardown("wlan0")
+    Nerves.Network.setup("wlan0", hostap_opts)
+    Nerves.NetworkInterface.setup("wlan0", ip_opts)
+    {:ok, hostap_dhcp_server_pid} = DHCPServer.start_link("wlan0", dhcp_opts)
+    {:ok, hostap_wpa_supplicant_pid} = wait_for_wpa("wlan0")
+
+    {:noreply,
+     %{
+       state
+       | hostap: :up,
+         hostap_dhcp_server_pid: hostap_dhcp_server_pid,
+         hostap_wpa_supplicant_pid: hostap_wpa_supplicant_pid
+     }}
+  end
+
+  defp wait_for_wpa(ifname) do
+    # Logger.debug("waiting for #{ifname} wpa_supplicant")
+    name = :"Nerves.WpaSupplicant.#{ifname}"
+
+    case GenServer.whereis(name) do
+      nil -> wait_for_wpa(ifname)
+      pid -> {:ok, pid}
+    end
+  end
+
+  defp try_stop_dhcp(state) do
+    if state.hostap_dhcp_server_pid && Process.alive?(state.hostap_dhcp_server_pid) do
+      Logger.debug("Stopping DHCP Server")
+      GenServer.stop(state.hostap_dhcp_server_pid, :normal)
+    end
+
+    %{state | hostap_dhcp_server_pid: nil}
   end
 end

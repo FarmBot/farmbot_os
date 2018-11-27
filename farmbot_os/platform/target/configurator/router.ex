@@ -1,4 +1,4 @@
-defmodule Farmbot.Target.Bootstrap.Configurator.Router do
+defmodule Farmbot.Target.Configurator.Router do
   @moduledoc "Routes web connections."
 
   use Plug.Router
@@ -82,7 +82,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
   # NETWORKCONFIG
   get "/network" do
-    interfaces = Farmbot.Target.Network.get_interfaces()
+    interfaces = Farmbot.Target.Network.ifnames()
     render_page(conn, "network", interfaces: interfaces, post_action: "select_interface")
   end
 
@@ -119,7 +119,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
       opts = [
         ifname: ifname,
-        ssids: Farmbot.Target.Network.scan(ifname),
+        ssids: Farmbot.Target.Network.Utils.scan(ifname),
         post_action: "config_wireless_step_1"
       ]
 

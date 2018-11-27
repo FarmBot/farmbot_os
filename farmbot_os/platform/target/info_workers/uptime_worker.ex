@@ -13,7 +13,7 @@ defmodule Farmbot.Target.UptimeWorker do
     {:ok, nil, 0}
   end
 
-  def handle_info(:report_uptime, state) do
+  def handle_info(:timeout, state) do
     usage = collect_report()
 
     if GenServer.whereis(Farmbot.BotState) do

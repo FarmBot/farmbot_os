@@ -15,7 +15,7 @@ config :nerves_init_gadget,
   node_host: :mdns_domain
 
 config :shoehorn,
-  init: [:nerves_runtime, :nerves_init_gadget, :nerves_firmware_ssh],
+  init: [:nerves_runtime, :nerves_init_gadget, :nerves_firmware_ssh, :farmbot_core, :farmbot_ext],
   handler: Farmbot.ShoehornHandler,
   app: :farmbot
 
@@ -63,11 +63,9 @@ config :farmbot, Farmbot.System.Init.Supervisor,
 
 config :farmbot, Farmbot.Platform.Supervisor,
   platform_children: [
-    {Farmbot.Target.Bootstrap.Configurator, []},
-    {Farmbot.Target.Network, []},
+    {Farmbot.Target.Configurator.Supervisor, []},
+    {Farmbot.Target.Network.Supervisor, []},
     {Farmbot.Target.SSHConsole, []},
-    {Farmbot.Target.Network.DnsTask, []},
-    {Farmbot.Target.Network.TzdataTask, []},
     # Reports Disk usage every 60 seconds.
     {Farmbot.Target.DiskUsageWorker, []},
     # Reports Memory usage every 60 seconds.
@@ -76,7 +74,7 @@ config :farmbot, Farmbot.Platform.Supervisor,
     {Farmbot.Target.SocTempWorker, []},
     # Reports Uptime every 60 seconds.
     {Farmbot.Target.UptimeWorker, []},
-    {Farmbot.Target.Network.InfoSupervisor, []},
+    # {Farmbot.Target.Network.InfoSupervisor, []},
     {Farmbot.Target.Uevent.Supervisor, []}
   ]
 

@@ -39,8 +39,7 @@ defmodule Farmbot.OS.MixProject do
   def application do
     [
       mod: {Farmbot.OS, []},
-      extra_applications: [:logger, :runtime_tools, :eex],
-      included_applications: [:farmbot_core, :farmbot_ext]
+      extra_applications: [:logger, :runtime_tools, :eex]
     ]
   end
 

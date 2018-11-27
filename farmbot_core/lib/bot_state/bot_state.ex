@@ -255,7 +255,7 @@ defmodule Farmbot.BotState do
     {:reply, reply, state}
   end
 
-  def handle_call({:uptime, seconds}, _form, state) do
+  def handle_call({:report_uptime, seconds}, _form, state) do
     change = %{informational_settings: %{uptime: seconds}}
 
     {reply, state} =

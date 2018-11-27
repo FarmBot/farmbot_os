@@ -35,7 +35,7 @@ config :farmbot_core, :behaviour,
 config :farmbot_ext, :behaviour, authorization: Farmbot.Bootstrap.Authorization
 config :ecto, json_library: Farmbot.JSON
 
-config :farmbot,
+config :farmbot_core,
   ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo]
 
 config :farmbot_core, Farmbot.Config.Repo,
