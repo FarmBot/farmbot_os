@@ -1,4 +1,4 @@
-defmodule Farmbot.Target.MemoryUsageWorker do
+defmodule Farmbot.Target.InfoWorker.SocTemp do
   @moduledoc false
 
   use GenServer
@@ -14,17 +14,21 @@ defmodule Farmbot.Target.MemoryUsageWorker do
   end
 
   def handle_info(:timeout, state) do
-    usage = collect_report()
+    {temp_str, 0} = Nerves.Runtime.cmd("vcgencmd", ["measure_temp"], :return)
+
+    temp =
+      temp_str
+      |> String.trim()
+      |> String.split("=")
+      |> List.last()
+      |> Integer.parse()
+      |> elem(0)
 
     if GenServer.whereis(Farmbot.BotState) do
-      Farmbot.BotState.report_memory_usage(usage)
+      :ok = Farmbot.BotState.report_soc_temp(temp)
       {:noreply, state, @default_timeout_ms}
     else
       {:noreply, state, @error_timeout_ms}
     end
-  end
-
-  def collect_report do
-    round(:erlang.memory(:total) * 1.0e-6)
   end
 end

@@ -1,14 +1,16 @@
 defmodule Farmbot.AMQP.LogTransport do
   use GenServer
   use AMQP
+  alias AMQP.Channel
+
+  alias Farmbot.AMQP.ConnectionWorker
   require Farmbot.Logger
   require Logger
-  import Farmbot.Config, only: [update_config_value: 4]
 
   @exchange "amq.topic"
   @checkup_ms 100
 
-  defstruct [:conn, :chan, :bot, :state_cache]
+  defstruct [:conn, :chan, :jwt, :state_cache]
   alias __MODULE__, as: State
 
   @doc false
@@ -16,35 +18,41 @@ defmodule Farmbot.AMQP.LogTransport do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def init([conn, jwt]) do
+  def init(args) do
+    jwt = Keyword.fetch!(args, :jwt)
     Process.flag(:sensitive, true)
-    initial_bot_state = Farmbot.BotState.subscribe()
-    {:ok, chan} = AMQP.Channel.open(conn)
-    :ok = Basic.qos(chan, global: true)
-    state = struct(State, conn: conn, chan: chan, bot: jwt.bot, state_cache: initial_bot_state)
-    {:ok, state, 0}
+    {:ok, %State{conn: nil, chan: nil, jwt: jwt, state_cache: nil}, 0}
   end
 
   def terminate(reason, state) do
-    ok_reasons = [:normal, :shutdown, :token_refresh]
-    update_config_value(:bool, "settings", "ignore_fbos_config", false)
-
-    if reason not in ok_reasons do
-      Farmbot.Logger.error(1, "Logger amqp client Died: #{inspect(reason)}")
-      update_config_value(:bool, "settings", "log_amqp_connected", true)
-    end
-
+    Farmbot.Logger.error(1, "Disconnected from Log channel: #{inspect(reason)}")
     # If a channel was still open, close it.
-    if state.chan, do: AMQP.Channel.close(state.chan)
+    if state.chan, do: Channel.close(state.chan)
+  end
+
+  def handle_info(:timeout, %{state_cache: nil} = state) do
+    with %{} = conn <- ConnectionWorker.connection(),
+         {:ok, chan} <- Channel.open(conn),
+         :ok <- Basic.qos(chan, global: true) do
+      initial_bot_state = Farmbot.BotState.subscribe()
+      {:noreply, %{state | conn: conn, chan: chan, state_cache: initial_bot_state}, 0}
+    else
+      nil ->
+        {:noreply, %{state | conn: nil, chan: nil, state_cache: nil}, 5000}
+
+      err ->
+        Farmbot.Logger.error(1, "Failed to connect to Log channel: #{inspect(err)}")
+        {:noreply, %{state | conn: nil, chan: nil, state_cache: nil}, 1000}
+    end
+  end
+
+  def handle_info(:timeout, state) do
+    {:noreply, state, {:continue, Farmbot.Logger.handle_all_logs()}}
   end
 
   def handle_info({Farmbot.BotState, change}, state) do
     new_state_cache = Ecto.Changeset.apply_changes(change)
     {:noreply, %{state | state_cache: new_state_cache}, @checkup_ms}
-  end
-
-  def handle_info(:timeout, state) do
-    {:noreply, state, {:continue, Farmbot.Logger.handle_all_logs()}}
   end
 
   def handle_continue([log | rest], state) do
@@ -86,13 +94,13 @@ defmodule Farmbot.AMQP.LogTransport do
       }
 
       json_log = add_position_to_log(log_without_pos, location_data)
-      push_bot_log(state.chan, state.bot, json_log)
+      push_bot_log(state.chan, state.jwt.bot, json_log)
     end
   end
 
   defp push_bot_log(chan, bot, log) do
     json = Farmbot.JSON.encode!(log)
-    :ok = AMQP.Basic.publish(chan, @exchange, "bot.#{bot}.logs", json)
+    :ok = Basic.publish(chan, @exchange, "bot.#{bot}.logs", json)
   end
 
   defp add_position_to_log(%{} = log, %{position: %{x: x, y: y, z: z}}) do
