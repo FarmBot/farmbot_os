@@ -76,7 +76,7 @@ defmodule Farmbot.System.NervesHubClient do
     GenServer.call(__MODULE__, {:update_available, args}, :infinity)
   end
 
-  def handle_fwup_message({:progress, percent}) do
+  def handle_fwup_message({:progress, percent}) when rem(percent, 5) == 0 do
     Logger.info("FWUP Stream Progress: #{percent}%")
     alias Farmbot.BotState.JobProgress
     prog = %JobProgress.Percent{percent: percent}

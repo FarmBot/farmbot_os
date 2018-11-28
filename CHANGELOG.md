@@ -4,7 +4,8 @@
 * Add retry mechanism for fetching a token.
     * Farmbot will now try 5 times to fetch a token.
 * Fix bug causing static ip settings not to work.
-* enable `multi_time_warp` which should hopefully compensate for time skew.
+* Enable `multi_time_warp` which should hopefully compensate for time skew.
+* Migrate OTA system to NervesHub
 
 # 6.4.11
 * Add SSH back.
