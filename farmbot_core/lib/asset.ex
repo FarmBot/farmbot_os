@@ -2,6 +2,7 @@ defmodule Farmbot.Asset do
   alias Farmbot.Asset.{
     Repo,
     Device,
+    DeviceCert,
     DiagnosticDump,
     FarmwareEnv,
     FarmwareInstallation,
@@ -166,4 +167,13 @@ defmodule Farmbot.Asset do
   end
 
   ## End DiagnosticDump
+
+  ## Begin DeviceCert
+
+  def new_device_cert(params) do
+    DeviceCert.changeset(%DeviceCert{}, params)
+    |> Repo.insert()
+  end
+
+  ## End DeviceCert
 end

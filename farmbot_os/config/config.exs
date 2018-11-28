@@ -35,7 +35,7 @@ config :farmbot_core, :behaviour,
 config :farmbot_ext, :behaviour, authorization: Farmbot.Bootstrap.Authorization
 config :ecto, json_library: Farmbot.JSON
 
-config :farmbot,
+config :farmbot_core,
   ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo]
 
 config :farmbot_core, Farmbot.Config.Repo,
@@ -67,7 +67,13 @@ config :farmbot, Farmbot.Platform.Supervisor,
 import_config("lagger.exs")
 
 if Mix.Project.config()[:target] == "host" do
-  import_config("host/#{Mix.env()}.exs")
+  if File.exists?("config/host/#{Mix.env()}.exs") do
+    import_config("host/#{Mix.env()}.exs")
+  end
 else
   import_config("target/#{Mix.env()}.exs")
+
+  if File.exists?("config/target/#{Mix.Project.config()[:target]}.exs") do
+    import_config("target/#{Mix.Project.config()[:target]}.exs")
+  end
 end

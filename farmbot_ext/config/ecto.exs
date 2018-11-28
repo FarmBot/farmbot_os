@@ -1,5 +1,8 @@
 use Mix.Config
 
+config :farmbot_core,
+  ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo]
+
 config :farmbot_ext,
   ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo]
 

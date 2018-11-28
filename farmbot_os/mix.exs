@@ -41,8 +41,7 @@ defmodule Farmbot.OS.MixProject do
   def application do
     [
       mod: {Farmbot.OS, []},
-      extra_applications: [:logger, :runtime_tools, :eex],
-      included_applications: [:farmbot_core, :farmbot_ext]
+      extra_applications: [:logger, :runtime_tools, :eex]
     ]
   end
 
@@ -69,9 +68,6 @@ defmodule Farmbot.OS.MixProject do
 
   defp deps(target) do
     [
-      # Configurator
-      {:cowboy, "~> 2.5"},
-      {:plug, "~> 1.6"},
       # override: true because AMQP
       {:ranch, "~> 1.5", override: true},
       {:cors_plug, "~> 2.0"},
@@ -85,7 +81,8 @@ defmodule Farmbot.OS.MixProject do
       {:mdns, "~> 1.0"},
       {:nerves_firmware_ssh, "~> 0.3"},
       {:nerves_init_gadget, "~> 0.5", only: :dev},
-      {:elixir_ale, "~> 1.2"}
+      {:elixir_ale, "~> 1.2"},
+      {:toolshed, "~> 0.2"}
     ] ++ system(target)
   end
 

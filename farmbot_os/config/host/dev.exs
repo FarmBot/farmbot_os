@@ -40,6 +40,3 @@ config :farmbot_core, :behaviour,
   pin_binding_handler: Farmbot.PinBinding.StubHandler,
   celery_script_io_layer: Farmbot.OS.IOLayer,
   firmware_handler: Farmbot.Firmware.UartHandler
-
-config :farmbot_core, :uart_handler, tty: "/dev/ttyACM0"
-import_config("auth_secret.exs")

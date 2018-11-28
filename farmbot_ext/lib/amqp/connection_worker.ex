@@ -3,7 +3,8 @@ defmodule Farmbot.AMQP.ConnectionWorker do
   alias Farmbot.JWT
   require Farmbot.Logger
   require Logger
-  import Farmbot.Config, only: [update_config_value: 4]
+
+  defstruct [:opts, :conn]
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
@@ -14,20 +15,16 @@ defmodule Farmbot.AMQP.ConnectionWorker do
   end
 
   def init(opts) do
-    token = Keyword.fetch!(opts, :token)
-    email = Keyword.fetch!(opts, :email)
     Process.flag(:sensitive, true)
     Process.flag(:trap_exit, true)
-    jwt = JWT.decode!(token)
-    IO.puts("OPEN")
-    {:ok, conn} = open_connection(token, email, jwt.bot, jwt.mqtt, jwt.vhost)
-    IO.puts("OPENED")
-    Process.link(conn.pid)
-    Process.monitor(conn.pid)
-    {:ok, conn}
+    {:ok, %__MODULE__{conn: nil, opts: opts}, 0}
   end
 
-  def terminate(reason, conn) do
+  def terminate(reason, %{conn: nil}) do
+    Logger.info("AMQP connection not open: #{inspect(reason)}")
+  end
+
+  def terminate(reason, %{conn: conn}) do
     if Process.alive?(conn.pid) do
       try do
         Logger.info("Closing AMQP connection: #{inspect(reason)}")
@@ -40,19 +37,29 @@ defmodule Farmbot.AMQP.ConnectionWorker do
     end
   end
 
-  def handle_info({:DOWN, _, :process, _pid, reason}, conn) do
-    ok_reasons = [:normal, :shutdown, :token_refresh]
-    update_config_value(:bool, "settings", "ignore_fbos_config", false)
+  def handle_info(:timeout, state) do
+    token = Keyword.fetch!(state.opts, :token)
+    email = Keyword.fetch!(state.opts, :email)
+    jwt = JWT.decode!(token)
 
-    if reason not in ok_reasons do
-      Farmbot.Logger.error(1, "AMQP Connection closed: #{inspect(reason)}")
-      update_config_value(:bool, "settings", "log_amqp_connected", true)
+    case open_connection(token, email, jwt.bot, jwt.mqtt, jwt.vhost) do
+      {:ok, conn} ->
+        Process.link(conn.pid)
+        Process.monitor(conn.pid)
+        {:noreply, %{state | conn: conn}}
+
+      err ->
+        Logger.error("Error connecting to AMPQ: #{inspect(err)}")
+        {:noreply, %{state | conn: nil}, 5000}
     end
+  end
 
+  def handle_info({:DOWN, _, :process, _pid, reason}, conn) do
+    Logger.error("Connection crash: #{inspect(reason)}")
     {:stop, reason, conn}
   end
 
-  def handle_call(:connection, _, conn), do: {:reply, conn, conn}
+  def handle_call(:connection, _, %{conn: conn} = state), do: {:reply, conn, state}
 
   defp open_connection(token, email, bot, mqtt_server, vhost) do
     Logger.info("Opening new AMQP connection.")
@@ -74,14 +81,6 @@ defmodule Farmbot.AMQP.ConnectionWorker do
       virtual_host: vhost
     ]
 
-    case AMQP.Connection.open(opts) do
-      {:ok, conn} ->
-        {:ok, conn}
-
-      {:error, reason} ->
-        Logger.error("Error connecting to AMPQ: #{inspect(reason)}")
-        Process.sleep(5000)
-        open_connection(token, email, bot, mqtt_server, vhost)
-    end
+    AMQP.Connection.open(opts)
   end
 end

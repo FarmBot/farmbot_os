@@ -6,9 +6,9 @@ defmodule Farmbot.System.Init.Supervisor do
   end
 
   def init([]) do
-    children = Application.get_env(:farmbot, :init_children, []) ++ [
+    config = Application.get_env(:farmbot, __MODULE__)
+    children = (config[:init_children] || []) ++ [
       {Farmbot.System.Init.FSCheckup, []},
-      {Farmbot.System.Init.Ecto, []},
     ]
     Supervisor.init(children, [strategy: :one_for_all])
   end
