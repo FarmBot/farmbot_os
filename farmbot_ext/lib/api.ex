@@ -22,7 +22,7 @@ defmodule Farmbot.API do
     uri = Map.fetch!(tkn, :iss) |> URI.parse()
     url = (uri.scheme || "https") <> "://" <> uri.host <> ":" <> to_string(uri.port)
 
-    Tesla.build_client([
+    Tesla.client([
       {Tesla.Middleware.BaseUrl, url},
       {Tesla.Middleware.Headers,
        [
@@ -34,7 +34,7 @@ defmodule Farmbot.API do
   end
 
   def storage_client(%StorageAuth{url: url}) do
-    Tesla.build_client(
+    Tesla.client(
       [
         {Tesla.Middleware.BaseUrl, "https:" <> url},
         {Tesla.Middleware.Headers,

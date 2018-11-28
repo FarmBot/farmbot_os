@@ -4,6 +4,7 @@ defmodule Farmbot.API.DirtyWorker.Supervisor do
 
   alias Farmbot.Asset.{
     Device,
+    DeviceCert,
     DiagnosticDump,
     FarmEvent,
     FarmwareEnv,
@@ -27,6 +28,7 @@ defmodule Farmbot.API.DirtyWorker.Supervisor do
   def init(_args) do
     children = [
       {DirtyWorker, Device},
+      {DirtyWorker, DeviceCert},
       {DirtyWorker, DiagnosticDump},
       {DirtyWorker, FarmEvent},
       {DirtyWorker, FarmwareEnv},

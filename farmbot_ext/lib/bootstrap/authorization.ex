@@ -50,12 +50,12 @@ defmodule Farmbot.Bootstrap.Authorization do
     |> build_payload()
   end
 
-  defp build_payload(secret) do
+  def build_payload(secret) do
     %{user: %{credentials: secret |> Base.encode64()}}
     |> Farmbot.JSON.encode()
   end
 
-  defp build_secret(email, password, rsa_key) do
+  def build_secret(email, password, rsa_key) do
     %{email: email, password: password, id: UUID.uuid1(), version: 1}
     |> Farmbot.JSON.encode!()
     |> RSA.encrypt({:public, rsa_key})
@@ -67,7 +67,7 @@ defmodule Farmbot.Bootstrap.Authorization do
   ]
 
   @spec fetch_rsa_key(server) :: {:ok, term} | {:error, String.t() | atom}
-  def fetch_rsa_key(server) do
+  def fetch_rsa_key(server) when is_binary(server) do
     url = "#{server}/api/public_key"
 
     with {:ok, body} <- do_request({:get, url, "", @headers}) do
