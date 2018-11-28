@@ -150,7 +150,11 @@ defmodule Farmbot.Target.Network do
   defp maybe_use_advanced({name, opts}, config) do
     case config.ipv4_method do
       "static" ->
-        settings = [ipv4_method: "static", ipv4_address: config.ipv4_address, ipv4_gateway: config.ipv4_gateway, ipv4_subnet_mask: config.ipv4_subnet_mask]
+        settings = [
+          ipv4_address_method: "static",
+          ipv4_address: config.ipv4_address,
+          ipv4_gateway: config.ipv4_gateway,
+          ipv4_subnet_mask: config.ipv4_subnet_mask]
         {name, Keyword.merge(opts, settings)}
       "dhcp" -> {name, opts}
     end
