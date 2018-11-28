@@ -102,6 +102,9 @@ defmodule Farmbot.System.NervesHub do
 
   def get_config do
     @handler.config()
+    |> Enum.map(fn(val) ->
+      if val == "", do: nil, else: val
+    end)
   end
 
   def connect do
@@ -123,18 +126,21 @@ defmodule Farmbot.System.NervesHub do
   # Creates a device in NervesHub
   # or updates it if one exists.
   def configure(tags) when is_list(tags) do
-    Farmbot.Logger.debug 1, "Configuring OTA Service: #{inspect tags}"
-    payload = %{
+    alias Farmbot.Asset.{Repo, DeviceCert}
+    Farmbot.Logger.debug 1, "Configuring OTA Service DeviceCert: #{inspect tags}"
+    serial = serial()
+    old = Repo.get_by(DeviceCert, serial_number: serial) || %DeviceCert{}
+    params = %{
       serial_number: serial(),
       tags: tags
-    } |> Farmbot.JSON.encode!()
-    case Farmbot.HTTP.post("/api/device_cert", payload) do
+    }
+    change = DeviceCert.changeset(old, params)
+    case Repo.insert_or_update(change) do
       {:ok, _} -> 
         :ok
       {:error, reason} ->
-        Logger.error 1, "Failed to configure nerveshub due to http error: #{inspect(reason)}"
+        Logger.error 1, "Failed to configure nerveshub due to database error: #{inspect(reason)}"
     end
-    :ok
   end
 
   # Message comes over AMQP.

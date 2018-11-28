@@ -3,8 +3,22 @@ local_file = Path.join(System.user_home!(), ".ssh/id_rsa.pub")
 local_key = if File.exists?(local_file), do: [File.read!(local_file)], else: []
 
 config :nerves_firmware_ssh,
-  authorized_keys: local_key,
-  ssh_console_port: 22
+  authorized_keys: local_key
+
+config :nerves_network, regulatory_domain: "US"
+
+config :nerves_init_gadget,
+  ifname: "usb0",
+  address_method: :dhcpd,
+  mdns_domain: "farmbot.local",
+  node_name: "farmbot",
+  node_host: :mdns_domain
+
+config :shoehorn,
+  init: [:nerves_runtime, :nerves_init_gadget, :nerves_firmware_ssh, :farmbot_core, :farmbot_ext],
+  app: :farmbot
+
+config :tzdata, :autoupdate, :disabled
 
 config :farmbot_core, :behaviour,
   firmware_handler: Farmbot.Firmware.StubHandler,
@@ -15,8 +29,7 @@ config :farmbot_core, :behaviour,
 
 data_path = Path.join("/", "root")
 
-config :farmbot_ext,
-  data_path: data_path
+config :farmbot, Farmbot.OS.FileSystem, data_path: data_path
 
 config :logger_backend_ecto, LoggerBackendEcto.Repo,
   adapter: Sqlite.Ecto2,
@@ -38,31 +51,24 @@ config :farmbot_core, Farmbot.Asset.Repo,
   database: Path.join(data_path, "repo-#{Mix.env()}.sqlite3")
 
 config :farmbot,
-  ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo],
+  ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo]
+
+config :farmbot, Farmbot.System.Init.Supervisor,
   init_children: [
-    {Farmbot.Target.Leds.AleHandler, []},
-    {Farmbot.Firmware.UartHandler.AutoDetector, []}
-  ],
-  platform_children: [
-    {Farmbot.Target.Bootstrap.Configurator, []},
-    {Farmbot.Target.Network, []},
-    {Farmbot.Target.SSHConsole, []},
-    {Farmbot.Target.Network.WaitForTime, []},
-    {Farmbot.Target.Network.DnsTask, []},
-    {Farmbot.Target.Network.TzdataTask, []},
-    # Reports Disk usage every 60 seconds.
-    {Farmbot.Target.DiskUsageWorker, []},
-    # Reports Memory usage every 60 seconds.
-    {Farmbot.Target.MemoryUsageWorker, []},
-    # Reports SOC temperature every 60 seconds.
-    {Farmbot.Target.SocTempWorker, []},
-    # Reports Uptime every 60 seconds.
-    {Farmbot.Target.UptimeWorker, []},
-    {Farmbot.Target.Network.InfoSupervisor, []},
-    {Farmbot.Target.Uevent.Supervisor, []}
+    Farmbot.Target.Leds.AleHandler
   ]
 
-config :farmbot, :behaviour, system_tasks: Farmbot.Target.SystemTasks
+config :farmbot, Farmbot.Platform.Supervisor,
+  platform_children: [
+    Farmbot.System.NervesHub,
+    Farmbot.Target.Network.Supervisor,
+    Farmbot.Target.Configurator.Supervisor,
+    Farmbot.Target.SSHConsole,
+    Farmbot.Target.Uevent.Supervisor,
+    Farmbot.Target.InfoWorker.Supervisor
+  ]
+
+config :farmbot, Farmbot.System, system_tasks: Farmbot.Target.SystemTasks
 
 config :farmbot, Farmbot.System.NervesHub,
   farmbot_nerves_hub_handler: Farmbot.System.NervesHubClient

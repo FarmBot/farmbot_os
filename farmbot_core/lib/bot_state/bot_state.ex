@@ -58,9 +58,22 @@ defmodule Farmbot.BotState do
     GenServer.call(bot_state_server, {:set_firmware_locked, false})
   end
 
+  @doc "Sets informational_settings.status"
   def set_sync_status(bot_state_server \\ __MODULE__, s)
       when s in ["syncing", "synced", "error"] do
     GenServer.call(bot_state_server, {:set_sync_status, s})
+  end
+
+  @doc "sets informational_settings.update_available"
+  def set_update_available(bot_state_server \\ __MODULE__, bool)
+      when is_boolean(bool) do
+    GenServer.call(bot_state_server, {:set_update_available, bool})
+  end
+
+  @doc "sets informational_settings.node_name"
+  def set_node_name(bot_state_server \\ __MODULE__, node_name)
+      when is_binary(node_name) do
+    GenServer.call(bot_state_server, {:set_node_name, node_name})
   end
 
   @doc "Fetch the current state."
@@ -209,6 +222,26 @@ defmodule Farmbot.BotState do
     {:reply, reply, state}
   end
 
+  def handle_call({:set_update_available, bool}, _from, state) do
+    change = %{informational_settings: %{update_available: bool}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_node_name, node_name}, _from, state) do
+    change = %{informational_settings: %{node_name: node_name}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
   def handle_call({:report_disk_usage, percent}, _form, state) do
     change = %{informational_settings: %{disk_usage: percent}}
 
@@ -219,7 +252,7 @@ defmodule Farmbot.BotState do
     {:reply, reply, state}
   end
 
-  def handle_call({:memory_usage, megabytes}, _form, state) do
+  def handle_call({:report_memory_usage, megabytes}, _form, state) do
     change = %{informational_settings: %{memory_usage: megabytes}}
 
     {reply, state} =
@@ -239,7 +272,7 @@ defmodule Farmbot.BotState do
     {:reply, reply, state}
   end
 
-  def handle_call({:uptime, seconds}, _form, state) do
+  def handle_call({:report_uptime, seconds}, _form, state) do
     change = %{informational_settings: %{uptime: seconds}}
 
     {reply, state} =
