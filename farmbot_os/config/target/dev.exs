@@ -16,7 +16,6 @@ config :nerves_init_gadget,
 
 config :shoehorn,
   init: [:nerves_runtime, :nerves_init_gadget, :nerves_firmware_ssh, :farmbot_core, :farmbot_ext],
-  handler: Farmbot.ShoehornHandler,
   app: :farmbot
 
 config :tzdata, :autoupdate, :disabled
@@ -30,8 +29,7 @@ config :farmbot_core, :behaviour,
 
 data_path = Path.join("/", "root")
 
-config :farmbot_ext,
-  data_path: data_path
+config :farmbot, Farmbot.OS.FileSystem, data_path: data_path
 
 config :logger_backend_ecto, LoggerBackendEcto.Repo,
   adapter: Sqlite.Ecto2,
@@ -58,11 +56,11 @@ config :farmbot,
 config :farmbot, Farmbot.System.Init.Supervisor,
   init_children: [
     Farmbot.Target.Leds.AleHandler
-    # {Farmbot.Firmware.UartHandler.AutoDetector, []}
   ]
 
 config :farmbot, Farmbot.Platform.Supervisor,
   platform_children: [
+    Farmbot.System.NervesHub,
     Farmbot.Target.Network.Supervisor,
     Farmbot.Target.Configurator.Supervisor,
     Farmbot.Target.SSHConsole,

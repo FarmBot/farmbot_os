@@ -3,7 +3,7 @@ defmodule Farmbot.Asset.DeviceCert do
   DeviceCerts describe a connection to NervesHub
   """
 
-  use Farmbot.Asset.Schema, path: "/api/device_certs"
+  use Farmbot.Asset.Schema, path: "/api/device_cert"
 
   schema "device_certs" do
     field(:id, :id)

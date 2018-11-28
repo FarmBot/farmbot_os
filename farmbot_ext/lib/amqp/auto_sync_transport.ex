@@ -83,8 +83,8 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
     {:noreply, state}
   end
 
-  def handle_info({:basic_deliver, payload, %{routing_key: key} = opts}, state) do
-    device = state.bot
+  def handle_info({:basic_deliver, payload, %{routing_key: key}}, state) do
+    device = state.jwt.bot
 
     case String.split(key, ".") do
       ["bot", ^device, "sync", asset_kind, id_str] ->
@@ -94,9 +94,6 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
         params = data["body"]
         label = data["args"]["label"]
         handle_asset(asset_kind, label, id, params, state)
-
-      ["bot", ^device, "nerves_hub"] ->
-        handle_nerves_hub(payload, opts, state)
     end
   end
 
@@ -160,26 +157,5 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
     json = JSON.encode!(%{args: %{label: label}, kind: "rpc_ok"})
     :ok = Basic.publish(state.chan, @exchange, "bot.#{device}.from_device", json)
     {:noreply, state}
-  end
-
-  def handle_nerves_hub(payload, options, state) do
-    alias Farmbot.System.NervesHub
-
-    with {:ok, %{"cert" => base64_cert, "key" => base64_key}} <- JSON.decode(payload),
-         {:ok, cert} <- Base.decode64(base64_cert),
-         {:ok, key} <- Base.decode64(base64_key),
-         :ok <- NervesHub.configure_certs(cert, key),
-         :ok <- NervesHub.connect() do
-      :ok = Basic.ack(state.chan, options[:delivery_tag])
-      {:noreply, state}
-    else
-      {:error, reason} ->
-        Logger.error(1, "NervesHub failed to configure. #{inspect(reason)}")
-        {:noreply, state}
-
-      :error ->
-        Logger.error(1, "NervesHub payload invalid. (base64)")
-        {:noreply, state}
-    end
   end
 end

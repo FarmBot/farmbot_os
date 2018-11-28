@@ -93,6 +93,9 @@ defmodule Farmbot.System.NervesHub do
 
   def get_config do
     @handler.config()
+    |> Enum.map(fn(val) ->
+      if val == "", do: nil, else: val
+    end)
   end
 
   def connect do
@@ -114,12 +117,16 @@ defmodule Farmbot.System.NervesHub do
   # Creates a device in NervesHub
   # or updates it if one exists.
   def configure(tags) when is_list(tags) do
-    Farmbot.Logger.debug 1, "Configuring NervesHub: #{inspect tags}"
+    alias Farmbot.Asset.{Repo, DeviceCert}
+    Farmbot.Logger.debug 1, "Configuring NervesHub DeviceCert: #{inspect tags}"
+    serial = serial()
+    old = Repo.get_by(DeviceCert, serial_number: serial) || %DeviceCert{}
     params = %{
       serial_number: serial(),
       tags: tags
     }
-    Farmbot.Asset.new_device_cert(params)
+    DeviceCert.changeset(old, params)
+    Repo.insert_or_update(params)
   end
 
   # Message comes over AMQP.

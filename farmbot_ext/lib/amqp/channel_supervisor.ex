@@ -4,6 +4,7 @@ defmodule Farmbot.AMQP.ChannelSupervisor do
   alias Farmbot.JWT
 
   alias Farmbot.AMQP.{
+    NervesHubTransport,
     LogTransport,
     BotStateTransport,
     AutoSyncTransport,
@@ -19,6 +20,7 @@ defmodule Farmbot.AMQP.ChannelSupervisor do
     jwt = JWT.decode!(token)
 
     children = [
+      {NervesHubTransport, [jwt: jwt]},
       {LogTransport, [jwt: jwt]},
       {BotStateTransport, [jwt: jwt]},
       {AutoSyncTransport, [jwt: jwt]},
