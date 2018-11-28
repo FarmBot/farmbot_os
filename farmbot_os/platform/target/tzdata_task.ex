@@ -1,4 +1,4 @@
-defmodule Farmbot.Target.Network.TzdataTask do
+defmodule Farmbot.Target.TzdataTask do
   use GenServer
 
   @data_path Farmbot.OS.FileSystem.data_path()

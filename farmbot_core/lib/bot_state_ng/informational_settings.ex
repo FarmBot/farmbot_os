@@ -26,6 +26,7 @@ defmodule Farmbot.BotStateNG.InformationalSettings do
     field(:last_status, :string)
     field(:cache_bust, :integer)
     field(:busy, :boolean)
+    field(:update_available, :boolean, default: false)
   end
 
   def new do
@@ -52,7 +53,8 @@ defmodule Farmbot.BotStateNG.InformationalSettings do
       locked: informational_settings.locked,
       last_status: informational_settings.last_status,
       cache_bust: informational_settings.cache_bust,
-      busy: informational_settings.busy
+      busy: informational_settings.busy,
+      update_available: informational_settings.update_available
     }
   end
 
@@ -75,7 +77,8 @@ defmodule Farmbot.BotStateNG.InformationalSettings do
       :locked,
       :last_status,
       :cache_bust,
-      :busy
+      :busy,
+      :update_available
     ])
   end
 end

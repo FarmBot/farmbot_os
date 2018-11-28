@@ -1,13 +1,22 @@
 defmodule Farmbot.AMQP.CeleryScriptTransport do
   use GenServer
   use AMQP
+
+  alias AMQP.{
+    Channel,
+    Queue
+  }
+
   require Farmbot.Logger
   require Logger
+
+  alias Farmbot.AMQP.ConnectionWorker
+
   import Farmbot.Config, only: [get_config_value: 3, update_config_value: 4]
 
   @exchange "amq.topic"
 
-  defstruct [:conn, :chan, :bot]
+  defstruct [:conn, :chan, :jwt]
   alias __MODULE__, as: State
 
   @doc false
@@ -15,20 +24,39 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def init([conn, jwt]) do
+  def init(args) do
+    jwt = Keyword.fetch!(args, :jwt)
     Process.flag(:sensitive, true)
-    {:ok, chan} = AMQP.Channel.open(conn)
-    :ok = Basic.qos(chan, global: true)
-    {:ok, _} = AMQP.Queue.declare(chan, jwt.bot <> "_from_clients", auto_delete: true)
-    {:ok, _} = AMQP.Queue.purge(chan, jwt.bot <> "_from_clients")
+    {:ok, %State{conn: nil, chan: nil, jwt: jwt}, 0}
+  end
 
-    :ok =
-      AMQP.Queue.bind(chan, jwt.bot <> "_from_clients", @exchange,
-        routing_key: "bot.#{jwt.bot}.from_clients"
-      )
+  def terminate(reason, state) do
+    Farmbot.Logger.error(1, "Disconnected from CeleryScript channel: #{inspect(reason)}")
+    # If a channel was still open, close it.
+    if state.chan, do: AMQP.Channel.close(state.chan)
+  end
 
-    {:ok, _tag} = Basic.consume(chan, jwt.bot <> "_from_clients", self(), no_ack: true)
-    {:ok, struct(State, conn: conn, chan: chan, bot: jwt.bot)}
+  def handle_info(:timeout, state) do
+    bot = state.jwt.bot
+    from_clients = bot <> "_from_clients"
+    route = "bot.#{bot}.from_clients"
+
+    with %{} = conn <- ConnectionWorker.connection(),
+         {:ok, chan} <- Channel.open(conn),
+         :ok <- Basic.qos(chan, global: true),
+         {:ok, _} <- Queue.declare(chan, from_clients, auto_delete: true),
+         {:ok, _} <- Queue.purge(chan, from_clients),
+         :ok <- Queue.bind(chan, from_clients, @exchange, routing_key: route),
+         {:ok, _tag} <- Basic.consume(chan, from_clients, self(), no_ack: true) do
+      {:noreply, %{state | conn: conn, chan: chan}}
+    else
+      nil ->
+        {:noreply, %{state | conn: nil, chan: nil}, 5000}
+
+      err ->
+        Farmbot.Logger.error(1, "Failed to connect to CeleryScript channel: #{inspect(err)}")
+        {:noreply, %{state | conn: nil, chan: nil}, 1000}
+    end
   end
 
   # Confirmation sent by the broker after registering this process as a consumer
@@ -53,7 +81,7 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
   end
 
   def handle_info({:basic_deliver, payload, %{routing_key: key}}, state) do
-    device = state.bot
+    device = state.jwt.bot
     ["bot", ^device, "from_clients"] = String.split(key, ".")
 
     spawn_link(fn ->
@@ -76,7 +104,7 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
         Logger.error(message)
       end
 
-      AMQP.Basic.publish(state.chan, @exchange, "bot.#{state.bot}.from_device", reply)
+      AMQP.Basic.publish(state.chan, @exchange, "bot.#{state.jwt.bot}.from_device", reply)
       results_ast
     end)
   end
