@@ -56,15 +56,6 @@ build_firmware_steps: &build_firmware_steps
     - run:
         name: Setup ENV
         command: |
-<<<<<<< HEAD
-          echo $MIX_TARGET > MIX_TARGET
-          echo $MIX_ENV > MIX_ENV
-          cp mix.lock MIX_LOCK
-    - restore_cache:
-        key: v9-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "MIX_LOCK" }}
-    - restore_cache:
-        key: v9-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
-=======
           echo "/nerves/build/farmbot_os/$MIX_TARGET" > MIX_TARGET
           echo "/nerves/build/farmbot_os/$MIX_ENV" > MIX_ENV
           cp /nerves/build/farmbot_os/mix.lock.$MIX_TARGET MIX_LOCK
@@ -72,7 +63,6 @@ build_firmware_steps: &build_firmware_steps
         key: v9-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "MIX_LOCK" }}
     - restore_cache:
         key: v9-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
->>>>>>> e9b01741... [WIP] Pull in NervesHub updates
     - <<: *install_elixir
     - <<: *install_hex_archives
     - run:
@@ -88,11 +78,7 @@ build_firmware_steps: &build_firmware_steps
     - run:
         name: Create artifacts
         command: |
-<<<<<<< HEAD
-          cp _build/${MIX_TARGET}_${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
-=======
           cp /nerves/build/farmbot_os/_build/${MIX_TARGET}/${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
->>>>>>> e9b01741... [WIP] Pull in NervesHub updates
     - save_cache:
         key: v9-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "MIX_LOCK" }}
         paths:
@@ -111,15 +97,9 @@ deploy_nerves_hub_firmware_steps: &deploy_nerves_hub_firmware_steps
     - run:
         name: Setup ENV
         command: |
-<<<<<<< HEAD
-          echo $MIX_TARGET > MIX_TARGET
-          echo $MIX_ENV > MIX_ENV
-          cp mix.lock MIX_LOCK
-=======
           echo "/nerves/build/farmbot_os/$MIX_TARGET" > MIX_TARGET
           echo "/nerves/build/farmbot_os/$MIX_ENV" > MIX_ENV
           cp /nerves/build/farmbot_os/mix.lock.$MIX_TARGET MIX_LOCK
->>>>>>> e9b01741... [WIP] Pull in NervesHub updates
     - restore_cache:
         key: v9-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "MIX_LOCK" }}
     - restore_cache:
@@ -174,12 +154,8 @@ jobs:
     environment:
       MIX_ENV: test
       MIX_TARGET: host
-<<<<<<< HEAD
-      ELIXIR_VERSION: 1.8.1
-=======
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
       ELIXIR_VERSION: 1.7.3
->>>>>>> e9b01741... [WIP] Pull in NervesHub updates
     steps:
       - checkout
       - restore_cache:
@@ -213,9 +189,6 @@ jobs:
       - checkout
       - run: git submodule update --init --recursive
       - restore_cache:
-<<<<<<< HEAD
-          key: v9-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
-=======
           keys:
             - v9-fbcore-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
       - restore_cache:
@@ -296,7 +269,6 @@ jobs:
       - run: git submodule update --init --recursive
       - restore_cache:
           key: v9-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock.host" }}
->>>>>>> e9b01741... [WIP] Pull in NervesHub updates
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
@@ -308,17 +280,10 @@ jobs:
             mix format --check-formatted
             mix test
       - save_cache:
-<<<<<<< HEAD
-          key: v9-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
-          paths:
-            - _build/host_test
-            - deps
-=======
           key: v9-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock.host" }}
           paths:
             - farmbot_os/_build/host
             - farmbot_os/deps/host
->>>>>>> e9b01741... [WIP] Pull in NervesHub updates
 
 ################################################################################
 #                           target=rpi app_env=prod                            #
@@ -433,22 +398,14 @@ jobs:
           name: Setup ENV
           command: |
             echo rpi3 > MIX_TARGET_RPI3
-<<<<<<< HEAD
-            cp mix.lock MIX_LOCK_RPI3
-=======
             cp /nerves/build/farmbot_os/mix.lock.rpi3 MIX_LOCK_RPI3
->>>>>>> e9b01741... [WIP] Pull in NervesHub updates
             # echo rpi > MIX_TARGET_RPI
             # cp /nerves/build/farmbot_os/mix.lock.rpi MIX_LOCK_RPI
             echo $MIX_ENV > MIX_ENV
       - restore_cache:
           key: nerves/deploy/system-{{ checksum "MIX_TARGET_RPI3" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       # - restore_cache:
-<<<<<<< HEAD
-      #     key: nerves/deploy/system-{{ checksum "MIX_TARGET_RPI" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-=======
           # key: nerves/deploy/system-{{ checksum "MIX_TARGET_RPI" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
->>>>>>> e9b01741... [WIP] Pull in NervesHub updates
       - <<: *install_elixir
       - <<: *install_hex_archives
       - <<: *install_ghr
@@ -497,11 +454,7 @@ jobs:
           name: Setup ENV
           command: |
             echo rpi3 > MIX_TARGET_RPI3
-<<<<<<< HEAD
-            cp mix.lock MIX_LOCK_RPI3
-=======
             cp /nerves/build/farmbot_os/mix.lock.rpi3 MIX_LOCK_RPI3
->>>>>>> e9b01741... [WIP] Pull in NervesHub updates
             # echo rpi > MIX_TARGET_RPI
             # cp /nerves/build/farmbot_os/mix.lock.rpi MIX_LOCK_RPI
             echo $MIX_ENV > MIX_ENV
@@ -695,32 +648,6 @@ workflows:
             # - build_rpi_prod
             - build_rpi3_prod
 
-<<<<<<< HEAD
-
-  # # staging branch to staging.farmbot.io
-  # nerves_hub_rpi_prod_staging_staging:
-  #   jobs:
-  #     # - build_rpi_prod:
-  #     #     context: farmbot-staging
-  #     #     filters:
-  #     #       branches:
-  #     #         only:
-  #     #           - staging
-  #     - build_rpi3_prod:
-  #         context: farmbot-staging
-  #         filters:
-  #           branches:
-  #             only:
-  #               - staging
-  #     # - deploy_rpi_prod_staging:
-  #     #     context: farmbot-staging
-  #     #     requires:
-  #     #       - build_rpi_prod
-  #     - deploy_rpi3_prod_staging:
-  #         context: farmbot-staging
-  #         requires:
-  #           - build_rpi3_prod
-=======
   # staging branch to staging.farmbot.io
   nerves_hub_rpi_prod_staging_staging:
     jobs:
@@ -822,4 +749,3 @@ workflows:
       #           - next
       #     requires:
       #       - build_rpi_prod
->>>>>>> e9b01741... [WIP] Pull in NervesHub updates

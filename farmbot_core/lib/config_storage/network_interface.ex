@@ -19,7 +19,9 @@ defmodule Farmbot.Config.NetworkInterface do
     field(:password, :string)
 
     # Advanced settings.
+    # this should be ipv4_address_method
     field(:ipv4_method, :string)
+
     field(:ipv4_address, :string)
     field(:ipv4_gateway, :string)
     field(:ipv4_subnet_mask, :string)
@@ -36,6 +38,7 @@ defmodule Farmbot.Config.NetworkInterface do
     config
     |> cast(params, @required_fields)
     |> validate_required(@required_fields)
+    |> validate_inclusion(:type, ["wireless", "wired"])
     |> unique_constraint(:name)
   end
 end

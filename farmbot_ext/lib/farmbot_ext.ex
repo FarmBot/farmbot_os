@@ -8,7 +8,7 @@ defmodule Farmbot.Ext do
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
-      {Farmbot.Bootstrap.Supervisor, []}
+      Farmbot.Bootstrap
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
