@@ -1,4 +1,4 @@
-defmodule Farmbot.Target.Bootstrap.Configurator.Router do
+defmodule Farmbot.Target.Configurator.Router do
   @moduledoc "Routes web connections."
 
   use Plug.Router
@@ -12,6 +12,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   require Farmbot.Logger
   import Phoenix.HTML
   alias Farmbot.Config
+  alias Farmbot.Target.Network
 
   import Config,
     only: [
@@ -24,7 +25,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   end
 
   @version Farmbot.Project.version()
-  @data_path Application.get_env(:farmbot, :data_path)
+  @data_path Farmbot.OS.FileSystem.data_path()
 
   get "/generate_204" do
     send_resp(conn, 204, "")
@@ -82,7 +83,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
   # NETWORKCONFIG
   get "/network" do
-    interfaces = Farmbot.Target.Network.get_interfaces()
+    interfaces = Network.list_interfaces()
     render_page(conn, "network", interfaces: interfaces, post_action: "select_interface")
   end
 
@@ -119,7 +120,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
       opts = [
         ifname: ifname,
-        ssids: Farmbot.Target.Network.scan(ifname),
+        ssids: Network.Utils.scan(ifname),
         post_action: "config_wireless_step_1"
       ]
 
@@ -225,22 +226,39 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
         update_config_value(:string, "settings", "authorized_ssh_key", ssh_key)
       end
 
-      Config.input_network_config!(%{
-        name: ifname,
-        ssid: ssid,
-        security: security,
-        psk: psk,
-        type: if(ssid, do: "wireless", else: "wired"),
-        domain: domain,
-        name_servers: name_servers,
-        ipv4_method: ipv4_method,
-        ipv4_address: ipv4_address,
-        ipv4_gateway: ipv4_gateway,
-        ipv4_subnet_mask: ipv4_subnet_mask,
-        regulatory_domain: reg_domain
-      })
+      type = if(ssid, do: "wireless", else: "wired")
 
-      redir(conn, "/firmware")
+      old =
+        Config.Repo.get_by(Config.NetworkInterface, name: ifname) || %Config.NetworkInterface{}
+
+      changeset =
+        Config.NetworkInterface.changeset(old, %{
+          name: ifname,
+          ssid: ssid,
+          security: security,
+          psk: psk,
+          type: type,
+          domain: domain,
+          name_servers: name_servers,
+          ipv4_method: ipv4_method,
+          ipv4_address: ipv4_address,
+          ipv4_gateway: ipv4_gateway,
+          ipv4_subnet_mask: ipv4_subnet_mask,
+          regulatory_domain: reg_domain
+        })
+
+      case Config.Repo.insert_or_update(changeset) do
+        {:ok, _} ->
+          redir(conn, "/firmware")
+
+        {:error, %{errors: r}} when type == "wireless" ->
+          Farmbot.Logger.error(1, "Network error: #{inspect(r)}")
+          redir(conn, "/config_wireless?ifname=#{ifname}")
+
+        {:error, %{errors: r}} when type == "wired" ->
+          Farmbot.Logger.error(1, "Network error: #{inspect(r)}")
+          redir(conn, "/config_wired?ifname=#{ifname}")
+      end
     rescue
       e in MissingField ->
         Farmbot.Logger.error(1, Exception.message(e))
@@ -249,21 +267,6 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
   end
 
   # /NETWORKCONFIG
-
-  get "/credentials" do
-    email = get_config_value(:string, "authorization", "email") || ""
-    pass = get_config_value(:string, "authorization", "password") || ""
-    server = get_config_value(:string, "authorization", "server") || ""
-    first_boot = get_config_value(:bool, "settings", "first_boot")
-    update_config_value(:string, "authorization", "token", nil)
-
-    render_page(conn, "credentials",
-      server: server,
-      email: email,
-      password: pass,
-      first_boot: first_boot
-    )
-  end
 
   get "/firmware" do
     render_page(conn, "firmware")
@@ -278,20 +281,31 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
 
         if Application.get_env(:farmbot, :behaviour)[:firmware_handler] ==
              Farmbot.Firmware.UartHandler do
-          Farmbot.Logger.warn(1, "Updating #{hw} firmware.")
+          Farmbot.Logger.warn(1, "Updating #{hw} firmware is broke!!!!!!")
           # /shrug?
-          Farmbot.Firmware.UartHandler.Update.force_update_firmware(hw)
+          # Farmbot.Firmware.UartHandler.Update.force_update_firmware(hw)
         end
 
-        redir(conn, "/credentials")
-
-      %{"firmware_hardware" => "custom"} ->
-        update_config_value(:string, "settings", "firmware_hardware", "custom")
         redir(conn, "/credentials")
 
       _ ->
         send_resp(conn, 500, "Bad firmware_hardware!")
     end
+  end
+
+  get "/credentials" do
+    email = get_config_value(:string, "authorization", "email") || ""
+    pass = get_config_value(:string, "authorization", "password") || ""
+    server = get_config_value(:string, "authorization", "server") || ""
+    first_boot = get_config_value(:bool, "settings", "first_boot")
+    update_config_value(:string, "authorization", "token", nil)
+
+    render_page(conn, "credentials",
+      server: server,
+      email: email,
+      password: pass,
+      first_boot: first_boot
+    )
   end
 
   post "/configure_credentials" do
@@ -323,29 +337,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
     network = !Enum.empty?(Config.get_all_network_configs())
 
     if email && pass && server && network do
-      conn = render_page(conn, "finish")
-
-      spawn(fn ->
-        try do
-          alias Farmbot.Target.Bootstrap.Configurator
-          Farmbot.Logger.success(2, "Configuration finished.")
-          # Allow the page to render and send.
-          Process.sleep(2500)
-          :ok = GenServer.stop(Configurator.CaptivePortal, :normal)
-          # :ok = Supervisor.terminate_child(Configurator, Configurator.CaptivePortal)
-          :ok = Supervisor.stop(Configurator)
-          # Good luck.
-          Process.sleep(2500)
-        rescue
-          e ->
-            Farmbot.Logger.warn(
-              1,
-              "Falied to close captive portal. Good luck. " <> Exception.message(e)
-            )
-        end
-      end)
-
-      conn
+      Network.reload()
+      render_page(conn, "finish")
     else
       Farmbot.Logger.warn(3, "Not configured yet. Restarting configuration.")
       redir(conn, "/")
