@@ -611,39 +611,39 @@ workflows:
             - build_rpi_prod_firmware
 
   # This deploys the staging branch to my.farm.bot
-  deploy_staging_production:
-    jobs:
-      - build_rpi3_prod_firmware:
-          context: farmbot-production
-          filters:
-            branches:
-              only:
-                - staging
+  # deploy_staging_production:
+  #   jobs:
+  #     - build_rpi3_prod_firmware:
+  #         context: farmbot-production
+  #         filters:
+  #           branches:
+  #             only:
+  #               - staging
 
-      - build_rpi_prod_firmware:
-          context: farmbot-production
-          filters:
-            branches:
-              only:
-                - staging
+  #     - build_rpi_prod_firmware:
+  #         context: farmbot-production
+  #         filters:
+  #           branches:
+  #             only:
+  #               - staging
 
-      - deploy_rpi3_prod_firmware_staging:
-          context: farmbot-production
-          filters:
-            branches:
-              only:
-                - staging
-          requires:
-            - build_rpi3_prod_firmware
+  #     - deploy_rpi3_prod_firmware_staging:
+  #         context: farmbot-production
+  #         filters:
+  #           branches:
+  #             only:
+  #               - staging
+  #         requires:
+  #           - build_rpi3_prod_firmware
 
-      - deploy_rpi_prod_firmware_staging:
-          context: farmbot-production
-          filters:
-            branches:
-              only:
-                - staging
-          requires:
-            - build_rpi_prod_firmware
+  #     - deploy_rpi_prod_firmware_staging:
+  #         context: farmbot-production
+  #         filters:
+  #           branches:
+  #             only:
+  #               - staging
+  #         requires:
+  #           - build_rpi_prod_firmware
 
   # This deploys the staging branch to staging.farm.bot
   deploy_staging_staging:
