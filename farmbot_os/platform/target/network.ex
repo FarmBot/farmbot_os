@@ -5,6 +5,7 @@ defmodule Farmbot.Target.Network do
 
   alias Nerves.NetworkInterface
   import Farmbot.Target.Network.Utils
+  alias Farmbot.Config
 
   @validation_ms 30_000
 
@@ -17,14 +18,67 @@ defmodule Farmbot.Target.Network do
               hostap_wpa_supplicant_pid: nil
   end
 
+  def reload do
+    for %{name: ifname} = settings <- Config.Repo.all(Config.NetworkInterface) do
+      settings = validate_settings(settings)
+      Logger.warn("Trying to configure #{ifname}: #{inspect(settings)}")
+      setup(ifname, settings)
+    end
+  end
+
+  def validate_settings(%{type: "wired"} = settings) do
+    validate_advanced(settings)
+  end
+
+  def validate_settings(settings) do
+    ssid = Map.fetch!(settings, :ssid)
+    psk = Map.fetch!(settings, :psk)
+
+    key_mgmt =
+      case Map.fetch!(settings, :security) do
+        "WPA-PSK" -> :"WPA-PSK"
+        "WPA2-PSK" -> :"WPA-PSK"
+        "NONE" -> :NONE
+      end
+
+    [
+      ssid: ssid,
+      psk: psk,
+      key_mgmt: key_mgmt
+    ] ++ validate_advanced(settings)
+  end
+
+  def validate_advanced(%{ipv4_address: "static"} = settings) do
+    [
+      ipv4_address_method: :static,
+      ipv4_address: Map.fetch!(settings, :ipv4_address),
+      ipv4_gateway: Map.fetch!(settings, :ipv4_gateway),
+      ipv4_subnet_mask: Map.fetch!(settings, :ipv4_subnet_mask)
+    ]
+  end
+
+  def validate_advanced(%{ipv4_method: _} = _settings) do
+    []
+  end
+
+  def list_interfaces do
+    ifnames()
+    |> List.delete("lo")
+    |> Enum.map(fn ifname ->
+      IO.puts("Looking up #{ifname}")
+      {:ok, settings} = Nerves.NetworkInterface.settings(ifname)
+      {ifname, settings}
+    end)
+  end
+
   @doc "List all ifnames the Network Manager knows about."
   def ifnames do
     GenServer.call(__MODULE__, :ifnames)
   end
 
   @doc "Bring down hostap, bring up networking. Will reset if not `validate/0`d in time."
-  def setup(ifname, opts) do
-    GenServer.cast(__MODULE__, {:setup, ifname, opts})
+  def setup(ifname, settings) do
+    GenServer.cast(__MODULE__, {:setup, ifname, settings})
   end
 
   @doc "Validate the config given to the Network manager"
@@ -102,6 +156,7 @@ defmodule Farmbot.Target.Network do
     state = stop_hostap(state)
 
     for {ifname, conf} <- state.config do
+      Logger.debug("Nerves.Network.setup(#{inspect(ifname)}, #{inspect(conf)}")
       Nerves.Network.setup(ifname, conf)
     end
 
@@ -110,9 +165,13 @@ defmodule Farmbot.Target.Network do
 
   def stop_hostap(%{hostap: :up} = state) do
     state = try_stop_dhcp(state)
-    Nerves.Network.teardown("wlan0")
-    Nerves.Network.setup("wlan0", [])
-    Nerves.NetworkInterface.setup("wlan0", [])
+
+    for {ifname, _conf} <- state.config do
+      Nerves.Network.teardown(ifname)
+      Nerves.Network.setup(ifname, [])
+      Nerves.NetworkInterface.setup(ifname, [])
+    end
+
     %{state | hostap: :down, hostap_wpa_supplicant_pid: nil}
   end
 

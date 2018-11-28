@@ -63,19 +63,11 @@ config :farmbot, Farmbot.System.Init.Supervisor,
 
 config :farmbot, Farmbot.Platform.Supervisor,
   platform_children: [
-    {Farmbot.Target.Configurator.Supervisor, []},
-    {Farmbot.Target.Network.Supervisor, []},
-    {Farmbot.Target.SSHConsole, []},
-    # Reports Disk usage every 60 seconds.
-    {Farmbot.Target.DiskUsageWorker, []},
-    # Reports Memory usage every 60 seconds.
-    {Farmbot.Target.MemoryUsageWorker, []},
-    # Reports SOC temperature every 60 seconds.
-    {Farmbot.Target.SocTempWorker, []},
-    # Reports Uptime every 60 seconds.
-    {Farmbot.Target.UptimeWorker, []},
-    # {Farmbot.Target.Network.InfoSupervisor, []},
-    {Farmbot.Target.Uevent.Supervisor, []}
+    Farmbot.Target.Network.Supervisor,
+    Farmbot.Target.Configurator.Supervisor,
+    Farmbot.Target.SSHConsole,
+    Farmbot.Target.Uevent.Supervisor,
+    Farmbot.Target.InfoWorker.Supervisor
   ]
 
 config :farmbot, Farmbot.System, system_tasks: Farmbot.Target.SystemTasks

@@ -1,6 +1,6 @@
 defmodule Farmbot.Target.Configurator.Supervisor do
   use Supervisor
-  alias Farmbot.Target.Configurator.Router
+  alias Farmbot.Target.Configurator.{Router, Validator}
 
   def start_link(args) do
     Supervisor.start_link(__MODULE__, args, name: __MODULE__)
@@ -14,6 +14,7 @@ defmodule Farmbot.Target.Configurator.Supervisor do
     opts = [port: 80, transport_options: transport_opts]
 
     children = [
+      Validator,
       {Plug.Adapters.Cowboy, scheme: :http, plug: Router, options: opts}
     ]
 
