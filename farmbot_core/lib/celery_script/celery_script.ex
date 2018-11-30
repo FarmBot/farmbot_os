@@ -2,14 +2,16 @@ defmodule Farmbot.Core.CeleryScript do
   @moduledoc """
   Helpers for executing CeleryScript.
   """
+
+  alias Farmbot.CeleryScript.{RunTime, AST}
+
   @doc "Execute an RPC request"
   def rpc_request(ast, fun) do
-    Farmbot.CeleryScript.RunTime.rpc_request(Farmbot.CeleryScript.RunTime, ast, fun)
+    RunTime.rpc_request(RunTime, ast, fun)
   end
 
   @doc "Execute a Sequence"
   def sequence(%Farmbot.Asset.Sequence{} = seq, fun) do
-    ast = Farmbot.CeleryScript.AST.decode(seq)
-    Farmbot.CeleryScript.RunTime.sequence(Farmbot.CeleryScript.RunTime, ast, seq.id, fun)
+    RunTime.sequence(RunTime, AST.decode(seq), seq.id, fun)
   end
 end
