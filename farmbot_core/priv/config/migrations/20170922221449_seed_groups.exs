@@ -5,8 +5,8 @@ defmodule Farmbot.Config.Repo.Migrations.SeedGroups do
   import Ecto.Query, only: [from: 2]
 
   @group_names ["authorization", "hardware_params", "settings"]
-  @default_server Application.get_env(:farmbot_core, :default_server)
-  @default_server || raise("Missing application env config: `:default_server`")
+  @default_server Application.get_env(:farmbot_core, Farmbot.EctoMigrator)[:default_server] ||
+                    "https://my.farm.bot"
 
   def change do
     populate_config_groups()
