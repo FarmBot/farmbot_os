@@ -20,12 +20,13 @@ config :shoehorn,
 
 config :tzdata, :autoupdate, :disabled
 
-config :farmbot_core, :behaviour,
-  firmware_handler: Farmbot.Firmware.StubHandler,
-  leds_handler: Farmbot.Target.Leds.AleHandler,
-  pin_binding_handler: Farmbot.Target.PinBinding.AleHandler,
-  celery_script_io_layer: Farmbot.OS.IOLayer,
-  json_parser: Farmbot.JSON.JasonParser
+config :farmbot_core, Elixir.Farmbot.AssetWorker.Farmbot.Asset.PinBinding,
+  gpio_handler: Farmbot.PinBindingWorker.CircuitsGPIOHandler,
+  error_retry_time_ms: 30_000
+
+config :farmbot_core, Farmbot.Leds, gpio_handler: Farmbot.Target.Leds.CircuitsHandler
+
+config :farmbot_core, :behaviour, celery_script_io_layer: Farmbot.OS.IOLayer
 
 data_path = Path.join("/", "root")
 

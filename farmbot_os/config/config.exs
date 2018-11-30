@@ -11,6 +11,10 @@ config :farmbot_core, Elixir.Farmbot.AssetWorker.Farmbot.Asset.PinBinding,
   gpio_handler: Farmbot.PinBindingWorker.StubGPIOHandler,
   error_retry_time_ms: 30_000
 
+config :farmbot_core, Farmbot.Leds, gpio_handler: Farmbot.Leds.StubHandler
+
+config :farmbot_core, Farmbot.JSON, json_parser: Farmbot.JSON.JasonParser
+
 # Customize non-Elixir parts of the firmware.  See
 # https://hexdocs.pm/nerves/advanced-configuration.html for details.
 config :nerves, :firmware,
@@ -19,20 +23,15 @@ config :nerves, :firmware,
 
 config :farmbot_core, Farmbot.AssetMonitor, checkup_time_ms: 30_000
 
-config :farmbot_core,
-  expected_fw_versions: ["6.4.0.F", "6.4.0.R", "6.4.0.G"],
+config :farmbot_core, Farmbot.EctoMigrator,
   default_firmware_io_logs: false,
   default_server: "https://my.farm.bot",
   default_currently_on_beta:
     String.contains?(to_string(:os.cmd('git rev-parse --abbrev-ref HEAD')), "beta")
 
-# Configure Farmbot Behaviours.
-config :farmbot_core, :behaviour,
-  leds_handler: Farmbot.Leds.StubHandler,
-  celery_script_io_layer: Farmbot.OS.IOLayer,
-  json_parser: Farmbot.JSON.JasonParser
+config :farmbot_core, Farmbot.Core.CeleryScript.RunTimeWrapper,
+  celery_script_io_layer: Farmbot.OS.IOLayer
 
-config :farmbot_ext, :behaviour, authorization: Farmbot.Bootstrap.Authorization
 config :ecto, json_library: Farmbot.JSON
 
 config :farmbot_core,
