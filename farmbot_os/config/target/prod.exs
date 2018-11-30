@@ -1,29 +1,20 @@
 use Mix.Config
 
-config :nerves_firmware_ssh,
-  authorized_keys: []
-
 config :nerves_network, regulatory_domain: "US"
 
-config :nerves_init_gadget,
-  ifname: "usb0",
-  address_method: :dhcpd,
-  mdns_domain: "farmbot.local",
-  node_name: "farmbot",
-  node_host: :mdns_domain
-
 config :shoehorn,
-  init: [:nerves_runtime, :nerves_init_gadget, :nerves_firmware_ssh, :farmbot_core, :farmbot_ext],
+  init: [:nerves_runtime, :nerves_firmware_ssh, :farmbot_core, :farmbot_ext],
   app: :farmbot
 
 config :tzdata, :autoupdate, :disabled
 
-config :farmbot_core, :behaviour,
-  firmware_handler: Farmbot.Firmware.StubHandler,
-  leds_handler: Farmbot.Target.Leds.AleHandler,
-  pin_binding_handler: Farmbot.Target.PinBinding.AleHandler,
-  celery_script_io_layer: Farmbot.OS.IOLayer,
-  json_parser: Farmbot.JSON.JasonParser
+config :farmbot_core, Elixir.Farmbot.AssetWorker.Farmbot.Asset.PinBinding,
+  gpio_handler: Farmbot.PinBindingWorker.CircuitsGPIOHandler,
+  error_retry_time_ms: 30_000
+
+config :farmbot_core, Farmbot.Leds, gpio_handler: Farmbot.Target.Leds.CircuitsHandler
+
+config :farmbot_core, :behaviour, celery_script_io_layer: Farmbot.OS.IOLayer
 
 data_path = Path.join("/", "root")
 

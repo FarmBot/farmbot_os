@@ -12,13 +12,14 @@ config :farmbot_core, Farmbot.AssetWorker.Farmbot.Asset.FarmwareInstallation,
 
 config :farmbot_core, Farmbot.AssetMonitor, checkup_time_ms: 30_000
 
-config :farmbot_core, :behaviour,
-  leds_handler: Farmbot.Leds.StubHandler,
-  celery_script_io_layer: Farmbot.Core.CeleryScript.StubIOLayer,
-  json_parser: Farmbot.JSON.JasonParser
+config :farmbot_core, Farmbot.Leds, gpio_handler: Farmbot.Leds.StubHandler
 
-config :farmbot_core,
-  expected_fw_versions: ["6.4.0.F", "6.4.0.R", "6.4.0.G"],
+config :farmbot_core, Farmbot.JSON, json_parser: Farmbot.JSON.JasonParser
+
+config :farmbot_core, Farmbot.Core.CeleryScript.RunTimeWrapper,
+  celery_script_io_layer: Farmbot.Core.CeleryScript.StubIOLayer
+
+config :farmbot_core, Farmbot.EctoMigrator,
   default_firmware_io_logs: false,
   default_server: "https://my.farm.bot",
   default_currently_on_beta:

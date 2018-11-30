@@ -2,7 +2,7 @@ defmodule Farmbot.Core.CeleryScript.RunTimeWrapper do
   @moduledoc false
   alias Farmbot.CeleryScript.AST
   alias Farmbot.CeleryScript.RunTime
-  @io_layer Application.get_env(:farmbot_core, :behaviour)[:celery_script_io_layer]
+  @io_layer Application.get_env(:farmbot_core, __MODULE__)[:celery_script_io_layer]
   @io_layer || Mix.raise("No celery_script IO layer!")
 
   @doc false
