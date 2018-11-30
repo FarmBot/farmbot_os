@@ -32,7 +32,7 @@ defmodule Farmbot.Firmware.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:nerves_uart, "~> 1.2"},
+      {:circuits_uart, "~> 1.3"},
       {:excoveralls, "~> 0.10", only: [:test]},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.19", only: [:docs], runtime: false}

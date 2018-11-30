@@ -81,7 +81,7 @@ defmodule Farmbot.OS.MixProject do
       {:mdns, "~> 1.0"},
       {:nerves_firmware_ssh, "~> 0.3"},
       {:nerves_init_gadget, "~> 0.5", only: :dev},
-      {:elixir_ale, "~> 1.2"},
+      {:circuits_gpio, github: "elixir-circuits/circuits_gpio"},
       {:toolshed, "~> 0.2"}
     ] ++ system(target)
   end
