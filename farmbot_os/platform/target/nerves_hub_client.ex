@@ -11,7 +11,7 @@ defmodule Farmbot.System.NervesHubClient do
   @behaviour Farmbot.System.NervesHub
 
   @current_version Farmbot.Project.version()
-  @data_path Application.get_env(:farmbot, :data_path)
+  @data_path Farmbot.OS.FileSystem.data_path()
   @data_path || Mix.raise("Please configure data_path in application env")
 
   import Farmbot.Config, only: [get_config_value: 3]
@@ -196,7 +196,7 @@ defmodule Farmbot.System.NervesHubClient do
       Farmbot.BotState.set_update_available(true)
     end
 
-    case get_config_value(:bool, "settings", "os_auto_update") do
+    case Farmbot.Asset.fbos_config(:os_auto_update) do
       true ->
         Logger.success(1, "Applying OTA update")
         {:reply, :apply, {:apply, url}}

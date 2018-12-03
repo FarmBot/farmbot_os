@@ -12,8 +12,6 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
 
   alias Farmbot.AMQP.ConnectionWorker
 
-  import Farmbot.Config, only: [get_config_value: 3, update_config_value: 4]
-
   @exchange "amq.topic"
 
   defstruct [:conn, :chan, :jwt]
@@ -61,11 +59,7 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
 
   # Confirmation sent by the broker after registering this process as a consumer
   def handle_info({:basic_consume_ok, _}, state) do
-    if get_config_value(:bool, "settings", "log_amqp_connected") do
-      Farmbot.Logger.success(1, "Farmbot is up and running!")
-      update_config_value(:bool, "settings", "log_amqp_connected", false)
-    end
-
+    Farmbot.Logger.success(1, "Farmbot is up and running!")
     {:noreply, state}
   end
 
@@ -101,7 +95,8 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
 
       if results_ast.kind == :rpc_error do
         [%{args: %{message: message}}] = results_ast.body
-        Logger.error(message)
+        msg = ["CeleryScript Error\n", message, "\n", inspect(json)]
+        Logger.error(msg)
       end
 
       AMQP.Basic.publish(state.chan, @exchange, "bot.#{state.jwt.bot}.from_device", reply)
