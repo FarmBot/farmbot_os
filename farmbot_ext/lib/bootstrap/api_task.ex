@@ -8,16 +8,12 @@ defmodule Farmbot.Bootstrap.APITask do
   alias Ecto.{Changeset, Multi}
 
   require Farmbot.Logger
-  import Farmbot.Config, only: [get_config_value: 3, update_config_value: 4]
   alias Farmbot.API
   alias API.{Reconciler, SyncGroup, EagerLoader}
 
   alias Farmbot.Asset.{
     Repo,
-    Sync,
-    Device,
-    FbosConfig
-    # FirmwareConfig
+    Sync
   }
 
   def child_spec(_) do
@@ -38,16 +34,16 @@ defmodule Farmbot.Bootstrap.APITask do
     multi = Multi.new()
 
     with {:ok, multi} <- Reconciler.sync_group(multi, sync, SyncGroup.group_0()),
-         {:ok, r} <- Repo.transaction(multi) do
-      [%{id: device_id}] = sync.devices
-      [%{id: fbos_config_id}] = sync.fbos_configs
-      # [%{id: firmware_config_id}] = sync.firmware_configs
-      :ok = device_to_config_storage(r[{:devices, device_id}])
-      :ok = fbos_config_to_config_storage(r[{:fbos_configs, fbos_config_id}])
-      # :ok = firmware_config_to_config_storage(r[{:firmware_configs, firmware_config_id}])
+         {:ok, _} <- Repo.transaction(multi) do
+      auto_sync_change =
+        Enum.find_value(multi.operations, fn {{key, _id}, {:changeset, change, []}} ->
+          key == :fbos_configs && Changeset.get_change(change, :auto_sync)
+        end)
+
       Farmbot.Logger.success(3, "Successfully synced bootup resources.")
 
-      :ok = maybe_auto_sync(sync_changeset, get_config_value(:bool, "settings", "auto_sync"))
+      :ok =
+        maybe_auto_sync(sync_changeset, auto_sync_change || Farmbot.Asset.fbos_config().auto_sync)
     end
 
     :ignore
@@ -80,44 +76,6 @@ defmodule Farmbot.Bootstrap.APITask do
     sync = Changeset.apply_changes(sync_changeset)
     EagerLoader.preload(sync)
     Farmbot.Logger.success(3, "preloaded sync ok")
-    :ok
-  end
-
-  def device_to_config_storage(nil), do: :ok
-
-  def device_to_config_storage(%Device{timezone: tz} = _device) do
-    update_config_value(:string, "settings", "timezone", tz)
-    :ok
-  end
-
-  def fbos_config_to_config_storage(nil), do: :ok
-
-  def fbos_config_to_config_storage(%FbosConfig{} = config) do
-    update_config_value(
-      :bool,
-      "settings",
-      "arduino_debug_messages",
-      config.arduino_debug_messages
-    )
-
-    update_config_value(:bool, "settings", "auto_sync", config.auto_sync)
-    update_config_value(:bool, "settings", "beta_opt_in", config.beta_opt_in)
-    update_config_value(:bool, "settings", "disable_factory_reset", config.disable_factory_reset)
-    update_config_value(:string, "settings", "firmware_hardware", config.firmware_hardware)
-    update_config_value(:bool, "settings", "firmware_input_log", config.firmware_input_log)
-    update_config_value(:bool, "settings", "firmware_output_log", config.firmware_output_log)
-
-    update_config_value(
-      :float,
-      "settings",
-      "network_not_found_timer",
-      config.network_not_found_timer && config.network_not_found_timer / 1
-    )
-
-    update_config_value(:bool, "settings", "os_auto_update", config.os_auto_update)
-    update_config_value(:bool, "settings", "sequence_body_log", config.sequence_body_log)
-    update_config_value(:bool, "settings", "sequence_complete_log", config.sequence_complete_log)
-    update_config_value(:bool, "settings", "sequence_init_log", config.sequence_init_log)
     :ok
   end
 end

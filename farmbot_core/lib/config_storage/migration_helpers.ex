@@ -5,6 +5,7 @@ defmodule Farmbot.Config.MigrationHelpers do
 
   alias Farmbot.Config
   alias Config.{Repo, Config, StringValue, BoolValue, FloatValue}
+  import Ecto.Query
 
   @auth_group_id 1
   @hw_param_group_id 2
@@ -18,6 +19,16 @@ defmodule Farmbot.Config.MigrationHelpers do
   def create_settings_config(key, type, value) when type in [:string, :float, :bool] do
     create_value(type_to_mod(type), value)
     |> create_config(@settings_group_id, key)
+  end
+
+  def delete_settings_config(key, type) when type in [:string, :float, :bool] do
+    IO.puts "deleting #{key} #{type}"
+    conf = Repo.one!(from c in Config, where: c.group_id == @settings_group_id and c.key == ^key)
+    val_id = Map.fetch!(conf, :"#{type}_value_id")
+    val = Repo.one!(from t in type_to_mod(type), where: t.id == ^val_id)
+    Repo.delete!(conf)
+    Repo.delete!(val)
+    :ok
   end
 
   def create_hw_param(key) when is_binary(key) do

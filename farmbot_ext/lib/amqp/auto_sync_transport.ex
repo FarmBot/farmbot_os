@@ -11,7 +11,6 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
 
   require Logger
   require Farmbot.Logger
-  import Farmbot.Config, only: [get_config_value: 3]
 
   alias Farmbot.{
     API.EagerLoader,
@@ -98,7 +97,7 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
   end
 
   def handle_asset(asset_kind, label, id, params, state) do
-    auto_sync? = get_config_value(:bool, "settings", "auto_sync")
+    auto_sync? = Farmbot.Asset.fbos_config().auto_sync
 
     cond do
       # TODO(Connor) no way to cache a deletion yet
@@ -109,7 +108,6 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
         Repo.get_by!(Device, id: id)
         |> Device.changeset(params)
         |> Repo.update!()
-        |> Farmbot.Bootstrap.APITask.device_to_config_storage()
 
         :ok
 
@@ -117,7 +115,6 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
         Repo.get_by!(FbosConfig, id: id)
         |> FbosConfig.changeset(params)
         |> Repo.update!()
-        |> Farmbot.Bootstrap.APITask.fbos_config_to_config_storage()
 
         :ok
 
@@ -153,7 +150,7 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
         end
     end
 
-    device = state.bot
+    device = state.jwt.bot
     json = JSON.encode!(%{args: %{label: label}, kind: "rpc_ok"})
     :ok = Basic.publish(state.chan, @exchange, "bot.#{device}.from_device", json)
     {:noreply, state}
