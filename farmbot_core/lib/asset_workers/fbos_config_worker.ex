@@ -3,7 +3,7 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FbosConfig do
   require Logger
 
   alias Farmbot.Asset.FbosConfig
-  import Farmbot.Config, only: [update_config_value: 4]
+  alias Farmbot.BotState
 
   def preload(%FbosConfig{}), do: []
 
@@ -16,37 +16,18 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FbosConfig do
   end
 
   def handle_info(:timeout, %FbosConfig{} = fbos_config) do
-    bool("arduino_debug_messages", fbos_config.arduino_debug_messages)
-    bool("auto_sync", fbos_config.auto_sync)
-    bool("beta_opt_in", fbos_config.beta_opt_in)
-    bool("disable_factory_reset", fbos_config.disable_factory_reset)
-    string("firmware_hardware", fbos_config.firmware_hardware)
-    bool("firmware_input_log", fbos_config.firmware_input_log)
-    bool("firmware_output_log", fbos_config.firmware_output_log)
-    float("network_not_found_timer", fbos_config.network_not_found_timer)
-    bool("os_auto_update", fbos_config.os_auto_update)
-    bool("sequence_body_log", fbos_config.sequence_body_log)
-    bool("sequence_complete_log", fbos_config.sequence_complete_log)
-    bool("sequence_init_log", fbos_config.sequence_init_log)
+    :ok = BotState.set_config_value(:arduino_debug_messages, fbos_config.arduino_debug_messages)
+    :ok = BotState.set_config_value(:auto_sync, fbos_config.auto_sync)
+    :ok = BotState.set_config_value(:beta_opt_in, fbos_config.beta_opt_in)
+    :ok = BotState.set_config_value(:disable_factory_reset, fbos_config.disable_factory_reset)
+    :ok = BotState.set_config_value(:firmware_hardware, fbos_config.firmware_hardware)
+    :ok = BotState.set_config_value(:firmware_input_log, fbos_config.firmware_input_log)
+    :ok = BotState.set_config_value(:firmware_output_log, fbos_config.firmware_output_log)
+    :ok = BotState.set_config_value(:network_not_found_timer, fbos_config.network_not_found_timer)
+    :ok = BotState.set_config_value(:os_auto_update, fbos_config.os_auto_update)
+    :ok = BotState.set_config_value(:sequence_body_log, fbos_config.sequence_body_log)
+    :ok = BotState.set_config_value(:sequence_complete_log, fbos_config.sequence_complete_log)
+    :ok = BotState.set_config_value(:sequence_init_log, fbos_config.sequence_init_log)
     {:noreply, fbos_config}
-  end
-
-  defp bool(key, val) do
-    update_config_value(:bool, "settings", key, val)
-    :ok = Farmbot.BotState.set_config_value(key, val)
-  end
-
-  defp string(key, val) do
-    update_config_value(:string, "settings", key, val)
-    :ok = Farmbot.BotState.set_config_value(key, val)
-  end
-
-  defp float(_key, nil) do
-    :ok
-  end
-
-  defp float(key, val) do
-    update_config_value(:float, "settings", key, val / 1)
-    :ok = Farmbot.BotState.set_config_value(key, val)
   end
 end

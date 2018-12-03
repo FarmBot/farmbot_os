@@ -37,12 +37,16 @@ defmodule Farmbot.Core.FirmwareSideEffects do
     :ok = Farmbot.BotState.set_pin_value(pin, value)
   end
 
-  def handle_software_version([_version]) do
-    :noop
+  def handle_software_version([version]) do
+    :ok = Farmbot.BotState.set_firmware_version(version)
   end
 
   def handle_end_stops(_) do
     :noop
+  end
+
+  def handle_busy(busy) do
+    :ok = Farmbot.BotState.set_firmware_busy(busy)
   end
 
   def handle_emergency_lock() do
