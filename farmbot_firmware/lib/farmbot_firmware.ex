@@ -282,6 +282,7 @@ defmodule Farmbot.Firmware do
 
   # report_idle => goto(_, :idle)
   def handle_report({:report_idle, []}, %{status: _} = state) do
+    side_effects(state, :handle_busy, [false])
     {:noreply, goto(%{state | caller_pid: nil, current: nil}, :idle), 0}
   end
 
@@ -293,6 +294,7 @@ defmodule Farmbot.Firmware do
   def handle_report({:report_success, []} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     new_state = %{state | current: nil, caller_pid: nil}
+    side_effects(state, :handle_busy, [false])
 
     if new_state.status == :emergency_lock do
       {:noreply, goto(new_state, :idle), 0}
@@ -303,16 +305,19 @@ defmodule Farmbot.Firmware do
 
   def handle_report({:report_busy, []} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    side_effects(state, :handle_busy, [true])
     {:noreply, state}
   end
 
   def handle_report({:report_error, []} = code, %{status: :configuration} = state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    side_effects(state, :handle_busy, [false])
     {:stop, {:error, state.current}, state}
   end
 
   def handle_report({:report_error, []} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    side_effects(state, :handle_busy, [false])
     {:noreply, %{state | caller_pid: nil, current: nil}, 0}
   end
 
@@ -351,6 +356,7 @@ defmodule Farmbot.Firmware do
 
   # report_no_config => goto(_, :no_config)
   def handle_report({:report_no_config, []}, %{status: _} = state) do
+    Logger.debug("REPORT_NO_CONFIG")
     tag = state.tag || "0"
     loaded_params = side_effects(state, :load_params, []) || []
 
@@ -368,15 +374,18 @@ defmodule Farmbot.Firmware do
 
     to_process =
       if loaded_params[:movement_home_at_boot_x] == 1,
-        do: to_process ++ [{:command_movement_find_home, [:x]}]
+        do: to_process ++ [{:command_movement_find_home, [:x]}],
+        else: to_process
 
     to_process =
       if loaded_params[:movement_home_at_boot_y] == 1,
-        do: to_process ++ [{:command_movement_find_home, [:y]}]
+        do: to_process ++ [{:command_movement_find_home, [:y]}],
+        else: to_process
 
     to_process =
       if loaded_params[:movement_home_at_boot_z] == 1,
-        do: to_process ++ [{:command_movement_find_home, [:z]}]
+        do: to_process ++ [{:command_movement_find_home, [:z]}],
+        else: to_process
 
     {:noreply, goto(%{state | tag: tag, configuration_queue: to_process}, :configuration), 0}
   end

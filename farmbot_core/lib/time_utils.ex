@@ -11,8 +11,7 @@ defmodule Farmbot.TimeUtils do
   # returns midnight of today
   @spec build_epoch(DateTime.t) :: DateTime.t
   def build_epoch(time) do
-    import Farmbot.Config, only: [get_config_value: 3]
-    tz = get_config_value(:string, "settings", "timezone")
+    tz = Farmbot.Asset.fbos_config().timezone
     n  = Timex.Timezone.convert(time, tz)
     Timex.shift(n, hours: -n.hour, seconds: -n.second, minutes: -n.minute)
   end
