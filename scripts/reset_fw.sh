@@ -1,5 +1,5 @@
 #!/bin/bash
-AVAILABLE=$(ls priv/*.hex | grep -v "eeprom_clear" | tr '\n' ' ')
+AVAILABLE=$(ls ./farmbot_core/priv/*.hex | grep -v "eeprom_clear" | tr '\n' ' ')
 if [ -z $1 ]; then
   echo "usage: scripts/reset_fw.sh [$AVAILABLE] /dev/ttyACM0"
   exit 1

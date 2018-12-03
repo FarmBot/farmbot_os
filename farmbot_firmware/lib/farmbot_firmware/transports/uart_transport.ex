@@ -28,11 +28,11 @@ defmodule Farmbot.Firmware.UARTTransport do
     end
   end
 
-  def handle_info({:nerves_uart, _, {:error, reason}}, state) do
+  def handle_info({:circuits_uart, _, {:error, reason}}, state) do
     {:stop, {:uart_error, reason}, state}
   end
 
-  def handle_info({:nerves_uart, _, data}, state) when is_binary(data) do
+  def handle_info({:circuits_uart, _, data}, state) when is_binary(data) do
     code = GCODE.decode(String.trim(data))
     state.handle_gcode.(code)
     {:noreply, state}

@@ -1,6 +1,7 @@
 use Mix.Config
 
 data_path = Path.join(["/", "tmp", "farmbot"])
+File.mkdir_p(data_path)
 
 config :farmbot_ext,
   data_path: data_path
@@ -24,19 +25,16 @@ config :farmbot_core, Farmbot.Asset.Repo,
   loggers: [],
   database: Path.join(data_path, "asset-#{Mix.env()}.sqlite3")
 
-config :farmbot,
-  ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo],
-  platform_children: [
-    {Farmbot.Host.Configurator, []}
+config :farmbot, Farmbot.System.Init.Supervisor,
+  init_children: [
+    Farmbot.TTYDetector,
+    Farmbot.Host.Configurator
   ]
 
 config :farmbot, :behaviour, system_tasks: Farmbot.Host.SystemTasks
 
+config :farmbot,
+  ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo]
+
 config :farmbot, Farmbot.System.NervesHub,
   farmbot_nerves_hub_handler: Farmbot.Host.NervesHubHandler
-
-config :farmbot_core, :behaviour,
-  leds_handler: Farmbot.Leds.StubHandler,
-  pin_binding_handler: Farmbot.PinBinding.StubHandler,
-  celery_script_io_layer: Farmbot.OS.IOLayer,
-  firmware_handler: Farmbot.Firmware.UartHandler
