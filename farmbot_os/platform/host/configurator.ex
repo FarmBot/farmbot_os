@@ -3,7 +3,7 @@ defmodule Farmbot.Host.Configurator do
   use Supervisor
 
   import Farmbot.Config,
-    only: [update_config_value: 4, get_config_value: 3]
+    only: [update_config_value: 4]
 
   @doc false
   def start_link(args) do
@@ -26,16 +26,7 @@ defmodule Farmbot.Host.Configurator do
     pass = System.get_env("FARMBOT_PASSWORD") || raise error("password")
     server = System.get_env("FARMBOT_SERVER") || raise error("server")
     update_config_value(:string, "authorization", "email", email)
-
-    # if there is no firmware hardware, default ot farmduino
-    unless get_config_value(:string, "settings", "firmware_hardware") do
-      update_config_value(:string, "settings", "firmware_hardware", "farmduino")
-    end
-
-    if get_config_value(:bool, "settings", "first_boot") do
-      update_config_value(:string, "authorization", "password", pass)
-    end
-
+    update_config_value(:string, "authorization", "password", pass)
     update_config_value(:string, "authorization", "server", server)
     update_config_value(:string, "authorization", "token", nil)
     :ignore

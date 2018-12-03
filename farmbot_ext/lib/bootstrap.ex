@@ -10,7 +10,6 @@ defmodule Farmbot.Bootstrap do
   end
 
   def init([]) do
-    update_config_value(:bool, "settings", "log_amqp_connected", true)
     {:ok, nil, 0}
   end
 
@@ -45,14 +44,15 @@ defmodule Farmbot.Bootstrap do
   # TODO(Connor) - drop password and save secret here somehow.
   def try_auth(email, server, password, _secret) do
     Logger.debug("using password to auth")
-    # require IEx; IEx.pry
 
     with {:ok, tkn} <- Authorization.authorize_with_password(email, password, server),
          _ <- update_config_value(:string, "authorization", "token", tkn),
          {:ok, pid} <- Supervisor.start_child(Farmbot.Ext, Farmbot.Bootstrap.Supervisor) do
       {:noreply, pid}
     else
-      _ -> {:noreply, nil, 5000}
+      er ->
+        Logger.error("password auth failed: #{inspect(er)} ")
+        {:noreply, nil, 5000}
     end
   end
 end

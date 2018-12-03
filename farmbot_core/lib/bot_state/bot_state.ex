@@ -58,6 +58,16 @@ defmodule Farmbot.BotState do
     GenServer.call(bot_state_server, {:set_firmware_locked, false})
   end
 
+  @doc "Sets informational_settings.firmware_version"
+  def set_firmware_version(bot_state_server \\ __MODULE__, version) do
+    GenServer.call(bot_state_server, {:set_firmware_version, version})
+  end
+
+  @doc "Sets informational_settings.busy"
+  def set_firmware_busy(bot_state_server \\ __MODULE__, busy) do
+    GenServer.call(bot_state_server, {:set_firmware_busy, busy})
+  end
+
   @doc "Sets informational_settings.status"
   def set_sync_status(bot_state_server \\ __MODULE__, s)
       when s in ["syncing", "synced", "error"] do
@@ -204,6 +214,26 @@ defmodule Farmbot.BotState do
 
   def handle_call({:set_firmware_locked, bool}, _from, state) do
     change = %{informational_settings: %{locked: bool}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_firmware_version, version}, _from, state) do
+    change = %{informational_settings: %{firmware_version: version}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_firmware_busy, busy}, _from, state) do
+    change = %{informational_settings: %{busy: busy}}
 
     {reply, state} =
       BotStateNG.changeset(state.tree, change)

@@ -118,6 +118,8 @@ defmodule Farmbot.Firmware.StubSideEffects do
 
   def handle_software_version(_), do: :noop
 
+  def handle_busy(_), do: :noop
+
   def handle_input_gcode(_), do: :noop
 
   def handle_output_gcode(_), do: :noop

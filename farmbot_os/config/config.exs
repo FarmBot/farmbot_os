@@ -46,6 +46,8 @@ config :farmbot, Farmbot.Platform.Supervisor,
   ]
 
 import_config("lagger.exs")
+config :logger, backends: [:console]
+config :logger, :console, metadata: [:changeset, :module]
 
 if Mix.Project.config()[:target] == "host" do
   if File.exists?("config/host/#{Mix.env()}.exs") do
