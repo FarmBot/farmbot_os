@@ -44,10 +44,8 @@ defmodule Farmbot.System do
       # credo:disable-for-next-line
       require IEx; IEx.pry()
     end
-    alias Farmbot.Config
-    import Config, only: [get_config_value: 3]
     if Process.whereis Farmbot.Core do
-      if get_config_value(:bool, "settings", "disable_factory_reset") do
+      if Farmbot.Asset.fbos_config().disable_factory_reset do
         reboot(reason)
       else
         do_reset(reason)

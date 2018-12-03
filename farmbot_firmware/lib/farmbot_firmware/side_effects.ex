@@ -17,6 +17,7 @@ defmodule Farmbot.Firmware.SideEffects do
   @callback handle_emergency_unlock() :: any()
   @callback handle_pin_value(p: integer(), v: integer()) :: any()
   @callback handle_software_version([String.t()]) :: any()
+  @callback handle_busy(boolean()) :: any()
 
   @type axis_state :: :stop | :idle | :begin | :crawl | :decelerate | :accelerate
   @callback handle_axis_state([{axis(), axis_state}]) :: any()

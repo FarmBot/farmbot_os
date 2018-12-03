@@ -1,7 +1,6 @@
 defimpl Farmbot.AssetWorker, for: Farmbot.Asset.Device do
   alias Farmbot.Asset.Device
   use GenServer
-  import Farmbot.Config, only: [update_config_value: 4]
 
   def preload(%Device{}), do: []
 
@@ -14,7 +13,6 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.Device do
   end
 
   def handle_info(:timeout, %Device{} = device) do
-    update_config_value(:string, "settings", "timezone", device.timezone)
     {:noreply, device}
   end
 end
