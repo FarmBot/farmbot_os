@@ -65,6 +65,9 @@ defmodule Farmbot.Firmware.Request do
       {_, {:report_emergency_lock, []}} ->
         {:error, :emergency_lock}
 
+      {:error, reason} ->
+        {:error, reason}
+
       {_tag, report} ->
         wait_for_request_result_process(report, tag, code, result)
     after

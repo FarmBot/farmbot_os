@@ -43,6 +43,9 @@ defmodule Farmbot.Firmware.Command do
       {_, {:report_emergency_lock, []}} ->
         {:error, :emergency_lock}
 
+      {:error, reason} ->
+        {:error, reason}
+
       {_tag, _report} ->
         wait_for_command_result(tag, code, retries, err)
     end
