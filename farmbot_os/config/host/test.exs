@@ -31,6 +31,8 @@ config :farmbot,
     {Farmbot.Host.Configurator, []}
   ]
 
+config :farmbot, Farmbot.TTYDetector, expected_names: []
+
 config :farmbot_ext, Farmbot.AMQP.NervesHubTransport,
   handle_nerves_hub_msg: Farmbot.System.NervesHub
 

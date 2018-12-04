@@ -5,7 +5,13 @@ defmodule Farmbot.TTYDetector do
 
   import Farmbot.Config, only: [get_config_value: 3, update_config_value: 4]
 
-  @expected_names ["ttyACM0"]
+  @expected_names Application.get_env(:farmbot, __MODULE__)[:expected_names]
+  @expected_names || Mix.raise("""
+  Please configure `expected_names` for TTYDetector.
+
+      config :farmbot, Farmbot.TTYDetector,
+        expected_names: ["ttyS0", "ttyNotReal"]
+  """)
   @error_ms 5000
 
   def start_link(args) do
