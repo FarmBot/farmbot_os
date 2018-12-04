@@ -31,10 +31,11 @@ config :farmbot, Farmbot.System.Init.Supervisor,
     Farmbot.Host.Configurator
   ]
 
-config :farmbot, :behaviour, system_tasks: Farmbot.Host.SystemTasks
-
 config :farmbot,
   ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo]
+
+config :farmbot_ext, Farmbot.AMQP.NervesHubTransport,
+  handle_nerves_hub_msg: Farmbot.System.NervesHub
 
 config :farmbot, Farmbot.System.NervesHub,
   farmbot_nerves_hub_handler: Farmbot.Host.NervesHubHandler
