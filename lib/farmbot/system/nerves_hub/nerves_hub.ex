@@ -55,7 +55,7 @@ defmodule Farmbot.System.NervesHub do
   end
 
   def terminate(reason, state) do
-    Logger.warn 1, "Nerves Hub crash: #{inspect reason} when in state: #{inspect state}"
+    Logger.warn 1, "OTA Server crash: #{inspect reason} when in state: #{inspect state}"
   end
 
   def handle_info(:configure, :not_configured) do
@@ -73,7 +73,7 @@ defmodule Farmbot.System.NervesHub do
       extra_tags = app_config[:extra_tags] || []
 
       if nil in get_config() do
-        Logger.info 1, "doing initial nerves hub configuration."
+        Logger.info 1, "doing initial OTA configuration."
         :ok = deconfigure()
         :ok = provision()
         :ok = configure([app_env, channel] ++ extra_tags)
@@ -83,7 +83,7 @@ defmodule Farmbot.System.NervesHub do
 
       {:noreply, :configured}
     else
-      Logger.debug 3, "Server not configured yet. Waiting 10_000 ms to try again."
+      Logger.debug 3, "Server not configured yet. Waiting 10_000 ms to try OTA config again."
       Process.send_after(self(), :configure, 10_000)
       {:noreply, :not_configured}
     end
@@ -94,7 +94,7 @@ defmodule Farmbot.System.NervesHub do
   end
 
   def connect do
-    Logger.debug 1, "Connecting to NervesHub"
+    Logger.debug 1, "Connecting to OTA Server"
     @handler.connect()
   end
 
@@ -105,14 +105,14 @@ defmodule Farmbot.System.NervesHub do
 
   # Sets Serial number in environment.
   def provision do
-    Logger.debug 1, "Provisioning NervesHub"
+    Logger.debug 1, "Provisioning OTA Server"
     :ok = @handler.provision(serial())
   end
 
   # Creates a device in NervesHub
   # or updates it if one exists.
   def configure(tags) when is_list(tags) do
-    Logger.debug 1, "Configuring NervesHub: #{inspect tags}"
+    Logger.debug 1, "Configuring OTA Server: #{inspect tags}"
     payload = %{
       serial_number: serial(),
       tags: tags
@@ -124,19 +124,19 @@ defmodule Farmbot.System.NervesHub do
   # Message comes over AMQP.
   def configure_certs("-----BEGIN CERTIFICATE-----" <> _ = cert,
                       "-----BEGIN EC PRIVATE KEY-----" <> _ = key) do
-    Logger.debug 1, "Configuring certs for NervesHub."
+    Logger.debug 1, "Configuring certs for OTA Server."
     :ok = @handler.configure_certs(cert, key)
     :ok
   end
 
   def deconfigure do
-    Logger.debug 1, "Deconfiguring NervesHub"
+    Logger.debug 1, "Deconfiguring OTA Server"
     :ok = @handler.deconfigure()
     :ok
   end
 
   def check_update do
-    Logger.debug 1, "Check update NervesHub"
+    Logger.debug 1, "Check update OTA Server"
     @handler.check_update()
   end
 end
