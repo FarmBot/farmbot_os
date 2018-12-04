@@ -31,15 +31,10 @@ config :farmbot,
     {Farmbot.Host.Configurator, []}
   ]
 
-config :farmbot, :behaviour, system_tasks: Farmbot.Host.SystemTasks
+config :farmbot_ext, Farmbot.AMQP.NervesHubTransport,
+  handle_nerves_hub_msg: Farmbot.System.NervesHub
 
 config :farmbot, Farmbot.System.NervesHub,
   farmbot_nerves_hub_handler: Farmbot.Host.NervesHubHandler
-
-config :farmbot_core, :behaviour,
-  leds_handler: Farmbot.Leds.StubHandler,
-  pin_binding_handler: Farmbot.PinBinding.StubHandler,
-  celery_script_io_layer: Farmbot.OS.IOLayer,
-  firmware_handler: Farmbot.Firmware.UartHandler
 
 config :farmbot_core, :uart_handler, tty: "/dev/ttyACM0"
