@@ -50,6 +50,11 @@ defmodule Farmbot.Asset do
     Map.fetch!(fbos_config(), field)
   end
 
+  def update_fbos_config!(fbos_config \\ nil, params) do
+    FbosConfig.changeset(fbos_config || fbos_config(), params)
+    |> Repo.insert_or_update!()
+  end
+
   ## End FbosConfig
 
   ## Begin FirmwareConfig
