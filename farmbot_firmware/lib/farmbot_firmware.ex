@@ -81,7 +81,6 @@ defmodule Farmbot.Firmware do
 
   alias Farmbot.Firmware, as: State
   alias Farmbot.{Firmware.GCODE, Firmware.Command, Firmware.Request}
-  @error_timeout_ms 2_000
 
   @type status :: :boot | :no_config | :configuration | :idle | :emergency_lock
 
