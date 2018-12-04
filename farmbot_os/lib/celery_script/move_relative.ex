@@ -2,8 +2,11 @@ defmodule Farmbot.OS.IOLayer.MoveRelative do
   @moduledoc false
 
   alias Farmbot.Firmware
+  require Farmbot.Logger
 
   def execute(%{x: x, y: y, z: z, speed: s}, _body) do
+    Farmbot.Logger.info(1, "starting relative movement: #{x}, #{y}, #{z}")
+
     with {:ok, {_, {:report_paramater_value, [movement_max_spd_x: max_spd_x]}}} <-
            Firmware.request({:paramater_read, [:movement_max_spd_x]}),
          {:ok, {_, {:report_paramater_value, [movement_max_spd_y: max_spd_y]}}} <-
@@ -22,7 +25,9 @@ defmodule Farmbot.OS.IOLayer.MoveRelative do
       z_spd = s / 100 * max_spd_z
       do_move(x_pos, x_spd, y_pos, y_spd, z_pos, z_spd)
     else
-      _ -> {:error, "Firmware Error"}
+      error ->
+        Farmbot.Logger.error(1, "Relative movement failed: #{inspect(error)}")
+        {:error, "Firmware Error"}
     end
   end
 
@@ -30,8 +35,13 @@ defmodule Farmbot.OS.IOLayer.MoveRelative do
     command_args = [x: x_pos, y: y_pos, z: z_pos, a: x_spd, b: y_spd, c: z_spd]
 
     case Firmware.command({:command_movement, command_args}) do
-      :ok -> :ok
-      _ -> {:error, "Firmware Error"}
+      :ok ->
+        Farmbot.Logger.success(1, "Relative movement complete")
+        :ok
+
+      error ->
+        Farmbot.Logger.error(1, "Relative movement failed: #{inspect(error)}")
+        {:error, "Firmware Error"}
     end
   end
 end

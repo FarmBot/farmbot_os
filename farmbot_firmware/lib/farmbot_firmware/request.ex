@@ -45,21 +45,21 @@ defmodule Farmbot.Firmware.Request do
   # If this function returns no data for 5 seconds, it needs to error.
   defp wait_for_request_result(tag, code, result \\ nil) do
     receive do
-      {^tag, {:report_begin, []}} ->
+      {tag, {:report_begin, []}} ->
         wait_for_request_result(tag, code, result)
 
-      {^tag, {:report_busy, []}} ->
+      {tag, {:report_busy, []}} ->
         wait_for_request_result(tag, code, result)
 
-      {^tag, {:report_success, []}} ->
+      {tag, {:report_success, []}} ->
         if result,
           do: {:ok, {tag, result}},
           else: wait_for_request_result(tag, code, result)
 
-      {^tag, {:report_error, []}} ->
+      {_, {:report_error, []}} ->
         {:error, :firmware_error}
 
-      {^tag, {:report_invalid, []}} ->
+      {_, {:report_invalid, []}} ->
         {:error, :invalid_command}
 
       {_, {:report_emergency_lock, []}} ->
@@ -68,7 +68,7 @@ defmodule Farmbot.Firmware.Request do
       {:error, reason} ->
         {:error, reason}
 
-      {_tag, report} ->
+      {tag, report} ->
         wait_for_request_result_process(report, tag, code, result)
     after
       5_000 ->
