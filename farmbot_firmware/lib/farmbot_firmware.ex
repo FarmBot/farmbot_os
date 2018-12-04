@@ -166,7 +166,7 @@ defmodule Farmbot.Firmware do
     args = Keyword.put(args, :handle_gcode, fun)
 
     with {:ok, pid} <- GenServer.start_link(transport, args) do
-      Process.link(pid)
+      Process.monitor(pid)
       Logger.debug("Starting Firmware: #{inspect(args)}")
 
       state = %State{
@@ -182,6 +182,14 @@ defmodule Farmbot.Firmware do
     end
   end
 
+  def terminate(reason, state) do
+    for {pid, _code} <- state.command_queue, do: send(pid, reason)
+  end
+
+  def handle_info({:DOWN, _ref, :process, pid, reason}, %{transport_pid: pid} = state) do
+    {:stop, reason, state}
+  end
+
   # @spec handle_info(:timeout, state) :: {:noreply, state}
   def handle_info(:timeout, %{configuration_queue: [code | rest]} = state) do
     Logger.debug("Starting next configuration code: #{inspect(code)}")
@@ -192,8 +200,8 @@ defmodule Farmbot.Firmware do
         side_effects(new_state, :handle_output_gcode, [{state.tag, code}])
         {:noreply, new_state}
 
-      {:error, _} ->
-        {:noreply, state, @error_timeout_ms}
+      error ->
+        {:stop, error, state}
     end
   end
 
@@ -204,8 +212,8 @@ defmodule Farmbot.Firmware do
         side_effects(new_state, :handle_output_gcode, [{state.tag, code}])
         {:noreply, new_state}
 
-      {:error, _} ->
-        {:noreply, state, @error_timeout_ms}
+      error ->
+        {:stop, error, state}
     end
   end
 
