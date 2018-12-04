@@ -11,25 +11,28 @@ defmodule Farmbot.Target.Network.DnsTask do
   def init([]) do
     # Block and reset if after 10 tries
     # resolution doesn't  work.
-    block_check(true)
-    {:ok, %{timer: start_timer()}}
+    r = block_check(true)
+    {:ok, %{timer: start_timer(), last_result: r}}
   end
 
   def handle_info(:checkup, state) do
     # Block and don't reset if after 10 tries
     # resolution doesn't work.
-    block_check()
-    {:noreply, %{state | timer: start_timer()}}
+    result = block_check(state.last_result)
+    {:noreply, %{state | last_result: result, timer: start_timer()}}
   end
 
-  defp block_check(reset \\ false, tries \\ 10)
+  defp block_check(last_result, reset \\ false, tries \\ 10)
 
-  defp block_check(false, 0) do
+  defp block_check(last_result, false, 0) do
     server = get_config_value(:string, "authorization", "server")
-    Logger.error 1, "Could not resolve #{server} after 10 tries."
+    if last_result == :ok do
+      Logger.error 1, "Could not resolve #{server} after 10 tries."
+    end
+    :error
   end
 
-  defp block_check(true, 0) do
+  defp block_check(_last_result, true, 0) do
     server = get_config_value(:string, "authorization", "server")
     Logger.error 1, "Tried 10 times to resolve DNS requests."
     msg = """
@@ -38,19 +41,28 @@ defmodule Farmbot.Target.Network.DnsTask do
     url, or your FarmBot is configured incorrectly.
     """
     Farmbot.System.factory_reset(msg)
+    :error
   end
 
-  defp block_check(reset, tries) do
+  defp block_check(last_result, reset, tries) do
     server = get_config_value(:string, "authorization", "server")
     case test_dns() do
-      {:ok, _} -> :ok
+      {:ok, _} ->
+        if last_result == :error do
+          Logger.success(1, "DNS resolution successful")
+        end
+        :ok
       {:error, :nxdomain} ->
         Process.sleep(10_000)
-        Logger.error 1, "Trying to resolve #{server} #{tries - 1} more times."
-        block_check(reset, tries - 1)
+        if last_result == :ok do
+          Logger.error 1, "Trying to resolve #{server} #{tries - 1} more times."
+        end
+        block_check(:error, reset, tries - 1)
       err ->
-        Logger.error 1, "Failed to resolve #{server}: #{inspect err}"
-        block_check(reset, tries)
+        if last_result == :ok do
+          Logger.error 1, "Failed to resolve #{server}: #{inspect err}"
+        end
+        block_check(:error, reset, tries)
     end
   end
 
