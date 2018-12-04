@@ -19,6 +19,8 @@ defmodule Farmbot.System.NervesHub do
   Just return :ok to everything.
   """
 
+  @behaviour Farmbot.AMQP.NervesHubTransport
+
   @handler Application.get_env(:farmbot, __MODULE__)[:farmbot_nerves_hub_handler]
   || Mix.raise("missing :farmbot_nerves_hub_handler module")
 

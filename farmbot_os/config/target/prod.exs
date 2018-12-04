@@ -57,10 +57,13 @@ config :farmbot, Farmbot.Platform.Supervisor,
     Farmbot.Target.InfoWorker.Supervisor
   ]
 
-config :farmbot, Farmbot.System, system_tasks: Farmbot.Target.SystemTasks
+config :farmbot_ext, Farmbot.AMQP.NervesHubTransport,
+  handle_nerves_hub_msg: Farmbot.System.NervesHub
 
 config :farmbot, Farmbot.System.NervesHub,
   farmbot_nerves_hub_handler: Farmbot.System.NervesHubClient
+
+config :farmbot, Farmbot.System, system_tasks: Farmbot.Target.SystemTasks
 
 config :nerves_hub,
   client: Farmbot.System.NervesHubClient,
