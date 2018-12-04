@@ -5,7 +5,7 @@ defmodule Farmbot.TTYDetector do
 
   import Farmbot.Config, only: [get_config_value: 3, update_config_value: 4]
 
-  @expected_names ["ttyACM1"]
+  @expected_names ["ttyACM0"]
   @error_ms 5000
 
   def start_link(args) do
