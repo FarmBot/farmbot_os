@@ -61,6 +61,9 @@ defmodule Farmbot.System.NervesHubClient do
       Nerves.Runtime.KV.get("nerves_hub_cert"),
       Nerves.Runtime.KV.get("nerves_hub_key"),
     ]
+    |> Enum.map(fn(val) ->
+      if val == "", do: nil, else: val
+    end)
   end
 
   def check_update do
