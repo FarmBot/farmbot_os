@@ -12,9 +12,9 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.PinBinding do
     Asset
   }
 
-  @gpio_handler Application.get_env(:farmbot_core, __MODULE__)[:gpio_handler]
   @error_retry_time_ms Application.get_env(:farmbot_core, __MODULE__)[:error_retry_time_ms]
 
+  @gpio_handler Application.get_env(:farmbot_core, __MODULE__)[:gpio_handler]
   @gpio_handler ||
     Mix.raise("""
       config :farmbot_core, #{__MODULE__}, gpio_handler: MyModule
@@ -57,7 +57,7 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.PinBinding do
   def handle_info(:timeout, %PinBinding{} = pin_binding) do
     worker_pid = self()
 
-    case @gpio_handler.start_link(pin_binding.pin_num, fn -> trigger(worker_pid) end) do
+    case gpio_handler().start_link(pin_binding.pin_num, fn -> trigger(worker_pid) end) do
       {:ok, pid} when is_pid(pid) ->
         Process.link(pid)
         {:noreply, pin_binding}
@@ -154,4 +154,7 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.PinBinding do
 
   def handle_rpc_request(_, %PinBinding{} = pin_binding),
     do: {:noreply, pin_binding, :hibernate}
+
+  defp gpio_handler,
+    do: Application.get_env(:farmbot_core, __MODULE__)[:gpio_handler]
 end
