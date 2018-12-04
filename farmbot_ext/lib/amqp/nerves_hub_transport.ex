@@ -14,6 +14,20 @@ defmodule Farmbot.AMQP.NervesHubTransport do
   alias Farmbot.AMQP.ConnectionWorker
 
   @exchange "amq.topic"
+  @handle_nerves_hub_msg Application.get_env(:farmbot_ext, __MODULE__)[:handle_nerves_hub_msg]
+  @handle_nerves_hub_msg ||
+    Mix.raise("""
+    Please define a function that will handle NervesHub certs.
+
+        config :farmbot_ext, Farmbot.AMQP.NervesHubTransport,
+          handle_nerves_hub_msg: SomeModule
+    """)
+
+  @doc "Save certs to persistent storage somewhere."
+  @callback configure_certs(binary(), binary()) :: :ok | {:error, term()}
+
+  @doc "Connect to NervesHub."
+  @callback connect() :: :ok | {:error, term()}
 
   defstruct [:conn, :chan, :jwt]
   alias __MODULE__, as: State
@@ -80,23 +94,24 @@ defmodule Farmbot.AMQP.NervesHubTransport do
   end
 
   def handle_nerves_hub(payload, options, state) do
-    alias Farmbot.System.NervesHub
-
     with {:ok, %{"cert" => base64_cert, "key" => base64_key}} <- JSON.decode(payload),
          {:ok, cert} <- Base.decode64(base64_cert),
          {:ok, key} <- Base.decode64(base64_key),
-         :ok <- NervesHub.configure_certs(cert, key),
-         :ok <- NervesHub.connect() do
+         :ok <- handle_nerves_hub_msg().configure_certs(cert, key),
+         :ok <- handle_nerves_hub_msg().connect() do
       :ok = Basic.ack(state.chan, options[:delivery_tag])
       {:noreply, state}
     else
       {:error, reason} ->
-        Logger.error(1, "NervesHub failed to configure. #{inspect(reason)}")
+        Logger.error(1, "OTA Service failed to configure. #{inspect(reason)}")
         {:noreply, state}
 
       :error ->
-        Logger.error(1, "NervesHub payload invalid. (base64)")
+        Logger.error(1, "OTA Service payload invalid. (base64)")
         {:noreply, state}
     end
   end
+
+  defp handle_nerves_hub_msg,
+    do: Application.get_env(:farmbot_ext, __MODULE__)[:handle_nerves_hub_msg]
 end
