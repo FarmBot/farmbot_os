@@ -22,6 +22,8 @@ defmodule Farmbot.System.NervesHub do
     get_config_value: 3, update_config_value: 4
   ]
 
+  @behaviour Farmbot.AMQP.NervesHubTransport
+
   @handler Application.get_env(:farmbot, __MODULE__)[:farmbot_nerves_hub_handler]
   || Mix.raise("missing :farmbot_nerves_hub_handler module")
 
