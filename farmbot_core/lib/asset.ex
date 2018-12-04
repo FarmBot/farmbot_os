@@ -11,6 +11,7 @@ defmodule Farmbot.Asset do
     FirmwareConfig,
     Peripheral,
     PinBinding,
+    Point,
     Regimen,
     PersistentRegimen,
     Sequence
@@ -103,6 +104,14 @@ defmodule Farmbot.Asset do
   end
 
   ## End PinBinding
+
+  ## Begin Point
+
+  def get_point(params) do
+    Repo.get_by(Point, params)
+  end
+
+  ## End Point
 
   ## Begin Regimen
 
