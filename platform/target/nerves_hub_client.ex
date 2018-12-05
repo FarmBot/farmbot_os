@@ -4,7 +4,9 @@ defmodule Farmbot.System.NervesHubClient do
   """
 
   use GenServer
-  require Logger
+  use Farmbot.Logger
+  alias Farmbot.BotState.JobProgress
+
   @behaviour NervesHub.Client
   @behaviour Farmbot.System.NervesHub
   import Farmbot.System.ConfigStorage, only: [get_config_value: 3]
@@ -21,7 +23,7 @@ defmodule Farmbot.System.NervesHubClient do
   def serial_number, do: serial_number(Farmbot.Project.target())
 
   def connect do
-    Logger.info "Starting NervesHub app."
+    Logger.debug 3, "Starting OTA Service"
     # NervesHub replaces it's own env on startup. Reset it.
     Application.put_env(:nerves_hub, NervesHub.Socket, [reconnect_interval: 5000])
     # Stop Nerves Hub if it is running.
@@ -31,8 +33,8 @@ defmodule Farmbot.System.NervesHubClient do
     {:ok, _} = Application.ensure_all_started(:nerves_hub)
     # Wait for a few seconds for good luck.
     Process.sleep(1000)
-    r = NervesHub.connect()
-    Logger.info "NervesHub started: #{inspect(r, limit: :infinity)}"
+    _r = NervesHub.connect()
+    Logger.debug 3, "OTA Service started"
     :ok
   end
 
@@ -69,8 +71,10 @@ defmodule Farmbot.System.NervesHubClient do
   def check_update do
     case GenServer.call(__MODULE__, :check_update) do
       # If updates were disabled, and an update is queued
-    {:ignore, _url} -> NervesHub.update()
-    _ -> nil
+      {:ignore, _url} ->
+        Logger.info 1, "Applying OTA update"
+        NervesHub.update()
+      _ -> nil
     end
   end
 
@@ -80,8 +84,6 @@ defmodule Farmbot.System.NervesHubClient do
   end
 
   def handle_fwup_message({:progress, percent}) when rem(percent, 5) == 0 do
-    Logger.info("FWUP Stream Progress: #{percent}%")
-    alias Farmbot.BotState.JobProgress
     prog = %JobProgress.Percent{percent: percent}
     if Process.whereis(Farmbot.BotState) do
       Farmbot.BotState.set_job_progress("FBOS_OTA", prog)
@@ -89,14 +91,24 @@ defmodule Farmbot.System.NervesHubClient do
     :ok
   end
 
+  def handle_fwup_message({:ok, _, info}) do
+    prog = %JobProgress.Percent{percent: 100, status: :complete}
+    if Process.whereis(Farmbot.BotState) do
+      Farmbot.BotState.set_job_progress("FBOS_OTA", prog)
+    end
+    Logger.success 1, "OTA Complete: #{info} Going down for reboot"
+    :ok
+  end
+
   def handle_fwup_message({:error, _, reason}) do
-    Logger.error "FWUP Error: #{reason}"
+    Logger.error 1, "OTA Error: #{reason}"
     :ok
   end
 
   def handle_fwup_message(_) do
     :ok
   end
+
 
   def start_link(_, _) do
     GenServer.start_link(__MODULE__, [], [name: __MODULE__])
@@ -112,7 +124,9 @@ defmodule Farmbot.System.NervesHubClient do
     end
     case get_config_value(:bool, "settings", "os_auto_update") do
       true -> {:reply, :apply, {:apply, url}}
-      false -> {:reply, :ignore, {:ignore, url}}
+      false ->
+        Logger.info 1, "New Farmbot OS is available!"
+        {:reply, :ignore, {:ignore, url}}
     end
   end
 
