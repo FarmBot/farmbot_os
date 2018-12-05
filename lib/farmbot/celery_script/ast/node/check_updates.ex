@@ -5,7 +5,8 @@ defmodule Farmbot.CeleryScript.AST.Node.CheckUpdates do
 
   def execute(%{package: :farmbot_os}, _, env) do
     env = mutate_env(env)
-    nerves_hub_updater(env)
+    spawn __MODULE__, :nerves_hub_updater, []
+    {:ok, env}
   end
 
   def execute(%{package: :arduino_firmware}, _, env) do
@@ -18,10 +19,7 @@ defmodule Farmbot.CeleryScript.AST.Node.CheckUpdates do
     Farmbot.CeleryScript.AST.Node.UpdateFarmware.execute(args, [], env)
   end
 
-  defp nerves_hub_updater(env) do
-    case Farmbot.System.NervesHub.check_update() do
-      nil -> {:ok, env}
-      url when is_binary(url) -> {:ok, env}
-    end
+  def nerves_hub_updater() do
+    Farmbot.System.NervesHub.check_update()
   end
 end
