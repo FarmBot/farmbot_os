@@ -156,7 +156,8 @@ defmodule Farmbot.Mixfile do
     system(target) ++
       [
         {:nerves_runtime, "~> 0.8"},
-        {:nerves_hub, github: "nerves-hub/nerves_hub", override: true},
+        {:nerves_hub,
+         github: "nerves-hub/nerves_hub", branch: "client-error-handling", override: true},
         {:nerves_firmware, "~> 0.4"},
         {:nerves_firmware_ssh, "~> 0.3"},
         {:nerves_init_gadget, "~> 0.5", only: :dev},
