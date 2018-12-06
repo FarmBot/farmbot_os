@@ -81,7 +81,7 @@
   "poison": {:hex, :poison, "3.1.0", "d9eb636610e096f86f25d9a46f35a9facac35609a7591b3be3326e99a0484665", [:mix], [], "hexpm"},
   "poolboy": {:hex, :poolboy, "1.5.1", "6b46163901cfd0a1b43d692657ed9d7e599853b3b21b95ae5ae0a777cf9b6ca8", [:rebar], [], "hexpm"},
   "rabbit_common": {:hex, :rabbit_common, "3.7.8", "e1410371c5814f85092b6dda85aa25fad945e7a41a9c4e34a59e61bd59a8c3b2", [:make, :rebar3], [{:jsx, "2.8.2", [hex: :jsx, repo: "hexpm", optional: false]}, {:lager, "3.6.3", [hex: :lager, repo: "hexpm", optional: false]}, {:ranch, "1.5.0", [hex: :ranch, repo: "hexpm", optional: false]}, {:ranch_proxy_protocol, "1.5.0", [hex: :ranch_proxy_protocol, repo: "hexpm", optional: false]}, {:recon, "2.3.2", [hex: :recon, repo: "hexpm", optional: false]}], "hexpm"},
-  "ranch": {:hex, :ranch, "1.7.1", "6b1fab51b49196860b733a49c07604465a47bdb78aa10c1c16a3d199f7f8c881", [:rebar3], [], "hexpm"},
+  "ranch": {:hex, :ranch, "1.6.2", "6db93c78f411ee033dbb18ba8234c5574883acb9a75af0fb90a9b82ea46afa00", [:rebar3], [], "hexpm"},
   "ranch_proxy_protocol": {:hex, :ranch_proxy_protocol, "2.1.1", "3c4723327166d2d63c0405f4914e2e471c6de362cc844e9b203af5763e7c9d25", [:rebar3], [{:ranch, "1.6.2", [hex: :ranch, repo: "hexpm", optional: false]}], "hexpm"},
   "recon": {:hex, :recon, "2.3.2", "4444c879be323b1b133eec5241cb84bd3821ea194c740d75617e106be4744318", [:rebar3], [], "hexpm"},
   "ring_logger": {:hex, :ring_logger, "0.6.1", "568dbd9eebf26c661427de5204d8a91adaa740993f3ac5aa450257f62b6e7178", [:mix], [], "hexpm"},
