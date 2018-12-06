@@ -9,8 +9,9 @@ defmodule Farmbot.OS do
     children = [
       {Farmbot.System.Init.Supervisor, []},
       {Farmbot.Platform.Supervisor, []},
-      {Farmbot.EasterEggs, []},
+      {Farmbot.EasterEggs, []}
     ]
+
     opts = [strategy: :one_for_one, name: __MODULE__]
     Supervisor.start_link(children, opts)
   end

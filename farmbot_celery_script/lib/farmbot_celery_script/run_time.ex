@@ -410,6 +410,8 @@ defmodule Farmbot.CeleryScript.RunTime do
         ex.farm_proc
 
       ex ->
+        IO.warn("Exception in step: #{ex}", __STACKTRACE__)
+
         farm_proc
         |> FarmProc.set_status(:crashed)
         |> FarmProc.set_crash_reason(Exception.message(ex))
