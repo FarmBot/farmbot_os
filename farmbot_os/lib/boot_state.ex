@@ -11,8 +11,8 @@ defmodule Farmbot.BootState do
   end
 
   def write(status)
-    when status in [:NEEDS_CONFIGURATION, :CONFIGURATIONFAIL, :UPANDRUNNING] do
-      File.write(@state_file, to_string(status) <> "\r\n")
-      status
-    end
+      when status in [:NEEDS_CONFIGURATION, :CONFIGURATIONFAIL, :UPANDRUNNING] do
+    File.write(@state_file, to_string(status) <> "\r\n")
+    status
+  end
 end

@@ -55,6 +55,14 @@ defmodule Farmbot.CeleryScript.RunTime.SysCallHandler do
         apply(fun, [ast])
       rescue
         ex ->
+          IO.warn(
+            """
+            error in io function: #{inspect(ex)}
+            #{inspect(fun)} #{inspect(ast, limit: :infinity)}
+            """,
+            __STACKTRACE__
+          )
+
           {:error, Exception.message(ex)}
       end
 
