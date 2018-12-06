@@ -193,10 +193,8 @@ defmodule Farmbot.BotState do
   end
 
   def handle_call({:set_pin_value, pin, value}, _from, state) do
-    change = %{pins: %{pin => %{mode: -1, value: value}}}
-
     {reply, state} =
-      BotStateNG.changeset(state.tree, change)
+      BotStateNG.add_or_update_pin(state.tree, pin, -1, value)
       |> dispatch_and_apply(state)
 
     {:reply, reply, state}

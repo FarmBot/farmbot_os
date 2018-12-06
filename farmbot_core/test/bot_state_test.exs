@@ -39,4 +39,16 @@ defmodule Farmbot.BotStateTest do
       assert_receive {:EXIT, ^bot_state_pid, :crash}
     end
   end
+
+  describe "pins" do
+    test "sets pin data" do
+      {:ok, bot_state_pid} = BotState.start_link([], [])
+      :ok = BotState.set_pin_value(bot_state_pid, 9, 1)
+      :ok = BotState.set_pin_value(bot_state_pid, 10, 1)
+      :ok = BotState.set_pin_value(bot_state_pid, 11, 0)
+
+      assert %{pins: %{9 => %{value: 1}, 10 => %{value: 1}, 11 => %{value: 0}}} =
+               BotState.fetch(bot_state_pid)
+    end
+  end
 end
