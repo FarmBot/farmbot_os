@@ -4,7 +4,13 @@ defmodule Farmbot.OS.IOLayer.MoveAbsolute do
   alias Farmbot.Firmware
   require Farmbot.Logger
 
-  def execute(%{location: %{args: %{pointer_type: "Plant", pointer_id: id}}} = args, body) do
+  @generic_pointer_types [
+    "Plant",
+    "GenericPointer"
+  ]
+
+  def execute(%{location: %{args: %{pointer_type: type, pointer_id: id}}} = args, body)
+      when type in @generic_pointer_types do
     Farmbot.Logger.debug(1, "Finding plant before movement")
 
     case Farmbot.Asset.get_point(id: id) do
