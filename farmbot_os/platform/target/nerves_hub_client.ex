@@ -98,7 +98,6 @@ defmodule Farmbot.System.NervesHubClient do
         case NervesHub.HTTPClient.update() do
           {:ok, %{"data" => %{"update_available" => false}}} ->
             do_backup_strats()
-
           _ ->
             Farmbot.Logger.info(1, "Applying OTA update")
             NervesHub.update()
@@ -125,7 +124,7 @@ defmodule Farmbot.System.NervesHubClient do
   end
 
   def handle_error(args) do
-    Logger.error(1, "OTA failed to download: #{inspect(args)}")
+    Farmbot.Logger.error(1, "OTA failed to download: #{inspect(args)}")
     prog = %JobProgress.Percent{status: :error}
 
     if Process.whereis(Farmbot.BotState) do
@@ -135,8 +134,8 @@ defmodule Farmbot.System.NervesHubClient do
     :ok
   end
 
-  def handle_fwup_message({:ok, _, info}) do
-    Logger.success(1, "OTA Complete Going down for reboot")
+  def handle_fwup_message({:ok, _, _info}) do
+    Farmbot.Logger.success(1, "OTA Complete Going down for reboot")
     prog = %JobProgress.Percent{percent: 100, status: :complete}
 
     if Process.whereis(Farmbot.BotState) do
@@ -147,7 +146,7 @@ defmodule Farmbot.System.NervesHubClient do
   end
 
   def handle_fwup_message({:progress, 100}) do
-    Logger.success(1, "OTA Complete. Going down for reboot")
+    Farmbot.Logger.success(1, "OTA Complete. Going down for reboot")
     prog = %JobProgress.Percent{percent: 100, status: :complete}
 
     if Process.whereis(Farmbot.BotState) do
@@ -198,11 +197,11 @@ defmodule Farmbot.System.NervesHubClient do
 
     case Farmbot.Asset.fbos_config(:os_auto_update) do
       true ->
-        Logger.success(1, "Applying OTA update")
+        Farmbot.Logger.success(1, "Applying OTA update")
         {:reply, :apply, {:apply, url}}
 
       false ->
-        Logger.info(1, "New Farmbot OS is available!")
+        Farmbot.Logger.info(1, "New Farmbot OS is available!")
         {:reply, :ignore, {:ignore, url}}
     end
   end
