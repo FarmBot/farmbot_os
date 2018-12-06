@@ -21,13 +21,16 @@ defmodule Farmbot.EasterEggs do
     %{"nouns" => noun_list, "verbs" => verb_list} = load_data()
     verb = Enum.random(verb_list)
     timer = generate_timer(self())
-    nouns = Enum.reduce(noun_list, [], fn(map, acc) ->
-      [{key, val}] = Map.to_list(map)
-      [{:"#{key}", val} | acc]
-    end)
+
+    nouns =
+      Enum.reduce(noun_list, [], fn map, acc ->
+        [{key, val}] = Map.to_list(map)
+        [{:"#{key}", val} | acc]
+      end)
+
     message = EEx.eval_string(verb, nouns)
     bot_name = Farmbot.Asset.device().name
-    Farmbot.Logger.fun 3, Enum.join([bot_name, message], " ")
+    Farmbot.Logger.fun(3, Enum.join([bot_name, message], " "))
     {:noreply, %{state | timer: timer}}
   end
 
@@ -39,8 +42,8 @@ defmodule Farmbot.EasterEggs do
 
   defp load_data do
     Path.join(:code.priv_dir(:farmbot), "easter_eggs.json")
-      |> File.read!()
-      |> Farmbot.JSON.decode!()
+    |> File.read!()
+    |> Farmbot.JSON.decode!()
   end
 
   @ms_in_one_hour 3.6e+6 |> round()

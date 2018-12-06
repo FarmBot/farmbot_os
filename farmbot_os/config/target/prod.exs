@@ -44,7 +44,7 @@ config :farmbot,
 
 config :farmbot, Farmbot.System.Init.Supervisor,
   init_children: [
-    Farmbot.Target.Leds.AleHandler
+    Farmbot.Target.Leds.CircuitsHandler
   ]
 
 config :farmbot, Farmbot.Platform.Supervisor,
@@ -54,7 +54,8 @@ config :farmbot, Farmbot.Platform.Supervisor,
     Farmbot.Target.Configurator.Supervisor,
     Farmbot.Target.SSHConsole,
     Farmbot.Target.Uevent.Supervisor,
-    Farmbot.Target.InfoWorker.Supervisor
+    Farmbot.Target.InfoWorker.Supervisor,
+    Farmbot.TTYDetector
   ]
 
 config :farmbot_ext, Farmbot.AMQP.NervesHubTransport,

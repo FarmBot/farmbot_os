@@ -4,6 +4,7 @@ defmodule Mix.Tasks.Farmbot.Env do
   @doc false
   def mix_config(key \\ nil) do
     config = Mix.Project.config()
+
     if key do
       config[key]
     else
@@ -47,19 +48,18 @@ defmodule Mix.Tasks.Farmbot.Env do
 
   @doc false
   def format_date_time(%{ctime: {{yr, m, day}, {hr, min, sec}}}) do
-    dt =
-      %DateTime{
-        hour: hr,
-        year: yr,
-        month: m,
-        day: day,
-        minute: min,
-        second: sec,
-        time_zone: "Etc/UTC",
-        zone_abbr: "UTC",
-        std_offset: 0,
-        utc_offset: 0
-      }
+    dt = %DateTime{
+      hour: hr,
+      year: yr,
+      month: m,
+      day: day,
+      minute: min,
+      second: sec,
+      time_zone: "Etc/UTC",
+      zone_abbr: "UTC",
+      std_offset: 0,
+      utc_offset: 0
+    }
 
     "#{dt.year}-#{pad(dt.month)}-#{pad(dt.day)}_#{pad(dt.hour)}#{pad(dt.minute)}"
   end
@@ -88,6 +88,6 @@ defmodule Mix.Tasks.Farmbot.Env do
 
   @doc false
   def slack_token do
-    System.get_env("SLACK_TOKEN") || Mix.raise "No $SLACK_TOKEN environment variable."
+    System.get_env("SLACK_TOKEN") || Mix.raise("No $SLACK_TOKEN environment variable.")
   end
 end

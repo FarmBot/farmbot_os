@@ -22,6 +22,7 @@ defmodule Farmbot.System do
   @doc "Reads the last shutdown is there was one."
   def last_shutdown_reason do
     file = Path.join(@data_path, "last_shutdown_reason")
+
     case File.read(file) do
       {:ok, data} -> data
       _ -> nil
@@ -30,21 +31,23 @@ defmodule Farmbot.System do
 
   defp try_lock_fw do
     if Process.whereis(Farmbot.Firmware) do
-      Farmbot.Logger.warn 1, "Trying to emergency lock firmware before powerdown"
+      Farmbot.Logger.warn(1, "Trying to emergency lock firmware before powerdown")
       Farmbot.Firmware.command({:command_emergency_lock, []})
     else
-      Farmbot.Logger.error 1, "Firmware unavailable. Can't emergency_lock"
+      Farmbot.Logger.error(1, "Firmware unavailable. Can't emergency_lock")
     end
   end
 
   @doc "Remove all configuration data, and reboot."
   @spec factory_reset(any) :: no_return
   def factory_reset(reason) do
-    if Farmbot.Project.env == :dev do
+    if Farmbot.Project.env() == :dev do
       # credo:disable-for-next-line
-      require IEx; IEx.pry()
+      require IEx
+      IEx.pry()
     end
-    if Process.whereis Farmbot.Core do
+
+    if Process.whereis(Farmbot.Core) do
       if Farmbot.Asset.fbos_config().disable_factory_reset do
         reboot(reason)
       else
@@ -58,9 +61,11 @@ defmodule Farmbot.System do
   defp do_reset(reason) do
     Application.stop(:farmbot_ext)
     Application.stop(:farmbot_core)
+
     for p <- Path.wildcard(Path.join(@data_path, "*")) do
       File.rm_rf!(p)
     end
+
     Farmbot.BootState.write(:NEEDS_CONFIGURATION)
     reboot(reason)
   end
@@ -87,7 +92,7 @@ defmodule Farmbot.System do
   end
 
   defp write_file(reason) do
-    IO.puts "Farmbot powering down: #{reason}"
+    IO.puts("Farmbot powering down: #{reason}")
     file = Path.join(@data_path, "last_shutdown_reason")
     File.write!(file, inspect(reason))
   end

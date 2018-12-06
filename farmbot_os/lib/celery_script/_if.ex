@@ -2,6 +2,7 @@ defmodule Farmbot.OS.IOLayer.If do
   @moduledoc false
 
   alias Farmbot.{Asset, Firmware}
+  require Farmbot.Logger
 
   def execute(%{lhs: lhs, op: op, rhs: rhs}, _body) do
     case eval_lhs(lhs) do
@@ -10,6 +11,7 @@ defmodule Farmbot.OS.IOLayer.If do
         |> eval_if(op, rhs)
 
       {:error, _} = err ->
+        Farmbot.Logger.error(1, "Error evaluating IF statement. #{inspect(err)}")
         err
     end
   end
@@ -17,7 +19,7 @@ defmodule Farmbot.OS.IOLayer.If do
   def eval_lhs(axis) when axis in ["x", "y", "z"] do
     case Firmware.request({:position_read, []}) do
       {:ok, {_, {:report_position, pos}}} ->
-        Keyword.fetch!(pos, String.to_existing_atom(axis))
+        {:ok, Keyword.fetch!(pos, String.to_existing_atom(axis))}
 
       _ ->
         {:error, "Firmware Error reading position"}
@@ -66,9 +68,9 @@ defmodule Farmbot.OS.IOLayer.If do
   defp eval_if(lhs, "<", rhs) when lhs < rhs, do: {:ok, true}
   defp eval_if(_lhs, "<", _rhs), do: {:ok, false}
 
-  defp eval_if(lhs, "==", rhs) when lhs == rhs, do: {:ok, true}
-  defp eval_if(_lhs, "==", _rhs), do: {:ok, false}
+  defp eval_if(lhs, "is", rhs) when lhs == rhs, do: {:ok, true}
+  defp eval_if(_lhs, "is", _rhs), do: {:ok, false}
 
-  defp eval_if(lhs, "!=", rhs) when lhs != rhs, do: {:ok, true}
-  defp eval_if(_lhs, "!=", _rhs), do: {:ok, false}
+  defp eval_if(lhs, "not", rhs) when lhs != rhs, do: {:ok, true}
+  defp eval_if(_lhs, "not", _rhs), do: {:ok, false}
 end

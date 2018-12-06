@@ -4,7 +4,7 @@ defmodule Farmbot.Platform.Supervisor do
   use Supervisor
 
   def start_link(args) do
-    Supervisor.start_link(__MODULE__, args, [name: __MODULE__])
+    Supervisor.start_link(__MODULE__, args, name: __MODULE__)
   end
 
   def init([]) do
