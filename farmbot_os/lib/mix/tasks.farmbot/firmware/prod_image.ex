@@ -6,8 +6,7 @@ defmodule Mix.Tasks.Farmbot.ProdImage do
   import Mix.Tasks.Farmbot.Env
 
   def run(opts) do
-    {keywords, _, _} =
-      opts |> OptionParser.parse(switches: [signed: :boolean])
+    {keywords, _, _} = opts |> OptionParser.parse(switches: [signed: :boolean])
 
     signed? = Keyword.get(keywords, :signed, false)
     Application.ensure_all_started(:timex)
@@ -19,6 +18,7 @@ defmodule Mix.Tasks.Farmbot.ProdImage do
       "#{mix_config(:app)}-#{target()}-#{env()}-#{mix_config(:commit)}#{
         if signed?, do: "-signed-", else: "-"
       }#{time}.img"
+
     Mix.shell().info(build_comment(time, ""))
     Mix.Tasks.Firmware.Image.run([filename])
   end
