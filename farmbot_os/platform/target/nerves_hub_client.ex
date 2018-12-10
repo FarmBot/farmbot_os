@@ -98,6 +98,7 @@ defmodule Farmbot.System.NervesHubClient do
         case NervesHub.HTTPClient.update() do
           {:ok, %{"data" => %{"update_available" => false}}} ->
             do_backup_strats()
+
           _ ->
             Farmbot.Logger.info(1, "Applying OTA update")
             NervesHub.update()

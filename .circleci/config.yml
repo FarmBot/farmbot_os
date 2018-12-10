@@ -382,6 +382,32 @@ jobs:
     <<: *deploy_nerves_hub_firmware_steps
 
 ################################################################################
+#                     target=rpi app_env=prod channel=next                     #
+################################################################################
+
+  deploy_rpi_prod_next:
+    <<: *defaults
+    environment:
+      MIX_TARGET: rpi
+      MIX_ENV: prod
+      NERVES_HUB_DEPLOY: rpi-prod-next
+      NERVES_HUB_TTL: "--ttl 3600"
+    <<: *deploy_nerves_hub_firmware_steps
+
+################################################################################
+#                     target=rpi3 app_env=prod channel=next                    #
+################################################################################
+
+  deploy_rpi3_prod_next:
+    <<: *defaults
+    environment:
+      MIX_TARGET: rpi3
+      MIX_ENV: prod
+      NERVES_HUB_DEPLOY: rpi3-prod-next
+      NERVES_HUB_TTL: "--ttl 3600"
+    <<: *deploy_nerves_hub_firmware_steps
+
+################################################################################
 #                TARGET FIRMWARE NERVES GITHUB RELEASE BETA                    #
 ################################################################################
 
@@ -727,7 +753,7 @@ workflows:
       #       - test_farmbot_ext
       #       - test_farmbot_os
 
-      - deploy_rpi3_prod_staging:
+      - deploy_rpi3_prod_next:
           context: farmbot-staging
           filters:
             branches:
@@ -736,7 +762,7 @@ workflows:
           requires:
             - build_rpi3_prod
 
-      # - deploy_rpi_prod_staging:
+      # - deploy_rpi_prod_next:
       #     context: farmbot-staging
       #     filters:
       #       branches:
