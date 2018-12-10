@@ -4,10 +4,14 @@ defmodule Mix.Tasks.Farmbot.Firmware.EnvChange do
   def run([node_name]) do
     node_name = connect!(node_name)
     files = :rpc.call(node_name, Path, :wildcard, ["/root/*-dev.sqlite3"])
-    :rpc.call(node_name, Enum, :each, [files, fn(filename) ->
-      new_filename = String.replace(filename, "dev", "prod")
-      File.cp!(filename, new_filename)
-    end])
+
+    :rpc.call(node_name, Enum, :each, [
+      files,
+      fn filename ->
+        new_filename = String.replace(filename, "dev", "prod")
+        File.cp!(filename, new_filename)
+      end
+    ])
   end
 
   defp connect!(farmbot_node) do
