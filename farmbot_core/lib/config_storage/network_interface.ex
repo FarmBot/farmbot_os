@@ -36,7 +36,7 @@ defmodule Farmbot.Config.NetworkInterface do
 
   def changeset(config, params \\ %{}) do
     config
-    |> cast(params, @required_fields)
+    |> cast(params, @required_fields ++ [:ssid, :psk, :security, :ipv4_method, :ipv4_address, :ipv4_gateway, :ipv4_subnet_mask, :domain, :name_servers])
     |> validate_required(@required_fields)
     |> validate_inclusion(:type, ["wireless", "wired"])
     |> unique_constraint(:name)
