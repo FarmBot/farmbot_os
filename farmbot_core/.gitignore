@@ -24,5 +24,3 @@ farmbot_ng-*.tar
 
 *.sqlite3*
 *.so
-*.hex
-!priv/eeprom_clear.ino.hex
