@@ -143,6 +143,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
       ntp_server_1     = conn.params["ntp_server_1"] |> remove_empty_string()
       ntp_server_2     = conn.params["ntp_server_2"] |> remove_empty_string()
 
+      reg_domain       = conn.params["regulatory_domain"] |> remove_empty_string()
+
       ssh_key = conn.params["ssh_key"] |> remove_empty_string()
 
       if dns_name do
@@ -170,7 +172,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
         ipv4_method: ipv4_method,
         ipv4_address: ipv4_address,
         ipv4_gateway: ipv4_gateway,
-        ipv4_subnet_mask: ipv4_subnet_mask
+        ipv4_subnet_mask: ipv4_subnet_mask,
+        regulatory_domain: reg_domain,
       })
       redir(conn, "/firmware")
     rescue

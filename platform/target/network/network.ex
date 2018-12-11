@@ -133,6 +133,7 @@ defmodule Farmbot.Target.Network do
 
   def to_network_config(%NetworkInterface{type: "wireless"} = config) do
     Logger.debug(3, "wireless network config: ssid: #{config.ssid}")
+    Nerves.Network.set_regulatory_domain(config.regulatory_domain)
     opts = [ssid: config.ssid, key_mgmt: config.security]
     case config.security do
       "WPA-PSK" ->
