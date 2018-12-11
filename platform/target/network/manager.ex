@@ -34,6 +34,8 @@ defmodule Farmbot.Target.Network.Manager do
   end
 
   def init({interface, opts} = args) do
+    Application.stop(:nerves_network)
+    {:ok, _} = Application.ensure_all_started(:nerves_network)
     Logger.busy(3, "Waiting for interface #{interface} up.")
 
     unless interface in Nerves.NetworkInterface.interfaces() do

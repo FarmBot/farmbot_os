@@ -82,7 +82,6 @@ config :farmbot, :behaviour,
   leds_handler: Farmbot.Target.Leds.AleHandler,
   nerves_hub_handler: Farmbot.System.NervesHubClient
 
-config :nerves_network, regulatory_domain: "US"
 config :shoehorn,
   init: [:nerves_runtime, :nerves_firmware_ssh],
   handler: Farmbot.ShoehornHandler,
