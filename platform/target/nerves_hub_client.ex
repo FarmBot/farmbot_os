@@ -78,12 +78,23 @@ defmodule Farmbot.System.NervesHubClient do
         Logger.debug 1, "No update cached. Checking for tag changes."
         case NervesHub.HTTPClient.update() do
           {:ok, %{"data" => %{"update_available" => false}}} ->
-            Logger.success 1, "Farmbot is up to date!"
-            nil
+            do_backup_strats()
           _ ->
             Logger.info 1, "Applying OTA update"
             NervesHub.update()
         end
+    end
+  end
+
+  defp do_backup_strats do
+    case Farmbot.System.Updates.check_updates() do
+      {version, url} ->
+        Logger.busy 1, "Downloading fallback OTA"
+        Farmbot.System.Updates.download_and_apply_update({version, url})
+        :ok
+      _ ->
+        Logger.success 1, "Farmbot is up to date!"
+        nil
     end
   end
 
