@@ -8,6 +8,8 @@ defmodule Farmbot.Project do
   @arduino_commit Mix.Project.config[:arduino_commit]
   @env Mix.env()
 
+  @external_resource ".git"
+
   @doc "*#{@version}*"
   @compile {:inline, version: 0}
   def version, do: @version
