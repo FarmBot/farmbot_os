@@ -17,7 +17,14 @@ defmodule Farmbot.Firmware.UartHandler.AutoDetector do
   use Farmbot.Logger
 
   #TODO(Connor) - Maybe make this configurable?
-  @ignore_devs ["ttyAMA0", "ttyS0", "ttyS3"]
+  case Farmbot.Project.target() do
+    "rpi3" ->
+      @ignore_devs ["ttyAMA0", "ttyS0", "ttyS3"]
+    "rpi" ->
+      @ignore_devs ["ttyS0", "ttyS3"]
+    "rpi0" ->
+      @ignore_devs ["ttyS0", "ttyS3"]
+  end
 
   @doc "Autodetect relevent UART Devs."
   def auto_detect do

@@ -147,10 +147,13 @@ defmodule Farmbot.Firmware.UartHandler.Update do
 
   def avrdude(fw_file, uart, tty) do
     close(uart)
-    Logger.busy 3, "Starting avrdude: #{fw_file}"
-    args = ~w"-q -q -patmega2560 -cwiring -P#{tty} -b#{@uart_speed} -D -V -Uflash:w:#{fw_file}:i"
+    args = ~w"-patmega2560 -cwiring -P#{tty} -b#{@uart_speed} -D -V -Uflash:w:#{fw_file}:i"
+    Logger.busy 3, "Starting avrdude: #{inspect(args)}"
+    reset = reset_init()
     opts = [stderr_to_stdout: true, into: IO.stream(:stdio, :line)]
+    do_reset(reset)
     res = System.cmd("avrdude", args, opts)
+    reset_close(reset)
     Process.sleep(1500) # wait to allow file descriptors to be closed.
     case res do
       {_, 0} ->
@@ -161,5 +164,22 @@ defmodule Farmbot.Firmware.UartHandler.Update do
         Farmbot.Firmware.Utils.replace_firmware_handler(Farmbot.Firmware.StubHandler)
         :error
     end
+  end
+
+  if Farmbot.Project.target() in ["rpi0", "rpi"] do
+    @reset_pin 19
+    defp reset_init do
+      {:ok, pid} = ElixirALE.GPIO.start_link(@reset_pin, :output)
+      pid
+    end
+    defp do_reset(pid) do
+      ElixirALE.GPIO.write(pid, 1)
+      ElixirALE.GPIO.write(pid, 0)
+    end
+    defp reset_close(pid), do: ElixirALE.GPIO.release(pid)
+  else
+    defp reset_init(), do: nil
+    defp do_reset(nil), do: :ok
+    defp reset_close(nil), do: :ok
   end
 end
