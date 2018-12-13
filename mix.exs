@@ -5,7 +5,7 @@ defmodule Farmbot.Mixfile do
   @commit System.cmd("git", ~w"rev-parse --verify HEAD") |> elem(0) |> String.trim()
   @branch System.cmd("git", ~w"rev-parse --abbrev-ref HEAD") |> elem(0) |> String.trim()
   System.put_env("NERVES_FW_VCS_IDENTIFIER", @commit)
-
+  System.put_env("NERVES_FW_MISC", @branch)
   defp commit, do: @commit
 
   defp branch, do: @branch
