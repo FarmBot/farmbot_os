@@ -24,4 +24,6 @@ defmodule Farmbot.Host.NervesHubHandler do
   ]
 
   def check_update, do: nil
+
+  def uuid, do: "1b10e3bb-ca47-52b1-f147-691fb90ebdd5"
 end

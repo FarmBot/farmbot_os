@@ -181,7 +181,8 @@ defmodule Farmbot.BotState do
     info_settings = %{
       initial_state.informational_settings |
       node_name: node(),
-      currently_on_beta: settings["currently_on_beta"]
+      currently_on_beta: settings["currently_on_beta"],
+      firmware_uuid: Farmbot.System.NervesHub.uuid()
     }
     if Process.whereis(Farmbot.Farmware.Supervisor) do
       send(self(), :reindex_farmware)
@@ -421,6 +422,7 @@ defmodule Farmbot.BotState do
       memory_usage: 0, # megabytes
       disk_usage: 0, # percent
       currently_on_beta: nil,
+      firmware_uuid: nil
     },
     location_data: %{
       position: %{x: nil, y: nil, z: nil},
