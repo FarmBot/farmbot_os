@@ -9,6 +9,11 @@ defmodule Farmbot.System.NervesHubClient do
 
   @behaviour NervesHub.Client
   @behaviour Farmbot.System.NervesHub
+
+  @current_version Farmbot.Project.version()
+  @data_path Application.get_env(:farmbot, :data_path)
+  @data_path || Mix.raise("Please configure data_path in application env")
+
   import Farmbot.System.ConfigStorage, only: [get_config_value: 3]
 
   def serial_number("rpi0"), do: serial_number("rpi")
@@ -156,6 +161,7 @@ defmodule Farmbot.System.NervesHubClient do
   end
 
   def init([]) do
+    maybe_post_update()
     {:ok, nil}
   end
 
@@ -176,4 +182,34 @@ defmodule Farmbot.System.NervesHubClient do
   def handle_call(:check_update, _from, state) do
     {:reply, state, state}
   end
+
+  defp maybe_post_update do
+    case File.read(update_file()) do
+      {:ok, @current_version} -> :ok
+      {:ok, old_version} ->
+        Logger.info 1, "Updating FarmbotOS from #{old_version} to #{@current_version}"
+        do_post_update()
+
+      {:error, :enoent} ->
+        Logger.info 1, "Setting up FarmbotOS #{@current_version}"
+      {:error, err} -> raise err
+    end
+    before_update()
+  end
+
+  defp do_post_update do
+    alias Farmbot.Firmware.UartHandler.Update
+    hw = get_config_value(:string, "settings", "firmware_hardware")
+    is_beta? = Farmbot.Project.branch() in ["beta", "staging"]
+    if is_beta? do
+      Logger.debug 1, "Forcing beta image arduino firmware flash."
+      Update.force_update_firmware(hw)
+    else
+      Update.maybe_update_firmware(hw)
+    end
+  end
+
+  defp before_update, do: File.write!(update_file(), @current_version)
+
+  defp update_file, do: Path.join(@data_path, "update")
 end
