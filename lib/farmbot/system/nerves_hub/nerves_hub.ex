@@ -42,6 +42,9 @@ defmodule Farmbot.System.NervesHub do
   @doc "Should return a url to an update or nil."
   @callback check_update() :: String.t() | nil
 
+  @doc "Should return the uuid of the running firmware"
+  @callback uuid :: String.t()
+
   use GenServer
   use Farmbot.Logger
 
@@ -138,5 +141,9 @@ defmodule Farmbot.System.NervesHub do
   def check_update do
     Logger.debug 1, "Check update OTA Server"
     @handler.check_update()
+  end
+
+  def uuid do
+    @handler.uuid()
   end
 end

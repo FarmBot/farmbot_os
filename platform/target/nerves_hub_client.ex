@@ -25,6 +25,8 @@ defmodule Farmbot.System.NervesHubClient do
     |> String.trim()
   end
 
+  def uuid, do: Nerves.Runtime.KV.get_active("nerves_fw_uuid")
+
   def serial_number, do: serial_number(Farmbot.Project.target())
 
   def connect do
