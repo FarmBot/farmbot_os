@@ -44,10 +44,10 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
     ]
     {:ok, dhcp_server} = DHCPServer.start_link(@interface, dhcp_opts)
 
-    dnsmasq = 
+    dnsmasq =
       case setup_dnsmasq(@address, @interface) do
         {:ok, dnsmasq} -> dnsmasq
-        {:error, _} -> 
+        {:error, _} ->
           Logger.error 1, "Failed to start DnsMasq"
           nil
       end
@@ -115,10 +115,12 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
   end
 
   defp build_ssid do
-    node_str = node() |> Atom.to_string()
-    case node_str |> String.split("@") do
-      [name, "farmbot-" <> id] -> name <> "-" <> id
-      _ -> "Farmbot"
+    {:ok, hostname} = :inet.gethostname()
+
+    if String.starts_with?(to_string(hostname), "farmbot-") do
+      to_string('farmbot-' ++ Enum.take(hostname, -4))
+    else
+      to_string(hostname)
     end
   end
 
