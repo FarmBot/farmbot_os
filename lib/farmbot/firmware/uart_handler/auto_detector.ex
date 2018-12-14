@@ -24,6 +24,8 @@ defmodule Farmbot.Firmware.UartHandler.AutoDetector do
       @ignore_devs ["ttyS0", "ttyS3"]
     "rpi0" ->
       @ignore_devs ["ttyS0", "ttyS3"]
+    "host" ->
+      @ignore_devs ["ttyS0"]
   end
 
   @doc "Autodetect relevent UART Devs."
