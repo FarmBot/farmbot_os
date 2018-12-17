@@ -111,7 +111,7 @@ defmodule Farmbot.Mixfile do
   defp deps do
     [
       {:nerves, "~> 1.3", runtime: false},
-      {:nerves_hub_cli, "~> 0.4", runtime: false},
+      {:nerves_hub_cli, "~> 0.5", runtime: false},
       {:elixir_make, "~> 0.4", runtime: false},
       {:shoehorn, "~> 0.4"},
       {:gen_stage, "~> 0.14"},
@@ -156,8 +156,7 @@ defmodule Farmbot.Mixfile do
     system(target) ++
       [
         {:nerves_runtime, "~> 0.8"},
-        {:nerves_hub,
-         github: "nerves-hub/nerves_hub", branch: "client-error-handling", override: true},
+        {:nerves_hub, "~> 0.2.0"},
         {:nerves_firmware, "~> 0.4"},
         {:nerves_firmware_ssh, "~> 0.3"},
         {:nerves_init_gadget, "~> 0.5", only: :dev},

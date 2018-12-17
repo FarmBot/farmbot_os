@@ -33,14 +33,20 @@ defmodule Farmbot.System.NervesHubClient do
     Logger.debug 3, "Starting OTA Service"
     # NervesHub replaces it's own env on startup. Reset it.
     Application.put_env(:nerves_hub, NervesHub.Socket, [reconnect_interval: 5000])
+    
+    supervisor = Farmbot.System.Supervisor
     # Stop Nerves Hub if it is running.
-    _ = Application.stop(:nerves_hub)
+    _ = Supervisor.terminate_child(supervisor, NervesHub.Supervisor)
+    _ = Supervisor.delete_child(supervisor, NervesHub.Supervisor)
+
     # Cause NervesRuntime.KV to restart.
     _ = GenServer.stop(Nerves.Runtime.KV)
-    {:ok, _} = Application.ensure_all_started(:nerves_hub)
+
     # Wait for a few seconds for good luck.
     Process.sleep(1000)
-    _r = NervesHub.connect()
+
+    # Start the connection again.
+    {:ok, _pid} = Supervisor.start_child(supervisor, NervesHub.Supervisor)
     Logger.debug 3, "OTA Service started"
     :ok
   end
