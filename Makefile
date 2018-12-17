@@ -11,13 +11,15 @@ ALL += fbos_build_calendar_nif
 CLEAN += fbos_clean_build_calendar_nif
 endif
 
-ifeq ($(SKIP_ARDUINO_BUILD),)
+ifeq ($(ARDUINO_BUILD),)
+
+$(warning ARDUINO_BUILD is not set. No arduino assets will be built.)
+
+else
 
 ALL += fbos_arduino_firmware
 CLEAN += fbos_clean_arduino_firmware
 
-else
-$(warning SKIP_ARDUINO_BUILD is set. No arduino assets will be built.)
 endif
 
 .PHONY: $(ALL) $(CLEAN) all clean
