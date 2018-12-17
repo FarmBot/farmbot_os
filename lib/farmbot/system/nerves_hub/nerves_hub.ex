@@ -86,7 +86,7 @@ defmodule Farmbot.System.NervesHub do
 
       {:noreply, :configured}
     else
-      Logger.debug 3, "Server not configured yet. Waiting 10_000 ms to try OTA config again."
+      Logger.debug 3, "FarmBot Server not configured yet. Waiting 10_000 ms to try OTA config again."
       Process.send_after(self(), :configure, 10_000)
       {:noreply, :not_configured}
     end
