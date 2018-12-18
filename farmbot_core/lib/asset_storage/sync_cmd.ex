@@ -1,5 +1,11 @@
 defmodule Farmbot.Asset.SyncCmd do
-  @moduledoc "describes an update to a API resource."
+  @moduledoc """
+  Describes an update to an API resource.
+
+  * `remote_id` - ID of remote object change.
+  * `kind` - String camel case representation of the asset kind.
+  * `body` - Data for the change.
+  """
 
   alias Farmbot.Asset.SyncCmd
   use Ecto.Schema
