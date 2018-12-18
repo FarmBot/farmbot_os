@@ -2,6 +2,7 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
   use GenServer
   use AMQP
   require Farmbot.Logger
+  require Logger
   import Farmbot.Config, only: [get_config_value: 3, update_config_value: 4]
 
   @exchange "amq.topic"
@@ -21,7 +22,6 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
     {:ok, _}     = AMQP.Queue.declare(chan, jwt.bot <> "_auto_sync", [auto_delete: false])
     :ok          = AMQP.Queue.bind(chan, jwt.bot <> "_auto_sync", @exchange, [routing_key: "bot.#{jwt.bot}.sync.#"])
     {:ok, _tag}  = Basic.consume(chan, jwt.bot <> "_auto_sync", self(), [no_ack: true])
-    Farmbot.Registry.subscribe()
     {:ok, struct(State, [conn: conn, chan: chan, bot: jwt.bot])}
   end
 
@@ -52,24 +52,21 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
     body = data["body"]
     case asset_kind do
       "FbosConfig" when is_nil(body) ->
-        pl = %{"api_migrated" => true} |> Farmbot.JSON.encode!()
-        Farmbot.HTTP.put!("/api/fbos_config", pl)
-        Farmbot.SettingsSync.run()
+        Farmbot.Logger.error 1, "FbosConfig deleted via API?"
       "FbosConfig" ->
-        Farmbot.SettingsSync.apply_fbos_map(Farmbot.Config.get_config_as_map()["settings"], body)
-      "FirmwareConfig" when is_nil(body) -> :ok
+        Farmbot.HTTP.SettingsWorker.download_os(data)
+      "FirmwareConfig" when is_nil(body) ->
+        Farmbot.Logger.error 1, "FirmwareConfig deleted via API?"
       "FirmwareConfig" ->
-        Farmbot.SettingsSync.apply_fw_map(Farmbot.Config.get_config_as_map()["hardware_params"], body)
+        Farmbot.HTTP.SettingsWorker.download_firmware(data)
       _ ->
         if !get_config_value(:bool, "settings", "needs_http_sync") do
-          id = String.to_integer(id_str)
-          body = if body, do: Farmbot.Asset.to_asset(body, asset_kind), else: nil
+          id = data["id"] || String.to_integer(id_str)
+          # Body might be nil if a resource was deleted.
+          body = if body, do: Farmbot.Asset.to_asset(body, asset_kind)
           _cmd = Farmbot.Asset.register_sync_cmd(id, asset_kind, body)
-          if get_config_value(:bool, "settings", "auto_sync") do
-            Farmbot.Asset.fragment_sync()
-          end
         else
-          IO.puts "not accepting sync_cmd from amqp because bot needs http sync first."
+          Logger.warn "not accepting sync_cmd from amqp because bot needs http sync first."
         end
     end
 
@@ -77,11 +74,4 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
     :ok = AMQP.Basic.publish state.chan, @exchange, "bot.#{device}.from_device", json
     {:noreply, state}
   end
-
-  def handle_info({Farmbot.Registry, {Farmbot.Config, {"settings", "auto_sync", true}}}, state) do
-    Farmbot.AutoSyncTask.maybe_auto_sync()
-    {:noreply, state}
-  end
-
-  def handle_info({Farmbot.Registry, _}, state), do: {:noreply, state}
 end
