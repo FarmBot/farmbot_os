@@ -324,7 +324,7 @@ jobs:
             cp mix.lock.rpi3 MIX_LOCK_RPI3
             cp mix.lock.rpi MIX_LOCK_RPI
       - restore_cache:
-          key: nerves/deploy/system-{{ checksum "MIX_TARGET_RPI3" }} -{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          key: nerves/deploy/system-{{ checksum "MIX_TARGET_RPI3" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - restore_cache:
           key: nerves/deploy/system-{{ checksum "MIX_TARGET_RPI" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - <<: *install_elixir
