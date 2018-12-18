@@ -16,10 +16,10 @@ require Logger
   end
 
   def dispatch do
-    old = %Snapshot{}
-    new = Repo.snapshot()
-    diff = Snapshot.diff(old, new)
-    Farmbot.Asset.dispatch_sync(diff)
+    # old = %Snapshot{}
+    # new = Repo.snapshot()
+    # diff = Snapshot.diff(old, new)
+    # Farmbot.Asset.dispatch_sync(diff)
     :ignore
   end
 end

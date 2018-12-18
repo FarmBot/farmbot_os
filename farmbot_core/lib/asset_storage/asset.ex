@@ -30,214 +30,23 @@ defmodule Farmbot.Asset do
   import Farmbot.Config, only: [update_config_value: 4]
   require Logger
 
-  @device_fields ~W(id name timezone)
-  @farm_events_fields ~W(calendar end_time executable_id executable_type id repeat start_time time_unit)
-  @farmware_envs_fields ~W(id key value)
-  @farmware_installations_fields ~W(id url first_party)
-  @peripherals_fields ~W(id label mode pin)
-  @pin_bindings_fields ~W(id pin_num sequence_id special_action)
-  @points_fields ~W(id meta name pointer_type tool_id x y z)
-  @regimens_fields ~W(farm_event_id id name regimen_items)
-  @sensors_fields ~W(id label mode pin)
-  @sequences_fields ~W(args body id kind name)
-  @tools_fields ~W(id name)
+  defdelegate to_asset(data, kind), to: Farmbot.Asset.Converter
 
-  def to_asset(body, kind) when is_binary(kind) do
-    camel_kind = Module.concat(["Farmbot", "Asset",  Macro.camelize(kind)])
-    to_asset(body, camel_kind)
-  end
+  def fragment_sync(_), do: :ok
+  def full_sync(_, _fun), do: :ok
 
-  def to_asset(body, Device), do: resource_decode(body, @device_fields, Device)
-  def to_asset(body, FarmEvent), do: resource_decode(body, @farm_events_fields, FarmEvent)
-  def to_asset(body, FarmwareEnv), do: resource_decode(body, @farmware_envs_fields, FarmwareEnv)
-  def to_asset(body, FarmwareInstallation), do: resource_decode(body, @farmware_installations_fields, FarmwareInstallation)
-  def to_asset(body, Peripheral), do: resource_decode(body, @peripherals_fields, Peripheral)
-  def to_asset(body, PinBinding), do: resource_decode(body, @pin_bindings_fields, PinBinding)
-  def to_asset(body, Point), do: resource_decode(body, @points_fields, Point)
-  def to_asset(body, Regimen), do: resource_decode(body, @regimens_fields, Regimen)
-  def to_asset(body, Sensor), do: resource_decode(body, @sensors_fields, Sensor)
-  def to_asset(body, Sequence), do: resource_decode(body, @sequences_fields, Sequence)
-  def to_asset(body, Tool), do: resource_decode(body, @tools_fields, Tool)
-
-  def resource_decode(data, fields, kind) when is_list(data),
-    do: Enum.map(data, &resource_decode(&1, fields, kind))
-
-  def resource_decode(data, fields, kind) do
-    data
-    |> Map.take(fields)
-    |> Enum.map(&string_to_atom/1)
-    |> into_struct(kind)
-  end
-
-  def string_to_atom({k, v}), do: {String.to_atom(k), v}
-  def into_struct(data, kind), do: struct(kind, data)
-
-  # TODO(Connor) - 2018-08-05 *_sync should upload dirty artifacts
-  # before applying sync commands?
-  def fragment_sync(verbosity \\ 1) do
-    Farmbot.Logger.busy verbosity, "Syncing"
-    Farmbot.Registry.dispatch(__MODULE__, {:sync_status, :syncing})
-    all_sync_cmds = all_sync_cmds()
-
-    Repo.transaction fn() ->
-      for cmd <- all_sync_cmds do
-        apply_sync_cmd(cmd)
-      end
-    end
-
-    destroy_all_sync_cmds()
-    Farmbot.Registry.dispatch(__MODULE__, {:sync_status, :synced})
-    Farmbot.Logger.success verbosity, "Synced"
-    :ok
-  end
-
-  def full_sync(verbosity \\ 1, fetch_fun) do
-    Farmbot.Logger.busy verbosity, "Syncing"
-    Farmbot.Registry.dispatch(__MODULE__, {:sync_status, :syncing})
-    results = try do
-      fetch_fun.()
-    rescue
-      ex ->
-        Farmbot.Registry.dispatch(__MODULE__, {:sync_status, :sync_error})
-        message = Exception.message(ex)
-        Logger.error "Fetching resources failed: #{message}"
-        update_config_value(:bool, "settings", "needs_http_sync", true)
-        {:error, message}
-    end
-
-    case results do
-      {:ok, all_sync_cmds} when is_list(all_sync_cmds) ->
-        Repo.transaction fn() ->
-          :ok = Farmbot.Asset.clear_all_data()
-          for cmd <- all_sync_cmds do
-            apply_sync_cmd(cmd)
-          end
-        end
-        destroy_all_sync_cmds()
-        Farmbot.Registry.dispatch(__MODULE__, {:sync_status, :synced})
-        Farmbot.Logger.success verbosity, "Synced"
-        update_config_value(:bool, "settings", "needs_http_sync", false)
-        :ok
-      {:error, reason} when is_binary(reason) ->
-        destroy_all_sync_cmds()
-        Farmbot.Registry.dispatch(__MODULE__, {:sync_status, :sync_error})
-        Farmbot.Logger.error verbosity, "Sync error: #{reason}"
-        update_config_value(:bool, "settings", "needs_http_sync", true)
-        :ok
-    end
-
-  end
-
-  def apply_sync_cmd(cmd) do
-    mod = Module.concat(["Farmbot", "Asset", cmd.kind])
-    if Code.ensure_loaded?(mod) do
-      Farmbot.Registry.dispatch(__MODULE__, {:sync_status, :syncing})
-      old = Repo.snapshot()
-      Farmbot.Logger.debug(3, "Syncing #{cmd.kind}")
-      try do
-        do_apply_sync_cmd(cmd)
-      rescue
-        e ->
-          Farmbot.Logger.error(1, "Error syncing: #{mod}: #{Exception.message(e)}")
-      end
-      new = Repo.snapshot()
-      diff = Snapshot.diff(old, new)
-      dispatch_sync(diff)
-    else
-      Farmbot.Logger.warn(3, "Unknown module: #{mod} #{inspect(cmd)}")
-    end
-    destroy_sync_cmd(cmd)
-  end
-
-  @doc false
-  def dispatch_sync(diff) do
-    for deletion <- diff.deletions do
-      Farmbot.Registry.dispatch(__MODULE__, {:deletion, deletion})
-    end
-
-    for update <- diff.updates do
-      Farmbot.Registry.dispatch(__MODULE__, {:update, update})
-    end
-
-    for addition <- diff.additions do
-      Farmbot.Registry.dispatch(__MODULE__, {:addition, addition})
-    end
-
-    Farmbot.Registry.dispatch(__MODULE__, {:sync_status, :synced})
-  end
-
-  # When `body` is nil, it means an object was deleted.
-  def do_apply_sync_cmd(%{body: nil, remote_id: id, kind: kind}) do
-    mod = Module.concat(["Farmbot", "Asset", kind])
-    case Repo.one(from m in mod, where: m.id == ^id) do
-      nil ->
-        :ok
-
-      existing ->
-        Repo.delete!(existing)
-        :ok
+  @doc "Information about _this_ device."
+  def device do
+    case Repo.all(Device) do
+      [device] -> device
+      [] -> nil
+      devices when is_list(devices) ->
+        Repo.delete_all(Device)
+        raise "There should only ever be 1 device!"
     end
   end
 
-  def do_apply_sync_cmd(%{body: obj, remote_id: id, kind: kind}) do
-    not_struct = strip_struct(obj)
-    mod = Module.concat(["Farmbot", "Asset", kind])
-    # We need to check if this object exists in the database.
-    case Repo.one(from m in mod, where: m.id == ^id) do
-      # If it does not, just return the newly created object.
-      nil ->
-        change = mod.changeset(struct(mod, not_struct), not_struct)
-        Repo.insert!(change)
-        :ok
-      # if there is an existing record, copy the ecto  meta from the old
-      # record. This allows `insert_or_update` to work properly.
-      existing ->
-        existing
-        |> Ecto.Changeset.change(not_struct)
-        |> Repo.update!()
-        :ok
-    end
-  end
-
-  defp strip_struct(%{__struct__: _, __meta__: _} = struct) do
-    Map.from_struct(struct) |> Map.delete(:__meta__)
-  end
-
-  defp strip_struct(already_map), do: already_map
-
-  @doc """
-  Register a sync message from an external source.
-  This is like a snippit of the changes that have happened.
-  `sync_cmd`s should only be applied on `sync`ing.
-  `sync_cmd`s are _not_ a source of truth for transactions that have been applied.
-  Use the `Farmbot.Asset.Registry` for these types of events.
-  """
-  def register_sync_cmd(remote_id, kind, body) when is_binary(kind) do
-    new_sync_cmd(remote_id, kind, body)
-    |> SyncCmd.changeset()
-    |> Repo.insert!()
-  end
-
-  def new_sync_cmd(remote_id, kind, body)
-    when is_integer(remote_id) when is_binary(kind)
-  do
-    struct(SyncCmd, %{remote_id: remote_id, kind: kind, body: body})
-  end
-
-  @doc "Destroy all sync cmds locally."
-  def destroy_all_sync_cmds do
-    Repo.delete_all(SyncCmd)
-  end
-
-  def all_sync_cmds do
-    Repo.all(SyncCmd)
-  end
-
-  def destroy_sync_cmd(%SyncCmd{id: nil} = cmd), do: {:ok, cmd}
-  def destroy_sync_cmd(%SyncCmd{} = cmd) do
-    Repo.delete(cmd)
-  end
-
+  @doc "Get all pin bindings."
   def all_pin_bindings do
     Repo.all(PinBinding)
   end
@@ -277,37 +86,6 @@ defmodule Farmbot.Asset do
       Repo.update!(pr)
     else
       nil
-    end
-  end
-
-  def clear_all_data do
-    # remote assets.
-    Repo.delete_all(Device)
-    Repo.delete_all(FarmEvent)
-    Repo.delete_all(FarmwareEnv)
-    Repo.delete_all(FarmwareInstallation)
-    Repo.delete_all(Peripheral)
-    Repo.delete_all(PinBinding)
-    Repo.delete_all(Point)
-    Repo.delete_all(Regimen)
-    Repo.delete_all(Sensor)
-    Repo.delete_all(Sequence)
-    Repo.delete_all(Tool)
-
-    # Interanal assets.
-    Repo.delete_all(PersistentRegimen)
-    Repo.delete_all(SyncCmd)
-    :ok
-  end
-
-  @doc "Information about _this_ device."
-  def device do
-    case Repo.all(Device) do
-      [device] -> device
-      [] -> nil
-      devices when is_list(devices) ->
-        Repo.delete_all(Device)
-        raise "There should only ever be 1 device!"
     end
   end
 
@@ -388,5 +166,26 @@ defmodule Farmbot.Asset do
 
   def get_farm_event_by_id(feid) do
     Repo.one(from(fe in FarmEvent, where: fe.id == ^feid))
+  end
+
+  @doc "Clear all data stored in the Asset Repo."
+  def clear_all_data do
+    # remote assets.
+    Repo.delete_all(Device)
+    Repo.delete_all(FarmEvent)
+    Repo.delete_all(FarmwareEnv)
+    Repo.delete_all(FarmwareInstallation)
+    Repo.delete_all(Peripheral)
+    Repo.delete_all(PinBinding)
+    Repo.delete_all(Point)
+    Repo.delete_all(Regimen)
+    Repo.delete_all(Sensor)
+    Repo.delete_all(Sequence)
+    Repo.delete_all(Tool)
+
+    # Interanal assets.
+    Repo.delete_all(PersistentRegimen)
+    Repo.delete_all(SyncCmd)
+    :ok
   end
 end
