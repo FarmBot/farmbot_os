@@ -9,27 +9,31 @@ defmodule Farmbot.Asset.Repo do
   alias Farmbot.Asset.{
     Device,
     FarmEvent,
+    FarmwareEnv,
+    FarmwareInstallation,
     Peripheral,
     PinBinding,
     Point,
     Regimen,
     Sensor,
     Sequence,
-    Tool
+    Tool,
   }
 
   def snapshot do
     results = Farmbot.Asset.Repo.all(Device) ++
-    Farmbot.Asset.Repo.all(FarmEvent) ++
-    Farmbot.Asset.Repo.all(Peripheral) ++
-    Farmbot.Asset.Repo.all(PinBinding) ++
-    Farmbot.Asset.Repo.all(Point) ++
-    Farmbot.Asset.Repo.all(Regimen) ++
-    Farmbot.Asset.Repo.all(Sensor) ++
-    Farmbot.Asset.Repo.all(Sequence) ++
-    Farmbot.Asset.Repo.all(Tool)
+      Farmbot.Asset.Repo.all(FarmEvent) ++
+      Farmbot.Asset.Repo.all(FarmwareEnv) ++
+      Farmbot.Asset.Repo.all(FarmwareInstallation) ++
+      Farmbot.Asset.Repo.all(Peripheral) ++
+      Farmbot.Asset.Repo.all(PinBinding) ++
+      Farmbot.Asset.Repo.all(Point) ++
+      Farmbot.Asset.Repo.all(Regimen) ++
+      Farmbot.Asset.Repo.all(Sensor) ++
+      Farmbot.Asset.Repo.all(Sequence) ++
+      Farmbot.Asset.Repo.all(Tool)
 
-    struct(Snapshot, [data: results])
+    %Snapshot{data: results}
     |> Snapshot.md5()
   end
 end

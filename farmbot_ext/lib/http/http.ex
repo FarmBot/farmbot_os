@@ -38,6 +38,7 @@ defmodule Farmbot.HTTP do
   def firmware_config do
     client()
     |> get!("/api/firmware_config")
+    |> Map.fetch!(:body)
   end
 
   def update_firmware_config(%{} = data) do
@@ -48,6 +49,12 @@ defmodule Farmbot.HTTP do
   def fbos_config do
     client()
     |> get!("/api/fbos_config")
+    |> Map.fetch!(:body)
+  end
+
+  def update_fbos_config(%{} = data) do
+    client()
+    |> patch!("/api/fbos_config", data)
     |> Map.fetch!(:body)
   end
 
