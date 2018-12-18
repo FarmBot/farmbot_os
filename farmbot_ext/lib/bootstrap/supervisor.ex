@@ -104,7 +104,6 @@ defmodule Farmbot.Bootstrap.Supervisor do
 
         children = [
           {Farmbot.HTTP.Supervisor,    []},
-          {Farmbot.SettingsSync,       []},
           {Farmbot.AMQP.Supervisor ,   []},
           {Farmbot.Bootstrap.AuthTask, []},
           {Farmbot.AutoSyncTask, []},
