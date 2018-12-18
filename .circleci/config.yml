@@ -344,16 +344,16 @@ jobs:
           command: |
             mv /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw /tmp/farmbot-rpi3-$(cat VERSION).fw
             fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-rpi3-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw
-            fwup -a -t complete -i /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw -d /nerves/deploy/system/farmbot-rpi3-$(cat VERSION).img
+            fwup -a -t complete -i /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw -d /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).img
       - run:
           name: Sign rpi Firmware and create image
           command: |
             mv /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw /tmp/farmbot-rpi3-$(cat VERSION).fw
             fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-rpi3-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw
-            fwup -a -t complete -i /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).fw -d /nerves/deploy/system/farmbot-rpi-$(cat VERSION).img
+            fwup -a -t complete -i /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).fw -d /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).img
       - run:
           name: Publish Github Release
-          command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -draft -delete -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)" /nerves/deploy/system/
+          command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -draft -delete -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)" /nerves/deploy/system/artifacts
       - run:
           name: Send Slack Message
           command: elixir slack_message.ex "New Farmbot Prod release $(cat VERSION)"
