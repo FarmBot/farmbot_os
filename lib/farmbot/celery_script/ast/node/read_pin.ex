@@ -13,8 +13,12 @@ defmodule Farmbot.CeleryScript.AST.Node.ReadPin do
     id = named_pin.args.pin_id
     type = named_pin.args.pin_type
     case fetch_resource(type, id) do
-      %Peripheral{pin: pin_num, label: name} -> do_read(env, pin_num, mode, label, name)
-      %Sensor{pin: pin_num, label: name} -> do_read(env, pin_num, mode, label, name)
+      %Peripheral{pin: pin_num, label: name} -> 
+        do_read(env, Peripheral, pin_num, mode, label, name)
+
+      %Sensor{pin: pin_num, label: name} -> 
+        do_read(env, Sensor, pin_num, mode, label, name)
+
       {:error, reason} -> {:error, reason, env}
     end
   end
@@ -23,20 +27,24 @@ defmodule Farmbot.CeleryScript.AST.Node.ReadPin do
     env = mutate_env(env)
     case fetch_resource(nil, pin_num) do
       %Peripheral{pin: pin_num, label: name} ->
-        do_read(env, pin_num, mode, label, name)
+        do_read(env, Peripheral, pin_num, mode, label, name)
+
       %Sensor{pin: pin_num, label: name} ->
-        do_read(env, pin_num, mode, label, name)
+        do_read(env, Sensor, pin_num, mode, label, name)
+
       {:ok, ^pin_num} ->
-        do_read(env, pin_num, mode, label, "Pin #{pin_num}")
+        do_read(env, nil, pin_num, mode, label, "Pin #{pin_num}")
+
       {:error, reason} -> {:error, reason, env}
     end
   end
 
-  defp do_read(env, pin_num, mode, label, msg) do
+  defp do_read(env, type, pin_num, mode, label, msg) do
     case Farmbot.Firmware.read_pin(pin_num, mode) do
       :ok ->
         case Farmbot.BotState.get_pin_value(pin_num) do
           {:ok, val} ->
+            maybe_http_side_effects(type, pin_num, mode, val)
             log_success(msg, pin_num, mode, val)
             Farmbot.CeleryScript.var(env, label, val)
           {:error, reason} -> {:error, reason, env}
@@ -84,4 +92,20 @@ defmodule Farmbot.CeleryScript.AST.Node.ReadPin do
   defp try_lookup_sensor(number) do
     Asset.get_sensor_by_number(number)
   end
+
+  defp maybe_http_side_effects(Sensor, pin_num, mode, value) when is_atom(mode) do
+    %{x: _x, y: _y, z: _z} = pos = Farmbot.BotState.get_current_pos()
+    mode = if mode == :digital, do: 0, else: 1
+    payload = Map.merge(pos, %{
+      pin: pin_num,
+      mode: mode,
+      value: value
+      }) |> Farmbot.JSON.encode!()
+      Farmbot.HTTP.post("/api/sensor_readings", payload)
+      Logger.debug 3, "Sending Reading to API"
+      
+    :ok
+  end
+
+  defp maybe_http_side_effects(_, _, mode, _) when is_atom(mode), do: :ok
 end
