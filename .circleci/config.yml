@@ -274,9 +274,6 @@ jobs:
       - <<: *install_ghr
       - <<: *install_slack_helpers
       - <<: *install_jq
-      - run:
-          name: Run setup script
-          command: bash .circleci/setup-heroku.sh
       - add_ssh_keys:
           fingerprints:
             - "97:92:32:5d:d7:96:e1:fa:f3:6b:f3:bd:d6:aa:84:c6"
@@ -296,12 +293,10 @@ jobs:
           name: Publish Github Release
           command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -prerelease -recreate -prerelease -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)-beta" /nerves/deploy/system/artifacts/
       - run:
-          name: Update heroku env
+          name: Slack message
           command: |
             export OTA_URL=$(wget https://api.github.com/repos/farmbot/farmbot_os/releases -qO- | ./jq-linux64 '.[0].url' | sed -e 's/^"//' -e 's/"$//')
             export SLACK_MESSAGE="New Farmbot Beta: $OTA_URL"
-            heroku config:set BETA_OTA_URL=$OTA_URL --app=farmbot-production
-            heroku config:set BETA_OTA_URL=$OTA_URL --app=farmbot-staging
             elixir slack_message.ex $SLACK_MESSAGE
 
 ################################################################################
@@ -331,9 +326,6 @@ jobs:
       - <<: *install_hex_archives
       - <<: *install_ghr
       - <<: *install_slack_helpers
-      - run:
-          name: Run setup script
-          command: bash .circleci/setup-heroku.sh
       - add_ssh_keys:
           fingerprints:
             - "97:92:32:5d:d7:96:e1:fa:f3:6b:f3:bd:d6:aa:84:c6"
