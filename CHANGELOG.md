@@ -1,4 +1,8 @@
 # Changelog
+
+# 6.4.13
+* Add SensorReadings when `read_pin` is executed.
+
 # 6.4.12
 * Fix race condition after getting time which broke self hosting users.
 * Add retry mechanism for fetching a token.
