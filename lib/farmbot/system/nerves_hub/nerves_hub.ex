@@ -84,6 +84,12 @@ defmodule Farmbot.System.NervesHub do
         connect()
       end
 
+      if channel == "channel:beta" do
+        Farmbot.System.ConfigStorage.update_config_value(:bool, "settings", "currently_on_beta", true)
+      else
+        Farmbot.System.ConfigStorage.update_config_value(:bool, "settings", "currently_on_beta", false)
+      end
+
       {:noreply, :configured}
     else
       Logger.debug 3, "FarmBot Server not configured yet. Waiting 10_000 ms to try OTA config again."
@@ -120,7 +126,12 @@ defmodule Farmbot.System.NervesHub do
       serial_number: serial(),
       tags: tags
     } |> Farmbot.JSON.encode!()
-    _ = Farmbot.HTTP.post!("/api/device_cert", payload)
+    case Farmbot.HTTP.post("/api/device_cert", payload) do
+      {:ok, _} -> 
+        :ok
+      {:error, reason} ->
+        Logger.error 1, "Failed to configure nerveshub due to http error: #{inspect(reason)}"
+    end
     :ok
   end
 
