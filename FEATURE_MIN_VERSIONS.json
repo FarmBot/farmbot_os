@@ -7,5 +7,6 @@
   "api_pin_bindings": "6.4.4",
   "diagnostic_dumps": "6.4.4",
   "rpi_led_control": "6.4.4",
-  "farmduino_k14": "6.4.4"
+  "farmduino_k14": "6.4.4",
+  "use_update_channel": "6.4.12"
 }
