@@ -277,6 +277,11 @@ defmodule Farmbot.Firmware do
     {:noreply, goto(state, :no_config)}
   end
 
+  def handle_report({:report_no_config, []}, %{status: :boot} = state) do
+    Logger.info("ARDUINO STARTUP COMPLETE")
+    {:noreply, goto(state, :no_config)}
+  end
+
   def handle_report({:report_debug_message, msg}, state) do
     side_effects(state, :handle_debug_message, [msg])
     {:noreply, state}
