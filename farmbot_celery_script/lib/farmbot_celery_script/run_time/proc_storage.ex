@@ -45,4 +45,10 @@ defmodule Farmbot.CeleryScript.RunTime.ProcStorage do
     Agent.update(this, &CircularList.update_current(&1, fun))
     Agent.update(this, &CircularList.rotate(&1))
   end
+
+  def all(this) do
+    Agent.get(this, fn %{items: items} ->
+      items
+    end)
+  end
 end
