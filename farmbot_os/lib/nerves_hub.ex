@@ -154,7 +154,7 @@ defmodule Farmbot.System.NervesHub do
         :ok
 
       {:error, reason} ->
-        Logger.error(1, "Failed to configure nerveshub due to database error: #{inspect(reason)}")
+        Farmbot.Logger.error(1, "Failed to configure nerveshub due to database error: #{inspect(reason)}")
     end
   end
 

@@ -51,7 +51,7 @@ defmodule Farmbot.System.NervesHubClient do
 
     # Start the connection again.
     {:ok, _pid} = Supervisor.start_child(supervisor, NervesHub.Supervisor)
-    Logger.debug(3, "OTA Service started")
+    Farmbot.Logger.debug(3, "OTA Service started")
     :ok
   end
 
@@ -97,25 +97,12 @@ defmodule Farmbot.System.NervesHubClient do
 
         case NervesHub.HTTPClient.update() do
           {:ok, %{"data" => %{"update_available" => false}}} ->
-            do_backup_strats()
+            nil
 
           _ ->
             Farmbot.Logger.info(1, "Applying OTA update")
             NervesHub.update()
         end
-    end
-  end
-
-  defp do_backup_strats do
-    case Farmbot.System.Updates.check_updates() do
-      {version, url} ->
-        Logger.busy(1, "Downloading fallback OTA")
-        Farmbot.System.Updates.download_and_apply_update({version, url})
-        :ok
-
-      _ ->
-        Logger.success(1, "Farmbot is up to date!")
-        nil
     end
   end
 
@@ -217,11 +204,11 @@ defmodule Farmbot.System.NervesHubClient do
         :ok
 
       {:ok, old_version} ->
-        Logger.info(1, "Updating FarmbotOS from #{old_version} to #{@current_version}")
+        Farmbot.Logger.info(1, "Updating FarmbotOS from #{old_version} to #{@current_version}")
         do_post_update()
 
       {:error, :enoent} ->
-        Logger.info(1, "Setting up FarmbotOS #{@current_version}")
+        Farmbot.Logger.info(1, "Setting up FarmbotOS #{@current_version}")
 
       {:error, err} ->
         raise err
@@ -236,7 +223,7 @@ defmodule Farmbot.System.NervesHubClient do
     is_beta? = Farmbot.Project.branch() in ["beta", "staging"]
 
     if is_beta? do
-      Logger.debug(1, "Forcing beta image arduino firmware flash.")
+      Farmbot.Logger.debug(1, "Forcing beta image arduino firmware flash.")
       Update.force_update_firmware(hw)
     else
       Update.maybe_update_firmware(hw)
