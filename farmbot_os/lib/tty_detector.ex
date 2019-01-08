@@ -1,6 +1,7 @@
 defmodule Farmbot.TTYDetector do
   use GenServer
   require Logger
+  require Farmbot.Logger
   alias Circuits.UART
 
   import Farmbot.Config, only: [get_config_value: 3, update_config_value: 4]
@@ -62,10 +63,12 @@ defmodule Farmbot.TTYDetector do
 
   def handle_continue([{name, _} | _rest], %{device: nil} = state)
       when name in @expected_names do
+    Farmbot.Logger.debug(3, "Found tty: #{name}")
     {:noreply, %{state | device: name}, 0}
   end
 
-  def handle_continue([_ | rest], %{device: nil} = state) do
+  def handle_continue([{name, _} | rest], %{device: nil} = state) do
+    Farmbot.Logger.debug(3, "#{name} not a valid Farmbot tty")
     {:noreply, state, {:continue, rest}}
   end
 
