@@ -47,3 +47,9 @@ format:
 		echo formatting $$project ; \
 		cd $$project && mix format && cd .. ; \
 	done
+
+deps:
+	@for project in $(PROJECTS) ; do \
+		echo Fetching deps: $$project ; \
+		cd $$project && mix deps.get && cd .. ; \
+	done
