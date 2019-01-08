@@ -60,23 +60,20 @@ defmodule Farmbot.CeleryScript.RunTime do
   ]
 
   defstruct [
+    # Agent wrapper for round robin Circular List struct
     :proc_storage,
     :hyper_state,
+    # Reference to the FarmProc that is using the firmware
     :fw_proc,
+    # Pid/Impl of IO bound asts
     :process_io_layer,
+    # Pid/Impl of hyper io bound asts
     :hyper_io_layer,
+    # Clock
     :tick_timer,
-    :monitors
+    # map of job_id => GenServer.from
+    :callers
   ]
-
-  defmodule Monitor do
-    defstruct [:pid, :ref, :index]
-
-    def new(pid, index) do
-      ref = Process.monitor(pid)
-      %Monitor{ref: ref, pid: pid, index: index}
-    end
-  end
 
   @opaque job_id :: CircularList.index()
 
@@ -85,45 +82,53 @@ defmodule Farmbot.CeleryScript.RunTime do
       when is_function(fun) do
     %AST{} = ast = AST.decode(map)
     label = ast.args[:label] || raise(ArgumentError)
-    job = queue(pid, map, -1)
 
-    if job do
-      proc = await(pid, job)
+    case queue(pid, map, -1) do
+      {:error, :busy} ->
+        rpc_request(pid, map, fun)
 
-      case FarmProc.get_status(proc) do
-        :done ->
-          results = ast(:rpc_ok, %{label: label}, [])
-          apply_callback(fun, [results])
+      nil ->
+        # if no job is returned, this was a hyper function, which
+        # can never fail.
+        results = ast(:rpc_ok, %{label: label}, [])
+        apply_callback(fun, [results])
 
-        :crashed ->
-          message = FarmProc.get_crash_reason(proc)
-          explanation = ast(:explanation, %{message: message})
-          results = ast(:rpc_error, %{label: label}, [explanation])
-          apply_callback(fun, [results])
-      end
-    else
-      # if no job is returned, this was a hyper function, which
-      # can never fail.
-      results = ast(:rpc_ok, %{label: label}, [])
-      apply_callback(fun, [results])
+      job ->
+        proc = await(pid, job)
+
+        case FarmProc.get_status(proc) do
+          :done ->
+            results = ast(:rpc_ok, %{label: label}, [])
+            apply_callback(fun, [results])
+
+          :crashed ->
+            message = FarmProc.get_crash_reason(proc)
+            explanation = ast(:explanation, %{message: message})
+            results = ast(:rpc_error, %{label: label}, [explanation])
+            apply_callback(fun, [results])
+        end
     end
   end
 
   @doc "Execute a sequence. This is async."
   def sequence(pid \\ __MODULE__, %{} = map, id, fun) when is_function(fun) do
-    job = queue(pid, map, id)
+    case queue(pid, map, id) do
+      {:error, :busy} ->
+        sequence(pid, map, id, fun)
 
-    spawn(fn ->
-      proc = await(pid, job)
+      job ->
+        spawn_link(fn ->
+          proc = await(pid, job)
 
-      case FarmProc.get_status(proc) do
-        :done ->
-          apply_callback(fun, [:ok])
+          case FarmProc.get_status(proc) do
+            :done ->
+              apply_callback(fun, [:ok])
 
-        :crashed ->
-          apply_callback(fun, [{:error, FarmProc.get_crash_reason(proc)}])
-      end
-    end)
+            :crashed ->
+              apply_callback(fun, [{:error, FarmProc.get_crash_reason(proc)}])
+          end
+        end)
+    end
   end
 
   # Queues some data for execution.
@@ -156,26 +161,11 @@ defmodule Farmbot.CeleryScript.RunTime do
     end
   end
 
+  # TODO(Connor) - Make this subscribe to a currently unimplemented GC
   # Polls the GenServer until it returns a FarmProc with a stopped status
   @spec await(GenServer.server(), job_id) :: FarmProc.t()
-  defp await(pid, job_id) do
-    case GenServer.call(pid, {:lookup, job_id}) do
-      {:error, :busy} ->
-        await(pid, job_id)
-
-      %FarmProc{} = proc ->
-        case FarmProc.get_status(proc) do
-          status when status in [:ok, :waiting] ->
-            Process.sleep(@tick_timeout * 2)
-            await(pid, job_id)
-
-          _ ->
-            proc
-        end
-
-      _ ->
-        raise(ArgumentError, "no job by that identifier")
-    end
+  defp await(pid, job_id, timeout \\ :infinity) do
+    GenServer.call(pid, {:await, job_id}, timeout)
   end
 
   @doc """
@@ -193,7 +183,7 @@ defmodule Farmbot.CeleryScript.RunTime do
   end
 
   def init(args) do
-    timer = start_tick(self())
+    tick_timer = start_tick(self())
     storage = ProcStorage.new(Keyword.fetch!(args, :name))
     io_fun = Keyword.fetch!(args, :process_io_layer)
     hyper_fun = Keyword.fetch!(args, :hyper_io_layer)
@@ -202,10 +192,10 @@ defmodule Farmbot.CeleryScript.RunTime do
 
     {:ok,
      %RunTime{
-       monitors: %{},
+       callers: %{},
        process_io_layer: io_fun,
        hyper_io_layer: hyper_fun,
-       tick_timer: timer,
+       tick_timer: tick_timer,
        proc_storage: storage
      }}
   end
@@ -224,79 +214,20 @@ defmodule Farmbot.CeleryScript.RunTime do
     {:reply, {:error, :busy}, {:busy, state}}
   end
 
-  def handle_call({:queue, %Heap{} = h, %Address{} = p}, {caller, _ref}, %RunTime{} = state) do
+  def handle_call({:queue, %Heap{} = h, %Address{} = p}, _from, %RunTime{} = state) do
     %FarmProc{} = new_proc = FarmProc.new(state.process_io_layer, p, h)
     index = ProcStorage.insert(state.proc_storage, new_proc)
-    mon = Monitor.new(caller, index)
-    {:reply, index, %{state | monitors: Map.put(state.monitors, caller, mon)}}
+    {:reply, index, %{state | callers: Map.put(state.callers, index, [])}}
   end
 
-  def handle_call({:lookup, id}, _from, %RunTime{} = state) do
-    cleanup = fn proc, state ->
-      ProcStorage.delete(state.proc_storage, id)
+  def handle_call({:await, id}, from, %RunTime{} = state) do
+    case state.callers[id] do
+      old when is_list(old) ->
+        {:noreply, %{state | callers: Map.put(state.callers, id, [from | old])}}
 
-      state =
-        case Enum.find(state.monitors, fn {_, %{index: index}} -> index == id end) do
-          {pid, mon} ->
-            Process.demonitor(mon.ref)
-            %{state | monitors: Map.delete(state.monitors, pid)}
-
-          _ ->
-            state
-        end
-
-      state =
-        if proc.ref == state.fw_proc,
-          do: %{state | fw_proc: nil},
-          else: state
-
-      {:reply, proc, state}
+      nil ->
+        {:reply, {:error, "no job by that id"}, state}
     end
-
-    # Looks up a FarmProc, causes a few different side affects.
-    # if the status is :done or :crashed, delete it from ProcStorage.
-    # if deleted, and this proc owns the firmware,
-    # delete it from there also.
-    case ProcStorage.lookup(state.proc_storage, id) do
-      %FarmProc{status: :crashed} = proc ->
-        cleanup.(proc, state)
-
-      %FarmProc{status: :done} = proc ->
-        cleanup.(proc, state)
-
-      reply ->
-        {:reply, reply, state}
-    end
-  end
-
-  def handle_info({:DOWN, _ref, :process, pid, _}, %RunTime{} = state) do
-    cleanup = fn proc, id, state ->
-      ProcStorage.delete(state.proc_storage, id)
-
-      if proc.ref == state.fw_proc,
-        do: %{state | fw_proc: nil},
-        else: state
-    end
-
-    mon = state.monitors[pid]
-
-    state =
-      if mon do
-        case ProcStorage.lookup(state.proc_storage, mon.index) do
-          %FarmProc{status: :crashed} = proc -> cleanup.(proc, mon.index, state)
-          %FarmProc{status: :done} = proc -> cleanup.(proc, mon.index, state)
-          _ -> state
-        end
-      else
-        state
-      end
-
-    {:noreply, %{state | monitors: Map.delete(state.monitors, pid)}}
-  end
-
-  def handle_info({:DOWN, _, :process, _, _} = down, {:busy, _} = busy) do
-    Process.send_after(self(), down, @tick_timeout)
-    {:noreply, busy}
   end
 
   def handle_info(:tick, %RunTime{} = state) do
@@ -315,8 +246,31 @@ defmodule Farmbot.CeleryScript.RunTime do
   # This message comes from the do_step/3 function that gets called
   # When updating a FarmProc.
   def handle_info(%RunTime{} = state, {:busy, _old}) do
-    new_timer = start_tick(self())
-    {:noreply, %RunTime{state | tick_timer: new_timer}}
+    # Enumerate over every caller and 
+    # If the proc is stopped
+    # reply to the caller
+    state =
+      state.proc_storage
+      |> ProcStorage.all()
+      |> Enum.reduce(state, fn {id, proc}, state ->
+        case proc do
+          %FarmProc{status: status} = proc when status in [:done, :crashed] ->
+            ProcStorage.delete(state.proc_storage, id)
+            for caller <- state.callers[id] || [], do: GenServer.reply(caller, proc)
+
+            if proc.ref == state.fw_proc do
+              %{state | callers: Map.delete(state.callers, id), fw_proc: nil}
+            else
+              %{state | callers: Map.delete(state.callers, id)}
+            end
+
+          %FarmProc{} = _proc ->
+            state
+        end
+      end)
+
+    new_tick_timer = start_tick(self())
+    {:noreply, %RunTime{state | tick_timer: new_tick_timer}}
   end
 
   defp start_tick(pid, timeout \\ @tick_timeout),
