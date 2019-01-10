@@ -1,5 +1,8 @@
 # Changelog
 
+# 6.4.14
+* Initial support for WPA-EAP networks. 
+
 # 6.4.13
 * Add SensorReadings when `read_pin` is executed.
 
