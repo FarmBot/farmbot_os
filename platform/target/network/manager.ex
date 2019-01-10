@@ -34,8 +34,6 @@ defmodule Farmbot.Target.Network.Manager do
   end
 
   def init({interface, opts} = args) do
-    Application.stop(:nerves_network)
-    {:ok, _} = Application.ensure_all_started(:nerves_network)
     Logger.busy(3, "Waiting for interface #{interface} up.")
 
     unless interface in Nerves.NetworkInterface.interfaces() do
@@ -49,14 +47,7 @@ defmodule Farmbot.Target.Network.Manager do
     Nerves.Time.set_ntp_servers([s1, s2])
     maybe_hack_tzdata()
 
-    settings = Enum.map(opts, fn({key, value}) ->
-      case key do
-        :key_mgmt -> {key, String.to_atom(value)}
-        _ -> {key, value}
-      end
-    end)
-    Nerves.Network.IFSupervisor.setup(interface, settings)
-
+    Nerves.Network.setup(interface, opts)
     {:ok, _} = Elixir.Registry.register(Nerves.NetworkInterface, interface, [])
     {:ok, _} = Elixir.Registry.register(Nerves.Udhcpc, interface, [])
     {:ok, _} = Elixir.Registry.register(Nerves.WpaSupplicant, interface, [])
@@ -67,7 +58,7 @@ defmodule Farmbot.Target.Network.Manager do
       # These won't change
       mdns_domain: domain,
       interface: interface,
-      opts: settings,
+      opts: opts,
 
       # These change based on
       # Events from timers and other processes.
@@ -228,13 +219,8 @@ defmodule Farmbot.Target.Network.Manager do
   end
 
   defp restart_connection_timer(state) do
-    # TODO(Connor) - 2018-08-15 There is a bug in Nerves.Network
-    # Where `Nerves.Network.teardown(ifname)` doesn't actually do anything.
     cancel_timer(state.reconnect_timer)
-    Nerves.Network.IFSupervisor.teardown(state.interface)
-    Nerves.NetworkInterface.ifdown(state.interface)
-    Process.sleep(5000)
-    Nerves.NetworkInterface.ifup(state.interface)
+    Nerves.Network.teardown(state.interface)
     Process.sleep(5000)
     Nerves.Network.setup(state.interface, state.opts)
     Process.send_after(self(), :reconnect_timer, 30_000)
