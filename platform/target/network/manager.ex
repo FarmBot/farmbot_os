@@ -85,13 +85,7 @@ defmodule Farmbot.Target.Network.Manager do
   end
 
   def terminate(_, state) do
-    # This hopefully makes the NetworkInterface ready when this
-    # GenServer is restarted.
-    Nerves.Network.IFSupervisor.teardown(state.interface)
-    Nerves.NetworkInterface.ifdown(state.interface)
-    Process.sleep(5000)
-    Nerves.NetworkInterface.ifup(state.interface)
-    Process.sleep(5000)
+    Nerves.Network.teardown(state.interface)
   end
 
   def handle_call(:ip, _, state) do
@@ -119,6 +113,27 @@ defmodule Farmbot.Target.Network.Manager do
     {:stop, :normal, state}
   end
 
+  def handle_info({Nerves.WpaSupplicant, {:"CTRL-EVENT-CONNECTED", _bssid, _status, _}, _}, state) do
+    # Don't update `connected`. This is not a real test of connectivity.
+    Logger.success 1, "Connected to access point."
+    NotFoundTimer.stop()
+    {:noreply, %{state | ap_connected: true}}
+  end
+
+  def handle_info({Nerves.WpaSupplicant, {:"CTRL-EVENT-DISCONNECTED", _}, _}, state) do
+    # stored in minutes
+    reconnect_timer = if state.connected, do: restart_connection_timer(state)
+    maybe_refresh_token()
+    NotFoundTimer.start()
+    new_state = %{state |
+      ap_connected: false,
+      connected: false,
+      ip_address: nil,
+      reconnect_timer: reconnect_timer
+    }
+    {:noreply, new_state}
+  end
+
   def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-NETWORK-NOT-FOUND", _}, state) do
     # stored in minutes
     reconnect_timer = if state.connected, do: restart_connection_timer(state)
@@ -133,15 +148,7 @@ defmodule Farmbot.Target.Network.Manager do
     {:noreply, new_state}
   end
 
-  def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-CONNECTED", _}, state) do
-    # Don't update `connected`. This is not a real test of connectivity.
-    Logger.success 1, "Connected to access point."
-    NotFoundTimer.stop()
-    {:noreply, %{state | ap_connected: true}}
-  end
-
-  def handle_info({Nerves.WpaSupplicant, :"CTRL-EVENT-DISCONNECTED", _}, state) do
-    # stored in minutes
+  def handle_info({Nerves.WpaSupplicant, {:"CTRL-EVENT-SSID-TEMP-DISABLED", %{duration: 20}}, _}, state) do
     reconnect_timer = if state.connected, do: restart_connection_timer(state)
     maybe_refresh_token()
     NotFoundTimer.start()
@@ -152,32 +159,6 @@ defmodule Farmbot.Target.Network.Manager do
       reconnect_timer: reconnect_timer
     }
     {:noreply, new_state}
-  end
-
-  def handle_info({Nerves.WpaSupplicant, info, infoa}, state) do
-    # :"CTRL-EVENT-SSID-TEMP-DISABLED id=0 ssid=\"Rory's Phone\" auth_failures=2 duration=20 reason=CONN_FAILED"
-    case is_atom(info) && to_string(info) do
-      <<"CTRL-EVENT-SSID-TEMP-DISABLED" <> _>> = msg ->
-        if String.contains?(msg, "duration=20") do
-          reconnect_timer = if state.connected, do: restart_connection_timer(state)
-          maybe_refresh_token()
-          NotFoundTimer.start()
-          new_state = %{state |
-            ap_connected: false,
-            connected: false,
-            ip_address: nil,
-            reconnect_timer: reconnect_timer
-          }
-          {:noreply, new_state}
-        else
-          {:noreply, state}
-        end
-      _ ->
-        if debug_logs?() do
-          IO.inspect {info, infoa}, label: "unhandled wpa event"
-        end
-        {:noreply, state}
-    end
   end
 
   def handle_info(:reconnect_timer, %{ap_connected: false} = state) do

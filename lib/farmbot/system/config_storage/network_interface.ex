@@ -14,6 +14,10 @@ defmodule Farmbot.System.ConfigStorage.NetworkInterface do
     field(:psk, :string)
     field(:security, :string)
 
+    ## EAP stuff
+    field(:identity, :string)
+    field(:password, :string)
+
     # Advanced settings.
     field(:ipv4_method, :string)
     field(:ipv4_address, :string)

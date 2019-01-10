@@ -134,48 +134,67 @@ defmodule Farmbot.Target.Network do
   def to_network_config(%NetworkInterface{type: "wireless"} = config) do
     Logger.debug(3, "wireless network config: ssid: #{config.ssid}")
     Nerves.Network.set_regulatory_domain(config.regulatory_domain)
-    opts = [ssid: config.ssid, key_mgmt: config.security]
     case config.security do
+      "WPA-EAP" ->
+        opts = [
+          ssid: config.ssid,
+          scan_ssid: 1,
+          key_mgmt: :"WPA-EAP",
+          pairwise: :"CCMP TKIP",
+          group: :"CCMP TKIP",
+          eap: :PEAP,
+          identity: config.identity,
+          password: config.password,
+          phase1: "peapver=auto",
+          phase2: "MSCHAPV2"
+        ]
+        ip_settings = ip_settings(config)
+        {config.name, [networks: [opts ++ ip_settings]]}
       "WPA-PSK" ->
-        {config.name, Keyword.merge(opts, [psk: config.psk])} |> maybe_use_advanced(config)
+        opts = [ssid: config.ssid, psk: config.psk, key_mgmt: :"WPA-PSK", scan_ssid: 1]
+        ip_settings = ip_settings(config)
+        {config.name, [networks: [opts ++ ip_settings]]}
       "NONE" ->
-        {config.name, opts} |> maybe_use_advanced(config)
+        opts = [ssid: config.ssid, psk: config.psk, scan_ssid: 1]
+        ip_settings = ip_settings(config)
+        {config.name, [networks: [opts ++ ip_settings]]}
       other -> raise "Unsupported wireless security type: #{other}"
     end
   end
 
   def to_network_config(%NetworkInterface{type: "wired"} = config) do
-    {config.name, []} |> maybe_use_advanced(config)
+    {config.name, ip_settings(config)}
   end
 
-  defp maybe_use_advanced({name, opts}, config) do
+  defp ip_settings(config) do
     case config.ipv4_method do
       "static" ->
-        settings = [
+        [
           ipv4_address_method: :static,
           ipv4_address: config.ipv4_address,
           ipv4_gateway: config.ipv4_gateway,
-          ipv4_subnet_mask: config.ipv4_subnet_mask]
-        {name, Keyword.merge(opts, settings)}
-      "dhcp" -> {name, opts}
+          ipv4_subnet_mask: config.ipv4_subnet_mask
+        ]
+      "dhcp" -> 
+        [ipv4_address_method: :dhcp]
     end
     |> maybe_use_name_servers(config)
     |> maybe_use_domain(config)
   end
 
-  defp maybe_use_name_servers({name, opts}, config) do
+  defp maybe_use_name_servers(opts, config) do
     if config.name_servers do
-      {name, Keyword.put(opts, :name_servers, String.split(config.name_servers, " "))}
+      Keyword.put(opts, :name_servers, String.split(config.name_servers, " "))
     else
-      {name, opts}
+      opts
     end
   end
 
-  defp maybe_use_domain({name, opts}, config) do
+  defp maybe_use_domain(opts, config) do
     if config.domain do
-      {name, Keyword.put(opts, :domain, config.domain)}
+      Keyword.put(opts, :domain, config.domain)
     else
-      {name, opts}
+      opts
     end
   end
 

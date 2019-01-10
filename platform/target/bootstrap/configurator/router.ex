@@ -116,6 +116,7 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
         ssid == nil -> raise(MissingField, field: "ssid",     message: "ssid not provided",     redir: "/config_wireless?ifname=#{ifname}")
         security == nil ->  raise(MissingField, field: "security", message: "security not provided", redir: "/config_wireless?ifname=#{ifname}")
         security == "WPA-PSK"  -> render_page(conn, "/config_wireless_step_2_PSK",    opts)
+        security == "WPA-EAP"  -> render_page(conn, "/config_wireless_step_2_EAP",    opts)
         security == "NONE"     -> render_page(conn, "/config_wireless_step_2_NONE",   opts)
         true                   -> render_page(conn, "/config_wireless_step_2_other",  opts)
       end
