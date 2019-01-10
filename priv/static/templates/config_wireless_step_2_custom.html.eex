@@ -6,12 +6,27 @@
     <link rel="stylesheet" href="/styles.css">
     <script>
       function securityChange() {
-        if(document.getElementById("security").value != "NONE") {
+        if(document.getElementById("security").value == "WPA-PSK") {
           document.getElementById("pskdiv").hidden = false;
         } else {
           document.getElementById("pskdiv").hidden = true;
         }
+
+        if(document.getElementById("security").value == "WPA-EAP") {
+          document.getElementById("eapidentitydiv").hidden = false;
+          document.getElementById("eappassworddiv").hidden = false;
+        } else {
+          document.getElementById("eapidentitydiv").hidden = true;
+          document.getElementById("eappassworddiv").hidden = true;
+        }
+
+        if(document.getElementById("security").value == "NONE") {
+          document.getElementById("pskdiv").hidden = true;
+          document.getElementById("eapidentitydiv").hidden = true;
+          document.getElementById("eappassworddiv").hidden = true;
+        }
       }
+
       function showPassword() {
         var x = document.getElementById("psk");
         if (x.type === "password") {
@@ -39,13 +54,28 @@
             <select name="security" id="security" onchange="securityChange()">
               <option value="WPA-PSK"> WPA2-PSK </option>
               <option value="WPA-PSK"> WPA-PSK </option>
+              <option value="WPA-EAP"> WPA-EAP </option>
               <option value="NONE"> NONE </option>
             </select>
 
             <div id="pskdiv">
-              <label for=psk> PASSWORD </label>
+              <label for=psk> PSK </label>
               <div class="psk-input-group">
                 <input type="password" name="psk" id="psk">
+                <img class="eye-icon" src="icon_eye.svg"
+                  onclick="showPassword()" title="Show password">
+              </div>
+            </div>
+
+            <div id="eapidentitydiv">
+              <label for=identity> EAP Identity </label>
+              <input type="text" name="identity" id="identity">
+            </div>
+
+            <div id="eappassworddiv">
+              <label for=password> EAP Password </label>
+              <div class="psk-input-group">
+                <input type="password" name="password" id="password">
                 <img class="eye-icon" src="icon_eye.svg"
                   onclick="showPassword()" title="Show password">
               </div>
