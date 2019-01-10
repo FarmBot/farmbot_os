@@ -17,24 +17,19 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
     Logger.busy(3, "Starting captive portal.")
     ensure_interface(@interface)
 
-    Nerves.Network.teardown(@interface)
-
     host_ap_opts = [
       ssid: build_ssid(),
       key_mgmt: :NONE,
-      mode: 2,
-      # ap_scan: 0,
-      # scan_ssid: 1,
+      mode: 2
     ]
-    Nerves.Network.setup(@interface, host_ap_opts)
 
     ip_opts = [
       ipv4_address_method: :static,
-      ipv4_address: @address, ipv4_subnet_mask: "255.255.0.0",
-      nameservers: [@address]
+      ipv4_address: @address, 
+      ipv4_subnet_mask: "255.255.0.0"
     ]
-
-    Nerves.NetworkInterface.setup(@interface, ip_opts)
+    settings = [networks: [host_ap_opts ++ ip_opts]]
+    Nerves.Network.setup(@interface, settings)
 
     dhcp_opts = [
       gateway: @address,
@@ -77,19 +72,6 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
     stop_dnsmasq(state)
 
     Nerves.Network.teardown(@interface)
-    Nerves.NetworkInterface.ifdown(@interface)
-    do_teardown(@interface)
-  end
-
-  defp do_teardown(interface) do
-    case Nerves.NetworkInterface.status(interface) do
-      {:ok, %{operstate: :down}} -> :ok
-      {:ok, %{operstate: :up}} ->
-        Logger.busy 3, "Trying to stop #{interface}."
-        Process.sleep(1000)
-        Nerves.NetworkInterface.ifdown(interface)
-        do_teardown(interface)
-    end
   end
 
   def handle_info({_port, {:data, _data}}, state) do

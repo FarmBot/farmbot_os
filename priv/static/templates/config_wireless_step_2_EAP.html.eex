@@ -29,9 +29,12 @@
             <input name="security" hidden=true value="<%= security %>">
             <input name="ifname",  hidden=true value="<%= ifname %>">
 
-            <label for="psk"> PSK </label>
+            <label for="identity"> IDENTITY </label>
+            <input type="identity" name="identity" id="identity">
+
+            <label for="password"> PASSWORD </label>
             <div class="psk-input-group">
-              <input type="password" name="psk" id="psk">
+              <input type="password" name="password" id="password">
               <img class="eye-icon" src="icon_eye.svg"
                 onclick="showPassword()" title="Show password">
             </div>
