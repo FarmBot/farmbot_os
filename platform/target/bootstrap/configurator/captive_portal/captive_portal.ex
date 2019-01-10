@@ -47,17 +47,10 @@ defmodule Farmbot.Target.Bootstrap.Configurator.CaptivePortal do
           nil
       end
 
-    wpa_pid = wait_for_wpa()
-    Nerves.WpaSupplicant.request(wpa_pid, {:AP_SCAN, 2})
     Farmbot.Leds.blue(:slow_blink)
     init_mdns(@mdns_domain)
     update_mdns(@address)
     {:ok, %{dhcp_server: dhcp_server, dnsmasq: dnsmasq}}
-  end
-
-  defp wait_for_wpa do
-    name = :"Nerves.WpaSupplicant.#{@interface}"
-    GenServer.whereis(name) || wait_for_wpa()
   end
 
   def terminate(_, state) do

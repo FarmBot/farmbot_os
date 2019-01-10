@@ -132,9 +132,11 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
       ifname           = conn.params["ifname"] || raise(MissingField, field: "ifname", message: "ifname not provided", redir: "/network")
       ssid             = conn.params["ssid"] |> remove_empty_string()
       security         = conn.params["security"] |> remove_empty_string()
+      identity         = conn.params["identity"] |> remove_empty_string()
+      password         = conn.params["password"] |> remove_empty_string()
       psk              = conn.params["psk"] |> remove_empty_string()
       domain           = conn.params["domain"] |> remove_empty_string()
-      name_servers      = conn.params["name_servers"] |> remove_empty_string()
+      name_servers     = conn.params["name_servers"] |> remove_empty_string()
       ipv4_method      = conn.params["ipv4_method"] |> remove_empty_string()
       ipv4_address     = conn.params["ipv4_address"] |> remove_empty_string()
       ipv4_gateway     = conn.params["ipv4_gateway"] |> remove_empty_string()
@@ -169,6 +171,8 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
         ssid: ssid, security: security, psk: psk,
         type: if(ssid, do: "wireless", else: "wired"),
         domain: domain,
+        identity: identity,
+        password: password,
         name_servers: name_servers,
         ipv4_method: ipv4_method,
         ipv4_address: ipv4_address,
