@@ -161,8 +161,8 @@ defmodule Farmbot.Mixfile do
         {:nerves_firmware_ssh, "~> 0.3"},
         {:nerves_init_gadget, "~> 0.5", only: :dev},
         {:nerves_time, "~> 0.2"},
-        {:nerves_network, "~> 0.3"},
-        {:nerves_wpa_supplicant, "~> 0.3"},
+        {:nerves_network, "~> 0.5"},
+        {:nerves_wpa_supplicant, "~> 0.5"},
         {:dhcp_server, "~> 0.6"},
         {:elixir_ale, "~> 1.1"},
         {:mdns, "~> 1.0"}
