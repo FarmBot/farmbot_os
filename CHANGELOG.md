@@ -1,6 +1,6 @@
 # Changelog
 
-# 6.4.14
+# 6.5.0
 * Initial support for WPA-EAP networks. 
 
 # 6.4.13
