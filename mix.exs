@@ -172,7 +172,7 @@ defmodule Farmbot.Mixfile do
   end
 
   defp system("rpi3"),
-    do: [{:farmbot_system_rpi3, "1.5.1-farmbot.1", runtime: false}]
+    do: [{:farmbot_system_rpi3, "1.6.1-farmbot.0", runtime: false}]
 
   defp system("rpi0"),
     do: [{:farmbot_system_rpi0, "1.5.1-farmbot.0", runtime: false}]

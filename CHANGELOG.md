@@ -1,7 +1,10 @@
 # Changelog
 
-# 6.5.0
+# 7.0.0
 * Initial support for WPA-EAP networks. 
+* Update Farmware packages
+    * Python 3
+    * OpenCv 3
 
 # 6.4.13
 * Add SensorReadings when `read_pin` is executed.
