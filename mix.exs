@@ -161,9 +161,7 @@ defmodule Farmbot.Mixfile do
         {:nerves_firmware_ssh, "~> 0.3"},
         {:nerves_init_gadget, "~> 0.5", only: :dev},
         {:nerves_time, "~> 0.2"},
-        # {:nerves_network, "~> 0.5"},
-        {:nerves_network,
-         github: "nerves-project/nerves_network", branch: "teardown-fix", override: true},
+        {:nerves_network, "~> 0.5"},
         {:nerves_wpa_supplicant, "~> 0.5"},
         {:dhcp_server, "~> 0.6"},
         {:elixir_ale, "~> 1.1"},
@@ -175,10 +173,10 @@ defmodule Farmbot.Mixfile do
     do: [{:farmbot_system_rpi3, "1.6.1-farmbot.0", runtime: false}]
 
   defp system("rpi0"),
-    do: [{:farmbot_system_rpi0, "1.5.1-farmbot.0", runtime: false}]
+    do: [{:farmbot_system_rpi0, "1.6.1-farmbot.0", runtime: false}]
 
   defp system("rpi"),
-    do: [{:farmbot_system_rpi, "1.5.1-farmbot.0", runtime: false}]
+    do: [{:farmbot_system_rpi, "1.6.1-farmbot.0", runtime: false}]
 
   defp package do
     [
