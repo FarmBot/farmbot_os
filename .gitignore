@@ -46,6 +46,7 @@ scripts/mqtt.py
 # Fwup keys aren't stored here, but just in case.
 *.priv
 run-qemu.sh
+upload.sh
 *.img
 artifacts
 RELEASE_NOTES

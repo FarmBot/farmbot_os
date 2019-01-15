@@ -46,7 +46,7 @@ defmodule Farmbot.Target.Network.Manager do
     s2 = get_config_value(:string, "settings", "default_ntp_server_2")
     Nerves.Time.set_ntp_servers([s1, s2])
     maybe_hack_tzdata()
-
+    Nerves.Network.teardown(interface)
     Nerves.Network.setup(interface, opts)
     {:ok, _} = Elixir.Registry.register(Nerves.NetworkInterface, interface, [])
     {:ok, _} = Elixir.Registry.register(Nerves.Udhcpc, interface, [])
