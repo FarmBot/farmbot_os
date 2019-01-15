@@ -2,6 +2,7 @@
 
 # 7.0.0
 * Initial support for WPA-EAP networks. 
+* Increase NervesHub reconnect timer to not waste CPU time.
 * Update Farmware packages
     * Python 3
     * OpenCv 3
