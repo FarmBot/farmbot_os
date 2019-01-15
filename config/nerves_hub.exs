@@ -5,5 +5,5 @@ config :nerves_hub,
   public_keys: [File.read!("priv/staging.pub"), File.read!("priv/prod.pub")]
 
 config :nerves_hub, NervesHub.Socket, [
-  reconnect_interval: 5_000,
+  reconnect_interval: 60_000,
 ]
