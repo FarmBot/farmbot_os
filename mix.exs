@@ -163,7 +163,8 @@ defmodule Farmbot.Mixfile do
         {:nerves_time, "~> 0.2"},
         {:nerves_network, "~> 0.5"},
         # {:nerves_wpa_supplicant, "~> 0.5"},
-        {:nerves_wpa_supplicant, github: "nerves-project/nerves_wpa_supplicant", branch: "eap-notifs", override: true},
+        {:nerves_wpa_supplicant,
+         github: "nerves-project/nerves_wpa_supplicant", branch: "eap-notifs", override: true},
         {:dhcp_server, "~> 0.6"},
         {:elixir_ale, "~> 1.1"},
         {:mdns, "~> 1.0"}

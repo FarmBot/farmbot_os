@@ -156,7 +156,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
           handle_celery_script(payload, state)
           {:noreply, [], state}
         ["bot", ^device, "sync", resource, _]
-        when resource in ["Log", "User", "Image", "WebcamFeed"] ->
+        when resource in ["Log", "User", "Image", "WebcamFeed", "SensorReading"] ->
           {:noreply, [], state}
         ["bot", ^device, "sync", "FbosConfig", id] ->
           handle_fbos_config(id, payload, state)
