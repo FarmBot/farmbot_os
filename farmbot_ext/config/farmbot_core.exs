@@ -10,6 +10,10 @@ config :farmbot_core, Farmbot.AssetWorker.Farmbot.Asset.FarmwareInstallation,
   error_retry_time_ms: 30_000,
   install_dir: "/tmp/farmware"
 
+config :farmbot_core, Farmbot.BotState.FileSystem,
+  root_dir: "/tmp/farmbot_state",
+  sleep_time: 200
+
 config :farmbot_core, Farmbot.AssetMonitor, checkup_time_ms: 30_000
 
 config :farmbot_core, Farmbot.Leds, gpio_handler: Farmbot.Leds.StubHandler

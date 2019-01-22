@@ -7,6 +7,7 @@ defmodule Farmbot.AMQP.ChannelSupervisor do
     NervesHubTransport,
     LogTransport,
     BotStateTransport,
+    BotStateNGTransport,
     AutoSyncTransport,
     CeleryScriptTransport
   }
@@ -23,6 +24,7 @@ defmodule Farmbot.AMQP.ChannelSupervisor do
       {NervesHubTransport, [jwt: jwt]},
       {LogTransport, [jwt: jwt]},
       {BotStateTransport, [jwt: jwt]},
+      {BotStateNGTransport, [jwt: jwt]},
       {AutoSyncTransport, [jwt: jwt]},
       {CeleryScriptTransport, [jwt: jwt]}
     ]
