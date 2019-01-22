@@ -17,6 +17,10 @@ config :farmbot_core, Farmbot.Leds, gpio_handler: Farmbot.Leds.StubHandler
 
 config :farmbot_core, Farmbot.JSON, json_parser: Farmbot.JSON.JasonParser
 
+config :farmbot_core, Farmbot.BotState.FileSystem,
+  root_dir: "/tmp/farmbot",
+  sleep_time: 200
+
 config :farmbot_core, Farmbot.Core.CeleryScript.RunTimeWrapper,
   celery_script_io_layer: Farmbot.Core.CeleryScript.StubIOLayer
 

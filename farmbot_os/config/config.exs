@@ -32,6 +32,10 @@ config :farmbot_core, Farmbot.EctoMigrator,
 config :farmbot_core, Farmbot.Core.CeleryScript.RunTimeWrapper,
   celery_script_io_layer: Farmbot.OS.IOLayer
 
+config :farmbot_core, Farmbot.BotState.FileSystem,
+  root_dir: "/tmp/farmbot_state",
+  sleep_time: 200
+
 config :ecto, json_library: Farmbot.JSON
 
 config :farmbot_core,
