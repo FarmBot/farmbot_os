@@ -111,7 +111,7 @@ defmodule Farmbot.Mixfile do
   defp deps do
     [
       {:nerves, "~> 1.3", runtime: false},
-      {:nerves_hub_cli, "~> 0.5", runtime: false},
+      {:nerves_hub_cli, "~> 0.5.1", runtime: false},
       {:elixir_make, "~> 0.4", runtime: false},
       {:shoehorn, "~> 0.4"},
       {:gen_stage, "~> 0.14"},
