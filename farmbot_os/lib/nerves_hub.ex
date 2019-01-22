@@ -144,18 +144,9 @@ defmodule Farmbot.System.NervesHub do
       tags: tags
     }
 
-    change = DeviceCert.changeset(old, params)
-
-    case Repo.insert_or_update(change) do
-      {:ok, _} ->
-        :ok
-
-      {:error, reason} ->
-        Farmbot.Logger.error(
-          1,
-          "Failed to configure nerveshub due to database error: #{inspect(reason)}"
-        )
-    end
+    old
+    |> DeviceCert.changeset(params)
+    |> Repo.insert_or_update()
   end
 
   # Message comes over AMQP.

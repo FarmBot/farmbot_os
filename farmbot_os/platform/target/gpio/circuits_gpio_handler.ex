@@ -18,7 +18,7 @@ defmodule Farmbot.PinBindingWorker.CircuitsGPIOHandler do
   def init([pin_number, fun]) do
     Logger.info("CircuitsGPIOHandler init")
     {:ok, pin} = GPIO.open(pin_number, :input)
-    :ok = GPIO.set_edge_mode(pin, :both)
+    :ok = GPIO.set_interrupts(pin, :both)
     :ok = GPIO.set_pull_mode(pin, :pulldown)
     {:ok, %{pin_number: pin_number, pin: pin, fun: fun, debounce: nil}}
   end
