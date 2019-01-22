@@ -7,7 +7,7 @@ defmodule Farmbot.BotStateNG.ProcessInfo do
   @primary_key false
 
   embedded_schema do
-    field(:farmwares, {:map, {:map, :any}}, default: %{})
+    field(:farmwares, {:map, {:string, :map}}, default: %{})
   end
 
   def new do

@@ -19,9 +19,9 @@ defmodule Farmbot.BotStateNG do
     embeds_one(:informational_settings, InformationalSettings, on_replace: :update)
     embeds_one(:process_info, ProcessInfo, on_replace: :update)
     embeds_one(:configuration, Configuration, on_replace: :update)
-    field(:user_env, {:map, :string}, default: %{})
-    field(:pins, {:map, {:map, :integer}}, default: %{})
-    field(:jobs, {:map, :map}, default: %{})
+    field(:user_env, {:map, {:string, :any}}, default: %{})
+    field(:pins, {:map, {:integer, :map}}, default: %{})
+    field(:jobs, {:map, {:string, :map}}, default: %{})
   end
 
   def new do
