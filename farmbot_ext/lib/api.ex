@@ -17,9 +17,10 @@ defmodule Farmbot.API do
   @doc false
   def client do
     binary_token = get_config_value(:string, "authorization", "token")
-    {:ok, tkn} = JWT.decode(binary_token)
+    server = get_config_value(:string, "authorization", "server")
+    {:ok, _tkn} = JWT.decode(binary_token)
 
-    uri = Map.fetch!(tkn, :iss) |> URI.parse()
+    uri = URI.parse(server)
     url = (uri.scheme || "https") <> "://" <> uri.host <> ":" <> to_string(uri.port)
 
     Tesla.client([
