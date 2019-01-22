@@ -50,7 +50,7 @@ defmodule Farmbot.OS.MixProject do
     [
       # Nerves stuff.
       {:nerves, "~> 1.3", runtime: false},
-      {:nerves_hub_cli, "~> 0.4", runtime: false},
+      {:nerves_hub_cli, "~> 0.5", runtime: false},
       {:shoehorn, "~> 0.4"},
       {:logger_backend_sqlite, "~> 2.2"},
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
@@ -74,7 +74,7 @@ defmodule Farmbot.OS.MixProject do
       {:phoenix_html, "~> 2.12"},
       {:nerves_runtime, "~> 0.9"},
       {:nerves_network, "~> 0.5"},
-      {:nerves_wpa_supplicant, "~> 0.3"},
+      {:nerves_wpa_supplicant, "~> 0.5"},
       {:nerves_time, "~> 0.2"},
       {:nerves_hub, "~> 0.2"},
       {:dhcp_server, "~> 0.6"},

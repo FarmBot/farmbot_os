@@ -165,7 +165,10 @@ defmodule Farmbot.CeleryScript.RunTime do
   # Polls the GenServer until it returns a FarmProc with a stopped status
   @spec await(GenServer.server(), job_id) :: FarmProc.t()
   defp await(pid, job_id, timeout \\ :infinity) do
-    GenServer.call(pid, {:await, job_id}, timeout)
+    case GenServer.call(pid, {:await, job_id}, timeout) do
+      {:error, :busy} -> await(pid, job_id, timeout)
+      result -> result
+    end
   end
 
   @doc """
