@@ -291,20 +291,20 @@ defmodule Farmbot.CeleryScript.RunTime.InstructionSet do
     pc = get_pc_ptr(farm_proc)
     package = FarmProc.get_cell_attr(farm_proc, pc, :package) |> :erlang.crc32()
     next_ptr = get_next_address(farm_proc, pc)
-    # Step 1: Get a copy of the sequence.
+    # Step 1: Get a copy of the ast.
     case result do
-      {:ok, %AST{} = sequence} ->
+      {:ok, %AST{} = ast} ->
         # Step 2: Push PC -> RS
         # Step 3: Slice it
-        new_heap = AST.slice(sequence)
-        seq_addr = addr(package)
-        seq_ptr = ptr(package, 1)
+        new_heap = AST.slice(ast)
+        farmware_addr = addr(package)
+        farmware_ptr = ptr(package, 1)
 
         push_rs(farm_proc, pc)
         # Step 4: Add the new page.
-        |> new_page(seq_addr, new_heap)
+        |> new_page(farmware_addr, new_heap)
         # Step 5: Set PC to Ptr(1, 1)
-        |> set_pc_ptr(seq_ptr)
+        |> set_pc_ptr(farmware_ptr)
         |> clear_io_result()
 
       {:error, reason} ->
