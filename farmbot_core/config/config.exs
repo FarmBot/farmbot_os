@@ -7,6 +7,8 @@ config :farmbot_core, Farmbot.AssetWorker.Farmbot.Asset.FarmwareInstallation,
   error_retry_time_ms: 30_000,
   install_dir: "/tmp/farmware"
 
+config :farmbot_core, Farmbot.FarmwareRuntime, runtime_dir: "/tmp/farmware_runtime"
+
 config :farmbot_core, Elixir.Farmbot.AssetWorker.Farmbot.Asset.PinBinding,
   gpio_handler: Farmbot.PinBindingWorker.StubGPIOHandler,
   error_retry_time_ms: 30_000
