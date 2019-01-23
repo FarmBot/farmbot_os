@@ -15,7 +15,7 @@ defmodule Farmbot.Asset.FarmwareInstallation.Manifest do
     field(:args, {:array, :string})
     field(:farmware_tools_version, :string, default: "latest")
     # new field
-    field(:os_version_requirement, :string, default: "~> 6.5")
+    field(:os_version_requirement, :string, default: "~> 8.0")
   end
 
   def view(manifest) do
