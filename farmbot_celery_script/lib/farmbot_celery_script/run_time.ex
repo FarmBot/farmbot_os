@@ -29,7 +29,7 @@ defmodule Farmbot.CeleryScript.RunTime do
     :calibrate
   ]
 
-  @kinds_aloud_while_locked [
+  @kinds_allowed_while_locked [
     :rpc_request,
     :sequence,
     :check_updates,
@@ -249,7 +249,7 @@ defmodule Farmbot.CeleryScript.RunTime do
   # This message comes from the do_step/3 function that gets called
   # When updating a FarmProc.
   def handle_info(%RunTime{} = state, {:busy, _old}) do
-    # Enumerate over every caller and 
+    # Enumerate over every caller and
     # If the proc is stopped
     # reply to the caller
     state =
@@ -302,7 +302,7 @@ defmodule Farmbot.CeleryScript.RunTime do
   def do_step(%FarmProc{} = farm_proc, pid, %{fw_proc: nil} = state) do
     pc_ptr = FarmProc.get_pc_ptr(farm_proc)
     kind = FarmProc.get_kind(farm_proc, pc_ptr)
-    b0 = (kind in @kinds_aloud_while_locked) |> bit()
+    b0 = (kind in @kinds_allowed_while_locked) |> bit()
     b1 = (kind in @kinds_that_need_fw) |> bit()
     b2 = true |> bit()
     b3 = (state.hyper_state == :emergency_lock) |> bit()
@@ -324,7 +324,7 @@ defmodule Farmbot.CeleryScript.RunTime do
   def do_step(%FarmProc{} = farm_proc, pid, state) do
     pc_ptr = FarmProc.get_pc_ptr(farm_proc)
     kind = FarmProc.get_kind(farm_proc, pc_ptr)
-    b0 = (kind in @kinds_aloud_while_locked) |> bit()
+    b0 = (kind in @kinds_allowed_while_locked) |> bit()
     b1 = (kind in @kinds_that_need_fw) |> bit()
     b2 = (farm_proc.ref == state.fw_proc) |> bit()
     b3 = (state.hyper_state == :emergency_lock) |> bit()

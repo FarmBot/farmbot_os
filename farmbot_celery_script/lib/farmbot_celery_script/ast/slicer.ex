@@ -8,7 +8,7 @@ defmodule Farmbot.CeleryScript.AST.Slicer do
   alias Farmbot.CeleryScript.AST
   alias AST.Heap
 
-  @doc "Sice the canonical AST format into a AST Heap."
+  @doc "Slice the canonical AST format into a AST Heap."
   @spec run(AST.t()) :: Heap.t()
   def run(canonical)
 

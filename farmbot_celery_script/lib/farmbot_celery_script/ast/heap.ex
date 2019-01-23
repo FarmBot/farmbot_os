@@ -27,11 +27,16 @@ defmodule Farmbot.CeleryScript.AST.Heap do
     @next => @null
   }
 
+  # A special char. When a node has an attribute
+  # that starts with the `@link` char, it
+  # indicates a "link" to another node.
+  # Ex: "__parent" points to another node.
   def link, do: @link
   def parent, do: @parent
   def body, do: @body
   def next, do: @next
   def kind, do: @kind
+  # Fields found on every heap entry.
   def primary_fields, do: @primary_fields
   def null, do: @null
 
