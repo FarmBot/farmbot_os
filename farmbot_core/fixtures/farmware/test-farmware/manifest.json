@@ -1,0 +1,14 @@
+{
+  "package": "Test Farmware package",
+  "language": "python",
+  "author": "FarmBot, Inc.",
+  "description": "test fixture",
+  "version": "0.0.0",
+  "min_os_version_major": 8,
+  "url": "file://fixtures/farmware/test-farmware/manifest.json",
+  "zip": "file://fixtures/farmware/test-farmware/",
+  "executable": "python",
+  "args": [
+    "run.py"
+  ]
+}

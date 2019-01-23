@@ -92,6 +92,15 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmwareInstallation do
     end
   end
 
+  def get_manifest_json(%FWI{url: "file://" <> path}) do
+    Farmbot.Logger.debug(1, "Using local directory for Farmware manifest")
+
+    case File.read(Path.join(Path.expand(path), @manifest_name)) do
+      {:ok, data} -> Farmbot.JSON.decode(data)
+      err -> err
+    end
+  end
+
   def get_manifest_json(%FWI{url: url}) do
     with {:ok, {{_, 200, _}, _headers, data}} <- get(url) do
       Farmbot.JSON.decode(data)
@@ -105,6 +114,19 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmwareInstallation do
   end
 
   def get_zip(%FWI{manifest: %{zip: url}}), do: get_zip(url)
+
+  def get_zip("file://" <> path) do
+    Farmbot.Logger.debug(1, "Using local directory for Farmware zip")
+
+    with {:ok, files} <- File.ls(path),
+         file_list <-
+           Enum.map(files, fn filename ->
+             {to_charlist(filename), File.read!(Path.join(path, filename))}
+           end),
+         {:ok, {_path, zip_binary}} <- :zip.create(to_charlist(path), file_list, [:memory]) do
+      {:ok, zip_binary}
+    end
+  end
 
   def get_zip(url) when is_binary(url) do
     with {:ok, {{_, 200, _}, _headers, zip_binary}} <- get(url),
