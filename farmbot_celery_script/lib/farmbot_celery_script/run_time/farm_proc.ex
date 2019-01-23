@@ -1,7 +1,7 @@
 defmodule Farmbot.CeleryScript.RunTime.FarmProc do
   @moduledoc """
   FarmProc is a _single_ running unit of execution. It must be
-  `step`ed. It manages IO, but does no sort of management.
+  `step`ed. It has access IO, but does no IO management.
   """
   alias Farmbot.CeleryScript.RunTime.{
     AST,
@@ -139,7 +139,6 @@ defmodule Farmbot.CeleryScript.RunTime.FarmProc do
       | reduction_count: farm_proc.reduction_count + 1
     }
 
-    # IO.puts "executing: [#{inspect pc_ptr.page_address}, #{inspect pc_ptr.heap_address}] #{kind}"
     apply(InstructionSet, kind, [farm_proc])
   end
 
