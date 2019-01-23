@@ -38,14 +38,31 @@ defmodule Farmbot.Target.Network do
       case Map.fetch!(settings, :security) do
         "WPA-PSK" -> :"WPA-PSK"
         "WPA2-PSK" -> :"WPA-PSK"
+        "WPA-EAP" -> :"WPA-EAP"
         "NONE" -> :NONE
       end
 
     [
       ssid: ssid,
       psk: psk,
-      key_mgmt: key_mgmt
-    ] ++ validate_advanced(settings)
+      key_mgmt: key_mgmt,
+      scan_ssid: 1
+    ] ++ validate_eap(settings) ++ validate_advanced(settings)
+  end
+
+  def validate_eap(%{security: "WPA-EAP"} = settings) do
+    identity = Map.fetch!(settings, :identity)
+    password = Map.fetch!(settings, :password)
+
+    [
+      pairwise: :"CCMP TKIP",
+      group: :"CCMP TKIP",
+      eap: :PEAP,
+      identity: identity,
+      password: password,
+      phase1: "peapver=auto",
+      phase2: "MSCHAPV2"
+    ]
   end
 
   def validate_advanced(%{ipv4_address: "static"} = settings) do
@@ -53,7 +70,8 @@ defmodule Farmbot.Target.Network do
       ipv4_address_method: :static,
       ipv4_address: Map.fetch!(settings, :ipv4_address),
       ipv4_gateway: Map.fetch!(settings, :ipv4_gateway),
-      ipv4_subnet_mask: Map.fetch!(settings, :ipv4_subnet_mask)
+      ipv4_subnet_mask: Map.fetch!(settings, :ipv4_subnet_mask),
+      nameservers: String.split(settings.name_servers, " ")
     ]
   end
 
@@ -65,7 +83,6 @@ defmodule Farmbot.Target.Network do
     ifnames()
     |> List.delete("lo")
     |> Enum.map(fn ifname ->
-      IO.puts("Looking up #{ifname}")
       {:ok, settings} = Nerves.NetworkInterface.settings(ifname)
       {ifname, settings}
     end)
@@ -111,7 +128,6 @@ defmodule Farmbot.Target.Network do
 
     for ifname <- state.ifnames do
       Nerves.Network.teardown(ifname)
-      Nerves.NetworkInterface.ifdown(ifname)
     end
   end
 
@@ -169,7 +185,6 @@ defmodule Farmbot.Target.Network do
     for {ifname, _conf} <- state.config do
       Nerves.Network.teardown(ifname)
       Nerves.Network.setup(ifname, [])
-      Nerves.NetworkInterface.setup(ifname, [])
     end
 
     %{state | hostap: :down, hostap_wpa_supplicant_pid: nil}
@@ -203,8 +218,7 @@ defmodule Farmbot.Target.Network do
     ]
 
     Nerves.Network.teardown("wlan0")
-    Nerves.Network.setup("wlan0", hostap_opts)
-    Nerves.NetworkInterface.setup("wlan0", ip_opts)
+    Nerves.Network.setup("wlan0", hostap_opts ++ ip_opts)
     {:ok, hostap_dhcp_server_pid} = DHCPServer.start_link("wlan0", dhcp_opts)
     {:ok, hostap_wpa_supplicant_pid} = wait_for_wpa("wlan0")
 
