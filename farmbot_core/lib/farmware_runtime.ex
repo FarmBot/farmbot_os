@@ -1,4 +1,5 @@
 defmodule Farmbot.FarmwareRuntime do
+  alias Farmbot.FarmwareRuntime.PipeWorker
   alias Farmbot.AssetWorker.Farmbot.Asset.FarmwareInstallation
   alias Farmbot.Asset.FarmwareInstallation.Manifest
   import FarmwareInstallation, only: [install_dir: 1]
@@ -17,11 +18,13 @@ defmodule Farmbot.FarmwareRuntime do
 
   @packet_header_token 0xFBFB
   @packet_header_byte_size 10
+  @pipe_teardown "Mr. Gorbachev, tear down this wall!!"
 
   alias __MODULE__, as: State
 
   defstruct [
     :cmd,
+    :mon,
     :context,
     :rpc,
     :request_pipe,
@@ -30,14 +33,7 @@ defmodule Farmbot.FarmwareRuntime do
     :response_pipe_handle
   ]
 
-  @type file_handle ::
-          {:file_descriptor, :prim_file,
-           %{
-             handle: reference(),
-             owner: pid(),
-             r_ahead_size: number,
-             r_buffer: reference()
-           }}
+  @type file_handle :: pid()
 
   @type t :: %State{
           request_pipe: Path.t(),
@@ -45,14 +41,17 @@ defmodule Farmbot.FarmwareRuntime do
           response_pipe: Path.t(),
           response_pipe_handle: file_handle,
           cmd: pid(),
+          mon: pid() | nil,
           rpc: map(),
-          context: :get_request | :process_request | :send_response
+          context: :get_header | :get_payload | :process_payload | :send_response
         }
 
   def execute_script(package) do
     case Asset.get_farmware_manifest(package) do
-      nil -> {:error, "Farmware not found"}
-      manifest -> 
+      nil ->
+        {:error, "Farmware not found"}
+
+      manifest ->
         case start_link(manifest) do
           {:ok, pid} -> GenServer.call(pid, :get_rpc)
           {:error, {:already_started, pid}} -> GenServer.call(pid, :get_rpc)
@@ -68,9 +67,10 @@ defmodule Farmbot.FarmwareRuntime do
 
   def init([manifest]) do
     package = manifest.package
+
     request_pipe =
       Path.join([
-        @runtime_dir, 
+        @runtime_dir,
         package <> "-" <> Ecto.UUID.generate() <> "-farmware-request-pipe"
       ])
 
@@ -84,12 +84,10 @@ defmodule Farmbot.FarmwareRuntime do
 
     # Create pipe dir if it doesn't exist
     _ = File.mkdir_p(@runtime_dir)
-    # Create pipes
-    {_, 0} = System.cmd("mkfifo", [request_pipe])
-    {_, 0} = System.cmd("mkfifo", [response_pipe])
-    # Open pipes
-    {:ok, req} = :file.open(to_charlist(request_pipe), [:read, :write, :binary, :raw])
-    {:ok, resp} = :file.open(to_charlist(response_pipe), [:read, :write, :binary, :raw])
+
+    # Open a pipe
+    {:ok, req} = PipeWorker.start_link(request_pipe)
+    {:ok, resp} = PipeWorker.start_link(response_pipe)
 
     exec = System.find_executable(manifest.executable)
     installation_path = install_dir(manifest)
@@ -101,12 +99,12 @@ defmodule Farmbot.FarmwareRuntime do
     ]
 
     # Start the plugin.
-    cmd = spawn(MuonTrap, :cmd, [exec, manifest.args, opts])
-    Process.monitor(cmd)
+    {cmd, _} = spawn_monitor(MuonTrap, :cmd, [exec, manifest.args, opts])
 
     state = %State{
       cmd: cmd,
-      context: :get_request,
+      mon: nil,
+      context: :get_header,
       rpc: nil,
       request_pipe: request_pipe,
       request_pipe_handle: req,
@@ -118,36 +116,24 @@ defmodule Farmbot.FarmwareRuntime do
   end
 
   def terminate(_reason, state) do
-    # Stop the Farmware if it's running
     if state.cmd && Process.alive?(state.cmd), do: Process.exit(state.cmd, :kill)
-    # Stop the in/out pipes if they are open still
-    if state.request_pipe_handle, do: :file.close(state.request_pipe_handle)
-    if state.response_pipe_handle, do: :file.close(state.response_pipe_handle)
-  end
 
-  def handle_call(:get_rpc, _from, %{context: :process_request, rpc: rpc} = state) do
-    {:reply, rpc, %{context: :send_response, rpc: nil}}
-  end
+    if state.request_pipe_handle do
+      File.write(state.request_pipe, @pipe_teardown)
+      PipeWorker.close(state.request_pipe_handle)
+    end
 
-  def handle_call(:get_rpc, _from, state) do
-    {:reply, nil, state}
+    if state.response_pipe_handle do
+      File.write(state.response_pipe, @pipe_teardown)
+      PipeWorker.close(state.response_pipe_handle)
+    end
   end
 
   # get_request does two reads. One to get the header,
   # and a second to get the entire binary payload.
-  def handle_info(:timeout, %{context: :get_request} = state) do
-    case :file.read(state.request_pipe_handle, @packet_header_byte_size) do
-      {:ok,
-       <<@packet_header_token::size(16), _reserved::size(32), payload_size::integer-big-size(32)>>} ->
-        {:ok, packet} = :file.read(state.request_pipe_handle, payload_size)
-        handle_packet(packet, state)
-
-      {:ok, unhandled} ->
-        {:stop, {:unhandled_packet, unhandled}, state}
-
-      {:error, reason} ->
-        {:stop, {:error, reason}, state}
-    end
+  def handle_info(:timeout, %{context: :get_header} = state) do
+    state = async_request_pipe_read(state, @packet_header_byte_size)
+    {:noreply, state}
   end
 
   # Timeout set by `handle_packet/2`. This will mean the CSVM
@@ -157,8 +143,50 @@ defmodule Farmbot.FarmwareRuntime do
     {:stop, {:error, :rpc_timeout}, state}
   end
 
-  def hadnle_info({:DOWN, _ref, :process, _pid, _reason}, state) do
+  # farmware exit
+  def handle_info({:DOWN, _ref, :process, cmd, _reason}, %{cmd: cmd} = state) do
+    Logger.debug("Farmware exit")
     {:stop, :normal, state}
+  end
+
+  # successful result of an io:read/2 in :get_header context
+  def handle_info(
+        {PipeWorker, _ref,
+         {:ok,
+          <<@packet_header_token::size(16), _reserved::size(32),
+            payload_size::integer-big-size(32)>>}},
+        %{context: :get_header} = state
+      ) do
+    state = async_request_pipe_read(state, payload_size)
+    {:noreply, %{state | context: :get_payload}}
+  end
+
+  # error result of an io:read/2 in :get_header context
+  def handle_info({PipeWorker, _ref, {:ok, data}}, %{context: :get_header} = state) do
+    Logger.error("Bad header: #{inspect(data, base: :hex, limit: :infinity)}")
+    {:stop, {:unhandled_packet, data}, state}
+  end
+
+  # error result of an io:read/2 in :get_header context
+  def handle_info({PipeWorker, _ref, error}, %{context: :get_header} = state) do
+    Logger.error("Bad header: #{inspect(error)}")
+    {:stop, error, state}
+  end
+
+  # successful result of an io:read/2 in :get_payload context
+  def handle_info({PipeWorker, _ref, {:ok, packet}}, %{context: :get_payload} = state) do
+    handle_packet(packet, state)
+  end
+
+  # error result of an io:read/2 in :get_header context
+  def handle_info({PipeWorker, _ref, error}, %{context: :get_payload} = state) do
+    Logger.error("Bad payload: #{inspect(error)}")
+    {:stop, error, state}
+  end
+
+  defp async_request_pipe_read(state, size) do
+    mon = PipeWorker.read(state.request_pipe_handle, size)
+    %{state | mon: mon}
   end
 
   def handle_packet(packet, state) do
@@ -174,9 +202,11 @@ defmodule Farmbot.FarmwareRuntime do
   defp decode_ast(data) do
     try do
       case Farmbot.CeleryScript.AST.decode(data) do
-        %{kind: :rpc_request} = ast -> {:ok, ast}
-        %{} = ast -> 
-          Logger.error "Got bad ast: #{inspect(ast)}"
+        %{kind: :rpc_request} = ast ->
+          {:ok, ast}
+
+        %{} = ast ->
+          Logger.error("Got bad ast: #{inspect(ast)}")
           {:error, :bad_ast}
       end
     rescue
