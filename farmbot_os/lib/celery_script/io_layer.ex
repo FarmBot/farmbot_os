@@ -20,7 +20,8 @@ defmodule Farmbot.OS.IOLayer do
 
   # Reporting commands
   def read_status(_args, _body) do
-    Farmbot.BotState.fetch()
+    Farmbot.AMQP.BotStateNGTransport.force()
+    Farmbot.AMQP.BotStateTransport.force()
     :ok
   end
 
