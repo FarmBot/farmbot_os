@@ -173,7 +173,7 @@ defmodule Farmbot.Target.Configurator.Router do
         security == "WPA-PSK" ->
           render_page(conn, "/config_wireless_step_2_PSK", opts)
 
-        security == "WPA-PSK" -> 
+        security == "WPA-PSK" ->
           render_page(conn, "/config_wireless_step_2_PSK", opts)
 
         security == "NONE" ->
