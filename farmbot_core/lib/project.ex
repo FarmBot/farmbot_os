@@ -2,10 +2,11 @@ defmodule Farmbot.Project do
   @moduledoc "Farmbot project config"
 
   @version Mix.Project.config[:version] || Mix.raise("Missing Project key version")
-  @target Mix.Project.config[:target] || Mix.raise("Missing Project key target")
   @commit Mix.Project.config[:commit] || Mix.raise("Missing Project key commit")
   @branch Mix.Project.config[:branch] || Mix.raise("Missing Project key branch")
   @arduino_commit Mix.Project.config[:arduino_commit] || Mix.raise("Missing Project key arduino_commit")
+
+  @target Mix.target()
   @env Mix.env()
   @target Mix.target()
 
