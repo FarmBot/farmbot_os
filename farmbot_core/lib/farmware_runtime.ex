@@ -54,7 +54,7 @@ defmodule Farmbot.FarmwareRuntime do
         }
 
   def stub(farmware_name) do
-    manifest = Asset.get_farmware_manifest() || raise("not found")
+    manifest = Asset.get_farmware_manifest(farmware_name) || raise("not found")
     {:ok, pid} = Farmbot.FarmwareRuntime.start_link(manifest)
     Process.flag(:trap_exit, true)
     stub_loop(pid)
