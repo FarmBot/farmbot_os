@@ -22,7 +22,7 @@ defmodule Farmbot.FarmwareRuntime do
     """)
 
   @muontrap_opts Application.get_env(:farmbot_core, __MODULE__)[:muontrap_opts]
-  @muontrap_opts || []
+  @muontrap_opts @muontrap_opts || []
 
   @packet_header_token 0xFBFB
   @packet_header_byte_size 10
