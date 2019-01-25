@@ -1,5 +1,10 @@
 defmodule Farmbot.FarmwareRuntime do
+  @moduledoc """
+  Handles execution of Farmware plugins. 
+  """
+
   alias Farmbot.FarmwareRuntime.PipeWorker
+  alias Farmbot.CeleryScript.AST
   alias Farmbot.AssetWorker.Farmbot.Asset.FarmwareInstallation
   alias Farmbot.Asset.FarmwareInstallation.Manifest
   import FarmwareInstallation, only: [install_dir: 1]
@@ -13,12 +18,11 @@ defmodule Farmbot.FarmwareRuntime do
   @runtime_dir ||
     Mix.raise("""
     config :farmbot_core, Farmbot.FarmwareRuntime,
-      runtime_dir: "/var/run/farmbot"
+      runtime_dir: "/tmp/farmware_runtime"
     """)
 
   @packet_header_token 0xFBFB
   @packet_header_byte_size 10
-  @pipe_teardown "Mr. Gorbachev, tear down this wall!!"
 
   alias __MODULE__, as: State
 
@@ -33,33 +37,61 @@ defmodule Farmbot.FarmwareRuntime do
     :response_pipe_handle
   ]
 
-  @type file_handle :: pid()
+  @opaque pipe_handle :: pid()
 
   @type t :: %State{
           request_pipe: Path.t(),
-          request_pipe_handle: file_handle,
+          request_pipe_handle: pipe_handle,
           response_pipe: Path.t(),
-          response_pipe_handle: file_handle,
+          response_pipe_handle: pipe_handle,
           cmd: pid(),
           mon: pid() | nil,
           rpc: map(),
           context: :get_header | :get_payload | :process_payload | :send_response
         }
 
-  def execute_script(package) do
-    case Asset.get_farmware_manifest(package) do
-      nil ->
-        {:error, "Farmware not found"}
+  def stub(farmware_name) do
+    manifest = Asset.get_farmware_manifest() || raise("not found")
+    {:ok, pid} = Farmbot.FarmwareRuntime.start_link(manifest)
+    Process.flag(:trap_exit, true)
+    stub_loop(pid)
+  end
 
-      manifest ->
-        case start_link(manifest) do
-          {:ok, pid} -> GenServer.call(pid, :get_rpc)
-          {:error, {:already_started, pid}} -> GenServer.call(pid, :get_rpc)
-          _ -> {:error, "unknown Farmware error"}
+  def stub_loop(pid) do
+    receive do
+      {:EXIT, ^pid, reason} -> reason
+    after
+      100 ->
+        case Farmbot.FarmwareRuntime.process_rpc(pid) do
+          {:ok, %{args: %{label: label}} = rpc} ->
+            IO.puts("Stup processing #{inspect(rpc)}")
+            response = %AST{kind: :rpc_ok, args: %{label: label}, body: []}
+            true = Farmbot.FarmwareRuntime.rpc_processed(pid, response)
+            stub_loop(pid)
+
+          {:error, :no_rpc} ->
+            stub_loop(pid)
         end
     end
   end
 
+  @doc """
+  Calls the Farmware Runtime asking for any RPCs that need to be
+  processed. If an RPC was ready, the Farmware will not process
+  any more RPCs until the current one is done.
+  """
+  def process_rpc(pid) do
+    GenServer.call(pid, :process_rpc)
+  end
+
+  @doc """
+  Calls the Farmware Runtime telling it that an RPC has been processed. 
+  """
+  def rpc_processed(pid, response) do
+    GenServer.call(pid, {:rpc_processed, response})
+  end
+
+  @doc "Start a Farmware"
   def start_link(%Manifest{} = manifest) do
     package = manifest.package
     GenServer.start_link(__MODULE__, [manifest], name: String.to_atom(package))
@@ -119,14 +151,36 @@ defmodule Farmbot.FarmwareRuntime do
     if state.cmd && Process.alive?(state.cmd), do: Process.exit(state.cmd, :kill)
 
     if state.request_pipe_handle do
-      File.write(state.request_pipe, @pipe_teardown)
       PipeWorker.close(state.request_pipe_handle)
     end
 
     if state.response_pipe_handle do
-      File.write(state.response_pipe, @pipe_teardown)
       PipeWorker.close(state.response_pipe_handle)
     end
+  end
+
+  # If we are in the `process_request` state, send the RPC out to be buffered.
+  # This moves us to the `send_response` state. (which has _no_ timeout) 
+  def handle_call(:process_rpc, {pid, _} = _from, %{context: :process_request, rpc: rpc} = state) do
+    # Link the calling process
+    # so the Farmware can exit if the rpc never gets processed. 
+    _ = Process.link(pid)
+    {:reply, {:ok, rpc}, %{state | rpc: nil, context: :send_response}}
+  end
+
+  # If not in the `process_request` state, noop
+  def handle_call(:process_rpc, _from, state) do
+    {:reply, {:error, :no_rpc}, state}
+  end
+
+  def handle_call({:rpc_processed, result}, {pid, _} = _from, %{context: :send_response} = state) do
+    # Unlink the calling process
+    _ = Process.unlink(pid)
+    ipc = add_header(result)
+    reply = PipeWorker.write(state.response_pipe_handle, ipc)
+    # Make sure to `timeout` after this one to go back to the 
+    # get_header context. This will cause another rpc to be processed.
+    {:reply, reply, %{state | rpc: nil, context: :get_header}, 0}
   end
 
   # get_request does two reads. One to get the header,
@@ -184,11 +238,23 @@ defmodule Farmbot.FarmwareRuntime do
     {:stop, error, state}
   end
 
+  # Pipe reads are done async because reading will block the entire
+  # process from receiving more messages as well as 
+  # prevent the processes from terminating. 
+  # this means if a Farmware never opens the pipe
+  # (a valid use case), When the Farmware completes
+  # the pipe will still be waiting for information
+  # and prevent the pipes from closing. 
   defp async_request_pipe_read(state, size) do
     mon = PipeWorker.read(state.request_pipe_handle, size)
     %{state | mon: mon}
   end
 
+  # When a packet arives, buffer it until 
+  # the controlling process (the CSVM) picks it up.
+  # there is a timeout for how long a packet will wait to be collected,
+  # but no time limit to how long it will take to 
+  # process the packet.
   def handle_packet(packet, state) do
     with {:ok, data} <- JSON.decode(packet),
          {:ok, rpc} <- decode_ast(data) do
@@ -201,7 +267,7 @@ defmodule Farmbot.FarmwareRuntime do
 
   defp decode_ast(data) do
     try do
-      case Farmbot.CeleryScript.AST.decode(data) do
+      case AST.decode(data) do
         %{kind: :rpc_request} = ast ->
           {:ok, ast}
 
@@ -233,5 +299,17 @@ defmodule Farmbot.FarmwareRuntime do
     Asset.list_farmware_env()
     |> Map.new(fn %{key: key, value: val} -> {key, val} end)
     |> Map.merge(base)
+  end
+
+  defp add_header(%AST{} = rpc) do
+    payload = rpc |> Map.from_struct() |> JSON.encode!()
+
+    header =
+      <<@packet_header_token::size(16)>> <>
+        :binary.copy(<<0x00>>, 4) <> <<byte_size(payload)::big-size(32)>>
+
+    IO.puts("header size: #{byte_size(header)}")
+    IO.inspect(header, label: "Header", base: :hex)
+    header <> payload
   end
 end
