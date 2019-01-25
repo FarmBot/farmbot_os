@@ -21,6 +21,9 @@ defmodule Farmbot.FarmwareRuntime do
       runtime_dir: "/tmp/farmware_runtime"
     """)
 
+  @muontrap_opts Application.get_env(:farmbot_core, __MODULE__)[:muontrap_opts]
+  @muontrap_opts || []
+
   @packet_header_token 0xFBFB
   @packet_header_byte_size 10
 
@@ -124,11 +127,12 @@ defmodule Farmbot.FarmwareRuntime do
     exec = System.find_executable(manifest.executable)
     installation_path = install_dir(manifest)
 
-    opts = [
-      env: env,
-      cd: installation_path,
-      into: IO.stream(:stdio, :line)
-    ]
+    opts =
+      Keyword.merge(@muontrap_opts,
+        env: env,
+        cd: installation_path,
+        into: IO.stream(:stdio, :line)
+      )
 
     # Start the plugin.
     {cmd, _} = spawn_monitor(MuonTrap, :cmd, [exec, manifest.args, opts])
