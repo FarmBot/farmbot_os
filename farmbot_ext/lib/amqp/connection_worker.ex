@@ -64,11 +64,15 @@ defmodule Farmbot.AMQP.ConnectionWorker do
   defp open_connection(token, email, bot, mqtt_server, vhost) do
     Logger.info("Opening new AMQP connection.")
 
+    # Make sure the types of these fields are correct. If they are not
+    # you timeouts will happen. 
+    # Specifically if anything is `nil` or _any_ other atom, encoded as 
+    # a `:longstr` or `:shortstr` they will _NOT_ be `to_string/1`ified. 
     opts = [
       client_properties: [
         {"version", :longstr, Farmbot.Project.version()},
         {"commit", :longstr, Farmbot.Project.commit()},
-        {"target", :longstr, Farmbot.Project.target()},
+        {"target", :longstr, to_string(Farmbot.Project.target())},
         {"opened", :longstr, to_string(DateTime.utc_now())},
         {"product", :longstr, "farmbot_os"},
         {"bot", :longstr, bot},
