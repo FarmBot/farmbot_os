@@ -12,7 +12,9 @@ defmodule Farmbot.Core do
 
     children = [
       Farmbot.EctoMigrator,
+      # TODO(Connor) - Put these in their own supervisor
       Farmbot.BotState,
+      Farmbot.BotState.FileSystem,
       Farmbot.Logger.Supervisor,
       Farmbot.Config.Supervisor,
       Farmbot.Asset.Supervisor,
