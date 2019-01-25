@@ -36,6 +36,8 @@ config :farmbot_core, Farmbot.BotState.FileSystem,
   root_dir: "/tmp/farmbot_state",
   sleep_time: 200
 
+config :farmbot_core, Farmbot.FarmwareRuntime, runtime_dir: "/tmp/farmware_runtime"
+
 config :ecto, json_library: Farmbot.JSON
 
 config :farmbot_core,
@@ -53,14 +55,14 @@ import_config("lagger.exs")
 config :logger, backends: [:console]
 config :logger, :console, metadata: [:changeset, :module]
 
-if Mix.Project.config()[:target] == "host" do
+if Mix.target() == :host do
   if File.exists?("config/host/#{Mix.env()}.exs") do
     import_config("host/#{Mix.env()}.exs")
   end
 else
   import_config("target/#{Mix.env()}.exs")
 
-  if File.exists?("config/target/#{Mix.Project.config()[:target]}.exs") do
-    import_config("target/#{Mix.Project.config()[:target]}.exs")
+  if File.exists?("config/target/#{Mix.target()}.exs") do
+    import_config("target/#{Mix.target()}.exs")
   end
 end

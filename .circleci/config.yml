@@ -2,13 +2,13 @@ version: 2.0
 defaults: &defaults
   working_directory: /nerves/build
   docker:
-    - image: nervesproject/nerves_system_br:1.5.2
+    - image: nervesproject/nerves_system_br:1.6.1
 
 install_elixir: &install_elixir
   run:
     name: Install Elixir
     command: |
-      wget https://github.com/elixir-lang/elixir/releases/download/v1.7.3/Precompiled.zip
+      wget https://github.com/elixir-lang/elixir/releases/download/v1.8.0/Precompiled.zip
       unzip -d /usr/local/elixir Precompiled.zip
       echo 'export PATH=/usr/local/elixir/bin:$PATH' >> $BASH_ENV
 
@@ -54,13 +54,12 @@ build_firmware_steps: &build_firmware_steps
     - run:
         name: Setup ENV
         command: |
-          echo "/nerves/build/farmbot_os/$MIX_TARGET" > MIX_TARGET
-          echo "/nerves/build/farmbot_os/$MIX_ENV" > MIX_ENV
-          cp /nerves/build/farmbot_os/mix.lock.$MIX_TARGET MIX_LOCK
+          echo "$MIX_TARGET" > MIX_TARGET
+          echo "$MIX_ENV" > MIX_ENV
     - restore_cache:
-        key: v9-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "MIX_LOCK" }}
+        key: v9-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
     - restore_cache:
-        key: v9-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+        key: v9-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
     - <<: *install_elixir
     - <<: *install_hex_archives
     - run:
@@ -78,7 +77,7 @@ build_firmware_steps: &build_firmware_steps
         command: |
           cp /nerves/build/farmbot_os/_build/${MIX_TARGET}/${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
     - save_cache:
-        key: v9-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "MIX_LOCK" }}
+        key: v9-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
         paths:
           - /nerves/build/farmbot_os/_build/
           - /nerves/build/farmbot_os/deps/
@@ -95,11 +94,10 @@ deploy_nerves_hub_firmware_steps: &deploy_nerves_hub_firmware_steps
     - run:
         name: Setup ENV
         command: |
-          echo "/nerves/build/farmbot_os/$MIX_TARGET" > MIX_TARGET
-          echo "/nerves/build/farmbot_os/$MIX_ENV" > MIX_ENV
-          cp /nerves/build/farmbot_os/mix.lock.$MIX_TARGET MIX_LOCK
+          echo "$MIX_TARGET" > MIX_TARGET
+          echo "$MIX_ENV" > MIX_ENV
     - restore_cache:
-        key: v9-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "MIX_LOCK" }}
+        key: v9-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
     - restore_cache:
         key: nerves/deploy/system-{{ checksum "MIX_TARGET" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
     - <<: *install_elixir
@@ -125,7 +123,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.7.3
+      ELIXIR_VERSION: 1.8.0
     steps:
       - checkout
       - restore_cache:
@@ -153,7 +151,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.7.3
+      ELIXIR_VERSION: 1.8.0
     steps:
       - checkout
       - restore_cache:
@@ -181,7 +179,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.7.3
+      ELIXIR_VERSION: 1.8.0
       TZ: "America/Los_Angeles"
     steps:
       - checkout
@@ -229,7 +227,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.7.3
+      ELIXIR_VERSION: 1.8.0
       SKIP_ARDUINO_BUILD: 1
     steps:
       - checkout
@@ -261,12 +259,12 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.7.3
+      ELIXIR_VERSION: 1.8.0
     steps:
       - checkout
       - run: git submodule update --init --recursive
       - restore_cache:
-          key: v9-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock.host" }}
+          key: v9-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
@@ -278,7 +276,7 @@ jobs:
             mix format --check-formatted
             mix test
       - save_cache:
-          key: v9-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock.host" }}
+          key: v9-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
           paths:
             - farmbot_os/_build/host
             - farmbot_os/deps/host
@@ -415,7 +413,7 @@ jobs:
     <<: *defaults
     environment:
       MIX_ENV: prod
-      ELIXIR_VERSION: 1.7.3
+      ELIXIR_VERSION: 1.8.0
     steps:
       - checkout
       - run:
@@ -470,7 +468,7 @@ jobs:
     <<: *defaults
     environment:
       MIX_ENV: prod
-      ELIXIR_VERSION: 1.7.3
+      ELIXIR_VERSION: 1.8.0
     steps:
       - checkout
       - run:
