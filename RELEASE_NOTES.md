@@ -10,3 +10,7 @@ _This file is parsed by the FarmBot Web App._
 * Sequence errors will now send an emergency stop command, locking FarmBot.
 
 * If you are using `Farmduino (Genesis v1.3)`, check that `FIRMWARE` is correct after upgrading. If it isn't, choose the correct value from the drop-down.
+
+# v7
+
+* FarmBot OS now uses Python 3 rather than Python 2 when running Farmware. If you have added custom or 3rd-party Farmware, please check to make sure your FarmBot is still running as expected.
