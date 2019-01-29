@@ -4,7 +4,7 @@ defmodule Farmbot.CeleryScript.AST do
   Ast nodes.
   """
   alias Farmbot.CeleryScript.AST
-  alias AST.{Heap, Slicer, Unslicer}
+  alias AST.{Compiler, Heap, Slicer, Unslicer}
 
   @typedoc "Arguments to a ast node."
   @type args :: map
@@ -30,7 +30,7 @@ defmodule Farmbot.CeleryScript.AST do
   def decode(map_or_list_of_maps)
 
   def decode(%{__struct__: _} = thing) do
-    thing |> Map.from_struct() |> decode
+    thing |> Map.from_struct() |> decode()
   end
 
   def decode(%{} = thing) do
@@ -71,11 +71,12 @@ defmodule Farmbot.CeleryScript.AST do
   end
 
   @spec new(atom, map, [map]) :: t()
-  def new(kind, args, body) when is_map(args) and is_list(body) do
+  def new(kind, args, body, comment \\ nil) when is_map(args) and is_list(body) do
     %__MODULE__{
       kind: String.to_atom(to_string(kind)),
       args: args,
-      body: body
+      body: body,
+      comment: comment
     }
     |> decode()
   end
@@ -86,4 +87,6 @@ defmodule Farmbot.CeleryScript.AST do
   @spec unslice(Heap.t(), Address.t()) :: AST.t()
   def unslice(%Heap{} = heap, %Address{} = addr),
     do: Unslicer.run(heap, addr)
+
+  defdelegate compile(ast), to: Compiler
 end
