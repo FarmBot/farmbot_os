@@ -91,9 +91,9 @@ defmodule Farmbot.CeleryScript.AST.Compiler do
     # well, so if that is the case, compile it first.
     lhs =
       case lhs do
-        "x" -> {:get_current_x, [], []}
-        "y" -> {:get_current_y, [], []}
-        "z" -> {:get_current_z, [], []}
+        "x" -> quote do: get_current_x()
+        "y" -> quote do: get_current_y()
+        "z" -> quote do: get_current_z()
         "pin" <> pin -> {:read_pin, [], [String.to_integer(pin), nil]}
         %AST{} = ast -> compile(ast, celery_env)
       end
@@ -110,7 +110,7 @@ defmodule Farmbot.CeleryScript.AST.Compiler do
           # read_pin(22, nil) == 5
           # The ast will look like: {:==, [], lhs, compile(rhs)}
           quote do
-            unquote(lhs) == unquote(compile(lhs, celery_env))
+            unquote(lhs) == unquote(compile(rhs, celery_env))
           end
 
         "not" ->
