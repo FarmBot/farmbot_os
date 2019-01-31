@@ -33,14 +33,19 @@ defmodule Farmbot.CeleryScript.AST.Compiler do
         end
       end)
 
+    assignments = compile_block(body, celery_env)
+    steps = compile_block(block, celery_env) |> decompose_block_to_steps()
+
     quote do
       fn params ->
+        import Farmbot.CeleryScript.Syscalls
         # Fetches variables from the previous execute()
         # example:
         # parent = Keyword.fetch!(params, :parent)
         unquote_splicing(params)
         # Unquote the remaining sequence steps.
-        unquote(compile_block(body ++ block, celery_env))
+        unquote(assignments)
+        unquote(steps)
       end
     end
     |> add_meta(ast, celery_env)
@@ -94,9 +99,11 @@ defmodule Farmbot.CeleryScript.AST.Compiler do
         "x" -> quote do: get_current_x()
         "y" -> quote do: get_current_y()
         "z" -> quote do: get_current_z()
-        "pin" <> pin -> {:read_pin, [], [String.to_integer(pin), nil]}
+        "pin" <> pin -> quote do: read_pin(unquote(String.to_integer(pin)), nil)
         %AST{} = ast -> compile(ast, celery_env)
       end
+
+    rhs = compile(rhs, celery_env)
 
     # Turn the `op` arg into Elixir code
     if_eval =
@@ -110,13 +117,13 @@ defmodule Farmbot.CeleryScript.AST.Compiler do
           # read_pin(22, nil) == 5
           # The ast will look like: {:==, [], lhs, compile(rhs)}
           quote do
-            unquote(lhs) == unquote(compile(rhs, celery_env))
+            unquote(lhs) == unquote(rhs)
           end
 
         "not" ->
           # ast will look like: {:!=, [], [lhs, compile(rhs)]}
           quote do
-            unquote(lhs) != unquote(compile(rhs, celery_env))
+            unquote(lhs) != unquote(rhs)
           end
 
         "is_undefined" ->
@@ -128,13 +135,13 @@ defmodule Farmbot.CeleryScript.AST.Compiler do
         "<" ->
           # ast will look like: {:<, [], [lhs, compile(rhs)]}
           quote do
-            unquote(lhs) < unquote(compile(rhs, celery_env))
+            unquote(lhs) < unquote(rhs)
           end
 
         ">" ->
           # ast will look like: {:>, [], [lhs, compile(rhs)]}
           quote do
-            unquote(lhs) > unquote(compile(rhs, celery_env))
+            unquote(lhs) > unquote(rhs)
           end
       end
 
@@ -160,17 +167,16 @@ defmodule Farmbot.CeleryScript.AST.Compiler do
       ) do
     quote do
       # We have to lookup the sequence by it's id. 
-      case get_sequence(unquote(id)) do
-        {:ok, %AST{} = ast, new_celery_env} ->
-          # compile the ast
-          fun = unquote(__MODULE__).compile(ast, new_celery_env)
-          # And call it, serializing all the variables it expects.
-          # see the `compile_param_application/1` docs for more info.
-          fun.(unquote(compile_param_application(variable_declarations)))
+      %Farmbot.CeleryScript.AST{} = ast = get_sequence(unquote(id))
+      # compile the ast
+      fun =
+        unquote(__MODULE__).compile(ast)
+        |> Code.eval_quoted()
+        |> elem(0)
 
-        err ->
-          handle_error(err)
-      end
+      # And call it, serializing all the variables it expects.
+      # see the `compile_param_application/1` docs for more info.
+      fun.(unquote(compile_param_application(variable_declarations)))
     end
     |> add_meta(ast, celery_env)
   end
@@ -187,7 +193,7 @@ defmodule Farmbot.CeleryScript.AST.Compiler do
       end)
 
     quote do
-      execute_script(unquote(package), unquote(Map.new(env)))
+      execute_script(unquote(package), unquote(Macro.escape(Map.new(env))))
     end
     |> add_meta(ast, celery_env)
   end
@@ -248,7 +254,7 @@ defmodule Farmbot.CeleryScript.AST.Compiler do
       # build a vec3 of the current position
       %{x: offx, y: offy, z: offz} = %{
         x: get_current_x(),
-        y: get_current_y,
+        y: get_current_y(),
         z: get_current_y()
       }
 
@@ -492,5 +498,15 @@ defmodule Farmbot.CeleryScript.AST.Compiler do
       |> Keyword.merge(more)
 
     {a, meta, body}
+  end
+
+  defp decompose_block_to_steps({:__block__, _, steps} = orig) do
+    Enum.map(steps, fn step ->
+      quote do
+        fn ->
+          unquote(step)
+        end
+      end
+    end)
   end
 end
