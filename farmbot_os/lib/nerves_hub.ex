@@ -18,9 +18,11 @@ defmodule Farmbot.System.NervesHub do
   ## On host.
   Just return :ok to everything.
   """
-  import Farmbot.Config, only: [
-    get_config_value: 3, update_config_value: 4
-  ]
+  import Farmbot.Config,
+    only: [
+      get_config_value: 3,
+      update_config_value: 4
+    ]
 
   @behaviour Farmbot.AMQP.NervesHubTransport
 
@@ -100,6 +102,7 @@ defmodule Farmbot.System.NervesHub do
   end
 
   def detect_channel do
+<<<<<<< HEAD
     channel_from_branch = case Farmbot.Project.branch() do
       "master" -> "stable"
       "beta" -> "beta"
@@ -109,6 +112,15 @@ defmodule Farmbot.System.NervesHub do
 
     channel_from_config = get_config_value(:string, "settings", "update_channel")
     "channel:#{channel_from_config || channel_from_branch}"
+=======
+    get_config_value(:string, "settings", "update_channel") ||
+      case Farmbot.Project.branch() do
+        "master" -> "channel:stable"
+        "beta" -> "channel:beta"
+        "staging" -> "channel:staging"
+        branch -> "channel:#{branch}"
+      end
+>>>>>>> 6208022c... Format
   end
 
   def get_config do
