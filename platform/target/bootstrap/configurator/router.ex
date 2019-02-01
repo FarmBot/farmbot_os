@@ -221,6 +221,9 @@ defmodule Farmbot.Target.Bootstrap.Configurator.Router do
         update_config_value(:string, "settings", "firmware_hardware", "custom")
         redir(conn, "/credentials")
 
+      %{"firmware_hardware" => "skip"} ->
+        redir(conn, "/credentials")
+
       _ ->
         send_resp(conn, 500, "Bad firmware_hardware!")
     end

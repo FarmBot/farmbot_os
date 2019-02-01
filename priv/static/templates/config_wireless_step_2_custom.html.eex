@@ -5,35 +5,33 @@
     <title> Configure Farmbot's Network </title>
     <link rel="stylesheet" href="/styles.css">
     <script>
-      function securityChange() {
-        if(document.getElementById("security").value == "WPA-PSK") {
-          document.getElementById("pskdiv").hidden = false;
-        } else {
-          document.getElementById("pskdiv").hidden = true;
-        }
+      function securityInputs(action, securityType) {
+        var hidden = action == "hide";
+        var required = !hidden;
 
-        if(document.getElementById("security").value == "WPA-EAP") {
-          document.getElementById("eapidentitydiv").hidden = false;
-          document.getElementById("eappassworddiv").hidden = false;
-        } else {
-          document.getElementById("eapidentitydiv").hidden = true;
-          document.getElementById("eappassworddiv").hidden = true;
+        if (securityType == "EAP" || securityType == "ALL") {
+          document.getElementById("eapidentitydiv").hidden = hidden;
+          document.getElementById("eappassworddiv").hidden = hidden;
+          document.getElementById("identity").required = required;
+          document.getElementById("password").required = false;
         }
-
-        if(document.getElementById("security").value == "NONE") {
-          document.getElementById("pskdiv").hidden = true;
-          document.getElementById("eapidentitydiv").hidden = true;
-          document.getElementById("eappassworddiv").hidden = true;
+        if (securityType == "PSK" || securityType == "ALL") {
+          document.getElementById("pskdiv").hidden = hidden;
+          document.getElementById("psk").required = false;
         }
       }
 
-      function showPassword() {
-        var x = document.getElementById("psk");
-        if (x.type === "password") {
-            x.type = "text";
-        } else {
-            x.type = "password";
-        }
+      function securityChange() {
+        var v = document.getElementById("security").value;
+        securityInputs(v == "WPA-PSK" ? "show" : "hide", "PSK");
+        securityInputs(v == "WPA-EAP" ? "show" : "hide", "EAP");
+
+        if(v == "NONE") { securityInputs("hide", "ALL"); }
+      }
+
+      function showPassword(elementId) {
+        var x = document.getElementById(elementId);
+        x.type = (x.type === "password") ? "text" : "password";
       }
     </script>
   </head>
@@ -59,25 +57,25 @@
             </select>
 
             <div id="pskdiv">
-              <label for=psk> PSK </label>
+              <label for=psk> Password </label>
               <div class="psk-input-group">
                 <input type="password" name="psk" id="psk">
                 <img class="eye-icon" src="icon_eye.svg"
-                  onclick="showPassword()" title="Show password">
+                  onclick="showPassword('psk')" title="Show password">
               </div>
             </div>
 
-            <div id="eapidentitydiv">
+            <div id="eapidentitydiv" hidden>
               <label for=identity> EAP Identity </label>
               <input type="text" name="identity" id="identity">
             </div>
 
-            <div id="eappassworddiv">
+            <div id="eappassworddiv" hidden>
               <label for=password> EAP Password </label>
               <div class="psk-input-group">
                 <input type="password" name="password" id="password">
                 <img class="eye-icon" src="icon_eye.svg"
-                  onclick="showPassword()" title="Show password">
+                  onclick="showPassword('password')" title="Show password">
               </div>
             </div>
 

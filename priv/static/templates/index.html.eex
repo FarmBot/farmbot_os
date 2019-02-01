@@ -29,16 +29,20 @@
         <p> <a hidden=true id='hidden-logs' href="/view_logs">Download all logs</a> </p>
 
         <%= if last_reset_reason do %>
-          <h5> Farmbot unexpectedly shut down </h5> <p>
-          Last shutdown reason: <%= last_reset_reason %>
+          <div class="last-shutdown-reason">
+            <div class="last-shutdown-reason-header">
+              <h5> Farmbot unexpectedly shut down </h5> <p></p>
+            </div>
+            <i> Last shutdown reason: </i> <%= last_reset_reason %>
+          </div>
         <% end %>
 
         <p>Get ready to configure your FarmBot!</p>
-        <ui>
+        <ul>
           <li>Network</li>
           <li>Firmware</li>
           <li>Web App Credentials</li>
-        </ui>
+        </ul>
       </div>
     </div>
     <div class="button">

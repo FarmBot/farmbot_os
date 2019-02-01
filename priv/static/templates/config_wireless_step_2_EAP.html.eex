@@ -6,12 +6,8 @@
     <link rel="stylesheet" href="/styles.css">
     <script>
       function showPassword() {
-          var x = document.getElementById("psk");
-          if (x.type === "password") {
-              x.type = "text";
-          } else {
-              x.type = "password";
-          }
+          var x = document.getElementById("password");
+          x.type = (x.type === "password") ? "text" : "password";
       }
     </script>
   </head>
@@ -30,7 +26,7 @@
             <input name="ifname",  hidden=true value="<%= ifname %>">
 
             <label for="identity"> IDENTITY </label>
-            <input type="identity" name="identity" id="identity">
+            <input type="text" name="identity" id="identity" required>
 
             <label for="password"> PASSWORD </label>
             <div class="psk-input-group">
@@ -42,7 +38,7 @@
 
           <%= advanced_network %>
 
-          <div class="button"> <input type=submit value="next"> </div>
+          <div class="button"> <input type="submit" value="next"> </div>
         </form>
       </div>
     </div>

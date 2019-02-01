@@ -14,6 +14,7 @@
       </div>
       <div class="widget-content">
         FarmBot will now reboot to apply the configuration.
+        <p></p>
         <p>
           If any configuration settings are incorrect, FarmBot will reset
           allowing you to enter the settings again.

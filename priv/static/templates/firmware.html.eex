@@ -7,38 +7,53 @@
   </head>
 
   <style>
-    #myProgress {
-      width: 100%;
-      background-color: #ddd;
+    #activity_indicator_div {
+      text-align: center;
     }
 
-    #myBar {
-      width: 1%;
+    #activity_indicator_background {
+      width: 100%;
+      background-color: #ddd;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    #activity_indicator {
+      left: 35%;
+      width: 30%;
       height: 30px;
       background-color: #4CAF50;
+      position: relative;
     }
   </style>
 
   <script>
   var num_dots = 0;
-  function button_click() {
-    document.getElementById("loading_thing").hidden = false;
+  function submitFirmwareChoice() {
+    var dropdown = document.getElementById("firmware_hardware");
+    var selection = dropdown.options[dropdown.selectedIndex].value
+    if (selection != "skip") {
+      document.getElementById("activity_indicator_div").hidden = false;
+    }
     document.getElementById("submit_button").hidden = true;
     document.getElementById("firmware_hardware").hidden = true;
-    moveBar();
+    displayActivityIndicator();
   }
 
-  function moveBar() {
-    var elem = document.getElementById("myBar");
-    var width = 1;
-    var id = setInterval(frame, 300);
+  function displayActivityIndicator() {
+    var elem = document.getElementById("activity_indicator");
+    var width = 30;
+    elem.style.width = width + '%';
+    var position = 35;
+    var step = 1;
+    var direction = 1;
+    var directionChange = false;
+    setInterval(frame, 50);
     function frame() {
-      if (width >= 100) {
-        clearInterval(id);
-      } else {
-        width++;
-        elem.style.width = width + '%';
-      }
+      directionChange = direction > 0 ? position >= (100 - width) : position <= 0;
+      direction *= directionChange ? -1 : 1;
+      position += step * direction;
+      elem.style.left = position + '%';
     }
   }
 
@@ -50,11 +65,12 @@
       <div class="widget-header">
         <h5>Firmware</h5>
       </div>
-      <div class="widget-content" hidden=true id="loading_thing">
+      <div class="widget-content" hidden id="activity_indicator_div">
         Your firmware is flashing.
-        <div id="myProgress">
-          <div id="myBar"></div>
+        <div id="activity_indicator_background">
+          <div id="activity_indicator"></div>
         </div>
+        Configuration will proceed to the next step once flashing is complete.
       </div>
       <div class="widget-content">
         <form action=configure_firmware method=post>
@@ -64,13 +80,14 @@
               <option value="farmduino"> Farmduino (Genesis v1.3) </option>
               <option value="farmduino_k14"> Farmduino (Genesis v1.4) </option>
               <option value="custom"> Custom board </option>
+              <option value="skip"> No board connected </option>
             </select>
           </fieldset>
       </div>
     </div>
 
-    <div id="submit_button" class="button" onclick="button_click()">
-      <input type=submit value="next">
+    <div id="submit_button" class="button" onclick="submitFirmwareChoice()">
+      <input type="submit" value="next">
     </div>
 
     </form>

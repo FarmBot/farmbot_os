@@ -28,6 +28,10 @@
           overflow: hidden;
           background-color: #f1f1f1;
       }
+
+      .warning {
+        color: red;
+      }
       </style>
     </head>
 
@@ -39,10 +43,10 @@
       </div>
       <div class="widget-content">
 
-        <h3> <bold> WARNING </bold> </h3>
-        <p>
+        <h3 class="warning"> WARNING </h3>
+        <p class="warning">
           Be cautious when sharing this log dump. It will contain potentially
-          sensitive information about your bot.
+          sensitive information about your bot and network.
         </p>
         <p> <a href="/logs">Download all logs</a> </p>
 

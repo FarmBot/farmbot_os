@@ -124,6 +124,7 @@ label {
 
 input[type=email],
 input[type=password],
+input[type=url],
 input[type=text] {
   border: none;
   box-shadow: 0px 0px 10px #cccccc !important;
@@ -134,6 +135,7 @@ input[type=text] {
 
 input[type=email]:focus,
 input[type=password]:focus,
+input[type=url]:focus,
 input[type=text]:focus {
   outline: none;
 }
@@ -329,6 +331,7 @@ th {
   top: 0;
 }
 
+.password-input-group,
 .psk-input-group {
   position: relative;
 }
@@ -337,4 +340,22 @@ th {
   width: 1%;
   height: 1.5rem;
   background-color: #4CAF50;
+}
+
+.last-shutdown-reason {
+  background-color: #ccc;
+  padding: 10px;
+  margin-bottom: 30px;
+}
+
+.last-shutdown-reason-header {
+  text-align: center;
+}
+
+.last-shutdown-reason-header h5 {
+  color: #434343;
+}
+
+.last-shutdown-reason i {
+  font-weight: bold;
 }
