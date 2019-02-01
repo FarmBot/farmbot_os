@@ -7,11 +7,7 @@
     <script>
       function showPassword() {
           var x = document.getElementById("psk");
-          if (x.type === "password") {
-              x.type = "text";
-          } else {
-              x.type = "password";
-          }
+          x.type = (x.type === "password") ? "text" : "password";
       }
     </script>
   </head>

@@ -13,7 +13,7 @@
       <div class="widget-content">
         security mode <%= inspect security %> unknown or unsupported.
         <form action="network" method="get">
-          <div class="button"> <input type=submit value="Try something else"> </div>
+          <div class="button"> <input type="submit" value="Try something else"> </div>
         </form>
       </div>
     </div>

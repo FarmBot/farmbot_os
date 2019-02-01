@@ -23,7 +23,7 @@
 
           </fieldset>
 
-          <div class="button"> <input type=submit value="next"> </div>
+          <div class="button"> <input type="submit" value="next"> </div>
         </form>
       </div>
     </div>
