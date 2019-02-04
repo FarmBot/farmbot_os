@@ -1,3 +1,4 @@
+<% import Phoenix.HTML %>
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
@@ -13,6 +14,26 @@
         document.getElementById("hidden-logs").hidden = false;
       }
     }
+
+    function copyLSR() {
+      var tmp = document.createElement("div");
+      <%= if last_reset_reason do %>
+        tmp.innerHTML = "<%= escape_javascript(last_reset_reason) %>";
+      <% end %>
+      var textArea = document.createElement("textarea");
+      textArea.value += "```\n";
+      textArea.value += tmp.innerText;
+      textArea.value += "```";
+      document.getElementById("last-shutdown-reason-content").appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      var copyStatus = document.execCommand("copy");
+      var copiedText = window.getSelection().toString();
+      console.log(copyStatus ? "copied:" : "did not copy: ", copiedText);
+      document.getElementById("last-shutdown-reason-content").removeChild(textArea);
+      document.getElementById("copy-lsr-button").innerHTML = copyStatus ? "copy ✓" : "copy";
+    }
+
     </script>
   </head>
 
@@ -33,7 +54,12 @@
             <div class="last-shutdown-reason-header">
               <h5> Farmbot unexpectedly shut down </h5> <p></p>
             </div>
-            <i> Last shutdown reason: </i> <%= last_reset_reason %>
+            <div id="last-shutdown-reason-content">
+              <i> Last shutdown reason: </i> <%= last_reset_reason %>
+            </div>
+            <div class="copy-button">
+              <button id="copy-lsr-button" onClick='copyLSR()'>copy</button>
+            </div>
           </div>
         <% end %>
 
