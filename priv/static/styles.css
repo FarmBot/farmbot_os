@@ -38,6 +38,7 @@ h1, h2 {
   background-color: #434343;
 }
 
+button,
 a, input[type=submit] {
   padding: .5rem 1.6rem;
   font-size: 1.2rem;
@@ -55,6 +56,19 @@ a, input[type=submit] {
 a:hover, input[type=submit]:hover {
   border-bottom-width: 1px !important;
   background-color:#61a241;
+}
+
+.rescan {
+  float: right;
+  font-size: 15px;
+  padding: 5px 10px 20px 10px;
+  height: 0;
+  margin: -4px;
+
+}
+
+.copy-button {
+  text-align: center;
 }
 
 .widget {
@@ -346,6 +360,7 @@ th {
   background-color: #ccc;
   padding: 10px;
   margin-bottom: 30px;
+  overflow-wrap: break-word;
 }
 
 .last-shutdown-reason-header {
