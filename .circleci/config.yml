@@ -261,10 +261,10 @@ jobs:
           name: Setup ENV
           command: |
             echo rpi3 > MIX_TARGET_RPI3
-            echo rpi > MIX_TARGET_RPI
-            echo $MIX_ENV > MIX_ENV
             cp mix.lock.rpi3 MIX_LOCK_RPI3
-            cp mix.lock.rpi MIX_LOCK_RPI
+            # echo rpi > MIX_TARGET_RPI
+            # cp mix.lock.rpi MIX_LOCK_RPI
+            echo $MIX_ENV > MIX_ENV
       - restore_cache:
           key: nerves/deploy/system-{{ checksum "MIX_TARGET_RPI3" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - restore_cache:
@@ -285,12 +285,12 @@ jobs:
             mv /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw /tmp/farmbot-rpi3-$(cat VERSION).fw
             fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-rpi3-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION)-beta.fw
             fwup -a -t complete -i /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION)-beta.fw -d /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION)-beta.img
-      - run:
-          name: Sign rpi Firmware
-          command: |
-            mv /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).fw /tmp/farmbot-rpi-$(cat VERSION).fw
-            fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-rpi-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION)-beta.fw
-            fwup -a -t complete -i /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION)-beta.fw -d /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION)-beta.img
+      # - run:
+      #     name: Sign rpi Firmware
+      #     command: |
+      #       mv /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).fw /tmp/farmbot-rpi-$(cat VERSION).fw
+      #       fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-rpi-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION)-beta.fw
+      #       fwup -a -t complete -i /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION)-beta.fw -d /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION)-beta.img
       - run:
           name: Publish Github Release
           command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -prerelease -recreate -prerelease -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)-beta" /nerves/deploy/system/artifacts/
@@ -316,14 +316,14 @@ jobs:
           name: Setup ENV
           command: |
             echo rpi3 > MIX_TARGET_RPI3
-            echo rpi > MIX_TARGET_RPI
-            echo $MIX_ENV > MIX_ENV
             cp mix.lock.rpi3 MIX_LOCK_RPI3
-            cp mix.lock.rpi MIX_LOCK_RPI
+            # echo rpi > MIX_TARGET_RPI
+            # cp mix.lock.rpi MIX_LOCK_RPI
+            echo $MIX_ENV > MIX_ENV
       - restore_cache:
           key: nerves/deploy/system-{{ checksum "MIX_TARGET_RPI3" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - restore_cache:
-          key: nerves/deploy/system-{{ checksum "MIX_TARGET_RPI" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+      # - restore_cache:
+      #     key: nerves/deploy/system-{{ checksum "MIX_TARGET_RPI" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - <<: *install_ghr
@@ -339,12 +339,12 @@ jobs:
             mv /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw /tmp/farmbot-rpi3-$(cat VERSION).fw
             fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-rpi3-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw
             fwup -a -t complete -i /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw -d /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).img
-      - run:
-          name: Sign rpi Firmware and create image
-          command: |
-            mv /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw /tmp/farmbot-rpi3-$(cat VERSION).fw
-            fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-rpi3-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw
-            fwup -a -t complete -i /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).fw -d /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).img
+      # - run:
+      #     name: Sign rpi Firmware and create image
+      #     command: |
+      #       mv /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw /tmp/farmbot-rpi3-$(cat VERSION).fw
+      #       fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-rpi3-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw
+      #       fwup -a -t complete -i /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).fw -d /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).img
       - run:
           name: Publish Github Release
           command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -draft -delete -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)" /nerves/deploy/system/artifacts
@@ -368,22 +368,22 @@ workflows:
   # master branch to staging.farmbot.io
   nerves_hub_prod_stable_staging:
     jobs:
-      - build_rpi_prod:
-          context: farmbot-staging
-          filters:
-            branches:
-              only:
-                - master
+      # - build_rpi_prod:
+      #     context: farmbot-staging
+      #     filters:
+      #       branches:
+      #         only:
+      #           - master
       - build_rpi3_prod:
           context: farmbot-staging
           filters:
             branches:
               only:
                 - master
-      - deploy_rpi_prod_stable:
-          context: farmbot-staging
-          requires:
-            - build_rpi_prod
+      # - deploy_rpi_prod_stable:
+      #     context: farmbot-staging
+      #     requires:
+      #       - build_rpi_prod
       - deploy_rpi3_prod_stable:
           context: farmbot-staging
           requires:
@@ -392,22 +392,22 @@ workflows:
   # master branch to my.farmbot.io
   nerves_hub_prod_stable_production:
     jobs:
-      - build_rpi_prod:
-          context: farmbot-production
-          filters:
-            branches:
-              only:
-                - master
+      # - build_rpi_prod:
+      #     context: farmbot-production
+      #     filters:
+      #       branches:
+      #         only:
+      #           - master
       - build_rpi3_prod:
           context: farmbot-production
           filters:
             branches:
               only:
                 - master
-      - deploy_rpi_prod_stable:
-          context: farmbot-production
-          requires:
-            - build_rpi_prod
+      # - deploy_rpi_prod_stable:
+      #     context: farmbot-production
+      #     requires:
+      #       - build_rpi_prod
       - deploy_rpi3_prod_stable:
           context: farmbot-production
           requires:
@@ -415,28 +415,28 @@ workflows:
       - publish_prod_firmware_master_release:
           context: org-global
           requires:
-            - build_rpi_prod
+            # - build_rpi_prod
             - build_rpi3_prod
 
   # beta branch to staging.farmbot.io
   nerves_hub_prod_beta_staging:
     jobs:
-      - build_rpi_prod:
-          context: farmbot-staging
-          filters:
-            branches:
-              only:
-                - beta
+      # - build_rpi_prod:
+      #     context: farmbot-staging
+      #     filters:
+      #       branches:
+      #         only:
+      #           - beta
       - build_rpi3_prod:
           context: farmbot-staging
           filters:
             branches:
               only:
                 - beta
-      - deploy_rpi_prod_beta:
-          context: farmbot-staging
-          requires:
-            - build_rpi_prod
+      # - deploy_rpi_prod_beta:
+      #     context: farmbot-staging
+      #     requires:
+      #       - build_rpi_prod
       - deploy_rpi3_prod_beta:
           context: farmbot-staging
           requires:
@@ -445,22 +445,22 @@ workflows:
   # beta branch to my.farmbot.io
   nerves_hub_prod_beta_production:
     jobs:
-      - build_rpi_prod:
-          context: farmbot-production
-          filters:
-            branches:
-              only:
-                - beta
+      # - build_rpi_prod:
+      #     context: farmbot-production
+      #     filters:
+      #       branches:
+      #         only:
+      #           - beta
       - build_rpi3_prod:
           context: farmbot-production
           filters:
             branches:
               only:
                 - beta
-      - deploy_rpi_prod_beta:
-          context: farmbot-production
-          requires:
-            - build_rpi_prod
+      # - deploy_rpi_prod_beta:
+      #     context: farmbot-production
+      #     requires:
+      #       - build_rpi_prod
       - deploy_rpi3_prod_beta:
           context: farmbot-production
           requires:
@@ -468,29 +468,29 @@ workflows:
       - publish_prod_firmware_beta_release:
           context: org-global
           requires:
-            - build_rpi_prod
+            # - build_rpi_prod
             - build_rpi3_prod
 
 
   # staging branch to staging.farmbot.io
   nerves_hub_rpi_prod_staging_staging:
     jobs:
-      - build_rpi_prod:
-          context: farmbot-staging
-          filters:
-            branches:
-              only:
-                - staging
+      # - build_rpi_prod:
+      #     context: farmbot-staging
+      #     filters:
+      #       branches:
+      #         only:
+      #           - staging
       - build_rpi3_prod:
           context: farmbot-staging
           filters:
             branches:
               only:
                 - staging
-      - deploy_rpi_prod_staging:
-          context: farmbot-staging
-          requires:
-            - build_rpi_prod
+      # - deploy_rpi_prod_staging:
+      #     context: farmbot-staging
+      #     requires:
+      #       - build_rpi_prod
       - deploy_rpi3_prod_staging:
           context: farmbot-staging
           requires:
