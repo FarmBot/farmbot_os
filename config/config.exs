@@ -58,7 +58,7 @@ config :farmbot, :builtins,
   ]
 
 config :farmbot,
-  expected_fw_versions: ["6.4.1.F", "6.4.1.R", "6.4.1.G"],
+  expected_fw_versions: ["6.4.2.F", "6.4.2.R", "6.4.2.G"],
   default_server: "https://my.farm.bot",
   default_currently_on_beta: String.contains?(to_string(:os.cmd('git rev-parse --abbrev-ref HEAD')), "beta"),
   firmware_io_logs: false,
