@@ -182,9 +182,12 @@ defmodule Farmbot.Target.Network do
     |> maybe_use_domain(config)
   end
 
+  # This is a typo. It should have been `nameservers` not `name_servers`
+  # It is however stored in the database as
+  # `name_servers`, so it can not be changed without a migration.
   defp maybe_use_name_servers(opts, config) do
     if config.name_servers do
-      Keyword.put(opts, :name_servers, String.split(config.name_servers, " "))
+      Keyword.put(opts, :nameservers, String.split(config.name_servers, " "))
     else
       opts
     end
