@@ -2,7 +2,8 @@
 
 # 7.0.1
 * Fix typo causing custom dns servers to be ignored.
-* Update Configurator UI 
+* Update Configurator UI
+* Update Farmbot-Arduino-Firmware to 6.4.2
 
 # 7.0.0
 * Initial support for WPA-EAP networks. 
