@@ -16,7 +16,8 @@ defmodule Farmbot.Bootstrap.SettingsSync do
     "arduino_debug_messages",
     "os_auto_update",
     "firmware_hardware",
-    "network_not_found_timer"
+    "network_not_found_timer",
+    "update_channel"
   ]
 
   @firmware_keys [
@@ -129,7 +130,8 @@ defmodule Farmbot.Bootstrap.SettingsSync do
   ]
 
   @string_keys [
-    "firmware_hardware"
+    "firmware_hardware",
+    "update_channel"
   ]
 
   @float_keys @firmware_keys ++ [

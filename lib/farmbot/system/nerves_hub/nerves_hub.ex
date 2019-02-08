@@ -17,6 +17,9 @@ defmodule Farmbot.System.NervesHub do
   ## On host.
   Just return :ok to everything.
   """
+  import Farmbot.System.ConfigStorage, only: [
+    get_config_value: 3, update_config_value: 4
+  ]
 
   @handler Application.get_env(:farmbot, :behaviour)[:nerves_hub_handler]
   || Mix.raise("missing :nerves_hub_handler module")
@@ -62,12 +65,7 @@ defmodule Farmbot.System.NervesHub do
   end
 
   def handle_info(:configure, :not_configured) do
-    channel = case Farmbot.Project.branch() do
-      "master" -> "channel:stable"
-      "beta" -> "channel:beta"
-      "staging" -> "channel:staging"
-      branch -> "channel:#{branch}"
-    end
+    channel = detect_channel()
 
     if Process.whereis(Farmbot.HTTP) do
       app_config = Application.get_env(:farmbot, __MODULE__, [])
@@ -85,9 +83,9 @@ defmodule Farmbot.System.NervesHub do
       end
 
       if channel == "channel:beta" do
-        Farmbot.System.ConfigStorage.update_config_value(:bool, "settings", "currently_on_beta", true)
+        update_config_value(:bool, "settings", "currently_on_beta", true)
       else
-        Farmbot.System.ConfigStorage.update_config_value(:bool, "settings", "currently_on_beta", false)
+        update_config_value(:bool, "settings", "currently_on_beta", false)
       end
 
       {:noreply, :configured}
@@ -95,6 +93,15 @@ defmodule Farmbot.System.NervesHub do
       Logger.debug 3, "FarmBot Server not configured yet. Waiting 10_000 ms to try OTA config again."
       Process.send_after(self(), :configure, 10_000)
       {:noreply, :not_configured}
+    end
+  end
+
+  def detect_channel do
+    get_config_value(:string, "settings", "update_channel") || case Farmbot.Project.branch() do
+      "master" -> "channel:stable"
+      "beta" -> "channel:beta"
+      "staging" -> "channel:staging"
+      branch -> "channel:#{branch}"
     end
   end
 
