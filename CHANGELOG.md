@@ -1,5 +1,9 @@
 # Changelog
 
+# 7.0.1
+* Fix typo causing custom dns servers to be ignored.
+* Update Configurator UI 
+
 # 7.0.0
 * Initial support for WPA-EAP networks. 
 * Increase NervesHub reconnect timer to not waste CPU time.
