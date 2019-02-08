@@ -24,6 +24,7 @@ defmodule Farmbot.System.ConfigStorage.NetworkInterface do
     field(:ipv4_gateway, :string)
     field(:ipv4_subnet_mask, :string)
     field(:domain, :string)
+    # This is a typo. It should be `nameservers`
     field(:name_servers, :string)
 
     field(:regulatory_domain, :string, default: "US")
