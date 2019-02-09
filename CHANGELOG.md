@@ -4,6 +4,8 @@
 * Fix typo causing custom dns servers to be ignored.
 * Update Configurator UI
 * Update Farmbot-Arduino-Firmware to 6.4.2
+* Fix bug in decoding of CeleryScript
+* Fix bug causing the stubbed Firmware implemenation to crash
 
 # 7.0.0
 * Initial support for WPA-EAP networks. 
