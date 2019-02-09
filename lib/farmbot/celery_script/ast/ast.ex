@@ -66,6 +66,10 @@ defmodule Farmbot.CeleryScript.AST do
 
   def decode(list) when is_list(list), do: decode_body(list)
 
+  def decode(%__MODULE__{} = ast) do
+    {:ok, ast}
+  end
+
   def decode(%{__struct__: _} = herp) do
     Map.from_struct(herp) |> decode()
   end
