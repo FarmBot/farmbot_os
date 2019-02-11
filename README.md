@@ -11,7 +11,7 @@ The "brains" of the FarmBot Project
 # :floppy_disk: LATEST OS IMAGE DOWNLOADS
 <!-- DON'T CHANGE THE TEXT ABOVE. It is used in documentation links. -->
 
-:star: **[RPi 3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v7.0.0/farmbot-rpi3-7.0.0.img)**
+:star: **[RPi 3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v7.0.1/farmbot-rpi3-7.0.1.img)**
 ---
 
 ## Installation
