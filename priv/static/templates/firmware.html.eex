@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
@@ -86,8 +87,8 @@
       </div>
     </div>
 
-    <div id="submit_button" class="button" onclick="submitFirmwareChoice()">
-      <input type="submit" value="next">
+    <div id="submit_button" class="button">
+      <input type="submit" value="next" onclick="submitFirmwareChoice()">
     </div>
 
     </form>
