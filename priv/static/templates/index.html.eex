@@ -1,4 +1,5 @@
 <% import Phoenix.HTML %>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
@@ -24,16 +25,23 @@
       textArea.value += "```\n";
       textArea.value += tmp.innerText;
       textArea.value += "```";
-      document.getElementById("last-shutdown-reason-content").appendChild(textArea);
+      var content = document.getElementById("last-shutdown-reason-content");
+      content.appendChild(textArea);
       textArea.focus();
       textArea.select();
       var copyStatus = document.execCommand("copy");
       var copiedText = window.getSelection().toString();
       console.log(copyStatus ? "copied:" : "did not copy: ", copiedText);
-      document.getElementById("last-shutdown-reason-content").removeChild(textArea);
+      content.removeChild(textArea);
       document.getElementById("copy-lsr-button").innerHTML = copyStatus ? "copy ✓" : "copy";
     }
 
+    function toggleErrorDetails() {
+      var details = document.getElementById("envDetails");
+      details.hidden = !details.hidden;
+      document.getElementById("addDetails").className =
+        details.hidden ? "expandable" : "expanded"
+    }
     </script>
   </head>
 
@@ -47,7 +55,7 @@
 
       <div class="widget-content">
 
-        <p> <a hidden=true id='hidden-logs' href="/view_logs">Download all logs</a> </p>
+        <p> <a hidden id='hidden-logs' href="/view_logs">Download all logs</a> </p>
 
         <%= if last_reset_reason do %>
           <div class="last-shutdown-reason">
@@ -55,7 +63,24 @@
               <h5> Farmbot unexpectedly shut down </h5> <p></p>
             </div>
             <div id="last-shutdown-reason-content">
-              <i> Last shutdown reason: </i> <%= last_reset_reason %>
+              <i> Last shutdown reason: </i>
+              <script>
+                var all = "<%= escape_javascript(last_reset_reason) %>";
+                var reason = all.split("<hr>")[0];
+                document.write(reason)
+              </script>
+              <hr />
+              <label id="addDetails" class="expandable"
+                onclick="toggleErrorDetails()" for="envDetails">
+                Additional details
+              </label>
+              <div id="envDetails" class="env-details" hidden>
+                <script>
+                  var all = "<%= escape_javascript(last_reset_reason) %>";
+                  var envDetails = all.split("<hr>")[1];
+                  document.write(envDetails)
+                </script>
+              </div>
             </div>
             <div class="copy-button">
               <button id="copy-lsr-button" onClick='copyLSR()'>copy</button>
