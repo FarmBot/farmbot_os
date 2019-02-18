@@ -1,5 +1,5 @@
 defmodule Farmbot.CeleryScript.Syscalls do
-  alias Farmbot.CeleryScript.{AST, AST.Compiler}
+  alias Farmbot.CeleryScript.{AST, Compiler}
 
   def test(params \\ []) do
     File.read!("fixture/sequence_pair.json")

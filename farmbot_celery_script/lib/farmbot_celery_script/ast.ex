@@ -3,8 +3,8 @@ defmodule Farmbot.CeleryScript.AST do
   Handy functions for turning various data types into Farbot Celery Script
   Ast nodes.
   """
-  alias Farmbot.CeleryScript.AST
-  alias AST.{Compiler, Heap, Slicer, Unslicer}
+  alias Farmbot.CeleryScript.{AST, Compiler}
+  alias AST.{Heap, Slicer, Unslicer}
 
   @typedoc "Arguments to a ast node."
   @type args :: map
