@@ -1,0 +1,702 @@
+{
+  "tag": 20180209,
+  "args": [
+    {
+      "name": "_else",
+      "allowed_values": [
+        "execute",
+        "nothing"
+      ]
+    },
+    {
+      "name": "_then",
+      "allowed_values": [
+        "execute",
+        "nothing"
+      ]
+    },
+    {
+      "name": "locals",
+      "allowed_values": [
+        "scope_declaration"
+      ]
+    },
+    {
+      "name": "offset",
+      "allowed_values": [
+        "coordinate"
+      ]
+    },
+    {
+      "name": "pin_number",
+      "allowed_values": [
+        "integer",
+        "named_pin"
+      ]
+    },
+    {
+      "name": "data_value",
+      "allowed_values": [
+        "tool",
+        "coordinate",
+        "point",
+        "identifier",
+        "every_point"
+      ]
+    },
+    {
+      "name": "location",
+      "allowed_values": [
+        "tool",
+        "coordinate",
+        "point",
+        "identifier",
+        "every_point"
+      ]
+    },
+    {
+      "name": "label",
+      "allowed_values": [
+        "string"
+      ]
+    },
+    {
+      "name": "milliseconds",
+      "allowed_values": [
+        "integer"
+      ]
+    },
+    {
+      "name": "package",
+      "allowed_values": [
+        "string"
+      ]
+    },
+    {
+      "name": "pin_value",
+      "allowed_values": [
+        "integer"
+      ]
+    },
+    {
+      "name": "radius",
+      "allowed_values": [
+        "integer"
+      ]
+    },
+    {
+      "name": "rhs",
+      "allowed_values": [
+        "integer"
+      ]
+    },
+    {
+      "name": "url",
+      "allowed_values": [
+        "string"
+      ]
+    },
+    {
+      "name": "value",
+      "allowed_values": [
+        "string",
+        "integer",
+        "boolean"
+      ]
+    },
+    {
+      "name": "version",
+      "allowed_values": [
+        "integer"
+      ]
+    },
+    {
+      "name": "x",
+      "allowed_values": [
+        "integer",
+        "float"
+      ]
+    },
+    {
+      "name": "y",
+      "allowed_values": [
+        "integer",
+        "float"
+      ]
+    },
+    {
+      "name": "z",
+      "allowed_values": [
+        "integer",
+        "float"
+      ]
+    },
+    {
+      "name": "pin_id",
+      "allowed_values": [
+        "integer"
+      ]
+    },
+    {
+      "name": "pin_type",
+      "allowed_values": [
+        "string"
+      ]
+    },
+    {
+      "name": "pointer_id",
+      "allowed_values": [
+        "integer"
+      ]
+    },
+    {
+      "name": "pointer_type",
+      "allowed_values": [
+        "string"
+      ]
+    },
+    {
+      "name": "pin_mode",
+      "allowed_values": [
+        "integer"
+      ]
+    },
+    {
+      "name": "sequence_id",
+      "allowed_values": [
+        "integer"
+      ]
+    },
+    {
+      "name": "lhs",
+      "allowed_values": [
+        "string",
+        "named_pin"
+      ]
+    },
+    {
+      "name": "op",
+      "allowed_values": [
+        "string"
+      ]
+    },
+    {
+      "name": "channel_name",
+      "allowed_values": [
+        "string"
+      ]
+    },
+    {
+      "name": "message_type",
+      "allowed_values": [
+        "string"
+      ]
+    },
+    {
+      "name": "tool_id",
+      "allowed_values": [
+        "integer"
+      ]
+    },
+    {
+      "name": "axis",
+      "allowed_values": [
+        "string"
+      ]
+    },
+    {
+      "name": "message",
+      "allowed_values": [
+        "string"
+      ]
+    },
+    {
+      "name": "speed",
+      "allowed_values": [
+        "integer"
+      ]
+    },
+    {
+      "name": "data_type",
+      "allowed_values": [
+        "string"
+      ]
+    },
+    {
+      "name": "resource_id",
+      "allowed_values": [
+        "integer"
+      ]
+    },
+    {
+      "name": "resource_type",
+      "allowed_values": [
+        "string"
+      ]
+    },
+    {
+      "name": "every_point_type",
+      "allowed_values": [
+        "string"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "allowed_args": [
+        "pin_type",
+        "pin_id"
+      ],
+      "allowed_body_types": [],
+      "name": "named_pin"
+    },
+    {
+      "doc": "Signals absolutely nothing",
+      "allowed_args": [],
+      "allowed_body_types": [],
+      "name": "nothing"
+    },
+    {
+      "allowed_args": [
+        "tool_id"
+      ],
+      "allowed_body_types": [],
+      "name": "tool"
+    },
+    {
+      "allowed_args": [
+        "x",
+        "y",
+        "z"
+      ],
+      "allowed_body_types": [],
+      "name": "coordinate"
+    },
+    {
+      "allowed_args": [
+        "location",
+        "speed",
+        "offset"
+      ],
+      "allowed_body_types": [],
+      "name": "move_absolute"
+    },
+    {
+      "allowed_args": [
+        "x",
+        "y",
+        "z",
+        "speed"
+      ],
+      "allowed_body_types": [],
+      "name": "move_relative"
+    },
+    {
+      "allowed_args": [
+        "pin_number",
+        "pin_value",
+        "pin_mode"
+      ],
+      "allowed_body_types": [],
+      "name": "write_pin"
+    },
+    {
+      "allowed_args": [
+        "pin_number",
+        "label",
+        "pin_mode"
+      ],
+      "allowed_body_types": [],
+      "name": "read_pin"
+    },
+    {
+      "allowed_args": [
+        "channel_name"
+      ],
+      "allowed_body_types": [],
+      "name": "channel"
+    },
+    {
+      "allowed_args": [
+        "milliseconds"
+      ],
+      "allowed_body_types": [],
+      "name": "wait"
+    },
+    {
+      "allowed_args": [
+        "message",
+        "message_type"
+      ],
+      "allowed_body_types": [
+        "channel"
+      ],
+      "name": "send_message"
+    },
+    {
+      "allowed_args": [
+        "sequence_id"
+      ],
+      "allowed_body_types": [
+        "variable_declaration"
+      ],
+      "name": "execute"
+    },
+    {
+      "allowed_args": [
+        "lhs",
+        "op",
+        "rhs",
+        "_then",
+        "_else"
+      ],
+      "allowed_body_types": [
+        "pair"
+      ],
+      "name": "_if"
+    },
+    {
+      "allowed_args": [
+        "version",
+        "locals"
+      ],
+      "allowed_body_types": [
+        "_if",
+        "execute",
+        "execute_script",
+        "find_home",
+        "move_absolute",
+        "move_relative",
+        "read_pin",
+        "send_message",
+        "take_photo",
+        "wait",
+        "write_pin",
+        "resource_update"
+      ],
+      "name": "sequence"
+    },
+    {
+      "allowed_args": [
+        "speed",
+        "axis"
+      ],
+      "allowed_body_types": [],
+      "name": "home"
+    },
+    {
+      "allowed_args": [
+        "speed",
+        "axis"
+      ],
+      "allowed_body_types": [],
+      "name": "find_home"
+    },
+    {
+      "allowed_args": [
+        "axis"
+      ],
+      "allowed_body_types": [],
+      "name": "zero"
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [],
+      "name": "emergency_lock"
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [],
+      "name": "emergency_unlock"
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [],
+      "name": "read_status"
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [],
+      "name": "sync"
+    },
+    {
+      "allowed_args": [
+        "package"
+      ],
+      "allowed_body_types": [],
+      "name": "check_updates"
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [],
+      "name": "power_off"
+    },
+    {
+      "allowed_args": [
+        "package"
+      ],
+      "allowed_body_types": [],
+      "name": "reboot"
+    },
+    {
+      "allowed_args": [
+        "pin_number"
+      ],
+      "allowed_body_types": [],
+      "name": "toggle_pin"
+    },
+    {
+      "allowed_args": [
+        "message"
+      ],
+      "allowed_body_types": [],
+      "name": "explanation"
+    },
+    {
+      "allowed_args": [
+        "label"
+      ],
+      "allowed_body_types": [
+        "home",
+        "emergency_lock",
+        "emergency_unlock",
+        "read_status",
+        "sync",
+        "check_updates",
+        "power_off",
+        "reboot",
+        "toggle_pin",
+        "config_update",
+        "calibrate",
+        "execute",
+        "move_absolute",
+        "move_relative",
+        "write_pin",
+        "read_pin",
+        "send_message",
+        "factory_reset",
+        "execute_script",
+        "set_user_env",
+        "wait",
+        "install_farmware",
+        "update_farmware",
+        "take_photo",
+        "zero",
+        "install_first_party_farmware",
+        "remove_farmware",
+        "find_home",
+        "register_gpio",
+        "unregister_gpio",
+        "set_servo_angle",
+        "change_ownership",
+        "dump_info"
+      ],
+      "name": "rpc_request"
+    },
+    {
+      "allowed_args": [
+        "label"
+      ],
+      "allowed_body_types": [],
+      "name": "rpc_ok"
+    },
+    {
+      "allowed_args": [
+        "label"
+      ],
+      "allowed_body_types": [
+        "explanation"
+      ],
+      "name": "rpc_error"
+    },
+    {
+      "allowed_args": [
+        "axis"
+      ],
+      "allowed_body_types": [],
+      "name": "calibrate"
+    },
+    {
+      "allowed_args": [
+        "label",
+        "value"
+      ],
+      "allowed_body_types": [],
+      "name": "pair"
+    },
+    {
+      "allowed_args": [
+        "pin_number",
+        "sequence_id"
+      ],
+      "allowed_body_types": [],
+      "name": "register_gpio"
+    },
+    {
+      "allowed_args": [
+        "pin_number"
+      ],
+      "allowed_body_types": [],
+      "name": "unregister_gpio"
+    },
+    {
+      "allowed_args": [
+        "package"
+      ],
+      "allowed_body_types": [
+        "pair"
+      ],
+      "name": "config_update"
+    },
+    {
+      "allowed_args": [
+        "package"
+      ],
+      "allowed_body_types": [],
+      "name": "factory_reset"
+    },
+    {
+      "allowed_args": [
+        "label"
+      ],
+      "allowed_body_types": [
+        "pair"
+      ],
+      "name": "execute_script"
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [
+        "pair"
+      ],
+      "name": "set_user_env"
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [],
+      "name": "take_photo"
+    },
+    {
+      "allowed_args": [
+        "pointer_type",
+        "pointer_id"
+      ],
+      "allowed_body_types": [],
+      "name": "point"
+    },
+    {
+      "allowed_args": [
+        "url"
+      ],
+      "allowed_body_types": [],
+      "name": "install_farmware"
+    },
+    {
+      "allowed_args": [
+        "package"
+      ],
+      "allowed_body_types": [],
+      "name": "update_farmware"
+    },
+    {
+      "allowed_args": [
+        "package"
+      ],
+      "allowed_body_types": [],
+      "name": "remove_farmware"
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [
+        "variable_declaration",
+        "parameter_declaration"
+      ],
+      "name": "scope_declaration"
+    },
+    {
+      "allowed_args": [
+        "label"
+      ],
+      "allowed_body_types": [],
+      "name": "identifier"
+    },
+    {
+      "allowed_args": [
+        "label",
+        "data_value"
+      ],
+      "allowed_body_types": [],
+      "name": "variable_declaration"
+    },
+    {
+      "allowed_args": [
+        "label",
+        "data_type"
+      ],
+      "allowed_body_types": [],
+      "name": "parameter_declaration"
+    },
+    {
+      "allowed_args": [
+        "pin_number",
+        "pin_value"
+      ],
+      "allowed_body_types": [],
+      "name": "set_servo_angle"
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [
+        "pair"
+      ],
+      "name": "change_ownership"
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [],
+      "name": "dump_info"
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [],
+      "name": "install_first_party_farmware"
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [
+        "variable_declaration"
+      ],
+      "name": "internal_farm_event"
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [
+        "variable_declaration",
+        "parameter_declaration"
+      ],
+      "name": "internal_regimen"
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [],
+      "name": "internal_entry_point"
+    },
+    {
+      "allowed_args": [
+        "every_point_type"
+      ],
+      "allowed_body_types": [],
+      "name": "every_point"
+    },
+    {
+      "allowed_args": [
+        "resource_type",
+        "resource_id",
+        "label",
+        "value"
+      ],
+      "allowed_body_types": [],
+      "name": "resource_update"
+    }
+  ]
+}
