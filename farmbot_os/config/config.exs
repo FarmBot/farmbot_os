@@ -29,8 +29,7 @@ config :farmbot_core, Farmbot.EctoMigrator,
   default_currently_on_beta:
     String.contains?(to_string(:os.cmd('git rev-parse --abbrev-ref HEAD')), "beta")
 
-config :farmbot_core, Farmbot.Core.CeleryScript.RunTimeWrapper,
-  celery_script_io_layer: Farmbot.OS.IOLayer
+config :farmbot_celery_script, Farmbot.CeleryScript.SysCalls, sys_calls: Farmbot.System.SysCalls
 
 config :farmbot_core, Farmbot.BotState.FileSystem,
   root_dir: "/tmp/farmbot_state",

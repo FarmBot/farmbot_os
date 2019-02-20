@@ -3,8 +3,7 @@ defmodule Farmbot.CeleryScript.AST do
   Handy functions for turning various data types into Farbot Celery Script
   Ast nodes.
   """
-  alias Farmbot.CeleryScript.{AST, Compiler}
-  alias AST.{Heap, Slicer, Unslicer}
+  alias Farmbot.CeleryScript.AST
 
   @typedoc "Arguments to a ast node."
   @type args :: map
@@ -26,8 +25,12 @@ defmodule Farmbot.CeleryScript.AST do
   defstruct [:args, :body, :kind, :comment]
 
   @doc "Decode a base map into CeleryScript AST."
-  @spec decode(t() | map) :: t()
+  @spec decode(t() | map | [t() | map]) :: t()
   def decode(map_or_list_of_maps)
+
+  def decode(list) when is_list(list) do
+    decode_body(list)
+  end
 
   def decode(%{__struct__: _} = thing) do
     thing |> Map.from_struct() |> decode()
@@ -39,7 +42,7 @@ defmodule Farmbot.CeleryScript.AST do
     body = thing["body"] || thing[:body] || []
     comment = thing["comment"] || thing[:comment] || nil
 
-    %__MODULE__{
+    %AST{
       kind: String.to_atom(to_string(kind)),
       args: decode_args(args),
       body: decode_body(body),
@@ -72,7 +75,7 @@ defmodule Farmbot.CeleryScript.AST do
 
   @spec new(atom, map, [map]) :: t()
   def new(kind, args, body, comment \\ nil) when is_map(args) and is_list(body) do
-    %__MODULE__{
+    %AST{
       kind: String.to_atom(to_string(kind)),
       args: args,
       body: body,
@@ -80,13 +83,4 @@ defmodule Farmbot.CeleryScript.AST do
     }
     |> decode()
   end
-
-  @spec slice(AST.t()) :: Heap.t()
-  def slice(%AST{} = ast), do: Slicer.run(ast)
-
-  @spec unslice(Heap.t(), Address.t()) :: AST.t()
-  def unslice(%Heap{} = heap, %Address{} = addr),
-    do: Unslicer.run(heap, addr)
-
-  defdelegate compile(ast), to: Compiler
 end
