@@ -11,10 +11,11 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
   require Logger
 
   alias Farmbot.AMQP.ConnectionWorker
+  alias Farmbot.{CeleryScript.AST, CeleryScript.Scheduler}
 
   @exchange "amq.topic"
 
-  defstruct [:conn, :chan, :jwt]
+  defstruct [:conn, :chan, :jwt, :rpc_requests]
   alias __MODULE__, as: State
 
   @doc false
@@ -25,7 +26,7 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
   def init(args) do
     jwt = Keyword.fetch!(args, :jwt)
     Process.flag(:sensitive, true)
-    {:ok, %State{conn: nil, chan: nil, jwt: jwt}, 0}
+    {:ok, %State{conn: nil, chan: nil, jwt: jwt, rpc_requests: %{}}, 0}
   end
 
   def terminate(reason, state) do
@@ -77,30 +78,75 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
   def handle_info({:basic_deliver, payload, %{routing_key: key}}, state) do
     device = state.jwt.bot
     ["bot", ^device, "from_clients"] = String.split(key, ".")
+    ast = Farmbot.JSON.decode!(payload) |> AST.decode()
 
-    spawn_link(fn ->
-      {_us, _results} = :timer.tc(__MODULE__, :handle_celery_script, [payload, state])
-      # IO.puts("#{results.args.label} took: #{us}µs")
-    end)
-
-    {:noreply, state}
-  end
-
-  @doc false
-  def handle_celery_script(payload, state) do
-    json = Farmbot.JSON.decode!(payload)
-    # IO.inspect(json, label: "RPC_REQUEST")
-    Farmbot.Core.CeleryScript.rpc_request(json, fn results_ast ->
-      reply = Farmbot.JSON.encode!(results_ast)
-
-      if results_ast.kind == :rpc_error do
-        [%{args: %{message: message}}] = results_ast.body
-        msg = ["CeleryScript Error\n", message, "\n", inspect(json)]
-        Logger.error(msg)
+    {:ok, ref} =
+      if ast.args[:priority] == 1 do
+        Scheduler.execute(ast)
+      else
+        Scheduler.schedule(ast)
       end
 
-      AMQP.Basic.publish(state.chan, @exchange, "bot.#{state.jwt.bot}.from_device", reply)
-      results_ast
-    end)
+    timer =
+      if ast.args[:timeout] && ast.args[:timeout] > 0 do
+        msg = {Scheduler, ref, {:error, "timeout"}}
+        Process.send_after(self(), msg, ast.args[:timeout])
+      end
+
+    req = %{
+      started_at: :os.system_time(),
+      label: ast.args.label,
+      timer: timer
+    }
+
+    {:noreply, %{state | rpc_requests: Map.put(state.rpc_requests, ref, req)}}
+  end
+
+  def handle_info({Scheduler, ref, :ok}, state) do
+    case state.rpc_requests[ref] do
+      %{label: label, timer: timer} ->
+        label != "ping" && Logger.error("CeleryScript success: #{label}")
+        timer && Process.cancel_timer(timer)
+
+        result_ast = %{
+          kind: :rpc_ok,
+          args: %{
+            label: label
+          }
+        }
+
+        reply = Farmbot.JSON.encode!(result_ast)
+        AMQP.Basic.publish(state.chan, @exchange, "bot.#{state.jwt.bot}.from_device", reply)
+        {:noreply, %{state | rpc_requests: Map.delete(state.rpc_requests, ref)}}
+
+      nil ->
+        {:noreply, state}
+    end
+  end
+
+  def handle_info({Scheduler, ref, {:error, reason}}, state) do
+    case state.rpc_requests[ref] do
+      %{label: label, timer: timer} ->
+        timer && Process.cancel_timer(timer)
+
+        result_ast = %{
+          kind: :rpc_error,
+          args: %{
+            label: label
+          },
+          body: [
+            %{kind: :explanation, args: %{message: reason}}
+          ]
+        }
+
+        reply = Farmbot.JSON.encode!(result_ast)
+        AMQP.Basic.publish(state.chan, @exchange, "bot.#{state.jwt.bot}.from_device", reply)
+        msg = ["CeleryScript Error\n", reason]
+        Logger.error(msg)
+        {:noreply, %{state | rpc_requests: Map.delete(state.rpc_requests, ref)}}
+
+      nil ->
+        {:noreply, state}
+    end
   end
 end
