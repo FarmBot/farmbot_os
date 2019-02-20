@@ -24,7 +24,7 @@ defmodule Farmbot.FarmEventWorkerTest do
       test_pid = self()
 
       args = [
-        handle_sequence: fn _sequence, _function ->
+        handle_sequence: fn _sequence ->
           send(test_pid, {:executed, test_pid})
         end
       ]
@@ -55,7 +55,7 @@ defmodule Farmbot.FarmEventWorkerTest do
       test_pid = self()
 
       args = [
-        handle_sequence: fn _sequence, _fun ->
+        handle_sequence: fn _sequence ->
           send(test_pid, {:executed, test_pid})
         end
       ]
@@ -85,7 +85,7 @@ defmodule Farmbot.FarmEventWorkerTest do
       test_pid = self()
 
       args = [
-        handle_sequence: fn _sequence, _fun ->
+        handle_sequence: fn _sequence ->
           send(test_pid, {:executed, test_pid})
         end
       ]

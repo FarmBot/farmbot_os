@@ -19,7 +19,7 @@ defmodule Farmbot.Core do
       Farmbot.Config.Supervisor,
       Farmbot.Asset.Supervisor,
       Farmbot.Core.FirmwareSupervisor,
-      Farmbot.Core.CeleryScript.Supervisor,
+      Farmbot.CeleryScript.Scheduler,
     ]
     Supervisor.init(children, [strategy: :one_for_all])
   end
