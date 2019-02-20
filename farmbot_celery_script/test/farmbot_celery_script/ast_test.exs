@@ -8,6 +8,14 @@ defmodule Farmbot.CeleryScript.ASTTest do
                             Jason.encode!(@nothing_json)
                           }]}"
                           |> Jason.decode!()
+
+  @nothing_json_with_args "{\"kind\": \"nothing\", \"args\": {\"nothing\": \"hello world\"}, \"body\":[]}"
+                          |> Jason.decode!()
+
+  @nothing_json_with_cs_args "{\"kind\": \"nothing\", \"args\": {\"nothing\": #{
+                               Jason.encode!(@nothing_json)
+                             }}, \"body\":[]}"
+                             |> Jason.decode!()
   @bad_json "{\"whoops\": "
 
   test "decodes ast from json" do
@@ -20,9 +28,29 @@ defmodule Farmbot.CeleryScript.ASTTest do
     assert match?(%AST{}, res)
   end
 
+  test "decodes ast with sub asts in the args" do
+    res = AST.decode(@nothing_json_with_cs_args)
+    assert match?(%AST{}, res)
+  end
+
+  test "decodes ast with literals in the args" do
+    res = AST.decode(@nothing_json_with_args)
+    assert match?(%AST{}, res)
+  end
+
+  test "decodes already decoded celeryscript" do
+    %AST{} = ast = AST.decode(@nothing_json)
+    assert ast == AST.decode(ast)
+  end
+
   test "won't decode ast from bad json" do
     assert_raise RuntimeError, fn ->
       AST.decode(@bad_json)
     end
+  end
+
+  test "builds a new ast" do
+    res = AST.new(:nothing, %{nothing: @nothing_json}, [@nothing_json])
+    assert match?(%AST{}, res)
   end
 end

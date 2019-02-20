@@ -13,7 +13,7 @@ defmodule Farmbot.AMQP.BotStateNGTransport do
   * `bot/<device_id>/status_v8/location_data_.position.z` => `"4.0"`
 
   One could subscribe to `bot/<device_id>/status_v8/location_data/#`
-  and recieve all of those notifications. 
+  and recieve all of those notifications.
   """
 
   use GenServer
@@ -33,6 +33,7 @@ defmodule Farmbot.AMQP.BotStateNGTransport do
   defstruct [:conn, :chan, :jwt, :changes]
   alias __MODULE__, as: State
 
+  @doc "Forces pushing the most current state tree"
   def force do
     GenServer.cast(__MODULE__, :force)
   end
@@ -98,7 +99,7 @@ defmodule Farmbot.AMQP.BotStateNGTransport do
 
       error ->
         msg = """
-        Failed to send state value: #{path}, #{inspect(value)} 
+        Failed to send state value: #{path}, #{inspect(value)}
         error: #{inspect(error)}
         """
 
