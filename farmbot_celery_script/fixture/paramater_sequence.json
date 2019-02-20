@@ -1,0 +1,142 @@
+{
+  "kind": "sequence",
+  "name": "Test Sequence (TM)",
+  "color": "red",
+  "id": 2,
+  "comment": "This is the root",
+  "args": {
+    "version": 20180209,
+    "locals": {
+      "kind": "scope_declaration",
+      "args": {},
+      "body": [
+        {
+          "kind": "parameter_declaration",
+          "args": {
+            "label": "abc",
+            "default_value": {
+              "kind": "point",
+              "args": {
+                "pointer_type": "Plant",
+                "pointer_id": 123
+              }
+            }
+          }
+        },
+        {
+          "kind": "parameter_declaration",
+          "args": {
+            "label": "def",
+            "default_value": {
+              "kind": "point",
+              "args": {
+                "pointer_type": "Plant",
+                "pointer_id": 456
+              }
+            }
+          }
+        },
+        {
+          "kind": "parameter_application",
+          "args": {
+            "label": "ghi",
+            "data_value": {
+              "kind": "coordinate",
+              "args": {
+                "x": 100.0,
+                "y": 200.0,
+                "z": 300.0
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "body": [
+    {
+      "kind": "move_absolute",
+      "args": {
+        "location": {
+          "kind": "identifier",
+          "args": {
+            "label": "abc"
+          }
+        },
+        "offset": {
+          "kind": "identifier",
+          "args": {
+            "label": "def"
+          }
+        },
+        "speed": 100
+      }
+    },
+    {
+      "kind": "move_absolute",
+      "args": {
+        "location": {
+          "kind": "identifier",
+          "args": {
+            "label": "ghi"
+          }
+        },
+        "offset": {
+          "kind": "coordinate",
+          "args": {
+            "x": 100,
+            "y": 10000,
+            "z": 55
+          }
+        },
+        "speed": 100
+      }
+    },
+    {
+      "kind": "execute",
+      "args": {
+        "sequence_id": 9
+      },
+      "body": [
+        {
+          "kind": "variable_declaration",
+          "args": {
+            "label": "jkl",
+            "data_value": {
+              "kind": "point",
+              "args": {
+                "pointer_type": "Plant",
+                "pointer_id": 789
+              }
+            }
+          }
+        },
+        {
+          "kind": "variable_declaration",
+          "args": {
+            "label": "pqr",
+            "data_value": {
+              "kind": "identifier",
+              "args": {
+                "label": "abc"
+              }
+            }
+          }
+        },
+        {
+          "kind": "variable_declaration",
+          "args": {
+            "label": "mno",
+            "data_value": {
+              "kind": "point",
+              "args": {
+                "pointer_type": "Plant",
+                "pointer_id": 555
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
