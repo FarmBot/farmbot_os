@@ -27,7 +27,7 @@ defmodule Farmbot.PersistentRegimenWorkerTest do
     test_pid = self()
 
     args = [
-      apply_sequence: fn _seq, _fun ->
+      apply_sequence: fn _seq ->
         send(test_pid, :executed)
       end
     ]
