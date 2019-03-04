@@ -23,19 +23,19 @@ defmodule Farmbot.BotStateNG.ChangeGenerator do
   def changes([{key, change} | rest], path, acc) do
     cond do
       is_number(change) ->
-        changes(rest, path, [{path ++ [key], change} | acc])
+        changes(rest, path, [{add_paths(path, key), change} | acc])
 
       is_binary(change) ->
-        changes(rest, path, [{path ++ [key], change} | acc])
+        changes(rest, path, [{add_paths(path, key), change} | acc])
 
       is_nil(change) ->
-        changes(rest, path, [{path ++ [key], change} | acc])
+        changes(rest, path, [{add_paths(path, key), change} | acc])
 
       is_boolean(change) ->
-        changes(rest, path, [{path ++ [key], change} | acc])
+        changes(rest, path, [{add_paths(path, key), change} | acc])
 
       is_map(change) ->
-        acc = changes(change, path ++ [key], acc)
+        acc = changes(change, add_paths(path, key), acc)
         changes(rest, path, acc)
 
       is_list(change) ->
@@ -47,4 +47,11 @@ defmodule Farmbot.BotStateNG.ChangeGenerator do
   end
 
   def changes([], _path, acc), do: acc
+
+  defp add_paths(left, right) do
+    ensure_list(left) ++ ensure_list(right)
+  end
+
+  defp ensure_list(value) when is_list(value), do: value
+  defp ensure_list(value), do: [value]
 end
