@@ -39,12 +39,8 @@ defmodule Farmbot.Firmware.UARTTransport do
   end
 
   def handle_call(code, _from, state) do
-    try do
-      str = GCODE.encode(code)
-      r = UART.write(state.uart, str)
-      {:reply, r, state}
-    rescue
-      error -> {:reply, {:error, error}, state}
-    end
+    str = GCODE.encode(code)
+    r = UART.write(state.uart, str)
+    {:reply, r, state}
   end
 end

@@ -1,6 +1,7 @@
 defmodule Farmbot.System.SysCalls do
   alias Farmbot.CeleryScript.AST
   alias Farmbot.System.SysCalls.SendMessage
+  alias Farmbot.Firmware
   @behaviour Farmbot.CeleryScript.SysCalls
 
   defdelegate send_message(level, message, channels), to: SendMessage
@@ -26,7 +27,20 @@ defmodule Farmbot.System.SysCalls do
   end
 
   def read_pin(pin_number, mode) do
-    {:error, "not implemented"}
+    case Firmware.request({nil, {:pin_read, [p: pin_number, m: mode]}}) do
+      {:ok, {_, {:report_pin_value, [p: _, v: val]}}} ->
+        val
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  def write_pin(pin_number, mode, value) do
+    case Farmbot.Firmware.command({:pin_write, [p: pin_number, v: value, m: mode]}) do
+      :ok -> :ok
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   def point(kind, id) do
@@ -38,20 +52,33 @@ defmodule Farmbot.System.SysCalls do
 
   defp get_position(axis) do
     case Farmbot.Firmware.request({nil, {:position_read, []}}) do
-      {:ok, {nil, {:report_position, params}}} ->
+      {:ok, {_, {:report_position, params}}} ->
         Keyword.fetch!(params, axis)
 
-      _ ->
-        {:error, "firmware error"}
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
   def move_absolute(x, y, z, speed) do
     params = [x: x / 1.0, y: y / 1.0, z: z / 1.0, s: speed / 1.0]
 
-    case Farmbot.Firmware.command({nil, {:command_movement, params}}) do
-      :ok -> :ok
-      {:error, reason} -> {:error, to_string(reason)}
+    case Firmware.command({nil, {:command_movement, params}}) do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        {:error, to_string(reason)}
+    end
+  end
+
+  def calibrate(axis) do
+    case Firmware.command({:command_movement_calibrate, axis}) do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
