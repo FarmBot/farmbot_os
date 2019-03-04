@@ -1,6 +1,7 @@
 defmodule Farmbot.System.SysCalls do
   alias Farmbot.CeleryScript.AST
   alias Farmbot.System.SysCalls.SendMessage
+  alias Farmbot.Firmware
   @behaviour Farmbot.CeleryScript.SysCalls
 
   defdelegate send_message(level, message, channels), to: SendMessage
@@ -26,7 +27,13 @@ defmodule Farmbot.System.SysCalls do
   end
 
   def read_pin(pin_number, mode) do
-    {:error, "not implemented"}
+    case Firmware.request({nil, {:pin_read, [p: pin_number, m: mode]}}) do
+      {:ok, {_, {:report_pin_value, [p: _, v: val]}}} ->
+        val
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
   def point(kind, id) do
