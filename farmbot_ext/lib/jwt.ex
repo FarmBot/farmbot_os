@@ -25,7 +25,7 @@ defmodule Farmbot.JWT do
 
   @doc "Decode a token."
   @spec decode(binary) :: {:ok, t} | {:error, term}
-  def decode(tkn) do
+  def decode(tkn) when is_binary(tkn) do
     body = tkn |> String.split(".") |> Enum.at(1)
 
     with {:ok, json} <- Base.decode64(body, padding: false),
