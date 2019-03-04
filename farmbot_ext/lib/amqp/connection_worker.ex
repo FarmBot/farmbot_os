@@ -54,7 +54,7 @@ defmodule Farmbot.AMQP.ConnectionWorker do
     end
   end
 
-  def handle_info({:DOWN, _, :process, _pid, reason}, conn) do
+  def handle_info({:EXIT, _pid, reason}, conn) do
     Logger.error("Connection crash: #{inspect(reason)}")
     {:stop, reason, conn}
   end
@@ -65,9 +65,9 @@ defmodule Farmbot.AMQP.ConnectionWorker do
     Logger.info("Opening new AMQP connection.")
 
     # Make sure the types of these fields are correct. If they are not
-    # you timeouts will happen. 
-    # Specifically if anything is `nil` or _any_ other atom, encoded as 
-    # a `:longstr` or `:shortstr` they will _NOT_ be `to_string/1`ified. 
+    # you timeouts will happen.
+    # Specifically if anything is `nil` or _any_ other atom, encoded as
+    # a `:longstr` or `:shortstr` they will _NOT_ be `to_string/1`ified.
     opts = [
       client_properties: [
         {"version", :longstr, Farmbot.Project.version()},
