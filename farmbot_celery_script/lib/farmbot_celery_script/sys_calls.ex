@@ -38,6 +38,8 @@ defmodule Farmbot.CeleryScript.SysCalls do
               :ok | error
   @callback find_home(axis, axis_speed) :: :ok | error
 
+  @callback calibrate(axis) :: :ok | error
+
   @callback get_current_x() :: axis_position | error
   @callback get_current_y() :: axis_position | error
   @callback get_current_z() :: axis_position | error
@@ -68,6 +70,13 @@ defmodule Farmbot.CeleryScript.SysCalls do
 
   def move_absolute(module \\ @sys_call_implementation, x, y, z, speed) do
     case module.move_absolute(x, y, z, speed) do
+      :ok -> :ok
+      {:error, reason} when is_binary(reason) -> error(reason)
+    end
+  end
+
+  def calibrate(module \\ @sys_call_implementation, axis) do
+    case module.calibrate(axis) do
       :ok -> :ok
       {:error, reason} when is_binary(reason) -> error(reason)
     end

@@ -48,7 +48,7 @@ defmodule Farmbot.CeleryScript.Compiler do
   def compile(%AST{kind: kind} = ast, env \\ []) when kind in @valid_entry_points do
     # compile the ast
     {_, _, _} = compiled = compile_ast(ast)
-    delete_me(compiled)
+    # delete_me(compiled)
     # entry points must be evaluated once more with the calling `env`
     # to return a list of compiled `steps`
     case Code.eval_quoted(compiled, []) do
@@ -406,18 +406,18 @@ defmodule Farmbot.CeleryScript.Compiler do
   end
 
   # Expands calibrate(all) into three calibrate/1 calls
-  compile :calibrate, %{axis: "all", speed: speed} do
+  compile :calibrate, %{axis: "all"} do
     quote do
-      calibrate("x", unquote(compile_ast(speed)))
-      calibrate("y", unquote(compile_ast(speed)))
-      calibrate("z", unquote(compile_ast(speed)))
+      calibrate("x")
+      calibrate("y")
+      calibrate("z")
     end
   end
 
   # compiles calibrate
-  compile :calibrate, %{axis: axis, speed: speed} do
+  compile :calibrate, %{axis: axis} do
     quote do
-      calibrate(unquote(compile_ast(axis)), unquote(compile_ast(speed)))
+      calibrate(unquote(compile_ast(axis)))
     end
   end
 
