@@ -36,6 +36,13 @@ defmodule Farmbot.System.SysCalls do
     end
   end
 
+  def write_pin(pin_number, mode, value) do
+    case Farmbot.Firmware.command({:pin_write, [p: pin_number, v: value, m: mode]}) do
+      :ok -> :ok
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
   def point(kind, id) do
     case Farmbot.Asset.get_point(id: id) do
       nil -> {:error, "#{kind} not found"}
@@ -45,20 +52,33 @@ defmodule Farmbot.System.SysCalls do
 
   defp get_position(axis) do
     case Farmbot.Firmware.request({nil, {:position_read, []}}) do
-      {:ok, {nil, {:report_position, params}}} ->
+      {:ok, {_, {:report_position, params}}} ->
         Keyword.fetch!(params, axis)
 
-      _ ->
-        {:error, "firmware error"}
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
   def move_absolute(x, y, z, speed) do
     params = [x: x / 1.0, y: y / 1.0, z: z / 1.0, s: speed / 1.0]
 
-    case Farmbot.Firmware.command({nil, {:command_movement, params}}) do
-      :ok -> :ok
-      {:error, reason} -> {:error, to_string(reason)}
+    case Firmware.command({nil, {:command_movement, params}}) do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        {:error, to_string(reason)}
+    end
+  end
+
+  def calibrate(axis) do
+    case Firmware.command({:command_movement_calibrate, axis}) do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 

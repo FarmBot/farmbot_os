@@ -105,7 +105,7 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
   def handle_info({Scheduler, ref, :ok}, state) do
     case state.rpc_requests[ref] do
       %{label: label, timer: timer} ->
-        label != "ping" && Logger.error("CeleryScript success: #{label}")
+        # label != "ping" && Logger.debug("CeleryScript success: #{label}")
         timer && Process.cancel_timer(timer)
 
         result_ast = %{

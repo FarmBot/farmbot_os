@@ -3,6 +3,7 @@ defmodule Farmbot.TTYDetector do
   require Logger
   require Farmbot.Logger
   alias Circuits.UART
+  alias Farmbot.Core.FirmwareSupervisor
 
   import Farmbot.Config, only: [get_config_value: 3, update_config_value: 4]
 
@@ -105,7 +106,9 @@ defmodule Farmbot.TTYDetector do
       side_effects: Farmbot.Core.FirmwareSideEffects
     ]
 
-    case Farmbot.Firmware.start_link(opts) do
+    child_spec = {Farmbot.Firmware, opts}
+
+    case Supervisor.start_child(FirmwareSupervisor, child_spec) do
       {:ok, pid} ->
         # This might cause some sort of race condition.
         hw = get_config_value(:string, "settings", "firmware_hardware")

@@ -6,7 +6,7 @@ defmodule Farmbot.CeleryScript.Compiler.Tools do
 
   @doc false
   defmacro __using__([]) do
-    quote do
+    quote location: :keep do
       import Compiler.Tools
       @after_compile Compiler.Tools
       Module.register_attribute(__MODULE__, :kinds, accumulate: true)
