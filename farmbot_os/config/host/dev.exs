@@ -30,7 +30,10 @@ config :farmbot, Farmbot.System.Init.Supervisor,
 config :farmbot,
   ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo]
 
-config :farmbot, Farmbot.TTYDetector, expected_names: [System.get_env("FARMBOT_TTY")]
+config :farmbot, Farmbot.TTYDetector,
+  expected_names: [
+    System.get_env("FARMBOT_TTY")
+  ]
 
 config :farmbot_ext, Farmbot.AMQP.NervesHubTransport,
   handle_nerves_hub_msg: Farmbot.System.NervesHub
