@@ -1,10 +1,11 @@
-defmodule Farmbot.Target.Configurator.Validator do
+defmodule FarmbotOS.Platform.Target.Configurator.Validator do
   use GenServer
   require Logger
-  import Farmbot.Config, only: [get_config_value: 3, update_config_value: 4]
-  alias Farmbot.Target.Network
-  import Farmbot.Target.Network.Utils
-  alias Farmbot.Bootstrap.Authorization
+  import FarmbotCore.Config, only: [get_config_value: 3, update_config_value: 4]
+  alias FarmbotOS.Platform.Target.Network
+  import FarmbotOS.Platform.Target.Network.Utils
+  alias FarmbotExt.Bootstrap.Authorization
+  alias FarmbotCore.JSON
 
   @steps [
     :ntp,
@@ -76,11 +77,11 @@ defmodule Farmbot.Target.Configurator.Validator do
          secret <- Authorization.build_secret(email, password, rsa_key),
          {:ok, payload} <- Authorization.build_payload(secret),
          {:ok, resp} <- Authorization.request_token(server, payload),
-         {:ok, %{"token" => %{"encoded" => tkn}}} <- Farmbot.JSON.decode(resp) do
+         {:ok, %{"token" => %{"encoded" => tkn}}} <- JSON.decode(resp) do
       update_config_value(:string, "authorization", "token", tkn)
       update_config_value(:string, "authorization", "secret", secret)
       update_config_value(:string, "authorization", "password", nil)
-      Farmbot.Target.Network.hostap_down()
+      Network.hostap_down()
       Network.validate()
       {:noreply, -1, @success_time_ms}
     else
@@ -93,10 +94,10 @@ defmodule Farmbot.Target.Configurator.Validator do
   defp authorize_with_secret(_email, secret, server) do
     with {:ok, payload} <- Authorization.build_payload(secret),
          {:ok, resp} <- Authorization.request_token(server, payload),
-         {:ok, %{"token" => %{"encoded" => tkn}}} <- Farmbot.JSON.decode(resp) do
+         {:ok, %{"token" => %{"encoded" => tkn}}} <- JSON.decode(resp) do
       update_config_value(:string, "authorization", "token", tkn)
       update_config_value(:string, "authorization", "password", nil)
-      Farmbot.Target.Network.hostap_down()
+      Network.hostap_down()
       Network.validate()
       {:noreply, -1, @success_time_ms}
     else

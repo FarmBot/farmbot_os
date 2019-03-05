@@ -1,14 +1,14 @@
-defmodule Farmbot.System.Init.FSCheckup do
+defmodule FarmbotOS.Init.FSCheckup do
   @moduledoc false
   use Supervisor
   require Logger
 
-  @data_path Farmbot.OS.FileSystem.data_path()
+  @data_path FarmbotOS.FileSystem.data_path()
 
-  @ref Farmbot.Project.commit()
-  @version Farmbot.Project.version()
-  @target Farmbot.Project.target()
-  @env Farmbot.Project.env()
+  @ref FarmbotCore.Project.commit()
+  @version FarmbotCore.Project.version()
+  @target FarmbotCore.Project.target()
+  @env FarmbotCore.Project.env()
   System.put_env("NERVES_FW_VCS_IDENTIFIER", @ref)
 
   @doc false
@@ -28,9 +28,6 @@ defmodule Farmbot.System.Init.FSCheckup do
     unless File.exists?(@data_path) do
       File.mkdir(@data_path)
     end
-
-    setup_boot_state_file()
-    setup_multi_user()
 
     Logger.debug("Checking #{check_file}")
 
@@ -60,14 +57,6 @@ defmodule Farmbot.System.Init.FSCheckup do
     end
   end
 
-  defp setup_multi_user do
-    multiuser_dir = Path.join([@data_path, "users", "default"])
-
-    unless File.exists?(multiuser_dir) do
-      File.mkdir_p(multiuser_dir)
-    end
-  end
-
   defp init_logger_backend_ecto do
     Logger.flush()
 
@@ -78,14 +67,6 @@ defmodule Farmbot.System.Init.FSCheckup do
         Logger.error("Could not start disk logging: #{inspect(r)}")
         Logger.remove_backend(LoggerBackendSqlite)
         File.rm(Path.join([@data_path, "root", "debug_logs.sqlite3"]))
-    end
-  end
-
-  defp setup_boot_state_file do
-    file = Path.join(@data_path, "boot_state")
-
-    unless File.exists?(file) do
-      Farmbot.BootState.write(:NEEDS_CONFIGURATION)
     end
   end
 end

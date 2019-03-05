@@ -1,8 +1,9 @@
-defmodule Farmbot.System do
+defmodule FarmbotOS.System do
   @moduledoc """
   Common functionality that should be implemented by a system
   """
-  require Farmbot.Logger
+  require FarmbotCore.Logger
+  alias FarmbotCore.{Asset, Project}
 
   error_msg = """
   Please configure `:system_tasks`!
@@ -11,7 +12,7 @@ defmodule Farmbot.System do
   @system_tasks Application.get_env(:farmbot, __MODULE__)[:system_tasks]
   @system_tasks || Mix.raise(error_msg)
 
-  @data_path Farmbot.OS.FileSystem.data_path()
+  @data_path FarmbotOS.FileSystem.data_path()
 
   @doc "Restarts the machine."
   @callback reboot() :: any
@@ -30,25 +31,25 @@ defmodule Farmbot.System do
   end
 
   defp try_lock_fw do
-    if Process.whereis(Farmbot.Firmware) do
-      Farmbot.Logger.warn(1, "Trying to emergency lock firmware before powerdown")
-      Farmbot.Firmware.command({:command_emergency_lock, []})
+    if Process.whereis(FarmbotFirmware) do
+      FarmbotCore.Logger.warn(1, "Trying to emergency lock firmware before powerdown")
+      FarmbotFirmware.command({:command_emergency_lock, []})
     else
-      Farmbot.Logger.error(1, "Firmware unavailable. Can't emergency_lock")
+      FarmbotCore.Logger.error(1, "Firmware unavailable. Can't emergency_lock")
     end
   end
 
   @doc "Remove all configuration data, and reboot."
   @spec factory_reset(any) :: no_return
   def factory_reset(reason) do
-    if Farmbot.Project.env() == :dev do
+    if Project.env() == :dev do
       # credo:disable-for-next-line
       require IEx
       IEx.pry()
     end
 
-    if Process.whereis(Farmbot.Core) do
-      if Farmbot.Asset.fbos_config().disable_factory_reset do
+    if Process.whereis(FarmbotCore) do
+      if Asset.fbos_config().disable_factory_reset do
         reboot(reason)
       else
         do_reset(reason)
@@ -66,7 +67,6 @@ defmodule Farmbot.System do
       File.rm_rf!(p)
     end
 
-    Farmbot.BootState.write(:NEEDS_CONFIGURATION)
     reboot(reason)
   end
 
