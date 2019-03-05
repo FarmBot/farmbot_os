@@ -1,8 +1,8 @@
-defmodule Farmbot.API.DirtyWorker.Supervisor do
+defmodule FarmbotExt.API.DirtyWorker.Supervisor do
   use Supervisor
-  alias Farmbot.API.DirtyWorker
+  alias FarmbotExt.API.DirtyWorker
 
-  alias Farmbot.Asset.{
+  alias FarmbotCore.Asset.{
     Device,
     DeviceCert,
     DiagnosticDump,

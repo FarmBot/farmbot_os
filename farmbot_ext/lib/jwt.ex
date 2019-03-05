@@ -1,4 +1,4 @@
-defmodule Farmbot.JWT do
+defmodule FarmbotExt.JWT do
   @moduledoc "Functions for dealing with the Farmbot JSON Web Token"
 
   defstruct [
@@ -11,6 +11,9 @@ defmodule Farmbot.JWT do
     :beta_os_update_server,
     :interim_email
   ]
+
+  alias FarmbotExt.JWT
+  alias FarmbotCore.JSON
 
   @typedoc "Type def for Farmbot Web Token."
   @type t :: %__MODULE__{
@@ -29,7 +32,7 @@ defmodule Farmbot.JWT do
     body = tkn |> String.split(".") |> Enum.at(1)
 
     with {:ok, json} <- Base.decode64(body, padding: false),
-         {:ok, data} <- Farmbot.JSON.decode(json),
+         {:ok, data} <- JSON.decode(json),
          {:ok, jwt} <- decode_map(data) do
       {:ok, jwt}
     else
@@ -50,7 +53,7 @@ defmodule Farmbot.JWT do
   defp decode_map(%{} = map) do
     {:ok,
      struct(
-       Farmbot.JWT,
+       JWT,
        bot: map["bot"],
        exp: map["exp"],
        iss: map["iss"],

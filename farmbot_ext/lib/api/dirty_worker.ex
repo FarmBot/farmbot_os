@@ -1,7 +1,8 @@
-defmodule Farmbot.API.DirtyWorker do
+defmodule FarmbotExt.API.DirtyWorker do
   @moduledoc "Handles uploading/downloading of data from the API."
-  alias Farmbot.Asset.{Private, Repo}
-  alias Farmbot.API
+  alias FarmbotCore.Asset.{Private, Repo}
+
+  alias FarmbotExt.{API, API.DirtyWorker}
   import API.View, only: [render: 2]
 
   require Logger
@@ -11,7 +12,7 @@ defmodule Farmbot.API.DirtyWorker do
   @doc false
   def child_spec(module) when is_atom(module) do
     %{
-      id: {Farmbot.API.DirtyWorker, module},
+      id: {DirtyWorker, module},
       start: {__MODULE__, :start_link, [[module: module, timeout: @timeout]]},
       type: :worker,
       restart: :permanent,

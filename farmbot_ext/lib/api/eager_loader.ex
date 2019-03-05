@@ -1,8 +1,10 @@
-defmodule Farmbot.API.EagerLoader do
+defmodule FarmbotExt.API.EagerLoader do
   @moduledoc "Handles caching of asset changes"
-  alias Farmbot.API
+  alias FarmbotCore.Asset.{Repo, Sync}
+
+  alias FarmbotExt.API
   alias API.{SyncGroup, EagerLoader}
-  alias Farmbot.Asset.{Repo, Sync}
+
   alias Ecto.Changeset
   import Ecto.Query
   require Logger

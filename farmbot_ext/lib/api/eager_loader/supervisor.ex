@@ -1,8 +1,8 @@
-defmodule Farmbot.API.EagerLoader.Supervisor do
+defmodule FarmbotExt.API.EagerLoader.Supervisor do
   use Supervisor
-  alias Farmbot.API.EagerLoader
+  alias FarmbotExt.API.EagerLoader
 
-  alias Farmbot.Asset.{
+  alias FarmbotCore.Asset.{
     Device,
     DiagnosticDump,
     FarmEvent,

@@ -1,9 +1,9 @@
-defmodule Farmbot.AMQP.ChannelSupervisor do
+defmodule FarmbotExt.AMQP.ChannelSupervisor do
   @moduledoc false
   use Supervisor
-  alias Farmbot.JWT
+  alias FarmbotExt.JWT
 
-  alias Farmbot.AMQP.{
+  alias FarmbotExt.AMQP.{
     NervesHubTransport,
     LogTransport,
     BotStateTransport,

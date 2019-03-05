@@ -1,4 +1,4 @@
-defmodule Farmbot.Bootstrap.Authorization do
+defmodule FarmbotExt.Bootstrap.Authorization do
   @moduledoc "Functionality responsible for getting a JWT."
 
   @typedoc "Email used to configure this bot."
@@ -16,17 +16,19 @@ defmodule Farmbot.Bootstrap.Authorization do
   @typedoc "Token that was fetched with the credentials."
   @type token :: binary
 
-  require Farmbot.Logger
+  require FarmbotCore.Logger
 
-  @version Farmbot.Project.version()
-  @target Farmbot.Project.target()
+  alias FarmbotCore.{JSON, Project}
+
+  @version Project.version()
+  @target Project.target()
 
   @spec authorize_with_secret(email, secret, server) ::
           {:ok, binary} | {:error, String.t() | atom}
   def authorize_with_secret(_email, secret, server) do
     with {:ok, payload} <- build_payload(secret),
          {:ok, resp} <- request_token(server, payload),
-         {:ok, body} <- Farmbot.JSON.decode(resp) do
+         {:ok, body} <- JSON.decode(resp) do
       get_encoded(body)
     end
   end
@@ -37,7 +39,7 @@ defmodule Farmbot.Bootstrap.Authorization do
     with {:ok, {:RSAPublicKey, _, _} = rsa_key} <- fetch_rsa_key(server),
          {:ok, payload} <- build_payload(email, password, rsa_key),
          {:ok, resp} <- request_token(server, payload),
-         {:ok, body} <- Farmbot.JSON.decode(resp) do
+         {:ok, body} <- JSON.decode(resp) do
       get_encoded(body)
     end
   end
@@ -52,12 +54,12 @@ defmodule Farmbot.Bootstrap.Authorization do
 
   def build_payload(secret) do
     %{user: %{credentials: secret |> Base.encode64()}}
-    |> Farmbot.JSON.encode()
+    |> JSON.encode()
   end
 
   def build_secret(email, password, rsa_key) do
     %{email: email, password: password, id: UUID.uuid1(), version: 1}
-    |> Farmbot.JSON.encode!()
+    |> JSON.encode!()
     |> RSA.encrypt({:public, rsa_key})
   end
 
@@ -91,7 +93,7 @@ defmodule Farmbot.Bootstrap.Authorization do
       # Network error such such as wifi disconnect, dns down etc.
       # Try again.
       {:error, reason} when tries_remaining == 0 ->
-        Farmbot.Logger.error(1, "Farmbot failed to request token: #{inspect(reason)}")
+        FarmbotCore.Logger.error(1, "Farmbot failed to request token: #{inspect(reason)}")
         {:error, reason}
 
       {:error, _reason} ->
@@ -119,7 +121,7 @@ defmodule Farmbot.Bootstrap.Authorization do
 
       {:ok, {{_, c, _}, _headers, body}} when c >= 400 and c <= 499 ->
         err = get_error_message(body)
-        Farmbot.Logger.error(1, "Authorization error for url: #{url} #{err}")
+        FarmbotCore.Logger.error(1, "Authorization error for url: #{url} #{err}")
         {:error, {:authorization, err}}
 
       {:ok, {{_, c, _}, _headers, body}} when c >= 500 and c <= 599 ->
@@ -127,7 +129,11 @@ defmodule Farmbot.Bootstrap.Authorization do
 
         unless state.log_dispatch_flag do
           err = get_error_message(body)
-          Farmbot.Logger.warn(1, "Farmbot web app failed complete request for url: #{url} #{err}")
+
+          FarmbotCore.Logger.warn(
+            1,
+            "Farmbot web app failed complete request for url: #{url} #{err}"
+          )
         end
 
         do_request({method, url, payload, headers}, %{
@@ -143,7 +149,7 @@ defmodule Farmbot.Bootstrap.Authorization do
 
   @spec get_error_message(binary) :: String.t()
   defp get_error_message(bin) when is_binary(bin) do
-    case Farmbot.JSON.decode(bin) do
+    case JSON.decode(bin) do
       {:ok, %{"auth" => reason}} when is_binary(reason) -> reason
       _ -> bin
     end

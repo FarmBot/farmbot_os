@@ -1,10 +1,12 @@
-defmodule Farmbot.AMQP.LogTransport do
+defmodule FarmbotExt.AMQP.LogTransport do
   use GenServer
   use AMQP
   alias AMQP.Channel
 
-  alias Farmbot.AMQP.ConnectionWorker
-  require Farmbot.Logger
+  alias FarmbotCore.{BotState, JSON}
+  require FarmbotCore.Logger
+
+  alias FarmbotExt.AMQP.ConnectionWorker
   require Logger
 
   @exchange "amq.topic"
@@ -25,7 +27,7 @@ defmodule Farmbot.AMQP.LogTransport do
   end
 
   def terminate(reason, state) do
-    Farmbot.Logger.error(1, "Disconnected from Log channel: #{inspect(reason)}")
+    FarmbotCore.Logger.error(1, "Disconnected from Log channel: #{inspect(reason)}")
     # If a channel was still open, close it.
     if state.chan, do: Channel.close(state.chan)
   end
@@ -34,23 +36,23 @@ defmodule Farmbot.AMQP.LogTransport do
     with %{} = conn <- ConnectionWorker.connection(),
          {:ok, chan} <- Channel.open(conn),
          :ok <- Basic.qos(chan, global: true) do
-      initial_bot_state = Farmbot.BotState.subscribe()
+      initial_bot_state = BotState.subscribe()
       {:noreply, %{state | conn: conn, chan: chan, state_cache: initial_bot_state}, 0}
     else
       nil ->
         {:noreply, %{state | conn: nil, chan: nil, state_cache: nil}, 5000}
 
       err ->
-        Farmbot.Logger.error(1, "Failed to connect to Log channel: #{inspect(err)}")
+        FarmbotCore.Logger.error(1, "Failed to connect to Log channel: #{inspect(err)}")
         {:noreply, %{state | conn: nil, chan: nil, state_cache: nil}, 1000}
     end
   end
 
   def handle_info(:timeout, state) do
-    {:noreply, state, {:continue, Farmbot.Logger.handle_all_logs()}}
+    {:noreply, state, {:continue, FarmbotCore.Logger.handle_all_logs()}}
   end
 
-  def handle_info({Farmbot.BotState, change}, state) do
+  def handle_info({BotState, change}, state) do
     new_state_cache = Ecto.Changeset.apply_changes(change)
     {:noreply, %{state | state_cache: new_state_cache}, @checkup_ms}
   end
@@ -63,7 +65,7 @@ defmodule Farmbot.AMQP.LogTransport do
       error ->
         Logger.error("Logger amqp client failed to upload log: #{inspect(error)}")
         # Reschedule log to be uploaded again
-        Farmbot.Logger.insert_log!(log)
+        FarmbotCore.Logger.insert_log!(log)
         {:noreply, state, @checkup_ms}
     end
   end
@@ -73,7 +75,7 @@ defmodule Farmbot.AMQP.LogTransport do
   end
 
   defp do_handle_log(log, state) do
-    if Farmbot.Logger.should_log?(log.module, log.verbosity) do
+    if FarmbotCore.Logger.should_log?(log.module, log.verbosity) do
       fb = %{position: %{x: -1, y: -1, z: -1}}
       location_data = Map.get(state.state_cache || %{}, :location_data, fb)
 
@@ -95,11 +97,13 @@ defmodule Farmbot.AMQP.LogTransport do
 
       json_log = add_position_to_log(log_without_pos, location_data)
       push_bot_log(state.chan, state.jwt.bot, json_log)
+    else
+      :ok
     end
   end
 
   defp push_bot_log(chan, bot, log) do
-    json = Farmbot.JSON.encode!(log)
+    json = JSON.encode!(log)
     :ok = Basic.publish(chan, @exchange, "bot.#{bot}.logs", json)
   end
 

@@ -1,4 +1,4 @@
-defmodule Farmbot.Bootstrap.Supervisor do
+defmodule FarmbotExt.Bootstrap.Supervisor do
   use Supervisor
 
   @doc "Start Bootstraped services."
@@ -8,11 +8,11 @@ defmodule Farmbot.Bootstrap.Supervisor do
 
   def init([]) do
     children = [
-      Farmbot.API.EagerLoader.Supervisor,
-      Farmbot.API.DirtyWorker.Supervisor,
-      Farmbot.Bootstrap.APITask,
-      Farmbot.AMQP.Supervisor,
-      Farmbot.API.ImageUploader
+      FarmbotExt.API.EagerLoader.Supervisor,
+      FarmbotExt.API.DirtyWorker.Supervisor,
+      FarmbotExt.Bootstrap.APITask,
+      FarmbotExt.AMQP.Supervisor,
+      FarmbotExt.API.ImageUploader
     ]
 
     opts = [strategy: :one_for_one]
