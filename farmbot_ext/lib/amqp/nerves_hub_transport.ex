@@ -1,4 +1,4 @@
-defmodule Farmbot.AMQP.NervesHubTransport do
+defmodule FarmbotExt.AMQP.NervesHubTransport do
   use GenServer
   use AMQP
 
@@ -7,11 +7,11 @@ defmodule Farmbot.AMQP.NervesHubTransport do
     Queue
   }
 
-  require Farmbot.Logger
+  alias FarmbotCore.JSON
+  require FarmbotCore.Logger
   require Logger
-  alias Farmbot.JSON
 
-  alias Farmbot.AMQP.ConnectionWorker
+  alias FarmbotExt.AMQP.ConnectionWorker
 
   @exchange "amq.topic"
   @handle_nerves_hub_msg Application.get_env(:farmbot_ext, __MODULE__)[:handle_nerves_hub_msg]
@@ -44,7 +44,7 @@ defmodule Farmbot.AMQP.NervesHubTransport do
   end
 
   def terminate(reason, state) do
-    Farmbot.Logger.error(1, "Disconnected from NervesHub AMQP channel: #{inspect(reason)}")
+    FarmbotCore.Logger.error(1, "Disconnected from NervesHub AMQP channel: #{inspect(reason)}")
     # If a channel was still open, close it.
     if state.chan, do: AMQP.Channel.close(state.chan)
   end
@@ -66,7 +66,11 @@ defmodule Farmbot.AMQP.NervesHubTransport do
         {:noreply, %{state | conn: nil, chan: nil}, 5000}
 
       err ->
-        Farmbot.Logger.error(1, "Failed to connect to NervesHub AMQP channel: #{inspect(err)}")
+        FarmbotCore.Logger.error(
+          1,
+          "Failed to connect to NervesHub AMQP channel: #{inspect(err)}"
+        )
+
         {:noreply, %{state | conn: nil, chan: nil}, 1000}
     end
   end
