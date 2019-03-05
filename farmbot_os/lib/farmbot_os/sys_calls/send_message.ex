@@ -1,5 +1,5 @@
-defmodule Farmbot.System.SysCalls.SendMessage do
-  alias Farmbot.Firmware
+defmodule FarmbotOS.SysCalls.SendMessage do
+  alias FarmbotFirmware
   @root_regex ~r/{{\s*[\w\.]+\s*}}/
   @extract_reg ~r/[\w\.]+/
 
@@ -12,7 +12,7 @@ defmodule Farmbot.System.SysCalls.SendMessage do
 
     case render(templ) do
       {:ok, message} ->
-        Farmbot.Logger.dispatch_log(__ENV__, type, 1, message, meta)
+        FarmbotCore.Logger.dispatch_log(__ENV__, type, 1, message, meta)
         :ok
 
       er ->
@@ -21,7 +21,7 @@ defmodule Farmbot.System.SysCalls.SendMessage do
   end
 
   def render(templ) do
-    with {:ok, {_, {:report_position, pos}}} <- Firmware.request({:position_read, []}),
+    with {:ok, {_, {:report_position, pos}}} <- FarmbotFirmware.request({:position_read, []}),
          {:ok, pins} <- pins(Enum.to_list(0..69)),
          env <- Keyword.merge(pos, pins) do
       env = Map.new(env, fn {k, v} -> {to_string(k), to_string(v)} end)
@@ -46,7 +46,7 @@ defmodule Farmbot.System.SysCalls.SendMessage do
   def pins(nums, acc \\ [])
 
   def pins([p | rest], acc) do
-    case Firmware.request({:pin_read, [p: p]}) do
+    case FarmbotFirmware.request({:pin_read, [p: p]}) do
       {:ok, {_, {:report_pin_value, [p: ^p, v: v]}}} ->
         acc = Keyword.put(acc, :"pin#{p}", v)
         pins(rest, acc)

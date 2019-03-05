@@ -1,7 +1,7 @@
-defmodule Farmbot.Target.TzdataTask do
+defmodule FarmbotOS.Platform.Target.TzdataTask do
   use GenServer
 
-  @data_path Farmbot.OS.FileSystem.data_path()
+  @data_path FarmbotOS.FileSystem.data_path()
   # 20 minutes
   @default_timeout_ms round(1.2e+6)
 

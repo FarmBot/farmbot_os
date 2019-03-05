@@ -1,8 +1,8 @@
-defmodule Farmbot.Target.InfoWorker.Supervisor do
+defmodule FarmbotOS.Platform.Target.InfoWorker.Supervisor do
   @moduledoc false
   use Supervisor
 
-  alias Farmbot.Target.InfoWorker.{
+  alias FarmbotOS.Platform.Target.InfoWorker.{
     DiskUsage,
     MemoryUsage,
     SocTemp,

@@ -1,7 +1,7 @@
-defmodule Farmbot.Target.Network.Utils do
-  import Farmbot.Config, only: [get_config_value: 3]
-  require Farmbot.Logger
-  alias Farmbot.Target.Network.ScanResult
+defmodule FarmbotOS.Platform.Target.Network.Utils do
+  import FarmbotCore.Config, only: [get_config_value: 3]
+  require FarmbotCore.Logger
+  alias FarmbotOS.Platform.Target.Network.ScanResult
 
   def build_hostap_ssid do
     {:ok, hostname} = :inet.gethostname()
@@ -119,7 +119,7 @@ defmodule Farmbot.Target.Network.Utils do
     end
   end
 
-  @fb_data_dir Farmbot.OS.FileSystem.data_path()
+  @fb_data_dir FarmbotOS.FileSystem.data_path()
   @tzdata_dir Application.app_dir(:tzdata, "priv")
   def maybe_hack_tzdata do
     case Tzdata.Util.data_dir() do
@@ -127,7 +127,7 @@ defmodule Farmbot.Target.Network.Utils do
         :ok
 
       _ ->
-        Farmbot.Logger.debug(3, "Hacking tzdata.")
+        FarmbotCore.Logger.debug(3, "Hacking tzdata.")
         objs_to_cp = Path.wildcard(Path.join(@tzdata_dir, "*"))
 
         for obj <- objs_to_cp do

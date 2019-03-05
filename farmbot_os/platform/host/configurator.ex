@@ -1,8 +1,8 @@
-defmodule Farmbot.Host.Configurator do
+defmodule FarmbotOS.Platform.Host.Configurator do
   @moduledoc false
   use Supervisor
 
-  import Farmbot.Config,
+  import FarmbotCore.Config,
     only: [update_config_value: 4]
 
   @doc false

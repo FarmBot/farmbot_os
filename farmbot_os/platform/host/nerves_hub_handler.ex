@@ -1,5 +1,5 @@
-defmodule Farmbot.Host.NervesHubHandler do
-  @behaviour Farmbot.System.NervesHub
+defmodule FarmbotOS.Platform.Host.NervesHubHandler do
+  @behaviour FarmbotOS.NervesHub
 
   def serial_number do
     {:ok, [_ | [{_ifname, info} | _]]} = :inet.getifaddrs()

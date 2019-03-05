@@ -2,23 +2,13 @@ version: 2.0
 defaults: &defaults
   working_directory: /nerves/build
   docker:
-<<<<<<< HEAD
-    - image: nervesproject/nerves_system_br:1.6.8
-  environment:
-    ELIXIR_VERSION: 1.8.1
-=======
     - image: nervesproject/nerves_system_br:1.6.1
->>>>>>> 69c76945... Update to Elixir 1.8!!
 
 install_elixir: &install_elixir
   run:
     name: Install Elixir
     command: |
-<<<<<<< HEAD
-      wget https://github.com/elixir-lang/elixir/releases/download/v1.8.1/Precompiled.zip
-=======
       wget https://github.com/elixir-lang/elixir/releases/download/v1.8.0/Precompiled.zip
->>>>>>> 69c76945... Update to Elixir 1.8!!
       unzip -d /usr/local/elixir Precompiled.zip
       echo 'export PATH=/usr/local/elixir/bin:$PATH' >> $BASH_ENV
 
@@ -423,11 +413,7 @@ jobs:
     <<: *defaults
     environment:
       MIX_ENV: prod
-<<<<<<< HEAD
-      ELIXIR_VERSION: 1.8.1
-=======
       ELIXIR_VERSION: 1.8.0
->>>>>>> 69c76945... Update to Elixir 1.8!!
     steps:
       - checkout
       - run:
@@ -483,11 +469,7 @@ jobs:
     <<: *defaults
     environment:
       MIX_ENV: prod
-<<<<<<< HEAD
-      ELIXIR_VERSION: 1.8.1
-=======
       ELIXIR_VERSION: 1.8.0
->>>>>>> 69c76945... Update to Elixir 1.8!!
     steps:
       - checkout
       - run:

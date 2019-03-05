@@ -1,7 +1,7 @@
-defmodule Farmbot.Host.SystemTasks do
+defmodule FarmbotOS.Platform.Host.SystemTasks do
   @moduledoc "Host implementation for Farmbot.System."
 
-  @behaviour Farmbot.System
+  @behaviour FarmbotOS.System
 
   def reboot() do
     shutdown()
