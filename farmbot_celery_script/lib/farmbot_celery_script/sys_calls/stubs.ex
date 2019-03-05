@@ -1,8 +1,8 @@
-defmodule Farmbot.CeleryScript.SysCalls.Stubs do
+defmodule FarmbotCeleryScript.SysCalls.Stubs do
   @moduledoc """
   SysCall implementation that doesn't do anything. Useful for tests.
   """
-  # @behaviour Farmbot.CeleryScript.SysCalls
+  # @behaviour FarmbotCeleryScript.SysCalls
 
   require Logger
 

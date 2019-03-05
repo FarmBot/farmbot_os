@@ -1,4 +1,4 @@
-defmodule Farmbot.CeleryScript do
+defmodule FarmbotCeleryScript do
   @moduledoc """
   """
 end
