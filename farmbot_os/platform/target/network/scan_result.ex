@@ -1,7 +1,7 @@
-defmodule Farmbot.Target.Network.ScanResult do
+defmodule FarmbotOS.Platform.Target.Network.ScanResult do
   @moduledoc "Decoded from Nerves.Network scanning."
 
-  alias Farmbot.Target.Network.ScanResult
+  alias FarmbotOS.Platform.Target.Network.ScanResult
 
   defstruct [
     # ssid name

@@ -1,4 +1,4 @@
-defmodule Farmbot.Platform.Supervisor do
+defmodule FarmbotOS.Platform.Supervisor do
   @moduledoc false
 
   use Supervisor

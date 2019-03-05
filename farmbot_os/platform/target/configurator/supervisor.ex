@@ -1,6 +1,6 @@
-defmodule Farmbot.Target.Configurator.Supervisor do
+defmodule FarmbotOS.Platform.Target.Configurator.Supervisor do
   use Supervisor
-  alias Farmbot.Target.Configurator.{Router, Validator}
+  alias FarmbotOS.Platform.Target.Configurator.{Router, Validator}
 
   def start_link(args) do
     Supervisor.start_link(__MODULE__, args, name: __MODULE__)

@@ -29,7 +29,7 @@ config :farmbot_core, Farmbot.Config.Repo,
   loggers: [],
   database: Path.join(data_path, "config-#{Mix.env()}.sqlite3")
 
-config :farmbot_core, Farmbot.Logger.Repo,
+config :farmbot_core, FarmbotCore.Logger.Repo,
   adapter: Sqlite.Ecto2,
   loggers: [],
   database: Path.join(data_path, "logs-#{Mix.env()}.sqlite3")
@@ -40,7 +40,7 @@ config :farmbot_core, Farmbot.Asset.Repo,
   database: Path.join(data_path, "asset-#{Mix.env()}.sqlite3")
 
 config :farmbot,
-  ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo]
+  ecto_repos: [Farmbot.Config.Repo, FarmbotCore.Logger.Repo, Farmbot.Asset.Repo]
 
 config :farmbot, Farmbot.System.Init.Supervisor,
   init_children: [

@@ -1,4 +1,4 @@
-defmodule Farmbot.System.Init.Supervisor do
+defmodule FarmbotOS.Init.Supervisor do
   use Supervisor
 
   def start_link(args) do
@@ -11,7 +11,7 @@ defmodule Farmbot.System.Init.Supervisor do
     children =
       (config[:init_children] || []) ++
         [
-          {Farmbot.System.Init.FSCheckup, []}
+          {FarmbotOS.Init.FSCheckup, []}
         ]
 
     Supervisor.init(children, strategy: :one_for_all)
