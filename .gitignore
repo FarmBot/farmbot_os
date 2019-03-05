@@ -38,6 +38,8 @@ erl_crash.dump
 /farmbot_ext
 /farmbot_core
 /farmbot_os
+/farmbot_celery_script
+/farmbot_firmware
 
 # Various env vars.
 .env
