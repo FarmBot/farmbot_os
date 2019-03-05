@@ -1,4 +1,4 @@
-defmodule Farmbot.Ext.MixProject do
+defmodule FarmbotExt.MixProject do
   use Mix.Project
   @version Path.join([__DIR__, "..", "VERSION"]) |> File.read!() |> String.trim()
   @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"]) |> File.read!() |> String.trim()
@@ -18,7 +18,7 @@ defmodule Farmbot.Ext.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {Farmbot.Ext, []}
+      mod: {FarmbotExt, []}
     ]
   end
 
