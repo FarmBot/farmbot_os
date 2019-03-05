@@ -1,6 +1,6 @@
-defmodule Farmbot.Asset.StorageAuth do
+defmodule FarmbotCore.Asset.StorageAuth do
   use Ecto.Schema
-  use Farmbot.Asset.Schema, path: "/api/storage_auth"
+  use FarmbotCore.Asset.Schema, path: "/api/storage_auth"
 
   defmodule FormData do
     use Ecto.Schema

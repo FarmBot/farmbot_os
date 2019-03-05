@@ -1,7 +1,7 @@
-defmodule Farmbot.Config.Repo.Migrations.AddFirmwareFlashSetting do
+defmodule FarmbotCore.Config.Repo.Migrations.AddFirmwareFlashSetting do
   use Ecto.Migration
-  import Farmbot.Config, only: [update_config_value: 4]
-  import Farmbot.Config.MigrationHelpers
+  import FarmbotCore.Config, only: [update_config_value: 4]
+  import FarmbotCore.Config.MigrationHelpers
 
   def change do
     update_config_value(:string, "settings", "firmware_hardware", nil)

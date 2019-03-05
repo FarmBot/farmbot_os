@@ -1,15 +1,16 @@
-defmodule Farmbot.BotStateNG.ChangeGeneratorTest do
+defmodule FarmbotCore.BotStateNG.ChangeGeneratorTest do
   use ExUnit.Case
-  alias Farmbot.BotStateNG.ChangeGenerator
+  alias FarmbotCore.BotStateNG.ChangeGenerator
+  alias FarmbotCore.BotState
 
   describe "ecto integration" do
-    {:ok, bot_state} = Farmbot.BotState.start_link([], [])
-    _initial = Farmbot.BotState.subscribe(bot_state)
-    :ok = Farmbot.BotState.set_position(bot_state, 1, 2, 3)
+    {:ok, bot_state} = BotState.start_link([], [])
+    _initial = BotState.subscribe(bot_state)
+    :ok = BotState.set_position(bot_state, 1, 2, 3)
 
     changes =
       receive do
-        {Farmbot.BotState, change} -> ChangeGenerator.changes(change)
+        {BotState, change} -> ChangeGenerator.changes(change)
       after
         100 -> raise(:timeout)
       end

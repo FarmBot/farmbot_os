@@ -1,5 +1,5 @@
-defimpl Farmbot.AssetWorker, for: Farmbot.Asset.Device do
-  alias Farmbot.Asset.Device
+defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Device do
+  alias FarmbotCore.Asset.Device
   use GenServer
 
   def preload(%Device{}), do: []

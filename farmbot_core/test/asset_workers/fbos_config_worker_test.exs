@@ -1,6 +1,6 @@
-defmodule Farmbot.FbosConfigWorkerTest do
+defmodule FarmbotCore.FbosConfigWorkerTest do
   use ExUnit.Case, async: true
-  alias Farmbot.Asset.FbosConfig
+  alias FarmbotCore.{Asset.FbosConfig, AssetWorker, BotState}
 
   import Farmbot.TestSupport.AssetFixtures
 
@@ -23,13 +23,13 @@ defmodule Farmbot.FbosConfigWorkerTest do
         sequence_init_log: true
       })
 
-    {:ok, pid} = Farmbot.AssetWorker.start_link(conf)
+    {:ok, pid} = AssetWorker.start_link(conf)
     send(pid, :timeout)
 
     # Wait for the timeout to be dispatched
     Process.sleep(200)
 
-    state_conf = Farmbot.BotState.fetch().configuration
+    state_conf = BotState.fetch().configuration
     assert state_conf.arduino_debug_messages == conf.arduino_debug_messages
     assert state_conf.auto_sync == conf.auto_sync
     assert state_conf.beta_opt_in == conf.beta_opt_in

@@ -1,6 +1,6 @@
-defmodule Farmbot.Core.FirmwareSupervisor do
+defmodule FarmbotCore.FirmwareSupervisor do
   use Supervisor
-  alias Farmbot.Asset
+  alias FarmbotCore.Asset.FbosConfig
 
   def start_link(args) do
     Supervisor.start_link(__MODULE__, args, name: __MODULE__)
@@ -8,18 +8,18 @@ defmodule Farmbot.Core.FirmwareSupervisor do
 
   def init([]) do
     children = [
-      Farmbot.Core.FirmwareEstopTimer
+      FarmbotCore.FirmwareEstopTimer
     ]
 
     Supervisor.init(children, strategy: :one_for_all)
   end
 
-  def firmware_children(%Asset.FbosConfig{} = fbos_config) do
+  def firmware_children(%FbosConfig{} = fbos_config) do
     [
-      {Farmbot.Firmware,
+      {FarmbotFirmware,
        device: fbos_config.firmware_path,
-       transport: Farmbot.Firmware.UARTTransport,
-       side_effects: Farmbot.Core.FirmwareSideEffects}
+       transport: FarmbotFirmware.UARTTransport,
+       side_effects: FarmbotCore.FirmwareSideEffects}
     ]
   end
 end

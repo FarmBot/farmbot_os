@@ -1,15 +1,15 @@
-defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmEvent do
+defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
   use GenServer
   require Logger
 
-  alias Farmbot.{
+  alias FarmbotCore.{
     Asset,
     Asset.FarmEvent,
     Asset.Regimen,
     Asset.Sequence
   }
 
-  alias Farmbot.CeleryScript.Scheduler
+  alias FarmbotCeleryScript.Scheduler
 
   defstruct [:farm_event, :datetime, :handle_sequence, :handle_regimen]
   alias __MODULE__, as: State

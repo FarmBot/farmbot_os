@@ -1,4 +1,4 @@
-defmodule Farmbot.Config.Repo.Migrations.AddMaybeHiddenNetworkFlag do
+defmodule FarmbotCore.Config.Repo.Migrations.AddMaybeHiddenNetworkFlag do
   use Ecto.Migration
 
   def change do

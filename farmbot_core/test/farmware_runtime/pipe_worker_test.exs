@@ -1,6 +1,6 @@
-defmodule Farmbot.FarmwareRuntime.PipeWorkerTest do
+defmodule FarmbotCore.FarmwareRuntime.PipeWorkerTest do
   use ExUnit.Case, async: false
-  alias Farmbot.FarmwareRuntime.PipeWorker
+  alias FarmbotCore.FarmwareRuntime.PipeWorker
 
   test "reads data from pipe" do
     pipe_name = random_pipe()

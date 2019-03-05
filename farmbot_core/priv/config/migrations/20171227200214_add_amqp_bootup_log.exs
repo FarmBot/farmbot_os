@@ -1,7 +1,7 @@
-defmodule Farmbot.Config.Repo.Migrations.AddAmqpBootupLog do
+defmodule FarmbotCore.Config.Repo.Migrations.AddAmqpBootupLog do
   use Ecto.Migration
 
-  import Farmbot.Config.MigrationHelpers
+  import FarmbotCore.Config.MigrationHelpers
 
   def change do
     create_settings_config("log_amqp_connected", :bool, true)

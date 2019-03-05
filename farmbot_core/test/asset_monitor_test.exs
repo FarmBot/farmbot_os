@@ -1,7 +1,6 @@
-defmodule Farmbot.AssetMonitorTest do
+defmodule FarmbotCore.AssetMonitorTest do
   use ExUnit.Case, async: false
-  alias Farmbot.Asset
-  alias Farmbot.{AssetMonitor, AssetSupervisor}
+  alias FarmbotCore.{Asset.Repo, AssetMonitor, AssetSupervisor}
   import Farmbot.TestSupport.AssetFixtures
 
   describe "persistent regimens" do
@@ -20,7 +19,7 @@ defmodule Farmbot.AssetMonitorTest do
       assert {id, _, _, _} = AssetSupervisor.whereis_child(pr)
       assert id == pr.local_id
 
-      Asset.Repo.delete!(pr)
+      Repo.delete!(pr)
 
       AssetMonitor.force_checkup()
 
@@ -51,7 +50,7 @@ defmodule Farmbot.AssetMonitorTest do
       assert {id, _, _, _} = AssetSupervisor.whereis_child(event)
       assert id == event.local_id
 
-      Asset.Repo.delete!(event)
+      Repo.delete!(event)
 
       AssetMonitor.force_checkup()
 

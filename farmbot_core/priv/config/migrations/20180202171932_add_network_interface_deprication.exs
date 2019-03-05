@@ -1,4 +1,4 @@
-defmodule Farmbot.Config.Repo.Migrations.AddNetworkInterfaceDeprication do
+defmodule FarmbotCore.Config.Repo.Migrations.AddNetworkInterfaceDeprication do
   use Ecto.Migration
 
   def change do

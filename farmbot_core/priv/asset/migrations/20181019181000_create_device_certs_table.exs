@@ -1,4 +1,4 @@
-defmodule Elixir.Farmbot.Asset.Repo.Migrations.CreateDeviceCertsTable do
+defmodule Elixir.FarmbotCore.Asset.Repo.Migrations.CreateDeviceCertsTable do
   use Ecto.Migration
 
   def change do

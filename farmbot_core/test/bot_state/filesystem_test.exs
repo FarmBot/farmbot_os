@@ -1,6 +1,6 @@
-defmodule Farmbot.BotState.FileSystemTest do
+defmodule FarmbotCore.BotState.FileSystemTest do
   use ExUnit.Case, async: false
-  alias Farmbot.{BotState, BotState.FileSystem}
+  alias FarmbotCore.{BotState, BotState.FileSystem}
 
   describe "serializer" do
     test "arrays not aloud" do
@@ -55,12 +55,12 @@ defmodule Farmbot.BotState.FileSystemTest do
   describe "server" do
     test "serializes state to fs" do
       root_dir = Path.join([System.tmp_dir!(), Ecto.UUID.generate(), "-farmbot-bot-state"])
-      {:ok, bot_state_pid} = Farmbot.BotState.start_link([], [])
+      {:ok, bot_state_pid} = BotState.start_link([], [])
 
       {:ok, pid} =
         FileSystem.start_link(root_dir: root_dir, bot_state: bot_state_pid, sleep_time: 0)
 
-      _ = Farmbot.BotState.subscribe(bot_state_pid)
+      _ = BotState.subscribe(bot_state_pid)
       :ok = BotState.set_pin_value(bot_state_pid, 1, 1)
       assert_received {BotState, _}, 200
       # sleep to allow changes to propagate.

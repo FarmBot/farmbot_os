@@ -1,5 +1,5 @@
-defmodule Farmbot.BotStateNG.Schema2Docs do
-  alias Farmbot.BotStateNG
+defmodule FarmbotCore.BotStateNG.Schema2Docs do
+  alias FarmbotCore.BotStateNG
 
   def schema_to_ts do
     ts =

@@ -1,15 +1,15 @@
-defimpl Farmbot.AssetWorker, for: Farmbot.Asset.PinBinding do
+defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
   use GenServer
   require Logger
-  require Farmbot.Logger
+  require FarmbotCore.Logger
 
-  alias Farmbot.{
-    CeleryScript.AST,
-    CeleryScript.Scheduler,
+  alias FarmbotCore.{
     Asset.PinBinding,
     Asset.Sequence,
     Asset
   }
+
+  alias FarmbotCeleryScript.{AST, Scheduler}
 
   @error_retry_time_ms Application.get_env(:farmbot_core, __MODULE__)[:error_retry_time_ms]
 
@@ -64,7 +64,7 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.PinBinding do
         {:noreply, %{state | scheduled_ref: ref}, :hibernate}
 
       nil ->
-        Farmbot.Logger.error(1, "Failed to find assosiated Sequence for: #{pin_binding}")
+        FarmbotCore.Logger.error(1, "Failed to find assosiated Sequence for: #{pin_binding}")
         {:noreply, state, :hibernate}
     end
   end
@@ -142,7 +142,7 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.PinBinding do
   end
 
   def handle_cast(:trigger, %{pin_binding: pin_binding} = state) do
-    Farmbot.Logger.error(1, "Unknown PinBinding: #{pin_binding}")
+    FarmbotCore.Logger.error(1, "Unknown PinBinding: #{pin_binding}")
     {:noreply, state, :hibernate}
   end
 
@@ -176,7 +176,7 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.PinBinding do
 
   def handle_info({Scheduler, ref, {:error, reason}}, %{scheduled_ref: ref} = state) do
     pin_binding = state.pin_binding
-    Farmbot.Logger.error(1, "PinBinding: #{pin_binding} failed to execute: #{reason}")
+    FarmbotCore.Logger.error(1, "PinBinding: #{pin_binding} failed to execute: #{reason}")
     {:noreply, state, :hibernate}
   end
 

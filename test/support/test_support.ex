@@ -1,5 +1,5 @@
 defmodule Farmbot.TestSupport do
-  alias Farmbot.AssetWorker.Farmbot.Asset.{FarmEvent, PersistentRegimen}
+  alias FarmbotCore.AssetWorker.FarmbotCore.Asset.{FarmEvent, PersistentRegimen}
 
   def farm_event_timeout do
     Application.get_env(:farmbot_core, FarmEvent)[:checkup_time_ms]

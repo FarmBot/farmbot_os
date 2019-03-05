@@ -1,23 +1,25 @@
-defmodule Farmbot.FarmwareRuntime do
+defmodule FarmbotCore.FarmwareRuntime do
   @moduledoc """
-  Handles execution of Farmware plugins. 
+  Handles execution of Farmware plugins.
   """
 
-  alias Farmbot.FarmwareRuntime.PipeWorker
-  alias Farmbot.CeleryScript.AST
-  alias Farmbot.AssetWorker.Farmbot.Asset.FarmwareInstallation
-  alias Farmbot.Asset.FarmwareInstallation.Manifest
+  alias FarmbotCeleryScript.AST
+  alias FarmbotCore.{FarmwareRuntime, FarmwareRuntime.PipeWorker}
+  alias FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmwareInstallation
+  alias FarmbotCore.Asset.FarmwareInstallation.Manifest
+  alias FarmbotCore.BotState.FileSystem
+  alias FarmbotCore.Project
   import FarmwareInstallation, only: [install_dir: 1]
 
-  alias Farmbot.{Asset, JSON}
-  import Farmbot.Config, only: [get_config_value: 3]
+  alias FarmbotCore.{Asset, JSON}
+  import FarmbotCore.Config, only: [get_config_value: 3]
   require Logger
 
   @error_timeout_ms 5000
   @runtime_dir Application.get_env(:farmbot_core, __MODULE__)[:runtime_dir]
   @runtime_dir ||
     Mix.raise("""
-    config :farmbot_core, Farmbot.FarmwareRuntime,
+    config :farmbot_core, FarmwareRuntime,
       runtime_dir: "/tmp/farmware_runtime"
     """)
 
@@ -55,7 +57,7 @@ defmodule Farmbot.FarmwareRuntime do
 
   def stub(farmware_name) do
     manifest = Asset.get_farmware_manifest(farmware_name) || raise("not found")
-    {:ok, pid} = Farmbot.FarmwareRuntime.start_link(manifest)
+    {:ok, pid} = FarmwareRuntime.start_link(manifest)
     Process.flag(:trap_exit, true)
     stub_loop(pid)
   end
@@ -65,11 +67,11 @@ defmodule Farmbot.FarmwareRuntime do
       {:EXIT, ^pid, reason} -> reason
     after
       100 ->
-        case Farmbot.FarmwareRuntime.process_rpc(pid) do
+        case FarmwareRuntime.process_rpc(pid) do
           {:ok, %{args: %{label: label}} = rpc} ->
             IO.puts("Stup processing #{inspect(rpc)}")
             response = %AST{kind: :rpc_ok, args: %{label: label}, body: []}
-            true = Farmbot.FarmwareRuntime.rpc_processed(pid, response)
+            true = FarmwareRuntime.rpc_processed(pid, response)
             stub_loop(pid)
 
           {:error, :no_rpc} ->
@@ -88,7 +90,7 @@ defmodule Farmbot.FarmwareRuntime do
   end
 
   @doc """
-  Calls the Farmware Runtime telling it that an RPC has been processed. 
+  Calls the Farmware Runtime telling it that an RPC has been processed.
   """
   def rpc_processed(pid, response) do
     GenServer.call(pid, {:rpc_processed, response})
@@ -164,10 +166,10 @@ defmodule Farmbot.FarmwareRuntime do
   end
 
   # If we are in the `process_request` state, send the RPC out to be buffered.
-  # This moves us to the `send_response` state. (which has _no_ timeout) 
+  # This moves us to the `send_response` state. (which has _no_ timeout)
   def handle_call(:process_rpc, {pid, _} = _from, %{context: :process_request, rpc: rpc} = state) do
     # Link the calling process
-    # so the Farmware can exit if the rpc never gets processed. 
+    # so the Farmware can exit if the rpc never gets processed.
     _ = Process.link(pid)
     {:reply, {:ok, rpc}, %{state | rpc: nil, context: :send_response}}
   end
@@ -182,7 +184,7 @@ defmodule Farmbot.FarmwareRuntime do
     _ = Process.unlink(pid)
     ipc = add_header(result)
     reply = PipeWorker.write(state.response_pipe_handle, ipc)
-    # Make sure to `timeout` after this one to go back to the 
+    # Make sure to `timeout` after this one to go back to the
     # get_header context. This will cause another rpc to be processed.
     {:reply, reply, %{state | rpc: nil, context: :get_header}, 0}
   end
@@ -243,21 +245,21 @@ defmodule Farmbot.FarmwareRuntime do
   end
 
   # Pipe reads are done async because reading will block the entire
-  # process from receiving more messages as well as 
-  # prevent the processes from terminating. 
+  # process from receiving more messages as well as
+  # prevent the processes from terminating.
   # this means if a Farmware never opens the pipe
   # (a valid use case), When the Farmware completes
   # the pipe will still be waiting for information
-  # and prevent the pipes from closing. 
+  # and prevent the pipes from closing.
   defp async_request_pipe_read(state, size) do
     mon = PipeWorker.read(state.request_pipe_handle, size)
     %{state | mon: mon}
   end
 
-  # When a packet arives, buffer it until 
+  # When a packet arives, buffer it until
   # the controlling process (the CSVM) picks it up.
   # there is a timeout for how long a packet will wait to be collected,
-  # but no time limit to how long it will take to 
+  # but no time limit to how long it will take to
   # process the packet.
   def handle_packet(packet, state) do
     with {:ok, data} <- JSON.decode(packet),
@@ -288,7 +290,7 @@ defmodule Farmbot.FarmwareRuntime do
     token = get_config_value(:string, "authorization", "token")
     images_dir = "/tmp/images"
     installation_path = install_dir(manifest)
-    state_root_dir = Application.get_env(:farmbot_core, Farmbot.BotState.FileSystem)[:root_dir]
+    state_root_dir = Application.get_env(:farmbot_core, FileSystem)[:root_dir]
 
     base =
       Map.new()
@@ -296,7 +298,7 @@ defmodule Farmbot.FarmwareRuntime do
       |> Map.put("FARMWARE_API_V2_RESPONSE_PIPE", response_pipe)
       |> Map.put("FARMBOT_API_TOKEN", token)
       |> Map.put("FARMBOT_OS_IMAGES_DIR", images_dir)
-      |> Map.put("FARMBOT_OS_VERSION", Farmbot.Project.version())
+      |> Map.put("FARMBOT_OS_VERSION", Project.version())
       |> Map.put("FARMBOT_OS_STATE_DIR", state_root_dir)
       |> Map.put("PYTHONPATH", installation_path)
 

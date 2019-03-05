@@ -1,15 +1,15 @@
-defmodule Farmbot.Asset.FarmwareInstallation do
+defmodule FarmbotCore.Asset.FarmwareInstallation do
   @moduledoc """
   """
 
-  alias Farmbot.Asset.FarmwareInstallation.Manifest
+  alias FarmbotCore.Asset.FarmwareInstallation.Manifest
 
-  use Farmbot.Asset.Schema, path: "/api/farmware_installations"
+  use FarmbotCore.Asset.Schema, path: "/api/farmware_installations"
 
   schema "farmware_installations" do
     field(:id, :id)
 
-    has_one(:local_meta, Farmbot.Asset.Private.LocalMeta,
+    has_one(:local_meta, FarmbotCore.Asset.Private.LocalMeta,
       on_delete: :delete_all,
       references: :local_id,
       foreign_key: :asset_local_id

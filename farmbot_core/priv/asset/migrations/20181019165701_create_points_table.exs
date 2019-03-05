@@ -1,4 +1,4 @@
-defmodule Farmbot.Asset.Repo.Migrations.CreatePointsTable do
+defmodule FarmbotCore.Asset.Repo.Migrations.CreatePointsTable do
   use Ecto.Migration
 
   def change do

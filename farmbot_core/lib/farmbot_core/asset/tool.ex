@@ -1,12 +1,12 @@
-defmodule Farmbot.Asset.Tool do
+defmodule FarmbotCore.Asset.Tool do
   @moduledoc "A Tool is an item that lives in a ToolSlot"
 
-  use Farmbot.Asset.Schema, path: "/api/tools"
+  use FarmbotCore.Asset.Schema, path: "/api/tools"
 
   schema "tools" do
     field(:id, :id)
 
-    has_one(:local_meta, Farmbot.Asset.Private.LocalMeta,
+    has_one(:local_meta, FarmbotCore.Asset.Private.LocalMeta,
       on_delete: :delete_all,
       references: :local_id,
       foreign_key: :asset_local_id

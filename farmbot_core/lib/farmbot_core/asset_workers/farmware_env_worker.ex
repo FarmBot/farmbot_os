@@ -1,7 +1,7 @@
-defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmwareEnv do
+defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareEnv do
   use GenServer
 
-  alias Farmbot.Asset.FarmwareEnv
+  alias FarmbotCore.{Asset.FarmwareEnv, BotState}
 
   def preload(%FarmwareEnv{}), do: []
 
@@ -14,7 +14,7 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FarmwareEnv do
   end
 
   def handle_info(:timeout, %FarmwareEnv{key: key, value: value} = env) do
-    :ok = Farmbot.BotState.set_user_env(key, value)
+    :ok = BotState.set_user_env(key, value)
     {:noreply, env, :hibernate}
   end
 end

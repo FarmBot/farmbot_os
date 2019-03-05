@@ -1,4 +1,4 @@
-defmodule Farmbot.Logger.Repo.Migrations.AddLogBuffer do
+defmodule FarmbotCore.Logger.Repo.Migrations.AddLogBuffer do
   use Ecto.Migration
 
   def change do

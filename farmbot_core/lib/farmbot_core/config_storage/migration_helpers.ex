@@ -1,9 +1,9 @@
-defmodule Farmbot.Config.MigrationHelpers do
+defmodule FarmbotCore.Config.MigrationHelpers do
   @moduledoc false
 
   # This is pretty bad practice, but i don't plan on really changing it at all.
 
-  alias Farmbot.Config
+  alias FarmbotCore.Config
   alias Config.{Repo, Config, StringValue, BoolValue, FloatValue}
   import Ecto.Query
 

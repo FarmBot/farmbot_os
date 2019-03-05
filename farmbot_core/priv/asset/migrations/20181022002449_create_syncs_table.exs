@@ -1,4 +1,4 @@
-defmodule Elixir.Farmbot.Asset.Repo.Migrations.CreateSyncsTable do
+defmodule Elixir.FarmbotCore.Asset.Repo.Migrations.CreateSyncsTable do
   use Ecto.Migration
 
   def change do
