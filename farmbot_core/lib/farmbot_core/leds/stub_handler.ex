@@ -1,6 +1,6 @@
-defmodule Farmbot.Leds.StubHandler do
+defmodule FarmbotCore.Leds.StubHandler do
   @moduledoc false
-  @behaviour Farmbot.Leds.Handler
+  @behaviour FarmbotCore.Leds.Handler
 
   def red(status), do: do_debug(:red, status)
   def blue(status), do: do_debug(:blue, status)

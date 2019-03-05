@@ -1,4 +1,4 @@
-defmodule Farmbot.Logger.Supervisor do
+defmodule FarmbotCore.Logger.Supervisor do
   @moduledoc false
   use Supervisor
 
@@ -8,7 +8,7 @@ defmodule Farmbot.Logger.Supervisor do
 
   def init([]) do
     children = [
-      supervisor(Farmbot.Logger.Repo, [])
+      supervisor(FarmbotCore.Logger.Repo, [])
     ]
 
     opts = [strategy: :one_for_all]

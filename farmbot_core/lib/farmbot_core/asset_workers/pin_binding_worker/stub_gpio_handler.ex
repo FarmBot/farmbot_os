@@ -1,6 +1,6 @@
-defmodule Farmbot.PinBindingWorker.StubGPIOHandler do
+defmodule FarmbotCore.PinBindingWorker.StubGPIOHandler do
   @moduledoc "Stub gpio handler for PinBindings"
-  @behaviour Farmbot.AssetWorker.Farmbot.Asset.PinBinding
+  @behaviour FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding
   require Logger
   use GenServer
 

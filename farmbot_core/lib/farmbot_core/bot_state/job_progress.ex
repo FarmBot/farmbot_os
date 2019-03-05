@@ -1,10 +1,12 @@
-defmodule Farmbot.BotState.JobProgress do
+defmodule FarmbotCore.BotState.JobProgress do
   @moduledoc "Interface for job progress."
 
   @typedoc "Unit of the job."
   @type unit :: :percent | :bytes
   @typedoc "Status of the job."
   @type status :: :working | :complete | :error
+
+  alias FarmbotCore.BotState.JobProgress
 
   defmodule Percent do
     @moduledoc "Percent job."
@@ -17,7 +19,7 @@ defmodule Farmbot.BotState.JobProgress do
     end
 
     @type t :: %__MODULE__{
-            status: Farmbot.BotState.JobProgress.status(),
+            status: JobProgress.status(),
             percent: integer,
             unit: :percent,
             type: :image | :ota,
@@ -37,7 +39,7 @@ defmodule Farmbot.BotState.JobProgress do
     end
 
     @type t :: %__MODULE__{
-            status: Farmbot.BotState.JobProgress.status(),
+            status: JobProgress.status(),
             bytes: integer,
             unit: :bytes,
             type: :image | :ota,

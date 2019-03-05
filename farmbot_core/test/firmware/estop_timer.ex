@@ -1,6 +1,6 @@
-defmodule Farmbot.Core.FirmwareEstopTimerTest do
+defmodule FarmbotCore.FirmwareEstopTimerTest do
   use ExUnit.Case
-  alias Farmbot.Core.FirmwareEstopTimer
+  alias FarmbotCore.FirmwareEstopTimer
 
   test "calls a function in X MS" do
     test_pid = self()

@@ -1,7 +1,7 @@
-defmodule Farmbot.Config.Repo.Migrations.AddBetaChanelConfig do
+defmodule FarmbotCore.Config.Repo.Migrations.AddBetaChanelConfig do
   use Ecto.Migration
 
-  import Farmbot.Config.MigrationHelpers
+  import FarmbotCore.Config.MigrationHelpers
 
   def change do
     create_settings_config("beta_opt_in", :bool, false)

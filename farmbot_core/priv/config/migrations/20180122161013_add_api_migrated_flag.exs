@@ -1,7 +1,7 @@
-defmodule Farmbot.Config.Repo.Migrations.AddApiMigratedFlag do
+defmodule FarmbotCore.Config.Repo.Migrations.AddApiMigratedFlag do
   use Ecto.Migration
 
-  import Farmbot.Config.MigrationHelpers
+  import FarmbotCore.Config.MigrationHelpers
 
   def change do
     create_settings_config("api_migrated", :bool, false)
