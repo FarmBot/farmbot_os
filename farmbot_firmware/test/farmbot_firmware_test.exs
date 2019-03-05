@@ -1,4 +1,4 @@
-defmodule Farmbot.FirmwareTest do
+defmodule FarmbotFirmwareTest do
   use ExUnit.Case
-  doctest Farmbot.Firmware
+  doctest FarmbotFirmware
 end

@@ -1,5 +1,5 @@
-defmodule Farmbot.Firmware.StubSideEffects do
-  @behaviour Farmbot.Firmware.SideEffects
+defmodule FarmbotFirmware.StubSideEffects do
+  @behaviour FarmbotFirmware.SideEffects
 
   def load_params do
     [
