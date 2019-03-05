@@ -1,4 +1,4 @@
-defmodule Farmbot.Target.Uevent.Supervisor do
+defmodule FarmbotOS.Platform.Target.Uevent.Supervisor do
   @moduledoc false
   use Supervisor
 
@@ -7,16 +7,16 @@ defmodule Farmbot.Target.Uevent.Supervisor do
   end
 
   def init([]) do
-    children = [{Farmbot.Target.Uevent, []}]
+    children = [{FarmbotOS.Platform.Target.Uevent, []}]
     Supervisor.init(children, strategy: :one_for_one)
   end
 end
 
-defmodule Farmbot.Target.Uevent do
+defmodule FarmbotOS.Platform.Target.Uevent do
   @moduledoc false
 
   use GenServer
-  require Farmbot.Logger
+  require FarmbotCore.Logger
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
@@ -33,7 +33,7 @@ defmodule Farmbot.Target.Uevent do
 
     case new_ttys -- old_ttys do
       [new] -> new |> List.last() |> maybe_new_tty()
-      [_ | _] -> Farmbot.Logger.warn(3, "Multiple new tty devices detected. Ignoring.")
+      [_ | _] -> FarmbotCore.Logger.warn(3, "Multiple new tty devices detected. Ignoring.")
       [] -> :ok
     end
 
@@ -50,22 +50,10 @@ defmodule Farmbot.Target.Uevent do
   def maybe_new_tty("tty" <> _), do: :ok
 
   def maybe_new_tty(unknown) do
-    Farmbot.Logger.warn(1, "Unknown tty: #{inspect(unknown)}")
+    FarmbotCore.Logger.warn(1, "Unknown tty: #{inspect(unknown)}")
   end
 
   def new_tty(tty) do
-    raise("FIXME")
-    Farmbot.Logger.busy(3, "Detected new UART Device: #{tty}")
-    Application.put_env(:farmbot_core, :uart_handler, tty: "/dev/" <> tty)
-    old_env = Application.get_env(:farmbot_core, :behaviour)
-
-    if old_env[:firmware_handler] == Farmbot.Firmware.StubHandler do
-      new_env = Keyword.put(old_env, :firmware_handler, Farmbot.Firmware.UartHandler)
-      Application.put_env(:farmbot_core, :behaviour, new_env)
-
-      if Process.whereis(Farmbot.Firmware) do
-        GenServer.stop(Farmbot.Firmware, :shutdown)
-      end
-    end
+    raise("FIXME: #{tty}")
   end
 end

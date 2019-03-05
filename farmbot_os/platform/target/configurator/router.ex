@@ -1,4 +1,4 @@
-defmodule Farmbot.Target.Configurator.Router do
+defmodule FarmbotOS.Platform.Target.Configurator.Router do
   @moduledoc "Routes web connections."
 
   use Plug.Router
@@ -9,10 +9,10 @@ defmodule Farmbot.Target.Configurator.Router do
   plug(:match)
   plug(:dispatch)
 
-  require Farmbot.Logger
+  require FarmbotCore.Logger
   import Phoenix.HTML
-  alias Farmbot.Config
-  alias Farmbot.Target.Network
+  alias FarmbotCore.Config
+  alias FarmbotOS.Platform.Target.Network
 
   import Config,
     only: [
@@ -24,8 +24,8 @@ defmodule Farmbot.Target.Configurator.Router do
     defexception [:message, :field, :redir]
   end
 
-  @version Farmbot.Project.version()
-  @data_path Farmbot.OS.FileSystem.data_path()
+  @version FarmbotCore.Project.version()
+  @data_path FarmbotOS.FileSystem.data_path()
 
   get "/generate_204" do
     send_resp(conn, 204, "")
@@ -107,7 +107,7 @@ defmodule Farmbot.Target.Configurator.Router do
       render_page(conn, "config_wired", ifname: ifname, advanced_network: advanced_network())
     rescue
       e in MissingField ->
-        Farmbot.Logger.error(1, Exception.message(e))
+        FarmbotCore.Logger.error(1, Exception.message(e))
         redir(conn, e.redir)
     end
   end
@@ -184,7 +184,7 @@ defmodule Farmbot.Target.Configurator.Router do
       end
     rescue
       e in MissingField ->
-        Farmbot.Logger.error(1, Exception.message(e))
+        FarmbotCore.Logger.error(1, Exception.message(e))
         redir(conn, e.redir)
     end
   end
@@ -259,16 +259,16 @@ defmodule Farmbot.Target.Configurator.Router do
           redir(conn, "/firmware")
 
         {:error, %{errors: r}} when type == "wireless" ->
-          Farmbot.Logger.error(1, "Network error: #{inspect(r)}")
+          FarmbotCore.Logger.error(1, "Network error: #{inspect(r)}")
           redir(conn, "/config_wireless?ifname=#{ifname}")
 
         {:error, %{errors: r}} when type == "wired" ->
-          Farmbot.Logger.error(1, "Network error: #{inspect(r)}")
+          FarmbotCore.Logger.error(1, "Network error: #{inspect(r)}")
           redir(conn, "/config_wired?ifname=#{ifname}")
       end
     rescue
       e in MissingField ->
-        Farmbot.Logger.error(1, Exception.message(e))
+        FarmbotCore.Logger.error(1, Exception.message(e))
         redir(conn, e.redir)
     end
   end
@@ -287,8 +287,8 @@ defmodule Farmbot.Target.Configurator.Router do
         update_config_value(:string, "settings", "firmware_hardware", hw)
 
         if Application.get_env(:farmbot, :behaviour)[:firmware_handler] ==
-             Farmbot.Firmware.UartHandler do
-          Farmbot.Logger.warn(1, "Updating #{hw} firmware is broke!!!!!!")
+             FarmbotFirmware.UartHandler do
+          FarmbotCore.Logger.warn(1, "Updating #{hw} firmware is broke!!!!!!")
           # /shrug?
           # Farmbot.Firmware.UartHandler.Update.force_update_firmware(hw)
         end
@@ -354,7 +354,7 @@ defmodule Farmbot.Target.Configurator.Router do
       Network.reload()
       render_page(conn, "finish")
     else
-      Farmbot.Logger.warn(3, "Not configured yet. Restarting configuration.")
+      FarmbotCore.Logger.warn(3, "Not configured yet. Restarting configuration.")
       redir(conn, "/")
     end
   end

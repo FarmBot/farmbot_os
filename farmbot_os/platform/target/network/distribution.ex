@@ -1,8 +1,9 @@
-defmodule Farmbot.Target.Network.Distribution do
+defmodule FarmbotOS.Platform.Target.Network.Distribution do
   @moduledoc false
 
   use GenServer
   require Logger
+  alias FarmbotCore.BotState
 
   defmodule State do
     @moduledoc false
@@ -119,7 +120,7 @@ defmodule Farmbot.Target.Network.Distribution do
 
       case :net_kernel.start([new_name]) do
         {:ok, _} ->
-          :ok = Farmbot.BotState.set_node_name(to_string(new_name))
+          :ok = BotState.set_node_name(to_string(new_name))
           Logger.debug("Restarted Erlang distribution as node #{inspect(new_name)}")
 
         {:error, reason} ->
