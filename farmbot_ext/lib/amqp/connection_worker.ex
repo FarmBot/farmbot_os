@@ -1,7 +1,7 @@
-defmodule Farmbot.AMQP.ConnectionWorker do
+defmodule FarmbotExt.AMQP.ConnectionWorker do
   use GenServer
-  alias Farmbot.JWT
-  require Farmbot.Logger
+  alias FarmbotCore.Project
+  alias FarmbotExt.JWT
   require Logger
 
   defstruct [:opts, :conn]
@@ -70,9 +70,9 @@ defmodule Farmbot.AMQP.ConnectionWorker do
     # a `:longstr` or `:shortstr` they will _NOT_ be `to_string/1`ified.
     opts = [
       client_properties: [
-        {"version", :longstr, Farmbot.Project.version()},
-        {"commit", :longstr, Farmbot.Project.commit()},
-        {"target", :longstr, to_string(Farmbot.Project.target())},
+        {"version", :longstr, Project.version()},
+        {"commit", :longstr, Project.commit()},
+        {"target", :longstr, to_string(Project.target())},
         {"opened", :longstr, to_string(DateTime.utc_now())},
         {"product", :longstr, "farmbot_os"},
         {"bot", :longstr, bot},

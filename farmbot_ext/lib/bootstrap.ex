@@ -1,9 +1,9 @@
-defmodule Farmbot.Bootstrap do
+defmodule FarmbotExt.Bootstrap do
   use GenServer
 
   require Logger
-  alias Farmbot.Bootstrap.Authorization
-  import Farmbot.Config, only: [update_config_value: 4, get_config_value: 3]
+  alias FarmbotExt.{Bootstrap, Bootstrap.Authorization}
+  import FarmbotCore.Config, only: [update_config_value: 4, get_config_value: 3]
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
@@ -34,7 +34,7 @@ defmodule Farmbot.Bootstrap do
 
     with {:ok, tkn} <- Authorization.authorize_with_secret(email, secret, server),
          _ <- update_config_value(:string, "authorization", "token", tkn),
-         {:ok, pid} <- Supervisor.start_child(Farmbot.Ext, Farmbot.Bootstrap.Supervisor) do
+         {:ok, pid} <- Supervisor.start_child(FarmbotExt, Bootstrap.Supervisor) do
       {:noreply, pid}
     else
       _ -> {:noreply, nil, 5000}
@@ -47,7 +47,7 @@ defmodule Farmbot.Bootstrap do
 
     with {:ok, tkn} <- Authorization.authorize_with_password(email, password, server),
          _ <- update_config_value(:string, "authorization", "token", tkn),
-         {:ok, pid} <- Supervisor.start_child(Farmbot.Ext, Farmbot.Bootstrap.Supervisor) do
+         {:ok, pid} <- Supervisor.start_child(FarmbotExt, Bootstrap.Supervisor) do
       {:noreply, pid}
     else
       er ->

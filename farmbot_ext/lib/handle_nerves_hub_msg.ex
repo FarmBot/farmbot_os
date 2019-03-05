@@ -1,5 +1,5 @@
-defmodule Farmbot.Ext.HandleNervesHubMsg do
-  @behaviour Farmbot.AMQP.NervesHubTransport
+defmodule FarmbotExt.HandleNervesHubMsg do
+  @behaviour FarmbotExt.AMQP.NervesHubTransport
   def configure_certs(_, _), do: :error
   def connect(), do: :error
 end
