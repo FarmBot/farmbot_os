@@ -1,6 +1,6 @@
-alias Farmbot.{Asset, Asset.Repo}
+alias FarmbotCore.{Asset, Asset.Repo}
 
-alias Farmbot.Asset.{
+alias FarmbotCore.Asset.{
   Device,
   FarmwareEnv,
   FarmwareInstallation,

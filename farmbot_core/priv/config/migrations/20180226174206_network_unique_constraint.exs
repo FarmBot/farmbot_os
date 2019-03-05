@@ -1,4 +1,4 @@
-defmodule Farmbot.Config.Repo.Migrations.NetworkUniqueConstraint do
+defmodule FarmbotCore.Config.Repo.Migrations.NetworkUniqueConstraint do
   use Ecto.Migration
 
   def change do

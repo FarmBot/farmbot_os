@@ -1,6 +1,6 @@
-defmodule Farmbot.Config.Repo.Migrations.AddFactoryResetSettings do
+defmodule FarmbotCore.Config.Repo.Migrations.AddFactoryResetSettings do
   use Ecto.Migration
-  import Farmbot.Config.MigrationHelpers
+  import FarmbotCore.Config.MigrationHelpers
 
   def change do
     create_settings_config("disable_factory_reset", :bool, false)

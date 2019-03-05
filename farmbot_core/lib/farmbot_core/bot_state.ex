@@ -1,6 +1,6 @@
-defmodule Farmbot.BotState do
+defmodule FarmbotCore.BotState do
   @moduledoc "Central State accumulator."
-  alias Farmbot.BotStateNG
+  alias FarmbotCore.BotStateNG
   use GenServer
 
   @doc "Subscribe to BotState changes"

@@ -1,4 +1,4 @@
-defmodule Farmbot.BotStateNG.ChangeGenerator do
+defmodule FarmbotCore.BotStateNG.ChangeGenerator do
   @moduledoc """
   Takes a map and returns instructions on how to construct that data.
   """

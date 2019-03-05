@@ -1,4 +1,4 @@
-defmodule Farmbot.Config.Repo.Migrations.AddRegimenIndexs do
+defmodule FarmbotCore.Config.Repo.Migrations.AddRegimenIndexs do
   use Ecto.Migration
 
   def change do

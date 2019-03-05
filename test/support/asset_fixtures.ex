@@ -1,6 +1,6 @@
 defmodule Farmbot.TestSupport.AssetFixtures do
-  alias Farmbot.Asset
-  alias Farmbot.Asset.{Repo, FarmEvent, FbosConfig, Regimen, Sequence}
+  alias FarmbotCore.Asset
+  alias FarmbotCore.Asset.{Repo, FarmEvent, FbosConfig, Regimen, Sequence}
 
   def persistent_regimen(regimen_params, farm_event_params, params \\ %{}) do
     regimen = regimen(regimen_params)

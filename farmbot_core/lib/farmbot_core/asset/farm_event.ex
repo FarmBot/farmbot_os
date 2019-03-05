@@ -1,13 +1,13 @@
-defmodule Elixir.Farmbot.Asset.FarmEvent do
+defmodule FarmbotCore.Asset.FarmEvent do
   @moduledoc """
   """
 
-  use Farmbot.Asset.Schema, path: "/api/farm_events"
+  use FarmbotCore.Asset.Schema, path: "/api/farm_events"
 
   schema "farm_events" do
     field(:id, :id)
 
-    has_one(:local_meta, Farmbot.Asset.Private.LocalMeta,
+    has_one(:local_meta, FarmbotCore.Asset.Private.LocalMeta,
       on_delete: :delete_all,
       references: :local_id,
       foreign_key: :asset_local_id

@@ -1,7 +1,7 @@
-defmodule Farmbot.AssetTest do
+defmodule FarmbotCore.AssetTest do
   use ExUnit.Case, async: true
-  alias Farmbot.Asset.{Repo, Regimen, PersistentRegimen}
-  alias Farmbot.Asset
+  alias FarmbotCore.Asset.{Repo, Regimen, PersistentRegimen}
+  alias FarmbotCore.Asset
   import Farmbot.TestSupport.AssetFixtures
 
   describe "persistent regimens" do

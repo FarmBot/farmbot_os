@@ -1,4 +1,4 @@
-defmodule Farmbot.EctoMigrator do
+defmodule FarmbotCore.EctoMigrator do
   def child_spec(_opts) do
     %{
       id: __MODULE__,
@@ -17,16 +17,16 @@ defmodule Farmbot.EctoMigrator do
     :ignore
   end
 
-  def migrate(Farmbot.Asset.Repo) do
-    migrate(Farmbot.Asset.Repo, Path.join([:code.priv_dir(:farmbot_core), "asset", "migrations"]))
+  def migrate(FarmbotCore.Asset.Repo) do
+    migrate(FarmbotCore.Asset.Repo, Path.join([:code.priv_dir(:farmbot_core), "asset", "migrations"]))
   end
 
-  def migrate(Farmbot.Logger.Repo) do
-    migrate(Farmbot.Logger.Repo, Path.join([:code.priv_dir(:farmbot_core), "logger", "migrations"]))
+  def migrate(FarmbotCore.Logger.Repo) do
+    migrate(FarmbotCore.Logger.Repo, Path.join([:code.priv_dir(:farmbot_core), "logger", "migrations"]))
   end
 
-  def migrate(Farmbot.Config.Repo) do
-    migrate(Farmbot.Config.Repo, Path.join([:code.priv_dir(:farmbot_core), "config", "migrations"]))
+  def migrate(FarmbotCore.Config.Repo) do
+    migrate(FarmbotCore.Config.Repo, Path.join([:code.priv_dir(:farmbot_core), "config", "migrations"]))
   end
 
   def migrate(repo, migrations_path) do

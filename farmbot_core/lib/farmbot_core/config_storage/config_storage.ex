@@ -1,7 +1,7 @@
-defmodule Farmbot.Config do
+defmodule FarmbotCore.Config do
   @moduledoc "API for accessing config data."
 
-  alias Farmbot.Config.{
+  alias FarmbotCore.Config.{
     Repo,
     Config, Group, BoolValue, FloatValue, StringValue, NetworkInterface
   }
@@ -10,7 +10,7 @@ defmodule Farmbot.Config do
 
   @doc "Input a network config. Takes many settings as a map."
   def input_network_config!(%{} = config) do
-    Farmbot.Config.destroy_all_network_configs()
+    FarmbotCore.Config.destroy_all_network_configs()
     data = struct(NetworkInterface, config)
     Repo.insert!(data)
   end

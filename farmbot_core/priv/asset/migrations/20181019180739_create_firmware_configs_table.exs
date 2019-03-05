@@ -1,4 +1,4 @@
-defmodule Elixir.Farmbot.Asset.Repo.Migrations.CreateFirmwareConfigsTable do
+defmodule Elixir.FarmbotCore.Asset.Repo.Migrations.CreateFirmwareConfigsTable do
   use Ecto.Migration
 
   def change do

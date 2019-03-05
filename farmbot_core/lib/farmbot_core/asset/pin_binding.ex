@@ -1,13 +1,13 @@
-defmodule Farmbot.Asset.PinBinding do
+defmodule FarmbotCore.Asset.PinBinding do
   @moduledoc """
   When a pin binding is triggered a sequence fires.
   """
-  use Farmbot.Asset.Schema, path: "/api/pin_bindings"
+  use FarmbotCore.Asset.Schema, path: "/api/pin_bindings"
 
   schema "pin_bindings" do
     field(:id, :id)
 
-    has_one(:local_meta, Farmbot.Asset.Private.LocalMeta,
+    has_one(:local_meta, FarmbotCore.Asset.Private.LocalMeta,
       on_delete: :delete_all,
       references: :local_id,
       foreign_key: :asset_local_id
@@ -54,28 +54,28 @@ defmodule Farmbot.Asset.PinBinding do
   end
 end
 
-defimpl String.Chars, for: Farmbot.Asset.PinBinding do
-  def to_string(%Farmbot.Asset.PinBinding{pin_num: 16}) do
+defimpl String.Chars, for: FarmbotCore.Asset.PinBinding do
+  def to_string(%FarmbotCore.Asset.PinBinding{pin_num: 16}) do
     "Button 1"
   end
 
-  def to_string(%Farmbot.Asset.PinBinding{pin_num: 22}) do
+  def to_string(%FarmbotCore.Asset.PinBinding{pin_num: 22}) do
     "Button 2"
   end
 
-  def to_string(%Farmbot.Asset.PinBinding{pin_num: 26}) do
+  def to_string(%FarmbotCore.Asset.PinBinding{pin_num: 26}) do
     "Button 3"
   end
 
-  def to_string(%Farmbot.Asset.PinBinding{pin_num: 5}) do
+  def to_string(%FarmbotCore.Asset.PinBinding{pin_num: 5}) do
     "Button 4"
   end
 
-  def to_string(%Farmbot.Asset.PinBinding{pin_num: 20}) do
+  def to_string(%FarmbotCore.Asset.PinBinding{pin_num: 20}) do
     "Button 5"
   end
 
-  def to_string(%Farmbot.Asset.PinBinding{pin_num: num}) do
+  def to_string(%FarmbotCore.Asset.PinBinding{pin_num: num}) do
     "Pi GPIO #{num}"
   end
 end

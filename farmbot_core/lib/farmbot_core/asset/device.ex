@@ -1,15 +1,15 @@
-defmodule Farmbot.Asset.Device do
+defmodule FarmbotCore.Asset.Device do
   @moduledoc """
   The current device. Should only ever be _one_ of these. If not there is a huge
   problem probably higher up the stack.
   """
 
-  use Farmbot.Asset.Schema, path: "/api/device"
+  use FarmbotCore.Asset.Schema, path: "/api/device"
 
   schema "devices" do
     field(:id, :id)
 
-    has_one(:local_meta, Farmbot.Asset.Private.LocalMeta,
+    has_one(:local_meta, FarmbotCore.Asset.Private.LocalMeta,
       on_delete: :delete_all,
       references: :local_id,
       foreign_key: :asset_local_id

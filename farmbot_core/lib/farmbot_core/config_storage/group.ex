@@ -1,4 +1,4 @@
-defmodule Farmbot.Config.Group do
+defmodule FarmbotCore.Config.Group do
   @moduledoc false
 
   use Ecto.Schema
