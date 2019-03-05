@@ -1,9 +1,9 @@
-defmodule Farmbot.CeleryScript.TestSupport.TestSysCalls do
+defmodule FarmbotCeleryScript.TestSupport.TestSysCalls do
   @moduledoc """
   Stub implementation of CeleryScript SysCalls
   """
 
-  @behaviour Farmbot.CeleryScript.SysCalls
+  @behaviour FarmbotCeleryScript.SysCalls
   use GenServer
 
   def checkout do

@@ -1,7 +1,7 @@
-defmodule Farmbot.CeleryScript.SchedulerTest do
+defmodule FarmbotCeleryScript.SchedulerTest do
   use ExUnit.Case, async: false
-  alias Farmbot.{CeleryScript.Scheduler, CeleryScript.Compiler, CeleryScript.AST}
-  alias Farmbot.CeleryScript.TestSupport.TestSysCalls
+  alias FarmbotCeleryScript.{Scheduler, Compiler, AST}
+  alias FarmbotCeleryScript.TestSupport.TestSysCalls
 
   setup do
     {:ok, shim} = TestSysCalls.checkout()

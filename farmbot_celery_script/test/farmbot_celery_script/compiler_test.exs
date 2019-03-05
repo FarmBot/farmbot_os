@@ -1,8 +1,8 @@
-defmodule Farmbot.CeleryScript.CompilerTest do
+defmodule FarmbotCeleryScript.CompilerTest do
   use ExUnit.Case, async: true
-  alias Farmbot.CeleryScript.{AST, Compiler}
+  alias FarmbotCeleryScript.{AST, Compiler}
   # Only required to compile
-  alias Farmbot.CeleryScript.SysCalls, warn: false
+  alias FarmbotCeleryScript.SysCalls, warn: false
 
   test "compiles a sequence with no body" do
     sequence = %AST{

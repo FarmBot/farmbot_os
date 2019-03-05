@@ -1,4 +1,4 @@
-defmodule Farmbot.CeleryScript.Compiler.IdentifierSanitizer do
+defmodule FarmbotCeleryScript.Compiler.IdentifierSanitizer do
   @moduledoc """
   Responsible for ensuring variable names in Sequences are clean.
   """
