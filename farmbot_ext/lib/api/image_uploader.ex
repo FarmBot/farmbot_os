@@ -1,11 +1,13 @@
-defmodule Farmbot.API.ImageUploader do
+defmodule FarmbotExt.API.ImageUploader do
   @moduledoc """
   Watches a dir and uploads images in that dir.
   """
-  alias Farmbot.API
+  alias FarmbotCore.BotState
+  require FarmbotCore.Logger
+
+  alias FarmbotExt.API
 
   use GenServer
-  require Farmbot.Logger
 
   @images_path "/tmp/images/"
   @checkup_time_ms 30_000
@@ -40,11 +42,11 @@ defmodule Farmbot.API.ImageUploader do
 
   # TODO(Connor) the meta here is likely inaccurate.
   defp try_upload(image_filename) do
-    meta = Farmbot.BotState.fetch().location_data.position
+    meta = BotState.fetch().location_data.position
 
     with {:ok, %{status: s, body: body}} when s > 199 and s < 300 <-
            API.upload_image(image_filename, meta) do
-      Farmbot.Logger.success(3, "Uploaded image: #{inspect(body)}")
+      FarmbotCore.Logger.success(3, "Uploaded image: #{inspect(body)}")
       File.rm(image_filename)
     end
   end

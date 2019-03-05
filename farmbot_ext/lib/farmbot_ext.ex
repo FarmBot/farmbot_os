@@ -1,4 +1,4 @@
-defmodule Farmbot.Ext do
+defmodule FarmbotExt do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
@@ -8,7 +8,7 @@ defmodule Farmbot.Ext do
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
-      Farmbot.Bootstrap
+      FarmbotExt.Bootstrap
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

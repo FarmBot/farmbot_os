@@ -1,7 +1,7 @@
-defmodule Farmbot.AMQP.Supervisor do
+defmodule FarmbotExt.AMQP.Supervisor do
   @moduledoc false
   use Supervisor
-  import Farmbot.Config, only: [get_config_value: 3]
+  import FarmbotCore.Config, only: [get_config_value: 3]
 
   def start_link(args) do
     Supervisor.start_link(__MODULE__, args, name: __MODULE__)
@@ -12,8 +12,8 @@ defmodule Farmbot.AMQP.Supervisor do
     email = get_config_value(:string, "authorization", "email")
 
     children = [
-      {Farmbot.AMQP.ConnectionWorker, [token: token, email: email]},
-      {Farmbot.AMQP.ChannelSupervisor, [token]}
+      {FarmbotExt.AMQP.ConnectionWorker, [token: token, email: email]},
+      {FarmbotExt.AMQP.ChannelSupervisor, [token]}
     ]
 
     Supervisor.init(children, strategy: :one_for_all)

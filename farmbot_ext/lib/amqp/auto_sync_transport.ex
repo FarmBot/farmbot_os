@@ -1,4 +1,4 @@
-defmodule Farmbot.AMQP.AutoSyncTransport do
+defmodule FarmbotExt.AMQP.AutoSyncTransport do
   use GenServer
   use AMQP
 
@@ -7,13 +7,14 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
     Queue
   }
 
-  alias Farmbot.AMQP.ConnectionWorker
+  alias FarmbotExt.AMQP.ConnectionWorker
+  alias FarmbotExt.API.EagerLoader
 
   require Logger
-  require Farmbot.Logger
+  require FarmbotCore.Logger
 
-  alias Farmbot.{
-    API.EagerLoader,
+  alias FarmbotCore.{
+    Asset,
     Asset.Repo,
     Asset.Device,
     Asset.FbosConfig,
@@ -38,7 +39,7 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
   end
 
   def terminate(reason, state) do
-    Farmbot.Logger.error(1, "Disconnected from AutoSync channel: #{inspect(reason)}")
+    FarmbotCore.Logger.error(1, "Disconnected from AutoSync channel: #{inspect(reason)}")
     # If a channel was still open, close it.
     if state.chan, do: AMQP.Channel.close(state.chan)
   end
@@ -61,7 +62,7 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
         {:noreply, %{state | conn: nil, chan: nil}, 5000}
 
       error ->
-        Farmbot.Logger.error(1, "Failed to connect to AutoSync channel: #{inspect(error)}")
+        FarmbotCore.Logger.error(1, "Failed to connect to AutoSync channel: #{inspect(error)}")
         {:noreply, %{state | conn: nil, chan: nil}, 1000}
     end
   end
@@ -97,7 +98,7 @@ defmodule Farmbot.AMQP.AutoSyncTransport do
   end
 
   def handle_asset(asset_kind, label, id, params, state) do
-    auto_sync? = Farmbot.Asset.fbos_config().auto_sync
+    auto_sync? = Asset.fbos_config().auto_sync
 
     cond do
       # TODO(Connor) no way to cache a deletion yet
