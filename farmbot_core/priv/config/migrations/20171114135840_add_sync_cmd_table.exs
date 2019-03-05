@@ -1,4 +1,4 @@
-defmodule Farmbot.Config.Repo.Migrations.AddSyncCmdTable do
+defmodule FarmbotCore.Config.Repo.Migrations.AddSyncCmdTable do
   use Ecto.Migration
 
   def change do

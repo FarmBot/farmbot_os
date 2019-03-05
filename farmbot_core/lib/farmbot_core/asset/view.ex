@@ -1,4 +1,4 @@
-defmodule Farmbot.Asset.View do
+defmodule FarmbotCore.Asset.View do
   @doc "Format data to be JSON encodable."
   @callback render(map) :: map
 

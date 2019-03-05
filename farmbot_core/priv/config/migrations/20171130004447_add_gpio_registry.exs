@@ -1,4 +1,4 @@
-defmodule Farmbot.Config.Repo.Migrations.AddGpioRegistry do
+defmodule FarmbotCore.Config.Repo.Migrations.AddGpioRegistry do
   use Ecto.Migration
 
   def change do

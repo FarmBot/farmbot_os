@@ -1,7 +1,8 @@
-defmodule Farmbot.Log do
+defmodule FarmbotCore.Log do
   @moduledoc """
   This is _not_ the same as the API's log asset.
   """
+  alias FarmbotCore.{Log, Project}
 
   defmodule LogLevelType do
     @moduledoc false
@@ -73,15 +74,15 @@ defmodule Farmbot.Log do
     |> validate_required(@required_fields)
   end
 
-  def new(%Farmbot.Log{} = merge) do
+  def new(%Log{} = merge) do
     merge
-    |> Map.put(:version, Version.parse!(Farmbot.Project.version()))
-    |> Map.put(:commit, to_string(Farmbot.Project.commit()))
-    |> Map.put(:target, to_string(Farmbot.Project.target()))
-    |> Map.put(:env, to_string(Farmbot.Project.env()))
+    |> Map.put(:version, Version.parse!(Project.version()))
+    |> Map.put(:commit, to_string(Project.commit()))
+    |> Map.put(:target, to_string(Project.target()))
+    |> Map.put(:env, to_string(Project.env()))
   end
 
-  defimpl String.Chars, for: Farmbot.Log do
+  defimpl String.Chars, for: Log do
     def to_string(log) do
       if log.meta[:color] && function_exported?(IO.ANSI, log.meta[:color], 0) do
         "#{apply(IO.ANSI, log.meta[:color], [])}#{log.message}#{color(:normal)}\n"

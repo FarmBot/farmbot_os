@@ -1,22 +1,22 @@
-defmodule Farmbot.BotState.FileSystem do
+defmodule FarmbotCore.BotState.FileSystem do
   @moduledoc """
   Serializes Farmbot's state into a location on a filesystem.
   """
 
   use GenServer
-  alias Farmbot.BotState
+  alias FarmbotCore.BotState
 
   @root_dir Application.get_env(:farmbot_core, __MODULE__)[:root_dir]
   @sleep_time Application.get_env(:farmbot_core, __MODULE__)[:sleep_time]
   @root_dir ||
     Mix.raise("""
-    config :farmbot_core, Farmbot.BotState.FileSystem, 
+    config :farmbot_core, Farmbot.BotState.FileSystem,
       root_dir: "/tmp/farmbot_state"
     """)
 
   @sleep_time ||
     Mix.raise("""
-    config :farmbot_core, Farmbot.BotState.FileSystem, 
+    config :farmbot_core, Farmbot.BotState.FileSystem,
       sleep_time: 200
     """)
 

@@ -1,14 +1,14 @@
-defmodule Farmbot.Asset.Sequence do
+defmodule FarmbotCore.Asset.Sequence do
   @moduledoc """
-  Sequences are "code" that FarmbotOS can Execute.
+  Sequences are "code" that FarmbotCoreOS can Execute.
   """
 
-  use Farmbot.Asset.Schema, path: "/api/sequences"
+  use FarmbotCore.Asset.Schema, path: "/api/sequences"
 
   schema "sequences" do
     field(:id, :id)
 
-    has_one(:local_meta, Farmbot.Asset.Private.LocalMeta,
+    has_one(:local_meta, FarmbotCore.Asset.Private.LocalMeta,
       on_delete: :delete_all,
       references: :local_id,
       foreign_key: :asset_local_id

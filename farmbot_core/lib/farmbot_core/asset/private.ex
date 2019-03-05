@@ -1,6 +1,5 @@
-defmodule Farmbot.Asset.Private do
-  alias Farmbot.Asset.Repo
-  alias Farmbot.Asset.Private.LocalMeta
+defmodule FarmbotCore.Asset.Private do
+  alias FarmbotCore.{Asset.Repo, Asset.Private.LocalMeta}
 
   import Ecto.Query, warn: false
   import Ecto.Changeset, warn: false

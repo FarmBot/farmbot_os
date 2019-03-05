@@ -1,4 +1,4 @@
-defmodule Farmbot.Config.Repo.Migrations.AddEAVTables do
+defmodule FarmbotCore.Config.Repo.Migrations.AddEAVTables do
   use Ecto.Migration
 
   def change do

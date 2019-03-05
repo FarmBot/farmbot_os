@@ -1,6 +1,6 @@
-defmodule Farmbot.BotStateNG.Configuration do
+defmodule FarmbotCore.BotStateNG.Configuration do
   @moduledoc false
-  alias Farmbot.BotStateNG.Configuration
+  alias FarmbotCore.BotStateNG.Configuration
   use Ecto.Schema
   import Ecto.Changeset
 

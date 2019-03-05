@@ -1,14 +1,14 @@
-defmodule Farmbot.Asset.Peripheral do
+defmodule FarmbotCore.Asset.Peripheral do
   @moduledoc """
   Peripherals are descriptors for pins/modes.
   """
 
-  use Farmbot.Asset.Schema, path: "/api/peripherals"
+  use FarmbotCore.Asset.Schema, path: "/api/peripherals"
 
   schema "peripherals" do
     field(:id, :id)
 
-    has_one(:local_meta, Farmbot.Asset.Private.LocalMeta,
+    has_one(:local_meta, FarmbotCore.Asset.Private.LocalMeta,
       on_delete: :delete_all,
       references: :local_id,
       foreign_key: :asset_local_id

@@ -1,4 +1,4 @@
-defprotocol Farmbot.AssetWorker do
+defprotocol FarmbotCore.AssetWorker do
   @doc "List of relational resources that need to be preloaded."
   def preload(asset)
 

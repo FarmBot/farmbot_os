@@ -1,4 +1,4 @@
-defmodule Farmbot.Asset.Repo.Migrations.CreateSensorsTable do
+defmodule FarmbotCore.Asset.Repo.Migrations.CreateSensorsTable do
   use Ecto.Migration
 
   def change do
