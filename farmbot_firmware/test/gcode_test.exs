@@ -1,6 +1,6 @@
-defmodule Farmbot.Firmware.GCODETest do
+defmodule FarmbotFirmware.GCODETest do
   use ExUnit.Case
-  alias Farmbot.Firmware.GCODE
+  alias FarmbotFirmware.GCODE
   doctest GCODE
 
   test "extracts q codes" do

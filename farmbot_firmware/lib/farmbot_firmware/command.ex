@@ -1,4 +1,4 @@
-defmodule Farmbot.Firmware.Command do
+defmodule FarmbotFirmware.Command do
   @moduledoc false
   alias Farmbot.{Firmware, Firmware.GCODE}
 
