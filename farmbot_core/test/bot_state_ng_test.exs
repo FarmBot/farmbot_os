@@ -1,7 +1,7 @@
-defmodule Farmbot.BotStateNGTest do
+defmodule FarmbotCore.BotStateNGTest do
   use ExUnit.Case, async: true
 
-  alias Farmbot.BotStateNG
+  alias FarmbotCore.BotStateNG
 
   describe "pins" do
     test "adds pins to the state" do

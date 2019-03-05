@@ -1,6 +1,6 @@
-defmodule Farmbot.Config.Repo.Migrations.ParamInvertEndstops2 do
+defmodule FarmbotCore.Config.Repo.Migrations.ParamInvertEndstops2 do
   use Ecto.Migration
-  import Farmbot.Config.MigrationHelpers
+  import FarmbotCore.Config.MigrationHelpers
 
   def change do
     create_hw_param("movement_invert_2_endpoints_x")

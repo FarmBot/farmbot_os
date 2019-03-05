@@ -1,14 +1,14 @@
-defmodule Farmbot.Asset.Sensor do
+defmodule FarmbotCore.Asset.Sensor do
   @moduledoc """
   Sensors are descriptors for pins/modes.
   """
 
-  use Farmbot.Asset.Schema, path: "/api/sensors"
+  use FarmbotCore.Asset.Schema, path: "/api/sensors"
 
   schema "sensors" do
     field(:id, :id)
 
-    has_one(:local_meta, Farmbot.Asset.Private.LocalMeta,
+    has_one(:local_meta, FarmbotCore.Asset.Private.LocalMeta,
       on_delete: :delete_all,
       references: :local_id,
       foreign_key: :asset_local_id

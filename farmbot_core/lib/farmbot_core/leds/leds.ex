@@ -1,4 +1,4 @@
-defmodule Farmbot.Leds do
+defmodule FarmbotCore.Leds do
   @moduledoc "API for controling Farmbot LEDS."
   @led_handler Application.get_env(:farmbot_core, __MODULE__)[:gpio_handler]
   @led_handler || Mix.raise("You forgot a led handler!")

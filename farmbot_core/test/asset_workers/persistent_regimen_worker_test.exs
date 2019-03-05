@@ -1,7 +1,7 @@
-defmodule Farmbot.PersistentRegimenWorkerTest do
+defmodule FarmbotCore.PersistentRegimenWorkerTest do
   use ExUnit.Case, async: true
 
-  alias Farmbot.Asset.PersistentRegimen
+  alias FarmbotCore.Asset.PersistentRegimen
 
   import Farmbot.TestSupport.AssetFixtures
 
@@ -32,7 +32,7 @@ defmodule Farmbot.PersistentRegimenWorkerTest do
       end
     ]
 
-    {:ok, _} = Farmbot.AssetWorker.Farmbot.Asset.PersistentRegimen.start_link(pr, args)
+    {:ok, _} = FarmbotCore.AssetWorker.FarmbotCore.Asset.PersistentRegimen.start_link(pr, args)
     assert_receive :executed
   end
 end

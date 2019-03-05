@@ -1,4 +1,4 @@
-defmodule Farmbot.Asset.Repo.Migrations.CreateLocalMetasTable do
+defmodule FarmbotCore.Asset.Repo.Migrations.CreateLocalMetasTable do
   use Ecto.Migration
 
   def change do

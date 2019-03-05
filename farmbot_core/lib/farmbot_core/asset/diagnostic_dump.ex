@@ -1,13 +1,13 @@
-defmodule Elixir.Farmbot.Asset.DiagnosticDump do
+defmodule FarmbotCore.Asset.DiagnosticDump do
   @moduledoc """
   """
 
-  use Farmbot.Asset.Schema, path: "/api/diagnostic_dumps"
+  use FarmbotCore.Asset.Schema, path: "/api/diagnostic_dumps"
 
   schema "diagnostic_dumps" do
     field(:id, :id)
 
-    has_one(:local_meta, Farmbot.Asset.Private.LocalMeta,
+    has_one(:local_meta, FarmbotCore.Asset.Private.LocalMeta,
       on_delete: :delete_all,
       references: :local_id,
       foreign_key: :asset_local_id

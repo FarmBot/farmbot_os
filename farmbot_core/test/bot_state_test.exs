@@ -1,6 +1,6 @@
-defmodule Farmbot.BotStateTest do
+defmodule FarmbotCore.BotStateTest do
   use ExUnit.Case
-  alias Farmbot.BotState
+  alias FarmbotCore.BotState
 
   describe "bot state pub/sub" do
     test "subscribes to bot state updates" do

@@ -1,4 +1,4 @@
-defmodule Farmbot.Asset.Repo.Migrations.CreatePinBindingsTable do
+defmodule FarmbotCore.Asset.Repo.Migrations.CreatePinBindingsTable do
   use Ecto.Migration
 
   def change do

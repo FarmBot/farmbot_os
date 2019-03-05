@@ -1,4 +1,4 @@
-defmodule Farmbot.Asset.Schema do
+defmodule FarmbotCore.Asset.Schema do
   @moduledoc """
   Common Schema attributes.
   """
@@ -9,10 +9,10 @@ defmodule Farmbot.Asset.Schema do
       use Ecto.Schema
       import Ecto.Changeset
 
-      @behaviour Farmbot.Asset.Schema
-      @behaviour Farmbot.Asset.View
+      @behaviour FarmbotCore.Asset.Schema
+      @behaviour FarmbotCore.Asset.View
 
-      import Farmbot.Asset.View, only: [view: 2]
+      import FarmbotCore.Asset.View, only: [view: 2]
 
       @doc "Path on the Farmbot Web API"
       def path, do: Keyword.fetch!(unquote(opts), :path)

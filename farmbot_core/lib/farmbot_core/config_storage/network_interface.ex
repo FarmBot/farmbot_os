@@ -1,9 +1,8 @@
-defmodule Farmbot.Config.NetworkInterface do
+defmodule FarmbotCore.Config.NetworkInterface do
   @moduledoc false
 
   use Ecto.Schema
   import Ecto.Changeset
-  require Farmbot.Logger
 
   schema "network_interfaces" do
     field(:name, :string, null: false)
@@ -36,16 +35,16 @@ defmodule Farmbot.Config.NetworkInterface do
 
   def changeset(config, params \\ %{}) do
     config
-    |> cast(params, @required_fields ++ [:ssid, 
-      :psk, 
+    |> cast(params, @required_fields ++ [:ssid,
+      :psk,
       :security,
       :identity,
       :password,
-      :ipv4_method, 
-      :ipv4_address, 
-      :ipv4_gateway, 
-      :ipv4_subnet_mask, 
-      :domain, 
+      :ipv4_method,
+      :ipv4_address,
+      :ipv4_gateway,
+      :ipv4_subnet_mask,
+      :domain,
       :name_servers
     ])
     |> validate_required(@required_fields)

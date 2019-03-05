@@ -1,8 +1,10 @@
-defimpl Farmbot.AssetWorker, for: Farmbot.Asset.Peripheral do
+defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
   use GenServer
-  require Farmbot.Logger
+  require FarmbotCore.Logger
 
-  alias Farmbot.{Asset.Peripheral, CeleryScript.Scheduler, CeleryScript.AST}
+  alias FarmbotCore.{Asset.Peripheral}
+  alias FarmbotCeleryScript.{AST, Scheduler}
+
   @retry_ms 1_000
 
   @impl true
@@ -20,24 +22,24 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.Peripheral do
 
   @impl true
   def handle_info(:timeout, %{peripheral: peripheral} = state) do
-    Farmbot.Logger.busy(2, "Read peripheral: #{peripheral.label}")
+    FarmbotCore.Logger.busy(2, "Read peripheral: #{peripheral.label}")
     rpc = peripheral_to_rpc(peripheral)
     {:ok, ref} = Scheduler.schedule(rpc)
     {:noreply, %{state | peripheral: peripheral, scheduled_ref: ref}}
   end
 
   def handle_info({Scheduler, ref, :ok}, %{peripheral: peripheral, scheduled_ref: ref} = state) do
-    Farmbot.Logger.success(2, "Read peripheral: #{peripheral.label} ok")
+    FarmbotCore.Logger.success(2, "Read peripheral: #{peripheral.label} ok")
     {:noreply, state, :hibernate}
   end
 
   def handle_info({Scheduler, ref, {:error, reason}}, %{peripheral: peripheral, scheduled_ref: ref, errors: 5} = state) do
-    Farmbot.Logger.error(1, "Read peripheral: #{peripheral.label} error: #{reason} errors=5 not trying again.")
+    FarmbotCore.Logger.error(1, "Read peripheral: #{peripheral.label} error: #{reason} errors=5 not trying again.")
     {:noreply, state, :hibernate}
   end
 
   def handle_info({Scheduler, ref, {:error, reason}}, %{peripheral: peripheral, scheduled_ref: ref} = state) do
-    Farmbot.Logger.error(1, "Read peripheral: #{peripheral.label} error: #{reason} errors=#{state.errors}")
+    FarmbotCore.Logger.error(1, "Read peripheral: #{peripheral.label} error: #{reason} errors=#{state.errors}")
     {:noreply, %{state | scheduled_ref: nil, errors: state.errors + 1}, @retry_ms}
   end
 

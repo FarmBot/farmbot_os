@@ -1,5 +1,5 @@
-defmodule Farmbot.Asset do
-  alias Farmbot.Asset.{
+defmodule FarmbotCore.Asset do
+  alias FarmbotCore.Asset.{
     Repo,
     Device,
     DeviceCert,

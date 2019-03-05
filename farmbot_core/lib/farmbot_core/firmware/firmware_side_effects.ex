@@ -1,12 +1,12 @@
-defmodule Farmbot.Core.FirmwareSideEffects do
+defmodule FarmbotCore.FirmwareSideEffects do
   @moduledoc "Handles firmware data and syncing it with BotState."
-  @behaviour Farmbot.Firmware.SideEffects
-  alias Farmbot.Core.FirmwareEstopTimer
+  @behaviour FarmbotFirmware.SideEffects
   require Logger
-  require Farmbot.Logger
+  require FarmbotCore.Logger
+  alias FarmbotCore.{Asset, BotState, FirmwareEstopTimer}
 
   def handle_position(x: x, y: y, z: z) do
-    :ok = Farmbot.BotState.set_position(x, y, z)
+    :ok = BotState.set_position(x, y, z)
   end
 
   def handle_position_change([{_axis, _value}]) do
@@ -22,23 +22,23 @@ defmodule Farmbot.Core.FirmwareSideEffects do
   end
 
   def handle_encoders_scaled(x: x, y: y, z: z) do
-    :ok = Farmbot.BotState.set_encoders_scaled(x, y, z)
+    :ok = BotState.set_encoders_scaled(x, y, z)
   end
 
   def handle_encoders_raw(x: x, y: y, z: z) do
-    :ok = Farmbot.BotState.set_encoders_raw(x, y, z)
+    :ok = BotState.set_encoders_raw(x, y, z)
   end
 
   def handle_paramater_value([{param, value}]) do
-    :ok = Farmbot.BotState.set_firmware_config(param, value)
+    :ok = BotState.set_firmware_config(param, value)
   end
 
   def handle_pin_value(p: pin, v: value) do
-    :ok = Farmbot.BotState.set_pin_value(pin, value)
+    :ok = BotState.set_pin_value(pin, value)
   end
 
   def handle_software_version([version]) do
-    :ok = Farmbot.BotState.set_firmware_version(version)
+    :ok = BotState.set_firmware_version(version)
   end
 
   def handle_end_stops(_) do
@@ -46,36 +46,36 @@ defmodule Farmbot.Core.FirmwareSideEffects do
   end
 
   def handle_busy(busy) do
-    :ok = Farmbot.BotState.set_firmware_busy(busy)
+    :ok = BotState.set_firmware_busy(busy)
   end
 
   def handle_emergency_lock() do
     _ = FirmwareEstopTimer.start_timer()
-    :ok = Farmbot.BotState.set_firmware_locked()
+    :ok = BotState.set_firmware_locked()
   end
 
   def handle_emergency_unlock() do
     _ = FirmwareEstopTimer.cancel_timer()
-    :ok = Farmbot.BotState.set_firmware_unlocked()
+    :ok = BotState.set_firmware_unlocked()
   end
 
   def handle_input_gcode(code) do
-    should_log? = Farmbot.Asset.fbos_config().firmware_input_log
-    should_log? && Farmbot.Logger.debug(3, inspect(code))
+    should_log? = Asset.fbos_config().firmware_input_log
+    should_log? && FarmbotCore.Logger.debug(3, inspect(code))
   end
 
   def handle_output_gcode(code) do
-    should_log? = Farmbot.Asset.fbos_config().firmware_output_log
-    should_log? && Farmbot.Logger.debug(3, inspect(code))
+    should_log? = Asset.fbos_config().firmware_output_log
+    should_log? && FarmbotCore.Logger.debug(3, inspect(code))
   end
 
   def handle_debug_message([message]) do
-    should_log? = Farmbot.Asset.fbos_config().firmware_debug_log
-    should_log? && Farmbot.Logger.debug(3, "Arduino debug message: " <> message)
+    should_log? = Asset.fbos_config().firmware_debug_log
+    should_log? && FarmbotCore.Logger.debug(3, "Arduino debug message: " <> message)
   end
 
   def load_params do
-    conf = Farmbot.Asset.firmware_config()
+    conf = Asset.firmware_config()
 
     Map.take(conf, [
       :param_e_stop_on_mov_err,

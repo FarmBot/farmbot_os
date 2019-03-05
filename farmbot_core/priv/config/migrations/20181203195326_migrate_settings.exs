@@ -1,6 +1,6 @@
-defmodule Farmbot.Config.Repo.Migrations.MigrateSettings do
+defmodule FarmbotCore.Config.Repo.Migrations.MigrateSettings do
   use Ecto.Migration
-  import Farmbot.Config.MigrationHelpers
+  import FarmbotCore.Config.MigrationHelpers
 
   def change do
     delete_settings_config("auto_sync", :bool)

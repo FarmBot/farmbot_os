@@ -1,11 +1,11 @@
-defimpl Farmbot.AssetWorker, for: Farmbot.Asset.PersistentRegimen do
+defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PersistentRegimen do
   use GenServer
   require Logger
-  require Farmbot.Logger
+  require FarmbotCore.Logger
 
-  alias Farmbot.Asset
-  alias Farmbot.Asset.{PersistentRegimen, FarmEvent, Regimen}
-  alias Farmbot.CeleryScript.Scheduler
+  alias FarmbotCore.Asset
+  alias FarmbotCore.Asset.{PersistentRegimen, FarmEvent, Regimen}
+  alias FarmbotCeleryScript.Scheduler
 
   @checkup_time_ms Application.get_env(:farmbot_core, __MODULE__)[:checkup_time_ms]
   @checkup_time_ms ||
@@ -83,7 +83,7 @@ defimpl Farmbot.AssetWorker, for: Farmbot.Asset.PersistentRegimen do
   end
 
   defp calculate_next(%{regimen: %{regimen_items: []}} = pr, _) do
-    Farmbot.Logger.success(1, "#{pr.regimen.name || "regimen"} has no more items.")
+    FarmbotCore.Logger.success(1, "#{pr.regimen.name || "regimen"} has no more items.")
     {:noreply, pr, :hibernate}
   end
 

@@ -1,16 +1,16 @@
-defmodule Farmbot.Asset.Regimen do
+defmodule FarmbotCore.Asset.Regimen do
   @moduledoc """
   A Regimen is a schedule to run sequences on.
   """
 
-  use Farmbot.Asset.Schema, path: "/api/regimens"
+  use FarmbotCore.Asset.Schema, path: "/api/regimens"
 
   defmodule Item do
     use Ecto.Schema
 
     @primary_key false
-    @behaviour Farmbot.Asset.View
-    import Farmbot.Asset.View, only: [view: 2]
+    @behaviour FarmbotCore.Asset.View
+    import FarmbotCore.Asset.View, only: [view: 2]
 
     view regimen_item do
       %{
@@ -35,7 +35,7 @@ defmodule Farmbot.Asset.Regimen do
   schema "regimens" do
     field(:id, :id)
 
-    has_one(:local_meta, Farmbot.Asset.Private.LocalMeta,
+    has_one(:local_meta, FarmbotCore.Asset.Private.LocalMeta,
       on_delete: :delete_all,
       references: :local_id,
       foreign_key: :asset_local_id

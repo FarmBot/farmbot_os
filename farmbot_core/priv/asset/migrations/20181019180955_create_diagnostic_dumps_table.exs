@@ -1,4 +1,4 @@
-defmodule Elixir.Farmbot.Asset.Repo.Migrations.CreateDiagnosticDumpsTable do
+defmodule Elixir.FarmbotCore.Asset.Repo.Migrations.CreateDiagnosticDumpsTable do
   use Ecto.Migration
 
   def change do

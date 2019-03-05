@@ -1,14 +1,14 @@
-defmodule Farmbot.Asset.SensorReading do
+defmodule FarmbotCore.Asset.SensorReading do
   @moduledoc """
   SensorReadings are descriptors for pins/modes.
   """
 
-  use Farmbot.Asset.Schema, path: "/api/sensor_readings"
+  use FarmbotCore.Asset.Schema, path: "/api/sensor_readings"
 
   schema "sensor_readings" do
     field(:id, :id)
 
-    has_one(:local_meta, Farmbot.Asset.Private.LocalMeta,
+    has_one(:local_meta, FarmbotCore.Asset.Private.LocalMeta,
       on_delete: :delete_all,
       references: :local_id,
       foreign_key: :asset_local_id

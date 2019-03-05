@@ -1,4 +1,4 @@
-defmodule Farmbot.JSON do
+defmodule FarmbotCore.JSON do
   @moduledoc "Wraps a dependency for easy upgrade and no vendor lock."
 
   @parser Application.get_env(:farmbot_core, __MODULE__)[:json_parser]

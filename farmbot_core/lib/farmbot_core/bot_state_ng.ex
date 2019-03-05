@@ -1,5 +1,5 @@
-defmodule Farmbot.BotStateNG do
-  alias Farmbot.{
+defmodule FarmbotCore.BotStateNG do
+  alias FarmbotCore.{
     BotStateNG,
     BotStateNG.McuParams,
     BotStateNG.LocationData,

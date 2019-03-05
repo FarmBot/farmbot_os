@@ -1,4 +1,4 @@
-defmodule Farmbot.Asset.Repo.Migrations.CreateIdUniqueIndexes do
+defmodule FarmbotCore.Asset.Repo.Migrations.CreateIdUniqueIndexes do
   use Ecto.Migration
 
   def change do

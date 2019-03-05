@@ -1,6 +1,6 @@
-defmodule Farmbot.BotStateNG.ProcessInfo do
+defmodule FarmbotCore.BotStateNG.ProcessInfo do
   @moduledoc false
-  alias Farmbot.BotStateNG.ProcessInfo
+  alias FarmbotCore.BotStateNG.ProcessInfo
   use Ecto.Schema
   import Ecto.Changeset
 

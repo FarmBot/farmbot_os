@@ -1,7 +1,9 @@
-defmodule Farmbot.Asset.FarmwareInstallation.Manifest do
+defmodule FarmbotCore.Asset.FarmwareInstallation.Manifest do
   use Ecto.Schema
   import Ecto.Changeset
   @primary_key false
+
+  alias FarmbotCore.Project
 
   embedded_schema do
     field(:package, :string)
@@ -56,7 +58,7 @@ defmodule Farmbot.Asset.FarmwareInstallation.Manifest do
 
   defp validate_required_os_version(changeset) do
     req = get_field(changeset, :os_version_requirement)
-    cur = Farmbot.Project.version()
+    cur = Project.version()
 
     match =
       try do

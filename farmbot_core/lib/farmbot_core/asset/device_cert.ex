@@ -1,14 +1,14 @@
-defmodule Farmbot.Asset.DeviceCert do
+defmodule FarmbotCore.Asset.DeviceCert do
   @moduledoc """
   DeviceCerts describe a connection to NervesHub
   """
 
-  use Farmbot.Asset.Schema, path: "/api/device_cert"
+  use FarmbotCore.Asset.Schema, path: "/api/device_cert"
 
   schema "device_certs" do
     field(:id, :id)
 
-    has_one(:local_meta, Farmbot.Asset.Private.LocalMeta,
+    has_one(:local_meta, FarmbotCore.Asset.Private.LocalMeta,
       on_delete: :delete_all,
       references: :local_id,
       foreign_key: :asset_local_id

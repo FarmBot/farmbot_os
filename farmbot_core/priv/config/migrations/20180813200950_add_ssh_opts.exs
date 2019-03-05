@@ -1,7 +1,7 @@
 defmodule Farmbot.System.ConfigStorage.Migrations.AddSshOpts do
   use Ecto.Migration
 
-  import Farmbot.Config.MigrationHelpers
+  import FarmbotCore.Config.MigrationHelpers
 
   def change do
     create_settings_config("ssh_port", :float, 22.0)

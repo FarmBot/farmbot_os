@@ -1,6 +1,6 @@
-defmodule Farmbot.FarmEventWorkerTest do
+defmodule FarmbotCore.FarmEventWorkerTest do
   use ExUnit.Case, async: true
-  alias Farmbot.Asset.FarmEvent
+  alias FarmbotCore.{Asset.FarmEvent, AssetWorker}
 
   import Farmbot.TestSupport.AssetFixtures
 
@@ -29,7 +29,7 @@ defmodule Farmbot.FarmEventWorkerTest do
         end
       ]
 
-      {:ok, pid} = Farmbot.AssetWorker.start_link(fe, args)
+      {:ok, pid} = AssetWorker.start_link(fe, args)
       send(pid, :timeout)
 
       # This is not really that useful.
@@ -60,7 +60,7 @@ defmodule Farmbot.FarmEventWorkerTest do
         end
       ]
 
-      {:ok, pid} = Farmbot.AssetWorker.start_link(fe, args)
+      {:ok, pid} = AssetWorker.start_link(fe, args)
       send(pid, :timeout)
       assert_receive {:executed, ^test_pid}, 5_000
     end
@@ -90,7 +90,7 @@ defmodule Farmbot.FarmEventWorkerTest do
         end
       ]
 
-      assert :ignore = Farmbot.AssetWorker.start_link(fe, args)
+      assert :ignore = AssetWorker.start_link(fe, args)
       # This is not really that useful.
       refute_receive {:executed, ^test_pid}, 5_000
     end

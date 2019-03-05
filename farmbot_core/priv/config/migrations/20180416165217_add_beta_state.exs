@@ -1,8 +1,8 @@
-defmodule Farmbot.Config.Repo.Migrations.AddBetaState do
+defmodule FarmbotCore.Config.Repo.Migrations.AddBetaState do
   use Ecto.Migration
-  import Farmbot.Config.MigrationHelpers
+  import FarmbotCore.Config.MigrationHelpers
 
-  @default_currently_on_beta Application.get_env(:farmbot_core, Farmbot.EctoMigrator)[
+  @default_currently_on_beta Application.get_env(:farmbot_core, FarmbotCore.EctoMigrator)[
                                :default_currently_on_beta
                              ]
 

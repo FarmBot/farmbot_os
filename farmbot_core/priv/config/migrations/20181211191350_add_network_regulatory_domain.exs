@@ -1,4 +1,4 @@
-defmodule Farmbot.System.ConfigStorage.Migrations.AddNetworkRegulatoryDomain do
+defmodule FarmbotCore.Config.Migrations.AddNetworkRegulatoryDomain do
   use Ecto.Migration
 
   def change do

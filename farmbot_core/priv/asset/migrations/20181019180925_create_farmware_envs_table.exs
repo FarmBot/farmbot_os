@@ -1,4 +1,4 @@
-defmodule Elixir.Farmbot.Asset.Repo.Migrations.CreateFarmwareEnvsTable do
+defmodule Elixir.FarmbotCore.Asset.Repo.Migrations.CreateFarmwareEnvsTable do
   use Ecto.Migration
 
   def change do

@@ -1,8 +1,8 @@
-defmodule Farmbot.AssetMonitor do
+defmodule FarmbotCore.AssetMonitor do
   use GenServer
-  import Farmbot.TimeUtils, only: [compare_datetimes: 2]
+  import FarmbotCore.TimeUtils, only: [compare_datetimes: 2]
 
-  alias Farmbot.Asset.{
+  alias FarmbotCore.Asset.{
     Repo,
     Device,
     FbosConfig,
@@ -13,6 +13,8 @@ defmodule Farmbot.AssetMonitor do
     PersistentRegimen,
     PinBinding
   }
+
+  alias FarmbotCore.{AssetSupervisor, AssetWorker}
 
   require Logger
 
@@ -73,7 +75,7 @@ defmodule Farmbot.AssetMonitor do
 
     Enum.each(deleted_ids, fn local_id ->
       Logger.error("#{inspect(kind)} #{local_id} needs to be terminated")
-      Farmbot.AssetSupervisor.terminate_child(kind, local_id)
+      AssetSupervisor.terminate_child(kind, local_id)
     end)
 
     Enum.reduce(expected, sub_state, fn %{local_id: id, updated_at: updated_at} = asset,
@@ -85,14 +87,14 @@ defmodule Farmbot.AssetMonitor do
 
         is_nil(sub_state[id]) ->
           Logger.debug("#{inspect(kind)} #{id} needs to be started")
-          asset = Repo.preload(asset, Farmbot.AssetWorker.preload(asset))
-          :ok = Farmbot.AssetSupervisor.start_child(asset) |> assert_result!(asset)
+          asset = Repo.preload(asset, AssetWorker.preload(asset))
+          :ok = AssetSupervisor.start_child(asset) |> assert_result!(asset)
           Map.put(sub_state, id, updated_at)
 
         compare_datetimes(updated_at, sub_state[id]) == :gt ->
           Logger.warn("#{inspect(kind)} #{id} needs to be updated")
-          asset = Repo.preload(asset, Farmbot.AssetWorker.preload(asset))
-          :ok = Farmbot.AssetSupervisor.update_child(asset) |> assert_result!(asset)
+          asset = Repo.preload(asset, AssetWorker.preload(asset))
+          :ok = AssetSupervisor.update_child(asset) |> assert_result!(asset)
           Map.put(sub_state, id, updated_at)
 
         true ->
