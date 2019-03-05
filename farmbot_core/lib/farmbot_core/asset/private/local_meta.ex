@@ -1,4 +1,4 @@
-defmodule Farmbot.Asset.Private.LocalMeta do
+defmodule FarmbotCore.Asset.Private.LocalMeta do
   @moduledoc """
   Existance of LocalMeta is a hint to Farmbot that
   an Asset needs to be reconciled with the remote API.
@@ -6,7 +6,8 @@ defmodule Farmbot.Asset.Private.LocalMeta do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Farmbot.Asset.{
+  alias FarmbotCore.Asset.{
+    Repo,
     Device,
     DiagnosticDump,
     FarmEvent,
@@ -158,7 +159,7 @@ defmodule Farmbot.Asset.Private.LocalMeta do
       "farmware_envs",
       "diagnostic_dumps"
     ])
-    |> unsafe_validate_unique([:table, :asset_local_id], Farmbot.Repo,
+    |> unsafe_validate_unique([:table, :asset_local_id], Repo,
       message: "LocalMeta already exists."
     )
     |> unique_constraint(:table, name: :local_metas_table_asset_local_id_index)

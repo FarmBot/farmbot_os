@@ -1,4 +1,4 @@
-defmodule Farmbot.Project do
+defmodule FarmbotCore.Project do
   @moduledoc "Farmbot project config"
 
   @version Mix.Project.config[:version] || Mix.raise("Missing Project key version")

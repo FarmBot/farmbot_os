@@ -1,4 +1,4 @@
-defmodule Farmbot.Config.Repo.Migrations.AddAdvancedNetworkSettings do
+defmodule FarmbotCore.Config.Repo.Migrations.AddAdvancedNetworkSettings do
   use Ecto.Migration
 
   def change do

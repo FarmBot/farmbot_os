@@ -1,76 +1,77 @@
-defmodule Farmbot.Logger do
+defmodule FarmbotCore.Logger do
   @moduledoc """
   Log messages to Farmot endpoints.
   """
 
-  alias Farmbot.Logger.Repo
+  alias FarmbotCore.{Log, Logger.Repo}
   import Ecto.Query
 
   @doc "Send a debug message to log endpoints"
   defmacro debug(verbosity, message, meta \\ []) do
     quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-      Farmbot.Logger.dispatch_log(__ENV__, :debug, verbosity, message, meta)
+      FarmbotCore.Logger.dispatch_log(__ENV__, :debug, verbosity, message, meta)
     end
   end
 
   @doc "Send an info message to log endpoints"
   defmacro info(verbosity, message, meta \\ []) do
     quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-      Farmbot.Logger.dispatch_log(__ENV__, :info, verbosity, message, meta)
+      FarmbotCore.Logger.dispatch_log(__ENV__, :info, verbosity, message, meta)
     end
   end
 
   @doc "Send an busy message to log endpoints"
   defmacro busy(verbosity, message, meta \\ []) do
     quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-      Farmbot.Logger.dispatch_log(__ENV__, :busy, verbosity, message, meta)
+      FarmbotCore.Logger.dispatch_log(__ENV__, :busy, verbosity, message, meta)
     end
   end
 
   @doc "Send an success message to log endpoints"
   defmacro success(verbosity, message, meta \\ []) do
     quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-      Farmbot.Logger.dispatch_log(__ENV__, :success, verbosity, message, meta)
+      FarmbotCore.Logger.dispatch_log(__ENV__, :success, verbosity, message, meta)
     end
   end
 
   @doc "Send an warn message to log endpoints"
   defmacro warn(verbosity, message, meta \\ []) do
     quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-      Farmbot.Logger.dispatch_log(__ENV__, :warn, verbosity, message, meta)
+      FarmbotCore.Logger.dispatch_log(__ENV__, :warn, verbosity, message, meta)
     end
   end
 
   @doc "Send an error message to log endpoints"
   defmacro error(verbosity, message, meta \\ []) do
     quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-      Farmbot.Logger.dispatch_log(__ENV__, :error, verbosity, message, meta)
+      FarmbotCore.Logger.dispatch_log(__ENV__, :error, verbosity, message, meta)
     end
   end
 
   @doc false
   defmacro fun(verbosity, message, meta \\ []) do
     quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-      Farmbot.Logger.dispatch_log(__ENV__, :fun, verbosity, message, meta)
+      FarmbotCore.Logger.dispatch_log(__ENV__, :fun, verbosity, message, meta)
     end
   end
 
-  def insert_log!(%Farmbot.Log{} = log) do
-    Farmbot.Log.changeset(log, %{})
+  def insert_log!(%Log{} = log) do
+    log
+    |> Log.changeset(%{})
     |> Repo.insert!()
   end
 
   @doc "Gets a log by it's id, deletes it."
   def handle_log(id) do
-    case Repo.get(Farmbot.Log, id) do
-      %Farmbot.Log{} = log -> Repo.delete!(log)
+    case Repo.get(FarmbotCore.Log, id) do
+      %Log{} = log -> Repo.delete!(log)
       nil -> nil
     end
   end
 
   @doc "Gets all available logs and deletes them."
   def handle_all_logs do
-    Repo.all(from(l in Farmbot.Log, order_by: l.inserted_at))
+    Repo.all(from(l in FarmbotCore.Log, order_by: l.inserted_at))
     |> Enum.map(&Repo.delete!/1)
   end
 
@@ -84,7 +85,7 @@ defmodule Farmbot.Logger do
         nil -> "no_function"
       end
 
-    struct(Farmbot.Log,
+    struct(FarmbotCore.Log,
       level: level,
       verbosity: verbosity,
       message: message,
@@ -98,13 +99,13 @@ defmodule Farmbot.Logger do
   end
 
   @doc false
-  def dispatch_log(%Farmbot.Log{} = log) do
+  def dispatch_log(%Log{} = log) do
     log
     |> insert_log!()
     |> elixir_log()
   end
 
-  defp elixir_log(%Farmbot.Log{} = log) do
+  defp elixir_log(%Log{} = log) do
     # TODO Connor - fix time
     logger_meta = [
       application: :farmbot,
@@ -127,7 +128,7 @@ defmodule Farmbot.Logger do
   def should_log?(nil, _), do: false
 
   def should_log?(module, verbosity) when verbosity <= 3 do
-    List.first(Module.split(module)) == "Farmbot"
+    List.first(Module.split(module)) =~ "Farmbot"
   end
 
   def should_log?(_, _), do: false

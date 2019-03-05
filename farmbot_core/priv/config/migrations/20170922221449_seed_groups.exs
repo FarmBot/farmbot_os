@@ -1,7 +1,7 @@
-defmodule Farmbot.Config.Repo.Migrations.SeedGroups do
+defmodule FarmbotCore.Config.Repo.Migrations.SeedGroups do
   use Ecto.Migration
-  alias Farmbot.Config.{Repo, Group, StringValue, BoolValue, FloatValue}
-  import Farmbot.Config.MigrationHelpers
+  alias FarmbotCore.Config.{Repo, Group, StringValue, BoolValue, FloatValue}
+  import FarmbotCore.Config.MigrationHelpers
   import Ecto.Query, only: [from: 2]
 
   @group_names ["authorization", "hardware_params", "settings"]

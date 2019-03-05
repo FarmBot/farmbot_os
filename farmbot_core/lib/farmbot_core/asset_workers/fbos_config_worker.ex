@@ -1,11 +1,10 @@
-defimpl Farmbot.AssetWorker, for: Farmbot.Asset.FbosConfig do
+defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
   use GenServer
   require Logger
 
-  alias Farmbot.Asset.FbosConfig
-  alias Farmbot.BotState
+  alias FarmbotCore.{Asset.FbosConfig, BotState}
 
-  import Farmbot.Config,
+  import FarmbotCore.Config,
     only: [
       get_config_value: 3,
       update_config_value: 4

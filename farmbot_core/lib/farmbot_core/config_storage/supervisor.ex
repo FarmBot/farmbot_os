@@ -1,4 +1,4 @@
-defmodule Farmbot.Config.Supervisor do
+defmodule FarmbotCore.Config.Supervisor do
   @moduledoc false
   use Supervisor
 
@@ -8,7 +8,7 @@ defmodule Farmbot.Config.Supervisor do
 
   def init([]) do
     children = [
-      {Farmbot.Config.Repo, []},
+      {FarmbotCore.Config.Repo, []},
     ]
     Supervisor.init(children, strategy: :one_for_one)
   end

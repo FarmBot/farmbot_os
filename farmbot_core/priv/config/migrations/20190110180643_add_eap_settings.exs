@@ -1,4 +1,4 @@
-defmodule Farmbot.System.ConfigStorage.Migrations.AddEapSettings do
+defmodule FarmbotCore.Config.Migrations.AddEapSettings do
   use Ecto.Migration
 
   def change do

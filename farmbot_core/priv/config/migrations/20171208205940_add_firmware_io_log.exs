@@ -1,7 +1,7 @@
-defmodule Farmbot.Config.Repo.Migrations.AddFirmwareIoLog do
+defmodule FarmbotCore.Config.Repo.Migrations.AddFirmwareIoLog do
   use Ecto.Migration
 
-  import Farmbot.Config.MigrationHelpers
+  import FarmbotCore.Config.MigrationHelpers
 
   @default_firmware_io_logs Application.get_env(:farmbot_core, Farmbot.EctoMigrator)[
                               :default_firmware_io_logs

@@ -1,6 +1,6 @@
-defmodule Farmbot.AssetSupervisor do
+defmodule FarmbotCore.AssetSupervisor do
   use Supervisor
-  alias Farmbot.{Asset.Repo, AssetWorker}
+  alias FarmbotCore.{Asset.Repo, AssetWorker}
 
   @doc "List all children for an asset"
   def list_children(kind) do

@@ -1,12 +1,12 @@
-defmodule Farmbot.Asset.PersistentRegimen do
+defmodule FarmbotCore.Asset.PersistentRegimen do
   use Ecto.Schema
   import Ecto.Changeset
   @primary_key {:local_id, :binary_id, autogenerate: true}
   @timestamps_opts inserted_at: :created_at, type: :utc_datetime
 
   schema "persistent_regimens" do
-    belongs_to(:regimen, Farmbot.Asset.Regimen, references: :local_id, type: :binary_id)
-    belongs_to(:farm_event, Farmbot.Asset.FarmEvent, references: :local_id, type: :binary_id)
+    belongs_to(:regimen, FarmbotCore.Asset.Regimen, references: :local_id, type: :binary_id)
+    belongs_to(:farm_event, FarmbotCore.Asset.FarmEvent, references: :local_id, type: :binary_id)
     field(:epoch, :utc_datetime)
     field(:started_at, :utc_datetime)
     field(:next, :utc_datetime)
@@ -42,7 +42,7 @@ defmodule Farmbot.Asset.PersistentRegimen do
   # returns midnight of today
   @spec build_epoch(DateTime.t()) :: DateTime.t()
   def build_epoch(%DateTime{} = datetime) do
-    case Farmbot.Asset.device().timezone do
+    case FarmbotCore.Asset.device().timezone do
       nil ->
         :error
 
