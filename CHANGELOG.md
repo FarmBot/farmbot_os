@@ -1,5 +1,9 @@
 # Changelog
 
+# 7.0.2
+* AMQP now reconnects immediately after an unexpected disconnect
+* Misc Configurator UI updates
+
 # 7.0.1
 * Fix typo causing custom dns servers to be ignored.
 * Update Configurator UI
@@ -8,7 +12,7 @@
 * Fix bug causing the stubbed Firmware implemenation to crash
 
 # 7.0.0
-* Initial support for WPA-EAP networks. 
+* Initial support for WPA-EAP networks.
 * Increase NervesHub reconnect timer to not waste CPU time.
 * Update Farmware packages
     * Python 3
