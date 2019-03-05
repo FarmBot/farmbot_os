@@ -1,7 +1,7 @@
-defmodule Farmbot.CeleryScript.SysCallsTest do
+defmodule FarmbotCeleryScript.SysCallsTest do
   use ExUnit.Case, async: false
-  alias Farmbot.CeleryScript.TestSupport.TestSysCalls
-  alias Farmbot.CeleryScript.{SysCalls, RuntimeError}
+  alias FarmbotCeleryScript.TestSupport.TestSysCalls
+  alias FarmbotCeleryScript.{SysCalls, RuntimeError}
 
   setup do
     {:ok, shim} = TestSysCalls.checkout()

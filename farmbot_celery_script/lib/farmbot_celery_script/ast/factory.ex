@@ -1,9 +1,9 @@
-defmodule Farmbot.CeleryScript.AST.Factory do
+defmodule FarmbotCeleryScript.AST.Factory do
   @moduledoc """
   Helpers for creating ASTs.
   """
 
-  alias Farmbot.CeleryScript.AST
+  alias FarmbotCeleryScript.AST
 
   def new do
     %AST{body: []}
