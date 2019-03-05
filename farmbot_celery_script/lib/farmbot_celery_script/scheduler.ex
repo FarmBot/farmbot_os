@@ -1,4 +1,4 @@
-defmodule Farmbot.CeleryScript.Scheduler do
+defmodule FarmbotCeleryScript.Scheduler do
   @moduledoc """
   Handles execution of CeleryScript.
 
@@ -7,7 +7,7 @@ defmodule Farmbot.CeleryScript.Scheduler do
 
   A message will arrive in the callers inbox after either shaped like
 
-      {Farmbot.CeleryScript.Scheduler, result}
+      {FarmbotCeleryScript.Scheduler, result}
 
   where result will be
 
@@ -19,7 +19,7 @@ defmodule Farmbot.CeleryScript.Scheduler do
 
   use GenServer
   alias __MODULE__, as: State
-  alias Farmbot.CeleryScript.{AST, RuntimeError, Compiler}
+  alias FarmbotCeleryScript.{AST, RuntimeError, Compiler}
 
   defstruct steps: [],
             execute: false

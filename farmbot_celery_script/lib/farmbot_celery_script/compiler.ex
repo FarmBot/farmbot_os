@@ -1,10 +1,10 @@
-defmodule Farmbot.CeleryScript.Compiler do
+defmodule FarmbotCeleryScript.Compiler do
   @moduledoc """
   Responsible for compiling canonical CeleryScript AST into
   Elixir AST.
   """
 
-  alias Farmbot.CeleryScript.{AST, Compiler, Compiler.IdentifierSanitizer, SysCalls}
+  alias FarmbotCeleryScript.{AST, Compiler, Compiler.IdentifierSanitizer, SysCalls}
   use Compiler.Tools
   @valid_entry_points [:sequence, :rpc_request]
 
@@ -220,7 +220,7 @@ defmodule Farmbot.CeleryScript.Compiler do
   compile :execute, %{sequence_id: id}, variable_declarations do
     quote do
       # We have to lookup the sequence by it's id.
-      %Farmbot.CeleryScript.AST{} = ast = get_sequence(unquote(id))
+      %FarmbotCeleryScript.AST{} = ast = get_sequence(unquote(id))
       # compile the ast
       env = unquote(compile_params_to_function_args(variable_declarations))
       unquote(__MODULE__).compile(ast, env)
