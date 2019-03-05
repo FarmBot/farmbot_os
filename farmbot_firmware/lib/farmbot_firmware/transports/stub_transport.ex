@@ -1,9 +1,9 @@
-defmodule Farmbot.Firmware.StubTransport do
+defmodule FarmbotFirmware.StubTransport do
   @moduledoc "Stub for transporting GCODES. Simulates the _real_ Firmware."
   use GenServer
 
-  alias Farmbot.Firmware.StubTransport, as: State
-  alias Farmbot.Firmware.{GCODE, Param}
+  alias FarmbotFirmware.StubTransport, as: State
+  alias FarmbotFirmware.{GCODE, Param}
   require Logger
 
   defstruct status: :boot,
@@ -15,8 +15,8 @@ defmodule Farmbot.Firmware.StubTransport do
             params: []
 
   @type t :: %State{
-          status: Farmbot.Firmware.status(),
-          handle_gcode: (Farmbot.Firmware.GCODE.t() -> :ok),
+          status: FarmbotFirmware.status(),
+          handle_gcode: (FarmbotFirmware.GCODE.t() -> :ok),
           position: [x: float(), y: float(), z: float()],
           encoders_scaled: [x: float(), y: float(), z: float()],
           encoders_raw: [x: float(), y: float(), z: float()],

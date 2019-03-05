@@ -1,9 +1,9 @@
-defmodule Farmbot.Firmware.GCODE do
+defmodule FarmbotFirmware.GCODE do
   @moduledoc """
   Handles encoding and decoding of GCODEs.
   """
 
-  alias Farmbot.Firmware.GCODE.{Decoder, Encoder}
+  alias FarmbotFirmware.GCODE.{Decoder, Encoder}
   import Decoder, only: [do_decode: 2]
   import Encoder, only: [do_encode: 2]
 
@@ -77,9 +77,9 @@ defmodule Farmbot.Firmware.GCODE do
   @doc """
   Shortcut for constructing a new GCODE
   ## Examples
-      iex(1)> Farmbot.Firmware.GCODE.new(:report_idle, [], "100")
+      iex(1)> FarmbotFirmware.GCODE.new(:report_idle, [], "100")
       {"100", {:report_idle, []}}
-      iex(2)> Farmbot.Firmware.GCODE.new(:report_idle, [])
+      iex(2)> FarmbotFirmware.GCODE.new(:report_idle, [])
       {nil, {:report_idle, []}}
   """
   @spec new(kind(), args(), tag()) :: t()
@@ -92,9 +92,9 @@ defmodule Farmbot.Firmware.GCODE do
   `{tag, {kind, args}}`
 
   ## Examples
-      iex(1)> Farmbot.Firmware.GCODE.decode("R00 Q100")
+      iex(1)> FarmbotFirmware.GCODE.decode("R00 Q100")
       {"100", {:report_idle, []}}
-      iex(2)> Farmbot.Firmware.GCODE.decode("R00")
+      iex(2)> FarmbotFirmware.GCODE.decode("R00")
       {nil, {:report_idle, []}}
   """
   @spec decode(binary()) :: t()
@@ -114,9 +114,9 @@ defmodule Farmbot.Firmware.GCODE do
   Takes a tuple representation of a GCODE and returns a string.
 
   ## Examples
-      iex(1)> Farmbot.Firmware.GCODE.encode({"444", {:report_idle, []}})
+      iex(1)> FarmbotFirmware.GCODE.encode({"444", {:report_idle, []}})
       "R00 Q444"
-      iex(2)> Farmbot.Firmware.GCODE.encode({nil, {:report_idle, []}})
+      iex(2)> FarmbotFirmware.GCODE.encode({nil, {:report_idle, []}})
       "R00"
   """
   @spec encode(t()) :: binary()

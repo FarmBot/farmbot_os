@@ -1,7 +1,7 @@
-defmodule Farmbot.Firmware.GCODE.Decoder do
+defmodule FarmbotFirmware.GCODE.Decoder do
   @moduledoc false
 
-  alias Farmbot.Firmware.{GCODE, Param}
+  alias FarmbotFirmware.{GCODE, Param}
 
   @doc false
   @spec do_decode(binary(), [binary()]) :: {GCODE.kind(), GCODE.args()}

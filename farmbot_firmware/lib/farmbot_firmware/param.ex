@@ -1,4 +1,4 @@
-defmodule Farmbot.Firmware.Param do
+defmodule FarmbotFirmware.Param do
   @moduledoc "decodes/encodes integer id to name and vice versa"
   require Logger
 

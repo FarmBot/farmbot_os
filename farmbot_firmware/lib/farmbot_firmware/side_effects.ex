@@ -1,5 +1,5 @@
-defmodule Farmbot.Firmware.SideEffects do
-  alias Farmbot.Firmware.{GCODE, Param}
+defmodule FarmbotFirmware.SideEffects do
+  alias FarmbotFirmware.{GCODE, Param}
 
   @type axis :: :x | :y | :z
 
