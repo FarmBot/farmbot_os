@@ -1,8 +1,8 @@
-defmodule Farmbot.CeleryScript.Compiler.Tools do
+defmodule FarmbotCeleryScript.Compiler.Tools do
   @moduledoc false
   # This is an internal DSL tool. Please don't use it for anything else.
 
-  alias Farmbot.CeleryScript.{AST, Compiler, Corpus}
+  alias FarmbotCeleryScript.{AST, Compiler, Corpus}
 
   @doc false
   defmacro __using__([]) do

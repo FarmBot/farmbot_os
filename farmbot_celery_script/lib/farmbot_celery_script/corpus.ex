@@ -1,5 +1,5 @@
-defmodule Farmbot.CeleryScript.Corpus do
-  alias Farmbot.CeleryScript.{Corpus, Corpus.Node, Corpus.Arg}
+defmodule FarmbotCeleryScript.Corpus do
+  alias FarmbotCeleryScript.{Corpus, Corpus.Node, Corpus.Arg}
 
   @corpus_file "fixture/corpus.json"
   @external_resource @corpus_file

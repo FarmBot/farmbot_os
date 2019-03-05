@@ -1,9 +1,9 @@
-defmodule Farmbot.CeleryScript.AST do
+defmodule FarmbotCeleryScript.AST do
   @moduledoc """
   Handy functions for turning various data types into Farbot Celery Script
   Ast nodes.
   """
-  alias Farmbot.CeleryScript.AST
+  alias FarmbotCeleryScript.AST
 
   @typedoc "Arguments to a ast node."
   @type args :: map

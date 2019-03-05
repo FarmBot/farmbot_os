@@ -1,6 +1,6 @@
-defmodule Farmbot.CeleryScript.Corpus.ArgTest do
+defmodule FarmbotCeleryScript.Corpus.ArgTest do
   use ExUnit.Case, async: true
-  alias Farmbot.CeleryScript.Corpus
+  alias FarmbotCeleryScript.Corpus
 
   test "inspect" do
     assert "#Arg<_then [execute, nothing]>" = inspect(Corpus.arg("_then"))

@@ -1,13 +1,13 @@
-defmodule Farmbot.CeleryScript.SysCalls do
+defmodule FarmbotCeleryScript.SysCalls do
   @moduledoc """
   Behaviour for abstracting CeleryScript functionality.
   """
-  alias Farmbot.CeleryScript.{AST, RuntimeError}
+  alias FarmbotCeleryScript.{AST, RuntimeError}
 
   @sys_call_implementation Application.get_env(:farmbot_celery_script, __MODULE__)[:sys_calls]
   @sys_call_implementation ||
     Mix.raise("""
-    config :farmbot_celery_script, Farmbot.CeleryScript.SysCalls, [
+    config :farmbot_celery_script, FarmbotCeleryScript.SysCalls, [
       sys_calls: SomeModuleThatImplementsTheBehaviour
     ]
     """)
