@@ -1,4 +1,4 @@
-defmodule Farmbot.Firmware do
+defmodule FarmbotFirmware do
   @moduledoc """
   Firmware wrapper for interacting with Farmbot-Arduino-Firmware.
   This GenServer is expected to be a pretty simple state machine
@@ -79,8 +79,8 @@ defmodule Farmbot.Firmware do
   use GenServer
   require Logger
 
-  alias Farmbot.Firmware, as: State
-  alias Farmbot.{Firmware.GCODE, Firmware.Command, Firmware.Request}
+  alias FarmbotFirmware, as: State
+  alias FarmbotFirmware.{GCODE, Command, Request}
 
   @type status :: :boot | :no_config | :configuration | :idle | :emergency_lock
 

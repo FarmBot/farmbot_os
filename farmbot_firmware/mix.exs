@@ -1,4 +1,4 @@
-defmodule Farmbot.Firmware.MixProject do
+defmodule FarmbotFirmware.MixProject do
   use Mix.Project
   @version Path.join([__DIR__, "..", "VERSION"]) |> File.read!() |> String.trim()
   @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"]) |> File.read!() |> String.trim()
