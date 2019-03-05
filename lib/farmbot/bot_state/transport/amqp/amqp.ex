@@ -341,6 +341,8 @@ defmodule Farmbot.BotState.Transport.AMQP do
          {:ok, _tag}  <- Basic.consume(chan, q_base <> "_auto_sync", self(), [no_ack: true]),
          {:ok, _tag}  <- Basic.consume(chan, q_base <> "_nerves_hub", self(), [])
          do
+          Process.link(conn.pid)
+          Process.link(chan.pid)
           %State{conn: conn, chan: chan, bot: device}
     end
   end
