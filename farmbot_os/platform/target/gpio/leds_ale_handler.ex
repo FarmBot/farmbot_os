@@ -1,6 +1,6 @@
-defmodule Farmbot.Target.Leds.CircuitsHandler do
+defmodule FarmbotOS.Platform.Target.Leds.CircuitsHandler do
   alias Circuits.GPIO
-  @behaviour Farmbot.Leds.Handler
+  @behaviour FarmbotCore.Leds.Handler
 
   @slow_blink_speed 200
   @fast_blink_speed 50

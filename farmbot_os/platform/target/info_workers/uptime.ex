@@ -1,9 +1,11 @@
-defmodule Farmbot.Target.InfoWorker.Uptime do
+defmodule FarmbotOS.Platform.Target.InfoWorker.Uptime do
   @moduledoc false
 
   use GenServer
   @default_timeout_ms 60_000
   @error_timeout_ms 5_000
+
+  alias FarmbotCore.BotState
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args)
@@ -16,8 +18,8 @@ defmodule Farmbot.Target.InfoWorker.Uptime do
   def handle_info(:timeout, state) do
     usage = collect_report()
 
-    if GenServer.whereis(Farmbot.BotState) do
-      Farmbot.BotState.report_uptime(usage)
+    if GenServer.whereis(BotState) do
+      BotState.report_uptime(usage)
       {:noreply, state, @default_timeout_ms}
     else
       {:noreply, state, @error_timeout_ms}

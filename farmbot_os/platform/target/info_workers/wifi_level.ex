@@ -1,7 +1,7 @@
-defmodule Farmbot.Target.InfoWorker.WifiLevel do
+defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
   use GenServer
-  alias Farmbot.Config
-  import Farmbot.Target.Network.Utils
+  alias FarmbotCore.{Config, BotState}
+  import FarmbotOS.Platform.Target.Network.Utils
 
   @checkup_time_ms 15_000
   @error_time_ms 60_000
@@ -35,7 +35,7 @@ defmodule Farmbot.Target.InfoWorker.WifiLevel do
         {:noreply, ifname, @error_time_ms}
 
       %{level: level} ->
-        Farmbot.BotState.report_wifi_level(level)
+        BotState.report_wifi_level(level)
         {:noreply, ifname, @checkup_time_ms}
     end
   end

@@ -10,33 +10,33 @@ config :logger_backend_ecto, LoggerBackendEcto.Repo,
   adapter: Sqlite.Ecto2,
   database: Path.join(data_path, "logs.sqlite3")
 
-config :farmbot_core, Farmbot.Config.Repo,
+config :farmbot_core, FarmbotCore.Config.Repo,
   adapter: Sqlite.Ecto2,
   loggers: [],
   database: Path.join(data_path, "config-#{Mix.env()}.sqlite3")
 
-config :farmbot_core, Farmbot.Logger.Repo,
+config :farmbot_core, FarmbotCore.Logger.Repo,
   adapter: Sqlite.Ecto2,
   loggers: [],
   database: Path.join(data_path, "logs-#{Mix.env()}.sqlite3")
 
-config :farmbot_core, Farmbot.Asset.Repo,
+config :farmbot_core, FarmbotCore.Asset.Repo,
   adapter: Sqlite.Ecto2,
   loggers: [],
   database: Path.join(data_path, "asset-#{Mix.env()}.sqlite3")
 
 config :farmbot,
-  ecto_repos: [Farmbot.Config.Repo, Farmbot.Logger.Repo, Farmbot.Asset.Repo],
+  ecto_repos: [FarmbotCore.Config.Repo, FarmbotCore.Logger.Repo, FarmbotCore.Asset.Repo],
   platform_children: [
-    {Farmbot.Host.Configurator, []}
+    {Farmbot.Platform.Host.Configurator, []}
   ]
 
-config :farmbot, Farmbot.TTYDetector, expected_names: []
+config :farmbot, FarmbotOS.TTYDetector, expected_names: []
 
-config :farmbot_ext, Farmbot.AMQP.NervesHubTransport,
-  handle_nerves_hub_msg: Farmbot.System.NervesHub
+config :farmbot_ext, FarmbotExt.AMQP.NervesHubTransport,
+  handle_nerves_hub_msg: FarmbotOS.NervesHub
 
-config :farmbot, Farmbot.System.NervesHub,
-  farmbot_nerves_hub_handler: Farmbot.Host.NervesHubHandler
+config :farmbot, FarmbotOS.NervesHub,
+  farmbot_nerves_hub_handler: FarmbotOS.Platform.Host.NervesHubHandler
 
 config :farmbot_core, :uart_handler, tty: "/dev/ttyACM0"
