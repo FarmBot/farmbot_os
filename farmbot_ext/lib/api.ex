@@ -1,10 +1,18 @@
-defmodule Farmbot.API do
-  alias Farmbot.{API, JSON, JWT}
-  alias Farmbot.Asset.StorageAuth
-  alias Farmbot.BotState
-  alias BotState.JobProgress.Percent
-  require Farmbot.Logger
-  import Farmbot.Config, only: [get_config_value: 3]
+defmodule FarmbotExt.API do
+  alias FarmbotExt.{API, JWT}
+
+  alias FarmbotCore.JSON
+
+  alias FarmbotCore.Asset.{
+    StorageAuth,
+    FbosConfig,
+    FirmwareConfig
+  }
+
+  alias FarmbotCore.{BotState, BotState.JobProgress.Percent}
+
+  require FarmbotCore.Logger
+  import FarmbotCore.Config, only: [get_config_value: 3]
 
   use Tesla
   alias Tesla.Multipart
@@ -104,12 +112,12 @@ defmodule Farmbot.API do
          client <- API.client(),
          body <- %{attachment_url: attachment_url, meta: meta},
          {:ok, %{status: s}} = r when s > 199 and s < 300 <- API.post(client, "/api/images", body) do
-      Farmbot.BotState.set_job_progress(image_filename, %{prog | status: :complete, percent: 100})
+      BotState.set_job_progress(image_filename, %{prog | status: :complete, percent: 100})
       r
     else
       er ->
-        Farmbot.Logger.error(1, "Failed to upload image")
-        Farmbot.BotState.set_job_progress(image_filename, %{prog | percent: -1, status: :error})
+        FarmbotCore.Logger.error(1, "Failed to upload image")
+        BotState.set_job_progress(image_filename, %{prog | percent: -1, status: :error})
         er
     end
   end
@@ -166,16 +174,16 @@ defmodule Farmbot.API do
   def get_changeset(asset, path)
 
   # Hacks for dealing with these resources not having #show
-  def get_changeset(Farmbot.Asset.FbosConfig, _),
-    do: get_changeset(Farmbot.Asset.FbosConfig)
+  def get_changeset(FbosConfig, _),
+    do: get_changeset(FbosConfig)
 
-  def get_changeset(Farmbot.Asset.FirmwareConfig, _),
-    do: get_changeset(Farmbot.Asset.FirmwareConfig)
+  def get_changeset(FirmwareConfig, _),
+    do: get_changeset(FirmwareConfig)
 
-  def get_changeset(%Farmbot.Asset.FbosConfig{} = data, _),
+  def get_changeset(%FbosConfig{} = data, _),
     do: get_changeset(data)
 
-  def get_changeset(%Farmbot.Asset.FirmwareConfig{} = data, _),
+  def get_changeset(%FirmwareConfig{} = data, _),
     do: get_changeset(data)
 
   def get_changeset(module, path) when is_atom(module) do

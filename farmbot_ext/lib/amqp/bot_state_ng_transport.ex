@@ -1,4 +1,4 @@
-defmodule Farmbot.AMQP.BotStateNGTransport do
+defmodule FarmbotExt.AMQP.BotStateNGTransport do
   @moduledoc """
   Publishes JSON encoded bot state fragements onto an AMQP channel
   Examples:
@@ -20,11 +20,12 @@ defmodule Farmbot.AMQP.BotStateNGTransport do
   use AMQP
   alias AMQP.Channel
 
-  require Farmbot.Logger
-  alias Farmbot.AMQP.ConnectionWorker
+  require FarmbotCore.Logger
+  alias FarmbotCore.JSON
+  alias FarmbotExt.AMQP.ConnectionWorker
 
-  alias Farmbot.BotState
-  alias Farmbot.BotStateNG.ChangeGenerator
+  alias FarmbotCore.BotState
+  alias FarmbotCore.BotStateNG.ChangeGenerator
 
   # Pushes a state tree every 5 seconds for good luck.
   @default_error_retry_ms 100
@@ -51,7 +52,7 @@ defmodule Farmbot.AMQP.BotStateNGTransport do
   end
 
   def terminate(reason, state) do
-    Farmbot.Logger.error(1, "Disconnected from BotState channel: #{inspect(reason)}")
+    FarmbotCore.Logger.error(1, "Disconnected from BotState channel: #{inspect(reason)}")
     # If a channel was still open, close it.
     if state.chan, do: Channel.close(state.chan)
   end
@@ -71,7 +72,7 @@ defmodule Farmbot.AMQP.BotStateNGTransport do
         {:noreply, %{state | conn: nil, chan: nil}, 5000}
 
       err ->
-        Farmbot.Logger.error(1, "Failed to connect to BotState channel: #{inspect(err)}")
+        FarmbotCore.Logger.error(1, "Failed to connect to BotState channel: #{inspect(err)}")
         {:noreply, %{state | conn: nil, chan: nil}, 1000}
     end
   end
@@ -80,7 +81,7 @@ defmodule Farmbot.AMQP.BotStateNGTransport do
     {:noreply, %{state | changes: []}, {:continue, state.changes}}
   end
 
-  def handle_info({Farmbot.BotState, change}, state) do
+  def handle_info({BotState, change}, state) do
     changes = (state.changes ++ change.changes) |> ChangeGenerator.changes()
     {:noreply, %{state | changes: changes}, 0}
   end
@@ -91,7 +92,7 @@ defmodule Farmbot.AMQP.BotStateNGTransport do
       |> Enum.map(&to_string/1)
       |> Enum.join(".")
 
-    json = Farmbot.JSON.encode!(value)
+    json = JSON.encode!(value)
 
     case Basic.publish(chan, @exchange, "bot.#{state.jwt.bot}.status_v8.#{path}", json) do
       :ok ->
@@ -103,7 +104,7 @@ defmodule Farmbot.AMQP.BotStateNGTransport do
         error: #{inspect(error)}
         """
 
-        Farmbot.Logger.error(1, msg)
+        FarmbotCore.Logger.error(1, msg)
         {:noreply, %{state | changes: changes}, @default_error_retry_ms}
     end
   end

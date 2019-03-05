@@ -1,4 +1,4 @@
-defmodule Farmbot.AMQP.CeleryScriptTransport do
+defmodule FarmbotExt.AMQP.CeleryScriptTransport do
   use GenServer
   use AMQP
 
@@ -7,11 +7,12 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
     Queue
   }
 
-  require Farmbot.Logger
+  alias FarmbotCore.JSON
+  require FarmbotCore.Logger
   require Logger
 
-  alias Farmbot.AMQP.ConnectionWorker
-  alias Farmbot.{CeleryScript.AST, CeleryScript.Scheduler}
+  alias FarmbotExt.AMQP.ConnectionWorker
+  alias FarmbotCeleryScript.{AST, Scheduler}
 
   @exchange "amq.topic"
 
@@ -30,7 +31,7 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
   end
 
   def terminate(reason, state) do
-    Farmbot.Logger.error(1, "Disconnected from CeleryScript channel: #{inspect(reason)}")
+    FarmbotCore.Logger.error(1, "Disconnected from CeleryScript channel: #{inspect(reason)}")
     # If a channel was still open, close it.
     if state.chan, do: AMQP.Channel.close(state.chan)
   end
@@ -53,14 +54,14 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
         {:noreply, %{state | conn: nil, chan: nil}, 5000}
 
       err ->
-        Farmbot.Logger.error(1, "Failed to connect to CeleryScript channel: #{inspect(err)}")
+        FarmbotCore.Logger.error(1, "Failed to connect to CeleryScript channel: #{inspect(err)}")
         {:noreply, %{state | conn: nil, chan: nil}, 1000}
     end
   end
 
   # Confirmation sent by the broker after registering this process as a consumer
   def handle_info({:basic_consume_ok, _}, state) do
-    Farmbot.Logger.success(1, "Farmbot is up and running!")
+    FarmbotCore.Logger.success(1, "Farmbot is up and running!")
     {:noreply, state}
   end
 
@@ -78,7 +79,7 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
   def handle_info({:basic_deliver, payload, %{routing_key: key}}, state) do
     device = state.jwt.bot
     ["bot", ^device, "from_clients"] = String.split(key, ".")
-    ast = Farmbot.JSON.decode!(payload) |> AST.decode()
+    ast = JSON.decode!(payload) |> AST.decode()
 
     {:ok, ref} =
       if ast.args[:priority] == 1 do
@@ -115,7 +116,7 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
           }
         }
 
-        reply = Farmbot.JSON.encode!(result_ast)
+        reply = JSON.encode!(result_ast)
         AMQP.Basic.publish(state.chan, @exchange, "bot.#{state.jwt.bot}.from_device", reply)
         {:noreply, %{state | rpc_requests: Map.delete(state.rpc_requests, ref)}}
 
@@ -139,7 +140,7 @@ defmodule Farmbot.AMQP.CeleryScriptTransport do
           ]
         }
 
-        reply = Farmbot.JSON.encode!(result_ast)
+        reply = JSON.encode!(result_ast)
         AMQP.Basic.publish(state.chan, @exchange, "bot.#{state.jwt.bot}.from_device", reply)
         msg = ["CeleryScript Error\n", reason]
         Logger.error(msg)
