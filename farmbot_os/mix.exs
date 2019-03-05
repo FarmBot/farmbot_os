@@ -1,4 +1,4 @@
-defmodule Farmbot.OS.MixProject do
+defmodule FarmbotOS.MixProject do
   use Mix.Project
 
   @all_targets [:rpi3, :rpi0, :rpi]
@@ -37,7 +37,7 @@ defmodule Farmbot.OS.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      mod: {Farmbot.OS, []},
+      mod: {FarmbotOS, []},
       extra_applications: [:logger, :runtime_tools, :eex]
     ]
   end

@@ -1,11 +1,15 @@
-defmodule Farmbot.TTYDetector do
+defmodule FarmbotOS.TTYDetector do
   use GenServer
   require Logger
-  require Farmbot.Logger
+  require FarmbotCore.Logger
   alias Circuits.UART
-  alias Farmbot.Core.FirmwareSupervisor
 
-  import Farmbot.Config, only: [get_config_value: 3, update_config_value: 4]
+  alias FarmbotFirmware.UARTTransport
+  alias FarmbotCore.FirmwareSupervisor
+  alias FarmbotCore.FirmwareSideEffects
+  alias FarmbotCore.{Asset, BotState}
+
+  import FarmbotCore.Config, only: [get_config_value: 3, update_config_value: 4]
 
   @expected_names Application.get_env(:farmbot, __MODULE__)[:expected_names]
   @expected_names ||
@@ -49,7 +53,7 @@ defmodule Farmbot.TTYDetector do
   end
 
   def handle_info(:timeout, %{device: _device, open: true, version: nil} = state) do
-    case Farmbot.Firmware.request({:software_version_read, []}) do
+    case FarmbotFirmware.request({:software_version_read, []}) do
       {:ok, {_, {:report_software_version, [version]}}} ->
         {:noreply, %{state | version: version}}
 
@@ -64,12 +68,12 @@ defmodule Farmbot.TTYDetector do
 
   def handle_continue([{name, _} | _rest], %{device: nil} = state)
       when name in @expected_names do
-    Farmbot.Logger.debug(3, "Found tty: #{name}")
+    FarmbotCore.Logger.debug(3, "Found tty: #{name}")
     {:noreply, %{state | device: name}, 0}
   end
 
   def handle_continue([{name, _} | rest], %{device: nil} = state) do
-    Farmbot.Logger.debug(3, "#{name} not a valid Farmbot tty")
+    FarmbotCore.Logger.debug(3, "#{name} not a valid Farmbot tty")
     {:noreply, state, {:continue, rest}}
   end
 
@@ -102,8 +106,8 @@ defmodule Farmbot.TTYDetector do
   defp handle_open(state) do
     opts = [
       device: state.device,
-      transport: Farmbot.Firmware.UARTTransport,
-      side_effects: Farmbot.Core.FirmwareSideEffects
+      transport: UARTTransport,
+      side_effects: FirmwareSideEffects
     ]
 
     child_spec = {Farmbot.Firmware, opts}
@@ -113,12 +117,12 @@ defmodule Farmbot.TTYDetector do
         # This might cause some sort of race condition.
         hw = get_config_value(:string, "settings", "firmware_hardware")
 
-        Farmbot.Asset.update_fbos_config!(%{
+        Asset.update_fbos_config!(%{
           firmware_path: state.device,
           firmware_hardware: hw
         })
 
-        :ok = Farmbot.BotState.set_config_value(:firmware_hardware, hw)
+        :ok = BotState.set_config_value(:firmware_hardware, hw)
         Process.monitor(pid)
         {:noreply, %{state | open: true, version: nil}, 5000}
 

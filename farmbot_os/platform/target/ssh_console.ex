@@ -1,10 +1,10 @@
-defmodule Farmbot.Target.SSHConsole do
+defmodule FarmbotOS.Platform.Target.SSHConsole do
   @moduledoc """
   SSH IEx console.
   """
   use GenServer
-  import Farmbot.Config, only: [get_config_value: 3]
-  require Farmbot.Logger
+  import FarmbotCore.Config, only: [get_config_value: 3]
+  require FarmbotCore.Logger
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
@@ -20,7 +20,7 @@ defmodule Farmbot.Target.SSHConsole do
         {:ok, %{ssh: ssh}}
 
       _ ->
-        Farmbot.Logger.warn(1, "Could not start SSH.")
+        FarmbotCore.Logger.warn(1, "Could not start SSH.")
         :ignore
     end
   end
@@ -58,7 +58,7 @@ defmodule Farmbot.Target.SSHConsole do
       :public_key.ssh_decode(authorized_key, :auth_keys)
     rescue
       _err ->
-        Farmbot.Logger.warn(3, "Could not decode ssh keys.")
+        FarmbotCore.Logger.warn(3, "Could not decode ssh keys.")
         []
     end
   end

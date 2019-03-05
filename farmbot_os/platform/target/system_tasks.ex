@@ -1,7 +1,7 @@
-defmodule Farmbot.Target.SystemTasks do
+defmodule FarmbotOS.Platform.Target.SystemTasks do
   @moduledoc "Target implementation for System Tasks."
 
-  @behaviour Farmbot.System
+  @behaviour FarmbotOS.System
 
   def reboot() do
     Nerves.Runtime.reboot()

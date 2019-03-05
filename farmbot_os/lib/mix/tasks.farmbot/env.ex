@@ -34,16 +34,16 @@ defmodule Mix.Tasks.Farmbot.Env do
   end
 
   def version do
-    Farmbot.Project.version()
+    FarmbotCore.Project.version()
   end
 
   def commit do
-    Farmbot.Project.commit()
+    FarmbotCore.Project.commit()
   end
 
   @doc false
   def env do
-    to_string(Farmbot.Project.env())
+    to_string(FarmbotCore.Project.env())
   end
 
   @doc false

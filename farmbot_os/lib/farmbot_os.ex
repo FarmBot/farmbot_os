@@ -1,4 +1,4 @@
-defmodule Farmbot.OS do
+defmodule FarmbotOS do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
@@ -7,9 +7,9 @@ defmodule Farmbot.OS do
 
   def start(_type, _args) do
     children = [
-      {Farmbot.System.Init.Supervisor, []},
-      {Farmbot.Platform.Supervisor, []},
-      {Farmbot.EasterEggs, []}
+      {FarmbotOS.Init.Supervisor, []},
+      {FarmbotOS.Platform.Supervisor, []},
+      {FarmbotOS.EasterEggs, []}
     ]
 
     opts = [strategy: :one_for_one, name: __MODULE__]

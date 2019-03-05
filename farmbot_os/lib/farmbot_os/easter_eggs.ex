@@ -1,7 +1,8 @@
-defmodule Farmbot.EasterEggs do
+defmodule FarmbotOS.EasterEggs do
   @moduledoc false
   use GenServer
-  require Farmbot.Logger
+  alias FarmbotCore.{Asset, JSON}
+  require FarmbotCore.Logger
 
   @doc false
   def start_link(args) do
@@ -29,8 +30,8 @@ defmodule Farmbot.EasterEggs do
       end)
 
     message = EEx.eval_string(verb, nouns)
-    bot_name = Farmbot.Asset.device().name
-    Farmbot.Logger.fun(3, Enum.join([bot_name, message], " "))
+    bot_name = Asset.device().name
+    FarmbotCore.Logger.fun(3, Enum.join([bot_name, message], " "))
     {:noreply, %{state | timer: timer}}
   end
 
@@ -43,7 +44,7 @@ defmodule Farmbot.EasterEggs do
   defp load_data do
     Path.join(:code.priv_dir(:farmbot), "easter_eggs.json")
     |> File.read!()
-    |> Farmbot.JSON.decode!()
+    |> JSON.decode!()
   end
 
   @ms_in_one_hour 3.6e+6 |> round()

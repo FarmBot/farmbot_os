@@ -1,5 +1,7 @@
-defmodule Farmbot.Target.Network.Supervisor do
+defmodule FarmbotOS.Platform.Target.Network.Supervisor do
   use Supervisor
+  alias FarmbotCore.Config
+  alias FarmbotOS.Platform.Target.{Network, Network.Distribution}
 
   def start_link(args) do
     Supervisor.start_link(__MODULE__, args, name: __MODULE__)
@@ -7,11 +9,11 @@ defmodule Farmbot.Target.Network.Supervisor do
 
   def init([]) do
     {:ok, hostname} = :inet.gethostname()
-    confs = Farmbot.Config.Repo.all(Farmbot.Config.NetworkInterface)
+    confs = Config.get_all_network_configs()
 
     config =
       Map.new(confs, fn %{name: ifname} = settings ->
-        {ifname, Farmbot.Target.Network.validate_settings(settings)}
+        {ifname, Network.validate_settings(settings)}
       end)
 
     distribution_children =
@@ -23,11 +25,11 @@ defmodule Farmbot.Target.Network.Supervisor do
           node_host: :mdns_domain
         }
 
-        {Farmbot.Target.Network.Distribution, opts}
+        {Distribution, opts}
       end)
 
     children = [
-      {Farmbot.Target.Network, config: config} | distribution_children
+      {Network, config: config} | distribution_children
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

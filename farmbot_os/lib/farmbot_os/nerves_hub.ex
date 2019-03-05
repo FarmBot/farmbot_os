@@ -1,10 +1,10 @@
-defmodule Farmbot.System.NervesHub do
+defmodule FarmbotOS.NervesHub do
   @moduledoc """
   Wrapper for NervesHub that can support both host and target environments.
 
   Some things can be configured via Mix.Config:
 
-      config :farmfarmbot_osbot, Farmbot.System.NervesHub, [
+      config :farmbot, Farmbot.NervesHub, [
         farmbot_nerves_hub_handler: SomeModule,
         app_env: "application:some_other_tag",
         extra_tags: ["some", "more", "tags"]
@@ -18,13 +18,11 @@ defmodule Farmbot.System.NervesHub do
   ## On host.
   Just return :ok to everything.
   """
-  import Farmbot.Config,
-    only: [
-      get_config_value: 3,
-      update_config_value: 4
-    ]
+  alias FarmbotCore.Project
+  alias FarmbotCore.Asset.{Repo, DeviceCert}
+  import FarmbotCore.Config, only: [get_config_value: 3]
 
-  @behaviour Farmbot.AMQP.NervesHubTransport
+  @behaviour FarmbotExt.AMQP.NervesHubTransport
 
   @handler Application.get_env(:farmbot, __MODULE__)[:farmbot_nerves_hub_handler] ||
              Mix.raise("missing :farmbot_nerves_hub_handler module")
@@ -54,7 +52,7 @@ defmodule Farmbot.System.NervesHub do
   @callback uuid :: String.t()
 
   use GenServer
-  require Farmbot.Logger
+  require FarmbotCore.Logger
 
   def start_link(args \\ []) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
@@ -65,7 +63,7 @@ defmodule Farmbot.System.NervesHub do
   end
 
   def terminate(reason, state) do
-    Farmbot.Logger.warn(
+    FarmbotCore.Logger.warn(
       1,
       "OTA Service crash: #{inspect(reason)} when in state: #{inspect(state)}"
     )
@@ -75,11 +73,13 @@ defmodule Farmbot.System.NervesHub do
     channel = detect_channel()
     app_config = Application.get_env(:farmbot, __MODULE__, [])
 
-    "application:" <> _ = app_env = app_config[:app_env] || "application:#{Farmbot.Project.env()}"
+    "application:" <> _ =
+      app_env = app_config[:app_env] || "application:#{FarmbotCore.Project.env()}"
+
     extra_tags = app_config[:extra_tags] || []
 
     if nil in get_config() do
-      Farmbot.Logger.debug(1, "Doing initial NervesHub provision.")
+      FarmbotCore.Logger.debug(1, "Doing initial NervesHub provision.")
       :ok = deconfigure()
       :ok = provision()
 
@@ -89,7 +89,7 @@ defmodule Farmbot.System.NervesHub do
           {:noreply, :configured}
 
         {:error, reason} ->
-          Farmbot.Logger.error(3, "OTA Service provision failed: #{inspect(reason)}")
+          FarmbotCore.Logger.error(3, "OTA Service provision failed: #{inspect(reason)}")
           {:noreply, :not_configured, 10_000}
       end
 
@@ -103,7 +103,7 @@ defmodule Farmbot.System.NervesHub do
 
   def detect_channel do
     get_config_value(:string, "settings", "update_channel") ||
-      case Farmbot.Project.branch() do
+      case Project.branch() do
         "master" -> "channel:stable"
         "beta" -> "channel:beta"
         "staging" -> "channel:staging"
@@ -119,7 +119,7 @@ defmodule Farmbot.System.NervesHub do
   end
 
   def connect do
-    Farmbot.Logger.debug(1, "Connecting to OTA Service")
+    FarmbotCore.Logger.debug(1, "Connecting to OTA Service")
     @handler.connect()
   end
 
@@ -130,15 +130,14 @@ defmodule Farmbot.System.NervesHub do
 
   # Sets Serial number in environment.
   def provision do
-    Farmbot.Logger.debug(1, "Provisioning OTA Service")
+    FarmbotCore.Logger.debug(1, "Provisioning OTA Service")
     :ok = @handler.provision(serial())
   end
 
   # Creates a device in NervesHub
   # or updates it if one exists.
   def configure(tags) when is_list(tags) do
-    alias Farmbot.Asset.{Repo, DeviceCert}
-    Farmbot.Logger.debug(1, "Configuring OTA Service DeviceCert: #{inspect(tags)}")
+    FarmbotCore.Logger.debug(1, "Configuring OTA Service DeviceCert: #{inspect(tags)}")
     serial = serial()
     old = Repo.get_by(DeviceCert, serial_number: serial) || %DeviceCert{}
 
@@ -157,19 +156,19 @@ defmodule Farmbot.System.NervesHub do
         "-----BEGIN CERTIFICATE-----" <> _ = cert,
         "-----BEGIN EC PRIVATE KEY-----" <> _ = key
       ) do
-    Farmbot.Logger.debug(1, "Configuring certs for OTA Service")
+    FarmbotCore.Logger.debug(1, "Configuring certs for OTA Service")
     :ok = @handler.configure_certs(cert, key)
     :ok
   end
 
   def deconfigure do
-    Farmbot.Logger.debug(1, "Deconfiguring OTA Service")
+    FarmbotCore.Logger.debug(1, "Deconfiguring OTA Service")
     :ok = @handler.deconfigure()
     :ok
   end
 
   def check_update do
-    Farmbot.Logger.debug(1, "Check update OTA Service")
+    FarmbotCore.Logger.debug(1, "Check update OTA Service")
     @handler.check_update()
   end
 

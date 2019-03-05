@@ -1,11 +1,11 @@
-defmodule Farmbot.Target.Network do
+defmodule FarmbotOS.Platform.Target.Network do
   @moduledoc "Manages Network Connections"
   use GenServer
   require Logger
 
   alias Nerves.NetworkInterface
-  import Farmbot.Target.Network.Utils
-  alias Farmbot.Config
+  import FarmbotOS.Platform.Target.Network.Utils
+  alias FarmbotCore.Config
 
   @validation_ms 30_000
 
@@ -19,7 +19,7 @@ defmodule Farmbot.Target.Network do
   end
 
   def reload do
-    for %{name: ifname} = settings <- Config.Repo.all(Config.NetworkInterface) do
+    for %{name: ifname} = settings <- Config.get_all_network_configs() do
       settings = validate_settings(settings)
       Logger.warn("Trying to configure #{ifname}: #{inspect(settings)}")
       setup(ifname, settings)
@@ -83,7 +83,7 @@ defmodule Farmbot.Target.Network do
     ifnames()
     |> List.delete("lo")
     |> Enum.map(fn ifname ->
-      {:ok, settings} = Nerves.NetworkInterface.settings(ifname)
+      {:ok, settings} = NetworkInterface.settings(ifname)
       {ifname, settings}
     end)
   end
