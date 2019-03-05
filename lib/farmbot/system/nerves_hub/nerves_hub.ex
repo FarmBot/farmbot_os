@@ -97,12 +97,15 @@ defmodule Farmbot.System.NervesHub do
   end
 
   def detect_channel do
-    get_config_value(:string, "settings", "update_channel") || case Farmbot.Project.branch() do
-      "master" -> "channel:stable"
-      "beta" -> "channel:beta"
-      "staging" -> "channel:staging"
-      branch -> "channel:#{branch}"
+    channel_from_branch = case Farmbot.Project.branch() do
+      "master" -> "stable"
+      "beta" -> "beta"
+      "staging" -> "staging"
+      branch -> branch
     end
+
+    channel_from_config = get_config_value(:string, "settings", "update_channel")
+    "channel:#{channel_from_config || channel_from_branch}"
   end
 
   def get_config do
@@ -134,7 +137,7 @@ defmodule Farmbot.System.NervesHub do
       tags: tags
     } |> Farmbot.JSON.encode!()
     case Farmbot.HTTP.post("/api/device_cert", payload) do
-      {:ok, _} -> 
+      {:ok, _} ->
         :ok
       {:error, reason} ->
         Logger.error 1, "Failed to configure nerveshub due to http error: #{inspect(reason)}"
