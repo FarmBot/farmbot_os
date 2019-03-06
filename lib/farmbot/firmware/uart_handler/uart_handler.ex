@@ -153,7 +153,7 @@ defmodule Farmbot.Firmware.UartHandler do
         UartHandler.Update.force_update_firmware(val)
         open_tty(state.tty, state.nerves)
 
-        Farmbot.BotState.reset_sync_status()
+        Farmbot.BotState.set_sync_status(:sync_now)
         %{state | hw: val, config_busy: true}
       else # if BotState not alive
         # This happens when you select a fw, then go back and select a different one
