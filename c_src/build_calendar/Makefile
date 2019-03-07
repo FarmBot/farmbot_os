@@ -9,7 +9,7 @@ ERL_LDFLAGS ?= -L$(ERL_EI_LIBDIR)
 NIF_LDFLAGS += -fPIC -shared
 NIF_CFLAGS ?= -fPIC -O2 -Wall
 
-NIF=priv/build_calendar.so
+NIF=$(PREFIX)/build_calendar.so
 
 ifeq ($(CROSSCOMPILE),)
 ifeq ($(shell uname),Darwin)

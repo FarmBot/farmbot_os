@@ -18,13 +18,13 @@ defmodule Farmbot.Firmware.UartHandler.AutoDetector do
 
   #TODO(Connor) - Maybe make this configurable?
   case Farmbot.Project.target() do
-    "rpi3" ->
+    :rpi3 ->
       @ignore_devs ["ttyAMA0", "ttyS0", "ttyS3"]
-    "rpi" ->
+    :rpi ->
       @ignore_devs ["ttyS0", "ttyS3"]
-    "rpi0" ->
+    :rpi0 ->
       @ignore_devs ["ttyS0", "ttyS3"]
-    "host" ->
+    :host ->
       @ignore_devs ["ttyS0"]
   end
 
