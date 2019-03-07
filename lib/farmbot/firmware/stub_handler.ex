@@ -189,7 +189,7 @@ defmodule Farmbot.Firmware.StubHandler do
   end
 
   def handle_call({:set_pin_mode, pin, mode}, _from, state) do
-    response = [:done]
+    response = [{:report_pin_mode, pin, mode}, :done]
     {:reply, build_reply(:ok), response, state}
   end
 

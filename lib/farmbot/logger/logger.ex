@@ -7,7 +7,7 @@ defmodule Farmbot.Logger do
   def how_many_logs do
     alias IO.ANSI
 
-    count = LoggerBackendSqlite.count_logs()
+    count = LoggerBackendSqlite.all_logs() |> Enum.count()
     size_mb = LoggerBackendSqlite.stat().size * 1.0e-6
     total = Application.get_env(:logger, LoggerBackendSqlite)[:max_logs]
 

@@ -4,6 +4,7 @@ defmodule Farmbot.Firmware.UartHandler.Update do
   use Farmbot.Logger
 
   @uart_speed 115_200
+  alias Circuits.UART
 
   def maybe_update_firmware(hardware \\ nil) do
     tty = Application.get_all_env(:farmbot)[:uart_handler][:tty]
@@ -30,15 +31,15 @@ defmodule Farmbot.Firmware.UartHandler.Update do
   end
 
   defp do_connect_and_maybe_update(tty, hardware) do
-    case Nerves.UART.start_link() do
+    case UART.start_link() do
       {:ok, uart} ->
         opts = [
           active: true,
-          framing: {Nerves.UART.Framing.Line, separator: "\r\n"},
+          framing: {UART.Framing.Line, separator: "\r\n"},
           speed: @uart_speed
         ]
-        :ok = Nerves.UART.open(uart, tty, [speed: @uart_speed])
-        :ok = Nerves.UART.configure(uart, opts)
+        :ok = UART.open(uart, tty, [speed: @uart_speed])
+        :ok = UART.configure(uart, opts)
         Logger.busy 3, "Waiting for firmware idle report."
         do_fw_loop(uart, tty, :idle, hardware)
         close(uart)
@@ -60,7 +61,7 @@ defmodule Farmbot.Firmware.UartHandler.Update do
             :version ->
               Process.sleep(500)
               # tell the FW to report its version.
-              Nerves.UART.write(uart, "F83")
+              UART.write(uart, "F83")
               Logger.busy 3, "Waiting for firmware version report."
               do_wait_version(uart, tty, hardware)
           end
@@ -138,8 +139,8 @@ defmodule Farmbot.Firmware.UartHandler.Update do
 
   defp close(uart) do
     if Process.alive?(uart) do
-      close = Nerves.UART.close(uart)
-      stop = Nerves.UART.stop(uart)
+      close = UART.close(uart)
+      stop = UART.stop(uart)
       Logger.info 3, "CLOSE: #{inspect close} STOP: #{stop}"
       Process.sleep(2000) # to allow the FD to be closed.
     end
@@ -169,14 +170,14 @@ defmodule Farmbot.Firmware.UartHandler.Update do
   if Farmbot.Project.target() in [:rpi0, :rpi] do
     @reset_pin 19
     defp reset_init do
-      {:ok, pid} = ElixirALE.GPIO.start_link(@reset_pin, :output)
-      pid
+      {:ok, gpio} = Circuits.GPIO.open(@reset_pin, :output)
+      gpio
     end
-    defp do_reset(pid) do
-      ElixirALE.GPIO.write(pid, 1)
-      ElixirALE.GPIO.write(pid, 0)
+    defp do_reset(gpio) do
+      Circuits.GPIO.write(gpio, 1)
+      Circuits.GPIO.write(gpio, 0)
     end
-    defp reset_close(pid), do: ElixirALE.GPIO.release(pid)
+    defp reset_close(gpio), do: Circuits.GPIO.close(gpio)
   else
     defp reset_init(), do: nil
     defp do_reset(nil), do: :ok

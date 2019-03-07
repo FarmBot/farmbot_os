@@ -1,5 +1,5 @@
 defmodule Farmbot.Firmware.UartHandler.Framing do
-  @behaviour Nerves.UART.Framing
+  @behaviour Circuits.UART.Framing
   import Farmbot.Firmware.Gcode.Parser
   use Farmbot.Logger
 

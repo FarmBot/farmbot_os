@@ -2,7 +2,7 @@ defmodule Farmbot.Target.PinBinding.AleHandler do
   @moduledoc "PinBinding handler that uses Elixir.Ale"
 
   use GenServer
-  alias ElixirALE.GPIO
+  alias Circuits.GPIO
   @behaviour Farmbot.PinBinding.Handler
 
   # PinBinding.Handler Callbacks
@@ -27,7 +27,7 @@ defmodule Farmbot.Target.PinBinding.AleHandler do
 
   defmodule PinState do
     @moduledoc false
-    defstruct [:pin, :state, :signal, :pid]
+    defstruct [:pin, :state, :signal, :gpio]
   end
 
   def init([]) do
@@ -35,13 +35,13 @@ defmodule Farmbot.Target.PinBinding.AleHandler do
   end
 
   def handle_call({:register_pin, num}, _from, state) do
-    with {:ok, out_pid} <- GPIO.start_link(num, :output),
-         :ok <- GPIO.write(out_pid, 0),
-         :ok <- GPIO.release(out_pid),
-         {:ok, pid} <- GPIO.start_link(num, :input),
-         :ok <- GPIO.set_int(pid, :both),
+    with {:ok, out_gpio} <- GPIO.open(num, :output),
+         :ok <- GPIO.write(out_gpio, 0),
+         :ok <- GPIO.close(out_gpio),
+         {:ok, gpio} <- GPIO.start_link(num, :input),
+         :ok <- GPIO.set_int(gpio, :both),
          new_pins <-
-           Map.put(state.pins, num, %PinState{pin: num, pid: pid, state: nil, signal: :rising}) do
+           Map.put(state.pins, num, %PinState{pin: num, gpio: gpio, state: nil, signal: :rising}) do
       {:reply, :ok, %{state | pins: new_pins}}
     else
       {:error, _} = err -> {:reply, err, state}
@@ -54,8 +54,8 @@ defmodule Farmbot.Target.PinBinding.AleHandler do
       nil ->
         {:reply, :ok, state}
 
-      %PinState{pid: pid} ->
-        GPIO.release(pid)
+      %PinState{gpio: gpio} ->
+        GPIO.close(gpio)
         {:reply, :ok, %{state | pins: Map.delete(state.pins, num)}}
     end
   end
