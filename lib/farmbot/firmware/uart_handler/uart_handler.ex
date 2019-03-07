@@ -4,7 +4,7 @@ defmodule Farmbot.Firmware.UartHandler do
   """
 
   use GenStage
-  alias Nerves.UART
+  alias Circuits.UART
   use Farmbot.Logger
   alias Farmbot.System.ConfigStorage
   import ConfigStorage, only: [update_config_value: 4, get_config_value: 3]

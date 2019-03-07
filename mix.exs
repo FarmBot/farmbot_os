@@ -95,7 +95,7 @@ defmodule Farmbot.Mixfile do
       {:jason, "~> 1.1"},
       {:timex, "~> 3.4"},
       {:fs, "~> 3.4"},
-      {:nerves_uart, "~> 1.2"},
+      {:circuits_uart, "~> 1.3"},
       {:cowboy, "~> 2.5"},
       {:plug, "~> 1.6"},
       {:cors_plug, "~> 1.5"},
@@ -131,7 +131,7 @@ defmodule Farmbot.Mixfile do
       {:nerves_network, "~> 0.5", targets: @all_targets},
       {:nerves_wpa_supplicant, "~> 0.5.1", targets: @all_targets},
       {:dhcp_server, "~> 0.7", targets: @all_targets},
-      {:elixir_ale, "~> 1.1", targets: @all_targets},
+      {:circuits_gpio, "~> 0.4.0", targets: @all_targets},
       {:mdns, "~> 1.0", targets: @all_targets},
 
       {:farmbot_system_rpi3, "1.6.3-farmbot.0", runtime: false, targets: :rpi3},
@@ -148,11 +148,11 @@ defmodule Farmbot.Mixfile do
     ]
   end
 
-  defp elixirc_paths(:test, "host") do
+  defp elixirc_paths(:test, :host) do
     ["./lib", "./platform/host", "./test/support"]
   end
 
-  defp elixirc_paths(_, "host") do
+  defp elixirc_paths(_, :host) do
     ["./lib", "./platform/host"]
   end
 
@@ -160,11 +160,11 @@ defmodule Farmbot.Mixfile do
     ["./lib", "./platform/target"]
   end
 
-  defp aliases(:test, "host") do
+  defp aliases(:test, :host) do
     [test: ["ecto.drop", "ecto.create --quiet", "ecto.migrate", "test"]]
   end
 
-  defp aliases(_env, "host"),
+  defp aliases(_env, :host),
     do: []
 
   defp aliases(_env, _system) do

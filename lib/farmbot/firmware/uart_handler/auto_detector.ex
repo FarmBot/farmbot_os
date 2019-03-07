@@ -11,7 +11,7 @@ defmodule Farmbot.Firmware.UartHandler.AutoDetector do
     * Configures Farmbot.Behaviour.FirmwareHandler -> StubHandler
   """
 
-  alias Nerves.UART
+  alias Circuits.UART
   alias Farmbot.Firmware.{UartHandler, StubHandler, Utils}
   import Utils
   use Farmbot.Logger

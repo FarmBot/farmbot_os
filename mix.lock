@@ -6,6 +6,7 @@
   "bbmustache": {:hex, :bbmustache, "1.6.1", "9fb63fa60bd53afbf47f02e6d8bd6b2beafc068e02e20975254dc7461fd4f397", [:rebar3], [], "hexpm"},
   "bunt": {:hex, :bunt, "0.2.0", "951c6e801e8b1d2cbe58ebbd3e616a869061ddadcc4863d0a2182541acae9a38", [:mix], [], "hexpm"},
   "certifi": {:hex, :certifi, "2.5.1", "867ce347f7c7d78563450a18a6a28a8090331e77fa02380b4a21962a65d36ee5", [:rebar3], [{:parse_trans, "~>3.3", [hex: :parse_trans, repo: "hexpm", optional: false]}], "hexpm"},
+  "circuits_uart": {:hex, :circuits_uart, "1.3.1", "8c0a56f06828133a0b08363ecb994350a9529d388a912357d31829ae617cd801", [:mix], [{:elixir_make, "~> 0.4", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm"},
   "combine": {:hex, :combine, "0.10.0", "eff8224eeb56498a2af13011d142c5e7997a80c8f5b97c499f84c841032e429f", [:mix], [], "hexpm"},
   "connection": {:hex, :connection, "1.0.4", "a1cae72211f0eef17705aaededacac3eb30e6625b04a6117c1b2db6ace7d5976", [:mix], [], "hexpm"},
   "cors_plug": {:hex, :cors_plug, "1.5.2", "72df63c87e4f94112f458ce9d25800900cc88608c1078f0e4faddf20933eda6e", [:mix], [{:plug, "~> 1.3 or ~> 1.4 or ~> 1.5", [hex: :plug, repo: "hexpm", optional: false]}], "hexpm"},
