@@ -1,7 +1,7 @@
 use Mix.Config
 
 # Mix configs.
-target = Mix.Project.config()[:target]
+target = Mix.target()
 env = Mix.env()
 
 config :logger, [
@@ -76,11 +76,11 @@ config :nerves, :firmware,
 import_config("nerves_hub.exs")
 
 case target do
-  "host" ->
+  :host ->
     import_config("host/#{env}.exs")
 
   _ ->
-    custom_rootfs_overlay_dir = "config/target/rootfs_overlay_#{Mix.Project.config[:target]}"
+    custom_rootfs_overlay_dir = "config/target/rootfs_overlay_#{target}"
     import_config("target/#{env}.exs")
     if File.exists?("config/target/#{target}.exs"),
       do: import_config("target/#{target}.exs")

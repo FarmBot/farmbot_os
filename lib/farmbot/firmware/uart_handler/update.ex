@@ -166,7 +166,7 @@ defmodule Farmbot.Firmware.UartHandler.Update do
     end
   end
 
-  if Farmbot.Project.target() in ["rpi0", "rpi"] do
+  if Farmbot.Project.target() in [:rpi0, :rpi] do
     @reset_pin 19
     defp reset_init do
       {:ok, pid} = ElixirALE.GPIO.start_link(@reset_pin, :output)

@@ -2,11 +2,11 @@ defmodule Farmbot.Project do
   @moduledoc "Farmbot project config"
 
   @version Mix.Project.config[:version]
-  @target Mix.Project.config[:target]
   @commit Mix.Project.config[:commit]
   @branch Mix.Project.config[:branch]
   @arduino_commit Mix.Project.config[:arduino_commit]
   @env Mix.env()
+  @target Mix.target()
 
   @external_resource ".git"
 

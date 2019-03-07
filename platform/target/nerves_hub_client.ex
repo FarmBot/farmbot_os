@@ -16,8 +16,8 @@ defmodule Farmbot.System.NervesHubClient do
 
   import Farmbot.System.ConfigStorage, only: [get_config_value: 3]
 
-  def serial_number("rpi0"), do: serial_number("rpi")
-  def serial_number("rpi3"), do: serial_number("rpi")
+  def serial_number(:rpi0), do: serial_number("rpi")
+  def serial_number(:rpi3), do: serial_number("rpi")
 
   def serial_number(plat) do
     :os.cmd('/usr/bin/boardid -b uboot_env -u nerves_serial_number -b uboot_env -u serial_number -b #{plat}')

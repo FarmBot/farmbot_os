@@ -1,15 +1,15 @@
 version: 2.0
 defaults: &defaults
   docker:
-    - image: nervesproject/nerves_system_br:1.5.2
+    - image: nervesproject/nerves_system_br:1.6.8
   environment:
-    ELIXIR_VERSION: 1.7.3
+    ELIXIR_VERSION: 1.8.1
 
 install_elixir: &install_elixir
   run:
     name: Install Elixir
     command: |
-      wget https://github.com/elixir-lang/elixir/releases/download/v1.7.3/Precompiled.zip
+      wget https://github.com/elixir-lang/elixir/releases/download/v1.8.1/Precompiled.zip
       unzip -d /usr/local/elixir Precompiled.zip
       echo 'export PATH=/usr/local/elixir/bin:$PATH' >> $BASH_ENV
 
@@ -129,7 +129,7 @@ jobs:
     environment:
       MIX_ENV: test
       MIX_TARGET: host
-      ELIXIR_VERSION: 1.7.3
+      ELIXIR_VERSION: 1.8.1
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -254,7 +254,7 @@ jobs:
     <<: *defaults
     environment:
       MIX_ENV: prod
-      ELIXIR_VERSION: 1.7.3
+      ELIXIR_VERSION: 1.8.1
     steps:
       - checkout
       - run:
@@ -309,7 +309,7 @@ jobs:
     <<: *defaults
     environment:
       MIX_ENV: prod
-      ELIXIR_VERSION: 1.7.3
+      ELIXIR_VERSION: 1.8.1
     steps:
       - checkout
       - run:

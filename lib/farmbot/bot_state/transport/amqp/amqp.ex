@@ -352,7 +352,7 @@ defmodule Farmbot.BotState.Transport.AMQP do
     client_properties: [
       {"version", :longstr, Farmbot.Project.version()},
       {"commit", :longstr, Farmbot.Project.commit()},
-      {"target", :longstr, Farmbot.Project.target()},
+      {"target", :longstr, to_string(Farmbot.Project.target())},
       {"opened", :longstr, to_string(DateTime.utc_now())},
       {"product", :longstr, "farmbot_os"},
       {"bot", :longstr, bot},
