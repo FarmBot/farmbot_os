@@ -64,7 +64,7 @@ build_firmware_steps: &build_firmware_steps
         command: |
           echo $MIX_TARGET > MIX_TARGET
           echo $MIX_ENV > MIX_ENV
-          cp mix.lock.$MIX_TARGET MIX_LOCK
+          cp mix.lock MIX_LOCK
     - restore_cache:
         key: v8-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "MIX_LOCK" }}
     - restore_cache:
@@ -83,7 +83,7 @@ build_firmware_steps: &build_firmware_steps
     - run:
         name: Create artifacts
         command: |
-          cp _build/${MIX_TARGET}/${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+          cp _build/${MIX_TARGET}_${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
     - save_cache:
         key: v8-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "MIX_LOCK" }}
         paths:
@@ -104,7 +104,7 @@ deploy_nerves_hub_firmware_steps: &deploy_nerves_hub_firmware_steps
         command: |
           echo $MIX_TARGET > MIX_TARGET
           echo $MIX_ENV > MIX_ENV
-          cp mix.lock.$MIX_TARGET MIX_LOCK
+          cp mix.lock MIX_LOCK
     - restore_cache:
         key: v8-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "MIX_LOCK" }}
     - restore_cache:
@@ -145,8 +145,8 @@ jobs:
       - save_cache:
           key: v8-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
           paths:
-            - _build/host
-            - deps/host
+            - _build/host_test
+            - deps
 
 ################################################################################
 #                           target=rpi app_env=prod                            #
@@ -261,7 +261,7 @@ jobs:
           name: Setup ENV
           command: |
             echo rpi3 > MIX_TARGET_RPI3
-            cp mix.lock.rpi3 MIX_LOCK_RPI3
+            cp mix.lock MIX_LOCK_RPI3
             # echo rpi > MIX_TARGET_RPI
             # cp mix.lock.rpi MIX_LOCK_RPI
             echo $MIX_ENV > MIX_ENV
@@ -316,7 +316,7 @@ jobs:
           name: Setup ENV
           command: |
             echo rpi3 > MIX_TARGET_RPI3
-            cp mix.lock.rpi3 MIX_LOCK_RPI3
+            cp mix.lock MIX_LOCK_RPI3
             # echo rpi > MIX_TARGET_RPI
             # cp mix.lock.rpi MIX_LOCK_RPI
             echo $MIX_ENV > MIX_ENV
