@@ -1,9 +1,10 @@
-defmodule FarmbotCore.FirmwareSideEffects do
+defmodule FarmbotOS.FirmwareSideEffects do
   @moduledoc "Handles firmware data and syncing it with BotState."
   @behaviour FarmbotFirmware.SideEffects
   require Logger
   require FarmbotCore.Logger
-  alias FarmbotCore.{Asset, BotState, FirmwareEstopTimer}
+  alias FarmbotCore.{Asset, BotState}
+  alias FarmbotOS.FirmwareEstopTimer
 
   def handle_position(x: x, y: y, z: z) do
     :ok = BotState.set_position(x, y, z)
