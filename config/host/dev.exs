@@ -49,11 +49,4 @@ config :farmbot, :behaviour, [
   # firmware_handler: Farmbot.Firmware.UartHandler
 ]
 
-config :nerves_runtime,
-  enable_syslog: false,
-  target: "host",
-  kernel: [
-    autoload_modules: false
-  ]
-
 config :farmbot, :uart_handler, tty: "/dev/ttyACM0"

@@ -62,7 +62,7 @@ defmodule Farmbot.Mixfile do
   def application() do
     [
       mod: {Farmbot, []},
-      extra_applications: [:logger, :eex, :ssl, :inets, :runtime_tools],
+      extra_applications: [:logger, :eex, :ssl, :inets, :runtime_tools]
     ]
   end
 
@@ -96,9 +96,8 @@ defmodule Farmbot.Mixfile do
       {:timex, "~> 3.4"},
       {:fs, "~> 3.4"},
       {:circuits_uart, "~> 1.3"},
-      {:cowboy, "~> 2.5"},
-      {:plug, "~> 1.6"},
-      {:cors_plug, "~> 1.5"},
+      {:plug_cowboy, "~> 2.0"},
+      {:cors_plug, "~> 2.0"},
       {:amqp, "~> 1.0"},
       # AMQP hacks
       {:jsx, "~> 2.9", override: true},
@@ -133,7 +132,6 @@ defmodule Farmbot.Mixfile do
       {:dhcp_server, "~> 0.7", targets: @all_targets},
       {:circuits_gpio, "~> 0.4.0", targets: @all_targets},
       {:mdns, "~> 1.0", targets: @all_targets},
-
       {:farmbot_system_rpi3, "1.6.3-farmbot.0", runtime: false, targets: :rpi3},
       {:farmbot_system_rpi0, "1.6.3-farmbot.0", runtime: false, targets: :rpi0},
       {:farmbot_system_rpi, "1.6.3-farmbot.0", runtime: false, targets: :rpi}

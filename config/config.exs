@@ -73,8 +73,6 @@ config :nerves, :firmware,
   rootfs_overlay: [global_overlay_dir],
   provisioning: :nerves_hub
 
-import_config("nerves_hub.exs")
-
 case target do
   :host ->
     import_config("host/#{env}.exs")
