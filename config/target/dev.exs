@@ -99,3 +99,5 @@ config :shoehorn,
   init: [:nerves_runtime, :nerves_init_gadget, :nerves_firmware_ssh],
   handler: Farmbot.ShoehornHandler,
   app: :farmbot
+
+import_config("../nerves_hub.exs")
