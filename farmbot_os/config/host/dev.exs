@@ -23,14 +23,14 @@ config :farmbot_core, FarmbotCore.Asset.Repo,
 
 config :farmbot, FarmbotOS.Init.Supervisor,
   init_children: [
-    FarmbotOS.TTYDetector,
+    FarmbotOS.FirmwareTTYDetector,
     FarmbotOS.Platform.Host.Configurator
   ]
 
 config :farmbot,
   ecto_repos: [FarmbotCore.Config.Repo, FarmbotCore.Logger.Repo, FarmbotCore.Asset.Repo]
 
-config :farmbot, FarmbotOS.TTYDetector,
+config :farmbot, FarmbotOS.FirmwareTTYDetector,
   expected_names: [
     System.get_env("FARMBOT_TTY")
   ]

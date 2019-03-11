@@ -285,13 +285,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.Router do
     case conn.body_params do
       %{"firmware_hardware" => hw} when hw in ["arduino", "farmduino", "farmduino_k14"] ->
         update_config_value(:string, "settings", "firmware_hardware", hw)
-
-        if Application.get_env(:farmbot, :behaviour)[:firmware_handler] ==
-             FarmbotFirmware.UartHandler do
-          FarmbotCore.Logger.warn(1, "Updating #{hw} firmware is broke!!!!!!")
-          # /shrug?
-          # Farmbot.Firmware.UartHandler.Update.force_update_firmware(hw)
-        end
+        raise("configure firmware?")
 
         redir(conn, "/credentials")
 

@@ -30,5 +30,8 @@ config :farmbot_core, FarmbotCore.Core.CeleryScript.RunTimeWrapper,
 config :farmbot_core, FarmbotCore.EctoMigrator,
   default_firmware_io_logs: false,
   default_server: "https://my.farm.bot",
+  default_dns_name: "my.farm.bot",
+  default_ntp_server_1: "0.pool.ntp.org",
+  default_ntp_server_2: "1.pool.ntp.org",
   default_currently_on_beta:
     String.contains?(to_string(:os.cmd('git rev-parse --abbrev-ref HEAD')), "beta")

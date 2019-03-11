@@ -47,7 +47,7 @@ defmodule FarmbotOS.Init.FSCheckup do
           File.rm_rf(fw)
         end
 
-        init_logger_backend_ecto()
+        init_logger_backend_sqlite()
         :ok
 
       err ->
@@ -57,7 +57,7 @@ defmodule FarmbotOS.Init.FSCheckup do
     end
   end
 
-  defp init_logger_backend_ecto do
+  defp init_logger_backend_sqlite do
     Logger.flush()
 
     try do

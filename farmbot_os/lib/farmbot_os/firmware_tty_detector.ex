@@ -1,4 +1,4 @@
-defmodule FarmbotOS.TTYDetector do
+defmodule FarmbotOS.FirmwareTTYDetector do
   use GenServer
   require Logger
   require FarmbotCore.Logger
