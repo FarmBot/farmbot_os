@@ -38,8 +38,8 @@ defmodule Farmbot.Target.PinBinding.AleHandler do
     with {:ok, out_gpio} <- GPIO.open(num, :output),
          :ok <- GPIO.write(out_gpio, 0),
          :ok <- GPIO.close(out_gpio),
-         {:ok, gpio} <- GPIO.start_link(num, :input),
-         :ok <- GPIO.set_int(gpio, :both),
+         {:ok, gpio} <- GPIO.open(num, :input),
+         :ok <- GPIO.set_interrupts(gpio, :both),
          new_pins <-
            Map.put(state.pins, num, %PinState{pin: num, gpio: gpio, state: nil, signal: :rising}) do
       {:reply, :ok, %{state | pins: new_pins}}
