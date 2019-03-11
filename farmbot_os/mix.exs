@@ -48,6 +48,7 @@ defmodule FarmbotOS.MixProject do
       # Farmbot stuff
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
       {:farmbot_ext, path: "../farmbot_ext", env: Mix.env()},
+      {:farmbot_firmware, path: "../farmbot_firmware", env: Mix.env()},
 
       # Nerves stuff.
       {:nerves, "~> 1.3", runtime: false},

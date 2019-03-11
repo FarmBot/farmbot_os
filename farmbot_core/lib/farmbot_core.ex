@@ -1,7 +1,12 @@
 defmodule FarmbotCore do
   @moduledoc """
   Core Farmbot Services.
-  This includes Logging, Configuration, Asset management and Firmware.
+  This includes 
+    * Core global state management
+    * Data storage management
+    * Firmware management
+    * RPC and IPC management
+
   """
   use Application
 
@@ -12,15 +17,10 @@ defmodule FarmbotCore do
 
     children = [
       FarmbotCore.EctoMigrator,
-      # TODO(Connor) - Put these in their own supervisor
-      FarmbotCore.BotState,
-      FarmbotCore.BotState.FileSystem,
-      FarmbotCore.Logger.Supervisor,
-      FarmbotCore.Config.Supervisor,
-      FarmbotCore.Asset.Supervisor,
-      FarmbotCore.FirmwareSupervisor,
-      FarmbotCeleryScript.Scheduler,
+      FarmbotCore.BotState.Supervisor,
+      FarmbotCore.StorageSupervisor,
+      FarmbotCeleryScript.Scheduler
     ]
-    Supervisor.init(children, [strategy: :one_for_all])
+    Supervisor.init(children, [strategy: :one_for_one])
   end
 end
