@@ -1,4 +1,4 @@
-defmodule FarmbotExt.Bootstrap.APITask do
+defmodule FarmbotExt.API.Preloader do
   @moduledoc """
   Task to ensure Farmbot has synced:
     * FarmbotCore.Asset.Device
@@ -17,18 +17,12 @@ defmodule FarmbotExt.Bootstrap.APITask do
     Asset.Sync
   }
 
-  def child_spec(_) do
-    %{
-      id: __MODULE__,
-      start: {__MODULE__, :sync_all, []},
-      type: :worker,
-      restart: :transient,
-      shutdown: 500
-    }
-  end
-
-  @doc false
-  def sync_all() do
+  @doc """
+  Syncronous call to sync or preload assets.
+  Starts with `group_0` to check if `auto_sync` is enabled. If it is, 
+  actually sync all resources. If it is not, preload all resources.
+  """
+  def preload_all() do
     sync_changeset = API.get_changeset(Sync)
     sync = Changeset.apply_changes(sync_changeset)
 
@@ -45,8 +39,6 @@ defmodule FarmbotExt.Bootstrap.APITask do
 
       :ok = maybe_auto_sync(sync_changeset, auto_sync_change || Asset.fbos_config().auto_sync)
     end
-
-    :ignore
   end
 
   # When auto_sync is enabled, do the full sync.

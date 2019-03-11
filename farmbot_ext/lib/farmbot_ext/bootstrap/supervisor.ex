@@ -10,7 +10,6 @@ defmodule FarmbotExt.Bootstrap.Supervisor do
     children = [
       FarmbotExt.API.EagerLoader.Supervisor,
       FarmbotExt.API.DirtyWorker.Supervisor,
-      FarmbotExt.Bootstrap.APITask,
       FarmbotExt.AMQP.Supervisor,
       FarmbotExt.API.ImageUploader
     ]

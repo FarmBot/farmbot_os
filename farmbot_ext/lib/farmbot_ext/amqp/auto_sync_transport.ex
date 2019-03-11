@@ -8,7 +8,7 @@ defmodule FarmbotExt.AMQP.AutoSyncTransport do
   }
 
   alias FarmbotExt.AMQP.ConnectionWorker
-  alias FarmbotExt.API.EagerLoader
+  alias FarmbotExt.API.{Preloader, EagerLoader}
 
   require Logger
   require FarmbotCore.Logger
@@ -23,8 +23,23 @@ defmodule FarmbotExt.AMQP.AutoSyncTransport do
   }
 
   @exchange "amq.topic"
+  @known_kinds ~w(
+    Device
+    FarmEvent
+    FarmwareEnv
+    FarmwareInstallation
+    FbosConfig
+    FirmwareConfig
+    Peripheral
+    PinBinding
+    Point
+    Regimen
+    Sensor
+    Sequence
+    Tool
+  )
 
-  defstruct [:conn, :chan, :jwt]
+  defstruct [:conn, :chan, :jwt, :preloaded]
   alias __MODULE__, as: State
 
   @doc false
@@ -35,7 +50,7 @@ defmodule FarmbotExt.AMQP.AutoSyncTransport do
   def init(args) do
     Process.flag(:sensitive, true)
     jwt = Keyword.fetch!(args, :jwt)
-    {:ok, %State{conn: nil, chan: nil, jwt: jwt}, 1000}
+    {:ok, %State{conn: nil, chan: nil, jwt: jwt, preloaded: false}, 1000}
   end
 
   def terminate(reason, state) do
@@ -44,7 +59,12 @@ defmodule FarmbotExt.AMQP.AutoSyncTransport do
     if state.chan, do: AMQP.Channel.close(state.chan)
   end
 
-  def handle_info(:timeout, state) do
+  def handle_info(:timeout, %{preloaded: false} = state) do
+    :ok = Preloader.preload_all()
+    {:noreply, %{state | preloaded: true}, 0}
+  end
+
+  def handle_info(:timeout, %{preloaded: true} = state) do
     jwt = state.jwt
     bot = jwt.bot
     auto_sync = bot <> "_auto_sync"
@@ -85,15 +105,21 @@ defmodule FarmbotExt.AMQP.AutoSyncTransport do
 
   def handle_info({:basic_deliver, payload, %{routing_key: key}}, state) do
     device = state.jwt.bot
+    data = JSON.decode!(payload)
+    label = data["args"]["label"]
 
     case String.split(key, ".") do
-      ["bot", ^device, "sync", asset_kind, id_str] ->
+      ["bot", ^device, "sync", asset_kind, id_str] when asset_kind in @known_kinds ->
         asset_kind = Module.concat([Farmbot, Asset, asset_kind])
-        data = JSON.decode!(payload)
         id = data["id"] || String.to_integer(id_str)
         params = data["body"]
-        label = data["args"]["label"]
-        handle_asset(asset_kind, label, id, params, state)
+        :ok = handle_asset(asset_kind, label, id, params, state)
+
+      _ ->
+        Logger.info("ignoring router: #{key}")
+        json = JSON.encode!(%{args: %{label: label}, kind: "rpc_ok"})
+        :ok = Basic.publish(state.chan, @exchange, "bot.#{device}.from_device", json)
+        {:noreply, state}
     end
   end
 
@@ -128,27 +154,23 @@ defmodule FarmbotExt.AMQP.AutoSyncTransport do
         :ok
 
       auto_sync? ->
-        if Code.ensure_loaded?(asset_kind) do
-          case Repo.get_by(asset_kind, id: id) do
-            nil ->
-              struct(asset_kind)
-              |> asset_kind.changeset(params)
-              |> Repo.insert!()
+        case Repo.get_by(asset_kind, id: id) do
+          nil ->
+            struct(asset_kind)
+            |> asset_kind.changeset(params)
+            |> Repo.insert!()
 
-            asset ->
-              asset_kind.changeset(asset, params)
-              |> Repo.update!()
-          end
+          asset ->
+            asset_kind.changeset(asset, params)
+            |> Repo.update!()
         end
+
+        :ok
 
       true ->
-        if Code.ensure_loaded?(asset_kind) do
-          asset = Repo.get_by(asset_kind, id: id) || struct(asset_kind)
-          changeset = asset_kind.changeset(asset, params)
-          :ok = EagerLoader.cache(changeset)
-        else
-          :ok
-        end
+        asset = Repo.get_by(asset_kind, id: id) || struct(asset_kind)
+        changeset = asset_kind.changeset(asset, params)
+        :ok = EagerLoader.cache(changeset)
     end
 
     device = state.jwt.bot
