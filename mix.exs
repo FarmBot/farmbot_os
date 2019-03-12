@@ -34,7 +34,7 @@ defmodule Farmbot.Mixfile do
       branch: branch(),
       arduino_commit: arduino_commit(),
       archives: [nerves_bootstrap: "~> 1.2"],
-      build_embedded: true,
+      build_embedded: false,
       start_permanent: Mix.env() == :prod,
       config_path: "config/config.exs",
       elixirc_paths: elixirc_paths(Mix.env(), Mix.target()),

@@ -66,9 +66,9 @@ build_firmware_steps: &build_firmware_steps
           echo $MIX_ENV > MIX_ENV
           cp mix.lock MIX_LOCK
     - restore_cache:
-        key: v8-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "MIX_LOCK" }}
+        key: v9-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "MIX_LOCK" }}
     - restore_cache:
-        key: v8-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+        key: v9-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
     - <<: *install_elixir
     - <<: *install_hex_archives
     - run:
@@ -85,7 +85,7 @@ build_firmware_steps: &build_firmware_steps
         command: |
           cp _build/${MIX_TARGET}_${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
     - save_cache:
-        key: v8-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "MIX_LOCK" }}
+        key: v9-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "MIX_LOCK" }}
         paths:
           - _build/
           - deps/
@@ -106,7 +106,7 @@ deploy_nerves_hub_firmware_steps: &deploy_nerves_hub_firmware_steps
           echo $MIX_ENV > MIX_ENV
           cp mix.lock MIX_LOCK
     - restore_cache:
-        key: v8-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "MIX_LOCK" }}
+        key: v9-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "MIX_LOCK" }}
     - restore_cache:
         key: nerves/deploy/system-{{ checksum "MIX_TARGET" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
     - <<: *install_elixir
@@ -134,7 +134,7 @@ jobs:
       - checkout
       - run: git submodule update --init --recursive
       - restore_cache:
-          key: v8-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+          key: v9-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
@@ -143,7 +143,7 @@ jobs:
             mix deps.get
             mix compile
       - save_cache:
-          key: v8-fbos-host-test-dependency-cache-{{ checksum "mix.lock.host" }}
+          key: v9-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
           paths:
             - _build/host_test
             - deps
@@ -267,8 +267,8 @@ jobs:
             echo $MIX_ENV > MIX_ENV
       - restore_cache:
           key: nerves/deploy/system-{{ checksum "MIX_TARGET_RPI3" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - restore_cache:
-          key: nerves/deploy/system-{{ checksum "MIX_TARGET_RPI" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+      # - restore_cache:
+      #     key: nerves/deploy/system-{{ checksum "MIX_TARGET_RPI" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - <<: *install_ghr
@@ -285,6 +285,7 @@ jobs:
             mv /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw /tmp/farmbot-rpi3-$(cat VERSION).fw
             fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-rpi3-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION)-beta.fw
             fwup -a -t complete -i /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION)-beta.fw -d /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION)-beta.img
+            sha256sum /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION)-beta.img > /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION)-beta.sha256
       # - run:
       #     name: Sign rpi Firmware
       #     command: |
@@ -339,6 +340,8 @@ jobs:
             mv /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw /tmp/farmbot-rpi3-$(cat VERSION).fw
             fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-rpi3-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw
             fwup -a -t complete -i /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw -d /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).img
+            sha256sum /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).img > /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).sha256
+
       # - run:
       #     name: Sign rpi Firmware and create image
       #     command: |
