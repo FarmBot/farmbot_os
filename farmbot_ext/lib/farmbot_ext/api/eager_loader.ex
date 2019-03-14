@@ -52,6 +52,7 @@ defmodule FarmbotExt.API.EagerLoader do
     * a remote `id` field.
   """
   def cache(%Changeset{data: %module{}} = changeset) do
+    Logger.info("Caching #{inspect(changeset)}")
     id = Changeset.get_field(changeset, :id)
     updated_at = Changeset.get_field(changeset, :updated_at)
     id || change_error(changeset, "Can't cache a changeset with no :id attribute")
