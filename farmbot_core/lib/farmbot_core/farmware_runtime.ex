@@ -4,7 +4,7 @@ defmodule FarmbotCore.FarmwareRuntime do
   """
 
   alias FarmbotCeleryScript.AST
-  alias FarmbotCore.{FarmwareRuntime, FarmwareRuntime.PipeWorker}
+  alias FarmbotCore.FarmwareRuntime.PipeWorker
   alias FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmwareInstallation
   alias FarmbotCore.Asset.FarmwareInstallation.Manifest
   alias FarmbotCore.BotState.FileSystem
@@ -54,31 +54,6 @@ defmodule FarmbotCore.FarmwareRuntime do
           rpc: map(),
           context: :get_header | :get_payload | :process_payload | :send_response
         }
-
-  def stub(farmware_name) do
-    manifest = Asset.get_farmware_manifest(farmware_name) || raise("not found")
-    {:ok, pid} = FarmwareRuntime.start_link(manifest)
-    Process.flag(:trap_exit, true)
-    stub_loop(pid)
-  end
-
-  def stub_loop(pid) do
-    receive do
-      {:EXIT, ^pid, reason} -> reason
-    after
-      100 ->
-        case FarmwareRuntime.process_rpc(pid) do
-          {:ok, %{args: %{label: label}} = rpc} ->
-            IO.puts("Stup processing #{inspect(rpc)}")
-            response = %AST{kind: :rpc_ok, args: %{label: label}, body: []}
-            true = FarmwareRuntime.rpc_processed(pid, response)
-            stub_loop(pid)
-
-          {:error, :no_rpc} ->
-            stub_loop(pid)
-        end
-    end
-  end
 
   @doc """
   Calls the Farmware Runtime asking for any RPCs that need to be
@@ -150,7 +125,8 @@ defmodule FarmbotCore.FarmwareRuntime do
       response_pipe_handle: resp
     }
 
-    {:ok, state, 0}
+    send self(), :timeout
+    {:ok, state}
   end
 
   def terminate(_reason, state) do
@@ -186,7 +162,8 @@ defmodule FarmbotCore.FarmwareRuntime do
     reply = PipeWorker.write(state.response_pipe_handle, ipc)
     # Make sure to `timeout` after this one to go back to the
     # get_header context. This will cause another rpc to be processed.
-    {:reply, reply, %{state | rpc: nil, context: :get_header}, 0}
+    send self(), :timeout
+    {:reply, reply, %{state | rpc: nil, context: :get_header}}
   end
 
   # get_request does two reads. One to get the header,
@@ -264,7 +241,6 @@ defmodule FarmbotCore.FarmwareRuntime do
   def handle_packet(packet, state) do
     with {:ok, data} <- JSON.decode(packet),
          {:ok, rpc} <- decode_ast(data) do
-      IO.inspect(rpc, label: "processing RPC")
       {:noreply, %{state | rpc: rpc, context: :process_request}, @error_timeout_ms}
     else
       error -> {:stop, error, state}
@@ -316,9 +292,6 @@ defmodule FarmbotCore.FarmwareRuntime do
     header =
       <<@packet_header_token::size(16)>> <>
         :binary.copy(<<0x00>>, 4) <> <<byte_size(payload)::big-size(32)>>
-
-    IO.puts("header size: #{byte_size(header)}")
-    IO.inspect(header, label: "Header", base: :hex)
     header <> payload
   end
 end
