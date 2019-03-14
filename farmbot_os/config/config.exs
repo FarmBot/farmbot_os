@@ -23,7 +23,7 @@ config :nerves, :firmware,
   rootfs_overlay: "rootfs_overlay",
   provisioning: :nerves_hub
 
-config :farmbot_core, FarmbotCore.AssetMonitor, checkup_time_ms: 30_000
+config :farmbot_core, FarmbotCore.AssetMonitor, checkup_time_ms: 5_000
 
 config :farmbot_core, FarmbotCore.EctoMigrator,
   default_firmware_io_logs: false,

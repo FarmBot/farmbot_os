@@ -106,7 +106,8 @@ defmodule FarmbotOS.SysCalls do
 
     :ok = BotState.set_sync_status("syncing")
 
-    with {:ok, multi} <- Reconciler.sync_group(multi, sync, SyncGroup.group_1()),
+    with {:ok, multi} <- Reconciler.sync_group(multi, sync, SyncGroup.group_0()),
+         {:ok, multi} <- Reconciler.sync_group(multi, sync, SyncGroup.group_1()),
          {:ok, multi} <- Reconciler.sync_group(multi, sync, SyncGroup.group_2()),
          {:ok, multi} <- Reconciler.sync_group(multi, sync, SyncGroup.group_3()),
          {:ok, multi} <- Reconciler.sync_group(multi, sync, SyncGroup.group_4()) do
