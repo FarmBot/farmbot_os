@@ -97,12 +97,12 @@ defmodule FarmbotCore.FarmwareRuntime do
   end
 
   @doc "Start a Farmware"
-  def start_link(%Manifest{} = manifest) do
+  def start_link(%Manifest{} = manifest, env \\ %{}) do
     package = manifest.package
-    GenServer.start_link(__MODULE__, [manifest], name: String.to_atom(package))
+    GenServer.start_link(__MODULE__, [manifest, env], name: String.to_atom(package))
   end
 
-  def init([manifest]) do
+  def init([manifest, env]) do
     package = manifest.package
 
     request_pipe =
@@ -117,7 +117,7 @@ defmodule FarmbotCore.FarmwareRuntime do
         package <> "-" <> Ecto.UUID.generate() <> "-farmware-response-pipe"
       ])
 
-    env = build_env(manifest, request_pipe, response_pipe)
+    env = build_env(manifest, env, request_pipe, response_pipe)
 
     # Create pipe dir if it doesn't exist
     _ = File.mkdir_p(@runtime_dir)
@@ -286,7 +286,9 @@ defmodule FarmbotCore.FarmwareRuntime do
     end
   end
 
-  defp build_env(manifest, request_pipe, response_pipe) do
+  # RPC ENV is passed in to `start_link` and overwrites everything
+  # except the `base` data.
+  defp build_env(manifest, rpc_env, request_pipe, response_pipe) do
     token = get_config_value(:string, "authorization", "token")
     images_dir = "/tmp/images"
     installation_path = install_dir(manifest)
@@ -304,6 +306,7 @@ defmodule FarmbotCore.FarmwareRuntime do
 
     Asset.list_farmware_env()
     |> Map.new(fn %{key: key, value: val} -> {key, val} end)
+    |> Map.merge(rpc_env)
     |> Map.merge(base)
   end
 
