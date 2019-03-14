@@ -20,6 +20,15 @@ defmodule FarmbotCore.BotStateNG.ChangeGenerator do
     |> changes(path, acc)
   end
 
+  # :( Please FIXME
+  def changes([{:farmwares, farmwares} | rest], path, acc) do
+    acc = Enum.reduce(farmwares, acc, fn
+      {farmware_name, manifest}, acc ->
+        [{add_paths(path, "process_info.farmwares.#{farmware_name}"), manifest} | acc]
+    end)
+    changes(rest, path, acc)
+  end
+
   def changes([{key, change} | rest], path, acc) do
     cond do
       is_number(change) ->
