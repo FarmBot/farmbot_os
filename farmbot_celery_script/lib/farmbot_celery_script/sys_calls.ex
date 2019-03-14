@@ -57,7 +57,7 @@ defmodule FarmbotCeleryScript.SysCalls do
 
   @callback read_status() :: map()
 
-  @callback set_user_env() :: :ok | error
+  @callback set_user_env(String.t(), String.t()) :: :ok | error
 
   @callback sync() :: :ok | error
 
