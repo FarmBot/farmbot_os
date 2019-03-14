@@ -7,6 +7,7 @@ defmodule FarmbotExt.AMQP.AutoSyncTransport do
     Queue
   }
 
+  alias FarmbotCore.BotState
   alias FarmbotExt.AMQP.ConnectionWorker
   alias FarmbotExt.API.{Preloader, EagerLoader}
 
@@ -19,6 +20,8 @@ defmodule FarmbotExt.AMQP.AutoSyncTransport do
     Asset.Device,
     Asset.FbosConfig,
     Asset.FirmwareConfig,
+    Asset.FarmwareEnv,
+    Asset.FarmwareInstallation,
     JSON
   }
 
@@ -110,10 +113,10 @@ defmodule FarmbotExt.AMQP.AutoSyncTransport do
 
     case String.split(key, ".") do
       ["bot", ^device, "sync", asset_kind, id_str] when asset_kind in @known_kinds ->
-        asset_kind = Module.concat([Farmbot, Asset, asset_kind])
+        asset_kind = Module.concat([Asset, asset_kind])
         id = data["id"] || String.to_integer(id_str)
         params = data["body"]
-        :ok = handle_asset(asset_kind, label, id, params, state)
+        handle_asset(asset_kind, label, id, params, state)
 
       _ ->
         Logger.info("ignoring router: #{key}")
@@ -143,10 +146,15 @@ defmodule FarmbotExt.AMQP.AutoSyncTransport do
         |> FbosConfig.changeset(params)
         |> Repo.update!()
 
-        :ok
-
       asset_kind == FirmwareConfig ->
         raise("FIXME")
+
+      # TODO(Connor) make this use `sync_group0()`
+      asset_kind in [FarmwareEnv, FarmwareInstallation] ->
+        asset = Repo.get_by(asset_kind, id: id) || struct(asset_kind)
+        changeset = asset_kind.changeset(asset, params)
+        Repo.insert_or_update!(changeset)
+        :ok
 
       is_nil(params) && auto_sync? ->
         old = Repo.get_by(asset_kind, id: id)
@@ -171,6 +179,7 @@ defmodule FarmbotExt.AMQP.AutoSyncTransport do
         asset = Repo.get_by(asset_kind, id: id) || struct(asset_kind)
         changeset = asset_kind.changeset(asset, params)
         :ok = EagerLoader.cache(changeset)
+        :ok = BotState.set_sync_status("sync_now")
     end
 
     device = state.jwt.bot

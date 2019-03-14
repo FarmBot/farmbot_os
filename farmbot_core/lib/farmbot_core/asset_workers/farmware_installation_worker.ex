@@ -2,8 +2,9 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
   use GenServer
   require FarmbotCore.Logger
 
-  alias FarmbotCore.{Asset.Repo, JSON}
+  alias FarmbotCore.{Asset.Repo, BotState, JSON}
   alias FarmbotCore.Asset.FarmwareInstallation, as: FWI
+  alias FarmbotCore.Asset.FarmwareInstallation.Manifest
 
   config = Application.get_env(:farmbot_core, __MODULE__)
   @install_dir config[:install_dir] || Mix.raise("Missing Install Dir")
@@ -30,7 +31,9 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
          :ok <- install_zip(updated, zip_binary),
          :ok <- install_farmware_tools(updated),
          :ok <- write_manifest(updated) do
+      FarmbotCore.Logger.success(1, "Installed Farmware #{updated.manifest.package} from #{fwi.url}")
       # TODO(Connor) -> No reason to keep this process alive?
+      BotState.report_farmware_installed(updated.manifest.package, Manifest.view(updated.manifest))
       {:noreply, fwi}
     else
       error ->
@@ -147,7 +150,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
   end
 
   defp write_manifest(%FWI{manifest: manifest} = fwi) do
-    json = FWI.Manifest.view(manifest) |> JSON.encode!()
+    json = Manifest.view(manifest) |> JSON.encode!()
 
     fwi
     |> install_dir()
@@ -220,7 +223,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
     install_dir(fwi.manifest)
   end
 
-  def install_dir(%FWI.Manifest{package: package}) do
+  def install_dir(%Manifest{package: package}) do
     dir = Path.join(@install_dir, package)
     File.mkdir_p!(dir)
     dir

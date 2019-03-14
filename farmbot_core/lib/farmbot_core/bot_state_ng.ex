@@ -4,7 +4,6 @@ defmodule FarmbotCore.BotStateNG do
     BotStateNG.McuParams,
     BotStateNG.LocationData,
     BotStateNG.InformationalSettings,
-    BotStateNG.ProcessInfo,
     BotStateNG.Configuration
   }
 
@@ -17,9 +16,9 @@ defmodule FarmbotCore.BotStateNG do
     embeds_one(:mcu_params, McuParams, on_replace: :update)
     embeds_one(:location_data, LocationData, on_replace: :update)
     embeds_one(:informational_settings, InformationalSettings, on_replace: :update)
-    embeds_one(:process_info, ProcessInfo, on_replace: :update)
     embeds_one(:configuration, Configuration, on_replace: :update)
     field(:user_env, {:map, {:string, :any}}, default: %{})
+    field(:farmwares, {:map, {:string, :map}}, default: %{})
     field(:pins, {:map, {:integer, :map}}, default: %{})
     field(:jobs, {:map, {:string, :map}}, default: %{})
   end
@@ -30,18 +29,16 @@ defmodule FarmbotCore.BotStateNG do
     |> put_embed(:mcu_params, McuParams.new())
     |> put_embed(:location_data, LocationData.new())
     |> put_embed(:informational_settings, InformationalSettings.new())
-    |> put_embed(:process_info, ProcessInfo.new())
     |> put_embed(:configuration, Configuration.new())
     |> apply_changes()
   end
 
   def changeset(bot_state, params \\ %{}) do
     bot_state
-    |> cast(params, [:user_env, :pins, :jobs])
+    |> cast(params, [:user_env, :pins, :jobs, :farmwares])
     |> cast_embed(:mcu_params, [])
     |> cast_embed(:location_data, [])
     |> cast_embed(:informational_settings, [])
-    |> cast_embed(:process_info, [])
     |> cast_embed(:configuration, [])
   end
 
@@ -50,7 +47,7 @@ defmodule FarmbotCore.BotStateNG do
       mcu_params: McuParams.view(bot_state.mcu_params),
       location_data: LocationData.view(bot_state.location_data),
       informational_settings: InformationalSettings.view(bot_state.informational_settings),
-      process_info: ProcessInfo.view(bot_state.process_info),
+      process_info: %{farmwares: bot_state.farmwares},
       configuration: Configuration.view(bot_state.configuration),
       user_env: bot_state.user_env,
       pins: bot_state.pins,
@@ -68,6 +65,18 @@ defmodule FarmbotCore.BotStateNG do
       |> Map.put(number, %{mode: mode, value: value})
 
     put_change(cs, :pins, new_pins)
+  end
+
+  # :( Please FIXME
+  @doc "Add or update a farmware to state.farmwares"
+  def add_or_update_farmware(state, name, %{} = manifest) do
+    cs = changeset(state, %{})
+
+    new_farmwares =
+      cs
+      |> get_field(:farmwares)
+      |> Map.put(name, manifest)
+    put_change(cs, :farmwares, new_farmwares)
   end
 
   def set_user_env(state, key, value) do

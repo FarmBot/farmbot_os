@@ -9,7 +9,8 @@ defmodule FarmbotOS do
     children = [
       {FarmbotOS.Init.Supervisor, []},
       {FarmbotOS.Platform.Supervisor, []},
-      {FarmbotOS.EasterEggs, []}
+      {FarmbotOS.EasterEggs, []},
+      {FarmbotFirmware, transport: FarmbotFirmware.StubTransport}
     ]
 
     opts = [strategy: :one_for_one, name: __MODULE__]

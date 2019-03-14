@@ -70,7 +70,7 @@ defmodule FarmbotCore.BotState do
 
   @doc "Sets informational_settings.status"
   def set_sync_status(bot_state_server \\ __MODULE__, s)
-      when s in ["syncing", "synced", "error"] do
+      when s in ["sync_now", "syncing", "synced", "error"] do
     GenServer.call(bot_state_server, {:set_sync_status, s})
   end
 
@@ -109,6 +109,10 @@ defmodule FarmbotCore.BotState do
 
   def report_wifi_level(bot_state_server \\ __MODULE__, level) do
     GenServer.call(bot_state_server, {:report_wifi_level, level})
+  end
+
+  def report_farmware_installed(bot_state_server \\ __MODULE__, name, %{} = manifest) do
+    GenServer.call(bot_state_server, {:report_farmware_installed, name, manifest})
   end
 
   @doc "Put FBOS into maintenance mode."
@@ -316,6 +320,14 @@ defmodule FarmbotCore.BotState do
     {reply, state} =
       BotStateNG.changeset(state.tree, change)
       |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:report_farmware_installed, name, manifest}, _from, state) do
+    {reply, state} =
+      BotStateNG.add_or_update_farmware(state.tree, name, manifest)
+        |> dispatch_and_apply(state)
 
     {:reply, reply, state}
   end

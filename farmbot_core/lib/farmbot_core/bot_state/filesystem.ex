@@ -81,6 +81,8 @@ defmodule FarmbotCore.BotState.FileSystem do
   def serialize_state(%{} = bot_state, prefix, acc) do
     Enum.reduce(bot_state, acc, fn {key, value}, acc ->
       cond do
+        # :( Please FIXME
+        key == :farmwares -> acc
         is_map(value) && map_size(value) == 0 -> [Path.join(prefix, to_string(key)) | acc]
         is_list(value) -> raise("Arrays can not be serialized to filesystem nodes")
         is_map(value) -> serialize_state(value, Path.join(prefix, to_string(key)), acc)

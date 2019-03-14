@@ -41,9 +41,9 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     current_hardware = get_config_value(:string, "settings", "firmware_hardware")
 
     if current_hardware != target_hardware do
-      raise("firmware hardware change")
+      # raise("firmware hardware change")
       Logger.debug("Updating firmware_hardware from #{current_hardware} to #{target_hardware}")
-      update_config_value(:string, "settings", "firmware_hardware", target_hardware)
+      # update_config_value(:string, "settings", "firmware_hardware", target_hardware)
     end
   end
 end
