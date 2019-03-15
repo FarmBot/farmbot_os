@@ -71,11 +71,15 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
       # Installed is newer than remote.
       :gt ->
         success_log(updated, "up to date.")
+        BotState.report_farmware_installed(updated.manifest.package, Manifest.view(updated.manifest))
+
         {:noreply, updated}
 
       # No difference between installed and remote.
       :eq ->
         success_log(updated, "up to date.")
+        BotState.report_farmware_installed(updated.manifest.package, Manifest.view(updated.manifest))
+
         {:noreply, updated}
 
       # Installed version is older than remote
@@ -86,6 +90,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
              :ok <- install_zip(updated, zip_binary),
              :ok <- install_farmware_tools(updated),
              :ok <- write_manifest(updated) do
+          BotState.report_farmware_installed(updated.manifest.package, Manifest.view(updated.manifest))
           {:noreply, updated}
         else
           er ->
