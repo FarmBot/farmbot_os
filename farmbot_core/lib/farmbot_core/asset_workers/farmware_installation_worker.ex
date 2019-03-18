@@ -42,6 +42,15 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
     end
   end
 
+  # Updating a Farmware is a contentious issue.
+  # Examples:
+  #   * update farmbot os, a previously installed farmware may be incompatible
+  #   * update farmbot os, a previously installed farmware may be using backwards
+  #     incompatible APIS in farmware tools (because farmware tools wasn't updated)
+  #   * update farmware, it uses a more recent version of farmware tools that has a
+  #     yet to be implemented APIs (due to out of date farmbot os)
+  #   * update farmware tools, it uses an API that doesn't exist yet (due to
+  #     not updating farmbot os)
   def handle_info(:timeout, %FWI{} = fwi) do
     with {:ok, %{} = i_manifest} <- load_manifest_json(fwi),
          %{valid?: true} = d_changeset <- FWI.changeset(fwi, %{manifest: i_manifest}),
