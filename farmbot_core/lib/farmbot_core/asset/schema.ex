@@ -22,7 +22,7 @@ defmodule FarmbotCore.Asset.Schema do
   end
 
   @doc "API path for HTTP requests."
-  @callback path() :: Path.t()
+  @callback path() :: Path.t() | false
 
   @doc "Apply params to a changeset or object."
   @callback changeset(map, map) :: Ecto.Changeset.t()

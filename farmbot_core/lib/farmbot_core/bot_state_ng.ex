@@ -7,6 +7,8 @@ defmodule FarmbotCore.BotStateNG do
     BotStateNG.Configuration
   }
 
+  alias FarmbotCore.Asset.Private.Enigma
+
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -103,19 +105,20 @@ defmodule FarmbotCore.BotStateNG do
     put_change(cs, :jobs, new_jobs)
   end
 
-  def set_enigma(state, %{uuid: uuid} = enigma) do
+  @doc "Adds an enigma object to state.enigmas"
+  def add_enigma(state, %Enigma{local_id: uuid} = enigma) do
     cs = changeset(state, %{})
 
     new_enigmas =
       cs
       |> get_field(:enigmas)
-      |> Map.put(uuid, enigma)
+      |> Map.put(uuid, Enigma.render(enigma))
 
     put_change(cs, :enigmas, new_enigmas)
   end
 
   @doc "clears an enigma object on state.enigmas"
-  def clear_enigma(state, %{uuid: uuid}) do
+  def clear_enigma(state, %Enigma{local_id: uuid}) do
     cs = changeset(state, %{})
 
     new_enigmas =

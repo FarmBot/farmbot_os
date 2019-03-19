@@ -5,25 +5,29 @@ defmodule FarmbotCore.Asset.Private.Enigma do
   forms in two different systems (eg: API vs. Bot)
   and requires human intervention to rectify.
   """
-  alias FarmbotCore.Asset.Private.Enigma
-  use Ecto.Schema
-
-  @behaviour FarmbotCore.Asset.View
-  @primary_key {:uuid, :binary_id, autogenerate: true}
+  use FarmbotCore.Asset.Schema, path: false
 
   schema "enigmas" do
     field(:priority, :integer)
     field(:problem_tag, :string)
-    field(:created_at,  :utc_datetime)
+    timestamps()
   end
 
-  @doc false
-  def render(%Enigma{} = data) do
+  def changeset(enigma, params) do
+    enigma
+    |> cast(params, [:priority, :problem_tag])
+    |> validate_required([:priority, :problem_tag])
+  end
+
+  # This is the public schems.
+  # Enigmas are not stored like this internally.
+  # Most notibly uuid != local_id
+  view enigma do
     %{
-      uuid: data.uuid,
-      priority: data.priority,
-      problem_tag: data.problem_tag,
-      created_at: DateTime.to_unix(data.utc_datetime)
+      uuid: enigma.local_id,
+      priority: enigma.priority,
+      problem_tag: enigma.problem_tag,
+      created_at: DateTime.to_unix(enigma.created_at)
     }
   end
 end
