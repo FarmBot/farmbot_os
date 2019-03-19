@@ -1,4 +1,9 @@
 defmodule FarmbotCore.AssetMonitor do
+  @moduledoc """
+  Handles starting a process for every Asset in the repo requiring an
+  AssetWorker implementation.
+  """
+
   use GenServer
   import FarmbotCore.TimeUtils, only: [compare_datetimes: 2]
 

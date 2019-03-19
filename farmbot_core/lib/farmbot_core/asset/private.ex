@@ -1,8 +1,22 @@
 defmodule FarmbotCore.Asset.Private do
-  alias FarmbotCore.{Asset.Repo, Asset.Private.LocalMeta}
+  @moduledoc """
+  Private Assets are those that are internal to Farmbot that _are not_ stored in
+  the API, but _are_ stored in Farmbot's database.
+  """
+
+  alias FarmbotCore.{Asset.Repo,
+    Asset.Private.LocalMeta,
+    Asset.Private.Enigma
+  }
 
   import Ecto.Query, warn: false
   import Ecto.Changeset, warn: false
+
+  @doc "Creates a new Enigma."
+  def new_enigma(params) do
+    Enigma.changeset(%Enigma{}, params)
+    |> Repo.insert()
+  end
 
   @doc "Lists `module` objects that still need to be POSTed to the API."
   def list_local(module) do

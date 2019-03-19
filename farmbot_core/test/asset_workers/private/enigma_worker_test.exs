@@ -7,8 +7,9 @@ defmodule FarmbotCore.Private.EnigmaWorkerTest do
     uuid = Ecto.UUID.generate()
 
     enigma = %Enigma{
-      uuid: uuid,
-      priority: 100
+      local_id: uuid,
+      priority: 100,
+      created_at: DateTime.utc_now()
     }
 
     bot_state = BotState.subscribe()
