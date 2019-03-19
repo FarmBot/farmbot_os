@@ -25,7 +25,6 @@ defmodule FarmbotCore do
       #   * Raise enigma as needed
       #   * Needs to be dynamically started/supervised
       {FarmbotFirmware, transport: FarmbotFirmware.StubTransport},
-      FarmbotCore.EnigmaHandler,
       FarmbotCeleryScript.Scheduler
     ]
     Supervisor.init(children, [strategy: :one_for_one])
