@@ -26,13 +26,10 @@ defmodule FarmbotCore.FbosConfigWorkerTest do
     {:ok, pid} = AssetWorker.start_link(conf)
     send(pid, :timeout)
 
-    # Wait for the timeout to be dispatched
-    Process.sleep(350)
+    state = BotState.subscribe()
 
-    state_conf = BotState.fetch().configuration
-    # TODO: TTY Detector puts this to nil on every boot?
-    #  Why is this broke??? - RC 19 MAR 19
-    # assert state_conf.arduino_debug_messages == conf.arduino_debug_messages
+    state_conf = receive_changes(state).configuration
+    assert state_conf.arduino_debug_messages == conf.arduino_debug_messages
     assert state_conf.auto_sync == conf.auto_sync
     assert state_conf.beta_opt_in == conf.beta_opt_in
     assert state_conf.disable_factory_reset == conf.disable_factory_reset
@@ -50,5 +47,19 @@ defmodule FarmbotCore.FbosConfigWorkerTest do
     assert state_conf.sequence_init_log == conf.sequence_init_log
 
     # TODO(Connor) assert config_storage
+  end
+
+  def receive_changes(state) do
+    receive do
+      {BotState, %{changes: %{configuration: _}} = change} ->
+        Ecto.Changeset.apply_changes(change)
+        |> receive_changes()
+
+      _ ->
+        receive_changes(state)
+    after
+      100 ->
+        state
+    end
   end
 end
