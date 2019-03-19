@@ -1,7 +1,7 @@
 defmodule FarmbotCore do
   @moduledoc """
   Core Farmbot Services.
-  This includes 
+  This includes
     * Core global state management
     * Data storage management
     * Firmware management
@@ -19,6 +19,12 @@ defmodule FarmbotCore do
       FarmbotCore.EctoMigrator,
       FarmbotCore.BotState.Supervisor,
       FarmbotCore.StorageSupervisor,
+      # TODO:
+      #   * Find device
+      #   * Detect firmware version
+      #   * Raise enigma as needed
+      #   * Needs to be dynamically started/supervised
+      {FarmbotFirmware, transport: FarmbotFirmware.StubTransport},
       FarmbotCeleryScript.Scheduler
     ]
     Supervisor.init(children, [strategy: :one_for_one])
