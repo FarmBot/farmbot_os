@@ -78,6 +78,7 @@ defmodule FarmbotCore.BotStateNG do
     put_change(cs, :process_info, %{farmwares: new_farmwares})
   end
 
+  @doc "Sets an env var on the state.user_env"
   def set_user_env(state, key, value) do
     cs = changeset(state, %{})
 
@@ -89,6 +90,7 @@ defmodule FarmbotCore.BotStateNG do
     put_change(cs, :user_env, new_user_env)
   end
 
+  @doc "Sets a progress objecto on state.jobs"
   def set_job_progress(state, name, progress) do
     cs = changeset(state, %{})
 
