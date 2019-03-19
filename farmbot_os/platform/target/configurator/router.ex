@@ -276,29 +276,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.Router do
   # /NETWORKCONFIG
 
   get "/firmware" do
-    render_page(conn, "firmware")
-  end
-
-  post "/configure_firmware" do
-    {:ok, _, conn} = read_body(conn)
-
-    case conn.body_params do
-      %{"firmware_hardware" => hw} when hw in ["arduino", "farmduino", "farmduino_k14"] ->
-        update_config_value(:string, "settings", "firmware_hardware", hw)
-        raise("configure firmware?")
-
-        redir(conn, "/credentials")
-
-      %{"firmware_hardware" => "custom"} ->
-        update_config_value(:string, "settings", "firmware_hardware", "custom")
-        redir(conn, "/credentials")
-
-      %{"firmware_hardware" => "skip"} ->
-        redir(conn, "/credentials")
-
-      _ ->
-        send_resp(conn, 500, "Bad firmware_hardware!")
-    end
+    redir(conn, "/credentials")
   end
 
   get "/credentials" do
