@@ -113,4 +113,16 @@ defmodule FarmbotCore.BotStateNG do
 
     put_change(cs, :enigmas, new_enigmas)
   end
+
+  @doc "clears an enigma object on state.enigmas"
+  def clear_enigma(state, %{uuid: uuid}) do
+    cs = changeset(state, %{})
+
+    new_enigmas =
+      cs
+      |> get_field(:enigmas)
+      |> Map.delete(uuid)
+
+    put_change(cs, :enigmas, new_enigmas)
+  end
 end
