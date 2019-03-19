@@ -9,7 +9,6 @@ defmodule FarmbotCore.EctoMigrator do
     }
   end
 
-
   @doc "Replacement for Mix.Tasks.Ecto.Migrate"
   def migrate do
     repos = Application.get_env(:farmbot_core, :ecto_repos)
