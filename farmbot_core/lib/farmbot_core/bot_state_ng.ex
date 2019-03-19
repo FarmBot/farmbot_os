@@ -21,6 +21,7 @@ defmodule FarmbotCore.BotStateNG do
     field(:process_info, {:map, {:string, :any}}, default: %{farmwares: %{}})
     field(:pins, {:map, {:integer, :map}}, default: %{})
     field(:jobs, {:map, {:string, :map}}, default: %{})
+    field(:enigmas, {:map, {:string, :map}}, default: %{})
   end
 
   def new do
@@ -100,5 +101,16 @@ defmodule FarmbotCore.BotStateNG do
       |> Map.put(name, progress)
 
     put_change(cs, :jobs, new_jobs)
+  end
+
+  def set_enigma(state, %{uuid: uuid} = enigma) do
+    cs = changeset(state, %{})
+
+    new_enigmas =
+      cs
+      |> get_field(:enigmas)
+      |> Map.put(uuid, enigma)
+
+    put_change(cs, :enigmas, new_enigmas)
   end
 end
