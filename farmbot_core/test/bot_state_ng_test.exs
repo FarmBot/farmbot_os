@@ -109,4 +109,36 @@ defmodule FarmbotCore.BotStateNGTest do
       assert mut.informational_settings.wifi_level == 52
     end
   end
+
+  describe "enigmas" do
+    alias FarmbotCore.Asset.Private.Enigma
+
+    test "registers an engima" do
+      state = BotStateNG.new()
+      assert Enum.empty?(state.enigmas)
+      uuid = "1231231231223"
+
+      enigma = %Enigma{
+        uuid: uuid,
+        priority: 15,
+        created_at: DateTime.utc_now()
+      }
+
+      new_state =
+        BotStateNG.set_enigma(state, enigma)
+        |> Ecto.Changeset.apply_changes()
+
+      refute Enum.empty?(state.enigmas)
+      assert new_state.enigmas[uuid].priority == 15
+      assert new_state.enigmas[uuid].uuid == uuid
+
+      updated_enigma = %Enigma{enigma | priority: 10}
+
+      new_new_state =
+        BotStateNG.set_enigma(state, updated_enigma)
+        |> Ecto.Changeset.apply_changes()
+
+      assert new_new_state.enigmas[uuid].priority == 10
+    end
+  end
 end
