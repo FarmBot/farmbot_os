@@ -32,6 +32,7 @@ defmodule FarmbotCeleryScript.SysCalls do
 
   @type message_level :: String.t()
   @type message_channel :: String.t()
+  @type package :: String.t()
 
   @callback point(point_type, resource_id) :: coordinate | error
   @callback move_absolute(x :: axis_position, y :: axis_position, z :: axis_position, axis_speed) ::
@@ -60,6 +61,15 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback set_user_env(String.t(), String.t()) :: :ok | error
 
   @callback sync() :: :ok | error
+
+  @callback flash_firmware(package) :: :ok | error
+
+  def flash_firmware(module \\ @sys_call_implementation, package) do
+    case module.flash_firmware(package) do
+      :ok -> :ok
+      {:error, reason} when is_binary(reason) -> error(reason)
+    end
+  end
 
   def point(module \\ @sys_call_implementation, type, id) do
     case module.point(type, id) do
