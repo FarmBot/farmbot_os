@@ -4,7 +4,7 @@ defmodule FarmbotOS.SysCalls do
   alias FarmbotCeleryScript.AST
   alias FarmbotFirmware
 
-  alias FarmbotOS.SysCalls.{SendMessage, ExecuteScript}
+  alias FarmbotOS.SysCalls.{SendMessage, ExecuteScript, FlashFirmware}
 
   alias FarmbotCore.{Asset, Asset.Repo, Asset.Sync, BotState}
   alias FarmbotExt.{API, API.Reconciler, API.SyncGroup}
@@ -14,6 +14,7 @@ defmodule FarmbotOS.SysCalls do
 
   defdelegate send_message(level, message, channels), to: SendMessage
   defdelegate execute_script(name, env), to: ExecuteScript
+  defdelegate flash_firmware(package), to: FlashFirmware
 
   def read_status do
     :ok = FarmbotExt.AMQP.BotStateNGTransport.force()
