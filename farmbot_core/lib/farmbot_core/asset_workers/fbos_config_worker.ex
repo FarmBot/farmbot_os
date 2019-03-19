@@ -33,17 +33,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     :ok = BotState.set_config_value(:sequence_body_log, fbos_config.sequence_body_log)
     :ok = BotState.set_config_value(:sequence_complete_log, fbos_config.sequence_complete_log)
     :ok = BotState.set_config_value(:sequence_init_log, fbos_config.sequence_init_log)
-    _ = handle_firmware_hardware(fbos_config.firmware_hardware)
     {:noreply, fbos_config}
-  end
-
-  def handle_firmware_hardware(target_hardware) do
-    current_hardware = get_config_value(:string, "settings", "firmware_hardware")
-
-    if current_hardware != target_hardware do
-      # raise("firmware hardware change")
-      Logger.debug("Updating firmware_hardware from #{current_hardware} to #{target_hardware}")
-      # update_config_value(:string, "settings", "firmware_hardware", target_hardware)
-    end
   end
 end
