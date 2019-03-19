@@ -13,7 +13,12 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Private.Enigma do
     {:ok, %Enigma{} = enigma, 0}
   end
 
+  def terminate(_, enigma) do
+    BotState.clear_enigma(enigma)
+  end
+
   def handle_info(:timeout, %Enigma{} = enigma) do
+    BotState.set_enigma(enigma)
     {:noreply, enigma}
   end
 end
