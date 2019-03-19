@@ -1,7 +1,7 @@
 defmodule FarmbotCore.Asset.Supervisor do
   @moduledoc false
   use Supervisor
-  alias FarmbotCore.{AssetSupervisor, AssetMonitor}
+  alias FarmbotCore.{AssetSupervisor, AssetMonitor, EnigmaHandler}
 
   alias FarmbotCore.Asset.{
     Repo,
@@ -30,7 +30,8 @@ defmodule FarmbotCore.Asset.Supervisor do
       {AssetSupervisor, module: Peripheral},
       {AssetSupervisor, module: FarmwareInstallation},
       {AssetSupervisor, module: FarmwareEnv},
-      AssetMonitor
+      AssetMonitor,
+      EnigmaHandler,
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
