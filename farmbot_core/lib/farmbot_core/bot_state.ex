@@ -18,6 +18,10 @@ defmodule FarmbotCore.BotState do
     GenServer.call(bot_state_server, {:set_enigma, enigma})
   end
 
+  def clear_enigma(bot_state_server \\ __MODULE__, enigma) do
+    GenServer.call(bot_state_server, {:clear_enigma, enigma})
+  end
+
   @doc "Set a configuration value"
   def set_config_value(bot_state_server \\ __MODULE__, key, value) do
     GenServer.call(bot_state_server, {:set_config_value, key, value})
@@ -160,6 +164,15 @@ defmodule FarmbotCore.BotState do
 
     {:reply, reply, state}
   end
+
+  def handle_call({:clear_enigma, enigma}, _from, state) do
+    {reply, state} =
+      BotStateNG.clear_enigma(state.tree, enigma)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
 
   def handle_call({:set_config_value, key, value}, _from, state) do
     change = %{configuration: %{key => value}}

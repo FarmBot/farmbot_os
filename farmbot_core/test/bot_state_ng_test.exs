@@ -124,21 +124,27 @@ defmodule FarmbotCore.BotStateNGTest do
         created_at: DateTime.utc_now()
       }
 
-      new_state =
+      state =
         BotStateNG.set_enigma(state, enigma)
         |> Ecto.Changeset.apply_changes()
 
       refute Enum.empty?(state.enigmas)
-      assert new_state.enigmas[uuid].priority == 15
-      assert new_state.enigmas[uuid].uuid == uuid
+      assert state.enigmas[uuid].priority == 15
+      assert state.enigmas[uuid].uuid == uuid
 
       updated_enigma = %Enigma{enigma | priority: 10}
 
-      new_new_state =
+      state =
         BotStateNG.set_enigma(state, updated_enigma)
         |> Ecto.Changeset.apply_changes()
 
-      assert new_new_state.enigmas[uuid].priority == 10
+      assert state.enigmas[uuid].priority == 10
+
+      state =
+        BotStateNG.clear_enigma(state, enigma)
+        |> Ecto.Changeset.apply_changes()
+
+      refute state.enigmas[uuid]
     end
   end
 end
