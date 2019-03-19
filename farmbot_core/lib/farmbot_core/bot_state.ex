@@ -14,8 +14,8 @@ defmodule FarmbotCore.BotState do
   end
 
   @doc "Add an enigma record to bot state."
-  def set_enigma(bot_state_server \\ __MODULE__, enigma) do
-    GenServer.call(bot_state_server, {:set_enigma, enigma})
+  def add_enigma(bot_state_server \\ __MODULE__, enigma) do
+    GenServer.call(bot_state_server, {:add_enigma, enigma})
   end
 
   def clear_enigma(bot_state_server \\ __MODULE__, enigma) do
@@ -157,9 +157,9 @@ defmodule FarmbotCore.BotState do
     {:reply, reply, state}
   end
 
-  def handle_call({:set_enigma, enigma}, _from, state) do
+  def handle_call({:add_enigma, enigma}, _from, state) do
     {reply, state} =
-      BotStateNG.set_enigma(state.tree, enigma)
+      BotStateNG.add_enigma(state.tree, enigma)
       |> dispatch_and_apply(state)
 
     {:reply, reply, state}
@@ -172,7 +172,6 @@ defmodule FarmbotCore.BotState do
 
     {:reply, reply, state}
   end
-
 
   def handle_call({:set_config_value, key, value}, _from, state) do
     change = %{configuration: %{key => value}}

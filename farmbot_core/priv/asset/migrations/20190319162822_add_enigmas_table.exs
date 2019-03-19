@@ -3,10 +3,10 @@ defmodule FarmbotCore.Config.Repo.Migrations.AddEnigmasTable do
 
   def change do
     create table("enigmas", primary_key: false) do
-      add(:uuid, :binary_id, primary_key: true)
+      add(:local_id, :binary_id, primary_key: true)
       add(:problem_tag, :string)
       add(:priority, :integer)
-      add(:created_at, :utc_datetime)
+      timestamps(inserted_at: :created_at, type: :utc_datetime)
     end
   end
 end
