@@ -35,6 +35,7 @@ erl_crash.dump
 *.js
 /release-*
 /node_modules
+scratchpad.*
 
 # Various env vars.
 .env
