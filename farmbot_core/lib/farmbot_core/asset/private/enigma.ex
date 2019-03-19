@@ -9,6 +9,7 @@ defmodule FarmbotCore.Asset.Private.Enigma do
   use Ecto.Schema
 
   @behaviour FarmbotCore.Asset.View
+  @primary_key {:uuid, :binary_id, autogenerate: true}
 
   schema "enigmas" do
     field(:priority, :integer)
@@ -19,6 +20,7 @@ defmodule FarmbotCore.Asset.Private.Enigma do
   @doc false
   def render(%Enigma{} = data) do
     %{
+      uuid: data.uuid,
       priority: data.priority,
       problem_tag: data.problem_tag,
       created_at: DateTime.to_unix(data.utc_datetime)
