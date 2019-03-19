@@ -116,26 +116,28 @@ defmodule FarmbotCore.BotStateNGTest do
     test "registers an engima" do
       state = BotStateNG.new()
       assert Enum.empty?(state.enigmas)
-      uuid = "1231231231223"
+      uuid = Ecto.UUID.generate()
 
       enigma = %Enigma{
-        uuid: uuid,
+        local_id: uuid,
         priority: 15,
         created_at: DateTime.utc_now()
       }
 
       state =
-        BotStateNG.set_enigma(state, enigma)
+        BotStateNG.add_enigma(state, enigma)
         |> Ecto.Changeset.apply_changes()
 
       refute Enum.empty?(state.enigmas)
       assert state.enigmas[uuid].priority == 15
+
+      # Make sure that the enigma is in the frontend expected schema
       assert state.enigmas[uuid].uuid == uuid
 
       updated_enigma = %Enigma{enigma | priority: 10}
 
       state =
-        BotStateNG.set_enigma(state, updated_enigma)
+        BotStateNG.add_enigma(state, updated_enigma)
         |> Ecto.Changeset.apply_changes()
 
       assert state.enigmas[uuid].priority == 10

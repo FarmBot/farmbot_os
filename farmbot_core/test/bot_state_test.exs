@@ -57,9 +57,14 @@ defmodule FarmbotCore.BotStateTest do
 
     test "registers and deregisters an enigma" do
       {:ok, bot_state_pid} = BotState.start_link([], [])
-      uuid = "3123123123123132123"
-      enigma = %Enigma{uuid: uuid}
-      :ok = BotState.set_enigma(bot_state_pid, enigma)
+      uuid = Ecto.UUID.generate()
+
+      enigma = %Enigma{
+        local_id: uuid,
+        created_at: DateTime.utc_now()
+      }
+
+      :ok = BotState.add_enigma(bot_state_pid, enigma)
       state_tree = BotState.fetch(bot_state_pid)
       assert Map.has_key?(state_tree.enigmas, uuid)
 
