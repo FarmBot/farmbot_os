@@ -1,8 +1,14 @@
 defmodule FarmbotCore.EnigmaHandler do
   use GenServer
 
-  @callback enigma_up(FarmbotCore.Assets.Private.Enigma.t) :: any
-  @callback enigma_down(FarmbotCore.Assets.Private.Enigma.t) :: any
+  @type enigma :: FarmbotCore.Assets.Private.Enigma.t()
+
+  @doc """
+  The `up` callback will cause the EnigmaWorker to terminate if the
+  callback returns `:ok`
+  """
+  @type enigma_up_callback :: (enigma -> :ok | {:error, term})
+  @type enigma_down_callback :: (enigma -> :ok | {:error, term})
 
   def start_link(args, opts \\ [name: __MODULE__]) do
     GenServer.start_link(__MODULE__, args, opts)

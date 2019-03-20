@@ -12,24 +12,29 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Private.Enigma do
   def preload(%Enigma{}), do: []
 
   def start_link(%Enigma{} = enigma, _args) do
-    GenServer.start_link(__MODULE__, %Enigma{} = enigma)
+    GenServer.start_link(__MODULE__, enigma)
   end
 
   def init(%Enigma{} = enigma) do
-    {:ok, %Enigma{} = enigma, 0}
+    {:ok, %{enigma: enigma, dead: false}, 0}
   end
 
-  def terminate(_, enigma) do
+  def terminate(_reason, %{enigma: enigma} = _state) do
     BotState.clear_enigma(enigma)
     FarmbotCore.EnigmaHandler.handle_down(enigma)
   end
 
-  def handle_info(:timeout, %Enigma{} = enigma) do
+  def handle_info(:timeout, %{dead: true} = state) do
+    {:noreply, state, :hibernate}
+  end
+
+  def handle_info(:timeout, %{enigma: enigma, dead: false} = state) do
     BotState.add_enigma(enigma)
     # Handle enigma and block stuff.
     case FarmbotCore.EnigmaHandler.handle_up(enigma) do
-     {:error, _} -> {:noreply, enigma, @error_retry_time_ms}
-     :ok -> {:stop, :normal, enigma}
+     {:error, _} -> {:noreply, state, @error_retry_time_ms}
+     :ok ->
+      {:noreply, %{state | dead: true}}
     end
   end
 end

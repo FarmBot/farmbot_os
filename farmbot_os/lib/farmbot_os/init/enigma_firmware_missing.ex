@@ -42,7 +42,6 @@ defmodule FarmbotOS.Init.EnigmaFirmwareMissing do
         :ok
 
       {false, firmware_hardware} when is_binary(firmware_hardware) ->
-        IO.puts("!?!?!?!?!?!?")
         swap_transport(FarmbotCore.Asset.fbos_config(:firmware_path))
 
       {_, nil} ->
@@ -52,8 +51,10 @@ defmodule FarmbotOS.Init.EnigmaFirmwareMissing do
     end
   end
 
+  # Returning :ok here will cause the enigma to be cleared.
+  # We don't need this callback currently, so return error.
   def enigma_up(_) do
-    :ok
+    {:error, :noop}
   end
 
   def enigma_down(_) do

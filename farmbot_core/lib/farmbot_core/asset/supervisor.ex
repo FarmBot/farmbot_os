@@ -31,7 +31,7 @@ defmodule FarmbotCore.Asset.Supervisor do
       {AssetSupervisor, module: Peripheral},
       {AssetSupervisor, module: FarmwareInstallation},
       {AssetSupervisor, module: FarmwareEnv},
-      {AssetSupervisor, module: Enigma},
+      {AssetSupervisor, [module: Enigma, strategy: :transient]},
       AssetMonitor,
       EnigmaHandler,
     ]
