@@ -81,7 +81,6 @@ defmodule FarmbotFirmware do
 
   alias FarmbotFirmware, as: State
   alias FarmbotFirmware.{GCODE, Command, Request}
-
   @type status :: :boot | :no_config | :configuration | :idle | :emergency_lock
 
   defstruct [
@@ -144,6 +143,14 @@ defmodule FarmbotFirmware do
   or `{:error, term()}` on error.
   """
   defdelegate request(server \\ __MODULE__, code), to: Request
+
+  def close_transport(server \\ __MODULE__) do
+    _ = command(server, {nil, {:emergency_lock, []}})
+    GenServer.call(server, :close_transport)
+  end
+
+  def open_transport(server \\ __MODULE__) do
+  end
 
   @doc """
   Starting the Firmware server requires at least:
@@ -218,6 +225,11 @@ defmodule FarmbotFirmware do
 
   def handle_info(:timeout, %{configuration_queue: []} = state) do
     {:noreply, state}
+  end
+
+  def handle_call(:close_transport, _from, state) do
+    emergency_lock()
+    {:reply, :ok, state}
   end
 
   def handle_call({_tag, _code} = gcode, from, state) do
