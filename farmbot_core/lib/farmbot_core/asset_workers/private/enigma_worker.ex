@@ -9,8 +9,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Private.Enigma do
     config :farmbot_core, #{__MODULE__}, error_retry_time_ms: 10_000
     """)
 
-  @error_retry_ms
-
   def preload(%Enigma{}), do: []
 
   def start_link(%Enigma{} = enigma, _args) do
