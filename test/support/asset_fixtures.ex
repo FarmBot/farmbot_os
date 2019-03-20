@@ -95,9 +95,9 @@ defmodule Farmbot.TestSupport.AssetFixtures do
 
   def enigma() do
     Private.create_or_update_enigma!(%{
-        problem_tag: "firmware.missing",
-        priority: 100,
-        monitor: false
+      problem_tag: "firmware.missing",
+      priority: 100,
+      monitor: false
     })
   end
 end
