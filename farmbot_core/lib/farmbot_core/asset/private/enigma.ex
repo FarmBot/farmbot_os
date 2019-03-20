@@ -10,12 +10,14 @@ defmodule FarmbotCore.Asset.Private.Enigma do
   schema "enigmas" do
     field(:priority, :integer)
     field(:problem_tag, :string)
+
+    field(:monitor, :boolean, defualt: true)
     timestamps()
   end
 
   def changeset(enigma, params) do
     enigma
-    |> cast(params, [:priority, :problem_tag])
+    |> cast(params, [:priority, :problem_tag, :monitor])
     |> validate_required([:priority, :problem_tag])
   end
 

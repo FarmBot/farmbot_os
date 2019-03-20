@@ -18,7 +18,7 @@ defmodule FarmbotOS.Init.EnigmaFirmwareMissing do
     case situation do
       {true, firmware_hardware} when is_binary(firmware_hardware) ->
         FarmbotCore.Logger.warn(1, "firmware needs flashed- creating `firmware.missing` enigma")
-        Private.new_enigma(%{priority: 100, problem_tag: "firmware.missing"})
+        Private.create_or_update_enigma!(%{priority: 100, problem_tag: "firmware.missing"})
 
         # Ignore fw/hw
         FarmbotCore.Asset.update_fbos_config!(%{
@@ -33,7 +33,7 @@ defmodule FarmbotOS.Init.EnigmaFirmwareMissing do
 
       {_, nil} ->
         FarmbotCore.Logger.warn(1, "firmware needs flashed- creating `firmware.missing` enigma")
-        Private.new_enigma(%{priority: 100, problem_tag: "firmware.missing"})
+        Private.create_or_update_enigma!(%{priority: 100, problem_tag: "firmware.missing"})
         :ok
     end
   end

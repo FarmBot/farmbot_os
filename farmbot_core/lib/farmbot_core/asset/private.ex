@@ -14,13 +14,14 @@ defmodule FarmbotCore.Asset.Private do
   import Ecto.Changeset, warn: false
 
   @doc "Creates a new Enigma."
-  def new_enigma(params) do
+  def create_or_update_enigma!(params) do
     enigma = if problem_tag = params[:problem_tag] do
       find_enigma_by_problem_tag(problem_tag) || %Enigma{}
     else
       %Enigma{}
     end
-    Enigma.changeset(enigma, params) |> Repo.insert_or_update()
+
+    Enigma.changeset(enigma, params) |> Repo.insert_or_update!()
   end
 
   def find_enigma_by_problem_tag(problem_tag) do
