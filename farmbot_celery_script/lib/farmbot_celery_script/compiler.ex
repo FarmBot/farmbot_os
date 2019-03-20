@@ -521,6 +521,12 @@ defmodule FarmbotCeleryScript.Compiler do
     end
   end
 
+  compile :flash_firmware, %{package: package_name} do
+    quote do
+      flash_firmware(package_name)
+    end
+  end
+
   compile :power_off do
     quote do
       power_off()
