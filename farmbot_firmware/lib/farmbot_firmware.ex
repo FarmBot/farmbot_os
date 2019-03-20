@@ -171,8 +171,8 @@ defmodule FarmbotFirmware do
   @doc """
   Opens the transport,
   """
-  def open_transport(server \\ __MODULE__) do
-    GenServer.call(server, :open_transport)
+  def open_transport(server \\ __MODULE__, module, args \\ []) do
+    GenServer.call(server, {:open_transport, module, args})
   end
 
   @doc """
@@ -295,12 +295,19 @@ defmodule FarmbotFirmware do
     {:reply, {:error, s}, state}
   end
 
-  def handle_call(:open_transport, _from, %{status: s} = state) when s == :transport_boot do
+  def handle_call({:open_transport, module, args}, _from, %{status: s} = state)
+      when s == :transport_boot do
+    # Add an anon function that transport implementations should call.
+    fw = self()
+    fun = fn {_, _} = code -> GenServer.cast(fw, code) end
+    transport_args = Keyword.put(args, :handle_gcode, fun)
+    next_state = %{state | transport: module, transport_args: transport_args}
+
     send(self(), :timeout)
-    {:reply, :ok, state}
+    {:reply, :ok, next_state}
   end
 
-  def handle_call(:open_transport, _from, %{status: s} = state) do
+  def handle_call({:open_transport, _module, _args}, _from, %{status: s} = state) do
     {:reply, {:error, s}, state}
   end
 
