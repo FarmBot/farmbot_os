@@ -7,7 +7,7 @@ defmodule FarmbotCore.Config.Repo.Migrations.AddEnigmasTable do
       add(:problem_tag, :string)
       add(:priority, :integer)
 
-      add(:monitor, :boolean)
+      add(:monitor, :boolean, default: true)
       timestamps(inserted_at: :created_at, type: :utc_datetime)
     end
   end
