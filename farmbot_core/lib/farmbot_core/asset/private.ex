@@ -1,7 +1,8 @@
 defmodule FarmbotCore.Asset.Private do
   @moduledoc """
-  Private Assets are those that are internal to Farmbot that _are not_ stored in
-  the API, but _are_ stored in Farmbot's database.
+  Private Assets are those that are internal to
+  Farmbot that _are not_ stored in the API, but
+  _are_ stored in Farmbot's database.
   """
 
   alias FarmbotCore.{Asset.Repo,
@@ -16,6 +17,20 @@ defmodule FarmbotCore.Asset.Private do
   def new_enigma(params) do
     Enigma.changeset(%Enigma{}, params)
     |> Repo.insert()
+  end
+
+  @doc """
+  Clear in-system enigmas that match a particular
+  problem_tag.
+  """
+  def clear_enigma(problem_tag) do
+    Repo.get_by(problem_tag: problem_tag)
+      |> case do
+         nil -> :ok
+         %Enigma{} = enigma ->
+           Repo.delete!(enigma)
+           :ok
+      end
   end
 
   @doc "Lists `module` objects that still need to be POSTed to the API."
