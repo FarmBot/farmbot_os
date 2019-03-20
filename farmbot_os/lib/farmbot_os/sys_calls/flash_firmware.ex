@@ -2,15 +2,27 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
   alias FarmbotFirmware
 
   def flash_firmware(package) do
-    FarmbotCore.Asset.Private.clear_enigma("firmware.missing")
     hex_file = find_hex_file(package)
-    tty = find_tty()
-    Avrdude.flash_firmware(hex_file, "?")
-    raise package
-  end
 
-  defp find_tty() do
-    File.ls("/dev/ttylol*")
+    tty =
+      FarmbotOS.FirmwareTTYDetector.tty() ||
+        raise """
+        Expected a tty to exist, but none was found.
+        """
+
+    case Avrdude.flash_firmware(hex_file, tty) do
+      {_, 0} ->
+        FarmbotCore.Asset.update_fbos_config!(%{
+          firmware_hardware: package,
+          firmware_path: tty
+        })
+
+        FarmbotCore.Asset.Private.clear_enigma("firmware.missing")
+        :ok
+
+      _ ->
+        {:error, "avrdude_failure"}
+    end
   end
 
   defp find_hex_file("arduino") do

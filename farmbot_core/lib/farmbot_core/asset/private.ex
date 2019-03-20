@@ -15,8 +15,16 @@ defmodule FarmbotCore.Asset.Private do
 
   @doc "Creates a new Enigma."
   def new_enigma(params) do
-    Enigma.changeset(%Enigma{}, params)
-    |> Repo.insert()
+    enigma = if problem_tag = params[:problem_tag] do
+      find_enigma_by_problem_tag(problem_tag) || %Enigma{}
+    else
+      %Enigma{}
+    end
+    Enigma.changeset(enigma, params) |> Repo.insert_or_update()
+  end
+
+  def find_enigma_by_problem_tag(problem_tag) do
+    Repo.get_by(Enigma, problem_tag: problem_tag)
   end
 
   @doc """
@@ -24,13 +32,12 @@ defmodule FarmbotCore.Asset.Private do
   problem_tag.
   """
   def clear_enigma(problem_tag) do
-    Repo.get_by(problem_tag: problem_tag)
-      |> case do
-         nil -> :ok
-         %Enigma{} = enigma ->
-           Repo.delete!(enigma)
-           :ok
-      end
+    case find_enigma_by_problem_tag(problem_tag) do
+       nil -> :ok
+       %Enigma{} = enigma ->
+         Repo.delete!(enigma)
+         :ok
+    end
   end
 
   @doc "Lists `module` objects that still need to be POSTed to the API."
