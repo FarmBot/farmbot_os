@@ -16,7 +16,8 @@ defmodule FarmbotCore.AssetMonitor do
     FarmwareEnv,
     Peripheral,
     PersistentRegimen,
-    PinBinding
+    PinBinding,
+    Private.Enigma
   }
 
   alias FarmbotCore.{AssetSupervisor, AssetWorker}
@@ -116,6 +117,7 @@ defmodule FarmbotCore.AssetMonitor do
     do: [
       Device,
       FbosConfig,
+      Enigma,
       FarmEvent,
       Peripheral,
       PersistentRegimen,
