@@ -16,12 +16,14 @@ defmodule FarmbotFirmware do
     * busy reports
 
   # State machine
-  The firmware starts in a `:boot` state. It then loads all paramaters
-  writes all paramaters, and goes to idle if all params were loaded successfully.
+  The firmware starts in a `:transport_boot` state, moving to `:boot`. It then
+  loads all paramaters writes all paramaters, and goes to idle if all params
+  were loaded successfully.
 
   State machine flows go as follows:
   ## Boot
-      :boot
+      :transport_boot
+      |> :boot
       |> :no_config
       |> :configuration
       |> :idle
@@ -81,11 +83,22 @@ defmodule FarmbotFirmware do
 
   alias FarmbotFirmware, as: State
   alias FarmbotFirmware.{GCODE, Command, Request}
-  @type status :: :boot | :no_config | :configuration | :idle | :emergency_lock
+
+  @transport_init_error_retry_ms 5_000
+
+  @type status ::
+          :transport_boot
+          | :boot
+          | :no_config
+          | :configuration
+          | :idle
+          | :emergency_lock
 
   defstruct [
     :transport,
     :transport_pid,
+    :transport_ref,
+    :transport_args,
     :side_effects,
     :status,
     :tag,
@@ -97,7 +110,9 @@ defmodule FarmbotFirmware do
 
   @type state :: %State{
           transport: module(),
-          transport_pid: pid(),
+          transport_pid: nil | pid(),
+          transport_ref: nil | reference(),
+          transport_args: Keyword.t(),
           side_effects: nil | module(),
           status: status(),
           tag: GCODE.tag(),
@@ -144,12 +159,20 @@ defmodule FarmbotFirmware do
   """
   defdelegate request(server \\ __MODULE__, code), to: Request
 
+  @doc """
+  Close the transport, putting the Firmware State Machine back into
+  the `:transport_boot` state.
+  """
   def close_transport(server \\ __MODULE__) do
-    _ = command(server, {nil, {:emergency_lock, []}})
+    _ = command(server, {nil, {:command_emergency_lock, []}})
     GenServer.call(server, :close_transport)
   end
 
+  @doc """
+  Opens the transport,
+  """
   def open_transport(server \\ __MODULE__) do
+    GenServer.call(server, :open_transport)
   end
 
   @doc """
@@ -167,33 +190,52 @@ defmodule FarmbotFirmware do
   def init(args) do
     transport = Keyword.fetch!(args, :transport)
     side_effects = Keyword.get(args, :side_effects)
+
+    # Add an anon function that transport implementations should call.
     fw = self()
     fun = fn {_, _} = code -> GenServer.cast(fw, code) end
-    args = Keyword.put(args, :handle_gcode, fun)
+    transport_args = Keyword.put(args, :handle_gcode, fun)
 
-    with {:ok, pid} <- GenServer.start_link(transport, args) do
-      Process.monitor(pid)
-      Logger.debug("Starting Firmware: #{inspect(args)}")
+    state = %State{
+      transport_pid: nil,
+      transport_ref: nil,
+      transport: transport,
+      transport_args: transport_args,
+      side_effects: side_effects,
+      status: :transport_boot,
+      command_queue: [],
+      configuration_queue: []
+    }
 
-      state = %State{
-        transport_pid: pid,
-        transport: transport,
-        side_effects: side_effects,
-        status: :boot,
-        command_queue: [],
-        configuration_queue: []
-      }
-
-      {:ok, state}
-    end
+    send(self(), :timeout)
+    {:ok, state}
   end
 
   def terminate(reason, state) do
     for {pid, _code} <- state.command_queue, do: send(pid, reason)
   end
 
-  def handle_info({:DOWN, _ref, :process, pid, reason}, %{transport_pid: pid} = state) do
-    {:stop, reason, state}
+  # This will be the first message received right after `init/1`
+  # It should try to open a transport every `transport_init_error_retry_ms`
+  # until success.
+  # TODO(Connor) maybe make this timer back off over time.
+  def handle_info(:timeout, %{status: :transport_boot} = state) do
+    case GenServer.start_link(state.transport, state.transport_args) do
+      {:ok, pid} ->
+        ref = Process.monitor(pid)
+
+        Logger.debug(
+          "Firmware Transport #{state.transport} started. #{inspect(state.transport_args)}"
+        )
+
+        state = goto(%{state | transport_pid: pid, transport_ref: ref}, :boot)
+        {:noreply, state}
+
+      error ->
+        Logger.error("Error starting Firmware: #{inspect(error)}")
+        Process.send_after(self(), :timeout, @transport_init_error_retry_ms)
+        {:noreply, state}
+    end
   end
 
   # @spec handle_info(:timeout, state) :: {:noreply, state}
@@ -227,9 +269,39 @@ defmodule FarmbotFirmware do
     {:noreply, state}
   end
 
-  def handle_call(:close_transport, _from, state) do
-    emergency_lock()
+  # Closing the transport will purge the buffer of queued commands in both
+  # the `configuration_queue` and in the `command_queue`.
+  def handle_call(:close_transport, _from, %{status: s} = state) when s != :transport_boot do
+    true = Process.demonitor(state.transport_ref)
+    :ok = GenServer.stop(state.transport_pid, :normal)
+
+    state =
+      goto(
+        %{
+          state
+          | transport_pid: nil,
+            transport_ref: nil,
+            status: :transport_boot,
+            command_queue: [],
+            configuration_queue: []
+        },
+        :transport_boot
+      )
+
     {:reply, :ok, state}
+  end
+
+  def handle_call(:close_transport, _, %{status: s} = state) do
+    {:reply, {:error, s}, state}
+  end
+
+  def handle_call(:open_transport, _from, %{status: s} = state) when s == :transport_boot do
+    send(self(), :timeout)
+    {:reply, :ok, state}
+  end
+
+  def handle_call(:open_transport, _from, %{status: s} = state) do
+    {:reply, {:error, s}, state}
   end
 
   def handle_call({_tag, _code} = gcode, from, state) do
@@ -238,14 +310,19 @@ defmodule FarmbotFirmware do
 
   @doc false
   @spec handle_command(GCODE.t(), GenServer.from(), state()) :: {:reply, term(), state()}
-  def handle_command(_, _, %{status: s} = state) when s in [:boot, :no_config, :configuration] do
+
+  # If not in an acceptable state, return an error immediately.
+  def handle_command(_, _, %{status: s} = state)
+      when s in [:transport_boot, :boot, :no_config, :configuration] do
     {:reply, {:error, s}, state}
   end
 
+  # EmergencyLock should be ran immediately
   def handle_command({tag, {:command_emergency_lock, []}} = code, {pid, _ref}, state) do
     {:reply, {:ok, tag}, %{state | command_queue: [{pid, code} | state.command_queue]}, 0}
   end
 
+  # EmergencyUnLock should be ran immediately
   def handle_command({tag, {:command_emergency_unlock, []}} = code, {pid, _ref}, state) do
     {:reply, {:ok, tag}, %{state | command_queue: [{pid, code} | state.command_queue]}, 0}
   end
