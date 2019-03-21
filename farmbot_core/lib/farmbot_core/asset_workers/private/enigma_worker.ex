@@ -2,6 +2,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Private.Enigma do
   alias FarmbotCore.Asset.Private.Enigma
   alias FarmbotCore.BotState
   use GenServer
+  require Logger
 
   @error_retry_time_ms Application.get_env(:farmbot_core, __MODULE__)[:error_retry_time_ms]
   @error_retry_time_ms ||
@@ -40,8 +41,10 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Private.Enigma do
   end
 
   def finish(state) do
+    Logger.info "Enigma #{inspect(state.enigma)} moving to finished state"
     BotState.clear_enigma(state.enigma)
-    FarmbotCore.EnigmaHandler.handle_down(state.enigma)
+    result = FarmbotCore.EnigmaHandler.handle_down(state.enigma)
+    Logger.info "Result of handle_down/1: #{inspect(result)}"
     state
   end
 end

@@ -37,6 +37,9 @@ defmodule FarmbotCore.Asset.Private do
        nil -> :ok
        %Enigma{} = enigma ->
          Repo.delete!(enigma)
+         # This is a really nasty side effect that i don't want to be here.
+         # TODO(Connor) FIXME
+         |> FarmbotCore.EnigmaHandler.handle_down()
          :ok
     end
   end
