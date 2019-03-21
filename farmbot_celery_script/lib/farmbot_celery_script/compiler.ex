@@ -523,7 +523,7 @@ defmodule FarmbotCeleryScript.Compiler do
 
   compile :flash_firmware, %{package: package_name} do
     quote do
-      flash_firmware(package_name)
+      flash_firmware(unquote(compile_ast(package_name)))
     end
   end
 
