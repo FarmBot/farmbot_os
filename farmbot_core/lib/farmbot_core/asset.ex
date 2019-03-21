@@ -43,14 +43,21 @@ defmodule FarmbotCore.Asset do
 
   ## Begin FbosConfig
 
+  @doc "Gets the local config"
   def fbos_config() do
     Repo.one(FbosConfig) || %FbosConfig{}
   end
 
+  @doc "Gets a field on the local config."
   def fbos_config(field) do
     Map.fetch!(fbos_config(), field)
   end
 
+  @doc """
+  This function updates Farmbot OS's local database. It will **NOT** send any
+  HTTP requests to the API. To do this, `FarmbotCore.Asset.Private.mark_dirty!/2`
+  is almost certainly what you want.
+  """
   def update_fbos_config!(fbos_config \\ nil, params) do
     FbosConfig.changeset(fbos_config || fbos_config(), params)
     |> Repo.insert_or_update!()

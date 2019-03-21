@@ -171,7 +171,7 @@ defmodule FarmbotFirmware do
   @doc """
   Opens the transport,
   """
-  def open_transport(server \\ __MODULE__, module, args \\ []) do
+  def open_transport(server \\ __MODULE__, module, args) do
     GenServer.call(server, {:open_transport, module, args})
   end
 

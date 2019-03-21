@@ -25,20 +25,16 @@ defmodule FarmbotOS.Init.EnigmaFirmwareMissing do
 
     needs_flash? = FarmbotCore.Config.get_config_value(:bool, "settings", "firmware_needs_flash")
 
-    firmware_hardware = FarmbotCore.Asset.fbos_config(:firmware_hardware)
+    current_fbos_config = FarmbotCore.Asset.fbos_config()
+    firmware_hardware = current_fbos_config.firmware_hardware
     situation = {needs_flash?, firmware_hardware}
 
     case situation do
       {true, firmware_hardware} when is_binary(firmware_hardware) ->
-        FarmbotCore.Logger.warn(1, "firmware needs flashed- creating `firmware.missing` enigma")
+        FarmbotCore.Logger.warn(1, "firmware needs flashed creating `firmware.missing` enigma")
         Private.create_or_update_enigma!(%{priority: 100, problem_tag: "firmware.missing"})
-
         # Ignore fw/hw
-        FarmbotCore.Asset.update_fbos_config!(%{
-          firmware_hardware: nil,
-          firmware_path: nil
-        })
-
+        Private.mark_dirty!(current_fbos_config, %{firmware_hardware: nil, firmware_path: nil})
         :ok
 
       {false, firmware_hardware} when is_binary(firmware_hardware) ->

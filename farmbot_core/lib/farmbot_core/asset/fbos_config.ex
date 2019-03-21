@@ -1,5 +1,6 @@
 defmodule FarmbotCore.Asset.FbosConfig do
   @moduledoc """
+  Farmbot's configuration database
   """
 
   use FarmbotCore.Asset.Schema, path: "/api/fbos_config"

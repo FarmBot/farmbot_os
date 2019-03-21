@@ -4,12 +4,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
 
   alias FarmbotCore.{Asset.FbosConfig, BotState}
 
-  import FarmbotCore.Config,
-    only: [
-      get_config_value: 3,
-      update_config_value: 4
-    ]
-
   def preload(%FbosConfig{}), do: []
 
   def start_link(%FbosConfig{} = fbos_config, _args) do
@@ -33,6 +27,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     :ok = BotState.set_config_value(:sequence_body_log, fbos_config.sequence_body_log)
     :ok = BotState.set_config_value(:sequence_complete_log, fbos_config.sequence_complete_log)
     :ok = BotState.set_config_value(:sequence_init_log, fbos_config.sequence_init_log)
+    # firmware_hardware is set by FarmbotFirmware.SideEffects
     {:noreply, fbos_config}
   end
 end

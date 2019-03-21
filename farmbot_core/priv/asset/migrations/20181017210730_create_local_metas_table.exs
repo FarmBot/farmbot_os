@@ -5,6 +5,7 @@ defmodule FarmbotCore.Asset.Repo.Migrations.CreateLocalMetasTable do
     create table("local_metas") do
       add(:status, :string)
       add(:table, :string)
+      add(:monitor, :boolean, default: true)
       add(:asset_local_id, :binary_id)
     end
 

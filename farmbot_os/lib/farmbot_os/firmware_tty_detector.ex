@@ -1,13 +1,7 @@
 defmodule FarmbotOS.FirmwareTTYDetector do
   use GenServer
   require Logger
-  require FarmbotCore.Logger
   alias Circuits.UART
-
-  alias FarmbotFirmware.UARTTransport
-  alias FarmbotCore.FirmwareSupervisor
-  alias FarmbotCore.FirmwareSideEffects
-  alias FarmbotCore.{Asset, BotState}
 
   @expected_names Application.get_env(:farmbot, __MODULE__)[:expected_names]
   @expected_names ||
@@ -47,6 +41,7 @@ defmodule FarmbotOS.FirmwareTTYDetector do
     if farmbot_tty?(name) do
       {:noreply, name}
     else
+      Logger.warn("#{name} is not an expected Farmbot Firmware TTY")
       {:noreply, state, {:continue, rest}}
     end
   end
