@@ -19,9 +19,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Private.Enigma do
     {:ok, %{enigma: enigma, dead: false}, 0}
   end
 
-  def terminate(_reason, %{enigma: enigma} = _state) do
-    BotState.clear_enigma(enigma)
-    FarmbotCore.EnigmaHandler.handle_down(enigma)
+  def terminate(_reason, state) do
+    finish(state)
   end
 
   def handle_info(:timeout, %{dead: true} = state) do
@@ -32,9 +31,17 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Private.Enigma do
     BotState.add_enigma(enigma)
     # Handle enigma and block stuff.
     case FarmbotCore.EnigmaHandler.handle_up(enigma) do
-     {:error, _} -> {:noreply, state, @error_retry_time_ms}
-     :ok ->
-      {:noreply, %{state | dead: true}}
+      {:error, _} ->
+        {:noreply, state, @error_retry_time_ms}
+
+      :ok ->
+        {:noreply, finish(%{state | dead: true})}
     end
+  end
+
+  def finish(state) do
+    BotState.clear_enigma(state.enigma)
+    FarmbotCore.EnigmaHandler.handle_down(state.enigma)
+    state
   end
 end

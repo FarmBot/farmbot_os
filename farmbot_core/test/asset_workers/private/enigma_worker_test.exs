@@ -2,7 +2,7 @@ defmodule FarmbotCore.Private.EnigmaWorkerTest do
   use ExUnit.Case, async: true
   alias FarmbotCore.{BotState, EnigmaHandler, Asset.Private.Enigma, AssetWorker}
 
-  test "enigmas existance is persisted to the bot's state" do
+  test "enigmas existence is persisted to the bot's state" do
     Process.flag(:trap_exit, true)
     uuid = Ecto.UUID.generate()
 
@@ -32,6 +32,46 @@ defmodule FarmbotCore.Private.EnigmaWorkerTest do
     refute Process.alive?(pid)
 
     # Ensure the enigma was removed from the state
+    assert_receive {BotState, %{changes: %{enigmas: enigmas}}}
+    refute enigmas[uuid]
+  end
+
+  test "post-teardown cleanup" do
+    uuid = Ecto.UUID.generate()
+
+    enigma = %Enigma{
+      local_id: uuid,
+      priority: 100,
+      problem_tag: "yolo.woosh",
+      created_at: DateTime.utc_now()
+    }
+
+    bot_state = BotState.subscribe()
+    # Ensures this enigma hasn't been registered yet somehow
+    refute bot_state.enigmas[uuid]
+    test_pid = self()
+
+    up_fun = fn _ ->
+      send(test_pid, :up)
+      :ok
+    end
+
+    EnigmaHandler.register_up("yolo.woosh", up_fun)
+
+    down_fun = fn _ ->
+      send(test_pid, :down)
+      :ok
+    end
+
+    EnigmaHandler.register_down("yolo.woosh", down_fun)
+
+    # Start the enigma manager process
+    {:ok, pid} = AssetWorker.start_link(enigma)
+    assert_receive {BotState, %{changes: %{enigmas: enigmas}}}
+    assert enigmas[uuid]
+    assert_receive :up
+
+    assert_receive :down
     assert_receive {BotState, %{changes: %{enigmas: enigmas}}}
     refute enigmas[uuid]
   end
