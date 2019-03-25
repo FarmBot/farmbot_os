@@ -1,10 +1,10 @@
-defmodule FarmbotOS.FirmwareSideEffects do
+defmodule FarmbotCore.FirmwareSideEffects do
   @moduledoc "Handles firmware data and syncing it with BotState."
   @behaviour FarmbotFirmware.SideEffects
   require Logger
   require FarmbotCore.Logger
   alias FarmbotCore.{Asset, BotState}
-  alias FarmbotOS.FirmwareEstopTimer
+  alias FarmbotCore.FirmwareEstopTimer
 
   def handle_position(x: x, y: y, z: z) do
     :ok = BotState.set_position(x, y, z)
@@ -40,6 +40,16 @@ defmodule FarmbotOS.FirmwareSideEffects do
 
   def handle_software_version([version]) do
     :ok = BotState.set_firmware_version(version)
+    case String.split(version, ".") do
+      [_, _, _, "R"] ->
+        :ok = BotState.set_firmware_hardware("arduino")
+      [_, _, _, "F"] ->
+        :ok = BotState.set_firmware_hardware("farmduino")
+      [_, _, _, "G"] ->
+        :ok = BotState.set_firmware_hardware("farmduino_k14")
+      [_, _, _, "S"] ->
+        :ok = BotState.set_firmware_hardware("stubduino")
+    end
   end
 
   def handle_end_stops(_) do

@@ -72,10 +72,16 @@ defmodule FarmbotCore.BotState do
     GenServer.call(bot_state_server, {:set_firmware_version, version})
   end
 
+  @doc "Sets configuration.arduino_hardware"
+  def set_firmware_hardware(bot_state_server \\ __MODULE__, hardware) do
+    GenServer.call(bot_state_server, {:set_firmware_hardware, hardware})
+  end
+
   @doc "Sets informational_settings.busy"
   def set_firmware_busy(bot_state_server \\ __MODULE__, busy) do
     GenServer.call(bot_state_server, {:set_firmware_busy, busy})
   end
+
 
   @doc "Sets informational_settings.status"
   def set_sync_status(bot_state_server \\ __MODULE__, s)
@@ -251,6 +257,16 @@ defmodule FarmbotCore.BotState do
 
   def handle_call({:set_firmware_version, version}, _from, state) do
     change = %{informational_settings: %{firmware_version: version}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_firmware_hardware, hardware}, _from, state) do
+    change = %{configuration: %{firmware_hardware: hardware}}
 
     {reply, state} =
       BotStateNG.changeset(state.tree, change)

@@ -12,13 +12,15 @@ defmodule FarmbotCore.Asset.Private.Enigma do
     field(:problem_tag, :string)
 
     field(:monitor, :boolean, defualt: true)
+    field(:status, :string, default: "unresolved")
     timestamps()
   end
 
   def changeset(enigma, params) do
     enigma
-    |> cast(params, [:priority, :problem_tag, :monitor])
+    |> cast(params, [:priority, :problem_tag, :status, :monitor])
     |> validate_required([:priority, :problem_tag])
+    |> validate_inclusion(:status, ~w(unresolved resolved))
   end
 
   # This is the public schems.

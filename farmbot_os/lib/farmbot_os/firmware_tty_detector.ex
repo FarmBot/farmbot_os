@@ -12,6 +12,8 @@ defmodule FarmbotOS.FirmwareTTYDetector do
           expected_names: ["ttyS0", "ttyNotReal"]
     """)
 
+  @error_retry_ms 5_000
+
   def tty(server \\ __MODULE__) do
     GenServer.call(server, :tty)
   end
@@ -47,6 +49,7 @@ defmodule FarmbotOS.FirmwareTTYDetector do
   end
 
   def handle_continue([], state) do
+    Process.send_after(self(), :timeout, @error_retry_ms)
     {:noreply, state}
   end
 
