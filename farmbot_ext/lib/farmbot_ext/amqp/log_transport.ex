@@ -1,4 +1,8 @@
 defmodule FarmbotExt.AMQP.LogTransport do
+  @moduledoc """
+  Handler for AMQP log channel
+  """
+
   use GenServer
   use AMQP
   alias AMQP.Channel
