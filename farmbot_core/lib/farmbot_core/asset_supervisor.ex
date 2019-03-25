@@ -1,4 +1,8 @@
 defmodule FarmbotCore.AssetSupervisor do
+  @moduledoc """
+  Supervises all database-backed records.
+  """
+
   use Supervisor
   alias FarmbotCore.{Asset.Repo, AssetWorker}
 

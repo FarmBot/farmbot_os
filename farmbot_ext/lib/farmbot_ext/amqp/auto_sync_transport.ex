@@ -1,4 +1,10 @@
 defmodule FarmbotExt.AMQP.AutoSyncTransport do
+  @moduledoc """
+  This module provides an AMQP channel for
+  auto-sync messages from the FarmBot API.
+  SEE:
+    https://developer.farm.bot/docs/realtime-updates-auto-sync#section-example-auto-sync-subscriptions
+  """
   use GenServer
   use AMQP
 

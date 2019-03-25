@@ -1,4 +1,8 @@
 defmodule FarmbotExt.AMQP.ConnectionWorker do
+  @moduledoc """
+  Manages the AMQP socket lifecycle.
+  """
+
   use GenServer
   alias FarmbotCore.Project
   alias FarmbotExt.JWT
