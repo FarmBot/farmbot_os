@@ -67,7 +67,8 @@ defmodule FarmbotExt.API.DirtyWorker do
         |> handle_changeset(rest, state)
 
       # HTTP Error. (500, network error, timeout etc.)
-      _ ->
+      error ->
+        Logger.error("HTTP Error: #{state.module} #{inspect(error)}")
         {:noreply, state, @timeout}
     end
   end
@@ -97,12 +98,14 @@ defmodule FarmbotExt.API.DirtyWorker do
   end
 
   defp http_request(%{id: nil} = dirty, state) do
+    Logger.info("#{state.module} clean request (post)")
     path = state.module.path()
     data = render(state.module, dirty)
     API.post(API.client(), path, data)
   end
 
   defp http_request(dirty, state) do
+    Logger.info("#{state.module} dirty request (patch)")
     path = state.module.path()
     data = render(state.module, dirty)
     API.patch(API.client(), path, data)
