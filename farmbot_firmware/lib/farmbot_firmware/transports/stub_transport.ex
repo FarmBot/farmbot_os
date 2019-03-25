@@ -191,6 +191,14 @@ defmodule FarmbotFirmware.StubTransport do
     {:reply, :ok, state, {:continue, resp_codes}}
   end
 
+  def handle_call({tag, {:software_version_read, _}} = code, _from, state) do
+    resp_codes = [
+      GCODE.new(:report_software_version, ["8.0.0.S"])
+    ]
+
+    {:reply, :ok, state, {:continue, resp_codes}}
+  end
+
   # Everything under this clause should be blocked if emergency_locked
   def handle_call({_tag, {_, _}} = code, _from, %{status: :emergency_lock} = state) do
     Logger.error("Stub Transport emergency lock")

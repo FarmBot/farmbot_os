@@ -1,4 +1,4 @@
-defmodule FarmbotOS.FirmwareEstopTimer do
+defmodule FarmbotCore.FirmwareEstopTimer do
   @moduledoc """
   Process that wraps a `Process.send_after/3` call.
   When `:timeout` is received, a `fatal_email` log message will be
