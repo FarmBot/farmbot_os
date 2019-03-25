@@ -1,4 +1,10 @@
 defmodule FarmbotCore.Asset do
+  @moduledoc """
+  Top level module, with some helpers. Persists application resources to disk.
+  Submodules of this module usually (but not always) correspond to a
+  resource in the REST API. See official REST API docs for details.
+  """
+
   alias FarmbotCore.Asset.{
     Repo,
     Device,
