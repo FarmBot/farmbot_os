@@ -32,7 +32,7 @@ defmodule FarmbotCore.MixProject do
       branch: @branch,
       commit: commit(),
       arduino_commit: arduino_commit(),
-      build_embedded: Mix.env() == :prod,
+      build_embedded: false,
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
