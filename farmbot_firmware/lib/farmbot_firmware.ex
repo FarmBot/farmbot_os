@@ -188,6 +188,8 @@ defmodule FarmbotFirmware do
   end
 
   def init(args) do
+    global = Application.get_env(:farmbot_firmware, __MODULE__, [])
+    args = Keyword.merge(args, global)
     transport = Keyword.fetch!(args, :transport)
     side_effects = Keyword.get(args, :side_effects)
 
@@ -368,14 +370,45 @@ defmodule FarmbotFirmware do
   end
 
   # "ARDUINO STARTUP COMPLETE" => goto(:boot, :no_config)
-  def handle_report({:report_debug_message, ["ARDUINO STARTUP COMPLETE"]}, state) do
+  def handle_report({:report_debug_message, ["ARDUINO STARTUP COMPLETE"]}, %{status: :boot} = state) do
     Logger.info("ARDUINO STARTUP COMPLETE")
-    {:noreply, goto(state, :no_config)}
+    handle_report({:report_no_config, []}, state)
   end
 
-  def handle_report({:report_no_config, []}, %{status: :boot} = state) do
-    Logger.info("ARDUINO STARTUP COMPLETE")
-    {:noreply, goto(state, :no_config)}
+  # report_no_config => goto(_, :no_config)
+  def handle_report({:report_no_config, []}, %{status: _} = state) do
+    Logger.warn(":report_no_config received")
+    tag = state.tag || "0"
+    loaded_params = side_effects(state, :load_params, []) || []
+
+    param_commands =
+      Enum.reduce(loaded_params, [], fn {param, val}, acc ->
+        if val, do: acc ++ [{:paramater_write, [{param, val}]}], else: acc
+      end)
+
+    to_process =
+      [{:software_version_read, []} | param_commands] ++
+        [
+          {:paramater_write, [{:param_config_ok, 1.0}]},
+          {:paramater_read_all, []}
+        ]
+
+    to_process =
+      if loaded_params[:movement_home_at_boot_x] == 1,
+        do: to_process ++ [{:command_movement_find_home, [:x]}],
+        else: to_process
+
+    to_process =
+      if loaded_params[:movement_home_at_boot_y] == 1,
+        do: to_process ++ [{:command_movement_find_home, [:y]}],
+        else: to_process
+
+    to_process =
+      if loaded_params[:movement_home_at_boot_z] == 1,
+        do: to_process ++ [{:command_movement_find_home, [:z]}],
+        else: to_process
+
+    {:noreply, goto(%{state | tag: tag, configuration_queue: to_process}, :configuration), 0}
   end
 
   def handle_report({:report_debug_message, msg}, state) do
@@ -460,42 +493,6 @@ defmodule FarmbotFirmware do
 
     {:noreply, goto(%{state | tag: state.tag, configuration_queue: to_process}, :configuration),
      0}
-  end
-
-  # report_no_config => goto(_, :no_config)
-  def handle_report({:report_no_config, []}, %{status: _} = state) do
-    Logger.debug("REPORT_NO_CONFIG")
-    tag = state.tag || "0"
-    loaded_params = side_effects(state, :load_params, []) || []
-
-    param_commands =
-      Enum.reduce(loaded_params, [], fn {param, val}, acc ->
-        if val, do: acc ++ [{:paramater_write, [{param, val}]}], else: acc
-      end)
-
-    to_process =
-      param_commands ++
-        [
-          {:paramater_write, [{:param_config_ok, 1.0}]},
-          {:paramater_read_all, []}
-        ]
-
-    to_process =
-      if loaded_params[:movement_home_at_boot_x] == 1,
-        do: to_process ++ [{:command_movement_find_home, [:x]}],
-        else: to_process
-
-    to_process =
-      if loaded_params[:movement_home_at_boot_y] == 1,
-        do: to_process ++ [{:command_movement_find_home, [:y]}],
-        else: to_process
-
-    to_process =
-      if loaded_params[:movement_home_at_boot_z] == 1,
-        do: to_process ++ [{:command_movement_find_home, [:z]}],
-        else: to_process
-
-    {:noreply, goto(%{state | tag: tag, configuration_queue: to_process}, :configuration), 0}
   end
 
   # report_paramaters_complete => goto(:configuration, :idle)
