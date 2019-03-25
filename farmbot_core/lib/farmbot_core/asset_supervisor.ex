@@ -60,7 +60,8 @@ defmodule FarmbotCore.AssetSupervisor do
   def worker_spec(%{local_id: id, monitor: true} = asset) do
     %{
       id: id,
-      start: {AssetWorker, :start_link, [asset]}
+      start: {AssetWorker, :start_link, [asset]},
+      restart: :transient
     }
   end
 

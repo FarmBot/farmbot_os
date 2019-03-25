@@ -12,8 +12,7 @@ defmodule FarmbotCore.Asset.Supervisor do
     FbosConfig,
     PinBinding,
     Peripheral,
-    PersistentRegimen,
-    Private.Enigma
+    PersistentRegimen
   }
 
   def start_link(args) do
@@ -31,7 +30,6 @@ defmodule FarmbotCore.Asset.Supervisor do
       {AssetSupervisor, module: Peripheral},
       {AssetSupervisor, module: FarmwareInstallation},
       {AssetSupervisor, module: FarmwareEnv},
-      {AssetSupervisor, [module: Enigma, strategy: :transient]},
       AssetMonitor,
       EnigmaHandler,
     ]
