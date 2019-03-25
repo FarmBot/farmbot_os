@@ -19,12 +19,9 @@ defmodule FarmbotCore do
       FarmbotCore.EctoMigrator,
       FarmbotCore.BotState.Supervisor,
       FarmbotCore.StorageSupervisor,
-      # TODO:
-      #   * Find device
-      #   * Detect firmware version
-      #   * Raise enigma as needed
-      #   * Needs to be dynamically started/supervised
-      {FarmbotFirmware, transport: FarmbotFirmware.StubTransport},
+      FarmbotCore.FirmwareEstopTimer,
+      # Also error handling for a transport not starting ?
+      {FarmbotFirmware, transport: FarmbotFirmware.StubTransport, side_effects: FarmbotCore.FirmwareSideEffects},
       FarmbotCeleryScript.Scheduler
     ]
     Supervisor.init(children, [strategy: :one_for_one])
