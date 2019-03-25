@@ -64,8 +64,7 @@ config :farmbot, FarmbotOS.Platform.Supervisor,
     FarmbotOS.Platform.Target.Configurator.Supervisor,
     FarmbotOS.Platform.Target.SSHConsole,
     FarmbotOS.Platform.Target.Uevent.Supervisor,
-    FarmbotOS.Platform.Target.InfoWorker.Supervisor,
-    FarmbotOS.TTYDetector
+    FarmbotOS.Platform.Target.InfoWorker.Supervisor
   ]
 
 config :farmbot_ext, FarmbotExt.AMQP.NervesHubTransport,
