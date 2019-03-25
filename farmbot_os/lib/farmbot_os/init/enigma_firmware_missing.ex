@@ -1,5 +1,5 @@
 defmodule FarmbotOS.Init.EnigmaFirmwareMissing do
-  alias FarmbotCore.Asset.Private
+  alias FarmbotCore.{Asset, Asset.Private}
   alias FarmbotCore.EnigmaHandler
   alias FarmbotFirmware.UARTTransport
 
@@ -34,7 +34,10 @@ defmodule FarmbotOS.Init.EnigmaFirmwareMissing do
         FarmbotCore.Logger.warn(1, "firmware needs flashed creating `firmware.missing` enigma")
         Private.create_or_update_enigma!(%{priority: 100, problem_tag: "firmware.missing"})
         # Ignore fw/hw
-        Private.mark_dirty!(current_fbos_config, %{firmware_hardware: nil, firmware_path: nil})
+        %{firmware_hardware: nil, firmware_path: nil}
+        |> Asset.update_fbos_config!()
+        |> Private.mark_dirty!(%{})
+
         :ok
 
       {false, firmware_hardware} when is_binary(firmware_hardware) ->
