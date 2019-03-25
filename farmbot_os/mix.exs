@@ -20,7 +20,8 @@ defmodule FarmbotOS.MixProject do
       commit: @commit,
       archives: [nerves_bootstrap: "~> 1.4"],
       start_permanent: Mix.env() == :prod,
-      build_embedded: Mix.target() != :host,
+      build_embedded: false,
+      compilers: [:elixir_make | Mix.compilers()],
       aliases: [loadconfig: [&bootstrap/1]],
       elixirc_paths: elixirc_paths(Mix.env(), Mix.target()),
       deps: deps()
@@ -59,6 +60,7 @@ defmodule FarmbotOS.MixProject do
       {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], targets: [:host], runtime: false},
       {:ex_doc, "~> 0.19", only: [:dev], targets: [:host], runtime: false},
+      {:elixir_make, "~> 0.5", runtime: false},
 
       # Target only deps
       {:cors_plug, "~> 2.0", targets: @all_targets},
