@@ -7,6 +7,9 @@ defmodule FarmbotFirmware.UARTTransport do
   alias FarmbotFirmware.GCODE
   alias Circuits.UART
   use GenServer
+  require Logger
+
+  @error_retry_ms 5_000
 
   def init(args) do
     device = Keyword.fetch!(args, :device)
@@ -24,7 +27,9 @@ defmodule FarmbotFirmware.UARTTransport do
 
     case UART.open(state.uart, state.device, opts) do
       :ok -> {:noreply, %{state | open: true}}
-      {:error, reason} -> {:stop, {:uart_error, reason}, state}
+      {:error, reason} ->
+        Logger.error("Error opening #{state.device}: #{inspect(reason)}")
+        {:noreply, %{state | open: false}, @error_retry_ms}
     end
   end
 
