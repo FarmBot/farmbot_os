@@ -2,9 +2,6 @@ defmodule FarmbotOS.Platform.Host.Configurator do
   @moduledoc false
   use Supervisor
 
-  import FarmbotCore.Config,
-    only: [update_config_value: 4]
-
   @doc false
   def start_link(args) do
     Supervisor.start_link(__MODULE__, args, name: __MODULE__)
@@ -25,10 +22,6 @@ defmodule FarmbotOS.Platform.Host.Configurator do
     email = System.get_env("FARMBOT_EMAIL") || raise error("email")
     pass = System.get_env("FARMBOT_PASSWORD") || raise error("password")
     server = System.get_env("FARMBOT_SERVER") || raise error("server")
-    update_config_value(:string, "authorization", "email", email)
-    update_config_value(:string, "authorization", "password", pass)
-    update_config_value(:string, "authorization", "server", server)
-    update_config_value(:string, "authorization", "token", nil)
     :ignore
   end
 
