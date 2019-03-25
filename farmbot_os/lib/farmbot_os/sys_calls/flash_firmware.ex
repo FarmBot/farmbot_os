@@ -12,11 +12,11 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
         Expected a tty to exist, but none was found.
         """
 
-    fbos_config = Asset.fbos_config()
-
     case Avrdude.flash(hex_file, tty) do
       {_, 0} ->
-        Private.mark_dirty!(fbos_config, %{firmware_hardware: "arduino", firmware_path: "ttyACM0"})
+        %{firmware_hardware: package, firmware_path: tty}
+        |> Asset.update_fbos_config!()
+        |> Private.mark_dirty!(%{})
 
         Private.clear_enigma("firmware.missing")
         :ok
