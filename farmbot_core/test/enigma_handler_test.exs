@@ -2,6 +2,7 @@ defmodule FarmbotCore.EnigmaHandlerTest do
   use ExUnit.Case, async: true
   alias FarmbotCore.EnigmaHandler
   alias FarmbotCore.Asset.Private.Enigma
+  import Farmbot.TestSupport.AssetFixtures
 
   test "handle up" do
     {:ok, handler} = EnigmaHandler.start_link([], [])
@@ -12,11 +13,7 @@ defmodule FarmbotCore.EnigmaHandlerTest do
       :ok
     end
 
-    e = %Enigma{
-      priority: 0,
-      local_id: Ecto.UUID.generate(),
-      problem_tag: "firmware.missing"
-    }
+    e = enigma()
 
     :ok = EnigmaHandler.register_up(handler, "firmware.missing", foo)
     EnigmaHandler.handle_up(handler, e)
