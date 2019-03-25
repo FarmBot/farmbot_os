@@ -1,4 +1,8 @@
 defmodule FarmbotExt.AMQP.CeleryScriptTransport do
+  @moduledoc """
+  Handles inbound CeleryScript RPCs (from user via AMQP/MQTT).
+  """
+
   use GenServer
   use AMQP
 

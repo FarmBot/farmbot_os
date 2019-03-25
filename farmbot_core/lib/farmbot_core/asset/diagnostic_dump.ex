@@ -1,7 +1,8 @@
 defmodule FarmbotCore.Asset.DiagnosticDump do
   @moduledoc """
+  Just the DiagDump REST resource, used by FarmBot staff to help users debug
+  remote device problems.
   """
-
   use FarmbotCore.Asset.Schema, path: "/api/diagnostic_dumps"
 
   schema "diagnostic_dumps" do
