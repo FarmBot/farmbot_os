@@ -10,6 +10,8 @@ defmodule FarmbotCore.Asset.Private do
     Asset.Private.Enigma
   }
 
+  alias FarmbotCore.EnigmaHandler
+
   import Ecto.Query, warn: false
   import Ecto.Changeset, warn: false
 
@@ -21,7 +23,12 @@ defmodule FarmbotCore.Asset.Private do
       %Enigma{}
     end
 
-    Enigma.changeset(enigma, params) |> Repo.insert_or_update!()
+    enigma = enigma
+    |> Enigma.changeset(Map.merge(params, %{status: "unresolved"}))
+    |> Repo.insert_or_update!()
+
+    EnigmaHandler.handle_up(enigma)
+    enigma
   end
 
   def find_enigma_by_problem_tag(problem_tag) do
@@ -32,15 +39,15 @@ defmodule FarmbotCore.Asset.Private do
   Clear in-system enigmas that match a particular
   problem_tag.
   """
-  def clear_enigma(problem_tag) do
+  def clear_enigma!(problem_tag) do
     case find_enigma_by_problem_tag(problem_tag) do
-       nil -> :ok
-       %Enigma{} = enigma ->
-         Repo.delete!(enigma)
-         # This is a really nasty side effect that i don't want to be here.
-         # TODO(Connor) FIXME
-         |> FarmbotCore.EnigmaHandler.handle_down()
-         :ok
+      nil -> :ok
+      %Enigma{} = enigma ->
+        enigma
+        |> Enigma.changeset(%{status: "resolved"})
+        |> Repo.update!()
+        |> EnigmaHandler.handle_down()
+        :ok
     end
   end
 

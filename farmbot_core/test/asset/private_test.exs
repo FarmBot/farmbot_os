@@ -27,8 +27,8 @@ defmodule FarmbotCore.Asset.PrivateTest do
     test "clear_enigma() clears out enigmas by problem_tag" do
       enigma1 = enigma()
       assert Repo.get_by(Enigma, problem_tag: enigma1.problem_tag)
-      Private.clear_enigma(enigma1.problem_tag)
-      refute Repo.get_by(Enigma, problem_tag: enigma1.problem_tag)
+      Private.clear_enigma!(enigma1.problem_tag)
+      assert Repo.get_by(Enigma, problem_tag: enigma1.problem_tag).status == "resolved"
     end
   end
 end
