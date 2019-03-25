@@ -1,4 +1,8 @@
 defmodule FarmbotExt.AMQP.BotStateTransport do
+  @moduledoc """
+  Responsible for broadcasting the bot state tree over AMQP/MQTT
+  """
+
   use GenServer
   use AMQP
   alias AMQP.Channel
