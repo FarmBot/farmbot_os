@@ -2,6 +2,7 @@ defmodule FarmbotCore.EnigmaHandler do
   use GenServer
 
   @type enigma :: FarmbotCore.Assets.Private.Enigma.t()
+  alias FarmbotCore.BotState
 
   @doc """
   The `up` callback will cause the EnigmaWorker to terminate if the
@@ -39,6 +40,7 @@ defmodule FarmbotCore.EnigmaHandler do
   end
 
   def handle_call({:handle_up, enigma}, _from, state) do
+    :ok = BotState.add_enigma(enigma)
     case state[enigma.problem_tag] do
       {up, _down} when is_function(up, 1) ->
         {:reply, up.(enigma), state}
@@ -47,6 +49,7 @@ defmodule FarmbotCore.EnigmaHandler do
   end
 
   def handle_call({:handle_down, enigma}, _from, state) do
+    :ok = BotState.clear_enigma(enigma)
     case state[enigma.problem_tag] do
       {_up, down} when is_function(down, 1) ->
         {:reply, down.(enigma), state}

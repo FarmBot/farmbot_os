@@ -23,7 +23,6 @@ defmodule FarmbotCore.MixProject do
       description: "The Brains of the Farmbot Project",
       elixir: @elixir_version,
       make_clean: ["clean"],
-      make_env: make_env(),
       make_cwd: __DIR__,
       compilers: [:elixir_make] ++ Mix.compilers(),
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -66,7 +65,7 @@ defmodule FarmbotCore.MixProject do
     [
       {:farmbot_celery_script, path: "../farmbot_celery_script", env: Mix.env()},
       {:farmbot_firmware, path: "../farmbot_firmware", env: Mix.env()},
-      {:elixir_make, "~> 0.4", runtime: false},
+      {:elixir_make, "~> 0.5", runtime: false},
       {:sqlite_ecto2, "~> 2.3"},
       {:timex, "~> 3.4"},
       {:jason, "~> 1.1"},
@@ -75,21 +74,6 @@ defmodule FarmbotCore.MixProject do
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], targets: [:host], runtime: false},
       {:ex_doc, "~> 0.19", only: [:dev], targets: [:host], runtime: false}
     ]
-  end
-
-  defp make_env do
-    case System.get_env("ERL_EI_INCLUDE_DIR") do
-      nil ->
-        %{
-          "MAKE_CWD" => __DIR__,
-          "ERL_EI_INCLUDE_DIR" => Path.join([:code.root_dir(), "usr", "include"]),
-          "ERL_EI_LIBDIR" => Path.join([:code.root_dir(), "usr", "lib"]),
-          "MIX_TARGET" => @target
-        }
-
-      _ ->
-        %{"MAKE_CWD" => __DIR__}
-    end
   end
 
   defp elixirc_paths(:test) do

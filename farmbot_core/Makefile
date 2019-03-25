@@ -1,6 +1,10 @@
 PREFIX = $(MIX_COMPILE_PATH)/../priv
 BUILD = $(MIX_COMPILE_PATH)/../obj
 
+ifeq ($(MIX_COMPILE_PATH),)
+$(error Something is wrong with mix. Pls fix)
+endif
+
 # Set Erlang-specific compile and linker flags
 ERL_CFLAGS ?= -I$(ERL_EI_INCLUDE_DIR)
 ERL_LDFLAGS ?= -L$(ERL_EI_LIBDIR) -lei
