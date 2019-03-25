@@ -1,4 +1,9 @@
 defmodule FarmbotCore.BotStateNG do
+  @moduledoc """
+  The data strucutre behind the bot state tree (not the living process).
+  Also has some helpers for batching changes.
+  """
+
   alias FarmbotCore.{
     BotStateNG,
     BotStateNG.McuParams,
