@@ -31,12 +31,10 @@ config :farmbot,
     {Farmbot.Platform.Host.Configurator, []}
   ]
 
-config :farmbot, FarmbotOS.TTYDetector, expected_names: []
+config :farmbot, FarmbotOS.FirmwareTTYDetector, expected_names: []
 
 config :farmbot_ext, FarmbotExt.AMQP.NervesHubTransport,
   handle_nerves_hub_msg: FarmbotOS.NervesHub
 
 config :farmbot, FarmbotOS.NervesHub,
   farmbot_nerves_hub_handler: FarmbotOS.Platform.Host.NervesHubHandler
-
-config :farmbot_core, :uart_handler, tty: "/dev/ttyACM0"
