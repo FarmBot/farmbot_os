@@ -48,10 +48,14 @@ defmodule FarmbotCeleryScript.Compiler do
   def compile(%AST{kind: kind} = ast, env \\ []) when kind in @valid_entry_points do
     # compile the ast
     {_, _, _} = compiled = compile_ast(ast)
+      compiled
+      |> Macro.to_string()
+      |> Code.format_string!()
+      |> IO.puts()
     # delete_me(compiled)
     # entry points must be evaluated once more with the calling `env`
     # to return a list of compiled `steps`
-    case Code.eval_quoted(compiled, []) do
+    case Code.eval_quoted(compiled, env) do
       {fun, _} when is_function(fun, 1) -> apply(fun, [env])
       {{:error, error}, _} -> {:error, error}
     end
@@ -677,7 +681,7 @@ defmodule FarmbotCeleryScript.Compiler do
   def compile_params_to_function_args(list, acc \\ [])
 
   def compile_params_to_function_args(
-        [%{kind: :variable_declaration, args: args} | rest],
+        [%{kind: :parameter_application, args: args} | rest],
         acc
       ) do
     %{

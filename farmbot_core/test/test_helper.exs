@@ -6,6 +6,7 @@
 # Ecto.Adapters.SQL.Sandbox.mode(Farmbot.Asset.Repo,  :auto)
 tz = System.get_env("TZ") || Timex.local().time_zone
 
+Logger.configure(backends: [], handle_otp_reports: false, handle_sasl_reports: false)
 FarmbotCore.Asset.Device.changeset(FarmbotCore.Asset.device(), %{timezone: tz})
 |> FarmbotCore.Asset.Repo.insert_or_update!()
 
