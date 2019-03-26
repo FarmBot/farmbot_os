@@ -3,8 +3,8 @@ defmodule FarmbotCore.AssetMonitorTest do
   alias FarmbotCore.{Asset.Repo, AssetMonitor, AssetSupervisor}
   import Farmbot.TestSupport.AssetFixtures
 
-  describe "persistent regimens" do
-    test "adding a persistent regimen starts a process" do
+  describe "regimen instances" do
+    test "adding a regimen instance starts a process" do
       farm_event_params = %{
         start_time: DateTime.utc_now(),
         end_time: DateTime.utc_now(),
@@ -12,7 +12,7 @@ defmodule FarmbotCore.AssetMonitorTest do
         time_unit: "never"
       }
 
-      pr = persistent_regimen(%{}, farm_event_params, %{monitor: true})
+      pr = regimen_instance(%{}, farm_event_params, %{monitor: true})
 
       AssetMonitor.force_checkup()
 

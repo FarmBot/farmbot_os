@@ -1,9 +1,9 @@
-defmodule FarmbotCore.PersistentRegimenWorkerTest do
+defmodule FarmbotCore.RegimenInstanceWorkerTest do
   use ExUnit.Case, async: false
 
   alias FarmbotCeleryScript.Scheduler
 
-  alias FarmbotCore.Asset.PersistentRegimen
+  alias FarmbotCore.Asset.RegimenInstance
 
   import Farmbot.TestSupport.AssetFixtures
 
@@ -13,7 +13,7 @@ defmodule FarmbotCore.PersistentRegimenWorkerTest do
     now = DateTime.utc_now()
     start_time = Timex.shift(now, minutes: -20)
     end_time = Timex.shift(now, minutes: 10)
-    {:ok, epoch} = PersistentRegimen.build_epoch(now)
+    {:ok, epoch} = RegimenInstance.build_epoch(now)
     offset = Timex.diff(now, epoch, :milliseconds) + 500
 
     seq = sequence()
@@ -26,7 +26,7 @@ defmodule FarmbotCore.PersistentRegimenWorkerTest do
       time_unit: "never"
     }
 
-    pr = persistent_regimen(regimen_params, farm_event_params)
+    pr = regimen_instance(regimen_params, farm_event_params)
 
     test_pid = self()
 
@@ -36,7 +36,7 @@ defmodule FarmbotCore.PersistentRegimenWorkerTest do
       end
     ]
 
-    {:ok, _} = FarmbotCore.AssetWorker.FarmbotCore.Asset.PersistentRegimen.start_link(pr, args)
+    {:ok, _} = FarmbotCore.AssetWorker.FarmbotCore.Asset.RegimenInstance.start_link(pr, args)
     assert_receive :executed
   end
 
@@ -44,7 +44,7 @@ defmodule FarmbotCore.PersistentRegimenWorkerTest do
     now = DateTime.utc_now()
     start_time = Timex.shift(now, minutes: -20)
     end_time = Timex.shift(now, minutes: 10)
-    {:ok, epoch} = PersistentRegimen.build_epoch(now)
+    {:ok, epoch} = RegimenInstance.build_epoch(now)
     offset = Timex.diff(now, epoch, :milliseconds) + 500
 
     # Asset instances
@@ -161,7 +161,7 @@ defmodule FarmbotCore.PersistentRegimenWorkerTest do
     # process instances
     # inject syscalls
     # inject celery_script scheduler
-    # inject apply_sequence to PersistentRegimen
+    # inject apply_sequence to RegimenInstance
     {:ok, shim} = TestSysCalls.checkout()
     that = self()
 
@@ -181,9 +181,9 @@ defmodule FarmbotCore.PersistentRegimenWorkerTest do
       end)
 
     {:ok, sch} = Scheduler.start_link([], [])
-    pr = persistent_regimen(regimen_params, farm_event_params)
+    pr = regimen_instance(regimen_params, farm_event_params)
 
-    {:ok, _} = FarmbotCore.AssetWorker.FarmbotCore.Asset.PersistentRegimen.start_link(pr, [])
+    {:ok, _} = FarmbotCore.AssetWorker.FarmbotCore.Asset.RegimenInstance.start_link(pr, [])
 
     expected_x = 9000
     expected_y = 9000

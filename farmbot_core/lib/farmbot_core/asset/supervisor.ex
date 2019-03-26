@@ -12,7 +12,7 @@ defmodule FarmbotCore.Asset.Supervisor do
     FbosConfig,
     PinBinding,
     Peripheral,
-    PersistentRegimen
+    RegimenInstance
   }
 
   def start_link(args) do
@@ -24,7 +24,7 @@ defmodule FarmbotCore.Asset.Supervisor do
       Repo,
       {AssetSupervisor, module: FbosConfig},
       {AssetSupervisor, module: Device},
-      {AssetSupervisor, module: PersistentRegimen},
+      {AssetSupervisor, module: RegimenInstance},
       {AssetSupervisor, module: FarmEvent},
       {AssetSupervisor, module: PinBinding},
       {AssetSupervisor, module: Peripheral},

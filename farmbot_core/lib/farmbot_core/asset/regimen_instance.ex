@@ -1,10 +1,10 @@
-defmodule FarmbotCore.Asset.PersistentRegimen do
+defmodule FarmbotCore.Asset.RegimenInstance do
   use Ecto.Schema
   import Ecto.Changeset
   @primary_key {:local_id, :binary_id, autogenerate: true}
   @timestamps_opts inserted_at: :created_at, type: :utc_datetime
 
-  schema "persistent_regimens" do
+  schema "regimen_instances" do
     belongs_to(:regimen, FarmbotCore.Asset.Regimen, references: :local_id, type: :binary_id)
     belongs_to(:farm_event, FarmbotCore.Asset.FarmEvent, references: :local_id, type: :binary_id)
     field(:epoch, :utc_datetime)
@@ -16,8 +16,8 @@ defmodule FarmbotCore.Asset.PersistentRegimen do
     timestamps()
   end
 
-  def changeset(persistent_regimen, params \\ %{}) do
-    persistent_regimen
+  def changeset(regimen_instance, params \\ %{}) do
+    regimen_instance
     |> cast(params, [:started_at, :next, :next_sequence_id, :monitor])
     |> put_epoch()
     |> cast_assoc(:regimen)
