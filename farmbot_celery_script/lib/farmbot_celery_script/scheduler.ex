@@ -77,13 +77,11 @@ defmodule FarmbotCeleryScript.Scheduler do
   @impl true
   def handle_call({:execute, compiled}, {_pid, ref} = from, state) do
     # Warning, timestamps may be unstable in offline situations.
-    # IO.inspect(ref, label: "execeuting")
     send(self(), :timeout)
     {:reply, {:ok, ref}, %{state | steps: [{from, :os.system_time(), compiled} | state.steps]}}
   end
 
   def handle_call({:schedule, compiled}, {_pid, ref} = from, state) do
-    # IO.inspect(ref, label: "Scheduling")
     send(self(), :timeout)
     {:reply, {:ok, ref}, %{state | steps: state.steps ++ [{from, nil, compiled}]}}
   end
@@ -96,22 +94,17 @@ defmodule FarmbotCeleryScript.Scheduler do
         {_, _, _}, {_, _, _} -> false
       end)
 
-    # IO.inspect(state, label: "timeout")
     case state.execute do
       true ->
-        # IO.inspect(ref, label: "already executing")
         {:noreply, state}
 
       false ->
-        # IO.inspect(ref, label: "starting executing")
-
         {:noreply, %{state | execute: is_number(timestamp), steps: rest},
          {:continue, {from, compiled}}}
     end
   end
 
   def handle_info(:timeout, %{steps: []} = state) do
-    # IO.inspect(state, label: "timeout no steps")
     {:noreply, state}
   end
 
@@ -134,7 +127,6 @@ defmodule FarmbotCeleryScript.Scheduler do
   def handle_continue({{pid, ref}, []}, state) do
     send(pid, {__MODULE__, ref, :ok})
     send(self(), :timeout)
-    # IO.inspect(ref, label: "complete")
     {:noreply, %{state | execute: false}}
   end
 
