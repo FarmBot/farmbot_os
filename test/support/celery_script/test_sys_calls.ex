@@ -1,4 +1,4 @@
-defmodule FarmbotCeleryScript.TestSupport.TestSysCalls do
+defmodule Farmbot.TestSupport.CeleryScript.TestSysCalls do
   @moduledoc """
   Stub implementation of CeleryScript SysCalls
   """
@@ -111,6 +111,7 @@ defmodule FarmbotCeleryScript.TestSupport.TestSysCalls do
     call({:read_status, []})
   end
 
+  @impl true
   def set_user_env(key, val) do
     call({:set_user_env, [key, val]})
   end
@@ -118,6 +119,16 @@ defmodule FarmbotCeleryScript.TestSupport.TestSysCalls do
   @impl true
   def sync do
     call({:sync, []})
+  end
+
+  @impl true
+  def calibrate(axis) do
+    call({:calibrate, [axis]})
+  end
+
+  @impl true
+  def flash_firmware(package) do
+    call({:flash_firmware, [package]})
   end
 
   defp call(data) do

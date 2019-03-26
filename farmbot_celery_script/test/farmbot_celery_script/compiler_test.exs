@@ -3,6 +3,55 @@ defmodule FarmbotCeleryScript.CompilerTest do
   alias FarmbotCeleryScript.{AST, Compiler}
   # Only required to compile
   alias FarmbotCeleryScript.SysCalls, warn: false
+  alias FarmbotCeleryScript.Compiler.IdentifierSanitizer
+
+  test "compiles a sequence with unbound variables" do
+    sequence = %AST{
+      kind: :sequence,
+      args: %{
+        locals: %AST{
+          kind: :scope_declaration,
+          args: %{},
+          body: [
+            %AST{
+              kind: :parameter_declaration,
+              args: %{
+                label: "provided_by_caller",
+                default_value: 100
+              }
+            }
+          ]
+        }
+      },
+      body: [
+        %AST{kind: :identifier, args: %{label: "provided_by_caller"}}
+      ]
+    }
+
+    [body_item] = Compiler.compile(sequence)
+    assert body_item.() == 100
+
+    # The compiler expects the `env` argument to be already sanatized.
+    # When supplying the env for this test, we need to make sure the
+    # `provided_by_caller` variable name is sanatized
+    sanatized_env = [{IdentifierSanitizer.to_variable("provided_by_caller"), 900}]
+    [body_item] = Compiler.compile(sequence, sanatized_env)
+    assert body_item.() == 900
+
+    celery_env = [
+      %AST{
+        kind: :parameter_application,
+        args: %{
+          label: "provided_by_caller",
+          data_value: 600
+        }
+      }
+    ]
+
+    compiled_celery_env = Compiler.compile_params_to_function_args(celery_env)
+    [body_item] = Compiler.compile(sequence, compiled_celery_env)
+    assert body_item.() == 600
+  end
 
   test "compiles a sequence with no body" do
     sequence = %AST{
@@ -67,12 +116,4 @@ defmodule FarmbotCeleryScript.CompilerTest do
     {fun, _} = Code.eval_string(elixir_code, [], __ENV__)
     assert is_function(fun, 1)
   end
-
-  # defp fixture(filename) do
-  #   filename
-  #   |> Path.expand("fixture")
-  #   |> File.read!()
-  #   |> Jason.decode!()
-  #   |> AST.decode()
-  # end
 end
