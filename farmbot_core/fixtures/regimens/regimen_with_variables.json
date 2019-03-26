@@ -1,0 +1,43 @@
+{
+  "body": [
+    {
+      "kind": "parameter_application",
+      "args": {
+        "label": "parent1",
+        "data_value": {
+          "kind": "coordinate",
+          "args": {
+            "x": 1,
+            "y": 2,
+            "z": 3
+          }
+        }
+      }
+    },
+    {
+      "kind": "parameter_declaration",
+      "args": {
+        "label": "parent2",
+        "default_value": {
+          "kind": "tool",
+          "args": {
+            "tool_id": 123
+          }
+        }
+      }
+    },
+    {
+      "kind": "variable_declaration",
+      "args": {
+        "label": "parent3",
+        "data_value": {
+          "kind": "point",
+          "args": {
+            "pointer_type": "GenericPointer",
+            "pointer_id": 456
+          }
+        }
+      }
+    }
+  ]
+}
