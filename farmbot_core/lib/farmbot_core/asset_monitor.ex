@@ -15,7 +15,7 @@ defmodule FarmbotCore.AssetMonitor do
     FarmwareInstallation,
     FarmwareEnv,
     Peripheral,
-    PersistentRegimen,
+    RegimenInstance,
     PinBinding,
   }
 
@@ -119,7 +119,7 @@ defmodule FarmbotCore.AssetMonitor do
       FbosConfig,
       FarmEvent,
       Peripheral,
-      PersistentRegimen,
+      RegimenInstance,
       PinBinding,
       FarmwareInstallation,
       FarmwareEnv
