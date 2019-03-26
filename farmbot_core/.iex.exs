@@ -9,7 +9,7 @@ alias FarmbotCore.Asset.{
   FirmwareConfig,
   PinBinding,
   Regimen,
-  PersistentRegimen,
+  RegimenInstance,
   Sequence
 }
 
