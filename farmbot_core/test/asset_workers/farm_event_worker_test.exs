@@ -4,7 +4,7 @@ defmodule FarmbotCore.FarmEventWorkerTest do
 
   import Farmbot.TestSupport.AssetFixtures
 
-  # Regimen tests are in the PersistentRegimeWorker test
+  # Regimen tests are in the RegimenInstanceWorker test
 
   describe "sequences" do
     test "doesn't execute a sequence more than 2 mintues late" do

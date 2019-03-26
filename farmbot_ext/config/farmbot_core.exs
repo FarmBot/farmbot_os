@@ -1,7 +1,7 @@
 use Mix.Config
 config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmEvent, checkup_time_ms: 10_000
 
-config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.PersistentRegimen,
+config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.RegimenInstance,
   checkup_time_ms: 10_000
 
 config :farmbot_core, Elixir.FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding,
