@@ -25,9 +25,9 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PersistentRegimen do
   end
 
   def init([persistent_regimen, args]) do
-    apply_sequence = Keyword.get(args, :apply_sequence, &Scheduler.schedule/1)
-    unless is_function(apply_sequence, 1) do
-      raise "PersistentRegimen Sequence handler should be a 1 arity function"
+    apply_sequence = Keyword.get(args, :apply_sequence, &Scheduler.schedule/2)
+    unless is_function(apply_sequence, 2) do
+      raise "PersistentRegimen Sequence handler should be a 2 arity function"
     end
     Process.put(:apply_sequence, apply_sequence)
 
@@ -65,7 +65,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PersistentRegimen do
 
         exe = Asset.get_sequence!(id: pr.next_sequence_id)
         fun = Process.get(:apply_sequence)
-        apply(fun, [exe])
+        apply(fun, [exe, pr.regimen.body])
         calculate_next(pr)
     end
   end
