@@ -1,6 +1,12 @@
 defmodule FarmbotCore.EnigmaHandler do
+  @moduledoc """
+  Registers and deregisters a function that fires when an Enigma is created or
+  destroyed.
+  """
+
   use GenServer
 
+  # TODO(RickCarlino): Remote type does not exist. FIXME
   @type enigma :: FarmbotCore.Assets.Private.Enigma.t()
   alias FarmbotCore.BotState
 
