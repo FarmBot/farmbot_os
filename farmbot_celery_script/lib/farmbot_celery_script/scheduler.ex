@@ -59,13 +59,15 @@ defmodule FarmbotCeleryScript.Scheduler do
   by `execute/2` taking priority.
   """
   @spec schedule(GenServer.server(), AST.t() | [Compiler.compiled()]) :: {:ok, reference()}
-  def schedule(scheduler_pid \\ __MODULE__, celery_script)
+  def schedule(scheduler_pid \\ __MODULE__, celery_script, env)
 
-  def schedule(sch, %AST{} = ast) do
-    schedule(sch, Compiler.compile(ast))
+  def schedule(sch, %AST{} = ast, env) do
+    compiled = Compiler.compile(ast, env)
+    IO.inspect(compiled, label: "compiled")
+    schedule(sch, compiled)
   end
 
-  def schedule(sch, compiled) when is_list(compiled) do
+  def schedule(sch, compiled, _) when is_list(compiled) do
     GenServer.call(sch, {:schedule, compiled})
   end
 
