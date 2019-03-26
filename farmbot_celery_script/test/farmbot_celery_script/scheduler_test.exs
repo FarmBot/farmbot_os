@@ -1,7 +1,7 @@
 defmodule FarmbotCeleryScript.SchedulerTest do
   use ExUnit.Case, async: false
   alias FarmbotCeleryScript.{Scheduler, Compiler, AST}
-  alias FarmbotCeleryScript.TestSupport.TestSysCalls
+  alias Farmbot.TestSupport.CeleryScript.TestSysCalls
 
   setup do
     {:ok, shim} = TestSysCalls.checkout()
@@ -157,14 +157,12 @@ defmodule FarmbotCeleryScript.SchedulerTest do
     task_1 =
       Task.async(fn ->
         {:ok, execute_ref_1} = Scheduler.execute(sch, execute_1)
-        IO.inspect(execute_ref_1, label: "task_1")
         assert_receive {Scheduler, ^execute_ref_1, :ok}, 3000
       end)
 
     task_2 =
       Task.async(fn ->
         {:ok, execute_ref_2} = Scheduler.execute(sch, execute_2)
-        IO.inspect(execute_ref_2, label: "task_2")
         assert_receive {Scheduler, ^execute_ref_2, :ok}, 3000
       end)
 
@@ -217,14 +215,12 @@ defmodule FarmbotCeleryScript.SchedulerTest do
     task_1 =
       Task.async(fn ->
         {:ok, execute_ref_1} = Scheduler.execute(sch, execute_1)
-        IO.inspect(execute_ref_1, label: "task_1")
         assert_receive {Scheduler, ^execute_ref_1, :ok}, 3000
       end)
 
     task_2 =
       Task.async(fn ->
         {:ok, execute_ref_2} = Scheduler.execute(sch, schedule_1)
-        IO.inspect(execute_ref_2, label: "task_2")
         assert_receive {Scheduler, ^execute_ref_2, :ok}, 3000
       end)
 
@@ -238,7 +234,7 @@ defmodule FarmbotCeleryScript.SchedulerTest do
     assert time_2 >= time_1 + 1000
   end
 
-  test "schedule and execute simotaniously", %{sch: sch} do
+  test "schedule and execute simultaneously", %{sch: sch} do
     schedule_ast_1 =
       %{
         kind: :sequence,
@@ -278,6 +274,8 @@ defmodule FarmbotCeleryScript.SchedulerTest do
     task_1 =
       Task.async(fn ->
         {:ok, schedule_ref_1} = Scheduler.schedule(sch, schedule_1)
+        # TODO(Connor) Literally any function call will 
+        # make this not a race condition???
         IO.inspect(schedule_ref_1, label: "task_1")
         assert_receive {Scheduler, ^schedule_ref_1, :ok}, 3000
       end)
