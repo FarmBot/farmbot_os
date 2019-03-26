@@ -1,4 +1,4 @@
-defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PersistentRegimen do
+defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
   @moduledoc """
   An instance of a running Regimen. Asset.Regimen is the blueprint by which a
   Regimen "instance" is created.
@@ -9,8 +9,9 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PersistentRegimen do
   require FarmbotCore.Logger
 
   alias FarmbotCore.Asset
-  alias FarmbotCore.Asset.{PersistentRegimen, FarmEvent, Regimen}
+  alias FarmbotCore.Asset.{RegimenInstance, FarmEvent, Regimen}
   alias FarmbotCeleryScript.{Scheduler, AST, Compiler}
+  alias FarmbotCeleryScript.Scheduler
 
   @checkup_time_ms Application.get_env(:farmbot_core, __MODULE__)[:checkup_time_ms]
   @checkup_time_ms ||
@@ -18,33 +19,33 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PersistentRegimen do
     config :farmbot_core, #{__MODULE__}, checkup_time_ms: 10_000
     """)
 
-  def preload(%PersistentRegimen{}), do: [:farm_event, :regimen]
+  def preload(%RegimenInstance{}), do: [:farm_event, :regimen]
 
-  def start_link(persistent_regimen, args) do
-    GenServer.start_link(__MODULE__, [persistent_regimen, args])
+  def start_link(regimen_instance, args) do
+    GenServer.start_link(__MODULE__, [regimen_instance, args])
   end
 
   def init([persistent_regimen, args]) do
     apply_sequence = Keyword.get(args, :apply_sequence, &apply_sequence/2)
     unless is_function(apply_sequence, 2) do
-      raise "PersistentRegimen Sequence handler should be a 2 arity function"
+      raise "RegimenInstance Sequence handler should be a 2 arity function"
     end
     Process.put(:apply_sequence, apply_sequence)
 
-    with %Regimen{} <- persistent_regimen.regimen,
-         %FarmEvent{} <- persistent_regimen.farm_event do
-      {:ok, filter_items(persistent_regimen), 0}
+    with %Regimen{} <- regimen_instance.regimen,
+         %FarmEvent{} <- regimen_instance.farm_event do
+      {:ok, filter_items(regimen_instance), 0}
     else
-      _ -> {:stop, "Persistent Regimen not preloaded."}
+      _ -> {:stop, "Regimen instance not preloaded."}
     end
   end
 
-  def handle_info(:timeout, %PersistentRegimen{next: nil} = pr) do
-    persistent_regimen = filter_items(pr)
-    calculate_next(persistent_regimen, 0)
+  def handle_info(:timeout, %RegimenInstance{next: nil} = pr) do
+    regimen_instance = filter_items(pr)
+    calculate_next(regimen_instance, 0)
   end
 
-  def handle_info(:timeout, %PersistentRegimen{} = pr) do
+  def handle_info(:timeout, %RegimenInstance{} = pr) do
     # Check if pr.next is around 2 minutes in the past
     # positive if the first date/time comes after the second.
     comp = Timex.diff(DateTime.utc_now(), pr.next, :minutes)
@@ -77,7 +78,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PersistentRegimen do
     params = %{next: next_dt, next_sequence_id: next.sequence_id}
     # TODO(Connor) - This causes the active GenServer to be
     #                Restarted due to the `AssetMonitor`
-    pr = Asset.update_persistent_regimen!(pr, params)
+    pr = Asset.update_regimen_instance!(pr, params)
 
     pr = %{
       pr
@@ -92,7 +93,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PersistentRegimen do
     {:noreply, pr, :hibernate}
   end
 
-  defp filter_items(%PersistentRegimen{regimen: %Regimen{} = reg} = pr) do
+  defp filter_items(%RegimenInstance{regimen: %Regimen{} = reg} = pr) do
     items =
       reg.regimen_items
       |> Enum.sort(&(&1.time_offset <= &2.time_offset))
