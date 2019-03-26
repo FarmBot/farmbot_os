@@ -1,4 +1,9 @@
 defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PersistentRegimen do
+  @moduledoc """
+  An instance of a running Regimen. Asset.Regimen is the blueprint by which a
+  Regimen "instance" is created.
+  """
+
   use GenServer
   require Logger
   require FarmbotCore.Logger
