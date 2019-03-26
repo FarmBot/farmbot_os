@@ -1,5 +1,8 @@
 defmodule FarmbotOS.Init.FSCheckup do
   @moduledoc false
+  # Performs a filesystem checkup and formats the
+  # volume on first boot.
+
   use Supervisor
   require Logger
 

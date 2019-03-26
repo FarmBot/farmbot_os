@@ -52,7 +52,7 @@ defmodule FarmbotFirmware.StubTransport do
       GCODE.new(:report_position, state.position),
       GCODE.new(:report_encoders_scaled, state.encoders_scaled),
       GCODE.new(:report_encoders_raw, state.encoders_raw),
-      GCODE.new(:report_idle, []),
+      GCODE.new(:report_idle, [])
     ]
 
     {:noreply, state, {:continue, resp_codes}}
@@ -195,6 +195,7 @@ defmodule FarmbotFirmware.StubTransport do
     resp_codes = [
       GCODE.new(:report_software_version, ["8.0.0.S"])
     ]
+
     {:reply, :ok, state, {:continue, resp_codes}}
   end
 

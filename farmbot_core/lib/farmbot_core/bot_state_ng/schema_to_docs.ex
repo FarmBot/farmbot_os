@@ -1,4 +1,11 @@
 defmodule FarmbotCore.BotStateNG.Schema2Docs do
+  @moduledoc """
+  Turns the bot state tree schema into a typescript interface file.
+  As of 26 March 19, it is incomplete
+  """
+
+  #TODO(RickCarlino): Complete this module
+
   alias FarmbotCore.BotStateNG
 
   def schema_to_ts do

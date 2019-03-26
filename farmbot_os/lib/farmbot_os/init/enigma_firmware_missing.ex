@@ -62,7 +62,7 @@ defmodule FarmbotOS.Init.EnigmaFirmwareMissing do
   end
 
   defp swap_transport(tty) do
-    Application.put_env(:farmbot_firmware, FarmbotFirmware, [transport: UARTTransport, device: tty])
+    Application.put_env(:farmbot_firmware, FarmbotFirmware, transport: UARTTransport, device: tty)
     # Swap transport on FW module.
     # Close tranpsort if it is open currently.
     _ = FarmbotFirmware.close_transport()

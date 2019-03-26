@@ -370,7 +370,10 @@ defmodule FarmbotFirmware do
   end
 
   # "ARDUINO STARTUP COMPLETE" => goto(:boot, :no_config)
-  def handle_report({:report_debug_message, ["ARDUINO STARTUP COMPLETE"]}, %{status: :boot} = state) do
+  def handle_report(
+        {:report_debug_message, ["ARDUINO STARTUP COMPLETE"]},
+        %{status: :boot} = state
+      ) do
     Logger.info("ARDUINO STARTUP COMPLETE")
     handle_report({:report_no_config, []}, state)
   end
