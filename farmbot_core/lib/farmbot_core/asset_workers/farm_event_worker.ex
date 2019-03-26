@@ -177,6 +177,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
 
   @doc false
   def handle_regimen(exe, event, params) do
-    Asset.upsert_persistent_regimen!(exe, event, params)
+    Asset.upsert_regimen_instance!(exe, event, params)
   end
 end

@@ -2,11 +2,11 @@ defmodule Farmbot.TestSupport.AssetFixtures do
   alias FarmbotCore.Asset
   alias FarmbotCore.Asset.{Repo, FarmEvent, FbosConfig, Regimen, Sequence, Private}
 
-  def persistent_regimen(regimen_params, farm_event_params, params \\ %{}) do
+  def regimen_instance(regimen_params, farm_event_params, params \\ %{}) do
     regimen = regimen(regimen_params)
     farm_event = regimen_event(regimen, farm_event_params)
     params = Map.merge(%{id: :rand.uniform(10000), monitor: false}, params)
-    Asset.upsert_persistent_regimen!(regimen, farm_event, params)
+    Asset.upsert_regimen_instance!(regimen, farm_event, params)
   end
 
   def fbos_config(params \\ %{}) do
