@@ -19,7 +19,7 @@ defmodule FarmbotCore.Asset do
     PinBinding,
     Point,
     Regimen,
-    PersistentRegimen,
+    RegimenInstance,
     Sequence
   }
 
@@ -83,31 +83,31 @@ defmodule FarmbotCore.Asset do
 
   ## End FirmwareConfig
 
-  ## Begin PersistentRegimen
+  ## Begin RegimenInstance
 
-  def upsert_persistent_regimen!(%Regimen{} = regimen, %FarmEvent{} = farm_event, params \\ %{}) do
+  def upsert_regimen_instance!(%Regimen{} = regimen, %FarmEvent{} = farm_event, params \\ %{}) do
     q =
-      from(pr in PersistentRegimen,
+      from(pr in RegimenInstance,
         where: pr.regimen_id == ^regimen.local_id and pr.farm_event_id == ^farm_event.local_id
       )
 
-    pr = Repo.one(q) || %PersistentRegimen{}
+    pr = Repo.one(q) || %RegimenInstance{}
 
     pr
     |> Repo.preload([:regimen, :farm_event])
-    |> PersistentRegimen.changeset(params)
+    |> RegimenInstance.changeset(params)
     |> Ecto.Changeset.put_assoc(:regimen, regimen)
     |> Ecto.Changeset.put_assoc(:farm_event, farm_event)
     |> Repo.insert_or_update!()
   end
 
-  def update_persistent_regimen!(%PersistentRegimen{} = pr, params \\ %{}) do
+  def update_regimen_instance!(%RegimenInstance{} = pr, params \\ %{}) do
     pr
-    |> PersistentRegimen.changeset(params)
+    |> RegimenInstance.changeset(params)
     |> Repo.update!()
   end
 
-  ## End PersistentRegimen
+  ## End RegimenInstance
 
   ## Begin PinBinding
 
