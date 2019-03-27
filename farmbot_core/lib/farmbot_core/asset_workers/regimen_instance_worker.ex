@@ -25,7 +25,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
     GenServer.start_link(__MODULE__, [regimen_instance, args])
   end
 
-  def init([persistent_regimen, args]) do
+  def init([regimen_instance, args]) do
     apply_sequence = Keyword.get(args, :apply_sequence, &apply_sequence/2)
     unless is_function(apply_sequence, 2) do
       raise "RegimenInstance Sequence handler should be a 2 arity function"
