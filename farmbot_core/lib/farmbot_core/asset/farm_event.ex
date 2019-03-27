@@ -3,6 +3,7 @@ defmodule FarmbotCore.Asset.FarmEvent do
   """
 
   use FarmbotCore.Asset.Schema, path: "/api/farm_events"
+  alias FarmbotCore.Asset.FarmEvent.BodyNode
 
   schema "farm_events" do
     field(:id, :id)
@@ -19,6 +20,7 @@ defmodule FarmbotCore.Asset.FarmEvent do
     field(:repeat, :integer)
     field(:start_time, :utc_datetime)
     field(:time_unit, :string)
+    embeds_many(:body, BodyNode, on_replace: :delete)
 
     # Private
     field(:last_executed, :utc_datetime)
@@ -35,7 +37,8 @@ defmodule FarmbotCore.Asset.FarmEvent do
       executable_id: farm_event.executable_id,
       repeat: farm_event.repeat,
       start_time: farm_event.start_time,
-      time_unit: farm_event.time_unit
+      time_unit: farm_event.time_unit,
+      body: Enum.map(farm_event.body, &BodyNode.render/1)
     }
   end
 
@@ -54,6 +57,7 @@ defmodule FarmbotCore.Asset.FarmEvent do
       :created_at,
       :updated_at
     ])
+    |> cast_embed(:body)
     |> validate_required([])
   end
 
