@@ -22,7 +22,7 @@ defmodule FarmbotOS.NervesHub do
   alias FarmbotCore.Asset.{Repo, DeviceCert}
   import FarmbotCore.Config, only: [get_config_value: 3]
 
-  @behaviour FarmbotExt.AMQP.NervesHubTransport
+  @behaviour FarmbotExt.AMQP.NervesHubChannel
 
   @handler Application.get_env(:farmbot, __MODULE__)[:farmbot_nerves_hub_handler] ||
              Mix.raise("missing :farmbot_nerves_hub_handler module")
