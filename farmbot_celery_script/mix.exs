@@ -31,7 +31,7 @@ defmodule FarmbotCeleryScript.MixProject do
     ]
   end
 
-  def elixirc_paths(:test), do: ["lib", "./test/support"]
+  def elixirc_paths(:test), do: ["lib", "./test/support", "../test/support/celery_script"]
   def elixirc_paths(_), do: ["lib"]
 
   # Run "mix help compile.app" to learn about applications.

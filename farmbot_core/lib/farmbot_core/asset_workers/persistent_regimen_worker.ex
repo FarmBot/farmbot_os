@@ -10,7 +10,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PersistentRegimen do
 
   alias FarmbotCore.Asset
   alias FarmbotCore.Asset.{PersistentRegimen, FarmEvent, Regimen}
-  alias FarmbotCeleryScript.Scheduler
+  alias FarmbotCeleryScript.{Scheduler, AST, Compiler}
 
   @checkup_time_ms Application.get_env(:farmbot_core, __MODULE__)[:checkup_time_ms]
   @checkup_time_ms ||
@@ -25,7 +25,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PersistentRegimen do
   end
 
   def init([persistent_regimen, args]) do
-    apply_sequence = Keyword.get(args, :apply_sequence, &Scheduler.schedule/2)
+    apply_sequence = Keyword.get(args, :apply_sequence, &apply_sequence/2)
     unless is_function(apply_sequence, 2) do
       raise "PersistentRegimen Sequence handler should be a 2 arity function"
     end
@@ -98,5 +98,24 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PersistentRegimen do
       |> Enum.sort(&(&1.time_offset <= &2.time_offset))
 
     %{pr | regimen: %{reg | regimen_items: items}}
+  end
+
+  # TODO(RickCarlino) This function essentially copy/pastes a regimen body into
+  # the `locals` of a sequence, which works but is not-so-clean. Refactor later
+  # when we have a better idea of the problem.
+  defp apply_sequence(sequence, regimen_body) do
+    param_appls = AST.decode(regimen_body)
+    celery_ast =  AST.decode(sequence)
+
+    celery_ast = %{
+      celery_ast
+      | args: %{
+          celery_ast.args
+          | locals: %{celery_ast.args.locals | body: celery_ast.args.locals.body ++ param_appls}
+        }
+    }
+
+    compiled = compiled_celery = Compiler.compile(celery_ast)
+    Scheduler.schedule(compiled)
   end
 end
