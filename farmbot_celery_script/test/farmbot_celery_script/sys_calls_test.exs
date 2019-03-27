@@ -1,6 +1,6 @@
 defmodule FarmbotCeleryScript.SysCallsTest do
   use ExUnit.Case, async: false
-  alias FarmbotCeleryScript.TestSupport.TestSysCalls
+  alias Farmbot.TestSupport.CeleryScript.TestSysCalls
   alias FarmbotCeleryScript.{SysCalls, RuntimeError}
 
   setup do
