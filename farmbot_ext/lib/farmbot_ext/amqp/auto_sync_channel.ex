@@ -1,4 +1,4 @@
-defmodule FarmbotExt.AMQP.AutoSyncTransport do
+defmodule FarmbotExt.AMQP.AutoSyncChannel do
   @moduledoc """
   This module provides an AMQP channel for
   auto-sync messages from the FarmBot API.
