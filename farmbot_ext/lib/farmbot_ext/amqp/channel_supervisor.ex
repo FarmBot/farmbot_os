@@ -8,7 +8,7 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
     LogChannel,
     BotStateTransport,
     BotStateNGTransport,
-    AutoSyncTransport,
+    AutoSyncChannel,
     CeleryScriptTransport
   }
 
@@ -25,7 +25,7 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
       {LogChannel, [jwt: jwt]},
       {BotStateTransport, [jwt: jwt]},
       {BotStateNGTransport, [jwt: jwt]},
-      {AutoSyncTransport, [jwt: jwt]},
+      {AutoSyncChannel, [jwt: jwt]},
       {CeleryScriptTransport, [jwt: jwt]}
     ]
 
