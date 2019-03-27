@@ -181,7 +181,7 @@ defmodule FarmbotCore.RegimenInstanceWorkerTest do
       end)
 
     {:ok, sch} = Scheduler.start_link([], [])
-    pr = persistent_regimen(regimen_params, farm_event_params)
+    pr = regimen_instance(regimen_params, farm_event_params)
 
     {:ok, _} = FarmbotCore.AssetWorker.FarmbotCore.Asset.RegimenInstance.start_link(pr, [])
 
