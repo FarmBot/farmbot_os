@@ -9,7 +9,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
   require FarmbotCore.Logger
 
   alias FarmbotCore.Asset
-  alias FarmbotCore.Asset.{RegimenInstance, FarmEvent, Regimen}
+  alias FarmbotCore.Asset.{RegimenInstance, FarmEvent, Sequence, Regimen}
   alias FarmbotCeleryScript.{Scheduler, AST, Compiler}
   alias FarmbotCeleryScript.Scheduler
 
@@ -18,6 +18,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
     Mix.raise("""
     config :farmbot_core, #{__MODULE__}, checkup_time_ms: 10_000
     """)
+
+  @type apply_sequence :: (Sequence.t(), Regimen.t() -> any())
 
   def preload(%RegimenInstance{}), do: [:farm_event, :regimen]
 
@@ -45,30 +47,34 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
     calculate_next(regimen_instance, 0)
   end
 
-  def handle_info(:timeout, %RegimenInstance{} = pr) do
-    # Check if pr.next is around 2 minutes in the past
+  def handle_info(:timeout, %RegimenInstance{} = ri) do
+    # Check if ri.next is around 2 minutes in the past
     # positive if the first date/time comes after the second.
-    comp = Timex.diff(DateTime.utc_now(), pr.next, :minutes)
+    comp = Timex.diff(DateTime.utc_now(), ri.next, :minutes)
 
     cond do
       # now is more than 2 minutes past expected execution time
       comp > 2 ->
         Logger.warn(
-          "Regimen: #{pr.regimen.name || "regimen"} too late: #{comp} minutes difference."
+          "Regimen: #{ri.regimen.name || "regimen"} too late: #{comp} minutes difference."
         )
 
-        calculate_next(pr)
+        calculate_next(ri)
 
       true ->
         Logger.warn(
-          "Regimen: #{pr.regimen.name || "regimen"} has not run before: #{comp} minutes difference."
+          "Regimen: #{ri.regimen.name || "regimen"} has not run before: #{comp} minutes difference."
         )
 
-        exe = Asset.get_sequence!(id: pr.next_sequence_id)
+        exe = Asset.get_sequence!(id: ri.next_sequence_id)
         fun = Process.get(:apply_sequence)
-        apply(fun, [exe, pr.regimen.body])
-        calculate_next(pr)
+        apply(fun, [exe, ri])
+        calculate_next(ri)
     end
+  end
+
+  def handle_info({Scheduler, _ref, _result}, state) do
+    {:noreply, state}
   end
 
   defp calculate_next(pr, checkup_time_ms \\ @checkup_time_ms)
@@ -85,7 +91,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
       | regimen: %{reg | regimen_items: rest}
     }
 
-    {:noreply, pr, checkup_time_ms}
+    Process.send_after(self(), :timeout, checkup_time_ms)
+    {:noreply, pr}
   end
 
   defp calculate_next(%{regimen: %{regimen_items: []}} = pr, _) do
@@ -104,19 +111,24 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
   # TODO(RickCarlino) This function essentially copy/pastes a regimen body into
   # the `locals` of a sequence, which works but is not-so-clean. Refactor later
   # when we have a better idea of the problem.
-  defp apply_sequence(sequence, regimen_body) do
-    param_appls = AST.decode(regimen_body)
+  defp apply_sequence(%Sequence{} = sequence, %RegimenInstance{} = regimen_instance) do
+    # FarmEvent is the furthest outside of the scope
+    farm_event_params = AST.decode(regimen_instance.farm_event.body)
+    # Regimen is the second scope
+    regimen_params = AST.decode(regimen_instance.regimen.body)
+    # there may be many sequence scopes from here downward
     celery_ast =  AST.decode(sequence)
 
     celery_ast = %{
       celery_ast
       | args: %{
           celery_ast.args
-          | locals: %{celery_ast.args.locals | body: celery_ast.args.locals.body ++ param_appls}
+          | locals: %{
+            celery_ast.args.locals | body: celery_ast.args.locals.body ++ regimen_params ++ farm_event_params}
         }
     }
 
-    compiled = compiled_celery = Compiler.compile(celery_ast)
-    Scheduler.schedule(compiled)
+    compiled_celery = Compiler.compile(celery_ast)
+    Scheduler.schedule(compiled_celery)
   end
 end
