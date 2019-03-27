@@ -7,7 +7,6 @@ defmodule FarmbotOS.SysCalls.ExecuteScript do
     with {:ok, manifest} <- lookup(farmware_name),
          {:ok, runtime} <- FarmwareRuntime.start_link(manifest, env) do
       monitor = Process.monitor(runtime)
-      IO.inspect(runtime, label: "runtime pid")
       loop(farmware_name, runtime, monitor, {nil, nil})
     else
       {:error, {:already_started, _pid}} ->
