@@ -9,8 +9,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
     Asset.Sequence
   }
 
-  alias FarmbotCeleryScript.Scheduler
-
+  alias FarmbotCeleryScript.{Scheduler, AST, Compiler}
   defstruct [:farm_event, :datetime, :handle_sequence, :handle_regimen]
   alias __MODULE__, as: State
 
@@ -30,11 +29,11 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
     # Logger.disable(self())
     ensure_executable!(farm_event)
     now = DateTime.utc_now()
-    handle_sequence = Keyword.get(args, :handle_sequence, &Scheduler.schedule/1)
+    handle_sequence = Keyword.get(args, :handle_sequence, &handle_sequence/2)
     handle_regimen = Keyword.get(args, :handle_regimen, &handle_regimen/3)
 
-    unless is_function(handle_sequence, 1) do
-      raise "FarmEvent Sequence handler should be a 1 arity function"
+    unless is_function(handle_sequence, 2) do
+      raise "FarmEvent Sequence handler should be a 2 arity function"
     end
 
     unless is_function(handle_regimen, 3) do
@@ -123,7 +122,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
 
       true ->
         Logger.warn("Sequence: #{inspect(exe)} has not run before: #{comp} minutes difference.")
-        apply(handle_sequence, [wrap_sequence(event, exe)])
+        apply(handle_sequence, [exe, event.body])
         Asset.update_farm_event!(event, %{last_executed: next_dt})
     end
   end
@@ -135,7 +134,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
     cond do
       comp > 2 ->
         Logger.warn("Sequence: #{inspect(exe)} needs executing")
-        apply(handle_sequence, [wrap_sequence(event, exe)])
+        apply(handle_sequence, [exe, event.body])
         Asset.update_farm_event!(event, %{last_executed: next_dt})
 
       0 ->
@@ -169,14 +168,25 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
     Asset.get_regimen!(id: id)
   end
 
-  # Should wrap a sequence with the `body` of the event.
-  # TODO
-  defp wrap_sequence(%FarmEvent{}, %Sequence{} = sequence) do
-    sequence
-  end
-
   @doc false
   def handle_regimen(exe, event, params) do
     Asset.upsert_regimen_instance!(exe, event, params)
   end
+
+  defp handle_sequence(sequence, farm_event_body) do
+    param_appls = AST.decode(farm_event_body)
+    celery_ast =  AST.decode(sequence)
+
+    celery_ast = %{
+      celery_ast
+      | args: %{
+          celery_ast.args
+          | locals: %{celery_ast.args.locals | body: celery_ast.args.locals.body ++ param_appls}
+        }
+    }
+
+    compiled = compiled_celery = Compiler.compile(celery_ast)
+    Scheduler.schedule(compiled)
+  end
+
 end
