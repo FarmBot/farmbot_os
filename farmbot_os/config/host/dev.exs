@@ -35,8 +35,7 @@ config :farmbot, FarmbotOS.FirmwareTTYDetector,
     System.get_env("FARMBOT_TTY")
   ]
 
-config :farmbot_ext, FarmbotExt.AMQP.NervesHubTransport,
-  handle_nerves_hub_msg: FarmbotOS.NervesHub
+config :farmbot_ext, FarmbotExt.AMQP.NervesHubChannel, handle_nerves_hub_msg: FarmbotOS.NervesHub
 
 config :farmbot, FarmbotOS.NervesHub,
   farmbot_nerves_hub_handler: FarmbotOS.Platform.Host.NervesHubHandler

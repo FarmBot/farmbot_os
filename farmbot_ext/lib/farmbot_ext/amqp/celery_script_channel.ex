@@ -1,4 +1,4 @@
-defmodule FarmbotExt.AMQP.CeleryScriptTransport do
+defmodule FarmbotExt.AMQP.CeleryScriptChannel do
   @moduledoc """
   Handles inbound CeleryScript RPCs (from user via AMQP/MQTT).
   """
