@@ -1,4 +1,4 @@
-defmodule FarmbotExt.AMQP.LogTransport do
+defmodule FarmbotExt.AMQP.LogChannel do
   @moduledoc """
   Handler for AMQP log channel
   """
