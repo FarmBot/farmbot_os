@@ -1,12 +1,98 @@
 defmodule FarmbotCore.FarmEventWorkerTest do
   use ExUnit.Case, async: true
   alias FarmbotCore.{Asset.FarmEvent, AssetWorker}
-
+  alias Farmbot.TestSupport.CeleryScript.TestSysCalls
   import Farmbot.TestSupport.AssetFixtures
 
   # Regimen tests are in the RegimenInstanceWorker test
 
   describe "sequences" do
+    test "passage of variables from FarmEvent to Sequence" do
+      # Create sequence with MoveABS that move to variable
+      sequence =
+        sequence(%{
+          args: %{
+            version: 0,
+            locals: %{
+              kind: "scope_declaration",
+              args: %{},
+              body: [
+                %{
+                  kind: "parameter_declaration",
+                  args: %{
+                    label: "inside_sequence",
+                    default_value: %{
+                      kind: "coordinate",
+                      args: %{
+                        x: -1,
+                        y: -2,
+                        z: -3
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          body: [
+            %{
+              kind: "move_absolute",
+              args: %{
+                location: %{
+                  kind: "identifier",
+                  args: %{
+                    label: "inside_sequence"
+                  }
+                },
+                speed: 100,
+                offset: %{
+                  kind: "coordinate",
+                  args: %{x: 0, y: 0, z: 0}
+                }
+              }
+            }
+          ]
+        })
+
+      now = DateTime.utc_now()
+
+      params = %{
+        start_time: Timex.shift(now, seconds: 2),
+        end_time: Timex.shift(now, minutes: 10),
+        repeat: 1,
+        time_unit: "never",
+        body: [
+          %{
+            kind: "parameter_application",
+            args: %{
+              label: "inside_sequence",
+              data_value: %{
+                kind: "coordinate",
+                args: %{x: 9000, y: 9000, z: 9000}
+              }
+            }
+          }
+        ]
+      }
+
+      farm_event = sequence_event(sequence, params)
+      that = self()
+      {:ok, _} = TestSysCalls.checkout()
+
+      :ok =
+        TestSysCalls.handle(TestSysCalls, fn
+          :coordinate, [x, y, z] ->
+            %{x: x, y: y, z: z}
+
+          kind, args ->
+            send(that, {kind, args})
+            :ok
+        end)
+
+      {:ok, _} = FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmEvent.start_link(farm_event, [])
+      assert_receive {:move_absolute, [9000, 9000, 9000, 100]}, 5_000
+    end
+
     test "doesn't execute a sequence more than 2 mintues late" do
       seq = sequence()
       now = DateTime.utc_now()
@@ -24,7 +110,7 @@ defmodule FarmbotCore.FarmEventWorkerTest do
       test_pid = self()
 
       args = [
-        handle_sequence: fn _sequence ->
+        handle_sequence: fn _sequence, _event_body ->
           send(test_pid, {:executed, test_pid})
         end
       ]
@@ -55,7 +141,7 @@ defmodule FarmbotCore.FarmEventWorkerTest do
       test_pid = self()
 
       args = [
-        handle_sequence: fn _sequence ->
+        handle_sequence: fn _sequence, _farm_event_body ->
           send(test_pid, {:executed, test_pid})
         end
       ]
@@ -85,7 +171,7 @@ defmodule FarmbotCore.FarmEventWorkerTest do
       test_pid = self()
 
       args = [
-        handle_sequence: fn _sequence ->
+        handle_sequence: fn _sequence, _event_body ->
           send(test_pid, {:executed, test_pid})
         end
       ]
