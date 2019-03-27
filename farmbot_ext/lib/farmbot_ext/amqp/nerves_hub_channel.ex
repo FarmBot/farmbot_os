@@ -1,4 +1,4 @@
-defmodule FarmbotExt.AMQP.NervesHubTransport do
+defmodule FarmbotExt.AMQP.NervesHubChannel do
   use GenServer
   use AMQP
 
@@ -19,7 +19,7 @@ defmodule FarmbotExt.AMQP.NervesHubTransport do
     Mix.raise("""
     Please define a function that will handle NervesHub certs.
 
-        config :farmbot_ext, Farmbot.AMQP.NervesHubTransport,
+        config :farmbot_ext, Farmbot.AMQP.NervesHubChannel,
           handle_nerves_hub_msg: SomeModule
     """)
 

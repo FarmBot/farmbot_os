@@ -67,8 +67,7 @@ config :farmbot, FarmbotOS.Platform.Supervisor,
     FarmbotOS.Platform.Target.InfoWorker.Supervisor
   ]
 
-config :farmbot_ext, FarmbotExt.AMQP.NervesHubTransport,
-  handle_nerves_hub_msg: FarmbotOS.NervesHub
+config :farmbot_ext, FarmbotExt.AMQP.NervesHubChannel, handle_nerves_hub_msg: FarmbotOS.NervesHub
 
 config :farmbot, FarmbotOS.NervesHub,
   farmbot_nerves_hub_handler: FarmbotOS.Platform.Target.NervesHubClient
