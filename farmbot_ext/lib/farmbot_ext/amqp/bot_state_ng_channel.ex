@@ -1,4 +1,4 @@
-defmodule FarmbotExt.AMQP.BotStateNGTransport do
+defmodule FarmbotExt.AMQP.BotStateNGChannel do
   @moduledoc """
   Publishes JSON encoded bot state fragements onto an AMQP channel
   Examples:
