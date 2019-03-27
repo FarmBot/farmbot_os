@@ -1,4 +1,4 @@
-defmodule FarmbotExt.AMQP.BotStateTransport do
+defmodule FarmbotExt.AMQP.BotStateChannel do
   @moduledoc """
   Responsible for broadcasting the bot state tree over AMQP/MQTT
   """

@@ -4,12 +4,12 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
   alias FarmbotExt.JWT
 
   alias FarmbotExt.AMQP.{
-    NervesHubTransport,
+    NervesHubChannel,
     LogChannel,
-    BotStateTransport,
-    BotStateNGTransport,
+    BotStateChannel,
+    BotStateNGChannel,
     AutoSyncChannel,
-    CeleryScriptTransport
+    CeleryScriptChannel
   }
 
   def start_link(args) do
@@ -21,12 +21,12 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
     jwt = JWT.decode!(token)
 
     children = [
-      {NervesHubTransport, [jwt: jwt]},
+      {NervesHubChannel, [jwt: jwt]},
       {LogChannel, [jwt: jwt]},
-      {BotStateTransport, [jwt: jwt]},
-      {BotStateNGTransport, [jwt: jwt]},
+      {BotStateChannel, [jwt: jwt]},
+      {BotStateNGChannel, [jwt: jwt]},
       {AutoSyncChannel, [jwt: jwt]},
-      {CeleryScriptTransport, [jwt: jwt]}
+      {CeleryScriptChannel, [jwt: jwt]}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
