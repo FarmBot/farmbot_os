@@ -58,7 +58,7 @@ config :farmbot, Farmbot.Platform.Supervisor,
     Farmbot.TTYDetector
   ]
 
-config :farmbot_ext, Farmbot.AMQP.NervesHubTransport,
+config :farmbot_ext, Farmbot.AMQP.NervesHubChannel,
   handle_nerves_hub_msg: Farmbot.System.NervesHub
 
 config :farmbot, Farmbot.System.NervesHub,

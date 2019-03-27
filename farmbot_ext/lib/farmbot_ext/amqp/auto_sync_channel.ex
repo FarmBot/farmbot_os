@@ -8,10 +8,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   use GenServer
   use AMQP
 
-  alias AMQP.{
-    Channel,
-    Queue
-  }
+  alias AMQP.{Channel, Queue}
 
   alias FarmbotCore.BotState
   alias FarmbotExt.AMQP.ConnectionWorker

@@ -17,7 +17,7 @@ defmodule FarmbotOS.SysCalls do
   defdelegate flash_firmware(package), to: FlashFirmware
 
   def read_status do
-    :ok = FarmbotExt.AMQP.BotStateNGTransport.force()
+    :ok = FarmbotExt.AMQP.BotStateNGChannel.force()
   end
 
   def set_user_env(key, value) do
