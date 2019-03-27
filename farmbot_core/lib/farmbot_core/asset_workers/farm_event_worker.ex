@@ -169,8 +169,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
   end
 
   @doc false
-  def handle_regimen(exe, event, params) do
-    Asset.upsert_regimen_instance!(exe, event, params)
+  def handle_regimen(regimen, event, params) do
+    Asset.upsert_regimen_instance!(regimen, event, params)
   end
 
   defp handle_sequence(sequence, farm_event_body) do
@@ -185,8 +185,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
         }
     }
 
-    compiled = compiled_celery = Compiler.compile(celery_ast)
-    Scheduler.schedule(compiled)
+    compiled_celery = Compiler.compile(celery_ast)
+    Scheduler.schedule(compiled_celery)
   end
 
 end
