@@ -48,14 +48,15 @@ defmodule FarmbotCeleryScript.Compiler do
   def compile(%AST{kind: kind} = ast, env \\ []) when kind in @valid_entry_points do
     # compile the ast
     {_, _, _} = compiled = compile_ast(ast)
-      compiled
-      |> Macro.to_string()
-      |> Code.format_string!()
-      |> IO.puts()
-    # delete_me(compiled)
+
+    delete_me(compiled)
     # entry points must be evaluated once more with the calling `env`
     # to return a list of compiled `steps`
-    case Code.eval_quoted(compiled, env) do
+
+    # TODO: investigate why i have to turn this to a string
+    # before eval ing it?
+    # case Code.eval_quoted(compiled, [], __ENV__) do
+    case Macro.to_string(compiled) |> Code.eval_string([], __ENV__) do
       {fun, _} when is_function(fun, 1) -> apply(fun, [env])
       {{:error, error}, _} -> {:error, error}
     end
@@ -94,7 +95,7 @@ defmodule FarmbotCeleryScript.Compiler do
     {:__block__, [], assignments} = compile_block(body)
     steps = compile_block(block) |> decompose_block_to_steps()
 
-    quote do
+    quote location: :keep do
       fn params ->
         import SysCalls
         # Fetches variables from the previous execute()
@@ -102,6 +103,7 @@ defmodule FarmbotCeleryScript.Compiler do
         # parent = Keyword.fetch!(params, :parent)
         unquote_splicing(params_fetch)
         unquote_splicing(assignments)
+
         # Unquote the remaining sequence steps.
         unquote(steps)
       end
@@ -111,7 +113,7 @@ defmodule FarmbotCeleryScript.Compiler do
   compile :rpc_request, %{label: _label}, block do
     steps = compile_block(block) |> decompose_block_to_steps()
 
-    quote do
+    quote location: :keep do
       fn params ->
         import SysCalls
         unquote(steps)
@@ -143,7 +145,7 @@ defmodule FarmbotCeleryScript.Compiler do
     # because var! doesn't do what what we need.
     var_name = IdentifierSanitizer.to_variable(var_name)
 
-    quote do
+    quote location: :keep do
       unquote({var_name, [], nil}) = unquote(compile_ast(data_value_ast))
     end
   end
@@ -157,11 +159,20 @@ defmodule FarmbotCeleryScript.Compiler do
     # well, so if that is the case, compile it first.
     lhs =
       case lhs do
-        "x" -> quote do: get_current_x()
-        "y" -> quote do: get_current_y()
-        "z" -> quote do: get_current_z()
-        "pin" <> pin -> quote do: read_pin(unquote(String.to_integer(pin)), nil)
-        %AST{} = ast -> compile_ast(ast)
+        "x" ->
+          quote [location: :keep], do: get_current_x()
+
+        "y" ->
+          quote [location: :keep], do: get_current_y()
+
+        "z" ->
+          quote [location: :keep], do: get_current_z()
+
+        "pin" <> pin ->
+          quote [location: :keep], do: read_pin(unquote(String.to_integer(pin)), nil)
+
+        %AST{} = ast ->
+          compile_ast(ast)
       end
 
     rhs = compile_ast(rhs)
@@ -177,31 +188,31 @@ defmodule FarmbotCeleryScript.Compiler do
           # get_current_z() == 200
           # read_pin(22, nil) == 5
           # The ast will look like: {:==, [], lhs, compile_ast(rhs)}
-          quote do
+          quote location: :keep do
             unquote(lhs) == unquote(rhs)
           end
 
         "not" ->
           # ast will look like: {:!=, [], [lhs, compile_ast(rhs)]}
-          quote do
+          quote location: :keep do
             unquote(lhs) != unquote(rhs)
           end
 
         "is_undefined" ->
           # ast will look like: {:is_nil, [], [lhs]}
-          quote do
+          quote location: :keep do
             is_nil(unquote(lhs))
           end
 
         "<" ->
           # ast will look like: {:<, [], [lhs, compile_ast(rhs)]}
-          quote do
+          quote location: :keep do
             unquote(lhs) < unquote(rhs)
           end
 
         ">" ->
           # ast will look like: {:>, [], [lhs, compile_ast(rhs)]}
-          quote do
+          quote location: :keep do
             unquote(lhs) > unquote(rhs)
           end
       end
@@ -213,7 +224,7 @@ defmodule FarmbotCeleryScript.Compiler do
     # else
     #    nothing()
     # end
-    quote do
+    quote location: :keep do
       if unquote(if_eval),
         do: unquote(compile_block(then_ast)),
         else: unquote(compile_block(else_ast))
@@ -221,12 +232,12 @@ defmodule FarmbotCeleryScript.Compiler do
   end
 
   # Compiles an `execute` block.
-  compile :execute, %{sequence_id: id}, variable_declarations do
-    quote do
+  compile :execute, %{sequence_id: id}, parameter_applications do
+    quote location: :keep do
       # We have to lookup the sequence by it's id.
       %FarmbotCeleryScript.AST{} = ast = get_sequence(unquote(id))
       # compile the ast
-      env = unquote(compile_params_to_function_args(variable_declarations))
+      env = unquote(compile_params_to_function_args(parameter_applications))
       unquote(__MODULE__).compile(ast, env)
     end
   end
@@ -239,7 +250,7 @@ defmodule FarmbotCeleryScript.Compiler do
         {to_string(key), value}
       end)
 
-    quote do
+    quote location: :keep do
       execute_script(unquote(compile_ast(package)), unquote(Macro.escape(Map.new(env))))
     end
   end
@@ -247,7 +258,7 @@ defmodule FarmbotCeleryScript.Compiler do
   # TODO(Connor) - see above TODO
   compile :take_photo do
     # {:execute_script, [], ["take_photo", {:%{}, [], []}]}
-    quote do
+    quote location: :keep do
       execute_script("take_photo", %{})
     end
   end
@@ -255,36 +266,36 @@ defmodule FarmbotCeleryScript.Compiler do
   compile :set_user_env, _args, pairs do
     kvs =
       Enum.map(pairs, fn %{kind: :pair, args: %{label: key, value: value}} ->
-        quote do
+        quote location: :keep do
           set_user_env(unquote(key), unquote(value))
         end
       end)
 
-    quote do
+    quote location: :keep do
       (unquote_splicing(kvs))
     end
   end
 
   compile :install_farmware, %{url: url} do
-    quote do
+    quote location: :keep do
       install_farmware(unquote(compile_ast(url)))
     end
   end
 
   compile :update_farmware, %{package: package} do
-    quote do
+    quote location: :keep do
       update_farmware(unquote(compile_ast(package)))
     end
   end
 
   compile :remove_farmware, %{package: package} do
-    quote do
+    quote location: :keep do
       remove_farmware(unquote(compile_ast(package)))
     end
   end
 
   compile :install_first_party_farmware, _ do
-    quote do
+    quote location: :keep do
       install_first_party_farmware()
     end
   end
@@ -292,14 +303,14 @@ defmodule FarmbotCeleryScript.Compiler do
   # Compiles a nothing block.
   compile :nothing do
     # AST looks like: {:nothing, [], []}
-    quote do
+    quote location: :keep do
       nothing()
     end
   end
 
   # Compiles move_absolute
   compile :move_absolute, %{location: location, offset: offset, speed: speed} do
-    quote do
+    quote location: :keep do
       # Extract the location arg
       %{x: locx, y: locy, z: locz} = unquote(compile_ast(location))
       # Extract the offset arg
@@ -307,14 +318,19 @@ defmodule FarmbotCeleryScript.Compiler do
 
       # Subtract the location from offset.
       # Note: list syntax here for readability.
-      [x, y, z] = [offx - locx, offy - locy, offz - locz]
+      [x, y, z] = [
+        locx - offx,
+        locy - offy,
+        locz - offz
+      ]
+
       move_absolute(x, y, z, unquote(compile_ast(speed)))
     end
   end
 
   # compiles move_relative into move absolute
   compile :move_relative, %{x: x, y: y, z: z, speed: speed} do
-    quote do
+    quote location: :keep do
       # build a vec3 of passed in args
       %{x: locx, y: locy, z: locz} = %{
         x: unquote(compile_ast(x)),
@@ -338,7 +354,7 @@ defmodule FarmbotCeleryScript.Compiler do
 
   # compiles write_pin
   compile :write_pin, %{pin_number: num, pin_mode: mode, pin_value: val} do
-    quote do
+    quote location: :keep do
       write_pin(
         unquote(compile_ast(num)),
         unquote(compile_ast(mode)),
@@ -349,21 +365,21 @@ defmodule FarmbotCeleryScript.Compiler do
 
   # compiles read_pin
   compile :read_pin, %{pin_number: num, pin_mode: mode} do
-    quote do
+    quote location: :keep do
       read_pin(unquote(compile_ast(num)), unquote(compile_ast(mode)))
     end
   end
 
   # compiles set_servo_angle
   compile :set_servo_angle, %{pin_number: pin_number, pin_value: pin_value} do
-    quote do
+    quote location: :keep do
       set_servo_angle(unquote(compile_ast(pin_number)), unquote(compile_ast(pin_value)))
     end
   end
 
   # Expands find_home(all) into three find_home/1 calls
   compile :find_home, %{axis: "all", speed: speed} do
-    quote do
+    quote location: :keep do
       find_home("x", unquote(compile_ast(speed)))
       find_home("y", unquote(compile_ast(speed)))
       find_home("z", unquote(compile_ast(speed)))
@@ -372,14 +388,14 @@ defmodule FarmbotCeleryScript.Compiler do
 
   # compiles find_home
   compile :find_home, %{axis: axis, speed: speed} do
-    quote do
+    quote location: :keep do
       find_home(unquote(compile_ast(axis)), unquote(compile_ast(speed)))
     end
   end
 
   # Expands home(all) into three home/1 calls
   compile :home, %{axis: "all", speed: speed} do
-    quote do
+    quote location: :keep do
       home("x", unquote(compile_ast(speed)))
       home("y", unquote(compile_ast(speed)))
       home("z", unquote(compile_ast(speed)))
@@ -388,14 +404,14 @@ defmodule FarmbotCeleryScript.Compiler do
 
   # compiles home
   compile :home, %{axis: axis, speed: speed} do
-    quote do
+    quote location: :keep do
       home(unquote(compile_ast(axis)), unquote(compile_ast(speed)))
     end
   end
 
   # Expands zero(all) into three zero/1 calls
   compile :zero, %{axis: "all", speed: speed} do
-    quote do
+    quote location: :keep do
       zero("x", unquote(compile_ast(speed)))
       zero("y", unquote(compile_ast(speed)))
       zero("z", unquote(compile_ast(speed)))
@@ -404,14 +420,14 @@ defmodule FarmbotCeleryScript.Compiler do
 
   # compiles zero
   compile :zero, %{axis: axis, speed: speed} do
-    quote do
+    quote location: :keep do
       zero(unquote(compile_ast(axis)), unquote(compile_ast(speed)))
     end
   end
 
   # Expands calibrate(all) into three calibrate/1 calls
   compile :calibrate, %{axis: "all"} do
-    quote do
+    quote location: :keep do
       calibrate("x")
       calibrate("y")
       calibrate("z")
@@ -420,13 +436,13 @@ defmodule FarmbotCeleryScript.Compiler do
 
   # compiles calibrate
   compile :calibrate, %{axis: axis} do
-    quote do
+    quote location: :keep do
       calibrate(unquote(compile_ast(axis)))
     end
   end
 
   compile :wait, %{milliseconds: millis} do
-    quote do
+    quote location: :keep do
       wait(unquote(compile_ast(millis)))
     end
   end
@@ -442,7 +458,7 @@ defmodule FarmbotCeleryScript.Compiler do
         String.to_atom(channel_name)
       end)
 
-    quote do
+    quote location: :keep do
       # send_message("success", "Hello world!", [:email, :toast])
       send_message(
         unquote(compile_ast(type)),
@@ -455,7 +471,7 @@ defmodule FarmbotCeleryScript.Compiler do
   # compiles coordinate
   # Coordinate should return a vec3
   compile :coordinate, %{x: x, y: y, z: z} do
-    quote do
+    quote location: :keep do
       coordinate(
         unquote(compile_ast(x)),
         unquote(compile_ast(y)),
@@ -466,14 +482,14 @@ defmodule FarmbotCeleryScript.Compiler do
 
   # compiles point
   compile :point, %{pointer_type: type, pointer_id: id} do
-    quote do
+    quote location: :keep do
       point(unquote(compile_ast(type)), unquote(compile_ast(id)))
     end
   end
 
   # compile a named pin
   compile :named_pin, %{pin_id: id, pin_type: type} do
-    quote do
+    quote location: :keep do
       named_pin(unquote(compile_ast(type)), unquote(compile_ast(id)))
     end
   end
@@ -484,91 +500,91 @@ defmodule FarmbotCeleryScript.Compiler do
   compile :identifier, %{label: var_name} do
     var_name = IdentifierSanitizer.to_variable(var_name)
 
-    quote do
+    quote location: :keep do
       unquote({var_name, [], nil})
     end
   end
 
   compile :tool, %{tool_id: tool_id} do
-    quote do
+    quote location: :keep do
       get_tool(unquote(compile_ast(tool_id)))
     end
   end
 
   compile :emergency_lock do
-    quote do
+    quote location: :keep do
       emergency_lock()
     end
   end
 
   compile :emergency_unlock do
-    quote do
+    quote location: :keep do
       emergency_unlock()
     end
   end
 
   compile :read_status do
-    quote do
+    quote location: :keep do
       read_status()
     end
   end
 
   compile :sync do
-    quote do
+    quote location: :keep do
       sync()
     end
   end
 
   compile :check_updates, %{package: "farmbot_os"} do
-    quote do
+    quote location: :keep do
       check_update()
     end
   end
 
   compile :flash_firmware, %{package: package_name} do
-    quote do
+    quote location: :keep do
       flash_firmware(unquote(compile_ast(package_name)))
     end
   end
 
   compile :power_off do
-    quote do
+    quote location: :keep do
       power_off()
     end
   end
 
   compile :reboot, %{package: "farmbot_os"} do
-    quote do
+    quote location: :keep do
       reboot()
     end
   end
 
   compile :reboot, %{package: "arduino_firmware"} do
-    quote do
+    quote location: :keep do
       firmware_reboot()
     end
   end
 
   compile :factory_reset, %{package: "farmbot_os"} do
-    quote do
+    quote location: :keep do
       factory_reset()
     end
   end
 
   compile :change_ownership, %{}, _body do
-    quote do
+    quote location: :keep do
       # Add code here
     end
   end
 
   compile :dump_info do
-    quote do
+    quote location: :keep do
       dump_info()
     end
   end
 
   compile :toggle_pin, %{pin_number: pin_number} do
-    quote do
+    quote location: :keep do
       # mode 0 = digital
       case read_pin(unquote(compile_ast(pin_number)), 0) do
         0 -> write_pin(unquote(compile_ast(pin_number)), 0, 1)
@@ -579,28 +595,28 @@ defmodule FarmbotCeleryScript.Compiler do
 
   # not actually used
   compile :channel, %{channel_name: _channel_name} do
-    quote do
+    quote location: :keep do
       nothing()
     end
   end
 
   # not actually used
   compile :explanation, %{message: _message} do
-    quote do
+    quote location: :keep do
       nothing()
     end
   end
 
   # not actually used
   compile :rpc_ok, %{label: _label} do
-    quote do
+    quote location: :keep do
       nothing()
     end
   end
 
   # not actually used
   compile :rpc_error, %{label: _label}, _body do
-    quote do
+    quote location: :keep do
       nothing()
       # Add code here
     end
@@ -608,14 +624,14 @@ defmodule FarmbotCeleryScript.Compiler do
 
   # not actually used
   compile :pair, %{label: _label, value: _value} do
-    quote do
+    quote location: :keep do
       nothing()
     end
   end
 
   # not actually used
   compile :scope_declaration, _args, _body do
-    quote do
+    quote location: :keep do
       nothing()
     end
   end
@@ -685,16 +701,16 @@ defmodule FarmbotCeleryScript.Compiler do
         acc
       ) do
     %{
-      label: next_scope,
+      label: next_scope_var_name,
       data_value: data_value
     } = args
 
-    next_scope = IdentifierSanitizer.to_variable(next_scope)
+    next_scope_var_name = IdentifierSanitizer.to_variable(next_scope_var_name)
+    # next_value = compile_ast(data_value)
 
     var =
-      quote do
-        # {next_scope, current_scope}
-        unquote({next_scope, compile_ast(data_value)})
+      quote location: :keep do
+        {unquote(next_scope_var_name), unquote(compile_ast(data_value))}
       end
 
     compile_params_to_function_args(rest, [var | acc])
@@ -736,7 +752,7 @@ defmodule FarmbotCeleryScript.Compiler do
   def compile_param_declaration(%{args: %{label: var_name, default_value: default}}) do
     var_name = IdentifierSanitizer.to_variable(var_name)
 
-    quote do
+    quote location: :keep do
       unquote({var_name, [], __MODULE__}) =
         Keyword.get(params, unquote(var_name), unquote(compile_ast(default)))
     end
@@ -773,14 +789,14 @@ defmodule FarmbotCeleryScript.Compiler do
   def compile_param_application(%{args: %{label: var_name, data_value: value}}) do
     var_name = IdentifierSanitizer.to_variable(var_name)
 
-    quote do
+    quote location: :keep do
       unquote({var_name, [], __MODULE__}) = unquote(compile_ast(value))
     end
   end
 
   defp decompose_block_to_steps({:__block__, _, steps} = _orig) do
     Enum.map(steps, fn step ->
-      quote do
+      quote location: :keep do
         fn -> unquote(step) end
       end
     end)

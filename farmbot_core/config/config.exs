@@ -28,9 +28,6 @@ config :farmbot_core, FarmbotCore.BotState.FileSystem,
   root_dir: "/tmp/farmbot",
   sleep_time: 200
 
-config :farmbot_celery_script, FarmbotCeleryScript.SysCalls,
-  sys_calls: FarmbotCore.CeleryScript.SysCalls.Stubs
-
 config :farmbot_core, FarmbotCore.EctoMigrator,
   expected_fw_versions: ["6.4.2.F", "6.4.2.R", "6.4.2.G"],
   default_firmware_io_logs: false,

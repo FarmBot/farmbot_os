@@ -9,5 +9,5 @@ config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmEvent, check
 config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.PersistentRegimen,
   checkup_time_ms: 1000
 
-config :farmbot_core, FarmbotCore.CeleryScript.RunTimeWrapper,
-  celery_script_io_layer: FarmbotCore.TestSupport.CeleryScript.TestIOLayer
+config :farmbot_celery_script, FarmbotCeleryScript.SysCalls,
+  sys_calls: Farmbot.TestSupport.CeleryScript.TestSysCalls

@@ -1,5 +1,5 @@
 defmodule FarmbotCore.PersistentRegimenWorkerTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias FarmbotCeleryScript.Scheduler
 
@@ -31,7 +31,7 @@ defmodule FarmbotCore.PersistentRegimenWorkerTest do
     test_pid = self()
 
     args = [
-      apply_sequence: fn _seq ->
+      apply_sequence: fn _seq, _body_args ->
         send(test_pid, :executed)
       end
     ]
@@ -75,6 +75,7 @@ defmodule FarmbotCore.PersistentRegimenWorkerTest do
           %{
             kind: "move_absolute",
             args: %{
+              speed: 100,
               offset: %{
                 kind: "coordinate",
                 args: %{x: 0, y: 0, z: 0}
@@ -95,14 +96,18 @@ defmodule FarmbotCore.PersistentRegimenWorkerTest do
             kind: "scope_declaration",
             args: %{},
             body: [
-              %{kind: "parameter_declaration",
-              args: %{label: "provided_by_caller",
-              default_value: %{
-                kind: "coordinate",
-                args: %{x: -2, y: -2, z: -2}
-              }}}
+              %{
+                kind: "parameter_declaration",
+                args: %{
+                  label: "provided_by_caller",
+                  default_value: %{
+                    kind: "coordinate",
+                    args: %{x: -2, y: -2, z: -2}
+                  }
+                }
+              }
             ]
-          } 
+          }
         },
         body: [
           %{
@@ -160,33 +165,31 @@ defmodule FarmbotCore.PersistentRegimenWorkerTest do
     {:ok, shim} = TestSysCalls.checkout()
     that = self()
 
+    callee_sequence_id = callee_sequence.id
+
     :ok =
       TestSysCalls.handle(TestSysCalls, fn
+        :get_sequence, [^callee_sequence_id] ->
+          FarmbotCeleryScript.AST.decode(callee_sequence)
+
+        :coordinate, [x, y, z] ->
+          %{x: x, y: y, z: z}
+
         kind, args ->
           send(that, {kind, args})
+          :ok
       end)
 
     {:ok, sch} = Scheduler.start_link([], [])
-
-    apply_sequence = fn sequence, regimen_body ->
-      param_appls = FarmbotCeleryScript.AST.decode(regimen_body)
-      env = FarmbotCeleryScript.Compiler.compile_params_to_function_args(param_appls)
-      ast = FarmbotCeleryScript.AST.decode(sequence)
-      IO.inspect(sch, label: "SCH")
-      IO.inspect(ast, label: "AST")
-      IO.inspect(env, label: "ENV")
-      Scheduler.schedule(sch, ast, env)
-      |> IO.inspect(label: "SCHEDULE/3")
-    end
-
     pr = persistent_regimen(regimen_params, farm_event_params)
 
-    args = [apply_sequence: apply_sequence]
-    {:ok, _} = FarmbotCore.AssetWorker.FarmbotCore.Asset.PersistentRegimen.start_link(pr, args)
+    {:ok, _} = FarmbotCore.AssetWorker.FarmbotCore.Asset.PersistentRegimen.start_link(pr, [])
 
     expected_x = 9000
     expected_y = 9000
     expected_z = 9000
-    assert_receive {:move_absolute, [^expected_x, ^expected_y, ^expected_z]}
+    expected_speed = 100
+
+    assert_receive {:move_absolute, [^expected_x, ^expected_y, ^expected_z, ^expected_speed]}
   end
 end
