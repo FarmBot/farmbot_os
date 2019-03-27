@@ -1,7 +1,7 @@
 use Mix.Config
 config :logger, handle_otp_reports: true, handle_sasl_reports: true
 
-config :farmbot_ext, FarmbotExt.AMQP.NervesHubTransport,
+config :farmbot_ext, FarmbotExt.AMQP.NervesHubChannel,
   handle_nerves_hub_msg: FarmbotExt.HandleNervesHubMsg
 
 config :farmbot_celery_script, FarmbotCeleryScript.SysCalls,
