@@ -97,7 +97,7 @@ defmodule Farmbot.Repo do
         Task.async(fn() -> {Sequence, HTTP.get!("/api/sequences.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Sequence)])} end),
         Task.async(fn() -> {Tool, HTTP.get!("/api/tools.json") |> Map.fetch!(:body) |> Poison.decode!(as: [struct(Tool)])} end),
       ]
-      |> Enum.map(&Task.await(&1))
+      |> Enum.map(&Task.await(&1, 90000))
     end)
     Logger.debug 3, "HTTP requests took: #{time}us."
     {:ok, results}
