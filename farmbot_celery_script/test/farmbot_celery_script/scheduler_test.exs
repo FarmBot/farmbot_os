@@ -9,6 +9,66 @@ defmodule FarmbotCeleryScript.SchedulerTest do
     [shim: shim, sch: sch]
   end
 
+  test "uses default values when no parameter is found", %{sch: sch} do
+    sequence_ast =
+      %{
+        kind: :sequence,
+        args: %{
+          version: 1,
+          locals: %{
+            kind: :scope_declaration,
+            args: %{},
+            body: [
+              %{
+                kind: :parameter_declaration,
+                args: %{
+                  label: "foo",
+                  default_value: %{
+                    kind: :coordinate,
+                    args: %{x: 129, y: 129, z: 129}
+                  }
+                }
+              }
+            ]
+          }
+        },
+        body: [
+          %{
+            kind: :move_absolute,
+            args: %{
+              speed: 921,
+              location: %{
+                kind: :identifier,
+                args: %{label: "foo"}
+              },
+              offset: %{
+                kind: :coordinate,
+                args: %{x: 0, y: 0, z: 0}
+              }
+            }
+          }
+        ]
+      }
+      |> AST.decode()
+
+    executed = Compiler.compile(sequence_ast)
+    me = self()
+
+    :ok =
+      TestSysCalls.handle(TestSysCalls, fn
+        :move_absolute, args ->
+          send(me, {:move_absolute, args})
+          :ok
+
+        :coordinate, [x, y, z] ->
+          %{x: x, y: y, z: z}
+      end)
+
+    {:ok, execute_ref} = Scheduler.schedule(sch, executed)
+    assert_receive {Scheduler, ^execute_ref, :ok}
+    assert_receive {:move_absolute, [129, 129, 129, 921]}
+  end
+
   test "syscall errors", %{sch: sch} do
     execute_ast =
       %{
@@ -274,7 +334,7 @@ defmodule FarmbotCeleryScript.SchedulerTest do
     task_1 =
       Task.async(fn ->
         {:ok, schedule_ref_1} = Scheduler.schedule(sch, schedule_1)
-        # TODO(Connor) Literally any function call will 
+        # TODO(Connor) Literally any function call will
         # make this not a race condition???
         IO.inspect(schedule_ref_1, label: "task_1")
         assert_receive {Scheduler, ^schedule_ref_1, :ok}, 3000
