@@ -191,4 +191,97 @@ defmodule FarmbotCore.RegimenInstanceWorkerTest do
 
     assert_receive {:move_absolute, [^expected_x, ^expected_y, ^expected_z, ^expected_speed]}
   end
+
+  test "application of default_parameters (Regimen => Sequence)" do
+    now = DateTime.utc_now()
+    start_time = Timex.shift(now, minutes: -20)
+    end_time = Timex.shift(now, minutes: 10)
+    {:ok, epoch} = RegimenInstance.build_epoch(now)
+    offset = Timex.diff(now, epoch, :milliseconds) + 500
+
+    # Asset instances
+
+    # Sequence that `execute`s another sequence
+    # sequence that has move_abosolute to variable
+    the_sequence =
+      sequence(%{
+        args: %{
+          locals: %{
+            kind: "scope_declaration",
+            args: %{},
+            body: [
+              %{
+                kind: "parameter_declaration",
+                args: %{
+                  label: "callee_param",
+                  default_value: %{
+                    kind: "coordinate",
+                    args: %{x: -1, y: -1, z: -1}
+                  }
+                }
+              }
+            ]
+          }
+        },
+        body: [
+          %{
+            kind: "move_absolute",
+            args: %{
+              speed: 100,
+              offset: %{
+                kind: "coordinate",
+                args: %{x: 0, y: 0, z: 0}
+              },
+              location: %{
+                kind: "identifier",
+                args: %{label: "callee_param"}
+              }
+            }
+          }
+        ]
+      })
+
+    regimen_params = %{
+      regimen_items: [%{sequence_id: the_sequence.id, time_offset: offset}],
+      body: []
+    }
+
+    farm_event_params = %{
+      start_time: start_time,
+      end_time: end_time,
+      repeat: 1,
+      time_unit: "never"
+    }
+
+    # process instances
+    # inject syscalls
+    # inject celery_script scheduler
+    # inject apply_sequence to RegimenInstance
+    {:ok, shim} = TestSysCalls.checkout()
+    that = self()
+
+    the_sequence_id = the_sequence.id
+
+    :ok =
+      TestSysCalls.handle(TestSysCalls, fn
+        :coordinate, [x, y, z] ->
+          %{x: x, y: y, z: z}
+
+        kind, args ->
+          send(that, {kind, args})
+          :ok
+      end)
+
+    pr = regimen_instance(regimen_params, farm_event_params)
+
+    {:ok, _} = FarmbotCore.AssetWorker.FarmbotCore.Asset.RegimenInstance.start_link(pr, [])
+
+    expected_x = -1
+    expected_y = -1
+    expected_z = -1
+    expected_speed = 100
+
+    assert_receive {:move_absolute, [^expected_x, ^expected_y, ^expected_z, ^expected_speed]},
+                   5_000
+  end
 end
