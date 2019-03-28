@@ -230,6 +230,87 @@ defmodule FarmbotCore.FarmEventWorkerTest do
       {:ok, _} = FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmEvent.start_link(farm_event, [])
       assert_receive {:move_absolute, [8000, 8000, 8000, 100]}, 5_000
     end
+
+    test "Missing parameters, FarmEvent => Regimen => Sequence" do
+      sequence =
+        sequence(%{
+          args: %{
+            locals: %{
+              kind: "scope_declaration",
+              args: %{},
+              body: [
+                %{
+                  kind: "parameter_declaration",
+                  args: %{
+                    label: "from_regimen",
+                    default_value: %{
+                      kind: "coordinate",
+                      args: %{x: -1, y: -2, z: -3}
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          body: [
+            %{
+              kind: "move_absolute",
+              args: %{
+                location: %{
+                  kind: "identifier",
+                  args: %{
+                    label: "from_regimen"
+                  }
+                },
+                offset: %{
+                  kind: "coordinate",
+                  args: %{x: 0, y: 0, z: 0}
+                },
+                speed: 100
+              }
+            }
+          ]
+        })
+
+      now = DateTime.utc_now()
+      {:ok, epoch} = RegimenInstance.build_epoch(now)
+      offset = Timex.diff(now, epoch, :milliseconds) + 500
+
+      regimen =
+        regimen(%{
+          regimen_items: [%{time_offset: offset, sequence_id: sequence.id}],
+          body: []
+        })
+
+      start_time = Timex.shift(now, minutes: -20)
+      end_time = Timex.shift(now, minutes: 10)
+
+      params = %{
+        start_time: start_time,
+        end_time: end_time,
+        repeat: 1,
+        time_unit: "never",
+        body: []
+      }
+
+      farm_event = regimen_event(regimen, params)
+
+      that = self()
+      {:ok, _} = TestSysCalls.checkout()
+
+      :ok =
+        TestSysCalls.handle(TestSysCalls, fn
+          :coordinate, [x, y, z] ->
+            %{x: x, y: y, z: z}
+
+          kind, args ->
+            send(that, {kind, args})
+            :ok
+        end)
+
+      {:ok, _} = FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmEvent.start_link(farm_event, [])
+      assert_receive {:move_absolute, [-1, -2, -3, 100]}, 5_000
+    end
   end
 
   describe "common" do
