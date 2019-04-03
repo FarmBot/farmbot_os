@@ -98,12 +98,7 @@ defmodule Farmbot.Mixfile do
       {:circuits_uart, "~> 1.3"},
       {:plug_cowboy, "~> 2.0"},
       {:cors_plug, "~> 2.0"},
-      {:amqp, "~> 1.0"},
-      # AMQP hacks
-      {:jsx, "~> 2.9", override: true},
-      {:ranch, "~> 1.6", override: true},
-      {:ranch_proxy_protocol, "~> 2.1", override: true},
-      # End hacks
+      {:amqp, "~> 1.1"},
       {:rsa, "~> 0.0.1"},
       {:joken, "~> 1.5"},
       {:uuid, "~> 1.1"},
