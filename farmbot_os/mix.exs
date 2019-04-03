@@ -24,6 +24,8 @@ defmodule FarmbotOS.MixProject do
       compilers: [:elixir_make | Mix.compilers()],
       aliases: [loadconfig: [&bootstrap/1]],
       elixirc_paths: elixirc_paths(Mix.env(), Mix.target()),
+      deps_path: "deps/#{Mix.target()}",
+      build_path: "_build/#{Mix.target()}",
       deps: deps()
     ]
   end
@@ -76,9 +78,9 @@ defmodule FarmbotOS.MixProject do
       {:nerves_init_gadget, "~> 0.5", targets: @all_targets},
       {:circuits_gpio, "~> 0.1.0", targets: @all_targets},
       {:toolshed, "~> 0.2", targets: @all_targets},
-      {:farmbot_system_rpi3, "1.6.1-farmbot.1", runtime: false, targets: :rpi3},
-      {:farmbot_system_rpi0, "1.6.1-farmbot.1", runtime: false, targets: :rpi0},
-      {:farmbot_system_rpi, "1.6.1-farmbot.1", runtime: false, targets: :rpi}
+      {:farmbot_system_rpi3, "1.6.3-farmbot.0", runtime: false, targets: :rpi3},
+      {:farmbot_system_rpi0, "1.6.3-farmbot.0", runtime: false, targets: :rpi0},
+      {:farmbot_system_rpi, "1.6.3-farmbot.0", runtime: false, targets: :rpi}
     ]
   end
 
