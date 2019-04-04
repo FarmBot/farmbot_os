@@ -37,15 +37,15 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
   end
 
   defp find_hex_file("arduino") do
-    Application.app_dir(:farmbot_core, ["priv", "arduino_firmware.hex"]) |> assert_exists()
+    Application.app_dir(:farmbot_firmware, ["priv", "arduino_firmware.hex"]) |> assert_exists()
   end
 
   defp find_hex_file("farmduino") do
-    Application.app_dir(:farmbot_core, ["priv", "farmduino.hex"]) |> assert_exists()
+    Application.app_dir(:farmbot_firmware, ["priv", "farmduino.hex"]) |> assert_exists()
   end
 
   defp find_hex_file("farmduino_k14") do
-    Application.app_dir(:farmbot_core, ["priv", "farmduino_k14.hex"]) |> assert_exists()
+    Application.app_dir(:farmbot_firmware, ["priv", "farmduino_k14.hex"]) |> assert_exists()
   end
 
   defp find_hex_file(hardware) when is_binary(hardware),

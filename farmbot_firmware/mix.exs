@@ -3,11 +3,20 @@ defmodule FarmbotFirmware.MixProject do
   @version Path.join([__DIR__, "..", "VERSION"]) |> File.read!() |> String.trim()
   @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"]) |> File.read!() |> String.trim()
 
+  defp arduino_commit do
+    opts = [cd: Path.join("c_src", "farmbot-arduino-firmware")]
+
+    System.cmd("git", ~w"rev-parse --verify HEAD", opts)
+    |> elem(0)
+    |> String.trim()
+  end
+
   def project do
     [
       app: :farmbot_firmware,
       version: @version,
       elixir: @elixir_version,
+      arduino_commit: arduino_commit(),
       start_permanent: Mix.env() == :prod,
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
