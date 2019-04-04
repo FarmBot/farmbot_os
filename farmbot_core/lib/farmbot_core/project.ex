@@ -4,7 +4,6 @@ defmodule FarmbotCore.Project do
   @version Mix.Project.config[:version] || Mix.raise("Missing Project key version")
   @commit Mix.Project.config[:commit] || Mix.raise("Missing Project key commit")
   @branch Mix.Project.config[:branch] || Mix.raise("Missing Project key branch")
-  @arduino_commit Mix.Project.config[:arduino_commit] || Mix.raise("Missing Project key arduino_commit")
 
   @target Mix.target()
   @env Mix.env()
@@ -23,9 +22,7 @@ defmodule FarmbotCore.Project do
   @compile {:inline, branch: 0}
   def branch, do: @branch
 
-  @doc "*#{@arduino_commit}*"
-  @compile {:inline, arduino_commit: 0}
-  def arduino_commit, do: @arduino_commit
+  def arduino_commit,  do: FarmbotFirmware.Project.arduino_commit()
 
   @doc "*#{@target}*"
   @compile {:inline, target: 0}

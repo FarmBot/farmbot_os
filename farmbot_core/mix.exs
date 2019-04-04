@@ -9,14 +9,6 @@ defmodule FarmbotCore.MixProject do
     System.cmd("git", ~w"rev-parse --verify HEAD") |> elem(0) |> String.trim()
   end
 
-  defp arduino_commit do
-    opts = [cd: Path.join("c_src", "farmbot-arduino-firmware")]
-
-    System.cmd("git", ~w"rev-parse --verify HEAD", opts)
-    |> elem(0)
-    |> String.trim()
-  end
-
   def project do
     [
       app: :farmbot_core,
@@ -30,7 +22,6 @@ defmodule FarmbotCore.MixProject do
       target: @target,
       branch: @branch,
       commit: commit(),
-      arduino_commit: arduino_commit(),
       build_embedded: false,
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
