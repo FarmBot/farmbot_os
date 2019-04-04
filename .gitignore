@@ -48,7 +48,6 @@ upload.sh
 *.img
 artifacts
 RELEASE_NOTES
-*.hex
 # lagger can't be disabled.
 /log
 .make_state
