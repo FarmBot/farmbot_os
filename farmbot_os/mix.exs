@@ -53,9 +53,9 @@ defmodule FarmbotOS.MixProject do
       {:farmbot_ext, path: "../farmbot_ext", env: Mix.env()},
 
       # Nerves stuff.
-      {:nerves, "~> 1.3", runtime: false},
+      {:nerves, "~> 1.4", runtime: false},
       {:nerves_hub_cli, "~> 0.5", runtime: false},
-      {:shoehorn, "~> 0.4"},
+      {:shoehorn, "~> 0.5"},
       {:logger_backend_sqlite, "~> 2.2"},
 
       # Host/test only dependencies.
@@ -66,17 +66,18 @@ defmodule FarmbotOS.MixProject do
 
       # Target only deps
       {:cors_plug, "~> 2.0", targets: @all_targets},
-      {:phoenix_html, "~> 2.12", targets: @all_targets},
+      {:plug_cowboy, "~> 2.0", targets: @all_targets},
+      {:phoenix_html, "~> 2.13", targets: @all_targets},
       {:nerves_runtime, "~> 0.9", targets: @all_targets},
       {:nerves_network, "~> 0.5", targets: @all_targets},
       {:nerves_wpa_supplicant, "~> 0.5", targets: @all_targets},
       {:nerves_time, "~> 0.2", targets: @all_targets},
-      {:nerves_hub, "~> 0.2", targets: @all_targets},
-      {:dhcp_server, "~> 0.6", targets: @all_targets},
+      {:nerves_hub, "~> 0.5", targets: @all_targets},
+      {:dhcp_server, "~> 0.7", targets: @all_targets},
       {:mdns, "~> 1.0", targets: @all_targets},
-      {:nerves_firmware_ssh, "~> 0.3", targets: @all_targets},
-      {:nerves_init_gadget, "~> 0.5", targets: @all_targets},
-      {:circuits_gpio, "~> 0.1.0", targets: @all_targets},
+      {:nerves_firmware_ssh, "~> 0.4", targets: @all_targets},
+      {:nerves_init_gadget, "~> 0.6", targets: @all_targets},
+      {:circuits_gpio, "~> 0.4", targets: @all_targets},
       {:toolshed, "~> 0.2", targets: @all_targets},
       {:farmbot_system_rpi3, "1.6.3-farmbot.0", runtime: false, targets: :rpi3},
       {:farmbot_system_rpi0, "1.6.3-farmbot.0", runtime: false, targets: :rpi0},
