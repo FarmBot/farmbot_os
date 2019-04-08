@@ -283,14 +283,12 @@ defmodule FarmbotOS.Platform.Target.Configurator.Router do
     email = get_config_value(:string, "authorization", "email") || ""
     pass = get_config_value(:string, "authorization", "password") || ""
     server = get_config_value(:string, "authorization", "server") || ""
-    first_boot = get_config_value(:bool, "settings", "first_boot")
     update_config_value(:string, "authorization", "token", nil)
 
     render_page(conn, "credentials",
       server: server,
       email: email,
-      password: pass,
-      first_boot: first_boot
+      password: pass
     )
   end
 
