@@ -17,7 +17,7 @@ defmodule FarmbotOS.Platform.Target.Network.Supervisor do
       end)
 
     distribution_children =
-      Enum.map(confs, fn %{name: ifname} ->
+      Enum.map(["wlan0", "usb0", "eth0"], fn ifname ->
         opts = %{
           ifname: ifname,
           mdns_domain: "#{hostname}.local",
@@ -25,7 +25,7 @@ defmodule FarmbotOS.Platform.Target.Network.Supervisor do
           node_host: :mdns_domain
         }
 
-        {Distribution, opts}
+        Supervisor.child_spec({Distribution, opts}, id: Module.concat(Distribution, ifname))
       end)
 
     children = [
