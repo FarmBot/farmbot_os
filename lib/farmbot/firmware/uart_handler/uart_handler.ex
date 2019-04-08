@@ -199,10 +199,10 @@ defmodule Farmbot.Firmware.UartHandler do
   do
     Logger.debug 3, "Waiting for firmware idle."
     receive do
-      {:nerves_uart, _, {:error, reason}} -> {:stop, reason}
-      {:nerves_uart, _, {:partial, _}} -> loop_until_idle(nerves, idle_count)
-      {:nerves_uart, _, {_, :idle}} -> loop_until_idle(nerves, idle_count + 1)
-      {:nerves_uart, _, {_, {:debug_message, msg}}} ->
+      {:circuits_uart, _, {:error, reason}} -> {:stop, reason}
+      {:circuits_uart, _, {:partial, _}} -> loop_until_idle(nerves, idle_count)
+      {:circuits_uart, _, {_, :idle}} -> loop_until_idle(nerves, idle_count + 1)
+      {:circuits_uart, _, {_, {:debug_message, msg}}} ->
         if String.contains?(msg, "STARTUP") do
           Logger.success 3, "Got #{msg}. UART is up."
           UART.write(nerves, "F22 P2 V0")
@@ -211,7 +211,7 @@ defmodule Farmbot.Firmware.UartHandler do
           Logger.debug 3, "Got arduino debug while booting up: #{msg}"
           loop_until_idle(nerves, idle_count)
         end
-      {:nerves_uart, _, _msg} -> loop_until_idle(nerves, idle_count)
+      {:circuits_uart, _, _msg} -> loop_until_idle(nerves, idle_count)
     after
       10_000 -> {:stop, "Firmware didn't send any info for 10 seconds."}
     end
@@ -236,7 +236,7 @@ defmodule Farmbot.Firmware.UartHandler do
 
   # if there is an error, we assume something bad has happened, and we probably
   # Are better off crashing here, and being restarted.
-  def handle_info({:nerves_uart, _, {:error, :eio}}, state) do
+  def handle_info({:circuits_uart, _, {:error, :eio}}, state) do
     Logger.error 1, "UART device removed."
     old_env = Application.get_env(:farmbot, :behaviour)
     new_env = Keyword.put(old_env, :firmware_handler, Firmware.StubHandler)
@@ -244,17 +244,17 @@ defmodule Farmbot.Firmware.UartHandler do
     {:stop, {:error, :eio}, state}
   end
 
-  def handle_info({:nerves_uart, _, {:error, reason}}, state) do
+  def handle_info({:circuits_uart, _, {:error, reason}}, state) do
     {:stop, {:error, reason}, state}
   end
 
   # Unhandled gcodes just get ignored.
-  def handle_info({:nerves_uart, _, {:unhandled_gcode, code_str}}, state) do
+  def handle_info({:circuits_uart, _, {:unhandled_gcode, code_str}}, state) do
     Logger.debug 3, "Got unhandled gcode: #{code_str}"
     {:noreply, [], state}
   end
 
-  def handle_info({:nerves_uart, _, {_, {:report_software_version, v}}}, state) do
+  def handle_info({:circuits_uart, _, {_, {:report_software_version, v}}}, state) do
     expected = Application.get_env(:farmbot, :expected_fw_versions)
     if v in expected do
       {:noreply, [{:report_software_version, v}], state}
@@ -268,14 +268,14 @@ defmodule Farmbot.Firmware.UartHandler do
     end
   end
 
-  def handle_info({:nerves_uart, _, {:echo, _}}, %{current_cmd: nil} = state) do
+  def handle_info({:circuits_uart, _, {:echo, _}}, %{current_cmd: nil} = state) do
     {:noreply, [], state}
   end
-  def handle_info({:nerves_uart, _, {:echo, {:echo, "*F43" <> _}}}, state) do
+  def handle_info({:circuits_uart, _, {:echo, {:echo, "*F43" <> _}}}, state) do
     {:noreply, [], state}
   end
 
-  def handle_info({:nerves_uart, _, {:echo, {:echo, code}}}, state) do
+  def handle_info({:circuits_uart, _, {:echo, {:echo, code}}}, state) do
     distance = String.jaro_distance(state.current_cmd, code)
     if distance > 0.85 do
       :ok
@@ -286,15 +286,15 @@ defmodule Farmbot.Firmware.UartHandler do
     {:noreply, [], %{state | current_cmd: nil}}
   end
 
-  def handle_info({:nerves_uart, _, {_q, :done}}, state) do
+  def handle_info({:circuits_uart, _, {_q, :done}}, state) do
     {:noreply, [:done], %{state | current_cmd: nil, config_busy: false}}
   end
 
-  def handle_info({:nerves_uart, _, {_q, gcode}}, state) do
+  def handle_info({:circuits_uart, _, {_q, gcode}}, state) do
     {:noreply, [gcode], state}
   end
 
-  def handle_info({:nerves_uart, _, bin}, state) when is_binary(bin) do
+  def handle_info({:circuits_uart, _, bin}, state) when is_binary(bin) do
     Logger.warn(3, "Unparsed Gcode: #{bin}")
     {:noreply, [], state}
   end

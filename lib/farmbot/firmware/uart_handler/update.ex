@@ -50,9 +50,9 @@ defmodule Farmbot.Firmware.UartHandler.Update do
 
   defp do_fw_loop(uart, tty, flag, hardware) do
     receive do
-      {:nerves_uart, _, {:error, reason}} ->
+      {:circuits_uart, _, {:error, reason}} ->
         Logger.error 1, "Failed to connect to firmware for update during idle step: #{inspect reason}"
-      {:nerves_uart, _, data} ->
+      {:circuits_uart, _, data} ->
         if String.contains?(data, "R00") do
           case flag do
             :idle ->
@@ -77,9 +77,9 @@ defmodule Farmbot.Firmware.UartHandler.Update do
 
   defp do_wait_version(uart, tty, hardware) do
     receive do
-      {:nerves_uart, _, {:error, reason}} ->
+      {:circuits_uart, _, {:error, reason}} ->
         Logger.error 1, "Failed to connect to firmware for update: #{inspect reason}"
-      {:nerves_uart, _, data} ->
+      {:circuits_uart, _, data} ->
         case String.split(data, "R83 ") do
           [_] ->
             # IO.puts "got data: #{data}"
