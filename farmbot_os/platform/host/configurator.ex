@@ -19,9 +19,9 @@ defmodule FarmbotOS.Platform.Host.Configurator do
     # Get out authorization data out of the environment.
     # for host environment this will be configured at compile time.
     # for target environment it will be configured by `configurator`.
-    email = System.get_env("FARMBOT_EMAIL") || raise error("email")
-    pass = System.get_env("FARMBOT_PASSWORD") || raise error("password")
-    server = System.get_env("FARMBOT_SERVER") || raise error("server")
+    System.get_env("FARMBOT_EMAIL") || raise error("email")
+    System.get_env("FARMBOT_PASSWORD") || raise error("password")
+    System.get_env("FARMBOT_SERVER") || raise error("server")
     :ignore
   end
 
