@@ -28,14 +28,14 @@ defmodule FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler do
     {:noreply, %{state | debounce: nil}}
   end
 
-  def handle_info({:gpio_interupt, pin, _timestamp, _}, %{debounce: timer} = state)
+  def handle_info({:circuits_gpio, pin, _timestamp, _}, %{debounce: timer} = state)
       when is_reference(timer) do
     left = Process.read_timer(timer)
     Logger.info("CircuitsGPIOHandler #{pin} still debounced for #{left} ms")
     {:noreply, state}
   end
 
-  def handle_info({:gpio_interupt, _pin, _timestamp, _signal}, state) do
+  def handle_info({:circuits_gpio, _pin, _timestamp, _signal}, state) do
     state.fun.()
     {:noreply, state, %{state | debounce: debounce_timer()}}
   end
