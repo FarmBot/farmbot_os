@@ -27,16 +27,10 @@ defmodule FarmbotExt.MixProject do
     [
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
 
-      # Hack for AMQP to compile
-      {:ranch_proxy_protocol,
-       override: true,
-       git: "https://github.com/heroku/ranch_proxy_protocol.git",
-       ref: "4e0f73a385f37cc6f277363695e91f4fc7a81f24"},
-      {:ranch, "1.5.0", override: true},
       {:tesla, "~> 1.2"},
       {:hackney, "~> 1.14"},
       {:uuid, "~> 1.1"},
-      {:amqp, "~> 1.0"},
+      {:amqp, "1.1.1"},
       {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], targets: [:host], runtime: false},
       {:ex_doc, "~> 0.19", only: [:dev], targets: [:host], runtime: false}
