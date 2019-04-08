@@ -42,14 +42,17 @@ defmodule FarmbotOS.SysCalls do
         val
 
       {:error, reason} ->
-        {:error, reason}
+        {:error, "Firmware error: #{inspect(reason)}"}
     end
   end
 
   def write_pin(pin_number, mode, value) do
     case FarmbotFirmware.command({:pin_write, [p: pin_number, v: value, m: mode]}) do
-      :ok -> :ok
-      {:error, reason} -> {:error, reason}
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        {:error, "Firmware error: #{inspect(reason)}"}
     end
   end
 
@@ -66,7 +69,7 @@ defmodule FarmbotOS.SysCalls do
         Keyword.fetch!(params, axis)
 
       {:error, reason} ->
-        {:error, reason}
+        {:error, "Firmware error: #{inspect(reason)}"}
     end
   end
 
@@ -78,7 +81,7 @@ defmodule FarmbotOS.SysCalls do
         :ok
 
       {:error, reason} ->
-        {:error, to_string(reason)}
+        {:error, "Firmware error: #{inspect(reason)}"}
     end
   end
 
