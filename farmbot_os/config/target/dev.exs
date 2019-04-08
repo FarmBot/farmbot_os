@@ -54,6 +54,7 @@ config :farmbot,
 
 config :farmbot, FarmbotOS.Init.Supervisor,
   init_children: [
+    FarmbotOS.FirmwareTTYDetector,
     FarmbotOS.Platform.Target.Leds.CircuitsHandler
   ]
 
