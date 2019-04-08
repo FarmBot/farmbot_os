@@ -42,12 +42,15 @@ defmodule FarmbotOS.Platform.Target.Network do
         "NONE" -> :NONE
       end
 
-    [
-      ssid: ssid,
-      psk: psk,
-      key_mgmt: key_mgmt,
-      scan_ssid: 1
-    ] ++ validate_eap(settings) ++ validate_advanced(settings)
+    config =
+      [
+        ssid: ssid,
+        psk: psk,
+        key_mgmt: key_mgmt,
+        scan_ssid: 1
+      ] ++ validate_eap(settings) ++ validate_advanced(settings)
+
+    [networks: [config]]
   end
 
   def validate_eap(%{security: "WPA-EAP"} = settings) do
@@ -63,6 +66,10 @@ defmodule FarmbotOS.Platform.Target.Network do
       phase1: "peapver=auto",
       phase2: "MSCHAPV2"
     ]
+  end
+
+  def validate_eap(%{} = _settings) do
+    []
   end
 
   def validate_advanced(%{ipv4_address: "static"} = settings) do
@@ -183,6 +190,7 @@ defmodule FarmbotOS.Platform.Target.Network do
     state = try_stop_dhcp(state)
 
     for {ifname, _conf} <- state.config do
+      Logger.info("Stopping hostap")
       Nerves.Network.teardown(ifname)
       Nerves.Network.setup(ifname, [])
     end
@@ -210,6 +218,10 @@ defmodule FarmbotOS.Platform.Target.Network do
       nameservers: ["192.168.24.1"]
     ]
 
+    network_opts = [
+      networks: [hostap_opts ++ ip_opts]
+    ]
+
     dhcp_opts = [
       gateway: "192.168.24.1",
       netmask: "255.255.255.0",
@@ -218,7 +230,7 @@ defmodule FarmbotOS.Platform.Target.Network do
     ]
 
     Nerves.Network.teardown("wlan0")
-    Nerves.Network.setup("wlan0", hostap_opts ++ ip_opts)
+    Nerves.Network.setup("wlan0", network_opts)
     {:ok, hostap_dhcp_server_pid} = DHCPServer.start_link("wlan0", dhcp_opts)
     {:ok, hostap_wpa_supplicant_pid} = wait_for_wpa("wlan0")
 
