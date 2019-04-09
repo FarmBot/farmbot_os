@@ -120,6 +120,8 @@ defmodule FarmbotFirmware.StubSideEffects do
 
   def handle_busy(_), do: :noop
 
+  def handle_idle(_), do: :noop
+
   def handle_input_gcode(_), do: :noop
 
   def handle_output_gcode(_), do: :noop

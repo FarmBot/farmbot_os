@@ -427,6 +427,7 @@ defmodule FarmbotFirmware do
   # report_idle => goto(_, :idle)
   def handle_report({:report_idle, []}, %{status: _} = state) do
     side_effects(state, :handle_busy, [false])
+    side_effects(state, :handle_idle, [true])
     {:noreply, goto(%{state | caller_pid: nil, current: nil}, :idle), 0}
   end
 
