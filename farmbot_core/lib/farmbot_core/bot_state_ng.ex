@@ -76,13 +76,15 @@ defmodule FarmbotCore.BotStateNG do
   end
 
   @doc "Add or update a farmware to state.farmwares"
-  def add_or_update_farmware(state, name, %{} = manifest) do
+  def add_or_update_farmware(state, _name, %{} = _manifest) do
+    # TODO(Connor) finish this.
     cs = changeset(state, %{})
 
     new_farmwares =
       cs
       |> get_field(:process_info)
       |> Map.get(:farmwares)
+      # |> Map.put(name, manifest)
     put_change(cs, :process_info, %{farmwares: new_farmwares})
   end
 
