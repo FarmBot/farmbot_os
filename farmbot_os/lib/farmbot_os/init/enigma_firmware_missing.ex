@@ -1,5 +1,5 @@
 defmodule FarmbotOS.Init.EnigmaFirmwareMissing do
-  alias FarmbotCore.{Asset, Asset.Private}
+  alias FarmbotCore.{Asset, Asset.Private, Config}
   alias FarmbotCore.EnigmaHandler
   alias FarmbotFirmware.UARTTransport
 
@@ -23,9 +23,9 @@ defmodule FarmbotOS.Init.EnigmaFirmwareMissing do
     EnigmaHandler.register_up("firmware.missing", &enigma_up/1)
     EnigmaHandler.register_down("firmware.missing", &enigma_down/1)
 
-    needs_flash? = FarmbotCore.Config.get_config_value(:bool, "settings", "firmware_needs_flash")
+    needs_flash? = Config.get_config_value(:bool, "settings", "firmware_needs_flash")
 
-    current_fbos_config = FarmbotCore.Asset.fbos_config()
+    current_fbos_config = Asset.fbos_config()
     firmware_hardware = current_fbos_config.firmware_hardware
     situation = {needs_flash?, firmware_hardware}
 
@@ -41,7 +41,7 @@ defmodule FarmbotOS.Init.EnigmaFirmwareMissing do
         :ok
 
       {false, firmware_hardware} when is_binary(firmware_hardware) ->
-        swap_transport(FarmbotCore.Asset.fbos_config(:firmware_path))
+        swap_transport(Asset.fbos_config(:firmware_path))
 
       {_, nil} ->
         FarmbotCore.Logger.warn(1, "firmware needs flashed- creating `firmware.missing` enigma")
@@ -57,8 +57,8 @@ defmodule FarmbotOS.Init.EnigmaFirmwareMissing do
   end
 
   def enigma_down(_) do
-    swap_transport(FarmbotCore.Asset.fbos_config(:firmware_path))
-    FarmbotCore.Config.update_config_value(:bool, "settings", "firmware_needs_flash", false)
+    swap_transport(Asset.fbos_config(:firmware_path))
+    Config.update_config_value(:bool, "settings", "firmware_needs_flash", false)
   end
 
   defp swap_transport(tty) do
