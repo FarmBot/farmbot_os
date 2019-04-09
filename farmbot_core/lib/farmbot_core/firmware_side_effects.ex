@@ -6,38 +6,48 @@ defmodule FarmbotCore.FirmwareSideEffects do
   alias FarmbotCore.{Asset, BotState}
   alias FarmbotCore.FirmwareEstopTimer
 
+  @impl FarmbotFirmware.SideEffects
   def handle_position(x: x, y: y, z: z) do
     :ok = BotState.set_position(x, y, z)
   end
 
+  @impl FarmbotFirmware.SideEffects
   def handle_position_change([{_axis, _value}]) do
     :noop
   end
 
+  @impl FarmbotFirmware.SideEffects
   def handle_axis_state([{_axis, _state}]) do
     :noop
   end
 
+  @impl FarmbotFirmware.SideEffects
   def handle_calibration_state([{_axis, _state}]) do
     :noop
   end
 
+  @impl FarmbotFirmware.SideEffects
   def handle_encoders_scaled(x: x, y: y, z: z) do
     :ok = BotState.set_encoders_scaled(x, y, z)
   end
 
+
+  @impl FarmbotFirmware.SideEffects
   def handle_encoders_raw(x: x, y: y, z: z) do
     :ok = BotState.set_encoders_raw(x, y, z)
   end
 
+  @impl FarmbotFirmware.SideEffects
   def handle_paramater_value([{param, value}]) do
     :ok = BotState.set_firmware_config(param, value)
   end
 
+  @impl FarmbotFirmware.SideEffects
   def handle_pin_value(p: pin, v: value) do
     :ok = BotState.set_pin_value(pin, value)
   end
 
+  @impl FarmbotFirmware.SideEffects
   def handle_software_version([version]) do
     :ok = BotState.set_firmware_version(version)
     case String.split(version, ".") do
@@ -52,39 +62,53 @@ defmodule FarmbotCore.FirmwareSideEffects do
     end
   end
 
+  @impl FarmbotFirmware.SideEffects
   def handle_end_stops(_) do
     :noop
   end
 
+  @impl FarmbotFirmware.SideEffects
   def handle_busy(busy) do
     :ok = BotState.set_firmware_busy(busy)
   end
 
+
+  @impl FarmbotFirmware.SideEffects
+  def handle_idle(idle) do
+    :ok = BotState.set_firmware_idle(idle)
+  end
+
+  @impl FarmbotFirmware.SideEffects
   def handle_emergency_lock() do
     _ = FirmwareEstopTimer.start_timer()
     :ok = BotState.set_firmware_locked()
   end
 
+  @impl FarmbotFirmware.SideEffects
   def handle_emergency_unlock() do
     _ = FirmwareEstopTimer.cancel_timer()
     :ok = BotState.set_firmware_unlocked()
   end
 
+  @impl FarmbotFirmware.SideEffects
   def handle_input_gcode(code) do
     should_log? = Asset.fbos_config().firmware_input_log
     should_log? && FarmbotCore.Logger.debug(3, inspect(code))
   end
 
+  @impl FarmbotFirmware.SideEffects
   def handle_output_gcode(code) do
     should_log? = Asset.fbos_config().firmware_output_log
     should_log? && FarmbotCore.Logger.debug(3, inspect(code))
   end
 
+  @impl FarmbotFirmware.SideEffects
   def handle_debug_message([message]) do
     should_log? = Asset.fbos_config().firmware_debug_log
     should_log? && FarmbotCore.Logger.debug(3, "Arduino debug message: " <> message)
   end
 
+  @impl FarmbotFirmware.SideEffects
   def load_params do
     conf = Asset.firmware_config()
 
