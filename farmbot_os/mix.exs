@@ -57,6 +57,7 @@ defmodule FarmbotOS.MixProject do
       {:nerves_hub_cli, "~> 0.5", runtime: false},
       {:shoehorn, "~> 0.5"},
       {:logger_backend_sqlite, "~> 2.2"},
+      {:ring_logger, "~> 0.6.1"},
 
       # Host/test only dependencies.
       {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
