@@ -26,6 +26,7 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
     field(:last_status, :string)
     field(:cache_bust, :integer)
     field(:busy, :boolean)
+    field(:idle, :boolean)
     field(:update_available, :boolean, default: false)
   end
 
@@ -54,6 +55,7 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
       last_status: informational_settings.last_status,
       cache_bust: informational_settings.cache_bust,
       busy: informational_settings.busy,
+      idle: informational_settings.idle,
       update_available: informational_settings.update_available
     }
   end
@@ -78,6 +80,7 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
       :last_status,
       :cache_bust,
       :busy,
+      :idle,
       :update_available
     ])
   end

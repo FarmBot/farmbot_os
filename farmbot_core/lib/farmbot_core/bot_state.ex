@@ -1,6 +1,7 @@
 defmodule FarmbotCore.BotState do
   @moduledoc "Central State accumulator."
   alias FarmbotCore.BotStateNG
+  require FarmbotCore.Logger
   use GenServer
 
   @doc "Subscribe to BotState changes"
@@ -82,6 +83,10 @@ defmodule FarmbotCore.BotState do
     GenServer.call(bot_state_server, {:set_firmware_busy, busy})
   end
 
+  @doc "Sets informational_settings.idle"
+  def set_firmware_idle(bot_state_server \\ __MODULE__, idle) do
+    GenServer.call(bot_state_server, {:set_firmware_idle, idle})
+  end
 
   @doc "Sets informational_settings.status"
   def set_sync_status(bot_state_server \\ __MODULE__, s)
@@ -143,6 +148,10 @@ defmodule FarmbotCore.BotState do
   @doc false
   def init([]) do
     {:ok, %{tree: BotStateNG.new(), subscribers: []}}
+  end
+
+  def terminate(reason, _state) do
+    FarmbotCore.Logger.error 1, "BotState crashed! #{inspect(reason)}"
   end
 
   @doc false
@@ -277,6 +286,16 @@ defmodule FarmbotCore.BotState do
 
   def handle_call({:set_firmware_busy, busy}, _from, state) do
     change = %{informational_settings: %{busy: busy}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_firmware_idle, idle}, _from, state) do
+    change = %{informational_settings: %{idle: idle}}
 
     {reply, state} =
       BotStateNG.changeset(state.tree, change)

@@ -1,4 +1,8 @@
 defmodule FarmbotFirmware.SideEffects do
+  @moduledoc """
+  Callback functions that the firmware process will call on certain events.
+  """
+
   alias FarmbotFirmware.{GCODE, Param}
 
   @type axis :: :x | :y | :z
@@ -18,6 +22,7 @@ defmodule FarmbotFirmware.SideEffects do
   @callback handle_pin_value(p: integer(), v: integer()) :: any()
   @callback handle_software_version([String.t()]) :: any()
   @callback handle_busy(boolean()) :: any()
+  @callback handle_idle(boolean()) :: any()
 
   @type axis_state :: :stop | :idle | :begin | :crawl | :decelerate | :accelerate
   @callback handle_axis_state([{axis(), axis_state}]) :: any()
