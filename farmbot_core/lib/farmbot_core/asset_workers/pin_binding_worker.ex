@@ -11,7 +11,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
 
   alias FarmbotCeleryScript.{AST, Scheduler}
 
-  @error_retry_time_ms Application.get_env(:farmbot_core, __MODULE__)[:error_retry_time_ms]
+  # @error_retry_time_ms Application.get_env(:farmbot_core, __MODULE__)[:error_retry_time_ms]
+  @error_retry_time_ms 5000
 
   @gpio_handler Application.get_env(:farmbot_core, __MODULE__)[:gpio_handler]
   @gpio_handler ||
@@ -58,92 +59,101 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
 
   @impl true
   def handle_cast(:trigger, %{pin_binding: %{special_action: nil} = pin_binding} = state) do
+    FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
     case Asset.get_sequence(id: pin_binding.sequence_id) do
       %Sequence{} = seq ->
         ref = Scheduler.schedule(seq)
-        {:noreply, %{state | scheduled_ref: ref}, :hibernate}
+        {:noreply, %{state | scheduled_ref: ref}}
 
       nil ->
         FarmbotCore.Logger.error(1, "Failed to find assosiated Sequence for: #{pin_binding}")
-        {:noreply, state, :hibernate}
+        {:noreply, state}
     end
   end
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "dump_info"} = pin_binding} = state) do
+    FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
     ref =
       AST.Factory.new()
       |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
       |> AST.Factory.dump_info()
       |> Scheduler.schedule()
-    {:noreply, %{state | scheduled_ref: ref}, :hibernate}
+    {:noreply, %{state | scheduled_ref: ref}}
   end
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "emergency_lock"} = pin_binding} = state) do
+    FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
     ref =
       AST.Factory.new()
       |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
       |> AST.Factory.emergency_lock()
       |> Scheduler.schedule()
-    {:noreply, %{state | scheduled_ref: ref}, :hibernate}
+    {:noreply, %{state | scheduled_ref: ref}}
   end
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "emergency_unlock"} = pin_binding} = state) do
+    FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
     ref =
       AST.Factory.new()
       |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
       |> AST.Factory.emergency_unlock()
       |> Scheduler.schedule()
-    {:noreply, %{state | scheduled_ref: ref}, :hibernate}
+    {:noreply, %{state | scheduled_ref: ref}}
   end
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "power_off"} = pin_binding} = state) do
+    FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
     ref =
       AST.Factory.new()
       |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
       |> AST.Factory.power_off()
       |> Scheduler.schedule()
-    {:noreply, %{state | scheduled_ref: ref}, :hibernate}
+    {:noreply, %{state | scheduled_ref: ref}}
   end
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "read_status"} = pin_binding} = state) do
+    FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
     ref =
       AST.Factory.new()
       |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
       |> AST.Factory.read_status()
       |> Scheduler.schedule()
-    {:noreply, %{state | scheduled_ref: ref}, :hibernate}
+    {:noreply, %{state | scheduled_ref: ref}}
   end
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "reboot"} = pin_binding} = state) do
+    FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
     ref =
       AST.Factory.new()
       |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
       |> AST.Factory.reboot()
       |> Scheduler.schedule()
-    {:noreply, %{state | scheduled_ref: ref}, :hibernate}
+    {:noreply, %{state | scheduled_ref: ref}}
   end
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "sync"} = pin_binding} = state) do
+    FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
     ref =
       AST.Factory.new()
       |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
       |> AST.Factory.sync()
       |> Scheduler.schedule()
-    {:noreply, %{state | scheduled_ref: ref}, :hibernate}
+    {:noreply, %{state | scheduled_ref: ref}}
   end
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "take_photo"} = pin_binding} = state) do
+    FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
     ref =
       AST.Factory.new()
       |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
       |> AST.Factory.take_photo()
       |> Scheduler.schedule()
-    {:noreply, %{state | scheduled_ref: ref}, :hibernate}
+    {:noreply, %{state | scheduled_ref: ref}}
   end
 
   def handle_cast(:trigger, %{pin_binding: pin_binding} = state) do
     FarmbotCore.Logger.error(1, "Unknown PinBinding: #{pin_binding}")
-    {:noreply, state, :hibernate}
+    {:noreply, state}
   end
 
   @impl true
@@ -157,7 +167,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
 
       {:error, {:already_started, pid}} ->
         Process.link(pid)
-        {:noreply, state, :hibernate}
+        {:noreply, state}
 
       {:error, reason} ->
         Logger.error("Failed to start PinBinding GPIO Handler: #{inspect(reason)}")
@@ -165,19 +175,19 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
 
       :ignore ->
         Logger.info("Failed to start PinBinding GPIO Handler. Not retrying.")
-        {:noreply, state, :hibernate}
+        {:noreply, state}
     end
   end
 
   @impl true
   def handle_info({Scheduler, ref, :ok}, %{scheduled_ref: ref} = state) do
-    {:noreply, state, :hibernate}
+    {:noreply, state}
   end
 
   def handle_info({Scheduler, ref, {:error, reason}}, %{scheduled_ref: ref} = state) do
     pin_binding = state.pin_binding
     FarmbotCore.Logger.error(1, "PinBinding: #{pin_binding} failed to execute: #{reason}")
-    {:noreply, state, :hibernate}
+    {:noreply, state}
   end
 
   defp gpio_handler,

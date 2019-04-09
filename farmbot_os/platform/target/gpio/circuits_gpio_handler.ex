@@ -37,7 +37,7 @@ defmodule FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler do
 
   def handle_info({:circuits_gpio, _pin, _timestamp, _signal}, state) do
     state.fun.()
-    {:noreply, state, %{state | debounce: debounce_timer()}}
+    {:noreply, %{state | debounce: debounce_timer()}}
   end
 
   def name(pin_number), do: :"#{__MODULE__}.#{pin_number}"
