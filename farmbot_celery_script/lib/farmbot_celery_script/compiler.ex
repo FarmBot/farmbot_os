@@ -378,18 +378,18 @@ defmodule FarmbotCeleryScript.Compiler do
   end
 
   # Expands find_home(all) into three find_home/1 calls
-  compile :find_home, %{axis: "all", speed: speed} do
+  compile :find_home, %{axis: "all"} do
     quote location: :keep do
-      find_home("x", unquote(compile_ast(speed)))
-      find_home("y", unquote(compile_ast(speed)))
-      find_home("z", unquote(compile_ast(speed)))
+      find_home("x")
+      find_home("y")
+      find_home("z")
     end
   end
 
   # compiles find_home
-  compile :find_home, %{axis: axis, speed: speed} do
+  compile :find_home, %{axis: axis} do
     quote location: :keep do
-      find_home(unquote(compile_ast(axis)), unquote(compile_ast(speed)))
+      find_home(unquote(compile_ast(axis)))
     end
   end
 
