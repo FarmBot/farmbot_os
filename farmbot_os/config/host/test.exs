@@ -6,10 +6,6 @@ File.mkdir_p(data_path)
 config :farmbot_ext,
   data_path: data_path
 
-config :logger_backend_ecto, LoggerBackendEcto.Repo,
-  adapter: Sqlite.Ecto2,
-  database: Path.join(data_path, "logs.sqlite3")
-
 config :farmbot_core, FarmbotCore.Config.Repo,
   adapter: Sqlite.Ecto2,
   loggers: [],
