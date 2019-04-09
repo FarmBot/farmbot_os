@@ -92,8 +92,8 @@ defmodule Farmbot.TestSupport.CeleryScript.TestSysCalls do
   end
 
   @impl true
-  def find_home(axis, speed) do
-    call({:find_home, [axis, speed]})
+  def find_home(axis) do
+    call({:find_home, [axis]})
   end
 
   @impl true

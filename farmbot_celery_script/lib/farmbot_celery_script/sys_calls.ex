@@ -37,7 +37,7 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback point(point_type, resource_id) :: coordinate | error
   @callback move_absolute(x :: axis_position, y :: axis_position, z :: axis_position, axis_speed) ::
               :ok | error
-  @callback find_home(axis, axis_speed) :: :ok | error
+  @callback find_home(axis) :: :ok | error
 
   @callback calibrate(axis) :: :ok | error
 
@@ -147,8 +147,8 @@ defmodule FarmbotCeleryScript.SysCalls do
     end
   end
 
-  def find_home(module \\ @sys_call_implementation, axis, speed) do
-    case module.find_home(axis, speed) do
+  def find_home(module \\ @sys_call_implementation, axis) do
+    case module.find_home(axis) do
       :ok -> :ok
       {:error, reason} when is_binary(reason) -> error(reason)
     end
