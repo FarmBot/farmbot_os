@@ -56,9 +56,11 @@ defmodule FarmbotCore.Logger do
   end
 
   def insert_log!(%Log{} = log) do
-    log
-    |> Log.changeset(%{})
-    |> Repo.insert!()
+    change = Log.changeset(log, %{})
+    case Repo.insert(change) do
+      {:ok, log} -> log
+      _ -> log
+    end
   end
 
   @doc "Gets a log by it's id, deletes it."
