@@ -75,7 +75,7 @@ build_firmware_steps: &build_firmware_steps
     - run:
         name: Create artifacts
         command: |
-          cp /nerves/build/farmbot_os/_build/${MIX_TARGET}/${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+          cp /nerves/build/farmbot_os/_build/${MIX_TARGET}/${MIX_TARGET}_${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
     - save_cache:
         key: v9-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
         paths:
@@ -105,11 +105,11 @@ deploy_nerves_hub_firmware_steps: &deploy_nerves_hub_firmware_steps
     - run:
         name: Sign Image
         working_directory: /nerves/build/farmbot_os
-        command: mix nerves_hub.firmware sign --key notreal /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+        command: mix nerves_hub.firmware sign --key notreal /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
     - run:
         name: Publish to NervesHub
         working_directory: /nerves/build/farmbot_os
-        command: mix nerves_hub.firmware publish --deploy ${NERVES_HUB_DEPLOY} ${NERVES_HUB_TTL} /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+        command: mix nerves_hub.firmware publish --deploy ${NERVES_HUB_DEPLOY} ${NERVES_HUB_TTL} /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
 
 jobs:
 
