@@ -49,7 +49,7 @@ defmodule FarmbotCeleryScript.Compiler do
     # compile the ast
     {_, _, _} = compiled = compile_ast(ast)
 
-    delete_me(compiled)
+    # print_compiled_code(compiled)
     # entry points must be evaluated once more with the calling `env`
     # to return a list of compiled `steps`
 
@@ -802,10 +802,10 @@ defmodule FarmbotCeleryScript.Compiler do
     end)
   end
 
-  defp delete_me(compiled) do
-    compiled
-    |> Macro.to_string()
-    |> Code.format_string!()
-    |> IO.puts()
-  end
+  # defp print_compiled_code(compiled) do
+  #   compiled
+  #   |> Macro.to_string()
+  #   |> Code.format_string!()
+  #   |> IO.puts()
+  # end
 end
