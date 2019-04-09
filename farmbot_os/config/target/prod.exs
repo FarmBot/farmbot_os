@@ -1,30 +1,35 @@
 use Mix.Config
-
 config :nerves_network, regulatory_domain: "US"
 
+config :nerves_init_gadget,
+  ifname: "usb0",
+  address_method: :dhcpd,
+  mdns_domain: "farmbot.local",
+  node_name: "farmbot",
+  node_host: :mdns_domain
+
 config :shoehorn,
-  init: [:nerves_runtime, :nerves_firmware_ssh, :farmbot_core, :farmbot_ext],
+  init: [:nerves_runtime, :nerves_init_gadget, :nerves_firmware_ssh, :farmbot_core, :farmbot_ext],
   app: :farmbot
 
 config :tzdata, :autoupdate, :disabled
 
-config :farmbot_core, Elixir.Farmbot.AssetWorker.Farmbot.Asset.PinBinding,
-  gpio_handler: Farmbot.PinBindingWorker.CircuitsGPIOHandler,
+config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding,
+  gpio_handler: FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler,
+  # gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler,
   error_retry_time_ms: 30_000
 
-config :farmbot_core, Farmbot.Leds, gpio_handler: Farmbot.Target.Leds.CircuitsHandler
-
-config :farmbot_core, :behaviour, celery_script_io_layer: Farmbot.OS.IOLayer
+config :farmbot_core, FarmbotCore.Leds, gpio_handler: Farmbot.Platform.Target.Leds.CircuitsHandler
 
 data_path = Path.join("/", "root")
 
-config :farmbot, Farmbot.OS.FileSystem, data_path: data_path
+config :farmbot, FarmbotOS.FileSystem, data_path: data_path
 
 config :logger_backend_ecto, LoggerBackendEcto.Repo,
   adapter: Sqlite.Ecto2,
   database: Path.join(data_path, "debug_logs.sqlite3")
 
-config :farmbot_core, Farmbot.Config.Repo,
+config :farmbot_core, FarmbotCore.Config.Repo,
   adapter: Sqlite.Ecto2,
   loggers: [],
   database: Path.join(data_path, "config-#{Mix.env()}.sqlite3")
@@ -34,41 +39,39 @@ config :farmbot_core, FarmbotCore.Logger.Repo,
   loggers: [],
   database: Path.join(data_path, "logs-#{Mix.env()}.sqlite3")
 
-config :farmbot_core, Farmbot.Asset.Repo,
+config :farmbot_core, FarmbotCore.Asset.Repo,
   adapter: Sqlite.Ecto2,
   loggers: [],
   database: Path.join(data_path, "asset-#{Mix.env()}.sqlite3")
 
 config :farmbot,
-  ecto_repos: [Farmbot.Config.Repo, FarmbotCore.Logger.Repo, Farmbot.Asset.Repo]
+  ecto_repos: [FarmbotCore.Config.Repo, FarmbotCore.Logger.Repo, FarmbotCore.Asset.Repo]
 
-config :farmbot, Farmbot.System.Init.Supervisor,
+config :farmbot, FarmbotOS.Init.Supervisor,
   init_children: [
     FarmbotOS.FirmwareTTYDetector,
-    Farmbot.Target.Leds.CircuitsHandler
+    FarmbotOS.Platform.Target.Leds.CircuitsHandler
   ]
 
-config :farmbot, Farmbot.Platform.Supervisor,
+config :farmbot, FarmbotOS.Platform.Supervisor,
   platform_children: [
-    Farmbot.System.NervesHub,
-    Farmbot.Target.Network.Supervisor,
-    Farmbot.Target.Configurator.Supervisor,
-    Farmbot.Target.SSHConsole,
-    Farmbot.Target.Uevent.Supervisor,
-    Farmbot.Target.InfoWorker.Supervisor,
-    Farmbot.TTYDetector
+    FarmbotOS.NervesHub,
+    FarmbotOS.Platform.Target.Network.Supervisor,
+    FarmbotOS.Platform.Target.Configurator.Supervisor,
+    FarmbotOS.Platform.Target.SSHConsole,
+    FarmbotOS.Platform.Target.Uevent.Supervisor,
+    FarmbotOS.Platform.Target.InfoWorker.Supervisor
   ]
 
-config :farmbot_ext, Farmbot.AMQP.NervesHubChannel,
-  handle_nerves_hub_msg: Farmbot.System.NervesHub
+config :farmbot_ext, FarmbotExt.AMQP.NervesHubChannel, handle_nerves_hub_msg: FarmbotOS.NervesHub
 
-config :farmbot, Farmbot.System.NervesHub,
-  farmbot_nerves_hub_handler: Farmbot.System.NervesHubClient
+config :farmbot, FarmbotOS.NervesHub,
+  farmbot_nerves_hub_handler: FarmbotOS.Platform.Target.NervesHubClient
 
-config :farmbot, Farmbot.System, system_tasks: Farmbot.Target.SystemTasks
+config :farmbot, FarmbotOS.System, system_tasks: FarmbotOS.Platform.Target.SystemTasks
 
 config :nerves_hub,
-  client: Farmbot.System.NervesHubClient,
+  client: FarmbotOS.Platform.Target.NervesHubClient,
   public_keys: [File.read!("priv/staging.pub"), File.read!("priv/prod.pub")]
 
-config :nerves_hub, NervesHub.Socket, reconnect_interval: 5_000
+config :nerves_hub, NervesHub.Socket, reconnect_interval: 30_000
