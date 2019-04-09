@@ -64,6 +64,8 @@ defmodule FarmbotOS.SysCalls do
   end
 
   defp get_position(axis) do
+    axis = assert_axis!(axis)
+
     case FarmbotFirmware.request({nil, {:position_read, []}}) do
       {:ok, {_, {:report_position, params}}} ->
         Keyword.fetch!(params, axis)
@@ -86,13 +88,47 @@ defmodule FarmbotOS.SysCalls do
   end
 
   def calibrate(axis) do
+    axis = assert_axis!(axis)
+
     case FarmbotFirmware.command({:command_movement_calibrate, axis}) do
       :ok ->
         :ok
 
       {:error, reason} ->
-        {:error, reason}
+        {:error, "Firmware error: #{inspect(reason)}"}
     end
+  end
+
+  def find_home(axis) do
+    axis = assert_axis!(axis)
+
+    case FarmbotFirmware.command({:command_movement_find_home, axis}) do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        {:error, "Firmware error: #{inspect(reason)}"}
+    end
+  end
+
+  defp assert_axis!(axis) when is_atom(axis),
+    do: axis
+
+  defp assert_axis!(axis) when axis in ~w(x y z),
+    do: String.to_existing_atom(axis)
+
+  defp assert_axis!(axis) do
+    # {:error, "unknown axis #{axis}"}
+    raise("unknown axis #{axis}")
+  end
+
+  def wait(ms) do
+    Process.sleep(ms)
+    :ok
+  end
+
+  def named_pin(kind, id) do
+    {:error, "unknown pin kind: #{kind} of id: #{id}"}
   end
 
   def get_sequence(id) do

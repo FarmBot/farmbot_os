@@ -133,13 +133,13 @@ defmodule FarmbotCeleryScript.SysCallsTest do
 
   test "find_home", %{shim: shim} do
     :ok = shim_fun_ok(shim)
-    assert :ok = SysCalls.find_home(TestSysCalls, "x", 100)
-    assert_receive {:find_home, ["x", 100]}
+    assert :ok = SysCalls.find_home(TestSysCalls, "x")
+    assert_receive {:find_home, ["x"]}
 
     :ok = shim_fun_error(shim, "home lost")
 
     assert_raise RuntimeError, "home lost", fn ->
-      SysCalls.find_home(TestSysCalls, "x", 100)
+      SysCalls.find_home(TestSysCalls, "x")
     end
   end
 
