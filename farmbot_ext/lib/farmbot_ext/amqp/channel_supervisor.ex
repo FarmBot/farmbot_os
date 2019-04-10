@@ -6,7 +6,6 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
   alias FarmbotExt.AMQP.{
     NervesHubChannel,
     LogChannel,
-    BotStateChannel,
     BotStateNGChannel,
     AutoSyncChannel,
     CeleryScriptChannel
@@ -23,7 +22,6 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
     children = [
       {NervesHubChannel, [jwt: jwt]},
       {LogChannel, [jwt: jwt]},
-      {BotStateChannel, [jwt: jwt]},
       {BotStateNGChannel, [jwt: jwt]},
       {AutoSyncChannel, [jwt: jwt]},
       {CeleryScriptChannel, [jwt: jwt]}
