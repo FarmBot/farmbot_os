@@ -21,6 +21,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
 
   def preload(%FarmEvent{}), do: []
 
+  def tracks_changes?(%FarmEvent{}), do: false
+
   def start_link(farm_event, args) do
     GenServer.start_link(__MODULE__, [farm_event, args])
   end

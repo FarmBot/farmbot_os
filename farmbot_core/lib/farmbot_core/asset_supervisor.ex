@@ -23,6 +23,15 @@ defmodule FarmbotCore.AssetSupervisor do
     end)
   end
 
+  # TODO(Connor) does this really belong here?
+  @doc "Does a GenServer call on a server"
+  def cast_child(%{} = data, cast) do
+    case whereis_child(data) do
+      nil -> exit("no process: #{inspect(data)}")
+      {_, pid, _, _} -> GenServer.cast(pid, cast)
+    end
+  end
+
   @doc "Start a process that manages an asset"
   def start_child(%kind{local_id: id} = asset) when is_binary(id) do
     :ok = Protocol.assert_impl!(AssetWorker, kind)
@@ -41,10 +50,18 @@ defmodule FarmbotCore.AssetSupervisor do
   @doc "Updates a child if it exists"
   def update_child(%kind{local_id: id} = asset) do
     :ok = Protocol.assert_impl!(AssetWorker, kind)
-    name = Module.concat(__MODULE__, kind)
-    _ = terminate_child(kind, id)
-    _ = Supervisor.delete_child(name, id)
-    start_child(asset)
+    # if the worker tracks changes, we don't want to
+    # restart it.
+    if AssetWorker.tracks_changes?(asset) do
+      cast_child(asset, {:new_data, asset})
+      {_, pid, _, _} = whereis_child(asset)
+      {:ok, pid}
+    else
+      name = Module.concat(__MODULE__, kind)
+      _ = terminate_child(kind, id)
+      _ = Supervisor.delete_child(name, id)
+      start_child(asset)
+    end
   end
 
   # Non public supervisor stuff
