@@ -39,7 +39,10 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
   @callback start_link(pin_number, trigger_fun) :: GenServer.on_start()
 
   @impl true
-  def preload(_), do: []
+  def preload(%PinBinding{}), do: []
+
+  @impl true
+  def tracks_changes?(%PinBinding{}), do: false
 
   @impl true
   def start_link(%PinBinding{} = pin_binding, _args) do
