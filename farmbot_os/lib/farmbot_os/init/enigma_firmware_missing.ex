@@ -42,6 +42,7 @@ defmodule FarmbotOS.Init.EnigmaFirmwareMissing do
 
       {false, firmware_hardware} when is_binary(firmware_hardware) ->
         swap_transport(Asset.fbos_config(:firmware_path))
+        :ok
 
       {_, nil} ->
         FarmbotCore.Logger.warn(1, "firmware needs flashed- creating `firmware.missing` enigma")
