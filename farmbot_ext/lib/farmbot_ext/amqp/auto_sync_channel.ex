@@ -145,12 +145,12 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
         :ok
 
       asset_kind == FbosConfig ->
-        Repo.get_by!(FbosConfig, id: id)
-        |> FbosConfig.changeset(params)
-        |> Repo.update!()
+        Asset.update_fbos_config!(params)
+        :ok
 
       asset_kind == FirmwareConfig ->
-        raise("FIXME")
+        Asset.update_firmware_config!(params)
+        :ok
 
       # TODO(Connor) make this use `sync_group0()`
       asset_kind in [FarmwareEnv, FarmwareInstallation] ->
