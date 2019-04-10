@@ -13,6 +13,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
 
   def preload(%FWI{}), do: []
 
+  def tracks_changes?(%FWI{}), do: false
+
   def start_link(fwi, _args) do
     GenServer.start_link(__MODULE__, fwi)
   end

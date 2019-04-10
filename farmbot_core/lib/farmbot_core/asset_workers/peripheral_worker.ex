@@ -12,6 +12,9 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
   def preload(%Peripheral{}), do: []
 
   @impl true
+  def tracks_changes?(%Peripheral{}), do: false
+
+  @impl true
   def start_link(peripheral, _args) do
     GenServer.start_link(__MODULE__, peripheral)
   end
