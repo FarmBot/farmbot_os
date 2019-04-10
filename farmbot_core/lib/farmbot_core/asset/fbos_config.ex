@@ -14,20 +14,35 @@ defmodule FarmbotCore.Asset.FbosConfig do
       foreign_key: :asset_local_id
     )
 
+    # firmware
     field(:arduino_debug_messages, :boolean)
-    field(:auto_sync, :boolean)
-    field(:beta_opt_in, :boolean)
-    field(:disable_factory_reset, :boolean)
-    field(:firmware_hardware, :string)
-    field(:firmware_path, :string)
     field(:firmware_input_log, :boolean)
     field(:firmware_output_log, :boolean)
     field(:firmware_debug_log, :boolean)
+
+    # No longer supported
+    field(:firmware_hardware, :string)
+
+    # stateful
+    field(:firmware_path, :string)
+
+    # auto_sync_channel
+    field(:auto_sync, :boolean)
+
+    # not used anymore
+    field(:beta_opt_in, :boolean)
+
+    # system
+    field(:disable_factory_reset, :boolean)
     field(:network_not_found_timer, :integer)
     field(:os_auto_update, :boolean)
+
+    # celeryscript
     field(:sequence_body_log, :boolean)
     field(:sequence_complete_log, :boolean)
     field(:sequence_init_log, :boolean)
+
+    # private
     field(:monitor, :boolean, default: true)
     timestamps()
   end
