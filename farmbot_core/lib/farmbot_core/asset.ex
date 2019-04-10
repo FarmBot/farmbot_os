@@ -22,6 +22,7 @@ defmodule FarmbotCore.Asset do
     RegimenInstance,
     Sequence
   }
+  alias FarmbotCore.AssetSupervisor
 
   import Ecto.Query
 
@@ -65,8 +66,10 @@ defmodule FarmbotCore.Asset do
   is almost certainly what you want.
   """
   def update_fbos_config!(fbos_config \\ nil, params) do
-    FbosConfig.changeset(fbos_config || fbos_config(), params)
-    |> Repo.insert_or_update!()
+    new_data =
+      FbosConfig.changeset(fbos_config || fbos_config(), params)
+      |> Repo.insert_or_update!()
+    AssetSupervisor.cast_child(new_data, {:new_data, new_data})
   end
 
   ## End FbosConfig
@@ -79,6 +82,13 @@ defmodule FarmbotCore.Asset do
 
   def firmware_config(field) do
     Map.fetch!(firmware_config(), field)
+  end
+
+  def update_firmware_config!(firmware_config \\ nil, params) do
+    new_data =
+      FirmwareConfig.changeset(firmware_config || firmware_config(), params)
+      |> Repo.insert_or_update!()
+    AssetSupervisor.cast_child(new_data, {:new_data, new_data})
   end
 
   ## End FirmwareConfig
