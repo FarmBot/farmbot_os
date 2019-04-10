@@ -23,6 +23,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
 
   def preload(%RegimenInstance{}), do: [:farm_event, :regimen]
 
+  def tracks_changes?(%RegimenInstance{}), do: false
+
   def start_link(regimen_instance, args) do
     GenServer.start_link(__MODULE__, [regimen_instance, args])
   end

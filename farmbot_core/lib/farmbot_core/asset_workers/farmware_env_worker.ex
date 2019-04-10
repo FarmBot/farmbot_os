@@ -5,6 +5,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareEnv do
 
   def preload(%FarmwareEnv{}), do: []
 
+  def tracks_changes?(%FarmwareEnv{}), do: false
+
   def start_link(%FarmwareEnv{} = env, _args) do
     GenServer.start_link(__MODULE__, env)
   end
