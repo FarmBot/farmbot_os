@@ -10,6 +10,7 @@ defmodule FarmbotCore.Asset.Supervisor do
     FarmwareEnv,
     FarmwareInstallation,
     FbosConfig,
+    FirmwareConfig,
     PinBinding,
     Peripheral,
     RegimenInstance
@@ -23,6 +24,7 @@ defmodule FarmbotCore.Asset.Supervisor do
     children = [
       Repo,
       {AssetSupervisor, module: FbosConfig},
+      {AssetSupervisor, module: FirmwareConfig},
       {AssetSupervisor, module: Device},
       {AssetSupervisor, module: RegimenInstance},
       {AssetSupervisor, module: FarmEvent},

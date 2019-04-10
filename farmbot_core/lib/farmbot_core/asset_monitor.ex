@@ -11,6 +11,7 @@ defmodule FarmbotCore.AssetMonitor do
     Repo,
     Device,
     FbosConfig,
+    FirmwareConfig,
     FarmEvent,
     FarmwareInstallation,
     FarmwareEnv,
@@ -110,13 +111,14 @@ defmodule FarmbotCore.AssetMonitor do
 
   defp assert_result!(:ignore, _), do: :ok
   defp assert_result!({:ok, _}, _), do: :ok
-  defp assert_result!(_, asset),
-    do: exit("Failed to start or update child: #{inspect(asset)}")
+  defp assert_result!(result, asset),
+    do: exit("Failed to start or update child: #{inspect(asset)} #{inspect(result)}")
 
   def order,
     do: [
       Device,
       FbosConfig,
+      FirmwareConfig,
       FarmEvent,
       Peripheral,
       RegimenInstance,
