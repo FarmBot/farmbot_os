@@ -111,7 +111,10 @@ defmodule FarmbotCore.FirmwareSideEffects do
   @impl FarmbotFirmware.SideEffects
   def load_params do
     conf = Asset.firmware_config()
+    known_params(conf)
+  end
 
+  def known_params(conf) do
     Map.take(conf, [
       :param_e_stop_on_mov_err,
       :param_mov_nr_retry,
