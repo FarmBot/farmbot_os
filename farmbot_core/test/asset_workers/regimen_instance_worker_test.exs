@@ -1,12 +1,9 @@
 defmodule FarmbotCore.RegimenInstanceWorkerTest do
   use ExUnit.Case, async: false
 
-  alias FarmbotCeleryScript.Scheduler
-
   alias FarmbotCore.Asset.RegimenInstance
 
   import Farmbot.TestSupport.AssetFixtures
-
   alias Farmbot.TestSupport.CeleryScript.TestSysCalls
 
   test "regimen executes a sequence" do
@@ -162,7 +159,7 @@ defmodule FarmbotCore.RegimenInstanceWorkerTest do
     # inject syscalls
     # inject celery_script scheduler
     # inject apply_sequence to RegimenInstance
-    {:ok, shim} = TestSysCalls.checkout()
+    {:ok, _shim} = TestSysCalls.checkout()
     that = self()
 
     callee_sequence_id = callee_sequence.id
@@ -257,10 +254,8 @@ defmodule FarmbotCore.RegimenInstanceWorkerTest do
     # inject syscalls
     # inject celery_script scheduler
     # inject apply_sequence to RegimenInstance
-    {:ok, shim} = TestSysCalls.checkout()
+    {:ok, _shim} = TestSysCalls.checkout()
     that = self()
-
-    the_sequence_id = the_sequence.id
 
     :ok =
       TestSysCalls.handle(TestSysCalls, fn
