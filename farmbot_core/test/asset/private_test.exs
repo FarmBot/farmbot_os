@@ -11,7 +11,7 @@ defmodule FarmbotCore.Asset.PrivateTest do
     test "create_or_update_enigma!() returns :ok" do
       result = enigma()
       assert result.priority == 100
-      assert result.problem_tag == "firmware.missing"
+      assert result.problem_tag == "farmbot_os.firmware.missing"
       assert result.created_at
 
       result2 =
