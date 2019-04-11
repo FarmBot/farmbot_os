@@ -57,7 +57,7 @@ defmodule FarmbotCore.BotState.FileSystemTest do
       root_dir = Path.join([System.tmp_dir!(), Ecto.UUID.generate(), "-farmbot-bot-state"])
       {:ok, bot_state_pid} = BotState.start_link([], [])
 
-      {:ok, pid} =
+      {:ok, _pid} =
         FileSystem.start_link(root_dir: root_dir, bot_state: bot_state_pid, sleep_time: 0)
 
       _ = BotState.subscribe(bot_state_pid)
