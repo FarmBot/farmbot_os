@@ -15,7 +15,7 @@ defmodule FarmbotCore.EnigmaHandlerTest do
 
     e = enigma()
 
-    :ok = EnigmaHandler.register_up(handler, "firmware.missing", foo)
+    :ok = EnigmaHandler.register_up(handler, "farmbot_os.firmware.missing", foo)
     EnigmaHandler.handle_up(handler, e)
     assert_received ^e
   end
@@ -32,10 +32,10 @@ defmodule FarmbotCore.EnigmaHandlerTest do
     e = %Enigma{
       priority: 0,
       local_id: Ecto.UUID.generate(),
-      problem_tag: "firmware.missing"
+      problem_tag: "farmbot_os.firmware.missing"
     }
 
-    :ok = EnigmaHandler.register_down(handler, "firmware.missing", foo)
+    :ok = EnigmaHandler.register_down(handler, "farmbot_os.firmware.missing", foo)
     EnigmaHandler.handle_down(handler, e)
     assert_received ^e
   end
