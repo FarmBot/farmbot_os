@@ -1,4 +1,6 @@
 # Changelog
+# 7.0.3
+* Update to AMQP to disable `heartbeat` timeouts
 
 # 7.0.2
 * AMQP now reconnects immediately after an unexpected disconnect

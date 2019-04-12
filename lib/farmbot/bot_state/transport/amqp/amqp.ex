@@ -194,6 +194,12 @@ defmodule Farmbot.BotState.Transport.AMQP do
     {:noreply, [], state}
   end
 
+  def handle_info({:EXIT, _pid, error}, state) do
+    Logger.debug 3, "AMQP disconnect: #{inspect(error)}"
+    send self(), :connect
+    {:noreply, [], %{state | conn: nil, chan: nil}}
+  end
+
   @doc false
   def handle_celery_script(payload, _state) do
     case AST.decode(payload) do
@@ -361,6 +367,10 @@ defmodule Farmbot.BotState.Transport.AMQP do
     ],
     host: mqtt_server,
     username: bot,
+    # This should be set to 0 to disable timeouts.
+    # RMQ uses tcp-keepalive
+    # https://github.com/rabbitmq/rabbitmq-erlang-client/blob/0ec41c554dc0e76a605423b0391b6ea0e7df9df4/src/amqp_connection.erl#L120
+    heartbeat: 0,
     password: token,
     virtual_host: vhost]
 
