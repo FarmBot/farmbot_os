@@ -12,7 +12,7 @@ defmodule Mix.Tasks.Farmbot.Firmware.Reload do
     farmbot_node = String.to_atom(farmbot_node)
 
     mods = get_mods(opts)
-    {:ok, _} = Node.start(:console)
+    {:ok, _} = Node.start(:reload)
     Node.set_cookie(:democookie)
     true = Node.connect(farmbot_node)
 
