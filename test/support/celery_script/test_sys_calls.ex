@@ -131,6 +131,41 @@ defmodule Farmbot.TestSupport.CeleryScript.TestSysCalls do
     call({:flash_firmware, [package]})
   end
 
+  @impl true
+  def change_ownership(email, secret) do
+    call({:change_ownership, [email, secret]})
+  end
+
+  @impl true
+  def dump_info() do
+    call({:dump_info, []})
+  end
+
+  @impl true
+  def factory_reset() do
+    call({:factory_reset, []})
+  end
+
+  @impl true
+  def firmware_reboot do
+    call({:firmware_reboot, []})
+  end
+
+  @impl true
+  def power_off do
+    call({:power_off, []})
+  end
+
+  @impl true
+  def reboot do
+    call({:reboot, []})
+  end
+
+  @impl true
+  def resource_update(kind, id, params) do
+    call({:resource_update, [kind, id, params]})
+  end
+
   defp call(data) do
     GenServer.call(__MODULE__, data, :infinity)
   end
