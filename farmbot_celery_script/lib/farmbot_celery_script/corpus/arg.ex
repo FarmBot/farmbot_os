@@ -17,7 +17,8 @@ defmodule FarmbotCeleryScript.Corpus.Arg do
 
   defimpl Inspect do
     def inspect(data, _opts) do
-      "#Arg<#{data.name} [#{Enum.join(data.allowed_values, ", ")}]>"
+      values = Enum.map(data.allowed_values, fn %{"name" => name} -> name end)
+      "#Arg<#{data.name} [#{Enum.join(values, ", ")}]>"
     end
   end
 end

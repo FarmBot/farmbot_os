@@ -1,347 +1,754 @@
 {
-  "tag": 20180209,
-  "args": [
+  "version": 20180209,
+  "enums": [
     {
-      "name": "_else",
+      "name": "ALLOWED_AXIS",
       "allowed_values": [
+        "x",
+        "y",
+        "z",
+        "all"
+      ]
+    },
+    {
+      "name": "ALLOWED_CHANNEL_NAMES",
+      "allowed_values": [
+        "ticker",
+        "toast",
+        "email",
+        "espeak"
+      ]
+    },
+    {
+      "name": "ALLOWED_MESSAGE_TYPES",
+      "allowed_values": [
+        "success",
+        "busy",
+        "warn",
+        "error",
+        "info",
+        "fun",
+        "debug"
+      ]
+    },
+    {
+      "name": "ALLOWED_OPS",
+      "allowed_values": [
+        "\u003c",
+        "\u003e",
+        "is",
+        "not",
+        "is_undefined"
+      ]
+    },
+    {
+      "name": "ALLOWED_PACKAGES",
+      "allowed_values": [
+        "farmbot_os",
+        "arduino_firmware"
+      ]
+    },
+    {
+      "name": "ALLOWED_PIN_MODES",
+      "allowed_values": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "AllowedPinTypes",
+      "allowed_values": [
+        "Peripheral",
+        "Sensor",
+        "BoxLed3",
+        "BoxLed4"
+      ]
+    },
+    {
+      "name": "Color",
+      "allowed_values": [
+        "blue",
+        "green",
+        "yellow",
+        "orange",
+        "purple",
+        "pink",
+        "gray",
+        "red"
+      ]
+    },
+    {
+      "name": "DataChangeType",
+      "allowed_values": [
+        "add",
+        "remove",
+        "update"
+      ]
+    },
+    {
+      "name": "LegalSequenceKind",
+      "allowed_values": [
+        "_if",
+        "calibrate",
+        "change_ownership",
+        "check_updates",
+        "dump_info",
+        "emergency_lock",
+        "emergency_unlock",
         "execute",
-        "nothing"
-      ]
-    },
-    {
-      "name": "_then",
-      "allowed_values": [
-        "execute",
-        "nothing"
-      ]
-    },
-    {
-      "name": "locals",
-      "allowed_values": [
-        "scope_declaration"
-      ]
-    },
-    {
-      "name": "offset",
-      "allowed_values": [
-        "coordinate"
-      ]
-    },
-    {
-      "name": "pin_number",
-      "allowed_values": [
-        "integer",
-        "named_pin"
-      ]
-    },
-    {
-      "name": "data_value",
-      "allowed_values": [
-        "tool",
-        "coordinate",
-        "point",
-        "identifier",
-        "every_point"
-      ]
-    },
-    {
-      "name": "location",
-      "allowed_values": [
-        "tool",
-        "coordinate",
-        "point",
-        "identifier",
-        "every_point"
-      ]
-    },
-    {
-      "name": "label",
-      "allowed_values": [
-        "string"
-      ]
-    },
-    {
-      "name": "milliseconds",
-      "allowed_values": [
-        "integer"
-      ]
-    },
-    {
-      "name": "package",
-      "allowed_values": [
-        "string"
-      ]
-    },
-    {
-      "name": "pin_value",
-      "allowed_values": [
-        "integer"
-      ]
-    },
-    {
-      "name": "radius",
-      "allowed_values": [
-        "integer"
-      ]
-    },
-    {
-      "name": "rhs",
-      "allowed_values": [
-        "integer"
-      ]
-    },
-    {
-      "name": "url",
-      "allowed_values": [
-        "string"
-      ]
-    },
-    {
-      "name": "value",
-      "allowed_values": [
-        "string",
-        "integer",
-        "boolean"
-      ]
-    },
-    {
-      "name": "version",
-      "allowed_values": [
-        "integer"
-      ]
-    },
-    {
-      "name": "x",
-      "allowed_values": [
-        "integer",
-        "float"
-      ]
-    },
-    {
-      "name": "y",
-      "allowed_values": [
-        "integer",
-        "float"
-      ]
-    },
-    {
-      "name": "z",
-      "allowed_values": [
-        "integer",
-        "float"
-      ]
-    },
-    {
-      "name": "pin_id",
-      "allowed_values": [
-        "integer"
-      ]
-    },
-    {
-      "name": "pin_type",
-      "allowed_values": [
-        "string"
-      ]
-    },
-    {
-      "name": "pointer_id",
-      "allowed_values": [
-        "integer"
-      ]
-    },
-    {
-      "name": "pointer_type",
-      "allowed_values": [
-        "string"
-      ]
-    },
-    {
-      "name": "pin_mode",
-      "allowed_values": [
-        "integer"
-      ]
-    },
-    {
-      "name": "sequence_id",
-      "allowed_values": [
-        "integer"
+        "execute_script",
+        "factory_reset",
+        "find_home",
+        "flash_firmware",
+        "home",
+        "install_farmware",
+        "install_first_party_farmware",
+        "move_absolute",
+        "move_relative",
+        "power_off",
+        "read_pin",
+        "read_status",
+        "reboot",
+        "remove_farmware",
+        "resource_update",
+        "send_message",
+        "set_servo_angle",
+        "set_user_env",
+        "sync",
+        "take_photo",
+        "toggle_pin",
+        "update_farmware",
+        "wait",
+        "write_pin",
+        "zero"
       ]
     },
     {
       "name": "lhs",
       "allowed_values": [
-        "string",
-        "named_pin"
+        "pin0",
+        "pin1",
+        "pin2",
+        "pin3",
+        "pin4",
+        "pin5",
+        "pin6",
+        "pin7",
+        "pin8",
+        "pin9",
+        "pin10",
+        "pin11",
+        "pin12",
+        "pin13",
+        "pin14",
+        "pin15",
+        "pin16",
+        "pin17",
+        "pin18",
+        "pin19",
+        "pin20",
+        "pin21",
+        "pin22",
+        "pin23",
+        "pin24",
+        "pin25",
+        "pin26",
+        "pin27",
+        "pin28",
+        "pin29",
+        "pin30",
+        "pin31",
+        "pin32",
+        "pin33",
+        "pin34",
+        "pin35",
+        "pin36",
+        "pin37",
+        "pin38",
+        "pin39",
+        "pin40",
+        "pin41",
+        "pin42",
+        "pin43",
+        "pin44",
+        "pin45",
+        "pin46",
+        "pin47",
+        "pin48",
+        "pin49",
+        "pin50",
+        "pin51",
+        "pin52",
+        "pin53",
+        "pin54",
+        "pin55",
+        "pin56",
+        "pin57",
+        "pin58",
+        "pin59",
+        "pin60",
+        "pin61",
+        "pin62",
+        "pin63",
+        "pin64",
+        "pin65",
+        "pin66",
+        "pin67",
+        "pin68",
+        "pin69",
+        "x",
+        "y",
+        "z"
       ]
     },
     {
-      "name": "op",
+      "name": "PlantStage",
       "allowed_values": [
-        "string"
+        "planned",
+        "planted",
+        "harvested",
+        "sprouted"
       ]
     },
     {
-      "name": "channel_name",
+      "name": "PointType",
       "allowed_values": [
-        "string"
-      ]
-    },
-    {
-      "name": "message_type",
-      "allowed_values": [
-        "string"
-      ]
-    },
-    {
-      "name": "tool_id",
-      "allowed_values": [
-        "integer"
-      ]
-    },
-    {
-      "name": "axis",
-      "allowed_values": [
-        "string"
-      ]
-    },
-    {
-      "name": "message",
-      "allowed_values": [
-        "string"
-      ]
-    },
-    {
-      "name": "speed",
-      "allowed_values": [
-        "integer"
-      ]
-    },
-    {
-      "name": "data_type",
-      "allowed_values": [
-        "string"
-      ]
-    },
-    {
-      "name": "resource_id",
-      "allowed_values": [
-        "integer"
+        "GenericPointer",
+        "ToolSlot",
+        "Plant"
       ]
     },
     {
       "name": "resource_type",
       "allowed_values": [
-        "string"
+        "Device",
+        "FarmEvent",
+        "Image",
+        "Log",
+        "Peripheral",
+        "Plant",
+        "Point",
+        "Regimen",
+        "Sequence",
+        "Tool",
+        "ToolSlot",
+        "User",
+        "GenericPointer"
       ]
     },
     {
-      "name": "every_point_type",
+      "name": "LegalArgString",
       "allowed_values": [
-        "string"
+        "_else",
+        "_then",
+        "data_value",
+        "default_value",
+        "label",
+        "locals",
+        "location",
+        "milliseconds",
+        "offset",
+        "pin_id",
+        "pin_number",
+        "pin_value",
+        "radius",
+        "resource_id",
+        "rhs",
+        "url",
+        "value",
+        "version",
+        "x",
+        "y",
+        "z",
+        "pin_type",
+        "pointer_id",
+        "pointer_type",
+        "pin_mode",
+        "sequence_id",
+        "lhs",
+        "op",
+        "channel_name",
+        "message_type",
+        "tool_id",
+        "package",
+        "axis",
+        "message",
+        "speed",
+        "resource_type"
+      ]
+    },
+    {
+      "name": "LegalKindString",
+      "allowed_values": [
+        "If",
+        "Calibrate",
+        "ChangeOwnership",
+        "Channel",
+        "CheckUpdates",
+        "Coordinate",
+        "DumpInfo",
+        "EmergencyLock",
+        "EmergencyUnlock",
+        "ExecuteScript",
+        "Execute",
+        "Explanation",
+        "FactoryReset",
+        "FindHome",
+        "FlashFirmware",
+        "Home",
+        "Identifier",
+        "InstallFarmware",
+        "InstallFirstPartyFarmware",
+        "InternalEntryPoint",
+        "InternalFarmEvent",
+        "InternalRegimen",
+        "MoveRelative",
+        "Nothing",
+        "Pair",
+        "ParameterApplication",
+        "ParameterDeclaration",
+        "Point",
+        "PowerOff",
+        "ReadStatus",
+        "Reboot",
+        "RemoveFarmware",
+        "RpcError",
+        "RpcOk",
+        "RpcRequest",
+        "ScopeDeclaration",
+        "SendMessage",
+        "Sequence",
+        "SetServoAngle",
+        "SetUserEnv",
+        "Sync",
+        "TakePhoto",
+        "TogglePin",
+        "Tool",
+        "UpdateFarmware",
+        "VariableDeclaration",
+        "Wait",
+        "Zero",
+        "NamedPin",
+        "MoveAbsolute",
+        "WritePin",
+        "ReadPin",
+        "ResourceUpdate"
+      ]
+    }
+  ],
+  "values": [
+    {
+      "name": "boolean"
+    },
+    {
+      "name": "float"
+    },
+    {
+      "name": "integer"
+    },
+    {
+      "name": "string"
+    }
+  ],
+  "args": [
+    {
+      "name": "_else",
+      "allowed_values": [
+        {
+          "tag": "execute",
+          "name": "execute"
+        },
+        {
+          "tag": "nothing",
+          "name": "nothing"
+        }
+      ]
+    },
+    {
+      "name": "_then",
+      "allowed_values": [
+        {
+          "tag": "execute",
+          "name": "execute"
+        },
+        {
+          "tag": "nothing",
+          "name": "nothing"
+        }
+      ]
+    },
+    {
+      "name": "data_value",
+      "allowed_values": [
+        {
+          "tag": "tool",
+          "name": "tool"
+        },
+        {
+          "tag": "coordinate",
+          "name": "coordinate"
+        },
+        {
+          "tag": "point",
+          "name": "point"
+        },
+        {
+          "tag": "identifier",
+          "name": "identifier"
+        }
+      ]
+    },
+    {
+      "name": "default_value",
+      "allowed_values": [
+        {
+          "tag": "tool",
+          "name": "tool"
+        },
+        {
+          "tag": "coordinate",
+          "name": "coordinate"
+        },
+        {
+          "tag": "point",
+          "name": "point"
+        },
+        {
+          "tag": "identifier",
+          "name": "identifier"
+        }
+      ]
+    },
+    {
+      "name": "label",
+      "allowed_values": [
+        {
+          "tag": "string",
+          "name": "String"
+        }
+      ]
+    },
+    {
+      "name": "locals",
+      "allowed_values": [
+        {
+          "tag": "scope_declaration",
+          "name": "scope_declaration"
+        }
+      ]
+    },
+    {
+      "name": "location",
+      "allowed_values": [
+        {
+          "tag": "tool",
+          "name": "tool"
+        },
+        {
+          "tag": "coordinate",
+          "name": "coordinate"
+        },
+        {
+          "tag": "point",
+          "name": "point"
+        },
+        {
+          "tag": "identifier",
+          "name": "identifier"
+        }
+      ]
+    },
+    {
+      "name": "milliseconds",
+      "allowed_values": [
+        {
+          "tag": "integer",
+          "name": "Integer"
+        }
+      ]
+    },
+    {
+      "name": "offset",
+      "allowed_values": [
+        {
+          "tag": "coordinate",
+          "name": "coordinate"
+        }
+      ]
+    },
+    {
+      "name": "pin_id",
+      "allowed_values": [
+        {
+          "tag": "integer",
+          "name": "Integer"
+        }
+      ]
+    },
+    {
+      "name": "pin_number",
+      "allowed_values": [
+        {
+          "tag": "integer",
+          "name": "Integer"
+        },
+        {
+          "tag": "named_pin",
+          "name": "named_pin"
+        }
+      ]
+    },
+    {
+      "name": "pin_value",
+      "allowed_values": [
+        {
+          "tag": "integer",
+          "name": "Integer"
+        }
+      ]
+    },
+    {
+      "name": "radius",
+      "allowed_values": [
+        {
+          "tag": "integer",
+          "name": "Integer"
+        }
+      ]
+    },
+    {
+      "name": "resource_id",
+      "allowed_values": [
+        {
+          "tag": "integer",
+          "name": "Integer"
+        }
+      ]
+    },
+    {
+      "name": "rhs",
+      "allowed_values": [
+        {
+          "tag": "integer",
+          "name": "Integer"
+        }
+      ]
+    },
+    {
+      "name": "url",
+      "allowed_values": [
+        {
+          "tag": "string",
+          "name": "String"
+        }
+      ]
+    },
+    {
+      "name": "value",
+      "allowed_values": [
+        {
+          "tag": "string",
+          "name": "String"
+        },
+        {
+          "tag": "integer",
+          "name": "Integer"
+        },
+        {
+          "tag": "boolean",
+          "name": "Boolean"
+        }
+      ]
+    },
+    {
+      "name": "version",
+      "allowed_values": [
+        {
+          "tag": "integer",
+          "name": "Integer"
+        }
+      ]
+    },
+    {
+      "name": "x",
+      "allowed_values": [
+        {
+          "tag": "integer",
+          "name": "Integer"
+        },
+        {
+          "tag": "float",
+          "name": "Float"
+        }
+      ]
+    },
+    {
+      "name": "y",
+      "allowed_values": [
+        {
+          "tag": "integer",
+          "name": "Integer"
+        },
+        {
+          "tag": "float",
+          "name": "Float"
+        }
+      ]
+    },
+    {
+      "name": "z",
+      "allowed_values": [
+        {
+          "tag": "integer",
+          "name": "Integer"
+        },
+        {
+          "tag": "float",
+          "name": "Float"
+        }
+      ]
+    },
+    {
+      "name": "pin_type",
+      "allowed_values": [
+        {
+          "tag": "AllowedPinTypes",
+          "name": "AllowedPinTypes"
+        }
+      ]
+    },
+    {
+      "name": "pointer_id",
+      "allowed_values": [
+        {
+          "tag": "integer",
+          "name": "Integer"
+        }
+      ]
+    },
+    {
+      "name": "pointer_type",
+      "allowed_values": [
+        {
+          "tag": "PointType",
+          "name": "PointType"
+        }
+      ]
+    },
+    {
+      "name": "pin_mode",
+      "allowed_values": [
+        {
+          "tag": "ALLOWED_PIN_MODES",
+          "name": "ALLOWED_PIN_MODES"
+        }
+      ]
+    },
+    {
+      "name": "sequence_id",
+      "allowed_values": [
+        {
+          "tag": "integer",
+          "name": "Integer"
+        }
+      ]
+    },
+    {
+      "name": "lhs",
+      "allowed_values": [
+        {
+          "tag": "string",
+          "name": "String"
+        },
+        {
+          "tag": "named_pin",
+          "name": "named_pin"
+        }
+      ]
+    },
+    {
+      "name": "op",
+      "allowed_values": [
+        {
+          "tag": "ALLOWED_OPS",
+          "name": "ALLOWED_OPS"
+        }
+      ]
+    },
+    {
+      "name": "channel_name",
+      "allowed_values": [
+        {
+          "tag": "ALLOWED_CHANNEL_NAMES",
+          "name": "ALLOWED_CHANNEL_NAMES"
+        }
+      ]
+    },
+    {
+      "name": "message_type",
+      "allowed_values": [
+        {
+          "tag": "ALLOWED_MESSAGE_TYPES",
+          "name": "ALLOWED_MESSAGE_TYPES"
+        }
+      ]
+    },
+    {
+      "name": "tool_id",
+      "allowed_values": [
+        {
+          "tag": "integer",
+          "name": "Integer"
+        }
+      ]
+    },
+    {
+      "name": "package",
+      "allowed_values": [
+        {
+          "tag": "string",
+          "name": "String"
+        }
+      ]
+    },
+    {
+      "name": "axis",
+      "allowed_values": [
+        {
+          "tag": "ALLOWED_AXIS",
+          "name": "ALLOWED_AXIS"
+        }
+      ]
+    },
+    {
+      "name": "message",
+      "allowed_values": [
+        {
+          "tag": "string",
+          "name": "String"
+        }
+      ]
+    },
+    {
+      "name": "speed",
+      "allowed_values": [
+        {
+          "tag": "integer",
+          "name": "Integer"
+        }
+      ]
+    },
+    {
+      "name": "resource_type",
+      "allowed_values": [
+        {
+          "tag": "resource_type",
+          "name": "resource_type"
+        }
       ]
     }
   ],
   "nodes": [
-    {
-      "allowed_args": [
-        "pin_type",
-        "pin_id"
-      ],
-      "allowed_body_types": [],
-      "name": "named_pin"
-    },
-    {
-      "doc": "Signals absolutely nothing",
-      "allowed_args": [],
-      "allowed_body_types": [],
-      "name": "nothing"
-    },
-    {
-      "allowed_args": [
-        "tool_id"
-      ],
-      "allowed_body_types": [],
-      "name": "tool"
-    },
-    {
-      "allowed_args": [
-        "x",
-        "y",
-        "z"
-      ],
-      "allowed_body_types": [],
-      "name": "coordinate"
-    },
-    {
-      "allowed_args": [
-        "location",
-        "speed",
-        "offset"
-      ],
-      "allowed_body_types": [],
-      "name": "move_absolute"
-    },
-    {
-      "allowed_args": [
-        "x",
-        "y",
-        "z",
-        "speed"
-      ],
-      "allowed_body_types": [],
-      "name": "move_relative"
-    },
-    {
-      "allowed_args": [
-        "pin_number",
-        "pin_value",
-        "pin_mode"
-      ],
-      "allowed_body_types": [],
-      "name": "write_pin"
-    },
-    {
-      "allowed_args": [
-        "pin_number",
-        "label",
-        "pin_mode"
-      ],
-      "allowed_body_types": [],
-      "name": "read_pin"
-    },
-    {
-      "allowed_args": [
-        "channel_name"
-      ],
-      "allowed_body_types": [],
-      "name": "channel"
-    },
-    {
-      "allowed_args": [
-        "milliseconds"
-      ],
-      "allowed_body_types": [],
-      "name": "wait"
-    },
-    {
-      "allowed_args": [
-        "message",
-        "message_type"
-      ],
-      "allowed_body_types": [
-        "channel"
-      ],
-      "name": "send_message"
-    },
-    {
-      "allowed_args": [
-        "sequence_id"
-      ],
-      "allowed_body_types": [
-        "variable_declaration"
-      ],
-      "name": "execute"
-    },
     {
       "allowed_args": [
         "lhs",
@@ -353,152 +760,383 @@
       "allowed_body_types": [
         "pair"
       ],
-      "name": "_if"
+      "name": "_if",
+      "tags": [
+        "*"
+      ],
+      "docs": ""
     },
     {
       "allowed_args": [
-        "version",
-        "locals"
+        "axis"
+      ],
+      "allowed_body_types": [],
+      "name": "calibrate",
+      "tags": [
+        "function",
+        "firmware_user"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [
+        "pair"
+      ],
+      "name": "change_ownership",
+      "tags": [
+        "function",
+        "network_user",
+        "disk_user",
+        "cuts_power",
+        "api_writer"
+      ],
+      "docs": "Not a commonly used node. May be removed without notice."
+    },
+    {
+      "allowed_args": [
+        "channel_name"
+      ],
+      "allowed_body_types": [],
+      "name": "channel",
+      "tags": [
+        "data"
+      ],
+      "docs": "Specifies a communication path for log messages."
+    },
+    {
+      "allowed_args": [
+        "package"
+      ],
+      "allowed_body_types": [],
+      "name": "check_updates",
+      "tags": [
+        "function",
+        "network_user",
+        "disk_user",
+        "cuts_power"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "x",
+        "y",
+        "z"
+      ],
+      "allowed_body_types": [],
+      "name": "coordinate",
+      "tags": [
+        "data",
+        "location_like"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [],
+      "name": "dump_info",
+      "tags": [
+        "function",
+        "network_user",
+        "disk_user",
+        "api_writer"
+      ],
+      "docs": "Sends an info dump to server administrators for troubleshooting."
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [],
+      "name": "emergency_lock",
+      "tags": [
+        "function",
+        "firmware_user",
+        "control_flow"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [],
+      "name": "emergency_unlock",
+      "tags": [
+        "function",
+        "firmware_user"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "label"
       ],
       "allowed_body_types": [
-        "_if",
-        "execute",
-        "execute_script",
-        "find_home",
-        "move_absolute",
-        "move_relative",
-        "read_pin",
-        "send_message",
-        "take_photo",
-        "wait",
-        "write_pin",
-        "resource_update"
+        "pair"
       ],
-      "name": "sequence"
+      "name": "execute_script",
+      "tags": [
+        "*"
+      ],
+      "docs": ""
     },
     {
       "allowed_args": [
-        "speed",
-        "axis"
+        "sequence_id"
       ],
-      "allowed_body_types": [],
-      "name": "home"
-    },
-    {
-      "allowed_args": [
-        "speed",
-        "axis"
+      "allowed_body_types": [
+        "parameter_application"
       ],
-      "allowed_body_types": [],
-      "name": "find_home"
-    },
-    {
-      "allowed_args": [
-        "axis"
+      "name": "execute",
+      "tags": [
+        "*"
       ],
-      "allowed_body_types": [],
-      "name": "zero"
-    },
-    {
-      "allowed_args": [],
-      "allowed_body_types": [],
-      "name": "emergency_lock"
-    },
-    {
-      "allowed_args": [],
-      "allowed_body_types": [],
-      "name": "emergency_unlock"
-    },
-    {
-      "allowed_args": [],
-      "allowed_body_types": [],
-      "name": "read_status"
-    },
-    {
-      "allowed_args": [],
-      "allowed_body_types": [],
-      "name": "sync"
-    },
-    {
-      "allowed_args": [
-        "package"
-      ],
-      "allowed_body_types": [],
-      "name": "check_updates"
-    },
-    {
-      "allowed_args": [],
-      "allowed_body_types": [],
-      "name": "power_off"
-    },
-    {
-      "allowed_args": [
-        "package"
-      ],
-      "allowed_body_types": [],
-      "name": "reboot"
-    },
-    {
-      "allowed_args": [
-        "pin_number"
-      ],
-      "allowed_body_types": [],
-      "name": "toggle_pin"
+      "docs": ""
     },
     {
       "allowed_args": [
         "message"
       ],
       "allowed_body_types": [],
-      "name": "explanation"
+      "name": "explanation",
+      "tags": [
+        "data"
+      ],
+      "docs": ""
     },
     {
       "allowed_args": [
-        "label"
+        "package"
       ],
-      "allowed_body_types": [
-        "home",
-        "emergency_lock",
-        "emergency_unlock",
-        "read_status",
-        "sync",
-        "check_updates",
-        "power_off",
-        "reboot",
-        "toggle_pin",
-        "config_update",
-        "calibrate",
-        "execute",
-        "move_absolute",
-        "move_relative",
-        "write_pin",
-        "read_pin",
-        "send_message",
-        "factory_reset",
-        "execute_script",
-        "set_user_env",
-        "wait",
-        "install_farmware",
-        "update_farmware",
-        "take_photo",
-        "zero",
-        "install_first_party_farmware",
-        "remove_farmware",
-        "find_home",
-        "register_gpio",
-        "unregister_gpio",
-        "set_servo_angle",
-        "change_ownership",
-        "dump_info"
+      "allowed_body_types": [],
+      "name": "factory_reset",
+      "tags": [
+        "function",
+        "cuts_power"
       ],
-      "name": "rpc_request"
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "speed",
+        "axis"
+      ],
+      "allowed_body_types": [],
+      "name": "find_home",
+      "tags": [
+        "function",
+        "firmware_user"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "package"
+      ],
+      "allowed_body_types": [],
+      "name": "flash_firmware",
+      "tags": [
+        "api_writer",
+        "disk_user",
+        "firmware_user",
+        "function",
+        "network_user"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "speed",
+        "axis"
+      ],
+      "allowed_body_types": [],
+      "name": "home",
+      "tags": [
+        "function",
+        "firmware_user"
+      ],
+      "docs": ""
     },
     {
       "allowed_args": [
         "label"
       ],
       "allowed_body_types": [],
-      "name": "rpc_ok"
+      "name": "identifier",
+      "tags": [
+        "data"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "url"
+      ],
+      "allowed_body_types": [],
+      "name": "install_farmware",
+      "tags": [
+        "function",
+        "network_user",
+        "disk_user",
+        "api_writer"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [],
+      "name": "install_first_party_farmware",
+      "tags": [
+        "function",
+        "network_user"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [],
+      "name": "internal_entry_point",
+      "tags": [
+        "private"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [
+        "parameter_application"
+      ],
+      "name": "internal_farm_event",
+      "tags": [],
+      "docs": ""
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [
+        "parameter_application",
+        "parameter_declaration",
+        "variable_declaration"
+      ],
+      "name": "internal_regimen",
+      "tags": [],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "x",
+        "y",
+        "z",
+        "speed"
+      ],
+      "allowed_body_types": [],
+      "name": "move_relative",
+      "tags": [
+        "firmware_user",
+        "function"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [],
+      "name": "nothing",
+      "tags": [
+        "data",
+        "function"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "label",
+        "value"
+      ],
+      "allowed_body_types": [],
+      "name": "pair",
+      "tags": [
+        "data"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "label",
+        "data_value"
+      ],
+      "allowed_body_types": [],
+      "name": "parameter_application",
+      "tags": [
+        "function",
+        "control_flow",
+        "scope_writer"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "label",
+        "default_value"
+      ],
+      "allowed_body_types": [],
+      "name": "parameter_declaration",
+      "tags": [
+        "scope_writer"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "pointer_type",
+        "pointer_id"
+      ],
+      "allowed_body_types": [],
+      "name": "point",
+      "tags": [
+        "location_like",
+        "data"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [],
+      "name": "power_off",
+      "tags": [
+        "cuts_power",
+        "function"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [],
+      "name": "read_status",
+      "tags": [
+        "function"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "package"
+      ],
+      "allowed_body_types": [],
+      "name": "reboot",
+      "tags": [
+        "cuts_power",
+        "function",
+        "firmware_user"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "package"
+      ],
+      "allowed_body_types": [],
+      "name": "remove_farmware",
+      "tags": [
+        "function"
+      ],
+      "docs": ""
     },
     {
       "allowed_args": [
@@ -507,103 +1145,67 @@
       "allowed_body_types": [
         "explanation"
       ],
-      "name": "rpc_error"
+      "name": "rpc_error",
+      "tags": [
+        "data"
+      ],
+      "docs": ""
     },
     {
       "allowed_args": [
-        "axis"
+        "label"
       ],
       "allowed_body_types": [],
-      "name": "calibrate"
-    },
-    {
-      "allowed_args": [
-        "label",
-        "value"
+      "name": "rpc_ok",
+      "tags": [
+        "data"
       ],
-      "allowed_body_types": [],
-      "name": "pair"
-    },
-    {
-      "allowed_args": [
-        "pin_number",
-        "sequence_id"
-      ],
-      "allowed_body_types": [],
-      "name": "register_gpio"
-    },
-    {
-      "allowed_args": [
-        "pin_number"
-      ],
-      "allowed_body_types": [],
-      "name": "unregister_gpio"
-    },
-    {
-      "allowed_args": [
-        "package"
-      ],
-      "allowed_body_types": [
-        "pair"
-      ],
-      "name": "config_update"
-    },
-    {
-      "allowed_args": [
-        "package"
-      ],
-      "allowed_body_types": [],
-      "name": "factory_reset"
+      "docs": ""
     },
     {
       "allowed_args": [
         "label"
       ],
       "allowed_body_types": [
-        "pair"
+        "calibrate",
+        "change_ownership",
+        "check_updates",
+        "dump_info",
+        "emergency_lock",
+        "emergency_unlock",
+        "execute",
+        "execute_script",
+        "factory_reset",
+        "find_home",
+        "flash_firmware",
+        "home",
+        "install_farmware",
+        "install_first_party_farmware",
+        "_if",
+        "move_absolute",
+        "move_relative",
+        "power_off",
+        "read_pin",
+        "read_status",
+        "reboot",
+        "remove_farmware",
+        "resource_update",
+        "send_message",
+        "set_servo_angle",
+        "set_user_env",
+        "sync",
+        "take_photo",
+        "toggle_pin",
+        "update_farmware",
+        "wait",
+        "write_pin",
+        "zero"
       ],
-      "name": "execute_script"
-    },
-    {
-      "allowed_args": [],
-      "allowed_body_types": [
-        "pair"
+      "name": "rpc_request",
+      "tags": [
+        "*"
       ],
-      "name": "set_user_env"
-    },
-    {
-      "allowed_args": [],
-      "allowed_body_types": [],
-      "name": "take_photo"
-    },
-    {
-      "allowed_args": [
-        "pointer_type",
-        "pointer_id"
-      ],
-      "allowed_body_types": [],
-      "name": "point"
-    },
-    {
-      "allowed_args": [
-        "url"
-      ],
-      "allowed_body_types": [],
-      "name": "install_farmware"
-    },
-    {
-      "allowed_args": [
-        "package"
-      ],
-      "allowed_body_types": [],
-      "name": "update_farmware"
-    },
-    {
-      "allowed_args": [
-        "package"
-      ],
-      "allowed_body_types": [],
-      "name": "remove_farmware"
+      "docs": ""
     },
     {
       "allowed_args": [],
@@ -611,30 +1213,71 @@
         "variable_declaration",
         "parameter_declaration"
       ],
-      "name": "scope_declaration"
+      "name": "scope_declaration",
+      "tags": [
+        "scope_writer"
+      ],
+      "docs": ""
     },
     {
       "allowed_args": [
-        "label"
+        "message",
+        "message_type"
       ],
-      "allowed_body_types": [],
-      "name": "identifier"
+      "allowed_body_types": [
+        "channel"
+      ],
+      "name": "send_message",
+      "tags": [
+        "function"
+      ],
+      "docs": ""
     },
     {
       "allowed_args": [
-        "label",
-        "data_value"
+        "version",
+        "locals"
       ],
-      "allowed_body_types": [],
-      "name": "variable_declaration"
-    },
-    {
-      "allowed_args": [
-        "label",
-        "data_type"
+      "allowed_body_types": [
+        "calibrate",
+        "change_ownership",
+        "check_updates",
+        "dump_info",
+        "emergency_lock",
+        "emergency_unlock",
+        "execute",
+        "execute_script",
+        "factory_reset",
+        "find_home",
+        "flash_firmware",
+        "home",
+        "install_farmware",
+        "install_first_party_farmware",
+        "_if",
+        "move_absolute",
+        "move_relative",
+        "power_off",
+        "read_pin",
+        "read_status",
+        "reboot",
+        "remove_farmware",
+        "resource_update",
+        "send_message",
+        "set_servo_angle",
+        "set_user_env",
+        "sync",
+        "take_photo",
+        "toggle_pin",
+        "update_farmware",
+        "wait",
+        "write_pin",
+        "zero"
       ],
-      "allowed_body_types": [],
-      "name": "parameter_declaration"
+      "name": "sequence",
+      "tags": [
+        "*"
+      ],
+      "docs": ""
     },
     {
       "allowed_args": [
@@ -642,51 +1285,179 @@
         "pin_value"
       ],
       "allowed_body_types": [],
-      "name": "set_servo_angle"
+      "name": "set_servo_angle",
+      "tags": [
+        "function",
+        "firmware_user"
+      ],
+      "docs": ""
     },
     {
       "allowed_args": [],
       "allowed_body_types": [
         "pair"
       ],
-      "name": "change_ownership"
-    },
-    {
-      "allowed_args": [],
-      "allowed_body_types": [],
-      "name": "dump_info"
-    },
-    {
-      "allowed_args": [],
-      "allowed_body_types": [],
-      "name": "install_first_party_farmware"
-    },
-    {
-      "allowed_args": [],
-      "allowed_body_types": [
-        "variable_declaration"
+      "name": "set_user_env",
+      "tags": [
+        "function",
+        "disk_user"
       ],
-      "name": "internal_farm_event"
-    },
-    {
-      "allowed_args": [],
-      "allowed_body_types": [
-        "variable_declaration",
-        "parameter_declaration"
-      ],
-      "name": "internal_regimen"
+      "docs": ""
     },
     {
       "allowed_args": [],
       "allowed_body_types": [],
-      "name": "internal_entry_point"
+      "name": "sync",
+      "tags": [
+        "disk_user",
+        "network_user",
+        "function"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [],
+      "name": "take_photo",
+      "tags": [
+        "disk_user",
+        "function"
+      ],
+      "docs": ""
     },
     {
       "allowed_args": [
-        "every_point_type"
+        "pin_number"
       ],
       "allowed_body_types": [],
-      "name": "every_point"
+      "name": "toggle_pin",
+      "tags": [
+        "function",
+        "firmware_user"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "tool_id"
+      ],
+      "allowed_body_types": [],
+      "name": "tool",
+      "tags": [
+        "data",
+        "location_like",
+        "api_validated"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "package"
+      ],
+      "allowed_body_types": [],
+      "name": "update_farmware",
+      "tags": [
+        "function",
+        "network_user",
+        "api_validated"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "label",
+        "data_value"
+      ],
+      "allowed_body_types": [],
+      "name": "variable_declaration",
+      "tags": [
+        "scope_writer",
+        "function"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "milliseconds"
+      ],
+      "allowed_body_types": [],
+      "name": "wait",
+      "tags": [
+        "function"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "axis"
+      ],
+      "allowed_body_types": [],
+      "name": "zero",
+      "tags": [
+        "function",
+        "firmware_user"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "pin_type",
+        "pin_id"
+      ],
+      "allowed_body_types": [],
+      "name": "named_pin",
+      "tags": [
+        "api_validated",
+        "firmware_user",
+        "rpi_user",
+        "data",
+        "function"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "location",
+        "speed",
+        "offset"
+      ],
+      "allowed_body_types": [],
+      "name": "move_absolute",
+      "tags": [
+        "function",
+        "firmware_user"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "pin_number",
+        "pin_value",
+        "pin_mode"
+      ],
+      "allowed_body_types": [],
+      "name": "write_pin",
+      "tags": [
+        "function",
+        "firmware_user",
+        "rpi_user"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "pin_number",
+        "label",
+        "pin_mode"
+      ],
+      "allowed_body_types": [],
+      "name": "read_pin",
+      "tags": [
+        "function",
+        "firmware_user",
+        "rpi_user"
+      ],
+      "docs": ""
     },
     {
       "allowed_args": [
@@ -696,7 +1467,13 @@
         "value"
       ],
       "allowed_body_types": [],
-      "name": "resource_update"
+      "name": "resource_update",
+      "tags": [
+        "function",
+        "api_writer",
+        "network_user"
+      ],
+      "docs": ""
     }
   ]
 }

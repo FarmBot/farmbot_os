@@ -24,7 +24,7 @@ defmodule FarmbotCeleryScript.SysCalls do
   @type axis_speed :: integer()
   @type coordinate :: %{x: axis_position, y: axis_position, z: axis_position}
 
-  @type(pin_number :: {:boxled, 3 | 4}, integer)
+  @type pin_number :: {:boxled, 3 | 4} | integer
   @type pin_mode :: 0 | 1 | nil
   @type pin_value :: integer
 
@@ -61,11 +61,53 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback set_user_env(String.t(), String.t()) :: :ok | error
 
   @callback sync() :: :ok | error
+  @callback resource_update(String.t(), number(), map) :: :ok | error
+
+  @callback power_off() :: :ok | error
+  @callback reboot() :: :ok | error
+  @callback factory_reset() :: :ok | error
+  @callback change_ownership(String.t(), binary()) :: :ok | error
+  @callback dump_info() :: :ok | error
 
   @callback flash_firmware(package) :: :ok | error
+  @callback firmware_reboot() :: :ok | error
+
+  def power_off(module \\ @sys_call_implementation) do
+    _ = module.factory_reset()
+    :ok
+  end
+
+  def reboot(module \\ @sys_call_implementation) do
+    _ = module.reboot()
+    :ok
+  end
+
+  def factory_reset(module \\ @sys_call_implementation) do
+    _ = module.factory_reset()
+    :ok
+  end
+
+  def change_ownership(module \\ @sys_call_implementation, email, secret) do
+    _ = module.change_ownership(email, secret)
+    :ok
+  end
+
+  def dump_info(module \\ @sys_call_implementation) do
+    case module.dump_info() do
+      :ok -> :ok
+      {:error, reason} when is_binary(reason) -> error(reason)
+    end
+  end
 
   def flash_firmware(module \\ @sys_call_implementation, package) do
     case module.flash_firmware(package) do
+      :ok -> :ok
+      {:error, reason} when is_binary(reason) -> error(reason)
+    end
+  end
+
+  def firmware_reboot(module \\ @sys_call_implementation) do
+    case module.firmware_reboot() do
       :ok -> :ok
       {:error, reason} when is_binary(reason) -> error(reason)
     end
@@ -184,6 +226,13 @@ defmodule FarmbotCeleryScript.SysCalls do
 
   def sync(module \\ @sys_call_implementation) do
     case module.sync() do
+      :ok -> :ok
+      {:error, reason} when is_binary(reason) -> error(reason)
+    end
+  end
+
+  def resource_update(module \\ @sys_call_implementation, kind, id, params) do
+    case module.resource_update(kind, id, params) do
       :ok -> :ok
       {:error, reason} when is_binary(reason) -> error(reason)
     end

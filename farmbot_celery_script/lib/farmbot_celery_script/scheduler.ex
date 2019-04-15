@@ -70,7 +70,7 @@ defmodule FarmbotCeleryScript.Scheduler do
   end
 
   @impl true
-  def init(args) do
+  def init(_args) do
     {:ok, %State{}}
   end
 
@@ -88,7 +88,7 @@ defmodule FarmbotCeleryScript.Scheduler do
 
   @impl true
   def handle_info(:timeout, %{steps: steps} = state) when length(steps) >= 1 do
-    [{{_pid, ref} = from, timestamp, compiled} | rest] =
+    [{{_pid, _ref} = from, timestamp, compiled} | rest] =
       Enum.sort(steps, fn
         {_, first_ts, _}, {_, second_ts, _} when first_ts <= second_ts -> true
         {_, _, _}, {_, _, _} -> false
