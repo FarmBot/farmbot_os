@@ -4,11 +4,17 @@ defmodule FarmbotCeleryScript.Corpus do
   @corpus_file "fixture/corpus.json"
   @external_resource @corpus_file
 
-  %{"args" => args, "nodes" => nodes, "tag" => tag} =
+  %{"args" => args, "nodes" => nodes, "version" => tag} =
     @corpus_file |> File.read!() |> Jason.decode!()
 
   @args args
-  @nodes nodes
+
+  # Rejects any internal API nodes.
+  @nodes Enum.reject(nodes, fn
+           %{"name" => "internal_" <> _} -> true
+           _node -> false
+         end)
+
   @corpus_tag tag
 
   # Load and decode each arg in the json into an Arg struct
@@ -18,8 +24,8 @@ defmodule FarmbotCeleryScript.Corpus do
 
   # Load and decode each node in the json into a Node struct.
   # This also expands the `allowed_args` into their respective Arg relationship.
-  @nodes Enum.map(nodes, fn %{"name" => name, "allowed_args" => aa, "allowed_body_types" => abt} =
-                              n ->
+  @nodes Enum.map(@nodes, fn %{"name" => name, "allowed_args" => aa, "allowed_body_types" => abt} =
+                               n ->
            allowed_args =
              Enum.map(aa, fn arg_name ->
                Enum.find(@args, fn
@@ -130,7 +136,7 @@ defmodule FarmbotCeleryScript.Corpus do
 
   @arg_doc Enum.map(@args, fn %{name: name, allowed_values: values, doc: doc} ->
              values =
-               Enum.map(values, fn val ->
+               Enum.map(values, fn %{"name" => val} ->
                  """
                    * #{val}
                  """
