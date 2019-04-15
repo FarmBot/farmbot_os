@@ -98,6 +98,8 @@ defmodule FarmbotCeleryScript.Compiler do
     quote location: :keep do
       fn params ->
         import SysCalls
+        # This quiets a compiler warning if there are no variables in this block
+        _ = inspect(params)
         # Fetches variables from the previous execute()
         # example:
         # parent = Keyword.fetch!(params, :parent)
@@ -116,6 +118,8 @@ defmodule FarmbotCeleryScript.Compiler do
     quote location: :keep do
       fn params ->
         import SysCalls
+        # This quiets a compiler warning if there are no variables in this block
+        _ = inspect(params)
         unquote(steps)
       end
     end
@@ -571,9 +575,23 @@ defmodule FarmbotCeleryScript.Compiler do
     end
   end
 
-  compile :change_ownership, %{}, _body do
+  compile :change_ownership, %{}, body do
+    pairs =
+      Map.new(body, fn %{args: %{label: label, data_value: value}} ->
+        {label, value}
+      end)
+
+    email = Map.fetch!(pairs, "email")
+
+    secret =
+      Map.fetch!(pairs, "secret")
+      |> Base.decode64!(padding: false, ignore: :whitespace)
+
     quote location: :keep do
-      # Add code here
+      case change_ownership(unquote(email), unquote(secret)) do
+        :ok -> reboot()
+        {:error, reason} -> {:error, reason}
+      end
     end
   end
 
@@ -590,6 +608,28 @@ defmodule FarmbotCeleryScript.Compiler do
         0 -> write_pin(unquote(compile_ast(pin_number)), 0, 1)
         _ -> write_pin(unquote(compile_ast(pin_number)), 0, 0)
       end
+    end
+  end
+
+  compile :resource_update,
+          %{resource_type: kind, resource_id: id, label: label, value: value},
+          body do
+    initial = %{label => value}
+    # Technically now body isn't supported by this node.
+    extra =
+      Map.new(body, fn %{args: %{label: label, data_value: value}} ->
+        {label, value}
+      end)
+
+    # Make sure the initial stuff higher most priority
+    params = Map.merge(extra, initial)
+
+    quote do
+      resource_update(
+        unquote(compile_ast(kind)),
+        unquote(compile_ast(id)),
+        unquote(compile_ast(params))
+      )
     end
   end
 
