@@ -4,9 +4,15 @@ defmodule FarmbotOS.SysCalls do
   alias FarmbotCeleryScript.AST
   alias FarmbotFirmware
 
-  alias FarmbotOS.SysCalls.{SendMessage, ExecuteScript, FlashFirmware}
+  alias FarmbotOS.SysCalls.{
+    SendMessage,
+    ExecuteScript,
+    FlashFirmware,
+    ChangeOwnership,
+    DumpInfo
+  }
 
-  alias FarmbotCore.{Asset, Asset.Repo, Asset.Sync, BotState}
+  alias FarmbotCore.{Asset, Asset.Repo, Asset.Private, Asset.Sync, BotState}
   alias FarmbotExt.{API, API.Reconciler, API.SyncGroup}
   alias Ecto.{Changeset, Multi}
 
@@ -15,6 +21,49 @@ defmodule FarmbotOS.SysCalls do
   defdelegate send_message(level, message, channels), to: SendMessage
   defdelegate execute_script(name, env), to: ExecuteScript
   defdelegate flash_firmware(package), to: FlashFirmware
+  defdelegate change_ownership(email, secret), to: ChangeOwnership
+  defdelegate dump_info(), to: DumpInfo
+
+  def reboot do
+    FarmbotOS.System.reboot("Reboot requested by sequence or frontend")
+    :ok
+  end
+
+  def power_off do
+    FarmbotOS.System.reboot("Shut down requested by sequence or frontend")
+    :ok
+  end
+
+  def factory_reset do
+    FarmbotOS.System.factory_reset("Factory reset requested by sequence or frontent")
+    :ok
+  end
+
+  def firmware_reboot do
+    GenServer.stop(FarmbotFirmware, :reboot)
+  end
+
+  def resource_update(kind, id, params) do
+    module = Module.concat(Asset, kind)
+
+    with true <- Code.ensure_loaded?(module),
+         %{} = orig <- Repo.get_by(module, [id: id], preload: [:local_meta]),
+         %{valid?: true} = change <- module.changeset(orig, params),
+         {:ok, new} <- Repo.update(change),
+         new <- Repo.preload(new, [:local_meta]) do
+      Private.mark_dirty!(new, %{})
+      :ok
+    else
+      false ->
+        {:error, "unknown asset kind: #{kind}"}
+
+      nil ->
+        {:error, "Could not find asset by kind: #{kind} and id: #{id}"}
+
+      %{valid?: false} = changeset ->
+        {:error, "failed to update #{kind}: #{inspect(changeset.errors)}"}
+    end
+  end
 
   def read_status do
     :ok = FarmbotExt.AMQP.BotStateNGChannel.force()
