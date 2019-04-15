@@ -57,9 +57,9 @@ build_firmware_steps: &build_firmware_steps
           echo "$MIX_TARGET" > MIX_TARGET
           echo "$MIX_ENV" > MIX_ENV
     - restore_cache:
-        key: v9-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+        key: v11-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
     - restore_cache:
-        key: v9-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+        key: v11-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
     - <<: *install_elixir
     - <<: *install_hex_archives
     - run:
@@ -77,7 +77,7 @@ build_firmware_steps: &build_firmware_steps
         command: |
           cp /nerves/build/farmbot_os/_build/${MIX_TARGET}/${MIX_TARGET}_${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
     - save_cache:
-        key: v9-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+        key: v11-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
         paths:
           - /nerves/build/farmbot_os/_build/
           - /nerves/build/farmbot_os/deps/
@@ -97,7 +97,7 @@ deploy_nerves_hub_firmware_steps: &deploy_nerves_hub_firmware_steps
           echo "$MIX_TARGET" > MIX_TARGET
           echo "$MIX_ENV" > MIX_ENV
     - restore_cache:
-        key: v9-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+        key: v11-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
     - restore_cache:
         key: nerves/deploy/system-{{ checksum "MIX_TARGET" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
     - <<: *install_elixir
@@ -128,7 +128,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v9-fbcs-test-dependency-cache-{{ checksum "farmbot_celery_script/mix.lock" }}
+            - v11-fbcs-test-dependency-cache-{{ checksum "farmbot_celery_script/mix.lock" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
@@ -140,7 +140,7 @@ jobs:
             mix format --check-formatted
             mix test
       - save_cache:
-          key: v9-fbcs-test-dependency-cache-{{ checksum "farmbot_celery_script/mix.lock" }}
+          key: v11-fbcs-test-dependency-cache-{{ checksum "farmbot_celery_script/mix.lock" }}
           paths:
             - farmbot_celery_script/_build/test
             - farmbot_celery_script/deps
@@ -156,7 +156,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v9-fbfw-test-dependency-cache-{{ checksum "farmbot_firmware/mix.lock" }}
+            - v11-fbfw-test-dependency-cache-{{ checksum "farmbot_firmware/mix.lock" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
@@ -168,7 +168,7 @@ jobs:
             mix format --check-formatted
             mix test
       - save_cache:
-          key: v9-fbfw-test-dependency-cache-{{ checksum "farmbot_firmware/mix.lock" }}
+          key: v11-fbfw-test-dependency-cache-{{ checksum "farmbot_firmware/mix.lock" }}
           paths:
             - farmbot_firmware/_build/test
             - farmbot_firmware/deps
@@ -186,10 +186,10 @@ jobs:
       - run: git submodule update --init --recursive
       - restore_cache:
           keys:
-            - v9-fbcore-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
+            - v11-fbcore-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
       - restore_cache:
           keys:
-            - v9-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
+            - v11-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - <<: *install_arduino
@@ -206,13 +206,13 @@ jobs:
             mix format --check-formatted
             mix test --trace
       - save_cache:
-          key: v9-fbcore-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
+          key: v11-fbcore-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
           paths:
             - farmbot_core/_build/test
             - farmbot_core/deps
             - farmbot_core/arduino
       - save_cache:
-          key: v9-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
+          key: v11-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
           paths:
             - ~/arduino-1.8.5
             - farmbot_core/_build/core
@@ -234,7 +234,7 @@ jobs:
       - run: git submodule update --init --recursive
       - restore_cache:
           keys:
-            - v9-fbext-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
+            - v11-fbext-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
@@ -248,7 +248,7 @@ jobs:
             mix ecto.migrate
             mix test
       - save_cache:
-          key: v9-fbext-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
+          key: v11-fbext-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
           paths:
             - farmbot_ext/_build/test
             - farmbot_ext/deps
@@ -264,7 +264,7 @@ jobs:
       - checkout
       - run: git submodule update --init --recursive
       - restore_cache:
-          key: v9-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+          key: v11-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
@@ -276,7 +276,7 @@ jobs:
             mix format --check-formatted
             mix test
       - save_cache:
-          key: v9-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+          key: v11-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
           paths:
             - farmbot_os/_build/host
             - farmbot_os/deps/host
