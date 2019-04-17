@@ -23,9 +23,9 @@ defmodule FarmbotFirmware.GCODE do
           | :report_invalid
           | :report_home_complete
           | :report_position
-          | :report_paramaters_complete
-          | :report_paramater_value
-          | :report_calibration_paramater_value
+          | :report_parameters_complete
+          | :report_parameter_value
+          | :report_calibration_parameter_value
           | :report_status_value
           | :report_pin_value
           | :report_axis_timeout
@@ -46,9 +46,9 @@ defmodule FarmbotFirmware.GCODE do
 
   @typedoc "Read/Write commands."
   @type read_write_kind ::
-          :paramater_read_all
-          | :paramater_read
-          | :paramater_write
+          :parameter_read_all
+          | :parameter_read
+          | :parameter_write
           | :status_read
           | :status_write
           | :pin_read
@@ -62,7 +62,7 @@ defmodule FarmbotFirmware.GCODE do
 
   @type emergency_commands :: :command_emergency_lock | :command_emergency_unlock
 
-  @typedoc "Kind is an atom of the \"name\" of a command. Example: `:write_paramater`"
+  @typedoc "Kind is an atom of the \"name\" of a command. Example: `:write_parameter`"
   @type kind() :: report_kind | command_kind | read_write_kind | :unknown
 
   @typedoc "Args is a list of args to a `kind`. example: `[x: 100.00]`"

@@ -26,10 +26,10 @@ defmodule FarmbotFirmware.GCODE.Decoder do
   def do_decode("R16", y), do: {:report_position_change, decode_floats(y)}
   def do_decode("R17", z), do: {:report_position_change, decode_floats(z)}
 
-  def do_decode("R20", []), do: {:report_paramaters_complete, []}
+  def do_decode("R20", []), do: {:report_parameters_complete, []}
 
-  def do_decode("R21", pv), do: {:report_paramater_value, decode_pv(pv)}
-  def do_decode("R23", pv), do: {:report_calibration_paramater_value, decode_pv(pv)}
+  def do_decode("R21", pv), do: {:report_parameter_value, decode_pv(pv)}
+  def do_decode("R23", pv), do: {:report_calibration_parameter_value, decode_pv(pv)}
   def do_decode("R41", pv), do: {:report_pin_value, decode_ints(pv)}
 
   def do_decode("R71", []), do: {:report_axis_timeout, [:x]}
@@ -59,10 +59,10 @@ defmodule FarmbotFirmware.GCODE.Decoder do
   def do_decode("F15", []), do: {:command_movement_calibrate, [:y]}
   def do_decode("F16", []), do: {:command_movement_calibrate, [:z]}
 
-  def do_decode("F20", []), do: {:paramater_read_all, []}
-  def do_decode("F21", [param_id]), do: {:paramater_read, [Param.decode(param_id)]}
-  def do_decode("F22", pv), do: {:paramater_write, decode_pv(pv)}
-  def do_decode("F23", pv), do: {:calibration_paramater_write, decode_pv(pv)}
+  def do_decode("F20", []), do: {:parameter_read_all, []}
+  def do_decode("F21", [param_id]), do: {:parameter_read, [Param.decode(param_id)]}
+  def do_decode("F22", pv), do: {:parameter_write, decode_pv(pv)}
+  def do_decode("F23", pv), do: {:calibration_parameter_write, decode_pv(pv)}
 
   def do_decode("F41", pvm), do: {:pin_write, decode_ints(pvm)}
   def do_decode("F42", pv), do: {:pin_read, decode_ints(pv)}

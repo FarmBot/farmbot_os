@@ -20,7 +20,8 @@ defmodule FarmbotCore.Asset do
     Point,
     Regimen,
     RegimenInstance,
-    Sequence
+    Sequence,
+    Tool
   }
   alias FarmbotCore.AssetSupervisor
 
@@ -213,4 +214,12 @@ defmodule FarmbotCore.Asset do
   end
 
   ## End DeviceCert
+
+  ## Begin Tool
+
+  def get_tool(args) do
+    Repo.get_by(Tool, args)
+  end
+
+  ## End Tool
 end

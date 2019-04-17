@@ -83,7 +83,7 @@ defmodule FarmbotCeleryScript.Compiler do
     {params_fetch, body} =
       Enum.reduce(params, {[], []}, fn ast, {params, body} = _acc ->
         case ast do
-          # declares usage of a paramater as defined by variable_declaration
+          # declares usage of a parameter as defined by variable_declaration
           %{kind: :parameter_declaration} -> {params ++ [compile_param_declaration(ast)], body}
           # declares usage of a variable as defined inside the body of itself
           %{kind: :parameter_application} -> {params ++ [compile_param_application(ast)], body}
@@ -514,7 +514,7 @@ defmodule FarmbotCeleryScript.Compiler do
 
   compile :tool, %{tool_id: tool_id} do
     quote location: :keep do
-      get_tool(unquote(compile_ast(tool_id)))
+      get_toolslot_for_tool(unquote(compile_ast(tool_id)))
     end
   end
 
@@ -709,7 +709,7 @@ defmodule FarmbotCeleryScript.Compiler do
   def compile_block([], acc), do: {:__block__, [], acc}
 
   @doc """
-  Compiles a `execute` block to a paramater block
+  Compiles a `execute` block to a parameter block
 
   # Example
   The body of this `execute` node
