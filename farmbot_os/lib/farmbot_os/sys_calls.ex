@@ -24,6 +24,11 @@ defmodule FarmbotOS.SysCalls do
   defdelegate change_ownership(email, secret), to: ChangeOwnership
   defdelegate dump_info(), to: DumpInfo
 
+  def check_update do
+    _ = FarmbotOS.Platform.Target.NervesHubClient.check_update()
+    :ok
+  end
+
   def reboot do
     FarmbotOS.System.reboot("Reboot requested by sequence or frontend")
     :ok

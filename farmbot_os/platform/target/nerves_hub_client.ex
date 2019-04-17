@@ -34,7 +34,6 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   def connect do
     FarmbotCore.Logger.debug(3, "Starting OTA Service")
     # NervesHub replaces it's own env on startup. Reset it.
-    Application.put_env(:nerves_hub, NervesHub.Socket, reconnect_interval: 5000)
 
     supervisor = FarmbotOS
     # Stop Nerves Hub if it is running.
@@ -167,8 +166,8 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
     :ok
   end
 
-  def start_link(_, _) do
-    GenServer.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link(args) do
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
   def init([]) do
@@ -220,7 +219,8 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   end
 
   defp do_post_update do
-    raise("flash firmware at this point i guess?")
+    IO.warn("flash firmware at this point i guess?")
+    File.rm(update_file())
   end
 
   defp before_update, do: File.write!(update_file(), @current_version)
