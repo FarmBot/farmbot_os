@@ -359,11 +359,14 @@ defmodule FarmbotCeleryScript.Compiler do
   # compiles write_pin
   compile :write_pin, %{pin_number: num, pin_mode: mode, pin_value: val} do
     quote location: :keep do
-      write_pin(
-        unquote(compile_ast(num)),
-        unquote(compile_ast(mode)),
-        unquote(compile_ast(val))
-      )
+      with :ok <-
+             write_pin(
+               unquote(compile_ast(num)),
+               unquote(compile_ast(mode)),
+               unquote(compile_ast(val))
+             ) do
+        read_pin(unquote(compile_ast(num)), unquote(compile_ast(mode)))
+      end
     end
   end
 
@@ -608,6 +611,8 @@ defmodule FarmbotCeleryScript.Compiler do
         0 -> write_pin(unquote(compile_ast(pin_number)), 0, 1)
         _ -> write_pin(unquote(compile_ast(pin_number)), 0, 0)
       end
+
+      read_pin(unquote(compile_ast(pin_number)), 0)
     end
   end
 
