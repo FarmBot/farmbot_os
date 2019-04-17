@@ -72,6 +72,17 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback flash_firmware(package) :: :ok | error
   @callback firmware_reboot() :: :ok | error
 
+  @callback emergency_lock() :: :ok | error
+  @callback emergency_unlock() :: :ok | error
+
+  def emergency_lock(module \\ @sys_call_implementation) do
+    _ = module.emergency_lock()
+  end
+
+  def emergency_unlock(module \\ @sys_call_implementation) do
+    _ = module.emergency_unlock()
+  end
+
   def power_off(module \\ @sys_call_implementation) do
     _ = module.factory_reset()
     :ok
