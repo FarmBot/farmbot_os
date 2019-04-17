@@ -110,7 +110,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
 
   def handle_error(args) do
     FarmbotCore.Logger.error(1, "OTA failed to download: #{inspect(args)}")
-    prog = %Percent{status: :error}
+    prog = %Percent{status: "error"}
 
     if Process.whereis(BotState) do
       BotState.set_job_progress("FBOS_OTA", prog)
@@ -121,7 +121,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
 
   def handle_fwup_message({:ok, _, _info}) do
     FarmbotCore.Logger.success(1, "OTA Complete Going down for reboot")
-    prog = %Percent{percent: 100, status: :complete}
+    prog = %Percent{percent: 100, status: "complete"}
 
     if Process.whereis(BotState) do
       BotState.set_job_progress("FBOS_OTA", prog)
@@ -132,7 +132,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
 
   def handle_fwup_message({:progress, 100}) do
     FarmbotCore.Logger.success(1, "OTA Complete. Going down for reboot")
-    prog = %Percent{percent: 100, status: :complete}
+    prog = %Percent{percent: 100, status: "complete"}
 
     if Process.whereis(BotState) do
       BotState.set_job_progress("FBOS_OTA", prog)
