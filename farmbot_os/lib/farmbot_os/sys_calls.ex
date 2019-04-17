@@ -160,6 +160,16 @@ defmodule FarmbotOS.SysCalls do
     end
   end
 
+  def emergency_lock do
+    _ = FarmbotFirmware.command({:command_emergency_lock, []})
+    :ok
+  end
+
+  def emergency_unlock do
+    _ = FarmbotFirmware.command({:command_emergency_unlock, []})
+    :ok
+  end
+
   defp assert_axis!(axis) when is_atom(axis),
     do: axis
 

@@ -215,6 +215,10 @@ defmodule FarmbotFirmware do
 
   def terminate(reason, state) do
     for {pid, _code} <- state.command_queue, do: send(pid, reason)
+
+    state.transport_pid &&
+      Process.alive?(state.transport_pid) &&
+      GenServer.stop(state.transport_pid)
   end
 
   # This will be the first message received right after `init/1`
