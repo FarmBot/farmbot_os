@@ -91,7 +91,7 @@ defmodule FarmbotOS.SysCalls do
   end
 
   def read_pin(pin_number, mode) do
-    case FarmbotFirmware.request({nil, {:pin_read, [p: pin_number, m: mode]}}) do
+    case FarmbotFirmware.request({:pin_read, [p: pin_number, m: mode]}) do
       {:ok, {_, {:report_pin_value, [p: _, v: val]}}} ->
         val
 
@@ -144,7 +144,7 @@ defmodule FarmbotOS.SysCalls do
   def calibrate(axis) do
     axis = assert_axis!(axis)
 
-    case FarmbotFirmware.command({:command_movement_calibrate, axis}) do
+    case FarmbotFirmware.command({:command_movement_calibrate, [axis]}) do
       :ok ->
         :ok
 
@@ -156,7 +156,7 @@ defmodule FarmbotOS.SysCalls do
   def find_home(axis) do
     axis = assert_axis!(axis)
 
-    case FarmbotFirmware.command({:command_movement_find_home, axis}) do
+    case FarmbotFirmware.command({:command_movement_find_home, [axis]}) do
       :ok ->
         :ok
 
