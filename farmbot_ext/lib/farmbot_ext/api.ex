@@ -70,7 +70,7 @@ defmodule FarmbotExt.API do
     {:ok, pid} = Agent.start_link(fn -> 0 end)
 
     prog = %Percent{
-      status: :working,
+      status: "working",
       percent: 0,
       file_type: Path.extname(image_filename),
       type: :image,
@@ -112,12 +112,12 @@ defmodule FarmbotExt.API do
          client <- API.client(),
          body <- %{attachment_url: attachment_url, meta: meta},
          {:ok, %{status: s}} = r when s > 199 and s < 300 <- API.post(client, "/api/images", body) do
-      BotState.set_job_progress(image_filename, %{prog | status: :complete, percent: 100})
+      BotState.set_job_progress(image_filename, %{prog | status: "complete", percent: 100})
       r
     else
       er ->
         FarmbotCore.Logger.error(1, "Failed to upload image")
-        BotState.set_job_progress(image_filename, %{prog | percent: -1, status: :error})
+        BotState.set_job_progress(image_filename, %{prog | percent: -1, status: "error"})
         er
     end
   end
@@ -135,7 +135,7 @@ defmodule FarmbotExt.API do
       } / #{bytes_to_mb(max)}) MB"
     )
 
-    status = if percent == 100, do: :complete, else: :working
+    status = if percent == 100, do: "complete", else: "working"
 
     %Percent{
       prog
