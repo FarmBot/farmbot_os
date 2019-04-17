@@ -14,7 +14,8 @@ defmodule FarmbotFirmware.SideEffects do
   @callback handle_position_change([{axis(), float()}]) :: any()
   @callback handle_encoders_scaled(x: float(), y: float(), z: float()) :: any()
   @callback handle_encoders_raw(x: float(), y: float(), z: float()) :: any()
-  @callback handle_paramater_value([{Param.t(), float()}]) :: any()
+  @callback handle_parameter_value([{Param.t(), float()}]) :: any()
+  @callback handle_parameter_calibration_value([{Param.t(), float()}]) :: any()
   @callback handle_end_stops(xa: 0 | 1, xb: 0 | 1, ya: 0 | 1, yb: 0 | 1, za: 0 | 1, zb: 0 | 1) ::
               any()
   @callback handle_emergency_lock() :: any()

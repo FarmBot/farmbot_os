@@ -38,6 +38,7 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback move_absolute(x :: axis_position, y :: axis_position, z :: axis_position, axis_speed) ::
               :ok | error
   @callback find_home(axis) :: :ok | error
+  @callback home(axis, axis_speed) :: :ok | error
 
   @callback calibrate(axis) :: :ok | error
 
@@ -54,6 +55,8 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback send_message(message_level, String.t(), [message_channel]) :: :ok | error
 
   @callback get_sequence(resource_id) :: map() | error
+  @callback get_toolslot_for_tool(resource_id) :: coordinate | error
+
   @callback execute_script(String.t(), map()) :: :ok | error
 
   @callback read_status() :: map()
@@ -216,10 +219,27 @@ defmodule FarmbotCeleryScript.SysCalls do
     end
   end
 
+  def home(module \\ @sys_call_implementation, axis, speed) do
+    case module.home(axis, speed) do
+      :ok -> :ok
+      {:error, reason} when is_binary(reason) -> error(reason)
+    end
+  end
+
   def get_sequence(module \\ @sys_call_implementation, id) do
     case module.get_sequence(id) do
       %{kind: _, args: _} = probably_sequence ->
         AST.decode(probably_sequence)
+
+      {:error, reason} when is_binary(reason) ->
+        error(reason)
+    end
+  end
+
+  def get_toolslot_for_tool(module \\ @sys_call_implementation, id) do
+    case module.get_toolslot_for_tool(id) do
+      %{x: x, y: y, z: z} ->
+        %{x: x, y: y, z: z}
 
       {:error, reason} when is_binary(reason) ->
         error(reason)

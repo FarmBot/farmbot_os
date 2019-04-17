@@ -4,8 +4,8 @@ defmodule FarmbotFirmware.Param do
 
   @type t() :: atom()
 
-  @doc "Decodes an integer paramater id to a atom paramater name"
-  def decode(paramater_id)
+  @doc "Decodes an integer parameter id to a atom parameter name"
+  def decode(parameter_id)
   def decode(0), do: :param_version
   def decode(1), do: :param_test
   def decode(2), do: :param_config_ok
@@ -100,12 +100,12 @@ defmodule FarmbotFirmware.Param do
   def decode(223), do: :pin_guard_5_active_state
 
   def decode(unknown) when is_integer(unknown) do
-    Logger.error("unknown firmware paramater: #{unknown}")
-    :unknown_paramater
+    Logger.error("unknown firmware parameter: #{unknown}")
+    :unknown_parameter
   end
 
-  @doc "Encodes an atom paramater name to an integer paramater id."
-  def encode(paramater)
+  @doc "Encodes an atom parameter name to an integer parameter id."
+  def encode(parameter)
   def encode(:param_version), do: 0
   def encode(:param_test), do: 1
   def encode(:param_config_ok), do: 2

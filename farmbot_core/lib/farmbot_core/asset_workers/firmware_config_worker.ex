@@ -26,23 +26,23 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FirmwareConfig do
     %{changes: changes} = FirmwareConfig.changeset(old_fw_config, Map.from_struct(new_fw_config))
     # Extract only the needed values.
     changes = FirmwareSideEffects.known_params(changes)
-    # write each changed paramater, and read it back to set it on the state.
+    # write each changed parameter, and read it back to set it on the state.
     for {param, value} <- changes, do: do_write_read(param, value)
     # save the new config on the state.
     {:noreply, new_fw_config}
   end
 
   defp do_write_read(param, value) do
-    with :ok <- FarmbotFirmware.command({:paramater_write, [{param, value}]}),
-          {:ok, {_, {:report_paramater_value, [{^param, ^value}]}}} <- FarmbotFirmware.request({:paramater_read, [param]}) do
-      FarmbotCore.Logger.success 1, "Firmware paramater updated: #{param} #{value}"
+    with :ok <- FarmbotFirmware.command({:parameter_write, [{param, value}]}),
+          {:ok, {_, {:report_parameter_value, [{^param, ^value}]}}} <- FarmbotFirmware.request({:parameter_read, [param]}) do
+      FarmbotCore.Logger.success 1, "Firmware parameter updated: #{param} #{value}"
       :ok
       else
     {:error, reason} ->
-      FarmbotCore.Logger.error 1, "Error writing firmware paramater: #{param}: #{inspect(reason)}"
+      FarmbotCore.Logger.error 1, "Error writing firmware parameter: #{param}: #{inspect(reason)}"
 
-    {:ok, {_, {:report_paramater_value, [{param, value}]}}} ->
-      FarmbotCore.Logger.error 1, "Error writing firmware paramater #{param}: incorrect data reply: #{value}"
+    {:ok, {_, {:report_parameter_value, [{param, value}]}}} ->
+      FarmbotCore.Logger.error 1, "Error writing firmware parameter #{param}: incorrect data reply: #{value}"
 
     end
   end

@@ -79,7 +79,7 @@ defmodule FarmbotFirmware.StubTransport do
   end
 
   def handle_call(
-        {tag, {:paramater_write, [{:param_config_ok = param, 1.0 = value}]}} = code,
+        {tag, {:parameter_write, [{:param_config_ok = param, 1.0 = value}]}} = code,
         _from,
         state
       ) do
@@ -94,7 +94,7 @@ defmodule FarmbotFirmware.StubTransport do
     {:reply, :ok, goto(new_state, :idle), {:continue, resp_codes}}
   end
 
-  def handle_call({tag, {:paramater_write, [{param, value}]}} = code, _from, state) do
+  def handle_call({tag, {:parameter_write, [{param, value}]}} = code, _from, state) do
     new_state = %{state | params: Keyword.put(state.params, param, value)}
 
     resp_codes = [
@@ -106,13 +106,13 @@ defmodule FarmbotFirmware.StubTransport do
     {:reply, :ok, new_state, {:continue, resp_codes}}
   end
 
-  def handle_call({tag, {:paramater_read_all, []}} = code, _from, state) do
+  def handle_call({tag, {:parameter_read_all, []}} = code, _from, state) do
     resp_codes =
       [
         GCODE.new(:report_echo, [GCODE.encode(code)]),
         GCODE.new(:report_begin, [], tag),
         Enum.map(state.params, fn {p, v} ->
-          GCODE.new(:report_paramater_value, [{p, v}])
+          GCODE.new(:report_parameter_value, [{p, v}])
         end),
         GCODE.new(:report_success, [], tag)
       ]
@@ -121,11 +121,11 @@ defmodule FarmbotFirmware.StubTransport do
     {:reply, :ok, state, {:continue, resp_codes}}
   end
 
-  def handle_call({tag, {:paramater_read, [param]}} = code, _from, state) do
+  def handle_call({tag, {:parameter_read, [param]}} = code, _from, state) do
     resp_codes = [
       GCODE.new(:report_echo, [GCODE.encode(code)]),
       GCODE.new(:report_begin, [], tag),
-      GCODE.new(:report_paramater_value, [{param, state.params[param] || -1.0}]),
+      GCODE.new(:report_parameter_value, [{param, state.params[param] || -1.0}]),
       GCODE.new(:report_success, [], tag)
     ]
 
@@ -182,8 +182,8 @@ defmodule FarmbotFirmware.StubTransport do
       GCODE.new(:report_calibration_state, [:idle]),
       GCODE.new(:report_calibration_state, [:home]),
       GCODE.new(:report_calibration_state, [:end]),
-      GCODE.new(:report_calibration_paramater_value, [{param_nr_steps, param_nr_steps_val}]),
-      GCODE.new(:report_calibration_paramater_value, [{param_endpoints, param_endpoints_val}]),
+      GCODE.new(:report_calibration_parameter_value, [{param_nr_steps, param_nr_steps_val}]),
+      GCODE.new(:report_calibration_parameter_value, [{param_endpoints, param_endpoints_val}]),
       GCODE.new(:report_position, state.position),
       GCODE.new(:report_success, [], tag)
     ]
