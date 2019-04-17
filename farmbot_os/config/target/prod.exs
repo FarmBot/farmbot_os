@@ -19,7 +19,8 @@ config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding,
   # gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler,
   error_retry_time_ms: 30_000
 
-config :farmbot_core, FarmbotCore.Leds, gpio_handler: Farmbot.Platform.Target.Leds.CircuitsHandler
+config :farmbot_core, FarmbotCore.Leds,
+  gpio_handler: FarmbotOS.Platform.Target.Leds.CircuitsHandler
 
 data_path = Path.join("/", "root")
 
@@ -49,8 +50,8 @@ config :farmbot,
 
 config :farmbot, FarmbotOS.Init.Supervisor,
   init_children: [
-    FarmbotOS.FirmwareTTYDetector,
-    FarmbotOS.Platform.Target.Leds.CircuitsHandler
+    FarmbotOS.Platform.Target.Leds.CircuitsHandler,
+    FarmbotOS.FirmwareTTYDetector
   ]
 
 config :farmbot, FarmbotOS.Platform.Supervisor,
