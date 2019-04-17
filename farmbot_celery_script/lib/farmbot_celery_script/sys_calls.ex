@@ -75,12 +75,21 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback emergency_lock() :: :ok | error
   @callback emergency_unlock() :: :ok | error
 
+  @callback check_update() :: :ok | error
+
+  def check_update(module \\ @sys_call_implementation) do
+    _ = module.check_update()
+    :ok
+  end
+
   def emergency_lock(module \\ @sys_call_implementation) do
     _ = module.emergency_lock()
+    :ok
   end
 
   def emergency_unlock(module \\ @sys_call_implementation) do
     _ = module.emergency_unlock()
+    :ok
   end
 
   def power_off(module \\ @sys_call_implementation) do

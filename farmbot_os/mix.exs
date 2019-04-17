@@ -54,7 +54,7 @@ defmodule FarmbotOS.MixProject do
 
       # Nerves stuff.
       {:nerves, "~> 1.4", runtime: false},
-      {:nerves_hub_cli, "~> 0.5", runtime: false},
+      {:nerves_hub_cli, "~> 0.7", runtime: false},
       {:shoehorn, "~> 0.5"},
       {:logger_backend_sqlite, "~> 2.2"},
       {:ring_logger, "~> 0.6.1"},
@@ -73,7 +73,7 @@ defmodule FarmbotOS.MixProject do
       {:nerves_network, "~> 0.5", targets: @all_targets},
       {:nerves_wpa_supplicant, "~> 0.5", targets: @all_targets},
       {:nerves_time, "~> 0.2", targets: @all_targets},
-      {:nerves_hub, "~> 0.5", targets: @all_targets},
+      {:nerves_hub, "~> 0.7", targets: @all_targets},
       {:dhcp_server, "~> 0.7", targets: @all_targets},
       {:mdns, "~> 1.0", targets: @all_targets},
       {:nerves_firmware_ssh, "~> 0.4", targets: @all_targets},
