@@ -70,4 +70,4 @@ This includes:
 | `explanation`                  | `message`                             | ---                       |
 | `identifier`                   | `label`                               | ---                       |
 | `nothing`                      | ---                                   | ---                       |
-| `scope_declaration`            | ---                                   | `paramater_decleration`, `variable_decleration` |
+| `scope_declaration`            | ---                                   | `parameter_decleration`, `variable_decleration` |

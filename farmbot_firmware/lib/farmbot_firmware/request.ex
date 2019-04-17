@@ -8,7 +8,7 @@ defmodule FarmbotFirmware.Request do
 
   def request(firmware_server, {_tag, {kind, _}} = code) do
     if kind not in [
-         :paramater_read,
+         :parameter_read,
          :status_read,
          :pin_read,
          :end_stops_read,
@@ -76,11 +76,11 @@ defmodule FarmbotFirmware.Request do
     end
   end
 
-  # {:paramater_read, [param]} => {:report_paramater_value, [{param, val}]}
+  # {:parameter_read, [param]} => {:report_parameter_value, [{param, val}]}
   defp wait_for_request_result_process(
-         {:report_paramater_value, _} = report,
+         {:report_parameter_value, _} = report,
          tag,
-         {_, {:paramater_read, _}} = code,
+         {_, {:parameter_read, _}} = code,
          _
        ) do
     wait_for_request_result(tag, code, report)

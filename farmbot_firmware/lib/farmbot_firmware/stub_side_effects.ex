@@ -106,7 +106,7 @@ defmodule FarmbotFirmware.StubSideEffects do
 
   def handle_encoders_raw(_), do: :noop
 
-  def handle_paramater_value(_), do: :noop
+  def handle_parameter_value(_), do: :noop
 
   def handle_end_stops(_), do: :noop
 

@@ -38,8 +38,15 @@ defmodule FarmbotCore.FirmwareSideEffects do
   end
 
   @impl FarmbotFirmware.SideEffects
-  def handle_paramater_value([{param, value}]) do
+  def handle_parameter_value([{param, value}]) do
     :ok = BotState.set_firmware_config(param, value)
+  end
+
+  def handle_parameter_calibration_value([{param, value}]) do
+    %{param => value}
+    |> Asset.update_firmware_config!()
+    |> Asset.Private.mark_dirty!(%{})
+    :ok
   end
 
   @impl FarmbotFirmware.SideEffects
@@ -91,21 +98,33 @@ defmodule FarmbotCore.FirmwareSideEffects do
   end
 
   @impl FarmbotFirmware.SideEffects
+  def handle_input_gcode({_, {:unknown, _}}) do
+    :ok
+  end
+
+  def handle_input_gcode({:unknown, _}) do
+    :ok
+  end
+
   def handle_input_gcode(code) do
+    string_code = FarmbotFirmware.GCODE.encode(code)
     should_log? = Asset.fbos_config().firmware_input_log
-    should_log? && FarmbotCore.Logger.debug(3, inspect(code))
+    should_log? && FarmbotCore.Logger.debug(3, "Firmware input: " <> string_code)
+    # IO.inspect(string_code, label: "input")
   end
 
   @impl FarmbotFirmware.SideEffects
   def handle_output_gcode(code) do
+    string_code = FarmbotFirmware.GCODE.encode(code)
     should_log? = Asset.fbos_config().firmware_output_log
-    should_log? && FarmbotCore.Logger.debug(3, inspect(code))
+    should_log? && FarmbotCore.Logger.debug(3, "Firmware output: " <> string_code)
+    # IO.inspect(string_code, label: "output")
   end
 
   @impl FarmbotFirmware.SideEffects
   def handle_debug_message([message]) do
     should_log? = Asset.fbos_config().firmware_debug_log
-    should_log? && FarmbotCore.Logger.debug(3, "Arduino debug message: " <> message)
+    should_log? && FarmbotCore.Logger.debug(3, "Firmware debug message: " <> message)
   end
 
   @impl FarmbotFirmware.SideEffects
