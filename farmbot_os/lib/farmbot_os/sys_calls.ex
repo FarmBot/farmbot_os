@@ -165,6 +165,19 @@ defmodule FarmbotOS.SysCalls do
     end
   end
 
+  def home(axis, _speed) do
+    # TODO(Connor) fix speed
+    axis = assert_axis!(axis)
+
+    case FarmbotFirmware.command({:command_movement_home, [axis]}) do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        {:error, "Firmware error: #{inspect(reason)}"}
+    end
+  end
+
   def emergency_lock do
     _ = FarmbotFirmware.command({:command_emergency_lock, []})
     :ok
@@ -199,6 +212,15 @@ defmodule FarmbotOS.SysCalls do
     case Asset.get_sequence(id: id) do
       nil -> {:error, "sequence not found"}
       %{} = sequence -> AST.decode(sequence)
+    end
+  end
+
+  def get_toolslot_for_tool(id) do
+    with %{id: ^id} <- Asset.get_tool(id: id),
+         %{x: x, y: y, z: z} <- Asset.get_point(tool_id: id) do
+      %{x: x, y: y, z: z}
+    else
+      nil -> {:error, "Could not find point for tool by id: #{id}"}
     end
   end
 

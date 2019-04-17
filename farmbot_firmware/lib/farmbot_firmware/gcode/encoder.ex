@@ -26,10 +26,10 @@ defmodule FarmbotFirmware.GCODE.Encoder do
   def do_encode(:report_position_change, [y: _] = arg), do: "R16 " <> encode_floats(arg)
   def do_encode(:report_position_change, [z: _] = arg), do: "R16 " <> encode_floats(arg)
 
-  def do_encode(:report_paramaters_complete, []), do: "R20"
+  def do_encode(:report_parameters_complete, []), do: "R20"
 
-  def do_encode(:report_parmater_value, pv), do: "R21 " <> encode_pv(pv)
-  def do_encode(:report_calibration_paramater_value, pv), do: "R23 " <> encode_pv(pv)
+  def do_encode(:report_parameter_value, pv), do: "R21 " <> encode_pv(pv)
+  def do_encode(:report_calibration_parameter_value, pv), do: "R23 " <> encode_pv(pv)
   def do_encode(:report_pin_value, pv), do: "R41 " <> encode_ints(pv)
 
   def do_encode(:report_axis_timeout, [:x]), do: "R71"
@@ -62,11 +62,11 @@ defmodule FarmbotFirmware.GCODE.Encoder do
   def do_encode(:command_movement_calibrate, [:y]), do: "F15"
   def do_encode(:command_movement_calibrate, [:z]), do: "F16"
 
-  def do_encode(:paramater_read_all, []), do: "F20"
-  def do_encode(:paramater_read, [paramater]), do: "F21 P#{Param.encode(paramater)}"
+  def do_encode(:parameter_read_all, []), do: "F20"
+  def do_encode(:parameter_read, [parameter]), do: "F21 P#{Param.encode(parameter)}"
 
-  def do_encode(:paramater_write, pv), do: "F22 " <> encode_pv(pv)
-  def do_encode(:calibration_paramater_write, pv), do: "F23 " <> encode_pv(pv)
+  def do_encode(:parameter_write, pv), do: "F22 " <> encode_pv(pv)
+  def do_encode(:calibration_parameter_write, pv), do: "F23 " <> encode_pv(pv)
 
   def do_encode(:pin_write, pv), do: "F41 " <> encode_ints(pv)
   def do_encode(:pin_read, p), do: "F42 " <> encode_ints(p)
