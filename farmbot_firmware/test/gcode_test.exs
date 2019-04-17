@@ -245,9 +245,9 @@ defmodule FarmbotFirmware.GCODETest do
       assert {"33", {:report_position_change, [{:z, 200.0}]}} = GCODE.decode("R15 Z200 Q33")
     end
 
-    test "paramater report complete" do
-      assert {nil, {:report_paramaters_complete, []}} = GCODE.decode("R20")
-      assert {"66", {:report_paramaters_complete, []}} = GCODE.decode("R20 Q66")
+    test "parameter report complete" do
+      assert {nil, {:report_parameters_complete, []}} = GCODE.decode("R20")
+      assert {"66", {:report_parameters_complete, []}} = GCODE.decode("R20 Q66")
     end
 
     test "axis timeout" do

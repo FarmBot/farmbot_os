@@ -7,7 +7,7 @@ defmodule FarmbotFirmware do
   allows for indpendent testing.
 
   Functionality that is needed to boot the firmware:
-    * paramaters - Keyword list of {param_atom, float}
+    * parameters - Keyword list of {param_atom, float}
 
   Side affects that should be handled
     * position reports
@@ -17,7 +17,7 @@ defmodule FarmbotFirmware do
 
   # State machine
   The firmware starts in a `:transport_boot` state, moving to `:boot`. It then
-  loads all paramaters writes all paramaters, and goes to idle if all params
+  loads all parameters writes all parameters, and goes to idle if all params
   were loaded successfully.
 
   State machine flows go as follows:
@@ -42,7 +42,7 @@ defmodule FarmbotFirmware do
     of the command queue and are started immediately.
   * if a `report_emergency_lock` message is received at any point during a
     commands execution, that command is considered an error.
-    (this does not apply to `:boot` state, since `:paramater_write`
+    (this does not apply to `:boot` state, since `:parameter_write`
      is accepted while the firmware is locked.)
   * all reports outside of control flow reports (:begin, :error, :invalid,
     :success) will be discarded while in `:boot` state. This means while
@@ -51,7 +51,7 @@ defmodule FarmbotFirmware do
   # Transports
   GCODES should be exchanged in the following format:
       {tag, {command, args}}
-  * `tag` - binary integer. This is translated to the `Q` paramater.
+  * `tag` - binary integer. This is translated to the `Q` parameter.
   * `command` - either a `RXX`, `FXX`, or `GXX` code.
   * `args` - a list of arguments to be processed.
 
@@ -74,7 +74,7 @@ defmodule FarmbotFirmware do
 
   a transport should also implement a `handle_call` clause like:
 
-      def handle_call({"166", {:paramater_write, [some_param: 100.00]}}, _from, state)
+      def handle_call({"166", {:parameter_write, [some_param: 100.00]}}, _from, state)
 
   and reply with `:ok | {:error, term()}`
   """
@@ -147,7 +147,7 @@ defmodule FarmbotFirmware do
   Request data from the firmware.
   Valid requests are of kind:
 
-      :paramater_read
+      :parameter_read
       :status_read
       :pin_read
       :end_stops_read
@@ -390,14 +390,14 @@ defmodule FarmbotFirmware do
 
     param_commands =
       Enum.reduce(loaded_params, [], fn {param, val}, acc ->
-        if val, do: acc ++ [{:paramater_write, [{param, val}]}], else: acc
+        if val, do: acc ++ [{:parameter_write, [{param, val}]}], else: acc
       end)
 
     to_process =
       [{:software_version_read, []} | param_commands] ++
         [
-          {:paramater_write, [{:param_config_ok, 1.0}]},
-          {:paramater_read_all, []}
+          {:parameter_write, [{:param_config_ok, 1.0}]},
+          {:parameter_read_all, []}
         ]
 
     to_process =
@@ -490,21 +490,23 @@ defmodule FarmbotFirmware do
     {:noreply, state}
   end
 
-  def handle_report({:report_paramater_value, param} = code, state) do
+  def handle_report({:report_parameter_value, param} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    side_effects(state, :handle_paramater_value, [param])
+    side_effects(state, :handle_parameter_value, [param])
     {:noreply, state}
   end
 
-  def handle_report({:report_calibration_paramater_value, args} = _code, state) do
-    to_process = [{:paramater_write, args}]
+  def handle_report({:report_calibration_parameter_value, param} = _code, state) do
+    to_process = [{:parameter_write, param}]
+    side_effects(state, :handle_parameter_value, [param])
+    side_effects(state, :handle_parameter_calibration_value, [param])
 
     {:noreply, goto(%{state | tag: state.tag, configuration_queue: to_process}, :configuration),
      0}
   end
 
-  # report_paramaters_complete => goto(:configuration, :idle)
-  def handle_report({:report_paramaters_complete, []}, %{status: :configuration} = state) do
+  # report_parameters_complete => goto(:configuration, :idle)
+  def handle_report({:report_parameters_complete, []}, %{status: :configuration} = state) do
     {:noreply, goto(state, :idle)}
   end
 
