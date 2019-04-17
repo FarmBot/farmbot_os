@@ -6,6 +6,8 @@ defmodule FarmbotFirmware.Param do
 
   @doc "Decodes an integer paramater id to a atom paramater name"
   def decode(paramater_id)
+  def decode(0), do: :param_version
+  def decode(1), do: :param_test
   def decode(2), do: :param_config_ok
   def decode(3), do: :param_use_eeprom
   def decode(4), do: :param_e_stop_on_mov_err
@@ -104,6 +106,8 @@ defmodule FarmbotFirmware.Param do
 
   @doc "Encodes an atom paramater name to an integer paramater id."
   def encode(paramater)
+  def encode(:param_version), do: 0
+  def encode(:param_test), do: 1
   def encode(:param_config_ok), do: 2
   def encode(:param_use_eeprom), do: 3
   def encode(:param_e_stop_on_mov_err), do: 4
