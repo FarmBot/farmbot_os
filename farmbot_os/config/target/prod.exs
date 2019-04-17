@@ -56,6 +56,7 @@ config :farmbot, FarmbotOS.Init.Supervisor,
 
 config :farmbot, FarmbotOS.Platform.Supervisor,
   platform_children: [
+    FarmbotOS.Platform.Target.NervesHubClient,
     FarmbotOS.NervesHub,
     FarmbotOS.Platform.Target.Network.Supervisor,
     FarmbotOS.Platform.Target.Configurator.Supervisor,
@@ -73,6 +74,7 @@ config :farmbot, FarmbotOS.System, system_tasks: FarmbotOS.Platform.Target.Syste
 
 config :nerves_hub,
   client: FarmbotOS.Platform.Target.NervesHubClient,
+  remote_iex: true,
   public_keys: [File.read!("priv/staging.pub"), File.read!("priv/prod.pub")]
 
 config :nerves_hub, NervesHub.Socket, reconnect_interval: 30_000
