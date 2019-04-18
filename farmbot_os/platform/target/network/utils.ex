@@ -112,7 +112,7 @@ defmodule FarmbotOS.Platform.Target.Network.Utils do
 
   def test_dns(hostname) do
     :ok = :inet_db.clear_cache()
-    # IO.puts "testing dns: #{hostname}"
+
     case :inet.parse_ipv4_address(hostname) do
       {:ok, addr} -> {:ok, {:hostent, hostname, [], :inet, 4, [addr]}}
       _ -> :inet_res.gethostbyname(hostname)

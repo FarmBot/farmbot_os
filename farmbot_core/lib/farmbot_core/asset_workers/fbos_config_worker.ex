@@ -43,9 +43,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
   end
 
   def handle_cast({:new_data, new_fbos_config}, _old_fbos_config) do
-    # IO.inspect(new_fbos_config, label: "new fbos config")
-    # changes = FbosConfig.changeset(new_fbos_config, Map.from_struct(old_fbos_config))
-    # IO.inspect(changes, label: "CHANGES")
     {:noreply, new_fbos_config, 0}
   end
 end
