@@ -298,7 +298,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.Router do
     case conn.body_params do
       %{"email" => email, "password" => pass, "server" => server} ->
         if server = test_uri(server) do
-          IO.puts("server valid: #{server}")
+          Logger.info("server valid: #{server}")
         else
           send_resp(conn, 500, "server field invalid")
         end
@@ -368,7 +368,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.Router do
         uri
 
       _ ->
-        IO.puts("#{inspect(uri)} is not valid")
+        Logger.error("#{inspect(uri)} is not valid")
         nil
     end
   end
