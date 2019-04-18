@@ -21,7 +21,7 @@ defmodule FarmbotOS.SysCalls do
   defdelegate send_message(level, message, channels), to: SendMessage
   defdelegate execute_script(name, env), to: ExecuteScript
   defdelegate flash_firmware(package), to: FlashFirmware
-  defdelegate change_ownership(email, secret), to: ChangeOwnership
+  defdelegate change_ownership(email, secret, server), to: ChangeOwnership
   defdelegate dump_info(), to: DumpInfo
 
   def check_update do
