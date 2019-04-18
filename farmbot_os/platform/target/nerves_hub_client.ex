@@ -64,8 +64,8 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   end
 
   def configure_certs(cert, key) do
-    Nerves.Runtime.KV.UBootEnv.put("nerves_hub_cert", cert) |> IO.inspect()
-    Nerves.Runtime.KV.UBootEnv.put("nerves_hub_key", key) |> IO.inspect()
+    Nerves.Runtime.KV.UBootEnv.put("nerves_hub_cert", cert)
+    Nerves.Runtime.KV.UBootEnv.put("nerves_hub_key", key)
     :ok
   end
 
