@@ -6,26 +6,6 @@ defmodule FarmbotOS.SysCalls.ChangeOwnership do
   alias FarmbotCore.{Asset, EctoMigrator}
   alias FarmbotExt.Bootstrap.Authorization
 
-  def restart do
-    Logger.info("Stopping app: :farmbot")
-    _ = Application.stop(:farmbot)
-
-    Logger.info("Stopping app: :farmbot_ext")
-    _ = Application.stop(:farmbot_ext)
-
-    Logger.info("Stopping app: :farmbot_core")
-    _ = Application.stop(:farmbot_core)
-
-    Logger.info("Starting ap: :farmbot_core")
-    _ = Application.ensure_all_started(:farmbot_core)
-
-    Logger.info("Starting ap: :farmbot_ext")
-    _ = Application.ensure_all_started(:farmbot_ext)
-
-    Logger.info("Starting ap: :farmbot")
-    _ = Application.ensure_all_started(:farmbot)
-  end
-
   def change_ownership(email, secret, server) do
     server = server || get_config_value(:string, "authorization", "server")
 
@@ -36,7 +16,7 @@ defmodule FarmbotOS.SysCalls.ChangeOwnership do
         _ = clean_assets()
         _ = clean_farmwares()
         FarmbotCore.Logger.warn(1, "Going down for reboot")
-        Supervisor.start_child(:elixir_sup, {Task, &restart/0})
+        Supervisor.start_child(:elixir_sup, {Task, &FarmbotOS.System.soft_restart/0})
         :ok
 
       {:error, _} ->
