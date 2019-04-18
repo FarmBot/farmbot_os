@@ -32,24 +32,30 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   def serial_number, do: serial_number(Project.target())
 
   def connect do
-    FarmbotCore.Logger.debug(3, "Starting OTA Service")
-    # NervesHub replaces it's own env on startup. Reset it.
+    config = config()
 
-    supervisor = FarmbotOS
-    # Stop Nerves Hub if it is running.
-    _ = Supervisor.terminate_child(supervisor, NervesHub.Supervisor)
-    _ = Supervisor.delete_child(supervisor, NervesHub.Supervisor)
+    if nil in config do
+      {:error, "No OTA Certs: #{inspect(config)}"}
+    else
+      FarmbotCore.Logger.debug(3, "Starting OTA Service")
+      # NervesHub replaces it's own env on startup. Reset it.
 
-    # Cause NervesRuntime.KV to restart.
-    _ = GenServer.stop(Nerves.Runtime.KV)
+      supervisor = FarmbotOS
+      # Stop Nerves Hub if it is running.
+      _ = Supervisor.terminate_child(supervisor, NervesHub.Supervisor)
+      _ = Supervisor.delete_child(supervisor, NervesHub.Supervisor)
 
-    # Wait for a few seconds for good luck.
-    Process.sleep(1000)
+      # Cause NervesRuntime.KV to restart.
+      _ = GenServer.stop(Nerves.Runtime.KV)
 
-    # Start the connection again.
-    {:ok, _pid} = Supervisor.start_child(supervisor, NervesHub.Supervisor)
-    FarmbotCore.Logger.debug(3, "OTA Service started")
-    :ok
+      # Wait for a few seconds for good luck.
+      Process.sleep(1000)
+
+      # Start the connection again.
+      {:ok, _pid} = Supervisor.start_child(supervisor, NervesHub.Supervisor)
+      FarmbotCore.Logger.debug(3, "OTA Service started")
+      :ok
+    end
   end
 
   def provision(serial) do
@@ -58,8 +64,8 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   end
 
   def configure_certs(cert, key) do
-    Nerves.Runtime.KV.UBootEnv.put("nerves_hub_cert", cert)
-    Nerves.Runtime.KV.UBootEnv.put("nerves_hub_key", key)
+    Nerves.Runtime.KV.UBootEnv.put("nerves_hub_cert", cert) |> IO.inspect()
+    Nerves.Runtime.KV.UBootEnv.put("nerves_hub_key", key) |> IO.inspect()
     :ok
   end
 

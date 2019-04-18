@@ -29,7 +29,7 @@ defmodule FarmbotExt.AMQP.NervesHubChannel do
   @doc "Connect to NervesHub."
   @callback connect() :: :ok | {:error, term()}
 
-  defstruct [:conn, :chan, :jwt]
+  defstruct [:conn, :chan, :jwt, :key, :cert]
   alias __MODULE__, as: State
 
   @doc false
@@ -97,25 +97,52 @@ defmodule FarmbotExt.AMQP.NervesHubChannel do
     handle_nerves_hub(payload, opts, state)
   end
 
+  def handle_info(:handle_nerves_hub_msg, state) do
+    with :ok <- configure_certs(state),
+         :ok <- connect(state) do
+      {:noreply, state}
+    else
+      error ->
+        FarmbotCore.Logger.error(1, "Failed to connect to OTA Service: #{inspect(error)}")
+        Process.send_after(self(), :handle_nerves_hub_msg, 5000)
+        {:noreply, state}
+    end
+  end
+
   def handle_nerves_hub(payload, options, state) do
     with {:ok, %{"cert" => base64_cert, "key" => base64_key}} <- JSON.decode(payload),
          {:ok, cert} <- Base.decode64(base64_cert),
-         {:ok, key} <- Base.decode64(base64_key),
-         :ok <- handle_nerves_hub_msg().configure_certs(cert, key),
-         :ok <- handle_nerves_hub_msg().connect() do
+         {:ok, key} <- Base.decode64(base64_key) do
       :ok = Basic.ack(state.chan, options[:delivery_tag])
-      {:noreply, state}
+      send(self(), :handle_nerves_hub_msg)
+      {:noreply, %{state | cert: cert, key: key}}
     else
       {:error, reason} ->
-        Logger.error(1, "OTA Service failed to configure. #{inspect(reason)}")
-        {:noreply, state}
+        FarmbotCore.Logger.error(1, "OTA Service failed to configure. #{inspect(reason)}")
+        {:stop, reason, state}
 
       :error ->
-        Logger.error(1, "OTA Service payload invalid. (base64)")
-        {:noreply, state}
+        FarmbotCore.Logger.error(1, "OTA Service payload invalid. (base64)")
+        {:stop, :invalid_payload, state}
     end
   end
 
   defp handle_nerves_hub_msg,
     do: Application.get_env(:farmbot_ext, __MODULE__)[:handle_nerves_hub_msg]
+
+  defp configure_certs(%{cert: cert, key: key}) do
+    try do
+      handle_nerves_hub_msg().configure_certs(cert, key)
+    catch
+      _, reason -> {:error, reason}
+    end
+  end
+
+  defp connect(_) do
+    try do
+      handle_nerves_hub_msg().connect()
+    catch
+      _, reason -> {:error, reason}
+    end
+  end
 end

@@ -580,7 +580,7 @@ defmodule FarmbotCeleryScript.Compiler do
 
   compile :change_ownership, %{}, body do
     pairs =
-      Map.new(body, fn %{args: %{label: label, data_value: value}} ->
+      Map.new(body, fn %{args: %{label: label, value: value}} ->
         {label, value}
       end)
 
@@ -590,11 +590,10 @@ defmodule FarmbotCeleryScript.Compiler do
       Map.fetch!(pairs, "secret")
       |> Base.decode64!(padding: false, ignore: :whitespace)
 
+    server = Map.get(pairs, "server")
+
     quote location: :keep do
-      case change_ownership(unquote(email), unquote(secret)) do
-        :ok -> reboot()
-        {:error, reason} -> {:error, reason}
-      end
+      change_ownership(unquote(email), unquote(secret), unquote(server))
     end
   end
 
