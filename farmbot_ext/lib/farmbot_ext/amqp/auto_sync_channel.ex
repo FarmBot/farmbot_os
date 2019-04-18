@@ -31,6 +31,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   @exchange "amq.topic"
   @known_kinds ~w(
     Device
+    DiagnosticDump
     FarmEvent
     FarmwareEnv
     FarmwareInstallation
@@ -122,7 +123,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
         handle_asset(asset_kind, label, id, params, state)
 
       _ ->
-        Logger.info("ignoring router: #{key}")
+        Logger.info("ignoring route: #{key}")
         json = JSON.encode!(%{args: %{label: label}, kind: "rpc_ok"})
         :ok = Basic.publish(state.chan, @exchange, "bot.#{device}.from_device", json)
         {:noreply, state}
