@@ -69,7 +69,7 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback power_off() :: :ok | error
   @callback reboot() :: :ok | error
   @callback factory_reset() :: :ok | error
-  @callback change_ownership(String.t(), binary()) :: :ok | error
+  @callback change_ownership(String.t(), binary(), String.t() | nil) :: :ok | error
   @callback dump_info() :: :ok | error
 
   @callback flash_firmware(package) :: :ok | error
@@ -110,8 +110,8 @@ defmodule FarmbotCeleryScript.SysCalls do
     :ok
   end
 
-  def change_ownership(module \\ @sys_call_implementation, email, secret) do
-    _ = module.change_ownership(email, secret)
+  def change_ownership(module \\ @sys_call_implementation, email, secret, server) do
+    _ = module.change_ownership(email, secret, server)
     :ok
   end
 
