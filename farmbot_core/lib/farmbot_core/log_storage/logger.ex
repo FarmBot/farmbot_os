@@ -56,10 +56,12 @@ defmodule FarmbotCore.Logger do
   end
 
   def insert_log!(%Log{} = log) do
-    change = Log.changeset(log, %{})
-    case Repo.insert(change) do
-      {:ok, log} -> log
-      _ -> log
+    try do
+      log
+      |> Log.changeset(%{})
+      |> Repo.insert!()
+    catch
+      _, _ -> log
     end
   end
 
