@@ -37,7 +37,7 @@ defmodule FarmbotExt.API.DirtyWorker do
   def handle_info(:timeout, %{module: module} = state) do
     dirty = Private.list_dirty(module)
     local = Private.list_local(module)
-    {:noreply, state, {:continue, dirty ++ local}}
+    {:noreply, state, {:continue, Enum.uniq(dirty ++ local)}}
   end
 
   @impl GenServer
@@ -46,13 +46,23 @@ defmodule FarmbotExt.API.DirtyWorker do
   end
 
   def handle_continue([dirty | rest], %{module: module} = state) do
+    Logger.info("[#{module} #{dirty.local_id} #{inspect(self())}] Handling dirty data")
+
     case http_request(dirty, state) do
       # Valid data
       {:ok, %{status: s, body: body}} when s > 199 and s < 300 ->
+        Logger.debug(
+          "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP request complete: #{s} ok"
+        )
+
         dirty |> module.changeset(body) |> handle_changeset(rest, state)
 
       # Invalid data
       {:ok, %{status: s, body: %{} = body}} when s > 399 and s < 500 ->
+        Logger.debug(
+          "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP request complete: #{s} error+body"
+        )
+
         changeset = module.changeset(dirty)
 
         Enum.reduce(body, changeset, fn {key, val}, changeset ->
@@ -62,13 +72,22 @@ defmodule FarmbotExt.API.DirtyWorker do
 
       # Invalid data, but the API didn't say why
       {:ok, %{status: s, body: _body}} when s > 399 and s < 500 ->
+        Logger.debug(
+          "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP request complete: #{s} error"
+        )
+
         module.changeset(dirty)
         |> Map.put(:valid?, false)
         |> handle_changeset(rest, state)
 
       # HTTP Error. (500, network error, timeout etc.)
       error ->
-        Logger.error("HTTP Error: #{state.module} #{inspect(error)}")
+        Logger.error(
+          "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP Error: #{state.module} #{
+            inspect(error)
+          }"
+        )
+
         {:noreply, state, @timeout}
     end
   end
@@ -87,25 +106,26 @@ defmodule FarmbotExt.API.DirtyWorker do
   # TODO(Connor) - Update the dirty field here, upload to rollbar?
   def handle_changeset(%{valid?: false, data: data} = changeset, rest, state) do
     message =
-      Enum.map(changeset.errors, fn {key, val} ->
-        "#{key}: #{val}"
+      Enum.map(changeset.errors, fn
+        {key, {msg, _meta}} when is_binary(key) -> "\t#{key}: #{msg}"
+        {key, msg} when is_binary(key) -> "\t#{key}: #{msg}"
       end)
       |> Enum.join("\n")
 
-    Logger.error("Failed to sync: #{state.module} #{message}", changeset: changeset)
+    Logger.error("Failed to sync: #{state.module} \n #{message}")
     _ = Repo.delete!(data)
     {:noreply, state, {:continue, rest}}
   end
 
   defp http_request(%{id: nil} = dirty, state) do
-    Logger.info("#{state.module} clean request (post)")
+    Logger.debug("#{state.module} clean request (post)")
     path = state.module.path()
     data = render(state.module, dirty)
     API.post(API.client(), path, data)
   end
 
   defp http_request(dirty, state) do
-    Logger.info("#{state.module} dirty request (patch)")
+    Logger.debug("#{state.module} dirty request (patch)")
     path = state.module.path()
     data = render(state.module, dirty)
     API.patch(API.client(), path, data)
