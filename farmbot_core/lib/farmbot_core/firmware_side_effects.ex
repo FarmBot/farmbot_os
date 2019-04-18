@@ -110,7 +110,6 @@ defmodule FarmbotCore.FirmwareSideEffects do
     string_code = FarmbotFirmware.GCODE.encode(code)
     should_log? = Asset.fbos_config().firmware_input_log
     should_log? && FarmbotCore.Logger.debug(3, "Firmware input: " <> string_code)
-    # IO.inspect(string_code, label: "input")
   end
 
   @impl FarmbotFirmware.SideEffects
@@ -118,7 +117,6 @@ defmodule FarmbotCore.FirmwareSideEffects do
     string_code = FarmbotFirmware.GCODE.encode(code)
     should_log? = Asset.fbos_config().firmware_output_log
     should_log? && FarmbotCore.Logger.debug(3, "Firmware output: " <> string_code)
-    # IO.inspect(string_code, label: "output")
   end
 
   @impl FarmbotFirmware.SideEffects
