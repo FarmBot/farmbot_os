@@ -40,7 +40,7 @@ defmodule FarmbotOS.SysCalls do
   end
 
   def factory_reset do
-    FarmbotOS.System.factory_reset("Factory reset requested by sequence or frontent")
+    FarmbotOS.System.factory_reset("Factory reset requested by sequence or frontent", true)
     :ok
   end
 
