@@ -39,7 +39,7 @@ defmodule FarmbotCore.Asset.Private.Alert do
   # Most notibly uuid != local_id
   view alert do
     %{
-      uuid: alert.local_id,
+      slug: alert.local_id,
       priority: alert.priority,
       problem_tag: alert.problem_tag,
       created_at: DateTime.to_unix(alert.created_at)
