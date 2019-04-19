@@ -12,7 +12,7 @@ defmodule FarmbotCore.BotStateNG do
     BotStateNG.Configuration
   }
 
-  alias FarmbotCore.Asset.Private.Enigma
+  alias FarmbotCore.Asset.Private.Alert
 
   use Ecto.Schema
   import Ecto.Changeset
@@ -28,7 +28,7 @@ defmodule FarmbotCore.BotStateNG do
     field(:process_info, {:map, {:string, :any}}, default: %{farmwares: %{}})
     field(:pins, {:map, {:integer, :map}}, default: %{})
     field(:jobs, {:map, {:string, :map}}, default: %{})
-    field(:enigmas, {:map, {:string, :map}}, default: %{})
+    field(:alerts, {:map, {:string, :map}}, default: %{})
   end
 
   def new do
@@ -112,27 +112,27 @@ defmodule FarmbotCore.BotStateNG do
     put_change(cs, :jobs, new_jobs)
   end
 
-  @doc "Adds an enigma object to state.enigmas"
-  def add_enigma(state, %Enigma{local_id: uuid} = enigma) do
+  @doc "Adds an alert object to state.alerts"
+  def add_alert(state, %Alert{local_id: uuid} = alert) do
     cs = changeset(state, %{})
 
-    new_enigmas =
+    new_alerts =
       cs
-      |> get_field(:enigmas)
-      |> Map.put(uuid, Enigma.render(enigma))
+      |> get_field(:alerts)
+      |> Map.put(uuid, Alert.render(alert))
 
-    put_change(cs, :enigmas, new_enigmas)
+    put_change(cs, :alerts, new_alerts)
   end
 
-  @doc "clears an enigma object on state.enigmas"
-  def clear_enigma(state, %Enigma{local_id: uuid}) do
+  @doc "clears an alert object on state.alerts"
+  def clear_alert(state, %Alert{local_id: uuid}) do
     cs = changeset(state, %{})
 
-    new_enigmas =
+    new_alerts =
       cs
-      |> get_field(:enigmas)
+      |> get_field(:alerts)
       |> Map.delete(uuid)
 
-    put_change(cs, :enigmas, new_enigmas)
+    put_change(cs, :alerts, new_alerts)
   end
 end
