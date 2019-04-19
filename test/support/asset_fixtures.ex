@@ -1,7 +1,7 @@
 defmodule Farmbot.TestSupport.AssetFixtures do
   alias FarmbotCore.Asset
   alias FarmbotCore.Asset.{Repo, FarmEvent, FbosConfig, Regimen, Sequence, Private}
-  alias Private.Enigma
+  alias Private.Alert
 
   def regimen_instance(regimen_params, farm_event_params, params \\ %{}) do
     regimen = regimen(regimen_params)
@@ -94,9 +94,9 @@ defmodule Farmbot.TestSupport.AssetFixtures do
     |> Repo.insert!()
   end
 
-  def enigma() do
-    Private.create_or_update_enigma!(%{
-      problem_tag: Enigma.firmware_missing(),
+  def alert() do
+    Private.create_or_update_alert!(%{
+      problem_tag: Alert.firmware_missing(),
       priority: 100,
       monitor: false
     })
