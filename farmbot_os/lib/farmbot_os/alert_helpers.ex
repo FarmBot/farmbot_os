@@ -1,4 +1,4 @@
-defmodule FarmbotOS.EnigmaHelpers do
+defmodule FarmbotOS.AlertHelpers do
   def firmware_missing(package) when package in ~w(arduino farmduino farmduino_k14) do
     %{
       kind: :rpc_request,
