@@ -1,8 +1,8 @@
-defmodule FarmbotCore.Config.Repo.Migrations.AddEnigmasTable do
+defmodule FarmbotCore.Config.Repo.Migrations.AddAlertsTable do
   use Ecto.Migration
 
   def change do
-    create table("enigmas", primary_key: false) do
+    create table("alerts", primary_key: false) do
       add(:local_id, :binary_id, primary_key: true)
       add(:problem_tag, :string)
       add(:priority, :integer)

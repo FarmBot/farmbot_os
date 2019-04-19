@@ -1,5 +1,5 @@
 defmodule FarmbotOS.SysCalls.FlashFirmware do
-  alias FarmbotCore.{Asset, Asset.Private, Asset.Private.Enigma}
+  alias FarmbotCore.{Asset, Asset.Private, Asset.Private.Alert}
   alias FarmbotFirmware
   alias FarmbotOS.FirmwareTTYDetector
   require Logger
@@ -12,7 +12,7 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
       |> Asset.update_fbos_config!()
       |> Private.mark_dirty!(%{})
 
-      :ok = Private.clear_enigma!(Enigma.firmware_missing())
+      :ok = Private.clear_alert!(Alert.firmware_missing())
       :ok
     else
       {:error, reason} when is_binary(reason) ->

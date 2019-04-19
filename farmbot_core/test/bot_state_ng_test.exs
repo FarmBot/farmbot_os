@@ -110,43 +110,43 @@ defmodule FarmbotCore.BotStateNGTest do
     end
   end
 
-  describe "enigmas" do
-    alias FarmbotCore.Asset.Private.Enigma
+  describe "alerts" do
+    alias FarmbotCore.Asset.Private.Alert
 
     test "registers an engima" do
       state = BotStateNG.new()
-      assert Enum.empty?(state.enigmas)
+      assert Enum.empty?(state.alerts)
       uuid = Ecto.UUID.generate()
 
-      enigma = %Enigma{
+      alert = %Alert{
         local_id: uuid,
         priority: 15,
         created_at: DateTime.utc_now()
       }
 
       state =
-        BotStateNG.add_enigma(state, enigma)
+        BotStateNG.add_alert(state, alert)
         |> Ecto.Changeset.apply_changes()
 
-      refute Enum.empty?(state.enigmas)
-      assert state.enigmas[uuid].priority == 15
+      refute Enum.empty?(state.alerts)
+      assert state.alerts[uuid].priority == 15
 
-      # Make sure that the enigma is in the frontend expected schema
-      assert state.enigmas[uuid].uuid == uuid
+      # Make sure that the alert is in the frontend expected schema
+      assert state.alerts[uuid].uuid == uuid
 
-      updated_enigma = %Enigma{enigma | priority: 10}
+      updated_alert = %Alert{alert | priority: 10}
 
       state =
-        BotStateNG.add_enigma(state, updated_enigma)
+        BotStateNG.add_alert(state, updated_alert)
         |> Ecto.Changeset.apply_changes()
 
-      assert state.enigmas[uuid].priority == 10
+      assert state.alerts[uuid].priority == 10
 
       state =
-        BotStateNG.clear_enigma(state, enigma)
+        BotStateNG.clear_alert(state, alert)
         |> Ecto.Changeset.apply_changes()
 
-      refute state.enigmas[uuid]
+      refute state.alerts[uuid]
     end
   end
 end

@@ -1,13 +1,13 @@
-defmodule FarmbotCore.Asset.Private.Enigma do
+defmodule FarmbotCore.Asset.Private.Alert do
   @moduledoc """
-  An Enigma is essentially a merge conflict-
+  An Alert is essentially a merge conflict-
   it represents data that has two conflicting
   forms in two different systems (eg: API vs. Bot)
   and requires human intervention to rectify.
 
   ## `problem_tag`
   Problem tag should follow a format of: `"author.noun.verb"`
-  So for example a fbos enigma would could look like:
+  So for example a fbos alert would could look like:
   * `"farmbot_os.firmware.stalled"`
   * `"farmbot_os.farm_event.conflicted"`
   etc.
@@ -15,9 +15,9 @@ defmodule FarmbotCore.Asset.Private.Enigma do
   use FarmbotCore.Asset.Schema, path: false
 
   @author "farmbot_os"
-  @known_enigmas %{"firmware" => %{"missing" => true}}
+  @known_alerts %{"firmware" => %{"missing" => true}}
 
-  schema "enigmas" do
+  schema "alerts" do
     field(:priority, :integer)
     field(:problem_tag, :string)
 
@@ -26,8 +26,8 @@ defmodule FarmbotCore.Asset.Private.Enigma do
     timestamps()
   end
 
-  def changeset(enigma, params) do
-    enigma
+  def changeset(alert, params) do
+    alert
     |> cast(params, [:priority, :problem_tag, :status, :monitor])
     |> validate_required([:priority, :problem_tag])
     |> validate_problem_tag_format()
@@ -35,14 +35,14 @@ defmodule FarmbotCore.Asset.Private.Enigma do
   end
 
   # This is the public schems.
-  # Enigmas are not stored like this internally.
+  # Alerts are not stored like this internally.
   # Most notibly uuid != local_id
-  view enigma do
+  view alert do
     %{
-      uuid: enigma.local_id,
-      priority: enigma.priority,
-      problem_tag: enigma.problem_tag,
-      created_at: DateTime.to_unix(enigma.created_at)
+      uuid: alert.local_id,
+      priority: alert.priority,
+      problem_tag: alert.problem_tag,
+      created_at: DateTime.to_unix(alert.created_at)
     }
   end
 
@@ -50,7 +50,7 @@ defmodule FarmbotCore.Asset.Private.Enigma do
     {_, tag} = Ecto.Changeset.fetch_field(changeset, :problem_tag)
     case String.split(tag, ".") do
       [@author, noun, verb] ->
-        if @known_enigmas[noun][verb] do
+        if @known_alerts[noun][verb] do
           changeset
         else
           Ecto.Changeset.add_error(changeset, :problem_tag, "unknown noun verb combo", noun: noun, verb: verb)

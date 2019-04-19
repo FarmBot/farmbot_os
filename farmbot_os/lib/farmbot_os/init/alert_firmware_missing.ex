@@ -1,6 +1,6 @@
-defmodule FarmbotOS.Init.EnigmaFirmwareMissing do
-  alias FarmbotCore.{Asset, Asset.Private, Asset.Private.Enigma, Config}
-  alias FarmbotCore.EnigmaHandler
+defmodule FarmbotOS.Init.AlertFirmwareMissing do
+  alias FarmbotCore.{Asset, Asset.Private, Asset.Private.Alert, Config}
+  alias FarmbotCore.AlertHandler
   alias FarmbotFirmware.UARTTransport
 
   require FarmbotCore.Logger
@@ -20,8 +20,8 @@ defmodule FarmbotOS.Init.EnigmaFirmwareMissing do
   end
 
   def setup() do
-    EnigmaHandler.register_up(Enigma.firmware_missing(), &enigma_up/1)
-    EnigmaHandler.register_down(Enigma.firmware_missing(), &enigma_down/1)
+    AlertHandler.register_up(Alert.firmware_missing(), &alert_up/1)
+    AlertHandler.register_down(Alert.firmware_missing(), &alert_down/1)
 
     needs_flash? = Config.get_config_value(:bool, "settings", "firmware_needs_flash")
 
@@ -31,8 +31,8 @@ defmodule FarmbotOS.Init.EnigmaFirmwareMissing do
 
     case situation do
       {true, firmware_hardware} when is_binary(firmware_hardware) ->
-        FarmbotCore.Logger.warn(1, "firmware needs flashed creating `firmware.missing` enigma")
-        Private.create_or_update_enigma!(%{priority: 100, problem_tag: Enigma.firmware_missing()})
+        FarmbotCore.Logger.warn(1, "firmware needs flashed creating `firmware.missing` alert")
+        Private.create_or_update_alert!(%{priority: 100, problem_tag: Alert.firmware_missing()})
         # Ignore fw/hw
         %{firmware_hardware: nil, firmware_path: nil}
         |> Asset.update_fbos_config!()
@@ -45,19 +45,19 @@ defmodule FarmbotOS.Init.EnigmaFirmwareMissing do
         :ok
 
       {_, nil} ->
-        FarmbotCore.Logger.warn(1, "firmware needs flashed- creating `firmware.missing` enigma")
-        Private.create_or_update_enigma!(%{priority: 100, problem_tag: Enigma.firmware_missing()})
+        FarmbotCore.Logger.warn(1, "firmware needs flashed- creating `firmware.missing` alert")
+        Private.create_or_update_alert!(%{priority: 100, problem_tag: Alert.firmware_missing()})
         :ok
     end
   end
 
-  # Returning :ok here will cause the enigma to be cleared.
+  # Returning :ok here will cause the alert to be cleared.
   # We don't need this callback currently, so return error.
-  def enigma_up(_) do
+  def alert_up(_) do
     {:error, :noop}
   end
 
-  def enigma_down(_) do
+  def alert_down(_) do
     swap_transport(Asset.fbos_config(:firmware_path))
     Config.update_config_value(:bool, "settings", "firmware_needs_flash", false)
   end
