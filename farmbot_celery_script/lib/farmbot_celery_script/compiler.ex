@@ -343,15 +343,14 @@ defmodule FarmbotCeleryScript.Compiler do
       }
 
       # build a vec3 of the current position
-      %{x: offx, y: offy, z: offz} = %{
+      %{x: current_x, y: current_y, z: current_z} = %{
         x: get_current_x(),
         y: get_current_y(),
-        z: get_current_y()
+        z: get_current_z()
       }
 
-      # Subtract the location from offset.
-      # Note: list syntax here for readability.
-      [x, y, z] = [offx - locx, offy - locy, offz - locz]
+      [x, y, z] = [locx - current_x, locy - current_y, locz - current_z]
+      IO.puts("x=#{x} y=#{y} z=#{z}")
       move_absolute(x, y, z, unquote(compile_ast(speed)))
     end
   end

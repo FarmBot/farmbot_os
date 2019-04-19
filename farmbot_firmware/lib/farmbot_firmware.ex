@@ -572,7 +572,7 @@ defmodule FarmbotFirmware do
   def handle_report({:report_echo, _}, state), do: {:noreply, state}
 
   def handle_report({_kind, _args} = code, state) do
-    Logger.warn(code, label: "unknown code for #{state.status}")
+    Logger.warn("unknown code for #{state.status}: #{inspect(code)}")
     {:noreply, state}
   end
 
