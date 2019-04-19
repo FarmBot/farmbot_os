@@ -132,7 +132,7 @@ defmodule FarmbotCore.BotStateNGTest do
       assert state.alerts[uuid].priority == 15
 
       # Make sure that the alert is in the frontend expected schema
-      assert state.alerts[uuid].uuid == uuid
+      assert state.alerts[uuid].slug == uuid
 
       updated_alert = %Alert{alert | priority: 10}
 
