@@ -7,46 +7,46 @@ defmodule FarmbotCore.Asset.Private do
 
   alias FarmbotCore.{Asset.Repo,
     Asset.Private.LocalMeta,
-    Asset.Private.Enigma
+    Asset.Private.Alert
   }
 
-  alias FarmbotCore.EnigmaHandler
+  alias FarmbotCore.AlertHandler
 
   import Ecto.Query, warn: false
   import Ecto.Changeset, warn: false
 
-  @doc "Creates a new Enigma."
-  def create_or_update_enigma!(params) do
-    enigma = if problem_tag = params[:problem_tag] do
-      find_enigma_by_problem_tag(problem_tag) || %Enigma{}
+  @doc "Creates a new Alert."
+  def create_or_update_alert!(params) do
+    alert = if problem_tag = params[:problem_tag] do
+      find_alert_by_problem_tag(problem_tag) || %Alert{}
     else
-      %Enigma{}
+      %Alert{}
     end
 
-    enigma = enigma
-    |> Enigma.changeset(Map.merge(params, %{status: "unresolved"}))
+    alert = alert
+    |> Alert.changeset(Map.merge(params, %{status: "unresolved"}))
     |> Repo.insert_or_update!()
 
-    EnigmaHandler.handle_up(enigma)
-    enigma
+    AlertHandler.handle_up(alert)
+    alert
   end
 
-  def find_enigma_by_problem_tag(problem_tag) do
-    Repo.get_by(Enigma, problem_tag: problem_tag)
+  def find_alert_by_problem_tag(problem_tag) do
+    Repo.get_by(Alert, problem_tag: problem_tag)
   end
 
   @doc """
-  Clear in-system enigmas that match a particular
+  Clear in-system alerts that match a particular
   problem_tag.
   """
-  def clear_enigma!(problem_tag) do
-    case find_enigma_by_problem_tag(problem_tag) do
+  def clear_alert!(problem_tag) do
+    case find_alert_by_problem_tag(problem_tag) do
       nil -> :ok
-      %Enigma{} = enigma ->
-        enigma
-        |> Enigma.changeset(%{status: "resolved"})
+      %Alert{} = alert ->
+        alert
+        |> Alert.changeset(%{status: "resolved"})
         |> Repo.update!()
-        |> EnigmaHandler.handle_down()
+        |> AlertHandler.handle_down()
         :ok
     end
   end
