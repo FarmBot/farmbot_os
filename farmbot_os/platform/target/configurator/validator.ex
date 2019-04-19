@@ -21,6 +21,10 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
+  def force do
+    send(__MODULE__, :timeout)
+  end
+
   def init(_args) do
     {:ok, 0, 0}
   end
