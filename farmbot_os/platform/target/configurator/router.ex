@@ -12,7 +12,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.Router do
   require FarmbotCore.Logger
   import Phoenix.HTML
   alias FarmbotCore.Config
-  alias FarmbotOS.Platform.Target.Network
+  alias FarmbotOS.Platform.Target.{Network, Configurator.Validator}
 
   import Config,
     only: [
@@ -283,7 +283,6 @@ defmodule FarmbotOS.Platform.Target.Configurator.Router do
     email = get_config_value(:string, "authorization", "email") || ""
     pass = get_config_value(:string, "authorization", "password") || ""
     server = get_config_value(:string, "authorization", "server") || ""
-    update_config_value(:string, "authorization", "token", nil)
 
     render_page(conn, "credentials",
       server: server,
@@ -298,7 +297,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.Router do
     case conn.body_params do
       %{"email" => email, "password" => pass, "server" => server} ->
         if server = test_uri(server) do
-          Logger.info("server valid: #{server}")
+          FarmbotCore.Logger.info(1, "server valid: #{server}")
         else
           send_resp(conn, 500, "server field invalid")
         end
@@ -306,7 +305,6 @@ defmodule FarmbotOS.Platform.Target.Configurator.Router do
         update_config_value(:string, "authorization", "email", email)
         update_config_value(:string, "authorization", "password", pass)
         update_config_value(:string, "authorization", "server", server)
-        update_config_value(:string, "authorization", "token", nil)
         redir(conn, "/finish")
 
       _ ->
@@ -322,6 +320,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.Router do
 
     if email && pass && server && network do
       Network.reload()
+      Validator.force()
       render_page(conn, "finish")
     else
       FarmbotCore.Logger.warn(3, "Not configured yet. Restarting configuration.")
@@ -368,7 +367,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.Router do
         uri
 
       _ ->
-        Logger.error("#{inspect(uri)} is not valid")
+        FarmbotCore.Logger.error(1, "#{inspect(uri)} is not valid")
         nil
     end
   end
