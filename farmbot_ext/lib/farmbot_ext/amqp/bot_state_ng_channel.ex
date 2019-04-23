@@ -24,7 +24,7 @@ defmodule FarmbotExt.AMQP.BotStateNGChannel do
   alias FarmbotCore.JSON
   alias FarmbotExt.AMQP.ConnectionWorker
 
-  alias FarmbotCore.BotState
+  alias FarmbotCore.{BotState, BotStateNG}
   alias FarmbotCore.BotStateNG.ChangeGenerator
 
   # Pushes a state tree every 5 seconds for good luck.
@@ -58,8 +58,13 @@ defmodule FarmbotExt.AMQP.BotStateNGChannel do
   end
 
   def handle_cast(:force, state) do
-    changes = BotState.fetch() |> ChangeGenerator.changes()
-    {:noreply, %{state | changes: changes}, 0}
+    json =
+      BotState.fetch()
+      |> BotStateNG.view()
+      |> JSON.encode!()
+
+    Basic.publish(state.chan, @exchange, "bot.#{state.jwt.bot}.status", json)
+    {:noreply, state, 0}
   end
 
   def handle_info(:timeout, %{conn: nil, chan: nil} = state) do
