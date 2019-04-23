@@ -206,6 +206,20 @@ defmodule FarmbotOS.SysCalls do
     :ok
   end
 
+  def named_pin("Peripheral", id) do
+    case Asset.get_peripheral(id: id) do
+      %{pin: pin} -> pin
+      nil -> {:error, "Could not find peripheral by id: #{id}"}
+    end
+  end
+
+  def named_pin("Sensor", id) do
+    case Asset.get_sensor(id: id) do
+      %{pin: pin} -> pin
+      nil -> {:error, "Could not find peripheral by id: #{id}"}
+    end
+  end
+
   def named_pin(kind, id) do
     {:error, "unknown pin kind: #{kind} of id: #{id}"}
   end

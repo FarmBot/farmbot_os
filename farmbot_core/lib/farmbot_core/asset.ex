@@ -21,6 +21,7 @@ defmodule FarmbotCore.Asset do
     Regimen,
     RegimenInstance,
     Sequence,
+    Sensor,
     Tool
   }
   alias FarmbotCore.AssetSupervisor
@@ -196,6 +197,14 @@ defmodule FarmbotCore.Asset do
   end
 
   ## End Peripheral
+
+  ## Begin Sensor
+
+  def get_sensor(args) do
+    Repo.get_by(Sensor, args)
+  end
+
+  ## End Sensor
 
   ## Begin DiagnosticDump
 
