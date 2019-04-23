@@ -3,6 +3,7 @@ defmodule FarmbotCeleryScript.Compiler do
   Responsible for compiling canonical CeleryScript AST into
   Elixir AST.
   """
+  require Logger
 
   alias FarmbotCeleryScript.{AST, Compiler, Compiler.IdentifierSanitizer, SysCalls}
   use Compiler.Tools
@@ -323,9 +324,9 @@ defmodule FarmbotCeleryScript.Compiler do
       # Subtract the location from offset.
       # Note: list syntax here for readability.
       [x, y, z] = [
-        locx - offx,
-        locy - offy,
-        locz - offz
+        locx + offx,
+        locy + offy,
+        locz + offz
       ]
 
       move_absolute(x, y, z, unquote(compile_ast(speed)))
@@ -336,21 +337,19 @@ defmodule FarmbotCeleryScript.Compiler do
   compile :move_relative, %{x: x, y: y, z: z, speed: speed} do
     quote location: :keep do
       # build a vec3 of passed in args
-      %{x: locx, y: locy, z: locz} = %{
-        x: unquote(compile_ast(x)),
-        y: unquote(compile_ast(y)),
-        z: unquote(compile_ast(z))
-      }
+      locx = unquote(compile_ast(x))
+      locy = unquote(compile_ast(y))
+      locz = unquote(compile_ast(z))
 
       # build a vec3 of the current position
-      %{x: current_x, y: current_y, z: current_z} = %{
-        x: get_current_x(),
-        y: get_current_y(),
-        z: get_current_z()
-      }
+      current_x = get_current_x()
+      current_y = get_current_y()
+      current_z = get_current_z()
 
-      [x, y, z] = [locx - current_x, locy - current_y, locz - current_z]
-      IO.puts("x=#{x} y=#{y} z=#{z}")
+      # Combine them
+      x = locx + current_x
+      y = locy + current_y
+      z = locz + current_z
       move_absolute(x, y, z, unquote(compile_ast(speed)))
     end
   end

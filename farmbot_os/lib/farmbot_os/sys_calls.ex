@@ -1,5 +1,6 @@
 defmodule FarmbotOS.SysCalls do
   require FarmbotCore.Logger
+  require Logger
 
   alias FarmbotCeleryScript.AST
   alias FarmbotFirmware
@@ -131,6 +132,7 @@ defmodule FarmbotOS.SysCalls do
 
   def move_absolute(x, y, z, speed) do
     params = [x: x / 1.0, y: y / 1.0, z: z / 1.0, s: speed / 1.0]
+    # Logger.debug "moving to location: #{inspect(params)}"
 
     case FarmbotFirmware.command({nil, {:command_movement, params}}) do
       :ok ->
