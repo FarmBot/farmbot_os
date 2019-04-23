@@ -176,6 +176,11 @@ defmodule FarmbotCeleryScript.Compiler do
         "pin" <> pin ->
           quote [location: :keep], do: read_pin(unquote(String.to_integer(pin)), nil)
 
+        # Named pin has two intents here
+        # in this case we want to read the named pin.
+        %AST{kind: :named_pin} = ast ->
+          quote [location: :keep], do: read_pin(unquote(compile_ast(ast)), nil)
+
         %AST{} = ast ->
           compile_ast(ast)
       end
@@ -222,6 +227,9 @@ defmodule FarmbotCeleryScript.Compiler do
           end
       end
 
+    Logger.debug("LHS=#{inspect(lhs)}")
+    Logger.debug("RHS=#{inspect(rhs)}")
+
     # Finally, compile the entire if statement.
     # outputted code will look something like:
     # if get_current_x() == 123 do
@@ -230,9 +238,11 @@ defmodule FarmbotCeleryScript.Compiler do
     #    nothing()
     # end
     quote location: :keep do
-      if unquote(if_eval),
-        do: unquote(compile_block(then_ast)),
-        else: unquote(compile_block(else_ast))
+      if unquote(if_eval) do
+        unquote(compile_block(then_ast))
+      else
+        unquote(compile_block(else_ast))
+      end
     end
   end
 
@@ -848,6 +858,6 @@ defmodule FarmbotCeleryScript.Compiler do
   #   compiled
   #   |> Macro.to_string()
   #   |> Code.format_string!()
-  #   |> IO.puts()
+  #   |> Logger.debug()
   # end
 end
