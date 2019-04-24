@@ -57,18 +57,12 @@ config :farmbot, FarmbotOS.Init.Supervisor,
 config :farmbot, FarmbotOS.Platform.Supervisor,
   platform_children: [
     FarmbotOS.Platform.Target.NervesHubClient,
-    FarmbotOS.NervesHub,
     FarmbotOS.Platform.Target.Network.Supervisor,
     FarmbotOS.Platform.Target.Configurator.Supervisor,
     FarmbotOS.Platform.Target.SSHConsole,
     FarmbotOS.Platform.Target.Uevent.Supervisor,
     FarmbotOS.Platform.Target.InfoWorker.Supervisor
   ]
-
-config :farmbot_ext, FarmbotExt.AMQP.NervesHubChannel, handle_nerves_hub_msg: FarmbotOS.NervesHub
-
-config :farmbot, FarmbotOS.NervesHub,
-  farmbot_nerves_hub_handler: FarmbotOS.Platform.Target.NervesHubClient
 
 config :farmbot, FarmbotOS.System, system_tasks: FarmbotOS.Platform.Target.SystemTasks
 
