@@ -36,6 +36,7 @@ defmodule FarmbotCore.Asset.FbosConfig do
     field(:disable_factory_reset, :boolean)
     field(:network_not_found_timer, :integer)
     field(:os_auto_update, :boolean)
+    field(:update_channel, :string)
 
     # celeryscript
     field(:sequence_body_log, :boolean)
@@ -61,6 +62,7 @@ defmodule FarmbotCore.Asset.FbosConfig do
       firmware_debug_log: fbos_config.firmware_debug_log,
       network_not_found_timer: fbos_config.network_not_found_timer,
       os_auto_update: fbos_config.os_auto_update,
+      update_channel: fbos_config.update_channel,
       sequence_body_log: fbos_config.sequence_body_log,
       sequence_complete_log: fbos_config.sequence_complete_log,
       sequence_init_log: fbos_config.sequence_init_log
@@ -82,6 +84,7 @@ defmodule FarmbotCore.Asset.FbosConfig do
       :firmware_debug_log,
       :network_not_found_timer,
       :os_auto_update,
+      :update_channel,
       :sequence_body_log,
       :sequence_complete_log,
       :sequence_init_log,

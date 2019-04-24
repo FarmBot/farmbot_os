@@ -64,7 +64,7 @@ defmodule FarmbotCore.Asset.Private do
   end
 
   @doc "Mark a document as `dirty` by creating a `local_meta` object"
-  def mark_dirty!(asset, params) do
+  def mark_dirty!(asset, params \\ %{}) do
     table = table(asset)
 
     local_meta =

@@ -222,6 +222,16 @@ defmodule FarmbotCore.Asset do
     |> Repo.insert()
   end
 
+  def get_device_cert(args) do
+    Repo.get_by(DeviceCert, args)
+  end
+
+  def update_device_cert(cert, params) do
+    cert
+    |> DeviceCert.changeset(params)
+    |> Repo.update()
+  end
+
   ## End DeviceCert
 
   ## Begin Tool
