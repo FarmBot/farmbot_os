@@ -6,6 +6,7 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.Supervisor do
     DiskUsage,
     MemoryUsage,
     SocTemp,
+    Throttle,
     Uptime,
     WifiLevel
   }
@@ -19,6 +20,7 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.Supervisor do
       DiskUsage,
       MemoryUsage,
       SocTemp,
+      Throttle,
       Uptime,
       {WifiLevel, ifname: "wlan0"}
     ]
