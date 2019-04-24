@@ -4,7 +4,6 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
   alias FarmbotExt.JWT
 
   alias FarmbotExt.AMQP.{
-    NervesHubChannel,
     LogChannel,
     BotStateNGChannel,
     AutoSyncChannel,
@@ -20,7 +19,6 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
     jwt = JWT.decode!(token)
 
     children = [
-      {NervesHubChannel, [jwt: jwt]},
       {LogChannel, [jwt: jwt]},
       {BotStateNGChannel, [jwt: jwt]},
       {AutoSyncChannel, [jwt: jwt]},
