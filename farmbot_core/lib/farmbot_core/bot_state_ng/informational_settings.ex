@@ -17,6 +17,7 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
     field(:firmware_version, :string)
     field(:node_name, :string)
     field(:soc_temp, :integer)
+    field(:throttled, :string)
     field(:wifi_level, :integer)
     field(:uptime, :integer)
     field(:memory_usage, :integer)
@@ -46,6 +47,7 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
       firmware_version: informational_settings.firmware_version,
       node_name: informational_settings.node_name,
       soc_temp: informational_settings.soc_temp,
+      throttled: informational_settings.throttled,
       wifi_level: informational_settings.wifi_level,
       uptime: informational_settings.uptime,
       memory_usage: informational_settings.memory_usage,
@@ -71,6 +73,7 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
       :firmware_version,
       :node_name,
       :soc_temp,
+      :throttled,
       :wifi_level,
       :uptime,
       :memory_usage,
