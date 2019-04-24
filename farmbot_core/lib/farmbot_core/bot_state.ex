@@ -123,6 +123,10 @@ defmodule FarmbotCore.BotState do
     GenServer.call(bot_state_server, {:report_soc_temp, temp_celcius})
   end
 
+  def report_throttled(bot_state_server \\ __MODULE__, throttled_str) do
+    GenServer.call(bot_state_server, {:report_throttled, throttled_str})
+  end
+
   def report_uptime(bot_state_server \\ __MODULE__, seconds) do
     GenServer.call(bot_state_server, {:report_uptime, seconds})
   end
@@ -356,6 +360,16 @@ defmodule FarmbotCore.BotState do
 
   def handle_call({:report_soc_temp, temp}, _form, state) do
     change = %{informational_settings: %{soc_temp: temp}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:report_throttled, throttled_str}, _form, state) do
+    change = %{informational_settings: %{throttled: throttled_str}}
 
     {reply, state} =
       BotStateNG.changeset(state.tree, change)
