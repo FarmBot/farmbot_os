@@ -31,6 +31,7 @@ install_slack_helpers: &install_slack_helpers
     name: Install Slack Helpers
     command: |
       wget https://gist.githubusercontent.com/ConnorRigby/03e722be4be70f8588f5ed74420e4eaa/raw/28a51d8f52ec7d569e8f7f20b83349816ddf63cf/slack_message.ex
+      cp .circleci/fwup_meta_slack.sh /usr/bin/
 
 install_ghr: &install_ghr
   run:
@@ -46,6 +47,7 @@ install_jq: &install_jq
     command: |
       wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
       chmod +x ./jq-linux64
+      mv ./jq-linux64 /usr/bin/jq
 
 build_firmware_steps: &build_firmware_steps
   steps:
@@ -102,6 +104,8 @@ deploy_nerves_hub_firmware_steps: &deploy_nerves_hub_firmware_steps
         key: nerves/deploy/system-{{ checksum "MIX_TARGET" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
     - <<: *install_elixir
     - <<: *install_hex_archives
+    - <<: *install_jq
+    - <<: *install_slack_helpers
     - run:
         name: Sign Image
         working_directory: /nerves/build/farmbot_os
@@ -110,6 +114,9 @@ deploy_nerves_hub_firmware_steps: &deploy_nerves_hub_firmware_steps
         name: Publish to NervesHub
         working_directory: /nerves/build/farmbot_os
         command: mix nerves_hub.firmware publish --deploy ${NERVES_HUB_DEPLOY} ${NERVES_HUB_TTL} /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
+    - run:
+        name: Send Slack Message
+        command: ./.circleci/fwup_meta_slack.sh -i /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
 
 jobs:
 
@@ -457,7 +464,7 @@ jobs:
       - run:
           name: Slack message
           command: |
-            export OTA_URL=$(wget https://api.github.com/repos/farmbot/farmbot_os/releases -qO- | ./jq-linux64 '.[0].url' | sed -e 's/^"//' -e 's/"$//')
+            export OTA_URL=$(wget https://api.github.com/repos/farmbot/farmbot_os/releases -qO- | jq '.[0].url' | sed -e 's/^"//' -e 's/"$//')
             export SLACK_MESSAGE="New Farmbot Beta: $OTA_URL"
             elixir slack_message.ex $SLACK_MESSAGE
 
