@@ -1,4 +1,14 @@
 defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
+  @moduledoc """
+  Worker for monitoring hardware GPIO. (not related to the mcu firmware.)
+
+  Upon a button trigger, a `sequence`, or `special_action` will be executed by
+  the CeleryScript Runtime. 
+
+  This module also defines a behaviour that allows for abstracting and testing 
+  independent of GPIO hardware code.
+  """
+  
   use GenServer
   require Logger
   require FarmbotCore.Logger
@@ -76,7 +86,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "dump_info"} = pin_binding} = state) do
     FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
-    ref =
+    {:ok, ref} =
       AST.Factory.new()
       |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
       |> AST.Factory.dump_info()
@@ -86,7 +96,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "emergency_lock"} = pin_binding} = state) do
     FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
-    ref =
+    {:ok, ref} =
       AST.Factory.new()
       |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
       |> AST.Factory.emergency_lock()
@@ -96,7 +106,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "emergency_unlock"} = pin_binding} = state) do
     FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
-    ref =
+    {:ok, ref} =
       AST.Factory.new()
       |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
       |> AST.Factory.emergency_unlock()
@@ -106,7 +116,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "power_off"} = pin_binding} = state) do
     FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
-    ref =
+    {:ok, ref} =
       AST.Factory.new()
       |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
       |> AST.Factory.power_off()
@@ -116,7 +126,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "read_status"} = pin_binding} = state) do
     FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
-    ref =
+    {:ok, ref} =
       AST.Factory.new()
       |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
       |> AST.Factory.read_status()
@@ -126,7 +136,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "reboot"} = pin_binding} = state) do
     FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
-    ref =
+    {:ok, ref} =
       AST.Factory.new()
       |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
       |> AST.Factory.reboot()
@@ -136,7 +146,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "sync"} = pin_binding} = state) do
     FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
-    ref =
+    {:ok, ref} =
       AST.Factory.new()
       |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
       |> AST.Factory.sync()
@@ -146,7 +156,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "take_photo"} = pin_binding} = state) do
     FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
-    ref =
+    {:ok, ref} =
       AST.Factory.new()
       |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
       |> AST.Factory.take_photo()
