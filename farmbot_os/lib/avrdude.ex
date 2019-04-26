@@ -5,6 +5,8 @@ defmodule Avrdude do
 
   @uart_speed 115_200
 
+  # def flash(_, _), do: {"ok", 0}
+
   def flash(hex_path, tty_path) do
     tty_path =
       if String.contains?(tty_path, "/dev") do

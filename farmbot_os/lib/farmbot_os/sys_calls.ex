@@ -88,6 +88,18 @@ defmodule FarmbotOS.SysCalls do
     get_position(:z)
   end
 
+  def zero(axis) do
+    axis = assert_axis!(axis)
+
+    case FarmbotFirmware.command({:position_write_zero, [axis]}) do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        {:error, "Firmware error: #{inspect(reason)}"}
+    end
+  end
+
   def read_pin(pin_number, mode) do
     case FarmbotFirmware.request({:pin_read, [p: pin_number, m: mode]}) do
       {:ok, {_, {:report_pin_value, [p: _, v: val]}}} ->
@@ -115,7 +127,7 @@ defmodule FarmbotOS.SysCalls do
     end
   end
 
-  defp get_position(axis) do
+  def get_position(axis) do
     axis = assert_axis!(axis)
 
     case FarmbotFirmware.request({nil, {:position_read, []}}) do

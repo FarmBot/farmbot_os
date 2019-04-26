@@ -64,6 +64,8 @@ defmodule FarmbotCore.FirmwareSideEffects do
         :ok = BotState.set_firmware_hardware("farmduino")
       [_, _, _, "G"] ->
         :ok = BotState.set_firmware_hardware("farmduino_k14")
+      [_, _, _, "E"] ->
+        :ok = BotState.set_firmware_hardware("farmduino_k14")
       [_, _, _, "S"] ->
         :ok = BotState.set_firmware_hardware("stubduino")
     end
