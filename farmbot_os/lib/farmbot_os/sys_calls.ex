@@ -31,17 +31,17 @@ defmodule FarmbotOS.SysCalls do
   end
 
   def reboot do
-    FarmbotOS.System.reboot("Reboot requested by sequence or frontend")
+    FarmbotOS.System.reboot("Reboot requested by Sequence or frontend")
     :ok
   end
 
   def power_off do
-    FarmbotOS.System.reboot("Shut down requested by sequence or frontend")
+    FarmbotOS.System.reboot("Shut down requested by Sequence or frontend")
     :ok
   end
 
   def factory_reset do
-    FarmbotOS.System.factory_reset("Factory reset requested by sequence or frontent", true)
+    FarmbotOS.System.factory_reset("Factory reset requested by Sequence or frontend", true)
     :ok
   end
 
