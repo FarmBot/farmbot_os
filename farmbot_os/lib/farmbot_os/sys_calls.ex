@@ -6,11 +6,12 @@ defmodule FarmbotOS.SysCalls do
   alias FarmbotFirmware
 
   alias FarmbotOS.SysCalls.{
-    SendMessage,
+    ChangeOwnership,
+    CheckUpdate,
+    DumpInfo,
     ExecuteScript,
     FlashFirmware,
-    ChangeOwnership,
-    DumpInfo
+    SendMessage
   }
 
   alias FarmbotCore.{Asset, Asset.Repo, Asset.Private, Asset.Sync, BotState}
@@ -24,11 +25,7 @@ defmodule FarmbotOS.SysCalls do
   defdelegate flash_firmware(package), to: FlashFirmware
   defdelegate change_ownership(email, secret, server), to: ChangeOwnership
   defdelegate dump_info(), to: DumpInfo
-
-  def check_update do
-    _ = FarmbotOS.Platform.Target.NervesHubClient.check_update()
-    :ok
-  end
+  defdelegate check_update(), to: CheckUpdate
 
   def reboot do
     FarmbotOS.System.reboot("Reboot requested by Sequence or frontend")

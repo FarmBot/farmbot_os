@@ -132,8 +132,8 @@ defmodule Farmbot.TestSupport.CeleryScript.TestSysCalls do
   end
 
   @impl true
-  def change_ownership(email, secret) do
-    call({:change_ownership, [email, secret]})
+  def change_ownership(email, secret, server) do
+    call({:change_ownership, [email, secret, server]})
   end
 
   @impl true
@@ -164,6 +164,31 @@ defmodule Farmbot.TestSupport.CeleryScript.TestSysCalls do
   @impl true
   def resource_update(kind, id, params) do
     call({:resource_update, [kind, id, params]})
+  end
+
+  @impl true
+  def check_update() do
+    call({:check_update, []})
+  end
+
+  @impl true
+  def emergency_lock() do
+    call({:emergency_lock, []})
+  end
+
+  @impl true
+  def emergency_unlock() do
+    call({:emergency_unlock, []})
+  end
+
+  @impl true
+  def get_toolslot_for_tool(id) do
+    call({:get_toolslot_for_tool, [id]})
+  end
+
+  @impl true
+  def home(axis, speed) do
+    call({:home, [axis, speed]})
   end
 
   defp call(data) do
