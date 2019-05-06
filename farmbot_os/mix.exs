@@ -82,7 +82,10 @@ defmodule FarmbotOS.MixProject do
       {:toolshed, "~> 0.2", targets: @all_targets},
       {:farmbot_system_rpi3, "1.6.3-farmbot.0", runtime: false, targets: :rpi3},
       {:farmbot_system_rpi0, "1.6.3-farmbot.0", runtime: false, targets: :rpi0},
-      {:farmbot_system_rpi, "1.6.3-farmbot.0", runtime: false, targets: :rpi}
+      {:farmbot_system_rpi, "1.6.3-farmbot.0", runtime: false, targets: :rpi},
+
+      # Testing tools
+      {:mox, "~> 0.5", only: :test}
     ]
   end
 

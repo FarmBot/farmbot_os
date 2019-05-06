@@ -10,7 +10,14 @@ defmodule FarmbotExt.MixProject do
       elixir: @elixir_version,
       start_permanent: Mix.env() == :prod,
       elixirc_paths: ["lib", "vendor"],
-      deps: deps()
+      deps: deps(),
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test
+      ]
     ]
   end
 
