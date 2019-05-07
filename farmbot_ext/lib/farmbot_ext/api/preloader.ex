@@ -5,18 +5,22 @@ defmodule FarmbotExt.API.Preloader do
     * FarmbotCore.Asset.FbosConfig
     * FarmbotCore.Asset.FirmwareConfig
   """
+
   Application.get_env(:farmbot_ext, __MODULE__)[:preloader_impl] ||
     Mix.raise("""
-    No default preloader implementation was provided. 
+    FarmbotExt.API.Preloader is unconfigured
 
-      config :farmbot_ext, FarmbotExt.API.Preloader, [
-        preloader_impl: FarmbotExt.API.Preloader.HTTP
-      ]
+    config :farmbot_ext, FarmbotExt.API.Preloader, [
+      preloader_impl: FarmbotExt.API.Preloader.HTTP
+    ]
     """)
 
   @callback preload_all :: :ok | :error
-
   def preload_all do
-    Application.get_env(:farmbot_ext, __MODULE__)[:preloader_impl].preload_all()
+    preloader_impl().preload_all()
+  end
+
+  defp preloader_impl() do
+    Application.get_env(:farmbot_ext, __MODULE__)[:preloader_impl]
   end
 end
