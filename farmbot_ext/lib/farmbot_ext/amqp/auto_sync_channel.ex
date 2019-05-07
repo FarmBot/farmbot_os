@@ -50,8 +50,8 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   alias __MODULE__, as: State
 
   @doc false
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
+  def start_link(args, opts \\ [name: __MODULE__]) do
+    GenServer.start_link(__MODULE__, args, opts)
   end
 
   def init(args) do
@@ -67,7 +67,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   end
 
   def handle_info(:timeout, %{preloaded: false} = state) do
-    :ok = Preloader.preload_all()
+    :ok = preloader().preload_all()
     {:noreply, %{state | preloaded: true}, 0}
   end
 
@@ -190,5 +190,9 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     json = JSON.encode!(%{args: %{label: label}, kind: "rpc_ok"})
     :ok = Basic.publish(state.chan, @exchange, "bot.#{device}.from_device", json)
     {:noreply, state}
+  end
+
+  defp preloader do
+    Application.get_env(:farmbot, :preloader) || Preloader
   end
 end

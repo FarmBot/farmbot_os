@@ -5,6 +5,8 @@ defmodule FarmbotExt.API.Preloader do
     * FarmbotCore.Asset.FbosConfig
     * FarmbotCore.Asset.FirmwareConfig
   """
+  @behaviour FarmbotExt.API.PreloaderApi
+
   alias Ecto.{Changeset, Multi}
 
   require FarmbotCore.Logger
@@ -19,9 +21,10 @@ defmodule FarmbotExt.API.Preloader do
 
   @doc """
   Syncronous call to sync or preload assets.
-  Starts with `group_0` to check if `auto_sync` is enabled. If it is, 
+  Starts with `group_0` to check if `auto_sync` is enabled. If it is,
   actually sync all resources. If it is not, preload all resources.
   """
+  @impl FarmbotExt.API.PreloaderApi
   def preload_all() do
     sync_changeset = API.get_changeset(Sync)
     sync = Changeset.apply_changes(sync_changeset)
