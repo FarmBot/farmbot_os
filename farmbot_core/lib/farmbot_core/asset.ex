@@ -24,6 +24,7 @@ defmodule FarmbotCore.Asset do
     Sensor,
     Tool
   }
+
   alias FarmbotCore.AssetSupervisor
 
   import Ecto.Query
@@ -32,6 +33,12 @@ defmodule FarmbotCore.Asset do
 
   def device() do
     Repo.one(Device) || %Device{}
+  end
+
+  def update_device(params) do
+    device()
+    |> Device.changeset(params)
+    |> Repo.update!()
   end
 
   ## End Device
@@ -71,6 +78,7 @@ defmodule FarmbotCore.Asset do
     new_data =
       FbosConfig.changeset(fbos_config || fbos_config(), params)
       |> Repo.insert_or_update!()
+
     AssetSupervisor.cast_child(new_data, {:new_data, new_data})
     new_data
   end
@@ -91,6 +99,7 @@ defmodule FarmbotCore.Asset do
     new_data =
       FirmwareConfig.changeset(firmware_config || firmware_config(), params)
       |> Repo.insert_or_update!()
+
     AssetSupervisor.cast_child(new_data, {:new_data, new_data})
     new_data
   end
@@ -170,6 +179,13 @@ defmodule FarmbotCore.Asset do
     |> Enum.find(fn %{package: pkg} -> pkg == package end)
   end
 
+  def upsert_farmware_manifest_by_id(id, params) do
+    fwi = Repo.get_by(FarmwareInstallation, id: id) || %FarmwareInstallation{}
+
+    FarmwareInstallation.changeset(fwi, params)
+    |> Repo.insert_or_update()
+  end
+
   ## End FarmwareInstallation
 
   ## Begin FarmwareEnv
@@ -178,13 +194,22 @@ defmodule FarmbotCore.Asset do
     Repo.all(FarmwareEnv)
   end
 
-  def new_farmware_env(params) do
-    fwe =
-      if params["key"] || params[:key] do
-        Repo.get_by(FarmwareEnv, key: params["key"] || params[:key])
-      end
+  def upsert_farmware_env_by_id(id, params) do
+    fwe = Repo.get_by(FarmwareEnv, id: id) || %FarmwareEnv{}
 
-    FarmwareEnv.changeset(fwe || %FarmwareEnv{}, params)
+    FarmwareEnv.changeset(fwe, params)
+    |> Repo.insert_or_update()
+  end
+
+  def new_farmware_env(params) do
+    key = params["key"] || params[:key]
+
+    fwe =
+      if key do
+        Repo.get_by(FarmwareEnv, key: key)
+      end || %FarmwareEnv{}
+
+    FarmwareEnv.changeset(fwe, params)
     |> Repo.insert_or_update()
   end
 
