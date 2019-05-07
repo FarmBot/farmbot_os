@@ -1,6 +1,7 @@
 defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
   use ExUnit.Case
   import Mox
+  # import ExUnit.CaptureIO #TODO(Rick) See my note below
   alias FarmbotExt.JWT
 
   @fake_jwt "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZ" <>
@@ -22,23 +23,88 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
               "eXTEVkqw7rved84ogw6EKBSFCVqwRA-NKWLpPMV_q7fRwiEG" <>
               "Wj7R-KZqRweALXuvCLF765E6-ENxA"
 
-  setup do
-    jwt = JWT.decode!(@fake_jwt)
-    %{jwt: jwt}
-  end
+  setup :verify_on_exit!
+  setup :set_mox_global
 
-  test "handles timeouts", %{jwt: jwt} do
-    timeout = 1
-    wait = timeout + 10
+  def pretend_network_returned(fake_value) do
+    jwt = JWT.decode!(@fake_jwt)
+
     test_pid = self()
 
     expect(MockPreloader, :preload_all, fn ->
-      send(test_pid, :ding!)
+      send(test_pid, :preload_all_called)
       :ok
     end)
 
-    {:ok, pid} = FarmbotExt.AMQP.AutoSyncChannel.start_link(jwt: jwt, timeout: timeout)
-    allow(MockPreloader, test_pid, pid)
-    assert_receive :ding!, wait
+    expect(MockConnectionWorker, :maybe_connect, fn jwt ->
+      send(test_pid, {:maybe_connect_called, jwt})
+      fake_value
+    end)
+
+    stub(MockConnectionWorker, :close_channel, fn _ ->
+      send(test_pid, :close_channel_called)
+      nil
+    end)
+
+    stub(MockConnectionWorker, :rpc_reply, fn chan, jwt_dot_bot, label ->
+      send(test_pid, {:rpc_reply_called, chan, jwt_dot_bot, label})
+      :ok
+    end)
+
+    {:ok, pid} = FarmbotExt.AMQP.AutoSyncChannel.start_link(jwt: jwt)
+    assert_receive :preload_all_called
+    assert_receive {:maybe_connect_called, "device_15"}
+
+    Map.merge(%{pid: pid}, FarmbotExt.AMQP.AutoSyncChannel.network_status(pid))
+  end
+
+  test "network returns `nil`" do
+    results = pretend_network_returned(nil)
+    %{conn: has_conn, chan: has_chan, preloaded: is_preloaded} = results
+
+    assert has_chan == nil
+    assert has_conn == nil
+    assert is_preloaded
+  end
+
+  test "network returns unexpected object (probably an error)" do
+    results = pretend_network_returned({:something, :else})
+    %{conn: has_conn, chan: has_chan, preloaded: is_preloaded} = results
+
+    assert has_chan == nil
+    assert has_conn == nil
+    assert is_preloaded
+  end
+
+  test "expected object bootstraps process state" do
+    fake_con = %{fake: :conn}
+    fake_chan = %{fake: :chan}
+    fake_response = %{conn: fake_con, chan: fake_chan}
+
+    results = pretend_network_returned(fake_response)
+
+    %{conn: real_conn, chan: real_chan, preloaded: is_preloaded, pid: pid} = results
+
+    assert real_chan == fake_chan
+    assert real_conn == fake_con
+    assert is_preloaded
+    send(pid, {:basic_cancel, "--NOT USED--"})
+    assert_receive :close_channel_called
+  end
+
+  test "catch-all clause for inbound AMQP messages" do
+    fake_con = %{fake: :conn}
+    fake_chan = %{fake: :chan}
+    fake_response = %{conn: fake_con, chan: fake_chan}
+
+    %{pid: pid} = pretend_network_returned(fake_response)
+
+    payload =
+      FarmbotCore.JSON.encode!(%{
+        args: %{label: "xyz"}
+      })
+
+    send(pid, {:basic_deliver, payload, %{routing_key: "WRONG!"}})
+    assert_receive {:rpc_reply_called, %{fake: :chan}, "device_15", "xyz"}
   end
 end
