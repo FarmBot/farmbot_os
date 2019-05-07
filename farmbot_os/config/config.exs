@@ -51,6 +51,8 @@ config :ecto, json_library: FarmbotCore.JSON
 config :farmbot_core,
   ecto_repos: [FarmbotCore.Config.Repo, FarmbotCore.Logger.Repo, FarmbotCore.Asset.Repo]
 
+config :farmbot_ext, FarmbotExt.API.Preloader, preloader_impl: FarmbotExt.API.Preloader.HTTP
+
 config :farmbot, FarmbotOS.FileSystem, data_path: "/tmp/farmbot"
 config :farmbot, FarmbotOS.System, system_tasks: FarmbotOS.Platform.Host.SystemTasks
 
