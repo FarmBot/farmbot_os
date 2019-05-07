@@ -50,14 +50,15 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   alias __MODULE__, as: State
 
   @doc false
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
+  def start_link(args, opts \\ [name: __MODULE__]) do
+    GenServer.start_link(__MODULE__, args, opts)
   end
 
   def init(args) do
     Process.flag(:sensitive, true)
     jwt = Keyword.fetch!(args, :jwt)
-    {:ok, %State{conn: nil, chan: nil, jwt: jwt, preloaded: false}, 1000}
+    timeout = Keyword.get(args, :timeout, 1000)
+    {:ok, %State{conn: nil, chan: nil, jwt: jwt, preloaded: false}, timeout}
   end
 
   def terminate(reason, state) do
