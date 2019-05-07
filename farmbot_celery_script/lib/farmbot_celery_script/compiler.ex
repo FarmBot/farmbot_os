@@ -395,9 +395,9 @@ defmodule FarmbotCeleryScript.Compiler do
   # Expands find_home(all) into three find_home/1 calls
   compile :find_home, %{axis: "all"} do
     quote location: :keep do
-      find_home("x")
-      find_home("y")
       find_home("z")
+      find_home("y")
+      find_home("x")
     end
   end
 
@@ -411,9 +411,9 @@ defmodule FarmbotCeleryScript.Compiler do
   # Expands home(all) into three home/1 calls
   compile :home, %{axis: "all", speed: speed} do
     quote location: :keep do
-      home("x", unquote(compile_ast(speed)))
-      home("y", unquote(compile_ast(speed)))
       home("z", unquote(compile_ast(speed)))
+      home("y", unquote(compile_ast(speed)))
+      home("x", unquote(compile_ast(speed)))
     end
   end
 
@@ -427,9 +427,9 @@ defmodule FarmbotCeleryScript.Compiler do
   # Expands zero(all) into three zero/1 calls
   compile :zero, %{axis: "all", speed: speed} do
     quote location: :keep do
-      zero("x", unquote(compile_ast(speed)))
-      zero("y", unquote(compile_ast(speed)))
       zero("z", unquote(compile_ast(speed)))
+      zero("y", unquote(compile_ast(speed)))
+      zero("x", unquote(compile_ast(speed)))
     end
   end
 
@@ -443,9 +443,9 @@ defmodule FarmbotCeleryScript.Compiler do
   # Expands calibrate(all) into three calibrate/1 calls
   compile :calibrate, %{axis: "all"} do
     quote location: :keep do
-      calibrate("x")
-      calibrate("y")
       calibrate("z")
+      calibrate("y")
+      calibrate("x")
     end
   end
 
