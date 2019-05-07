@@ -26,6 +26,13 @@ defmodule FarmbotOS.MixProject do
       elixirc_paths: elixirc_paths(Mix.env(), Mix.target()),
       deps_path: "deps/#{Mix.target()}",
       build_path: "_build/#{Mix.target()}",
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test
+      ],
       deps: deps()
     ]
   end
