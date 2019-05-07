@@ -53,6 +53,9 @@ config :farmbot_core,
 
 config :farmbot_ext, FarmbotExt.API.Preloader, preloader_impl: FarmbotExt.API.Preloader.HTTP
 
+config :farmbot_ext, FarmbotExt.AMQP.ConnectionWorker,
+  network_impl: FarmbotExt.AMQP.ConnectionWorker.Network
+
 config :farmbot, FarmbotOS.FileSystem, data_path: "/tmp/farmbot"
 config :farmbot, FarmbotOS.System, system_tasks: FarmbotOS.Platform.Host.SystemTasks
 
