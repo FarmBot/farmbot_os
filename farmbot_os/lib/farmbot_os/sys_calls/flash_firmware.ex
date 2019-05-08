@@ -5,9 +5,13 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
   require Logger
 
   def flash_firmware(package) do
+    Logger.debug("Starting firmware flash for package: #{package}")
+
     with {:ok, hex_file} <- find_hex_file(package),
          {:ok, tty} <- find_tty(),
          {_, 0} <- Avrdude.flash(hex_file, tty) do
+      Logger.debug("Firmware flashed successfully!")
+
       %{firmware_hardware: package, firmware_path: tty}
       |> Asset.update_fbos_config!()
       |> Private.mark_dirty!(%{})
@@ -16,9 +20,11 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
       :ok
     else
       {:error, reason} when is_binary(reason) ->
+        Logger.error("Error flashing firmware")
         {:error, reason}
 
       {_, exit_code} when is_number(exit_code) ->
+        Logger.error("AVRDUDE ERROR: #{exit_code}")
         {:error, "avrdude error: #{exit_code} see logs."}
     end
   end
