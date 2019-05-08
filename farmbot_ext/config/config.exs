@@ -1,14 +1,29 @@
 use Mix.Config
+
+list_of_configs = [
+  %{
+    mod: FarmbotExt.API.Preloader,
+    key: :preloader_impl,
+    fake: MockPreloader,
+    real: FarmbotExt.AMQP.ConnectionWorker.Network
+  }
+]
+
+which_impl_to_use =
+  if Mix.env() == :test do
+    :fake
+  else
+    :real
+  end
+
+Enum.map(list_of_configs, fn %{mod: mod, key: key, fake: fake, real: real} = conf ->
+  config :farmbot_ext, mod, [{key, Map.fetch!(conf, which_impl_to_use)}]
+end)
+
 config :logger, handle_otp_reports: true, handle_sasl_reports: true
 
 config :farmbot_celery_script, FarmbotCeleryScript.SysCalls,
   sys_calls: FarmbotCeleryScript.SysCalls.Stubs
-
-if Mix.env() == :test do
-  config :farmbot_ext, FarmbotExt.API.Preloader, preloader_impl: MockPreloader
-else
-  config :farmbot_ext, FarmbotExt.API.Preloader, preloader_impl: FarmbotExt.API.Preloader.HTTP
-end
 
 import_config "ecto.exs"
 import_config "farmbot_core.exs"

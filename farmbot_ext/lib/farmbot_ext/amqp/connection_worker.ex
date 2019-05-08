@@ -95,6 +95,7 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
   end
 
   @doc "Takes the 'bot' claim seen in the JWT and connects to the AMQP broker."
+  @callback maybe_connect(String.t()) :: map()
   def maybe_connect(jwt_dot_bot) do
     bot = jwt_dot_bot
     auto_sync = bot <> "_auto_sync"
