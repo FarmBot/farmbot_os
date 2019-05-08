@@ -27,7 +27,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     %{jwt: jwt}
   end
 
-  test "handles timeouts", %{jwt: jwt} do
+  test "timeouts immediatly after starting link", %{jwt: jwt} do
     timeout = 1
     wait = timeout + 10
     test_pid = self()
@@ -40,5 +40,8 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     {:ok, pid} = FarmbotExt.AMQP.AutoSyncChannel.start_link(jwt: jwt, timeout: timeout)
     allow(MockPreloader, test_pid, pid)
     assert_receive :ding!, wait
+  end
+
+  test "setting a channel" do
   end
 end

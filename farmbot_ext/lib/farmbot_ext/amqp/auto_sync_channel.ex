@@ -73,26 +73,21 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   end
 
   def handle_info(:timeout, %{preloaded: true} = state) do
-    jwt = state.jwt
-    bot = jwt.bot
-    auto_sync = bot <> "_auto_sync"
-    route = "bot.#{bot}.sync.#"
+    result = ConnectionWorker.maybe_connect(state.jwt.bot)
+    compute_reply_from_amqp_state(state, result)
+  end
 
-    with %{} = conn <- ConnectionWorker.connection(),
-         {:ok, chan} <- Channel.open(conn),
-         :ok <- Basic.qos(chan, global: true),
-         {:ok, _} <- Queue.declare(chan, auto_sync, auto_delete: false),
-         :ok <- Queue.bind(chan, auto_sync, @exchange, routing_key: route),
-         {:ok, _} <- Basic.consume(chan, auto_sync, self(), no_ack: true) do
-      {:noreply, %{state | conn: conn, chan: chan}}
-    else
-      nil ->
-        {:noreply, %{state | conn: nil, chan: nil}, 5000}
+  defp compute_reply_from_amqp_state(state, nil) do
+    {:noreply, %{state | conn: nil, chan: nil}, 5000}
+  end
 
-      error ->
-        FarmbotCore.Logger.error(1, "Failed to connect to AutoSync channel: #{inspect(error)}")
-        {:noreply, %{state | conn: nil, chan: nil}, 1000}
-    end
+  defp compute_reply_from_amqp_state(state, %{conn: conn, chan: chan}) do
+    {:noreply, %{state | conn: conn, chan: chan}}
+  end
+
+  defp compute_reply_from_amqp_state(state, error) do
+    FarmbotCore.Logger.error(1, "Failed to connect to AutoSync channel: #{inspect(error)}")
+    {:noreply, %{state | conn: nil, chan: nil}, 1000}
   end
 
   # Confirmation sent by the broker after registering this process as a consumer

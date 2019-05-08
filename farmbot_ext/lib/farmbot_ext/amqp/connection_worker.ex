@@ -4,9 +4,11 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
   """
 
   use GenServer
-  alias FarmbotCore.Project
-  alias FarmbotExt.JWT
   require Logger
+  alias FarmbotExt.JWT
+  alias FarmbotCore.Project
+  alias AMQP.{Basic, Channel, Queue}
+  @exchange "amq.topic"
 
   defstruct [:opts, :conn]
 
@@ -90,5 +92,24 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
     ]
 
     AMQP.Connection.open(opts)
+  end
+
+  @doc "Takes the 'bot' claim seen in the JWT and connects to the AMQP broker."
+  def maybe_connect(jwt_dot_bot) do
+    bot = jwt_dot_bot
+    auto_sync = bot <> "_auto_sync"
+    route = "bot.#{bot}.sync.#"
+
+    with %{} = conn <- connection(),
+         {:ok, chan} <- Channel.open(conn),
+         :ok <- Basic.qos(chan, global: true),
+         {:ok, _} <- Queue.declare(chan, auto_sync, auto_delete: false),
+         :ok <- Queue.bind(chan, auto_sync, @exchange, routing_key: route),
+         {:ok, _} <- Basic.consume(chan, auto_sync, self(), no_ack: true) do
+      %{conn: conn, chan: chan}
+    else
+      nil -> %{conn: nil, chan: nil}
+      error -> error
+    end
   end
 end
