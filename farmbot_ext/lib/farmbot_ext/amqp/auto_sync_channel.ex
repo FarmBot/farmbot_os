@@ -8,8 +8,6 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   use GenServer
   use AMQP
 
-  alias AMQP.{Channel, Queue}
-
   alias FarmbotCore.BotState
   alias FarmbotExt.AMQP.ConnectionWorker
   alias FarmbotExt.API.{Preloader, EagerLoader}
@@ -75,19 +73,6 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   def handle_info(:timeout, %{preloaded: true} = state) do
     result = ConnectionWorker.maybe_connect(state.jwt.bot)
     compute_reply_from_amqp_state(state, result)
-  end
-
-  defp compute_reply_from_amqp_state(state, nil) do
-    {:noreply, %{state | conn: nil, chan: nil}, 5000}
-  end
-
-  defp compute_reply_from_amqp_state(state, %{conn: conn, chan: chan}) do
-    {:noreply, %{state | conn: conn, chan: chan}}
-  end
-
-  defp compute_reply_from_amqp_state(state, error) do
-    FarmbotCore.Logger.error(1, "Failed to connect to AutoSync channel: #{inspect(error)}")
-    {:noreply, %{state | conn: nil, chan: nil}, 1000}
   end
 
   # Confirmation sent by the broker after registering this process as a consumer
@@ -186,5 +171,18 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     json = JSON.encode!(%{args: %{label: label}, kind: "rpc_ok"})
     :ok = Basic.publish(state.chan, @exchange, "bot.#{device}.from_device", json)
     {:noreply, state}
+  end
+
+  defp compute_reply_from_amqp_state(state, nil) do
+    {:noreply, %{state | conn: nil, chan: nil}, 5000}
+  end
+
+  defp compute_reply_from_amqp_state(state, %{conn: conn, chan: chan}) do
+    {:noreply, %{state | conn: conn, chan: chan}}
+  end
+
+  defp compute_reply_from_amqp_state(state, error) do
+    FarmbotCore.Logger.error(1, "Failed to connect to AutoSync channel: #{inspect(error)}")
+    {:noreply, %{state | conn: nil, chan: nil}, 1000}
   end
 end

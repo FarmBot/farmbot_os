@@ -81,3 +81,5 @@ else
     import_config("target/#{Mix.target()}.exs")
   end
 end
+
+import_config "../../global_configs.exs"

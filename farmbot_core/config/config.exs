@@ -41,3 +41,4 @@ config :farmbot_core, FarmbotCore.EctoMigrator,
 import_config "ecto.exs"
 import_config "logger.exs"
 import_config "#{Mix.env()}.exs"
+import_config "../../global_configs.exs"
