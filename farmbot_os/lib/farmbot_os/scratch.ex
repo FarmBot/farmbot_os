@@ -5,16 +5,6 @@ defmodule Scratch do
   alias FarmbotCore.{Asset.FirmwareConfig, FirmwareSideEffects}
   alias FarmbotFirmware.{UARTTransport, StubTransport}
 
-  @external_resource "../farmbot_firmware/c_src/farmbot-arduino-firmware/src/src.ino.mega.hex"
-  @fw File.read!("../farmbot_firmware/c_src/farmbot-arduino-firmware/src/src.ino.mega.hex")
-
-  def tmp_flash do
-    FarmbotOS.Platform.Target.FirmwareReset.reset()
-    tmp_file = "/tmp/hello.hex"
-    File.write!(tmp_file, @fw)
-    Avrdude.flash(tmp_file, "/dev/ttyAMA0")
-  end
-
   def emergency_lock do
     _ = FarmbotFirmware.command({:command_emergency_lock, []})
     :ok
