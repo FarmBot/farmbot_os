@@ -425,18 +425,18 @@ defmodule FarmbotCeleryScript.Compiler do
   end
 
   # Expands zero(all) into three zero/1 calls
-  compile :zero, %{axis: "all", speed: speed} do
+  compile :zero, %{axis: "all"} do
     quote location: :keep do
-      zero("z", unquote(compile_ast(speed)))
-      zero("y", unquote(compile_ast(speed)))
-      zero("x", unquote(compile_ast(speed)))
+      zero("z")
+      zero("y")
+      zero("x")
     end
   end
 
   # compiles zero
-  compile :zero, %{axis: axis, speed: speed} do
+  compile :zero, %{axis: axis} do
     quote location: :keep do
-      zero(unquote(compile_ast(axis)), unquote(compile_ast(speed)))
+      zero(unquote(compile_ast(axis)))
     end
   end
 
