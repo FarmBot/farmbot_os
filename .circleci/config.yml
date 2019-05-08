@@ -803,30 +803,35 @@ workflows:
             branches:
               only:
                 - next
+                - express
       - test_farmbot_firmware:
           context: org-global
           filters:
             branches:
               only:
                 - next
+                - express
       - test_farmbot_core:
           context: org-global
           filters:
             branches:
               only:
                 - next
+                - express
       - test_farmbot_ext:
           context: org-global
           filters:
             branches:
               only:
                 - next
+                - express
       - test_farmbot_os:
           context: org-global
           filters:
             branches:
               only:
                 - next
+                - express
       - report_coverage:
           context: org-global
           requires:
@@ -849,18 +854,18 @@ workflows:
             - test_farmbot_ext
             - test_farmbot_os
 
-      # - build_rpi_prod:
-      #     context: farmbot-staging
-      #     filters:
-      #       branches:
-      #         only:
-      #           - next
-      #     requires:
-      #       - test_farmbot_celery_script
-      #       - test_farmbot_firmware
-      #       - test_farmbot_core
-      #       - test_farmbot_ext
-      #       - test_farmbot_os
+      - build_rpi_prod:
+          context: farmbot-staging
+          filters:
+            branches:
+              only:
+                - express
+          requires:
+            - test_farmbot_celery_script
+            - test_farmbot_firmware
+            - test_farmbot_core
+            - test_farmbot_ext
+            - test_farmbot_os
 
       - deploy_rpi3_prod_next:
           context: farmbot-staging
@@ -872,12 +877,12 @@ workflows:
             - build_rpi3_prod
             - report_coverage
 
-      # - deploy_rpi_prod_next:
-      #     context: farmbot-staging
-      #     filters:
-      #       branches:
-      #         only:
-      #           - next
-      #     requires:
-      #       - build_rpi_prod
-      #       - report_coverage
+      - deploy_rpi_prod_next:
+          context: farmbot-staging
+          filters:
+            branches:
+              only:
+                - express
+          requires:
+            - build_rpi_prod
+            - report_coverage
