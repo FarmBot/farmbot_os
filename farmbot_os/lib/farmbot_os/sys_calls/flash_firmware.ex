@@ -48,6 +48,10 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
     Application.app_dir(:farmbot_firmware, ["priv", "farmduino_k14.hex"]) |> assert_exists()
   end
 
+  defp find_hex_file("express_k10") do
+    Application.app_dir(:farmbot_firmware, ["priv", "express_k10.hex"]) |> assert_exists()
+  end
+
   defp find_hex_file(hardware) when is_binary(hardware),
     do: {:error, "unknown firmware hardware: #{hardware}"}
 
