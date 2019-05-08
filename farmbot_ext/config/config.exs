@@ -5,7 +5,7 @@ list_of_configs = [
     mod: FarmbotExt.API.Preloader,
     key: :preloader_impl,
     fake: MockPreloader,
-    real: FarmbotExt.AMQP.ConnectionWorker.Network
+    real: FarmbotExt.API.Preloader.HTTP
   }
 ]
 
