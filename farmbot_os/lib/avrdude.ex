@@ -25,6 +25,7 @@ defmodule Avrdude do
       "-V",
       "-Uflash:w:#{hex_path}:i"
     ]
+
     FarmbotOS.Platform.Target.FirmwareReset.reset()
     MuonTrap.cmd("avrdude", args, into: IO.stream(:stdio, :line))
   end
