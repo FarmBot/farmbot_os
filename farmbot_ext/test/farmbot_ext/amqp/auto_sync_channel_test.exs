@@ -21,14 +21,12 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
               "p5Y8UjaKufif7bBPOUbkEHLNOiaux4MQr-OWAC8TrYMyFHzt" <>
               "eXTEVkqw7rved84ogw6EKBSFCVqwRA-NKWLpPMV_q7fRwiEG" <>
               "Wj7R-KZqRweALXuvCLF765E6-ENxA"
+  setup :verify_on_exit!
+  setup :set_mox_global
 
-  setup do
-    %{jwt: JWT.decode!(@fake_jwt)}
-  end
+  def pretend_network_returned(fake_value) do
+    jwt = JWT.decode!(@fake_jwt)
 
-  test "timeouts immediatly after starting link", %{jwt: jwt} do
-    timeout = 1
-    wait = timeout + 1000
     test_pid = self()
 
     expect(MockPreloader, :preload_all, fn ->
@@ -36,17 +34,26 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
       :ok
     end)
 
-    {:ok, pid} = FarmbotExt.AMQP.AutoSyncChannel.start_link(jwt: jwt, timeout: timeout)
-
-    allow(MockPreloader, test_pid, pid)
-
-    MockConnectionWorker
-    |> expect(:maybe_connect, fn jwt ->
+    expect(MockConnectionWorker, :maybe_connect, fn jwt ->
       send(test_pid, {:maybe_connect_called, jwt})
-      nil
+      fake_value
     end)
 
-    assert_receive :preload_all_called, wait
-    assert_receive {:maybe_connect_called, "device_15"}, wait
+    {:ok, pid} = FarmbotExt.AMQP.AutoSyncChannel.start_link(jwt: jwt)
+    assert_receive :preload_all_called
+    assert_receive {:maybe_connect_called, "device_15"}
+
+    FarmbotExt.AMQP.AutoSyncChannel.network_status(pid)
   end
+
+  test "network returns `nil`" do
+    %{conn: has_conn, chan: has_chan, preloaded: is_preloaded} = pretend_network_returned(nil)
+
+    assert has_chan
+    assert has_conn
+    assert is_preloaded
+  end
+
+  test "network returns partial object"
+  test "network returns expected object"
 end

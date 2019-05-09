@@ -173,6 +173,22 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     {:noreply, state}
   end
 
+  def handle_call(:network_status, _, state) do
+    {
+      :reply,
+      %{
+        conn: Map.fetch(state, :conn) != nil,
+        chan: Map.fetch(state, :chan) != nil,
+        preloaded: Map.fetch(state, :preloaded)
+      },
+      state
+    }
+  end
+
+  def network_status(server \\ __MODULE__) do
+    GenServer.call(server, :network_status)
+  end
+
   defp compute_reply_from_amqp_state(state, %{conn: conn, chan: chan}) do
     {:noreply, %{state | conn: conn, chan: chan}}
   end
