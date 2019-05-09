@@ -23,25 +23,30 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
               "Wj7R-KZqRweALXuvCLF765E6-ENxA"
 
   setup do
-    jwt = JWT.decode!(@fake_jwt)
-    %{jwt: jwt}
+    %{jwt: JWT.decode!(@fake_jwt)}
   end
 
   test "timeouts immediatly after starting link", %{jwt: jwt} do
     timeout = 1
-    wait = timeout + 10
+    wait = timeout + 1000
     test_pid = self()
 
     expect(MockPreloader, :preload_all, fn ->
-      send(test_pid, :ding!)
+      send(test_pid, :preload_all_called)
       :ok
     end)
 
     {:ok, pid} = FarmbotExt.AMQP.AutoSyncChannel.start_link(jwt: jwt, timeout: timeout)
-    allow(MockPreloader, test_pid, pid)
-    assert_receive :ding!, wait
-  end
 
-  test "setting a channel" do
+    allow(MockPreloader, test_pid, pid)
+
+    MockConnectionWorker
+    |> expect(:maybe_connect, fn jwt ->
+      send(test_pid, {:maybe_connect_called, jwt})
+      nil
+    end)
+
+    assert_receive :preload_all_called, wait
+    assert_receive {:maybe_connect_called, "device_15"}, wait
   end
 end

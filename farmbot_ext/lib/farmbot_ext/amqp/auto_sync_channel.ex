@@ -55,8 +55,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   def init(args) do
     Process.flag(:sensitive, true)
     jwt = Keyword.fetch!(args, :jwt)
-    timeout = Keyword.get(args, :timeout, 1000)
-    {:ok, %State{conn: nil, chan: nil, jwt: jwt, preloaded: false}, timeout}
+    {:ok, %State{conn: nil, chan: nil, jwt: jwt, preloaded: false}, {:continue, :preload}}
   end
 
   def terminate(reason, state) do
@@ -65,12 +64,13 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     if state.chan, do: AMQP.Channel.close(state.chan)
   end
 
-  def handle_info(:timeout, %{preloaded: false} = state) do
+  def handle_continue(:preload, state) do
     :ok = Preloader.preload_all()
-    {:noreply, %{state | preloaded: true}, 0}
+    next_state = %{state | preloaded: true}
+    {:noreply, next_state, {:continue, :connect}}
   end
 
-  def handle_info(:timeout, %{preloaded: true} = state) do
+  def handle_continue(:connect, state) do
     result = ConnectionWorker.maybe_connect(state.jwt.bot)
     compute_reply_from_amqp_state(state, result)
   end
@@ -173,16 +173,15 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     {:noreply, state}
   end
 
-  defp compute_reply_from_amqp_state(state, nil) do
-    {:noreply, %{state | conn: nil, chan: nil}, 5000}
-  end
-
   defp compute_reply_from_amqp_state(state, %{conn: conn, chan: chan}) do
     {:noreply, %{state | conn: conn, chan: chan}}
   end
 
   defp compute_reply_from_amqp_state(state, error) do
-    FarmbotCore.Logger.error(1, "Failed to connect to AutoSync channel: #{inspect(error)}")
-    {:noreply, %{state | conn: nil, chan: nil}, 1000}
+    # Run error warning if error not nil
+    if error,
+      do: FarmbotCore.Logger.error(1, "Failed to connect to AutoSync channel: #{inspect(error)}")
+
+    {:noreply, %{state | conn: nil, chan: nil}}
   end
 end
