@@ -100,4 +100,8 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
   def maybe_connect(jwt_bot_claim) do
     FarmbotExt.fetch_impl!(@me, :network_impl).maybe_connect(jwt_bot_claim)
   end
+
+  def close_channel(channel) do
+    FarmbotExt.fetch_impl!(@me, :network_impl).close_channel(channel)
+  end
 end

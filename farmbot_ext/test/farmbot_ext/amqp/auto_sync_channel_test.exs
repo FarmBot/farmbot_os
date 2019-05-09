@@ -1,6 +1,7 @@
 defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
   use ExUnit.Case
   import Mox
+  # import ExUnit.CaptureIO #TODO(Rick) See my note below
   alias FarmbotExt.JWT
 
   @fake_jwt "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZ" <>
@@ -21,6 +22,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
               "p5Y8UjaKufif7bBPOUbkEHLNOiaux4MQr-OWAC8TrYMyFHzt" <>
               "eXTEVkqw7rved84ogw6EKBSFCVqwRA-NKWLpPMV_q7fRwiEG" <>
               "Wj7R-KZqRweALXuvCLF765E6-ENxA"
+
   setup :verify_on_exit!
   setup :set_mox_global
 
@@ -43,17 +45,51 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     assert_receive :preload_all_called
     assert_receive {:maybe_connect_called, "device_15"}
 
-    FarmbotExt.AMQP.AutoSyncChannel.network_status(pid)
+    Map.merge(%{pid: pid}, FarmbotExt.AMQP.AutoSyncChannel.network_status(pid))
   end
 
   test "network returns `nil`" do
-    %{conn: has_conn, chan: has_chan, preloaded: is_preloaded} = pretend_network_returned(nil)
+    results = pretend_network_returned(nil)
+    %{conn: has_conn, chan: has_chan, preloaded: is_preloaded} = results
 
-    assert has_chan
-    assert has_conn
+    assert has_chan == nil
+    assert has_conn == nil
     assert is_preloaded
   end
 
-  test "network returns partial object"
-  test "network returns expected object"
+  test "network returns unexpected object (probably an error)" do
+    results = pretend_network_returned({:something, :else})
+    %{conn: has_conn, chan: has_chan, preloaded: is_preloaded} = results
+
+    assert has_chan == nil
+    assert has_conn == nil
+    assert is_preloaded
+  end
+
+  # TODO(Rick) This test does not work. It would be nice if it did. Going to
+  #            work on more impactful stuff for now.
+  #
+  # test "unexpected [error] causes logger to trigger" do
+  #   expected = "Failed to connect to AutoSync channel: {:something, :else}"
+  #   boom =
+  #     capture_io(fn ->
+  #       pretend_network_returned({:something, :else})
+  #       Process.sleep(100)
+  #     end)
+  #   assert(boom == expected)
+  # end
+
+  test "expected object bootstraps process state" do
+    fake_con = %{fake: :conn}
+    fake_chan = %{fake: :chan}
+    fake_response = %{conn: fake_con, chan: fake_chan}
+
+    results = pretend_network_returned(fake_response)
+
+    %{conn: real_conn, chan: real_chan, preloaded: is_preloaded} = results
+
+    assert real_chan == fake_chan
+    assert real_conn == fake_con
+    assert is_preloaded
+  end
 end

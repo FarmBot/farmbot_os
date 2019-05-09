@@ -6,6 +6,11 @@ defmodule FarmbotExt.AMQP.ConnectionWorker.Network do
   alias AMQP.{Basic, Channel, Queue}
   @exchange "amq.topic"
 
+  @doc "Cleanly close an AMQP channel"
+  def close_channel(chan) do
+    Channel.close(chan)
+  end
+
   @doc "Takes the 'bot' claim seen in the JWT and connects to the AMQP broker."
   @callback maybe_connect(String.t()) :: map()
   def maybe_connect(jwt_dot_bot) do

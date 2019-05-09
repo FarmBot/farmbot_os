@@ -60,6 +60,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
 
   def terminate(reason, state) do
     FarmbotCore.Logger.error(1, "Disconnected from AutoSync channel: #{inspect(reason)}")
+    IO.puts("(*&(*&(*&(*&(*&(*&(*&(*&(*&(**&(*&(*&(*&AMQP.Channel.close(state.chan)))))")
     # If a channel was still open, close it.
     if state.chan, do: AMQP.Channel.close(state.chan)
   end
@@ -177,9 +178,9 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     {
       :reply,
       %{
-        conn: Map.fetch(state, :conn) != nil,
-        chan: Map.fetch(state, :chan) != nil,
-        preloaded: Map.fetch(state, :preloaded)
+        conn: Map.fetch!(state, :conn),
+        chan: Map.fetch!(state, :chan),
+        preloaded: Map.fetch!(state, :preloaded)
       },
       state
     }
