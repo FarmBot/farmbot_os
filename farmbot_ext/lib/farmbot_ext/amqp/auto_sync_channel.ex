@@ -26,7 +26,6 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     JSON
   }
 
-  @exchange "amq.topic"
   @known_kinds ~w(
     Device
     DiagnosticDump
@@ -102,16 +101,17 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
       ["bot", ^device, "sync", asset_kind, id_str] when asset_kind in @known_kinds ->
         asset_kind = Module.concat([Asset, asset_kind])
         id = data["id"] || String.to_integer(id_str)
-        handle_asset(asset_kind, label, id, body, state)
+        handle_asset(asset_kind, id, body)
 
       _ ->
         Logger.info("ignoring route: #{key}")
-        :ok = ConnectionWorker.rpc_reply(chan, device, label)
-        {:noreply, state}
     end
+
+    :ok = ConnectionWorker.rpc_reply(chan, device, label)
+    {:noreply, state}
   end
 
-  def handle_asset(asset_kind, label, id, params, state) do
+  def handle_asset(asset_kind, id, params) do
     auto_sync? = Asset.fbos_config().auto_sync
 
     cond do
@@ -166,11 +166,6 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
         :ok = EagerLoader.cache(changeset)
         :ok = BotState.set_sync_status("sync_now")
     end
-
-    device = state.jwt.bot
-    json = JSON.encode!(%{args: %{label: label}, kind: "rpc_ok"})
-    :ok = Basic.publish(state.chan, @exchange, "bot.#{device}.from_device", json)
-    {:noreply, state}
   end
 
   def handle_call(:network_status, _, state) do
