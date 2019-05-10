@@ -41,7 +41,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
       fake_value
     end)
 
-    stub(MockConnectionWorker, :close_channel, fn jwt ->
+    stub(MockConnectionWorker, :close_channel, fn _ ->
       send(test_pid, :close_channel_called)
       nil
     end)
@@ -97,7 +97,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     assert real_conn == fake_con
     assert is_preloaded
 
-    IO.puts("TODO: Test terminate/2 in this PID:")
-    IO.inspect(pid)
+    send(pid, {:basic_cancel, "--NOT USED--"})
+    assert_receive :close_channel_called
   end
 end
