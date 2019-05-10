@@ -92,21 +92,21 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   end
 
   def handle_info({:basic_deliver, payload, %{routing_key: key}}, state) do
-    device = state.jwt.bot
+    chan = state.chan
     data = JSON.decode!(payload)
+    device = state.jwt.bot
     label = data["args"]["label"]
+    body = data["body"]
 
     case String.split(key, ".") do
       ["bot", ^device, "sync", asset_kind, id_str] when asset_kind in @known_kinds ->
         asset_kind = Module.concat([Asset, asset_kind])
         id = data["id"] || String.to_integer(id_str)
-        params = data["body"]
-        handle_asset(asset_kind, label, id, params, state)
+        handle_asset(asset_kind, label, id, body, state)
 
       _ ->
         Logger.info("ignoring route: #{key}")
-        json = JSON.encode!(%{args: %{label: label}, kind: "rpc_ok"})
-        :ok = Basic.publish(state.chan, @exchange, "bot.#{device}.from_device", json)
+        :ok = ConnectionWorker.rpc_reply(chan, device, label)
         {:noreply, state}
     end
   end

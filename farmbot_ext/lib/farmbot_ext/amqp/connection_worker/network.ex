@@ -4,6 +4,7 @@ defmodule FarmbotExt.AMQP.ConnectionWorker.Network do
   """
 
   alias AMQP.{Basic, Channel, Queue}
+  alias FarmbotCore.JSON
   @exchange "amq.topic"
 
   @doc "Cleanly close an AMQP channel"
@@ -30,5 +31,12 @@ defmodule FarmbotExt.AMQP.ConnectionWorker.Network do
       nil -> %{conn: nil, chan: nil}
       error -> error
     end
+  end
+
+  @doc "Respond with an OK message to a CeleryScript(TM) RPC message."
+  @callback rpc_reply(map(), String.t(), String.t()) :: :ok
+  def rpc_reply(chan, jwt_dot_bot, label) do
+    json = JSON.encode!(%{args: %{label: label}, kind: "rpc_ok"})
+    Basic.publish(chan, @exchange, "bot.#{jwt_dot_bot}.from_device", json)
   end
 end

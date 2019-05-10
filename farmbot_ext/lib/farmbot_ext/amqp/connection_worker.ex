@@ -97,11 +97,19 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
     AMQP.Connection.open(opts)
   end
 
+  def network_impl() do
+    FarmbotExt.fetch_impl!(@me, :network_impl)
+  end
+
   def maybe_connect(jwt_bot_claim) do
-    FarmbotExt.fetch_impl!(@me, :network_impl).maybe_connect(jwt_bot_claim)
+    network_impl().maybe_connect(jwt_bot_claim)
   end
 
   def close_channel(channel) do
-    FarmbotExt.fetch_impl!(@me, :network_impl).close_channel(channel)
+    network_impl().close_channel(channel)
+  end
+
+  def rpc_reply(chan, jwt_dot_bot, label) do
+    network_impl().rpc_reply(chan, jwt_dot_bot, label)
   end
 end

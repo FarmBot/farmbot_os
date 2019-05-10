@@ -46,6 +46,11 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
       nil
     end)
 
+    stub(MockConnectionWorker, :rpc_reply, fn chan, jwt_dot_bot, label ->
+      send(test_pid, {:rpc_reply_called, chan, jwt_dot_bot, label})
+      :ok
+    end)
+
     {:ok, pid} = FarmbotExt.AMQP.AutoSyncChannel.start_link(jwt: jwt)
     assert_receive :preload_all_called
     assert_receive {:maybe_connect_called, "device_15"}
@@ -71,19 +76,6 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     assert is_preloaded
   end
 
-  # TODO(Rick) This test does not work. It would be nice if it did. Going to
-  #            work on more impactful stuff for now.
-  #
-  # test "unexpected [error] causes logger to trigger" do
-  #   expected = "Failed to connect to AutoSync channel: {:something, :else}"
-  #   boom =
-  #     capture_io(fn ->
-  #       pretend_network_returned({:something, :else})
-  #       Process.sleep(100)
-  #     end)
-  #   assert(boom == expected)
-  # end
-
   test "expected object bootstraps process state" do
     fake_con = %{fake: :conn}
     fake_chan = %{fake: :chan}
@@ -96,8 +88,23 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     assert real_chan == fake_chan
     assert real_conn == fake_con
     assert is_preloaded
-
     send(pid, {:basic_cancel, "--NOT USED--"})
     assert_receive :close_channel_called
+  end
+
+  test "catch-all clause for inbound AMQP messages" do
+    fake_con = %{fake: :conn}
+    fake_chan = %{fake: :chan}
+    fake_response = %{conn: fake_con, chan: fake_chan}
+
+    %{pid: pid} = pretend_network_returned(fake_response)
+
+    payload =
+      FarmbotCore.JSON.encode!(%{
+        args: %{label: "xyz"}
+      })
+
+    send(pid, {:basic_deliver, payload, %{routing_key: "WRONG!"}})
+    assert_receive {:rpc_reply_called, %{fake: :chan}, "device_15", "xyz"}
   end
 end
