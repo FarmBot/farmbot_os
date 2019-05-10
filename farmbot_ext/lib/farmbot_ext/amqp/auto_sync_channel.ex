@@ -120,10 +120,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
         :ok
 
       asset_kind == Device ->
-        Repo.get_by!(Device, id: id)
-        |> Device.changeset(params)
-        |> Repo.update!()
-
+        Asset.update_device(params)
         :ok
 
       asset_kind == FbosConfig ->
@@ -135,10 +132,13 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
         :ok
 
       # TODO(Connor) make this use `sync_group0()`
-      asset_kind in [FarmwareEnv, FarmwareInstallation] ->
-        asset = Repo.get_by(asset_kind, id: id) || struct(asset_kind)
-        changeset = asset_kind.changeset(asset, params)
-        Repo.insert_or_update!(changeset)
+      asset_kind == FarmwareEnv ->
+        Asset.upsert_farmware_env_by_id(id, params)
+        :ok
+
+      # TODO(Connor) make this use `sync_group0()`
+      asset_kind == FarmwareInstallation ->
+        Asset.upsert_farmware_manifest_by_id(id, params)
         :ok
 
       is_nil(params) && auto_sync? ->
