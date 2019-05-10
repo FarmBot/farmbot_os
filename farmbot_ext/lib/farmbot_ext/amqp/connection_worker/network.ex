@@ -7,6 +7,7 @@ defmodule FarmbotExt.AMQP.ConnectionWorker.Network do
   @exchange "amq.topic"
 
   @doc "Cleanly close an AMQP channel"
+  @callback close_channel(map()) :: nil
   def close_channel(chan) do
     Channel.close(chan)
   end

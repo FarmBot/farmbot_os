@@ -41,6 +41,11 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
       fake_value
     end)
 
+    stub(MockConnectionWorker, :close_channel, fn jwt ->
+      send(test_pid, :close_channel_called)
+      nil
+    end)
+
     {:ok, pid} = FarmbotExt.AMQP.AutoSyncChannel.start_link(jwt: jwt)
     assert_receive :preload_all_called
     assert_receive {:maybe_connect_called, "device_15"}
@@ -86,10 +91,13 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
     results = pretend_network_returned(fake_response)
 
-    %{conn: real_conn, chan: real_chan, preloaded: is_preloaded} = results
+    %{conn: real_conn, chan: real_chan, preloaded: is_preloaded, pid: pid} = results
 
     assert real_chan == fake_chan
     assert real_conn == fake_con
     assert is_preloaded
+
+    IO.puts("TODO: Test terminate/2 in this PID:")
+    IO.inspect(pid)
   end
 end
