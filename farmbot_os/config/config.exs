@@ -81,5 +81,3 @@ else
     import_config("target/#{Mix.target()}.exs")
   end
 end
-
-import_config "mock_configs.exs"

@@ -10,9 +10,6 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
 
   @me __MODULE__
 
-  # IMPORTANT- prevents bad builds!:
-  FarmbotExt.fetch_impl!(@me, :network_impl)
-
   defstruct [:opts, :conn]
 
   def start_link(args) do
@@ -98,7 +95,11 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
   end
 
   def network_impl() do
-    FarmbotExt.fetch_impl!(@me, :network_impl)
+    FarmbotExt.fetch_impl!(
+      @me,
+      :network_impl,
+      FarmbotExt.AMQP.ConnectionWorker.Network
+    )
   end
 
   def maybe_connect(jwt_bot_claim) do

@@ -8,4 +8,9 @@ else
     sys_calls: FarmbotCeleryScript.SysCalls.Stubs
 end
 
-import_config "mock_configs.exs"
+if Mix.env() == :test do
+  # Assign values used by the test suite to mock things out.
+  # Leaving these values unassign results in default (production/dev) module use
+  config :farmbot_ext, FarmbotExt.API.Preloader, preloader_impl: MockPreloader
+  config :farmbot_ext, FarmbotExt.AMQP.ConnectionWorker, network_impl: MockConnectionWorker
+end

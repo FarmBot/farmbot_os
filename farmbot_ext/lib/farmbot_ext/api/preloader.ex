@@ -6,11 +6,17 @@ defmodule FarmbotExt.API.Preloader do
     * FarmbotCore.Asset.FirmwareConfig
   """
 
-  FarmbotExt.fetch_impl!(__MODULE__, :preloader_impl)
-
   @callback preload_all :: :ok | :error
 
+  def preloader_impl() do
+    FarmbotExt.fetch_impl!(
+      __MODULE__,
+      :preloader_impl,
+      FarmbotExt.API.Preloader.HTTP
+    )
+  end
+
   def preload_all do
-    FarmbotExt.fetch_impl!(__MODULE__, :preloader_impl).preload_all()
+    preloader_impl().preload_all()
   end
 end

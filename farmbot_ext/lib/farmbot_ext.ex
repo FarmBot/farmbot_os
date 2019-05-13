@@ -7,16 +7,11 @@ defmodule FarmbotExt do
 
   # Fetches a swappable implementation from application config.
   # We use this helper to find modules (usually I/O handlers) that will change
-  # based on the environment, eg: test vs. prod.
-  def fetch_impl!(mod, key) do
-    Application.get_env(:farmbot_ext, mod)[key] ||
-      Mix.raise("""
-      No default #{to_string(key)} implementation was provided.
-
-        config :farmbot_ext,
-          #{Macro.to_string(mod)},
-          [#{to_string(key)}: #{Macro.to_string(mod)}.ModuleThatImplementsIt]
-      """)
+  # based on the environment, eg: test vs. prod. "default" is the default module
+  # that you would expect to use in prod.
+  def fetch_impl!(mod, key, default) do
+    mock = Application.get_env(:farmbot_ext, mod)[key]
+    mock || default
   end
 
   def start(_type, _args) do
