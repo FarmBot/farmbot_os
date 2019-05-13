@@ -7,23 +7,31 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
   require Logger
   alias FarmbotExt.JWT
   alias FarmbotCore.Project
+  alias FarmbotExt.AMQP.ConnectionWorker
 
-  @me __MODULE__
+  Application.get_env(:farmbot_ext, __MODULE__)[:network_impl] ||
+    Mix.raise("""
+    FarmbotExt.AMQP.ConnectionWorker unconfigured.
+
+    config :farmbot_ext, FarmbotExt.AMQP.ConnectionWorker, [
+      network_impl: FarmbotExt.AMQP.ConnectionWorker.Network
+    ]
+    """)
 
   defstruct [:opts, :conn]
 
-  def start_link(args) do
-    GenServer.start_link(@me, args, name: @me)
+  def start_link(args, opts \\ [name: __MODULE__]) do
+    GenServer.start_link(__MODULE__, args, opts)
   end
 
   def connection do
-    GenServer.call(@me, :connection)
+    GenServer.call(__MODULE__, :connection)
   end
 
   def init(opts) do
     Process.flag(:sensitive, true)
     Process.flag(:trap_exit, true)
-    {:ok, %@me{conn: nil, opts: opts}, 0}
+    {:ok, %ConnectionWorker{conn: nil, opts: opts}, 0}
   end
 
   def terminate(reason, %{conn: nil}) do
@@ -95,11 +103,7 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
   end
 
   def network_impl() do
-    FarmbotExt.fetch_impl!(
-      @me,
-      :network_impl,
-      FarmbotExt.AMQP.ConnectionWorker.Network
-    )
+    Application.get_env(:farmbot_ext, __MODULE__)[:network_impl]
   end
 
   def maybe_connect(jwt_bot_claim) do
