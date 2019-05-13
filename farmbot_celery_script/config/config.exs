@@ -8,4 +8,4 @@ else
     sys_calls: FarmbotCeleryScript.SysCalls.Stubs
 end
 
-import_config "../../global_configs.exs"
+import_config "mock_configs.exs"

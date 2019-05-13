@@ -9,4 +9,4 @@ config :farmbot_celery_script, FarmbotCeleryScript.SysCalls,
 import_config "ecto.exs"
 import_config "farmbot_core.exs"
 import_config "lagger.exs"
-import_config "../../global_configs.exs"
+import_config "mock_configs.exs"
