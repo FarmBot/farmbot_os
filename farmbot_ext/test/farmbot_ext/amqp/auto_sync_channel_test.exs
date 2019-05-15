@@ -58,6 +58,12 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     Map.merge(%{pid: pid}, FarmbotExt.AMQP.AutoSyncChannel.network_status(pid))
   end
 
+  def under_normal_conditions() do
+    fake_con = %{fake: :conn}
+    fake_chan = %{fake: :chan}
+    pretend_network_returned(%{conn: fake_con, chan: fake_chan})
+  end
+
   test "network returns `nil`" do
     results = pretend_network_returned(nil)
     %{conn: has_conn, chan: has_chan, preloaded: is_preloaded} = results
@@ -106,5 +112,13 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
     send(pid, {:basic_deliver, payload, %{routing_key: "WRONG!"}})
     assert_receive {:rpc_reply_called, %{fake: :chan}, "device_15", "xyz"}
+  end
+
+  test "ignores asset deletion when auto_sync is off" do
+    %{pid: pid} = under_normal_conditions()
+    payload = '{"args":{"label":"foo"}}'
+    key = "bot.device_15.sync.Device.999"
+    send(pid, {:basic_deliver, payload, %{routing_key: key}})
+    Process.sleep(1)
   end
 end
