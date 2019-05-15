@@ -42,7 +42,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
     stub(MockConnectionWorker, :close_channel, fn _ ->
       send(test_pid, :close_channel_called)
-      nil
+      :ok
     end)
 
     stub(MockConnectionWorker, :rpc_reply, fn chan, jwt_dot_bot, label ->
@@ -94,7 +94,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     assert real_conn == fake_con
     assert is_preloaded
     send(pid, {:basic_cancel, "--NOT USED--"})
-    assert_receive :close_channel_called, 75
+    assert_receive :close_channel_called, 150
   end
 
   test "catch-all clause for inbound AMQP messages" do
@@ -135,12 +135,101 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     key = "bot.device_15.sync.Device.999"
     stub(MockQuery, :auto_sync?, fn -> true end)
 
-    stub(MockCommand, :update, fn x, y ->
-      send(test_pid, {:update_called, x, y})
-      nil
+    stub(MockCommand, :update, fn x, y, z ->
+      send(test_pid, {:update_called, x, y, z})
+      :ok
     end)
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    assert_receive {:update_called, FarmbotCore.Asset.Device, %{}}, 10
+    assert_receive {:update_called, "Device", %{}, 999}, 10
+  end
+
+  def simple_asset_test_singleton(module_name) do
+    %{pid: pid} = under_normal_conditions()
+    test_pid = self()
+    payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
+    key = "bot.device_15.sync.#{module_name}.999"
+
+    stub(MockQuery, :auto_sync?, fn -> true end)
+
+    stub(MockCommand, :update, fn x, y, z ->
+      send(test_pid, {:update_called, x, y, z})
+      :ok
+    end)
+
+    stub(MockCommand, :update, fn x, y, z ->
+      send(test_pid, {:update_called, x, y, z})
+      :ok
+    end)
+
+    send(pid, {:basic_deliver, payload, %{routing_key: key}})
+
+    assert_receive {:update_called, module_name, %{"foo" => "bar"}, 999}, 10
+  end
+
+  def simple_asset_test_plural(module_name) do
+    %{pid: pid} = under_normal_conditions()
+    test_pid = self()
+    payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
+    key = "bot.device_15.sync.#{module_name}.999"
+
+    stub(MockQuery, :auto_sync?, fn -> true end)
+
+    stub(MockCommand, :update, fn x, y, z ->
+      send(test_pid, {:update_called, x, y, z})
+      :ok
+    end)
+
+    send(pid, {:basic_deliver, payload, %{routing_key: key}})
+
+    assert_receive {:update_called, module_name, %{"foo" => "bar"}, 999}, 10
+  end
+
+  test "handles FbosConfig", do: simple_asset_test_singleton("FbosConfig")
+  test "handles FirmwareConfig", do: simple_asset_test_singleton("FirmwareConfig")
+  test "handles FarmwareEnv", do: simple_asset_test_plural("FarmwareEnv")
+  test "handles FarmwareInstallation", do: simple_asset_test_plural("FarmwareInstallation")
+
+  test "handles auto_sync of 'cache_assets' when auto_sync is false" do
+    test_pid = self()
+    %{pid: pid} = under_normal_conditions()
+
+    key = "bot.device_15.sync.FbosConfig.999"
+    payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
+
+    stub(MockQuery, :auto_sync?, fn ->
+      send(test_pid, :called_auto_sync?)
+      false
+    end)
+
+    stub(MockCommand, :update, fn x, y, z ->
+      send(test_pid, {:update_called, x, y, z})
+      :ok
+    end)
+
+    send(pid, {:basic_deliver, payload, %{routing_key: key}})
+    assert_receive :called_auto_sync?, 10
+    assert_receive {:update_called, "FbosConfig", %{"foo" => "bar"}, 999}, 10
+  end
+
+  test "auto_sync disabled, resource not in @cache_kinds" do
+    test_pid = self()
+    %{pid: pid} = under_normal_conditions()
+
+    key = "bot.device_15.sync.Point.999"
+    payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
+
+    stub(MockQuery, :auto_sync?, fn ->
+      send(test_pid, :called_auto_sync?)
+      false
+    end)
+
+    stub(MockCommand, :cached_update, fn x, y, z ->
+      send(test_pid, {:cached_update_called, x, y, z})
+      :ok
+    end)
+
+    send(pid, {:basic_deliver, payload, %{routing_key: key}})
+    assert_receive {:cached_update_called, "Point", %{"foo" => "bar"}, 999}, 10
   end
 end
