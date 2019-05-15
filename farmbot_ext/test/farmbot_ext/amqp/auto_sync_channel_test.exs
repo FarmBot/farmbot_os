@@ -142,5 +142,9 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
     assert_receive {:update_called, FarmbotCore.Asset.Device, %{}}, 10
+    payload = '{"args":{"label":"foo"}}'
+    key = "bot.device_15.sync.Device.999"
+    send(pid, {:basic_deliver, payload, %{routing_key: key}})
+    Process.sleep(1)
   end
 end
