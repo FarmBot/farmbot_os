@@ -5,11 +5,13 @@ defmodule FarmbotCeleryScript.SchedulerTest do
 
   setup do
     {:ok, shim} = TestSysCalls.checkout()
-    {:ok, sch} = Scheduler.start_link([], [])
-    [shim: shim, sch: sch]
+    table = :"celery_scheduler_#{:rand.uniform(100)}"
+    table = :ets.new(table, [:duplicate_bag, :named_table, :public])
+    {:ok, sch} = Scheduler.start_link([table: table], [])
+    [shim: shim, sch: sch, table: table]
   end
 
-  test "uses default values when no parameter is found", %{sch: sch} do
+  test "uses default values when no parameter is found", %{table: sch} do
     sequence_ast =
       %{
         kind: :sequence,
@@ -69,7 +71,7 @@ defmodule FarmbotCeleryScript.SchedulerTest do
     assert_receive {:move_absolute, [129, 129, 129, 921]}
   end
 
-  test "syscall errors", %{sch: sch} do
+  test "syscall errors", %{table: sch} do
     execute_ast =
       %{
         kind: :rpc_request,
@@ -92,7 +94,7 @@ defmodule FarmbotCeleryScript.SchedulerTest do
   end
 
   @tag :annoying
-  test "regular exceptions still occur", %{sch: sch} do
+  test "regular exceptions still occur", %{table: table, sch: sch} do
     Process.flag(:trap_exit, true)
 
     execute_ast =
@@ -116,12 +118,12 @@ defmodule FarmbotCeleryScript.SchedulerTest do
         :read_pin, _ -> raise("failed to read pin!")
       end)
 
-    {:ok, execute_ref} = Scheduler.execute(sch, executed)
+    {:ok, execute_ref} = Scheduler.execute(table, executed)
     refute_receive {Scheduler, ^execute_ref, {:error, "failed to read pin!"}}
     assert_receive {:EXIT, ^sch, _}, 1000
   end
 
-  test "executing a sequence on top of a scheduled sequence", %{sch: sch} do
+  test "executing a sequence on top of a scheduled sequence", %{table: sch} do
     scheduled_ast =
       %{
         kind: :sequence,
@@ -177,7 +179,7 @@ defmodule FarmbotCeleryScript.SchedulerTest do
     assert [^time_1, ^time_3, ^time_2] = Enum.sort([time_1, time_2, time_3], &(&1 <= &2))
   end
 
-  test "execute twice", %{sch: sch} do
+  test "execute twice", %{table: sch} do
     execute_ast_1 =
       %{
         kind: :rpc_request,
@@ -235,7 +237,7 @@ defmodule FarmbotCeleryScript.SchedulerTest do
     assert time_2 >= time_1 + 1000
   end
 
-  test "execute then schedule", %{sch: sch} do
+  test "execute then schedule", %{table: sch} do
     execute_ast_1 =
       %{
         kind: :rpc_request,
@@ -294,7 +296,7 @@ defmodule FarmbotCeleryScript.SchedulerTest do
     assert time_2 >= time_1 + 1000
   end
 
-  test "schedule and execute simultaneously", %{sch: sch} do
+  test "schedule and execute simultaneously", %{table: sch} do
     schedule_ast_1 =
       %{
         kind: :sequence,
@@ -323,8 +325,8 @@ defmodule FarmbotCeleryScript.SchedulerTest do
     :ok =
       TestSysCalls.handle(TestSysCalls, fn
         :wait, [millis] ->
-          send(pid, {:wait, :os.system_time()})
           Process.sleep(millis)
+          send(pid, {:wait, :os.system_time()})
 
         :read_pin, _ ->
           send(pid, {:read_pin, :os.system_time()})
@@ -354,6 +356,6 @@ defmodule FarmbotCeleryScript.SchedulerTest do
     assert_receive {:read_pin, time_2}
 
     # Assert that the read pin executed and finished before the wait.
-    assert time_2 <= time_1 + 2500
+    assert time_2 <= time_1
   end
 end
