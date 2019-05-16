@@ -14,7 +14,7 @@ defmodule FarmbotCore do
   def start(_, args), do: Supervisor.start_link(__MODULE__, args, name: __MODULE__)
 
   def init([]) do
-
+    celery_table = :ets.new(:celery_scheduler, [:duplicate_bag, :named_table, :public])
     children = [
       FarmbotCore.EctoMigrator,
       FarmbotCore.BotState.Supervisor,
@@ -22,7 +22,7 @@ defmodule FarmbotCore do
       FarmbotCore.FirmwareEstopTimer,
       # Also error handling for a transport not starting ?
       {FarmbotFirmware, transport: FarmbotFirmware.StubTransport, side_effects: FarmbotCore.FirmwareSideEffects},
-      FarmbotCeleryScript.Scheduler
+      {FarmbotCeleryScript.Scheduler, table: celery_table}
     ]
     Supervisor.init(children, [strategy: :one_for_one])
   end
