@@ -186,7 +186,8 @@ defmodule FarmbotCore.RegimenInstanceWorkerTest do
     expected_z = 9000
     expected_speed = 100
 
-    assert_receive {:move_absolute, [^expected_x, ^expected_y, ^expected_z, ^expected_speed]}
+    assert_receive {:move_absolute, [^expected_x, ^expected_y, ^expected_z, ^expected_speed]},
+                   5000
   end
 
   test "application of default_parameters (Regimen => Sequence)" do
@@ -259,6 +260,9 @@ defmodule FarmbotCore.RegimenInstanceWorkerTest do
 
     :ok =
       TestSysCalls.handle(TestSysCalls, fn
+        :get_sequence, [_the_sequence_id] ->
+          FarmbotCeleryScript.AST.decode(the_sequence)
+
         :coordinate, [x, y, z] ->
           %{x: x, y: y, z: z}
 
@@ -277,6 +281,6 @@ defmodule FarmbotCore.RegimenInstanceWorkerTest do
     expected_speed = 100
 
     assert_receive {:move_absolute, [^expected_x, ^expected_y, ^expected_z, ^expected_speed]},
-                   5_000
+                   5000
   end
 end
