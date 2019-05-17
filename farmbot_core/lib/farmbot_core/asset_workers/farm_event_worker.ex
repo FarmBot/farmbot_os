@@ -106,6 +106,10 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
     end
   end
 
+  def handle_info({Scheduler, _, _}, state) do
+    {:noreply, state, @checkup_time_ms}
+  end
+
   defp ensure_executed!(
          %FarmEvent{last_executed: nil} = event,
          %Sequence{} = exe,
@@ -131,16 +135,27 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
 
   defp ensure_executed!(%FarmEvent{} = event, %Sequence{} = exe, next_dt, handle_sequence, _) do
     # positive if the first date/time comes after the second.
-    comp = Timex.compare(event.last_executed, :minutes)
-
+    comp = Timex.diff(event.last_executed, next_dt, :seconds)
     cond do
-      comp > 2 ->
-        Logger.warn("Sequence: #{inspect(exe)} needs executing")
+      # last_execution is more than 2 minutes past expected execution time
+      comp < -2000 ->
+        Logger.warn("Sequence: #{exe.id} too late: #{comp} seconds difference.")
+        Asset.update_farm_event!(event, %{last_executed: next_dt})
+      # comp > 0 and comp < 2 ->
+      #   Logger.warn("Sequence: #{exe.id} needs executing")
+      #   apply(handle_sequence, [exe, event.body])
+      #   Asset.update_farm_event!(event, %{last_executed: next_dt})
+      comp < 0 ->
+        Logger.warn("Sequence: #{exe.id} needs executing #{comp} seconds difference.")
         apply(handle_sequence, [exe, event.body])
         Asset.update_farm_event!(event, %{last_executed: next_dt})
-
-      0 ->
-        Logger.warn("Sequence: #{inspect(exe)} already executed: #{Timex.from_now(next_dt)}")
+      true ->
+        Logger.warn("""
+        what do?:
+        last_executed=#{inspect(event.last_executed)}
+        next_dt=#{inspect(next_dt)}
+        comp=#{comp}
+        """)
         event
     end
   end
