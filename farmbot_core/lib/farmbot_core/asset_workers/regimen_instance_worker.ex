@@ -76,7 +76,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
   end
 
   def handle_info({Scheduler, _ref, _result}, state) do
-    {:noreply, state}
+    {:noreply, state, 0}
   end
 
   defp calculate_next(pr, checkup_time_ms \\ @checkup_time_ms)
