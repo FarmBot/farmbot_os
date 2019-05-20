@@ -87,9 +87,9 @@ defmodule FarmbotOS.MixProject do
       {:nerves_init_gadget, "~> 0.6", targets: @all_targets},
       {:circuits_gpio, "~> 0.4", targets: @all_targets},
       {:toolshed, "~> 0.2", targets: @all_targets},
-      {:farmbot_system_rpi3, "1.6.3-farmbot.0", runtime: false, targets: :rpi3},
-      {:farmbot_system_rpi0, "1.6.3-farmbot.0", runtime: false, targets: :rpi0},
-      {:farmbot_system_rpi, "1.6.3-farmbot.0", runtime: false, targets: :rpi}
+      {:farmbot_system_rpi3, "1.7.2-farmbot.0", runtime: false, targets: :rpi3},
+      {:farmbot_system_rpi0, "1.7.2-farmbot.0", runtime: false, targets: :rpi0},
+      {:farmbot_system_rpi, "1.7.2-farmbot.0", runtime: false, targets: :rpi}
     ]
   end
 
