@@ -17,11 +17,13 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
 
   alias FarmbotCore.{
     Asset,
+    Asset.Command,
     Asset.Device,
     Asset.FarmwareEnv,
     Asset.FarmwareInstallation,
     Asset.FbosConfig,
     Asset.FirmwareConfig,
+    Asset.Query,
     Asset.Repo,
     JSON
   }
@@ -115,6 +117,63 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
 
     :ok = ConnectionWorker.rpc_reply(chan, device, label)
     {:noreply, state}
+  end
+
+  def handle_asset(asset_kind, id, params) do
+    auto_sync? = query().auto_sync?()
+
+    cond do
+      # TODO(Connor) no way to cache a deletion yet
+      is_nil(params) && !auto_sync? ->
+        :ok
+
+      asset_kind == Device ->
+        command().update(asset_kind, params)
+        :ok
+
+      asset_kind == FbosConfig ->
+        Asset.update_fbos_config!(params)
+        :ok
+
+      asset_kind == FirmwareConfig ->
+        Asset.update_firmware_config!(params)
+        :ok
+
+      # TODO(Connor) make this use `sync_group0()`
+      asset_kind == FarmwareEnv ->
+        Asset.upsert_farmware_env_by_id(id, params)
+        :ok
+
+      # TODO(Connor) make this use `sync_group0()`
+      asset_kind == FarmwareInstallation ->
+        Asset.upsert_farmware_manifest_by_id(id, params)
+        :ok
+
+      is_nil(params) && auto_sync? ->
+        old = Repo.get_by(asset_kind, id: id)
+        old && Repo.delete!(old)
+        :ok
+
+      auto_sync? ->
+        case Repo.get_by(asset_kind, id: id) do
+          nil ->
+            struct(asset_kind)
+            |> asset_kind.changeset(params)
+            |> Repo.insert!()
+
+          asset ->
+            asset_kind.changeset(asset, params)
+            |> Repo.update!()
+        end
+
+        :ok
+
+      true ->
+        asset = Repo.get_by(asset_kind, id: id) || struct(asset_kind)
+        changeset = asset_kind.changeset(asset, params)
+        :ok = EagerLoader.cache(changeset)
+        :ok = BotState.set_sync_status("sync_now")
+    end
   end
 
   def handle_call(:network_status, _, state) do
