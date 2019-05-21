@@ -9,15 +9,6 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
   alias FarmbotCore.Project
   alias FarmbotExt.AMQP.ConnectionWorker
 
-  Application.get_env(:farmbot_ext, __MODULE__)[:network_impl] ||
-    Mix.raise("""
-    FarmbotExt.AMQP.ConnectionWorker unconfigured.
-
-    config :farmbot_ext, FarmbotExt.AMQP.ConnectionWorker, [
-      network_impl: FarmbotExt.AMQP.ConnectionWorker.Network
-    ]
-    """)
-
   defstruct [:opts, :conn]
 
   def start_link(args, opts \\ [name: __MODULE__]) do
@@ -103,7 +94,8 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
   end
 
   def network_impl() do
-    Application.get_env(:farmbot_ext, __MODULE__)[:network_impl]
+    mod = Application.get_env(:farmbot_ext, __MODULE__) || []
+    Keyword.get(mod, :network_impl, FarmbotExt.AMQP.ConnectionWorker.Network)
   end
 
   def maybe_connect(jwt_bot_claim) do
