@@ -94,8 +94,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     assert real_conn == fake_con
     assert is_preloaded
     send(pid, {:basic_cancel, "--NOT USED--"})
-    Process.sleep(100)
-    assert_receive :close_channel_called
+    assert_receive :close_channel_called, 75
   end
 
   test "catch-all clause for inbound AMQP messages" do
