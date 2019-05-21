@@ -6,7 +6,8 @@ defmodule FarmbotCore.Asset.Command do
   alias FarmbotCore.{
     Asset,
     Asset.Repo,
-    Asset.Device
+    Asset.Device,
+    Asset.FbosConfig
   }
 
   @type kind :: Device | FbosConfig | FwConfig
@@ -18,5 +19,14 @@ defmodule FarmbotCore.Asset.Command do
     Asset.device()
     |> Device.changeset(params)
     |> Repo.update!()
+  end
+
+  def update(FbosConfig, params) do
+    new_data =
+      FbosConfig.changeset(Asset.fbos_config(), params)
+      |> Repo.insert_or_update!()
+
+    AssetSupervisor.cast_child(new_data, {:new_data, new_data})
+    new_data
   end
 end

@@ -132,7 +132,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
         :ok
 
       asset_kind == FbosConfig ->
-        Asset.update_fbos_config!(params)
+        command().update(asset_kind, params)
         :ok
 
       asset_kind == FirmwareConfig ->
