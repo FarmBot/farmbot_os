@@ -200,11 +200,11 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
 
   defp query() do
     mod = Application.get_env(:farmbot_ext, __MODULE__) || []
-    Keyword.get(mod, :database_impl, Asset.Query)
+    Keyword.get(mod, :query_impl, Asset.Query)
   end
 
   defp command() do
     mod = Application.get_env(:farmbot_ext, __MODULE__) || []
-    Keyword.get(mod, :database_impl, Asset.Command)
+    Keyword.get(mod, :command_impl, Asset.Command)
   end
 end

@@ -131,9 +131,17 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
   test "handles Device assets" do
     %{pid: pid} = under_normal_conditions()
+    test_pid = self()
     payload = '{"args":{"label":"foo"},"body":{}}'
     key = "bot.device_15.sync.Device.999"
+    stub(MockQuery, :auto_sync?, fn -> true end)
+
+    stub(MockCommand, :update, fn x, y ->
+      send(test_pid, {:update_called, x, y})
+      nil
+    end)
+
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    Process.sleep(1)
+    assert_receive {:update_called, FarmbotCore.Asset.Device, %{}}, 10
   end
 end
