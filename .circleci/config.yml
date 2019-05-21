@@ -151,7 +151,12 @@ jobs:
           paths:
             - farmbot_celery_script/_build/test
             - farmbot_celery_script/deps
+      - save_cache: 
+          key: v12-fbcs-coverage-cache-{{ .Branch }}-{{ .Revision }}
+          paths:
             - farmbot_celery_script/cover
+      - store_artifacts:
+          path: farmbot_celery_script/cover
 
   test_farmbot_firmware:
     <<: *defaults
@@ -180,7 +185,12 @@ jobs:
           paths:
             - farmbot_firmware/_build/test
             - farmbot_firmware/deps
+      - save_cache: 
+          key: v12-fbfw-coverage-cache-{{ .Branch }}-{{ .Revision }}
+          paths:
             - farmbot_firmware/cover
+      - store_artifacts:
+          path: farmbot_firmware/cover
 
   test_farmbot_core:
     <<: *defaults
@@ -220,7 +230,12 @@ jobs:
             - farmbot_core/_build/test
             - farmbot_core/deps
             - farmbot_core/arduino
+      - save_cache: 
+          key: v12-fbcore-coverage-cache-{{ .Branch }}-{{ .Revision }}
+          paths:
             - farmbot_core/cover
+      - store_artifacts:
+          path: farmbot_core/cover
       - save_cache:
           key: v12-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
           paths:
@@ -262,7 +277,12 @@ jobs:
           paths:
             - farmbot_ext/_build/test
             - farmbot_ext/deps
+      - save_cache: 
+          key: v12-fbext-coverage-cache-{{ .Branch }}-{{ .Revision }}
+          paths:
             - farmbot_ext/cover
+      - store_artifacts:
+          path: farmbot_ext/cover
 
   test_farmbot_os:
     <<: *defaults
@@ -292,7 +312,12 @@ jobs:
           paths:
             - farmbot_os/_build/host
             - farmbot_os/deps/host
+      - save_cache: 
+          key: v12-fbos-coverage-cache-{{ .Branch }}-{{ .Revision }}
+          paths:
             - farmbot_os/cover
+      - store_artifacts:
+          path: farmbot_os/cover
     
   report_coverage:
     <<: *defaults
@@ -309,21 +334,24 @@ jobs:
       - restore_cache:
           keys:
             - v12-fbsupport-test-dependency-cache-{{ checksum "mix.lock" }}
-      - restore_cache:
-          keys:
-            - v12-fbcs-test-dependency-cache-{{ checksum "farmbot_celery_script/mix.lock" }}
-      - restore_cache:
-          keys:
-            - v12-fbfw-test-dependency-cache-{{ checksum "farmbot_firmware/mix.lock" }}
-      - restore_cache:
-          keys:
-            - v12-fbcore-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
-      - restore_cache:
-          keys:
-            - v12-fbext-test-dependency-cache-{{ checksum "farmbot_ext/mix.lock" }}
-      - restore_cache:
+      - restore_cache: 
           keys: 
-            - v12-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+            - v12-fbcs-coverage-cache-{{ .Branch }}-{{ .Revision }}
+      - restore_cache: 
+          keys: 
+            - v12-fbcs-coverage-cache-{{ .Branch }}-{{ .Revision }}
+      - restore_cache: 
+          keys: 
+            - v12-fbfw-coverage-cache-{{ .Branch }}-{{ .Revision }}
+      - restore_cache: 
+          keys: 
+            - v12-fbcore-coverage-cache-{{ .Branch }}-{{ .Revision }}
+      - restore_cache: 
+          keys: 
+            - v12-fbext-coverage-cache-{{ .Branch }}-{{ .Revision }}
+      - restore_cache: 
+          keys: 
+            - v12-fbos-coverage-cache-{{ .Branch }}-{{ .Revision }}
       - run:
           name: Report Coverage
           working_directory: /nerves/build/
