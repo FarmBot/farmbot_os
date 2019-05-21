@@ -116,10 +116,17 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
   test "ignores asset deletion when auto_sync is off" do
     %{pid: pid} = under_normal_conditions()
+    test_pid = self()
     payload = '{"args":{"label":"foo"}}'
     key = "bot.device_15.sync.Device.999"
+
+    stub(MockQuery, :auto_sync?, fn ->
+      send(test_pid, :called_auto_sync?)
+      false
+    end)
+
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    Process.sleep(1)
+    assert_receive :called_auto_sync?, 10
   end
 
   test "handles Device assets" do
