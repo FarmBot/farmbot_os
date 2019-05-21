@@ -1,7 +1,6 @@
 defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
   use ExUnit.Case
   import Mox
-  # import ExUnit.CaptureIO #TODO(Rick) See my note below
   alias FarmbotExt.JWT
 
   @fake_jwt "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZ" <>
@@ -95,6 +94,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     assert real_conn == fake_con
     assert is_preloaded
     send(pid, {:basic_cancel, "--NOT USED--"})
+    Process.sleep(100)
     assert_receive :close_channel_called
   end
 
@@ -117,6 +117,14 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
   test "ignores asset deletion when auto_sync is off" do
     %{pid: pid} = under_normal_conditions()
     payload = '{"args":{"label":"foo"}}'
+    key = "bot.device_15.sync.Device.999"
+    send(pid, {:basic_deliver, payload, %{routing_key: key}})
+    Process.sleep(1)
+  end
+
+  test "handles Device assets" do
+    %{pid: pid} = under_normal_conditions()
+    payload = '{"args":{"label":"foo"},"body":{}}'
     key = "bot.device_15.sync.Device.999"
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
     Process.sleep(1)
