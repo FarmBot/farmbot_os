@@ -25,10 +25,10 @@ defmodule FarmbotFirmware.UARTTransport do
   def handle_info(:timeout, %{open: false} = state) do
     opts = [active: true, speed: 115_200, framing: {UART.Framing.Line, separator: "\r\n"}]
 
-    case UART.open(state.uart, state.device, opts) do
-      :ok ->
-        {:noreply, %{state | open: true}}
-
+    with :ok <- open(state.uart, state.device, opts),
+         :ok <- reset(state.uart, state.device, opts) do
+      {:noreply, %{state | open: true}}
+    else
       {:error, reason} ->
         Logger.error("Error opening #{state.device}: #{inspect(reason)}")
         {:noreply, %{state | open: false}, @error_retry_ms}
@@ -49,5 +49,21 @@ defmodule FarmbotFirmware.UARTTransport do
     str = GCODE.encode(code)
     r = UART.write(state.uart, str)
     {:reply, r, state}
+  end
+
+  def reset(_uart_pid, _device_path, _opts) do
+    if module = config()[:reset] do
+      module.reset()
+    else
+      :ok
+    end
+  end
+
+  def open(uart_pid, device_path, opts) do
+    UART.open(uart_pid, device_path, opts)
+  end
+
+  defp config do
+    Application.get_env(:farmbot_firmware, __MODULE__)
   end
 end
