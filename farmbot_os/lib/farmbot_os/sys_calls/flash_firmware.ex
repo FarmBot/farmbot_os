@@ -9,7 +9,8 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
 
     with {:ok, hex_file} <- find_hex_file(package),
          {:ok, tty} <- find_tty(),
-         {_, 0} <- Avrdude.flash(hex_file, tty) do
+         {:ok, fun} <- find_reset_fun(package),
+         {_, 0} <- Avrdude.flash(hex_file, tty, fun) do
       Logger.debug("Firmware flashed successfully!")
 
       %{firmware_hardware: package, firmware_path: tty}
@@ -60,6 +61,16 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
 
   defp find_hex_file(hardware) when is_binary(hardware),
     do: {:error, "unknown firmware hardware: #{hardware}"}
+
+  defp find_reset_fun(_) do
+    config = Application.get_env(:farmbot_firmware, FarmbotFirmware.UARTTransport)
+
+    if module = config[:reset] do
+      {:ok, &module.reset/0}
+    else
+      {:ok, fn -> :ok end}
+    end
+  end
 
   defp assert_exists(fname) do
     if File.exists?(fname) do

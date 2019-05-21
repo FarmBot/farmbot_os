@@ -1,4 +1,4 @@
-defmodule FarmbotOS.Platform.Target.FirmwareReset do
+defmodule FarmbotOS.Platform.Target.FirmwareReset.GPIO do
   @moduledoc """
   Uses GPIO pin 19 to reset the firmware.
   """

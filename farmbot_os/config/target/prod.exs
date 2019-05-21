@@ -57,12 +57,6 @@ config :farmbot_core, FarmbotCore.Asset.Repo,
 config :farmbot,
   ecto_repos: [FarmbotCore.Config.Repo, FarmbotCore.Logger.Repo, FarmbotCore.Asset.Repo]
 
-config :farmbot, FarmbotOS.Init.Supervisor,
-  init_children: [
-    FarmbotOS.Platform.Target.Leds.CircuitsHandler,
-    FarmbotOS.FirmwareTTYDetector
-  ]
-
 config :farmbot, FarmbotOS.Platform.Supervisor,
   platform_children: [
     FarmbotOS.Platform.Target.NervesHubClient,

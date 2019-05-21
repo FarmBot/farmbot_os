@@ -5,15 +5,16 @@ defmodule Avrdude do
 
   @uart_speed 115_200
 
-  # def flash(_, _), do: {"ok", 0}
-
-  def flash(hex_path, tty_path) do
+  @spec flash(Path.t(), Path.t(), (() -> :ok)) :: {number, any()}
+  def flash(hex_path, tty_path, reset_fun) do
     tty_path =
       if String.contains?(tty_path, "/dev") do
         tty_path
       else
         "/dev/#{tty_path}"
       end
+
+    _ = File.stat!(hex_path)
 
     # STEP 1: Is the UART in use?
     args = [
@@ -26,7 +27,8 @@ defmodule Avrdude do
       "-Uflash:w:#{hex_path}:i"
     ]
 
-    FarmbotOS.Platform.Target.FirmwareReset.reset()
+    # call the function for resetting the line before executing avrdude.
+    :ok = reset_fun.()
     MuonTrap.cmd("avrdude", args, into: IO.stream(:stdio, :line))
   end
 end
