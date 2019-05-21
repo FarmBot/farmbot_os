@@ -58,12 +58,18 @@ defmodule FarmbotCore.FirmwareSideEffects do
   def handle_software_version([version]) do
     :ok = BotState.set_firmware_version(version)
     case String.split(version, ".") do
+      # Ramps
       [_, _, _, "R"] ->
         :ok = BotState.set_firmware_hardware("arduino")
+      # Farmduino
       [_, _, _, "F"] ->
         :ok = BotState.set_firmware_hardware("farmduino")
+      # Farmduino V14
       [_, _, _, "G"] ->
         :ok = BotState.set_firmware_hardware("farmduino_k14")
+      # Express V10
+      [_, _, _, "E"] ->
+        :ok = BotState.set_firmware_hardware("express_k10")
       [_, _, _, "S"] ->
         :ok = BotState.set_firmware_hardware("stubduino")
     end
