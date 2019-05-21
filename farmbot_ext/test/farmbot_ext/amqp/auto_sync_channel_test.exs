@@ -1,7 +1,6 @@
 defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
   use ExUnit.Case
   import Mox
-  # import ExUnit.CaptureIO #TODO(Rick) See my note below
   alias FarmbotExt.JWT
 
   @fake_jwt "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZ" <>
@@ -58,6 +57,12 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     Map.merge(%{pid: pid}, FarmbotExt.AMQP.AutoSyncChannel.network_status(pid))
   end
 
+  def under_normal_conditions() do
+    fake_con = %{fake: :conn}
+    fake_chan = %{fake: :chan}
+    pretend_network_returned(%{conn: fake_con, chan: fake_chan})
+  end
+
   test "network returns `nil`" do
     results = pretend_network_returned(nil)
     %{conn: has_conn, chan: has_chan, preloaded: is_preloaded} = results
@@ -89,7 +94,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     assert real_conn == fake_con
     assert is_preloaded
     send(pid, {:basic_cancel, "--NOT USED--"})
-    assert_receive :close_channel_called
+    assert_receive :close_channel_called, 75
   end
 
   test "catch-all clause for inbound AMQP messages" do
@@ -106,5 +111,36 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
     send(pid, {:basic_deliver, payload, %{routing_key: "WRONG!"}})
     assert_receive {:rpc_reply_called, %{fake: :chan}, "device_15", "xyz"}
+  end
+
+  test "ignores asset deletion when auto_sync is off" do
+    %{pid: pid} = under_normal_conditions()
+    test_pid = self()
+    payload = '{"args":{"label":"foo"}}'
+    key = "bot.device_15.sync.Device.999"
+
+    stub(MockQuery, :auto_sync?, fn ->
+      send(test_pid, :called_auto_sync?)
+      false
+    end)
+
+    send(pid, {:basic_deliver, payload, %{routing_key: key}})
+    assert_receive :called_auto_sync?, 10
+  end
+
+  test "handles Device assets" do
+    %{pid: pid} = under_normal_conditions()
+    test_pid = self()
+    payload = '{"args":{"label":"foo"},"body":{}}'
+    key = "bot.device_15.sync.Device.999"
+    stub(MockQuery, :auto_sync?, fn -> true end)
+
+    stub(MockCommand, :update, fn x, y ->
+      send(test_pid, {:update_called, x, y})
+      nil
+    end)
+
+    send(pid, {:basic_deliver, payload, %{routing_key: key}})
+    assert_receive {:update_called, FarmbotCore.Asset.Device, %{}}, 10
   end
 end

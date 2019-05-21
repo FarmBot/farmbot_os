@@ -17,12 +17,14 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
 
   alias FarmbotCore.{
     Asset,
-    Asset.Repo,
+    Asset.Command,
     Asset.Device,
-    Asset.FbosConfig,
-    Asset.FirmwareConfig,
     Asset.FarmwareEnv,
     Asset.FarmwareInstallation,
+    Asset.FbosConfig,
+    Asset.FirmwareConfig,
+    Asset.Query,
+    Asset.Repo,
     JSON
   }
 
@@ -112,7 +114,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   end
 
   def handle_asset(asset_kind, id, params) do
-    auto_sync? = Asset.fbos_config().auto_sync
+    auto_sync? = query().auto_sync?()
 
     cond do
       # TODO(Connor) no way to cache a deletion yet
@@ -120,7 +122,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
         :ok
 
       asset_kind == Device ->
-        Asset.update_device(params)
+        command().update(asset_kind, params)
         :ok
 
       asset_kind == FbosConfig ->
@@ -194,5 +196,15 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
       do: FarmbotCore.Logger.error(1, "Failed to connect to AutoSync channel: #{inspect(error)}")
 
     {:noreply, %{state | conn: nil, chan: nil}}
+  end
+
+  defp query() do
+    mod = Application.get_env(:farmbot_ext, __MODULE__) || []
+    Keyword.get(mod, :query_impl, Asset.Query)
+  end
+
+  defp command() do
+    mod = Application.get_env(:farmbot_ext, __MODULE__) || []
+    Keyword.get(mod, :command_impl, Asset.Command)
   end
 end
