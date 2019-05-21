@@ -46,6 +46,8 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback get_current_y() :: axis_position | error
   @callback get_current_z() :: axis_position | error
 
+  @callback zero(axis) :: :ok | error
+
   @callback write_pin(pin_number, pin_mode, pin_value) :: :ok | error
   @callback read_pin(pin_number, pin_mode) :: :ok | error
   @callback named_pin(named_pin_type, resource_id) :: pin_number | error
@@ -174,6 +176,13 @@ defmodule FarmbotCeleryScript.SysCalls do
   def get_current_z(module \\ @sys_call_implementation) do
     case module.get_current_z() do
       position when is_number(position) -> position
+      {:error, reason} when is_binary(reason) -> error(reason)
+    end
+  end
+
+  def zero(module \\ @sys_call_implementation, axis) do
+    case module.zero(axis) do
+      :ok -> :ok
       {:error, reason} when is_binary(reason) -> error(reason)
     end
   end

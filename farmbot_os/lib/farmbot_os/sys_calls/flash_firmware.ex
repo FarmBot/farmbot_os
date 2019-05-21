@@ -5,9 +5,14 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
   require Logger
 
   def flash_firmware(package) do
+    Logger.debug("Starting firmware flash for package: #{package}")
+
     with {:ok, hex_file} <- find_hex_file(package),
          {:ok, tty} <- find_tty(),
-         {_, 0} <- Avrdude.flash(hex_file, tty) do
+         {:ok, fun} <- find_reset_fun(package),
+         {_, 0} <- Avrdude.flash(hex_file, tty, fun) do
+      Logger.debug("Firmware flashed successfully!")
+
       %{firmware_hardware: package, firmware_path: tty}
       |> Asset.update_fbos_config!()
       |> Private.mark_dirty!(%{})
@@ -16,9 +21,11 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
       :ok
     else
       {:error, reason} when is_binary(reason) ->
+        Logger.error("Error flashing firmware")
         {:error, reason}
 
       {_, exit_code} when is_number(exit_code) ->
+        Logger.error("AVRDUDE ERROR: #{exit_code}")
         {:error, "avrdude error: #{exit_code} see logs."}
     end
   end
@@ -48,8 +55,22 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
     Application.app_dir(:farmbot_firmware, ["priv", "farmduino_k14.hex"]) |> assert_exists()
   end
 
+  defp find_hex_file("express_k10") do
+    Application.app_dir(:farmbot_firmware, ["priv", "express_k10.hex"]) |> assert_exists()
+  end
+
   defp find_hex_file(hardware) when is_binary(hardware),
     do: {:error, "unknown firmware hardware: #{hardware}"}
+
+  defp find_reset_fun(_) do
+    config = Application.get_env(:farmbot_firmware, FarmbotFirmware.UARTTransport)
+
+    if module = config[:reset] do
+      {:ok, &module.reset/0}
+    else
+      {:ok, fn -> :ok end}
+    end
+  end
 
   defp assert_exists(fname) do
     if File.exists?(fname) do
