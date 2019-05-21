@@ -58,9 +58,10 @@ defmodule FarmbotOS.SysCalls.DumpInfo do
 
   defp extract_fw_hardware(str) do
     case String.split(str, ".") do
-      [_, _, _, "G"] -> "farmduino_k14"
-      [_, _, _, "F"] -> "farmduino"
       [_, _, _, "R"] -> "arduino"
+      [_, _, _, "F"] -> "farmduino"
+      [_, _, _, "G"] -> "farmduino_k14"
+      [_, _, _, "E"] -> "express_k10"
       _ -> nil
     end
   end
