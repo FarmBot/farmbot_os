@@ -99,7 +99,7 @@ defmodule FarmbotExt.AMQP.BotStateNGChannel do
 
     json = JSON.encode!(value)
 
-    case Basic.publish(chan, @exchange, "bot.#{state.jwt.bot}.status_v8.#{path}", json) do
+    case Basic.publish(chan, @exchange, "bot.#{state.jwt.bot}.upsert.status_v8.#{path}", json) do
       :ok ->
         {:noreply, state, {:continue, rest}}
 
