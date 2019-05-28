@@ -31,7 +31,6 @@ defmodule FarmbotCore.FirmwareSideEffects do
     :ok = BotState.set_encoders_scaled(x, y, z)
   end
 
-
   @impl FarmbotFirmware.SideEffects
   def handle_encoders_raw(x: x, y: y, z: z) do
     :ok = BotState.set_encoders_raw(x, y, z)
@@ -42,6 +41,7 @@ defmodule FarmbotCore.FirmwareSideEffects do
     :ok = BotState.set_firmware_config(param, value)
   end
 
+  @impl FarmbotFirmware.SideEffects
   def handle_parameter_calibration_value([{param, value}]) do
     %{param => value}
     |> Asset.update_firmware_config!()
@@ -85,9 +85,10 @@ defmodule FarmbotCore.FirmwareSideEffects do
     :ok = BotState.set_firmware_busy(busy)
   end
 
-
   @impl FarmbotFirmware.SideEffects
   def handle_idle(idle) do
+    _ = FirmwareEstopTimer.cancel_timer()
+    :ok = BotState.set_firmware_unlocked()
     :ok = BotState.set_firmware_idle(idle)
   end
 
