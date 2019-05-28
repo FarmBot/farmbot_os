@@ -3,7 +3,7 @@ defmodule FarmbotOS.AlertHelpers do
     %{
       kind: :rpc_request,
       args: %{label: "findme"},
-      body: [%{kind: :flash_firmware, args: %{package: "arduino"}}]
+      body: [%{kind: :flash_firmware, args: %{package: package}}]
     }
     |> FarmbotCeleryScript.AST.decode()
     |> FarmbotCeleryScript.Scheduler.schedule()
