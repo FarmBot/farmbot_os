@@ -118,7 +118,6 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   @impl NervesHub.Client
   def update_available(data) do
     GenServer.call(__MODULE__, {:handle_nerves_hub_update_available, data})
-    :ok
   end
 
   @doc """
@@ -240,6 +239,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
 
     # Cause NervesRuntime.KV to restart.
     _ = GenServer.stop(Nerves.Runtime.KV)
+    _ = Application.ensure_all_started(:nerves_hub)
 
     # Wait for a few seconds for good luck.
     Process.sleep(1000)
