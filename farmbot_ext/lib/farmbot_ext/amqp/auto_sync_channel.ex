@@ -68,6 +68,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   def handle_continue(:preload, state) do
     :ok = Preloader.preload_all()
     next_state = %{state | preloaded: true}
+    :ok = BotState.set_sync_status("synced")
     {:noreply, next_state, {:continue, :connect}}
   end
 
