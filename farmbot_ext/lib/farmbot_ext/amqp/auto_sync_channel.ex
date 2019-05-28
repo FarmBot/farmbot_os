@@ -17,13 +17,11 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
 
   alias FarmbotCore.{
     Asset,
-    Asset.Command,
     Asset.Device,
     Asset.FarmwareEnv,
     Asset.FarmwareInstallation,
     Asset.FbosConfig,
     Asset.FirmwareConfig,
-    Asset.Query,
     Asset.Repo,
     JSON
   }
@@ -47,6 +45,11 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
 
   defstruct [:conn, :chan, :jwt, :preloaded]
   alias __MODULE__, as: State
+
+  @doc "Gets the current status of an auto_sync connection"
+  def network_status(server \\ __MODULE__) do
+    GenServer.call(server, :network_status)
+  end
 
   @doc false
   def start_link(args, opts \\ [name: __MODULE__]) do
@@ -114,63 +117,6 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     {:noreply, state}
   end
 
-  def handle_asset(asset_kind, id, params) do
-    auto_sync? = query().auto_sync?()
-
-    cond do
-      # TODO(Connor) no way to cache a deletion yet
-      is_nil(params) && !auto_sync? ->
-        :ok
-
-      asset_kind == Device ->
-        command().update(asset_kind, params)
-        :ok
-
-      asset_kind == FbosConfig ->
-        Asset.update_fbos_config!(params)
-        :ok
-
-      asset_kind == FirmwareConfig ->
-        Asset.update_firmware_config!(params)
-        :ok
-
-      # TODO(Connor) make this use `sync_group0()`
-      asset_kind == FarmwareEnv ->
-        Asset.upsert_farmware_env_by_id(id, params)
-        :ok
-
-      # TODO(Connor) make this use `sync_group0()`
-      asset_kind == FarmwareInstallation ->
-        Asset.upsert_farmware_manifest_by_id(id, params)
-        :ok
-
-      is_nil(params) && auto_sync? ->
-        old = Repo.get_by(asset_kind, id: id)
-        old && Repo.delete!(old)
-        :ok
-
-      auto_sync? ->
-        case Repo.get_by(asset_kind, id: id) do
-          nil ->
-            struct(asset_kind)
-            |> asset_kind.changeset(params)
-            |> Repo.insert!()
-
-          asset ->
-            asset_kind.changeset(asset, params)
-            |> Repo.update!()
-        end
-
-        :ok
-
-      true ->
-        asset = Repo.get_by(asset_kind, id: id) || struct(asset_kind)
-        changeset = asset_kind.changeset(asset, params)
-        :ok = EagerLoader.cache(changeset)
-        :ok = BotState.set_sync_status("sync_now")
-    end
-  end
-
   def handle_call(:network_status, _, state) do
     {
       :reply,
@@ -183,8 +129,86 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     }
   end
 
-  def network_status(server \\ __MODULE__) do
-    GenServer.call(server, :network_status)
+  def handle_asset(asset_kind, id, params) do
+    auto_sync? = query().auto_sync?()
+
+    if auto_sync? do
+      :ok = BotState.set_sync_status("syncing")
+      auto_sync(asset_kind, id, params)
+      :ok = BotState.set_sync_status("synced")
+    else
+      cache_sync(asset_kind, id, params)
+    end
+  end
+
+  def auto_sync(asset_kind = Device, _id, params) do
+    # TODO(Connor) maybe check this value?
+    _ = command().update(asset_kind, params)
+    :ok
+  end
+
+  def auto_sync(FbosConfig, _id, params) do
+    _ = Asset.update_fbos_config!(params)
+    :ok
+  end
+
+  def auto_sync(FirmwareConfig, _id, params) do
+    _ = Asset.update_firmware_config!(params)
+    :ok
+  end
+
+  def auto_sync(FarmwareEnv, id, params) do
+    _ = Asset.upsert_farmware_env_by_id(id, params)
+    :ok
+  end
+
+  def auto_sync(FarmwareInstallation, id, params) do
+    _ = Asset.upsert_farmware_env_by_id(id, params)
+    :ok
+  end
+
+  def auto_sync(asset_kind, id, nil) do
+    old = Repo.get_by(asset_kind, id: id)
+    old && Repo.delete!(old)
+    :ok
+  end
+
+  def auto_sync(asset_kind, id, params) do
+    Logger.info("autosyncing: #{asset_kind} #{id} #{inspect(params)}")
+
+    case Repo.get_by(asset_kind, id: id) do
+      nil ->
+        struct(asset_kind)
+        |> asset_kind.changeset(params)
+        |> Repo.insert!()
+
+      asset ->
+        asset_kind.changeset(asset, params)
+        |> Repo.update!()
+    end
+
+    :ok
+  end
+
+  def cache_sync(kind, id, params)
+      when kind in [
+             Device,
+             FbosConfig,
+             FirmwareConfig,
+             FarmwareEnv,
+             FarmwareInstallation
+           ] do
+    :ok = BotState.set_sync_status("syncing")
+    :ok = auto_sync(kind, id, params)
+    :ok = BotState.set_sync_status("synced")
+  end
+
+  def cache_sync(asset_kind, id, params) do
+    Logger.info("Autcaching sync #{asset_kind} #{id} #{inspect(params)}")
+    asset = Repo.get_by(asset_kind, id: id) || struct(asset_kind)
+    changeset = asset_kind.changeset(asset, params)
+    :ok = EagerLoader.cache(changeset)
+    :ok = BotState.set_sync_status("sync_now")
   end
 
   defp compute_reply_from_amqp_state(state, %{conn: conn, chan: chan}) do
