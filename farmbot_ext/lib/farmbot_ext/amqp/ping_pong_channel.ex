@@ -77,10 +77,8 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
   end
 
   def handle_info({:basic_deliver, payload, %{routing_key: routing_key}}, state) do
-    FarmbotCore.Logger.debug(3, "ping: #{routing_key}")
     routing_key = String.replace(routing_key, "ping", "pong")
     :ok = Basic.publish(state.chan, @exchange, routing_key, payload)
-    FarmbotCore.Logger.debug(3, "pong: #{routing_key}")
     {:noreply, state}
   end
 end
