@@ -58,13 +58,16 @@ defmodule FarmbotExt.AMQP.BotStateNGChannel do
   end
 
   def handle_cast(:force, state) do
+    bot_state = BotState.fetch()
+    changes = ChangeGenerator.changes(bot_state)
+
     json =
-      BotState.fetch()
+      bot_state
       |> BotStateNG.view()
       |> JSON.encode!()
 
     Basic.publish(state.chan, @exchange, "bot.#{state.jwt.bot}.status", json)
-    {:noreply, state, 0}
+    {:noreply, %{state | changes: changes}, 0}
   end
 
   def handle_info(:timeout, %{conn: nil, chan: nil} = state) do
