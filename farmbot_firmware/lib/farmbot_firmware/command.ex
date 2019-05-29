@@ -48,6 +48,9 @@ defmodule FarmbotFirmware.Command do
 
       {tag, _report} ->
         wait_for_command_result(tag, code, retries, err)
+    after
+      30_000 ->
+        raise("Firmware server failed to respond within 30 seconds")
     end
   end
 end
