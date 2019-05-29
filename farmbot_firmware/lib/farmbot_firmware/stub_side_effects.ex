@@ -1,6 +1,8 @@
 defmodule FarmbotFirmware.StubSideEffects do
-  @behaviour FarmbotFirmware.SideEffects
+  alias FarmbotFirmware.SideEffects
+  @behaviour SideEffects
 
+  @impl SideEffects
   def load_params do
     [
       movement_home_spd_z: 200.0,
@@ -94,37 +96,57 @@ defmodule FarmbotFirmware.StubSideEffects do
     ]
   end
 
+  @impl SideEffects
   def handle_position(_), do: :noop
 
+  @impl SideEffects
   def handle_position_change(_), do: :noop
 
+  @impl SideEffects
   def handle_axis_state(_), do: :noop
 
+  @impl SideEffects
   def handle_calibration_state(_), do: :noop
 
+  @impl SideEffects
   def handle_encoders_scaled(_), do: :noop
 
+  @impl SideEffects
   def handle_encoders_raw(_), do: :noop
 
+  @impl SideEffects
   def handle_parameter_value(_), do: :noop
 
+  @impl SideEffects
+  def handle_parameter_calibration_value(_), do: :noop
+
+  @impl SideEffects
   def handle_end_stops(_), do: :noop
 
+  @impl SideEffects
   def handle_emergency_lock(), do: :noop
 
+  @impl SideEffects
   def handle_emergency_unlock(), do: :noop
 
+  @impl SideEffects
   def handle_pin_value(_), do: :noop
 
+  @impl SideEffects
   def handle_software_version(_), do: :noop
 
+  @impl SideEffects
   def handle_busy(_), do: :noop
 
+  @impl SideEffects
   def handle_idle(_), do: :noop
 
+  @impl SideEffects
   def handle_input_gcode(_), do: :noop
 
+  @impl SideEffects
   def handle_output_gcode(_), do: :noop
 
+  @impl SideEffects
   def handle_debug_message(_), do: :noop
 end
