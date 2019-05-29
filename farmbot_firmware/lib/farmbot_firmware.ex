@@ -77,6 +77,29 @@ defmodule FarmbotFirmware do
       def handle_call({"166", {:parameter_write, [some_param: 100.00]}}, _from, state)
 
   and reply with `:ok | {:error, term()}`
+
+  # VCR
+
+  This server can save all the input and output gcodes to a text file for
+  further external analysis or playback later.
+
+  ## Using VCR mode
+
+  The server can be started in VCR mode by doing:
+
+      FarmbotFirmware.start_link([transport: FarmbotFirmware.StubTransport, vcr_path: "/tmp/vcr.txt"], [])
+
+  or can be started at runtime:
+
+      FarmbotFirmware.enter_vcr_mode(firmware_server, "/tmp/vcr.txt")
+
+  in either case the VCR recording needs to be stopped:
+
+      FarmbotFirmware.exit_vcr_mode(firmware_server)
+
+  VCRs can later be played back:
+
+      FarmbotFirmware.VCR.playback!("/tmp/vcr.txt")
   """
   use GenServer
   require Logger
@@ -105,7 +128,8 @@ defmodule FarmbotFirmware do
     :configuration_queue,
     :command_queue,
     :caller_pid,
-    :current
+    :current,
+    :vcr_fd
   ]
 
   @type state :: %State{
@@ -119,7 +143,8 @@ defmodule FarmbotFirmware do
           configuration_queue: [{GCODE.kind(), GCODE.args()}],
           command_queue: [{pid(), GCODE.t()}],
           caller_pid: nil | pid,
-          current: nil | GCODE.t()
+          current: nil | GCODE.t(),
+          vcr_fd: nil | File.io_device()
         }
 
   @doc """
@@ -176,6 +201,22 @@ defmodule FarmbotFirmware do
   end
 
   @doc """
+  Sets the Firmware server to record input and output GCODES
+  to a pair of text files.
+  """
+  def enter_vcr_mode(server \\ __MODULE__, tape_path) do
+    GenServer.call(server, {:enter_vcr_mode, tape_path})
+  end
+
+  @doc """
+  Sets the Firmware server to stop recording input and output 
+  GCODES.
+  """
+  def exit_vcr_mode(server \\ __MODULE__) do
+    GenServer.cast(server, :exit_vcr_mode)
+  end
+
+  @doc """
   Starting the Firmware server requires at least:
   * `:transport` - a module implementing the Transport GenServer behaviour.
     See the `Transports` section of moduledoc.
@@ -193,6 +234,16 @@ defmodule FarmbotFirmware do
     transport = Keyword.fetch!(args, :transport)
     side_effects = Keyword.get(args, :side_effects)
 
+    vcr_fd =
+      case Keyword.get(args, :vcr_path) do
+        nil ->
+          nil
+
+        tape_path ->
+          {:ok, vcr_fd} = File.open(tape_path, [:binary, :append, :exclusive, :write])
+          vcr_fd
+      end
+
     # Add an anon function that transport implementations should call.
     fw = self()
     fun = fn {_, _} = code -> GenServer.cast(fw, code) end
@@ -206,7 +257,8 @@ defmodule FarmbotFirmware do
       side_effects: side_effects,
       status: :transport_boot,
       command_queue: [],
-      configuration_queue: []
+      configuration_queue: [],
+      vcr_fd: vcr_fd
     }
 
     send(self(), :timeout)
@@ -251,7 +303,8 @@ defmodule FarmbotFirmware do
     case GenServer.call(state.transport_pid, {state.tag, code}) do
       :ok ->
         new_state = %{state | current: code, configuration_queue: rest}
-        side_effects(new_state, :handle_output_gcode, [{state.tag, code}])
+        _ = side_effects(new_state, :handle_output_gcode, [{state.tag, code}])
+        _ = vcr_write(state.vcr_fd, :out, {state.tag, code})
         {:noreply, new_state}
 
       error ->
@@ -263,7 +316,8 @@ defmodule FarmbotFirmware do
     case GenServer.call(state.transport_pid, {tag, code}) do
       :ok ->
         new_state = %{state | tag: tag, current: code, command_queue: rest, caller_pid: pid}
-        side_effects(new_state, :handle_output_gcode, [{state.tag, code}])
+        _ = side_effects(new_state, :handle_output_gcode, [{state.tag, code}])
+        _ = vcr_write(state.vcr_fd, :out, {state.tag, code})
         {:noreply, new_state}
 
       error ->
@@ -317,6 +371,15 @@ defmodule FarmbotFirmware do
     {:reply, {:error, s}, state}
   end
 
+  def handle_call({:enter_vcr_mode, tape_path}, _from, state) do
+    with {:ok, vcr_fd} <- File.open(tape_path, [:binary, :append, :exclusive, :write]) do
+      {:reply, :ok, %{state | vcr_fd: vcr_fd}}
+    else
+      error ->
+        {:reply, error, state}
+    end
+  end
+
   def handle_call({_tag, _code} = gcode, from, state) do
     handle_command(gcode, from, state)
   end
@@ -358,9 +421,15 @@ defmodule FarmbotFirmware do
     end
   end
 
+  def handle_cast(:exit_vcr_mode, state) do
+    state.vcr_fd && File.close(state.vcr_fd)
+    {:noreply, %{state | vcr_fd: nil}}
+  end
+
   # Extracts tag
   def handle_cast({tag, {_, _} = code}, state) do
-    side_effects(state, :handle_input_gcode, [{tag, code}])
+    _ = side_effects(state, :handle_input_gcode, [{tag, code}])
+    _ = vcr_write(state.vcr_fd, :in, {tag, code})
     handle_report(code, %{state | tag: tag})
   end
 
@@ -616,4 +685,17 @@ defmodule FarmbotFirmware do
   @spec side_effects(state, atom, GCODE.args()) :: any()
   defp side_effects(%{side_effects: nil}, _function, _args), do: nil
   defp side_effects(%{side_effects: m}, function, args), do: apply(m, function, args)
+
+  @spec vcr_write(nil | File.io_device(), :in | :out, GCODE.t()) :: :ok
+  defp vcr_write(nil, _direction, _code), do: :ok
+
+  defp vcr_write(fd, :in, code), do: vcr_write(fd, "<", code)
+
+  defp vcr_write(fd, :out, code), do: vcr_write(fd, ">", code)
+
+  defp vcr_write(fd, direction, code) do
+    data = GCODE.encode(code)
+    time = :os.system_time()
+    IO.write(fd, direction <> " #{time} " <> data <> "\n")
+  end
 end
