@@ -94,7 +94,7 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   # If the changeset was valid, update the record.
   def handle_changeset(%{valid?: true} = changeset, rest, state) do
-    Logger.info("Successfully synced: #{state.module}", changeset: changeset)
+    Logger.info("Successfully synced: #{state.module}")
 
     Repo.update!(changeset)
     |> Private.mark_clean!()

@@ -23,6 +23,7 @@ defmodule FarmbotFirmware.GCODE do
           | :report_invalid
           | :report_home_complete
           | :report_position
+          | :report_position_change
           | :report_parameters_complete
           | :report_parameter_value
           | :report_calibration_parameter_value
