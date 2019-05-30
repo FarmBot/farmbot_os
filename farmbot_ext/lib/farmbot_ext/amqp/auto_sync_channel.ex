@@ -152,18 +152,20 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     :ok
   end
 
-  def auto_sync(FirmwareConfig, _id, params) do
-    _ = Asset.update_firmware_config!(params)
+  def auto_sync(asset_kind = FirmwareConfig, _id, params) do
+    _ = command().update(asset_kind, params)
     :ok
   end
 
+  # TODD(Rick) Should  we  change the `id` param to be last to match other
+  # pattern matches?
   def auto_sync(FarmwareEnv, id, params) do
-    _ = Asset.upsert_farmware_env_by_id(id, params)
+    _ = command().update(FarmwareEnv, params, id)
     :ok
   end
 
   def auto_sync(FarmwareInstallation, id, params) do
-    _ = Asset.upsert_farmware_env_by_id(id, params)
+    _ = command().update(FarmwareInstallation, params, id)
     :ok
   end
 
