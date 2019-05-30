@@ -206,8 +206,8 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     :ok
   end
 
-  def auto_sync(FbosConfig, _id, params) do
-    _ = Asset.update_fbos_config!(params)
+  def auto_sync(asset_kind = FbosConfig, _id, params) do
+    _ = command().update(asset_kind, params)
     :ok
   end
 

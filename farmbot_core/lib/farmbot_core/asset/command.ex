@@ -22,11 +22,6 @@ defmodule FarmbotCore.Asset.Command do
   end
 
   def update(FbosConfig, params) do
-    new_data =
-      FbosConfig.changeset(Asset.fbos_config(), params)
-      |> Repo.insert_or_update!()
-
-    AssetSupervisor.cast_child(new_data, {:new_data, new_data})
-    new_data
+    Asset.update_fbos_config!(params)
   end
 end
