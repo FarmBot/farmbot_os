@@ -135,13 +135,13 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     key = "bot.device_15.sync.Device.999"
     stub(MockQuery, :auto_sync?, fn -> true end)
 
-    stub(MockCommand, :update, fn x, y ->
-      send(test_pid, {:update_called, x, y})
+    stub(MockCommand, :update, fn x, y, z ->
+      send(test_pid, {:update_called, x, y, z})
       nil
     end)
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    assert_receive {:update_called, FarmbotCore.Asset.Device, %{}}, 10
+    assert_receive {:update_called, FarmbotCore.Asset.Device, %{}, 999}, 10
   end
 
   def simple_asset_test_singleton(module_) do
@@ -155,8 +155,8 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
     stub(MockQuery, :auto_sync?, fn -> true end)
 
-    stub(MockCommand, :update, fn x, y ->
-      send(test_pid, {:update_called, x, y})
+    stub(MockCommand, :update, fn x, y, z ->
+      send(test_pid, {:update_called, x, y, z})
       nil
     end)
 
@@ -167,7 +167,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
 
-    assert_receive {:update_called, ^full_module, %{"foo" => "bar"}}, 10
+    assert_receive {:update_called, ^full_module, %{"foo" => "bar"}, 999}, 10
   end
 
   def simple_asset_test_plural(module_) do
