@@ -39,11 +39,11 @@ defmodule FarmbotCore.Asset.Command do
     :ok
   end
 
-  # Catach-all usee case:
+  # Catch-all use case:
   def update(asset_kind, params, id) do
     Logger.info("autosyncing: #{asset_kind} #{id} #{inspect(params)}")
 
-    case Repo.get_by(asset_kind, id: id) do
+    case Repo.get_by(Module.concat([Asset, asset_kind]), id: id) do
       nil ->
         struct(asset_kind)
         |> asset_kind.changeset(params)

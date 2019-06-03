@@ -203,8 +203,9 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
 
   def cache_sync(asset_kind, params, id) do
     Logger.info("Autcaching sync #{asset_kind} #{id} #{inspect(params)}")
-    asset = Repo.get_by(asset_kind, id: id) || struct(asset_kind)
-    changeset = asset_kind.changeset(asset, params)
+    mod = Module.concat([Asset, asset_kind])
+    asset = Repo.get_by(mod, id: id) || struct(asset_kind)
+    changeset = mod.changeset(asset, params)
     :ok = EagerLoader.cache(changeset)
     :ok = BotState.set_sync_status("sync_now")
   end
