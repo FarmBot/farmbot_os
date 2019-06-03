@@ -167,7 +167,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
 
-    assert_receive {:update_called, full_module, %{"foo" => "bar"}}, 10
+    assert_receive {:update_called, ^full_module, %{"foo" => "bar"}}, 10
   end
 
   def simple_asset_test_plural(module_) do
@@ -188,7 +188,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
 
-    assert_receive {:update_called, full_module, %{"foo" => "bar"}, 999}, 10
+    assert_receive {:update_called, ^full_module, %{"foo" => "bar"}, 999}, 10
   end
 
   test "handles FbosConfig", do: simple_asset_test_singleton(FbosConfig)
