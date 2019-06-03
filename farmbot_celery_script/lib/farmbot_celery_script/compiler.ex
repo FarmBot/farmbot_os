@@ -640,7 +640,7 @@ defmodule FarmbotCeleryScript.Compiler do
       resource_update(
         unquote(compile_ast(kind)),
         unquote(compile_ast(id)),
-        unquote(compile_ast(params))
+        unquote(params)
       )
     end
   end

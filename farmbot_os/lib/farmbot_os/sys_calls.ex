@@ -47,11 +47,13 @@ defmodule FarmbotOS.SysCalls do
     GenServer.stop(FarmbotFirmware, :reboot)
   end
 
+  def resource_update("Plant", id, params), do: resource_update("Point", id, params)
+
   def resource_update(kind, id, params) do
     module = Module.concat(Asset, kind)
 
     with true <- Code.ensure_loaded?(module),
-         %{} = orig <- Repo.get_by(module, [id: id], preload: [:local_meta]),
+         %{} = orig <- resource_lookup(module, id),
          %{valid?: true} = change <- module.changeset(orig, params),
          {:ok, new} <- Repo.update(change),
          new <- Repo.preload(new, [:local_meta]) do
@@ -67,6 +69,16 @@ defmodule FarmbotOS.SysCalls do
       %{valid?: false} = changeset ->
         {:error, "failed to update #{kind}: #{inspect(changeset.errors)}"}
     end
+  end
+
+  defp resource_lookup(module, 0) do
+    module
+    |> Repo.one()
+    |> Repo.preload(:local_meta)
+  end
+
+  defp resource_lookup(module, id) do
+    Repo.get_by(module, [id: id], preload: [:local_meta])
   end
 
   def set_user_env(key, value) do

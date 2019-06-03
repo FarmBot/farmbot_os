@@ -119,14 +119,14 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   defp http_request(%{id: nil} = dirty, state) do
     Logger.debug("#{state.module} clean request (post)")
-    path = state.module.path()
+    path = state.module.path() |> IO.inspect(label: "HTTP POST")
     data = render(state.module, dirty)
     API.post(API.client(), path, data)
   end
 
   defp http_request(dirty, state) do
     Logger.debug("#{state.module} dirty request (patch)")
-    path = state.module.path()
+    path = state.module.path() |> IO.inspect(label: "HTTP PATCH")
     data = render(state.module, dirty)
     API.patch(API.client(), path, data)
   end
