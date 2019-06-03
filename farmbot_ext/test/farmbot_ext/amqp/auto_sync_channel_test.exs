@@ -42,7 +42,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
     stub(MockConnectionWorker, :close_channel, fn _ ->
       send(test_pid, :close_channel_called)
-      nil
+      :ok
     end)
 
     stub(MockConnectionWorker, :rpc_reply, fn chan, jwt_dot_bot, label ->
@@ -137,7 +137,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
     stub(MockCommand, :update, fn x, y, z ->
       send(test_pid, {:update_called, x, y, z})
-      nil
+      :ok
     end)
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
@@ -157,12 +157,12 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
     stub(MockCommand, :update, fn x, y, z ->
       send(test_pid, {:update_called, x, y, z})
-      nil
+      :ok
     end)
 
     stub(MockCommand, :update, fn x, y, z ->
       send(test_pid, {:update_called, x, y, z})
-      nil
+      :ok
     end)
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
@@ -183,7 +183,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
     stub(MockCommand, :update, fn x, y, z ->
       send(test_pid, {:update_called, x, y, z})
-      nil
+      :ok
     end)
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
