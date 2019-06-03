@@ -7,44 +7,13 @@ defmodule FarmbotCore.Asset.Command do
   alias FarmbotCore.{
     Asset,
     Asset.Repo,
-    Asset.Device,
-    Asset.FbosConfig
+    Asset.Device
   }
 
-  @type kind :: Device | FbosConfig | FwConfig | FarmwareEnv
+  @type kind :: String.t()
   @type params :: map()
   @type id :: float()
-  @type return_type :: Device.t() | FbosConfig.t() | FwConfig.t()
-
-  # NOTE TO SELF:
-  # "Alert"
-  # "Device"
-  # "FarmEvent"
-  # "FarmwareEnv"
-  # "FarmwareInstallation"
-  # "FbosConfig"
-  # "FirmwareConfig"
-  # "Point"
-  # "GlobalConfig"
-  # "Image"
-  # "Log"
-  # "Peripheral"
-  # "PinBinding"
-  # "Point"
-  # "PlantTemplate"
-  # "Point"
-  # "Regimen"
-  # "RegimenItem"
-  # "SavedGarden"
-  # "Sensor"
-  # "SensorReading"
-  # "Sequence"
-  # "TokenIssuance"
-  # "Tool"
-  # "Point"
-  # "User"
-  # "WebAppConfig"
-  # "WebcamFeed"
+  @type return_type :: :ok
 
   @callback update(kind, params, id) :: return_type
   def update("Device", params) do
