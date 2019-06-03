@@ -15,16 +15,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   require Logger
   require FarmbotCore.Logger
 
-  alias FarmbotCore.{
-    Asset,
-    Asset.Device,
-    Asset.FarmwareEnv,
-    Asset.FarmwareInstallation,
-    Asset.FbosConfig,
-    Asset.FirmwareConfig,
-    Asset.Repo,
-    JSON
-  }
+  alias FarmbotCore.{Asset, Asset.Repo, JSON}
 
   @known_kinds ~w(
     Device
@@ -43,6 +34,13 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     Tool
   )
 
+  @cache_kinds ~w(
+    Device
+    FbosConfig
+    FirmwareConfig
+    FarmwareEnv
+    FarmwareInstallation
+  )
   defstruct [:conn, :chan, :jwt, :preloaded]
   alias __MODULE__, as: State
 
@@ -105,7 +103,6 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
 
     case String.split(key, ".") do
       ["bot", ^device, "sync", asset_kind, id_str] when asset_kind in @known_kinds ->
-        asset_kind = Module.concat([Asset, asset_kind])
         id = data["id"] || String.to_integer(id_str)
         handle_asset(asset_kind, id, body)
 
@@ -141,14 +138,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     end
   end
 
-  def cache_sync(kind, params, id)
-      when kind in [
-             Device,
-             FbosConfig,
-             FirmwareConfig,
-             FarmwareEnv,
-             FarmwareInstallation
-           ] do
+  def cache_sync(kind, params, id) when kind in @cache_kinds do
     :ok = BotState.set_sync_status("syncing")
     :ok = command().update(kind, params, id)
     :ok = BotState.set_sync_status("synced")

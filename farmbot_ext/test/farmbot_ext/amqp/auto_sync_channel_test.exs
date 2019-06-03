@@ -141,13 +141,10 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     end)
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    assert_receive {:update_called, FarmbotCore.Asset.Device, %{}, 999}, 10
+    assert_receive {:update_called, "Device", %{}, 999}, 10
   end
 
-  def simple_asset_test_singleton(module_) do
-    module_name = Macro.to_string(module_)
-    full_module = Module.concat(FarmbotCore.Asset, module_)
-
+  def simple_asset_test_singleton(module_name) do
     %{pid: pid} = under_normal_conditions()
     test_pid = self()
     payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
@@ -167,13 +164,10 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
 
-    assert_receive {:update_called, ^full_module, %{"foo" => "bar"}, 999}, 10
+    assert_receive {:update_called, module_name, %{"foo" => "bar"}, 999}, 10
   end
 
-  def simple_asset_test_plural(module_) do
-    module_name = Macro.to_string(module_)
-    full_module = Module.concat(FarmbotCore.Asset, module_)
-
+  def simple_asset_test_plural(module_name) do
     %{pid: pid} = under_normal_conditions()
     test_pid = self()
     payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
@@ -188,11 +182,11 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
 
-    assert_receive {:update_called, ^full_module, %{"foo" => "bar"}, 999}, 10
+    assert_receive {:update_called, module_name, %{"foo" => "bar"}, 999}, 10
   end
 
-  test "handles FbosConfig", do: simple_asset_test_singleton(FbosConfig)
-  test "handles FirmwareConfig", do: simple_asset_test_singleton(FirmwareConfig)
-  test "handles FarmwareEnv", do: simple_asset_test_plural(FarmwareEnv)
-  test "handles FarmwareInstallation", do: simple_asset_test_plural(FarmwareInstallation)
+  test "handles FbosConfig", do: simple_asset_test_singleton("FbosConfig")
+  test "handles FirmwareConfig", do: simple_asset_test_singleton("FirmwareConfig")
+  test "handles FarmwareEnv", do: simple_asset_test_plural("FarmwareEnv")
+  test "handles FarmwareInstallation", do: simple_asset_test_plural("FarmwareInstallation")
 end
