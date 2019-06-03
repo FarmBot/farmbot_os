@@ -311,5 +311,34 @@ defmodule FarmbotFirmware.GCODETest do
       assert {nil, {:report_debug_message, ["Hello, World!"]}} = GCODE.decode("R99 Hello, World!")
       assert "R99 Hello, World!" = GCODE.encode({nil, {:report_debug_message, ["Hello, World!"]}})
     end
+
+    test "express params" do
+      assert {nil, {:report_parameter_value, [movement_motor_current_x: 0.0]}} =
+               GCODE.decode("R21 P81 V0")
+
+      assert {nil, {:report_parameter_value, [movement_motor_current_y: 0.0]}} =
+               GCODE.decode("R21 P82 V0")
+
+      assert {nil, {:report_parameter_value, [movement_motor_current_z: 0.0]}} =
+               GCODE.decode("R21 P83 V0")
+
+      assert {nil, {:report_parameter_value, [movement_stall_sensitivity_x: 0.0]}} =
+               GCODE.decode("R21 P85 V0")
+
+      assert {nil, {:report_parameter_value, [movement_stall_sensitivity_y: 0.0]}} =
+               GCODE.decode("R21 P86 V0")
+
+      assert {nil, {:report_parameter_value, [movement_stall_sensitivity_z: 0.0]}} =
+               GCODE.decode("R21 P87 V0")
+
+      assert {nil, {:report_parameter_value, [movement_microsteps_x: 0.0]}} =
+               GCODE.decode("R21 P91 V0")
+
+      assert {nil, {:report_parameter_value, [movement_microsteps_y: 0.0]}} =
+               GCODE.decode("R21 P92 V0")
+
+      assert {nil, {:report_parameter_value, [movement_microsteps_z: 0.0]}} =
+               GCODE.decode("R21 P93 V0")
+    end
   end
 end
