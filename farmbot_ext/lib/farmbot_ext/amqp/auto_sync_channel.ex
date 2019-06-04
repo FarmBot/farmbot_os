@@ -143,7 +143,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   end
 
   def cache_sync(asset_kind, params, id) do
-    Logger.info("Autcaching sync #{asset_kind} #{id} #{inspect(params)}")
+    Logger.info("Autocaching sync #{asset_kind} #{id} #{inspect(params)}")
     mod = Module.concat([Asset, asset_kind])
     asset = Repo.get_by(mod, id: id) || struct(asset_kind)
     changeset = mod.changeset(asset, params)
