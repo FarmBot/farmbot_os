@@ -8,32 +8,12 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   use GenServer
   use AMQP
 
-  alias FarmbotCore.Asset
-  alias FarmbotCore.BotState
+  alias FarmbotCore.{Asset, BotState, JSON}
   alias FarmbotExt.AMQP.ConnectionWorker
   alias FarmbotExt.API.{EagerLoader, Preloader}
 
   require Logger
   require FarmbotCore.Logger
-
-  alias FarmbotCore.{Asset, JSON}
-
-  @known_kinds ~w(
-    Device
-    DiagnosticDump
-    FarmEvent
-    FarmwareEnv
-    FarmwareInstallation
-    FbosConfig
-    FirmwareConfig
-    Peripheral
-    PinBinding
-    Point
-    Regimen
-    Sensor
-    Sequence
-    Tool
-  )
 
   @cache_kinds ~w(
     Device
@@ -42,6 +22,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     FarmwareEnv
     FarmwareInstallation
   )
+
   defstruct [:conn, :chan, :jwt, :preloaded]
   alias __MODULE__, as: State
 
@@ -103,7 +84,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     body = data["body"]
 
     case String.split(key, ".") do
-      ["bot", ^device, "sync", asset_kind, id_str] when asset_kind in @known_kinds ->
+      ["bot", ^device, "sync", asset_kind, id_str] ->
         id = data["id"] || String.to_integer(id_str)
         handle_asset(asset_kind, id, body)
 
@@ -116,15 +97,9 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   end
 
   def handle_call(:network_status, _, state) do
-    {
-      :reply,
-      %{
-        conn: Map.fetch!(state, :conn),
-        chan: Map.fetch!(state, :chan),
-        preloaded: Map.fetch!(state, :preloaded)
-      },
-      state
-    }
+    reply = %{conn: state.conn, chan: state.chan, preloaded: state.preloaded}
+
+    {:reply, reply, state}
   end
 
   def handle_asset(asset_kind, id, params) do
@@ -145,7 +120,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
 
   def cache_sync(asset_kind, params, id) do
     Logger.info("Autocaching sync #{asset_kind} #{id} #{inspect(params)}")
-    changeset = command().new_cache_changeset(asset_kind, params, id)
+    changeset = command().new_changeset(asset_kind, id, params)
     :ok = EagerLoader.cache(changeset)
     :ok = BotState.set_sync_status("sync_now")
   end
