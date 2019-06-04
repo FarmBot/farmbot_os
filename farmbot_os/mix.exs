@@ -18,6 +18,7 @@ defmodule FarmbotOS.MixProject do
       version: @version,
       branch: @branch,
       commit: @commit,
+      elixirc_options: [warnings_as_errors: true, ignore_module_conflict: true],
       archives: [nerves_bootstrap: "~> 1.4"],
       start_permanent: Mix.env() == :prod,
       build_embedded: false,
