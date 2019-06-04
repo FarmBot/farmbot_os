@@ -184,14 +184,12 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   end
 
   def handle_asset(asset_kind, id, params) do
-    auto_sync? = query().auto_sync?()
-
-    if auto_sync? do
+    if query().auto_sync?() do
       :ok = BotState.set_sync_status("syncing")
       command().update(asset_kind, params, id)
       :ok = BotState.set_sync_status("synced")
     else
-      cache_sync(asset_kind, id, params)
+      cache_sync(asset_kind, params, id)
     end
   end
 
