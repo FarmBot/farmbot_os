@@ -16,6 +16,7 @@ defmodule FarmbotFirmware.MixProject do
       app: :farmbot_firmware,
       version: @version,
       elixir: @elixir_version,
+      elixirc_options: [warnings_as_errors: true, ignore_module_conflict: true],
       arduino_commit: arduino_commit(),
       start_permanent: Mix.env() == :prod,
       test_coverage: [tool: ExCoveralls],

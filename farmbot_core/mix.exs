@@ -14,6 +14,7 @@ defmodule FarmbotCore.MixProject do
       app: :farmbot_core,
       description: "The Brains of the Farmbot Project",
       elixir: @elixir_version,
+      elixirc_options: [warnings_as_errors: true, ignore_module_conflict: true],
       make_clean: ["clean"],
       make_cwd: __DIR__,
       compilers: [:elixir_make] ++ Mix.compilers(),
