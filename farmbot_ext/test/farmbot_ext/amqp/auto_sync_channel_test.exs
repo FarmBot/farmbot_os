@@ -50,7 +50,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
       :ok
     end)
 
-    {:ok, pid} = FarmbotExt.AMQP.AutoSyncChannel.start_link(jwt: jwt)
+    {:ok, pid} = FarmbotExt.AMQP.AutoSyncChannel.start_link([jwt: jwt], [])
     assert_receive :preload_all_called
     assert_receive {:maybe_connect_called, "device_15"}
 
