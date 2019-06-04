@@ -4,12 +4,8 @@ defmodule FarmbotCore.Asset.Command do
   """
   require Logger
 
-  alias FarmbotCore.{
-    Asset,
-    Asset.Repo,
-    Asset.Device
-  }
-
+  alias FarmbotCore.{Asset, Asset.Repo, Asset.Device}
+  alias FarmbotExt.API.{EagerLoader}
   @type kind :: String.t()
   @type params :: map()
   @type id :: float()
@@ -55,6 +51,15 @@ defmodule FarmbotCore.Asset.Command do
     end
 
     :ok
+  end
+
+  @callback cached_update(kind, params, id) :: return_type
+  def cached_update(asset_kind, params, id) do
+    mod = as_module(asset_kind)
+    asset = Repo.get_by(mod, id: id) || struct(asset_kind)
+    changeset = mod.changeset(asset, params)
+    :ok = EagerLoader.cache(changeset)
+    :ok = BotState.set_sync_status("sync_now")
   end
 
   # Convert string `"Device"` to module `Asset.Device`

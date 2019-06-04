@@ -10,12 +10,12 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
 
   alias FarmbotCore.BotState
   alias FarmbotExt.AMQP.ConnectionWorker
-  alias FarmbotExt.API.{Preloader, EagerLoader}
+  alias FarmbotExt.API.{Preloader}
 
   require Logger
   require FarmbotCore.Logger
 
-  alias FarmbotCore.{Asset, Asset.Repo, JSON}
+  alias FarmbotCore.{Asset, JSON}
 
   @known_kinds ~w(
     Device
@@ -144,11 +144,8 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
 
   def cache_sync(asset_kind, params, id) do
     Logger.info("Autocaching sync #{asset_kind} #{id} #{inspect(params)}")
-    mod = Module.concat([Asset, asset_kind])
-    asset = Repo.get_by(mod, id: id) || struct(asset_kind)
-    changeset = mod.changeset(asset, params)
-    :ok = EagerLoader.cache(changeset)
-    :ok = BotState.set_sync_status("sync_now")
+
+    command().cached_update(asset_kind, params, id)
   end
 
   defp compute_reply_from_amqp_state(state, %{conn: conn, chan: chan}) do

@@ -212,25 +212,24 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     assert_receive {:update_called, "FbosConfig", %{"foo" => "bar"}, 999}, 10
   end
 
-  # test "auto_sync disabled, resource not in @cache_kinds" do
-  #   test_pid = self()
-  #   %{pid: pid} = under_normal_conditions()
+  test "auto_sync disabled, resource not in @cache_kinds" do
+    test_pid = self()
+    %{pid: pid} = under_normal_conditions()
 
-  #   key = "bot.device_15.sync.Point.999"
-  #   payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
+    key = "bot.device_15.sync.Point.999"
+    payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
 
-  #   stub(MockQuery, :auto_sync?, fn ->
-  #     send(test_pid, :called_auto_sync?)
-  #     false
-  #   end)
+    stub(MockQuery, :auto_sync?, fn ->
+      send(test_pid, :called_auto_sync?)
+      false
+    end)
 
-  #   stub(MockCommand, :update, fn x, y, z ->
-  #     send(test_pid, {:update_called, x, y, z})
-  #     :ok
-  #   end)
+    stub(MockCommand, :cached_update, fn x, y, z ->
+      send(test_pid, {:cached_update_called, x, y, z})
+      :ok
+    end)
 
-  #   send(pid, {:basic_deliver, payload, %{routing_key: key}})
-  #   assert_receive :called_auto_sync?, 10
-  #   assert_receive {:update_called, "Point", %{"foo" => "bar"}, 999}, 10
-  # end
+    send(pid, {:basic_deliver, payload, %{routing_key: key}})
+    assert_receive {:cached_update_called, "Point", %{"foo" => "bar"}, 999}, 10
+  end
 end
