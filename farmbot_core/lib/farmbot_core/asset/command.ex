@@ -4,7 +4,7 @@ defmodule FarmbotCore.Asset.Command do
   """
   require Logger
 
-  alias FarmbotCore.{Asset, Asset.Repo, Asset.Device}
+  alias FarmbotCore.{Asset, Asset.Repo, Asset.Device, BotState}
   alias FarmbotExt.API.{EagerLoader}
   @type kind :: String.t()
   @type params :: map()
