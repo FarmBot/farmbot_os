@@ -2,9 +2,9 @@ defmodule FarmbotCore.Asset.Command do
   @moduledoc """
   A collection of functions that _write_ to the DB
   """
-  require Logger
+  alias FarmbotCore.{Asset, Asset.Repo, Device}
 
-  alias FarmbotCore.{Asset, Asset.Repo, Asset.Device}
+  alias FarmbotCore.{Asset, Asset.Repo, Asset.Device, BotState}
   alias FarmbotExt.API.{EagerLoader}
   @type kind :: String.t()
   @type params :: map()
@@ -37,8 +37,6 @@ defmodule FarmbotCore.Asset.Command do
 
   # Catch-all use case:
   def update(asset_kind, params, id) do
-    Logger.info("autosyncing: #{asset_kind} #{id} #{inspect(params)}")
-
     case Repo.get_by(as_module(asset_kind), id: id) do
       nil ->
         struct(asset_kind)
@@ -53,13 +51,11 @@ defmodule FarmbotCore.Asset.Command do
     :ok
   end
 
-  @callback cached_update(kind, params, id) :: return_type
-  def cached_update(asset_kind, params, id) do
+  @callback new_cache_changeset(kind, params, id) :: return_type
+  def new_cache_changeset(asset_kind, params, id) do
     mod = as_module(asset_kind)
     asset = Repo.get_by(mod, id: id) || struct(asset_kind)
-    changeset = mod.changeset(asset, params)
-    :ok = EagerLoader.cache(changeset)
-    :ok = BotState.set_sync_status("sync_now")
+    mod.changeset(asset, params)
   end
 
   # Convert string `"Device"` to module `Asset.Device`
