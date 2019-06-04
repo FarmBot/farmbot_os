@@ -59,9 +59,9 @@ build_firmware_steps: &build_firmware_steps
           echo "$MIX_TARGET" > MIX_TARGET
           echo "$MIX_ENV" > MIX_ENV
     - restore_cache:
-        key: v12-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+        key: v13-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
     - restore_cache:
-        key: v12-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+        key: v13-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
     - <<: *install_elixir
     - <<: *install_hex_archives
     - run:
@@ -79,7 +79,7 @@ build_firmware_steps: &build_firmware_steps
         command: |
           cp /nerves/build/farmbot_os/_build/${MIX_TARGET}/${MIX_TARGET}_${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
     - save_cache:
-        key: v12-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+        key: v13-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
         paths:
           - /nerves/build/farmbot_os/_build/
           - /nerves/build/farmbot_os/deps/
@@ -99,7 +99,7 @@ deploy_nerves_hub_firmware_steps: &deploy_nerves_hub_firmware_steps
           echo "$MIX_TARGET" > MIX_TARGET
           echo "$MIX_ENV" > MIX_ENV
     - restore_cache:
-        key: v12-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+        key: v13-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
     - restore_cache:
         key: nerves/deploy/system-{{ checksum "MIX_TARGET" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
     - <<: *install_elixir
@@ -135,7 +135,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v12-fbcs-test-dependency-cache-{{ checksum "farmbot_celery_script/mix.lock" }}
+            - v13-fbcs-test-dependency-cache-{{ checksum "farmbot_celery_script/mix.lock" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
@@ -147,12 +147,12 @@ jobs:
             mix format --check-formatted
             mix coveralls.json
       - save_cache:
-          key: v12-fbcs-test-dependency-cache-{{ checksum "farmbot_celery_script/mix.lock" }}
+          key: v13-fbcs-test-dependency-cache-{{ checksum "farmbot_celery_script/mix.lock" }}
           paths:
             - farmbot_celery_script/_build/test
             - farmbot_celery_script/deps
       - save_cache: 
-          key: v12-fbcs-coverage-cache-{{ .Branch }}-{{ .Revision }}
+          key: v13-fbcs-coverage-cache-{{ .Branch }}-{{ .Revision }}
           paths:
             - farmbot_celery_script/cover
       - store_artifacts:
@@ -169,7 +169,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v12-fbfw-test-dependency-cache-{{ checksum "farmbot_firmware/mix.lock" }}
+            - v13-fbfw-test-dependency-cache-{{ checksum "farmbot_firmware/mix.lock" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
@@ -181,12 +181,12 @@ jobs:
             mix format --check-formatted
             mix coveralls.json
       - save_cache:
-          key: v12-fbfw-test-dependency-cache-{{ checksum "farmbot_firmware/mix.lock" }}
+          key: v13-fbfw-test-dependency-cache-{{ checksum "farmbot_firmware/mix.lock" }}
           paths:
             - farmbot_firmware/_build/test
             - farmbot_firmware/deps
       - save_cache: 
-          key: v12-fbfw-coverage-cache-{{ .Branch }}-{{ .Revision }}
+          key: v13-fbfw-coverage-cache-{{ .Branch }}-{{ .Revision }}
           paths:
             - farmbot_firmware/cover
       - store_artifacts:
@@ -205,10 +205,10 @@ jobs:
       - run: git submodule update --init --recursive
       - restore_cache:
           keys:
-            - v12-fbcore-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
+            - v13-fbcore-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
       - restore_cache:
           keys:
-            - v12-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
+            - v13-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - <<: *install_arduino
@@ -225,19 +225,19 @@ jobs:
             mix format --check-formatted
             mix coveralls.json --trace
       - save_cache:
-          key: v12-fbcore-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
+          key: v13-fbcore-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
           paths:
             - farmbot_core/_build/test
             - farmbot_core/deps
             - farmbot_core/arduino
       - save_cache: 
-          key: v12-fbcore-coverage-cache-{{ .Branch }}-{{ .Revision }}
+          key: v13-fbcore-coverage-cache-{{ .Branch }}-{{ .Revision }}
           paths:
             - farmbot_core/cover
       - store_artifacts:
           path: farmbot_core/cover
       - save_cache:
-          key: v12-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
+          key: v13-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
           paths:
             - ~/arduino-1.8.5
             - farmbot_core/_build/core
@@ -259,7 +259,7 @@ jobs:
       - run: git submodule update --init --recursive
       - restore_cache:
           keys:
-            - v12-fbext-test-dependency-cache-{{ checksum "farmbot_ext/mix.lock" }}
+            - v13-fbext-test-dependency-cache-{{ checksum "farmbot_ext/mix.lock" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
@@ -273,12 +273,12 @@ jobs:
             mix ecto.migrate
             mix coveralls.json
       - save_cache:
-          key: v12-fbext-test-dependency-cache-{{ checksum "farmbot_ext/mix.lock" }}
+          key: v13-fbext-test-dependency-cache-{{ checksum "farmbot_ext/mix.lock" }}
           paths:
             - farmbot_ext/_build/test
             - farmbot_ext/deps
       - save_cache: 
-          key: v12-fbext-coverage-cache-{{ .Branch }}-{{ .Revision }}
+          key: v13-fbext-coverage-cache-{{ .Branch }}-{{ .Revision }}
           paths:
             - farmbot_ext/cover
       - store_artifacts:
@@ -296,7 +296,7 @@ jobs:
       - run: git submodule update --init --recursive
       - restore_cache:
           keys: 
-            - v12-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+            - v13-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
@@ -308,12 +308,12 @@ jobs:
             mix format --check-formatted
             mix coveralls.json
       - save_cache:
-          key: v12-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+          key: v13-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
           paths:
             - farmbot_os/_build/host
             - farmbot_os/deps/host
       - save_cache: 
-          key: v12-fbos-coverage-cache-{{ .Branch }}-{{ .Revision }}
+          key: v13-fbos-coverage-cache-{{ .Branch }}-{{ .Revision }}
           paths:
             - farmbot_os/cover
       - store_artifacts:
@@ -333,25 +333,25 @@ jobs:
       - <<: *install_hex_archives
       - restore_cache:
           keys:
-            - v12-fbsupport-test-dependency-cache-{{ checksum "mix.lock" }}
+            - v13-fbsupport-test-dependency-cache-{{ checksum "mix.lock" }}
       - restore_cache: 
           keys: 
-            - v12-fbcs-coverage-cache-{{ .Branch }}-{{ .Revision }}
+            - v13-fbcs-coverage-cache-{{ .Branch }}-{{ .Revision }}
       - restore_cache: 
           keys: 
-            - v12-fbcs-coverage-cache-{{ .Branch }}-{{ .Revision }}
+            - v13-fbcs-coverage-cache-{{ .Branch }}-{{ .Revision }}
       - restore_cache: 
           keys: 
-            - v12-fbfw-coverage-cache-{{ .Branch }}-{{ .Revision }}
+            - v13-fbfw-coverage-cache-{{ .Branch }}-{{ .Revision }}
       - restore_cache: 
           keys: 
-            - v12-fbcore-coverage-cache-{{ .Branch }}-{{ .Revision }}
+            - v13-fbcore-coverage-cache-{{ .Branch }}-{{ .Revision }}
       - restore_cache: 
           keys: 
-            - v12-fbext-coverage-cache-{{ .Branch }}-{{ .Revision }}
+            - v13-fbext-coverage-cache-{{ .Branch }}-{{ .Revision }}
       - restore_cache: 
           keys: 
-            - v12-fbos-coverage-cache-{{ .Branch }}-{{ .Revision }}
+            - v13-fbos-coverage-cache-{{ .Branch }}-{{ .Revision }}
       - run:
           name: Report Coverage
           working_directory: /nerves/build/
@@ -361,7 +361,7 @@ jobs:
             mix format --check-formatted
             mix farmbot.coveralls circle
       - save_cache:
-          key: v12-fbsupport-test-dependency-cache-{{ checksum "mix.lock" }}
+          key: v13-fbsupport-test-dependency-cache-{{ checksum "mix.lock" }}
           paths:
             - deps/
             - _build
