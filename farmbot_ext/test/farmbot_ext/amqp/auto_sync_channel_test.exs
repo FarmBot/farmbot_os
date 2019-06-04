@@ -224,12 +224,12 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
       false
     end)
 
-    stub(MockCommand, :new_cache_changeset, fn x, y, z ->
-      send(test_pid, {:new_cache_changeset_called, x, y, z})
+    stub(MockCommand, :new_changeset, fn kind, id, params ->
+      send(test_pid, {:new_changeset_called, kind, id, params})
       :ok
     end)
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    assert_receive {:new_cache_changeset_called, "Point", %{"foo" => "bar"}, 999}, 10
+    assert_receive {:new_changeset_called, "Point", 999, %{"foo" => "bar"}}, 10
   end
 end
