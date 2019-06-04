@@ -8,6 +8,7 @@ defmodule FarmbotExt.MixProject do
       app: :farmbot_ext,
       version: @version,
       elixir: @elixir_version,
+      elixirc_options: [warnings_as_errors: true, ignore_module_conflict: true],
       start_permanent: Mix.env() == :prod,
       elixirc_paths: ["lib", "vendor"],
       test_coverage: [tool: ExCoveralls],
