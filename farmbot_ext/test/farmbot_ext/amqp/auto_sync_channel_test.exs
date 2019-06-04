@@ -192,6 +192,10 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
   test "handles auto_sync of 'cache_assets' when auto_sync is false" do
     test_pid = self()
+    %{pid: pid} = under_normal_conditions()
+
+    key = "bot.device_15.sync.FbosConfig.999"
+    payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
 
     stub(MockQuery, :auto_sync?, fn ->
       send(test_pid, :called_auto_sync?)
@@ -203,18 +207,30 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
       :ok
     end)
 
-    %{pid: pid} = under_normal_conditions()
-    payload = '{"args":{"label":"foo"}}'
-    key = "bot.device_15.sync.Device.999"
-
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
     assert_receive :called_auto_sync?, 10
-
-    payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
-    key = "bot.device_15.sync.FbosConfig.999"
-
-    send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    Process.sleep(100)
-    assert_receive {:update_called, module_name, %{"foo" => "bar"}, 999}, 10
+    assert_receive {:update_called, "FbosConfig", %{"foo" => "bar"}, 999}, 10
   end
+
+  # test "auto_sync disabled, resource not in @cache_kinds" do
+  #   test_pid = self()
+  #   %{pid: pid} = under_normal_conditions()
+
+  #   key = "bot.device_15.sync.Point.999"
+  #   payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
+
+  #   stub(MockQuery, :auto_sync?, fn ->
+  #     send(test_pid, :called_auto_sync?)
+  #     false
+  #   end)
+
+  #   stub(MockCommand, :update, fn x, y, z ->
+  #     send(test_pid, {:update_called, x, y, z})
+  #     :ok
+  #   end)
+
+  #   send(pid, {:basic_deliver, payload, %{routing_key: key}})
+  #   assert_receive :called_auto_sync?, 10
+  #   assert_receive {:update_called, "Point", %{"foo" => "bar"}, 999}, 10
+  # end
 end
