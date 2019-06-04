@@ -32,9 +32,9 @@ defmodule FarmbotCore.Asset.Command do
   def update("FarmwareInstallation", id, params),
     do: Asset.upsert_farmware_env_by_id(id, params)
 
-  # Deleteion use case:
+  # Deletion use case:
   def update(asset_kind, nil, id) do
-    old = Repo.get_by(asset_kind, id: id)
+    old = Repo.get_by(as_module(asset_kind), id: id)
     old && Repo.delete!(old)
     :ok
   end
@@ -43,7 +43,7 @@ defmodule FarmbotCore.Asset.Command do
   def update(asset_kind, params, id) do
     Logger.info("autosyncing: #{asset_kind} #{id} #{inspect(params)}")
 
-    case Repo.get_by(Module.concat([Asset, asset_kind]), id: id) do
+    case Repo.get_by(as_module(asset_kind), id: id) do
       nil ->
         struct(asset_kind)
         |> asset_kind.changeset(params)
@@ -55,5 +55,10 @@ defmodule FarmbotCore.Asset.Command do
     end
 
     :ok
+  end
+
+  # Convert string `"Device"` to module `Asset.Device`
+  defp as_module(asset_kind) do
+    Module.concat([Asset, asset_kind])
   end
 end
