@@ -8,9 +8,10 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   use GenServer
   use AMQP
 
+  alias FarmbotCore.Asset
   alias FarmbotCore.BotState
   alias FarmbotExt.AMQP.ConnectionWorker
-  alias FarmbotExt.API.{Preloader}
+  alias FarmbotExt.API.{EagerLoader, Preloader}
 
   require Logger
   require FarmbotCore.Logger
@@ -144,8 +145,9 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
 
   def cache_sync(asset_kind, params, id) do
     Logger.info("Autocaching sync #{asset_kind} #{id} #{inspect(params)}")
-
-    command().cached_update(asset_kind, params, id)
+    changeset = command().new_cache_changeset(asset_kind, params, id)
+    :ok = EagerLoader.cache(changeset)
+    :ok = BotState.set_sync_status("sync_now")
   end
 
   defp compute_reply_from_amqp_state(state, %{conn: conn, chan: chan}) do
