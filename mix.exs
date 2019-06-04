@@ -15,6 +15,7 @@ defmodule FarmbotSupport.MixProject do
       app: :farmbot_support,
       version: @version,
       elixir: @elixir_version,
+      elixirc_options: [warnings_as_errors: true, ignore_module_conflict: true],
       start_permanent: Mix.env() == :prod,
       elixirc_paths: ["support"],
       test_coverage: [tool: ExCoveralls],

@@ -191,6 +191,11 @@ defmodule Farmbot.TestSupport.CeleryScript.TestSysCalls do
     call({:home, [axis, speed]})
   end
 
+  @impl true
+  def zero(axis) do
+    call({:zero, [axis]})
+  end
+
   defp call(data) do
     GenServer.call(__MODULE__, data, :infinity)
   end
