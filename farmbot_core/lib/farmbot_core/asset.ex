@@ -35,7 +35,7 @@ defmodule FarmbotCore.Asset do
     Repo.one(Device) || %Device{}
   end
 
-  def update_device(params) do
+  def update_device!(params) do
     device()
     |> Device.changeset(params)
     |> Repo.update!()
