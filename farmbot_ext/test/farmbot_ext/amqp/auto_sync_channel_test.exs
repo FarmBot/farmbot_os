@@ -189,4 +189,32 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
   test "handles FirmwareConfig", do: simple_asset_test_singleton("FirmwareConfig")
   test "handles FarmwareEnv", do: simple_asset_test_plural("FarmwareEnv")
   test "handles FarmwareInstallation", do: simple_asset_test_plural("FarmwareInstallation")
+
+  test "handles auto_sync of 'cache_assets' when auto_sync is false" do
+    test_pid = self()
+
+    stub(MockQuery, :auto_sync?, fn ->
+      send(test_pid, :called_auto_sync?)
+      false
+    end)
+
+    stub(MockCommand, :update, fn x, y, z ->
+      send(test_pid, {:update_called, x, y, z})
+      :ok
+    end)
+
+    %{pid: pid} = under_normal_conditions()
+    payload = '{"args":{"label":"foo"}}'
+    key = "bot.device_15.sync.Device.999"
+
+    send(pid, {:basic_deliver, payload, %{routing_key: key}})
+    assert_receive :called_auto_sync?, 10
+
+    payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
+    key = "bot.device_15.sync.FbosConfig.999"
+
+    send(pid, {:basic_deliver, payload, %{routing_key: key}})
+    Process.sleep(100)
+    assert_receive {:update_called, module_name, %{"foo" => "bar"}, 999}, 10
+  end
 end
