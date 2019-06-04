@@ -24,8 +24,8 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
   alias __MODULE__, as: State
 
   @doc false
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
+  def start_link(args, opts \\ [name: __MODULE__]) do
+    GenServer.start_link(__MODULE__, args, opts)
   end
 
   def init(args) do
