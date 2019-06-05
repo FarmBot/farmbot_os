@@ -26,6 +26,7 @@ defmodule FarmbotOS.SysCalls do
   defdelegate change_ownership(email, secret, server), to: ChangeOwnership
   defdelegate dump_info(), to: DumpInfo
   defdelegate check_update(), to: CheckUpdate
+  defdelegate read_status(), to: FarmbotExt.AMQP.BotStateChannel
 
   def reboot do
     FarmbotOS.System.reboot("Reboot requested by Sequence or frontend")
@@ -66,10 +67,6 @@ defmodule FarmbotOS.SysCalls do
       %{valid?: false} = changeset ->
         {:error, "failed to update #{kind}: #{inspect(changeset.errors)}"}
     end
-  end
-
-  def read_status do
-    :ok = FarmbotExt.AMQP.BotStateNGChannel.force()
   end
 
   def set_user_env(key, value) do
