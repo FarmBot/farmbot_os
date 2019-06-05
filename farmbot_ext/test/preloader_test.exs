@@ -6,8 +6,7 @@ defmodule FarmbotExt.API.PreloaderTest do
   setup :verify_on_exit!
 
   test "preload" do
-    expect(MockPreloader, :preload_all, fn -> :ok end)
-
+    expect(FarmbotExt.API.Preloader, :preload_all, fn -> :ok end)
     assert FarmbotExt.API.Preloader.preload_all() == :ok
   end
 end
