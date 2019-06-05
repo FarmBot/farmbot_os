@@ -11,6 +11,7 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
   require Logger
 
   alias FarmbotCeleryScript.{AST, Scheduler}
+  alias FarmbotExt.AMQP.ConnectionWorker.Network
 
   @exchange "amq.topic"
 
@@ -35,7 +36,7 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
   end
 
   def handle_info(:timeout, state) do
-    status = network_impl().maybe_connect_celeryscript(state.jwt.bot)
+    status = Network.maybe_connect_celeryscript(state.jwt.bot)
     compute_reply_from_amqp_state(state, status)
   end
 
@@ -129,11 +130,6 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
       nil ->
         {:noreply, state}
     end
-  end
-
-  def network_impl() do
-    mod = Application.get_env(:farmbot_ext, __MODULE__) || []
-    Keyword.get(mod, :network_impl, FarmbotExt.AMQP.ConnectionWorker.Network)
   end
 
   defp compute_reply_from_amqp_state(state, %{conn: conn, chan: chan}) do
