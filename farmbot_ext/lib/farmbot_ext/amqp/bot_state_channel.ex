@@ -1,4 +1,4 @@
-defmodule FarmbotExt.AMQP.BotStateNGChannel do
+defmodule FarmbotExt.AMQP.BotStateChannel do
   @moduledoc """
   Publishes JSON encoded bot state updates onto an AMQP channel
   """
@@ -19,7 +19,7 @@ defmodule FarmbotExt.AMQP.BotStateNGChannel do
   alias __MODULE__, as: State
 
   @doc "Forces pushing the most current state tree"
-  def force do
+  def read_status do
     GenServer.cast(__MODULE__, :force)
   end
 
