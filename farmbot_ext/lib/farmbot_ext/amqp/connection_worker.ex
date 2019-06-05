@@ -5,30 +5,75 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
 
   use GenServer
   require Logger
-  alias FarmbotExt.JWT
-  alias FarmbotCore.Project
-  alias FarmbotExt.AMQP.ConnectionWorker
+  alias AMQP.{Basic, Channel, Queue}
+
+  alias FarmbotExt.{JWT, AMQP.ConnectionWorker}
+  alias FarmbotCore.{Project, JSON}
+
+  @exchange "amq.topic"
+
+  @type connection :: map()
+  @type channel :: map()
 
   defstruct [:opts, :conn]
 
+  @doc "Get the current active connection"
+  @callback connection(GenServer.server()) :: connection()
+  def connection(connection_worker \\ __MODULE__) do
+    GenServer.call(connection_worker, :connection)
+  end
+
+  @doc "Cleanly close an AMQP channel"
+  @callback close_channel(channel) :: nil
+  def close_channel(chan) do
+    Channel.close(chan)
+  end
+
+  @doc "Takes the 'bot' claim seen in the JWT and connects to the AMQP broker."
+  @callback maybe_connect(String.t()) :: connection() | {:error, term()}
+  def maybe_connect(jwt_dot_bot) do
+    bot = jwt_dot_bot
+    auto_sync = bot <> "_auto_sync"
+    route = "bot.#{bot}.sync.#"
+
+    with %{} = conn <- FarmbotExt.AMQP.ConnectionWorker.connection(),
+         {:ok, chan} <- Channel.open(conn),
+         :ok <- Basic.qos(chan, global: true),
+         {:ok, _} <- Queue.declare(chan, auto_sync, auto_delete: false),
+         :ok <- Queue.bind(chan, auto_sync, @exchange, routing_key: route),
+         {:ok, _} <- Basic.consume(chan, auto_sync, self(), no_ack: true) do
+      %{conn: conn, chan: chan}
+    else
+      nil -> %{conn: nil, chan: nil}
+      error -> error
+    end
+  end
+
+  @doc "Respond with an OK message to a CeleryScript(TM) RPC message."
+  @callback rpc_reply(map(), String.t(), String.t()) :: :ok
+  def rpc_reply(chan, jwt_dot_bot, label) do
+    json = JSON.encode!(%{args: %{label: label}, kind: "rpc_ok"})
+    Basic.publish(chan, @exchange, "bot.#{jwt_dot_bot}.from_device", json)
+  end
+
+  @doc false
   def start_link(args, opts \\ [name: __MODULE__]) do
     GenServer.start_link(__MODULE__, args, opts)
   end
 
-  def connection do
-    GenServer.call(__MODULE__, :connection)
-  end
-
+  @impl GenServer
   def init(opts) do
     Process.flag(:sensitive, true)
     Process.flag(:trap_exit, true)
     {:ok, %ConnectionWorker{conn: nil, opts: opts}, 0}
   end
 
+  @impl GenServer
   def terminate(reason, %{conn: nil}) do
     Logger.info("AMQP connection not open: #{inspect(reason)}")
   end
 
+  @impl GenServer
   def terminate(reason, %{conn: conn}) do
     if Process.alive?(conn.pid) do
       try do
@@ -42,6 +87,7 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
     end
   end
 
+  @impl GenServer
   def handle_info(:timeout, state) do
     token = Keyword.fetch!(state.opts, :token)
     email = Keyword.fetch!(state.opts, :email)
@@ -64,9 +110,12 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
     {:stop, reason, conn}
   end
 
-  def handle_call(:connection, _, %{conn: conn} = state), do: {:reply, conn, state}
+  @impl GenServer
+  def handle_call(:connection, _, %{conn: conn} = state) do
+    {:reply, conn, state}
+  end
 
-  def open_connection(token, email, bot, mqtt_server, vhost) do
+  defp open_connection(token, email, bot, mqtt_server, vhost) do
     Logger.info("Opening new AMQP connection.")
 
     # Make sure the types of these fields are correct. If they are not
@@ -91,22 +140,5 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
     ]
 
     AMQP.Connection.open(opts)
-  end
-
-  def network_impl() do
-    mod = Application.get_env(:farmbot_ext, __MODULE__) || []
-    Keyword.get(mod, :network_impl, FarmbotExt.AMQP.ConnectionWorker.Network)
-  end
-
-  def maybe_connect_autosync(jwt_bot_claim) do
-    network_impl().maybe_connect_autosync(jwt_bot_claim)
-  end
-
-  def close_channel(channel) do
-    network_impl().close_channel(channel)
-  end
-
-  def rpc_reply(chan, jwt_dot_bot, label) do
-    network_impl().rpc_reply(chan, jwt_dot_bot, label)
   end
 end
