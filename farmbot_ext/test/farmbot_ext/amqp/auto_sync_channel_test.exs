@@ -1,7 +1,12 @@
-defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
+defmodule AutoSyncChannelTest do
+  alias FarmbotExt.AMQP.AutoSyncChannel
+
   use ExUnit.Case
   import Mox
-  alias FarmbotExt.JWT
+
+  alias FarmbotCore.JSON
+  alias FarmbotCore.Asset.{Query, Command}
+  alias FarmbotExt.{JWT, API.Preloader, AMQP.ConnectionWorker}
 
   @fake_jwt "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZ" <>
               "G1pbkBhZG1pbi5jb20iLCJpYXQiOjE1MDIxMjcxMTcsImp0a" <>
@@ -30,31 +35,31 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
     test_pid = self()
 
-    expect(MockPreloader, :preload_all, fn ->
+    expect(Preloader, :preload_all, fn ->
       send(test_pid, :preload_all_called)
       :ok
     end)
 
-    expect(MockConnectionWorker, :maybe_connect, fn jwt ->
+    expect(ConnectionWorker, :maybe_connect, fn jwt ->
       send(test_pid, {:maybe_connect_called, jwt})
       fake_value
     end)
 
-    stub(MockConnectionWorker, :close_channel, fn _ ->
+    stub(ConnectionWorker, :close_channel, fn _ ->
       send(test_pid, :close_channel_called)
       :ok
     end)
 
-    stub(MockConnectionWorker, :rpc_reply, fn chan, jwt_dot_bot, label ->
+    stub(ConnectionWorker, :rpc_reply, fn chan, jwt_dot_bot, label ->
       send(test_pid, {:rpc_reply_called, chan, jwt_dot_bot, label})
       :ok
     end)
 
-    {:ok, pid} = FarmbotExt.AMQP.AutoSyncChannel.start_link([jwt: jwt], [])
+    {:ok, pid} = AutoSyncChannel.start_link([jwt: jwt], [])
     assert_receive :preload_all_called
     assert_receive {:maybe_connect_called, "device_15"}
 
-    Map.merge(%{pid: pid}, FarmbotExt.AMQP.AutoSyncChannel.network_status(pid))
+    Map.merge(%{pid: pid}, AutoSyncChannel.network_status(pid))
   end
 
   def under_normal_conditions() do
@@ -105,7 +110,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     %{pid: pid} = pretend_network_returned(fake_response)
 
     payload =
-      FarmbotCore.JSON.encode!(%{
+      JSON.encode!(%{
         args: %{label: "xyz"}
       })
 
@@ -119,7 +124,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     payload = '{"args":{"label":"foo"}}'
     key = "bot.device_15.sync.Device.999"
 
-    stub(MockQuery, :auto_sync?, fn ->
+    stub(Query, :auto_sync?, fn ->
       send(test_pid, :called_auto_sync?)
       false
     end)
@@ -133,9 +138,9 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     test_pid = self()
     payload = '{"args":{"label":"foo"},"body":{}}'
     key = "bot.device_15.sync.Device.999"
-    stub(MockQuery, :auto_sync?, fn -> true end)
+    stub(Query, :auto_sync?, fn -> true end)
 
-    stub(MockCommand, :update, fn x, y, z ->
+    stub(Command, :update, fn x, y, z ->
       send(test_pid, {:update_called, x, y, z})
       :ok
     end)
@@ -150,32 +155,14 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
     key = "bot.device_15.sync.#{module_name}.999"
 
-    stub(MockQuery, :auto_sync?, fn -> true end)
+    stub(Query, :auto_sync?, fn -> true end)
 
-    stub(MockCommand, :update, fn x, y, z ->
+    stub(Command, :update, fn x, y, z ->
       send(test_pid, {:update_called, x, y, z})
       :ok
     end)
 
-    stub(MockCommand, :update, fn x, y, z ->
-      send(test_pid, {:update_called, x, y, z})
-      :ok
-    end)
-
-    send(pid, {:basic_deliver, payload, %{routing_key: key}})
-
-    assert_receive {:update_called, module_name, %{"foo" => "bar"}, 999}, 10
-  end
-
-  def simple_asset_test_plural(module_name) do
-    %{pid: pid} = under_normal_conditions()
-    test_pid = self()
-    payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
-    key = "bot.device_15.sync.#{module_name}.999"
-
-    stub(MockQuery, :auto_sync?, fn -> true end)
-
-    stub(MockCommand, :update, fn x, y, z ->
+    stub(Command, :update, fn x, y, z ->
       send(test_pid, {:update_called, x, y, z})
       :ok
     end)
@@ -184,11 +171,6 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
     assert_receive {:update_called, module_name, %{"foo" => "bar"}, 999}, 10
   end
-
-  test "handles FbosConfig", do: simple_asset_test_singleton("FbosConfig")
-  test "handles FirmwareConfig", do: simple_asset_test_singleton("FirmwareConfig")
-  test "handles FarmwareEnv", do: simple_asset_test_plural("FarmwareEnv")
-  test "handles FarmwareInstallation", do: simple_asset_test_plural("FarmwareInstallation")
 
   test "handles auto_sync of 'cache_assets' when auto_sync is false" do
     test_pid = self()
@@ -197,12 +179,12 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     key = "bot.device_15.sync.FbosConfig.999"
     payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
 
-    stub(MockQuery, :auto_sync?, fn ->
+    stub(Query, :auto_sync?, fn ->
       send(test_pid, :called_auto_sync?)
       false
     end)
 
-    stub(MockCommand, :update, fn x, y, z ->
+    stub(Command, :update, fn x, y, z ->
       send(test_pid, {:update_called, x, y, z})
       :ok
     end)
@@ -219,17 +201,40 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
     key = "bot.device_15.sync.Point.999"
     payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
 
-    stub(MockQuery, :auto_sync?, fn ->
+    stub(Query, :auto_sync?, fn ->
       send(test_pid, :called_auto_sync?)
       false
     end)
 
-    stub(MockCommand, :new_changeset, fn kind, id, params ->
+    stub(Command, :new_changeset, fn kind, id, params ->
       send(test_pid, {:new_changeset_called, kind, id, params})
       :ok
     end)
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
     assert_receive {:new_changeset_called, "Point", 999, %{"foo" => "bar"}}, 10
+  end
+
+  test "handles FbosConfig", do: simple_asset_test_singleton("FbosConfig")
+  test "handles FirmwareConfig", do: simple_asset_test_singleton("FirmwareConfig")
+  test "handles FarmwareEnv", do: simple_asset_test_plural("FarmwareEnv")
+  test "handles FarmwareInstallation", do: simple_asset_test_plural("FarmwareInstallation")
+
+  defp simple_asset_test_plural(module_name) do
+    %{pid: pid} = under_normal_conditions()
+    test_pid = self()
+    payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
+    key = "bot.device_15.sync.#{module_name}.999"
+
+    stub(Query, :auto_sync?, fn -> true end)
+
+    stub(Command, :update, fn x, y, z ->
+      send(test_pid, {:update_called, x, y, z})
+      :ok
+    end)
+
+    send(pid, {:basic_deliver, payload, %{routing_key: key}})
+
+    assert_receive {:update_called, module_name, %{"foo" => "bar"}, 999}, 10
   end
 end
