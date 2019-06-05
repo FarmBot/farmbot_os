@@ -49,10 +49,18 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannelTest do
     {:ok, pid}
   end
 
-  test "connection" do
+  test "Network connection returning `nil`" do
     {:ok, pid} = pretend_network_returned(%{conn: nil, chan: nil})
     state = :sys.get_state(pid)
     refute state.chan
     refute state.conn
+  end
+
+  test "Network connection returning non-`nil`" do
+    {:ok, pid} = pretend_network_returned(%{conn: %{a: :b}, chan: %{c: :d}})
+
+    state = :sys.get_state(pid)
+    assert state.chan == %{c: :d}
+    assert state.conn == %{a: :b}
   end
 end
