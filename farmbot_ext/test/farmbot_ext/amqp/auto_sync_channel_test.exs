@@ -40,7 +40,7 @@ defmodule AutoSyncChannelTest do
       :ok
     end)
 
-    expect(ConnectionWorker, :maybe_connect, fn jwt ->
+    expect(ConnectionWorker, :maybe_connect_autosync, fn jwt ->
       send(test_pid, {:maybe_connect_called, jwt})
       fake_value
     end)
