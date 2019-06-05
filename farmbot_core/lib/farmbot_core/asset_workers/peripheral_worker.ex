@@ -1,12 +1,12 @@
 defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
   use GenServer
+  require Logger
   require FarmbotCore.Logger
 
   alias FarmbotCore.{Asset.Peripheral, BotState}
   alias FarmbotCeleryScript.{AST, Scheduler}
 
   @retry_ms 1_000
-  @wrong_fw_versions [nil, "8.0.0.S"]
 
   @impl true
   def preload(%Peripheral{}), do: []
@@ -28,14 +28,18 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
   end
 
   @impl true
-  def handle_info(:timeout, %{fw_version: wrong} = state) when wrong in @wrong_fw_versions do
-    FarmbotCore.Logger.debug(3, "Not reading peripheral. Firmware not started.")
+  def handle_info(:timeout, %{fw_version: nil} = state) do
+    # Logger.debug("Not reading peripheral. Firmware not started.")
     Process.send_after(self(), :timeout, @retry_ms)
     {:noreply, state}
   end
 
+  def handle_info(:timeout, %{fw_version: "8.0.0.S"} = state) do
+    {:noreply, state}
+  end
+
   def handle_info(:timeout, %{fw_idle: false} = state) do
-    FarmbotCore.Logger.debug(3, "Not reading peripheral. Firmware not idle.")
+    # Logger.debug("Not reading peripheral. Firmware not idle.")
     Process.send_after(self(), :timeout, @retry_ms)
     {:noreply, state}
   end
