@@ -29,23 +29,48 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
     Channel.close(chan)
   end
 
-  @doc "Takes the 'bot' claim seen in the JWT and connects to the AMQP broker."
-  @callback maybe_connect(String.t()) :: connection() | {:error, term()}
-  def maybe_connect(jwt_dot_bot) do
-    bot = jwt_dot_bot
-    auto_sync = bot <> "_auto_sync"
-    route = "bot.#{bot}.sync.#"
+  @doc "Uses JWT 'bot' claim and connects to the AMQP broker / autosync channel"
+  @callback maybe_connect_autosync(String.t()) :: map()
+  def maybe_connect_autosync(jwt_dot_bot) do
+    auto_delete = false
+    chan_name = jwt_dot_bot <> "_auto_sync"
+    purge? = false
+    route = "bot.#{jwt_dot_bot}.sync.#"
 
+    maybe_connect(chan_name, route, auto_delete, purge?)
+  end
+
+  @doc "Takes the 'bot' claim seen in the JWT and connects to the RPC server."
+  @callback maybe_connect_celeryscript(String.t()) :: map()
+  def maybe_connect_celeryscript(jwt_dot_bot) do
+    auto_delete = true
+    chan_name = jwt_dot_bot <> "_from_clients"
+    purge? = true
+    route = "bot.#{jwt_dot_bot}.from_clients"
+
+    maybe_connect(chan_name, route, auto_delete, purge?)
+  end
+
+  defp maybe_connect(chan_name, route, auto_delete, purge?) do
     with %{} = conn <- FarmbotExt.AMQP.ConnectionWorker.connection(),
          {:ok, chan} <- Channel.open(conn),
          :ok <- Basic.qos(chan, global: true),
-         {:ok, _} <- Queue.declare(chan, auto_sync, auto_delete: false),
-         :ok <- Queue.bind(chan, auto_sync, @exchange, routing_key: route),
-         {:ok, _} <- Basic.consume(chan, auto_sync, self(), no_ack: true) do
+         {:ok, _} <- Queue.declare(chan, chan_name, auto_delete: auto_delete),
+         {:ok, _} <- maybe_purge(chan, chan_name, purge?),
+         :ok <- Queue.bind(chan, chan_name, @exchange, routing_key: route),
+         {:ok, _} <- Basic.consume(chan, chan_name, self(), no_ack: true) do
       %{conn: conn, chan: chan}
     else
       nil -> %{conn: nil, chan: nil}
       error -> error
+    end
+  end
+
+  defp maybe_purge(chan, chan_name, purge?) do
+    if purge? do
+      Queue.purge(chan, chan_name)
+    else
+      {:ok, :skipped}
     end
   end
 
