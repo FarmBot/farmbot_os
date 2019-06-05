@@ -103,9 +103,9 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   end
 
   def handle_asset(asset_kind, id, params) do
-    if query().auto_sync?() do
+    if Asset.Query.auto_sync?() do
       :ok = BotState.set_sync_status("syncing")
-      command().update(asset_kind, params, id)
+      Asset.Command.update(asset_kind, params, id)
       :ok = BotState.set_sync_status("synced")
     else
       cache_sync(asset_kind, params, id)
@@ -114,13 +114,13 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
 
   def cache_sync(kind, params, id) when kind in @cache_kinds do
     :ok = BotState.set_sync_status("syncing")
-    :ok = command().update(kind, params, id)
+    :ok = Asset.Command.update(kind, params, id)
     :ok = BotState.set_sync_status("synced")
   end
 
   def cache_sync(asset_kind, params, id) do
     Logger.info("Autocaching sync #{asset_kind} #{id} #{inspect(params)}")
-    changeset = command().new_changeset(asset_kind, id, params)
+    changeset = Asset.Command.new_changeset(asset_kind, id, params)
     :ok = EagerLoader.cache(changeset)
     :ok = BotState.set_sync_status("sync_now")
   end
@@ -135,15 +135,5 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
       do: FarmbotCore.Logger.error(1, "Failed to connect to AutoSync channel: #{inspect(error)}")
 
     {:noreply, %{state | conn: nil, chan: nil}}
-  end
-
-  defp query() do
-    mod = Application.get_env(:farmbot_ext, __MODULE__) || []
-    Keyword.get(mod, :query_impl, Asset.Query)
-  end
-
-  defp command() do
-    mod = Application.get_env(:farmbot_ext, __MODULE__) || []
-    Keyword.get(mod, :command_impl, Asset.Command)
   end
 end
