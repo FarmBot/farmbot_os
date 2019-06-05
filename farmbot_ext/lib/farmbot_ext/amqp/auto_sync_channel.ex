@@ -45,7 +45,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   defstruct [:conn, :chan, :jwt, :preloaded]
   alias __MODULE__, as: State
 
-  @doc "Gets the current status of an auto_sync connection"
+  @doc "Gets status of auto_sync connection for diagnostics / tests."
   def network_status(server \\ __MODULE__) do
     GenServer.call(server, :network_status)
   end
@@ -75,7 +75,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   end
 
   def handle_continue(:connect, state) do
-    result = ConnectionWorker.maybe_connect(state.jwt.bot)
+    result = ConnectionWorker.maybe_connect_autosync(state.jwt.bot)
     compute_reply_from_amqp_state(state, result)
   end
 

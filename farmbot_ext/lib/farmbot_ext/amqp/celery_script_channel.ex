@@ -6,16 +6,10 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
   use GenServer
   use AMQP
 
-  alias AMQP.{
-    Channel,
-    Queue
-  }
-
   alias FarmbotCore.JSON
   require FarmbotCore.Logger
   require Logger
 
-  alias FarmbotExt.AMQP.ConnectionWorker
   alias FarmbotCeleryScript.{AST, Scheduler}
 
   @exchange "amq.topic"
@@ -41,26 +35,8 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
   end
 
   def handle_info(:timeout, state) do
-    bot = state.jwt.bot
-    from_clients = bot <> "_from_clients"
-    route = "bot.#{bot}.from_clients"
-
-    with %{} = conn <- ConnectionWorker.connection(),
-         {:ok, chan} <- Channel.open(conn),
-         :ok <- Basic.qos(chan, global: true),
-         {:ok, _} <- Queue.declare(chan, from_clients, auto_delete: true),
-         {:ok, _} <- Queue.purge(chan, from_clients),
-         :ok <- Queue.bind(chan, from_clients, @exchange, routing_key: route),
-         {:ok, _tag} <- Basic.consume(chan, from_clients, self(), no_ack: true) do
-      {:noreply, %{state | conn: conn, chan: chan}}
-    else
-      nil ->
-        {:noreply, %{state | conn: nil, chan: nil}, 5000}
-
-      err ->
-        FarmbotCore.Logger.error(1, "Failed to connect to CeleryScript channel: #{inspect(err)}")
-        {:noreply, %{state | conn: nil, chan: nil}, 1000}
-    end
+    status = network_impl().maybe_connect_celeryscript(state.jwt.bot)
+    compute_reply_from_amqp_state(state, status)
   end
 
   # Confirmation sent by the broker after registering this process as a consumer
@@ -153,5 +129,22 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
       nil ->
         {:noreply, state}
     end
+  end
+
+  def network_impl() do
+    mod = Application.get_env(:farmbot_ext, __MODULE__) || []
+    Keyword.get(mod, :network_impl, FarmbotExt.AMQP.ConnectionWorker.Network)
+  end
+
+  defp compute_reply_from_amqp_state(state, %{conn: conn, chan: chan}) do
+    {:noreply, %{state | conn: conn, chan: chan}}
+  end
+
+  defp compute_reply_from_amqp_state(state, error) do
+    # Run error warning if error not nil
+    if error,
+      do: FarmbotCore.Logger.error(1, "Failed to connect to AutoSync channel: #{inspect(error)}")
+
+    {:noreply, %{state | conn: nil, chan: nil}}
   end
 end

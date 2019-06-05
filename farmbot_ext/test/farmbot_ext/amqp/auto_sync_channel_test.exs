@@ -35,8 +35,8 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
       :ok
     end)
 
-    expect(MockConnectionWorker, :maybe_connect, fn jwt ->
-      send(test_pid, {:maybe_connect_called, jwt})
+    expect(MockConnectionWorker, :maybe_connect_autosync, fn jwt ->
+      send(test_pid, {:maybe_connect_autosync_called, jwt})
       fake_value
     end)
 
@@ -52,7 +52,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannelTest do
 
     {:ok, pid} = FarmbotExt.AMQP.AutoSyncChannel.start_link([jwt: jwt], [])
     assert_receive :preload_all_called
-    assert_receive {:maybe_connect_called, "device_15"}
+    assert_receive {:maybe_connect_autosync_called, "device_15"}
 
     Map.merge(%{pid: pid}, FarmbotExt.AMQP.AutoSyncChannel.network_status(pid))
   end

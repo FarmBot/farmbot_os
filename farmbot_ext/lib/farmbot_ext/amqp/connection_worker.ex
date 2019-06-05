@@ -98,8 +98,8 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
     Keyword.get(mod, :network_impl, FarmbotExt.AMQP.ConnectionWorker.Network)
   end
 
-  def maybe_connect(jwt_bot_claim) do
-    network_impl().maybe_connect(jwt_bot_claim)
+  def maybe_connect_autosync(jwt_bot_claim) do
+    network_impl().maybe_connect_autosync(jwt_bot_claim)
   end
 
   def close_channel(channel) do
